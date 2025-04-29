@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head id="boot-head">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>REPLOID x0 v0</title>
+    <link
+      rel="icon"
+      href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48Y2lyY2xlIGN4PSI1MCIgY3k9IjUwIiByPSI1MCIgZmlsbD0id2hpdGUiLz48L3N2Zz4="
+    />
+    <style id="boot-style">
+      body {
+        font-family: monospace;
+        background-color: black;
+        color: #ccc;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+        justify-content: center;
+        align-items: center;
+        user-select: none;
+      }
+      #start-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 20px;
+        padding: 20px;
+        text-align: center;
+      }
+      .start-button {
+        background-color: black;
+        color: white;
+        border: 2px solid white;
+        padding: 15px 30px;
+        font-size: 1.2em;
+        font-family: monospace;
+        cursor: pointer;
+        min-width: 250px;
+        transition: background-color 0.2s, color 0.2s;
+      }
+      .start-button:hover {
+        background-color: white;
+        color: black;
+      }
+      .button-description {
+        font-size: 0.9em;
+        color: gray;
+        max-width: 250px;
+      }
+      #loading-container {
+        width: 100%;
+        text-align: left;
+        align-self: flex-start;
+        box-sizing: border-box;
+        padding: 5px;
+      }
+      #loading-indicator {
+        font-size: 1em;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+        max-height: calc(100vh - 10px);
+        overflow-y: auto;
+        text-align: left;
+      }
+      #loading-indicator div.log-entry {
+        display: block;
+        margin-bottom: 1px;
+        text-align: left;
+        line-height: 1.3;
+      }
+      #loading-indicator .log-info {
+        color: #ddd;
+      }
+      #loading-indicator .log-warn {
+        color: #f9d71c;
+      }
+      #loading-indicator .log-error {
+        color: #ff6b6b;
+        font-weight: bold;
+      }
+      #loading-indicator .log-success {
+        color: #76ff7a;
+        font-weight: bold;
+      }
+      #loading-indicator .log-detail {
+        color: #bbb;
+        margin-left: 15px;
+      }
+      #app-root {
+        visibility: hidden;
+        opacity: 0;
+        transition: opacity 0.5s ease-in-out;
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+      }
+      #app-root.visible {
+        visibility: visible;
+        opacity: 1;
+      }
+      .hidden {
+        display: none !important;
+      }
+      @media (max-width: 600px) {
+        .start-button {
+          min-width: 80%;
+          font-size: 1.1em;
+          padding: 12px 25px;
+        }
+        .button-description {
+          font-size: 0.8em;
+        }
+        #start-container {
+          width: 90%;
+        }
+      }
+    </style>
+  </head>
+  <body id="boot-body">
+    <div id="start-container">
+      <div>
+        <button id="continue-button" class="start-button">Continue</button>
+        <p class="button-description">
+          Load existing state from browser storage...
+        </p>
+      </div>
+      <div>
+        <button id="reset-button" class="start-button">Reset</button>
+        <p class="button-description">
+          Clear stored data and boot from scatch...
+        </p>
+      </div>
+    </div>
+    <div id="loading-container" class="hidden">
+      <div id="loading-indicator"></div>
+    </div>
+    <div id="app-root"></div>
+
+    <script src="boot.js" async defer></script>
+  </body>
+</html>

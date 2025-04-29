@@ -1,0 +1,243 @@
+[
+  {
+    "name": "code_linter",
+    "description": "Analyzes code artifact syntax for potential errors.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "artifactId": {
+          "type": "string",
+          "description": "The ID of the artifact to lint."
+        },
+        "cycle": {
+          "type": "integer",
+          "description": "The cycle number of the artifact version to lint."
+        },
+        "versionId": {
+          "type": "string",
+          "description": "Optional: Specific version ID if multiple versions exist for the cycle."
+        },
+        "language": {
+          "type": "string",
+          "enum": ["javascript", "css", "html", "json"],
+          "description": "The language of the code artifact."
+        }
+      },
+      "required": ["artifactId", "cycle", "language"]
+    }
+  },
+  {
+    "name": "json_validator",
+    "description": "Validates the JSON structure of a specific artifact version.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "artifactId": {
+          "type": "string",
+          "description": "The ID of the JSON artifact to validate."
+        },
+        "cycle": {
+          "type": "integer",
+          "description": "The cycle number of the artifact version to validate."
+        },
+        "versionId": {
+          "type": "string",
+          "description": "Optional: Specific version ID if multiple versions exist for the cycle."
+        }
+      },
+      "required": ["artifactId", "cycle"]
+    }
+  },
+  {
+    "name": "read_artifact",
+    "description": "Reads and returns the full content of a specific artifact version.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "artifactId": {
+          "type": "string",
+          "description": "The ID of the artifact to read."
+        },
+        "cycle": {
+          "type": "integer",
+          "description": "The cycle number of the artifact version to read."
+        },
+        "versionId": {
+          "type": "string",
+          "description": "Optional: Specific version ID if multiple versions exist for the cycle."
+        }
+      },
+      "required": ["artifactId", "cycle"]
+    }
+  },
+  {
+    "name": "list_artifacts",
+    "description": "Lists latest artifact metadata based on optional filters.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "filterType": {
+          "type": "string",
+          "description": "Optional: Filter artifacts by type (e.g., JS, CSS, HTML, EVAL_DEF)."
+        },
+        "filterPattern": {
+          "type": "string",
+          "description": "Optional: Filter artifact IDs by a regex pattern."
+        },
+        "includeAllVersions": {
+          "type": "boolean",
+          "description": "Optional: If true, returns all versions for matching IDs, otherwise just the latest. Default false."
+        }
+      },
+      "required": []
+    }
+  },
+  {
+    "name": "diff_text",
+    "description": "Performs a basic line-by-line difference check between two text inputs.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "textA": { "type": "string", "description": "The first text string." },
+        "textB": { "type": "string", "description": "The second text string." }
+      },
+      "required": ["textA", "textB"]
+    }
+  },
+  {
+    "name": "convert_to_gemini_fc",
+    "description": "Converts an MCP-style tool definition into the Gemini FunctionDeclaration format.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "mcpToolDefinition": {
+          "type": "object",
+          "description": "A tool definition object following the MCP Tool schema structure ({ name, description, inputSchema: { type: 'object', properties: {...}, required: [...] } })."
+        }
+      },
+      "required": ["mcpToolDefinition"]
+    }
+  },
+  {
+    "name": "code_edit",
+    "description": "Validates proposed code edits for an artifact. Used internally by HITL.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "artifactId": {
+          "type": "string",
+          "description": "The ID of the artifact being edited."
+        },
+        "cycle": {
+          "type": "integer",
+          "description": "The cycle number of the original artifact version being edited."
+        },
+        "versionId": {
+          "type": "string",
+          "description": "Optional: Specific version ID of the original artifact."
+        },
+        "newContent": {
+          "type": "string",
+          "description": "The proposed new content for the artifact."
+        }
+      },
+      "required": ["artifactId", "cycle", "newContent"]
+    }
+  },
+  {
+    "name": "run_self_evaluation",
+    "description": "Executes a self-evaluation task using an LLM based on defined criteria and a target artifact or proposal.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "targetArtifactId": {
+          "type": "string",
+          "description": "The ID of the artifact to be evaluated (or a pseudo-ID for evaluating a proposal)."
+        },
+        "targetArtifactCycle": {
+          "type": "integer",
+          "description": "The cycle number of the target artifact version (or the cycle the proposal was generated)."
+        },
+        "targetArtifactVersionId": {
+          "type": "string",
+          "description": "Optional: Specific version ID if evaluating one of multiple versions."
+        },
+        "evalCriteriaText": {
+          "type": "string",
+          "description": "The evaluation criteria text (can be extensive)."
+        },
+        "goalContextText": {
+          "type": "string",
+          "description": "The relevant goal context for the evaluation."
+        },
+        "evalDefinitionId": {
+          "type": "string",
+          "description": "Optional: ID of an EVAL_DEF artifact containing criteria."
+        },
+        "contentToEvaluate": {
+          "type": "string",
+          "description": "Optional: Explicit content to evaluate, overriding fetching from storage (e.g., for evaluating LLM justifications)."
+        }
+      },
+      "required": [
+        "targetArtifactId",
+        "targetArtifactCycle",
+        "evalCriteriaText",
+        "goalContextText"
+      ]
+    }
+  },
+  {
+    "name": "apply_diff_patch",
+    "description": "Applies a standard diff patch to a text artifact.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "artifactId": {
+          "type": "string",
+          "description": "ID of the artifact to patch."
+        },
+        "cycle": {
+          "type": "integer",
+          "description": "Cycle of the original artifact version."
+        },
+        "versionId": {
+          "type": "string",
+          "description": "Optional: Specific version ID of the original artifact."
+        },
+        "patchContent": {
+          "type": "string",
+          "description": "The diff patch content (unified diff format preferred)."
+        }
+      },
+      "required": ["artifactId", "cycle", "patchContent"]
+    }
+  },
+  {
+    "name": "apply_json_patch",
+    "description": "Applies a JSON Patch (RFC 6902) to a JSON artifact.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "artifactId": {
+          "type": "string",
+          "description": "ID of the JSON artifact to patch."
+        },
+        "cycle": {
+          "type": "integer",
+          "description": "Cycle of the original JSON artifact version."
+        },
+        "versionId": {
+          "type": "string",
+          "description": "Optional: Specific version ID of the original artifact."
+        },
+        "patchContent": {
+          "type": "array",
+          "items": { "type": "object" },
+          "description": "An array of JSON Patch operations."
+        }
+      },
+      "required": ["artifactId", "cycle", "patchContent"]
+    }
+  }
+]

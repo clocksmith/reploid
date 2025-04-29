@@ -1,0 +1,126 @@
+{
+  "LS_PREFIX": "_x0_",
+  "STATE_KEY_BASE": "x0_state_v",
+  "SESSION_STATE_KEY_BASE": "x0_session_state_v",
+  "STATE_VERSION": "0.2.0",
+  "MAX_ARTIFACT_SIZE_BYTES": 4194304,
+  "MAX_LOG_LENGTH": 50000,
+  "CTX_WARN_THRESH": 300000,
+  "CTX_TARGET": 350000,
+  "EVAL_PASS_THRESHOLD": 0.75,
+  "SVG_NS": "http://www.w3.org/2000/svg",
+  "GEMINI_STREAM_ENDPOINT_BASE": "https://generativelanguage.googleapis.com/v1beta/models/",
+  "API_RETRY_DELAY_BASE_MS": 1500,
+  "DYNAMIC_TOOL_TIMEOUT_MS": 10000,
+  "WORKER_SCRIPT_PATH": "tool-worker.js",
+  "NUM_CRITIQUES_TO_GENERATE": 1,
+  "DEFAULT_MODELS": {
+    "BASE": "gemini-2.0-flash-thinking-exp",
+    "ADVANCED": "gemini-2.5-pro-exp-03-25"
+  },
+  "DEFAULT_CFG": {
+    "personaBalance": 50,
+    "llmCritiqueProb": 50,
+    "humanReviewProb": 50,
+    "maxCycleTime": 600,
+    "autoCritiqueThresh": 0.75,
+    "maxCycles": 0,
+    "htmlHistoryLimit": 5,
+    "pauseAfterCycles": 10,
+    "maxRetries": 1,
+    "autonomyMode": "Manual",
+    "autonomyDefaultNCycles": 5,
+    "contextTokenTarget": 350000,
+    "coreModel": "ADVANCED",
+    "critiqueModel": "BASE",
+    "summarizerModel": "BASE",
+    "evaluatorModel": "BASE"
+  },
+  "GENESIS_ARTIFACT_DEFS": {
+    "reploid.core.config": {
+      "filename": "config.json",
+      "type": "JSON_CONFIG",
+      "description": "Central application configuration"
+    },
+    "reploid.core.logic": {
+      "filename": "app-logic.js",
+      "type": "JS",
+      "description": "Main application logic orchestrator"
+    },
+    "reploid.core.style": {
+      "filename": "ui-style.css",
+      "type": "CSS",
+      "description": "Main application styles"
+    },
+    "reploid.core.body": {
+      "filename": "ui-body-template.html",
+      "type": "HTML",
+      "description": "App root HTML structure"
+    },
+    "reploid.core.utils": {
+      "filename": "utils.js",
+      "type": "JS",
+      "description": "Core utility functions"
+    },
+    "reploid.core.storage": {
+      "filename": "storage.js",
+      "type": "JS",
+      "description": "Core storage functions"
+    },
+    "reploid.core.statemanager": {
+      "filename": "state-manager.js",
+      "type": "JS",
+      "description": "Core state management logic"
+    },
+    "reploid.core.ui": {
+      "filename": "ui-manager.js",
+      "type": "JS",
+      "description": "Core UI rendering and event handling"
+    },
+    "reploid.core.apiclient": {
+      "filename": "api-client.js",
+      "type": "JS",
+      "description": "Handles API communication"
+    },
+    "reploid.core.cyclelogic": {
+      "filename": "agent-cycle.js",
+      "type": "JS",
+      "description": "Main application cycle orchestration"
+    },
+    "reploid.core.sys-prompt": {
+      "filename": "prompt-system.txt",
+      "type": "PROMPT",
+      "description": "Core LLM prompt"
+    },
+    "reploid.core.critiquer-prompt": {
+      "filename": "prompt-critiquer.txt",
+      "type": "PROMPT",
+      "description": "Critique prompt"
+    },
+    "reploid.core.summarizer-prompt": {
+      "filename": "prompt-summarizer.txt",
+      "type": "PROMPT",
+      "description": "Summarization prompt"
+    },
+    "reploid.core.evaluator-prompt": {
+      "filename": "prompt-evaluator.txt",
+      "type": "PROMPT",
+      "description": "Self-evaluation prompt"
+    },
+    "reploid.core.static-tools": {
+      "filename": "data-tools-static.json",
+      "type": "JSON",
+      "description": "Static tool definitions"
+    },
+    "reploid.core.toolrunner": {
+      "filename": "tool-runner.js",
+      "type": "JS",
+      "description": "Tool execution engine (static + dynamic via worker)"
+    },
+    "reploid.core.default-eval": {
+      "filename": "data-eval-default.json",
+      "type": "EVAL_DEF",
+      "description": "Default Evaluation Definition"
+    }
+  }
+}
