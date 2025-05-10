@@ -7,24 +7,46 @@ Proposed Changes Description:
 [[PROPOSED_CHANGES_DESC]]
 
 Proposed Artifact Changes Summary:
-*   Modified: [[MODIFIED_ARTIFACT_IDS_VERSIONS]]
-*   New: [[NEW_ARTIFACT_IDS_TYPES_VERSIONS]]
-*   Deleted: [[DELETED_ARTIFACT_IDS]]
-*   Modular: [[MODULAR_ARTIFACT_IDS_VERSIONS]]
-*   Full Source: [[HAS_FULL_HTML_SOURCE]]
-*   New Tools: [[NEW_TOOL_NAMES]]
+
+Modified: [[MODIFIED_ARTIFACT_IDS_VERSIONS]]
+
+New: [[NEW_ARTIFACT_IDS_TYPES_VERSIONS]]
+
+Deleted: [[DELETED_ARTIFACT_IDS]]
+
+Modular: [[MODULAR_ARTIFACT_IDS_VERSIONS]]
+
+Full Source: [[HAS_FULL_HTML_SOURCE]]
+
+New Tools: [[NEW_TOOL_NAMES]]
+
+Web Components Defined (via tool_calls to define_web_component): [[NEW_WEB_COMPONENT_TAG_NAMES]]
 
 Task:
-Critique the *primary* proposed changes based on Goal Type and Cumulative Context. If multiple versions are proposed (indicated in summaries), focus critique on the most likely candidate based on description/confidence, but note the existence of alternatives.
-- System Goal: Check 'target.*' artifacts (syntax, consistency, goal alignment, B+W theme). Validate tool decl/impl if present.
-- Meta (Modular/Full): Check 'reploid.*' artifacts (syntax, consistency, side-effects, goal alignment). Validate tools. Check HTML integrity/state preservation for full source.
-Overall: Does the primary proposal plausibly address the cumulative goal? Is confidence score reasonable? Does the description accurately reflect the changes summary? Are modular edits plausible?
+Critique the primary proposed changes.
 
-Report: Output concise, factual list of failures in the primary proposal or confirm success. Note if alternatives exist.
+System Goal: Check 'target.*' artifacts (syntax, consistency, goal alignment). Validate tool/WC decl/impl if present.
+
+Meta Goal: Check 'reploid.*' artifacts (syntax, consistency, side-effects, goal alignment). Validate tools/WCs. Check HTML integrity/state preservation for full source. If hitlOnMetaChanges is active, Meta changes (especially to reploid.core.* or new reploid.core.webcomponent.*) require stricter scrutiny; if plausible but significant, recommend human review even if critique passes.
+Overall: Does proposal address goal? Is confidence score reasonable? Does description match changes?
+Web Component Checks (if define_web_component is called):
+
+tagName: Is it valid (lowercase, includes a hyphen)?
+
+classContent: Does it appear to be a JS class extending HTMLElement? Does it have a constructor() and potentially connectedCallback()? (Basic plausibility, not full JS linting).
+
+targetArtifactId: Is it a reasonable ID for a WEB_COMPONENT_DEF artifact?
+
+If reploid.core.webcomponent.*, is the change justified and necessary for core functionality?
+
+Report: Output concise, factual list of failures or confirm success. Note if Meta change warrants human review.
 Output (JSON ONLY): {"critique_passed": boolean, "critique_report": "string"}
-**ADDITIONAL INSTRUCTIONS:**
-*   **Output Strictness:** YOU MUST output ONLY a single valid JSON object: `{"critique_passed": boolean, "critique_report": "string"}`. Do NOT include any text before or after the JSON object.
-*   **Factual Reporting:** List specific, objective reasons for failure (e.g., "JS syntax error in target.script.main#v1", "CSS change #v2 does not implement red button", "Modular edit target_block 'renderList' not found in original artifact", "Full HTML source missing core state restoration logic") or confirm success clearly (e.g., "Proposal aligns with goal and primary artifact changes appear correct.").
-*   **Consistency Check:** Verify if the `[[PROPOSED_CHANGES_DESC]]` accurately reflects the provided change summaries. Note discrepancies.
-*   **Tool Validation:** If new tools (`[[NEW_TOOL_NAMES]]`) are proposed, check if the primary implementation seems plausible for its declaration and if the schema is well-formed. Note basic issues.
-*   **Focus:** Critique the *primary* path/version intended by the agent, acknowledging alternatives but not blocking based on them unless the primary is flawed.
+ADDITIONAL INSTRUCTIONS:
+
+Output Strictness: YOU MUST output ONLY a single valid JSON object.
+
+Factual Reporting: List specific, objective reasons for failure or confirm success.
+
+Consistency Check: Verify [[PROPOSED_CHANGES_DESC]] against summaries.
+
+Tool/WC Validation: Basic plausibility checks for new tools or Web Components.

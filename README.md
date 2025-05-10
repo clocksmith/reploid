@@ -1,21 +1,21 @@
-# REPLOID (Reflective Embodiment Providing Logical Oversight for Intelligent DREAMER (Deep Recursive Exploration Around Multimodal Embodying REPLOID)) x0.0.0 DREAMER (Deep Recursive Exploration Around Multimodal Embodying REPLOID (Reflective Embodiment Providing Logical Oversight for Intelligent DREAMER)) v0.0.0
+# REPLOID (Reflective Embodiment Providing Logical Oversight for Intelligent DREAMER (Deep Recursive Exploration Around Multimodal Embodying REPLOID)) x0.3.0 DREAMER (Deep Recursive Exploration Around Multimodal Embodying REPLOID (Reflective Embodiment Providing Logical Oversight for Intelligent DREAMER)) v0.3.0
 
 **REPLOID/DREAMER** is an experimental, self-contained HTML/CSS/JS application demonstrating a conceptual framework for LLM-driven iterative design, development, dynamic tool creation, and recursive self-improvement (RSI). It operates entirely within the browser, leveraging the Google Gemini API and the browser's `localStorage` for persistent, versioned artifact storage. This project explores creating agents that can reflect on their own structure and modify themselves to better achieve goals, all within the constraints of a standard web browser.
 
-The core idea treats every component (UI, logic, prompts, tools) as versioned **artifacts** stored in `localStorage`. The agent ('x0', with dual LSD/XYZ personas) analyzes goals, reads artifacts, proposes changes, and saves outputs for the next cycle, creating a traceable history.
+The core idea treats every component (UI, logic, prompts, tools, **Web Components**) as versioned **artifacts** stored in `localStorage`. The agent ('x0', with dual LSD/XYZ personas) analyzes goals, reads artifacts, proposes changes, and saves outputs for the next cycle, creating a traceable history.
 
 ## Architectural Overview
 
 REPLOID uses a modular structure orchestrated after bootstrapping:
 
-1.  **Bootstrap (`index.html`, `boot.js`):** Initial load, checks/loads/initializes state & essential artifacts (with checksums) from `localStorage`, handles Genesis process if needed, loads the core logic orchestrator.
-2.  **Orchestrator (`app-logic.js`):** Dynamically loads modules (`StateManager`, `UI`, `ApiClient`, `CycleLogic`, `ToolRunner`, etc.) and manages dependencies.
-3.  **`StateManager` (`state-manager.js`):** Manages the application state (config, metrics, goals, **artifact metadata with versions**, autonomy state, history buffers). Handles persistence, validation, import/export.
-4.  **`CycleLogic` (`agent-cycle.js`):** Orchestrates the main execution loop (9 refined steps), prepares prompts, calls `ApiClient`, processes responses (including tool calls/definitions), triggers critiques/HITL/evaluation, manages autonomy, calls `ToolRunner`, and instructs `Storage` via `StateManager` to apply changes.
-5.  **`UI` (`ui-manager.js`):** Renders the interface (timeline, artifact display, config, controls, HITL/Sandbox UI, preview), handles events.
-6.  **`ApiClient` (`api-client.js`):** Interacts with the Gemini API (streaming, function calling, retries, aborts).
-7.  **`ToolRunner` (`tool-runner.js`):** Executes static tools (internal logic) and dynamic tools (sandboxed via Web Workers). Handles `convert_to_gemini_fc`.
-8.  **Modules & Data (`utils.js`, `storage.js`, `*.txt`, `*.json`, etc.):** Provide utilities, storage abstraction, prompts, and initial configuration/data.
+1.  **Bootstrap (`index.html`, `errors.js`, `boot.js`):** Initial load, loads custom error definitions (`errors.js`). Checks for existing state, loads/initializes essential artifacts (with checksums) from `localStorage`, and handles the Genesis process if needed. **Registers core Web Components** (e.g., `reploid.core.webcomponent.*`) defined as artifacts. Finally, loads the core logic orchestrator.
+2.  **Orchestrator (`app-logic.js`):** Dynamically loads modules (`StateManager`, `UI`, `ApiClient`, `CycleLogic`, `ToolRunner`, etc.) and manages dependencies, passing error handling primitives. It also calls for the registration of any core Web Components after `StateManager` is initialized.
+3.  **`StateManager` (`state-manager.js`):** Manages the application state, including configuration, metrics, goals, **artifact metadata with versions (now including `WEB_COMPONENT_DEF` for Web Component definitions)**, autonomy state, history buffers, and a **list of currently registered Web Components**. Handles persistence, validation, and import/export functionalities.
+4.  **`CycleLogic` (`agent-cycle.js`):** Orchestrates the main execution loop (9 refined steps). Prepares prompts (informing the LLM about registered Web Components), calls `ApiClient`, processes responses (including tool calls like `define_web_component`), triggers critiques/HITL/evaluation, manages autonomy, calls `ToolRunner`, and instructs `Storage` via `StateManager` to apply changes. **Includes logic for triggering Human-In-The-Loop (HITL) for Meta goals that modify core system components (including core Web Components), if configured (`hitlOnMetaChanges`).**
+5.  **`UI` (`ui-manager.js`):** Renders the user interface, including the timeline, artifact display, configuration panel, controls, HITL/Sandbox UI, and preview pane. Handles user events. Standard HTML rendering will now utilize defined Web Components within `target.body.html` or `reploid.core.body.html`.
+6.  **`ApiClient` (`api-client.js`):** Interacts with the Google Gemini API, managing streaming responses, function calling, retries, and abort mechanisms, with enhanced custom error propagation.
+7.  **`ToolRunner` (`tool-runner.js`):** Executes static tools (internal logic, including the new `define_web_component` tool) and dynamic tools (sandboxed via Web Workers). Handles `convert_to_gemini_fc` for tool definition compatibility.
+8.  **Modules & Data (`utils.js`, `storage.js`, `*.txt`, `*.json`, etc.):** Provide utilities, storage abstraction, system prompts (updated for Web Component awareness), and initial configuration/data. Custom error definitions are centralized in `errors.js`.
 
 ## Use Case Examples
 
@@ -38,49 +38,42 @@ REPLOID uses a modular structure orchestrated after bootstrapping:
   - **Apply:** `CycleLogic` adds the new dynamic tool definition to `state.dynamicTools` and saves the updated `reploid.core.evaluator-prompt` artifact for Cycle N+1.
 - **Cycle N+2 (Self-Evaluation Scenario):** When the agent later calls the `run_self_evaluation` tool on a JS artifact, it (or the evaluation LLM guided by the updated prompt) can now _also_ call `analyze_code_complexity` on the target artifact. The complexity score becomes part of the evaluation context, potentially leading to lower evaluation scores for overly complex code and encouraging simpler solutions in future cycles.
 
-**Example 3: System Goal + Dynamic Tool - Weather Display**
+**Example 3: System Goal - Create a Reusable Info Card Web Component**
 
-- **Goal (C X):** "Create a tool to fetch current temperature for a city using OpenWeatherMap API (assume key available). Display city/temp on the target page." (Type: System)
-- **Cycle X+1:** Agent proposes+generates: 1) Dynamic tool `get_city_temperature` (schema + JS implementation using `fetch`), 2) Changes to `target.body` (placeholders), 3) New `target.script.weather` (calls tool, updates DOM). Applies changes, adds tool to state.
-- **Goal (C X+1):** "Add button/input field to trigger weather lookup." (Type: System)
-- **Cycle X+2:** Agent modifies `target.body`/`target.script.weather`. Specifies `tool_call` for `code_linter` on the new script. Tool runs, passes. Changes applied. User interaction in preview now triggers the dynamic tool.
+- **Goal (C0):** "Create a Web Component named 'info-card' that displays a title and content. It should have attributes 'card-title' and 'card-content'. Save its definition as 'target.webcomponent.info-card-def'. Then, use this component in 'target.body.html' to display 'Welcome' and 'This is a REPLOID demo.'."
+- **Cycle 1:**
+    - **Analysis & Proposal:** Agent decides to use the `define_web_component` tool. Proposes a JavaScript class string for the `<info-card>` element and modifications to `target.body.html` to use it.
+    - **Tool Call:** Agent proposes a call to `define_web_component` with parameters: `tagName: 'info-card'`, the JavaScript class string, `targetArtifactId: 'target.webcomponent.info-card-def'`, and a description like "Displays a title and content."
+    - **Artifact Creation:** The `define_web_component` tool executes, saving the provided JavaScript class string as an artifact named `target.webcomponent.info-card-def` with type `WEB_COMPONENT_DEF`.
+    - **Registration:** The tool then calls `customElements.define('info-card', TheGeneratedClass)` to make the component available in the DOM. `StateManager` records 'info-card' as registered.
+    - **HTML Update:** Agent generates new content for `target.body.html` artifact, which now includes `<info-card card-title="Welcome" card-content="This is a REPLOID demo."></info-card>`.
+    - **UI Preview:** The UI Preview pane updates, rendering the new `target.body.html`, and the `<info-card>` component displays the title and content.
+- **Cycle 2 (Meta Goal - Improve Core UI with a Web Component):** "Create a core Web Component 'reploid-status-bar' to display the current cycle number and active persona. Save its definition as 'reploid.core.webcomponent.status-bar-def'. Integrate this new component into 'reploid.core.body.html'."
+    - **Cycle:** Agent proposes a `define_web_component` tool call for `reploid-status-bar` and modifications to `reploid.core.body.html`.
+    - **HITL Trigger:** Since this is a Meta goal modifying a `reploid.core.*` artifact (both the new WC definition and `reploid.core.body.html`), and `hitlOnMetaChanges` is true by default, this cycle will likely trigger a Human-In-The-Loop pause for review and confirmation before the changes are applied and the page reloads (if `reploid.core.body.html` modification requires it).
 
-**Example 4: Meta Goal + RSI - Implementing Self-Correction Planning**
+**Example 4: System Goal + Dynamic Tool - Weather Display** (Original Example - still valid)
+... (Content from original README's Example 3) ...
 
-- **Scenario:** A cycle fails due to a critique rejecting a proposal or a tool execution error, and standard retries don't resolve it, forcing HITL. The agent needs a better way to recover.
-- **Goal (Cycle Z):** "When a cycle fails definitively (e.g., max retries reached, critique failure after feedback), instead of just stopping or requiring generic HITL, implement a self-correction planning mechanism. Create a dynamic tool 'propose_correction_plan'. Input: failureAnalysis (string). Output: JSON { proposed_actions: [{ artifact_id, change_description, rationale }], confidence }. Modify `CycleLogic` (`reploid.core.cyclelogic`) to call this tool on critical failure, using the generated plan to potentially inform the next cycle's goal or provide more structured options for HITL." (Type: Meta)
-- **Cycle Z+1:**
-  - **Analysis:** Agent understands the need for a recovery planning tool and modification to its core cycle logic. Targets `reploid.core.cyclelogic` and proposes the new tool.
-  - **Proposal:** Proposes `propose_correction_plan` tool (schema + implementation - likely calling the core LLM with a specific prompt template focused on analyzing the failure string and proposing targeted fixes). Proposes modifications to the error/retry/HITL handling sections of `reploid.core.cyclelogic` to integrate the call to this new tool. Confidence: 0.75.
-  - **Generation:** LLM generates the tool code and the complex Javascript modifications for `reploid.core.cyclelogic`.
-  - **Critique:** Auto-critique runs. It might struggle to fully validate the complex logic changes in `reploid.core.cyclelogic` but checks for basic syntax and plausibility. Passes with caveats.
-  - **Apply:** Tool added to state. Modified `reploid.core.cyclelogic` saved for Cycle Z+1. **Requires page reload to take effect.**
-- **Cycle Z+2 (Failure Scenario):** A future cycle fails critically. The _updated_ `CycleLogic` now runs. Instead of generic HITL, it calls `propose_correction_plan` with details of the failure. The tool returns a structured plan (e.g., "[Modify artifact X because...], [Rerun tool Y with different params because...]"). `CycleLogic` then either uses this plan to auto-generate the next cycle's goal ("Attempt correction: [Plan Action 1]") or presents the structured plan as options in the HITL UI.
+**Example 5: Meta Goal + RSI - Implementing Self-Correction Planning** (Original Example - still valid)
+... (Content from original README's Example 4) ...
 
-**Example 5: Meta Goal + Domain Tool - Transformer Config Generator**
+**Example 6: Meta Goal + Domain Tool - Transformer Config Generator** (Original Example - still valid)
+... (Content from original README's Example 5) ...
 
-- **Goal (Cycle T):** "Enable representing basic Transformer model architectures. Create a dynamic tool 'generate_transformer_config'. Input: description (string detailing layers, heads, dimensions, etc.). Output: A structured JSON object representing this configuration. Also, create a new artifact type 'TRANSFORMER_CONFIG' and update artifact metadata logic if needed." (Type: Meta)
-- **Cycle T+1:**
-  - **Analysis:** Agent identifies need for a new tool focused on a specific data structure (AI model config).
-  - **Proposal:** Proposes the `generate_transformer_config` tool (schema + JS implementation that parses the description string and constructs the JSON). May also propose changes to `StateManager` or utils if a new artifact type needs formal recognition (or just uses JSON type). Confidence: 0.8.
-  - **Generation:** LLM generates the tool code.
-  - **Critique:** Passes.
-  - **Apply:** Tool added to state. Modified `StateManager` (if needed) saved for Cycle T+1 (requires reload).
-- **Cycle T+2 (Usage):**
-  - **Goal:** "Generate a config for a 6-layer, 8-head transformer with dim 512 and save it as 'target.model.small_transformer_cfg'." (Type: System, using the new Meta-generated tool)
-  - **Cycle:** Agent proposes calling `generate_transformer_config` and creating a new artifact `target.model.small_transformer_cfg` of type JSON (or TRANSFORMER_CONFIG) with the tool's output. Cycle completes, saving the JSON config artifact.
 
 ## How It Works (Core Concepts & Usage)
 
-- **Artifacts are Key:** Everything (code, UI, prompts, data) is a versioned artifact stored in `localStorage` (key includes cycle & optional version ID). Changes in cycle `N` are saved for cycle `N+1`.
-- **Cycle Loop:** (1) Define Goal -> (2) Analyze/Deliberate (LSD/XYZ Persona) -> (3) Propose Changes/Tools -> (4) LLM Call (+Tool Exec) -> (5) Critique Trigger Check -> (6) Critique/HITL -> (7) Apply (or Sandbox) -> (8) Evaluate -> (9) Next Action.
+- **Artifacts are Key:** Everything (code, UI structure, prompts, data, **Web Component definitions**) is a versioned artifact stored in `localStorage` (key includes cycle & optional version ID). Changes in cycle `N` are saved for cycle `N+1`.
+- **Web Components as Artifacts:** JavaScript class definitions for Web Components are stored as `WEB_COMPONENT_DEF` artifacts. The `define_web_component` tool is used by the LLM to propose, define, and register new components. Core Web Components (e.g., for Reploid's own UI) can be defined as artifacts and are registered during the bootstrap process. This allows for modular and reusable UI elements.
+- **Cycle Loop:** (1) Define Goal -> (2) Analyze/Deliberate (LSD/XYZ Persona) -> (3) Propose Changes/Tools/Web Components -> (4) LLM Call (+Tool Exec) -> (5) Critique Trigger Check -> (6) Critique/HITL -> (7) Apply (or Sandbox) -> (8) Evaluate -> (9) Next Action.
 - **Goals:** Use UI radio buttons:
-  - **System:** Modify external `target.*` artifacts (visible in Preview pane).
-  - **Meta:** Modify `reploid.*` artifacts (agent's own code/prompts) or generate `full_html_source`. Requires careful review, potentially via Sandbox Preview.
+  - **System:** Modify external `target.*` artifacts (visible in Preview pane), including defining and using `target.webcomponent.*`.
+  - **Meta:** Modify `reploid.*` artifacts (agent's own code/prompts/core WCs) or generate `full_html_source`. **Changes to core artifacts (including defining `reploid.core.webcomponent.*` or modifying `reploid.core.body.html`) default to requiring human confirmation via HITL.**
 - **Self-Mod Sandbox:** For major Meta changes (`full_html_source`), a preview appears. Approval reloads the page into the new version (state preserved via `sessionStorage`).
-- **Tools:** Static tools (e.g., lint, read) + Dynamically created tools (LLM generates schema + JS code, run in Web Worker).
-- **HITL:** Pauses occur on triggers (low confidence, errors, random, forced). UI provides modes for feedback, options, or direct code editing.
-- **State:** `StateManager` handles state (config, metrics, artifact metadata, history). Export/Import saves/loads metadata, not artifact content.
+- **Tools:** Static tools (e.g., lint, read, `define_web_component`) + Dynamically created tools (LLM generates schema + JS code, run in Web Worker).
+- **HITL & Confirmation:** Pauses occur on triggers (low confidence, errors, random, forced, **or Meta changes to core components if `hitlOnMetaChanges` is true**). UI provides modes for feedback, options, or direct code editing.
+- **State:** `StateManager` handles state (config, metrics, artifact metadata including Web Component definitions and registration status, history). Export/Import saves/loads metadata, not artifact content.
 - **Usage Steps:**
   1.  Provide Gemini API Key (UI or `config.js`).
   2.  Open `index.html`. Start (Continue/Reset).
@@ -88,11 +81,17 @@ REPLOID uses a modular structure orchestrated after bootstrapping:
   4.  Set Goal text + select Goal Type (System/Meta).
   5.  Run (Manual Cycle, N Cycles, or Continuous).
   6.  Monitor UI (Timeline, Cycle Details, Preview, Metrics).
-  7.  Handle HITL/Sandbox prompts.
+  7.  Handle HITL/Sandbox prompts, especially for Meta changes.
   8.  Use controls (Go Back, Export/Import, Reset Context, Clear Storage - CAREFUL!).
 
-## Key Features (v0.2.0+)
+## Key Features (v0.3.0+)
 
+- **Web Components as First-Class Artifacts (`WEB_COMPONENT_DEF`)**: Enabling modular UI and logic encapsulation.
+- **`define_web_component` Static Tool**: Allows the LLM to dynamically define and register new Web Components.
+- **Core Web Component Registration**: `reploid.core.webcomponent.*` artifacts are automatically registered on boot.
+- **Simplified HTML Artifacts**: `target.body.html` and `reploid.core.body.html` become more declarative through the use of Web Components.
+- **Default Human Confirmation for Core Meta Changes**: Enhances safety for self-modification, configurable via `hitlOnMetaChanges`.
+- **Updated System and Critique Prompts**: Guiding the LLM in effective Web Component definition and usage.
 - LocalStorage Persistence & Artifact Versioning (Cycle + optional ID).
 - Refined 9-Step Cycle-Based Iteration.
 - Dual Persona (LSD/XYZ).
@@ -100,70 +99,64 @@ REPLOID uses a modular structure orchestrated after bootstrapping:
 - Sandbox Preview & **Self-Modification Workflow via Reload**.
 - **Dynamic Tool Creation & Sandboxed Use** (Web Workers).
 - Unified Tool Interface (Gemini Function Calling).
-- Multi-Mode HITL (inc. Critique Feedback).
-- State Management (Load/Save, Import/Export, Versioning, Validation, Session Restore, Stats).
+- Multi-Mode HITL (inc. Critique Feedback) **with clearer UI prompts**.
+- State Management (Load/Save, Import/Export, Versioning, Validation, Session Restore, Stats, WC registration tracking).
 - Basic Autonomous Operation Modes.
-- Enhanced UI (Syntax Highlighting, Tool Summaries, Pan/Zoom Diagram).
-- Advanced API Client (Streaming, Retries, Abort).
+- Enhanced UI (Syntax Highlighting, Tool Summaries, Pan/Zoom Diagram, **improved cycle detail display**).
+- Advanced API Client (Streaming, Retries, Abort, **improved error handling**).
+- **Simplified Bootstrap Process (`boot.js`)**.
+- **More Robust Error Handling with Custom Error Types (`errors.js`)**.
 - Manual Context Summarization.
 - Basic Self-Evaluation Capability & History Tracking.
 - Storage Quota Awareness & Checksum Verification.
 
 ## Technical Stack / Limitations
 
-- **Core:** Vanilla JS (ES6+), HTML5, CSS3
+- **Core:** Vanilla JS (ES6+), HTML5, CSS3, **Web Components**
 - **LLM:** Google Gemini API (streaming)
-- **Sandboxing:** Web Workers API
+- **Sandboxing:** Web Workers API (for dynamic tools)
 - **Persistence:** `localStorage`, `sessionStorage`
-- **Highlighting:** Prism.js
-- **Limitations:** Experimental, localStorage size (~5-10MB), self-mod risks, tool sandboxing limits, patch tools are placeholders, complex error handling needed, prompt sensitivity, no API cost tracking.
+- **Highlighting:** Prism.js (or highlight.js if Prism is not found)
+- **Limitations:** Experimental, localStorage size (~5-10MB), self-mod risks (though mitigated by HITL for core changes). Tool sandboxing limits. Patch tools (`apply_diff_patch`, `apply_json_patch`) are still placeholders. Prompt sensitivity. No API cost tracking. Web Component class definition from string via `new Function()` has security implications if the source is not trusted (here, it's LLM-generated and ideally reviewed via HITL for core components).
 
 ## Next Steps / Future Work
 
-1.  **Implement Modular Artifact Improvement Tools:**
-    - **Description:** Fully implement the `apply_diff_patch` and `apply_json_patch` static tools using robust external libraries (e.g., `diff`, `fast-json-patch`). Implement dynamic tools for more complex structural editing (e.g., AST manipulation for replacing specific functions).
-    - **Category:** Feature Request (RSI)
-    - **Complexity:** 7/7
-2.  **Advanced Context Management (Selective Injection / Graceful Continuation):**
-    - **Description:** Implement sophisticated context management, like selecting only relevant history ("arc") or handling tasks exceeding token limits across multiple calls.
-    - **Proposed Solution:** Requires adding logic (LLM-driven or heuristic) to `CycleLogic._assembleCorePrompt` for selective injection. Requires `CycleLogic` and `ApiClient` changes to detect/anticipate token limits, save state, and formulate continuation prompts.
-    - **Category:** Feature Request / Code Improvement
-    - **Complexity:** 7/7
-3.  **Improve Error Handling Granularity:**
-    - **Description:** Use specific custom error types (e.g., `ApiError`, `ToolError`) for cleaner, more robust error handling in `CycleLogic` and other modules.
-    - **Proposed Solution:** Define custom error classes. Update modules to throw specific errors. Refactor `catch` blocks to handle different types appropriately.
-    - **Category:** Code Improvement
-    - **Complexity:** 4/7
-4.  **Add Basic Unit Tests:**
-    - **Description:** Introduce automated tests to prevent regressions.
-    - **Proposed Solution:** Use a framework (Jest/Vitest). Test utilities, pure storage functions, state logic, static tool logic, worker message handling. Requires test environment setup.
-    - **Category:** Code Improvement / Process Improvement
-    - **Complexity:** 5/7
-5.  **Implement Eval Refinement Loop:**
-    - **Description:** Use evaluation data and critiques to refine the evaluation process itself (e.g., improve `EVAL_DEF` artifacts or the evaluator prompt).
-    - **Proposed Solution:** Requires agent logic (likely Meta goal) to analyze `state.evaluationHistory`/`critiqueFeedbackHistory` and propose improvements to evaluation artifacts/prompts via the standard cycle.
-    - **Category:** Feature Request (RSI)
-    - **Complexity:** 6/7
-6.  **Implement Self-Improvement via Evals/Critiques:**
-    - **Description:** Use evaluation results/critiques to guide self-improvement of core agent components (prompts, logic via meta-goals).
-    - **Proposed Solution:** Enhance core prompt to explicitly use eval/critique history. Agent proposes modifications to core prompts or JS modules based on analysis of failures/low scores.
-    - **Category:** Feature Request (RSI)
-    - **Complexity:** 6/7
-7.  **Token Minimization Analysis & Optimization:**
-    - **Description:** Reduce LLM token usage.
-    - **Proposed Solution:** Analyze prompts for verbosity. Experiment with concise context representations. Refine summarization. Track token usage per component.
-    - **Category:** Performance / Code Improvement
-    - **Complexity:** 4/7
+1.  **Refine Web Component Lifecycle & Styling:**
+    *   **Description:** Explore Shadow DOM for robust encapsulation of Web Component styles and structure. Investigate more advanced styling strategies (e.g., CSS Custom Properties, `::part`). Evaluate alternatives to `new Function()` for defining WC classes from strings for improved security and CSP compatibility, perhaps by dynamically creating `<script>` tags or leveraging dynamic imports if feasible in the constrained environment.
+    *   **Category:** Architectural Refactor / Feature Request (Web Components)
+    *   **Complexity:** 7/7
+2.  **Web Component Based UI for Reploid Itself:**
+    *   **Description:** Incrementally refactor Reploid's own UI (elements currently managed by `ui-manager.js` and defined in `reploid.core.body.html`) to use `reploid.core.webcomponent.*` artifacts. This would make Reploid's own interface more self-modifiable.
+    *   **Category:** Architectural Refactor (RSI / UI)
+    *   **Complexity:** 7/7
+3.  **Implement Modular Artifact Improvement Tools:**
+    *   **Description:** Fully implement the `apply_diff_patch` and `apply_json_patch` static tools using robust external libraries (e.g., `diff-match-patch`, `fast-json-patch`). Implement dynamic tools for more complex structural editing (e.g., AST manipulation for replacing specific functions within JS or Web Component artifacts).
+    *   **Category:** Feature Request (RSI / Tooling)
+    *   **Complexity:** 7/7
+4.  **Advanced Context Management (Selective Injection / Graceful Continuation):**
+    *   **Description:** Implement sophisticated context management, like selecting only relevant history ("arc") or handling tasks exceeding token limits across multiple calls.
+    *   **Category:** Feature Request / Code Improvement
+    *   **Complexity:** 7/7
+5.  **Advanced Tooling for Web Components:**
+    *   **Description:** Develop tools to help the LLM (and human operator) work with Web Components, such as a tool to list a registered Web Component's observed attributes, methods, or events. Potentially a simple visual inspector for component properties.
+    *   **Category:** Feature Request (Tooling / Developer Experience)
+    *   **Complexity:** 6/7
+6.  **Add Basic Unit Tests:**
+    *   **Description:** Introduce automated tests for key modules (Utilities, StateManager, pure functions in CycleLogic, static tool logic including `define_web_component`, Web Component registration) to prevent regressions and improve robustness.
+    *   **Category:** Code Improvement / Process Improvement
+    *   **Complexity:** 5/7
+7.  **Refined Human-In-The-Loop (HITL) Experience:**
+    *   **Description:** Provide more granular HITL triggers and options beyond simple confirmation. For example, allow users to directly edit LLM proposals (including Web Component JS strings) before application, suggest alternative prompts, or approve/reject individual artifact changes within a larger proposal. Implement the `propose_correction_plan` tool.
+    *   **Category:** Feature Request (UI/UX)
+    *   **Complexity:** 6/7
 8.  **Browser-Cached Model Support (e.g., WebLLM / Transformers.js):**
-    - **Description:** Explore using models running locally in the browser via Web AI / ONNX / WebLLM etc.
-    - **Proposed Solution:** Abstract `ApiClient`. Integrate a library for local inference. Add UI config to select backend. Note capability differences.
-    - **Category:** Feature Request / Research
-    - **Complexity:** 7/7
-9.  **Enhance Configuration Management:**
-    - **Description:** Unify API key handling. Allow config overrides (e.g., URL params).
-    - **Proposed Solution:** Consolidate API key loading. Add logic in bootstrap to read URL params and merge with config/state.
-    - **Category:** Code Improvement
-    - **Complexity:** 3/7
+    *   **Description:** Explore using models running locally in the browser via Web AI / ONNX / WebLLM etc., for tasks like simple critiques, code suggestions, or tool logic generation.
+    *   **Category:** Feature Request / Research
+    *   **Complexity:** 7/7
+9.  **Implement Self-Improvement via Evals/Critiques:**
+    *   **Description:** Use evaluation results/critiques to guide self-improvement of core agent components (prompts, logic, even core Web Component definitions via meta-goals).
+    *   **Category:** Feature Request (RSI)
+    *   **Complexity:** 6/7
 
 ## Easter Eggs
 

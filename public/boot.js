@@ -16,6 +16,9 @@
   let config = null;
   let Utils = null;
   let Storage = null;
+  // Errors should be globally available from errors.js loaded in index.html
+  // but we can assign it here for clarity if needed within this scope after loading
+  let ErrorsScope = null;
   let blLogger = null;
 
   const bl = (() => {
@@ -200,12 +203,17 @@
     exportName,
     dependencies = {}
   ) {
-    const logger = blLogger || {
+    const loggerInstance = blLogger || {
       logEvent: (lvl, msg, det) =>
         console.error(`[BOOTSTRAP FALLBACK] ${msg}`, det || ""),
     };
-    const depNames = Object.keys(dependencies);
-    const depValues = Object.values(dependencies);
+    // Ensure Errors (globally defined by errors.js) is part of dependencies if not already passed explicitly
+    const allDependencies = {
+      ...dependencies,
+      Errors: window.Errors || ErrorsScope,
+    }; // Use window.Errors as it's set by errors.js
+    const depNames = Object.keys(allDependencies);
+    const depValues = Object.values(allDependencies);
 
     if (
       depNames.length !== depValues.length ||
@@ -214,14 +222,17 @@
       const missing = depNames.filter(
         (name, i) => depValues[i] === undefined || depValues[i] === null
       );
-      logger.logEvent(
+      loggerInstance.logEvent(
         "error",
         `Cannot load module ${filePath}: Missing dependencies ${missing.join(
           ", "
         )}`,
-        dependencies
+        allDependencies
       );
-      throw new Error(`Dependency error for ${filePath}`);
+      throw new (window.ConfigError || Error)(
+        `Dependency error for ${filePath}: Missing ${missing.join(", ")}`,
+        filePath
+      );
     }
 
     try {
@@ -229,25 +240,26 @@
         filePath + `?v=${config?.STATE_VERSION || Date.now()}`
       );
       if (!response.ok)
-        throw new Error(`HTTP ${response.status} for ${filePath}`);
+        throw new (window.ApiError || Error)(
+          `HTTP ${response.status} for ${filePath}`,
+          response.status
+        );
       const scriptContent = await response.text();
       const tempScope = {};
       const funcArgs = ["tempScope", ...depNames];
-      const funcBody = `
-        ${scriptContent}
-        tempScope.result = (typeof ${exportName} !== 'undefined') ? ${exportName} : undefined;
-      `;
+      const funcBody = `${scriptContent}\ntempScope.result = (typeof ${exportName} !== 'undefined') ? ${exportName} : undefined;`;
 
       const factoryFunction = new Function(...funcArgs, funcBody);
       factoryFunction(tempScope, ...depValues);
 
       if (tempScope.result === undefined) {
-        logger.logEvent(
+        loggerInstance.logEvent(
           "warn",
           `Module ${filePath} executed, but export '${exportName}' was not found.`
         );
-        throw new Error(
-          `Module ${filePath} did not yield expected export '${exportName}'.`
+        throw new (window.ConfigError || Error)(
+          `Module ${filePath} did not yield expected export '${exportName}'.`,
+          filePath
         );
       }
 
@@ -256,30 +268,31 @@
         typeof tempScope.result === "function"
       ) {
         const moduleFactory = tempScope.result;
-        const moduleInstance = moduleFactory(...depValues);
+        const moduleInstance = moduleFactory(...depValues); // Pass all dependencies
         if (!moduleInstance) {
-          logger.logEvent(
+          loggerInstance.logEvent(
             "error",
             `Module factory ${exportName} from ${filePath} returned null/undefined.`
           );
-          throw new Error(
-            `Module factory ${exportName} did not return an instance.`
+          throw new (window.ConfigError || Error)(
+            `Module factory ${exportName} did not return an instance.`,
+            filePath
           );
         }
-        logger.logEvent(
+        loggerInstance.logEvent(
           "debug",
           `Module factory ${exportName} executed successfully.`
         );
         return moduleInstance;
       } else {
-        logger.logEvent(
+        loggerInstance.logEvent(
           "debug",
           `Returning direct export ${exportName} from ${filePath}.`
         );
         return tempScope.result;
       }
     } catch (error) {
-      logger.logEvent(
+      loggerInstance.logEvent(
         "error",
         `Fatal Error loading/executing module ${filePath}`,
         error.message + (error.stack ? `\nStack: ${error.stack}` : "")
@@ -293,19 +306,38 @@
       await bl("Loading core configuration...", "info", null, 0);
       const configResponse = await fetch("config.json");
       if (!configResponse.ok)
-        throw new Error(`HTTP ${configResponse.status} loading config.json`);
+        throw new (window.ApiError || Error)(
+          `HTTP ${configResponse.status} loading config.json`,
+          configResponse.status
+        );
       config = await configResponse.json();
-      if (!config) throw new Error("Failed to parse config.json");
+      if (!config)
+        throw new (window.ConfigError || Error)("Failed to parse config.json");
       await bl(
         "Config loaded.",
         "only-console",
         `Version: ${config.STATE_VERSION}`
       );
 
+      // Errors are loaded via script tag in index.html, so window.Errors should be available.
+      // Assign to ErrorsScope for clarity within this module if needed, or ensure all modules get it.
+      if (typeof window.Errors === "object") {
+        ErrorsScope = window.Errors;
+      } else {
+        throw new Error(
+          "Custom Error definitions (errors.js) not loaded globally."
+        );
+      }
+      await bl("Custom errors assumed loaded.", "only-console");
+
       await bl("Loading core utilities...", "info", null, 0);
-      Utils = await fetchAndExecuteModule("utils.js", "UtilsModule");
+      Utils = await fetchAndExecuteModule("utils.js", "UtilsModule", {
+        Errors: ErrorsScope,
+      }); // Pass Errors
       if (!Utils || !Utils.logger)
-        throw new Error("Failed to load UtilsModule correctly.");
+        throw new (window.ConfigError || Error)(
+          "Failed to load UtilsModule correctly."
+        );
       blLogger = Utils.logger;
       await bl("Utils loaded.", "only-console");
 
@@ -313,22 +345,23 @@
       Storage = await fetchAndExecuteModule("storage.js", "StorageModule", {
         config,
         logger: Utils.logger,
+        Errors: ErrorsScope,
       });
       if (!Storage || typeof Storage.getState !== "function")
-        throw new Error("Failed to load StorageModule correctly.");
+        throw new (window.ConfigError || Error)(
+          "Failed to load StorageModule correctly."
+        );
       await bl("Storage loaded.", "only-console");
 
       await bl("Core dependencies loaded.", "success", null, 0);
       return true;
     } catch (error) {
-      await bl(
-        "FATAL: Failed to load core dependencies.",
-        "error",
-        error.message
-      );
+      const errorMsg =
+        error.message || "Unknown error loading core dependencies.";
+      await bl("FATAL: Failed to load core dependencies.", "error", errorMsg);
       console.error("Dependency Load Error:", error);
       if (loadingIndicator)
-        loadingIndicator.innerHTML = `<div class="log-entry log-error">> FATAL BOOTSTRAP ERROR: ${error.message}. Cannot continue. Check console.</div>`;
+        loadingIndicator.innerHTML = `<div class="log-entry log-error">> FATAL BOOTSTRAP ERROR: ${errorMsg}. Cannot continue. Check console.</div>`;
       if (loadingContainer) loadingContainer.classList.remove("hidden");
       if (startContainer) startContainer.classList.add("hidden");
       removeInteractionListeners();
@@ -336,6 +369,8 @@
     }
   }
 
+  // isValidState, verifyArtifactChecksum, checkEssentialArtifactsPresent, clearAllReploidData remain similar
+  // but should use window.ConfigError, window.ApiError etc. if they throw.
   function isValidState(parsedState) {
     if (!config || !parsedState) return false;
     const stateVersionMajor = config.STATE_VERSION.split(".")[0];
@@ -345,7 +380,8 @@
       typeof parsedState.totalCycles === "number" &&
       parsedState.totalCycles >= 0 &&
       parsedState.artifactMetadata &&
-      typeof parsedState.artifactMetadata === "object";
+      typeof parsedState.artifactMetadata === "object" &&
+      Array.isArray(parsedState.registeredWebComponents); // New check
     if (!validVersion)
       bl(
         "State version mismatch.",
@@ -356,7 +392,7 @@
       bl(
         "State basic structure invalid.",
         "warn",
-        `Missing cycles or metadata.`
+        `Missing cycles, metadata, or web component registry.`
       );
     return validVersion && basicStructureValid;
   }
@@ -406,20 +442,25 @@
     const verificationPromises = [];
 
     for (const id in essentialDefs) {
-      if (id === "reploid.core.config") continue;
+      if (id === "reploid.core.config" || id === "reploid.core.errors")
+        continue; // Not stored/verified this way
       const metaHistory = artifactMetadata[id];
       let latestMeta = null;
       if (metaHistory && metaHistory.length > 0) {
-        latestMeta = metaHistory.sort((a, b) => {
-          if (b.latestCycle !== a.latestCycle)
-            return b.latestCycle - a.latestCycle;
-          return b.timestamp - a.timestamp;
-        })[0];
+        const getLatestMetaFn =
+          Utils?.getLatestMeta ||
+          ((arr) =>
+            arr
+              ? arr.sort(
+                  (a, b) =>
+                    b.latestCycle - a.latestCycle || b.timestamp - a.timestamp
+                )[0]
+              : null);
+        latestMeta = getLatestMetaFn(metaHistory);
       }
       const cycleToCheck = latestMeta ? latestMeta.latestCycle : 0;
       const versionIdToCheck = latestMeta ? latestMeta.version_id : null;
       const expectedChecksum = latestMeta ? latestMeta.checksum : null;
-      const key = Storage.getArtifactKey(id, cycleToCheck, versionIdToCheck);
       const content = Storage.getArtifactContent(
         id,
         cycleToCheck,
@@ -430,9 +471,7 @@
         await bl(
           `Essential artifact MISSING: ${id}`,
           "error",
-          `Expected Cycle: ${cycleToCheck}, V: ${
-            versionIdToCheck || "def"
-          }, Key: ${key}`
+          `Expected Cycle: ${cycleToCheck}, V: ${versionIdToCheck || "def"}`
         );
         allFoundAndValid = false;
       } else {
@@ -483,11 +522,13 @@
   }
 
   async function bootstrapReploid(performGenesis = false) {
-    if (!config || !Utils || !Storage) {
+    if (!config || !Utils || !Storage || !ErrorsScope) {
+      // Check for ErrorsScope
       await bl("Core dependencies check failed, cannot bootstrap.", "error");
       return;
     }
-    blLogger = Utils.logger;
+    if (!blLogger) blLogger = Utils.logger;
+
     let state = null;
     let needsGenesis = performGenesis;
     let stateSource = performGenesis ? "Forced Genesis" : "None";
@@ -549,7 +590,10 @@
       if (needsGenesis) {
         await bl("Running genesis boot process...", "info");
         state = await runGenesisProcess();
-        if (!state) throw new Error("Genesis boot process failed.");
+        if (!state)
+          throw new (window.StateError || Error)(
+            "Genesis boot process failed."
+          );
         await bl("Genesis complete.", "success");
       }
       await bl(`Loading application with state from: ${stateSource}`, "info");
@@ -576,11 +620,19 @@
     let success = true;
     const fetchPromises = Object.entries(config.GENESIS_ARTIFACT_DEFS).map(
       async ([id, def]) => {
-        if (id === "reploid.core.config" || !def.filename) return;
+        if (
+          id === "reploid.core.config" ||
+          id === "reploid.core.errors" ||
+          !def.filename
+        )
+          return;
         try {
           const response = await fetch(def.filename + `?t=${Date.now()}`);
           if (!response.ok)
-            throw new Error(`HTTP ${response.status} for ${def.filename}`);
+            throw new (window.ApiError || Error)(
+              `HTTP ${response.status} for ${def.filename}`,
+              response.status
+            );
           let content;
           if (def.type === "JSON" || def.type === "JSON_CONFIG")
             content = JSON.stringify(await response.json(), null, 2);
@@ -628,13 +680,13 @@
         Storage.setArtifactContent(id, 0, artifacts[id]);
         metadata[id] = [
           {
-            id: id,
+            id,
             version_id: null,
             latestCycle: 0,
             type: genesisDefs[id]?.type || "UNKNOWN",
             description: genesisDefs[id]?.description || "Unknown Genesis",
             source: "Genesis",
-            checksum: checksum,
+            checksum,
             timestamp: now,
           },
         ];
@@ -657,6 +709,17 @@
       : "(Element Not Found)";
     const bootStyleContent =
       document.getElementById("boot-style")?.textContent || "";
+    const errorsScriptContent = document.querySelector(
+      'script[src="errors.js"]'
+    )
+      ? await fetch("errors.js" + `?t=${Date.now()}`).then((res) =>
+          res.ok ? res.text() : "(Fetch failed)"
+        )
+      : "(errors.js Not Found)";
+
+    await uiUpdatePromise;
+    const finalBootstrapLog = bootstrapLogMessages;
+
     const bootArtifactsToSave = {
       "reploid.boot.style": {
         content: bootStyleContent,
@@ -668,8 +731,13 @@
         type: "JS",
         description: "Bootstrap script",
       },
+      "reploid.boot.errors": {
+        content: errorsScriptContent,
+        type: "JS",
+        description: "Error definitions script",
+      },
       "reploid.boot.log": {
-        content: bootstrapLogMessages,
+        content: finalBootstrapLog,
         type: "LOG",
         description: "Bootstrap log",
       },
@@ -679,45 +747,49 @@
       const { content, type, description } = bootArtifactsToSave[id];
       try {
         const checksum = await calculateChecksum(content);
-        if (!checksum) {
+        if (!checksum && id !== "reploid.boot.log") {
           await bl(`Checksum failed for bootstrap artifact: ${id}`, "warn");
           continue;
         }
         Storage.setArtifactContent(id, 0, content);
         metadata[id] = [
           {
-            id: id,
+            id,
             version_id: null,
             latestCycle: 0,
-            type: type,
-            description: description,
+            type,
+            description,
             source: "Bootstrap",
-            checksum: checksum,
+            checksum,
             timestamp: now,
           },
         ];
         await bl(
           `Saved: ${id}`,
           "only-console",
-          `Cyc 0, CS: ${checksum.substring(0, 15)}...`
+          `Cyc 0, CS: ${checksum ? checksum.substring(0, 15) + "..." : "N/A"}`
         );
       } catch (e) {
         await bl(`Failed save bootstrap artifact: ${id}`, "warn", e.message);
       }
     }
 
-    Object.keys(config.GENESIS_ARTIFACT_DEFS || {}).forEach((id) => {
-      if (!metadata[id] && id !== "reploid.core.config") {
-        const def = config.GENESIS_ARTIFACT_DEFS[id];
+    Object.keys(genesisDefs).forEach((id) => {
+      if (
+        !metadata[id] &&
+        id !== "reploid.core.config" &&
+        id !== "reploid.core.errors"
+      ) {
+        const def = genesisDefs[id];
         if (def) {
           metadata[id] = [
             {
-              id: id,
+              id,
               version_id: null,
               latestCycle: -1,
               type: def.type,
               description: def.description,
-              source: "Genesis Placeholder",
+              source: "Genesis Definition",
               checksum: null,
               timestamp: now,
             },
@@ -739,11 +811,24 @@
     if (!fetchedArtifacts) return null;
     const artifactMetadata = await saveGenesisArtifacts(fetchedArtifacts);
     if (!artifactMetadata) return null;
-    if (!config || !Utils?.getDefaultState) {
-      await bl("Config or Utils.getDefaultState not available.", "error");
-      return null;
-    }
-    const defaultState = Utils.getDefaultState();
+
+    const getDefaultStateFn =
+      Utils?.getDefaultState ||
+      (() => {
+        blLogger.logEvent(
+          "warn",
+          "Utils.getDefaultState not found, using basic default."
+        );
+        return {
+          version: config.STATE_VERSION,
+          totalCycles: 0,
+          cfg: {},
+          artifactMetadata: {},
+          registeredWebComponents: [],
+        };
+      });
+    const defaultState = getDefaultStateFn();
+
     const initialState = {
       ...defaultState,
       version: config.STATE_VERSION,
@@ -782,14 +867,20 @@
       retryCount: 0,
       autonomyMode: "Manual",
       autonomyCyclesRemaining: 0,
-      cfg: { ...config.DEFAULT_CFG },
+      cfg: { ...(config.DEFAULT_CFG || {}) },
       artifactMetadata: artifactMetadata,
       dynamicTools: [],
+      registeredWebComponents: [], // Initialize new field
     };
     initialState.cfg.coreModel =
-      config.DEFAULT_MODELS?.ADVANCED || "gemini-1.5-flash-latest";
+      initialState.cfg.coreModel ||
+      config.DEFAULT_MODELS?.ADVANCED ||
+      "gemini-1.5-flash-latest";
     initialState.cfg.critiqueModel =
-      config.DEFAULT_MODELS?.BASE || initialState.cfg.coreModel;
+      initialState.cfg.critiqueModel ||
+      config.DEFAULT_MODELS?.BASE ||
+      initialState.cfg.coreModel;
+
     try {
       Storage.saveState(initialState);
       await bl("Initial state saved.", "success", null, 0);
@@ -807,8 +898,9 @@
       null,
       0
     );
-    if (!config || !Utils || !Storage) {
-      await bl("Core dependencies not available.", "error");
+    if (!config || !Utils || !Storage || !ErrorsScope) {
+      // Check ErrorsScope
+      await bl("Core dependencies not available for app execution.", "error");
       return;
     }
     const coreStyleId = "reploid.core.style";
@@ -825,6 +917,7 @@
                   b.latestCycle - a.latestCycle || b.timestamp - a.timestamp
               )[0]
             : { latestCycle: 0 });
+
       const latestStyleMeta = getLatestMeta(
         currentState.artifactMetadata[coreStyleId]
       );
@@ -833,15 +926,21 @@
       const styleContent = Storage.getArtifactContent(
         coreStyleId,
         styleCycle,
-        latestStyleMeta?.versionId
+        latestStyleMeta?.version_id
       );
       if (styleContent) {
         const styleElement = document.createElement("style");
-        styleElement.id = `${coreStyleId}-loaded-${styleCycle}`;
+        styleElement.id = `${coreStyleId}-loaded-${styleCycle}${
+          latestStyleMeta?.version_id ? "-" + latestStyleMeta.version_id : ""
+        }`;
         styleElement.textContent = styleContent;
         document.head.appendChild(styleElement);
         await bl(
-          `Applied style: ${coreStyleId} (Cycle ${styleCycle})`,
+          `Applied style: ${coreStyleId} (Cycle ${styleCycle}${
+            latestStyleMeta?.version_id
+              ? ", V:" + latestStyleMeta.version_id
+              : ""
+          })`,
           "only-console"
         );
       } else await bl(`Core style missing (Cyc ${styleCycle}/0).`, "warn");
@@ -854,16 +953,23 @@
       const coreBodyContent = Storage.getArtifactContent(
         coreBodyId,
         bodyCycle,
-        latestBodyMeta?.versionId
+        latestBodyMeta?.version_id
       );
       if (coreBodyContent && appRoot) {
         await bl(
-          `Injecting body: ${coreBodyId} (Cycle ${bodyCycle})`,
+          `Injecting body: ${coreBodyId} (Cycle ${bodyCycle}${
+            latestBodyMeta?.version_id ? ", V:" + latestBodyMeta.version_id : ""
+          })`,
           "only-console"
         );
         appRoot.innerHTML = coreBodyContent;
       } else
-        throw new Error("Failed to load core UI structure (body or app-root).");
+        throw new (window.ConfigError || Error)(
+          "Failed to load core UI structure (body or app-root)."
+        );
+
+      // Register core Web Components before loading app-logic
+      await registerCoreWebComponents(currentState.artifactMetadata);
 
       const latestLogicMeta = getLatestMeta(
         currentState.artifactMetadata[coreLogicId]
@@ -873,13 +979,17 @@
       const orchestratorScriptContent = Storage.getArtifactContent(
         coreLogicId,
         logicCycle,
-        latestLogicMeta?.versionId
+        latestLogicMeta?.version_id
       );
       if (!orchestratorScriptContent)
-        throw new Error(`Core logic missing (Cyc ${logicCycle}/0).`);
+        throw new (window.ConfigError || Error)(
+          `Core logic missing (Cyc ${logicCycle}/0).`
+        );
 
       await bl(
-        `Executing orchestrator: ${coreLogicId} (Cycle ${logicCycle})...`,
+        `Executing orchestrator: ${coreLogicId} (Cycle ${logicCycle}${
+          latestLogicMeta?.version_id ? ", V:" + latestLogicMeta.version_id : ""
+        })...`,
         "info",
         null,
         0
@@ -888,10 +998,16 @@
         "config",
         "Utils",
         "Storage",
+        "Errors",
         orchestratorScriptContent +
-          "\nreturn CoreLogicModule(config, Utils, Storage);"
+          "\nreturn CoreLogicModule(config, Utils, Storage, Errors);"
       );
-      const maybePromise = orchestratorFunction(config, Utils, Storage);
+      const maybePromise = orchestratorFunction(
+        config,
+        Utils,
+        Storage,
+        ErrorsScope
+      );
       if (maybePromise instanceof Promise) await maybePromise;
       await bl("Orchestrator execution initiated.", "success", null, 0);
 
@@ -915,6 +1031,92 @@
     }
   }
 
+  /**
+   * Registers core Web Components defined in artifacts.
+   * @param {object} artifactMetadata - The application's artifact metadata.
+   */
+  async function registerCoreWebComponents(artifactMetadata) {
+    if (!artifactMetadata || typeof customElements === "undefined") return;
+    await bl("Registering core Web Components...", "info", null, 0);
+    let registeredCount = 0;
+    for (const id in artifactMetadata) {
+      if (id.startsWith("reploid.core.webcomponent.")) {
+        const metaHistory = artifactMetadata[id];
+        const getLatestMetaFn =
+          Utils?.getLatestMeta ||
+          ((arr) =>
+            arr
+              ? arr.sort(
+                  (a, b) =>
+                    b.latestCycle - a.latestCycle || b.timestamp - a.timestamp
+                )[0]
+              : null);
+        const latestMeta = getLatestMetaFn(metaHistory);
+
+        if (
+          latestMeta &&
+          latestMeta.type === "WEB_COMPONENT_DEF" &&
+          latestMeta.latestCycle >= 0
+        ) {
+          const jsContent = Storage.getArtifactContent(
+            id,
+            latestMeta.latestCycle,
+            latestMeta.version_id
+          );
+          if (jsContent) {
+            const componentName = id
+              .substring("reploid.core.webcomponent.".length)
+              .replace(/\./g, "-"); // e.g., reploid.core.webcomponent.status-bar -> status-bar
+            if (!customElements.get(componentName)) {
+              try {
+                // This is a simplified way to define class from string.
+                // A more robust way would involve a separate script tag or module loader.
+                const ComponentClass = new Function(
+                  "return (" + jsContent + ")"
+                )();
+                if (
+                  typeof ComponentClass === "function" &&
+                  HTMLElement.isPrototypeOf(ComponentClass)
+                ) {
+                  customElements.define(componentName, ComponentClass);
+                  await bl(
+                    `Registered core WC: <${componentName}> from ${id}`,
+                    "only-console"
+                  );
+                  registeredCount++;
+                } else {
+                  await bl(
+                    `Invalid class structure for core WC ${componentName} in ${id}`,
+                    "warn"
+                  );
+                }
+              } catch (e) {
+                await bl(
+                  `Error defining core WC ${componentName} from ${id}: ${e.message}`,
+                  "error"
+                );
+              }
+            } else {
+              await bl(
+                `Core WC <${componentName}> already registered.`,
+                "only-console"
+              );
+            }
+          } else {
+            await bl(`Content missing for core WC definition: ${id}`, "warn");
+          }
+        }
+      }
+    }
+    if (registeredCount > 0)
+      await bl(
+        `${registeredCount} core Web Components registered.`,
+        "info",
+        null,
+        0
+      );
+  }
+
   function startInteraction(action) {
     if (interactionStarted) return;
     interactionStarted = true;
@@ -926,22 +1128,38 @@
     removeInteractionListeners();
     addSkipListener();
 
-    loadCoreDependencies().then(async (dependenciesLoaded) => {
-      if (!dependenciesLoaded) {
+    loadCoreDependencies()
+      .then(async (dependenciesLoaded) => {
+        if (!dependenciesLoaded) {
+          removeSkipListener();
+          return;
+        }
+        if (action === "reset") {
+          await clearAllReploidData();
+          await bl("Rebooting after reset...", "info", null, 64);
+          await bl("            ", "only-gui", null, 8);
+          await bootstrapReploid(true);
+        } else {
+          await bootstrapReploid(false);
+        }
         removeSkipListener();
-        return;
-      }
-      if (action === "reset") {
-        await clearAllReploidData();
-        await bl("Rebooting...", "info", null, 64);
-        await bl("            ", "only-gui", null, 8);
-        await bootstrapReploid(true);
-      } else {
-        await bootstrapReploid(false);
-      }
-      removeSkipListener();
-    });
+      })
+      .catch(async (err) => {
+        const errorMsg =
+          err.message || "Unknown error during dependency loading phase.";
+        await bl(
+          "FATAL: Unhandled error in core dependency loading.",
+          "error",
+          errorMsg
+        );
+        console.error("Unhandled Core Dependency Error:", err);
+        if (loadingIndicator)
+          loadingIndicator.innerHTML = `<div class="log-entry log-error">> FATAL BOOTSTRAP ERROR: ${errorMsg}. Check console.</div>`;
+        removeSkipListener();
+      });
   }
+
+  // handleSkip, handleKeydown, removeInteractionListeners, addSkipListener, removeSkipListener remain the same
 
   function handleSkip(e) {
     if (e.key === "Enter" || e.type === "click" || e.type === "touchstart") {
@@ -961,11 +1179,8 @@
   function removeInteractionListeners() {
     document.removeEventListener("keydown", handleKeydown);
     if (continueButton)
-      continueButton.removeEventListener("click", () =>
-        startInteraction("continue")
-      );
-    if (resetButton)
-      resetButton.removeEventListener("click", () => startInteraction("reset"));
+      continueButton.removeEventListener("click", handleContinueClick);
+    if (resetButton) resetButton.removeEventListener("click", handleResetClick);
   }
   function addSkipListener() {
     document.addEventListener("keydown", handleSkip);
@@ -978,62 +1193,12 @@
     document.removeEventListener("touchstart", handleSkip);
   }
 
-  if (Utils) {
-    Utils.getLatestMeta = (historyArray) => {
-      if (!historyArray || historyArray.length === 0) return null;
-      return [...historyArray].sort(
-        (a, b) => b.latestCycle - a.latestCycle || b.timestamp - a.timestamp
-      )[0];
-    };
-    Utils.getDefaultState = () => ({
-      version: "0.0.0",
-      totalCycles: 0,
-      agentIterations: 0,
-      humanInterventions: 0,
-      failCount: 0,
-      currentGoal: {
-        seed: null,
-        cumulative: null,
-        latestType: "Idle",
-        summaryContext: null,
-        currentContextFocus: null,
-      },
-      lastCritiqueType: "N/A",
-      personaMode: "XYZ",
-      lastFeedback: null,
-      lastSelfAssessment: null,
-      forceHumanReview: false,
-      apiKey: "",
-      confidenceHistory: [],
-      critiqueFailHistory: [],
-      tokenHistory: [],
-      failHistory: [],
-      evaluationHistory: [],
-      critiqueFeedbackHistory: [],
-      avgConfidence: null,
-      critiqueFailRate: null,
-      avgTokens: null,
-      avgEvalScore: null,
-      evalPassRate: null,
-      contextTokenEstimate: 0,
-      contextTokenTarget: 350000,
-      lastGeneratedFullSource: null,
-      htmlHistory: [],
-      lastApiResponse: null,
-      retryCount: 0,
-      autonomyMode: "Manual",
-      autonomyCyclesRemaining: 0,
-      cfg: {},
-      artifactMetadata: {},
-      dynamicTools: [],
-    });
-  }
+  // Define named handlers for add/removeEventListener
+  const handleContinueClick = () => startInteraction("continue");
+  const handleResetClick = () => startInteraction("reset");
 
-  document.addEventListener("keydown", handleKeydown);
   if (continueButton)
-    continueButton.addEventListener("click", () =>
-      startInteraction("continue")
-    );
-  if (resetButton)
-    resetButton.addEventListener("click", () => startInteraction("reset"));
+    continueButton.addEventListener("click", handleContinueClick);
+  if (resetButton) resetButton.addEventListener("click", handleResetClick);
+  document.addEventListener("keydown", handleKeydown);
 })();

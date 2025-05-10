@@ -1,6 +1,8 @@
-const StateManagerModule = (config, logger, Storage) => {
-  if (!config || !logger || !Storage) {
-    console.error("StateManagerModule requires config, logger, and Storage.");
+const StateManagerModule = (config, logger, Storage, Errors) => {
+  if (!config || !logger || !Storage || !Errors) {
+    console.error(
+      "StateManagerModule requires config, logger, Storage, and Errors."
+    );
     const log = logger || {
       logEvent: (lvl, msg) =>
         console[lvl === "error" ? "error" : "log"](
@@ -11,44 +13,62 @@ const StateManagerModule = (config, logger, Storage) => {
       "error",
       "StateManagerModule initialization failed: Missing dependencies."
     );
-    return {
-      init: () => {
-        log.logEvent("error", "StateManager not initialized.");
-        return false;
-      },
-      getState: () => null,
-      setState: () => {
-        log.logEvent("error", "StateManager not initialized.");
-      },
-      save: () => {
-        log.logEvent("error", "StateManager not initialized.");
-      },
-      getArtifactMetadata: () => null,
-      getArtifactMetadataAllVersions: () => [],
-      updateArtifactMetadata: () => {},
-      deleteArtifactMetadata: () => {},
-      getAllArtifactMetadata: () => ({}),
-      capturePreservationState: () => null,
-      restoreStateFromSession: () => false,
-      exportState: () => {},
-      importState: () => {},
-      getDefaultState: () => ({}),
-      addEvaluationResult: () => {},
-      addCritiqueFeedback: () => {},
-      isInitialized: () => false,
-    };
+    // Return a dummy object
+    const dummyMethods = [
+      "init",
+      "getState",
+      "setState",
+      "save",
+      "getArtifactMetadata",
+      "getArtifactMetadataAllVersions",
+      "updateArtifactMetadata",
+      "deleteArtifactMetadata",
+      "getAllArtifactMetadata",
+      "capturePreservationState",
+      "restoreStateFromSession",
+      "exportState",
+      "importState",
+      "getDefaultState",
+      "addEvaluationResult",
+      "addCritiqueFeedback",
+      "isInitialized",
+      "registerWebComponent",
+      "isWebComponentRegistered",
+      "getRegisteredWebComponents",
+    ];
+    const dummyStateManager = {};
+    dummyMethods.forEach((method) => {
+      dummyStateManager[method] = () => {
+        log.logEvent(
+          "error",
+          `StateManager not initialized. Called ${method}.`
+        );
+        if (method === "isInitialized") return false;
+        if (method === "getState") return null;
+        if (
+          method === "getAllArtifactMetadata" ||
+          method === "getRegisteredWebComponents"
+        )
+          return {};
+        if (method === "getArtifactMetadataAllVersions") return [];
+      };
+    });
+    return dummyStateManager;
   }
 
+  const { StateError, ConfigError } = Errors;
+
   let globalState = null;
-  let artifactMetadata = {};
-  let dynamicToolDefinitions = [];
+  let artifactMetadata = {}; // This will be part of globalState.artifactMetadata
+  let dynamicToolDefinitions = []; // This will be part of globalState.dynamicTools
+  let registeredWebComponents = []; // This will be part of globalState.registeredWebComponents
   let isInitialized = false;
 
   const STATE_VERSION_MAJOR = config.STATE_VERSION.split(".")[0];
   const STATE_VERSION_MINOR = config.STATE_VERSION.split(".")[1];
   const STATE_VERSION_PATCH = config.STATE_VERSION.split(".")[2];
 
-  const MAX_HISTORY_ITEMS = 20;
+  const MAX_HISTORY_ITEMS = config.MAX_HISTORY_ITEMS || 20;
   const EVAL_PASS_THRESHOLD = config.EVAL_PASS_THRESHOLD || 0.75;
 
   const getDefaultState = () => ({
@@ -89,39 +109,45 @@ const StateManagerModule = (config, logger, Storage) => {
     retryCount: 0,
     autonomyMode: "Manual",
     autonomyCyclesRemaining: 0,
-    cfg: { ...config.DEFAULT_CFG },
+    cfg: { ...(config.DEFAULT_CFG || {}) },
     artifactMetadata: {},
     dynamicTools: [],
+    registeredWebComponents: [], // New state field
   });
 
   const calculateDerivedStats = (state) => {
     if (!state) return;
 
-    if (state.confidenceHistory && state.confidenceHistory.length > 0) {
+    const confHistory =
+      state.confidenceHistory?.slice(-MAX_HISTORY_ITEMS) || [];
+    if (confHistory.length > 0) {
       state.avgConfidence =
-        state.confidenceHistory.reduce((a, b) => a + (b || 0), 0) /
-        state.confidenceHistory.length;
+        confHistory.reduce((a, b) => a + (b || 0), 0) / confHistory.length;
     } else {
       state.avgConfidence = null;
     }
 
-    if (state.critiqueFailHistory && state.critiqueFailHistory.length > 0) {
-      const fails = state.critiqueFailHistory.filter((v) => v === true).length;
-      state.critiqueFailRate = (fails / state.critiqueFailHistory.length) * 100;
+    const critHistory =
+      state.critiqueFailHistory?.slice(-MAX_HISTORY_ITEMS) || [];
+    if (critHistory.length > 0) {
+      const fails = critHistory.filter((v) => v === true).length;
+      state.critiqueFailRate = (fails / critHistory.length) * 100;
     } else {
       state.critiqueFailRate = null;
     }
 
-    if (state.tokenHistory && state.tokenHistory.length > 0) {
+    const tokenHistory = state.tokenHistory?.slice(-MAX_HISTORY_ITEMS) || [];
+    if (tokenHistory.length > 0) {
       state.avgTokens =
-        state.tokenHistory.reduce((a, b) => a + b, 0) /
-        state.tokenHistory.length;
+        tokenHistory.reduce((a, b) => a + (b || 0), 0) / tokenHistory.length;
     } else {
       state.avgTokens = null;
     }
 
-    if (state.evaluationHistory && state.evaluationHistory.length > 0) {
-      const validScores = state.evaluationHistory
+    const evalHistory =
+      state.evaluationHistory?.slice(-MAX_HISTORY_ITEMS) || [];
+    if (evalHistory.length > 0) {
+      const validScores = evalHistory
         .map((e) => e.evaluation_score)
         .filter((s) => typeof s === "number" && !isNaN(s));
       if (validScores.length > 0) {
@@ -144,13 +170,13 @@ const StateManagerModule = (config, logger, Storage) => {
   const validateStateStructure = (stateObj, source = "unknown") => {
     if (!stateObj || typeof stateObj !== "object")
       return `Invalid state object (${source})`;
-    const defaultState = getDefaultState();
+    const defaultState = getDefaultState(); // Use this module's getDefaultState
     const requiredKeys = Object.keys(defaultState);
     const optionalKeys = [
       "lastApiResponse",
       "lastGeneratedFullSource",
       "lastSelfAssessment",
-    ];
+    ]; // These can be null initially
 
     for (const key of requiredKeys) {
       if (!(key in stateObj) && !optionalKeys.includes(key)) {
@@ -158,48 +184,83 @@ const StateManagerModule = (config, logger, Storage) => {
           0, 0, 0,
         ];
         const currentVersion = config.STATE_VERSION.split(".").map(Number);
-        let isOldVersion = false;
+        // If loading an older version, some new keys might be missing, which is acceptable
+        // and will be filled by mergeWithDefaults.
+        let isOlderMajorMinor = false;
         if (loadedVersion.length === 3 && currentVersion.length === 3) {
           if (
             loadedVersion[0] < currentVersion[0] ||
             (loadedVersion[0] === currentVersion[0] &&
-              loadedVersion[1] < currentVersion[1]) ||
-            (loadedVersion[0] === currentVersion[0] &&
-              loadedVersion[1] === currentVersion[1] &&
-              loadedVersion[2] < currentVersion[2])
+              loadedVersion[1] < currentVersion[1])
           ) {
-            isOldVersion = true;
+            isOlderMajorMinor = true;
           }
         }
-        if (
-          !isOldVersion ||
-          ![
-            "autonomyMode",
-            "autonomyCyclesRemaining",
-            "evaluationHistory",
-            "critiqueFeedbackHistory",
-            "avgEvalScore",
-            "evalPassRate",
-            "currentContextFocus",
-            "contextTokenTarget",
-          ].includes(key)
-        ) {
-          return `Missing required property: '${key}' in state from ${source}`;
+        // Only fail if it's not an older version missing a newly introduced key.
+        // Example: If 'registeredWebComponents' is missing and version is older, that's fine.
+        if (!isOlderMajorMinor) {
+          // Critical keys that must always exist
+          const criticalKeys = [
+            "version",
+            "totalCycles",
+            "artifactMetadata",
+            "dynamicTools",
+            "cfg",
+            "registeredWebComponents",
+          ];
+          if (criticalKeys.includes(key)) {
+            return `Missing critical property: '${key}' in state from ${source} (v${stateObj.version})`;
+          }
         }
       }
+    }
+    if (!Array.isArray(stateObj.registeredWebComponents)) {
+      return `Property 'registeredWebComponents' must be an array in state from ${source}`;
     }
     return null;
   };
 
+  const mergeWithDefaults = (loadedState) => {
+    const defaultState = getDefaultState();
+    const mergedState = {
+      ...defaultState,
+      ...loadedState,
+      cfg: { ...defaultState.cfg, ...(loadedState.cfg || {}) },
+      artifactMetadata: loadedState.artifactMetadata || {},
+      dynamicTools: loadedState.dynamicTools || [],
+      registeredWebComponents: Array.isArray(
+        loadedState.registeredWebComponents
+      )
+        ? loadedState.registeredWebComponents
+        : [], // Ensure it's an array
+    };
+    // Ensure history arrays are arrays
+    const historyKeys = [
+      "confidenceHistory",
+      "critiqueFailHistory",
+      "tokenHistory",
+      "failHistory",
+      "evaluationHistory",
+      "critiqueFeedbackHistory",
+      "htmlHistory",
+    ];
+    historyKeys.forEach((key) => {
+      if (!Array.isArray(mergedState[key])) {
+        mergedState[key] = [];
+      }
+    });
+    return mergedState;
+  };
+
   const checkAndLogVersionDifference = (loadedVersion, source) => {
-    if (!loadedVersion || typeof loadedVersion !== "string") return true;
+    if (!loadedVersion || typeof loadedVersion !== "string") return true; // No version to check, proceed
     const [major, minor, patch] = loadedVersion.split(".").map(Number);
     if (isNaN(major) || isNaN(minor) || isNaN(patch)) {
       logger.logEvent(
         "warn",
         `Invalid version string '${loadedVersion}' in state from ${source}. Proceeding cautiously.`
       );
-      return true;
+      return true; // Allow loading but log
     }
 
     if (major !== parseInt(STATE_VERSION_MAJOR, 10)) {
@@ -208,7 +269,7 @@ const StateManagerModule = (config, logger, Storage) => {
         `Incompatible MAJOR version detected in state from ${source}.`,
         `Loaded: ${loadedVersion}, Required: ${config.STATE_VERSION}. Discarding state.`
       );
-      return false;
+      return false; // Incompatible major version
     } else if (
       minor < parseInt(STATE_VERSION_MINOR, 10) ||
       (minor === parseInt(STATE_VERSION_MINOR, 10) &&
@@ -243,12 +304,10 @@ const StateManagerModule = (config, logger, Storage) => {
       if (validationError) {
         logger.logEvent(
           "error",
-          `Saved state validation failed: ${validationError}. Discarding.`
+          `Saved state validation failed: ${validationError}. Discarding and re-initializing.`
         );
         Storage.removeState();
         globalState = getDefaultState();
-        artifactMetadata = globalState.artifactMetadata || {};
-        dynamicToolDefinitions = globalState.dynamicTools || [];
       } else {
         const isCompatible = checkAndLogVersionDifference(
           savedState.version,
@@ -257,30 +316,12 @@ const StateManagerModule = (config, logger, Storage) => {
         if (!isCompatible) {
           Storage.removeState();
           globalState = getDefaultState();
-          artifactMetadata = globalState.artifactMetadata || {};
-          dynamicToolDefinitions = globalState.dynamicTools || [];
         } else {
-          const defaultState = getDefaultState();
-          globalState = {
-            ...defaultState,
-            ...savedState,
-            cfg: { ...defaultState.cfg, ...(savedState.cfg || {}) },
-            artifactMetadata: savedState.artifactMetadata || {},
-            dynamicTools: savedState.dynamicTools || [],
-            evaluationHistory: savedState.evaluationHistory || [],
-            critiqueFeedbackHistory: savedState.critiqueFeedbackHistory || [],
-            autonomyMode: savedState.autonomyMode || "Manual",
-            autonomyCyclesRemaining: savedState.autonomyCyclesRemaining || 0,
-            contextTokenTarget:
-              savedState.contextTokenTarget || defaultState.contextTokenTarget,
-          };
-          globalState.version = config.STATE_VERSION;
-          dynamicToolDefinitions = globalState.dynamicTools;
-          artifactMetadata = globalState.artifactMetadata;
-          calculateDerivedStats(globalState);
+          globalState = mergeWithDefaults(savedState);
+          globalState.version = config.STATE_VERSION; // Always update to current version after merge
           logger.logEvent(
             "info",
-            `Loaded state v${savedState.version} (Cycle ${globalState.totalCycles})`
+            `Loaded state v${savedState.version} (Cycle ${globalState.totalCycles}), updated to v${config.STATE_VERSION}`
           );
         }
       }
@@ -290,13 +331,15 @@ const StateManagerModule = (config, logger, Storage) => {
         `No saved state found. Initializing new default state v${config.STATE_VERSION}`
       );
       globalState = getDefaultState();
-      artifactMetadata = globalState.artifactMetadata || {};
+      // Populate initial artifact metadata placeholders if genesis definitions exist
       if (config.GENESIS_ARTIFACT_DEFS) {
         for (const id in config.GENESIS_ARTIFACT_DEFS) {
-          if (id === "reploid.core.config") continue;
+          if (id === "reploid.core.config" || id === "reploid.core.errors")
+            continue;
           const def = config.GENESIS_ARTIFACT_DEFS[id];
-          if (!artifactMetadata[id]) {
-            artifactMetadata[id] = [
+          if (!globalState.artifactMetadata[id]) {
+            // Ensure not to overwrite if somehow present
+            globalState.artifactMetadata[id] = [
               {
                 id: id,
                 version_id: null,
@@ -311,13 +354,16 @@ const StateManagerModule = (config, logger, Storage) => {
           }
         }
       }
-      globalState.artifactMetadata = artifactMetadata;
-      dynamicToolDefinitions = globalState.dynamicTools || [];
     }
 
-    save();
+    // Ensure these point to the correct parts of globalState after init/load
+    artifactMetadata = globalState.artifactMetadata;
+    dynamicToolDefinitions = globalState.dynamicTools;
+    registeredWebComponents = globalState.registeredWebComponents;
+    calculateDerivedStats(globalState);
+    save(); // Save potentially migrated/defaulted state
     isInitialized = true;
-    return globalState && globalState.totalCycles > 0;
+    return globalState && globalState.totalCycles >= 0; // Check for valid cycle count
   };
 
   const getState = () => globalState;
@@ -329,23 +375,26 @@ const StateManagerModule = (config, logger, Storage) => {
         "error",
         `Attempted to set invalid state: ${validationError}`
       );
-      return;
+      throw new StateError(
+        `Attempted to set invalid state: ${validationError}`
+      );
     }
     globalState = newState;
-    if (globalState) {
-      artifactMetadata = globalState.artifactMetadata || {};
-      dynamicToolDefinitions = globalState.dynamicTools || [];
-    } else {
-      artifactMetadata = {};
-      dynamicToolDefinitions = [];
-    }
+    // Update local references
+    artifactMetadata = globalState.artifactMetadata || {};
+    dynamicToolDefinitions = globalState.dynamicTools || [];
+    registeredWebComponents = globalState.registeredWebComponents || [];
   };
 
   const save = () => {
     if (!globalState || !Storage) return;
     try {
+      // Create a clean object for saving, excluding potentially large or unserializable parts temporarily
       const stateToSave = JSON.parse(
-        JSON.stringify({ ...globalState, lastApiResponse: null })
+        JSON.stringify({
+          ...globalState,
+          lastApiResponse: null /* Exclude large API responses */,
+        })
       );
       Storage.saveState(stateToSave);
       logger.logEvent(
@@ -354,19 +403,22 @@ const StateManagerModule = (config, logger, Storage) => {
       );
     } catch (e) {
       logger.logEvent("error", `Save state failed: ${e.message}`, e);
+      // Consider throwing a StateError here if saving is critical
     }
   };
 
   const getArtifactMetadata = (id, versionId = null) => {
-    const history = artifactMetadata[id];
+    const history = artifactMetadata[id]; // artifactMetadata is now a direct reference
     if (!history || history.length === 0) return null;
     if (versionId === null) {
-      return history.sort((a, b) => {
-        if (b.latestCycle !== a.latestCycle)
-          return b.latestCycle - a.latestCycle;
-        return b.timestamp - a.timestamp;
-      })[0];
+      // Get latest
+      return history.sort(
+        (a, b) =>
+          b.latestCycle - a.latestCycle ||
+          (b.timestamp || 0) - (a.timestamp || 0)
+      )[0];
     } else {
+      // Get specific version
       return history.find((meta) => meta.version_id === versionId) || null;
     }
   };
@@ -389,21 +441,47 @@ const StateManagerModule = (config, logger, Storage) => {
       artifactMetadata[id] = [];
     }
     const now = Date.now();
-    let existingIndex = -1;
+    let existingMetaIndex = -1;
+
+    // Find existing metadata entry to update, prioritizing versionId match
     if (versionId !== null) {
-      existingIndex = artifactMetadata[id].findIndex(
-        (meta) => meta.version_id === versionId
+      existingMetaIndex = artifactMetadata[id].findIndex(
+        (meta) => meta.version_id === versionId && meta.latestCycle === cycle
       );
-    } else {
-      const latestMeta = getArtifactMetadata(id, null);
-      if (latestMeta) {
-        existingIndex = artifactMetadata[id].findIndex(
-          (meta) => meta === latestMeta
+      if (existingMetaIndex === -1) {
+        // If not found by versionId and cycle, try just versionId
+        existingMetaIndex = artifactMetadata[id].findIndex(
+          (meta) => meta.version_id === versionId
         );
+      }
+    } else {
+      // If no versionId, find the one with the highest cycle that matches current cycle, or highest overall
+      const cycleMatches = artifactMetadata[id].filter(
+        (meta) => meta.latestCycle === cycle && meta.version_id === null
+      );
+      if (cycleMatches.length > 0) {
+        const latestCycleMatch = cycleMatches.sort(
+          (a, b) => (b.timestamp || 0) - (a.timestamp || 0)
+        )[0];
+        existingMetaIndex = artifactMetadata[id].indexOf(latestCycleMatch);
+      } else {
+        // If no match for current cycle and null versionId, update the overall latest null-versionId entry
+        const latestNullVersionMetas = artifactMetadata[id]
+          .filter((m) => m.version_id === null)
+          .sort(
+            (a, b) =>
+              b.latestCycle - a.latestCycle ||
+              (b.timestamp || 0) - (a.timestamp || 0)
+          );
+        if (latestNullVersionMetas.length > 0) {
+          existingMetaIndex = artifactMetadata[id].indexOf(
+            latestNullVersionMetas[0]
+          );
+        }
       }
     }
 
-    const newMeta = {
+    const newMetaEntry = {
       id: id,
       version_id: versionId,
       type: type,
@@ -415,29 +493,24 @@ const StateManagerModule = (config, logger, Storage) => {
       isModularEdit: isModular,
     };
 
-    if (existingIndex !== -1) {
-      const currentMeta = artifactMetadata[id][existingIndex];
-      newMeta.type = type ?? currentMeta.type;
-      newMeta.description = description ?? currentMeta.description;
-      newMeta.latestCycle = Math.max(cycle, currentMeta.latestCycle ?? -1);
-      newMeta.checksum = checksum ?? currentMeta.checksum;
-      newMeta.source = source ?? currentMeta.source;
-      newMeta.isModularEdit = isModular ?? currentMeta.isModularEdit ?? false;
-
-      artifactMetadata[id][existingIndex] = newMeta;
+    if (existingMetaIndex !== -1) {
+      // Update existing entry: ensure we don't lose vital info like original type if not provided
+      const currentMeta = artifactMetadata[id][existingMetaIndex];
+      newMetaEntry.type = type ?? currentMeta.type;
+      newMetaEntry.description = description ?? currentMeta.description;
+      // latestCycle should definitely be the new cycle
+      // checksum should be the new checksum
+      // source should be the new source
+      artifactMetadata[id][existingMetaIndex] = newMetaEntry;
     } else {
-      const baseMeta = getArtifactMetadata(id, null);
-      newMeta.type = type ?? baseMeta?.type ?? "UNKNOWN";
-      newMeta.description =
+      // Add as a new metadata entry (potentially for a new version_id or if no suitable existing entry)
+      const baseMeta = getArtifactMetadata(id, null); // Get latest non-versioned as a base if needed
+      newMetaEntry.type = type ?? baseMeta?.type ?? "UNKNOWN"; // Fallback type
+      newMetaEntry.description =
         description ?? baseMeta?.description ?? `Artifact ${id}`;
-      newMeta.latestCycle = cycle;
-      newMeta.checksum = checksum;
-      newMeta.source = source;
-      newMeta.isModularEdit = isModular;
-      artifactMetadata[id].push(newMeta);
+      artifactMetadata[id].push(newMetaEntry);
     }
-
-    if (globalState) globalState.artifactMetadata = artifactMetadata;
+    // No need to update globalState.artifactMetadata explicitly if artifactMetadata is a direct reference
   };
 
   const deleteArtifactMetadata = (id, versionId = null) => {
@@ -450,15 +523,16 @@ const StateManagerModule = (config, logger, Storage) => {
         delete artifactMetadata[id];
       }
     } else {
+      // Delete all versions for this ID
       delete artifactMetadata[id];
     }
-    if (globalState) globalState.artifactMetadata = artifactMetadata;
   };
 
   const getAllArtifactMetadata = () => {
+    // Returns map of ID to LATEST metadata object
     const latestMetaMap = {};
     for (const id in artifactMetadata) {
-      const latest = getArtifactMetadata(id, null);
+      const latest = getArtifactMetadata(id, null); // Gets the one with highest cycle (and null version_id if multiple at same cycle)
       if (latest) {
         latestMetaMap[id] = latest;
       }
@@ -469,15 +543,16 @@ const StateManagerModule = (config, logger, Storage) => {
   const capturePreservationState = (uiRefs = {}) => {
     if (!globalState) return null;
     try {
-      const stateToSave = JSON.parse(
+      // Deep clone to avoid modifying globalState, especially for nested objects like cfg
+      const stateToPreserve = JSON.parse(
         JSON.stringify({ ...globalState, lastApiResponse: null })
       );
-      stateToSave.logBuffer = logger.getLogBuffer
+      stateToPreserve.logBuffer = logger.getLogBuffer
         ? logger.getLogBuffer()
         : null;
-      stateToSave.timelineHTML = uiRefs.timelineLog?.innerHTML || "";
-
-      return stateToSave;
+      stateToPreserve.timelineHTML = uiRefs.timelineLog?.innerHTML || "";
+      // Add other UI specific states if necessary
+      return stateToPreserve;
     } catch (e) {
       logger.logEvent(
         "error",
@@ -499,14 +574,19 @@ const StateManagerModule = (config, logger, Storage) => {
     const preservedData = Storage.getSessionState();
     if (!preservedData) return false;
 
-    logger.logEvent("info", "Preserved session state found.");
+    logger.logEvent(
+      "info",
+      "Preserved session state found. Attempting restore."
+    );
     try {
       const validationError = validateStateStructure(
         preservedData,
         "sessionStorage"
       );
       if (validationError) {
-        throw new Error(`Session state validation failed: ${validationError}`);
+        throw new StateError(
+          `Session state validation failed: ${validationError}`
+        );
       }
 
       const isCompatible = checkAndLogVersionDifference(
@@ -514,49 +594,42 @@ const StateManagerModule = (config, logger, Storage) => {
         "sessionStorage"
       );
       if (!isCompatible) {
-        throw new Error(
+        throw new StateError(
           `Incompatible MAJOR version in session state: ${preservedData.version}`
         );
       }
 
-      const defaultState = getDefaultState();
-      globalState = {
-        ...defaultState,
-        ...preservedData,
-        cfg: { ...defaultState.cfg, ...(preservedData.cfg || {}) },
-        artifactMetadata: preservedData.artifactMetadata || {},
-        dynamicTools: preservedData.dynamicTools || [],
-        evaluationHistory: preservedData.evaluationHistory || [],
-        critiqueFeedbackHistory: preservedData.critiqueFeedbackHistory || [],
-        autonomyMode: preservedData.autonomyMode || "Manual",
-        autonomyCyclesRemaining: preservedData.autonomyCyclesRemaining || 0,
-        contextTokenTarget:
-          preservedData.contextTokenTarget || defaultState.contextTokenTarget,
-      };
-      globalState.version = config.STATE_VERSION;
+      globalState = mergeWithDefaults(preservedData);
+      globalState.version = config.STATE_VERSION; // Update to current version
 
       if (logger.setLogBuffer && preservedData.logBuffer) {
         logger.setLogBuffer(preservedData.logBuffer);
       }
-      dynamicToolDefinitions = globalState.dynamicTools;
+      // Update local references
       artifactMetadata = globalState.artifactMetadata;
+      dynamicToolDefinitions = globalState.dynamicTools;
+      registeredWebComponents = globalState.registeredWebComponents;
       calculateDerivedStats(globalState);
 
-      restoreUIFn(preservedData);
+      restoreUIFn(preservedData); // Callback for UI to restore its specific parts
 
       logger.logEvent(
         "info",
         "Session state restored successfully by StateManager."
       );
-      save();
+      save(); // Save the restored and potentially migrated state
       return true;
     } catch (e) {
       logger.logEvent("error", `Restore from session failed: ${e.message}`, e);
-      init();
+      // Fallback to a clean init if restore fails badly
+      init(); // This will load from localStorage or default, effectively discarding session
       return false;
     } finally {
       Storage.removeSessionState();
-      logger.logEvent("debug", "Cleared session state from storage.");
+      logger.logEvent(
+        "debug",
+        "Cleared session state from storage after attempt."
+      );
     }
   };
 
@@ -611,7 +684,7 @@ const StateManagerModule = (config, logger, Storage) => {
           `imported file '${file.name}'`
         );
         if (validationError) {
-          throw new Error(
+          throw new StateError(
             `Imported state validation failed: ${validationError}`
           );
         }
@@ -622,38 +695,27 @@ const StateManagerModule = (config, logger, Storage) => {
           `imported file '${file.name}'`
         );
         if (!isCompatible) {
-          throw new Error(
+          throw new StateError(
             `Incompatible MAJOR version in imported state: ${importedData.version}`
           );
         }
 
-        const defaultState = getDefaultState();
-        globalState = {
-          ...defaultState,
-          ...importedData,
-          cfg: { ...defaultState.cfg, ...(importedData.cfg || {}) },
-          artifactMetadata: importedData.artifactMetadata || {},
-          dynamicTools: importedData.dynamicTools || [],
-          evaluationHistory: importedData.evaluationHistory || [],
-          critiqueFeedbackHistory: importedData.critiqueFeedbackHistory || [],
-          autonomyMode: importedData.autonomyMode || "Manual",
-          autonomyCyclesRemaining: importedData.autonomyCyclesRemaining || 0,
-          contextTokenTarget:
-            importedData.contextTokenTarget || defaultState.contextTokenTarget,
-        };
-        globalState.version = config.STATE_VERSION;
+        globalState = mergeWithDefaults(importedData);
+        globalState.version = config.STATE_VERSION; // Update to current version
 
         if (logger.setLogBuffer && importedData.logBuffer) {
           logger.setLogBuffer(importedData.logBuffer);
         }
-        dynamicToolDefinitions = globalState.dynamicTools;
+        // Update local references
         artifactMetadata = globalState.artifactMetadata;
+        dynamicToolDefinitions = globalState.dynamicTools;
+        registeredWebComponents = globalState.registeredWebComponents;
         calculateDerivedStats(globalState);
 
-        importCallback(true, importedData);
+        importCallback(true, importedData); // Notify UI or other parts
 
         logger.logEvent("info", "State imported successfully by StateManager.");
-        save();
+        save(); // Save the imported and merged state
       } catch (err) {
         logger.logEvent("error", `Import failed: ${err.message}`, err);
         importCallback(false, null, err.message);
@@ -673,7 +735,7 @@ const StateManagerModule = (config, logger, Storage) => {
     while (globalState.evaluationHistory.length > MAX_HISTORY_ITEMS) {
       globalState.evaluationHistory.shift();
     }
-    calculateDerivedStats(globalState);
+    calculateDerivedStats(globalState); // Recalculate stats
   };
 
   const addCritiqueFeedback = (feedbackData) => {
@@ -686,6 +748,59 @@ const StateManagerModule = (config, logger, Storage) => {
     while (globalState.critiqueFeedbackHistory.length > MAX_HISTORY_ITEMS) {
       globalState.critiqueFeedbackHistory.shift();
     }
+    // No specific stats for critique feedback, but save could be called if needed
+  };
+
+  /**
+   * Marks a web component tag name as registered in the current state.
+   * @param {string} tagName - The tag name of the web component (e.g., 'my-element').
+   */
+  const registerWebComponent = (tagName) => {
+    if (!globalState || !Array.isArray(globalState.registeredWebComponents)) {
+      logger.logEvent(
+        "error",
+        "StateManager: Cannot register web component, state or registry array is invalid."
+      );
+      return;
+    }
+    if (
+      typeof tagName === "string" &&
+      tagName.includes("-") &&
+      !globalState.registeredWebComponents.includes(tagName)
+    ) {
+      globalState.registeredWebComponents.push(tagName);
+      logger.logEvent(
+        "info",
+        `StateManager: Web component '${tagName}' marked as registered.`
+      );
+    } else if (globalState.registeredWebComponents.includes(tagName)) {
+      logger.logEvent(
+        "debug",
+        `StateManager: Web component '${tagName}' was already marked as registered.`
+      );
+    } else {
+      logger.logEvent(
+        "warn",
+        `StateManager: Invalid or already registered web component tag name: '${tagName}'`
+      );
+    }
+  };
+
+  /**
+   * Checks if a web component tag name is marked as registered in the state.
+   * @param {string} tagName - The tag name to check.
+   * @returns {boolean} True if registered, false otherwise.
+   */
+  const isWebComponentRegistered = (tagName) => {
+    return globalState?.registeredWebComponents?.includes(tagName) || false;
+  };
+
+  /**
+   * Gets the list of registered web component tag names from the state.
+   * @returns {string[]} An array of registered tag names.
+   */
+  const getRegisteredWebComponents = () => {
+    return [...(globalState?.registeredWebComponents || [])];
   };
 
   return {
@@ -706,5 +821,8 @@ const StateManagerModule = (config, logger, Storage) => {
     isInitialized: () => isInitialized,
     addEvaluationResult,
     addCritiqueFeedback,
+    registerWebComponent,
+    isWebComponentRegistered,
+    getRegisteredWebComponents,
   };
 };
