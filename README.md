@@ -1,4 +1,4 @@
-# REPLOID (Reflective Embodiment Providing Logical Oversight for Intelligent DREAMER (Deep Recursive Exploration Around Multimodal Embodying REPLOID)) x0.3.0 DREAMER (Deep Recursive Exploration Around Multimodal Embodying REPLOID (Reflective Embodiment Providing Logical Oversight for Intelligent DREAMER)) v0.3.0
+# REPLOID (Reflective Embodiment Providing Logical Overseeing Intelligent DREAMER (Deep Recursive Exploration Around Multimodal Embodying REPLOID)) x0.7.0 v0.7.0
 
 **REPLOID/DREAMER** is an experimental, self-contained HTML/CSS/JS application demonstrating a conceptual framework for LLM-driven iterative design, development, dynamic tool creation, and recursive self-improvement (RSI). It operates entirely within the browser, leveraging the Google Gemini API and the browser's `localStorage` for persistent, versioned artifact storage. This project explores creating agents that can reflect on their own structure and modify themselves to better achieve goals, all within the constraints of a standard web browser.
 
@@ -42,15 +42,15 @@ REPLOID uses a modular structure orchestrated after bootstrapping:
 
 - **Goal (C0):** "Create a Web Component named 'info-card' that displays a title and content. It should have attributes 'card-title' and 'card-content'. Save its definition as 'target.webcomponent.info-card-def'. Then, use this component in 'target.body.html' to display 'Welcome' and 'This is a REPLOID demo.'."
 - **Cycle 1:**
-    - **Analysis & Proposal:** Agent decides to use the `define_web_component` tool. Proposes a JavaScript class string for the `<info-card>` element and modifications to `target.body.html` to use it.
-    - **Tool Call:** Agent proposes a call to `define_web_component` with parameters: `tagName: 'info-card'`, the JavaScript class string, `targetArtifactId: 'target.webcomponent.info-card-def'`, and a description like "Displays a title and content."
-    - **Artifact Creation:** The `define_web_component` tool executes, saving the provided JavaScript class string as an artifact named `target.webcomponent.info-card-def` with type `WEB_COMPONENT_DEF`.
-    - **Registration:** The tool then calls `customElements.define('info-card', TheGeneratedClass)` to make the component available in the DOM. `StateManager` records 'info-card' as registered.
-    - **HTML Update:** Agent generates new content for `target.body.html` artifact, which now includes `<info-card card-title="Welcome" card-content="This is a REPLOID demo."></info-card>`.
-    - **UI Preview:** The UI Preview pane updates, rendering the new `target.body.html`, and the `<info-card>` component displays the title and content.
+  - **Analysis & Proposal:** Agent decides to use the `define_web_component` tool. Proposes a JavaScript class string for the `<info-card>` element and modifications to `target.body.html` to use it.
+  - **Tool Call:** Agent proposes a call to `define_web_component` with parameters: `tagName: 'info-card'`, the JavaScript class string, `targetArtifactId: 'target.webcomponent.info-card-def'`, and a description like "Displays a title and content."
+  - **Artifact Creation:** The `define_web_component` tool executes, saving the provided JavaScript class string as an artifact named `target.webcomponent.info-card-def` with type `WEB_COMPONENT_DEF`.
+  - **Registration:** The tool then calls `customElements.define('info-card', TheGeneratedClass)` to make the component available in the DOM. `StateManager` records 'info-card' as registered.
+  - **HTML Update:** Agent generates new content for `target.body.html` artifact, which now includes `<info-card card-title="Welcome" card-content="This is a REPLOID demo."></info-card>`.
+  - **UI Preview:** The UI Preview pane updates, rendering the new `target.body.html`, and the `<info-card>` component displays the title and content.
 - **Cycle 2 (Meta Goal - Improve Core UI with a Web Component):** "Create a core Web Component 'reploid-status-bar' to display the current cycle number and active persona. Save its definition as 'reploid.core.webcomponent.status-bar-def'. Integrate this new component into 'reploid.core.body.html'."
-    - **Cycle:** Agent proposes a `define_web_component` tool call for `reploid-status-bar` and modifications to `reploid.core.body.html`.
-    - **HITL Trigger:** Since this is a Meta goal modifying a `reploid.core.*` artifact (both the new WC definition and `reploid.core.body.html`), and `hitlOnMetaChanges` is true by default, this cycle will likely trigger a Human-In-The-Loop pause for review and confirmation before the changes are applied and the page reloads (if `reploid.core.body.html` modification requires it).
+  - **Cycle:** Agent proposes a `define_web_component` tool call for `reploid-status-bar` and modifications to `reploid.core.body.html`.
+  - **HITL Trigger:** Since this is a Meta goal modifying a `reploid.core.*` artifact (both the new WC definition and `reploid.core.body.html`), and `hitlOnMetaChanges` is true by default, this cycle will likely trigger a Human-In-The-Loop pause for review and confirmation before the changes are applied and the page reloads (if `reploid.core.body.html` modification requires it).
 
 **Example 4: System Goal + Dynamic Tool - Weather Display** (Original Example - still valid)
 ... (Content from original README's Example 3) ...
@@ -60,7 +60,6 @@ REPLOID uses a modular structure orchestrated after bootstrapping:
 
 **Example 6: Meta Goal + Domain Tool - Transformer Config Generator** (Original Example - still valid)
 ... (Content from original README's Example 5) ...
-
 
 ## How It Works (Core Concepts & Usage)
 
@@ -122,41 +121,41 @@ REPLOID uses a modular structure orchestrated after bootstrapping:
 ## Next Steps / Future Work
 
 1.  **Refine Web Component Lifecycle & Styling:**
-    *   **Description:** Explore Shadow DOM for robust encapsulation of Web Component styles and structure. Investigate more advanced styling strategies (e.g., CSS Custom Properties, `::part`). Evaluate alternatives to `new Function()` for defining WC classes from strings for improved security and CSP compatibility, perhaps by dynamically creating `<script>` tags or leveraging dynamic imports if feasible in the constrained environment.
-    *   **Category:** Architectural Refactor / Feature Request (Web Components)
-    *   **Complexity:** 7/7
+    - **Description:** Explore Shadow DOM for robust encapsulation of Web Component styles and structure. Investigate more advanced styling strategies (e.g., CSS Custom Properties, `::part`). Evaluate alternatives to `new Function()` for defining WC classes from strings for improved security and CSP compatibility, perhaps by dynamically creating `<script>` tags or leveraging dynamic imports if feasible in the constrained environment.
+    - **Category:** Architectural Refactor / Feature Request (Web Components)
+    - **Complexity:** 7/7
 2.  **Web Component Based UI for Reploid Itself:**
-    *   **Description:** Incrementally refactor Reploid's own UI (elements currently managed by `ui-manager.js` and defined in `reploid.core.body.html`) to use `reploid.core.webcomponent.*` artifacts. This would make Reploid's own interface more self-modifiable.
-    *   **Category:** Architectural Refactor (RSI / UI)
-    *   **Complexity:** 7/7
+    - **Description:** Incrementally refactor Reploid's own UI (elements currently managed by `ui-manager.js` and defined in `reploid.core.body.html`) to use `reploid.core.webcomponent.*` artifacts. This would make Reploid's own interface more self-modifiable.
+    - **Category:** Architectural Refactor (RSI / UI)
+    - **Complexity:** 7/7
 3.  **Implement Modular Artifact Improvement Tools:**
-    *   **Description:** Fully implement the `apply_diff_patch` and `apply_json_patch` static tools using robust external libraries (e.g., `diff-match-patch`, `fast-json-patch`). Implement dynamic tools for more complex structural editing (e.g., AST manipulation for replacing specific functions within JS or Web Component artifacts).
-    *   **Category:** Feature Request (RSI / Tooling)
-    *   **Complexity:** 7/7
+    - **Description:** Fully implement the `apply_diff_patch` and `apply_json_patch` static tools using robust external libraries (e.g., `diff-match-patch`, `fast-json-patch`). Implement dynamic tools for more complex structural editing (e.g., AST manipulation for replacing specific functions within JS or Web Component artifacts).
+    - **Category:** Feature Request (RSI / Tooling)
+    - **Complexity:** 7/7
 4.  **Advanced Context Management (Selective Injection / Graceful Continuation):**
-    *   **Description:** Implement sophisticated context management, like selecting only relevant history ("arc") or handling tasks exceeding token limits across multiple calls.
-    *   **Category:** Feature Request / Code Improvement
-    *   **Complexity:** 7/7
+    - **Description:** Implement sophisticated context management, like selecting only relevant history ("arc") or handling tasks exceeding token limits across multiple calls.
+    - **Category:** Feature Request / Code Improvement
+    - **Complexity:** 7/7
 5.  **Advanced Tooling for Web Components:**
-    *   **Description:** Develop tools to help the LLM (and human operator) work with Web Components, such as a tool to list a registered Web Component's observed attributes, methods, or events. Potentially a simple visual inspector for component properties.
-    *   **Category:** Feature Request (Tooling / Developer Experience)
-    *   **Complexity:** 6/7
+    - **Description:** Develop tools to help the LLM (and human operator) work with Web Components, such as a tool to list a registered Web Component's observed attributes, methods, or events. Potentially a simple visual inspector for component properties.
+    - **Category:** Feature Request (Tooling / Developer Experience)
+    - **Complexity:** 6/7
 6.  **Add Basic Unit Tests:**
-    *   **Description:** Introduce automated tests for key modules (Utilities, StateManager, pure functions in CycleLogic, static tool logic including `define_web_component`, Web Component registration) to prevent regressions and improve robustness.
-    *   **Category:** Code Improvement / Process Improvement
-    *   **Complexity:** 5/7
+    - **Description:** Introduce automated tests for key modules (Utilities, StateManager, pure functions in CycleLogic, static tool logic including `define_web_component`, Web Component registration) to prevent regressions and improve robustness.
+    - **Category:** Code Improvement / Process Improvement
+    - **Complexity:** 5/7
 7.  **Refined Human-In-The-Loop (HITL) Experience:**
-    *   **Description:** Provide more granular HITL triggers and options beyond simple confirmation. For example, allow users to directly edit LLM proposals (including Web Component JS strings) before application, suggest alternative prompts, or approve/reject individual artifact changes within a larger proposal. Implement the `propose_correction_plan` tool.
-    *   **Category:** Feature Request (UI/UX)
-    *   **Complexity:** 6/7
+    - **Description:** Provide more granular HITL triggers and options beyond simple confirmation. For example, allow users to directly edit LLM proposals (including Web Component JS strings) before application, suggest alternative prompts, or approve/reject individual artifact changes within a larger proposal. Implement the `propose_correction_plan` tool.
+    - **Category:** Feature Request (UI/UX)
+    - **Complexity:** 6/7
 8.  **Browser-Cached Model Support (e.g., WebLLM / Transformers.js):**
-    *   **Description:** Explore using models running locally in the browser via Web AI / ONNX / WebLLM etc., for tasks like simple critiques, code suggestions, or tool logic generation.
-    *   **Category:** Feature Request / Research
-    *   **Complexity:** 7/7
+    - **Description:** Explore using models running locally in the browser via Web AI / ONNX / WebLLM etc., for tasks like simple critiques, code suggestions, or tool logic generation.
+    - **Category:** Feature Request / Research
+    - **Complexity:** 7/7
 9.  **Implement Self-Improvement via Evals/Critiques:**
-    *   **Description:** Use evaluation results/critiques to guide self-improvement of core agent components (prompts, logic, even core Web Component definitions via meta-goals).
-    *   **Category:** Feature Request (RSI)
-    *   **Complexity:** 6/7
+    - **Description:** Use evaluation results/critiques to guide self-improvement of core agent components (prompts, logic, even core Web Component definitions via meta-goals).
+    - **Category:** Feature Request (RSI)
+    - **Complexity:** 6/7
 
 ## Easter Eggs
 
