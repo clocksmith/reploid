@@ -2,7 +2,7 @@
   "LS_PREFIX": "_x0_",
   "STATE_KEY_BASE": "x0_state_v",
   "SESSION_STATE_KEY_BASE": "x0_session_state_v",
-  "STATE_VERSION": "0.3.0",
+  "STATE_VERSION": "0.7.0",
   "MAX_ARTIFACT_SIZE_BYTES": 4194304,
   "MAX_LOG_LENGTH": 50000,
   "CTX_WARN_THRESH": 300000,
@@ -17,8 +17,8 @@
   "AUTONOMOUS_CYCLE_DELAY_MS": 1000,
   "TIMELINE_LOG_LIMIT": 250,
   "DEFAULT_MODELS": {
-    "BASE": "gemini-2.0-flash-thinking-exp",
-    "ADVANCED": "gemini-2.5-pro-exp-03-25"
+    "BASE": "gemini-1.5-flash-latest",
+    "ADVANCED": "gemini-1.5-pro-latest"
   },
   "DEFAULT_CFG": {
     "personaBalance": 50,
@@ -37,7 +37,8 @@
     "critiqueModel": "BASE",
     "summarizerModel": "BASE",
     "evaluatorModel": "BASE",
-    "hitlOnMetaChanges": true
+    "hitlOnMetaChanges": true,
+    "enablePageComposition": true
   },
   "GENESIS_ARTIFACT_DEFS": {
     "reploid.core.config": {
@@ -146,6 +147,7 @@
     "DIAGRAM_JSON",
     "WEB_COMPONENT_DEF",
     "FULL_HTML_SOURCE",
+    "PAGE_COMPOSITION_DEF",
     "UNKNOWN"
   ]
 }

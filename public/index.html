@@ -141,8 +141,7 @@
     </div>
     <div id="app-root"></div>
 
-    <script src="errors.js"></script>
-    {/* Load errors first */}
-    <script src="boot.js" async defer></script>
+    <script src="errors.js" defer></script>
+    <script src="boot.js" defer></script> {/* <-- MODIFIED: Removed 'async' */}
   </body>
 </html>
