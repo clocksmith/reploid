@@ -29,7 +29,7 @@ const CoreLogicModule = (initialConfig, initialUtils, initialStorage, initialErr
       logger.logEvent("debug", `Module ${filePath} loaded successfully.`);
 
       if (exportName.endsWith("Module") && typeof tempScope.result === "function") {
-        return tempScope.result(...depValues);
+        return tempScope.result(...Object.values(dependencies));
       } else {
         return tempScope.result;
       }
@@ -88,7 +88,7 @@ const CoreLogicModule = (initialConfig, initialUtils, initialStorage, initialErr
   const initializeApplication = async () => {
     let config = initialConfig; let Utils = initialUtils; let Storage = initialStorage; let Errors = initialErrors;
     let AgentLogicPureHelpers = initialAgentLogicPureHelpers; let StateHelpersPure = initialStateHelpersPure;
-    let logger = null; let StateManager, ToolRunner, ApiClient, UI, CycleLogic;
+    let logger = null; let StateManager, ToolRunner, ApiClient, UI, CycleLogic, ToolRunnerPureHelpers;
 
     const fatalErrorHandler = (message, error = null) => {
       console.error("Orchestrator: Initialization failed.", message, error);
@@ -104,27 +104,29 @@ const CoreLogicModule = (initialConfig, initialUtils, initialStorage, initialErr
       logger = Utils.logger;
       logger.logEvent("info", "Orchestrator: Initializing application...");
 
-      const stage1Deps = { config, logger, Storage, Errors, StateHelpersPure, Utils };
-      StateManager = await loadModule("state-manager.js", "StateManagerModule", stage1Deps);
-      ApiClient = await loadModule("api-client.js", "ApiClientModule", { config, logger, Errors, Utils });
-      logger.logEvent("debug", "Orchestrator: Stage 1 modules loaded.");
+      const stateManagerDeps = { config, logger, Storage, Errors, StateHelpersPure, Utils };
+      StateManager = await loadModule("state-manager.js", "StateManagerModule", stateManagerDeps);
+      
+      const apiClientDeps = { config, logger, Errors, Utils, StateManager };
+      ApiClient = await loadModule("api-client.js", "ApiClientModule", apiClientDeps);
+      logger.logEvent("debug", "Orchestrator: StateManager and ApiClient loaded.");
 
       StateManager.init();
       await registerCoreWebComponents(StateManager, Storage, logger);
       logger.logEvent("debug", "Orchestrator: StateManager initialized and core WCs registered.");
       
-      const toolRunnerPureHelpers = await loadModule("tool-runner-pure-helpers.js", "ToolRunnerPureHelpersModule", { logger });
+      ToolRunnerPureHelpers = await loadModule("tool-runner-pure-helpers.js", "ToolRunnerPureHelpersModule", { logger });
 
+      const toolRunnerDeps = { config, logger, Storage, StateManager, ApiClient, Errors, Utils, ToolRunnerPureHelpers };
+      ToolRunner = await loadModule("tool-runner.js", "ToolRunnerModule", toolRunnerDeps);
+      
+      const uiManagerDeps = { config, logger, Utils, Storage, StateManager, Errors };
+      UI = await loadModule("ui-manager.js", "UIModule", uiManagerDeps);
+      logger.logEvent("debug", "Orchestrator: ToolRunner and UI loaded.");
 
-      const stage2DepsTool = { config, logger, Storage, StateManager, ApiClient, Errors, Utils, ToolRunnerPureHelpers: toolRunnerPureHelpers };
-      const stage2DepsUI = { config, logger, Utils, Storage, StateManager, Errors };
-      ToolRunner = await loadModule("tool-runner.js", "ToolRunnerModule", stage2DepsTool);
-      UI = await loadModule("ui-manager.js", "UIModule", stage2DepsUI);
-      logger.logEvent("debug", "Orchestrator: Stage 2 modules loaded.");
-
-      const stage3Deps = { config, logger, Utils, Storage, StateManager, UI, ApiClient, ToolRunner, Errors, AgentLogicPureHelpers };
-      CycleLogic = await loadModule("agent-cycle.js", "CycleLogicModule", stage3Deps);
-      logger.logEvent("debug", "Orchestrator: Stage 3 modules loaded.");
+      const cycleLogicDeps = { config, logger, Utils, Storage, StateManager, UI, ApiClient, ToolRunner, Errors, AgentLogicPureHelpers };
+      CycleLogic = await loadModule("agent-cycle.js", "CycleLogicModule", cycleLogicDeps);
+      logger.logEvent("debug", "Orchestrator: CycleLogic loaded.");
 
       CycleLogic.init();
       logger.logEvent("debug", "Orchestrator: CycleLogic initialized.");
