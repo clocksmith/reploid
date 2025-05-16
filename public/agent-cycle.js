@@ -4,17 +4,17 @@ const CycleLogicModule = (
   if (!config || !logger || !Utils || !Storage || !StateManager || !UI || !ApiClient || !ToolRunner || !Errors || !AgentLogicPureHelpers) {
     const internalLog = logger || { logEvent: (lvl, msg, det) => console[lvl === "error" ? "error" : "log"](`[CYCLELOGIC_FALLBACK] ${msg}`, det || "") };
     internalLog.logEvent("error", "CycleLogicModule initialization failed: Missing one or more core dependencies.");
-    const dummy = {};
+    const fallback = {};
     const methods = [ "init", "executeCycle", "isRunning", "getActiveGoalInfo", "proceedAfterHumanIntervention", "handleSummarizeContext", "abortCurrentCycle", "saveHtmlToHistory", "runTool", "startAutonomousRun", "stopAutonomousRun" ];
     methods.forEach(m => {
-      dummy[m] = () => {
+      fallback[m] = () => {
         internalLog.logEvent("error", `CycleLogic not initialized. Called ${m}.`);
         if (m === "isRunning") return false; if (m === "getActiveGoalInfo") return { type: "Idle", latestGoal: "Idle" };
         if (["executeCycle", "handleSummarizeContext", "runTool"].includes(m)) return Promise.reject(new Error("CycleLogic not initialized"));
         return undefined;
       };
     });
-    return dummy;
+    return fallback;
   }
 
   const { ApplicationError, ApiError, ToolError, StateError, ConfigError, ArtifactError, AbortError, WebComponentError } = Errors;
@@ -1047,8 +1047,8 @@ const CycleLogicModule = (
 
   const runTool = async (toolName, args) => {
     const state = StateManager.getState(); if (!state) throw new StateError("Cannot run tool, state not available.");
-    const dummyUiHooks = { updateStatus: () => {}, logTimeline: () => ({}), updateTimelineItem: () => {} };
-    return await ToolRunner.runTool(toolName, args, loadedStaticTools, state.dynamicTools || [], dummyUiHooks);
+    const fallbackUiHooks = { updateStatus: () => {}, logTimeline: () => ({}), updateTimelineItem: () => {} };
+    return await ToolRunner.runTool(toolName, args, loadedStaticTools, state.dynamicTools || [], fallbackUiHooks);
   };
 
   return {
