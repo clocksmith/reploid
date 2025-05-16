@@ -1,0 +1,1015 @@
+{
+  "pure_functions": [
+    {
+      "name": "UtilsModule.kabobToCamel(s)",
+      "description": "Converts a kebab-case string to camelCase.",
+      "file": "utils.js"
+    },
+    {
+      "name": "UtilsModule.camelToKabob(s)",
+      "description": "Converts a camelCase string to kebab-case.",
+      "file": "utils.js"
+    },
+    {
+      "name": "UtilsModule.ucFirst(s)",
+      "description": "Converts the first character of a string to uppercase.",
+      "file": "utils.js"
+    },
+    {
+      "name": "UtilsModule.trunc(str, len, ellipsis)",
+      "description": "Truncates a string to a specified length.",
+      "file": "utils.js"
+    },
+    {
+      "name": "UtilsModule.escapeHtml(unsafe)",
+      "description": "Escapes HTML special characters in a string.",
+      "file": "utils.js"
+    },
+    {
+      "name": "UtilsModule.lc(s)",
+      "description": "Converts a string to lowercase.",
+      "file": "utils.js"
+    },
+    {
+      "name": "UtilsModule.uc(s)",
+      "description": "Converts a string to uppercase.",
+      "file": "utils.js"
+    },
+    {
+      "name": "UtilsModule.getLatestMeta(historyArray)",
+      "description": "Gets the latest metadata entry from a history array.",
+      "file": "utils.js"
+    },
+    {
+      "name": "UtilsModule.getDefaultState(appConfig)",
+      "description": "Returns a default state object based on app configuration.",
+      "file": "utils.js"
+    },
+    {
+      "name": "StateManagerModule._getDefaultState()",
+      "description": "Internal: Returns a default state object (shadows Utils.getDefaultState within module).",
+      "file": "state-manager.js"
+    },
+    {
+      "name": "ApiClientModule.sanitizeLlmJsonResp(rawText)",
+      "description": "Sanitizes raw text to extract a valid JSON string.",
+      "file": "api-client.js"
+    },
+    {
+      "name": "ToolRunnerModule.mapMcpTypeToGemini(mcpType)",
+      "description": "Maps an MCP tool type to a Gemini API type.",
+      "file": "tool-runner.js"
+    },
+    {
+      "name": "ToolRunnerModule.convertMcpPropertiesToGemini(mcpProps)",
+      "description": "Converts MCP tool properties to Gemini API properties.",
+      "file": "tool-runner.js"
+    },
+    {
+      "name": "CycleLogicModule._getArtifactListSummary()",
+      "description": "Internal: Generates a string summary of artifacts.",
+      "file": "agent-cycle.js"
+    },
+    {
+      "name": "CycleLogicModule._getRegisteredWebComponentsList()",
+      "description": "Internal: Generates a string summary of registered web components.",
+      "file": "agent-cycle.js"
+    },
+    {
+      "name": "CycleLogicModule._getToolListSummary()",
+      "description": "Internal: Generates a string summary of available tools.",
+      "file": "agent-cycle.js"
+    },
+    {
+      "name": "CycleLogicModule._summarizeHistory(historyArray, label, maxItems)",
+      "description": "Internal: Summarizes a history array into a string.",
+      "file": "agent-cycle.js"
+    }
+  ],
+  "impure_functions": [
+    {
+      "name": "UtilsModule.logger.logEvent(level, message, ...details)",
+      "description": "Logs an event to console and internal buffer.",
+      "file": "utils.js"
+    },
+    {
+      "name": "UtilsModule.logger.getLogBuffer()",
+      "description": "Retrieves the content of the internal log buffer.",
+      "file": "utils.js"
+    },
+    {
+      "name": "UtilsModule.logger.setLogBuffer(newBuffer)",
+      "description": "Sets the content of the internal log buffer.",
+      "file": "utils.js"
+    },
+    {
+      "name": "UtilsModule.$id(id)",
+      "description": "Gets a DOM element by its ID.",
+      "file": "utils.js"
+    },
+    {
+      "name": "UtilsModule.$(selector, parent)",
+      "description": "Finds the first DOM element matching a selector.",
+      "file": "utils.js"
+    },
+    {
+      "name": "UtilsModule.$$(selector, parent)",
+      "description": "Finds all DOM elements matching a selector.",
+      "file": "utils.js"
+    },
+    {
+      "name": "UtilsModule.delay(ms)",
+      "description": "Returns a promise that resolves after a specified delay.",
+      "file": "utils.js"
+    },
+    {
+      "name": "UtilsModule.getRandomInt(min, max)",
+      "description": "Generates a random integer within a range (uses Math.random).",
+      "file": "utils.js"
+    },
+    {
+      "name": "UtilsModule.calculateChecksum(content)",
+      "description": "Calculates SHA-256 checksum of content using crypto API.",
+      "file": "utils.js"
+    },
+    {
+      "name": "boot.js IIFE",
+      "description": "Main bootstrap script execution.",
+      "file": "boot.js"
+    },
+    {
+      "name": "boot.js bl(message, level, detail, charDelay)",
+      "description": "Bootstrap logger; updates DOM, plays audio.",
+      "file": "boot.js"
+    },
+    {
+      "name": "boot.js initAudioContext()",
+      "description": "Initializes Web Audio API AudioContext.",
+      "file": "boot.js"
+    },
+    {
+      "name": "boot.js calculateChecksumViaUtils(content)",
+      "description": "Wrapper to call Utils.calculateChecksum once Utils is loaded.",
+      "file": "boot.js"
+    },
+    {
+      "name": "boot.js fetchAndExecuteModule(filePath, exportName, dependencies)",
+      "description": "Fetches and executes a JS module file.",
+      "file": "boot.js"
+    },
+    {
+      "name": "boot.js loadCoreDependencies()",
+      "description": "Loads config, utils, and storage modules.",
+      "file": "boot.js"
+    },
+    {
+      "name": "boot.js isValidState(parsedState)",
+      "description": "Validates the structure and version of a state object.",
+      "file": "boot.js"
+    },
+    {
+      "name": "boot.js verifyArtifactChecksum(id, cycle, expectedChecksum, versionId)",
+      "description": "Verifies checksum of a stored artifact.",
+      "file": "boot.js"
+    },
+    {
+      "name": "boot.js checkEssentialArtifactsPresent(stateCycle, artifactMetadata)",
+      "description": "Checks if essential artifacts exist and are valid.",
+      "file": "boot.js"
+    },
+    {
+      "name": "boot.js clearAllReploidData()",
+      "description": "Clears all Reploid data from localStorage.",
+      "file": "boot.js"
+    },
+    {
+      "name": "boot.js bootstrapReploid(performGenesis)",
+      "description": "Main bootstrap orchestration function.",
+      "file": "boot.js"
+    },
+    {
+      "name": "boot.js fetchGenesisArtifacts()",
+      "description": "Fetches content for genesis artifacts.",
+      "file": "boot.js"
+    },
+    {
+      "name": "boot.js saveGenesisArtifacts(artifacts)",
+      "description": "Saves fetched genesis artifacts and boot trace artifacts to storage.",
+      "file": "boot.js"
+    },
+    {
+      "name": "boot.js runGenesisProcess()",
+      "description": "Executes the full genesis process.",
+      "file": "boot.js"
+    },
+    {
+      "name": "boot.js registerCoreWebComponentsOnBoot(currentArtifactMetadata)",
+      "description": "Registers core web components from artifacts at boot time.",
+      "file": "boot.js"
+    },
+    {
+      "name": "boot.js loadAndExecuteApp(currentState)",
+      "description": "Loads and executes the main application logic.",
+      "file": "boot.js"
+    },
+    {
+      "name": "boot.js handleSkip(e)",
+      "description": "Handles skip animation event.",
+      "file": "boot.js"
+    },
+    {
+      "name": "boot.js handleKeydown(e)",
+      "description": "Handles keydown for initial interaction.",
+      "file": "boot.js"
+    },
+    {
+      "name": "boot.js removeInteractionListeners()",
+      "description": "Removes initial interaction event listeners.",
+      "file": "boot.js"
+    },
+    {
+      "name": "boot.js addSkipListener()",
+      "description": "Adds skip animation event listener.",
+      "file": "boot.js"
+    },
+    {
+      "name": "boot.js removeSkipListener()",
+      "description": "Removes skip animation event listener.",
+      "file": "boot.js"
+    },
+    {
+      "name": "boot.js handleContinueClick()",
+      "description": "Handles click on continue button.",
+      "file": "boot.js"
+    },
+    {
+      "name": "boot.js handleResetClick()",
+      "description": "Handles click on reset button.",
+      "file": "boot.js"
+    },
+    {
+      "name": "boot.js startInteraction(action)",
+      "description": "Starts the application based on user action (continue/reset).",
+      "file": "boot.js"
+    },
+    {
+      "name": "CoreLogicModule.loadModule(filePath, exportName, dependencies)",
+      "description": "Dynamically loads a JS module file and its dependencies.",
+      "file": "app-logic.js"
+    },
+    {
+      "name": "CoreLogicModule.registerCoreWebComponents(StateManagerInstance, StorageInstance, LoggerInstance)",
+      "description": "Registers core web components defined in artifacts using customElements API.",
+      "file": "app-logic.js"
+    },
+    {
+      "name": "CoreLogicModule.initializeApplication()",
+      "description": "Initializes all core application modules and their dependencies.",
+      "file": "app-logic.js"
+    },
+    {
+      "name": "tool-worker.js self.onmessage(event)",
+      "description": "Handles messages sent to the web worker to execute dynamic tools.",
+      "file": "tool-worker.js"
+    },
+    {
+      "name": "tool-worker.js makeShimRequest(requestType, payload)",
+      "description": "Sends a request from the worker to the main thread.",
+      "file": "tool-worker.js"
+    },
+    {
+      "name": "CycleLogicModule.calculateChecksum(content)",
+      "description": "Calculates checksum, potentially using Utils or a fallback.",
+      "file": "agent-cycle.js"
+    },
+    {
+      "name": "ToolRunnerModule.calculateChecksum(content)",
+      "description": "Calculates SHA-256 checksum of content using crypto API.",
+      "file": "tool-runner.js"
+    }
+  ],
+  "classes": [
+    {
+      "name": "ApplicationError",
+      "description": "Base custom error class.",
+      "file": "utils.js"
+    },
+    {
+      "name": "ApiError",
+      "description": "Error related to API interactions.",
+      "file": "utils.js"
+    },
+    {
+      "name": "ToolError",
+      "description": "Error related to tool execution.",
+      "file": "utils.js"
+    },
+    {
+      "name": "StateError",
+      "description": "Error related to state management.",
+      "file": "utils.js"
+    },
+    {
+      "name": "ConfigError",
+      "description": "Error related to configuration issues.",
+      "file": "utils.js"
+    },
+    {
+      "name": "ArtifactError",
+      "description": "Error related to artifact processing.",
+      "file": "utils.js"
+    },
+    {
+      "name": "AbortError",
+      "description": "Error indicating an abort request.",
+      "file": "utils.js"
+    },
+    {
+      "name": "WebComponentError",
+      "description": "Error related to Web Component definition/registration.",
+      "file": "utils.js"
+    },
+    {
+      "name": "StorageModule",
+      "description": "Module factory for storage operations.",
+      "file": "storage.js"
+    },
+    {
+      "name": "StateManagerModule",
+      "description": "Module factory for state management.",
+      "file": "state-manager.js"
+    },
+    {
+      "name": "ApiClientModule",
+      "description": "Module factory for API client operations.",
+      "file": "api-client.js"
+    },
+    {
+      "name": "ToolRunnerModule",
+      "description": "Module factory for tool execution.",
+      "file": "tool-runner.js"
+    },
+    {
+      "name": "CycleLogicModule",
+      "description": "Module factory for agent cycle logic.",
+      "file": "agent-cycle.js"
+    },
+    {
+      "name": "UIModule",
+      "description": "Module factory for UI management.",
+      "file": "ui-manager.js"
+    },
+    {
+      "name": "CoreLogicModule",
+      "description": "Module factory for core application orchestration.",
+      "file": "app-logic.js"
+    },
+    {
+      "name": "UtilsModule",
+      "description": "IIFE module providing utilities and error classes.",
+      "file": "utils.js"
+    }
+  ],
+  "constructors": [
+    {
+      "name": "ApplicationError.constructor(message, details)",
+      "description": "Initializes ApplicationError.",
+      "file": "utils.js"
+    },
+    {
+      "name": "ApiError.constructor(message, status, code, apiDetails)",
+      "description": "Initializes ApiError.",
+      "file": "utils.js"
+    },
+    {
+      "name": "ToolError.constructor(message, toolName, toolArgs, toolDetails)",
+      "description": "Initializes ToolError.",
+      "file": "utils.js"
+    },
+    {
+      "name": "StateError.constructor(message, stateDetails)",
+      "description": "Initializes StateError.",
+      "file": "utils.js"
+    },
+    {
+      "name": "ConfigError.constructor(message, configKey, configDetails)",
+      "description": "Initializes ConfigError.",
+      "file": "utils.js"
+    },
+    {
+      "name": "ArtifactError.constructor(message, artifactId, artifactCycle, artifactDetails)",
+      "description": "Initializes ArtifactError.",
+      "file": "utils.js"
+    },
+    {
+      "name": "AbortError.constructor(message)",
+      "description": "Initializes AbortError.",
+      "file": "utils.js"
+    },
+    {
+      "name": "WebComponentError.constructor(message, componentName, componentDetails)",
+      "description": "Initializes WebComponentError.",
+      "file": "utils.js"
+    }
+  ],
+  "pure_instance_methods": [
+    {
+      "name": "StorageModule.prototype.getArtifactKey(id, cycle, versionId)",
+      "description": "Constructs a localStorage key for an artifact.",
+      "file": "storage.js"
+    },
+    {
+      "name": "CycleLogicModule.prototype.isRunning()",
+      "description": "Returns if the agent cycle is currently running.",
+      "file": "agent-cycle.js"
+    },
+    {
+      "name": "CycleLogicModule.prototype.isAutonomous()",
+      "description": "Returns if the agent is in autonomous mode.",
+      "file": "agent-cycle.js"
+    },
+    {
+      "name": "CycleLogicModule.prototype.getActiveGoalInfo()",
+      "description": "Retrieves information about the current active goal from state.",
+      "file": "agent-cycle.js"
+    },
+    {
+      "name": "StateManagerModule.prototype.getArtifactMetadata(id, versionId)",
+      "description": "Retrieves metadata for a specific artifact version.",
+      "file": "state-manager.js"
+    },
+    {
+      "name": "StateManagerModule.prototype.getArtifactMetadataAllVersions(id)",
+      "description": "Retrieves all metadata versions for a specific artifact ID.",
+      "file": "state-manager.js"
+    },
+    {
+      "name": "StateManagerModule.prototype.getAllArtifactMetadata()",
+      "description": "Retrieves the latest metadata for all artifacts.",
+      "file": "state-manager.js"
+    },
+    {
+      "name": "StateManagerModule.prototype.isInitialized()",
+      "description": "Checks if the StateManager has been initialized.",
+      "file": "state-manager.js"
+    },
+    {
+      "name": "StateManagerModule.prototype.isWebComponentRegistered(tagName)",
+      "description": "Checks if a web component tag name is marked as registered.",
+      "file": "state-manager.js"
+    },
+    {
+      "name": "StateManagerModule.prototype.getRegisteredWebComponents()",
+      "description": "Gets the list of registered web component tag names.",
+      "file": "state-manager.js"
+    },
+    {
+      "name": "UIModule.prototype.getRefs()",
+      "description": "Returns references to cached UI DOM elements.",
+      "file": "ui-manager.js"
+    },
+    {
+      "name": "UIModule.prototype.isMetaSandboxPending()",
+      "description": "Checks if a meta sandbox approval is pending.",
+      "file": "ui-manager.js"
+    },
+    {
+      "name": "UIModule.prototype.isHumanInterventionHidden()",
+      "description": "Checks if the human intervention UI is hidden.",
+      "file": "ui-manager.js"
+    }
+  ],
+  "impure_instance_methods": [
+    {
+      "name": "StorageModule.prototype.getStorageUsage()",
+      "description": "Calculates current localStorage usage by Reploid.",
+      "file": "storage.js"
+    },
+    {
+      "name": "StorageModule.prototype._get(key)",
+      "description": "Internal: Retrieves an item from localStorage.",
+      "file": "storage.js"
+    },
+    {
+      "name": "StorageModule.prototype._set(key, value)",
+      "description": "Internal: Sets an item in localStorage with size and quota checks.",
+      "file": "storage.js"
+    },
+    {
+      "name": "StorageModule.prototype._remove(key)",
+      "description": "Internal: Removes an item from localStorage.",
+      "file": "storage.js"
+    },
+    {
+      "name": "StorageModule.prototype.getArtifactContent(id, cycle, versionId)",
+      "description": "Retrieves content of a specific artifact version from localStorage.",
+      "file": "storage.js"
+    },
+    {
+      "name": "StorageModule.prototype.setArtifactContent(id, cycle, content, versionId)",
+      "description": "Saves content of an artifact version to localStorage.",
+      "file": "storage.js"
+    },
+    {
+      "name": "StorageModule.prototype.deleteArtifactVersion(id, cycle, versionId)",
+      "description": "Deletes a specific artifact version from localStorage.",
+      "file": "storage.js"
+    },
+    {
+      "name": "StorageModule.prototype.getState()",
+      "description": "Retrieves the application state from localStorage.",
+      "file": "storage.js"
+    },
+    {
+      "name": "StorageModule.prototype.saveState(stateObj)",
+      "description": "Saves the application state to localStorage.",
+      "file": "storage.js"
+    },
+    {
+      "name": "StorageModule.prototype.removeState()",
+      "description": "Removes the application state from localStorage.",
+      "file": "storage.js"
+    },
+    {
+      "name": "StorageModule.prototype.getSessionState()",
+      "description": "Retrieves state from sessionStorage.",
+      "file": "storage.js"
+    },
+    {
+      "name": "StorageModule.prototype.saveSessionState(stateObj)",
+      "description": "Saves state to sessionStorage.",
+      "file": "storage.js"
+    },
+    {
+      "name": "StorageModule.prototype.removeSessionState()",
+      "description": "Removes state from sessionStorage.",
+      "file": "storage.js"
+    },
+    {
+      "name": "StorageModule.prototype.clearAllReploidData()",
+      "description": "Clears all Reploid-related data from localStorage and sessionStorage.",
+      "file": "storage.js"
+    },
+    {
+      "name": "StateManagerModule.prototype.init()",
+      "description": "Initializes the state manager, loading from storage or defaults.",
+      "file": "state-manager.js"
+    },
+    {
+      "name": "StateManagerModule.prototype.getState()",
+      "description": "Returns the current global state object.",
+      "file": "state-manager.js"
+    },
+    {
+      "name": "StateManagerModule.prototype.setState(newState)",
+      "description": "Sets the global state object after validation.",
+      "file": "state-manager.js"
+    },
+    {
+      "name": "StateManagerModule.prototype.save()",
+      "description": "Saves the current global state to persistent storage.",
+      "file": "state-manager.js"
+    },
+    {
+      "name": "StateManagerModule.prototype.updateArtifactMetadata(id, type, description, cycle, checksum, source, versionId, isModular)",
+      "description": "Updates or adds metadata for an artifact.",
+      "file": "state-manager.js"
+    },
+    {
+      "name": "StateManagerModule.prototype.deleteArtifactMetadata(id, versionId)",
+      "description": "Deletes metadata for an artifact or a specific version.",
+      "file": "state-manager.js"
+    },
+    {
+      "name": "StateManagerModule.prototype.capturePreservationState(uiRefs)",
+      "description": "Captures serializable state for session preservation.",
+      "file": "state-manager.js"
+    },
+    {
+      "name": "StateManagerModule.prototype.restoreStateFromSession(restoreUIFn)",
+      "description": "Restores state from sessionStorage.",
+      "file": "state-manager.js"
+    },
+    {
+      "name": "StateManagerModule.prototype.exportState(uiRefs)",
+      "description": "Initiates download of the current application state.",
+      "file": "state-manager.js"
+    },
+    {
+      "name": "StateManagerModule.prototype.importState(file, importCallback)",
+      "description": "Imports application state from a file.",
+      "file": "state-manager.js"
+    },
+    {
+      "name": "StateManagerModule.prototype.addEvaluationResult(result)",
+      "description": "Adds an evaluation result to the history.",
+      "file": "state-manager.js"
+    },
+    {
+      "name": "StateManagerModule.prototype.addCritiqueFeedback(feedbackData)",
+      "description": "Adds critique feedback to the history.",
+      "file": "state-manager.js"
+    },
+    {
+      "name": "StateManagerModule.prototype.registerWebComponent(tagName)",
+      "description": "Marks a web component tag name as registered in the state.",
+      "file": "state-manager.js"
+    },
+    {
+      "name": "ApiClientModule.prototype.callGeminiAPIStream(prompt, sysInstr, modelName, apiKey, funcDecls, prevContent, abortSignal, generationConfigOverrides, progressCallback)",
+      "description": "Internal: Makes a streaming call to the Gemini API.",
+      "file": "api-client.js"
+    },
+    {
+      "name": "ApiClientModule.prototype.callApiWithRetry(prompt, sysInstr, modelName, apiKey, funcDecls, isContinuation, prevContent, maxRetries, generationConfigOverrides, updateStatusFn, logTimelineFn, updateTimelineFn, progressCallback)",
+      "description": "Calls the Gemini API with retry logic and progress updates.",
+      "file": "api-client.js"
+    },
+    {
+      "name": "ApiClientModule.prototype.abortCurrentCall(reason)",
+      "description": "Aborts the current ongoing API call.",
+      "file": "api-client.js"
+    },
+    {
+      "name": "ToolRunnerModule.prototype.runTool(toolName, toolArgs, injectedStaticTools, injectedDynamicTools, uiHooks)",
+      "description": "Executes a specified static or dynamic tool.",
+      "file": "tool-runner.js"
+    },
+    {
+      "name": "CycleLogicModule.prototype.init()",
+      "description": "Initializes the CycleLogic module, loading static tools.",
+      "file": "agent-cycle.js"
+    },
+    {
+      "name": "CycleLogicModule.prototype._assembleCorePrompt(state, goalInfo, currentCycle)",
+      "description": "Internal: Assembles the main prompt for the LLM.",
+      "file": "agent-cycle.js"
+    },
+    {
+      "name": "CycleLogicModule.prototype._prepareFunctionDeclarations(state)",
+      "description": "Internal: Prepares Gemini function declarations for available tools.",
+      "file": "agent-cycle.js"
+    },
+    {
+      "name": "CycleLogicModule.prototype._handleToolExecution(toolCall, state, currentCycle, uiHooks)",
+      "description": "Internal: Handles the execution of a tool call from the LLM.",
+      "file": "agent-cycle.js"
+    },
+    {
+      "name": "CycleLogicModule.prototype._executeLlmApiCallSequence(prompt, sysInstruction, coreModelIdentifier, apiKey, allFuncDecls, state, currentCycle)",
+      "description": "Internal: Manages the sequence of API calls for an LLM interaction, including tool use.",
+      "file": "agent-cycle.js"
+    },
+    {
+      "name": "CycleLogicModule.prototype._processLlmApiResponse(apiCallResult, state, currentCycle)",
+      "description": "Internal: Parses and processes the final LLM API response.",
+      "file": "agent-cycle.js"
+    },
+    {
+      "name": "CycleLogicModule.prototype._runLlmIteration(state, goalInfo, currentCycle)",
+      "description": "Internal: Runs a full LLM iteration including prompt assembly, API call, and response processing.",
+      "file": "agent-cycle.js"
+    },
+    {
+      "name": "CycleLogicModule.prototype._runSingleAutoCritiqueInstance(apiKey, llmProposal, goalInfo, currentCycle, critiqueIndex)",
+      "description": "Internal: Runs a single instance of an automated critique LLM call.",
+      "file": "agent-cycle.js"
+    },
+    {
+      "name": "CycleLogicModule.prototype._runAutoCritique(apiKey, llmProposal, goalInfo, currentCycle)",
+      "description": "Internal: Orchestrates multiple auto-critique instances.",
+      "file": "agent-cycle.js"
+    },
+    {
+      "name": "CycleLogicModule.prototype._assembleHtmlFromPageComposition(composition, nextCycleNum, critiqueSource, state)",
+      "description": "Internal: Assembles a full HTML page from a page_composition object.",
+      "file": "agent-cycle.js"
+    },
+    {
+      "name": "CycleLogicModule.prototype._applyArtifactChanges(artifactChanges, nextCycleNum, critiqueSource, state, changesMade, errors)",
+      "description": "Internal: Applies proposed artifact changes to storage and state.",
+      "file": "agent-cycle.js"
+    },
+    {
+      "name": "CycleLogicModule.prototype._applyToolDefinitionChanges(newTools, critiqueSource, state, changesMade, errors, currentCycleNum)",
+      "description": "Internal: Applies proposed new dynamic tool definitions to state.",
+      "file": "agent-cycle.js"
+    },
+    {
+      "name": "CycleLogicModule.prototype._applyLLMChanges(llmResp, currentCycleNum, critiqueSource)",
+      "description": "Internal: Applies all changes from an LLM response (artifacts, tools).",
+      "file": "agent-cycle.js"
+    },
+    {
+      "name": "CycleLogicModule.prototype._checkHitlTriggers(state, cycleTimeSecs, confidence, currentCycle, llmResponse)",
+      "description": "Internal: Checks conditions for triggering Human-In-The-Loop.",
+      "file": "agent-cycle.js"
+    },
+    {
+      "name": "CycleLogicModule.prototype._performCritique(state, llmResponse, goalInfo, currentCycle)",
+      "description": "Internal: Decides whether to run auto-critique and executes it.",
+      "file": "agent-cycle.js"
+    },
+    {
+      "name": "CycleLogicModule.prototype._handleCritiqueDecision(state, llmResponse, goalInfo, currentCycle)",
+      "description": "Internal: Handles the outcome of critiques and HITL triggers.",
+      "file": "agent-cycle.js"
+    },
+    {
+      "name": "CycleLogicModule.prototype._runSelfEvaluationStep(state, llmResponse, currentCycle, applyResult)",
+      "description": "Internal: Runs a self-evaluation of the agent's justification.",
+      "file": "agent-cycle.js"
+    },
+    {
+      "name": "CycleLogicModule.prototype._prepareCycle()",
+      "description": "Internal: Prepares for a new agent cycle by setting up state and goal.",
+      "file": "agent-cycle.js"
+    },
+    {
+      "name": "CycleLogicModule.prototype._handleCycleIterationFailure(state, error, currentCycle)",
+      "description": "Internal: Handles failures during an LLM iteration attempt, managing retries.",
+      "file": "agent-cycle.js"
+    },
+    {
+      "name": "CycleLogicModule.prototype._displayLlmIterationSuccessDetails(llmIterationResult, state, currentCycle)",
+      "description": "Internal: Displays UI details after a successful LLM iteration.",
+      "file": "agent-cycle.js"
+    },
+    {
+      "name": "CycleLogicModule.prototype._handleApplyFailure(state, applyResult, critiqueDecision, currentCycle)",
+      "description": "Internal: Handles failures during the application of LLM changes.",
+      "file": "agent-cycle.js"
+    },
+    {
+      "name": "CycleLogicModule.prototype.executeCycle()",
+      "description": "Executes a full agent operational cycle.",
+      "file": "agent-cycle.js"
+    },
+    {
+      "name": "CycleLogicModule.prototype.proceedAfterHumanIntervention(feedbackType, feedbackData, skipCycleIncrement)",
+      "description": "Processes human feedback and resumes or adjusts the agent cycle.",
+      "file": "agent-cycle.js"
+    },
+    {
+      "name": "CycleLogicModule.prototype.saveHtmlToHistory(htmlContent)",
+      "description": "Saves the current page HTML to a history buffer in state.",
+      "file": "agent-cycle.js"
+    },
+    {
+      "name": "CycleLogicModule.prototype._runSummarization(apiKey, stateSummary, currentCycle)",
+      "description": "Internal: Runs an LLM call to summarize context.",
+      "file": "agent-cycle.js"
+    },
+    {
+      "name": "CycleLogicModule.prototype.handleSummarizeContext()",
+      "description": "Initiates context summarization and updates state.",
+      "file": "agent-cycle.js"
+    },
+    {
+      "name": "CycleLogicModule.prototype.abortCurrentCycle()",
+      "description": "Requests an abort of the current running agent cycle.",
+      "file": "agent-cycle.js"
+    },
+    {
+      "name": "CycleLogicModule.prototype.startAutonomousRun(mode, cycles)",
+      "description": "Starts an autonomous run of agent cycles.",
+      "file": "agent-cycle.js"
+    },
+    {
+      "name": "CycleLogicModule.prototype.stopAutonomousRun(reason)",
+      "description": "Stops an ongoing autonomous run.",
+      "file": "agent-cycle.js"
+    },
+    {
+      "name": "CycleLogicModule.prototype.runTool(toolName, args)",
+      "description": "Allows direct execution of a tool (used by UI/HITL).",
+      "file": "agent-cycle.js"
+    },
+    {
+      "name": "UIModule.prototype.init(injectedStateManager, injectedCycleLogic)",
+      "description": "Initializes the UI Module, sets up references and listeners.",
+      "file": "ui-manager.js"
+    },
+    {
+      "name": "UIModule.prototype.updateStatus(message, isActive, isError)",
+      "description": "Updates the main status indicator in the UI.",
+      "file": "ui-manager.js"
+    },
+    {
+      "name": "UIModule.prototype.updateApiProgress(message)",
+      "description": "Updates the API progress indicator in the UI.",
+      "file": "ui-manager.js"
+    },
+    {
+      "name": "UIModule.prototype.updateStreamingOutput(content, isFinal)",
+      "description": "Updates the LLM streaming output display.",
+      "file": "ui-manager.js"
+    },
+    {
+      "name": "UIModule.prototype.clearStreamingOutput()",
+      "description": "Clears the LLM streaming output display.",
+      "file": "ui-manager.js"
+    },
+    {
+      "name": "UIModule.prototype.highlightCoreStep(stepIndex)",
+      "description": "Highlights the current core loop step in the UI minimap.",
+      "file": "ui-manager.js"
+    },
+    {
+      "name": "UIModule.prototype.showNotification(message, type, duration)",
+      "description": "Displays a toast-style notification to the user.",
+      "file": "ui-manager.js"
+    },
+    {
+      "name": "UIModule.prototype.logToTimeline(cycle, message, type, isSubStep, animate)",
+      "description": "Adds a log entry to the execution timeline display.",
+      "file": "ui-manager.js"
+    },
+    {
+      "name": "UIModule.prototype.logCoreLoopStep(cycle, stepIndex, message)",
+      "description": "Logs a core loop step to the timeline.",
+      "file": "ui-manager.js"
+    },
+    {
+      "name": "UIModule.prototype.updateTimelineItem(logItem, newMessage, newType, stopAnimate)",
+      "description": "Updates an existing timeline log item.",
+      "file": "ui-manager.js"
+    },
+    {
+      "name": "UIModule.prototype.summarizeCompletedCycleLog(outcome)",
+      "description": "Summarizes the log for a completed cycle in the timeline.",
+      "file": "ui-manager.js"
+    },
+    {
+      "name": "UIModule.prototype.clearCurrentCycleDetails()",
+      "description": "Clears the UI display area for current cycle artifacts.",
+      "file": "ui-manager.js"
+    },
+    {
+      "name": "UIModule.prototype.displayCycleArtifact(label, content, type, isModified, source, artifactId, cycle, versionId)",
+      "description": "Displays an artifact's content in the current cycle details view.",
+      "file": "ui-manager.js"
+    },
+    {
+      "name": "UIModule.prototype.displayToolExecutionSummary(toolSummaries)",
+      "description": "Displays a summary of tools executed in the current cycle.",
+      "file": "ui-manager.js"
+    },
+    {
+      "name": "UIModule.prototype.hideHumanInterventionUI()",
+      "description": "Hides the human intervention UI panel.",
+      "file": "ui-manager.js"
+    },
+    {
+      "name": "UIModule.prototype.showHumanInterventionUI(mode, reason, options, artifactIdToEdit, critiques)",
+      "description": "Shows the human intervention UI panel with appropriate mode.",
+      "file": "ui-manager.js"
+    },
+    {
+      "name": "UIModule.prototype.hideMetaSandbox()",
+      "description": "Hides the meta-improvement sandbox UI.",
+      "file": "ui-manager.js"
+    },
+    {
+      "name": "UIModule.prototype.showMetaSandbox(htmlSource)",
+      "description": "Shows the meta-improvement sandbox with proposed HTML.",
+      "file": "ui-manager.js"
+    },
+    {
+      "name": "UIModule.prototype.updateStateDisplay()",
+      "description": "Updates various UI elements to reflect the current application state.",
+      "file": "ui-manager.js"
+    },
+    {
+      "name": "UIModule.prototype.updateAutonomyControls(mode, isRunning)",
+      "description": "Updates the UI controls related to autonomous operation.",
+      "file": "ui-manager.js"
+    },
+    {
+      "name": "UIModule.prototype.setRunButtonState(text, disabled)",
+      "description": "Sets the text and enabled state of the main run/abort button.",
+      "file": "ui-manager.js"
+    },
+    {
+      "name": "tool-worker.js self.LS_shim.getArtifactContent(id, cycle, versionId)",
+      "description": "Shim to request artifact content from the main thread.",
+      "file": "tool-worker.js"
+    },
+    {
+      "name": "tool-worker.js self.StateManager_shim.getArtifactMetadata(id, versionId)",
+      "description": "Shim to request artifact metadata from the main thread.",
+      "file": "tool-worker.js"
+    },
+    {
+      "name": "tool-worker.js self.StateManager_shim.getArtifactMetadataAllVersions(id)",
+      "description": "Shim to request all versions of artifact metadata from the main thread.",
+      "file": "tool-worker.js"
+    },
+    {
+      "name": "tool-worker.js self.StateManager_shim.getAllArtifactMetadata()",
+      "description": "Shim to request all latest artifact metadata from the main thread.",
+      "file": "tool-worker.js"
+    }
+  ],
+  "static_pure_class_methods": [],
+  "static_impure_class_methods": [],
+  "global_objects_constants_variables": [
+    {
+      "name": "UtilsModule.Errors",
+      "description": "Object containing custom error class definitions.",
+      "file": "utils.js"
+    },
+    {
+      "name": "boot.js startContainer, loadingContainer, etc.",
+      "description": "DOM element references at the top of boot.js.",
+      "file": "boot.js"
+    },
+    {
+      "name": "boot.js bootstrapLogMessages",
+      "description": "String accumulating bootstrap log messages.",
+      "file": "boot.js"
+    },
+    {
+      "name": "boot.js config, Utils, Storage, ErrorsGlobal, blLogger",
+      "description": "Variables to hold loaded core modules/config.",
+      "file": "boot.js"
+    },
+    {
+      "name": "config.json (all top-level keys)",
+      "description": "Configuration constants like LS_PREFIX, STATE_VERSION, DEFAULT_MODELS, GENESIS_ARTIFACT_DEFS, etc.",
+      "file": "config.json"
+    },
+    {
+      "name": "tool-worker.js messageCallbacks, messageIdCounter",
+      "description": "Variables for managing worker-main thread communication.",
+      "file": "tool-worker.js"
+    },
+    {
+      "name": "tool-worker.js self.LS_shim",
+      "description": "Shim object for localStorage access from worker.",
+      "file": "tool-worker.js"
+    },
+    {
+      "name": "tool-worker.js self.StateManager_shim",
+      "description": "Shim object for StateManager access from worker.",
+      "file": "tool-worker.js"
+    }
+  ],
+  "uncategorized_insufficient_detail": [
+    {
+      "name": "errors.js",
+      "description": "Defines custom error classes (content now in utils.js). File seems to be an old artifact in the bundle.",
+      "file": "errors.js"
+    },
+    {
+      "name": "index.html",
+      "description": "Main HTML document.",
+      "file": "index.html"
+    },
+    {
+      "name": "ui-body-template.html",
+      "description": "HTML template for the application body.",
+      "file": "ui-body-template.html"
+    },
+    {
+      "name": "ui-style.css",
+      "description": "Main CSS styles for the application.",
+      "file": "ui-style.css"
+    },
+    {
+      "name": "prompt-critiquer.txt",
+      "description": "Text prompt for the critiquer LLM.",
+      "file": "prompt-critiquer.txt"
+    },
+    {
+      "name": "prompt-evaluator.txt",
+      "description": "Text prompt for the evaluator LLM.",
+      "file": "prompt-evaluator.txt"
+    },
+    {
+      "name": "prompt-summarizer.txt",
+      "description": "Text prompt for the summarizer LLM.",
+      "file": "prompt-summarizer.txt"
+    },
+    {
+      "name": "prompt-system.txt",
+      "description": "Main system prompt for the LLM.",
+      "file": "prompt-system.txt"
+    },
+    {
+      "name": "data-cycle-steps.txt",
+      "description": "Informational text describing agent cycle steps.",
+      "file": "data-cycle-steps.txt"
+    },
+    {
+      "name": "data-eval-default.json",
+      "description": "JSON data defining default evaluation criteria.",
+      "file": "data-eval-default.json"
+    },
+    {
+      "name": "data-tools-static.json",
+      "description": "JSON data defining static tools available to the agent.",
+      "file": "data-tools-static.json"
+    }
+  ]
+}

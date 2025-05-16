@@ -1,138 +1,134 @@
-# REPLOID (Reflective Embodiment Providing Logical Overseeing Intelligent DREAMER (Deep Recursive Exploration Around Multimodal Embodying REPLOID)) x0.7.0 v0.7.0
+# REPLOID (Reflective Embodiment Providing Logical Overseeing Intelligent DREAMER (Deep Recursive Exploration Around Multimodal Embodying REPLOID))
 
-**REPLOID/DREAMER** is an experimental, self-contained HTML/CSS/JS application demonstrating a conceptual framework for LLM-driven iterative design, development, dynamic tool creation, and recursive self-improvement (RSI). It operates entirely within the browser, leveraging the Google Gemini API and the browser's `localStorage` for persistent, versioned artifact storage. This project explores creating agents that can reflect on their own structure and modify themselves to better achieve goals, all within the constraints of a standard web browser.
+**REPLOID/DREAMER** is an experimental application framework designed to explore LLM-driven iterative design, dynamic tool creation, and recursive self-improvement (RSI) by uniquely leveraging the **web browser as a comprehensive development and execution ecosystem**. The long-term vision is to cultivate self-contained agentic systems capable of sophisticated RSI, with the ultimate aim of investigating pathways towards Artificial General Intelligence (AGI) within this browser-native environment.
 
-The core idea treats every component (UI, logic, prompts, tools, Web Components, and even page structure definitions) as versioned **artifacts** stored in `localStorage`. The agent ('x0', with dual LSD/XYZ personas) analyzes goals, reads artifacts, proposes changes (including structured page compositions), and saves outputs for the next cycle, creating a traceable history.
+Unlike traditional agents that may operate from a command line with indirect access to their target environments, REPLOID is architected to live and evolve directly within the browser. This approach aims to minimize the "impedance mismatch" an agent faces when creating or interacting with web technologies. By operating natively, REPLOID can potentially harness the browser's rich, multi-layered engine—from its powerful JavaScript engines (V8, SpiderMonkey, etc.) and rendering pipelines (Skia, WebRender) to its access to WebGL/WebGPU, WebAssembly, and a vast suite of standardized Web APIs. This allows for more direct "perception" of visual and interactive outputs and more "native" action within the environment it seeks to understand and modify. Initially leveraging the Google Gemini API, REPLOID uses `localStorage` for persistent, versioned artifact storage. Future iterations plan for enhanced autonomy through local model support and controlled network access (e.g., via a local proxy server), enabling the core browser environment to function as an increasingly isolated yet capable "computer" for the agent.
+
+The core idea treats every component (UI, logic, prompts, tools, Web Components, page structure definitions, and even helper modules for pure logic or I/O) as versioned **artifacts** stored in `localStorage`. Each artifact includes metadata describing its type and `execution_paradigm` (e.g., `pure`, `semi-pure`, `boundary_io`, `data`). The agent ('x0', with dual LSD/XYZ personas) analyzes goals, reads artifacts, proposes changes (including structured page compositions and modifications to its own reasoning or utility code), and saves outputs for the next cycle, creating a traceable and increasingly self-aware history within its browser-based world.
 
 ## File Ecosystem & Artifacts
 
-REPLOID's functionality is derived from a collection of files, each playing a specific role. Many of these become versioned "artifacts" in `localStorage`, forming the basis of the system's state and its capacity for self-modification.
+REPLOID's functionality is derived from a collection of files, each playing a specific role and often categorized by its `execution_paradigm` (see Architectural Overview). Many of these become versioned "artifacts" in `localStorage`, forming the basis of the system's state and its capacity for self-modification. Artifact metadata includes this paradigm classification, enabling the agent to reason about the nature of its components.
 
 **A. Initial Bootstrap & Execution Environment (Loaded by Browser Directly):**
-These files are essential for the application to start. Their *content* is often captured and stored as "boot artifacts" for traceability *after* their initial execution.
+These files are essential for the application to start. Their _content_ is captured and stored as "boot artifacts" for traceability.
 
-*   `index.html`: The main HTML document serving as the application's entry point. It is not a `localStorage` artifact itself. Its entire structure is modifiable by the LLM via `page_composition` (preferred) or `full_html_source` (string) proposals, leading to a full page reload with the new structure.
-*   `boot.js`: Orchestrates the initial boot sequence, loading core dependencies (like `config.json` and `utils.js` which now contains custom error definitions) and initializing the system. It executes early (due to `defer` and script order in `index.html`). Its *content* is captured and stored as the `reploid.boot.script` artifact (Cycle 0). Modifications to this artifact's content take effect on subsequent full instantiations of Reploid (e.g., if the `dogs` utility updates the physical `boot.js` file or if its new content is inlined via `page_composition`).
+- `index.html`: The main HTML document. Its structure is modifiable by the LLM via `page_composition` proposals. (Paradigm: `ui_template` for its structure).
+- `boot.js`: Orchestrates the initial boot sequence, loading core dependencies (`config.json`, `utils.js`, pure helper modules like `agent-logic-pure.js`) and initializing the system. Its _content_ is captured as the `reploid.boot.script` artifact. (Paradigm: `boundary_orchestration`).
 
 **B. Core Configuration (Fetched Early by Bootstrap):**
 
-*   `config.json`: Provides crucial system configuration, including `localStorage` prefixes, API endpoints, default settings, and definitions for genesis artifacts. It is fetched by `boot.js` at startup. Its *content* is stored as the `reploid.core.config` artifact (Cycle 0). Changes to this artifact primarily affect the system upon the next full boot sequence.
+- `config.json`: Provides system configuration, `localStorage` prefixes, API endpoints, default settings, and genesis artifact definitions (including their intended paradigms). Stored as `reploid.core.config`. (Paradigm: `data`).
 
 **C. Genesis Artifacts (Content loaded into `localStorage` by `boot.js` at Cycle 0):**
-These form the initial, versioned state of the application's core components and data. All are fully modifiable by the LLM as `localStorage` artifacts.
+These form the initial, versioned state of the application's core components and data.
 
-*   **Core Logic Modules (Type: `JS`):**
-    *   `reploid.core.utils` (from `utils.js`): Core utility functions, now **also includes custom Error definitions**.
-    *   `reploid.core.logic` (from `app-logic.js`): Main application logic orchestrator.
-    *   `reploid.core.storage` (from `storage.js`): `localStorage` abstraction.
-    *   `reploid.core.statemanager` (from `state-manager.js`): State management.
-    *   `reploid.core.apiclient` (from `api-client.js`): Gemini API interaction.
-    *   `reploid.core.cyclelogic` (from `agent-cycle.js`): Main execution cycle logic.
-    *   `reploid.core.toolrunner` (from `tool-runner.js`): Tool execution engine.
-    *   `reploid.core.ui` (from `ui-manager.js`): UI rendering and event handling.
-*   **Core UI Structure & Style (Type: `HTML`, `CSS`):**
-    *   `reploid.core.body` (from `ui-body-template.html`): App root HTML structure, used if not overridden by `page_composition`.
-    *   `reploid.core.style` (from `ui-style.css`): Main application styles, often referenced by `page_composition`.
-*   **Core Web Component Definitions (Type: `WEB_COMPONENT_DEF`):**
-    *   (e.g., `reploid.core.webcomponent.status-bar-def` if defined in genesis). These allow modular UI elements for Reploid's own interface, usable within `reploid.core.body` or a `page_composition`.
-*   **LLM Prompts (Type: `PROMPT`):**
-    *   `reploid.core.sys-prompt` (from `prompt-system.txt`)
-    *   `reploid.core.critiquer-prompt` (from `prompt-critiquer.txt`)
-    *   `reploid.core.summarizer-prompt` (from `prompt-summarizer.txt`)
-    *   `reploid.core.evaluator-prompt` (from `prompt-evaluator.txt`)
-*   **Tooling & Data Definitions (Type: `JSON`, `EVAL_DEF`):**
-    *   `reploid.core.static-tools` (from `data-tools-static.json`)
-    *   `reploid.core.default-eval` (from `data-eval-default.json`)
-*   **Bootstrap Traceability Artifacts (Captured by `boot.js` - Type: `CSS`, `JS`, `LOG`):**
-    *   `reploid.boot.style` (Initial CSS from `index.html`'s `<style id="boot-style">` tag)
-    *   `reploid.boot.script` (Content of `boot.js`)
-    *   `reploid.boot.log` (Bootstrap execution log)
-    *   *(Note: `reploid.boot.errors` is removed as error definitions are now part of `reploid.core.utils`)*
+- **Core Logic & Utility Modules (Type: `JS`):**
+  - `reploid.core.utils` (from `utils.js`): Core pure utility functions and custom Error definitions. (Paradigm: `pure`).
+  - `reploid.core.logic` (from `app-logic.js`): Main application logic orchestrator. (Paradigm: `boundary_orchestration`).
+  - `reploid.core.storage` (from `storage.js`): `localStorage` abstraction. (Paradigm: `boundary_io`).
+  - `reploid.core.statemanager` (from `state-manager.js`): State management, utilizing pure helpers. (Paradigm: `boundary_orchestration`).
+  - `reploid.core.apiclient` (from `api-client.js`): Gemini API interaction. (Paradigm: `boundary_io`).
+  - `reploid.core.cyclelogic` (from `agent-cycle.js`): Main execution cycle orchestrator, delegating to pure logic helpers. (Paradigm: `boundary_orchestration`).
+  - `reploid.core.toolrunner` (from `tool-runner.js`): Tool execution engine, utilizing pure helpers. (Paradigm: `boundary_orchestration`).
+  - `reploid.core.ui` (from `ui-manager.js`): UI rendering and event handling, using pure formatters. (Paradigm: `boundary_io`).
+  - `reploid.core.agent-logic-pure` (from `agent-logic-pure.js`): Pure/semi-pure functions for `agent-cycle.js` logic. (Paradigm: `pure` / `semi-pure`).
+  - `reploid.core.state-helpers-pure` (from `state-helpers-pure.js`): Pure/semi-pure functions for `state-manager.js` logic. (Paradigm: `pure` / `semi-pure`).
+  - `reploid.core.tool-runner-pure-helpers` (from `tool-runner-pure-helpers.js`): Pure/semi-pure functions for `tool-runner.js`. (Paradigm: `pure` / `semi-pure`).
+- **Core UI Structure & Style:**
+  - `reploid.core.body` (from `ui-body-template.html`, Type: `HTML`, Paradigm: `ui_template`).
+  - `reploid.core.style` (from `ui-style.css`, Type: `CSS`, Paradigm: `data`).
+- **Core Web Component Definitions (Type: `WEB_COMPONENT_DEF`):** Definition artifact is `data`, underlying JS class paradigm varies (e.g., `semi-pure` for logic, `boundary_io` for DOM interaction).
+  - (e.g., `reploid.core.webcomponent.status-bar-def`).
+- **LLM Prompts (Type: `PROMPT`; Paradigm: `data`):**
+  - `reploid.core.sys-prompt` (from `prompt-system.txt`)
+  - `reploid.core.critiquer-prompt` (from `prompt-critiquer.txt`)
+  - `reploid.core.summarizer-prompt` (from `prompt-summarizer.txt`)
+  - `reploid.core.evaluator-prompt` (from `prompt-evaluator.txt`)
+- **Tooling & Data Definitions (Type: `JSON`, `EVAL_DEF`; Paradigm: `data`):**
+  - `reploid.core.static-tools` (from `data-tools-static.json`)
+  - `reploid.core.default-eval` (from `data-eval-default.json`)
+- **Bootstrap Traceability Artifacts (Captured by `boot.js`):**
+  - `reploid.boot.style` (Type: `CSS`, Paradigm: `data`)
+  - `reploid.boot.script` (Type: `JS`, Paradigm: `boundary_orchestration`)
+  - `reploid.boot.log` (Type: `LOG`, Paradigm: `data`)
 
 **D. Dynamically Loaded by the Application (Not Genesis Artifacts):**
 
-*   `tool-worker.js`: Script for Web Workers executing dynamic tools. Loaded by the browser via `new Worker()`. Not a `localStorage` artifact itself, but its content could be targeted for modification by the LLM, requiring the `dogs` utility to update the physical file for the change to take effect on subsequent worker instantiations.
+- `tool-worker.js`: Script for Web Workers. Its shell is `boundary_io`; runs arbitrary tool code.
 
 **E. Informational / Non-System Files (Not Loaded or Used by Reploid):**
 
-*   `errors.js`: This file is **no longer used**. Custom error definitions are now part of `utils.js`.
-*   `data-cycle-steps.txt`: Human-readable description of the agent's cycle steps.
-*   `sys_human.txt` (The PAWS/SWAP guide): Meta-context for LLM interaction, not an operational Reploid artifact.
+- `data-cycle-steps.txt`: Human-readable description of the agent's cycle.
+- `sys_human.txt` (The PAWS/SWAP guide): Meta-context for LLM interaction.
 
-## Architectural Overview
+## Architectural Overview: Functional Core, Imperative Shell
 
-REPLOID uses a modular structure orchestrated after bootstrapping:
+REPLOID employs a modular structure emphasizing a "functional core, imperative shell" approach. This design aims to isolate pure and semi-pure logic (responsible for data transformation and decision-making without direct side effects) from the imperative "shell" modules that handle all I/O (DOM, `localStorage`, API calls) and orchestrate major state changes. Artifact metadata now includes an `execution_paradigm` field (e.g., `pure`, `semi-pure`, `boundary_io`, `data`) to reflect this.
 
-1.  **Bootstrap (`index.html`, `boot.js`):** Handles the initial page load, loads `config.json`, then loads `utils.js` (which defines custom error types and provides logging). It then proceeds to check application state, load or initialize essential artifacts (including core Web Components) from `localStorage` via a Genesis process if needed, and finally, loads the core logic orchestrator (`app-logic.js`).
-2.  **Orchestrator (`app-logic.js`):** Dynamically loads other core modules like `StateManager`, `UI`, `ApiClient`, `CycleLogic`, `ToolRunner`, manages their dependencies, and passes necessary primitives (like the `Errors` object obtained from `Utils`). It also triggers the registration of core Web Components with the `StateManager` after it's initialized.
-3.  **`StateManager` (`state-manager.js`):** Manages the application's entire state, including configuration, metrics, goals, artifact metadata (with versions, including `WEB_COMPONENT_DEF` for Web Component definitions and `PAGE_COMPOSITION_DEF` for page structure definitions), autonomy state, history buffers, and a list of currently registered Web Components. It handles persistence to `localStorage`, validation, and import/export functionalities.
-4.  **`CycleLogic` (`agent-cycle.js`):** Orchestrates the main execution loop (9 refined steps). It assembles prompts, calls `ApiClient` to interact with the LLM, processes responses (which may include tool calls like `define_web_component` or a `page_composition` object), triggers critiques or Human-In-The-Loop (HITL) interventions, manages autonomy settings, calls `ToolRunner` to execute tools, and instructs `Storage` (via `StateManager`) to apply changes. It includes logic for assembling a full HTML page from a `page_composition` object and triggering HITL for Meta goals that modify core system components or the overall page structure.
-5.  **`UI` (`ui-manager.js`):** Renders the user interface. Handles user events. HTML rendering utilizes defined Web Components within `target.body.html`, `reploid.core.body.html`, or as specified in a `page_composition`.
-6.  **`ApiClient` (`api-client.js`):** Interacts with the Google Gemini API.
-7.  **`ToolRunner` (`tool-runner.js`):** Executes static tools and dynamic tools.
-8.  **Modules & Data (`utils.js` (now includes Errors), `storage.js`, various `*.txt`, `*.json` files):** Provide utilities, storage, prompts, initial data.
-
-## Use Case Examples
-*(Content for Example 1, 2, 3 remains the same as previously generated)*
-
-**Example 4: Meta Goal + Page Composition - Restructure Reploid's UI Layout**
-- **Goal (C0):** "Restructure the main Reploid UI. Create new core Web Components `reploid-main-header` and `reploid-core-sections-container`. Define these appropriately. Then, generate a `page_composition` object that uses these new components along with existing artifacts like `reploid.core.style` and script references for `utils.js` (for errors) and `boot.js` content artifacts to define the new overall page structure." (Type: Meta)
-- **Cycle 1:**
-  - Agent defines `reploid-main-header` and `reploid-core-sections-container` using `define_web_component`.
-  - LLM generates a `page_composition` JSON object. This object would reference `reploid.core.style`, include the new WCs, and reference *artifacts containing the content* of `utils.js` and `boot.js` in `script_references` (to be inlined by `CycleLogic`).
-  - HITL is triggered.
-  - If approved, `CycleLogic` assembles the full HTML. UI presents this in the meta-sandbox. Final approval reloads the page into the new UI.
+1.  **Bootstrap (`index.html`, `boot.js`):** Initializes the environment, loads `config.json`, `utils.js` (pure utilities and Error definitions), and pure helper modules (e.g., `agent-logic-pure.js`). It then loads the main orchestrator, `app-logic.js`.
+2.  **Orchestrator (`app-logic.js`):** Dynamically loads core boundary modules (`StateManager`, `UI`, `ApiClient`, `CycleLogic`, `ToolRunner`), injecting dependencies including references to pure helper modules where appropriate. Triggers Web Component registration.
+3.  **`StateManager` (`state-manager.js`):** Manages all application state. Core state transformation, validation, and derivation logic are increasingly handled by pure functions within `state-helpers-pure.js`, which `StateManager` calls.
+4.  **`CycleLogic` (`agent-cycle.js`):** Orchestrates the main execution loop. Complex decision-making (e.g., prompt assembly, response processing, critique logic) is delegated to pure or semi-pure functions residing in `agent-logic-pure.js`. `CycleLogic` then calls boundary modules (`ApiClient`, `ToolRunner`, `StateManager` for writes, `UI`) to enact decisions and side effects.
+5.  **`UI` (`ui-manager.js`):** A boundary module responsible for all DOM rendering and user event handling. It may use pure helper functions (potentially from `ui-formatters-pure.js`) to format data for display before performing impure DOM manipulations.
+6.  **`ApiClient` (`api-client.js`):** A boundary module for all interactions with the Google Gemini API. Response sanitization logic is pure (likely via `utils.js`).
+7.  **`ToolRunner` (`tool-runner.js`):** A boundary_orchestration module that executes tools. Conversion of tool definitions and some static tool logic leverage pure functions from `tool-runner-pure-helpers.js`. Dynamic tool execution via Web Workers is an I/O boundary.
+8.  **Pure Helper Modules (`agent-logic-pure.js`, `state-helpers-pure.js`, `tool-runner-pure-helpers.js`):** These house pure or semi-pure functions, providing testable, predictable logic for data transformation, decision-making, and complex calculations, serving the core orchestrating modules.
+9.  **Foundational Modules & Data (`utils.js`, `storage.js`, prompts, JSON data):** `utils.js` provides globally accessible pure utilities. `storage.js` is a strict `boundary_io` module for `localStorage`. Prompts and JSON files are `data` artifacts.
 
 ## How It Works (Core Concepts & Usage)
 
--   **Artifacts are Key:** Everything (code, UI structure definitions, prompts, data, Web Component definitions, page composition schemas) is a versioned artifact stored in `localStorage`.
--   **Web Components as Artifacts:** JS class definitions for Web Components are stored as `WEB_COMPONENT_DEF` artifacts.
--   **Page Structure Modification:**
-    *   **`page_composition` (Preferred for Meta Goals):** The LLM can propose a structured `page_composition` object (artifact type `PAGE_COMPOSITION_DEF`). This object defines the entire HTML page by referencing artifacts. `CycleLogic` assembles this into a full HTML string. Script artifacts (e.g., content of `utils.js` or `boot.js` stored as `reploid.core.utils` or `reploid.boot.script`) referenced by `artifact_id` are inlined by `CycleLogic` for the immediate self-reload.
-    *   **`full_html_source` (Legacy):** Raw HTML string for the full page.
-    *   Both trigger a sandbox preview. Approval reloads the page into the new version.
--   **Cycle Loop (9 Refined Steps):** As previously detailed.
--   **Goals:** System vs. Meta. Core Meta changes default to HITL.
--   **Tools:** Static and Dynamic tools.
--   **HITL & Confirmation:** As previously detailed.
--   **RSI on Bootstrap Components:** The *content* of initial bootstrap files (`boot.js`) and core utilities/errors (`utils.js`) is stored as `reploid.boot.script` and `reploid.core.utils` artifacts respectively. The LLM can analyze these and propose modified versions. These new versions can be incorporated into the system via a `page_composition` (by inlining the new script artifact content) or by having the `dogs` utility update the physical files for the next full application load.
+- **Artifacts & Paradigms:** All components are versioned `localStorage` artifacts. Their metadata now includes an `execution_paradigm` (e.g., `pure`, `semi-pure`, `boundary_io`, `boundary_orchestration`, `data`) to inform the agent and system about their inherent nature and guide modification strategies.
+- **Functional Core, Imperative Shell:** The architecture strives to isolate testable, pure/semi-pure logic for computation and decision-making (the "core") from modules that interact with the external environment or manage state mutations (the "shell").
+- **Web Components as Artifacts:** JS class definitions for Web Components are stored as `WEB_COMPONENT_DEF` artifacts (artifact `data`, code paradigm varies).
+- **Page Structure Modification:**
+  - **`page_composition` (Preferred):** The LLM proposes a structured `PAGE_COMPOSITION_DEF` artifact. `CycleLogic` assembles this into full HTML, inlining script artifact content.
+  - **`full_html_source` (Legacy):** Raw HTML string.
+  - Both trigger a sandbox preview and page reload on approval.
+- **Cycle Loop (9 Refined Steps):** The agent iteratively defines goals, analyzes state (including artifact paradigms), proposes changes, executes tools, undergoes critique/HITL, applies changes, and evaluates.
+- **Goals, Tools, HITL & Confirmation:** These mechanisms remain central, but are now informed by the paradigm of artifacts involved. Core Meta changes or modifications to `boundary_io`/`boundary_orchestration` artifacts default to HITL.
+- **RSI on All Components:** The agent can propose modifications to any artifact, including its own pure logic helpers, boundary module orchestration, or bootstrap scripts. The system (and critiquer) can use paradigm information to assess risk.
 
-## Key Features (v0.7.0)
+## Key Features
 
--   **Structured Page Composition (`page_composition`):** Enables advanced, artifact-driven full-page self-modification.
--   **Error Handling Integrated into `utils.js`:** Streamlined bootstrap by removing global `errors.js` dependency.
--   Web Components as First-Class Artifacts (`WEB_COMPONENT_DEF`).
--   `define_web_component` Static Tool.
--   Core Web Component Registration.
--   Simplified HTML Artifacts via Web Components and `page_composition`.
--   Default Human Confirmation for Core Meta Changes & Page Structure.
--   Updated System and Critique Prompts.
--   LocalStorage Persistence & Artifact Versioning (State Version: `0.7.0`).
--   Refined 9-Step Cycle-Based Iteration.
--   Dynamic Tool Creation & Sandboxed Use.
--   Enhanced UI, API Client, and Robust Error Handling.
+- **Hybrid Architecture:** "Functional core, imperative shell" for improved testability, predictability, and safer RSI.
+- **Artifact Execution Paradigms:** Metadata classifying artifacts (pure, boundary_io, etc.) to guide agent behavior and system operations.
+- **Isolated Pure Logic Modules:** Dedicated files (e.g., `agent-logic-pure.js`) for testable helper functions.
+- **Structured Page Composition (`page_composition`):** Advanced, artifact-driven full-page self-modification.
+- Error Handling Integrated into `utils.js`.
+- Web Components as First-Class Artifacts.
+- `define_web_component` Static Tool.
+- LocalStorage Persistence & Artifact Versioning (State Version: `0.7.0`).
+- Refined 9-Step Cycle-Based Iteration.
 
 ## Technical Stack / Limitations
 
--   **Core:** Vanilla JavaScript (ES6+), HTML5, CSS3, Web Components
--   **LLM:** Google Gemini API (e.g., `gemini-1.5-pro-latest`)
--   **Persistence:** `localStorage` (Application State Version: `0.7.0`), `sessionStorage`.
--   **Limitations:** Experimental. `localStorage` size. Self-mod risks (mitigated by HITL). `page_composition` script inlining makes generated HTML larger. Patch tools (`apply_diff_patch`, `apply_json_patch`) are placeholders.
+- **Core:** Vanilla JavaScript (ES6+), HTML5, CSS3, Web Components
+- **LLM:** Google Gemini API (e.g., `gemini-1.5-pro-latest`)
+- **Persistence:** `localStorage` (Application State Version: `0.7.0`), `sessionStorage`.
+- **Limitations:** Experimental. `localStorage` size. Self-modification risks (mitigated by HITL and paradigm awareness). `page_composition` script inlining makes generated HTML larger. Patch tools (`apply_diff_patch`, `apply_json_patch`) are placeholders. The transition to clearly separated pure/boundary patterns is an ongoing refinement.
 
 ## Next Steps / Future Work
-*(Content largely similar to the previous README's "Next Steps", but remove item about `errors.js` and potentially update based on the `page_composition` implementation)*
-1.  **Refine Web Component Lifecycle & Styling.**
-2.  **Web Component Based UI for Reploid Itself (via `page_composition`).**
-3.  **Implement Modular Artifact Improvement Tools.**
-4.  **Advanced Context Management.**
-5.  **Advanced Tooling for Web Components & Page Composition.**
-6.  **Add Basic Unit Tests.**
-7.  **Refined Human-In-The-Loop (HITL) Experience.**
-8.  **Browser-Cached Model Support.**
-9.  **Implement Self-Improvement via Evals/Critiques.**
-10. **Refine Script Handling in `page_composition`:** Explore alternatives to full inlining for core script updates.
+
+The architectural refinements towards a "functional core, imperative shell" and the introduction of artifact paradigms open new avenues and refine existing goals:
+
+1.  **Deepen Pure Function Integration & Testing:** Continue refactoring core modules (`CycleLogic`, `StateManager`, `ToolRunner`) to further isolate pure decision-making and data transformation logic into their respective `*-pure.js` helper modules or as pure internal functions. Implement a unit testing strategy, starting with `utils.js` and all `*-pure.js` modules.
+2.  **Paradigm-Driven RSI & Agent Reasoning:**
+    - Enhance LLM prompts (system, critique, self-eval) to explicitly leverage artifact `execution_paradigm` metadata for safer, more targeted, and more architecturally-aware self-modification proposals.
+    - Develop agent strategies where it uses paradigm information to select appropriate modification techniques or to assess the risk and impact of proposed changes.
+3.  **Advanced Context Management:** Improve how context is selected and summarized for the LLM, potentially using paradigm information to prioritize or condense artifacts differently (e.g., summarizing boundary module interfaces vs. inlining pure logic).
+4.  **Refine State Management & Immutability:** Further enforce immutable-like state updates within `StateManager` (leveraging `state-helpers-pure.js`) to improve predictability and simplify reasoning about state changes.
+5.  **Tooling for Paradigm Analysis & Enforcement:** Explore agent capabilities or static tools to assist in classifying the paradigm of existing or newly LLM-generated code artifacts and to help maintain architectural consistency.
+6.  **Offline Capabilities & Controlled Networking for AGI Development:**
+    - Implement mechanisms for using locally-hosted or browser-cached LLMs (e.g., via WebLLM, ONNX.js, or WASM-based engines).
+    - Design and prototype a local proxy server (e.g., a simple Node.js server) as an optional, sole internet gateway for REPLOID, allowing the core browser application to operate in a more controlled, "offline-first" manner. This enhances security, determinism, and allows for fine-grained control over the agent's external interactions, crucial for safe AGI exploration.
+7.  **Web Component-Based UI for Reploid:** Continue migrating Reploid's own UI to be built from its core Web Components, defined and managed as artifacts, and assembled via `page_composition`.
+8.  **Sophisticated Artifact Improvement Tools:** Develop more advanced static and dynamic tools for analyzing, patching, and refactoring artifacts, potentially making these tools paradigm-aware.
+9.  **Enhanced Human-In-The-Loop (HITL) Experience:** Improve the UI/UX for HITL, providing richer contextual information based on artifact paradigms and the nature of proposed changes to aid human oversight.
+10. **Refine Script Handling in `page_composition`:** Explore alternatives to full inlining for core script updates in `page_composition`, balancing immediate effect with maintainability and generated page size.
 
 ## Easter Eggs
--   **Boot Screen Shortcuts:** `Enter` to Continue, `Space` to Reset.
--   **Skip Boot Animation:** `Enter`, click, or tap.
--   **Numbers:** [OEIS A001110](https://oeis.org/A001110).
+
+- **Boot Screen Shortcuts:** `Enter` to Continue, `Space` to Reset.
+- **Skip Boot Animation:** `Enter`, click, or tap.
+- **Numbers:** [OEIS A001110](https://oeis.org/A001110).

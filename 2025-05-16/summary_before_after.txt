@@ -1,0 +1,25 @@
+----- before -----
+
+pure_functions: 8
+impure_functions: 29
+classes: 13
+constructors: 8
+pure_instance_methods: 7
+impure_instance_methods: 46
+static_pure_class_methods: 0
+static_impure_class_methods: 0
+global_objects_constants_variables: 8
+uncategorized_insufficient_detail: 11
+
+----- after -----
+
+pure_functions: 28
+impure_functions: 38
+classes: 19
+constructors: 8
+pure_instance_methods: 9
+impure_instance_methods: 84
+static_pure_class_methods: 0
+static_impure_class_methods: 0
+global_objects_constants_variables: 8
+uncategorized_insufficient_detail: 10 (since errors.js is conceptually removed)

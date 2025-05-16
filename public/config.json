@@ -44,87 +44,104 @@
     "reploid.core.config": {
       "filename": "config.json",
       "type": "JSON_CONFIG",
-      "description": "Central application configuration"
+      "description": "Central application configuration",
+      "paradigm": "data"
     },
     "reploid.core.logic": {
       "filename": "app-logic.js",
       "type": "JS",
-      "description": "Main application logic orchestrator"
+      "description": "Main application logic orchestrator",
+      "paradigm": "boundary_orchestration"
     },
     "reploid.core.style": {
       "filename": "ui-style.css",
       "type": "CSS",
-      "description": "Main application styles"
+      "description": "Main application styles",
+      "paradigm": "data"
     },
     "reploid.core.body": {
       "filename": "ui-body-template.html",
       "type": "HTML",
-      "description": "App root HTML structure (used if not overridden by page_composition)"
+      "description": "App root HTML structure (used if not overridden by page_composition)",
+      "paradigm": "ui_template"
     },
     "reploid.core.utils": {
       "filename": "utils.js",
       "type": "JS",
-      "description": "Core utility functions (includes custom Error definitions)"
+      "description": "Core utility functions (includes custom Error definitions)",
+      "paradigm": "pure"
     },
     "reploid.core.storage": {
       "filename": "storage.js",
       "type": "JS",
-      "description": "Core storage functions"
+      "description": "Core storage functions",
+      "paradigm": "boundary_io"
     },
     "reploid.core.statemanager": {
       "filename": "state-manager.js",
       "type": "JS",
-      "description": "Core state management logic"
+      "description": "Core state management logic",
+      "paradigm": "boundary_orchestration"
     },
     "reploid.core.ui": {
       "filename": "ui-manager.js",
       "type": "JS",
-      "description": "Core UI rendering and event handling"
+      "description": "Core UI rendering and event handling",
+      "paradigm": "boundary_io"
     },
     "reploid.core.apiclient": {
       "filename": "api-client.js",
       "type": "JS",
-      "description": "Handles API communication"
+      "description": "Handles API communication",
+      "paradigm": "boundary_io"
     },
     "reploid.core.cyclelogic": {
       "filename": "agent-cycle.js",
       "type": "JS",
-      "description": "Main application cycle orchestration"
+      "description": "Main application cycle orchestration",
+      "paradigm": "boundary_orchestration"
     },
     "reploid.core.sys-prompt": {
       "filename": "prompt-system.txt",
       "type": "PROMPT",
-      "description": "Core LLM prompt"
+      "description": "Core LLM prompt",
+      "paradigm": "data"
     },
     "reploid.core.critiquer-prompt": {
       "filename": "prompt-critiquer.txt",
       "type": "PROMPT",
-      "description": "Critique prompt"
+      "description": "Critique prompt",
+      "paradigm": "data"
     },
     "reploid.core.summarizer-prompt": {
       "filename": "prompt-summarizer.txt",
       "type": "PROMPT",
-      "description": "Summarization prompt"
+      "description": "Summarization prompt",
+      "paradigm": "data"
     },
     "reploid.core.evaluator-prompt": {
       "filename": "prompt-evaluator.txt",
       "type": "PROMPT",
-      "description": "Self-evaluation prompt"
+      "description": "Self-evaluation prompt",
+      "paradigm": "data"
     },
     "reploid.core.static-tools": {
       "filename": "data-tools-static.json",
       "type": "JSON",
-      "description": "Static tool definitions"
+      "description": "Static tool definitions",
+      "paradigm": "data"
     },
     "reploid.core.toolrunner": {
       "filename": "tool-runner.js",
       "type": "JS",
-      "description": "Tool execution engine (static + dynamic via worker)"
+      "description": "Tool execution engine (static + dynamic via worker)",
+      "paradigm": "boundary_orchestration"
     },
     "reploid.core.default-eval": {
       "filename": "data-eval-default.json",
       "type": "EVAL_DEF",
-      "description": "Default Evaluation Definition"
+      "description": "Default Evaluation Definition",
+      "paradigm": "data"
     }
   },
   "ARTIFACT_TYPES": [

@@ -1,5 +1,4 @@
 const UtilsModule = (() => {
-  // --- Custom Error Definitions ---
   class ApplicationError extends Error {
     constructor(message, details = {}) {
       super(message);
@@ -66,9 +65,8 @@ const UtilsModule = (() => {
     ApplicationError, ApiError, ToolError, StateError,
     ConfigError, ArtifactError, AbortError, WebComponentError,
   };
-  // --- End Custom Error Definitions ---
 
-  const MAX_LOG_ENTRIES = 1000; // From config, but hardcoded here for simplicity as config isn't available yet
+  const MAX_LOG_ENTRIES = 1000;
   let logBufferArray = new Array(MAX_LOG_ENTRIES);
   let logBufferIndex = 0;
   let logBufferInitialized = false;
@@ -151,7 +149,6 @@ const UtilsModule = (() => {
   const camelToKabob = (s) => String(s ?? "").replace(/([A-Z])/g, "-$1").toLowerCase();
   const ucFirst = (s) => { const str = String(s ?? ""); return str.charAt(0).toUpperCase() + str.slice(1); };
 
-
   const trunc = (str, len, ellipsis = "...") => {
     const s = String(str ?? "");
     if (s.length <= len) return s;
@@ -184,11 +181,11 @@ const UtilsModule = (() => {
     if (!historyArray || historyArray.length === 0) return null;
     return [...historyArray].sort((a, b) => {
       if (b.latestCycle !== a.latestCycle) return b.latestCycle - a.latestCycle;
-      return (b.timestamp || 0) - (a.timestamp || 0); // Fallback for items at same cycle
+      return (b.timestamp || 0) - (a.timestamp || 0);
     })[0];
   };
 
-  const getDefaultState = (appConfig) => ({ // appConfig is the loaded config.json content
+  const getDefaultState = (appConfig) => ({
     version: appConfig.STATE_VERSION,
     totalCycles: 0, agentIterations: 0, humanInterventions: 0, failCount: 0,
     currentGoal: { seed: null, cumulative: null, latestType: "Idle", summaryContext: null, currentContextFocus: null },
@@ -216,8 +213,81 @@ const UtilsModule = (() => {
     }
   }
 
+  function sanitizeLlmJsonRespPure(rawText, externalLogger) {
+    if (!rawText || typeof rawText !== "string") return { sanitizedJson: "{}", method: "invalid input" };
+    let text = rawText.trim();
+    let jsonString = null;
+    let method = "none";
+
+    try {
+      JSON.parse(text);
+      jsonString = text;
+      method = "direct parse";
+    } catch (e1) {
+      const codeBlockMatch = text.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+      if (codeBlockMatch && codeBlockMatch[1]) {
+        text = codeBlockMatch[1].trim();
+        method = "code block";
+        try {
+          JSON.parse(text);
+          jsonString = text;
+        } catch (e2) {}
+      }
+
+      if (!jsonString) {
+        const firstBrace = text.indexOf("{");
+        const firstBracket = text.indexOf("[");
+        let startIndex = -1;
+
+        if (firstBrace !== -1 && firstBracket !== -1) startIndex = Math.min(firstBrace, firstBracket);
+        else if (firstBrace !== -1) startIndex = firstBrace;
+        else startIndex = firstBracket;
+
+        if (startIndex !== -1) {
+          text = text.substring(startIndex);
+          const startChar = text[0];
+          const endChar = startChar === "{" ? "}" : "]";
+          let balance = 0;
+          let lastValidIndex = -1;
+          let inString = false;
+          let escapeNext = false;
+          method = "heuristic balance";
+
+          for (let i = 0; i < text.length; i++) {
+            const char = text[i];
+            if (inString) {
+              if (escapeNext) escapeNext = false;
+              else if (char === "\\") escapeNext = true;
+              else if (char === '"') inString = false;
+            } else {
+              if (char === '"') inString = true;
+              else if (char === startChar) balance++;
+              else if (char === endChar) balance--;
+            }
+            if (!inString && balance === 0 && startIndex === 0) { lastValidIndex = i; break; }
+            if (!inString && balance === 0 && i > 0 && startIndex > 0) { lastValidIndex = i; break; }
+          }
+
+          if (lastValidIndex !== -1) {
+            text = text.substring(0, lastValidIndex + 1);
+            try { JSON.parse(text); jsonString = text; }
+            catch (e3) {
+              externalLogger?.logEvent("warn", `JSON sanitization failed (heuristic parse): ${e3.message}`, text.substring(0, 100) + "...");
+              method = "heuristic failed"; jsonString = null;
+            }
+          } else {
+            externalLogger?.logEvent("warn", "JSON sanitization failed: Unbalanced structure after heuristic.", text.substring(0, 100));
+            method = "heuristic unbalanced"; jsonString = null;
+          }
+        } else { method = "no structure found"; jsonString = null; }
+      }
+    }
+    return { sanitizedJson: jsonString || "{}", method };
+  }
+
+
   return {
-    Errors, // Export the custom errors object
+    Errors,
     logger,
     $id, $, $$,
     kabobToCamel, camelToKabob, ucFirst,
@@ -225,5 +295,6 @@ const UtilsModule = (() => {
     delay, getRandomInt, getLatestMeta,
     getDefaultState,
     calculateChecksum,
+    sanitizeLlmJsonRespPure
   };
 })();
