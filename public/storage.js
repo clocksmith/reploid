@@ -1,18 +1,38 @@
 const StorageModule = (config, logger, Errors) => {
   if (!config || !logger || !Errors) {
-    const internalLog = logger || { logEvent: (lvl, msg, det) => console[lvl === "error" ? "error" : "log"](`[STORAGE_FALLBACK] ${msg}`, det || "") };
-    internalLog.logEvent("error","StorageModule initialization failed: Missing config, logger, or Errors.");
+    const internalLog = logger || {
+      logEvent: (lvl, msg, det) =>
+        console[lvl === "error" ? "error" : "log"](
+          `[STORAGE_FALLBACK] ${msg}`,
+          det || ""
+        ),
+    };
+    internalLog.logEvent(
+      "error",
+      "StorageModule initialization failed: Missing config, logger, or Errors."
+    );
     return {
       getArtifactContent: () => null,
-      setArtifactContent: () => { throw new Error("Storage not initialized"); },
+      setArtifactContent: () => {
+        throw new Error("Storage not initialized");
+      },
       deleteArtifactVersion: () => false,
       getState: () => null,
-      saveState: () => { throw new Error("Storage not initialized"); },
+      saveState: () => {
+        throw new Error("Storage not initialized");
+      },
       removeState: () => false,
       getSessionState: () => null,
-      saveSessionState: () => { throw new Error("Storage not initialized"); },
+      saveSessionState: () => {
+        throw new Error("Storage not initialized");
+      },
       removeSessionState: () => {},
-      clearAllReploidData: () => { internalLog.logEvent("error", "Cannot clear storage, module not initialized."); },
+      clearAllReploidData: () => {
+        internalLog.logEvent(
+          "error",
+          "Cannot clear storage, module not initialized."
+        );
+      },
       getStorageUsage: () => ({ used: 0, quota: 0, percent: 0 }),
     };
   }
@@ -56,8 +76,14 @@ const StorageModule = (config, logger, Errors) => {
   };
 
   const _set = (key, value) => {
-    if (value && typeof value === "string" && value.length * 2 > MAX_ART_TKN_SZ) {
-      const msg = `Artifact content exceeds size limit (${value.length * 2} > ${MAX_ART_TKN_SZ} bytes) for key: ${key}`;
+    if (
+      value &&
+      typeof value === "string" &&
+      value.length * 2 > MAX_ART_TKN_SZ
+    ) {
+      const msg = `Artifact content exceeds size limit (${
+        value.length * 2
+      } > ${MAX_ART_TKN_SZ} bytes) for key: ${key}`;
       logger.logEvent("error", msg);
       throw new StorageError(msg, { key, size: value.length * 2 });
     }
@@ -67,8 +93,17 @@ const StorageModule = (config, logger, Errors) => {
     const currentItemSize = (_get(key)?.length || 0) * 2;
     const estimatedUsageAfter = usage.used - currentItemSize + estimatedNewSize;
 
-    if (usage.used >= 0 && estimatedUsageAfter / QUOTA_BYTES > QUOTA_WARNING_THRESHOLD) {
-      logger.logEvent("warn", `LocalStorage usage high (${((estimatedUsageAfter / QUOTA_BYTES) * 100).toFixed(1)}%) after setting key: ${key}`);
+    if (
+      usage.used >= 0 &&
+      estimatedUsageAfter / QUOTA_BYTES > QUOTA_WARNING_THRESHOLD
+    ) {
+      logger.logEvent(
+        "warn",
+        `LocalStorage usage high (${(
+          (estimatedUsageAfter / QUOTA_BYTES) *
+          100
+        ).toFixed(1)}%) after setting key: ${key}`
+      );
     }
 
     try {
@@ -76,8 +111,15 @@ const StorageModule = (config, logger, Errors) => {
       return true;
     } catch (e) {
       let errorMessage = `LocalStorage SET Error for key: ${key}`;
-      if (e.name === "QuotaExceededError" || (e.code && (e.code === 22 || e.code === 1014))) {
-        errorMessage = `LocalStorage Quota Exceeded. Usage: ${(usage.used / 1024 / 1024).toFixed(2)}MB / ${(QUOTA_BYTES / 1024 / 1024).toFixed(2)}MB.`;
+      if (
+        e.name === "QuotaExceededError" ||
+        (e.code && (e.code === 22 || e.code === 1014))
+      ) {
+        errorMessage = `LocalStorage Quota Exceeded. Usage: ${(
+          usage.used /
+          1024 /
+          1024
+        ).toFixed(2)}MB / ${(QUOTA_BYTES / 1024 / 1024).toFixed(2)}MB.`;
         logger.logEvent("error", errorMessage, e);
         throw new StorageError(errorMessage, { key, quotaExceeded: true });
       } else {
@@ -99,24 +141,34 @@ const StorageModule = (config, logger, Errors) => {
 
   const _key = (id, cycle = 0, versionId = null) => {
     let baseKey = `${LS_PREFIX}${id}_${cycle}`;
-    if (versionId !== null && typeof versionId === "string" && versionId.length > 0) {
+    if (
+      versionId !== null &&
+      typeof versionId === "string" &&
+      versionId.length > 0
+    ) {
       baseKey += `#${versionId}`;
     }
     return baseKey;
   };
 
-  const getArtifactContent = (id, cycle, versionId = null) => _get(_key(id, cycle, versionId));
+  const getArtifactContent = (id, cycle, versionId = null) =>
+    _get(_key(id, cycle, versionId));
 
-  const setArtifactContent = (id, cycle, content, versionId = null) => _set(_key(id, cycle, versionId), content);
+  const setArtifactContent = (id, cycle, content, versionId = null) =>
+    _set(_key(id, cycle, versionId), content);
 
-  const deleteArtifactVersion = (id, cycle, versionId = null) => _remove(_key(id, cycle, versionId));
+  const deleteArtifactVersion = (id, cycle, versionId = null) =>
+    _remove(_key(id, cycle, versionId));
 
   const getState = () => {
     const json = _get(stateKey);
     try {
       return json ? JSON.parse(json) : null;
     } catch (e) {
-      logger.logEvent("error", `Failed to parse state from localStorage: ${e.message}`);
+      logger.logEvent(
+        "error",
+        `Failed to parse state from localStorage: ${e.message}`
+      );
       _remove(stateKey);
       return null;
     }
@@ -139,7 +191,9 @@ const StorageModule = (config, logger, Errors) => {
       return json ? JSON.parse(json) : null;
     } catch (e) {
       logger.logEvent("error", `Failed to parse session state: ${e.message}`);
-      try { sessionStorage.removeItem(sessionStateKey); } catch (se) {}
+      try {
+        sessionStorage.removeItem(sessionStateKey);
+      } catch (se) {}
       return null;
     }
   };
@@ -151,15 +205,22 @@ const StorageModule = (config, logger, Errors) => {
     } catch (e) {
       logger.logEvent("error", `SessionStorage SET Error: ${e.message}`);
       if (e.name === "QuotaExceededError") {
-        throw new StorageError(`SessionStorage Quota Exceeded.`, { quotaExceeded: true });
+        throw new StorageError(`SessionStorage Quota Exceeded.`, {
+          quotaExceeded: true,
+        });
       }
-      throw new StorageError(`SessionStorage SET Error: ${e.message}`, { originalError: e });
+      throw new StorageError(`SessionStorage SET Error: ${e.message}`, {
+        originalError: e,
+      });
     }
   };
 
   const removeSessionState = () => {
-    try { sessionStorage.removeItem(sessionStateKey); }
-    catch (e) { logger.logEvent("warn", `SessionStorage REMOVE Error: ${e.message}`); }
+    try {
+      sessionStorage.removeItem(sessionStateKey);
+    } catch (e) {
+      logger.logEvent("warn", `SessionStorage REMOVE Error: ${e.message}`);
+    }
   };
 
   const clearAllReploidData = () => {
@@ -174,11 +235,21 @@ const StorageModule = (config, logger, Errors) => {
       }
       keysToRemove.forEach((key) => _remove(key));
       removeState();
-      logger.logEvent("info", `Removed ${keysToRemove.length} artifact/state keys from localStorage.`);
-      try { sessionStorage.clear(); logger.logEvent("info", "Cleared SessionStorage."); }
-      catch (e) { logger.logEvent("warn", "Failed to clear SessionStorage.", e.message); }
+      logger.logEvent(
+        "info",
+        `Removed ${keysToRemove.length} artifact/state keys from localStorage.`
+      );
+      try {
+        sessionStorage.clear();
+        logger.logEvent("info", "Cleared SessionStorage.");
+      } catch (e) {
+        logger.logEvent("warn", "Failed to clear SessionStorage.", e.message);
+      }
     } catch (e) {
-      logger.logEvent("error", `Error during key iteration/removal in clearAllReploidData: ${e.message}`);
+      logger.logEvent(
+        "error",
+        `Error during key iteration/removal in clearAllReploidData: ${e.message}`
+      );
     }
   };
 

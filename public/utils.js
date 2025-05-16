@@ -41,7 +41,12 @@ const UtilsModule = (() => {
   }
 
   class ArtifactError extends ApplicationError {
-    constructor(message, artifactId = null, artifactCycle = null, artifactDetails = {}) {
+    constructor(
+      message,
+      artifactId = null,
+      artifactCycle = null,
+      artifactDetails = {}
+    ) {
       super(message, { artifactId, artifactCycle, ...artifactDetails });
       this.artifactId = artifactId;
     }
@@ -62,8 +67,14 @@ const UtilsModule = (() => {
   }
 
   const Errors = {
-    ApplicationError, ApiError, ToolError, StateError,
-    ConfigError, ArtifactError, AbortError, WebComponentError,
+    ApplicationError,
+    ApiError,
+    ToolError,
+    StateError,
+    ConfigError,
+    ArtifactError,
+    AbortError,
+    WebComponentError,
   };
 
   const MAX_LOG_ENTRIES = 1000;
@@ -74,16 +85,23 @@ const UtilsModule = (() => {
   const initLogBuffer = () => {
     logBufferArray.fill(null);
     logBufferIndex = 0;
-    logBufferArray[logBufferIndex++] = `REPLOID Session Log Start - ${new Date().toISOString()}\n=========================================\n`;
+    logBufferArray[
+      logBufferIndex++
+    ] = `REPLOID Session Log Start - ${new Date().toISOString()}\n=========================================\n`;
     logBufferInitialized = true;
   };
 
   const stringifyDetail = (detail) => {
     if (detail === undefined || detail === null) return "";
     if (typeof detail === "string") return detail;
-    if (detail instanceof Error) return `Error: ${detail.message}${detail.stack ? `\nStack: ${detail.stack}` : ""}`;
+    if (detail instanceof Error)
+      return `Error: ${detail.message}${
+        detail.stack ? `\nStack: ${detail.stack}` : ""
+      }`;
     try {
-      return JSON.stringify(detail, (key, value) => typeof value === "bigint" ? value.toString() : value);
+      return JSON.stringify(detail, (key, value) =>
+        typeof value === "bigint" ? value.toString() : value
+      );
     } catch (e) {
       return "[Unserializable Object]";
     }
@@ -95,27 +113,41 @@ const UtilsModule = (() => {
       const timestamp = new Date().toISOString();
       const levelUpper = String(level).toUpperCase();
       let logLine = `[${timestamp}] [${levelUpper}] ${String(message)}`;
-      const detailsString = details.map(stringifyDetail).filter((s) => s !== "").join(" | ");
+      const detailsString = details
+        .map(stringifyDetail)
+        .filter((s) => s !== "")
+        .join(" | ");
       if (detailsString) logLine += ` | ${detailsString}`;
       logBufferArray[logBufferIndex % MAX_LOG_ENTRIES] = logLine;
       logBufferIndex++;
-      const consoleMethod = level?.toLowerCase() === "error" ? console.error :
-                            level?.toLowerCase() === "warn" ? console.warn :
-                            level?.toLowerCase() === "debug" ? console.debug : console.log;
+      const consoleMethod =
+        level?.toLowerCase() === "error"
+          ? console.error
+          : level?.toLowerCase() === "warn"
+          ? console.warn
+          : level?.toLowerCase() === "debug"
+          ? console.debug
+          : console.log;
       consoleMethod(logLine);
     },
     getLogBuffer: () => {
       if (!logBufferInitialized) return "Log buffer not initialized.\n";
       const bufferSize = Math.min(logBufferIndex, MAX_LOG_ENTRIES);
-      const startIndex = logBufferIndex <= MAX_LOG_ENTRIES ? 0 : logBufferIndex % MAX_LOG_ENTRIES;
+      const startIndex =
+        logBufferIndex <= MAX_LOG_ENTRIES
+          ? 0
+          : logBufferIndex % MAX_LOG_ENTRIES;
       const logLines = [];
       for (let i = 0; i < bufferSize; i++) {
         const currentIndex = (startIndex + i) % MAX_LOG_ENTRIES;
-        if (logBufferArray[currentIndex] !== null) logLines.push(logBufferArray[currentIndex]);
+        if (logBufferArray[currentIndex] !== null)
+          logLines.push(logBufferArray[currentIndex]);
       }
       let logContent = logLines.join("\n") + "\n";
       if (logBufferIndex > MAX_LOG_ENTRIES) {
-        logContent = `... (Log truncated - showing last ${MAX_LOG_ENTRIES} entries) ...\n` + logContent;
+        logContent =
+          `... (Log truncated - showing last ${MAX_LOG_ENTRIES} entries) ...\n` +
+          logContent;
       }
       return logContent;
     },
@@ -136,18 +168,29 @@ const UtilsModule = (() => {
           logBufferArray[headerIndex] = header;
         }
       } else {
-        logger.logEvent("warn", "setLogBuffer received invalid buffer type, resetting.");
+        logger.logEvent(
+          "warn",
+          "setLogBuffer received invalid buffer type, resetting."
+        );
       }
     },
   };
 
   const $id = (id) => document.getElementById(id);
   const $ = (selector, parent = document) => parent.querySelector(selector);
-  const $$ = (selector, parent = document) => Array.from(parent.querySelectorAll(selector));
+  const $$ = (selector, parent = document) =>
+    Array.from(parent.querySelectorAll(selector));
 
-  const kabobToCamel = (s) => String(s ?? "").replace(/-([a-z])/g, (g) => g[1].toUpperCase());
-  const camelToKabob = (s) => String(s ?? "").replace(/([A-Z])/g, "-$1").toLowerCase();
-  const ucFirst = (s) => { const str = String(s ?? ""); return str.charAt(0).toUpperCase() + str.slice(1); };
+  const kabobToCamel = (s) =>
+    String(s ?? "").replace(/-([a-z])/g, (g) => g[1].toUpperCase());
+  const camelToKabob = (s) =>
+    String(s ?? "")
+      .replace(/([A-Z])/g, "-$1")
+      .toLowerCase();
+  const ucFirst = (s) => {
+    const str = String(s ?? "");
+    return str.charAt(0).toUpperCase() + str.slice(1);
+  };
 
   const trunc = (str, len, ellipsis = "...") => {
     const s = String(str ?? "");
@@ -187,17 +230,46 @@ const UtilsModule = (() => {
 
   const getDefaultState = (appConfig) => ({
     version: appConfig.STATE_VERSION,
-    totalCycles: 0, agentIterations: 0, humanInterventions: 0, failCount: 0,
-    currentGoal: { seed: null, cumulative: null, latestType: "Idle", summaryContext: null, currentContextFocus: null },
-    lastCritiqueType: "N/A", personaMode: "XYZ", lastFeedback: null, lastSelfAssessment: null,
-    forceHumanReview: false, apiKey: "",
-    confidenceHistory: [], critiqueFailHistory: [], tokenHistory: [], failHistory: [], evaluationHistory: [], critiqueFeedbackHistory: [],
-    avgConfidence: null, critiqueFailRate: null, avgTokens: null, avgEvalScore: null, evalPassRate: null,
-    contextTokenEstimate: 0, contextTokenTarget: appConfig.CTX_TARGET || 700000,
-    lastGeneratedFullSource: null, htmlHistory: [], lastApiResponse: null, retryCount: 0,
-    autonomyMode: "Manual", autonomyCyclesRemaining: 0,
+    totalCycles: 0,
+    agentIterations: 0,
+    humanInterventions: 0,
+    failCount: 0,
+    currentGoal: {
+      seed: null,
+      cumulative: null,
+      latestType: "Idle",
+      summaryContext: null,
+      currentContextFocus: null,
+    },
+    lastCritiqueType: "N/A",
+    personaMode: "XYZ",
+    lastFeedback: null,
+    lastSelfAssessment: null,
+    forceHumanReview: false,
+    apiKey: "",
+    confidenceHistory: [],
+    critiqueFailHistory: [],
+    tokenHistory: [],
+    failHistory: [],
+    evaluationHistory: [],
+    critiqueFeedbackHistory: [],
+    avgConfidence: null,
+    critiqueFailRate: null,
+    avgTokens: null,
+    avgEvalScore: null,
+    evalPassRate: null,
+    contextTokenEstimate: 0,
+    contextTokenTarget: appConfig.CTX_TARGET || 700000,
+    lastGeneratedFullSource: null,
+    htmlHistory: [],
+    lastApiResponse: null,
+    retryCount: 0,
+    autonomyMode: "Manual",
+    autonomyCyclesRemaining: 0,
     cfg: { ...(appConfig.DEFAULT_CFG || {}) },
-    artifactMetadata: {}, dynamicTools: [], registeredWebComponents: [],
+    artifactMetadata: {},
+    dynamicTools: [],
+    registeredWebComponents: [],
   });
 
   async function calculateChecksum(content) {
@@ -206,7 +278,9 @@ const UtilsModule = (() => {
       const msgUint8 = new TextEncoder().encode(content);
       const hashBuffer = await crypto.subtle.digest("SHA-256", msgUint8);
       const hashArray = Array.from(new Uint8Array(hashBuffer));
-      return `sha256-${hashArray.map((b) => b.toString(16).padStart(2, "0")).join("")}`;
+      return `sha256-${hashArray
+        .map((b) => b.toString(16).padStart(2, "0"))
+        .join("")}`;
     } catch (error) {
       logger.logEvent("error", "Checksum calculation failed:", error);
       return null;
@@ -214,7 +288,8 @@ const UtilsModule = (() => {
   }
 
   function sanitizeLlmJsonRespPure(rawText, externalLogger) {
-    if (!rawText || typeof rawText !== "string") return { sanitizedJson: "{}", method: "invalid input" };
+    if (!rawText || typeof rawText !== "string")
+      return { sanitizedJson: "{}", method: "invalid input" };
     let text = rawText.trim();
     let jsonString = null;
     let method = "none";
@@ -239,7 +314,8 @@ const UtilsModule = (() => {
         const firstBracket = text.indexOf("[");
         let startIndex = -1;
 
-        if (firstBrace !== -1 && firstBracket !== -1) startIndex = Math.min(firstBrace, firstBracket);
+        if (firstBrace !== -1 && firstBracket !== -1)
+          startIndex = Math.min(firstBrace, firstBracket);
         else if (firstBrace !== -1) startIndex = firstBrace;
         else startIndex = firstBracket;
 
@@ -264,37 +340,66 @@ const UtilsModule = (() => {
               else if (char === startChar) balance++;
               else if (char === endChar) balance--;
             }
-            if (!inString && balance === 0 && startIndex === 0) { lastValidIndex = i; break; }
-            if (!inString && balance === 0 && i > 0 && startIndex > 0) { lastValidIndex = i; break; }
+            if (!inString && balance === 0 && startIndex === 0) {
+              lastValidIndex = i;
+              break;
+            }
+            if (!inString && balance === 0 && i > 0 && startIndex > 0) {
+              lastValidIndex = i;
+              break;
+            }
           }
 
           if (lastValidIndex !== -1) {
             text = text.substring(0, lastValidIndex + 1);
-            try { JSON.parse(text); jsonString = text; }
-            catch (e3) {
-              externalLogger?.logEvent("warn", `JSON sanitization failed (heuristic parse): ${e3.message}`, text.substring(0, 100) + "...");
-              method = "heuristic failed"; jsonString = null;
+            try {
+              JSON.parse(text);
+              jsonString = text;
+            } catch (e3) {
+              externalLogger?.logEvent(
+                "warn",
+                `JSON sanitization failed (heuristic parse): ${e3.message}`,
+                text.substring(0, 100) + "..."
+              );
+              method = "heuristic failed";
+              jsonString = null;
             }
           } else {
-            externalLogger?.logEvent("warn", "JSON sanitization failed: Unbalanced structure after heuristic.", text.substring(0, 100));
-            method = "heuristic unbalanced"; jsonString = null;
+            externalLogger?.logEvent(
+              "warn",
+              "JSON sanitization failed: Unbalanced structure after heuristic.",
+              text.substring(0, 100)
+            );
+            method = "heuristic unbalanced";
+            jsonString = null;
           }
-        } else { method = "no structure found"; jsonString = null; }
+        } else {
+          method = "no structure found";
+          jsonString = null;
+        }
       }
     }
     return { sanitizedJson: jsonString || "{}", method };
   }
 
-
   return {
     Errors,
     logger,
-    $id, $, $$,
-    kabobToCamel, camelToKabob, ucFirst,
-    trunc, escapeHtml, lc, uc,
-    delay, getRandomInt, getLatestMeta,
+    $id,
+    $,
+    $$,
+    kabobToCamel,
+    camelToKabob,
+    ucFirst,
+    trunc,
+    escapeHtml,
+    lc,
+    uc,
+    delay,
+    getRandomInt,
+    getLatestMeta,
     getDefaultState,
     calculateChecksum,
-    sanitizeLlmJsonRespPure
+    sanitizeLlmJsonRespPure,
   };
 })();
