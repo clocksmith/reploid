@@ -1,5 +1,74 @@
 const UtilsModule = (() => {
-  const MAX_LOG_ENTRIES = 1000;
+  // --- Custom Error Definitions ---
+  class ApplicationError extends Error {
+    constructor(message, details = {}) {
+      super(message);
+      this.name = this.constructor.name;
+      this.details = details;
+      if (typeof Error.captureStackTrace === "function") {
+        Error.captureStackTrace(this, this.constructor);
+      } else {
+        this.stack = new Error(message).stack;
+      }
+    }
+  }
+
+  class ApiError extends ApplicationError {
+    constructor(message, status = null, code = null, apiDetails = {}) {
+      super(message, { status, code, ...apiDetails });
+      this.status = status;
+      this.code = code;
+    }
+  }
+
+  class ToolError extends ApplicationError {
+    constructor(message, toolName = null, toolArgs = null, toolDetails = {}) {
+      super(message, { toolName, toolArgs, ...toolDetails });
+      this.toolName = toolName;
+    }
+  }
+
+  class StateError extends ApplicationError {
+    constructor(message, stateDetails = {}) {
+      super(message, stateDetails);
+    }
+  }
+
+  class ConfigError extends ApplicationError {
+    constructor(message, configKey = null, configDetails = {}) {
+      super(message, { configKey, ...configDetails });
+      this.configKey = configKey;
+    }
+  }
+
+  class ArtifactError extends ApplicationError {
+    constructor(message, artifactId = null, artifactCycle = null, artifactDetails = {}) {
+      super(message, { artifactId, artifactCycle, ...artifactDetails });
+      this.artifactId = artifactId;
+    }
+  }
+
+  class AbortError extends ApplicationError {
+    constructor(message = "Operation aborted") {
+      super(message);
+      this.isAbortError = true;
+    }
+  }
+
+  class WebComponentError extends ApplicationError {
+    constructor(message, componentName = null, componentDetails = {}) {
+      super(message, { componentName, ...componentDetails });
+      this.componentName = componentName;
+    }
+  }
+
+  const Errors = {
+    ApplicationError, ApiError, ToolError, StateError,
+    ConfigError, ArtifactError, AbortError, WebComponentError,
+  };
+  // --- End Custom Error Definitions ---
+
+  const MAX_LOG_ENTRIES = 1000; // From config, but hardcoded here for simplicity as config isn't available yet
   let logBufferArray = new Array(MAX_LOG_ENTRIES);
   let logBufferIndex = 0;
   let logBufferInitialized = false;
@@ -7,23 +76,16 @@ const UtilsModule = (() => {
   const initLogBuffer = () => {
     logBufferArray.fill(null);
     logBufferIndex = 0;
-    logBufferArray[
-      logBufferIndex++
-    ] = `REPLOID Session Log Start - ${new Date().toISOString()}\n=========================================\n`;
+    logBufferArray[logBufferIndex++] = `REPLOID Session Log Start - ${new Date().toISOString()}\n=========================================\n`;
     logBufferInitialized = true;
   };
 
   const stringifyDetail = (detail) => {
     if (detail === undefined || detail === null) return "";
     if (typeof detail === "string") return detail;
-    if (detail instanceof Error)
-      return `Error: ${detail.message}${
-        detail.stack ? `\nStack: ${detail.stack}` : ""
-      }`;
+    if (detail instanceof Error) return `Error: ${detail.message}${detail.stack ? `\nStack: ${detail.stack}` : ""}`;
     try {
-      return JSON.stringify(detail, (key, value) =>
-        typeof value === "bigint" ? value.toString() : value
-      );
+      return JSON.stringify(detail, (key, value) => typeof value === "bigint" ? value.toString() : value);
     } catch (e) {
       return "[Unserializable Object]";
     }
@@ -31,61 +93,34 @@ const UtilsModule = (() => {
 
   const logger = {
     logEvent: (level = "info", message = "[No Message]", ...details) => {
-      if (!logBufferInitialized) {
-        initLogBuffer();
-      }
-
+      if (!logBufferInitialized) initLogBuffer();
       const timestamp = new Date().toISOString();
       const levelUpper = String(level).toUpperCase();
       let logLine = `[${timestamp}] [${levelUpper}] ${String(message)}`;
-
-      const detailsString = details
-        .map(stringifyDetail)
-        .filter((s) => s !== "")
-        .join(" | ");
-      if (detailsString) {
-        logLine += ` | ${detailsString}`;
-      }
-
+      const detailsString = details.map(stringifyDetail).filter((s) => s !== "").join(" | ");
+      if (detailsString) logLine += ` | ${detailsString}`;
       logBufferArray[logBufferIndex % MAX_LOG_ENTRIES] = logLine;
       logBufferIndex++;
-
-      const consoleMethod =
-        level?.toLowerCase() === "error"
-          ? console.error
-          : level?.toLowerCase() === "warn"
-          ? console.warn
-          : level?.toLowerCase() === "debug"
-          ? console.debug
-          : console.log;
-
+      const consoleMethod = level?.toLowerCase() === "error" ? console.error :
+                            level?.toLowerCase() === "warn" ? console.warn :
+                            level?.toLowerCase() === "debug" ? console.debug : console.log;
       consoleMethod(logLine);
     },
-
     getLogBuffer: () => {
       if (!logBufferInitialized) return "Log buffer not initialized.\n";
       const bufferSize = Math.min(logBufferIndex, MAX_LOG_ENTRIES);
-      const startIndex =
-        logBufferIndex <= MAX_LOG_ENTRIES
-          ? 0
-          : logBufferIndex % MAX_LOG_ENTRIES;
+      const startIndex = logBufferIndex <= MAX_LOG_ENTRIES ? 0 : logBufferIndex % MAX_LOG_ENTRIES;
       const logLines = [];
       for (let i = 0; i < bufferSize; i++) {
         const currentIndex = (startIndex + i) % MAX_LOG_ENTRIES;
-        if (logBufferArray[currentIndex] !== null) {
-          logLines.push(logBufferArray[currentIndex]);
-        }
+        if (logBufferArray[currentIndex] !== null) logLines.push(logBufferArray[currentIndex]);
       }
       let logContent = logLines.join("\n") + "\n";
-
       if (logBufferIndex > MAX_LOG_ENTRIES) {
-        logContent =
-          `... (Log truncated - showing last ${MAX_LOG_ENTRIES} entries) ...\n` +
-          logContent;
+        logContent = `... (Log truncated - showing last ${MAX_LOG_ENTRIES} entries) ...\n` + logContent;
       }
       return logContent;
     },
-
     setLogBuffer: (newBuffer) => {
       initLogBuffer();
       if (typeof newBuffer === "string") {
@@ -103,25 +138,19 @@ const UtilsModule = (() => {
           logBufferArray[headerIndex] = header;
         }
       } else {
-        logger.logEvent(
-          "warn",
-          "setLogBuffer received invalid buffer type, resetting."
-        );
+        logger.logEvent("warn", "setLogBuffer received invalid buffer type, resetting.");
       }
     },
   };
 
   const $id = (id) => document.getElementById(id);
   const $ = (selector, parent = document) => parent.querySelector(selector);
-  const $$ = (selector, parent = document) =>
-    Array.from(parent.querySelectorAll(selector));
+  const $$ = (selector, parent = document) => Array.from(parent.querySelectorAll(selector));
 
-  const kabobToCamel = (s) =>
-    String(s ?? "").replace(/-([a-z])/g, (g) => g[1].toUpperCase());
-  const camelToKabob = (s) =>
-    String(s ?? "")
-      .replace(/([A-Z])/g, "-$1")
-      .toLowerCase();
+  const kabobToCamel = (s) => String(s ?? "").replace(/-([a-z])/g, (g) => g[1].toUpperCase());
+  const camelToKabob = (s) => String(s ?? "").replace(/([A-Z])/g, "-$1").toLowerCase();
+  const ucFirst = (s) => { const str = String(s ?? ""); return str.charAt(0).toUpperCase() + str.slice(1); };
+
 
   const trunc = (str, len, ellipsis = "...") => {
     const s = String(str ?? "");
@@ -133,11 +162,11 @@ const UtilsModule = (() => {
   const escapeHtml = (unsafe) => {
     if (unsafe === null || unsafe === undefined) return "";
     return String(unsafe)
-      .replace(/&/g, "&")
-      .replace(/</g, "<")
-      .replace(/>/g, ">")
-      .replace(/"/g, '"')
-      .replace(/'/g, "'");
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
   };
 
   const lc = (s) => String(s ?? "").toLowerCase();
@@ -155,67 +184,46 @@ const UtilsModule = (() => {
     if (!historyArray || historyArray.length === 0) return null;
     return [...historyArray].sort((a, b) => {
       if (b.latestCycle !== a.latestCycle) return b.latestCycle - a.latestCycle;
-      return (b.timestamp || 0) - (a.timestamp || 0);
+      return (b.timestamp || 0) - (a.timestamp || 0); // Fallback for items at same cycle
     })[0];
   };
 
-  const getDefaultState = () => ({
-    version: "0.0.0",
-    totalCycles: 0,
-    agentIterations: 0,
-    humanInterventions: 0,
-    failCount: 0,
-    currentGoal: {
-      seed: null,
-      cumulative: null,
-      latestType: "Idle",
-      summaryContext: null,
-      currentContextFocus: null,
-    },
-    lastCritiqueType: "N/A",
-    personaMode: "XYZ",
-    lastFeedback: null,
-    lastSelfAssessment: null,
-    forceHumanReview: false,
-    apiKey: "",
-    confidenceHistory: [],
-    critiqueFailHistory: [],
-    tokenHistory: [],
-    failHistory: [],
-    evaluationHistory: [],
-    critiqueFeedbackHistory: [],
-    avgConfidence: null,
-    critiqueFailRate: null,
-    avgTokens: null,
-    avgEvalScore: null,
-    evalPassRate: null,
-    contextTokenEstimate: 0,
-    contextTokenTarget: 350000,
-    lastGeneratedFullSource: null,
-    htmlHistory: [],
-    lastApiResponse: null,
-    retryCount: 0,
-    autonomyMode: "Manual",
-    autonomyCyclesRemaining: 0,
-    cfg: {},
-    artifactMetadata: {},
-    dynamicTools: [],
+  const getDefaultState = (appConfig) => ({ // appConfig is the loaded config.json content
+    version: appConfig.STATE_VERSION,
+    totalCycles: 0, agentIterations: 0, humanInterventions: 0, failCount: 0,
+    currentGoal: { seed: null, cumulative: null, latestType: "Idle", summaryContext: null, currentContextFocus: null },
+    lastCritiqueType: "N/A", personaMode: "XYZ", lastFeedback: null, lastSelfAssessment: null,
+    forceHumanReview: false, apiKey: "",
+    confidenceHistory: [], critiqueFailHistory: [], tokenHistory: [], failHistory: [], evaluationHistory: [], critiqueFeedbackHistory: [],
+    avgConfidence: null, critiqueFailRate: null, avgTokens: null, avgEvalScore: null, evalPassRate: null,
+    contextTokenEstimate: 0, contextTokenTarget: appConfig.CTX_TARGET || 700000,
+    lastGeneratedFullSource: null, htmlHistory: [], lastApiResponse: null, retryCount: 0,
+    autonomyMode: "Manual", autonomyCyclesRemaining: 0,
+    cfg: { ...(appConfig.DEFAULT_CFG || {}) },
+    artifactMetadata: {}, dynamicTools: [], registeredWebComponents: [],
   });
 
+  async function calculateChecksum(content) {
+    if (typeof content !== "string") return null;
+    try {
+      const msgUint8 = new TextEncoder().encode(content);
+      const hashBuffer = await crypto.subtle.digest("SHA-256", msgUint8);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      return `sha256-${hashArray.map((b) => b.toString(16).padStart(2, "0")).join("")}`;
+    } catch (error) {
+      logger.logEvent("error", "Checksum calculation failed:", error);
+      return null;
+    }
+  }
+
   return {
+    Errors, // Export the custom errors object
     logger,
-    $id,
-    $,
-    $$,
-    kabobToCamel,
-    camelToKabob,
-    trunc,
-    escapeHtml,
-    lc,
-    uc,
-    delay,
-    getRandomInt,
-    getLatestMeta,
+    $id, $, $$,
+    kabobToCamel, camelToKabob, ucFirst,
+    trunc, escapeHtml, lc, uc,
+    delay, getRandomInt, getLatestMeta,
     getDefaultState,
+    calculateChecksum,
   };
 })();

@@ -15,7 +15,6 @@ const CycleLogicModule = (
   ) {
     const internalLog = logger || { logEvent: (lvl, msg, det) => console[lvl === "error" ? "error" : "log"](`[CYCLELOGIC_FALLBACK] ${msg}`, det || "") };
     internalLog.logEvent("error", "CycleLogicModule initialization failed: Missing one or more core dependencies.");
-    // Return a non-functional version to prevent further errors down the line
     const dummy = {};
     const methods = [ "init", "executeCycle", "isRunning", "getActiveGoalInfo", "proceedAfterHumanIntervention", "handleSummarizeContext", "abortCurrentCycle", "saveHtmlToHistory", "runTool", "startAutonomousRun", "stopAutonomousRun" ];
     methods.forEach(m => {
@@ -201,36 +200,22 @@ const CycleLogicModule = (
 
     const staticToolPromises = loadedStaticTools.map(async (toolDef) => {
         try {
-            const conversionResult = await ToolRunner.runTool(
-                "convert_to_gemini_fc",
-                { mcpToolDefinition: toolDef },
-                loadedStaticTools,
-                [],
-                uiHooks
-            );
+            const conversionResult = await ToolRunner.runTool( "convert_to_gemini_fc", { mcpToolDefinition: toolDef }, loadedStaticTools, [], uiHooks );
             return conversionResult?.geminiFunctionDeclaration;
         } catch (e) {
             logger.logEvent("error", `Failed converting static tool ${toolDef.name}: ${e.message}`, e instanceof ToolError ? e.details : e);
             return null;
         }
     });
-
     const dynamicToolPromises = dynamicTools.map(async (toolDef) => {
         try {
-            const conversionResult = await ToolRunner.runTool(
-                "convert_to_gemini_fc",
-                { mcpToolDefinition: toolDef.declaration },
-                loadedStaticTools,
-                [],
-                uiHooks
-            );
+            const conversionResult = await ToolRunner.runTool( "convert_to_gemini_fc", { mcpToolDefinition: toolDef.declaration }, loadedStaticTools, [], uiHooks );
             return conversionResult?.geminiFunctionDeclaration;
         } catch (e) {
             logger.logEvent("error", `Failed converting dynamic tool ${toolDef.declaration.name}: ${e.message}`, e instanceof ToolError ? e.details : e);
             return null;
         }
     });
-
     try {
         const results = await Promise.all([...staticToolPromises, ...dynamicToolPromises]);
         allFuncDecls = results.filter(Boolean);
@@ -282,26 +267,12 @@ const CycleLogicModule = (
     let toolExecutionSummaries = [];
     const uiHooks = { updateStatus: UI.updateStatus, logTimeline: UI.logToTimeline, updateTimelineItem: UI.updateTimelineItem, displayArtifact: UI.displayCycleArtifact, };
     let currentPrompt = prompt;
-    let currentHistory = null; // Initialize with null for the first call
-    for (let i = 0; i < 5; i++) { // Max 5 tool calls in a sequence
+    let currentHistory = null;
+    for (let i = 0; i < 5; i++) {
       logger.logEvent("debug", `API Call Sequence: Iteration ${i + 1}`);
       let loopApiResult = null;
-      let loopAccumulatedText = ""; // Text for this specific model turn
-
-      const callResult = await ApiClient.callApiWithRetry(
-        currentPrompt, // This will be null for continuations after a tool call
-        sysInstruction,
-        coreModelIdentifier,
-        apiKey,
-        allFuncDecls,
-        isContinuation,
-        currentHistory, // Pass the evolving history
-        state.cfg?.maxRetries ?? 1,
-        {}, // generationConfigOverrides
-        uiHooks.updateStatus,
-        uiHooks.logTimeline,
-        uiHooks.updateTimelineItem,
-        (progress) => {
+      let loopAccumulatedText = "";
+      const callResult = await ApiClient.callApiWithRetry( currentPrompt, sysInstruction, coreModelIdentifier, apiKey, allFuncDecls, isContinuation, currentHistory, state.cfg?.maxRetries ?? 1, {}, uiHooks.updateStatus, uiHooks.logTimeline, uiHooks.updateTimelineItem, (progress) => {
           if (progress.type === "text") {
             loopAccumulatedText += progress.content;
             UI.updateStreamingOutput(loopAccumulatedText);
@@ -311,74 +282,40 @@ const CycleLogicModule = (
           if (progress.accumulatedResult) loopApiResult = progress.accumulatedResult;
         }
       );
-
       if (!loopApiResult) loopApiResult = callResult;
       currentApiResult = loopApiResult;
-      accumulatedText = loopAccumulatedText; // This is the final text from *this model turn*
+      accumulatedText = loopAccumulatedText;
       totalInputTokens += loopApiResult.inputTokenCount || 0;
       totalOutputTokens += loopApiResult.outputTokenCount || 0;
-
-      if (currentPrompt) { // Add user prompt to history if it was used for this call
-        apiHistory.push({ role: "user", parts: [{ text: currentPrompt }] });
-      }
-      // Add model's response (text or function call) to history
-      if (loopApiResult.rawResp?.candidates?.[0]?.content) {
-        apiHistory.push(loopApiResult.rawResp.candidates[0].content);
-      } else if (loopApiResult.type === "text" && loopApiResult.content) {
-         apiHistory.push({ role: "model", parts: [{ text: loopApiResult.content }] });
-      } else if (loopApiResult.type === "functionCall" && loopApiResult.content) {
-        // Gemini API expects function calls to be added to history as role: "model", parts: [{functionCall: ...}]
-        // This is implicitly handled by pushing loopApiResult.rawResp.candidates[0].content earlier
-        // if it was a function call. If not, ensure the structure is correct.
-      }
-
-
-      if (loopApiResult.type === "functionCall" && loopApiResult.content?.name) {
+      if (currentPrompt) apiHistory.push({ role: "user", parts: [{ text: currentPrompt }] });
+      if (loopApiResult.rawResp?.candidates?.[0]?.content) { apiHistory.push(loopApiResult.rawResp.candidates[0].content);
+      } else if (loopApiResult.type === "text" && loopApiResult.content) { apiHistory.push({ role: "model", parts: [{ text: loopApiResult.content }], }); }
+      if ( loopApiResult.type === "functionCall" && loopApiResult.content?.name ) {
         uiHooks.updateStatus("Processing Tool Call...", true);
         const fc = loopApiResult.content;
         const toolResponse = await _handleToolExecution(fc, state, currentCycle, uiHooks);
         toolExecutionSummaries.push(toolResponse._toolExecutionInfo);
-        apiHistory.push(toolResponse); // Add tool response to history for the next LLM call
-        currentPrompt = null; // Next call is just a continuation based on history
-        currentHistory = [...apiHistory]; // Update history for the next iteration
+        apiHistory.push(toolResponse);
+        currentPrompt = null;
+        currentHistory = [...apiHistory];
         isContinuation = true;
-        // accumulatedText from this turn (which was the function call reasoning) is not the final text output.
-        // Reset loopAccumulatedText for the next potential text part from the LLM.
         loopAccumulatedText = "";
         continue;
-      } else {
-        // This was a text response, or an error, or end of sequence.
-        // `accumulatedText` (which is `loopAccumulatedText` from this turn) holds the final text.
-        break;
-      }
+      } else { break; }
     }
     state.lastApiResponse = currentApiResult;
-    // `totalOutputTokens` is cumulative over the sequence. `contextTokenEstimate` should also be cumulative.
-    // This might need adjustment if `contextTokenEstimate` is reset elsewhere per cycle.
-    // For now, assume it's an accumulating value.
-    // state.contextTokenEstimate += totalOutputTokens; // This seems to double count if already added in api call.
-                                                    // ApiClient.callApiWithRetry itself doesn't update global state.
-                                                    // So, it might be correct here.
-
-    return {
-      apiResult: currentApiResult, // Result of the *last* API call in the sequence
-      accumulatedText: accumulatedText, // Final text output from the *last model turn*
-      toolExecutionSummaries: toolExecutionSummaries,
-    };
+    state.contextTokenEstimate += totalOutputTokens;
+    return { apiResult: currentApiResult, accumulatedText: accumulatedText, toolExecutionSummaries: toolExecutionSummaries, };
   };
 
   const _processLlmApiResponse = (apiCallResult, state, currentCycle) => {
     UI.updateStatus("Processing Final Response...");
-    // `apiCallResult.accumulatedText` should be the final text part from the model.
     const finalContent = apiCallResult.accumulatedText || apiCallResult.apiResult?.content || "(No final text output)";
     UI.updateStreamingOutput(finalContent, true);
-
     const sanitized = ApiClient.sanitizeLlmJsonResp(finalContent);
     let parsedResp;
-
     UI.displayCycleArtifact("LLM Final Output Raw", finalContent, "info", false, "LLM", "llm.raw", currentCycle);
     UI.displayCycleArtifact("LLM Final Output Sanitized", sanitized, "output", false, "LLM", "llm.sanitized", currentCycle);
-
     try {
       parsedResp = JSON.parse(sanitized);
       logger.logEvent("info", `Parsed final LLM JSON after iteration ${currentCycle}.`);
@@ -398,56 +335,34 @@ const CycleLogicModule = (
       UI.displayCycleArtifact("Parse Error", e.message, "error", false, "System", "parse.error", currentCycle);
       throw new ApplicationError(`LLM response invalid JSON: ${e.message}`, { content: sanitized });
     }
-    // Token counting: apiCallResult.apiResult contains tokens for the *last* call.
-    // The _executeLlmApiCallSequence should return cumulative tokens if needed, or this logic assumes single call.
-    // For now, assume apiCallResult.apiResult.outputTokenCount is for the final model text generation.
-    const outputTokens = apiCallResult.apiResult?.outputTokenCount || 0;
+    const outputTokens = apiCallResult.apiResult?.outputTokenCount || 0; // Tokens for the last call, not cumulative sequence
     if (outputTokens > 0 && state.tokenHistory) {
       state.tokenHistory.push(outputTokens);
       if (state.tokenHistory.length > (config.MAX_HISTORY_ITEMS || 20)) state.tokenHistory.shift();
     }
-    state.contextTokenEstimate += outputTokens; // Add to context estimate
+    // Note: contextTokenEstimate was already updated in _executeLlmApiCallSequence with cumulative output tokens
     return parsedResp;
   };
 
   const _runLlmIteration = async (state, goalInfo, currentCycle) => {
-    UI.highlightCoreStep(1); // Analyze/Deliberate (Step 2 in README's 9-step loop)
+    UI.highlightCoreStep(1);
     const startTime = performance.now();
     let finalResult = null;
     let toolSummaries = [];
-
     try {
       const prompt = _assembleCorePrompt(state, goalInfo, currentCycle);
       const sysInstruction = `You are x0. DELIBERATE, adopt ${state.personaMode}. Respond ONLY valid JSON matching the schema. Refer to artifacts by ID and optional versionId (e.g., file.js#v1). Use artifactId and cycle args for tools. Use run_self_evaluation tool if appropriate. Provide modular edits via 'artifact_changes.modular' when possible. If generating full page changes, use 'page_composition' over 'full_html_source' string if 'enablePageComposition' config is true and it's suitable.`;
       const allFuncDecls = await _prepareFunctionDeclarations(state);
-
-      const coreModelKey = state.cfg?.coreModel || "BASE";
+      const coreModelKey = state.cfg?.coreModel || "ADVANCED";
       const coreModelIdentifier = config.DEFAULT_MODELS[coreModelKey.toUpperCase()] || coreModelKey;
-
       const apiKey = state.apiKey;
       if (!apiKey) throw new ConfigError("API Key is missing. Cannot make LLM call.", "apiKey");
-
       UI.clearStreamingOutput();
-      const apiCallResult = await _executeLlmApiCallSequence(
-        prompt,
-        sysInstruction,
-        coreModelIdentifier,
-        apiKey,
-        allFuncDecls,
-        state,
-        currentCycle
-      );
-
+      const apiCallResult = await _executeLlmApiCallSequence(prompt, sysInstruction, coreModelIdentifier, apiKey, allFuncDecls, state, currentCycle);
       toolSummaries = apiCallResult.toolExecutionSummaries || [];
       const parsedResp = _processLlmApiResponse(apiCallResult, state, currentCycle);
-
       const cycleMs = performance.now() - startTime;
-      finalResult = {
-        response: parsedResp,
-        cycleTimeMillis: cycleMs,
-        toolSummaries: toolSummaries,
-        error: null,
-      };
+      finalResult = { response: parsedResp, cycleTimeMillis: cycleMs, toolSummaries: toolSummaries, error: null };
     } catch (error) {
       const cycleMs = performance.now() - startTime;
       if (!(error instanceof AbortError)) {
@@ -531,7 +446,7 @@ const CycleLogicModule = (
   };
 
   const _runAutoCritique = async (apiKey, llmProposal, goalInfo, currentCycle) => {
-    UI.highlightCoreStep(5); // Corresponds to "Check Triggers for Critique or Intervention" and "Perform Critique"
+    UI.highlightCoreStep(5);
     UI.updateStatus(`Running ${NUM_CRITIQUES_TO_GENERATE} Auto-Critiques...`, true);
     const critiquePromises = [];
     for (let i = 0; i < NUM_CRITIQUES_TO_GENERATE; i++) {
@@ -554,7 +469,7 @@ const CycleLogicModule = (
     if (typeof Utils.calculateChecksum === 'function') {
         return await Utils.calculateChecksum(content);
     }
-    // Fallback basic checksum if Utils.calculateChecksum is not available or robust enough
+    logger.logEvent("warn", "Utils.calculateChecksum not available, using fallback for CycleLogic internal use.");
     if (typeof content !== 'string') return null;
     let hash = 0;
     for (let i = 0; i < content.length; i++) {
@@ -566,7 +481,7 @@ const CycleLogicModule = (
   };
 
   const _assembleHtmlFromPageComposition = async (composition, nextCycleNum, critiqueSource, state) => {
-    logger.logEvent("info", "Assembling HTML from page_composition object.", composition);
+    logger.logEvent("info", "Assembling HTML from page_composition object.", { composition });
     let htmlParts = [];
 
     try {
@@ -583,7 +498,7 @@ const CycleLogicModule = (
           if (el.type === "artifact_id" && el.id) {
             const meta = StateManager.getArtifactMetadata(el.id);
             const content = meta ? Storage.getArtifactContent(el.id, meta.latestCycle, meta.version_id) : null;
-            if (content) {
+            if (content !== null) {
               htmlParts.push(content);
               UI.displayCycleArtifact(`Loaded Head Artifact: ${el.id}`, Utils.trunc(content,100), "info", false, critiqueSource, el.id, nextCycleNum);
             } else {
@@ -601,11 +516,12 @@ const CycleLogicModule = (
             } else if (el.content_artifact_id) {
                 const metaContent = StateManager.getArtifactMetadata(el.content_artifact_id);
                 const artifactContent = metaContent ? Storage.getArtifactContent(el.content_artifact_id, metaContent.latestCycle, metaContent.version_id) : null;
-                if (artifactContent) {
-                    tagContent = artifactContent; // Style/script content might not need escaping
-                     UI.displayCycleArtifact(`Loaded Content for <${el.tag}>: ${el.content_artifact_id}`, Utils.trunc(artifactContent,100), "info", false, critiqueSource, el.content_artifact_id, nextCycleNum);
+                if (artifactContent !== null) {
+                    tagContent = artifactContent;
+                    UI.displayCycleArtifact(`Loaded Content for <${el.tag}>: ${el.content_artifact_id}`, Utils.trunc(artifactContent,100), "info", false, critiqueSource, el.content_artifact_id, nextCycleNum);
                 } else {
                      logger.logEvent("warn", `Content artifact ${el.content_artifact_id} for <${el.tag}> not found.`);
+                     tagContent = `<!-- Content artifact ${el.content_artifact_id} not found -->`;
                 }
             }
             const voidElements = ["meta", "link", "br", "hr", "img", "input", "base", "col", "embed", "param", "source", "track", "area", "keygen", "wbr"];
@@ -629,7 +545,7 @@ const CycleLogicModule = (
           if (el.type === "artifact_id" && el.id) {
             const meta = StateManager.getArtifactMetadata(el.id);
             const content = meta ? Storage.getArtifactContent(el.id, meta.latestCycle, meta.version_id) : null;
-            if (content) {
+            if (content !== null) {
               htmlParts.push(content);
               UI.displayCycleArtifact(`Loaded Body Artifact: ${el.id}`, Utils.trunc(content,100), "info", false, critiqueSource, el.id, nextCycleNum);
             } else {
@@ -665,7 +581,7 @@ const CycleLogicModule = (
           if (ref.type === "artifact_id" && ref.id) {
             const meta = StateManager.getArtifactMetadata(ref.id);
             const content = meta ? Storage.getArtifactContent(ref.id, meta.latestCycle, meta.version_id) : null;
-            if (content) {
+            if (content !== null) {
               htmlParts.push(`<script ${scriptAttrs}>${content}</script>`);
               UI.displayCycleArtifact(`Inlined Script Artifact: ${ref.id}`, `(${content.length} chars)`, "info", false, critiqueSource, ref.id, nextCycleNum);
             } else {
@@ -809,7 +725,7 @@ const CycleLogicModule = (
   };
 
   const _applyLLMChanges = async (llmResp, currentCycleNum, critiqueSource) => {
-    UI.highlightCoreStep(6); // Apply Approved Changes (Step 7 in README)
+    UI.highlightCoreStep(6);
     const state = StateManager?.getState();
     if (!state) return { success: false, errors: ["State not initialized"], nextCycle: currentCycleNum, requiresSandbox: false, changes: [] };
     let changesMade = []; let errors = [];
@@ -890,72 +806,56 @@ const CycleLogicModule = (
     const llmProb = (state.cfg?.llmCritiqueProb ?? 50) / 100.0;
     let overallPassed = false;
     let combinedReport = "Critique Skipped";
-    let applySource = "Skipped"; // Default if critique is skipped
+    let applySource = "Skipped";
     let allCritiques = [];
 
     if (Math.random() < llmProb) {
       UI.logToTimeline(currentCycle, "[DECIDE] Triggering Auto Critique...", "decide", true);
-      UI.logCoreLoopStep(currentCycle, 5, "Critique: Auto"); // Step 5 is "Check Triggers / Perform Critique"
+      UI.logCoreLoopStep(currentCycle, 5, "Critique: Auto");
 
-      const multiCritiqueResult = await _runAutoCritique(
-        state.apiKey,
-        llmResponse.response,
-        goalInfo,
-        currentCycle
-      );
+      const multiCritiqueResult = await _runAutoCritique(state.apiKey, llmResponse.response, goalInfo, currentCycle);
       allCritiques = multiCritiqueResult.critiques;
       overallPassed = multiCritiqueResult.overall_passed;
       combinedReport = multiCritiqueResult.combined_report;
       applySource = `AutoCrit (${allCritiques.length} runs) ${overallPassed ? "Pass" : "Fail"}`;
       state.lastCritiqueType = `Automated (${overallPassed ? "Pass" : "Fail"})`;
-      if (state.critiqueFailHistory) state.critiqueFailHistory.push(!overallPassed); // Push true for fail, false for pass
+      if (state.critiqueFailHistory) state.critiqueFailHistory.push(!overallPassed);
       if (state.critiqueFailHistory?.length > (config.MAX_HISTORY_ITEMS || 20)) state.critiqueFailHistory.shift();
       UI.displayCycleArtifact("Auto Critique Combined Report", combinedReport, overallPassed ? "info" : "error", false, "LLM", "critique.combined_report", currentCycle);
     } else {
-      overallPassed = true; // If skipped, assume it "passed" for proceeding (no explicit failure)
+      overallPassed = true; 
       applySource = "Critique Skipped";
       state.lastCritiqueType = "Skipped";
-      if (state.critiqueFailHistory) state.critiqueFailHistory.push(false); // Skipped is not a fail
+      if (state.critiqueFailHistory) state.critiqueFailHistory.push(false);
       if (state.critiqueFailHistory?.length > (config.MAX_HISTORY_ITEMS || 20)) state.critiqueFailHistory.shift();
       UI.logCoreLoopStep(currentCycle, 5, "Critique: Skipped");
       UI.logToTimeline(currentCycle, "[DECIDE] Critique Skipped.", "info", true);
     }
-    return {
-      critiquePassed: overallPassed,
-      critiqueReport: combinedReport,
-      applySource: applySource,
-      critiques: allCritiques,
-    };
+    return { critiquePassed: overallPassed, critiqueReport: combinedReport, applySource: applySource, critiques: allCritiques };
   };
 
   const _handleCritiqueDecision = async (state, llmResponse, goalInfo, currentCycle) => {
-    UI.highlightCoreStep(4); // Corresponds to "Check Triggers for Critique or Intervention"
+    UI.highlightCoreStep(4);
     const cycleTimeMillis = llmResponse.cycleTimeMillis || 0;
     const cycleSecs = cycleTimeMillis / 1000;
     const confidence = llmResponse.response?.agent_confidence_score ?? 0.0;
-
     const hitlTrigger = _checkHitlTriggers(state, cycleSecs, confidence, currentCycle, llmResponse);
     UI.logToTimeline(currentCycle, `[DECIDE] Time:${cycleSecs.toFixed(1)}s, Conf:${confidence.toFixed(2)}. Human: ${hitlTrigger ? hitlTrigger.reason : "No"}.`, "decide", true);
-
     if (hitlTrigger) {
       state.lastCritiqueType = `Human (${hitlTrigger.reason})`;
-      if (state.critiqueFailHistory) state.critiqueFailHistory.push(false); // HITL is not a critique *failure*
+      if (state.critiqueFailHistory) state.critiqueFailHistory.push(false);
       if (state.critiqueFailHistory?.length > (config.MAX_HISTORY_ITEMS || 20)) state.critiqueFailHistory.shift();
       UI.logCoreLoopStep(currentCycle, 5, `Critique: Human Intervention (${hitlTrigger.reason})`);
       UI.updateStatus(`Paused: Human Review (${hitlTrigger.reason})`);
-
       const primaryModId = llmResponse.response?.artifact_changes?.modified?.[0]?.id;
       const primaryNewId = llmResponse.response?.artifact_changes?.new?.[0]?.id;
       const primaryModularId = llmResponse.response?.artifact_changes?.modular?.[0]?.id;
       const hasFullSource = !!llmResponse.response?.artifact_changes?.full_html_source || !!llmResponse.response?.artifact_changes?.page_composition;
       const artifactToEdit = primaryModId || primaryNewId || primaryModularId || (hasFullSource ? (llmResponse.response.artifact_changes.page_composition ? "page_composition_preview" : "full_html_source") : null);
-      
-      UI.showHumanInterventionUI(hitlTrigger.mode, hitlTrigger.reason, [], artifactToEdit, []); // Pass empty critiques array if not applicable
+      UI.showHumanInterventionUI(hitlTrigger.mode, hitlTrigger.reason, [], artifactToEdit, []);
       return { status: "HITL_REQUIRED", critiquePassed: false, critiqueReport: `Human Intervention: ${hitlTrigger.reason}` };
     }
-
     const critiqueResult = await _performCritique(state, llmResponse, goalInfo, currentCycle);
-
     if (!critiqueResult.critiquePassed) {
       UI.logToTimeline(currentCycle, "[STATE] Auto-Critique failed. Forcing HITL.", "warn", true);
       state.failCount = (state.failCount || 0) + 1;
@@ -965,17 +865,11 @@ const CycleLogicModule = (
       UI.showHumanInterventionUI("critique_feedback", `Auto Critique Failed: ${Utils.trunc(critiqueResult.critiqueReport, 150)}...`, [], null, critiqueResult.critiques);
       return { status: "HITL_REQUIRED", critiquePassed: false, critiqueReport: critiqueResult.critiqueReport };
     }
-
-    return {
-      status: "PROCEED",
-      critiquePassed: critiqueResult.critiquePassed,
-      critiqueReport: critiqueResult.critiqueReport,
-      applySource: critiqueResult.applySource,
-    };
+    return { status: "PROCEED", critiquePassed: critiqueResult.critiquePassed, critiqueReport: critiqueResult.critiqueReport, applySource: critiqueResult.applySource };
   };
 
   const _runSelfEvaluationStep = async (state, llmResponse, currentCycle, applyResult) => {
-    UI.highlightCoreStep(7); // Corresponds to "Self-Evaluate Cycle Outcome & Learn"
+    UI.highlightCoreStep(7);
     if (!llmResponse?.response) return;
     const contentToEvaluate = llmResponse.response.justification_persona_musing || "(No justification provided)";
     if (contentToEvaluate === "(No justification provided)") {
@@ -985,7 +879,6 @@ const CycleLogicModule = (
     }
     logger.logEvent("info", `Running Self-Evaluation for Cycle ${currentCycle} justification`);
     UI.logToTimeline(currentCycle, "[EVAL] Evaluating cycle justification...", "eval", true);
-
     let evaluationCriteria = Storage.getArtifactContent("reploid.core.default-eval", 0);
     if (!evaluationCriteria) {
       logger.logEvent("warn", "Default evaluation criteria artifact (reploid.core.default-eval) not found. Using basic criteria.");
@@ -993,22 +886,16 @@ const CycleLogicModule = (
     }
     let evalCriteriaText = evaluationCriteria;
     try {
-      const parsedCriteria = JSON.parse(evaluationCriteria); // It might be JSON or plain text
+      const parsedCriteria = JSON.parse(evaluationCriteria);
       if (parsedCriteria.criteria && typeof parsedCriteria.criteria === "string") evalCriteriaText = parsedCriteria.criteria;
-      else if (parsedCriteria.criteria && Array.isArray(parsedCriteria.criteria)) evalCriteriaText = JSON.stringify(parsedCriteria.criteria); // Use full JSON if it's structured
-    } catch (e) { /* Ignore parse error, use as plain text */ }
-    
+      else if (parsedCriteria.criteria && Array.isArray(parsedCriteria.criteria)) evalCriteriaText = JSON.stringify(parsedCriteria.criteria);
+    } catch (e) { /* Use as plain text */ }
     const goalContext = getActiveGoalInfo().cumulativeGoal || getActiveGoalInfo().summaryContext || "N/A";
-    const targetArtifactId = "llm.justification"; // A conceptual ID for the justification
+    const targetArtifactId = "llm.justification";
     const targetArtifactCycle = currentCycle;
-
     try {
       const uiHooks = { updateStatus: UI.updateStatus, logTimeline: UI.logToTimeline, updateTimelineItem: UI.updateTimelineItem };
-      const evalResult = await ToolRunner.runTool(
-        "run_self_evaluation",
-        { targetArtifactId, targetArtifactCycle, evalCriteriaText, goalContextText: goalContext, contentToEvaluate },
-        loadedStaticTools, state.dynamicTools || [], uiHooks
-      );
+      const evalResult = await ToolRunner.runTool("run_self_evaluation", { targetArtifactId, targetArtifactCycle, evalCriteriaText, goalContextText: goalContext, contentToEvaluate }, loadedStaticTools, state.dynamicTools || [], uiHooks);
       StateManager.addEvaluationResult(evalResult);
       UI.logToTimeline(currentCycle, `[EVAL OK] Score: ${evalResult.evaluation_score.toFixed(2)}. Report: ${Utils.trunc(evalResult.evaluation_report, 60)}`, "eval", true);
       UI.displayCycleArtifact("Self-Evaluation Result", JSON.stringify(evalResult, null, 2), "info", false, "System", "eval.result", currentCycle);
@@ -1016,7 +903,7 @@ const CycleLogicModule = (
       logger.logEvent("error", `Self-evaluation step failed: ${e.message}`, e);
       UI.logToTimeline(currentCycle, `[EVAL ERR] Failed: ${e.message}`, "error", true);
     }
-    UI.logToTimeline(currentCycle, "[LEARN] Learning phase placeholder.", "learn", true); // Placeholder for step 8 actual learning
+    UI.logToTimeline(currentCycle, "[LEARN] Learning phase placeholder.", "learn", true);
   };
 
   const _prepareCycle = () => {
@@ -1025,19 +912,16 @@ const CycleLogicModule = (
     if (!StateManager.isInitialized()) throw new StateError("StateManager lost initialization!");
     if (UI.isMetaSandboxPending()) { UI.showNotification("Meta Sandbox approval pending.", "warn"); throw new StateError("Sandbox Pending"); }
     if (!UI.isHumanInterventionHidden()) { UI.showNotification("Human Intervention required.", "warn"); throw new StateError("HITL Required"); }
-
     UI.clearCurrentCycleDetails();
     currentLlmResponse = null;
     _abortRequested = false;
     const uiRefs = UI.getRefs();
     state.apiKey = uiRefs.apiKeyInput?.value.trim() || state.apiKey;
     if (!state.apiKey || state.apiKey.length < 10) throw new ConfigError("Valid Gemini API Key required.", "apiKey");
-
-    UI.logCoreLoopStep(state.totalCycles, 0, "Define Goal"); // Step 1
+    UI.logCoreLoopStep(state.totalCycles, 0, "Define Goal");
     const goalText = uiRefs.goalInput?.value.trim() || "";
     const goalTypeElement = document.querySelector('input[name="goalType"]:checked');
     const goalType = goalTypeElement ? goalTypeElement.value : "System";
-
     if (!goalText && !state.currentGoal?.seed) throw new ApplicationError("Initial Goal required.");
     const maxC = state.cfg?.maxCycles || 0;
     if (maxC > 0 && state.totalCycles >= maxC && state.autonomyMode !== "Manual") throw new StateError(`Max cycles (${maxC}) reached.`);
@@ -1050,11 +934,9 @@ const CycleLogicModule = (
       _isAutonomous = true;
       if (state.autonomyMode === "N_Cycles") state.autonomyCyclesRemaining--;
     } else { _isAutonomous = false; }
-
     if (state.contextTokenEstimate >= state.contextTokenTarget) UI.showNotification("Context tokens high. Consider summarizing.", "warn");
     const currentCycle = state.totalCycles;
     const newGoalProvided = !!goalText;
-
     if (newGoalProvided) {
       if (!state.currentGoal?.seed) {
         state.currentGoal = { seed: goalText, cumulative: goalText, latestType: goalType, summaryContext: null, currentContextFocus: null };
@@ -1098,13 +980,13 @@ const CycleLogicModule = (
     } else {
       UI.logToTimeline(currentCycle, `[RETRY] Attempting retry ${state.retryCount}/${maxRetries}...`, "warn", true);
       state.lastFeedback = `Retry ${state.retryCount}: ${Utils.trunc(error.message, 100) || "No response"}`;
-      await Utils.delay(1000 * state.retryCount); // No return needed here, the loop will continue or break
+      await Utils.delay(1000 * state.retryCount);
     }
   };
 
   const _displayLlmIterationSuccessDetails = (llmIterationResult, state, currentCycle) => {
     UI.logToTimeline(currentCycle, "[STATE] Agent Iteration successful.", "info", true);
-    UI.highlightCoreStep(3); // Corresponds to "Execute LLM & Tools" (Step 4 in README)
+    UI.highlightCoreStep(3);
     if (llmIterationResult.toolSummaries && llmIterationResult.toolSummaries.length > 0) {
       UI.displayToolExecutionSummary(llmIterationResult.toolSummaries);
     }
@@ -1152,7 +1034,7 @@ const CycleLogicModule = (
         llmIterationResult = await _runLlmIteration(state, goalInfo, currentCycle);
         if (llmIterationResult.error) {
           if (llmIterationResult.error instanceof AbortError) throw llmIterationResult.error;
-          await _handleCycleIterationFailure(state, llmIterationResult.error, currentCycle); // This might throw if max retries
+          await _handleCycleIterationFailure(state, llmIterationResult.error, currentCycle);
         } else {
           successfulIteration = true; state.retryCount = 0;
           _displayLlmIterationSuccessDetails(llmIterationResult, state, currentCycle);
@@ -1169,7 +1051,7 @@ const CycleLogicModule = (
 
       if (critiqueDecision.critiquePassed) {
         UI.updateStatus("Applying Changes...", true);
-        UI.logCoreLoopStep(currentCycle, 6, "Refine & Apply"); // Step 7 in README
+        UI.logCoreLoopStep(currentCycle, 6, "Refine & Apply");
         applyResult = await _applyLLMChanges(llmIterationResult.response, currentCycle, critiqueDecision.applySource);
         if (_abortRequested) throw new AbortError("Cycle aborted during apply changes.");
 
@@ -1185,10 +1067,10 @@ const CycleLogicModule = (
           cycleOutcome = `OK (${state.lastCritiqueType})`;
           await _runSelfEvaluationStep(state, llmIterationResult, currentCycle, applyResult);
           if (_abortRequested) throw new AbortError("Cycle aborted during self-evaluation.");
-          UI.highlightCoreStep(8); // Step 9 in README "Determine Next Action" (after eval which is step 8)
+          UI.highlightCoreStep(8);
           shouldContinueAutonomous = _isAutonomous && !_abortRequested;
         } else {
-          _handleApplyFailure(state, applyResult, critiqueDecision, currentCycle); // This will throw
+          _handleApplyFailure(state, applyResult, critiqueDecision, currentCycle);
         }
       } else {
         logger.logEvent("error", "Reached unexpected state: critique failed but HITL not triggered.");
@@ -1233,7 +1115,7 @@ const CycleLogicModule = (
         UI.updateStatus("Error - State Lost?", false, true);
         logger.logEvent("critical", "Global state became null during cycle finally block.");
       }
-      UI.highlightCoreStep(-1); // Reset highlight
+      UI.highlightCoreStep(-1);
     }
 
     if (shouldContinueAutonomous) {
@@ -1282,7 +1164,7 @@ const CycleLogicModule = (
         }
       } else if ((artifactId === "full_html_source" || artifactId === "page_composition_preview") && isCodeEditSuccess) {
         logger.logEvent("warn", "Full source/Page Composition edited via HITL. Staging for sandbox.");
-        state.lastGeneratedFullSource = validatedContent; // This holds the full HTML string from either source
+        state.lastGeneratedFullSource = validatedContent;
         applySuccess = true; requiresSandbox = true; skipCycleIncrement = true;
         UI.showMetaSandbox(validatedContent);
       } else if (!success) {
@@ -1315,7 +1197,7 @@ const CycleLogicModule = (
       state.failHistory = state.failHistory || [];
       state.failHistory.push({ cycle: currentCycle, reason: `HITL Apply Fail: ${feedbackType}` });
       if (state.failHistory.length > (config.MAX_HISTORY_ITEMS || 20)) state.failHistory.shift();
-      state.totalCycles = currentCycle; // Don't increment cycle on HITL apply failure
+      state.totalCycles = currentCycle;
     }
 
     if (!skipCycleIncrement) {
@@ -1408,7 +1290,7 @@ const CycleLogicModule = (
         cumulative: `Context summarized up to Cycle ${currentCycle}. Original Seed: ${state.currentGoal?.seed || "None"}. New Summary:\n${summaryText}`,
         latestType: "Idle", summaryContext: summaryText, currentContextFocus: null,
       };
-      state.contextTokenEstimate = Math.round((summaryText.length / 4) * 1.1) + 500; // Rough estimate
+      state.contextTokenEstimate = Math.round((summaryText.length / 4) * 1.1) + 500;
       state.lastFeedback = `Context summarized at Cycle ${currentCycle}.`; state.lastCritiqueType = "Context Summary";
       state.totalCycles = nextCycle;
       UI.logToTimeline(currentCycle, `[CONTEXT] Summarized. Saved as meta.summary_context_${nextCycle}. Est. tokens: ${state.contextTokenEstimate.toLocaleString()}.`, "context");

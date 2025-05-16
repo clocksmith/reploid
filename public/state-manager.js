@@ -13,8 +13,7 @@ const StateManagerModule = (config, logger, Storage, Errors) => {
       "error",
       "StateManagerModule initialization failed: Missing dependencies."
     );
-    // Return a dummy object
-    const dummyMethods = [
+    const fakeMethods = [
       "init",
       "getState",
       "setState",
@@ -36,9 +35,9 @@ const StateManagerModule = (config, logger, Storage, Errors) => {
       "isWebComponentRegistered",
       "getRegisteredWebComponents",
     ];
-    const dummyStateManager = {};
-    dummyMethods.forEach((method) => {
-      dummyStateManager[method] = () => {
+    const fakeStateManager = {};
+    fakeMethods.forEach((method) => {
+      fakeStateManager[method] = () => {
         log.logEvent(
           "error",
           `StateManager not initialized. Called ${method}.`
@@ -53,7 +52,7 @@ const StateManagerModule = (config, logger, Storage, Errors) => {
         if (method === "getArtifactMetadataAllVersions") return [];
       };
     });
-    return dummyStateManager;
+    return fakeStateManager;
   }
 
   const { StateError, ConfigError } = Errors;

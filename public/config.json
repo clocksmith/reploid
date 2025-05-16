@@ -46,11 +46,6 @@
       "type": "JSON_CONFIG",
       "description": "Central application configuration"
     },
-    "reploid.core.errors": {
-      "filename": "errors.js",
-      "type": "JS",
-      "description": "Custom error definitions"
-    },
     "reploid.core.logic": {
       "filename": "app-logic.js",
       "type": "JS",
@@ -64,12 +59,12 @@
     "reploid.core.body": {
       "filename": "ui-body-template.html",
       "type": "HTML",
-      "description": "App root HTML structure"
+      "description": "App root HTML structure (used if not overridden by page_composition)"
     },
     "reploid.core.utils": {
       "filename": "utils.js",
       "type": "JS",
-      "description": "Core utility functions"
+      "description": "Core utility functions (includes custom Error definitions)"
     },
     "reploid.core.storage": {
       "filename": "storage.js",

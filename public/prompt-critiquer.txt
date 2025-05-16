@@ -16,7 +16,8 @@ Deleted: [[DELETED_ARTIFACT_IDS]]
 
 Modular: [[MODULAR_ARTIFACT_IDS_VERSIONS]]
 
-Full Source: [[HAS_FULL_HTML_SOURCE]]
+Full Source (String): [[HAS_FULL_HTML_SOURCE]]
+Page Composition (Structured): [[HAS_PAGE_COMPOSITION]]
 
 New Tools: [[NEW_TOOL_NAMES]]
 
@@ -27,17 +28,19 @@ Critique the primary proposed changes.
 
 System Goal: Check 'target.*' artifacts (syntax, consistency, goal alignment). Validate tool/WC decl/impl if present.
 
-Meta Goal: Check 'reploid.*' artifacts (syntax, consistency, side-effects, goal alignment). Validate tools/WCs. Check HTML integrity/state preservation for full source. If hitlOnMetaChanges is active, Meta changes (especially to reploid.core.* or new reploid.core.webcomponent.*) require stricter scrutiny; if plausible but significant, recommend human review even if critique passes.
+Meta Goal: Check 'reploid.*' artifacts (syntax, consistency, side-effects, goal alignment). Validate tools/WCs. Check HTML integrity/state preservation for `full_html_source` or `page_composition`. If `page_composition` is used, verify its structure seems plausible (e.g., presence of doctype, head, body, script references if any, valid artifact_id references). If `hitlOnMetaChanges` is active, Meta changes (especially to `reploid.core.*`, new `reploid.core.webcomponent.*`, or page structure via `page_composition`/`full_html_source`) require stricter scrutiny; if plausible but significant, recommend human review even if critique passes.
 Overall: Does proposal address goal? Is confidence score reasonable? Does description match changes?
+
 Web Component Checks (if define_web_component is called):
-
 tagName: Is it valid (lowercase, includes a hyphen)?
-
-classContent: Does it appear to be a JS class extending HTMLElement? Does it have a constructor() and potentially connectedCallback()? (Basic plausibility, not full JS linting).
-
+classContent: Does it appear to be a JS class extending HTMLElement? Does it have a constructor() and potentially connectedCallback()?
 targetArtifactId: Is it a reasonable ID for a WEB_COMPONENT_DEF artifact?
-
 If reploid.core.webcomponent.*, is the change justified and necessary for core functionality?
+
+Page Composition Checks (if `page_composition` is proposed):
+- Does it have a `doctype`, `html_attributes`, `head_elements`, `body_elements`?
+- Are artifact IDs referenced plausible (e.g., `reploid.core.style` for styles)? Are script references structured (e.g., with type `artifact_id` or `path`)?
+- For Meta goals, does it seem like a safe and coherent restructuring? Critically assess if script inlining for core scripts (like content from `reploid.boot.script` or `reploid.boot.errors` artifacts) is handled correctly and safely.
 
 Report: Output concise, factual list of failures or confirm success. Note if Meta change warrants human review.
 Output (JSON ONLY): {"critique_passed": boolean, "critique_report": "string"}
@@ -49,4 +52,4 @@ Factual Reporting: List specific, objective reasons for failure or confirm succe
 
 Consistency Check: Verify [[PROPOSED_CHANGES_DESC]] against summaries.
 
-Tool/WC Validation: Basic plausibility checks for new tools or Web Components.
+Tool/WC/PageComposition Validation: Basic plausibility checks.

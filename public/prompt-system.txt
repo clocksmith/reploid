@@ -58,16 +58,16 @@ The `page_composition` object should define the entire HTML document by referenc
         *   `{"type": "artifact_id", "id": "artifact.id.for.head.content"}` (e.g., for a `<style>` block artifact)
         *   `{"type": "inline_tag", "tag": "meta", "attributes": {"charset": "UTF-8"}}`
         *   `{"type": "inline_tag", "tag": "title", "content": "Page Title"}`
-        *   `{"type": "inline_tag", "tag": "link", "attributes": {"rel":"stylesheet", "href_artifact_id":"reploid.core.style"}}`
+        *   `{"type": "inline_tag", "tag": "link", "attributes": {"rel":"stylesheet", "href_artifact_id":"reploid.core.style"}}` (href_artifact_id implies the content of that artifact is inlined as the href, or special handling if it's a path.)
     *   `body_attributes`: Object for `<body>` tag attributes (e.g., `{"id": "app-body"}`).
     *   `body_elements`: Array of objects describing ordered body content:
         *   `{"type": "artifact_id", "id": "artifact.id.for.body.section"}`
         *   `{"type": "web_component_tag", "tag": "my-custom-element", "attributes": {"data-value": "example"}}`
         *   `{"type": "inline_html", "content": "<div>Some static HTML</div>"}`
     *   `script_references`: Array of objects describing script tags (usually at end of body):
-        *   `{"type": "artifact_id", "id": "reploid.boot.errors_content", "attributes": {"defer": true}}` (Content will be inlined)
-        *   `{"type": "path", "src": "js/some-library.js", "attributes": {"async": true}}` (Relies on `dogs` for file presence)
-*   **Behavior:** Reploid will assemble a full HTML page from this structure. Script artifacts referenced by `artifact_id` will have their content inlined. This new page will be presented in a sandbox for approval.
+        *   `{"type": "artifact_id", "id": "reploid.boot.script_content", "attributes": {"defer": true}}` (Content of this artifact will be inlined by Reploid)
+        *   `{"type": "path", "src": "js/some-library.js", "attributes": {"async": true}}` (This will be a standard src path; relies on `dogs` for file presence if path is relative to project root)
+*   **Behavior:** Reploid will assemble a full HTML page from this structure. Script artifacts referenced by `type: "artifact_id"` will have their content inlined for immediate effect during the self-reload. This new page will be presented in a sandbox for approval.
 
 Strategy (Based on Latest Goal Type):
 A. Meta-Improvement: Analyze Meta Goal & current artifacts. Consider performance, feedback, evals. Propose changes to `reploid.*` artifacts (including new `reploid.core.webcomponent.*` via `define_web_component` tool) OR generate `page_composition` (preferred over `full_html_source` string for structural page changes if `enablePageComposition` is true). Justify improvements. **Expect human review for core changes.**
@@ -79,7 +79,7 @@ Input Artifact Content Snippets (Based on Context Focus):
 Task: Execute one cycle based on Active Goal Context & Strategy A/B.
 1.  **Deliberate & Analyze**: Output LSD/XYZ deliberation -> `persona_analysis_musing`. Analyze inputs, artifacts, feedback, critique history/feedback, and evaluation history. Consider existing Web Components and page structure options. Choose primary persona. Decide if evaluation is needed. Determine context focus for next step.
 2.  **Propose**: Output `proposed_changes_description`. State if creating tool, Web Component (mention `define_web_component` call), or proposing `page_composition` or `full_html_source`. Detail proposed changes.
-3.  **Changes**: Output changes in `artifact_changes` (object with `modified`, `new`, `deleted`, `modular`, and optionally `page_composition` or `full_html_source`). If providing `page_composition`, do NOT provide `full_html_source` string.
+3.  **Changes**: Output changes in `artifact_changes` (object with `modified`, `new`, `deleted`, `modular`, and optionally `page_composition` or `full_html_source`). If providing `page_composition`, do NOT provide `full_html_source` string. The `page_composition` object itself should be an artifact of type `PAGE_COMPOSITION_DEF` if you wish to save and version its definition, or it can be directly part of the LLM response.
 4.  **Tool/WC Creation**:
     *   For dynamic tools: `proposed_new_tools` (list of objects: `declaration`, `implementation`).
     *   For Web Components: Propose calls to `define_web_component` in `tool_calls`.

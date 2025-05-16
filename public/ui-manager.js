@@ -11,7 +11,7 @@ const UIModule = (config, logger, Utils, Storage, StateManager, Errors) => {
       "error",
       "UIModule initialization failed: Missing base dependencies."
     );
-    const dummyUI = {};
+    const fakeUI = {};
     [
       "init",
       "updateStatus",
@@ -38,7 +38,7 @@ const UIModule = (config, logger, Utils, Storage, StateManager, Errors) => {
       "isMetaSandboxPending",
       "isHumanInterventionHidden",
     ].forEach((methodName) => {
-      dummyUI[methodName] = () => {
+      fakeUI[methodName] = () => {
         log.logEvent(
           "error",
           `UIModule not initialized. Called ${methodName}.`
@@ -51,12 +51,12 @@ const UIModule = (config, logger, Utils, Storage, StateManager, Errors) => {
         if (methodName === "getRefs") return {};
       };
     });
-    return dummyUI;
+    return fakeUI;
   }
 
   let uiRefs = {};
   let isInitialized = false;
-  let CycleLogic = null; // To be injected via init
+  let CycleLogic = null;
   let metaSandboxPending = false;
   let activeCoreStepIdx = -1;
   let lastCycleLogItem = null;
