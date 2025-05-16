@@ -1,7 +1,7 @@
-const ApiClientModule = (config, logger, Errors, Utils) => {
-  if (!config || !logger || !Errors || !Utils) {
+const ApiClientModule = (config, logger, Errors, Utils, StateManager) => {
+  if (!config || !logger || !Errors || !Utils || !StateManager) {
     const internalLog = logger || { logEvent: (lvl, msg, det) => console[lvl === "error" ? "error" : "log"](`[APICLIENT_FALLBACK] ${msg}`, det || "") };
-    internalLog.logEvent("error", "ApiClientModule initialization failed: Missing dependencies.");
+    internalLog.logEvent("error", "ApiClientModule initialization failed: Missing dependencies (config, logger, Errors, Utils, StateManager).");
     return {
       callApiWithRetry: async () => { throw new (Errors?.ApiError || Error)("ApiClient not initialized"); },
       abortCurrentCall: () => { internalLog.logEvent("warn", "ApiClient not initialized, cannot abort."); },
@@ -229,6 +229,12 @@ const ApiClientModule = (config, logger, Errors, Utils) => {
     updateStatusFn = () => {}, logTimelineFn = () => ({}), updateTimelineFn = () => {},
     progressCallback = () => {}
   ) => {
+    if (!StateManager) {
+        const errorMsg = "StateManager is not defined within ApiClientModule.callApiWithRetry.";
+        logger.logEvent("error", errorMsg);
+        throw new Errors.ConfigError(errorMsg, "StateManager Dependency");
+    }
+
     if (currentAbortController) {
       logger.logEvent("warn", "Aborting previous API call before starting new one.");
       currentAbortController.abort("New call initiated");
@@ -242,7 +248,7 @@ const ApiClientModule = (config, logger, Errors, Utils) => {
       try {
         const attemptMsg = attempt > 0 ? `[RETRY ${attempt}/${maxRetries}]` : "";
         const statusMsg = `${attemptMsg} Calling Gemini (${modelName})...`;
-        const currentCycle = StateManager?.getState()?.totalCycles ?? 0;
+        const currentCycle = StateManager.getState()?.totalCycles ?? 0;
 
         if (attempt === 0 && !isContinuation) {
           updateStatusFn(statusMsg, true);
