@@ -104,7 +104,7 @@ REPLOID employs a modular structure emphasizing a "functional core, imperative s
 ## Technical Stack / Limitations
 
 - **Core:** Vanilla JavaScript (ES6+), HTML5, CSS3, Web Components
-- **LLM:** Google Gemini API (e.g., `gemini-1.5-pro-latest`)
+- **LLM:** Google Gemini API (e.g., `gemini-2.5-pro-preview-05-06`)
 - **Persistence:** `localStorage` (Application State Version: `0.7.0`), `sessionStorage`.
 - **Limitations:** Experimental. `localStorage` size. Self-modification risks (mitigated by HITL and paradigm awareness). `page_composition` script inlining makes generated HTML larger. Patch tools (`apply_diff_patch`, `apply_json_patch`) are placeholders. The transition to clearly separated pure/boundary patterns is an ongoing refinement.
 

@@ -17,8 +17,8 @@
   "AUTONOMOUS_CYCLE_DELAY_MS": 1000,
   "TIMELINE_LOG_LIMIT": 250,
   "DEFAULT_MODELS": {
-    "BASE": "gemini-1.5-flash-latest",
-    "ADVANCED": "gemini-1.5-pro-latest"
+    "BASE": "gemini-2.5-flash-preview-04-17",
+    "ADVANCED": "gemini-2.5-pro-preview-05-06"
   },
   "DEFAULT_CFG": {
     "personaBalance": 50,
