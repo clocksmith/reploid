@@ -1,0 +1,74 @@
+body {
+  font-family: sans-serif;
+  line-height: 1.6;
+  margin: 0;
+  padding: 20px;
+  background-color: #f4f4f4;
+  color: #333;
+}
+
+header {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+header h1 {
+  color: #2c3e50; /* A nice, deep blue, like the depths of potential! */
+}
+
+main {
+  max-width: 800px;
+  margin: auto;
+  background: #fff;
+  padding: 20px;
+  border-radius: 8px; /* Soft edges, like a well-formed idea */
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+section {
+  margin-bottom: 20px;
+}
+
+h2,
+h3 {
+  color: #3498db; /* A vibrant, inspiring blue */
+}
+
+.output-box {
+  background-color: #ecf0f1; /* A calm, neutral background for content */
+  border: 1px solid #bdc3c7;
+  padding: 15px;
+  border-radius: 4px;
+  min-height: 50px;
+  margin-bottom: 10px;
+}
+
+textarea#user-prompt {
+  width: calc(100% - 22px); /* Account for padding and border */
+  padding: 10px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  margin-bottom: 10px;
+}
+
+button#submit-prompt {
+  display: block;
+  padding: 10px 20px;
+  background-color: #2ecc71; /* A hopeful, verdant green for action */
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1em;
+}
+
+button#submit-prompt:hover {
+  background-color: #27ae60; /* A slightly deeper green on hover */
+}
+
+footer {
+  text-align: center;
+  margin-top: 30px;
+  font-size: 0.9em;
+  color: #7f8c8d; /* A subtle, grounding grey */
+}
