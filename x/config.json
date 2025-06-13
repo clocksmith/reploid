@@ -1,0 +1,129 @@
+{
+  "defaultCore": [
+    "prompt",
+    "app",
+    "util",
+    "store",
+    "sm",
+    "shp",
+    "api",
+    "cyc",
+    "alp",
+    "tr",
+    "trh",
+    "worker",
+    "ui",
+    "style",
+    "body",
+    "tools"
+  ],
+  "upgrades": [
+    {
+      "id": "prompt",
+      "path": "prompt-system.md",
+      "description": "Core system prompt and identity."
+    },
+    {
+      "id": "app",
+      "path": "app-logic.js",
+      "description": "Main application orchestrator."
+    },
+    {
+      "id": "util",
+      "path": "utils.js",
+      "description": "Essential utilities and Error classes."
+    },
+    {
+      "id": "store",
+      "path": "storage.js",
+      "description": "Default localStorage persistence layer."
+    },
+    {
+      "id": "sm",
+      "path": "state-manager.js",
+      "description": "State management and VFS logic."
+    },
+    {
+      "id": "shp",
+      "path": "state-helpers-pure.js",
+      "description": "Pure functions for state logic."
+    },
+    {
+      "id": "api",
+      "path": "api-client.js",
+      "description": "Gemini API communication client."
+    },
+    {
+      "id": "cyc",
+      "path": "agent-cycle.js",
+      "description": "The agent's main cognitive loop."
+    },
+    {
+      "id": "alp",
+      "path": "agent-logic-pure.js",
+      "description": "Pure functions for agent reasoning."
+    },
+    {
+      "id": "tr",
+      "path": "tool-runner.js",
+      "description": "Tool execution engine."
+    },
+    {
+      "id": "trh",
+      "path": "tool-runner-pure-helpers.js",
+      "description": "Pure functions for tool logic."
+    },
+    {
+      "id": "worker",
+      "path": "tool-worker.js",
+      "description": "Sandboxed Web Worker for tools."
+    },
+    {
+      "id": "ui",
+      "path": "ui-manager.js",
+      "description": "Minimal developer console UI manager."
+    },
+    {
+      "id": "style",
+      "path": "ui-style.css",
+      "description": "Minimal CSS for the dev console."
+    },
+    {
+      "id": "body",
+      "path": "ui-body-template.html",
+      "description": "HTML structure for the dev console."
+    },
+    {
+      "id": "tools",
+      "path": "data-tools-static.json",
+      "description": "Minimal static tool definitions."
+    },
+    {
+      "id": "idb",
+      "path": "storage-indexeddb.js",
+      "description": "(Optional) IndexedDB storage backend."
+    },
+    {
+      "id": "eval",
+      "path": "tool-evaluator.js",
+      "description": "(Optional) Self-evaluation tool package."
+    }
+  ],
+  "blueprints": [
+    {
+      "id": "b01",
+      "path": "01-modularize-logic.md",
+      "description": "Guide to refactor core logic."
+    },
+    {
+      "id": "b02",
+      "path": "02-create-new-tool.md",
+      "description": "Guide to creating new tools."
+    },
+    {
+      "id": "b03",
+      "path": "03-advanced-critique.md",
+      "description": "Guide to implementing self-critique."
+    }
+  ]
+}

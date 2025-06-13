@@ -1,0 +1,40 @@
+<body>
+  <h1>REPLOID</h1>
+  <fieldset id="controls-fieldset">
+    <legend>Controls</legend>
+    <div class="content-wrapper">
+      <label for="goal-input">Goal:</label>
+      <textarea id="goal-input" placeholder="Enter goal..."></textarea>
+      <button id="run-cycle-button">Run Cycle</button>
+    </div>
+  </fieldset>
+  <fieldset id="status-fieldset">
+    <legend>Status</legend>
+    <div class="content-wrapper">
+        <div id="status-indicator">Idle</div>
+        <div id="metrics-display"></div>
+    </div>
+  </fieldset>
+  <fieldset id="cycle-details-fieldset">
+    <legend>Cycle Details</legend>
+    <div class="content-wrapper" id="current-cycle-content">
+      <p>Waiting for cycle...</p>
+    </div>
+  </fieldset>
+  <fieldset id="timeline-fieldset">
+    <legend>Execution Timeline</legend>
+    <div class="content-wrapper">
+      <ul id="timeline-log"></ul>
+    </div>
+  </fieldset>
+  <div id="human-intervention-section" class="hidden">
+    <fieldset>
+        <legend id="human-intervention-title">Human Intervention</legend>
+        <div class="content-wrapper">
+            <p id="human-intervention-reason"></p>
+            <textarea id="human-critique-input"></textarea>
+            <button id="submit-critique-button">Submit Feedback</button>
+        </div>
+    </fieldset>
+  </div>
+</body>

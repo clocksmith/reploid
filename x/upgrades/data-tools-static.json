@@ -1,0 +1,30 @@
+[
+  {
+    "name": "read_artifact",
+    "description": "Reads and returns the full content of a specific artifact from the Virtual File System (VFS).",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string",
+          "description": "The full VFS path of the artifact (e.g., '/modules/utils.js')."
+        }
+      },
+      "required": ["path"]
+    }
+  },
+  {
+    "name": "list_artifacts",
+    "description": "Lists all available artifacts in the VFS, optionally filtered by a directory path.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string",
+          "description": "Optional: The directory path to filter by (e.g., '/modules/')."
+        }
+      },
+      "required": []
+    }
+  }
+]
