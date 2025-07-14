@@ -1,4 +1,8 @@
-# Jetson LLM Engine
+# Jetson Orin LLM Engine
+
+**[Back to Main Project README](../README.md)** | **[View REPLOID Harness Project (`/x/`)](../x/README.md)**
+
+---
 
 This project provides a complete, high-performance toolkit for running and benchmarking quantized GGUF language models on an NVIDIA Jetson Orin with 64GB of unified RAM. It is designed for maximum throughput, detailed performance analysis, and ease of use through both an interactive command-line interface (CLI) and a simple web UI.
 
@@ -45,8 +49,7 @@ The setup process is designed to be idempotent. It creates a Python virtual envi
 *   A working CUDA toolkit (`nvcc` should be in your `PATH`).
 *   Python 3.10 or newer.
 
-Execute the setup script from the project root:
-```bash
+Execute the setup script from the project root:```bash
 chmod +x setup.sh
 ./setup.sh
 ```*If you encounter issues with GPU acceleration, run this script again and carefully observe the output for any compilation errors related to CUDA or `nvcc`.*

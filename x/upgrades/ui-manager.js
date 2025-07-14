@@ -30,8 +30,10 @@ const UIModule = (config, logger, Utils, Storage, StateManager, Errors) => {
     }
   };
 
-  const updateStateDisplay = () => {
+  const updateStateDisplay = async () => {
     if (!uiRefs.metricsDisplay || !StateManager) return;
+    // Since getState is now cheap (in-memory read), we don't need to make this async,
+    // but the data it displays might be from a slightly older state if a cycle is in progress.
     const state = StateManager.getState();
     if (!state) return;
     uiRefs.metricsDisplay.innerHTML = `Cycle: <strong>${state.totalCycles || 0}</strong>`;
@@ -73,24 +75,24 @@ const UIModule = (config, logger, Utils, Storage, StateManager, Errors) => {
   };
 
   const setupEventListeners = () => {
-      uiRefs.runCycleButton?.addEventListener('click', () => {
+      uiRefs.runCycleButton?.addEventListener('click', async () => {
           if (CycleLogic.isRunning()) {
               CycleLogic.abortCurrentCycle();
           } else {
+              // The executeCycle is now async, but the click handler doesn't need to await it.
+              // It kicks off the process and the UI will update via its own methods.
               CycleLogic.executeCycle();
           }
       });
-      
-      // Add other listeners as needed for HITL etc.
   };
 
-  const init = (injectedStateManager, injectedCycleLogic) => {
-    logger.logEvent("info", "Initializing Primordial UI Module...");
+  const init = async (injectedStateManager, injectedCycleLogic) => {
+    logger.logEvent("info", "Initializing UI Module v2...");
     StateManager = injectedStateManager;
     CycleLogic = injectedCycleLogic;
 
-    const bodyTemplate = Storage.getArtifactContent('/modules/ui-body-template.html');
-    const styleContent = Storage.getArtifactContent('/modules/ui-style.css');
+    const bodyTemplate = await Storage.getArtifactContent('/modules/ui-body-template.html');
+    const styleContent = await Storage.getArtifactContent('/modules/ui-style.css');
     
     const appRoot = document.getElementById('app-root');
     if (appRoot && bodyTemplate) {
@@ -104,9 +106,9 @@ const UIModule = (config, logger, Utils, Storage, StateManager, Errors) => {
     }
     
     initializeUIElementReferences();
-    updateStateDisplay();
+    await updateStateDisplay();
     setupEventListeners();
-    logger.logEvent("info", "Primordial UI Module Initialized.");
+    logger.logEvent("info", "UI Module v2 Initialized.");
   };
 
   return {
@@ -118,6 +120,5 @@ const UIModule = (config, logger, Utils, Storage, StateManager, Errors) => {
     clearCurrentCycleDetails,
     setRunButtonState,
     showHumanInterventionUI,
-    // Add other exports as needed
   };
 };

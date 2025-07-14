@@ -10,8 +10,8 @@ const StateManagerModule = (
   const { StateError } = Errors;
   let globalState = null;
 
-  const init = () => {
-    const savedStateJSON = Storage.getState();
+  const init = async () => {
+    const savedStateJSON = await Storage.getState();
     if (savedStateJSON) {
       const parsed = JSON.parse(savedStateJSON);
       const validationError = StateHelpersPure.validateStateStructurePure(parsed);
@@ -20,88 +20,126 @@ const StateManagerModule = (
         globalState = {}; // Minimal empty state
       } else {
         globalState = parsed;
+        // Load agent config from VFS into state.cfg
+        const sysCfgContent = await Storage.getArtifactContent('/system/config.json');
+        if (sysCfgContent) {
+            globalState.cfg = JSON.parse(sysCfgContent);
+        }
         logger.info(`Loaded state for cycle ${globalState.totalCycles}`);
       }
     } else {
       logger.warn("No saved state found in VFS. StateManager is in a minimal state.");
-      // The bootloader is responsible for creating the *initial* state.
-      // If we are here without state, it's likely an error or post-clear state.
       globalState = {
           totalCycles: -1,
           artifactMetadata: {},
-          // other minimal fields
+          cfg: {},
       };
     }
   };
 
   const getState = () => globalState;
 
-  const saveState = () => {
+  const saveState = async () => {
     if (!globalState) return;
     try {
-      Storage.saveState(JSON.stringify(globalState));
+      await Storage.saveState(JSON.stringify(globalState));
     } catch (e) {
       logger.error(`Save state failed: ${e.message}`, e);
     }
   };
   
   const getArtifactMetadata = (path) => {
-      return globalState?.artifactMetadata?.[path]?.[0] || null;
+      return globalState?.artifactMetadata?.[path] || null;
   };
 
-  const getAllArtifactMetadata = () => {
+  const getAllArtifactMetadata = async () => {
+      // In a versioned system, this might get more complex.
+      // For now, it returns the metadata object.
       return globalState?.artifactMetadata || {};
   };
 
-  const updateAndSaveState = (updaterFn) => {
+  const updateAndSaveState = async (updaterFn) => {
     const currentState = getState();
-    const newState = updaterFn(JSON.parse(JSON.stringify(currentState))); // Deep copy
+    const newState = await updaterFn(JSON.parse(JSON.stringify(currentState))); // Deep copy
     globalState = newState;
-    saveState();
+    await saveState();
     return globalState;
   };
   
-  const createArtifact = (path, type, content, description) => {
-    return updateAndSaveState(state => {
-        Storage.setArtifactContent(path, content);
-        state.artifactMetadata[path] = [{
+  const createArtifact = async (path, type, content, description) => {
+    return await updateAndSaveState(async state => {
+        await Storage.setArtifactContent(path, content);
+        state.artifactMetadata[path] = {
             id: path,
             type: type,
             description: description,
-            latestCycle: state.totalCycles,
-            timestamp: Date.now()
-        }];
+            versions: [{
+                cycle: state.totalCycles,
+                timestamp: Date.now(),
+                versionId: `c${state.totalCycles}`
+            }]
+        };
         return state;
     });
   };
 
-  const updateArtifact = (path, content) => {
-      return updateAndSaveState(state => {
-          Storage.setArtifactContent(path, content);
-          if (state.artifactMetadata[path]) {
-              state.artifactMetadata[path][0].latestCycle = state.totalCycles;
-              state.artifactMetadata[path][0].timestamp = Date.now();
-          } else {
-              // Handle case where metadata doesn't exist? For now, let's log an error.
-              logger.error(`Attempted to update non-existent artifact metadata for ${path}`);
+  const updateArtifact = async (path, content) => {
+      return await updateAndSaveState(async state => {
+          const currentMeta = state.artifactMetadata[path];
+          if (!currentMeta) {
+              throw new Errors.ArtifactError(`Cannot update non-existent artifact: ${path}`);
           }
+          const currentVersion = currentMeta.versions[currentMeta.versions.length - 1];
+          const oldVersionPath = `${path}#${currentVersion.versionId}`;
+          const oldContent = await Storage.getArtifactContent(path);
+
+          // Save old version
+          await Storage.setArtifactContent(oldVersionPath, oldContent);
+
+          // Save new version
+          await Storage.setArtifactContent(path, content);
+
+          // Update metadata
+          currentMeta.versions.push({
+              cycle: state.totalCycles,
+              timestamp: Date.now(),
+              versionId: `c${state.totalCycles}`
+          });
+
           return state;
       });
   };
   
-  const deleteArtifact = (path) => {
-      return updateAndSaveState(state => {
-          Storage.deleteArtifactVersion(path);
+  const deleteArtifact = async (path) => {
+      return await updateAndSaveState(async state => {
+          const meta = state.artifactMetadata[path];
+          if (meta) {
+              // Delete all versioned copies
+              for (const version of meta.versions) {
+                  const versionPath = `${path}#${version.versionId}`;
+                  await Storage.deleteArtifactVersion(versionPath);
+              }
+          }
+          // Delete the main artifact and its metadata
+          await Storage.deleteArtifactVersion(path);
           delete state.artifactMetadata[path];
           return state;
       });
   };
 
-  const incrementCycle = () => {
-      return updateAndSaveState(state => {
+  const incrementCycle = async () => {
+      return await updateAndSaveState(async state => {
           state.totalCycles = (state.totalCycles || 0) + 1;
           return state;
       });
+  };
+
+  const getArtifactContent = async (path, version = 'latest') => {
+      if (version === 'latest') {
+          return await Storage.getArtifactContent(path);
+      }
+      const versionPath = `${path}#${version}`;
+      return await Storage.getArtifactContent(versionPath);
   };
 
   return {
@@ -115,5 +153,6 @@ const StateManagerModule = (
     updateArtifact,
     deleteArtifact,
     incrementCycle,
+    getArtifactContent
   };
 };

@@ -15,22 +15,6 @@ const CoreLogicModule = (initialConfig, vfs) => {
     ToolRunnerPureHelpers;
   let logger;
 
-  const loadModule = async (path, dependencies) => {
-    const content = vfs.read(path);
-    if (!content) throw new Error(`Failed to load module from VFS: ${path}`);
-
-    const depNames = Object.keys(dependencies);
-    const depValues = Object.values(dependencies);
-
-    const factoryFunction = new Function(...depNames, content);
-    const moduleFactory = factoryFunction(...depValues);
-    return moduleFactory(
-        initialConfig,
-        logger,
-        ...Object.values(dependencies)
-    );
-  };
-  
   const loadModuleWithSharedDeps = (path, factoryExportName, ...extraDeps) => {
       const content = vfs.read(path);
       if (!content) throw new Error(`VFS read failed for ${path}`);
@@ -58,9 +42,6 @@ const CoreLogicModule = (initialConfig, vfs) => {
       const factory = new Function(...depNames, funcBody);
       const moduleFactory = factory(...depValues);
 
-      // Now call the factory with its required subset of dependencies
-      // This is a simplification; a real DI container would be better.
-      // We'll pass all dependencies and let the module pick.
       return moduleFactory(
           initialConfig,
           logger,
@@ -76,7 +57,6 @@ const CoreLogicModule = (initialConfig, vfs) => {
           ToolRunnerPureHelpers
       );
   };
-
 
   const initializeApplication = async () => {
     try {
@@ -98,12 +78,12 @@ const CoreLogicModule = (initialConfig, vfs) => {
       logger.logEvent("info", "Orchestrator: Pure modules loaded.");
 
       // --- Level 1: Core services ---
-      const storageContent = vfs.read("/modules/storage.js");
+      const storageContent = vfs.read("/modules/storage-indexeddb.js");
       Storage = new Function('config', 'logger', 'Errors', storageContent + '\nreturn StorageModule(config, logger, Errors);')(initialConfig, logger, Errors);
       
       const smContent = vfs.read("/modules/state-manager.js");
       StateManager = new Function('config', 'logger', 'Storage', 'Errors', 'StateHelpersPure', 'Utils', smContent + '\nreturn StateManagerModule(config, logger, Storage, Errors, StateHelpersPure, Utils);')(initialConfig, logger, Storage, Errors, StateHelpersPure, Utils);
-      StateManager.init(); // Initialize state from VFS
+      await StateManager.init(); // Initialize state from VFS (now async)
 
       logger.logEvent("info", "Orchestrator: Storage and StateManager loaded.");
 
@@ -126,7 +106,7 @@ const CoreLogicModule = (initialConfig, vfs) => {
       logger.logEvent("info", "Orchestrator: UI and CycleLogic loaded.");
 
       // --- Final Initialization ---
-      UI.init(StateManager, CycleLogic);
+      await UI.init(StateManager, CycleLogic);
       logger.logEvent("info", "Orchestrator: Application initialization complete.");
       
     } catch (e) {
