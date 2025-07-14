@@ -1,4 +1,4 @@
-# REPLOID (Reflective Embodiment Providing Logical Overseeing Intelligent DREAMER)
+# REPLOID (Reflective Embodiment Providing Logical Overseeing Intelligent DREAMER (Deep Recursive Exploration Around Multimodal Embodying REPLOID))
 
 **REPLOID** is an experimental framework designed to explore LLM-driven recursive self-improvement (RSI) by uniquely leveraging the **web browser as a comprehensive development and execution ecosystem**. The long-term vision is to cultivate self-contained, browser-native agentic systems capable of sophisticated evolution towards AGI.
 
