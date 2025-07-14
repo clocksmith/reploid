@@ -60,7 +60,7 @@
 
     render: () => {
       bootContainer.innerHTML = `
-        <div>REPLOID PRIMORDIAL HARNESS v1.0</div>
+        <div>REPLOID PRIMORDIAL HARNESS v2.0</div>
         <hr/>
         <div id="log-area"></div>
         <div id="input-container" class="hidden">
@@ -99,7 +99,6 @@
           const value = inputEl.value.trim();
           inputContainer.classList.add("hidden");
           inputEl.value = "";
-          // Remove listeners to prevent duplicates
           buttonEl.removeEventListener("click", submitHandler);
           inputEl.removeEventListener("keydown", keydownHandler);
           await boot.handleInput(stage, value);
@@ -131,7 +130,6 @@
       }
     },
 
-    // --- Boot Sequence ---
     start: async () => {
       boot.injectStyle();
       boot.render();
@@ -171,11 +169,11 @@
     promptForComposition: async () => {
       boot.log("\nAvailable Upgrades:");
       boot.config.upgrades.forEach((u) =>
-        boot.log(`  ${u.id.padEnd(8, " ")} - ${u.description}`)
+        boot.log(`  ${u.id.padEnd(12, " ")} - ${u.description}`)
       );
       boot.log("\nAvailable Blueprints to Study:");
       boot.config.blueprints.forEach((b) =>
-        boot.log(`  ${b.id.padEnd(8, " ")} - ${b.description}`)
+        boot.log(`  ${b.id.padEnd(12, " ")} - ${b.description}`)
       );
       boot.log(
         "\nDefault core composition: " + boot.config.defaultCore.join(", ")
@@ -227,68 +225,47 @@
         const artifactMetadata = {};
         const now = Date.now();
         
-        // 1. Install Upgrades
-        boot.log("Fetching and installing upgrades...");
-        for (const upgrade of upgrades) {
-            const path = `upgrades/${upgrade.path}`;
-            const vfsPath = `/modules/${upgrade.path}`;
+        const allGenesisFiles = [...upgrades, ...boot.config.blueprints];
+
+        boot.log("Fetching and installing all genesis artifacts...");
+        for (const fileDef of allGenesisFiles) {
+            const isBlueprint = !!fileDef.description.toLowerCase().includes('blueprint');
+            const fetchPath = isBlueprint ? `blueprints/${fileDef.path}` : `upgrades/${fileDef.path}`;
+            const vfsPath = isBlueprint ? `/docs/${fileDef.path}` : `/modules/${fileDef.path}`;
+            
             try {
-                const res = await fetch(path);
+                const res = await fetch(fetchPath);
                 if (!res.ok) throw new Error(`HTTP ${res.status}`);
                 const content = await res.text();
                 boot.vfs.write(vfsPath, content);
-                artifactMetadata[vfsPath] = [{
+                artifactMetadata[vfsPath] = {
                     id: vfsPath,
-                    latestCycle: 0,
-                    source: "Genesis",
-                    timestamp: now,
-                    // More metadata could be added here later
-                }];
-                boot.log(`  - Installed ${upgrade.id} to ${vfsPath}`);
+                    versions: [{
+                        cycle: 0,
+                        timestamp: now,
+                        versionId: 'c0',
+                    }]
+                };
+                boot.log(`  - Installed ${fileDef.id} to ${vfsPath}`);
             } catch (e) {
-                boot.log(`Failed to install upgrade ${upgrade.id}: ${e.message}`, "error");
-                return; // Abort genesis on failure
+                boot.log(`Failed to install ${fileDef.id}: ${e.message}`, "error");
+                return; 
             }
         }
 
-        // 2. Install Blueprints
-        boot.log("Fetching and installing blueprints...");
-        for (const bp of boot.config.blueprints) {
-             const path = `blueprints/${bp.path}`;
-             const vfsPath = `/docs/${bp.path}`;
-             try {
-                const res = await fetch(path);
-                if (!res.ok) throw new Error(`HTTP ${res.status}`);
-                const content = await res.text();
-                boot.vfs.write(vfsPath, content);
-                artifactMetadata[vfsPath] = [{
-                    id: vfsPath,
-                    latestCycle: 0,
-                    source: "Genesis",
-                    timestamp: now
-                }];
-                boot.log(`  - Installed ${bp.id} to ${vfsPath}`);
-             } catch(e) {
-                boot.log(`Failed to install blueprint ${bp.id}: ${e.message}`, "error");
-             }
-        }
-
-        // 3. Create Initial State
         boot.log("Creating initial state artifact...");
         const initialGoal = blueprint 
             ? `Study the blueprint at /docs/${blueprint.path} and propose a plan for implementation.`
             : "Perform a system check, list all available modules and docs, and report status.";
 
         const initialState = {
-            version: "1.0.0-primordial",
+            version: "2.0.0-async",
             totalCycles: 0,
-            currentGoal: { seed: initialGoal, cumulative: initialGoal },
+            currentGoal: { seed: initialGoal, cumulative: initialGoal, stack: [] },
             apiKey: boot.apiKey,
             artifactMetadata,
-            // Add other necessary default state fields
             dynamicTools: [],
             registeredWebComponents: [],
-            cfg: {},
         };
 
         boot.vfs.write(boot.statePath, JSON.stringify(initialState));
@@ -304,15 +281,15 @@
             if (!appLogicContent) {
                 throw new Error("Could not read /modules/app-logic.js from VFS.");
             }
-
-            // A simplified initial config for the agent to use, it can discover more from VFS
-            const agentInitialConfig = {
+            
+            // The config is now loaded by the agent itself from its VFS
+            const initialConfigForAgent = {
                 VFS_PREFIX: boot.vfsPrefix,
                 STATE_PATH: boot.statePath
             };
 
             const AgentCore = new Function('config', 'vfs', appLogicContent + '\n return CoreLogicModule(config, vfs);');
-            AgentCore(agentInitialConfig, boot.vfs);
+            AgentCore(initialConfigForAgent, boot.vfs);
 
             boot.log("Agent core logic executed.");
             bootContainer.style.transition = "opacity 0.5s ease-out";

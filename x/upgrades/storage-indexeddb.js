@@ -1,5 +1,5 @@
 const StorageModule = (config, logger, Errors) => {
-  const DB_NAME = config.VFS_PREFIX + 'REPLOID_IDB';
+  const DB_NAME = config.VFS_PREFIX + 'REPLOID_IDB_V2';
   const STORE_NAME = 'artifacts';
   const DB_VERSION = 1;
   let db;
@@ -90,7 +90,6 @@ const StorageModule = (config, logger, Errors) => {
     }
   };
   
-  // State is just another artifact in this model
   const getState = () => getArtifactContent(config.STATE_PATH);
   const saveState = (stateString) => setArtifactContent(config.STATE_PATH, stateString);
   const removeState = () => deleteArtifactVersion(config.STATE_PATH);
