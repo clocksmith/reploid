@@ -1,6 +1,5 @@
 // Note: This file is executed by boot.js within a new Function scope.
 // 'config' and 'vfs' are passed in as arguments.
-
 const CoreLogicModule = (initialConfig, vfs) => {
   let Utils,
     Storage,
@@ -16,108 +15,195 @@ const CoreLogicModule = (initialConfig, vfs) => {
   let logger;
 
   const loadModuleWithSharedDeps = (path, factoryExportName, ...extraDeps) => {
-      const content = vfs.read(path);
-      if (!content) throw new Error(`VFS read failed for ${path}`);
-      
-      const allDeps = {
-          config: initialConfig,
-          logger: logger,
-          Errors: Errors,
-          Utils: Utils,
-          Storage: Storage,
-          StateManager: StateManager,
-          ApiClient: ApiClient,
-          ToolRunner: ToolRunner,
-          AgentLogicPureHelpers: AgentLogicPureHelpers,
-          StateHelpersPure: StateHelpersPure,
-          ToolRunnerPureHelpers: ToolRunnerPureHelpers,
-          UI: UI,
-          ...extraDeps,
-      };
+    const content = vfs.read(path);
+    if (!content) throw new Error(`VFS read failed for ${path}`);
 
-      const depNames = Object.keys(allDeps);
-      const depValues = Object.values(allDeps);
+    const allDeps = {
+      config: initialConfig,
+      logger: logger,
+      Errors: Errors,
+      Utils: Utils,
+      Storage: Storage,
+      StateManager: StateManager,
+      ApiClient: ApiClient,
+      ToolRunner: ToolRunner,
+      AgentLogicPureHelpers: AgentLogicPureHelpers,
+      StateHelpersPure: StateHelpersPure,
+      ToolRunnerPureHelpers: ToolRunnerPureHelpers,
+      UI: UI,
+      ...extraDeps,
+    };
 
-      const funcBody = `${content}\nreturn ${factoryExportName};`;
-      const factory = new Function(...depNames, funcBody);
-      const moduleFactory = factory(...depValues);
+    const depNames = Object.keys(allDeps);
+    const depValues = Object.values(allDeps);
 
-      return moduleFactory(
-          initialConfig,
-          logger,
-          Utils,
-          Storage,
-          StateManager,
-          UI,
-          ApiClient,
-          ToolRunner,
-          Errors,
-          AgentLogicPureHelpers,
-          StateHelpersPure,
-          ToolRunnerPureHelpers
-      );
+    const funcBody = `${content}\nreturn ${factoryExportName};`;
+    const factory = new Function(...depNames, funcBody);
+    const moduleFactory = factory(...depValues);
+
+    return moduleFactory(
+      initialConfig,
+      logger,
+      Utils,
+      Storage,
+      StateManager,
+      UI,
+      ApiClient,
+      ToolRunner,
+      Errors,
+      AgentLogicPureHelpers,
+      StateHelpersPure,
+      ToolRunnerPureHelpers
+    );
   };
 
   const initializeApplication = async () => {
     try {
       // --- Level 0: Pure code, no dependencies ---
       const utilsContent = vfs.read("/modules/utils.js");
-      Utils = new Function(utilsContent + "\nreturn UtilsModule();")();
+      Utils = new Function(utilsContent + "\nreturn UtilsModule;")();
       logger = Utils.logger;
       Errors = Utils.Errors;
-      
+
       const alpContent = vfs.read("/modules/agent-logic-pure.js");
-      AgentLogicPureHelpers = new Function(alpContent + "\nreturn AgentLogicPureHelpersModule();")();
+      AgentLogicPureHelpers = new Function(
+        alpContent + "\nreturn AgentLogicPureHelpersModule;"
+      )();
 
       const shpContent = vfs.read("/modules/state-helpers-pure.js");
-      StateHelpersPure = new Function(shpContent + "\nreturn StateHelpersPureModule();")();
+      StateHelpersPure = new Function(
+        shpContent + "\nreturn StateHelpersPureModule;"
+      )();
 
       const trhContent = vfs.read("/modules/tool-runner-pure-helpers.js");
-      ToolRunnerPureHelpers = new Function(trhContent + "\nreturn ToolRunnerPureHelpersModule();")();
+      ToolRunnerPureHelpers = new Function(
+        trhContent + "\nreturn ToolRunnerPureHelpersModule;"
+      )();
 
       logger.logEvent("info", "Orchestrator: Pure modules loaded.");
 
       // --- Level 1: Core services ---
       const storageContent = vfs.read("/modules/storage-indexeddb.js");
-      Storage = new Function('config', 'logger', 'Errors', storageContent + '\nreturn StorageModule(config, logger, Errors);')(initialConfig, logger, Errors);
-      
+      Storage = new Function(
+        "config",
+        "logger",
+        "Errors",
+        storageContent + "\nreturn StorageModule(config, logger, Errors);"
+      )(initialConfig, logger, Errors);
+
       const smContent = vfs.read("/modules/state-manager.js");
-      StateManager = new Function('config', 'logger', 'Storage', 'Errors', 'StateHelpersPure', 'Utils', smContent + '\nreturn StateManagerModule(config, logger, Storage, Errors, StateHelpersPure, Utils);')(initialConfig, logger, Storage, Errors, StateHelpersPure, Utils);
+      StateManager = new Function(
+        "config",
+        "logger",
+        "Storage",
+        "Errors",
+        "StateHelpersPure",
+        "Utils",
+        smContent +
+          "\nreturn StateManagerModule(config, logger, Storage, Errors, StateHelpersPure, Utils);"
+      )(initialConfig, logger, Storage, Errors, StateHelpersPure, Utils);
       await StateManager.init(); // Initialize state from VFS (now async)
 
       logger.logEvent("info", "Orchestrator: Storage and StateManager loaded.");
 
       // --- Level 2: Services with state/storage access ---
       const apiClientContent = vfs.read("/modules/api-client.js");
-      ApiClient = new Function('config', 'logger', 'Errors', 'Utils', 'StateManager', apiClientContent + '\nreturn ApiClientModule(config, logger, Errors, Utils, StateManager);')(initialConfig, logger, Errors, Utils, StateManager);
-      
+      ApiClient = new Function(
+        "config",
+        "logger",
+        "Errors",
+        "Utils",
+        "StateManager",
+        apiClientContent +
+          "\nreturn ApiClientModule(config, logger, Errors, Utils, StateManager);"
+      )(initialConfig, logger, Errors, Utils, StateManager);
+
       const trContent = vfs.read("/modules/tool-runner.js");
-      ToolRunner = new Function('config', 'logger', 'Storage', 'StateManager', 'ApiClient', 'Errors', 'Utils', 'ToolRunnerPureHelpers', trContent + '\nreturn ToolRunnerModule(config, logger, Storage, StateManager, ApiClient, Errors, Utils, ToolRunnerPureHelpers);')(initialConfig, logger, Storage, StateManager, ApiClient, Errors, Utils, ToolRunnerPureHelpers);
+      ToolRunner = new Function(
+        "config",
+        "logger",
+        "Storage",
+        "StateManager",
+        "ApiClient",
+        "Errors",
+        "Utils",
+        "ToolRunnerPureHelpers",
+        trContent +
+          "\nreturn ToolRunnerModule(config, logger, Storage, StateManager, ApiClient, Errors, Utils, ToolRunnerPureHelpers);"
+      )(
+        initialConfig,
+        logger,
+        Storage,
+        StateManager,
+        ApiClient,
+        Errors,
+        Utils,
+        ToolRunnerPureHelpers
+      );
 
       logger.logEvent("info", "Orchestrator: ApiClient and ToolRunner loaded.");
 
       // --- Level 3: UI and Cycle Logic ---
       const uiContent = vfs.read("/modules/ui-manager.js");
-      UI = new Function('config', 'logger', 'Utils', 'Storage', 'StateManager', 'Errors', uiContent + '\nreturn UIModule(config, logger, Utils, Storage, StateManager, Errors);')(initialConfig, logger, Utils, Storage, StateManager, Errors);
+      UI = new Function(
+        "config",
+        "logger",
+        "Utils",
+        "Storage",
+        "StateManager",
+        "Errors",
+        uiContent +
+          "\nreturn UIModule(config, logger, Utils, Storage, StateManager, Errors);"
+      )(initialConfig, logger, Utils, Storage, StateManager, Errors);
 
       const cycleLogicContent = vfs.read("/modules/agent-cycle.js");
-      CycleLogic = new Function('config', 'logger', 'Utils', 'Storage', 'StateManager', 'UI', 'ApiClient', 'ToolRunner', 'Errors', 'AgentLogicPureHelpers', cycleLogicContent + '\nreturn CycleLogicModule(config, logger, Utils, Storage, StateManager, UI, ApiClient, ToolRunner, Errors, AgentLogicPureHelpers);')(initialConfig, logger, Utils, Storage, StateManager, UI, ApiClient, ToolRunner, Errors, AgentLogicPureHelpers);
+      CycleLogic = new Function(
+        "config",
+        "logger",
+        "Utils",
+        "Storage",
+        "StateManager",
+        "UI",
+        "ApiClient",
+        "ToolRunner",
+        "Errors",
+        "AgentLogicPureHelpers",
+        cycleLogicContent +
+          "\nreturn CycleLogicModule(config, logger, Utils, Storage, StateManager, UI, ApiClient, ToolRunner, Errors, AgentLogicPureHelpers);"
+      )(
+        initialConfig,
+        logger,
+        Utils,
+        Storage,
+        StateManager,
+        UI,
+        ApiClient,
+        ToolRunner,
+        Errors,
+        AgentLogicPureHelpers
+      );
 
       logger.logEvent("info", "Orchestrator: UI and CycleLogic loaded.");
 
       // --- Final Initialization ---
       await UI.init(StateManager, CycleLogic);
-      logger.logEvent("info", "Orchestrator: Application initialization complete.");
-      
+      logger.logEvent(
+        "info",
+        "Orchestrator: Application initialization complete."
+      );
     } catch (e) {
       console.error("Orchestrator: Initialization failed.", e);
       if (logger) {
-        logger.logEvent("error", `Orchestrator Init Failed: ${e.message}`, e.stack);
+        logger.logEvent(
+          "error",
+          `Orchestrator Init Failed: ${e.message}`,
+          e.stack
+        );
       }
-      const appRoot = document.getElementById('app-root');
+      const appRoot = document.getElementById("app-root");
       if (appRoot) {
-          appRoot.style.display = 'block';
-          appRoot.innerHTML = `<div style="color:red;padding:2em;"><h1>FATAL ERROR</h1><p>Agent Awakening Failed: ${e.message}</p><pre>${e.stack}</pre></div>`;
+        appRoot.style.display = "block";
+        appRoot.innerHTML = `<div style="color:red;padding:2em;"><h1>FATAL ERROR</h1><p>Agent Awakening Failed: ${e.message}</p><pre>${e.stack}</pre></div>`;
       }
     }
   };

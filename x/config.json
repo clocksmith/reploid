@@ -1,132 +1,217 @@
 {
-  "defaultCore": [
-    "prompt",
-    "app",
-    "util",
-    "idb",
-    "sm",
-    "shp",
-    "api",
-    "cyc",
-    "alp",
-    "tr",
-    "trh",
-    "worker",
-    "ui",
-    "style",
-    "body",
-    "tools",
-    "sys-cfg",
-    "sys-scratch",
-    "sys-tools-dyn"
-  ],
-  "upgrades": [
-    {
-      "id": "prompt",
-      "path": "prompt-system.md",
-      "description": "Core system prompt and identity."
-    },
-    {
-      "id": "app",
-      "path": "app-logic.js",
-      "description": "Main application orchestrator."
-    },
-    {
-      "id": "util",
-      "path": "utils.js",
-      "description": "Essential utilities and Error classes."
-    },
-    {
-      "id": "idb",
-      "path": "storage-indexeddb.js",
-      "description": "Default IndexedDB persistence layer."
-    },
-    {
-      "id": "sm",
-      "path": "state-manager.js",
-      "description": "State management and VFS logic."
-    },
-    {
-      "id": "shp",
-      "path": "state-helpers-pure.js",
-      "description": "Pure functions for state logic."
-    },
-    {
-      "id": "api",
-      "path": "api-client.js",
-      "description": "Gemini API communication client."
-    },
-    {
-      "id": "cyc",
-      "path": "agent-cycle.js",
-      "description": "The agent's main cognitive loop."
-    },
-    {
-      "id": "alp",
-      "path": "agent-logic-pure.js",
-      "description": "Pure functions for agent reasoning."
-    },
-    {
-      "id": "tr",
-      "path": "tool-runner.js",
-      "description": "Tool execution engine."
-    },
-    {
-      "id": "trh",
-      "path": "tool-runner-pure-helpers.js",
-      "description": "Pure functions for tool logic."
-    },
-    {
-      "id": "worker",
-      "path": "tool-worker.js",
-      "description": "Sandboxed Web Worker for tools."
-    },
-    {
-      "id": "ui",
-      "path": "ui-manager.js",
-      "description": "Minimal developer console UI manager."
-    },
-    {
-      "id": "style",
-      "path": "ui-style.css",
-      "description": "Minimal CSS for the dev console."
-    },
-    {
-      "id": "body",
-      "path": "ui-body-template.html",
-      "description": "HTML structure for the dev console."
-    },
-    {
-      "id": "tools",
-      "path": "data-tools-static.json",
-      "description": "Static tool definitions, including introspection."
-    },
-    {
-      "id": "eval",
-      "path": "tool-evaluator.js",
-      "description": "(Optional) Self-evaluation tool package."
-    },
-    {
-      "id": "sys-cfg",
-      "path": "system-config.json",
-      "description": "System Artifact: Default agent configuration."
-    },
-    {
-      "id": "sys-scratch",
-      "path": "system-scratchpad.md",
-      "description": "System Artifact: Agent's working memory scratchpad."
-    },
-    {
-      "id": "sys-tools-dyn",
-      "path": "system-tools-dynamic.json",
-      "description": "System Artifact: Manifest for agent-created dynamic tools."
-    }
-  ],
-  "blueprints": [
-    {
-      "id": "0x000001",
-      "path": "0x000001-system-prompt-architecture.md",
-      "description": "Defines the architecture for the agent's dynamic identity prompt."
-    }
-  ]
+"defaultCore": [
+"prompt",
+"app",
+"util",
+"idb",
+"sm",
+"shp",
+"api",
+"cyc",
+"alp",
+"tr",
+"trh",
+"worker",
+"ui",
+"style",
+"body",
+"tools",
+"sys-cfg",
+"sys-scratch",
+"sys-tools-dyn"
+],
+"upgrades": [
+{
+"id": "prompt",
+"path": "prompt-system.md",
+"description": "Core system prompt and identity."
+},
+{
+"id": "app",
+"path": "app-logic.js",
+"description": "Main application orchestrator."
+},
+{
+"id": "util",
+"path": "utils.js",
+"description": "Essential utilities and Error classes."
+},
+{
+"id": "idb",
+"path": "storage-indexeddb.js",
+"description": "Default IndexedDB persistence layer."
+},
+{
+"id": "sm",
+"path": "state-manager.js",
+"description": "State management and VFS logic."
+},
+{
+"id": "shp",
+"path": "state-helpers-pure.js",
+"description": "Pure functions for state logic."
+},
+{
+"id": "api",
+"path": "api-client.js",
+"description": "Gemini API communication client."
+},
+{
+"id": "cyc",
+"path": "agent-cycle.js",
+"description": "The agent's main cognitive loop."
+},
+{
+"id": "alp",
+"path": "agent-logic-pure.js",
+"description": "Pure functions for agent reasoning."
+},
+{
+"id": "tr",
+"path": "tool-runner.js",
+"description": "Tool execution engine."
+},
+{
+"id": "trh",
+"path": "tool-runner-pure-helpers.js",
+"description": "Pure functions for tool logic."
+},
+{
+"id": "worker",
+"path": "tool-worker.js",
+"description": "Sandboxed Web Worker for tools."
+},
+{
+"id": "ui",
+"path": "ui-manager.js",
+"description": "Minimal developer console UI manager."
+},
+{
+"id": "style",
+"path": "ui-style.css",
+"description": "Minimal CSS for the dev console."
+},
+{
+"id": "body",
+"path": "ui-body-template.html",
+"description": "HTML structure for the dev console."
+},
+{
+"id": "tools",
+"path": "data-tools-static.json",
+"description": "Static tool definitions, including introspection."
+},
+{
+"id": "eval",
+"path": "tool-evaluator.js",
+"description": "(Optional) Self-evaluation tool package."
+},
+{
+"id": "sys-cfg",
+"path": "system-config.json",
+"description": "System Artifact: Default agent configuration."
+},
+{
+"id": "sys-scratch",
+"path": "system-scratchpad.md",
+"description": "System Artifact: Agent's working memory scratchpad."
+},
+{
+"id": "sys-tools-dyn",
+"path": "system-tools-dynamic.json",
+"description": "System Artifact: Manifest for agent-created dynamic tools."
+}
+],
+"blueprints": [
+{
+"id": "0x000001",
+"path": "0x000001-system-prompt-architecture.md",
+"description": "Defines the architecture for the agent's dynamic identity prompt."
+},
+{
+"id": "0x000002",
+"path": "0x000002-application-orchestration.md",
+"description": "Details the app-logic.js module's role in loading other modules."
+},
+{
+"id": "0x000003",
+"path": "0x000003-core-utilities-and-error-handling.md",
+"description": "Explains the central utils.js module for shared functions and errors."
+},
+{
+"id": "0x000004",
+"path": "0x000004-default-storage-backend-localstorage.md",
+"description": "Describes the baseline localStorage wrapper for VFS persistence."
+},
+{
+"id": "0x000005",
+"path": "0x000005-state-management-architecture.md",
+"description": "Outlines the StateManager as the single source of truth for agent state."
+},
+{
+"id": "0x000006",
+"path": "0x000006-pure-state-helpers.md",
+"description": "Articulates separating deterministic state calculations into a pure helper."
+},
+{
+"id": "0x000007",
+"path": "0x000007-api-client-and-communication.md",
+"description": "Details a robust API client with retry logic and abort handling."
+},
+{
+"id": "0x000008",
+"path": "0x000008-agent-cognitive-cycle.md",
+"description": "Provides the model for the agent's primary 'think-act' loop."
+},
+{
+"id": "0x000009",
+"path": "0x000009-pure-agent-logic-helpers.md",
+"description": "Explains isolating prompt assembly into a testable, pure helper."
+},
+{
+"id": "0x00000A",
+"path": "0x00000A-tool-runner-engine.md",
+"description": "Describes the engine for executing the agent's static and dynamic tools."
+},
+{
+"id": "0x00000B",
+"path": "0x00000B-pure-tool-logic-helpers.md",
+"description": "Outlines converting internal tool definitions to external LLM API formats."
+},
+{
+"id": "0x00000C",
+"path": "0x00000C-sandboxed-tool-worker.md",
+"description": "Explains using a Web Worker for secure, sandboxed tool execution."
+},
+{
+"id": "0x00000D",
+"path": "0x00000D-ui-manager.md",
+"description": "Details the architecture for managing the agent's developer console UI."
+},
+{
+"id": "0x00000E",
+"path": "0x00000E-ui-styling-css.md",
+"description": "Covers the role of the ui-style.css artifact in defining UI appearance."
+},
+{
+"id": "0x00000F",
+"path": "0x00000F-ui-body-template-html.md",
+"description": "Describes the foundational HTML skeleton for the agent's UI."
+},
+{
+"id": "0x000010",
+"path": "0x000010-static-tool-manifest.md",
+"description": "Explains the JSON artifact that defines the agent's built-in static toolset."
+},
+{
+"id": "0x000011",
+"path": "0x000011-advanced-storage-backend-indexeddb.md",
+"description": "Outlines upgrading to an asynchronous, high-capacity IndexedDB layer."
+},
+{
+"id": "0x000012",
+"path": "0x000012-structured-self-evaluation.md",
+"description": "Proposes a framework for a structured, LLM-driven self-evaluation tool."
+}
+]
 }
