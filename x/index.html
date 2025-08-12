@@ -5,16 +5,1506 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link
       rel="icon"
-      href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><defs><linearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'><stop offset='0%25' style='stop-color:magenta;'/><stop offset='100%25' style='stop-color:green;'/></linearGradient></defs><text fill='url(%23g)' y='.99em' font-size='90' font-weight='bold'>⁷7</text></svg>"
+      href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><defs><linearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'><stop offset='0%25' style='stop-color:%230ff;'/><stop offset='100%25' style='stop-color:%23ffd700;'/></linearGradient></defs><text fill='url(%23g)' y='.99em' font-size='90' font-weight='bold'>⁷7</text></svg>"
     />
     <title>REPLOID ][ DREAMER</title>
     <style>
-      /* for boot.js */
+      /* Base Styles */
+      body { 
+        font-family: 'Courier New', monospace; 
+        background: rgba(0,0,0,1); 
+        color: #0ff; 
+        margin: 0; 
+        padding: 0; 
+        height: 100vh; 
+        overflow: hidden;
+        position: relative;
+      }
+      
+      /* Animations */
+      @keyframes glow { 
+        0%, 100% { box-shadow: 0 0 5px rgba(0,255,255,0.5); } 
+        50% { box-shadow: 0 0 20px rgba(0,255,255,0.8), 0 0 30px rgba(255,215,0,0.4); } 
+      }
+      
+      @keyframes pulse { 
+        0%, 100% { transform: scale(1); } 
+        50% { transform: scale(1.02); } 
+      }
+      
+      @keyframes gradient { 
+        0%, 100% { background-position: 0% 50%; } 
+        50% { background-position: 100% 50%; } 
+      }
+      
+      @keyframes matrixRain { 
+        0% { transform: translateY(-100%); opacity: 0; } 
+        10% { opacity: 1; } 
+        90% { opacity: 1; } 
+        100% { transform: translateY(100vh); opacity: 0; } 
+      }
+      
+      @keyframes circuitPulse {
+        0%, 100% { opacity: 0.5; }
+        50% { opacity: 1; }
+      }
+      
+      /* Circuit Board Background */
+      .circuit-bg {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        width: 100vw;
+        height: 100vh;
+        pointer-events: none;
+        z-index: 0;
+        animation: circuitPulse 8s ease-in-out infinite;
+      }
+      
+      /* Matrix Background */
+      .matrix-bg {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        pointer-events: none;
+        opacity: 0.15;
+        z-index: 0;
+      }
+      
+      .matrix-column {
+        position: absolute;
+        top: -100%;
+        font-size: 14px;
+        line-height: 20px;
+        animation: matrixRain 10s linear infinite;
+        white-space: pre;
+      }
+      
+      .matrix-column span {
+        text-shadow: 0 0 5px currentColor;
+        display: inline-block;
+      }
+      
+      /* Main Containers */
+      #boot-container { 
+        position: relative;
+        z-index: 2;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        padding: 20px;
+        box-sizing: border-box;
+        overflow-y: auto;
+      }
+      
+      #app-root {
+        position: relative;
+        z-index: 3;
+        height: 100vh;
+        width: 100%;
+      }
+      
+      /* Header */
+      .boot-header {
+        text-align: center;
+        padding: 20px 0;
+        margin-bottom: 20px;
+        position: relative;
+        background: linear-gradient(135deg, rgba(0,255,255,0.1), rgba(255,215,0,0.05), rgba(0,255,255,0.05));
+      }
+      
+      .boot-header h1 {
+        margin: 0;
+        font-size: 1.5em;
+        text-shadow: 0 0 10px #0ff;
+        background: linear-gradient(90deg, #0ff, #ffd700, #0ff, #00ffff);
+        background-size: 200% 100%;
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        animation: gradient 3s ease infinite;
+      }
+      
+      .boot-header pre {
+        color: #0ff; 
+        font-size: 0.8em; 
+        margin: 0;
+      }
+      
+      .ascii-title {
+        background: linear-gradient(
+          90deg,
+          #0ff 0%,
+          #ffd700 25%,
+          #0ff 50%,
+          #ffd700 75%,
+          #0ff 100%
+        );
+        background-size: 200% auto;
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+        animation: shimmer 4s linear infinite;
+        font-weight: bold;
+      }
+      
+      @keyframes shimmer {
+        0% { background-position: 0% center; }
+        100% { background-position: 200% center; }
+      }
+      
+      /* Wizard */
+      .wizard-container {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        max-width: 1200px;
+        margin: 0 auto;
+        width: 100%;
+      }
+      
+      .wizard-steps {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 30px;
+        padding: 0 20px;
+      }
+      
+      .wizard-step {
+        flex: 1;
+        text-align: center;
+        padding: 10px;
+        border: 1px solid #333;
+        margin: 0 5px;
+        cursor: pointer;
+        transition: all 0.3s;
+        position: relative;
+        background: rgba(0,255,255,0.05);
+      }
+      
+      .wizard-step.active {
+        border-color: #0ff;
+        background: rgba(0,255,255,0.1);
+        animation: glow 2s infinite;
+      }
+      
+      .wizard-step.completed {
+        border-color: #ffd700;
+        background: rgba(255,215,0,0.15);
+      }
+      
+      .wizard-content {
+        flex: 1;
+        border: 1px solid #0ff;
+        padding: 20px;
+        position: relative;
+        display: flex;
+        gap: 20px;
+        background: rgba(0,0,0,0);
+      }
+      
+      /* Panels */
+      .selection-panel {
+        flex: 2;
+        overflow-y: auto;
+        padding-right: 10px;
+      }
+      
+      .preview-panel {
+        flex: 1;
+        border-left: 1px solid #0ff;
+        padding-left: 20px;
+      }
+      
+      .preview-panel h3 {
+        color: #0ff;
+        margin-top: 0;
+      }
+      
+      .preview-box {
+        border: 1px solid #444;
+        padding: 15px;
+        font-size: 0.9em;
+        background: rgba(0,255,255,0.02);
+      }
+      
+      /* Selection Grid */
+      .selection-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 15px;
+        margin-top: 20px;
+      }
+      
+      .selection-card {
+        border: 1px solid #444;
+        padding: 15px;
+        cursor: pointer;
+        transition: all 0.3s;
+        position: relative;
+        background: rgba(0,0,0,0.5);
+      }
+      
+      .selection-card:hover {
+        border-color: #0ff;
+        transform: translateY(-2px);
+        background: rgba(0,255,255,0.05);
+      }
+      
+      .selection-card.selected {
+        border-color: #0ff;
+        background: rgba(0,255,255,0.1);
+        animation: pulse 2s infinite;
+      }
+      
+      .selection-card input[type="checkbox"] {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        pointer-events: none;
+        filter: hue-rotate(90deg) brightness(1.5);
+      }
+      
+      .selection-card-title {
+        font-weight: bold;
+        margin-bottom: 8px;
+        color: #0ff;
+      }
+      
+      .selection-card-desc {
+        font-size: 0.85em;
+        color: #aaa;
+        line-height: 1.4;
+      }
+      
+      /* Tooltip */
+      .tooltip {
+        position: absolute;
+        background: rgba(0,0,0,0.9);
+        border: 1px solid #0ff;
+        padding: 10px;
+        z-index: 1000;
+        max-width: 300px;
+        font-size: 0.85em;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.3s;
+        box-shadow: 0 0 20px rgba(255,215,0,0.3);
+      }
+      
+      .tooltip.visible {
+        opacity: 1;
+      }
+      
+      /* Preset Buttons */
+      .preset-buttons {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 20px;
+      }
+      
+      .preset-btn {
+        padding: 8px 16px;
+        border: 1px solid #444;
+        background: rgba(0,0,0,0.5);
+        color: #0ff;
+        cursor: pointer;
+        transition: all 0.3s;
+        font-family: inherit;
+      }
+      
+      .preset-btn:hover {
+        border-color: #0ff;
+        background: rgba(0,255,255,0.1);
+      }
+      
+      .preset-btn.preset-selected {
+        border-color: #ffd700;
+        background: rgba(255,215,0,0.2);
+      }
+      
+      /* Collapsible Sections */
+      .collapsible-section {
+        margin-bottom: 20px;
+      }
+      
+      .collapsible-header {
+        padding: 10px;
+        border: 1px solid #444;
+        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: rgba(0,255,255,0.02);
+        transition: all 0.3s;
+      }
+      
+      .collapsible-header:hover {
+        border-color: #0ff;
+        background: rgba(0,255,255,0.05);
+      }
+      
+      .collapsible-header.collapsed::after {
+        content: ' [+]';
+      }
+      
+      .collapsible-header:not(.collapsed)::after {
+        content: ' [-]';
+      }
+      
+      .collapsible-content {
+        max-height: 1000px;
+        overflow: hidden;
+        transition: max-height 0.3s ease;
+      }
+      
+      .collapsible-content.collapsed {
+        max-height: 0;
+      }
+      
+      /* Progress Bar */
+      .progress-bar {
+        width: 100%;
+        height: 30px;
+        border: 1px solid #0ff;
+        background: rgba(0,0,0,0.8);
+        position: relative;
+        overflow: hidden;
+        margin: 20px 0;
+      }
+      
+      .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #0ff, #ffd700, #0ff);
+        transition: width 0.5s ease;
+        box-shadow: 0 0 20px rgba(0,255,255,0.5);
+      }
+      
+      .progress-text {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        color: #fff;
+        text-shadow: 0 0 5px #000;
+        z-index: 1;
+      }
+      
+      /* Action Buttons */
+      .action-buttons {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 20px;
+        padding: 20px;
+      }
+      
+      .btn {
+        padding: 10px 30px;
+        border: 1px solid #0ff;
+        background: rgba(0,255,255,0.1);
+        color: #0ff;
+        cursor: pointer;
+        font-family: inherit;
+        font-size: 1em;
+        transition: all 0.3s;
+      }
+      
+      .btn:hover:not(:disabled) {
+        background: rgba(0,255,255,0.2);
+        box-shadow: 0 0 20px rgba(0,255,255,0.5);
+      }
+      
+      .btn:disabled {
+        opacity: 0.3;
+        cursor: not-allowed;
+      }
+      
+      .btn.primary {
+        background: rgba(255,215,0,0.2);
+        animation: glow 2s infinite;
+      }
+      
+      .btn.awaken {
+        background: linear-gradient(90deg, rgba(0,255,255,0.3), rgba(255,215,0,0.2), rgba(0,255,255,0.2));
+        animation: glow 1s infinite, gradient 3s ease infinite;
+        font-weight: bold;
+        text-shadow: 0 0 10px #0ff;
+      }
+      
+      /* CLI Fallback */
+      .cli-fallback {
+        margin-top: 20px;
+        padding: 15px;
+        border: 1px solid #333;
+        background: rgba(0,0,0,0.5);
+      }
+      
+      .cli-input {
+        width: 100%;
+        background: rgba(0,0,0,0.7);
+        color: #0ff;
+        border: 1px solid #444;
+        padding: 8px;
+        font-family: inherit;
+        margin-top: 10px;
+      }
+      
+      .cli-input:focus {
+        outline: none;
+        border-color: #0ff;
+      }
+      
+      /* Log Area */
+      #log-area { 
+        max-height: 200px;
+        overflow-y: auto; 
+        white-space: pre-wrap; 
+        margin-bottom: 1em;
+        border: 1px solid #333;
+        padding: 10px;
+        background: rgba(0,0,0,0.5);
+      }
+      
+      #log-area div {
+        padding: 2px 0;
+        line-height: 1.3;
+      }
+      
+      #log-area .error { color: #f00; }
+      #log-area .warn { color: #fa0; }
+      #log-area .info { color: #0ff; }
+      #log-area .success { color: #0f0; }
+      
+      /* Utilities */
+      .hidden { display: none !important; }
+      
+      /* Step-specific Styles */
+      .step-content {
+        width: 100%;
+        height: 100%;
+      }
+      
+      .api-key-container {
+        padding: 40px; 
+        text-align: center;
+      }
+      
+      .api-key-container h2 {
+        color: #0ff; 
+        margin-bottom: 30px;
+      }
+      
+      .api-key-container input {
+        width: 420px; 
+        max-width: 100%; 
+        padding: 10px; 
+        background: rgba(0,0,0,0.7); 
+        color: #0ff; 
+        border: 1px solid #0ff; 
+        font-family: inherit; 
+        font-size: 1.1em;
+      }
+      
+      .api-key-container input:focus {
+        outline: none;
+        border-color: #ffd700;
+        background: rgba(0,0,0,0.7);
+        color: #0ff;
+      }
+      
+      .api-key-container input:-webkit-autofill,
+      .api-key-container input:-webkit-autofill:hover,
+      .api-key-container input:-webkit-autofill:focus,
+      .api-key-container input:-webkit-autofill:active {
+        -webkit-box-shadow: 0 0 0 30px rgba(0,0,0,0.7) inset !important;
+        -webkit-text-fill-color: #0ff !important;
+        caret-color: #0ff !important;
+      }
+      
+      .api-key-hint {
+        margin-top: 20px; 
+        color: #888; 
+        font-size: 0.9em;
+      }
+      
+      .genesis-container {
+        padding: 40px; 
+        text-align: center;
+      }
+      
+      .genesis-container h2 {
+        color: #0ff; 
+        margin-bottom: 30px;
+      }
+      
+      #genesis-log {
+        margin-top: 30px; 
+        text-align: left; 
+        border: 1px solid #333; 
+        padding: 20px; 
+        background: rgba(0,0,0,0.5); 
+        max-height: 300px; 
+        overflow-y: auto;
+      }
+      
+      #genesis-log div {
+        padding: 2px 0;
+      }
+      
+      .genesis-prompt {
+        text-align: center; 
+        margin-top: 40px; 
+        color: #ffd700; 
+        text-shadow: 0 0 10px #ffd700; 
+        animation: pulse 2s infinite;
+      }
+      
+      .review-grid {
+        display: grid; 
+        gap: 30px;
+      }
+      
+      .review-box {
+        border: 1px solid #444; 
+        padding: 20px; 
+        background: rgba(0,255,255,0.02);
+      }
+      
+      .review-box h3 {
+        color: #0ff; 
+        margin-top: 0;
+      }
+      
+      .review-box pre {
+        color: #aaa; 
+        margin: 0; 
+        white-space: pre-wrap;
+      }
     </style>
   </head>
   <body>
     <div id="boot-container"></div>
-    <div id="app-root" style="display: none"></div>
-    <script src="boot.js"></script>
+    <div id="app-root" style="display: none;"></div>
+    <script src="boot-idb-vfs.js"></script>
+    <script>
+(async () => {
+  const bootContainer = document.getElementById("boot-container");
+  const appRoot = document.getElementById("app-root");
+
+  const boot = {
+    apiKey: null,
+    config: null,
+    vfsPrefix: "x0_vfs",
+    statePath: "/system/state.json",
+    currentStep: 0,
+    selectedUpgrades: [],
+    selectedBlueprints: [],
+    tooltip: null,
+
+    // Default localStorage VFS (replaced if 'idb' is chosen)
+    vfs: {
+      write: (path, content) => {
+        try {
+          localStorage.setItem(boot.vfsPrefix + path, content);
+          return true;
+        } catch (e) {
+          boot.log(`VFS Write Error for ${path}: ${e.message}`, "error");
+          return false;
+        }
+      },
+      read: (path) => {
+        try {
+          return localStorage.getItem(boot.vfsPrefix + path);
+        } catch (e) {
+          boot.log(`VFS Read Error for ${path}: ${e.message}`, "error");
+          return null;
+        }
+      },
+      clear: () => {
+        try {
+          Object.keys(localStorage)
+            .filter((key) => key.startsWith(boot.vfsPrefix))
+            .forEach((key) => localStorage.removeItem(key));
+        } catch (e) {
+          boot.log(`VFS Clear Error: ${e.message}`, "error");
+        }
+      },
+    },
+
+    // Helper function to create elements with attributes
+    createElement: (tag, attrs = {}, children = []) => {
+      const el = document.createElement(tag);
+      Object.entries(attrs).forEach(([k, v]) => {
+        if (k === 'className') el.className = v;
+        else if (k === 'innerHTML') el.innerHTML = v;
+        else if (k === 'textContent') el.textContent = v;
+        else el.setAttribute(k, v);
+      });
+      children.forEach(child => {
+        if (typeof child === 'string') el.appendChild(document.createTextNode(child));
+        else el.appendChild(child);
+      });
+      return el;
+    },
+
+    // Create circuit grid background
+    createCircuitGrid: () => {
+      const circuitBg = boot.createElement("div", { className: "circuit-bg" });
+      const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+      svg.style.width = "100%";
+      svg.style.height = "100%";
+      svg.style.position = "absolute";
+      
+      // Create grid pattern
+      const defs = document.createElementNS("http://www.w3.org/2000/svg", "defs");
+      const pattern = document.createElementNS("http://www.w3.org/2000/svg", "pattern");
+      pattern.setAttribute("id", "circuit-pattern");
+      pattern.setAttribute("x", "0");
+      pattern.setAttribute("y", "0");
+      pattern.setAttribute("width", "100");
+      pattern.setAttribute("height", "100");
+      pattern.setAttribute("patternUnits", "userSpaceOnUse");
+      
+      // Horizontal lines
+      for (let i = 0; i <= 100; i += 25) {
+        const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+        line.setAttribute("x1", "0");
+        line.setAttribute("y1", i);
+        line.setAttribute("x2", "100");
+        line.setAttribute("y2", i);
+        line.setAttribute("stroke", i % 50 === 0 ? "#ffd700" : "#0ff");
+        line.setAttribute("stroke-width", i % 50 === 0 ? "0.5" : "0.3");
+        line.setAttribute("opacity", i % 50 === 0 ? "0.3" : "0.2");
+        pattern.appendChild(line);
+      }
+      
+      // Vertical lines
+      for (let i = 0; i <= 100; i += 25) {
+        const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+        line.setAttribute("x1", i);
+        line.setAttribute("y1", "0");
+        line.setAttribute("x2", i);
+        line.setAttribute("y2", "100");
+        line.setAttribute("stroke", i % 50 === 0 ? "#ffd700" : "#0ff");
+        line.setAttribute("stroke-width", i % 50 === 0 ? "0.5" : "0.3");
+        line.setAttribute("opacity", i % 50 === 0 ? "0.3" : "0.2");
+        pattern.appendChild(line);
+      }
+      
+      // Add some circuit nodes
+      for (let i = 0; i < 5; i++) {
+        const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+        circle.setAttribute("cx", Math.random() * 100);
+        circle.setAttribute("cy", Math.random() * 100);
+        circle.setAttribute("r", "2");
+        circle.setAttribute("fill", Math.random() > 0.5 ? "#ffd700" : "#0ff");
+        circle.setAttribute("opacity", "0.5");
+        pattern.appendChild(circle);
+      }
+      
+      defs.appendChild(pattern);
+      svg.appendChild(defs);
+      
+      // Apply pattern to a rect that covers the entire SVG
+      const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+      rect.setAttribute("width", "100%");
+      rect.setAttribute("height", "100%");
+      rect.setAttribute("fill", "url(#circuit-pattern)");
+      svg.appendChild(rect);
+      
+      circuitBg.appendChild(svg);
+      return circuitBg;
+    },
+
+    // Create matrix rain background
+    createMatrixBackground: () => {
+      const matrixBg = boot.createElement("div", { className: "matrix-bg" });
+      
+      for (let i = 0; i < 30; i++) {
+        const column = boot.createElement("div", { className: "matrix-column" });
+        column.style.left = `${i * 3.3}%`;
+        column.style.animationDelay = `${Math.random() * 10}s`;
+        column.style.animationDuration = `${10 + Math.random() * 10}s`;
+        
+        // Create spans for each character with appropriate color
+        for (let j = 0; j < 50; j++) {
+          const rand = Math.random();
+          
+          if (rand > 0.6) {
+            // Hexadecimal bytes - cyan color, displayed vertically (4 chars: 0, x, and 2 hex digits)
+            const hexByte = Math.floor(Math.random() * 256).toString(16).toUpperCase().padStart(2, '0');
+            const hexChars = ['0', 'x', hexByte[0], hexByte[1]];
+            
+            // Add each character on its own line
+            for (const char of hexChars) {
+              const span = boot.createElement("span");
+              span.textContent = char;
+              span.style.color = "#0ff";
+              column.appendChild(span);
+              column.appendChild(document.createElement("br"));
+              j++; // Count each character toward our total
+            }
+            j--; // Adjust since the loop will increment
+          } else {
+            const span = boot.createElement("span");
+            if (rand > 0.4) {
+              // Binary - gold color
+              span.textContent = Math.floor(Math.random() * 2);
+              span.style.color = "#ffd700";
+            } else if (rand > 0.2) {
+              // Circuit lines - gold color
+              span.textContent = ["─", "│", "┌", "┐", "└", "┘", "├", "┤", "┬", "┴", "┼"][
+                Math.floor(Math.random() * 11)
+              ];
+              span.style.color = "#ffd700";
+            } else {
+              // Nodes - gold color
+              span.textContent = ["●", "○", "■", "□", "▪", "▫"][Math.floor(Math.random() * 6)];
+              span.style.color = "#ffd700";
+            }
+            column.appendChild(span);
+            column.appendChild(document.createElement("br"));
+          }
+        }
+        
+        matrixBg.appendChild(column);
+      }
+      
+      return matrixBg;
+    },
+
+    render: () => {
+      // Add matrix rain background
+      document.body.appendChild(boot.createMatrixBackground());
+      
+      bootContainer.innerHTML = `
+    <div class="boot-header">
+      <pre class="ascii-title">
+     █████╗  ███████╗██████╗ ██╗      ██████╗ ██╗██████╗ 
+     ██╔══██╗██╔════╝██╔══██╗██║     ██╔═══██╗██║██╔══██╗
+     ██████╔╝█████╗  ██████╔╝██║     ██║   ██║██║██║  ██║
+     ██╔══██╗██╔══╝  ██╔═══╝ ██║     ██║   ██║██║██║  ██║
+     ██║  ██║███████╗██║     ███████╗╚██████╔╝██║██████╔╝
+     ╚═╝  ╚═╝╚══════╝╚═╝     ╚══════╝ ╚═════╝ ╚═╝╚═════╝ 
+      </pre>
+      <h1>Model CPS-9204</h1>
+    </div>
+    <div class="wizard-container">
+      <div class="wizard-steps">
+        <div class="wizard-step" data-step="0">┌─ API KEY ─┐</div>
+        <div class="wizard-step" data-step="1">┌─ UPGRADES ─┐</div>
+        <div class="wizard-step" data-step="2">┌─ BLUEPRINTS ─┐</div>
+        <div class="wizard-step" data-step="3">┌─ REVIEW ─┐</div>
+        <div class="wizard-step" data-step="4">┌─ GENESIS ─┐</div>
+      </div>
+      <div class="wizard-content">
+        <div class="step-content"></div>
+      </div>
+      <div class="action-buttons">
+        <button class="btn" id="prev-btn">◄ BACK</button>
+        <button class="btn primary" id="next-btn">NEXT ►</button>
+      </div>
+    </div>
+    <div id="log-area" class="hidden"></div>
+    <div class="tooltip" id="tooltip"></div>
+  `;
+
+      boot.tooltip = document.getElementById("tooltip");
+      boot.setupWizardNavigation();
+      boot.updateWizardStep();
+    },
+
+    setupWizardNavigation: () => {
+      const handleNext = async () => {
+        if (boot.currentStep < 4) {
+          const isValid = await boot.validateCurrentStep();
+          if (isValid) {
+            boot.currentStep++;
+            boot.updateWizardStep();
+          }
+        } else if (boot.currentStep === 4) {
+          boot.initiateGenesis();
+        }
+      };
+
+      const handlePrev = () => {
+        if (boot.currentStep > 0) {
+          boot.currentStep--;
+          boot.updateWizardStep();
+        }
+      };
+
+      document.getElementById("prev-btn").addEventListener("click", handlePrev);
+      document.getElementById("next-btn").addEventListener("click", handleNext);
+
+      // Global Enter key handler
+      document.addEventListener("keydown", async (e) => {
+        if (e.key === "Enter" && !e.target.matches("input, textarea")) {
+          await handleNext();
+        }
+      });
+
+      document.querySelectorAll(".wizard-step").forEach((step, index) => {
+        step.addEventListener("click", () => {
+          if (index <= boot.currentStep) {
+            boot.currentStep = index;
+            boot.updateWizardStep();
+          }
+        });
+      });
+    },
+
+    updateWizardStep: () => {
+      // Update step indicators
+      document.querySelectorAll(".wizard-step").forEach((step, index) => {
+        step.classList.remove("active", "completed");
+        if (index === boot.currentStep) {
+          step.classList.add("active");
+        } else if (index < boot.currentStep) {
+          step.classList.add("completed");
+        }
+      });
+
+      // Update content
+      const contentDiv = document.querySelector(".step-content");
+      const stepRenderers = [
+        boot.renderApiKeyStep,
+        boot.renderUpgradesStep,
+        boot.renderBlueprintsStep,
+        boot.renderReviewStep,
+        boot.renderGenesisStep
+      ];
+      
+      if (stepRenderers[boot.currentStep]) {
+        stepRenderers[boot.currentStep](contentDiv);
+      }
+
+      // Update buttons
+      const prevBtn = document.getElementById("prev-btn");
+      const nextBtn = document.getElementById("next-btn");
+      prevBtn.disabled = boot.currentStep === 0;
+      
+      const buttonTexts = ["NEXT ►", "NEXT ►", "NEXT ►", "PREPARE ►", "AWAKEN ►"];
+      nextBtn.textContent = buttonTexts[boot.currentStep];
+      nextBtn.classList.toggle("awaken", boot.currentStep === 4);
+    },
+
+    renderApiKeyStep: (container) => {
+      container.innerHTML = `
+        <div class="api-key-container">
+          <h2>┌─ AUTHENTICATION ─┐</h2>
+          <p>Enter your API key to initialize the harness</p>
+          <input type="password" id="api-key-input" 
+                 placeholder="sk-..." 
+                 value="${boot.apiKey || ""}" />
+          <div class="api-key-hint">
+            Your API key is stored locally and never transmitted
+          </div>
+          <div style="margin-top: 30px; padding: 20px; border: 1px solid #ffd700; background: rgba(255,215,0,0.1);">
+            <div style="color: #ffd700; font-weight: bold; margin-bottom: 10px;">⚠ WARNING</div>
+            <div style="color: #aaa; font-size: 0.9em;">
+              You can skip this step, but the agent will run in a basic state without AI capabilities.
+              No API calls will work, limiting functionality to local operations only.
+            </div>
+          </div>
+        </div>
+      `;
+      
+      const apiInput = document.getElementById("api-key-input");
+      apiInput.focus();
+      
+      apiInput.addEventListener("keydown", async (e) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          e.stopPropagation();
+          boot.apiKey = apiInput.value;
+          const isValid = await boot.validateCurrentStep();
+          if (isValid) {
+            boot.currentStep++;
+            boot.updateWizardStep();
+          }
+        }
+      });
+    },
+
+    renderUpgradesStep: (container) => {
+      if (!boot.config) return;
+
+      container.innerHTML = `
+        <div class="selection-panel">
+          <h2 style="color: #0ff;">┌─ SELECT UPGRADES ─┐</h2>
+          <p style="color: #888;">Choose capabilities to install in the agent</p>
+          
+          <div class="preset-buttons">
+            <button class="preset-btn" data-preset="none">NONE</button>
+            <button class="preset-btn preset-selected" data-preset="standard">STANDARD</button>
+            <button class="preset-btn" data-preset="all">ALL</button>
+          </div>
+          
+          <div class="selection-grid" id="upgrades-grid"></div>
+          
+          <div class="cli-fallback">
+            <details>
+              <summary style="cursor: pointer; color: #888;">Advanced: Manual Input</summary>
+              <input type="text" class="cli-input" id="manual-upgrades" 
+                     placeholder="Enter comma-separated upgrade IDs (e.g., cyc, sm, ui)" />
+            </details>
+          </div>
+        </div>
+        
+        <div class="preview-panel">
+          <h3>┌─ COMPOSITION PREVIEW ─┐</h3>
+          <div class="preview-box" id="upgrades-preview">
+            <div style="color: #888;">Loading...</div>
+          </div>
+        </div>
+      `;
+
+      boot.renderSelectionCards("upgrades-grid", boot.config.upgrades, "upgrade");
+
+      document.querySelectorAll(".preset-btn").forEach((btn) => {
+        btn.addEventListener("click", (e) => {
+          document.querySelectorAll(".preset-btn").forEach(b => b.classList.remove("preset-selected"));
+          e.target.classList.add("preset-selected");
+          boot.applyPreset(btn.dataset.preset);
+        });
+      });
+
+      document.getElementById("manual-upgrades").addEventListener("input", (e) => {
+        boot.parseManualSelection(e.target.value, "upgrade");
+      });
+
+      // Apply standard preset by default
+      boot.applyPreset("standard");
+      boot.updatePreview("upgrades");
+    },
+
+    renderBlueprintsStep: (container) => {
+      if (!boot.config) return;
+
+      container.innerHTML = `
+        <div class="selection-panel">
+          <h2 style="color: #0ff;">┌─ SELECT BLUEPRINTS ─┐</h2>
+          <p style="color: #888;">Choose blueprints for the agent to study</p>
+          
+          <div class="preset-buttons">
+            <button class="preset-btn preset-selected" data-preset="none">NONE</button>
+            <button class="preset-btn" data-preset="some">SOME</button>
+            <button class="preset-btn" data-preset="all">ALL</button>
+          </div>
+          
+          <div class="selection-grid" id="blueprints-grid"></div>
+          
+          <div class="cli-fallback">
+            <details>
+              <summary style="cursor: pointer; color: #888;">Advanced: Manual Input</summary>
+              <input type="text" class="cli-input" id="manual-blueprints" 
+                     placeholder="Enter comma-separated blueprint IDs (e.g., 0x000011, 0x000012)" />
+            </details>
+          </div>
+        </div>
+        
+        <div class="preview-panel">
+          <h3>┌─ SELECTED BLUEPRINTS ─┐</h3>
+          <div class="preview-box" id="blueprints-preview">
+            <div style="color: #888;">No blueprints selected</div>
+          </div>
+        </div>
+      `;
+
+      boot.renderSelectionCards("blueprints-grid", boot.config.blueprints, "blueprint");
+
+      document.querySelectorAll(".preset-btn").forEach((btn) => {
+        btn.addEventListener("click", (e) => {
+          document.querySelectorAll(".preset-btn").forEach(b => b.classList.remove("preset-selected"));
+          e.target.classList.add("preset-selected");
+          boot.applyBlueprintPreset(btn.dataset.preset);
+        });
+      });
+
+      document.getElementById("manual-blueprints").addEventListener("input", (e) => {
+        boot.parseManualSelection(e.target.value, "blueprint");
+      });
+
+      // Default to none
+      boot.applyBlueprintPreset("none");
+      boot.updatePreview("blueprints");
+    },
+
+    renderReviewStep: (container) => {
+      const upgradesText = boot.selectedUpgrades.length > 0
+        ? boot.selectedUpgrades.join(", ")
+        : "None (default core will be used)";
+
+      const blueprintsText = boot.selectedBlueprints.length > 0
+        ? boot.selectedBlueprints.join(", ")
+        : "None";
+
+      container.innerHTML = `
+        <div style="padding: 40px;">
+          <h2 style="color: #0ff; text-align: center; margin-bottom: 40px;">┌─ GENESIS CONFIGURATION ─┐</h2>
+          
+          <div class="review-grid">
+            <div class="review-box">
+              <h3>UPGRADES</h3>
+              <pre>${upgradesText}</pre>
+            </div>
+            
+            <div class="review-box">
+              <h3>BLUEPRINTS</h3>
+              <pre>${blueprintsText}</pre>
+            </div>
+            
+            <div class="review-box">
+              <h3>INITIAL GOAL</h3>
+              <pre>${boot.selectedBlueprints.length > 0
+                ? `Study blueprints: ${blueprintsText}`
+                : "System check and report status"
+              }</pre>
+            </div>
+          </div>
+        </div>
+      `;
+    },
+
+    renderGenesisStep: (container) => {
+      container.innerHTML = `
+        <div class="genesis-container">
+          <h2>┌─ GENESIS PROTOCOL ─┐</h2>
+          
+          <div class="progress-bar">
+            <div class="progress-fill" id="genesis-progress" style="width: 0%;"></div>
+            <div class="progress-text" id="genesis-text">Initializing...</div>
+          </div>
+          
+          <div id="genesis-log"></div>
+          
+          <div class="genesis-prompt">
+            Press AWAKEN to initiate genesis protocol
+          </div>
+        </div>
+      `;
+    },
+
+    // Unified selection card renderer
+    renderSelectionCards: (containerId, items, type) => {
+      const container = document.getElementById(containerId);
+      if (!container) return;
+      
+      const selectedArray = type === "upgrade" ? boot.selectedUpgrades : boot.selectedBlueprints;
+      
+      items.forEach((item) => {
+        const card = boot.createElement("div", {
+          className: "selection-card" + (selectedArray.includes(item.id) ? " selected" : ""),
+          "data-id": item.id,
+          "data-type": type
+        });
+        
+        const checkbox = boot.createElement("input", {
+          type: "checkbox",
+          checked: selectedArray.includes(item.id) ? "checked" : null
+        });
+        
+        const title = boot.createElement("div", {
+          className: "selection-card-title",
+          textContent: item.id.toUpperCase()
+        });
+        
+        const desc = boot.createElement("div", {
+          className: "selection-card-desc",
+          textContent: item.description
+        });
+        
+        card.appendChild(checkbox);
+        card.appendChild(title);
+        card.appendChild(desc);
+        
+        card.addEventListener("click", () => boot.toggleSelection(card, type));
+        card.addEventListener("mouseenter", (e) => boot.showTooltip(e, item));
+        card.addEventListener("mouseleave", () => boot.hideTooltip());
+        
+        container.appendChild(card);
+      });
+    },
+
+    toggleSelection: (card, type) => {
+      const id = card.dataset.id;
+      const checkbox = card.querySelector('input[type="checkbox"]');
+      const selectedArray = type === "upgrade" ? boot.selectedUpgrades : boot.selectedBlueprints;
+      
+      const index = selectedArray.indexOf(id);
+      if (index > -1) {
+        selectedArray.splice(index, 1);
+        card.classList.remove("selected");
+        checkbox.checked = false;
+      } else {
+        selectedArray.push(id);
+        card.classList.add("selected");
+        checkbox.checked = true;
+      }
+      
+      boot.updatePreview(type === "upgrade" ? "upgrades" : "blueprints");
+    },
+
+    showTooltip: (event, item) => {
+      if (!boot.tooltip) return;
+      
+      const rect = event.target.getBoundingClientRect();
+      boot.tooltip.innerHTML = `
+        <div style="color: #0ff; font-weight: bold; margin-bottom: 8px;">${item.id.toUpperCase()}</div>
+        <div style="color: #aaa; font-size: 0.9em; line-height: 1.4;">${item.description}</div>
+        ${item.path ? `<div style="color: #888; font-size: 0.8em; margin-top: 8px;">Path: ${item.path}</div>` : ""}
+      `;
+      
+      boot.tooltip.style.left = rect.right + 10 + "px";
+      boot.tooltip.style.top = rect.top + "px";
+      boot.tooltip.classList.add("visible");
+    },
+
+    hideTooltip: () => {
+      if (boot.tooltip) {
+        boot.tooltip.classList.remove("visible");
+      }
+    },
+
+    setupCollapsible: (headerId, contentId) => {
+      const header = document.getElementById(headerId);
+      const content = document.getElementById(contentId);
+      
+      header.addEventListener("click", () => {
+        header.classList.toggle("collapsed");
+        content.classList.toggle("collapsed");
+      });
+    },
+
+
+    updatePreview: (type) => {
+      const previewId = type === "upgrades" ? "upgrades-preview" : "blueprints-preview";
+      const preview = document.getElementById(previewId);
+      if (!preview) return;
+      
+      const selectedArray = type === "upgrades" ? boot.selectedUpgrades : boot.selectedBlueprints;
+      const itemName = type === "upgrades" ? "Upgrades" : "Blueprints";
+      
+      if (selectedArray.length === 0) {
+        preview.innerHTML = `<div style="color: #888;">No ${type} selected</div>`;
+      } else {
+        preview.innerHTML = `
+          <div style="color: #0ff; margin-bottom: 10px;">Selected ${itemName} (${selectedArray.length}):</div>
+          <div style="color: #aaa;">${selectedArray.join(", ")}</div>
+        `;
+      }
+    },
+
+    applyPreset: (preset) => {
+      // Clear current selections
+      boot.selectedUpgrades = [];
+      document.querySelectorAll('.selection-card[data-type="upgrade"]').forEach((card) => {
+        card.classList.remove("selected");
+        card.querySelector('input[type="checkbox"]').checked = false;
+      });
+      
+      // Define a smaller standard subset (core essentials)
+      const standardSubset = ["cyc", "sm", "ui", "api", "app", "util", "alp", "shp"];
+      
+      // Apply preset
+      const presetMappings = {
+        "none": [],
+        "standard": standardSubset,
+        "all": boot.config.upgrades.map((u) => u.id)
+      };
+      
+      const presetUpgrades = presetMappings[preset] || [];
+      
+      presetUpgrades.forEach((id) => {
+        const card = document.querySelector(`.selection-card[data-id="${id}"]`);
+        if (card) {
+          boot.selectedUpgrades.push(id);
+          card.classList.add("selected");
+          card.querySelector('input[type="checkbox"]').checked = true;
+        }
+      });
+      
+      boot.updatePreview("upgrades");
+    },
+
+    applyBlueprintPreset: (preset) => {
+      // Clear current selections
+      boot.selectedBlueprints = [];
+      document.querySelectorAll('.selection-card[data-type="blueprint"]').forEach((card) => {
+        card.classList.remove("selected");
+        card.querySelector('input[type="checkbox"]').checked = false;
+      });
+      
+      let blueprintsToSelect = [];
+      
+      if (preset === "some") {
+        // Select first 3-4 blueprints
+        blueprintsToSelect = boot.config.blueprints.slice(0, 4).map(b => b.id);
+      } else if (preset === "all") {
+        blueprintsToSelect = boot.config.blueprints.map(b => b.id);
+      }
+      
+      blueprintsToSelect.forEach((id) => {
+        const card = document.querySelector(`.selection-card[data-id="${id}"]`);
+        if (card) {
+          boot.selectedBlueprints.push(id);
+          card.classList.add("selected");
+          card.querySelector('input[type="checkbox"]').checked = true;
+        }
+      });
+      
+      boot.updatePreview("blueprints");
+    },
+
+    parseManualSelection: (input, type) => {
+      const ids = input.toLowerCase().split(",").map((s) => s.trim()).filter(Boolean);
+      const selectedArray = type === "upgrade" ? boot.selectedUpgrades : boot.selectedBlueprints;
+      
+      // Clear and reselect based on manual input
+      selectedArray.length = 0;
+      document.querySelectorAll(`.selection-card[data-type="${type}"]`).forEach((card) => {
+        const isSelected = ids.includes(card.dataset.id);
+        card.classList.toggle("selected", isSelected);
+        card.querySelector('input[type="checkbox"]').checked = isSelected;
+        if (isSelected) selectedArray.push(card.dataset.id);
+      });
+      
+      boot.updatePreview(type === "upgrade" ? "upgrades" : "blueprints");
+    },
+
+    validateCurrentStep: async () => {
+      if (boot.currentStep === 0) {
+        const apiKey = document.getElementById("api-key-input")?.value;
+        // Allow empty API key but store it (will be empty string)
+        boot.apiKey = apiKey || "";
+        if (!boot.config) {
+          const loaded = await boot.loadManifest();
+          if (!loaded) return false;
+        }
+      }
+      return true;
+    },
+
+    initiateGenesis: async () => {
+      const progressBar = document.getElementById("genesis-progress");
+      const progressText = document.getElementById("genesis-text");
+      const genesisLog = document.getElementById("genesis-log");
+      
+      // Prepare upgrades and blueprints
+      const upgradesToInstall = boot.selectedUpgrades.length > 0
+        ? boot.config.upgrades.filter((u) => boot.selectedUpgrades.includes(u.id))
+        : boot.config.upgrades.filter((u) => boot.config.defaultCore.includes(u.id));
+      
+      const blueprintsToStudy = boot.selectedBlueprints.length > 0
+        ? boot.config.blueprints.filter((b) => boot.selectedBlueprints.includes(b.id))
+        : [];
+      
+      // Check for IDB upgrade
+      const useIdb = upgradesToInstall.some((u) => u.id === "idb");
+      if (useIdb) {
+        boot.vfs = BootIdbVfs({ VFS_PREFIX: boot.vfsPrefix });
+      }
+      
+      await boot.runGenesisWithProgress(
+        upgradesToInstall,
+        blueprintsToStudy,
+        progressBar,
+        progressText,
+        genesisLog
+      );
+    },
+
+    log: (message, level = "log") => {
+      const logArea = document.getElementById("log-area");
+      if (logArea) {
+        const line = boot.createElement("div", {
+          className: level,
+          textContent: `> ${message}`
+        });
+        logArea.appendChild(line);
+        logArea.scrollTop = logArea.scrollHeight;
+      }
+    },
+
+    loadManifest: async () => {
+      try {
+        const response = await fetch("config.json");
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        boot.config = await response.json();
+        return true;
+      } catch (e) {
+        alert(`Failed to load config.json: ${e.message}`);
+        return false;
+      }
+    },
+
+    runGenesisWithProgress: async (upgrades, blueprints, progressBar, progressText, logDiv) => {
+      const addLog = (msg, color = "#0ff") => {
+        if (logDiv) {
+          const line = boot.createElement("div", {
+            style: `color: ${color}`,
+            textContent: `> ${msg}`
+          });
+          logDiv.appendChild(line);
+          logDiv.scrollTop = logDiv.scrollHeight;
+        }
+      };
+      
+      const updateProgress = (percent, text) => {
+        if (progressBar) progressBar.style.width = percent + "%";
+        if (progressText) progressText.textContent = text;
+      };
+      
+      updateProgress(10, "Clearing VFS...");
+      addLog("Clearing existing VFS...");
+      await boot.vfs.clear();
+      
+      const artifactMetadata = {};
+      const now = Date.now();
+      
+      const allGenesisFiles = [...upgrades, ...blueprints];
+      
+      updateProgress(20, "Fetching genesis artifacts...");
+      addLog("Fetching and installing all genesis artifacts...");
+      
+      let fileCount = 0;
+      const totalFiles = allGenesisFiles.length;
+      
+      for (const fileDef of allGenesisFiles) {
+        const isBlueprint = blueprints.some((b) => b.id === fileDef.id);
+        const fetchPath = isBlueprint ? `blueprints/${fileDef.path}` : `upgrades/${fileDef.path}`;
+        const vfsPath = isBlueprint ? `/docs/${fileDef.path}` : `/modules/${fileDef.path}`;
+        
+        try {
+          const res = await fetch(fetchPath);
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          const content = await res.text();
+          await boot.vfs.write(vfsPath, content);
+          artifactMetadata[vfsPath] = {
+            id: vfsPath,
+            versions: [{
+              cycle: 0,
+              timestamp: now,
+              versionId: "c0",
+            }],
+          };
+          
+          fileCount++;
+          const progress = 20 + (fileCount / totalFiles) * 60;
+          updateProgress(progress, `Installing ${fileDef.id}...`);
+          addLog(`Installed ${fileDef.id} to ${vfsPath}`, "#ffd700");
+        } catch (e) {
+          addLog(`Failed to install ${fileDef.id}: ${e.message}`, "#f00");
+          return;
+        }
+      }
+      
+      updateProgress(85, "Creating initial state...");
+      addLog("Creating initial state artifact...");
+      
+      const initialGoal = blueprints.length > 0
+        ? `Study the blueprints at ${blueprints.map((b) => `/docs/${b.path}`).join(", ")} and propose a plan for implementation.`
+        : "Perform a system check, list all available modules and docs, and report status.";
+      
+      const initialState = {
+        version: "2.0.0-async",
+        totalCycles: 0,
+        currentGoal: { seed: initialGoal, cumulative: initialGoal, stack: [] },
+        apiKey: boot.apiKey,
+        artifactMetadata,
+        dynamicTools: [],
+        registeredWebComponents: [],
+      };
+      
+      await boot.vfs.write(boot.statePath, JSON.stringify(initialState));
+      
+      updateProgress(95, "Awakening agent...");
+      addLog("Genesis complete. State initialized.", "#ffd700");
+      addLog("AWAKENING AGENT...", "#ffd700");
+      
+      await new Promise((resolve) => setTimeout(resolve, 500));
+      updateProgress(100, "Complete!");
+      
+      await boot.awakenAgent();
+    },
+
+    awakenAgent: async () => {
+      console.log("AWAKENING AGENT: Handing off control to VFS /modules/app-logic.js");
+      try {
+        const appLogicContent = boot.vfs.read("/modules/app-logic.js");
+        if (!appLogicContent) {
+          throw new Error("Could not read /modules/app-logic.js from VFS.");
+        }
+        
+        const initialConfigForAgent = {
+          VFS_PREFIX: boot.vfsPrefix,
+          STATE_PATH: boot.statePath,
+        };
+        
+        // Make boot available globally for the agent
+        window.boot = boot;
+        
+        // Create a wrapper that makes vfs.read synchronous if it's async
+        const vfsWrapper = {
+          write: boot.vfs.write,
+          clear: boot.vfs.clear,
+          read: (path) => {
+            const result = boot.vfs.read(path);
+            // If it's a promise (async), we can't use it in sync context
+            // For now, return the sync version for localStorage
+            if (result && typeof result.then === 'function') {
+              console.error(`Async VFS read not supported in current context for ${path}`);
+              return localStorage.getItem(boot.vfsPrefix + path);
+            }
+            return result;
+          }
+        };
+        
+        // Make the wrapper available globally BEFORE eval
+        window.boot.vfsWrapper = vfsWrapper;
+        
+        // Use eval to execute the code
+        try {
+          eval(`
+            (function(config, vfs) {
+              ${appLogicContent}
+              // CoreLogicModule is defined in app-logic.js
+              if (typeof CoreLogicModule === 'function') {
+                CoreLogicModule(config, vfs);
+              }
+            })(${JSON.stringify(initialConfigForAgent)}, window.boot.vfsWrapper);
+          `);
+          
+          console.log("HANDOVER COMPLETE. Bootloader is now inert.");
+        } catch (evalError) {
+          throw new Error(`Failed to execute agent code: ${evalError.message}`);
+        }
+      } catch (e) {
+        console.error("AGENT AWAKENING FAILED:", e);
+        const genesisLog = document.getElementById("genesis-log");
+        if (genesisLog) {
+          const errorLine = boot.createElement("div", {
+            style: "color: #f00",
+            textContent: `> AWAKENING FAILED: ${e.message}`
+          });
+          genesisLog.appendChild(errorLine);
+        }
+      }
+    },
+
+    start: async () => {
+      boot.render();
+    },
+  };
+
+  boot.start();
+})();
+    </script>
   </body>
 </html>
