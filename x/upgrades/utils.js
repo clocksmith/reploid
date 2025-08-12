@@ -1,4 +1,4 @@
-const UtilsModule = (() => {
+var UtilsModule = (() => {
   class ApplicationError extends Error {
     constructor(message, details = {}) {
       super(message);

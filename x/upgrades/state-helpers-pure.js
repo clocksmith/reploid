@@ -1,4 +1,4 @@
-const StateHelpersPureModule = (() => {
+var StateHelpersPureModule = (() => {
   const calculateDerivedStatsPure = (
     confidenceHistory = [],
     critiqueFailHistory = [],

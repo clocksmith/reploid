@@ -1,4 +1,4 @@
-const ToolRunnerPureHelpersModule = (() => {
+var ToolRunnerPureHelpersModule = (() => {
   function mapMcpTypeToGeminiPure(mcpType) {
     switch (mcpType?.toLowerCase()) {
       case "string": return "STRING";
