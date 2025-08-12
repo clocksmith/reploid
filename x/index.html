@@ -1256,8 +1256,11 @@
         card.querySelector('input[type="checkbox"]').checked = false;
       });
       
-      // Define a smaller standard subset (core essentials)
-      const standardSubset = ["cyc", "sm", "ui", "api", "app", "util", "alp", "shp"];
+      // Define a smaller standard subset (core essentials required by app-logic.js)
+      // Must include: app (orchestrator), util (utils), sm (state), api (API client)
+      // cyc (agent cycle), alp (agent logic pure), shp (state helpers pure)
+      // ui (UI manager), tr (tool runner), trh (tool runner helpers), idb (storage)
+      const standardSubset = ["app", "util", "idb", "sm", "api", "cyc", "alp", "shp", "ui", "tr", "trh"];
       
       // Apply preset
       const presetMappings = {
