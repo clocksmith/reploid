@@ -4,14 +4,14 @@
 
 ---
 
-This project provides a complete, high-performance toolkit for running and benchmarking quantized GGUF language models on an NVIDIA Jetson Orin with 64GB of unified RAM. It is designed for maximum throughput, detailed performance analysis, and ease of use through both an interactive command-line interface (CLI) and a simple web UI.
+This project provides a complete, high-performance toolkit for running and benchmarking quantized GGUF language models on an NVIDIA Jetson Orin with 64GB of unified RAM. It is designed for maximum throughput, detailed performance analysis, and ease of use through both a command-line interface (CLI) and a simple web UI.
 
 The architecture is built to be modular, allowing for easy testing of different models (Gemma, Llama, etc.) and configurations.
 
 ## Core Features
 
 *   **Optimized for Jetson Orin:** Leverages the full power of the Orin's GPU for `llama-cpp-python` by offloading all possible layers.
-*   **Interactive Chat CLI:** A powerful `run_chat_cli.py` script for conversations, with detailed performance metrics after each response.
+*   **Unified CLI:** A powerful `run_cli.py` script that supports both interactive chat and single-shot inference for benchmarking.
 *   **Web-Based UI:** An "offline-first" web interface powered by a Python back-end, allowing for easy model interaction without an internet connection (after model download).
 *   **Modular Model Management:** Easily download and swap between different GGUF models.
 *   **Clean Architecture:** A logically organized file structure that separates setup, scripts, application code, and data.
@@ -32,7 +32,7 @@ The architecture is built to be modular, allowing for easy testing of different 
 ├── .gitignore
 ├── README.md           # This file
 ├── requirements.txt
-├── run_chat_cli.py     # Main CLI for interactive chat and benchmarking
+├── run_cli.py          # Main CLI for interactive chat and single-shot inference
 ├── run_web_server.py   # Python web server to power the UI
 ├── setup.sh
 └── STYLE_GUIDE.md
@@ -77,16 +77,32 @@ python scripts/download_model.py \
 
 ## 3. Usage
 
-### Interactive Chat (CLI)
+The `run_cli.py` script is the primary command-line tool and supports two modes of operation.
 
-The CLI is the best tool for direct interaction and performance analysis. It starts an interactive session where you can have a conversation with the model.
+### Interactive Chat (Default Mode)
+
+To start an interactive session where you can have a conversation with the model, run the script without a `--prompt` argument.
 
 **To Start the Chat:**
 ```bash
 # Activate environment: source .venv/bin/activate
-python run_chat_cli.py --model "gemma-3-27b-it-q4_0.gguf"
+python run_cli.py --model "gemma-3-27b-it-q4_0.gguf"
 ```
 After the model loads, you will be prompted to enter your message. Type `exit` or `quit` to end the session. After each response from the assistant, detailed performance metrics for that turn will be displayed.
+
+### Single-Shot Inference
+
+To run a single prompt for benchmarking or a quick task, use the `--prompt` or `-p` argument.
+
+**To Run a Single Prompt:**
+```bash
+# Activate environment: source .venv/bin/activate
+python run_cli.py \
+    --model "gemma-3-27b-it-q4_0.gguf" \
+    -p "Write a short story about a robot exploring Mars." \
+    --max-tokens 256
+```
+The script will output the response and then print detailed performance statistics for the generation before exiting.
 
 ### Web Interface
 

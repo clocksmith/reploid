@@ -87,20 +87,33 @@ const UIModule = (config, logger, Utils, Storage, StateManager, Errors) => {
   };
 
   const init = async (injectedStateManager, injectedCycleLogic) => {
-    logger.logEvent("info", "Initializing UI Module v2...");
+    logger.logEvent("info", "Agent UIManager taking control of DOM...");
     StateManager = injectedStateManager;
     CycleLogic = injectedCycleLogic;
+
+    // --- JETTISON THE BOOTLOADER ---
+    // The agent's first act is to remove the temporary bootloader UI.
+    const bootContainer = document.getElementById('boot-container');
+    if (bootContainer) {
+        bootContainer.remove();
+        logger.logEvent("info", "Bootloader UI jettisoned.");
+    }
+    // Clean up any residual bootloader styles from the body
+    document.body.style = "";
+    // --- HANDOVER COMPLETE ---
 
     const bodyTemplate = await Storage.getArtifactContent('/modules/ui-body-template.html');
     const styleContent = await Storage.getArtifactContent('/modules/ui-style.css');
     
     const appRoot = document.getElementById('app-root');
-    if (appRoot && bodyTemplate) {
-        appRoot.innerHTML = bodyTemplate;
+    if (appRoot) {
+        if(bodyTemplate) appRoot.innerHTML = bodyTemplate;
+        appRoot.style.display = 'block'; // Make sure the agent's root is visible.
     }
     
     if (styleContent) {
         const styleEl = document.createElement('style');
+        styleEl.id = 'agent-styles'; // Give it an ID for potential self-modification
         styleEl.textContent = styleContent;
         document.head.appendChild(styleEl);
     }
@@ -108,7 +121,7 @@ const UIModule = (config, logger, Utils, Storage, StateManager, Errors) => {
     initializeUIElementReferences();
     await updateStateDisplay();
     setupEventListeners();
-    logger.logEvent("info", "UI Module v2 Initialized.");
+    logger.logEvent("info", "Agent UI Initialized. Standing by.");
   };
 
   return {
