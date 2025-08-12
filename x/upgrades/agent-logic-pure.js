@@ -1,4 +1,4 @@
-const AgentLogicPureHelpersModule = (() => {
+var AgentLogicPureHelpersModule = (() => {
   const getArtifactListSummaryPure = (allMetaMap) => {
     if (!allMetaMap) return "Error: Artifact metadata map not available.";
     return (

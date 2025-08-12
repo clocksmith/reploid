@@ -889,7 +889,7 @@
       const nextBtn = document.getElementById("next-btn");
       prevBtn.disabled = boot.currentStep === 0;
       
-      const buttonTexts = ["NEXT ►", "NEXT ►", "NEXT ►", "PREPARE ►", "AWAKEN ►"];
+      const buttonTexts = ["NEXT ►", "NEXT ►", "NEXT ►", "LGTM ►", "AWAKEN ►"];
       nextBtn.textContent = buttonTexts[boot.currentStep];
       nextBtn.classList.toggle("awaken", boot.currentStep === 4);
     },
@@ -1045,6 +1045,16 @@
         ? boot.selectedBlueprints.join(", ")
         : "None";
 
+      // Default goal based on selected blueprints
+      const defaultGoal = boot.selectedBlueprints.length > 0
+        ? `Study the blueprints at ${boot.selectedBlueprints.map(b => `/docs/${b}.md`).join(", ")} and propose a plan for implementation.`
+        : "Perform a system check, list all available modules and docs, and report status.";
+      
+      // Use saved custom goal or default
+      if (!boot.customGoal) {
+        boot.customGoal = defaultGoal;
+      }
+
       container.innerHTML = `
         <div style="padding: 40px;">
           <h2 style="color: #0ff; text-align: center; margin-bottom: 40px;">┌─ GENESIS CONFIGURATION ─┐</h2>
@@ -1062,14 +1072,51 @@
             
             <div class="review-box">
               <h3>INITIAL GOAL</h3>
-              <pre>${boot.selectedBlueprints.length > 0
-                ? `Study blueprints: ${blueprintsText}`
-                : "System check and report status"
-              }</pre>
+              <textarea id="goal-input" 
+                style="width: 100%; 
+                       min-height: 100px; 
+                       background: rgba(0,0,0,0.7); 
+                       color: #0ff; 
+                       border: 1px solid #444; 
+                       padding: 10px; 
+                       font-family: inherit; 
+                       font-size: 0.9em; 
+                       resize: vertical;"
+                placeholder="Enter the agent's initial goal...">${boot.customGoal}</textarea>
+              <div style="margin-top: 10px; color: #888; font-size: 0.85em;">
+                You can edit the initial goal above. The agent will pursue this objective upon awakening.
+              </div>
             </div>
           </div>
         </div>
       `;
+      
+      // Save goal changes
+      const goalInput = document.getElementById("goal-input");
+      if (goalInput) {
+        goalInput.addEventListener("input", (e) => {
+          boot.customGoal = e.target.value;
+        });
+        
+        // Auto-resize textarea
+        goalInput.addEventListener("input", () => {
+          goalInput.style.height = "auto";
+          goalInput.style.height = goalInput.scrollHeight + "px";
+        });
+        
+        // Adjust initial height
+        goalInput.style.height = "auto";
+        goalInput.style.height = goalInput.scrollHeight + "px";
+        
+        // Style focus state
+        goalInput.addEventListener("focus", () => {
+          goalInput.style.borderColor = "#ffd700";
+        });
+        
+        goalInput.addEventListener("blur", () => {
+          goalInput.style.borderColor = "#444";
+        });
+      }
     },
 
     renderGenesisStep: (container) => {
@@ -1079,7 +1126,7 @@
           
           <div class="progress-bar">
             <div class="progress-fill" id="genesis-progress" style="width: 0%;"></div>
-            <div class="progress-text" id="genesis-text">Initializing...</div>
+            <div class="progress-text" id="genesis-text">Ready</div>
           </div>
           
           <div id="genesis-log"></div>
@@ -1408,9 +1455,12 @@
       updateProgress(85, "Creating initial state...");
       addLog("Creating initial state artifact...");
       
-      const initialGoal = blueprints.length > 0
-        ? `Study the blueprints at ${blueprints.map((b) => `/docs/${b.path}`).join(", ")} and propose a plan for implementation.`
-        : "Perform a system check, list all available modules and docs, and report status.";
+      // Use custom goal if set, otherwise use default
+      const initialGoal = boot.customGoal || (
+        blueprints.length > 0
+          ? `Study the blueprints at ${blueprints.map((b) => `/docs/${b.path}`).join(", ")} and propose a plan for implementation.`
+          : "Perform a system check, list all available modules and docs, and report status."
+      );
       
       const initialState = {
         version: "2.0.0-async",
@@ -1436,16 +1486,30 @@
 
     awakenAgent: async () => {
       console.log("AWAKENING AGENT: Handing off control to VFS /modules/app-logic.js");
+      console.log("Configuration State:", {
+        selectedUpgrades: boot.selectedUpgrades,
+        selectedBlueprints: boot.selectedBlueprints,
+        apiKeyPresent: !!boot.apiKey,
+        vfsType: boot.vfs.write.toString().includes('indexedDB') ? 'IndexedDB' : 'localStorage'
+      });
+      
       try {
         const appLogicContent = boot.vfs.read("/modules/app-logic.js");
         if (!appLogicContent) {
-          throw new Error("Could not read /modules/app-logic.js from VFS.");
+          console.error("VFS Contents:", {
+            upgradesLoaded: boot.selectedUpgrades,
+            blueprintsLoaded: boot.selectedBlueprints,
+            vfsPrefix: boot.vfsPrefix
+          });
+          throw new Error("Could not read /modules/app-logic.js from VFS. Check if upgrades were properly installed.");
         }
         
         const initialConfigForAgent = {
           VFS_PREFIX: boot.vfsPrefix,
           STATE_PATH: boot.statePath,
         };
+        
+        console.log("Initializing agent with config:", initialConfigForAgent);
         
         // Make boot available globally for the agent
         window.boot = boot;
@@ -1459,7 +1523,7 @@
             // If it's a promise (async), we can't use it in sync context
             // For now, return the sync version for localStorage
             if (result && typeof result.then === 'function') {
-              console.error(`Async VFS read not supported in current context for ${path}`);
+              console.warn(`Async VFS read falling back to localStorage for ${path}`);
               return localStorage.getItem(boot.vfsPrefix + path);
             }
             return result;
@@ -1471,29 +1535,47 @@
         
         // Use eval to execute the code
         try {
+          console.log("Executing agent core module...");
           eval(`
-            (function(config, vfs) {
-              ${appLogicContent}
-              // CoreLogicModule is defined in app-logic.js
-              if (typeof CoreLogicModule === 'function') {
-                CoreLogicModule(config, vfs);
-              }
-            })(${JSON.stringify(initialConfigForAgent)}, window.boot.vfsWrapper);
+            var config = ${JSON.stringify(initialConfigForAgent)};
+            var vfs = window.boot.vfsWrapper;
+            ${appLogicContent}
+            // CoreLogicModule is defined in app-logic.js
+            if (typeof CoreLogicModule === 'function') {
+              console.log('CoreLogicModule found, initializing...');
+              CoreLogicModule(config, vfs);
+            } else {
+              console.error('CoreLogicModule not found after evaluating app-logic.js');
+            }
           `);
           
           console.log("HANDOVER COMPLETE. Bootloader is now inert.");
         } catch (evalError) {
+          console.error("Eval execution failed:", evalError);
+          console.error("Stack trace:", evalError.stack);
           throw new Error(`Failed to execute agent code: ${evalError.message}`);
         }
       } catch (e) {
         console.error("AGENT AWAKENING FAILED:", e);
+        console.error("Full error details:", {
+          message: e.message,
+          stack: e.stack,
+          upgrades: boot.selectedUpgrades,
+          blueprints: boot.selectedBlueprints
+        });
+        
         const genesisLog = document.getElementById("genesis-log");
         if (genesisLog) {
           const errorLine = boot.createElement("div", {
             style: "color: #f00",
             textContent: `> AWAKENING FAILED: ${e.message}`
           });
+          const detailsLine = boot.createElement("div", {
+            style: "color: #fa0; font-size: 0.9em",
+            textContent: `> Config: ${boot.selectedUpgrades.length} upgrades, ${boot.selectedBlueprints.length} blueprints`
+          });
           genesisLog.appendChild(errorLine);
+          genesisLog.appendChild(detailsLine);
         }
       }
     },
