@@ -107,7 +107,31 @@ const UIModule = (config, logger, Utils, Storage, StateManager, Errors) => {
     
     const appRoot = document.getElementById('app-root');
     if (appRoot) {
-        if(bodyTemplate) appRoot.innerHTML = bodyTemplate;
+        if(bodyTemplate) {
+            appRoot.innerHTML = bodyTemplate;
+        } else {
+            // Create minimal fallback UI if template is missing
+            logger.logEvent("warn", "UI template not found, creating minimal fallback");
+            appRoot.innerHTML = `
+                <div style="padding: 20px; font-family: monospace; background: #000; color: #0ff; min-height: 100vh;">
+                    <h1 style="color: #ffd700;">REPLOID Agent - Minimal UI</h1>
+                    <div id="status-indicator" style="margin: 10px 0;">Status: Initializing...</div>
+                    <button id="run-cycle-button" style="background: #111; color: #0ff; border: 1px solid #0ff; padding: 10px; cursor: pointer;">Run Cycle</button>
+                    <div id="metrics-display" style="margin: 10px 0;">Cycle: <strong>0</strong></div>
+                    <div id="current-cycle-content" style="margin: 20px 0; padding: 10px; border: 1px solid #333;">
+                        <p>Waiting for cycle...</p>
+                    </div>
+                    <div id="timeline-log" style="margin: 20px 0; max-height: 200px; overflow-y: auto; border: 1px solid #333; padding: 10px;"></div>
+                    <div id="goal-input" style="display:none;"></div>
+                    <div id="human-intervention-section" style="display:none;"></div>
+                    <div style="margin-top: 20px; color: #ffd700;">
+                        Note: UI files missing. Agent should use write_artifact tool to create:
+                        <br>- /modules/ui-body-template.html
+                        <br>- /modules/ui-style.css
+                    </div>
+                </div>
+            `;
+        }
         appRoot.style.display = 'block'; // Make sure the agent's root is visible.
     }
     
@@ -116,6 +140,17 @@ const UIModule = (config, logger, Utils, Storage, StateManager, Errors) => {
         styleEl.id = 'agent-styles'; // Give it an ID for potential self-modification
         styleEl.textContent = styleContent;
         document.head.appendChild(styleEl);
+    } else if (!bodyTemplate) {
+        // Add minimal styles if both template and styles are missing
+        const minimalStyle = document.createElement('style');
+        minimalStyle.id = 'agent-styles-minimal';
+        minimalStyle.textContent = `
+            body { margin: 0; padding: 0; background: #000; color: #0ff; }
+            button:hover { background: #222 !important; border-color: #ffd700 !important; }
+            #timeline-log li { list-style: none; margin: 2px 0; }
+            #current-cycle-content pre { white-space: pre-wrap; word-wrap: break-word; }
+        `;
+        document.head.appendChild(minimalStyle);
     }
     
     initializeUIElementReferences();

@@ -52,15 +52,53 @@ const CycleLogicModule = (
   };
 
   const _assembleCorePromptContext = async (state, goalInfo, currentCycle) => {
-    const corePromptTemplate = await Storage.getArtifactContent("/modules/prompt-system.md");
+    let corePromptTemplate = await Storage.getArtifactContent("/modules/prompt-system.md");
     if (!corePromptTemplate) {
-        throw new ArtifactError("Core prompt artifact '/modules/prompt-system.md' not found!");
+        // Self-healing: Create default prompt if missing
+        logger.warn("Core prompt not found, creating default prompt");
+        const defaultPrompt = `You are an AI agent operating in cycle [[CYCLE_COUNT]].
+
+Your current goal: [[CUMULATIVE_GOAL]]
+
+Available tools:
+[[TOOL_LIST]]
+
+Available artifacts:
+[[ARTIFACT_LIST]]
+
+Analyze the goal and available resources, then propose changes to achieve it.
+Respond with a JSON object containing your proposed changes.`;
+        
+        await StateManager.createArtifact(
+            "/modules/prompt-system.md",
+            "markdown",
+            defaultPrompt,
+            "Default system prompt (auto-generated)"
+        );
+        corePromptTemplate = defaultPrompt;
     }
 
     const artifactListSummary = AgentLogicPureHelpers.getArtifactListSummaryPure(await StateManager.getAllArtifactMetadata());
     
-    const staticToolsContent = await Storage.getArtifactContent("/modules/data-tools-static.json");
-    const staticTools = JSON.parse(staticToolsContent || "[]");
+    // Load tools from multiple files - try new split files first, fallback to legacy
+    let staticTools = [];
+    
+    // Try loading split tool files
+    const toolsReadContent = await Storage.getArtifactContent("/modules/tools-read.json");
+    if (toolsReadContent) {
+        staticTools = [...staticTools, ...JSON.parse(toolsReadContent)];
+    }
+    
+    const toolsWriteContent = await Storage.getArtifactContent("/modules/tools-write.json");
+    if (toolsWriteContent) {
+        staticTools = [...staticTools, ...JSON.parse(toolsWriteContent)];
+    }
+    
+    // Fallback to legacy single file if split files not found
+    if (staticTools.length === 0) {
+        const staticToolsContent = await Storage.getArtifactContent("/modules/data-tools-static.json");
+        staticTools = JSON.parse(staticToolsContent || "[]");
+    }
     
     const dynamicToolsContent = await Storage.getArtifactContent("/system/tools-dynamic.json");
     const dynamicTools = JSON.parse(dynamicToolsContent || "[]");
@@ -87,8 +125,16 @@ const CycleLogicModule = (
     UI.displayCycleArtifact(`Tool Call: ${toolName}`, JSON.stringify(toolArgs, null, 2), "info", "LLM", `tool.call.${toolName}`);
     
     try {
-        const staticToolsContent = await Storage.getArtifactContent("/modules/data-tools-static.json");
-        const staticTools = JSON.parse(staticToolsContent || "[]");
+        // Load tools from multiple files for execution
+        let staticTools = [];
+        const toolsReadContent = await Storage.getArtifactContent("/modules/data-tools-read.json");
+        if (toolsReadContent) staticTools = [...staticTools, ...JSON.parse(toolsReadContent)];
+        const toolsWriteContent = await Storage.getArtifactContent("/modules/data-tools-write.json");
+        if (toolsWriteContent) staticTools = [...staticTools, ...JSON.parse(toolsWriteContent)];
+        if (staticTools.length === 0) {
+            const staticToolsContent = await Storage.getArtifactContent("/modules/data-tools-static.json");
+            staticTools = JSON.parse(staticToolsContent || "[]");
+        }
         
         const dynamicToolsContent = await Storage.getArtifactContent("/system/tools-dynamic.json");
         const dynamicTools = JSON.parse(dynamicToolsContent || "[]");
@@ -107,8 +153,16 @@ const CycleLogicModule = (
    const _executeLlmApiCallSequence = async (prompt, state, currentCycle) => {
         let apiHistory = [{ role: "user", parts: [{ text: prompt }] }];
         
-        const staticToolsContent = await Storage.getArtifactContent("/modules/data-tools-static.json");
-        const staticTools = JSON.parse(staticToolsContent || "[]");
+        // Load tools from multiple files for API declarations
+        let staticTools = [];
+        const toolsReadContent = await Storage.getArtifactContent("/modules/data-tools-read.json");
+        if (toolsReadContent) staticTools = [...staticTools, ...JSON.parse(toolsReadContent)];
+        const toolsWriteContent = await Storage.getArtifactContent("/modules/data-tools-write.json");
+        if (toolsWriteContent) staticTools = [...staticTools, ...JSON.parse(toolsWriteContent)];
+        if (staticTools.length === 0) {
+            const staticToolsContent = await Storage.getArtifactContent("/modules/data-tools-static.json");
+            staticTools = JSON.parse(staticToolsContent || "[]");
+        }
 
         const dynamicToolsContent = await Storage.getArtifactContent("/system/tools-dynamic.json");
         const dynamicTools = JSON.parse(dynamicToolsContent || "[]");
@@ -201,7 +255,24 @@ const CycleLogicModule = (
     UI.logToTimeline(currentCycle, `--- Cycle ${currentCycle} Start ---`);
 
     try {
-        await StateManager.updateArtifact("/system/scratchpad.md", `Cycle ${currentCycle} Scratchpad:\n`);
+        // Create or update scratchpad - self-healing pattern
+        const scratchpadPath = "/system/scratchpad.md";
+        const scratchpadContent = `Cycle ${currentCycle} Scratchpad:\n`;
+        const scratchpadMeta = await StateManager.getArtifactMetadata(scratchpadPath);
+        
+        if (!scratchpadMeta) {
+            // Create if missing - upgrade is self-sufficient
+            await StateManager.createArtifact(
+                scratchpadPath,
+                "markdown",
+                scratchpadContent,
+                "Agent's working memory scratchpad"
+            );
+        } else {
+            // Update if exists
+            await StateManager.updateArtifact(scratchpadPath, scratchpadContent);
+        }
+        
         const goalInfo = getActiveGoalInfo();
         UI.logToTimeline(currentCycle, `Goal: ${Utils.trunc(goalInfo.latestGoal, 80)}`, "goal");
 

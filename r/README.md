@@ -1,10 +1,22 @@
 # Jetson Orin LLM Engine
 
-**[Back to Main Project README](../README.md)** | **[View REPLOID Harness Project (`/x/`)](../x/README.md)**
+**[Back to Main Project README](../README.md)** | **[View REPLOID X Agent (`/x/`)](../x/README.md)**
 
----
+```
+╔════════════════════════════════════════════════════════════════════════════════╗
+║                         🟦 REPLOID LLM BACKEND 🟨                                ║
+║                                                                                  ║
+║     ┌─────────┐           ┌──────────┐           ┌─────────────┐              ║
+║     │  GGUF   │ ══════▶   │  LOCAL   │ ══════▶   │   REPLOID   │              ║
+║     │ MODELS  │           │ INFERENCE│           │    AGENT    │              ║
+║     └─────────┘           └──────────┘           └─────────────┘              ║
+║         💾                     🔧                      🤖                      ║
+║                                                                                  ║
+║                    Local LLM Inference for RSI Agents                           ║
+╚════════════════════════════════════════════════════════════════════════════════╝
+```
 
-This project provides a complete, high-performance toolkit for running and benchmarking quantized GGUF language models on an NVIDIA Jetson Orin with 64GB of unified RAM. It is designed for maximum throughput, detailed performance analysis, and ease of use through both a command-line interface (CLI) and a simple web UI.
+This project provides a complete, high-performance toolkit for running and benchmarking quantized GGUF language models on an NVIDIA Jetson Orin with 64GB of unified RAM. It is designed for maximum throughput, detailed performance analysis, and serves as the inference backend for the REPLOID X autonomous agent system.
 
 The architecture is built to be modular, allowing for easy testing of different models (Gemma, Llama, etc.) and configurations.
 

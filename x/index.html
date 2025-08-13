@@ -328,6 +328,113 @@
         background: rgba(255,215,0,0.2);
       }
       
+      /* RSI Toggle Switch */
+      .rsi-toggle {
+        position: relative;
+        display: inline-block;
+        width: 60px;
+        height: 28px;
+      }
+      
+      .rsi-toggle input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+      }
+      
+      .toggle-slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #444;
+        transition: .4s;
+        border: 1px solid #666;
+      }
+      
+      .toggle-slider:before {
+        position: absolute;
+        content: "";
+        height: 20px;
+        width: 20px;
+        left: 4px;
+        bottom: 3px;
+        background-color: #0ff;
+        transition: .4s;
+      }
+      
+      .rsi-toggle input:checked + .toggle-slider {
+        background-color: #ff4444;
+        border-color: #ff6666;
+      }
+      
+      .rsi-toggle input:checked + .toggle-slider:before {
+        transform: translateX(32px);
+        background-color: #ffd700;
+      }
+      
+      /* Clustered Grid Layout */
+      .clustered-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+        margin: 20px 0;
+      }
+      
+      .upgrade-cluster {
+        border: 1px solid #333;
+        padding: 10px;
+        background: rgba(0,0,0,0.3);
+      }
+      
+      .cluster-header {
+        color: #0ff;
+        font-weight: bold;
+        margin-bottom: 10px;
+        padding-bottom: 5px;
+        border-bottom: 1px solid #444;
+      }
+      
+      .cluster-items {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+      }
+      
+      .cluster-item {
+        display: flex;
+        align-items: center;
+        padding: 3px 0;
+      }
+      
+      .cluster-item input[type="checkbox"] {
+        margin-right: 8px;
+      }
+      
+      .cluster-item label {
+        display: flex;
+        gap: 10px;
+        cursor: pointer;
+        flex: 1;
+      }
+      
+      .item-id {
+        color: #ffd700;
+        font-weight: bold;
+        width: 40px;
+      }
+      
+      .item-name {
+        color: #888;
+        font-size: 0.9em;
+      }
+      
+      .cluster-item:hover .item-name {
+        color: #0ff;
+      }
+      
       /* Collapsible Sections */
       .collapsible-section {
         margin-bottom: 20px;
@@ -793,6 +900,19 @@
      ╚═╝  ╚═╝╚══════╝╚═╝     ╚══════╝ ╚═════╝ ╚═╝╚═════╝ 
       </pre>
       <h1>Model CPS-9204</h1>
+      <div style="margin-top: 4px; margin-bottom: 10px;">
+        <a href="https://megaman.fandom.com/wiki/Mega_Man_X_(video_game)/Script#:~:text=Titanium%2DX%22%20alloy.-,WARNING%3A,-%22X%22%20IS%20THE" 
+           target="_blank" 
+           style="color: rgba(255,215,0,0.6); 
+                  font-size: 0.9em; 
+                  text-decoration: none; 
+                  text-shadow: 0 0 5px rgba(255,215,0,0.3);
+                  transition: all 0.3s ease;"
+           onmouseover="this.style.color='rgba(255,215,0,0.9)'; this.style.textShadow='0 0 10px rgba(255,215,0,0.6)';"
+           onmouseout="this.style.color='rgba(255,215,0,0.6)'; this.style.textShadow='0 0 5px rgba(255,215,0,0.3)';">
+          [CLASSIFIED]
+        </a>
+      </div>
     </div>
     <div class="wizard-container">
       <div class="wizard-steps">
@@ -935,24 +1055,77 @@
     renderUpgradesStep: (container) => {
       if (!boot.config) return;
 
+      // Group upgrades by category
+      const categories = {
+        'core': { name: 'CORE SYSTEM', upgrades: [] },
+        'agent': { name: 'AI AGENT', upgrades: [] },
+        'tools': { name: 'TOOLS', upgrades: [] },
+        'ui': { name: 'INTERFACE', upgrades: [] },
+        'storage': { name: 'STORAGE', upgrades: [] },
+        'experimental': { name: 'EXPERIMENTAL', upgrades: [] }
+      };
+      
+      boot.config.upgrades.forEach(upgrade => {
+        if (upgrade.category && categories[upgrade.category]) {
+          categories[upgrade.category].upgrades.push(upgrade);
+        }
+      });
+
       container.innerHTML = `
         <div class="selection-panel">
-          <h2 style="color: #0ff;">┌─ SELECT UPGRADES ─┐</h2>
+          <h2 style="color: #0ff;">┌─ SELECT CAPABILITIES ─┐</h2>
           <p style="color: #888;">Choose capabilities to install in the agent</p>
           
           <div class="preset-buttons">
-            <button class="preset-btn" data-preset="none">NONE</button>
+            <button class="preset-btn" data-preset="minimal">MINIMAL</button>
             <button class="preset-btn preset-selected" data-preset="standard">STANDARD</button>
-            <button class="preset-btn" data-preset="all">ALL</button>
+            <button class="preset-btn" data-preset="full">FULL</button>
           </div>
           
-          <div class="selection-grid" id="upgrades-grid"></div>
+          <div class="clustered-grid" id="upgrades-clusters">
+            ${Object.entries(categories).filter(([_, cat]) => cat.upgrades.length > 0).map(([key, category]) => `
+              <div class="upgrade-cluster" data-category="${key}">
+                <div class="cluster-header">${category.name}</div>
+                <div class="cluster-items">
+                  ${category.upgrades.map(u => `
+                    <div class="cluster-item" data-id="${u.id}" title="${u.description}">
+                      <input type="checkbox" id="upgrade-${u.id}" />
+                      <label for="upgrade-${u.id}">
+                        <span class="item-id">${u.id}</span>
+                        <span class="item-name">${u.path.split('.')[0]}</span>
+                      </label>
+                    </div>
+                  `).join('')}
+                </div>
+              </div>
+            `).join('')}
+          </div>
+          
+          <div style="margin: 20px 0; padding: 15px; border: 2px solid #ffd700; background: rgba(255,215,0,0.05);">
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+              <div>
+                <div style="color: #ffd700; font-weight: bold; margin-bottom: 5px;">
+                  RECURSIVE SELF-IMPROVEMENT (RSI)
+                </div>
+                <div style="color: #888; font-size: 0.9em;">
+                  Enable agent to modify its own code (adds TLWR - tools-write)
+                </div>
+              </div>
+              <label class="rsi-toggle">
+                <input type="checkbox" id="rsi-toggle" />
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+            <div id="rsi-warning" style="display: none; margin-top: 10px; padding: 10px; background: rgba(255,0,0,0.1); border: 1px solid #ff0000;">
+              <div style="color: #ff6666;">WARNING: Agent can modify ANY file in VFS including its own modules</div>
+            </div>
+          </div>
           
           <div class="cli-fallback">
             <details>
               <summary style="cursor: pointer; color: #888;">Advanced: Manual Input</summary>
               <input type="text" class="cli-input" id="manual-upgrades" 
-                     placeholder="Enter comma-separated upgrade IDs (e.g., cyc, sm, ui)" />
+                     placeholder="Enter comma-separated upgrade IDs (e.g., CYCL, STMT, UIMN)" />
             </details>
           </div>
         </div>
@@ -965,7 +1138,20 @@
         </div>
       `;
 
-      boot.renderSelectionCards("upgrades-grid", boot.config.upgrades, "upgrade");
+      // Set up checkbox event handlers
+      document.querySelectorAll('.cluster-item input[type="checkbox"]').forEach(checkbox => {
+        checkbox.addEventListener('change', (e) => {
+          const id = e.target.parentElement.parentElement.dataset.id;
+          if (e.target.checked) {
+            if (!boot.selectedUpgrades.includes(id)) {
+              boot.selectedUpgrades.push(id);
+            }
+          } else {
+            boot.selectedUpgrades = boot.selectedUpgrades.filter(uid => uid !== id);
+          }
+          boot.updatePreview("upgrades");
+        });
+      });
 
       document.querySelectorAll(".preset-btn").forEach((btn) => {
         btn.addEventListener("click", (e) => {
@@ -979,6 +1165,25 @@
         boot.parseManualSelection(e.target.value, "upgrade");
       });
 
+      // RSI Toggle Handler
+      const rsiToggle = document.getElementById("rsi-toggle");
+      const rsiWarning = document.getElementById("rsi-warning");
+      
+      rsiToggle.addEventListener("change", (e) => {
+        if (e.target.checked) {
+          // Add TLWR upgrade
+          if (!boot.selectedUpgrades.includes("TLWR")) {
+            boot.selectedUpgrades.push("TLWR");
+          }
+          rsiWarning.style.display = "block";
+        } else {
+          // Remove TLWR upgrade
+          boot.selectedUpgrades = boot.selectedUpgrades.filter(id => id !== "TLWR");
+          rsiWarning.style.display = "none";
+        }
+        boot.updatePreview("upgrades");
+      });
+
       // Apply standard preset by default
       boot.applyPreset("standard");
       boot.updatePreview("upgrades");
@@ -990,7 +1195,18 @@
       container.innerHTML = `
         <div class="selection-panel">
           <h2 style="color: #0ff;">┌─ SELECT BLUEPRINTS ─┐</h2>
-          <p style="color: #888;">Choose blueprints for the agent to study</p>
+          <p style="color: #888;">Construction manuals for building upgrades via RSI</p>
+          
+          <div style="margin: 15px 0; padding: 15px; background: rgba(0,255,255,0.05); border: 1px solid #0ff;">
+            <div style="color: #0ff; font-weight: bold; margin-bottom: 10px;">WHAT ARE BLUEPRINTS?</div>
+            <div style="color: #aaa; font-size: 0.9em; line-height: 1.5;">
+              Blueprints are detailed instructions that teach the agent HOW to build each upgrade from scratch.
+              With RSI enabled (TLWR), the agent can read blueprints and create missing upgrades itself.
+              <br><br>
+              <span style="color: #ffd700;">Example:</span> Blueprint 0x000008 → Instructions to build CYCL upgrade<br>
+              <span style="color: #ffd700;">Example:</span> Blueprint 0x000016 → Meta-patterns for creating new tools
+            </div>
+          </div>
           
           <div class="preset-buttons">
             <button class="preset-btn preset-selected" data-preset="none">NONE</button>
@@ -1068,6 +1284,11 @@
             <div class="review-box">
               <h3>BLUEPRINTS</h3>
               <pre>${blueprintsText}</pre>
+              ${boot.selectedBlueprints.length > 0 && boot.selectedUpgrades.includes("TLWR") ? 
+                '<div style="color: #ffd700; font-size: 0.8em; margin-top: 10px;">RSI enabled - Agent can build upgrades from blueprints</div>' : 
+                boot.selectedBlueprints.length > 0 ? 
+                '<div style="color: #888; font-size: 0.8em; margin-top: 10px;">RSI disabled - Blueprints for reference only</div>' : 
+                ''}
             </div>
             
             <div class="review-box">
@@ -1249,36 +1470,53 @@
     },
 
     applyPreset: (preset) => {
+      // Save RSI state before clearing
+      const rsiEnabled = boot.selectedUpgrades.includes("TLWR");
+      
       // Clear current selections
       boot.selectedUpgrades = [];
       document.querySelectorAll('.selection-card[data-type="upgrade"]').forEach((card) => {
         card.classList.remove("selected");
         card.querySelector('input[type="checkbox"]').checked = false;
       });
+      document.querySelectorAll('.cluster-item input[type="checkbox"]').forEach(checkbox => {
+        checkbox.checked = false;
+      });
       
-      // Define a smaller standard subset (core essentials required by app-logic.js)
-      // Must include: app (orchestrator), util (utils), sm (state), api (API client)
-      // cyc (agent cycle), alp (agent logic pure), shp (state helpers pure)
-      // ui (UI manager), tr (tool runner), trh (tool runner helpers), idb (storage)
-      const standardSubset = ["app", "util", "idb", "sm", "api", "cyc", "alp", "shp", "ui", "tr", "trh"];
+      // Define presets using new 4-char IDs
+      // Minimal: APPL's hard dependencies only (will have no UI, just console logs)
+      const minimalSubset = ["APPL", "UTIL", "STMT", "IDXB", "APIC", "CYCL", "AGLP", "STHP", "TRUN", "TRHP", "UIMN"];
+      // Standard: Adds read tools and prompt for a functional agent
+      const standardSubset = ["APPL", "UTIL", "STMT", "IDXB", "APIC", "CYCL", "PRMT", "AGLP", "STHP", "TRUN", "TLRD", "TRHP", "UIMN"];
+      const fullSubset = boot.config.upgrades.filter(u => u.id !== "TLWR").map(u => u.id); // Everything except TLWR
       
       // Apply preset
       const presetMappings = {
-        "none": [],
+        "minimal": minimalSubset,
         "standard": standardSubset,
-        "all": boot.config.upgrades.map((u) => u.id)
+        "full": fullSubset
       };
       
       const presetUpgrades = presetMappings[preset] || [];
       
       presetUpgrades.forEach((id) => {
+        boot.selectedUpgrades.push(id);
+        // Update both old selection cards and new cluster items
         const card = document.querySelector(`.selection-card[data-id="${id}"]`);
         if (card) {
-          boot.selectedUpgrades.push(id);
           card.classList.add("selected");
           card.querySelector('input[type="checkbox"]').checked = true;
         }
+        const clusterItem = document.querySelector(`#upgrade-${id}`);
+        if (clusterItem) {
+          clusterItem.checked = true;
+        }
       });
+      
+      // Restore RSI state if it was enabled
+      if (rsiEnabled && !boot.selectedUpgrades.includes("TLWR")) {
+        boot.selectedUpgrades.push("TLWR");
+      }
       
       boot.updatePreview("upgrades");
     },
@@ -1435,7 +1673,14 @@
           const res = await fetch(fetchPath);
           if (!res.ok) throw new Error(`HTTP ${res.status}`);
           const content = await res.text();
+          
+          // Write to VFS (IndexedDB if enabled)
           await boot.vfs.write(vfsPath, content);
+          
+          // Also mirror to localStorage for sync access during awakening
+          // This is needed because eval context can't handle async reads
+          localStorage.setItem(boot.vfsPrefix + vfsPath, content);
+          
           artifactMetadata[vfsPath] = {
             id: vfsPath,
             versions: [{
@@ -1475,7 +1720,11 @@
         registeredWebComponents: [],
       };
       
-      await boot.vfs.write(boot.statePath, JSON.stringify(initialState));
+      const stateJson = JSON.stringify(initialState);
+      await boot.vfs.write(boot.statePath, stateJson);
+      
+      // Also mirror state to localStorage for sync access
+      localStorage.setItem(boot.vfsPrefix + boot.statePath, stateJson);
       
       updateProgress(95, "Awakening agent...");
       addLog("Genesis complete. State initialized.", "#ffd700");
@@ -1497,7 +1746,21 @@
       });
       
       try {
-        const appLogicContent = boot.vfs.read("/modules/app-logic.js");
+        // Handle both sync (localStorage) and async (IndexedDB) VFS
+        let appLogicContent;
+        const readResult = boot.vfs.read("/modules/app-logic.js");
+        
+        // Check if it's a Promise (IndexedDB) or direct value (localStorage)
+        if (readResult && typeof readResult.then === 'function') {
+          appLogicContent = await readResult;
+        } else {
+          appLogicContent = readResult;
+        }
+        
+        // Debug: Check what type of content we got
+        console.log("App logic content type:", typeof appLogicContent);
+        console.log("App logic content sample:", appLogicContent ? appLogicContent.substring(0, 100) : "null");
+        
         if (!appLogicContent) {
           console.error("VFS Contents:", {
             upgradesLoaded: boot.selectedUpgrades,
@@ -1506,6 +1769,11 @@
           });
           throw new Error("Could not read /modules/app-logic.js from VFS. Check if upgrades were properly installed.");
         }
+        
+        // Ensure we have a string
+        const appLogicString = typeof appLogicContent === 'string' 
+          ? appLogicContent 
+          : String(appLogicContent);
         
         const initialConfigForAgent = {
           VFS_PREFIX: boot.vfsPrefix,
@@ -1517,39 +1785,47 @@
         // Make boot available globally for the agent
         window.boot = boot;
         
-        // Create a wrapper that makes vfs.read synchronous if it's async
+        // Create a synchronous VFS wrapper for the agent context
+        // This wraps async operations to work with the eval'd code
         const vfsWrapper = {
           write: boot.vfs.write,
           clear: boot.vfs.clear,
           read: (path) => {
-            const result = boot.vfs.read(path);
-            // If it's a promise (async), we can't use it in sync context
-            // For now, return the sync version for localStorage
-            if (result && typeof result.then === 'function') {
-              console.warn(`Async VFS read falling back to localStorage for ${path}`);
-              return localStorage.getItem(boot.vfsPrefix + path);
+            // Try localStorage first for synchronous access
+            const localContent = localStorage.getItem(boot.vfsPrefix + path);
+            if (localContent !== null) {
+              return localContent;
             }
-            return result;
+            // If not in localStorage but using IndexedDB, we have a problem
+            // The eval context can't handle async operations properly
+            console.warn(`VFS read for ${path} not found in localStorage during sync read`);
+            return null;
           }
         };
         
         // Make the wrapper available globally BEFORE eval
         window.boot.vfsWrapper = vfsWrapper;
         
+        // Modify the app-logic content to handle sync VFS
+        // Replace await vfs.read with sync vfs.read
+        const modifiedAppLogic = appLogicString.replace(/await vfs\.read/g, 'vfs.read');
+        
         // Use eval to execute the code
         try {
           console.log("Executing agent core module...");
           eval(`
-            var config = ${JSON.stringify(initialConfigForAgent)};
-            var vfs = window.boot.vfsWrapper;
-            ${appLogicContent}
-            // CoreLogicModule is defined in app-logic.js
-            if (typeof CoreLogicModule === 'function') {
-              console.log('CoreLogicModule found, initializing...');
-              CoreLogicModule(config, vfs);
-            } else {
-              console.error('CoreLogicModule not found after evaluating app-logic.js');
-            }
+            (function() {
+              var config = ${JSON.stringify(initialConfigForAgent)};
+              var vfs = window.boot.vfsWrapper;
+              ${modifiedAppLogic}
+              // CoreLogicModule is defined in app-logic.js
+              if (typeof CoreLogicModule === 'function') {
+                console.log('CoreLogicModule found, initializing...');
+                CoreLogicModule(config, vfs);
+              } else {
+                console.error('CoreLogicModule not found after evaluating app-logic.js');
+              }
+            })();
           `);
           
           console.log("HANDOVER COMPLETE. Bootloader is now inert.");

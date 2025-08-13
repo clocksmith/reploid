@@ -9,7 +9,7 @@ body {
   flex-direction: column;
   gap: 1em;
 }
-h1 { text-align: center; color: #0f0; }
+h1 { text-align: center; color: #0ff; }
 fieldset {
   border: 1px solid #444;
   padding: 1em;
@@ -17,7 +17,7 @@ fieldset {
   flex-direction: column;
   gap: 0.5em;
 }
-legend { font-weight: bold; color: #0f0; padding: 0 0.5em; }
+legend { font-weight: bold; color: #0ff; padding: 0 0.5em; }
 label { display: block; margin-bottom: 0.5em; }
 textarea, input, button {
   font-family: inherit;
@@ -53,5 +53,5 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
 #current-cycle-content h4 { margin-top: 0; color: #0ff; }
 #current-cycle-content pre { white-space: pre-wrap; word-break: break-all; }
 .hidden { display: none; }
-#human-intervention-section fieldset { border-color: #ff0; }
-#human-intervention-section legend { color: #ff0; }
+#human-intervention-section fieldset { border-color: #0ff; }
+#human-intervention-section legend { color: #0ff; }
