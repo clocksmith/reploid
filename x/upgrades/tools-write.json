@@ -1,0 +1,48 @@
+[
+  {
+    "name": "write_artifact",
+    "description": "Creates or updates an artifact in the Virtual File System. This enables self-modification and evolution. Use responsibly.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string",
+          "description": "The VFS path where the artifact should be written (e.g., '/modules/ui-style.css')."
+        },
+        "content": {
+          "type": "string",
+          "description": "The content to write to the artifact."
+        },
+        "metadata": {
+          "type": "object",
+          "description": "Optional metadata about this write operation.",
+          "properties": {
+            "reason": {
+              "type": "string",
+              "description": "Why this artifact is being created or modified."
+            }
+          }
+        }
+      },
+      "required": ["path", "content"]
+    }
+  },
+  {
+    "name": "delete_artifact",
+    "description": "Deletes an artifact from the Virtual File System. Use with extreme caution.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string",
+          "description": "The VFS path of the artifact to delete."
+        },
+        "reason": {
+          "type": "string",
+          "description": "Required: Explanation of why this artifact is being deleted."
+        }
+      },
+      "required": ["path", "reason"]
+    }
+  }
+]

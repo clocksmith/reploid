@@ -1,125 +1,149 @@
 {
-"defaultCore": [
-"prompt",
-"app",
-"util",
-"idb",
-"sm",
-"shp",
-"api",
-"cyc",
-"alp",
-"tr",
-"trh",
-"worker",
-"ui",
-"style",
-"body",
-"tools",
-"sys-cfg",
-"sys-scratch",
-"sys-tools-dyn"
-],
+"defaultCore": ["APPL", "UTIL", "STMT", "IDXB", "APIC", "CYCL", "PRMT", "AGLP", "STHP", "TRUN", "TLRD", "TRHP", "UIMN"],
 "upgrades": [
 {
-"id": "prompt",
+"id": "PRMT",
 "path": "prompt-system.md",
-"description": "Core system prompt and identity."
+"description": "Core system prompt and identity",
+"category": "agent"
 },
 {
-"id": "app",
+"id": "APPL",
 "path": "app-logic.js",
-"description": "Main application orchestrator."
+"description": "Main application orchestrator",
+"category": "core"
 },
 {
-"id": "util",
+"id": "UTIL",
 "path": "utils.js",
-"description": "Essential utilities and Error classes."
+"description": "Essential utilities and error classes",
+"category": "core"
 },
 {
-"id": "idb",
+"id": "IDXB",
 "path": "storage-indexeddb.js",
-"description": "Default IndexedDB persistence layer."
+"description": "IndexedDB persistence layer",
+"category": "storage"
 },
 {
-"id": "sm",
+"id": "STMT",
 "path": "state-manager.js",
-"description": "State management and VFS logic."
+"description": "State management and VFS logic",
+"category": "core"
 },
 {
-"id": "shp",
+"id": "STHP",
 "path": "state-helpers-pure.js",
-"description": "Pure functions for state logic."
+"description": "Pure functions for state logic",
+"category": "agent"
 },
 {
-"id": "api",
+"id": "APIC",
 "path": "api-client.js",
-"description": "Gemini API communication client."
+"description": "Gemini API communication client",
+"category": "agent"
 },
 {
-"id": "cyc",
+"id": "CYCL",
 "path": "agent-cycle.js",
-"description": "The agent's main cognitive loop."
+"description": "The agent's main cognitive loop",
+"category": "agent"
 },
 {
-"id": "alp",
+"id": "AGLP",
 "path": "agent-logic-pure.js",
-"description": "Pure functions for agent reasoning."
+"description": "Pure functions for agent reasoning",
+"category": "agent"
 },
 {
-"id": "tr",
+"id": "TRUN",
 "path": "tool-runner.js",
-"description": "Tool execution engine."
+"description": "Tool execution engine",
+"category": "tools"
 },
 {
-"id": "trh",
+"id": "TRHP",
 "path": "tool-runner-pure-helpers.js",
-"description": "Pure functions for tool logic."
+"description": "Pure functions for tool logic",
+"category": "tools"
 },
 {
-"id": "worker",
+"id": "WRKR",
 "path": "tool-worker.js",
-"description": "Sandboxed Web Worker for tools."
+"description": "Sandboxed Web Worker for tools",
+"category": "experimental"
 },
 {
-"id": "ui",
+"id": "UIMN",
 "path": "ui-manager.js",
-"description": "Minimal developer console UI manager."
+"description": "Developer console UI manager",
+"category": "ui"
 },
 {
-"id": "style",
+"id": "STYL",
 "path": "ui-style.css",
-"description": "Minimal CSS for the dev console."
+"description": "CSS for the dev console",
+"category": "ui"
 },
 {
-"id": "body",
+"id": "BODY",
 "path": "ui-body-template.html",
-"description": "HTML structure for the dev console."
+"description": "HTML structure for the dev console",
+"category": "ui"
 },
 {
-"id": "tools",
-"path": "data-tools-static.json",
-"description": "Static tool definitions, including introspection."
+"id": "TLRD",
+"path": "tools-read.json",
+"description": "Read-only tools for safe introspection",
+"category": "tools"
 },
 {
-"id": "eval",
+"id": "TLWR",
+"path": "tools-write.json",
+"description": "Write tools that enable RSI",
+"category": "tools"
+},
+{
+"id": "EVAL",
 "path": "tool-evaluator.js",
-"description": "(Optional) Self-evaluation tool package."
+"description": "Self-evaluation tool package",
+"category": "experimental"
 },
 {
-"id": "sys-cfg",
+"id": "SCFG",
 "path": "system-config.json",
-"description": "System Artifact: Default agent configuration."
+"description": "Default agent configuration",
+"category": "storage"
 },
 {
-"id": "sys-scratch",
+"id": "SCRT",
 "path": "system-scratchpad.md",
-"description": "System Artifact: Agent's working memory scratchpad."
+"description": "Agent's working memory scratchpad",
+"category": "experimental"
 },
 {
-"id": "sys-tools-dyn",
+"id": "STLD",
 "path": "system-tools-dynamic.json",
-"description": "System Artifact: Manifest for agent-created dynamic tools."
+"description": "Manifest for agent-created dynamic tools",
+"category": "experimental"
+},
+{
+"id": "MTCP",
+"path": "meta-tool-creator.js",
+"description": "Meta-tool creation patterns and utilities",
+"category": "experimental"
+},
+{
+"id": "GMOD",
+"path": "goal-modifier.js",
+"description": "Safe goal modification and evolution mechanisms",
+"category": "experimental"
+},
+{
+"id": "BLPR",
+"path": "blueprint-creator.js",
+"description": "Blueprint generation and management system",
+"category": "experimental"
 }
 ],
 "blueprints": [
@@ -212,6 +236,36 @@
 "id": "0x000012",
 "path": "0x000012-structured-self-evaluation.md",
 "description": "Proposes a framework for a structured, LLM-driven self-evaluation tool."
+},
+{
+"id": "0x000013",
+"path": "0x000013-system-configuration-structure.md",
+"description": "Blueprint for SCFG: System configuration for runtime behavior control."
+},
+{
+"id": "0x000014",
+"path": "0x000014-working-memory-scratchpad.md",
+"description": "Blueprint for SCRT: Agent's transient working memory system."
+},
+{
+"id": "0x000015",
+"path": "0x000015-dynamic-tool-creation.md",
+"description": "Blueprint for STLD: Creating and managing dynamic tools at runtime."
+},
+{
+"id": "0x000016",
+"path": "0x000016-meta-tool-creation-patterns.md",
+"description": "Meta-patterns and principles for designing new tools."
+},
+{
+"id": "0x000017",
+"path": "0x000017-goal-modification-safety.md",
+"description": "Safe patterns for agent goal evolution and modification."
+},
+{
+"id": "0x000018",
+"path": "0x000018-blueprint-creation-meta.md",
+"description": "Meta-blueprint: How to create new blueprints for knowledge transfer."
 }
 ]
 }
