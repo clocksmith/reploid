@@ -1,8 +1,27 @@
-const StorageModule = (config, logger, Errors) => {
-  const DB_NAME = config.VFS_PREFIX + 'REPLOID_IDB_V2';
-  const STORE_NAME = 'artifacts';
-  const DB_VERSION = 1;
-  let db;
+// Standardized Storage Module for REPLOID
+// IndexedDB backend for persistent artifact storage
+
+const Storage = {
+  metadata: {
+    id: 'Storage',
+    version: '1.0.0',
+    dependencies: ['config', 'logger', 'Errors'],
+    async: false,
+    type: 'service'
+  },
+  
+  factory: (deps) => {
+    // Validate dependencies
+    const { config, logger, Errors } = deps;
+    
+    if (!config || !logger || !Errors) {
+      throw new Error('Storage: Missing required dependencies');
+    }
+    
+    const DB_NAME = config.VFS_PREFIX + 'REPLOID_IDB';
+    const STORE_NAME = 'artifacts';
+    const DB_VERSION = 1;
+    let db;
 
   const initDB = () => {
     return new Promise((resolve, reject) => {
@@ -90,16 +109,30 @@ const StorageModule = (config, logger, Errors) => {
     }
   };
   
-  const getState = () => getArtifactContent(config.STATE_PATH);
-  const saveState = (stateString) => setArtifactContent(config.STATE_PATH, stateString);
-  const removeState = () => deleteArtifactVersion(config.STATE_PATH);
-  
-  return {
-    getArtifactContent,
-    setArtifactContent,
-    deleteArtifactVersion,
-    getState,
-    saveState,
-    removeState,
-  };
+    const getState = () => getArtifactContent(config.STATE_PATH);
+    const saveState = (stateString) => setArtifactContent(config.STATE_PATH, stateString);
+    const removeState = () => deleteArtifactVersion(config.STATE_PATH);
+    
+    // Public API
+    return {
+      api: {
+        getArtifactContent,
+        setArtifactContent,
+        deleteArtifactVersion,
+        getState,
+        saveState,
+        removeState,
+      }
+    };
+  }
 };
+
+// Legacy compatibility wrapper
+const StorageModule = (config, logger, Errors) => {
+  const instance = Storage.factory({ config, logger, Errors });
+  return instance.api;
+};
+
+// Export both formats
+Storage;
+StorageModule;

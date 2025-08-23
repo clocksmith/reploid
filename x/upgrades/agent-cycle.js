@@ -1,43 +1,30 @@
-const CycleLogicModule = (
-  config,
-  logger,
-  Utils,
-  Storage,
-  StateManager,
-  UI,
-  ApiClient,
-  ToolRunner,
-  Errors,
-  AgentLogicPureHelpers
-) => {
-  if (
-    !config ||
-    !logger ||
-    !Utils ||
-    !Storage ||
-    !StateManager ||
-    !UI ||
-    !ApiClient ||
-    !ToolRunner ||
-    !Errors ||
-    !AgentLogicPureHelpers
-  ) {
-    const internalLog = logger || console;
-    internalLog.error("CycleLogicModule initialization failed: Missing dependencies.");
-    return {
-        executeCycle: () => Promise.reject(new Error("CycleLogic not initialized.")),
-        isRunning: () => false,
-        isAutonomous: () => false,
-    };
-  }
+// Standardized Cycle Logic Module for REPLOID
+// Implements the agent's main cognitive loop
 
-  const {
-    ApplicationError,
-    ApiError,
-    ToolError,
-    StateError,
-    AbortError,
-  } = Errors;
+const CycleLogic = {
+  metadata: {
+    id: 'CycleLogic',
+    version: '1.0.0',
+    dependencies: ['config', 'logger', 'Utils', 'Storage', 'StateManager', 'UI', 'ApiClient', 'ToolRunner', 'Errors', 'AgentLogicPureHelpers'],
+    async: false,
+    type: 'service'
+  },
+  
+  factory: (deps) => {
+    // Validate dependencies
+    const { config, logger, Utils, Storage, StateManager, UI, ApiClient, ToolRunner, Errors, AgentLogicPureHelpers } = deps;
+    
+    if (!config || !logger || !Utils || !Storage || !StateManager || !UI || !ApiClient || !ToolRunner || !Errors || !AgentLogicPureHelpers) {
+      throw new Error('CycleLogic: Missing required dependencies');
+    }
+    
+    const {
+      ApplicationError,
+      ApiError,
+      ToolError,
+      StateError,
+      AbortError,
+    } = Errors;
   let _isRunning = false;
   let _abortRequested = false;
 
@@ -316,10 +303,24 @@ Respond with a JSON object containing your proposed changes.`;
     ApiClient.abortCurrentCall("User Abort Request");
   };
 
-  return {
-    executeCycle,
-    isRunning: () => _isRunning,
-    isAutonomous: () => false,
-    abortCurrentCycle,
-  };
+    // Public API
+    return {
+      api: {
+        executeCycle,
+        isRunning: () => _isRunning,
+        isAutonomous: () => false,
+        abortCurrentCycle,
+      }
+    };
+  }
 };
+
+// Legacy compatibility wrapper
+const CycleLogicModule = (config, logger, Utils, Storage, StateManager, UI, ApiClient, ToolRunner, Errors, AgentLogicPureHelpers) => {
+  const instance = CycleLogic.factory({ config, logger, Utils, Storage, StateManager, UI, ApiClient, ToolRunner, Errors, AgentLogicPureHelpers });
+  return instance.api;
+};
+
+// Export both formats
+CycleLogic;
+CycleLogicModule;

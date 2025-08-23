@@ -1,6 +1,19 @@
 {
 "defaultCore": ["APPL", "UTIL", "STMT", "IDXB", "APIC", "CYCL", "PRMT", "AGLP", "STHP", "TRUN", "TLRD", "TRHP", "UIMN"],
+"standardizedCore": ["MLDR", "MMNF", "APPL", "UTIL", "STMT", "IDXB", "APIC", "CYCL", "PRMT", "AGLP", "STHP", "TRUN", "TLRD", "TRHP", "UIMN"],
 "upgrades": [
+{
+"id": "MLDR",
+"path": "boot-module-loader.js",
+"description": "Standardized module loader system",
+"category": "core"
+},
+{
+"id": "MMNF",
+"path": "module-manifest.json",
+"description": "Module dependency manifest",
+"category": "core"
+},
 {
 "id": "PRMT",
 "path": "prompt-system.md",

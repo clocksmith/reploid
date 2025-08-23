@@ -1,15 +1,24 @@
-const ToolRunnerModule = (
-  config,
-  logger,
-  Storage,
-  StateManager,
-  ApiClient,
-  Errors,
-  Utils,
-  ToolRunnerPureHelpers
-) => {
+// Standardized Tool Runner Module for REPLOID
+// Executes static and dynamic tools within the agent
 
-  const { ToolError, ArtifactError } = Errors;
+const ToolRunner = {
+  metadata: {
+    id: 'ToolRunner',
+    version: '1.0.0',
+    dependencies: ['config', 'logger', 'Storage', 'StateManager', 'ApiClient', 'Errors', 'Utils', 'ToolRunnerPureHelpers'],
+    async: false,
+    type: 'service'
+  },
+  
+  factory: (deps) => {
+    // Validate dependencies
+    const { config, logger, Storage, StateManager, ApiClient, Errors, Utils, ToolRunnerPureHelpers } = deps;
+    
+    if (!config || !logger || !Storage || !StateManager || !ApiClient || !Errors || !Utils || !ToolRunnerPureHelpers) {
+      throw new Error('ToolRunner: Missing required dependencies');
+    }
+    
+    const { ToolError, ArtifactError } = Errors;
 
   const runTool = async (
     toolName,
@@ -151,15 +160,131 @@ const ToolRunnerModule = (
       }
     }
     
-    throw new ToolError(`Dynamic tool execution for '${toolName}' is not yet implemented.`);
+    // Execute dynamic tool
+    const dynamicTool = injectedDynamicTools.find(t => t.declaration.name === toolName);
+    if (dynamicTool) {
+      return await executeDynamicTool(dynamicTool, toolArgs);
+    }
+    
+    throw new ToolError(`Tool '${toolName}' is not implemented.`);
+  };
+  
+  // Execute dynamic tool with safe execution options
+  const executeDynamicTool = async (toolDef, toolArgs) => {
+    logger.info(`[ToolRunner] Executing dynamic tool: ${toolDef.declaration.name}`);
+    
+    const { implementation } = toolDef;
+    
+    if (implementation.type === 'javascript') {
+      // Use blob URL for safe execution if enabled
+      if (config.useBlobExecution) {
+        return await executeInBlobContext(implementation.code, toolArgs);
+      } else {
+        // Fallback to worker execution
+        return await executeInWorker(implementation.code, toolArgs);
+      }
+    } else if (implementation.type === 'composite') {
+      // Execute composite tool steps
+      const results = [];
+      for (const step of implementation.steps) {
+        const stepResult = await runTool(step.tool, 
+          JSON.parse(step.args_template.replace(/\$(\w+)/g, (_, key) => 
+            JSON.stringify(toolArgs[key]))));
+        results.push(stepResult);
+      }
+      return results;
+    } else {
+      throw new ToolError(`Unknown implementation type: ${implementation.type}`);
+    }
+  };
+  
+  // Execute code in blob context for safe isolation
+  const executeInBlobContext = async (code, args) => {
+    logger.debug('[ToolRunner] Creating blob context for safe execution');
+    
+    // Create isolated module code
+    const moduleCode = `
+      // Blob Context for Safe Tool Execution
+      const execute = async (args) => {
+        const run = async (params) => {
+          ${code}
+        };
+        return await run(args);
+      };
+      
+      // Export the executor
+      export default execute;
+    `;
+    
+    // Create blob URL
+    const blob = new Blob([moduleCode], { type: 'application/javascript' });
+    const moduleUrl = URL.createObjectURL(blob);
+    
+    try {
+      // Dynamic import from blob URL
+      const module = await import(moduleUrl);
+      const result = await module.default(args);
+      
+      // Clean up
+      URL.revokeObjectURL(moduleUrl);
+      return result;
+    } catch (error) {
+      URL.revokeObjectURL(moduleUrl);
+      logger.error('[ToolRunner] Blob execution failed:', error);
+      throw new ToolError(`Tool execution failed: ${error.message}`, error);
+    }
+  };
+  
+  // Execute code in worker (existing functionality)
+  const executeInWorker = async (code, args) => {
+    logger.debug('[ToolRunner] Executing in worker');
+    
+    return new Promise((resolve, reject) => {
+      const worker = new Worker('/upgrades/tool-worker.js');
+      
+      worker.onmessage = (event) => {
+        const { success, result, error } = event.data;
+        
+        if (success) {
+          resolve(result);
+        } else {
+          reject(new ToolError(error?.message || 'Worker execution failed', error));
+        }
+        worker.terminate();
+      };
+      
+      worker.onerror = (error) => {
+        reject(new ToolError('Worker error', error));
+        worker.terminate();
+      };
+      
+      worker.postMessage({
+        type: 'init',
+        payload: { toolCode: code, toolArgs: args }
+      });
+    });
   };
 
   const convertToGeminiFunctionDeclaration = (mcpToolDefinition) => {
       return ToolRunnerPureHelpers.convertToGeminiFunctionDeclarationPure(mcpToolDefinition);
   };
 
-  return {
-    runTool,
-    convertToGeminiFunctionDeclaration
-  };
+    // Public API
+    return {
+      api: {
+        runTool,
+        convertToGeminiFunctionDeclaration
+      }
+    };
+  }
 };
+
+// Legacy compatibility wrapper
+const ToolRunnerModule = (config, logger, Storage, StateManager, ApiClient, Errors, Utils, ToolRunnerPureHelpers) => {
+  const instance = ToolRunner.factory({ config, logger, Storage, StateManager, ApiClient, Errors, Utils, ToolRunnerPureHelpers });
+  return instance.api;
+};
+
+// Export both formats
+ToolRunner;
+ToolRunnerModule;

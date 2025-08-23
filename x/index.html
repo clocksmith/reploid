@@ -587,6 +587,49 @@
       #log-area .info { color: #0ff; }
       #log-area .success { color: #0f0; }
       
+      /* Details/Summary Styling */
+      details {
+        border: 1px solid #444;
+        background: rgba(0,0,0,0.3);
+        transition: all 0.3s;
+      }
+      
+      details[open] {
+        border-color: #0ff;
+        background: rgba(0,255,255,0.02);
+      }
+      
+      details summary {
+        padding: 12px 15px;
+        background: rgba(0,255,255,0.02);
+        color: #0ff;
+        cursor: pointer;
+        user-select: none;
+        transition: all 0.3s;
+        font-weight: bold;
+      }
+      
+      details summary:hover {
+        background: rgba(0,255,255,0.05);
+        border-color: #0ff;
+      }
+      
+      details summary::marker,
+      details summary::-webkit-details-marker {
+        display: none;
+      }
+      
+      details summary::before {
+        content: '▶';
+        display: inline-block;
+        margin-right: 10px;
+        transition: transform 0.3s;
+      }
+      
+      details[open] summary::before {
+        transform: rotate(90deg);
+      }
+      
       /* Utilities */
       .hidden { display: none !important; }
       
@@ -1073,33 +1116,39 @@
 
       container.innerHTML = `
         <div class="selection-panel">
-          <h2 style="color: #0ff;">┌─ SELECT CAPABILITIES ─┐</h2>
-          <p style="color: #888;">Choose capabilities to install in the agent</p>
+          <h2 style="color: #0ff;">┌─ CAPABILITIES ─┐</h2>
+          <p style="color: #ffd700; font-weight: bold;">✓ All upgrades selected by default</p>
+          <p style="color: #888; font-size: 0.9em; margin-top: 5px;">Click below to customize selection if needed</p>
           
           <div class="preset-buttons">
             <button class="preset-btn" data-preset="minimal">MINIMAL</button>
-            <button class="preset-btn preset-selected" data-preset="standard">STANDARD</button>
-            <button class="preset-btn" data-preset="full">FULL</button>
+            <button class="preset-btn" data-preset="standard">STANDARD</button>
+            <button class="preset-btn preset-selected" data-preset="full">FULL</button>
           </div>
           
-          <div class="clustered-grid" id="upgrades-clusters">
-            ${Object.entries(categories).filter(([_, cat]) => cat.upgrades.length > 0).map(([key, category]) => `
-              <div class="upgrade-cluster" data-category="${key}">
-                <div class="cluster-header">${category.name}</div>
-                <div class="cluster-items">
-                  ${category.upgrades.map(u => `
-                    <div class="cluster-item" data-id="${u.id}" title="${u.description}">
-                      <input type="checkbox" id="upgrade-${u.id}" />
-                      <label for="upgrade-${u.id}">
-                        <span class="item-id">${u.id}</span>
-                        <span class="item-name">${u.path.split('.')[0]}</span>
-                      </label>
-                    </div>
-                  `).join('')}
+          <details style="margin-top: 20px;">
+            <summary style="cursor: pointer; padding: 10px; border: 1px solid #444; background: rgba(0,255,255,0.02); color: #0ff;">
+              ▼ Advanced: Customize Upgrade Selection
+            </summary>
+            <div class="clustered-grid" id="upgrades-clusters" style="margin-top: 15px;">
+              ${Object.entries(categories).filter(([_, cat]) => cat.upgrades.length > 0).map(([key, category]) => `
+                <div class="upgrade-cluster" data-category="${key}">
+                  <div class="cluster-header">${category.name}</div>
+                  <div class="cluster-items">
+                    ${category.upgrades.map(u => `
+                      <div class="cluster-item" data-id="${u.id}" title="${u.description}">
+                        <input type="checkbox" id="upgrade-${u.id}" />
+                        <label for="upgrade-${u.id}">
+                          <span class="item-id">${u.id}</span>
+                          <span class="item-name">${u.path.split('.')[0]}</span>
+                        </label>
+                      </div>
+                    `).join('')}
+                  </div>
                 </div>
-              </div>
-            `).join('')}
-          </div>
+              `).join('')}
+            </div>
+          </details>
           
           <div style="margin: 20px 0; padding: 15px; border: 2px solid #ffd700; background: rgba(255,215,0,0.05);">
             <div style="display: flex; align-items: center; justify-content: space-between;">
@@ -1184,8 +1233,8 @@
         boot.updatePreview("upgrades");
       });
 
-      // Apply standard preset by default
-      boot.applyPreset("standard");
+      // Apply full preset by default (all upgrades except TLWR for safety)
+      boot.applyPreset("full");
       boot.updatePreview("upgrades");
     },
 
@@ -1194,8 +1243,9 @@
 
       container.innerHTML = `
         <div class="selection-panel">
-          <h2 style="color: #0ff;">┌─ SELECT BLUEPRINTS ─┐</h2>
-          <p style="color: #888;">Construction manuals for building upgrades via RSI</p>
+          <h2 style="color: #0ff;">┌─ BLUEPRINTS ─┐</h2>
+          <p style="color: #888; font-weight: bold;">○ No blueprints selected by default</p>
+          <p style="color: #888; font-size: 0.9em; margin-top: 5px;">Blueprints are optional reference materials for RSI</p>
           
           <div style="margin: 15px 0; padding: 15px; background: rgba(0,255,255,0.05); border: 1px solid #0ff;">
             <div style="color: #0ff; font-weight: bold; margin-bottom: 10px;">WHAT ARE BLUEPRINTS?</div>
@@ -1214,7 +1264,12 @@
             <button class="preset-btn" data-preset="all">ALL</button>
           </div>
           
-          <div class="selection-grid" id="blueprints-grid"></div>
+          <details style="margin-top: 20px;">
+            <summary style="cursor: pointer; padding: 10px; border: 1px solid #444; background: rgba(0,255,255,0.02); color: #0ff;">
+              ▼ Advanced: Select Blueprints
+            </summary>
+            <div class="selection-grid" id="blueprints-grid" style="margin-top: 15px;"></div>
+          </details>
           
           <div class="cli-fallback">
             <details>
