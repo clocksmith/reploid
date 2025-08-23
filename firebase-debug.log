@@ -1,0 +1,34 @@
+[debug] [2025-08-13T17:18:41.595Z] ----------------------------------------------------------------------
+[debug] [2025-08-13T17:18:41.600Z] Command:       /opt/homebrew/Cellar/node/23.11.0/bin/node /opt/homebrew/bin/firebase deploy
+[debug] [2025-08-13T17:18:41.600Z] CLI Version:   14.4.0
+[debug] [2025-08-13T17:18:41.600Z] Platform:      darwin
+[debug] [2025-08-13T17:18:41.600Z] Node Version:  v23.11.0
+[debug] [2025-08-13T17:18:41.601Z] Time:          Wed Aug 13 2025 13:18:41 GMT-0400 (Eastern Daylight Time)
+[debug] [2025-08-13T17:18:41.601Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2025-08-13T17:18:41.675Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2025-08-13T17:18:41.675Z] > authorizing via signed-in user (cto@hellovivacare.com)
+[debug] [2025-08-13T17:18:41.675Z] [iam] checking project reploid for permissions ["firebase.projects.get","firebasehosting.sites.update"]
+[debug] [2025-08-13T17:18:41.675Z] Checked if tokens are valid: true, expires at: 1755109096517
+[debug] [2025-08-13T17:18:41.675Z] Checked if tokens are valid: true, expires at: 1755109096517
+[debug] [2025-08-13T17:18:41.676Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/reploid:testIamPermissions [none]
+[debug] [2025-08-13T17:18:41.676Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/reploid:testIamPermissions x-goog-quota-user=projects/reploid
+[debug] [2025-08-13T17:18:41.676Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/reploid:testIamPermissions {"permissions":["firebase.projects.get","firebasehosting.sites.update"]}
+[debug] [2025-08-13T17:18:42.108Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects/reploid:testIamPermissions 200
+[debug] [2025-08-13T17:18:42.109Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/reploid:testIamPermissions {}
+[debug] [2025-08-13T17:18:42.109Z] [iam] error while checking permissions, command may fail: Authorization failed. This account is missing the following required permissions on project reploid:
+
+  firebase.projects.get
+  firebasehosting.sites.update
+[debug] [2025-08-13T17:18:42.109Z] Checked if tokens are valid: true, expires at: 1755109096517
+[debug] [2025-08-13T17:18:42.110Z] Checked if tokens are valid: true, expires at: 1755109096517
+[debug] [2025-08-13T17:18:42.110Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/reploid [none]
+[debug] [2025-08-13T17:18:42.416Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/reploid 403
+[debug] [2025-08-13T17:18:42.416Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/reploid {"error":{"code":403,"message":"The caller does not have permission","status":"PERMISSION_DENIED"}}
+[debug] [2025-08-13T17:18:42.417Z] Request to https://firebase.googleapis.com/v1beta1/projects/reploid had HTTP Error: 403, The caller does not have permission
+[debug] [2025-08-13T17:18:42.472Z] FirebaseError: Request to https://firebase.googleapis.com/v1beta1/projects/reploid had HTTP Error: 403, The caller does not have permission
+    at responseToError (/opt/homebrew/lib/node_modules/firebase-tools/lib/responseToError.js:52:12)
+    at RetryOperation._fn (/opt/homebrew/lib/node_modules/firebase-tools/lib/apiv2.js:312:77)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+[error] 
+[error] Error: Failed to get Firebase project reploid. Please make sure the project exists and your account has permission to access it.

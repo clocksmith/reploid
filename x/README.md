@@ -165,6 +165,7 @@ x/
 ├── boot.js             # Genesis protocol (embedded)
 ├── boot-idb-vfs.js     # IndexedDB VFS implementation
 ├── config.json         # Upgrade & blueprint registry
+├── STANDARDIZATION.md  # Module system documentation
 │
 ├── upgrades/           # Capability modules
 │   ├── Core System
@@ -182,16 +183,30 @@ x/
 │   │   ├── tools-read.json      # TLRD - Read tools
 │   │   └── tools-write.json     # TLWR - Write tools
 │   │
-│   └── RSI Modules
+│   ├── RSI Modules
 │       ├── meta-tool-creator.js # MTCP - Tool creation
 │       ├── goal-modifier.js     # GMOD - Goal evolution
 │       └── blueprint-creator.js # BLPR - Knowledge gen
+│   │
+│   └── Module System
+│       ├── boot-module-loader.js # Standardized module loader
+│       └── module-manifest.json  # Module dependency manifest
 │
 └── blueprints/         # Knowledge base
     ├── 0x000001-0x000015/  # Standard blueprints
     └── 0x000016-0x000018/  # Meta blueprints
 
 ```
+
+### 🎨 Standardized Module System
+
+All modules now follow a consistent format with:
+- **Metadata**: Version, dependencies, type
+- **Factory Pattern**: Clean dependency injection
+- **Legacy Support**: Backward compatibility maintained
+- **Module Loader**: Automatic dependency resolution
+
+See [STANDARDIZATION.md](./STANDARDIZATION.md) for details.
 
 ## 🎮 Using the Interface
 
