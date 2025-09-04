@@ -189,18 +189,19 @@ Works on phones, tablets, and desktops. Touch-friendly interface.
 
 ```
 reploid/
-├── x/                      # Main REPLOID agent system
-│   ├── index.html         # Entry point
-│   ├── config.json        # Upgrade & blueprint registry
-│   ├── upgrades/          # Capability modules
-│   │   ├── Core (APPL, UTIL, STMT)
-│   │   ├── Tools (TLRD, TLWR, TRUN)
-│   │   ├── Agent (CYCL, APIC, PRMT)
-│   │   └── RSI (MTCP, GMOD, BLPR)
-│   └── blueprints/        # Knowledge documents
-│       ├── 0x000001-0x000015  # Standard
-│       └── 0x000016-0x000018  # Meta
-└── r/                     # LLM inference backend
+└── x/                      # Main REPLOID agent system
+    ├── index.html         # Entry point
+    ├── config.json        # Upgrade & blueprint registry
+    ├── upgrades/          # Capability modules
+    │   ├── Core (APPL, UTIL, STMT)
+    │   ├── Tools (TLRD, TLWR, TRUN)
+    │   ├── Agent (CYCL, APIC, PRMT)
+    │   ├── RSI (MTCP, GMOD, BLPR)
+    │   └── Visualization (CNVS, VDAT)
+    └── blueprints/        # Knowledge documents
+        ├── 0x000001-0x000015  # Standard
+        ├── 0x000016-0x000018  # Meta
+        └── 0x000019          # Visual RSI
 
 ```
 
