@@ -1,6 +1,6 @@
 # REPLOID X - Recursive Self-Improvement Agent
 
-**[Back to Main Project](../README.md)** | **[LLM Backend (`/r/`)](../r/README.md)**
+**[Back to Main Project](../README.md)**
 
 ```
 ╔════════════════════════════════════════════════════════════════════════════════╗
@@ -313,7 +313,81 @@ That's REPLOID X. Not just an AI assistant, but an AI that assists itself in bec
 - [Main README](../README.md) - Project overview
 - [Blueprints](./blueprints/) - Knowledge base
 - [Upgrades](./upgrades/) - Capability modules
-- [LLM Backend](../r/README.md) - Inference engine
+
+## 🚧 TODO: Advanced Features
+
+### Multi-Agent Coordination
+**Goal**: Enable multiple REPLOID agents to work together on complex tasks
+
+- **Agent Discovery Protocol**: Implement WebRTC-based peer discovery for agents in the same network
+- **Task Distribution**: Create a task queue system that can split work across multiple agents
+- **Consensus Mechanisms**: Build voting/agreement protocols for collective decision making
+- **Shared Knowledge Base**: Implement a distributed knowledge graph that agents can contribute to and query
+- **Communication Protocol**: Design inter-agent messaging format with authentication and encryption
+- **Conflict Resolution**: Create mechanisms for handling disagreements between agents
+- **Collective Goal Setting**: Allow agents to negotiate and establish shared objectives
+
+### Long-term Memory with Vector Embeddings
+**Goal**: Give agents persistent memory that survives beyond immediate context
+
+- **Embedding Generation**: Integrate with embedding APIs (OpenAI, Cohere, or local models)
+- **Vector Database**: Implement in-browser vector storage using IndexedDB with HNSW indexing
+- **Memory Consolidation**: Create algorithms for summarizing and compressing old memories
+- **Semantic Search**: Build similarity search for retrieving relevant past experiences
+- **Memory Importance Scoring**: Develop heuristics for determining what to remember long-term
+- **Forgetting Mechanisms**: Implement graceful degradation of less important memories
+- **Episodic vs Semantic**: Separate memory systems for events vs learned facts
+
+### Goal Planning and Decomposition
+**Goal**: Enable agents to break down complex objectives into manageable steps
+
+- **Goal Hierarchy**: Create tree structures for representing nested sub-goals
+- **Dependency Graphs**: Build systems for tracking prerequisite relationships between tasks
+- **Planning Algorithms**: Implement STRIPS-like planning or hierarchical task networks
+- **Progress Tracking**: Create metrics for measuring goal completion and partial success
+- **Dynamic Replanning**: Allow agents to adjust plans based on unexpected outcomes
+- **Resource Estimation**: Build models for predicting time/token costs of different approaches
+- **Parallel Execution**: Identify and execute independent sub-goals simultaneously
+
+### Self-Improvement Through Reflection Logs
+**Goal**: Enable agents to learn from their own experiences and mistakes
+
+- **Experience Replay**: Store and review past decision-making processes
+- **Error Analysis**: Automatically identify patterns in failures and successes
+- **Performance Metrics**: Track objective measures of agent effectiveness over time
+- **Strategy Evolution**: Develop mechanisms for updating decision-making heuristics
+- **Meta-Learning**: Create systems for learning how to learn more effectively
+- **Behavioral Cloning**: Allow agents to learn from traces of successful executions
+- **Improvement Proposals**: Generate and test hypotheses about potential optimizations
+- **A/B Testing Framework**: Compare different strategies systematically
+- **Knowledge Distillation**: Compress learned behaviors into reusable modules
+
+### Implementation Roadmap
+
+1. **Phase 1: Foundation** (Current)
+   - Basic single-agent RSI capabilities ✅
+   - Module system and upgrades ✅
+   - Simple goal execution ✅
+
+2. **Phase 2: Memory & Reflection** (Next)
+   - Vector embedding integration
+   - Long-term memory implementation
+   - Basic reflection logging
+
+3. **Phase 3: Advanced Planning**
+   - Goal decomposition algorithms
+   - Dependency resolution
+   - Dynamic replanning
+
+4. **Phase 4: Multi-Agent Systems**
+   - Agent communication protocols
+   - Distributed task execution
+   - Collective intelligence emergence
+
+5. **Phase 5: Full RSI**
+   - Complete self-improvement loops
+   - Autonomous capability discovery
+   - Emergent optimization strategies
 
 ---
 

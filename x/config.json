@@ -1,5 +1,6 @@
 {
 "defaultCore": ["APPL", "UTIL", "STMT", "IDXB", "APIC", "CYCL", "PRMT", "AGLP", "STHP", "TRUN", "TLRD", "TRHP", "UIMN"],
+"visualRSICore": ["APPL", "UTIL", "STMT", "IDXB", "APIC", "CYCL", "PRMT", "AGLP", "STHP", "TRUN", "TLRD", "TLWR", "TRHP", "UIMN", "CNVS", "VDAT", "MTCP", "GMOD", "BLPR"],
 "standardizedCore": ["MLDR", "MMNF", "APPL", "UTIL", "STMT", "IDXB", "APIC", "CYCL", "PRMT", "AGLP", "STHP", "TRUN", "TLRD", "TRHP", "UIMN"],
 "upgrades": [
 {
@@ -157,6 +158,18 @@
 "path": "blueprint-creator.js",
 "description": "Blueprint generation and management system",
 "category": "experimental"
+},
+{
+"id": "CNVS",
+"path": "canvas-visualizer.js",
+"description": "2D canvas visualization for RSI insights",
+"category": "visualization"
+},
+{
+"id": "VDAT",
+"path": "viz-data-adapter.js",
+"description": "Transforms agent state into visual data",
+"category": "visualization"
 }
 ],
 "blueprints": [
@@ -279,6 +292,11 @@
 "id": "0x000018",
 "path": "0x000018-blueprint-creation-meta.md",
 "description": "Meta-blueprint: How to create new blueprints for knowledge transfer."
+},
+{
+"id": "0x000019",
+"path": "0x000019-visual-self-improvement.md",
+"description": "Visual RSI: Using 2D canvas visualization for pattern recognition and self-optimization."
 }
 ]
 }
