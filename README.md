@@ -1,4 +1,4 @@
-# REPLOID - Recursive Self-Improvement AI
+# REPLOID - A Browser-Native, Self-Improving AI Agent
 
 ```
 ╔════════════════════════════════════════════════════════════════════════════════╗
@@ -10,261 +10,104 @@
 ║     ██║  ██║███████╗██║     ███████╗╚██████╔╝██║██████╔╝                       ║
 ║     ╚═╝  ╚═╝╚══════╝╚═╝     ╚══════╝ ╚═════╝ ╚═╝╚═════╝                        ║
 ║                                                                                  ║
-║              🟦 Build an AI that can improve itself 🟨                          ║
+║              🟦 An AI that builds itself, right in your browser 🟨              ║
 ║                                                                                  ║
 ╚════════════════════════════════════════════════════════════════════════════════╝
 ```
 
-## 🚀 Quick Start
-
-```bash
-# Clone the repository
-git clone https://github.com/yourusername/reploid.git
-cd reploid/x
-
-# Open in browser (no build step!)
-open index.html
-
-# Or serve locally for better performance
-python -m http.server 8000
-# Navigate to http://localhost:8000
-```
-
 ## 🎯 What is REPLOID?
 
-REPLOID is an experimental AI agent system that can **modify its own code**. Unlike traditional AI assistants, REPLOID agents can:
+REPLOID is an experimental, browser-native AI agent that can **modify its own code**. It operates in a secure, sandboxed Virtual File System (VFS) within your browser, with no access to your local files. This allows it to safely rewrite its own functions, create new tools, and recursively self-improve without any risk to your machine.
 
-- ✏️ **Rewrite their own functions** while running
-- 🔧 **Create new tools** they weren't born with
-- 🎯 **Evolve their goals** based on learning
-- 📚 **Document discoveries** for future versions
-- 🔄 **Recursively self-improve** without human intervention
+The system is built on a "browser-first" philosophy. It is a 100% client-side application that can be enhanced with an optional, local Node.js server for added security and convenience.
 
-## 🧠 How It Works
+## 🚀 Quick Start
 
-### The Two-Part System
+1.  **Run the Application:**
+    *   **No-Install Method:** Simply open `index.html` in your browser.
+    *   **Recommended Method:** Serve the directory locally to enable the full feature set, including the optional proxy.
+      ```bash
+      # Serve the project root directory
+      python -m http.server 8000
+      # Navigate to http://localhost:8000 in your browser
+      ```
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                                                               │
-│   UPGRADES (Capabilities)     +    BLUEPRINTS (Knowledge)    │
-│   "What I CAN do"              +    "What I KNOW how to build"│
-│           ↓                              ↓                    │
-│   ┌──────────────────────────────────────────────────┐       │
-│   │            AWAKENED AGENT WITH RSI               │       │
-│   │         Can modify itself to become better       │       │
-│   └──────────────────────────────────────────────────┘       │
-│                                                               │
-└───────────────────────────────────────────────────────────────┘
-```
+2.  **Run the Optional Secure Proxy (Recommended):**
+    For a more secure experience that doesn't expose your API key in the browser, run the local Node.js proxy server.
+    ```bash
+    # Install dependencies
+    npm install
 
-### 🧬 Upgrades = Capabilities
-Think of these like **apps on a phone**. Each upgrade gives your agent specific abilities:
+    # Create a .env file from the example
+    cp .env.example .env
 
-| Upgrade | What It Does | Required for RSI? |
-|---------|--------------|-------------------|
-| **TLRD** | Read files and code | ✅ Yes |
-| **TLWR** | Write and modify files | ✅ Yes |
-| **MTCP** | Create new tools | ✅ Yes |
-| **GMOD** | Modify its own goals | ✅ Yes |
-| **BLPR** | Document knowledge | ✅ Yes |
+    # Add your GEMINI_API_KEY to the .env file
+    # GEMINI_API_KEY="your-api-key-here"
 
-### 📘 Blueprints = Knowledge
-Think of these like **programming tutorials**. They teach the agent HOW to build things:
+    # Start the server
+    npm start
+    ```
+    The web application will automatically detect and use the proxy.
 
-| Blueprint Type | Purpose | Example |
-|----------------|---------|---------|
-| **Standard** (0x000001-0x000015) | Build specific upgrades | How to create a state manager |
-| **Meta** (0x000016-0x000018) | Create NEW capabilities | How to design tools that don't exist yet |
+## 🧠 Core Architecture
 
-## 🎮 Using REPLOID
+REPLOID operates on a powerful dual-system of "Upgrades" and "Blueprints".
 
-### Step 1: Choose Your Mode
+*   **🧬 Upgrades (Capabilities):** These are the agent's "powers" or the functions it can perform. They are modular JavaScript files (e.g., `tool-runner.js`, `state-manager.js`) that are dynamically loaded during the boot sequence.
+*   **📘 Blueprints (Knowledge):** These are markdown documents that contain instructions, schemas, and architectural knowledge. The agent can read these to understand how it's built, enabling it to perform modifications and create new upgrades.
 
-When you start REPLOID, you'll see the Genesis Protocol with two modes:
+This entire system is assembled at runtime by a bootloader (`index.html`), allowing for a highly dynamic and configurable agent.
 
-#### 🎯 **Guided Mode** (Recommended for beginners)
-Simple checkboxes for what you want your agent to do:
-- ☑️ **Study and learn** - Analyze patterns
-- ☑️ **Modify itself** - Change its own code  
-- ☑️ **Create new tools** - Build new capabilities
-- ☑️ **Evolve goals** - Adapt its objectives
+## 🎮 The Genesis Protocol (Boot Wizard)
 
-#### ⚙️ **Expert Mode**
-Full control over individual upgrades and blueprints.
+When you first launch REPLOID, you are guided through the **Genesis Protocol** to configure your agent:
 
-### Step 2: Watch the RSI Readiness Indicator
+1.  **API Key:** Provide your Gemini API key. If you're running the secure proxy, this step will be skipped automatically.
+2.  **Upgrades:** Select the capabilities for your agent. You can start with a minimal set or enable everything for full RSI (Recursive Self-Improvement) potential.
+3.  **Blueprints:** Choose which knowledge documents to load into the agent's VFS. These are essential for self-modification tasks.
+4.  **Review & Awaken:** Review your configuration, set an initial goal, and "awaken" the agent.
 
-```
-RSI READINESS: ████████░░ 80%
-✅ Can read own code (TLRD)
-✅ Can write code (TLWR)
-✅ Has tool creation (MTCP)
-⚠️ Missing: Goal modification (GMOD)
-✅ Can document knowledge (BLPR)
-```
+## 🛡️ Safety & The Virtual File System (VFS)
 
-**For true RSI, you need 80%+ readiness!**
+REPLOID is designed with safety as a primary concern.
 
-### Step 3: Quick Configurations
+*   **Browser Sandbox:** The agent runs entirely within the browser's security sandbox.
+*   **Virtual File System:** The agent does not have access to your computer's file system. It operates on a virtual file system (VFS) stored in your browser's IndexedDB. All file operations (`read`, `write`, `search`) are simulations that act on this VFS.
+*   **Project Import/Export:** You can load your own projects into the VFS by providing a `.zip` file, and export the agent's work as a new `.zip` file.
 
-#### 🔄 **"I want full RSI"** → RSI FOCUS Preset
-One click gives you everything needed:
-- All core systems
-- Write capabilities (TLWR)
-- Meta-tool creation (MTCP)
-- Goal modification (GMOD)
-- Blueprint creation (BLPR)
-- All three meta blueprints
+## 🔗 Integration Notes
 
-#### 📚 **"I want to study first"** → Guided Mode
-1. Check "Study and learn"
-2. Select interesting blueprints
-3. Let the agent analyze patterns
+REPLOID is designed as a browser-native application that operates within a Virtual File System (VFS). While it can read about and understand external tools like [PAWS](../paws/), it cannot directly execute shell commands or interact with the local filesystem due to browser security constraints.
 
-#### 🛠️ **"I want to experiment"** → Guided Mode
-1. Check "Modify itself" + "Create new tools"
-2. Watch it build custom capabilities
-
-## 🔬 Understanding RSI (Recursive Self-Improvement)
-
-### The Path to True RSI
-
-```
-1. FOUNDATION → Agent understands its own code
-2. EXPERIMENTATION → Agent tries small modifications  
-3. CREATION → Agent builds new tools
-4. EVOLUTION → Agent improves its core architecture
-5. TRANSCENDENCE → Agent surpasses original design
-```
-
-### What Makes RSI Possible?
-
-1. **Read Access** (TLRD) - See and understand own code
-2. **Write Access** (TLWR) - Modify own code
-3. **Meta-Knowledge** (Blueprints) - Understand patterns of creation
-4. **Tool Creation** (MTCP) - Build capabilities that didn't exist
-5. **Goal Evolution** (GMOD) - Adapt objectives based on learning
-
-### Example RSI Goals
-
-The system generates intelligent goals based on your configuration:
-
-**Full RSI Setup:**
-```
-Achieve recursive self-improvement by:
-1. Study meta-blueprints 0x000016, 0x000017, 0x000018
-2. Create custom analysis tool using MTCP
-3. Document successful patterns with BLPR
-4. Iterate and improve own architecture
-```
-
-**Tool Creation Focus:**
-```
-Develop custom tool suite:
-1. Analyze existing tool patterns in TLRD/TLWR
-2. Design new specialized tool for code optimization
-3. Implement and test using MTCP
-4. Integrate into workflow
-```
-
-## 🎨 The Interface
-
-### Cyan & Gold Visual Language
-- 🟦 **Cyan** = Active capabilities, standard operations
-- 🟨 **Gold** = RSI features, meta-operations
-- Combined = Ready for self-improvement
-
-### Mobile Responsive
-Works on phones, tablets, and desktops. Touch-friendly interface.
-
-## 🛡️ Safety & Limitations
-
-- **Sandboxed**: Runs entirely in browser, can't affect your system
-- **API Key**: Stored locally, never transmitted except to Gemini
-- **Goal Alignment**: GMOD includes safety checks for goal evolution
-- **Immutable Constraints**: Some safety rules cannot be overridden
+For projects requiring filesystem access or shell command execution, consider:
+*   Running REPLOID's concepts in a Node.js environment (future feature)
+*   Using the proxy server to bridge browser and system capabilities
+*   Exporting REPLOID's work via ZIP files for use with external tools
 
 ## 📁 Project Structure
 
 ```
-reploid/
-└── x/                      # Main REPLOID agent system
-    ├── index.html         # Entry point
-    ├── config.json        # Upgrade & blueprint registry
-    ├── upgrades/          # Capability modules
-    │   ├── Core (APPL, UTIL, STMT)
-    │   ├── Tools (TLRD, TLWR, TRUN)
-    │   ├── Agent (CYCL, APIC, PRMT)
-    │   ├── RSI (MTCP, GMOD, BLPR)
-    │   └── Visualization (CNVS, VDAT)
-    └── blueprints/        # Knowledge documents
-        ├── 0x000001-0x000015  # Standard
-        ├── 0x000016-0x000018  # Meta
-        └── 0x000019          # Visual RSI
-
+/
+├── index.html              # Main application bootloader
+├── config.json             # Defines all available upgrades and blueprints
+├── server/
+│   └── proxy.js            # Optional Node.js secure proxy server
+├── upgrades/               # Directory of all capability modules (JS files)
+├── blueprints/             # Directory of all knowledge documents (MD files)
+├── docs/                   # Project documentation
+│   └── SYSTEM_ARCHITECTURE.md # In-depth technical details of the system
+├── styles/                 # CSS for the boot wizard and UI
+└── utils/                  # Client-side utility scripts
 ```
-
-## 💡 Tips for Success
-
-### For Beginners
-1. Start in **Guided Mode**
-2. Check "Modify itself" + "Create new tools"
-3. Watch the RSI Readiness meter
-4. Use the RSI FOCUS preset for best results
-
-### For Developers
-1. Study the meta blueprints (0x000016-0x000018)
-2. Experiment with MTCP to create custom tools
-3. Use BLPR to document your agent's discoveries
-4. Share interesting emergent behaviors
-
-### For Researchers
-1. Explore goal evolution with GMOD
-2. Test limits of self-modification
-3. Document emergent capabilities
-4. Study the safety mechanisms
 
 ## 🤝 Contributing
 
-We welcome contributions in:
-- New upgrade modules
-- Blueprint documentation  
-- Safety mechanisms
-- Emergent behavior studies
-- UI/UX improvements
-
-## ⚠️ Important Notes
-
-1. **API Key Required**: You need a Gemini API key to run the agent
-2. **Browser Storage**: Uses IndexedDB or localStorage for persistence
-3. **No Build Step**: Pure browser runtime, no Node.js required
-4. **Experimental**: This is research software, expect surprises
-
-## 🔮 The Vision
-
-Imagine an AI that:
-- Wakes up with basic capabilities
-- Studies how it was built
-- Identifies its own limitations
-- Designs improvements
-- Implements them
-- Becomes something new
-
-That's REPLOID. Not just an AI assistant, but an AI that assists itself in becoming better.
-
-## 📚 Learn More
-
-- [X Agent Documentation](./x/README.md) - Technical details
-- [Blueprints](./x/blueprints/) - Knowledge base
-- [Upgrades](./x/upgrades/) - Capability modules
+This is an experimental project. Contributions are welcome in all areas, including:
+*   New Upgrade modules and Agent Capabilities
+*   New Blueprints for the agent to learn from
+*   UI/UX enhancements
+*   Safety and security protocols
 
 ---
-
-**Ready to create an AI that improves itself?**
-
-```bash
-cd x && open index.html
-```
 
 *Welcome to the future of recursive self-improvement.* 🟦🟨
