@@ -1,0 +1,72 @@
+/* Dashboard Styles */
+
+#dashboard {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    grid-template-rows: auto 1fr auto;
+    grid-template-areas:
+        "goal thoughts"
+        "changes thoughts"
+        "toggle toggle";
+    gap: 15px;
+    height: 100vh;
+    padding: 15px;
+    box-sizing: border-box;
+    background-color: #0a0a14;
+    color: #e0e0e0;
+    font-family: 'Courier New', monospace;
+}
+
+.panel {
+    border: 1px solid #333;
+    padding: 15px;
+    background: rgba(0, 255, 255, 0.05);
+    overflow: auto;
+}
+
+#goal-panel { grid-area: goal; }
+#changes-panel { grid-area: changes; }
+#thought-panel { grid-area: thoughts; }
+#advanced-log-toggle { grid-area: toggle; }
+#advanced-log-panel { grid-area: thoughts; } /* Will occupy same space as thoughts */
+
+.panel h2 {
+    color: #0ff;
+    margin-top: 0;
+    font-size: 1.2em;
+    text-shadow: 0 0 5px #0ff;
+}
+
+#thought-stream p {
+    margin: 0 0 10px 0;
+    line-height: 1.6;
+    white-space: pre-wrap;
+}
+
+#diff-viewer pre {
+    margin: 0;
+    font-family: inherit;
+}
+
+.diff-add {
+    color: #0f0;
+    background-color: rgba(0, 255, 0, 0.1);
+}
+
+.diff-remove {
+    color: #f00;
+    background-color: rgba(255, 0, 0, 0.1);
+}
+
+#log-toggle-btn {
+    width: 100%;
+    padding: 10px;
+    background: #333;
+    color: #e0e0e0;
+    border: 1px solid #555;
+    cursor: pointer;
+}
+
+.hidden {
+    display: none !important;
+}

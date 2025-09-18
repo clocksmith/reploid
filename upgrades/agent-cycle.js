@@ -248,67 +248,41 @@ Respond with a JSON object containing your proposed changes.`;
     if (_isRunning) return;
     _isRunning = true;
     _abortRequested = false;
-    UI.setRunButtonState("Abort Cycle", false);
+    // UI.setRunButtonState("Abort Cycle", false); // Old UI
 
     const state = StateManager.getState();
     const currentCycle = state.totalCycles;
-    UI.clearCurrentCycleDetails();
-    UI.logToTimeline(currentCycle, `--- Cycle ${currentCycle} Start ---`);
+    UI.clearThoughts();
+    UI.clearFileDiffs();
+    UI.logToAdvanced(`--- Cycle ${currentCycle} Start ---`);
 
     try {
-        // Create or update scratchpad - self-healing pattern
-        const scratchpadPath = "/system/scratchpad.md";
-        const scratchpadContent = `Cycle ${currentCycle} Scratchpad:\n`;
-        const scratchpadMeta = await StateManager.getArtifactMetadata(scratchpadPath);
-        
-        if (!scratchpadMeta) {
-            // Create if missing - upgrade is self-sufficient
-            await StateManager.createArtifact(
-                scratchpadPath,
-                "markdown",
-                scratchpadContent,
-                "Agent's working memory scratchpad"
-            );
-        } else {
-            // Update if exists
-            await StateManager.updateArtifact(scratchpadPath, scratchpadContent);
-        }
-        
         const goalInfo = getActiveGoalInfo();
-        UI.logToTimeline(currentCycle, `Goal: ${Utils.trunc(goalInfo.latestGoal, 80)}`, "goal");
+        UI.updateGoal(goalInfo.latestGoal);
+        UI.logToAdvanced(`Goal: ${Utils.trunc(goalInfo.latestGoal, 80)}`);
 
         // 1. THINK
         const prompt = await _assembleCorePromptContext(state, goalInfo, currentCycle);
         const llmResult = await _executeLlmApiCallSequence(prompt, state, currentCycle);
         
-        UI.displayCycleArtifact("LLM Final Output", llmResult.content, "output", "LLM", `llm.final.${currentCycle}`);
         const parsedResp = JSON.parse(ApiClient.sanitizeLlmJsonResp(llmResult.content));
-        UI.displayCycleArtifact("LLM Proposal", parsedResp.proposed_changes_description, "info", "LLM", `llm.proposal.${currentCycle}`);
+        UI.streamThought(parsedResp.proposed_changes_description);
+        UI.logToAdvanced(`LLM Proposal: ${parsedResp.proposed_changes_description}`);
 
-        // 2. CRITIQUE (Simplified)
-        const hitlTrigger = _checkHitlTriggers(state);
-        if (hitlTrigger) {
-            UI.showHumanInterventionUI("prompt", hitlTrigger.reason);
-            throw new StateError("HITL Required: " + hitlTrigger.reason);
-        }
-
-        // 3. APPLY
+        // 2. APPLY
         await _applyLLMChanges(parsedResp, currentCycle);
-        UI.logToTimeline(currentCycle, `--- Cycle ${currentCycle} Complete ---`, "finish");
+        UI.logToAdvanced(`--- Cycle ${currentCycle} Complete ---`);
 
     } catch (error) {
         if (error instanceof AbortError) {
-            UI.logToTimeline(currentCycle, "Cycle aborted by user.", "warn");
-        } else if (error instanceof StateError) {
-            UI.logToTimeline(currentCycle, `Cycle paused: ${error.message}`, "warn");
+            UI.logToAdvanced("Cycle aborted by user.");
         } else {
             logger.error(`Cycle ${currentCycle} failed`, error);
-            UI.logToTimeline(currentCycle, `Cycle failed: ${error.message}`, "error");
+            UI.logToAdvanced(`Cycle failed: ${error.message}`);
         }
     } finally {
         _isRunning = false;
-        UI.setRunButtonState("Run Cycle", false);
-        await UI.updateStateDisplay();
+        // UI.setRunButtonState("Run Cycle", false); // Old UI
     }
   };
 

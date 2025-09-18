@@ -1,0 +1,10 @@
+{
+  "onboarding_title": "Choose Your AI Assistant",
+  "onboarding_subtitle": "Select a Persona that best fits your task.",
+  "advanced_mode_label": "Advanced Mode",
+  "goal_input_placeholder": "What is your goal?",
+  "awaken_button": "Awaken Agent",
+  "dashboard_goal_title": "Current Goal",
+  "dashboard_thoughts_title": "Agent Thoughts",
+  "dashboard_changes_title": "Live Changes"
+}

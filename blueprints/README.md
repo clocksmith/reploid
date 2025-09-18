@@ -4,6 +4,8 @@
 
 ---
 
+> **Note for Contributors:** As of the new consumer-focused architecture, Blueprints are no longer presented directly to the end-user. Instead, they are bundled into **Personas**, which are defined in `config.json`. This directory remains the source of truth for the agent's technical knowledge, but it is now an abstraction used to build the user-facing personas. See `docs/PERSONAS.md` for more details.
+
 This directory contains the REPLOID's conceptual knowledge base. The files herein are not active code; they are instructional markdown documents, or **"blueprints,"** designed to be discovered and studied by the agent itself. Each blueprint provides a high-level guide to a potential, significant self-improvement, outlining the architectural principles, strategic goals, and implementation pathways for a major new capability.
 
 The purpose of this knowledge base is to serve as a powerful catalyst for the agent's Recursive Self-Improvement (RSI) cycles. While the agent possesses the core faculties to evolve independently, these blueprints provide structured, expert-level knowledge that can dramatically accelerate its development.

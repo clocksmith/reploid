@@ -56,7 +56,7 @@ const StateManager = {
     
     // Async initialization
     const init = async () => {
-      logger.info("[StateManager] Initializing state from VFS");
+      UI.logToAdvanced("[StateManager] Initializing state from VFS");
       
       const savedStateJSON = await Storage.getState();
       
