@@ -4,6 +4,8 @@
 
 ---
 
+> **Note for Contributors:** As of the new consumer-focused architecture, Upgrades are no longer presented directly to the end-user. Instead, they are bundled into **Personas**, which are defined in `config.json`. This directory remains the source of truth for the agent's functional capabilities, but it is now an abstraction used to build the user-facing personas. See `docs/PERSONAS.md` for more details.
+
 This directory contains the REPLOID's library of pre-built, functional code modules, referred to as **"upgrades."** Each file or self-contained set of files in this directory represents a discrete capability that can be composed into a REPLOID agent at the moment of its creation. The `boot.js` harness uses the master `config.json` manifest to identify these modules by a short, memorable ID.
 
 During the interactive boot sequence, an operator can select a specific combination of these upgrades to construct a custom agent tailored for a particular task. This compositionality is central to the REPLOID philosophy, allowing for rapid experimentation and a clear separation between the agent's innate capabilities (defined by its composed upgrades) and its learned behaviors (developed through self-modification).

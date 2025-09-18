@@ -1,4 +1,4 @@
-# REPLOID - A Browser-Native, Self-Improving AI Agent
+# REPLOID - Your Personal AI Teammate
 
 ```
 ╔════════════════════════════════════════════════════════════════════════════════╗
@@ -10,104 +10,85 @@
 ║     ██║  ██║███████╗██║     ███████╗╚██████╔╝██║██████╔╝                       ║
 ║     ╚═╝  ╚═╝╚══════╝╚═╝     ╚══════╝ ╚═════╝ ╚═╝╚═════╝                        ║
 ║                                                                                  ║
-║              🟦 An AI that builds itself, right in your browser 🟨              ║
+║              🟦 An AI that learns and builds, right in your browser 🟨           ║
 ║                                                                                  ║
 ╚════════════════════════════════════════════════════════════════════════════════╝
 ```
 
 ## 🎯 What is REPLOID?
 
-REPLOID is an experimental, browser-native AI agent that can **modify its own code**. It operates in a secure, sandboxed Virtual File System (VFS) within your browser, with no access to your local files. This allows it to safely rewrite its own functions, create new tools, and recursively self-improve without any risk to your machine.
+REPLOID is an AI agent that helps you with your tasks, right in your browser. It can write code, create content, refactor websites, and even learn new skills.
 
-The system is built on a "browser-first" philosophy. It is a 100% client-side application that can be enhanced with an optional, local Node.js server for added security and convenience.
+It operates in a secure, sandboxed environment, meaning it cannot access your local computer's files. Everything it does happens in a virtual workspace within your browser, ensuring your data is always safe.
 
 ## 🚀 Quick Start
 
-1.  **Run the Application:**
-    *   **No-Install Method:** Simply open `index.html` in your browser.
-    *   **Recommended Method:** Serve the directory locally to enable the full feature set, including the optional proxy.
+1.  **Open the Application:**
+    *   Simply open `index.html` in your browser.
+    *   For the best experience, it's recommended to serve the directory locally:
       ```bash
       # Serve the project root directory
       python -m http.server 8000
       # Navigate to http://localhost:8000 in your browser
       ```
 
-2.  **Run the Optional Secure Proxy (Recommended):**
-    For a more secure experience that doesn't expose your API key in the browser, run the local Node.js proxy server.
-    ```bash
-    # Install dependencies
-    npm install
+2.  **Choose Your Agent:**
+    *   When the app loads, you'll see a simple menu of available AI "Personas."
+    *   Pick a persona that matches your task, like "Website Builder" or "Creative Writer."
 
-    # Create a .env file from the example
-    cp .env.example .env
+3.  **Set a Goal:**
+    *   Tell your agent what you want to accomplish.
+    *   Click "Awaken Agent" and watch it work on the live dashboard!
 
-    # Add your GEMINI_API_KEY to the .env file
-    # GEMINI_API_KEY="your-api-key-here"
+## 🧠 How It Works: Agent Personas
 
-    # Start the server
-    npm start
-    ```
-    The web application will automatically detect and use the proxy.
+Instead of complicated setup, REPLOID uses **Personas**. Each persona is a pre-configured agent with the right skills and knowledge for a specific type of task.
 
-## 🧠 Core Architecture
+This allows you to get started immediately without needing to understand the technical details. For advanced users, an "Advanced Mode" toggle is available to customize the agent's capabilities.
 
-REPLOID operates on a powerful dual-system of "Upgrades" and "Blueprints".
+## 🛡️ Safety First: The Virtual Workspace
 
-*   **🧬 Upgrades (Capabilities):** These are the agent's "powers" or the functions it can perform. They are modular JavaScript files (e.g., `tool-runner.js`, `state-manager.js`) that are dynamically loaded during the boot sequence.
-*   **📘 Blueprints (Knowledge):** These are markdown documents that contain instructions, schemas, and architectural knowledge. The agent can read these to understand how it's built, enabling it to perform modifications and create new upgrades.
+REPLOID is designed with safety as its top priority.
 
-This entire system is assembled at runtime by a bootloader (`index.html`), allowing for a highly dynamic and configurable agent.
+*   **Browser Sandbox:** The agent runs entirely within the browser's built-in security sandbox.
+*   **Virtual File System:** The agent works on a virtual file system stored in your browser. It cannot read or write to your computer. You can import a project for the agent to work on, and export its work when it's done.
 
-## 🎮 The Genesis Protocol (Boot Wizard)
+##  optional Secure Proxy
 
-When you first launch REPLOID, you are guided through the **Genesis Protocol** to configure your agent:
+For a more secure experience that doesn't expose your API key in the browser, you can run the local Node.js proxy server.
 
-1.  **API Key:** Provide your Gemini API key. If you're running the secure proxy, this step will be skipped automatically.
-2.  **Upgrades:** Select the capabilities for your agent. You can start with a minimal set or enable everything for full RSI (Recursive Self-Improvement) potential.
-3.  **Blueprints:** Choose which knowledge documents to load into the agent's VFS. These are essential for self-modification tasks.
-4.  **Review & Awaken:** Review your configuration, set an initial goal, and "awaken" the agent.
+```bash
+# Install dependencies
+npm install
 
-## 🛡️ Safety & The Virtual File System (VFS)
+# Create a .env file from the example and add your API key
+cp .env.example .env
 
-REPLOID is designed with safety as a primary concern.
-
-*   **Browser Sandbox:** The agent runs entirely within the browser's security sandbox.
-*   **Virtual File System:** The agent does not have access to your computer's file system. It operates on a virtual file system (VFS) stored in your browser's IndexedDB. All file operations (`read`, `write`, `search`) are simulations that act on this VFS.
-*   **Project Import/Export:** You can load your own projects into the VFS by providing a `.zip` file, and export the agent's work as a new `.zip` file.
-
-## 🔗 Integration Notes
-
-REPLOID is designed as a browser-native application that operates within a Virtual File System (VFS). While it can read about and understand external tools like [PAWS](../paws/), it cannot directly execute shell commands or interact with the local filesystem due to browser security constraints.
-
-For projects requiring filesystem access or shell command execution, consider:
-*   Running REPLOID's concepts in a Node.js environment (future feature)
-*   Using the proxy server to bridge browser and system capabilities
-*   Exporting REPLOID's work via ZIP files for use with external tools
+# Start the server
+npm start
+```
+The web application will automatically detect and use the proxy.
 
 ## 📁 Project Structure
 
 ```
 /
-├── index.html              # Main application bootloader
-├── config.json             # Defines all available upgrades and blueprints
+├── index.html              # Main application entry point
+├── config.json             # Defines personas and available modules
+├── data/
+│   └── strings.json        # UI text and copy
 ├── server/
 │   └── proxy.js            # Optional Node.js secure proxy server
-├── upgrades/               # Directory of all capability modules (JS files)
-├── blueprints/             # Directory of all knowledge documents (MD files)
+├── upgrades/               # Directory of all capability modules
+├── blueprints/             # Directory of all knowledge documents
 ├── docs/                   # Project documentation
-│   └── SYSTEM_ARCHITECTURE.md # In-depth technical details of the system
-├── styles/                 # CSS for the boot wizard and UI
-└── utils/                  # Client-side utility scripts
+└── styles/                 # CSS for the application
 ```
 
 ## 🤝 Contributing
 
-This is an experimental project. Contributions are welcome in all areas, including:
-*   New Upgrade modules and Agent Capabilities
-*   New Blueprints for the agent to learn from
-*   UI/UX enhancements
-*   Safety and security protocols
+This is an experimental project. Contributions are welcome! See `docs/PERSONAS.md` and other documentation to learn how to add new Personas and capabilities.
 
 ---
 
-*Welcome to the future of recursive self-improvement.* 🟦🟨
+*Welcome to a new way of collaborating with AI.* 🟦🟨

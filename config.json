@@ -1,4 +1,27 @@
 {
+"personas": [
+    {
+      "id": "website_builder",
+      "name": "Website Builder",
+      "description": "Helps you create and modify simple HTML, CSS, and JavaScript files for a new website.",
+      "upgrades": ["APPL", "UTIL", "STMT", "IDXB", "APIC", "CYCL", "PRMT", "AGLP", "STHP", "TRUN", "TLRD", "TLWR", "TRHP", "UIMN", "STYL", "BODY"],
+      "blueprints": ["0x00000F", "0x00000E"]
+    },
+    {
+      "id": "code_refactorer",
+      "name": "Code Refactorer",
+      "description": "Analyzes your code to find improvements, fix bugs, and enhance performance.",
+      "upgrades": ["APPL", "UTIL", "STMT", "IDXB", "APIC", "CYCL", "PRMT", "AGLP", "STHP", "TRUN", "TLRD", "TLWR", "TRHP", "UIMN", "STYL", "BODY"],
+      "blueprints": ["0x000009", "0x000003"]
+    },
+    {
+      "id": "creative_writer",
+      "name": "Creative Writer",
+      "description": "A creative partner to help you write, edit, and brainstorm new ideas for documents.",
+      "upgrades": ["APPL", "UTIL", "STMT", "IDXB", "APIC", "CYCL", "PRMT", "AGLP", "STHP", "TRUN", "TLRD", "TLWR", "TRHP", "UIMN", "STYL", "BODY"],
+      "blueprints": []
+    }
+  ],
 "defaultCore": ["APPL", "UTIL", "STMT", "IDXB", "APIC", "CYCL", "PRMT", "AGLP", "STHP", "TRUN", "TLRD", "TRHP", "UIMN", "STYL", "BODY"],
 "visualRSICore": ["APPL", "UTIL", "STMT", "IDXB", "APIC", "CYCL", "PRMT", "AGLP", "STHP", "TRUN", "TLRD", "TLWR", "TRHP", "UIMN", "CNVS", "VDAT", "MTCP", "GMOD", "BLPR"],
 "standardizedCore": ["MLDR", "MMNF", "APPL", "UTIL", "STMT", "IDXB", "APIC", "CYCL", "PRMT", "AGLP", "STHP", "TRUN", "TLRD", "TRHP", "UIMN"],

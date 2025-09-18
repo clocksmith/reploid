@@ -28,6 +28,7 @@ const ToolRunner = {
     injectedDynamicTools
   ) => {
     logger.logEvent("info", `Run tool: ${toolName}`, toolArgs || {});
+    UI.logToAdvanced(`Running tool: ${toolName} with args: ${JSON.stringify(toolArgs)}`);
     const allTools = [...injectedStaticTools, ...injectedDynamicTools.map(t=>t.declaration)];
     const toolDef = allTools.find((t) => t.name === toolName);
     
