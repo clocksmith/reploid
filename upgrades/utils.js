@@ -41,10 +41,16 @@ const Utils = {
     
     // Logger utility
     const logger = {
-      logEvent: (level, message, ...details) => 
-        console[level] 
-          ? console[level](`[${level.toUpperCase()}] ${message}`, ...details) 
-          : console.log(`[${level.toUpperCase()}] ${message}`, ...details),
+      logEvent: (level, message, details = {}) => {
+        const logObject = {
+          timestamp: new Date().toISOString(),
+          level: level.toUpperCase(),
+          message,
+          details
+        };
+        // For now, we just stringify it. A real implementation might send to a logging service.
+        console[level] ? console[level](JSON.stringify(logObject)) : console.log(JSON.stringify(logObject));
+      },
       debug: (...args) => logger.logEvent('debug', ...args),
       info: (...args) => logger.logEvent('info', ...args),
       warn: (...args) => logger.logEvent('warn', ...args),
@@ -140,11 +146,5 @@ const Utils = {
   }
 };
 
-// Legacy compatibility wrapper
-const UtilsModule = (() => {
-  return Utils.factory({});
-})();
-
-// Export both formats
+// Export standardized module
 Utils;
-UtilsModule;

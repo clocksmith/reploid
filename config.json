@@ -1,25 +1,68 @@
 {
 "personas": [
     {
+      "id": "rsi_lab_sandbox",
+      "name": "RSI Lab Sandbox",
+      "type": "lab",
+      "description": "A safe space to learn how the agent improves itself through guided lessons.",
+      "upgrades": ["APPL", "UTIL", "STMT", "IDXB", "APIC", "CYCL", "PRMT", "AGLP", "STHP", "TRUN", "TLRD", "TLWR", "TRHP", "UIMN", "STYL", "BODY", "GMOD", "BLPR", "MTCP"],
+      "blueprints": ["0x000016", "0x000017", "0x000018"],
+      "lessons": [
+        { "name": "Build a New Tool", "goal": "Study blueprint 0x000016 and create a new tool named 'greet_user' that returns a friendly message." },
+        { "name": "Modify a Goal", "goal": "Observe your own goal state and add a sub-goal to document your findings." },
+        { "name": "Create a Blueprint", "goal": "Use blueprint 0x000018 as guidance to create a new blueprint about tool composition patterns." }
+      ]
+    },
+    {
       "id": "website_builder",
       "name": "Website Builder",
-      "description": "Helps you create and modify simple HTML, CSS, and JavaScript files for a new website.",
+      "type": "factory",
+      "description": "Generate and preview a complete landing page with HTML, CSS, and JS.",
       "upgrades": ["APPL", "UTIL", "STMT", "IDXB", "APIC", "CYCL", "PRMT", "AGLP", "STHP", "TRUN", "TLRD", "TLWR", "TRHP", "UIMN", "STYL", "BODY"],
-      "blueprints": ["0x00000F", "0x00000E"]
+      "blueprints": ["0x00000F", "0x00000E"],
+      "previewTarget": "/vfs/preview/index.html"
+    },
+    {
+      "id": "product_prototype_factory",
+      "name": "Product Prototype Factory",
+      "type": "factory",
+      "description": "Rapidly build interactive UI prototypes with live preview and export.",
+      "upgrades": ["APPL", "UTIL", "STMT", "IDXB", "APIC", "CYCL", "PRMT", "AGLP", "STHP", "TRUN", "TLRD", "TLWR", "TRHP", "UIMN", "STYL", "BODY"],
+      "blueprints": ["0x00000F", "0x00000E", "0x00000D"],
+      "previewTarget": "/vfs/preview/prototype.html"
     },
     {
       "id": "code_refactorer",
       "name": "Code Refactorer",
+      "type": "lab",
       "description": "Analyzes your code to find improvements, fix bugs, and enhance performance.",
-      "upgrades": ["APPL", "UTIL", "STMT", "IDXB", "APIC", "CYCL", "PRMT", "AGLP", "STHP", "TRUN", "TLRD", "TLWR", "TRHP", "UIMN", "STYL", "BODY"],
-      "blueprints": ["0x000009", "0x000003"]
+      "upgrades": ["APPL", "UTIL", "STMT", "IDXB", "APIC", "CYCL", "PRMT", "AGLP", "STHP", "TRUN", "TLRD", "TLWR", "TRHP", "UIMN", "STYL", "BODY", "EVAL"],
+      "blueprints": ["0x000009", "0x000003", "0x000012"],
+      "lessons": [
+        { "name": "Analyze Code Quality", "goal": "Use self-evaluation to assess the quality of state-manager.js and propose improvements." },
+        { "name": "Refactor for Performance", "goal": "Identify and optimize performance bottlenecks in agent-cycle.js." }
+      ]
+    },
+    {
+      "id": "rfc_author",
+      "name": "RFC Author",
+      "type": "lab",
+      "description": "Analyzes project changes and drafts formal Request for Change (RFC) documents.",
+      "upgrades": ["APPL", "UTIL", "STMT", "IDXB", "APIC", "CYCL", "PRMT", "AGLP", "STHP", "TRUN", "TLRD", "TLWR", "TRHP", "UIMN", "STYL", "BODY", "BLPR", "EVAL"],
+      "blueprints": ["0x000012", "0x00001A"],
+      "lessons": [
+        { "name": "Draft Feature RFC", "goal": "Create an RFC proposing a new feature for the REPLOID system." },
+        { "name": "Analyze Recent Changes", "goal": "Review recent VFS modifications and draft an RFC summarizing the changes." }
+      ]
     },
     {
       "id": "creative_writer",
       "name": "Creative Writer",
+      "type": "factory",
       "description": "A creative partner to help you write, edit, and brainstorm new ideas for documents.",
       "upgrades": ["APPL", "UTIL", "STMT", "IDXB", "APIC", "CYCL", "PRMT", "AGLP", "STHP", "TRUN", "TLRD", "TLWR", "TRHP", "UIMN", "STYL", "BODY"],
-      "blueprints": []
+      "blueprints": [],
+      "previewTarget": "/vfs/preview/document.html"
     }
   ],
 "defaultCore": ["APPL", "UTIL", "STMT", "IDXB", "APIC", "CYCL", "PRMT", "AGLP", "STHP", "TRUN", "TLRD", "TRHP", "UIMN", "STYL", "BODY"],

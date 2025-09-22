@@ -1,277 +1,220 @@
-// Standardized State Manager Module for REPLOID
-// Central state management with versioning and persistence
+// Standardized State Manager Module for REPLOID - Git-Aware
 
 const StateManager = {
   metadata: {
     id: 'StateManager',
-    version: '1.0.0',
+    version: '2.0.0',
     dependencies: ['config', 'Storage', 'StateHelpersPure', 'Utils'],
-    async: true,  // Requires async initialization
+    async: true,
     type: 'service'
   },
   
   factory: (deps) => {
-    // Validate dependencies
     const { config, Storage, StateHelpersPure, Utils } = deps;
     const { logger, Errors } = Utils;
-    
-    if (!config || !logger || !Storage || !Errors || !StateHelpersPure || !Utils) {
-      throw new Error('StateManager: Missing required dependencies');
-    }
-    
     const { StateError, ArtifactError } = Errors;
     
-    // Module state
     let globalState = null;
-    
-    // Private functions
-    const validateAndLoadState = async (stateJson) => {
-      const parsed = JSON.parse(stateJson);
-      const validationError = StateHelpersPure.validateStateStructurePure(parsed);
-      
-      if (validationError) {
-        logger.error(`State validation failed: ${validationError}. Re-initializing.`);
-        return createMinimalState();
-      }
-      
-      // Load system config if available
-      const sysCfgContent = await Storage.getArtifactContent('/system/config.json');
-      if (sysCfgContent) {
-        parsed.cfg = JSON.parse(sysCfgContent);
-      }
-      
-      return parsed;
-    };
-    
-    const createMinimalState = () => {
-      return {
-        totalCycles: -1,
-        artifactMetadata: {},
-        cfg: {},
-        version: "1.0.0",
-        currentGoal: null,
-        apiKey: config.apiKey || ""
-      };
-    };
-    
-    // Async initialization
+
     const init = async () => {
-      UI.logToAdvanced("[StateManager] Initializing state from VFS");
-      
+      logger.info("[StateManager-Git] Initializing state...");
       const savedStateJSON = await Storage.getState();
-      
       if (savedStateJSON) {
-        globalState = await validateAndLoadState(savedStateJSON);
-        logger.info(`[StateManager] Loaded state for cycle ${globalState.totalCycles}`);
+        globalState = JSON.parse(savedStateJSON);
+        logger.info(`[StateManager-Git] Loaded state for cycle ${globalState.totalCycles}`);
       } else {
-        logger.warn("[StateManager] No saved state found in VFS. Creating minimal state.");
-        globalState = createMinimalState();
+        logger.warn("[StateManager-Git] No saved state found. Creating minimal state.");
+        globalState = { totalCycles: 0, artifactMetadata: {}, currentGoal: null, apiKey: config.apiKey || "" };
       }
-      
       return true;
     };
-    
-    // State access
+
     const getState = () => {
-      if (!globalState) {
-        throw new StateError("StateManager not initialized. Call init() first.");
-      }
-      return globalState;
+        if (!globalState) throw new StateError("StateManager not initialized.");
+        return globalState;
     };
-    
+
     const saveState = async () => {
-      if (!globalState) {
-        throw new StateError("No state to save");
-      }
-      
-      try {
+        if (!globalState) throw new StateError("No state to save");
         await Storage.saveState(JSON.stringify(globalState));
-        logger.info("[StateManager] State saved successfully");
-      } catch (e) {
-        logger.error(`[StateManager] Save state failed: ${e.message}`, e);
-        throw new StateError(`Failed to save state: ${e.message}`);
-      }
     };
-    
-    // State mutations
+
     const updateAndSaveState = async (updaterFn) => {
-      const currentState = getState();
-      // Deep copy to prevent mutations
-      const stateCopy = JSON.parse(JSON.stringify(currentState));
-      const newState = await updaterFn(stateCopy);
-      globalState = newState;
-      await saveState();
-      return globalState;
+        const stateCopy = JSON.parse(JSON.stringify(globalState));
+        const newState = await updaterFn(stateCopy);
+        globalState = newState;
+        await saveState();
+        return globalState;
     };
-    
-    // Artifact management
-    const getArtifactMetadata = (path) => {
-      const state = getState();
-      return state.artifactMetadata?.[path] || null;
-    };
-    
-    const getAllArtifactMetadata = async () => {
-      const state = getState();
-      return state.artifactMetadata || {};
-    };
-    
-    const getArtifactContent = async (path, version = 'latest') => {
-      if (version === 'latest') {
-        return await Storage.getArtifactContent(path);
-      }
-      const versionPath = `${path}#${version}`;
-      return await Storage.getArtifactContent(versionPath);
-    };
-    
+
     const createArtifact = async (path, type, content, description) => {
-      return await updateAndSaveState(async state => {
-        // Save content to storage
         await Storage.setArtifactContent(path, content);
-        
-        // Update metadata
-        state.artifactMetadata[path] = {
-          id: path,
-          type: type,
-          description: description,
-          versions: [{
-            cycle: state.totalCycles,
-            timestamp: Date.now(),
-            versionId: `c${state.totalCycles}`
-          }]
-        };
-        
-        logger.info(`[StateManager] Created artifact: ${path}`);
-        return state;
-      });
-    };
-    
-    const updateArtifact = async (path, content) => {
-      return await updateAndSaveState(async state => {
-        const currentMeta = state.artifactMetadata[path];
-        
-        if (!currentMeta) {
-          throw new ArtifactError(`Cannot update non-existent artifact: ${path}`);
-        }
-        
-        const currentVersion = currentMeta.versions[currentMeta.versions.length - 1];
-        const oldVersionPath = `${path}#${currentVersion.versionId}`;
-        const oldContent = await Storage.getArtifactContent(path);
-        
-        // Archive old version
-        if (oldContent !== null) {
-          await Storage.setArtifactContent(oldVersionPath, oldContent);
-        }
-        
-        // Save new content
-        await Storage.setArtifactContent(path, content);
-        
-        // Update metadata with new version
-        currentMeta.versions.push({
-          cycle: state.totalCycles,
-          timestamp: Date.now(),
-          versionId: `c${state.totalCycles}`
+        return await updateAndSaveState(async state => {
+            state.artifactMetadata[path] = { id: path, type, description };
+            logger.info(`[StateManager-Git] Created artifact: ${path}`);
+            return state;
         });
-        
-        logger.info(`[StateManager] Updated artifact: ${path} (version ${currentMeta.versions.length})`);
-        return state;
-      });
     };
-    
+
+    const updateArtifact = async (path, content) => {
+        const existingMeta = globalState.artifactMetadata[path];
+        if (!existingMeta) {
+            throw new ArtifactError(`Cannot update non-existent artifact: ${path}`);
+        }
+        await Storage.setArtifactContent(path, content);
+        logger.info(`[StateManager-Git] Updated artifact: ${path}`);
+    };
+
     const deleteArtifact = async (path) => {
-      return await updateAndSaveState(async state => {
-        const meta = state.artifactMetadata[path];
-        
-        if (meta) {
-          // Delete all versioned copies
-          for (const version of meta.versions) {
-            const versionPath = `${path}#${version.versionId}`;
-            await Storage.deleteArtifactVersion(versionPath);
-          }
-        }
-        
-        // Delete the main artifact
-        await Storage.deleteArtifactVersion(path);
-        
-        // Remove metadata
-        delete state.artifactMetadata[path];
-        
-        logger.warn(`[StateManager] Deleted artifact: ${path}`);
-        return state;
-      });
+        await Storage.deleteArtifact(path);
+        return await updateAndSaveState(async state => {
+            delete state.artifactMetadata[path];
+            logger.warn(`[StateManager-Git] Deleted artifact: ${path}`);
+            return state;
+        });
     };
-    
-    // Cycle management
+
     const incrementCycle = async () => {
-      return await updateAndSaveState(async state => {
-        state.totalCycles = (state.totalCycles || 0) + 1;
-        logger.info(`[StateManager] Incremented cycle to ${state.totalCycles}`);
-        return state;
-      });
+        return await updateAndSaveState(async state => {
+            state.totalCycles = (state.totalCycles || 0) + 1;
+            return state;
+        });
     };
-    
-    // Goal management
+
     const updateGoal = async (newGoal) => {
-      return await updateAndSaveState(async state => {
-        if (!state.currentGoal) {
-          state.currentGoal = {
-            seed: newGoal,
-            cumulative: newGoal,
-            stack: [],
-            latestType: "System"
-          };
-        } else {
-          state.currentGoal.cumulative = newGoal;
-          state.currentGoal.stack.push({
-            cycle: state.totalCycles,
-            goal: newGoal
-          });
-        }
-        
-        logger.info(`[StateManager] Updated goal: ${newGoal.substring(0, 50)}...`);
-        return state;
-      });
+        return await updateAndSaveState(async state => {
+            if (!state.currentGoal) {
+                state.currentGoal = { seed: newGoal, cumulative: newGoal, stack: [], latestType: "System" };
+            } else {
+                state.currentGoal.cumulative = newGoal;
+                state.currentGoal.stack.push({ cycle: state.totalCycles, goal: newGoal });
+            }
+            return state;
+        });
     };
-    
-    // Public API
+
+    // New SessionManager class for PAWS-like workflow
+    class SessionManager {
+        constructor() {
+            this.activeSessionId = null;
+        }
+
+        async createSession(goal) {
+            const sessionId = `session_${Date.now()}`;
+            this.activeSessionId = sessionId;
+            const sessionPath = `/sessions/${sessionId}`;
+            const manifest = {
+                id: sessionId,
+                goal,
+                status: 'active',
+                startTime: new Date().toISOString(),
+                turns: []
+            };
+
+            // Create session directory and manifest
+            await Storage.setArtifactContent(`${sessionPath}/session.json`, JSON.stringify(manifest, null, 2));
+            logger.info(`[SessionManager] Created new session: ${sessionId}`);
+            return sessionId;
+        }
+
+        async createTurn(sessionId) {
+            const sessionPath = `/sessions/${sessionId}`;
+            const manifestContent = await Storage.getArtifactContent(`${sessionPath}/session.json`);
+            const manifest = JSON.parse(manifestContent);
+            
+            const turnNumber = manifest.turns.length;
+            const turn = {
+                turn: turnNumber,
+                cats_path: `${sessionPath}/turn-${turnNumber}.cats.md`,
+                dogs_path: `${sessionPath}/turn-${turnNumber}.dogs.md`,
+                status: 'pending_context'
+            };
+            manifest.turns.push(turn);
+
+            await Storage.setArtifactContent(`${sessionPath}/session.json`, JSON.stringify(manifest, null, 2));
+            logger.info(`[SessionManager] Created turn ${turnNumber} for session ${sessionId}`);
+            return turn;
+        }
+
+        getActiveSessionId() {
+            return this.activeSessionId;
+        }
+    }
+
+    const sessionManager = new SessionManager();
+
+    // Checkpoint management
+    const createCheckpoint = async (description) => {
+        const checkpointId = `checkpoint_${Date.now()}`;
+        const checkpoint = {
+            id: checkpointId,
+            description,
+            timestamp: Date.now(),
+            state: JSON.parse(JSON.stringify(globalState)) // Deep clone current state
+        };
+
+        // Store checkpoint in VFS
+        await Storage.setArtifactContent(
+            `/.checkpoints/${checkpointId}.json`,
+            JSON.stringify(checkpoint, null, 2)
+        );
+
+        logger.info(`[StateManager] Created checkpoint: ${checkpointId} - ${description}`);
+        return checkpoint;
+    };
+
+    const restoreCheckpoint = async (checkpointId) => {
+        const checkpointPath = `/.checkpoints/${checkpointId}.json`;
+        const checkpointContent = await Storage.getArtifactContent(checkpointPath);
+
+        if (!checkpointContent) {
+            throw new Error(`Checkpoint not found: ${checkpointId}`);
+        }
+
+        const checkpoint = JSON.parse(checkpointContent);
+        globalState = checkpoint.state;
+
+        // Restore all artifacts from checkpoint state
+        for (const [path, metadata] of Object.entries(globalState.artifactMetadata || {})) {
+            if (metadata.content) {
+                await Storage.setArtifactContent(path, metadata.content);
+            }
+        }
+
+        await saveState();
+        logger.info(`[StateManager] Restored checkpoint: ${checkpointId}`);
+        return true;
+    };
+
     return {
-      // Async initializer
       init,
-      
-      // Main API
       api: {
-        // State access
         getState,
         saveState,
         updateAndSaveState,
-        
-        // Artifact management
-        getArtifactMetadata,
-        getAllArtifactMetadata,
-        getArtifactContent,
+        getArtifactMetadata: (path) => globalState.artifactMetadata?.[path] || null,
+        getAllArtifactMetadata: async () => globalState.artifactMetadata || {},
+        getArtifactContent: Storage.getArtifactContent,
         createArtifact,
         updateArtifact,
         deleteArtifact,
-        
-        // Cycle management
         incrementCycle,
-        
-        // Goal management
-        updateGoal
+        updateGoal,
+        // Exposing new Git capabilities
+        getArtifactHistory: Storage.getArtifactHistory,
+        getArtifactDiff: Storage.getArtifactDiff,
+        // Exposing new Session capabilities
+        createSession: sessionManager.createSession.bind(sessionManager),
+        createTurn: sessionManager.createTurn.bind(sessionManager),
+        getActiveSessionId: sessionManager.getActiveSessionId.bind(sessionManager),
+        // Checkpoint capabilities
+        createCheckpoint,
+        restoreCheckpoint,
+        sessionManager
       }
     };
   }
 };
 
-// Legacy compatibility wrapper
-const StateManagerModule = (config, logger, Storage, Errors, StateHelpersPure, Utils) => {
-  const instance = StateManager.factory({ config, logger, Storage, Errors, StateHelpersPure, Utils });
-  // Return object with both init and other methods at same level for legacy compatibility
-  return {
-    init: instance.init,
-    ...instance.api
-  };
-};
-
-// Export both formats
+// Export standardized module
 StateManager;
-StateManagerModule;

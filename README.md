@@ -1,4 +1,4 @@
-# REPLOID - Your Personal AI Teammate
+# REPLOID - Guardian Agent System
 
 ```
 ╔════════════════════════════════════════════════════════════════════════════════╗
@@ -10,85 +10,174 @@
 ║     ██║  ██║███████╗██║     ███████╗╚██████╔╝██║██████╔╝                       ║
 ║     ╚═╝  ╚═╝╚══════╝╚═╝     ╚══════╝ ╚═════╝ ╚═╝╚═════╝                        ║
 ║                                                                                  ║
-║              🟦 An AI that learns and builds, right in your browser 🟨           ║
+║          ⚡ Guardian Agent with Human-in-the-Loop Approvals ⚡                    ║
 ║                                                                                  ║
 ╚════════════════════════════════════════════════════════════════════════════════╝
 ```
 
-## 🎯 What is REPLOID?
+## ★ What is REPLOID?
 
-REPLOID is an AI agent that helps you with your tasks, right in your browser. It can write code, create content, refactor websites, and even learn new skills.
+REPLOID is a Guardian Agent system implementing the PAWS philosophy (Prepare Artifacts With SWAP) for safe, controlled AI-assisted development. It operates with human-in-the-loop approvals at critical decision points, ensuring you maintain full control over all changes.
 
-It operates in a secure, sandboxed environment, meaning it cannot access your local computer's files. Everything it does happens in a virtual workspace within your browser, ensuring your data is always safe.
+The system runs in three environments:
+- **Browser**: Full Guardian Agent with interactive diff viewer and approval flow
+- **CLI**: PAWS tools (`cats`/`dogs`) for command-line bundle operations
+- **Server**: Node.js port (Project Hermes) with Git worktree isolation
 
-## 🚀 Quick Start
+## ⚡ Quick Start
 
-1.  **Open the Application:**
-    *   Simply open `index.html` in your browser.
-    *   For the best experience, it's recommended to serve the directory locally:
-      ```bash
-      # Serve the project root directory
-      python -m http.server 8000
-      # Navigate to http://localhost:8000 in your browser
-      ```
-
-2.  **Choose Your Agent:**
-    *   When the app loads, you'll see a simple menu of available AI "Personas."
-    *   Pick a persona that matches your task, like "Website Builder" or "Creative Writer."
-
-3.  **Set a Goal:**
-    *   Tell your agent what you want to accomplish.
-    *   Click "Awaken Agent" and watch it work on the live dashboard!
-
-## 🧠 How It Works: Agent Personas
-
-Instead of complicated setup, REPLOID uses **Personas**. Each persona is a pre-configured agent with the right skills and knowledge for a specific type of task.
-
-This allows you to get started immediately without needing to understand the technical details. For advanced users, an "Advanced Mode" toggle is available to customize the agent's capabilities.
-
-## 🛡️ Safety First: The Virtual Workspace
-
-REPLOID is designed with safety as its top priority.
-
-*   **Browser Sandbox:** The agent runs entirely within the browser's built-in security sandbox.
-*   **Virtual File System:** The agent works on a virtual file system stored in your browser. It cannot read or write to your computer. You can import a project for the agent to work on, and export its work when it's done.
-
-##  optional Secure Proxy
-
-For a more secure experience that doesn't expose your API key in the browser, you can run the local Node.js proxy server.
+### Browser Mode
 
 ```bash
-# Install dependencies
-npm install
-
-# Create a .env file from the example and add your API key
-cp .env.example .env
-
-# Start the server
-npm start
+# Serve the project locally
+python -m http.server 8000
+# Navigate to http://localhost:8000
 ```
-The web application will automatically detect and use the proxy.
 
-## 📁 Project Structure
+### CLI Mode
+
+```bash
+# Create context bundle
+bin/cats "*.js" -o context.cats.md
+
+# Apply change bundle
+bin/dogs changes.dogs.md --verify "npm test"
+```
+
+### Server Mode (Project Hermes)
+
+```bash
+cd hermes
+npm install
+npm start
+# Server runs at http://localhost:3000
+```
+
+## ☰ Guardian Agent Flow
+
+The Guardian Agent follows a structured FSM (Finite State Machine) with these states:
+
+1. **IDLE** → Set a goal to begin
+2. **CURATING_CONTEXT** → Agent selects relevant files
+3. **AWAITING_CONTEXT_APPROVAL** → Review and approve context bundle
+4. **PLANNING_WITH_CONTEXT** → Agent analyzes and plans changes
+5. **GENERATING_PROPOSAL** → Creates dogs.md change bundle
+6. **AWAITING_PROPOSAL_APPROVAL** → Interactive diff review with selective approval
+7. **APPLYING_CHANGES** → Applies approved changes with checkpoint
+8. **REFLECTING** → Learns from outcome for future improvements
+
+## ♜ Project Structure
 
 ```
 /
-├── index.html              # Main application entry point
-├── config.json             # Defines personas and available modules
-├── data/
-│   └── strings.json        # UI text and copy
-├── server/
-│   └── proxy.js            # Optional Node.js secure proxy server
-├── upgrades/               # Directory of all capability modules
-├── blueprints/             # Directory of all knowledge documents
-├── docs/                   # Project documentation
-└── styles/                 # CSS for the application
+├── index.html              # Main browser application
+├── boot.js                 # Persona-based onboarding
+├── config.json             # Personas and module configuration
+├── ui-dashboard.html       # Guardian Agent dashboard
+├── RFC-STATUS.md           # RFC implementation tracking
+│
+├── bin/                    # CLI tools
+│   ├── cats                # Context bundle creator
+│   └── dogs                # Change bundle applier
+│
+├── hermes/                 # Node.js server port
+│   ├── index.js            # Guardian Agent server
+│   ├── sessions/           # Isolated session data
+│   └── worktrees/          # Git worktree isolation
+│
+├── upgrades/               # Core modules
+│   ├── sentinel-fsm.js     # Guardian Agent FSM
+│   ├── sentinel-tools.js   # PAWS tool implementations
+│   ├── diff-viewer-ui.js   # Interactive diff viewer
+│   ├── git-vfs.js          # Git-based virtual filesystem
+│   ├── verification-manager.js  # Web Worker coordinator
+│   ├── verification-worker.js   # Sandboxed verification
+│   ├── di-container.js     # Dependency injection
+│   └── event-bus.js        # Event system
+│
+├── blueprints/             # RFC documents
+├── personas/               # Agent personas
+├── sessions/               # Session workspaces
+└── templates/              # Document templates
 ```
 
-## 🤝 Contributing
+## ⚙ Key Features
 
-This is an experimental project. Contributions are welcome! See `docs/PERSONAS.md` and other documentation to learn how to add new Personas and capabilities.
+### Guardian Agent (Project Sentinel - 100% Complete)
+- Human-in-the-loop approval at context and proposal stages
+- Interactive diff viewer with selective file approval
+- Checkpoint/rollback system for safe changes
+- Session-based workspaces for isolation
+- REFLECTING state for continuous learning
+
+### PAWS Philosophy (100% Complete)
+- **cats.md**: Curated context bundles
+- **dogs.md**: Explicit change proposals
+- Full CLI tools for bundle creation/application
+- AI-powered context curation
+- Verification command support
+
+### Architecture (Project Phoenix)
+- Dependency Injection Container
+- Event Bus for loose coupling
+- Standardized module format
+- Web Worker sandboxing for verification
+
+### Security & Safety
+- Browser sandbox isolation
+- Virtual filesystem with Git backend
+- Checkpoint system before changes
+- Verification execution in Web Workers
+- Session-based workspace isolation
+
+## ☗ Personas
+
+Personas provide pre-configured agent capabilities:
+
+### Lab Personas ⚗
+- **RSI Lab Sandbox**: Self-improvement experiments
+- **Code Refactorer**: Code quality analysis
+- **RFC Author**: Formal change proposals
+
+### Factory Personas ⚛
+- **Website Builder**: Landing pages with preview
+- **Product Prototype Factory**: Interactive UI prototypes
+- **Creative Writer**: Document generation
+
+## ⚿ Security Options
+
+### Browser-Only (Default)
+Runs entirely in browser sandbox with virtual filesystem.
+
+### Secure Proxy (Optional)
+```bash
+npm install
+cp .env.example .env  # Add your API key
+npm start
+```
+
+## ✎ RFC Status
+
+| Project | Status | Description |
+|---------|--------|-------------|
+| **Sentinel** | ☑ 100% | Guardian Agent with approvals |
+| **PAWS CLI** | ☑ 100% | cats/dogs tools and Hermes server |
+| **Phoenix** | ⚬ 40% | Architecture improvements |
+| **Local LLM** | ☐ 0% | Browser-based LLM (research) |
+
+## ⚑ Testing the Guardian Flow
+
+See `test-guardian-flow.md` for step-by-step testing instructions.
+
+## ♲ Contributing
+
+The system supports self-modification through RFCs. Use the RFC Author persona to draft proposals, which the Guardian Agent can then implement with human approval.
+
+See documentation:
+- `docs/PERSONAS.md` - Persona development guide
+- `RFC-STATUS.md` - Implementation tracking
+- `test-guardian-flow.md` - Testing guide
 
 ---
 
-*Welcome to a new way of collaborating with AI.* 🟦🟨
+*Guardian Agent with PAWS philosophy - Safe, controlled, and transparent AI assistance.* ⚡
