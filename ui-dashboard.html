@@ -3,13 +3,31 @@
         <h2 id="dashboard-goal-title">Current Goal</h2>
         <p id="goal-text"></p>
     </div>
-    <div id="thought-panel" class="panel">
-        <h2 id="dashboard-thoughts-title">Agent Thoughts</h2>
-        <div id="thought-stream"></div>
-    </div>
-    <div id="changes-panel" class="panel">
-        <h2 id="dashboard-changes-title">Live Changes</h2>
-        <div id="diff-viewer"></div>
+                <div id="sentinel-panel" class="panel">
+            <h4>Sentinel Control</h4>
+            <div id="sentinel-content"></div>
+            <div id="sentinel-actions">
+                <button id="sentinel-approve-btn" class="hidden">Approve</button>
+                <button id="sentinel-revise-btn" class="hidden">Revise</button>
+            </div>
+        </div>
+        <div class="panel-container">
+            <div id="vfs-explorer-panel" class="panel">
+                <h4>VFS Explorer</h4>
+                <div id="vfs-tree"></div>
+            </div>
+            <div id="thought-panel" class="panel">
+                <h4>Agent Thoughts</h4>
+                <div id="thought-stream"></div>
+            </div>
+            <div id="diff-viewer-panel" class="panel">
+                <h4>Visual Diffs</h4>
+                <div id="diff-viewer"></div>
+            </div>
+        </div>
+    <div id="visual-preview-panel" class="panel hidden">
+        <h2>Live Preview</h2>
+        <iframe id="preview-iframe" sandbox="allow-scripts allow-same-origin"></iframe>
     </div>
     <div id="advanced-log-toggle" class="panel">
         <button id="log-toggle-btn">Show Advanced Logs</button>

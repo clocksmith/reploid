@@ -192,12 +192,5 @@ const ApiClient = {
   }
 };
 
-// Legacy compatibility wrapper
-const ApiClientModule = (config, logger, Errors, Utils, StateManager) => {
-  const instance = ApiClient.factory({ config, logger, Errors, Utils, StateManager });
-  return instance.api;
-};
-
-// Export both formats for compatibility
+// Export standardized module
 ApiClient;
-ApiClientModule;

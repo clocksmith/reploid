@@ -19,8 +19,11 @@
         </div>
 
         <div class="advanced-mode-container">
-            <label for="advanced-toggle" id="advanced-mode-label">Advanced Mode</label>
-            <input type="checkbox" id="advanced-toggle" />
+            <div class="advanced-mode-toggle-group">
+                <input type="checkbox" id="advanced-toggle" />
+                <label for="advanced-toggle" id="advanced-mode-label">Advanced Mode</label>
+            </div>
+            <p class="advanced-mode-description">Manually select individual modules and blueprints instead of using a pre-configured persona.</p>
         </div>
         
         <div id="advanced-options" class="hidden">
@@ -34,6 +37,9 @@
     </div>
     <div id="app-root" style="display: none;"></div>
 
+            <script src="https://unpkg.com/@isomorphic-git/lightning-fs"></script>
+    <script src="https://unpkg.com/isomorphic-git"></script>
+    <script src="https://unpkg.com/isomorphic-git/http/web/index.js"></script>
     <script src="boot.js"></script>
 </body>
 </html>

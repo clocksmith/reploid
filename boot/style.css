@@ -80,8 +80,29 @@ body {
 }
 
 .advanced-mode-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
   margin-bottom: 20px;
   color: var(--color-text-primary);
+  flex-wrap: wrap;
+}
+
+.advanced-mode-toggle-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.advanced-mode-description {
+  margin: 0;
+  font-size: 0.9em;
+  color: var(--color-secondary);
+  max-width: 300px;
+  text-align: left;
+  line-height: 1.4;
+  opacity: 0.8;
 }
 
 .goal-container {

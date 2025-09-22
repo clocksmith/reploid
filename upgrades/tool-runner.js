@@ -66,9 +66,27 @@ const ToolRunner = {
         }
 
         case "get_artifact_history": {
-            const meta = StateManager.getArtifactMetadata(toolArgs.path);
-            return meta ? meta.versions : [];
+            return await StateManager.getArtifactHistory(toolArgs.path);
         }
+
+        case "vfs_log": {
+            return await StateManager.getArtifactHistory(toolArgs.path);
+        }
+
+        case "vfs_diff": {
+            return await StateManager.getArtifactDiff(toolArgs.path, toolArgs.refA, toolArgs.refB);
+        }
+
+        case \"create_cats_bundle\": {\n            const { file_paths, reason, turn_path } = toolArgs;\n            let bundleContent = `## PAWS Context Bundle (cats.md)\\n\\n**Reason:** ${reason}\\n\\n---\\n\\n`;\n            for (const path of file_paths) {\n                const content = await StateManager.getArtifactContent(path);\n                bundleContent += `\`\`\`vfs-file\npath: ${path}\n\`\`\`\\n\`\`\`\n${content}\n\`\`\`\\n\\n`;\n            }\n            await StateManager.createArtifact(turn_path, \'markdown\', bundleContent, `Context bundle for turn`);\n            return { success: true, path: turn_path };\n        }\n\n        case \"create_dogs_bundle\": {\n            const { changes, turn_path } = toolArgs;\n            let bundleContent = `## PAWS Change Proposal (dogs.md)\\n\\n`;\n            for (const change of changes) {\n                bundleContent += `\`\`\`paws-change\noperation: ${change.operation}\nfile_path: ${change.file_path}\n\`\`\`\\n`;\n                if (change.operation !== \'DELETE\') {\n                    bundleContent += `\`\`\`\n${change.new_content}\n\`\`\`\\n\\n`;\n                }\n            }\n            await StateManager.createArtifact(turn_path, \'markdown\', bundleContent, `Change proposal for turn`);\n            return { success: true, path: turn_path };\n        }\n\n        case \"apply_dogs_bundle\": {\n            const { dogs_path, verify_command } = toolArgs;\n            // In a real implementation, this would use the Git VFS to checkpoint.\n            logger.warn(\"[ToolRunner] apply_dogs_bundle is a stub. It does not currently support verification or rollback.\");\n            \n            const dogsContent = await StateManager.getArtifactContent(dogs_path);\n            // Basic parsing logic\n            const changes = []; // This would be parsed from dogsContent\n\n            for (const change of changes) {\n                if (change.operation === \'MODIFY\' || change.operation === \'CREATE\') {\n                    await StateManager.updateArtifact(change.file_path, change.new_content);\n                } else if (change.operation === \'DELETE\') {\n                    await StateManager.deleteArtifact(change.file_path);\n                }\n            }\n            return { success: true, message: \"Changes applied (stubbed).\" };\n        }\n\n        case \"vfs_revert\": {
+            const { path, commit_sha } = toolArgs;
+            const oldContent = await StateManager.getArtifactContent(path, commit_sha); // Assumes getArtifactContent can fetch by SHA
+            if (oldContent === null) {
+                throw new ArtifactError(`Cannot find version ${commit_sha} for artifact ${path}`);
+            }
+            await StateManager.updateArtifact(path, oldContent);
+            return { success: true, message: `Artifact ${path} reverted to version ${commit_sha}` };
+        }
+
 
         case "search_vfs": {
             // This would be slow. In a real system, an index would be needed.
@@ -169,6 +187,60 @@ const ToolRunner = {
             return { success: true, message: result.message };
           } catch (error) {
             throw new ToolError(`System backup failed: ${error.message}`);
+          }
+        }
+        
+        case "create_rfc": {
+          const templateContent = await StateManager.getArtifactContent('/templates/rfc.md');
+          if (!templateContent) {
+            throw new ArtifactError("RFC template not found at /templates/rfc.md");
+          }
+          const today = new Date().toISOString().split('T')[0];
+          const newContent = templateContent
+            .replace('{{TITLE}}', toolArgs.title)
+            .replace('{{DATE}}', today);
+
+          const safeTitle = toolArgs.title.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+          const newPath = `/docs/rfc-${today}-${safeTitle}.md`;
+
+          await StateManager.createArtifact(newPath, 'markdown', newContent, `RFC draft: ${toolArgs.title}`);
+          UI.logToAdvanced(`RFC created at ${newPath}`);
+          return { success: true, path: newPath };
+        }
+        
+        case "export_project_zip": {
+          try {
+            // Get all files from VFS
+            const allMeta = await StateManager.getAllArtifactMetadata();
+            const files = [];
+            
+            for (const path of Object.keys(allMeta)) {
+              const content = await StateManager.getArtifactContent(path);
+              if (content !== null) {
+                files.push({ path, content });
+              }
+            }
+            
+            // For now, return the file list - actual ZIP generation would require a library
+            // In production, this would use JSZip or similar to create an actual ZIP blob
+            const exportData = {
+              projectName: toolArgs.filename || 'reploid-export',
+              exportDate: new Date().toISOString(),
+              fileCount: files.length,
+              files: files.map(f => ({ path: f.path, size: f.content.length }))
+            };
+            
+            UI.logToAdvanced(`Project export prepared: ${files.length} files`);
+            
+            // In a real implementation, we'd create a downloadable ZIP here
+            // For now, we return metadata about what would be exported
+            return { 
+              success: true, 
+              message: `Export ready: ${files.length} files would be included`,
+              manifest: exportData
+            };
+          } catch (error) {
+            throw new ToolError(`Project export failed: ${error.message}`);
           }
         }
 
@@ -296,12 +368,5 @@ const ToolRunner = {
   }
 };
 
-// Legacy compatibility wrapper
-const ToolRunnerModule = (config, logger, Storage, StateManager, ApiClient, Errors, Utils, ToolRunnerPureHelpers) => {
-  const instance = ToolRunner.factory({ config, logger, Storage, StateManager, ApiClient, Errors, Utils, ToolRunnerPureHelpers });
-  return instance.api;
-};
-
-// Export both formats
+// Export standardized module
 ToolRunner;
-ToolRunnerModule;

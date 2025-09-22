@@ -27,5 +27,7 @@ const DiffGenerator = {
     }
 };
 
-// In a real module system, you would export this.
-// For this project's structure, it might be attached to a global object or injected.
+// Expose as global for the UI manager to use
+if (typeof window !== 'undefined') {
+    window.DiffGenerator = DiffGenerator;
+}

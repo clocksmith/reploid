@@ -1,151 +1,114 @@
-// Standardized Storage Module for REPLOID
-// IndexedDB backend for persistent artifact storage
+// Standardized Storage Module for REPLOID - Git-Powered VFS
 
 const Storage = {
   metadata: {
     id: 'Storage',
-    version: '1.0.0',
+    version: '2.0.0',
     dependencies: ['config', 'Utils'],
-    async: false,
+    async: true,
     type: 'service'
   },
   
   factory: (deps) => {
-    // Validate dependencies
     const { config, Utils } = deps;
     const { logger, Errors } = Utils;
-    
-    if (!config || !logger || !Errors) {
-      throw new Error('Storage: Missing required dependencies');
-    }
-    
-    const DB_NAME = config.VFS_PREFIX + 'REPLOID_IDB';
-    const STORE_NAME = 'artifacts';
-    const DB_VERSION = 1;
-    let db;
+    const { ArtifactError } = Errors;
 
-  const initDB = () => {
-    return new Promise((resolve, reject) => {
-      const request = indexedDB.open(DB_NAME, DB_VERSION);
+    // isomorphic-git uses a virtual filesystem. We'll use a promisified version of LightningFS.
+    const fs = new LightningFS('reploid-vfs');
+    const pfs = fs.promises;
+    const gitdir = '/.git';
 
-      request.onerror = (event) => {
-        logger.error("IndexedDB error", event.target.error);
-        reject(new Errors.StorageError("IndexedDB could not be opened."));
-      };
-
-      request.onsuccess = (event) => {
-        db = event.target.result;
-        resolve(db);
-      };
-
-      request.onupgradeneeded = (event) => {
-        const db = event.target.result;
-        if (!db.objectStoreNames.contains(STORE_NAME)) {
-          db.createObjectStore(STORE_NAME, { keyPath: 'path' });
+    const init = async () => {
+        logger.info("[Storage-Git] Initializing Git-powered VFS in IndexedDB...");
+        try {
+            await pfs.stat(gitdir);
+            logger.info("[Storage-Git] Existing Git repository found.");
+        } catch (e) {
+            logger.warn("[Storage-Git] No Git repository found, initializing a new one.");
+            await git.init({ fs, dir: '/', defaultBranch: 'main' });
         }
-      };
-    });
-  };
+    };
 
-  const getDB = async () => {
-    if (!db) {
-      await initDB();
-    }
-    return db;
-  };
-
-  const getStore = async (mode) => {
-    const currentDb = await getDB();
-    const transaction = currentDb.transaction(STORE_NAME, mode);
-    return transaction.objectStore(STORE_NAME);
-  };
-
-  const getArtifactContent = async (path) => {
-    try {
-        const store = await getStore('readonly');
-        const request = store.get(path);
-        return new Promise((resolve, reject) => {
-            request.onsuccess = () => {
-                if (request.result) {
-                    resolve(request.result.content);
-                } else {
-                    // Fallback to localStorage if not in IDB
-                    logger.warn(`[Storage] Artifact '${path}' not found in IDB, checking localStorage fallback.`);
-                    const localContent = localStorage.getItem(config.VFS_PREFIX + path);
-                    if (localContent !== null) {
-                        logger.info(`[Storage] Found '${path}' in localStorage fallback.`);
-                        resolve(localContent);
-                    } else {
-                        resolve(null);
-                    }
-                }
-            };
-            request.onerror = (event) => {
-                reject(new Errors.StorageError(`IDB read failed for ${path}`, { originalError: event.target.error }));
-            };
+    const _commit = async (message) => {
+        const sha = await git.commit({
+            fs,
+            dir: '/',
+            author: { name: 'REPLOID Agent', email: 'agent@reploid.dev' },
+            message
         });
-    } catch(e) {
-        logger.error(`getArtifactContent failed for ${path}`, e);
-        return null;
-    }
-  };
+        logger.info(`[Storage-Git] Committed changes: ${message} (SHA: ${sha.slice(0, 7)})`);
+        return sha;
+    };
 
-  const setArtifactContent = async (path, content) => {
-    try {
-        const store = await getStore('readwrite');
-        const request = store.put({ path, content });
-        return new Promise((resolve, reject) => {
-            request.onsuccess = () => resolve(true);
-            request.onerror = (event) => {
-                reject(new Errors.StorageError(`IDB write failed for ${path}`, { originalError: event.target.error }));
-            };
-        });
-    } catch(e) {
-        logger.error(`setArtifactContent failed for ${path}`, e);
-        return false;
-    }
-  };
+    const setArtifactContent = async (path, content) => {
+        try {
+            await pfs.writeFile(path, content, 'utf8');
+            await git.add({ fs, dir: '/', filepath: path });
+            await _commit(`Agent modified ${path}`);
+        } catch (e) {
+            throw new ArtifactError(`[Storage-Git] Failed to write artifact: ${e.message}`);
+        }
+    };
 
-  const deleteArtifactVersion = async (path) => {
-    try {
-        const store = await getStore('readwrite');
-        const request = store.delete(path);
-        return new Promise((resolve, reject) => {
-            request.onsuccess = () => resolve(true);
-            request.onerror = (event) => {
-                 reject(new Errors.StorageError(`IDB delete failed for ${path}`, { originalError: event.target.error }));
-            };
-        });
-    } catch (e) {
-        logger.error(`deleteArtifactVersion failed for ${path}`, e);
-        return false;
-    }
-  };
-  
-    const getState = () => getArtifactContent(config.STATE_PATH);
-    const saveState = (stateString) => setArtifactContent(config.STATE_PATH, stateString);
-    const removeState = () => deleteArtifactVersion(config.STATE_PATH);
-    
-    // Public API
+    const getArtifactContent = async (path) => {
+        try {
+            return await pfs.readFile(path, 'utf8');
+        } catch (e) {
+            // Return null if file doesn't exist, which is the expected behavior
+            return null;
+        }
+    };
+
+    const deleteArtifact = async (path) => {
+        try {
+            await git.remove({ fs, dir: '/', filepath: path });
+            await _commit(`Agent deleted ${path}`);
+        } catch (e) {
+            throw new ArtifactError(`[Storage-Git] Failed to delete artifact: ${e.message}`);
+        }
+    };
+
+    // State is stored outside of Git for now, as it's not a user-facing artifact.
+    const saveState = async (stateJson) => {
+        await pfs.writeFile('/.state', stateJson, 'utf8');
+    };
+
+    const getState = async () => {
+        try {
+            return await pfs.readFile('/.state', 'utf8');
+        } catch (e) {
+            return null;
+        }
+    };
+
+    // New Git-specific functions
+    const getArtifactHistory = async (path) => {
+        return await git.log({ fs, dir: '/', filepath: path });
+    };
+
+    const getArtifactDiff = async (path, refA, refB = 'HEAD') => {
+        const contentA = await git.readBlob({ fs, dir: '/', oid: refA, filepath: path });
+        const contentB = await git.readBlob({ fs, dir: '/', oid: refB, filepath: path });
+        // This is a simplified diff. A real implementation would use a diff library.
+        return { 
+            contentA: new TextDecoder().decode(contentA.blob),
+            contentB: new TextDecoder().decode(contentB.blob)
+        };
+    };
+
     return {
+      init,
       api: {
-        getArtifactContent,
         setArtifactContent,
-        deleteArtifactVersion,
-        getState,
+        getArtifactContent,
+        deleteArtifact,
         saveState,
-        removeState,
+        getState,
+        // New Git API
+        getArtifactHistory,
+        getArtifactDiff
       }
     };
   }
 };
-
-// Legacy compatibility wrapper
-const StorageModule = (config, logger, Errors) => {
-  const instance = Storage.factory({ config, logger, Errors });
-  return instance.api;
-};
-
-// Export both formats
-Storage;
-StorageModule;

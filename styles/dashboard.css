@@ -17,6 +17,15 @@
     font-family: 'Courier New', monospace;
 }
 
+/* Factory mode layout with preview */
+#dashboard.factory-mode {
+    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-areas:
+        "goal thoughts preview"
+        "changes thoughts preview"
+        "toggle toggle toggle";
+}
+
 .panel {
     border: 1px solid #333;
     padding: 15px;
@@ -27,8 +36,21 @@
 #goal-panel { grid-area: goal; }
 #changes-panel { grid-area: changes; }
 #thought-panel { grid-area: thoughts; }
+#visual-preview-panel { grid-area: preview; }
 #advanced-log-toggle { grid-area: toggle; }
 #advanced-log-panel { grid-area: thoughts; } /* Will occupy same space as thoughts */
+
+/* Preview panel styles */
+#visual-preview-panel {
+    position: relative;
+}
+
+#preview-iframe {
+    width: 100%;
+    height: calc(100% - 40px);
+    border: 1px solid #555;
+    background: #fff;
+}
 
 .panel h2 {
     color: #0ff;

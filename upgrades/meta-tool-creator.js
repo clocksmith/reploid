@@ -172,6 +172,12 @@ const MetaToolCreatorModule = (
     }
     
     logger.info(`[MTCP] Successfully created tool: ${name}`);
+    
+    // Emit structured event for tool creation (if UI is available)
+    if (UI?.logToAdvanced) {
+      UI.logToAdvanced({type: 'tool_created', toolName: name, cycle: toolDef.created_cycle}, 'tool_created');
+    }
+    
     return toolDef;
   };
 
