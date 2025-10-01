@@ -5,7 +5,7 @@
       "name": "RSI Lab Sandbox",
       "type": "lab",
       "description": "A safe space to learn how the agent improves itself through guided lessons.",
-      "upgrades": ["APPL", "UTIL", "STMT", "IDXB", "APIC", "CYCL", "PRMT", "AGLP", "STHP", "TRUN", "TLRD", "TLWR", "TRHP", "UIMN", "STYL", "BODY", "GMOD", "BLPR", "MTCP"],
+      "upgrades": ["APPL", "UTIL", "STMT", "IDXB", "APIC", "CYCL", "PRMT", "AGLP", "STHP", "TRUN", "TLRD", "TLWR", "TRHP", "UIMN", "STYL", "BODY", "GMOD", "BLPR", "MTCP", "PMON", "MDSH", "AVIS", "ASTV", "MGRV", "RATE", "MINT", "AUDT", "TUTR", "PYOD", "PYTH", "TSTN", "INTR", "REFL", "TEST", "BAPI"],
       "blueprints": ["0x000016", "0x000017", "0x000018"],
       "lessons": [
         { "name": "Build a New Tool", "goal": "Study blueprint 0x000016 and create a new tool named 'greet_user' that returns a friendly message." },
@@ -18,7 +18,7 @@
       "name": "Website Builder",
       "type": "factory",
       "description": "Generate and preview a complete landing page with HTML, CSS, and JS.",
-      "upgrades": ["APPL", "UTIL", "STMT", "IDXB", "APIC", "CYCL", "PRMT", "AGLP", "STHP", "TRUN", "TLRD", "TLWR", "TRHP", "UIMN", "STYL", "BODY"],
+      "upgrades": ["APPL", "UTIL", "STMT", "IDXB", "APIC", "CYCL", "PRMT", "AGLP", "STHP", "TRUN", "TLRD", "TLWR", "TRHP", "UIMN", "STYL", "BODY", "PMON"],
       "blueprints": ["0x00000F", "0x00000E"],
       "previewTarget": "/vfs/preview/index.html"
     },
@@ -27,7 +27,7 @@
       "name": "Product Prototype Factory",
       "type": "factory",
       "description": "Rapidly build interactive UI prototypes with live preview and export.",
-      "upgrades": ["APPL", "UTIL", "STMT", "IDXB", "APIC", "CYCL", "PRMT", "AGLP", "STHP", "TRUN", "TLRD", "TLWR", "TRHP", "UIMN", "STYL", "BODY"],
+      "upgrades": ["APPL", "UTIL", "STMT", "IDXB", "APIC", "CYCL", "PRMT", "AGLP", "STHP", "TRUN", "TLRD", "TLWR", "TRHP", "UIMN", "STYL", "BODY", "PMON"],
       "blueprints": ["0x00000F", "0x00000E", "0x00000D"],
       "previewTarget": "/vfs/preview/prototype.html"
     },
@@ -36,7 +36,7 @@
       "name": "Code Refactorer",
       "type": "lab",
       "description": "Analyzes your code to find improvements, fix bugs, and enhance performance.",
-      "upgrades": ["APPL", "UTIL", "STMT", "IDXB", "APIC", "CYCL", "PRMT", "AGLP", "STHP", "TRUN", "TLRD", "TLWR", "TRHP", "UIMN", "STYL", "BODY", "EVAL"],
+      "upgrades": ["APPL", "UTIL", "STMT", "IDXB", "APIC", "CYCL", "PRMT", "AGLP", "STHP", "TRUN", "TLRD", "TLWR", "TRHP", "UIMN", "STYL", "BODY", "EVAL", "PMON", "MDSH", "AVIS", "ASTV", "MGRV", "RATE", "MINT", "AUDT", "TUTR", "PYOD", "PYTH", "TSTN", "INTR", "REFL", "TEST", "BAPI"],
       "blueprints": ["0x000009", "0x000003", "0x000012"],
       "lessons": [
         { "name": "Analyze Code Quality", "goal": "Use self-evaluation to assess the quality of state-manager.js and propose improvements." },
@@ -48,7 +48,7 @@
       "name": "RFC Author",
       "type": "lab",
       "description": "Analyzes project changes and drafts formal Request for Change (RFC) documents.",
-      "upgrades": ["APPL", "UTIL", "STMT", "IDXB", "APIC", "CYCL", "PRMT", "AGLP", "STHP", "TRUN", "TLRD", "TLWR", "TRHP", "UIMN", "STYL", "BODY", "BLPR", "EVAL"],
+      "upgrades": ["APPL", "UTIL", "STMT", "IDXB", "APIC", "CYCL", "PRMT", "AGLP", "STHP", "TRUN", "TLRD", "TLWR", "TRHP", "UIMN", "STYL", "BODY", "BLPR", "EVAL", "PMON", "MDSH", "AVIS", "INTR", "REFL", "TEST", "BAPI"],
       "blueprints": ["0x000012", "0x00001A"],
       "lessons": [
         { "name": "Draft Feature RFC", "goal": "Create an RFC proposing a new feature for the REPLOID system." },
@@ -65,10 +65,10 @@
       "previewTarget": "/vfs/preview/document.html"
     }
   ],
-"defaultCore": ["APPL", "UTIL", "STMT", "IDXB", "APIC", "CYCL", "PRMT", "AGLP", "STHP", "TRUN", "TLRD", "TRHP", "UIMN", "STYL", "BODY"],
-"visualRSICore": ["APPL", "UTIL", "STMT", "IDXB", "APIC", "CYCL", "PRMT", "AGLP", "STHP", "TRUN", "TLRD", "TLWR", "TRHP", "UIMN", "CNVS", "VDAT", "MTCP", "GMOD", "BLPR"],
-"standardizedCore": ["MLDR", "MMNF", "APPL", "UTIL", "STMT", "IDXB", "APIC", "CYCL", "PRMT", "AGLP", "STHP", "TRUN", "TLRD", "TRHP", "UIMN"],
-"multiProviderCore": ["MLDR", "MMNF", "APPL", "UTIL", "STMT", "IDXB", "APMC", "CYCL", "PRMT", "AGLP", "STHP", "TRUN", "TLRD", "TRHP", "UIMN", "STYL", "BODY"],
+"defaultCore": ["APPL", "UTIL", "STMT", "IDXB", "APIC", "CYCL", "PRMT", "AGLP", "STHP", "TRUN", "TLRD", "TRHP", "UIMN", "STYL", "BODY", "PMON", "MDSH", "AVIS", "ASTV", "MGRV", "RATE", "MINT", "AUDT", "TUTR", "PYOD", "PYTH", "LLMR", "TSTN", "INTR", "REFL", "TEST", "BAPI"],
+"visualRSICore": ["APPL", "UTIL", "STMT", "IDXB", "APIC", "CYCL", "PRMT", "AGLP", "STHP", "TRUN", "TLRD", "TLWR", "TRHP", "UIMN", "CNVS", "VDAT", "MTCP", "GMOD", "BLPR", "PMON", "MDSH", "AVIS", "ASTV", "MGRV", "RATE", "MINT", "AUDT", "TUTR", "PYOD", "PYTH", "TSTN", "INTR", "REFL", "TEST", "BAPI"],
+"standardizedCore": ["MLDR", "MMNF", "APPL", "UTIL", "STMT", "IDXB", "APIC", "CYCL", "PRMT", "AGLP", "STHP", "TRUN", "TLRD", "TRHP", "UIMN", "PMON", "MDSH", "AVIS", "ASTV", "MGRV", "RATE", "MINT", "AUDT", "TUTR", "PYOD", "PYTH", "TSTN", "INTR", "REFL", "TEST", "BAPI"],
+"multiProviderCore": ["MLDR", "MMNF", "APPL", "UTIL", "STMT", "IDXB", "APMC", "CYCL", "PRMT", "AGLP", "STHP", "TRUN", "TLRD", "TRHP", "UIMN", "STYL", "BODY", "PMON", "MDSH", "AVIS", "ASTV", "MGRV", "RATE", "MINT", "AUDT", "TUTR", "PYOD", "PYTH", "TSTN", "INTR", "REFL", "TEST", "BAPI"],
 "providers": {
   "default": "gemini",
   "fallbackProviders": ["openai", "anthropic", "local"],
@@ -188,6 +188,18 @@
 "category": "ui"
 },
 {
+"id": "CFMD",
+"path": "confirmation-modal.js",
+"description": "Confirmation dialog for destructive actions",
+"category": "ui"
+},
+{
+"id": "VFSX",
+"path": "vfs-explorer.js",
+"description": "Enhanced VFS file tree with search and viewer",
+"category": "ui"
+},
+{
 "id": "TLRD",
 "path": "tools-read.json",
 "description": "Read-only tools for safe introspection",
@@ -252,6 +264,156 @@
 "path": "viz-data-adapter.js",
 "description": "Transforms agent state into visual data",
 "category": "visualization"
+},
+{
+"id": "PMON",
+"path": "performance-monitor.js",
+"description": "Performance monitoring for RSI data-driven optimization",
+"category": "monitoring"
+},
+{
+"id": "MDSH",
+"path": "metrics-dashboard.js",
+"description": "Visual metrics dashboard with Chart.js for performance visualization",
+"category": "monitoring"
+},
+{
+"id": "AVIS",
+"path": "agent-visualizer.js",
+"description": "FSM state machine visualization with D3.js force-directed graph",
+"category": "visualization"
+},
+{
+"id": "ASTV",
+"path": "ast-visualizer.js",
+"description": "JavaScript AST tree visualization with D3.js and Acorn parser",
+"category": "visualization"
+},
+{
+"id": "MGRV",
+"path": "module-graph-visualizer.js",
+"description": "Interactive D3.js force-directed graph of module dependencies",
+"category": "visualization"
+},
+{
+"id": "TSTN",
+"path": "toast-notifications.js",
+"description": "Non-blocking toast notification system for user feedback",
+"category": "ui"
+},
+{
+"id": "RATE",
+"path": "rate-limiter.js",
+"description": "Token bucket and sliding window rate limiters for API calls",
+"category": "service"
+},
+{
+"id": "MINT",
+"path": "module-integrity.js",
+"description": "Module signing and integrity verification system",
+"category": "security"
+},
+{
+"id": "AUDT",
+"path": "audit-logger.js",
+"description": "Security audit logging for modules and VFS operations",
+"category": "security"
+},
+{
+"id": "TUTR",
+"path": "tutorial-system.js",
+"description": "Interactive tutorial system for onboarding new users",
+"category": "ui"
+},
+{
+"id": "PYOD",
+"path": "pyodide-runtime.js",
+"description": "WebAssembly Python runtime via Pyodide with VFS integration",
+"category": "runtime"
+},
+{
+"id": "PYTH",
+"path": "python-tool.js",
+"description": "Python code execution tool interface for agent",
+"category": "tools"
+},
+{
+"id": "LLMR",
+"path": "local-llm.js",
+"description": "Local LLM runtime with WebGPU acceleration via WebLLM",
+"category": "runtime"
+},
+{
+"id": "HYBR",
+"path": "hybrid-llm-provider.js",
+"description": "Hybrid LLM provider for seamless local/cloud inference switching",
+"category": "agent"
+},
+{
+"id": "SWRM",
+"path": "swarm-orchestrator.js",
+"description": "Multi-agent swarm intelligence orchestrator for distributed task execution",
+"category": "service"
+},
+{
+"id": "INTR",
+"path": "introspector.js",
+"description": "Code introspection and self-analysis for RSI",
+"category": "introspection"
+},
+{
+"id": "REFL",
+"path": "reflection-store.js",
+"description": "Persistent reflection storage for learning over time",
+"category": "introspection"
+},
+{
+"id": "REAN",
+"path": "reflection-analyzer.js",
+"description": "Pattern recognition and learning from reflection history",
+"category": "learning"
+},
+{
+"id": "RESRCH",
+"path": "reflection-search.js",
+"description": "Semantic search over reflections using TF-IDF embeddings",
+"category": "intelligence"
+},
+{
+"id": "TOAN",
+"path": "tool-analytics.js",
+"description": "Tool usage analytics and performance tracking",
+"category": "analytics"
+},
+{
+"id": "COST",
+"path": "cost-tracker.js",
+"description": "API cost tracking and rate limiting for budget management",
+"category": "analytics"
+},
+{
+"id": "TABC",
+"path": "tab-coordinator.js",
+"description": "Inter-tab state synchronization via BroadcastChannel",
+"category": "coordination"
+},
+{
+"id": "TDOC",
+"path": "tool-doc-generator.js",
+"description": "Automatic markdown documentation generator for tool schemas",
+"category": "documentation"
+},
+{
+"id": "TEST",
+"path": "self-tester.js",
+"description": "Self-testing and validation framework for safe RSI",
+"category": "validation"
+},
+{
+"id": "BAPI",
+"path": "browser-apis.js",
+"description": "Browser-native Web API integration (File System, Notifications, Storage, etc.)",
+"category": "capability"
 }
 ],
 "blueprints": [

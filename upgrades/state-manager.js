@@ -4,17 +4,65 @@ const StateManager = {
   metadata: {
     id: 'StateManager',
     version: '2.0.0',
-    dependencies: ['config', 'Storage', 'StateHelpersPure', 'Utils'],
+    dependencies: ['config', 'Storage', 'StateHelpersPure', 'Utils', 'AuditLogger'],
     async: true,
     type: 'service'
   },
-  
+
   factory: (deps) => {
-    const { config, Storage, StateHelpersPure, Utils } = deps;
+    const { config, Storage, StateHelpersPure, Utils, AuditLogger } = deps;
     const { logger, Errors } = Utils;
     const { StateError, ArtifactError } = Errors;
-    
+
     let globalState = null;
+
+    // SEC-3: File size limits (in bytes)
+    const FILE_SIZE_LIMITS = {
+      code: 1024 * 1024,        // 1 MB for code files (.js, .ts, etc.)
+      document: 5 * 1024 * 1024, // 5 MB for documents (.md, .txt, etc.)
+      data: 10 * 1024 * 1024,    // 10 MB for data files (.json, .csv, etc.)
+      image: 5 * 1024 * 1024,    // 5 MB for images
+      default: 2 * 1024 * 1024   // 2 MB default
+    };
+
+    /**
+     * SEC-3: Validate file size against limits
+     * @param {string} path - File path
+     * @param {string} content - File content
+     * @throws {ArtifactError} If file exceeds size limit
+     */
+    const validateFileSize = (path, content) => {
+      const size = new Blob([content]).size;
+
+      // Determine file type from extension
+      let limit = FILE_SIZE_LIMITS.default;
+      const ext = path.split('.').pop()?.toLowerCase();
+
+      if (['js', 'ts', 'jsx', 'tsx', 'mjs'].includes(ext)) {
+        limit = FILE_SIZE_LIMITS.code;
+      } else if (['md', 'txt', 'html', 'css'].includes(ext)) {
+        limit = FILE_SIZE_LIMITS.document;
+      } else if (['json', 'csv', 'xml', 'yaml', 'yml'].includes(ext)) {
+        limit = FILE_SIZE_LIMITS.data;
+      } else if (['png', 'jpg', 'jpeg', 'gif', 'svg', 'webp'].includes(ext)) {
+        limit = FILE_SIZE_LIMITS.image;
+      }
+
+      if (size > limit) {
+        const limitMB = (limit / 1024 / 1024).toFixed(1);
+        const sizeMB = (size / 1024 / 1024).toFixed(2);
+        throw new ArtifactError(
+          `File size ${sizeMB} MB exceeds limit of ${limitMB} MB for ${path}`,
+          { size, limit, path }
+        );
+      }
+
+      logger.debug(`[StateManager] File size validation passed for ${path}`, {
+        size,
+        limit,
+        percentage: ((size / limit) * 100).toFixed(1) + '%'
+      });
+    };
 
     const init = async () => {
       logger.info("[StateManager-Git] Initializing state...");
@@ -48,7 +96,15 @@ const StateManager = {
     };
 
     const createArtifact = async (path, type, content, description) => {
+        // SEC-3: Validate file size before creating
+        validateFileSize(path, content);
         await Storage.setArtifactContent(path, content);
+
+        // SEC-4: Audit log artifact creation
+        if (AuditLogger) {
+            await AuditLogger.logVfsCreate(path, type, new Blob([content]).size, { description });
+        }
+
         return await updateAndSaveState(async state => {
             state.artifactMetadata[path] = { id: path, type, description };
             logger.info(`[StateManager-Git] Created artifact: ${path}`);
@@ -61,12 +117,26 @@ const StateManager = {
         if (!existingMeta) {
             throw new ArtifactError(`Cannot update non-existent artifact: ${path}`);
         }
+        // SEC-3: Validate file size before updating
+        validateFileSize(path, content);
         await Storage.setArtifactContent(path, content);
+
+        // SEC-4: Audit log artifact update
+        if (AuditLogger) {
+            await AuditLogger.logVfsUpdate(path, new Blob([content]).size);
+        }
+
         logger.info(`[StateManager-Git] Updated artifact: ${path}`);
     };
 
     const deleteArtifact = async (path) => {
         await Storage.deleteArtifact(path);
+
+        // SEC-4: Audit log artifact deletion
+        if (AuditLogger) {
+            await AuditLogger.logVfsDelete(path);
+        }
+
         return await updateAndSaveState(async state => {
             delete state.artifactMetadata[path];
             logger.warn(`[StateManager-Git] Deleted artifact: ${path}`);
@@ -100,7 +170,11 @@ const StateManager = {
         }
 
         async createSession(goal) {
-            const sessionId = `session_${Date.now()}`;
+            // Use crypto.randomBytes for better uniqueness instead of timestamp
+            const randomBytes = Array.from(crypto.getRandomValues(new Uint8Array(8)))
+                .map(b => b.toString(16).padStart(2, '0'))
+                .join('');
+            const sessionId = `session_${Date.now()}_${randomBytes}`;
             this.activeSessionId = sessionId;
             const sessionPath = `/sessions/${sessionId}`;
             const manifest = {
@@ -146,11 +220,34 @@ const StateManager = {
     // Checkpoint management
     const createCheckpoint = async (description) => {
         const checkpointId = `checkpoint_${Date.now()}`;
+
+        // Deep clone state
+        const stateCopy = JSON.parse(JSON.stringify(globalState));
+
+        // Actually fetch and store artifact contents
+        const artifactsWithContent = {};
+        for (const [path, metadata] of Object.entries(globalState.artifactMetadata || {})) {
+            try {
+                const content = await Storage.getArtifactContent(path);
+                artifactsWithContent[path] = {
+                    metadata: { ...metadata },
+                    content: content || ''
+                };
+            } catch (err) {
+                logger.warn(`[StateManager] Failed to backup content for ${path}:`, err);
+                artifactsWithContent[path] = {
+                    metadata: { ...metadata },
+                    content: ''
+                };
+            }
+        }
+
         const checkpoint = {
             id: checkpointId,
             description,
             timestamp: Date.now(),
-            state: JSON.parse(JSON.stringify(globalState)) // Deep clone current state
+            state: stateCopy,
+            artifacts: artifactsWithContent
         };
 
         // Store checkpoint in VFS
@@ -172,13 +269,24 @@ const StateManager = {
         }
 
         const checkpoint = JSON.parse(checkpointContent);
+
+        // Restore state
         globalState = checkpoint.state;
 
-        // Restore all artifacts from checkpoint state
-        for (const [path, metadata] of Object.entries(globalState.artifactMetadata || {})) {
-            if (metadata.content) {
-                await Storage.setArtifactContent(path, metadata.content);
+        // Restore all artifact contents from checkpoint
+        if (checkpoint.artifacts) {
+            for (const [path, data] of Object.entries(checkpoint.artifacts)) {
+                try {
+                    // Restore the actual content
+                    if (data.content !== undefined) {
+                        await Storage.setArtifactContent(path, data.content);
+                    }
+                } catch (err) {
+                    logger.error(`[StateManager] Failed to restore ${path}:`, err);
+                }
             }
+        } else {
+            logger.warn(`[StateManager] Checkpoint has no artifact contents - old format?`);
         }
 
         await saveState();

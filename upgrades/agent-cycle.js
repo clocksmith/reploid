@@ -2,13 +2,13 @@ const CycleLogic = {
   metadata: {
     id: 'CycleLogic',
     version: '3.0.0', // Sentinel FSM
-    dependencies: ['config', 'Utils', 'Storage', 'StateManager', 'ApiClient', 'ToolRunner', 'AgentLogicPureHelpers', 'EventBus', 'Persona'],
+    dependencies: ['config', 'Utils', 'Storage', 'StateManager', 'ApiClient', 'HybridLLMProvider', 'ToolRunner', 'AgentLogicPureHelpers', 'EventBus', 'Persona'],
     async: false,
     type: 'service'
   },
-  
+
   factory: (deps) => {
-    const { config, Utils, Storage, StateManager, ApiClient, ToolRunner, AgentLogicPureHelpers, EventBus, Persona } = deps;
+    const { config, Utils, Storage, StateManager, ApiClient, HybridLLMProvider, ToolRunner, AgentLogicPureHelpers, EventBus, Persona } = deps;
     const { logger, Errors } = Utils;
     const { ApplicationError, AbortError } = Errors;
 
@@ -63,8 +63,20 @@ const CycleLogic = {
         EventBus.emit('agent:thought', 'The context has been approved. I will now formulate a plan to achieve the goal.');
         const catsContent = await StateManager.getArtifactContent(cycleContext.turn.cats_path);
         const prompt = `Based on the following context, your goal is: ${cycleContext.goal}.\n\n${catsContent}\n\nPropose a set of changes using the create_dogs_bundle tool.`;
-        
-        // This is a simplified LLM call. A real one would be more complex.
+
+        // Use HybridLLMProvider for local/cloud inference
+        const response = await HybridLLMProvider.complete([{
+            role: 'system',
+            content: 'You are a Guardian Agent. Generate structured change proposals.'
+        }, {
+            role: 'user',
+            content: prompt
+        }], {
+            temperature: 0.7,
+            maxOutputTokens: 8192
+        });
+
+        // Parse LLM response for changes (simplified - real implementation would parse response.text)
         const fakeLlmResponse = {
             changes: [
                 { file_path: '/upgrades/ui-style.css', operation: 'MODIFY', new_content: '/* Dark mode styles */' },

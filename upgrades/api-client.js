@@ -4,19 +4,27 @@
 const ApiClient = {
   metadata: {
     id: 'ApiClient',
-    version: '1.0.0',
-    dependencies: ['config', 'Utils', 'StateManager'],
+    version: '2.0.0',
+    dependencies: ['config', 'Utils', 'StateManager', 'RateLimiter'],
     async: false,
     type: 'service'
   },
   
   factory: (deps) => {
     // Validate dependencies
-    const { config, Utils, StateManager } = deps;
+    const { config, Utils, StateManager, RateLimiter } = deps;
     const { logger, Errors } = Utils;
-    
+
     if (!config || !logger || !Errors || !Utils || !StateManager) {
       throw new Error('ApiClient: Missing required dependencies');
+    }
+
+    // Rate limiter (optional - graceful degradation if not available)
+    const rateLimiter = RateLimiter ? RateLimiter.getLimiter('api') : null;
+    if (rateLimiter) {
+      logger.info('[ApiClient] Rate limiting enabled (10 calls/min, burst of 5)');
+    } else {
+      logger.warn('[ApiClient] Rate limiting not available - requests unlimited');
     }
     
     // Extract error classes
@@ -53,11 +61,23 @@ const ApiClient = {
     };
     
     const callApiWithRetry = async (history, apiKey, funcDecls = []) => {
+      // Rate limiting check
+      if (rateLimiter) {
+        const allowed = await RateLimiter.waitForToken(rateLimiter, 5000);
+        if (!allowed) {
+          throw new ApiError(
+            'Rate limit exceeded. Please wait before making another request.',
+            429,
+            'RATE_LIMIT_EXCEEDED'
+          );
+        }
+      }
+
       // Check proxy availability on first call
       if (!proxyChecked) {
         await checkProxyAvailability();
       }
-      
+
       // Abort any existing call
       if (currentAbortController) {
         currentAbortController.abort("New call initiated");
@@ -165,8 +185,50 @@ const ApiClient = {
         
       } catch (error) {
         if (error.name === 'AbortError') {
-          throw new AbortError("API call aborted.");
+          throw new AbortError("API call was cancelled. You can start a new request.");
         }
+
+        // Provide helpful error messages based on error type
+        if (!navigator.onLine) {
+          const offlineError = new ApiError(
+            "No internet connection detected. Please check your network and try again.",
+            0,
+            "NETWORK_OFFLINE"
+          );
+          logger.error("API Call Failed - Offline", error);
+          throw offlineError;
+        }
+
+        if (error.status === 401 || error.status === 403) {
+          const authError = new ApiError(
+            "Authentication failed. Please check your API key in settings or .env file.",
+            error.status,
+            "AUTH_FAILED"
+          );
+          logger.error("API Call Failed - Authentication", error);
+          throw authError;
+        }
+
+        if (error.status === 429) {
+          const rateLimitError = new ApiError(
+            "Rate limit exceeded. Please wait a moment before trying again.",
+            429,
+            "RATE_LIMIT"
+          );
+          logger.error("API Call Failed - Rate Limit", error);
+          throw rateLimitError;
+        }
+
+        if (error.status >= 500) {
+          const serverError = new ApiError(
+            `The AI service is temporarily unavailable (${error.status}). Please try again in a few moments.`,
+            error.status,
+            "SERVER_ERROR"
+          );
+          logger.error("API Call Failed - Server Error", error);
+          throw serverError;
+        }
+
         logger.error("API Call Failed", error);
         throw error;
       } finally {

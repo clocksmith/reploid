@@ -57,3 +57,53 @@ The following is a high-level catalog of the core upgrades available for composi
 ### Module System (New)
 *   **`MLDR`** (`boot-module-loader.js`): Standardized module loader with dependency injection
 *   **`MMNF`** (`module-manifest.json`): Module dependency manifest and load order
+*   **`DICN`** (`di-container.js`): Dependency injection container for module composition
+*   **`EVTB`** (`event-bus.js`): Event pub/sub system for loose coupling
+
+### RSI Core Modules (12/12 Complete - ✅ 100% RSI Capability)
+*   **`INTR`** (`introspector.js`): Self-analysis - architecture, dependencies, complexity metrics
+*   **`REFL`** (`reflection-store.js`): Meta-learning - persistent learning across sessions
+*   **`REAN`** (`reflection-analyzer.js`): Pattern recognition - learning from reflection history
+*   **`RESRCH`** (`reflection-search.js`): Semantic search - TF-IDF similarity search over reflections
+*   **`TEST`** (`self-tester.js`): Self-testing - automated validation with 80% threshold
+*   **`PERF`** (`performance-monitor.js`): Self-optimization - metrics collection and analysis
+*   **`POPT`** (`performance-optimizer.js`): Auto-optimization - memoization, throttling, retry wrappers
+*   **`BAPI`** (`browser-apis.js`): Browser-native - File System Access, Notifications, Storage
+*   **`COST`** (`cost-tracker.js`): Cost tracking - API usage monitoring and rate limiting
+*   **`TOAN`** (`tool-analytics.js`): Tool analytics - usage patterns and performance tracking
+*   **`SWRM`** (`swarm-orchestrator.js`): Multi-agent - distributed task delegation and coordination
+*   **`TDOC`** (`tool-doc-generator.js`): Auto-docs - automatic markdown documentation generator
+
+---
+
+## Testing
+
+All core modules are tested with Vitest. See `tests/README.md` for details.
+
+**Test Coverage:**
+- `utils.js`: 98.85% lines, 85.36% functions ✅
+- `event-bus.js`: 100% coverage ✅
+- `state-manager.js`: Full mocked coverage ✅
+
+**Run tests:**
+```bash
+npm test              # Run all tests
+npm run test:watch   # Watch mode
+npm run test:coverage # Coverage report
+```
+
+**85 passing tests** across unit and integration suites, with CI/CD via GitHub Actions.
+
+---
+
+## Documentation
+
+- **API Reference:** `docs/API.md` - Complete module API documentation with examples
+- **Testing Guide:** `tests/README.md` - Testing best practices and guidelines
+- **Roadmap:** `docs/ROADMAP.md` - Development priorities (53/53 complete ✅)
+- **Enhancements:** `docs/TODO-ENHANCEMENTS.md` - Post-roadmap enhancements (18/18 complete ✅)
+- **Completion Summary:** `docs/FINAL-COMPLETION.md` - Final 100% completion report
+
+---
+
+*For module development guidelines, see `docs/PERSONAS.md` and the standardized module format in `STANDARDIZATION.md`.*

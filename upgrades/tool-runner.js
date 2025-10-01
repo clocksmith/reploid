@@ -33,7 +33,8 @@ const ToolRunner = {
     const toolDef = allTools.find((t) => t.name === toolName);
     
     if (!toolDef) {
-        throw new ToolError(`Tool not found: ${toolName}`);
+        const available = allTools.map(t => t.name).join(', ');
+        throw new ToolError(`Tool '${toolName}' not found. Available tools: ${available}`);
     }
 
     if (injectedStaticTools.some(t => t.name === toolName)) {
@@ -41,7 +42,11 @@ const ToolRunner = {
         case "read_artifact": {
           const content = await StateManager.getArtifactContent(toolArgs.path, toolArgs.version);
           if (content === null) {
-            throw new ArtifactError(`Artifact not found at path: ${toolArgs.path} (version: ${toolArgs.version || 'latest'})`, toolArgs.path);
+            const allMeta = await StateManager.getAllArtifactMetadata();
+            const available = Object.keys(allMeta).slice(0, 5).join(', ');
+            const msg = `Artifact not found: ${toolArgs.path} (version: ${toolArgs.version || 'latest'})\n` +
+                       `Suggestion: Check the path is correct. Some available artifacts: ${available}${Object.keys(allMeta).length > 5 ? '...' : ''}`;
+            throw new ArtifactError(msg, toolArgs.path);
           }
           return { content };
         }
@@ -59,7 +64,11 @@ const ToolRunner = {
             const contentA = await StateManager.getArtifactContent(toolArgs.path, toolArgs.version_a);
             const contentB = await StateManager.getArtifactContent(toolArgs.path, toolArgs.version_b);
             if (contentA === null || contentB === null) {
-                throw new ArtifactError(`One or both artifact versions not found for diffing: ${toolArgs.path}`);
+                const missing = contentA === null ? toolArgs.version_a : toolArgs.version_b;
+                throw new ArtifactError(
+                  `Cannot diff: version '${missing}' not found for ${toolArgs.path}\n` +
+                  `Tip: Use get_artifact_history tool to see available versions.`
+                );
             }
             // Basic diff for now, a proper library would be better.
             return { diff: `(Basic diff not implemented. Len A: ${contentA.length}, Len B: ${contentB.length})`, differences: contentA !== contentB };
@@ -79,9 +88,12 @@ const ToolRunner = {
 
         case \"create_cats_bundle\": {\n            const { file_paths, reason, turn_path } = toolArgs;\n            let bundleContent = `## PAWS Context Bundle (cats.md)\\n\\n**Reason:** ${reason}\\n\\n---\\n\\n`;\n            for (const path of file_paths) {\n                const content = await StateManager.getArtifactContent(path);\n                bundleContent += `\`\`\`vfs-file\npath: ${path}\n\`\`\`\\n\`\`\`\n${content}\n\`\`\`\\n\\n`;\n            }\n            await StateManager.createArtifact(turn_path, \'markdown\', bundleContent, `Context bundle for turn`);\n            return { success: true, path: turn_path };\n        }\n\n        case \"create_dogs_bundle\": {\n            const { changes, turn_path } = toolArgs;\n            let bundleContent = `## PAWS Change Proposal (dogs.md)\\n\\n`;\n            for (const change of changes) {\n                bundleContent += `\`\`\`paws-change\noperation: ${change.operation}\nfile_path: ${change.file_path}\n\`\`\`\\n`;\n                if (change.operation !== \'DELETE\') {\n                    bundleContent += `\`\`\`\n${change.new_content}\n\`\`\`\\n\\n`;\n                }\n            }\n            await StateManager.createArtifact(turn_path, \'markdown\', bundleContent, `Change proposal for turn`);\n            return { success: true, path: turn_path };\n        }\n\n        case \"apply_dogs_bundle\": {\n            const { dogs_path, verify_command } = toolArgs;\n            // In a real implementation, this would use the Git VFS to checkpoint.\n            logger.warn(\"[ToolRunner] apply_dogs_bundle is a stub. It does not currently support verification or rollback.\");\n            \n            const dogsContent = await StateManager.getArtifactContent(dogs_path);\n            // Basic parsing logic\n            const changes = []; // This would be parsed from dogsContent\n\n            for (const change of changes) {\n                if (change.operation === \'MODIFY\' || change.operation === \'CREATE\') {\n                    await StateManager.updateArtifact(change.file_path, change.new_content);\n                } else if (change.operation === \'DELETE\') {\n                    await StateManager.deleteArtifact(change.file_path);\n                }\n            }\n            return { success: true, message: \"Changes applied (stubbed).\" };\n        }\n\n        case \"vfs_revert\": {
             const { path, commit_sha } = toolArgs;
-            const oldContent = await StateManager.getArtifactContent(path, commit_sha); // Assumes getArtifactContent can fetch by SHA
+            const oldContent = await StateManager.getArtifactContent(path, commit_sha);
             if (oldContent === null) {
-                throw new ArtifactError(`Cannot find version ${commit_sha} for artifact ${path}`);
+                throw new ArtifactError(
+                  `Cannot revert ${path}: version ${commit_sha} not found\n` +
+                  `Tip: Use get_artifact_history to see available commit SHAs for this file.`
+                );
             }
             await StateManager.updateArtifact(path, oldContent);
             return { success: true, message: `Artifact ${path} reverted to version ${commit_sha}` };
@@ -152,26 +164,83 @@ const ToolRunner = {
             // Delete an artifact - use with extreme caution
             const deletePath = toolArgs.path;
             const deleteReason = toolArgs.reason;
-            
+
             if (!deletePath || !deleteReason) {
-                throw new ToolError("delete_artifact requires both 'path' and 'reason' parameters");
+                throw new ToolError(
+                  "delete_artifact requires both 'path' and 'reason' parameters.\n" +
+                  `Missing: ${!deletePath ? "'path'" : ""} ${!deleteReason ? "'reason'" : ""}\n` +
+                  "Example: {path: '/vfs/old-file.js', reason: 'Obsolete after refactor'}"
+                );
             }
-            
+
             // Check if artifact exists
             const artifactToDelete = await StateManager.getArtifactMetadata(deletePath);
             if (!artifactToDelete) {
-                throw new ArtifactError(`Cannot delete non-existent artifact: ${deletePath}`);
+                const allMeta = await StateManager.getAllArtifactMetadata();
+                const similar = Object.keys(allMeta).filter(p => p.includes(path.basename(deletePath))).slice(0, 3);
+                const suggestion = similar.length > 0 ? `\nDid you mean: ${similar.join(', ')}` : '';
+                throw new ArtifactError(`Cannot delete non-existent artifact: ${deletePath}${suggestion}`);
             }
-            
+
             // Perform deletion
             const deleteSuccess = await StateManager.deleteArtifact(deletePath);
-            
+
             logger.logEvent("warn", `Artifact DELETED: ${deletePath}`, deleteReason);
-            return { 
-                success: deleteSuccess, 
+            return {
+                success: deleteSuccess,
                 path: deletePath,
                 reason: deleteReason,
-                warning: "Artifact permanently deleted from VFS" 
+                warning: "Artifact permanently deleted from VFS"
+            };
+        }
+
+        case "execute_python": {
+            // Execute Python code via Pyodide runtime
+            const { code, install_packages, sync_workspace } = toolArgs;
+
+            if (!code) {
+                throw new ToolError("execute_python requires 'code' parameter");
+            }
+
+            // Check if PyodideRuntime is available
+            const PyodideRuntime = deps.PyodideRuntime || window.PyodideRuntime;
+            if (!PyodideRuntime) {
+                throw new ToolError("PyodideRuntime not available. Python execution requires Pyodide to be loaded.");
+            }
+
+            if (!PyodideRuntime.isReady()) {
+                throw new ToolError("Python runtime not initialized. Please wait for Pyodide to load.");
+            }
+
+            // Install packages if requested
+            if (install_packages && Array.isArray(install_packages)) {
+                for (const pkg of install_packages) {
+                    logger.logEvent("info", `Installing Python package: ${pkg}`);
+                    const installResult = await PyodideRuntime.installPackage(pkg);
+                    if (!installResult.success) {
+                        return {
+                            success: false,
+                            error: `Failed to install package ${pkg}: ${installResult.error}`
+                        };
+                    }
+                }
+            }
+
+            // Sync workspace if requested
+            if (sync_workspace) {
+                logger.logEvent("info", "Syncing VFS workspace to Pyodide filesystem");
+                await PyodideRuntime.syncWorkspace();
+            }
+
+            // Execute Python code
+            logger.logEvent("info", "Executing Python code", { lines: code.split('\n').length });
+            const result = await PyodideRuntime.execute(code);
+
+            return {
+                success: result.success,
+                output: result.output,
+                error: result.error,
+                returnValue: result.returnValue
             };
         }
 
@@ -186,14 +255,25 @@ const ToolRunner = {
             const result = await Utils.post('/api/vfs/backup', allArtifacts);
             return { success: true, message: result.message };
           } catch (error) {
-            throw new ToolError(`System backup failed: ${error.message}`);
+            throw new ToolError(
+              `System backup failed: ${error.message}\n` +
+              `Possible causes:\n` +
+              `  • Server endpoint /api/vfs/backup not available\n` +
+              `  • Network connection issue\n` +
+              `  • Insufficient permissions\n` +
+              `Tip: Check server logs and ensure backup service is running.`
+            );
           }
         }
         
         case "create_rfc": {
           const templateContent = await StateManager.getArtifactContent('/templates/rfc.md');
           if (!templateContent) {
-            throw new ArtifactError("RFC template not found at /templates/rfc.md");
+            throw new ArtifactError(
+              "RFC template not found at /templates/rfc.md\n" +
+              "To fix: Create the template file with {{TITLE}} and {{DATE}} placeholders.\n" +
+              "Example: Use write_artifact tool to create /templates/rfc.md with your RFC template structure."
+            );
           }
           const today = new Date().toISOString().split('T')[0];
           const newContent = templateContent
@@ -240,7 +320,13 @@ const ToolRunner = {
               manifest: exportData
             };
           } catch (error) {
-            throw new ToolError(`Project export failed: ${error.message}`);
+            throw new ToolError(
+              `Project export failed: ${error.message}\n` +
+              `Common issues:\n` +
+              `  • Large files may exceed memory limits\n` +
+              `  • Check that all artifacts are accessible\n` +
+              `Tip: Try exporting specific directories instead of the entire project.`
+            );
           }
         }
 
@@ -320,7 +406,15 @@ const ToolRunner = {
     } catch (error) {
       URL.revokeObjectURL(moduleUrl);
       logger.error('[ToolRunner] Blob execution failed:', error);
-      throw new ToolError(`Tool execution failed: ${error.message}`, error);
+      throw new ToolError(
+        `Tool execution failed in blob context: ${error.message}\n` +
+        `This usually indicates:\n` +
+        `  • Syntax error in the tool's JavaScript code\n` +
+        `  • Missing or invalid tool arguments\n` +
+        `  • Attempting to access unavailable APIs\n` +
+        `Check the tool implementation for errors.`,
+        error
+      );
     }
   };
   
@@ -337,13 +431,29 @@ const ToolRunner = {
         if (success) {
           resolve(result);
         } else {
-          reject(new ToolError(error?.message || 'Worker execution failed', error));
+          reject(new ToolError(
+            `Worker execution failed: ${error?.message || 'Unknown error'}\n` +
+            `This can happen when:\n` +
+            `  • Tool code contains syntax errors\n` +
+            `  • Tool tries to access browser APIs not available in workers\n` +
+            `  • Tool arguments are invalid or missing\n` +
+            `Debug: Check browser console for detailed worker errors.`,
+            error
+          ));
         }
         worker.terminate();
       };
       
       worker.onerror = (error) => {
-        reject(new ToolError('Worker error', error));
+        reject(new ToolError(
+          `Worker initialization error: ${error.message || 'Failed to start worker'}\n` +
+          `Possible causes:\n` +
+          `  • Worker script /upgrades/tool-worker.js not found\n` +
+          `  • CSP (Content Security Policy) blocking worker creation\n` +
+          `  • Browser doesn't support Web Workers\n` +
+          `Check that tool-worker.js exists and is accessible.`,
+          error
+        ));
         worker.terminate();
       };
       

@@ -274,12 +274,91 @@ const GitVFS = {
       if (!isInitialized) return [];
 
       try {
-        // This is simplified - full implementation would compare trees
-        return [];
+        // Get the commit object
+        const commit = await git.readCommit({ fs: pfs, dir: REPO_DIR, oid: sha });
+        const tree = commit.commit.tree;
+
+        // Get parent commit for comparison
+        const parents = commit.commit.parent;
+        if (parents.length === 0) {
+          // Initial commit - all files are additions
+          const allFiles = await getAllFilesInTree(tree);
+          return allFiles.map(path => ({ type: 'add', path }));
+        }
+
+        // Compare with first parent (for simplicity)
+        const parentCommit = await git.readCommit({ fs: pfs, dir: REPO_DIR, oid: parents[0] });
+        const parentTree = parentCommit.commit.tree;
+
+        // Get file lists from both trees
+        const oldFiles = await getTreeFiles(parentTree);
+        const newFiles = await getTreeFiles(tree);
+
+        const changes = [];
+
+        // Find added and modified files
+        for (const [path, newOid] of Object.entries(newFiles)) {
+          if (!oldFiles[path]) {
+            changes.push({ type: 'add', path });
+          } else if (oldFiles[path] !== newOid) {
+            changes.push({ type: 'modify', path });
+          }
+        }
+
+        // Find deleted files
+        for (const path of Object.keys(oldFiles)) {
+          if (!newFiles[path]) {
+            changes.push({ type: 'delete', path });
+          }
+        }
+
+        return changes;
       } catch (error) {
         logger.error(`[GitVFS] Error getting commit changes:`, error);
         return [];
       }
+    };
+
+    // Helper: Get all files in a tree (for initial commit)
+    const getAllFilesInTree = async (treeOid, prefix = '') => {
+      const files = [];
+      try {
+        const { tree } = await git.readTree({ fs: pfs, dir: REPO_DIR, oid: treeOid });
+
+        for (const entry of tree) {
+          const fullPath = prefix + entry.path;
+          if (entry.type === 'blob') {
+            files.push(fullPath);
+          } else if (entry.type === 'tree') {
+            const subFiles = await getAllFilesInTree(entry.oid, fullPath + '/');
+            files.push(...subFiles);
+          }
+        }
+      } catch (error) {
+        logger.error(`[GitVFS] Error reading tree:`, error);
+      }
+      return files;
+    };
+
+    // Helper: Get all files with their OIDs from a tree
+    const getTreeFiles = async (treeOid, prefix = '') => {
+      const files = {};
+      try {
+        const { tree } = await git.readTree({ fs: pfs, dir: REPO_DIR, oid: treeOid });
+
+        for (const entry of tree) {
+          const fullPath = prefix + entry.path;
+          if (entry.type === 'blob') {
+            files[fullPath] = entry.oid;
+          } else if (entry.type === 'tree') {
+            const subFiles = await getTreeFiles(entry.oid, fullPath + '/');
+            Object.assign(files, subFiles);
+          }
+        }
+      } catch (error) {
+        logger.error(`[GitVFS] Error reading tree:`, error);
+      }
+      return files;
     };
 
     // Get diff between two versions
