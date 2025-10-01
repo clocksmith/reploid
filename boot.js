@@ -24,6 +24,40 @@
         return response.json();
     }
 
+    function showBootMessage(message, type = 'info') {
+        // Create inline message instead of alert()
+        const existingMsg = document.querySelector('.boot-message');
+        if (existingMsg) existingMsg.remove();
+
+        const msg = document.createElement('div');
+        msg.className = `boot-message boot-message-${type}`;
+        msg.textContent = message;
+        msg.style.cssText = `
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 12px 24px;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 500;
+            z-index: 10001;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            animation: slideDown 0.3s ease-out;
+            ${type === 'warning' ? 'background: rgba(255, 215, 0, 0.9); color: #000;' :
+              type === 'error' ? 'background: rgba(244, 135, 113, 0.9); color: white;' :
+              'background: rgba(79, 195, 247, 0.9); color: white;'}
+        `;
+
+        document.body.appendChild(msg);
+
+        // Auto-remove after 3 seconds
+        setTimeout(() => {
+            msg.style.animation = 'slideUp 0.3s ease-out';
+            setTimeout(() => msg.remove(), 300);
+        }, 3000);
+    }
+
     function renderPersonas() {
         elements.personaContainer.innerHTML = '';
         state.config.personas.forEach(persona => {
@@ -110,17 +144,31 @@
         }
     }
 
+    function sanitizeGoal(goal) {
+        // Security: Sanitize goal input
+        // 1. Trim whitespace
+        // 2. Strip HTML tags
+        // 3. Limit length (enforced by HTML maxlength, but double-check)
+        const trimmed = goal.trim();
+        const noHtml = trimmed.replace(/<[^>]*>/g, '');
+        const limited = noHtml.slice(0, 500);
+        return limited;
+    }
+
     async function awakenAgent() {
         if (!state.selectedPersonaId && !state.isAdvancedMode) {
-            alert('Please select a Persona first.');
+            showBootMessage('Please select a Persona first.', 'warning');
             return;
         }
 
-        const goal = elements.goalInput.value;
-        if (!goal) {
-            alert('Please define a goal for the agent.');
+        const rawGoal = elements.goalInput.value;
+        if (!rawGoal) {
+            showBootMessage('Please define a goal for the agent.', 'warning');
             return;
         }
+
+        // Sanitize goal input for security
+        const goal = sanitizeGoal(rawGoal);
 
         console.log('Awakening agent with:');
         let bootConfig;

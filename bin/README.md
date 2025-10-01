@@ -206,6 +206,19 @@ The tools provide clear error messages:
 4. **Use descriptive bundle names** (e.g., `fix-auth-bug.dogs.md`)
 5. **Test verification commands** work before applying
 
+## Testing
+
+The PAWS CLI tools are validated through:
+
+1. **Automated Tests**: GitHub Actions CI/CD tests CLI commands
+   ```bash
+   npm run test:cli  # Runs --help for cats and dogs
+   ```
+
+2. **Manual Testing**: See `test-guardian-flow.md` for complete workflow tests
+
+3. **Integration Testing**: Tests verify bundle parsing, validation, and security checks
+
 ---
 
 *PAWS CLI tools - Safe, controlled file operations with AI assistance.*

@@ -208,6 +208,17 @@ See `/RFC-STATUS.md` for the current implementation status of major architectura
 - **Project Athena** (Learning): ☆ Proposed
 - **Project Chronos** (Time Travel): ☆ Proposed
 
+## Testing & Validation
+
+Blueprint implementations are validated through:
+
+1. **Self-Testing Framework**: `self-tester.js` validates system integrity (80% pass threshold)
+2. **Automated Test Suite**: 85 passing tests with Vitest (see `tests/README.md`)
+3. **CI/CD Pipeline**: GitHub Actions validates all changes on push/PR
+4. **Manual Testing**: See `test-guardian-flow.md` for Guardian Agent workflow tests
+
+**RSI Safety**: All 5 RSI core modules (Introspection, Reflection, Self-Testing, Performance, Browser APIs) are complete and tested, enabling safe self-modification.
+
 ---
 
 *Blueprints power the Guardian Agent's evolution through structured knowledge and human-approved implementation.*

@@ -8,12 +8,25 @@ const dotenv = require('dotenv');
 // Load environment variables
 dotenv.config();
 
+// Load unified configuration
+let appConfig = null;
+try {
+  const { getConfig } = require('../utils/config-loader.js');
+  const configLoader = getConfig();
+  configLoader.load();
+  appConfig = configLoader.getAll();
+  console.log('[Proxy] Loaded configuration from:', configLoader.getConfigPath() || 'defaults');
+} catch (err) {
+  console.warn('[Proxy] Config loader not available, using environment variables');
+}
+
 const app = express();
-const PORT = process.env.PORT || 8000;
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-const LOCAL_MODEL_ENDPOINT = process.env.LOCAL_MODEL_ENDPOINT || 'http://localhost:11434';
-const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
-const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
+const PORT = appConfig?.server?.port || process.env.PORT || 8000;
+const GEMINI_API_KEY = appConfig?.api?.geminiKey || process.env.GEMINI_API_KEY;
+const LOCAL_MODEL_ENDPOINT = appConfig?.api?.localEndpoint || process.env.LOCAL_MODEL_ENDPOINT || 'http://localhost:11434';
+const OPENAI_API_KEY = appConfig?.api?.openaiKey || process.env.OPENAI_API_KEY;
+const ANTHROPIC_API_KEY = appConfig?.api?.anthropicKey || process.env.ANTHROPIC_API_KEY;
+const CORS_ORIGINS = appConfig?.server?.corsOrigins || ['http://localhost:8080'];
 
 if (!GEMINI_API_KEY) {
   console.error('⚠️  WARNING: GEMINI_API_KEY not found in .env file');
@@ -32,7 +45,12 @@ app.use(express.json({ limit: '10mb' }));
 // CORS headers for API endpoints
 app.use((req, res, next) => {
   if (req.path.startsWith('/api/')) {
-    res.header('Access-Control-Allow-Origin', '*');
+    const origin = req.headers.origin;
+    if (CORS_ORIGINS.includes('*') || CORS_ORIGINS.includes(origin)) {
+      res.header('Access-Control-Allow-Origin', origin || '*');
+    } else {
+      res.header('Access-Control-Allow-Origin', CORS_ORIGINS[0]);
+    }
     res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
     res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
     if (req.method === 'OPTIONS') {

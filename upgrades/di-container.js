@@ -17,7 +17,11 @@ const DIContainer = {
 
     const register = (module) => {
       if (!module || !module.metadata || !module.metadata.id) {
-        logger.error('[DIContainer] Invalid module registration attempt.', module);
+        logger.error(
+          '[DIContainer] Invalid module registration attempt.\n' +
+          'Modules must have structure: { metadata: { id: "ModuleName", ... }, factory: (deps) => {...} }\n' +
+          `Received: ${JSON.stringify(module?.metadata || 'undefined')}`
+        );
         return;
       }
       logger.info(`[DIContainer] Registered module: ${module.metadata.id}`);
@@ -31,13 +35,27 @@ const DIContainer = {
 
       const module = _services.get(id);
       if (!module) {
-        throw new Error(`[DIContainer] Service not found: ${id}`);
+        const available = Array.from(_services.keys()).join(', ');
+        throw new Error(
+          `[DIContainer] Service not found: ${id}\n` +
+          `Available services: ${available || 'none'}\n` +
+          `Tip: Check module ID spelling and ensure the module is registered in config.json`
+        );
       }
 
       const dependencies = {};
       if (module.metadata.dependencies) {
         for (const depId of module.metadata.dependencies) {
-          dependencies[depId] = await resolve(depId);
+          try {
+            dependencies[depId] = await resolve(depId);
+          } catch (err) {
+            throw new Error(
+              `[DIContainer] Failed to resolve dependency '${depId}' for module '${id}'.\n` +
+              `Dependency chain: ${id} → ${depId}\n` +
+              `Original error: ${err.message}\n` +
+              `Check for circular dependencies or missing module registrations.`
+            );
+          }
         }
       }
 

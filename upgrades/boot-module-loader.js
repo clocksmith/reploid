@@ -6,11 +6,13 @@ const ModuleLoader = {
   loadOrder: [],
   config: null,
   vfs: null,
-  
+  auditLogger: null, // SEC-4: Audit logging
+
   // Initialize the loader with VFS and config
-  init(vfs, config) {
+  init(vfs, config, auditLogger = null) {
     this.vfs = vfs;
     this.config = config;
+    this.auditLogger = auditLogger; // SEC-4: Store audit logger
     this.modules.clear();
     this.loadOrder = [];
     console.log("[ModuleLoader] Initialized with VFS and config");
@@ -18,15 +20,16 @@ const ModuleLoader = {
   
   // Load a module definition from VFS
   async loadModule(vfsPath, moduleId) {
+    const startTime = Date.now();
     try {
       console.log(`[ModuleLoader] Loading module ${moduleId} from ${vfsPath}`);
-      
+
       // Read module code from VFS
       const code = await this.vfs.read(vfsPath);
       if (!code) {
         throw new Error(`No code found at ${vfsPath}`);
       }
-      
+
       // Parse module using Function constructor
       // Module should define itself with standard format and return itself
       const moduleDefinition = new Function(`
@@ -40,10 +43,10 @@ const ModuleLoader = {
         }
         throw new Error('Module ${moduleId} not found in loaded code');
       `)();
-      
+
       // Check if it's a legacy module (function) or new format (object with metadata)
       const isLegacy = typeof moduleDefinition === 'function';
-      
+
       if (isLegacy) {
         console.log(`[ModuleLoader] ${moduleId} is a legacy module, wrapping...`);
         // Wrap legacy module - we'll handle this in instantiation
@@ -58,9 +61,9 @@ const ModuleLoader = {
         if (!moduleDefinition.metadata || !moduleDefinition.factory) {
           throw new Error(`Invalid module format: ${moduleId} (missing metadata or factory)`);
         }
-        
+
         console.log(`[ModuleLoader] ${moduleId} loaded with dependencies:`, moduleDefinition.metadata.dependencies);
-        
+
         // Store module definition
         this.modules.set(moduleId, {
           definition: moduleDefinition,
@@ -69,12 +72,31 @@ const ModuleLoader = {
           vfsPath
         });
       }
-      
+
       this.loadOrder.push(moduleId);
+
+      // SEC-4: Audit log successful module load
+      if (this.auditLogger) {
+        await this.auditLogger.logModuleLoad(moduleId, vfsPath, true, {
+          isLegacy,
+          loadTimeMs: Date.now() - startTime,
+          codeSize: code.length
+        });
+      }
+
       return moduleDefinition;
-      
+
     } catch (e) {
       console.error(`[ModuleLoader] Failed to load module ${moduleId}:`, e);
+
+      // SEC-4: Audit log failed module load
+      if (this.auditLogger) {
+        await this.auditLogger.logModuleLoad(moduleId, vfsPath, false, {
+          error: e.message,
+          loadTimeMs: Date.now() - startTime
+        });
+      }
+
       throw e;
     }
   },

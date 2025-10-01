@@ -1,5 +1,12 @@
-// Enhanced API Client Module with Multi-Provider Support
-// Handles communication with Gemini, OpenAI, Anthropic, and Local models
+/**
+ * @fileoverview Enhanced API Client Module with Multi-Provider Support
+ * Handles communication with Gemini, OpenAI, Anthropic, and Local models.
+ * Includes automatic retry logic with exponential backoff for reliability.
+ *
+ * @module ApiClientMulti
+ * @version 2.1.0
+ * @category service
+ */
 
 const ApiClientMulti = {
   metadata: {
@@ -28,7 +35,10 @@ const ApiClientMulti = {
     let proxyChecked = false;
     let currentProvider = 'gemini'; // Default provider
     
-    // Check proxy availability and capabilities
+    /**
+     * Check proxy server availability and supported providers
+     * @returns {Promise<Object|null>} Proxy status object or null if unavailable
+     */
     const checkProxyAvailability = async () => {
       if (proxyChecked) return proxyStatus;
       
@@ -228,13 +238,71 @@ const ApiClientMulti = {
       }
     };
     
-    // Main API call function
+    /**
+     * Main API call function with exponential backoff retry
+     * Automatically retries on retriable errors (429, 500-504) with increasing delays
+     * @param {Array} history - Message history array
+     * @param {string} apiKey - API key for authentication
+     * @param {Array} funcDecls - Function declarations for tool calling
+     * @param {Object} options - Configuration options
+     * @param {number} options.maxRetries - Maximum retry attempts (default: 3)
+     * @param {number} options.baseDelay - Base delay in ms (default: 1000)
+     * @param {string} options.provider - Provider to use (gemini/openai/anthropic/local)
+     * @param {boolean} options.allowFallback - Allow fallback to other providers
+     * @returns {Promise<Object>} Response object with type and content
+     */
     const callApiWithRetry = async (history, apiKey, funcDecls = [], options = {}) => {
+      const maxRetries = options.maxRetries || 3;
+      const baseDelay = options.baseDelay || 1000; // 1 second
+
+      for (let attempt = 0; attempt <= maxRetries; attempt++) {
+        try {
+          return await performApiCall(history, apiKey, funcDecls, options, attempt);
+        } catch (error) {
+          const isLastAttempt = attempt === maxRetries;
+          const isRetriable = isRetriableError(error);
+
+          if (isLastAttempt || !isRetriable) {
+            throw error;
+          }
+
+          // Exponential backoff: 1s, 2s, 4s
+          const delay = baseDelay * Math.pow(2, attempt);
+          logger.info(`[ApiClient] Retry ${attempt + 1}/${maxRetries} after ${delay}ms`);
+          await new Promise(resolve => setTimeout(resolve, delay));
+        }
+      }
+    };
+
+    /**
+     * Determine if an error should trigger a retry attempt
+     * @param {Error} error - The error to check
+     * @returns {boolean} True if error is retriable
+     */
+    const isRetriableError = (error) => {
+      if (error instanceof AbortError) return false;
+
+      // Retry on network errors, rate limits, and server errors
+      if (error instanceof ApiError) {
+        const status = error.statusCode;
+        return status === 429 || // Rate limit
+               status === 500 || // Internal server error
+               status === 502 || // Bad gateway
+               status === 503 || // Service unavailable
+               status === 504;   // Gateway timeout
+      }
+
+      // Retry on network errors
+      return error.name === 'TypeError' || error.message?.includes('fetch');
+    };
+
+    // Perform the actual API call
+    const performApiCall = async (history, apiKey, funcDecls = [], options = {}, attempt = 0) => {
       // Check proxy availability on first call
       if (!proxyChecked) {
         await checkProxyAvailability();
       }
-      
+
       // Abort any existing call
       if (currentAbortController) {
         currentAbortController.abort("New call initiated");
@@ -354,7 +422,11 @@ const ApiClientMulti = {
       }
     };
     
-    // Set the current provider
+    /**
+     * Set the active provider for API calls
+     * @param {string} provider - Provider name: gemini, openai, anthropic, or local
+     * @throws {Error} If provider is invalid
+     */
     const setProvider = (provider) => {
       const validProviders = ['gemini', 'openai', 'anthropic', 'local'];
       if (!validProviders.includes(provider)) {
@@ -364,7 +436,10 @@ const ApiClientMulti = {
       logger.info(`Provider set to: ${provider}`);
     };
     
-    // Get available providers
+    /**
+     * Get list of currently available providers
+     * @returns {Array<string>} Array of provider names
+     */
     const getAvailableProviders = () => {
       if (!proxyStatus) {
         return ['local']; // Only local is available without proxy
@@ -379,6 +454,10 @@ const ApiClientMulti = {
       return available;
     };
     
+    /**
+     * Abort the current API call in progress
+     * @param {string} reason - Reason for aborting (default: "User requested abort")
+     */
     const abortCurrentCall = (reason = "User requested abort") => {
       if (currentAbortController) {
         currentAbortController.abort(reason);

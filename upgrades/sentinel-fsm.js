@@ -1,17 +1,24 @@
-// Enhanced Sentinel FSM with REFLECTING state for REPLOID
-// Implements the complete Guardian Agent cognitive cycle
+/**
+ * @fileoverview Enhanced Sentinel FSM with REFLECTING state for REPLOID
+ * Implements the complete Guardian Agent cognitive cycle with automatic checkpoints.
+ * Manages state transitions, user approvals, self-testing, and reflection learning.
+ *
+ * @module SentinelFSM
+ * @version 2.3.0
+ * @category agent
+ */
 
 const SentinelFSM = {
   metadata: {
     id: 'SentinelFSM',
-    version: '2.0.0',
-    dependencies: ['StateManager', 'ToolRunner', 'ApiClient', 'EventBus', 'Utils', 'SentinelTools', 'GitVFS'],
+    version: '2.2.0',
+    dependencies: ['StateManager', 'ToolRunner', 'ApiClient', 'HybridLLMProvider', 'EventBus', 'Utils', 'SentinelTools', 'GitVFS', 'ReflectionStore', 'SelfTester', 'SwarmOrchestrator'],
     async: false,
     type: 'service'
   },
 
   factory: (deps) => {
-    const { StateManager, ToolRunner, ApiClient, EventBus, Utils, SentinelTools, GitVFS } = deps;
+    const { StateManager, ToolRunner, ApiClient, HybridLLMProvider, EventBus, Utils, SentinelTools, GitVFS, ReflectionStore, SelfTester, SwarmOrchestrator } = deps;
     const { logger } = Utils;
 
     let currentState = 'IDLE';
@@ -32,6 +39,55 @@ const SentinelFSM = {
       'ERROR': ['IDLE']
     };
 
+    // Update status UI
+    const updateStatusUI = (state, detail = '', progress = null) => {
+      const icons = {
+        IDLE: '⚪',
+        CURATING_CONTEXT: '🔍',
+        AWAITING_CONTEXT_APPROVAL: '⏸️',
+        PLANNING_WITH_CONTEXT: '🧠',
+        GENERATING_PROPOSAL: '✍️',
+        AWAITING_PROPOSAL_APPROVAL: '⏸️',
+        APPLYING_CHANGESET: '⚙️',
+        REFLECTING: '💭',
+        ERROR: '❌'
+      };
+
+      const descriptions = {
+        IDLE: 'Waiting for goal',
+        CURATING_CONTEXT: 'Selecting relevant files',
+        AWAITING_CONTEXT_APPROVAL: 'Review context bundle',
+        PLANNING_WITH_CONTEXT: 'Analyzing and planning changes',
+        GENERATING_PROPOSAL: 'Creating change proposal',
+        AWAITING_PROPOSAL_APPROVAL: 'Review proposed changes',
+        APPLYING_CHANGESET: 'Applying approved changes',
+        REFLECTING: 'Learning from outcome',
+        ERROR: 'Error occurred'
+      };
+
+      const statusIcon = document.getElementById('status-icon');
+      const statusState = document.getElementById('status-state');
+      const statusDetail = document.getElementById('status-detail');
+      const statusProgress = document.getElementById('status-progress');
+      const progressFill = document.getElementById('progress-fill');
+
+      if (statusIcon) statusIcon.textContent = icons[state] || '⚪';
+      if (statusState) statusState.textContent = state;
+      if (statusDetail) statusDetail.textContent = detail || descriptions[state];
+
+      if (statusProgress && progressFill) {
+        if (progress !== null && progress !== undefined) {
+          statusProgress.style.display = 'block';
+          progressFill.style.width = `${progress}%`;
+        } else {
+          statusProgress.style.display = 'none';
+        }
+      }
+
+      // Emit event for other components to react
+      EventBus.emit('status:updated', { state, detail, progress });
+    };
+
     // Transition to a new state
     const transitionTo = (newState) => {
       const oldState = currentState;
@@ -49,6 +105,9 @@ const SentinelFSM = {
         timestamp: Date.now(),
         context: { ...cycleContext }
       });
+
+      // Update status UI
+      updateStatusUI(newState);
 
       logger.info(`[SentinelFSM] State transition: ${oldState} -> ${newState}`);
 
@@ -148,9 +207,11 @@ const SentinelFSM = {
     // State: CURATING_CONTEXT
     const executeCuratingContext = async () => {
       EventBus.emit('agent:curating', { goal: cycleContext.goal });
+      updateStatusUI('CURATING_CONTEXT', 'Analyzing project files...');
 
       // Use AI to curate relevant files
       const relevantFiles = await SentinelTools.curateFilesWithAI(cycleContext.goal);
+      updateStatusUI('CURATING_CONTEXT', `Found ${relevantFiles.length} relevant files`, 50);
 
       // Create cats bundle
       const result = await SentinelTools.createCatsBundle({
@@ -176,40 +237,54 @@ const SentinelFSM = {
         session_id: cycleContext.sessionId
       });
 
+      // Store listener references for cleanup
+      const listeners = {
+        approval: null,
+        rejection: null,
+        revision: null,
+        timeout: null
+      };
+
+      const cleanupListeners = () => {
+        if (listeners.approval) EventBus.off('user:approve:context', listeners.approval);
+        if (listeners.rejection) EventBus.off('user:reject:context', listeners.rejection);
+        if (listeners.revision) EventBus.off('user:revise:context', listeners.revision);
+        if (listeners.timeout) clearTimeout(listeners.timeout);
+        listeners.approval = null;
+        listeners.rejection = null;
+        listeners.revision = null;
+        listeners.timeout = null;
+      };
+
       // Set up approval handlers
-      const handleApproval = () => {
-        EventBus.off('user:approve:context', handleApproval);
-        EventBus.off('user:reject:context', handleRejection);
-        EventBus.off('user:revise:context', handleRevision);
+      listeners.approval = () => {
+        cleanupListeners();
         transitionTo('PLANNING_WITH_CONTEXT');
         executeState();
       };
 
-      const handleRejection = () => {
-        EventBus.off('user:approve:context', handleApproval);
-        EventBus.off('user:reject:context', handleRejection);
-        EventBus.off('user:revise:context', handleRevision);
+      listeners.rejection = () => {
+        cleanupListeners();
         transitionTo('IDLE');
         executeState();
       };
 
-      const handleRevision = (data) => {
-        EventBus.off('user:approve:context', handleApproval);
-        EventBus.off('user:reject:context', handleRejection);
-        EventBus.off('user:revise:context', handleRevision);
+      listeners.revision = (data) => {
+        cleanupListeners();
         cycleContext.revisionRequest = data.feedback;
         transitionTo('CURATING_CONTEXT');
         executeState();
       };
 
-      EventBus.on('user:approve:context', handleApproval);
-      EventBus.on('user:reject:context', handleRejection);
-      EventBus.on('user:revise:context', handleRevision);
+      EventBus.on('user:approve:context', listeners.approval);
+      EventBus.on('user:reject:context', listeners.rejection);
+      EventBus.on('user:revise:context', listeners.revision);
 
       // Timeout after 5 minutes
-      setTimeout(() => {
+      listeners.timeout = setTimeout(() => {
         if (currentState === 'AWAITING_CONTEXT_APPROVAL') {
           logger.warn('[SentinelFSM] Context approval timeout');
+          cleanupListeners();
           transitionTo('IDLE');
           executeState();
         }
@@ -248,17 +323,20 @@ Analyze the context carefully and plan your approach. When ready, use the create
     const executeGeneratingProposal = async () => {
       EventBus.emit('agent:generating');
 
-      // Send prompt to LLM
-      const response = await ApiClient.sendMessage([{
+      // Send prompt to LLM using HybridLLMProvider for local/cloud inference
+      const response = await HybridLLMProvider.complete([{
         role: 'system',
         content: 'You are a Guardian Agent. Generate structured change proposals using the create_dogs_bundle tool.'
       }, {
         role: 'user',
         content: cycleContext.planPrompt
-      }]);
+      }], {
+        temperature: 0.7,
+        maxOutputTokens: 8192
+      });
 
       // Parse response for proposed changes
-      const changes = parseProposedChanges(response.content);
+      const changes = parseProposedChanges(response.text);
 
       // Create dogs bundle
       const result = await SentinelTools.createDogsBundle({
@@ -287,43 +365,55 @@ Analyze the context carefully and plan your approach. When ready, use the create
       });
 
       // Set up approval handlers
-      const handleApproval = (data) => {
-        EventBus.off('proposal:approved', handleApproval);
-        EventBus.off('proposal:cancelled', handleCancellation);
-        EventBus.off('proposal:edit', handleEdit);
+      // Store listener references for cleanup
+      const listeners = {
+        approval: null,
+        cancellation: null,
+        edit: null,
+        timeout: null
+      };
 
+      const cleanupListeners = () => {
+        if (listeners.approval) EventBus.off('proposal:approved', listeners.approval);
+        if (listeners.cancellation) EventBus.off('proposal:cancelled', listeners.cancellation);
+        if (listeners.edit) EventBus.off('proposal:edit', listeners.edit);
+        if (listeners.timeout) clearTimeout(listeners.timeout);
+        listeners.approval = null;
+        listeners.cancellation = null;
+        listeners.edit = null;
+        listeners.timeout = null;
+      };
+
+      listeners.approval = (data) => {
+        cleanupListeners();
         cycleContext.approvedChanges = data.approved_changes;
         cycleContext.filteredDogsPath = data.filtered_dogs_path;
         transitionTo('APPLYING_CHANGESET');
         executeState();
       };
 
-      const handleCancellation = () => {
-        EventBus.off('proposal:approved', handleApproval);
-        EventBus.off('proposal:cancelled', handleCancellation);
-        EventBus.off('proposal:edit', handleEdit);
+      listeners.cancellation = () => {
+        cleanupListeners();
         transitionTo('IDLE');
         executeState();
       };
 
-      const handleEdit = (data) => {
-        EventBus.off('proposal:approved', handleApproval);
-        EventBus.off('proposal:cancelled', handleCancellation);
-        EventBus.off('proposal:edit', handleEdit);
-
+      listeners.edit = (data) => {
+        cleanupListeners();
         cycleContext.editRequest = data;
         transitionTo('PLANNING_WITH_CONTEXT');
         executeState();
       };
 
-      EventBus.on('proposal:approved', handleApproval);
-      EventBus.on('proposal:cancelled', handleCancellation);
-      EventBus.on('proposal:edit', handleEdit);
+      EventBus.on('proposal:approved', listeners.approval);
+      EventBus.on('proposal:cancelled', listeners.cancellation);
+      EventBus.on('proposal:edit', listeners.edit);
 
       // Timeout after 10 minutes
-      setTimeout(() => {
+      listeners.timeout = setTimeout(() => {
         if (currentState === 'AWAITING_PROPOSAL_APPROVAL') {
           logger.warn('[SentinelFSM] Proposal approval timeout');
+          cleanupListeners();
           transitionTo('IDLE');
           executeState();
         }
@@ -336,7 +426,60 @@ Analyze the context carefully and plan your approach. When ready, use the create
 
       const dogsPath = cycleContext.filteredDogsPath || cycleContext.dogsPath;
 
+      // Create checkpoint before applying changes (Auto-save milestone)
+      if (GitVFS && GitVFS.isInitialized()) {
+        try {
+          logger.info('[SentinelFSM] Creating pre-apply checkpoint...');
+          updateStatusUI('APPLYING_CHANGESET', 'Creating safety checkpoint...', null);
+
+          const checkpoint = await GitVFS.createCheckpoint(
+            `Pre-apply: ${cycleContext.goal.substring(0, 100)}`
+          );
+          cycleContext.preApplyCheckpoint = checkpoint;
+
+          logger.info(`[SentinelFSM] Pre-apply checkpoint created: ${checkpoint.id}`);
+        } catch (err) {
+          logger.warn('[SentinelFSM] Failed to create pre-apply checkpoint:', err);
+          // Don't block on checkpoint failure
+        }
+      }
+
+      // Run self-tests before applying changes (Safe RSI)
+      if (SelfTester) {
+        try {
+          logger.info('[SentinelFSM] Running pre-apply validation tests...');
+          updateStatusUI('APPLYING_CHANGESET', 'Running validation tests...', null);
+
+          const testResults = await SelfTester.runAllTests();
+
+          // Check if tests pass (success rate >= 80%)
+          if (testResults.summary.successRate < 80) {
+            logger.error('[SentinelFSM] Pre-apply tests failed:', testResults.summary);
+            updateStatusUI('ERROR', `Validation failed: ${testResults.summary.successRate.toFixed(1)}% pass rate`, null);
+
+            // Store failed validation in cycle context
+            cycleContext.validationFailed = true;
+            cycleContext.testResults = testResults;
+
+            // Emit event for UI update
+            EventBus.emit('agent:validation:failed', testResults);
+
+            transitionTo('ERROR');
+            await executeState();
+            return;
+          }
+
+          logger.info(`[SentinelFSM] Pre-apply validation passed: ${testResults.summary.successRate.toFixed(1)}%`);
+          cycleContext.testResults = testResults;
+
+        } catch (err) {
+          logger.warn('[SentinelFSM] Self-test failed with error (proceeding anyway):', err);
+          // Don't block on test errors, just log them
+        }
+      }
+
       // Apply the approved changes
+      updateStatusUI('APPLYING_CHANGESET', 'Applying changes...', null);
       const result = await SentinelTools.applyDogsBundle({
         dogs_path: dogsPath,
         session_id: cycleContext.sessionId,
@@ -347,7 +490,7 @@ Analyze the context carefully and plan your approach. When ready, use the create
 
       if (result.success) {
         // Commit to Git VFS
-        if (GitVFS.isInitialized()) {
+        if (GitVFS && GitVFS.isInitialized()) {
           await GitVFS.commitChanges(
             `Applied ${result.changes_applied.length} changes for: ${cycleContext.goal}`,
             {
@@ -356,6 +499,18 @@ Analyze the context carefully and plan your approach. When ready, use the create
               checkpoint: result.checkpoint
             }
           );
+
+          // Create post-apply checkpoint on successful cycle (Auto-save milestone)
+          try {
+            logger.info('[SentinelFSM] Creating post-apply checkpoint...');
+            const postCheckpoint = await GitVFS.createCheckpoint(
+              `Success: Applied ${result.changes_applied.length} changes - ${cycleContext.goal.substring(0, 80)}`
+            );
+            cycleContext.postApplyCheckpoint = postCheckpoint;
+            logger.info(`[SentinelFSM] Post-apply checkpoint created: ${postCheckpoint.id}`);
+          } catch (err) {
+            logger.warn('[SentinelFSM] Failed to create post-apply checkpoint:', err);
+          }
         }
 
         transitionTo('REFLECTING');
@@ -380,7 +535,51 @@ Analyze the context carefully and plan your approach. When ready, use the create
       // Log reflection
       logger.info(`[SentinelFSM] Reflection: ${reflection.insight}`);
 
-      // Save reflection to session
+      // Save reflection to persistent store (IndexedDB)
+      if (ReflectionStore) {
+        try {
+          const reflectionData = {
+            outcome: reflection.outcome,
+            category: 'cycle_completion',
+            description: reflection.insight,
+            sessionId: cycleContext.sessionId,
+            turn: cycleContext.turn.turn,
+            goal: cycleContext.goal,
+            metrics: {
+              duration: reflection.metrics.duration,
+              changesApplied: reflection.metrics.changesApplied,
+              totalProposed: reflection.metrics.totalProposed,
+              successRate: reflection.metrics.successRate
+            },
+            recommendations: reflection.recommendations,
+            tags: [
+              reflection.outcome,
+              `turn_${cycleContext.turn.turn}`,
+              reflection.metrics.successRate >= 80 ? 'high_success' :
+              reflection.metrics.successRate >= 50 ? 'medium_success' : 'low_success'
+            ]
+          };
+
+          const reflectionId = await ReflectionStore.addReflection(reflectionData);
+          logger.info(`[SentinelFSM] Reflection stored with ID: ${reflectionId}`);
+
+          // Share successful reflections with swarm
+          if (SwarmOrchestrator && reflectionData.outcome === 'successful') {
+            try {
+              const peersShared = await SwarmOrchestrator.shareSuccessPattern(reflectionData);
+              if (peersShared > 0) {
+                logger.info(`[SentinelFSM] Shared successful pattern with ${peersShared} peers`);
+              }
+            } catch (swarmErr) {
+              logger.debug('[SentinelFSM] Could not share with swarm:', swarmErr.message);
+            }
+          }
+        } catch (err) {
+          logger.error('[SentinelFSM] Failed to store reflection:', err);
+        }
+      }
+
+      // Save reflection to session (markdown file)
       const reflectionPath = `/sessions/${cycleContext.sessionId}/reflection-${cycleContext.turn.turn}.md`;
       await StateManager.createArtifact(reflectionPath, 'markdown',
         `# Reflection for Turn ${cycleContext.turn.turn}\n\n` +
@@ -572,13 +771,53 @@ Analyze the context carefully and plan your approach. When ready, use the create
 
     // Parse proposed changes from LLM response
     const parseProposedChanges = (content) => {
-      // This would parse the actual LLM response
-      // For now, return a placeholder
-      return [{
-        operation: 'MODIFY',
-        file_path: '/example.js',
-        new_content: '// Modified content'
-      }];
+      const changes = [];
+
+      // Expected format:
+      // ## CREATE: /path/to/file.js
+      // ```javascript
+      // file content here
+      // ```
+      //
+      // ## MODIFY: /path/to/file.js
+      // ```javascript
+      // updated content
+      // ```
+      //
+      // ## DELETE: /path/to/file.js
+
+      const regex = /##\s+(CREATE|MODIFY|DELETE):\s+([^\n]+)(?:\n```[\w]*\n([\s\S]*?)```)?/g;
+      let match;
+
+      while ((match = regex.exec(content)) !== null) {
+        const [, operation, filePath, fileContent] = match;
+
+        const change = {
+          operation: operation.trim(),
+          file_path: filePath.trim(),
+          new_content: operation === 'DELETE' ? null : (fileContent || '').trim()
+        };
+
+        // Validate the change
+        if (change.file_path) {
+          // Ensure path starts with /vfs/ or convert it
+          if (!change.file_path.startsWith('/vfs/')) {
+            change.file_path = '/vfs/' + change.file_path.replace(/^\/+/, '');
+          }
+
+          changes.push(change);
+        } else {
+          logger.warn('[SentinelFSM] Skipping change with invalid file path:', operation);
+        }
+      }
+
+      if (changes.length === 0) {
+        logger.warn('[SentinelFSM] No changes parsed from proposal. Content:', content.substring(0, 200));
+      } else {
+        logger.info(`[SentinelFSM] Parsed ${changes.length} changes from proposal`);
+      }
+
+      return changes;
     };
 
     // Get current FSM status

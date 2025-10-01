@@ -22,6 +22,29 @@ body {
   box-sizing: border-box;
 }
 
+/* Boot message animations */
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-20px);
+  }
+}
+
 #boot-container {
   width: 100%;
   max-width: 900px;
@@ -153,4 +176,205 @@ body {
 
 .hidden {
   display: none;
+}
+
+/* ===== MOBILE OPTIMIZATIONS ===== */
+
+/* Tablet breakpoint (768px and below) */
+@media (max-width: 768px) {
+  body {
+    padding: 15px;
+  }
+
+  #boot-container {
+    max-width: 100%;
+  }
+
+  .boot-header h1 {
+    font-size: 2em;
+  }
+
+  .boot-header p {
+    font-size: 1.1em;
+    margin-bottom: 25px;
+  }
+
+  #persona-selection-container {
+    grid-template-columns: 1fr;
+    gap: 15px;
+    margin-bottom: 20px;
+  }
+
+  .persona-card {
+    padding: 15px;
+  }
+
+  .persona-card h3 {
+    font-size: 1.1em;
+  }
+
+  .persona-card p {
+    font-size: 0.85em;
+  }
+
+  .advanced-mode-container {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .advanced-mode-description {
+    max-width: 100%;
+    text-align: center;
+  }
+
+  .goal-container {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  #goal-input {
+    font-size: 16px; /* Prevents iOS zoom on focus */
+  }
+
+  .btn {
+    width: 100%;
+    padding: 12px 20px;
+    font-size: 1.05em;
+  }
+}
+
+/* Small mobile breakpoint (480px and below) */
+@media (max-width: 480px) {
+  body {
+    padding: 10px;
+  }
+
+  .boot-header h1 {
+    font-size: 1.8em;
+    text-shadow: 0 0 8px var(--color-primary);
+  }
+
+  .boot-header p {
+    font-size: 1em;
+    margin-bottom: 20px;
+  }
+
+  #persona-selection-container {
+    gap: 12px;
+    margin-bottom: 15px;
+  }
+
+  .persona-card {
+    padding: 12px;
+  }
+
+  .persona-card h3 {
+    font-size: 1em;
+    margin-bottom: 8px;
+  }
+
+  .persona-card p {
+    font-size: 0.8em;
+    line-height: 1.4;
+  }
+
+  .goal-container {
+    gap: 10px;
+    margin-top: 15px;
+  }
+
+  #goal-input {
+    padding: 12px;
+    font-size: 16px;
+  }
+
+  .btn {
+    padding: 14px 20px;
+  }
+}
+
+/* Touch device optimizations */
+@media (hover: none) and (pointer: coarse) {
+  /* Larger touch targets */
+  .persona-card {
+    min-height: 120px;
+    padding: 16px;
+  }
+
+  #goal-input {
+    min-height: 44px;
+    font-size: 16px; /* Prevent iOS zoom */
+  }
+
+  .btn {
+    min-height: 44px;
+    touch-action: manipulation; /* Disable double-tap zoom */
+  }
+
+  /* Better touch feedback */
+  .persona-card:active {
+    transform: scale(0.98);
+    transition: transform 0.1s;
+  }
+
+  .btn:active {
+    transform: scale(0.98);
+    transition: transform 0.1s;
+  }
+
+  /* Smoother scrolling */
+  body {
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* Landscape mobile (small height) */
+@media (max-height: 600px) and (orientation: landscape) {
+  body {
+    padding: 10px;
+    align-items: flex-start;
+  }
+
+  .boot-header {
+    margin-top: 0;
+  }
+
+  .boot-header h1 {
+    font-size: 1.5em;
+    margin-bottom: 5px;
+  }
+
+  .boot-header p {
+    font-size: 0.9em;
+    margin-bottom: 15px;
+  }
+
+  #persona-selection-container {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin-bottom: 15px;
+  }
+
+  .persona-card {
+    padding: 10px;
+  }
+
+  .persona-card h3 {
+    font-size: 0.95em;
+    margin-bottom: 5px;
+  }
+
+  .persona-card p {
+    font-size: 0.75em;
+    line-height: 1.3;
+  }
+
+  .goal-container {
+    flex-direction: row;
+    margin-top: 10px;
+  }
+
+  .btn {
+    white-space: nowrap;
+  }
 }

@@ -4,23 +4,54 @@
   "description": "An autonomous, self-improving agent and development environment.",
   "main": "server/proxy.js",
   "type": "commonjs",
+  "bin": {
+    "reploid": "./bin/reploid-cli.js",
+    "reploid-config": "./bin/reploid-config",
+    "cats": "./bin/cats",
+    "dogs": "./bin/dogs"
+  },
   "scripts": {
     "start": "node server/proxy.js",
-    "cli": "node bin/reploid-cli.js"
+    "cli": "node bin/reploid-cli.js",
+    "dev:all": "concurrently \"npm run dev:proxy\" \"npm run dev:hermes\" \"npm run dev:browser\"",
+    "dev:proxy": "nodemon server/proxy.js",
+    "dev:hermes": "cd hermes && npm install && npm run dev",
+    "dev:browser": "python3 -m http.server 8080 || python -m http.server 8080",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest run --coverage",
+    "test:e2e": "playwright test",
+    "test:e2e:headed": "playwright test --headed",
+    "test:e2e:ui": "playwright test --ui",
+    "test:all": "npm run test && npm run test:e2e",
+    "test:cli": "node bin/cats --help && node bin/dogs --help",
+    "postinstall": "cd hermes && npm install"
   },
   "author": "",
   "license": "MIT",
   "dependencies": {
+    "acorn": "^8.12.1",
+    "chart.js": "^4.5.0",
+    "d3": "^7.9.0",
     "dotenv": "^16.3.1",
     "express": "^4.18.2",
     "fs-extra": "^11.3.1",
     "node-fetch": "^3.3.2",
+    "prismjs": "^1.29.0",
     "ws": "^8.18.3",
     "yargs": "^18.0.0",
     "zod": "^4.1.5"
   },
   "devDependencies": {
-    "nodemon": "^3.0.1"
+    "@playwright/test": "^1.55.1",
+    "@vitest/coverage-v8": "^3.2.4",
+    "@vitest/ui": "^3.2.4",
+    "concurrently": "^8.0.0",
+    "happy-dom": "^19.0.2",
+    "nodemon": "^3.0.1",
+    "playwright": "^1.55.1",
+    "vitest": "^3.2.4"
   },
   "engines": {
     "node": ">=14.0.0"
