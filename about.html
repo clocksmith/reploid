@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About REPLOID - Recursive Self-Improvement Ecosystem</title>
+    <style>
+        :root {
+            --color-primary: #0ff;
+            --color-secondary: #ffd700;
+            --color-bg: #0a0a14;
+            --color-text: #e0e0e0;
+            --color-border: #333;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: var(--color-bg);
+            color: var(--color-text);
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 60px;
+            padding-bottom: 30px;
+            border-bottom: 2px solid var(--color-border);
+        }
+
+        h1 {
+            color: var(--color-primary);
+            font-size: 3em;
+            text-shadow: 0 0 20px var(--color-primary);
+            margin-bottom: 15px;
+            letter-spacing: 4px;
+        }
+
+        .subtitle {
+            color: var(--color-secondary);
+            font-size: 1.3em;
+            margin-bottom: 20px;
+        }
+
+        .tagline {
+            color: var(--color-text);
+            font-size: 1em;
+            opacity: 0.8;
+            font-style: italic;
+        }
+
+        section {
+            margin-bottom: 50px;
+        }
+
+        h2 {
+            color: var(--color-secondary);
+            font-size: 1.8em;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--color-border);
+        }
+
+        h3 {
+            color: var(--color-primary);
+            font-size: 1.3em;
+            margin: 30px 0 15px 0;
+        }
+
+        p {
+            margin-bottom: 15px;
+            line-height: 1.8;
+        }
+
+        ul {
+            margin-left: 20px;
+            margin-bottom: 15px;
+        }
+
+        li {
+            margin-bottom: 10px;
+            line-height: 1.7;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .feature-card {
+            background: rgba(0, 255, 255, 0.05);
+            border: 1px solid var(--color-border);
+            padding: 20px;
+            border-radius: 4px;
+            transition: all 0.3s;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .feature-card:hover {
+            border-color: var(--color-primary);
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 255, 255, 0.2);
+        }
+
+        .feature-card h3 {
+            margin-top: 0;
+            font-size: 1.1em;
+        }
+
+        .feature-card p {
+            flex: 1;
+        }
+
+        .highlight {
+            background: rgba(255, 215, 0, 0.1);
+            border-left: 3px solid var(--color-secondary);
+            padding: 15px 20px;
+            margin: 20px 0;
+        }
+
+        code {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 2px 6px;
+            border-radius: 3px;
+            color: var(--color-primary);
+            font-family: 'Courier New', monospace;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 3px;
+            font-size: 0.85em;
+            font-weight: bold;
+        }
+
+        .status-complete {
+            background: rgba(0, 255, 0, 0.2);
+            color: #0f0;
+            border: 1px solid #0f0;
+        }
+
+        .status-progress {
+            background: rgba(255, 215, 0, 0.2);
+            color: var(--color-secondary);
+            border: 1px solid var(--color-secondary);
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-top: 40px;
+            padding: 12px 24px;
+            background: rgba(0, 255, 255, 0.1);
+            border: 1px solid var(--color-primary);
+            color: var(--color-primary);
+            text-decoration: none;
+            border-radius: 4px;
+            transition: all 0.3s;
+        }
+
+        .back-link:hover {
+            background: rgba(0, 255, 255, 0.2);
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.4);
+        }
+
+        .emoji {
+            font-style: normal;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2em;
+            }
+
+            .subtitle {
+                font-size: 1em;
+            }
+
+            .feature-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>REPLOID</h1>
+            <p class="subtitle">[Experimental] Recursive Self-Improvement Ecosystem</p>
+            <p class="tagline"><strong>R</strong>ecursive <strong>E</strong>volutionary <strong>P</strong>rogramming <strong>L</strong>anguage <strong>O</strong>perating <strong>I</strong>ntelligently via <strong>DREAMER</strong></p>
+            <p class="tagline"><strong>D</strong>ynamic <strong>R</strong>easoning <strong>E</strong>ngine for <strong>A</strong>utonomous <strong>M</strong>odification and <strong>E</strong>nhancement <strong>REPLOID</strong></p>
+        </header>
+
+        <section>
+            <h2>What is REPLOID?</h2>
+            <p>
+                REPLOID is a <strong>browser-native agentic AI system designed for Recursive Self-Improvement (RSI)</strong>
+                via source code manipulation. The core hypothesis: <strong>the browser is the perfect ecosystem for an RSI agent</strong>.
+            </p>
+
+            <div class="highlight">
+                <strong>Why the browser?</strong> It provides rich Web APIs for visualization, built-in sandboxing for safe code execution,
+                visual feedback loops for better human-AI collaboration, and universal deployment with no installation required.
+            </div>
+
+            <p>
+                REPLOID operates with <strong>human-in-the-loop approvals</strong> at critical decision points, ensuring you maintain
+                full control over all changes <em>including changes to its own source code</em>. The system uses a structured workflow
+                with context curation and explicit change proposals that require your approval before being applied.
+            </p>
+        </section>
+
+        <section>
+            <h2>Key Features</h2>
+
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <h3><span class="emoji">🔄</span> Recursive Self-Improvement</h3>
+                    <p>12 modules enabling self-introspection, meta-learning, automated testing, and performance optimization.</p>
+                    <span class="status-badge status-complete">Ready</span>
+                </div>
+
+                <div class="feature-card">
+                    <h3><span class="emoji">🛡️</span> Approval System</h3>
+                    <p>Human-in-the-loop approval at context and proposal stages with interactive diff viewer.</p>
+                    <span class="status-badge status-complete">Ready</span>
+                </div>
+
+                <div class="feature-card">
+                    <h3><span class="emoji">🧠</span> Browser-Native</h3>
+                    <p>Visual diff viewer, real-time status, VFS explorer, live previews - superior to CLI tools.</p>
+                    <span class="status-badge status-complete">Ready</span>
+                </div>
+
+                <div class="feature-card">
+                    <h3><span class="emoji">⚡</span> Structured Workflow</h3>
+                    <p>Context curation and explicit change proposals with CLI tool support for automation.</p>
+                    <span class="status-badge status-complete">Ready</span>
+                </div>
+
+                <div class="feature-card">
+                    <h3><span class="emoji">🐍</span> Python Execution</h3>
+                    <p>In-browser NumPy/SciPy via Pyodide for scientific computing.</p>
+                    <span class="status-badge status-complete">Ready</span>
+                </div>
+
+                <div class="feature-card">
+                    <h3><span class="emoji">🚀</span> Local GPU Inference</h3>
+                    <p>WebGPU-accelerated LLM with vision model support for privacy.</p>
+                    <span class="status-badge status-progress">In Progress</span>
+                </div>
+            </div>
+        </section>
+
+        <section>
+            <h2>Agent Workflow</h2>
+            <p>REPLOID's DREAMER engine follows a structured 8-state workflow:</p>
+            <ul>
+                <li><strong>IDLE</strong> → Set a goal to begin</li>
+                <li><strong>CURATING_CONTEXT</strong> → Agent selects relevant files</li>
+                <li><strong>AWAITING_CONTEXT_APPROVAL</strong> → Review and approve context bundle</li>
+                <li><strong>PLANNING_WITH_CONTEXT</strong> → Agent analyzes and plans changes</li>
+                <li><strong>GENERATING_PROPOSAL</strong> → Creates dogs.md change bundle</li>
+                <li><strong>AWAITING_PROPOSAL_APPROVAL</strong> → Interactive diff review with selective approval</li>
+                <li><strong>APPLYING_CHANGES</strong> → Applies approved changes with checkpoint</li>
+                <li><strong>REFLECTING</strong> → Learns from outcome for future improvements</li>
+            </ul>
+        </section>
+
+        <section>
+            <h2>Agent Personas</h2>
+
+            <h3><span class="emoji">⚗</span> Lab Personas</h3>
+            <ul>
+                <li><strong>RSI Lab Sandbox</strong> - Self-improvement experiments with guided lessons</li>
+                <li><strong>Code Refactorer</strong> - Code quality analysis and bug fixes</li>
+                <li><strong>RFC Author</strong> - Formal change proposal documentation</li>
+            </ul>
+
+            <h3><span class="emoji">⚛</span> Factory Personas</h3>
+            <ul>
+                <li><strong>Website Builder</strong> - Landing pages with live preview</li>
+                <li><strong>Product Prototype Factory</strong> - Interactive UI prototypes</li>
+                <li><strong>Creative Writer</strong> - Document generation and editing</li>
+            </ul>
+        </section>
+
+        <section>
+            <h2>Architecture Highlights</h2>
+            <ul>
+                <li><strong>40+ Core Modules</strong> - Modular, dependency-injected architecture</li>
+                <li><strong>85 Passing Tests</strong> - Comprehensive unit and integration test suite</li>
+                <li><strong>26 RFC Blueprints</strong> - Architectural documentation for system evolution</li>
+                <li><strong>Git-Based VFS</strong> - Virtual filesystem with checkpoint/rollback capabilities</li>
+                <li><strong>Web Worker Sandboxing</strong> - Safe code execution and verification</li>
+                <li><strong>Event-Driven Design</strong> - Loose coupling via event bus pattern</li>
+                <li><strong>Session Isolation</strong> - Multiple concurrent workspaces</li>
+            </ul>
+        </section>
+
+        <section>
+            <h2>Three Deployment Modes</h2>
+
+            <h3><span class="emoji">🌐</span> Browser Mode (Default)</h3>
+            <p>Runs entirely in browser with virtual filesystem. No installation required.</p>
+            <code>python -m http.server 8080</code>
+
+            <h3><span class="emoji">💻</span> CLI Mode</h3>
+            <p>Command-line tools for automation and scripting workflows.</p>
+            <code>bin/reploid --help</code>
+
+            <h3><span class="emoji">🖥️</span> Server Mode</h3>
+            <p>Node.js server with Git worktree isolation for team environments.</p>
+            <code>npm start</code>
+        </section>
+
+        <section>
+            <h2>Security & Safety</h2>
+            <ul>
+                <li><strong>Browser Sandbox</strong> - Isolated execution environment</li>
+                <li><strong>Human Approval</strong> - Required at context and proposal stages</li>
+                <li><strong>Checkpoint System</strong> - Rollback capability before every change</li>
+                <li><strong>Selective Approval</strong> - Review and approve individual files</li>
+                <li><strong>Verification Commands</strong> - Run tests before applying changes</li>
+                <li><strong>Session Isolation</strong> - Separate workspaces prevent conflicts</li>
+            </ul>
+        </section>
+
+        <div class="highlight">
+            <p><strong>Development Status:</strong> All major components complete and tested.
+            The system has successfully improved its own source code through the DREAMER workflow with human oversight.</p>
+        </div>
+
+        <section>
+            <h2>Get Involved</h2>
+            <p>
+                REPLOID is open source and welcomes contributions! Visit the repository to explore the code,
+                report issues, or contribute improvements.
+            </p>
+            <p>
+                <a href="https://github.com/clocksmith/reploid" target="_blank" class="back-link">
+                    <span class="emoji">⭐</span> View Source on GitHub
+                </a>
+            </p>
+        </section>
+
+        <a href="/" class="back-link">← Launch REPLOID</a>
+    </div>
+</body>
+</html>

@@ -60,6 +60,22 @@ app.use((req, res, next) => {
   next();
 });
 
+// Health check endpoint
+app.get('/api/health', (req, res) => {
+  const providers = [];
+  if (GEMINI_API_KEY) providers.push('gemini');
+  if (OPENAI_API_KEY) providers.push('openai');
+  if (ANTHROPIC_API_KEY) providers.push('anthropic');
+  providers.push('local');
+
+  res.json({
+    status: 'ok',
+    providers: providers,
+    primaryProvider: providers.includes('gemini') ? 'gemini' : providers[0],
+    timestamp: new Date().toISOString()
+  });
+});
+
 // Proxy endpoint for Gemini API
 app.post('/api/gemini/*', async (req, res) => {
   if (!GEMINI_API_KEY) {

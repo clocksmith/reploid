@@ -12,11 +12,89 @@
         personaContainer: document.getElementById('persona-selection-container'),
         goalInput: document.getElementById('goal-input'),
         awakenBtn: document.getElementById('awaken-btn'),
-        advancedToggle: document.getElementById('advanced-toggle'),
         advancedContainer: document.getElementById('advanced-options'),
-        onboardingTitle: document.getElementById('onboarding-title'),
-        advancedModeLabel: document.getElementById('advanced-mode-label'),
+        apiStatus: document.getElementById('api-status'),
+        providerStatus: document.getElementById('provider-status'),
+        configBtn: document.getElementById('config-btn'),
+        configModal: document.getElementById('config-modal'),
+        closeModal: document.getElementById('close-modal'),
+        saveKeysBtn: document.getElementById('save-keys-btn'),
+        apiErrorMessage: document.getElementById('api-error-message'),
+        geminiKeyInput: document.getElementById('gemini-key'),
+        openaiKeyInput: document.getElementById('openai-key'),
+        anthropicKeyInput: document.getElementById('anthropic-key'),
+        tabDescriptionText: document.getElementById('tab-description-text'),
     };
+
+    async function checkAPIStatus() {
+        try {
+            const response = await fetch('http://localhost:8000/api/health');
+            if (response.ok) {
+                const data = await response.json();
+                elements.apiStatus.textContent = '♯ Connected';
+                elements.apiStatus.classList.remove('error');
+                elements.apiStatus.classList.add('success');
+
+                // Display primary provider
+                const providerNames = {
+                    'gemini': 'Google Gemini',
+                    'openai': 'OpenAI',
+                    'anthropic': 'Anthropic',
+                    'local': 'Local (Ollama)'
+                };
+                elements.providerStatus.textContent = providerNames[data.primaryProvider] || data.primaryProvider;
+                elements.apiErrorMessage.classList.add('hidden');
+            } else {
+                throw new Error('API not responding');
+            }
+        } catch (error) {
+            elements.apiStatus.textContent = '☡ Offline';
+            elements.apiStatus.classList.remove('success');
+            elements.apiStatus.classList.add('error');
+            elements.providerStatus.textContent = 'None';
+            elements.apiErrorMessage.classList.remove('hidden');
+            console.warn('API health check failed:', error);
+        }
+    }
+
+    function loadStoredKeys() {
+        const geminiKey = localStorage.getItem('GEMINI_API_KEY');
+        const openaiKey = localStorage.getItem('OPENAI_API_KEY');
+        const anthropicKey = localStorage.getItem('ANTHROPIC_API_KEY');
+
+        if (geminiKey) elements.geminiKeyInput.value = geminiKey;
+        if (openaiKey) elements.openaiKeyInput.value = openaiKey;
+        if (anthropicKey) elements.anthropicKeyInput.value = anthropicKey;
+    }
+
+    function saveAPIKeys() {
+        const geminiKey = elements.geminiKeyInput.value.trim();
+        const openaiKey = elements.openaiKeyInput.value.trim();
+        const anthropicKey = elements.anthropicKeyInput.value.trim();
+
+        if (geminiKey) localStorage.setItem('GEMINI_API_KEY', geminiKey);
+        if (openaiKey) localStorage.setItem('OPENAI_API_KEY', openaiKey);
+        if (anthropicKey) localStorage.setItem('ANTHROPIC_API_KEY', anthropicKey);
+
+        elements.configModal.classList.add('hidden');
+        showBootMessage('API keys saved locally in browser', 'info');
+
+        // Update provider status
+        if (geminiKey || openaiKey || anthropicKey) {
+            elements.providerStatus.textContent = geminiKey ? 'Google Gemini (Local)' :
+                                                   openaiKey ? 'OpenAI (Local)' :
+                                                   'Anthropic (Local)';
+        }
+    }
+
+    function openConfigModal() {
+        loadStoredKeys();
+        elements.configModal.classList.remove('hidden');
+    }
+
+    function closeConfigModal() {
+        elements.configModal.classList.add('hidden');
+    }
 
     async function fetchJSON(url) {
         const response = await fetch(url);
@@ -64,84 +142,163 @@
             const card = document.createElement('div');
             card.className = 'persona-card';
             card.dataset.id = persona.id;
-            
-            // Add type badge for Lab or Factory
-            const typeBadge = persona.type ? `<span class="persona-type-badge ${persona.type}">${persona.type.toUpperCase()}</span>` : '';
-            
+
+            // Add type badge for Lab or Factory with tooltip
+            let typeBadge = '';
+            if (persona.type === 'lab') {
+                typeBadge = `<span class="persona-type-badge lab" title="Experimental: Guided learning & research">LAB</span>`;
+            } else if (persona.type === 'factory') {
+                typeBadge = `<span class="persona-type-badge factory" title="Production: Build & deploy">FACTORY</span>`;
+            }
+
+            // Add lessons dropdown if it's a lab persona with lessons
+            let lessonsHTML = '';
+            if (persona.type === 'lab' && persona.lessons && persona.lessons.length > 0) {
+                lessonsHTML = `
+                    <div class="lessons-section">
+                        <label class="lessons-label">Guided Lessons:</label>
+                        <select class="lessons-dropdown" onclick="event.stopPropagation()">
+                            <option value="">Choose a lesson...</option>
+                            ${persona.lessons.map((lesson, idx) =>
+                                `<option value="${idx}">${lesson.name}</option>`
+                            ).join('')}
+                        </select>
+                    </div>
+                `;
+            }
+
             card.innerHTML = `
-                <h3>${persona.name} ${typeBadge}</h3>
+                ${typeBadge}
+                <h3>${persona.name}</h3>
                 <p>${persona.description}</p>
+                ${lessonsHTML}
             `;
+
             card.addEventListener('click', () => selectPersona(persona.id));
+
+            // Add lesson dropdown handler
+            const dropdown = card.querySelector('.lessons-dropdown');
+            if (dropdown) {
+                dropdown.addEventListener('change', (e) => {
+                    e.stopPropagation();
+                    const lessonIdx = parseInt(e.target.value);
+                    if (!isNaN(lessonIdx)) {
+                        const lesson = persona.lessons[lessonIdx];
+                        elements.goalInput.value = lesson.goal;
+                        selectPersona(persona.id);
+                        elements.goalInput.focus();
+                    }
+                });
+            }
+
             elements.personaContainer.appendChild(card);
         });
     }
 
     function selectPersona(personaId) {
         state.selectedPersonaId = personaId;
-        
+
         // Update UI
         document.querySelectorAll('.persona-card').forEach(card => {
             card.classList.toggle('selected', card.dataset.id === personaId);
         });
 
-        elements.goalInput.disabled = false;
-        elements.awakenBtn.disabled = false;
-        
-        // If it's a lab persona with lessons, show lesson selector
-        const persona = state.config.personas.find(p => p.id === personaId);
-        if (persona.type === 'lab' && persona.lessons && persona.lessons.length > 0) {
-            renderLessons(persona.lessons);
-        } else {
-            hideLessons();
+        // Optionally pre-fill goal based on persona (if not already filled by lesson)
+        if (!elements.goalInput.value.trim()) {
+            const suggestions = {
+                'website_builder': 'Create a landing page for my SaaS product',
+                'product_prototype_factory': 'Build an interactive prototype for a mobile app',
+                'code_refactorer': 'Analyze and improve my codebase',
+                'rfc_author': 'Draft an RFC for a new feature',
+                'creative_writer': 'Help me write a blog post'
+            };
+            if (suggestions[personaId]) {
+                elements.goalInput.placeholder = suggestions[personaId];
+            }
         }
-        
+
         elements.goalInput.focus();
     }
-    
-    function renderLessons(lessons) {
-        let lessonContainer = document.getElementById('lesson-container');
-        if (!lessonContainer) {
-            lessonContainer = document.createElement('div');
-            lessonContainer.id = 'lesson-container';
-            lessonContainer.className = 'lesson-container';
-            elements.goalInput.parentElement.insertBefore(lessonContainer, elements.goalInput);
-        }
-        
-        lessonContainer.innerHTML = '<h4>Quick Start Lessons:</h4>';
-        const lessonList = document.createElement('div');
-        lessonList.className = 'lesson-list';
-        
-        lessons.forEach(lesson => {
-            const lessonBtn = document.createElement('button');
-            lessonBtn.className = 'lesson-btn';
-            lessonBtn.textContent = lesson.name;
-            lessonBtn.addEventListener('click', () => {
-                elements.goalInput.value = lesson.goal;
-                elements.goalInput.focus();
-            });
-            lessonList.appendChild(lessonBtn);
+
+    function switchTab(tabName) {
+        // Update tab buttons
+        document.querySelectorAll('.config-tab').forEach(tab => {
+            tab.classList.toggle('active', tab.dataset.tab === tabName);
         });
-        
-        lessonContainer.appendChild(lessonList);
-    }
-    
-    function hideLessons() {
-        const lessonContainer = document.getElementById('lesson-container');
-        if (lessonContainer) {
-            lessonContainer.remove();
+
+        // Update tab content
+        document.querySelectorAll('.tab-content').forEach(content => {
+            content.classList.remove('active');
+        });
+        document.getElementById(`${tabName}-tab`).classList.add('active');
+
+        // Update description and state
+        const descriptions = {
+            'templates': 'Choose from pre-configured module sets optimized for specific tasks',
+            'hunter': 'Manually select individual modules and blueprints for complete control'
+        };
+        elements.tabDescriptionText.textContent = descriptions[tabName];
+
+        state.isAdvancedMode = (tabName === 'hunter');
+
+        // Render hunter mode content if switching to it
+        if (tabName === 'hunter' && elements.advancedContainer.children.length === 0) {
+            renderAdvancedMode();
         }
     }
 
-    function toggleAdvancedMode(isAdvanced) {
-        state.isAdvancedMode = isAdvanced;
-        elements.advancedContainer.classList.toggle('hidden', !isAdvanced);
-        elements.personaContainer.classList.toggle('hidden', isAdvanced);
-        
-        // In a real implementation, we would render the old wizard UI here
-        if (isAdvanced) {
-            elements.advancedContainer.innerHTML = '<p>Advanced configuration UI for selecting individual upgrades and blueprints would be rendered here.</p>';
-        }
+    function renderAdvancedMode() {
+        const upgrades = state.config.upgrades || [];
+        const blueprints = state.config.blueprints || [];
+
+        // Group upgrades by category
+        const categories = {};
+        upgrades.forEach(upgrade => {
+            const cat = upgrade.category || 'other';
+            if (!categories[cat]) categories[cat] = [];
+            categories[cat].push(upgrade);
+        });
+
+        let html = '<div class="advanced-mode-content">';
+        html += '<h3>Select Modules</h3>';
+        html += '<div class="module-categories">';
+
+        Object.entries(categories).forEach(([category, mods]) => {
+            html += `<div class="module-category">`;
+            html += `<h4>${category.toUpperCase()}</h4>`;
+            html += '<div class="module-grid">';
+            mods.forEach(mod => {
+                html += `
+                    <label class="module-item">
+                        <input type="checkbox" name="upgrade" value="${mod.id}" />
+                        <span class="module-label">
+                            <strong>${mod.id}</strong>
+                            <small>${mod.description}</small>
+                        </span>
+                    </label>
+                `;
+            });
+            html += '</div></div>';
+        });
+
+        html += '</div>';
+        html += '<h3>Select Blueprints</h3>';
+        html += '<div class="blueprint-grid">';
+
+        blueprints.forEach(bp => {
+            html += `
+                <label class="blueprint-item">
+                    <input type="checkbox" name="blueprint" value="${bp.id}" />
+                    <span class="blueprint-label">
+                        <strong>${bp.id}</strong>
+                        <small>${bp.description}</small>
+                    </span>
+                </label>
+            `;
+        });
+
+        html += '</div></div>';
+        elements.advancedContainer.innerHTML = html;
     }
 
     function sanitizeGoal(goal) {
@@ -156,14 +313,9 @@
     }
 
     async function awakenAgent() {
-        if (!state.selectedPersonaId && !state.isAdvancedMode) {
-            showBootMessage('Please select a Persona first.', 'warning');
-            return;
-        }
-
         const rawGoal = elements.goalInput.value;
         if (!rawGoal) {
-            showBootMessage('Please define a goal for the agent.', 'warning');
+            showBootMessage('Please enter a goal to get started.', 'warning');
             return;
         }
 
@@ -172,6 +324,7 @@
 
         console.log('Awakening agent with:');
         let bootConfig;
+
         if (state.isAdvancedMode) {
             console.log('Mode: Advanced');
             // Logic to get selected upgrades/blueprints from advanced UI
@@ -180,25 +333,42 @@
                 goal: goal,
                 // Additional config from advanced UI would go here
             };
-        } else {
+        } else if (state.selectedPersonaId) {
+            // Using a selected persona
             const persona = state.config.personas.find(p => p.id === state.selectedPersonaId);
             console.log('Persona:', persona.name);
             console.log('Persona Type:', persona.type);
             console.log('Goal:', goal);
             console.log('Upgrades:', persona.upgrades);
             console.log('Blueprints:', persona.blueprints);
-            
+
             bootConfig = {
                 mode: 'persona',
                 persona: persona,
                 goal: goal,
                 previewTarget: persona.previewTarget || null,
             };
+        } else {
+            // No persona selected - use default config
+            console.log('Mode: Default (no persona selected)');
+            console.log('Goal:', goal);
+            console.log('Using defaultCore modules');
+
+            bootConfig = {
+                mode: 'default',
+                goal: goal,
+                upgrades: state.config.defaultCore || [],
+                blueprints: [],
+            };
         }
         
         // Store boot config for the main app to access
         window.REPLOID_BOOT_CONFIG = bootConfig;
-        
+
+        // Hide boot container and show app
+        document.getElementById('boot-container').style.display = 'none';
+        document.getElementById('app-root').style.display = 'block';
+
         // Initialize the VFS and start the main application
         await initializeReploidApplication(bootConfig);
     }
@@ -211,18 +381,31 @@
             ]);
 
             // Populate UI with strings
-            elements.onboardingTitle.textContent = state.strings.onboarding_title;
-            elements.advancedModeLabel.textContent = state.strings.advanced_mode_label;
             elements.goalInput.placeholder = state.strings.goal_input_placeholder;
             elements.awakenBtn.textContent = state.strings.awaken_button;
 
             renderPersonas();
+            checkAPIStatus();
 
             // Setup event listeners
-            elements.advancedToggle.addEventListener('change', (e) => toggleAdvancedMode(e.target.checked));
             elements.awakenBtn.addEventListener('click', awakenAgent);
             elements.goalInput.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter') awakenAgent();
+            });
+
+            // Tab switching
+            document.querySelectorAll('.config-tab').forEach(tab => {
+                tab.addEventListener('click', () => switchTab(tab.dataset.tab));
+            });
+
+            // Config modal listeners
+            elements.configBtn.addEventListener('click', openConfigModal);
+            elements.closeModal.addEventListener('click', closeConfigModal);
+            elements.saveKeysBtn.addEventListener('click', saveAPIKeys);
+
+            // Close modal on background click
+            elements.configModal.addEventListener('click', (e) => {
+                if (e.target === elements.configModal) closeConfigModal();
             });
 
         } catch (error) {
@@ -234,21 +417,23 @@
     // Initialize the Virtual File System and load modules
     async function initializeReploidApplication(bootConfig) {
         try {
-            // Load DiffGenerator utility first
-            const diffGenScript = document.createElement('script');
-            diffGenScript.src = 'utils/diff-generator.js';
-            document.head.appendChild(diffGenScript);
-            await new Promise((resolve) => {
-                diffGenScript.onload = resolve;
-                diffGenScript.onerror = () => {
-                    console.warn('Failed to load diff-generator.js');
-                    // Create a stub so UI doesn't break
-                    window.DiffGenerator = {
-                        createDiff: (old, new) => []
+            // Load DiffGenerator utility first (if not already loaded)
+            if (!window.DiffGenerator) {
+                const diffGenScript = document.createElement('script');
+                diffGenScript.src = 'utils/diff-generator.js';
+                document.head.appendChild(diffGenScript);
+                await new Promise((resolve) => {
+                    diffGenScript.onload = resolve;
+                    diffGenScript.onerror = () => {
+                        console.warn('Failed to load diff-generator.js');
+                        // Create a stub so UI doesn't break
+                        window.DiffGenerator = {
+                            createDiff: (oldContent, newContent) => []
+                        };
+                        resolve();
                     };
-                    resolve();
-                };
-            });
+                });
+            }
             
             // Create a simple VFS interface
             const vfs = {
@@ -283,7 +468,8 @@
             }
             
             // Execute the CoreLogicModule
-            await (new Function(
+            const AsyncFunction = Object.getPrototypeOf(async function(){}).constructor;
+            await (new AsyncFunction(
                 'initialConfig',
                 'vfs',
                 appLogicContent + '\nawait CoreLogicModule(initialConfig, vfs);'
