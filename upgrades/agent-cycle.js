@@ -1,19 +1,22 @@
 const CycleLogic = {
   metadata: {
     id: 'CycleLogic',
-    version: '3.0.0', // Sentinel FSM
-    dependencies: ['config', 'Utils', 'Storage', 'StateManager', 'ApiClient', 'HybridLLMProvider', 'ToolRunner', 'AgentLogicPureHelpers', 'EventBus', 'Persona'],
+    version: '3.1.0', // Sentinel FSM + Curator Mode
+    dependencies: ['config', 'Utils', 'Storage', 'StateManager', 'ApiClient', 'HybridLLMProvider', 'ToolRunner', 'AgentLogicPureHelpers', 'EventBus', 'Persona', 'AutonomousOrchestrator?'],
     async: false,
     type: 'service'
   },
 
   factory: (deps) => {
-    const { config, Utils, Storage, StateManager, ApiClient, HybridLLMProvider, ToolRunner, AgentLogicPureHelpers, EventBus, Persona } = deps;
+    const { config, Utils, Storage, StateManager, ApiClient, HybridLLMProvider, ToolRunner, AgentLogicPureHelpers, EventBus, Persona, AutonomousOrchestrator } = deps;
     const { logger, Errors } = Utils;
     const { ApplicationError, AbortError } = Errors;
 
     let currentState = 'IDLE';
     let cycleContext = {};
+
+    // Check if Curator Mode is active
+    const isCuratorMode = () => AutonomousOrchestrator && AutonomousOrchestrator.isRunning();
 
     const transitionTo = (newState, contextUpdate = {}) => {
         logger.info(`[FSM] Transitioning from ${currentState} to ${newState}`);
@@ -50,7 +53,14 @@ const CycleLogic = {
             turn_path: cycleContext.turn.cats_path
         });
 
-        transitionTo('AWAITING_CONTEXT_APPROVAL');
+        // Auto-approve context if in Curator Mode
+        if (isCuratorMode()) {
+            logger.info('[Curator] Auto-approving context');
+            transitionTo('PLANNING_WITH_CONTEXT');
+            await agentActionPlanWithContext();
+        } else {
+            transitionTo('AWAITING_CONTEXT_APPROVAL');
+        }
     };
 
     const userApprovedContext = async () => {
@@ -89,6 +99,8 @@ const CycleLogic = {
             turn_path: cycleContext.turn.dogs_path
         });
 
+        // In Curator Mode, NEVER auto-approve proposals (safety)
+        // Always wait for human review
         transitionTo('AWAITING_PROPOSAL_APPROVAL');
     };
 

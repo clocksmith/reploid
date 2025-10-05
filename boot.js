@@ -6,6 +6,7 @@
         strings: null,
         selectedPersonaId: null,
         isAdvancedMode: false,
+        bootMode: 'minimal', // New: 'minimal', 'all-blueprints', 'all-upgrades', 'persona'
     };
 
     const elements = {
@@ -20,9 +21,14 @@
         closeModal: document.getElementById('close-modal'),
         saveKeysBtn: document.getElementById('save-keys-btn'),
         apiErrorMessage: document.getElementById('api-error-message'),
+        providerSelect: document.getElementById('provider-select'),
         geminiKeyInput: document.getElementById('gemini-key'),
         openaiKeyInput: document.getElementById('openai-key'),
         anthropicKeyInput: document.getElementById('anthropic-key'),
+        localEndpointInput: document.getElementById('local-endpoint'),
+        localModelInput: document.getElementById('local-model'),
+        customProxyUrlInput: document.getElementById('custom-proxy-url'),
+        customApiKeyInput: document.getElementById('custom-api-key'),
         tabDescriptionText: document.getElementById('tab-description-text'),
     };
 
@@ -58,16 +64,51 @@
     }
 
     function loadStoredKeys() {
+        const provider = localStorage.getItem('AI_PROVIDER') || 'gemini';
         const geminiKey = localStorage.getItem('GEMINI_API_KEY');
         const openaiKey = localStorage.getItem('OPENAI_API_KEY');
         const anthropicKey = localStorage.getItem('ANTHROPIC_API_KEY');
+        const localEndpoint = localStorage.getItem('LOCAL_ENDPOINT') || 'http://localhost:11434';
+        const localModel = localStorage.getItem('LOCAL_MODEL') || 'llama2';
+        const customProxyUrl = localStorage.getItem('CUSTOM_PROXY_URL');
+        const customApiKey = localStorage.getItem('CUSTOM_API_KEY');
 
+        // Set provider dropdown
+        elements.providerSelect.value = provider;
+
+        // Load all saved values
         if (geminiKey) elements.geminiKeyInput.value = geminiKey;
         if (openaiKey) elements.openaiKeyInput.value = openaiKey;
         if (anthropicKey) elements.anthropicKeyInput.value = anthropicKey;
+        if (elements.localEndpointInput) elements.localEndpointInput.value = localEndpoint;
+        if (elements.localModelInput) elements.localModelInput.value = localModel;
+        if (customProxyUrl && elements.customProxyUrlInput) elements.customProxyUrlInput.value = customProxyUrl;
+        if (customApiKey && elements.customApiKeyInput) elements.customApiKeyInput.value = customApiKey;
+
+        // Show correct provider config
+        updateProviderUI(provider);
+    }
+
+    function updateProviderUI(provider) {
+        // Hide all provider configs
+        document.querySelectorAll('.provider-config').forEach(el => {
+            el.classList.add('hidden');
+        });
+
+        // Show selected provider config
+        const selectedConfig = document.querySelector(`.provider-config[data-provider="${provider}"]`);
+        if (selectedConfig) {
+            selectedConfig.classList.remove('hidden');
+        }
     }
 
     function saveAPIKeys() {
+        const provider = elements.providerSelect.value;
+
+        // Save provider selection
+        localStorage.setItem('AI_PROVIDER', provider);
+
+        // Save all configs (even if not currently selected - for later use)
         const geminiKey = elements.geminiKeyInput.value.trim();
         const openaiKey = elements.openaiKeyInput.value.trim();
         const anthropicKey = elements.anthropicKeyInput.value.trim();
@@ -76,15 +117,35 @@
         if (openaiKey) localStorage.setItem('OPENAI_API_KEY', openaiKey);
         if (anthropicKey) localStorage.setItem('ANTHROPIC_API_KEY', anthropicKey);
 
+        if (elements.localEndpointInput) {
+            const localEndpoint = elements.localEndpointInput.value.trim() || 'http://localhost:11434';
+            const localModel = elements.localModelInput.value.trim() || 'llama2';
+            localStorage.setItem('LOCAL_ENDPOINT', localEndpoint);
+            localStorage.setItem('LOCAL_MODEL', localModel);
+        }
+
+        if (elements.customProxyUrlInput) {
+            const customProxyUrl = elements.customProxyUrlInput.value.trim();
+            const customApiKey = elements.customApiKeyInput.value.trim();
+            if (customProxyUrl) localStorage.setItem('CUSTOM_PROXY_URL', customProxyUrl);
+            if (customApiKey) localStorage.setItem('CUSTOM_API_KEY', customApiKey);
+        }
+
         elements.configModal.classList.add('hidden');
-        showBootMessage('API keys saved locally in browser', 'info');
+
+        // Update status message based on provider
+        const providerNames = {
+            'gemini': 'Google Gemini',
+            'openai': 'OpenAI',
+            'anthropic': 'Anthropic',
+            'local': `Local Ollama (${localStorage.getItem('LOCAL_MODEL') || 'llama2'})`,
+            'custom': 'Custom Proxy'
+        };
+
+        showBootMessage(`Configuration saved: ${providerNames[provider]}`, 'info');
 
         // Update provider status
-        if (geminiKey || openaiKey || anthropicKey) {
-            elements.providerStatus.textContent = geminiKey ? 'Google Gemini (Local)' :
-                                                   openaiKey ? 'OpenAI (Local)' :
-                                                   'Anthropic (Local)';
-        }
+        elements.providerStatus.textContent = providerNames[provider];
     }
 
     function openConfigModal() {
@@ -197,10 +258,16 @@
 
     function selectPersona(personaId) {
         state.selectedPersonaId = personaId;
+        state.bootMode = 'persona'; // When persona selected, use persona mode
 
         // Update UI
         document.querySelectorAll('.persona-card').forEach(card => {
             card.classList.toggle('selected', card.dataset.id === personaId);
+        });
+
+        // Clear boot mode button selection
+        document.querySelectorAll('.boot-mode-btn').forEach(btn => {
+            btn.classList.remove('selected');
         });
 
         // Optionally pre-fill goal based on persona (if not already filled by lesson)
@@ -210,7 +277,8 @@
                 'product_prototype_factory': 'Build an interactive prototype for a mobile app',
                 'code_refactorer': 'Analyze and improve my codebase',
                 'rfc_author': 'Draft an RFC for a new feature',
-                'creative_writer': 'Help me write a blog post'
+                'creative_writer': 'Help me write a blog post',
+                'rsi_lab_sandbox': 'Study blueprint 0x000016 and create a new tool'
             };
             if (suggestions[personaId]) {
                 elements.goalInput.placeholder = suggestions[personaId];
@@ -218,6 +286,23 @@
         }
 
         elements.goalInput.focus();
+    }
+
+    function selectBootMode(mode) {
+        state.bootMode = mode;
+        state.selectedPersonaId = null; // Clear persona selection when using boot modes
+
+        // Update UI to show selected mode
+        document.querySelectorAll('.boot-mode-btn').forEach(btn => {
+            btn.classList.toggle('selected', btn.dataset.mode === mode);
+        });
+
+        // Clear persona selection visual
+        document.querySelectorAll('.persona-card').forEach(card => {
+            card.classList.remove('selected');
+        });
+
+        console.log('[Boot] Mode selected:', mode);
     }
 
     function switchTab(tabName) {
@@ -234,6 +319,7 @@
 
         // Update description and state
         const descriptions = {
+            'simple': 'Start with the minimal RSI core - fastest way to self-evolving agent',
             'templates': 'Choose from pre-configured module sets optimized for specific tasks',
             'hunter': 'Manually select individual modules and blueprints for complete control'
         };
@@ -326,7 +412,7 @@
         let bootConfig;
 
         if (state.isAdvancedMode) {
-            console.log('Mode: Advanced');
+            console.log('Mode: Advanced (Hunter Protocol)');
             // Logic to get selected upgrades/blueprints from advanced UI
             bootConfig = {
                 mode: 'advanced',
@@ -349,16 +435,36 @@
                 previewTarget: persona.previewTarget || null,
             };
         } else {
-            // No persona selected - use default config
-            console.log('Mode: Default (no persona selected)');
+            // Use boot mode selection (minimal, all-blueprints, all-upgrades)
+            console.log('Boot Mode:', state.bootMode);
             console.log('Goal:', goal);
-            console.log('Using defaultCore modules');
+
+            let upgrades, blueprints;
+
+            if (state.bootMode === 'minimal') {
+                console.log('Using minimalRSICore (8 essential modules)');
+                upgrades = state.config.minimalRSICore || [];
+                blueprints = [];
+            } else if (state.bootMode === 'all-blueprints') {
+                console.log('Using minimalRSICore + all blueprints');
+                upgrades = state.config.minimalRSICore || [];
+                blueprints = state.config.blueprints.map(bp => bp.id) || [];
+            } else if (state.bootMode === 'all-upgrades') {
+                console.log('Using all upgrades + all blueprints');
+                upgrades = state.config.upgrades.map(u => u.id) || [];
+                blueprints = state.config.blueprints.map(bp => bp.id) || [];
+            } else {
+                // Fallback to defaultCore for backwards compatibility
+                console.log('Fallback to defaultCore');
+                upgrades = state.config.defaultCore || [];
+                blueprints = [];
+            }
 
             bootConfig = {
                 mode: 'default',
                 goal: goal,
-                upgrades: state.config.defaultCore || [],
-                blueprints: [],
+                upgrades: upgrades,
+                blueprints: blueprints,
             };
         }
         
@@ -398,21 +504,39 @@
                 tab.addEventListener('click', () => switchTab(tab.dataset.tab));
             });
 
+            // Boot mode buttons (in simple tab)
+            document.querySelectorAll('.boot-mode-btn').forEach(btn => {
+                btn.addEventListener('click', () => selectBootMode(btn.dataset.mode));
+            });
+
             // Config modal listeners
             elements.configBtn.addEventListener('click', openConfigModal);
             elements.closeModal.addEventListener('click', closeConfigModal);
             elements.saveKeysBtn.addEventListener('click', saveAPIKeys);
+
+            // Provider dropdown change
+            if (elements.providerSelect) {
+                elements.providerSelect.addEventListener('change', (e) => {
+                    updateProviderUI(e.target.value);
+                });
+            }
 
             // Close modal on background click
             elements.configModal.addEventListener('click', (e) => {
                 if (e.target === elements.configModal) closeConfigModal();
             });
 
+            // Initialize simple tab as default
+            switchTab('simple');
+
         } catch (error) {
             document.body.innerHTML = `<p style="color:red;">Fatal Error during boot: ${error.message}. Please check the console.</p>`;
             console.error(error);
         }
     }
+
+    // Expose functions globally for onclick handlers
+    window.selectBootMode = selectBootMode;
 
     // Initialize the Virtual File System and load modules
     async function initializeReploidApplication(bootConfig) {
