@@ -32,31 +32,50 @@ npx serve -p 8000
 
 Navigate to **http://localhost:8000** in your browser.
 
-### Step 3: Choose a Persona
+### Step 3: Choose Your Configuration (NEW!)
 
-You'll see the **Persona Selection Screen**. Choose based on your goal:
+You'll see the **Simple Mode** tab by default with 3 clear options:
 
-- 🌐 **Website Builder** - Build landing pages with live preview
-- ⚗️ **RSI Lab Sandbox** - Learn how the agent improves itself
-- 🔧 **Code Refactorer** - Analyze and improve code quality
-- 📝 **RFC Author** - Draft formal change proposals
-- 🎨 **Product Prototype Factory** - Create interactive UI prototypes
-- ✍️ **Creative Writer** - Generate and edit documents
+#### ⚡ Minimal RSI Core (Recommended - Selected by Default)
+- **8 essential modules** only
+- Fastest startup, agent can self-evolve by loading more modules as needed
+- Perfect for learning and experimentation
+
+#### 📚 Core + All Blueprints
+- 8 core modules + 26 knowledge documents
+- Agent has maximum knowledge from the start
+- Great for complex tasks requiring deep understanding
+
+#### 🚀 All Upgrades + Blueprints
+- 40 modules + 26 blueprints
+- Full power from the start
+- Best for production use or advanced workflows
+
+**Advanced Options:**
+- **Templates Tab** - Pre-configured personas (Website Builder, RSI Lab, RFC Author, etc.)
+- **Hunter Protocol** - Manual module/blueprint selection for experts
 
 ### Step 4: Set Your First Goal
 
-Type a goal in the input box and click **"Set Goal"**. Examples:
+Type a goal in the input box and click **"Launch Agent"**. Examples:
 
+**With Minimal RSI Core (default):**
+```
+Create a simple hello world function
+```
+
+```
+Analyze my current module architecture
+```
+
+**With All Blueprints:**
+```
+Study blueprint 0x000016 and create a new tool
+```
+
+**With All Upgrades:**
 ```
 Create a landing page for a coffee shop called "Bean There"
-```
-
-```
-Analyze the performance of sentinel-fsm.js and suggest improvements
-```
-
-```
-Write an RFC proposing a dark mode theme system
 ```
 
 The Guardian Agent will start working through its FSM states automatically!

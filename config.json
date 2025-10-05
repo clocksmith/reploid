@@ -65,6 +65,19 @@
       "previewTarget": "/vfs/preview/document.html"
     }
   ],
+"minimalRSICore": ["APPL", "UTIL", "STMT", "IDXB", "APIC", "CYCL", "TLRD", "TLWR"],
+"curatorMode": {
+  "enabled": false,
+  "autoApproveContext": true,
+  "autoApproveProposal": false,
+  "maxProposalsPerGoal": 7,
+  "iterationDelay": 5000,
+  "defaultGoals": [
+    "Analyze all modules for performance optimization opportunities",
+    "Generate test cases for untested functions in core modules",
+    "Create RFC proposals for missing blueprint documentation"
+  ]
+},
 "defaultCore": ["APPL", "UTIL", "STMT", "IDXB", "APIC", "CYCL", "PRMT", "AGLP", "STHP", "TRUN", "TLRD", "TRHP", "UIMN", "STYL", "BODY", "PMON", "MDSH", "AVIS", "ASTV", "MGRV", "RATE", "MINT", "AUDT", "TUTR", "PYOD", "PYTH", "LLMR", "TSTN", "INTR", "REFL", "TEST", "BAPI"],
 "visualRSICore": ["APPL", "UTIL", "STMT", "IDXB", "APIC", "CYCL", "PRMT", "AGLP", "STHP", "TRUN", "TLRD", "TLWR", "TRHP", "UIMN", "CNVS", "VDAT", "MTCP", "GMOD", "BLPR", "PMON", "MDSH", "AVIS", "ASTV", "MGRV", "RATE", "MINT", "AUDT", "TUTR", "PYOD", "PYTH", "TSTN", "INTR", "REFL", "TEST", "BAPI"],
 "standardizedCore": ["MLDR", "MMNF", "APPL", "UTIL", "STMT", "IDXB", "APIC", "CYCL", "PRMT", "AGLP", "STHP", "TRUN", "TLRD", "TRHP", "UIMN", "PMON", "MDSH", "AVIS", "ASTV", "MGRV", "RATE", "MINT", "AUDT", "TUTR", "PYOD", "PYTH", "TSTN", "INTR", "REFL", "TEST", "BAPI"],
@@ -95,43 +108,50 @@
 "id": "PRMT",
 "path": "prompt-system.md",
 "description": "Core system prompt and identity",
-"category": "agent"
+"category": "agent",
+"blueprint": "0x000001"
 },
 {
 "id": "APPL",
 "path": "app-logic.js",
 "description": "Main application orchestrator",
-"category": "core"
+"category": "core",
+"blueprint": "0x000002"
 },
 {
 "id": "UTIL",
 "path": "utils.js",
 "description": "Essential utilities and error classes",
-"category": "core"
+"category": "core",
+"blueprint": "0x000003"
 },
 {
 "id": "IDXB",
 "path": "storage-indexeddb.js",
 "description": "IndexedDB persistence layer",
-"category": "storage"
+"category": "storage",
+"blueprint": "0x000011"
 },
 {
 "id": "STMT",
 "path": "state-manager.js",
 "description": "State management and VFS logic",
-"category": "core"
+"category": "core",
+"blueprint": "0x000005"
 },
 {
 "id": "STHP",
 "path": "state-helpers-pure.js",
 "description": "Pure functions for state logic",
-"category": "agent"
+"category": "agent",
+"blueprint": "0x000006"
 },
 {
 "id": "APIC",
 "path": "api-client.js",
 "description": "Gemini API communication client",
-"category": "agent"
+"category": "agent",
+"blueprint": "0x000007"
 },
 {
 "id": "APMC",
@@ -143,49 +163,57 @@
 "id": "CYCL",
 "path": "agent-cycle.js",
 "description": "The agent's main cognitive loop",
-"category": "agent"
+"category": "agent",
+"blueprint": "0x000008"
 },
 {
 "id": "AGLP",
 "path": "agent-logic-pure.js",
 "description": "Pure functions for agent reasoning",
-"category": "agent"
+"category": "agent",
+"blueprint": "0x000009"
 },
 {
 "id": "TRUN",
 "path": "tool-runner.js",
 "description": "Tool execution engine",
-"category": "tools"
+"category": "tools",
+"blueprint": "0x00000A"
 },
 {
 "id": "TRHP",
 "path": "tool-runner-pure-helpers.js",
 "description": "Pure functions for tool logic",
-"category": "tools"
+"category": "tools",
+"blueprint": "0x00000B"
 },
 {
 "id": "WRKR",
 "path": "tool-worker.js",
 "description": "Sandboxed Web Worker for tools",
-"category": "experimental"
+"category": "experimental",
+"blueprint": "0x00000C"
 },
 {
 "id": "UIMN",
 "path": "ui-manager.js",
 "description": "Developer console UI manager",
-"category": "ui"
+"category": "ui",
+"blueprint": "0x00000D"
 },
 {
 "id": "STYL",
 "path": "ui-style.css",
 "description": "CSS for the dev console",
-"category": "ui"
+"category": "ui",
+"blueprint": "0x00000E"
 },
 {
 "id": "BODY",
 "path": "ui-body-template.html",
 "description": "HTML structure for the dev console",
-"category": "ui"
+"category": "ui",
+"blueprint": "0x00000F"
 },
 {
 "id": "CFMD",
@@ -203,55 +231,64 @@
 "id": "TLRD",
 "path": "tools-read.json",
 "description": "Read-only tools for safe introspection",
-"category": "tools"
+"category": "tools",
+"blueprint": "0x000010"
 },
 {
 "id": "TLWR",
 "path": "tools-write.json",
 "description": "Write tools that enable RSI",
-"category": "tools"
+"category": "tools",
+"blueprint": "0x000022"
 },
 {
 "id": "EVAL",
 "path": "tool-evaluator.js",
 "description": "Self-evaluation tool package",
-"category": "experimental"
+"category": "experimental",
+"blueprint": "0x000012"
 },
 {
 "id": "SCFG",
 "path": "system-config.json",
 "description": "Default agent configuration",
-"category": "storage"
+"category": "storage",
+"blueprint": "0x000013"
 },
 {
 "id": "SCRT",
 "path": "system-scratchpad.md",
 "description": "Agent's working memory scratchpad",
-"category": "experimental"
+"category": "experimental",
+"blueprint": "0x000014"
 },
 {
 "id": "STLD",
 "path": "system-tools-dynamic.json",
 "description": "Manifest for agent-created dynamic tools",
-"category": "experimental"
+"category": "experimental",
+"blueprint": "0x000015"
 },
 {
 "id": "MTCP",
 "path": "meta-tool-creator.js",
 "description": "Meta-tool creation patterns and utilities",
-"category": "experimental"
+"category": "experimental",
+"blueprint": "0x000016"
 },
 {
 "id": "GMOD",
 "path": "goal-modifier.js",
 "description": "Safe goal modification and evolution mechanisms",
-"category": "experimental"
+"category": "experimental",
+"blueprint": "0x000017"
 },
 {
 "id": "BLPR",
 "path": "blueprint-creator.js",
 "description": "Blueprint generation and management system",
-"category": "experimental"
+"category": "experimental",
+"blueprint": "0x000018"
 },
 {
 "id": "CNVS",
@@ -359,7 +396,8 @@
 "id": "INTR",
 "path": "introspector.js",
 "description": "Code introspection and self-analysis for RSI",
-"category": "introspection"
+"category": "introspection",
+"blueprint": "0x00001B"
 },
 {
 "id": "REFL",
@@ -414,6 +452,13 @@
 "path": "browser-apis.js",
 "description": "Browser-native Web API integration (File System, Notifications, Storage, etc.)",
 "category": "capability"
+},
+{
+"id": "AUOR",
+"path": "autonomous-orchestrator.js",
+"description": "Curator Mode - Autonomous overnight proposal generation with visual reports",
+"category": "service",
+"blueprint": "0x000023"
 }
 ],
 "blueprints": [
@@ -541,6 +586,11 @@
 "id": "0x000019",
 "path": "0x000019-visual-self-improvement.md",
 "description": "Visual RSI: Using 2D canvas visualization for pattern recognition and self-optimization."
+},
+{
+"id": "0x000023",
+"path": "0x000023-autonomous-orchestrator-curator-mode.md",
+"description": "Curator Mode: Autonomous overnight proposal generation with safety boundaries and visual reports."
 }
 ]
 }

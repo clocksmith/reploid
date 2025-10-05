@@ -1,29 +1,27 @@
-# REPLOID - Guardian Agent System
+# REPLOID - RSI Agent System
 
 ```
-╔════════════════════════════════════════════════════════════════════════════════╗
-║                                                                                  ║
-║     ██████╗ ███████╗██████╗ ██╗      ██████╗ ██╗██████╗                        ║
-║     ██╔══██╗██╔════╝██╔══██╗██║     ██╔═══██╗██║██╔══██╗                       ║
-║     ██████╔╝█████╗  ██████╔╝██║     ██║   ██║██║██║  ██║                       ║
-║     ██╔══██╗██╔══╝  ██╔═══╝ ██║     ██║   ██║██║██║  ██║                       ║
-║     ██║  ██║███████╗██║     ███████╗╚██████╔╝██║██████╔╝                       ║
-║     ╚═╝  ╚═╝╚══════╝╚═╝     ╚══════╝ ╚═════╝ ╚═╝╚═════╝                        ║
-║                                                                                  ║
-║          ⚡ Guardian Agent with Human-in-the-Loop Approvals ⚡                    ║
-║                                                                                  ║
-╚════════════════════════════════════════════════════════════════════════════════╝
+    ╭─────────────────────────────────────────────────────────╮
+    │                                                         │
+    │    ⚡ ╱▔▔▔╲ ╱▔▔▔╲ ╱▔▔▔╲ ╱╲   ╱▔▔▔╲ ╱▔▔╲ ╱▔▔▔╲  ⚡     │
+    │       ╱╲  ╲ ╲▔▔  ╱╲  ╲ ║ ╲ ╱  ║  ║ ║ ╲║ ╱╲  ╲         │
+    │       ╲  ╲╱ ╱▔▔  ╲▔▔╱ ║  ╲  ║   ║ ║ ║  ╲  ╲╱         │
+    │       ╱ ╲  ╲▁▁▁ ╱    ╲ ╱▁▁╱ ╱╲▁╱ ╲▁╱ ╲▁╱ ╱ ╲          │
+    │                                                         │
+    │          ☇ Recursive Self-Improvement Agent ☇         │
+    │                                                         │
+    ╰─────────────────────────────────────────────────────────╯
 ```
 
 ## ★ What is REPLOID?
 
 REPLOID is a **browser-native agentic AI system designed for Recursive Self-Improvement (RSI) via source code manipulation**. The core hypothesis: **the browser is the perfect ecosystem for an RSI agent** because it provides:
 
-- 🎨 **Rich Web APIs** for visualization, interaction, and file system access
-- 🔒 **Built-in sandboxing** for safe code execution (Web Workers, Service Workers, iframes)
-- 🧠 **Visual feedback loops** that enable better human-AI collaboration than CLI tools
-- ⚡ **Direct access to both machine and mind** through interactive UIs
-- 🌐 **Universal deployment** with no installation required
+- ☼ **Rich Web APIs** for visualization, interaction, and file system access
+- ⛨ **Built-in sandboxing** for safe code execution (Web Workers, Service Workers, iframes)
+- ☉ **Visual feedback loops** that enable better human-AI collaboration than CLI tools
+- ☇ **Direct access to both machine and mind** through interactive UIs
+- ⛿ **Universal deployment** with no installation required
 
 REPLOID implements the **PAWS philosophy** (Prepare Artifacts With SWAP) for safe, controlled self-modification. It operates with human-in-the-loop approvals at critical decision points, ensuring you maintain full control over all changes **including changes to its own source code**.
 
@@ -32,19 +30,35 @@ The system runs in three environments:
 - **CLI**: PAWS tools (`cats`/`dogs`) for command-line bundle operations
 - **Server**: Node.js port (Project Hermes) with Git worktree isolation
 
-## ⚡ Quick Start
+## ☇ Quick Start
 
-**New to REPLOID?** 📚 Read the [**Quick Start Guide**](docs/QUICK-START.md) for an interactive tutorial!
+**New to REPLOID?** 🖹 Read the [**Quick Start Guide**](docs/QUICK-START.md) for an interactive tutorial!
 
-**📋 Complete Documentation Index:** See [docs/INDEX.md](docs/INDEX.md) for all available documentation.
+**🖹 Complete Documentation Index:** See [docs/INDEX.md](docs/INDEX.md) for all available documentation.
 
-### Browser Mode
+### Browser Mode (Recommended)
 
 ```bash
 # Serve the project locally
 python -m http.server 8000
 # Navigate to http://localhost:8000
 ```
+
+**⎈ Default Boot Mode: Minimal RSI Core**
+
+REPLOID now starts with the simplest configuration by default:
+- ☇ **8 essential modules** only (APPL, UTIL, STMT, IDXB, APIC, CYCL, TLRD, TLWR)
+- Agent can **self-evolve** by loading additional upgrades/blueprints as needed
+- Fastest startup - no decision paralysis
+
+**Quick Configuration Options:**
+1. **Minimal RSI Core** (default) - 8 modules, agent bootstraps itself
+2. **+ All Blueprints** - 8 modules + 26 knowledge documents for maximum learning
+3. **All Upgrades** - 40 modules + 26 blueprints for full power from start
+
+**Advanced Options:**
+- **Templates Tab** - 6 pre-configured personas (RSI Lab, Website Builder, etc.)
+- **Hunter Protocol** - Manually select individual modules and blueprints
 
 ### CLI Mode
 
@@ -65,11 +79,11 @@ npm start
 # Server runs at http://localhost:3000
 ```
 
-**Having issues?** 🔧 Check the [Troubleshooting Guide](docs/TROUBLESHOOTING.md)
+**Having issues?** ⚙ Check the [Troubleshooting Guide](docs/TROUBLESHOOTING.md)
 
-## ☰ Guardian Agent Flow
+## ☰ REPLOID Agent Flow
 
-The Guardian Agent follows a structured FSM (Finite State Machine) with these states:
+REPLOID follows a structured FSM (Finite State Machine) with these states:
 
 1. **IDLE** → Set a goal to begin
 2. **CURATING_CONTEXT** → Agent selects relevant files
@@ -79,6 +93,32 @@ The Guardian Agent follows a structured FSM (Finite State Machine) with these st
 6. **AWAITING_PROPOSAL_APPROVAL** → Interactive diff review with selective approval
 7. **APPLYING_CHANGES** → Applies approved changes with checkpoint
 8. **REFLECTING** → Learns from outcome for future improvements
+
+### ⛮ Curator Mode - Autonomous Overnight Operation
+
+Run REPLOID overnight to generate proposals while you sleep:
+
+**How it works:**
+- Auto-approves context selection (steps 2-3)
+- Generates 7 proposals per goal using LLM
+- **Stops at proposal approval** (step 6) - human required
+- Creates visual HTML report with all proposals
+
+**Setup:**
+1. Toggle "Curator Mode" checkbox in UI
+2. Configure max proposals (1-20, default 7) and delay
+3. Enter goals (one per line or separate runs)
+4. Leave browser open overnight
+
+**Morning workflow:**
+- Click "View Reports" to see visual timeline
+- Review 7+ proposals in beautiful HTML dashboard
+- Selectively approve best proposals
+- Apply changes via REPLOID
+
+**Safety:** Proposals are never auto-applied. Nothing touches your code without explicit approval.
+
+**Cost:** ~$0.10 per session (21 proposals with Gemini Flash) or $0 with local Ollama.
 
 ## ♜ Project Structure
 
@@ -100,6 +140,8 @@ The Guardian Agent follows a structured FSM (Finite State Machine) with these st
 │   └── worktrees/          # Git worktree isolation
 │
 ├── upgrades/               # Core modules (40+ modules)
+│   ├── agent-cycle.js      # Agent cognitive loop
+│   ├── autonomous-orchestrator.js  # Curator Mode (overnight operation)
 │   ├── sentinel-fsm.js     # Guardian Agent FSM
 │   ├── sentinel-tools.js   # PAWS tool implementations
 │   ├── diff-viewer-ui.js   # Interactive diff viewer
@@ -266,6 +308,7 @@ The system supports self-modification through RFCs. Use the RFC Author persona t
 
 See documentation:
 - **Quick Start:** `docs/QUICK-START.md` - Interactive tutorial with sample goals
+- **Upgrade-Blueprint Mapping:** `UPGRADE-BLUEPRINT-MAPPING.md` - Complete reference of modules and knowledge docs
 - **API Reference:** `docs/API.md` - Complete module API documentation
 - **Troubleshooting:** `docs/TROUBLESHOOTING.md` - Common issues and solutions
 - **Testing Guide:** `tests/README.md` - Test suite documentation and best practices

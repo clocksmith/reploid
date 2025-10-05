@@ -230,37 +230,37 @@
 
             <div class="feature-grid">
                 <div class="feature-card">
-                    <h3><span class="emoji">🔄</span> Recursive Self-Improvement</h3>
+                    <h3><span class="emoji">♲</span> Recursive Self-Improvement</h3>
                     <p>12 modules enabling self-introspection, meta-learning, automated testing, and performance optimization.</p>
                     <span class="status-badge status-complete">Ready</span>
                 </div>
 
                 <div class="feature-card">
-                    <h3><span class="emoji">🛡️</span> Approval System</h3>
+                    <h3><span class="emoji">⛨</span> Approval System</h3>
                     <p>Human-in-the-loop approval at context and proposal stages with interactive diff viewer.</p>
                     <span class="status-badge status-complete">Ready</span>
                 </div>
 
                 <div class="feature-card">
-                    <h3><span class="emoji">🧠</span> Browser-Native</h3>
+                    <h3><span class="emoji">☉</span> Browser-Native</h3>
                     <p>Visual diff viewer, real-time status, VFS explorer, live previews - superior to CLI tools.</p>
                     <span class="status-badge status-complete">Ready</span>
                 </div>
 
                 <div class="feature-card">
-                    <h3><span class="emoji">⚡</span> Structured Workflow</h3>
+                    <h3><span class="emoji">☇</span> Structured Workflow</h3>
                     <p>Context curation and explicit change proposals with CLI tool support for automation.</p>
                     <span class="status-badge status-complete">Ready</span>
                 </div>
 
                 <div class="feature-card">
-                    <h3><span class="emoji">🐍</span> Python Execution</h3>
+                    <h3><span class="emoji">⚘</span> Python Execution</h3>
                     <p>In-browser NumPy/SciPy via Pyodide for scientific computing.</p>
                     <span class="status-badge status-complete">Ready</span>
                 </div>
 
                 <div class="feature-card">
-                    <h3><span class="emoji">🚀</span> Local GPU Inference</h3>
+                    <h3><span class="emoji">☇</span> Local GPU Inference</h3>
                     <p>WebGPU-accelerated LLM with vision model support for privacy.</p>
                     <span class="status-badge status-progress">In Progress</span>
                 </div>
@@ -280,6 +280,20 @@
                 <li><strong>APPLYING_CHANGES</strong> → Applies approved changes with checkpoint</li>
                 <li><strong>REFLECTING</strong> → Learns from outcome for future improvements</li>
             </ul>
+
+            <h3><span class="emoji">⛮</span> Curator Mode - Autonomous Operation</h3>
+            <div class="highlight">
+                <p><strong>Run REPLOID overnight to generate proposals while you sleep:</strong></p>
+                <ul>
+                    <li>Auto-approves context selection (steps 2-3)</li>
+                    <li>Generates 7 proposals per goal using LLM</li>
+                    <li><strong>Stops at proposal approval</strong> - human review required</li>
+                    <li>Creates visual HTML report with timeline</li>
+                </ul>
+                <p><strong>Morning workflow:</strong> Review 7+ proposals in beautiful dashboard, selectively approve best ones, apply via REPLOID.</p>
+                <p><strong>Safety:</strong> Proposals never auto-applied. Nothing touches your code without approval.</p>
+                <p><strong>Cost:</strong> ~$0.10/session (21 proposals with Gemini Flash) or $0 with local Ollama.</p>
+            </div>
         </section>
 
         <section>
@@ -292,7 +306,7 @@
                 <li><strong>RFC Author</strong> - Formal change proposal documentation</li>
             </ul>
 
-            <h3><span class="emoji">⚛</span> Factory Personas</h3>
+            <h3><span class="emoji">⚙</span> Factory Personas</h3>
             <ul>
                 <li><strong>Website Builder</strong> - Landing pages with live preview</li>
                 <li><strong>Product Prototype Factory</strong> - Interactive UI prototypes</li>
@@ -305,26 +319,34 @@
             <ul>
                 <li><strong>40+ Core Modules</strong> - Modular, dependency-injected architecture</li>
                 <li><strong>85 Passing Tests</strong> - Comprehensive unit and integration test suite</li>
-                <li><strong>26 RFC Blueprints</strong> - Architectural documentation for system evolution</li>
+                <li><strong>27 RFC Blueprints</strong> - Architectural documentation for system evolution</li>
                 <li><strong>Git-Based VFS</strong> - Virtual filesystem with checkpoint/rollback capabilities</li>
                 <li><strong>Web Worker Sandboxing</strong> - Safe code execution and verification</li>
                 <li><strong>Event-Driven Design</strong> - Loose coupling via event bus pattern</li>
                 <li><strong>Session Isolation</strong> - Multiple concurrent workspaces</li>
+                <li><strong>Autonomous Orchestrator</strong> - Curator Mode for overnight operation</li>
+            </ul>
+
+            <h3>Setup Options</h3>
+            <ul>
+                <li><strong>Minimal RSI Core</strong> - 8 modules (APPL, UTIL, STMT, IDXB, APIC, CYCL, TLRD, TLWR) - fastest startup, agent self-evolves</li>
+                <li><strong>Maximum Setup</strong> - 40 modules + 27 blueprints - full introspection, visualizations, Python, local LLM</li>
+                <li><strong>Works with API key</strong> (Gemini/OpenAI/Anthropic) <strong>or local Ollama</strong> (no API key needed)</li>
             </ul>
         </section>
 
         <section>
             <h2>Three Deployment Modes</h2>
 
-            <h3><span class="emoji">🌐</span> Browser Mode (Default)</h3>
+            <h3><span class="emoji">⛿</span> Browser Mode (Default)</h3>
             <p>Runs entirely in browser with virtual filesystem. No installation required.</p>
             <code>python -m http.server 8080</code>
 
-            <h3><span class="emoji">💻</span> CLI Mode</h3>
+            <h3><span class="emoji">🖵</span> CLI Mode</h3>
             <p>Command-line tools for automation and scripting workflows.</p>
             <code>bin/reploid --help</code>
 
-            <h3><span class="emoji">🖥️</span> Server Mode</h3>
+            <h3><span class="emoji">🖧</span> Server Mode</h3>
             <p>Node.js server with Git worktree isolation for team environments.</p>
             <code>npm start</code>
         </section>
@@ -354,7 +376,7 @@
             </p>
             <p>
                 <a href="https://github.com/clocksmith/reploid" target="_blank" class="back-link">
-                    <span class="emoji">⭐</span> View Source on GitHub
+                    <span class="emoji">★</span> View Source on GitHub
                 </a>
             </p>
         </section>

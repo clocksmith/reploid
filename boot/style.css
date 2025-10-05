@@ -995,3 +995,113 @@ body {
     white-space: nowrap;
   }
 }
+
+/* Simple Mode Styles */
+.simple-mode-container {
+  text-align: left;
+  padding: 20px 0;
+}
+
+.simple-mode-title {
+  color: var(--color-primary);
+  font-size: 1.5em;
+  margin-bottom: 10px;
+  text-align: center;
+}
+
+.simple-mode-subtitle {
+  color: var(--color-text-primary);
+  opacity: 0.7;
+  font-size: 0.95em;
+  margin-bottom: 30px;
+  text-align: center;
+}
+
+.boot-mode-options {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.boot-mode-btn {
+  background: rgba(0, 255, 255, 0.05);
+  border: 2px solid var(--color-border);
+  border-radius: 8px;
+  padding: 20px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: left;
+  color: var(--color-text-primary);
+  font-family: var(--font-family);
+  position: relative;
+  overflow: hidden;
+}
+
+.boot-mode-btn:hover {
+  background: rgba(0, 255, 255, 0.1);
+  border-color: var(--color-primary);
+  transform: translateX(5px);
+}
+
+.boot-mode-btn.selected {
+  background: rgba(0, 255, 255, 0.15);
+  border-color: var(--color-primary);
+  box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
+}
+
+.boot-mode-btn.selected::before {
+  content: '✓';
+  position: absolute;
+  top: 15px;
+  right: 20px;
+  color: var(--color-primary);
+  font-size: 1.5em;
+  font-weight: bold;
+}
+
+.boot-mode-icon {
+  font-size: 2em;
+  margin-bottom: 10px;
+}
+
+.boot-mode-label {
+  font-size: 1.2em;
+  color: var(--color-secondary);
+  margin-bottom: 8px;
+  font-weight: bold;
+}
+
+.boot-mode-desc {
+  font-size: 0.95em;
+  color: var(--color-text-primary);
+  opacity: 0.8;
+  margin-bottom: 10px;
+  line-height: 1.5;
+}
+
+.boot-mode-modules {
+  font-size: 0.85em;
+  color: var(--color-primary);
+  opacity: 0.6;
+  font-family: 'Courier New', monospace;
+  margin-top: 5px;
+}
+
+/* Responsive adjustments for boot mode buttons */
+@media (max-width: 768px) {
+  .boot-mode-btn {
+    padding: 15px;
+  }
+
+  .boot-mode-icon {
+    font-size: 1.5em;
+  }
+
+  .boot-mode-label {
+    font-size: 1.1em;
+  }
+
+  .boot-mode-desc {
+    font-size: 0.9em;
+  }
+}
