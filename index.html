@@ -53,7 +53,7 @@
         <div class="status-bar">
             <div class="status-item">
                 <span class="status-label">Server Status:</span>
-                <span id="api-status" class="status-value">⚙️ Checking...</span>
+                <span id="api-status" class="status-value">⚙ Checking...</span>
             </div>
             <div class="status-item">
                 <span class="status-label">AI Provider:</span>
@@ -63,7 +63,7 @@
         </div>
 
         <div id="api-error-message" class="error-message hidden">
-            <strong>⚠️ Server Offline</strong>
+            <strong>☡ Server Offline</strong>
             <p>The REPLOID server at <code>localhost:8000</code> is not responding.</p>
             <p><strong>To fix this:</strong></p>
             <ol>
@@ -154,13 +154,13 @@
         <div class="config-section">
             <div class="config-tabs">
                 <button class="config-tab active" data-tab="simple">
-                    <span class="tab-text">⚡ Simple Mode</span>
+                    <span class="tab-text">☇ Simple Mode</span>
                 </button>
                 <button class="config-tab" data-tab="templates">
-                    <span class="tab-text">📦 Templates</span>
+                    <span class="tab-text">☐ Templates</span>
                 </button>
                 <button class="config-tab" data-tab="hunter">
-                    <span class="tab-text">🎯 Hunter Protocol</span>
+                    <span class="tab-text">⚐ Hunter Protocol</span>
                 </button>
             </div>
 
@@ -176,7 +176,7 @@
 
                     <div class="boot-mode-options">
                         <button class="boot-mode-btn selected" data-mode="minimal" onclick="selectBootMode('minimal')">
-                            <div class="boot-mode-icon">⚡</div>
+                            <div class="boot-mode-icon">☇</div>
                             <div class="boot-mode-label">Minimal RSI Core</div>
                             <div class="boot-mode-desc">8 essential modules only - fastest startup, agent can self-evolve</div>
                             <div class="boot-mode-modules">APPL, UTIL, STMT, IDXB, APIC, CYCL, TLRD, TLWR</div>
@@ -190,7 +190,7 @@
                         </button>
 
                         <button class="boot-mode-btn" data-mode="all-upgrades" onclick="selectBootMode('all-upgrades')">
-                            <div class="boot-mode-icon">🚀</div>
+                            <div class="boot-mode-icon">⛿</div>
                             <div class="boot-mode-label">All Upgrades + Blueprints</div>
                             <div class="boot-mode-desc">40 modules + 26 blueprints - full power from the start</div>
                             <div class="boot-mode-modules">Every available capability enabled</div>
