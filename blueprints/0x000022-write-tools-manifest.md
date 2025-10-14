@@ -26,7 +26,7 @@ Without the ability to modify its own source code, an agent is fundamentally lim
 **Why separate from read tools?**
 - **Security:** Write operations require extra validation and approval
 - **Auditability:** Track all self-modifications in audit logs
-- **Human-in-the-Loop:** Enable AWAITING_PROPOSAL_APPROVAL state in Guardian Agent
+- **Human-in-the-Loop:** Enable AWAITING_PROPOSAL_APPROVAL state in Sentinel Agent
 - **Checkpoint Safety:** Every write operation should be checkpoint-wrapped
 
 ---
@@ -210,9 +210,9 @@ async function handleModifyArtifact({ path, new_content, reason }) {
 }
 ```
 
-#### Step 4: Integration with Guardian Agent (Sentinel FSM)
+#### Step 4: Integration with Sentinel Agent (Sentinel FSM)
 
-The Guardian Agent's FSM already handles write operations through the PAWS workflow:
+The Sentinel Agent's FSM already handles write operations through the PAWS workflow:
 
 1. **CURATING_CONTEXT** - Agent selects files to read
 2. **PLANNING_WITH_CONTEXT** - Agent decides what changes to make
@@ -318,7 +318,7 @@ If something breaks, the agent (or human) can rollback:
 
 #### 5.2 Human-in-the-Loop Approvals
 
-Guardian Agent FSM ensures humans review changes:
+Sentinel Agent FSM ensures humans review changes:
 
 ```
 IDLE → CURATING_CONTEXT → AWAITING_CONTEXT_APPROVAL
@@ -406,7 +406,7 @@ assert(checkpoints.some(c => c.id.startsWith('before_modify_artifact')));
 
 #### 7.2 Integration Testing
 
-Test the full Guardian Agent flow:
+Test the full Sentinel Agent flow:
 
 1. Set goal: "Add a comment to utils.js"
 2. Agent curates context (reads utils.js)
@@ -449,7 +449,7 @@ Test the full Guardian Agent flow:
 - 🧪 **Self-experimenting** - Tests modifications safely
 - 🎯 **Self-optimizing** - Measures and improves performance
 
-The write tools manifest (`tools-write.json`) defines the **contract for self-evolution**, while the Guardian Agent workflow (Project Sentinel) provides the **safety rails** to ensure humans maintain control.
+The write tools manifest (`tools-write.json`) defines the **contract for self-evolution**, while the Sentinel Agent workflow (Project Sentinel) provides the **safety rails** to ensure humans maintain control.
 
 **The agent doesn't just USE tools - it can CREATE, MODIFY, and DELETE them. That's true recursion.**
 
@@ -463,5 +463,5 @@ The write tools manifest (`tools-write.json`) defines the **contract for self-ev
 - 0x00001B (Code Introspection) - Analyze own architecture
 
 **Related RFCs:**
-- Project Sentinel (Guardian Agent with human approvals)
+- Project Sentinel (Sentinel Agent with human approvals)
 - PAWS CLI Integration (cats.md/dogs.md workflow)

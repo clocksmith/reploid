@@ -8,10 +8,10 @@ This document tracks the status of all RFCs (Request for Comments) in the REPLOI
 
 ## 🟢 **Project Sentinel** (RFC 2025-09-22)
 **Status: 100% COMPLETE** ✅
-**Codename:** "The Guardian Agent"
+**Codename:** "The Sentinel Agent"
 
 ### Purpose
-Transform REPLOID into a Guardian Agent with human-in-the-loop approvals, implementing the PAWS philosophy within a browser environment.
+Transform REPLOID into a Sentinel Agent with human-in-the-loop approvals, implementing the PAWS philosophy within a browser environment.
 
 ### Implementation Status
 - ✅ Core modules created and integrated (`sentinel-tools.js`, `sentinel-fsm.js`, `diff-viewer-ui.js`, `git-vfs.js`)
@@ -26,7 +26,7 @@ Transform REPLOID into a Guardian Agent with human-in-the-loop approvals, implem
 - ✅ **COMPLETED TODAY**: Added Web Worker verification (`verification-worker.js`, `verification-manager.js`)
 
 ### What's Working
-Complete Guardian Agent flow from goal → context curation → approval → proposal → approval → apply → reflect
+Complete Sentinel Agent flow from goal → context curation → approval → proposal → approval → apply → reflect
 
 ### Files Created
 - `upgrades/sentinel-tools.js`
@@ -78,7 +78,7 @@ Create a unified system integrating PAWS philosophy, Claude Code CLI tools, and 
 - ✅ **COMPLETED NOW**: Session isolation and checkpoint system
 
 ### What's Working
-Complete PAWS ecosystem from browser to CLI to server, with full Guardian Agent implementation across all platforms.
+Complete PAWS ecosystem from browser to CLI to server, with full Sentinel Agent implementation across all platforms.
 
 ### Relationship to Other RFCs
 PAWS CLI introduced the philosophy that Sentinel implemented. The Ouroboros Stack vision is now fully realized with Node.js port complete.

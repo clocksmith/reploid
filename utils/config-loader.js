@@ -115,7 +115,7 @@ class ConfigLoader {
         defaultOutput: './output',
         excludeDirs: ['node_modules', '.git', 'dist', 'build', '.cache']
       },
-      guardian: {
+      sentinel: {
         requireApproval: true,
         autoBackup: true,
         verificationTimeout: 30000,

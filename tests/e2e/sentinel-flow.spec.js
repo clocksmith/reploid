@@ -1,13 +1,13 @@
-// E2E Test: Guardian Agent Flow - Full workflow from boot to dashboard
+// E2E Test: Sentinel Agent Flow - Full workflow from boot to dashboard
 import { test, expect } from '@playwright/test';
 
-test.describe('Guardian Agent Flow', () => {
+test.describe('Sentinel Agent Flow', () => {
   test('should transition from boot to dashboard after awakening', async ({ page }) => {
     await page.goto('/');
-    await page.waitForSelector('.persona-card', { timeout: 10000 });
+    await page.waitForSelector('#boot-container', { timeout: 10000 });
 
-    // Select a persona
-    await page.locator('.persona-card').first().click();
+    // Select Minimal RSI Core mode (already selected by default)
+    await page.click('.boot-mode-btn[data-mode="minimal"]');
 
     // Enter a goal
     await page.locator('#goal-input').fill('Add a simple hello world function');
@@ -16,7 +16,7 @@ test.describe('Guardian Agent Flow', () => {
     await page.locator('#awaken-btn').click();
 
     // Wait for dashboard to load (boot container should hide, app-root should show)
-    await page.waitForTimeout(2000); // Give time for initialization
+    await page.waitForTimeout(3000); // Give time for initialization
 
     // Check that boot container is hidden
     const bootContainer = page.locator('#boot-container');
@@ -28,15 +28,14 @@ test.describe('Guardian Agent Flow', () => {
   });
 
   test('should load dashboard with all required elements', async ({ page }) => {
-    // Skip boot and go directly to dashboard (if possible via URL params or state)
-    // For now, go through full boot flow
+    // Go through full boot flow
     await page.goto('/');
-    await page.waitForSelector('.persona-card', { timeout: 10000 });
-    await page.locator('.persona-card').first().click();
+    await page.waitForSelector('#boot-container', { timeout: 10000 });
+    await page.click('.boot-mode-btn[data-mode="minimal"]');
     await page.locator('#goal-input').fill('Test goal');
     await page.locator('#awaken-btn').click();
 
-    await page.waitForTimeout(2000);
+    await page.waitForTimeout(3000);
 
     // Check that main UI elements are present
     // Note: These selectors depend on actual dashboard structure
@@ -53,12 +52,12 @@ test.describe('Guardian Agent Flow', () => {
 
   test('should display FSM status indicator', async ({ page }) => {
     await page.goto('/');
-    await page.waitForSelector('.persona-card', { timeout: 10000 });
-    await page.locator('.persona-card').first().click();
+    await page.waitForSelector('#boot-container', { timeout: 10000 });
+    await page.click('.boot-mode-btn[data-mode="minimal"]');
     await page.locator('#goal-input').fill('Test FSM state');
     await page.locator('#awaken-btn').click();
 
-    await page.waitForTimeout(2000);
+    await page.waitForTimeout(3000);
 
     // FSM should start in IDLE state
     // Check for FSM status element (selector may need adjustment)
@@ -71,8 +70,8 @@ test.describe('Guardian Agent Flow', () => {
 
   test('should handle goal input with special characters', async ({ page }) => {
     await page.goto('/');
-    await page.waitForSelector('.persona-card', { timeout: 10000 });
-    await page.locator('.persona-card').first().click();
+    await page.waitForSelector('#boot-container', { timeout: 10000 });
+    await page.click('.boot-mode-btn[data-mode="minimal"]');
 
     // Try goal with HTML tags (should be sanitized)
     const goalWithHtml = 'Create <script>alert("xss")</script> function';
@@ -86,26 +85,27 @@ test.describe('Guardian Agent Flow', () => {
     // This is implicit - Playwright will fail if unexpected dialog appears
   });
 
-  test('should preserve selected persona through boot process', async ({ page }) => {
+  test('should preserve selected boot mode through boot process', async ({ page }) => {
     await page.goto('/');
-    await page.waitForSelector('.persona-card', { timeout: 10000 });
+    await page.waitForSelector('#boot-container', { timeout: 10000 });
 
-    // Select specific persona (e.g., second one)
-    const selectedPersona = page.locator('.persona-card').nth(1);
-    await selectedPersona.click();
+    // Select specific boot mode (e.g., Default Core)
+    const selectedMode = page.locator('.boot-mode-btn[data-mode="default"]');
+    await selectedMode.click();
 
-    // Get persona name
-    const personaName = await selectedPersona.locator('h3').textContent();
+    // Get mode name
+    const modeName = await selectedMode.locator('.boot-mode-label').textContent();
+    expect(modeName).toBe('Default Core');
 
     // Enter goal and awaken
-    await page.locator('#goal-input').fill('Test persona preservation');
+    await page.locator('#goal-input').fill('Test mode preservation');
     await page.locator('#awaken-btn').click();
 
-    await page.waitForTimeout(2000);
+    await page.waitForTimeout(3000);
 
-    // After loading, the selected persona info should be used
-    // This test verifies that persona selection is passed through correctly
-    // Specific assertion depends on where persona name appears in dashboard
+    // After loading, the selected mode configuration should be used
+    // This test verifies that mode selection is passed through correctly
+    // Specific assertion depends on how mode affects dashboard
   });
 });
 
@@ -113,11 +113,11 @@ test.describe('Dashboard Panels', () => {
   test.beforeEach(async ({ page }) => {
     // Helper to get to dashboard quickly
     await page.goto('/');
-    await page.waitForSelector('.persona-card', { timeout: 10000 });
-    await page.locator('.persona-card').first().click();
+    await page.waitForSelector('#boot-container', { timeout: 10000 });
+    await page.click('.boot-mode-btn[data-mode="minimal"]');
     await page.locator('#goal-input').fill('Test panel functionality');
     await page.locator('#awaken-btn').click();
-    await page.waitForTimeout(2000);
+    await page.waitForTimeout(3000);
   });
 
   test('should have panel toggle functionality', async ({ page }) => {

@@ -455,7 +455,7 @@ const AutonomousOrchestrator = {
     </div>
 
     <div class="footer">
-      REPLOID Guardian Agent - Curator Mode v1.0.0
+      REPLOID Sentinel Agent - Curator Mode v1.0.0
     </div>
   </div>
 </body>

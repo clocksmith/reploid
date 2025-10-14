@@ -9,7 +9,7 @@ This directory contains **proposals for major changes** to REPLOID. RFCs are for
 | [RFC-001](./rfc-2025-05-10-local-llm-in-browser.md) | Local LLM in Browser | 📋 Proposed | 0% |
 | [RFC-002](./rfc-2025-09-07-2025-paws-cli.md) | PAWS CLI Integration | ✅ Completed | 100% |
 | [RFC-003](./rfc-2025-09-22-project-phoenix-refactor.md) | Project Phoenix (Architecture) | 🚧 In Progress | 40% |
-| [RFC-004](./rfc-2025-09-22-project-sentinel.md) | Project Sentinel (Guardian Agent) | ✅ Completed | 100% |
+| [RFC-004](./rfc-2025-09-22-project-sentinel.md) | Project Sentinel (Sentinel Agent) | ✅ Completed | 100% |
 
 ## RFC Template
 
@@ -50,7 +50,7 @@ How do we know when this is successfully implemented?
 1. **Draft:** Create RFC document in this directory
 2. **Review:** Discussion and feedback
 3. **Approval:** Human approval to proceed
-4. **Implementation:** Guardian Agent implements with human oversight
+4. **Implementation:** Sentinel Agent implements with human oversight
 5. **Completion:** Mark as completed, update status tracking
 
 ## Note on Blueprints vs RFCs

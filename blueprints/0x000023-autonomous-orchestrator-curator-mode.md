@@ -729,7 +729,7 @@ await AutonomousOrchestrator.startCuratorMode([
 2. Review 21 proposals in visual timeline
 3. Click proposal paths to open `.dogs.md` files
 4. Selectively approve best proposals (e.g., 5 out of 21)
-5. Apply approved changes via Guardian Agent
+5. Apply approved changes via Sentinel Agent
 6. Commit results to Git
 
 ---
@@ -743,7 +743,7 @@ The Autonomous Orchestrator (Curator Mode) enables REPLOID to operate overnight,
 - ✓ Beautiful visual reports with metrics
 - ✓ Zero risk (proposals never auto-applied)
 - ✓ Low cost (~$0.02 per session with Gemini Flash)
-- ✓ Fully integrated with Guardian Agent FSM
+- ✓ Fully integrated with Sentinel Agent FSM
 
 **Future Evolution:**
 - Git worktree isolation (Sandbox Lab Mode)

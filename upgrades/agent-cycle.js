@@ -77,7 +77,7 @@ const CycleLogic = {
         // Use HybridLLMProvider for local/cloud inference
         const response = await HybridLLMProvider.complete([{
             role: 'system',
-            content: 'You are a Guardian Agent. Generate structured change proposals.'
+            content: 'You are a Sentinel Agent. Generate structured change proposals.'
         }, {
             role: 'user',
             content: prompt

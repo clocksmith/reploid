@@ -156,9 +156,9 @@ Removes files. Creates backup before deletion.
 
 ## Integration
 
-### With Guardian Agent
+### With Sentinel Agent
 
-The CLI tools integrate with REPLOID's Guardian Agent:
+The CLI tools integrate with REPLOID's Sentinel Agent:
 
 ```bash
 # Agent creates context bundle
@@ -215,7 +215,7 @@ The PAWS CLI tools are validated through:
    npm run test:cli  # Runs --help for cats and dogs
    ```
 
-2. **Manual Testing**: See `test-guardian-flow.md` for complete workflow tests
+2. **Manual Testing**: See `test-sentinel-flow.md` for complete workflow tests
 
 3. **Integration Testing**: Tests verify bundle parsing, validation, and security checks
 

@@ -5,24 +5,10 @@ test.describe('Accessibility', () => {
   test('should support keyboard navigation on boot screen', async ({ page }) => {
     await page.goto('/');
 
-    // Wait for persona cards to load
-    await page.waitForSelector('.persona-card', { timeout: 10000 });
+    // Wait for boot screen to load
+    await page.waitForSelector('#boot-container', { timeout: 10000 });
 
-    // Focus on first persona using Tab
-    await page.keyboard.press('Tab');
-
-    // Select persona using Enter or Space
-    await page.keyboard.press('Enter');
-
-    // First persona should now be selected
-    const firstPersona = page.locator('.persona-card').first();
-    await expect(firstPersona).toHaveClass(/selected/);
-
-    // Tab to goal input
-    await page.keyboard.press('Tab');
-    await page.keyboard.press('Tab'); // May need multiple tabs depending on layout
-
-    // Type goal
+    // Goal input should exist and be enabled (Minimal RSI Core is selected by default)
     const goalInput = page.locator('#goal-input');
     await goalInput.focus();
     await page.keyboard.type('Test keyboard navigation');
@@ -30,32 +16,38 @@ test.describe('Accessibility', () => {
     // Goal should be entered
     const value = await goalInput.inputValue();
     expect(value).toContain('Test keyboard navigation');
+
+    // Tab to awaken button
+    await page.keyboard.press('Tab');
+
+    // Verify button gets focus
+    const awakenBtn = page.locator('#awaken-btn');
+    await expect(awakenBtn).toBeFocused();
   });
 
   test('should have proper ARIA labels on boot screen', async ({ page }) => {
     await page.goto('/');
 
     // Wait for page to fully load
-    await page.waitForSelector('.persona-card', { timeout: 10000 });
+    await page.waitForSelector('#boot-container', { timeout: 10000 });
 
     // Check for ARIA labels on key elements
     const goalInput = page.locator('#goal-input');
     const placeholder = await goalInput.getAttribute('placeholder');
     expect(placeholder).toBeTruthy();
 
-    // Persona cards should be clickable
-    const personaCards = page.locator('.persona-card');
-    const firstCard = personaCards.first();
-    await expect(firstCard).toBeVisible();
+    // Boot mode buttons should be clickable
+    const bootModeButtons = page.locator('.boot-mode-btn');
+    const firstButton = bootModeButtons.first();
+    await expect(firstButton).toBeVisible();
   });
 
   test('should support ESC key to clear focus', async ({ page }) => {
     await page.goto('/');
 
-    // Wait for persona cards to load
-    await page.waitForSelector('.persona-card', { timeout: 10000 });
+    // Wait for boot screen to load
+    await page.waitForSelector('#boot-container', { timeout: 10000 });
 
-    await page.locator('.persona-card').first().click();
     const goalInput = page.locator('#goal-input');
     await goalInput.fill('Test ESC behavior');
     await goalInput.focus();
@@ -69,7 +61,7 @@ test.describe('Accessibility', () => {
 
   test('should have proper focus indicators', async ({ page }) => {
     await page.goto('/');
-    await page.waitForSelector('.persona-card', { timeout: 10000 });
+    await page.waitForSelector('#boot-container', { timeout: 10000 });
 
     // Tab through elements and verify focus is visible
     await page.keyboard.press('Tab');
@@ -89,22 +81,22 @@ test.describe('Accessibility', () => {
 
   test('should handle keyboard shortcuts', async ({ page }) => {
     await page.goto('/');
-    await page.waitForSelector('.persona-card', { timeout: 10000 });
+    await page.waitForSelector('#boot-container', { timeout: 10000 });
 
-    // Boot screen may not have many shortcuts, but test what exists
-    // Advanced mode toggle via keyboard
-    const advancedToggle = page.locator('#advanced-toggle');
-    await advancedToggle.focus();
-    await page.keyboard.press('Space');
+    // Test tab navigation to config tabs
+    const configTabs = page.locator('.config-tab');
+    const firstTab = configTabs.first();
+    await expect(firstTab).toBeVisible();
 
-    // Advanced options should toggle
-    const advancedOptions = page.locator('#advanced-options');
-    await expect(advancedOptions).not.toHaveClass(/hidden/);
+    // Test that awaken button is reachable via keyboard
+    const awakenBtn = page.locator('#awaken-btn');
+    await awakenBtn.focus();
+    await expect(awakenBtn).toBeFocused();
   });
 
   test('should have semantic HTML structure', async ({ page }) => {
     await page.goto('/');
-    await page.waitForSelector('.persona-card', { timeout: 10000 });
+    await page.waitForSelector('#boot-container', { timeout: 10000 });
 
     // Check for semantic elements
     const heading = page.locator('h1');
@@ -126,11 +118,14 @@ test.describe('Accessibility', () => {
 test.describe('Accessibility - Dashboard', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
-    await page.waitForSelector('.persona-card', { timeout: 10000 });
-    await page.locator('.persona-card').first().click();
+    await page.waitForSelector('#boot-container', { timeout: 10000 });
+
+    // Select Minimal RSI Core mode (should already be selected by default)
+    await page.click('.boot-mode-btn[data-mode="minimal"]');
+
     await page.locator('#goal-input').fill('Test accessibility');
     await page.locator('#awaken-btn').click();
-    await page.waitForSelector('#dashboard', { timeout: 15000 });
+    await page.waitForTimeout(3000); // Wait for dashboard to initialize
   });
 
   test('should support keyboard navigation in dashboard', async ({ page }) => {

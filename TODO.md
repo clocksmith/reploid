@@ -1,6 +1,6 @@
 # REPLOID Improvement Roadmap
 
-This document outlines comprehensive improvements to the REPLOID Guardian Agent system, organized by priority and impact. Each item includes specific file locations, detailed problem descriptions, and implementation guidance.
+This document outlines comprehensive improvements to the REPLOID Sentinel Agent system, organized by priority and impact. Each item includes specific file locations, detailed problem descriptions, and implementation guidance.
 
 **Last Updated:** 2025-09-30
 
@@ -2001,7 +2001,7 @@ reploid-config validate
     "verbose": false,
     "defaultOutput": "./output"
   },
-  "guardian": {
+  "sentinel": {
     "requireApproval": true,
     "autoBackup": true,
     "verificationTimeout": 30000
@@ -2710,7 +2710,7 @@ In `/Users/xyz/deco/reploid/hermes/index.js`:
 ```javascript
 // Status endpoint
 app.get('/api/status', (req, res) => {
-  const agent = guardianAgent;
+  const agent = sentinelAgent;
   res.json({
     state: agent.state,
     session: agent.currentSession?.id,
@@ -2924,7 +2924,7 @@ function validateDogsBundle(content) {
 <div id="sentinel-panel"
      class="panel"
      role="region"
-     aria-label="Guardian agent controls">
+     aria-label="Sentinel agent controls">
   <button id="approve-btn"
           class="btn btn-success"
           aria-label="Approve proposed changes">
@@ -3849,7 +3849,7 @@ test/
 │   ├── sentinel-fsm.test.js
 │   └── tool-runner.test.js
 ├── integration/
-│   ├── guardian-flow.test.js
+│   ├── sentinel-flow.test.js
 │   ├── cats-dogs-workflow.test.js
 │   └── api-client.test.js
 ├── cli/
@@ -4033,7 +4033,7 @@ npm install
 
 5. Click "Awaken Agent"
 
-6. Watch the Guardian Agent work and approve changes when prompted
+6. Watch the Sentinel Agent work and approve changes when prompted
 
 ## Try CLI Mode
 
@@ -4177,7 +4177,7 @@ Based on comprehensive analysis comparing REPLOID to the state-of-the-art "Brows
 ### ✅ Current Strengths
 
 REPLOID already implements many foundational components:
-- ✅ Guardian Agent FSM with human-in-the-loop approvals
+- ✅ Sentinel Agent FSM with human-in-the-loop approvals
 - ✅ PAWS workflow (cats/dogs bundles) for safe changes
 - ✅ Git-based VFS with history tracking and checkpoints
 - ✅ Interactive diff viewer with selective approval

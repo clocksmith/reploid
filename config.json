@@ -65,7 +65,7 @@
       "previewTarget": "/vfs/preview/document.html"
     }
   ],
-"minimalRSICore": ["APPL", "UTIL", "STMT", "IDXB", "APIC", "CYCL", "TLRD", "TLWR"],
+"minimalRSICore": ["APPL", "UTIL", "STMT", "IDXB", "APIC", "CYCL", "TLRD", "TLWR", "LLMR", "HYBR"],
 "curatorMode": {
   "enabled": false,
   "autoApproveContext": true,
@@ -78,10 +78,10 @@
     "Create RFC proposals for missing blueprint documentation"
   ]
 },
-"defaultCore": ["APPL", "UTIL", "STMT", "IDXB", "APIC", "CYCL", "PRMT", "AGLP", "STHP", "TRUN", "TLRD", "TRHP", "UIMN", "STYL", "BODY", "PMON", "MDSH", "AVIS", "ASTV", "MGRV", "RATE", "MINT", "AUDT", "TUTR", "PYOD", "PYTH", "LLMR", "TSTN", "INTR", "REFL", "TEST", "BAPI"],
-"visualRSICore": ["APPL", "UTIL", "STMT", "IDXB", "APIC", "CYCL", "PRMT", "AGLP", "STHP", "TRUN", "TLRD", "TLWR", "TRHP", "UIMN", "CNVS", "VDAT", "MTCP", "GMOD", "BLPR", "PMON", "MDSH", "AVIS", "ASTV", "MGRV", "RATE", "MINT", "AUDT", "TUTR", "PYOD", "PYTH", "TSTN", "INTR", "REFL", "TEST", "BAPI"],
-"standardizedCore": ["MLDR", "MMNF", "APPL", "UTIL", "STMT", "IDXB", "APIC", "CYCL", "PRMT", "AGLP", "STHP", "TRUN", "TLRD", "TRHP", "UIMN", "PMON", "MDSH", "AVIS", "ASTV", "MGRV", "RATE", "MINT", "AUDT", "TUTR", "PYOD", "PYTH", "TSTN", "INTR", "REFL", "TEST", "BAPI"],
-"multiProviderCore": ["MLDR", "MMNF", "APPL", "UTIL", "STMT", "IDXB", "APMC", "CYCL", "PRMT", "AGLP", "STHP", "TRUN", "TLRD", "TRHP", "UIMN", "STYL", "BODY", "PMON", "MDSH", "AVIS", "ASTV", "MGRV", "RATE", "MINT", "AUDT", "TUTR", "PYOD", "PYTH", "TSTN", "INTR", "REFL", "TEST", "BAPI"],
+"defaultCore": ["APPL", "UTIL", "STMT", "IDXB", "APIC", "CYCL", "PRMT", "AGLP", "STHP", "TRUN", "TLRD", "TRHP", "UIMN", "STYL", "BODY", "PMON", "MDSH", "AVIS", "ASTV", "MGRV", "RATE", "MINT", "AUDT", "TUTR", "PYOD", "PYTH", "LLMR", "HYBR", "TSTN", "INTR", "REFL", "TEST", "BAPI"],
+"visualRSICore": ["APPL", "UTIL", "STMT", "IDXB", "APIC", "CYCL", "PRMT", "AGLP", "STHP", "TRUN", "TLRD", "TLWR", "TRHP", "UIMN", "CNVS", "VDAT", "MTCP", "GMOD", "BLPR", "PMON", "MDSH", "AVIS", "ASTV", "MGRV", "RATE", "MINT", "AUDT", "TUTR", "PYOD", "PYTH", "LLMR", "HYBR", "TSTN", "INTR", "REFL", "TEST", "BAPI"],
+"standardizedCore": ["MLDR", "MMNF", "APPL", "UTIL", "STMT", "IDXB", "APIC", "CYCL", "PRMT", "AGLP", "STHP", "TRUN", "TLRD", "TRHP", "UIMN", "PMON", "MDSH", "AVIS", "ASTV", "MGRV", "RATE", "MINT", "AUDT", "TUTR", "PYOD", "PYTH", "LLMR", "HYBR", "TSTN", "INTR", "REFL", "TEST", "BAPI"],
+"multiProviderCore": ["MLDR", "MMNF", "APPL", "UTIL", "STMT", "IDXB", "APMC", "CYCL", "PRMT", "AGLP", "STHP", "TRUN", "TLRD", "TRHP", "UIMN", "STYL", "BODY", "PMON", "MDSH", "AVIS", "ASTV", "MGRV", "RATE", "MINT", "AUDT", "TUTR", "PYOD", "PYTH", "LLMR", "HYBR", "TSTN", "INTR", "REFL", "TEST", "BAPI"],
 "providers": {
   "default": "gemini",
   "fallbackProviders": ["openai", "anthropic", "local"],

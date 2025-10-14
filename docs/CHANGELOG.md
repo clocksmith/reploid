@@ -128,7 +128,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 #### Core Features
-1. **Guardian Agent FSM (Project Sentinel)** - Complete human-in-the-loop approval system
+1. **Sentinel Agent FSM (Project Sentinel)** - Complete human-in-the-loop approval system
    - 9-state FSM (IDLE, CURATING_CONTEXT, AWAITING_CONTEXT_APPROVAL, etc.)
    - Interactive diff viewer with selective approval
    - Checkpoint/rollback system

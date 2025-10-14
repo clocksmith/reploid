@@ -10,7 +10,7 @@ This document provides solutions to common issues you may encounter while using 
 - [Browser Issues](#browser-issues)
 - [API & Network](#api--network)
 - [File System & Storage](#file-system--storage)
-- [Guardian Agent FSM](#guardian-agent-fsm)
+- [Sentinel Agent FSM](#sentinel-agent-fsm)
 - [Performance Issues](#performance-issues)
 - [UI & Display](#ui--display)
 - [Development & Debugging](#development--debugging)
@@ -382,7 +382,7 @@ await gitVfs.resetRepository();
 
 ---
 
-## Guardian Agent FSM
+## Sentinel Agent FSM
 
 ### Agent Stuck in State
 
