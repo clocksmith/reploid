@@ -7,21 +7,16 @@
 
 const express = require('express');
 const WebSocket = require('ws');
-const { execSync } = require('child_process');
+const { execSync, spawn } = require('child_process');
 const fs = require('fs').promises;
 const path = require('path');
 const http = require('http');
 
+// Use the full paws-session SessionManager
+const { SessionManager: PawsSessionManager, SessionStatus } = require('../paws-session.js');
+
 // Configuration
 const PORT = process.env.PORT || 3000;
-const SESSIONS_DIR = path.join(__dirname, 'sessions');
-const WORKTREES_DIR = path.join(__dirname, 'worktrees');
-
-// Initialize directories
-const initDirectories = async () => {
-  await fs.mkdir(SESSIONS_DIR, { recursive: true });
-  await fs.mkdir(WORKTREES_DIR, { recursive: true });
-};
 
 // Create Express app and HTTP server
 const app = express();
@@ -32,52 +27,60 @@ const wss = new WebSocket.Server({ server });
 app.use(express.json());
 app.use(express.static(path.join(__dirname, '..', 'public')));
 
-// Session manager
+// Wrapper around PawsSessionManager to maintain compatibility
 class SessionManager {
   constructor() {
-    this.sessions = new Map();
-    this.activeSession = null;
+    this.pawsManager = new PawsSessionManager(path.join(__dirname, '..'));
+    this.activeSessionId = null;
   }
 
   async createSession(goal) {
-    const sessionId = `session_${Date.now()}`;
-    const sessionPath = path.join(SESSIONS_DIR, sessionId);
-    const worktreePath = path.join(WORKTREES_DIR, sessionId);
+    // Use paws-session to create a full-featured session
+    const session = await this.pawsManager.createSession(goal);
+    this.activeSessionId = session.sessionId;
 
-    // Create session directory
-    await fs.mkdir(sessionPath, { recursive: true });
-
-    // Create Git worktree for isolated changes
-    try {
-      execSync(`git worktree add ${worktreePath} -b ${sessionId}`, {
-        cwd: path.join(__dirname, '..')
-      });
-    } catch (err) {
-      console.warn(`Failed to create worktree: ${err.message}`);
-    }
-
-    const session = {
-      id: sessionId,
+    // Return a compatible object for the Guardian Agent
+    return {
+      id: session.sessionId,
       goal,
-      path: sessionPath,
-      worktree: worktreePath,
+      path: this.pawsManager.getSessionPath(session.sessionId),
+      worktree: session.workspacePath,
       state: 'IDLE',
-      created: new Date().toISOString(),
-      turnCount: 0
+      created: session.createdAt,
+      turnCount: session.turns.length
     };
-
-    this.sessions.set(sessionId, session);
-    this.activeSession = sessionId;
-
-    return session;
   }
 
   async getSession(sessionId) {
-    return this.sessions.get(sessionId);
+    const session = await this.pawsManager.getSession(sessionId);
+    if (!session) return null;
+
+    return {
+      id: session.sessionId,
+      goal: session.name,
+      path: this.pawsManager.getSessionPath(session.sessionId),
+      worktree: session.workspacePath,
+      state: session.status,
+      created: session.createdAt,
+      turnCount: session.turns.length
+    };
   }
 
   async listSessions() {
-    return Array.from(this.sessions.values());
+    const sessions = await this.pawsManager.listSessions();
+    return sessions.map(s => ({
+      id: s.sessionId,
+      goal: s.name,
+      path: this.pawsManager.getSessionPath(s.sessionId),
+      worktree: s.workspacePath,
+      state: s.status,
+      created: s.createdAt,
+      turnCount: s.turns.length
+    }));
+  }
+
+  async addTurn(sessionId, command, options) {
+    return await this.pawsManager.addTurn(sessionId, command, options);
   }
 }
 
@@ -268,6 +271,32 @@ app.get('/api/sessions', async (req, res) => {
   res.json(sessions);
 });
 
+const { runPaxosWorkflow } = require('./paxos_orchestrator.js');
+
+app.post('/api/paxos', (req, res) => {
+  const { objective, contextPath, verifyCmd } = req.body;
+
+  if (!objective || !contextPath || !verifyCmd) {
+    return res.status(400).json({ error: 'Objective, contextPath, and verifyCmd are required.' });
+  }
+
+  // Helper to broadcast to all WebSocket clients
+  const broadcast = (data) => {
+    const message = JSON.stringify(data);
+    wss.clients.forEach(client => {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(message);
+      }
+    });
+  };
+
+  // Run the workflow asynchronously. The client will get updates via WebSocket.
+  runPaxosWorkflow({ objective, contextPath, verifyCmd, broadcast });
+
+  // Respond immediately to the HTTP request
+  res.status(202).json({ message: 'Paxos workflow initiated. See WebSocket for logs.' });
+});
+
 // WebSocket handling
 wss.on('connection', (ws) => {
   console.log('WebSocket client connected');
@@ -311,8 +340,6 @@ wss.on('connection', (ws) => {
 
 // Start server
 const main = async () => {
-  await initDirectories();
-
   server.listen(PORT, () => {
     console.log(`
 🚀 Project Hermes - REPLOID Node.js Port
@@ -320,24 +347,27 @@ const main = async () => {
    WebSocket: ws://localhost:${PORT}
 
    Guardian Agent ready for goals...
+   Using full PAWS session management with git worktrees
 `);
   });
 };
 
 // Handle shutdown
-process.on('SIGINT', () => {
+process.on('SIGINT', async () => {
   console.log('\nShutting down...');
 
-  // Clean up worktrees
-  sessionManager.sessions.forEach(session => {
-    try {
-      execSync(`git worktree remove ${session.worktree} --force`, {
-        cwd: path.join(__dirname, '..')
-      });
-    } catch (err) {
-      // Ignore cleanup errors
+  // Clean up active sessions using paws-session methods
+  try {
+    const sessions = await sessionManager.listSessions();
+    for (const session of sessions) {
+      if (session.state === 'IDLE' || session.state === 'active') {
+        console.log(`Archiving session: ${session.id}`);
+        await sessionManager.pawsManager.archiveSession(session.id);
+      }
     }
-  });
+  } catch (err) {
+    console.error(`Error during cleanup: ${err.message}`);
+  }
 
   process.exit(0);
 });
