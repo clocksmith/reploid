@@ -308,7 +308,7 @@ This document provides an overview of REPLOID's module API. For detailed JSDoc c
 
 ### SentinelFSM (`upgrades/sentinel-fsm.js`)
 
-**Type:** Guardian Agent finite state machine
+**Type:** Sentinel Agent finite state machine
 **Dependencies:** Utils, EventBus, StateManager, Tools, SelfTester
 
 **States:**

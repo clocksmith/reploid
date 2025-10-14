@@ -3,7 +3,7 @@ import { defineConfig, devices } from '@playwright/test';
 
 export default defineConfig({
   testDir: './tests/e2e',
-  fullyParallel: false, // Run tests sequentially for Guardian Agent flow
+  fullyParallel: false, // Run tests sequentially for Sentinel Agent flow
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   workers: 1, // Single worker for sequential execution

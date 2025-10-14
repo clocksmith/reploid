@@ -2,7 +2,7 @@
 
 ## Overview
 
-End-to-end tests for REPLOID Guardian Agent using Playwright.
+End-to-end tests for REPLOID Sentinel Agent using Playwright.
 
 ## Setup
 
@@ -48,8 +48,8 @@ Tests for persona selection and boot screen:
 - Advanced mode toggle
 - Single persona selection enforcement
 
-### `guardian-flow.spec.js`
-Full Guardian Agent workflow tests:
+### `sentinel-flow.spec.js`
+Full Sentinel Agent workflow tests:
 - Boot to dashboard transition
 - FSM state management
 - Goal processing with special characters

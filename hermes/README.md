@@ -1,10 +1,10 @@
 # Project Hermes 🪽
 
-Node.js port of REPLOID Guardian Agent with server-side execution and Git worktree session management.
+Node.js port of REPLOID Sentinel Agent with server-side execution and Git worktree session management.
 
 ## Features
 
-- **Server-side Guardian Agent**: Full FSM implementation running in Node.js
+- **Server-side Sentinel Agent**: Full FSM implementation running in Node.js
 - **Git Worktree Sessions**: Isolated changes per session using Git worktrees
 - **WebSocket Bridge**: Real-time communication with browser UI
 - **REST API**: HTTP endpoints for state management
@@ -65,7 +65,7 @@ Connect to `ws://localhost:3000` and send:
 
 ```
 hermes/
-├── index.js          # Main server and Guardian Agent
+├── index.js          # Main server and Sentinel Agent
 ├── sessions/         # Session data and bundles
 │   └── session_*/    # Individual session directories
 ├── worktrees/        # Git worktrees for isolated changes

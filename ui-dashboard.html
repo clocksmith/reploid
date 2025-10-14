@@ -11,13 +11,13 @@
             </div>
         </div>
         <button id="export-session-btn" class="btn-export-session" title="Export session report" aria-label="Export session report">
-            💾 Export
+            ☐ Export
         </button>
         <button id="tutorial-btn" class="btn-tutorial" title="Start tutorial" aria-label="Start interactive tutorial">
-            🎓 Tutorial
+            ☎ Tutorial
         </button>
         <button id="theme-toggle-btn" class="btn-theme-toggle" title="Toggle theme" aria-label="Toggle light/dark theme">
-            🌙
+            ☾
         </button>
     </div>
     <div id="goal-panel" class="panel" role="region" aria-labelledby="dashboard-goal-title">
@@ -77,9 +77,9 @@
                 <div id="perf-tools" class="perf-stats"></div>
             </div>
             <div class="perf-actions">
-                <button id="perf-refresh-btn" aria-label="Refresh performance metrics">🔄 Refresh</button>
-                <button id="perf-export-btn" aria-label="Export performance report">💾 Export Report</button>
-                <button id="perf-reset-btn" aria-label="Reset metrics" class="danger">🗑️ Reset</button>
+                <button id="perf-refresh-btn" aria-label="Refresh performance metrics">⟳ Refresh</button>
+                <button id="perf-export-btn" aria-label="Export performance report">☐ Export Report</button>
+                <button id="perf-reset-btn" aria-label="Reset metrics" class="danger">☒ Reset</button>
             </div>
         </div>
     </div>
@@ -99,9 +99,9 @@
                 <div id="intro-capabilities" class="intro-stats"></div>
             </div>
             <div class="intro-actions">
-                <button id="intro-refresh-btn" aria-label="Refresh introspection data">🔄 Refresh</button>
-                <button id="intro-export-btn" aria-label="Export self-analysis report">💾 Export Report</button>
-                <button id="intro-graph-btn" aria-label="View module graph">🕸️ Module Graph</button>
+                <button id="intro-refresh-btn" aria-label="Refresh introspection data">⟳ Refresh</button>
+                <button id="intro-export-btn" aria-label="Export self-analysis report">☐ Export Report</button>
+                <button id="intro-graph-btn" aria-label="View module graph">⛶ Module Graph</button>
             </div>
         </div>
     </div>
@@ -121,9 +121,9 @@
                 <div id="refl-recent" class="refl-list"></div>
             </div>
             <div class="refl-actions">
-                <button id="refl-refresh-btn" aria-label="Refresh reflections">🔄 Refresh</button>
-                <button id="refl-export-btn" aria-label="Export reflection report">💾 Export Report</button>
-                <button id="refl-clear-btn" aria-label="Clear old reflections" class="danger">🗑️ Clear Old</button>
+                <button id="refl-refresh-btn" aria-label="Refresh reflections">⟳ Refresh</button>
+                <button id="refl-export-btn" aria-label="Export reflection report">☐ Export Report</button>
+                <button id="refl-clear-btn" aria-label="Clear old reflections" class="danger">☒ Clear Old</button>
             </div>
         </div>
     </div>
@@ -143,9 +143,9 @@
                 <div id="test-history" class="test-history"></div>
             </div>
             <div class="test-actions">
-                <button id="test-run-btn" aria-label="Run all tests">▶️ Run Tests</button>
-                <button id="test-export-btn" aria-label="Export test report">💾 Export Report</button>
-                <button id="test-refresh-btn" aria-label="Refresh test results">🔄 Refresh</button>
+                <button id="test-run-btn" aria-label="Run all tests">▶ Run Tests</button>
+                <button id="test-export-btn" aria-label="Export test report">☐ Export Report</button>
+                <button id="test-refresh-btn" aria-label="Refresh test results">⟳ Refresh</button>
             </div>
         </div>
     </div>
@@ -156,24 +156,24 @@
                 <h3>File System Access</h3>
                 <div id="api-filesystem" class="api-controls">
                     <div class="api-status" id="filesystem-status">Not connected</div>
-                    <button id="filesystem-request-btn" aria-label="Request directory access">📁 Connect Directory</button>
-                    <button id="filesystem-sync-btn" class="hidden" aria-label="Sync VFS to filesystem">💾 Sync VFS</button>
+                    <button id="filesystem-request-btn" aria-label="Request directory access">☐ Connect Directory</button>
+                    <button id="filesystem-sync-btn" class="hidden" aria-label="Sync VFS to filesystem">☐ Sync VFS</button>
                 </div>
             </div>
             <div class="api-section">
                 <h3>Notifications</h3>
                 <div id="api-notifications" class="api-controls">
                     <div class="api-status" id="notifications-status">Permission not granted</div>
-                    <button id="notifications-request-btn" aria-label="Request notification permission">🔔 Enable Notifications</button>
-                    <button id="notifications-test-btn" class="hidden" aria-label="Test notification">📣 Test</button>
+                    <button id="notifications-request-btn" aria-label="Request notification permission">☊ Enable Notifications</button>
+                    <button id="notifications-test-btn" class="hidden" aria-label="Test notification">☈ Test</button>
                 </div>
             </div>
             <div class="api-section">
                 <h3>Storage</h3>
                 <div id="api-storage" class="api-controls">
                     <div id="storage-estimate" class="api-stats"></div>
-                    <button id="storage-refresh-btn" aria-label="Refresh storage estimate">🔄 Refresh</button>
-                    <button id="storage-persist-btn" aria-label="Request persistent storage">🔒 Request Persistent</button>
+                    <button id="storage-refresh-btn" aria-label="Refresh storage estimate">⟳ Refresh</button>
+                    <button id="storage-persist-btn" aria-label="Request persistent storage">☿ Request Persistent</button>
                 </div>
             </div>
             <div class="api-section">
@@ -181,7 +181,7 @@
                 <div id="api-capabilities" class="api-stats"></div>
             </div>
             <div class="api-actions">
-                <button id="api-export-btn" aria-label="Export capabilities report">💾 Export Report</button>
+                <button id="api-export-btn" aria-label="Export capabilities report">☐ Export Report</button>
             </div>
         </div>
     </div>
@@ -189,8 +189,8 @@
         <h2 id="agent-visualizer-title">Agent Process Visualization</h2>
         <div id="agent-visualizer-content">
             <div class="visualizer-controls">
-                <button id="avis-reset-btn" aria-label="Reset visualization">🔄 Reset</button>
-                <button id="avis-center-btn" aria-label="Center view">🎯 Center</button>
+                <button id="avis-reset-btn" aria-label="Reset visualization">⟳ Reset</button>
+                <button id="avis-center-btn" aria-label="Center view">⚐ Center</button>
             </div>
             <div id="agent-visualizer-container" class="visualizer-container" aria-label="Force-directed graph showing FSM states and transitions"></div>
         </div>
@@ -205,10 +205,10 @@ function greet(name) {
   return `Hello, ${name}!`;
 }</textarea>
                 <div class="ast-controls">
-                    <button id="ast-visualize-btn" aria-label="Visualize AST">🔍 Visualize</button>
-                    <button id="ast-expand-btn" aria-label="Expand all nodes">➕ Expand All</button>
-                    <button id="ast-collapse-btn" aria-label="Collapse all nodes">➖ Collapse All</button>
-                    <button id="ast-reset-btn" aria-label="Reset to example">🔄 Reset</button>
+                    <button id="ast-visualize-btn" aria-label="Visualize AST">⚲ Visualize</button>
+                    <button id="ast-expand-btn" aria-label="Expand all nodes">⊕ Expand All</button>
+                    <button id="ast-collapse-btn" aria-label="Collapse all nodes">⊖ Collapse All</button>
+                    <button id="ast-reset-btn" aria-label="Reset to example">⟳ Reset</button>
                 </div>
             </div>
             <div id="ast-viz-container" class="ast-viz-container" aria-label="Tree diagram showing Abstract Syntax Tree structure"></div>
@@ -223,9 +223,9 @@ function greet(name) {
                     <span id="pyodide-status-text" aria-live="polite">Initializing...</span>
                 </div>
                 <div class="repl-controls">
-                    <button id="repl-clear-btn" aria-label="Clear output" title="Clear output">🗑️ Clear</button>
-                    <button id="repl-packages-btn" aria-label="Manage packages" title="Manage packages">📦 Packages</button>
-                    <button id="repl-sync-btn" aria-label="Sync workspace" title="Sync workspace files to Python">🔄 Sync VFS</button>
+                    <button id="repl-clear-btn" aria-label="Clear output" title="Clear output">☒ Clear</button>
+                    <button id="repl-packages-btn" aria-label="Manage packages" title="Manage packages">☐ Packages</button>
+                    <button id="repl-sync-btn" aria-label="Sync workspace" title="Sync workspace files to Python">⟳ Sync VFS</button>
                 </div>
             </div>
             <div class="repl-input-section">
@@ -235,8 +235,8 @@ import sys
 print(f"Python {sys.version}")
 print("Hello from Pyodide!")</textarea>
                 <div class="repl-actions">
-                    <button id="python-execute-btn" aria-label="Execute Python code">▶️ Run</button>
-                    <button id="python-execute-async-btn" aria-label="Execute Python code (async)">▶️ Run Async</button>
+                    <button id="python-execute-btn" aria-label="Execute Python code">▶ Run</button>
+                    <button id="python-execute-async-btn" aria-label="Execute Python code (async)">▶ Run Async</button>
                     <label class="repl-checkbox">
                         <input type="checkbox" id="python-sync-workspace-check" aria-label="Sync workspace before execution">
                         Sync workspace before run
@@ -279,13 +279,13 @@ print("Hello from Pyodide!")</textarea>
                             <option value="Llama-3.2-1B-Instruct-q4f16_1-MLC">Llama 3.2 1B (~900MB)</option>
                             <option value="gemma-2-2b-it-q4f16_1-MLC">Gemma 2 2B (~1.2GB)</option>
                         </optgroup>
-                        <optgroup label="Vision Models 🖼️">
+                        <optgroup label="Vision Models">
                             <option value="Phi-3.5-vision-instruct-q4f16_1-MLC">Phi-3.5 Vision (~4.2GB)</option>
                             <option value="llava-v1.5-7b-q4f16_1-MLC">LLaVA 1.5 7B (~4.5GB)</option>
                         </optgroup>
                     </select>
-                    <button id="llm-load-btn" aria-label="Load selected model">⚡ Load Model</button>
-                    <button id="llm-unload-btn" class="hidden" aria-label="Unload current model">🗑️ Unload</button>
+                    <button id="llm-load-btn" aria-label="Load selected model">☇ Load Model</button>
+                    <button id="llm-unload-btn" class="hidden" aria-label="Unload current model">☒ Unload</button>
                 </div>
                 <div class="llm-info">
                     <div id="llm-webgpu-status">Checking WebGPU...</div>
@@ -296,16 +296,16 @@ print("Hello from Pyodide!")</textarea>
                 <textarea id="llm-test-prompt" class="llm-test-prompt" placeholder="Enter a coding prompt to test the model..." aria-label="Test prompt">Write a Python function to calculate fibonacci numbers.</textarea>
                 <div class="llm-image-upload" id="llm-image-upload-section" style="display: none;">
                     <label for="llm-test-image" class="llm-image-label">
-                        📷 Upload Image (for vision models):
+                        ⛶ Upload Image (for vision models):
                     </label>
                     <input type="file" id="llm-test-image" accept="image/*" aria-label="Upload image for vision model" />
                     <div id="llm-image-preview-container" style="display: none; margin-top: 8px;">
                         <img id="llm-test-preview" style="max-width: 200px; max-height: 200px; border: 1px solid var(--border);" alt="Preview" />
-                        <button id="llm-clear-image" style="margin-left: 8px;">❌ Clear</button>
+                        <button id="llm-clear-image" style="margin-left: 8px;">☒ Clear</button>
                     </div>
                 </div>
                 <div class="llm-test-controls">
-                    <button id="llm-test-btn" aria-label="Test inference" disabled>▶️ Test</button>
+                    <button id="llm-test-btn" aria-label="Test inference" disabled>▶ Test</button>
                     <label class="llm-checkbox">
                         <input type="checkbox" id="llm-stream-check" aria-label="Enable streaming" checked>
                         Stream output
@@ -321,11 +321,11 @@ print("Hello from Pyodide!")</textarea>
             <!-- Canvas will be inserted here by canvas-visualizer.js -->
         </div>
         <div class="canvas-viz-controls" style="margin-top: var(--space-md); display: flex; gap: var(--space-sm); flex-wrap: wrap;">
-            <button class="viz-mode-btn btn secondary" data-mode="dependency">📊 Dependencies</button>
-            <button class="viz-mode-btn btn secondary" data-mode="cognitive">🧠 Cognitive Flow</button>
-            <button class="viz-mode-btn btn secondary" data-mode="memory">🔥 Memory Heatmap</button>
-            <button class="viz-mode-btn btn secondary" data-mode="goals">🎯 Goal Tree</button>
-            <button class="viz-mode-btn btn secondary" data-mode="tools">🔧 Tool Usage</button>
+            <button class="viz-mode-btn btn secondary" data-mode="dependency">☰ Dependencies</button>
+            <button class="viz-mode-btn btn secondary" data-mode="cognitive">☥ Cognitive Flow</button>
+            <button class="viz-mode-btn btn secondary" data-mode="memory">⚘ Memory Heatmap</button>
+            <button class="viz-mode-btn btn secondary" data-mode="goals">⚐ Goal Tree</button>
+            <button class="viz-mode-btn btn secondary" data-mode="tools">⚙ Tool Usage</button>
         </div>
     </div>
 </div>

@@ -4,11 +4,11 @@
 
 ---
 
-> **Architecture Note:** Blueprints form the knowledge foundation for REPLOID's Guardian Agent capabilities. They are technical specifications bundled into user-facing **Personas** defined in `config.json`. This directory contains the architectural patterns and implementation guides that enable the agent's self-improvement and evolution. See `docs/PERSONAS.md` for persona development details.
+> **Architecture Note:** Blueprints form the knowledge foundation for REPLOID's Sentinel Agent capabilities. They are technical specifications bundled into user-facing **Personas** defined in `config.json`. This directory contains the architectural patterns and implementation guides that enable the agent's self-improvement and evolution. See `docs/PERSONAS.md` for persona development details.
 
 This directory contains REPLOID's conceptual knowledge base. The files herein are instructional markdown documents, or **"blueprints,"** designed to be discovered and studied by the agent itself. Each blueprint provides a high-level guide to potential self-improvements, outlining architectural principles, strategic goals, and implementation pathways for major capabilities.
 
-The knowledge base serves as a catalyst for the agent's Recursive Self-Improvement (RSI) cycles. These blueprints provide structured, expert-level knowledge that accelerates development through the Guardian Agent's human-in-the-loop approval flow.
+The knowledge base serves as a catalyst for the agent's Recursive Self-Improvement (RSI) cycles. These blueprints provide structured, expert-level knowledge that accelerates development through the Sentinel Agent's human-in-the-loop approval flow.
 
 ## Blueprint Style Guide
 
@@ -188,9 +188,9 @@ This catalog provides a comprehensive index of the agent's potential evolutionar
 
 ---
 
-## Integration with Guardian Agent
+## Integration with Sentinel Agent
 
-All blueprints integrate with the Guardian Agent system (Project Sentinel), which implements:
+All blueprints integrate with the Sentinel Agent system (Project Sentinel), which implements:
 
 1. **Context Curation**: Agent selects relevant blueprints for goals
 2. **Human Approval**: Review and approve proposed implementations
@@ -201,7 +201,7 @@ All blueprints integrate with the Guardian Agent system (Project Sentinel), whic
 
 See `/RFC-STATUS.md` for the current implementation status of major architectural initiatives:
 
-- **Project Sentinel** (Guardian Agent): ☑ 100% Complete
+- **Project Sentinel** (Sentinel Agent): ☑ 100% Complete
 - **PAWS CLI Integration**: ☑ 100% Complete
 - **Project Phoenix** (Architecture): ⚬ 40% Implemented
 - **Project Aegis** (Security): ☆ Proposed
@@ -215,10 +215,10 @@ Blueprint implementations are validated through:
 1. **Self-Testing Framework**: `self-tester.js` validates system integrity (80% pass threshold)
 2. **Automated Test Suite**: 85 passing tests with Vitest (see `tests/README.md`)
 3. **CI/CD Pipeline**: GitHub Actions validates all changes on push/PR
-4. **Manual Testing**: See `test-guardian-flow.md` for Guardian Agent workflow tests
+4. **Manual Testing**: See `test-sentinel-flow.md` for Sentinel Agent workflow tests
 
 **RSI Safety**: All 5 RSI core modules (Introspection, Reflection, Self-Testing, Performance, Browser APIs) are complete and tested, enabling safe self-modification.
 
 ---
 
-*Blueprints power the Guardian Agent's evolution through structured knowledge and human-approved implementation.*
+*Blueprints power the Sentinel Agent's evolution through structured knowledge and human-approved implementation.*

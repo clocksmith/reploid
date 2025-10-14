@@ -1,6 +1,6 @@
 /**
  * @fileoverview Enhanced Sentinel FSM with REFLECTING state for REPLOID
- * Implements the complete Guardian Agent cognitive cycle with automatic checkpoints.
+ * Implements the complete Sentinel Agent cognitive cycle with automatic checkpoints.
  * Manages state transitions, user approvals, self-testing, and reflection learning.
  *
  * @module SentinelFSM
@@ -326,7 +326,7 @@ Analyze the context carefully and plan your approach. When ready, use the create
       // Send prompt to LLM using HybridLLMProvider for local/cloud inference
       const response = await HybridLLMProvider.complete([{
         role: 'system',
-        content: 'You are a Guardian Agent. Generate structured change proposals using the create_dogs_bundle tool.'
+        content: 'You are a Sentinel Agent. Generate structured change proposals using the create_dogs_bundle tool.'
       }, {
         role: 'user',
         content: cycleContext.planPrompt

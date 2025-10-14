@@ -3,7 +3,7 @@ Of course. This is an excellent and deeply insightful request. To truly understa
 This document will serve as an exhaustive, detailed, and strategic plan for refactoring REPLOID. It is divided into two major parts:
 
 1.  **A Deep Dive into the PAWS Paradigm:** A comprehensive explanation of the PAWS philosophy, its core principles, and a detailed breakdown of its implementation as revealed in the provided `paws-session.js`, `cats.js`, and `dogs.py` files.
-2.  **Project Sentinel: The Refactoring Blueprint:** A detailed, multi-pillar plan to methodically re-architect REPLOID, infusing it with the essence, concepts, and robust implementation patterns of PAWS to create a next-generation "Guardian Agent."
+2.  **Project Sentinel: The Refactoring Blueprint:** A detailed, multi-pillar plan to methodically re-architect REPLOID, infusing it with the essence, concepts, and robust implementation patterns of PAWS to create a next-generation "Sentinel Agent."
 
 ---
 
@@ -73,9 +73,9 @@ This detailed breakdown reveals PAWS as a mature, robust, and philosophically co
 
 ## **Part 2: Project Sentinel - The Refactoring Blueprint for a PAWS-Infused REPLOID**
 
-### **The Vision: The Guardian Agent**
+### **The Vision: The Sentinel Agent**
 
-The goal of Project Sentinel is to transform REPLOID into a "Guardian Agent." It will retain its powerful RSI capabilities but will now operate within the safe, explicit, and auditable framework of PAWS. The agent's cognitive loop will be fundamentally re-architected to produce and consume structured `cats` and `dogs` artifacts, with the human developer acting as the ultimate gatekeeper and orchestrator.
+The goal of Project Sentinel is to transform REPLOID into a "Sentinel Agent." It will retain its powerful RSI capabilities but will now operate within the safe, explicit, and auditable framework of PAWS. The agent's cognitive loop will be fundamentally re-architected to produce and consume structured `cats` and `dogs` artifacts, with the human developer acting as the ultimate gatekeeper and orchestrator.
 
 ### **Pillar 1: VFS & Artifact Integration**
 

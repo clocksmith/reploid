@@ -9,7 +9,7 @@ Complete guide to all documentation in the REPLOID project.
 Start here if you're new to REPLOID:
 
 1. **[/README.md](../README.md)** - Main project overview, quick start, core concepts
-2. **[/test-guardian-flow.md](../test-guardian-flow.md)** - Step-by-step testing guide
+2. **[/test-sentinel-flow.md](../test-sentinel-flow.md)** - Step-by-step testing guide
 3. **[docs/PERSONAS.md](./PERSONAS.md)** - Understanding agent personas
 
 ---
@@ -34,7 +34,7 @@ Start here if you're new to REPLOID:
   - RFC-001: Local LLM in Browser (proposed)
   - RFC-002: PAWS CLI Integration (✅ completed)
   - RFC-003: Project Phoenix Refactor (🚧 40% complete)
-  - RFC-004: Project Sentinel Guardian Agent (✅ completed)
+  - RFC-004: Project Sentinel Agent (✅ completed)
   - See [docs/rfcs/README.md](./rfcs/README.md) for details
 
 ### Status Tracking
@@ -69,7 +69,7 @@ Start here if you're new to REPLOID:
 │   └── reploid-config      # Configuration manager
 │
 ├── upgrades/               # Core modules (40+ files)
-│   ├── sentinel-fsm.js     # Guardian Agent FSM
+│   ├── sentinel-fsm.js     # Sentinel Agent FSM
 │   ├── sentinel-tools.js   # PAWS tool implementations
 │   ├── diff-viewer-ui.js   # Interactive diff viewer
 │   ├── git-vfs.js          # Git-based VFS
@@ -114,7 +114,7 @@ REPLOID uses a **Dependency Injection (DI) container** pattern. All modules are 
 - `StateManager` - State management
 - `ApiClient` - LLM API communication
 - `ToolRunner` - Tool execution engine
-- `SentinelFSM` - Guardian Agent FSM
+- `SentinelFSM` - Sentinel Agent FSM
 - `GitVFS` - Git-based virtual filesystem
 - `DiffViewerUI` - Interactive diff viewer
 - `UIManager` - UI orchestration
@@ -140,7 +140,7 @@ REPLOID uses a **Dependency Injection (DI) container** pattern. All modules are 
 
 ### For New Users
 1. [README.md](../README.md) - Understand what REPLOID is
-2. [test-guardian-flow.md](../test-guardian-flow.md) - Try the Guardian Agent
+2. [test-sentinel-flow.md](../test-sentinel-flow.md) - Try the Sentinel Agent
 3. [docs/PERSONAS.md](./PERSONAS.md) - Learn about personas
 
 ### For Developers
@@ -182,7 +182,7 @@ REPLOID uses a **Dependency Injection (DI) container** pattern. All modules are 
 
 **User Guides:**
 - Getting started: [README.md](../README.md)
-- Testing: [test-guardian-flow.md](../test-guardian-flow.md)
+- Testing: [test-sentinel-flow.md](../test-sentinel-flow.md)
 - Personas: [docs/PERSONAS.md](./PERSONAS.md)
 
 **Status & Progress:**
@@ -224,7 +224,7 @@ REPLOID uses a **Dependency Injection (DI) container** pattern. All modules are 
 **Completion:** Core features 100%, Advanced features 20%
 
 **Key Projects:**
-- ✅ Project Sentinel (Guardian Agent) - 100%
+- ✅ Project Sentinel (Sentinel Agent) - 100%
 - ✅ PAWS CLI - 100%
 - 🚧 Project Phoenix (Architecture) - 40%
 - 📋 Project Aegis (Security) - Proposed

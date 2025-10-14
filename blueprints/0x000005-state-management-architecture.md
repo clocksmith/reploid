@@ -10,7 +10,7 @@
 
 ### 1. The Strategic Imperative
 
-An autonomous agent's state is its most critical asset. Allowing disparate modules to directly modify a global state object would lead to race conditions, data corruption, and unmaintainable code. To ensure data integrity and predictable behavior, all state modifications must be channeled through a single, authoritative module: the `StateManager`. This module acts as the guardian of the agent's memory, ensuring that all changes are valid and properly persisted.
+An autonomous agent's state is its most critical asset. Allowing disparate modules to directly modify a global state object would lead to race conditions, data corruption, and unmaintainable code. To ensure data integrity and predictable behavior, all state modifications must be channeled through a single, authoritative module: the `StateManager`. This module acts as the protector of the agent's memory, ensuring that all changes are valid and properly persisted.
 
 ### 2. The Architectural Solution
 

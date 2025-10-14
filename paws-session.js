@@ -483,7 +483,7 @@ class SessionCLI {
     try {
       const session = await this.manager.createSession(name, baseBranch);
       
-      console.log(chalk.bold.green('\n📦 New Session Created!\n'));
+      console.log(chalk.bold.green('\n☐ New Session Created!\n'));
       console.log(`To work in this session, use:`);
       console.log(chalk.cyan(`  cd ${session.workspacePath}`));
       console.log(`\nOr use with PAWS commands:`);
@@ -535,7 +535,7 @@ class SessionCLI {
         ]);
       }
 
-      console.log(chalk.bold('\n📋 PAWS Sessions\n'));
+      console.log(chalk.bold('\n☐ PAWS Sessions\n'));
       console.log(table.toString());
       
     } catch (error) {
@@ -642,7 +642,7 @@ class SessionCLI {
         return;
       }
 
-      console.log(chalk.bold(`\n📦 Session: ${session.name} (${sessionId})\n`));
+      console.log(chalk.bold(`\n☐ Session: ${session.name} (${sessionId})\n`));
       console.log(`Status: ${session.status}`);
       console.log(`Created: ${new Date(session.createdAt).toLocaleString()}`);
       console.log(`Base: ${session.baseBranch} @ ${session.baseCommit.slice(0, 8)}`);

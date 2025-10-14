@@ -637,24 +637,24 @@ Improve onboarding and usability.
 - [x] Install Playwright and browser binaries
 - [x] Create playwright.config.js with dev server integration
 - [x] Write boot flow tests (persona selection, goal input)
-- [x] Write Guardian Agent workflow tests
+- [x] Write Sentinel Agent workflow tests
 - [x] Write accessibility tests (keyboard navigation, ARIA)
 - [x] Add npm scripts for E2E testing
 - [x] Create E2E test documentation
 
-**Completed:** Full Playwright E2E test suite covering boot screen, Guardian Agent flow, and accessibility. Tests verify persona selection, goal input sanitization, keyboard navigation, and dashboard transitions. Configured with auto-starting dev server and HTML reporting.
+**Completed:** Full Playwright E2E test suite covering boot screen, Sentinel Agent flow, and accessibility. Tests verify persona selection, goal input sanitization, keyboard navigation, and dashboard transitions. Configured with auto-starting dev server and HTML reporting.
 
 **Test Coverage:**
 - `simple.spec.js` - Smoke tests (2 tests)
 - `boot-flow.spec.js` - Boot screen and persona selection (8 tests)
-- `guardian-flow.spec.js` - Full agent workflow (7 tests)
+- `sentinel-flow.spec.js` - Full agent workflow (7 tests)
 - `accessibility.spec.js` - Keyboard navigation and ARIA (9 tests)
 
 **Files Created:**
 - `playwright.config.js` - Playwright configuration
 - `tests/e2e/simple.spec.js` - Basic smoke tests
 - `tests/e2e/boot-flow.spec.js` - Boot flow tests
-- `tests/e2e/guardian-flow.spec.js` - Agent workflow tests
+- `tests/e2e/sentinel-flow.spec.js` - Agent workflow tests
 - `tests/e2e/accessibility.spec.js` - A11y tests
 - `tests/e2e/README.md` - E2E test documentation
 
@@ -1280,7 +1280,7 @@ const report = await AuditLogger.exportLogs('2025-09-01', '2025-09-30');
 ## 📋 Related Documents
 
 ### Core System Architecture (in /blueprints)
-**26 implemented architectural specifications** (0x000001 through 0x00001A) that form the knowledge base for REPLOID's Guardian Agent. These are NOT proposals - they're the actual design specifications that define how the system works.
+**26 implemented architectural specifications** (0x000001 through 0x00001A) that form the knowledge base for REPLOID's Sentinel Agent. These are NOT proposals - they're the actual design specifications that define how the system works.
 
 **Categories:**
 - **Core Architecture** (0x000001-0x000003): System prompt, orchestration, utilities
@@ -1297,12 +1297,12 @@ See [blueprints/README.md](../blueprints/README.md) for complete index.
 - [rfc-2025-05-10-local-llm-in-browser.md](../rfc-2025-05-10-local-llm-in-browser.md) - WebLLM integration proposal
 - [rfc-2025-09-07-2025-paws-cli.md](../rfc-2025-09-07-2025-paws-cli.md) - PAWS CLI implementation ✅ COMPLETED
 - [rfc-2025-09-22-project-phoenix-refactor.md](../rfc-2025-09-22-project-phoenix-refactor.md) - Architecture refactor (40% complete)
-- [rfc-2025-09-22-project-sentinel.md](../rfc-2025-09-22-project-sentinel.md) - Guardian Agent system ✅ COMPLETED
+- [rfc-2025-09-22-project-sentinel.md](../rfc-2025-09-22-project-sentinel.md) - Sentinel Agent system ✅ COMPLETED
 
 ### Status Tracking
 - [RFC-STATUS.md](../RFC-STATUS.md) - Project completion status
 - [SECURITY-NOTES.md](../SECURITY-NOTES.md) - Security TODOs and concerns
-- [test-guardian-flow.md](../test-guardian-flow.md) - Testing guide
+- [test-sentinel-flow.md](../test-sentinel-flow.md) - Testing guide
 
 ---
 

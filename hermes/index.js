@@ -2,7 +2,7 @@
 
 /**
  * Project Hermes - Node.js Port of REPLOID
- * Server-side Guardian Agent with Git worktree session management
+ * Server-side Sentinel Agent with Git worktree session management
  */
 
 const express = require('express');
@@ -39,7 +39,7 @@ class SessionManager {
     const session = await this.pawsManager.createSession(goal);
     this.activeSessionId = session.sessionId;
 
-    // Return a compatible object for the Guardian Agent
+    // Return a compatible object for the Sentinel Agent
     return {
       id: session.sessionId,
       goal,
@@ -96,8 +96,8 @@ const FSMStates = {
   REFLECTING: 'REFLECTING'
 };
 
-// Guardian Agent FSM
-class GuardianAgent {
+// Sentinel Agent FSM
+class SentinelAgent {
   constructor(sessionManager) {
     this.sessionManager = sessionManager;
     this.state = FSMStates.IDLE;
@@ -158,7 +158,7 @@ file_path: test-file.js
 \`\`\`
 \`\`\`javascript
 // Modified content
-console.log('Guardian Agent changes applied');
+console.log('Sentinel Agent changes applied');
 \`\`\`
 `;
 
@@ -223,7 +223,7 @@ Successfully completed: ${this.currentSession.goal}
 
 // Initialize components
 const sessionManager = new SessionManager();
-const agent = new GuardianAgent(sessionManager);
+const agent = new SentinelAgent(sessionManager);
 
 // API Routes
 app.get('/api/status', (req, res) => {
@@ -346,7 +346,7 @@ const main = async () => {
    Server: http://localhost:${PORT}
    WebSocket: ws://localhost:${PORT}
 
-   Guardian Agent ready for goals...
+   Sentinel Agent ready for goals...
    Using full PAWS session management with git worktrees
 `);
   });
@@ -379,6 +379,6 @@ if (require.main === module) {
 
 module.exports = {
   SessionManager,
-  GuardianAgent,
+  SentinelAgent,
   app
 };

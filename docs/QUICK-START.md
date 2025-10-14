@@ -78,7 +78,7 @@ Study blueprint 0x000016 and create a new tool
 Create a landing page for a coffee shop called "Bean There"
 ```
 
-The Guardian Agent will start working through its FSM states automatically!
+The Sentinel Agent will start working through its FSM states automatically!
 
 ---
 
@@ -178,7 +178,7 @@ When agent proposes changes, you'll see:
 - **dogs.md**: Change proposals (explicit modifications)
 - Human approvals at 2 checkpoints
 
-### Guardian Agent FSM
+### Sentinel Agent FSM
 8-state finite state machine ensures controlled execution:
 ```
 IDLE → CURATING → AWAITING_APPROVAL → PLANNING →
@@ -239,7 +239,7 @@ Design a settings panel with tabs and form controls
 ### Creative Writer
 ```
 Write a technical blog post explaining the PAWS philosophy
-Create a tutorial on using the Guardian Agent for beginners
+Create a tutorial on using the Sentinel Agent for beginners
 Draft release notes for version 2.0 of REPLOID
 ```
 
@@ -352,7 +352,7 @@ Once you're comfortable with the basics:
 1. **Read the Blueprints** (`/blueprints/`) - Learn system architecture
 2. **Explore Personas** (`docs/PERSONAS.md`) - Create custom personas
 3. **Review Roadmap** (`docs/ROADMAP.md`) - See what's coming next
-4. **Test Guardian Flow** (`test-guardian-flow.md`) - Deep dive testing
+4. **Test Sentinel Flow** (`test-sentinel-flow.md`) - Deep dive testing
 5. **Read RFCs** (`docs/rfcs/`) - Understand design decisions
 
 ---
@@ -389,4 +389,4 @@ Start with the **Website Builder** persona and a simple goal. As you get comfort
 
 ---
 
-*Happy building! The Guardian Agent is here to help.* ⚡
+*Happy building! The Sentinel Agent is here to help.* ⚡
