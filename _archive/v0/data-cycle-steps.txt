@@ -1,0 +1,9 @@
+1. Define or Refine Goal (System/Meta). Load Relevant Context. Check Cycle Limits.
+2. Analyze State, Goal, Artifacts, Tools, History (Feedback, Evals). Deliberate.
+3. Propose Changes (Artifacts, Tools, Versions). Decide Actions. Set Confidence.
+4. Execute LLM & Tools -> Generate Response (Code, Data, New Tool Implementations).
+5. Check Triggers for Critique or Intervention (Time, Confidence, Random, Forced).
+6. Perform Critique (Auto) or Get Human Feedback (Options, Prompt, Code Edit).
+7. Apply Approved Changes or Stage Sandbox (Meta). Handle Prior Feedback. Log Actions.
+8. Self-Evaluate Cycle Outcome & Learn from History. Propose Process Improvements.
+9. Determine Next Action: Continue Cycle, Pause, Initiate Retry, or Self-Correct.
