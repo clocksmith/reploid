@@ -1,0 +1,51 @@
+{
+  "version": "1.0",
+  "api": {
+    "provider": "gemini",
+    "geminiKey": "${GEMINI_API_KEY}",
+    "openaiKey": "${OPENAI_API_KEY}",
+    "anthropicKey": "${ANTHROPIC_API_KEY}",
+    "localEndpoint": "http://localhost:11434",
+    "timeout": 120000,
+    "maxRetries": 3
+  },
+  "server": {
+    "port": 8000,
+    "host": "localhost",
+    "corsOrigins": ["http://localhost:8080"],
+    "sessionTimeout": 3600000,
+    "maxSessions": 100
+  },
+  "cli": {
+    "maxFileSize": 102400,
+    "verbose": false,
+    "defaultOutput": "./output",
+    "excludeDirs": ["node_modules", ".git", "dist", "build", ".cache"]
+  },
+  "guardian": {
+    "requireApproval": true,
+    "autoBackup": true,
+    "verificationTimeout": 30000,
+    "maxCycles": 100,
+    "pauseOnError": true
+  },
+  "workspace": {
+    "root": "./sessions",
+    "maxSessions": 10,
+    "gitEnabled": true,
+    "autoCommit": true,
+    "checkpointInterval": 300000
+  },
+  "vfs": {
+    "root": "/vfs",
+    "maxFileSize": 10485760,
+    "allowedExtensions": ["js", "json", "md", "txt", "css", "html", "yml", "yaml"],
+    "gitIntegration": true
+  },
+  "ui": {
+    "theme": "cyberpunk",
+    "showAdvancedLogs": false,
+    "statusUpdateInterval": 1000,
+    "confirmDestructive": true
+  }
+}

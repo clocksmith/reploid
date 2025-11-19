@@ -1,0 +1,269 @@
+[
+  {
+    "name": "code_linter",
+    "description": "Analyzes code artifact syntax for potential errors. (Basic checks)",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "artifactId": {
+          "type": "string",
+          "description": "The ID of the artifact to lint."
+        },
+        "cycle": {
+          "type": "integer",
+          "description": "The cycle number of the artifact version."
+        },
+        "versionId": {
+          "type": "string",
+          "description": "Optional: Specific version ID."
+        },
+        "language": {
+          "type": "string",
+          "enum": ["javascript", "css", "html", "json", "web_component_def"],
+          "description": "The language/type of the code artifact."
+        }
+      },
+      "required": ["artifactId", "cycle", "language"]
+    }
+  },
+  {
+    "name": "json_validator",
+    "description": "Validates the JSON structure of a specific artifact version.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "artifactId": {
+          "type": "string",
+          "description": "The ID of the JSON artifact."
+        },
+        "cycle": {
+          "type": "integer",
+          "description": "The cycle number of the artifact version."
+        },
+        "versionId": {
+          "type": "string",
+          "description": "Optional: Specific version ID."
+        }
+      },
+      "required": ["artifactId", "cycle"]
+    }
+  },
+  {
+    "name": "read_artifact",
+    "description": "Reads and returns the full content of a specific artifact version.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "artifactId": {
+          "type": "string",
+          "description": "The ID of the artifact."
+        },
+        "cycle": {
+          "type": "integer",
+          "description": "The cycle number of the artifact version."
+        },
+        "versionId": {
+          "type": "string",
+          "description": "Optional: Specific version ID."
+        }
+      },
+      "required": ["artifactId", "cycle"]
+    }
+  },
+  {
+    "name": "list_artifacts",
+    "description": "Lists latest artifact metadata based on optional filters.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "filterType": {
+          "type": "string",
+          "description": "Optional: Filter by type (e.g., JS, CSS, WEB_COMPONENT_DEF)."
+        },
+        "filterPattern": {
+          "type": "string",
+          "description": "Optional: Filter artifact IDs by a regex pattern."
+        },
+        "includeAllVersions": {
+          "type": "boolean",
+          "description": "Optional: If true, returns all versions. Default false."
+        }
+      },
+      "required": []
+    }
+  },
+  {
+    "name": "diff_text",
+    "description": "Performs a basic line-by-line difference check between two text inputs.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "textA": { "type": "string", "description": "The first text string." },
+        "textB": { "type": "string", "description": "The second text string." }
+      },
+      "required": ["textA", "textB"]
+    }
+  },
+  {
+    "name": "convert_to_gemini_fc",
+    "description": "Converts an MCP-style tool definition into the Gemini FunctionDeclaration format.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "mcpToolDefinition": {
+          "type": "object",
+          "description": "A tool definition object following the MCP Tool schema."
+        }
+      },
+      "required": ["mcpToolDefinition"]
+    }
+  },
+  {
+    "name": "code_edit",
+    "description": "Validates proposed code edits for an artifact. Used internally by HITL.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "artifactId": {
+          "type": "string",
+          "description": "The ID of the artifact being edited."
+        },
+        "cycle": {
+          "type": "integer",
+          "description": "The cycle number of the original artifact version."
+        },
+        "versionId": {
+          "type": "string",
+          "description": "Optional: Specific version ID of the original artifact."
+        },
+        "newContent": {
+          "type": "string",
+          "description": "The proposed new content."
+        }
+      },
+      "required": ["artifactId", "cycle", "newContent"]
+    }
+  },
+  {
+    "name": "run_self_evaluation",
+    "description": "Executes a self-evaluation task using an LLM based on defined criteria and a target.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "targetArtifactId": {
+          "type": "string",
+          "description": "The ID of the artifact/proposal being evaluated."
+        },
+        "targetArtifactCycle": {
+          "type": "integer",
+          "description": "The cycle number of the target."
+        },
+        "targetArtifactVersionId": {
+          "type": "string",
+          "description": "Optional: Specific version ID."
+        },
+        "evalCriteriaText": {
+          "type": "string",
+          "description": "The evaluation criteria text."
+        },
+        "goalContextText": {
+          "type": "string",
+          "description": "The relevant goal context."
+        },
+        "evalDefinitionId": {
+          "type": "string",
+          "description": "Optional: ID of an EVAL_DEF artifact."
+        },
+        "contentToEvaluate": {
+          "type": "string",
+          "description": "Optional: Explicit content to evaluate."
+        }
+      },
+      "required": [
+        "targetArtifactId",
+        "targetArtifactCycle",
+        "evalCriteriaText",
+        "goalContextText"
+      ]
+    }
+  },
+  {
+    "name": "apply_diff_patch",
+    "description": "Applies a standard diff patch to a text artifact. (Placeholder - Needs library)",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "artifactId": {
+          "type": "string",
+          "description": "ID of the artifact to patch."
+        },
+        "cycle": {
+          "type": "integer",
+          "description": "Cycle of the original artifact version."
+        },
+        "versionId": {
+          "type": "string",
+          "description": "Optional: Specific version ID."
+        },
+        "patchContent": {
+          "type": "string",
+          "description": "The diff patch content."
+        }
+      },
+      "required": ["artifactId", "cycle", "patchContent"]
+    }
+  },
+  {
+    "name": "apply_json_patch",
+    "description": "Applies a JSON Patch (RFC 6902) to a JSON artifact. (Placeholder - Needs library)",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "artifactId": {
+          "type": "string",
+          "description": "ID of the JSON artifact to patch."
+        },
+        "cycle": {
+          "type": "integer",
+          "description": "Cycle of the original JSON artifact version."
+        },
+        "versionId": {
+          "type": "string",
+          "description": "Optional: Specific version ID."
+        },
+        "patchContent": {
+          "type": "array",
+          "items": { "type": "object" },
+          "description": "An array of JSON Patch operations."
+        }
+      },
+      "required": ["artifactId", "cycle", "patchContent"]
+    }
+  },
+  {
+    "name": "define_web_component",
+    "description": "Defines a new custom HTML element (Web Component) from a JS class string, registers it, and saves its definition as an artifact.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "tagName": {
+          "type": "string",
+          "description": "The tag name for the custom element (must contain a hyphen, e.g., 'my-element')."
+        },
+        "classContent": {
+          "type": "string",
+          "description": "The JavaScript string content of the class extending HTMLElement."
+        },
+        "targetArtifactId": {
+          "type": "string",
+          "description": "The artifact ID where the Web Component definition (classContent) will be saved (e.g., 'target.webcomponent.my-element-def')."
+        },
+        "description": {
+          "type": "string",
+          "description": "A brief description of the web component for its artifact metadata."
+        }
+      },
+      "required": ["tagName", "classContent", "targetArtifactId", "description"]
+    }
+  }
+]
