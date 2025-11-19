@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Fix REPLOID Model</title>
+    <style>
+        body {
+            background: #1a1a2e;
+            color: #0ff;
+            font-family: monospace;
+            padding: 40px;
+            line-height: 1.6;
+        }
+        .fix-box {
+            background: rgba(0,255,255,0.1);
+            border: 2px solid #0ff;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        button {
+            background: #0ff;
+            color: #000;
+            border: none;
+            padding: 15px 30px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 10px;
+            border-radius: 5px;
+        }
+        button:hover {
+            background: #0dd;
+        }
+        pre {
+            background: #000;
+            padding: 15px;
+            overflow-x: auto;
+            border-left: 3px solid #0ff;
+        }
+        .success { color: #0f0; }
+        .error { color: #f00; }
+    </style>
+</head>
+<body>
+    <h1>🔧 REPLOID Model Fix Tool</h1>
+
+    <div class="fix-box">
+        <h2>Problem Detected:</h2>
+        <p>The saved model "Qwen2.5-Coder-7B-Instruct-q4f16_1-MLC" is not available in your WebLLM catalog.</p>
+        <p>This causes REPLOID to crash on startup.</p>
+    </div>
+
+    <div class="fix-box">
+        <h2>Automatic Fix:</h2>
+        <button onclick="clearInvalidModel()">1. Clear Invalid Model</button>
+        <button onclick="clearBrowserCache()">2. Clear Browser Cache</button>
+        <button onclick="goToREPLOID()">3. Go to REPLOID</button>
+
+        <div id="output" style="margin-top: 20px;"></div>
+    </div>
+
+    <div class="fix-box">
+        <h2>Manual Fix (if automatic fails):</h2>
+        <p>Open browser console (F12) and run:</p>
+        <pre>localStorage.removeItem('SELECTED_MODELS');
+location.reload();</pre>
+    </div>
+
+    <script>
+        const output = document.getElementById('output');
+
+        function log(message, type = 'info') {
+            const p = document.createElement('p');
+            p.className = type;
+            p.textContent = message;
+            output.appendChild(p);
+        }
+
+        function clearInvalidModel() {
+            try {
+                const saved = localStorage.getItem('SELECTED_MODELS');
+                if (saved) {
+                    const models = JSON.parse(saved);
+                    const filtered = models.filter(m =>
+                        m.id !== 'Qwen2.5-Coder-7B-Instruct-q4f16_1-MLC'
+                    );
+
+                    if (filtered.length < models.length) {
+                        localStorage.setItem('SELECTED_MODELS', JSON.stringify(filtered));
+                        log('✓ Removed invalid Qwen model', 'success');
+                        log(`Models remaining: ${filtered.length}`, 'success');
+                    } else {
+                        log('No invalid models found', 'success');
+                    }
+                } else {
+                    log('No saved models found', 'success');
+                }
+            } catch (error) {
+                log('Error: ' + error.message, 'error');
+            }
+        }
+
+        function clearBrowserCache() {
+            if ('caches' in window) {
+                caches.keys().then(names => {
+                    names.forEach(name => caches.delete(name));
+                    log('✓ Browser cache cleared', 'success');
+                });
+            } else {
+                log('⚠ Cache API not available, use Ctrl+Shift+R', 'error');
+            }
+        }
+
+        function goToREPLOID() {
+            log('Redirecting to REPLOID...', 'success');
+            setTimeout(() => {
+                window.location.href = '/index.html';
+            }, 1000);
+        }
+
+        // Auto-run fix on load
+        window.addEventListener('load', () => {
+            log('Running automatic fix...', 'info');
+            clearInvalidModel();
+            log('---', 'info');
+            log('Now click "Go to REPLOID" and select a working model', 'success');
+        });
+    </script>
+</body>
+</html>

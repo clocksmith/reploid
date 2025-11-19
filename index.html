@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes" />
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><defs><linearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'><stop offset='0%25' style='stop-color:%230ff;'/><stop offset='100%25' style='stop-color:%23ffd700;'/></linearGradient></defs><text fill='url(%23g)' y='.99em' font-size='90' font-weight='bold'>R</text></svg>" />
+    <title>REPLOID - AI Assistant</title>
+    <link rel="stylesheet" href="boot/style.css">
+    <!-- CDN libraries (Chart.js, D3, Acorn, Prism, WebLLM) are lazy-loaded by modules that need them -->
+
+    <!-- Firebase Analytics -->
+    <script type="module">
+      import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+      import { getAnalytics } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics.js';
+
+      const firebaseConfig = {
+        apiKey: "AIzaSyBNjEuGLafsUde3ws_9_Zi-PUlKkWt-CWM",
+        authDomain: "reploid.firebaseapp.com",
+        projectId: "reploid",
+        storageBucket: "reploid.firebasestorage.app",
+        messagingSenderId: "506730551098",
+        appId: "1:506730551098:web:1b9639865cb8501b7c2203",
+        measurementId: "G-RL299QYBNB"
+      };
+
+      const app = initializeApp(firebaseConfig);
+      const analytics = getAnalytics(app);
+    </script>
+</head>
+<body>
+    <div id="boot-container">
+        <div class="boot-header">
+            <h1>REPLOID</h1>
+            <p class="subtitle">
+                <a href="https://github.com/clocksmith/reploid" target="_blank" class="subtitle-link">Browser-Native AI Agent with Recursive Self-Improvement</a>
+            </p>
+        </div>
+
+        <div id="api-error-message" class="error-message hidden" role="alert">
+            <strong>Server Offline</strong>
+            <p>Reploid can't reach <code>localhost:8000</code>.</p>
+            <p><code>npm start</code> to boot the service, or read the <a href="https://github.com/clocksmith/deco/tree/main/docs" target="_blank" rel="noreferrer">setup guide</a>.</p>
+        </div>
+
+
+        <!-- Provider Status (Read-Only) -->
+            <div class="provider-status-bar">
+                <div class="provider-status-item">
+                    <span class="provider-status-icon online" id="browser-cloud-icon">☁</span>
+                    <span class="provider-status-label">Browser → Cloud</span>
+                    <span class="provider-status-value online" id="browser-cloud-text">Ready</span>
+                </div>
+                <div class="provider-status-item">
+                    <span class="provider-status-icon" id="proxy-cloud-icon">⇄</span>
+                    <span class="provider-status-label">Proxy → Cloud</span>
+                    <span class="provider-status-value" id="proxy-cloud-text">Checking...</span>
+                </div>
+                <div class="provider-status-item">
+                    <span class="provider-status-icon" id="browser-local-icon">◆</span>
+                    <span class="provider-status-label">Browser → Local</span>
+                    <span class="provider-status-value" id="browser-local-text">Checking...</span>
+                </div>
+                <div class="provider-status-item">
+                    <span class="provider-status-icon" id="proxy-local-icon">■</span>
+                    <span class="provider-status-label">Proxy → Local</span>
+                    <span class="provider-status-value" id="proxy-local-text">Checking...</span>
+                </div>
+            </div>
+
+            <!-- Quick WebLLM Demo Button -->
+            <div style="margin: 20px 0; padding: 20px; background: linear-gradient(135deg, rgba(0, 255, 255, 0.1), rgba(255, 0, 255, 0.1)); border: 2px solid #0ff; border-radius: 8px; text-align: center;">
+                <h3 style="margin: 0 0 10px 0; color: #0ff; font-size: 20px;">⚡ Zero-Setup Demo</h3>
+                <p style="margin: 0 0 15px 0; color: #888; font-size: 14px;">Watch AI rewrite itself in your browser. No installation, no API keys, no backend.</p>
+                <button id="quick-webllm-demo-btn" class="btn" style="font-size: 16px; padding: 12px 24px; background: rgba(0, 255, 255, 0.2); border: 1px solid #0ff; color: #0ff; font-weight: 600; cursor: pointer; transition: all 0.3s ease;">
+                    🚀 Try WebLLM Demo (2GB download first time)
+                </button>
+                <p style="margin: 15px 0 0 0; font-size: 11px; color: #666;">
+                    Requires Chrome 113+ or Edge 113+ with WebGPU support •
+                    <a href="WEBLLM_QUICKSTART.md" target="_blank" style="color: #0ff; text-decoration: none;">Read Guide</a>
+                </p>
+            </div>
+
+            <!-- Model Cards Container -->
+            <div class="model-cards-container">
+                <h4 class="model-cards-title">Active Models</h4>
+
+                <div class="model-cards-list" id="model-cards-list">
+                    <!-- Model cards will be added here dynamically -->
+
+                    <!-- Add Model card - always visible -->
+                    <div class="model-card add-model-card" id="add-model-card">
+                        <div class="add-model-icon">+</div>
+                        <div class="add-model-text">Add Model</div>
+                    </div>
+                </div>
+
+                <!-- Inline Add/Edit Model Form (shown when adding/editing) -->
+                <div id="model-form-inline" class="model-form-inline hidden">
+                    <div class="model-form-header">
+                        <h5 id="model-form-title">Add Model</h5>
+                        <button class="close-btn-small" id="close-model-form">×</button>
+                    </div>
+
+                    <!-- Provider Selection -->
+                    <div class="inline-form-row">
+                        <label>Provider</label>
+                        <select id="provider-select" class="inline-select">
+                            <option value="">Select provider...</option>
+                        </select>
+                    </div>
+
+                    <!-- Model Selection -->
+                    <div class="inline-form-row hidden" id="model-select-group">
+                        <label>Model</label>
+                        <select id="model-select-dropdown" class="inline-select">
+                            <option value="">Select model...</option>
+                        </select>
+                    </div>
+
+                    <!-- API Key (if needed) -->
+                    <div class="inline-form-row hidden" id="api-key-group">
+                        <label>API Key</label>
+                        <input type="password" id="model-api-key" class="inline-input" placeholder="Enter API key..." />
+                    </div>
+
+                    <!-- Connection Type Selection -->
+                    <div class="inline-form-row hidden" id="connection-type-group">
+                        <label>Connection</label>
+                        <select id="connection-type-select" class="inline-select">
+                            <option value="">Select connection type...</option>
+                        </select>
+                    </div>
+
+                    <div class="inline-form-actions">
+                        <button class="inline-btn-cancel" id="cancel-model-btn">Cancel</button>
+                        <button class="inline-btn-save" id="save-model-btn" disabled>Add Model</button>
+                    </div>
+                </div>
+
+                <!-- Consensus Strategy (shown when 2+ models) -->
+                <div id="consensus-section" class="consensus-section hidden">
+                    <label for="consensus-strategy">Consensus Strategy</label>
+                    <select id="consensus-strategy" class="consensus-select">
+                        <option value="arena">Model Arena</option>
+                        <option value="peer-review">Peer Review</option>
+                    </select>
+                </div>
+            </div>
+
+        <!-- Goal Input at Top -->
+        <div class="goal-container-top">
+            <div class="goal-input-group">
+                <input type="text" id="goal-input" placeholder="► Select at least one model to continue" maxlength="500" disabled />
+                <button id="awaken-btn" class="btn primary" disabled style="font-size: 18px; padding: 14px 28px; font-weight: 600; box-shadow: 0 4px 12px rgba(0, 255, 255, 0.3);">Awaken Agent</button>
+                <button id="import-state-btn" class="btn" style="margin-left: 8px; font-size: 12px; padding: 8px 12px; opacity: 0.6; background: transparent; border: 1px solid rgba(100, 200, 255, 0.3);" title="Import REPLOID state from exported JSON file">Import State</button>
+                <button id="clear-cache-btn" class="btn" style="margin-left: 8px; font-size: 12px; padding: 8px 12px; opacity: 0.6; background: transparent; border: 1px solid rgba(255, 255, 255, 0.2);" title="Clear VFS cache and reload (use if modules fail to load)">Clear Cache</button>
+                <input type="file" id="import-file-input" accept=".json" style="display: none;" />
+            </div>
+            <!-- Example Goal Chips -->
+            <div class="goal-example-chips">
+                <button class="goal-chip" onclick="document.getElementById('goal-input').value='Build a tool that uses the LLM to iteratively improve prompts by identifying weaknesses and fixing them. Display the evolution in Live Preview.'">Self-Play Prompt Improvement</button>
+                <button class="goal-chip" onclick="document.getElementById('goal-input').value='Write a function that improves itself'">Simple Self-Improvement</button>
+                <button class="goal-chip" onclick="document.getElementById('goal-input').value='Create a meta-cognitive evaluator that scores your own reasoning quality and adjusts cognitive strategies'">Meta-Cognitive Evaluator</button>
+                <button class="goal-chip" onclick="document.getElementById('goal-input').value='Implement goal decomposition recursion: break down goals into subgoals, then improve the decomposition algorithm itself'">Recursive Goal Decomposition</button>
+                <button class="goal-chip" onclick="document.getElementById('goal-input').value='Create tools to create tools to evolve your process'">Meta-Tool Creation</button>
+            </div>
+        </div>
+
+        <!-- Concurrency Settings -->
+        <div class="config-section" style="margin-bottom: 20px;">
+            <h4 class="model-cards-title">Performance Settings</h4>
+            <div style="display: flex; align-items: center; gap: 10px; padding: 10px; background: rgba(0, 0, 0, 0.3); border-radius: 4px;">
+                <label for="concurrency-limit" style="font-size: 13px; color: #888;">Max Concurrent Requests:</label>
+                <input
+                    type="number"
+                    id="concurrency-limit"
+                    min="1"
+                    max="10"
+                    value="1"
+                    style="width: 60px; padding: 4px 8px; background: #1a1a1a; color: #fff; border: 1px solid #555; border-radius: 3px;"
+                    title="Maximum number of simultaneous model requests (1=sequential, higher=faster but more resource intensive)"
+                />
+                <span style="font-size: 11px; color: #666;">Lower = more stable, Higher = faster (if system can handle it)</span>
+            </div>
+        </div>
+
+        <!-- Genesis Level Selection -->
+        <div class="config-section">
+            <h4 class="model-cards-title">Genesis Level</h4>
+            <div class="boot-mode-options">
+                <button class="boot-mode-btn selected recommended" data-genesis="full" onclick="selectGenesisLevel('full')">
+                    <div class="boot-mode-badge">RECOMMENDED</div>
+                    <div class="boot-mode-label">FULL SUBSTRATE</div>
+                    <div class="boot-mode-desc">All infrastructure + 10 key blueprints - Guided self-improvement</div>
+                </button>
+
+                <button class="boot-mode-btn" data-genesis="minimal" onclick="selectGenesisLevel('minimal')">
+                    <div class="boot-mode-badge experimental-badge">EXPERIMENTAL</div>
+                    <div class="boot-mode-label">MINIMAL AXIOMS</div>
+                    <div class="boot-mode-desc">Minimal code + 3 essential blueprints - Must build tool system</div>
+                </button>
+
+                <button class="boot-mode-btn" data-genesis="tabula" onclick="selectGenesisLevel('tabula')">
+                    <div class="boot-mode-badge experimental-badge">EXPERIMENTAL</div>
+                    <div class="boot-mode-label">TABULA RASA</div>
+                    <div class="boot-mode-desc">5 core modules + zero blueprints - Learn through friction</div>
+                </button>
+            </div>
+
+        </div>
+
+        <!-- Info Overlay -->
+        <div id="info-overlay" class="info-overlay hidden">
+            <div class="info-card">
+                <div class="info-card-header">
+                    <h3 id="info-card-title">Info</h3>
+                    <button type="button" class="close-btn" onclick="window.closeInfoCard()">×</button>
+                </div>
+                <div id="info-card-body" class="info-card-body"></div>
+                <div class="info-card-footer">
+                    <button type="button" id="info-card-browse" class="secondary-btn">Browse Directory →</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Directory Browser -->
+        <div id="directory-modal" class="modal hidden">
+            <div class="modal-content directory-modal-content">
+                <div class="modal-header">
+                    <h3 id="directory-modal-title">Module Directory</h3>
+                    <button type="button" class="close-btn" onclick="window.closeDirectoryModal()">×</button>
+                </div>
+                <div class="modal-body directory-modal-body">
+                    <div class="directory-filters" role="group" aria-label="Select preset">
+                        <button type="button" class="directory-filter active" data-preset="core" onclick="switchModulePreset('core')">CORE</button>
+                        <button type="button" class="directory-filter" data-preset="headless" onclick="switchModulePreset('headless')">HEADLESS</button>
+                        <button type="button" class="directory-filter" data-preset="complete" onclick="switchModulePreset('complete')">COMPLETE</button>
+                    </div>
+                    <div class="directory-content" id="directory-content"></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="help-popover" class="help-popover hidden" role="dialog" aria-modal="false" aria-hidden="true">
+            <div class="help-popover-content">
+                <div class="help-popover-header">
+                    <div id="help-popover-title" class="help-popover-title">Help</div>
+                    <button type="button" class="close-btn help-popover-close" aria-label="Close help popover">×</button>
+                </div>
+                <div id="help-popover-body" class="help-popover-body"></div>
+            </div>
+        </div>
+
+        <div id="multi-model-modal" class="modal hidden" role="dialog" aria-modal="true" aria-hidden="true">
+            <div class="modal-content multi-model-modal-content">
+                <div class="modal-header">
+                    <h3>Multi-Model Setup</h3>
+                    <button type="button" class="close-btn" id="close-multi-model">×</button>
+                </div>
+                <div class="modal-body">
+                    <p class="settings-description">Define primary, fallback, and consensus models for Arena competitive testing.</p>
+                    <div class="arena-field">
+                        <label for="arena-primary">Primary Model</label>
+                        <input type="text" id="arena-primary" placeholder="e.g., gemini-2.5-flash-lite" />
+                    </div>
+                    <div class="arena-field">
+                        <label for="arena-fallback">Fallback Model</label>
+                        <input type="text" id="arena-fallback" placeholder="e.g., gpt-5-2025-08-07" />
+                    </div>
+                    <div class="arena-field">
+                        <label for="arena-consensus">Consensus Model</label>
+                        <input type="text" id="arena-consensus" placeholder="e.g., claude-4-5-sonnet" />
+                    </div>
+                    <div class="arena-field">
+                        <label for="arena-strategy">Strategy</label>
+                        <select id="arena-strategy">
+                            <option value="fastest">Fastest First</option>
+                            <option value="consensus">Consensus Vote</option>
+                            <option value="fallback">Fallback Chain</option>
+                        </select>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn secondary" id="cancel-multi-model">Cancel</button>
+                        <button type="button" class="btn primary" id="save-multi-model">Save Multi-Model Plan</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Agent Monitor (shown after awakening) -->
+    <div id="agent-container" style="display: none; flex-direction: column; height: 100vh; background: #0a0a0a; color: #e0e0e0; font-family: 'Courier New', monospace;">
+        <!-- Header -->
+        <div style="padding: 20px; border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center;">
+            <div style="display: flex; align-items: center; gap: 20px;">
+                <h2 style="margin: 0; font-size: 21.6px; color: #0ff; padding-right: 4px;">REPLOID - Agent Status Monitor</h2>
+                <div id="context-stats" style="font-size: 12px; color: #888; font-family: monospace;">
+                    <span id="context-messages">0 msgs</span> |
+                    <span id="context-tokens">0 tokens</span>
+                </div>
+            </div>
+            <div style="display: flex; gap: 12px;">
+                <button id="pause-btn" class="holo-btn holo-btn-pause">
+                    <span class="btn-icon">⏸</span>
+                    <span class="btn-text">Pause</span>
+                </button>
+                <button id="stop-btn" class="holo-btn holo-btn-stop">
+                    <span class="btn-icon">⏹</span>
+                    <span class="btn-text">Stop</span>
+                </button>
+                <button id="export-btn" class="holo-btn holo-btn-export" title="Export entire REPLOID state (VFS, context, tools)">
+                    <span class="btn-icon">⬇</span>
+                    <span class="btn-text">Export State</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Split Screen: Agent Log + Live Preview -->
+        <div style="display: flex; flex: 1; overflow: hidden;">
+            <!-- Left: Agent Status Log (60%) -->
+            <div style="flex: 0 0 60%; border-right: 1px solid #333; display: flex; flex-direction: column;">
+                <div id="agent-log" style="flex: 1; overflow-y: auto; padding: 20px; padding-bottom: 40px;">
+                    <!-- Status messages will be added here dynamically -->
+                </div>
+            </div>
+
+            <!-- Right: Live Preview (40%) -->
+            <div id="live-preview" style="flex: 1; overflow-y: auto; padding: 20px; background: #0f0f0f;">
+                <h3 style="margin: 0 0 15px 0; color: #888; font-size: 16px; border-bottom: 1px solid #333; padding-bottom: 10px;">Live Preview</h3>
+                <div id="preview-content" style="color: #888; font-size: 14px;">
+                    <p>UI components and code changes will appear here as the agent creates them.</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="chat-input-area" style="padding: 20px; border-top: 1px solid #333; display: none;">
+            <input type="text" placeholder="Enter follow-up goal..." style="width: 100%; padding: 12px; background: #1a1a1a; color: #fff; border: 1px solid #555; font-family: inherit; font-size: 14px;" />
+        </div>
+    </div>
+
+    <style>
+        .chat-message {
+            margin-bottom: 15px;
+            padding: 10px;
+            border-left: 3px solid #555;
+            background: #1a1a1a;
+            border-radius: 4px;
+        }
+        .chat-message.agent {
+            border-left-color: #f0f;  /* Magenta for [SYSTEM] messages */
+        }
+        .chat-message.assistant {
+            border-left-color: #0ff;  /* Cyan for [REPLOID] messages */
+        }
+        .chat-message.tool {
+            border-left-color: #ff0;
+        }
+        .chat-message.tool_result {
+            border-left-color: #0a0;
+        }
+        .chat-message.tool_error {
+            border-left-color: #f00;
+        }
+        .chat-message.thinking {
+            border-left-color: #888;
+            opacity: 0.7;
+        }
+        .chat-message.streaming_stats {
+            border-left-color: #0af;
+            background: #0a1a1f;
+            font-family: monospace;
+            font-size: 11px;
+            opacity: 0.8;
+        }
+        .chat-message.streaming_content {
+            border-left-color: #0f0;
+            background: #0a1a0a;
+        }
+        .chat-message.done {
+            border-left-color: #0f0;
+            font-weight: bold;
+        }
+        .chat-message.error {
+            border-left-color: #f00;
+            background: #2a0000;
+        }
+        .chat-message.context_injected {
+            border-left-color: #88f;
+            background: #1a1a2a;
+        }
+        .chat-message.context {
+            border-left-color: #fa0;
+            background: #1a1a0a;
+        }
+        .chat-message.preview {
+            border-left-color: #0af;
+            background: #0a1a1a;
+        }
+        .chat-message.diff {
+            border-left-color: #f0a;
+            background: #1a0a1a;
+        }
+        .chat-message.approval {
+            border-left-color: #ff0;
+            background: #1a1a00;
+        }
+        .message-icon {
+            font-weight: bold;
+            margin-bottom: 5px;
+            font-size: 12px;
+            color: #888;
+        }
+        .message-content {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            max-height: 600px;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding-right: 8px;
+            line-height: 1.5;
+            transition: max-height 0.3s ease;
+        }
+        .message-content.collapsed {
+            max-height: 60px;
+            overflow: hidden;
+            position: relative;
+        }
+        .message-content.collapsed::after {
+            content: '▼ click to expand';
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            background: linear-gradient(to right, transparent, #1a1a1a 50%);
+            padding: 0 8px 0 30px;
+            color: #666;
+            font-size: 11px;
+            font-style: italic;
+        }
+        .message-content.collapsed:hover::after {
+            color: #0ff;
+        }
+
+        /* Holographic Button Styles */
+        .holo-btn {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 18px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border: 1px solid;
+            border-radius: 3px;
+            background: rgba(0, 0, 0, 0.5);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+
+        .holo-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .holo-btn:hover::before {
+            left: 100%;
+        }
+
+        .holo-btn .btn-icon {
+            font-size: 16px;
+            line-height: 1;
+        }
+
+        .holo-btn .btn-text {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Pause Button - Cyan/Blue theme */
+        .holo-btn-pause {
+            color: #0ff;
+            border-color: #0ff;
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.3), inset 0 0 10px rgba(0, 255, 255, 0.1);
+        }
+
+        .holo-btn-pause:hover {
+            background: rgba(0, 255, 255, 0.15);
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.6), inset 0 0 15px rgba(0, 255, 255, 0.2);
+            transform: translateY(-1px);
+        }
+
+        .holo-btn-pause:active {
+            transform: translateY(0);
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.4), inset 0 0 10px rgba(0, 255, 255, 0.15);
+        }
+
+        /* Resume state for pause button */
+        .holo-btn-pause.resume-state {
+            color: #0f0;
+            border-color: #0f0;
+            box-shadow: 0 0 10px rgba(0, 255, 0, 0.3), inset 0 0 10px rgba(0, 255, 0, 0.1);
+        }
+
+        .holo-btn-pause.resume-state:hover {
+            background: rgba(0, 255, 0, 0.15);
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.6), inset 0 0 15px rgba(0, 255, 0, 0.2);
+        }
+
+        /* Stop Button - Red/Pink theme */
+        .holo-btn-stop {
+            color: #f0f;
+            border-color: #f0f;
+            box-shadow: 0 0 10px rgba(255, 0, 255, 0.3), inset 0 0 10px rgba(255, 0, 255, 0.1);
+        }
+
+        .holo-btn-stop:hover {
+            background: rgba(255, 0, 255, 0.15);
+            box-shadow: 0 0 20px rgba(255, 0, 255, 0.6), inset 0 0 15px rgba(255, 0, 255, 0.2);
+            transform: translateY(-1px);
+        }
+
+        .holo-btn-stop:active {
+            transform: translateY(0);
+            box-shadow: 0 0 10px rgba(255, 0, 255, 0.4), inset 0 0 10px rgba(255, 0, 255, 0.15);
+        }
+
+        /* Export Button - Green theme */
+        .holo-btn-export {
+            color: #0f0;
+            border-color: #0f0;
+            box-shadow: 0 0 10px rgba(0, 255, 0, 0.3), inset 0 0 10px rgba(0, 255, 0, 0.1);
+        }
+
+        .holo-btn-export:hover {
+            background: rgba(0, 255, 0, 0.15);
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.6), inset 0 0 15px rgba(0, 255, 0, 0.2);
+            transform: translateY(-1px);
+        }
+
+        .holo-btn-export:active {
+            transform: translateY(0);
+            box-shadow: 0 0 10px rgba(0, 255, 0, 0.4), inset 0 0 10px rgba(0, 255, 0, 0.15);
+        }
+
+        /* Custom scrollbar for message content */
+        .message-content::-webkit-scrollbar {
+            width: 8px;
+        }
+        .message-content::-webkit-scrollbar-track {
+            background: #0a0a0a;
+            border-radius: 4px;
+        }
+        .message-content::-webkit-scrollbar-thumb {
+            background: #333;
+            border-radius: 4px;
+        }
+        .message-content::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+        /* Ensure chat messages container is scrollable */
+        #chat-messages {
+            scroll-behavior: smooth;
+        }
+    </style>
+
+    <div id="app-root" style="display: none;"></div>
+
+    <script>
+        // Boot mode selection
+        let selectedBootMode = 'single'; // Default
+
+        function selectBootMode(mode) {
+            selectedBootMode = mode;
+            console.log('[Boot] Selected mode:', mode);
+
+            // Update UI
+            document.querySelectorAll('.boot-mode-btn').forEach(btn => {
+                btn.classList.remove('selected');
+            });
+            document.querySelector(`[data-mode="${mode}"]`).classList.add('selected');
+
+            // Store selection
+            localStorage.setItem('reploid_boot_mode', mode);
+        }
+
+        // Module browser
+        function openModuleBrowser() {
+            alert('Module browser coming soon!\n\nYou can manually configure modules by editing boot.js.\n\nCurrent mode: ' + selectedBootMode);
+        }
+
+        // Restore saved boot mode
+        window.addEventListener('DOMContentLoaded', () => {
+            const saved = localStorage.getItem('reploid_boot_mode');
+            if (saved) {
+                selectBootMode(saved);
+            }
+        });
+    </script>
+
+    <script src="https://unpkg.com/@isomorphic-git/lightning-fs"></script>
+    <script src="https://unpkg.com/isomorphic-git"></script>
+    <script type="module" src="https://unpkg.com/isomorphic-git/http/web/index.js"></script>
+    <!-- Dev integrations loaded conditionally via boot.js -->
+    <script type="module" src="boot.js"></script>
+    <!-- Export state tool -->
+    <script type="module" src="export-state.js"></script>
+</body>
+</html>
+
+<script>
+// Genesis level selection
+let selectedGenesisLevel = 'full';
+
+function selectGenesisLevel(level) {
+  selectedGenesisLevel = level;
+  
+  // Update UI
+  document.querySelectorAll('[data-genesis]').forEach(btn => {
+    btn.classList.remove('selected');
+  });
+  document.querySelector(`[data-genesis="${level}"]`).classList.add('selected');
+  
+  // Store selection
+  localStorage.setItem('REPLOID_GENESIS_LEVEL', level);
+  
+  console.log(`[Config] Genesis level set to: ${level}`);
+}
+
+// Restore saved genesis level on load
+window.addEventListener('DOMContentLoaded', () => {
+  const savedLevel = localStorage.getItem('REPLOID_GENESIS_LEVEL');
+  if (savedLevel && ['full', 'minimal', 'tabula'].includes(savedLevel)) {
+    selectGenesisLevel(savedLevel);
+  }
+});
+
+// Expose genesis level for boot.js
+window.getGenesisLevel = () => selectedGenesisLevel;
+
+// Concurrency limit management
+window.addEventListener('DOMContentLoaded', () => {
+  const concurrencyInput = document.getElementById('concurrency-limit');
+  if (concurrencyInput) {
+    // Load saved value
+    const saved = localStorage.getItem('MAX_CONCURRENT_PROXY_REQUESTS');
+    if (saved) {
+      concurrencyInput.value = saved;
+    }
+
+    // Save on change
+    concurrencyInput.addEventListener('change', (e) => {
+      const value = parseInt(e.target.value);
+      if (value >= 1 && value <= 10) {
+        localStorage.setItem('MAX_CONCURRENT_PROXY_REQUESTS', value);
+        console.log(`[Config] Concurrency limit set to: ${value}`);
+        alert(`Concurrency limit set to ${value}. Refresh the page for changes to take effect.`);
+      }
+    });
+  }
+});
+</script>
