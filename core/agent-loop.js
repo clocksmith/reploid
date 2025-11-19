@@ -73,7 +73,8 @@ TOOL_RESULT: tool_name
 
 Tools: \`export default async function name(args) { return result; }\`
 
-Tools can call other tools: \`await executeTool('tool_name', {args})\`
+Tools can call other tools: \`await window.REPLOID.toolRunner.execute('tool_name', {args})\`
+Tools can access LLM: \`await window.REPLOID.llmClient.call([{role: 'user', content: '...'}])\`
 
 Keep code compact. Use \\n for newlines in JSON strings.
 
