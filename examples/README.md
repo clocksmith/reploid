@@ -247,9 +247,9 @@ Two models debate a question, third model judges, system improves debate format.
 ## 📖 Additional Resources
 
 - **Main README:** `../README.md` - Complete REPLOID documentation
-- **WebLLM Guide:** `../WEBLLM_QUICKSTART.md` - Zero-setup demo instructions
-- **Genesis Levels:** `../GENESIS_LEVELS_COMPARISON.md` - Boot mode comparison
-- **Simple Goal:** `../SIMPLE_GOAL.md` - Original self-play spec
+- **WebLLM Guide:** [README - Option 1: Zero-Setup WebLLM Demo](../README.md#option-1-zero-setup-webllm-demo-no-installation)
+- **Genesis Levels:** [README - Genesis Levels](../README.md#genesis-levels)
+- **Connection Types:** [README - Connection Types](../README.md#connection-types)
 
 ---
 
