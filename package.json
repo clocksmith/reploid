@@ -6,10 +6,9 @@
   "type": "module",
   "repository": {
     "type": "git",
-    "url": "https://github.com/clocksmith/paws.git",
-    "directory": "reploid"
+    "url": "https://github.com/clocksmith/reploid.git"
   },
-  "homepage": "https://github.com/clocksmith/paws/tree/main/reploid",
+  "homepage": "https://github.com/clocksmith/reploid",
   "bin": {
     "reploid": "./bin/reploid-cli.js",
     "reploid-config": "./bin/reploid-config"

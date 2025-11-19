@@ -94,7 +94,7 @@
 "upgrades": [
 {
 "id": "MLDR",
-"path": "boot-module-loader.js",
+"path": "../core/substrate-loader.js",
 "description": "Standardized module loader system",
 "category": "core"
 },
@@ -113,90 +113,90 @@
 },
 {
 "id": "APPL",
-"path": "app-logic.js",
+"path": "../core/workflow-manager.js",
 "description": "Main application orchestrator",
 "category": "core",
 "blueprint": "0x000002"
 },
 {
 "id": "UTIL",
-"path": "utils.js",
+"path": "../core/utils.js",
 "description": "Essential utilities and error classes",
 "category": "core",
 "blueprint": "0x000003"
 },
 {
 "id": "IDXB",
-"path": "storage-indexeddb.js",
+"path": "../core/vfs.js",
 "description": "IndexedDB persistence layer",
 "category": "storage",
 "blueprint": "0x000011"
 },
 {
 "id": "STMT",
-"path": "state-manager.js",
+"path": "../core/state-manager.js",
 "description": "State management and VFS logic",
 "category": "core",
 "blueprint": "0x000005"
 },
 {
 "id": "STHP",
-"path": "state-helpers-pure.js",
+"path": "../core/state-helpers-pure.js",
 "description": "Pure functions for state logic",
 "category": "agent",
 "blueprint": "0x000006"
 },
 {
 "id": "APIC",
-"path": "api-client.js",
+"path": "../core/llm-client.js",
 "description": "Gemini API communication client",
 "category": "agent",
 "blueprint": "0x000007"
 },
 {
 "id": "APMC",
-"path": "api-client-multi.js",
+"path": "../core/llm-client.js",
 "description": "Multi-provider API client (Gemini, OpenAI, Anthropic, Local)",
 "category": "agent"
 },
 {
 "id": "CYCL",
-"path": "agent-cycle.js",
+"path": "../core/agent-loop.js",
 "description": "The agent's main cognitive loop",
 "category": "agent",
 "blueprint": "0x000008"
 },
 {
 "id": "AGLP",
-"path": "agent-logic-pure.js",
+"path": "../core/agent-logic-pure.js",
 "description": "Pure functions for agent reasoning",
 "category": "agent",
 "blueprint": "0x000009"
 },
 {
 "id": "TRUN",
-"path": "tool-runner.js",
+"path": "../core/tool-runner.js",
 "description": "Tool execution engine",
 "category": "tools",
 "blueprint": "0x00000A"
 },
 {
 "id": "TRHP",
-"path": "tool-runner-pure-helpers.js",
+"path": "../core/tool-runner-pure-helpers.js",
 "description": "Pure functions for tool logic",
 "category": "tools",
 "blueprint": "0x00000B"
 },
 {
 "id": "WRKR",
-"path": "tool-worker.js",
+"path": "../tools/tool-worker.js",
 "description": "Sandboxed Web Worker for tools",
 "category": "experimental",
 "blueprint": "0x00000C"
 },
 {
 "id": "UIMN",
-"path": "ui-manager.js",
+"path": "../ui/dashboard/ui-manager.js",
 "description": "Developer console UI manager",
 "category": "ui",
 "blueprint": "0x00000D"
@@ -217,13 +217,13 @@
 },
 {
 "id": "CFMD",
-"path": "confirmation-modal.js",
+"path": "../ui/components/confirmation-modal.js",
 "description": "Confirmation dialog for destructive actions",
 "category": "ui"
 },
 {
 "id": "VFSX",
-"path": "vfs-explorer.js",
+"path": "../ui/dashboard/vfs-explorer.js",
 "description": "Enhanced VFS file tree with search and viewer",
 "category": "ui"
 },
@@ -243,7 +243,7 @@
 },
 {
 "id": "EVAL",
-"path": "tool-evaluator.js",
+"path": "../tools/tool-evaluator.js",
 "description": "Self-evaluation tool package",
 "category": "experimental",
 "blueprint": "0x000012"
@@ -271,191 +271,191 @@
 },
 {
 "id": "MTCP",
-"path": "meta-tool-creator.js",
+"path": "../capabilities/evolution/meta-tool-creator.js",
 "description": "Meta-tool creation patterns and utilities",
 "category": "experimental",
 "blueprint": "0x000016"
 },
 {
 "id": "GMOD",
-"path": "goal-modifier.js",
+"path": "../capabilities/evolution/goal-modifier.js",
 "description": "Safe goal modification and evolution mechanisms",
 "category": "experimental",
 "blueprint": "0x000017"
 },
 {
 "id": "BLPR",
-"path": "blueprint-creator.js",
+"path": "../capabilities/evolution/blueprint-creator.js",
 "description": "Blueprint generation and management system",
 "category": "experimental",
 "blueprint": "0x000018"
 },
 {
 "id": "CNVS",
-"path": "canvas-visualizer.js",
+"path": "../ui/visualizers/canvas-visualizer.js",
 "description": "2D canvas visualization for RSI insights",
 "category": "visualization"
 },
 {
 "id": "VDAT",
-"path": "viz-data-adapter.js",
+"path": "../ui/visualizers/viz-data-adapter.js",
 "description": "Transforms agent state into visual data",
 "category": "visualization"
 },
 {
 "id": "PMON",
-"path": "performance-monitor.js",
+"path": "../capabilities/performance/performance-monitor.js",
 "description": "Performance monitoring for RSI data-driven optimization",
 "category": "monitoring"
 },
 {
 "id": "MDSH",
-"path": "metrics-dashboard.js",
+"path": "../ui/dashboard/metrics-dashboard.js",
 "description": "Visual metrics dashboard with Chart.js for performance visualization",
 "category": "monitoring"
 },
 {
 "id": "AVIS",
-"path": "agent-visualizer.js",
+"path": "../ui/visualizers/agent-visualizer.js",
 "description": "FSM state machine visualization with D3.js force-directed graph",
 "category": "visualization"
 },
 {
 "id": "ASTV",
-"path": "ast-visualizer.js",
+"path": "../ui/visualizers/ast-visualizer.js",
 "description": "JavaScript AST tree visualization with D3.js and Acorn parser",
 "category": "visualization"
 },
 {
 "id": "MGRV",
-"path": "module-graph-visualizer.js",
+"path": "../ui/visualizers/module-graph-visualizer.js",
 "description": "Interactive D3.js force-directed graph of module dependencies",
 "category": "visualization"
 },
 {
 "id": "TSTN",
-"path": "toast-notifications.js",
+"path": "../ui/components/toast-notifications.js",
 "description": "Non-blocking toast notification system for user feedback",
 "category": "ui"
 },
 {
 "id": "RATE",
-"path": "rate-limiter.js",
+"path": "../infrastructure/rate-limiter.js",
 "description": "Token bucket and sliding window rate limiters for API calls",
 "category": "service"
 },
 {
 "id": "MINT",
-"path": "module-integrity.js",
+"path": "../infrastructure/module-integrity.js",
 "description": "Module signing and integrity verification system",
 "category": "security"
 },
 {
 "id": "AUDT",
-"path": "audit-logger.js",
+"path": "../infrastructure/audit-logger.js",
 "description": "Security audit logging for modules and VFS operations",
 "category": "security"
 },
 {
 "id": "TUTR",
-"path": "tutorial-system.js",
+"path": "../ui/tutorial-system.js",
 "description": "Interactive tutorial system for onboarding new users",
 "category": "ui"
 },
 {
 "id": "PYOD",
-"path": "pyodide-runtime.js",
+"path": "../tools/python/pyodide-runtime.js",
 "description": "WebAssembly Python runtime via Pyodide with VFS integration",
 "category": "runtime"
 },
 {
 "id": "PYTH",
-"path": "python-tool.js",
+"path": "../tools/python/python-tool.js",
 "description": "Python code execution tool interface for agent",
 "category": "tools"
 },
 {
 "id": "LLMR",
-"path": "local-llm.js",
+"path": "../core/llm-client.js",
 "description": "Local LLM runtime with WebGPU acceleration via WebLLM",
 "category": "runtime"
 },
 {
 "id": "HYBR",
-"path": "hybrid-llm-provider.js",
+"path": "../core/llm-client.js",
 "description": "Hybrid LLM provider for seamless local/cloud inference switching",
 "category": "agent"
 },
 {
 "id": "SWRM",
-"path": "swarm-orchestrator.js",
+"path": "../capabilities/multi-agent/swarm-orchestrator.js",
 "description": "Multi-agent swarm intelligence orchestrator for distributed task execution",
 "category": "service"
 },
 {
 "id": "INTR",
-"path": "introspector.js",
+"path": "../capabilities/introspection/introspector.js",
 "description": "Code introspection and self-analysis for RSI",
 "category": "introspection",
 "blueprint": "0x00001B"
 },
 {
 "id": "REFL",
-"path": "reflection-store.js",
+"path": "../capabilities/reflection/reflection-store.js",
 "description": "Persistent reflection storage for learning over time",
 "category": "introspection"
 },
 {
 "id": "REAN",
-"path": "reflection-analyzer.js",
+"path": "../capabilities/reflection/reflection-analyzer.js",
 "description": "Pattern recognition and learning from reflection history",
 "category": "learning"
 },
 {
 "id": "RESRCH",
-"path": "reflection-search.js",
+"path": "../capabilities/reflection/reflection-search.js",
 "description": "Semantic search over reflections using TF-IDF embeddings",
 "category": "intelligence"
 },
 {
 "id": "TOAN",
-"path": "tool-analytics.js",
+"path": "../capabilities/performance/tool-analytics.js",
 "description": "Tool usage analytics and performance tracking",
 "category": "analytics"
 },
 {
 "id": "COST",
-"path": "cost-tracker.js",
+"path": "../capabilities/performance/cost-tracker.js",
 "description": "API cost tracking and rate limiting for budget management",
 "category": "analytics"
 },
 {
 "id": "TABC",
-"path": "tab-coordinator.js",
+"path": "../capabilities/multi-agent/tab-coordinator.js",
 "description": "Inter-tab state synchronization via BroadcastChannel",
 "category": "coordination"
 },
 {
 "id": "TDOC",
-"path": "tool-doc-generator.js",
+"path": "../tools/tool-doc-generator.js",
 "description": "Automatic markdown documentation generator for tool schemas",
 "category": "documentation"
 },
 {
 "id": "TEST",
-"path": "self-tester.js",
+"path": "../capabilities/testing/self-tester.js",
 "description": "Self-testing and validation framework for safe RSI",
 "category": "validation"
 },
 {
 "id": "BAPI",
-"path": "browser-apis.js",
+"path": "../infrastructure/browser-apis.js",
 "description": "Browser-native Web API integration (File System, Notifications, Storage, etc.)",
 "category": "capability"
 },
 {
 "id": "AUOR",
-"path": "autonomous-orchestrator.js",
+"path": "../workflow/autonomous-orchestrator.js",
 "description": "Curator Mode - Autonomous overnight proposal generation with visual reports",
 "category": "service",
 "blueprint": "0x000023"

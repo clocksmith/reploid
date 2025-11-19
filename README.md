@@ -48,8 +48,8 @@ This is a research project exploring what happens when you give an AI the abilit
 
 ```bash
 # Clone repo
-git clone https://github.com/clocksmith/paws.git
-cd paws/reploid
+git clone https://github.com/clocksmith/reploid.git
+cd reploid
 
 # Optional: Configure API keys for cloud models
 echo "GEMINI_API_KEY=your_key" > .env
@@ -416,7 +416,7 @@ REPLOID is an experiment in [**substrate-independent RSI**](https://www.edge.org
 ### WebLLM model fails to load
 **Fix:**
 - Check browser console for exact model ID
-- See `WEBLLM_QUICKSTART.md` for compatible models
+- See [Connection Types](#connection-types) for compatible models
 - Try smaller model (Qwen2.5-1.5B or Llama-3.2-1B)
 
 ### Agent creates tools but they don't work
@@ -440,6 +440,54 @@ REPLOID is a research project. Contributions welcome:
 4. **Port to other runtimes:** REPLOID should work in Deno, Node.js, etc.
 
 See `/blueprints/` for documentation the agent can read.
+
+---
+
+## Project Structure
+
+REPLOID's codebase is organized into specialized directories, each with detailed documentation:
+
+### Core Directories
+
+- **[`core/`](core/README.md)** - Core substrate modules
+  - Agent loop, LLM client, VFS, tool runner/writer
+  - Meta-improvement system, substrate loader
+  - All self-modifiable at runtime
+
+- **[`boot/`](boot/README.md)** - Bootstrap system
+  - Initialization, configuration, model selection
+  - Loads before main application
+
+- **[`capabilities/`](capabilities/README.md)** - RSI capabilities
+  - Introspection, reflection, testing, evolution
+  - Performance monitoring, multi-agent coordination
+
+- **[`workflow/`](workflow/README.md)** - Task orchestration
+  - Sentinel FSM, autonomous orchestrator
+  - Curator Mode for overnight operation
+
+- **[`infrastructure/`](infrastructure/README.md)** - Support services
+  - Event bus, rate limiting, audit logging
+  - Browser APIs, backup/restore
+
+- **[`tools/`](tools/README.md)** - Tool utilities
+  - Tool evaluation, documentation generation
+  - Python/Pyodide integration
+
+- **[`ui/`](ui/README.md)** - User interface components
+  - Chat interface, code viewer, dashboards
+  - Visualizers and components
+
+- **[`upgrades/`](upgrades/README.md)** - Configuration and assets
+  - Blueprints, prompts, tool definitions
+  - Persona configurations via `config.json`
+
+### Additional Directories
+
+- **`blueprints/`** - Documentation the agent can read to learn RSI
+- **`server/`** - Optional proxy server for API calls
+- **`tests/`** - Test suites
+- **`examples/`** - Pre-built examples and demos
 
 ---
 
