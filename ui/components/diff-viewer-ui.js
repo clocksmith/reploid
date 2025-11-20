@@ -26,7 +26,7 @@ const DiffViewerUI = {
 
   factory: (deps) => {
     const { Utils, StateManager, EventBus, ConfirmationModal } = deps;
-    const { logger } = Utils;
+    const { logger, escapeHtml } = Utils;
 
     // Initialize substrate parser for protocol compliance
     const parserUtils = ParserUtils.factory({});
@@ -61,14 +61,6 @@ const DiffViewerUI = {
       if (!container) {
         logger.error('[DiffViewerUI] Container not found:', containerId);
         return;
-      }
-
-      // Add styles if not already present (idempotent)
-      if (!document.getElementById('diff-viewer-styles')) {
-        const styles = document.createElement('style');
-        styles.id = 'diff-viewer-styles';
-        styles.innerHTML = getDiffViewerStyles();
-        document.head.appendChild(styles);
       }
 
       // Register event listeners and store references
@@ -133,6 +125,8 @@ const DiffViewerUI = {
       return enrichedChanges;
     };
 
+    let actionClickHandler = null;
+
     // Render the diff viewer
     const renderDiff = (changes) => {
       if (!container) return;
@@ -147,19 +141,19 @@ const DiffViewerUI = {
           </div>
 
           <div class="diff-actions" role="toolbar" aria-label="Diff actions">
-            <button class="btn-approve-all" onclick="DiffViewerUI.approveAll()" aria-label="Approve all changes">
+            <button class="btn-approve-all" data-action="approve-all" aria-label="Approve all changes">
               ✓ Approve All
             </button>
-            <button class="btn-reject-all" onclick="DiffViewerUI.rejectAll()" aria-label="Reject all changes">
+            <button class="btn-reject-all" data-action="reject-all" aria-label="Reject all changes">
               ✗ Reject All
             </button>
-            <button class="btn-edit" onclick="DiffViewerUI.editProposal()" aria-label="Edit proposal">
+            <button class="btn-edit" data-action="edit" aria-label="Edit proposal">
               ✎ Edit Proposal
             </button>
-            <button class="btn-export" onclick="DiffViewerUI.copyToClipboard(this)" title="Copy diff to clipboard">
+            <button class="btn-export" data-action="copy" title="Copy diff to clipboard">
               📋 Copy
             </button>
-            <button class="btn-export" onclick="DiffViewerUI.exportMarkdown()" title="Export as Markdown">
+            <button class="btn-export" data-action="export" title="Export as Markdown">
               💾 Export
             </button>
           </div>
@@ -169,21 +163,22 @@ const DiffViewerUI = {
           </div>
 
           <div class="diff-footer" role="group" aria-label="Apply or cancel changes">
-             <button class="btn-rollback" onclick="DiffViewerUI.rollback()" aria-label="Emergency Rollback" title="Revert file system to pre-proposal state">
+             <button class="btn-rollback" data-action="rollback" aria-label="Emergency Rollback" title="Revert file system to pre-proposal state">
               ↩ Emergency Rollback
             </button>
             <div class="spacer" style="flex: 1;"></div>
-            <button class="btn-cancel" onclick="DiffViewerUI.cancel()" aria-label="Cancel and close">
+            <button class="btn-cancel" data-action="cancel" aria-label="Cancel and close">
               Cancel
             </button>
-            <button class="btn-apply" onclick="DiffViewerUI.applyApproved()" aria-label="Apply approved changes">
+            <button class="btn-apply" data-action="apply" aria-label="Apply approved changes">
               Apply Approved Changes
             </button>
           </div>
-        </div>
-      `;
+      </div>
+    `;
 
       container.innerHTML = html;
+      bindDiffEvents();
 
       // Initialize diff rendering for each file
       changes.forEach((change, index) => {
@@ -191,6 +186,59 @@ const DiffViewerUI = {
           renderFileDiff(change, index);
         }
       });
+    };
+
+    const bindDiffEvents = () => {
+      if (!container) return;
+
+      if (actionClickHandler) {
+        container.removeEventListener('click', actionClickHandler);
+      }
+
+      actionClickHandler = handleActionClick;
+      container.addEventListener('click', actionClickHandler);
+
+      const diffFiles = container.querySelector('.diff-files');
+      if (diffFiles) {
+        diffFiles.addEventListener('click', handleDiffFileClick);
+        diffFiles.addEventListener('change', handleApprovalChangeEvent);
+      }
+    };
+
+    const handleActionClick = (event) => {
+      const target = event.target.closest('[data-action]');
+      if (!target) return;
+      const actionMap = {
+        'approve-all': approveAll,
+        'reject-all': rejectAll,
+        'edit': editProposal,
+        'copy': () => copyToClipboard(target),
+        'export': exportMarkdown,
+        'rollback': rollback,
+        'cancel': cancel,
+        'apply': applyApproved
+      };
+      const handler = actionMap[target.dataset.action];
+      if (handler) {
+        handler();
+      }
+    };
+
+    const handleDiffFileClick = (event) => {
+      const expandBtn = event.target.closest('[data-expand]');
+      if (!expandBtn) return;
+      const index = parseInt(expandBtn.dataset.expand, 10);
+      if (!Number.isNaN(index)) {
+        toggleExpand(index);
+      }
+    };
+
+    const handleApprovalChangeEvent = (event) => {
+      if (!event.target.classList.contains('approve-checkbox')) return;
+      const index = parseInt(event.target.dataset.index, 10);
+      if (!Number.isNaN(index)) {
+        toggleApproval(index, event.target.checked);
+      }
     };
 
     // Get change statistics
@@ -226,11 +274,10 @@ const DiffViewerUI = {
                 <input type="checkbox"
                        class="approve-checkbox"
                        data-index="${index}"
-                       onchange="DiffViewerUI.toggleApproval(${index})"
                        ${change.approved ? 'checked' : ''}>
                 <span>Approve</span>
               </label>
-              <button class="btn-expand" onclick="DiffViewerUI.toggleExpand(${index})">
+              <button class="btn-expand" data-expand="${index}">
                 ${change.operation === 'DELETE' ? 'View' : 'Expand'}
               </button>
             </div>
@@ -395,9 +442,11 @@ const DiffViewerUI = {
     };
 
     // Toggle approval for a change
-    const toggleApproval = (index) => {
+    const toggleApproval = (index, state = null) => {
       if (currentDiff && currentDiff.changes[index]) {
-        currentDiff.changes[index].approved = !currentDiff.changes[index].approved;
+        currentDiff.changes[index].approved = state === null
+          ? !currentDiff.changes[index].approved
+          : state;
         updateApprovalStats();
       }
     };
@@ -559,102 +608,12 @@ const DiffViewerUI = {
       URL.revokeObjectURL(url);
     };
 
-    // Share diff
-    const share = async () => {
-      if (!currentDiff) return;
-      if (!navigator.share) {
-        logger.warn('[DiffViewerUI] Web Share API not supported');
-        return;
-      }
-
-      try {
-        const markdown = generateDiffMarkdown();
-        const stats = { CREATE: 0, MODIFY: 0, DELETE: 0 };
-        currentDiff.changes.forEach(c => stats[c.operation]++);
-
-        await navigator.share({
-          title: 'REPLOID Diff Summary',
-          text: `Changes: ${stats.CREATE} CREATE, ${stats.MODIFY} MODIFY, ${stats.DELETE} DELETE\n\n${markdown}`,
-        });
-
-        logger.info('[DiffViewerUI] Shared diff successfully');
-      } catch (err) {
-        if (err.name === 'AbortError') {
-          logger.info('[DiffViewerUI] Share cancelled by user');
-        } else {
-          logger.error('[DiffViewerUI] Failed to share:', err);
-        }
-      }
-    };
-
-    // Escape HTML
-    const escapeHtml = (text) => {
-      const div = document.createElement('div');
-      div.textContent = text;
-      return div.innerHTML;
-    };
-
-    // CSS Styles
-    const getDiffViewerStyles = () => {
-      return `
-        .diff-viewer { background: #1e1e1e; border: 1px solid #333; border-radius: 8px; color: #d4d4d4; font-family: monospace; padding: 16px; }
-        .diff-header { border-bottom: 1px solid #333; margin-bottom: 16px; padding-bottom: 12px; }
-        .diff-actions { display: flex; gap: 8px; margin-bottom: 16px; }
-        .diff-footer { border-top: 1px solid #333; display: flex; gap: 8px; margin-top: 16px; padding-top: 12px; align-items: center;}
-        .diff-file { background: #2d2d30; border-radius: 4px; margin-bottom: 8px; overflow: hidden; }
-        .diff-file-header { display: flex; justify-content: space-between; padding: 12px; background: #252526; align-items: center; }
-        .diff-file-info { display: flex; gap: 12px; alignments: center; }
-        .diff-operation { background: #333; border-radius: 4px; font-size: 12px; padding: 2px 8px; }
-        .diff-operation.create { background: #4ec9b0; color: #000; }
-        .diff-operation.modify { background: #ffd700; color: #000; }
-        .diff-operation.delete { background: #f48771; color: #000; }
-        .code-block { background: #1e1e1e; padding: 12px; overflow-x: auto; }
-        
-        button { background: #0e639c; border: none; border-radius: 4px; color: #fff; padding: 8px 16px; cursor: pointer; }
-        button:hover { background: #1177bb; }
-        .btn-reject-all { background: #f48771 !important; }
-        .btn-rollback { background: #d32f2f !important; font-weight: bold; }
-        .btn-rollback:hover { background: #b71c1c !important; }
-        .btn-edit { background: #ffd700 !important; color: #000 !important; }
-        .btn-apply:disabled { background: #555 !important; cursor: not-allowed; opacity: 0.5; }
-        .side-by-side-diff { display: flex; gap: 2px; }
-        .diff-pane { flex: 1; overflow-x: auto; }
-        .diff-line { display: flex; min-height: 20px; }
-        .diff-line.added { background: rgba(78, 201, 176, 0.2); }
-        .diff-line.removed { background: rgba(244, 135, 113, 0.2); }
-        .diff-line.changed { background: rgba(255, 215, 0, 0.1); }
-        .line-number { width: 40px; color: #858585; text-align: right; padding-right: 8px; user-select: none; }
-      `;
-    };
-
     // Export public API
     const publicApi = {
       init,
-      toggleExpand,
-      toggleApproval,
-      approveAll,
-      rejectAll,
-      applyApproved,
-      editProposal,
-      rollback,
-      cancel,
       showDiff: handleShowDiff,
-      clearDiff,
-      copyToClipboard,
-      exportMarkdown,
-      share
+      clearDiff
     };
-
-    // Set as shared instance for global access (onclick handlers)
-    if (typeof window !== 'undefined') {
-      if (!window.DiffViewerUI) {
-         window.DiffViewerUI = {};
-      }
-      window.DiffViewerUI._setInstance = (instance) => {
-          Object.assign(window.DiffViewerUI, instance);
-      };
-      window.DiffViewerUI._setInstance(publicApi);
-    }
 
     return publicApi;
   }

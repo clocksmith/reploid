@@ -1,43 +1,26 @@
 # Tools Directory
 
-**Purpose**: Tool utilities, documentation generation, and Python integration.
+**Purpose**: Agent tools and runtime environments.
 
-## Contents
+## Active Tools
 
-| File/Directory | Purpose |
-|----------------|---------|
-| `tool-evaluator.js` | Self-evaluation tool package |
-| `tool-doc-generator.js` | Automatic markdown documentation for tools |
-| `tool-worker.js` | Sandboxed Web Worker for tool execution |
-| `python/` | Python/Pyodide integration |
+| File | Purpose |
+|------|---------|
+| `code_intel.js` | Structural analysis of code files (imports, exports, AST summary) |
+| `python/` | Python execution environment (via Pyodide) |
 
 ---
 
-## Components
+## Python Integration
 
-### tool-evaluator.js
+The `python/` directory contains the WebAssembly-based Python runtime:
 
-Self-evaluation framework for assessing code quality and improvements.
+- `python-tool.js`: The tool definition exposed to the LLM (`execute_python`, `install_package`).
+- `pyodide-runtime.js`: Main thread controller that manages the worker.
+- `pyodide-worker.js`: Sandboxed Web Worker running the actual Python interpreter.
 
-### tool-doc-generator.js
+## Usage
 
-Generates markdown documentation from tool schemas automatically.
-
-### tool-worker.js
-
-Sandboxed Web Worker environment for safe tool execution.
-
-### python/
-
-Python code execution via Pyodide (WebAssembly Python):
-
-- `python-tool.js` - Agent interface for Python execution
-- `pyodide-runtime.js` - Pyodide WebAssembly runtime
-- `pyodide-worker.js` - Web Worker for Python isolation
-
----
-
-## See Also
-
-- **[Core Modules](../core/README.md)** - Tool runner and writer
-- **[Capabilities](../capabilities/README.md)** - Tool analytics
+Tools are loaded by `core/tool-runner.js`.
+- `code_intel` is seeded automatically on boot if missing.
+- Python tools require `PyodideRuntime` to be initialized.

@@ -29,11 +29,6 @@ export function switchModalTab(tabName) {
     }
 }
 
-export function syncMultiModelControls(enabled) {
-    console.log('[UI] Multi-model toggle:', enabled);
-    localStorage.setItem('ENABLE_PAXOS', enabled ? 'true' : 'false');
-}
-
 export function openHelpPopover(content, anchorEl) {
     if (!elements.helpPopover) return;
 

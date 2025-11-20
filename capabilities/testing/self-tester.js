@@ -31,8 +31,6 @@ const SelfTester = {
       }
 
       // 2. Check LLM Configuration
-      // We can't easily make a call without spending money/tokens,
-      // so we just check if it's instantiated
       if (LLMClient) {
         report.checks.push({ name: 'LLMClient', status: 'OK' });
       } else {
@@ -41,9 +39,13 @@ const SelfTester = {
 
       // 3. Storage Quota
       if (navigator.storage && navigator.storage.estimate) {
-        const quota = await navigator.storage.estimate();
-        const usedMB = (quota.usage / 1024 / 1024).toFixed(2);
-        report.checks.push({ name: 'Storage', status: 'OK', details: `${usedMB}MB used` });
+        try {
+            const quota = await navigator.storage.estimate();
+            const usedMB = (quota.usage / 1024 / 1024).toFixed(2);
+            report.checks.push({ name: 'Storage', status: 'OK', details: `${usedMB}MB used` });
+        } catch (e) {
+            report.checks.push({ name: 'Storage', status: 'WARN', error: e.message });
+        }
       }
 
       logger.info('[SelfTester] Diagnostics complete', report);

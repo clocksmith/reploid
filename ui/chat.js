@@ -284,6 +284,8 @@ const ChatUI = {
 
     // Escape HTML
     const escapeHtml = (text) => {
+      const helper = window.REPLOID?.utils?.escapeHtml;
+      if (helper) return helper(text);
       const div = document.createElement('div');
       div.textContent = text;
       return div.innerHTML;

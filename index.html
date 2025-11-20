@@ -5,8 +5,25 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes" />
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><defs><linearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'><stop offset='0%25' style='stop-color:%230ff;'/><stop offset='100%25' style='stop-color:%23ffd700;'/></linearGradient></defs><text fill='url(%23g)' y='.99em' font-size='90' font-weight='bold'>R</text></svg>" />
     <title>REPLOID - AI Assistant</title>
+    <link rel="stylesheet" href="styles/theme.css">
     <link rel="stylesheet" href="styles/boot.css">
-    <!-- CDN libraries (Chart.js, D3, Acorn, Prism, WebLLM) are lazy-loaded by modules that need them -->
+    <link rel="stylesheet" href="styles/dashboard.css">
+
+    <!-- Load WebLLM and expose to window for llm-client.js -->
+    <script type="module">
+        import * as webllm from "https://esm.run/@mlc-ai/web-llm";
+        window.webllm = webllm;
+        console.log("[System] WebLLM Loaded");
+    </script>
+
+    <!-- Load Transformers.js for newer models (Qwen3, Gemma3, etc.) -->
+    <script type="module">
+        import { pipeline, env } from "https://cdn.jsdelivr.net/npm/@huggingface/transformers@3";
+        // Configure for WebGPU
+        env.backends.onnx.wasm.proxy = false;
+        window.transformers = { pipeline, env };
+        console.log("[System] Transformers.js Loaded");
+    </script>
 
     <!-- Firebase Analytics -->
     <script type="module">
@@ -42,46 +59,39 @@
             <p><code>npm start</code> to boot the service, or read the <a href="https://github.com/clocksmith/deco/tree/main/docs" target="_blank" rel="noreferrer">setup guide</a>.</p>
         </div>
 
+        <!-- Quick WebLLM Demo -->
+        <div style="width: 100%; margin: 20px 0; padding: 15px; background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(0, 255, 255, 0.3); border-radius: 6px; box-sizing: border-box; display: flex; align-items: center; justify-content: space-between; gap: 15px;">
+            <div style="color: #ccc; font-size: 16px;">Quick start with WebLLM</div>
+            <div style="color: #666; font-size: 14px; flex: 1;">Run Llama 3.2 1B locally in browser via WebGPU. ~2GB download first time.</div>
+            <button id="quick-webllm-demo-btn" class="btn primary" style="min-width: 140px;">Go!</button>
+        </div>
 
         <!-- Provider Status (Read-Only) -->
-            <div class="provider-status-bar">
-                <div class="provider-status-item">
-                    <span class="provider-status-icon online" id="browser-cloud-icon">☁</span>
-                    <span class="provider-status-label">Browser → Cloud</span>
-                    <span class="provider-status-value online" id="browser-cloud-text">Ready</span>
-                </div>
-                <div class="provider-status-item">
-                    <span class="provider-status-icon" id="proxy-cloud-icon">⇄</span>
-                    <span class="provider-status-label">Proxy → Cloud</span>
-                    <span class="provider-status-value" id="proxy-cloud-text">Checking...</span>
-                </div>
-                <div class="provider-status-item">
-                    <span class="provider-status-icon" id="browser-local-icon">◆</span>
-                    <span class="provider-status-label">Browser → Local</span>
-                    <span class="provider-status-value" id="browser-local-text">Checking...</span>
-                </div>
-                <div class="provider-status-item">
-                    <span class="provider-status-icon" id="proxy-local-icon">■</span>
-                    <span class="provider-status-label">Proxy → Local</span>
-                    <span class="provider-status-value" id="proxy-local-text">Checking...</span>
-                </div>
+        <div class="provider-status-bar" style="width: 100%;">
+            <div class="provider-status-item">
+                <span class="provider-status-icon online" id="browser-cloud-icon">☁</span>
+                <span class="provider-status-label">Browser → Cloud</span>
+                <span class="provider-status-value online" id="browser-cloud-text">Ready</span>
             </div>
-
-            <!-- Quick WebLLM Demo Button -->
-            <div style="margin: 20px 0; padding: 20px; background: linear-gradient(135deg, rgba(0, 255, 255, 0.1), rgba(255, 0, 255, 0.1)); border: 2px solid #0ff; border-radius: 8px; text-align: center;">
-                <h3 style="margin: 0 0 10px 0; color: #0ff; font-size: 20px;">⚡ Zero-Setup Demo</h3>
-                <p style="margin: 0 0 15px 0; color: #888; font-size: 14px;">Watch AI rewrite itself in your browser. No installation, no API keys, no backend.</p>
-                <button id="quick-webllm-demo-btn" class="btn" style="font-size: 16px; padding: 12px 24px; background: rgba(0, 255, 255, 0.2); border: 1px solid #0ff; color: #0ff; font-weight: 600; cursor: pointer; transition: all 0.3s ease;">
-                    🚀 Try WebLLM Demo (2GB download first time)
-                </button>
-                <p style="margin: 15px 0 0 0; font-size: 11px; color: #666;">
-                    Requires Chrome 113+ or Edge 113+ with WebGPU support •
-                    <a href="https://github.com/clocksmith/reploid#option-1-zero-setup-webllm-demo-no-installation" target="_blank" style="color: #0ff; text-decoration: none;">Read Guide</a>
-                </p>
+            <div class="provider-status-item">
+                <span class="provider-status-icon" id="proxy-cloud-icon">⇄</span>
+                <span class="provider-status-label">Proxy → Cloud</span>
+                <span class="provider-status-value" id="proxy-cloud-text">Checking...</span>
             </div>
+            <div class="provider-status-item">
+                <span class="provider-status-icon" id="browser-local-icon">◆</span>
+                <span class="provider-status-label">Browser → Local</span>
+                <span class="provider-status-value" id="browser-local-text">Checking...</span>
+            </div>
+            <div class="provider-status-item">
+                <span class="provider-status-icon" id="proxy-local-icon">■</span>
+                <span class="provider-status-label">Proxy → Local</span>
+                <span class="provider-status-value" id="proxy-local-text">Checking...</span>
+            </div>
+        </div>
 
-            <!-- Model Cards Container -->
-            <div class="model-cards-container">
+        <!-- Model Cards Container -->
+        <div class="model-cards-container" style="width: 100%;">
                 <h4 class="model-cards-title">Active Models</h4>
 
                 <div class="model-cards-list" id="model-cards-list">
@@ -151,36 +161,16 @@
         <div class="goal-container-top">
             <div class="goal-input-group">
                 <input type="text" id="goal-input" placeholder="► Select at least one model to continue" maxlength="500" disabled />
-                <button id="awaken-btn" class="btn primary" disabled style="font-size: 18px; padding: 14px 28px; font-weight: 600; box-shadow: 0 4px 12px rgba(0, 255, 255, 0.3);">Awaken Agent</button>
-                <button id="import-state-btn" class="btn" style="margin-left: 8px; font-size: 12px; padding: 8px 12px; opacity: 0.6; background: transparent; border: 1px solid rgba(100, 200, 255, 0.3);" title="Import REPLOID state from exported JSON file">Import State</button>
-                <button id="clear-cache-btn" class="btn" style="margin-left: 8px; font-size: 12px; padding: 8px 12px; opacity: 0.6; background: transparent; border: 1px solid rgba(255, 255, 255, 0.2);" title="Clear VFS cache and reload (use if modules fail to load)">Clear Cache</button>
+                <button id="awaken-btn" class="btn primary" disabled>Awaken Agent</button>
                 <input type="file" id="import-file-input" accept=".json" style="display: none;" />
             </div>
             <!-- Example Goal Chips -->
             <div class="goal-example-chips">
-                <button class="goal-chip" onclick="document.getElementById('goal-input').value='Build a tool that uses the LLM to iteratively improve prompts by identifying weaknesses and fixing them. Display the evolution in Live Preview.'">Self-Play Prompt Improvement</button>
-                <button class="goal-chip" onclick="document.getElementById('goal-input').value='Write a function that improves itself'">Simple Self-Improvement</button>
-                <button class="goal-chip" onclick="document.getElementById('goal-input').value='Create a meta-cognitive evaluator that scores your own reasoning quality and adjusts cognitive strategies'">Meta-Cognitive Evaluator</button>
-                <button class="goal-chip" onclick="document.getElementById('goal-input').value='Implement goal decomposition recursion: break down goals into subgoals, then improve the decomposition algorithm itself'">Recursive Goal Decomposition</button>
-                <button class="goal-chip" onclick="document.getElementById('goal-input').value='Create tools to create tools to evolve your process'">Meta-Tool Creation</button>
-            </div>
-        </div>
-
-        <!-- Concurrency Settings -->
-        <div class="config-section" style="margin-bottom: 20px;">
-            <h4 class="model-cards-title">Performance Settings</h4>
-            <div style="display: flex; align-items: center; gap: 10px; padding: 10px; background: rgba(0, 0, 0, 0.3); border-radius: 4px;">
-                <label for="concurrency-limit" style="font-size: 13px; color: #888;">Max Concurrent Requests:</label>
-                <input
-                    type="number"
-                    id="concurrency-limit"
-                    min="1"
-                    max="10"
-                    value="1"
-                    style="width: 60px; padding: 4px 8px; background: #1a1a1a; color: #fff; border: 1px solid #555; border-radius: 3px;"
-                    title="Maximum number of simultaneous model requests (1=sequential, higher=faster but more resource intensive)"
-                />
-                <span style="font-size: 11px; color: #666;">Lower = more stable, Higher = faster (if system can handle it)</span>
+                <button class="goal-chip" onclick="document.getElementById('goal-input').value='Build a tool that iteratively improves prompts by identifying weaknesses and fixing them'">Prompt Improvement</button>
+                <button class="goal-chip" onclick="document.getElementById('goal-input').value='Write a function that improves itself'">Self-Improvement</button>
+                <button class="goal-chip" onclick="document.getElementById('goal-input').value='Create a meta-cognitive evaluator that scores reasoning quality and adjusts strategies'">Meta-Cognitive</button>
+                <button class="goal-chip" onclick="document.getElementById('goal-input').value='Break down goals into subgoals, then improve the decomposition algorithm itself'">Goal Decomposition</button>
+                <button class="goal-chip" onclick="document.getElementById('goal-input').value='Create tools that create tools'">Meta-Tools</button>
             </div>
         </div>
 
@@ -191,22 +181,26 @@
                 <button class="boot-mode-btn selected recommended" data-genesis="full" onclick="selectGenesisLevel('full')">
                     <div class="boot-mode-badge">RECOMMENDED</div>
                     <div class="boot-mode-label">FULL SUBSTRATE</div>
-                    <div class="boot-mode-desc">All infrastructure + 10 key blueprints - Guided self-improvement</div>
+                    <div class="boot-mode-desc">All modules + reflection, monitoring, and self-testing</div>
                 </button>
-
                 <button class="boot-mode-btn" data-genesis="minimal" onclick="selectGenesisLevel('minimal')">
                     <div class="boot-mode-badge experimental-badge">EXPERIMENTAL</div>
                     <div class="boot-mode-label">MINIMAL AXIOMS</div>
-                    <div class="boot-mode-desc">Minimal code + 3 essential blueprints - Must build tool system</div>
+                    <div class="boot-mode-desc">Core modules + reflection - no monitoring or testing</div>
                 </button>
-
                 <button class="boot-mode-btn" data-genesis="tabula" onclick="selectGenesisLevel('tabula')">
                     <div class="boot-mode-badge experimental-badge">EXPERIMENTAL</div>
                     <div class="boot-mode-label">TABULA RASA</div>
-                    <div class="boot-mode-desc">5 core modules + zero blueprints - Learn through friction</div>
+                    <div class="boot-mode-desc">Core modules + reflection only - no advanced capabilities</div>
                 </button>
             </div>
 
+        </div>
+
+        <!-- Utility Actions -->
+        <div style="width: 100%; display: flex; justify-content: center; gap: 12px; margin-top: 20px; padding-top: 20px; border-top: 1px solid rgba(255, 255, 255, 0.1);">
+            <button id="import-state-btn" class="btn secondary" title="Import REPLOID state from exported JSON file">Import State</button>
+            <button id="clear-cache-btn" class="btn secondary" title="Clear all data (localStorage, IndexedDB, VFS) and reload">Reset All Data</button>
         </div>
 
         <!-- Info Overlay -->
@@ -407,8 +401,8 @@
                     <div id="llm-progress-text" style="font-size: 9px; color: #666; margin-top: 2px;"></div>
                 </div>
 
-                <!-- VFS Tree Panel -->
-                <div id="vfs-tree" class="advanced-panel hidden" style="flex: 0 0 200px; padding: 10px; border-top: 1px solid #333; overflow-y: auto;">
+                <!-- VFS Tree Panel (Advanced) -->
+                <div id="vfs-tree-advanced" class="advanced-panel hidden" style="flex: 0 0 200px; padding: 10px; border-top: 1px solid #333; overflow-y: auto;">
                     <h4 style="margin: 0 0 8px 0; color: #888; font-size: 12px;">VFS Explorer</h4>
                 </div>
 
@@ -740,42 +734,89 @@
     <script src="https://unpkg.com/@isomorphic-git/lightning-fs"></script>
     <script src="https://unpkg.com/isomorphic-git"></script>
     <script type="module" src="https://unpkg.com/isomorphic-git/http/web/index.js"></script>
+    <!-- App container for dashboard -->
+    <div id="app"></div>
     <!-- Dev integrations loaded conditionally via boot.js -->
     <script type="module" src="boot.js"></script>
-    <!-- Export state tool -->
-    <script type="module" src="export-state.js"></script>
 </body>
 </html>
 
 <script>
 // Genesis level selection
-let selectedGenesisLevel = 'full';
+let selectedGenesisLevel = localStorage.getItem('REPLOID_GENESIS_LEVEL') || 'full';
+let genesisLevelLoaded = false;
 
 function selectGenesisLevel(level) {
-  selectedGenesisLevel = level;
-  
-  // Update UI
+  const previousLevel = localStorage.getItem('REPLOID_GENESIS_LEVEL');
+
+  // Update UI immediately
   document.querySelectorAll('[data-genesis]').forEach(btn => {
     btn.classList.remove('selected');
   });
   document.querySelector(`[data-genesis="${level}"]`).classList.add('selected');
-  
+
   // Store selection
   localStorage.setItem('REPLOID_GENESIS_LEVEL', level);
-  
+  selectedGenesisLevel = level;
+
   console.log(`[Config] Genesis level set to: ${level}`);
+
+  // If changing from a previously loaded level, reload for full sweep
+  if (previousLevel && previousLevel !== level && genesisLevelLoaded) {
+    console.log(`[Config] Genesis level changed from ${previousLevel} to ${level}, reloading...`);
+    location.reload();
+  }
 }
+
+// Called by boot.js when system is ready
+window.onGenesisLevelLoaded = () => {
+  genesisLevelLoaded = true;
+  console.log(`[Config] Genesis level ${selectedGenesisLevel} loaded successfully`);
+};
 
 // Restore saved genesis level on load
 window.addEventListener('DOMContentLoaded', () => {
   const savedLevel = localStorage.getItem('REPLOID_GENESIS_LEVEL');
   if (savedLevel && ['full', 'minimal', 'tabula'].includes(savedLevel)) {
-    selectGenesisLevel(savedLevel);
+    // Just update UI, don't trigger reload
+    document.querySelectorAll('[data-genesis]').forEach(btn => {
+      btn.classList.remove('selected');
+    });
+    const btn = document.querySelector(`[data-genesis="${savedLevel}"]`);
+    if (btn) btn.classList.add('selected');
+    selectedGenesisLevel = savedLevel;
   }
 });
 
 // Expose genesis level for boot.js
 window.getGenesisLevel = () => selectedGenesisLevel;
+
+// Reset All Data button handler
+window.addEventListener('DOMContentLoaded', () => {
+  const clearBtn = document.getElementById('clear-cache-btn');
+  if (clearBtn) {
+    clearBtn.addEventListener('click', async () => {
+      if (!confirm('This will delete ALL data including:\n\n• LocalStorage settings\n• IndexedDB (VFS, reflections, state)\n• Selected models\n\nAre you sure?')) {
+        return;
+      }
+
+      // Clear localStorage
+      localStorage.clear();
+
+      // Clear all IndexedDB databases
+      const databases = await indexedDB.databases();
+      for (const db of databases) {
+        if (db.name) {
+          indexedDB.deleteDatabase(db.name);
+          console.log(`[Reset] Deleted IndexedDB: ${db.name}`);
+        }
+      }
+
+      console.log('[Reset] All data cleared, reloading...');
+      location.reload();
+    });
+  }
+});
 
 // Concurrency limit management
 window.addEventListener('DOMContentLoaded', () => {

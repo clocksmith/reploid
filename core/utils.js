@@ -1,17 +1,12 @@
 /**
  * @fileoverview Core Utilities Module
  * The foundational pure functions and error classes used across the system.
- *
- * Phase 1 Updates:
- * - Consolidated Error classes (replaces utils/error-handler.js).
- * - Added performance metrics to Logger.
- * - Added 'widget' stub for backward compatibility.
  */
 
 const Utils = {
   metadata: {
     id: 'Utils',
-    version: '2.0.0',
+    version: '2.1.0',
     dependencies: [],
     type: 'pure'
   },
@@ -69,12 +64,10 @@ const Utils = {
           data: details
         };
 
-        // Console output
         const method = console[level] || console.log;
         const prefix = `[${entry.level}]`;
         details ? method(prefix, message, details) : method(prefix, message);
 
-        // In-memory history
         _recentLogs.push(entry);
         if (_recentLogs.length > MAX_LOG_HISTORY) _recentLogs.shift();
       },
@@ -163,14 +156,6 @@ const Utils = {
       };
     };
 
-    // --- Backward Compatibility Stub ---
-    // Prevents crashes if legacy code imports Utils.widget
-    const widget = {
-      element: 'div',
-      displayName: 'Legacy Utils (Deprecated)',
-      render: () => console.warn('Utils.widget is deprecated. Update UI to use dedicated widgets.')
-    };
-
     return {
       Errors,
       logger,
@@ -179,8 +164,7 @@ const Utils = {
       kabobToCamel,
       escapeHtml,
       sanitizeLlmJsonRespPure,
-      createSubscriptionTracker,
-      widget // Compatibility stub
+      createSubscriptionTracker
     };
   }
 };

@@ -41,6 +41,7 @@ const ANTHROPIC_API_KEY = appConfig?.api?.anthropicKey || process.env.ANTHROPIC_
 const HUGGINGFACE_API_KEY = appConfig?.api?.huggingfaceKey || process.env.HUGGINGFACE_API_KEY;
 const CORS_ORIGINS = appConfig?.server?.corsOrigins || ['http://localhost:8080'];
 const AUTO_START_OLLAMA = appConfig?.ollama?.autoStart || process.env.AUTO_START_OLLAMA === 'true';
+const SSE_DONE = 'data: [DONE]';
 
 if (!GEMINI_API_KEY) {
   console.error('⚠️  WARNING: GEMINI_API_KEY not found in .env file');
@@ -53,6 +54,112 @@ if (OPENAI_API_KEY) console.log('   ✅ OpenAI');
 if (ANTHROPIC_API_KEY) console.log('   ✅ Anthropic');
 if (HUGGINGFACE_API_KEY) console.log('   ✅ HuggingFace');
 console.log(`   🖥️  Local models at: ${LOCAL_MODEL_ENDPOINT}`);
+
+const setupSse = (res) => {
+  if (res.headersSent) return;
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+};
+
+const streamBufferedText = (res, text = '') => {
+  setupSse(res);
+  const chunkSize = 256;
+  if (!text) {
+    res.write('data: {"response":""}\n\n');
+    res.write(`${SSE_DONE}\n\n`);
+    return res.end();
+  }
+  for (let i = 0; i < text.length; i += chunkSize) {
+    const chunk = text.slice(i, i + chunkSize);
+    res.write(`data: ${JSON.stringify({ response: chunk })}\n\n`);
+  }
+  res.write(`${SSE_DONE}\n\n`);
+  res.end();
+};
+
+const streamOpenAIResponse = async (response, res) => {
+  setupSse(res);
+  if (!response.body) {
+    res.write(`${SSE_DONE}\n\n`);
+    return res.end();
+  }
+
+  const decoder = new TextDecoder();
+  let buffer = '';
+  for await (const chunk of response.body) {
+    buffer += decoder.decode(chunk, { stream: true });
+    const lines = buffer.split('\n');
+    buffer = lines.pop() || '';
+    for (const rawLine of lines) {
+      const line = rawLine.trim();
+      if (!line || line.startsWith(':')) continue;
+      if (line === 'data: [DONE]') {
+        res.write(`${SSE_DONE}\n\n`);
+        return res.end();
+      }
+      if (line.startsWith('data:')) {
+        res.write(`${line}\n\n`);
+      }
+    }
+  }
+  res.write(`${SSE_DONE}\n\n`);
+  res.end();
+};
+
+const streamAnthropicResponse = async (response, res) => {
+  setupSse(res);
+  if (!response.body) {
+    res.write(`${SSE_DONE}\n\n`);
+    return res.end();
+  }
+
+  const decoder = new TextDecoder();
+  let buffer = '';
+  for await (const chunk of response.body) {
+    buffer += decoder.decode(chunk, { stream: true });
+    const lines = buffer.split('\n');
+    buffer = lines.pop() || '';
+    for (const rawLine of lines) {
+      const line = rawLine.trim();
+      if (!line || line.startsWith(':')) continue;
+      if (line === 'data: [DONE]') {
+        res.write(`${SSE_DONE}\n\n`);
+        return res.end();
+      }
+      if (!line.startsWith('data:')) continue;
+      const payload = line.slice(6).trim();
+      if (!payload) continue;
+
+      try {
+        const parsed = JSON.parse(payload);
+        if (parsed.type === 'content_block_delta' && parsed.delta?.text) {
+          const message = JSON.stringify({
+            choices: [{ delta: { content: parsed.delta.text } }]
+          });
+          res.write(`data: ${message}\n\n`);
+        }
+        if (parsed.type === 'message_stop') {
+          res.write(`${SSE_DONE}\n\n`);
+          return res.end();
+        }
+      } catch (err) {
+        res.write(`data: ${payload}\n\n`);
+      }
+    }
+  }
+  res.write(`${SSE_DONE}\n\n`);
+  res.end();
+};
+
+const parseJsonResponse = async (response) => {
+  const text = await response.text();
+  try {
+    return { json: JSON.parse(text), raw: text };
+  } catch {
+    return { json: null, raw: text };
+  }
+};
 
 // Ollama process management
 let ollamaProcess = null;
@@ -298,7 +405,6 @@ app.post('/api/gemini/*', async (req, res) => {
   const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/${geminiPath}?key=${GEMINI_API_KEY}`;
 
   try {
-    // Make the request to Gemini API
     const fetch = (await import('node-fetch')).default;
     const response = await fetch(geminiUrl, {
       method: 'POST',
@@ -308,27 +414,23 @@ app.post('/api/gemini/*', async (req, res) => {
       body: JSON.stringify(req.body)
     });
 
-    // Get response as text first to handle non-JSON responses
-    const responseText = await response.text();
+    const { json, raw } = await parseJsonResponse(response);
 
-    try {
-      const data = JSON.parse(responseText);
-
-      if (!response.ok) {
-        console.error('Gemini API error:', data);
-        return res.status(response.status).json(data);
-      }
-
-      res.json(data);
-    } catch (parseError) {
-      console.error('Failed to parse response:', responseText);
-      res.status(response.status || 500).json({
+    if (!json) {
+      return res.status(response.status || 500).json({
         error: 'Invalid response from Gemini API',
         status: response.status,
         statusText: response.statusText,
-        details: responseText.substring(0, 500) // First 500 chars
+        details: raw.substring(0, 500)
       });
     }
+
+    if (!response.ok) {
+      console.error('Gemini API error:', json);
+      return res.status(response.status).json(json);
+    }
+
+    res.json(json);
   } catch (error) {
     console.error('Proxy error:', error);
     res.status(500).json({
@@ -344,9 +446,7 @@ app.post('/api/local/*', async (req, res) => {
   const localPath = req.params[0];
   const localUrl = `${LOCAL_MODEL_ENDPOINT}/${localPath}`;
 
-  console.log(`[API Local ${requestId}] Incoming request to path: ${localPath}`);
-  console.log(`[API Local ${requestId}] Proxying to: ${localUrl}`);
-  console.log(`[API Local ${requestId}] Request body:`, JSON.stringify(req.body, null, 2).substring(0, 500));
+  console.log(`[API Local ${requestId}] Proxying request to ${localPath}`);
 
   try {
     const fetch = (await import('node-fetch')).default;
@@ -359,29 +459,26 @@ app.post('/api/local/*', async (req, res) => {
     });
 
     console.log(`[API Local ${requestId}] Response status: ${response.status}`);
-    const responseText = await response.text();
-    console.log(`[API Local ${requestId}] Response (first 500 chars):`, responseText.substring(0, 500));
+    const { json, raw } = await parseJsonResponse(response);
 
-    try {
-      const data = JSON.parse(responseText);
-
-      if (!response.ok) {
-        console.error(`[API Local ${requestId}] ERROR: Local model error:`, data);
-        return res.status(response.status).json(data);
-      }
-
-      console.log(`[API Local ${requestId}] SUCCESS: Returning response`);
-      res.json(data);
-    } catch (parseError) {
-      console.error(`[API Local ${requestId}] ERROR: Failed to parse response:`, responseText);
-      res.status(response.status || 500).json({
+    if (!json) {
+      console.error(`[API Local ${requestId}] ERROR: Failed to parse response`);
+      return res.status(response.status || 500).json({
         error: 'Invalid response from local model',
         status: response.status,
         statusText: response.statusText,
-        details: responseText.substring(0, 500),
-        requestId: requestId
+        details: raw.substring(0, 500),
+        requestId
       });
     }
+
+    if (!response.ok) {
+      console.error(`[API Local ${requestId}] ERROR: Local model error:`, json);
+      return res.status(response.status).json(json);
+    }
+
+    console.log(`[API Local ${requestId}] SUCCESS: Returning response`);
+    res.json(json);
   } catch (error) {
     console.error(`[API Local ${requestId}] ERROR: Proxy error:`, error);
     console.error(`[API Local ${requestId}] Stack trace:`, error.stack);
@@ -415,27 +512,23 @@ app.post('/api/openai/*', async (req, res) => {
       },
       body: JSON.stringify(req.body)
     });
+    const { json, raw } = await parseJsonResponse(response);
 
-    const responseText = await response.text();
-
-    try {
-      const data = JSON.parse(responseText);
-
-      if (!response.ok) {
-        console.error('OpenAI API error:', data);
-        return res.status(response.status).json(data);
-      }
-
-      res.json(data);
-    } catch (parseError) {
-      console.error('Failed to parse response:', responseText);
-      res.status(response.status || 500).json({
+    if (!json) {
+      return res.status(response.status || 500).json({
         error: 'Invalid response from OpenAI API',
         status: response.status,
         statusText: response.statusText,
-        details: responseText.substring(0, 500)
+        details: raw.substring(0, 500)
       });
     }
+
+    if (!response.ok) {
+      console.error('OpenAI API error:', json);
+      return res.status(response.status).json(json);
+    }
+
+    res.json(json);
   } catch (error) {
     console.error('OpenAI proxy error:', error);
     res.status(500).json({
@@ -468,26 +561,23 @@ app.post('/api/anthropic/*', async (req, res) => {
       body: JSON.stringify(req.body)
     });
 
-    const responseText = await response.text();
+    const { json, raw } = await parseJsonResponse(response);
 
-    try {
-      const data = JSON.parse(responseText);
-
-      if (!response.ok) {
-        console.error('Anthropic API error:', data);
-        return res.status(response.status).json(data);
-      }
-
-      res.json(data);
-    } catch (parseError) {
-      console.error('Failed to parse response:', responseText);
-      res.status(response.status || 500).json({
+    if (!json) {
+      return res.status(response.status || 500).json({
         error: 'Invalid response from Anthropic API',
         status: response.status,
         statusText: response.statusText,
-        details: responseText.substring(0, 500)
+        details: raw.substring(0, 500)
       });
     }
+
+    if (!response.ok) {
+      console.error('Anthropic API error:', json);
+      return res.status(response.status).json(json);
+    }
+
+    res.json(json);
   } catch (error) {
     console.error('Anthropic proxy error:', error);
     res.status(500).json({
@@ -519,26 +609,23 @@ app.post('/api/huggingface/models/:model(*)', async (req, res) => {
       body: JSON.stringify(req.body)
     });
 
-    const responseText = await response.text();
+    const { json, raw } = await parseJsonResponse(response);
 
-    try {
-      const data = JSON.parse(responseText);
-
-      if (!response.ok) {
-        console.error('HuggingFace API error:', data);
-        return res.status(response.status).json(data);
-      }
-
-      res.json(data);
-    } catch (parseError) {
-      console.error('Failed to parse response:', responseText);
-      res.status(response.status || 500).json({
+    if (!json) {
+      return res.status(response.status || 500).json({
         error: 'Invalid response from HuggingFace API',
         status: response.status,
         statusText: response.statusText,
-        details: responseText.substring(0, 500)
+        details: raw.substring(0, 500)
       });
     }
+
+    if (!response.ok) {
+      console.error('HuggingFace API error:', json);
+      return res.status(response.status).json(json);
+    }
+
+    res.json(json);
   } catch (error) {
     console.error('HuggingFace proxy error:', error);
     res.status(500).json({
@@ -556,6 +643,7 @@ app.post('/api/chat', async (req, res) => {
 
   try {
     const { provider, model, messages } = req.body;
+    const shouldStream = !!req.body.stream;
 
     if (!provider || !model || !messages) {
       console.log(`[API Chat ${requestId}] ERROR: Missing required fields`);
@@ -594,8 +682,17 @@ app.post('/api/chat', async (req, res) => {
           return res.status(response.status).json(data);
         }
         console.log(`[API Chat ${requestId}] SUCCESS: Returning Gemini response`);
+        const text = (data.candidates?.[0]?.content?.parts || [])
+          .map(part => part.text || '')
+          .join('\n');
+
+        if (shouldStream) {
+          streamBufferedText(res, text);
+          return;
+        }
+
         return res.json({
-          content: data.candidates[0].content.parts[0].text,
+          content: text,
           usage: data.usageMetadata
         });
 
@@ -606,20 +703,34 @@ app.post('/api/chat', async (req, res) => {
           return res.status(500).json({ error: 'OpenAI API key not configured' });
         }
         console.log(`[API Chat ${requestId}] Calling OpenAI API`);
+        const openAiBody = { model, messages };
+        if (shouldStream) openAiBody.stream = true;
         response = await fetch('https://api.openai.com/v1/chat/completions', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${OPENAI_API_KEY}`
           },
-          body: JSON.stringify({ model, messages })
+          body: JSON.stringify(openAiBody)
         });
-        data = await response.json();
         console.log(`[API Chat ${requestId}] OpenAI response status: ${response.status}`);
         if (!response.ok) {
+          const responseText = await response.text();
+          try {
+            data = JSON.parse(responseText);
+          } catch {
+            data = { error: responseText };
+          }
           console.log(`[API Chat ${requestId}] ERROR: OpenAI API error:`, data);
           return res.status(response.status).json(data);
         }
+
+        if (shouldStream) {
+          await streamOpenAIResponse(response, res);
+          return;
+        }
+
+        data = await response.json();
         console.log(`[API Chat ${requestId}] SUCCESS: Returning OpenAI response`);
         return res.json({
           content: data.choices[0].message.content,
@@ -633,6 +744,13 @@ app.post('/api/chat', async (req, res) => {
           return res.status(500).json({ error: 'Anthropic API key not configured' });
         }
         console.log(`[API Chat ${requestId}] Calling Anthropic API`);
+        const anthropicBody = {
+          model,
+          messages,
+          max_tokens: 4096
+        };
+        if (shouldStream) anthropicBody.stream = true;
+
         response = await fetch('https://api.anthropic.com/v1/messages', {
           method: 'POST',
           headers: {
@@ -640,18 +758,26 @@ app.post('/api/chat', async (req, res) => {
             'x-api-key': ANTHROPIC_API_KEY,
             'anthropic-version': '2023-06-01'
           },
-          body: JSON.stringify({
-            model,
-            messages,
-            max_tokens: 4096
-          })
+          body: JSON.stringify(anthropicBody)
         });
-        data = await response.json();
         console.log(`[API Chat ${requestId}] Anthropic response status: ${response.status}`);
         if (!response.ok) {
+          const responseText = await response.text();
+          try {
+            data = JSON.parse(responseText);
+          } catch {
+            data = { error: responseText };
+          }
           console.log(`[API Chat ${requestId}] ERROR: Anthropic API error:`, data);
           return res.status(response.status).json(data);
         }
+
+        if (shouldStream) {
+          await streamAnthropicResponse(response, res);
+          return;
+        }
+
+        data = await response.json();
         console.log(`[API Chat ${requestId}] SUCCESS: Returning Anthropic response`);
         return res.json({
           content: data.content[0].text,
@@ -662,7 +788,7 @@ app.post('/api/chat', async (req, res) => {
         console.log(`[API Chat ${requestId}] Handling Ollama request`);
         const ollamaUrl = `${LOCAL_MODEL_ENDPOINT}/api/chat`;
         console.log(`[API Chat ${requestId}] Calling Ollama at: ${ollamaUrl} with model: ${model}`);
-        console.log(`[API Chat ${requestId}] Ollama request payload:`, JSON.stringify({ model, messages: messages.length + ' messages', stream: true }));
+        console.log(`[API Chat ${requestId}] Ollama request payload:`, JSON.stringify({ model, messages: messages.length + ' messages', stream: shouldStream }));
 
         // Unload any running models that aren't the requested one
         try {
@@ -703,7 +829,7 @@ app.post('/api/chat', async (req, res) => {
             response = await fetch(ollamaUrl, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ model, messages, stream: true }),
+              body: JSON.stringify({ model, messages, stream: shouldStream }),
               signal: controller.signal
             });
             clearTimeout(timeout);
@@ -734,39 +860,41 @@ app.post('/api/chat', async (req, res) => {
             return res.status(response.status).json(data);
           }
 
-          // Stream the response
-          res.setHeader('Content-Type', 'text/event-stream');
-          res.setHeader('Cache-Control', 'no-cache');
-          res.setHeader('Connection', 'keep-alive');
+          if (!shouldStream) {
+            const ollamaData = await response.json();
+            const content = ollamaData.message?.content || ollamaData.response || '';
+            return res.json({ content, usage: ollamaData.eval_count });
+          }
 
+          setupSse(res);
           const reader = response.body;
           let buffer = '';
 
           for await (const chunk of reader) {
             buffer += chunk.toString();
             const lines = buffer.split('\n');
-            buffer = lines.pop(); // Keep incomplete line in buffer
+            buffer = lines.pop() || '';
 
             for (const line of lines) {
-              if (line.trim()) {
-                try {
-                  const parsed = JSON.parse(line);
-                  // Forward the chunk to client
-                  res.write(`data: ${line}\n\n`);
-
-                  if (parsed.done) {
-                    console.log(`[API Chat ${requestId}] Stream completed`);
-                    res.end();
-                    return;
-                  }
-                } catch (e) {
-                  console.error(`[API Chat ${requestId}] Failed to parse chunk:`, line);
+              if (!line.trim()) continue;
+              try {
+                const parsed = JSON.parse(line);
+                res.write(`data: ${line}\n\n`);
+                if (parsed.done) {
+                  console.log(`[API Chat ${requestId}] Stream completed`);
+                  res.write(`${SSE_DONE}\n\n`);
+                  res.end();
+                  return;
                 }
+              } catch (e) {
+                console.error(`[API Chat ${requestId}] Failed to parse chunk:`, line);
               }
             }
           }
 
+          res.write(`${SSE_DONE}\n\n`);
           res.end();
+          return;
         } catch (ollamaError) {
           console.log(`[API Chat ${requestId}] ERROR: Ollama request failed:`, ollamaError.message);
           throw ollamaError;
@@ -1074,9 +1202,8 @@ server.listen(PORT, () => {
   `);
 });
 
-// Graceful shutdown
-process.on('SIGTERM', () => {
-  console.log('SIGTERM received, shutting down gracefully...');
+const gracefulShutdown = (signal) => {
+  console.log(`${signal} received, shutting down gracefully...`);
 
   stopGPUMonitoring();
 
@@ -1097,28 +1224,7 @@ process.on('SIGTERM', () => {
     console.log('Server closed');
     process.exit(0);
   });
-});
+};
 
-process.on('SIGINT', () => {
-  console.log('\nSIGINT received, shutting down gracefully...');
-
-  stopGPUMonitoring();
-
-  if (ollamaProcess) {
-    console.log('[Ollama] Stopping managed Ollama process...');
-    ollamaProcess.kill();
-  }
-
-  if (signalingServer) {
-    signalingServer.close();
-  }
-
-  if (agentBridge) {
-    agentBridge.close();
-  }
-
-  server.close(() => {
-    console.log('Server closed');
-    process.exit(0);
-  });
-});
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+process.on('SIGINT', () => gracefulShutdown('SIGINT'));

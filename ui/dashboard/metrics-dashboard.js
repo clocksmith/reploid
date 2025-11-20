@@ -75,14 +75,31 @@ const MetricsDashboard = {
       }, 5000);
     };
 
-    /**
-     * Initialize memory usage line chart
-     */
-    const initMemoryChart = () => {
-      const canvas = document.getElementById('memory-chart');
-      if (!canvas) return;
+    const buildChart = (canvasId, configFactory) => {
+      const canvas = document.getElementById(canvasId);
+      if (!canvas) return null;
+      return new Chart(canvas.getContext('2d'), configFactory());
+    };
 
-      const ctx = canvas.getContext('2d');
+    const baseOptions = (overrides = {}) => ({
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { labels: { color: '#e0e0e0' } } },
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: { color: '#aaa' },
+          grid: { color: 'rgba(255, 255, 255, 0.1)' }
+        },
+        x: {
+          ticks: { color: '#aaa' },
+          grid: { color: 'rgba(255, 255, 255, 0.1)' }
+        }
+      },
+      ...overrides
+    });
+
+    const initMemoryChart = () => {
       const memStats = PerformanceMonitor.getMemoryStats();
 
       if (!memStats || !memStats.history) {
@@ -94,7 +111,7 @@ const MetricsDashboard = {
       const labels = memStats.history.map((_, i) => `${i * 30}s`);
       const data = memStats.history.map(s => (s.usedJSHeapSize / 1024 / 1024).toFixed(2));
 
-      memoryChart = new Chart(ctx, {
+      memoryChart = buildChart('memory-chart', () => ({
         type: 'line',
         data: {
           labels,
@@ -107,37 +124,14 @@ const MetricsDashboard = {
             fill: true
           }]
         },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: {
-              labels: { color: '#e0e0e0' }
-            }
-          },
-          scales: {
-            y: {
-              beginAtZero: true,
-              ticks: { color: '#aaa' },
-              grid: { color: 'rgba(255, 255, 255, 0.1)' }
-            },
-            x: {
-              ticks: { color: '#aaa' },
-              grid: { color: 'rgba(255, 255, 255, 0.1)' }
-            }
-          }
-        }
-      });
+        options: baseOptions()
+      }));
     };
 
     /**
      * Initialize tool usage bar chart
      */
     const initToolsChart = () => {
-      const canvas = document.getElementById('tools-chart');
-      if (!canvas) return;
-
-      const ctx = canvas.getContext('2d');
       const metrics = PerformanceMonitor.getMetrics();
 
       // Get top 10 tools by call count
@@ -149,7 +143,7 @@ const MetricsDashboard = {
         .sort((a, b) => b.calls - a.calls)
         .slice(0, 10);
 
-      toolsChart = new Chart(ctx, {
+      toolsChart = buildChart('tools-chart', () => ({
         type: 'bar',
         data: {
           labels: toolData.map(t => t.name),
@@ -161,40 +155,25 @@ const MetricsDashboard = {
             borderWidth: 1
           }]
         },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: {
-              labels: { color: '#e0e0e0' }
-            }
-          },
+        options: baseOptions({
           scales: {
-            y: {
-              beginAtZero: true,
-              ticks: { color: '#aaa' },
-              grid: { color: 'rgba(255, 255, 255, 0.1)' }
-            },
+            y: baseOptions().scales.y,
             x: {
               ticks: { color: '#aaa', maxRotation: 45, minRotation: 45 },
               grid: { color: 'rgba(255, 255, 255, 0.1)' }
             }
           }
-        }
-      });
+        })
+      }));
     };
 
     /**
      * Initialize LLM token usage doughnut chart
      */
     const initTokensChart = () => {
-      const canvas = document.getElementById('tokens-chart');
-      if (!canvas) return;
-
-      const ctx = canvas.getContext('2d');
       const llmStats = PerformanceMonitor.getLLMStats();
 
-      tokensChart = new Chart(ctx, {
+      tokensChart = buildChart('tokens-chart', () => ({
         type: 'doughnut',
         data: {
           labels: ['Input Tokens', 'Output Tokens'],
@@ -221,7 +200,7 @@ const MetricsDashboard = {
             }
           }
         }
-      });
+      }));
     };
 
     /**

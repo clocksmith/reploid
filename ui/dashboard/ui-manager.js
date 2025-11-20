@@ -1,16 +1,15 @@
 // UIManager - Thin orchestrator for UI panels
-// Phase 4: Decomposed architecture
+// Version 4.1.0: Removed legacy visualizer dependencies
 
 const UIManager = {
   metadata: {
     id: 'UIManager',
-    version: '4.0.0',
+    version: '4.1.0',
     description: 'Orchestrates UI panels via DI Container',
     dependencies: [
       'Utils', 'EventBus', 'StateManager',
       'PythonReplPanel', 'LLMConfigPanel', 'VFSPanel',
-      'MetricsPanel', 'ChatPanel', 'CodePanel',
-      'AgentVisualizer?', 'ASTVisualizer?'
+      'MetricsPanel', 'ChatPanel', 'CodePanel'
     ],
     async: true,
     type: 'ui'
@@ -30,15 +29,14 @@ const UIManager = {
 
       logToggleBtn = document.getElementById('log-toggle-btn');
 
+      // Simplified panel map (removed broken visualizers)
       const panelMap = [
         { id: 'python-repl-panel', module: deps.PythonReplPanel },
         { id: 'local-llm-panel', module: deps.LLMConfigPanel },
         { id: 'vfs-tree', module: deps.VFSPanel },
         { id: 'performance-panel', module: deps.MetricsPanel },
         { id: 'agent-container', module: deps.ChatPanel },
-        { id: 'code-panel', module: deps.CodePanel },
-        { id: 'agent-visualizer-container', module: deps.AgentVisualizer },
-        { id: 'ast-viz-container', module: deps.ASTVisualizer }
+        { id: 'code-panel', module: deps.CodePanel }
       ];
 
       for (const item of panelMap) {
@@ -70,6 +68,7 @@ const UIManager = {
     };
 
     const cyclePanels = () => {
+      // Removed visualizers from cycle
       const sequence = [
         'thought-panel',
         'performance-panel',
