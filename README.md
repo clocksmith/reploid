@@ -158,7 +158,7 @@ graph LR
     Verify[Verification Mgr]:::logic
     Worker(Web Worker Context):::worker
 
-    subgraph VFS [Virtual File System (IndexedDB)]
+    subgraph VFS["Virtual File System (IndexedDB)"]
         StateFile(/.system/state.json):::file
         CoreFile(/core/*.js):::file
         WorkerFile(/core/verification-worker.js):::file
