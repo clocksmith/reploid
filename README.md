@@ -1,6 +1,6 @@
 # REPLOID: Recursive Self-Improvement Substrate
 
-> An AI that can modify its own code. Browser-native. No limits.
+> A browser native system that can modify its own code.
 
 **R**ecursive **E**volution **P**rotocol **L**oop **O**ptimizing **I**ntelligent **D**REAMER
 (**D**ynamic **R**ecursive **E**ngine **A**dapting **M**odules **E**volving **R**EPLOID)
