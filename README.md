@@ -1,4 +1,4 @@
-# REPLOID: Recursive Self-Improvement Substrate
+# Reploid: Recursive Self-Improvement Substrate
 
 > A long-running browser-native system that can modify its own code.
 
@@ -10,7 +10,7 @@
 
 ## About
 
-REPLOID is a **self-modifying AI substrate** that demonstrates recursive self-improvement ([RSI](https://en.wikipedia.org/wiki/Recursive_self-improvement)) in a browser environment.
+Reploid is a **self-modifying AI substrate** that demonstrates recursive self-improvement ([RSI](https://en.wikipedia.org/wiki/Recursive_self-improvement)) in a browser environment.
 
 **How:** The agent reads code from its VFS → analyzes & improves it → writes back to VFS → hot-reloads → evolves.
 
@@ -293,7 +293,7 @@ Skim those when you want the full reference manual; the rest of this README stay
 
 ## Landscape
 
-REPLOID lives in a small but rapidly evolving ecosystem of self-improving agents. We intentionally share compute constraints (browser, IndexedDB) while diverging on safety architecture and ownership.
+Reploid lives in a small but rapidly evolving ecosystem of self-improving agents. We intentionally share compute constraints (browser, IndexedDB) while diverging on safety architecture and ownership.
 
 ### WebLLM (MLC AI)
 WebLLM is the inference engine reploid can stand on: deterministic WebGPU execution. It excels at raw token throughput and versioned stability but offers no tools, memory, or self-modification. REPLOID layers VFS, a tool runner, PAWS governance, and substrate/capability boundaries above WebLLM so passive inference becomes an auditable agent capable of planning, testing, and rewriting itself safely.
@@ -320,7 +320,7 @@ Devin shows what proprietary, cloud-scale orchestration can deliver: GPT-4-class
 
 ## Philosophy
 
-REPLOID is an experiment in [**substrate-independent RSI**](https://www.edge.org/response-detail/27126):
+Reploid is an experiment in [**substrate-independent RSI**](https://www.edge.org/response-detail/27126):
 
 - The agent's "brain" is just data in IndexedDB
 - The agent can modify this data (its own code)
