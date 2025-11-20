@@ -1,80 +1,82 @@
-// Standardized State Helpers Pure Module for REPLOID
-// Pure functions for state validation and manipulation
+/**
+ * @fileoverview Pure State Helpers
+ * Logic-only functions for state validation and default values.
+ */
 
 const StateHelpersPure = {
   metadata: {
     id: 'StateHelpersPure',
-    version: '1.0.0',
-    dependencies: [],  // No dependencies - pure module
-    async: false,
+    version: '2.0.0',
+    dependencies: [],
     type: 'pure'
   },
-  
-  factory: (deps = {}) => {
-    const calculateDerivedStatsPure = (
-      confidenceHistory = [],
-      critiqueFailHistory = [],
-      tokenHistory = [],
-      evaluationHistory = [],
-      maxHistoryItems = 20,
-      evalPassThreshold = 0.75
-    ) => {
-      // This function can be kept for future upgrades, but is not used by the primordial agent.
-      const stats = {
-        avgConfidence: null,
-        critiqueFailRate: null,
-        avgTokens: null,
-        avgEvalScore: null,
-        evalPassRate: null,
-      };
-      return stats;
-    };
 
-    const validateStateStructurePure = (
-      stateObj,
-      configStateVersion,
-      defaultStateFactory
-    ) => {
-      if (!stateObj || typeof stateObj !== "object")
-        return "Invalid state object";
-      if (!stateObj.version || !stateObj.artifactMetadata || !stateObj.currentGoal) {
-        return "State missing critical properties: version, artifactMetadata, or currentGoal."
+  factory: () => {
+
+    const DEFAULT_STATE = {
+      version: '2.0.0',
+      totalCycles: 0,
+      currentGoal: null,
+      session: {
+        id: null,
+        startTime: null,
+        status: 'idle'
+      },
+      artifactMetadata: {}, // Tracks file modification times/cycles
+      stats: {
+        apiCalls: 0,
+        errors: 0
       }
-      return null;
     };
 
-    const mergeWithDefaultsPure = (
-      loadedState,
-      defaultStateFactory,
-      configStateVersion
-    ) => {
-      const defaultState = defaultStateFactory(
-        configStateVersion
-          ? { STATE_VERSION: configStateVersion, DEFAULT_CFG: {} }
-          : null
-      );
-      const mergedState = {
-        ...defaultState,
-        ...loadedState,
-        cfg: { ...defaultState.cfg, ...(loadedState.cfg || {}) },
+    const createInitialState = (overrides = {}) => {
+      return {
+        ...DEFAULT_STATE,
+        ...overrides,
+        session: { ...DEFAULT_STATE.session, ...(overrides.session || {}) }
       };
-      return mergedState;
     };
 
-    // Public API
+    const validateState = (state) => {
+      const errors = [];
+      if (!state || typeof state !== 'object') return ['State is not an object'];
+      if (typeof state.totalCycles !== 'number') errors.push('Invalid totalCycles');
+      return errors.length > 0 ? errors : null;
+    };
+
+    /**
+     * Push a new goal onto the goal stack
+     */
+    const pushGoal = (state, newGoalText) => {
+      const newState = JSON.parse(JSON.stringify(state));
+
+      if (!newState.currentGoal) {
+        newState.currentGoal = {
+          id: Date.now().toString(),
+          text: newGoalText,
+          created: Date.now(),
+          subgoals: []
+        };
+      } else {
+        // Add as subgoal to current
+        newState.currentGoal.subgoals.push({
+          id: Date.now().toString(),
+          text: newGoalText,
+          created: Date.now(),
+          status: 'pending'
+        });
+      }
+
+      return newState;
+    };
+
     return {
-      calculateDerivedStatsPure,
-      validateStateStructurePure,
-      mergeWithDefaultsPure,
+      createInitialState,
+      validateState,
+      pushGoal,
+      DEFAULT_STATE
     };
   }
 };
 
-// Legacy compatibility wrapper
-const StateHelpersPureModule = (() => {
-  return StateHelpersPure.factory({});
-})();
-
-// Export both formats
-StateHelpersPure;
-StateHelpersPureModule;
+export default StateHelpersPure;

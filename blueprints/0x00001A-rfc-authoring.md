@@ -5,7 +5,7 @@
 **Target Upgrade:** RFCA (`rfc-author.js`)
 
 
-**Prerequisites:** 0x000012 (Structured Self-Evaluation), **0x00004E** (Module Widget Protocol)
+**Prerequisites:** 0x000012 (Structured Self-Evaluation), 0x000048 (Module Widget Protocol)
 
 **Affected Artifacts:** `/docs/rfc-*.md`, `/templates/rfc.md`
 

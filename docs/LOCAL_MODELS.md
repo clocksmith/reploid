@@ -14,7 +14,7 @@ Choose one of the following:
 curl -fsSL https://ollama.ai/install.sh | sh
 
 # Pull a model (e.g., Llama 2)
-ollama pull llama2
+ollama pull qwen3-coder-32b
 
 # Start Ollama server (runs on port 11434 by default)
 ollama serve
@@ -115,10 +115,10 @@ Edit `config.json` to set default models for each provider:
   "default": "local",
   "fallbackProviders": ["gemini", "openai"],
   "localEndpoint": "http://localhost:11434",
-  "localModel": "llama2",
-  "geminiModel": "gemini-1.5-flash-latest",
-  "openaiModel": "gpt-4-turbo-preview",
-  "anthropicModel": "claude-3-opus-20240229"
+  "localModel": "qwen3-coder-32b",
+  "geminiModel": "gemini-3-pro-preview",
+  "openaiModel": "gpt-5.1-turbo",
+  "anthropicModel": "claude-sonnet-4-5"
 }
 ```
 
@@ -131,7 +131,7 @@ curl http://localhost:11434/api/tags
 
 # Test generation
 curl http://localhost:11434/api/generate -d '{
-  "model": "llama2",
+  "model": "qwen3-coder-32b",
   "prompt": "Hello, world!"
 }'
 ```
@@ -143,7 +143,7 @@ curl http://localhost:8000/api/proxy-status
 
 # Test local model through proxy
 curl http://localhost:8000/api/local/api/generate -H "Content-Type: application/json" -d '{
-  "model": "llama2",
+  "model": "qwen3-coder-32b",
   "prompt": "Hello from REPLOID!"
 }'
 ```
@@ -178,9 +178,9 @@ curl http://localhost:8000/api/local/api/generate -H "Content-Type: application/
 
 For best performance with REPLOID:
 
-1. **Llama 2 7B** - Good balance of capability and speed
+1. **Qwen3-Coder 32B** - Good balance of capability and speed
    ```bash
-   ollama pull llama2
+   ollama pull qwen3-coder-32b
    ```
 
 2. **Mistral 7B** - Fast and capable

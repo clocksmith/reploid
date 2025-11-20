@@ -99,7 +99,7 @@ ANTHROPIC_API_KEY=your_key_here
 
 # Optional: Local Ollama
 OLLAMA_ENDPOINT=http://localhost:11434
-OLLAMA_MODEL=llama2
+OLLAMA_MODEL=qwen3-coder-32b
 ```
 
 3. Start server:
@@ -153,10 +153,10 @@ npm start
 3. Check WebGPU status (should show "Available")
 
 4. Select a model:
-   - **Qwen2.5-Coder-1.5B** (~900MB) - Best for coding
-   - **Phi-3.5 Mini** (~2.1GB) - Balanced
-   - **Llama 3.2 1B** (~900MB) - Fast inference
-   - **Gemma 2 2B** (~1.2GB) - High quality
+   - **Qwen3-Coder-2B** (~900MB) - Best for coding
+   - **Phi-4-mini-4k** (~2.1GB) - Balanced
+   - **Llama-4-1B** (~900MB) - Fast inference
+   - **Gemma-3-4B** (~1.2GB) - High quality
 
 5. Click "☇ Load Model"
 
@@ -180,10 +180,10 @@ npm start
 
 | Model | Size | Tokens/sec | Quality | Use Case |
 |-------|------|------------|---------|----------|
-| Qwen2.5-Coder-1.5B | 900MB | 50-150 | Good | Coding tasks |
-| Phi-3.5 Mini | 2.1GB | 30-80 | Better | General purpose |
-| Llama 3.2 1B | 900MB | 80-200 | Good | Fast responses |
-| Gemma 2 2B | 1.2GB | 40-100 | Better | Balanced |
+| Qwen3-Coder-2B | 900MB | 50-150 | Good | Coding tasks |
+| Phi-4-mini-4k | 2.1GB | 30-80 | Better | General purpose |
+| Llama-4-1B | 900MB | 80-200 | Good | Fast responses |
+| Gemma-3-4B | 1.2GB | 40-100 | Better | Balanced |
 
 ### Vision Models
 
@@ -319,13 +319,12 @@ You can change modes anytime:
 → **Hybrid** (Local WebGPU + Cloud fallback)
 
 ### For Maximum Quality
-→ **Client + API Keys** with Claude 3.5 Sonnet
+
 
 ---
 
 ## Next Steps
 
 - **Client-Only**: See [Quick Start Guide](QUICK-START.md)
-- **Node.js Server**: See [Installation](#) and [Hermes README](../hermes/README.md)
 - **Local WebGPU**: See [Local Models Guide](LOCAL_MODELS.md)
 - **API Reference**: See [API Documentation](API.md)

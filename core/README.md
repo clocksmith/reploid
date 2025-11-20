@@ -2,18 +2,39 @@
 
 **Purpose**: Core substrate modules that provide the fundamental capabilities for REPLOID's recursive self-improvement system.
 
-## Contents
+## Critical Safety Modules
+
+| File | Purpose |
+|------|---------|
+| `genesis-factory.js` | Creates immutable recovery kernels (“Lifeboats”) used by the Safe Mode bootloader |
+| `verification-manager.js` | Runs pre-flight code verification inside an isolated Web Worker |
+| `embedding-engine.js` | Local vector memory layer (MiniLM) for semantic reflection/retrieval |
+
+## Cognitive Kernel
 
 | File | Purpose |
 |------|---------|
 | `agent-loop.js` | Main cognitive cycle - decision making, tool selection, execution orchestration |
+| `context-manager.js` | Memory management, token estimation, and context compaction |
+| `response-parser.js` | Robust JSON extraction and tool call parsing |
 | `llm-client.js` | Multi-provider LLM communication (Gemini, Claude, OpenAI, Ollama, WebLLM) |
+
+## File System & Tooling
+
+| File | Purpose |
+|------|---------|
 | `vfs.js` | Virtual filesystem (IndexedDB) - persistent storage for evolved code |
+| `git-vfs.js` | Version-control layer (snapshots, rollbacks, history) |
 | `tool-runner.js` | Tool execution engine - validates and runs tools in sandbox |
 | `tool-writer.js` | Tool creation system - generates, validates, and registers new tools (Level 1 RSI) |
-| `meta-tool-writer.js` | Meta-improvement system - modifies tool-writer and core modules (Level 2 RSI) |
+| `meta-tool-writer.js` | Meta-improvement system - modifies tool-writer and core modules (Level 2/3 RSI) |
 | `substrate-loader.js` | Hot-reload system - loads evolved code as living modules from VFS |
-| `substrate-tools.js` | Substrate manipulation - 11 tools for VFS, widgets, and code execution |
+| `substrate-tools.js` | Substrate manipulation - load_module, update_preview, etc. |
+
+## Orchestration & Utilities
+
+| File | Purpose |
+|------|---------|
 | `multi-model-coordinator.js` | Multi-model orchestration - consensus, voting, ensembles |
 | `workflow-manager.js` | Workflow coordination - task planning and execution |
 | `agent-bridge-client.js` | Communication bridge for external agent integration |

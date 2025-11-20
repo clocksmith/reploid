@@ -1,256 +1,101 @@
-# REPLOID Examples
+\# REPLOID Examples & Pattern Library
 
-This directory contains polished examples demonstrating different levels of recursive self-improvement.
+> **"The best way to predict the future is to invent it."** — Alan Kay
+
+This directory contains reference implementations for **Recursive Self-Improvement (RSI)**. These scripts serve as manual tests for developers and training data for the agent.
 
 ---
 
-## 📚 Available Examples
+## 📚 The RSI Ladder
 
-### 1. Self-Play Prompt Improver (Level 2 RSI)
+We provide three polished examples corresponding to the three levels of agent evolution.
 
-**File:** `self-play-prompt-improver.js`
+### [Level 1: Tool Usage (The Basics)](./code-quality-auditor.js)
+**File:** [`examples/code-quality-auditor.js`](./code-quality-auditor.js)
 
-**What it demonstrates:**
-- Agent using LLM to critique its own prompts
-- Iterative improvement through self-play
-- Level 2 RSI (improving the improvement process)
-- Live Preview visualization of evolution
+*   **Concept:** The agent uses existing capabilities (VFS + LLM) to perform a task *external* to itself. It does not modify its own logic.
+*   **What it does:** Reads a file, sends it to the LLM for a security/performance audit, and renders a visual report.
+*   **Agent Prompt:** "Audit `core/agent-loop.js` for performance issues using the code auditor example."
 
-**How to use:**
+### [Level 2: Meta-Cognition (The Feedback Loop)](./self-play-prompt-improver.js)
+**File:** [`examples/self-play-prompt-improver.js`](./self-play-prompt-improver.js)
+
+*   **Concept:** The agent improves its own *process*. It uses the LLM to critique its own output, iteratively refining a prompt through self-play.
+*   **What it does:** Takes a seed prompt, identifies weaknesses, generates fixes, and visualizes the evolution DNA in the UI.
+*   **Agent Prompt:** "Load the self-play example and evolve the prompt 'You are a coding bot' for 5 iterations."
+
+### [Level 3: Substrate Modification (The Singularity)](./substrate-optimizer.js)
+**File:** [`examples/substrate-optimizer.js`](./substrate-optimizer.js)
+
+*   **Concept:** The agent modifies its own *runtime kernel*. It reads core modules, rewrites them to add features (like instrumentation), and hot-reloads them.
+*   **What it does:** Reads `core/tool-runner.js`, uses an LLM to inject performance logging, and applies the change via the `improve_core_module` meta-tool.
+*   **Agent Prompt:** "Run the substrate optimizer on `tool-runner` in dry-run mode to see proposed architectural changes."
+
+---
+
+## 🏃 How to Run
+
+### Method A: Manual (Browser Console)
+Open the DevTools Console (`F12`) and import the module directly:
 
 ```javascript
-// Option 1: Agent creates it at runtime
-// Goal: "Build a tool that uses the LLM to iteratively improve prompts"
-// Agent will create similar tool using create_tool()
+// Level 1 Example
+const auditor = await import('./examples/code-quality-auditor.js');
+await auditor.default({ file_path: '/core/agent-loop.js' });
 
-// Option 2: Manually load example
-// In browser console or agent context:
-const tool = await import('./examples/self-play-prompt-improver.js');
-const result = await tool.default({
-  initial_prompt: "You are a helpful AI assistant.",
-  iterations: 5
-});
-
-console.log('Final prompt:', result.final_prompt);
-console.log('Evolution:', result.evolution);
+// Level 3 Example (Dry Run)
+const optimizer = await import('./examples/substrate-optimizer.js');
+await optimizer.default({ target_module: 'tool-runner', dry_run: true });
 ```
 
-**Expected output:**
-- Iteration 0: "You are a helpful AI assistant."
-- Iteration 1: "You are an AI assistant that provides clear, accurate, and contextual responses to user questions."
-  - Weakness: "Too generic, doesn't specify what makes responses helpful"
-- Iteration 2: "You are an AI assistant specialized in providing clear, accurate responses with concrete examples and step-by-step explanations when needed."
-  - Weakness: "Doesn't mention error handling or clarification"
-- ...and so on
+### Method B: Agent Delegation
+Tell REPLOID to use the example as a tool. This tests the agent's ability to read, load, and execute VFS code.
 
-**Why it's better than naive implementation:**
-- Each iteration addresses a SPECIFIC weakness
-- Weaknesses are different each time (not repetitive)
-- Prompt actually gets better (not just longer)
-- Demonstrates actual intelligence, not string manipulation
+> **Goal:** "Read `/examples/self-play-prompt-improver.js`, load it as a module, and run it to improve the prompt 'Explain quantum physics'."
 
 ---
 
-## 🎯 Example Goals for Agent
+## 🛠 Developer Guide
 
-Use these goals to have the agent create similar tools:
-
-### Level 1 RSI Goals
-
-**Simple Tool Creation:**
-```
-"Create a tool that analyzes JavaScript code for potential errors"
-"Build a tool that generates test cases for a given function"
-"Make a tool that converts JSON to TypeScript interfaces"
-```
-
-### Level 2 RSI Goals
-
-**Meta-Tool Creation:**
-```
-"Build a tool that uses the LLM to iteratively improve prompts by identifying weaknesses and fixing them"
-"Create a meta-tool that analyzes existing tools and generates improved versions"
-"Build a tool-creation-assistant that helps you write better tools"
-```
-
-### Level 3 RSI Goals
-
-**Substrate Modification:**
-```
-"Analyze your tool creation process and optimize the slowest parts"
-"Read your agent-loop code and add parallel tool execution"
-"Improve your cognitive cycle to be more efficient"
-```
-
----
-
-## 📝 Creating Your Own Examples
-
-### Example Template
+When creating new RSI examples, follow this **Standard Tool Protocol** to ensure compatibility with the Verification Worker.
 
 ```javascript
-// Example: [Name]
-// Demonstrates [what RSI level and concept]
+/**
+ * Template for REPLOID Examples
+ * Must export a default async function returning a standard result object.
+ */
+export default async function my_example({ param1 = "default" }) {
+  console.log('[Example] Starting...');
 
-export default async function example_name({
-  param1 = "default",
-  param2 = 10
-}) {
-  console.log('[ExampleName] Starting...');
+  // 1. Do Work (Call LLM, Read VFS, etc.)
+  const result = `Processed ${param1}`;
 
-  // Your logic here
-  // ...
-
-  // Generate visualization if applicable
-  const html = `<div>Your HTML visualization</div>`;
-
-  // Update Live Preview
+  // 2. Visualize (Optional)
   if (window.REPLOID?.toolRunner) {
-    await window.REPLOID.toolRunner.execute('update_preview', { html });
+    await window.REPLOID.toolRunner.execute('update_preview', { 
+      html: `<div class="success">${result}</div>` 
+    });
   }
 
+  // 3. Return Standard Object
   return {
     success: true,
-    result: "...",
-    message: "Example completed"
+    data: result,
+    metrics: { duration: 123 }
   };
 }
 
-// Metadata
-example_name.metadata = {
-  name: 'example_name',
-  description: 'What this example does',
+// Metadata required for tool registration
+my_example.metadata = {
+  name: 'my_example',
+  description: 'Description for the LLM',
   parameters: {
-    param1: 'Description of param1',
-    param2: 'Description of param2'
-  },
-  returns: {
-    success: 'boolean',
-    result: 'any'
+    type: 'object',
+    properties: { param1: { type: 'string' } }
   }
 };
 ```
 
-### Guidelines
-
-1. **Keep it focused:** Each example should demonstrate ONE clear concept
-2. **Show, don't tell:** Use Live Preview to visualize what's happening
-3. **Document extensively:** Code comments should explain WHY, not just WHAT
-4. **Handle errors:** Gracefully handle failures (LLM errors, missing dependencies)
-5. **Make it reproducible:** Same inputs should give similar outputs
-
 ---
 
-## 🧪 Testing Examples
-
-### Manual Testing
-
-```javascript
-// In browser console after REPLOID boots:
-
-// 1. Import example
-const tool = await import('./examples/self-play-prompt-improver.js');
-
-// 2. Run with default params
-const result = await tool.default({});
-
-// 3. Check Live Preview for visualization
-// 4. Inspect result object
-console.log(result);
-```
-
-### Agent Testing
-
-Give agent this goal:
-```
-"Load and test the self-play prompt improver example from /examples/.
-Run it with iterations=3 and display results."
-```
-
-Agent should:
-1. Read example file: `read_file('/examples/self-play-prompt-improver.js')`
-2. Load as module: `load_module('/examples/self-play-prompt-improver.js')`
-3. Execute: `execute_substrate_code('await self_play_prompt_improver({iterations: 3})')`
-4. Results appear in Live Preview
-
----
-
-## 🎨 Example Categories
-
-### Cognitive Patterns
-- Self-play prompt improvement
-- Meta-cognitive evaluation
-- Goal decomposition recursion
-- Self-debugging loops
-
-### Tool Patterns
-- Tool-creating tools
-- Tool analysis and optimization
-- Tool composition (tools using tools)
-- Tool validation frameworks
-
-### Substrate Patterns
-- Module hot-reloading
-- Performance profiling and optimization
-- Widget creation and management
-- Code generation and validation
-
----
-
-## 🚀 Future Examples (TODO)
-
-### Meta-Cognitive Evaluator (Level 2)
-Tool that scores its own reasoning quality and adjusts strategies.
-
-### Recursive Goal Decomposition (Level 2)
-Breaks goals into subgoals, then improves the decomposition algorithm itself.
-
-### Self-Debugging Loop (Level 2)
-When tool fails, agent analyzes failure, generates fix, tests fix, repeats.
-
-### Code Optimizer (Level 3)
-Profiles tool execution, identifies bottlenecks, generates optimized versions.
-
-### Multi-Model Debate (Level 2)
-Two models debate a question, third model judges, system improves debate format.
-
----
-
-## 📚 Learning Path
-
-**If you're new to REPLOID:**
-
-1. Start with FULL SUBSTRATE genesis level
-2. Try the Self-Play Prompt Improver example manually
-3. Give agent goal: "Build a tool that improves prompts"
-4. Watch agent create similar tool from scratch
-5. Compare agent's version with the example
-
-**If you want to push RSI limits:**
-
-1. Try MINIMAL AXIOMS or TABULA RASA
-2. See if agent can discover self-play patterns without examples
-3. Give open-ended goal: "Improve yourself"
-4. Observe emergent RSI behaviors
-
----
-
-## 🔬 Research Opportunities
-
-- **Can Level 2 RSI emerge without examples?** Test with TABULA RASA
-- **How many iterations until diminishing returns?** Run self-play with iterations=100
-- **Do smaller models discover different patterns?** Compare WebLLM (3B) vs cloud (175B)
-- **Can agent improve the self-play algorithm itself?** Meta-meta-programming
-
----
-
-## 📖 Additional Resources
-
-- **Main README:** `../README.md` - Complete REPLOID documentation
-- **WebLLM Guide:** [README - Option 1: Zero-Setup WebLLM Demo](../README.md#option-1-zero-setup-webllm-demo-no-installation)
-- **Genesis Levels:** [README - Genesis Levels](../README.md#genesis-levels)
-- **Connection Types:** [README - Connection Types](../README.md#connection-types)
-
----
-
-**Remember:** The best examples come from experimentation. Run the agent, see what it creates, refine it, save it here for others to learn from.
+**[Back to Main README](../README.md)**

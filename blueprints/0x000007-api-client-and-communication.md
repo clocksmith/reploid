@@ -5,7 +5,7 @@
 **Target Upgrade:** APIC (`api-client.js`)
 
 
-**Prerequisites:** `0x000003`, **0x00004E** (Module Widget Protocol)
+**Prerequisites:** `0x000003`, `0x000048` (Module Widget Protocol)
 
 **Affected Artifacts:** `/modules/api-client.js`
 

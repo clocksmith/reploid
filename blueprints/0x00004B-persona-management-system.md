@@ -1,10 +1,10 @@
-# Blueprint 0x000051: Persona Management System
+# Blueprint 0x00004B: Persona Management System
 
 **Objective:** Implement a centralized persona lifecycle management system that elevates personas to first-class objects with dynamic loading, switching, and observability.
 
 **Target Upgrade:** PMGR (`persona-manager.js`)
 
-**Prerequisites:** 0x000003 (Core Utilities), 0x000050 (Config System)
+**Prerequisites:** 0x000003 (Core Utilities), 0x00004A (Config Management)
 
 **Affected Artifacts:** `/upgrades/persona-manager.js`
 

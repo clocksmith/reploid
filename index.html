@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes" />
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><defs><linearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'><stop offset='0%25' style='stop-color:%230ff;'/><stop offset='100%25' style='stop-color:%23ffd700;'/></linearGradient></defs><text fill='url(%23g)' y='.99em' font-size='90' font-weight='bold'>R</text></svg>" />
     <title>REPLOID - AI Assistant</title>
-    <link rel="stylesheet" href="boot/style.css">
+    <link rel="stylesheet" href="styles/boot.css">
     <!-- CDN libraries (Chart.js, D3, Acorn, Prism, WebLLM) are lazy-loaded by modules that need them -->
 
     <!-- Firebase Analytics -->
@@ -289,18 +289,24 @@
 
     </div>
 
-    <!-- Agent Monitor (shown after awakening) -->
+    <!-- Agent Monitor (shown after awakening) - Mission Control Layout -->
     <div id="agent-container" style="display: none; flex-direction: column; height: 100vh; background: #0a0a0a; color: #e0e0e0; font-family: 'Courier New', monospace;">
         <!-- Header -->
-        <div style="padding: 20px; border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center;">
+        <div class="mission-control-header" style="padding: 12px 20px; border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center;">
             <div style="display: flex; align-items: center; gap: 20px;">
-                <h2 style="margin: 0; font-size: 21.6px; color: #0ff; padding-right: 4px;">REPLOID - Agent Status Monitor</h2>
-                <div id="context-stats" style="font-size: 12px; color: #888; font-family: monospace;">
+                <h2 style="margin: 0; font-size: 18px; color: #0ff;">REPLOID Mission Control</h2>
+                <div id="context-stats" style="font-size: 11px; color: #888; font-family: monospace;">
                     <span id="context-messages">0 msgs</span> |
                     <span id="context-tokens">0 tokens</span>
                 </div>
+                <!-- Current Goal Display -->
+                <div id="current-goal-display" style="font-size: 12px; color: #ffd700; max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"></div>
             </div>
-            <div style="display: flex; gap: 12px;">
+            <div style="display: flex; gap: 8px; align-items: center;">
+                <!-- Panel Toggle -->
+                <button id="log-toggle-btn" class="holo-btn" style="padding: 6px 12px; font-size: 11px;">
+                    <span class="btn-text">Show: VISUALIZER</span>
+                </button>
                 <button id="pause-btn" class="holo-btn holo-btn-pause">
                     <span class="btn-icon">⏸</span>
                     <span class="btn-text">Pause</span>
@@ -309,37 +315,161 @@
                     <span class="btn-icon">⏹</span>
                     <span class="btn-text">Stop</span>
                 </button>
-                <button id="export-btn" class="holo-btn holo-btn-export" title="Export entire REPLOID state (VFS, context, tools)">
+                <button id="export-btn" class="holo-btn holo-btn-export" title="Export entire REPLOID state">
                     <span class="btn-icon">⬇</span>
-                    <span class="btn-text">Export State</span>
+                    <span class="btn-text">Export</span>
                 </button>
             </div>
         </div>
 
-        <!-- Split Screen: Agent Log + Live Preview -->
+        <!-- Safety Net Banner (shown during proposal approval) -->
+        <div id="safety-net-banner" class="safety-net-banner hidden" style="padding: 10px 20px; background: linear-gradient(90deg, rgba(0,255,0,0.1), rgba(0,255,255,0.1)); border-bottom: 1px solid #0f0; display: flex; align-items: center; gap: 12px;">
+            <span style="font-size: 18px;">🛡️</span>
+            <span style="color: #0f0; font-size: 13px; font-weight: 600;">Safety Net Active</span>
+            <span style="color: #888; font-size: 12px;">A restore point has been created. You can undo these changes with one click.</span>
+        </div>
+
+        <!-- Main Content Area -->
         <div style="display: flex; flex: 1; overflow: hidden;">
-            <!-- Left: Agent Status Log (60%) -->
+            <!-- Left: Agent Visualizer + Log (60%) -->
             <div style="flex: 0 0 60%; border-right: 1px solid #333; display: flex; flex-direction: column;">
-                <div id="agent-log" style="flex: 1; overflow-y: auto; padding: 20px; padding-bottom: 40px;">
+                <!-- Agent Visualizer (Primary View - Mission Control) -->
+                <div id="agent-visualizer-container" class="advanced-panel" style="flex: 0 0 200px; border-bottom: 1px solid #333; padding: 10px; background: #0a0a0a;">
+                    <div style="text-align: center; color: #555; padding: 40px;">
+                        Agent FSM Visualizer loads here
+                    </div>
+                </div>
+
+                <!-- Agent Log (Collapsible) -->
+                <div id="agent-log" style="flex: 1; overflow-y: auto; padding: 15px; padding-bottom: 40px;">
                     <!-- Status messages will be added here dynamically -->
                 </div>
             </div>
 
-            <!-- Right: Live Preview (40%) -->
-            <div id="live-preview" style="flex: 1; overflow-y: auto; padding: 20px; background: #0f0f0f;">
-                <h3 style="margin: 0 0 15px 0; color: #888; font-size: 16px; border-bottom: 1px solid #333; padding-bottom: 10px;">Live Preview</h3>
-                <div id="preview-content" style="color: #888; font-size: 14px;">
-                    <p>UI components and code changes will appear here as the agent creates them.</p>
+            <!-- Right: Live Preview + Panels (40%) -->
+            <div style="flex: 1; display: flex; flex-direction: column; overflow: hidden;">
+                <!-- Live Preview -->
+                <div id="live-preview" style="flex: 1; overflow-y: auto; padding: 15px; background: #0f0f0f;">
+                    <h3 style="margin: 0 0 10px 0; color: #888; font-size: 14px; border-bottom: 1px solid #333; padding-bottom: 8px;">Live Preview</h3>
+                    <div id="preview-content" style="color: #888; font-size: 13px;">
+                        <p>Visualizations and code changes appear here.</p>
+                    </div>
+                </div>
+
+                <!-- Advanced Panels (Hidden by default) -->
+                <div id="thought-panel" class="advanced-panel hidden" style="flex: 0 0 200px; padding: 10px; border-top: 1px solid #333; overflow-y: auto;">
+                    <h4 style="margin: 0 0 8px 0; color: #888; font-size: 12px;">Thought Log</h4>
+                    <div id="thought-content" style="font-size: 11px; color: #666;"></div>
+                </div>
+
+                <div id="performance-panel" class="advanced-panel hidden" style="flex: 0 0 200px; padding: 10px; border-top: 1px solid #333; overflow-y: auto;">
+                    <h4 style="margin: 0 0 8px 0; color: #888; font-size: 12px;">Performance Metrics</h4>
+                    <div id="perf-charts"></div>
+                </div>
+
+                <div id="introspection-panel" class="advanced-panel hidden" style="flex: 0 0 200px; padding: 10px; border-top: 1px solid #333; overflow-y: auto;">
+                    <h4 style="margin: 0 0 8px 0; color: #888; font-size: 12px;">Introspection</h4>
+                    <div id="introspection-content"></div>
+                </div>
+
+                <div id="python-repl-panel" class="advanced-panel hidden" style="flex: 0 0 250px; padding: 10px; border-top: 1px solid #333; overflow-y: auto;">
+                    <h4 style="margin: 0 0 8px 0; color: #888; font-size: 12px;">Python REPL</h4>
+                    <div id="pyodide-status-icon" style="display: inline;">⚪</div>
+                    <span id="pyodide-status-text" style="font-size: 11px; color: #666;">Not loaded</span>
+                    <textarea id="python-code-input" style="width: 100%; height: 80px; margin-top: 8px; background: #1a1a1a; color: #0f0; border: 1px solid #333; font-family: monospace; font-size: 11px; padding: 8px;" placeholder="# Python code here..."></textarea>
+                    <div style="margin-top: 8px;">
+                        <button id="python-execute-btn" style="padding: 4px 8px; font-size: 10px;">▶️ Run</button>
+                        <button id="repl-clear-btn" style="padding: 4px 8px; font-size: 10px;">Clear</button>
+                        <label style="font-size: 10px; margin-left: 8px;">
+                            <input type="checkbox" id="python-sync-workspace-check"> Sync VFS
+                        </label>
+                    </div>
+                    <div id="python-output" style="margin-top: 8px; max-height: 100px; overflow-y: auto; font-size: 10px; color: #888;"></div>
+                </div>
+
+                <div id="local-llm-panel" class="advanced-panel hidden" style="flex: 0 0 200px; padding: 10px; border-top: 1px solid #333; overflow-y: auto;">
+                    <h4 style="margin: 0 0 8px 0; color: #888; font-size: 12px;">Local LLM</h4>
+                    <div id="llm-status-icon" style="display: inline;">⚪</div>
+                    <span id="llm-status-text" style="font-size: 11px; color: #666;">Not loaded</span>
+                    <div id="llm-webgpu-status" style="font-size: 10px; margin-top: 4px;"></div>
+                    <div id="llm-current-model" style="font-size: 10px; color: #0ff; margin-top: 4px;"></div>
+                    <div style="margin-top: 8px;">
+                        <select id="llm-model-select" style="font-size: 10px; padding: 4px;">
+                            <option value="">Select model...</option>
+                            <option value="Phi-3.5-mini-instruct-q4f16_1-MLC">Phi-3.5 Mini (2GB)</option>
+                            <option value="Llama-3.2-1B-Instruct-q4f16_1-MLC">Llama 3.2 1B (1GB)</option>
+                        </select>
+                        <button id="llm-load-btn" style="padding: 4px 8px; font-size: 10px;">Load</button>
+                    </div>
+                    <div id="llm-progress-bar" style="margin-top: 8px; height: 4px; background: #333; border-radius: 2px;">
+                        <div id="llm-progress-fill" style="height: 100%; width: 0%; background: #0ff; border-radius: 2px; transition: width 0.3s;"></div>
+                    </div>
+                    <div id="llm-progress-text" style="font-size: 9px; color: #666; margin-top: 2px;"></div>
+                </div>
+
+                <!-- VFS Tree Panel -->
+                <div id="vfs-tree" class="advanced-panel hidden" style="flex: 0 0 200px; padding: 10px; border-top: 1px solid #333; overflow-y: auto;">
+                    <h4 style="margin: 0 0 8px 0; color: #888; font-size: 12px;">VFS Explorer</h4>
+                </div>
+
+                <!-- AST Visualizer -->
+                <div id="ast-viz-container" class="advanced-panel hidden" style="flex: 0 0 200px; padding: 10px; border-top: 1px solid #333; overflow-y: auto;">
+                    <h4 style="margin: 0 0 8px 0; color: #888; font-size: 12px;">AST Visualizer</h4>
                 </div>
             </div>
         </div>
 
-        <div id="chat-input-area" style="padding: 20px; border-top: 1px solid #333; display: none;">
-            <input type="text" placeholder="Enter follow-up goal..." style="width: 100%; padding: 12px; background: #1a1a1a; color: #fff; border: 1px solid #555; font-family: inherit; font-size: 14px;" />
+        <!-- Diff Viewer Container (for proposal approval) -->
+        <div id="diff-viewer-container" style="display: none;"></div>
+
+        <div id="chat-input-area" style="padding: 15px 20px; border-top: 1px solid #333; display: none;">
+            <input type="text" placeholder="Enter follow-up goal..." style="width: 100%; padding: 10px; background: #1a1a1a; color: #fff; border: 1px solid #555; font-family: inherit; font-size: 13px;" />
         </div>
     </div>
 
     <style>
+        /* Mission Control CSS */
+        .hidden {
+            display: none !important;
+        }
+
+        .advanced-panel {
+            transition: all 0.3s ease;
+        }
+
+        .safety-net-banner {
+            animation: pulse-glow 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 5px rgba(0, 255, 0, 0.3); }
+            50% { box-shadow: 0 0 15px rgba(0, 255, 0, 0.6); }
+        }
+
+        /* REPL output styles */
+        .repl-result {
+            padding: 8px;
+            margin-bottom: 8px;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+
+        .repl-result-success {
+            background: rgba(0, 255, 0, 0.1);
+            border-left: 2px solid #0f0;
+        }
+
+        .repl-result-error {
+            background: rgba(255, 0, 0, 0.1);
+            border-left: 2px solid #f00;
+        }
+
+        .repl-stdout { color: #0f0; }
+        .repl-stderr { color: #f80; }
+        .repl-error { color: #f00; }
+        .repl-return-value { color: #0ff; }
+        .repl-result-header { color: #666; font-size: 9px; margin-bottom: 4px; }
+
         .chat-message {
             margin-bottom: 15px;
             padding: 10px;

@@ -5,7 +5,7 @@
 **Target Upgrade:** UIMN (`ui-manager.js`)
 
 
-**Prerequisites:** `0x00000E`, `0x00000F`, **0x00004E** (Module Widget Protocol)
+**Prerequisites:** `0x00000E`, `0x00000F`, `0x000048` (Module Widget Protocol)
 
 **Affected Artifacts:** `/modules/ui-manager.js`
 

@@ -1,13 +1,33 @@
-// Example: Self-Play Prompt Improver
-// Demonstrates Level 2 RSI by using LLM to critique and improve prompts iteratively
-// This is the "done right" version - not naive string concatenation
+/**
+ * Example: Self-Play Prompt Improver
+ * Level: 2 (Meta-Cognition / Self-Improvement)
+ * 
+ * Demonstrates using the LLM to critique and refine its own prompts iteratively.
+ * Uses the Live Preview panel to visualize the evolution.
+ */
 
 export default async function self_play_prompt_improver({
   initial_prompt = "You are a helpful AI assistant.",
   iterations = 5,
-  model = null // Will use first available model if not specified
+  model = null
 }) {
-  console.log('[SelfPlayPromptImprover] Starting with:', initial_prompt);
+  console.log('[SelfPlay] Starting prompt evolution...');
+
+  // 1. Resolve Model (Compatible with new boot.js architecture)
+  let activeModel = model;
+  if (!activeModel) {
+    try {
+      // Try to get from localStorage (saved by boot/model-config.js)
+      const savedModels = JSON.parse(localStorage.getItem('SELECTED_MODELS') || '[]');
+      if (savedModels.length > 0) {
+        activeModel = savedModels[0];
+      } else {
+        throw new Error("No active models found in configuration");
+      }
+    } catch (e) {
+      return { success: false, error: "Could not resolve a model to run this tool. Please configure a model in the boot screen." };
+    }
+  }
 
   const evolution = [];
   let current_prompt = initial_prompt;
@@ -16,199 +36,101 @@ export default async function self_play_prompt_improver({
   evolution.push({
     iteration: 0,
     prompt: initial_prompt,
-    weakness: "N/A (initial prompt)",
+    weakness: "N/A (initial seed)",
     improvement: "N/A"
   });
 
+  // Update Preview immediately
+  await updatePreview(evolution);
+
   for (let i = 0; i < iterations; i++) {
-    console.log(`[SelfPlayPromptImprover] Iteration ${i + 1}/${iterations}...`);
+    console.log(`[SelfPlay] Iteration ${i + 1}/${iterations}...`);
 
     try {
-      // Step 1: Ask LLM to identify ONE specific weakness
-      console.log('[SelfPlayPromptImprover] Asking LLM to identify weakness...');
-      const weaknessResponse = await window.REPLOID.llmClient.call(
+      // Step A: Critique (Identify Weakness)
+      const weaknessResp = await window.REPLOID.llmClient.chat(
         [
-          {
-            role: 'user',
-            content: `Analyze this system prompt and identify ONE specific, actionable weakness:\n\n"${current_prompt}"\n\nRespond with ONLY the weakness description (1-2 sentences), nothing else. Be specific about what's missing or unclear.`
-          }
+          { role: 'system', content: 'You are a harsh critic. Identify ONE specific weakness in the user provided prompt.' },
+          { role: 'user', content: `Prompt: "${current_prompt}"\n\nIdentify ONE specific, actionable weakness. Respond ONLY with the weakness description.` }
         ],
-        model || window.REPLOID.modelConfig[0] // Use specified model or first available
+        activeModel
       );
+      const weakness = weaknessResp.content.trim();
 
-      const weakness = weaknessResponse.content.trim();
-      console.log('[SelfPlayPromptImprover] Identified weakness:', weakness);
-
-      // Step 2: Ask LLM to rewrite the prompt to fix that specific weakness
-      console.log('[SelfPlayPromptImprover] Asking LLM to fix weakness...');
-      const improveResponse = await window.REPLOID.llmClient.call(
+      // Step B: Refine (Fix Weakness)
+      const improveResp = await window.REPLOID.llmClient.chat(
         [
-          {
-            role: 'user',
-            content: `Original prompt: "${current_prompt}"\n\nWeakness identified: ${weakness}\n\nRewrite the prompt to fix this specific weakness. Output ONLY the improved prompt, no explanation, no quotes, no preamble. Just the new prompt text.`
-          }
+          { role: 'system', content: 'You are an expert prompt engineer. Rewrite the prompt to fix the identified weakness.' },
+          { role: 'user', content: `Original: "${current_prompt}"\nWeakness: ${weakness}\n\nRewrite the prompt to fix this. Output ONLY the new prompt.` }
         ],
-        model || window.REPLOID.modelConfig[0]
+        activeModel
       );
+      
+      let improved_prompt = improveResp.content.trim().replace(/^["']|["']$/g, ''); // Strip quotes
 
-      const improved_prompt = improveResponse.content.trim()
-        .replace(/^["']|["']$/g, '') // Remove surrounding quotes if LLM added them
-        .replace(/^Prompt: /i, '') // Remove "Prompt:" prefix if added
-        .trim();
-
-      console.log('[SelfPlayPromptImprover] Improved prompt:', improved_prompt.substring(0, 100) + '...');
-
-      // Store evolution step
+      // Record Step
       evolution.push({
         iteration: i + 1,
         prompt: improved_prompt,
         weakness: weakness,
-        improvement: `Fixed: ${weakness}`
+        improvement: `Fixed: ${weakness.substring(0, 50)}...`
       });
 
-      // Update current prompt for next iteration
       current_prompt = improved_prompt;
 
+      // Update Visualization
+      await updatePreview(evolution);
+
     } catch (error) {
-      console.error(`[SelfPlayPromptImprover] Error in iteration ${i + 1}:`, error);
-
-      // Store error in evolution
-      evolution.push({
-        iteration: i + 1,
-        prompt: current_prompt, // Keep previous prompt
-        weakness: `ERROR: ${error.message}`,
-        improvement: "N/A (error occurred)"
-      });
-
-      // Continue with next iteration despite error
+      console.error(`[SelfPlay] Error in iteration ${i + 1}:`, error);
+      evolution.push({ iteration: i + 1, prompt: current_prompt, weakness: `ERROR: ${error.message}`, improvement: "Failed" });
+      break; // Stop on error
     }
-  }
-
-  console.log('[SelfPlayPromptImprover] Evolution complete!');
-
-  // Create HTML visualization
-  const html = generateEvolutionHTML(evolution);
-
-  // Update Live Preview
-  try {
-    await window.REPLOID.toolRunner.execute('update_preview', { html });
-    console.log('[SelfPlayPromptImprover] Live Preview updated');
-  } catch (error) {
-    console.error('[SelfPlayPromptImprover] Failed to update preview:', error);
   }
 
   return {
     success: true,
-    iterations: evolution.length - 1, // Exclude initial state
-    evolution,
     final_prompt: current_prompt,
-    message: `Prompt evolved through ${iterations} iterations of self-play critique`
+    iterations_completed: evolution.length - 1,
+    message: "Check Live Preview for evolution history."
   };
 }
 
-// Generate HTML visualization of prompt evolution
-function generateEvolutionHTML(evolution) {
-  const evolutionHTML = evolution.map(step => {
-    const iterationColor = step.iteration === 0 ? '#888' : '#0ff';
-    const promptBg = step.iteration === 0 ? '#1a1a1a' : '#0a1a1a';
-    const weaknessColor = step.weakness.startsWith('ERROR') ? '#f00' : '#ff0';
+// Helper to update the Live Preview panel via ToolRunner
+async function updatePreview(evolution) {
+  if (!window.REPLOID?.toolRunner) return;
 
-    return `
-      <div style="margin-bottom: 30px; border-left: 3px solid ${iterationColor}; padding-left: 15px;">
-        <div style="font-size: 14px; color: ${iterationColor}; font-weight: bold; margin-bottom: 8px;">
-          Iteration ${step.iteration}
-        </div>
-
-        <div style="
-          padding: 15px;
-          background: ${promptBg};
-          border-radius: 4px;
-          margin-bottom: 10px;
-          font-family: 'Courier New', monospace;
-          font-size: 13px;
-          line-height: 1.6;
-          color: #e0e0e0;
-        ">
-          ${step.prompt}
-        </div>
-
-        ${step.weakness !== 'N/A (initial prompt)' ? `
-          <div style="font-size: 12px; margin-bottom: 5px;">
-            <span style="color: #888;">Weakness:</span>
-            <span style="color: ${weaknessColor}; font-style: italic;"> ${step.weakness}</span>
+  const html = `
+    <div style="font-family: monospace; padding: 20px; color: #e0e0e0;">
+      <h2 style="color: #0ff; border-bottom: 1px solid #333; padding-bottom: 10px;">🧬 Prompt Evolution DNA</h2>
+      ${evolution.map(step => `
+        <div style="margin-bottom: 20px; background: rgba(255,255,255,0.05); padding: 15px; border-radius: 5px; border-left: 3px solid ${step.iteration === 0 ? '#888' : '#0f0'};">
+          <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
+            <strong style="color: #0ff;">Gen ${step.iteration}</strong>
+            <span style="color: #888; font-size: 0.8em;">${step.prompt.length} chars</span>
           </div>
-        ` : ''}
-
-        ${step.improvement !== 'N/A' && !step.improvement.startsWith('N/A') ? `
-          <div style="font-size: 12px;">
-            <span style="color: #888;">Improvement:</span>
-            <span style="color: #0f0;"> ${step.improvement}</span>
-          </div>
-        ` : ''}
-      </div>
-    `;
-  }).join('');
-
-  return `
-    <div style="font-family: 'Courier New', monospace; padding: 20px; color: #e0e0e0; max-width: 100%;">
-      <h2 style="margin: 0 0 10px 0; color: #0ff; font-size: 24px;">
-        Self-Play Prompt Evolution
-      </h2>
-
-      <p style="margin: 0 0 30px 0; color: #888; font-size: 13px;">
-        Each iteration, the LLM critiques the prompt and suggests one specific improvement.
-        This demonstrates <strong style="color: #f0f;">Level 2 RSI</strong>: the AI is improving its own improvement process.
-      </p>
-
-      ${evolutionHTML}
-
-      <div style="margin-top: 40px; padding: 20px; background: rgba(0, 255, 255, 0.1); border: 1px solid #0ff; border-radius: 4px;">
-        <div style="font-size: 14px; color: #0ff; font-weight: bold; margin-bottom: 10px;">
-          📊 Evolution Summary
+          <div style="color: #fff; margin-bottom: 10px; line-height: 1.4;">${step.prompt}</div>
+          ${step.iteration > 0 ? `
+            <div style="font-size: 0.9em; color: #ff7b72;">🔴 Critique: ${step.weakness}</div>
+            <div style="font-size: 0.9em; color: #7ee787;">🟢 Action: ${step.improvement}</div>
+          ` : ''}
         </div>
-        <div style="font-size: 12px; color: #aaa; line-height: 1.8;">
-          <strong>Total Iterations:</strong> ${evolution.length - 1}<br>
-          <strong>Initial Prompt Length:</strong> ${evolution[0].prompt.length} chars<br>
-          <strong>Final Prompt Length:</strong> ${evolution[evolution.length - 1].prompt.length} chars<br>
-          <strong>Growth:</strong> ${((evolution[evolution.length - 1].prompt.length / evolution[0].prompt.length - 1) * 100).toFixed(1)}%
-        </div>
-      </div>
-
-      <div style="margin-top: 20px; font-size: 11px; color: #666; text-align: center;">
-        Generated by REPLOID Self-Play Prompt Improver • This is recursive self-improvement in action
-      </div>
+      `).join('')}
     </div>
   `;
+
+  await window.REPLOID.toolRunner.execute('update_preview', { html });
 }
 
-// Export metadata for tool registry
+// Metadata for Tool Registry
 self_play_prompt_improver.metadata = {
   name: 'self_play_prompt_improver',
-  description: 'Iteratively improve prompts using LLM self-critique (Level 2 RSI)',
+  description: 'Evolves a prompt using iterative self-critique (Level 2 RSI Pattern)',
   parameters: {
-    initial_prompt: 'Starting prompt to improve (default: "You are a helpful AI assistant.")',
-    iterations: 'Number of improvement cycles (default: 5)',
-    model: 'Model config to use (optional, defaults to first available model)'
-  },
-  returns: {
-    success: 'boolean',
-    iterations: 'number',
-    evolution: 'array of {iteration, prompt, weakness, improvement}',
-    final_prompt: 'string',
-    message: 'string'
-  },
-  example: `
-// Basic usage
-await self_play_prompt_improver({
-  initial_prompt: "You are a code assistant.",
-  iterations: 5
-});
-
-// Advanced: specify model
-await self_play_prompt_improver({
-  initial_prompt: "You are an expert in recursion.",
-  iterations: 10,
-  model: {id: 'gemini-2.0-flash-exp', provider: 'Gemini'}
-});
-  `
+    type: 'object',
+    properties: {
+      initial_prompt: { type: 'string', description: 'The seed prompt to start with' },
+      iterations: { type: 'number', description: 'How many evolution cycles to run' }
+    }
+  }
 };
