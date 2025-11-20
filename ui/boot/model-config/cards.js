@@ -231,6 +231,12 @@ export function setupCardListeners() {
 
             console.log('[ModelConfig] Quick demo model added:', demoModel);
 
+            // Set a default goal for the demo
+            const goalInput = document.getElementById('goal-input');
+            if (goalInput && !goalInput.value.trim()) {
+                goalInput.value = 'Write a function that improves itself';
+            }
+
             const awakenBtn = document.getElementById('awaken-btn');
             if (awakenBtn && !awakenBtn.disabled) {
                 awakenBtn.click();
