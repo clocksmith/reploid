@@ -88,13 +88,31 @@ const LLMClient = {
             // Initialize Engine if needed or model changed
             if (!_webLlmEngine || _currentWebModelId !== modelConfig.id) {
                 logger.info(`[LLM] Initializing WebLLM Engine for ${modelConfig.id}...`);
-                if (onUpdate) onUpdate("[System: Loading WebGPU Model...]\n");
+
+                let lastReportedProgress = -5; // Track last reported progress for 5% increments
 
                 _webLlmEngine = await window.webllm.CreateMLCEngine(
                     modelConfig.id,
                     {
                         initProgressCallback: (report) => {
                             logger.debug(`[WebLLM] Loading: ${report.text}`);
+
+                            if (onUpdate) {
+                                // Extract progress percentage if available
+                                const progressMatch = report.text.match(/(\d+(?:\.\d+)?)\s*%/);
+                                if (progressMatch) {
+                                    const progress = Math.floor(parseFloat(progressMatch[1]));
+                                    // Only update at 5% increments
+                                    if (progress >= lastReportedProgress + 5) {
+                                        lastReportedProgress = Math.floor(progress / 5) * 5;
+                                        onUpdate(`[System: Downloading model... ${lastReportedProgress}%]\n`);
+                                    }
+                                } else if (report.text.toLowerCase().includes('download')) {
+                                    onUpdate(`[System: Downloading model...]\n`);
+                                } else if (report.text.toLowerCase().includes('loading')) {
+                                    onUpdate(`[System: Loading model into GPU...]\n`);
+                                }
+                            }
                         }
                     }
                 );
