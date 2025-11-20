@@ -294,21 +294,6 @@ bin/dogs diff changes.dogs.md
 bin/dogs changes.dogs.md --verify "npm test"
 ```
 
-### Server Mode (Hermes)
-
-```bash
-cd hermes
-npm install
-npm start
-# Navigate to http://localhost:3000
-```
-
-Server mode provides:
-- Git worktree isolation per session
-- Persistent sessions
-- Multi-user support
-- Real filesystem access
-
 ### API Keys
 
 REPLOID uses Gemini API by default. To use other providers:
@@ -350,10 +335,9 @@ npm start
 Once you're comfortable with the basics:
 
 1. **Read the Blueprints** (`/blueprints/`) - Learn system architecture
-2. **Explore Personas** (`docs/PERSONAS.md`) - Create custom personas
-3. **Review Roadmap** (`docs/ROADMAP.md`) - See what's coming next
-4. **Test Sentinel Flow** (`test-sentinel-flow.md`) - Deep dive testing
-5. **Read RFCs** (`docs/rfcs/`) - Understand design decisions
+2. **Explore Architecture** (`docs/SYSTEM_ARCHITECTURE.md`) - Deep dive into design
+3. **Test Sentinel Flow** (`test-sentinel-flow.md`) - Deep dive testing
+4. **API Reference** (`docs/API.md`) - Module documentation
 
 ---
 

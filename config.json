@@ -36,6 +36,7 @@
       "name": "Code Refactorer",
       "type": "lab",
       "description": "Analyzes your code to find improvements, fix bugs, and enhance performance.",
+      "personaModule": "CodeRefactorerPersona",
       "upgrades": ["APPL", "UTIL", "STMT", "IDXB", "APIC", "CYCL", "PRMT", "AGLP", "STHP", "TRUN", "TLRD", "TLWR", "TRHP", "UIMN", "STYL", "BODY", "EVAL", "PMON", "MDSH", "AVIS", "ASTV", "MGRV", "RATE", "MINT", "AUDT", "TUTR", "PYOD", "PYTH", "TSTN", "INTR", "REFL", "TEST", "BAPI"],
       "blueprints": ["0x000009", "0x000003", "0x000012"],
       "lessons": [
@@ -86,10 +87,11 @@
   "default": "gemini",
   "fallbackProviders": ["openai", "anthropic", "local"],
   "localEndpoint": "http://localhost:11434",
-  "localModel": "llama2",
-  "geminiModel": "gemini-1.5-flash-latest",
-  "openaiModel": "gpt-4-turbo-preview",
-  "anthropicModel": "claude-3-opus-20240229"
+  "localModel": "qwen3-coder-32b",
+  "localModelFast": "qwen2:7b",
+  "geminiModel": "gemini-3-pro-preview",
+  "openaiModel": "gpt-5.1-turbo",
+  "anthropicModel": "claude-sonnet-4-5"
 },
 "upgrades": [
 {
@@ -588,8 +590,8 @@
 "description": "Visual RSI: Using 2D canvas visualization for pattern recognition and self-optimization."
 },
 {
-"id": "0x000023",
-"path": "0x000023-autonomous-orchestrator-curator-mode.md",
+"id": "0x00001D",
+"path": "0x00001D-autonomous-orchestrator-curator-mode.md",
 "description": "Curator Mode: Autonomous overnight proposal generation with safety boundaries and visual reports."
 }
 ]

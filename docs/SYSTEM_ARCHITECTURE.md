@@ -167,7 +167,6 @@ x/
 ├── boot.js             # Genesis protocol (embedded)
 ├── boot-idb-vfs.js     # IndexedDB VFS implementation
 ├── config.json         # Upgrade & blueprint registry
-├── STANDARDIZATION.md  # Module system documentation
 │
 ├── upgrades/           # Capability modules
 │   ├── Core System
@@ -209,7 +208,7 @@ All modules now follow a consistent format with:
 - **Legacy Support**: Backward compatibility maintained
 - **Module Loader**: Automatic dependency resolution
 
-See [STANDARDIZATION.md](./STANDARDIZATION.md) for details.
+See `config.json` for module registry details.
 
 ## 🎮 Using the Interface
 
@@ -767,7 +766,7 @@ This document outlines the architectural plan to build this stack, detailing how
 
         # Configuration for the REPLOID engine
         engine:
-          model: "claude-3-opus-20240229"
+          model: "claude-sonnet-4-5"
           temperature: 0.1
           max_turns: 25
 

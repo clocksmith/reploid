@@ -12,11 +12,14 @@
 
 REPLOID is not an AI assistant. It's a **self-modifying AI substrate** that demonstrates recursive self-improvement (RSI) in a browser environment.
 
-**Level 1 RSI:** Agent creates tools at runtime
-**Level 2 RSI:** Agent improves its tool creation mechanism
-**Level 3 RSI:** Agent modifies core substrate modules
+**How it works:** The agent reads code from its VFS → analyzes & improves it → writes back to VFS → hot-reloads → becomes better.
 
-All improvements persist to IndexedDB (VFS) while original source code remains the evolutionary starting point ("genesis").
+**Key insight:** The agent's "brain" is data in [IndexedDB](https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API). It can modify this data (its own code) while running. The original source code is just the evolutionary starting point ("genesis").
+
+**RSI stages:**
+1. **Level 1:** Agent creates new tools at runtime.
+2. **Level 2:** Agent improves its own tool creation mechanism.
+3. **Level 3:** Agent modifies core substrate modules (its memory, prompts, or loop).
 
 ---
 
@@ -28,253 +31,209 @@ Most AI systems are frozen at deployment. REPLOID can:
 - Modify its core cognitive loop
 - Persist its evolution locally (no cloud)
 
-This is a research project exploring what happens when you give an AI the ability to rewrite itself.
+This is one of many research projects exploring what happens when you give an AI the ability to rewrite itself.
+
+---
+
+```mermaid
+graph TD
+    %% --- Styles ---
+    classDef foundation fill:#000000,stroke:#FFD700,stroke-width:3px,color:#FFD700;
+    classDef storage fill:#111111,stroke:#F0E68C,stroke-width:2px,color:#F0E68C;
+    classDef infra fill:#1a1a1a,stroke:#DAA520,stroke-width:2px,color:#DAA520;
+    classDef service fill:#001a1a,stroke:#00FFFF,stroke-width:2px,color:#00FFFF;
+    classDef tool fill:#002b2b,stroke:#00CED1,stroke-width:2px,color:#00CED1;
+    classDef core fill:#003333,stroke:#E0FFFF,stroke-width:3px,color:#E0FFFF;
+    classDef app fill:#222222,stroke:#FFFFFF,stroke-width:2px,color:#FFFFFF;
+    
+    linkStyle default stroke:#888888,stroke-width:1px;
+
+    %% --- 8. Application Layer ---
+    subgraph AppLayer [Phase 8: Application]
+        Boot([Boot.js])
+        UI[Dashboard UI]
+    end
+
+    %% --- 7. Capabilities ---
+    subgraph Capabilities [Phase 7: Capabilities]
+        Reflection[Reflection Store]
+        Perf[Perf Monitor]
+        Swarm[Swarm Orch]
+    end
+
+    %% --- 6. Agent Core ---
+    subgraph AgentCore [Phase 6: Agent Core]
+        Loop{{Agent Loop}}
+        Persona[Persona Mgr]
+        Substrate[Substrate Loader]
+    end
+
+    %% --- 5. Tool System ---
+    subgraph ToolSys [Phase 5: Tool System]
+        Runner[Tool Runner]
+        Writer[Tool Writer]
+        MetaWriter[Meta Tool Writer]
+    end
+
+    %% --- 4. Core Services ---
+    subgraph Services [Phase 4: Core Services]
+        LLM[LLM Client]
+        Parser[Response Parser]
+        Context[Context Mgr]
+        Verify[Verification Mgr]
+    end
+
+    %% --- 3. Infrastructure ---
+    subgraph Infra [Phase 3: Infrastructure]
+        Events{Event Bus}
+        DI{DI Container}
+        Audit[Audit Logger]
+        Rate[Rate Limiter]
+    end
+
+    %% --- 2. Storage ---
+    subgraph Storage [Phase 2: Storage & State]
+        VFS[(Virtual File System)]
+        State[State Manager]
+    end
+
+    %% --- 1. Foundation ---
+    subgraph Found [Phase 1: Foundation]
+        Utils(Utils & Errors)
+        Protocol(Parser Utils)
+    end
+
+    %% --- Connections ---
+    Boot --> DI
+    Boot --> UI
+    Boot --> Loop
+
+    Loop --> LLM
+    Loop --> Context
+    Loop --> Parser
+    Loop --> Runner
+    Loop --> Persona
+    
+    Runner --> Writer
+    Runner --> MetaWriter
+    Runner --> VFS
+    MetaWriter --> Verify
+    Verify --> Worker(Web Worker)
+
+    LLM --> Rate
+    Context --> LLM
+
+    State --> VFS
+    Audit --> VFS
+    
+    Perf -.-> Events
+    UI -.-> Events
+    Loop -.-> Events
+
+    VFS --> Utils
+    Parser --> Protocol
+
+    class Boot,UI app;
+    class Loop,Persona,Substrate core;
+    class Runner,Writer,MetaWriter tool;
+    class LLM,Parser,Context,Verify service;
+    class Events,DI,Audit,Rate infra;
+    class VFS,State storage;
+    class Utils,Protocol foundation;
+    class Reflection,Perf,Swarm service;
+```
+
+### Data Flow & Persistence
+
+```mermaid
+graph LR
+    classDef actor fill:#222,stroke:#fff,stroke-width:2px,color:#fff;
+    classDef logic fill:#003333,stroke:#00CED1,stroke-width:2px,color:#E0FFFF;
+    classDef file fill:#000,stroke:#DAA520,stroke-width:1px,stroke-dasharray: 5 5,color:#F0E68C;
+    classDef worker fill:#330033,stroke:#FF00FF,stroke-width:2px,color:#FF00FF;
+
+    Agent{{Agent Loop}}:::actor
+    StateMgr[State Manager]:::logic
+    MetaTool[Meta Tool Writer]:::logic
+    Verify[Verification Mgr]:::logic
+    Worker(Web Worker Context):::worker
+
+    subgraph VFS [Virtual File System (IndexedDB)]
+        StateFile(/.system/state.json):::file
+        CoreFile(/core/*.js):::file
+        WorkerFile(/core/verification-worker.js):::file
+        AuditLog(/.logs/audit/YYYY-MM-DD.jsonl):::file
+    end
+
+    Agent -- Update Goal --> StateMgr
+    StateMgr -- Read/Write --> StateFile
+    
+    Agent -- "improve_core_module" --> MetaTool
+    MetaTool -- Read Source --> CoreFile
+    MetaTool -- Validate --> Verify
+    
+    Verify -- Load --> WorkerFile
+    Verify -- "postMessage({snapshot})" --> Worker
+    Worker -- "onmessage(passed)" --> Verify
+    
+    Verify -- Success --> MetaTool
+    MetaTool -- Write Update --> CoreFile
+    
+    StateMgr -- Audit Events --> AuditLog
+```
 
 ---
 
 ## Quick Start
 
-### Option 1: Zero-Setup WebLLM Demo (No Installation)
+1. **Clone or download** this repo and open `/reploid/index.html` in Chrome/Edge with WebGPU enabled.
+2. **Choose a genesis level** on the boot screen (Full Substrate for first runs).
+3. **Add a model** (API key or local WebLLM). The UI lists all four connection types.
+4. **Awaken the agent.** Watch the boot log, then let REPLOID run unattended or issue goals through the chat panel.
+5. **Review every proposal.** Cats bundles capture context; dogs bundles capture diffs. Approve, edit, or rollback from the diff viewer.
 
-1. Visit [reploid.dev](https://reploid.firebaseapp.com) or `open index.html` locally
-2. Click **"🚀 Try WebLLM Demo"**
-3. Wait for model download (~2GB, first time only)
-4. Watch AI create tools, improve those tools, then improve how it creates tools
-5. **Requires:** Chrome 113+ or Edge 113+ with WebGPU
-
-**What you'll see:** Agent creates `self_play_prompt_improver` tool → tests it → creates `improve_prompt_improver` (meta-tool) → uses meta-tool to create better tools → **this is RSI**
-
-### Option 2: Full Setup (Cloud Models)
-
-```bash
-# Clone repo
-git clone https://github.com/clocksmith/reploid.git
-cd reploid
-
-# Optional: Configure API keys for cloud models
-echo "GEMINI_API_KEY=your_key" > .env
-echo "ANTHROPIC_API_KEY=your_key" >> .env
-
-# Start proxy server (optional, for server-side API calls)
-npm start
-
-# Open in browser
-open index.html
-```
-
-On boot screen:
-1. Click "+ Add Model"
-2. Select provider (Gemini, Claude, OpenAI, Ollama, WebLLM)
-3. Choose connection type
-4. Enter API key (if browser-cloud)
-5. Click "Awaken Agent"
+Need details on proxies, Ollama, or advanced settings? See `/boot/README.md`.
 
 ---
 
-## Architecture
+## Safety Architecture
 
-```
-┌─────────────────────────────────────────────┐
-│  Agent Loop (reads from VFS, not disk)     │
-│  ↓                                          │
-│  LLM Client → Tool Runner → VFS (IndexedDB)│
-│                              ↓               │
-│                         Evolved Code        │
-│                         Created Tools       │
-│                              ↑               │
-│  Genesis State (disk) ──first boot──┘       │
-└─────────────────────────────────────────────┘
-```
+REPLOID’s core bet is that RSI must be observable, reversible, and crash-proof:
 
-**How it works:** Agent reads code from VFS → analyzes & improves → writes back to VFS → hot-reloads → becomes better.
+- **Substrate / Capability boundary:** Immutable genesis modules (agent loop, response parser, context manager) live in an “untouchable” zone. Everything else is fair game for the agent to rewrite.
+- **Pre-flight verification:** Code changes are compiled and tested inside an isolated [Web Worker](https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API) before they touch the main thread. If the worker crashes, the change is rejected.
+- **Safe Mode bootloader:** When everything still goes wrong, the bootloader detects crash loops and offers to boot from the immutable Genesis Kernel—your built-in lifeboat.
+- **Cats/Dogs protocol:** All code changes flow through structured bundles. Humans (or other agents) review diffs before they hit VFS.
+- **Checkpointed VFS:** Git-style snapshots in IndexedDB plus StateManager checkpoints give you an immediate undo button—even mid-iteration.
 
-**Key insight:** The agent's "brain" is data in IndexedDB. It can modify this data (its own code). Original source code is the evolutionary starting point.
+These guardrails make it safe to watch the "[Ship of Theseus](https://en.wikipedia.org/wiki/Ship_of_Theseus)" rebuild itself in real time.
 
 ---
 
-## RSI Levels Explained
+## PAWS Governance
 
-### Level 1: Tool Creation
-Agent can create new functions at runtime.
+PAWS is the structured handshake between human and agent that keeps RSI sane. Instead of letting the agent hack files directly, every action flows through two artifacts:
 
-**Example:**
-```javascript
-// Agent decides it needs a tool
-TOOL_CALL: create_tool
-ARGS: {
-  name: "analyze_code",
-  code: "export default async function(args) { /* analysis logic */ }"
-}
+- **Cats bundle (input):** A curated snapshot of the files relevant to the current task. The agent never “sees” the entire project; it reasons over a focused view.
+- **Dogs bundle (output):** A transactional change proposal with explicit CREATE/MODIFY/DELETE blocks. Nothing executes until a reviewer approves it.
 
-// Tool is saved to /tools/analyze_code.js in VFS
-// Tool is loaded via blob URL and registered
-// Agent can now use: analyze_code({file: "..."})
-```
+This firewall prevents “brain death” (accidentally corrupting the runtime) and unlocks practical benefits:
 
-### Level 2: Meta-Tool Creation
-Agent creates tools that create tools.
+1. **Context economy:** Cats bundling forces selective reading, keeping prompts small and focused so the agent doesn’t thrash token limits.
+2. **Atomic transactions:** Dogs bundles apply in one shot. If pre-flight verification or human review fails, the whole change is rejected. You can also rollback by checkpoint ID—think miniature [database transactions](https://en.wikipedia.org/wiki/Database_transaction) for code changes.
+3. **Asynchronous workflow:** The agent can queue multiple proposals overnight; humans (or scripts) review diffs later and pick the best bundle to apply.
 
-**Example:**
-```javascript
-// Agent realizes tool creation is repetitive
-TOOL_CALL: create_tool
-ARGS: {
-  name: "create_tool_from_description",
-  code: `export default async function({description}) {
-    // Uses LLM to generate tool code from description
-    // Calls create_tool() internally
-    // Returns new tool name
-  }`
-}
-
-// Now agent can: create_tool_from_description({
-//   description: "Parse JSON and extract errors"
-// })
-// This is meta-programming - tools creating tools
-```
-
-### Level 3: Substrate Modification
-Agent modifies core modules (agent-loop, tool-runner, etc.).
-
-**Example:**
-```javascript
-// Agent reads current tool-writer
-TOOL_CALL: read_file
-ARGS: {path: "/core/tool-writer.js"}
-
-// Agent analyzes and finds bottleneck
-// Agent generates optimized version with AST caching
-TOOL_CALL: improve_core_module
-ARGS: {
-  module: "tool-writer",
-  code: "... improved version ..."
-}
-
-// Module backs up, hot-reloads
-// Future tool creations are faster
-// Agent has improved itself
-```
+PAWS costs a review step, but it makes high-stakes RSI possible without lobotomizing the agent mid-upgrade.
 
 ---
 
-## Genesis Levels
+## Learn More
 
-REPLOID has 3 genesis levels that determine how much infrastructure the agent starts with:
+- Genesis tiers, module maps, and wiring diagrams live in `/core/README.md` and `/blueprints/README.md`.
+- Connection modes, proxies, and local LLM guidance are documented in `/boot/README.md` and `/docs/OPERATIONAL_MODES.md`.
+- Blueprints, personas, and promotion protocols are in `/blueprints/` and `/upgrades/`.
 
-### 1. FULL SUBSTRATE (Recommended) ✅
-- **9 modules + 10 blueprints**
-- All infrastructure ready to use
-- Agent can immediately start creating tools
-- Demonstrates RSI capabilities out-of-the-box
-- **Use this for demos**
-
-### 2. MINIMAL AXIOMS (Experimental) 🧪
-- **3 modules + 3 blueprints**
-- Only VFS, LLM client, and cognitive loop
-- Agent must build tool system from documentation
-- Tests whether blueprints are sufficient for bootstrap
-- **Use this to test emergent intelligence**
-
-### 3. TABULA RASA (Experimental) 🧪
-- **5 modules + 0 blueprints**
-- Basic tool infrastructure but zero guidance
-- Agent must discover patterns through trial and error
-- Ultimate test of emergent capability
-- **Use this for research on AI learning**
-
-Select genesis level on boot screen before awakening agent.
-
-**Quick Comparison:**
-
-| Genesis Level | Modules | Blueprints | Difficulty | Use Case |
-|--------------|---------|------------|------------|----------|
-| **FULL SUBSTRATE** ✅ | 9 | 10 | ⭐ Easy | Demos, out-of-the-box RSI |
-| **MINIMAL AXIOMS** 🧪 | 3 | 3 | ⭐⭐⭐ Hard | Test emergent intelligence |
-| **TABULA RASA** 🧪 | 5 | 0 | ⭐⭐⭐⭐⭐ Expert | Pure trial-and-error learning |
-
----
-
-## Core Modules (All Self-Modifiable)
-
-**Cognitive Layer:**
-- `agent-loop.js` - Main cognitive cycle and decision-making
-- `llm-client.js` - Multi-provider LLM communication (4 connection types)
-- `multi-model-coordinator.js` - Orchestrates multiple models
-
-**Tool Layer:**
-- `tool-runner.js` - Executes tools and manages registry
-- `tool-writer.js` - Creates and validates new tools (Level 1 RSI)
-- `meta-tool-writer.js` - Improves core modules (Level 2+ RSI)
-
-**Substrate Layer:**
-- `substrate-loader.js` - Hot-loads evolved code as living modules
-- `substrate-tools.js` - 11 substrate manipulation tools
-
-**Foundation:**
-- `vfs.js` - Virtual filesystem (IndexedDB)
-- `utils.js` - Shared utilities
-
-All modules use factory pattern and can be read, modified, and hot-reloaded by the agent.
-
----
-
-## Built-in Tools (24 total)
-
-The agent starts with these CRUD-organized tools:
-
-### VFS Operations (5)
-- `read_file(path)`, `write_file(path, content)`, `update_file(path, content)`
-- `delete_file(path)`, `list_files(path)`
-
-### Tool Creation - Level 1 RSI (5)
-- `read_tool(name)`, `create_tool(name, code)`, `update_tool(name, code)`
-- `delete_tool(name)`, `list_tools()`
-
-### Meta-Improvement - Level 2 RSI (3)
-- `improve_tool_writer(code)` - Improve the ToolWriter mechanism
-- `improve_core_module(module, code)` - Improve ANY core module
-- `rollback_tool_writer()` - Undo last improvement
-
-### Substrate Manipulation - Level 3 RSI (11)
-- `load_module(path)` - Import and execute module from VFS
-- `load_widget(path, containerId)` - Mount widget in dashboard
-- `create_widget(name, html, css, js)` - Create simple DOM widget
-- `create_web_component(name, html, css, js)` - Create Web Component
-- `execute_substrate_code(code)` - Execute arbitrary code in substrate
-- `inject_tool(name, code)` - Fast tool injection (bypasses validation)
-- `reload_module(path)`, `unload_module(path)`, `list_loaded_modules()`
-- `update_preview(html, css, js)` - Update Live Preview panel
-- `load_iframe(path, containerId)` - Load code in sandboxed iframe
-
----
-
-## Connection Types
-
-REPLOID supports 4 ways to connect to LLMs:
-
-### 1. Browser → Cloud (Direct)
-- Browser makes API calls directly to provider
-- **Requires:** User's API key (stored in localStorage)
-- **Use for:** Gemini, OpenAI, Anthropic, Groq
-
-### 2. Proxy → Cloud
-- Server proxy makes API calls using .env keys
-- **Requires:** Server running, .env configured
-- **Use for:** Hiding API keys, rate limiting
-
-### 3. Browser → Local (WebGPU)
-- Browser runs LLM via WebLLM (WebGPU)
-- **Requires:** Chrome 113+, 2GB+ VRAM, 8GB+ RAM
-- **Use for:** Offline, privacy, small models (1-3B params)
-- **Recommended models:**
-  - Phi-3.5-mini-instruct-q4f16_1-MLC (2GB, best for demos)
-  - Qwen2.5-1.5B-Instruct-q4f16_1-MLC (1GB, fast)
-  - Llama-3.2-1B-Instruct-q4f16_1-MLC (800MB, ultra-fast)
-
-### 4. Proxy → Local (Ollama)
-- Server proxy forwards to local Ollama
-- **Requires:** Ollama installed and running
-- **Use for:** Large local models (7B-120B params)
+Skim those when you want the full reference manual; the rest of this README stays focused on behavior, experiments, and positioning.
 
 ---
 
@@ -353,6 +312,33 @@ REPLOID supports 4 ways to connect to LLMs:
 
 ---
 
+## Competitive Landscape
+
+REPLOID lives in a small but rapidly evolving ecosystem of self-improving agents. We intentionally share compute constraints (browser, IndexedDB) while diverging on safety architecture and ownership.
+
+### WebLLM (MLC AI)
+WebLLM is the inference engine we stand on: deterministic WebGPU execution, no cognition. It excels at raw token throughput and versioned stability but offers no tools, memory, or self-modification. REPLOID layers VFS, a tool runner, PAWS governance, and substrate/capability boundaries above WebLLM so passive inference becomes an auditable agent capable of planning, testing, and rewriting itself safely.
+
+### OpenHands (formerly OpenDevin)
+OpenHands embraces Docker power (shell, compilers, sudo) to tackle arbitrary repos, yet that freedom kills safety—the agent can brick its container with a single bad edit. REPLOID trades GCC for transactional rollback: everything lives inside a browser tab, checkpoints live in IndexedDB, and humans approve cats/dogs diffs before mutations land. We prioritize experimentation accessibility and undo guarantees over unrestricted OS access.
+
+### Gödel Agent
+Gödel Agent explores theoretical RSI by letting reward functions and logic rewrite themselves. It is fascinating math, but it lacks persistent state management, tooling, or human guardrails, so “reward hacking” is inevitable. REPLOID focuses on engineering: reproducible bundles, hot-reloadable modules, and EventBus-driven UI so observers can inspect every mutation. We sacrifice unconstrained search space for transparency and hands-on controllability.
+
+### Devin (Cognition)
+Devin shows what proprietary, cloud-scale orchestration can deliver: GPT-4-class reasoning, hosted shells, and long-running plans. But it is a black box—you cannot audit, fork, or run Devin offline. REPLOID is the opposite: a glass-box brain stored locally, fully inspectable and modifiable by its owner. We bet that sovereign, user-controlled RSI will outpace closed SaaS once users can watch and influence every self-improvement step.
+
+| Feature               | REPLOID                | OpenHands          | Gödel Agent           | Devin          |
+|-----------------------|------------------------|--------------------|-----------------------|----------------|
+| Infrastructure        | **Browser (WebGPU/IDB)** | Docker/Linux       | Python/Research       | Cloud SaaS     |
+| Self-Mod Safety       | **High (Worker sandbox + Genesis Kernel)** | Low (root access)  | Low (algorithm focus) | N/A (closed)   |
+| Human Control         | **Granular (PAWS review)**   | Moderate (Stop btn) | Low (automated)        | Moderate (chat)|
+| Recovery              | **Transactional rollback**  | Container reset   | Script restart        | N/A            |
+
+**Why REPLOID is different:** we solve the “Ship of Theseus” problem in a tab. Capabilities can mutate aggressively, but the substrate remains recoverable thanks to immutable genesis modules, IndexedDB checkpoints, and the cats/dogs approval loop.
+
+---
+
 ## Philosophy: Substrate-Independent RSI
 
 REPLOID is an experiment in [**substrate-independent RSI**](https://www.edge.org/response-detail/27126):
@@ -372,122 +358,12 @@ REPLOID is an experiment in [**substrate-independent RSI**](https://www.edge.org
 
 ---
 
-## Technical Details
-
-### VFS Implementation
-- **Storage:** IndexedDB (via simple-vfs.js)
-- **Operations:** read, write, list, delete, snapshot, restore
-- **Persistence:** Survives page refreshes
-- **Reset:** "Clear Cache" button wipes IndexedDB, reload fetches genesis
-
-### Module Loading
-- **Genesis:** Fetch from disk → write to VFS (first boot)
-- **Runtime:** Read from VFS → create blob URL → import as ES module
-- **Hot-reload:** Replace blob URL, re-initialize factory, update references
-
-### Agent Loop
-- **System prompt:** Includes list of all tools and RSI capabilities
-- **Tool calling:** `TOOL_CALL: name` + `ARGS: {...}`
-- **Context management:** Conversation history with automatic compaction
-- **Safety:** MAX_ITERATIONS=5000, automatic rollback on errors
-
-### Security
-- **Sandboxing:** Can only access local resources through secure proxy
-- **No eval():** Uses native ES module imports via blob URLs
-- **Rollback:** Failed improvements automatically rolled back to last working version
-- **Audit:** All changes logged to VFS with timestamps and backups
-
----
-
 ## Limitations
 
 - **Browser-only:** No Node.js backend required (except optional proxy)
 - **Storage:** IndexedDB typically ~50MB-unlimited (browser-dependent)
 - **WebLLM models:** Limited to 1-3B params due to browser VRAM constraints
 - **Multi-model consensus:** Basic implementation, agent can improve it
-
----
-
-## Troubleshooting
-
-### "WebGPU not supported"
-**Fix:** Use Chrome 113+ or Edge 113+
-
-### WebLLM model fails to load
-**Fix:**
-- Check browser console for exact model ID
-- See [Connection Types](#connection-types) for compatible models
-- Try smaller model (Qwen2.5-1.5B or Llama-3.2-1B)
-
-### Agent creates tools but they don't work
-**Expected:** Small models (1B-3B) make mistakes. Agent will iterate and fix bugs. This is part of the RSI process.
-
-### "Module failed to hot-reload"
-**Fix:** Click "Clear Cache" and reload. This resets to genesis state.
-
-### Agent gets stuck in loop
-**Fix:** Click "Stop" button. Agent will reach MAX_ITERATIONS (5000) automatically.
-
----
-
-## Contributing
-
-REPLOID is a research project. Contributions welcome:
-
-1. **Test genesis levels:** Run MINIMAL AXIOMS or TABULA RASA and report results
-2. **Improve blueprints:** Add documentation that helps agent bootstrap
-3. **Create examples:** Show interesting RSI behaviors
-4. **Port to other runtimes:** REPLOID should work in Deno, Node.js, etc.
-
-See `/blueprints/` for documentation the agent can read.
-
----
-
-## Project Structure
-
-REPLOID's codebase is organized into specialized directories, each with detailed documentation:
-
-### Core Directories
-
-- **[`core/`](core/README.md)** - Core substrate modules
-  - Agent loop, LLM client, VFS, tool runner/writer
-  - Meta-improvement system, substrate loader
-  - All self-modifiable at runtime
-
-- **[`boot/`](boot/README.md)** - Bootstrap system
-  - Initialization, configuration, model selection
-  - Loads before main application
-
-- **[`capabilities/`](capabilities/README.md)** - RSI capabilities
-  - Introspection, reflection, testing, evolution
-  - Performance monitoring, multi-agent coordination
-
-- **[`workflow/`](workflow/README.md)** - Task orchestration
-  - Sentinel FSM, autonomous orchestrator
-  - Curator Mode for overnight operation
-
-- **[`infrastructure/`](infrastructure/README.md)** - Support services
-  - Event bus, rate limiting, audit logging
-  - Browser APIs, backup/restore
-
-- **[`tools/`](tools/README.md)** - Tool utilities
-  - Tool evaluation, documentation generation
-  - Python/Pyodide integration
-
-- **[`ui/`](ui/README.md)** - User interface components
-  - Chat interface, code viewer, dashboards
-  - Visualizers and components
-
-- **[`upgrades/`](upgrades/README.md)** - Configuration and assets
-  - Blueprints, prompts, tool definitions
-  - Persona configurations via `config.json`
-
-### Additional Directories
-
-- **`blueprints/`** - Documentation the agent can read to learn RSI
-- **`server/`** - Optional proxy server for API calls
-- **`tests/`** - Test suites
-- **`examples/`** - Pre-built examples and demos
 
 ---
 
@@ -506,14 +382,3 @@ REPLOID's codebase is organized into specialized directories, each with detailed
 ## License
 
 MIT
-
----
-
-## Links
-
-- **GitHub:** https://github.com/clocksmith/reploid
-- **Live Demo:** https://reploid.firebaseapp.com
-
----
-
-**The future is not AI that does what you ask. The future is AI that asks itself how to get better at what you asked.**

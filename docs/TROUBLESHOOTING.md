@@ -81,11 +81,6 @@ node --version
 rm -rf node_modules package-lock.json
 npm install
 
-# 5. For Hermes server issues
-cd hermes
-rm -rf node_modules
-npm install
-npm start
 ```
 
 ---
@@ -540,8 +535,8 @@ console.log(`Context size: ${contextSize} characters`);
 // Edit config.json:
 {
   "providers": {
-    "geminiModel": "gemini-1.5-flash-latest", // Faster
-    "openaiModel": "gpt-3.5-turbo" // Cheaper
+    "geminiModel": "gemini-3-pro-preview", // Faster
+
   }
 }
 
@@ -952,16 +947,13 @@ worker.postMessage({
    - What did you click/do right before error?
 
 4. **Check known issues**
-   - Read ROADMAP.md for planned fixes
    - Search GitHub issues
-   - Check RFC-STATUS.md for incomplete features
 
 ### Contact & Support
 
 - **GitHub Issues**: https://github.com/anthropics/reploid/issues
 - **Documentation**: `docs/` directory
 - **Architecture**: `blueprints/` directory
-- **RFCs**: `docs/rfcs/` directory
 
 ---
 

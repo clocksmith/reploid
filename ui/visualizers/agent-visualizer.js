@@ -24,7 +24,7 @@ const AgentVisualizer = {
     let currentState = null;
     let stateHistory = [];
 
-    // FSM State definitions (from sentinel-fsm.js)
+    // FSM State definitions
     const FSM_STATES = {
       'IDLE': { icon: '⚪', color: '#888', label: 'Idle' },
       'CURATING_CONTEXT': { icon: '🔍', color: '#4fc3f7', label: 'Curating Context' },
@@ -37,7 +37,7 @@ const AgentVisualizer = {
       'ERROR': { icon: '❌', color: '#e57373', label: 'Error' }
     };
 
-    // Valid transitions (from sentinel-fsm.js)
+    // Valid transitions
     const VALID_TRANSITIONS = {
       'IDLE': ['CURATING_CONTEXT'],
       'CURATING_CONTEXT': ['AWAITING_CONTEXT_APPROVAL', 'ERROR'],

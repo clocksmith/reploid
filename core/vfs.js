@@ -1,405 +1,179 @@
-// Simple Virtual File System - Direct IndexedDB implementation
-// Replaces isomorphic-git + LightningFS with a lightweight alternative
-// @blueprint 0x000054 (updated for SimpleVFS)
+/**
+ * @fileoverview Virtual File System (VFS)
+ * IndexedDB-backed storage.
+ *
+ * BREAKING: Uses 'reploid-vfs-v2'. Previous v1 data is ignored.
+ */
 
-const SimpleVFS = {
+const VFS = {
   metadata: {
-    id: 'SimpleVFS',
+    id: 'VFS',
     version: '2.0.0',
-    dependencies: ['Utils', 'Storage'],
+    dependencies: ['Utils'],
     async: true,
-    type: 'service',
-    description: 'Lightweight VFS using IndexedDB directly (no git dependencies)'
+    type: 'service'
   },
 
   factory: (deps) => {
-    // Simplified dependencies - just need logger
-    const logger = deps.logger || console;
+    const { Utils } = deps;
+    const { logger, Errors } = Utils;
 
-    const DB_NAME = 'reploid-simple-vfs';
-    const DB_VERSION = 1;
+    const DB_NAME = 'reploid-vfs-v2';
+    const STORE_FILES = 'files';
     let db = null;
-    let isInitialized = false;
 
-    // Initialize IndexedDB
-    const init = async () => {
-      if (isInitialized) return;
-
+    const openDB = () => {
       return new Promise((resolve, reject) => {
-        const request = indexedDB.open(DB_NAME, DB_VERSION);
-
-        request.onerror = () => {
-          logger.error('[SimpleVFS] Failed to open IndexedDB:', request.error);
-          reject(request.error);
-        };
-
-        request.onsuccess = () => {
-          db = request.result;
-          isInitialized = true;
-          logger.info('[SimpleVFS] Initialized successfully');
-          resolve();
-        };
+        if (db) return resolve(db);
+        const request = indexedDB.open(DB_NAME, 1);
 
         request.onupgradeneeded = (event) => {
-          const db = event.target.result;
-
-          // Files store: path → {path, content, timestamp, size}
-          if (!db.objectStoreNames.contains('files')) {
-            const filesStore = db.createObjectStore('files', { keyPath: 'path' });
-            filesStore.createIndex('timestamp', 'timestamp', { unique: false });
+          const d = event.target.result;
+          if (!d.objectStoreNames.contains(STORE_FILES)) {
+            d.createObjectStore(STORE_FILES, { keyPath: 'path' });
           }
-
-          // Snapshots store: id → {id, label, timestamp, files}
-          if (!db.objectStoreNames.contains('snapshots')) {
-            const snapshotsStore = db.createObjectStore('snapshots', { keyPath: 'id', autoIncrement: true });
-            snapshotsStore.createIndex('timestamp', 'timestamp', { unique: false });
-            snapshotsStore.createIndex('label', 'label', { unique: false });
-          }
-
-          logger.info('[SimpleVFS] Database schema created');
         };
+
+        request.onsuccess = (e) => {
+          db = e.target.result;
+          logger.info('[VFS] Database connected');
+          resolve(db);
+        };
+        request.onerror = () => reject(new Errors.StateError('Failed to open VFS DB'));
       });
     };
 
-    // Read a file
-    const readFile = async (path) => {
-      if (!isInitialized) await init();
-
-      return new Promise((resolve, reject) => {
-        const transaction = db.transaction(['files'], 'readonly');
-        const store = transaction.objectStore('files');
-        const request = store.get(path);
-
-        request.onsuccess = () => {
-          if (request.result) {
-            resolve(request.result.content);
-          } else {
-            reject(new Error(`File not found: ${path}`));
-          }
-        };
-
-        request.onerror = () => {
-          reject(new Error(`Failed to read file: ${path}`));
-        };
-      });
+    const normalize = (path) => {
+      if (!path || typeof path !== 'string') throw new Errors.ValidationError('Invalid path');
+      let clean = path.trim().replace(/\\/g, '/');
+      return clean.startsWith('/') ? clean : '/' + clean;
     };
 
-    // Write a file
-    const writeFile = async (path, content) => {
-      if (!isInitialized) await init();
+    // --- API ---
 
+    const init = async () => { await openDB(); return true; };
+
+    const write = async (path, content) => {
+      await openDB();
+      const cleanPath = normalize(path);
       return new Promise((resolve, reject) => {
-        const transaction = db.transaction(['files'], 'readwrite');
-        const store = transaction.objectStore('files');
-
-        const fileEntry = {
-          path,
+        const tx = db.transaction([STORE_FILES], 'readwrite');
+        const store = tx.objectStore(STORE_FILES);
+        const entry = {
+          path: cleanPath,
           content,
-          timestamp: Date.now(),
-          size: content.length
+          size: content.length,
+          updated: Date.now(),
+          type: 'file'
         };
-
-        const request = store.put(fileEntry);
-
-        request.onsuccess = () => {
-          logger.debug(`[SimpleVFS] Wrote: ${path} (${content.length} bytes)`);
-          resolve();
-        };
-
-        request.onerror = () => {
-          logger.error(`[SimpleVFS] Failed to write: ${path}`, request.error);
-          reject(request.error);
-        };
+        store.put(entry).onsuccess = () => resolve(true);
+        tx.onerror = () => reject(new Errors.ArtifactError(`Write failed: ${cleanPath}`));
       });
     };
 
-    // Delete a file
-    const deleteFile = async (path) => {
-      if (!isInitialized) await init();
-
+    const read = async (path) => {
+      await openDB();
+      const cleanPath = normalize(path);
       return new Promise((resolve, reject) => {
-        const transaction = db.transaction(['files'], 'readwrite');
-        const store = transaction.objectStore('files');
-        const request = store.delete(path);
-
-        request.onsuccess = () => {
-          logger.debug(`[SimpleVFS] Deleted: ${path}`);
-          resolve();
+        const tx = db.transaction([STORE_FILES], 'readonly');
+        const req = tx.objectStore(STORE_FILES).get(cleanPath);
+        req.onsuccess = () => {
+          req.result ? resolve(req.result.content) : reject(new Errors.ArtifactError(`File not found: ${cleanPath}`));
         };
-
-        request.onerror = () => {
-          reject(request.error);
-        };
+        req.onerror = () => reject(new Errors.ArtifactError(`Read failed: ${cleanPath}`));
       });
     };
 
-    // List files in a directory
-    const listFiles = async (directory) => {
-      if (!isInitialized) await init();
-
+    const remove = async (path) => {
+      await openDB();
+      const cleanPath = normalize(path);
       return new Promise((resolve, reject) => {
-        const transaction = db.transaction(['files'], 'readonly');
-        const store = transaction.objectStore('files');
-        const request = store.getAll();
-
-        request.onsuccess = () => {
-          const allFiles = request.result || [];
-          // Filter files by directory prefix
-          const filtered = allFiles
-            .filter(file => file.path.startsWith(directory))
-            .map(file => file.path);
-          resolve(filtered);
-        };
-
-        request.onerror = () => {
-          reject(request.error);
+        const tx = db.transaction([STORE_FILES], 'readwrite');
+        tx.objectStore(STORE_FILES).delete(cleanPath).onsuccess = () => {
+          logger.info(`[VFS] Deleted ${cleanPath}`);
+          resolve(true);
         };
       });
     };
 
-    // Get all files (for snapshots)
-    const getAllFiles = async () => {
-      if (!isInitialized) await init();
-
-      return new Promise((resolve, reject) => {
-        const transaction = db.transaction(['files'], 'readonly');
-        const store = transaction.objectStore('files');
-        const request = store.getAll();
-
-        request.onsuccess = () => {
-          resolve(request.result || []);
-        };
-
-        request.onerror = () => {
-          reject(request.error);
+    const list = async (dir = '/') => {
+      await openDB();
+      const cleanDir = normalize(dir);
+      const prefix = cleanDir.endsWith('/') ? cleanDir : cleanDir + '/';
+      return new Promise((resolve) => {
+        const tx = db.transaction([STORE_FILES], 'readonly');
+        const req = tx.objectStore(STORE_FILES).getAllKeys();
+        req.onsuccess = () => {
+          // Filter by prefix (simulating directory structure)
+          const all = req.result || [];
+          resolve(all.filter(p => p.startsWith(prefix)));
         };
       });
     };
 
-    // Create a snapshot
-    const createSnapshot = async (label = null) => {
-      if (!isInitialized) await init();
-
-      const allFiles = await getAllFiles();
-      const timestamp = Date.now();
-
-      const snapshot = {
-        label: label || `Snapshot ${new Date(timestamp).toISOString()}`,
-        timestamp,
-        files: allFiles.reduce((acc, file) => {
-          acc[file.path] = {
-            content: file.content,
-            size: file.size
-          };
-          return acc;
-        }, {}),
-        fileCount: allFiles.length
-      };
-
-      return new Promise((resolve, reject) => {
-        const transaction = db.transaction(['snapshots'], 'readwrite');
-        const store = transaction.objectStore('snapshots');
-        const request = store.add(snapshot);
-
-        request.onsuccess = () => {
-          const snapshotId = request.result;
-          logger.info(`[SimpleVFS] Created snapshot #${snapshotId}: ${snapshot.label} (${allFiles.length} files)`);
-          resolve({ id: snapshotId, ...snapshot });
-        };
-
-        request.onerror = () => {
-          logger.error('[SimpleVFS] Failed to create snapshot:', request.error);
-          reject(request.error);
-        };
-      });
-    };
-
-    // Restore a snapshot
-    const restoreSnapshot = async (snapshotId) => {
-      if (!isInitialized) await init();
-
-      // Get snapshot
-      const snapshot = await new Promise((resolve, reject) => {
-        const transaction = db.transaction(['snapshots'], 'readonly');
-        const store = transaction.objectStore('snapshots');
-        const request = store.get(snapshotId);
-
-        request.onsuccess = () => {
-          if (request.result) {
-            resolve(request.result);
+    const stat = async (path) => {
+      await openDB();
+      const cleanPath = normalize(path);
+      return new Promise((resolve) => {
+        const tx = db.transaction([STORE_FILES], 'readonly');
+        const req = tx.objectStore(STORE_FILES).get(cleanPath);
+        req.onsuccess = () => {
+          if (req.result) {
+            resolve({
+              path: req.result.path,
+              size: req.result.size,
+              updated: req.result.updated,
+              type: req.result.type
+            });
           } else {
-            reject(new Error(`Snapshot not found: ${snapshotId}`));
+            resolve(null);
           }
         };
-
-        request.onerror = () => {
-          reject(request.error);
-        };
-      });
-
-      // Clear current files and restore snapshot
-      const transaction = db.transaction(['files'], 'readwrite');
-      const store = transaction.objectStore('files');
-
-      // Clear existing files
-      await new Promise((resolve, reject) => {
-        const clearRequest = store.clear();
-        clearRequest.onsuccess = resolve;
-        clearRequest.onerror = () => reject(clearRequest.error);
-      });
-
-      // Restore files from snapshot
-      const restorePromises = Object.entries(snapshot.files).map(([path, fileData]) => {
-        return writeFile(path, fileData.content);
-      });
-
-      await Promise.all(restorePromises);
-
-      logger.info(`[SimpleVFS] Restored snapshot #${snapshotId}: ${snapshot.label}`);
-      return snapshot;
-    };
-
-    // Get all snapshots
-    const getSnapshots = async () => {
-      if (!isInitialized) await init();
-
-      return new Promise((resolve, reject) => {
-        const transaction = db.transaction(['snapshots'], 'readonly');
-        const store = transaction.objectStore('snapshots');
-        const request = store.getAll();
-
-        request.onsuccess = () => {
-          resolve(request.result || []);
-        };
-
-        request.onerror = () => {
-          reject(request.error);
-        };
       });
     };
 
-    // Delete a snapshot
-    const deleteSnapshot = async (snapshotId) => {
-      if (!isInitialized) await init();
-
-      return new Promise((resolve, reject) => {
-        const transaction = db.transaction(['snapshots'], 'readwrite');
-        const store = transaction.objectStore('snapshots');
-        const request = store.delete(snapshotId);
-
-        request.onsuccess = () => {
-          logger.info(`[SimpleVFS] Deleted snapshot #${snapshotId}`);
-          resolve();
-        };
-
-        request.onerror = () => {
-          reject(request.error);
-        };
-      });
+    const exists = async (path) => {
+      const meta = await stat(path);
+      return !!meta;
     };
 
-    // Check if file exists
-    const fileExists = async (path) => {
-      try {
-        await readFile(path);
-        return true;
-      } catch {
-        return false;
-      }
-    };
-
-    // Check if VFS is empty (for Genesis detection)
     const isEmpty = async () => {
-      if (!isInitialized) await init();
-
-      return new Promise((resolve, reject) => {
-        const transaction = db.transaction(['files'], 'readonly');
-        const store = transaction.objectStore('files');
-        const request = store.count();
-
-        request.onsuccess = () => {
-          resolve(request.result === 0);
-        };
-
-        request.onerror = () => {
-          reject(request.error);
-        };
+      await openDB();
+      return new Promise((resolve) => {
+        const tx = db.transaction([STORE_FILES], 'readonly');
+        const req = tx.objectStore(STORE_FILES).count();
+        req.onsuccess = () => resolve(req.result === 0);
       });
     };
 
-    // Clear all files (factory reset)
+    // Virtual mkdir - VFS is flat, so this is mostly for API compatibility
+    // useful if we later add directory metadata
+    const mkdir = async (path) => {
+      logger.debug(`[VFS] mkdir ${path} (virtual)`);
+      return true;
+    };
+
     const clear = async () => {
-      if (!isInitialized) await init();
-
-      return new Promise((resolve, reject) => {
-        const transaction = db.transaction(['files', 'snapshots'], 'readwrite');
-        const filesStore = transaction.objectStore('files');
-        const snapshotsStore = transaction.objectStore('snapshots');
-
-        const clearFiles = filesStore.clear();
-        const clearSnapshots = snapshotsStore.clear();
-
-        transaction.oncomplete = () => {
-          logger.info('[SimpleVFS] Cleared all files and snapshots');
-          resolve();
-        };
-
-        transaction.onerror = () => {
-          reject(transaction.error);
-        };
+      await openDB();
+      return new Promise((resolve) => {
+        const tx = db.transaction([STORE_FILES], 'readwrite');
+        tx.objectStore(STORE_FILES).clear().onsuccess = () => resolve(true);
       });
     };
 
-    // Get file metadata
-    const getFileInfo = async (path) => {
-      if (!isInitialized) await init();
-
-      return new Promise((resolve, reject) => {
-        const transaction = db.transaction(['files'], 'readonly');
-        const store = transaction.objectStore('files');
-        const request = store.get(path);
-
-        request.onsuccess = () => {
-          if (request.result) {
-            const { path, timestamp, size } = request.result;
-            resolve({ path, timestamp, size });
-          } else {
-            reject(new Error(`File not found: ${path}`));
-          }
-        };
-
-        request.onerror = () => {
-          reject(request.error);
-        };
-      });
-    };
-
-    // API
     return {
       init,
-      readFile,
-      writeFile,
-      deleteFile,
-      listFiles,
-      getAllFiles,
-      fileExists,
-      getFileInfo,
-      createSnapshot,
-      restoreSnapshot,
-      getSnapshots,
-      deleteSnapshot,
+      read,
+      write,
+      delete: remove,
+      list,
+      stat,
+      exists,
       isEmpty,
-      clear,
-
-      // Compatibility aliases for existing code
-      read: readFile,
-      write: writeFile,
-      delete: deleteFile,
-      list: listFiles,
-      exists: fileExists,
-      getInfo: getFileInfo
+      mkdir,
+      clear
     };
   }
 };
 
-export default SimpleVFS;
+export default VFS;

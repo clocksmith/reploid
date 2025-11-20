@@ -5,7 +5,7 @@
 **Target Upgrade:** AGLP (`agent-logic-pure.js`)
 
 
-**Prerequisites:** `0x000001`, **0x00004E** (Module Widget Protocol)
+**Prerequisites:** `0x000001`, `0x000048` (Module Widget Protocol)
 
 **Affected Artifacts:** `/modules/agent-logic-pure.js`, `/modules/agent-cycle.js`
 

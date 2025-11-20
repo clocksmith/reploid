@@ -1,83 +1,51 @@
-// Event Bus Module for REPLOID - Project Phoenix
-// A simple pub/sub system for decoupling modules.
+/**
+ * @fileoverview Event Bus
+ * Pub/Sub system with subscription tracking.
+ */
 
 const EventBus = {
   metadata: {
     id: 'EventBus',
-    version: '1.0.0',
+    version: '2.0.0',
     dependencies: ['Utils'],
-    async: false,
-    type: 'service'
+    type: 'infrastructure'
   },
-  factory: (deps) => {
-    const { Utils } = deps;
-    const { logger, createSubscriptionTracker } = Utils;
 
+  factory: (deps) => {
+    const { logger, createSubscriptionTracker } = deps.Utils;
     const _listeners = new Map();
     const _tracker = createSubscriptionTracker();
 
-    const on = (eventName, listener, moduleId = null) => {
-      if (!_listeners.has(eventName)) {
-        _listeners.set(eventName, []);
-      }
-      _listeners.get(eventName).push(listener);
-      logger.debug(`[EventBus] Listener registered for event: ${eventName}`);
+    const on = (event, fn, ownerId = null) => {
+      if (!_listeners.has(event)) _listeners.set(event, new Set());
+      _listeners.get(event).add(fn);
 
-      // Create unsubscribe function
-      const unsubscribe = () => off(eventName, listener);
+      const unsub = () => {
+        const set = _listeners.get(event);
+        if (set) set.delete(fn);
+      };
 
-      // Track subscription for auto-cleanup if moduleId provided
-      if (moduleId) {
-        _tracker.track(moduleId, unsubscribe);
-      }
-
-      return unsubscribe;
+      if (ownerId) _tracker.track(ownerId, unsub);
+      return unsub;
     };
 
-    const off = (eventName, listenerToRemove) => {
-      if (!_listeners.has(eventName)) {
-        return;
-      }
-      const listeners = _listeners.get(eventName).filter(l => l !== listenerToRemove);
-      _listeners.set(eventName, listeners);
-      logger.debug(`[EventBus] Listener removed for event: ${eventName}`);
-    };
-
-    const emit = (eventName, data) => {
-      logger.info(`[EventBus] Emitting event: ${eventName}`, data);
-      if (!_listeners.has(eventName)) {
-        return;
-      }
-      _listeners.get(eventName).forEach(listener => {
-        try {
-          listener(data);
-        } catch (error) {
-          logger.error(`[EventBus] Error in listener for event ${eventName}:`, error);
+    const emit = (event, data) => {
+      // logger.debug(`[Event] ${event}`, data); // Uncomment for verbose debugging
+      const set = _listeners.get(event);
+      if (set) {
+        for (const fn of set) {
+          try { fn(data); } catch (e) { logger.error(`[EventBus] Error in ${event}`, e); }
         }
-      });
-    };
-
-    const unsubscribeAll = (moduleId) => {
-      _tracker.unsubscribeAll(moduleId);
-    };
-
-    const getSubscriptionReport = () => {
-      return _tracker.getAllActive();
-    };
-
-    return {
-      api: {
-        on,
-        off,
-        emit,
-        unsubscribeAll,
-        getSubscriptionReport
       }
     };
+
+    const unsubscribeModule = (moduleId) => {
+      _tracker.unsubscribeAll(moduleId);
+      logger.debug(`[EventBus] Unsubscribed module: ${moduleId}`);
+    };
+
+    return { on, emit, unsubscribeModule };
   }
 };
 
-if (typeof module !== 'undefined' && module.exports) {
-  module.exports = EventBus;
-}
-EventBus;
+export default EventBus;
