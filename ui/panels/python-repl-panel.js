@@ -2,7 +2,7 @@ const PythonReplPanel = {
   metadata: {
     id: 'PythonReplPanel',
     version: '1.0.0',
-    dependencies: ['Utils', 'EventBus', 'PyodideRuntime', 'ToastNotifications?'],
+    dependencies: ['Utils', 'EventBus', 'PyodideRuntime?', 'ToastNotifications?'],
     async: false,
     type: 'ui'
   },

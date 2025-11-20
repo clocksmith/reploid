@@ -14,205 +14,52 @@ Reploid is a **self-modifying AI substrate** that demonstrates recursive self-im
 
 **How:** The agent reads code from its VFS → analyzes & improves it → writes back to VFS → hot-reloads → evolves.
 
-The agent's "brain" is data in [IndexedDB](https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API). It can modify this data (its own code) while running. The original source code is just the evolutionary starting point ("genesis").
-
-**RSI stages:**
-1. **Level 1:** Agent creates new tools at runtime.
-2. **Level 2:** Agent improves its own tool creation mechanism.
-3. **Level 3:** Agent modifies core substrate modules (its memory, prompts, or loop).
+The agent's "brain" is data in [IndexedDB](https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API). It can modify this data (its own code) while running.
 
 ---
 
-## Why?
-
-Most AI systems are frozen at deployment. REPLOID can:
-
-- Create new tools during execution
-- Improve its own tool creation mechanism
-- Modify its core cognitive loop
-- Persist its evolution locally (no cloud)
-
-This is one of many research projects exploring what happens when you give an AI the ability to rewrite itself, which is a step towards "[AGI](https://en.wikipedia.org/wiki/Artificial_general_intelligence)"
-
----
+## Architecture
 
 ```mermaid
 graph TD
-    %% --- Styles ---
-    classDef foundation fill:#000000,stroke:#FFD700,stroke-width:3px,color:#FFD700;
-    classDef storage fill:#111111,stroke:#F0E68C,stroke-width:2px,color:#F0E68C;
-    classDef infra fill:#1a1a1a,stroke:#DAA520,stroke-width:2px,color:#DAA520;
-    classDef service fill:#001a1a,stroke:#00FFFF,stroke-width:2px,color:#00FFFF;
-    classDef tool fill:#002b2b,stroke:#00CED1,stroke-width:2px,color:#00CED1;
-    classDef core fill:#003333,stroke:#E0FFFF,stroke-width:3px,color:#E0FFFF;
-    classDef app fill:#222222,stroke:#FFFFFF,stroke-width:2px,color:#FFFFFF;
-    
-    linkStyle default stroke:#888888,stroke-width:1px;
+    Agent[Agent Loop] --> LLM[LLM Client]
+    Agent --> Tools[Tool Runner]
+    Tools --> VFS[(Virtual File System)]
 
-    %% --- 8. Application Layer ---
-    subgraph AppLayer [Phase 8: Application]
-        Boot([Boot.js])
-        UI[Dashboard UI]
+    subgraph Safety Layer
+        Tools --> Worker(Verification Worker)
+        Worker -.->|Verify| VFS
     end
 
-    %% --- 7. Capabilities ---
-    subgraph Capabilities [Phase 7: Capabilities]
-        Reflection[Reflection Store]
-        Perf[Perf Monitor]
-        Swarm[Swarm Orch]
+    subgraph Capability
+        Agent --> Reflection[Reflection Store]
+        Agent --> Persona[Persona Manager]
     end
-
-    %% --- 6. Agent Core ---
-    subgraph AgentCore [Phase 6: Agent Core]
-        Loop{{Agent Loop}}
-        Persona[Persona Mgr]
-        Substrate[Substrate Loader]
-    end
-
-    %% --- 5. Tool System ---
-    subgraph ToolSys [Phase 5: Tool System]
-        Runner[Tool Runner]
-        Writer[Tool Writer]
-        MetaWriter[Meta Tool Writer]
-    end
-
-    %% --- 4. Core Services ---
-    subgraph Services [Phase 4: Core Services]
-        LLM[LLM Client]
-        Parser[Response Parser]
-        Context[Context Mgr]
-        Verify[Verification Mgr]
-    end
-
-    %% --- 3. Infrastructure ---
-    subgraph Infra [Phase 3: Infrastructure]
-        Events{Event Bus}
-        DI{DI Container}
-        Audit[Audit Logger]
-        Rate[Rate Limiter]
-    end
-
-    %% --- 2. Storage ---
-    subgraph Storage [Phase 2: Storage & State]
-        VFS[(Virtual File System)]
-        State[State Manager]
-    end
-
-    %% --- 1. Foundation ---
-    subgraph Found [Phase 1: Foundation]
-        Utils(Utils & Errors)
-        Protocol(Parser Utils)
-    end
-
-    %% --- Connections ---
-    Boot --> DI
-    Boot --> UI
-    Boot --> Loop
-
-    Loop --> LLM
-    Loop --> Context
-    Loop --> Parser
-    Loop --> Runner
-    Loop --> Persona
-    
-    Runner --> Writer
-    Runner --> MetaWriter
-    Runner --> VFS
-    MetaWriter --> Verify
-    Verify --> Worker(Web Worker)
-
-    LLM --> Rate
-    Context --> LLM
-
-    State --> VFS
-    Audit --> VFS
-    
-    Perf -.-> Events
-    UI -.-> Events
-    Loop -.-> Events
-
-    VFS --> Utils
-    Parser --> Protocol
-
-    class Boot,UI app;
-    class Loop,Persona,Substrate core;
-    class Runner,Writer,MetaWriter tool;
-    class LLM,Parser,Context,Verify service;
-    class Events,DI,Audit,Rate infra;
-    class VFS,State storage;
-    class Utils,Protocol foundation;
-    class Reflection,Perf,Swarm service;
 ```
 
-### Data Flow & Persistence
+### Key Components
 
-```mermaid
-graph LR
-    classDef actor fill:#222,stroke:#fff,stroke-width:2px,color:#fff;
-    classDef logic fill:#003333,stroke:#00CED1,stroke-width:2px,color:#E0FFFF;
-    classDef file fill:#000,stroke:#DAA520,stroke-width:1px,stroke-dasharray: 5 5,color:#F0E68C;
-    classDef worker fill:#330033,stroke:#FF00FF,stroke-width:2px,color:#FF00FF;
+1.  **Core Substrate**:
+    *   `agent-loop.js`: The main cognitive cycle (Think -> Act -> Observe).
+    *   `vfs.js`: Browser-native file system using IndexedDB.
+    *   `llm-client.js`: Unified interface for Cloud (Proxy) and Local (WebLLM) models.
 
-    Agent{{Agent Loop}}:::actor
-    StateMgr[State Manager]:::logic
-    MetaTool[Meta Tool Writer]:::logic
-    Verify[Verification Mgr]:::logic
-    Worker(Web Worker Context):::worker
+2.  **Safety Mechanisms**:
+    *   **Verification Worker**: Runs proposed code changes in a sandboxed Web Worker to check for syntax errors and malicious patterns (infinite loops, `eval`) before writing to VFS.
+    *   **Genesis Factory**: Creates immutable snapshots ("Lifeboats") of the kernel for recovery.
 
-    subgraph VFS["Virtual File System (IndexedDB)"]
-        StateFile(/.system/state.json):::file
-        CoreFile(/core/*.js):::file
-        WorkerFile(/core/verification-worker.js):::file
-        AuditLog(/.logs/audit/YYYY-MM-DD.jsonl):::file
-    end
-
-    Agent -- Update Goal --> StateMgr
-    StateMgr -- Read/Write --> StateFile
-    
-    Agent -- "improve_core_module" --> MetaTool
-    MetaTool -- Read Source --> CoreFile
-    MetaTool -- Validate --> Verify
-    
-    Verify -- Load --> WorkerFile
-    Verify -- "postMessage({snapshot})" --> Worker
-    Worker -- "onmessage(passed)" --> Verify
-    
-    Verify -- Success --> MetaTool
-    MetaTool -- Write Update --> CoreFile
-    
-    StateMgr -- Audit Events --> AuditLog
-```
-
-## Safety 
-
-RSI must be observable and reversible.
-
-- **Substrate / Capability boundary:** Immutable genesis modules (agent loop, response parser, context manager) live in an “untouchable” zone. Everything else is fair game for the agent to rewrite.
-- **Pre-flight verification:** Code changes are compiled and tested inside an isolated [Web Worker](https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API) before they touch the main thread. If the worker crashes, the change is rejected.
-- **Safe Mode bootloader:** When everything still goes wrong, the bootloader detects crash loops and offers to boot from the immutable Genesis Kernel—your built-in lifeboat.
-- **Cats/Dogs protocol:** All code changes flow through structured bundles. Humans (or other agents) review diffs before they hit VFS.
-- **Checkpointed VFS:** Git-style snapshots in IndexedDB plus StateManager checkpoints give you an immediate undo button—even mid-iteration.
-
-These guardrails make it safe to watch the "[Ship of Theseus](https://en.wikipedia.org/wiki/Ship_of_Theseus)" rebuild itself in real time.
+3.  **Tools**:
+    *   `code_intel`: Lightweight structural analysis (imports/exports) to save context tokens.
+    *   `read/write_file`: VFS manipulation.
+    *   `python_tool`: Execute Python via Pyodide (WASM).
 
 ---
 
-## Governance
+## RSI Levels
 
-PAWS is the structured handshake between human and agent that keeps RSI sane. Instead of letting the agent hack files directly, every action flows through two artifacts:
-
-- **Cats bundle (input):** A curated snapshot of the files relevant to the current task. The agent never “sees” the entire project; it reasons over a focused view.
-- **Dogs bundle (output):** A transactional change proposal with explicit CREATE/MODIFY/DELETE blocks.
-
----
-
-## Learn More
-
-- Genesis tiers, module maps, and wiring diagrams live in `/core/README.md` and `/blueprints/README.md`.
-- Connection modes, proxies, and local LLM guidance are documented in `/boot/README.md` and `/docs/OPERATIONAL_MODES.md`.
-- Blueprints, personas, and promotion protocols are in `/blueprints/` and `/upgrades/`.
-
-Skim those when you want the full reference manual; the rest of this README stays focused on behavior, experiments, and positioning.
+1.  **Level 1 (Tools):** Agent creates new tools at runtime using `create_tool`.
+2.  **Level 2 (Meta):** Agent improves its own tool creation mechanism.
+3.  **Level 3 (Substrate):** Agent re-architects its entire loop or memory system.
 
 ---
 
@@ -302,7 +149,7 @@ WebLLM is the inference engine reploid can stand on: deterministic WebGPU execut
 OpenHands embraces Docker power (shell, compilers, sudo) to tackle arbitrary repos, yet that freedom kills safety—the agent can brick its container with a single bad edit. REPLOID trades GCC for transactional rollback: everything lives inside a browser tab, checkpoints live in IndexedDB, and humans approve cats/dogs diffs before mutations land. We prioritize experimentation accessibility and undo guarantees over unrestricted OS access.
 
 ### Gödel Agent
-Gödel Agent explores theoretical RSI by letting reward functions and logic rewrite themselves. It is fascinating math, but it lacks persistent state management, tooling, or human guardrails, so “reward hacking” is inevitable. REPLOID focuses on engineering: reproducible bundles, hot-reloadable modules, and EventBus-driven UI so observers can inspect every mutation. We sacrifice unconstrained search space for transparency and hands-on controllability.
+Gödel Agent explores theoretical RSI by letting reward functions and logic rewrite themselves. It is fascinating math, but it lacks persistent state management, tooling, or human guardrails, so "reward hacking" is inevitable. REPLOID focuses on engineering: reproducible bundles, hot-reloadable modules, and EventBus-driven UI so observers can inspect every mutation. We sacrifice unconstrained search space for transparency and hands-on controllability.
 
 ### Devin (Cognition)
 Devin shows what proprietary, cloud-scale orchestration can deliver: GPT-4-class reasoning, hosted shells, and long-running plans. But it is a black box—you cannot audit, fork, or run Devin offline. REPLOID is the opposite: a glass-box brain stored locally, fully inspectable and modifiable by its owner. We bet that sovereign, user-controlled RSI will outpace closed SaaS once users can watch and influence every self-improvement step.
@@ -314,7 +161,7 @@ Devin shows what proprietary, cloud-scale orchestration can deliver: GPT-4-class
 | Human Control         | **Granular (PAWS review)**   | Moderate (Stop btn) | Low (automated)        | Moderate (chat)|
 | Recovery              | **Transactional rollback**  | Container reset   | Script restart        | N/A            |
 
-**Why REPLOID is different:** Explores the “Ship of Theseus” problem in a tab. Capabilities can mutate aggressively, but the substrate remains recoverable thanks to immutable genesis modules, and IndexedDB checkpoints.
+**Why REPLOID is different:** Explores the "Ship of Theseus" problem in a tab. Capabilities can mutate aggressively, but the substrate remains recoverable thanks to immutable genesis modules, and IndexedDB checkpoints.
 
 ---
 
@@ -334,27 +181,6 @@ Reploid is an experiment in [**substrate-independent RSI**](https://www.edge.org
 - **Fitness** = agent-measured improvements (faster, better, smarter)
 
 **Key Question:** Can an AI improve itself faster than humans can improve it?
-
----
-
-## Limitations
-
-- **Browser-only:** No Node.js backend required (except optional proxy)
-- **Storage:** IndexedDB typically ~50MB-unlimited (browser-dependent)
-- **WebLLM models:** May be limited to 1-3B params due to browser VRAM constraints
-- **Multi-model consensus:** Basic implementation, agent can improve it
-
----
-
-## Research questions
-
-- Can Level 2 RSI emerge from Level 1 without explicit tools?
-- How many iterations until agent creates meta-tools?
-- Does TABULA RASA lead to novel RSI patterns?
-- Can agent discover RSI capabilities without blueprints?
-- What happens after 10000+ iterations of self-improvement?
-
-**Run experiments and share results!**
 
 ---
 

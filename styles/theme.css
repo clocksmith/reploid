@@ -1,0 +1,429 @@
+/* ========================================
+   REPLOID Design System - Unified Theme
+   Modern IDE palette with semantic tokens
+   ======================================== */
+
+:root {
+  /* ---- Background Surfaces ---- */
+  --bg-app: #09090b;
+  --bg-panel: #18181b;
+  --bg-element: #27272a;
+  --bg-elevated: #1f1f23;
+  --bg-hover: rgba(63, 63, 70, 0.5);
+  --bg-active: rgba(6, 182, 212, 0.1);
+
+  /* ---- Borders ---- */
+  --border-subtle: #27272a;
+  --border-default: #3f3f46;
+  --border-active: #52525b;
+
+  /* ---- Text ---- */
+  --text-primary: #e4e4e7;
+  --text-secondary: #a1a1aa;
+  --text-muted: #71717a;
+  --text-disabled: #52525b;
+
+  /* ---- Functional Accents ---- */
+  --primary: #06b6d4;
+  --primary-dim: rgba(6, 182, 212, 0.15);
+  --primary-bright: rgba(6, 182, 212, 0.3);
+
+  --success: #10b981;
+  --success-dim: rgba(16, 185, 129, 0.15);
+
+  --warning: #f59e0b;
+  --warning-dim: rgba(245, 158, 11, 0.15);
+
+  --danger: #ef4444;
+  --danger-dim: rgba(239, 68, 68, 0.15);
+
+  /* ---- Legacy Aliases (for backward compatibility) ---- */
+  --accent-cyan: var(--primary);
+  --accent-cyan-dim: var(--primary-dim);
+  --accent-cyan-bright: var(--primary-bright);
+  --accent-gold: var(--warning);
+  --accent-gold-dim: var(--warning-dim);
+  --error: var(--danger);
+  --error-bg: var(--danger-dim);
+  --success-bg: var(--success-dim);
+  --warning-bg: var(--warning-dim);
+
+  /* ---- Spacing Scale ---- */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 12px;
+  --space-lg: 16px;
+  --space-xl: 24px;
+  --space-2xl: 32px;
+
+  /* ---- Typography Scale ---- */
+  --font-xs: 10px;
+  --font-sm: 11px;
+  --font-base: 13px;
+  --font-md: 14px;
+  --font-lg: 16px;
+  --font-xl: 18px;
+  --font-2xl: 24px;
+
+  /* ---- Border Radius ---- */
+  --radius-sm: 3px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+
+  /* ---- Transitions ---- */
+  --transition-fast: 0.1s ease;
+  --transition-normal: 0.2s ease;
+  --transition-slow: 0.3s ease;
+
+  /* ---- Shadows ---- */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.5);
+
+  /* ---- Scrollbar ---- */
+  --scrollbar-bg: var(--bg-panel);
+  --scrollbar-thumb: var(--border-default);
+  --scrollbar-thumb-hover: var(--border-active);
+}
+
+/* ========================================
+   Global Reset
+   ======================================== */
+
+* {
+  box-sizing: border-box;
+}
+
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg-app);
+  color: var(--text-primary);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: var(--font-base);
+  line-height: 1.5;
+}
+
+/* ========================================
+   Scrollbar Styling
+   ======================================== */
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--scrollbar-bg);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: var(--radius-md);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover);
+}
+
+/* ========================================
+   Common Component Classes
+   ======================================== */
+
+/* Buttons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-lg);
+  font-family: inherit;
+  font-size: var(--font-sm);
+  font-weight: 500;
+  border-radius: var(--radius-md);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background: var(--primary-dim);
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: var(--primary-bright);
+}
+
+.btn-secondary {
+  background: var(--bg-element);
+  border-color: var(--border-default);
+  color: var(--text-secondary);
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: var(--bg-hover);
+  border-color: var(--border-active);
+  color: var(--text-primary);
+}
+
+.btn-danger {
+  background: var(--danger-dim);
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
+.btn-danger:hover:not(:disabled) {
+  background: rgba(239, 68, 68, 0.25);
+}
+
+.btn-sm {
+  padding: var(--space-xs) var(--space-sm);
+  font-size: var(--font-xs);
+}
+
+.btn-icon {
+  padding: var(--space-sm);
+  width: 32px;
+  height: 32px;
+}
+
+/* Cards */
+.card {
+  background: var(--bg-panel);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.card:hover {
+  border-color: var(--border-default);
+}
+
+.card-header {
+  padding: var(--space-md) var(--space-lg);
+  border-bottom: 1px solid var(--border-subtle);
+  font-weight: 600;
+  font-size: var(--font-sm);
+  color: var(--text-secondary);
+}
+
+.card-body {
+  padding: var(--space-lg);
+}
+
+.card-footer {
+  padding: var(--space-md) var(--space-lg);
+  border-top: 1px solid var(--border-subtle);
+}
+
+/* Inputs */
+.input {
+  width: 100%;
+  padding: var(--space-sm) var(--space-md);
+  background: var(--bg-element);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: var(--font-base);
+  transition: border-color var(--transition-normal);
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+.input::placeholder {
+  color: var(--text-muted);
+}
+
+/* Badges */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px var(--space-sm);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.badge-success {
+  background: var(--success-dim);
+  color: var(--success);
+}
+
+.badge-warning {
+  background: var(--warning-dim);
+  color: var(--warning);
+}
+
+.badge-danger {
+  background: var(--danger-dim);
+  color: var(--danger);
+}
+
+/* Status indicators */
+.status-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.status-dot-success {
+  background: var(--success);
+}
+
+.status-dot-warning {
+  background: var(--warning);
+}
+
+.status-dot-danger {
+  background: var(--danger);
+}
+
+.status-dot-idle {
+  background: var(--text-muted);
+}
+
+/* Monospace text */
+.mono {
+  font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+}
+
+/* Text utilities */
+.text-primary { color: var(--text-primary); }
+.text-secondary { color: var(--text-secondary); }
+.text-muted { color: var(--text-muted); }
+.text-success { color: var(--success); }
+.text-warning { color: var(--warning); }
+.text-danger { color: var(--danger); }
+
+/* Layout utilities */
+.hidden { display: none !important; }
+.flex { display: flex; }
+.flex-col { flex-direction: column; }
+.items-center { align-items: center; }
+.justify-between { justify-content: space-between; }
+.gap-sm { gap: var(--space-sm); }
+.gap-md { gap: var(--space-md); }
+.gap-lg { gap: var(--space-lg); }
+
+/* ========================================
+   IDE Shell Layout
+   ======================================== */
+
+.app-shell {
+  display: grid;
+  grid-template-columns: 48px 1fr 320px;
+  grid-template-rows: 1fr;
+  height: 100vh;
+  width: 100%;
+}
+
+.sidebar {
+  background: var(--bg-panel);
+  border-right: 1px solid var(--border-subtle);
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-sm);
+  gap: var(--space-xs);
+}
+
+.sidebar-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  font-size: var(--font-md);
+}
+
+.sidebar-btn:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.sidebar-btn.active {
+  background: var(--primary-dim);
+  color: var(--primary);
+}
+
+.sidebar-spacer {
+  flex: 1;
+}
+
+.workspace {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.workspace-header {
+  padding: var(--space-md) var(--space-lg);
+  border-bottom: 1px solid var(--border-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.workspace-content {
+  flex: 1;
+  overflow: auto;
+  padding: var(--space-lg);
+}
+
+.utility-panel {
+  background: var(--bg-panel);
+  border-left: 1px solid var(--border-subtle);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1024px) {
+  .app-shell {
+    grid-template-columns: 48px 1fr;
+  }
+
+  .utility-panel {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .app-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebar {
+    display: none;
+  }
+}

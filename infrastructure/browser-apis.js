@@ -14,16 +14,17 @@ const BrowserAPIs = {
     const { Utils, EventBus, StateManager } = deps;
     const { logger } = Utils;
 
-    // Track granted permissions and handles
     let fileSystemHandle = null;
     let notificationPermission = 'default';
-    let capabilities = {
-      fileSystemAccess: false,
-      notifications: false,
-      clipboard: false,
-      webShare: false,
-      storageEstimation: false,
-      wakeLock: false
+    const capabilities = {};
+
+    const DETECTORS = {
+      fileSystemAccess: () => 'showDirectoryPicker' in window,
+      notifications: () => 'Notification' in window,
+      clipboard: () => 'clipboard' in navigator && 'writeText' in navigator.clipboard,
+      webShare: () => 'share' in navigator,
+      storageEstimation: () => 'storage' in navigator && 'estimate' in navigator.storage,
+      wakeLock: () => 'wakeLock' in navigator
     };
 
     /**
@@ -32,26 +33,13 @@ const BrowserAPIs = {
     const init = async () => {
       logger.info('[BrowserAPIs] Initializing web API integration...');
 
-      // Detect File System Access API
-      capabilities.fileSystemAccess = 'showDirectoryPicker' in window;
+      Object.entries(DETECTORS).forEach(([key, detector]) => {
+        capabilities[key] = detector();
+      });
 
-      // Detect Notification API
-      capabilities.notifications = 'Notification' in window;
       if (capabilities.notifications) {
         notificationPermission = Notification.permission;
       }
-
-      // Detect Clipboard API
-      capabilities.clipboard = 'clipboard' in navigator && 'writeText' in navigator.clipboard;
-
-      // Detect Web Share API
-      capabilities.webShare = 'share' in navigator;
-
-      // Detect Storage Estimation API
-      capabilities.storageEstimation = 'storage' in navigator && 'estimate' in navigator.storage;
-
-      // Detect Wake Lock API
-      capabilities.wakeLock = 'wakeLock' in navigator;
 
       logger.info('[BrowserAPIs] Capabilities detected:', capabilities);
       EventBus.emit('browser-apis:initialized', capabilities);

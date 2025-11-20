@@ -1,0 +1,65 @@
+{
+  "levels": {
+    "tabula": {
+      "name": "TABULA RASA",
+      "description": "Blank slate - core agent only, no advanced capabilities",
+      "modules": {
+        "foundation": ["Utils", "EventBus", "RateLimiter"],
+        "storage": ["VFS", "StateHelpersPure", "AuditLogger", "StateManager"],
+        "services": ["LLMClient", "TransformersClient", "ResponseParser", "ContextManager"],
+        "tools": ["VerificationManager", "ToolWriter", "MetaToolWriter", "ToolRunner"],
+        "agent": ["PersonaManager", "ReflectionStore", "ReflectionAnalyzer", "AgentLoop"],
+        "capabilities": []
+      }
+    },
+    "minimal": {
+      "name": "MINIMAL AXIOMS",
+      "description": "Core + basic reflection and learning capabilities",
+      "modules": {
+        "foundation": ["Utils", "EventBus", "RateLimiter"],
+        "storage": ["VFS", "StateHelpersPure", "AuditLogger", "StateManager"],
+        "services": ["LLMClient", "TransformersClient", "ResponseParser", "ContextManager"],
+        "tools": ["VerificationManager", "ToolWriter", "MetaToolWriter", "ToolRunner"],
+        "agent": ["PersonaManager", "ReflectionStore", "ReflectionAnalyzer", "AgentLoop"],
+        "capabilities": ["PerformanceMonitor"]
+      }
+    },
+    "full": {
+      "name": "FULL SUBSTRATE",
+      "description": "All capabilities including substrate loading and self-testing",
+      "modules": {
+        "foundation": ["Utils", "EventBus", "RateLimiter"],
+        "storage": ["VFS", "StateHelpersPure", "AuditLogger", "StateManager"],
+        "services": ["LLMClient", "TransformersClient", "ResponseParser", "ContextManager"],
+        "tools": ["VerificationManager", "ToolWriter", "MetaToolWriter", "ToolRunner"],
+        "agent": ["PersonaManager", "ReflectionStore", "ReflectionAnalyzer", "AgentLoop"],
+        "capabilities": ["SubstrateLoader", "PerformanceMonitor", "SelfTester"]
+      }
+    }
+  },
+  "moduleImports": {
+    "Utils": "./core/utils.js",
+    "EventBus": "./infrastructure/event-bus.js",
+    "RateLimiter": "./infrastructure/rate-limiter.js",
+    "VFS": "./core/vfs.js",
+    "StateHelpersPure": "./core/state-helpers-pure.js",
+    "AuditLogger": "./infrastructure/audit-logger.js",
+    "StateManager": "./core/state-manager.js",
+    "LLMClient": "./core/llm-client.js",
+    "TransformersClient": "./core/transformers-client.js",
+    "ResponseParser": "./core/response-parser.js",
+    "ContextManager": "./core/context-manager.js",
+    "VerificationManager": "./core/verification-manager.js",
+    "ToolWriter": "./core/tool-writer.js",
+    "MetaToolWriter": "./core/meta-tool-writer.js",
+    "ToolRunner": "./core/tool-runner.js",
+    "PersonaManager": "./core/persona-manager.js",
+    "ReflectionStore": "./capabilities/reflection/reflection-store.js",
+    "ReflectionAnalyzer": "./capabilities/reflection/reflection-analyzer.js",
+    "AgentLoop": "./core/agent-loop.js",
+    "SubstrateLoader": "./core/substrate-loader.js",
+    "PerformanceMonitor": "./capabilities/performance/performance-monitor.js",
+    "SelfTester": "./capabilities/testing/self-tester.js"
+  },
+  "default": "full"
+}

@@ -2,61 +2,34 @@
 
 **Purpose**: Advanced RSI (Recursive Self-Improvement) capabilities that extend the agent's intelligence.
 
-## Subdirectories
+## Active Capabilities
 
-| Directory | Purpose |
-|-----------|---------|
-| `introspection/` | Code analysis and self-understanding |
-| `reflection/` | Learning from past experiences |
-| `testing/` | Self-testing and validation |
-| `evolution/` | Goal modification and blueprint creation |
-| `performance/` | Monitoring and optimization |
-| `multi-agent/` | Swarm intelligence and coordination |
-
----
-
-## Capability Groups
-
-### Introspection
-- `introspector.js` - Code introspection and self-analysis for RSI
+The following capabilities are currently active and integrated into the REPLOID core:
 
 ### Reflection
-- `reflection-store.js` - Persistent reflection storage
-- `reflection-analyzer.js` - Pattern recognition from history
-- `reflection-search.js` - Semantic search using TF-IDF
-
-### Testing
-- `self-tester.js` - Self-testing framework
-- `verification-manager.js` - Verification coordination
-- `verification-worker.js` - Worker thread for testing
-
-### Evolution
-- `goal-modifier.js` - Safe goal modification mechanisms
-- `blueprint-creator.js` - Blueprint generation system
-- `meta-tool-creator.js` - Meta-tool creation patterns
+- `reflection-store.js` - Persistent storage for insights, errors, and success patterns.
+- `reflection-analyzer.js` - Analyzes history to detect failure patterns and suggest improvements.
 
 ### Performance
-- `performance-monitor.js` - RSI performance monitoring
-- `performance-optimizer.js` - Optimization engine
-- `cost-tracker.js` - API cost management
-- `tool-analytics.js` - Tool usage analytics
+- `performance-monitor.js` - Tracks tool usage, API tokens, and error rates.
 
-### Multi-Agent
-- `swarm-orchestrator.js` - Distributed task execution
-- `webrtc-swarm.js` - WebRTC peer networking
-- `inter-tab-coordinator.js` - Cross-tab coordination
-- `tab-coordinator.js` - BroadcastChannel sync
+### Testing
+- `self-tester.js` - Basic system diagnostics and health checks.
 
 ---
 
 ## Usage
 
-Capabilities are loaded via config.json based on the selected persona. Each capability can be enabled or disabled independently.
+Capabilities are registered in `boot.js` based on the selected **Genesis Level**:
+
+- **Tabula Rasa**: No capabilities loaded.
+- **Minimal**: Loads `PerformanceMonitor`.
+- **Full**: Loads all capabilities (`ReflectionStore`, `ReflectionAnalyzer`, `PerformanceMonitor`, `SelfTester`).
 
 ---
 
-## See Also
+## Integration
 
-- **[Core Modules](../core/README.md)** - Essential infrastructure
-- **[Workflow](../workflow/README.md)** - Task orchestration
-- **[Infrastructure](../infrastructure/README.md)** - Support services
+- **Agent Loop**: Injects `ReflectionAnalyzer` insights into the context window.
+- **Tool Runner**: Triggers `PerformanceMonitor` events on tool execution.
+- **Event Bus**: Used for decoupled communication between core and capabilities.

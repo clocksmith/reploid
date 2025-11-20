@@ -1,12 +1,12 @@
 /**
  * @fileoverview Response Parser
- * Extracts tool calls from LLM text.
+ * Extracts tool calls from LLM text using Robust Regex.
  */
 
 const ResponseParser = {
   metadata: {
     id: 'ResponseParser',
-    version: '2.0.1',
+    version: '2.1.0', // Simplified
     dependencies: ['Utils'],
     type: 'service'
   },
@@ -18,62 +18,80 @@ const ResponseParser = {
       if (!text) return [];
       const calls = [];
 
-      // 1. Try Regex for standard format
-      const regex = /TOOL_CALL:\s*([a-zA-Z0-9_]+)\s*\nARGS:\s*({[\s\S]*?})(?=\nTOOL_CALL:|$)/g;
+      // Standard Format:
+      // TOOL_CALL: name
+      // ARGS: { ... }
+      // Find each TOOL_CALL and extract JSON with brace counting
+      const toolCallRegex = /TOOL_CALL:\s*([a-zA-Z0-9_]+)\s*\nARGS:\s*/g;
+
       let match;
-      let regexSuccess = false;
+      while ((match = toolCallRegex.exec(text)) !== null) {
+        const name = match[1].trim();
+        let startIdx = match.index + match[0].length;
 
-      while ((match = regex.exec(text)) !== null) {
-        regexSuccess = true;
-        addCall(calls, match[1], match[2]);
-      }
-
-      if (regexSuccess) return calls;
-
-      // 2. Fallback: Manual Line Parsing
-      const lines = text.split('\n');
-      let currentTool = null;
-      let argBuffer = '';
-      let recordingArgs = false;
-
-      for (const line of lines) {
-        const trimmed = line.trim();
-
-        if (trimmed.startsWith('TOOL_CALL:')) {
-          if (currentTool && recordingArgs) {
-            addCall(calls, currentTool, argBuffer);
-          }
-          currentTool = trimmed.replace('TOOL_CALL:', '').trim();
-          argBuffer = '';
-          recordingArgs = false;
-        } else if (trimmed.startsWith('ARGS:') && currentTool) {
-          recordingArgs = true;
-          argBuffer = line.replace('ARGS:', '').trim();
-        } else if (recordingArgs) {
-          argBuffer += line + '\n';
+        while (startIdx < text.length && /\s/.test(text[startIdx])) startIdx++;
+        if (text[startIdx] !== '{') {
+          logger.warn(`[ResponseParser] Expected JSON object for ${name}`);
+          calls.push({ name, args: {}, error: 'Invalid JSON block' });
+          continue;
         }
-      }
 
-      // Final flush
-      if (currentTool && recordingArgs) {
-        addCall(calls, currentTool, argBuffer);
+        let braceCount = 0;
+        let inString = false;
+        let escape = false;
+        let endIdx = startIdx;
+
+        for (let i = startIdx; i < text.length; i++) {
+          const char = text[i];
+
+          if (escape) {
+            escape = false;
+            continue;
+          }
+
+          if (char === '\\' && inString) {
+            escape = true;
+            continue;
+          }
+
+          if (char === '"') {
+            inString = !inString;
+            continue;
+          }
+
+          if (!inString) {
+            if (char === '{') {
+              braceCount++;
+            } else if (char === '}') {
+              braceCount--;
+              if (braceCount === 0) {
+                endIdx = i + 1;
+                break;
+              }
+            }
+          }
+        }
+
+        const rawArgs = text.slice(startIdx, endIdx);
+
+        const { json } = sanitizeLlmJsonRespPure(rawArgs);
+        try {
+          const args = JSON.parse(json);
+          calls.push({ name, args });
+        } catch (e) {
+          logger.warn(`[ResponseParser] Bad args for ${name}`, { raw: rawArgs.slice(0, 100) });
+          calls.push({ name, args: {}, error: `JSON Parse Error: ${e.message}` });
+        }
       }
 
       return calls;
     };
 
-    const addCall = (list, name, rawArgs) => {
-      const { json } = sanitizeLlmJsonRespPure(rawArgs);
-      try {
-        const args = JSON.parse(json);
-        list.push({ name, args });
-      } catch (e) {
-        logger.warn(`[ResponseParser] Bad args for ${name}`, { raw: rawArgs });
-        list.push({ name, args: {}, error: e.message });
-      }
+    // Check if the model explicitly stated it is done
+    const isDone = (text) => {
+        if (!text) return false;
+        return text.includes('GOAL_ACHIEVED') || text.includes('GOAL_COMPLETE');
     };
-
-    const isDone = (text) => text.includes('DONE:') || text.includes('GOAL_ACHIEVED:');
 
     return { parseToolCalls, isDone };
   }

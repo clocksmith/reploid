@@ -6,29 +6,27 @@
 const AgentLoop = {
   metadata: {
     id: 'AgentLoop',
-    version: '2.0.0',
+    version: '2.4.1',
     dependencies: [
-      'Utils', 'LLMClient', 'ToolRunner', 'ContextManager',
-      'ResponseParser', 'StateManager', 'PersonaManager'
+      'Utils', 'EventBus', 'LLMClient', 'ToolRunner', 'ContextManager',
+      'ResponseParser', 'StateManager', 'PersonaManager', 'ReflectionStore?', 'ReflectionAnalyzer?'
     ],
     type: 'core'
   },
 
   factory: (deps) => {
     const {
-      Utils, LLMClient, ToolRunner, ContextManager,
-      ResponseParser, StateManager, PersonaManager
+      Utils, EventBus, LLMClient, ToolRunner, ContextManager,
+      ResponseParser, StateManager, PersonaManager, ReflectionStore, ReflectionAnalyzer
     } = deps;
 
     const { logger, Errors } = Utils;
 
-    // --- Configuration ---
-    const MAX_ITERATIONS = 50; // Safety break
+    const MAX_ITERATIONS = 50;
+    const MAX_TOOL_CALLS_PER_ITERATION = 3;
     let _isRunning = false;
     let _abortController = null;
     let _modelConfig = null;
-
-    // --- Core Logic ---
 
     const run = async (goal) => {
       if (_isRunning) throw new Errors.StateError('Agent already running');
@@ -38,8 +36,8 @@ const AgentLoop = {
       _abortController = new AbortController();
 
       logger.info(`[Agent] Starting cycle. Goal: "${goal}"`);
+      EventBus.emit('agent:status', { state: 'STARTING', activity: 'Initializing...' });
 
-      // 1. Initialize State & Context
       await StateManager.setGoal(goal);
       let context = await _buildInitialContext(goal);
       let iteration = 0;
@@ -52,71 +50,100 @@ const AgentLoop = {
           await StateManager.incrementCycle();
           logger.info(`[Agent] Iteration ${iteration}`);
 
-          // 2. Context Management (Compression)
+          // 2. Insights / Reflection Injection
+          let insights = null;
+          try {
+            if (ReflectionAnalyzer && ReflectionAnalyzer.api) {
+              const failurePatterns = await ReflectionAnalyzer.api.detectFailurePatterns();
+              if (failurePatterns.length > 0) {
+                insights = failurePatterns.slice(0, 2).map(p => p.indicator);
+              }
+            }
+          } catch (e) { /* ignore */ }
+
+          if (insights && insights.length > 0) {
+             context.splice(1, 0, { role: 'system', content: `[MEMORY] Watch out for these past failure patterns: ${insights.join(', ')}` });
+          }
+
+          EventBus.emit('agent:status', { state: 'THINKING', activity: `Cycle ${iteration} - Calling LLM...`, cycle: iteration });
+
           context = await ContextManager.compact(context, _modelConfig);
 
-          // 3. Think (LLM Call)
-          // We stream the response for better UX, but accumulate for logic
           let llmResponseText = '';
           const streamCallback = (text) => {
-            // In a real app, emit this to UI via EventBus
-            // EventBus.emit('agent:stream', text);
+            EventBus.emit('agent:stream', text);
             llmResponseText += text;
           };
 
           const response = await LLMClient.chat(context, _modelConfig, streamCallback);
 
-          // 4. Observe & Parse
-          const toolCalls = ResponseParser.parseToolCalls(response.content);
+          EventBus.emit('agent:history', {
+            type: 'llm_response',
+            cycle: iteration,
+            content: response.content
+          });
 
-          // Add Assistant response to history
+          const toolCalls = ResponseParser.parseToolCalls(response.content);
           context.push({ role: 'assistant', content: response.content });
 
-          // 5. Act (Tool Execution)
           if (toolCalls.length > 0) {
+            let executedTools = 0;
             for (const call of toolCalls) {
+              if (executedTools >= MAX_TOOL_CALLS_PER_ITERATION) {
+                const limitMsg = `Tool call limit (${MAX_TOOL_CALLS_PER_ITERATION}) reached for this iteration. Finish current thoughts or continue next turn.`;
+                logger.warn('[Agent] ' + limitMsg);
+                context.push({ role: 'system', content: limitMsg });
+                break;
+              }
+
               if (_abortController.signal.aborted) break;
 
               logger.info(`[Agent] Tool Call: ${call.name}`);
+              EventBus.emit('agent:status', { state: 'ACTING', activity: `Executing tool: ${call.name}` });
 
               let result;
               try {
-                // Execute via ToolRunner
                 const rawResult = await ToolRunner.execute(call.name, call.args);
-                result = JSON.stringify(rawResult, null, 2); // Standardize output format
+                result = typeof rawResult === 'string' ? rawResult : JSON.stringify(rawResult, null, 2);
               } catch (err) {
                 logger.error(`[Agent] Tool Error: ${call.name}`, err);
                 result = `Error: ${err.message}`;
               }
 
-              // Feed result back to context
+              // Smart truncation
+              if (result.length > 5000 && call.name !== 'read_file') {
+                  result = result.substring(0, 5000) + "\n... [OUTPUT TRUNCATED. USE code_intel OR read_file FOR DETAILS] ...";
+              }
+
               context.push({
                 role: 'user',
                 content: `TOOL_RESULT (${call.name}):\n${result}`
               });
+
+              EventBus.emit('agent:history', {
+                type: 'tool_result',
+                cycle: iteration,
+                tool: call.name,
+                args: call.args,
+                result: result
+              });
+
+              _logReflection(call, result, iteration);
+              executedTools++;
             }
           } else {
-            // No tools called. Check if done or just chatting.
             if (ResponseParser.isDone(response.content)) {
-              logger.info('[Agent] Goal achieved (reported by agent).');
+              logger.info('[Agent] Goal achieved.');
               break;
             }
-            // If not done and no tools, maybe force a continuation prompt?
-            // For now, we just let the loop continue or wait for user input in a chat app.
-            // In this autonomous loop, we might stop if it's just chatting.
-            // Simplification: If no tools, we stop to prevent infinite chatter loops in autonomous mode.
-            // logger.info('[Agent] No tools called. Pausing.');
-            // break;
-          }
-
-          // Safety break
-          if (iteration >= MAX_ITERATIONS) {
-            logger.warn('[Agent] Max iterations reached.');
+             if (iteration > 5 && !response.content.includes('TOOL_CALL')) {
+                 context.splice(1, 0, { role: 'system', content: "You are chattering without acting. Please use a tool or declare completion."});
+             }
           }
         }
       } catch (err) {
         if (err instanceof Errors.AbortError) {
-          logger.info('[Agent] Cycle aborted by user.');
+          logger.info('[Agent] Cycle aborted.');
         } else {
           logger.error('[Agent] Critical Error', err);
           throw err;
@@ -124,26 +151,44 @@ const AgentLoop = {
       } finally {
         _isRunning = false;
         _abortController = null;
+        EventBus.emit('agent:status', { state: 'IDLE', activity: 'Stopped' });
       }
+    };
+
+    const _logReflection = async (call, result, iteration) => {
+         if (!ReflectionStore) return;
+         const isError = result.startsWith('Error:');
+         try {
+            await ReflectionStore.add({
+                type: isError ? 'error' : 'success',
+                content: `Tool ${call.name}`,
+                context: { cycle: iteration, tool: call.name, args: call.args, outcome: isError ? 'failed' : 'successful' }
+            });
+         } catch (e) {}
     };
 
     const _buildInitialContext = async (goal) => {
       const personaPrompt = await PersonaManager.getSystemPrompt();
 
-      // Base System Prompt
       const systemPrompt = `
 ${personaPrompt}
 
-## Capabilities
-You have access to a Virtual File System (VFS) and tools to manipulate it.
-You can create and modify your own tools.
+## Core Tools
+- code_intel: Analyze file structure (imports, exports, functions). *USE THIS FIRST* to save tokens before reading large files. Args: { "path": "/path/to/file" }
+- read_file: Read file content. Args: { "path": "/path/to/file" }
+- write_file: Create/Overwrite file. Args: { "path": "/path/to/file", "content": "..." }
+- delete_file: Remove a file. Args: { "path": "/path/to/file" }
+- list_files: List directory. Args: { "path": "/" }
+- create_tool: Create new tool (RSI L1). Args: { "name": "x", "code": "..." }
+- improve_core_module: Rewrite core module (RSI L2). Args: { "module": "x", "code": "..." }
+${ToolRunner.has('load_module') ? '- load_module: Hot-reload module (RSI L3). Args: { "path": "/path/to/module.js" }' : ''}
 
 ## Protocol
-1. **THINK**: Plan your action.
-2. **ACT**: Use a tool using the format:
+1. **THINK**: Plan your next step.
+2. **ACT**: Use tools via format:
 TOOL_CALL: tool_name
-ARGS: { "arg": "value" }
-3. **OBSERVE**: Wait for the result.
+ARGS: { ... }
+3. Always inspect the VFS with list_files before reading. Only read paths that actually exist (e.g., /core/..., /tools/...). If a file is missing, create it instead of repeatedly requesting it.
 
 ## Goal
 ${goal}
@@ -155,21 +200,10 @@ ${goal}
       ];
     };
 
-    // --- Public Control API ---
-
-    const stop = () => {
-      if (_abortController) _abortController.abort();
-      _isRunning = false;
-    };
-
-    const setModel = (config) => {
-      _modelConfig = config;
-    };
-
     return {
       run,
-      stop,
-      setModel,
+      stop: () => { if (_abortController) _abortController.abort(); _isRunning = false; },
+      setModel: (c) => { _modelConfig = c; },
       isRunning: () => _isRunning
     };
   }

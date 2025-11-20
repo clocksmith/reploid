@@ -12,7 +12,7 @@ const VFSExplorer = {
 
   factory: (deps) => {
     const { Utils, EventBus, StateManager, ToastNotifications } = deps;
-    const { logger } = Utils;
+    const { logger, escapeHtml } = Utils;
 
     class Explorer {
       constructor() {
@@ -51,7 +51,7 @@ const VFSExplorer = {
               <input type="text"
                      class="vfs-search"
                      placeholder="🔍 Search files..."
-                     value="${this.escapeHtml(this.searchTerm)}"
+                     value="${escapeHtml(this.searchTerm)}"
                      aria-label="Search files"
                      role="searchbox">
               <button class="vfs-refresh" title="Refresh" aria-label="Refresh file tree">↻</button>
@@ -152,15 +152,15 @@ const VFSExplorer = {
 
         return `
           <div class="vfs-item vfs-file ${selected} ${highlight}"
-               data-path="${this.escapeHtml(node.path)}"
+               data-path="${escapeHtml(node.path)}"
                data-type="file"
                role="treeitem"
                aria-selected="${selected ? 'true' : 'false'}"
-               aria-label="${this.escapeHtml(node.name)} (${this.formatSize(node.size)})"
+               aria-label="${escapeHtml(node.name)} (${this.formatSize(node.size)})"
                tabindex="${selected ? '0' : '-1'}"
                style="padding-left:${depth * 20 + 20}px">
             <span class="vfs-icon" aria-hidden="true">${icon}</span>
-            <span class="vfs-name">${this.escapeHtml(node.name)}</span>
+            <span class="vfs-name">${escapeHtml(node.name)}</span>
             <span class="vfs-size">${this.formatSize(node.size)}</span>
           </div>
         `;
@@ -177,16 +177,16 @@ const VFSExplorer = {
         return `
           <div class="vfs-folder" role="group">
             <div class="vfs-item vfs-folder-header"
-                 data-path="${this.escapeHtml(node.path)}"
+                 data-path="${escapeHtml(node.path)}"
                  data-type="folder"
                  role="treeitem"
                  aria-expanded="${isExpanded}"
-                 aria-label="${this.escapeHtml(node.name)} folder (${fileCount} items)"
+                 aria-label="${escapeHtml(node.name)} folder (${fileCount} items)"
                  tabindex="0"
                  style="padding-left:${depth * 20 + 20}px">
               <span class="vfs-expand" aria-hidden="true">${expandIcon}</span>
               <span class="vfs-icon" aria-hidden="true">${icon}</span>
-              <span class="vfs-name">${this.escapeHtml(node.name)}</span>
+              <span class="vfs-name">${escapeHtml(node.name)}</span>
               <span class="vfs-count" aria-hidden="true">(${fileCount})</span>
             </div>
             <div class="vfs-children ${isExpanded ? 'expanded' : 'collapsed'}" role="group">
@@ -389,7 +389,7 @@ const VFSExplorer = {
               <div class="vfs-file-viewer-header">
                 <div class="vfs-file-viewer-title">
                   <span class="vfs-icon">${this.getFileIcon(path)}</span>
-                  <span>${this.escapeHtml(path)}</span>
+                  <span>${escapeHtml(path)}</span>
                 </div>
                 <button class="vfs-file-viewer-close">✕</button>
               </div>
@@ -399,7 +399,7 @@ const VFSExplorer = {
                 Lines: ${(content || '').split('\n').length}
               </div>
               <div class="vfs-file-viewer-body">
-                <pre><code class="language-${language}">${this.escapeHtml(content || '')}</code></pre>
+                <pre><code class="language-${language}">${escapeHtml(content || '')}</code></pre>
               </div>
               <div class="vfs-file-viewer-footer">
                 <button class="vfs-file-viewer-copy">📋 Copy</button>
@@ -490,11 +490,6 @@ const VFSExplorer = {
         return langMap[ext] || 'text';
       }
 
-      escapeHtml(text) {
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
-      }
     }
 
     const explorer = new Explorer();

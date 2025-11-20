@@ -1,6 +1,9 @@
 // API status checking and model population
 import { state, elements } from './state.js';
 
+const logInfo = (...args) => console.info('[BootAPI]', ...args);
+const logWarn = (...args) => console.warn('[BootAPI]', ...args);
+
 // Use the same origin as the current page, or fallback to localhost for local dev
 const PROXY_BASE_URL = window.location.origin.includes('file://')
     ? 'http://localhost:8000'
@@ -8,7 +11,7 @@ const PROXY_BASE_URL = window.location.origin.includes('file://')
 
 // ModelRegistry integration - discovery of available models
 export async function discoverAvailableModels() {
-    console.log('[API] Discovering available models via ModelRegistry...');
+    logInfo('Discovering available models via ModelRegistry...');
 
     // Wait for ModelRegistry to be loaded
     let retries = 0;
@@ -18,13 +21,13 @@ export async function discoverAvailableModels() {
     }
 
     if (!window.ModelRegistry) {
-        console.warn('[API] ModelRegistry not available, falling back to basic detection');
+        logWarn('ModelRegistry not available, falling back to basic detection');
         return await fallbackModelDiscovery();
     }
 
     try {
         const registry = await window.ModelRegistry.api.discoverModels(true); // force refresh
-        console.log('[API] ModelRegistry discovered:', registry);
+        logInfo('[ModelRegistry] Providers discovered', Object.keys(registry || {}).length);
 
         state.availableModels = {
             cloud: [
@@ -39,7 +42,7 @@ export async function discoverAvailableModels() {
 
         return state.availableModels;
     } catch (error) {
-        console.warn('[API] ModelRegistry discovery failed:', error);
+        logWarn('ModelRegistry discovery failed:', error);
         return await fallbackModelDiscovery();
     }
 }
@@ -88,7 +91,7 @@ async function fallbackModelDiscovery() {
             }
         }
     } catch (error) {
-        console.warn('[API] Proxy status check failed:', error);
+        logWarn('Proxy status check failed:', error);
 
         // Check localStorage for browser-direct keys
         const localStorageKeys = {
@@ -141,7 +144,7 @@ async function fallbackModelDiscovery() {
                 }));
             }
         } catch (error) {
-            console.warn('[API] Ollama check failed:', error);
+            logWarn('Ollama check failed:', error);
         }
     }
 
@@ -159,7 +162,7 @@ async function fallbackModelDiscovery() {
 }
 
 export async function checkAPIStatus() {
-    console.log('[API] Checking server status...');
+    logInfo('Checking server status...');
 
     // Check if proxy server is available
     try {
@@ -170,7 +173,7 @@ export async function checkAPIStatus() {
 
         if (response.ok) {
             const data = await response.json();
-            console.log('[API] Server online:', data);
+            logInfo('Server online');
 
             state.detectedEnv.hasServer = true;
             state.detectedEnv.providers = data.providers || [];
@@ -228,7 +231,7 @@ export async function checkAPIStatus() {
             }
         }
     } catch (error) {
-        console.warn('[API] Server offline:', error.message);
+        logWarn('Server offline:', error.message);
         state.detectedEnv.hasServer = false;
 
         if (elements.proxyChip) {
@@ -250,8 +253,8 @@ export async function checkAPIStatus() {
     // Check WebGPU availability
     if (navigator.gpu) {
         state.detectedEnv.hasWebGPU = true;
-        console.log('[API] WebGPU available');
-    }
+        logInfo('WebGPU available');
+}
 
     // Update mode card availability
     updateModeAvailability();

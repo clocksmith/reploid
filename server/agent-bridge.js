@@ -1,18 +1,5 @@
 #!/usr/bin/env node
 
-/**
- * Agent Bridge Server
- *
- * Enables coordination between AI agents on the same machine
- * using WebSocket-based JSON-RPC 2.0 protocol.
- *
- * Features:
- * - Agent registration and discovery
- * - Message broadcasting and direct messaging
- * - Task delegation and status tracking
- * - Shared context and state management
- */
-
 import { WebSocketServer, WebSocket } from 'ws';
 import { EventEmitter } from 'events';
 
@@ -56,7 +43,6 @@ class AgentBridge extends EventEmitter {
       try {
         const message = JSON.parse(data.toString());
 
-        // JSON-RPC 2.0 validation
         if (!message.jsonrpc || message.jsonrpc !== '2.0') {
           this.sendError(ws, null, -32600, 'Invalid Request: missing or invalid jsonrpc field');
           return;
@@ -67,7 +53,6 @@ class AgentBridge extends EventEmitter {
           return;
         }
 
-        // Handle the request
         const result = await this.handleMethod(message.method, message.params || {}, agentId, ws);
 
         // If this was a registration, update agentId
@@ -75,7 +60,6 @@ class AgentBridge extends EventEmitter {
           agentId = result.agentId;
         }
 
-        // Send response (only if message has an id, per JSON-RPC 2.0)
         if (message.id !== undefined) {
           this.sendResponse(ws, message.id, result);
         }
@@ -415,29 +399,20 @@ class AgentBridge extends EventEmitter {
   }
 
   sendResponse(ws, id, result) {
-    ws.send(JSON.stringify({
-      jsonrpc: '2.0',
-      id,
-      result
-    }));
+    this.sendRpc(ws, { id, result });
   }
 
   sendError(ws, id, code, message) {
-    ws.send(JSON.stringify({
-      jsonrpc: '2.0',
-      id,
-      error: { code, message }
-    }));
+    this.sendRpc(ws, { id, error: { code, message } });
   }
 
   sendNotification(ws, method, params) {
-    if (ws.readyState === WebSocket.OPEN) {
-      ws.send(JSON.stringify({
-        jsonrpc: '2.0',
-        method,
-        params
-      }));
-    }
+    this.sendRpc(ws, { method, params });
+  }
+
+  sendRpc(ws, payload) {
+    if (ws.readyState !== WebSocket.OPEN) return;
+    ws.send(JSON.stringify({ jsonrpc: '2.0', ...payload }));
   }
 
   startHeartbeatMonitor() {
