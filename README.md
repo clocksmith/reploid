@@ -10,11 +10,11 @@
 
 ## About
 
-REPLOID is not an AI assistant. It's a **self-modifying AI substrate** that demonstrates recursive self-improvement (RSI) in a browser environment.
+REPLOID is a **self-modifying AI substrate** that demonstrates recursive self-improvement ([RSI](https://en.wikipedia.org/wiki/Recursive_self-improvement)) in a browser environment.
 
-**How it works:** The agent reads code from its VFS → analyzes & improves it → writes back to VFS → hot-reloads → becomes better.
+**How:** The agent reads code from its VFS → analyzes & improves it → writes back to VFS → hot-reloads → evolves.
 
-**Key insight:** The agent's "brain" is data in [IndexedDB](https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API). It can modify this data (its own code) while running. The original source code is just the evolutionary starting point ("genesis").
+The agent's "brain" is data in [IndexedDB](https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API). It can modify this data (its own code) while running. The original source code is just the evolutionary starting point ("genesis").
 
 **RSI stages:**
 1. **Level 1:** Agent creates new tools at runtime.
@@ -26,12 +26,13 @@ REPLOID is not an AI assistant. It's a **self-modifying AI substrate** that demo
 ## Why?
 
 Most AI systems are frozen at deployment. REPLOID can:
+
 - Create new tools during execution
 - Improve its own tool creation mechanism
 - Modify its core cognitive loop
 - Persist its evolution locally (no cloud)
 
-This is one of many research projects exploring what happens when you give an AI the ability to rewrite itself.
+This is one of many research projects exploring what happens when you give an AI the ability to rewrite itself, which is a step towards "[AGI](https://en.wikipedia.org/wiki/Artificial_general_intelligence)"
 
 ---
 
@@ -182,20 +183,6 @@ graph LR
     StateMgr -- Audit Events --> AuditLog
 ```
 
----
-
-## Quick Start
-
-1. **Clone or download** this repo and open `/reploid/index.html` in Chrome/Edge with WebGPU enabled.
-2. **Choose a genesis level** on the boot screen (Full Substrate for first runs).
-3. **Add a model** (API key or local WebLLM). The UI lists all four connection types.
-4. **Awaken the agent.** Watch the boot log, then let REPLOID run unattended or issue goals through the chat panel.
-5. **Review every proposal.** Cats bundles capture context; dogs bundles capture diffs. Approve, edit, or rollback from the diff viewer.
-
-Need details on proxies, Ollama, or advanced settings? See `/boot/README.md`.
-
----
-
 ## Safety 
 
 RSI must be observable and reversible.
@@ -210,20 +197,12 @@ These guardrails make it safe to watch the "[Ship of Theseus](https://en.wikiped
 
 ---
 
-## PAWS Governance
+## Governance
 
 PAWS is the structured handshake between human and agent that keeps RSI sane. Instead of letting the agent hack files directly, every action flows through two artifacts:
 
 - **Cats bundle (input):** A curated snapshot of the files relevant to the current task. The agent never “sees” the entire project; it reasons over a focused view.
-- **Dogs bundle (output):** A transactional change proposal with explicit CREATE/MODIFY/DELETE blocks. Nothing executes until a reviewer approves it.
-
-This firewall prevents “brain death” (accidentally corrupting the runtime) and unlocks practical benefits:
-
-1. **Context economy:** Cats bundling forces selective reading, keeping prompts small and focused so the agent doesn’t thrash token limits.
-2. **Atomic transactions:** Dogs bundles apply in one shot. If pre-flight verification or human review fails, the whole change is rejected. You can also rollback by checkpoint ID.
-3. **Asynchronous workflow:** The agent can queue multiple proposals overnight; humans (or scripts) review diffs later and pick the best bundle to apply.
-
-PAWS costs a review step, but it makes high-stakes RSI possible without lobotomizing the agent mid-upgrade.
+- **Dogs bundle (output):** A transactional change proposal with explicit CREATE/MODIFY/DELETE blocks.
 
 ---
 
@@ -312,7 +291,7 @@ Skim those when you want the full reference manual; the rest of this README stay
 
 ---
 
-## Competitive Landscape
+## Landscape
 
 REPLOID lives in a small but rapidly evolving ecosystem of self-improving agents. We intentionally share compute constraints (browser, IndexedDB) while diverging on safety architecture and ownership.
 
@@ -339,7 +318,7 @@ Devin shows what proprietary, cloud-scale orchestration can deliver: GPT-4-class
 
 ---
 
-## Philosophy: Substrate-Independent RSI
+## Philosophy
 
 REPLOID is an experiment in [**substrate-independent RSI**](https://www.edge.org/response-detail/27126):
 
@@ -367,13 +346,13 @@ REPLOID is an experiment in [**substrate-independent RSI**](https://www.edge.org
 
 ---
 
-## Research Questions
+## Research questions
 
 - Can Level 2 RSI emerge from Level 1 without explicit tools?
 - How many iterations until agent creates meta-tools?
 - Does TABULA RASA lead to novel RSI patterns?
 - Can agent discover RSI capabilities without blueprints?
-- What happens after 1000+ iterations of self-improvement?
+- What happens after 10000+ iterations of self-improvement?
 
 **Run experiments and share results!**
 
