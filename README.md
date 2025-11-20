@@ -1,6 +1,6 @@
 # REPLOID: Recursive Self-Improvement Substrate
 
-> A browser native system that can modify its own code.
+> A long-running browser-native system that can modify its own code.
 
 **R**ecursive **E**volution **P**rotocol **L**oop **O**ptimizing **I**ntelligent **D**REAMER
 (**D**ynamic **R**ecursive **E**ngine **A**dapting **M**odules **E**volving **R**EPLOID)
@@ -8,7 +8,7 @@
 
 ---
 
-## What is This?
+## About
 
 REPLOID is not an AI assistant. It's a **self-modifying AI substrate** that demonstrates recursive self-improvement (RSI) in a browser environment.
 
@@ -23,7 +23,7 @@ REPLOID is not an AI assistant. It's a **self-modifying AI substrate** that demo
 
 ---
 
-## Why Does This Matter?
+## Why?
 
 Most AI systems are frozen at deployment. REPLOID can:
 - Create new tools during execution
@@ -196,9 +196,9 @@ Need details on proxies, Ollama, or advanced settings? See `/boot/README.md`.
 
 ---
 
-## Safety Architecture
+## Safety 
 
-REPLOID’s core bet is that RSI must be observable, reversible, and crash-proof:
+RSI must be observable and reversible.
 
 - **Substrate / Capability boundary:** Immutable genesis modules (agent loop, response parser, context manager) live in an “untouchable” zone. Everything else is fair game for the agent to rewrite.
 - **Pre-flight verification:** Code changes are compiled and tested inside an isolated [Web Worker](https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API) before they touch the main thread. If the worker crashes, the change is rejected.
@@ -220,7 +220,7 @@ PAWS is the structured handshake between human and agent that keeps RSI sane. In
 This firewall prevents “brain death” (accidentally corrupting the runtime) and unlocks practical benefits:
 
 1. **Context economy:** Cats bundling forces selective reading, keeping prompts small and focused so the agent doesn’t thrash token limits.
-2. **Atomic transactions:** Dogs bundles apply in one shot. If pre-flight verification or human review fails, the whole change is rejected. You can also rollback by checkpoint ID—think miniature [database transactions](https://en.wikipedia.org/wiki/Database_transaction) for code changes.
+2. **Atomic transactions:** Dogs bundles apply in one shot. If pre-flight verification or human review fails, the whole change is rejected. You can also rollback by checkpoint ID.
 3. **Asynchronous workflow:** The agent can queue multiple proposals overnight; humans (or scripts) review diffs later and pick the best bundle to apply.
 
 PAWS costs a review step, but it makes high-stakes RSI possible without lobotomizing the agent mid-upgrade.
@@ -317,7 +317,7 @@ Skim those when you want the full reference manual; the rest of this README stay
 REPLOID lives in a small but rapidly evolving ecosystem of self-improving agents. We intentionally share compute constraints (browser, IndexedDB) while diverging on safety architecture and ownership.
 
 ### WebLLM (MLC AI)
-WebLLM is the inference engine we stand on: deterministic WebGPU execution, no cognition. It excels at raw token throughput and versioned stability but offers no tools, memory, or self-modification. REPLOID layers VFS, a tool runner, PAWS governance, and substrate/capability boundaries above WebLLM so passive inference becomes an auditable agent capable of planning, testing, and rewriting itself safely.
+WebLLM is the inference engine reploid can stand on: deterministic WebGPU execution. It excels at raw token throughput and versioned stability but offers no tools, memory, or self-modification. REPLOID layers VFS, a tool runner, PAWS governance, and substrate/capability boundaries above WebLLM so passive inference becomes an auditable agent capable of planning, testing, and rewriting itself safely.
 
 ### OpenHands (formerly OpenDevin)
 OpenHands embraces Docker power (shell, compilers, sudo) to tackle arbitrary repos, yet that freedom kills safety—the agent can brick its container with a single bad edit. REPLOID trades GCC for transactional rollback: everything lives inside a browser tab, checkpoints live in IndexedDB, and humans approve cats/dogs diffs before mutations land. We prioritize experimentation accessibility and undo guarantees over unrestricted OS access.
@@ -335,7 +335,7 @@ Devin shows what proprietary, cloud-scale orchestration can deliver: GPT-4-class
 | Human Control         | **Granular (PAWS review)**   | Moderate (Stop btn) | Low (automated)        | Moderate (chat)|
 | Recovery              | **Transactional rollback**  | Container reset   | Script restart        | N/A            |
 
-**Why REPLOID is different:** we solve the “Ship of Theseus” problem in a tab. Capabilities can mutate aggressively, but the substrate remains recoverable thanks to immutable genesis modules, IndexedDB checkpoints, and the cats/dogs approval loop.
+**Why REPLOID is different:** Explores the “Ship of Theseus” problem in a tab. Capabilities can mutate aggressively, but the substrate remains recoverable thanks to immutable genesis modules, and IndexedDB checkpoints.
 
 ---
 
@@ -362,7 +362,7 @@ REPLOID is an experiment in [**substrate-independent RSI**](https://www.edge.org
 
 - **Browser-only:** No Node.js backend required (except optional proxy)
 - **Storage:** IndexedDB typically ~50MB-unlimited (browser-dependent)
-- **WebLLM models:** Limited to 1-3B params due to browser VRAM constraints
+- **WebLLM models:** May be limited to 1-3B params due to browser VRAM constraints
 - **Multi-model consensus:** Basic implementation, agent can improve it
 
 ---
