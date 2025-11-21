@@ -439,7 +439,7 @@ AutonomousOrchestrator.updateConfig({
 
 ### 8.0 Widget Interface (Web Component)
 
-The module exposes a `AutonomousOrchestratorWidget` custom element for dashboard visualization:
+The module exposes a `AutonomousOrchestratorWidget` custom element for proto visualization:
 
 ```javascript
 class AutonomousOrchestratorWidget extends HTMLElement {
@@ -527,9 +527,9 @@ customElements.define('autonomous-orchestrator-widget', AutonomousOrchestratorWi
 - **Session History**: Recent iterations timeline with error highlighting
 - **Meta-Curator Support**: Separate button for meta-cognitive goal execution
 
-The widget provides a complete dashboard interface for monitoring and controlling autonomous proposal generation without requiring external UI code.
+The widget provides a complete proto interface for monitoring and controlling autonomous proposal generation without requiring external UI code.
 
-### 8.1 Dashboard Controls
+### 8.1 Proto Controls
 
 **Recommended UI:**
 ```html

@@ -6,7 +6,7 @@
 
 **Prerequisites:** 0x000019 (Visual Self-Improvement), 0x000025 (Universal Module Loader), 0x00002B (Visualization Data Adapter)
 
-**Affected Artifacts:** `/upgrades/canvas-visualizer.js`, `/upgrades/viz-data-adapter.js`, `/styles/dashboard.css`
+**Affected Artifacts:** `/upgrades/canvas-visualizer.js`, `/upgrades/viz-data-adapter.js`, `/styles/proto.css`
 
 ---
 
@@ -78,7 +78,7 @@ Responsibilities:
   - Logs interaction events via `logger.logEvent` for analytics.
 - **Widget Protocol**
   - Exports `widget` metadata: `{ element, displayName, icon, category, updateInterval: 2000 }`.
-  - Provides `getStatus()` with 5 required fields for dashboard integration.
+  - Provides `getStatus()` with 5 required fields for proto integration.
 
 ### 3. Implementation Pathway
 1. **Web Component Registration**

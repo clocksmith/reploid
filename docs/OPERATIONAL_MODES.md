@@ -148,7 +148,7 @@ npm start
 
 1. Open REPLOID in browser (Mode 1 or 3)
 
-2. Click "Local LLM" tab in dashboard
+2. Click "Local LLM" tab in proto
 
 3. Check WebGPU status (should show "Available")
 

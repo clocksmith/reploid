@@ -121,7 +121,7 @@ const SentinelPanel = {
     widget: {
       element: 'sentinel-panel-widget',
       displayName: 'Sentinel Control',
-      visible: false,  // Hidden from ModuleDashboard (core UI)
+      visible: false,  // Hidden from ModuleProto (core UI)
       category: 'core-ui'
     }
   },

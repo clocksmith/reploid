@@ -26,7 +26,7 @@ Key features of the implementation:
 
 **Widget Interface (Web Component):**
 
-The module exposes a `StorageLocalStorageWidget` custom element for dashboard visualization:
+The module exposes a `StorageLocalStorageWidget` custom element for proto visualization:
 
 ```javascript
 class StorageLocalStorageWidget extends HTMLElement {

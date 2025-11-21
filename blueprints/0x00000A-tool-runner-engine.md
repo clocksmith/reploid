@@ -37,7 +37,7 @@ The `/modules/tool-runner.js` will export a primary `runTool` function. This fun
 
 **Widget Interface (Web Component):**
 
-The module exposes a `ToolRunnerWidget` custom element for dashboard visualization:
+The module exposes a `ToolRunnerWidget` custom element for proto visualization:
 
 ```javascript
 class ToolRunnerWidget extends HTMLElement {

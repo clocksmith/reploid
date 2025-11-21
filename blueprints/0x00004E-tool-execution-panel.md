@@ -24,7 +24,7 @@ Without visual feedback:
 - Concurrent tool executions are confusing
 - Performance bottlenecks are invisible
 
-The Tool Execution Panel solves this by providing a real-time dashboard of all tool activity.
+The Tool Execution Panel solves this by providing a real-time proto of all tool activity.
 
 ---
 

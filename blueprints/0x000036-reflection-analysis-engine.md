@@ -6,7 +6,7 @@
 
 **Prerequisites:** 0x00003B (Reflection Store Architecture), 0x000003 (Core Utilities & Error Handling), 0x00001B (Code Introspection & Self-Analysis)
 
-**Affected Artifacts:** `/upgrades/reflection-analyzer.js`, `/styles/dashboard.css`, `/upgrades/reflection-store.js`
+**Affected Artifacts:** `/upgrades/reflection-analyzer.js`, `/styles/proto.css`, `/upgrades/reflection-store.js`
 
 ---
 
@@ -38,7 +38,7 @@ Key capabilities:
 - **Solution Recommendation**
   - `recommendSolution(problemText)` finds similar reflections and returns top recommendations with confidence score.
 - **Learning Insights**
-  - Aggregates clusters, failure patterns, success strategies, and general recommendations into a dashboard-friendly object.
+  - Aggregates clusters, failure patterns, success strategies, and general recommendations into a proto-friendly object.
 
 ### 3. Implementation Pathway
 1. **Data Retrieval**
@@ -66,7 +66,7 @@ Key capabilities:
 
 ### 5. Extension Opportunities
 - Replace keyword heuristics with TF-IDF or embedding-based similarity for richer results.
-- Integrate with visualization dashboards (heat maps of failure indicators).
+- Integrate with visualization protos (heat maps of failure indicators).
 - Schedule periodic analysis and surface digest in notifications.
 - Cross-link reflections to blueprint improvements automatically.
 

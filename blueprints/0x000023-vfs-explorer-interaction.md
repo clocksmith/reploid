@@ -6,7 +6,7 @@
 
 **Prerequisites:** 0x000005 (State Management Architecture), 0x000006 (Pure State Helpers), 0x000028 (Confirmation Modal), 0x000031 (Toast Notifications)
 
-**Affected Artifacts:** `/upgrades/vfs-explorer.js`, `/styles/dashboard.css`, `/upgrades/state-manager.js`, `/upgrades/toast-notifications.js`
+**Affected Artifacts:** `/upgrades/vfs-explorer.js`, `/styles/proto.css`, `/upgrades/state-manager.js`, `/upgrades/toast-notifications.js`
 
 ---
 

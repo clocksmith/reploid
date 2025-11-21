@@ -36,7 +36,7 @@ IDLE → CURATING_CONTEXT → AWAITING_CONTEXT_APPROVAL
 
 **Widget Interface (Web Component):**
 
-The module exposes a `AgentCycleFSMWidget` custom element for dashboard visualization:
+The module exposes a `AgentCycleFSMWidget` custom element for proto visualization:
 
 ```javascript
 class AgentCycleFSMWidget extends HTMLElement {

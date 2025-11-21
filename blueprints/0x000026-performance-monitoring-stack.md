@@ -6,7 +6,7 @@
 
 **Prerequisites:** 0x000006 (Pure State Helpers), 0x000007 (API Client & Communication), 0x000008 (Agent Cognitive Cycle), 0x000031 (Toast Notifications)
 
-**Affected Artifacts:** `/upgrades/performance-monitor.js`, `/upgrades/metrics-dashboard.js`, `/upgrades/tool-analytics.js`
+**Affected Artifacts:** `/upgrades/performance-monitor.js`, `/upgrades/metrics-proto.js`, `/upgrades/tool-analytics.js`
 
 ---
 
@@ -16,7 +16,7 @@ RSI requires feedback loops. Without quantitative metrics the agent:
 - Lacks evidence for blueprint improvements.
 - Fails to surface memory leaks or runaway API usage.
 
-Performance Monitor provides the canonical dataset for dashboards, analytics, and self-tuning heuristics.
+Performance Monitor provides the canonical dataset for protos, analytics, and self-tuning heuristics.
 
 ### 2. Architectural Overview
 The module exposes an imperative API after instantiation along with a Web Component widget:
@@ -150,7 +150,7 @@ const widget = {
 - Shadow DOM provides style encapsulation
 - Lifecycle methods (`connectedCallback`, `disconnectedCallback`) ensure proper cleanup
 - Closure access to module state (metrics, activeTimers, memory samples) eliminates injection complexity
-- `getStatus()` provides all 5 required fields for dashboard integration
+- `getStatus()` provides all 5 required fields for proto integration
 
 ### 3. Implementation Pathway
 1. **Module Initialisation**
@@ -166,7 +166,7 @@ const widget = {
    - API client must tag requests with unique `requestId` so start/end events match.
    - Record token budgets and latency to inform cost tracking (0x00003F).
 5. **Session Artifacts**
-   - Hook artifact events to count created/modified/deleted files for audit dashboards.
+   - Hook artifact events to count created/modified/deleted files for audit protos.
 6. **Web Component Widget Implementation**
    - **Define Web Component class** extending HTMLElement inside factory function
    - **Add Shadow DOM** using `attachShadow({ mode: 'open' })` in constructor
@@ -192,7 +192,7 @@ const widget = {
      - `{ element: 'performance-monitor-widget', displayName, icon, category }`
      - No `updateInterval` in widget object (handled internally in connectedCallback)
 7. **Data Access**
-   - Downstream modules (e.g., Metrics Dashboard) call `PerformanceMonitor.getMetrics()` to render charts. Avoid mutating returned objects.
+   - Downstream modules (e.g., Metrics Proto) call `PerformanceMonitor.getMetrics()` to render charts. Avoid mutating returned objects.
 
 ### 4. Verification Checklist
 - [ ] Missing events degrade gracefully (no `undefined` timers).

@@ -6,7 +6,7 @@
 
 **Prerequisites:** 0x00000D (UI Manager), 0x000002 (Application Orchestration), 0x00002C (Performance Monitoring Stack), Sentinel FSM schema (`/upgrades/sentinel-fsm.js`)
 
-**Affected Artifacts:** `/upgrades/agent-visualizer.js`, `/styles/dashboard.css`, `/upgrades/sentinel-fsm.js`
+**Affected Artifacts:** `/upgrades/agent-visualizer.js`, `/styles/proto.css`, `/upgrades/sentinel-fsm.js`
 
 ---
 
@@ -81,7 +81,7 @@ Key components:
   - Maintains a `stateHistory` array to track the last N transitions for analytics.
 - **Widget Protocol**
   - Exports `widget` metadata: `{ element, displayName, icon, category, updateInterval }`
-  - Provides `getStatus()` with 5 required fields for dashboard integration.
+  - Provides `getStatus()` with 5 required fields for proto integration.
 
 ### 3. Implementation Pathway
 1. **Web Component Registration**

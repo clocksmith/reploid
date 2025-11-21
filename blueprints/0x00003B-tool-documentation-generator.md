@@ -447,9 +447,9 @@ const getStats = async () => {
    - Provide widget button for on-demand generation
    - Optionally trigger during release builds
 
-2. **Dashboard Integration**:
-   - Widget automatically integrates with module dashboard system
-   - Provides `getStatus()` method for dashboard summary view
+2. **Proto Integration**:
+   - Widget automatically integrates with module proto system
+   - Provides `getStatus()` method for proto summary view
    - No auto-refresh (updateInterval: null) for manual-only updates
 
 3. **VFS Integration**:

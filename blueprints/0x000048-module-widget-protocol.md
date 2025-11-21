@@ -1,28 +1,28 @@
 # Blueprint 0x00004E: Module Widget Protocol
 
-**Target Upgrade:** MWPR (`module-widget-protocol.js`), MDSH (`module-dashboard.js`)
+**Target Upgrade:** MWPR (`module-widget-protocol.js`), MDSH (`module-proto.js`)
 
-**Objective:** Establish standardized interface for ALL modules to expose their state, metrics, and controls in the dashboard, enabling consistent presentation and meta-cognitive awareness.
+**Objective:** Establish standardized interface for ALL modules to expose their state, metrics, and controls in the proto, enabling consistent presentation and meta-cognitive awareness.
 
 **Prerequisites:** 0x000009 (Dependency Injection), 0x00000B (Event Bus)
 
-**Affected Artifacts:** `/upgrades/module-widget-protocol.js`, `/upgrades/module-dashboard.js`, `/boot/index.html`, all module files
+**Affected Artifacts:** `/upgrades/module-widget-protocol.js`, `/upgrades/module-proto.js`, `/boot/index.html`, all module files
 
 ---
 
 ### 1. The Strategic Imperative
 
 **The Problem:**
-REPLOID has ~75 modules, but only ~11 have visual representations. The dashboard is inconsistent:
+REPLOID has ~75 modules, but only ~11 have visual representations. The proto is inconsistent:
 - Some modules have custom UI with unique rendering methods
 - Most modules are completely invisible (StateManager, EventBus, ToolRunner, etc.)
 - No standardized way for modules to expose state
-- Dashboard requires manual wiring in index.html for each UI component
+- Proto requires manual wiring in index.html for each UI component
 - Agent cannot programmatically query "what is the state of all my subsystems?"
 
 **Example of Current Inconsistency:**
 - VFSExplorer: Custom `init(containerId)` + `render()` methods
-- MetricsDashboard: Custom `init(container)` + `updateCharts()` methods
+- MetricsProto: Custom `init(container)` + `updateCharts()` methods
 - AgentVisualizer: Custom `initVisualization(containerEl)` method
 - StateManager: NO visual representation at all
 - EventBus: NO visual representation at all
@@ -36,7 +36,7 @@ Every module implements a standardized `.widget` interface that provides:
 4. **Update subscription** - Real-time reactivity
 
 This enables:
-- **Consistent presentation** - All modules look uniform in dashboard
+- **Consistent presentation** - All modules look uniform in proto
 - **Auto-discovery** - No manual wiring, modules appear automatically
 - **Meta-cognitive awareness** - Agent can query all module states programmatically
 - **Visibility** - Even "invisible" modules show something
@@ -119,13 +119,13 @@ const ModuleWidgetProtocol = {
 };
 ```
 
-#### 2.3 Module Dashboard (MDSH)
+#### 2.3 Module Proto (MDSH)
 
 Auto-discovers and renders all widgets:
 
 ```javascript
-const ModuleDashboard = {
-  // Initialize dashboard
+const ModuleProto = {
+  // Initialize proto
   init: (containerId) => {
     // Auto-discover all modules with .widget interface
     // Render grid of module cards
@@ -267,7 +267,7 @@ const ModuleDashboard = {
 - Controls: `[Refresh] [Expand All] [Collapse]`
 - Panel: Full file tree (reuse existing rendering)
 
-**MetricsDashboard Widget:**
+**MetricsProto Widget:**
 - Status: `"Mem: 45MB | CPU: 12%"`
 - Controls: `[Pause] [Export]`
 - Panel: Full charts (reuse existing Chart.js rendering)
@@ -283,7 +283,7 @@ const ModuleDashboard = {
 
 **Phase 1: Protocol Foundation** [x] Complete
 1. Create `module-widget-protocol.js` with registry and validation
-2. Create `module-dashboard.js` with auto-discovery
+2. Create `module-proto.js` with auto-discovery
 3. Add CSS styling for widget cards and panels
 4. Create documentation
 
@@ -309,7 +309,7 @@ const ModuleDashboard = {
 
 **Phase 5: Convert Existing UI Modules** ☡ Future
 1. Add widget interface to VFSExplorer (keep existing API)
-2. Add widget interface to MetricsDashboard (keep existing API)
+2. Add widget interface to MetricsProto (keep existing API)
 3. Add widget interface to AgentVisualizer (keep existing API)
 4. Add widget interface to AdvancedLogPanel (keep existing API)
 
@@ -320,7 +320,7 @@ const ModuleDashboard = {
 4. Add widget to CatsParser (tests parsed, coverage)
 
 **Phase 7: Integration** ☡ Future
-1. Update index.html to use ModuleDashboard
+1. Update index.html to use ModuleProto
 2. Remove manual widget wiring
 3. Enable auto-discovery on boot
 4. Add module enable/disable toggles
@@ -400,14 +400,14 @@ const YourModule = {
 };
 ```
 
-### For Dashboard Users
+### For Proto Users
 
 ```javascript
 // In index.html or post-boot
 
 // Auto-discover and render all modules
-const ModuleDashboard = DIContainer.resolve('ModuleDashboard');
-ModuleDashboard.init('main-dashboard');
+const ModuleProto = DIContainer.resolve('ModuleProto');
+ModuleProto.init('main-proto');
 
 // Or query specific module status
 const StateManager = DIContainer.resolve('StateManager');
@@ -415,7 +415,7 @@ const status = StateManager.widget.getStatus();
 console.log(status); // { state: 'active', primaryMetric: '47 artifacts', ... }
 
 // Or get all module statuses (for agent meta-cognition)
-const allStatuses = ModuleDashboard.getAllStatuses();
+const allStatuses = ModuleProto.getAllStatuses();
 console.log(allStatuses);
 // {
 //   'StateManager': { state: 'active', primaryMetric: '47 artifacts', ... },
@@ -429,7 +429,7 @@ console.log(allStatuses);
 ## Benefits
 
 ### 1. Consistency
-- All modules have uniform appearance in dashboard
+- All modules have uniform appearance in proto
 - All modules expose state via same interface
 - All modules can be controlled via standard buttons
 
@@ -440,7 +440,7 @@ console.log(allStatuses);
 ### 3. Meta-Cognitive Awareness
 Agent can query its own state:
 ```javascript
-const health = ModuleDashboard.getSystemHealth();
+const health = ModuleProto.getSystemHealth();
 // {
 //   healthy: 73,
 //   warning: 2,  // StateManager low on storage, EventBus high rate
@@ -462,7 +462,7 @@ const health = ModuleDashboard.getSystemHealth();
 
 ## Performance Characteristics
 
-**Memory Overhead:** ~50-100 KB for widget protocol + dashboard
+**Memory Overhead:** ~50-100 KB for widget protocol + proto
 **Render Time:** <10ms per widget card (compact view)
 **Update Frequency:** Real-time via EventBus subscriptions
 **Scalability:** Tested with 75 modules, supports 100+
@@ -479,12 +479,12 @@ const health = ModuleDashboard.getSystemHealth();
 
 **Visibility:**
 - [x] All 75 modules have basic widget interface
-- [x] Dashboard shows status for every loaded module
+- [x] Proto shows status for every loaded module
 - [x] No module is completely invisible
 
 **Consistency:**
 - [x] All widgets follow same interface pattern
-- [x] All widgets render uniformly in dashboard
+- [x] All widgets render uniformly in proto
 - [x] All widgets update via same protocol
 
 **Functionality:**
@@ -494,7 +494,7 @@ const health = ModuleDashboard.getSystemHealth();
 - [x] Real-time updates via onUpdate subscriptions
 
 **Integration:**
-- [x] ModuleDashboard auto-discovers all widgets
+- [x] ModuleProto auto-discovers all widgets
 - [x] No manual wiring required in index.html
 - [x] Agent can query all module states programmatically
 - [x] Backwards compatible with existing custom UI modules
@@ -506,14 +506,14 @@ const health = ModuleDashboard.getSystemHealth();
 1. **Optional interface** - Modules can still omit `.widget` (though discouraged)
 2. **No enforced standards** - Widget rendering can still be custom in detail panels
 3. **Manual registration** - Modules must be loaded by DI before discovery
-4. **No lazy loading** - All widgets initialized on dashboard load
+4. **No lazy loading** - All widgets initialized on proto load
 
 ---
 
 ## Future Enhancements
 
-1. **Smart layouts** - AI-driven dashboard organization based on usage
-2. **Widget presets** - Save/restore dashboard configurations
+1. **Smart layouts** - AI-driven proto organization based on usage
+2. **Widget presets** - Save/restore proto configurations
 3. **Cross-module views** - Composite widgets (e.g., "System Health" combining multiple modules)
 4. **Widget themes** - Customizable appearance
 5. **Widget isolation** - Each widget in iframe/shadow DOM for safety

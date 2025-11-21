@@ -87,7 +87,7 @@
 | `0x000056` | [Verification Worker Sandboxing](0x000056-verification-worker-sandboxing.md) | Isolated testing environment. |
 
 ## 5. User Interface & Panels (The Face)
-*Visual dashboard, modular panels, and interaction components.*
+*Visual proto, modular panels, and interaction components.*
 
 | ID | Title | Description |
 | :--- | :--- | :--- |
@@ -102,7 +102,7 @@
 | `0x00004C` | [HITL Control Panel UI](0x00004C-hitl-control-panel-ui.md) | Autonomy controls. |
 | `0x00004E` | [Tool Execution Panel](0x00004E-tool-execution-panel.md) | Active tool monitor. |
 | `0x000050` | [Diff Viewer UI](0x000050-diff-viewer-ui.md) | Code change reviewer. |
-| `0x000054` | [Module Dashboard Orchestration](0x000054-module-dashboard-orchestration.md) | Main dashboard layout. |
+| `0x000054` | [Module Proto Orchestration](0x000054-module-proto-orchestration.md) | Main proto layout. |
 | `0x00005A` | [Thought Panel](0x00005A-thought-panel.md) | Cognitive stream viewer. |
 | `0x00005B` | [Goal Panel](0x00005B-goal-panel.md) | Objective tracker. |
 | `0x00005E` | [Sentinel Panel](0x00005E-sentinel-panel.md) | Safety/Approval interface. |
@@ -118,7 +118,7 @@
 | `0x00001E` | [Penteract Analytics](0x00001E-penteract-analytics-and-visualization.md) | Competition telemetry. |
 | `0x000024` | [Canvas Visualization Engine](0x000024-canvas-visualization-engine.md) | 2D graphics system. |
 | `0x000025` | [Visualization Data Adapter](0x000025-visualization-data-adapter.md) | Data transformation layer. |
-| `0x000027` | [Metrics Dashboard Visuals](0x000027-metrics-dashboard-visuals.md) | Performance charts. |
+| `0x000027` | [Metrics Proto Visuals](0x000027-metrics-proto-visuals.md) | Performance charts. |
 | `0x000028` | [Agent FSM Visualizer](0x000028-agent-fsm-visualizer.md) | State machine diagram. |
 | `0x000029` | [AST Visualization Framework](0x000029-ast-visualization-framework.md) | Code structure view. |
 | `0x00002A` | [Module Graph Visualizer](0x00002A-module-graph-visualizer.md) | Dependency mapping. |

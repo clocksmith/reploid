@@ -29,7 +29,7 @@ const UI = {
     description: 'Central UI management with browser-native visualizer integration',
     dependencies: [
       'config', 'Utils', 'StateManager', 'DiffGenerator', 'EventBus',
-      'VFSExplorer', 'PerformanceMonitor', 'MetricsDashboard', 'Introspector',
+      'VFSExplorer', 'PerformanceMonitor', 'MetricsProto', 'Introspector',
       'ReflectionStore', 'SelfTester', 'BrowserAPIs', 'AgentVisualizer',
       'ASTVisualizer', 'ModuleGraphVisualizer', 'ToastNotifications',
       'TutorialSystem', 'PyodideRuntime', 'LocalLLM'

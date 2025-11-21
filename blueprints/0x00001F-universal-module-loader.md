@@ -46,7 +46,7 @@ The loader is the choke point between configuration intent and executable code. 
   - Maintains `loadOrder` for reverse iteration during teardown.
   - Offers `unloadModule` and `reset` to clear caches when hot-reloading or switching personas.
 
-- **Web Component Dashboard Widget**
+- **Web Component Proto Widget**
   The module includes a `ModuleLoaderWidget` custom element for real-time visualization:
   ```javascript
   class ModuleLoaderWidget extends HTMLElement {
@@ -124,7 +124,7 @@ The loader is the choke point between configuration intent and executable code. 
         .filter(m => m.isLegacy).length;
       const modernCount = totalModules - legacyCount;
 
-      // Renders comprehensive module dashboard with:
+      // Renders comprehensive module proto with:
       // - Module summary (total, instantiated, pending)
       // - Module types breakdown (modern vs legacy)
       // - Load order (first 10 modules with status icons)
@@ -147,7 +147,7 @@ The loader is the choke point between configuration intent and executable code. 
   - **Interactive Controls**:
     - "☷ List Modules" - Logs module table to console with ID, type, instantiation status, and path
     - "⚎ Show Load Order" - Logs complete load order array to console
-  - **Real-time Status**: Dashboard status shows total modules, loaded count, and legacy count
+  - **Real-time Status**: Proto status shows total modules, loaded count, and legacy count
   - **Shadow DOM Styling**: Encapsulated styles with color-coded indicators (#0ff for active, #0f0 for success, #ff0 for legacy/pending)
 
 ### 3. Implementation Pathway

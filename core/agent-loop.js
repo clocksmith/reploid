@@ -27,6 +27,15 @@ const AgentLoop = {
     let _isRunning = false;
     let _abortController = null;
     let _modelConfig = null;
+    const MAX_ACTIVITY_LOG = 200;
+    const _activityLog = [];
+
+    const _pushActivity = (entry) => {
+      _activityLog.push({ ts: Date.now(), ...entry });
+      if (_activityLog.length > MAX_ACTIVITY_LOG) {
+        _activityLog.shift();
+      }
+    };
 
     const run = async (goal) => {
       if (_isRunning) throw new Errors.StateError('Agent already running');
@@ -80,11 +89,13 @@ const AgentLoop = {
 
           const response = await LLMClient.chat(context, _modelConfig, streamCallback);
 
-          EventBus.emit('agent:history', {
+          const llmEvent = {
             type: 'llm_response',
             cycle: iteration,
             content: response.content
-          });
+          };
+          EventBus.emit('agent:history', llmEvent);
+          _pushActivity({ kind: 'llm_response', cycle: iteration, content: response.content });
 
           const responseContent = response?.content || '';
           const toolCalls = ResponseParser.parseToolCalls(responseContent);
@@ -124,13 +135,15 @@ const AgentLoop = {
                 content: `TOOL_RESULT (${call.name}):\n${result}`
               });
 
-              EventBus.emit('agent:history', {
+              const toolEvent = {
                 type: 'tool_result',
                 cycle: iteration,
                 tool: call.name,
                 args: call.args,
                 result: result
-              });
+              };
+              EventBus.emit('agent:history', toolEvent);
+              _pushActivity({ kind: 'tool_result', cycle: iteration, tool: call.name, args: call.args, result });
 
               _logReflection(call, result, iteration);
               executedTools++;
@@ -209,11 +222,14 @@ ${goal}
       ];
     };
 
+    const getRecentActivities = () => [..._activityLog];
+
     return {
       run,
       stop: () => { if (_abortController) _abortController.abort(); _isRunning = false; },
       setModel: (c) => { _modelConfig = c; },
-      isRunning: () => _isRunning
+      isRunning: () => _isRunning,
+      getRecentActivities
     };
   }
 };

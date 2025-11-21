@@ -1,18 +1,18 @@
-# Blueprint 0x000054: Module Dashboard Orchestration
+# Blueprint 0x000054: Module Proto Orchestration
 
-**Objective:** To provide a unified dashboard that auto-discovers and renders all module widgets with consistent layout, filtering, and interaction patterns.
+**Objective:** To provide a unified proto that auto-discovers and renders all module widgets with consistent layout, filtering, and interaction patterns.
 
-**Target Upgrade:** MDSH (`module-dashboard.js`)
+**Target Upgrade:** MDSH (`module-proto.js`)
 
 **Prerequisites:** 0x000048 (Module Widget Protocol), 0x000003 (Core Utilities), 0x000002 (Application Orchestration)
 
-**Affected Artifacts:** `/upgrades/module-dashboard.js`
+**Affected Artifacts:** `/upgrades/module-proto.js`
 
 ---
 
 ### 1. The Strategic Imperative
 
-A modular agent system with dozens of modules needs a centralized dashboard to:
+A modular agent system with dozens of modules needs a centralized proto to:
 
 - **Auto-Discovery**: Automatically detect and display all registered module widgets
 - **Consistent Layout**: Provide uniform grid/list views for all widgets regardless of their implementation
@@ -21,18 +21,18 @@ A modular agent system with dozens of modules needs a centralized dashboard to:
 - **Interaction Hub**: Centralized access to module controls and actions
 - **HITL Integration**: Show human-in-the-loop modes for each module
 
-Without a dashboard, users must manually discover and access each module's UI individually, creating a fragmented experience.
+Without a proto, users must manually discover and access each module's UI individually, creating a fragmented experience.
 
 ### 2. The Architectural Solution
 
-The `/upgrades/module-dashboard.js` implements a **pure UI orchestrator** that renders other module widgets without having its own widget component.
+The `/upgrades/module-proto.js` implements a **pure UI orchestrator** that renders other module widgets without having its own widget component.
 
 #### Module Structure
 
 ```javascript
-const ModuleDashboard = {
+const ModuleProto = {
   metadata: {
-    id: 'ModuleDashboard',
+    id: 'ModuleProto',
     version: '1.0.0',
     dependencies: ['ModuleWidgetProtocol', 'HITLController', 'EventBus', 'Utils'],
     async: false,
@@ -48,10 +48,10 @@ const ModuleDashboard = {
     let currentFilter = 'all'; // 'all' or category name
 
     /**
-     * Initialize the dashboard
+     * Initialize the proto
      */
     const init = (container) => {
-      logger.info('[ModuleDashboard] Initializing module dashboard');
+      logger.info('[ModuleProto] Initializing module proto');
 
       containerElement = container;
 
@@ -78,10 +78,10 @@ const ModuleDashboard = {
       const categories = extractCategories(widgets);
 
       containerElement.innerHTML = `
-        <div class="module-dashboard">
-          <div class="dashboard-header">
-            <h2>Module Dashboard</h2>
-            <div class="dashboard-controls">
+        <div class="module-proto">
+          <div class="proto-header">
+            <h2>Module Proto</h2>
+            <div class="proto-controls">
               ${renderViewToggle()}
               ${renderRefreshButton()}
             </div>
@@ -119,7 +119,7 @@ const ModuleDashboard = {
             </div>
             <div class="widget-actions">
               ${hitlMode ? renderHITLBadge(hitlMode) : ''}
-              <button class="minimize" onclick="window.ModuleDashboard.toggleWidget('${widget.moduleId}')">
+              <button class="minimize" onclick="window.ModuleProto.toggleWidget('${widget.moduleId}')">
                 ${widget.minimized ? '▲' : '▼'}
               </button>
             </div>
@@ -157,7 +157,7 @@ const ModuleDashboard = {
                 <div class="widget-controls">
                   ${controls.map(c => `
                     <button class="control-btn"
-                            onclick="window.ModuleDashboard.executeControl('${widget.moduleId}', '${c.id}')">
+                            onclick="window.ModuleProto.executeControl('${widget.moduleId}', '${c.id}')">
                       ${c.icon || ''} ${c.label}
                     </button>
                   `).join('')}
@@ -223,7 +223,7 @@ const ModuleDashboard = {
 
     // Expose to window for onclick handlers
     if (typeof window !== 'undefined') {
-      window.ModuleDashboard = publicAPI;
+      window.ModuleProto = publicAPI;
     }
 
     return {
@@ -250,7 +250,7 @@ const ModuleDashboard = {
 
 ### 3. The Implementation Pathway
 
-#### Step 1: Initialize Dashboard Container
+#### Step 1: Initialize Proto Container
 
 Accept container element and register event listeners:
 
@@ -274,7 +274,7 @@ const init = (container) => {
 
 #### Step 2: Implement Main Render Function
 
-Query all widgets and generate dashboard layout:
+Query all widgets and generate proto layout:
 
 ```javascript
 const render = () => {
@@ -284,10 +284,10 @@ const render = () => {
   const categories = extractCategories(widgets);
 
   containerElement.innerHTML = `
-    <div class="module-dashboard">
-      <div class="dashboard-header">
-        <h2>Module Dashboard</h2>
-        <div class="dashboard-controls">
+    <div class="module-proto">
+      <div class="proto-header">
+        <h2>Module Proto</h2>
+        <div class="proto-controls">
           ${renderViewToggle()}
           ${renderRefreshButton()}
         </div>
@@ -330,12 +330,12 @@ Filter widgets by category and render only matching widgets:
 const renderFilters = (widgets, categories) => {
   return `
     <div class="category-filters">
-      <button onclick="window.ModuleDashboard.setFilter('all')"
+      <button onclick="window.ModuleProto.setFilter('all')"
               class="${currentFilter === 'all' ? 'active' : ''}">
         All (${widgets.length})
       </button>
       ${categories.map(cat => `
-        <button onclick="window.ModuleDashboard.setFilter('${cat}')"
+        <button onclick="window.ModuleProto.setFilter('${cat}')"
                 class="${currentFilter === cat ? 'active' : ''}">
           ${cat} (${widgets.filter(w => w.category === cat).length})
         </button>
@@ -423,7 +423,7 @@ const publicAPI = {
 };
 
 if (typeof window !== 'undefined') {
-  window.ModuleDashboard = publicAPI;
+  window.ModuleProto = publicAPI;
 }
 ```
 
@@ -443,17 +443,17 @@ return {
 
 - **XSS Prevention**: Escape all user-generated content with `escapeHtml()` helper
 - **Null Safety**: Handle missing widget states gracefully
-- **Event Cleanup**: Unsubscribe from EventBus if dashboard is destroyed
+- **Event Cleanup**: Unsubscribe from EventBus if proto is destroyed
 - **Performance**: Use optimized card updates for state changes instead of full re-render
-- **Error Boundary**: Catch rendering errors for individual widgets to prevent dashboard crash
+- **Error Boundary**: Catch rendering errors for individual widgets to prevent proto crash
 
 ### 5. Extension Points
 
 - **Drag-and-Drop**: Allow users to reorder widget cards
-- **Custom Layouts**: Support user-defined dashboard layouts (grid sizes, positions)
+- **Custom Layouts**: Support user-defined proto layouts (grid sizes, positions)
 - **Widget Search**: Add search bar to filter widgets by name or category
-- **Export Dashboard**: Export current dashboard state for sharing or backup
-- **Widget Pinning**: Pin frequently-used widgets to top of dashboard
-- **Multi-Dashboard**: Support multiple named dashboards (e.g., "Debug", "RSI", "Core")
+- **Export Proto**: Export current proto state for sharing or backup
+- **Widget Pinning**: Pin frequently-used widgets to top of proto
+- **Multi-Proto**: Support multiple named protos (e.g., "Debug", "RSI", "Core")
 
-Use this blueprint whenever modifying dashboard layout, adding filtering capabilities, or implementing widget lifecycle handling.
+Use this blueprint whenever modifying proto layout, adding filtering capabilities, or implementing widget lifecycle handling.

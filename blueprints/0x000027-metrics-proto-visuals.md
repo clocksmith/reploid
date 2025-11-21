@@ -1,17 +1,17 @@
-# Blueprint 0x00002D: Metrics Dashboard & Charting
+# Blueprint 0x00002D: Metrics Proto & Charting
 
-**Objective:** Govern the Chart.js-powered dashboard that visualises REPLOID performance metrics in real time.
+**Objective:** Govern the Chart.js-powered proto that visualises REPLOID performance metrics in real time.
 
-**Target Upgrade:** MDSH (`metrics-dashboard.js`)
+**Target Upgrade:** MDSH (`metrics-proto.js`)
 
 **Prerequisites:** 0x00002C (Performance Monitoring Stack), 0x000019 (Visual Self-Improvement), 0x000025 (Universal Module Loader)
 
-**Affected Artifacts:** `/upgrades/metrics-dashboard.js`, `/styles/dashboard.css`, `/index.html` (Chart.js CDN include)
+**Affected Artifacts:** `/upgrades/metrics-proto.js`, `/styles/proto.css`, `/index.html` (Chart.js CDN include)
 
 ---
 
 ### 1. The Strategic Imperative
-Numbers alone do not reveal patterns. The dashboard provides:
+Numbers alone do not reveal patterns. The proto provides:
 - Quick assessment of memory pressure, avoiding browser crashes.
 - Tool usage ranking to highlight optimization targets.
 - LLM token consumption trends to manage billing and latency.
@@ -19,20 +19,20 @@ Numbers alone do not reveal patterns. The dashboard provides:
 Chart artifacts must remain accurate, performant, and accessible.
 
 ### 2. Architectural Overview
-`MetricsDashboard` consumes `PerformanceMonitor` metrics and renders a trio of charts using a **Web Component** with Shadow DOM encapsulation.
+`MetricsProto` consumes `PerformanceMonitor` metrics and renders a trio of charts using a **Web Component** with Shadow DOM encapsulation.
 
 ```javascript
 // Widget interface (ModuleWidgetProtocol compatible)
 const widget = {
-  element: 'metrics-dashboard-widget',
-  displayName: 'Metrics Dashboard',
+  element: 'metrics-proto-widget',
+  displayName: 'Metrics Proto',
   icon: '☱',
   category: 'analytics',
   updateInterval: 5000
 };
 
 // Web Component class (defined inside factory closure)
-class MetricsDashboardWidget extends HTMLElement {
+class MetricsProtoWidget extends HTMLElement {
   constructor() {
     super();
     this.attachShadow({ mode: 'open' });
@@ -63,8 +63,8 @@ Core behaviour:
 
 ### 3. Implementation Pathway
 1. **Web Component Registration**
-   - Define `MetricsDashboardWidget` class INSIDE factory closure to access `PerformanceMonitor`, `EventBus`, etc.
-   - Register with `customElements.define('metrics-dashboard-widget', MetricsDashboardWidget)`.
+   - Define `MetricsProtoWidget` class INSIDE factory closure to access `PerformanceMonitor`, `EventBus`, etc.
+   - Register with `customElements.define('metrics-proto-widget', MetricsProtoWidget)`.
    - Check `!customElements.get()` to prevent re-registration errors.
 
 2. **Shadow DOM Structure**
@@ -107,7 +107,7 @@ Core behaviour:
 - Keep DOM modifications minimal to avoid layout thrash.
 
 ### 5. Verification Checklist
-- [x] **Web Component Implementation**: Widget uses Shadow DOM with `MetricsDashboardWidget` class.
+- [x] **Web Component Implementation**: Widget uses Shadow DOM with `MetricsProtoWidget` class.
 - [x] **Chart Lifecycle**: All Chart.js instances destroyed in `disconnectedCallback()`.
 - [x] **Chart Cleanup on Re-render**: Charts destroyed before each `render()` call to prevent duplicates.
 - [x] **Interactive Controls**: Pause, Export, and Refresh buttons with event listeners.

@@ -18,7 +18,7 @@ A modular agent architecture requires a robust mechanism to "wire" its component
 
 ### 2. The Architectural Solution
 
-The `/upgrades/app-logic.js` artifact serves as the central orchestrator, executed first by the `/boot.js` harness. It implements a **Dependency Injection (DI) container-based architecture** for module loading and initialization, with comprehensive boot performance tracking via a Web Component dashboard widget.
+The `/upgrades/app-logic.js` artifact serves as the central orchestrator, executed first by the `/boot.js` harness. It implements a **Dependency Injection (DI) container-based architecture** for module loading and initialization, with comprehensive boot performance tracking via a Web Component proto widget.
 
 #### Module Structure
 
@@ -291,7 +291,7 @@ class AppLogicWidget extends HTMLElement {
   }
 
   getStatus() {
-    // Return dashboard status based on _bootStats
+    // Return proto status based on _bootStats
   }
 
   render() {

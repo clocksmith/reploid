@@ -6,7 +6,7 @@
 
 **Prerequisites:** 0x000005 (State Management Architecture), 0x000006 (Pure State Helpers), 0x000034 (Audit Logging Policy)
 
-**Affected Artifacts:** `/upgrades/tab-coordinator.js`, `/styles/dashboard.css`, `/upgrades/state-manager.js`
+**Affected Artifacts:** `/upgrades/tab-coordinator.js`, `/styles/proto.css`, `/upgrades/state-manager.js`
 
 ---
 
@@ -395,9 +395,9 @@ if (typeof window !== 'undefined') {
    - Tag remote updates with `_source: 'remote'` to prevent loops
    - Listen for `'state:remote-update'` events to refresh UI
 
-3. **Dashboard Integration**:
-   - Widget automatically integrates with module dashboard system
-   - Provides `getStatus()` method for dashboard summary view
+3. **Proto Integration**:
+   - Widget automatically integrates with module proto system
+   - Provides `getStatus()` method for proto summary view
    - Updates every 3 seconds via `updateInterval: 3000`
 
 4. **Event-Driven Communication**:

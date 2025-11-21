@@ -132,7 +132,7 @@ The Sentinel Agent will start working through its FSM states automatically!
 
 ---
 
-## ☲ Understanding the Dashboard
+## ☲ Understanding the Proto
 
 ### Top Status Bar
 - **⚪ IDLE** → Agent waiting for goal
@@ -232,7 +232,7 @@ Draft an RFC for implementing keyboard shortcuts in the UI
 ### Product Prototype Factory
 ```
 Build an interactive todo app with drag-and-drop functionality
-Create a dashboard prototype with charts and data visualizations
+Create a proto prototype with charts and data visualizations
 Design a settings panel with tabs and form controls
 ```
 

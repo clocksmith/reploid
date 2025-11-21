@@ -98,7 +98,7 @@ const GoalPanel = {
     widget: {
       element: 'goal-panel-widget',
       displayName: 'Agent Goal',
-      visible: false,  // Hidden from ModuleDashboard (core UI)
+      visible: false,  // Hidden from ModuleProto (core UI)
       category: 'core-ui'
     }
   },

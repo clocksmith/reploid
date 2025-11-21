@@ -41,12 +41,16 @@ function createModelCard(model, index) {
     const card = document.createElement('div');
     card.className = 'model-card';
     card.innerHTML = `
-        <div class="model-card-provider">${model.provider}</div>
-        <div class="model-card-name">${model.name}</div>
-        <div class="model-card-connection">${HOST_TYPE_LABELS[model.hostType] || model.hostType}</div>
-        <div class="model-card-actions">
-            <button class="model-card-btn edit" data-index="${index}">Edit</button>
-            <button class="model-card-btn remove" data-index="${index}">Remove</button>
+        <div class="model-card-content">
+            <div>
+                <div class="model-card-provider">${model.provider}</div>
+                <div class="model-card-name">${model.name}</div>
+                <div class="model-card-connection">${HOST_TYPE_LABELS[model.hostType] || model.hostType}</div>
+            </div>
+            <div class="model-card-actions">
+                <button class="model-card-btn edit" data-index="${index}">Edit</button>
+                <button class="model-card-btn remove" data-index="${index}">Remove</button>
+            </div>
         </div>
     `;
 

@@ -6,7 +6,7 @@
 
 **Prerequisites:** 0x00000D (UI Manager), 0x000005 (State Management Architecture), 0x000031 (Toast Notification System)
 
-**Affected Artifacts:** `/upgrades/tutorial-system.js`, `/styles/dashboard.css`, `/upgrades/event-bus.js`
+**Affected Artifacts:** `/upgrades/tutorial-system.js`, `/styles/proto.css`, `/upgrades/event-bus.js`
 
 ---
 

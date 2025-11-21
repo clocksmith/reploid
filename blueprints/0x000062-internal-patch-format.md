@@ -147,7 +147,7 @@ const InternalPatchFormat = {
 
 ### 2.5 Widget Interface
 
-The module includes a Web Component widget for dashboard visibility:
+The module includes a Web Component widget for proto visibility:
 
 ```javascript
 class InternalPatchFormatWidget extends HTMLElement {

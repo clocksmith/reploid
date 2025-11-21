@@ -119,7 +119,7 @@ const widget = {
 
 **Widget Features:**
 - **Closure Access**: Widget class accesses module state (`isReady`, `_executionCount`, `_installedPackages`, `_executionErrors`) directly via closure.
-- **Status Reporting**: `getStatus()` provides runtime state for dashboard integration.
+- **Status Reporting**: `getStatus()` provides runtime state for proto integration.
 - **Auto-Refresh**: Updates every 3 seconds to show current execution stats.
 - **Interactive Controls**: Buttons to list packages and reset statistics.
 - **Error Display**: Shows recent Python execution errors with timestamps.

@@ -212,13 +212,13 @@ The StateManager exposes two types of methods:
 **Web Component Widget Features:**
 
 The `StateManagerWidget` provides comprehensive state visualization:
-- **Session Dashboard**: Shows active and archived sessions with turn counts
+- **Session Proto**: Shows active and archived sessions with turn counts
 - **Artifact Overview**: Displays total artifacts and recent changes
 - **Checkpoint Management**: Create/restore checkpoints from UI
 - **Event-Driven Updates**: Automatically refreshes on VFS changes, checkpoint events, artifact operations
 - **Session Controls**: Interactive buttons for archiving, deleting, rewinding sessions
 - **Turn History**: Expandable turn list for each session with rewind capability
-- **Real-time Status**: Dashboard integration via `getStatus()` showing active sessions
+- **Real-time Status**: Proto integration via `getStatus()` showing active sessions
 - **Visual Feedback**: Color-coded session states (active/archived), turn status indicators
 
 ### 3. The Implementation Pathway
@@ -530,7 +530,7 @@ class StateManagerWidget extends HTMLElement {
         label: 'Checkpoint',
         icon: '▼',
         action: async () => {
-          const checkpoint = await createCheckpoint('Manual checkpoint from dashboard');
+          const checkpoint = await createCheckpoint('Manual checkpoint from proto');
           const ToastNotifications = window.DIContainer?.resolve('ToastNotifications');
           ToastNotifications?.show(`Checkpoint created: ${checkpoint.id}`, 'success');
         }
@@ -582,8 +582,8 @@ class StateManagerWidget extends HTMLElement {
    - Uses `updateGoal()` when goal changes
    - Creates/updates artifacts via `createArtifact()` and `updateArtifact()`
 
-2. **Dashboard Integration**:
-   - Widget automatically integrates with module dashboard
+2. **Proto Integration**:
+   - Widget automatically integrates with module proto
    - Provides `getStatus()` for summary view
    - Provides `getControls()` for action buttons
    - Event-driven updates (no polling needed)

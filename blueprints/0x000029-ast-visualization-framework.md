@@ -6,7 +6,7 @@
 
 **Prerequisites:** 0x000003 (Core Utilities & Error Handling), 0x000019 (Visual Self-Improvement), Acorn CDN load (`index.html`)
 
-**Affected Artifacts:** `/upgrades/ast-visualizer.js`, `/styles/dashboard.css`, `/index.html` (Acorn + D3 includes)
+**Affected Artifacts:** `/upgrades/ast-visualizer.js`, `/styles/proto.css`, `/index.html` (Acorn + D3 includes)
 
 ---
 
@@ -62,7 +62,7 @@ Key pipeline stages:
 - **Error Tracking**: maintains `_parseErrors` array (last 20) with timestamps and code snippets.
 - **Widget Protocol**
   - Exports `widget` with `element`, `displayName`, `icon`, `category`.
-  - Provides `getStatus()` with 5 required fields for dashboard integration.
+  - Provides `getStatus()` with 5 required fields for proto integration.
   - No updateInterval (manual refresh only).
 
 ### 3. Implementation Pathway
@@ -110,7 +110,7 @@ Key pipeline stages:
 - [ ] Large files (1k+ nodes) remain interactive (<100ms render updates).
 
 ### 5. Extension Ideas
-- Integrate with `MetricsDashboard` to colour nodes by cyclomatic complexity.
+- Integrate with `MetricsProto` to colour nodes by cyclomatic complexity.
 - Add search bar to highlight nodes by identifier or type.
 - Export AST snapshots for documentation or diffing.
 

@@ -1,4 +1,4 @@
-/* Dashboard Styles
+/* Proto Styles
    Uses tokens from theme.css
    Legacy variable mappings for backward compatibility */
 
@@ -13,15 +13,155 @@
 }
 
 /* ========================================
-   DASHBOARD LAYOUT
+   PROTO LAYOUT
    ======================================== */
 
 #app {
-    width: 100%;
-    height: 100vh;
+    display: none;
 }
 
-.dashboard-container {
+#app.active {
+    display: block;
+    width: 100%;
+    height: 100vh;
+    overflow: hidden;
+}
+
+/* App Shell - 3 column layout */
+.app-shell {
+    display: grid;
+    grid-template-columns: 50px 1fr 300px;
+    height: 100vh;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    font-family: 'Courier New', monospace;
+}
+
+/* Sidebar Navigation */
+.sidebar {
+    display: flex;
+    flex-direction: column;
+    background: var(--bg-secondary);
+    border-right: 1px solid var(--border-default);
+    padding: 8px 0;
+}
+
+.sidebar-btn {
+    width: 100%;
+    height: 40px;
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    font-size: 16px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.sidebar-btn:hover {
+    color: var(--primary);
+    background: rgba(0, 255, 255, 0.1);
+}
+
+.sidebar-btn.active {
+    color: var(--primary);
+    background: rgba(0, 255, 255, 0.15);
+    border-left: 2px solid var(--primary);
+}
+
+.sidebar-spacer {
+    flex: 1;
+}
+
+/* Main Workspace */
+.workspace {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.workspace-header {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border-default);
+    background: var(--bg-secondary);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.workspace-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+}
+
+/* Utility Panel (VFS Browser) */
+.utility-panel {
+    display: flex;
+    flex-direction: column;
+    background: var(--bg-secondary);
+    border-left: 1px solid var(--border-default);
+}
+
+.utility-header {
+    padding: 12px;
+    border-bottom: 1px solid var(--border-default);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+.vfs-tree {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 8px;
+    font-size: 11px;
+}
+
+.vfs-content {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 8px;
+    border-top: 1px solid var(--border-default);
+    font-size: 10px;
+    background: var(--bg-element);
+}
+
+/* History/Reflections streams */
+.history-stream, .reflections-stream {
+    font-size: 12px;
+    line-height: 1.6;
+}
+
+/* Status panel */
+.status-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.status-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 12px;
+    background: var(--bg-element);
+    border: 1px solid var(--border-default);
+}
+
+.status-label {
+    color: var(--text-muted);
+    font-size: 11px;
+}
+
+.status-value {
+    color: var(--primary);
+    font-size: 11px;
+}
+
+.proto-container {
     display: flex;
     flex-direction: column;
     width: 100%;

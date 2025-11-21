@@ -50,7 +50,7 @@ Tests for persona selection and boot screen:
 
 ### `sentinel-flow.spec.js`
 Full Sentinel Agent workflow tests:
-- Boot to dashboard transition
+- Boot to proto transition
 - FSM state management
 - Goal processing with special characters
 - Panel toggle functionality
@@ -62,7 +62,7 @@ Accessibility and keyboard navigation:
 - ARIA labels and semantic HTML
 - Focus indicators
 - ESC key handling
-- Dashboard keyboard navigation
+- Proto keyboard navigation
 
 ## Known Issues
 

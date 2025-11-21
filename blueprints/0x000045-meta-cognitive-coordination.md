@@ -328,7 +328,7 @@ const widget = {
 ```
 
 **Key architectural improvements:**
-- Shadow DOM provides style encapsulation for complex dashboard UI
+- Shadow DOM provides style encapsulation for complex proto UI
 - Lifecycle methods ensure proper cleanup of 5-second auto-refresh interval
 - Closure access to module state (getStatus, getHistory, performEfficiencyCheck) eliminates injection complexity
 - Interactive controls allow manual monitoring toggle and on-demand efficiency checks
@@ -366,7 +366,7 @@ const widget = {
    - `{ element: 'meta-cognitive-layer-widget', displayName, icon, category }`
    - No `renderPanel`, `getStatus`, `updateInterval` in widget object (handled by class)
 8. [x] **Test** Shadow DOM rendering and lifecycle cleanup
-9. [x] **Dashboard** shows improvement history and real-time efficiency statistics
+9. [x] **Proto** shows improvement history and real-time efficiency statistics
 
 **Phase 3: Integration (Pending)**
 1. [ ] Connect to AutonomousOrchestrator

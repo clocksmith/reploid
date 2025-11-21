@@ -37,13 +37,147 @@ import SelfTester from './capabilities/testing/self-tester.js';
 import { initModelConfig } from './ui/boot/model-config/index.js';
 
 // UI Imports (Dynamic to allow headless boot)
-// import Dashboard from './ui/dashboard.js';
+// import Proto from './ui/proto.js';
+
+/**
+ * Initializes the full-screen crosshair overlay from corners.
+ * Uses spring physics for bouncy effect.
+ */
+function initCrosshair() {
+  // Prevent duplicate initialization
+  if (document.getElementById('reticle-tl')) return;
+
+  const baseOpacity = 0.15;
+  const bodyEl = document.body;
+  bodyEl.style.setProperty('--cursor-x', `${window.innerWidth / 2}px`);
+  bodyEl.style.setProperty('--cursor-y', `${window.innerHeight / 2}px`);
+  document.documentElement.style.setProperty('--cursor-x', `${window.innerWidth / 2}px`);
+  document.documentElement.style.setProperty('--cursor-y', `${window.innerHeight / 2}px`);
+
+  // Create 4 lines from each corner
+  const lines = ['tl', 'tr', 'bl', 'br'].map(corner => {
+    const line = document.createElement('div');
+    line.id = `reticle-${corner}`;
+    line.className = `reticle-line reticle-line-${corner}`;
+    line.style.opacity = `${baseOpacity}`;
+    document.body.appendChild(line);
+    return line;
+  });
+
+  const [tl, tr, bl, br] = lines;
+
+  // Spring physics state
+  let targetX = 0, targetY = 0;
+  let currentX = 0, currentY = 0;
+  let velocityX = 0, velocityY = 0;
+  let springEnabled = false;
+
+  // Spring constants
+  const stiffness = 0.15;
+  const activeDamping = 0.75;
+  const settleDamping = 0.6;
+  let damping = activeDamping;
+  const snapThreshold = 2;
+  const settleDelay = 120; // ms
+
+  let settleTimer = null;
+
+  function updateLines() {
+    const dx = targetX - currentX;
+    const dy = targetY - currentY;
+
+    if (!springEnabled && Math.abs(dx) < snapThreshold && Math.abs(dy) < snapThreshold) {
+      currentX = targetX;
+      currentY = targetY;
+      velocityX = 0;
+      velocityY = 0;
+    } else {
+      springEnabled = true;
+      velocityX += dx * stiffness;
+      velocityY += dy * stiffness;
+
+      velocityX *= damping;
+      velocityY *= damping;
+
+      currentX += velocityX;
+      currentY += velocityY;
+    }
+
+    const w = window.innerWidth;
+    const h = window.innerHeight;
+
+    // Calculate angles from each corner to cursor
+    const angleTL = Math.atan2(currentY - 0, currentX - 0) * (180 / Math.PI);
+    const angleTR = Math.atan2(currentY - 0, currentX - w) * (180 / Math.PI);
+    const angleBL = Math.atan2(currentY - h, currentX - 0) * (180 / Math.PI);
+    const angleBR = Math.atan2(currentY - h, currentX - w) * (180 / Math.PI);
+
+    // Position lines at corners and rotate toward cursor
+    tl.style.left = '0px';
+    tl.style.top = '0px';
+    tl.style.transform = `rotate(${angleTL - 90}deg)`;
+
+    tr.style.left = `${w}px`;
+    tr.style.top = '0px';
+    tr.style.transform = `rotate(${angleTR - 90}deg)`;
+
+    bl.style.left = '0px';
+    bl.style.top = `${h}px`;
+    bl.style.transform = `rotate(${angleBL - 90}deg)`;
+
+    br.style.left = `${w}px`;
+    br.style.top = `${h}px`;
+    br.style.transform = `rotate(${angleBR - 90}deg)`;
+
+    requestAnimationFrame(updateLines);
+  }
+
+  // Start animation loop
+  requestAnimationFrame(updateLines);
+
+  document.addEventListener('mousemove', (e) => {
+    targetX = e.clientX;
+    targetY = e.clientY;
+    const x = `${e.clientX}px`;
+    const y = `${e.clientY}px`;
+    bodyEl.style.setProperty('--cursor-x', x);
+    bodyEl.style.setProperty('--cursor-y', y);
+
+    if (settleTimer) {
+      clearTimeout(settleTimer);
+    }
+    springEnabled = true;
+    settleTimer = setTimeout(() => {
+      springEnabled = false;
+      damping = settleDamping;
+    }, settleDelay);
+
+    // Show lines with base opacity from corners
+    lines.forEach(line => {
+      if (line.style.opacity !== String(baseOpacity)) {
+        line.style.opacity = `${baseOpacity}`;
+      }
+    });
+  });
+
+  // Click feedback
+  document.addEventListener('mousedown', () => document.body.classList.add('reticle-active'));
+  document.addEventListener('mouseup', () => document.body.classList.remove('reticle-active'));
+
+  // Hide when mouse leaves
+  document.addEventListener('mouseleave', () => {
+    lines.forEach(line => line.style.opacity = '0');
+    bodyEl.style.setProperty('--cursor-x', '50vw');
+    bodyEl.style.setProperty('--cursor-y', '50vh');
+  });
+}
 
 (async () => {
   const logger = Utils.factory().logger;
   logger.info('[Boot] Starting REPLOID System...');
 
   // Initialize boot screen UI (provider detection, model selector)
+  initCrosshair();
   initModelConfig();
 
   try {
@@ -140,6 +274,72 @@ import { initModelConfig } from './ui/boot/model-config/index.js';
       vfs: await container.resolve('VFS')
     };
 
+    // Export function for downloading full REPLOID state
+    window.downloadREPLOID = async (filename = 'reploid-export.json') => {
+      const stateManager = await container.resolve('StateManager');
+      const vfs = await container.resolve('VFS');
+
+      // Get all VFS files
+      const vfsFiles = {};
+      const allPaths = await vfs.list('/');
+
+      const collectFiles = async (paths) => {
+        for (const path of paths) {
+          try {
+            const stat = await vfs.stat(path);
+            if (stat.isDirectory) {
+              const subPaths = await vfs.list(path);
+              await collectFiles(subPaths);
+            } else {
+              vfsFiles[path] = await vfs.read(path);
+            }
+          } catch (e) {
+            logger.warn(`[Export] Failed to read ${path}:`, e.message);
+          }
+        }
+      };
+      await collectFiles(allPaths);
+
+      // Get state
+      const state = stateManager.getState();
+
+      // Collect recent agent log entries if available
+      let activityLog = [];
+      try {
+        if (window.REPLOID?.agent?.getRecentActivities) {
+          activityLog = await window.REPLOID.agent.getRecentActivities();
+        }
+      } catch (e) {
+        logger.warn('[Export] Unable to load activity log', e.message);
+      }
+
+      // Build export object
+      const exportData = {
+        version: '1.0',
+        exportedAt: new Date().toISOString(),
+        state,
+        activityLog,
+        vfs: vfsFiles,
+        metadata: {
+          totalCycles: state.totalCycles || 0,
+          fileCount: Object.keys(vfsFiles).length
+        }
+      };
+
+      // Download as JSON
+      const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      logger.info(`[Export] Downloaded ${filename} with ${Object.keys(vfsFiles).length} files`);
+    };
+
     logger.info('[Boot] Core System Ready.');
 
     // Notify UI that genesis level is loaded
@@ -163,29 +363,37 @@ import { initModelConfig } from './ui/boot/model-config/index.js';
             localStorage.setItem('REPLOID_GOAL', goal);
           }
 
-          const { default: Dashboard } = await import('./ui/dashboard.js');
-          const dashboard = Dashboard.factory({
+          const { default: Proto } = await import('./ui/proto.js');
+          const proto = Proto.factory({
             Utils: Utils.factory(),
             EventBus: await container.resolve('EventBus'),
             AgentLoop: agent,
             StateManager: await container.resolve('StateManager')
           });
 
-          // Remove boot screen before mounting dashboard
+          // Remove boot screen and crosshair before mounting dashboard
           const bootContainer = document.getElementById('boot-container');
           if (bootContainer) {
             bootContainer.remove();
           }
 
-          dashboard.mount(document.getElementById('app'));
+          // Remove crosshair lines
+          ['tl', 'tr', 'bl', 'br'].forEach(corner => {
+            const line = document.getElementById(`reticle-${corner}`);
+            if (line) line.remove();
+          });
 
-          // Pass VFS to dashboard for browser
-          dashboard.setVFS(vfs);
+          const appEl = document.getElementById('app');
+          appEl.classList.add('active');
+          proto.mount(appEl);
+
+          // Pass VFS to proto for browser
+          proto.setVFS(vfs);
 
           // Wire up refresh button
           const refreshBtn = document.getElementById('vfs-refresh');
           if (refreshBtn) {
-            refreshBtn.onclick = () => dashboard.refreshVFS();
+            refreshBtn.onclick = () => proto.refreshVFS();
           }
 
           logger.info('[Boot] UI Mounted.');
@@ -277,4 +485,6 @@ async function seedWorkspaceFiles(vfs, genesisConfig) {
     const logger = Utils.factory().logger;
     logger.warn('[Boot] Workspace hydration skipped', err);
   }
+
+
 }

@@ -174,7 +174,7 @@ Test complete user workflows with Playwright.
 
 **Future tests:**
 - Full agent cycle from goal to completion
-- UI dashboard interactions
+- UI proto interactions
 - PAWS CLI workflow (cats → dogs → apply)
 - Browser API integrations
 

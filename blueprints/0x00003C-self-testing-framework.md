@@ -6,7 +6,7 @@
 
 **Prerequisites:** 0x000025 (Universal Module Loader), 0x00002C (Performance Monitoring Stack), 0x000034 (Audit Logging Policy)
 
-**Affected Artifacts:** `/upgrades/self-tester.js`, `/styles/dashboard.css`, `/upgrades/tool-runner.js`, `/upgrades/state-manager.js`
+**Affected Artifacts:** `/upgrades/self-tester.js`, `/styles/proto.css`, `/upgrades/tool-runner.js`, `/upgrades/state-manager.js`
 
 ---
 
@@ -106,7 +106,7 @@ const SelfTester = {
 **Web Component Widget Features:**
 
 The `SelfTesterWidget` provides real-time test monitoring and execution:
-- **Statistics Dashboard**: 2×2 grid showing passed/failed counts, success rate, and test duration
+- **Statistics Proto**: 2×2 grid showing passed/failed counts, success rate, and test duration
 - **Test Suites Display**: Lists all 5 test suites with pass/fail status and failure counts
 - **Test History**: Scrollable list of last 10 test runs with timestamps and success rates
 - **Interactive Actions**: "Run All Tests" button for executing full suite, "Generate Report" for markdown output
@@ -284,9 +284,9 @@ class SelfTesterWidget extends HTMLElement {
    - Create reflections or audit logs based on test outcomes
    - Surface toast notifications for failures
 
-3. **Dashboard Integration**:
-   - Widget automatically integrates with module dashboard system
-   - Provides `getStatus()` method for dashboard summary view
+3. **Proto Integration**:
+   - Widget automatically integrates with module proto system
+   - Provides `getStatus()` method for proto summary view
    - Updates every 10 seconds via `updateInterval: 10000`
 
 **Step 6: Extending Test Coverage**

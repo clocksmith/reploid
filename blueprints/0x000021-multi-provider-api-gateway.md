@@ -50,11 +50,11 @@ Key responsibilities:
 
 - **State Integration**
   - Persists provider choice in `StateManager`.
-  - Notifies UI via EventBus so the dashboard reflects active provider.
+  - Notifies UI via EventBus so the proto reflects active provider.
 
 **Widget Interface (Web Component):**
 
-The module exposes an `ApiClientMultiWidget` custom element for dashboard visualization and provider control:
+The module exposes an `ApiClientMultiWidget` custom element for proto visualization and provider control:
 
 ```javascript
 class ApiClientMultiWidget extends HTMLElement {
@@ -143,7 +143,7 @@ if (!customElements.get(elementName)) {
   - Color-coded by outcome (green for success, red for failure)
 - **Total Statistics Summary**: Aggregate view across all providers
 - **Auto-Refresh**: Updates every 5 seconds to track ongoing API activity
-- **Interactive Controls**: Direct provider switching without leaving dashboard
+- **Interactive Controls**: Direct provider switching without leaving proto
 
 The widget provides critical visibility into multi-provider API orchestration, essential for monitoring provider health, switching providers when needed, tracking success rates, and debugging API failures across different LLM backends.
 
@@ -156,7 +156,7 @@ The widget provides critical visibility into multi-provider API orchestration, e
    - Ensure providers lacking tool support short-circuit gracefully with informative errors.
 3. **Safety & Observability**
    - Integrate with `RateLimiter` (0x000032) and `CostTracker` (0x00003F) to record usage.
-   - Emit structured logs through `logger.info/error` so analytics dashboards capture latency and failures.
+   - Emit structured logs through `logger.info/error` so analytics protos capture latency and failures.
 4. **Cancellation Semantics**
    - Maintain `currentAbortController` and expose `client.abortCurrentRequest()` to UI components.
 5. **Offline Mode**
@@ -167,7 +167,7 @@ The widget provides critical visibility into multi-provider API orchestration, e
 - **Unit coverage**: stub each provider and assert request payloads are well-formed.
 - **Integration drills**: simulate proxy offline/online transitions and confirm automatic fallback.
 - **Tool invocation**: run end-to-end tests where the LLM returns `function_call` events and tool outputs feed back into the loop.
-- **Telemetry parity**: ensure success/error metrics flow into `PerformanceMonitor` and `MetricsDashboard`.
+- **Telemetry parity**: ensure success/error metrics flow into `PerformanceMonitor` and `MetricsProto`.
 
 ### 5. Operational Playbook
 - Expose provider controls in UI (drop-down or persona preset) bound to `client.setProvider`.

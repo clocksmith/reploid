@@ -6,7 +6,7 @@
 
 **Prerequisites:** 0x00001B (Code Introspection & Self-Analysis), 0x000025 (Universal Module Loader), 0x000026 (Module Manifest Governance)
 
-**Affected Artifacts:** `/upgrades/module-graph-visualizer.js`, `/styles/dashboard.css`, `/upgrades/introspector.js`
+**Affected Artifacts:** `/upgrades/module-graph-visualizer.js`, `/styles/proto.css`, `/upgrades/introspector.js`
 
 ---
 
@@ -80,7 +80,7 @@ Key features:
   - Clicking a node can trigger `Introspector.getModuleDetails(id)` (planned extension).
 - **Widget Protocol**
   - Exports `widget` metadata: `{ element, displayName, icon, category, updateInterval: null }`.
-  - Provides `getStatus()` with 5 required fields for dashboard integration.
+  - Provides `getStatus()` with 5 required fields for proto integration.
   - Manual refresh only (no auto-update interval).
 
 ### 3. Implementation Pathway

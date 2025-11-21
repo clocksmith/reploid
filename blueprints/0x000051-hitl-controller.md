@@ -514,7 +514,7 @@ const widget = {
 - Add approval templates (pre-defined approval workflows)
 - Add approval audit trail (who approved/rejected, when, why)
 - Add approval notifications (desktop notifications, email, Slack)
-- Add approval analytics dashboard (approval time, bottlenecks, trends)
+- Add approval analytics proto (approval time, bottlenecks, trends)
 - Add conditional auto-approval rules (e.g., auto-approve tool execution on weekends)
 - Add module capability introspection (query which capabilities a module has)
 - Add approval batching (approve multiple similar actions at once)

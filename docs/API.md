@@ -235,17 +235,17 @@ This document provides an overview of REPLOID's module API. For detailed JSDoc c
 
 ### UI (`upgrades/ui-manager.js`)
 
-**Type:** Dashboard orchestration
+**Type:** Proto orchestration
 **Dependencies:** Utils, EventBus, StateManager, DiffGenerator, VFSExplorer, PerformanceMonitor, Introspector, ReflectionStore, SelfTester, BrowserAPIs
 
 **API:**
-- `init(config)` - Initialize dashboard
+- `init(config)` - Initialize proto
 - `setupEventListeners()` - Attach button handlers
 - `showOnlyPanel(panel)` - Panel visibility helper (DRY pattern)
 
 **Panel Rendering:**
 - `renderVfsExplorer()` - File tree display
-- `renderPerformancePanel()` - Metrics dashboard
+- `renderPerformancePanel()` - Metrics proto
 - `renderIntrospectionPanel()` - Self-analysis view
 - `renderReflectionsPanel()` - Learning history
 - `renderSelfTestPanel()` - Test results

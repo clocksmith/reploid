@@ -6,7 +6,7 @@
 
 **Prerequisites:** 0x00002C (Performance Monitoring Stack), 0x00000A (Tool Runner Engine), 0x000031 (Toast Notification System)
 
-**Affected Artifacts:** `/upgrades/tool-analytics.js`, `/upgrades/tool-runner.js`, `/styles/dashboard.css`
+**Affected Artifacts:** `/upgrades/tool-analytics.js`, `/upgrades/tool-runner.js`, `/styles/proto.css`
 
 ---
 
@@ -41,7 +41,7 @@ Key functionality:
 - `getToolAnalytics(name)` returns structured metrics for a tool (with success/error rates).
 - `getAllAnalytics()` aggregates across all tools with session duration.
 - `getTopTools`, `getSlowestTools`, `getProblematicTools` provide curated slices.
-- `generateReport()` produces markdown summary for dashboards or docs.
+- `generateReport()` produces markdown summary for protos or docs.
 - `reset()` clears metrics for a new session.
 
 #### Web Component Widget Pattern
@@ -226,6 +226,6 @@ const widget = {
 - Persist metrics to reflections for long-term trend analysis.
 - Add percentile latency (P95/P99) in addition to average.
 - Correlate tool errors with blueprint/version to detect regressions.
-- Visualise analytics alongside metrics dashboard (bar charts).
+- Visualise analytics alongside metrics proto (bar charts).
 
 Update this blueprint when analytics schema changes or new reporting capabilities are added.

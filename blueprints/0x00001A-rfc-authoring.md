@@ -118,7 +118,7 @@ const RFCAuthor = {
 ### Web Component Widget Features:
 
 The `RFCAuthorWidget` provides real-time visibility into RFC creation:
-- **Statistics Dashboard**: Shows total RFCs created and time since last RFC
+- **Statistics Proto**: Shows total RFCs created and time since last RFC
 - **Recent RFCs List**: Displays the last 10 RFCs with titles, paths, and timestamps
 - **RFC Structure Reference**: Lists all standard RFC sections
 - **Interactive Actions**: "Draft Sample RFC" button for quick RFC creation
@@ -299,18 +299,18 @@ Before finalizing an RFC, verify:
   - Helper functions for string sanitization and validation
 
 ### Widget Integration:
-The RFCAuthor widget integrates with the module dashboard system:
+The RFCAuthor widget integrates with the module proto system:
 ```javascript
 widget: {
   element: 'rfc-author-widget',        // Custom element tag name
-  displayName: 'RFC Author',            // Dashboard display name
+  displayName: 'RFC Author',            // Proto display name
   icon: '✎',                            // Visual identifier
-  category: 'service',                  // Dashboard grouping
+  category: 'service',                  // Proto grouping
   updateInterval: 10000                 // 10-second refresh rate
 }
 ```
 
-**Dashboard Communication:**
+**Proto Communication:**
 - Widget accesses module API via `.moduleApi` property setter
 - Widget uses closure variables for real-time state display
 - Interactive buttons call API functions directly from Shadow DOM

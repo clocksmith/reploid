@@ -26,7 +26,7 @@ A new `/modules/state-helpers-pure.js` artifact will be created. This module wil
 
 **Web Component Widget:**
 
-The module includes a `StateHelpersPureWidget` custom element providing dashboard visibility into validation operations and function call statistics.
+The module includes a `StateHelpersPureWidget` custom element providing proto visibility into validation operations and function call statistics.
 
 ```javascript
 class StateHelpersPureWidget extends HTMLElement {

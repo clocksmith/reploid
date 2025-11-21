@@ -6,7 +6,7 @@
 
 **Prerequisites:** 0x000003 (Core Utilities & Error Handling), 0x00000D (UI Manager), 0x000018 (Blueprint Creation Meta)
 
-**Affected Artifacts:** `/upgrades/confirmation-modal.js`, `/styles/dashboard.css`, `/upgrades/event-bus.js`
+**Affected Artifacts:** `/upgrades/confirmation-modal.js`, `/styles/proto.css`, `/upgrades/event-bus.js`
 
 ---
 
@@ -20,7 +20,7 @@ Agents that can edit files, alter goals, or trigger network actions must request
 Without a blueprint, destructive actions might bypass confirmation or deliver inconsistent messaging that confuses operators.
 
 ### 2. Architectural Solution
-`ConfirmationModal` implements both a **Promise-based API** and a **Web Component widget** for dashboard integration.
+`ConfirmationModal` implements both a **Promise-based API** and a **Web Component widget** for proto integration.
 
 ```javascript
 // Promise-based modal API
@@ -33,7 +33,7 @@ const confirmed = await ConfirmationModal.confirm({
   details: 'This cannot be undone.'
 });
 
-// Web Component widget for dashboard
+// Web Component widget for proto
 class ConfirmationModalWidget extends HTMLElement {
   constructor() {
     super();
@@ -77,7 +77,7 @@ Key mechanics:
 - **Usage Tracking**: tracks `modalStats` (totalShown, totalConfirmed, totalCancelled, dangerModalsShown, recentModals).
 - **Widget Protocol**
   - Exports `widget` metadata: `{ element, displayName, icon, category, order }`.
-  - Provides `getStatus()` with 5 required fields for dashboard integration.
+  - Provides `getStatus()` with 5 required fields for proto integration.
 
 ### 3. Implementation Pathway
 1. **Web Component Registration**

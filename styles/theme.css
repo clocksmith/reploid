@@ -1,429 +1,155 @@
 /* ========================================
-   REPLOID Design System - Unified Theme
-   Modern IDE palette with semantic tokens
+   REPLOID Design System - NEON CORE
+   styles/theme.css
    ======================================== */
 
 :root {
-  /* ---- Background Surfaces ---- */
-  --bg-app: #09090b;
-  --bg-panel: #18181b;
-  --bg-element: #27272a;
-  --bg-elevated: #1f1f23;
-  --bg-hover: rgba(63, 63, 70, 0.5);
-  --bg-active: rgba(6, 182, 212, 0.1);
+  /* ---- Core Palette (Cyberpunk) ---- */
+  --bg-app: #050505;       /* Deepest Black */
+  --bg-panel: #0a0a0a;     /* Panel Background */
+  --bg-element: #111111;   /* Input/Item Background */
+  --bg-hover: #1a1a1a;     /* Hover State */
+  --bg-active: rgba(0, 255, 255, 0.1);
 
-  /* ---- Borders ---- */
-  --border-subtle: #27272a;
-  --border-default: #3f3f46;
-  --border-active: #52525b;
+  /* ---- Borders (Scanlines) ---- */
+  --border-subtle: #222;
+  --border-default: #333;
+  --border-active: #00ffff; /* Cyan active border */
 
-  /* ---- Text ---- */
-  --text-primary: #e4e4e7;
-  --text-secondary: #a1a1aa;
-  --text-muted: #71717a;
-  --text-disabled: #52525b;
+  /* ---- Text (Terminal) ---- */
+  --text-primary: #e0e0e0;
+  --text-secondary: #a0a0a0;
+  --text-muted: #666666;
+  --text-inverse: #000000;
 
-  /* ---- Functional Accents ---- */
-  --primary: #06b6d4;
-  --primary-dim: rgba(6, 182, 212, 0.15);
-  --primary-bright: rgba(6, 182, 212, 0.3);
+  /* ---- Accents (Neon) ---- */
+  --primary: #00ffff;      /* Cyan */
+  --primary-dim: rgba(0, 255, 255, 0.15);
+  --primary-glow: 0 0 10px rgba(0, 255, 255, 0.4);
 
-  --success: #10b981;
-  --success-dim: rgba(16, 185, 129, 0.15);
+  --secondary: #ff00ff;    /* Magenta */
+  --secondary-dim: rgba(255, 0, 255, 0.15);
+  
+  --success: #00ff00;      /* Green */
+  --warning: #ffd700;      /* Gold */
+  --danger: #ff3333;       /* Red */
 
-  --warning: #f59e0b;
-  --warning-dim: rgba(245, 158, 11, 0.15);
+  /* ---- Typography ---- */
+  --font-mono: 'Courier New', 'Consolas', monospace;
+  --font-sans: 'Inter', system-ui, sans-serif;
+  --font-base: 13px;
 
-  --danger: #ef4444;
-  --danger-dim: rgba(239, 68, 68, 0.15);
-
-  /* ---- Legacy Aliases (for backward compatibility) ---- */
-  --accent-cyan: var(--primary);
-  --accent-cyan-dim: var(--primary-dim);
-  --accent-cyan-bright: var(--primary-bright);
-  --accent-gold: var(--warning);
-  --accent-gold-dim: var(--warning-dim);
-  --error: var(--danger);
-  --error-bg: var(--danger-dim);
-  --success-bg: var(--success-dim);
-  --warning-bg: var(--warning-dim);
-
-  /* ---- Spacing Scale ---- */
-  --space-xs: 4px;
+  /* ---- Spacing & Radius ---- */
   --space-sm: 8px;
   --space-md: 12px;
-  --space-lg: 16px;
-  --space-xl: 24px;
-  --space-2xl: 32px;
-
-  /* ---- Typography Scale ---- */
-  --font-xs: 10px;
-  --font-sm: 11px;
-  --font-base: 13px;
-  --font-md: 14px;
-  --font-lg: 16px;
-  --font-xl: 18px;
-  --font-2xl: 24px;
-
-  /* ---- Border Radius ---- */
-  --radius-sm: 3px;
-  --radius-md: 6px;
-  --radius-lg: 8px;
-  --radius-xl: 12px;
-
-  /* ---- Transitions ---- */
-  --transition-fast: 0.1s ease;
-  --transition-normal: 0.2s ease;
-  --transition-slow: 0.3s ease;
-
-  /* ---- Shadows ---- */
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
-  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.4);
-  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.5);
-
-  /* ---- Scrollbar ---- */
-  --scrollbar-bg: var(--bg-panel);
-  --scrollbar-thumb: var(--border-default);
-  --scrollbar-thumb-hover: var(--border-active);
+  --space-lg: 20px;
+  --radius-none: 0px;      /* Hard edges for cyberpunk feel */
+  --radius-sm: 2px;
 }
 
 /* ========================================
-   Global Reset
+   RESET & BASE
    ======================================== */
-
-* {
-  box-sizing: border-box;
-}
-
-*::before,
-*::after {
-  box-sizing: border-box;
-}
-
-html {
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
+* { box-sizing: border-box; }
 
 body {
-  margin: 0;
-  padding: 0;
+  margin: 0; padding: 0;
   background: var(--bg-app);
   color: var(--text-primary);
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: var(--font-mono); /* Default to code font */
   font-size: var(--font-base);
-  line-height: 1.5;
+  overflow-x: hidden;
+}
+
+/* Scanline Overlay (Optional - adds CRT feel) */
+body::before {
+  content: " ";
+  display: block;
+  position: fixed; top: 0; left: 0; bottom: 0; right: 0;
+  background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+  z-index: 2;
+  background-size: 100% 2px, 3px 100%;
+  pointer-events: none;
 }
 
 /* ========================================
-   Scrollbar Styling
+   COMPONENTS
    ======================================== */
 
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-
-::-webkit-scrollbar-track {
-  background: var(--scrollbar-bg);
-}
-
-::-webkit-scrollbar-thumb {
-  background: var(--scrollbar-thumb);
-  border-radius: var(--radius-md);
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: var(--scrollbar-thumb-hover);
-}
-
-/* ========================================
-   Common Component Classes
-   ======================================== */
-
-/* Buttons */
+/* 1. Buttons (Holographic) */
 .btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-sm);
-  padding: var(--space-sm) var(--space-lg);
-  font-family: inherit;
-  font-size: var(--font-sm);
-  font-weight: 500;
-  border-radius: var(--radius-md);
-  border: 1px solid transparent;
+  display: inline-flex; align-items: center; justify-content: center;
+  padding: 10px 20px;
+  font-family: var(--font-mono);
+  font-size: 12px; text-transform: uppercase; letter-spacing: 1px;
+  background: transparent;
+  border: 1px solid var(--border-default);
+  color: var(--text-secondary);
   cursor: pointer;
-  transition: all var(--transition-normal);
+  transition: all 0.2s ease;
 }
 
-.btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+.btn:hover:not(:disabled) {
+  border-color: var(--text-primary);
+  color: var(--text-primary);
+  background: var(--bg-hover);
 }
 
-.btn-primary {
-  background: var(--primary-dim);
+.btn.primary {
   border-color: var(--primary);
   color: var(--primary);
+  box-shadow: 0 0 5px rgba(0,255,255,0.1);
 }
 
-.btn-primary:hover:not(:disabled) {
-  background: var(--primary-bright);
+.btn.primary:hover:not(:disabled) {
+  background: var(--primary-dim);
+  box-shadow: var(--primary-glow);
 }
 
-.btn-secondary {
-  background: var(--bg-element);
+.btn.secondary {
   border-color: var(--border-default);
-  color: var(--text-secondary);
+  color: var(--text-muted);
 }
 
-.btn-secondary:hover:not(:disabled) {
-  background: var(--bg-hover);
-  border-color: var(--border-active);
-  color: var(--text-primary);
-}
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
-.btn-danger {
-  background: var(--danger-dim);
-  border-color: var(--danger);
-  color: var(--danger);
-}
-
-.btn-danger:hover:not(:disabled) {
-  background: rgba(239, 68, 68, 0.25);
-}
-
-.btn-sm {
-  padding: var(--space-xs) var(--space-sm);
-  font-size: var(--font-xs);
-}
-
-.btn-icon {
-  padding: var(--space-sm);
-  width: 32px;
-  height: 32px;
-}
-
-/* Cards */
-.card {
+/* 2. Cards (HUD Panels) */
+.card, .panel, .advanced-panel {
   background: var(--bg-panel);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-md);
-  overflow: hidden;
-}
-
-.card:hover {
-  border-color: var(--border-default);
-}
-
-.card-header {
-  padding: var(--space-md) var(--space-lg);
-  border-bottom: 1px solid var(--border-subtle);
-  font-weight: 600;
-  font-size: var(--font-sm);
-  color: var(--text-secondary);
-}
-
-.card-body {
+  border: 1px solid var(--border-default);
   padding: var(--space-lg);
+  position: relative;
 }
 
-.card-footer {
-  padding: var(--space-md) var(--space-lg);
-  border-top: 1px solid var(--border-subtle);
+/* Corner accents for panels */
+.card::after, .panel::after {
+  content: ''; position: absolute;
+  top: -1px; right: -1px;
+  width: 10px; height: 10px;
+  border-top: 2px solid var(--primary);
+  border-right: 2px solid var(--primary);
 }
 
-/* Inputs */
-.input {
-  width: 100%;
-  padding: var(--space-sm) var(--space-md);
+/* 3. Inputs (Terminal Entry) */
+input, select, textarea {
   background: var(--bg-element);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-md);
+  border: 1px solid var(--border-default);
   color: var(--text-primary);
-  font-family: inherit;
-  font-size: var(--font-base);
-  transition: border-color var(--transition-normal);
+  font-family: var(--font-mono);
+  padding: 10px;
+  width: 100%;
 }
 
-.input:focus {
+input:focus, select:focus, textarea:focus {
   outline: none;
   border-color: var(--primary);
+  box-shadow: inset 0 0 10px rgba(0, 255, 255, 0.1);
 }
-
-.input::placeholder {
-  color: var(--text-muted);
-}
-
-/* Badges */
-.badge {
-  display: inline-flex;
-  align-items: center;
-  padding: 2px var(--space-sm);
-  border-radius: var(--radius-sm);
-  font-size: var(--font-xs);
-  font-weight: 600;
-  text-transform: uppercase;
-}
-
-.badge-success {
-  background: var(--success-dim);
-  color: var(--success);
-}
-
-.badge-warning {
-  background: var(--warning-dim);
-  color: var(--warning);
-}
-
-.badge-danger {
-  background: var(--danger-dim);
-  color: var(--danger);
-}
-
-/* Status indicators */
-.status-dot {
-  display: inline-block;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-}
-
-.status-dot-success {
-  background: var(--success);
-}
-
-.status-dot-warning {
-  background: var(--warning);
-}
-
-.status-dot-danger {
-  background: var(--danger);
-}
-
-.status-dot-idle {
-  background: var(--text-muted);
-}
-
-/* Monospace text */
-.mono {
-  font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
-}
-
-/* Text utilities */
-.text-primary { color: var(--text-primary); }
-.text-secondary { color: var(--text-secondary); }
-.text-muted { color: var(--text-muted); }
-.text-success { color: var(--success); }
-.text-warning { color: var(--warning); }
-.text-danger { color: var(--danger); }
-
-/* Layout utilities */
-.hidden { display: none !important; }
-.flex { display: flex; }
-.flex-col { flex-direction: column; }
-.items-center { align-items: center; }
-.justify-between { justify-content: space-between; }
-.gap-sm { gap: var(--space-sm); }
-.gap-md { gap: var(--space-md); }
-.gap-lg { gap: var(--space-lg); }
 
 /* ========================================
-   IDE Shell Layout
+   UTILITIES
    ======================================== */
-
-.app-shell {
-  display: grid;
-  grid-template-columns: 48px 1fr 320px;
-  grid-template-rows: 1fr;
-  height: 100vh;
-  width: 100%;
-}
-
-.sidebar {
-  background: var(--bg-panel);
-  border-right: 1px solid var(--border-subtle);
-  display: flex;
-  flex-direction: column;
-  padding: var(--space-sm);
-  gap: var(--space-xs);
-}
-
-.sidebar-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  border: none;
-  border-radius: var(--radius-md);
-  background: transparent;
-  color: var(--text-muted);
-  cursor: pointer;
-  transition: all var(--transition-normal);
-  font-size: var(--font-md);
-}
-
-.sidebar-btn:hover {
-  background: var(--bg-hover);
-  color: var(--text-primary);
-}
-
-.sidebar-btn.active {
-  background: var(--primary-dim);
-  color: var(--primary);
-}
-
-.sidebar-spacer {
-  flex: 1;
-}
-
-.workspace {
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
-.workspace-header {
-  padding: var(--space-md) var(--space-lg);
-  border-bottom: 1px solid var(--border-subtle);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.workspace-content {
-  flex: 1;
-  overflow: auto;
-  padding: var(--space-lg);
-}
-
-.utility-panel {
-  background: var(--bg-panel);
-  border-left: 1px solid var(--border-subtle);
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
-/* Responsive adjustments */
-@media (max-width: 1024px) {
-  .app-shell {
-    grid-template-columns: 48px 1fr;
-  }
-
-  .utility-panel {
-    display: none;
-  }
-}
-
-@media (max-width: 768px) {
-  .app-shell {
-    grid-template-columns: 1fr;
-  }
-
-  .sidebar {
-    display: none;
-  }
-}
+.hidden { display: none !important; }
+.text-cyan { color: var(--primary); }
+.text-magenta { color: var(--secondary); }
+.text-muted { color: var(--text-muted); }
