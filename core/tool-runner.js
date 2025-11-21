@@ -117,6 +117,8 @@ const ToolRunner = {
 
       for (const file of files) {
         if (!file.endsWith('.js')) continue;
+        // Skip test files
+        if (file.includes('.test.') || file.includes('.spec.') || file.includes('.integration.')) continue;
         await loadToolModule(file);
       }
       return true;

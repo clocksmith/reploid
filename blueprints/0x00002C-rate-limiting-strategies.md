@@ -50,7 +50,7 @@ if (!globalLimiter.tryConsume()) {
    - Allow personas/hunter mode to adjust token budgets at runtime.
    - Provide admin command to call `reset()` after manual intervention.
 4. **Observability**
-   - Expose `getState()` telemetry for dashboards (tokens available, window usage).
+   - Expose `getState()` telemetry for protos (tokens available, window usage).
    - Log debug messages when tokens consumed or limits exceeded (redacted for production if noisy).
 5. **Fallback Strategy**
    - On limit breach, queue deferred tasks with exponential backoff or degrade to cached responses.

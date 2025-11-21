@@ -18,7 +18,7 @@ A modular agent architecture requires a robust dependency injection system to de
 - **Lifecycle Management**: Single instantiation of singletons with proper dependency resolution order
 - **Optional Dependencies**: Modules can declare optional dependencies (marked with `?`) that gracefully degrade if unavailable
 - **Error Tracking**: Comprehensive failure tracking for debugging boot issues and dependency resolution errors
-- **Observable State**: Real-time visibility into module registration, loading, and failure states via dashboard widget
+- **Observable State**: Real-time visibility into module registration, loading, and failure states via proto widget
 
 Without a disciplined DI container, modules would create hidden coupling through global variables, making the system brittle and difficult to test.
 
@@ -107,7 +107,7 @@ const DIContainer = {
       }
 
       render() {
-        // Comprehensive dashboard with:
+        // Comprehensive proto with:
         // - Stats grid (registered, loaded, failed counts)
         // - Failed modules list with error details
         // - Load order with module cards showing:
@@ -423,7 +423,7 @@ return {
 - **Circular Dependency Detection**: The recursive resolve() function will stack overflow on circular dependencies - consider adding cycle detection with a resolution stack
 - **Dependency Validation**: Ensure all declared dependencies exist in the module registry before attempting resolution
 - **Type Safety**: Validate module types ('pure', 'service', 'ui') and ensure correct API extraction
-- **Error Reporting**: Failed modules should be visible in both console logs and the widget dashboard
+- **Error Reporting**: Failed modules should be visible in both console logs and the widget proto
 - **Resolution Order Testing**: Verify that complex dependency graphs resolve in correct topological order
 
 ### 5. Extension Points

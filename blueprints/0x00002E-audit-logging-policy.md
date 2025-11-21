@@ -167,7 +167,7 @@ const widget = {
    - Ensure Storage can create directories ( `/.audit/` ) on first run.
    - Implement retention policy (e.g., prune older than 90 days) via periodic cleanup.
 4. **Analysis APIs**
-   - `queryLogs({ date, eventType, severity, limit })` supports dashboards.
+   - `queryLogs({ date, eventType, severity, limit })` supports protos.
    - `getStats(date)` summarises totals, severity distribution, failed operations.
    - `exportLogs(startDate, endDate)` packages logs for external review.
 5. **Web Component Widget Implementation**
@@ -206,7 +206,7 @@ const widget = {
 ### 5. Extension Opportunities
 - Stream logs to external SIEM via WebSocket or HTTP.
 - Add integrity hashes for logs themselves (append-only guarantee).
-- Surface audit insights in dashboard (top violations, modules with most errors).
+- Surface audit insights in proto (top violations, modules with most errors).
 - Tie audit events into toast notifications for real-time awareness.
 
 Update this blueprint when adding event types, changing storage formats, or integrating with new security tooling.

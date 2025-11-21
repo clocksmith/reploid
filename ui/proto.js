@@ -1,9 +1,9 @@
 /**
- * @fileoverview Dashboard UI
+ * @fileoverview Proto UI
  * Main user interface for the agent.
  */
 
-const Dashboard = {
+const Proto = {
   factory: (deps) => {
     const { Utils, EventBus, AgentLoop, StateManager } = deps;
     const { logger, escapeHtml } = Utils;
@@ -210,15 +210,21 @@ const Dashboard = {
 
       btnExport.onclick = async () => {
         try {
-          const state = StateManager.getState();
-          const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.href = url;
-          a.download = `reploid-state-${Date.now()}.json`;
-          a.click();
-          URL.revokeObjectURL(url);
-          logger.info('State exported');
+          if (window.downloadREPLOID) {
+            await window.downloadREPLOID(`reploid-export-${Date.now()}.json`);
+            logger.info('Full state + VFS exported');
+          } else {
+            // Fallback to state-only export
+            const state = StateManager.getState();
+            const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `reploid-state-${Date.now()}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+            logger.info('State exported (VFS not available)');
+          }
         } catch (e) {
           logger.error(`Export failed: ${e.message}`);
         }
@@ -270,7 +276,7 @@ const Dashboard = {
           streamingEntry = document.createElement('div');
           streamingEntry.className = 'history-entry streaming';
           streamingEntry.innerHTML = `
-            <div class="history-header">Thinking... <span class="token-stats">0 tokens</span></div>
+            <div class="history-header"><span class="status-label">Thinking...</span> <span class="token-stats">0 tokens</span></div>
             <pre class="history-content"></pre>
           `;
           historyContainer.appendChild(streamingEntry);
@@ -278,8 +284,22 @@ const Dashboard = {
           tokenCount = 0;
         }
 
-        // Estimate tokens (rough: ~4 chars per token)
-        tokenCount += Math.ceil(text.length / 4);
+        // Update status label based on content
+        const statusLabel = streamingEntry.querySelector('.status-label');
+        if (statusLabel) {
+          if (text.includes('[System: Downloading')) {
+            statusLabel.textContent = 'Downloading...';
+          } else if (text.includes('[System: Loading model')) {
+            statusLabel.textContent = 'Loading...';
+          } else if (!text.startsWith('[System:')) {
+            statusLabel.textContent = 'Thinking...';
+          }
+        }
+
+        // Estimate tokens (rough: ~4 chars per token) - only for actual content
+        if (!text.startsWith('[System:')) {
+          tokenCount += Math.ceil(text.length / 4);
+        }
 
         // Update stats
         const elapsed = (Date.now() - streamStartTime) / 1000;
@@ -415,4 +435,4 @@ const Dashboard = {
   }
 };
 
-export default Dashboard;
+export default Proto;

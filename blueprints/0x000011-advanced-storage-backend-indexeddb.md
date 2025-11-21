@@ -30,7 +30,7 @@ The core challenge of this upgrade is not the implementation of the `IndexedDB` 
 
 **Widget Interface (Web Component):**
 
-The module exposes a `StorageIndexedDBWidget` custom element for dashboard visualization:
+The module exposes a `StorageIndexedDBWidget` custom element for proto visualization:
 
 ```javascript
 class StorageIndexedDBWidget extends HTMLElement {

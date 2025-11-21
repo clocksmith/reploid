@@ -6,7 +6,7 @@
 
 **Prerequisites:** 0x000005 (State Management Architecture), 0x000006 (Pure State Helpers), 0x000013 (System Configuration Structure), 0x00002A (Canvas Visualization Engine)
 
-**Affected Artifacts:** `/upgrades/viz-data-adapter.js`, `/upgrades/canvas-visualizer.js`, `/upgrades/metrics-dashboard.js`
+**Affected Artifacts:** `/upgrades/viz-data-adapter.js`, `/upgrades/canvas-visualizer.js`, `/upgrades/metrics-proto.js`
 
 ---
 

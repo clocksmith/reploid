@@ -27,7 +27,7 @@ The solution is to create a dedicated `run_self_evaluation` tool. This tool will
 
 **Widget Interface (Web Component):**
 
-The module exposes a `ToolEvaluatorWidget` custom element for dashboard visualization:
+The module exposes a `ToolEvaluatorWidget` custom element for proto visualization:
 
 ```javascript
 class ToolEvaluatorWidget extends HTMLElement {

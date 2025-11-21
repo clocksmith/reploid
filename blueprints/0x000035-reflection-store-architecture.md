@@ -6,7 +6,7 @@
 
 **Prerequisites:** 0x000003 (Core Utilities & Error Handling), 0x000008 (Agent Cognitive Cycle), 0x000034 (Audit Logging Policy)
 
-**Affected Artifacts:** `/upgrades/reflection-store.js`, `/styles/dashboard.css`, `/upgrades/reflection-analyzer.js`, `/upgrades/reflection-search.js`
+**Affected Artifacts:** `/upgrades/reflection-store.js`, `/styles/proto.css`, `/upgrades/reflection-analyzer.js`, `/upgrades/reflection-search.js`
 
 ---
 
@@ -130,7 +130,7 @@ const widget = {
 
 **Widget Features:**
 - **Closure Access**: Widget class accesses module state (`db`, `_additionCount`, `_outcomeCounts`) directly via closure.
-- **Status Reporting**: `getStatus()` provides store health and success metrics for dashboard integration.
+- **Status Reporting**: `getStatus()` provides store health and success metrics for proto integration.
 - **Outcome Breakdown**: Visual breakdown of success/failure/partial outcomes with progress bars.
 - **Analytics Summary**: Shows total reflections, success rate, additions count.
 - **Interactive Controls**: Buttons to generate reports, export data, and view summaries.

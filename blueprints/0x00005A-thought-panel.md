@@ -61,7 +61,7 @@ const ThoughtPanel = {
     widget: {
       element: 'thought-panel-widget',
       displayName: 'Agent Thoughts',
-      visible: false,  // Hidden from ModuleDashboard (core UI)
+      visible: false,  // Hidden from ModuleProto (core UI)
       category: 'core-ui'
     }
   },

@@ -49,7 +49,7 @@ Responsibilities:
 
 **Widget Interface (Web Component):**
 
-The module exposes a `HybridLLMProviderWidget` custom element for dashboard visualization:
+The module exposes a `HybridLLMProviderWidget` custom element for proto visualization:
 
 ```javascript
 class HybridLLMProviderWidget extends HTMLElement {

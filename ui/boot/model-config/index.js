@@ -8,7 +8,6 @@ import { renderModelCards, updateStatusDots, updateGoalInputState, autoPopulateD
 
 // Initialize model configuration
 export async function initModelConfig() {
-    console.log('[ModelConfig] Initializing card-based model selector...');
 
     // Check what's available
     try {

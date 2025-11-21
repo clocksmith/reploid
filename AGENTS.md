@@ -12,7 +12,7 @@
 - `infrastructure/` - Core modules (VFS, EventBus, StateManager)
 - `agents/` - Agent logic and tool definitions
 - `ui/components/` - UI components
-- `ui/dashboard/` - Dashboard panels
+- `ui/proto/` - Proto panels
 - `examples/` - Example scripts
 - `tests/` - Test suites
 

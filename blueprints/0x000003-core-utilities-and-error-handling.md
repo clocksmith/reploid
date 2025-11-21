@@ -21,7 +21,7 @@ The `/upgrades/utils.js` module is structured as a standardized REPLOID module w
 
 1.  **Helper Functions:** A collection of simple, pure functions for common tasks (e.g., `trunc`, `escapeHtml`, `kabobToCamel`, `sanitizeLlmJsonRespPure`).
 2.  **`Errors` Object:** A container for custom error classes that inherit from the base `Error` object. This allows the system to `throw new Errors.ApiError(...)` or `throw new Errors.ToolError(...)`, enabling specific `catch` blocks and more intelligent failure response logic throughout the application.
-3.  **Web Component Widget:** A `UtilsWidget` custom element that provides dashboard visualization of utility usage, logger statistics, and error tracking.
+3.  **Web Component Widget:** A `UtilsWidget` custom element that provides proto visualization of utility usage, logger statistics, and error tracking.
 
 **Module Structure:**
 ```javascript
@@ -131,7 +131,7 @@ export default Utils;
 - **Dependency-free:** No external dependencies required
 - **Error Tracking:** Automatically tracks error creation by type
 - **Logger Statistics:** Counts log calls by level (debug/info/warn/error)
-- **Web Component Dashboard:** Real-time visualization of utility usage
+- **Web Component Proto:** Real-time visualization of utility usage
 - **Shadow DOM:** Encapsulated styling for the widget
 
 ### 3. The Implementation Pathway

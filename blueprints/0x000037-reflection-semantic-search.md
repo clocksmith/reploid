@@ -6,7 +6,7 @@
 
 **Prerequisites:** 0x00003B (Reflection Store Architecture), 0x000003 (Core Utilities & Error Handling), 0x00001B (Code Introspection & Self-Analysis)
 
-**Affected Artifacts:** `/upgrades/reflection-search.js`, `/upgrades/reflection-store.js`, `/styles/dashboard.css`
+**Affected Artifacts:** `/upgrades/reflection-search.js`, `/upgrades/reflection-store.js`, `/styles/proto.css`
 
 ---
 
@@ -124,7 +124,7 @@ const widget = {
 
 **Widget Features:**
 - **Closure Access**: Widget class accesses module state (`tfidfIndex`, `_searchCount`, `_recentSearches`) directly via closure.
-- **Status Reporting**: `getStatus()` provides index health for dashboard integration.
+- **Status Reporting**: `getStatus()` provides index health for proto integration.
 - **Index Monitoring**: Shows indexed reflection count, vocabulary size, index age, staleness warnings.
 - **Search History**: Displays recent searches with result counts and timestamps.
 - **Interactive Controls**: Buttons to manually rebuild or clear the index.

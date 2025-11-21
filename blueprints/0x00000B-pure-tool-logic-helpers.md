@@ -28,7 +28,7 @@ Because this function is pure (its output depends only on its input tool definit
 
 **Widget Interface (Web Component):**
 
-The module exposes a `ToolRunnerPureHelpersWidget` custom element for dashboard visualization:
+The module exposes a `ToolRunnerPureHelpersWidget` custom element for proto visualization:
 
 ```javascript
 class ToolRunnerPureHelpersWidget extends HTMLElement {
@@ -81,7 +81,7 @@ customElements.define('tool-runner-pure-helpers-widget', ToolRunnerPureHelpersWi
 - **Static Display**: No auto-refresh needed since pure functions never change state
 - **Information Panels**: Explains benefits of pure helpers (testability, predictability, no dependencies)
 
-Since this is a pure module with no internal state, the widget serves as static documentation rather than a live dashboard. It always displays status as 'idle' and requires no lifecycle management beyond initial rendering.
+Since this is a pure module with no internal state, the widget serves as static documentation rather than a live proto. It always displays status as 'idle' and requires no lifecycle management beyond initial rendering.
 
 ### 3. The Implementation Pathway
 

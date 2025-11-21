@@ -268,7 +268,7 @@ const widget = {
 **Phase 4: Observability (Future)**
 1. [ ] Track which personas are most effective for which tasks
 2. [ ] Auto-suggest persona switches based on task type
-3. [ ] Persona usage analytics dashboard
+3. [ ] Persona usage analytics proto
 
 ---
 

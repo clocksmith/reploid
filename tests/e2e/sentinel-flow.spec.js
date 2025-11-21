@@ -1,8 +1,8 @@
-// E2E Test: Sentinel Agent Flow - Full workflow from boot to dashboard
+// E2E Test: Sentinel Agent Flow - Full workflow from boot to proto
 import { test, expect } from '@playwright/test';
 
 test.describe('Sentinel Agent Flow', () => {
-  test('should transition from boot to dashboard after awakening', async ({ page }) => {
+  test('should transition from boot to proto after awakening', async ({ page }) => {
     await page.goto('/');
     await page.waitForSelector('#boot-container', { timeout: 10000 });
 

@@ -6,7 +6,7 @@
 
 **Prerequisites:** 0x000027 (Multi-Provider API Gateway), 0x000032 (Rate Limiting Strategies), 0x00002C (Performance Monitoring Stack)
 
-**Affected Artifacts:** `/upgrades/cost-tracker.js`, `/upgrades/api-client-multi.js`, `/styles/dashboard.css`
+**Affected Artifacts:** `/upgrades/cost-tracker.js`, `/upgrades/api-client-multi.js`, `/styles/proto.css`
 
 ---
 
@@ -157,7 +157,7 @@ const widget = {
    - Call `checkRateLimit()` before issuing requests; if false, delay or queue.
    - Use `RateLimiter` (0x000032) for fine-grained control; cost tracker handles per-provider quotas.
 4. **Analytics Display**
-   - Feed data to metrics dashboard (cost over time chart, provider pie chart).
+   - Feed data to metrics proto (cost over time chart, provider pie chart).
    - Provide quick summary in status bar (e.g., `$0.12 today`).
 5. **Data Hygiene**
    - Consider pruning old `apiCalls` to avoid unbounded growth (e.g., keep last 30 days).

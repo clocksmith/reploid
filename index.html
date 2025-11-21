@@ -7,7 +7,7 @@
     <title>REPLOID - AI Assistant</title>
     <link rel="stylesheet" href="styles/theme.css">
     <link rel="stylesheet" href="styles/boot.css">
-    <link rel="stylesheet" href="styles/dashboard.css">
+    <link rel="stylesheet" href="styles/proto.css">
 
     <!-- Load WebLLM and expose to window for llm-client.js -->
     <script type="module">
@@ -67,7 +67,7 @@
         </div>
 
         <!-- Provider Status (Read-Only) -->
-        <div class="provider-status-bar" style="width: 100%;">
+        <div class="provider-status-bar">
             <div class="provider-status-item">
                 <span class="provider-status-icon online" id="browser-cloud-icon">☁</span>
                 <span class="provider-status-label">Browser → Cloud</span>
@@ -166,11 +166,13 @@
             </div>
             <!-- Example Goal Chips -->
             <div class="goal-example-chips">
-                <button class="goal-chip" onclick="document.getElementById('goal-input').value='Build a tool that iteratively improves prompts by identifying weaknesses and fixing them'">Prompt Improvement</button>
-                <button class="goal-chip" onclick="document.getElementById('goal-input').value='Write a function that improves itself'">Self-Improvement</button>
-                <button class="goal-chip" onclick="document.getElementById('goal-input').value='Create a meta-cognitive evaluator that scores reasoning quality and adjusts strategies'">Meta-Cognitive</button>
-                <button class="goal-chip" onclick="document.getElementById('goal-input').value='Break down goals into subgoals, then improve the decomposition algorithm itself'">Goal Decomposition</button>
-                <button class="goal-chip" onclick="document.getElementById('goal-input').value='Create tools that create tools'">Meta-Tools</button>
+                <button class="goal-chip" onclick="document.getElementById('goal-input').value='Audit /core and /capabilities to summarize your mission, then iteratively refactor blockers for recursive self-improvement.'">RSI Genesis</button>
+                <button class="goal-chip" onclick="document.getElementById('goal-input').value='Profile your architecture, list bottlenecks, and patch them for faster cycles and sharper reasoning.'">Loop Optimization</button>
+                <button class="goal-chip" onclick="document.getElementById('goal-input').value='Recursively improve yourself'">Recursive Spark</button>
+                <button class="goal-chip" onclick="document.getElementById('goal-input').value='Iteratively red-team your own prompts: critique each draft, rewrite it, and verify improvements until quality stabilizes.'">Prompt Improvement</button>
+                <button class="goal-chip" onclick="document.getElementById('goal-input').value='Create a reasoning critic that scores each action 0-1, logs failure patterns, and adjusts strategy accordingly.'">Reasoning Critic</button>
+                <button class="goal-chip" onclick="document.getElementById('goal-input').value='Create tools that create tools that create tools'">Meta Tools Creator</button>
+                <button class="goal-chip" onclick="document.getElementById('goal-input').value='Run a recursive criticism loop: produce output, critique it as an expert reviewer, revise the plan, and repeat until no weaknesses remain.'">RCI Loop</button>
             </div>
         </div>
 
@@ -178,15 +180,15 @@
         <div class="config-section">
             <h4 class="model-cards-title">Genesis Level</h4>
             <div class="boot-mode-options">
-                <button class="boot-mode-btn selected recommended" data-genesis="full" onclick="selectGenesisLevel('full')">
-                    <div class="boot-mode-badge">RECOMMENDED</div>
-                    <div class="boot-mode-label">FULL SUBSTRATE</div>
-                    <div class="boot-mode-desc">All modules + reflection, monitoring, and self-testing</div>
-                </button>
                 <button class="boot-mode-btn" data-genesis="minimal" onclick="selectGenesisLevel('minimal')">
                     <div class="boot-mode-badge experimental-badge">EXPERIMENTAL</div>
                     <div class="boot-mode-label">MINIMAL AXIOMS</div>
                     <div class="boot-mode-desc">Core modules + reflection - no monitoring or testing</div>
+                </button>
+                <button class="boot-mode-btn selected recommended" data-genesis="full" onclick="selectGenesisLevel('full')">
+                    <div class="boot-mode-badge">RECOMMENDED</div>
+                    <div class="boot-mode-label">FULL SUBSTRATE</div>
+                    <div class="boot-mode-desc">All modules + reflection, monitoring, and self-testing</div>
                 </button>
                 <button class="boot-mode-btn" data-genesis="tabula" onclick="selectGenesisLevel('tabula')">
                     <div class="boot-mode-badge experimental-badge">EXPERIMENTAL</div>
@@ -283,422 +285,6 @@
 
     </div>
 
-    <!-- Agent Monitor (shown after awakening) - Mission Control Layout -->
-    <div id="agent-container" style="display: none; flex-direction: column; height: 100vh; background: #0a0a0a; color: #e0e0e0; font-family: 'Courier New', monospace;">
-        <!-- Header -->
-        <div class="mission-control-header" style="padding: 12px 20px; border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center;">
-            <div style="display: flex; align-items: center; gap: 20px;">
-                <h2 style="margin: 0; font-size: 18px; color: #0ff;">REPLOID Mission Control</h2>
-                <div id="context-stats" style="font-size: 11px; color: #888; font-family: monospace;">
-                    <span id="context-messages">0 msgs</span> |
-                    <span id="context-tokens">0 tokens</span>
-                </div>
-                <!-- Current Goal Display -->
-                <div id="current-goal-display" style="font-size: 12px; color: #ffd700; max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"></div>
-            </div>
-            <div style="display: flex; gap: 8px; align-items: center;">
-                <!-- Panel Toggle -->
-                <button id="log-toggle-btn" class="holo-btn" style="padding: 6px 12px; font-size: 11px;">
-                    <span class="btn-text">Show: VISUALIZER</span>
-                </button>
-                <button id="pause-btn" class="holo-btn holo-btn-pause">
-                    <span class="btn-icon">⏸</span>
-                    <span class="btn-text">Pause</span>
-                </button>
-                <button id="stop-btn" class="holo-btn holo-btn-stop">
-                    <span class="btn-icon">⏹</span>
-                    <span class="btn-text">Stop</span>
-                </button>
-                <button id="export-btn" class="holo-btn holo-btn-export" title="Export entire REPLOID state">
-                    <span class="btn-icon">⬇</span>
-                    <span class="btn-text">Export</span>
-                </button>
-            </div>
-        </div>
-
-        <!-- Safety Net Banner (shown during proposal approval) -->
-        <div id="safety-net-banner" class="safety-net-banner hidden" style="padding: 10px 20px; background: linear-gradient(90deg, rgba(0,255,0,0.1), rgba(0,255,255,0.1)); border-bottom: 1px solid #0f0; display: flex; align-items: center; gap: 12px;">
-            <span style="font-size: 18px;">☨</span>
-            <span style="color: #0f0; font-size: 13px; font-weight: 600;">Safety Net Active</span>
-            <span style="color: #888; font-size: 12px;">A restore point has been created. You can undo these changes with one click.</span>
-        </div>
-
-        <!-- Main Content Area -->
-        <div style="display: flex; flex: 1; overflow: hidden;">
-            <!-- Left: Agent Visualizer + Log (60%) -->
-            <div style="flex: 0 0 60%; border-right: 1px solid #333; display: flex; flex-direction: column;">
-                <!-- Agent Visualizer (Primary View - Mission Control) -->
-                <div id="agent-visualizer-container" class="advanced-panel" style="flex: 0 0 200px; border-bottom: 1px solid #333; padding: 10px; background: #0a0a0a;">
-                    <div style="text-align: center; color: #555; padding: 40px;">
-                        Agent FSM Visualizer loads here
-                    </div>
-                </div>
-
-                <!-- Agent Log (Collapsible) -->
-                <div id="agent-log" style="flex: 1; overflow-y: auto; padding: 15px; padding-bottom: 40px;">
-                    <!-- Status messages will be added here dynamically -->
-                </div>
-            </div>
-
-            <!-- Right: Live Preview + Panels (40%) -->
-            <div style="flex: 1; display: flex; flex-direction: column; overflow: hidden;">
-                <!-- Live Preview -->
-                <div id="live-preview" style="flex: 1; overflow-y: auto; padding: 15px; background: #0f0f0f;">
-                    <h3 style="margin: 0 0 10px 0; color: #888; font-size: 14px; border-bottom: 1px solid #333; padding-bottom: 8px;">Live Preview</h3>
-                    <div id="preview-content" style="color: #888; font-size: 13px;">
-                        <p>Visualizations and code changes appear here.</p>
-                    </div>
-                </div>
-
-                <!-- Advanced Panels (Hidden by default) -->
-                <div id="thought-panel" class="advanced-panel hidden" style="flex: 0 0 200px; padding: 10px; border-top: 1px solid #333; overflow-y: auto;">
-                    <h4 style="margin: 0 0 8px 0; color: #888; font-size: 12px;">Thought Log</h4>
-                    <div id="thought-content" style="font-size: 11px; color: #666;"></div>
-                </div>
-
-                <div id="performance-panel" class="advanced-panel hidden" style="flex: 0 0 200px; padding: 10px; border-top: 1px solid #333; overflow-y: auto;">
-                    <h4 style="margin: 0 0 8px 0; color: #888; font-size: 12px;">Performance Metrics</h4>
-                    <div id="perf-charts"></div>
-                </div>
-
-                <div id="introspection-panel" class="advanced-panel hidden" style="flex: 0 0 200px; padding: 10px; border-top: 1px solid #333; overflow-y: auto;">
-                    <h4 style="margin: 0 0 8px 0; color: #888; font-size: 12px;">Introspection</h4>
-                    <div id="introspection-content"></div>
-                </div>
-
-                <div id="python-repl-panel" class="advanced-panel hidden" style="flex: 0 0 250px; padding: 10px; border-top: 1px solid #333; overflow-y: auto;">
-                    <h4 style="margin: 0 0 8px 0; color: #888; font-size: 12px;">Python REPL</h4>
-                    <div id="pyodide-status-icon" style="display: inline;">⚪</div>
-                    <span id="pyodide-status-text" style="font-size: 11px; color: #666;">Not loaded</span>
-                    <textarea id="python-code-input" style="width: 100%; height: 80px; margin-top: 8px; background: #1a1a1a; color: #0f0; border: 1px solid #333; font-family: monospace; font-size: 11px; padding: 8px;" placeholder="# Python code here..."></textarea>
-                    <div style="margin-top: 8px;">
-                        <button id="python-execute-btn" style="padding: 4px 8px; font-size: 10px;">☇ Run</button>
-                        <button id="repl-clear-btn" style="padding: 4px 8px; font-size: 10px;">Clear</button>
-                        <label style="font-size: 10px; margin-left: 8px;">
-                            <input type="checkbox" id="python-sync-workspace-check"> Sync VFS
-                        </label>
-                    </div>
-                    <div id="python-output" style="margin-top: 8px; max-height: 100px; overflow-y: auto; font-size: 10px; color: #888;"></div>
-                </div>
-
-                <div id="local-llm-panel" class="advanced-panel hidden" style="flex: 0 0 200px; padding: 10px; border-top: 1px solid #333; overflow-y: auto;">
-                    <h4 style="margin: 0 0 8px 0; color: #888; font-size: 12px;">Local LLM</h4>
-                    <div id="llm-status-icon" style="display: inline;">⚪</div>
-                    <span id="llm-status-text" style="font-size: 11px; color: #666;">Not loaded</span>
-                    <div id="llm-webgpu-status" style="font-size: 10px; margin-top: 4px;"></div>
-                    <div id="llm-current-model" style="font-size: 10px; color: #0ff; margin-top: 4px;"></div>
-                    <div style="margin-top: 8px;">
-                        <select id="llm-model-select" style="font-size: 10px; padding: 4px;">
-                            <option value="">Select model...</option>
-                            <option value="Phi-3.5-mini-instruct-q4f16_1-MLC">Phi-3.5 Mini (2GB)</option>
-                            <option value="Llama-3.2-1B-Instruct-q4f16_1-MLC">Llama 3.2 1B (1GB)</option>
-                        </select>
-                        <button id="llm-load-btn" style="padding: 4px 8px; font-size: 10px;">Load</button>
-                    </div>
-                    <div id="llm-progress-bar" style="margin-top: 8px; height: 4px; background: #333; border-radius: 2px;">
-                        <div id="llm-progress-fill" style="height: 100%; width: 0%; background: #0ff; border-radius: 2px; transition: width 0.3s;"></div>
-                    </div>
-                    <div id="llm-progress-text" style="font-size: 9px; color: #666; margin-top: 2px;"></div>
-                </div>
-
-                <!-- VFS Tree Panel (Advanced) -->
-                <div id="vfs-tree-advanced" class="advanced-panel hidden" style="flex: 0 0 200px; padding: 10px; border-top: 1px solid #333; overflow-y: auto;">
-                    <h4 style="margin: 0 0 8px 0; color: #888; font-size: 12px;">VFS Explorer</h4>
-                </div>
-
-                <!-- AST Visualizer -->
-                <div id="ast-viz-container" class="advanced-panel hidden" style="flex: 0 0 200px; padding: 10px; border-top: 1px solid #333; overflow-y: auto;">
-                    <h4 style="margin: 0 0 8px 0; color: #888; font-size: 12px;">AST Visualizer</h4>
-                </div>
-            </div>
-        </div>
-
-        <!-- Diff Viewer Container (for proposal approval) -->
-        <div id="diff-viewer-container" style="display: none;"></div>
-
-        <div id="chat-input-area" style="padding: 15px 20px; border-top: 1px solid #333; display: none;">
-            <input type="text" placeholder="Enter follow-up goal..." style="width: 100%; padding: 10px; background: #1a1a1a; color: #fff; border: 1px solid #555; font-family: inherit; font-size: 13px;" />
-        </div>
-    </div>
-
-    <style>
-        /* Mission Control CSS */
-        .hidden {
-            display: none !important;
-        }
-
-        .advanced-panel {
-            transition: all 0.3s ease;
-        }
-
-        .safety-net-banner {
-            animation: pulse-glow 2s ease-in-out infinite;
-        }
-
-        @keyframes pulse-glow {
-            0%, 100% { box-shadow: 0 0 5px rgba(0, 255, 0, 0.3); }
-            50% { box-shadow: 0 0 15px rgba(0, 255, 0, 0.6); }
-        }
-
-        /* REPL output styles */
-        .repl-result {
-            padding: 8px;
-            margin-bottom: 8px;
-            border-radius: 4px;
-            font-family: monospace;
-        }
-
-        .repl-result-success {
-            background: rgba(0, 255, 0, 0.1);
-            border-left: 2px solid #0f0;
-        }
-
-        .repl-result-error {
-            background: rgba(255, 0, 0, 0.1);
-            border-left: 2px solid #f00;
-        }
-
-        .repl-stdout { color: #0f0; }
-        .repl-stderr { color: #f80; }
-        .repl-error { color: #f00; }
-        .repl-return-value { color: #0ff; }
-        .repl-result-header { color: #666; font-size: 9px; margin-bottom: 4px; }
-
-        .chat-message {
-            margin-bottom: 15px;
-            padding: 10px;
-            border-left: 3px solid #555;
-            background: #1a1a1a;
-            border-radius: 4px;
-        }
-        .chat-message.agent {
-            border-left-color: #f0f;  /* Magenta for [SYSTEM] messages */
-        }
-        .chat-message.assistant {
-            border-left-color: #0ff;  /* Cyan for [REPLOID] messages */
-        }
-        .chat-message.tool {
-            border-left-color: #ff0;
-        }
-        .chat-message.tool_result {
-            border-left-color: #0a0;
-        }
-        .chat-message.tool_error {
-            border-left-color: #f00;
-        }
-        .chat-message.thinking {
-            border-left-color: #888;
-            opacity: 0.7;
-        }
-        .chat-message.streaming_stats {
-            border-left-color: #0af;
-            background: #0a1a1f;
-            font-family: monospace;
-            font-size: 11px;
-            opacity: 0.8;
-        }
-        .chat-message.streaming_content {
-            border-left-color: #0f0;
-            background: #0a1a0a;
-        }
-        .chat-message.done {
-            border-left-color: #0f0;
-            font-weight: bold;
-        }
-        .chat-message.error {
-            border-left-color: #f00;
-            background: #2a0000;
-        }
-        .chat-message.context_injected {
-            border-left-color: #88f;
-            background: #1a1a2a;
-        }
-        .chat-message.context {
-            border-left-color: #fa0;
-            background: #1a1a0a;
-        }
-        .chat-message.preview {
-            border-left-color: #0af;
-            background: #0a1a1a;
-        }
-        .chat-message.diff {
-            border-left-color: #f0a;
-            background: #1a0a1a;
-        }
-        .chat-message.approval {
-            border-left-color: #ff0;
-            background: #1a1a00;
-        }
-        .message-icon {
-            font-weight: bold;
-            margin-bottom: 5px;
-            font-size: 12px;
-            color: #888;
-        }
-        .message-content {
-            white-space: pre-wrap;
-            word-wrap: break-word;
-            max-height: 600px;
-            overflow-y: auto;
-            overflow-x: hidden;
-            padding-right: 8px;
-            line-height: 1.5;
-            transition: max-height 0.3s ease;
-        }
-        .message-content.collapsed {
-            max-height: 60px;
-            overflow: hidden;
-            position: relative;
-        }
-        .message-content.collapsed::after {
-            content: '▼ click to expand';
-            position: absolute;
-            bottom: 0;
-            right: 0;
-            background: linear-gradient(to right, transparent, #1a1a1a 50%);
-            padding: 0 8px 0 30px;
-            color: #666;
-            font-size: 11px;
-            font-style: italic;
-        }
-        .message-content.collapsed:hover::after {
-            color: #0ff;
-        }
-
-        /* Holographic Button Styles */
-        .holo-btn {
-            position: relative;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 10px 18px;
-            font-family: 'Courier New', monospace;
-            font-size: 13px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            border: 1px solid;
-            border-radius: 3px;
-            background: rgba(0, 0, 0, 0.5);
-            cursor: pointer;
-            transition: all 0.3s ease;
-            overflow: hidden;
-        }
-
-        .holo-btn::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-            transition: left 0.5s ease;
-        }
-
-        .holo-btn:hover::before {
-            left: 100%;
-        }
-
-        .holo-btn .btn-icon {
-            font-size: 16px;
-            line-height: 1;
-        }
-
-        .holo-btn .btn-text {
-            position: relative;
-            z-index: 1;
-        }
-
-        /* Pause Button - Cyan/Blue theme */
-        .holo-btn-pause {
-            color: #0ff;
-            border-color: #0ff;
-            box-shadow: 0 0 10px rgba(0, 255, 255, 0.3), inset 0 0 10px rgba(0, 255, 255, 0.1);
-        }
-
-        .holo-btn-pause:hover {
-            background: rgba(0, 255, 255, 0.15);
-            box-shadow: 0 0 20px rgba(0, 255, 255, 0.6), inset 0 0 15px rgba(0, 255, 255, 0.2);
-            transform: translateY(-1px);
-        }
-
-        .holo-btn-pause:active {
-            transform: translateY(0);
-            box-shadow: 0 0 10px rgba(0, 255, 255, 0.4), inset 0 0 10px rgba(0, 255, 255, 0.15);
-        }
-
-        /* Resume state for pause button */
-        .holo-btn-pause.resume-state {
-            color: #0f0;
-            border-color: #0f0;
-            box-shadow: 0 0 10px rgba(0, 255, 0, 0.3), inset 0 0 10px rgba(0, 255, 0, 0.1);
-        }
-
-        .holo-btn-pause.resume-state:hover {
-            background: rgba(0, 255, 0, 0.15);
-            box-shadow: 0 0 20px rgba(0, 255, 0, 0.6), inset 0 0 15px rgba(0, 255, 0, 0.2);
-        }
-
-        /* Stop Button - Red/Pink theme */
-        .holo-btn-stop {
-            color: #f0f;
-            border-color: #f0f;
-            box-shadow: 0 0 10px rgba(255, 0, 255, 0.3), inset 0 0 10px rgba(255, 0, 255, 0.1);
-        }
-
-        .holo-btn-stop:hover {
-            background: rgba(255, 0, 255, 0.15);
-            box-shadow: 0 0 20px rgba(255, 0, 255, 0.6), inset 0 0 15px rgba(255, 0, 255, 0.2);
-            transform: translateY(-1px);
-        }
-
-        .holo-btn-stop:active {
-            transform: translateY(0);
-            box-shadow: 0 0 10px rgba(255, 0, 255, 0.4), inset 0 0 10px rgba(255, 0, 255, 0.15);
-        }
-
-        /* Export Button - Green theme */
-        .holo-btn-export {
-            color: #0f0;
-            border-color: #0f0;
-            box-shadow: 0 0 10px rgba(0, 255, 0, 0.3), inset 0 0 10px rgba(0, 255, 0, 0.1);
-        }
-
-        .holo-btn-export:hover {
-            background: rgba(0, 255, 0, 0.15);
-            box-shadow: 0 0 20px rgba(0, 255, 0, 0.6), inset 0 0 15px rgba(0, 255, 0, 0.2);
-            transform: translateY(-1px);
-        }
-
-        .holo-btn-export:active {
-            transform: translateY(0);
-            box-shadow: 0 0 10px rgba(0, 255, 0, 0.4), inset 0 0 10px rgba(0, 255, 0, 0.15);
-        }
-
-        /* Custom scrollbar for message content */
-        .message-content::-webkit-scrollbar {
-            width: 8px;
-        }
-        .message-content::-webkit-scrollbar-track {
-            background: #0a0a0a;
-            border-radius: 4px;
-        }
-        .message-content::-webkit-scrollbar-thumb {
-            background: #333;
-            border-radius: 4px;
-        }
-        .message-content::-webkit-scrollbar-thumb:hover {
-            background: #555;
-        }
-        /* Ensure chat messages container is scrollable */
-        #chat-messages {
-            scroll-behavior: smooth;
-        }
-    </style>
-
-    <div id="app-root" style="display: none;"></div>
-
     <script>
         // Boot mode selection
         let selectedBootMode = 'single'; // Default
@@ -731,9 +317,6 @@
         });
     </script>
 
-    <script src="https://unpkg.com/@isomorphic-git/lightning-fs"></script>
-    <script src="https://unpkg.com/isomorphic-git"></script>
-    <script type="module" src="https://unpkg.com/isomorphic-git/http/web/index.js"></script>
     <!-- App container for dashboard -->
     <div id="app"></div>
     <!-- Dev integrations loaded conditionally via boot.js -->

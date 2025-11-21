@@ -562,7 +562,7 @@ A successful recursive goal decomposition system demonstrates:
 
 ---
 
-## 8. Dashboard Widget
+## 8. Proto Widget
 
 ```javascript
 class GoalDecompositionWidget extends HTMLElement {

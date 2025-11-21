@@ -428,7 +428,7 @@ A working meta-cognitive evaluator demonstrates:
 
 ---
 
-## 9. Dashboard Widget
+## 9. Proto Widget
 
 ```javascript
 class MetaCognitiveWidget extends HTMLElement {

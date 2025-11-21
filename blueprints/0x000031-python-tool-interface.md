@@ -40,7 +40,7 @@ Utility functions:
 
 **Widget Interface (Web Component):**
 
-The module exposes a `PythonToolWidget` custom element for dashboard visualization:
+The module exposes a `PythonToolWidget` custom element for proto visualization:
 
 ```javascript
 class PythonToolWidget extends HTMLElement {

@@ -1,6 +1,6 @@
 # Blueprint 0x000057: Penteract Multi-Agent Analytics Visualizer
 
-**Objective:** Provide real-time visualization of Penteract consensus test results with agent performance analytics and metrics dashboard.
+**Objective:** Provide real-time visualization of Penteract consensus test results with agent performance analytics and metrics proto.
 
 **Target Upgrade:** PenteractVisualizer (`penteract-visualizer.js`)
 
@@ -18,7 +18,7 @@ Multi-agent consensus testing (Penteract / H5 deliberation) requires comprehensi
 - **Agent Performance**: Individual agent metrics (tokens, execution time, status)
 - **Pass Rate Analysis**: Aggregate statistics across all participating agents
 - **Event-Driven Updates**: Automatic refresh when new analytics data arrives
-- **Dashboard Integration**: Embeddable widget for the module dashboard
+- **Proto Integration**: Embeddable widget for the module proto
 - **Historical Context**: Timestamp tracking for consensus run history
 
 The Penteract Visualizer provides a visual scaffold for monitoring multi-agent deliberation results, helping developers understand consensus behavior and agent performance.
@@ -251,7 +251,7 @@ customElements.define('penteract-visualizer-widget', PenteractVisualizerWidget);
 1. **Event Subscription**: Listen for `paxos:analytics:processed` events
 2. **Data Storage**: Maintain `latestSnapshot` for current consensus run
 3. **Standalone Rendering**: Render full analytics panel in designated container
-4. **Widget Rendering**: Provide compact widget view for dashboard
+4. **Widget Rendering**: Provide compact widget view for proto
 5. **Style Management**: Inject CSS styles for panel and table formatting
 6. **Metric Calculation**: Display pass rate, agent count, execution times
 7. **Refresh API**: Manual refresh from PenteractAnalytics store
@@ -389,7 +389,7 @@ class PenteractVisualizerWidget extends HTMLElement {
 }
 ```
 
-#### Step 5: Metrics Dashboard
+#### Step 5: Metrics Proto
 
 ```javascript
 const renderMetrics = (snapshot) => {

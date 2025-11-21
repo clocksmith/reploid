@@ -6,7 +6,7 @@
 
 **Prerequisites:** 0x000005 (State Management Architecture), 0x000028 (Confirmation Modal & Safety Interlocks), 0x000031 (Toast Notification System)
 
-**Affected Artifacts:** `/upgrades/browser-apis.js`, `/styles/dashboard.css`, `/upgrades/state-manager.js`, `/upgrades/event-bus.js`
+**Affected Artifacts:** `/upgrades/browser-apis.js`, `/styles/proto.css`, `/upgrades/state-manager.js`, `/upgrades/event-bus.js`
 
 ---
 
@@ -54,7 +54,7 @@ Key features:
 
 **Widget Interface (Web Component):**
 
-The module exposes a `BrowserAPIsWidget` custom element for dashboard visualization:
+The module exposes a `BrowserAPIsWidget` custom element for proto visualization:
 
 ```javascript
 class BrowserAPIsWidget extends HTMLElement {
@@ -123,7 +123,7 @@ customElements.define('browser-apis-widget', BrowserAPIsWidget);
 - **Interactive Controls**: Buttons to request permissions, check storage, generate capability reports
 - **Real-time Activity**: Highlights recent operations (< 1 minute) and updates state from 'idle' to 'active'
 
-The widget provides a complete dashboard for monitoring browser API availability and usage without requiring external UI code.
+The widget provides a complete proto for monitoring browser API availability and usage without requiring external UI code.
 
 ### 3. Implementation Pathway
 1. **Permissions UX**
@@ -139,7 +139,7 @@ The widget provides a complete dashboard for monitoring browser API availability
    - Sync pipeline triggers `syncArtifactToFilesystem` after apply operations when user opted in.
    - Notifications for long-running tasks or consensus results.
    - Clipboard shortcuts for copying diffs or prompts.
-   - Storage estimates surfaced in metrics dashboard to warn about quota exhaustion.
+   - Storage estimates surfaced in metrics proto to warn about quota exhaustion.
 5. **Extensibility**
    - Add Wake Lock management to prevent sleep during long sessions.
    - Integrate Web Share for quick blueprint sharing with teammates.

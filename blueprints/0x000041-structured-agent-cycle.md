@@ -86,7 +86,7 @@ Why this formula?
 
 **6. Widget Interface (Web Component)**
 
-The module exposes a `AgentCycleStructuredWidget` custom element for dashboard visualization:
+The module exposes a `AgentCycleStructuredWidget` custom element for proto visualization:
 
 ```javascript
 class AgentCycleStructuredWidget extends HTMLElement {

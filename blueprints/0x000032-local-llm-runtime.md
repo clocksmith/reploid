@@ -6,7 +6,7 @@
 
 **Prerequisites:** 0x000027 (Multi-Provider API Gateway), 0x00002C (Performance Monitoring Stack), WebLLM CDN import
 
-**Affected Artifacts:** `/upgrades/local-llm.js`, `/index.html` (WebLLM script tag), `/styles/dashboard.css`, `/upgrades/hybrid-llm-provider.js`
+**Affected Artifacts:** `/upgrades/local-llm.js`, `/index.html` (WebLLM script tag), `/styles/proto.css`, `/upgrades/hybrid-llm-provider.js`
 
 ---
 
@@ -49,7 +49,7 @@ Key responsibilities:
 
 **Widget Interface (Web Component):**
 
-The module exposes a `LocalLLMWidget` custom element for dashboard visualization:
+The module exposes a `LocalLLMWidget` custom element for proto visualization:
 
 ```javascript
 class LocalLLMWidget extends HTMLElement {
@@ -182,9 +182,9 @@ customElements.define('local-llm-widget', LocalLLMWidget);
 - **Model Status Indicator**: Visual badges showing Ready/Loading/Not Loaded states with color coding
 - **Loading Progress Bar**: Real-time progress visualization during model download (0-100%)
 - **GPU Memory Monitor**: Bar chart showing GPU memory usage percentage for active models
-- **Inference Statistics Dashboard**: Displays total inferences, tokens generated, avg tokens/sec, and avg response time
+- **Inference Statistics Proto**: Displays total inferences, tokens generated, avg tokens/sec, and avg response time
 - **Model Switcher**: List of available models (Qwen, Phi, Llama, Gemma) with one-click load buttons
-- **Interactive Controls**: Load/Unload buttons exposed via `getControls()` for dashboard integration
+- **Interactive Controls**: Load/Unload buttons exposed via `getControls()` for proto integration
 - **Error Handling**: Displays initialization errors with descriptive messages (e.g., WebGPU not supported)
 
 The widget provides complete runtime visibility and control for local LLM operations, essential for monitoring GPU resource usage and model performance.

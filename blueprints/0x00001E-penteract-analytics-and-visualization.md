@@ -1,6 +1,6 @@
 # Blueprint 0x000024: Penteract Analytics & Visualization
 
-**Objective:** Transform Arena and Penteract competition telemetry into a real-time, human-auditable dashboard that guides approval decisions and future persona tuning.
+**Objective:** Transform Arena and Penteract competition telemetry into a real-time, human-auditable proto that guides approval decisions and future persona tuning.
 
 **Target Upgrade:** PAXA (`penteract-analytics.js`)
 
@@ -52,7 +52,7 @@ class PenteractAnalyticsWidget extends HTMLElement {
   }
 
   render() {
-    // Shadow DOM with analytics dashboard
+    // Shadow DOM with analytics proto
     this.shadowRoot.innerHTML = `<style>...</style><div>...</div>`;
   }
 }
@@ -67,7 +67,7 @@ Data flow:
 - Arena snapshots persist to `arena-analytics.json` for historical insights.
 - **Widget Protocol**
   - Exports `widget` metadata: `{ element, displayName, icon, category, order }`.
-  - Provides `getStatus()` with 5 required fields for dashboard integration.
+  - Provides `getStatus()` with 5 required fields for proto integration.
   - Auto-updates when new analytics are processed.
 
 ### 3. The Implementation Pathway
@@ -78,7 +78,7 @@ Data flow:
 2. **Lifecycle: connectedCallback**
    - Call `attachShadow({ mode: 'open' })` in constructor.
    - Subscribe to `EventBus.on('arena:analytics:processed')` for real-time updates.
-   - Render Shadow DOM with analytics dashboard.
+   - Render Shadow DOM with analytics proto.
 3. **Lifecycle: disconnectedCallback**
    - Unsubscribe from EventBus listener to prevent memory leaks.
 4. **Module Initialization**

@@ -6,7 +6,7 @@
 
 **Prerequisites:** 0x000003 (Core Utilities & Error Handling), 0x00000D (UI Manager), 0x000028 (Confirmation Modal)
 
-**Affected Artifacts:** `/upgrades/toast-notifications.js`, `/styles/dashboard.css`, `/upgrades/app-logic.js`
+**Affected Artifacts:** `/upgrades/toast-notifications.js`, `/styles/proto.css`, `/upgrades/app-logic.js`
 
 ---
 
@@ -157,7 +157,7 @@ const widget = {
    - Gracefully degrade if DOM is unavailable (e.g., CLI mode); log via `logger`.
 5. **Integration with Analytics**
    - Track toast history and statistics using internal variables (`_toastHistory`, `_toastStats`, `_lastToastTime`)
-   - Widget provides monitoring dashboard for toast activity
+   - Widget provides monitoring proto for toast activity
 6. **Web Component Widget Implementation**
    - **Define Web Component class** extending HTMLElement inside factory function
    - **Add Shadow DOM** using `attachShadow({ mode: 'open' })` in constructor

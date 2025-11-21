@@ -128,7 +128,7 @@ Note: Many other UI components are located in the `upgrades/` directory:
 
 - **Sentinel Panel** (`upgrades/sentinel-panel-widget.ts`) - Agent status and control
 - **Diff Viewer** (`upgrades/diff-viewer-ui.js`) - Code change visualization
-- **Dashboard** (various files in `upgrades/`) - Main application dashboard
+- **Proto** (various files in `upgrades/`) - Main application proto
 
 See **[Upgrades README](../upgrades/README.md)** for complete list of UI-related upgrades.
 

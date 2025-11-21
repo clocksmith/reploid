@@ -245,7 +245,7 @@ The `WebRTCCoordinatorWidget` provides comprehensive swarm monitoring and contro
 - **Interactive Controls**: Initialize/Reinitialize button with loading state
 - **Auto-refresh**: Updates every 2 seconds to show real-time coordination activity
 - **Visual Feedback**: Color-coded status (cyan for active, purple for patterns, green for success)
-- **Dashboard Integration**: `getStatus()` provides summary metrics for main dashboard
+- **Proto Integration**: `getStatus()` provides summary metrics for main proto
 
 ### 3. Implementation Pathway
 
@@ -381,9 +381,9 @@ The `WebRTCCoordinatorWidget` provides comprehensive swarm monitoring and contro
 - Display warning toast if WebRTCSwarm dependency unavailable
 - Widget shows "Not initialized" state until init() called
 
-**Step 18: Dashboard Integration**
-- Widget automatically integrates with module dashboard system
-- Provides `getStatus()` for dashboard summary view
+**Step 18: Proto Integration**
+- Widget automatically integrates with module proto system
+- Provides `getStatus()` for proto summary view
 - Updates every 2 seconds via auto-refresh interval
 - Initialize button in widget allows manual initialization
 

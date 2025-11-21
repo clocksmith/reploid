@@ -26,7 +26,7 @@ The `/modules/agent-logic-pure.js` module will export a collection of pure funct
 
 **Widget Interface (Web Component):**
 
-The module exposes a `AgentLogicPureHelpersWidget` custom element for dashboard visualization:
+The module exposes a `AgentLogicPureHelpersWidget` custom element for proto visualization:
 
 ```javascript
 class AgentLogicPureHelpersWidget extends HTMLElement {

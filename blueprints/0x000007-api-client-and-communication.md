@@ -159,7 +159,7 @@ const ApiClient = {
 - **Abort Handling**
   - Uses AbortController to cancel in-flight requests
   - Aborts existing call when new request initiated
-  - User-triggered abort via dashboard widget
+  - User-triggered abort via proto widget
   - Proper cleanup and error propagation
 
 - **Response Processing**
@@ -178,7 +178,7 @@ const ApiClient = {
 **Web Component Widget Features:**
 
 The `ApiClientWidget` provides real-time API monitoring and control:
-- **Statistics Dashboard**: 2×2 grid showing total requests, success count, errors, and success rate
+- **Statistics Proto**: 2×2 grid showing total requests, success count, errors, and success rate
 - **Connection Info**: Displays connection type (Proxy/Direct), active call status, total tokens used, last call time
 - **Recent API Calls**: Scrollable list of last 10 calls with timestamps, status (✓/✗), duration, and error messages
 - **Rate Limit Indicator**: Shows when rate limiting is active
@@ -447,7 +447,7 @@ class ApiClientWidget extends HTMLElement {
         label: 'Abort',
         icon: '☒',
         action: () => {
-          abortCurrentCall('User requested abort from dashboard');
+          abortCurrentCall('User requested abort from proto');
           const ToastNotifications = window.DIContainer?.resolve('ToastNotifications');
           ToastNotifications?.show('API call aborted', 'info');
         }
@@ -517,8 +517,8 @@ class ApiClientWidget extends HTMLElement {
    - Awaits `callApiWithRetry` for LLM responses
    - Uses `abortCurrentCall` when user cancels
 
-2. **Dashboard Integration**:
-   - Widget automatically integrates with module dashboard
+2. **Proto Integration**:
+   - Widget automatically integrates with module proto
    - Provides `getStatus()` for summary view
    - Provides `getControls()` for action buttons
    - Updates every 1 second via `updateInterval: 1000`

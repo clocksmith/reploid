@@ -6,7 +6,7 @@
 
 **Prerequisites:** 0x00003A (Swarm Orchestration), 0x000043 (Browser API Integration), signalling server deployment
 
-**Affected Artifacts:** `/upgrades/webrtc-swarm.js`, `/upgrades/webrtc-coordinator.js`, `/styles/dashboard.css`
+**Affected Artifacts:** `/upgrades/webrtc-swarm.js`, `/upgrades/webrtc-coordinator.js`, `/styles/proto.css`
 
 ---
 
@@ -204,7 +204,7 @@ The `WebRTCSwarmWidget` provides comprehensive transport monitoring and control:
 - **Interactive Controls**: Reconnect button when disconnected, Disconnect/Announce Presence when connected
 - **Auto-refresh**: Updates every 2 seconds for real-time bandwidth and peer status
 - **Visual Feedback**: Color-coded status (green for connected, red for disconnected), activity indicators
-- **Dashboard Integration**: `getStatus()` provides summary metrics with current bandwidth
+- **Proto Integration**: `getStatus()` provides summary metrics with current bandwidth
 
 ### 3. Implementation Pathway
 
@@ -905,9 +905,9 @@ class WebRTCSwarmWidget extends HTMLElement {
    - Routes task delegation, knowledge sharing via registered message handlers
    - Uses `delegateTask`, `shareKnowledge`, `requestConsensus` APIs
 
-3. **Dashboard Integration**:
-   - Widget automatically integrates with module dashboard system
-   - Provides `getStatus()` method for dashboard summary view
+3. **Proto Integration**:
+   - Widget automatically integrates with module proto system
+   - Provides `getStatus()` method for proto summary view
    - Updates every 2 seconds via `updateInterval: 2000`
 
 4. **Security Considerations**:

@@ -30,7 +30,7 @@
 **Benefits:**
 - **Reduced UIManager complexity:** ~300 lines extracted
 - **Testability:** Isolated unit tests, mocked EventBus
-- **Reusability:** Can be used in other contexts (swarm UI, standalone dashboard)
+- **Reusability:** Can be used in other contexts (swarm UI, standalone proto)
 - **Incremental rollout:** Enable/disable via feature flag
 
 ---
@@ -43,7 +43,7 @@
 const ProgressTracker = await ModuleLoader.getModule('ProgressTracker');
 await ProgressTracker.init();
 
-// Widget automatically renders in dashboard
+// Widget automatically renders in proto
 const widget = ProgressTracker.widget;
 // widget.element === 'progress-tracker-widget'
 // widget.visible === isModularPanelEnabled('ProgressTracker')
