@@ -142,7 +142,7 @@ The loader is the choke point between configuration intent and executable code. 
   **Widget Features:**
   - **Module Summary**: Total modules, instantiated count, pending count
   - **Module Types**: Breakdown of modern (metadata/factory) vs legacy (function) formats
-  - **Load Order**: Shows first 10 modules in load sequence with status indicators (✓ = loaded, ⏳ = pending) and type indicators (⛝ = modern, ⚒ = legacy)
+  - **Load Order**: Shows first 10 modules in load sequence with status indicators (✓ = loaded, ☍ = pending) and type indicators (⛝ = modern, ⚒ = legacy)
   - **Dependency Graph**: Displays top 5 modules with their dependency chains
   - **Interactive Controls**:
     - "☷ List Modules" - Logs module table to console with ID, type, instantiation status, and path

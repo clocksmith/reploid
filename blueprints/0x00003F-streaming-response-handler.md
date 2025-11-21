@@ -1,6 +1,6 @@
 # Blueprint 0x000045: Streaming Response Handler
 
-**Status:** ✅ Implemented
+**Status:** [x] Implemented
 **Module ID:** STRM
 **File:** `upgrades/streaming-response-handler.js`
 **Version:** 1.0.0
@@ -204,7 +204,7 @@ class StreamingHandlerWidget extends HTMLElement {
           </div>
           <div class="stat-card">
             <div>Status</div>
-            <div>${activeStream ? '🟢 Active' : 'Idle'}</div>
+            <div>${activeStream ? '★ Active' : 'Idle'}</div>
           </div>
           <div class="stat-card">
             <div>Completed</div>

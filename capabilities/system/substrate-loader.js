@@ -1,6 +1,7 @@
 /**
  * @fileoverview Substrate Loader
  * Dynamically loads modules and widgets from VFS.
+ * MOVED from core/ to capabilities/system/ as part of RSI L3 Architecture.
  */
 
 const SubstrateLoader = {
@@ -8,7 +9,7 @@ const SubstrateLoader = {
     id: 'SubstrateLoader',
     version: '2.0.0',
     dependencies: ['Utils', 'VFS'],
-    type: 'core'
+    type: 'capability' // Changed from 'core' to 'capability'
   },
 
   factory: (deps) => {

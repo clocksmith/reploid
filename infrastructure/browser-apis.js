@@ -439,14 +439,14 @@ const BrowserAPIs = {
 
       md += '## Available APIs\n\n';
       for (const [api, available] of Object.entries(capabilities)) {
-        const icon = available ? '✅' : '❌';
+        const icon = available ? '★' : '☒';
         md += `- ${icon} **${api}**: ${available ? 'Available' : 'Not Available'}\n`;
       }
       md += '\n';
 
       if (capabilities.fileSystemAccess) {
         md += '## File System Access\n\n';
-        md += `- **Directory Handle:** ${fileSystemHandle ? `✅ ${fileSystemHandle.name}` : '❌ Not granted'}\n`;
+        md += `- **Directory Handle:** ${fileSystemHandle ? `★ ${fileSystemHandle.name}` : '☒ Not granted'}\n`;
         md += '- **Mode:** Read/Write\n\n';
       }
 

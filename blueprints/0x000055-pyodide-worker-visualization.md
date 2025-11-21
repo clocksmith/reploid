@@ -338,7 +338,7 @@ getStatus() {
 window.PyodideWorkerWidget = {
   element: 'pyodide-worker-widget',
   displayName: 'Pyodide Worker',
-  icon: '⚙️',
+  icon: '⎈',
   category: 'worker'
 };
 ```

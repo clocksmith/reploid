@@ -79,7 +79,12 @@ const ResponseParser = {
           const args = JSON.parse(json);
           calls.push({ name, args });
         } catch (e) {
-          logger.warn(`[ResponseParser] Bad args for ${name}`, { raw: rawArgs.slice(0, 100) });
+          logger.warn(`[ResponseParser] Bad args for ${name}`, {
+            error: e.message,
+            rawLength: rawArgs.length,
+            rawPreview: rawArgs.slice(0, 200),
+            rawEnd: rawArgs.length > 200 ? rawArgs.slice(-50) : ''
+          });
           calls.push({ name, args: {}, error: `JSON Parse Error: ${e.message}` });
         }
       }
@@ -90,7 +95,7 @@ const ResponseParser = {
     // Check if the model explicitly stated it is done
     const isDone = (text) => {
         if (!text) return false;
-        return text.includes('GOAL_ACHIEVED') || text.includes('GOAL_COMPLETE');
+        return text.includes('GOAL_ACHIEVED') || text.includes('GOAL_COMPLETE') || text.includes('DONE');
     };
 
     return { parseToolCalls, isDone };

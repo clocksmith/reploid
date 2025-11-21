@@ -71,7 +71,7 @@ const ChatUI = {
         // Pause
         agentLoop.pause();
         addMessage({ type: 'system', content: 'Agent paused' });
-        pauseBtn.querySelector('.btn-icon').textContent = '▶';
+        pauseBtn.querySelector('.btn-icon').textContent = '☇';
         pauseBtn.querySelector('.btn-text').textContent = 'Resume';
         pauseBtn.classList.add('resume-state');
         isPaused = true;

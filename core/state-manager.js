@@ -41,13 +41,18 @@ const StateManager = {
       return _state;
     };
 
-    const save = async () => {
+    const save = async (retries = 2) => {
       if (!_state) return;
       try {
         const content = JSON.stringify(_state, null, 2);
         await VFS.write(STATE_PATH, content);
       } catch (err) {
-        logger.error('[StateManager] Save failed', err);
+        if (retries > 0) {
+          logger.warn(`[StateManager] Save failed, retrying (${retries} left)`, err.message);
+          await new Promise(r => setTimeout(r, 100));
+          return save(retries - 1);
+        }
+        logger.error('[StateManager] Save failed after retries', err);
       }
     };
 

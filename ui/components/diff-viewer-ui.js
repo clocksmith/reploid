@@ -3,12 +3,13 @@
 // PX-3 Enhanced: Prism.js syntax highlighting + detailed statistics
 // PHASE 3 UPDATE: Added Event-Driven Rollback capability
 
-import ParserUtils from '../../core/parser-utils.js';
+// Removed direct import - using injected Utils
+// import ParserUtils from '../../core/parser-utils.js';
 
 const DiffViewerUI = {
   metadata: {
     id: 'DiffViewerUI',
-    version: '2.2.0', // Bumped for Phase 3
+    version: '2.3.0', // Updated for DIUtils
     description: 'Enhanced diff viewer with Prism.js highlighting, stats, and rollback events',
     features: [
       'Prism.js syntax highlighting for 10+ languages',
@@ -27,9 +28,6 @@ const DiffViewerUI = {
   factory: (deps) => {
     const { Utils, StateManager, EventBus, ConfirmationModal } = deps;
     const { logger, escapeHtml } = Utils;
-
-    // Initialize substrate parser for protocol compliance
-    const parserUtils = ParserUtils.factory({});
 
     let container = null;
     let currentDiff = null;
@@ -95,10 +93,10 @@ const DiffViewerUI = {
       }
     };
 
-    // Parse dogs bundle using substrate parser for protocol compliance
+    // Parse dogs bundle using injected Utils parser
     const parseDogsBundle = async (content) => {
-      // Use canonical parser from substrate
-      const baseChanges = parserUtils.parseDogsBundle(content);
+      // Use canonical parser from Utils
+      const baseChanges = Utils.parseDogsBundle(content);
 
       // Enrich with old content and UI state
       const enrichedChanges = [];
@@ -151,10 +149,10 @@ const DiffViewerUI = {
               ✎ Edit Proposal
             </button>
             <button class="btn-export" data-action="copy" title="Copy diff to clipboard">
-              📋 Copy
+              ☷ Copy
             </button>
             <button class="btn-export" data-action="export" title="Export as Markdown">
-              💾 Export
+              ⚿ Export
             </button>
           </div>
 
@@ -164,7 +162,7 @@ const DiffViewerUI = {
 
           <div class="diff-footer" role="group" aria-label="Apply or cancel changes">
              <button class="btn-rollback" data-action="rollback" aria-label="Emergency Rollback" title="Revert file system to pre-proposal state">
-              ↩ Emergency Rollback
+              ☈ Emergency Rollback
             </button>
             <div class="spacer" style="flex: 1;"></div>
             <button class="btn-cancel" data-action="cancel" aria-label="Cancel and close">
@@ -256,9 +254,9 @@ const DiffViewerUI = {
     // Render a single file change
     const renderFileChange = (change, index) => {
       const icon = {
-        CREATE: '➕',
-        MODIFY: '✏️',
-        DELETE: '🗑️'
+        CREATE: '☩',
+        MODIFY: '✎',
+        DELETE: '✄'
       }[change.operation];
 
       return `
@@ -562,7 +560,7 @@ const DiffViewerUI = {
     // Show an error message
     const showError = (message) => {
       if (container) {
-        container.innerHTML = `<div class="diff-error"><p>❌ ${message}</p></div>`;
+        container.innerHTML = `<div class="diff-error"><p>☒ ${message}</p></div>`;
       }
     };
 

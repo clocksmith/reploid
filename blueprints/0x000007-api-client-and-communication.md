@@ -108,7 +108,7 @@ const ApiClient = {
             </div>
             <div style="margin-top: 8px;">
               Connection: ${useProxy ? 'Proxy' : 'Direct'}
-              ${currentAbortController ? '<span class="active-indicator">●</span>' : ''}
+              ${currentAbortController ? '<span class="active-indicator">★</span>' : ''}
             </div>
             <div style="margin-top: 8px; max-height: 200px; overflow-y: auto;">
               ${recentCalls.map(call => `
@@ -445,7 +445,7 @@ class ApiClientWidget extends HTMLElement {
       {
         id: 'abort-call',
         label: 'Abort',
-        icon: '■',
+        icon: '☒',
         action: () => {
           abortCurrentCall('User requested abort from dashboard');
           const ToastNotifications = window.DIContainer?.resolve('ToastNotifications');
@@ -494,7 +494,7 @@ class ApiClientWidget extends HTMLElement {
         </div>
         <div style="margin-top: 8px;">
           Connection: ${useProxy ? 'Proxy' : 'Direct'}
-          ${currentAbortController ? '<span class="active-indicator">●</span>' : ''}
+          ${currentAbortController ? '<span class="active-indicator">★</span>' : ''}
         </div>
         <div style="margin-top: 8px; max-height: 200px; overflow-y: auto;">
           ${recentCalls.map(call => `

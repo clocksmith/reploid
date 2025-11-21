@@ -59,10 +59,13 @@ const AgentLoop = {
                 insights = failurePatterns.slice(0, 2).map(p => p.indicator);
               }
             }
-          } catch (e) { /* ignore */ }
+          } catch (e) {
+            logger.debug('[Agent] Failed to get reflection insights:', e.message);
+          }
 
           if (insights && insights.length > 0) {
-             context.splice(1, 0, { role: 'system', content: `[MEMORY] Watch out for these past failure patterns: ${insights.join(', ')}` });
+            // Append memory as user message to maintain proper message ordering
+            context.push({ role: 'user', content: `[MEMORY] Watch out for these past failure patterns: ${insights.join(', ')}` });
           }
 
           EventBus.emit('agent:status', { state: 'THINKING', activity: `Cycle ${iteration} - Calling LLM...`, cycle: iteration });
@@ -83,8 +86,9 @@ const AgentLoop = {
             content: response.content
           });
 
-          const toolCalls = ResponseParser.parseToolCalls(response.content);
-          context.push({ role: 'assistant', content: response.content });
+          const responseContent = response?.content || '';
+          const toolCalls = ResponseParser.parseToolCalls(responseContent);
+          context.push({ role: 'assistant', content: responseContent });
 
           if (toolCalls.length > 0) {
             let executedTools = 0;
@@ -136,9 +140,12 @@ const AgentLoop = {
               logger.info('[Agent] Goal achieved.');
               break;
             }
-             if (iteration > 5 && !response.content.includes('TOOL_CALL')) {
-                 context.splice(1, 0, { role: 'system', content: "You are chattering without acting. Please use a tool or declare completion."});
-             }
+            // WebLLM requires last message to be user/tool - add continuation prompt
+            let continuationMsg = 'Continue with your task. Use a tool or declare completion with "DONE".';
+            if (iteration > 5) {
+              continuationMsg = 'You are chattering without acting. Please use a tool or declare completion with "DONE".';
+            }
+            context.push({ role: 'user', content: continuationMsg });
           }
         }
       } catch (err) {
@@ -164,7 +171,9 @@ const AgentLoop = {
                 content: `Tool ${call.name}`,
                 context: { cycle: iteration, tool: call.name, args: call.args, outcome: isError ? 'failed' : 'successful' }
             });
-         } catch (e) {}
+         } catch (e) {
+            logger.debug('[Agent] Failed to log reflection:', e.message);
+         }
     };
 
     const _buildInitialContext = async (goal) => {

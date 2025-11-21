@@ -8,7 +8,7 @@
 
 **Affected Artifacts:** Any new **dynamic tool** the agent creates (stored in `/system/tools-dynamic.json`)
 
-**⚠️ IMPORTANT DISTINCTION:**
+**☡ IMPORTANT DISTINCTION:**
 
 This blueprint is about creating **DYNAMIC TOOLS** (JSON tool definitions), NOT **REPLOID UPGRADES** (modules).
 

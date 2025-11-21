@@ -12,7 +12,7 @@ This document provides an overview of REPLOID's module API. For detailed JSDoc c
 ### Utils (`upgrades/utils.js`)
 
 **Type:** Pure utility module (no dependencies)
-**Status:** ✅ Fully documented with JSDoc
+**Status:** [x] Fully documented with JSDoc
 
 **Error Classes:**
 - `ApplicationError` - Base error class with details object
@@ -80,7 +80,7 @@ This document provides an overview of REPLOID's module API. For detailed JSDoc c
 
 **Type:** Pub/sub event system
 **Dependencies:** Utils
-**Status:** ✅ Enhanced with subscription tracking (2025-09-30)
+**Status:** [x] Enhanced with subscription tracking (2025-09-30)
 
 **API:**
 - `on(eventName, listener, moduleId?)` - Subscribe to event (returns unsubscribe function)
@@ -231,7 +231,7 @@ This document provides an overview of REPLOID's module API. For detailed JSDoc c
 
 ---
 
-## 🎨 UI Modules
+## ☲ UI Modules
 
 ### UI (`upgrades/ui-manager.js`)
 

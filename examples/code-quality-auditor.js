@@ -129,7 +129,7 @@ async function updatePreview(path, status, report) {
   const html = `
     <div style="font-family: monospace; padding: 20px; color: #e0e0e0;">
       <h2 style="color: #4fc3f7; border-bottom: 1px solid #333; padding-bottom: 10px; display: flex; justify-content: space-between;">
-        <span>🔍 Code Auditor</span>
+        <span>⚲ Code Auditor</span>
         <span style="font-size: 0.6em; color: #666; padding-top: 10px;">${status}</span>
       </h2>
       <div style="margin: 15px 0; font-size: 12px; color: #888;">Target: ${path}</div>

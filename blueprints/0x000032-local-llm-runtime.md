@@ -116,7 +116,7 @@ class LocalLLMWidget extends HTMLElement {
 
   render() {
     // Access closure state for model status
-    const statusBadge = isReady ? '✓ Ready' : (isLoading ? '⏳ Loading' : '○ Not Loaded');
+    const statusBadge = isReady ? '✓ Ready' : (isLoading ? '☍ Loading' : '○ Not Loaded');
     const statusColor = isReady ? '#0f0' : (isLoading ? '#ff0' : '#888');
     const modelName = currentModel ? currentModel.split('-MLC')[0] : 'None';
     const progressPercent = Math.round(loadProgress * 100);

@@ -44,16 +44,16 @@ const AUTO_START_OLLAMA = appConfig?.ollama?.autoStart || process.env.AUTO_START
 const SSE_DONE = 'data: [DONE]';
 
 if (!GEMINI_API_KEY) {
-  console.error('⚠️  WARNING: GEMINI_API_KEY not found in .env file');
+  console.error('☡  WARNING: GEMINI_API_KEY not found in .env file');
   console.error('   The Gemini proxy endpoint will not work without it.');
 }
 
-console.log('🔧 Available API providers:');
-if (GEMINI_API_KEY) console.log('   ✅ Google Gemini');
-if (OPENAI_API_KEY) console.log('   ✅ OpenAI');
-if (ANTHROPIC_API_KEY) console.log('   ✅ Anthropic');
-if (HUGGINGFACE_API_KEY) console.log('   ✅ HuggingFace');
-console.log(`   🖥️  Local models at: ${LOCAL_MODEL_ENDPOINT}`);
+console.log('⎈ Available API providers:');
+if (GEMINI_API_KEY) console.log('   ★ Google Gemini');
+if (OPENAI_API_KEY) console.log('   ★ OpenAI');
+if (ANTHROPIC_API_KEY) console.log('   ★ Anthropic');
+if (HUGGINGFACE_API_KEY) console.log('   ★ HuggingFace');
+console.log(`   ☖  Local models at: ${LOCAL_MODEL_ENDPOINT}`);
 
 const setupSse = (res) => {
   if (res.headersSent) return;
@@ -1151,9 +1151,9 @@ try {
     console.log(`[Proxy] Peer ${peerId} left room ${roomId}`);
   });
 
-  console.log('✅ WebRTC signaling server initialized');
+  console.log('★ WebRTC signaling server initialized');
 } catch (error) {
-  console.error('⚠️  Failed to initialize signaling server:', error.message);
+  console.error('☡  Failed to initialize signaling server:', error.message);
 }
 
 // Initialize Agent Bridge
@@ -1172,9 +1172,9 @@ try {
     console.log(`[Proxy] Agent left: ${agentId}`);
   });
 
-  console.log('✅ Agent Bridge initialized');
+  console.log('★ Agent Bridge initialized');
 } catch (error) {
-  console.error('⚠️  Failed to initialize Agent Bridge:', error.message);
+  console.error('☡  Failed to initialize Agent Bridge:', error.message);
 }
 
 // Start server

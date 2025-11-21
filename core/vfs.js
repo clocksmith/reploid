@@ -89,9 +89,14 @@ const VFS = {
       const cleanPath = normalize(path);
       return new Promise((resolve, reject) => {
         const tx = db.transaction([STORE_FILES], 'readwrite');
-        tx.objectStore(STORE_FILES).delete(cleanPath).onsuccess = () => {
+        const req = tx.objectStore(STORE_FILES).delete(cleanPath);
+        req.onsuccess = () => {
           logger.info(`[VFS] Deleted ${cleanPath}`);
           resolve(true);
+        };
+        req.onerror = () => {
+          logger.error(`[VFS] Delete failed: ${cleanPath}`);
+          reject(new Errors.ArtifactError(`Delete failed: ${cleanPath}`));
         };
       });
     };

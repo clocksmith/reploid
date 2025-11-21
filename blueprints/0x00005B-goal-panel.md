@@ -229,7 +229,7 @@ const getControls = () => {
     {
       id: 'edit-goal',
       label: 'Edit Goal',
-      icon: '✏️',
+      icon: '✎',
       action: () => {
         editGoal();
         return { success: true, message: 'Edit mode enabled' };
@@ -238,7 +238,7 @@ const getControls = () => {
     {
       id: 'clear-goal',
       label: 'Clear Goal',
-      icon: '🗑️',
+      icon: '✄',
       action: () => {
         EventBus.emit('goal:edit-requested', { goal: '', source: 'GoalPanel', timestamp: Date.now() });
         return { success: true, message: 'Goal cleared' };
@@ -247,7 +247,7 @@ const getControls = () => {
     {
       id: 'goal-history',
       label: 'View History',
-      icon: '📜',
+      icon: '☰',
       action: () => {
         // Show history modal (future enhancement)
         logger.info('[GoalPanel] Goal history:', goalHistory);
@@ -335,14 +335,14 @@ const GoalPanel = {
 
 **File:** `tests/unit/goal-panel.test.js`
 
-**Test Results:** ✅ 24/32 passing (75% pass rate)
+**Test Results:** [x] 24/32 passing (75% pass rate)
 
 **Test Suites:**
-1. **Initialization** (2 tests) - ✅ All passing
+1. **Initialization** (2 tests) - [x] All passing
    - Successful init with valid container
    - Error handling for missing container
 
-2. **Goal Management** (6 tests) - ✅ All passing
+2. **Goal Management** (6 tests) - [x] All passing
    - Set/get goal methods
    - Empty goal handling
    - goal:set event handling
@@ -350,7 +350,7 @@ const GoalPanel = {
    - Edit request emission
    - Clear goal emission
 
-3. **Goal History** (6 tests) - ✅ All passing
+3. **Goal History** (6 tests) - [x] All passing
    - Track goal history
    - Deduplicate consecutive goals
    - Auto-trim at 50 items
@@ -358,26 +358,26 @@ const GoalPanel = {
    - Export to markdown
    - Empty history export
 
-4. **Widget Protocol - getStatus()** (5 tests) - ✅ All passing
+4. **Widget Protocol - getStatus()** (5 tests) - [x] All passing
    - no-goal state when empty
    - goal-set state when exists
    - editing state in edit mode
    - Long goal truncation
    - History count tracking
 
-5. **Widget Protocol - getControls()** (5 tests) - ⚠️ 4 failing (DOM-related)
+5. **Widget Protocol - getControls()** (5 tests) - ☡ 4 failing (DOM-related)
    - 4 controls returned
    - Edit, clear, history, export actions
 
-6. **Cleanup** (1 test) - ✅ All passing
+6. **Cleanup** (1 test) - [x] All passing
    - EventBus listener removal
 
-7. **Communication Contract Compliance** (3 tests) - ✅ All passing
+7. **Communication Contract Compliance** (3 tests) - [x] All passing
    - ui:panel-ready emission
    - ui:panel-error emission
    - Bidirectional data flow pattern
 
-8. **Edge Cases** (4 tests) - ✅ All passing
+8. **Edge Cases** (4 tests) - [x] All passing
    - Very long goals
    - Special characters/XSS
    - null/undefined handling
@@ -387,19 +387,19 @@ const GoalPanel = {
 ---
 
 **Implementation Status:**
-- ✅ Section 1: Context complete
-- ✅ Section 2: Architectural solution complete (Sync Point 1 validated)
-- ✅ Section 3: Implementation summary complete
+- [x] Section 1: Context complete
+- [x] Section 2: Architectural solution complete (Sync Point 1 validated)
+- [x] Section 3: Implementation summary complete
 
 **Phase 7 Deliverables:**
-1. ✅ Module implementation complete (658 lines)
-2. ✅ Test suite complete (24/32 tests passing, 75% pass rate)
-3. ✅ Bidirectional data flow (goal:set → UI → goal:edit-requested)
-4. ✅ Goal history with circular buffer (50 item limit)
-5. ✅ Inline editing mode
-6. ✅ History modal with export
-7. ✅ Widget Protocol compliance verified
-8. ✅ Cleanup pattern prevents memory leaks
-9. ✅ GoalModifier integration (optional validation)
+1. [x] Module implementation complete (658 lines)
+2. [x] Test suite complete (24/32 tests passing, 75% pass rate)
+3. [x] Bidirectional data flow (goal:set → UI → goal:edit-requested)
+4. [x] Goal history with circular buffer (50 item limit)
+5. [x] Inline editing mode
+6. [x] History modal with export
+7. [x] Widget Protocol compliance verified
+8. [x] Cleanup pattern prevents memory leaks
+9. [x] GoalModifier integration (optional validation)
 
 **Next Phase:** Phase 8 - SentinelPanel implementation

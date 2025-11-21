@@ -58,13 +58,18 @@ const LLMClient = {
         if (!clean || clean === 'data: [DONE]') continue;
         if (clean.startsWith('data: ')) {
           try {
-            const json = JSON.parse(clean.substring(6));
+            const jsonStr = clean.substring(6);
+            if (!jsonStr.startsWith('{')) continue; // Skip malformed chunks
+            const json = JSON.parse(jsonStr);
             const content = json.choices?.[0]?.delta?.content
               || json.message?.content
               || json.response
               || '';
             if (content) updates.push(content);
-          } catch (e) { /* ignore */ }
+          } catch (e) {
+            // Log malformed chunks at debug level
+            logger.debug('[LLM] Malformed stream chunk:', clean.substring(6, 50));
+          }
         }
       }
       return { updates, remaining };

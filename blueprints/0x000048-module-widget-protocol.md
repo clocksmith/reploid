@@ -74,7 +74,7 @@ const SomeModule = {
           {
             id: 'action-id',
             label: 'Button Label',
-            icon: '⚙️',
+            icon: '⎈',
             action: () => { /* handler */ }
           }
         ],
@@ -147,35 +147,35 @@ const ModuleDashboard = {
 **Compact View (Grid of Cards):**
 ```
 ┌──────────────────────┬──────────────────────┬──────────────────────┐
-│ 📦 StateManager  ●  │ 📡 EventBus      ●  │ 🔧 ToolRunner    ●  │
+│ ⛝ StateManager  ★  │ 📡 EventBus      ★  │ 🔧 ToolRunner    ★  │
 │ 47 artifacts         │ 23 listeners         │ 3 active             │
 │ 3 checkpoints        │ 12.5/sec            │ Last: 2s ago         │
-│ [💾] [📁]       [▼] │ [▶️] [🗑️]      [▼] │ [⏸️] [📊]      [▼] │
+│ [⚿] [☗]       [▼] │ [☇️] [✄]      [▼] │ [⏸️] [📊]      [▼] │
 ├──────────────────────┼──────────────────────┼──────────────────────┤
-│ 📁 VFSExplorer   ●  │ 📊 Metrics       ●  │ 🤖 Agent FSM     ●  │
+│ ☗ VFSExplorer   ★  │ 📊 Metrics       ★  │ 🤖 Agent FSM     ★  │
 │ 89 files             │ Mem: 45MB            │ State: IDLE          │
 │ Selected: app.js     │ CPU: 12%             │ Last cycle: 5s ago   │
-│ [↻] [⊞] [⊟]     [▼] │ [📈] [🔄]      [▼] │ [▶️] [⏹️]      [▼] │
+│ [↻] [⊞] [⊟]     [▼] │ [📈] [🔄]      [▼] │ [☇️] [⏹️]      [▼] │
 └──────────────────────┴──────────────────────┴──────────────────────┘
 ```
 
 **Expanded View:**
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
-│ 📦 StateManager                                           ● active  │
+│ ⛝ StateManager                                           ★ active  │
 │ 47 artifacts | 3 checkpoints                                   [▲] │
-│ [💾 Checkpoint] [📁 Explore]                                       │
+│ [⚿ Checkpoint] [☗ Explore]                                       │
 ├─────────────────────────────────────────────────────────────────────┤
 │ ┌─────────────────────────────────────────────────────────────────┐ │
 │ │ 📊 Statistics:                                                  │ │
 │ │   Artifacts: 47 | Size: 1.2 MB | Checkpoints: 3 | Uptime: 2h  │ │
 │ │                                                                 │ │
-│ │ 📜 Recent Checkpoints:                                          │ │
+│ │ ☰ Recent Checkpoints:                                          │ │
 │ │   [2m ago] Manual checkpoint                    [Restore]      │ │
 │ │   [15m ago] Before apply_dogs_bundle            [Restore]      │ │
 │ │   [1h ago] Auto-checkpoint                      [Restore]      │ │
 │ │                                                                 │ │
-│ │ 💾 Storage Breakdown:                                           │ │
+│ │ ⚿ Storage Breakdown:                                           │ │
 │ │   /upgrades     ████████████████░░░░  800 KB                   │ │
 │ │   /blueprints   ████████░░░░░░░░░░░░  300 KB                   │ │
 │ │   /docs         ████░░░░░░░░░░░░░░░░  100 KB                   │ │
@@ -281,7 +281,7 @@ const ModuleDashboard = {
 
 ### 4. The Implementation Pathway
 
-**Phase 1: Protocol Foundation** ✅ Complete
+**Phase 1: Protocol Foundation** [x] Complete
 1. Create `module-widget-protocol.js` with registry and validation
 2. Create `module-dashboard.js` with auto-discovery
 3. Add CSS styling for widget cards and panels
@@ -295,31 +295,31 @@ const ModuleDashboard = {
 5. Add widget to ToolRunner (active tools, queue, history)
 6. Add widget to ActionLogger (action count, errors, timeline)
 
-**Phase 3: API/Communication Widgets** ⚠️ Next
+**Phase 3: API/Communication Widgets** ☡ Next
 1. Add widget to ApiClient (connection, latency, tokens)
 2. Add widget to WebRTCComms (peers, bandwidth, quality)
 3. Add widget to MultiProviderAPI (provider, tokens, costs)
 4. Add widget to WebLLMAdapter (model, status, performance)
 
-**Phase 4: Agent/FSM Widgets** ⚠️ Future
+**Phase 4: Agent/FSM Widgets** ☡ Future
 1. Add widget to SentinelFSM (state, transitions, cycle stats)
 2. Add widget to SentinelTools (tools, executions, success rate)
 3. Add widget to ContextCurator (context size, sources)
 4. Add widget to ReflectionEngine (insights, quality scores)
 
-**Phase 5: Convert Existing UI Modules** ⚠️ Future
+**Phase 5: Convert Existing UI Modules** ☡ Future
 1. Add widget interface to VFSExplorer (keep existing API)
 2. Add widget interface to MetricsDashboard (keep existing API)
 3. Add widget interface to AgentVisualizer (keep existing API)
 4. Add widget interface to AdvancedLogPanel (keep existing API)
 
-**Phase 6: Utility Module Widgets** ⚠️ Future
+**Phase 6: Utility Module Widgets** ☡ Future
 1. Add widget to DiffUtils (diffs computed, cache stats)
 2. Add widget to VerificationManager (tests run, success rate)
 3. Add widget to DogsParser (bundles parsed, errors)
 4. Add widget to CatsParser (tests parsed, coverage)
 
-**Phase 7: Integration** ⚠️ Future
+**Phase 7: Integration** ☡ Future
 1. Update index.html to use ModuleDashboard
 2. Remove manual widget wiring
 3. Enable auto-discovery on boot
@@ -478,26 +478,26 @@ const health = ModuleDashboard.getSystemHealth();
 ## Success Criteria
 
 **Visibility:**
-- ✅ All 75 modules have basic widget interface
-- ✅ Dashboard shows status for every loaded module
-- ✅ No module is completely invisible
+- [x] All 75 modules have basic widget interface
+- [x] Dashboard shows status for every loaded module
+- [x] No module is completely invisible
 
 **Consistency:**
-- ✅ All widgets follow same interface pattern
-- ✅ All widgets render uniformly in dashboard
-- ✅ All widgets update via same protocol
+- [x] All widgets follow same interface pattern
+- [x] All widgets render uniformly in dashboard
+- [x] All widgets update via same protocol
 
 **Functionality:**
-- ✅ Compact view shows state, metrics, last activity
-- ✅ Controls provide quick actions
-- ✅ Detail panels show comprehensive information
-- ✅ Real-time updates via onUpdate subscriptions
+- [x] Compact view shows state, metrics, last activity
+- [x] Controls provide quick actions
+- [x] Detail panels show comprehensive information
+- [x] Real-time updates via onUpdate subscriptions
 
 **Integration:**
-- ✅ ModuleDashboard auto-discovers all widgets
-- ✅ No manual wiring required in index.html
-- ✅ Agent can query all module states programmatically
-- ✅ Backwards compatible with existing custom UI modules
+- [x] ModuleDashboard auto-discovers all widgets
+- [x] No manual wiring required in index.html
+- [x] Agent can query all module states programmatically
+- [x] Backwards compatible with existing custom UI modules
 
 ---
 

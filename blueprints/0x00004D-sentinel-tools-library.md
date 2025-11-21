@@ -65,7 +65,7 @@ class SentinelToolsWidget extends HTMLElement {
     return [
       {
         id: 'list-tools',
-        label: '📋 List All Tools',
+        label: '☷ List All Tools',
         action: () => {
           const tools = listSentinelTools();
           console.table(tools);
@@ -86,16 +86,16 @@ if (!customElements.get('sentinel-tools-widget')) {
 ### 3. The Implementation Pathway
 
 **Phase 1: Tool Library (Complete)**
-1. ✅ Research tools implementation
-2. ✅ Synthesis tools implementation
-3. ✅ Implementation tools implementation
-4. ✅ Tool registration and discovery
+1. [x] Research tools implementation
+2. [x] Synthesis tools implementation
+3. [x] Implementation tools implementation
+4. [x] Tool registration and discovery
 
 **Phase 2: Web Component Widget (Complete)**
-1. ✅ **Define Web Component class** `SentinelToolsWidget`
-2. ✅ **Implement getStatus()** with tool usage stats
-3. ✅ **Implement getControls()** with tool discovery actions
-4. ✅ **Register custom element**: `sentinel-tools-widget`
+1. [x] **Define Web Component class** `SentinelToolsWidget`
+2. [x] **Implement getStatus()** with tool usage stats
+3. [x] **Implement getControls()** with tool discovery actions
+4. [x] **Register custom element**: `sentinel-tools-widget`
 
 ---
 

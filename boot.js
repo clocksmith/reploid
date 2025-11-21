@@ -25,8 +25,9 @@ import MetaToolWriter from './core/meta-tool-writer.js';
 
 import AgentLoop from './core/agent-loop.js';
 import PersonaManager from './core/persona-manager.js';
-import SubstrateLoader from './core/substrate-loader.js';
 
+// Capabilities moved to their own directories
+import SubstrateLoader from './capabilities/system/substrate-loader.js';
 import ReflectionStore from './capabilities/reflection/reflection-store.js';
 import ReflectionAnalyzer from './capabilities/reflection/reflection-analyzer.js';
 import PerformanceMonitor from './capabilities/performance/performance-monitor.js';
@@ -206,7 +207,10 @@ import { initModelConfig } from './ui/boot/model-config/index.js';
             });
           }
         } catch (e) {
-          logger.warn('[Boot] UI failed to load', e);
+          logger.error('[Boot] UI failed to load', {
+            message: e.message,
+            stack: e.stack
+          });
         }
       });
     } else {
@@ -215,10 +219,11 @@ import { initModelConfig } from './ui/boot/model-config/index.js';
     }
 
   } catch (err) {
-    console.error('CRITICAL BOOT FAILURE:', err);
+    const logger = Utils.factory().logger;
+    logger.error('[Boot] CRITICAL BOOT FAILURE', err);
     document.body.innerHTML = `<div style="color:red; padding:20px;">
       <h1>System Crash</h1>
-      <pre>${err.stack}</pre>
+      <pre>${err.stack || err.message}</pre>
     </div>`;
   }
 })();

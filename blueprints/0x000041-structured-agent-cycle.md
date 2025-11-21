@@ -150,35 +150,35 @@ This provides real-time visualization of:
 ### 3. The Implementation Pathway
 
 **Phase 1: Core Module (Complete)**
-1. ✅ Create `upgrades/agent-cycle-structured.js`
-2. ✅ Implement 8 functions (one per step)
-3. ✅ Export `executeStructuredCycle()` API
-4. ✅ Add reflection storage integration
-5. ✅ Emit events for UI updates
+1. [x] Create `upgrades/agent-cycle-structured.js`
+2. [x] Implement 8 functions (one per step)
+3. [x] Export `executeStructuredCycle()` API
+4. [x] Add reflection storage integration
+5. [x] Emit events for UI updates
 
 **Phase 2: Persona Support (Complete)**
-1. ✅ Create `personas/MultiMindSynthesisPersona.js`
-2. ✅ Implement multi-mind deliberation prompt
-3. ✅ Add mind selection API (`selectRelevantMinds()`)
-4. ✅ Implement conservative confidence calibration
+1. [x] Create `personas/MultiMindSynthesisPersona.js`
+2. [x] Implement multi-mind deliberation prompt
+3. [x] Add mind selection API (`selectRelevantMinds()`)
+4. [x] Implement conservative confidence calibration
 
 **Phase 3: Configuration (In Progress)**
-1. ❌ Add `STCY` upgrade to `config.json` upgrades array
-2. ❌ Add `multi_mind_architect` persona to personas array
-3. ❌ Add Blueprint 0x000047 to blueprints array
-4. ❌ Add `structuredCycle` config section
+1. [ ] Add `STCY` upgrade to `config.json` upgrades array
+2. [ ] Add `multi_mind_architect` persona to personas array
+3. [ ] Add Blueprint 0x000047 to blueprints array
+4. [ ] Add `structuredCycle` config section
 
 **Phase 4: Integration (Pending)**
-1. ❌ Verify boot.js can load structured cycle module
-2. ❌ Add conditional in Sentinel FSM to use structured cycle
-3. ❌ Update UI manager to display confidence scores
-4. ❌ Add confidence-based conditional execution
+1. [ ] Verify boot.js can load structured cycle module
+2. [ ] Add conditional in Sentinel FSM to use structured cycle
+3. [ ] Update UI manager to display confidence scores
+4. [ ] Add confidence-based conditional execution
 
 **Phase 5: Testing & Validation (Pending)**
-1. ❌ Create integration test
-2. ❌ Verify end-to-end flow: boot → load → execute → output
-3. ❌ Test with multi-mind persona
-4. ❌ Verify confidence score accuracy
+1. [ ] Create integration test
+2. [ ] Verify end-to-end flow: boot → load → execute → output
+3. [ ] Test with multi-mind persona
+4. [ ] Verify confidence score accuracy
 
 **Phase 6: UI Enhancements (Future)**
 1. Confidence score gauge in diff viewer
@@ -466,14 +466,14 @@ await ReflectionStore.storeReflection({
 
 The structured cycle is successful when:
 
-1. ✅ **Complete 8-step output** - All fields populated
-2. ✅ **Valid JSON** - Parseable and schema-compliant
-3. ✅ **Confidence correlates with outcome** - High confidence → higher success rate
-4. ✅ **Uncertainties are actionable** - Not vague ("might not work"), but specific ("unclear if logger supports Error objects")
-5. ✅ **Justification explains trade-offs** - Not just "this is good", but "X benefit vs Y cost"
-6. ✅ **Self-assessment is critical** - Lists real weaknesses, not boilerplate
-7. ✅ **Tool calls are executable** - Can be passed directly to ToolRunner
-8. ✅ **Integration with Sentinel FSM** - Can be used in place of default cycle
+1. [x] **Complete 8-step output** - All fields populated
+2. [x] **Valid JSON** - Parseable and schema-compliant
+3. [x] **Confidence correlates with outcome** - High confidence → higher success rate
+4. [x] **Uncertainties are actionable** - Not vague ("might not work"), but specific ("unclear if logger supports Error objects")
+5. [x] **Justification explains trade-offs** - Not just "this is good", but "X benefit vs Y cost"
+6. [x] **Self-assessment is critical** - Lists real weaknesses, not boilerplate
+7. [x] **Tool calls are executable** - Can be passed directly to ToolRunner
+8. [x] **Integration with Sentinel FSM** - Can be used in place of default cycle
 
 ---
 
@@ -490,7 +490,7 @@ This blueprint provides the foundation for the next generation of agentic reason
 
 ---
 
-**Status:** ✅ Core module complete, ⏳ Configuration in progress, ⏳ Integration pending
+**Status:** [x] Core module complete, ☍ Configuration in progress, ☍ Integration pending
 
 **Next Actions:**
 1. Update `config.json` with STCY upgrade

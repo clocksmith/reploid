@@ -21,10 +21,10 @@ const ToastNotifications = {
 
     // Toast types
     const TOAST_TYPES = {
-      success: { icon: '✓', color: '#4ec9b0', bg: 'rgba(76, 175, 80, 0.9)' },
-      error: { icon: '✕', color: '#f48771', bg: 'rgba(244, 135, 113, 0.9)' },
-      warning: { icon: '⚠', color: '#ffd700', bg: 'rgba(255, 215, 0, 0.9)' },
-      info: { icon: 'ℹ', color: '#4fc3f7', bg: 'rgba(79, 195, 247, 0.9)' }
+      success: { icon: '★', color: '#4ec9b0', bg: 'rgba(76, 175, 80, 0.9)' },
+      error: { icon: '☒', color: '#f48771', bg: 'rgba(244, 135, 113, 0.9)' },
+      warning: { icon: '☡', color: '#ffd700', bg: 'rgba(255, 215, 0, 0.9)' },
+      info: { icon: '☛', color: '#4fc3f7', bg: 'rgba(79, 195, 247, 0.9)' }
     };
 
     // Initialize toast container
@@ -79,7 +79,7 @@ const ToastNotifications = {
       toast.innerHTML = `
         <span style="font-size: 18px; font-weight: bold;">${config.icon}</span>
         <span style="flex: 1;">${message}</span>
-        <span style="font-size: 12px; color: rgba(255, 255, 255, 0.7); cursor: pointer;">✕</span>
+        <span style="font-size: 12px; color: rgba(255, 255, 255, 0.7); cursor: pointer;">☩</span>
       `;
 
       // Add to container

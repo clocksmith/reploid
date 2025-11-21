@@ -111,8 +111,8 @@ async function updatePreview(evolution) {
           </div>
           <div style="color: #fff; margin-bottom: 10px; line-height: 1.4;">${step.prompt}</div>
           ${step.iteration > 0 ? `
-            <div style="font-size: 0.9em; color: #ff7b72;">🔴 Critique: ${step.weakness}</div>
-            <div style="font-size: 0.9em; color: #7ee787;">🟢 Action: ${step.improvement}</div>
+            <div style="font-size: 0.9em; color: #ff7b72;">☒ Critique: ${step.weakness}</div>
+            <div style="font-size: 0.9em; color: #7ee787;">★ Action: ${step.improvement}</div>
           ` : ''}
         </div>
       `).join('')}

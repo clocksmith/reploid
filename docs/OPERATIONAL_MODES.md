@@ -30,7 +30,7 @@ npx serve
 
 2. Open `http://localhost:8000`
 
-3. Click the ⛭ config button in the top-right
+3. Click the ⎈ config button in the top-right
 
 4. Select your provider and paste API key:
    - **Gemini**: Get key from [Google AI Studio](https://aistudio.google.com/app/apikey)
@@ -124,12 +124,12 @@ npm start
 
 ### Features Available
 
-- ✅ All client-side features
-- ✅ PAWS CLI integration (`cats.js`, `dogs.js`, `paws-session.js`)
-- ✅ Hermes multi-agent Paxos orchestration
-- ✅ Git worktree session management
-- ✅ WebSocket real-time streaming
-- ✅ Shared sessions across team members
+- [x] All client-side features
+- [x] PAWS CLI integration (`cats.js`, `dogs.js`, `paws-session.js`)
+- [x] Hermes multi-agent Paxos orchestration
+- [x] Git worktree session management
+- [x] WebSocket real-time streaming
+- [x] Shared sessions across team members
 
 ---
 

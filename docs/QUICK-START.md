@@ -4,7 +4,7 @@
 
 ---
 
-## 📋 Prerequisites
+## ☷ Prerequisites
 
 - **Modern browser** (Chrome 90+, Firefox 88+, Safari 14+, Edge 90+)
 - **Node.js 18+** (for development server)
@@ -91,7 +91,7 @@ The Sentinel Agent will start working through its FSM states automatically!
 **Goal:** `Create a simple landing page for a yoga studio`
 
 **What happens:**
-1. ⏳ **CURATING_CONTEXT** - Agent selects HTML/CSS/JS template files
+1. ☍ **CURATING_CONTEXT** - Agent selects HTML/CSS/JS template files
 2. ✋ **AWAITING_CONTEXT_APPROVAL** - Review selected files (click "Approve")
 3. 🧠 **PLANNING_WITH_CONTEXT** - Agent analyzes requirements
 4. 📝 **GENERATING_PROPOSAL** - Creates HTML/CSS/JS files
@@ -100,9 +100,9 @@ The Sentinel Agent will start working through its FSM states automatically!
    - ✗ Red = deletions
    - 👁️ Side-by-side comparison
    - Click "Approve All" or selectively approve files
-6. ⚙️ **APPLYING_CHANGES** - Writes files to VFS
-7. 🔍 **REFLECTING** - Agent learns from the outcome
-8. ✅ **DONE** - View your site in the **Live Preview** panel!
+6. ⎈ **APPLYING_CHANGES** - Writes files to VFS
+7. ⚲ **REFLECTING** - Agent learns from the outcome
+8. [x] **DONE** - View your site in the **Live Preview** panel!
 
 ### Example 2: Self-Improvement Experiment (Advanced)
 
@@ -132,13 +132,13 @@ The Sentinel Agent will start working through its FSM states automatically!
 
 ---
 
-## 🎨 Understanding the Dashboard
+## ☲ Understanding the Dashboard
 
 ### Top Status Bar
 - **⚪ IDLE** → Agent waiting for goal
 - **🔵 CURATING_CONTEXT** → Selecting files
 - **🟡 AWAITING_CONTEXT_APPROVAL** → Your approval needed
-- **🟢 APPLYING_CHANGES** → Writing files
+- **★ APPLYING_CHANGES** → Writing files
 - **🟣 REFLECTING** → Learning from outcome
 
 ### Left Panel: Current Goal
@@ -263,7 +263,7 @@ Draft release notes for version 2.0 of REPLOID
 **Solution:** Ensure persona is Website Builder or Product Prototype Factory. Check that `/vfs/preview/index.html` exists.
 
 ### Problem: File System Access denied
-**Solution:** Browser APIs panel → "📁 Connect Directory" button. Grant permission to directory.
+**Solution:** Browser APIs panel → "☗ Connect Directory" button. Grant permission to directory.
 
 ### Problem: Self-tests failing
 **Solution:** Check Self-Tests panel for failure details. Common causes:
@@ -273,7 +273,7 @@ Draft release notes for version 2.0 of REPLOID
 
 ---
 
-## ⚙️ Advanced Features
+## ⎈ Advanced Features
 
 ### CLI Mode (cats/dogs)
 
@@ -349,7 +349,7 @@ Once you're comfortable with the basics:
 
 3. **Check diffs line-by-line** - Don't approve blindly! The diff viewer highlights every change
 
-4. **Export sessions regularly** - Click "💾 Export" in status bar to save markdown report
+4. **Export sessions regularly** - Click "⚿ Export" in status bar to save markdown report
 
 5. **Use reflections** - Agent learns from each interaction. Check "Learning History" to see patterns
 
@@ -359,7 +359,7 @@ Once you're comfortable with the basics:
 
 8. **Connect filesystem** - Use File System Access API to sync VFS to real directories
 
-9. **Run self-tests** - Before major changes, click "▶️ Run Tests" to validate system integrity
+9. **Run self-tests** - Before major changes, click "☇️ Run Tests" to validate system integrity
 
 10. **Read agent thoughts** - The thought stream reveals reasoning. Use it to understand decisions!
 
