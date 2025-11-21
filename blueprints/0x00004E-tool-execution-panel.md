@@ -80,7 +80,7 @@ const TOOL_ICONS = {
   'verify_dogs_bundle': '✓',
   'read_artifact': '◉️',
   'introspect': '⌕',
-  'default': '⚙️'
+  'default': '⎈'
 };
 ```
 
@@ -209,7 +209,7 @@ class ToolExecutionPanelWidget extends HTMLElement {
         }
       </style>
       <div class="tool-exec-panel">
-        <h4>⚙️ Tool Executions</h4>
+        <h4>⎈ Tool Executions</h4>
         ${executions.length === 0 ? `
           <div style="text-align: center; color: #888; padding: 40px;">
             No tool executions yet
@@ -254,7 +254,7 @@ if (!customElements.get(elementName)) {
 const widget = {
   element: elementName,
   displayName: 'Tool Executions',
-  icon: '⚙️',
+  icon: '⎈',
   category: 'ui'
 };
 ```
@@ -323,14 +323,14 @@ const widget = {
 
 ## Success Criteria
 
-- ✅ All tool executions appear in real-time
-- ✅ Status updates reflect current execution state
-- ✅ Progress bars show accurate progress
-- ✅ Failed tools display error messages
-- ✅ History limited to MAX_HISTORY executions
-- ✅ Cards are visually distinct by status
-- ✅ Performance remains smooth with many tools
-- ✅ Widget updates without full page refresh
+- [x] All tool executions appear in real-time
+- [x] Status updates reflect current execution state
+- [x] Progress bars show accurate progress
+- [x] Failed tools display error messages
+- [x] History limited to MAX_HISTORY executions
+- [x] Cards are visually distinct by status
+- [x] Performance remains smooth with many tools
+- [x] Widget updates without full page refresh
 
 ---
 

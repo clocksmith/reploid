@@ -8,6 +8,8 @@
 
 ---
 
+See [AGENTS.md](AGENTS.md) for the active code-writing agent profile.
+
 ## About
 
 Reploid is a **self-modifying AI substrate** that demonstrates recursive self-improvement ([RSI](https://en.wikipedia.org/wiki/Recursive_self-improvement)) in a browser environment.

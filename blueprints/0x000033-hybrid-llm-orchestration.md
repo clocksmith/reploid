@@ -78,7 +78,7 @@ class HybridLLMProviderWidget extends HTMLElement {
 
     return {
       state: isGenerating ? 'active' : 'idle',
-      primaryMetric: mode === 'local' ? '⌨ Local' : '☁️ Cloud',
+      primaryMetric: mode === 'local' ? '⌨ Local' : '☁ Cloud',
       secondaryMetric: `${totalTokens.toLocaleString()} tokens`,
       lastActivity: usageStats.switchHistory.length > 0 ? usageStats.switchHistory[0].timestamp : null
     };
@@ -87,7 +87,7 @@ class HybridLLMProviderWidget extends HTMLElement {
   render() {
     // Access closure state for hybrid provider
     const mode = getMode();
-    const modeIcon = mode === 'local' ? '⌨' : '☁️';
+    const modeIcon = mode === 'local' ? '⌨' : '☁';
     const modeLabel = mode === 'local' ? 'Local' : 'Cloud';
     const isLocalAvailable = getLocalAvailability();
 
@@ -117,7 +117,7 @@ class HybridLLMProviderWidget extends HTMLElement {
           </button>
           <button class="switch-btn ${mode === 'cloud' ? 'active' : ''}"
                   data-mode="cloud">
-            ☁️ Cloud
+            ☁ Cloud
           </button>
         </div>
         <table class="comparison-table">
@@ -203,7 +203,7 @@ The widget provides complete visibility into the hybrid orchestration system's b
 **Step 3: Implement Status Protocol**
 - `getStatus()` as class method with ALL 5 required fields:
   - `state`: 'active' if generating, 'idle' otherwise
-  - `primaryMetric`: Current mode ('⌨ Local' or '☁️ Cloud')
+  - `primaryMetric`: Current mode ('⌨ Local' or '☁ Cloud')
   - `secondaryMetric`: Total tokens across both providers
   - `lastActivity`: Timestamp of last mode switch
   - `message`: null (or error if applicable)

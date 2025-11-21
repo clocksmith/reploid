@@ -24,6 +24,10 @@ const ContextManager = {
 
     const compact = async (context, modelConfig) => {
       if (!shouldCompact(context)) return context;
+      if (!modelConfig) {
+        logger.warn('[ContextManager] No model config provided, skipping compaction');
+        return context;
+      }
 
       logger.info('[ContextManager] Compacting...');
       const start = context.slice(0, 2); // System + First User
@@ -40,7 +44,8 @@ const ContextManager = {
           content: `Summarize this conversation, keeping key technical details and tool results:\n${text}`
         }], modelConfig);
 
-        return [...start, { role: 'system', content: `[SUMMARY]: ${res.content}` }, ...end];
+        const summary = res?.content || '[Summary unavailable]';
+        return [...start, { role: 'system', content: `[SUMMARY]: ${summary}` }, ...end];
       } catch (e) {
         logger.error('[ContextManager] Compaction failed', e);
         return [...start, { role: 'system', content: '[DATA PRUNED]' }, ...end];

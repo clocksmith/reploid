@@ -1,12 +1,12 @@
 /**
  * @fileoverview Core Utilities Module
- * The foundational pure functions and error classes used across the system.
+ * The foundational pure functions, error classes, and protocol parsers.
  */
 
 const Utils = {
   metadata: {
     id: 'Utils',
-    version: '2.1.0',
+    version: '2.2.0', // Merged ParserUtils
     dependencies: [],
     type: 'pure'
   },
@@ -156,6 +156,88 @@ const Utils = {
       };
     };
 
+    // --- PAWS Protocol Parsers (Merged from ParserUtils) ---
+
+    const parseCatsBundle = (content) => {
+      const files = [];
+      if (!content) return { reason: 'Empty content', files: [] };
+
+      const blocks = content.split(/```vfs-file\s*\n/);
+      const reasonMatch = content.match(/\*\*Reason:\*\*\s*(.+)/);
+      const reason = reasonMatch ? reasonMatch[1].trim() : 'Context bundle';
+
+      for (let i = 1; i < blocks.length; i++) {
+        const block = blocks[i];
+        const pathMatch = block.match(/^path:\s*(.+?)\s*\n```/);
+        if (!pathMatch) continue;
+
+        const filePath = pathMatch[1].trim();
+        const contentStartRegex = /```\n([\s\S]*?)\n```/;
+        const contentMatch = block.substring(pathMatch[0].length).match(contentStartRegex);
+
+        if (contentMatch) {
+          files.push({
+            path: filePath,
+            content: contentMatch[1]
+          });
+        }
+      }
+      return { reason, files };
+    };
+
+    const generateCatsBundle = (files, reason = 'Context Export') => {
+      const date = new Date().toISOString();
+      let out = `## PAWS Context Bundle (cats.md)\n**Generated:** ${date}\n**Reason:** ${reason}\n**Files:** ${files.length}\n\n---\n\n`;
+      for (const f of files) {
+        out += `\`\`\`vfs-file\npath: ${f.path}\n\`\`\`\n`;
+        out += `\`\`\`\n${f.content}\n\`\`\`\n\n---\n\n`;
+      }
+      return out;
+    };
+
+    const parseDogsBundle = (content) => {
+      const changes = [];
+      if (!content) return changes;
+
+      const blocks = content.split(/```paws-change\s*\n/);
+
+      for (let i = 1; i < blocks.length; i++) {
+        const block = blocks[i];
+        const metaEndIdx = block.indexOf('```');
+        if (metaEndIdx === -1) continue;
+
+        const metaSection = block.substring(0, metaEndIdx);
+        const opMatch = metaSection.match(/operation:\s*(CREATE|MODIFY|DELETE)/i);
+        const pathMatch = metaSection.match(/file_path:\s*(.+)/);
+
+        if (!opMatch || !pathMatch) continue;
+
+        const operation = opMatch[1].toUpperCase();
+        const filePath = pathMatch[1].trim();
+        let newContent = null;
+
+        if (operation !== 'DELETE') {
+          const contentSection = block.substring(metaEndIdx + 3);
+          const contentMatch = contentSection.match(/```\n([\s\S]*?)\n```/);
+          newContent = contentMatch ? contentMatch[1] : '';
+        }
+
+        changes.push({ operation, file_path: filePath, new_content: newContent });
+      }
+      return changes;
+    };
+
+    const generateDogsBundle = (changes, summary = 'Code Modification') => {
+      let out = `## PAWS Change Proposal (dogs.md)\n**Summary:** ${summary}\n**Changes:** ${changes.length}\n\n---\n\n`;
+      for (const c of changes) {
+        out += `\`\`\`paws-change\noperation: ${c.operation}\nfile_path: ${c.file_path}\n\`\`\`\n`;
+        if (c.operation !== 'DELETE') {
+          out += `\`\`\`\n${c.new_content || ''}\n\`\`\`\n\n`;
+        }
+      }
+      return out;
+    };
+
     return {
       Errors,
       logger,
@@ -164,7 +246,12 @@ const Utils = {
       kabobToCamel,
       escapeHtml,
       sanitizeLlmJsonRespPure,
-      createSubscriptionTracker
+      createSubscriptionTracker,
+      // Protocol Parsers
+      parseCatsBundle,
+      generateCatsBundle,
+      parseDogsBundle,
+      generateDogsBundle
     };
   }
 };

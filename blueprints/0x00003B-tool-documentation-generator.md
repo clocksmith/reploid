@@ -250,7 +250,7 @@ const generateToolDoc = (tool, category) => {
   let doc = `### ${tool.name}\n\n`;
 
   // Category badge
-  const badge = category === 'read' ? '⌕ Read' : '✏️ Write';
+  const badge = category === 'read' ? '⌕ Read' : '✎ Write';
   doc += `**Category:** ${badge}\n\n`;
 
   // Description

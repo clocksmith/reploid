@@ -21,7 +21,7 @@
 
 REPLOID X is an experimental AI agent that **rewrites its own code** to become smarter. Unlike traditional AI assistants that are static, REPLOID agents can:
 
-- ✏️ **Modify their own functions** while running
+- ✎ **Modify their own functions** while running
 - 🔧 **Create tools** they weren't born with
 - 🎯 **Evolve their goals** based on what they learn
 - 📚 **Document discoveries** for future versions
@@ -45,7 +45,7 @@ python -m http.server 8000
 1. **Enter API Key** - Gemini API key for the agent's brain
 2. **Choose Mode**:
    - 🎯 **Guided Mode** - Simple checkboxes for common goals
-   - ⚙️ **Expert Mode** - Full control over every upgrade
+   - ⎈ **Expert Mode** - Full control over every upgrade
 3. **Pick Your Focus**:
    - Want full RSI? → Use "RSI FOCUS" preset
    - Want to experiment? → Check "Create new tools"
@@ -76,13 +76,13 @@ Think of these like **apps on a phone** - each gives specific abilities:
 
 | Upgrade  | What It Does             | Required for RSI? |
 | -------- | ------------------------ | ----------------- |
-| **TLRD** | Read files and own code  | ✅ Yes            |
-| **TLWR** | Write and modify files   | ✅ Yes            |
-| **MTCP** | Create brand new tools   | ✅ Yes            |
-| **GMOD** | Modify its own goals     | ✅ Yes            |
-| **BLPR** | Document what it learns  | ✅ Yes            |
-| **CYCL** | Think-act cognitive loop | ✅ Yes            |
-| **APIC** | Talk to LLM (brain)      | ✅ Yes            |
+| **TLRD** | Read files and own code  | [x] Yes            |
+| **TLWR** | Write and modify files   | [x] Yes            |
+| **MTCP** | Create brand new tools   | [x] Yes            |
+| **GMOD** | Modify its own goals     | [x] Yes            |
+| **BLPR** | Document what it learns  | [x] Yes            |
+| **CYCL** | Think-act cognitive loop | [x] Yes            |
+| **APIC** | Talk to LLM (brain)      | [x] Yes            |
 
 ### 📘 Blueprints = Agent Knowledge
 
@@ -150,16 +150,16 @@ These special upgrades enable true RSI:
 
 ```
 RSI READINESS: ████████░░ 80%
-✅ Can read own code (TLRD)
-✅ Can write code (TLWR)
-✅ Has tool creation (MTCP)
-⚠️ Missing: Goal modification (GMOD)
-✅ Can document knowledge (BLPR)
+[x] Can read own code (TLRD)
+[x] Can write code (TLWR)
+[x] Has tool creation (MTCP)
+☡ Missing: Goal modification (GMOD)
+[x] Can document knowledge (BLPR)
 ```
 
 **Need 80%+ for true RSI capability!**
 
-## 📁 File Structure
+## ☗ File Structure
 
 ```
 x/
@@ -199,7 +199,7 @@ x/
 
 ```
 
-### 🎨 Standardized Module System
+### ☲ Standardized Module System
 
 All modules now follow a consistent format with:
 
@@ -220,7 +220,7 @@ See `config.json` for module registry details.
 - Auto-selects required upgrades
 - Perfect for beginners
 
-**⚙️ Expert Mode**
+**⎈ Expert Mode**
 
 - Full control over every upgrade
 - Manual blueprint selection
@@ -280,14 +280,14 @@ See `config.json` for module registry details.
 - **Browser-Based AI**: Full AI development without servers
 - **Compositional Intelligence**: Complex behavior from simple modules
 
-## ⚠️ Important Notes
+## ☡ Important Notes
 
 1. **API Key Required**: You need a Gemini API key
 2. **Browser Storage**: Uses IndexedDB or localStorage
 3. **No Build Step**: Pure browser runtime
 4. **Experimental**: This is research software
 
-## 🛡️ Safety & Security
+## ☨ Safety & Security
 
 - **Sandboxed**: Runs entirely in browser
 - **API Key**: Stored locally, never transmitted
@@ -379,9 +379,9 @@ That's REPLOID X. Not just an AI assistant, but an AI that assists itself in bec
 
 1. **Phase 1: Foundation** (Current)
 
-   - Basic single-agent RSI capabilities ✅
-   - Module system and upgrades ✅
-   - Simple goal execution ✅
+   - Basic single-agent RSI capabilities [x]
+   - Module system and upgrades [x]
+   - Simple goal execution [x]
 
 2. **Phase 2: Memory & Reflection** (Next)
 

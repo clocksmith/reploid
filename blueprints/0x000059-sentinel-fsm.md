@@ -174,7 +174,7 @@ class SentinelFSMWidget extends HTMLElement {
     if (currentState === 'IDLE') {
       controls.push({
         id: 'test-cycle',
-        label: '▶ Test Cycle',
+        label: '☇ Test Cycle',
         action: () => {
           startCycle('Test goal: Verify FSM functionality');
           return { success: true, message: 'Test cycle started' };
@@ -321,14 +321,14 @@ const widget = {
 
 ## Success Criteria
 
-- ✅ All state transitions follow the defined FSM graph
-- ✅ Invalid transitions are rejected with error logging
-- ✅ State history is accurately recorded
-- ✅ Checkpoints prevent data loss during errors
-- ✅ UI updates reflect current state in real-time
-- ✅ Approval gates prevent unauthorized modifications
-- ✅ Error states trigger appropriate rollback
-- ✅ Reflection state stores learnings for future cycles
+- [x] All state transitions follow the defined FSM graph
+- [x] Invalid transitions are rejected with error logging
+- [x] State history is accurately recorded
+- [x] Checkpoints prevent data loss during errors
+- [x] UI updates reflect current state in real-time
+- [x] Approval gates prevent unauthorized modifications
+- [x] Error states trigger appropriate rollback
+- [x] Reflection state stores learnings for future cycles
 
 ---
 

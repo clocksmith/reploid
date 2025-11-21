@@ -3,7 +3,7 @@
 **Module ID:** `GENS`
 **File:** `genesis-snapshot.js`
 **Category:** RSI (Recursive Self-Improvement)
-**Status:** ✅ Implemented
+**Status:** [x] Implemented
 
 ---
 
@@ -534,7 +534,7 @@ class GenesisSnapshotWidget extends HTMLElement {
       primaryMetric: summary.has_genesis ? 'Genesis saved' : 'No genesis',
       secondaryMetric: `${summary.modules_changed} modified`,
       lastActivity: summary.genesis_timestamp,
-      message: !summary.has_genesis ? '⚠️ No genesis snapshot' : null
+      message: !summary.has_genesis ? '☡ No genesis snapshot' : null
     };
   }
 
@@ -542,7 +542,7 @@ class GenesisSnapshotWidget extends HTMLElement {
     return [
       {
         id: 'save-genesis',
-        label: '💾 Save Genesis',
+        label: '⚿ Save Genesis',
         action: async () => {
           await saveGenesisSnapshot();
           return { success: true, message: 'Genesis snapshot saved' };
@@ -728,11 +728,11 @@ UI component showing:
 
 The Genesis Snapshot System enables REPLOID to be a **truly self-aware RSI agent**:
 
-✅ Knows its starting state
-✅ Tracks self-modifications
-✅ Measures evolution delta
-✅ Can rollback if needed
-✅ Foundation for learning from evolution
+[x] Knows its starting state
+[x] Tracks self-modifications
+[x] Measures evolution delta
+[x] Can rollback if needed
+[x] Foundation for learning from evolution
 
 This is the **memory system** for recursive self-improvement.
 
@@ -740,4 +740,4 @@ This is the **memory system** for recursive self-improvement.
 
 **Blueprint Version:** 1.0.0
 **Last Updated:** 2025-10-19
-**Implementation Status:** ✅ Complete (280 LOC)
+**Implementation Status:** [x] Complete (280 LOC)

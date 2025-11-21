@@ -327,7 +327,7 @@ const suites = [
 ### 5. Extension Opportunities
 - Integrate with Paxos to require self-test pass before agent competes.
 - Provide CLI command `paws self-test` leveraging same module.
-- Generate badges for docs (`✅ Last run: 2025-05-12, 98% success`).
+- Generate badges for docs (`[x] Last run: 2025-05-12, 98% success`).
 - Feed metrics into Reflection Analyzer to correlate failures with strategies.
 
 Maintain this blueprint as new suites are added or the testing cadence changes.

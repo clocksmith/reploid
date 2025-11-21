@@ -16,11 +16,11 @@
 
 Without the ability to modify its own source code, an agent is fundamentally limited - it can reason, analyze, and recommend changes, but it cannot actually evolve itself. The write tools manifest (`tools-write.json`) defines the **specific operations that enable self-modification**:
 
-- ✏️ **modify_artifact** - Edit existing code files
-- ➕ **create_artifact** - Add new modules/tools
-- ❌ **delete_artifact** - Remove obsolete code
-- 📋 **rename_artifact** - Refactor file structure
-- 💾 **checkpoint** - Save state before risky changes
+- ✎ **modify_artifact** - Edit existing code files
+- ☩ **create_artifact** - Add new modules/tools
+- [ ] **delete_artifact** - Remove obsolete code
+- ☷ **rename_artifact** - Refactor file structure
+- ⚿ **checkpoint** - Save state before risky changes
 - ⏮️ **rollback** - Undo failed modifications
 
 **Why separate from read tools?**

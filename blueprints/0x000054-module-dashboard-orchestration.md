@@ -130,7 +130,7 @@ const ModuleDashboard = {
             <div class="widget-card-body">
               <!-- Status Indicator -->
               <div class="widget-status ${statusClass}">
-                <span class="status-dot">●</span>
+                <span class="status-dot">★</span>
                 <span class="status-text">${formatStatus(state.state)}</span>
               </div>
 

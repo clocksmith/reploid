@@ -111,11 +111,11 @@ function test(name, fn) {
     fn();
     results.passed++;
     results.tests.push({ name, passed: true });
-    console.log(`✅ ${name}`);
+    console.log(`★ ${name}`);
   } catch (error) {
     results.failed++;
     results.tests.push({ name, passed: false, error: error.message });
-    console.error(`❌ ${name}`);
+    console.error(`☒ ${name}`);
     console.error(`   ${error.message}`);
   }
 }
@@ -316,7 +316,7 @@ if (results.failed > 0) {
   results.tests
     .filter(t => !t.passed)
     .forEach(t => {
-      console.log(`  ❌ ${t.name}`);
+      console.log(`  ☒ ${t.name}`);
       console.log(`     ${t.error}`);
     });
 }

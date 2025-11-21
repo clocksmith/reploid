@@ -33,7 +33,7 @@ Currently, Sentinel approval UI is embedded in UIManager (upgrades/ui-manager.js
 
 ### EventBus Integration (Validated via Sync Point 1 - CRITICAL)
 
-**⚠️ BREAKING CHANGE:** Event schema uses `to` field instead of `newState`.
+**☡ BREAKING CHANGE:** Event schema uses `to` field instead of `newState`.
 
 **Primary Event (Incoming): `fsm:state:changed`**
 - **Emitted by:** `sentinel-fsm.js` (state machine transitions)
@@ -48,7 +48,7 @@ Currently, Sentinel approval UI is embedded in UIManager (upgrades/ui-manager.js
 }
 ```
 
-**⚠️ Original UIManager used `newState` directly - MUST UPDATE to use `to` field!**
+**☡ Original UIManager used `newState` directly - MUST UPDATE to use `to` field!**
 
 **Approval Events (Outgoing):**
 
@@ -503,52 +503,52 @@ const SentinelPanel = {
 
 **File:** `tests/unit/sentinel-panel.test.js`
 
-**Test Results:** ✅ 29/29 passing (100% pass rate!)
+**Test Results:** [x] 29/29 passing (100% pass rate!)
 
 **Test Suites:**
-1. **Initialization** (3 tests) - ✅ All passing
+1. **Initialization** (3 tests) - [x] All passing
    - Successful init with valid container
    - Error handling for missing container
    - Load auto-approve from localStorage
 
-2. **FSM State Handling** (5 tests) - ✅ All passing
+2. **FSM State Handling** (5 tests) - [x] All passing
    - Track current FSM state
    - Handle AWAITING_CONTEXT_APPROVAL
    - Handle AWAITING_PROPOSAL_APPROVAL
    - Handle IDLE state
    - Feature flag respect
 
-3. **Approval Actions** (4 tests) - ✅ All passing
+3. **Approval Actions** (4 tests) - [x] All passing
    - Emit user:approve:context
    - Emit user:reject:context
    - Emit user:approve:proposal
    - Emit user:reject:proposal
 
-4. **Auto-Approve Feature** (3 tests) - ✅ All passing
+4. **Auto-Approve Feature** (3 tests) - [x] All passing
    - Default disabled state
    - Toggle functionality
    - localStorage persistence
 
-5. **Widget Protocol - getStatus()** (5 tests) - ✅ All passing
+5. **Widget Protocol - getStatus()** (5 tests) - [x] All passing
    - Idle state by default
    - awaiting-approval for context
    - awaiting-approval for proposal
    - Auto-approve status display
    - Last approval time tracking
 
-6. **Widget Protocol - getControls()** (4 tests) - ✅ All passing
+6. **Widget Protocol - getControls()** (4 tests) - [x] All passing
    - Auto-approve toggle always present
    - Context approval controls (dynamic)
    - Proposal approval controls (dynamic)
    - Control action execution
 
-7. **DiffViewerUI Integration** (1 test) - ✅ All passing
+7. **DiffViewerUI Integration** (1 test) - [x] All passing
    - Emit diff:show event for proposals
 
-8. **Cleanup** (1 test) - ✅ All passing
+8. **Cleanup** (1 test) - [x] All passing
    - EventBus listener removal
 
-9. **Communication Contract Compliance** (3 tests) - ✅ All passing
+9. **Communication Contract Compliance** (3 tests) - [x] All passing
    - ui:panel-ready emission
    - ui:panel-error emission
    - Use "to" field (NOT "newState")
@@ -556,21 +556,21 @@ const SentinelPanel = {
 ---
 
 **Implementation Status:**
-- ✅ Section 1: Context complete
-- ✅ Section 2: Architectural solution complete (Sync Point 1 validated)
-- ✅ Section 3: Implementation summary complete
+- [x] Section 1: Context complete
+- [x] Section 2: Architectural solution complete (Sync Point 1 validated)
+- [x] Section 3: Implementation summary complete
 
 **Phase 8 Deliverables:**
-1. ✅ Module implementation complete (687 lines)
-2. ✅ Test suite complete (29/29 tests passing, 100% pass rate!)
-3. ✅ FSM state integration with `to` field usage
-4. ✅ Context approval workflow (with auto-approve)
-5. ✅ Proposal approval workflow
-6. ✅ DiffViewerUI integration via event emission
-7. ✅ Auto-approve toggle with localStorage persistence
-8. ✅ Widget Protocol compliance verified
-9. ✅ Cleanup pattern prevents memory leaks
-10. ✅ Dynamic controls based on FSM state
+1. [x] Module implementation complete (687 lines)
+2. [x] Test suite complete (29/29 tests passing, 100% pass rate!)
+3. [x] FSM state integration with `to` field usage
+4. [x] Context approval workflow (with auto-approve)
+5. [x] Proposal approval workflow
+6. [x] DiffViewerUI integration via event emission
+7. [x] Auto-approve toggle with localStorage persistence
+8. [x] Widget Protocol compliance verified
+9. [x] Cleanup pattern prevents memory leaks
+10. [x] Dynamic controls based on FSM state
 
 **Next Phase:** Phase 9 - UIManager Refactor (CLUSTER 1 + CLUSTER 2 integration)
 

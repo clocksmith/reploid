@@ -255,7 +255,7 @@ body {
 }
 
 .model-card-connection::before {
-  content: '●';
+  content: '★';
   font-size: 8px;
 }
 

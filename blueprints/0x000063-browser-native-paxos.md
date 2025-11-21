@@ -43,14 +43,14 @@ async function runPawsArenaWorkflow(objective) {
 ```
 
 **Limitations:**
-- ❌ Requires Node.js server running (not pure browser)
-- ❌ Requires Python environment
-- ❌ Requires Git worktrees (filesystem access)
-- ❌ Requires shell command execution
-- ❌ Cannot work in pure browser environment
-- ❌ No integration with REPLOID's VFS
-- ❌ No Web Worker-based verification
-- ❌ No WebRTC distribution capabilities
+- [ ] Requires Node.js server running (not pure browser)
+- [ ] Requires Python environment
+- [ ] Requires Git worktrees (filesystem access)
+- [ ] Requires shell command execution
+- [ ] Cannot work in pure browser environment
+- [ ] No integration with REPLOID's VFS
+- [ ] No Web Worker-based verification
+- [ ] No WebRTC distribution capabilities
 
 **The Vision:**
 
@@ -87,13 +87,13 @@ async function runBrowserArena(objective, config) {
 ```
 
 **Benefits:**
-- ✅ 100% browser-native (works offline)
-- ✅ Uses VFS snapshots (no filesystem access needed)
-- ✅ Web Worker verification (sandboxed safety)
-- ✅ Integrates with HybridLLMProvider (supports Gemini, Claude, GPT, local)
-- ✅ Optional WebRTC distribution (scale across tabs/browsers)
-- ✅ Telemetry integration with PAXA
-- ✅ First-class RSI capability (no proxy needed)
+- [x] 100% browser-native (works offline)
+- [x] Uses VFS snapshots (no filesystem access needed)
+- [x] Web Worker verification (sandboxed safety)
+- [x] Integrates with HybridLLMProvider (supports Gemini, Claude, GPT, local)
+- [x] Optional WebRTC distribution (scale across tabs/browsers)
+- [x] Telemetry integration with PAXA
+- [x] First-class RSI capability (no proxy needed)
 
 ---
 
@@ -853,14 +853,14 @@ describe('MultiModelArena Module', () => {
 
 ### Success Criteria
 
-- ✅ Runs 100% in browser (no Node.js/Python)
-- ✅ Uses VFS snapshots (no filesystem access)
-- ✅ Web Worker verification (sandboxed)
-- ✅ Supports multiple LLM providers
-- ✅ Emits telemetry to PAXA
-- ✅ Implements Module Widget Protocol
-- ✅ Handles failures gracefully
-- ✅ Real-time progress updates
+- [x] Runs 100% in browser (no Node.js/Python)
+- [x] Uses VFS snapshots (no filesystem access)
+- [x] Web Worker verification (sandboxed)
+- [x] Supports multiple LLM providers
+- [x] Emits telemetry to PAXA
+- [x] Implements Module Widget Protocol
+- [x] Handles failures gracefully
+- [x] Real-time progress updates
 
 ---
 

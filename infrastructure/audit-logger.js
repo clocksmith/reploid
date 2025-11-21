@@ -39,15 +39,27 @@ const AuditLogger = {
       const date = new Date().toISOString().split('T')[0];
       const path = `${LOG_DIR}/${date}.jsonl`;
 
-      try {
-        let content = '';
-        if (await VFS.exists(path)) {
-          content = await VFS.read(path);
+      // Retry once on failure to ensure audit trail integrity
+      for (let attempt = 0; attempt < 2; attempt++) {
+        try {
+          let content = '';
+          if (await VFS.exists(path)) {
+            content = await VFS.read(path);
+          }
+          content += JSON.stringify(entry) + '\n';
+          await VFS.write(path, content);
+          return; // Success
+        } catch (e) {
+          if (attempt === 0) {
+            logger.warn('[AuditLogger] Write failed, retrying...', e.message);
+            await new Promise(r => setTimeout(r, 50));
+          } else {
+            logger.error('[AuditLogger] Write failed after retry - audit event lost', {
+              error: e.message,
+              entry: { type, severity, id: entry.id }
+            });
+          }
         }
-        content += JSON.stringify(entry) + '\n';
-        await VFS.write(path, content);
-      } catch (e) {
-        logger.error('[AuditLogger] Write failed', e);
       }
     };
 

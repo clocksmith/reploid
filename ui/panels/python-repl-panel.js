@@ -30,13 +30,13 @@ const PythonReplPanel = {
         const error = PyodideRuntime.getError?.();
 
         if (error) {
-          if (statusIcon) statusIcon.textContent = '🔴';
+          if (statusIcon) statusIcon.textContent = '☒';
           if (statusText) statusText.textContent = `Error: ${error.message}`;
         } else if (isReady) {
-          if (statusIcon) statusIcon.textContent = '🟢';
+          if (statusIcon) statusIcon.textContent = '★';
           if (statusText) statusText.textContent = 'Ready';
         } else {
-          if (statusIcon) statusIcon.textContent = '🟡';
+          if (statusIcon) statusIcon.textContent = '☍';
           if (statusText) statusText.textContent = 'Initializing...';
         }
       };
@@ -63,7 +63,7 @@ const PythonReplPanel = {
           if (!code?.trim()) return;
 
           executeBtn.disabled = true;
-          executeBtn.textContent = '⏳ Running...';
+          executeBtn.textContent = '☍ Running...';
 
           try {
             if (syncCheck?.checked && PyodideRuntime?.syncWorkspace) {
@@ -78,7 +78,7 @@ const PythonReplPanel = {
             }
           } finally {
             executeBtn.disabled = false;
-            executeBtn.textContent = '▶️ Run';
+            executeBtn.textContent = '☇ Run';
           }
         };
       }
@@ -104,7 +104,7 @@ const PythonReplPanel = {
             logger.error('[PythonReplPanel] Sync failed:', err);
           } finally {
             syncBtn.disabled = false;
-            syncBtn.textContent = '🔁 Sync FS';
+            syncBtn.textContent = '♺ Sync FS';
           }
         };
       }

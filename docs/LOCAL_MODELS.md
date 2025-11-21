@@ -197,7 +197,7 @@ For best performance with REPLOID:
 
 ```
 ┌─────────────┐     ┌──────────────┐     ┌─────────────┐
-│   Browser   │────▶│ Node Proxy   │────▶│ Local Model │
+│   Browser   │────☇│ Node Proxy   │────☇│ Local Model │
 │  (REPLOID)  │     │   (Port 8000)│     │  (Ollama)   │
 └─────────────┘     └──────────────┘     └─────────────┘
                             │

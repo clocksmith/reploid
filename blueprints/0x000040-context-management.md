@@ -1,6 +1,6 @@
 # Blueprint 0x000046: Context Management
 
-**Status:** ✅ Implemented
+**Status:** [x] Implemented
 **Module ID:** CTXM
 **File:** `upgrades/context-manager.js`
 **Version:** 1.0.0
@@ -341,12 +341,12 @@ class ContextManagerWidget extends HTMLElement {
         </div>
         ${stats.needsPruning ? `
           <div class="warning-banner">
-            ⚠️ Context exceeds 80% capacity - pruning recommended
+            ☡ Context exceeds 80% capacity - pruning recommended
           </div>
           <button class="prune-btn">Prune Context Now</button>
         ` : ''}
         <div class="info">
-          <strong>ℹ️ Automatic Management</strong>
+          <strong>☛️ Automatic Management</strong>
           <div>Context is automatically pruned before API calls when utilization exceeds 80%</div>
         </div>
       </div>

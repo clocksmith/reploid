@@ -11,7 +11,12 @@ export async function initModelConfig() {
     console.log('[ModelConfig] Initializing card-based model selector...');
 
     // Check what's available
-    await checkAvailability();
+    try {
+        await checkAvailability();
+    } catch (error) {
+        console.error('[ModelConfig] Failed to check provider availability:', error.message);
+        // Continue with defaults - don't block boot
+    }
 
     // Load saved models
     loadSavedModels();

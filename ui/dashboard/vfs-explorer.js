@@ -50,7 +50,7 @@ const VFSExplorer = {
             <div class="vfs-toolbar" role="toolbar" aria-label="File explorer controls">
               <input type="text"
                      class="vfs-search"
-                     placeholder="🔍 Search files..."
+                     placeholder="⚲ Search files..."
                      value="${escapeHtml(this.searchTerm)}"
                      aria-label="Search files"
                      role="searchbox">
@@ -168,8 +168,8 @@ const VFSExplorer = {
 
       renderFolder(node, depth) {
         const isExpanded = this.expanded.has(node.path) || this.searchTerm !== '';
-        const icon = isExpanded ? '📂' : '📁';
-        const expandIcon = isExpanded ? '▼' : '▶';
+        const icon = isExpanded ? '☗' : '☗';
+        const expandIcon = isExpanded ? '▼' : '☇';
 
         const childrenHtml = isExpanded ? this.renderTree(node, depth + 1) : '';
         const fileCount = this.countFiles(node);
@@ -205,26 +205,26 @@ const VFSExplorer = {
       getFileIcon(path) {
         const ext = path.split('.').pop().toLowerCase();
         const iconMap = {
-          'js': '📜',
-          'json': '📋',
-          'md': '📝',
-          'css': '🎨',
-          'html': '🌐',
-          'txt': '📄',
-          'yml': '⚙️',
-          'yaml': '⚙️',
-          'xml': '📰',
-          'svg': '🖼️',
-          'png': '🖼️',
-          'jpg': '🖼️',
-          'jpeg': '🖼️',
-          'gif': '🖼️',
-          'pdf': '📕',
-          'zip': '📦',
-          'tar': '📦',
-          'gz': '📦'
+          'js': '☰',
+          'json': '☷',
+          'md': '☐',
+          'css': '☲',
+          'html': '☊',
+          'txt': '☐',
+          'yml': '⎈',
+          'yaml': '⎈',
+          'xml': '☐',
+          'svg': '☻',
+          'png': '☻',
+          'jpg': '☻',
+          'jpeg': '☻',
+          'gif': '☻',
+          'pdf': '☙',
+          'zip': '⛝',
+          'tar': '⛝',
+          'gz': '⛝'
         };
-        return iconMap[ext] || '📄';
+        return iconMap[ext] || '☐';
       }
 
       formatSize(bytes) {
@@ -391,7 +391,7 @@ const VFSExplorer = {
                   <span class="vfs-icon">${this.getFileIcon(path)}</span>
                   <span>${escapeHtml(path)}</span>
                 </div>
-                <button class="vfs-file-viewer-close">✕</button>
+                <button class="vfs-file-viewer-close">☩</button>
               </div>
               <div class="vfs-file-viewer-meta">
                 Type: ${metadata?.type || 'unknown'} |
@@ -402,9 +402,9 @@ const VFSExplorer = {
                 <pre><code class="language-${language}">${escapeHtml(content || '')}</code></pre>
               </div>
               <div class="vfs-file-viewer-footer">
-                <button class="vfs-file-viewer-copy">📋 Copy</button>
-                <button class="vfs-file-viewer-history">📜 History</button>
-                <button class="vfs-file-viewer-edit">✏️ Edit</button>
+                <button class="vfs-file-viewer-copy">☷ Copy</button>
+                <button class="vfs-file-viewer-history">☐ History</button>
+                <button class="vfs-file-viewer-edit">✎ Edit</button>
               </div>
             </div>
           `;

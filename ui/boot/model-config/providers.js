@@ -70,15 +70,19 @@ const additionalWebLLMModels = [
 
 // Get WebLLM models from runtime config
 async function getWebLLMModels() {
-    // Wait for WebLLM to load
+    // Wait for WebLLM to load with timeout
+    const maxWaitMs = 5000;
+    const startTime = Date.now();
     let retries = 0;
-    while (!window.webllm && retries < 30) {
+
+    while (!window.webllm && (Date.now() - startTime) < maxWaitMs) {
         await new Promise(r => setTimeout(r, 100));
         retries++;
     }
 
     if (!window.webllm?.prebuiltAppConfig?.model_list) {
-        console.warn('[ModelConfig] WebLLM prebuiltAppConfig not available');
+        const elapsed = Date.now() - startTime;
+        console.warn(`[ModelConfig] WebLLM prebuiltAppConfig not available after ${retries} retries (${elapsed}ms)`);
         return [];
     }
 
@@ -139,9 +143,11 @@ export async function checkAvailability() {
                 id: m.name || m.model,
                 name: m.name || m.model
             }));
+        } else {
+            console.log(`[ModelConfig] Ollama API returned ${response.status} - this is normal if running without local proxy`);
         }
     } catch (error) {
-        console.log('[ModelConfig] Ollama not available:', error.message);
+        console.log('[ModelConfig] Ollama not available (expected when hosted):', error.message);
     }
 
     // Check WebGPU
@@ -171,9 +177,14 @@ export async function checkAvailability() {
         const response = await fetch(`${proxyUrl}/api/health`, {
             signal: AbortSignal.timeout(3000)
         });
-        providers.proxy.online = response.ok;
+        if (response.ok) {
+            providers.proxy.online = true;
+        } else {
+            console.log(`[ModelConfig] Proxy health check returned ${response.status} - this is normal if running without local proxy`);
+            providers.proxy.online = false;
+        }
     } catch (error) {
-        console.log('[ModelConfig] Proxy not available:', error.message);
+        console.log('[ModelConfig] Proxy not available (expected when hosted):', error.message);
     }
 
     setAvailableProviders(providers);

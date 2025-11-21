@@ -465,47 +465,47 @@ export default function createModule(ModuleLoader, EventBus) {
 
 **File:** `tests/unit/status-bar.test.js`
 
-**Test Results:** ✅ 26/28 passing (93% pass rate)
+**Test Results:** [x] 26/28 passing (93% pass rate)
 
 **Test Suites:**
-1. **Initialization** (4 tests) - ✅ All passing
+1. **Initialization** (4 tests) - [x] All passing
    - API and widget objects export
    - EventBus subscription
    - Success/error event emission
    - Interval setup
 
-2. **FSM State Tracking** (4 tests) - ✅ All passing
+2. **FSM State Tracking** (4 tests) - [x] All passing
    - Current FSM state tracking
    - State change event handling
    - Real-time updates
 
-3. **Module Status Aggregation** (6 tests) - ✅ All passing
+3. **Module Status Aggregation** (6 tests) - [x] All passing
    - Poll all module widgets
    - Aggregate status from getStatus()
    - Module count calculations
    - Error module detection
    - Graceful handling of missing modules
 
-4. **Expand/Collapse** (3 tests) - ✅ All passing
+4. **Expand/Collapse** (3 tests) - [x] All passing
    - Toggle expansion
    - Expand/collapse methods
    - State persistence
 
-5. **Cleanup** (3 tests) - ✅ All passing
+5. **Cleanup** (3 tests) - [x] All passing
    - EventBus listener removal
    - Interval cleanup
    - Idempotent cleanup
 
-6. **Widget Protocol** (3 tests) - ✅ All passing
+6. **Widget Protocol** (3 tests) - [x] All passing
    - Required widget fields
    - v2.0 compliance
    - getStatus() implementation
 
-7. **Real-Time Updates** (2 tests) - ⚠️ 1 failing (timing-related)
+7. **Real-Time Updates** (2 tests) - ☡ 1 failing (timing-related)
    - 1-second polling interval
    - Interval cleanup on disconnect
 
-8. **API Methods** (3 tests) - ✅ All passing
+8. **API Methods** (3 tests) - [x] All passing
    - getFSMState, getModuleStatuses
    - aggregateStatus
 
@@ -514,19 +514,19 @@ export default function createModule(ModuleLoader, EventBus) {
 ---
 
 **Implementation Status:**
-- ✅ Section 1: Strategic Imperative complete
-- ✅ Section 2: Architectural Overview complete
-- ✅ Section 3: Implementation Summary complete
+- [x] Section 1: Strategic Imperative complete
+- [x] Section 2: Architectural Overview complete
+- [x] Section 3: Implementation Summary complete
 
 **Phase 3 Deliverables:**
-1. ✅ Module implementation complete (477 lines)
-2. ✅ Test suite complete (26/28 tests passing, 93% pass rate)
-3. ✅ Multi-source status aggregation from all widgets
-4. ✅ Real-time updates (1-second polling)
-5. ✅ Expand/collapse detailed view
-6. ✅ Widget Protocol v2.0 compliance verified
-7. ✅ Cleanup pattern prevents memory leaks
-8. ✅ Handles 81+ modules with smooth performance
+1. [x] Module implementation complete (477 lines)
+2. [x] Test suite complete (26/28 tests passing, 93% pass rate)
+3. [x] Multi-source status aggregation from all widgets
+4. [x] Real-time updates (1-second polling)
+5. [x] Expand/collapse detailed view
+6. [x] Widget Protocol v2.0 compliance verified
+7. [x] Cleanup pattern prevents memory leaks
+8. [x] Handles 81+ modules with smooth performance
 
 **Next Phase:** Phase 4 - Integration Tests (deferred to Phase 9)
 

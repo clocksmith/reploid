@@ -153,7 +153,9 @@ const ToolRunner = {
         return result;
       } catch (err) {
         logger.error(`[ToolRunner] Error in ${name}`, err);
-        throw new Errors.ToolError(err.message, { tool: name, args });
+        const errorWithContext = new Errors.ToolError(err.message, { tool: name, args });
+        errorWithContext.stack = err.stack; // Preserve original stack trace
+        throw errorWithContext;
       }
     };
 

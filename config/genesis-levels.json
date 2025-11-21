@@ -57,7 +57,7 @@
     "ReflectionStore": "./capabilities/reflection/reflection-store.js",
     "ReflectionAnalyzer": "./capabilities/reflection/reflection-analyzer.js",
     "AgentLoop": "./core/agent-loop.js",
-    "SubstrateLoader": "./core/substrate-loader.js",
+    "SubstrateLoader": "./capabilities/system/substrate-loader.js",
     "PerformanceMonitor": "./capabilities/performance/performance-monitor.js",
     "SelfTester": "./capabilities/testing/self-tester.js"
   },

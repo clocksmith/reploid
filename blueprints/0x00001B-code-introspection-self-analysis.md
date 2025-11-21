@@ -17,7 +17,7 @@
 For true Recursive Self-Improvement (RSI), the agent must possess the ability to:
 
 - 📊 **Analyze its own code complexity** - Identify functions that need refactoring
-- 🔍 **Map its dependency graph** - Understand which modules depend on which
+- ⚲ **Map its dependency graph** - Understand which modules depend on which
 - 📈 **Measure performance metrics** - Find bottlenecks in its own execution
 - 🧬 **Parse its own AST** - Understand code structure at a deep level
 - 🗺️ **Visualize its architecture** - See the big picture of how it's built
@@ -485,7 +485,7 @@ assert(analysis.lines_of_code > 50);
 Without it, RSI is blind trial-and-error. With it, RSI becomes intelligent, targeted self-improvement.
 
 The agent can:
-- 🔍 **See its own structure**
+- ⚲ **See its own structure**
 - 📊 **Measure its own quality**
 - 🎯 **Identify improvement opportunities**
 - 📚 **Document its own evolution**

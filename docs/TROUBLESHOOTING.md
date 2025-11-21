@@ -104,7 +104,7 @@ navigator.storage.estimate().then(estimate => {
 });
 
 // 2. Export important sessions first
-// Click "💾 Export" button in status bar for each session
+// Click "⚿ Export" button in status bar for each session
 
 // 3. Clear old data
 await StateManager.clearAllData();
@@ -280,7 +280,7 @@ google-chrome --disable-web-security --user-data-dir=/tmp/chrome_dev
 ### File System Access Permission Denied
 
 **Symptoms:**
-- "📁 Connect Directory" button does nothing
+- "☗ Connect Directory" button does nothing
 - `DOMException: The user aborted a request`
 - Files not syncing to disk
 
