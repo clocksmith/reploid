@@ -105,9 +105,9 @@ const AgentLoop = {
             let executedTools = 0;
             for (const call of toolCalls) {
               if (executedTools >= MAX_TOOL_CALLS_PER_ITERATION) {
-                const limitMsg = `Tool call limit (${MAX_TOOL_CALLS_PER_ITERATION}) reached for this iteration. Finish current thoughts or continue next turn.`;
+                const limitMsg = `Tool call limit (${MAX_TOOL_CALLS_PER_ITERATION}) reached for this iteration. Continue next turn.`;
                 logger.warn('[Agent] ' + limitMsg);
-                context.push({ role: 'system', content: limitMsg });
+                context.push({ role: 'user', content: limitMsg });
                 break;
               }
 
