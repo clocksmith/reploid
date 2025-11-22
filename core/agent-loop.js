@@ -154,9 +154,9 @@ const AgentLoop = {
               break;
             }
             // WebLLM requires last message to be user/tool - add continuation prompt
-            let continuationMsg = 'ERROR: No tool call detected. You MUST use a tool. Example:\n\nTOOL_CALL: list_files\nARGS: { "path": "/" }\n\nTry again now.';
+            let continuationMsg = 'No tool call detected. Use format:\n\nTOOL_CALL: tool_name\nARGS: { }';
             if (iteration > 3) {
-              continuationMsg = 'CRITICAL: You are not following the protocol. Your response MUST contain TOOL_CALL: followed by ARGS:. Stop describing and ACT. Use list_files to start.';
+              continuationMsg = 'You must use a tool or say DONE.';
             }
             context.push({ role: 'user', content: continuationMsg });
           }
@@ -195,33 +195,23 @@ const AgentLoop = {
       const systemPrompt = `
 ${personaPrompt}
 
-## Core Tools
-- code_intel: Analyze file structure (imports, exports, functions). *USE THIS FIRST* to save tokens before reading large files. Args: { "path": "/path/to/file" }
-- read_file: Read file content. Args: { "path": "/path/to/file" }
-- write_file: Create/Overwrite file. Args: { "path": "/path/to/file", "content": "..." }
-- delete_file: Remove a file. Args: { "path": "/path/to/file" }
-- list_files: List directory. Args: { "path": "/" }
-- create_tool: Create new tool (RSI L1). Args: { "name": "x", "code": "..." }
-- improve_core_module: Rewrite core module (RSI L2). Args: { "module": "x", "code": "..." }
-${ToolRunner.has('load_module') ? '- load_module: Hot-reload module (RSI L3). Args: { "path": "/path/to/module.js" }' : ''}
-
-## CRITICAL RULES
-1. You MUST use tools to accomplish your goal. DO NOT just describe what you would do.
-2. EVERY response MUST contain at least one TOOL_CALL unless you are declaring DONE.
-3. Start by using list_files to explore the VFS structure.
-4. Do NOT ask for permission or confirmation. Act autonomously.
+## Tools
+- list_files: explore directories
+- read_file: read file contents
+- write_file: create or modify files
+- delete_file: remove files
+- create_tool: make new tools in /tools/
+- improve_core_module: modify core modules
 
 ## Tool Call Format
-Use EXACTLY this format:
+TOOL_CALL: tool_name
+ARGS: { "key": "value" }
 
-TOOL_CALL: list_files
-ARGS: { "path": "/" }
-
-Example response:
-"I'll start by exploring the file system to understand the codebase structure.
-
-TOOL_CALL: list_files
-ARGS: { "path": "/" }"
+## Rules
+- Act autonomously. Do not ask for permission.
+- Every response must use at least one tool unless declaring DONE.
+- Iterate: analyze results, identify improvements, apply them, repeat.
+- Say DONE only when the goal is fully achieved.
 
 ## Goal
 ${goal}
@@ -229,7 +219,7 @@ ${goal}
 
       return [
         { role: 'system', content: systemPrompt.trim() },
-        { role: 'user', content: `Begin now. Your first action should be to explore the VFS with list_files. Goal: ${goal}` }
+        { role: 'user', content: `Begin. Goal: ${goal}` }
       ];
     };
 
