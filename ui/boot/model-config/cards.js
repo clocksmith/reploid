@@ -238,7 +238,7 @@ export function setupCardListeners() {
             // Set a default goal for the demo
             const goalInput = document.getElementById('goal-input');
             if (goalInput && !goalInput.value.trim()) {
-                goalInput.value = 'Analyze and improve your own system prompt';
+                goalInput.value = 'Audit /core and /capabilities to summarize your mission, then iteratively refactor blockers to achieve recursive self-improvement.';
             }
 
             const awakenBtn = document.getElementById('awaken-btn');

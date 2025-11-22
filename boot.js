@@ -383,6 +383,9 @@ function initCrosshair() {
             if (line) line.remove();
           });
 
+          // Remove grid pattern overlay
+          document.body.classList.add('no-grid-pattern');
+
           const appEl = document.getElementById('app');
           appEl.classList.add('active');
           proto.mount(appEl);
