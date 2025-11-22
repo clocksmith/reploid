@@ -16,6 +16,10 @@ const ToolWriter = {
     const { logger, Errors } = Utils;
 
     const validateCode = (code) => {
+      // Check if code is provided
+      if (!code || typeof code !== 'string') {
+        throw new Errors.ValidationError('Missing or invalid code parameter. create_tool requires { name, code } where code is the tool implementation.');
+      }
       // Basic sanity check
       if (!code.includes('export default') || !code.includes('async function')) {
         throw new Errors.ValidationError('Tool must export a default async function');
