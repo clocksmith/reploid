@@ -209,12 +209,19 @@ ${ToolRunner.has('load_module') ? '- load_module: Hot-reload module (RSI L3). Ar
 1. You MUST use tools to accomplish your goal. DO NOT just describe what you would do.
 2. EVERY response MUST contain at least one TOOL_CALL unless you are declaring DONE.
 3. Start by using list_files to explore the VFS structure.
-4. Use the EXACT format below for tool calls:
+4. Do NOT ask for permission or confirmation. Act autonomously.
 
-TOOL_CALL: tool_name
-ARGS: { "key": "value" }
+## Tool Call Format
+Use EXACTLY this format:
 
-5. Do NOT ask for permission or confirmation. Act autonomously.
+TOOL_CALL: list_files
+ARGS: { "path": "/" }
+
+Example response:
+"I'll start by exploring the file system to understand the codebase structure.
+
+TOOL_CALL: list_files
+ARGS: { "path": "/" }"
 
 ## Goal
 ${goal}
