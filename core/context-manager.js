@@ -39,16 +39,17 @@ const ContextManager = {
       const text = middle.map(m => `${m.role}: ${m.content}`).join('\n');
 
       try {
-        const res = await LLMClient.chat([{
-          role: 'user',
-          content: `Summarize this conversation, keeping key technical details and tool results:\n${text}`
-        }], modelConfig);
+        const res = await LLMClient.chat([
+          { role: 'system', content: 'You are a helpful assistant that summarizes conversations concisely.' },
+          { role: 'user', content: `Summarize this conversation, keeping key technical details and tool results:\n${text}` }
+        ], modelConfig);
 
         const summary = res?.content || '[Summary unavailable]';
-        return [...start, { role: 'system', content: `[SUMMARY]: ${summary}` }, ...end];
+        // Insert summary as user message to avoid multiple system messages (WebLLM requirement)
+        return [...start, { role: 'user', content: `[CONTEXT SUMMARY]: ${summary}` }, ...end];
       } catch (e) {
         logger.error('[ContextManager] Compaction failed', e);
-        return [...start, { role: 'system', content: '[DATA PRUNED]' }, ...end];
+        return [...start, { role: 'user', content: '[Previous context was pruned due to length]' }, ...end];
       }
     };
 
