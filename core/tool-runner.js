@@ -23,19 +23,25 @@ const ToolRunner = {
 
     const builtIns = {
       // VFS Ops
-      read_file: async ({ path }) => {
+      read_file: async (args) => {
+        const path = args.path || args.file;
         if (!path) throw new Errors.ValidationError('Missing path');
         return await VFS.read(path);
       },
-      write_file: async ({ path, content }) => {
+      write_file: async (args) => {
+        const path = args.path || args.file;
+        const content = args.content;
         if (!path || content === undefined) throw new Errors.ValidationError('Missing args');
         await VFS.write(path, content);
         return `Wrote ${path} (${content.length} bytes)`;
       },
-      list_files: async ({ path }) => {
+      list_files: async (args) => {
+        const path = args.path || args.directory || args.dir;
         return await VFS.list(path || '/');
       },
-      delete_file: async ({ path }) => {
+      delete_file: async (args) => {
+        const path = args.path || args.file;
+        if (!path) throw new Errors.ValidationError('Missing path');
         await VFS.delete(path);
         return `Deleted ${path}`;
       },
