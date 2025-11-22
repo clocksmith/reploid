@@ -247,3 +247,265 @@ body.reticle-active .reticle-line {
 @media (pointer: coarse) {
     .reticle-line { display: none !important; }
 }
+
+/* ========================================
+   MOBILE RESPONSIVENESS
+   ======================================== */
+
+/* WebLLM Demo Card */
+.webllm-demo-card {
+    width: 100%;
+    margin: 20px 0;
+    padding: 15px;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(0, 255, 255, 0.3);
+    border-radius: 6px;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+}
+
+.webllm-demo-title {
+    color: #ccc;
+    font-size: 16px;
+    white-space: nowrap;
+}
+
+.webllm-demo-desc {
+    color: #666;
+    font-size: 14px;
+    flex: 1;
+    line-height: 1.4;
+}
+
+.webllm-demo-btn {
+    min-width: 140px;
+}
+
+/* Tablet breakpoint */
+@media (max-width: 768px) {
+    #boot-container {
+        width: calc(100% - 40px);
+        padding: 30px 20px;
+    }
+
+    .boot-header h1 {
+        font-size: 2.5rem;
+        letter-spacing: 2px;
+    }
+
+    /* WebLLM Demo - stack on tablet */
+    .webllm-demo-card {
+        flex-direction: column;
+        align-items: stretch;
+        text-align: center;
+        gap: 12px;
+    }
+
+    .webllm-demo-title {
+        font-size: 15px;
+    }
+
+    .webllm-demo-desc {
+        font-size: 13px;
+    }
+
+    .webllm-demo-btn {
+        width: 100%;
+        min-width: auto;
+    }
+
+    /* Provider Status Bar */
+    .provider-status-bar {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+    }
+
+    .provider-status-item {
+        padding: 12px 10px;
+    }
+
+    /* Genesis Level Options */
+    .boot-mode-options {
+        gap: 15px;
+    }
+
+    .boot-mode-btn {
+        padding: 20px 15px;
+    }
+
+    /* Goal Input */
+    .goal-input-group {
+        flex-direction: column;
+    }
+
+    .goal-input-group input,
+    .goal-input-group button {
+        width: 100%;
+    }
+
+    /* Model Cards */
+    .model-cards-container {
+        padding: 15px;
+    }
+
+    .model-card {
+        min-width: 180px;
+    }
+
+    /* Modal */
+    .modal-content {
+        width: 95vw;
+        max-width: 95vw;
+    }
+}
+
+/* Mobile breakpoint */
+@media (max-width: 480px) {
+    #boot-container {
+        width: calc(100% - 24px);
+        padding: 20px 12px;
+        max-height: calc(100vh - 20px);
+    }
+
+    .boot-header h1 {
+        font-size: 2rem;
+        letter-spacing: 1px;
+    }
+
+    .boot-header .subtitle {
+        font-size: 0.75rem;
+        letter-spacing: 1px;
+    }
+
+    /* WebLLM Demo - compact on mobile */
+    .webllm-demo-card {
+        padding: 12px;
+        gap: 10px;
+    }
+
+    .webllm-demo-title {
+        font-size: 14px;
+    }
+
+    .webllm-demo-desc {
+        font-size: 12px;
+    }
+
+    /* Provider Status Bar - single column */
+    .provider-status-bar {
+        grid-template-columns: 1fr;
+        gap: 6px;
+        margin: 20px 0;
+    }
+
+    .provider-status-item {
+        padding: 10px;
+        flex-direction: row;
+        justify-content: space-between;
+    }
+
+    .provider-status-label {
+        font-size: 9px;
+    }
+
+    .provider-status-value {
+        font-size: 11px;
+    }
+
+    /* Genesis Level Options - single column */
+    .boot-mode-options {
+        grid-template-columns: 1fr;
+        gap: 12px;
+        margin-top: 20px;
+    }
+
+    .boot-mode-btn {
+        padding: 15px 12px;
+    }
+
+    .boot-mode-label {
+        font-size: 14px;
+    }
+
+    .boot-mode-desc {
+        font-size: 11px;
+    }
+
+    /* Goal chips */
+    .goal-example-chips {
+        gap: 6px;
+    }
+
+    .goal-chip {
+        padding: 6px 10px;
+        font-size: 10px;
+        /* Touch-friendly size */
+        min-height: 36px;
+        display: flex;
+        align-items: center;
+    }
+
+    /* Model Cards */
+    .model-cards-container {
+        padding: 12px;
+        margin-bottom: 15px;
+    }
+
+    .model-cards-title {
+        font-size: 12px;
+    }
+
+    .model-card {
+        min-width: 160px;
+        padding: 12px;
+    }
+
+    /* Buttons - touch friendly */
+    .btn, button {
+        min-height: 44px;
+        font-size: 13px;
+    }
+
+    .model-card-btn {
+        min-height: 32px;
+        padding: 6px 10px;
+        font-size: 11px;
+    }
+
+    /* Modal - full width on small screens */
+    .modal-content {
+        width: 98vw;
+        max-width: 98vw;
+    }
+
+    .modal-header {
+        padding: 12px;
+    }
+
+    .modal-body {
+        padding: 15px;
+    }
+}
+
+/* Touch optimization */
+@media (pointer: coarse) {
+    .goal-chip,
+    .model-card-btn,
+    .btn,
+    button {
+        min-height: 44px;
+    }
+
+    .provider-status-item {
+        min-height: 48px;
+    }
+
+    /* Improve scrolling on touch */
+    .model-cards-list,
+    #boot-container {
+        -webkit-overflow-scrolling: touch;
+    }
+}
