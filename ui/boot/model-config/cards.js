@@ -220,8 +220,8 @@ export function setupCardListeners() {
             }
 
             const demoModel = {
-                id: 'Llama-3.2-1B-Instruct-q4f32_1-MLC',
-                name: 'Llama 3.2 1B',
+                id: 'Qwen2.5-3B-Instruct-q4f32_1-MLC',
+                name: 'Qwen 2.5 3B',
                 provider: 'webllm',
                 hostType: 'browser-local',
                 queryMethod: 'browser',
