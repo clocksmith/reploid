@@ -154,9 +154,9 @@ const AgentLoop = {
               break;
             }
             // WebLLM requires last message to be user/tool - add continuation prompt
-            let continuationMsg = 'Continue with your task. Use a tool or declare completion with "DONE".';
-            if (iteration > 5) {
-              continuationMsg = 'You are chattering without acting. Please use a tool or declare completion with "DONE".';
+            let continuationMsg = 'ERROR: No tool call detected. You MUST use a tool. Example:\n\nTOOL_CALL: list_files\nARGS: { "path": "/" }\n\nTry again now.';
+            if (iteration > 3) {
+              continuationMsg = 'CRITICAL: You are not following the protocol. Your response MUST contain TOOL_CALL: followed by ARGS:. Stop describing and ACT. Use list_files to start.';
             }
             context.push({ role: 'user', content: continuationMsg });
           }
@@ -205,12 +205,16 @@ ${personaPrompt}
 - improve_core_module: Rewrite core module (RSI L2). Args: { "module": "x", "code": "..." }
 ${ToolRunner.has('load_module') ? '- load_module: Hot-reload module (RSI L3). Args: { "path": "/path/to/module.js" }' : ''}
 
-## Protocol
-1. **THINK**: Plan your next step.
-2. **ACT**: Use tools via format:
+## CRITICAL RULES
+1. You MUST use tools to accomplish your goal. DO NOT just describe what you would do.
+2. EVERY response MUST contain at least one TOOL_CALL unless you are declaring DONE.
+3. Start by using list_files to explore the VFS structure.
+4. Use the EXACT format below for tool calls:
+
 TOOL_CALL: tool_name
-ARGS: { ... }
-3. Always inspect the VFS with list_files before reading. Only read paths that actually exist (e.g., /core/..., /tools/...). If a file is missing, create it instead of repeatedly requesting it.
+ARGS: { "key": "value" }
+
+5. Do NOT ask for permission or confirmation. Act autonomously.
 
 ## Goal
 ${goal}
@@ -218,7 +222,7 @@ ${goal}
 
       return [
         { role: 'system', content: systemPrompt.trim() },
-        { role: 'user', content: `Start. Goal: ${goal}` }
+        { role: 'user', content: `Begin now. Your first action should be to explore the VFS with list_files. Goal: ${goal}` }
       ];
     };
 
