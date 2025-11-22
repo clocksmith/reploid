@@ -207,6 +207,10 @@ ${personaPrompt}
 TOOL_CALL: tool_name
 ARGS: { "key": "value" }
 
+Example:
+TOOL_CALL: read_file
+ARGS: { "path": "/core/agent-loop.js" }
+
 ## Rules
 - Act autonomously. Do not ask for permission.
 - Every response must use at least one tool unless declaring DONE.
