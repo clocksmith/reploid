@@ -500,7 +500,103 @@
    RESPONSIVE
    ======================================== */
 
+/* ========================================
+   DASHBOARD MOBILE RESPONSIVENESS
+   ======================================== */
+
+/* Tablet breakpoint */
+@media (max-width: 1024px) {
+    /* Reduce utility panel width */
+    .app-shell {
+        grid-template-columns: 50px 1fr 240px;
+    }
+
+    .utility-header {
+        padding: var(--space-sm) var(--space-md);
+    }
+}
+
+/* Mobile breakpoint */
 @media (max-width: 768px) {
+    /* Switch to single column layout */
+    .app-shell {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto 1fr auto;
+    }
+
+    /* Sidebar becomes horizontal bottom bar */
+    .sidebar {
+        order: 3;
+        flex-direction: row;
+        border-right: none;
+        border-top: 1px solid var(--border-default);
+        padding: 0 8px;
+        justify-content: space-around;
+    }
+
+    .sidebar-btn {
+        width: auto;
+        height: 48px;
+        padding: 0 12px;
+        min-width: 48px;
+    }
+
+    .sidebar-spacer {
+        display: none;
+    }
+
+    /* Workspace takes main area */
+    .workspace {
+        order: 1;
+    }
+
+    .workspace-header {
+        padding: 10px 12px;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .workspace-title {
+        font-size: var(--font-xs);
+    }
+
+    .workspace-status {
+        font-size: var(--font-xs);
+    }
+
+    .workspace-content {
+        padding: 12px;
+    }
+
+    /* Utility panel slides from bottom or hides */
+    .utility-panel {
+        order: 2;
+        border-left: none;
+        border-bottom: 1px solid var(--border-default);
+        max-height: 200px;
+        overflow: hidden;
+    }
+
+    .utility-panel.expanded {
+        max-height: 50vh;
+    }
+
+    .utility-header {
+        padding: 8px 12px;
+        font-size: 11px;
+    }
+
+    .vfs-tree {
+        max-height: 100px;
+        font-size: 10px;
+    }
+
+    .vfs-content {
+        max-height: 80px;
+        font-size: 9px;
+    }
+
+    /* Dashboard main legacy styles */
     .dashboard-main {
         flex-direction: column;
     }
@@ -512,6 +608,191 @@
 
     .panel {
         max-height: 50vh;
+        padding: var(--space-md);
+    }
+
+    /* History entries */
+    .history-entry {
+        margin-bottom: var(--space-sm);
+    }
+
+    .history-header {
+        padding: var(--space-xs) var(--space-sm);
+        font-size: var(--font-xs);
+    }
+
+    .history-content {
+        padding: var(--space-sm);
+        font-size: 10px;
+        max-height: 200px;
+    }
+
+    /* Status items */
+    .status-item {
+        padding: var(--space-xs) var(--space-sm);
+    }
+
+    .status-label,
+    .status-value {
+        font-size: 10px;
+    }
+
+    /* Controls */
+    .controls {
+        flex-direction: column;
+        gap: var(--space-sm);
+    }
+
+    .controls input {
+        width: 100%;
+    }
+
+    .controls button {
+        width: 100%;
+    }
+}
+
+/* Small mobile */
+@media (max-width: 480px) {
+    .app-shell {
+        grid-template-rows: auto 1fr 56px;
+    }
+
+    .sidebar-btn {
+        height: 44px;
+        font-size: 14px;
+    }
+
+    .workspace-header {
+        padding: 8px 10px;
+    }
+
+    .workspace-title span:last-child {
+        max-width: 150px;
+    }
+
+    .workspace-content {
+        padding: 10px;
+    }
+
+    /* Utility panel minimal on small screens */
+    .utility-panel {
+        max-height: 150px;
+    }
+
+    .utility-header {
+        padding: 6px 10px;
+        font-size: 10px;
+    }
+
+    .vfs-tree {
+        max-height: 70px;
+        padding: 6px;
+    }
+
+    .vfs-content {
+        max-height: 60px;
+        padding: 6px;
+    }
+
+    /* Smaller history */
+    .history-stream,
+    .reflections-stream {
+        font-size: 11px;
+    }
+
+    .history-content {
+        max-height: 150px;
+    }
+
+    /* Reflection entries */
+    .reflection-entry {
+        padding: var(--space-xs);
+    }
+
+    .reflection-header {
+        font-size: var(--font-xs);
+    }
+
+    .reflection-detail {
+        font-size: 9px;
+    }
+
+    /* Log container */
+    .log-container {
+        padding: var(--space-sm);
+        font-size: var(--font-xs);
+    }
+
+    /* Cards */
+    .card {
+        padding: var(--space-md);
+    }
+
+    .card-header {
+        font-size: var(--font-sm);
+        margin-bottom: var(--space-sm);
+    }
+
+    /* Diff viewer mobile */
+    .diff-viewer {
+        padding: var(--space-md);
+    }
+
+    .diff-file-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--space-sm);
+    }
+
+    .diff-file-actions {
+        width: 100%;
+    }
+
+    .side-by-side-diff {
+        flex-direction: column;
+    }
+
+    .line-number {
+        width: 30px;
+        font-size: 9px;
+    }
+}
+
+/* Touch optimization for dashboard */
+@media (pointer: coarse) {
+    .sidebar-btn {
+        min-height: 48px;
+        min-width: 48px;
+    }
+
+    .vfs-tree .vfs-file {
+        min-height: 36px;
+        display: flex;
+        align-items: center;
+    }
+
+    .btn-small {
+        min-height: 36px;
+        padding: var(--space-sm) var(--space-md);
+    }
+
+    /* Improve scrolling */
+    .workspace-content,
+    .vfs-tree,
+    .vfs-content,
+    .log-container,
+    .history-content {
+        -webkit-overflow-scrolling: touch;
+    }
+
+    /* Larger touch targets for controls */
+    .controls button {
+        min-height: 48px;
+    }
+
+    .controls input {
+        min-height: 44px;
     }
 }
 
