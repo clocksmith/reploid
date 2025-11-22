@@ -118,7 +118,9 @@ const LLMClient = {
                                     onUpdate(`[System: Loading model into GPU...]\n`);
                                 }
                             }
-                        }
+                        },
+                        // Use larger context window to prevent context overflow errors
+                        context_window_size: modelConfig.contextSize || 32768
                     }
                 );
                 _currentWebModelId = modelConfig.id;
