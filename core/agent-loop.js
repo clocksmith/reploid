@@ -24,11 +24,107 @@ const AgentLoop = {
 
     const MAX_ITERATIONS = 50;
     const MAX_TOOL_CALLS_PER_ITERATION = 3;
+    const MAX_NO_PROGRESS_ITERATIONS = 5; // Max consecutive iterations without tool calls
+    const TOOL_EXECUTION_TIMEOUT_MS = 30000; // 30 second timeout per tool
     let _isRunning = false;
     let _abortController = null;
     let _modelConfig = null;
     const MAX_ACTIVITY_LOG = 200;
     const _activityLog = [];
+
+    // Stuck loop detection state
+    let _loopHealth = {
+      consecutiveNoToolCalls: 0,
+      lastResponseLength: 0,
+      repeatedShortResponses: 0
+    };
+
+    const _resetLoopHealth = () => {
+      _loopHealth = {
+        consecutiveNoToolCalls: 0,
+        lastResponseLength: 0,
+        repeatedShortResponses: 0
+      };
+    };
+
+    // Circuit breaker for failing tools
+    const CIRCUIT_THRESHOLD = 3; // Failures before circuit opens
+    const CIRCUIT_RESET_MS = 60000; // 1 minute cooldown
+    const _toolCircuits = new Map(); // tool -> { count, lastError, tripTime }
+
+    const _isCircuitOpen = (toolName) => {
+      const record = _toolCircuits.get(toolName);
+      if (!record) return false;
+
+      if (record.count >= CIRCUIT_THRESHOLD) {
+        const elapsed = Date.now() - record.tripTime;
+        if (elapsed < CIRCUIT_RESET_MS) {
+          return true; // Circuit still open
+        }
+        // Reset after cooldown
+        _toolCircuits.delete(toolName);
+        logger.info(`[Agent] Circuit breaker reset for tool: ${toolName}`);
+      }
+      return false;
+    };
+
+    const _recordToolFailure = (toolName, error) => {
+      const record = _toolCircuits.get(toolName) || { count: 0, lastError: null, tripTime: 0 };
+      record.count++;
+      record.lastError = error;
+
+      if (record.count >= CIRCUIT_THRESHOLD) {
+        record.tripTime = Date.now();
+        logger.warn(`[Agent] Circuit breaker TRIPPED for tool: ${toolName} after ${record.count} failures`);
+        EventBus.emit('tool:circuit_open', { tool: toolName, failures: record.count, error });
+      }
+
+      _toolCircuits.set(toolName, record);
+    };
+
+    const _recordToolSuccess = (toolName) => {
+      // Reset failure count on success
+      if (_toolCircuits.has(toolName)) {
+        _toolCircuits.delete(toolName);
+      }
+    };
+
+    const _resetCircuits = () => {
+      _toolCircuits.clear();
+    };
+
+    const _checkLoopHealth = (iteration, toolCallCount, responseLength) => {
+      // Check 1: No tool calls for too many iterations
+      if (toolCallCount === 0) {
+        _loopHealth.consecutiveNoToolCalls++;
+        if (_loopHealth.consecutiveNoToolCalls >= MAX_NO_PROGRESS_ITERATIONS) {
+          return {
+            stuck: true,
+            reason: `No tool calls for ${MAX_NO_PROGRESS_ITERATIONS} consecutive iterations`,
+            action: 'request_summary'
+          };
+        }
+      } else {
+        _loopHealth.consecutiveNoToolCalls = 0;
+      }
+
+      // Check 2: Response getting very short (model degradation)
+      if (responseLength < 50 && iteration > 3) {
+        _loopHealth.repeatedShortResponses++;
+        if (_loopHealth.repeatedShortResponses >= 3) {
+          return {
+            stuck: true,
+            reason: 'Model producing very short responses repeatedly',
+            action: 'force_stop'
+          };
+        }
+      } else {
+        _loopHealth.repeatedShortResponses = 0;
+      }
+
+      _loopHealth.lastResponseLength = responseLength;
+      return { stuck: false };
+    };
 
     const _pushActivity = (entry) => {
       _activityLog.push({ ts: Date.now(), ...entry });
@@ -43,6 +139,8 @@ const AgentLoop = {
 
       _isRunning = true;
       _abortController = new AbortController();
+      _resetLoopHealth();
+      _resetCircuits();
 
       logger.info(`[Agent] Starting cycle. Goal: "${goal}"`);
       EventBus.emit('agent:status', { state: 'STARTING', activity: 'Initializing...' });
@@ -81,6 +179,11 @@ const AgentLoop = {
 
           context = await ContextManager.compact(context, _modelConfig);
 
+          // Emit token count for UI
+          if (ContextManager.emitTokens) {
+            ContextManager.emitTokens(context);
+          }
+
           let llmResponseText = '';
           const streamCallback = (text) => {
             EventBus.emit('agent:stream', text);
@@ -101,6 +204,36 @@ const AgentLoop = {
           const toolCalls = ResponseParser.parseToolCalls(responseContent);
           context.push({ role: 'assistant', content: responseContent });
 
+          // Check for stuck loop
+          const healthCheck = _checkLoopHealth(iteration, toolCalls.length, responseContent.length);
+          if (healthCheck.stuck) {
+            logger.warn(`[Agent] STUCK LOOP DETECTED: ${healthCheck.reason}`);
+            EventBus.emit('agent:warning', {
+              type: 'stuck_loop',
+              reason: healthCheck.reason,
+              cycle: iteration
+            });
+
+            if (healthCheck.action === 'request_summary') {
+              // Ask model to summarize and conclude
+              context.push({
+                role: 'user',
+                content: 'SYSTEM: You appear to be stuck without making progress. Please summarize what you have accomplished so far and what remains to be done, then stop.'
+              });
+              // Get one more response then exit
+              try {
+                const summaryResponse = await LLMClient.chat(context, _modelConfig);
+                _pushActivity({ kind: 'stuck_summary', cycle: iteration, content: summaryResponse.content });
+                EventBus.emit('agent:history', { type: 'llm_response', cycle: iteration, content: summaryResponse.content });
+              } catch (e) {
+                logger.error('[Agent] Failed to get summary response', e);
+              }
+              break;
+            } else if (healthCheck.action === 'force_stop') {
+              break;
+            }
+          }
+
           if (toolCalls.length > 0) {
             let executedTools = 0;
             for (const call of toolCalls) {
@@ -113,16 +246,82 @@ const AgentLoop = {
 
               if (_abortController.signal.aborted) break;
 
+              // Check circuit breaker before executing
+              if (_isCircuitOpen(call.name)) {
+                const circuitRecord = _toolCircuits.get(call.name);
+                const remainingMs = CIRCUIT_RESET_MS - (Date.now() - circuitRecord.tripTime);
+                const remainingSec = Math.ceil(remainingMs / 1000);
+                logger.warn(`[Agent] Circuit breaker OPEN for ${call.name} - skipping (${remainingSec}s remaining)`);
+
+                const skipMsg = `Tool ${call.name} is temporarily disabled due to repeated failures. Last error: ${circuitRecord.lastError}. Will retry in ${remainingSec}s.`;
+                context.push({ role: 'user', content: `TOOL_RESULT (${call.name}):\nError: ${skipMsg}` });
+                EventBus.emit('tool:circuit_skip', { tool: call.name, remainingMs, lastError: circuitRecord.lastError });
+                continue;
+              }
+
               logger.info(`[Agent] Tool Call: ${call.name}`);
               EventBus.emit('agent:status', { state: 'ACTING', activity: `Executing tool: ${call.name}` });
 
               let result;
-              try {
-                const rawResult = await ToolRunner.execute(call.name, call.args);
-                result = typeof rawResult === 'string' ? rawResult : JSON.stringify(rawResult, null, 2);
-              } catch (err) {
-                logger.error(`[Agent] Tool Error: ${call.name}`, err);
-                result = `Error: ${err.message}`;
+              const MAX_RETRIES = 2;
+              let lastError = null;
+
+              // Helper to execute with timeout
+              const executeWithTimeout = async () => {
+                return Promise.race([
+                  ToolRunner.execute(call.name, call.args),
+                  new Promise((_, reject) =>
+                    setTimeout(() => reject(new Error(`Tool timeout after ${TOOL_EXECUTION_TIMEOUT_MS}ms`)), TOOL_EXECUTION_TIMEOUT_MS)
+                  )
+                ]);
+              };
+
+              for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+                try {
+                  const toolStartTime = Date.now();
+                  const rawResult = await executeWithTimeout();
+                  const toolDuration = Date.now() - toolStartTime;
+
+                  // Warn on slow tools
+                  if (toolDuration > TOOL_EXECUTION_TIMEOUT_MS * 0.7) {
+                    logger.warn(`[Agent] Slow tool: ${call.name} took ${toolDuration}ms`);
+                    EventBus.emit('tool:slow', { tool: call.name, ms: toolDuration, cycle: iteration });
+                  }
+
+                  result = typeof rawResult === 'string' ? rawResult : JSON.stringify(rawResult, null, 2);
+                  // Validate serialization didn't produce undefined
+                  if (result === 'undefined' || result === undefined) {
+                    result = '(Tool returned no output)';
+                  }
+                  lastError = null;
+                  break;
+                } catch (err) {
+                  lastError = err;
+                  const isTimeout = err.message?.includes('timeout');
+
+                  if (isTimeout) {
+                    logger.error(`[Agent] Tool ${call.name} TIMEOUT - exceeded ${TOOL_EXECUTION_TIMEOUT_MS}ms`);
+                    result = `Error: Tool execution timed out after ${TOOL_EXECUTION_TIMEOUT_MS / 1000}s. The operation may still be running.`;
+                    EventBus.emit('tool:timeout', { tool: call.name, timeout: TOOL_EXECUTION_TIMEOUT_MS, cycle: iteration });
+                    break; // Don't retry on timeout
+                  }
+
+                  if (attempt < MAX_RETRIES) {
+                    logger.warn(`[Agent] Tool ${call.name} failed (attempt ${attempt + 1}/${MAX_RETRIES + 1}), retrying...`);
+                    await new Promise(r => setTimeout(r, 100 * (attempt + 1))); // Exponential backoff
+                  }
+                }
+              }
+
+              if (lastError && !result) {
+                logger.error(`[Agent] Tool Error: ${call.name}`, lastError);
+                result = `Error: ${lastError.message}`;
+                EventBus.emit('tool:error', { tool: call.name, error: lastError.message, cycle: iteration });
+                // Record failure for circuit breaker
+                _recordToolFailure(call.name, lastError.message);
+              } else if (!lastError) {
+                // Record success - resets circuit breaker count
+                _recordToolSuccess(call.name);
               }
 
               // Smart truncation

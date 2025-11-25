@@ -6,14 +6,14 @@
 const StateManager = {
   metadata: {
     id: 'StateManager',
-    version: '2.0.0',
-    dependencies: ['Utils', 'VFS', 'StateHelpersPure', 'AuditLogger?'], // Optional AuditLogger
+    version: '2.1.0',
+    dependencies: ['Utils', 'VFS', 'StateHelpersPure', 'EventBus', 'AuditLogger?'], // Optional AuditLogger
     async: true,
     type: 'service'
   },
 
   factory: (deps) => {
-    const { Utils, VFS, StateHelpersPure, AuditLogger } = deps;
+    const { Utils, VFS, StateHelpersPure, EventBus, AuditLogger } = deps;
     const { logger, Errors, generateId } = Utils;
 
     const STATE_PATH = '/.system/state.json';
@@ -53,6 +53,13 @@ const StateManager = {
           return save(retries - 1);
         }
         logger.error('[StateManager] Save failed after retries', err);
+        // Notify UI so user knows state may not be persisted
+        if (EventBus) {
+          EventBus.emit('error:persistence', {
+            message: 'Failed to save agent state',
+            details: err.message
+          });
+        }
       }
     };
 

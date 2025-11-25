@@ -56,11 +56,10 @@ function populateProviderSelect() {
         options.push('<option value="transformers">Transformers.js (Browser)</option>');
     }
 
-    if (providers.proxy.online) {
-        options.push('<option value="gemini">Gemini (Proxy/Cloud)</option>');
-        options.push('<option value="openai">OpenAI (Proxy/Cloud)</option>');
-        options.push('<option value="anthropic">Anthropic (Proxy/Cloud)</option>');
-    }
+    // Cloud providers always available - user provides API key
+    options.push('<option value="gemini">Google Gemini (Cloud)</option>');
+    options.push('<option value="openai">OpenAI (Cloud)</option>');
+    options.push('<option value="anthropic">Anthropic Claude (Cloud)</option>');
 
     providerSelect.innerHTML = options.join('');
 }

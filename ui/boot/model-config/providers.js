@@ -218,10 +218,12 @@ export function getConnectionOptions(provider) {
     } else if (provider === 'transformers') {
         options.push('browser-local');
     } else if (cloudProviders[provider]) {
+        // Browser-cloud (direct API) is always available
+        options.push('browser-cloud');
+        // Proxy-cloud only if proxy server is running
         if (providers.proxy.online) {
             options.push('proxy-cloud');
         }
-        options.push('browser-cloud');
     }
 
     return options;
