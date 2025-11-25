@@ -30,6 +30,15 @@ server/logs/
 # Test coverage
 coverage/
 .nyc_output/
+html/
+
+# Playwright
+playwright-report/
+playwright/.cache/
+test-results/
+
+# Vitest
+.vitest/
 
 # Temporary files
 *.tmp
@@ -47,3 +56,10 @@ firebase-debug.log
 
 # Large data files
 vfs_backup.json
+
+# Project-specific runtime/cache
+.paws/
+.reploidrc.json
+sessions/
+output/
+*.ndjson

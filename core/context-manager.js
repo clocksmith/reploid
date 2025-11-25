@@ -6,18 +6,51 @@
 const ContextManager = {
   metadata: {
     id: 'ContextManager',
-    version: '2.0.1',
-    dependencies: ['Utils', 'LLMClient'],
+    version: '2.1.0',
+    dependencies: ['Utils', 'LLMClient', 'EventBus'],
     type: 'service'
   },
 
   factory: (deps) => {
     const { logger } = deps.Utils;
-    const { LLMClient } = deps;
+    const { LLMClient, EventBus } = deps;
+
+    // Token count caching to avoid redundant O(n) calculations
+    let _cachedTokenCount = null;
+    let _cachedContextLength = 0;
+    let _cachedLastMessageLength = 0;
 
     const countTokens = (context) => {
-      const text = context.map(m => m.content).join('');
-      return Math.ceil(text.length * 0.25); // ~4 chars per token
+      // Fast path: check if context is unchanged
+      const contextLength = context.length;
+      const lastMessageLength = context.length > 0
+        ? (context[context.length - 1].content?.length || 0)
+        : 0;
+
+      // Cache hit: same number of messages and last message length unchanged
+      if (_cachedTokenCount !== null &&
+          contextLength === _cachedContextLength &&
+          lastMessageLength === _cachedLastMessageLength) {
+        return _cachedTokenCount;
+      }
+
+      // Cache miss: recalculate efficiently
+      let totalLength = 0;
+      for (const m of context) {
+        totalLength += (m.content?.length || 0);
+      }
+
+      _cachedTokenCount = Math.ceil(totalLength * 0.25); // ~4 chars per token
+      _cachedContextLength = contextLength;
+      _cachedLastMessageLength = lastMessageLength;
+
+      return _cachedTokenCount;
+    };
+
+    const invalidateTokenCache = () => {
+      _cachedTokenCount = null;
+      _cachedContextLength = 0;
+      _cachedLastMessageLength = 0;
     };
 
     const shouldCompact = (context) => countTokens(context) > 12000;
@@ -45,15 +78,37 @@ const ContextManager = {
         ], modelConfig);
 
         const summary = res?.content || '[Summary unavailable]';
+
+        // Notify UI about compaction
+        if (EventBus) {
+          EventBus.emit('context:compacted', {
+            previousTokens: countTokens(context),
+            newTokens: countTokens([...start, { role: 'user', content: summary }, ...end])
+          });
+        }
+
         // Insert summary as user message to avoid multiple system messages (WebLLM requirement)
-        return [...start, { role: 'user', content: `[CONTEXT SUMMARY]: ${summary}` }, ...end];
+        const compacted = [...start, { role: 'user', content: `[CONTEXT SUMMARY]: ${summary}` }, ...end];
+        invalidateTokenCache(); // Cache is stale after compaction
+        return compacted;
       } catch (e) {
         logger.error('[ContextManager] Compaction failed', e);
-        return [...start, { role: 'user', content: '[Previous context was pruned due to length]' }, ...end];
+        const pruned = [...start, { role: 'user', content: '[Previous context was pruned due to length]' }, ...end];
+        invalidateTokenCache(); // Cache is stale after compaction
+        return pruned;
       }
     };
 
-    return { countTokens, shouldCompact, compact };
+    // Emit token count updates
+    const emitTokens = (context) => {
+      const tokens = countTokens(context);
+      if (EventBus) {
+        EventBus.emit('agent:tokens', { tokens });
+      }
+      return tokens;
+    };
+
+    return { countTokens, shouldCompact, compact, emitTokens, invalidateTokenCache };
   }
 };
 

@@ -35,6 +35,7 @@ import SelfTester from './capabilities/testing/self-tester.js';
 
 // Boot UI (model config, provider detection)
 import { initModelConfig } from './ui/boot/model-config/index.js';
+import GoalHistory from './ui/goal-history.js';
 
 // UI Imports (Dynamic to allow headless boot)
 // import Proto from './ui/proto.js';
@@ -349,6 +350,15 @@ function initCrosshair() {
 
     // 4. UI Initialization - wait for user to click Awaken
     const awakenBtn = document.getElementById('awaken-btn');
+    const goalInput = document.getElementById('goal-input');
+
+    // Initialize goal history dropdown
+    if (goalInput) {
+      GoalHistory.initDropdown(goalInput, (selectedGoal) => {
+        goalInput.value = selectedGoal;
+      });
+    }
+
     if (awakenBtn) {
       // Enable the button now that system is ready
       awakenBtn.disabled = false;
@@ -357,10 +367,11 @@ function initCrosshair() {
       awakenBtn.addEventListener('click', async () => {
         try {
           // Save goal from boot screen
-          const goalInput = document.getElementById('goal-input');
           const goal = goalInput?.value?.trim() || '';
           if (goal) {
             localStorage.setItem('REPLOID_GOAL', goal);
+            // Add to goal history
+            GoalHistory.add(goal);
           }
 
           const { default: Proto } = await import('./ui/proto.js');

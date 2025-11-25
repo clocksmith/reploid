@@ -1,13 +1,13 @@
 /**
  * @fileoverview LLM Client
  * Unified interface for model inference.
- * Supports both Proxy (HTTP) and Browser-Native (WebLLM/WebGPU) execution.
+ * Supports Proxy (HTTP), Browser-Native (WebLLM/WebGPU), and Direct Cloud API execution.
  */
 
 const LLMClient = {
   metadata: {
     id: 'LLMClient',
-    version: '3.1.0',
+    version: '3.2.0',
     dependencies: ['Utils', 'RateLimiter', 'TransformersClient?'],
     type: 'service'
   },
@@ -23,6 +23,29 @@ const LLMClient = {
     let _webLlmEngine = null;
     let _currentWebModelId = null;
     let _webLlmLoaderPromise = null;
+
+    // Cleanup WebLLM engine and release GPU memory
+    const cleanupWebLlmEngine = async () => {
+      if (_webLlmEngine) {
+        try {
+          logger.info('[LLM] Cleaning up WebLLM engine...');
+          // WebLLM 0.2.x uses unload(), newer versions may use different method
+          if (typeof _webLlmEngine.unload === 'function') {
+            await _webLlmEngine.unload();
+          } else if (typeof _webLlmEngine.resetChat === 'function') {
+            await _webLlmEngine.resetChat();
+          }
+          _webLlmEngine = null;
+          _currentWebModelId = null;
+          logger.info('[LLM] WebLLM engine cleaned up, GPU memory released');
+        } catch (e) {
+          logger.warn('[LLM] Error during WebLLM cleanup:', e.message);
+          // Force null even on error
+          _webLlmEngine = null;
+          _currentWebModelId = null;
+        }
+      }
+    };
 
     const ensureWebLlmReady = async () => {
       if (typeof window === 'undefined') {
@@ -92,14 +115,23 @@ const LLMClient = {
         try {
             // Initialize Engine if needed or model changed
             if (!_webLlmEngine || _currentWebModelId !== modelConfig.id) {
+                // Cleanup previous engine before loading new model
+                if (_webLlmEngine && _currentWebModelId !== modelConfig.id) {
+                  logger.info(`[LLM] Switching model from ${_currentWebModelId} to ${modelConfig.id}`);
+                  await cleanupWebLlmEngine();
+                }
+
                 logger.info(`[LLM] Initializing WebLLM Engine for ${modelConfig.id}...`);
 
                 let lastReportedProgress = -5; // Track last reported progress for 5% increments
+                let lastProgressTime = Date.now();
+                const DOWNLOAD_TIMEOUT_MS = 10 * 60 * 1000; // 10 minute timeout
 
-                _webLlmEngine = await window.webllm.CreateMLCEngine(
+                const enginePromise = window.webllm.CreateMLCEngine(
                     modelConfig.id,
                     {
                         initProgressCallback: (report) => {
+                            lastProgressTime = Date.now(); // Reset timeout on any progress
                             logger.debug(`[WebLLM] Loading: ${report.text}`);
 
                             if (onUpdate) {
@@ -123,6 +155,28 @@ const LLMClient = {
                         context_window_size: modelConfig.contextSize || 32768
                     }
                 );
+
+                // Add timeout that resets on progress
+                const timeoutPromise = new Promise((_, reject) => {
+                    const checkTimeout = setInterval(() => {
+                        if (Date.now() - lastProgressTime > DOWNLOAD_TIMEOUT_MS) {
+                            clearInterval(checkTimeout);
+                            reject(new Error('Model download stalled - no progress for 10 minutes'));
+                        }
+                    }, 30000); // Check every 30s
+
+                    // Clean up interval when engine loads
+                    enginePromise.then(() => clearInterval(checkTimeout)).catch(() => clearInterval(checkTimeout));
+                });
+
+                try {
+                    _webLlmEngine = await Promise.race([enginePromise, timeoutPromise]);
+                } catch (timeoutErr) {
+                    _webLlmEngine = null;
+                    _currentWebModelId = null;
+                    throw new Errors.ApiError(`Model download failed: ${timeoutErr.message}. Check your internet connection.`, 504);
+                }
+
                 _currentWebModelId = modelConfig.id;
             }
 
@@ -252,6 +306,227 @@ const LLMClient = {
       }
     };
 
+    // --- Mode: Direct Cloud API (browser-cloud) ---
+    const CLOUD_API_ENDPOINTS = {
+      gemini: 'https://generativelanguage.googleapis.com/v1beta/models',
+      openai: 'https://api.openai.com/v1/chat/completions',
+      anthropic: 'https://api.anthropic.com/v1/messages'
+    };
+
+    const _chatCloudDirect = async (messages, modelConfig, onUpdate, requestId) => {
+      const provider = modelConfig.provider;
+      const apiKey = modelConfig.apiKey || localStorage.getItem(`${provider.toUpperCase()}_API_KEY`);
+
+      if (!apiKey) {
+        throw new Errors.ConfigError(`API key required for ${provider}. Please add your API key in model settings.`);
+      }
+
+      const controller = new AbortController();
+      _activeRequests.set(requestId, controller);
+
+      try {
+        let response;
+        let fullContent = '';
+
+        if (provider === 'gemini') {
+          // Google Gemini API
+          const endpoint = `${CLOUD_API_ENDPOINTS.gemini}/${modelConfig.id}:${onUpdate ? 'streamGenerateContent' : 'generateContent'}?key=${apiKey}`;
+
+          const geminiMessages = messages.map(m => ({
+            role: m.role === 'assistant' ? 'model' : 'user',
+            parts: [{ text: m.content }]
+          }));
+
+          // Gemini requires alternating roles, merge system into first user message
+          const systemMsg = messages.find(m => m.role === 'system');
+          if (systemMsg) {
+            geminiMessages[0] = {
+              role: 'user',
+              parts: [{ text: `${systemMsg.content}\n\n${geminiMessages[0]?.parts?.[0]?.text || ''}` }]
+            };
+          }
+
+          response = await fetch(endpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contents: geminiMessages.filter(m => m.role !== 'system'),
+              generationConfig: { temperature: 0.7, maxOutputTokens: 8192 }
+            }),
+            signal: controller.signal
+          });
+
+          if (!response.ok) {
+            const errData = await response.json().catch(() => ({}));
+            throw new Errors.ApiError(`Gemini API Error: ${errData.error?.message || response.status}`, response.status);
+          }
+
+          if (onUpdate && response.body) {
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+            let buffer = '';
+
+            while (true) {
+              const { done, value } = await reader.read();
+              if (done) break;
+
+              buffer += decoder.decode(value, { stream: true });
+              const lines = buffer.split('\n');
+              buffer = lines.pop() || '';
+
+              for (const line of lines) {
+                if (line.startsWith('data: ')) {
+                  try {
+                    const data = JSON.parse(line.slice(6));
+                    const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+                    if (text) {
+                      fullContent += text;
+                      onUpdate(text);
+                    }
+                  } catch (e) { /* skip malformed chunks */ }
+                }
+              }
+            }
+          } else {
+            const data = await response.json();
+            fullContent = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+          }
+
+        } else if (provider === 'openai') {
+          // OpenAI API
+          response = await fetch(CLOUD_API_ENDPOINTS.openai, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${apiKey}`
+            },
+            body: JSON.stringify({
+              model: modelConfig.id,
+              messages: messages,
+              stream: !!onUpdate,
+              temperature: 0.7
+            }),
+            signal: controller.signal
+          });
+
+          if (!response.ok) {
+            const errData = await response.json().catch(() => ({}));
+            throw new Errors.ApiError(`OpenAI API Error: ${errData.error?.message || response.status}`, response.status);
+          }
+
+          if (onUpdate && response.body) {
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+            let buffer = '';
+
+            while (true) {
+              const { done, value } = await reader.read();
+              if (done) break;
+
+              buffer += decoder.decode(value, { stream: true });
+              const lines = buffer.split('\n');
+              buffer = lines.pop() || '';
+
+              for (const line of lines) {
+                if (line.startsWith('data: ') && line !== 'data: [DONE]') {
+                  try {
+                    const data = JSON.parse(line.slice(6));
+                    const text = data.choices?.[0]?.delta?.content || '';
+                    if (text) {
+                      fullContent += text;
+                      onUpdate(text);
+                    }
+                  } catch (e) { /* skip malformed chunks */ }
+                }
+              }
+            }
+          } else {
+            const data = await response.json();
+            fullContent = data.choices?.[0]?.message?.content || '';
+          }
+
+        } else if (provider === 'anthropic') {
+          // Anthropic Claude API
+          const systemMsg = messages.find(m => m.role === 'system');
+          const nonSystemMsgs = messages.filter(m => m.role !== 'system');
+
+          response = await fetch(CLOUD_API_ENDPOINTS.anthropic, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'x-api-key': apiKey,
+              'anthropic-version': '2023-06-01',
+              'anthropic-dangerous-direct-browser-access': 'true'
+            },
+            body: JSON.stringify({
+              model: modelConfig.id,
+              max_tokens: 8192,
+              system: systemMsg?.content || '',
+              messages: nonSystemMsgs.map(m => ({
+                role: m.role,
+                content: m.content
+              })),
+              stream: !!onUpdate
+            }),
+            signal: controller.signal
+          });
+
+          if (!response.ok) {
+            const errData = await response.json().catch(() => ({}));
+            throw new Errors.ApiError(`Anthropic API Error: ${errData.error?.message || response.status}`, response.status);
+          }
+
+          if (onUpdate && response.body) {
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+            let buffer = '';
+
+            while (true) {
+              const { done, value } = await reader.read();
+              if (done) break;
+
+              buffer += decoder.decode(value, { stream: true });
+              const lines = buffer.split('\n');
+              buffer = lines.pop() || '';
+
+              for (const line of lines) {
+                if (line.startsWith('data: ')) {
+                  try {
+                    const data = JSON.parse(line.slice(6));
+                    if (data.type === 'content_block_delta') {
+                      const text = data.delta?.text || '';
+                      if (text) {
+                        fullContent += text;
+                        onUpdate(text);
+                      }
+                    }
+                  } catch (e) { /* skip malformed chunks */ }
+                }
+              }
+            }
+          } else {
+            const data = await response.json();
+            fullContent = data.content?.[0]?.text || '';
+          }
+
+        } else {
+          throw new Errors.ConfigError(`Unsupported cloud provider: ${provider}`);
+        }
+
+        return {
+          requestId,
+          content: stripThoughts(fullContent),
+          raw: fullContent,
+          model: modelConfig.id,
+          timestamp: Date.now(),
+          provider: provider
+        };
+
+      } finally {
+        _activeRequests.delete(requestId);
+      }
+    };
+
     // --- Mode: Transformers.js ---
     const _chatTransformers = async (messages, modelConfig, onUpdate, requestId) => {
       if (!TransformersClient) {
@@ -271,11 +546,16 @@ const LLMClient = {
       await _limiter.waitForToken();
 
       const requestId = Utils.generateId('req');
+      const isCloudProvider = ['gemini', 'openai', 'anthropic'].includes(modelConfig.provider);
 
       // Route to appropriate backend
       if (modelConfig.provider === 'transformers' ||
           (TransformersClient && TransformersClient.isTransformersModel && TransformersClient.isTransformersModel(modelConfig.id))) {
           return await _chatTransformers(messages, modelConfig, onUpdate, requestId);
+      } else if (modelConfig.hostType === 'browser-cloud' && isCloudProvider) {
+          // Direct browser-to-cloud API call (no proxy)
+          logger.info(`[LLM] Direct cloud API request to ${modelConfig.provider}/${modelConfig.id}`);
+          return await _chatCloudDirect(messages, modelConfig, onUpdate, requestId);
       } else if (modelConfig.queryMethod === 'browser' || modelConfig.provider === 'webllm') {
           return await _chatBrowser(messages, modelConfig, onUpdate, requestId);
       } else {
@@ -304,7 +584,16 @@ const LLMClient = {
         return TransformersClient.getStatus();
     };
 
-    return { chat, abortRequest, getWebLLMStatus, getTransformersStatus };
+    // Release GPU memory (useful when switching providers or on error)
+    const releaseGPUMemory = async () => {
+      await cleanupWebLlmEngine();
+      if (TransformersClient?.cleanup) {
+        await TransformersClient.cleanup();
+      }
+      logger.info('[LLM] All GPU memory released');
+    };
+
+    return { chat, abortRequest, getWebLLMStatus, getTransformersStatus, releaseGPUMemory };
   }
 };
 
