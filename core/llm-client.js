@@ -329,30 +329,41 @@ const LLMClient = {
         let fullContent = '';
 
         if (provider === 'gemini') {
-          // Google Gemini API
-          const endpoint = `${CLOUD_API_ENDPOINTS.gemini}/${modelConfig.id}:${onUpdate ? 'streamGenerateContent' : 'generateContent'}?key=${apiKey}`;
+          // Google Gemini API (latest format with system_instruction support)
+          const action = onUpdate ? 'streamGenerateContent' : 'generateContent';
+          const queryParams = onUpdate ? `?alt=sse&key=${apiKey}` : `?key=${apiKey}`;
+          const endpoint = `${CLOUD_API_ENDPOINTS.gemini}/${modelConfig.id}:${action}${queryParams}`;
 
-          const geminiMessages = messages.map(m => ({
+          // Extract system message for system_instruction
+          const systemMsg = messages.find(m => m.role === 'system');
+          const nonSystemMsgs = messages.filter(m => m.role !== 'system');
+
+          // Convert to Gemini format (user/model roles)
+          const geminiMessages = nonSystemMsgs.map(m => ({
             role: m.role === 'assistant' ? 'model' : 'user',
             parts: [{ text: m.content }]
           }));
 
-          // Gemini requires alternating roles, merge system into first user message
-          const systemMsg = messages.find(m => m.role === 'system');
-          if (systemMsg) {
-            geminiMessages[0] = {
-              role: 'user',
-              parts: [{ text: `${systemMsg.content}\n\n${geminiMessages[0]?.parts?.[0]?.text || ''}` }]
+          const requestBody = {
+            contents: geminiMessages,
+            generationConfig: {
+              temperature: 0.7,
+              maxOutputTokens: 8192,
+              topP: 0.95
+            }
+          };
+
+          // Add system instruction if present (supported in Gemini 1.5+)
+          if (systemMsg?.content) {
+            requestBody.system_instruction = {
+              parts: [{ text: systemMsg.content }]
             };
           }
 
           response = await fetch(endpoint, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              contents: geminiMessages.filter(m => m.role !== 'system'),
-              generationConfig: { temperature: 0.7, maxOutputTokens: 8192 }
-            }),
+            body: JSON.stringify(requestBody),
             signal: controller.signal
           });
 
@@ -446,7 +457,7 @@ const LLMClient = {
           }
 
         } else if (provider === 'anthropic') {
-          // Anthropic Claude API
+          // Anthropic Claude API (latest version)
           const systemMsg = messages.find(m => m.role === 'system');
           const nonSystemMsgs = messages.filter(m => m.role !== 'system');
 
@@ -461,7 +472,7 @@ const LLMClient = {
             body: JSON.stringify({
               model: modelConfig.id,
               max_tokens: 8192,
-              system: systemMsg?.content || '',
+              ...(systemMsg?.content ? { system: systemMsg.content } : {}),
               messages: nonSystemMsgs.map(m => ({
                 role: m.role,
                 content: m.content
@@ -548,17 +559,29 @@ const LLMClient = {
       const requestId = Utils.generateId('req');
       const isCloudProvider = ['gemini', 'openai', 'anthropic'].includes(modelConfig.provider);
 
+      // Debug: Log routing decision
+      logger.info(`[LLM] Routing decision:`, {
+        provider: modelConfig.provider,
+        hostType: modelConfig.hostType,
+        queryMethod: modelConfig.queryMethod,
+        isCloudProvider,
+        model: modelConfig.id
+      });
+
       // Route to appropriate backend
       if (modelConfig.provider === 'transformers' ||
           (TransformersClient && TransformersClient.isTransformersModel && TransformersClient.isTransformersModel(modelConfig.id))) {
+          logger.info(`[LLM] Using Transformers.js backend`);
           return await _chatTransformers(messages, modelConfig, onUpdate, requestId);
       } else if (modelConfig.hostType === 'browser-cloud' && isCloudProvider) {
           // Direct browser-to-cloud API call (no proxy)
-          logger.info(`[LLM] Direct cloud API request to ${modelConfig.provider}/${modelConfig.id}`);
+          logger.info(`[LLM] Using direct cloud API (browser-cloud) for ${modelConfig.provider}/${modelConfig.id}`);
           return await _chatCloudDirect(messages, modelConfig, onUpdate, requestId);
       } else if (modelConfig.queryMethod === 'browser' || modelConfig.provider === 'webllm') {
+          logger.info(`[LLM] Using WebLLM browser backend`);
           return await _chatBrowser(messages, modelConfig, onUpdate, requestId);
       } else {
+          logger.info(`[LLM] Using proxy backend (hostType: ${modelConfig.hostType})`);
           return await _chatProxy(messages, modelConfig, onUpdate, requestId);
       }
     };
