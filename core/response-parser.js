@@ -6,7 +6,7 @@
 const ResponseParser = {
   metadata: {
     id: 'ResponseParser',
-    version: '2.1.0', // Simplified
+    version: '2.2.0', // Backtick template literal support
     dependencies: ['Utils'],
     type: 'service'
   },
@@ -37,7 +37,7 @@ const ResponseParser = {
         }
 
         let braceCount = 0;
-        let inString = false;
+        let stringDelimiter = null; // Track which delimiter started the string: " or `
         let escape = false;
         let endIdx = startIdx;
 
@@ -49,17 +49,23 @@ const ResponseParser = {
             continue;
           }
 
-          if (char === '\\' && inString) {
+          if (char === '\\' && stringDelimiter) {
             escape = true;
             continue;
           }
 
-          if (char === '"') {
-            inString = !inString;
+          // Handle both double quotes and backticks as string delimiters
+          if (char === '"' || char === '`') {
+            if (!stringDelimiter) {
+              stringDelimiter = char; // Start string
+            } else if (stringDelimiter === char) {
+              stringDelimiter = null; // End string (matching delimiter)
+            }
+            // If in a string with different delimiter, ignore this char
             continue;
           }
 
-          if (!inString) {
+          if (!stringDelimiter) {
             if (char === '{') {
               braceCount++;
             } else if (char === '}') {

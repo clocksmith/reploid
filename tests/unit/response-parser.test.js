@@ -5,6 +5,62 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
+// Backtick to JSON string converter (mirrors utils.js implementation)
+const convertBacktickStrings = (text) => {
+  let result = '';
+  let i = 0;
+  while (i < text.length) {
+    if (text[i] === '"') {
+      result += '"';
+      i++;
+      while (i < text.length) {
+        if (text[i] === '\\' && i + 1 < text.length) {
+          result += text[i] + text[i + 1];
+          i += 2;
+        } else if (text[i] === '"') {
+          result += '"';
+          i++;
+          break;
+        } else {
+          result += text[i];
+          i++;
+        }
+      }
+    } else if (text[i] === '`') {
+      result += '"';
+      i++;
+      while (i < text.length && text[i] !== '`') {
+        const char = text[i];
+        if (char === '\\' && i + 1 < text.length) {
+          result += text[i] + text[i + 1];
+          i += 2;
+        } else if (char === '"') {
+          result += '\\"';
+          i++;
+        } else if (char === '\n') {
+          result += '\\n';
+          i++;
+        } else if (char === '\r') {
+          result += '\\r';
+          i++;
+        } else if (char === '\t') {
+          result += '\\t';
+          i++;
+        } else {
+          result += char;
+          i++;
+        }
+      }
+      result += '"';
+      if (i < text.length) i++;
+    } else {
+      result += text[i];
+      i++;
+    }
+  }
+  return result;
+};
+
 // Mock Utils dependency
 const createMockUtils = () => ({
   logger: {
@@ -19,6 +75,15 @@ const createMockUtils = () => ({
       JSON.parse(text);
       return { json: text, method: "direct" };
     } catch (e) { /* continue */ }
+
+    // Try converting backtick strings to JSON strings
+    if (text.includes('`')) {
+      try {
+        const converted = convertBacktickStrings(text);
+        JSON.parse(converted);
+        return { json: converted, method: "backtick" };
+      } catch (e) { /* continue */ }
+    }
 
     const codeBlock = text.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
     if (codeBlock) {
@@ -36,6 +101,15 @@ const createMockUtils = () => ({
         JSON.parse(candidate);
         return { json: candidate, method: "heuristic" };
       } catch (e) { /* continue */ }
+
+      // Try backtick conversion on the candidate
+      if (candidate.includes('`')) {
+        try {
+          const converted = convertBacktickStrings(candidate);
+          JSON.parse(converted);
+          return { json: converted, method: "heuristic+backtick" };
+        } catch (e) { /* continue */ }
+      }
     }
 
     return { json: "{}", method: "failed" };
@@ -305,6 +379,46 @@ ARGS: { "int": 42, "float": 3.14, "negative": -10 }`;
         expect(calls[0].args.int).toBe(42);
         expect(calls[0].args.float).toBe(3.14);
         expect(calls[0].args.negative).toBe(-10);
+      });
+
+      it('should handle backtick template literals with braces inside', () => {
+        // This is the case where LLM uses backticks for code content containing { }
+        const text = `TOOL_CALL: write_file
+ARGS: { "path": "/tools/test.js", "content": \`export default async (args) => {
+  return { result: args.value };
+}\` }`;
+
+        const calls = responseParser.parseToolCalls(text);
+
+        expect(calls).toHaveLength(1);
+        expect(calls[0].name).toBe('write_file');
+        expect(calls[0].args.path).toBe('/tools/test.js');
+        expect(calls[0].args.content).toContain('export default');
+        expect(calls[0].args.content).toContain('return { result:');
+      });
+
+      it('should handle backtick strings with embedded double quotes', () => {
+        const text = `TOOL_CALL: write_file
+ARGS: { "path": "/test.js", "content": \`const msg = "hello world";\` }`;
+
+        const calls = responseParser.parseToolCalls(text);
+
+        expect(calls).toHaveLength(1);
+        expect(calls[0].args.content).toContain('"hello world"');
+      });
+
+      it('should handle backtick strings with literal newlines', () => {
+        const text = `TOOL_CALL: write_file
+ARGS: { "path": "/test.txt", "content": \`line1
+line2
+line3\` }`;
+
+        const calls = responseParser.parseToolCalls(text);
+
+        expect(calls).toHaveLength(1);
+        // The backtick converter should convert literal newlines to \n
+        expect(calls[0].args.content).toContain('line1');
+        expect(calls[0].args.content).toContain('line2');
       });
     });
   });
