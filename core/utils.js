@@ -107,13 +107,93 @@ const Utils = {
         .replace(/'/g, "&#039;");
     };
 
+    /**
+     * Convert backtick template literals to valid JSON strings.
+     * Handles: `content with "quotes" and newlines` -> "content with \"quotes\" and newlines"
+     */
+    const convertBacktickStrings = (text) => {
+      let result = '';
+      let i = 0;
+      while (i < text.length) {
+        // Check if we're entering a JSON string (double quote)
+        if (text[i] === '"') {
+          result += '"';
+          i++;
+          // Skip through the JSON string
+          while (i < text.length) {
+            if (text[i] === '\\' && i + 1 < text.length) {
+              result += text[i] + text[i + 1];
+              i += 2;
+            } else if (text[i] === '"') {
+              result += '"';
+              i++;
+              break;
+            } else {
+              result += text[i];
+              i++;
+            }
+          }
+        }
+        // Check if we're entering a backtick string (needs conversion)
+        else if (text[i] === '`') {
+          result += '"'; // Start JSON string
+          i++;
+          // Process backtick string content
+          while (i < text.length && text[i] !== '`') {
+            const char = text[i];
+            if (char === '\\' && i + 1 < text.length) {
+              // Preserve escapes
+              result += text[i] + text[i + 1];
+              i += 2;
+            } else if (char === '"') {
+              // Escape double quotes inside backtick strings
+              result += '\\"';
+              i++;
+            } else if (char === '\n') {
+              // Convert literal newlines to \n
+              result += '\\n';
+              i++;
+            } else if (char === '\r') {
+              // Convert carriage returns
+              result += '\\r';
+              i++;
+            } else if (char === '\t') {
+              // Convert tabs
+              result += '\\t';
+              i++;
+            } else {
+              result += char;
+              i++;
+            }
+          }
+          result += '"'; // End JSON string
+          if (i < text.length) i++; // Skip closing backtick
+        }
+        else {
+          result += text[i];
+          i++;
+        }
+      }
+      return result;
+    };
+
     const sanitizeLlmJsonRespPure = (text) => {
       if (!text || typeof text !== 'string') return { json: "{}", method: "empty" };
 
+      // First try direct parse
       try {
         JSON.parse(text);
         return { json: text, method: "direct" };
       } catch (e) { /* continue */ }
+
+      // Try converting backtick strings to JSON strings
+      if (text.includes('`')) {
+        try {
+          const converted = convertBacktickStrings(text);
+          JSON.parse(converted);
+          return { json: converted, method: "backtick" };
+        } catch (e) { /* continue */ }
+      }
 
       const codeBlock = text.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
       if (codeBlock) {
@@ -131,6 +211,15 @@ const Utils = {
           JSON.parse(candidate);
           return { json: candidate, method: "heuristic" };
         } catch (e) { /* continue */ }
+
+        // Try backtick conversion on the candidate
+        if (candidate.includes('`')) {
+          try {
+            const converted = convertBacktickStrings(candidate);
+            JSON.parse(converted);
+            return { json: converted, method: "heuristic+backtick" };
+          } catch (e) { /* continue */ }
+        }
       }
 
       return { json: "{}", method: "failed" };
