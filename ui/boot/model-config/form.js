@@ -144,6 +144,11 @@ export function validateForm() {
     const provider = document.getElementById('provider-select').value;
     const modelId = document.getElementById('model-select-dropdown').value;
     const connectionType = document.getElementById('connection-type-select').value;
+    const apiKeyInput = document.getElementById('model-api-key');
+    const apiKey = apiKeyInput ? apiKeyInput.value.trim() : '';
+
+    // Debug logging
+    console.log('[ModelConfig] Validating form:', { provider, modelId, connectionType, hasApiKey: !!apiKey });
 
     if (!provider || !modelId || !connectionType) {
         saveBtn.disabled = true;
@@ -151,8 +156,8 @@ export function validateForm() {
     }
 
     if (connectionType === 'browser-cloud') {
-        const apiKey = document.getElementById('model-api-key').value.trim();
         saveBtn.disabled = !apiKey;
+        console.log('[ModelConfig] browser-cloud validation:', { apiKey: apiKey ? '***' : 'empty', disabled: !apiKey });
     } else {
         saveBtn.disabled = false;
     }
@@ -245,6 +250,9 @@ function populateEditForm(model) {
         }
         connectionSelect.value = model.hostType;
         onConnectionTypeChange({ target: { value: model.hostType } });
+
+        // Re-validate after a short delay to ensure all values are set
+        setTimeout(() => validateForm(), 50);
     }, 100);
 }
 
@@ -283,19 +291,24 @@ export function setupFormListeners() {
     // API key input - listen for input, change, and handle autofill
     const apiKeyInput = document.getElementById('model-api-key');
     if (apiKeyInput) {
-        apiKeyInput.addEventListener('input', validateForm);
-        apiKeyInput.addEventListener('change', validateForm);
-        apiKeyInput.addEventListener('paste', () => setTimeout(validateForm, 0));
-        // Handle autofill by polling briefly after focus
+        const triggerValidation = () => validateForm();
+        apiKeyInput.addEventListener('input', triggerValidation);
+        apiKeyInput.addEventListener('change', triggerValidation);
+        apiKeyInput.addEventListener('keyup', triggerValidation);
+        apiKeyInput.addEventListener('paste', () => setTimeout(triggerValidation, 10));
+        // Handle autofill by polling on focus and animationstart (Chrome autofill triggers this)
         apiKeyInput.addEventListener('focus', () => {
-            const checkAutofill = setInterval(() => {
-                if (apiKeyInput.value) {
-                    validateForm();
-                    clearInterval(checkAutofill);
-                }
-            }, 100);
-            // Stop polling after 2 seconds
+            // Immediate check
+            triggerValidation();
+            // Poll for autofill
+            const checkAutofill = setInterval(triggerValidation, 100);
             setTimeout(() => clearInterval(checkAutofill), 2000);
+        });
+        // Chrome autofill detection via animation
+        apiKeyInput.addEventListener('animationstart', (e) => {
+            if (e.animationName === 'onAutoFillStart' || e.animationName) {
+                setTimeout(triggerValidation, 50);
+            }
         });
     }
 
