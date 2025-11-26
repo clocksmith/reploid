@@ -142,6 +142,125 @@ body::after {
 .add-model-card { border-style: dashed; display: flex; align-items: center; justify-content: center; flex-direction: column; }
 .model-card-content { display: flex; flex-direction: column; gap: 8px; }
 
+/* Inline Add/Edit Model Form */
+.model-form-inline {
+  background: var(--bg-element);
+  border: 1px solid var(--border-default);
+  padding: 20px;
+  margin-top: 15px;
+}
+
+.model-form-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border-default);
+}
+
+.model-form-header h5 {
+  margin: 0;
+  color: var(--primary);
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.close-btn, .close-btn-small {
+  background: transparent;
+  border: 1px solid var(--border-default);
+  color: var(--text-muted);
+  width: 28px;
+  height: 28px;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  transition: 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.close-btn:hover, .close-btn-small:hover {
+  border-color: var(--secondary);
+  color: var(--secondary);
+}
+
+.inline-form-row {
+  margin-bottom: 12px;
+}
+
+.inline-form-row label {
+  display: block;
+  color: var(--text-muted);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 6px;
+}
+
+.inline-select, .inline-input {
+  width: 100%;
+  padding: 10px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border-default);
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+
+.inline-select:focus, .inline-input:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+.inline-form-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px solid var(--border-default);
+}
+
+.inline-btn-cancel, .inline-btn-save {
+  flex: 1;
+  padding: 10px 16px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.inline-btn-cancel {
+  background: transparent;
+  border: 1px solid var(--border-default);
+  color: var(--text-muted);
+}
+
+.inline-btn-cancel:hover {
+  border-color: var(--text-primary);
+  color: var(--text-primary);
+}
+
+.inline-btn-save {
+  background: transparent;
+  border: 1px solid var(--primary);
+  color: var(--primary);
+}
+
+.inline-btn-save:hover:not(:disabled) {
+  background: var(--primary-dim);
+  box-shadow: 0 0 10px rgba(0, 255, 255, 0.2);
+}
+
+.inline-btn-save:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
 /* Model Card Buttons */
 .model-card-btn {
   background: transparent;
