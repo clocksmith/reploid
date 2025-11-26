@@ -559,29 +559,17 @@ const LLMClient = {
       const requestId = Utils.generateId('req');
       const isCloudProvider = ['gemini', 'openai', 'anthropic'].includes(modelConfig.provider);
 
-      // Debug: Log routing decision
-      logger.info(`[LLM] Routing decision:`, {
-        provider: modelConfig.provider,
-        hostType: modelConfig.hostType,
-        queryMethod: modelConfig.queryMethod,
-        isCloudProvider,
-        model: modelConfig.id
-      });
-
       // Route to appropriate backend
       if (modelConfig.provider === 'transformers' ||
           (TransformersClient && TransformersClient.isTransformersModel && TransformersClient.isTransformersModel(modelConfig.id))) {
-          logger.info(`[LLM] Using Transformers.js backend`);
           return await _chatTransformers(messages, modelConfig, onUpdate, requestId);
       } else if (modelConfig.hostType === 'browser-cloud' && isCloudProvider) {
           // Direct browser-to-cloud API call (no proxy)
-          logger.info(`[LLM] Using direct cloud API (browser-cloud) for ${modelConfig.provider}/${modelConfig.id}`);
+          logger.info(`[LLM] Direct API call to ${modelConfig.provider}/${modelConfig.id}`);
           return await _chatCloudDirect(messages, modelConfig, onUpdate, requestId);
       } else if (modelConfig.queryMethod === 'browser' || modelConfig.provider === 'webllm') {
-          logger.info(`[LLM] Using WebLLM browser backend`);
           return await _chatBrowser(messages, modelConfig, onUpdate, requestId);
       } else {
-          logger.info(`[LLM] Using proxy backend (hostType: ${modelConfig.hostType})`);
           return await _chatProxy(messages, modelConfig, onUpdate, requestId);
       }
     };

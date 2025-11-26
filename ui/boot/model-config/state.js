@@ -5,21 +5,21 @@ export const MAX_MODELS = 4;
 
 export const CONNECTION_TYPE_LABELS = {
     'proxy-local': 'Proxy → Local (Ollama)',
-    'browser-local': 'Browser (WebLLM)',
-    'proxy-cloud': 'Proxy → Cloud',
-    'browser-cloud': 'Browser → Cloud'
+    'browser-local': 'Browser (WebLLM/Transformers)',
+    'proxy-cloud': 'Via Proxy Server',
+    'browser-cloud': 'Direct API (Recommended)'
 };
 
 export const HOST_TYPE_LABELS = {
-    'browser-cloud': 'Browser → Cloud',
-    'proxy-cloud': 'Proxy → Cloud',
-    'browser-local': 'Browser → Local',
-    'proxy-local': 'Proxy → Local',
+    'browser-cloud': 'Direct API',
+    'proxy-cloud': 'Via Proxy',
+    'browser-local': 'Browser Local',
+    'proxy-local': 'Proxy Local',
     // Legacy mappings
-    'cloud-browser': 'Browser → Cloud',
-    'ollama-proxy': 'Proxy → Local',
-    'webgpu-browser': 'Browser → Local',
-    'proxy': 'Proxy → Cloud'
+    'cloud-browser': 'Direct API',
+    'ollama-proxy': 'Proxy Local',
+    'webgpu-browser': 'Browser Local',
+    'proxy': 'Via Proxy'
 };
 
 // State

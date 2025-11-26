@@ -104,46 +104,48 @@
                     </div>
                 </div>
 
-                <!-- Inline Add/Edit Model Form (shown when adding/editing) -->
-                <div id="model-form-inline" class="model-form-inline hidden">
-                    <div class="model-form-header">
-                        <h5 id="model-form-title">Add Model</h5>
-                        <button class="close-btn-small" id="close-model-form">×</button>
-                    </div>
+                <!-- Model Form Modal (moved to overlay) -->
+                <div id="model-form-overlay" class="model-form-overlay">
+                    <div id="model-form-dialog" class="model-form-dialog">
+                        <div class="model-form-header">
+                            <h5 id="model-form-title">Add Model</h5>
+                            <button class="close-btn-small" id="close-model-form">×</button>
+                        </div>
 
-                    <!-- Provider Selection -->
-                    <div class="inline-form-row">
-                        <label>Provider</label>
-                        <select id="provider-select" class="inline-select">
-                            <option value="">Select provider...</option>
-                        </select>
-                    </div>
+                        <!-- Provider Selection -->
+                        <div class="inline-form-row">
+                            <label>Provider</label>
+                            <select id="provider-select" class="inline-select">
+                                <option value="">Select provider...</option>
+                            </select>
+                        </div>
 
-                    <!-- Model Selection -->
-                    <div class="inline-form-row hidden" id="model-select-group">
-                        <label>Model</label>
-                        <select id="model-select-dropdown" class="inline-select">
-                            <option value="">Select model...</option>
-                        </select>
-                    </div>
+                        <!-- Model Selection -->
+                        <div class="inline-form-row hidden" id="model-select-group">
+                            <label>Model</label>
+                            <select id="model-select-dropdown" class="inline-select">
+                                <option value="">Select model...</option>
+                            </select>
+                        </div>
 
-                    <!-- API Key (if needed) -->
-                    <div class="inline-form-row hidden" id="api-key-group">
-                        <label>API Key</label>
-                        <input type="password" id="model-api-key" class="inline-input" placeholder="Enter API key..." />
-                    </div>
+                        <!-- API Key (if needed) -->
+                        <div class="inline-form-row hidden" id="api-key-group">
+                            <label>API Key</label>
+                            <input type="password" id="model-api-key" class="inline-input" placeholder="Enter API key..." />
+                        </div>
 
-                    <!-- Connection Type Selection -->
-                    <div class="inline-form-row hidden" id="connection-type-group">
-                        <label>Connection</label>
-                        <select id="connection-type-select" class="inline-select">
-                            <option value="">Select connection type...</option>
-                        </select>
-                    </div>
+                        <!-- Connection Type Selection -->
+                        <div class="inline-form-row hidden" id="connection-type-group">
+                            <label>Connection</label>
+                            <select id="connection-type-select" class="inline-select">
+                                <option value="">Select connection type...</option>
+                            </select>
+                        </div>
 
-                    <div class="inline-form-actions">
-                        <button class="inline-btn-cancel" id="cancel-model-btn">Cancel</button>
-                        <button class="inline-btn-save" id="save-model-btn" disabled>Add Model</button>
+                        <div class="inline-form-actions">
+                            <button class="inline-btn-cancel" id="cancel-model-btn">Cancel</button>
+                            <button class="inline-btn-save" id="save-model-btn" disabled>Add Model</button>
+                        </div>
                     </div>
                 </div>
 

@@ -13,11 +13,11 @@ import { renderModelCards, updateGoalInputState } from './cards.js';
 
 // Open inline form for adding/editing
 export function openInlineForm(editingIndex = null) {
-    const form = document.getElementById('model-form-inline');
+    const overlay = document.getElementById('model-form-overlay');
     const formTitle = document.getElementById('model-form-title');
     const saveBtn = document.getElementById('save-model-btn');
 
-    form.classList.remove('hidden');
+    // Update form content
     formTitle.textContent = editingIndex !== null ? 'Edit Model' : 'Add Model';
     saveBtn.textContent = editingIndex !== null ? 'Save Changes' : 'Add Model';
     saveBtn.dataset.editingIndex = editingIndex !== null ? editingIndex : '';
@@ -29,13 +29,28 @@ export function openInlineForm(editingIndex = null) {
         const model = getSelectedModels()[editingIndex];
         populateEditForm(model);
     }
+
+    // Open with animation
+    overlay.classList.remove('closing');
+    overlay.classList.add('open');
+
+    // Prevent body scroll when modal is open
+    document.body.style.overflow = 'hidden';
 }
 
-// Close inline form
+// Close modal form with animation
 export function closeInlineForm() {
-    const form = document.getElementById('model-form-inline');
-    form.classList.add('hidden');
-    resetInlineForm();
+    const overlay = document.getElementById('model-form-overlay');
+
+    // Add closing class for exit animation
+    overlay.classList.add('closing');
+
+    // Wait for animation to complete before hiding
+    setTimeout(() => {
+        overlay.classList.remove('open', 'closing');
+        resetInlineForm();
+        document.body.style.overflow = '';
+    }, 200);
 }
 
 // Populate provider select dropdown
@@ -147,9 +162,6 @@ export function validateForm() {
     const apiKeyInput = document.getElementById('model-api-key');
     const apiKey = apiKeyInput ? apiKeyInput.value.trim() : '';
 
-    // Debug logging
-    console.log('[ModelConfig] Validating form:', { provider, modelId, connectionType, hasApiKey: !!apiKey });
-
     if (!provider || !modelId || !connectionType) {
         saveBtn.disabled = true;
         return;
@@ -157,7 +169,6 @@ export function validateForm() {
 
     if (connectionType === 'browser-cloud') {
         saveBtn.disabled = !apiKey;
-        console.log('[ModelConfig] browser-cloud validation:', { apiKey: apiKey ? '***' : 'empty', disabled: !apiKey });
     } else {
         saveBtn.disabled = false;
     }
@@ -318,4 +329,25 @@ export function setupFormListeners() {
             saveToStorage();
         });
     }
+
+    // Click outside modal to close
+    const overlay = document.getElementById('model-form-overlay');
+    if (overlay) {
+        overlay.addEventListener('click', (e) => {
+            // Only close if clicking on the overlay itself, not the dialog
+            if (e.target === overlay) {
+                closeInlineForm();
+            }
+        });
+    }
+
+    // Escape key to close modal
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            const overlay = document.getElementById('model-form-overlay');
+            if (overlay && overlay.classList.contains('open')) {
+                closeInlineForm();
+            }
+        }
+    });
 }

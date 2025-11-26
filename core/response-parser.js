@@ -85,7 +85,11 @@ const ResponseParser = {
             rawPreview: rawArgs.slice(0, 200),
             rawEnd: rawArgs.length > 200 ? rawArgs.slice(-50) : ''
           });
-          calls.push({ name, args: {}, error: `JSON Parse Error: ${e.message}` });
+          // Provide actionable error message
+          const hint = rawArgs.includes('\n') && !rawArgs.includes('\\n')
+            ? ' Hint: Content has literal newlines - use \\n escapes instead.'
+            : '';
+          calls.push({ name, args: {}, error: `JSON Parse Error: ${e.message}.${hint}` });
         }
       }
 

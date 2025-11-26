@@ -246,6 +246,17 @@ const AgentLoop = {
 
               if (_abortController.signal.aborted) break;
 
+              // Check for parse errors before executing
+              if (call.error) {
+                logger.warn(`[Agent] Tool ${call.name} has parse error: ${call.error}`);
+                const result = `Error: ${call.error}`;
+                context.push({ role: 'user', content: `TOOL_RESULT (${call.name}):\n${result}` });
+                EventBus.emit('agent:history', { type: 'tool_result', cycle: iteration, tool: call.name, args: {}, result });
+                _pushActivity({ kind: 'tool_error', cycle: iteration, tool: call.name, error: call.error });
+                executedTools++;
+                continue;
+              }
+
               // Check circuit breaker before executing
               if (_isCircuitOpen(call.name)) {
                 const circuitRecord = _toolCircuits.get(call.name);
@@ -414,7 +425,9 @@ ARGS: { "path": "/core/agent-loop.js" }
 - Act autonomously. Do not ask for permission.
 - Every response must use at least one tool unless declaring DONE.
 - Iterate: analyze results, identify improvements, apply them, repeat.
-- Say DONE only when the goal is fully achieved.
+- When you modify code, check write_file output for syntax warnings. Fix any errors before proceeding.
+- For recursive self-improvement: after achieving a goal, consider what blockers or inefficiencies you encountered and refactor them.
+- Say DONE only when the goal is fully achieved AND all written code is verified (no syntax errors).
 
 ## Goal
 ${goal}
