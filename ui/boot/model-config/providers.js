@@ -12,14 +12,15 @@ export const transformersModels = [
     { id: 'phi4-mini', name: 'Phi-4 Mini', vram: 4000, context: 16384 }
 ];
 
-// Cloud provider model catalogs
+// Cloud provider model catalogs (updated Nov 2025)
 export const cloudProviders = {
     gemini: {
         name: 'Gemini',
         models: [
-            { id: 'gemini-2.5-flash-lite', name: 'Flash Lite' },
-            { id: 'gemini-2.5-flash', name: 'Flash' },
-            { id: 'gemini-2.5-pro', name: 'Pro' }
+            { id: 'gemini-2.0-flash-exp', name: 'Gemini 2.0 Flash (Exp)' },
+            { id: 'gemini-1.5-flash', name: 'Gemini 1.5 Flash' },
+            { id: 'gemini-1.5-flash-8b', name: 'Gemini 1.5 Flash 8B' },
+            { id: 'gemini-1.5-pro', name: 'Gemini 1.5 Pro' }
         ],
         requiresKey: true,
         hostType: 'browser-cloud'
@@ -27,9 +28,11 @@ export const cloudProviders = {
     openai: {
         name: 'OpenAI',
         models: [
-            { id: 'gpt-5-2025-08-07-mini', name: 'GPT-5 Mini' },
-            { id: 'gpt-5-2025-08-07', name: 'GPT-5' },
-            { id: 'o1-2025-12-17', name: 'O1' }
+            { id: 'gpt-4o-mini', name: 'GPT-4o Mini' },
+            { id: 'gpt-4o', name: 'GPT-4o' },
+            { id: 'gpt-4-turbo', name: 'GPT-4 Turbo' },
+            { id: 'o1-mini', name: 'O1 Mini' },
+            { id: 'o1-preview', name: 'O1 Preview' }
         ],
         requiresKey: true,
         hostType: 'browser-cloud'
@@ -37,9 +40,9 @@ export const cloudProviders = {
     anthropic: {
         name: 'Anthropic',
         models: [
-            { id: 'claude-4-5-haiku', name: 'Haiku 4.5' },
-            { id: 'claude-4-5-sonnet', name: 'Sonnet 4.5' },
-            { id: 'claude-opus-4-5-20250514', name: 'Opus 4.5' }
+            { id: 'claude-3-5-haiku-20241022', name: 'Claude 3.5 Haiku' },
+            { id: 'claude-3-5-sonnet-20241022', name: 'Claude 3.5 Sonnet' },
+            { id: 'claude-3-opus-20240229', name: 'Claude 3 Opus' }
         ],
         requiresKey: true,
         hostType: 'browser-cloud'
