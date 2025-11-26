@@ -7,13 +7,13 @@ const ToolRunner = {
   metadata: {
     id: 'ToolRunner',
     version: '2.1.1',
-    dependencies: ['Utils', 'VFS', 'ToolWriter', 'MetaToolWriter', 'SubstrateLoader?'],
+    dependencies: ['Utils', 'VFS', 'ToolWriter', 'MetaToolWriter', 'SubstrateLoader?', 'EventBus'],
     async: true,
     type: 'service'
   },
 
   factory: (deps) => {
-    const { Utils, VFS, ToolWriter, MetaToolWriter, SubstrateLoader } = deps;
+    const { Utils, VFS, ToolWriter, MetaToolWriter, SubstrateLoader, EventBus } = deps;
     const { logger, Errors } = Utils;
 
     const _tools = new Map();
@@ -34,20 +34,15 @@ const ToolRunner = {
         if (!path) throw new Errors.ValidationError('Missing path argument');
         if (content === undefined) throw new Errors.ValidationError('Missing content argument');
 
+        const existed = await VFS.exists(path);
         await VFS.write(path, content);
-        let result = `Wrote ${path} (${content.length} bytes)`;
 
-        // Syntax check for JS files
-        if (path.endsWith('.js')) {
-          try {
-            new Function(content);
-          } catch (e) {
-            result += `\n⚠️ WARNING: Syntax error detected - ${e.message}`;
-            logger.warn(`[ToolRunner] Syntax error in ${path}: ${e.message}`);
-          }
+        // Emit event for UI to auto-refresh VFS viewer
+        if (EventBus) {
+          EventBus.emit(existed ? 'vfs:write' : 'artifact:created', { path });
         }
 
-        return result;
+        return `Wrote ${path} (${content.length} bytes)`;
       },
       list_files: async (args) => {
         const path = args.path || args.directory || args.dir;
@@ -57,6 +52,12 @@ const ToolRunner = {
         const path = args.path || args.file;
         if (!path) throw new Errors.ValidationError('Missing path');
         await VFS.delete(path);
+
+        // Emit event for UI to show deletion with strikethrough
+        if (EventBus) {
+          EventBus.emit('artifact:deleted', { path });
+        }
+
         return `Deleted ${path}`;
       },
 
