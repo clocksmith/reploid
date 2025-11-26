@@ -135,48 +135,102 @@ body::after {
 .model-cards-list { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 10px; }
 
 .model-card {
-  min-width: 200px; background: var(--bg-element); border: 1px solid var(--border-default);
-  padding: 15px; text-align: left; cursor: pointer; transition: 0.2s;
+  min-width: 200px;
+  background: var(--bg-element);
+  border: 1px solid var(--border-default);
+  padding: 15px;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.2s ease;
 }
-.model-card:hover { border-color: var(--primary); }
-.add-model-card { border-style: dashed; display: flex; align-items: center; justify-content: center; flex-direction: column; }
-.model-card-content { display: flex; flex-direction: column; gap: 8px; }
+
+.model-card:hover {
+  border-color: var(--primary);
+  box-shadow: 0 0 10px rgba(0, 255, 255, 0.1);
+}
+
+.add-model-card {
+  border-style: dashed;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 100px;
+}
+
+.add-model-card:hover {
+  background: rgba(0, 255, 255, 0.03);
+  border-color: var(--primary);
+}
+
+.add-model-icon {
+  font-size: 28px;
+  color: var(--text-muted);
+  transition: all 0.2s ease;
+}
+
+.add-model-card:hover .add-model-icon {
+  color: var(--primary);
+  text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+}
+
+.add-model-text {
+  font-size: 11px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  transition: color 0.2s ease;
+}
+
+.add-model-card:hover .add-model-text {
+  color: var(--primary);
+}
+
+.model-card-content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
 
 /* Inline Add/Edit Model Form */
 .model-form-inline {
-  background: var(--bg-element);
+  background: var(--bg-panel);
   border: 1px solid var(--border-default);
-  padding: 20px;
+  padding: 24px;
   margin-top: 15px;
+  box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.3);
 }
 
 .model-form-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 15px;
-  padding-bottom: 10px;
+  margin-bottom: 20px;
+  padding-bottom: 12px;
   border-bottom: 1px solid var(--border-default);
 }
 
 .model-form-header h5 {
   margin: 0;
   color: var(--primary);
-  font-size: 14px;
+  font-size: 13px;
+  font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: 2px;
+  text-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
 }
 
 .close-btn, .close-btn-small {
   background: transparent;
   border: 1px solid var(--border-default);
   color: var(--text-muted);
-  width: 28px;
-  height: 28px;
-  font-size: 18px;
+  width: 32px;
+  height: 32px;
+  font-size: 20px;
   line-height: 1;
   cursor: pointer;
-  transition: 0.2s;
+  transition: all 0.2s ease;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -185,53 +239,70 @@ body::after {
 .close-btn:hover, .close-btn-small:hover {
   border-color: var(--secondary);
   color: var(--secondary);
+  background: rgba(255, 0, 255, 0.1);
+  box-shadow: 0 0 8px rgba(255, 0, 255, 0.3);
+}
+
+.close-btn:focus, .close-btn-small:focus {
+  outline: none;
+  border-color: var(--secondary);
 }
 
 .inline-form-row {
-  margin-bottom: 12px;
+  margin-bottom: 16px;
 }
 
 .inline-form-row label {
   display: block;
-  color: var(--text-muted);
-  font-size: 11px;
+  color: var(--text-secondary);
+  font-size: 10px;
+  font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 1px;
-  margin-bottom: 6px;
+  letter-spacing: 1.5px;
+  margin-bottom: 8px;
 }
 
 .inline-select, .inline-input {
   width: 100%;
-  padding: 10px;
-  background: var(--bg-panel);
+  padding: 12px 14px;
+  background: var(--bg-element);
   border: 1px solid var(--border-default);
   color: var(--text-primary);
   font-family: var(--font-mono);
-  font-size: 12px;
+  font-size: 13px;
+  transition: all 0.2s ease;
+}
+
+.inline-select:hover, .inline-input:hover {
+  border-color: var(--border-active);
 }
 
 .inline-select:focus, .inline-input:focus {
   outline: none;
   border-color: var(--primary);
+  box-shadow: 0 0 8px rgba(0, 255, 255, 0.15), inset 0 0 8px rgba(0, 255, 255, 0.05);
 }
 
 .inline-form-actions {
   display: flex;
-  gap: 10px;
-  margin-top: 15px;
-  padding-top: 15px;
+  gap: 12px;
+  margin-top: 20px;
+  padding-top: 20px;
   border-top: 1px solid var(--border-default);
 }
 
 .inline-btn-cancel, .inline-btn-save {
   flex: 1;
-  padding: 10px 16px;
+  padding: 12px 20px;
   font-family: var(--font-mono);
   font-size: 12px;
+  font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: 1.5px;
   cursor: pointer;
-  transition: 0.2s;
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
 }
 
 .inline-btn-cancel {
@@ -241,24 +312,48 @@ body::after {
 }
 
 .inline-btn-cancel:hover {
-  border-color: var(--text-primary);
+  border-color: var(--text-secondary);
   color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.inline-btn-cancel:focus {
+  outline: none;
+  border-color: var(--text-secondary);
+}
+
+.inline-btn-cancel:active {
+  background: rgba(255, 255, 255, 0.05);
 }
 
 .inline-btn-save {
-  background: transparent;
+  background: rgba(0, 255, 255, 0.08);
   border: 1px solid var(--primary);
   color: var(--primary);
+  box-shadow: 0 0 5px rgba(0, 255, 255, 0.1);
 }
 
 .inline-btn-save:hover:not(:disabled) {
-  background: var(--primary-dim);
-  box-shadow: 0 0 10px rgba(0, 255, 255, 0.2);
+  background: rgba(0, 255, 255, 0.15);
+  box-shadow: 0 0 15px rgba(0, 255, 255, 0.3), inset 0 0 10px rgba(0, 255, 255, 0.1);
+  text-shadow: 0 0 8px rgba(0, 255, 255, 0.5);
+}
+
+.inline-btn-save:focus:not(:disabled) {
+  outline: none;
+  box-shadow: 0 0 15px rgba(0, 255, 255, 0.4);
+}
+
+.inline-btn-save:active:not(:disabled) {
+  background: rgba(0, 255, 255, 0.2);
+  transform: translateY(1px);
 }
 
 .inline-btn-save:disabled {
-  opacity: 0.4;
+  opacity: 0.35;
   cursor: not-allowed;
+  background: transparent;
+  box-shadow: none;
 }
 
 /* Model Card Buttons */
@@ -266,22 +361,34 @@ body::after {
   background: transparent;
   border: 1px solid var(--border-default);
   color: var(--text-muted);
-  padding: 4px 8px;
+  padding: 6px 12px;
   font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
   cursor: pointer;
-  transition: 0.2s;
-  margin-right: 4px;
-  margin-top: 8px;
+  transition: all 0.2s ease;
+  margin-right: 6px;
+  margin-top: 10px;
 }
+
 .model-card-btn:hover {
   border-color: var(--primary);
   color: var(--primary);
-  box-shadow: none;
+  background: rgba(0, 255, 255, 0.05);
+  box-shadow: 0 0 6px rgba(0, 255, 255, 0.2);
 }
+
+.model-card-btn:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
 .model-card-btn.remove:hover {
   border-color: var(--secondary);
   color: var(--secondary);
-  box-shadow: none;
+  background: rgba(255, 0, 255, 0.05);
+  box-shadow: 0 0 6px rgba(255, 0, 255, 0.2);
 }
 
 /* Genesis Level / Boot Mode Grid */
