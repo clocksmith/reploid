@@ -18,6 +18,10 @@ const Proto = {
     let _isEditing = false;
     let _vfsPanelCollapsed = false;
 
+    // Track recently modified files for color coding
+    let _recentlyModified = new Map(); // path -> { timestamp, type: 'created'|'modified' }
+    const RECENT_HIGHLIGHT_DURATION = 5000; // 5 seconds
+
     // Token tracking
     let _tokenCount = 0;
     let _maxTokens = 32000; // Default, updated from model config
@@ -669,6 +673,56 @@ const Proto = {
         historyContainer.appendChild(div);
         scheduleHistoryScroll();
       }));
+
+      // --- VFS Auto-Refresh on File Changes ---
+      const markFileModified = (path, type = 'modified') => {
+        _recentlyModified.set(path, { timestamp: Date.now(), type });
+        // Auto-clear after highlight duration
+        setTimeout(() => {
+          _recentlyModified.delete(path);
+          loadVFSTree(); // Re-render to remove highlight
+        }, RECENT_HIGHLIGHT_DURATION);
+        loadVFSTree(); // Refresh tree immediately
+      };
+
+      // Listen for VFS write events (from tool-runner write_file)
+      _subscriptionIds.push(EventBus.on('vfs:write', (data) => {
+        const path = data?.path || data;
+        if (path) markFileModified(path, 'modified');
+      }));
+
+      // Listen for artifact events
+      _subscriptionIds.push(EventBus.on('artifact:created', (data) => {
+        const path = data?.path || data;
+        if (path) markFileModified(path, 'created');
+      }));
+
+      _subscriptionIds.push(EventBus.on('artifact:updated', (data) => {
+        const path = data?.path || data;
+        if (path) markFileModified(path, 'modified');
+      }));
+
+      _subscriptionIds.push(EventBus.on('artifact:deleted', (data) => {
+        const path = data?.path || data;
+        if (path) {
+          // Mark as deleted briefly before refresh removes it
+          _recentlyModified.set(path, { timestamp: Date.now(), type: 'deleted' });
+          loadVFSTree();
+          // Clear after animation completes
+          setTimeout(() => {
+            _recentlyModified.delete(path);
+            loadVFSTree();
+          }, 2000);
+        } else {
+          loadVFSTree();
+        }
+      }));
+
+      // Listen for tool results that modify files
+      _subscriptionIds.push(EventBus.on('tool:file_written', (data) => {
+        const path = data?.path || data;
+        if (path) markFileModified(path, 'modified');
+      }));
     };
 
     // --- Cleanup Function (prevents memory leaks) ---
@@ -775,9 +829,25 @@ const Proto = {
             html += renderNode(value, indent + 1);
           } else {
             const safePath = escapeHtml(value);
+            // Check if file was recently modified
+            const modInfo = _recentlyModified.get(value);
+            let modClass = '';
+            let modIndicator = '';
+            if (modInfo) {
+              if (modInfo.type === 'created') {
+                modClass = 'vfs-file-created';
+                modIndicator = ' ✦';
+              } else if (modInfo.type === 'deleted') {
+                modClass = 'vfs-file-deleted';
+                modIndicator = ' ✗';
+              } else {
+                modClass = 'vfs-file-modified';
+                modIndicator = ' ●';
+              }
+            }
             html += `
-              <div class="vfs-file" role="button" data-path="${safePath}" style="padding-left: ${padding + 16}px">
-                ${escapeHtml(name)}
+              <div class="vfs-file ${modClass}" role="button" data-path="${safePath}" style="padding-left: ${padding + 16}px">
+                ${escapeHtml(name)}${modIndicator}
               </div>
             `;
           }

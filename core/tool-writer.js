@@ -20,16 +20,19 @@ const ToolWriter = {
       if (!code || typeof code !== 'string') {
         throw new Errors.ValidationError('Missing or invalid code parameter. create_tool requires { name, code } where code is the tool implementation.');
       }
-      // Basic sanity check
-      if (!code.includes('export default') || !code.includes('async function')) {
-        throw new Errors.ValidationError('Tool must export a default async function');
+      // Structural checks (string-based, ES module compatible)
+      if (!code.includes('export default') && !code.includes('export const tool')) {
+        throw new Errors.ValidationError('Tool must export default or export const tool');
       }
-      try {
-        // Syntax check via Function constructor
-        new Function(code);
-      } catch (e) {
-        throw new Errors.ValidationError(`Syntax Error: ${e.message}`);
+      // Check for async pattern (multiple valid formats)
+      const hasAsync = code.includes('async function') ||
+                       code.includes('async (') ||
+                       code.includes('call: async');
+      if (!hasAsync) {
+        throw new Errors.ValidationError('Tool call function must be async');
       }
+      // Note: Removed new Function(code) check - incompatible with ES module syntax
+      // Actual syntax validation happens when ToolRunner does import(blobUrl)
     };
 
     const create = async (name, code) => {
