@@ -139,7 +139,7 @@ export function onModelChange() {
 }
 
 // Validate form and enable/disable save button
-function validateForm() {
+export function validateForm() {
     const saveBtn = document.getElementById('save-model-btn');
     const provider = document.getElementById('provider-select').value;
     const modelId = document.getElementById('model-select-dropdown').value;
@@ -278,6 +278,25 @@ export function setupFormListeners() {
     const connectionTypeSelect = document.getElementById('connection-type-select');
     if (connectionTypeSelect) {
         connectionTypeSelect.addEventListener('change', onConnectionTypeChange);
+    }
+
+    // API key input - listen for input, change, and handle autofill
+    const apiKeyInput = document.getElementById('model-api-key');
+    if (apiKeyInput) {
+        apiKeyInput.addEventListener('input', validateForm);
+        apiKeyInput.addEventListener('change', validateForm);
+        apiKeyInput.addEventListener('paste', () => setTimeout(validateForm, 0));
+        // Handle autofill by polling briefly after focus
+        apiKeyInput.addEventListener('focus', () => {
+            const checkAutofill = setInterval(() => {
+                if (apiKeyInput.value) {
+                    validateForm();
+                    clearInterval(checkAutofill);
+                }
+            }, 100);
+            // Stop polling after 2 seconds
+            setTimeout(() => clearInterval(checkAutofill), 2000);
+        });
     }
 
     const consensusSelect = document.getElementById('consensus-strategy');
