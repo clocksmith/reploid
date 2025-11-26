@@ -193,13 +193,60 @@ body::after {
   gap: 8px;
 }
 
-/* Inline Add/Edit Model Form */
-.model-form-inline {
+/* Model Form Modal Overlay */
+.model-form-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  pointer-events: none;
+  opacity: 0;
+  transition: background 0.3s ease, opacity 0.2s ease;
+}
+
+.model-form-overlay.open {
+  background: rgba(0, 0, 0, 0.75);
+  pointer-events: auto;
+  opacity: 1;
+}
+
+/* Model Form Dialog with Hero Animation */
+.model-form-dialog {
   background: var(--bg-panel);
-  border: 1px solid var(--border-default);
+  border: 1px solid var(--primary-dim);
   padding: 24px;
-  margin-top: 15px;
-  box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.3);
+  width: 420px;
+  max-width: 90vw;
+  max-height: 85vh;
+  overflow-y: auto;
+  box-shadow:
+    0 0 40px rgba(0, 255, 255, 0.15),
+    inset 0 0 20px rgba(0, 0, 0, 0.3);
+  transform: scale(0.8) translateY(20px);
+  opacity: 0;
+  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1),
+              opacity 0.25s ease;
+  transform-origin: center center;
+}
+
+.model-form-overlay.open .model-form-dialog {
+  transform: scale(1) translateY(0);
+  opacity: 1;
+}
+
+/* Closing animation */
+.model-form-overlay.closing .model-form-dialog {
+  transform: scale(0.9) translateY(10px);
+  opacity: 0;
+  transition: transform 0.2s ease-in, opacity 0.15s ease-in;
+}
+
+.model-form-overlay.closing {
+  background: rgba(0, 0, 0, 0);
+  transition: background 0.2s ease-in;
 }
 
 .model-form-header {
@@ -246,6 +293,19 @@ body::after {
 .close-btn:focus, .close-btn-small:focus {
   outline: none;
   border-color: var(--secondary);
+}
+
+/* Mobile responsive for modal */
+@media (max-width: 480px) {
+  .model-form-dialog {
+    width: 95vw;
+    padding: 20px 16px;
+    max-height: 90vh;
+  }
+
+  .model-form-overlay.open .model-form-dialog {
+    transform: scale(1) translateY(0);
+  }
 }
 
 .inline-form-row {
@@ -435,10 +495,44 @@ body::after {
 /* Goal Input */
 .goal-container-top { margin-bottom: 20px; }
 .goal-input-group { display: flex; gap: 10px; }
+
+#goal-input {
+  flex: 1;
+  padding: 14px 16px;
+  background: var(--bg-element);
+  border: 1px solid var(--border-default);
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  transition: all 0.2s ease;
+}
+
+#goal-input::placeholder {
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+#goal-input:hover:not(:disabled) {
+  border-color: var(--border-active);
+}
+
+#goal-input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 10px rgba(0, 255, 255, 0.15), inset 0 0 8px rgba(0, 255, 255, 0.05);
+}
+
+#goal-input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: var(--bg-panel);
+}
+
 .goal-example-chips { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; justify-content: center; }
-.goal-chip { 
-  background: var(--bg-element); border: 1px solid var(--border-default); 
+.goal-chip {
+  background: var(--bg-element); border: 1px solid var(--border-default);
   color: var(--text-muted); padding: 5px 10px; font-size: 11px; cursor: pointer;
+  transition: all 0.2s ease;
 }
 .goal-chip:hover { border-color: var(--primary); color: var(--primary); }
 

@@ -31,9 +31,23 @@ const ToolRunner = {
       write_file: async (args) => {
         const path = args.path || args.file;
         const content = args.content;
-        if (!path || content === undefined) throw new Errors.ValidationError('Missing args');
+        if (!path) throw new Errors.ValidationError('Missing path argument');
+        if (content === undefined) throw new Errors.ValidationError('Missing content argument');
+
         await VFS.write(path, content);
-        return `Wrote ${path} (${content.length} bytes)`;
+        let result = `Wrote ${path} (${content.length} bytes)`;
+
+        // Syntax check for JS files
+        if (path.endsWith('.js')) {
+          try {
+            new Function(content);
+          } catch (e) {
+            result += `\n⚠️ WARNING: Syntax error detected - ${e.message}`;
+            logger.warn(`[ToolRunner] Syntax error in ${path}: ${e.message}`);
+          }
+        }
+
+        return result;
       },
       list_files: async (args) => {
         const path = args.path || args.directory || args.dir;

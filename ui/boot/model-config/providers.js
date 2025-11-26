@@ -17,10 +17,11 @@ export const cloudProviders = {
     gemini: {
         name: 'Gemini',
         models: [
-            { id: 'gemini-2.0-flash-exp', name: 'Gemini 2.0 Flash (Exp)' },
-            { id: 'gemini-1.5-flash', name: 'Gemini 1.5 Flash' },
-            { id: 'gemini-1.5-flash-8b', name: 'Gemini 1.5 Flash 8B' },
-            { id: 'gemini-1.5-pro', name: 'Gemini 1.5 Pro' }
+            { id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash' },
+            { id: 'gemini-2.5-flash-lite', name: 'Gemini 2.5 Flash Lite' },
+            { id: 'gemini-2.5-pro', name: 'Gemini 2.5 Pro' },
+            { id: 'gemini-2.0-flash', name: 'Gemini 2.0 Flash' },
+            { id: 'gemini-3-pro-preview', name: 'Gemini 3 Pro (Preview)' }
         ],
         requiresKey: true,
         hostType: 'browser-cloud'
@@ -30,9 +31,12 @@ export const cloudProviders = {
         models: [
             { id: 'gpt-4o-mini', name: 'GPT-4o Mini' },
             { id: 'gpt-4o', name: 'GPT-4o' },
-            { id: 'gpt-4-turbo', name: 'GPT-4 Turbo' },
-            { id: 'o1-mini', name: 'O1 Mini' },
-            { id: 'o1-preview', name: 'O1 Preview' }
+            { id: 'gpt-4.1-mini', name: 'GPT-4.1 Mini' },
+            { id: 'gpt-4.1', name: 'GPT-4.1' },
+            { id: 'gpt-5-mini', name: 'GPT-5 Mini' },
+            { id: 'gpt-5', name: 'GPT-5' },
+            { id: 'o3', name: 'O3' },
+            { id: 'o4-mini', name: 'O4 Mini' }
         ],
         requiresKey: true,
         hostType: 'browser-cloud'
@@ -40,9 +44,10 @@ export const cloudProviders = {
     anthropic: {
         name: 'Anthropic',
         models: [
-            { id: 'claude-3-5-haiku-20241022', name: 'Claude 3.5 Haiku' },
-            { id: 'claude-3-5-sonnet-20241022', name: 'Claude 3.5 Sonnet' },
-            { id: 'claude-3-opus-20240229', name: 'Claude 3 Opus' }
+            { id: 'claude-sonnet-4-5-20250929', name: 'Claude 4.5 Sonnet' },
+            { id: 'claude-opus-4-5-20251101', name: 'Claude 4.5 Opus' },
+            { id: 'claude-sonnet-4-20250514', name: 'Claude 4 Sonnet' },
+            { id: 'claude-opus-4-1-20250805', name: 'Claude 4.1 Opus' }
         ],
         requiresKey: true,
         hostType: 'browser-cloud'
