@@ -9,7 +9,7 @@ const AgentLoop = {
     version: '2.4.1',
     dependencies: [
       'Utils', 'EventBus', 'LLMClient', 'ToolRunner', 'ContextManager',
-      'ResponseParser', 'StateManager', 'PersonaManager', 'ReflectionStore?', 'ReflectionAnalyzer?'
+      'ResponseParser', 'StateManager', 'PersonaManager', 'ReflectionStore?', 'ReflectionAnalyzer?', 'CognitionAPI?'
     ],
     type: 'core'
   },
@@ -17,7 +17,7 @@ const AgentLoop = {
   factory: (deps) => {
     const {
       Utils, EventBus, LLMClient, ToolRunner, ContextManager,
-      ResponseParser, StateManager, PersonaManager, ReflectionStore, ReflectionAnalyzer
+      ResponseParser, StateManager, PersonaManager, ReflectionStore, ReflectionAnalyzer, CognitionAPI
     } = deps;
 
     const { logger, Errors } = Utils;
@@ -179,6 +179,18 @@ const AgentLoop = {
 
           context = await ContextManager.compact(context, _modelConfig);
 
+          // Cognition: Semantic enrichment (pre-LLM)
+          if (CognitionAPI) {
+            try {
+              const lastUserMsg = context.filter(m => m.role === 'user').pop();
+              if (lastUserMsg?.content) {
+                context = await CognitionAPI.semantic.enrich(lastUserMsg.content, context);
+              }
+            } catch (e) {
+              logger.debug('[Agent] Cognition enrichment skipped:', e.message);
+            }
+          }
+
           // Emit token count for UI
           if (ContextManager.emitTokens) {
             ContextManager.emitTokens(context);
@@ -201,6 +213,23 @@ const AgentLoop = {
           _pushActivity({ kind: 'llm_response', cycle: iteration, content: response.content });
 
           const responseContent = response?.content || '';
+
+          // Cognition: Validation and Learning (post-LLM)
+          if (CognitionAPI) {
+            try {
+              // Validate response with symbolic engine
+              const validation = await CognitionAPI.symbolic.validate(responseContent, { cycle: iteration });
+              if (!validation.valid && !validation.skipped) {
+                logger.debug(`[Agent] Cognition validation: ${validation.violations.length} issues`);
+              }
+
+              // Auto-learn from response
+              await CognitionAPI.learning.extract(responseContent, { cycle: iteration });
+            } catch (e) {
+              logger.debug('[Agent] Cognition post-processing skipped:', e.message);
+            }
+          }
+
           const toolCalls = ResponseParser.parseToolCalls(responseContent);
           context.push({ role: 'assistant', content: responseContent });
 
