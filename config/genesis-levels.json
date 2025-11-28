@@ -24,6 +24,18 @@
         "capabilities": ["PerformanceMonitor"]
       }
     },
+    "cognitive": {
+      "name": "COGNITIVE SUBSTRATE",
+      "description": "Self-evolving neurosymbolic cognition - semantic memory + knowledge graph + rule inference",
+      "modules": {
+        "foundation": ["Utils", "EventBus", "RateLimiter"],
+        "storage": ["VFS", "StateHelpersPure", "AuditLogger", "StateManager"],
+        "services": ["LLMClient", "TransformersClient", "ResponseParser", "ContextManager"],
+        "tools": ["VerificationManager", "ToolWriter", "MetaToolWriter", "ToolRunner"],
+        "agent": ["PersonaManager", "ReflectionStore", "ReflectionAnalyzer", "AgentLoop"],
+        "capabilities": ["PerformanceMonitor", "EmbeddingStore", "SemanticMemory", "KnowledgeGraph", "RuleEngine", "SymbolGrounder", "CognitionAPI"]
+      }
+    },
     "full": {
       "name": "FULL SUBSTRATE",
       "description": "All capabilities including substrate loading and self-testing",
@@ -33,7 +45,7 @@
         "services": ["LLMClient", "TransformersClient", "ResponseParser", "ContextManager"],
         "tools": ["VerificationManager", "ToolWriter", "MetaToolWriter", "ToolRunner"],
         "agent": ["PersonaManager", "ReflectionStore", "ReflectionAnalyzer", "AgentLoop"],
-        "capabilities": ["SubstrateLoader", "PerformanceMonitor", "SelfTester"]
+        "capabilities": ["SubstrateLoader", "PerformanceMonitor", "SelfTester", "EmbeddingStore", "SemanticMemory", "KnowledgeGraph", "RuleEngine", "SymbolGrounder", "CognitionAPI"]
       }
     }
   },
@@ -59,7 +71,13 @@
     "AgentLoop": "./core/agent-loop.js",
     "SubstrateLoader": "./capabilities/system/substrate-loader.js",
     "PerformanceMonitor": "./capabilities/performance/performance-monitor.js",
-    "SelfTester": "./capabilities/testing/self-tester.js"
+    "SelfTester": "./capabilities/testing/self-tester.js",
+    "EmbeddingStore": "./capabilities/cognition/semantic/embedding-store.js",
+    "SemanticMemory": "./capabilities/cognition/semantic/semantic-memory.js",
+    "KnowledgeGraph": "./capabilities/cognition/symbolic/knowledge-graph.js",
+    "RuleEngine": "./capabilities/cognition/symbolic/rule-engine.js",
+    "SymbolGrounder": "./capabilities/cognition/symbolic/symbol-grounder.js",
+    "CognitionAPI": "./capabilities/cognition/cognition-api.js"
   },
   "default": "full"
 }
