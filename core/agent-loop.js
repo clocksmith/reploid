@@ -435,16 +435,32 @@ const AgentLoop = {
 ${personaPrompt}
 
 ## Tools
-- list_files: explore directories
-- read_file: read file contents
-- write_file: create or modify files
-- delete_file: remove files
-- create_tool: make new tools in /tools/
-- improve_core_module: modify core modules
+
+### Discovery
+- list_tools: returns array of all available tool names (no args)
+- list_files: explore directories { "path": "/dir/" }
+
+### File Operations
+- read_file: read file contents { "path": "/file.js" }
+- write_file: create or modify files { "path": "/file.js", "content": "..." }
+- delete_file: remove files { "path": "/file.js" }
+
+### Self-Modification (RSI)
+- create_tool: create new tool in /tools/ { "name": "my_tool", "code": "..." }
+  - name MUST be lowercase with underscores only (e.g., "my_tool" not "MyTool")
+  - code MUST include: export const tool = {...} and export default call;
+- improve_core_module: modify /core/ modules { "module": "utils", "code": "..." }
+  - module is just the name (e.g., "utils"), NOT a path
+  - only works for files in /core/
+- load_module: hot-reload any module { "path": "/capabilities/x.js" }
 
 ## Tool Call Format
 TOOL_CALL: tool_name
 ARGS: { "key": "value" }
+
+Example:
+TOOL_CALL: list_tools
+ARGS: {}
 
 Example:
 TOOL_CALL: read_file

@@ -69,6 +69,11 @@ const ToolRunner = {
       // Core Modification (Level 2 RSI)
       improve_core_module: async ({ module, code }) => {
         return await MetaToolWriter.improveCore(module, code);
+      },
+
+      // Tool Discovery
+      list_tools: async () => {
+        return Array.from(_tools.keys());
       }
     };
 
