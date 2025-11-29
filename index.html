@@ -190,17 +190,12 @@
                 <button class="boot-mode-btn selected recommended" data-genesis="full" onclick="selectGenesisLevel('full')">
                     <div class="boot-mode-badge">RECOMMENDED</div>
                     <div class="boot-mode-label">FULL SUBSTRATE</div>
-                    <div class="boot-mode-desc">All modules + reflection, monitoring, and self-testing</div>
+                    <div class="boot-mode-desc">All modules + monitoring, self-testing, and neurosymbolic cognition</div>
                 </button>
                 <button class="boot-mode-btn" data-genesis="tabula" onclick="selectGenesisLevel('tabula')">
                     <div class="boot-mode-badge experimental-badge">EXPERIMENTAL</div>
                     <div class="boot-mode-label">TABULA RASA</div>
                     <div class="boot-mode-desc">Core modules + reflection only - no advanced capabilities</div>
-                </button>
-                <button class="boot-mode-btn" data-genesis="cognitive" onclick="selectGenesisLevel('cognitive')">
-                    <div class="boot-mode-badge experimental-badge">NEW</div>
-                    <div class="boot-mode-label">COGNITIVE SUBSTRATE</div>
-                    <div class="boot-mode-desc">Neurosymbolic AI - semantic memory + knowledge graph + rule inference</div>
                 </button>
             </div>
 
@@ -367,7 +362,7 @@ window.onGenesisLevelLoaded = () => {
 // Restore saved genesis level on load
 window.addEventListener('DOMContentLoaded', () => {
   const savedLevel = localStorage.getItem('REPLOID_GENESIS_LEVEL');
-  if (savedLevel && ['full', 'minimal', 'tabula', 'cognitive'].includes(savedLevel)) {
+  if (savedLevel && ['full', 'minimal', 'tabula'].includes(savedLevel)) {
     // Just update UI, don't trigger reload
     document.querySelectorAll('[data-genesis]').forEach(btn => {
       btn.classList.remove('selected');

@@ -24,21 +24,9 @@
         "capabilities": ["PerformanceMonitor"]
       }
     },
-    "cognitive": {
-      "name": "COGNITIVE SUBSTRATE",
-      "description": "Self-evolving neurosymbolic cognition - semantic memory + knowledge graph + rule inference",
-      "modules": {
-        "foundation": ["Utils", "EventBus", "RateLimiter"],
-        "storage": ["VFS", "StateHelpersPure", "AuditLogger", "StateManager"],
-        "services": ["LLMClient", "TransformersClient", "ResponseParser", "ContextManager"],
-        "tools": ["VerificationManager", "ToolWriter", "MetaToolWriter", "ToolRunner"],
-        "agent": ["PersonaManager", "ReflectionStore", "ReflectionAnalyzer", "AgentLoop"],
-        "capabilities": ["PerformanceMonitor", "EmbeddingStore", "SemanticMemory", "KnowledgeGraph", "RuleEngine", "SymbolGrounder", "CognitionAPI"]
-      }
-    },
     "full": {
       "name": "FULL SUBSTRATE",
-      "description": "All capabilities including substrate loading and self-testing",
+      "description": "All capabilities - monitoring, self-testing, and neurosymbolic cognition",
       "modules": {
         "foundation": ["Utils", "EventBus", "RateLimiter"],
         "storage": ["VFS", "StateHelpersPure", "AuditLogger", "StateManager"],
