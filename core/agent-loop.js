@@ -6,10 +6,11 @@
 const AgentLoop = {
   metadata: {
     id: 'AgentLoop',
-    version: '2.4.1',
+    version: '2.5.0',
     dependencies: [
       'Utils', 'EventBus', 'LLMClient', 'ToolRunner', 'ContextManager',
-      'ResponseParser', 'StateManager', 'PersonaManager', 'ReflectionStore?', 'ReflectionAnalyzer?', 'CognitionAPI?'
+      'ResponseParser', 'StateManager', 'PersonaManager', 'CircuitBreaker',
+      'ReflectionStore?', 'ReflectionAnalyzer?', 'CognitionAPI?'
     ],
     type: 'core'
   },
@@ -17,7 +18,8 @@ const AgentLoop = {
   factory: (deps) => {
     const {
       Utils, EventBus, LLMClient, ToolRunner, ContextManager,
-      ResponseParser, StateManager, PersonaManager, ReflectionStore, ReflectionAnalyzer, CognitionAPI
+      ResponseParser, StateManager, PersonaManager, CircuitBreaker,
+      ReflectionStore, ReflectionAnalyzer, CognitionAPI
     } = deps;
 
     const { logger, Errors } = Utils;
@@ -47,51 +49,13 @@ const AgentLoop = {
       };
     };
 
-    // Circuit breaker for failing tools
-    const CIRCUIT_THRESHOLD = 3; // Failures before circuit opens
-    const CIRCUIT_RESET_MS = 60000; // 1 minute cooldown
-    const _toolCircuits = new Map(); // tool -> { count, lastError, tripTime }
-
-    const _isCircuitOpen = (toolName) => {
-      const record = _toolCircuits.get(toolName);
-      if (!record) return false;
-
-      if (record.count >= CIRCUIT_THRESHOLD) {
-        const elapsed = Date.now() - record.tripTime;
-        if (elapsed < CIRCUIT_RESET_MS) {
-          return true; // Circuit still open
-        }
-        // Reset after cooldown
-        _toolCircuits.delete(toolName);
-        logger.info(`[Agent] Circuit breaker reset for tool: ${toolName}`);
-      }
-      return false;
-    };
-
-    const _recordToolFailure = (toolName, error) => {
-      const record = _toolCircuits.get(toolName) || { count: 0, lastError: null, tripTime: 0 };
-      record.count++;
-      record.lastError = error;
-
-      if (record.count >= CIRCUIT_THRESHOLD) {
-        record.tripTime = Date.now();
-        logger.warn(`[Agent] Circuit breaker TRIPPED for tool: ${toolName} after ${record.count} failures`);
-        EventBus.emit('tool:circuit_open', { tool: toolName, failures: record.count, error });
-      }
-
-      _toolCircuits.set(toolName, record);
-    };
-
-    const _recordToolSuccess = (toolName) => {
-      // Reset failure count on success
-      if (_toolCircuits.has(toolName)) {
-        _toolCircuits.delete(toolName);
-      }
-    };
-
-    const _resetCircuits = () => {
-      _toolCircuits.clear();
-    };
+    // Circuit breaker for failing tools - use shared utility
+    const _toolCircuitBreaker = CircuitBreaker.create({
+      threshold: 3,
+      resetMs: 60000,
+      name: 'AgentToolCircuit',
+      emitEvents: true
+    });
 
     const _checkLoopHealth = (iteration, toolCallCount, responseLength) => {
       // Check 1: No tool calls for too many iterations
@@ -133,6 +97,125 @@ const AgentLoop = {
       }
     };
 
+    /**
+     * Execute a tool with retry logic and timeout
+     * @param {Object} call - Tool call object { name, args }
+     * @param {number} iteration - Current iteration number
+     * @returns {Promise<{result: string, error: Error|null}>}
+     */
+    const _executeToolWithRetry = async (call, iteration) => {
+      const MAX_RETRIES = 2;
+      let result = null;
+      let lastError = null;
+
+      const executeWithTimeout = () => Promise.race([
+        ToolRunner.execute(call.name, call.args),
+        new Promise((_, reject) =>
+          setTimeout(() => reject(new Error(`Tool timeout after ${TOOL_EXECUTION_TIMEOUT_MS}ms`)), TOOL_EXECUTION_TIMEOUT_MS)
+        )
+      ]);
+
+      for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+        try {
+          const toolStartTime = Date.now();
+          const rawResult = await executeWithTimeout();
+          const toolDuration = Date.now() - toolStartTime;
+
+          // Warn on slow tools
+          if (toolDuration > TOOL_EXECUTION_TIMEOUT_MS * 0.7) {
+            logger.warn(`[Agent] Slow tool: ${call.name} took ${toolDuration}ms`);
+            EventBus.emit('tool:slow', { tool: call.name, ms: toolDuration, cycle: iteration });
+          }
+
+          result = typeof rawResult === 'string' ? rawResult : JSON.stringify(rawResult, null, 2);
+          if (result === 'undefined' || result === undefined) {
+            result = '(Tool returned no output)';
+          }
+          lastError = null;
+          break;
+        } catch (err) {
+          lastError = err;
+          const isTimeout = err.message?.includes('timeout');
+
+          if (isTimeout) {
+            logger.error(`[Agent] Tool ${call.name} TIMEOUT - exceeded ${TOOL_EXECUTION_TIMEOUT_MS}ms`);
+            result = `Error: Tool execution timed out after ${TOOL_EXECUTION_TIMEOUT_MS / 1000}s. The operation may still be running.`;
+            EventBus.emit('tool:timeout', { tool: call.name, timeout: TOOL_EXECUTION_TIMEOUT_MS, cycle: iteration });
+            break;
+          }
+
+          if (attempt < MAX_RETRIES) {
+            logger.warn(`[Agent] Tool ${call.name} failed (attempt ${attempt + 1}/${MAX_RETRIES + 1}), retrying...`);
+            await new Promise(r => setTimeout(r, 100 * (attempt + 1)));
+          }
+        }
+      }
+
+      return { result, error: lastError };
+    };
+
+    /**
+     * Handle stuck loop detection and recovery
+     * @param {Object} healthCheck - Health check result
+     * @param {Array} context - Current context array
+     * @param {number} iteration - Current iteration
+     * @returns {Promise<boolean>} True if should break the loop
+     */
+    const _handleStuckLoop = async (healthCheck, context, iteration) => {
+      logger.warn(`[Agent] STUCK LOOP DETECTED: ${healthCheck.reason}`);
+      EventBus.emit('agent:warning', {
+        type: 'stuck_loop',
+        reason: healthCheck.reason,
+        cycle: iteration
+      });
+
+      if (healthCheck.action === 'request_summary') {
+        context.push({
+          role: 'user',
+          content: 'SYSTEM: You appear to be stuck without making progress. Please summarize what you have accomplished so far and what remains to be done, then stop.'
+        });
+        try {
+          const summaryResponse = await LLMClient.chat(context, _modelConfig);
+          _pushActivity({ kind: 'stuck_summary', cycle: iteration, content: summaryResponse.content });
+          EventBus.emit('agent:history', { type: 'llm_response', cycle: iteration, content: summaryResponse.content });
+        } catch (e) {
+          logger.error('[Agent] Failed to get summary response', e);
+        }
+        return true;
+      }
+      return healthCheck.action === 'force_stop';
+    };
+
+    /**
+     * Process and log tool result
+     * @param {Object} call - Tool call object
+     * @param {string} result - Tool result string
+     * @param {number} iteration - Current iteration
+     * @param {Array} context - Context array to push result to
+     */
+    const _processToolResult = (call, result, iteration, context) => {
+      // Smart truncation
+      let processedResult = result;
+      if (result.length > 5000 && call.name !== 'read_file') {
+        processedResult = result.substring(0, 5000) + "\n... [OUTPUT TRUNCATED. USE code_intel OR read_file FOR DETAILS] ...";
+      }
+
+      context.push({
+        role: 'user',
+        content: `TOOL_RESULT (${call.name}):\n${processedResult}`
+      });
+
+      EventBus.emit('agent:history', {
+        type: 'tool_result',
+        cycle: iteration,
+        tool: call.name,
+        args: call.args,
+        result: processedResult
+      });
+      _pushActivity({ kind: 'tool_result', cycle: iteration, tool: call.name, args: call.args, result: processedResult });
+      _logReflection(call, processedResult, iteration);
+    };
+
     const run = async (goal) => {
       if (_isRunning) throw new Errors.StateError('Agent already running');
       if (!_modelConfig) throw new Errors.ConfigError('No model configured');
@@ -140,7 +223,7 @@ const AgentLoop = {
       _isRunning = true;
       _abortController = new AbortController();
       _resetLoopHealth();
-      _resetCircuits();
+      _toolCircuitBreaker.reset();
 
       logger.info(`[Agent] Starting cycle. Goal: "${goal}"`);
       EventBus.emit('agent:status', { state: 'STARTING', activity: 'Initializing...' });
@@ -236,31 +319,8 @@ const AgentLoop = {
           // Check for stuck loop
           const healthCheck = _checkLoopHealth(iteration, toolCalls.length, responseContent.length);
           if (healthCheck.stuck) {
-            logger.warn(`[Agent] STUCK LOOP DETECTED: ${healthCheck.reason}`);
-            EventBus.emit('agent:warning', {
-              type: 'stuck_loop',
-              reason: healthCheck.reason,
-              cycle: iteration
-            });
-
-            if (healthCheck.action === 'request_summary') {
-              // Ask model to summarize and conclude
-              context.push({
-                role: 'user',
-                content: 'SYSTEM: You appear to be stuck without making progress. Please summarize what you have accomplished so far and what remains to be done, then stop.'
-              });
-              // Get one more response then exit
-              try {
-                const summaryResponse = await LLMClient.chat(context, _modelConfig);
-                _pushActivity({ kind: 'stuck_summary', cycle: iteration, content: summaryResponse.content });
-                EventBus.emit('agent:history', { type: 'llm_response', cycle: iteration, content: summaryResponse.content });
-              } catch (e) {
-                logger.error('[Agent] Failed to get summary response', e);
-              }
-              break;
-            } else if (healthCheck.action === 'force_stop') {
-              break;
-            }
+            const shouldBreak = await _handleStuckLoop(healthCheck, context, iteration);
+            if (shouldBreak) break;
           }
 
           if (toolCalls.length > 0) {
@@ -287,104 +347,35 @@ const AgentLoop = {
               }
 
               // Check circuit breaker before executing
-              if (_isCircuitOpen(call.name)) {
-                const circuitRecord = _toolCircuits.get(call.name);
-                const remainingMs = CIRCUIT_RESET_MS - (Date.now() - circuitRecord.tripTime);
+              if (_toolCircuitBreaker.isOpen(call.name)) {
+                const circuitState = _toolCircuitBreaker.getState(call.name);
+                const remainingMs = 60000 - (Date.now() - circuitState.tripTime);
                 const remainingSec = Math.ceil(remainingMs / 1000);
                 logger.warn(`[Agent] Circuit breaker OPEN for ${call.name} - skipping (${remainingSec}s remaining)`);
 
-                const skipMsg = `Tool ${call.name} is temporarily disabled due to repeated failures. Last error: ${circuitRecord.lastError}. Will retry in ${remainingSec}s.`;
+                const skipMsg = `Tool ${call.name} is temporarily disabled due to repeated failures. Last error: ${circuitState.lastError}. Will retry in ${remainingSec}s.`;
                 context.push({ role: 'user', content: `TOOL_RESULT (${call.name}):\nError: ${skipMsg}` });
-                EventBus.emit('tool:circuit_skip', { tool: call.name, remainingMs, lastError: circuitRecord.lastError });
+                EventBus.emit('tool:circuit_skip', { tool: call.name, remainingMs, lastError: circuitState.lastError });
                 continue;
               }
 
               logger.info(`[Agent] Tool Call: ${call.name}`);
               EventBus.emit('agent:status', { state: 'ACTING', activity: `Executing tool: ${call.name}` });
 
-              let result;
-              const MAX_RETRIES = 2;
-              let lastError = null;
+              const { result, error } = await _executeToolWithRetry(call, iteration);
 
-              // Helper to execute with timeout
-              const executeWithTimeout = async () => {
-                return Promise.race([
-                  ToolRunner.execute(call.name, call.args),
-                  new Promise((_, reject) =>
-                    setTimeout(() => reject(new Error(`Tool timeout after ${TOOL_EXECUTION_TIMEOUT_MS}ms`)), TOOL_EXECUTION_TIMEOUT_MS)
-                  )
-                ]);
-              };
-
-              for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
-                try {
-                  const toolStartTime = Date.now();
-                  const rawResult = await executeWithTimeout();
-                  const toolDuration = Date.now() - toolStartTime;
-
-                  // Warn on slow tools
-                  if (toolDuration > TOOL_EXECUTION_TIMEOUT_MS * 0.7) {
-                    logger.warn(`[Agent] Slow tool: ${call.name} took ${toolDuration}ms`);
-                    EventBus.emit('tool:slow', { tool: call.name, ms: toolDuration, cycle: iteration });
-                  }
-
-                  result = typeof rawResult === 'string' ? rawResult : JSON.stringify(rawResult, null, 2);
-                  // Validate serialization didn't produce undefined
-                  if (result === 'undefined' || result === undefined) {
-                    result = '(Tool returned no output)';
-                  }
-                  lastError = null;
-                  break;
-                } catch (err) {
-                  lastError = err;
-                  const isTimeout = err.message?.includes('timeout');
-
-                  if (isTimeout) {
-                    logger.error(`[Agent] Tool ${call.name} TIMEOUT - exceeded ${TOOL_EXECUTION_TIMEOUT_MS}ms`);
-                    result = `Error: Tool execution timed out after ${TOOL_EXECUTION_TIMEOUT_MS / 1000}s. The operation may still be running.`;
-                    EventBus.emit('tool:timeout', { tool: call.name, timeout: TOOL_EXECUTION_TIMEOUT_MS, cycle: iteration });
-                    break; // Don't retry on timeout
-                  }
-
-                  if (attempt < MAX_RETRIES) {
-                    logger.warn(`[Agent] Tool ${call.name} failed (attempt ${attempt + 1}/${MAX_RETRIES + 1}), retrying...`);
-                    await new Promise(r => setTimeout(r, 100 * (attempt + 1))); // Exponential backoff
-                  }
-                }
+              // Handle execution result
+              let finalResult = result;
+              if (error && !result) {
+                logger.error(`[Agent] Tool Error: ${call.name}`, error);
+                finalResult = `Error: ${error.message}`;
+                EventBus.emit('tool:error', { tool: call.name, error: error.message, cycle: iteration });
+                _toolCircuitBreaker.recordFailure(call.name, error);
+              } else if (!error) {
+                _toolCircuitBreaker.recordSuccess(call.name);
               }
 
-              if (lastError && !result) {
-                logger.error(`[Agent] Tool Error: ${call.name}`, lastError);
-                result = `Error: ${lastError.message}`;
-                EventBus.emit('tool:error', { tool: call.name, error: lastError.message, cycle: iteration });
-                // Record failure for circuit breaker
-                _recordToolFailure(call.name, lastError.message);
-              } else if (!lastError) {
-                // Record success - resets circuit breaker count
-                _recordToolSuccess(call.name);
-              }
-
-              // Smart truncation
-              if (result.length > 5000 && call.name !== 'read_file') {
-                  result = result.substring(0, 5000) + "\n... [OUTPUT TRUNCATED. USE code_intel OR read_file FOR DETAILS] ...";
-              }
-
-              context.push({
-                role: 'user',
-                content: `TOOL_RESULT (${call.name}):\n${result}`
-              });
-
-              const toolEvent = {
-                type: 'tool_result',
-                cycle: iteration,
-                tool: call.name,
-                args: call.args,
-                result: result
-              };
-              EventBus.emit('agent:history', toolEvent);
-              _pushActivity({ kind: 'tool_result', cycle: iteration, tool: call.name, args: call.args, result });
-
-              _logReflection(call, result, iteration);
+              _processToolResult(call, finalResult, iteration, context);
               executedTools++;
             }
           } else {

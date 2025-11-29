@@ -8,6 +8,12 @@ import DIContainer from './infrastructure/di-container.js';
 import EventBus from './infrastructure/event-bus.js';
 import AuditLogger from './infrastructure/audit-logger.js';
 import RateLimiter from './infrastructure/rate-limiter.js';
+import CircuitBreaker from './infrastructure/circuit-breaker.js';
+import StreamParser from './infrastructure/stream-parser.js';
+import IndexedDBHelper from './infrastructure/indexed-db-helper.js';
+import HITLController from './infrastructure/hitl-controller.js';
+import GenesisSnapshot from './infrastructure/genesis-snapshot.js';
+import Observability from './infrastructure/observability.js';
 
 import VFS from './core/vfs.js';
 import StateManager from './core/state-manager.js';
@@ -21,7 +27,6 @@ import VerificationManager from './core/verification-manager.js';
 
 import ToolRunner from './core/tool-runner.js';
 import ToolWriter from './core/tool-writer.js';
-import MetaToolWriter from './core/meta-tool-writer.js';
 
 import AgentLoop from './core/agent-loop.js';
 import PersonaManager from './core/persona-manager.js';
@@ -33,9 +38,27 @@ import ReflectionAnalyzer from './capabilities/reflection/reflection-analyzer.js
 import PerformanceMonitor from './capabilities/performance/performance-monitor.js';
 import SelfTester from './capabilities/testing/self-tester.js';
 
+// Arena testing modules
+import { VFSSandbox, ArenaCompetitor, ArenaMetrics, ArenaHarness } from './testing/arena/index.js';
+
+// Cognition modules
+import EmbeddingStore from './capabilities/cognition/semantic/embedding-store.js';
+import SemanticMemory from './capabilities/cognition/semantic/semantic-memory.js';
+import KnowledgeGraph from './capabilities/cognition/symbolic/knowledge-graph.js';
+import RuleEngine from './capabilities/cognition/symbolic/rule-engine.js';
+import SymbolGrounder from './capabilities/cognition/symbolic/symbol-grounder.js';
+import CognitionAPI from './capabilities/cognition/cognition-api.js';
+
 // Boot UI (model config, provider detection)
 import { initModelConfig } from './ui/boot/model-config/index.js';
 import GoalHistory from './ui/goal-history.js';
+
+// CLI Mode
+import Terminal from './ui/cli/terminal.js';
+import Shell from './ui/cli/shell.js';
+import History from './ui/cli/history.js';
+import CLIMode from './ui/cli/index.js';
+import GitTools from './ui/cli/git-tools.js';
 
 // UI Imports (Dynamic to allow headless boot)
 // import Proto from './ui/proto.js';
@@ -191,11 +214,15 @@ function initCrosshair() {
     const container = DIContainer.factory({ Utils: Utils.factory() });
 
     // Get genesis level from localStorage (set by boot UI)
-    const genesisLevel = localStorage.getItem('REPLOID_GENESIS_LEVEL') || genesisConfig.default;
-    const levelConfig = genesisConfig.levels[genesisLevel];
+    let genesisLevel = localStorage.getItem('REPLOID_GENESIS_LEVEL') || genesisConfig.default;
+    let levelConfig = genesisConfig.levels[genesisLevel];
 
+    // Fallback to default if selected level doesn't exist
     if (!levelConfig) {
-      throw new Error(`Unknown genesis level: ${genesisLevel}`);
+      logger.warn(`[Boot] Unknown genesis level: ${genesisLevel}, falling back to ${genesisConfig.default}`);
+      genesisLevel = genesisConfig.default;
+      levelConfig = genesisConfig.levels[genesisLevel];
+      localStorage.setItem('REPLOID_GENESIS_LEVEL', genesisLevel);
     }
 
     logger.info(`[Boot] Genesis level: ${levelConfig.name}`);
@@ -203,9 +230,13 @@ function initCrosshair() {
     // Module registry mapping names to imports
     const moduleRegistry = {
       Utils, EventBus, RateLimiter, VFS, StateHelpersPure, AuditLogger,
+      CircuitBreaker, StreamParser, IndexedDBHelper, HITLController, GenesisSnapshot, Observability,
       StateManager, LLMClient, TransformersClient, ResponseParser, ContextManager, VerificationManager,
-      ToolWriter, MetaToolWriter, ToolRunner, PersonaManager, ReflectionStore,
-      ReflectionAnalyzer, AgentLoop, SubstrateLoader, PerformanceMonitor, SelfTester
+      ToolWriter, ToolRunner, PersonaManager, ReflectionStore,
+      ReflectionAnalyzer, AgentLoop, SubstrateLoader, PerformanceMonitor, SelfTester,
+      EmbeddingStore, SemanticMemory, KnowledgeGraph, RuleEngine, SymbolGrounder, CognitionAPI,
+      Terminal, Shell, History, CLIMode, GitTools,
+      VFSSandbox, ArenaCompetitor, ArenaMetrics, ArenaHarness
     };
 
     // Register modules based on genesis level config
@@ -232,6 +263,16 @@ function initCrosshair() {
       registerModules(levelConfig.modules.capabilities, 'capabilities');
     } else {
       logger.info('[Boot] No additional capabilities for this genesis level');
+    }
+
+    // Register CLI modules (always available)
+    if (levelConfig.modules.cli) {
+      registerModules(levelConfig.modules.cli, 'cli');
+    }
+
+    // Register testing modules (arena, etc.)
+    if (levelConfig.modules.testing) {
+      registerModules(levelConfig.modules.testing, 'testing');
     }
 
     // 3. Boot Sequence
@@ -411,6 +452,73 @@ function initCrosshair() {
           }
 
           logger.info('[Boot] UI Mounted.');
+
+          // Show mode toggle and wire up CLI mode (only for CLI genesis level)
+          const modeToggle = document.getElementById('mode-toggle');
+          const dashboardBtn = document.getElementById('mode-dashboard-btn');
+          const cliBtn = document.getElementById('mode-cli-btn');
+          const cliContainer = document.getElementById('cli-container');
+          let cliInitialized = false;
+
+          // Only show mode toggle if CLI mode is selected
+          const hasCLI = genesisLevel === 'cli' && levelConfig.modules.cli;
+
+          if (modeToggle && hasCLI) {
+            modeToggle.classList.remove('hidden');
+
+            // Mode toggle handlers
+            const switchToDashboard = () => {
+              appEl.classList.remove('hidden');
+              cliContainer?.classList.add('hidden');
+              dashboardBtn?.classList.add('active');
+              cliBtn?.classList.remove('active');
+              localStorage.setItem('REPLOID_UI_MODE', 'dashboard');
+            };
+
+            const switchToCLI = async () => {
+              appEl.classList.add('hidden');
+              cliContainer?.classList.remove('hidden');
+              dashboardBtn?.classList.remove('active');
+              cliBtn?.classList.add('active');
+              localStorage.setItem('REPLOID_UI_MODE', 'cli');
+
+              // Initialize CLI on first use
+              if (!cliInitialized && cliContainer) {
+                try {
+                  const cliMode = await container.resolve('CLIMode');
+                  await cliMode.init('cli-container');
+                  cliInitialized = true;
+                  cliMode.focus();
+                } catch (e) {
+                  logger.error('[Boot] CLI initialization failed', e);
+                }
+              } else {
+                const cliMode = await container.resolve('CLIMode');
+                cliMode?.focus();
+              }
+            };
+
+            dashboardBtn?.addEventListener('click', switchToDashboard);
+            cliBtn?.addEventListener('click', switchToCLI);
+
+            // Keyboard shortcut: Ctrl+` to toggle
+            document.addEventListener('keydown', (e) => {
+              if (e.ctrlKey && e.key === '`') {
+                e.preventDefault();
+                if (appEl.classList.contains('hidden')) {
+                  switchToDashboard();
+                } else {
+                  switchToCLI();
+                }
+              }
+            });
+
+            // Restore last mode
+            const savedMode = localStorage.getItem('REPLOID_UI_MODE');
+            if (savedMode === 'cli') {
+              switchToCLI();
+            }
+          }
 
           // Auto-start the agent if goal is set
           if (goal) {
