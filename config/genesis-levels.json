@@ -7,7 +7,7 @@
         "foundation": ["Utils", "EventBus", "RateLimiter"],
         "storage": ["VFS", "StateHelpersPure", "AuditLogger", "StateManager"],
         "services": ["LLMClient", "TransformersClient", "ResponseParser", "ContextManager"],
-        "tools": ["VerificationManager", "ToolWriter", "MetaToolWriter", "ToolRunner"],
+        "tools": ["VerificationManager", "ToolWriter", "ToolRunner"],
         "agent": ["PersonaManager", "ReflectionStore", "ReflectionAnalyzer", "AgentLoop"],
         "capabilities": []
       }
@@ -19,7 +19,7 @@
         "foundation": ["Utils", "EventBus", "RateLimiter"],
         "storage": ["VFS", "StateHelpersPure", "AuditLogger", "StateManager"],
         "services": ["LLMClient", "TransformersClient", "ResponseParser", "ContextManager"],
-        "tools": ["VerificationManager", "ToolWriter", "MetaToolWriter", "ToolRunner"],
+        "tools": ["VerificationManager", "ToolWriter", "ToolRunner"],
         "agent": ["PersonaManager", "ReflectionStore", "ReflectionAnalyzer", "AgentLoop"],
         "capabilities": ["PerformanceMonitor"]
       }
@@ -31,7 +31,7 @@
         "foundation": ["Utils", "EventBus", "RateLimiter"],
         "storage": ["VFS", "StateHelpersPure", "AuditLogger", "StateManager"],
         "services": ["LLMClient", "TransformersClient", "ResponseParser", "ContextManager"],
-        "tools": ["VerificationManager", "ToolWriter", "MetaToolWriter", "ToolRunner"],
+        "tools": ["VerificationManager", "ToolWriter", "ToolRunner"],
         "agent": ["PersonaManager", "ReflectionStore", "ReflectionAnalyzer", "AgentLoop"],
         "capabilities": ["SubstrateLoader", "PerformanceMonitor", "SelfTester", "EmbeddingStore", "SemanticMemory", "KnowledgeGraph", "RuleEngine", "SymbolGrounder", "CognitionAPI"]
       }
@@ -51,7 +51,6 @@
     "ContextManager": "./core/context-manager.js",
     "VerificationManager": "./core/verification-manager.js",
     "ToolWriter": "./core/tool-writer.js",
-    "MetaToolWriter": "./core/meta-tool-writer.js",
     "ToolRunner": "./core/tool-runner.js",
     "PersonaManager": "./core/persona-manager.js",
     "ReflectionStore": "./capabilities/reflection/reflection-store.js",
