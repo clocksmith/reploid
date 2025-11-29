@@ -7,13 +7,13 @@ const ToolRunner = {
   metadata: {
     id: 'ToolRunner',
     version: '2.1.1',
-    dependencies: ['Utils', 'VFS', 'ToolWriter', 'MetaToolWriter', 'SubstrateLoader?', 'EventBus'],
+    dependencies: ['Utils', 'VFS', 'ToolWriter', 'SubstrateLoader?', 'EventBus'],
     async: true,
     type: 'service'
   },
 
   factory: (deps) => {
-    const { Utils, VFS, ToolWriter, MetaToolWriter, SubstrateLoader, EventBus } = deps;
+    const { Utils, VFS, ToolWriter, SubstrateLoader, EventBus } = deps;
     const { logger, Errors } = Utils;
 
     const _tools = new Map();
@@ -61,14 +61,9 @@ const ToolRunner = {
         return `Deleted ${path}`;
       },
 
-      // Tool Management (Level 1 RSI)
+      // Tool Management (RSI)
       create_tool: async ({ name, code }) => {
         return await ToolWriter.create(name, code);
-      },
-
-      // Core Modification (Level 2 RSI)
-      improve_core_module: async ({ module, code }) => {
-        return await MetaToolWriter.improveCore(module, code);
       },
 
       // Tool Discovery

@@ -449,10 +449,8 @@ ${personaPrompt}
 - create_tool: create new tool in /tools/ { "name": "my_tool", "code": "..." }
   - name MUST be lowercase with underscores only (e.g., "my_tool" not "MyTool")
   - code MUST include: export const tool = {...} and export default call;
-- improve_core_module: modify /core/ modules { "module": "utils", "code": "..." }
-  - module is just the name (e.g., "utils"), NOT a path
-  - only works for files in /core/
 - load_module: hot-reload any module { "path": "/capabilities/x.js" }
+- To modify /core/ files, use write_file directly
 
 ## Tool Call Format
 TOOL_CALL: tool_name
