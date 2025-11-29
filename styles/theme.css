@@ -583,3 +583,92 @@ input:focus, select:focus, textarea:focus {
   border-top: 1px solid var(--border-default);
   justify-content: flex-end;
 }
+
+/* ========================================
+   CLI MODE
+   ======================================== */
+
+/* Mode Toggle Button Group */
+.mode-toggle {
+  position: fixed;
+  top: 12px;
+  right: 12px;
+  z-index: 9000;
+  display: flex;
+  gap: 0;
+  background: var(--bg-panel);
+  border: 1px solid var(--border-default);
+}
+
+.mode-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-right: 1px solid var(--border-default);
+}
+
+.mode-btn:last-child {
+  border-right: none;
+}
+
+.mode-btn:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.mode-btn.active {
+  background: var(--primary-dim);
+  color: var(--primary);
+}
+
+.mode-icon {
+  font-size: 14px;
+}
+
+.mode-label {
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* CLI Container */
+.cli-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #0d1117;
+  z-index: 8000;
+  padding: 50px 0 0 0;
+}
+
+.cli-container .xterm {
+  height: 100%;
+  padding: 12px;
+}
+
+/* Override xterm scrollbar for dark theme */
+.cli-container .xterm-viewport::-webkit-scrollbar {
+  width: 8px;
+}
+
+.cli-container .xterm-viewport::-webkit-scrollbar-track {
+  background: #0d1117;
+}
+
+.cli-container .xterm-viewport::-webkit-scrollbar-thumb {
+  background: #30363d;
+  border-radius: 4px;
+}
+
+.cli-container .xterm-viewport::-webkit-scrollbar-thumb:hover {
+  background: #484f58;
+}

@@ -4,7 +4,7 @@
       "name": "TABULA RASA",
       "description": "Blank slate - core agent only, no advanced capabilities",
       "modules": {
-        "foundation": ["Utils", "EventBus", "RateLimiter"],
+        "foundation": ["Utils", "EventBus", "RateLimiter", "CircuitBreaker", "StreamParser", "IndexedDBHelper", "HITLController", "GenesisSnapshot", "Observability"],
         "storage": ["VFS", "StateHelpersPure", "AuditLogger", "StateManager"],
         "services": ["LLMClient", "TransformersClient", "ResponseParser", "ContextManager"],
         "tools": ["VerificationManager", "ToolWriter", "ToolRunner"],
@@ -16,7 +16,7 @@
       "name": "MINIMAL AXIOMS",
       "description": "Core + basic reflection and learning capabilities",
       "modules": {
-        "foundation": ["Utils", "EventBus", "RateLimiter"],
+        "foundation": ["Utils", "EventBus", "RateLimiter", "CircuitBreaker", "StreamParser", "IndexedDBHelper", "HITLController", "GenesisSnapshot", "Observability"],
         "storage": ["VFS", "StateHelpersPure", "AuditLogger", "StateManager"],
         "services": ["LLMClient", "TransformersClient", "ResponseParser", "ContextManager"],
         "tools": ["VerificationManager", "ToolWriter", "ToolRunner"],
@@ -28,12 +28,27 @@
       "name": "FULL SUBSTRATE",
       "description": "All capabilities - monitoring, self-testing, and neurosymbolic cognition",
       "modules": {
-        "foundation": ["Utils", "EventBus", "RateLimiter"],
+        "foundation": ["Utils", "EventBus", "RateLimiter", "CircuitBreaker", "StreamParser", "IndexedDBHelper", "HITLController", "GenesisSnapshot", "Observability"],
         "storage": ["VFS", "StateHelpersPure", "AuditLogger", "StateManager"],
         "services": ["LLMClient", "TransformersClient", "ResponseParser", "ContextManager"],
         "tools": ["VerificationManager", "ToolWriter", "ToolRunner"],
         "agent": ["PersonaManager", "ReflectionStore", "ReflectionAnalyzer", "AgentLoop"],
-        "capabilities": ["SubstrateLoader", "PerformanceMonitor", "SelfTester", "EmbeddingStore", "SemanticMemory", "KnowledgeGraph", "RuleEngine", "SymbolGrounder", "CognitionAPI"]
+        "capabilities": ["SubstrateLoader", "PerformanceMonitor", "SelfTester", "EmbeddingStore", "SemanticMemory", "KnowledgeGraph", "RuleEngine", "SymbolGrounder", "CognitionAPI"],
+        "testing": ["VFSSandbox", "ArenaCompetitor", "ArenaMetrics", "ArenaHarness"]
+      }
+    },
+    "cli": {
+      "name": "AGENT TOOLS",
+      "description": "Full substrate + Unix-style shell tools (ls, grep, git, jq, etc.) for agent use",
+      "modules": {
+        "foundation": ["Utils", "EventBus", "RateLimiter", "CircuitBreaker", "StreamParser", "IndexedDBHelper", "HITLController", "GenesisSnapshot", "Observability"],
+        "storage": ["VFS", "StateHelpersPure", "AuditLogger", "StateManager"],
+        "services": ["LLMClient", "TransformersClient", "ResponseParser", "ContextManager"],
+        "tools": ["VerificationManager", "ToolWriter", "ToolRunner"],
+        "agent": ["PersonaManager", "ReflectionStore", "ReflectionAnalyzer", "AgentLoop"],
+        "capabilities": ["SubstrateLoader", "PerformanceMonitor", "SelfTester", "EmbeddingStore", "SemanticMemory", "KnowledgeGraph", "RuleEngine", "SymbolGrounder", "CognitionAPI"],
+        "testing": ["VFSSandbox", "ArenaCompetitor", "ArenaMetrics", "ArenaHarness"],
+        "cli": ["Terminal", "Shell", "History", "CLIMode", "GitTools"]
       }
     }
   },
@@ -41,6 +56,12 @@
     "Utils": "./core/utils.js",
     "EventBus": "./infrastructure/event-bus.js",
     "RateLimiter": "./infrastructure/rate-limiter.js",
+    "CircuitBreaker": "./infrastructure/circuit-breaker.js",
+    "StreamParser": "./infrastructure/stream-parser.js",
+    "IndexedDBHelper": "./infrastructure/indexed-db-helper.js",
+    "HITLController": "./infrastructure/hitl-controller.js",
+    "GenesisSnapshot": "./infrastructure/genesis-snapshot.js",
+    "Observability": "./infrastructure/observability.js",
     "VFS": "./core/vfs.js",
     "StateHelpersPure": "./core/state-helpers-pure.js",
     "AuditLogger": "./infrastructure/audit-logger.js",
@@ -64,7 +85,16 @@
     "KnowledgeGraph": "./capabilities/cognition/symbolic/knowledge-graph.js",
     "RuleEngine": "./capabilities/cognition/symbolic/rule-engine.js",
     "SymbolGrounder": "./capabilities/cognition/symbolic/symbol-grounder.js",
-    "CognitionAPI": "./capabilities/cognition/cognition-api.js"
+    "CognitionAPI": "./capabilities/cognition/cognition-api.js",
+    "Terminal": "./ui/cli/terminal.js",
+    "Shell": "./ui/cli/shell.js",
+    "History": "./ui/cli/history.js",
+    "CLIMode": "./ui/cli/index.js",
+    "GitTools": "./ui/cli/git-tools.js",
+    "VFSSandbox": "./testing/arena/vfs-sandbox.js",
+    "ArenaCompetitor": "./testing/arena/competitor.js",
+    "ArenaMetrics": "./testing/arena/arena-metrics.js",
+    "ArenaHarness": "./testing/arena/arena-harness.js"
   },
   "default": "full"
 }

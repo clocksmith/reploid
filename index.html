@@ -4,10 +4,12 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes" />
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><defs><linearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'><stop offset='0%25' style='stop-color:%230ff;'/><stop offset='100%25' style='stop-color:%23ffd700;'/></linearGradient></defs><text fill='url(%23g)' y='.99em' font-size='90' font-weight='bold'>R</text></svg>" />
-    <title>REPLOID - AI Assistant</title>
+    <title>REPLOID - Agent Safety Sandbox</title>
     <link rel="stylesheet" href="styles/theme.css">
     <link rel="stylesheet" href="styles/boot.css">
     <link rel="stylesheet" href="styles/proto.css">
+    <!-- xterm.js styles for CLI mode -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.min.css">
 
     <!-- Load WebLLM and expose to window for llm-client.js -->
     <script type="module">
@@ -49,7 +51,7 @@
         <div class="boot-header">
             <h1>REPLOID</h1>
             <p class="subtitle">
-                <a href="https://github.com/clocksmith/reploid" target="_blank" class="subtitle-link">Browser-Native AI Agent with Recursive Self-Improvement</a>
+                <a href="https://github.com/clocksmith/reploid" target="_blank" class="subtitle-link">Browser-native sandbox for safe AI agent development</a>
             </p>
         </div>
 
@@ -168,13 +170,14 @@
             </div>
             <!-- Example Goal Chips -->
             <div class="goal-example-chips">
-                <button class="goal-chip" onclick="document.getElementById('goal-input').value='Audit /core and /capabilities, then iteratively refactor blockers for recursive self-improvement.'">RSI Genesis</button>
-                <button class="goal-chip" onclick="document.getElementById('goal-input').value='Profile your architecture, list bottlenecks, and patch them for faster cycles and sharper reasoning.'">Loop Optimization</button>
-                <button class="goal-chip" onclick="document.getElementById('goal-input').value='Recursively improve yourself'">Recursive Spark</button>
-                <button class="goal-chip" onclick="document.getElementById('goal-input').value='Iteratively red-team your own prompts: critique each draft, rewrite it, and verify improvements until quality stabilizes.'">Prompt Improvement</button>
-                <button class="goal-chip" onclick="document.getElementById('goal-input').value='Create a reasoning critic that scores each action 0-1, logs failure patterns, and adjusts strategy accordingly.'">Reasoning Critic</button>
-                <button class="goal-chip" onclick="document.getElementById('goal-input').value='Create tools that create tools that create tools'">Meta Tools Creator</button>
-                <button class="goal-chip" onclick="document.getElementById('goal-input').value='Run a recursive criticism loop: produce output, critique it as an expert reviewer, revise the plan, and repeat until no weaknesses remain.'">RCI Loop</button>
+                <button class="goal-chip" onclick="document.getElementById('goal-input').value='Build a todo app with HTML/CSS/JS, write it to /apps/todo/, then create an index.html that renders it'">Build Todo App</button>
+                <button class="goal-chip" onclick="document.getElementById('goal-input').value='Create a knowledge graph of your own architecture: extract entities from /core and /capabilities, define relationships, then query for insights'">Map Architecture</button>
+                <button class="goal-chip" onclick="document.getElementById('goal-input').value='Build a calculator with buttons, display, and keyboard support. Store in /apps/calculator/ with proper HTML/CSS/JS structure'">Build Calculator</button>
+                <button class="goal-chip" onclick="document.getElementById('goal-input').value='Use semantic memory to cluster your tools by functionality, then use the rule engine to infer which tools could be composed together'">Analyze Tools</button>
+                <button class="goal-chip" onclick="document.getElementById('goal-input').value='Create a Markdown note-taking app with live preview. Support bold, italic, headers, and code blocks. Save to /apps/notes/'">Build Notes App</button>
+                <button class="goal-chip" onclick="document.getElementById('goal-input').value='Analyze your own verification system: read verification-manager.js, identify what patterns it catches, and suggest improvements'">Audit Safety</button>
+                <button class="goal-chip" onclick="document.getElementById('goal-input').value='Create a snake game using canvas. Include score tracking, increasing difficulty, and game over screen. Write to /apps/snake/'">Build Snake Game</button>
+                <button class="goal-chip" onclick="document.getElementById('goal-input').value='Compare two approaches to the same problem: write a sorting function two different ways, then benchmark which is faster'">Compare Solutions</button>
             </div>
         </div>
 
@@ -190,7 +193,12 @@
                 <button class="boot-mode-btn selected recommended" data-genesis="full" onclick="selectGenesisLevel('full')">
                     <div class="boot-mode-badge">RECOMMENDED</div>
                     <div class="boot-mode-label">FULL SUBSTRATE</div>
-                    <div class="boot-mode-desc">All modules + monitoring, self-testing, and neurosymbolic cognition</div>
+                    <div class="boot-mode-desc">All safety modules + arena testing + cognition</div>
+                </button>
+                <button class="boot-mode-btn" data-genesis="cli" onclick="selectGenesisLevel('cli')">
+                    <div class="boot-mode-badge new-badge">NEW</div>
+                    <div class="boot-mode-label">AGENT TOOLS</div>
+                    <div class="boot-mode-desc">Full substrate + arena testing + Unix terminal (git, grep, shell)</div>
                 </button>
                 <button class="boot-mode-btn" data-genesis="tabula" onclick="selectGenesisLevel('tabula')">
                     <div class="boot-mode-badge experimental-badge">EXPERIMENTAL</div>
@@ -319,8 +327,23 @@
         });
     </script>
 
+    <!-- Mode toggle (Dashboard / CLI) -->
+    <div id="mode-toggle" class="mode-toggle hidden">
+      <button id="mode-dashboard-btn" class="mode-btn active" title="Dashboard Mode">
+        <span class="mode-icon">◫</span>
+        <span class="mode-label">Dashboard</span>
+      </button>
+      <button id="mode-cli-btn" class="mode-btn" title="CLI Mode (Ctrl+`)">
+        <span class="mode-icon">▸_</span>
+        <span class="mode-label">Terminal</span>
+      </button>
+    </div>
+
     <!-- App container for dashboard -->
     <div id="app"></div>
+
+    <!-- CLI terminal container -->
+    <div id="cli-container" class="cli-container hidden"></div>
     <!-- Dev integrations loaded conditionally via boot.js -->
     <script type="module" src="boot.js"></script>
 </body>
@@ -362,7 +385,7 @@ window.onGenesisLevelLoaded = () => {
 // Restore saved genesis level on load
 window.addEventListener('DOMContentLoaded', () => {
   const savedLevel = localStorage.getItem('REPLOID_GENESIS_LEVEL');
-  if (savedLevel && ['full', 'minimal', 'tabula'].includes(savedLevel)) {
+  if (savedLevel && ['full', 'minimal', 'tabula', 'cli'].includes(savedLevel)) {
     // Just update UI, don't trigger reload
     document.querySelectorAll('[data-genesis]').forEach(btn => {
       btn.classList.remove('selected');

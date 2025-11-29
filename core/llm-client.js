@@ -7,13 +7,13 @@
 const LLMClient = {
   metadata: {
     id: 'LLMClient',
-    version: '3.2.0',
-    dependencies: ['Utils', 'RateLimiter', 'TransformersClient?'],
+    version: '3.4.0',
+    dependencies: ['Utils', 'RateLimiter', 'StreamParser', 'TransformersClient?'],
     type: 'service'
   },
 
   factory: (deps) => {
-    const { Utils, RateLimiter, TransformersClient } = deps;
+    const { Utils, RateLimiter, StreamParser, TransformersClient } = deps;
     const { logger, Errors } = Utils;
 
     const _limiter = RateLimiter.createLimiter(60);
@@ -270,22 +270,36 @@ const LLMClient = {
         let fullContent = '';
 
         if (onUpdate && response.body) {
-          const reader = response.body.getReader();
+          const rawReader = response.body.getReader();
+          const reader = StreamParser.withStreamTimeout(rawReader, StreamParser.DEFAULT_STREAM_TIMEOUT_MS, controller);
           const decoder = new TextDecoder();
           let buffer = '';
 
-          while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
+          try {
+            while (true) {
+              const { done, value } = await reader.read();
+              if (done) break;
 
-            const chunk = decoder.decode(value, { stream: true });
-            const { updates, remaining } = parseProxyStreamChunk(chunk, buffer);
-            buffer = remaining;
+              const chunk = decoder.decode(value, { stream: true });
+              const { updates, remaining } = parseProxyStreamChunk(chunk, buffer);
+              buffer = remaining;
 
-            for (const text of updates) {
-              fullContent += text;
-              onUpdate(text);
+              for (const text of updates) {
+                fullContent += text;
+                onUpdate(text);
+              }
             }
+
+            // Process remaining buffer on stream end
+            if (buffer.trim()) {
+              const { updates } = parseProxyStreamChunk(buffer + '\n', '');
+              for (const text of updates) {
+                fullContent += text;
+                onUpdate(text);
+              }
+            }
+          } finally {
+            reader.releaseLock();
           }
         } else {
           const data = await response.json();
@@ -373,31 +387,7 @@ const LLMClient = {
           }
 
           if (onUpdate && response.body) {
-            const reader = response.body.getReader();
-            const decoder = new TextDecoder();
-            let buffer = '';
-
-            while (true) {
-              const { done, value } = await reader.read();
-              if (done) break;
-
-              buffer += decoder.decode(value, { stream: true });
-              const lines = buffer.split('\n');
-              buffer = lines.pop() || '';
-
-              for (const line of lines) {
-                if (line.startsWith('data: ')) {
-                  try {
-                    const data = JSON.parse(line.slice(6));
-                    const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-                    if (text) {
-                      fullContent += text;
-                      onUpdate(text);
-                    }
-                  } catch (e) { /* skip malformed chunks */ }
-                }
-              }
-            }
+            fullContent = await StreamParser.parseForProvider(response, 'gemini', onUpdate, { abortController: controller });
           } else {
             const data = await response.json();
             fullContent = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
@@ -426,31 +416,7 @@ const LLMClient = {
           }
 
           if (onUpdate && response.body) {
-            const reader = response.body.getReader();
-            const decoder = new TextDecoder();
-            let buffer = '';
-
-            while (true) {
-              const { done, value } = await reader.read();
-              if (done) break;
-
-              buffer += decoder.decode(value, { stream: true });
-              const lines = buffer.split('\n');
-              buffer = lines.pop() || '';
-
-              for (const line of lines) {
-                if (line.startsWith('data: ') && line !== 'data: [DONE]') {
-                  try {
-                    const data = JSON.parse(line.slice(6));
-                    const text = data.choices?.[0]?.delta?.content || '';
-                    if (text) {
-                      fullContent += text;
-                      onUpdate(text);
-                    }
-                  } catch (e) { /* skip malformed chunks */ }
-                }
-              }
-            }
+            fullContent = await StreamParser.parseForProvider(response, 'openai', onUpdate, { abortController: controller });
           } else {
             const data = await response.json();
             fullContent = data.choices?.[0]?.message?.content || '';
@@ -488,33 +454,7 @@ const LLMClient = {
           }
 
           if (onUpdate && response.body) {
-            const reader = response.body.getReader();
-            const decoder = new TextDecoder();
-            let buffer = '';
-
-            while (true) {
-              const { done, value } = await reader.read();
-              if (done) break;
-
-              buffer += decoder.decode(value, { stream: true });
-              const lines = buffer.split('\n');
-              buffer = lines.pop() || '';
-
-              for (const line of lines) {
-                if (line.startsWith('data: ')) {
-                  try {
-                    const data = JSON.parse(line.slice(6));
-                    if (data.type === 'content_block_delta') {
-                      const text = data.delta?.text || '';
-                      if (text) {
-                        fullContent += text;
-                        onUpdate(text);
-                      }
-                    }
-                  } catch (e) { /* skip malformed chunks */ }
-                }
-              }
-            }
+            fullContent = await StreamParser.parseForProvider(response, 'anthropic', onUpdate, { abortController: controller });
           } else {
             const data = await response.json();
             fullContent = data.content?.[0]?.text || '';

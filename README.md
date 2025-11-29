@@ -1,24 +1,28 @@
-# Reploid: Recursive Self-Improvement Substrate
+# REPLOID
 
-> A long-running browser-native system that can modify its own code.
+> Browser-native sandbox for safe AI agent development and research
 
-**R**ecursive **E**volution **P**rotocol **L**oop **O**ptimizing **I**ntelligent **D**REAMER
-(**D**ynamic **R**ecursive **E**ngine **A**dapting **M**odules **E**volving **R**EPLOID)
-→ REPLOID ↔ DREAMER ↔ ∞
+A containment environment for AI agents that can write and execute code. Built for researchers, alignment engineers, and teams building autonomous systems who need **observability, rollback, and human oversight** — not black-box execution.
 
 ---
 
-See [AGENTS.md](AGENTS.md) for the active code-writing agent profile.
+See [TODO.md](TODO.md) for roadmap | [AGENTS.md](AGENTS.md) for agent profile
 
-## About
+## Why REPLOID?
 
-Reploid is a **self-modifying AI substrate** that demonstrates recursive self-improvement ([RSI](https://en.wikipedia.org/wiki/Recursive_self-improvement)) in a browser environment.
+AI agents that write code are powerful but dangerous. Most frameworks give agents unrestricted filesystem access, shell execution, or Docker root — then hope nothing goes wrong.
 
-**How:** The agent reads code from its VFS → analyzes & improves it → writes back to VFS → hot-reloads → evolves.
+REPLOID takes a different approach: **everything runs in a browser sandbox** with transactional rollback, pre-flight verification, and human approval gates. The agent can modify its own tools, but every mutation is auditable and reversible.
 
-The agent's "brain" is data in [IndexedDB](https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API). It can modify this data (its own code) while running.
+**Use cases:**
+- **AI safety research** — Study agent behavior in a contained environment
+- **Model comparison** — Arena mode runs multiple LLMs against the same task, picks the best verified solution
+- **Self-modification gating** — Test proposed code changes before committing them
+- **Alignment prototyping** — Experiment with oversight patterns before deploying to production
 
----
+## How It Works
+
+The agent operates on a Virtual File System (VFS) backed by IndexedDB. It can read, write, and execute code — but only within the sandbox. All mutations pass through a verification layer that checks for syntax errors, dangerous patterns, and policy violations.
 
 ## Architecture
 
@@ -29,45 +33,55 @@ graph TD
     Tools --> VFS[(Virtual File System)]
 
     subgraph Safety Layer
-        Tools --> Worker(Verification Worker)
-        Worker -.->|Verify| VFS
+        Tools --> Verify[Verification Manager]
+        Verify --> Worker(Web Worker Sandbox)
+        Worker -.->|Check| VFS
+        Arena[Arena Harness] --> Verify
     end
 
-    subgraph Capability
-        Agent --> Reflection[Reflection Store]
-        Agent --> Persona[Persona Manager]
+    subgraph Observability
+        Agent --> Audit[Audit Logger]
+        Agent --> Events[Event Bus]
     end
 ```
 
-### Key Components
+### Safety First
 
-1.  **Core Substrate**:
-    *   `agent-loop.js`: The main cognitive cycle (Think -> Act -> Observe).
-    *   `vfs.js`: Browser-native file system using IndexedDB.
-    *   `llm-client.js`: Unified interface for Cloud (Proxy) and Local (WebLLM) models.
+1.  **Verification Manager**: All code changes pass through pre-flight checks in an isolated Web Worker. Catches syntax errors, infinite loops, `eval()`, and other dangerous patterns before they reach the VFS.
 
-2.  **Safety Mechanisms**:
-    *   **Verification Worker**: Runs proposed code changes in a sandboxed Web Worker to check for syntax errors and malicious patterns (infinite loops, `eval`) before writing to VFS.
-    *   **Genesis Factory**: Creates immutable snapshots ("Lifeboats") of the kernel for recovery.
+2.  **VFS Snapshots**: Transactional rollback. Capture state before mutations, restore if verification fails. No permanent damage from bad agent decisions.
 
-3.  **Tools**:
-    *   `code_intel`: Lightweight structural analysis (imports/exports) to save context tokens.
-    *   `read/write_file`: VFS manipulation.
-    *   `python_tool`: Execute Python via Pyodide (WASM).
+3.  **Arena Mode**: Test-driven selection for self-modifications. Multiple candidates compete, only verified solutions win. Located in `/testing/arena/`.
 
----
+4.  **Circuit Breakers**: Rate limiting and iteration caps (default: 50 cycles) prevent runaway agents. Automatic recovery on failure.
 
-## RSI Levels
+5.  **Audit Logging**: Every tool call, VFS mutation, and agent decision is logged. Full replay capability for debugging and analysis.
 
-1.  **Level 1 (Tools):** Agent creates new tools at runtime using `create_tool`.
-2.  **Level 2 (Meta):** Agent improves its own tool creation mechanism.
-3.  **Level 3 (Substrate):** Agent re-architects its entire loop or memory system.
+### Core Components
+
+| Component | Purpose |
+|-----------|---------|
+| `agent-loop.js` | Cognitive cycle (Think → Act → Observe) with circuit breakers |
+| `vfs.js` | Browser-native filesystem on IndexedDB |
+| `llm-client.js` | Multi-provider LLM abstraction (WebLLM, Ollama, Cloud APIs) |
+| `verification-manager.js` | Pre-flight safety checks in sandboxed worker |
+| `arena-harness.js` | Competitive selection for code changes |
 
 ---
 
-## RSI Examples
+## Self-Modification Research
 
-### Example 1: Tool Creation (Level 1)
+REPLOID is designed to study [recursive self-improvement](https://en.wikipedia.org/wiki/Recursive_self-improvement) (RSI) safely. The agent can modify its own code, but every change is verified, logged, and reversible.
+
+### Modification Levels
+
+| Level | Description | Safety Gate |
+|-------|-------------|-------------|
+| **L1: Tools** | Agent creates new tools at runtime | Verification Worker |
+| **L2: Meta** | Agent improves its tool-creation mechanism | Arena Mode |
+| **L3: Substrate** | Agent modifies core loop or memory | Human Approval (planned) |
+
+### Example: Tool Creation (L1)
 **Goal:** "Create a tool that adds two numbers"
 
 ```
@@ -86,7 +100,7 @@ graph TD
 [Agent] ✓ Goal complete
 ```
 
-### Example 2: Meta-Tool Creation (Level 2)
+### Example: Meta-Tool Creation (L2)
 **Goal:** "Build a system that creates tools from descriptions"
 
 ```
@@ -114,7 +128,7 @@ graph TD
 [Agent] I just created a tool-creating tool! (Level 2 RSI)
 ```
 
-### Example 3: Substrate Modification (Level 3)
+### Example: Substrate Modification (L3)
 **Goal:** "Analyze your tool creation process and optimize it"
 
 ```
@@ -140,52 +154,48 @@ graph TD
 
 ---
 
-## Landscape
+## Comparison
 
-Reploid lives in a small but rapidly evolving ecosystem of self-improving agents. We intentionally share compute constraints (browser, IndexedDB) while diverging on safety architecture and ownership.
+| Capability | REPLOID | OpenHands | Claude Code | Devin |
+|------------|---------|-----------|-------------|-------|
+| **Execution** | Browser sandbox | Docker/Linux | Local shell | Cloud SaaS |
+| **Rollback** | VFS snapshots | Container reset | Git | N/A |
+| **Verification** | Pre-flight checks | None | None | Unknown |
+| **Self-modification** | Gated by arena | Unrestricted | N/A | N/A |
+| **Offline capable** | Yes (WebLLM) | Yes | Yes | No |
+| **Inspectable** | Full source | Full source | Partial | Closed |
 
-### WebLLM (MLC AI)
-WebLLM is the inference engine reploid can stand on: deterministic WebGPU execution. It excels at raw token throughput and versioned stability but offers no tools, memory, or self-modification. REPLOID layers VFS, a tool runner, PAWS governance, and substrate/capability boundaries above WebLLM so passive inference becomes an auditable agent capable of planning, testing, and rewriting itself safely.
-
-### OpenHands (formerly OpenDevin)
-OpenHands embraces Docker power (shell, compilers, sudo) to tackle arbitrary repos, yet that freedom kills safety—the agent can brick its container with a single bad edit. REPLOID trades GCC for transactional rollback: everything lives inside a browser tab, checkpoints live in IndexedDB, and humans approve cats/dogs diffs before mutations land. We prioritize experimentation accessibility and undo guarantees over unrestricted OS access.
-
-### Gödel Agent
-Gödel Agent explores theoretical RSI by letting reward functions and logic rewrite themselves. It is fascinating math, but it lacks persistent state management, tooling, or human guardrails, so "reward hacking" is inevitable. REPLOID focuses on engineering: reproducible bundles, hot-reloadable modules, and EventBus-driven UI so observers can inspect every mutation. We sacrifice unconstrained search space for transparency and hands-on controllability.
-
-### Devin (Cognition)
-Devin shows what proprietary, cloud-scale orchestration can deliver: GPT-4-class reasoning, hosted shells, and long-running plans. But it is a black box—you cannot audit, fork, or run Devin offline. REPLOID is the opposite: a glass-box brain stored locally, fully inspectable and modifiable by its owner. We bet that sovereign, user-controlled RSI will outpace closed SaaS once users can watch and influence every self-improvement step.
-
-| Feature               | REPLOID                | OpenHands          | Gödel Agent           | Devin          |
-|-----------------------|------------------------|--------------------|-----------------------|----------------|
-| Infrastructure        | **Browser (WebGPU/IDB)** | Docker/Linux       | Python/Research       | Cloud SaaS     |
-| Self-Mod Safety       | **High (Worker sandbox + Genesis Kernel)** | Low (root access)  | Low (algorithm focus) | N/A (closed)   |
-| Human Control         | **Granular (PAWS review)**   | Moderate (Stop btn) | Low (automated)        | Moderate (chat)|
-| Recovery              | **Transactional rollback**  | Container reset   | Script restart        | N/A            |
-
-**Why REPLOID is different:** Explores the "Ship of Theseus" problem in a tab. Capabilities can mutate aggressively, but the substrate remains recoverable thanks to immutable genesis modules, and IndexedDB checkpoints.
+**REPLOID's niche:** Safe experimentation with self-modifying agents. Not the most powerful agent framework — the most observable and recoverable one.
 
 ---
 
-## Philosophy
+## Research Questions
 
-Reploid is an experiment in [**substrate-independent RSI**](https://www.edge.org/response-detail/27126):
+REPLOID exists to study:
 
-- The agent's "brain" is just data in IndexedDB
-- The agent can modify this data (its own code)
-- The original source code (genesis) is the evolutionary starting point
-- Every agent instance can evolve differently
+1. **Containment** — Can browser sandboxing provide meaningful safety guarantees for code-writing agents?
+2. **Verification** — What static/dynamic checks catch dangerous mutations before execution?
+3. **Selection** — Does arena-style competition improve agent outputs vs. single-model generation?
+4. **Oversight** — What human-in-the-loop patterns balance safety with agent autonomy?
 
-**Analogy:**
-- **DNA** = source code on disk (genesis)
-- **Organism** = runtime state in IndexedDB (evolved)
-- **Mutations** = agent self-modifications
-- **Fitness** = agent-measured improvements (faster, better, smarter)
+These are open questions. REPLOID is infrastructure for exploring them, not answers.
 
-**Key Question:** Can an AI improve itself faster than humans can improve it?
+---
+
+## Quick Start
+
+```bash
+git clone https://github.com/clocksmith/reploid
+cd reploid
+npm install
+npm start
+# Open http://localhost:3000
+```
+
+Select a model, enter a goal, click "Awaken Agent."
 
 ---
 
 ## License
 
-MIT
+MIT — Use freely, but read the safety warnings first.
