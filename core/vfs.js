@@ -9,13 +9,13 @@ const VFS = {
   metadata: {
     id: 'VFS',
     version: '2.0.0',
-    dependencies: ['Utils'],
+    dependencies: ['Utils', 'EventBus?'],
     async: true,
     type: 'service'
   },
 
   factory: (deps) => {
-    const { Utils } = deps;
+    const { Utils, EventBus } = deps;
     const { logger, Errors } = Utils;
 
     const DB_NAME = 'reploid-vfs-v2';
@@ -56,6 +56,11 @@ const VFS = {
     const write = async (path, content) => {
       await openDB();
       const cleanPath = normalize(path);
+
+      // Check if file exists to determine operation type
+      const fileExists = await exists(cleanPath);
+      const operation = fileExists ? 'update' : 'write';
+
       return new Promise((resolve, reject) => {
         const tx = db.transaction([STORE_FILES], 'readwrite');
         const store = tx.objectStore(STORE_FILES);
@@ -66,7 +71,18 @@ const VFS = {
           updated: Date.now(),
           type: 'file'
         };
-        store.put(entry).onsuccess = () => resolve(true);
+        store.put(entry).onsuccess = () => {
+          // Emit event for HMR
+          if (EventBus) {
+            EventBus.emit('vfs:file_changed', {
+              path: cleanPath,
+              operation,
+              size: content.length,
+              timestamp: Date.now()
+            });
+          }
+          resolve(true);
+        };
         tx.onerror = () => reject(new Errors.ArtifactError(`Write failed: ${cleanPath}`));
       });
     };
@@ -92,6 +108,16 @@ const VFS = {
         const req = tx.objectStore(STORE_FILES).delete(cleanPath);
         req.onsuccess = () => {
           logger.info(`[VFS] Deleted ${cleanPath}`);
+
+          // Emit event for HMR
+          if (EventBus) {
+            EventBus.emit('vfs:file_changed', {
+              path: cleanPath,
+              operation: 'delete',
+              timestamp: Date.now()
+            });
+          }
+
           resolve(true);
         };
         req.onerror = () => {

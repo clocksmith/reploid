@@ -5,7 +5,7 @@
       "description": "Blank slate - core agent only, no advanced capabilities",
       "modules": {
         "foundation": ["Utils", "EventBus", "RateLimiter", "CircuitBreaker", "StreamParser", "IndexedDBHelper", "HITLController", "GenesisSnapshot", "Observability"],
-        "storage": ["VFS", "StateHelpersPure", "AuditLogger", "StateManager"],
+        "storage": ["VFS", "VFSHMR", "StateHelpersPure", "AuditLogger", "StateManager"],
         "services": ["LLMClient", "TransformersClient", "ResponseParser", "ContextManager"],
         "tools": ["VerificationManager", "ToolWriter", "ToolRunner"],
         "agent": ["PersonaManager", "ReflectionStore", "ReflectionAnalyzer", "AgentLoop"],
@@ -17,7 +17,7 @@
       "description": "Core + basic reflection and learning capabilities",
       "modules": {
         "foundation": ["Utils", "EventBus", "RateLimiter", "CircuitBreaker", "StreamParser", "IndexedDBHelper", "HITLController", "GenesisSnapshot", "Observability"],
-        "storage": ["VFS", "StateHelpersPure", "AuditLogger", "StateManager"],
+        "storage": ["VFS", "VFSHMR", "StateHelpersPure", "AuditLogger", "StateManager"],
         "services": ["LLMClient", "TransformersClient", "ResponseParser", "ContextManager"],
         "tools": ["VerificationManager", "ToolWriter", "ToolRunner"],
         "agent": ["PersonaManager", "ReflectionStore", "ReflectionAnalyzer", "AgentLoop"],
@@ -26,29 +26,15 @@
     },
     "full": {
       "name": "FULL SUBSTRATE",
-      "description": "All capabilities - monitoring, self-testing, and neurosymbolic cognition",
+      "description": "All capabilities - cognition, testing, shell tools (ls, grep, git, etc.)",
       "modules": {
         "foundation": ["Utils", "EventBus", "RateLimiter", "CircuitBreaker", "StreamParser", "IndexedDBHelper", "HITLController", "GenesisSnapshot", "Observability"],
-        "storage": ["VFS", "StateHelpersPure", "AuditLogger", "StateManager"],
+        "storage": ["VFS", "VFSHMR", "StateHelpersPure", "AuditLogger", "StateManager"],
         "services": ["LLMClient", "TransformersClient", "ResponseParser", "ContextManager"],
         "tools": ["VerificationManager", "ToolWriter", "ToolRunner"],
         "agent": ["PersonaManager", "ReflectionStore", "ReflectionAnalyzer", "AgentLoop"],
-        "capabilities": ["SubstrateLoader", "PerformanceMonitor", "SelfTester", "EmbeddingStore", "SemanticMemory", "KnowledgeGraph", "RuleEngine", "SymbolGrounder", "CognitionAPI"],
+        "capabilities": ["SubstrateLoader", "PerformanceMonitor", "SelfTester", "EmbeddingStore", "SemanticMemory", "KnowledgeGraph", "RuleEngine", "SymbolGrounder", "CognitionAPI", "MultiModelCoordinator"],
         "testing": ["VFSSandbox", "ArenaCompetitor", "ArenaMetrics", "ArenaHarness"]
-      }
-    },
-    "cli": {
-      "name": "AGENT TOOLS",
-      "description": "Full substrate + Unix-style shell tools (ls, grep, git, jq, etc.) for agent use",
-      "modules": {
-        "foundation": ["Utils", "EventBus", "RateLimiter", "CircuitBreaker", "StreamParser", "IndexedDBHelper", "HITLController", "GenesisSnapshot", "Observability"],
-        "storage": ["VFS", "StateHelpersPure", "AuditLogger", "StateManager"],
-        "services": ["LLMClient", "TransformersClient", "ResponseParser", "ContextManager"],
-        "tools": ["VerificationManager", "ToolWriter", "ToolRunner"],
-        "agent": ["PersonaManager", "ReflectionStore", "ReflectionAnalyzer", "AgentLoop"],
-        "capabilities": ["SubstrateLoader", "PerformanceMonitor", "SelfTester", "EmbeddingStore", "SemanticMemory", "KnowledgeGraph", "RuleEngine", "SymbolGrounder", "CognitionAPI"],
-        "testing": ["VFSSandbox", "ArenaCompetitor", "ArenaMetrics", "ArenaHarness"],
-        "cli": ["Terminal", "Shell", "History", "CLIMode", "GitTools"]
       }
     }
   },
@@ -62,6 +48,7 @@
     "HITLController": "./infrastructure/hitl-controller.js",
     "GenesisSnapshot": "./infrastructure/genesis-snapshot.js",
     "Observability": "./infrastructure/observability.js",
+    "VFSHMR": "./infrastructure/vfs-hmr.js",
     "VFS": "./core/vfs.js",
     "StateHelpersPure": "./core/state-helpers-pure.js",
     "AuditLogger": "./infrastructure/audit-logger.js",
@@ -86,11 +73,7 @@
     "RuleEngine": "./capabilities/cognition/symbolic/rule-engine.js",
     "SymbolGrounder": "./capabilities/cognition/symbolic/symbol-grounder.js",
     "CognitionAPI": "./capabilities/cognition/cognition-api.js",
-    "Terminal": "./ui/cli/terminal.js",
-    "Shell": "./ui/cli/shell.js",
-    "History": "./ui/cli/history.js",
-    "CLIMode": "./ui/cli/index.js",
-    "GitTools": "./ui/cli/git-tools.js",
+    "MultiModelCoordinator": "./capabilities/intelligence/multi-model-coordinator.js",
     "VFSSandbox": "./testing/arena/vfs-sandbox.js",
     "ArenaCompetitor": "./testing/arena/competitor.js",
     "ArenaMetrics": "./testing/arena/arena-metrics.js",

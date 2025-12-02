@@ -71,6 +71,8 @@ const GenesisSnapshot = {
         name: snapshotName,
         timestamp,
         fileCount: Object.keys(files).length,
+        isBootable: true, // This snapshot contains a complete runnable system
+        version: '2.0', // Self-hosting VFS architecture version
         files
       };
 
@@ -96,7 +98,9 @@ const GenesisSnapshot = {
         id: snapshotId,
         name: snapshotName,
         timestamp,
-        fileCount: Object.keys(files).length
+        fileCount: Object.keys(files).length,
+        isBootable: true,
+        version: '2.0'
       };
     };
 

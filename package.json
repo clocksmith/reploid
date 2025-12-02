@@ -1,5 +1,5 @@
 {
-  "name": "@paws/reploid",
+  "name": "reploid",
   "version": "0.1.0",
   "description": "Browser-Native AI Agent with Recursive Self-Improvement",
   "main": "boot.js",
@@ -29,12 +29,11 @@
   },
   "keywords": [
     "reploid",
-    "paws",
     "browser",
     "ai",
-    "multi-agent",
-    "webrtc",
-    "rsi"
+    "agent",
+    "rsi",
+    "self-improvement"
   ],
   "author": "",
   "license": "MIT",

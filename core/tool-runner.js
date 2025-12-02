@@ -6,14 +6,14 @@
 const ToolRunner = {
   metadata: {
     id: 'ToolRunner',
-    version: '2.3.0',
-    dependencies: ['Utils', 'VFS', 'ToolWriter', 'SubstrateLoader?', 'EventBus', 'AuditLogger?', 'HITLController?', 'ArenaHarness?', 'VFSSandbox?', 'VerificationManager?'],
+    version: '2.4.0',
+    dependencies: ['Utils', 'VFS', 'ToolWriter', 'SubstrateLoader?', 'EventBus', 'AuditLogger?', 'HITLController?', 'ArenaHarness?', 'VFSSandbox?', 'VerificationManager?', 'Shell?', 'GitTools?'],
     async: true,
     type: 'service'
   },
 
   factory: (deps) => {
-    const { Utils, VFS, ToolWriter, SubstrateLoader, EventBus, AuditLogger, HITLController, ArenaHarness, VFSSandbox, VerificationManager } = deps;
+    const { Utils, VFS, ToolWriter, SubstrateLoader, EventBus, AuditLogger, HITLController, ArenaHarness, VFSSandbox, VerificationManager, Shell, GitTools } = deps;
     const { logger, Errors } = Utils;
 
     // Arena verification for self-modification (opt-in via config)
@@ -277,7 +277,7 @@ const ToolRunner = {
       const startTime = Date.now();
 
       try {
-        const result = await toolFn(args, { VFS }); // Inject VFS for tools like code_intel
+        const result = await toolFn(args, { VFS, Shell, GitTools }); // Inject deps for all tools
 
         // Audit log successful execution
         if (AuditLogger) {

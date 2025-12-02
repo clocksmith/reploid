@@ -14,6 +14,7 @@ import IndexedDBHelper from './infrastructure/indexed-db-helper.js';
 import HITLController from './infrastructure/hitl-controller.js';
 import GenesisSnapshot from './infrastructure/genesis-snapshot.js';
 import Observability from './infrastructure/observability.js';
+import VFSHMR from './infrastructure/vfs-hmr.js';
 
 import VFS from './core/vfs.js';
 import StateManager from './core/state-manager.js';
@@ -48,160 +49,21 @@ import KnowledgeGraph from './capabilities/cognition/symbolic/knowledge-graph.js
 import RuleEngine from './capabilities/cognition/symbolic/rule-engine.js';
 import SymbolGrounder from './capabilities/cognition/symbolic/symbol-grounder.js';
 import CognitionAPI from './capabilities/cognition/cognition-api.js';
+import MultiModelCoordinator from './capabilities/intelligence/multi-model-coordinator.js';
 
 // Boot UI (model config, provider detection)
 import { initModelConfig } from './ui/boot/model-config/index.js';
 import GoalHistory from './ui/goal-history.js';
 
-// CLI Mode
-import Terminal from './ui/cli/terminal.js';
-import Shell from './ui/cli/shell.js';
-import History from './ui/cli/history.js';
-import CLIMode from './ui/cli/index.js';
-import GitTools from './ui/cli/git-tools.js';
-
 // UI Imports (Dynamic to allow headless boot)
 // import Proto from './ui/proto.js';
 
-/**
- * Initializes the full-screen crosshair overlay from corners.
- * Uses spring physics for bouncy effect.
- */
-function initCrosshair() {
-  // Prevent duplicate initialization
-  if (document.getElementById('reticle-tl')) return;
-
-  const baseOpacity = 0.15;
-  const bodyEl = document.body;
-  bodyEl.style.setProperty('--cursor-x', `${window.innerWidth / 2}px`);
-  bodyEl.style.setProperty('--cursor-y', `${window.innerHeight / 2}px`);
-  document.documentElement.style.setProperty('--cursor-x', `${window.innerWidth / 2}px`);
-  document.documentElement.style.setProperty('--cursor-y', `${window.innerHeight / 2}px`);
-
-  // Create 4 lines from each corner
-  const lines = ['tl', 'tr', 'bl', 'br'].map(corner => {
-    const line = document.createElement('div');
-    line.id = `reticle-${corner}`;
-    line.className = `reticle-line reticle-line-${corner}`;
-    line.style.opacity = `${baseOpacity}`;
-    document.body.appendChild(line);
-    return line;
-  });
-
-  const [tl, tr, bl, br] = lines;
-
-  // Spring physics state
-  let targetX = 0, targetY = 0;
-  let currentX = 0, currentY = 0;
-  let velocityX = 0, velocityY = 0;
-  let springEnabled = false;
-
-  // Spring constants
-  const stiffness = 0.15;
-  const activeDamping = 0.75;
-  const settleDamping = 0.6;
-  let damping = activeDamping;
-  const snapThreshold = 2;
-  const settleDelay = 120; // ms
-
-  let settleTimer = null;
-
-  function updateLines() {
-    const dx = targetX - currentX;
-    const dy = targetY - currentY;
-
-    if (!springEnabled && Math.abs(dx) < snapThreshold && Math.abs(dy) < snapThreshold) {
-      currentX = targetX;
-      currentY = targetY;
-      velocityX = 0;
-      velocityY = 0;
-    } else {
-      springEnabled = true;
-      velocityX += dx * stiffness;
-      velocityY += dy * stiffness;
-
-      velocityX *= damping;
-      velocityY *= damping;
-
-      currentX += velocityX;
-      currentY += velocityY;
-    }
-
-    const w = window.innerWidth;
-    const h = window.innerHeight;
-
-    // Calculate angles from each corner to cursor
-    const angleTL = Math.atan2(currentY - 0, currentX - 0) * (180 / Math.PI);
-    const angleTR = Math.atan2(currentY - 0, currentX - w) * (180 / Math.PI);
-    const angleBL = Math.atan2(currentY - h, currentX - 0) * (180 / Math.PI);
-    const angleBR = Math.atan2(currentY - h, currentX - w) * (180 / Math.PI);
-
-    // Position lines at corners and rotate toward cursor
-    tl.style.left = '0px';
-    tl.style.top = '0px';
-    tl.style.transform = `rotate(${angleTL - 90}deg)`;
-
-    tr.style.left = `${w}px`;
-    tr.style.top = '0px';
-    tr.style.transform = `rotate(${angleTR - 90}deg)`;
-
-    bl.style.left = '0px';
-    bl.style.top = `${h}px`;
-    bl.style.transform = `rotate(${angleBL - 90}deg)`;
-
-    br.style.left = `${w}px`;
-    br.style.top = `${h}px`;
-    br.style.transform = `rotate(${angleBR - 90}deg)`;
-
-    requestAnimationFrame(updateLines);
-  }
-
-  // Start animation loop
-  requestAnimationFrame(updateLines);
-
-  document.addEventListener('mousemove', (e) => {
-    targetX = e.clientX;
-    targetY = e.clientY;
-    const x = `${e.clientX}px`;
-    const y = `${e.clientY}px`;
-    bodyEl.style.setProperty('--cursor-x', x);
-    bodyEl.style.setProperty('--cursor-y', y);
-
-    if (settleTimer) {
-      clearTimeout(settleTimer);
-    }
-    springEnabled = true;
-    settleTimer = setTimeout(() => {
-      springEnabled = false;
-      damping = settleDamping;
-    }, settleDelay);
-
-    // Show lines with base opacity from corners
-    lines.forEach(line => {
-      if (line.style.opacity !== String(baseOpacity)) {
-        line.style.opacity = `${baseOpacity}`;
-      }
-    });
-  });
-
-  // Click feedback
-  document.addEventListener('mousedown', () => document.body.classList.add('reticle-active'));
-  document.addEventListener('mouseup', () => document.body.classList.remove('reticle-active'));
-
-  // Hide when mouse leaves
-  document.addEventListener('mouseleave', () => {
-    lines.forEach(line => line.style.opacity = '0');
-    bodyEl.style.setProperty('--cursor-x', '50vw');
-    bodyEl.style.setProperty('--cursor-y', '50vh');
-  });
-}
 
 (async () => {
   const logger = Utils.factory().logger;
   logger.info('[Boot] Starting REPLOID System...');
 
   // Initialize boot screen UI (provider detection, model selector)
-  initCrosshair();
   initModelConfig();
 
   try {
@@ -230,12 +92,11 @@ function initCrosshair() {
     // Module registry mapping names to imports
     const moduleRegistry = {
       Utils, EventBus, RateLimiter, VFS, StateHelpersPure, AuditLogger,
-      CircuitBreaker, StreamParser, IndexedDBHelper, HITLController, GenesisSnapshot, Observability,
+      CircuitBreaker, StreamParser, IndexedDBHelper, HITLController, GenesisSnapshot, Observability, VFSHMR,
       StateManager, LLMClient, TransformersClient, ResponseParser, ContextManager, VerificationManager,
       ToolWriter, ToolRunner, PersonaManager, ReflectionStore,
       ReflectionAnalyzer, AgentLoop, SubstrateLoader, PerformanceMonitor, SelfTester,
-      EmbeddingStore, SemanticMemory, KnowledgeGraph, RuleEngine, SymbolGrounder, CognitionAPI,
-      Terminal, Shell, History, CLIMode, GitTools,
+      EmbeddingStore, SemanticMemory, KnowledgeGraph, RuleEngine, SymbolGrounder, CognitionAPI, MultiModelCoordinator,
       VFSSandbox, ArenaCompetitor, ArenaMetrics, ArenaHarness
     };
 
@@ -243,7 +104,12 @@ function initCrosshair() {
     const registerModules = (moduleNames, category) => {
       for (const name of moduleNames) {
         if (moduleRegistry[name]) {
-          container.register(moduleRegistry[name]);
+          try {
+            container.register(moduleRegistry[name]);
+          } catch (e) {
+            logger.error(`[Boot] Failed to register ${name}: ${e.message}`);
+            throw new Error(`Module registration failed for ${name}: ${e.message}`);
+          }
         } else {
           logger.warn(`[Boot] Module not found in registry: ${name}`);
         }
@@ -263,11 +129,6 @@ function initCrosshair() {
       registerModules(levelConfig.modules.capabilities, 'capabilities');
     } else {
       logger.info('[Boot] No additional capabilities for this genesis level');
-    }
-
-    // Register CLI modules (always available)
-    if (levelConfig.modules.cli) {
-      registerModules(levelConfig.modules.cli, 'cli');
     }
 
     // Register testing modules (arena, etc.)
@@ -302,6 +163,19 @@ function initCrosshair() {
 
     await seedCodeIntel();
     await seedWorkspaceFiles(vfs, genesisConfig);
+
+    // Create genesis snapshot AFTER full VFS hydration
+    logger.info('[Boot] Creating genesis snapshot...');
+    try {
+      const GenesisSnapshot = await container.resolve('GenesisSnapshot');
+      await GenesisSnapshot.createSnapshot('genesis-' + new Date().toISOString().split('T')[0], {
+        includeApps: false,
+        includeLogs: false
+      });
+      logger.info('[Boot] Genesis snapshot created - pristine state preserved');
+    } catch (e) {
+      logger.warn('[Boot] Failed to create genesis snapshot:', e.message);
+    }
 
     await container.resolve('StateManager');
     await container.resolve('ToolRunner');
@@ -355,16 +229,33 @@ function initCrosshair() {
         logger.warn('[Export] Unable to load activity log', e.message);
       }
 
+      // Collect conversation context (what LLM sees after compaction)
+      let conversationContext = [];
+      let systemPrompt = '';
+      try {
+        if (window.REPLOID?.agent?.getContext) {
+          conversationContext = window.REPLOID.agent.getContext();
+        }
+        if (window.REPLOID?.agent?.getSystemPrompt) {
+          systemPrompt = window.REPLOID.agent.getSystemPrompt();
+        }
+      } catch (e) {
+        logger.warn('[Export] Unable to load conversation context', e.message);
+      }
+
       // Build export object
       const exportData = {
-        version: '1.0',
+        version: '1.1',
         exportedAt: new Date().toISOString(),
         state,
         activityLog,
+        conversationContext,
+        systemPrompt,
         vfs: vfsFiles,
         metadata: {
           totalCycles: state.totalCycles || 0,
-          fileCount: Object.keys(vfsFiles).length
+          fileCount: Object.keys(vfsFiles).length,
+          contextMessages: conversationContext.length
         }
       };
 
@@ -379,7 +270,7 @@ function initCrosshair() {
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
 
-      logger.info(`[Export] Downloaded ${filename} with ${Object.keys(vfsFiles).length} files`);
+      logger.info(`[Export] Downloaded ${filename} with ${Object.keys(vfsFiles).length} files, ${conversationContext.length} context messages`);
     };
 
     logger.info('[Boot] Core System Ready.');
@@ -453,81 +344,22 @@ function initCrosshair() {
 
           logger.info('[Boot] UI Mounted.');
 
-          // Show mode toggle and wire up CLI mode (only for CLI genesis level)
-          const modeToggle = document.getElementById('mode-toggle');
-          const dashboardBtn = document.getElementById('mode-dashboard-btn');
-          const cliBtn = document.getElementById('mode-cli-btn');
-          const cliContainer = document.getElementById('cli-container');
-          let cliInitialized = false;
-
-          // Only show mode toggle if CLI mode is selected
-          const hasCLI = genesisLevel === 'cli' && levelConfig.modules.cli;
-
-          if (modeToggle && hasCLI) {
-            modeToggle.classList.remove('hidden');
-
-            // Mode toggle handlers
-            const switchToDashboard = () => {
-              appEl.classList.remove('hidden');
-              cliContainer?.classList.add('hidden');
-              dashboardBtn?.classList.add('active');
-              cliBtn?.classList.remove('active');
-              localStorage.setItem('REPLOID_UI_MODE', 'dashboard');
-            };
-
-            const switchToCLI = async () => {
-              appEl.classList.add('hidden');
-              cliContainer?.classList.remove('hidden');
-              dashboardBtn?.classList.remove('active');
-              cliBtn?.classList.add('active');
-              localStorage.setItem('REPLOID_UI_MODE', 'cli');
-
-              // Initialize CLI on first use
-              if (!cliInitialized && cliContainer) {
-                try {
-                  const cliMode = await container.resolve('CLIMode');
-                  await cliMode.init('cli-container');
-                  cliInitialized = true;
-                  cliMode.focus();
-                } catch (e) {
-                  logger.error('[Boot] CLI initialization failed', e);
-                }
-              } else {
-                const cliMode = await container.resolve('CLIMode');
-                cliMode?.focus();
-              }
-            };
-
-            dashboardBtn?.addEventListener('click', switchToDashboard);
-            cliBtn?.addEventListener('click', switchToCLI);
-
-            // Keyboard shortcut: Ctrl+` to toggle
-            document.addEventListener('keydown', (e) => {
-              if (e.ctrlKey && e.key === '`') {
-                e.preventDefault();
-                if (appEl.classList.contains('hidden')) {
-                  switchToDashboard();
-                } else {
-                  switchToCLI();
-                }
-              }
-            });
-
-            // Restore last mode
-            const savedMode = localStorage.getItem('REPLOID_UI_MODE');
-            if (savedMode === 'cli') {
-              switchToCLI();
-            }
-          }
+          // CLI tools are now available as agent tool calls (no separate UI mode needed)
 
           // Auto-start the agent if goal is set
           if (goal) {
             // Get model config from localStorage
             const savedModels = localStorage.getItem('SELECTED_MODELS');
+            const consensusStrategy = localStorage.getItem('CONSENSUS_TYPE') || 'arena';
+
             if (savedModels) {
               const models = JSON.parse(savedModels);
               if (models.length > 0) {
-                agent.setModel(models[0]);
+                // Set all models for multi-model support
+                agent.setModels(models);
+                agent.setConsensusStrategy(consensusStrategy);
+
+                logger.info(`[Boot] Configured ${models.length} model(s), consensus: ${consensusStrategy}`);
               }
             }
 
@@ -561,10 +393,39 @@ function initCrosshair() {
 async function seedWorkspaceFiles(vfs, genesisConfig) {
   try {
     const logger = Utils.factory().logger;
+
+    logger.info('[Boot] Beginning full VFS hydration (self-hosting mode)...');
+
+    // Seed ALL module imports (core, infrastructure, capabilities, testing)
     const filesToSeed = new Set(Object.values(genesisConfig?.moduleImports || {}));
+
+    // Add entry points
     filesToSeed.add('./boot.js');
     filesToSeed.add('./index.html');
+    filesToSeed.add('./sw-module-loader.js');
+
+    // Add ALL tools
     filesToSeed.add('./tools/code_intel.js');
+    const fileTools = [
+      'search_content', 'find_by_name', 'git',
+      'create_directory', 'remove', 'move', 'copy'
+    ];
+    fileTools.forEach(tool => filesToSeed.add(`./tools/${tool}.js`));
+
+    // Add ALL UI modules
+    filesToSeed.add('./ui/proto.js');
+    filesToSeed.add('./ui/boot/model-config/index.js');
+    filesToSeed.add('./ui/goal-history.js');
+
+    // Add ALL styles
+    filesToSeed.add('./styles/theme.css');
+    filesToSeed.add('./styles/boot.css');
+    filesToSeed.add('./styles/proto.css');
+
+    // Add config
+    filesToSeed.add('./config/genesis-levels.json');
+
+    logger.info(`[Boot] Hydrating ${filesToSeed.size} files into VFS...`);
 
     for (const file of filesToSeed) {
       const webPath = toWebPath(file);

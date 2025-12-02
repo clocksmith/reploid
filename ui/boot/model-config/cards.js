@@ -147,7 +147,7 @@ export function updateGoalInputState() {
             if (awakenBtn) awakenBtn.disabled = true;
         } else {
             goalInput.disabled = false;
-            goalInput.placeholder = 'Describe your goal...';
+            goalInput.placeholder = 'Describe a goal...';
             if (awakenBtn) awakenBtn.disabled = false;
         }
     }
