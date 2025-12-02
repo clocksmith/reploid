@@ -140,7 +140,14 @@ const Proto = {
         budgetFill.classList.add('high');
       }
 
-      budgetText.textContent = `${Math.round(_tokenCount / 1000)}k / ${Math.round(_maxTokens / 1000)}k`;
+      // Show actual count if under 1000, otherwise show in thousands
+      const displayTokens = _tokenCount < 1000
+        ? _tokenCount.toString()
+        : `${Math.round(_tokenCount / 1000)}k`;
+      const displayMax = _maxTokens < 1000
+        ? _maxTokens.toString()
+        : `${Math.round(_maxTokens / 1000)}k`;
+      budgetText.textContent = `${displayTokens} / ${displayMax}`;
     };
 
     // --- Tab Switching ---
@@ -157,6 +164,68 @@ const Proto = {
       container.querySelectorAll('.workspace-content').forEach(panel => {
         panel.classList.toggle('hidden', panel.id !== `tab-${tabId}`);
       });
+
+      // Update debug panel when debug tab is opened
+      if (tabId === 'debug') {
+        updateDebugPanel();
+      }
+    };
+
+    const updateDebugPanel = () => {
+      const container = _root?.querySelector('.app-shell');
+      if (!container) return;
+
+      const systemPromptEl = container.querySelector('#debug-system-prompt');
+      const contextEl = container.querySelector('#debug-context');
+      const contextCountEl = container.querySelector('#debug-context-count');
+      const modelConfigEl = container.querySelector('#debug-model-config');
+
+      // Get system prompt from AgentLoop if available
+      if (systemPromptEl) {
+        try {
+          if (AgentLoop?.getSystemPrompt) {
+            const systemPrompt = AgentLoop.getSystemPrompt();
+            systemPromptEl.textContent = systemPrompt || 'System prompt not available';
+          } else {
+            systemPromptEl.textContent = 'System prompt not accessible (agent not initialized)';
+          }
+        } catch (e) {
+          systemPromptEl.textContent = `Error loading system prompt: ${e.message}`;
+        }
+      }
+
+      // Get conversation context
+      if (contextEl && contextCountEl) {
+        try {
+          if (AgentLoop?.getContext) {
+            const context = AgentLoop.getContext();
+            contextCountEl.textContent = context?.length || 0;
+            contextEl.textContent = JSON.stringify(context, null, 2) || 'No context available';
+          } else {
+            contextCountEl.textContent = 0;
+            contextEl.textContent = 'Context not accessible (agent not initialized)';
+          }
+        } catch (e) {
+          contextEl.textContent = `Error loading context: ${e.message}`;
+        }
+      }
+
+      // Get model configuration
+      if (modelConfigEl) {
+        try {
+          const savedModels = localStorage.getItem('SELECTED_MODELS');
+          const consensusType = localStorage.getItem('CONSENSUS_TYPE');
+          const modelConfig = {
+            models: savedModels ? JSON.parse(savedModels) : [],
+            consensusStrategy: consensusType || 'arena',
+            maxTokens: _maxTokens,
+            currentTokens: _tokenCount
+          };
+          modelConfigEl.textContent = JSON.stringify(modelConfig, null, 2);
+        } catch (e) {
+          modelConfigEl.textContent = `Error loading model config: ${e.message}`;
+        }
+      }
     };
 
     // --- Render Logic ---
@@ -171,14 +240,29 @@ const Proto = {
       container.innerHTML = `
         <!-- Sidebar Navigation -->
         <nav class="sidebar">
-          <button class="sidebar-btn active" data-tab="history" title="History (1)">&#x25B6;</button>
+          <button class="sidebar-btn active" data-tab="history" title="Agent Activity (1)">&#x25B6;</button>
           <button class="sidebar-btn" data-tab="reflections" title="Reflections (2)">&#x2731;</button>
           <button class="sidebar-btn" data-tab="status" title="Status (3)">&#x2139;</button>
+          <button class="sidebar-btn" data-tab="debug" title="Debug (4)">&#x2699;</button>
           <div class="sidebar-spacer"></div>
           <button id="btn-palette" class="sidebar-btn" title="Commands (Ctrl+K)">&#x2630;</button>
           <button id="btn-toggle" class="sidebar-btn" title="Stop (Esc)">&#x25A0;</button>
           <button id="btn-export" class="sidebar-btn" title="Export (Ctrl+E)">&#x2913;</button>
         </nav>
+
+        <!-- VFS Browser Panel -->
+        <aside class="vfs-browser-panel ${_vfsPanelCollapsed ? 'collapsed' : ''}" id="vfs-browser">
+          <div class="vfs-browser-header">
+            <span>VFS</span>
+            <button id="vfs-refresh" class="btn btn-sm btn-secondary" title="Refresh">↻</button>
+          </div>
+          <div class="vfs-search-container">
+            <input type="text" id="vfs-search" class="vfs-search-input" placeholder="Search files..." />
+          </div>
+          <div id="vfs-tree" class="vfs-tree mono">
+            <div class="text-muted">Loading...</div>
+          </div>
+        </aside>
 
         <!-- Main Workspace -->
         <main class="workspace">
@@ -244,28 +328,42 @@ const Proto = {
                 <span id="agent-model" class="status-value">-</span>
               </div>
             </div>
-          </div>
-        </main>
-
-        <!-- Utility Panel (VFS Browser) -->
-        <aside class="utility-panel ${_vfsPanelCollapsed ? 'collapsed' : ''}" id="vfs-panel">
-          <div class="utility-header">
-            <span>VFS Browser</span>
-            <div style="display: flex; gap: 6px;">
-              <button id="vfs-toggle-collapse" class="btn btn-sm btn-secondary" title="Toggle Panel">◫</button>
-              <button id="vfs-refresh" class="btn btn-sm btn-secondary" title="Refresh">↻</button>
+            <div id="errors-warnings-section" class="status-section">
+              <div class="status-section-header">
+                <span>Errors & Warnings</span>
+                <button id="clear-errors-btn" class="btn-link" style="display: none;">Clear All</button>
+              </div>
+              <div id="errors-list" class="errors-list">
+                <div class="text-muted" style="padding: 10px;">No errors or warnings</div>
+              </div>
             </div>
           </div>
-          <div class="vfs-search-container">
-            <input type="text" id="vfs-search" class="vfs-search-input" placeholder="Search files..." />
+
+          <div class="workspace-content hidden" id="tab-debug">
+            <div class="debug-panel">
+              <div class="debug-section">
+                <div class="debug-section-header">System Prompt</div>
+                <pre id="debug-system-prompt" class="debug-content">Loading...</pre>
+              </div>
+              <div class="debug-section">
+                <div class="debug-section-header">Conversation Context (<span id="debug-context-count">0</span> messages)</div>
+                <pre id="debug-context" class="debug-content">Loading...</pre>
+              </div>
+              <div class="debug-section">
+                <div class="debug-section-header">Model Configuration</div>
+                <pre id="debug-model-config" class="debug-content">Loading...</pre>
+              </div>
+            </div>
           </div>
-          <div id="vfs-tree" class="vfs-tree mono">
-            <div class="text-muted">Loading...</div>
-          </div>
-          <div id="vfs-content" class="vfs-content mono">
+
+          <!-- VFS Content Area (appears in workspace when file is selected) -->
+          <div id="vfs-content" class="vfs-content workspace-content hidden mono">
             <div class="vfs-content-header hidden" id="vfs-content-header">
               <span class="vfs-file-path" id="vfs-current-path"></span>
               <div class="vfs-content-actions">
+                <button id="vfs-preview-btn" class="btn btn-sm btn-secondary hidden" title="Preview">▶</button>
+                <button id="vfs-diff-btn" class="btn btn-sm btn-secondary" title="Diff">⊟</button>
+                <button id="vfs-snapshot-btn" class="btn btn-sm btn-secondary" title="Snapshots">◷</button>
                 <button id="vfs-edit-btn" class="btn btn-sm btn-secondary" title="Edit">Edit</button>
                 <button id="vfs-save-btn" class="btn btn-sm btn-primary hidden" title="Save">Save</button>
                 <button id="vfs-cancel-btn" class="btn btn-sm btn-secondary hidden" title="Cancel">Cancel</button>
@@ -274,9 +372,31 @@ const Proto = {
             <div id="vfs-content-body" class="vfs-content-body">
               <div class="text-muted">Select a file to view contents</div>
             </div>
+            <div id="vfs-preview-panel" class="vfs-preview-panel hidden">
+              <div class="vfs-preview-header">
+                <span id="vfs-preview-title">Preview</span>
+                <button id="vfs-preview-close" class="btn-link" title="Close">&times;</button>
+              </div>
+              <iframe id="vfs-preview-iframe" sandbox="allow-scripts" title="File preview"></iframe>
+            </div>
+            <div id="vfs-diff-panel" class="vfs-diff-panel hidden">
+              <div class="vfs-diff-header">
+                <span>Genesis Diff</span>
+                <button id="vfs-diff-close" class="btn-link" title="Close">&times;</button>
+              </div>
+              <div id="vfs-diff-content"></div>
+            </div>
+            <div id="vfs-snapshot-panel" class="vfs-snapshot-panel hidden">
+              <div class="vfs-snapshot-header">
+                <span>Snapshots</span>
+                <button id="vfs-snapshot-close" class="btn-link" title="Close">&times;</button>
+              </div>
+              <div id="vfs-snapshot-timeline"></div>
+              <div id="vfs-snapshot-viewer"></div>
+            </div>
             <textarea id="vfs-editor" class="vfs-editor hidden"></textarea>
           </div>
-        </aside>
+        </main>
       `;
 
       // Bind Events
@@ -372,13 +492,15 @@ const Proto = {
 
       btnExport.onclick = exportState;
 
-      // VFS Panel collapse toggle
+      // VFS Browser collapse toggle (optional - may not exist in all layouts)
       const vfsToggle = container.querySelector('#vfs-toggle-collapse');
-      const vfsPanel = container.querySelector('#vfs-panel');
-      vfsToggle.onclick = () => {
-        _vfsPanelCollapsed = !_vfsPanelCollapsed;
-        vfsPanel.classList.toggle('collapsed', _vfsPanelCollapsed);
-      };
+      const vfsPanel = container.querySelector('#vfs-browser');
+      if (vfsToggle && vfsPanel) {
+        vfsToggle.onclick = () => {
+          _vfsPanelCollapsed = !_vfsPanelCollapsed;
+          vfsPanel.classList.toggle('collapsed', _vfsPanelCollapsed);
+        };
+      }
 
       // VFS Search (debounced)
       const vfsSearch = container.querySelector('#vfs-search');
@@ -391,10 +513,21 @@ const Proto = {
       const editBtn = container.querySelector('#vfs-edit-btn');
       const saveBtn = container.querySelector('#vfs-save-btn');
       const cancelBtn = container.querySelector('#vfs-cancel-btn');
+      const previewBtn = container.querySelector('#vfs-preview-btn');
+      const diffBtn = container.querySelector('#vfs-diff-btn');
+      const snapshotBtn = container.querySelector('#vfs-snapshot-btn');
 
       editBtn.onclick = () => startEditing();
       saveBtn.onclick = () => saveFile();
       cancelBtn.onclick = () => cancelEditing();
+      previewBtn.onclick = () => showPreview();
+      diffBtn.onclick = () => showDiff();
+      snapshotBtn.onclick = () => showSnapshots();
+
+      // Close buttons for panels
+      container.querySelector('#vfs-preview-close').onclick = () => closePreview();
+      container.querySelector('#vfs-diff-close').onclick = () => closeDiff();
+      container.querySelector('#vfs-snapshot-close').onclick = () => closeSnapshots();
 
       _reflectionsContainer = container.querySelector('#reflections-container');
 
@@ -640,7 +773,7 @@ const Proto = {
         if (entry.type === 'llm_response') {
           const content = entry.content || '(No response content)';
           div.innerHTML = `
-            <div class="history-header">Think #${entry.cycle}</div>
+            <div class="history-header">◀ Received #${entry.cycle}</div>
             <pre class="history-content">${escapeHtml(content)}</pre>
           `;
         } else if (entry.type === 'tool_result') {
@@ -648,7 +781,7 @@ const Proto = {
           const isError = result.startsWith('Error:');
           div.innerHTML = `
             <div class="history-header ${isError ? 'history-error' : ''}">
-              Act #${entry.cycle} → ${entry.tool}
+              ▶ Sent #${entry.cycle} → ${entry.tool}
               ${isError ? '<span class="error-badge">ERROR</span>' : ''}
             </div>
             <pre class="history-content">${escapeHtml(result)}</pre>
@@ -669,6 +802,48 @@ const Proto = {
             });
           }
         }
+
+        historyContainer.appendChild(div);
+        scheduleHistoryScroll();
+      }));
+
+      // Subscribe to arena results
+      _subscriptionIds.push(EventBus.on('agent:arena-result', (result) => {
+        const historyContainer = document.getElementById('history-container');
+        if (!historyContainer) return;
+
+        const div = document.createElement('div');
+        div.className = 'history-entry arena-result';
+
+        const winner = result.winner || {};
+        const solutions = result.solutions || [];
+        const mode = result.mode || 'arena';
+
+        let solutionsHTML = '';
+        if (solutions.length > 0) {
+          solutionsHTML = solutions
+            .map(sol => {
+              const isWinner = sol.model === winner.model;
+              const badge = isWinner ? '<span class="winner-badge">WINNER</span>' : '';
+              return `
+                <div class="arena-solution ${isWinner ? 'arena-winner' : ''}">
+                  <div class="arena-solution-header">
+                    ${escapeHtml(sol.model)} - Score: ${(sol.score || 0).toFixed(2)} ${badge}
+                  </div>
+                </div>
+              `;
+            })
+            .join('');
+        }
+
+        div.innerHTML = `
+          <div class="history-header arena-header">
+            🏆 Arena #${result.cycle} (${mode})
+          </div>
+          <div class="arena-solutions">
+            ${solutionsHTML}
+          </div>
+        `;
 
         historyContainer.appendChild(div);
         scheduleHistoryScroll();
@@ -904,6 +1079,7 @@ const Proto = {
     };
 
     const loadVFSFile = async (path) => {
+      const vfsContent = document.getElementById('vfs-content');
       const contentHeader = document.getElementById('vfs-content-header');
       const contentBody = document.getElementById('vfs-content-body');
       const pathEl = document.getElementById('vfs-current-path');
@@ -912,6 +1088,15 @@ const Proto = {
 
       _currentFilePath = path;
       cancelEditing(); // Cancel any ongoing edit
+
+      // Hide all other workspace tabs and show VFS content
+      const container = _root?.querySelector('.app-shell');
+      if (container) {
+        container.querySelectorAll('.workspace-content').forEach(panel => {
+          panel.classList.add('hidden');
+        });
+        vfsContent.classList.remove('hidden');
+      }
 
       try {
         const content = await _vfs.read(path);
@@ -927,6 +1112,14 @@ const Proto = {
         contentHeader.classList.remove('hidden');
         pathEl.textContent = path;
         contentBody.innerHTML = `<pre>${escapeHtml(displayContent)}</pre>`;
+
+        // Show preview button for HTML/JS/CSS files
+        const previewBtn = document.getElementById('vfs-preview-btn');
+        if (previewBtn && (path.endsWith('.html') || path.endsWith('.htm') || path.endsWith('.js') || path.endsWith('.css'))) {
+          previewBtn.classList.remove('hidden');
+        } else if (previewBtn) {
+          previewBtn.classList.add('hidden');
+        }
 
         // Get file stats
         const stat = await _vfs.stat(path);
@@ -996,6 +1189,265 @@ const Proto = {
       if (editBtn) editBtn.classList.remove('hidden');
       if (saveBtn) saveBtn.classList.add('hidden');
       if (cancelBtn) cancelBtn.classList.add('hidden');
+    };
+
+    // Preview Panel
+    const showPreview = async () => {
+      if (!_currentFilePath || !_vfs) return;
+
+      const previewPanel = document.getElementById('vfs-preview-panel');
+      const iframe = document.getElementById('vfs-preview-iframe');
+      const contentBody = document.getElementById('vfs-content-body');
+
+      if (!previewPanel || !iframe) return;
+
+      try {
+        const content = await _vfs.read(_currentFilePath);
+        const blob = new Blob([content], { type: _currentFilePath.endsWith('.html') ? 'text/html' : 'text/javascript' });
+        const url = URL.createObjectURL(blob);
+
+        iframe.src = url;
+        contentBody.classList.add('hidden');
+        previewPanel.classList.remove('hidden');
+
+        // Clean up old blob URL after iframe loads
+        iframe.onload = () => URL.revokeObjectURL(url);
+      } catch (e) {
+        Toast.error('Preview Failed', e.message);
+      }
+    };
+
+    const closePreview = () => {
+      const previewPanel = document.getElementById('vfs-preview-panel');
+      const iframe = document.getElementById('vfs-preview-iframe');
+      const contentBody = document.getElementById('vfs-content-body');
+
+      if (previewPanel) previewPanel.classList.add('hidden');
+      if (iframe) iframe.src = '';
+      if (contentBody) contentBody.classList.remove('hidden');
+    };
+
+    // Diff Panel
+    const showDiff = async () => {
+      const diffPanel = document.getElementById('vfs-diff-panel');
+      const diffContent = document.getElementById('vfs-diff-content');
+      const contentBody = document.getElementById('vfs-content-body');
+
+      if (!diffPanel || !diffContent || !_vfs) return;
+
+      diffContent.innerHTML = '<div class="text-muted">Comparing to genesis...</div>';
+      contentBody.classList.add('hidden');
+      diffPanel.classList.remove('hidden');
+
+      try {
+        // Get genesis snapshot (first snapshot or create one)
+        const GenesisSnapshot = window.REPLOID_DI?.get?.('GenesisSnapshot');
+        if (!GenesisSnapshot) {
+          diffContent.innerHTML = '<div class="text-muted">Genesis snapshots not available</div>';
+          return;
+        }
+
+        const snapshots = await GenesisSnapshot.listSnapshots();
+        let genesisFiles = {};
+
+        if (snapshots.length > 0) {
+          // Use first snapshot as genesis
+          const genesis = snapshots[0];
+          genesisFiles = genesis.files || {};
+        }
+
+        // Get current VFS state
+        const currentFiles = {};
+        const allFiles = await _vfs.list('/');
+        for (const path of allFiles) {
+          try {
+            currentFiles[path] = await _vfs.read(path);
+          } catch (e) { /* skip */ }
+        }
+
+        // Build diff HTML
+        let diffHtml = '';
+        const allPaths = new Set([...Object.keys(genesisFiles), ...Object.keys(currentFiles)]);
+
+        for (const path of Array.from(allPaths).sort()) {
+          const genesisContent = genesisFiles[path];
+          const currentContent = currentFiles[path];
+
+          if (!genesisContent && currentContent) {
+            // Added file
+            diffHtml += `<div class="diff-added" style="padding: 8px; margin-bottom: 4px;">
+              <strong>✓ ${path}</strong> (new file, ${currentContent.length} bytes)
+            </div>`;
+          } else if (genesisContent && !currentContent) {
+            // Deleted file
+            diffHtml += `<div class="diff-deleted" style="padding: 8px; margin-bottom: 4px;">
+              <strong>✗ ${path}</strong> (deleted)
+            </div>`;
+          } else if (genesisContent !== currentContent) {
+            // Modified file
+            diffHtml += `<div class="diff-modified" style="padding: 8px; margin-bottom: 4px;">
+              <strong>⚠ ${path}</strong> (modified)
+            </div>`;
+          }
+        }
+
+        if (diffHtml === '') {
+          diffHtml = '<div class="text-muted">No changes from genesis state</div>';
+        } else {
+          const addedCount = (diffHtml.match(/diff-added/g) || []).length;
+          const deletedCount = (diffHtml.match(/diff-deleted/g) || []).length;
+          const modifiedCount = (diffHtml.match(/diff-modified/g) || []).length;
+          diffHtml = `<div style="padding: 8px; margin-bottom: 12px; border-bottom: 1px solid var(--border-default);">
+            <strong>Changes:</strong> ${addedCount} added, ${modifiedCount} modified, ${deletedCount} deleted
+          </div>` + diffHtml;
+        }
+
+        diffContent.innerHTML = diffHtml;
+      } catch (e) {
+        diffContent.innerHTML = `<div class="text-danger">Error loading diff: ${escapeHtml(e.message)}</div>`;
+        logger.error('[VFS] Diff error:', e);
+      }
+    };
+
+    const closeDiff = () => {
+      const diffPanel = document.getElementById('vfs-diff-panel');
+      const contentBody = document.getElementById('vfs-content-body');
+
+      if (diffPanel) diffPanel.classList.add('hidden');
+      if (contentBody) contentBody.classList.remove('hidden');
+    };
+
+    // Snapshot Panel
+    const showSnapshots = async () => {
+      const snapshotPanel = document.getElementById('vfs-snapshot-panel');
+      const timeline = document.getElementById('vfs-snapshot-timeline');
+      const viewer = document.getElementById('vfs-snapshot-viewer');
+      const contentBody = document.getElementById('vfs-content-body');
+
+      if (!snapshotPanel || !timeline) return;
+
+      timeline.innerHTML = '<div class="text-muted">Loading snapshots...</div>';
+      contentBody.classList.add('hidden');
+      snapshotPanel.classList.remove('hidden');
+
+      try {
+        const GenesisSnapshot = window.REPLOID_DI?.get?.('GenesisSnapshot');
+        if (!GenesisSnapshot) {
+          timeline.innerHTML = '<div class="text-muted">Snapshot system not available</div>';
+          return;
+        }
+
+        const snapshots = await GenesisSnapshot.listSnapshots();
+
+        if (snapshots.length === 0) {
+          timeline.innerHTML = `<div class="text-muted">No snapshots yet. <button class="btn btn-sm btn-primary" onclick="window.createSnapshot()">Create Snapshot</button></div>`;
+          window.createSnapshot = async () => {
+            try {
+              await GenesisSnapshot.createSnapshot();
+              Toast.success('Snapshot Created', 'Genesis snapshot saved');
+              showSnapshots(); // Refresh
+            } catch (e) {
+              Toast.error('Snapshot Failed', e.message);
+            }
+          };
+          return;
+        }
+
+        let timelineHtml = `<div style="margin-bottom: 12px;">
+          <strong>${snapshots.length} Snapshot${snapshots.length > 1 ? 's' : ''}</strong>
+          <button class="btn btn-sm btn-primary" style="float: right;" onclick="window.createSnapshot()">New Snapshot</button>
+        </div>`;
+
+        snapshots.forEach((snapshot, idx) => {
+          const date = new Date(snapshot.timestamp);
+          const timeStr = date.toLocaleString();
+          timelineHtml += `
+            <div class="snapshot-item" onclick="window.viewSnapshot('${snapshot.id}')">
+              <div><strong>${snapshot.name || 'Snapshot ' + (idx + 1)}</strong></div>
+              <div class="snapshot-timestamp">${timeStr}</div>
+              <div class="snapshot-stats">${snapshot.fileCount} files</div>
+              <div class="snapshot-actions">
+                <button class="btn btn-sm btn-secondary" onclick="event.stopPropagation(); window.restoreSnapshot('${snapshot.id}')">Restore</button>
+                <button class="btn btn-sm btn-secondary" onclick="event.stopPropagation(); window.viewSnapshot('${snapshot.id}')">View</button>
+                <button class="btn btn-sm btn-secondary" onclick="event.stopPropagation(); window.exportSnapshot('${snapshot.id}')">Export</button>
+              </div>
+            </div>
+          `;
+        });
+
+        timeline.innerHTML = timelineHtml;
+
+        // Bind snapshot actions
+        window.createSnapshot = async () => {
+          try {
+            await GenesisSnapshot.createSnapshot();
+            Toast.success('Snapshot Created', 'Genesis snapshot saved');
+            showSnapshots();
+          } catch (e) {
+            Toast.error('Snapshot Failed', e.message);
+          }
+        };
+
+        window.viewSnapshot = async (id) => {
+          try {
+            const snapshot = snapshots.find(s => s.id === id);
+            if (!snapshot) return;
+
+            const files = Object.keys(snapshot.files).sort();
+            let viewHtml = `<div style="padding: 8px; border-bottom: 1px solid var(--border-default); margin-bottom: 8px;">
+              <strong>${snapshot.name}</strong> - ${snapshot.fileCount} files
+            </div>`;
+
+            files.forEach(path => {
+              viewHtml += `<div style="padding: 4px 8px; font-size: 12px; font-family: monospace;">${escapeHtml(path)}</div>`;
+            });
+
+            viewer.innerHTML = viewHtml;
+          } catch (e) {
+            viewer.innerHTML = `<div class="text-danger">Error: ${escapeHtml(e.message)}</div>`;
+          }
+        };
+
+        window.restoreSnapshot = async (id) => {
+          if (!confirm('Restore this snapshot? Current VFS will be replaced.')) return;
+          try {
+            await GenesisSnapshot.restoreSnapshot(id);
+            Toast.success('Snapshot Restored', 'VFS restored from snapshot');
+            closeSnapshots();
+            loadVFSTree();
+          } catch (e) {
+            Toast.error('Restore Failed', e.message);
+          }
+        };
+
+        window.exportSnapshot = async (id) => {
+          try {
+            const exported = await GenesisSnapshot.exportSnapshot(id);
+            const blob = new Blob([exported], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `reploid-snapshot-${id}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+            Toast.success('Export Complete', 'Snapshot exported');
+          } catch (e) {
+            Toast.error('Export Failed', e.message);
+          }
+        };
+
+      } catch (e) {
+        timeline.innerHTML = `<div class="text-danger">Error: ${escapeHtml(e.message)}</div>`;
+        logger.error('[VFS] Snapshot error:', e);
+      }
+    };
+
+    const closeSnapshots = () => {
+      const snapshotPanel = document.getElementById('vfs-snapshot-panel');
+      const contentBody = document.getElementById('vfs-content-body');
+
+      if (snapshotPanel) snapshotPanel.classList.add('hidden');
+      if (contentBody) contentBody.classList.remove('hidden');
     };
 
     // Set VFS reference

@@ -52,6 +52,10 @@ export function hasModelsConfigured() {
     return selectedModels.length > 0;
 }
 
+export function getConsensusStrategy() {
+    return localStorage.getItem('CONSENSUS_TYPE') || 'arena';
+}
+
 // Storage operations
 export function saveToStorage() {
     try {

@@ -126,11 +126,19 @@ const Toast = {
   },
 
   warning(title, message, options = {}) {
-    return this.show({ type: 'warning', title, message, ...options });
+    // Log warning to history but don't show popup
+    this.logError({ title, message, type: 'warning', ...options });
+    this._updateStatusBadge();
+    // Don't show popup toast - warnings go to status tab
+    return null;
   },
 
   error(title, message, options = {}) {
-    return this.show({ type: 'error', title, message, duration: 0, ...options });
+    // Log error to history but don't show popup
+    this.logError({ title, message, ...options });
+    this._updateStatusBadge();
+    // Don't show popup toast - errors go to status tab
+    return null;
   },
 
   // Error history for debugging
@@ -153,6 +161,69 @@ const Toast = {
 
   clearErrorHistory() {
     this._errorHistory = [];
+    this._updateStatusBadge();
+  },
+
+  _updateStatusBadge() {
+    const statusBtn = document.querySelector('[data-tab="status"]');
+    if (!statusBtn) return;
+
+    const errorCount = this._errorHistory.filter(e => e.type !== 'warning').length;
+    const warningCount = this._errorHistory.filter(e => e.type === 'warning').length;
+
+    let existingBadge = statusBtn.querySelector('.status-badge');
+
+    if (errorCount > 0 || warningCount > 0) {
+      if (!existingBadge) {
+        existingBadge = document.createElement('span');
+        existingBadge.className = 'status-badge';
+        statusBtn.appendChild(existingBadge);
+      }
+      existingBadge.textContent = errorCount + warningCount;
+      existingBadge.className = errorCount > 0 ? 'status-badge error' : 'status-badge warning';
+    } else if (existingBadge) {
+      existingBadge.remove();
+    }
+
+    this._renderErrorsList();
+  },
+
+  _renderErrorsList() {
+    const errorsList = document.getElementById('errors-list');
+    const clearBtn = document.getElementById('clear-errors-btn');
+    if (!errorsList) return;
+
+    if (this._errorHistory.length === 0) {
+      errorsList.innerHTML = '<div class="text-muted" style="padding: 10px;">No errors or warnings</div>';
+      if (clearBtn) clearBtn.style.display = 'none';
+      return;
+    }
+
+    if (clearBtn) {
+      clearBtn.style.display = 'inline-block';
+      clearBtn.onclick = () => {
+        this.clearErrorHistory();
+      };
+    }
+
+    errorsList.innerHTML = this._errorHistory.map((error, index) => {
+      const timestamp = new Date(error.timestamp).toLocaleTimeString();
+      const icon = error.type === 'warning' ? '⚠' : '✗';
+      const typeClass = error.type === 'warning' ? 'warning' : 'error';
+
+      return `
+        <details class="error-item ${typeClass}">
+          <summary class="error-summary">
+            <span class="error-icon">${icon}</span>
+            <span class="error-title">${this._escapeHtml(error.title || 'Error')}</span>
+            <span class="error-time">${timestamp}</span>
+          </summary>
+          <div class="error-details">
+            <pre>${this._escapeHtml(error.message || '')}</pre>
+          </div>
+        </details>
+      `;
+    }).join('');
   },
 
   /**

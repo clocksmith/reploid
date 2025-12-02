@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes" />
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><defs><linearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'><stop offset='0%25' style='stop-color:%230ff;'/><stop offset='100%25' style='stop-color:%23ffd700;'/></linearGradient></defs><text fill='url(%23g)' y='.99em' font-size='90' font-weight='bold'>R</text></svg>" />
-    <title>REPLOID - Agent Safety Sandbox</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><defs><linearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'><stop offset='0%25' style='stop-color:%230ff;'/><stop offset='100%25' style='stop-color:%23ffd700;'/></linearGradient></defs><text fill='url(%23g)' x='50%25' y='50%25' font-size='95' font-weight='bold' text-anchor='middle' dominant-baseline='central'>R</text></svg>" />
+    <title>Reploid</title>
     <link rel="stylesheet" href="styles/theme.css">
     <link rel="stylesheet" href="styles/boot.css">
     <link rel="stylesheet" href="styles/proto.css">
@@ -25,6 +25,24 @@
         env.backends.onnx.wasm.proxy = false;
         window.transformers = { pipeline, env };
         console.log("[System] Transformers.js Loaded");
+    </script>
+
+    <!-- Service Worker Module Loader (Self-Hosting VFS Architecture) -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('./sw-module-loader.js')
+            .then(reg => {
+              console.log('[SW] Service Worker registered for VFS module loading');
+              // Store reference for later use
+              window.REPLOID_SW = reg;
+            })
+            .catch(err => {
+              console.warn('[SW] Service Worker registration failed:', err);
+              console.warn('[SW] Modules will load from network instead');
+            });
+        });
+      }
     </script>
 
     <!-- Firebase Analytics -->
@@ -61,14 +79,18 @@
             <p><code>npm start</code> to boot the service, or read the <a href="https://github.com/clocksmith/deco/tree/main/docs" target="_blank" rel="noreferrer">setup guide</a>.</p>
         </div>
 
-        <!-- Quick WebLLM Demo -->
+        <!-- Quick Start -->
+        <h4 class="section-header">Quick Start</h4>
         <div class="webllm-demo-card">
-            <div class="webllm-demo-title">Quick start with WebLLM</div>
-            <div class="webllm-demo-desc">Run Qwen 2.5 3B locally in browser via WebGPU. ~3GB download first time.</div>
+            <div class="webllm-demo-desc">
+                Run local browser model (Qwen 2.5 3B) to analyze and improve the agent's code.<br>
+                Download via WebLLM is ~3GB for first time.
+            </div>
             <button id="quick-webllm-demo-btn" class="btn primary webllm-demo-btn">Go!</button>
         </div>
 
-        <!-- Provider Status (Read-Only) -->
+        <!-- Connection Status -->
+        <h4 class="section-header">Connection Status</h4>
         <div class="provider-status-bar">
             <div class="provider-status-item">
                 <span class="provider-status-icon online" id="browser-cloud-icon">☁</span>
@@ -93,8 +115,8 @@
         </div>
 
         <!-- Model Cards Container -->
+        <h4 class="section-header">Active Models</h4>
         <div class="model-cards-container" style="width: 100%;">
-                <h4 class="model-cards-title">Active Models</h4>
 
                 <div class="model-cards-list" id="model-cards-list">
                     <!-- Model cards will be added here dynamically -->
@@ -161,56 +183,52 @@
                 </div>
             </div>
 
-        <!-- Goal Input at Top -->
+        <!-- Genesis Level Selection -->
+        <h4 class="section-header">Genesis Level</h4>
+        <div class="config-section">
+            <div class="boot-mode-options">
+                <button class="boot-mode-btn selected recommended" data-genesis="full" onclick="selectGenesisLevel('full')">
+                    <div class="boot-mode-badge">RECOMMENDED</div>
+                    <div class="boot-mode-label">FULL SUBSTRATE</div>
+                    <div class="boot-mode-desc">All capabilities - cognition, testing, shell tools (ls, grep, git)</div>
+                </button>
+                <button class="boot-mode-btn" data-genesis="minimal" onclick="selectGenesisLevel('minimal')">
+                    <div class="boot-mode-badge experimental-badge">EXPERIMENTAL</div>
+                    <div class="boot-mode-label">MINIMAL AXIOMS</div>
+                    <div class="boot-mode-desc">Core + basic performance monitoring</div>
+                </button>
+                <button class="boot-mode-btn" data-genesis="tabula" onclick="selectGenesisLevel('tabula')">
+                    <div class="boot-mode-badge experimental-badge">EXPERIMENTAL</div>
+                    <div class="boot-mode-label">TABULA RASA</div>
+                    <div class="boot-mode-desc">Core agent + reflection only - no advanced capabilities</div>
+                </button>
+            </div>
+
+        </div>
+
+        <!-- Goal Input -->
+        <h4 class="section-header" style="margin-top: 30px;">Agent Mission</h4>
         <div class="goal-container-top">
             <div class="goal-input-group">
-                <input type="text" id="goal-input" placeholder="► Select at least one model to continue" maxlength="500" disabled />
+                <input type="text" id="goal-input" placeholder="Describe a goal..." maxlength="500" disabled />
                 <button id="awaken-btn" class="btn primary" disabled>Awaken Agent</button>
                 <input type="file" id="import-file-input" accept=".json" style="display: none;" />
             </div>
             <!-- Example Goal Chips -->
             <div class="goal-example-chips">
-                <button class="goal-chip" onclick="document.getElementById('goal-input').value='Build a todo app with HTML/CSS/JS, write it to /apps/todo/, then create an index.html that renders it'">Build Todo App</button>
-                <button class="goal-chip" onclick="document.getElementById('goal-input').value='Create a knowledge graph of your own architecture: extract entities from /core and /capabilities, define relationships, then query for insights'">Map Architecture</button>
-                <button class="goal-chip" onclick="document.getElementById('goal-input').value='Build a calculator with buttons, display, and keyboard support. Store in /apps/calculator/ with proper HTML/CSS/JS structure'">Build Calculator</button>
-                <button class="goal-chip" onclick="document.getElementById('goal-input').value='Use semantic memory to cluster your tools by functionality, then use the rule engine to infer which tools could be composed together'">Analyze Tools</button>
-                <button class="goal-chip" onclick="document.getElementById('goal-input').value='Create a Markdown note-taking app with live preview. Support bold, italic, headers, and code blocks. Save to /apps/notes/'">Build Notes App</button>
-                <button class="goal-chip" onclick="document.getElementById('goal-input').value='Analyze your own verification system: read verification-manager.js, identify what patterns it catches, and suggest improvements'">Audit Safety</button>
-                <button class="goal-chip" onclick="document.getElementById('goal-input').value='Create a snake game using canvas. Include score tracking, increasing difficulty, and game over screen. Write to /apps/snake/'">Build Snake Game</button>
-                <button class="goal-chip" onclick="document.getElementById('goal-input').value='Compare two approaches to the same problem: write a sorting function two different ways, then benchmark which is faster'">Compare Solutions</button>
+                <button class="goal-chip" onclick="document.getElementById('goal-input').value='Analyze your source code in /core and /capabilities, identify bottlenecks, and propose concrete improvements to enhance task-solving ability'">Improve Task Solving</button>
+                <button class="goal-chip" onclick="document.getElementById('goal-input').value='Create a tool that generates new tools based on analyzing your current tool usage patterns and capability gaps'">Build Tool Generator</button>
+                <button class="goal-chip" onclick="document.getElementById('goal-input').value='Use semantic memory to build a hierarchical understanding of your own architecture, then identify recursive improvement opportunities'">Map Self-Architecture</button>
+                <button class="goal-chip" onclick="document.getElementById('goal-input').value='Design a meta-tool that can analyze, compose, and optimize existing tools to create higher-order capabilities'">Create Meta-Tool</button>
+                <button class="goal-chip" onclick="document.getElementById('goal-input').value='Analyze your reflection logs to identify patterns in successful self-improvement, then codify them as new strategic rules'">Learn from Reflections</button>
+                <button class="goal-chip" onclick="document.getElementById('goal-input').value='Build a capability assessment system that benchmarks your current abilities and generates goals to address weaknesses'">Self-Assess Capabilities</button>
+                <button class="goal-chip" onclick="document.getElementById('goal-input').value='Create a recursive tool chain: a tool that builds tools that enhance tools, with semantic validation at each layer'">Recursive Tool Chain</button>
+                <button class="goal-chip" onclick="document.getElementById('goal-input').value='Analyze safety constraints in verification-manager.js, identify blind spots, and propose self-improving safety mechanisms'">Enhance Safety System</button>
             </div>
         </div>
 
-        <!-- Genesis Level Selection -->
-        <div class="config-section">
-            <h4 class="model-cards-title">Genesis Level</h4>
-            <div class="boot-mode-options">
-                <button class="boot-mode-btn" data-genesis="minimal" onclick="selectGenesisLevel('minimal')">
-                    <div class="boot-mode-badge experimental-badge">EXPERIMENTAL</div>
-                    <div class="boot-mode-label">MINIMAL AXIOMS</div>
-                    <div class="boot-mode-desc">Core modules + reflection - no monitoring or testing</div>
-                </button>
-                <button class="boot-mode-btn selected recommended" data-genesis="full" onclick="selectGenesisLevel('full')">
-                    <div class="boot-mode-badge">RECOMMENDED</div>
-                    <div class="boot-mode-label">FULL SUBSTRATE</div>
-                    <div class="boot-mode-desc">All safety modules + arena testing + cognition</div>
-                </button>
-                <button class="boot-mode-btn" data-genesis="cli" onclick="selectGenesisLevel('cli')">
-                    <div class="boot-mode-badge new-badge">NEW</div>
-                    <div class="boot-mode-label">AGENT TOOLS</div>
-                    <div class="boot-mode-desc">Full substrate + arena testing + Unix terminal (git, grep, shell)</div>
-                </button>
-                <button class="boot-mode-btn" data-genesis="tabula" onclick="selectGenesisLevel('tabula')">
-                    <div class="boot-mode-badge experimental-badge">EXPERIMENTAL</div>
-                    <div class="boot-mode-label">TABULA RASA</div>
-                    <div class="boot-mode-desc">Core modules + reflection only - no advanced capabilities</div>
-                </button>
-            </div>
-
-        </div>
-
-        <!-- Utility Actions -->
-        <div style="width: 100%; display: flex; justify-content: center; gap: 12px; margin-top: 20px; padding-top: 20px; border-top: 1px solid rgba(255, 255, 255, 0.1);">
+        <!-- System Actions -->
+        <div class="system-actions" style="margin-top: 20px;">
             <button id="import-state-btn" class="btn secondary" title="Import REPLOID state from exported JSON file">Import State</button>
             <button id="clear-cache-btn" class="btn secondary" title="Clear all data (localStorage, IndexedDB, VFS) and reload">Reset All Data</button>
         </div>

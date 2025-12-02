@@ -53,7 +53,62 @@ const ContextManager = {
       _cachedLastMessageLength = 0;
     };
 
-    const shouldCompact = (context) => countTokens(context) > 12000;
+    const MAX_CONTEXT_TOKENS = 120000; // Hard limit for cloud models (128k - 8k buffer)
+    const COMPACT_THRESHOLD = 30000;    // Compact at 30k tokens
+
+    const shouldCompact = (context) => countTokens(context) > COMPACT_THRESHOLD;
+
+    const exceedsHardLimit = (context) => {
+      const tokens = countTokens(context);
+      return {
+        exceeded: tokens > MAX_CONTEXT_TOKENS,
+        tokens,
+        limit: MAX_CONTEXT_TOKENS
+      };
+    };
+
+    const extractCriticalInfo = (messages) => {
+      const toolCalls = [];
+      const memoryOps = [];
+      const errors = [];
+      const decisions = [];
+
+      for (const msg of messages) {
+        const content = msg.content || '';
+
+        // Extract tool calls (TOOL_CALL: pattern)
+        const toolCallMatches = content.matchAll(/TOOL_CALL:\s*(\w+)/g);
+        for (const match of toolCallMatches) {
+          toolCalls.push({ tool: match[1], role: msg.role });
+        }
+
+        // Extract tool results (Act #N → pattern)
+        const toolResultMatches = content.matchAll(/Act #(\d+) → (\w+)\s*(.*?)(?=Act #|\n\n|$)/gs);
+        for (const match of toolResultMatches) {
+          toolCalls.push({ cycle: match[1], tool: match[2], result: match[3].substring(0, 100) });
+        }
+
+        // Extract memory operations
+        if (content.includes('write_file') || content.includes('create_tool') || content.includes('load_module')) {
+          memoryOps.push({ role: msg.role, op: content.substring(0, 150) });
+        }
+
+        // Extract errors
+        if (content.includes('ERROR') || content.includes('failed') || content.includes('Error:')) {
+          errors.push(content.substring(0, 200));
+        }
+
+        // Extract key decisions (Think #N patterns)
+        const thinkMatches = content.matchAll(/Think #(\d+)\s*\n(.*?)(?=\nTOOL_CALL|\nThink #|$)/gs);
+        for (const match of thinkMatches) {
+          if (match[2].length > 50) {
+            decisions.push({ cycle: match[1], thought: match[2].substring(0, 200) });
+          }
+        }
+      }
+
+      return { toolCalls, memoryOps, errors, decisions };
+    };
 
     const compact = async (context, modelConfig) => {
       if (!shouldCompact(context)) return context;
@@ -63,52 +118,91 @@ const ContextManager = {
       }
 
       logger.info('[ContextManager] Compacting...');
-      const start = context.slice(0, 2); // System + First User
-      const end = context.slice(-5);     // Last 5
-      const middle = context.slice(2, -5);
+      const start = context.slice(0, 2); // System + First User (goal)
+      const end = context.slice(-8);     // Last 8 messages (recent context)
+      const middle = context.slice(2, -8);
 
       if (middle.length === 0) return context;
 
-      const text = middle.map(m => `${m.role}: ${m.content}`).join('\n');
+      // Extract critical structured information
+      const critical = extractCriticalInfo(middle);
 
-      try {
-        const res = await LLMClient.chat([
-          { role: 'system', content: 'You are a helpful assistant that summarizes conversations concisely.' },
-          { role: 'user', content: `Summarize this conversation, keeping key technical details and tool results:\n${text}` }
-        ], modelConfig);
+      // Build compact structured summary
+      let compactSummary = '[CONTEXT COMPACTED - Critical Info Preserved]\n\n';
 
-        const summary = res?.content || '[Summary unavailable]';
-
-        // Notify UI about compaction
-        if (EventBus) {
-          EventBus.emit('context:compacted', {
-            previousTokens: countTokens(context),
-            newTokens: countTokens([...start, { role: 'user', content: summary }, ...end])
-          });
-        }
-
-        // Insert summary as user message to avoid multiple system messages (WebLLM requirement)
-        const compacted = [...start, { role: 'user', content: `[CONTEXT SUMMARY]: ${summary}` }, ...end];
-        invalidateTokenCache(); // Cache is stale after compaction
-        return compacted;
-      } catch (e) {
-        logger.error('[ContextManager] Compaction failed', e);
-        const pruned = [...start, { role: 'user', content: '[Previous context was pruned due to length]' }, ...end];
-        invalidateTokenCache(); // Cache is stale after compaction
-        return pruned;
+      if (critical.toolCalls.length > 0) {
+        compactSummary += `TOOL CALLS (${critical.toolCalls.length}):\n`;
+        critical.toolCalls.slice(-10).forEach(tc => {
+          compactSummary += `- ${tc.tool}${tc.result ? ': ' + tc.result : ''}\n`;
+        });
+        compactSummary += '\n';
       }
+
+      if (critical.memoryOps.length > 0) {
+        compactSummary += `MEMORY OPERATIONS:\n`;
+        critical.memoryOps.slice(-5).forEach(op => {
+          compactSummary += `- ${op.op}\n`;
+        });
+        compactSummary += '\n';
+      }
+
+      if (critical.errors.length > 0) {
+        compactSummary += `ERRORS TO AVOID:\n`;
+        critical.errors.slice(-3).forEach(err => {
+          compactSummary += `- ${err}\n`;
+        });
+        compactSummary += '\n';
+      }
+
+      if (critical.decisions.length > 0) {
+        compactSummary += `KEY DECISIONS:\n`;
+        critical.decisions.slice(-5).forEach(dec => {
+          compactSummary += `- Cycle ${dec.cycle}: ${dec.thought}\n`;
+        });
+      }
+
+      compactSummary += `\n[${middle.length} messages compacted]`;
+
+      // Notify UI about compaction
+      if (EventBus) {
+        EventBus.emit('context:compacted', {
+          previousTokens: countTokens(context),
+          newTokens: countTokens([...start, { role: 'user', content: compactSummary }, ...end]),
+          preserved: {
+            toolCalls: critical.toolCalls.length,
+            errors: critical.errors.length,
+            decisions: critical.decisions.length
+          }
+        });
+      }
+
+      // Insert structured summary as user message
+      const compacted = [...start, { role: 'user', content: compactSummary }, ...end];
+      invalidateTokenCache(); // Cache is stale after compaction
+      logger.info(`[ContextManager] Compacted ${middle.length} msgs, preserved ${critical.toolCalls.length} tool calls, ${critical.errors.length} errors`);
+      return compacted;
     };
 
-    // Emit token count updates
+    // Emit token count updates and check hard limit
     const emitTokens = (context) => {
       const tokens = countTokens(context);
+      const limitCheck = exceedsHardLimit(context);
+
       if (EventBus) {
-        EventBus.emit('agent:tokens', { tokens });
+        EventBus.emit('agent:tokens', {
+          tokens,
+          exceeded: limitCheck.exceeded,
+          limit: limitCheck.limit
+        });
+      }
+
+      if (limitCheck.exceeded) {
+        logger.error(`[ContextManager] HARD LIMIT EXCEEDED: ${tokens}/${limitCheck.limit} tokens`);
       }
       return tokens;
     };
 
-    return { countTokens, shouldCompact, compact, emitTokens, invalidateTokenCache };
+    return { countTokens, shouldCompact, compact, emitTokens, invalidateTokenCache, exceedsHardLimit, MAX_CONTEXT_TOKENS };
   }
 };
 

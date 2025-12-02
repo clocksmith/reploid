@@ -57,6 +57,12 @@ graph TD
 
 5.  **Audit Logging**: Every tool call, VFS mutation, and agent decision is logged. Full replay capability for debugging and analysis.
 
+6.  **VFS Explorer with Live Preview**: Sandboxed iframe execution for agent-created HTML/CSS/JS files. Operators can preview UIs the agent builds without leaving the browser.
+
+7.  **Genesis Diff Visualization**: Color-coded comparison showing all changes from initial state (green = added, yellow = modified, red = deleted). Instant visibility into what the agent has modified.
+
+8.  **Snapshot Timeline**: Browse, compare, and restore any of the last 10 VFS snapshots. Hot-load snapshots to test previous states without permanent rollback.
+
 ### Core Components
 
 | Component | Purpose |
@@ -66,6 +72,24 @@ graph TD
 | `llm-client.js` | Multi-provider LLM abstraction (WebLLM, Ollama, Cloud APIs) |
 | `verification-manager.js` | Pre-flight safety checks in sandboxed worker |
 | `arena-harness.js` | Competitive selection for code changes |
+
+### Available Tools
+
+REPLOID provides 19+ tools out of the box:
+
+**Core VFS & Self-Modification:**
+- `read_file`, `write_file`, `list_files`, `delete_file` - File operations
+- `create_tool` - Dynamic tool creation at runtime
+- `load_module` - Hot-reload capabilities and modules
+- `code_intel` - Analyze code structure without reading full content
+
+**Unix-like Shell Tools:**
+- `shell_ls`, `shell_pwd`, `shell_cd` - Directory navigation
+- `shell_cat`, `shell_grep`, `shell_find` - File search and inspection
+- `shell_git` - Version control (status, log, diff, commit)
+- `shell_mkdir`, `shell_rm`, `shell_mv`, `shell_cp` - File management
+
+All shell tools operate within the VFS sandbox with no access to host filesystem.
 
 ---
 
@@ -188,11 +212,29 @@ These are open questions. REPLOID is infrastructure for exploring them, not answ
 git clone https://github.com/clocksmith/reploid
 cd reploid
 npm install
-npm start
-# Open http://localhost:3000
+npm run dev
+# Open http://localhost:8080
 ```
 
-Select a model, enter a goal, click "Awaken Agent."
+### Boot Modes
+
+REPLOID offers 3 genesis configurations:
+
+1. **TABULA RASA** - Blank slate, core agent only (minimal tools)
+2. **MINIMAL AXIOMS** - Core + basic reflection and learning
+3. **FULL SUBSTRATE** - All capabilities including cognition, testing, and Unix-like shell tools
+
+Select "FULL SUBSTRATE" for RSI experiments with maximum tool availability.
+
+**Example Goals:**
+- "Create a recursive tool chain: a tool that builds tools that enhance tools"
+- "Analyze your source code in /core and identify bottlenecks"
+- "Build a tool that generates test cases from function signatures"
+
+The VFS Explorer (right panel) provides:
+- **Preview (▶)** - Execute HTML/CSS/JS files in sandboxed iframe
+- **Diff (⊟)** - Compare current VFS to genesis state
+- **Snapshots (◷)** - Timeline of all saved states with restore capability
 
 ---
 

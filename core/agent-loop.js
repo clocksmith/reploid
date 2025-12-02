@@ -10,7 +10,7 @@ const AgentLoop = {
     dependencies: [
       'Utils', 'EventBus', 'LLMClient', 'ToolRunner', 'ContextManager',
       'ResponseParser', 'StateManager', 'PersonaManager', 'CircuitBreaker',
-      'ReflectionStore?', 'ReflectionAnalyzer?', 'CognitionAPI?'
+      'ReflectionStore?', 'ReflectionAnalyzer?', 'CognitionAPI?', 'MultiModelCoordinator?'
     ],
     type: 'core'
   },
@@ -19,7 +19,7 @@ const AgentLoop = {
     const {
       Utils, EventBus, LLMClient, ToolRunner, ContextManager,
       ResponseParser, StateManager, PersonaManager, CircuitBreaker,
-      ReflectionStore, ReflectionAnalyzer, CognitionAPI
+      ReflectionStore, ReflectionAnalyzer, CognitionAPI, MultiModelCoordinator
     } = deps;
 
     const { logger, Errors } = Utils;
@@ -31,8 +31,19 @@ const AgentLoop = {
     let _isRunning = false;
     let _abortController = null;
     let _modelConfig = null;
+    let _modelConfigs = []; // Array of models for multi-model mode
+    let _consensusStrategy = 'arena'; // arena, peer-review, swarm
     const MAX_ACTIVITY_LOG = 200;
     const _activityLog = [];
+
+    // Debug visibility - track current context and system prompt
+    let _currentContext = [];
+    let _currentSystemPrompt = '';
+
+    // Helper to update tracked context whenever it changes
+    const _syncContext = (context) => {
+      _currentContext = [...context];
+    };
 
     // Stuck loop detection state
     let _loopHealth = {
@@ -232,6 +243,9 @@ const AgentLoop = {
       let context = await _buildInitialContext(goal);
       let iteration = 0;
 
+      // Update tracked context after initialization
+      _currentContext = [...context];
+
       try {
         while (_isRunning && iteration < MAX_ITERATIONS) {
           if (_abortController.signal.aborted) break;
@@ -261,6 +275,7 @@ const AgentLoop = {
           EventBus.emit('agent:status', { state: 'THINKING', activity: `Cycle ${iteration} - Calling LLM...`, cycle: iteration });
 
           context = await ContextManager.compact(context, _modelConfig);
+          _syncContext(context);
 
           // Cognition: Semantic enrichment (pre-LLM)
           if (CognitionAPI) {
@@ -268,15 +283,29 @@ const AgentLoop = {
               const lastUserMsg = context.filter(m => m.role === 'user').pop();
               if (lastUserMsg?.content) {
                 context = await CognitionAPI.semantic.enrich(lastUserMsg.content, context);
+                _syncContext(context);
               }
             } catch (e) {
               logger.debug('[Agent] Cognition enrichment skipped:', e.message);
             }
           }
 
-          // Emit token count for UI
+          // Emit token count for UI and enforce hard limit
           if (ContextManager.emitTokens) {
             ContextManager.emitTokens(context);
+          }
+
+          // CRITICAL SAFETY: Check hard token limit
+          if (ContextManager.exceedsHardLimit) {
+            const limitCheck = ContextManager.exceedsHardLimit(context);
+            if (limitCheck.exceeded) {
+              logger.error(`[Agent] STOPPING: Token limit exceeded (${limitCheck.tokens}/${limitCheck.limit})`);
+              EventBus.emit('agent:error', {
+                error: `Context too large: ${limitCheck.tokens} tokens exceeds ${limitCheck.limit} limit. Agent stopped for safety.`,
+                cycle: iteration
+              });
+              throw new Error(`Token limit exceeded: ${limitCheck.tokens}/${limitCheck.limit} tokens`);
+            }
           }
 
           let llmResponseText = '';
@@ -285,7 +314,43 @@ const AgentLoop = {
             llmResponseText += text;
           };
 
-          const response = await LLMClient.chat(context, _modelConfig, streamCallback);
+          // Multi-model execution if multiple models configured
+          let response;
+          let arenaResult = null;
+
+          if (_modelConfigs.length >= 2 && MultiModelCoordinator) {
+            logger.info(`[Agent] Multi-model mode: ${_modelConfigs.length} models, strategy: ${_consensusStrategy}`);
+
+            const multiModelConfig = {
+              mode: _consensusStrategy === 'peer-review' ? 'consensus' : _consensusStrategy,
+              models: _modelConfigs
+            };
+
+            const onUpdate = (update) => {
+              EventBus.emit('agent:multimodel-update', update);
+            };
+
+            try {
+              arenaResult = await MultiModelCoordinator.execute(context, multiModelConfig, onUpdate);
+              response = arenaResult.result;
+
+              // Emit arena results for UI
+              EventBus.emit('agent:arena-result', {
+                cycle: iteration,
+                mode: arenaResult.mode,
+                winner: arenaResult.winner,
+                solutions: arenaResult.solutions
+              });
+
+              logger.info(`[Agent] Arena winner: ${arenaResult.winner?.model || 'unknown'}`);
+            } catch (error) {
+              logger.error('[Agent] Multi-model execution failed, falling back to single model:', error);
+              response = await LLMClient.chat(context, _modelConfig || _modelConfigs[0], streamCallback);
+            }
+          } else {
+            // Single model execution
+            response = await LLMClient.chat(context, _modelConfig, streamCallback);
+          }
 
           const llmEvent = {
             type: 'llm_response',
@@ -315,6 +380,7 @@ const AgentLoop = {
 
           const toolCalls = ResponseParser.parseToolCalls(responseContent);
           context.push({ role: 'assistant', content: responseContent });
+          _syncContext(context);
 
           // Check for stuck loop
           const healthCheck = _checkLoopHealth(iteration, toolCalls.length, responseContent.length);
@@ -434,6 +500,9 @@ ${personaPrompt}
 ### File Operations
 - read_file: read file contents { "path": "/file.js" }
 - write_file: create or modify files { "path": "/file.js", "content": "..." }
+  - CRITICAL: "path" parameter is REQUIRED and must be a string starting with /
+  - "content" parameter is REQUIRED and must be a string
+  - For multiline content, use \\n for newlines, not literal newlines
 - delete_file: remove files { "path": "/file.js" }
 
 ### Self-Modification (RSI)
@@ -442,6 +511,22 @@ ${personaPrompt}
   - code MUST include: export const tool = {...} and export default call;
 - load_module: hot-reload any module { "path": "/capabilities/x.js" }
 - To modify /core/ files, use write_file directly
+
+### File Utilities
+- search_content: search file contents for pattern { "pattern": "text", "path": "/dir", "recursive": true, "ignoreCase": false }
+- find_by_name: find files by name pattern { "path": "/dir", "name": "*.js" }
+- git: version control operations { "command": "status|log|diff|add|commit", "path": "...", "message": "..." }
+- create_directory: create directory { "path": "/new/dir", "parents": true }
+- remove: delete file or directory { "path": "/file", "recursive": false, "force": false }
+- move: move or rename { "source": "/old", "dest": "/new" }
+- copy: copy file or directory { "source": "/file", "dest": "/copy", "recursive": false }
+
+## File Discovery Protocol
+- ALWAYS use list_files to discover actual file paths BEFORE attempting to read them
+- NEVER assume or guess file paths based on typical naming patterns
+- If a file doesn't exist, DO NOT retry with similar guessed names - the path is wrong
+- Use find_by_name or search_content to search for files by name or content
+- Respect error messages - "file not found" means the path is incorrect, not a transient error
 
 ## Tool Call Format
 TOOL_CALL: tool_name
@@ -455,6 +540,10 @@ Example:
 TOOL_CALL: read_file
 ARGS: { "path": "/core/agent-loop.js" }
 
+Example (write_file with multiline content):
+TOOL_CALL: write_file
+ARGS: { "path": "/tools/my_tool.js", "content": "export const tool = {\\n  name: 'my_tool',\\n  execute: async () => 'result'\\n};" }
+
 ## Rules
 - Act autonomously. Do not ask for permission.
 - Every response must use at least one tool unless declaring DONE.
@@ -467,10 +556,18 @@ ARGS: { "path": "/core/agent-loop.js" }
 ${goal}
 `;
 
-      return [
-        { role: 'system', content: systemPrompt.trim() },
+      // Store system prompt for debug visibility
+      _currentSystemPrompt = systemPrompt.trim();
+
+      const initialContext = [
+        { role: 'system', content: _currentSystemPrompt },
         { role: 'user', content: `Begin. Goal: ${goal}` }
       ];
+
+      // Store context for debug visibility
+      _currentContext = [...initialContext];
+
+      return initialContext;
     };
 
     const getRecentActivities = () => [..._activityLog];
@@ -479,8 +576,19 @@ ${goal}
       run,
       stop: () => { if (_abortController) _abortController.abort(); _isRunning = false; },
       setModel: (c) => { _modelConfig = c; },
+      setModels: (models) => {
+        _modelConfigs = models || [];
+        // Set primary model as first one for fallback
+        if (models && models.length > 0) {
+          _modelConfig = models[0];
+        }
+      },
+      setConsensusStrategy: (strategy) => { _consensusStrategy = strategy || 'arena'; },
       isRunning: () => _isRunning,
-      getRecentActivities
+      getRecentActivities,
+      // Debug visibility
+      getSystemPrompt: () => _currentSystemPrompt,
+      getContext: () => [..._currentContext]
     };
   }
 };
