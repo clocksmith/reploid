@@ -18,6 +18,11 @@ export function renderModelCards() {
     const consensusSection = document.getElementById('consensus-section');
     const selectedModels = getSelectedModels();
 
+    if (!container) {
+        console.warn('[ModelConfig] Model cards container not found in DOM');
+        return;
+    }
+
     container.innerHTML = '';
 
     selectedModels.forEach((model, index) => {

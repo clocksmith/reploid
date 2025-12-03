@@ -105,14 +105,16 @@ async function handleModuleRequest(request, url) {
     vfsPath = '/' + vfsPath;
   }
 
-  console.log(`[SW] Module request: ${pathname} -> VFS: ${vfsPath}`);
+  // Only log module requests for debugging (reduce verbosity)
+  const shouldLog = false; // Set to true for debugging module loading
+  if (shouldLog) console.log(`[SW] Module request: ${pathname} -> VFS: ${vfsPath}`);
 
   try {
     // Check if file exists in VFS
     const inVFS = await existsInVFS(vfsPath);
 
     if (inVFS) {
-      console.log(`[SW] Serving from VFS: ${vfsPath}`);
+      if (shouldLog) console.log(`[SW] Serving from VFS: ${vfsPath}`);
       const content = await readFromVFS(vfsPath);
 
       // Return as JavaScript module with proper MIME type
@@ -125,7 +127,7 @@ async function handleModuleRequest(request, url) {
         }
       });
     } else {
-      console.log(`[SW] Not in VFS, fetching from network: ${pathname}`);
+      if (shouldLog) console.log(`[SW] Not in VFS, fetching from network: ${pathname}`);
       // Fallback to network if not in VFS
       return fetch(request);
     }

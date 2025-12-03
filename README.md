@@ -93,6 +93,22 @@ All shell tools operate within the VFS sandbox with no access to host filesystem
 
 ---
 
+## Why JavaScript, Not TypeScript?
+
+**TL;DR:** JavaScript enables true browser-native self-modification without build toolchains.
+
+REPLOID's genesis code is pure JavaScript because the agent needs to generate, modify, and execute code at runtime—entirely in the browser. TypeScript would break this core capability:
+
+**Runtime Code Generation**: When the agent creates a new tool or modifies existing code, it writes JavaScript strings to the VFS and immediately imports them via Service Worker interception. TypeScript requires compilation, which creates a dependency problem: how does the agent compile TypeScript it just wrote, without Node.js or a build toolchain in the browser?
+
+**True Browser-Native Execution**: Reploid runs 100% in the browser with zero external dependencies. TypeScript compilation requires either (1) a build step before deployment (defeating self-modification), (2) bundling the 10MB+ TypeScript compiler in-browser (massive overhead), or (3) maintaining separate TypeScript source and compiled JavaScript (the agent would modify JS artifacts, losing type safety for generated code anyway).
+
+**Service Worker Module Loading**: The VFS Service Worker intercepts ES module imports and serves files from IndexedDB. This works seamlessly with JavaScript but TypeScript would require on-the-fly compilation for every module load, adding latency and complexity to the critical path.
+
+TypeScript excels at developer tooling and compile-time safety, but Reploid prioritizes runtime flexibility. The agent's verification system (syntax checks, sandboxed execution, arena testing) provides runtime safety that type checking can't offer for dynamically generated code. [SW] logs you see (Service Worker) show this system in action—modules loading from VFS, some from network, all without a build step.
+
+---
+
 ## Self-Modification Research
 
 REPLOID is designed to study [recursive self-improvement](https://en.wikipedia.org/wiki/Recursive_self-improvement) (RSI) safely. The agent can modify its own code, but every change is verified, logged, and reversible.
