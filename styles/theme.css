@@ -637,38 +637,3 @@ input:focus, select:focus, textarea:focus {
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
-
-/* CLI Container */
-.cli-container {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: #0d1117;
-  z-index: 8000;
-  padding: 50px 0 0 0;
-}
-
-.cli-container .xterm {
-  height: 100%;
-  padding: 12px;
-}
-
-/* Override xterm scrollbar for dark theme */
-.cli-container .xterm-viewport::-webkit-scrollbar {
-  width: 8px;
-}
-
-.cli-container .xterm-viewport::-webkit-scrollbar-track {
-  background: #0d1117;
-}
-
-.cli-container .xterm-viewport::-webkit-scrollbar-thumb {
-  background: #30363d;
-  border-radius: 4px;
-}
-
-.cli-container .xterm-viewport::-webkit-scrollbar-thumb:hover {
-  background: #484f58;
-}

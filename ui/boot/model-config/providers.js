@@ -76,21 +76,29 @@ const additionalWebLLMModels = [
     { model_id: 'Qwen3-8B-q4f16_1-MLC', vram_required_MB: 5000, context_window_size: 32768 },
 ];
 
+// Lazy load WebLLM on demand
+async function loadWebLLM() {
+    if (window.webllm) return window.webllm;
+
+    console.log('[ModelConfig] Lazy loading WebLLM...');
+    try {
+        const webllm = await import("https://esm.run/@mlc-ai/web-llm");
+        window.webllm = webllm;
+        console.log('[ModelConfig] WebLLM loaded');
+        return webllm;
+    } catch (e) {
+        console.error('[ModelConfig] Failed to load WebLLM:', e);
+        return null;
+    }
+}
+
 // Get WebLLM models from runtime config
 async function getWebLLMModels() {
-    // Wait for WebLLM to load with timeout
-    const maxWaitMs = 5000;
-    const startTime = Date.now();
-    let retries = 0;
+    // Lazy load WebLLM if not already loaded
+    const webllm = await loadWebLLM();
 
-    while (!window.webllm && (Date.now() - startTime) < maxWaitMs) {
-        await new Promise(r => setTimeout(r, 100));
-        retries++;
-    }
-
-    if (!window.webllm?.prebuiltAppConfig?.model_list) {
-        const elapsed = Date.now() - startTime;
-        console.warn(`[ModelConfig] WebLLM prebuiltAppConfig not available after ${retries} retries (${elapsed}ms)`);
+    if (!webllm?.prebuiltAppConfig?.model_list) {
+        console.warn('[ModelConfig] WebLLM prebuiltAppConfig not available');
         return [];
     }
 

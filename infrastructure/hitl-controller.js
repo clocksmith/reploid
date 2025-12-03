@@ -31,6 +31,7 @@ const HITLController = {
     const MODES = {
       AUTONOMOUS: 'autonomous',
       HITL: 'hitl',
+      EVERY_N: 'every_n', // Approve every N steps
       INHERIT: 'inherit'
     };
 
@@ -41,7 +42,9 @@ const HITLController = {
 
     let _config = {
       masterMode: MODES.AUTONOMOUS, // Autonomous by default
-      moduleOverrides: {}
+      moduleOverrides: {},
+      everyNSteps: 5, // Default: approve every 5 steps
+      stepCounter: 0  // Track steps since last approval
     };
 
     const _stats = {
@@ -59,7 +62,9 @@ const HITLController = {
       try {
         const toSave = {
           masterMode: _config.masterMode,
-          moduleOverrides: _config.moduleOverrides
+          moduleOverrides: _config.moduleOverrides,
+          everyNSteps: _config.everyNSteps,
+          stepCounter: _config.stepCounter
         };
         localStorage.setItem(STORAGE_KEY, JSON.stringify(toSave));
       } catch (e) {
@@ -74,7 +79,10 @@ const HITLController = {
           const parsed = JSON.parse(saved);
           _config.masterMode = parsed.masterMode || MODES.AUTONOMOUS;
           _config.moduleOverrides = parsed.moduleOverrides || {};
-          logger.info(`[HITL] Loaded config: ${_config.masterMode} mode`);
+          _config.everyNSteps = parsed.everyNSteps || 5;
+          _config.stepCounter = parsed.stepCounter || 0;
+          logger.info(`[HITL] Loaded config: ${_config.masterMode} mode` +
+            (_config.masterMode === MODES.EVERY_N ? ` (every ${_config.everyNSteps} steps)` : ''));
         }
       } catch (e) {
         logger.warn('[HITL] Failed to load config, using defaults');
@@ -130,13 +138,19 @@ const HITLController = {
      * @param {string} mode - 'autonomous' or 'hitl'
      */
     const setMasterMode = (mode) => {
-      if (mode !== MODES.AUTONOMOUS && mode !== MODES.HITL) {
+      if (mode !== MODES.AUTONOMOUS && mode !== MODES.HITL && mode !== MODES.EVERY_N) {
         logger.warn(`[HITL] Invalid mode: ${mode}`);
         return;
       }
 
       const oldMode = _config.masterMode;
       _config.masterMode = mode;
+
+      // Reset step counter when changing to/from EVERY_N mode
+      if (mode === MODES.EVERY_N || oldMode === MODES.EVERY_N) {
+        _config.stepCounter = 0;
+      }
+
       _saveConfig();
 
       const affectedModules = [..._moduleRegistry.keys()].filter(
@@ -144,7 +158,27 @@ const HITLController = {
       );
 
       EventBus.emit('hitl:master-mode-changed', { oldMode, newMode: mode, affectedModules });
-      logger.info(`[HITL] Master mode changed: ${oldMode} -> ${mode}`);
+      logger.info(`[HITL] Master mode changed: ${oldMode} -> ${mode}` +
+        (mode === MODES.EVERY_N ? ` (every ${_config.everyNSteps} steps)` : ''));
+    };
+
+    /**
+     * Set the step interval for EVERY_N mode
+     * @param {number} steps - Number of steps between approvals (1-100)
+     */
+    const setEveryNSteps = (steps) => {
+      const n = parseInt(steps, 10);
+      if (isNaN(n) || n < 1 || n > 100) {
+        logger.warn(`[HITL] Invalid step count: ${steps} (must be 1-100)`);
+        return;
+      }
+
+      _config.everyNSteps = n;
+      _config.stepCounter = 0; // Reset counter
+      _saveConfig();
+
+      EventBus.emit('hitl:every-n-changed', { steps: n });
+      logger.info(`[HITL] Every-N interval set to: ${n} steps`);
     };
 
     /**
@@ -158,7 +192,7 @@ const HITLController = {
         return;
       }
 
-      if (![MODES.AUTONOMOUS, MODES.HITL, MODES.INHERIT].includes(mode)) {
+      if (![MODES.AUTONOMOUS, MODES.HITL, MODES.EVERY_N, MODES.INHERIT].includes(mode)) {
         logger.warn(`[HITL] Invalid mode: ${mode}`);
         return;
       }
@@ -193,6 +227,17 @@ const HITLController = {
       const effectiveMode = getModuleMode(moduleId);
       if (effectiveMode === MODES.AUTONOMOUS) {
         return false;
+      }
+
+      // In EVERY_N mode, check step counter
+      if (effectiveMode === MODES.EVERY_N) {
+        _config.stepCounter++;
+        const needsApproval = _config.stepCounter >= _config.everyNSteps;
+        if (needsApproval) {
+          _config.stepCounter = 0; // Reset counter
+          _saveConfig();
+        }
+        return needsApproval;
       }
 
       // In HITL mode, check if module has this capability
@@ -428,6 +473,7 @@ const HITLController = {
       getModuleMode,
       setMasterMode,
       setModuleMode,
+      setEveryNSteps,
       requiresApproval,
       requestApproval,
       approve,
