@@ -91,9 +91,10 @@ import GoalHistory from './ui/goal-history.js';
 
     // Module registry mapping names to imports
     const moduleRegistry = {
-      Utils, EventBus, RateLimiter, VFS, StateHelpersPure, AuditLogger,
-      CircuitBreaker, StreamParser, IndexedDBHelper, HITLController, GenesisSnapshot, Observability, VFSHMR,
-      StateManager, LLMClient, TransformersClient, ResponseParser, ContextManager, VerificationManager,
+      Utils, EventBus, RateLimiter, AuditLogger,
+      CircuitBreaker, StreamParser, IndexedDBHelper, HITLController, GenesisSnapshot, Observability,
+      VFS, VFSHMR, StateHelpersPure, StateManager,
+      LLMClient, TransformersClient, ResponseParser, ContextManager, VerificationManager,
       ToolWriter, ToolRunner, PersonaManager, ReflectionStore,
       ReflectionAnalyzer, AgentLoop, SubstrateLoader, PerformanceMonitor, SelfTester,
       EmbeddingStore, SemanticMemory, KnowledgeGraph, RuleEngine, SymbolGrounder, CognitionAPI, MultiModelCoordinator,
@@ -105,16 +106,24 @@ import GoalHistory from './ui/goal-history.js';
       for (const name of moduleNames) {
         if (moduleRegistry[name]) {
           try {
-            container.register(moduleRegistry[name]);
+            const module = moduleRegistry[name];
+            // Validate module has metadata before registering
+            if (!module || !module.metadata || !module.metadata.id) {
+              logger.error(`[Boot] Invalid module structure for ${name}: missing metadata.id`);
+              logger.warn(`[Boot] Skipping invalid module: ${name}`);
+              continue;
+            }
+            container.register(module);
           } catch (e) {
             logger.error(`[Boot] Failed to register ${name}: ${e.message}`);
+            logger.error(`[Boot] Module structure:`, moduleRegistry[name]?.metadata);
             throw new Error(`Module registration failed for ${name}: ${e.message}`);
           }
         } else {
           logger.warn(`[Boot] Module not found in registry: ${name}`);
         }
       }
-      logger.info(`[Boot] Registered ${moduleNames.length} ${category} modules`);
+      logger.info(`[Boot] Registered ${category} modules`);
     };
 
     // Register all module categories from config
