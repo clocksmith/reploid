@@ -443,6 +443,32 @@ const AgentLoop = {
 
               _processToolResult(call, finalResult, iteration, context);
               executedTools++;
+
+              // Handle recursive tool creation
+              // If tool returns nextSteps structure, execute them
+              if (result && typeof result === 'object' && result.nextSteps && Array.isArray(result.nextSteps)) {
+                logger.info(`[Agent] Detected recursive tool chain request from ${call.name}`);
+                for (const step of result.nextSteps) {
+                  if (step.tool && step.args) {
+                    logger.info(`[Agent] Executing chained tool: ${step.tool}`);
+                    const chainedCall = { name: step.tool, args: step.args };
+                    const { result: chainedResult, error: chainedError } = await _executeToolWithRetry(chainedCall, iteration);
+
+                    let chainedFinalResult = chainedResult;
+                    if (chainedError && !chainedResult) {
+                      logger.error(`[Agent] Chained Tool Error: ${step.tool}`, chainedError);
+                      chainedFinalResult = `Error: ${chainedError.message}`;
+                      EventBus.emit('tool:error', { tool: step.tool, error: chainedError.message, cycle: iteration });
+                      _toolCircuitBreaker.recordFailure(step.tool, chainedError);
+                      break; // Stop chain on error
+                    } else if (!chainedError) {
+                      _toolCircuitBreaker.recordSuccess(step.tool);
+                    }
+
+                    _processToolResult(chainedCall, chainedFinalResult, iteration, context);
+                  }
+                }
+              }
             }
           } else {
             if (ResponseParser.isDone(response.content)) {

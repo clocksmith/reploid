@@ -141,12 +141,13 @@ const Proto = {
       }
 
       // Show actual count if under 1000, otherwise show in thousands
-      const displayTokens = _tokenCount < 1000
-        ? _tokenCount.toString()
-        : `${Math.round(_tokenCount / 1000)}k`;
-      const displayMax = _maxTokens < 1000
-        ? _maxTokens.toString()
-        : `${Math.round(_maxTokens / 1000)}k`;
+      // Fixed: Don't add 'k' if the number is already less than 1000
+      const displayTokens = _tokenCount >= 1000
+        ? `${Math.round(_tokenCount / 1000)}k`
+        : _tokenCount.toString();
+      const displayMax = _maxTokens >= 1000
+        ? `${Math.round(_maxTokens / 1000)}k`
+        : _maxTokens.toString();
       budgetText.textContent = `${displayTokens} / ${displayMax}`;
     };
 
@@ -414,16 +415,25 @@ const Proto = {
       // Command palette button
       btnPalette.onclick = () => CommandPalette.toggle();
 
-      // Set initial button state (Unicode stop symbol)
-      btnToggle.innerHTML = '&#x25A0;';
-      btnToggle.title = 'Stop (Esc)';
+      // Set initial button state (Unicode play symbol since agent starts stopped)
+      btnToggle.innerHTML = '&#x25B6;';
+      btnToggle.title = 'Start (Ctrl+Enter)';
+
+      const updateButtonState = (running) => {
+        if (running) {
+          btnToggle.innerHTML = '&#x25A0;'; // Square stop symbol
+          btnToggle.title = 'Stop (Esc)';
+        } else {
+          btnToggle.innerHTML = '&#x25B6;'; // Triangle play symbol
+          btnToggle.title = 'Resume (Ctrl+Enter)';
+        }
+      };
 
       const stopAgent = () => {
         if (isRunning) {
           AgentLoop.stop();
           isRunning = false;
-          btnToggle.innerHTML = '&#x25B6;';
-          btnToggle.title = 'Resume (Ctrl+Enter)';
+          updateButtonState(false);
           Toast.info('Agent Stopped', 'Click play or press Ctrl+Enter to resume');
         }
       };
@@ -437,19 +447,18 @@ const Proto = {
           }
 
           isRunning = true;
-          btnToggle.innerHTML = '&#x25A0;';
-          btnToggle.title = 'Stop (Esc)';
+          updateButtonState(true);
 
           try {
             await AgentLoop.run(goal);
             isRunning = false;
-            btnToggle.innerHTML = '&#x21BB;';
+            btnToggle.innerHTML = '&#x21BB;'; // Circular arrow for restart
             btnToggle.title = 'Restart';
             Toast.success('Goal Complete', 'Agent finished successfully');
           } catch (e) {
             logger.error(`Agent Error: ${e.message}`);
             isRunning = false;
-            btnToggle.innerHTML = '&#x21BB;';
+            btnToggle.innerHTML = '&#x21BB;'; // Circular arrow for restart
             btnToggle.title = 'Restart';
             Toast.error('Agent Error', e.message, {
               actions: [
