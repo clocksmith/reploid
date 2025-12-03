@@ -89,6 +89,21 @@ import GoalHistory from './ui/goal-history.js';
 
     logger.info(`[Boot] Genesis level: ${levelConfig.name}`);
 
+    // Conditionally load Transformers.js for FULL SUBSTRATE (semantic capabilities)
+    if (genesisLevel === 'full' || levelConfig.modules.capabilities.includes('SemanticMemory')) {
+      logger.info('[Boot] Loading Transformers.js for semantic capabilities...');
+      try {
+        const { pipeline, env } = await import("https://cdn.jsdelivr.net/npm/@huggingface/transformers@3");
+        env.backends.onnx.wasm.proxy = false;
+        window.transformers = { pipeline, env };
+        logger.info('[Boot] Transformers.js loaded');
+      } catch (e) {
+        logger.warn('[Boot] Failed to load Transformers.js:', e.message);
+      }
+    } else {
+      logger.info('[Boot] Skipping Transformers.js (not needed for this genesis level)');
+    }
+
     // Module registry mapping names to imports
     const moduleRegistry = {
       Utils, EventBus, RateLimiter, AuditLogger,
@@ -408,10 +423,9 @@ async function seedWorkspaceFiles(vfs, genesisConfig) {
     // Seed ALL module imports (core, infrastructure, capabilities, testing)
     const filesToSeed = new Set(Object.values(genesisConfig?.moduleImports || {}));
 
-    // Add entry points
-    filesToSeed.add('./boot.js');
-    filesToSeed.add('./index.html');
-    filesToSeed.add('./sw-module-loader.js');
+    // NOTE: Entry points (boot.js, index.html, sw-module-loader.js) should NOT be in VFS
+    // They must be served from network to enable proper genesis snapshots
+    // Config files also load from network (not VFS) to allow runtime reconfiguration
 
     // Add ALL tools
     filesToSeed.add('./tools/code_intel.js');
@@ -421,18 +435,15 @@ async function seedWorkspaceFiles(vfs, genesisConfig) {
     ];
     fileTools.forEach(tool => filesToSeed.add(`./tools/${tool}.js`));
 
-    // Add ALL UI modules
+    // Add runtime UI (agent's interface to operator)
     filesToSeed.add('./ui/proto.js');
-    filesToSeed.add('./ui/boot/model-config/index.js');
-    filesToSeed.add('./ui/goal-history.js');
 
-    // Add ALL styles
-    filesToSeed.add('./styles/theme.css');
-    filesToSeed.add('./styles/boot.css');
-    filesToSeed.add('./styles/proto.css');
-
-    // Add config
-    filesToSeed.add('./config/genesis-levels.json');
+    // NOTE: Boot screen UI (model-config, goal-history) loads from network, not VFS
+    // These are pre-agent bootstrap interfaces, not runtime agent UI
+    // NOTE: Styles (theme.css, boot.css, proto.css) load from network, not VFS
+    // These are static CSS assets that should not be in genesis snapshots
+    // NOTE: Config files (genesis-levels.json) load from network, not VFS
+    // This allows runtime reconfiguration without VFS snapshots
 
     logger.info(`[Boot] Hydrating ${filesToSeed.size} files into VFS...`);
 

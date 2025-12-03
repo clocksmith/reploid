@@ -8,24 +8,6 @@
     <link rel="stylesheet" href="styles/theme.css">
     <link rel="stylesheet" href="styles/boot.css">
     <link rel="stylesheet" href="styles/proto.css">
-    <!-- xterm.js styles for CLI mode -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.min.css">
-
-    <!-- Load WebLLM and expose to window for llm-client.js -->
-    <script type="module">
-        import * as webllm from "https://esm.run/@mlc-ai/web-llm";
-        window.webllm = webllm;
-        console.log("[System] WebLLM Loaded");
-    </script>
-
-    <!-- Load Transformers.js for newer models (Qwen3, Gemma3, etc.) -->
-    <script type="module">
-        import { pipeline, env } from "https://cdn.jsdelivr.net/npm/@huggingface/transformers@3";
-        // Configure for WebGPU
-        env.backends.onnx.wasm.proxy = false;
-        window.transformers = { pipeline, env };
-        console.log("[System] Transformers.js Loaded");
-    </script>
 
     <!-- Service Worker Module Loader (Self-Hosting VFS Architecture) -->
     <script>
@@ -43,25 +25,6 @@
             });
         });
       }
-    </script>
-
-    <!-- Firebase Analytics -->
-    <script type="module">
-      import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-      import { getAnalytics } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics.js';
-
-      const firebaseConfig = {
-        apiKey: "AIzaSyBNjEuGLafsUde3ws_9_Zi-PUlKkWt-CWM",
-        authDomain: "reploid.firebaseapp.com",
-        projectId: "reploid",
-        storageBucket: "reploid.firebasestorage.app",
-        messagingSenderId: "506730551098",
-        appId: "1:506730551098:web:1b9639865cb8501b7c2203",
-        measurementId: "G-RL299QYBNB"
-      };
-
-      const app = initializeApp(firebaseConfig);
-      const analytics = getAnalytics(app);
     </script>
 </head>
 <body>
@@ -345,23 +308,9 @@
         });
     </script>
 
-    <!-- Mode toggle (Dashboard / CLI) -->
-    <div id="mode-toggle" class="mode-toggle hidden">
-      <button id="mode-dashboard-btn" class="mode-btn active" title="Dashboard Mode">
-        <span class="mode-icon">◫</span>
-        <span class="mode-label">Dashboard</span>
-      </button>
-      <button id="mode-cli-btn" class="mode-btn" title="CLI Mode (Ctrl+`)">
-        <span class="mode-icon">▸_</span>
-        <span class="mode-label">Terminal</span>
-      </button>
-    </div>
-
     <!-- App container for dashboard -->
     <div id="app"></div>
 
-    <!-- CLI terminal container -->
-    <div id="cli-container" class="cli-container hidden"></div>
     <!-- Dev integrations loaded conditionally via boot.js -->
     <script type="module" src="boot.js"></script>
 </body>

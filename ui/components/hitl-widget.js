@@ -63,17 +63,35 @@ const HITLWidget = {
 
       const state = HITLController.getState();
       const { config, approvalQueue, approvalStats } = state;
-      const isHITL = config.masterMode === 'hitl';
+      const mode = config.masterMode;
+      const isHITL = mode === 'hitl';
+      const isEveryN = mode === 'every_n';
+      const isAuto = mode === 'autonomous';
+
+      const modeIcon = isHITL ? '⚇' : (isEveryN ? '⚆' : '⚙');
+      const modeTitle = isHITL ? 'HITL Mode' : (isEveryN ? `Every ${config.everyNSteps}` : 'Autonomous');
+      const widgetClass = isHITL ? 'hitl-active' : (isEveryN ? 'hitl-every-n' : 'hitl-auto');
 
       const html = `
-        <div class="hitl-widget ${isHITL ? 'hitl-active' : 'hitl-auto'}">
+        <div class="hitl-widget ${widgetClass}">
           <div class="hitl-header">
-            <span class="hitl-icon">${isHITL ? '⚇' : '⚙'}</span>
-            <span class="hitl-title">${isHITL ? 'HITL Mode' : 'Autonomous'}</span>
-            <button class="hitl-toggle" data-action="toggle-mode">
-              ${isHITL ? 'Go Auto' : 'Enable HITL'}
-            </button>
+            <span class="hitl-icon">${modeIcon}</span>
+            <select class="hitl-mode-select" data-action="change-mode">
+              <option value="autonomous" ${isAuto ? 'selected' : ''}>Autonomous</option>
+              <option value="every_n" ${isEveryN ? 'selected' : ''}>Every N Steps</option>
+              <option value="hitl" ${isHITL ? 'selected' : ''}>Full HITL</option>
+            </select>
           </div>
+
+          ${isEveryN ? `
+            <div class="hitl-config">
+              <label class="hitl-config-label">
+                Steps:
+                <input type="number" class="hitl-steps-input" value="${config.everyNSteps}" min="1" max="100" data-action="set-steps" />
+                <span class="hitl-step-counter">(${config.stepCounter}/${config.everyNSteps})</span>
+              </label>
+            </div>
+          ` : ''}
 
           ${approvalQueue.length > 0 ? `
             <div class="hitl-queue">
@@ -121,15 +139,31 @@ const HITLWidget = {
         const id = btn.dataset.id;
 
         switch (action) {
-          case 'toggle-mode':
-            const current = HITLController.getState().config.masterMode;
-            HITLController.setMasterMode(current === 'hitl' ? 'autonomous' : 'hitl');
-            break;
           case 'approve':
             if (id) HITLController.approve(id);
             break;
           case 'reject':
             if (id) HITLController.reject(id, 'Rejected via widget');
+            break;
+        }
+      });
+
+      // Handle mode change dropdown
+      _container.addEventListener('change', (e) => {
+        const el = e.target.closest('[data-action]');
+        if (!el) return;
+
+        const action = el.dataset.action;
+
+        switch (action) {
+          case 'change-mode':
+            HITLController.setMasterMode(el.value);
+            break;
+          case 'set-steps':
+            const steps = parseInt(el.value, 10);
+            if (steps >= 1 && steps <= 100) {
+              HITLController.setEveryNSteps(steps);
+            }
             break;
         }
       });
@@ -144,10 +178,15 @@ const HITLWidget = {
       const state = HITLController.getState();
       const queue = state.approvalQueue;
       const hasWarning = queue.length > 0;
+      const mode = state.config.masterMode;
+
+      let primaryMetric = 'Auto';
+      if (mode === 'hitl') primaryMetric = 'HITL';
+      else if (mode === 'every_n') primaryMetric = `N=${state.config.everyNSteps}`;
 
       return {
         state: hasWarning ? 'warning' : 'idle',
-        primaryMetric: state.config.masterMode === 'autonomous' ? 'Auto' : 'HITL',
+        primaryMetric,
         secondaryMetric: queue.length > 0 ? `${queue.length} pending` : 'No pending',
         lastActivity: queue.length > 0 ? queue[0].timestamp : null,
         message: hasWarning ? `${queue.length} approval${queue.length > 1 ? 's' : ''} needed` : null
@@ -177,6 +216,9 @@ const HITL_WIDGET_STYLES = `
 .hitl-widget.hitl-auto {
   border-left: 3px solid #66bb6a;
 }
+.hitl-widget.hitl-every-n {
+  border-left: 3px solid #42a5f5;
+}
 .hitl-header {
   display: flex;
   align-items: center;
@@ -200,6 +242,44 @@ const HITL_WIDGET_STYLES = `
 }
 .hitl-toggle:hover {
   background: rgba(255, 255, 255, 0.2);
+}
+.hitl-mode-select {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 4px 8px;
+  border-radius: 4px;
+  color: #fff;
+  font-size: 11px;
+  cursor: pointer;
+}
+.hitl-mode-select:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+.hitl-config {
+  margin: 8px 0;
+  background: rgba(66, 165, 245, 0.1);
+  border-radius: 4px;
+  padding: 8px;
+}
+.hitl-config-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+}
+.hitl-steps-input {
+  width: 50px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 2px 6px;
+  border-radius: 3px;
+  color: #fff;
+  font-size: 11px;
+}
+.hitl-step-counter {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 10px;
 }
 .hitl-queue {
   margin: 8px 0;
