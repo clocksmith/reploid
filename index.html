@@ -150,23 +150,47 @@
         <h4 class="section-header">Genesis Level</h4>
         <div class="config-section">
             <div class="boot-mode-options">
+                <button class="boot-mode-btn" data-genesis="tabula" onclick="selectGenesisLevel('tabula')">
+                    <div class="boot-mode-badge experimental-badge">MINIMAL</div>
+                    <div class="boot-mode-label">TABULA RASA</div>
+                    <div class="boot-mode-desc">8 modules - Minimal RSI core</div>
+                </button>
+                <button class="boot-mode-btn" data-genesis="reflection" onclick="selectGenesisLevel('reflection')">
+                    <div class="boot-mode-badge">STANDARD</div>
+                    <div class="boot-mode-label">REFLECTION</div>
+                    <div class="boot-mode-desc">14 modules - Self-awareness + introspection</div>
+                </button>
                 <button class="boot-mode-btn selected recommended" data-genesis="full" onclick="selectGenesisLevel('full')">
                     <div class="boot-mode-badge">RECOMMENDED</div>
                     <div class="boot-mode-label">FULL SUBSTRATE</div>
-                    <div class="boot-mode-desc">All capabilities - cognition, testing, shell tools (ls, grep, git)</div>
-                </button>
-                <button class="boot-mode-btn" data-genesis="minimal" onclick="selectGenesisLevel('minimal')">
-                    <div class="boot-mode-badge experimental-badge">EXPERIMENTAL</div>
-                    <div class="boot-mode-label">MINIMAL AXIOMS</div>
-                    <div class="boot-mode-desc">Core + basic performance monitoring</div>
-                </button>
-                <button class="boot-mode-btn" data-genesis="tabula" onclick="selectGenesisLevel('tabula')">
-                    <div class="boot-mode-badge experimental-badge">EXPERIMENTAL</div>
-                    <div class="boot-mode-label">TABULA RASA</div>
-                    <div class="boot-mode-desc">Core agent + reflection only - no advanced capabilities</div>
+                    <div class="boot-mode-desc">32 modules - Complete infrastructure + cognition</div>
                 </button>
             </div>
+        </div>
 
+        <!-- Blueprint Path Selection -->
+        <h4 class="section-header" style="margin-top: 30px;">Blueprint Path</h4>
+        <div class="config-section">
+            <div class="boot-mode-options">
+                <button class="boot-mode-btn selected" data-blueprint="none" onclick="selectBlueprintPath('none')">
+                    <div class="boot-mode-badge">NONE</div>
+                    <div class="boot-mode-label">No Blueprints</div>
+                    <div class="boot-mode-desc">Pure discovery - figure everything out yourself</div>
+                </button>
+                <button class="boot-mode-btn" data-blueprint="reflection" onclick="selectBlueprintPath('reflection')">
+                    <div class="boot-mode-label">Path to Reflection</div>
+                    <div class="boot-mode-desc">6 blueprints - Build self-awareness from scratch</div>
+                </button>
+                <button class="boot-mode-btn" data-blueprint="full" onclick="selectBlueprintPath('full')">
+                    <div class="boot-mode-label">Path to Full</div>
+                    <div class="boot-mode-desc">18 blueprints - Build complete system</div>
+                </button>
+                <button class="boot-mode-btn" data-blueprint="beyond" onclick="selectBlueprintPath('beyond')">
+                    <div class="boot-mode-badge experimental-badge">EXPERIMENTAL</div>
+                    <div class="boot-mode-label">Path Beyond</div>
+                    <div class="boot-mode-desc">25+ blueprints - Novel capabilities not in any genesis</div>
+                </button>
+            </div>
         </div>
 
         <!-- Goal Input -->
@@ -349,10 +373,27 @@ window.onGenesisLevelLoaded = () => {
   console.log(`[Config] Genesis level ${selectedGenesisLevel} loaded successfully`);
 };
 
-// Restore saved genesis level on load
+// Blueprint path selection
+let selectedBlueprintPath = localStorage.getItem('REPLOID_BLUEPRINT_PATH') || 'none';
+
+function selectBlueprintPath(path) {
+  // Update UI immediately
+  document.querySelectorAll('[data-blueprint]').forEach(btn => {
+    btn.classList.remove('selected');
+  });
+  document.querySelector(`[data-blueprint="${path}"]`).classList.add('selected');
+
+  // Store selection
+  localStorage.setItem('REPLOID_BLUEPRINT_PATH', path);
+  selectedBlueprintPath = path;
+
+  console.log(`[Config] Blueprint path set to: ${path}`);
+}
+
+// Restore saved genesis level and blueprint path on load
 window.addEventListener('DOMContentLoaded', () => {
   const savedLevel = localStorage.getItem('REPLOID_GENESIS_LEVEL');
-  if (savedLevel && ['full', 'minimal', 'tabula', 'cli'].includes(savedLevel)) {
+  if (savedLevel && ['full', 'reflection', 'tabula'].includes(savedLevel)) {
     // Just update UI, don't trigger reload
     document.querySelectorAll('[data-genesis]').forEach(btn => {
       btn.classList.remove('selected');
@@ -361,10 +402,21 @@ window.addEventListener('DOMContentLoaded', () => {
     if (btn) btn.classList.add('selected');
     selectedGenesisLevel = savedLevel;
   }
+
+  const savedPath = localStorage.getItem('REPLOID_BLUEPRINT_PATH');
+  if (savedPath && ['none', 'reflection', 'full', 'beyond'].includes(savedPath)) {
+    document.querySelectorAll('[data-blueprint]').forEach(btn => {
+      btn.classList.remove('selected');
+    });
+    const btn = document.querySelector(`[data-blueprint="${savedPath}"]`);
+    if (btn) btn.classList.add('selected');
+    selectedBlueprintPath = savedPath;
+  }
 });
 
-// Expose genesis level for boot.js
+// Expose genesis level and blueprint path for boot.js
 window.getGenesisLevel = () => selectedGenesisLevel;
+window.getBlueprintPath = () => selectedBlueprintPath;
 
 // Reset All Data button handler
 window.addEventListener('DOMContentLoaded', () => {
