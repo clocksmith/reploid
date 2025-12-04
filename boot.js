@@ -76,13 +76,13 @@ import GoalHistory from './ui/goal-history.js';
     const container = DIContainer.factory({ Utils: Utils.factory() });
 
     // Get genesis level from localStorage (set by boot UI)
-    let genesisLevel = localStorage.getItem('REPLOID_GENESIS_LEVEL') || genesisConfig.default;
+    let genesisLevel = localStorage.getItem('REPLOID_GENESIS_LEVEL') || genesisConfig.defaultLevel;
     let levelConfig = genesisConfig.levels[genesisLevel];
 
     // Fallback to default if selected level doesn't exist
     if (!levelConfig) {
-      logger.warn(`[Boot] Unknown genesis level: ${genesisLevel}, falling back to ${genesisConfig.default}`);
-      genesisLevel = genesisConfig.default;
+      logger.warn(`[Boot] Unknown genesis level: ${genesisLevel}, falling back to ${genesisConfig.defaultLevel}`);
+      genesisLevel = genesisConfig.defaultLevel;
       levelConfig = genesisConfig.levels[genesisLevel];
       localStorage.setItem('REPLOID_GENESIS_LEVEL', genesisLevel);
     }
@@ -90,7 +90,7 @@ import GoalHistory from './ui/goal-history.js';
     logger.info(`[Boot] Genesis level: ${levelConfig.name}`);
 
     // Conditionally load Transformers.js for FULL SUBSTRATE (semantic capabilities)
-    if (genesisLevel === 'full' || levelConfig.modules.capabilities.includes('SemanticMemory')) {
+    if (genesisLevel === 'full' || levelConfig.modules.includes('SemanticMemory')) {
       logger.info('[Boot] Loading Transformers.js for semantic capabilities...');
       try {
         const { pipeline, env } = await import("https://cdn.jsdelivr.net/npm/@huggingface/transformers@3");
@@ -141,24 +141,16 @@ import GoalHistory from './ui/goal-history.js';
       logger.info(`[Boot] Registered ${category} modules`);
     };
 
-    // Register all module categories from config
-    registerModules(levelConfig.modules.foundation, 'foundation');
-    registerModules(levelConfig.modules.storage, 'storage');
-    registerModules(levelConfig.modules.services, 'services');
-    registerModules(levelConfig.modules.tools, 'tools');
-    registerModules(levelConfig.modules.agent, 'agent');
-
-    // Register capabilities (varies by genesis level)
-    if (levelConfig.modules.capabilities.length > 0) {
-      registerModules(levelConfig.modules.capabilities, 'capabilities');
-    } else {
-      logger.info('[Boot] No additional capabilities for this genesis level');
+    // Register all modules from flat array
+    logger.info(`[Boot] Registering ${levelConfig.modules.length} modules...`);
+    for (const moduleName of levelConfig.modules) {
+      if (moduleRegistry[moduleName]) {
+        container.register(moduleName, moduleRegistry[moduleName]);
+      } else {
+        logger.warn(`[Boot] Module "${moduleName}" not found in registry`);
+      }
     }
-
-    // Register testing modules (arena, etc.)
-    if (levelConfig.modules.testing) {
-      registerModules(levelConfig.modules.testing, 'testing');
-    }
+    logger.info('[Boot] Module registration complete');
 
     // 3. Boot Sequence
     logger.info('[Boot] Resolving dependencies...');

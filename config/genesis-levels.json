@@ -2,45 +2,100 @@
   "levels": {
     "tabula": {
       "name": "TABULA RASA",
-      "description": "Blank slate - core agent only, no advanced capabilities",
-      "modules": {
-        "foundation": ["Utils", "EventBus", "RateLimiter", "CircuitBreaker", "StreamParser", "IndexedDBHelper", "HITLController", "GenesisSnapshot", "Observability"],
-        "storage": ["VFS", "VFSHMR", "StateHelpersPure", "AuditLogger", "StateManager"],
-        "services": ["LLMClient", "TransformersClient", "ResponseParser", "ContextManager"],
-        "tools": ["VerificationManager", "ToolWriter", "ToolRunner"],
-        "agent": ["PersonaManager", "ReflectionStore", "ReflectionAnalyzer", "AgentLoop"],
-        "capabilities": []
-      }
+      "description": "Minimal RSI core - 8 essential modules for autonomous code modification",
+      "modules": ["Utils", "EventBus", "VFS", "LLMClient", "ResponseParser", "ToolRunner", "AgentLoop", "StateManager"]
     },
-    "minimal": {
-      "name": "MINIMAL AXIOMS",
-      "description": "Core + basic reflection and learning capabilities",
-      "modules": {
-        "foundation": ["Utils", "EventBus", "RateLimiter", "CircuitBreaker", "StreamParser", "IndexedDBHelper", "HITLController", "GenesisSnapshot", "Observability"],
-        "storage": ["VFS", "VFSHMR", "StateHelpersPure", "AuditLogger", "StateManager"],
-        "services": ["LLMClient", "TransformersClient", "ResponseParser", "ContextManager"],
-        "tools": ["VerificationManager", "ToolWriter", "ToolRunner"],
-        "agent": ["PersonaManager", "ReflectionStore", "ReflectionAnalyzer", "AgentLoop"],
-        "capabilities": ["PerformanceMonitor"]
-      }
+    "reflection": {
+      "name": "REFLECTION",
+      "description": "Tabula + self-awareness - 14 modules with introspection and verification",
+      "modules": [
+        "Utils", "EventBus", "VFS", "LLMClient", "ResponseParser", "ToolRunner", "AgentLoop", "StateManager",
+        "ReflectionStore", "ReflectionAnalyzer", "PersonaManager", "ContextManager", "VerificationManager", "StateHelpersPure"
+      ]
     },
     "full": {
       "name": "FULL SUBSTRATE",
-      "description": "All capabilities - cognition, testing, shell tools (ls, grep, git, etc.)",
+      "description": "Complete system - 32 modules with infrastructure, cognition, and meta-capabilities",
+      "modules": [
+        "Utils", "EventBus", "VFS", "LLMClient", "ResponseParser", "ToolRunner", "AgentLoop", "StateManager",
+        "ReflectionStore", "ReflectionAnalyzer", "PersonaManager", "ContextManager", "VerificationManager", "StateHelpersPure",
+        "RateLimiter", "CircuitBreaker", "StreamParser", "IndexedDBHelper", "HITLController", "GenesisSnapshot", "Observability", "VFSHMR",
+        "TransformersClient", "EmbeddingStore", "SemanticMemory", "KnowledgeGraph", "RuleEngine", "SymbolGrounder", "CognitionAPI",
+        "MultiModelCoordinator", "PerformanceMonitor", "AuditLogger"
+      ]
+    }
+  },
+  "blueprintPaths": {
+    "none": {
+      "name": "No Blueprints",
+      "description": "Pure discovery - figure everything out yourself",
+      "modules": {}
+    },
+    "reflection": {
+      "name": "Path to Reflection",
+      "description": "Documentation to build from Tabula to Reflection (6 modules)",
       "modules": {
-        "foundation": ["Utils", "EventBus", "RateLimiter", "CircuitBreaker", "StreamParser", "IndexedDBHelper", "HITLController", "GenesisSnapshot", "Observability"],
-        "storage": ["VFS", "VFSHMR", "StateHelpersPure", "AuditLogger", "StateManager"],
-        "services": ["LLMClient", "TransformersClient", "ResponseParser", "ContextManager"],
-        "tools": ["VerificationManager", "ToolWriter", "ToolRunner"],
-        "agent": ["PersonaManager", "ReflectionStore", "ReflectionAnalyzer", "AgentLoop"],
-        "capabilities": ["SubstrateLoader", "PerformanceMonitor", "SelfTester", "EmbeddingStore", "SemanticMemory", "KnowledgeGraph", "RuleEngine", "SymbolGrounder", "CognitionAPI", "MultiModelCoordinator"],
-        "testing": ["VFSSandbox", "ArenaCompetitor", "ArenaMetrics", "ArenaHarness"]
+        "ReflectionStore": "blueprints/0x000035-reflection-store-architecture.md",
+        "ReflectionAnalyzer": "blueprints/0x000036-reflection-analysis-engine.md",
+        "PersonaManager": "blueprints/0x00004B-persona-management-system.md",
+        "ContextManager": "blueprints/0x000040-context-management.md",
+        "VerificationManager": "blueprints/0x000047-verification-manager.md",
+        "StateHelpersPure": "blueprints/0x000006-pure-state-helpers.md"
+      }
+    },
+    "full": {
+      "name": "Path to Full Substrate",
+      "description": "Documentation to build from Reflection to Full (18 modules)",
+      "modules": {
+        "RateLimiter": "blueprints/0x00002C-rate-limiting-strategies.md",
+        "CircuitBreaker": "blueprints/0x000067-circuit-breaker-pattern.md",
+        "StreamParser": "blueprints/0x00003F-streaming-response-handler.md",
+        "IndexedDBHelper": "blueprints/0x000011-advanced-storage-backend-indexeddb.md",
+        "HITLController": "blueprints/0x000051-hitl-controller.md",
+        "GenesisSnapshot": "blueprints/0x000043-genesis-snapshot-system.md",
+        "Observability": "blueprints/0x000026-performance-monitoring-stack.md",
+        "VFSHMR": "blueprints/0x000052-hot-module-reload.md",
+        "TransformersClient": "blueprints/0x000068-transformers-client.md",
+        "EmbeddingStore": "blueprints/0x000069-embedding-store.md",
+        "SemanticMemory": "blueprints/0x000070-semantic-memory.md",
+        "KnowledgeGraph": "blueprints/0x000071-knowledge-graph.md",
+        "RuleEngine": "blueprints/0x000072-rule-engine.md",
+        "SymbolGrounder": "blueprints/0x000073-symbol-grounder.md",
+        "CognitionAPI": "blueprints/0x000074-cognition-api.md",
+        "MultiModelCoordinator": "blueprints/0x000033-hybrid-llm-orchestration.md",
+        "PerformanceMonitor": "blueprints/0x000026-performance-monitoring-stack.md",
+        "AuditLogger": "blueprints/0x00002E-audit-logging-policy.md"
+      }
+    },
+    "beyond": {
+      "name": "Path Beyond",
+      "description": "Ideas for novel capabilities not in any genesis level",
+      "modules": {
+        "ToolWriter": "blueprints/0x000015-dynamic-tool-creation.md",
+        "SubstrateLoader": "blueprints/0x00001F-universal-module-loader.md",
+        "SelfTester": "blueprints/0x00003C-self-testing-framework.md",
+        "VFSSandbox": "blueprints/0x000056-verification-worker-sandboxing.md",
+        "ArenaCompetitor": "blueprints/0x000075-arena-competitor.md",
+        "ArenaMetrics": "blueprints/0x000076-arena-metrics.md",
+        "ArenaHarness": "blueprints/0x000077-arena-harness.md"
       }
     }
   },
   "moduleImports": {
     "Utils": "./core/utils.js",
     "EventBus": "./infrastructure/event-bus.js",
+    "VFS": "./core/vfs.js",
+    "LLMClient": "./core/llm-client.js",
+    "ResponseParser": "./core/response-parser.js",
+    "ToolRunner": "./core/tool-runner.js",
+    "AgentLoop": "./core/agent-loop.js",
+    "StateManager": "./core/state-manager.js",
+    "ReflectionStore": "./capabilities/reflection/reflection-store.js",
+    "ReflectionAnalyzer": "./capabilities/reflection/reflection-analyzer.js",
+    "PersonaManager": "./core/persona-manager.js",
+    "ContextManager": "./core/context-manager.js",
+    "VerificationManager": "./core/verification-manager.js",
+    "StateHelpersPure": "./core/state-helpers-pure.js",
     "RateLimiter": "./infrastructure/rate-limiter.js",
     "CircuitBreaker": "./infrastructure/circuit-breaker.js",
     "StreamParser": "./infrastructure/stream-parser.js",
@@ -49,24 +104,7 @@
     "GenesisSnapshot": "./infrastructure/genesis-snapshot.js",
     "Observability": "./infrastructure/observability.js",
     "VFSHMR": "./infrastructure/vfs-hmr.js",
-    "VFS": "./core/vfs.js",
-    "StateHelpersPure": "./core/state-helpers-pure.js",
-    "AuditLogger": "./infrastructure/audit-logger.js",
-    "StateManager": "./core/state-manager.js",
-    "LLMClient": "./core/llm-client.js",
     "TransformersClient": "./core/transformers-client.js",
-    "ResponseParser": "./core/response-parser.js",
-    "ContextManager": "./core/context-manager.js",
-    "VerificationManager": "./core/verification-manager.js",
-    "ToolWriter": "./core/tool-writer.js",
-    "ToolRunner": "./core/tool-runner.js",
-    "PersonaManager": "./core/persona-manager.js",
-    "ReflectionStore": "./capabilities/reflection/reflection-store.js",
-    "ReflectionAnalyzer": "./capabilities/reflection/reflection-analyzer.js",
-    "AgentLoop": "./core/agent-loop.js",
-    "SubstrateLoader": "./capabilities/system/substrate-loader.js",
-    "PerformanceMonitor": "./capabilities/performance/performance-monitor.js",
-    "SelfTester": "./capabilities/testing/self-tester.js",
     "EmbeddingStore": "./capabilities/cognition/semantic/embedding-store.js",
     "SemanticMemory": "./capabilities/cognition/semantic/semantic-memory.js",
     "KnowledgeGraph": "./capabilities/cognition/symbolic/knowledge-graph.js",
@@ -74,10 +112,16 @@
     "SymbolGrounder": "./capabilities/cognition/symbolic/symbol-grounder.js",
     "CognitionAPI": "./capabilities/cognition/cognition-api.js",
     "MultiModelCoordinator": "./capabilities/intelligence/multi-model-coordinator.js",
+    "PerformanceMonitor": "./capabilities/performance/performance-monitor.js",
+    "AuditLogger": "./infrastructure/audit-logger.js",
+    "ToolWriter": "./core/tool-writer.js",
+    "SubstrateLoader": "./capabilities/system/substrate-loader.js",
+    "SelfTester": "./capabilities/testing/self-tester.js",
     "VFSSandbox": "./testing/arena/vfs-sandbox.js",
     "ArenaCompetitor": "./testing/arena/competitor.js",
     "ArenaMetrics": "./testing/arena/arena-metrics.js",
     "ArenaHarness": "./testing/arena/arena-harness.js"
   },
-  "default": "full"
+  "defaultLevel": "tabula",
+  "defaultBlueprintPath": "none"
 }
