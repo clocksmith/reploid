@@ -18,7 +18,7 @@ For true Recursive Self-Improvement (RSI), the agent must possess the ability to
 
 - 📊 **Analyze its own code complexity** - Identify functions that need refactoring
 - ⚲ **Map its dependency graph** - Understand which modules depend on which
-- 📈 **Measure performance metrics** - Find bottlenecks in its own execution
+- 📈 **Measure performance metrics** - find bottlenecks in its own execution
 - 🧬 **Parse its own AST** - Understand code structure at a deep level
 - 🗺️ **Visualize its architecture** - See the big picture of how it's built
 
@@ -58,7 +58,7 @@ const Introspector = {
       // Parse JavaScript AST
       parseAST: async (code) => { /* ... */ },
 
-      // Find all modules matching criteria
+      // find all modules matching criteria
       findModules: async (filter) => { /* ... */ },
 
       // Get module metadata
@@ -357,7 +357,7 @@ async function planSelfImprovement() {
   // Analyze current architecture
   const graph = await Introspector.getDependencyGraph();
 
-  // Find high-complexity modules
+  // find high-complexity modules
   const complexModules = [];
   for (const node of graph.nodes) {
     const metrics = await Introspector.getComplexityMetrics(node.path);
@@ -399,7 +399,7 @@ if (analysis.complexity_score > 20) {
 #### 4.2 Dependency Optimization
 
 ```javascript
-// Find circular dependencies
+// find circular dependencies
 const graph = await Introspector.getDependencyGraph();
 
 for (const edge of graph.edges) {
@@ -416,7 +416,7 @@ for (const edge of graph.edges) {
 #### 4.3 Performance Profiling
 
 ```javascript
-// Find slow functions and optimize them
+// find slow functions and optimize them
 const metrics = await Introspector.getComplexityMetrics('/vfs/upgrades/state-manager.js');
 
 // Halstead effort is high → function is computationally expensive

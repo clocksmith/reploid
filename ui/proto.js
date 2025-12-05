@@ -6,16 +6,17 @@
 
 import Toast from './toast.js';
 import CommandPalette from './command-palette.js';
+import InlineChat, { INLINE_CHAT_STYLES } from './components/inline-chat.js';
 
 const Proto = {
   factory: (deps) => {
-    const { Utils, EventBus, AgentLoop, StateManager } = deps;
+    const { Utils, EventBus, AgentLoop, StateManager, WorkerManager } = deps;
     const { logger, escapeHtml } = Utils;
 
     // VFS reference for browser
     let _vfs = null;
     let _currentFilePath = null;
-    let _isEditing = false;
+    let _isediting = false;
     let _vfsPanelCollapsed = false;
 
     // Track recently modified files for color coding
@@ -29,6 +30,11 @@ const Proto = {
     // --- DOM Elements ---
     let _root = null;
     let _reflectionsContainer = null;
+    let _inlineChat = null;
+    const _workerState = new Map();
+    const _workerLogs = new Map();
+    const MAX_WORKER_LOGS = 40;
+    let _lastWorkerUpdate = null;
 
     // --- Event Subscription Tracking (for cleanup) ---
     let _subscriptionIds = [];
@@ -54,6 +60,301 @@ const Proto = {
         if (_reflectionsContainer) _reflectionsContainer.scrollTop = _reflectionsContainer.scrollHeight;
         _reflectionScrollScheduled = false;
       });
+    };
+
+    const formatDuration = (ms = 0) => {
+      if (ms === null || ms === undefined || Number.isNaN(ms)) return '-';
+      const seconds = Math.max(0, Math.floor(ms / 1000));
+      if (seconds < 60) return `${seconds}s`;
+      const minutes = Math.floor(seconds / 60);
+      const remainingSeconds = seconds % 60;
+      if (minutes < 60) {
+        return remainingSeconds ? `${minutes}m ${remainingSeconds}s` : `${minutes}m`;
+      }
+      const hours = Math.floor(minutes / 60);
+      const remainingMinutes = minutes % 60;
+      return remainingMinutes ? `${hours}h ${remainingMinutes}m` : `${hours}h`;
+    };
+
+    const formatTimestamp = (ts) => {
+      if (!ts) return '--:--:--';
+      try {
+        return new Date(ts).toLocaleTimeString([], { hour12: false });
+      } catch {
+        return '--:--:--';
+      }
+    };
+
+    const formatSince = (ts) => {
+      if (!ts) return '—';
+      const diffSeconds = Math.max(0, Math.floor((Date.now() - ts) / 1000));
+      if (diffSeconds < 1) return 'just now';
+      if (diffSeconds < 60) return `${diffSeconds}s ago`;
+      const diffMinutes = Math.floor(diffSeconds / 60);
+      if (diffMinutes < 60) return `${diffMinutes}m ago`;
+      const diffHours = Math.floor(diffMinutes / 60);
+      return `${diffHours}h ago`;
+    };
+
+    const summarizeText = (text, max = 160) => {
+      if (!text) return '';
+      if (text.length <= max) return text;
+      return `${text.slice(0, max).trim()}...`;
+    };
+
+    const ensureWorkerEntry = (workerId) => {
+      if (!workerId) return null;
+      if (!_workerState.has(workerId)) {
+        _workerState.set(workerId, {
+          workerId,
+          type: '-',
+          task: '',
+          status: 'pending',
+          startTime: Date.now(),
+          iterations: 0
+        });
+      }
+      return _workerState.get(workerId);
+    };
+
+    const appendWorkerLog = (workerId, message, type = 'info') => {
+      if (!workerId || !message) return;
+      const logs = _workerLogs.get(workerId) || [];
+      logs.push({ message, type, timestamp: Date.now() });
+      if (logs.length > MAX_WORKER_LOGS) {
+        logs.splice(0, logs.length - MAX_WORKER_LOGS);
+      }
+      _workerLogs.set(workerId, logs);
+      _lastWorkerUpdate = Date.now();
+    };
+
+    const renderWorkerCard = (worker) => {
+      const status = worker.status || 'pending';
+      const logs = _workerLogs.get(worker.workerId) || [];
+      const logEntries = logs.length === 0
+        ? '<li class="worker-log-empty text-muted">No events yet</li>'
+        : logs.map(log => `
+            <li>
+              <span class="worker-log-time">${formatTimestamp(log.timestamp)}</span>
+              <span class="worker-log-text">${escapeHtml(log.message)}</span>
+            </li>
+          `).join('');
+      const openAttr = status === 'running' ? 'open' : '';
+      const iterations = worker.iterations ?? worker.iteration ?? 0;
+      const duration = status === 'running'
+        ? formatDuration(Date.now() - (worker.startTime || Date.now()))
+        : formatDuration(worker.duration);
+      const toolResults = worker.toolResults || [];
+      const successCount = toolResults.filter(r => r.success).length;
+      const failureCount = toolResults.length - successCount;
+      const toolSummary = toolResults.length
+        ? `${successCount} success / ${failureCount} failed tool calls`
+        : '';
+      const progressLine = worker.progress
+        ? `<div class="worker-progress">${escapeHtml(worker.progress)}</div>`
+        : '';
+      const outputBlock = worker.resultOutput
+        ? `<div class="worker-output">${escapeHtml(summarizeText(worker.resultOutput, 220))}</div>`
+        : '';
+      const errorBlock = worker.error
+        ? `<div class="worker-output worker-output-error">${escapeHtml(worker.error)}</div>`
+        : '';
+      const taskText = worker.task
+        ? escapeHtml(summarizeText(worker.task, 200))
+        : 'No task recorded';
+
+      return `
+        <div class="worker-card worker-${status}">
+          <div class="worker-card-header">
+            <div>
+              <span class="worker-type worker-type-${worker.type || 'unknown'}">${escapeHtml((worker.type || 'unknown').toUpperCase())}</span>
+              <span class="worker-id">${escapeHtml(worker.workerId)}</span>
+            </div>
+            <div class="worker-status">${escapeHtml(status.toUpperCase())}</div>
+          </div>
+          <div class="worker-task">${taskText}</div>
+          <div class="worker-meta">
+            <span>${iterations} iters</span>
+            <span>${duration}</span>
+            ${toolSummary ? `<span>${escapeHtml(toolSummary)}</span>` : ''}
+          </div>
+          ${progressLine}
+          ${outputBlock}
+          ${errorBlock}
+          <details class="worker-log" ${openAttr}>
+            <summary>Events (${logs.length})</summary>
+            <ul>
+              ${logEntries}
+            </ul>
+          </details>
+        </div>
+      `;
+    };
+
+    const renderWorkersPanel = () => {
+      const activeList = document.getElementById('workers-active-list');
+      const completedList = document.getElementById('workers-completed-list');
+      if (!activeList || !completedList) return;
+
+      const activeCountEl = document.getElementById('workers-active-count');
+      const completedCountEl = document.getElementById('workers-completed-count');
+      const lastUpdateEl = document.getElementById('workers-last-update');
+      const indicatorEl = document.getElementById('worker-indicator');
+      const indicatorCountEl = document.getElementById('worker-indicator-count');
+      const clearBtn = document.getElementById('workers-clear-completed');
+      const tabBtn = document.getElementById('workers-tab-btn');
+
+      const workers = Array.from(_workerState.values());
+      const active = workers
+        .filter(w => w.status === 'running')
+        .sort((a, b) => (a.startTime || 0) - (b.startTime || 0));
+      const completed = workers
+        .filter(w => w.status && w.status !== 'running')
+        .sort((a, b) => (b.completedAt || b.updatedAt || 0) - (a.completedAt || a.updatedAt || 0));
+
+      if (activeCountEl) activeCountEl.textContent = active.length;
+      if (completedCountEl) completedCountEl.textContent = completed.length;
+      if (lastUpdateEl) lastUpdateEl.textContent = _lastWorkerUpdate ? formatSince(_lastWorkerUpdate) : '—';
+      if (indicatorCountEl) indicatorCountEl.textContent = active.length;
+      if (indicatorEl) {
+        indicatorEl.classList.toggle('has-workers', active.length > 0);
+        indicatorEl.title = active.length > 0
+          ? `${active.length} active worker(s) - click to view`
+          : 'No active workers';
+      }
+      if (tabBtn) {
+        tabBtn.title = `Workers (${active.length} active)`;
+        tabBtn.dataset.count = active.length;
+      }
+      if (clearBtn) clearBtn.classList.toggle('hidden', completed.length === 0);
+
+      activeList.innerHTML = active.length === 0
+        ? '<div class="empty-state">No active workers</div>'
+        : active.map(renderWorkerCard).join('');
+
+      completedList.innerHTML = completed.length === 0
+        ? '<div class="empty-state">No completed workers yet</div>'
+        : completed.slice(0, 8).map(renderWorkerCard).join('');
+    };
+
+    const clearCompletedWorkers = () => {
+      let changed = false;
+      for (const [id, worker] of _workerState.entries()) {
+        if (worker.status && worker.status !== 'running') {
+          _workerState.delete(id);
+          _workerLogs.delete(id);
+          changed = true;
+        }
+      }
+      if (changed) renderWorkersPanel();
+    };
+
+    const hydrateWorkersFromManager = () => {
+      if (!WorkerManager) return;
+      try {
+        const activeWorkers = typeof WorkerManager.list === 'function' ? WorkerManager.list() : [];
+        activeWorkers.forEach(worker => {
+          const entry = ensureWorkerEntry(worker.workerId);
+          if (!entry) return;
+          entry.type = worker.type || entry.type;
+          entry.task = worker.task || entry.task;
+          entry.status = worker.status || 'running';
+          entry.startTime = Date.now() - (worker.runningFor || 0);
+          entry.progress = 'Running (recovered)';
+          entry.updatedAt = Date.now();
+          appendWorkerLog(worker.workerId, 'Recovered active worker', 'info');
+        });
+
+        const completedWorkers = typeof WorkerManager.getResults === 'function' ? WorkerManager.getResults() : [];
+        completedWorkers.forEach(worker => {
+          const entry = ensureWorkerEntry(worker.workerId);
+          if (!entry) return;
+          entry.type = worker.type || entry.type;
+          entry.task = worker.task || entry.task;
+          entry.status = worker.status || 'completed';
+          entry.duration = worker.duration || worker.result?.duration;
+          entry.resultOutput = worker.result?.output || entry.resultOutput;
+          entry.toolResults = worker.result?.toolResults || entry.toolResults || [];
+          entry.completedAt = Date.now();
+          entry.progress = 'Recovered result';
+          appendWorkerLog(worker.workerId, 'Recovered completed worker', 'info');
+        });
+
+        renderWorkersPanel();
+      } catch (err) {
+        logger.warn('[Proto] Worker state hydration failed', err);
+      }
+    };
+
+    const handleWorkerSpawned = (data = {}) => {
+      if (!data.workerId) return;
+      const worker = ensureWorkerEntry(data.workerId);
+      if (!worker) return;
+      worker.type = data.type || worker.type;
+      worker.task = data.task || worker.task;
+      worker.status = 'running';
+      worker.startTime = Date.now();
+      worker.iterations = 0;
+      worker.progress = 'Spawned';
+      worker.updatedAt = Date.now();
+      appendWorkerLog(data.workerId, `Spawned ${worker.type || 'worker'}`, 'info');
+      renderWorkersPanel();
+    };
+
+    const handleWorkerProgress = (data = {}) => {
+      if (!data.workerId) return;
+      const worker = ensureWorkerEntry(data.workerId);
+      if (!worker) return;
+      worker.status = 'running';
+      worker.iteration = data.iteration || data.iterations || worker.iteration || 0;
+      worker.maxIterations = data.maxIterations || worker.maxIterations;
+      worker.progress = data.message || `Iteration ${worker.iteration || '?'}`;
+      worker.updatedAt = Date.now();
+      appendWorkerLog(data.workerId, worker.progress, 'progress');
+      renderWorkersPanel();
+    };
+
+    const handleWorkerCompleted = (data = {}) => {
+      if (!data.workerId) return;
+      const worker = ensureWorkerEntry(data.workerId);
+      if (!worker) return;
+      const result = data.result || {};
+      worker.status = result.status || 'completed';
+      worker.iterations = result.iterations ?? worker.iterations ?? 0;
+      worker.duration = result.duration ?? (Date.now() - (worker.startTime || Date.now()));
+      worker.resultOutput = result.output || worker.resultOutput;
+      worker.toolResults = result.toolResults || [];
+      worker.completedAt = Date.now();
+      worker.progress = 'Completed';
+      worker.error = null;
+      appendWorkerLog(data.workerId, `Completed in ${worker.iterations || 0} iteration(s)`, 'complete');
+      if (worker.resultOutput) {
+        appendWorkerLog(data.workerId, `Output: ${summarizeText(worker.resultOutput, 160)}`, 'output');
+      }
+      renderWorkersPanel();
+    };
+
+    const handleWorkerError = (data = {}) => {
+      if (!data.workerId) return;
+      const worker = ensureWorkerEntry(data.workerId);
+      if (!worker) return;
+      worker.status = 'error';
+      worker.error = data.error || 'Unknown error';
+      worker.completedAt = Date.now();
+      worker.progress = 'Error';
+      appendWorkerLog(data.workerId, worker.error, 'error');
+      renderWorkersPanel();
+    };
+
+    const handleWorkerTerminated = (data = {}) => {
+      if (!data.workerId) return;
+      const worker = ensureWorkerEntry(data.workerId);
+      if (!worker) return;
+      worker.status = 'terminated';
+      worker.completedAt = Date.now();
+      worker.progress = 'Terminated';
+      appendWorkerLog(data.workerId, 'Worker terminated', 'warning');
+      renderWorkersPanel();
     };
 
     // --- VFS Search Debouncing ---
@@ -241,9 +542,10 @@ const Proto = {
       container.innerHTML = `
         <!-- Sidebar Navigation -->
         <nav class="sidebar">
-          <button class="sidebar-btn active" data-tab="history" title="Agent Activity (1)">&#x25B6;</button>
+          <button class="sidebar-btn active" data-tab="history" title="Agent Activity (1)">&#x2261;</button>
           <button class="sidebar-btn" data-tab="reflections" title="Reflections (2)">&#x2731;</button>
           <button class="sidebar-btn" data-tab="status" title="Status (3)">&#x2139;</button>
+          <button class="sidebar-btn" data-tab="workers" title="Workers (0)" id="workers-tab-btn">&#x2692;</button>
           <button class="sidebar-btn" data-tab="debug" title="Debug (4)">&#x2699;</button>
           <div class="sidebar-spacer"></div>
           <button id="btn-palette" class="sidebar-btn" title="Commands (Ctrl+K)">&#x2630;</button>
@@ -271,6 +573,9 @@ const Proto = {
             <div class="workspace-title">
               <span class="text-secondary">Goal:</span>
               <span id="agent-goal">${escapeHtml(goalFromBoot)}</span>
+              <div class="worker-indicator" id="worker-indicator" title="No active workers">
+                &#x2692; workers <span id="worker-indicator-count">0</span>
+              </div>
             </div>
             <div class="workspace-status">
               <div class="token-budget" title="Token Budget">
@@ -302,6 +607,7 @@ const Proto = {
             <div id="history-container" class="history-stream">
               <div class="text-muted">Thinking and actions will appear here. Press <kbd>Ctrl+K</kbd> for commands.</div>
             </div>
+            <div id="inline-chat-container"></div>
           </div>
 
           <div class="workspace-content hidden" id="tab-reflections">
@@ -340,6 +646,44 @@ const Proto = {
             </div>
           </div>
 
+          <div class="workspace-content hidden" id="tab-workers">
+            <div class="workers-panel">
+              <div class="workers-summary">
+                <div class="workers-summary-item">
+                  <span>Active</span>
+                  <strong id="workers-active-count">0</strong>
+                </div>
+                <div class="workers-summary-item">
+                  <span>Completed</span>
+                  <strong id="workers-completed-count">0</strong>
+                </div>
+                <div class="workers-summary-item">
+                  <span>Last Update</span>
+                  <strong id="workers-last-update">—</strong>
+                </div>
+              </div>
+              <div class="workers-sections">
+                <section class="workers-section">
+                  <div class="workers-section-header">
+                    <span>Active Workers</span>
+                  </div>
+                  <div id="workers-active-list" class="workers-list">
+                    <div class="empty-state">No active workers</div>
+                  </div>
+                </section>
+                <section class="workers-section">
+                  <div class="workers-section-header">
+                    <span>Recent Results</span>
+                    <button id="workers-clear-completed" class="btn-link hidden">Clear</button>
+                  </div>
+                  <div id="workers-completed-list" class="workers-list">
+                    <div class="empty-state">No completed workers yet</div>
+                  </div>
+                </section>
+              </div>
+            </div>
+          </div>
+
           <div class="workspace-content hidden" id="tab-debug">
             <div class="debug-panel">
               <div class="debug-section">
@@ -365,7 +709,7 @@ const Proto = {
                 <button id="vfs-preview-btn" class="btn btn-sm btn-secondary hidden" title="Preview">▶</button>
                 <button id="vfs-diff-btn" class="btn btn-sm btn-secondary" title="Diff">⊟</button>
                 <button id="vfs-snapshot-btn" class="btn btn-sm btn-secondary" title="Snapshots">◷</button>
-                <button id="vfs-edit-btn" class="btn btn-sm btn-secondary" title="Edit">Edit</button>
+                <button id="vfs-edit-btn" class="btn btn-sm btn-secondary" title="edit">edit</button>
                 <button id="vfs-save-btn" class="btn btn-sm btn-primary hidden" title="Save">Save</button>
                 <button id="vfs-cancel-btn" class="btn btn-sm btn-secondary hidden" title="Cancel">Cancel</button>
               </div>
@@ -415,9 +759,9 @@ const Proto = {
       // Command palette button
       btnPalette.onclick = () => CommandPalette.toggle();
 
-      // Set initial button state (Unicode play symbol since agent starts stopped)
-      btnToggle.innerHTML = '&#x25B6;';
-      btnToggle.title = 'Start (Ctrl+Enter)';
+      // Set initial button state (stop symbol since agent starts running)
+      btnToggle.innerHTML = '&#x25A0;';
+      btnToggle.title = 'Stop (Esc)';
 
       const updateButtonState = (running) => {
         if (running) {
@@ -518,7 +862,7 @@ const Proto = {
         _vfsSearchTimeout = setTimeout(() => filterVFSTree(vfsSearch.value), 300);
       });
 
-      // VFS Edit buttons
+      // VFS edit buttons
       const editBtn = container.querySelector('#vfs-edit-btn');
       const saveBtn = container.querySelector('#vfs-save-btn');
       const cancelBtn = container.querySelector('#vfs-cancel-btn');
@@ -526,12 +870,22 @@ const Proto = {
       const diffBtn = container.querySelector('#vfs-diff-btn');
       const snapshotBtn = container.querySelector('#vfs-snapshot-btn');
 
-      editBtn.onclick = () => startEditing();
+      editBtn.onclick = () => startediting();
       saveBtn.onclick = () => saveFile();
-      cancelBtn.onclick = () => cancelEditing();
+      cancelBtn.onclick = () => cancelediting();
       previewBtn.onclick = () => showPreview();
       diffBtn.onclick = () => showDiff();
       snapshotBtn.onclick = () => showSnapshots();
+
+      const workerIndicator = container.querySelector('#worker-indicator');
+      if (workerIndicator) {
+        workerIndicator.onclick = () => switchTab('workers');
+      }
+
+      const clearWorkersBtn = container.querySelector('#workers-clear-completed');
+      if (clearWorkersBtn) {
+        clearWorkersBtn.onclick = () => clearCompletedWorkers();
+      }
 
       // Close buttons for panels
       container.querySelector('#vfs-preview-close').onclick = () => closePreview();
@@ -567,9 +921,25 @@ const Proto = {
       _root = target;
       _root.innerHTML = '';
       _root.appendChild(render());
+      renderWorkersPanel();
+      hydrateWorkersFromManager();
 
       // Initialize toast system
       Toast.init();
+
+      // Initialize inline chat for human-in-the-loop
+      _inlineChat = InlineChat.factory({ Utils, EventBus });
+      const chatContainer = document.getElementById('inline-chat-container');
+      if (chatContainer && _inlineChat) {
+        _inlineChat.init(chatContainer);
+        // Inject CSS if not already present
+        if (!document.getElementById('inline-chat-styles')) {
+          const style = document.createElement('style');
+          style.id = 'inline-chat-styles';
+          style.textContent = INLINE_CHAT_STYLES;
+          document.head.appendChild(style);
+        }
+      }
 
       // Load initial state
       try {
@@ -619,6 +989,26 @@ const Proto = {
         updateTokenBudget(data.tokens);
         const tokensEl = document.getElementById('agent-tokens');
         if (tokensEl) tokensEl.textContent = `${data.tokens} / ${_maxTokens}`;
+      }));
+
+      _subscriptionIds.push(EventBus.on('worker:spawned', (payload) => {
+        handleWorkerSpawned(payload);
+      }));
+
+      _subscriptionIds.push(EventBus.on('worker:progress', (payload) => {
+        handleWorkerProgress(payload);
+      }));
+
+      _subscriptionIds.push(EventBus.on('worker:completed', (payload) => {
+        handleWorkerCompleted(payload);
+      }));
+
+      _subscriptionIds.push(EventBus.on('worker:error', (payload) => {
+        handleWorkerError(payload);
+      }));
+
+      _subscriptionIds.push(EventBus.on('worker:terminated', (payload) => {
+        handleWorkerTerminated(payload);
       }));
 
       // Subscribe to context compaction notifications
@@ -810,6 +1200,17 @@ const Proto = {
               ]
             });
           }
+        } else if (entry.type === 'human') {
+          // Human-in-the-loop message
+          const isGoal = entry.messageType === 'goal';
+          div.className = `history-entry human-message ${isGoal ? 'goal-refinement' : ''}`;
+          div.innerHTML = `
+            <div class="history-header">
+              <span class="entry-label">${isGoal ? '⚑ You (Goal)' : '✉ You'}</span>
+              <span class="entry-cycle">#${entry.cycle || '-'}</span>
+            </div>
+            <pre class="history-content">${escapeHtml(entry.content)}</pre>
+          `;
         }
 
         historyContainer.appendChild(div);
@@ -858,6 +1259,54 @@ const Proto = {
         scheduleHistoryScroll();
       }));
 
+      // Subscribe to HITL approval requests (render inline approval prompts)
+      _subscriptionIds.push(EventBus.on('hitl:approval-pending', (item) => {
+        const historyContainer = document.getElementById('history-container');
+        if (!historyContainer) return;
+
+        const div = document.createElement('div');
+        div.className = 'history-entry approval-pending';
+        div.id = `approval-${item.id}`;
+
+        const dataPreview = item.data
+          ? JSON.stringify(item.data, null, 2).substring(0, 500)
+          : '(No data)';
+
+        div.innerHTML = `
+          <div class="approval-header">⚠ Approval Required</div>
+          <div class="approval-action">${escapeHtml(item.action || item.capability)}</div>
+          <pre class="approval-data">${escapeHtml(dataPreview)}</pre>
+          <div class="approval-buttons">
+            <button class="approve-btn" data-approval-id="${item.id}">✓ Approve</button>
+            <button class="reject-btn" data-approval-id="${item.id}">✗ Reject</button>
+          </div>
+        `;
+
+        // Bind approve/reject buttons
+        div.querySelector('.approve-btn').addEventListener('click', () => {
+          EventBus.emit('hitl:approve', { approvalId: item.id });
+          div.classList.add('approval-resolved');
+          div.setAttribute('data-resolution', 'Approved');
+        });
+
+        div.querySelector('.reject-btn').addEventListener('click', () => {
+          EventBus.emit('hitl:reject', { approvalId: item.id, reason: 'User rejected via UI' });
+          div.classList.add('approval-resolved');
+          div.setAttribute('data-resolution', 'Rejected');
+        });
+
+        historyContainer.appendChild(div);
+        scheduleHistoryScroll();
+
+        // Also show a toast notification
+        Toast.warning('Approval Required', `${item.action || item.capability} needs your approval`, {
+          duration: 0,
+          actions: [
+            { label: 'View', onClick: () => switchTab('history'), primary: true }
+          ]
+        });
+      }));
+
       // --- VFS Auto-Refresh on File Changes ---
       const markFileModified = (path, type = 'modified') => {
         _recentlyModified.set(path, { timestamp: Date.now(), type });
@@ -869,7 +1318,7 @@ const Proto = {
         loadVFSTree(); // Refresh tree immediately
       };
 
-      // Listen for VFS write events (from tool-runner write_file)
+      // Listen for VFS write events (from tool-runner WriteFile)
       _subscriptionIds.push(EventBus.on('vfs:write', (data) => {
         const path = data?.path || data;
         if (path) markFileModified(path, 'modified');
@@ -919,6 +1368,12 @@ const Proto = {
         }
       });
       _subscriptionIds = [];
+
+      // Cleanup inline chat
+      if (_inlineChat && _inlineChat.cleanup) {
+        _inlineChat.cleanup();
+        _inlineChat = null;
+      }
 
       // Clear any pending timeouts
       clearTimeout(_vfsSearchTimeout);
@@ -1096,7 +1551,7 @@ const Proto = {
       if (!contentBody || !_vfs) return;
 
       _currentFilePath = path;
-      cancelEditing(); // Cancel any ongoing edit
+      cancelediting(); // Cancel any ongoing edit
 
       // Hide all other workspace tabs and show VFS content
       const container = _root?.querySelector('.app-shell');
@@ -1142,8 +1597,8 @@ const Proto = {
       }
     };
 
-    const startEditing = () => {
-      if (!_currentFilePath || _isEditing) return;
+    const startediting = () => {
+      if (!_currentFilePath || _isediting) return;
 
       const contentBody = document.getElementById('vfs-content-body');
       const editor = document.getElementById('vfs-editor');
@@ -1153,7 +1608,7 @@ const Proto = {
 
       if (!contentBody || !editor) return;
 
-      _isEditing = true;
+      _isediting = true;
 
       // Get current content
       const pre = contentBody.querySelector('pre');
@@ -1169,7 +1624,7 @@ const Proto = {
     };
 
     const saveFile = async () => {
-      if (!_currentFilePath || !_isEditing) return;
+      if (!_currentFilePath || !_isediting) return;
 
       const editor = document.getElementById('vfs-editor');
       if (!editor || !_vfs) return;
@@ -1177,21 +1632,21 @@ const Proto = {
       try {
         await _vfs.write(_currentFilePath, editor.value);
         Toast.success('File Saved', `${_currentFilePath} saved successfully`);
-        cancelEditing();
+        cancelediting();
         loadVFSFile(_currentFilePath); // Reload to show updated content
       } catch (e) {
         Toast.error('Save Failed', e.message);
       }
     };
 
-    const cancelEditing = () => {
+    const cancelediting = () => {
       const contentBody = document.getElementById('vfs-content-body');
       const editor = document.getElementById('vfs-editor');
       const editBtn = document.getElementById('vfs-edit-btn');
       const saveBtn = document.getElementById('vfs-save-btn');
       const cancelBtn = document.getElementById('vfs-cancel-btn');
 
-      _isEditing = false;
+      _isediting = false;
 
       if (contentBody) contentBody.classList.remove('hidden');
       if (editor) editor.classList.add('hidden');

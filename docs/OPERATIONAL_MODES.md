@@ -112,7 +112,7 @@ npm start
 ### Pros
 - API keys hidden from browser
 - WebSocket streaming support
-- Git worktree isolation
+- git worktree isolation
 - Hermes multi-agent orchestration
 - Team collaboration
 - Session persistence
@@ -127,7 +127,7 @@ npm start
 - [x] All client-side features
 - [x] PAWS CLI integration (`cats.js`, `dogs.js`, `paws-session.js`)
 - [x] Hermes multi-agent Paxos orchestration
-- [x] Git worktree session management
+- [x] git worktree session management
 - [x] WebSocket real-time streaming
 - [x] Shared sessions across team members
 

@@ -214,7 +214,7 @@ const SemanticMemory = {
           .map(m => `[Memory ${m.domain}] ${m.content.slice(0, 200)}`)
           .join('\n');
 
-        // Find insertion point (after system messages)
+        // find insertion point (after system messages)
         const enrichedContext = [...context];
         const insertIdx = enrichedContext.findIndex(m => m.role !== 'system');
         const idx = insertIdx === -1 ? enrichedContext.length : insertIdx;

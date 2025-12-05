@@ -34,7 +34,7 @@ const HITLWidget = {
       EventBus.on('hitl:approval-pending', _updateHandler, 'HITLWidget');
       EventBus.on('hitl:approval-granted', _updateHandler, 'HITLWidget');
       EventBus.on('hitl:approval-rejected', _updateHandler, 'HITLWidget');
-      EventBus.on('hitl:master-mode-changed', _updateHandler, 'HITLWidget');
+      EventBus.on('hitl:approval-mode-changed', _updateHandler, 'HITLWidget');
       EventBus.on('hitl:config-reset', _updateHandler, 'HITLWidget');
 
       render();
@@ -47,7 +47,7 @@ const HITLWidget = {
         EventBus.off('hitl:approval-pending', _updateHandler);
         EventBus.off('hitl:approval-granted', _updateHandler);
         EventBus.off('hitl:approval-rejected', _updateHandler);
-        EventBus.off('hitl:master-mode-changed', _updateHandler);
+        EventBus.off('hitl:approval-mode-changed', _updateHandler);
         EventBus.off('hitl:config-reset', _updateHandler);
         _updateHandler = null;
       }

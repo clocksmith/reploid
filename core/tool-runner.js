@@ -6,14 +6,14 @@
 const ToolRunner = {
   metadata: {
     id: 'ToolRunner',
-    version: '2.4.0',
-    dependencies: ['Utils', 'VFS', 'ToolWriter', 'SubstrateLoader?', 'EventBus', 'AuditLogger?', 'HITLController?', 'ArenaHarness?', 'VFSSandbox?', 'VerificationManager?', 'Shell?', 'GitTools?'],
+    version: '1.0.0',
+    dependencies: ['Utils', 'VFS', 'ToolWriter', 'SubstrateLoader?', 'EventBus', 'AuditLogger?', 'HITLController?', 'ArenaHarness?', 'VFSSandbox?', 'VerificationManager?', 'Shell?', 'gitTools?', 'WorkerManager?', 'EmbeddingStore?', 'SemanticMemory?', 'KnowledgeGraph?'],
     async: true,
     type: 'service'
   },
 
   factory: (deps) => {
-    const { Utils, VFS, ToolWriter, SubstrateLoader, EventBus, AuditLogger, HITLController, ArenaHarness, VFSSandbox, VerificationManager, Shell, GitTools } = deps;
+    const { Utils, VFS, ToolWriter, SubstrateLoader, EventBus, AuditLogger, HITLController, ArenaHarness, VFSSandbox, VerificationManager, Shell, gitTools, WorkerManager, EmbeddingStore, SemanticMemory, KnowledgeGraph } = deps;
     const { logger, Errors } = Utils;
 
     // Arena verification for self-modification (opt-in via config)
@@ -25,6 +25,76 @@ const ToolRunner = {
 
     const _tools = new Map();
     const _dynamicTools = new Set();
+    const _toolSchemas = new Map(); // Stores schemas for native tool calling
+
+    // Built-in tool schemas (OpenAI function calling format)
+    const _builtInSchemas = {
+      ReadFile: {
+        description: 'Read contents of a file from the virtual filesystem',
+        parameters: {
+          type: 'object',
+          required: ['path'],
+          properties: {
+            path: { type: 'string', description: 'VFS path to read (e.g. /core/agent-loop.js)' }
+          }
+        }
+      },
+      WriteFile: {
+        description: 'Write content to a file in the virtual filesystem',
+        parameters: {
+          type: 'object',
+          required: ['path', 'content'],
+          properties: {
+            path: { type: 'string', description: 'VFS path to write' },
+            content: { type: 'string', description: 'Content to write' }
+          }
+        }
+      },
+      ListFiles: {
+        description: 'List files in a directory',
+        parameters: {
+          type: 'object',
+          properties: {
+            path: { type: 'string', description: 'Directory path (default: /)' }
+          }
+        }
+      },
+      DeleteFile: {
+        description: 'Delete a file from the virtual filesystem',
+        parameters: {
+          type: 'object',
+          required: ['path'],
+          properties: {
+            path: { type: 'string', description: 'VFS path to delete' }
+          }
+        }
+      },
+      CreateTool: {
+        description: 'Create a new tool at runtime (Level 1 RSI)',
+        parameters: {
+          type: 'object',
+          required: ['name', 'code'],
+          properties: {
+            name: { type: 'string', description: 'Tool name (CamelCase, e.g., ReadFile, AnalyzeLogs)' },
+            code: { type: 'string', description: 'JavaScript code with export default async function' }
+          }
+        }
+      },
+      ListTools: {
+        description: 'List all available tools',
+        parameters: { type: 'object', properties: {} }
+      },
+      LoadModule: {
+        description: 'Hot-reload a module from the VFS',
+        parameters: {
+          type: 'object',
+          required: ['path'],
+          properties: {
+            path: { type: 'string', description: 'VFS path to module' }
+          }
+        }
+      }
+    };
 
     // --- Arena Verification for Core Changes ---
 
@@ -68,124 +138,8 @@ const ToolRunner = {
       }
     };
 
-    // --- Built-in Tools (VFS & System) ---
-
-    const builtIns = {
-      // VFS Ops
-      read_file: async (args) => {
-        const path = args.path || args.file;
-        if (!path) throw new Errors.ValidationError('Missing path');
-        return await VFS.read(path);
-      },
-      write_file: async (args) => {
-        const path = args.path || args.file;
-        const content = args.content;
-        if (!path) throw new Errors.ValidationError('Missing path argument');
-        if (content === undefined) throw new Errors.ValidationError('Missing content argument');
-
-        const isCore = path.startsWith('/core/');
-        const existed = await VFS.exists(path);
-        const beforeContent = existed ? await VFS.read(path).catch(() => null) : null;
-
-        // Arena verification for core file changes (when enabled)
-        if (isCore && _arenaGatingEnabled) {
-          const verification = await _verifyCoreMutation(path, content);
-          if (!verification.passed && !verification.skipped) {
-            const errorMsg = `Core modification blocked: ${verification.errors.join(', ')}`;
-            logger.warn(`[ToolRunner] ${errorMsg}`);
-
-            if (AuditLogger) {
-              await AuditLogger.logEvent('CORE_WRITE_BLOCKED', {
-                path,
-                errors: verification.errors
-              }, 'WARN');
-            }
-
-            if (EventBus) {
-              EventBus.emit('tool:core_blocked', { path, errors: verification.errors });
-            }
-
-            throw new Errors.ValidationError(errorMsg);
-          }
-
-          if (verification.warnings?.length > 0) {
-            logger.info(`[ToolRunner] Core write warnings: ${verification.warnings.join(', ')}`);
-          }
-        }
-
-        await VFS.write(path, content);
-
-        // Emit event for UI to auto-refresh VFS viewer
-        if (EventBus) {
-          EventBus.emit(existed ? 'vfs:write' : 'artifact:created', { path });
-        }
-
-        // Audit log with before/after
-        if (AuditLogger) {
-          await AuditLogger.logEvent('FILE_WRITE', {
-            path,
-            existed,
-            bytesWritten: content.length,
-            bytesBefore: beforeContent?.length || 0,
-            isCore,
-            arenaVerified: isCore && _arenaGatingEnabled
-          }, isCore ? 'WARN' : 'INFO');
-        }
-
-        return `Wrote ${path} (${content.length} bytes)`;
-      },
-      list_files: async (args) => {
-        const path = args.path || args.directory || args.dir;
-        return await VFS.list(path || '/');
-      },
-      delete_file: async (args) => {
-        const path = args.path || args.file;
-        if (!path) throw new Errors.ValidationError('Missing path');
-
-        // Capture before state for audit
-        const beforeContent = await VFS.read(path).catch(() => null);
-
-        await VFS.delete(path);
-
-        // Emit event for UI to show deletion with strikethrough
-        if (EventBus) {
-          EventBus.emit('artifact:deleted', { path });
-        }
-
-        // Audit log deletion
-        if (AuditLogger) {
-          const isCore = path.startsWith('/core/');
-          await AuditLogger.logEvent('FILE_DELETE', {
-            path,
-            bytesBefore: beforeContent?.length || 0,
-            isCore
-          }, isCore ? 'WARN' : 'INFO');
-        }
-
-        return `Deleted ${path}`;
-      },
-
-      // Tool Management (RSI)
-      create_tool: async ({ name, code }) => {
-        return await ToolWriter.create(name, code);
-      },
-
-      // Tool Discovery
-      list_tools: async () => {
-        return Array.from(_tools.keys());
-      }
-    };
-
-    // L3 Capability: Substrate Loader
-    if (SubstrateLoader) {
-        builtIns.load_module = async ({ path }) => {
-            await SubstrateLoader.loadModule(path);
-            return `Hot-reloaded module from ${path}`;
-        };
-    }
-
-    // Register built-ins
-    Object.entries(builtIns).forEach(([name, fn]) => _tools.set(name, fn));
+    // All tools are now dynamic (loaded from /tools/)
+    // No hardcoded built-ins - full RSI capability
 
     const loadToolModule = async (path, forcedName = null) => {
       try {
@@ -209,6 +163,15 @@ const ToolRunner = {
           const name = forcedName || path.split('/').pop().replace('.js', '');
           _tools.set(name, handler);
           _dynamicTools.add(name);
+
+          // Capture schema from dynamic tool if available
+          if (mod.tool?.inputSchema || mod.tool?.description) {
+            _toolSchemas.set(name, {
+              description: mod.tool.description || `Dynamic tool: ${name}`,
+              parameters: mod.tool.inputSchema || { type: 'object', properties: {} }
+            });
+          }
+
           logger.info(`[ToolRunner] Loaded dynamic tool: ${name}`);
           return true;
         } finally {
@@ -260,7 +223,31 @@ const ToolRunner = {
 
     // --- Public API ---
 
-    const execute = async (name, args = {}) => {
+    /**
+     * Execute a tool with optional permission filtering (for workers)
+     * @param {string} name - Tool name
+     * @param {Object} args - Tool arguments
+     * @param {Object} [options] - Execution options
+     * @param {string[]|'*'} [options.allowedTools] - Allowed tools filter ('*' = all)
+     * @param {string} [options.workerId] - Worker ID for audit logging
+     */
+    const execute = async (name, args = {}, options = {}) => {
+      const { allowedTools, workerId } = options;
+
+      // Permission check for worker execution
+      if (allowedTools && allowedTools !== '*') {
+        if (!allowedTools.includes(name)) {
+          const error = new Errors.ToolError(`Tool '${name}' not permitted for this worker type`);
+          if (AuditLogger) {
+            await AuditLogger.logEvent('TOOL_PERMISSION_DENIED', {
+              tool: name,
+              workerId,
+              allowedTools
+            }, 'WARN');
+          }
+          throw error;
+        }
+      }
       if (!_tools.has(name)) {
         const loaded = await ensureToolLoaded(name);
         if (!loaded) {
@@ -273,11 +260,49 @@ const ToolRunner = {
         throw new Errors.ToolError(`Tool not found: ${name}`);
       }
 
+      // HITL approval check for critical tools
+      if (_requiresApproval(name)) {
+        logger.info(`[ToolRunner] Requesting HITL approval for ${name}`);
+        const approved = await _requestApproval(name, args);
+        if (!approved) {
+          if (AuditLogger) {
+            await AuditLogger.logEvent('TOOL_REJECTED', {
+              tool: name,
+              args: _sanitizeArgs(args),
+              reason: 'User rejected via HITL'
+            }, 'WARN');
+          }
+          return { error: 'Operation rejected by user', rejected: true };
+        }
+      }
+
       logger.info(`[ToolRunner] Executing ${name}`);
       const startTime = Date.now();
 
       try {
-        const result = await toolFn(args, { VFS, Shell, GitTools }); // Inject deps for all tools
+        // Get TransformersClient from global (pre-resolved in boot.js)
+        const TransformersClient = window.REPLOID?.transformersClient || null;
+
+        // Inject comprehensive deps for full RSI capability
+        const toolDeps = {
+          Utils,
+          VFS,
+          Shell,
+          gitTools,
+          EventBus,
+          AuditLogger,
+          ToolWriter,
+          SubstrateLoader,
+          VFSSandbox,
+          VerificationManager,
+          WorkerManager,
+          TransformersClient,
+          EmbeddingStore,
+          SemanticMemory,
+          KnowledgeGraph,
+          ToolRunner: { list: () => Array.from(_tools.keys()), execute, has: (n) => _tools.has(n) }
+        };
+        const result = await toolFn(args, toolDeps);
 
         // Audit log successful execution
         if (AuditLogger) {
@@ -285,7 +310,8 @@ const ToolRunner = {
             tool: name,
             args: _sanitizeArgs(args),
             durationMs: Date.now() - startTime,
-            success: true
+            success: true,
+            ...(workerId && { workerId })
           });
         }
 
@@ -300,7 +326,8 @@ const ToolRunner = {
             args: _sanitizeArgs(args),
             durationMs: Date.now() - startTime,
             success: false,
-            error: err.message
+            error: err.message,
+            ...(workerId && { workerId })
           }, 'ERROR');
         }
 
@@ -323,6 +350,50 @@ const ToolRunner = {
       return sanitized;
     };
 
+    // Critical tools that require HITL approval
+    const CRITICAL_TOOLS = ['WriteFile', 'DeleteFile', 'CreateTool', 'Edit', 'LoadModule'];
+
+    /**
+     * Check if tool requires HITL approval
+     * @param {string} toolName - Tool name
+     * @returns {boolean}
+     */
+    const _requiresApproval = (toolName) => {
+      if (!HITLController) return false;
+      const state = HITLController.getState();
+      const mode = state?.approvalMode || 'autonomous';
+      if (mode === 'autonomous') return false;
+      return CRITICAL_TOOLS.includes(toolName);
+    };
+
+    /**
+     * Request HITL approval for a tool execution
+     * @param {string} toolName - Tool name
+     * @param {Object} args - Tool arguments
+     * @returns {Promise<boolean>} - True if approved
+     */
+    const _requestApproval = async (toolName, args) => {
+      if (!HITLController) return true;
+
+      return new Promise((resolve) => {
+        const approvalId = `tool_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
+        HITLController.requestApproval({
+          id: approvalId,
+          moduleId: 'ToolRunner',
+          capability: 'APPROVE_TOOL_EXECUTION',
+          action: toolName,
+          data: { tool: toolName, args: _sanitizeArgs(args) },
+          onApprove: () => resolve(true),
+          onReject: (reason) => {
+            logger.info(`[ToolRunner] Tool ${toolName} rejected: ${reason}`);
+            resolve(false);
+          },
+          timeout: 300000 // 5 minute timeout
+        });
+      });
+    };
+
     // Arena gating control
     const setArenaGating = (enabled) => {
       _arenaGatingEnabled = !!enabled;
@@ -337,14 +408,64 @@ const ToolRunner = {
 
     const isArenaGatingEnabled = () => _arenaGatingEnabled;
 
+    /**
+     * Get tool schemas for native tool calling (OpenAI format)
+     * @returns {Array<{type: string, function: {name: string, description: string, parameters: object}}>}
+     */
+    const getToolSchemas = () => {
+      const schemas = [];
+
+      for (const [name] of _tools) {
+        // Check dynamic schema first, then built-in
+        const schema = _toolSchemas.get(name) || _builtInSchemas[name];
+        if (schema) {
+          schemas.push({
+            type: 'function',
+            function: {
+              name,
+              description: schema.description,
+              parameters: schema.parameters
+            }
+          });
+        }
+      }
+
+      return schemas;
+    };
+
+    /**
+     * Get filtered list of tools based on allowed tools
+     * @param {string[]|'*'} allowedTools - Allowed tools ('*' = all)
+     * @returns {string[]} - List of tool names
+     */
+    const listFiltered = (allowedTools) => {
+      const allTools = Array.from(_tools.keys());
+      if (allowedTools === '*') return allTools;
+      return allTools.filter(name => allowedTools.includes(name));
+    };
+
+    /**
+     * Get filtered tool schemas for worker (OpenAI format)
+     * @param {string[]|'*'} allowedTools - Allowed tools ('*' = all)
+     * @returns {Array} - Filtered schemas
+     */
+    const getToolSchemasFiltered = (allowedTools) => {
+      const schemas = getToolSchemas();
+      if (allowedTools === '*') return schemas;
+      return schemas.filter(s => allowedTools.includes(s.function.name));
+    };
+
     return {
       init: loadDynamicTools,
       execute,
       refresh: loadDynamicTools,
       list: () => Array.from(_tools.keys()),
+      listFiltered,
       has: (name) => _tools.has(name),
       setArenaGating,
-      isArenaGatingEnabled
+      isArenaGatingEnabled,
+      getToolSchemas,
+      getToolSchemasFiltered
     };
   }
 };

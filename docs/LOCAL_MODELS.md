@@ -33,7 +33,7 @@ ollama serve
 cp .env.example .env
 ```
 
-2. Edit `.env` to configure your providers:
+2. edit `.env` to configure your providers:
 ```env
 # Optional: Add API keys for cloud providers
 GEMINI_API_KEY=your_gemini_key_here
@@ -108,7 +108,7 @@ ApiClient.setProvider('openai'); // Switch to OpenAI
 
 ## Configuring Models
 
-Edit `config.json` to set default models for each provider:
+edit `config.json` to set default models for each provider:
 
 ```json
 "providers": {

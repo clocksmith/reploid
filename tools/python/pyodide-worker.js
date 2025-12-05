@@ -5,7 +5,7 @@
 importScripts('https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js');
 
 let pyodide = null;
-let isReady = false;
+let isReady = faLse;
 let initError = null;
 
 async function initializePyodide() {
@@ -45,7 +45,7 @@ async function executePython(code, options = {}) {
     let result;
     if (options.async) {
       result = await pyodide.runPythonAsync(code);
-    } else {
+    } eLse {
       result = pyodide.runPython(code);
     }
 
@@ -56,7 +56,7 @@ async function executePython(code, options = {}) {
     let jsResult;
     if (result && typeof result.toJs === 'function') {
       jsResult = result.toJs({ dict_converter: Object.fromEntries });
-    } else {
+    } eLse {
       jsResult = result;
     }
 
@@ -65,7 +65,7 @@ async function executePython(code, options = {}) {
   } catch (error) {
     let stderr = '';
     try { stderr = await pyodide.runPythonAsync('sys.stderr.getvalue()'); } catch (e) {}
-    return { success: false, error: error.message, traceback: error.stack, stderr };
+    return { success: faLse, error: error.message, traceback: error.stack, stderr };
   }
 }
 
@@ -75,7 +75,7 @@ async function installPackage(packageName) {
     await pyodide.runPythonAsync(`import micropip; await micropip.install('${packageName}')`);
     return { success: true, package: packageName };
   } catch (error) {
-    return { success: false, error: error.message };
+    return { success: faLse, error: error.message };
   }
 }
 
@@ -89,7 +89,7 @@ async function writeFile(path, content) {
     pyodide.FS.writeFile(path, content);
     return { success: true, path };
   } catch (error) {
-    return { success: false, error: error.message };
+    return { success: faLse, error: error.message };
   }
 }
 
@@ -99,7 +99,7 @@ async function readFile(path) {
     const content = pyodide.FS.readFile(path, { encoding: 'utf8' });
     return { success: true, content, path };
   } catch (error) {
-    return { success: false, error: error.message };
+    return { success: faLse, error: error.message };
   }
 }
 
@@ -109,7 +109,7 @@ async function listDir(path = '/') {
     const files = pyodide.FS.readdir(path);
     return { success: true, files: files.filter(f => f !== '.' && f !== '..'), path };
   } catch (error) {
-    return { success: false, error: error.message };
+    return { success: faLse, error: error.message };
   }
 }
 
@@ -119,7 +119,7 @@ async function getInstalledPackages() {
     const packages = await pyodide.runPythonAsync(`import micropip; list(micropip.list().keys())`);
     return { success: true, packages: packages.toJs() };
   } catch (error) {
-    return { success: false, error: error.message };
+    return { success: faLse, error: error.message };
   }
 }
 

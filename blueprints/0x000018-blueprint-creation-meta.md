@@ -211,7 +211,7 @@ To create a blueprint about creating blueprints:
 - Provided by MCP servers (external processes)
 - NOT part of REPLOID codebase
 - CANNOT be created from within REPLOID
-- Examples: filesystem access, GitHub API, databases
+- Examples: filesystem access, gitHub API, databases
 - NO blueprint required
 - NO web component widget
 

@@ -258,14 +258,14 @@ EventBus.emit('vfs:checkpoint-created', { id: 'cp-001' });
 
 // Agent lifecycle
 EventBus.emit('agent:cycle-start', { iteration: 42 });
-EventBus.emit('agent:tool-executed', { tool: 'read_file', result });
+EventBus.emit('agent:tool-executed', { tool: 'ReadFile', result });
 
 // UI events
 EventBus.emit('ui:module-expanded', { moduleId: 'StateManager' });
 EventBus.emit('ui:toast-shown', { message: 'Success', type: 'success' });
 
 // Error notifications
-EventBus.emit('error:tool-failed', { tool: 'write_file', error });
+EventBus.emit('error:tool-failed', { tool: 'WriteFile', error });
 ```
 
 ### 6. Integration Examples

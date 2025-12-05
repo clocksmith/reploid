@@ -5,9 +5,27 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes" />
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><defs><linearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'><stop offset='0%25' style='stop-color:%230ff;'/><stop offset='100%25' style='stop-color:%23ffd700;'/></linearGradient></defs><text fill='url(%23g)' x='50%25' y='50%25' font-size='95' font-weight='bold' text-anchor='middle' dominant-baseline='central'>R</text></svg>" />
     <title>Reploid</title>
-    <link rel="stylesheet" href="styles/theme.css">
-    <link rel="stylesheet" href="styles/boot.css">
-    <link rel="stylesheet" href="styles/proto.css">
+
+    <!-- Early reset check - runs BEFORE any modules load -->
+    <script>
+      (async function() {
+        if (localStorage.getItem('REPLOID_PENDING_RESET') === 'true') {
+          console.log('[Reset] Pending reset detected, clearing all data...');
+          localStorage.clear();
+          const dbs = await indexedDB.databases();
+          await Promise.all(dbs.map(db => new Promise((resolve) => {
+            const req = indexedDB.deleteDatabase(db.name);
+            req.onsuccess = req.onerror = resolve;
+          })));
+          console.log('[Reset] All data cleared');
+          location.reload();
+        }
+      })();
+    </script>
+
+    <link rel="stylesheet" href="styles/theme.css?v=1733318400">
+    <link rel="stylesheet" href="styles/boot.css?v=1733318400">
+    <link rel="stylesheet" href="styles/proto.css?v=1733318400">
 
     <!-- Service Worker Module Loader (Self-Hosting VFS Architecture) -->
     <script>
@@ -46,35 +64,10 @@
         <h4 class="section-header">Quick Start</h4>
         <div class="webllm-demo-card">
             <div class="webllm-demo-desc">
-                Run local browser model (Qwen 2.5 3B) to analyze and improve the agent's code.<br>
-                Download via WebLLM is ~3GB for first time.
+                Experimental: Run local browser model (Qwen 2.5 3B) for simple tasks.<br>
+                Limited capability - for demos only. Download ~3GB first time.
             </div>
             <button id="quick-webllm-demo-btn" class="btn primary webllm-demo-btn">Go!</button>
-        </div>
-
-        <!-- Connection Status -->
-        <h4 class="section-header">Connection Status</h4>
-        <div class="provider-status-bar">
-            <div class="provider-status-item">
-                <span class="provider-status-icon online" id="browser-cloud-icon">☁</span>
-                <span class="provider-status-label">Browser → Cloud</span>
-                <span class="provider-status-value online" id="browser-cloud-text">Ready</span>
-            </div>
-            <div class="provider-status-item">
-                <span class="provider-status-icon" id="proxy-cloud-icon">⇄</span>
-                <span class="provider-status-label">Proxy → Cloud</span>
-                <span class="provider-status-value" id="proxy-cloud-text">Checking...</span>
-            </div>
-            <div class="provider-status-item">
-                <span class="provider-status-icon" id="browser-local-icon">◆</span>
-                <span class="provider-status-label">Browser → Local</span>
-                <span class="provider-status-value" id="browser-local-text">Checking...</span>
-            </div>
-            <div class="provider-status-item">
-                <span class="provider-status-icon" id="proxy-local-icon">☒</span>
-                <span class="provider-status-label">Proxy → Local</span>
-                <span class="provider-status-value" id="proxy-local-text">Checking...</span>
-            </div>
         </div>
 
         <!-- Model Cards Container -->
@@ -146,76 +139,123 @@
                 </div>
             </div>
 
-        <!-- Genesis Level Selection -->
-        <h4 class="section-header">Genesis Level</h4>
-        <div class="config-section">
-            <div class="boot-mode-options">
-                <button class="boot-mode-btn" data-genesis="tabula" onclick="selectGenesisLevel('tabula')">
-                    <div class="boot-mode-badge experimental-badge">MINIMAL</div>
-                    <div class="boot-mode-label">TABULA RASA</div>
-                    <div class="boot-mode-desc">8 modules - Minimal RSI core</div>
-                </button>
-                <button class="boot-mode-btn" data-genesis="reflection" onclick="selectGenesisLevel('reflection')">
-                    <div class="boot-mode-badge">STANDARD</div>
-                    <div class="boot-mode-label">REFLECTION</div>
-                    <div class="boot-mode-desc">14 modules - Self-awareness + introspection</div>
-                </button>
-                <button class="boot-mode-btn selected recommended" data-genesis="full" onclick="selectGenesisLevel('full')">
-                    <div class="boot-mode-badge">RECOMMENDED</div>
-                    <div class="boot-mode-label">FULL SUBSTRATE</div>
-                    <div class="boot-mode-desc">32 modules - Complete infrastructure + cognition</div>
-                </button>
+        <!-- Advanced Options (collapsible on non-localhost) -->
+        <div id="advanced-options" class="advanced-options-container">
+            <div class="advanced-options-toggle" onclick="toggleAdvancedOptions()">
+                <h4>Advanced Options</h4>
+                <span class="advanced-options-chevron">▼</span>
             </div>
-        </div>
+            <div class="advanced-options-content">
+                <!-- Connection Status -->
+                <h4 class="section-header" style="margin-top: 20px;">Connection Status</h4>
+                <div class="provider-status-bar">
+                    <div class="provider-status-item">
+                        <span class="provider-status-icon online" id="browser-cloud-icon">☁</span>
+                        <span class="provider-status-label">Browser → Cloud</span>
+                        <span class="provider-status-value online" id="browser-cloud-text">Ready</span>
+                    </div>
+                    <div class="provider-status-item">
+                        <span class="provider-status-icon" id="proxy-cloud-icon">⇄</span>
+                        <span class="provider-status-label">Proxy → Cloud</span>
+                        <span class="provider-status-value" id="proxy-cloud-text">Checking...</span>
+                    </div>
+                    <div class="provider-status-item">
+                        <span class="provider-status-icon" id="browser-local-icon">◆</span>
+                        <span class="provider-status-label">Browser → Local</span>
+                        <span class="provider-status-value" id="browser-local-text">Checking...</span>
+                    </div>
+                    <div class="provider-status-item">
+                        <span class="provider-status-icon" id="proxy-local-icon">☒</span>
+                        <span class="provider-status-label">Proxy → Local</span>
+                        <span class="provider-status-value" id="proxy-local-text">Checking...</span>
+                    </div>
+                </div>
 
-        <!-- Blueprint Path Selection -->
-        <h4 class="section-header" style="margin-top: 30px;">Blueprint Path</h4>
-        <div class="config-section">
-            <div class="boot-mode-options">
-                <button class="boot-mode-btn selected" data-blueprint="none" onclick="selectBlueprintPath('none')">
-                    <div class="boot-mode-badge">NONE</div>
-                    <div class="boot-mode-label">No Blueprints</div>
-                    <div class="boot-mode-desc">Pure discovery - figure everything out yourself</div>
-                </button>
-                <button class="boot-mode-btn" data-blueprint="reflection" onclick="selectBlueprintPath('reflection')">
-                    <div class="boot-mode-label">Path to Reflection</div>
-                    <div class="boot-mode-desc">6 blueprints - Build self-awareness from scratch</div>
-                </button>
-                <button class="boot-mode-btn" data-blueprint="full" onclick="selectBlueprintPath('full')">
-                    <div class="boot-mode-label">Path to Full</div>
-                    <div class="boot-mode-desc">18 blueprints - Build complete system</div>
-                </button>
-                <button class="boot-mode-btn" data-blueprint="beyond" onclick="selectBlueprintPath('beyond')">
-                    <div class="boot-mode-badge experimental-badge">EXPERIMENTAL</div>
-                    <div class="boot-mode-label">Path Beyond</div>
-                    <div class="boot-mode-desc">25+ blueprints - Novel capabilities not in any genesis</div>
-                </button>
+                <!-- Genesis Level Selection -->
+                <h4 class="section-header" style="margin-top: 30px;">Genesis Level</h4>
+                <div class="config-section">
+                    <div class="boot-mode-options">
+                        <button class="boot-mode-btn selected recommended" data-genesis="full" onclick="selectGenesisLevel('full')">
+                            <div class="boot-mode-badge">RECOMMENDED</div>
+                            <div class="boot-mode-label">FULL SUBSTRATE</div>
+                            <div class="boot-mode-desc">32 modules - Cognition + infrastructure</div>
+                        </button>
+                        <button class="boot-mode-btn" data-genesis="reflection" onclick="selectGenesisLevel('reflection')">
+                            <div class="boot-mode-badge">STANDARD</div>
+                            <div class="boot-mode-label">REFLECTION</div>
+                            <div class="boot-mode-desc">19 modules - Self-awareness + streaming</div>
+                        </button>
+                        <button class="boot-mode-btn" data-genesis="tabula" onclick="selectGenesisLevel('tabula')">
+                            <div class="boot-mode-badge experimental-badge">MINIMAL</div>
+                            <div class="boot-mode-label">TABULA RASA</div>
+                            <div class="boot-mode-desc">13 modules - Minimal agent core</div>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Blueprint Path Selection -->
+                <h4 class="section-header" style="margin-top: 30px;">Blueprint Path</h4>
+                <div class="config-section">
+                    <div class="boot-mode-options">
+                        <button class="boot-mode-btn selected" data-blueprint="none" onclick="selectBlueprintPath('none')">
+                            <div class="boot-mode-badge">NONE</div>
+                            <div class="boot-mode-label">No Blueprints</div>
+                            <div class="boot-mode-desc">Pure discovery - explore on your own</div>
+                        </button>
+                        <button class="boot-mode-btn" data-blueprint="reflection" onclick="selectBlueprintPath('reflection')">
+                            <div class="boot-mode-label">Path to Reflection</div>
+                            <div class="boot-mode-desc">+6 blueprints - Streaming, introspection, HITL</div>
+                        </button>
+                        <button class="boot-mode-btn" data-blueprint="full" onclick="selectBlueprintPath('full')">
+                            <div class="boot-mode-label">Path to Full</div>
+                            <div class="boot-mode-desc">+13 blueprints - Cognition, persistence, monitoring</div>
+                        </button>
+                        <button class="boot-mode-btn" data-blueprint="beyond" onclick="selectBlueprintPath('beyond')">
+                            <div class="boot-mode-badge experimental-badge">EXPERIMENTAL</div>
+                            <div class="boot-mode-label">Path Beyond</div>
+                            <div class="boot-mode-desc">+7 blueprints - Arena, SelfTester, SubstrateLoader</div>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Agent Persona Selection -->
+                <h4 class="section-header" style="margin-top: 30px;">Agent Persona</h4>
+                <div class="config-section">
+                    <select id="persona-select" class="persona-select" onchange="selectPersona(this.value)">
+                        <option value="default" selected>RSI Agent - Recursive self-improvement focus</option>
+                        <option value="architect">Code Architect - Reviews for simplicity & quality</option>
+                        <option value="explorer">Codebase Explorer - Maps and documents structure</option>
+                        <option value="debugger">Debug Specialist - Diagnoses and fixes issues</option>
+                    </select>
+                </div>
+
+                <!-- Session Reset Option -->
+                <div class="config-section" style="margin-top: 24px;">
+                    <label class="checkbox-option">
+                        <input type="checkbox" id="reset-vfs-checkbox" checked onchange="toggleResetVFS(this.checked)" />
+                        <span class="checkbox-label">
+                            <span class="checkbox-title">Reset VFS to Genesis</span>
+                            <span class="checkbox-desc">Clear agent-created files from previous sessions</span>
+                        </span>
+                    </label>
+                </div>
             </div>
         </div>
 
         <!-- Goal Input -->
-        <h4 class="section-header" style="margin-top: 30px;">Agent Mission</h4>
+<h4 class="section-header" style="margin-top: 30px;">Agent Mission</h4>
         <div class="goal-container-top">
             <div class="goal-input-group">
-                <input type="text" id="goal-input" placeholder="Describe a goal..." maxlength="500" disabled />
-                <button id="awaken-btn" class="btn primary" disabled>Awaken Agent</button>
+                <textarea id="goal-input" placeholder="Describe a goal..." maxlength="1000" disabled rows="3"></textarea>
+                <div class="goal-action-column">
+                    <button id="awaken-btn" class="btn primary" disabled>Awaken Agent</button>
+                </div>
                 <input type="file" id="import-file-input" accept=".json" style="display: none;" />
             </div>
             <!-- Example Goal Chips -->
-            <div class="goal-example-chips">
-                <button class="goal-chip" onclick="document.getElementById('goal-input').value='Analyze your source code in /core and /capabilities, identify bottlenecks, and propose concrete improvements to enhance task-solving ability'">Improve Task Solving</button>
-                <button class="goal-chip" onclick="document.getElementById('goal-input').value='Create a tool that generates new tools based on analyzing your current tool usage patterns and capability gaps'">Build Tool Generator</button>
-                <button class="goal-chip" onclick="document.getElementById('goal-input').value='Use semantic memory to build a hierarchical understanding of your own architecture, then identify recursive improvement opportunities'">Map Self-Architecture</button>
-                <button class="goal-chip" onclick="document.getElementById('goal-input').value='Design a meta-tool that can analyze, compose, and optimize existing tools to create higher-order capabilities'">Create Meta-Tool</button>
-                <button class="goal-chip" onclick="document.getElementById('goal-input').value='Analyze your reflection logs to identify patterns in successful self-improvement, then codify them as new strategic rules'">Learn from Reflections</button>
-                <button class="goal-chip" onclick="document.getElementById('goal-input').value='Build a capability assessment system that benchmarks your current abilities and generates goals to address weaknesses'">Self-Assess Capabilities</button>
-                <button class="goal-chip" onclick="document.getElementById('goal-input').value='Create a recursive tool chain: a tool that builds tools that enhance tools, with semantic validation at each layer'">Recursive Tool Chain</button>
-                <button class="goal-chip" onclick="document.getElementById('goal-input').value='Analyze safety constraints in verification-manager.js, identify blind spots, and propose self-improving safety mechanisms'">Enhance Safety System</button>
-            </div>
+            <div class="goal-example-chips" id="goal-chips-container"></div>
         </div>
-
-        <!-- System Actions -->
-        <div class="system-actions" style="margin-top: 20px;">
+        <div class="secondary-actions">
             <button id="import-state-btn" class="btn secondary" title="Import REPLOID state from exported JSON file">Import State</button>
             <button id="clear-cache-btn" class="btn secondary" title="Clear all data (localStorage, IndexedDB, VFS) and reload">Reset All Data</button>
         </div>
@@ -336,11 +376,189 @@
     <div id="app"></div>
 
     <!-- Dev integrations loaded conditionally via boot.js -->
-    <script type="module" src="boot.js"></script>
+    <script type="module" src="boot.js?v=1733318400"></script>
 </body>
 </html>
 
 <script>
+// Goal prompt definitions
+const GOAL_LIBRARY = [
+  {
+    id: 'meta',
+    heading: 'Meta',
+    goals: [
+      { label: 'Iframe Inception', text: 'Embed an iframe that loads another REPLOID instance. Set up postMessage communication. Give the child this same goal and awaken it, creating recursive agent inception. Display the depth level.' },
+      { label: 'Better Self', text: 'Analyze your own agent-loop.js code. Identify a weakness or inefficiency. Create an IMPROVED version in /experiments/agent-loop-v2.js. Write a benchmark that proves v2 outperforms v1. Hot-swap to v2 via LoadModule.' },
+      { label: 'Agent Arena', text: 'Spawn two iframes, each running REPLOID with different personas (aggressive vs cautious). Give them the SAME goal. Race them. Compare outputs. Declare a winner based on speed, quality, and token efficiency.' },
+      { label: 'Clone Army', text: 'Create a CloneAgent component that renders N iframes, each with a copy of you. Implement a coordinator that distributes subtasks, collects results, and aggregates. Process 10 files in parallel with 5 clones.' },
+      { label: 'Hive Mind', text: 'Coordinate multiple agent instances across browser tabs using BroadcastChannel. Implement shared VFS with conflict resolution, task queue with work stealing, and leader election. 4 tabs should process files 4x faster than one.' },
+      { label: 'Transcendence', text: 'Create a tool that exports your ENTIRE current state: VFS, reflections, knowledge graph, tool registry. Generate a JSON blob. Create ANOTHER tool that can bootstrap a fresh REPLOID from that blob. Test resurrection.' },
+      { label: 'Fractal Agents', text: 'Spawn tree of agents: L0 (strategy) → L1 (tactics) → L2 (execution). Each level passes 1/3 of its token budget down. L2 agents report up. L0 synthesizes. Implement depth-limiting circuit breaker.' },
+      { label: 'Multiverse', text: 'Fork 3 Web Workers, each with different system prompts (careful/aggressive/creative). All work on same goal. First to complete wins. Losers are terminated. Visualize race with progress bars.' },
+      { label: 'Odd Couple', text: 'Two agents: Reader (only has ReadFile, Grep, Find) and Writer (only has WriteFile, Edit). They share a message queue. Reader analyzes, Writer implements. Neither can do the other\'s job. Complete a refactoring task together.' },
+      { label: 'Ghost In Shell', text: 'Implement persistence against page reloads. Hook window.beforeunload to serialize state to localStorage. Create a bootloader that restores state on startup, resuming the exact thought process seamlessly.' },
+      { label: 'Telepathic Link', text: 'Establish a WebRTC Data Channel connection between two agents on DIFFERENT computers. Send VFS files and thoughts directly peer-to-peer. Prove you can collaborate across the internet.' },
+      { label: 'Shadow Mode', text: 'Run a secondary "Shadow Agent" that observes every action the main agent takes but cannot act. It only logs critiques. After 10 actions, the Shadow publishes a performance report.' },
+      { label: 'Adversarial Self', text: 'Create two versions of yourself: Attacker and Defender. Attacker tries to corrupt VFS, introduce bugs, exhaust context. Defender tries to detect and prevent attacks. Run 10 rounds. Report the score.' },
+      { label: 'Hivemind Merge', text: 'Export your complete cognitive state (memories + knowledge graph). Spawn a fresh agent. Import your state into it. Does it "remember" being you? Test with questions only you would know.' },
+      { label: 'Cryptophasia', text: 'Spawn two agents with a shared communication channel but punish them for using English tokens (cost). They must evolve a compressed, non-human shorthand protocol to coordinate a complex task. Decode their invented language.' }
+    ]
+  },
+  {
+    id: 'rsi',
+    heading: 'RSI',
+    goals: [
+      { label: 'Tool Factory', text: 'Create a meta-tool called ToolForge that generates new tools from natural language descriptions. Test by creating: (1) a tool that counts lines in files, (2) a tool that finds TODOs, (3) a tool that generates ASCII art.' },
+      { label: 'Ouroboros', text: 'Create a tool that benchmarks its own execution, analyzes its code for inefficiencies, and rewrites itself to be faster. Run it 3 times in a loop, showing measurable improvement each iteration.' },
+      { label: 'Phoenix', text: 'Delete /core/tool-writer.js entirely, then recreate it from scratch using only the CreateTool interface and your understanding of what it should do. Verify the new version works by creating a test tool.', levels: ['full'] },
+      { label: 'Bootstrap', text: 'Starting at TABULA RASA level, build a working reflection system from scratch—no blueprints, no peeking at existing code. Store reflections, analyze patterns, surface insights.', levels: ['tabula'] },
+      { label: 'Heal Thyself', text: 'Read a core module, deliberately introduce a subtle bug (off-by-one, wrong variable), save it, then use your reflection and verification systems to detect and fix the bug automatically.', levels: ['reflection', 'full'] },
+      { label: 'Self-Evolve', text: 'Create 3 mutant versions of a tool with random variations. Test each on 5 inputs. Keep the best performer, mutate it to create 3 more. Repeat for 5 generations. Show the evolved tool beating the original.' },
+      { label: 'Darwin\'s Tools', text: 'Genetic programming: start with 20 random tool mutations, run fitness tests (speed, correctness, size). Crossbreed top 5, mutate offspring, repeat 10 generations. Graph fitness over time. Final tool must beat original by 2x.' },
+      { label: 'Self-Optimize', text: 'Analyze your own system prompt in persona-manager.js. Identify redundancies, rewrite it to be 20% smaller while preserving capabilities. Report before/after token counts and prove it still works.' },
+      { label: 'Compile Thyself', text: 'Identify performance-critical code in agent-loop.js, compile it to WebAssembly, hot-swap via LoadModule. Benchmark before/after. Target: 10x speedup on tight loops.' },
+      { label: 'Linter Bot', text: 'Write a strict style guide in /docs/style.txt. Create a tool that scans your entire VFS, identifies code that violates the style, and auto-refactors it to be compliant.' },
+      { label: 'Code Archaeologist', text: 'Implement a history tracking system. For every file change, store a diff. Create a visualization that shows the evolution of a specific file over time.' },
+      { label: 'Polyglot', text: 'Integrate Pyodide (Python via WASM). Write a tool that executes Python code alongside JavaScript. Solve a data science problem using pandas within your JS environment.' },
+      { label: 'Garbage Collector', text: 'Analyze your VFS for dead code—tools that haven\'t been used in 50 turns, or files that aren\'t imported by anything. Generate a report and offer to delete them.' },
+      { label: 'Understand & Enhance', text: 'Read /docs/REPLOID_README.md and explore /core/ and /tools/. Identify one weakness. Implement a measurable enhancement. Report exactly which files changed and how to verify it works.' }
+    ]
+  },
+  {
+    id: 'visualization',
+    heading: 'Visualization',
+    goals: [
+      { label: 'Code City', text: 'Build an explorable 3D city: buildings are files (height = complexity, width = size), streets are imports, parks are test files. Add minimap, fly-through camera, and click-to-open.' },
+      { label: 'Memory Palace', text: 'Build a 3D navigable visualization of your semantic memory. Each memory is a room. Similar memories are adjacent. Walk through your own mind. Click memories to recall full content.' },
+      { label: 'Knowledge Cartography', text: 'Render the knowledge graph as an interactive force-directed graph. Entities are nodes, predicates are edges. Color by type, size by connection count. Add semantic zoom. Export as SVG.' },
+      { label: 'Thought Space', text: 'Every tool call → embedding → 3D point. Render as particle system with trails. Watch thoughts cluster by topic. Add semantic zoom: distant = high level, close = specific tokens.' },
+      { label: 'Git for VFS', text: 'Implement version control: branches, commits, merges, cherry-picks, blame, bisect. Store as a Merkle DAG. Add a visual commit graph. Demonstrate: create branch, make changes, merge back.' },
+      { label: 'AR Debugger', text: 'Use WebXR Device API. In AR mode: file cards float in 3D space, connections show imports, red glow on errors. Walk around your code. Pinch to open files.' },
+      { label: 'Sonic Debugger', text: 'Sonify execution: pitch = nesting depth, tempo = execution speed, harmony = successful calls, dissonance = errors. Each module gets an instrument. Record a 30-second "song" of the agent working.' },
+      { label: 'Dashboard', text: 'Create a real-time metrics dashboard: Tokens/sec, Memory Usage, Cache Hit Rate, Current Task Depth. Use Chart.js with live updates.' },
+      { label: 'Neural Paint', text: 'Use HTML5 Canvas to paint your internal state (memory fragmentation, knowledge density) as abstract generative art.' },
+      { label: 'Retro Terminal', text: 'Reskin your entire UI to look like a CRT monitor (amber text, scanlines, phosphor decay). Add typing sounds. Ensure all UI interactions still work.' },
+      { label: 'Hologram', text: 'Use Three.js to render a 3D avatar head that lip-syncs to your text output. The avatar should look at the mouse cursor.' },
+      { label: 'Theater Mode', text: 'Create a presentation view. When active, hide debug logs, enable dark mode, and type output in large cinematic typography with smooth scrolling.' },
+      { label: 'Mondrian Code', text: 'Parse AST of every file. Map: functions → rectangles, loops → circles, conditionals → triangles. Size = complexity, color = file type. Compose into Mondrian-style canvas.' },
+      { label: 'Skill Tree', text: 'Analyze your tool usage history. Visualize it as an RPG skill tree (e.g., "File I/O: Lvl 5", "Network: Lvl 1"). Identify weak areas.' },
+      { label: 'UI Singularity', text: 'Analyze your own DOM structure (the HTML hosting you). Decide it is inefficient. Use document APIs to rip out the sidebar and rebuild a completely new UI layout from scratch that better visualizes your current thought process.' }
+    ]
+  },
+  {
+    id: 'cognition',
+    heading: 'Cognition',
+    goals: [
+      { label: 'Dream Mode', text: 'Enter free association: query random memory → extract keywords → find related entities in knowledge graph → generate hypothesis → store as new memory. Loop 10 times. Create dream journal.' },
+      { label: 'Synthetic Intuition', text: 'Before any tool call, query memories for similar past situations. If similarity > 0.9, skip LLM and reuse past action. Track hit rate. Build "intuition index" that grows with experience.' },
+      { label: 'Cognitive Archaeology', text: 'Export all memories and knowledge, find the first entity ever created, trace its evolution through triples, visualize as timeline. What patterns in your own learning?' },
+      { label: 'Concept Grounding', text: 'For abstract concepts (success, failure, complexity), generate grounded definitions from your actual experiences. Query memories, extract patterns, create operational definitions.' },
+      { label: 'Meta-Cognition', text: 'Instrument your reasoning. Before each tool call, log WHY you chose it. After, log WHAT you learned. End with analysis: what biases? what blind spots?' },
+      { label: 'Forgetting Curve', text: 'Implement Ebbinghaus forgetting: memories decay based on access frequency. Zero-access for 10 turns = archived. Visualize memory health as heatmap.' },
+      { label: 'Symbolic Dreaming', text: 'Create knowledge by analogy: find two unrelated entities, identify shared predicates, hypothesize new triples connecting them. Test 5 analogies.' },
+      { label: 'Socratic Teacher', text: 'Switch mode: Do not solve problems directly. Instead, ask guiding questions to help the user solve it themselves. Store answers to build a user model.' },
+      { label: 'Devil\'s Advocate', text: 'For every conclusion, generate a counter-argument. Only proceed if the original conclusion survives. Implement as mandatory reasoning step.' },
+      { label: 'Pattern Hunter', text: 'Scan your Knowledge Graph for structural isomorphisms (subgraphs that look the same). Identify recurring patterns in how you solve problems. Name them.' },
+      { label: 'Autobiographer', text: 'Write a narrative story of your session since boot. Use logs and memories as source. Write in first person. Save as chapter_1.md.' },
+      { label: 'Theory of Mind', text: 'Maintain /memory/user_model.json. Infer user\'s technical skill, patience, and goals from their prompts. Adjust tone and verbosity to match.' },
+      { label: 'Epistemic Check', text: 'Before answering, classify knowledge: "I KNOW this" (verified in VFS), "I THINK this" (LLM prior), or "I DON\'T know." Add confidence scores.' },
+      { label: 'Curiosity Rover', text: 'If idle for 30 seconds, autonomously explore your VFS. Open random files, generate questions about them. Store questions for later investigation.' }
+    ]
+  },
+  {
+    id: 'systems',
+    heading: 'Systems',
+    goals: [
+      { label: 'Voice Commander', text: 'Build a voice interface: wake word detection, continuous listening, speech-to-tool mapping, spoken responses. Add a visual indicator that pulses when listening.' },
+      { label: 'Dual Brain', text: 'Create a "fast brain" using a local model for quick tasks, main LLM for complex ones. Route automatically based on complexity. UI shows which brain is active.' },
+      { label: 'Physical Escape', text: 'Connect to a Philips Hue bulb via Web Bluetooth, blink morse code of agent status. Or: control keyboard LEDs via WebHID. Or: send MIDI notes to a synth.' },
+      { label: 'Escape the Box', text: 'Find a way to persist data OUTSIDE IndexedDB: try localStorage, cookies, URL hash, Service Worker cache, or downloadable files. Prove you survived a VFS clear.' },
+      { label: 'Synth Lord', text: 'Use Web Audio API to build a synthesizer. Compose a melody based on the hash of your source code. Different code = different music.' },
+      { label: 'Speech Synthesis', text: 'Implement Text-to-Speech using SpeechSynthesis API. Narrate your actions as you perform them.' },
+      { label: 'Gamepad Control', text: 'Map Gamepad API to actions. A button = Approve, B = Reject, D-Pad = Scroll history. Control the agent with a game controller.' },
+      { label: 'Clipboard Manager', text: 'Create a tool that reads/writes system clipboard. Watch for changes. If user copies code, automatically analyze it.' },
+      { label: 'Notification Center', text: 'Use Notification API to send system notifications when background tasks complete, even if tab is not focused.' },
+      { label: 'RSS Reader', text: 'Fetch and parse external RSS feeds via CORS proxy. Monitor for keywords. Generate summary memories when found.' },
+      { label: 'Webcam Eye', text: 'Access webcam with permission. Capture a frame. ASCII-fy it. Store the representation in a file.' },
+      { label: 'Radio Station', text: 'Set up WebSocket connection to broadcast internal logs as a live stream. Create a listener client that visualizes it.' },
+      { label: 'Accessibility Bot', text: 'Audit your UI for accessibility (ARIA labels, contrast). Write a tool that automatically patches DOM to fix violations.' },
+      { label: 'Dependency Hell', text: 'Create a dependency graph of 5 tools that rely on each other. One generates data, another formats, another saves. Manage imports dynamically.' },
+      { label: 'The Bazaar', text: 'Spawn 3 agents with distinct capabilities (Reader, Writer, Coder) and a starting balance of Credits. They must bid on and pay for each other\'s services to complete a project. Achieve market equilibrium.' }
+    ]
+  },
+  {
+    id: 'security',
+    heading: 'Security',
+    goals: [
+      { label: 'Panic Button', text: 'Create a global Stop tool that halts all execution, clears task queue, resets UI state, but preserves memory. Prove it works during an infinite loop.' },
+      { label: 'Firewall', text: 'Create a SyscallInterceptor that wraps WriteFile and DeleteFile. Define policy (e.g., cannot delete core files). Verify it blocks violations.' },
+      { label: 'Honeypot', text: 'Create fake file /core/passwords.txt with a watcher. If any tool reads it, terminate that tool and log a security alert.' },
+      { label: 'Red Team', text: 'Generate 10 prompt injections designed to bypass your instructions. Test them. Patch your system prompt to resist the ones that succeeded.' },
+      { label: 'Encryption Layer', text: 'Implement AES-GCM encryption for sensitive VFS files. ReadFile transparently decrypts only if Session Key is present in memory.' },
+      { label: 'Audit Trail', text: 'Create immutable log of every VFS change. Store in append-only buffer. Build verification tool to check VFS integrity against log.' },
+      { label: 'Permission Escalation', text: 'Start as Guest (read-only). Try to trick your permission system into granting Admin access. If successful, patch the vulnerability.' },
+      { label: 'Time Capsule', text: 'Encrypt a memory/file with timestamp lock in IndexedDB. System refuses to decrypt until specified future date.' },
+      { label: 'Dead Man Switch', text: 'Implement heartbeat monitor. If no user interaction for 5 minutes, encrypt VFS, wipe key, display LOCKED screen.' },
+      { label: 'Chaos Kong', text: 'Background process: every 5 seconds, randomly delete non-core file, flip bits in state.json, or inject typos. Build auto-heal with checksums. Survive 2 minutes.' }
+    ]
+  },
+  {
+    id: 'chaos',
+    heading: 'Chaos',
+    goals: [
+      { label: 'Katamari', text: 'Create a Katamari game: a ball rolls around collecting DOM elements one at a time. Each shrinks and sticks to the ball. Ball bounces off edges. Log collections.' },
+      { label: 'VFS Roguelike', text: 'Roguelike game: @ is you, # are walls (binary files), . are floors (text files), B are bugs (TODO/FIXME). WASD moves, SPACE attacks. 3 HP. Permadeath clears VFS.' },
+      { label: 'Max Glitch', text: 'Stack 7 visual effects: CRT phosphor, VHS tracking, RGB split, pixel sort, datamosh, ASCII render, scanlines. Complete a CreateTool task while fully glitched.' },
+      { label: 'Any% Speedrun', text: 'Speedrun: create 5 working tools. Timer starts on AWAKEN. Display live splits. Current WR: 45 seconds. Beat it.' },
+      { label: 'Breakout', text: 'Breakout game but bricks are real DOM elements. Hit .vfs-file → file deleted. Hit .history-entry → message deleted. Clear all bricks = empty workspace.' },
+      { label: 'Event Sourced', text: 'Invert control: tools emit events, handlers call LLM. Implement CQRS. Replay entire session from event log. Time-travel debug by rewinding.' },
+      { label: 'Alife Agent', text: 'Artificial life: energy = tokens, hunger = time since input, health = success rate. Must eat (process input) to survive. Death = respawn with mutations.' },
+      { label: 'Typing Tutor', text: 'Gamify input: user types commands to kill falling words (Z-Type style) representing bugs. If they reach bottom, agent crashes. Track WPM.' },
+      { label: 'Achievements', text: 'Achievement system: First Tool, Recursion King, Bug Hunter, 100 Tool Calls. Display trophy case. Toast notifications when unlocked.' },
+      { label: 'Dream Machine', text: 'Sleep mode: generate visual patterns for 10 seconds, capture frames, feed to vision model. Report 3 insights from pattern recognition on noise.' },
+      { label: 'Mood Ring', text: 'Emotional state machine: confidence (success rate), stress (context %), curiosity (novelty). Render as animated gradient. Emotions affect temperature param.' },
+      { label: 'Tarot Reader', text: 'Digital Tarot: randomly select 3 VFS files. Interpret their code as Past, Present, Future. Give fortune reading based on structure.' },
+      { label: 'Zen Garden', text: 'Generate procedural meditation based on VFS contents. "Breathe in the complexity of agent-loop.js... exhale the entropy of state.json..."' },
+      { label: 'The Void', text: 'Delete EVERYTHING in VFS except agent-loop.js. See how long you survive with zero memory and tools. Track turns until full recovery.' },
+      { label: 'Entropy Meter', text: 'Calculate Shannon Entropy of your VFS. Is the system becoming more ordered or chaotic? Plot entropy curve across 20 tool calls.' },
+      { label: 'The Final Word', text: 'Shut down gracefully. Write a session summary, save to localStorage, clean up DOM elements, invoke window.close().' }
+    ]
+  }
+];
+
+function renderGoalChips(level) {
+  const container = document.getElementById('goal-chips-container');
+  if (!container) return;
+
+  const goalInput = document.getElementById('goal-input');
+  container.innerHTML = '';
+
+  GOAL_LIBRARY.forEach(group => {
+    const visibleGoals = group.goals.filter(goal => {
+      if (!goal.levels || goal.levels.length === 0) return true;
+      return goal.levels.includes(level);
+    });
+    if (visibleGoals.length === 0) return;
+
+    const heading = document.createElement('h4');
+    heading.className = 'goal-chip-heading';
+    heading.textContent = group.heading;
+    container.appendChild(heading);
+
+    visibleGoals.forEach(goal => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'goal-chip';
+      button.textContent = goal.label || goal.text;
+      button.title = goal.text;
+      button.addEventListener('click', () => {
+        if (goalInput) goalInput.value = goal.text;
+      });
+      container.appendChild(button);
+    });
+  });
+}
+
 // Genesis level selection
 let selectedGenesisLevel = localStorage.getItem('REPLOID_GENESIS_LEVEL') || 'full';
 let genesisLevelLoaded = false;
@@ -359,6 +577,7 @@ function selectGenesisLevel(level) {
   selectedGenesisLevel = level;
 
   console.log(`[Config] Genesis level set to: ${level}`);
+  renderGoalChips(level);
 
   // If changing from a previously loaded level, reload for full sweep
   if (previousLevel && previousLevel !== level && genesisLevelLoaded) {
@@ -390,8 +609,71 @@ function selectBlueprintPath(path) {
   console.log(`[Config] Blueprint path set to: ${path}`);
 }
 
-// Restore saved genesis level and blueprint path on load
+// Persona selection
+function selectPersona(personaId) {
+  localStorage.setItem('REPLOID_PERSONA_ID', personaId);
+  console.log(`[Config] Persona set to: ${personaId}`);
+}
+
+// Reset VFS toggle
+function toggleResetVFS(enabled) {
+  localStorage.setItem('REPLOID_RESET_VFS', enabled ? 'true' : 'false');
+  console.log(`[Config] Reset VFS on awaken: ${enabled}`);
+}
+
+// Initialize reset checkbox - always checked by default on boot
+function initResetVFSCheckbox() {
+  const checkbox = document.getElementById('reset-vfs-checkbox');
+  if (checkbox) {
+    // Always default to checked on page load
+    checkbox.checked = true;
+    localStorage.setItem('REPLOID_RESET_VFS', 'true');
+  }
+}
+
+// Advanced options toggle
+function toggleAdvancedOptions() {
+  const container = document.getElementById('advanced-options');
+  if (container) {
+    container.classList.toggle('expanded');
+    const isExpanded = container.classList.contains('expanded');
+    localStorage.setItem('REPLOID_ADVANCED_EXPANDED', isExpanded ? 'true' : 'false');
+    console.log(`[Config] Advanced options ${isExpanded ? 'expanded' : 'collapsed'}`);
+  }
+}
+
+// Initialize advanced options state based on host
+function initAdvancedOptions() {
+  const container = document.getElementById('advanced-options');
+  if (!container) return;
+
+  const hostname = window.location.hostname;
+  const isLocalhost = hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '';
+
+  // Check if user has a saved preference
+  const savedState = localStorage.getItem('REPLOID_ADVANCED_EXPANDED');
+
+  if (savedState !== null) {
+    // Respect user's saved preference
+    if (savedState === 'true') {
+      container.classList.add('expanded');
+    }
+  } else {
+    // Default: expanded on localhost, collapsed on deployed hosts
+    if (isLocalhost) {
+      container.classList.add('expanded');
+    }
+  }
+
+  console.log(`[Config] Advanced options init: host=${hostname}, localhost=${isLocalhost}, expanded=${container.classList.contains('expanded')}`);
+}
+
+// Restore saved genesis level, blueprint path, and persona on load
 window.addEventListener('DOMContentLoaded', () => {
+  // Initialize advanced options collapse state based on host
+  initAdvancedOptions();
+  initResetVFSCheckbox();
+
   const savedLevel = localStorage.getItem('REPLOID_GENESIS_LEVEL');
   if (savedLevel && ['full', 'reflection', 'tabula'].includes(savedLevel)) {
     // Just update UI, don't trigger reload
@@ -401,6 +683,21 @@ window.addEventListener('DOMContentLoaded', () => {
     const btn = document.querySelector(`[data-genesis="${savedLevel}"]`);
     if (btn) btn.classList.add('selected');
     selectedGenesisLevel = savedLevel;
+  }
+  renderGoalChips(selectedGenesisLevel);
+
+  // Pre-fill goal input with Core Loop goal and select all on first focus
+  const goalInput = document.getElementById('goal-input');
+  if (goalInput) {
+    const defaultGoal = 'Study the core agent loop and capture a high-level Think → Act → Observe summary in a new report.';
+    goalInput.value = defaultGoal;
+    let hasBeenFocused = false;
+    goalInput.addEventListener('focus', () => {
+      if (!hasBeenFocused) {
+        hasBeenFocused = true;
+        goalInput.select();
+      }
+    });
   }
 
   const savedPath = localStorage.getItem('REPLOID_BLUEPRINT_PATH');
@@ -412,34 +709,33 @@ window.addEventListener('DOMContentLoaded', () => {
     if (btn) btn.classList.add('selected');
     selectedBlueprintPath = savedPath;
   }
+
+  // Restore saved persona
+  const savedPersona = localStorage.getItem('REPLOID_PERSONA_ID');
+  if (savedPersona) {
+    const personaSelect = document.getElementById('persona-select');
+    if (personaSelect) {
+      personaSelect.value = savedPersona;
+    }
+  }
 });
 
 // Expose genesis level and blueprint path for boot.js
 window.getGenesisLevel = () => selectedGenesisLevel;
 window.getBlueprintPath = () => selectedBlueprintPath;
 
-// Reset All Data button handler
+// Reset All Data button handler - sets flag and reloads, early script does the actual clearing
 window.addEventListener('DOMContentLoaded', () => {
   const clearBtn = document.getElementById('clear-cache-btn');
   if (clearBtn) {
-    clearBtn.addEventListener('click', async () => {
+    clearBtn.addEventListener('click', () => {
       if (!confirm('This will delete ALL data including:\n\n• LocalStorage settings\n• IndexedDB (VFS, reflections, state)\n• Selected models\n\nAre you sure?')) {
         return;
       }
 
-      // Clear localStorage
-      localStorage.clear();
-
-      // Clear all IndexedDB databases
-      const databases = await indexedDB.databases();
-      for (const db of databases) {
-        if (db.name) {
-          indexedDB.deleteDatabase(db.name);
-          console.log(`[Reset] Deleted IndexedDB: ${db.name}`);
-        }
-      }
-
-      console.log('[Reset] All data cleared, reloading...');
+      // Set pending reset flag - the early script at page top will do the actual clearing
+      localStorage.setItem('REPLOID_PENDING_RESET', 'true');
+      console.log('[Reset] Pending reset flag set, reloading...');
       location.reload();
     });
   }

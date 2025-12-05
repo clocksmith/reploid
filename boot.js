@@ -31,6 +31,7 @@ import ToolWriter from './core/tool-writer.js';
 
 import AgentLoop from './core/agent-loop.js';
 import PersonaManager from './core/persona-manager.js';
+import WorkerManager from './core/worker-manager.js';
 
 // Capabilities moved to their own directories
 import SubstrateLoader from './capabilities/system/substrate-loader.js';
@@ -63,6 +64,31 @@ import GoalHistory from './ui/goal-history.js';
   const logger = Utils.factory().logger;
   logger.info('[Boot] Starting REPLOID System...');
 
+  // Iframe child mode detection - auto-awaken with goal from parent
+  const isIframeChild = window.parent !== window;
+  let pendingParentGoal = null;
+  let systemReadyCallback = null;
+
+  if (isIframeChild) {
+    logger.info('[Boot] Running as iframe child, setting up parent communication');
+
+    window.addEventListener('message', (event) => {
+      if (event.data?.type === 'PARENT_GOAL') {
+        pendingParentGoal = event.data.goal;
+        logger.info('[Boot] Received goal from parent:', pendingParentGoal?.slice(0, 50));
+
+        // If system already ready, trigger awaken immediately
+        if (systemReadyCallback) {
+          systemReadyCallback();
+        }
+      }
+    });
+
+    // Notify parent we're ready - use same origin or '*' for localhost dev
+    const targetOrigin = window.location.origin || '*';
+    window.parent.postMessage({ type: 'CHILD_READY' }, targetOrigin);
+  }
+
   // Initialize boot screen UI (provider detection, model selector)
   initModelConfig();
 
@@ -76,21 +102,42 @@ import GoalHistory from './ui/goal-history.js';
     const container = DIContainer.factory({ Utils: Utils.factory() });
 
     // Get genesis level from localStorage (set by boot UI)
-    let genesisLevel = localStorage.getItem('REPLOID_GENESIS_LEVEL') || genesisConfig.defaultLevel;
-    let levelConfig = genesisConfig.levels[genesisLevel];
+    const validLevels = Object.keys(genesisConfig.levels || {});
+    const defaultLevel = genesisConfig.defaultLevel || validLevels[0] || 'tabula';
+    let genesisLevel = localStorage.getItem('REPLOID_GENESIS_LEVEL');
 
-    // Fallback to default if selected level doesn't exist
-    if (!levelConfig) {
-      logger.warn(`[Boot] Unknown genesis level: ${genesisLevel}, falling back to ${genesisConfig.defaultLevel}`);
-      genesisLevel = genesisConfig.defaultLevel;
-      levelConfig = genesisConfig.levels[genesisLevel];
+    // Validate and fallback
+    if (!genesisLevel || !validLevels.includes(genesisLevel)) {
+      if (genesisLevel) logger.warn(`[Boot] Unknown genesis level: ${genesisLevel}, falling back to ${defaultLevel}`);
+      genesisLevel = defaultLevel;
       localStorage.setItem('REPLOID_GENESIS_LEVEL', genesisLevel);
     }
 
-    logger.info(`[Boot] Genesis level: ${levelConfig.name}`);
+    // Resolve extends chain to get full module list
+    const resolveLevel = (levelName, visited = new Set()) => {
+      if (visited.has(levelName)) {
+        throw new Error(`Circular extends detected: ${[...visited, levelName].join(' -> ')}`);
+      }
+      visited.add(levelName);
+
+      const level = genesisConfig.levels[levelName];
+      if (!level) return [];
+
+      const parentModules = level.extends ? resolveLevel(level.extends, visited) : [];
+      return [...parentModules, ...level.modules];
+    };
+
+    let levelConfig = genesisConfig.levels[genesisLevel];
+    if (!levelConfig) {
+      throw new Error(`Genesis level "${genesisLevel}" not found in config. Available: ${validLevels.join(', ')}`);
+    }
+
+    // Resolve full module list (including inherited modules)
+    const resolvedModules = resolveLevel(genesisLevel);
+    logger.info(`[Boot] Genesis level: ${levelConfig.name} (${resolvedModules.length} modules)`);
 
     // Conditionally load Transformers.js for FULL SUBSTRATE (semantic capabilities)
-    if (genesisLevel === 'full' || levelConfig.modules.includes('SemanticMemory')) {
+    if (genesisLevel === 'full' || resolvedModules.includes('SemanticMemory')) {
       logger.info('[Boot] Loading Transformers.js for semantic capabilities...');
       try {
         const { pipeline, env } = await import("https://cdn.jsdelivr.net/npm/@huggingface/transformers@3");
@@ -113,39 +160,15 @@ import GoalHistory from './ui/goal-history.js';
       ToolWriter, ToolRunner, PersonaManager, ReflectionStore,
       ReflectionAnalyzer, AgentLoop, SubstrateLoader, PerformanceMonitor, SelfTester,
       EmbeddingStore, SemanticMemory, KnowledgeGraph, RuleEngine, SymbolGrounder, CognitionAPI, MultiModelCoordinator,
-      VFSSandbox, ArenaCompetitor, ArenaMetrics, ArenaHarness
+      VFSSandbox, ArenaCompetitor, ArenaMetrics, ArenaHarness,
+      WorkerManager
     };
 
-    // Register modules based on genesis level config
-    const registerModules = (moduleNames, category) => {
-      for (const name of moduleNames) {
-        if (moduleRegistry[name]) {
-          try {
-            const module = moduleRegistry[name];
-            // Validate module has metadata before registering
-            if (!module || !module.metadata || !module.metadata.id) {
-              logger.error(`[Boot] Invalid module structure for ${name}: missing metadata.id`);
-              logger.warn(`[Boot] Skipping invalid module: ${name}`);
-              continue;
-            }
-            container.register(module);
-          } catch (e) {
-            logger.error(`[Boot] Failed to register ${name}: ${e.message}`);
-            logger.error(`[Boot] Module structure:`, moduleRegistry[name]?.metadata);
-            throw new Error(`Module registration failed for ${name}: ${e.message}`);
-          }
-        } else {
-          logger.warn(`[Boot] Module not found in registry: ${name}`);
-        }
-      }
-      logger.info(`[Boot] Registered ${category} modules`);
-    };
-
-    // Register all modules from flat array
-    logger.info(`[Boot] Registering ${levelConfig.modules.length} modules...`);
-    for (const moduleName of levelConfig.modules) {
+    // Register all modules from resolved list (includes inherited)
+    logger.info(`[Boot] Registering ${resolvedModules.length} modules...`);
+    for (const moduleName of resolvedModules) {
       if (moduleRegistry[moduleName]) {
-        container.register(moduleName, moduleRegistry[moduleName]);
+        container.register(moduleRegistry[moduleName]);
       } else {
         logger.warn(`[Boot] Module "${moduleName}" not found in registry`);
       }
@@ -158,27 +181,100 @@ import GoalHistory from './ui/goal-history.js';
     // Force resolution of critical services to trigger their init()
     const vfs = await container.resolve('VFS');
 
+    // Check if session reset was requested (default: true if not set)
+    const resetSetting = localStorage.getItem('REPLOID_RESET_VFS');
+    const shouldResetVFS = resetSetting === null || resetSetting === 'true';
+    if (shouldResetVFS) {
+      logger.info('[Boot] Session reset requested - clearing session artifacts...');
+      try {
+        // Core tools that should NOT be deleted (part of genesis)
+        const coreTools = new Set([
+          'AwaitWorkers', 'Cat', 'Cp', 'CreateTool', 'DeleteFile', 'Edit',
+          'FileOutline', 'Find', 'Git', 'Grep', 'Head', 'Jq', 'ListFiles',
+          'ListKnowledge', 'ListMemories', 'ListTools', 'ListWorkers',
+          'LoadModule', 'Ls', 'Mkdir', 'Mv', 'Pwd', 'ReadFile', 'Rm', 'Sed',
+          'SpawnWorker', 'Tail', 'Touch', 'WriteFile'
+        ]);
+
+        // Clear non-core tools
+        const allFiles = await vfs.list('/tools/');
+        for (const file of allFiles) {
+          const toolName = file.replace('/tools/', '').replace('.js', '');
+          if (!coreTools.has(toolName)) {
+            await vfs.delete(file);
+            logger.info(`[Boot] Deleted session artifact: ${file}`);
+          }
+        }
+
+        // Clear session UI files (except core UI components)
+        const coreUIFiles = new Set([
+          'proto.js', 'toast.js', 'command-palette.js'
+        ]);
+        const uiFiles = await vfs.list('/ui/');
+        for (const file of uiFiles) {
+          const fileName = file.split('/').pop();
+          // Only delete files directly in /ui/, not subdirectories
+          if (!file.includes('/ui/components/') &&
+              !file.includes('/ui/dashboard/') &&
+              !file.includes('/ui/panels/') &&
+              !file.includes('/ui/boot/') &&
+              !coreUIFiles.has(fileName)) {
+            await vfs.delete(file);
+            logger.info(`[Boot] Deleted session artifact: ${file}`);
+          }
+        }
+
+        // Clear agent-created capabilities (files directly in /capabilities/, not in subdirs)
+        const capFiles = await vfs.list('/capabilities/');
+        for (const file of capFiles) {
+          // Core capabilities are in subdirectories (cognition/, reflection/, system/, etc.)
+          // Agent-created go directly in /capabilities/
+          if (file.match(/^\/capabilities\/[^/]+\.js$/)) {
+            await vfs.delete(file);
+            logger.info(`[Boot] Deleted session artifact: ${file}`);
+          }
+        }
+
+        // Clear agent-created styles (non-core CSS files)
+        const coreStyles = new Set(['theme.css', 'proto.css', 'boot.css', 'vfs-explorer.css']);
+        const styleFiles = await vfs.list('/styles/');
+        for (const file of styleFiles) {
+          const fileName = file.split('/').pop();
+          if (!coreStyles.has(fileName)) {
+            await vfs.delete(file);
+            logger.info(`[Boot] Deleted session artifact: ${file}`);
+          }
+        }
+
+        logger.info('[Boot] Session reset complete');
+        // Clear the flag after reset (one-time action)
+        localStorage.setItem('REPLOID_RESET_VFS', 'false');
+      } catch (e) {
+        logger.warn('[Boot] Session reset failed:', e.message);
+      }
+    }
+
     const seedCodeIntel = async () => {
-      const toolPath = '/tools/code_intel.js';
+      const toolPath = '/tools/FileOutline.js';
       if (await vfs.exists(toolPath)) return;
 
-      logger.info('[Boot] Seeding code_intel tool...');
+      logger.info('[Boot] Seeding FileOutline tool...');
       try {
-        const toolResp = await fetch('./tools/code_intel.js');
+        const toolResp = await fetch('./tools/FileOutline.js');
         if (!toolResp.ok) {
-          logger.warn('[Boot] code_intel.js not found on server, skipping seed.');
+          logger.warn('[Boot] FileOutline.js not found on server, skipping seed.');
           return;
         }
         const toolCode = await toolResp.text();
         await vfs.write(toolPath, toolCode);
-        logger.info('[Boot] Seeding complete: code_intel.js');
+        logger.info('[Boot] Seeding complete: FileOutline.js');
       } catch (e) {
-        logger.error('[Boot] Failed to seed code_intel', e);
+        logger.error('[Boot] Failed to seed FileOutline', e);
       }
     };
 
     await seedCodeIntel();
-    await seedWorkspaceFiles(vfs, genesisConfig);
+    await seedWorkspaceFiles(vfs, genesisConfig, resolvedModules);
 
     // Create genesis snapshot AFTER full VFS hydration
     logger.info('[Boot] Creating genesis snapshot...');
@@ -203,7 +299,17 @@ import GoalHistory from './ui/goal-history.js';
       container,
       agent,
       utils: Utils.factory(),
-      vfs: await container.resolve('VFS')
+      vfs: await container.resolve('VFS'),
+      // Pre-resolve commonly needed modules for sync access by tools
+      transformersClient: await container.resolve('TransformersClient').catch(() => null),
+      llmClient: await container.resolve('LLMClient'),
+      toolRunner: await container.resolve('ToolRunner')
+    };
+
+    // Expose DI helper for sync module access (convenience wrapper)
+    window.REPLOID_DI = {
+      get: (name) => window.REPLOID[name.charAt(0).toLowerCase() + name.slice(1)] || null,
+      resolve: (name) => container.resolve(name)
     };
 
     // Export function for downloading full REPLOID state
@@ -307,90 +413,128 @@ import GoalHistory from './ui/goal-history.js';
       });
     }
 
+    // Awaken function - can be triggered by button click or iframe message
+    const triggerAwaken = async (overrideGoal) => {
+      try {
+        // Use override goal (from parent iframe) or get from input
+        const goal = overrideGoal || goalInput?.value?.trim() || '';
+        if (goal) {
+          localStorage.setItem('REPLOID_GOAL', goal);
+          // Add to goal history (skip for iframe children)
+          if (!isIframeChild) {
+            GoalHistory.add(goal);
+          }
+        }
+
+        const { default: Proto } = await import('./ui/proto.js');
+
+        let workerManager = null;
+        try {
+          workerManager = await container.resolve('WorkerManager');
+        } catch (e) {
+          logger.debug('[Boot] WorkerManager not available:', e.message);
+        }
+
+        const proto = Proto.factory({
+          Utils: Utils.factory(),
+          EventBus: await container.resolve('EventBus'),
+          AgentLoop: agent,
+          StateManager: await container.resolve('StateManager'),
+          WorkerManager: workerManager
+        });
+
+        // Remove boot screen and crosshair before mounting dashboard
+        const bootContainer = document.getElementById('boot-container');
+        if (bootContainer) {
+          bootContainer.remove();
+        }
+
+        // Remove crosshair lines
+        ['tl', 'tr', 'bl', 'br'].forEach(corner => {
+          const line = document.getElementById(`reticle-${corner}`);
+          if (line) line.remove();
+        });
+
+        // Remove grid pattern overlay
+        document.body.classList.add('no-grid-pattern');
+
+        const appEl = document.getElementById('app');
+        appEl.classList.add('active');
+        proto.mount(appEl);
+
+        // Pass VFS to proto for browser
+        proto.setVFS(vfs);
+
+        // Wire up refresh button
+        const refreshBtn = document.getElementById('vfs-refresh');
+        if (refreshBtn) {
+          refreshBtn.onclick = () => proto.refreshVFS();
+        }
+
+        logger.info('[Boot] UI Mounted.');
+
+        // Auto-start the agent if goal is set
+        if (goal) {
+          // Get model config from localStorage
+          const savedModels = localStorage.getItem('SELECTED_MODELS');
+          const consensusStrategy = localStorage.getItem('CONSENSUS_TYPE') || 'arena';
+
+          if (savedModels) {
+            const models = JSON.parse(savedModels);
+            if (models.length > 0) {
+              // Set all models for multi-model support
+              agent.setModels(models);
+              agent.setConsensusStrategy(consensusStrategy);
+
+              logger.info(`[Boot] Configured ${models.length} model(s), consensus: ${consensusStrategy}`);
+
+              // Initialize WorkerManager with model config (FULL SUBSTRATE only)
+              if (workerManager) {
+                try {
+                  await workerManager.init(genesisConfig);
+                  workerManager.setModelConfig(models[0]);
+                  logger.info('[Boot] WorkerManager initialized with model config');
+                } catch (e) {
+                  logger.warn('[Boot] WorkerManager init failed:', e.message);
+                }
+              }
+            }
+          }
+
+          logger.info('[Boot] Starting agent with goal: ' + goal);
+          agent.run(goal).catch(e => {
+            logger.error('[Boot] Agent error: ' + e.message);
+          });
+        }
+      } catch (e) {
+        logger.error('[Boot] UI failed to load', {
+          message: e.message,
+          stack: e.stack
+        });
+      }
+    };
+
     if (awakenBtn) {
       // Enable the button now that system is ready
       awakenBtn.disabled = false;
       awakenBtn.textContent = 'Awaken Agent';
 
-      awakenBtn.addEventListener('click', async () => {
-        try {
-          // Save goal from boot screen
-          const goal = goalInput?.value?.trim() || '';
-          if (goal) {
-            localStorage.setItem('REPLOID_GOAL', goal);
-            // Add to goal history
-            GoalHistory.add(goal);
+      awakenBtn.addEventListener('click', () => triggerAwaken());
+
+      // Iframe child mode: auto-awaken when goal received from parent
+      if (isIframeChild) {
+        systemReadyCallback = () => {
+          if (pendingParentGoal) {
+            logger.info('[Boot] Auto-awakening as iframe child with parent goal');
+            triggerAwaken(pendingParentGoal);
           }
+        };
 
-          const { default: Proto } = await import('./ui/proto.js');
-          const proto = Proto.factory({
-            Utils: Utils.factory(),
-            EventBus: await container.resolve('EventBus'),
-            AgentLoop: agent,
-            StateManager: await container.resolve('StateManager')
-          });
-
-          // Remove boot screen and crosshair before mounting dashboard
-          const bootContainer = document.getElementById('boot-container');
-          if (bootContainer) {
-            bootContainer.remove();
-          }
-
-          // Remove crosshair lines
-          ['tl', 'tr', 'bl', 'br'].forEach(corner => {
-            const line = document.getElementById(`reticle-${corner}`);
-            if (line) line.remove();
-          });
-
-          // Remove grid pattern overlay
-          document.body.classList.add('no-grid-pattern');
-
-          const appEl = document.getElementById('app');
-          appEl.classList.add('active');
-          proto.mount(appEl);
-
-          // Pass VFS to proto for browser
-          proto.setVFS(vfs);
-
-          // Wire up refresh button
-          const refreshBtn = document.getElementById('vfs-refresh');
-          if (refreshBtn) {
-            refreshBtn.onclick = () => proto.refreshVFS();
-          }
-
-          logger.info('[Boot] UI Mounted.');
-
-          // CLI tools are now available as agent tool calls (no separate UI mode needed)
-
-          // Auto-start the agent if goal is set
-          if (goal) {
-            // Get model config from localStorage
-            const savedModels = localStorage.getItem('SELECTED_MODELS');
-            const consensusStrategy = localStorage.getItem('CONSENSUS_TYPE') || 'arena';
-
-            if (savedModels) {
-              const models = JSON.parse(savedModels);
-              if (models.length > 0) {
-                // Set all models for multi-model support
-                agent.setModels(models);
-                agent.setConsensusStrategy(consensusStrategy);
-
-                logger.info(`[Boot] Configured ${models.length} model(s), consensus: ${consensusStrategy}`);
-              }
-            }
-
-            logger.info('[Boot] Starting agent with goal: ' + goal);
-            agent.run(goal).catch(e => {
-              logger.error('[Boot] Agent error: ' + e.message);
-            });
-          }
-        } catch (e) {
-          logger.error('[Boot] UI failed to load', {
-            message: e.message,
-            stack: e.stack
-          });
+        // If goal already received before system ready, trigger now
+        if (pendingParentGoal) {
+          systemReadyCallback();
         }
-      });
+      }
     } else {
       // Headless mode - no awaken button
       logger.warn('[Boot] Running in headless mode (no awaken button)');
@@ -406,44 +550,55 @@ import GoalHistory from './ui/goal-history.js';
   }
 })();
 
-async function seedWorkspaceFiles(vfs, genesisConfig) {
-  try {
-    const logger = Utils.factory().logger;
+async function seedWorkspaceFiles(vfs, genesisConfig, resolvedModules) {
+  const logger = Utils.factory().logger;
 
+  try {
     logger.info('[Boot] Beginning full VFS hydration (self-hosting mode)...');
 
-    // Seed ALL module imports (core, infrastructure, capabilities, testing)
-    const filesToSeed = new Set(Object.values(genesisConfig?.moduleImports || {}));
+    // Build file list based on resolved modules + shared files
+    const filesToSeed = new Set();
+    const moduleFiles = genesisConfig?.moduleFiles || {};
+    const sharedFiles = genesisConfig?.sharedFiles || {};
+
+    // 1. Add files for each resolved module
+    for (const moduleName of resolvedModules) {
+      const files = moduleFiles[moduleName];
+      if (files) {
+        for (const file of files) {
+          filesToSeed.add(file);
+        }
+      }
+    }
+
+    // 2. Add shared files (tools, ui, styles - always needed)
+    for (const category of Object.keys(sharedFiles)) {
+      for (const file of sharedFiles[category]) {
+        filesToSeed.add(file);
+      }
+    }
 
     // NOTE: Entry points (boot.js, index.html, sw-module-loader.js) should NOT be in VFS
     // They must be served from network to enable proper genesis snapshots
     // Config files also load from network (not VFS) to allow runtime reconfiguration
 
-    // Add ALL tools
-    filesToSeed.add('./tools/code_intel.js');
-    const fileTools = [
-      'search_content', 'find_by_name', 'git',
-      'create_directory', 'remove', 'move', 'copy'
-    ];
-    fileTools.forEach(tool => filesToSeed.add(`./tools/${tool}.js`));
-
-    // Add runtime UI (agent's interface to operator)
-    filesToSeed.add('./ui/proto.js');
-
-    // NOTE: Boot screen UI (model-config, goal-history) loads from network, not VFS
-    // These are pre-agent bootstrap interfaces, not runtime agent UI
-    // NOTE: Styles (theme.css, boot.css, proto.css) load from network, not VFS
-    // These are static CSS assets that should not be in genesis snapshots
-    // NOTE: Config files (genesis-levels.json) load from network, not VFS
-    // This allows runtime reconfiguration without VFS snapshots
-
-    logger.info(`[Boot] Hydrating ${filesToSeed.size} files into VFS...`);
+    logger.info(`[Boot] Hydrating ${filesToSeed.size} files for ${resolvedModules.length} modules...`);
 
     for (const file of filesToSeed) {
-      const webPath = toWebPath(file);
-      const vfsPath = webPath.replace(/^\.\//, '/');
-      const needsHydration = await shouldHydrateFile(vfs, vfsPath);
-      if (!needsHydration) continue;
+      const webPath = file.startsWith('./') ? file : `./${file}`;
+      const vfsPath = '/' + file.replace(/^\.\//, '');
+
+      // Skip if already exists (unless it's FileOutline which may need updating)
+      const exists = await vfs.exists(vfsPath);
+      if (exists && vfsPath !== '/tools/FileOutline.js') continue;
+
+      // Check if FileOutline needs updating (old version had zod import)
+      if (exists && vfsPath === '/tools/FileOutline.js') {
+        try {
+          const code = await vfs.read(vfsPath);
+          if (!code.includes('import { z')) continue;
+        } catch { /* proceed with hydration */ }
+      }
 
       try {
         const resp = await fetch(webPath);
@@ -458,28 +613,7 @@ async function seedWorkspaceFiles(vfs, genesisConfig) {
         logger.warn(`[Boot] Failed to hydrate ${webPath}`, err);
       }
     }
-
-    // Helper ensures VFS path is considered
-    function toWebPath(path) {
-      if (path.startsWith('./')) return path;
-      if (path.startsWith('/')) return `.${path}`;
-      return `./${path}`;
-    }
-
-    async function shouldHydrateFile(vfs, path) {
-      if (!(await vfs.exists(path))) return true;
-      if (path !== '/tools/code_intel.js') return false;
-      try {
-        const code = await vfs.read(path);
-        return code.includes('import { z');
-      } catch {
-        return true;
-      }
-    }
   } catch (err) {
-    const logger = Utils.factory().logger;
     logger.warn('[Boot] Workspace hydration skipped', err);
   }
-
-
 }

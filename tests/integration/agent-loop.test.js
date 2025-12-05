@@ -249,9 +249,9 @@ describe('AgentLoop - Integration Tests', () => {
         iteration++;
         if (iteration === 1) {
           mockResponseParser.parseToolCalls.mockReturnValue([
-            { name: 'read_file', args: { path: '/test.txt' } }
+            { name: 'ReadFile', args: { path: '/test.txt' } }
           ]);
-          return Promise.resolve({ content: 'TOOL_CALL: read_file\nARGS: {"path":"/test.txt"}' });
+          return Promise.resolve({ content: 'TOOL_CALL: ReadFile\nARGS: {"path":"/test.txt"}' });
         }
         mockResponseParser.parseToolCalls.mockReturnValue([]);
         mockResponseParser.isDone.mockReturnValue(true);
@@ -262,7 +262,7 @@ describe('AgentLoop - Integration Tests', () => {
 
       await agentLoop.run('Read a file');
 
-      expect(mockToolRunner.execute).toHaveBeenCalledWith('read_file', { path: '/test.txt' });
+      expect(mockToolRunner.execute).toHaveBeenCalledWith('ReadFile', { path: '/test.txt' });
     });
 
     it('should add tool result to context', async () => {
@@ -271,9 +271,9 @@ describe('AgentLoop - Integration Tests', () => {
         chatCalls.push([...ctx]);
         if (chatCalls.length === 1) {
           mockResponseParser.parseToolCalls.mockReturnValue([
-            { name: 'list_files', args: { path: '/' } }
+            { name: 'ListFiles', args: { path: '/' } }
           ]);
-          return Promise.resolve({ content: 'TOOL_CALL: list_files' });
+          return Promise.resolve({ content: 'TOOL_CALL: ListFiles' });
         }
         mockResponseParser.parseToolCalls.mockReturnValue([]);
         mockResponseParser.isDone.mockReturnValue(true);
@@ -288,7 +288,7 @@ describe('AgentLoop - Integration Tests', () => {
       const secondCallCtx = chatCalls[1];
       const toolResultMsg = secondCallCtx.find(m => m.content?.includes('TOOL_RESULT'));
       expect(toolResultMsg).toBeDefined();
-      expect(toolResultMsg.content).toContain('list_files');
+      expect(toolResultMsg.content).toContain('ListFiles');
     });
 
     it('should emit tool events', async () => {
@@ -297,7 +297,7 @@ describe('AgentLoop - Integration Tests', () => {
         iteration++;
         if (iteration === 1) {
           mockResponseParser.parseToolCalls.mockReturnValue([
-            { name: 'write_file', args: { path: '/out.txt', content: 'Hello' } }
+            { name: 'WriteFile', args: { path: '/out.txt', content: 'Hello' } }
           ]);
           return Promise.resolve({ content: 'Writing file' });
         }
@@ -312,7 +312,7 @@ describe('AgentLoop - Integration Tests', () => {
 
       expect(mockEventBus.emit).toHaveBeenCalledWith('agent:history', expect.objectContaining({
         type: 'tool_result',
-        tool: 'write_file'
+        tool: 'WriteFile'
       }));
     });
 
@@ -322,7 +322,7 @@ describe('AgentLoop - Integration Tests', () => {
         iteration++;
         if (iteration === 1) {
           mockResponseParser.parseToolCalls.mockReturnValue([
-            { name: 'delete_file', args: { path: '/missing.txt' } }
+            { name: 'DeleteFile', args: { path: '/missing.txt' } }
           ]);
           return Promise.resolve({ content: 'Deleting file' });
         }
@@ -336,7 +336,7 @@ describe('AgentLoop - Integration Tests', () => {
       await agentLoop.run('Delete file');
 
       expect(mockEventBus.emit).toHaveBeenCalledWith('tool:error', expect.objectContaining({
-        tool: 'delete_file',
+        tool: 'DeleteFile',
         error: 'File not found'
       }));
     });
@@ -456,7 +456,7 @@ describe('AgentLoop - Integration Tests', () => {
         iteration++;
         if (iteration === 1) {
           mockResponseParser.parseToolCalls.mockReturnValue([
-            { name: 'read_file', args: { path: '/test.txt' } }
+            { name: 'ReadFile', args: { path: '/test.txt' } }
           ]);
           return Promise.resolve({ content: 'Reading' });
         }
@@ -471,7 +471,7 @@ describe('AgentLoop - Integration Tests', () => {
 
       expect(mockReflectionStore.add).toHaveBeenCalledWith(expect.objectContaining({
         type: 'success',
-        content: expect.stringContaining('read_file')
+        content: expect.stringContaining('ReadFile')
       }));
     });
 
@@ -481,7 +481,7 @@ describe('AgentLoop - Integration Tests', () => {
         iteration++;
         if (iteration === 1) {
           mockResponseParser.parseToolCalls.mockReturnValue([
-            { name: 'write_file', args: {} }
+            { name: 'WriteFile', args: {} }
           ]);
           return Promise.resolve({ content: 'Writing' });
         }

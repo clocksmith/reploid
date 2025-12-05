@@ -684,7 +684,7 @@ describe('AutonomousOrchestrator', () => {
 - Rank by complexity/impact
 - Surface best proposals first in UI
 
-**2. Git Worktree Isolation:**
+**2. git Worktree Isolation:**
 - Run in isolated worktree `/worktrees/curator-lab/`
 - Can be discarded entirely if all proposals are bad
 - Branch: `curator-YYYY-MM-DD`
@@ -711,7 +711,7 @@ describe('AutonomousOrchestrator', () => {
     "iterationDelay": 5000,
 
     // Future extensions
-    "useGitWorktree": true,
+    "usegitWorktree": true,
     "worktreePath": "/worktrees/curator-lab/",
     "autoRankProposals": true,
     "parallelGoals": false,
@@ -729,7 +729,7 @@ describe('AutonomousOrchestrator', () => {
 | **Context Approval** | Human | Auto | Auto |
 | **Proposal Approval** | Human | Human | Auto (with tests) |
 | **Changes Applied** | Manual | Manual | Auto (in worktree) |
-| **Git Isolation** | None | None | Worktree |
+| **git Isolation** | None | None | Worktree |
 | **Safety Level** | High | High | Medium |
 | **Overnight Use** | No | Yes | Yes |
 | **Max Proposals** | Unlimited | 7 per goal | 25 total |
@@ -822,7 +822,7 @@ await AutonomousOrchestrator.startCuratorMode([
 3. Click proposal paths to open `.dogs.md` files
 4. Selectively approve best proposals (e.g., 5 out of 21)
 5. Apply approved changes via Sentinel Agent
-6. Commit results to Git
+6. Commit results to git
 
 ---
 
@@ -838,7 +838,7 @@ The Autonomous Orchestrator (Curator Mode) enables REPLOID to operate overnight,
 - ✓ Fully integrated with Sentinel Agent FSM
 
 **Future Evolution:**
-- Git worktree isolation (Sandbox Lab Mode)
+- git worktree isolation (Sandbox Lab Mode)
 - Multi-agent swarm coordination
 - Auto-ranking of proposals by quality
 - Smart goal suggestion based on reflection history

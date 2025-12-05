@@ -3,7 +3,7 @@
     "UserPromptSubmit": [],
     "PostToolUse": [
       {
-        "matcher": "Write|Edit",
+        "matcher": "Write|edit",
         "hooks": [
           {
             "type": "command",

@@ -180,7 +180,7 @@ describe('AuditLogger', () => {
 
   describe('logAgentAction', () => {
     it('should log agent actions with correct format', async () => {
-      await auditLogger.logAgentAction('EXECUTE', 'read_file', { path: '/test.txt' });
+      await auditLogger.logAgentAction('EXECUTE', 'ReadFile', { path: '/test.txt' });
 
       const content = mockVFS.write.mock.calls[0][1];
       const entry = JSON.parse(content.trim());
@@ -188,7 +188,7 @@ describe('AuditLogger', () => {
       expect(entry.type).toBe('AGENT_ACTION');
       expect(entry.data).toEqual({
         action: 'EXECUTE',
-        tool: 'read_file',
+        tool: 'ReadFile',
         args: { path: '/test.txt' }
       });
     });

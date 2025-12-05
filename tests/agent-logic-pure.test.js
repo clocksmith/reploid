@@ -176,14 +176,14 @@ test('getToolListSummaryPure: Returns error when truncFn is null', () => {
 
 test('getToolListSummaryPure: Formats static tools correctly', () => {
   const staticTools = [
-    { name: 'read_file', description: 'Read file contents' },
-    { name: 'write_file', description: 'Write file contents' }
+    { name: 'ReadFile', description: 'Read file contents' },
+    { name: 'WriteFile', description: 'Write file contents' }
   ];
   const truncFn = (text, len) => text.substring(0, len);
 
   const result = helpers.getToolListSummaryPure(staticTools, [], truncFn);
-  assertIncludes(result, '[S] read_file: Read file contents');
-  assertIncludes(result, '[S] write_file: Write file contents');
+  assertIncludes(result, '[S] ReadFile: Read file contents');
+  assertIncludes(result, '[S] WriteFile: Write file contents');
 });
 
 test('getToolListSummaryPure: Truncates long descriptions', () => {
@@ -244,11 +244,11 @@ test('assembleCorePromptPure: Replaces TOOL_LIST placeholder', () => {
   const template = "Tools:\n[[TOOL_LIST]]";
   const state = { totalCycles: 0 };
   const goalInfo = { latestGoal: '' };
-  const toolList = "* read_file\n* write_file";
+  const toolList = "* ReadFile\n* WriteFile";
 
   const result = helpers.assembleCorePromptPure(template, state, goalInfo, '', toolList);
-  assertIncludes(result.prompt, "* read_file");
-  assertIncludes(result.prompt, "* write_file");
+  assertIncludes(result.prompt, "* ReadFile");
+  assertIncludes(result.prompt, "* WriteFile");
 });
 
 test('assembleCorePromptPure: Replaces ARTIFACT_LIST placeholder', () => {
@@ -289,12 +289,12 @@ Artifacts: [[ARTIFACT_LIST]]`;
   const state = { totalCycles: 10 };
   const goalInfo = { latestGoal: 'Test goal' };
   const artifactList = '* test.js';
-  const toolList = '* read_file';
+  const toolList = '* ReadFile';
 
   const result = helpers.assembleCorePromptPure(template, state, goalInfo, artifactList, toolList);
   assertIncludes(result.prompt, "Cycle: 10");
   assertIncludes(result.prompt, "Goal: Test goal");
-  assertIncludes(result.prompt, "Tools: * read_file");
+  assertIncludes(result.prompt, "Tools: * ReadFile");
   assertIncludes(result.prompt, "Artifacts: * test.js");
 });
 

@@ -385,13 +385,13 @@ const widget = {
        - Emit `hitl:approval-pending`
        - Set timeout if specified (auto-reject on timeout)
    - Implement `handleApprove({ approvalId, data })`:
-     - Find item in queue by `approvalId`
+     - find item in queue by `approvalId`
      - Update `status = 'approved'`
      - Call `onApprove(data || item.data)`
      - Remove from queue
      - Emit `hitl:approval-granted`
    - Implement `handleReject({ approvalId, reason })`:
-     - Find item in queue by `approvalId`
+     - find item in queue by `approvalId`
      - Update `status = 'rejected'`, store `rejectionReason`
      - Call `onReject(reason)`
      - Remove from queue

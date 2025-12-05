@@ -37,7 +37,7 @@ Use these Unicode symbols instead of emojis throughout the codebase for a consis
 | Symbol | Name | Usage |
 |--------|------|-------|
 | ⚲ | NEUTER | Search, find |
-| ✎ | LOWER RIGHT PENCIL | Edit, modify |
+| ✎ | LOWER RIGHT PENCIL | edit, modify |
 | ✄ | WHITE SCISSORS | Cut, delete |
 | ☩ | CROSS OF JERUSALEM | Add, create, new |
 | ☇ | LIGHTNING | Execute, run, action |

@@ -6,7 +6,7 @@
 const ReflectionAnalyzer = {
   metadata: {
     id: 'ReflectionAnalyzer',
-    version: '1.0.1',
+    version: '1.0.0',
     dependencies: ['ReflectionStore', 'Utils'],
     async: true,
     type: 'intelligence'

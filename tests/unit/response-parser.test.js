@@ -133,7 +133,7 @@ describe('ResponseParser', () => {
       it('should parse a single tool call with simple args', () => {
         const text = `I'll read the file now.
 
-TOOL_CALL: read_file
+TOOL_CALL: ReadFile
 ARGS: { "path": "/test.txt" }
 
 Let me check the contents.`;
@@ -141,7 +141,7 @@ Let me check the contents.`;
         const calls = responseParser.parseToolCalls(text);
 
         expect(calls).toHaveLength(1);
-        expect(calls[0].name).toBe('read_file');
+        expect(calls[0].name).toBe('ReadFile');
         expect(calls[0].args).toEqual({ path: '/test.txt' });
         expect(calls[0].error).toBeUndefined();
       });
@@ -149,12 +149,12 @@ Let me check the contents.`;
       it('should parse multiple tool calls in sequence', () => {
         const text = `Let me do multiple things.
 
-TOOL_CALL: read_file
+TOOL_CALL: ReadFile
 ARGS: { "path": "/first.txt" }
 
 Now another:
 
-TOOL_CALL: write_file
+TOOL_CALL: WriteFile
 ARGS: { "path": "/output.txt", "content": "Hello" }
 
 Done.`;
@@ -162,28 +162,28 @@ Done.`;
         const calls = responseParser.parseToolCalls(text);
 
         expect(calls).toHaveLength(2);
-        expect(calls[0].name).toBe('read_file');
+        expect(calls[0].name).toBe('ReadFile');
         expect(calls[0].args.path).toBe('/first.txt');
-        expect(calls[1].name).toBe('write_file');
+        expect(calls[1].name).toBe('WriteFile');
         expect(calls[1].args.path).toBe('/output.txt');
         expect(calls[1].args.content).toBe('Hello');
       });
 
       it('should parse tool call with nested JSON args', () => {
-        const text = `TOOL_CALL: create_tool
-ARGS: { "name": "my_tool", "config": { "nested": { "deep": true }, "array": [1, 2, 3] } }`;
+        const text = `TOOL_CALL: CreateTool
+ARGS: { "name": "MyTool", "config": { "nested": { "deep": true }, "array": [1, 2, 3] } }`;
 
         const calls = responseParser.parseToolCalls(text);
 
         expect(calls).toHaveLength(1);
-        expect(calls[0].name).toBe('create_tool');
-        expect(calls[0].args.name).toBe('my_tool');
+        expect(calls[0].name).toBe('CreateTool');
+        expect(calls[0].args.name).toBe('MyTool');
         expect(calls[0].args.config.nested.deep).toBe(true);
         expect(calls[0].args.config.array).toEqual([1, 2, 3]);
       });
 
       it('should parse tool call with multiline string content', () => {
-        const text = `TOOL_CALL: write_file
+        const text = `TOOL_CALL: WriteFile
 ARGS: { "path": "/code.js", "content": "function hello() {\\n  console.log(\\"Hello\\");\\n}" }`;
 
         const calls = responseParser.parseToolCalls(text);
@@ -203,18 +203,18 @@ ARGS: { "key": "value" }`;
       });
 
       it('should handle empty args object', () => {
-        const text = `TOOL_CALL: list_files
+        const text = `TOOL_CALL: ListFiles
 ARGS: {}`;
 
         const calls = responseParser.parseToolCalls(text);
 
         expect(calls).toHaveLength(1);
-        expect(calls[0].name).toBe('list_files');
+        expect(calls[0].name).toBe('ListFiles');
         expect(calls[0].args).toEqual({});
       });
 
       it('should handle args with special characters in strings', () => {
-        const text = `TOOL_CALL: write_file
+        const text = `TOOL_CALL: WriteFile
 ARGS: { "path": "/test.txt", "content": "Special chars: \\"quotes\\", \\\\backslash, \\n newline" }`;
 
         const calls = responseParser.parseToolCalls(text);
@@ -224,13 +224,13 @@ ARGS: { "path": "/test.txt", "content": "Special chars: \\"quotes\\", \\\\backsl
       });
 
       it('should handle whitespace variations in format', () => {
-        const text = `TOOL_CALL:   read_file
+        const text = `TOOL_CALL:   ReadFile
 ARGS:   { "path" : "/test.txt" }`;
 
         const calls = responseParser.parseToolCalls(text);
 
         expect(calls).toHaveLength(1);
-        expect(calls[0].name).toBe('read_file');
+        expect(calls[0].name).toBe('ReadFile');
       });
     });
 
@@ -253,7 +253,7 @@ ARGS:   { "path" : "/test.txt" }`;
       });
 
       it('should handle tool call without ARGS section', () => {
-        const text = `TOOL_CALL: read_file
+        const text = `TOOL_CALL: ReadFile
 Some other text here`;
 
         const calls = responseParser.parseToolCalls(text);
@@ -262,13 +262,13 @@ Some other text here`;
       });
 
       it('should handle malformed JSON in args with error', () => {
-        const text = `TOOL_CALL: read_file
+        const text = `TOOL_CALL: ReadFile
 ARGS: { invalid json here }`;
 
         const calls = responseParser.parseToolCalls(text);
 
         expect(calls).toHaveLength(1);
-        expect(calls[0].name).toBe('read_file');
+        expect(calls[0].name).toBe('ReadFile');
         // Depending on sanitizeLlmJsonRespPure behavior, either error is set or args is empty
         if (calls[0].error) {
           expect(calls[0].error).toContain('JSON Parse Error');
@@ -280,7 +280,7 @@ ARGS: { invalid json here }`;
       });
 
       it('should handle ARGS without opening brace', () => {
-        const text = `TOOL_CALL: read_file
+        const text = `TOOL_CALL: ReadFile
 ARGS: not json`;
 
         const calls = responseParser.parseToolCalls(text);
@@ -290,7 +290,7 @@ ARGS: not json`;
       });
 
       it('should handle incomplete JSON (unclosed brace)', () => {
-        const text = `TOOL_CALL: read_file
+        const text = `TOOL_CALL: ReadFile
 ARGS: { "path": "/test.txt"`;
 
         const calls = responseParser.parseToolCalls(text);
@@ -308,7 +308,7 @@ ARGS: { "path": "/test.txt"`;
     describe('edge cases', () => {
       it('should handle very long content in args', () => {
         const longContent = 'x'.repeat(10000);
-        const text = `TOOL_CALL: write_file
+        const text = `TOOL_CALL: WriteFile
 ARGS: { "path": "/big.txt", "content": "${longContent}" }`;
 
         const calls = responseParser.parseToolCalls(text);
@@ -318,7 +318,7 @@ ARGS: { "path": "/big.txt", "content": "${longContent}" }`;
       });
 
       it('should handle JSON with unicode characters', () => {
-        const text = `TOOL_CALL: write_file
+        const text = `TOOL_CALL: WriteFile
 ARGS: { "path": "/unicode.txt", "content": "Hello 世界 🌍 émojis" }`;
 
         const calls = responseParser.parseToolCalls(text);
@@ -329,13 +329,13 @@ ARGS: { "path": "/unicode.txt", "content": "Hello 世界 🌍 émojis" }`;
       });
 
       it('should handle mixed valid and invalid tool calls', () => {
-        const text = `TOOL_CALL: read_file
+        const text = `TOOL_CALL: ReadFile
 ARGS: { "path": "/valid.txt" }
 
 TOOL_CALL: bad_tool
 ARGS: { broken }
 
-TOOL_CALL: write_file
+TOOL_CALL: WriteFile
 ARGS: { "path": "/also-valid.txt", "content": "ok" }`;
 
         const calls = responseParser.parseToolCalls(text);
@@ -383,7 +383,7 @@ ARGS: { "int": 42, "float": 3.14, "negative": -10 }`;
 
       it('should handle backtick template literals with braces inside', () => {
         // This is the case where LLM uses backticks for code content containing { }
-        const text = `TOOL_CALL: write_file
+        const text = `TOOL_CALL: WriteFile
 ARGS: { "path": "/tools/test.js", "content": \`export default async (args) => {
   return { result: args.value };
 }\` }`;
@@ -391,14 +391,14 @@ ARGS: { "path": "/tools/test.js", "content": \`export default async (args) => {
         const calls = responseParser.parseToolCalls(text);
 
         expect(calls).toHaveLength(1);
-        expect(calls[0].name).toBe('write_file');
+        expect(calls[0].name).toBe('WriteFile');
         expect(calls[0].args.path).toBe('/tools/test.js');
         expect(calls[0].args.content).toContain('export default');
         expect(calls[0].args.content).toContain('return { result:');
       });
 
       it('should handle backtick strings with embedded double quotes', () => {
-        const text = `TOOL_CALL: write_file
+        const text = `TOOL_CALL: WriteFile
 ARGS: { "path": "/test.js", "content": \`const msg = "hello world";\` }`;
 
         const calls = responseParser.parseToolCalls(text);
@@ -408,7 +408,7 @@ ARGS: { "path": "/test.js", "content": \`const msg = "hello world";\` }`;
       });
 
       it('should handle backtick strings with literal newlines', () => {
-        const text = `TOOL_CALL: write_file
+        const text = `TOOL_CALL: WriteFile
 ARGS: { "path": "/test.txt", "content": \`line1
 line2
 line3\` }`;

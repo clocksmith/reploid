@@ -180,12 +180,12 @@ describe('Reflection System - Integration Tests', () => {
       await reflectionStore.add({
         type: 'error',
         content: 'Tool failed',
-        context: { tool: 'read_file', cycle: 5, outcome: 'failed' }
+        context: { tool: 'ReadFile', cycle: 5, outcome: 'failed' }
       });
 
       const reflections = await reflectionStore.getReflections();
       expect(reflections[0].context).toEqual({
-        tool: 'read_file',
+        tool: 'ReadFile',
         cycle: 5,
         outcome: 'failed'
       });
@@ -223,9 +223,9 @@ describe('Reflection System - Integration Tests', () => {
   describe('ReflectionStore.query', () => {
     beforeEach(async () => {
       await reflectionStore.init();
-      await reflectionStore.add({ type: 'error', content: 'Error 1', context: { tool: 'read_file' } });
-      await reflectionStore.add({ type: 'success', content: 'Success 1', context: { tool: 'write_file' } });
-      await reflectionStore.add({ type: 'error', content: 'Error 2', context: { tool: 'list_files' } });
+      await reflectionStore.add({ type: 'error', content: 'Error 1', context: { tool: 'ReadFile' } });
+      await reflectionStore.add({ type: 'success', content: 'Success 1', context: { tool: 'WriteFile' } });
+      await reflectionStore.add({ type: 'error', content: 'Error 2', context: { tool: 'ListFiles' } });
     });
 
     it('should filter reflections by custom function', () => {
@@ -236,7 +236,7 @@ describe('Reflection System - Integration Tests', () => {
     });
 
     it('should filter by context properties', () => {
-      const readFileRefs = reflectionStore.query(r => r.context?.tool === 'read_file');
+      const readFileRefs = reflectionStore.query(r => r.context?.tool === 'ReadFile');
 
       expect(readFileRefs).toHaveLength(1);
       expect(readFileRefs[0].content).toBe('Error 1');
@@ -410,20 +410,20 @@ describe('Reflection System - Integration Tests', () => {
       // Simulate agent learning from errors
       await reflectionStore.add({
         type: 'error',
-        content: 'Tool read_file',
-        context: { tool: 'read_file', cycle: 1, outcome: 'failed' }
+        content: 'Tool ReadFile',
+        context: { tool: 'ReadFile', cycle: 1, outcome: 'failed' }
       });
 
       await reflectionStore.add({
         type: 'error',
-        content: 'Tool read_file',
-        context: { tool: 'read_file', cycle: 2, outcome: 'failed' }
+        content: 'Tool ReadFile',
+        context: { tool: 'ReadFile', cycle: 2, outcome: 'failed' }
       });
 
       await reflectionStore.add({
         type: 'success',
-        content: 'Tool write_file',
-        context: { tool: 'write_file', cycle: 3, outcome: 'successful' }
+        content: 'Tool WriteFile',
+        context: { tool: 'WriteFile', cycle: 3, outcome: 'successful' }
       });
 
       // Analyze patterns
@@ -432,7 +432,7 @@ describe('Reflection System - Integration Tests', () => {
 
       // Query for specific insights
       const readFileErrors = reflectionStore.query(r =>
-        r.type === 'error' && r.context?.tool === 'read_file'
+        r.type === 'error' && r.context?.tool === 'ReadFile'
       );
       expect(readFileErrors).toHaveLength(2);
 

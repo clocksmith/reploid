@@ -42,7 +42,7 @@ class StorageIndexedDBWidget extends HTMLElement {
 
   connectedCallback() {
     this.render();
-    // 5-second refresh for Git VFS monitoring
+    // 5-second refresh for git VFS monitoring
     this._updateInterval = setInterval(() => this.render(), 5000);
   }
 
@@ -65,7 +65,7 @@ class StorageIndexedDBWidget extends HTMLElement {
       primaryMetric: `${_commitCount} commits`,
       secondaryMetric: `${totalOps} operations`,
       lastActivity: _lastOperationTime,
-      message: 'Git-powered VFS'
+      message: 'git-powered VFS'
     };
   }
 
@@ -78,10 +78,10 @@ class StorageIndexedDBWidget extends HTMLElement {
     this.shadowRoot.innerHTML = `
       <style>/* Shadow DOM styles */</style>
       <div class="widget-content">
-        <!-- Git VFS statistics (commits, total operations) -->
+        <!-- git VFS statistics (commits, total operations) -->
         <!-- Operation breakdown with visual percentage bars (writes, reads, deletes) -->
         <!-- Last operation timestamp with relative time display -->
-        <!-- Info box explaining Git VFS storage with IndexedDB backend -->
+        <!-- Info box explaining git VFS storage with IndexedDB backend -->
       </div>
     `;
   }
@@ -94,19 +94,19 @@ if (!customElements.get(elementName)) {
 ```
 
 **Key Widget Features:**
-- **Git VFS Integration**: Built on isomorphic-git with LightningFS for IndexedDB-backed virtual filesystem
-- **Commit Tracking**: Displays total Git commits made by the agent (each write/delete creates a commit)
+- **git VFS Integration**: Built on isomorphic-git with LightningFS for IndexedDB-backed virtual filesystem
+- **Commit Tracking**: Displays total git commits made by the agent (each write/delete creates a commit)
 - **Operation Statistics**: Tracks and displays read/write/delete operation counts
 - **Operation Breakdown**: Visual percentage bars showing distribution of operation types:
-  - Writes (blue) - Files written and committed to Git
+  - Writes (blue) - Files written and committed to git
   - Reads (green) - Files read from VFS
   - Deletes (red) - Files removed and committed
 - **Last Activity Tracking**: Shows relative time since last VFS operation (e.g., "5s ago", "2m ago")
 - **Auto-Refresh**: Updates every 5 seconds to monitor ongoing VFS activity
-- **Git History API**: Exposes `getArtifactHistory()` and `getArtifactDiff()` for version control operations
-- **Automatic Commits**: Every write/delete operation auto-commits to Git with descriptive message
+- **git History API**: Exposes `getArtifactHistory()` and `getArtifactDiff()` for version control operations
+- **Automatic Commits**: Every write/delete operation auto-commits to git with descriptive message
 
-The widget provides visibility into the Git-powered persistence layer, essential for monitoring version control operations, tracking VFS activity, and debugging asynchronous storage operations.
+The widget provides visibility into the git-powered persistence layer, essential for monitoring version control operations, tracking VFS activity, and debugging asynchronous storage operations.
 
 ### 3. The Implementation Pathway
 

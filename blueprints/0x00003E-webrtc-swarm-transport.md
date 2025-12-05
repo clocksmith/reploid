@@ -80,7 +80,7 @@ const WebRTCSwarm = {
     };
 
     const delegateTask = async (task) => {
-      // Find capable peer and delegate
+      // find capable peer and delegate
     };
 
     // Web Component Widget (defined inside factory to access closure state)
@@ -175,7 +175,7 @@ const WebRTCSwarm = {
   - Message tracking for bandwidth statistics
 
 - **High-level Coordination APIs**
-  - `delegateTask(task)`: Finds capable peer based on requirements, sends task, awaits result with timeout (60s)
+  - `delegateTask(task)`: finds capable peer based on requirements, sends task, awaits result with timeout (60s)
   - `shareKnowledge(artifactId)`: Broadcasts artifact to swarm
   - `requestConsensus(proposal, timeout)`: Collects votes from peers, resolves with majority decision
   - `updateCapabilities(capabilities)`: Updates local metadata, announces presence to swarm
@@ -590,7 +590,7 @@ const delegateTask = async (task) => {
     timestamp: Date.now()
   };
 
-  // Find capable peer
+  // find capable peer
   const capablePeer = findCapablePeer(task.requirements);
 
   if (capablePeer) {

@@ -344,12 +344,12 @@ describe('Toast', () => {
     });
 
     it('should display context information', () => {
-      Toast.showErrorModal('Error', 'Details', { tool: 'read_file', cycle: 5 });
+      Toast.showErrorModal('Error', 'Details', { tool: 'ReadFile', cycle: 5 });
 
       const modal = document.getElementById('error-modal');
       const context = modal.querySelector('.error-modal-context');
 
-      expect(context.textContent).toContain('tool: read_file');
+      expect(context.textContent).toContain('tool: ReadFile');
       expect(context.textContent).toContain('cycle: 5');
     });
 

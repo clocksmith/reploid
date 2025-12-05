@@ -25,7 +25,7 @@ This blueprint defines an interactive diff viewer that surfaces every line chang
 
 ### 2. Architectural Overview
 
-`DiffViewerUI` parses DOGS (Diffs On GitHub Schema) bundles and renders an interactive approval interface.
+`DiffViewerUI` parses DOGS (Diffs On gitHub Schema) bundles and renders an interactive approval interface.
 
 ```javascript
 const DiffViewer = await ModuleLoader.getModule('DiffViewerUI');
@@ -49,7 +49,7 @@ EventBus.emit('diff:show', {
 
 **2. Diff Rendering**
 - **Header**: Shows aggregate statistics (+X new, ~Y modified, -Z deleted)
-- **Actions Bar**: Approve All, Reject All, Edit Proposal, Copy, Export, Share
+- **Actions Bar**: Approve All, Reject All, edit Proposal, Copy, Export, Share
 - **File Cards**: Each change displayed with:
   - Mini-map (visual proportions of added/modified/removed lines)
   - File path with operation badge and status
@@ -261,7 +261,7 @@ const widget = {
 
 3. **Rendering Diffs**
    - Generate header with aggregate stats (CREATE/MODIFY/DELETE counts)
-   - Render action buttons (Approve All, Reject All, Edit, Export)
+   - Render action buttons (Approve All, Reject All, edit, Export)
    - For each change:
      - Calculate per-file diff stats (added/removed/modified/unchanged)
      - Render mini-map (visual proportions)
@@ -391,7 +391,7 @@ const widget = {
 
 - Add inline comments/annotations on specific lines
 - Support unified diff format (in addition to side-by-side)
-- Add "Edit in Place" functionality to modify proposed changes before approval
+- Add "edit in Place" functionality to modify proposed changes before approval
 - Integrate with version control to show diffs against git HEAD
 - Add keyboard shortcuts for approval/navigation (j/k to move, space to approve)
 - Support diff refresh when underlying files change

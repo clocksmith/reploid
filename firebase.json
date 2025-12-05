@@ -4,7 +4,20 @@
     "ignore": [
       "firebase.json",
       "**/.*",
-      "**/node_modules/**"
+      "**/node_modules/**",
+      "server/**",
+      "tests/**",
+      "blueprints/**",
+      "examples/**",
+      "personas/**",
+      "package.json",
+      "package-lock.json",
+      "playwright.config.js",
+      "vitest.config.js",
+      "eslint.config.js",
+      "*.md",
+      "test-results/**",
+      "playwright-report/**"
     ]
   }
 }

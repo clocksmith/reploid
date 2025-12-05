@@ -78,11 +78,11 @@ describe('ToolRunner', () => {
   });
 
   describe('built-in tools', () => {
-    describe('read_file', () => {
+    describe('ReadFile', () => {
       it('should read file content from VFS', async () => {
         mockVFS.read.mockResolvedValue('file content here');
 
-        const result = await toolRunner.execute('read_file', { path: '/test.txt' });
+        const result = await toolRunner.execute('ReadFile', { path: '/test.txt' });
 
         expect(mockVFS.read).toHaveBeenCalledWith('/test.txt');
         expect(result).toBe('file content here');
@@ -91,29 +91,29 @@ describe('ToolRunner', () => {
       it('should accept "file" as alias for "path"', async () => {
         mockVFS.read.mockResolvedValue('content');
 
-        await toolRunner.execute('read_file', { file: '/test.txt' });
+        await toolRunner.execute('ReadFile', { file: '/test.txt' });
 
         expect(mockVFS.read).toHaveBeenCalledWith('/test.txt');
       });
 
       it('should throw ValidationError if path is missing', async () => {
-        await expect(toolRunner.execute('read_file', {}))
+        await expect(toolRunner.execute('ReadFile', {}))
           .rejects.toThrow('Missing path');
       });
 
       it('should propagate VFS errors', async () => {
         mockVFS.read.mockRejectedValue(new Error('File not found'));
 
-        await expect(toolRunner.execute('read_file', { path: '/missing.txt' }))
+        await expect(toolRunner.execute('ReadFile', { path: '/missing.txt' }))
           .rejects.toThrow('File not found');
       });
     });
 
-    describe('write_file', () => {
+    describe('WriteFile', () => {
       it('should write content to VFS', async () => {
         mockVFS.write.mockResolvedValue(true);
 
-        const result = await toolRunner.execute('write_file', {
+        const result = await toolRunner.execute('WriteFile', {
           path: '/output.txt',
           content: 'Hello World'
         });
@@ -126,25 +126,25 @@ describe('ToolRunner', () => {
       it('should accept "file" as alias for "path"', async () => {
         mockVFS.write.mockResolvedValue(true);
 
-        await toolRunner.execute('write_file', { file: '/test.txt', content: 'test' });
+        await toolRunner.execute('WriteFile', { file: '/test.txt', content: 'test' });
 
         expect(mockVFS.write).toHaveBeenCalledWith('/test.txt', 'test');
       });
 
       it('should throw ValidationError if path is missing', async () => {
-        await expect(toolRunner.execute('write_file', { content: 'test' }))
+        await expect(toolRunner.execute('WriteFile', { content: 'test' }))
           .rejects.toThrow('Missing args');
       });
 
       it('should throw ValidationError if content is missing', async () => {
-        await expect(toolRunner.execute('write_file', { path: '/test.txt' }))
+        await expect(toolRunner.execute('WriteFile', { path: '/test.txt' }))
           .rejects.toThrow('Missing args');
       });
 
       it('should allow empty string as content', async () => {
         mockVFS.write.mockResolvedValue(true);
 
-        const result = await toolRunner.execute('write_file', {
+        const result = await toolRunner.execute('WriteFile', {
           path: '/empty.txt',
           content: ''
         });
@@ -154,11 +154,11 @@ describe('ToolRunner', () => {
       });
     });
 
-    describe('list_files', () => {
+    describe('ListFiles', () => {
       it('should list files in directory', async () => {
         mockVFS.list.mockResolvedValue(['/dir/file1.txt', '/dir/file2.txt']);
 
-        const result = await toolRunner.execute('list_files', { path: '/dir' });
+        const result = await toolRunner.execute('ListFiles', { path: '/dir' });
 
         expect(mockVFS.list).toHaveBeenCalledWith('/dir');
         expect(result).toEqual(['/dir/file1.txt', '/dir/file2.txt']);
@@ -167,7 +167,7 @@ describe('ToolRunner', () => {
       it('should accept "directory" as alias for "path"', async () => {
         mockVFS.list.mockResolvedValue([]);
 
-        await toolRunner.execute('list_files', { directory: '/mydir' });
+        await toolRunner.execute('ListFiles', { directory: '/mydir' });
 
         expect(mockVFS.list).toHaveBeenCalledWith('/mydir');
       });
@@ -175,7 +175,7 @@ describe('ToolRunner', () => {
       it('should accept "dir" as alias for "path"', async () => {
         mockVFS.list.mockResolvedValue([]);
 
-        await toolRunner.execute('list_files', { dir: '/mydir' });
+        await toolRunner.execute('ListFiles', { dir: '/mydir' });
 
         expect(mockVFS.list).toHaveBeenCalledWith('/mydir');
       });
@@ -183,17 +183,17 @@ describe('ToolRunner', () => {
       it('should default to root directory if no path provided', async () => {
         mockVFS.list.mockResolvedValue([]);
 
-        await toolRunner.execute('list_files', {});
+        await toolRunner.execute('ListFiles', {});
 
         expect(mockVFS.list).toHaveBeenCalledWith('/');
       });
     });
 
-    describe('delete_file', () => {
+    describe('DeleteFile', () => {
       it('should delete file from VFS', async () => {
         mockVFS.delete.mockResolvedValue(true);
 
-        const result = await toolRunner.execute('delete_file', { path: '/test.txt' });
+        const result = await toolRunner.execute('DeleteFile', { path: '/test.txt' });
 
         expect(mockVFS.delete).toHaveBeenCalledWith('/test.txt');
         expect(result).toBe('Deleted /test.txt');
@@ -202,26 +202,26 @@ describe('ToolRunner', () => {
       it('should accept "file" as alias for "path"', async () => {
         mockVFS.delete.mockResolvedValue(true);
 
-        await toolRunner.execute('delete_file', { file: '/test.txt' });
+        await toolRunner.execute('DeleteFile', { file: '/test.txt' });
 
         expect(mockVFS.delete).toHaveBeenCalledWith('/test.txt');
       });
 
       it('should throw ValidationError if path is missing', async () => {
-        await expect(toolRunner.execute('delete_file', {}))
+        await expect(toolRunner.execute('DeleteFile', {}))
           .rejects.toThrow('Missing path');
       });
     });
 
-    describe('create_tool', () => {
+    describe('CreateTool', () => {
       it('should delegate to ToolWriter', async () => {
-        const result = await toolRunner.execute('create_tool', {
-          name: 'my_tool',
+        const result = await toolRunner.execute('CreateTool', {
+          name: 'MyTool',
           code: 'export default (args) => args.value * 2;'
         });
 
         expect(mockToolWriter.create).toHaveBeenCalledWith(
-          'my_tool',
+          'MyTool',
           'export default (args) => args.value * 2;'
         );
         expect(result).toBe('Tool created successfully');
@@ -249,19 +249,19 @@ describe('ToolRunner', () => {
       it('should return list of available tools', () => {
         const tools = toolRunner.list();
 
-        expect(tools).toContain('read_file');
-        expect(tools).toContain('write_file');
-        expect(tools).toContain('list_files');
-        expect(tools).toContain('delete_file');
-        expect(tools).toContain('create_tool');
+        expect(tools).toContain('ReadFile');
+        expect(tools).toContain('WriteFile');
+        expect(tools).toContain('ListFiles');
+        expect(tools).toContain('DeleteFile');
+        expect(tools).toContain('CreateTool');
         expect(tools).toContain('improve_core_module');
       });
     });
 
     describe('has', () => {
       it('should return true for built-in tools', () => {
-        expect(toolRunner.has('read_file')).toBe(true);
-        expect(toolRunner.has('write_file')).toBe(true);
+        expect(toolRunner.has('ReadFile')).toBe(true);
+        expect(toolRunner.has('WriteFile')).toBe(true);
       });
 
       it('should return false for unknown tools', () => {
@@ -289,15 +289,15 @@ describe('ToolRunner', () => {
 
       it('should skip test files when loading tools', async () => {
         mockVFS.list.mockResolvedValue([
-          '/tools/my_tool.js',
-          '/tools/my_tool.test.js',
-          '/tools/my_tool.spec.js',
-          '/tools/my_tool.integration.js'
+          '/tools/MyTool.js',
+          '/tools/MyTool.test.js',
+          '/tools/MyTool.spec.js',
+          '/tools/MyTool.integration.js'
         ]);
 
         await toolRunner.init();
 
-        // Should only attempt to load my_tool.js
+        // Should only attempt to load MyTool.js
         // Test files should be skipped
         expect(mockVFS.read).toHaveBeenCalledTimes(1);
       });
@@ -335,12 +335,12 @@ describe('ToolRunner', () => {
       mockVFS.read.mockRejectedValue(new Error('VFS failure'));
 
       try {
-        await toolRunner.execute('read_file', { path: '/test.txt' });
+        await toolRunner.execute('ReadFile', { path: '/test.txt' });
         expect.fail('Should have thrown');
       } catch (err) {
         expect(err.name).toBe('ToolError');
         expect(err.message).toBe('VFS failure');
-        expect(err.details.tool).toBe('read_file');
+        expect(err.details.tool).toBe('ReadFile');
       }
     });
 
@@ -348,13 +348,13 @@ describe('ToolRunner', () => {
       mockVFS.read.mockRejectedValue(new Error('Test error'));
 
       try {
-        await toolRunner.execute('read_file', { path: '/test.txt' });
+        await toolRunner.execute('ReadFile', { path: '/test.txt' });
       } catch (err) {
         // Expected
       }
 
       expect(mockUtils.logger.error).toHaveBeenCalledWith(
-        '[ToolRunner] Error in read_file',
+        '[ToolRunner] Error in ReadFile',
         expect.any(Error)
       );
     });
@@ -364,7 +364,7 @@ describe('ToolRunner', () => {
       mockVFS.read.mockRejectedValue(originalError);
 
       try {
-        await toolRunner.execute('read_file', { path: '/test.txt' });
+        await toolRunner.execute('ReadFile', { path: '/test.txt' });
       } catch (err) {
         expect(err.stack).toBe(originalError.stack);
       }
@@ -372,7 +372,7 @@ describe('ToolRunner', () => {
   });
 
   describe('SubstrateLoader integration', () => {
-    it('should add load_module tool if SubstrateLoader is available', () => {
+    it('should add LoadModule tool if SubstrateLoader is available', () => {
       const mockSubstrateLoader = {
         loadModule: vi.fn().mockResolvedValue(true)
       };
@@ -385,11 +385,11 @@ describe('ToolRunner', () => {
         SubstrateLoader: mockSubstrateLoader
       });
 
-      expect(runnerWithLoader.has('load_module')).toBe(true);
+      expect(runnerWithLoader.has('LoadModule')).toBe(true);
     });
 
-    it('should not add load_module if SubstrateLoader is unavailable', () => {
-      expect(toolRunner.has('load_module')).toBe(false);
+    it('should not add LoadModule if SubstrateLoader is unavailable', () => {
+      expect(toolRunner.has('LoadModule')).toBe(false);
     });
   });
 

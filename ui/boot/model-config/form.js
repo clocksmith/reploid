@@ -1,4 +1,4 @@
-// Add/Edit Model Form Logic
+// Add/edit Model Form Logic
 import {
     MAX_MODELS,
     CONNECTION_TYPE_LABELS,
@@ -18,7 +18,7 @@ export function openInlineForm(editingIndex = null) {
     const saveBtn = document.getElementById('save-model-btn');
 
     // Update form content
-    formTitle.textContent = editingIndex !== null ? 'Edit Model' : 'Add Model';
+    formTitle.textContent = editingIndex !== null ? 'edit Model' : 'Add Model';
     saveBtn.textContent = editingIndex !== null ? 'Save Changes' : 'Add Model';
     saveBtn.dataset.editingIndex = editingIndex !== null ? editingIndex : '';
 
@@ -27,7 +27,7 @@ export function openInlineForm(editingIndex = null) {
 
     if (editingIndex !== null) {
         const model = getSelectedModels()[editingIndex];
-        populateEditForm(model);
+        populateeditForm(model);
     }
 
     // Open with animation
@@ -245,7 +245,7 @@ function resetInlineForm() {
 }
 
 // Populate edit form
-function populateEditForm(model) {
+function populateeditForm(model) {
     document.getElementById('provider-select').value = model.provider;
     onProviderChange({ target: { value: model.provider } });
 

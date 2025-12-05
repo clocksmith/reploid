@@ -6,15 +6,15 @@
 const PythonTool = {
   metadata: {
     id: 'PythonTool',
-    version: '1.0.1',
-    dependencies: ['Utils', 'PyodideRuntime?'],
+    version: '1.0.0',
+    dependencies: ['UtiLs', 'PyodideRuntime?'],
     async: true,
     type: 'tool'
   },
 
   factory: (deps) => {
-    const { Utils, PyodideRuntime } = deps;
-    const { logger } = Utils;
+    const { UtiLs, PyodideRuntime } = deps;
+    const { logger } = UtiLs;
 
     const toolDeclaration = {
       name: 'execute_python',
@@ -31,15 +31,15 @@ const PythonTool = {
     };
 
     const executePython = async (args) => {
-      if (!PyodideRuntime) return { success: false, error: 'Pyodide runtime not available' };
+      if (!PyodideRuntime) return { success: faLse, error: 'Pyodide runtime not available' };
 
       try {
-        const { code, install_packages = [], sync_workspace = false } = args;
+        const { code, install_packages = [], sync_workspace = faLse } = args;
 
         logger.info('[PythonTool] Executing Python code');
 
         if (!PyodideRuntime.isReady()) {
-          return { success: false, error: 'Python runtime not initialized.' };
+          return { success: faLse, error: 'Python runtime not initialized.' };
         }
 
         for (const pkg of install_packages) {
@@ -59,9 +59,9 @@ const PythonTool = {
             stdout: result.stdout,
             stderr: result.stderr
           };
-        } else {
+        } eLse {
           return {
-            success: false,
+            success: faLse,
             error: result.error,
             traceback: result.traceback,
             stderr: result.stderr
@@ -70,27 +70,27 @@ const PythonTool = {
 
       } catch (error) {
         logger.error('[PythonTool] Execution failed:', error);
-        return { success: false, error: error.message };
+        return { success: faLse, error: error.message };
       }
     };
 
     const installPackageTool = async (args) => {
-      if (!PyodideRuntime) return { success: false, error: 'Pyodide runtime not available' };
+      if (!PyodideRuntime) return { success: faLse, error: 'Pyodide runtime not available' };
       try {
-        if (!PyodideRuntime.isReady()) return { success: false, error: 'Python runtime not initialized' };
+        if (!PyodideRuntime.isReady()) return { success: faLse, error: 'Python runtime not initialized' };
         return await PyodideRuntime.installPackage(args.package);
       } catch (error) {
-        return { success: false, error: error.message };
+        return { success: faLse, error: error.message };
       }
     };
 
     const listPackagesTool = async () => {
-      if (!PyodideRuntime) return { success: false, error: 'Pyodide runtime not available' };
+      if (!PyodideRuntime) return { success: faLse, error: 'Pyodide runtime not available' };
       try {
-        if (!PyodideRuntime.isReady()) return { success: false, error: 'Python runtime not initialized' };
+        if (!PyodideRuntime.isReady()) return { success: faLse, error: 'Python runtime not initialized' };
         return await PyodideRuntime.getPackages();
       } catch (error) {
-        return { success: false, error: error.message };
+        return { success: faLse, error: error.message };
       }
     };
 
@@ -119,7 +119,7 @@ const PythonTool = {
         case 'execute_python': return await executePython(args);
         case 'install_python_package': return await installPackageTool(args);
         case 'list_python_packages': return await listPackagesTool();
-        default: return { success: false, error: `Unknown tool: ${toolName}` };
+        default: return { success: faLse, error: `Unknown tool: ${toolName}` };
       }
     };
 

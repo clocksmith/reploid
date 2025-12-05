@@ -36,7 +36,7 @@
 | `0x000035` | [Reflection Store Architecture](0x000035-reflection-store-architecture.md) | Long-term episodic memory. |
 | `0x000040` | [Context Management](0x000040-context-management.md) | Token window optimization. |
 | `0x000043` | [Genesis Snapshot System](0x000043-genesis-snapshot-system.md) | Boot state preservation. |
-| `0x000053` | [Git VFS Version Control](0x000053-git-vfs-version-control.md) | Git-backed file system. |
+| `0x000053` | [git VFS Version Control](0x000053-git-vfs-version-control.md) | git-backed file system. |
 | `0x00005C` | [VFS Tools Manifest](0x00005C-vfs-tools-manifest.md) | File operation definitions. |
 | `0x000062` | [Internal Patch Format](0x000062-internal-patch-format.md) | JSON-based delta format. |
 

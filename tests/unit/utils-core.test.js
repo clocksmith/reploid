@@ -70,7 +70,7 @@ describe('Utils Core Module', () => {
 
     it('should create ToolError', () => {
       const { ToolError, ApplicationError } = utils.Errors;
-      const error = new ToolError('Tool failed', { tool: 'read_file' });
+      const error = new ToolError('Tool failed', { tool: 'ReadFile' });
 
       expect(error).toBeInstanceOf(ApplicationError);
       expect(error.name).toBe('ToolError');

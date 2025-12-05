@@ -16,7 +16,7 @@
 
 Without the ability to modify its own source code, an agent is fundamentally limited - it can reason, analyze, and recommend changes, but it cannot actually evolve itself. The write tools manifest (`tools-write.json`) defines the **specific operations that enable self-modification**:
 
-- ✎ **modify_artifact** - Edit existing code files
+- ✎ **modify_artifact** - edit existing code files
 - ☩ **create_artifact** - Add new modules/tools
 - [ ] **delete_artifact** - Remove obsolete code
 - ☷ **rename_artifact** - Refactor file structure
@@ -428,7 +428,7 @@ Test the full Sentinel Agent flow:
 
 #### 8.2 Version Control Integration
 
-- **git_commit** - Create Git commits for changes
+- **git_commit** - Create git commits for changes
 - **git_branch** - Create experimental branches
 - **git_merge** - Merge successful experiments
 

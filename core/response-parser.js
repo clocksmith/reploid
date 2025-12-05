@@ -6,7 +6,7 @@
 const ResponseParser = {
   metadata: {
     id: 'ResponseParser',
-    version: '2.2.0', // Backtick template literal support
+    version: '1.0.0', // Backtick template literal support
     dependencies: ['Utils'],
     type: 'service'
   },
@@ -21,7 +21,7 @@ const ResponseParser = {
       // Standard Format:
       // TOOL_CALL: name
       // ARGS: { ... }
-      // Find each TOOL_CALL and extract JSON with brace counting
+      // find each TOOL_CALL and extract JSON with brace counting
       const toolCallRegex = /TOOL_CALL:\s*([a-zA-Z0-9_]+)\s*\nARGS:\s*/g;
 
       let match;
@@ -102,10 +102,16 @@ const ResponseParser = {
       return calls;
     };
 
-    // Check if the model explicitly stated it is done
+    // RSI MODE: Agent should NEVER stop on its own
+    // Only the circuit breaker (iteration limit) or user intervention stops it
+    // This enforces continuous improvement behavior
     const isDone = (text) => {
-        if (!text) return false;
-        return text.includes('GOAL_ACHIEVED') || text.includes('GOAL_COMPLETE') || text.includes('DONE');
+        // In RSI mode, we don't accept self-declared completion
+        // The agent should always look for improvements
+        // To restore non-RSI mode, uncomment below:
+        // if (!text) return false;
+        // return text.includes('GOAL_ACHIEVED') || text.includes('GOAL_COMPLETE');
+        return false;
     };
 
     return { parseToolCalls, isDone };

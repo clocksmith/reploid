@@ -41,7 +41,7 @@ const HITLController = {
     const _timeouts = new Map();
 
     let _config = {
-      masterMode: MODES.AUTONOMOUS, // Autonomous by default
+      approvalMode: MODES.AUTONOMOUS, // Autonomous by default
       moduleOverrides: {},
       everyNSteps: 5, // Default: approve every 5 steps
       stepCounter: 0  // Track steps since last approval
@@ -61,7 +61,7 @@ const HITLController = {
     const _saveConfig = () => {
       try {
         const toSave = {
-          masterMode: _config.masterMode,
+          approvalMode: _config.approvalMode,
           moduleOverrides: _config.moduleOverrides,
           everyNSteps: _config.everyNSteps,
           stepCounter: _config.stepCounter
@@ -77,12 +77,12 @@ const HITLController = {
         const saved = localStorage.getItem(STORAGE_KEY);
         if (saved) {
           const parsed = JSON.parse(saved);
-          _config.masterMode = parsed.masterMode || MODES.AUTONOMOUS;
+          _config.approvalMode = parsed.approvalMode || MODES.AUTONOMOUS;
           _config.moduleOverrides = parsed.moduleOverrides || {};
           _config.everyNSteps = parsed.everyNSteps || 5;
           _config.stepCounter = parsed.stepCounter || 0;
-          logger.info(`[HITL] Loaded config: ${_config.masterMode} mode` +
-            (_config.masterMode === MODES.EVERY_N ? ` (every ${_config.everyNSteps} steps)` : ''));
+          logger.info(`[HITL] Loaded config: ${_config.approvalMode} mode` +
+            (_config.approvalMode === MODES.EVERY_N ? ` (every ${_config.everyNSteps} steps)` : ''));
         }
       } catch (e) {
         logger.warn('[HITL] Failed to load config, using defaults');
@@ -130,21 +130,21 @@ const HITLController = {
       if (override && override !== MODES.INHERIT) {
         return override;
       }
-      return _config.masterMode;
+      return _config.approvalMode;
     };
 
     /**
      * Set master mode (affects all modules using 'inherit')
      * @param {string} mode - 'autonomous' or 'hitl'
      */
-    const setMasterMode = (mode) => {
+    const setApprovalMode = (mode) => {
       if (mode !== MODES.AUTONOMOUS && mode !== MODES.HITL && mode !== MODES.EVERY_N) {
         logger.warn(`[HITL] Invalid mode: ${mode}`);
         return;
       }
 
-      const oldMode = _config.masterMode;
-      _config.masterMode = mode;
+      const oldMode = _config.approvalMode;
+      _config.approvalMode = mode;
 
       // Reset step counter when changing to/from EVERY_N mode
       if (mode === MODES.EVERY_N || oldMode === MODES.EVERY_N) {
@@ -157,8 +157,8 @@ const HITLController = {
         id => !_config.moduleOverrides[id] || _config.moduleOverrides[id] === MODES.INHERIT
       );
 
-      EventBus.emit('hitl:master-mode-changed', { oldMode, newMode: mode, affectedModules });
-      logger.info(`[HITL] Master mode changed: ${oldMode} -> ${mode}` +
+      EventBus.emit('hitl:approval-mode-changed', { oldMode, newMode: mode, affectedModules });
+      logger.info(`[HITL] Approval mode changed: ${oldMode} -> ${mode}` +
         (mode === MODES.EVERY_N ? ` (every ${_config.everyNSteps} steps)` : ''));
     };
 
@@ -418,7 +418,7 @@ const HITLController = {
 
     const getState = () => ({
       config: {
-        masterMode: _config.masterMode,
+        approvalMode: _config.approvalMode,
         moduleOverrides: { ..._config.moduleOverrides }
       },
       approvalQueue: [..._approvalQueue],
@@ -433,10 +433,10 @@ const HITLController = {
 
     const getStats = () => ({ ..._stats, history: [..._stats.history] });
 
-    const isHITLEnabled = () => _config.masterMode === MODES.HITL;
+    const isHITLEnabled = () => _config.approvalMode === MODES.HITL;
 
     const resetToDefaults = () => {
-      _config.masterMode = MODES.AUTONOMOUS;
+      _config.approvalMode = MODES.AUTONOMOUS;
       _config.moduleOverrides = {};
       _approvalQueue.length = 0;
 
@@ -456,12 +456,12 @@ const HITLController = {
     const init = () => {
       _loadConfig();
 
-      EventBus.on('hitl:set-master-mode', ({ mode }) => setMasterMode(mode), 'HITLController');
+      EventBus.on('hitl:set-approval-mode', ({ mode }) => setApprovalMode(mode), 'HITLController');
       EventBus.on('hitl:set-module-mode', ({ moduleId, mode }) => setModuleMode(moduleId, mode), 'HITLController');
       EventBus.on('hitl:approve', ({ approvalId, data }) => approve(approvalId, data), 'HITLController');
       EventBus.on('hitl:reject', ({ approvalId, reason }) => reject(approvalId, reason), 'HITLController');
 
-      logger.info(`[HITL] Initialized in ${_config.masterMode} mode`);
+      logger.info(`[HITL] Initialized in ${_config.approvalMode} mode`);
       return true;
     };
 
@@ -471,7 +471,7 @@ const HITLController = {
       MODES,
       registerModule,
       getModuleMode,
-      setMasterMode,
+      setApprovalMode,
       setModuleMode,
       setEveryNSteps,
       requiresApproval,

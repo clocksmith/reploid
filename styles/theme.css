@@ -14,6 +14,7 @@
   /* ---- Borders (Scanlines) ---- */
   --border-subtle: #222;
   --border-default: #333;
+  --border-light: #555;    /* Lighter border for readability */
   --border-active: #00ffff; /* Cyan active border */
 
   /* ---- Text (Terminal) ---- */
@@ -636,4 +637,49 @@ input:focus, select:focus, textarea:focus {
 .mode-label {
   text-transform: uppercase;
   letter-spacing: 0.5px;
+}
+
+/* ========================================
+   CHECKBOX OPTION
+   ======================================== */
+.checkbox-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  cursor: pointer;
+  padding: 10px 12px;
+  background: var(--bg-element);
+  border: 1px solid var(--border-default);
+  transition: all 0.2s ease;
+}
+
+.checkbox-option:hover {
+  border-color: var(--border-light);
+  background: var(--bg-hover);
+}
+
+.checkbox-option input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  margin: 2px 0 0 0;
+  accent-color: var(--primary);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.checkbox-label {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.checkbox-title {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.checkbox-desc {
+  font-size: 11px;
+  color: var(--text-muted);
 }

@@ -6,7 +6,7 @@
 const ReflectionStore = {
   metadata: {
     id: 'ReflectionStore',
-    version: '2.1.1',
+    version: '1.0.0',
     dependencies: ['Utils', 'VFS', 'EventBus'],
     async: true,
     type: 'capability'

@@ -43,7 +43,7 @@ Total: ~13ms per change, 10ms is format overhead (77% waste)
 **Strategic Insight:**
 
 DOGS/CATS format serves TWO distinct use cases:
-1. **External Interop:** Human review, Git commits, PAWS CLI integration (OPTIONAL, ~5% of usage)
+1. **External Interop:** Human review, git commits, PAWS CLI integration (OPTIONAL, ~5% of usage)
 2. **Internal RSI:** Agent self-modification cycles (FREQUENT, ~95% of usage)
 
 **Solution:**
@@ -113,7 +113,7 @@ Agent → IPAT JSON → Apply → Verify → Commit
         (~1ms)
 
 // External Export (COMPATIBILITY PATH)
-Agent → IPAT JSON → Convert to DOGS → Export/Git
+Agent → IPAT JSON → Convert to DOGS → Export/git
         (~3ms, only when needed)
 
 // External Import (COMPATIBILITY PATH)
@@ -374,7 +374,7 @@ const validatePatch = (patch) => {
 ```javascript
 const patchToDogs = (patch) => {
   // Convert IPAT JSON patch to DOGS markdown format
-  // This enables export for Git commits, human review, etc.
+  // This enables export for git commits, human review, etc.
 
   const lines = [
     '# DOGS Bundle',
@@ -729,7 +729,7 @@ async function applyChanges(changes) {
 }
 // Total: ~4ms (3x faster!)
 
-// Export for Git commit (OPTIONAL)
+// Export for git commit (OPTIONAL)
 async function exportForCommit() {
   const dogsBundle = InternalPatchFormat.api.patchToDogs(patch);
   await StateManager.writeArtifact('/commit.dogs', 'text', dogsBundle);
@@ -756,7 +756,7 @@ async function exportForCommit() {
 - **StateManager Integration:** Native IPAT support in VFS
 - **VerificationManager Integration:** Parallel verification of patches
 - **GenesisSnapshot Integration:** Store initial state as IPAT
-- **GitVFS Integration:** Commit history as IPAT patches
+- **gitVFS Integration:** Commit history as IPAT patches
 
 ---
 
@@ -778,7 +778,7 @@ async function exportForCommit() {
 
 **Phase 1:** Add IPAT module (non-breaking, DOGS still works)
 **Phase 2:** Update agent-cycle.js to use IPAT internally
-**Phase 3:** Keep DOGS export for Git commits
+**Phase 3:** Keep DOGS export for git commits
 **Phase 4:** Deprecate direct DOGS usage in RSI cycles
 
 **Rollback Plan:** Feature flag `useInternalPatchFormat` controls activation

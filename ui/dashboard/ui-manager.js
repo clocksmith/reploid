@@ -4,7 +4,7 @@
 const UIManager = {
   metadata: {
     id: 'UIManager',
-    version: '4.1.0',
+    version: '1.0.0',
     description: 'Orchestrates UI panels via DI Container',
     dependencies: [
       'Utils', 'EventBus', 'StateManager',

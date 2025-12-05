@@ -1,98 +1,151 @@
-# E2E Tests - Playwright
+# E2E Tests
 
-## Overview
+End-to-end tests for REPLOID using Playwright.
 
-End-to-end tests for REPLOID Sentinel Agent using Playwright.
+## Test Files
 
-## Setup
-
-```bash
-# Install dependencies (already done if you ran npm install)
-npm install
-
-# Install browser binaries
-npx playwright install chromium
-```
+| File | Description | Tests |
+|------|-------------|-------|
+| `boot.spec.js` | Boot screen, mode selection, goal input | 12 |
+| `dashboard.spec.js` | Dashboard UI, tabs, VFS panel, controls | 16 |
+| `workers.spec.js` | WorkerManager panel, indicators, events | 12 |
+| `accessibility.spec.js` | Keyboard nav, ARIA, focus indicators | 8 |
+| `modules.spec.js` | WebGPU, LLMR/HYBR module loading | 6 |
+| `agent-goals.spec.js` | Challenging goals for stress testing | 12 |
+| `debug-console.js` | Standalone debug utility (not a test) | - |
 
 ## Running Tests
 
 ```bash
-# Run all E2E tests (headless)
-npm run test:e2e
-
-# Run with visible browser
-npm run test:e2e:headed
-
-# Run with Playwright UI (interactive)
-npm run test:e2e:ui
+# Run all tests
+npx playwright test
 
 # Run specific test file
-npx playwright test tests/e2e/boot-flow.spec.js
+npx playwright test boot.spec.js
+npx playwright test workers.spec.js
 
-# Run all tests (unit + E2E)
-npm run test:all
+# Run with visible browser
+npx playwright test --headed
+
+# Run with UI mode (interactive)
+npx playwright test --ui
+
+# Generate HTML report
+npx playwright test --reporter=html
+npx playwright show-report
 ```
 
-## Test Files
+## Debug Console
 
-### `simple.spec.js`
-Basic smoke tests to verify Playwright setup:
-- Page loads correctly
-- REPLOID heading is present
+The `debug-console.js` script streams browser console output to your terminal. Useful for debugging agent behavior.
 
-### `boot-flow.spec.js`
-Tests for persona selection and boot screen:
-- Persona card rendering and selection
-- Goal input enablement and validation
-- Input sanitization (maxlength)
-- Advanced mode toggle
-- Single persona selection enforcement
+```bash
+# Basic boot check (no agent run)
+node tests/e2e/debug-console.js
 
-### `sentinel-flow.spec.js`
-Full Sentinel Agent workflow tests:
-- Boot to proto transition
-- FSM state management
-- Goal processing with special characters
-- Panel toggle functionality
-- localStorage persistence
+# Run with visible browser
+HEADLESS=false node tests/e2e/debug-console.js
 
-### `accessibility.spec.js`
-Accessibility and keyboard navigation:
-- Keyboard navigation on boot screen
-- ARIA labels and semantic HTML
-- Focus indicators
-- ESC key handling
-- Proto keyboard navigation
+# Run agent with a goal preset
+GOAL=rsi TEST_AWAKEN=true node tests/e2e/debug-console.js
 
-## Known Issues
+# Run with custom goal
+GOAL="List all files" TEST_AWAKEN=true node tests/e2e/debug-console.js
 
-**Test Timeout:** Some tests may timeout during development due to:
-- Long module initialization times
-- External API dependencies
-- Complex boot process
+# Extended timeout for complex goals
+TIMEOUT=120000 GOAL=stress TEST_AWAKEN=true node tests/e2e/debug-console.js
 
-**Workarounds:**
-1. Increase test timeout in playwright.config.js
-2. Run tests with `--headed` flag to debug
-3. Use `test:e2e:ui` for interactive debugging
-4. Set `reuseExistingServer: true` to use existing dev server
+# Show all available presets
+node tests/e2e/debug-console.js --help
+```
 
-## Writing New Tests
+### Goal Presets
 
-Follow these patterns:
+| Preset | Description |
+|--------|-------------|
+| `hello` | Create a simple hello.txt file |
+| `list` | List all VFS files |
+| `read` | Read and summarize a file |
+| `rsi` | Meta tool factory (default) |
+| `toolchain` | Recursive tool creation |
+| `selfaudit` | Audit /tools/ implementations |
+| `map` | Map codebase structure |
+| `deps` | Analyze module dependencies |
+| `security` | Security audit |
+| `refactor` | VFS refactoring plan |
+| `testgen` | Generate test cases |
+| `docs` | Generate documentation |
+| `parallel` | Spawn parallel workers |
+| `workers` | Sequential worker test |
+| `error` | Error handling test |
+| `newtool` | Design new FileStats tool |
+| `improve` | Suggest tool improvements |
+| `stress` | Extended RSI stress test |
 
-```javascript
-import { test, expect } from '@playwright/test';
+### Environment Variables
 
-test.describe('Feature Name', () => {
-  test('should do something', async ({ page }) => {
-    await page.goto('/');
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `HEADLESS` | `true` | Run headless or visible |
+| `TEST_AWAKEN` | `false` | Run the awaken flow |
+| `GOAL` | `rsi` | Goal preset name or custom text |
+| `TIMEOUT` | `60000` | ms to wait after awakening |
+| `GENESIS` | `full` | Genesis level (minimal/default/full/tabula) |
+| `BASE_URL` | `http://localhost:8080` | Server URL |
+| `KEEP_OPEN` | `true` | Keep browser open after test |
 
-    // Your test code
-    const element = page.locator('#my-element');
-    await expect(element).toBeVisible();
-  });
-});
+## Genesis Levels
+
+- **minimal** - Minimal RSI Core (basic tools only)
+- **default** - Default Core (standard toolset)
+- **full** - Full Substrate (includes WorkerManager, Arena, etc.)
+- **tabula** - Tabula Rasa (empty slate, full RSI)
+
+## Test Categories
+
+### Quick Tests (< 10s)
+- `boot.spec.js` - All tests
+- `accessibility.spec.js` - Boot screen tests
+
+### Medium Tests (10-30s)
+- `dashboard.spec.js` - All tests
+- `workers.spec.js` - UI tests
+- `modules.spec.js` - All tests
+
+### Long Tests (30-120s)
+- `agent-goals.spec.js` - All tests (extended timeout)
+- `accessibility.spec.js` - Dashboard tests
+
+## CI Configuration
+
+Tests run on GitHub Actions with:
+- Chromium browser
+- Python HTTP server on port 8000
+- 60s default timeout per test
+- HTML reporter
+- Screenshots/video on failure
+
+## Troubleshooting
+
+### Tests timing out
+```bash
+# Increase timeout
+npx playwright test --timeout=120000
+```
+
+### Server not starting
+```bash
+# Manual server start
+python3 -m http.server 8000
+
+# Then run tests with existing server
+npx playwright test
+```
+
+### Debug mode
+```bash
+# Enable Playwright debug
+PWDEBUG=1 npx playwright test boot.spec.js
 ```
 
 ## Best Practices
@@ -102,27 +155,6 @@ test.describe('Feature Name', () => {
 3. **Test user flows**, not implementation details
 4. **Keep tests independent** - don't rely on test execution order
 5. **Clean up state** between tests using beforeEach/afterEach
-
-## CI/CD Integration
-
-E2E tests are configured to run in CI with:
-- Headless mode by default
-- Retries on failure (2 retries in CI)
-- HTML reporter for results
-- Screenshots and videos on failure
-
-## Debugging
-
-```bash
-# Run with UI mode for interactive debugging
-npm run test:e2e:ui
-
-# Run with trace enabled
-npx playwright test --trace on
-
-# Open test report
-npx playwright show-report
-```
 
 ## Resources
 

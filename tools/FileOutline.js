@@ -1,5 +1,5 @@
 /**
- * @fileoverview Code Intelligence Tool
+ * @fileoverview File Outline Tool
  * Reads file structure (imports, exports, functions) without loading full content.
  * Saves tokens during RSI analysis phases.
  */
@@ -99,7 +99,7 @@ async function call(input = {}, deps = {}) {
 }
 
 export const tool = {
-  name: "code_intel",
+  name: "FileOutline",
   description: "Analyzes a file's structure (functions, exports, imports) without reading the full content. Use this first to save tokens when exploring code.",
   inputSchema,
   call

@@ -386,7 +386,7 @@ const suggestions = await DejaVuDetector.suggestImprovements();
 [
   {
     priority: 'high',
-    action: 'create_tool_factory',
+    action: 'CreateTool_factory',
     params: { category: 'analyze', examples: [...] },
     rationale: 'Created 5 analyze tools - use factory instead',
     estimated_time_saved: '25 minutes'

@@ -4,7 +4,7 @@
 const VFSExplorer = {
   metadata: {
     id: 'VFSExplorer',
-    version: '1.1.0',
+    version: '1.0.0',
     dependencies: ['Utils', 'EventBus', 'StateManager', 'ToastNotifications'],
     async: false,
     type: 'ui'
@@ -404,7 +404,7 @@ const VFSExplorer = {
               <div class="vfs-file-viewer-footer">
                 <button class="vfs-file-viewer-copy">☷ Copy</button>
                 <button class="vfs-file-viewer-history">☐ History</button>
-                <button class="vfs-file-viewer-edit">✎ Edit</button>
+                <button class="vfs-file-viewer-edit">✎ edit</button>
               </div>
             </div>
           `;

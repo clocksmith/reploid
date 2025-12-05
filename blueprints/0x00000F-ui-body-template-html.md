@@ -28,7 +28,7 @@ By isolating the HTML structure in its own artifact, the agent gains the ability
 1.  **Create HTML Artifact:** Create the `/modules/ui-body-template.html` file. This file will contain the HTML for the developer console, including elements with specific `id` attributes that the `UIManager` will use to find and manipulate them (e.g., `<ul id="timeline-log"></ul>`).
 2.  **Modify `UIManager`:**
     a.  In the `init()` method of `/modules/ui-manager.js`, add logic to fetch the content of the `/modules/ui-body-template.html` artifact from the VFS.
-    b.  Find the main application root element in the main page (e.g., `<div id="app-root">`).
+    b.  find the main application root element in the main page (e.g., `<div id="app-root">`).
     c.  Set the `innerHTML` of the application root to the content of the HTML artifact.
     d.  **Crucially**, only *after* injecting the HTML should the `UIManager` proceed to cache its DOM element references, as the elements it needs to find now exist in the DOM.
 3.  **Test a Modification:** A potential goal for the agent could be: "Add a new fieldset to the UI for displaying configuration settings." This would require the agent to read the existing HTML template, insert the new `<fieldset>` block, and save the modified artifact.

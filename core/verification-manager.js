@@ -6,7 +6,7 @@
 const VerificationManager = {
   metadata: {
     id: 'VerificationManager',
-    version: '2.0.1',
+    version: '1.0.0',
     dependencies: ['Utils', 'VFS'],
     async: true,
     type: 'service'

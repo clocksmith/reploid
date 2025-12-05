@@ -9,7 +9,7 @@
 const DiffViewerUI = {
   metadata: {
     id: 'DiffViewerUI',
-    version: '2.3.0', // Updated for DIUtils
+    version: '1.0.0', // Updated for DIUtils
     description: 'Enhanced diff viewer with Prism.js highlighting, stats, and rollback events',
     features: [
       'Prism.js syntax highlighting for 10+ languages',
@@ -145,8 +145,8 @@ const DiffViewerUI = {
             <button class="btn-reject-all" data-action="reject-all" aria-label="Reject all changes">
               ✗ Reject All
             </button>
-            <button class="btn-edit" data-action="edit" aria-label="Edit proposal">
-              ✎ Edit Proposal
+            <button class="btn-edit" data-action="edit" aria-label="edit proposal">
+              ✎ edit Proposal
             </button>
             <button class="btn-export" data-action="copy" title="Copy diff to clipboard">
               ☷ Copy
@@ -517,7 +517,7 @@ const DiffViewerUI = {
       clearDiff();
     };
 
-    // Edit the proposal
+    // edit the proposal
     const editProposal = () => {
       if (!currentDiff) return;
       EventBus.emit('proposal:edit', {

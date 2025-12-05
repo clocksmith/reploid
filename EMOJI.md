@@ -34,7 +34,7 @@ This codebase follows a **strict no-emoji policy**. Use Unicode symbols for visu
 | Symbol | Usage |
 |--------|-------|
 | ⚲ | Search |
-| ✎ | Edit |
+| ✎ | edit |
 | ✄ | Delete |
 | ☩ | Add/create |
 | ☇ | Execute |

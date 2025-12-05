@@ -7,8 +7,8 @@
 const LLMClient = {
   metadata: {
     id: 'LLMClient',
-    version: '3.4.0',
-    dependencies: ['Utils', 'RateLimiter', 'StreamParser', 'TransformersClient?'],
+    version: '1.0.0',
+    dependencies: ['Utils', 'RateLimiter?', 'StreamParser?', 'TransformersClient?'],
     type: 'service'
   },
 
@@ -16,7 +16,10 @@ const LLMClient = {
     const { Utils, RateLimiter, StreamParser, TransformersClient } = deps;
     const { logger, Errors } = Utils;
 
-    const _limiter = RateLimiter.createLimiter(60);
+    // Fallback rate limiter if not provided
+    const _limiter = RateLimiter ? RateLimiter.createLimiter(60) : { waitForToken: async () => {} };
+    // Streaming requires StreamParser - disable if not available
+    const _canStream = !!StreamParser;
     const _activeRequests = new Map();
 
     // WebLLM State
@@ -104,6 +107,38 @@ const LLMClient = {
             .replace(/<think>[\s\S]*?<\/think>/gi, '')
             .replace(/<thinking>[\s\S]*?<\/thinking>/gi, '')
             .trim();
+    };
+
+    // --- Helper: Check Native Tool Support ---
+    // OpenAI models support function calling (gpt-3.5-turbo, gpt-4, gpt-4o, etc.)
+    const supportsNativeTools = (modelConfig) => {
+      if (!modelConfig?.id) return false;
+      const model = modelConfig.id.toLowerCase();
+      const provider = modelConfig.provider?.toLowerCase();
+
+      // OpenAI models - all gpt-3.5-turbo and gpt-4 variants support tools
+      if (provider === 'openai' || model.startsWith('gpt-')) {
+        return true;
+      }
+
+      return false;
+    };
+
+    // --- Helper: Parse OpenAI Tool Calls ---
+    const parseOpenAIToolCalls = (message) => {
+      if (!message?.tool_calls?.length) return null;
+
+      return message.tool_calls.map(tc => ({
+        id: tc.id,
+        name: tc.function?.name,
+        args: (() => {
+          try {
+            return JSON.parse(tc.function?.arguments || '{}');
+          } catch {
+            return {};
+          }
+        })()
+      }));
     };
 
     // --- Mode: Browser-Native (WebLLM) ---
@@ -269,7 +304,7 @@ const LLMClient = {
 
         let fullContent = '';
 
-        if (onUpdate && response.body) {
+        if (onUpdate && response.body && StreamParser) {
           const rawReader = response.body.getReader();
           const reader = StreamParser.withStreamTimeout(rawReader, StreamParser.DEFAULT_STREAM_TIMEOUT_MS, controller);
           const decoder = new TextDecoder();
@@ -329,10 +364,18 @@ const LLMClient = {
 
     const _chatCloudDirect = async (messages, modelConfig, onUpdate, requestId) => {
       const provider = modelConfig.provider;
-      const apiKey = modelConfig.apiKey || localStorage.getItem(`${provider.toUpperCase()}_API_KEY`);
+      const storageKey = `${provider.toUpperCase()}_API_KEY`;
+      let apiKey = modelConfig.apiKey || localStorage.getItem(storageKey);
 
       if (!apiKey) {
         throw new Errors.ConfigError(`API key required for ${provider}. Please add your API key in model settings.`);
+      }
+
+      // Validate API key format - detect corrupted localStorage
+      if (apiKey.includes('[INFO]') || apiKey.includes('[Boot]') || apiKey.includes(' ') || apiKey.length > 200) {
+        logger.error(`[LLM] Corrupted API key detected in localStorage (${storageKey}). Clearing invalid value.`);
+        localStorage.removeItem(storageKey);
+        throw new Errors.ConfigError(`API key for ${provider} was corrupted. Please re-enter your API key in model settings.`);
       }
 
       const controller = new AbortController();
@@ -386,7 +429,7 @@ const LLMClient = {
             throw new Errors.ApiError(`Gemini API Error: ${errData.error?.message || response.status}`, response.status);
           }
 
-          if (onUpdate && response.body) {
+          if (onUpdate && response.body && StreamParser) {
             fullContent = await StreamParser.parseForProvider(response, 'gemini', onUpdate, { abortController: controller });
           } else {
             const data = await response.json();
@@ -394,19 +437,27 @@ const LLMClient = {
           }
 
         } else if (provider === 'openai') {
-          // OpenAI API
+          // OpenAI API with native tool calling support
+          const requestBody = {
+            model: modelConfig.id,
+            messages: messages,
+            stream: !!onUpdate,
+            temperature: 0.7
+          };
+
+          // Add tools if provided and model supports them
+          if (modelConfig.tools?.length > 0) {
+            requestBody.tools = modelConfig.tools;
+            requestBody.tool_choice = 'auto';
+          }
+
           response = await fetch(CLOUD_API_ENDPOINTS.openai, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
               'Authorization': `Bearer ${apiKey}`
             },
-            body: JSON.stringify({
-              model: modelConfig.id,
-              messages: messages,
-              stream: !!onUpdate,
-              temperature: 0.7
-            }),
+            body: JSON.stringify(requestBody),
             signal: controller.signal
           });
 
@@ -415,11 +466,30 @@ const LLMClient = {
             throw new Errors.ApiError(`OpenAI API Error: ${errData.error?.message || response.status}`, response.status);
           }
 
-          if (onUpdate && response.body) {
+          let toolCalls = null;
+
+          if (onUpdate && response.body && StreamParser) {
+            // Streaming mode - tool calls come in chunks, harder to parse
+            // For now, fall back to text parsing in streaming mode
             fullContent = await StreamParser.parseForProvider(response, 'openai', onUpdate, { abortController: controller });
           } else {
             const data = await response.json();
-            fullContent = data.choices?.[0]?.message?.content || '';
+            const message = data.choices?.[0]?.message;
+            fullContent = message?.content || '';
+            toolCalls = parseOpenAIToolCalls(message);
+          }
+
+          // Return early with tool calls if present
+          if (toolCalls?.length > 0) {
+            return {
+              requestId,
+              content: fullContent,
+              raw: fullContent,
+              model: modelConfig.id,
+              timestamp: Date.now(),
+              provider: provider,
+              toolCalls // Native tool calls!
+            };
           }
 
         } else if (provider === 'anthropic') {
@@ -453,7 +523,7 @@ const LLMClient = {
             throw new Errors.ApiError(`Anthropic API Error: ${errData.error?.message || response.status}`, response.status);
           }
 
-          if (onUpdate && response.body) {
+          if (onUpdate && response.body && StreamParser) {
             fullContent = await StreamParser.parseForProvider(response, 'anthropic', onUpdate, { abortController: controller });
           } else {
             const data = await response.json();
@@ -493,24 +563,38 @@ const LLMClient = {
       };
     };
 
-    const chat = async (messages, modelConfig, onUpdate = null) => {
+    /**
+     * @param {Array} messages - Chat messages
+     * @param {Object} modelConfig - Model configuration
+     * @param {Function} onUpdate - Streaming callback
+     * @param {Object} options - Additional options
+     * @param {Array} options.tools - Tool schemas for native tool calling
+     */
+    const chat = async (messages, modelConfig, onUpdate = null, options = {}) => {
       await _limiter.waitForToken();
 
       const requestId = Utils.generateId('req');
       const isCloudProvider = ['gemini', 'openai', 'anthropic'].includes(modelConfig.provider);
 
+      // Merge tools into modelConfig if native tools supported
+      const configWithTools = { ...modelConfig };
+      if (options.tools?.length > 0 && supportsNativeTools(modelConfig)) {
+        configWithTools.tools = options.tools;
+        logger.info(`[LLM] Native tool calling enabled with ${options.tools.length} tools`);
+      }
+
       // Route to appropriate backend
       if (modelConfig.provider === 'transformers' ||
           (TransformersClient && TransformersClient.isTransformersModel && TransformersClient.isTransformersModel(modelConfig.id))) {
-          return await _chatTransformers(messages, modelConfig, onUpdate, requestId);
+          return await _chatTransformers(messages, configWithTools, onUpdate, requestId);
       } else if (modelConfig.hostType === 'browser-cloud' && isCloudProvider) {
           // Direct browser-to-cloud API call (no proxy)
           logger.info(`[LLM] Direct API call to ${modelConfig.provider}/${modelConfig.id}`);
-          return await _chatCloudDirect(messages, modelConfig, onUpdate, requestId);
+          return await _chatCloudDirect(messages, configWithTools, onUpdate, requestId);
       } else if (modelConfig.queryMethod === 'browser' || modelConfig.provider === 'webllm') {
-          return await _chatBrowser(messages, modelConfig, onUpdate, requestId);
+          return await _chatBrowser(messages, configWithTools, onUpdate, requestId);
       } else {
-          return await _chatProxy(messages, modelConfig, onUpdate, requestId);
+          return await _chatProxy(messages, configWithTools, onUpdate, requestId);
       }
     };
 
@@ -544,7 +628,7 @@ const LLMClient = {
       logger.info('[LLM] All GPU memory released');
     };
 
-    return { chat, abortRequest, getWebLLMStatus, getTransformersStatus, releaseGPUMemory };
+    return { chat, abortRequest, getWebLLMStatus, getTransformersStatus, releaseGPUMemory, supportsNativeTools };
   }
 };
 

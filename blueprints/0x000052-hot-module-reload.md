@@ -19,7 +19,7 @@ Traditional web applications require a full page reload to apply code changes, d
 - **No dynamic patching** of production issues
 
 This blueprint defines a **Hot Module Reload (HMR)** system that:
-- **Loads modules dynamically** from source code using blob URLs
+- **Loads modules dynamically** from source code using blob URls
 - **Preserves application state** during module updates
 - **Proxies module references** for transparent hot-swapping
 - **Auto-reloads modules** when VFS detects changes
@@ -61,12 +61,12 @@ patch.rollback();
 #### Key Components
 
 **1. Module Loading from Source**
-- **Dynamic Import with Blob URLs**: Creates a Blob from source code, generates object URL, imports as ES module
+- **Dynamic Import with Blob URls**: Creates a Blob from source code, generates object URL, imports as ES module
 - **Source Wrapping**: Auto-detects exports and wraps in module format if needed
   - Detects `function`, `const`, `let`, `var`, `class` declarations
   - Generates export object from detected entities
   - Adds module metadata (`__moduleId`, `__hotReload`)
-- **Error Handling**: Cleans up blob URLs on failure, prevents memory leaks
+- **Error Handling**: Cleans up blob URls on failure, prevents memory leaks
 - **Export Detection Regex**:
   - Functions: `/function\s+(\w+)\s*\(/g`
   - Variables: `/(?:const|let|var)\s+(\w+)\s*=/g`
@@ -114,7 +114,7 @@ patch.rollback();
 - **Isolated Contexts**: Execute arbitrary code in isolated module scope
 - **Context Variables**: Inject variables into execution context
 - **Blob URL Isolation**: Creates temporary module with execution wrapper
-- **Auto Cleanup**: Revokes blob URLs after import
+- **Auto Cleanup**: Revokes blob URls after import
 - **API**:
   - `createSafeContext(code, contextVars)`: Returns async executor function
   - `executeSafe(code, args)`: One-shot execution with cleanup
@@ -306,7 +306,7 @@ const widget = {
 6. **VFS Integration**
    - Implement `handleModuleChange(event)`:
      - Extract `{ artifactId, changeType }` from event
-     - Find module ID by matching `sourcePath` in `moduleVersions`
+     - find module ID by matching `sourcePath` in `moduleVersions`
      - If found and `changeType === 'modified'`, call `reloadModule(moduleId)`
      - Log auto-reload attempts and errors
 

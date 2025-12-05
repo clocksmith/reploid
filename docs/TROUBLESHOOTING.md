@@ -227,7 +227,7 @@ curl -H "Content-Type: application/json" \
 # Solution: Wait 60 seconds or upgrade to paid tier
 
 # 4. Try different provider
-# Edit config.json:
+# edit config.json:
 {
   "providers": {
     "default": "openai",
@@ -261,15 +261,19 @@ curl -H "Content-Type: application/json" \
 npm start
 # Server handles CORS for you
 
-# 2. For development, use browser flags (Chrome)
+# 2. Allow hosted UI (e.g. https://replo.id) to reach your local proxy
+export CORS_ORIGINS="https://replo.id,https://your-domain.example"
+# Or set `server.corsOrigins` in config.json and restart the proxy
+
+# 3. For development, use browser flags (Chrome)
 # WARNING: Only for development!
 google-chrome --disable-web-security --user-data-dir=/tmp/chrome_dev
 
-# 3. For File System Access CORS:
+# 4. For File System Access CORS:
 # No solution needed - this is expected browser security
 # User must grant permission via dialog
 
-# 4. For Gemini API CORS in browser-only mode:
+# 5. For Gemini API CORS in browser-only mode:
 # Use proxy server or enable CORS in your API provider settings
 ```
 
@@ -344,21 +348,21 @@ location.reload();
 
 ---
 
-### Git VFS Errors
+### git VFS Errors
 
 **Symptoms:**
-- `Git operation failed`
+- `git operation failed`
 - "No commit found for checkpoint"
 - Rollback not working
 
 **Solutions:**
 
 ```javascript
-// 1. Check Git VFS initialized
-const gitVfs = await DIContainer.resolve('GitVFS');
+// 1. Check git VFS initialized
+const gitVfs = await DIContainer.resolve('gitVFS');
 if (!gitVfs) {
-  console.error('GitVFS not loaded');
-  // Verify config.json includes GitVFS in upgrades
+  console.error('gitVFS not loaded');
+  // Verify config.json includes gitVFS in upgrades
 }
 
 // 2. Verify checkpoint exists
@@ -371,7 +375,7 @@ await SentinelFSM.createCheckpoint('manual-checkpoint');
 // 4. Test rollback
 await SentinelFSM.rollbackToCheckpoint('checkpoint-id');
 
-// 5. Reset Git state if corrupted
+// 5. Reset git state if corrupted
 await gitVfs.resetRepository();
 ```
 
@@ -532,7 +536,7 @@ console.log(`Context size: ${contextSize} characters`);
 // Recommendation: Keep under 50,000 chars
 
 // 2. Use smaller model
-// Edit config.json:
+// edit config.json:
 {
   "providers": {
     "geminiModel": "gemini-3-pro-preview", // Faster
@@ -573,11 +577,11 @@ StateManager.clearCache();
 // Each session can use 10-50MB
 
 // 4. Reduce performance sampling rate
-// Edit performance-monitor.js:
+// edit performance-monitor.js:
 // Change memory sampling from 30s to 60s
 
 // 5. Use Chrome Task Manager
-// Shift+Esc → Find your tab → Check memory usage
+// Shift+Esc → find your tab → Check memory usage
 // Restart browser if >1GB
 ```
 
@@ -830,7 +834,7 @@ console.log('Tool tests:', result2);
 localStorage.setItem('reploid:loglevel', 'warn');
 
 // 3. Adjust EventBus verbosity
-// Edit event-bus.js:
+// edit event-bus.js:
 // Comment out logger.info lines, keep logger.error
 
 // 4. Use console groups
@@ -860,7 +864,7 @@ const graph = await introspector.getModuleGraph();
 console.log('Dependency graph:', graph);
 
 // 2. Verify metadata.dependencies match actual usage
-// Edit module file:
+// edit module file:
 metadata: {
   dependencies: ['Utils', 'EventBus', 'StateManager'] // Must match deps parameter
 }
@@ -947,11 +951,11 @@ worker.postMessage({
    - What did you click/do right before error?
 
 4. **Check known issues**
-   - Search GitHub issues
+   - Search gitHub issues
 
 ### Contact & Support
 
-- **GitHub Issues**: https://github.com/anthropics/reploid/issues
+- **gitHub Issues**: https://github.com/anthropics/reploid/issues
 - **Documentation**: `docs/` directory
 - **Architecture**: `blueprints/` directory
 
@@ -980,8 +984,8 @@ worker.postMessage({
 ### `Invalid state transition`
 → See [Agent Stuck in State](#agent-stuck-in-state)
 
-### `Git operation failed`
-→ See [Git VFS Errors](#git-vfs-errors)
+### `git operation failed`
+→ See [git VFS Errors](#git-vfs-errors)
 
 ---
 
