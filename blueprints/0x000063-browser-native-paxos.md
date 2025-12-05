@@ -38,14 +38,14 @@ async function runPawsArenaWorkflow(objective) {
   //    - Compares results
   // 4. Send results back via WebSocket
 
-  // Total: Requires Node.js server + Python + Git + Shell access
+  // Total: Requires Node.js server + Python + git + Shell access
 }
 ```
 
 **Limitations:**
 - [ ] Requires Node.js server running (not pure browser)
 - [ ] Requires Python environment
-- [ ] Requires Git worktrees (filesystem access)
+- [ ] Requires git worktrees (filesystem access)
 - [ ] Requires shell command execution
 - [ ] Cannot work in pure browser environment
 - [ ] No integration with REPLOID's VFS
@@ -201,7 +201,7 @@ const MultiModelArena = {
 
 ### 2.3 Verification Strategy
 
-**Traditional Arena (Git worktrees + Shell):**
+**Traditional Arena (git worktrees + Shell):**
 ```bash
 # Python CLI approach:
 git worktree add /tmp/arena-workspace-1 HEAD
@@ -884,7 +884,7 @@ describe('MultiModelArena Module', () => {
 
 | Feature | Traditional Arena (arena_tool.js) | Browser Arena (AREN) |
 |---------|-----------------------------------|-----------------------|
-| **Environment** | Node.js + Python + Git | 100% Browser |
+| **Environment** | Node.js + Python + git | 100% Browser |
 | **Workspace** | Real git worktrees | VFS snapshots (~1ms) |
 | **Verification** | Shell commands | Web Workers (sandboxed) |
 | **Models** | Hardcoded to Gemini | Hybrid (Gemini/Claude/GPT/Local) |

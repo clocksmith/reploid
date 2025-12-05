@@ -332,7 +332,7 @@ class SignalingServer extends EventEmitter {
       const now = Date.now();
       const staleThreshold = now - this.options.peerTimeout;
 
-      // Find and remove stale peers
+      // find and remove stale peers
       const stalePeers = [];
       this.peers.forEach((peer, peerId) => {
         if (peer.lastSeen < staleThreshold) {

@@ -1,4 +1,4 @@
-# Blueprint 0x000053: Git-based Virtual File System
+# Blueprint 0x000053: git-based Virtual File System
 
 **Objective:** To provide version control, commit history, and rollback capabilities for the REPLOID virtual file system using isomorphic-git.
 
@@ -12,7 +12,7 @@
 
 ### 1. The Strategic Imperative
 
-A self-modifying agent system requires robust version control to track evolution, enable rollback to known-good states, and maintain an audit trail of all self-modifications. The Git VFS provides:
+A self-modifying agent system requires robust version control to track evolution, enable rollback to known-good states, and maintain an audit trail of all self-modifications. The git VFS provides:
 
 - **Version History**: Complete commit history for all file modifications
 - **Checkpoints**: Named snapshots for significant system states
@@ -24,14 +24,14 @@ Without version control, self-modification risks are catastrophic - a bad change
 
 ### 2. The Architectural Solution
 
-The `/upgrades/git-vfs.js` implements a **Git-backed VFS** using isomorphic-git and LightningFS for browser-based persistence.
+The `/upgrades/git-vfs.js` implements a **git-backed VFS** using isomorphic-git and LightningFS for browser-based persistence.
 
 #### Module Structure
 
 ```javascript
-const GitVFS = {
+const gitVFS = {
   metadata: {
-    id: 'GitVFS',
+    id: 'gitVFS',
     version: '1.0.0',
     dependencies: ['Utils', 'Storage'],
     async: true,
@@ -90,7 +90,7 @@ const GitVFS = {
     };
 
     // Web Component Widget (closure access to git state)
-    class GitVFSWidget extends HTMLElement {
+    class gitVFSWidget extends HTMLElement {
       constructor() {
         super();
         this.attachShadow({ mode: 'open' });
@@ -118,7 +118,7 @@ const GitVFS = {
           primaryMetric: `${commitStats.totalCommits} commits`,
           secondaryMetric: `${checkpoints.length} checkpoints`,
           lastActivity: history[0]?.timestamp || null,
-          message: isInitialized ? 'Git VFS active' : 'Not initialized'
+          message: isInitialized ? 'git VFS active' : 'Not initialized'
         };
       }
 
@@ -194,10 +194,10 @@ const GitVFS = {
             }
           </style>
           <div class="git-vfs-panel">
-            <h4>⛝ Git VFS</h4>
+            <h4>⛝ git VFS</h4>
 
             ${!isReady ? `
-              <div class="empty-state">Git VFS not initialized</div>
+              <div class="empty-state">git VFS not initialized</div>
             ` : `
               <div class="git-stats">
                 <div class="stat-card" style="background: rgba(0,255,255,0.1);">
@@ -228,12 +228,12 @@ const GitVFS = {
     }
 
     if (!customElements.get('git-vfs-widget')) {
-      customElements.define('git-vfs-widget', GitVFSWidget);
+      customElements.define('git-vfs-widget', gitVFSWidget);
     }
 
     const widget = {
       element: 'git-vfs-widget',
-      displayName: 'Git VFS',
+      displayName: 'git VFS',
       icon: '⛝',
       category: 'storage'
     };
@@ -259,7 +259,7 @@ const GitVFS = {
 
 #### Core Responsibilities
 
-1. **Repository Management**: Initialize and maintain Git repository using LightningFS
+1. **Repository Management**: Initialize and maintain git repository using LightningFS
 2. **File Operations**: Write, read, delete files with automatic staging
 3. **Commit Management**: Create commits with metadata (checkpoint, session, turn)
 4. **History Tracking**: Retrieve commit history for individual files or entire repository
@@ -269,7 +269,7 @@ const GitVFS = {
 
 ### 3. The Implementation Pathway
 
-#### Step 1: Initialize Git Libraries
+#### Step 1: Initialize git Libraries
 
 Check for browser availability of isomorphic-git and LightningFS:
 
@@ -288,9 +288,9 @@ const init = async () => {
     }
 
     isInitialized = true;
-    logger.info('[GitVFS] Initialized successfully');
+    logger.info('[gitVFS] Initialized successfully');
   } else {
-    logger.warn('[GitVFS] Git libraries not available, using fallback storage');
+    logger.warn('[gitVFS] git libraries not available, using fallback storage');
   }
 };
 ```
@@ -309,7 +309,7 @@ const initializeRepository = async () => {
     defaultBranch: 'main'
   });
 
-  await pfs.writeFile(`${REPO_DIR}/README.md`, '# REPLOID VFS\n\nGit-backed VFS.');
+  await pfs.writeFile(`${REPO_DIR}/README.md`, '# REPLOID VFS\n\ngit-backed VFS.');
   await git.add({ fs: pfs, dir: REPO_DIR, filepath: 'README.md' });
   await git.commit({
     fs: pfs,
@@ -388,7 +388,7 @@ const getHistory = async (path, limit = 10) => {
 
 #### Step 6: Implement Checkpoint System
 
-Create named checkpoints using Git tags:
+Create named checkpoints using git tags:
 
 ```javascript
 const createCheckpoint = async (label, metadata = {}) => {
@@ -413,7 +413,7 @@ const createCheckpoint = async (label, metadata = {}) => {
 Create widget class inside factory with closure access:
 
 ```javascript
-class GitVFSWidget extends HTMLElement {
+class gitVFSWidget extends HTMLElement {
   constructor() {
     super();
     this.attachShadow({ mode: 'open' });
@@ -435,7 +435,7 @@ class GitVFSWidget extends HTMLElement {
       primaryMetric: `${getCommitStats().totalCommits} commits`,
       secondaryMetric: `${getAllCheckpoints().length} checkpoints`,
       lastActivity: getHistory('', 1)[0]?.timestamp || null,
-      message: isInitialized ? 'Git VFS active' : 'Not initialized'
+      message: isInitialized ? 'git VFS active' : 'Not initialized'
     };
   }
 
@@ -448,7 +448,7 @@ class GitVFSWidget extends HTMLElement {
 ```javascript
 const elementName = 'git-vfs-widget';
 if (!customElements.get(elementName)) {
-  customElements.define(elementName, GitVFSWidget);
+  customElements.define(elementName, gitVFSWidget);
 }
 ```
 
@@ -470,7 +470,7 @@ return {
   },
   widget: {
     element: elementName,
-    displayName: 'Git VFS',
+    displayName: 'git VFS',
     icon: '⛝',
     category: 'storage'
   }
@@ -488,9 +488,9 @@ return {
 ### 5. Extension Points
 
 - **Branch Support**: Implement branch creation for experimental modifications
-- **Remote Sync**: Add GitHub/GitLab sync for backup and collaboration
+- **Remote Sync**: Add gitHub/gitLab sync for backup and collaboration
 - **Diff Visualization**: Enhance widget to show file diffs between commits
 - **Conflict Resolution**: Handle merge conflicts during rollback
 - **Compression**: Implement git garbage collection for large histories
 
-Use this blueprint whenever modifying Git VFS logic, adding version control features, or implementing rollback mechanisms.
+Use this blueprint whenever modifying git VFS logic, adding version control features, or implementing rollback mechanisms.

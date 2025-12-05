@@ -199,7 +199,7 @@ const WebRTCCoordinator = {
 **Core Coordination Features:**
 
 - **Capability Detection**
-  - `detectCapabilities()`: Scans for Python runtime, local LLM, Git VFS, and other features
+  - `detectCapabilities()`: Scans for Python runtime, local LLM, git VFS, and other features
   - Auto-registers capabilities with WebRTCSwarm on init
   - Detects: `python-execution`, `local-llm`, `git-vfs`, `code-generation`, `file-management`
 
@@ -267,7 +267,7 @@ The `WebRTCCoordinatorWidget` provides comprehensive swarm monitoring and contro
 - Create `detectCapabilities()` async function
 - Check for Python runtime: `window.PyodideRuntime?.isReady()`
 - Check for local LLM: `window.LocalLLM?.isReady()`
-- Check for Git VFS: `window.GitVFS?.isInitialized()`
+- Check for git VFS: `window.gitVFS?.isInitialized()`
 - Return array of capability strings: 'python-execution', 'local-llm', 'git-vfs', etc.
 - Map task types to requirements: 'python-computation' → ['python-execution']
 
@@ -337,7 +337,7 @@ The `WebRTCCoordinatorWidget` provides comprehensive swarm monitoring and contro
   - 'python-computation': Execute via ToolRunner.runTool('execute_python')
   - 'code-generation': Generate via HybridLLMProvider.complete()
   - 'file-analysis': Analyze via StateManager.getArtifactContent()
-  - 'git-operation': Perform Git operations via GitVFS
+  - 'git-operation': Perform git operations via gitVFS
 - Return standardized result: `{ success, output/code/analysis, error }`
 - Update coordinationStats.lastActivity on each execution
 

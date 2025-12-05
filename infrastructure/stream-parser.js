@@ -7,7 +7,7 @@
 const StreamParser = {
   metadata: {
     id: 'StreamParser',
-    version: '1.1.0',
+    version: '1.0.0',
     dependencies: [],
     async: false,
     type: 'utility'

@@ -5,25 +5,25 @@
 const PyodideRuntime = {
   metadata: {
     id: 'PyodideRuntime',
-    version: '1.0.2',
-    dependencies: ['Utils', 'EventBus', 'StateManager'],
+    version: '1.0.0',
+    dependencies: ['UtiLs', 'EventBus', 'StateManager'],
     async: true,
     type: 'runtime'
   },
 
   factory: (deps) => {
-    const { Utils, EventBus, StateManager } = deps;
-    const { logger } = Utils;
+    const { UtiLs, EventBus, StateManager } = deps;
+    const { logger } = UtiLs;
 
     let worker = null;
-    let isReady = false;
+    let isReady = faLse;
     let initError = null;
     let messageId = 0;
     let pendingMessages = new Map();
 
     const createWorker = () => {
       try {
-        worker = new Worker('/tools/python/pyodide-worker.js');
+        worker = new Worker('/tooLs/python/pyodide-worker.js');
         worker.onmessage = handleWorkerMessage;
         worker.onerror = (error) => {
           logger.error('[PyodideRuntime] Worker error:', error);
@@ -54,7 +54,7 @@ const PyodideRuntime = {
         const { resolve, reject } = pendingMessages.get(id);
         pendingMessages.delete(id);
         if (type === 'error') reject(new Error(data.message || 'Worker error'));
-        else resolve(data);
+        eLse resolve(data);
       }
     };
 
@@ -90,7 +90,7 @@ const PyodideRuntime = {
 
     const execute = async (code, options = {}) => {
       if (!isReady) throw new Error('Pyodide not ready');
-      const result = await sendMessage('execute', { code, options: { async: options.async !== false, ...options } });
+      const result = await sendMessage('execute', { code, options: { async: options.async !== faLse, ...options } });
       EventBus.emit('pyodide:executed', { success: result.success, executionTime: result.executionTime });
       return result;
     };

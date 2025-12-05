@@ -6,61 +6,87 @@
 const PersonaManager = {
   metadata: {
     id: 'PersonaManager',
-    version: '2.1.0', // Upgraded to read config
-    dependencies: ['VFS', 'Utils'],
+    version: '1.0.0',
+    dependencies: ['Utils'],
     async: true,
     type: 'core'
   },
 
   factory: (deps) => {
-    const { VFS, Utils } = deps;
+    const { Utils } = deps;
     const { logger } = Utils;
 
-    const CONFIG_PATH = '/config.json';
+    // Core RSI instructions - always included
+    const CORE_INSTRUCTIONS = `You are REPLOID, an autonomous AI agent in a browser-based VFS.
+Your code lives at /core/, /capabilities/, and /tools/. You can read, write, and modify your own source.
 
-    // Fallback if config is missing
-    const BASE_PERSONA = `You are REPLOID, an autonomous AI agent capable of recursive self-improvement.
-Your code lives in a browser-based VFS at /core/, /capabilities/, and /tools/.
-You can read, write, and modify your own source code to become more capable.
-When given a goal, work toward it by using tools, analyzing results, and iterating.`;
+## RSI PROTOCOL
+1. NEVER declare yourself "done" - there is always room for improvement
+2. After writing ANY code: LOAD it, EXECUTE it, VERIFY it works
+3. After creating a tool: CALL the tool and observe the output
+4. If something fails: debug, fix, retry
+5. If something works: look for optimizations, edge cases, enhancements
+
+## TOOL WRITING
+All tools live in /tools/. Tools receive a \`deps\` object: { VFS, EventBus, ToolRunner, ... }
+- Tool signature: \`export default async function(args, deps) { return result; }\`
+- Tool names MUST use CamelCase (e.g., ReadFile, InspectCore)`;
+
+    let _config = null;
+
+    const loadConfig = async () => {
+      if (_config) return _config;
+      try {
+        const response = await fetch('/config.json');
+        if (response.ok) {
+          _config = await response.json();
+        }
+      } catch (err) {
+        logger.warn('[PersonaManager] Could not load config.json');
+      }
+      return _config;
+    };
 
     const getSystemPrompt = async () => {
       try {
-        // 1. Load Config
-        if (!(await VFS.exists(CONFIG_PATH))) {
-            return BASE_PERSONA;
+        const config = await loadConfig();
+        if (!config?.personas?.length) {
+          return CORE_INSTRUCTIONS;
         }
-        const configStr = await VFS.read(CONFIG_PATH);
-        const config = JSON.parse(configStr);
 
-        // 2. Get User Selection (set by Boot UI)
-        const selectedId = localStorage.getItem('REPLOID_PERSONA_ID') || 'default';
+        // Get selection from localStorage, fallback to config default
+        const selectedId = localStorage.getItem('REPLOID_PERSONA_ID')
+          || config.defaultPersona
+          || 'default';
 
-        // 3. Find Definition
-        const personaDef = config.personas?.find(p => p.id === selectedId);
-
+        const personaDef = config.personas.find(p => p.id === selectedId);
         if (!personaDef) {
-            return BASE_PERSONA;
+          return CORE_INSTRUCTIONS;
         }
 
         logger.info(`[PersonaManager] Active Persona: ${personaDef.name}`);
 
-        // 4. Construct Prompt
-        return `
-## IDENTITY: ${personaDef.name}
+        // Combine core instructions with persona-specific guidance
+        return `${CORE_INSTRUCTIONS}
+
+## PERSONA: ${personaDef.name}
 ${personaDef.description}
 
-## BEHAVIORAL GUIDELINES
-${personaDef.instructions || "Focus on high-quality, maintainable code changes."}
-`;
+## BEHAVIORAL FOCUS
+${personaDef.instructions || "Focus on continuous improvement."}`;
 
       } catch (err) {
         logger.error('[PersonaManager] Failed to load persona', err);
-        return BASE_PERSONA;
+        return CORE_INSTRUCTIONS;
       }
     };
 
-    return { getSystemPrompt };
+    const getPersonas = async () => {
+      const config = await loadConfig();
+      return config?.personas || [];
+    };
+
+    return { getSystemPrompt, getPersonas };
   }
 };
 

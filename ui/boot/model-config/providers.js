@@ -140,70 +140,94 @@ async function getWebLLMModels() {
         .sort((a, b) => a.vram - b.vram);
 }
 
-// Check availability of all providers
+// Callback for when provider status changes
+let onStatusChange = null;
+
+export function setStatusChangeCallback(callback) {
+    onStatusChange = callback;
+}
+
+// Check availability of all providers with progressive UI updates
 export async function checkAvailability() {
     const providers = getAvailableProviders();
     const proxyUrl = window.location.origin.includes('file://')
         ? 'http://localhost:8000'
         : window.location.origin;
 
-    // Check Ollama
-    try {
-        const response = await fetch(`${proxyUrl}/api/ollama/models`, {
-            signal: AbortSignal.timeout(3000)
-        });
-        if (response.ok) {
-            const data = await response.json();
-            providers.ollama.online = true;
-            providers.ollama.models = (data.models || []).map(m => ({
-                id: m.name || m.model,
-                name: m.name || m.model
-            }));
-        } else {
-            console.log(`[ModelConfig] Ollama API returned ${response.status} - this is normal if running without local proxy`);
-        }
-    } catch (error) {
-        console.log('[ModelConfig] Ollama not available (expected when hosted):', error.message);
-    }
-
-    // Check WebGPU
+    // Check WebGPU immediately (synchronous check)
     providers.webgpu.online = !!navigator.gpu;
+    providers.webgpu.checked = true;
     if (providers.webgpu.online) {
-        try {
-            const webllmModels = await getWebLLMModels();
-            if (webllmModels.length > 0) {
-                providers.webgpu.models = webllmModels;
-                console.log(`[ModelConfig] Loaded ${webllmModels.length} models from WebLLM catalog`);
-            } else {
-                throw new Error('No models in WebLLM catalog');
-            }
-        } catch (error) {
-            console.warn('[ModelConfig] Could not load WebLLM catalog, using fallback list:', error.message);
-            providers.webgpu.models = fallbackWebLLMModels;
-        }
-
         // Also enable Transformers.js since it uses WebGPU
         providers.transformers.online = true;
         providers.transformers.models = transformersModels;
+        providers.transformers.checked = true;
         console.log(`[ModelConfig] Transformers.js available with ${transformersModels.length} models`);
+    } else {
+        providers.transformers.checked = true;
     }
-
-    // Check Proxy
-    try {
-        const response = await fetch(`${proxyUrl}/api/health`, {
-            signal: AbortSignal.timeout(3000)
-        });
-        if (response.ok) {
-            providers.proxy.online = true;
-        } else {
-            console.log(`[ModelConfig] Proxy health check returned ${response.status} - this is normal if running without local proxy`);
-            providers.proxy.online = false;
-        }
-    } catch (error) {
-        console.log('[ModelConfig] Proxy not available (expected when hosted):', error.message);
-    }
-
     setAvailableProviders(providers);
+    if (onStatusChange) onStatusChange();
+
+    // Run network checks in parallel
+    const checkOllama = async () => {
+        try {
+            const response = await fetch(`${proxyUrl}/api/ollama/models`, {
+                signal: AbortSignal.timeout(2000)
+            });
+            if (response.ok) {
+                const data = await response.json();
+                providers.ollama.online = true;
+                providers.ollama.models = (data.models || []).map(m => ({
+                    id: m.name || m.model,
+                    name: m.name || m.model
+                }));
+            }
+        } catch (error) {
+            console.log('[ModelConfig] Ollama not available:', error.message);
+        }
+        providers.ollama.checked = true;
+        setAvailableProviders(providers);
+        if (onStatusChange) onStatusChange();
+    };
+
+    const checkProxy = async () => {
+        try {
+            const response = await fetch(`${proxyUrl}/api/health`, {
+                signal: AbortSignal.timeout(2000)
+            });
+            if (response.ok) {
+                providers.proxy.online = true;
+            }
+        } catch (error) {
+            console.log('[ModelConfig] Proxy not available:', error.message);
+        }
+        providers.proxy.checked = true;
+        setAvailableProviders(providers);
+        if (onStatusChange) onStatusChange();
+    };
+
+    const loadWebLLMModels = async () => {
+        if (providers.webgpu.online) {
+            try {
+                const webllmModels = await getWebLLMModels();
+                if (webllmModels.length > 0) {
+                    providers.webgpu.models = webllmModels;
+                    console.log(`[ModelConfig] Loaded ${webllmModels.length} models from WebLLM catalog`);
+                } else {
+                    throw new Error('No models in WebLLM catalog');
+                }
+            } catch (error) {
+                console.warn('[ModelConfig] Could not load WebLLM catalog, using fallback list:', error.message);
+                providers.webgpu.models = fallbackWebLLMModels;
+            }
+            setAvailableProviders(providers);
+            if (onStatusChange) onStatusChange();
+        }
+    };
+
+    // Run all checks in parallel
+    await Promise.all([checkOllama(), checkProxy(), loadWebLLMModels()]);
 }
 
 // Get models for a specific provider

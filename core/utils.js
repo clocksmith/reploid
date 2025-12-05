@@ -6,7 +6,7 @@
 const Utils = {
   metadata: {
     id: 'Utils',
-    version: '2.2.0', // Merged ParserUtils
+    version: '1.0.0', // Merged ParserUtils
     dependencies: [],
     type: 'pure'
   },

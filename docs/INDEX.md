@@ -23,6 +23,7 @@ Guide to all documentation in the REPLOID project.
 - **[docs/API.md](./API.md)** - Module API documentation
 - **[docs/LOCAL_MODELS.md](./LOCAL_MODELS.md)** - WebLLM and Ollama setup
 - **[docs/TROUBLESHOOTING.md](./TROUBLESHOOTING.md)** - Common issues and solutions
+- **[docs/STYLE_GUIDE.md](./STYLE_GUIDE.md)** - Code and UI conventions
 
 ---
 
@@ -30,25 +31,45 @@ Guide to all documentation in the REPLOID project.
 
 ```
 reploid/
-├── core/                   # Substrate modules (immutable)
-│   ├── agent-loop.js       # Main cognitive cycle
-│   ├── vfs.js              # Virtual filesystem
-│   └── ...
+├── index.html              # Boot screen entry point
+├── boot.js                 # Hydration and initialization
+├── sw-module-loader.js     # Service worker for VFS modules
 │
-├── workflow/               # Sentinel workflow
-│   ├── sentinel-fsm.js     # State machine
-│   └── sentinel-tools.js   # PAWS tools
+├── core/                   # Core substrate
+│   ├── agent-loop.js       # Cognitive cycle (Think → Act → Observe)
+│   ├── vfs.js              # Virtual filesystem (IndexedDB)
+│   ├── llm-client.js       # Multi-provider LLM abstraction
+│   ├── tool-runner.js      # Dynamic tool loading/execution
+│   ├── worker-manager.js   # Multi-worker orchestration
+│   ├── persona-manager.js  # System prompt customization
+│   ├── response-parser.js  # Tool call parsing
+│   └── verification-manager.js  # Pre-flight safety checks
 │
-├── infrastructure/         # System services
-│   ├── event-bus.js        # Event system
-│   └── ...
+├── infrastructure/         # Support services
+│   ├── event-bus.js        # Pub/sub event system
+│   ├── di-container.js     # Dependency injection
+│   ├── hitl-controller.js  # Human-in-the-loop oversight
+│   ├── audit-logger.js     # Execution logging
+│   ├── circuit-breaker.js  # Failure tracking
+│   └── rate-limiter.js     # API rate limiting
 │
-├── capabilities/           # Agent capabilities
-├── ui/                     # UI panels
-├── blueprints/             # Architecture specs
-├── bin/                    # CLI tools
-├── server/                 # Proxy server
-└── docs/                   # Documentation
+├── ui/                     # User interface
+│   └── proto.js            # Proto UI (main interface)
+│
+├── tools/                  # Agent tools (CamelCase)
+│   ├── ReadFile.js, WriteFile.js, ...
+│   ├── SpawnWorker.js, ListWorkers.js, AwaitWorkers.js
+│   └── python/             # Pyodide runtime
+│
+├── config/                 # Configuration
+│   └── genesis-levels.json # Module/worker/role definitions
+│
+├── testing/                # Test infrastructure
+│   └── arena/              # Arena harness and VFS sandbox
+│
+├── docs/                   # Documentation
+├── blueprints/             # Architectural specifications
+└── server/                 # Proxy server
 ```
 
 ---
@@ -64,6 +85,7 @@ reploid/
 1. [SYSTEM_ARCHITECTURE.md](./SYSTEM_ARCHITECTURE.md) - Understand architecture
 2. [blueprints/README.md](../blueprints/README.md) - Study specifications
 3. [API.md](./API.md) - Learn module APIs
+4. [tools/README.md](../tools/README.md) - Tool development
 
 ### For RSI Research
 1. [README.md](../README.md) - Core RSI thesis
@@ -75,14 +97,18 @@ reploid/
 ## Quick Reference
 
 **Key Files:**
-- `/config.json` - Module registry
+- `/config/genesis-levels.json` - Module registry and worker types
 - `/boot.js` - Application bootstrap
 - `/index.html` - Entry point
 
-**Documentation:**
-- `/docs` - This documentation hub
+**Key Directories:**
+- `/core` - Agent substrate modules
+- `/tools` - Dynamic agent tools
+- `/infrastructure` - Support services
+- `/ui` - Proto UI
+- `/docs` - Documentation
 - `/blueprints` - Architectural specifications
 
 ---
 
-*Last updated: 2025-11-20*
+*Last updated: December 2025*

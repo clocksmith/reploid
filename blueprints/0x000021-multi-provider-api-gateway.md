@@ -149,7 +149,7 @@ The widget provides critical visibility into multi-provider API orchestration, e
 
 ### 3. Implementation Pathway
 1. **Provider Onboarding**
-   - Extend `SUPPORTED_PROVIDERS` map with endpoint URLs, headers, and adaptor logic.
+   - Extend `SUPPORTED_PROVIDERS` map with endpoint URls, headers, and adaptor logic.
    - Update `buildRequestBody` and `formatMessagesForProvider` accordingly.
 2. **Tool Support**
    - Translate tool definitions from `tools-*.json` to provider-compatible function schemas.

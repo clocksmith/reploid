@@ -58,7 +58,7 @@ Key components:
 
 ### 4. Extension Points
 - **Diff View Integration**: open `DiffGenerator` previews within the explorer.
-- **Inline Editing**: add rename/create operations with corresponding confirmations.
+- **Inline editing**: add rename/create operations with corresponding confirmations.
 - **Search Providers**: optionally augment search with fuzzy matching or content scanning.
 - **Breadcrumbs**: surface current path context for long file names.
 

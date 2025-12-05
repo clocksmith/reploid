@@ -6,7 +6,7 @@
 const SelfTester = {
   metadata: {
     id: 'SelfTester',
-    version: '2.0.0',
+    version: '1.0.0',
     dependencies: ['Utils', 'VFS', 'LLMClient'],
     async: true,
     type: 'capability'

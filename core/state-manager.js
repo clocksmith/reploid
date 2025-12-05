@@ -6,7 +6,7 @@
 const StateManager = {
   metadata: {
     id: 'StateManager',
-    version: '2.1.0',
+    version: '1.0.0',
     dependencies: ['Utils', 'VFS', 'StateHelpersPure', 'EventBus', 'AuditLogger?'], // Optional AuditLogger
     async: true,
     type: 'service'

@@ -8,7 +8,7 @@
 const VFS = {
   metadata: {
     id: 'VFS',
-    version: '2.0.0',
+    version: '1.0.0',
     dependencies: ['Utils', 'EventBus?'],
     async: true,
     type: 'service'

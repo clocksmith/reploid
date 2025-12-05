@@ -24,7 +24,7 @@ Currently, goal management is embedded in UIManager (upgrades/ui-manager.js line
 - **Widget Protocol:** Implement getStatus() with 5 required fields, getControls() for edit actions
 - **EventBus Integration:** Listen to `goal:set`, `goal:updated` events; emit `goal:edit-requested` (contracts TBD)
 - **History Tracking:** Maintain goal breadcrumbs for undo/navigation
-- **Inline Editing:** Allow users to modify goal without modal dialogs
+- **Inline editing:** Allow users to modify goal without modal dialogs
 
 ---
 
@@ -47,7 +47,7 @@ EventBus.on('goal:set', (goalText) => {
 ```
 
 **Secondary Event (Outgoing): `goal:edit-requested`**
-- **Emitted by:** GoalPanel (user clicks "Edit" or "Clear")
+- **Emitted by:** GoalPanel (user clicks "edit" or "Clear")
 - **Listened by:** StateManager, agent-cycle.js (updates goal)
 - **Payload:**
 ```javascript
@@ -74,7 +74,7 @@ goal:set (EventBus)
     ↓
 GoalPanel.setGoal()  ← Display in UI
     ↓
-User clicks "Edit"
+User clicks "edit"
     ↓
 goal:edit-requested (EventBus)
     ↓
@@ -112,7 +112,7 @@ const GoalPanel = {
     let currentGoal = '';
     let goalHistory = [];  // Array of {timestamp, goal}
     const MAX_HISTORY = 50;
-    let isEditing = false;
+    let isediting = false;
     let lastActivity = null;
 
     // Event listener tracking for cleanup
@@ -135,14 +135,14 @@ const GoalPanel = {
     const init = (containerId) => { /* ... */ };
     const setGoal = (text) => { /* ... */ };
     const editGoal = () => { /* ... */ };
-    const saveEdit = (newGoal) => { /* ... */ };
+    const saveedit = (newGoal) => { /* ... */ };
 
     return {
       init,
       setGoal,
       getGoal: () => currentGoal,
       editGoal,
-      saveEdit,
+      saveedit,
       getHistory: () => goalHistory,
       cleanup,
       getStatus,
@@ -157,7 +157,7 @@ const GoalPanel = {
 **Purpose:** Validate goal changes before emitting `goal:edit-requested`.
 
 ```javascript
-const saveEdit = async (newGoal) => {
+const saveedit = async (newGoal) => {
   // Validate with GoalModifier if available
   if (GoalModifier) {
     const isValid = await GoalModifier.validateGoal(newGoal);
@@ -175,7 +175,7 @@ const saveEdit = async (newGoal) => {
     timestamp: Date.now()
   });
 
-  isEditing = false;
+  isediting = false;
   lastActivity = Date.now();
 };
 ```
@@ -213,11 +213,11 @@ const addToHistory = (goal) => {
 ```javascript
 const getStatus = () => {
   return {
-    state: currentGoal ? (isEditing ? 'editing' : 'goal-set') : 'no-goal',
+    state: currentGoal ? (isediting ? 'editing' : 'goal-set') : 'no-goal',
     primaryMetric: currentGoal ? currentGoal.slice(0, 50) + '...' : 'No goal set',
     secondaryMetric: `${goalHistory.length} changes`,
     lastActivity: lastActivity,
-    message: isEditing ? 'Editing goal...' : null
+    message: isediting ? 'editing goal...' : null
   };
 };
 ```
@@ -228,11 +228,11 @@ const getControls = () => {
   return [
     {
       id: 'edit-goal',
-      label: 'Edit Goal',
+      label: 'edit Goal',
       icon: '✎',
       action: () => {
         editGoal();
-        return { success: true, message: 'Edit mode enabled' };
+        return { success: true, message: 'edit mode enabled' };
       }
     },
     {
@@ -264,10 +264,10 @@ const getControls = () => {
 - **`setGoal(text)`** - Set current goal (from EventBus `goal:set`)
 - **`getGoal()`** - Get current goal text
 - **`editGoal()`** - Enter inline editing mode
-- **`saveEdit(newGoal)`** - Validate and emit `goal:edit-requested`
+- **`saveedit(newGoal)`** - Validate and emit `goal:edit-requested`
 - **`getHistory()`** - Get goal change history
 - **`getStatus()`** - Return Widget Protocol status (5 fields)
-- **`getControls()`** - Return interactive controls (Edit, Clear, History)
+- **`getControls()`** - Return interactive controls (edit, Clear, History)
 - **`cleanup()`** - Remove EventBus listeners (prevent memory leaks)
 
 ---
@@ -292,13 +292,13 @@ const GoalPanel = {
     // Closure state variables
     let currentGoal = '';
     let goalHistory = [];  // Circular buffer
-    let isEditing = false;
+    let isediting = false;
     let lastActivity = null;
     const MAX_HISTORY = 50;
 
     // Public API
     return {
-      init, setGoal, getGoal, editGoal, saveEdit,
+      init, setGoal, getGoal, editGoal, saveedit,
       getHistory, clearGoal, export: exportToMarkdown,
       getStatus, getControls, cleanup
     };
@@ -326,7 +326,7 @@ const GoalPanel = {
    - localStorage persistence (optional)
 
 5. **Interactive Controls:**
-   - Edit Goal (inline editor)
+   - edit Goal (inline editor)
    - Clear Goal (with confirmation)
    - View History (modal popup)
    - Export History (markdown download)
@@ -347,7 +347,7 @@ const GoalPanel = {
    - Empty goal handling
    - goal:set event handling
    - Feature flag respect
-   - Edit request emission
+   - edit request emission
    - Clear goal emission
 
 3. **Goal History** (6 tests) - [x] All passing
@@ -367,7 +367,7 @@ const GoalPanel = {
 
 5. **Widget Protocol - getControls()** (5 tests) - ☡ 4 failing (DOM-related)
    - 4 controls returned
-   - Edit, clear, history, export actions
+   - edit, clear, history, export actions
 
 6. **Cleanup** (1 test) - [x] All passing
    - EventBus listener removal

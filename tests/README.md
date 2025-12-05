@@ -205,7 +205,7 @@ Tests run automatically on:
 - **Push** to main/develop branches
 - **Pull requests** to main/develop branches
 
-GitHub Actions workflow:
+gitHub Actions workflow:
 - Runs tests on Node.js 18.x and 20.x
 - Generates coverage reports
 - Archives test results
@@ -333,7 +333,7 @@ npm run test:coverage
 
 - [Vitest Documentation](https://vitest.dev/)
 - [Testing Best Practices](https://testingjavascript.com/)
-- [GitHub Actions](https://docs.github.com/en/actions)
+- [gitHub Actions](https://docs.github.com/en/actions)
 - [Happy DOM](https://github.com/capricorn86/happy-dom)
 
 ---

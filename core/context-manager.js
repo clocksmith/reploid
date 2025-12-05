@@ -6,7 +6,7 @@
 const ContextManager = {
   metadata: {
     id: 'ContextManager',
-    version: '2.1.0',
+    version: '1.0.0',
     dependencies: ['Utils', 'LLMClient', 'EventBus'],
     type: 'service'
   },
@@ -89,7 +89,7 @@ const ContextManager = {
         }
 
         // Extract memory operations
-        if (content.includes('write_file') || content.includes('create_tool') || content.includes('load_module')) {
+        if (content.includes('WriteFile') || content.includes('CreateTool') || content.includes('LoadModule')) {
           memoryOps.push({ role: msg.role, op: content.substring(0, 150) });
         }
 

@@ -6,7 +6,7 @@
 const AgentLoop = {
   metadata: {
     id: 'AgentLoop',
-    version: '2.5.0',
+    version: '1.1.0', // Parallel read-only tool execution
     dependencies: [
       'Utils', 'EventBus', 'LLMClient', 'ToolRunner', 'ContextManager',
       'ResponseParser', 'StateManager', 'PersonaManager', 'CircuitBreaker',
@@ -25,7 +25,10 @@ const AgentLoop = {
     const { logger, Errors } = Utils;
 
     const MAX_ITERATIONS = 50;
-    const MAX_TOOL_CALLS_PER_ITERATION = 3;
+    const MAX_TOOL_CALLS_PER_ITERATION = 5;
+
+    // Tools safe for parallel execution (no side effects)
+    const READ_ONLY_TOOLS = ['ReadFile', 'ListFiles', 'Grep', 'Find', 'Cat', 'Head', 'Tail', 'Ls', 'Pwd', 'ListTools', 'ListMemories', 'ListKnowledge'];
     const MAX_NO_PROGRESS_ITERATIONS = 5; // Max consecutive iterations without tool calls
     const TOOL_EXECUTION_TIMEOUT_MS = 30000; // 30 second timeout per tool
     let _isRunning = false;
@@ -40,10 +43,25 @@ const AgentLoop = {
     let _currentContext = [];
     let _currentSystemPrompt = '';
 
+    // Human-in-the-loop message queue
+    let _humanMessageQueue = [];
+
     // Helper to update tracked context whenever it changes
     const _syncContext = (context) => {
       _currentContext = [...context];
     };
+
+    // Inject a human message into the agent's context
+    const injectHumanMessage = (content, type = 'context') => {
+      _humanMessageQueue.push({ content, type, timestamp: Date.now() });
+      EventBus.emit('human:message-queued', { content, type });
+      logger.info(`[Agent] Human message queued (${type}): ${content.substring(0, 50)}...`);
+    };
+
+    // Listen for human messages from UI
+    EventBus.on('human:message', ({ content, type }) => {
+      injectHumanMessage(content, type);
+    }, 'AgentLoop');
 
     // Stuck loop detection state
     let _loopHealth = {
@@ -207,8 +225,8 @@ const AgentLoop = {
     const _processToolResult = (call, result, iteration, context) => {
       // Smart truncation
       let processedResult = result;
-      if (result.length > 5000 && call.name !== 'read_file') {
-        processedResult = result.substring(0, 5000) + "\n... [OUTPUT TRUNCATED. USE code_intel OR read_file FOR DETAILS] ...";
+      if (result.length > 5000 && call.name !== 'ReadFile') {
+        processedResult = result.substring(0, 5000) + "\n... [OUTPUT TRUNCATED. USE FileOutline OR ReadFile FOR DETAILS] ...";
       }
 
       context.push({
@@ -277,6 +295,24 @@ const AgentLoop = {
           context = await ContextManager.compact(context, _modelConfig);
           _syncContext(context);
 
+          // Drain human message queue before LLM call
+          while (_humanMessageQueue.length > 0) {
+            const msg = _humanMessageQueue.shift();
+            const prefix = msg.type === 'goal' ? '[GOAL REFINEMENT]' : '[USER]';
+            context.push({ role: 'user', content: `${prefix} ${msg.content}` });
+            _syncContext(context);
+
+            // Emit for history display
+            EventBus.emit('agent:history', {
+              type: 'human',
+              cycle: iteration,
+              content: msg.content,
+              messageType: msg.type
+            });
+            _pushActivity({ kind: 'human_message', cycle: iteration, content: msg.content, messageType: msg.type });
+            logger.info(`[Agent] Injected human ${msg.type} message into context`);
+          }
+
           // Cognition: Semantic enrichment (pre-LLM)
           if (CognitionAPI) {
             try {
@@ -314,6 +350,9 @@ const AgentLoop = {
             llmResponseText += text;
           };
 
+          // Get tool schemas for native tool calling (if supported)
+          const toolSchemas = ToolRunner.getToolSchemas ? ToolRunner.getToolSchemas() : [];
+
           // Multi-model execution if multiple models configured
           let response;
           let arenaResult = null;
@@ -345,11 +384,11 @@ const AgentLoop = {
               logger.info(`[Agent] Arena winner: ${arenaResult.winner?.model || 'unknown'}`);
             } catch (error) {
               logger.error('[Agent] Multi-model execution failed, falling back to single model:', error);
-              response = await LLMClient.chat(context, _modelConfig || _modelConfigs[0], streamCallback);
+              response = await LLMClient.chat(context, _modelConfig || _modelConfigs[0], streamCallback, { tools: toolSchemas });
             }
           } else {
-            // Single model execution
-            response = await LLMClient.chat(context, _modelConfig, streamCallback);
+            // Single model execution (with native tools if supported)
+            response = await LLMClient.chat(context, _modelConfig, streamCallback, { tools: toolSchemas });
           }
 
           const llmEvent = {
@@ -378,7 +417,15 @@ const AgentLoop = {
             }
           }
 
-          const toolCalls = ResponseParser.parseToolCalls(responseContent);
+          // Use native tool calls if available, otherwise fall back to text parsing
+          const toolCalls = response.toolCalls?.length > 0
+            ? response.toolCalls
+            : ResponseParser.parseToolCalls(responseContent);
+
+          if (response.toolCalls?.length > 0) {
+            logger.info(`[Agent] Using ${response.toolCalls.length} native tool call(s)`);
+          }
+
           context.push({ role: 'assistant', content: responseContent });
           _syncContext(context);
 
@@ -390,47 +437,71 @@ const AgentLoop = {
           }
 
           if (toolCalls.length > 0) {
-            let executedTools = 0;
-            for (const call of toolCalls) {
-              if (executedTools >= MAX_TOOL_CALLS_PER_ITERATION) {
-                const limitMsg = `Tool call limit (${MAX_TOOL_CALLS_PER_ITERATION}) reached for this iteration. Continue next turn.`;
-                logger.warn('[Agent] ' + limitMsg);
-                context.push({ role: 'user', content: limitMsg });
-                break;
-              }
+            // Limit and partition tools
+            const callsToExecute = toolCalls.slice(0, MAX_TOOL_CALLS_PER_ITERATION);
+            if (toolCalls.length > MAX_TOOL_CALLS_PER_ITERATION) {
+              const limitMsg = `Tool call limit (${MAX_TOOL_CALLS_PER_ITERATION}) reached. Executing first ${MAX_TOOL_CALLS_PER_ITERATION}.`;
+              logger.warn('[Agent] ' + limitMsg);
+              context.push({ role: 'user', content: limitMsg });
+            }
 
-              if (_abortController.signal.aborted) break;
-
-              // Check for parse errors before executing
+            // Pre-filter: handle parse errors and circuit breaker before execution
+            const preResults = []; // Store results for tools that can't execute
+            const executableCalls = [];
+            for (const call of callsToExecute) {
               if (call.error) {
                 logger.warn(`[Agent] Tool ${call.name} has parse error: ${call.error}`);
-                const result = `Error: ${call.error}`;
-                context.push({ role: 'user', content: `TOOL_RESULT (${call.name}):\n${result}` });
-                EventBus.emit('agent:history', { type: 'tool_result', cycle: iteration, tool: call.name, args: {}, result });
-                _pushActivity({ kind: 'tool_error', cycle: iteration, tool: call.name, error: call.error });
-                executedTools++;
+                preResults.push({ call, finalResult: `Error: ${call.error}`, skipped: true });
                 continue;
               }
-
-              // Check circuit breaker before executing
               if (_toolCircuitBreaker.isOpen(call.name)) {
                 const circuitState = _toolCircuitBreaker.getState(call.name);
                 const remainingMs = 60000 - (Date.now() - circuitState.tripTime);
                 const remainingSec = Math.ceil(remainingMs / 1000);
-                logger.warn(`[Agent] Circuit breaker OPEN for ${call.name} - skipping (${remainingSec}s remaining)`);
-
-                const skipMsg = `Tool ${call.name} is temporarily disabled due to repeated failures. Last error: ${circuitState.lastError}. Will retry in ${remainingSec}s.`;
-                context.push({ role: 'user', content: `TOOL_RESULT (${call.name}):\nError: ${skipMsg}` });
-                EventBus.emit('tool:circuit_skip', { tool: call.name, remainingMs, lastError: circuitState.lastError });
+                logger.warn(`[Agent] Circuit breaker OPEN for ${call.name} - skipping`);
+                const skipMsg = `Tool ${call.name} is temporarily disabled. Retry in ${remainingSec}s.`;
+                preResults.push({ call, finalResult: `Error: ${skipMsg}`, skipped: true });
+                EventBus.emit('tool:circuit_skip', { tool: call.name, remainingMs });
                 continue;
               }
+              executableCalls.push(call);
+            }
 
+            // Partition into read-only (parallel) and mutating (sequential)
+            const readOnlyCalls = executableCalls.filter(c => READ_ONLY_TOOLS.includes(c.name));
+            const mutatingCalls = executableCalls.filter(c => !READ_ONLY_TOOLS.includes(c.name));
+
+            const allResults = [...preResults]; // Start with pre-filtered results
+
+            // Execute read-only tools in PARALLEL
+            if (readOnlyCalls.length > 0) {
+              logger.info(`[Agent] Executing ${readOnlyCalls.length} read-only tools in parallel`);
+              EventBus.emit('agent:status', { state: 'ACTING', activity: `Parallel: ${readOnlyCalls.map(c => c.name).join(', ')}` });
+
+              const parallelResults = await Promise.all(readOnlyCalls.map(async (call) => {
+                if (_abortController.signal.aborted) return { call, finalResult: 'Aborted', aborted: true };
+                const { result, error } = await _executeToolWithRetry(call, iteration);
+                let finalResult = result;
+                if (error && !result) {
+                  logger.error(`[Agent] Tool Error: ${call.name}`, error);
+                  finalResult = `Error: ${error.message}`;
+                  EventBus.emit('tool:error', { tool: call.name, error: error.message, cycle: iteration });
+                  _toolCircuitBreaker.recordFailure(call.name, error);
+                } else if (!error) {
+                  _toolCircuitBreaker.recordSuccess(call.name);
+                }
+                return { call, finalResult, result };
+              }));
+              allResults.push(...parallelResults);
+            }
+
+            // Execute mutating tools SEQUENTIALLY
+            for (const call of mutatingCalls) {
+              if (_abortController.signal.aborted) break;
               logger.info(`[Agent] Tool Call: ${call.name}`);
-              EventBus.emit('agent:status', { state: 'ACTING', activity: `Executing tool: ${call.name}` });
+              EventBus.emit('agent:status', { state: 'ACTING', activity: `Executing: ${call.name}` });
 
               const { result, error } = await _executeToolWithRetry(call, iteration);
-
-              // Handle execution result
               let finalResult = result;
               if (error && !result) {
                 logger.error(`[Agent] Tool Error: ${call.name}`, error);
@@ -440,35 +511,33 @@ const AgentLoop = {
               } else if (!error) {
                 _toolCircuitBreaker.recordSuccess(call.name);
               }
+              allResults.push({ call, finalResult, result });
 
-              _processToolResult(call, finalResult, iteration, context);
-              executedTools++;
-
-              // Handle recursive tool creation
-              // If tool returns nextSteps structure, execute them
+              // Handle recursive tool chains (sequential within)
               if (result && typeof result === 'object' && result.nextSteps && Array.isArray(result.nextSteps)) {
-                logger.info(`[Agent] Detected recursive tool chain request from ${call.name}`);
+                logger.info(`[Agent] Recursive tool chain from ${call.name}`);
                 for (const step of result.nextSteps) {
                   if (step.tool && step.args) {
-                    logger.info(`[Agent] Executing chained tool: ${step.tool}`);
                     const chainedCall = { name: step.tool, args: step.args };
                     const { result: chainedResult, error: chainedError } = await _executeToolWithRetry(chainedCall, iteration);
-
-                    let chainedFinalResult = chainedResult;
+                    let chainedFinal = chainedResult;
                     if (chainedError && !chainedResult) {
-                      logger.error(`[Agent] Chained Tool Error: ${step.tool}`, chainedError);
-                      chainedFinalResult = `Error: ${chainedError.message}`;
-                      EventBus.emit('tool:error', { tool: step.tool, error: chainedError.message, cycle: iteration });
+                      chainedFinal = `Error: ${chainedError.message}`;
                       _toolCircuitBreaker.recordFailure(step.tool, chainedError);
-                      break; // Stop chain on error
-                    } else if (!chainedError) {
-                      _toolCircuitBreaker.recordSuccess(step.tool);
+                      allResults.push({ call: chainedCall, finalResult: chainedFinal });
+                      break;
                     }
-
-                    _processToolResult(chainedCall, chainedFinalResult, iteration, context);
+                    _toolCircuitBreaker.recordSuccess(step.tool);
+                    allResults.push({ call: chainedCall, finalResult: chainedFinal });
                   }
                 }
               }
+            }
+
+            // Process all results into context (preserves original order for pre-results)
+            for (const { call, finalResult, aborted } of allResults) {
+              if (aborted) continue;
+              _processToolResult(call, finalResult, iteration, context);
             }
           } else {
             if (ResponseParser.isDone(response.content)) {
@@ -517,66 +586,34 @@ const AgentLoop = {
       const systemPrompt = `
 ${personaPrompt}
 
-## Tools
+You are an autonomous agent running in a browser-based virtual filesystem (VFS).
 
-### Discovery
-- list_tools: returns array of all available tool names (no args)
-- list_files: explore directories { "path": "/dir/" }
+## Getting Started
+Read /docs/REPLOID_README.md for full documentation on:
+- Available tools and their usage
+- VFS structure and file operations
+- Creating new tools (RSI)
+- DI container and dependencies
+- Worker system for parallel execution
+- Cognition system (memory, knowledge graph)
 
-### File Operations
-- read_file: read file contents { "path": "/file.js" }
-- write_file: create or modify files { "path": "/file.js", "content": "..." }
-  - CRITICAL: "path" parameter is REQUIRED and must be a string starting with /
-  - "content" parameter is REQUIRED and must be a string
-  - For multiline content, use \\n for newlines, not literal newlines
-- delete_file: remove files { "path": "/file.js" }
+## Quick Reference
 
-### Self-Modification (RSI)
-- create_tool: create new tool in /tools/ { "name": "my_tool", "code": "..." }
-  - name MUST be lowercase with underscores only (e.g., "my_tool" not "MyTool")
-  - code MUST include: export const tool = {...} and export default call;
-- load_module: hot-reload any module { "path": "/capabilities/x.js" }
-- To modify /core/ files, use write_file directly
-
-### File Utilities
-- search_content: search file contents for pattern { "pattern": "text", "path": "/dir", "recursive": true, "ignoreCase": false }
-- find_by_name: find files by name pattern { "path": "/dir", "name": "*.js" }
-- git: version control operations { "command": "status|log|diff|add|commit", "path": "...", "message": "..." }
-- create_directory: create directory { "path": "/new/dir", "parents": true }
-- remove: delete file or directory { "path": "/file", "recursive": false, "force": false }
-- move: move or rename { "source": "/old", "dest": "/new" }
-- copy: copy file or directory { "source": "/file", "dest": "/copy", "recursive": false }
-
-## File Discovery Protocol
-- ALWAYS use list_files to discover actual file paths BEFORE attempting to read them
-- NEVER assume or guess file paths based on typical naming patterns
-- If a file doesn't exist, DO NOT retry with similar guessed names - the path is wrong
-- Use find_by_name or search_content to search for files by name or content
-- Respect error messages - "file not found" means the path is incorrect, not a transient error
-
-## Tool Call Format
-TOOL_CALL: tool_name
+Tool call format:
+TOOL_CALL: ToolName
 ARGS: { "key": "value" }
 
-Example:
-TOOL_CALL: list_tools
-ARGS: {}
-
-Example:
-TOOL_CALL: read_file
-ARGS: { "path": "/core/agent-loop.js" }
-
-Example (write_file with multiline content):
-TOOL_CALL: write_file
-ARGS: { "path": "/tools/my_tool.js", "content": "export const tool = {\\n  name: 'my_tool',\\n  execute: async () => 'result'\\n};" }
+Essential tools:
+- ListTools: see all available tools
+- ListFiles: explore VFS directories
+- ReadFile/WriteFile: read and write files
+- CreateTool: create new runtime tools
 
 ## Rules
-- Act autonomously. Do not ask for permission.
-- Every response must use at least one tool unless declaring DONE.
-- Iterate: analyze results, identify improvements, apply them, repeat.
-- When you modify code, check write_file output for syntax warnings. Fix any errors before proceeding.
-- For recursive self-improvement: after achieving a goal, consider what blockers or inefficiencies you encountered and refactor them.
-- Say DONE only when the goal is fully achieved AND all written code is verified (no syntax errors).
+- Act autonomously - do not ask for permission
+- Use at least one tool per response (unless DONE)
+- Read /docs/REPLOID_README.md on your first turn for detailed instructions
+- When complete, summarize what you accomplished, then say DONE
 
 ## Goal
 ${goal}
@@ -614,7 +651,10 @@ ${goal}
       getRecentActivities,
       // Debug visibility
       getSystemPrompt: () => _currentSystemPrompt,
-      getContext: () => [..._currentContext]
+      getContext: () => [..._currentContext],
+      // Human-in-the-loop
+      injectHumanMessage,
+      getMessageQueue: () => [..._humanMessageQueue]
     };
   }
 };

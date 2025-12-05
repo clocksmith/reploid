@@ -29,7 +29,7 @@
 | `tool-writer.js` | Tool creation system - generates, validates, and registers new tools (Level 1 RSI) |
 | `meta-tool-writer.js` | Meta-improvement system - modifies tool-writer and core modules (Level 2/3 RSI) |
 | `substrate-loader.js` | Hot-reload system - loads evolved code as living modules from VFS |
-| `substrate-tools.js` | Substrate manipulation - load_module, update_preview, etc. |
+| `substrate-tools.js` | Substrate manipulation - LoadModule, update_preview, etc. |
 
 ## Orchestration & Utilities
 

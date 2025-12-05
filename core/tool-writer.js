@@ -6,19 +6,19 @@
 const ToolWriter = {
   metadata: {
     id: 'ToolWriter',
-    version: '2.0.0',
-    dependencies: ['Utils', 'VFS'],
+    version: '1.0.0',
+    dependencies: ['Utils', 'VFS', 'SubstrateLoader?'],
     type: 'service'
   },
 
   factory: (deps) => {
-    const { Utils, VFS } = deps;
+    const { Utils, VFS, SubstrateLoader } = deps;
     const { logger, Errors } = Utils;
 
     const validateCode = (code) => {
       // Check if code is provided
       if (!code || typeof code !== 'string') {
-        throw new Errors.ValidationError('Missing or invalid code parameter. create_tool requires { name, code } where code is the tool implementation.');
+        throw new Errors.ValidationError('Missing or invalid code parameter. CreateTool requires { name, code } where code is the tool implementation.');
       }
       // Structural checks (string-based, ES module compatible)
       if (!code.includes('export default') && !code.includes('export const tool')) {
@@ -36,19 +36,35 @@ const ToolWriter = {
     };
 
     const create = async (name, code) => {
-      if (!/^[a-z_][a-z0-9_]*$/.test(name)) {
-        throw new Errors.ValidationError('Invalid tool name format');
+      if (typeof name !== 'string') {
+        throw new Errors.ValidationError('Tool name must be a string');
+      }
+
+      const trimmedName = name.trim();
+      if (!/^[A-Z][A-Za-z0-9]*$/.test(trimmedName)) {
+        throw new Errors.ValidationError('Invalid tool name. Use CamelCase and start with an uppercase letter (e.g., ReadFile, AnalyzeLogs).');
       }
 
       validateCode(code);
 
-      const path = `/tools/${name}.js`;
+      const path = `/tools/${trimmedName}.js`;
 
       // Persist
       await VFS.write(path, code);
 
-      logger.info(`[ToolWriter] Created tool: ${name}`);
-      return `Tool ${name} created at ${path}`;
+      // Auto-load the tool if SubstrateLoader is available
+      let loadStatus = '';
+      if (SubstrateLoader) {
+        try {
+          await SubstrateLoader.loadModule(path);
+          loadStatus = ' and loaded';
+        } catch (err) {
+          loadStatus = ` (load failed: ${err.message})`;
+        }
+      }
+
+      logger.info(`[ToolWriter] Created tool: ${trimmedName}${loadStatus}`);
+      return `Tool ${trimmedName} created at ${path}${loadStatus}`;
     };
 
     return { create };

@@ -4,6 +4,16 @@
 
 A containment environment for AI agents that can write and execute code. Built for researchers, alignment engineers, and teams building autonomous systems who need **observability, rollback, and human oversight** — not black-box execution.
 
+### Deployment Modes
+
+| Mode | How to Run | Notes |
+|------|------------|-------|
+| **Fully local** | `npm install && npm run dev` | No network needed after hydration. Uses local models (Ollama, WebLLM). |
+| **Hosted UI (https://replo.id)** | Open the site directly | Use WebLLM, cloud API keys, or point the UI at your **local** proxy by enabling CORS on that proxy. |
+| **Hybrid** | Hosted UI + local proxy | Run `npm start` locally, set `CORS_ORIGINS="https://replo.id,https://your-domain.example"` (or configure `server.corsOrigins`), then connect the hosted UI to `http://127.0.0.1:8000`. |
+
+In all modes, the agent still runs in your browser. The proxy is only needed if you want to access local model servers (e.g., Ollama) from the hosted UI or route cloud API calls through your own machine.
+
 ---
 
 See [TODO.md](TODO.md) for roadmap | [AGENTS.md](AGENTS.md) for agent profile
@@ -47,21 +57,21 @@ graph TD
 
 ### Safety First
 
-1.  **Verification Manager**: All code changes pass through pre-flight checks in an isolated Web Worker. Catches syntax errors, infinite loops, `eval()`, and other dangerous patterns before they reach the VFS.
+1.  **Genesis Snapshot at Boot**: Full VFS snapshot captured immediately after hydration, before any user action. Enables offline rollback to pristine state—no network required for recovery.
 
-2.  **VFS Snapshots**: Transactional rollback. Capture state before mutations, restore if verification fails. No permanent damage from bad agent decisions.
+2.  **Verification Manager**: All code changes pass through pre-flight checks in an isolated Web Worker. Catches syntax errors, infinite loops, `eval()`, and other dangerous patterns before they reach the VFS.
 
-3.  **Arena Mode**: Test-driven selection for self-modifications. Multiple candidates compete, only verified solutions win. Located in `/testing/arena/`.
+3.  **VFS Snapshots**: Transactional rollback. Capture state before mutations, restore if verification fails. No permanent damage from bad agent decisions.
 
-4.  **Circuit Breakers**: Rate limiting and iteration caps (default: 50 cycles) prevent runaway agents. Automatic recovery on failure.
+4.  **Arena Mode**: Test-driven selection for self-modifications. Multiple candidates compete, only verified solutions win. Located in `/testing/arena/`.
 
-5.  **Audit Logging**: Every tool call, VFS mutation, and agent decision is logged. Full replay capability for debugging and analysis.
+5.  **Circuit Breakers**: Rate limiting and iteration caps (default: 50 cycles) prevent runaway agents. Automatic recovery on failure.
 
-6.  **VFS Explorer with Live Preview**: Sandboxed iframe execution for agent-created HTML/CSS/JS files. Operators can preview UIs the agent builds without leaving the browser.
+6.  **Audit Logging**: Every tool call, VFS mutation, and agent decision is logged. Full replay capability for debugging and analysis.
 
-7.  **Genesis Diff Visualization**: Color-coded comparison showing all changes from initial state (green = added, yellow = modified, red = deleted). Instant visibility into what the agent has modified.
+7.  **Service Worker Module Loader**: All ES6 imports intercepted and served from VFS (IndexedDB). Once hydrated, the agent runs entirely offline. Entry points (`boot.js`, `index.html`) stay on network for clean genesis boundaries.
 
-8.  **Snapshot Timeline**: Browse, compare, and restore any of the last 10 VFS snapshots. Hot-load snapshots to test previous states without permanent rollback.
+8.  **Genesis Diff Visualization**: Color-coded comparison showing all changes from initial state (green = added, yellow = modified, red = deleted). Instant visibility into what the agent has modified.
 
 ### Core Components
 
@@ -70,42 +80,81 @@ graph TD
 | `agent-loop.js` | Cognitive cycle (Think → Act → Observe) with circuit breakers |
 | `vfs.js` | Browser-native filesystem on IndexedDB |
 | `llm-client.js` | Multi-provider LLM abstraction (WebLLM, Ollama, Cloud APIs) |
+| `worker-manager.js` | Multi-worker orchestration with permission tiers |
+| `tool-runner.js` | Dynamic tool loading and execution with arena gating |
 | `verification-manager.js` | Pre-flight safety checks in sandboxed worker |
+| `persona-manager.js` | System prompt customization per genesis level |
 | `arena-harness.js` | Competitive selection for code changes |
+
+### Proto UI
+
+The Proto interface (`ui/proto.js`) provides full observability:
+
+| Tab | Purpose |
+|-----|---------|
+| **History** | LLM responses, tool calls, streaming output |
+| **Reflections** | Agent learning entries with success/error status |
+| **Status** | Agent state, token usage, error log |
+| **Workers** | Active/completed workers, per-worker logs |
+| **Debug** | System prompt, conversation context, model config |
+
+Additional features: VFS browser with diff/preview, command palette (Ctrl+K), Genesis snapshot management.
+
+### Multi-Worker Orchestration
+
+The WorkerManager enables parallel task execution through permission-filtered subagents:
+
+| Worker Type | Permissions | Use Case |
+|-------------|-------------|----------|
+| **explore** | Read-only (ReadFile, ListFiles, Grep, Find) | Codebase analysis |
+| **analyze** | Read + JSON tools | Data processing |
+| **execute** | Full tool access | Task execution |
+
+**Model Roles:** Each worker can use a different model role (orchestrator, fast, code, local) for cost optimization.
+
+**Worker Tools:**
+- `SpawnWorker` — Create a new worker with type, task, and optional model role
+- `ListWorkers` — View active and completed workers
+- `AwaitWorkers` — Wait for specific workers or all to complete
+
+Workers run in a flat hierarchy (no worker can spawn workers) and all actions flow through the same audit pipeline.
 
 ### Available Tools
 
-REPLOID provides 19+ tools out of the box:
+**All tools are dynamic** — loaded from `/tools/` at boot. No hardcoded tools means full RSI capability: the agent can modify any tool, including core file operations. All tool names use CamelCase (e.g., ReadFile, Grep, CreateTool) to keep the interface consistent.
 
-**Core VFS & Self-Modification:**
-- `read_file`, `write_file`, `list_files`, `delete_file` - File operations
-- `create_tool` - Dynamic tool creation at runtime
-- `load_module` - Hot-reload capabilities and modules
-- `code_intel` - Analyze code structure without reading full content
+**Core VFS Operations:**
+- `ReadFile`, `WriteFile`, `ListFiles`, `DeleteFile` — VFS operations with audit logging
 
-**Unix-like Shell Tools:**
-- `shell_ls`, `shell_pwd`, `shell_cd` - Directory navigation
-- `shell_cat`, `shell_grep`, `shell_find` - File search and inspection
-- `shell_git` - Version control (status, log, diff, commit)
-- `shell_mkdir`, `shell_rm`, `shell_mv`, `shell_cp` - File management
+**Meta-Tools (RSI):**
+- `CreateTool` — Dynamic tool creation at runtime (L1 RSI)
+- `LoadModule` — Hot-reload modules from VFS
+- `ListTools` — Discover available tools
+- `Edit` — Apply literal match/replacement edits to files
 
-All shell tools operate within the VFS sandbox with no access to host filesystem.
+**Worker Tools:**
+- `SpawnWorker` — Spawn permission-filtered subagent
+- `ListWorkers` — List active/completed workers
+- `AwaitWorkers` — Wait for worker completion
+
+**Utilities:**
+- `FileOutline` — Analyze file structure without reading content
+- `Cat`, `Head`, `Tail`, `Ls`, `Pwd`, `Touch` — Familiar filesystem navigation primitives
+- `Grep`, `Find`, `Sed`, `Jq` — Search, filter, and transform file contents
+- `Git` — Version control operations (VFS-scoped shim)
+- `Mkdir`, `Rm`, `Mv`, `Cp` — File management
+
+All tools operate within the VFS sandbox with no access to host filesystem. Tools receive a `deps` object with VFS, EventBus, ToolWriter, WorkerManager, and other modules for full capability.
 
 ---
 
 ## Why JavaScript, Not TypeScript?
 
-**TL;DR:** JavaScript enables true browser-native self-modification without build toolchains.
+REPLOID is pure JavaScript because the agent generates, modifies, and executes code at runtime—entirely in the browser. TypeScript requires compilation, but there's no Node.js or build toolchain in-browser.
 
-REPLOID's genesis code is pure JavaScript because the agent needs to generate, modify, and execute code at runtime—entirely in the browser. TypeScript would break this core capability:
+When the agent writes a new tool to the VFS, the Service Worker immediately serves it as an ES module. No compilation step, no latency. TypeScript would require bundling a 10MB+ compiler or maintaining separate source/artifact trees—defeating the self-modification model.
 
-**Runtime Code Generation**: When the agent creates a new tool or modifies existing code, it writes JavaScript strings to the VFS and immediately imports them via Service Worker interception. TypeScript requires compilation, which creates a dependency problem: how does the agent compile TypeScript it just wrote, without Node.js or a build toolchain in the browser?
-
-**True Browser-Native Execution**: Reploid runs 100% in the browser with zero external dependencies. TypeScript compilation requires either (1) a build step before deployment (defeating self-modification), (2) bundling the 10MB+ TypeScript compiler in-browser (massive overhead), or (3) maintaining separate TypeScript source and compiled JavaScript (the agent would modify JS artifacts, losing type safety for generated code anyway).
-
-**Service Worker Module Loading**: The VFS Service Worker intercepts ES module imports and serves files from IndexedDB. This works seamlessly with JavaScript but TypeScript would require on-the-fly compilation for every module load, adding latency and complexity to the critical path.
-
-TypeScript excels at developer tooling and compile-time safety, but Reploid prioritizes runtime flexibility. The agent's verification system (syntax checks, sandboxed execution, arena testing) provides runtime safety that type checking can't offer for dynamically generated code. [SW] logs you see (Service Worker) show this system in action—modules loading from VFS, some from network, all without a build step.
+Runtime safety comes from verification (syntax checks, sandboxed execution, arena testing), not static types. The `[SW]` logs show this: modules loading from VFS, no build step.
 
 ---
 
@@ -127,14 +176,14 @@ REPLOID is designed to study [recursive self-improvement](https://en.wikipedia.o
 ```
 [Agent] Iteration 1: Analyzing goal...
 [Agent] I need a tool to add numbers
-[TOOL_CALL] create_tool
+[TOOL_CALL] CreateTool
 [ARGS] {
-  name: "add_numbers",
+  name: "AddNumbers",
   code: "export default async function({a, b}) { return a + b; }"
 }
-[TOOL_RESULT] ✓ Tool created: /tools/add_numbers.js
+[TOOL_RESULT] ✓ Tool created: /tools/AddNumbers.js
 [Agent] Testing new tool...
-[TOOL_CALL] add_numbers
+[TOOL_CALL] AddNumbers
 [ARGS] {a: 5, b: 3}
 [TOOL_RESULT] 8
 [Agent] ✓ Goal complete
@@ -143,54 +192,12 @@ REPLOID is designed to study [recursive self-improvement](https://en.wikipedia.o
 ### Example: Meta-Tool Creation (L2)
 **Goal:** "Build a system that creates tools from descriptions"
 
-```
-[Agent] Iteration 1: I need a meta-tool
-[TOOL_CALL] create_tool
-[ARGS] {
-  name: "create_tool_from_description",
-  code: `export default async function({description}) {
-    // Call LLM to generate code from description
-    const code = await call_llm({
-      prompt: "Generate JavaScript function: " + description
-    });
-
-    // Create the tool
-    const toolName = description.split(' ')[0].toLowerCase();
-    await executeTool('create_tool', {name: toolName, code});
-    return {success: true, tool: toolName};
-  }`
-}
-[TOOL_RESULT] ✓ Meta-tool created
-[Agent] Iteration 2: Testing meta-tool...
-[TOOL_CALL] create_tool_from_description
-[ARGS] {description: "Parse JSON and extract errors"}
-[TOOL_RESULT] ✓ Created tool: parse
-[Agent] I just created a tool-creating tool! (Level 2 RSI)
-```
+Agent creates `CreateToolFromDescription` which calls the LLM to generate code, then calls `CreateTool` to persist it. A tool that makes tools.
 
 ### Example: Substrate Modification (L3)
-**Goal:** "Analyze your tool creation process and optimize it"
+**Goal:** "Optimize your tool creation process"
 
-```
-[Agent] Iteration 1: Reading my own tool-writer...
-[TOOL_CALL] read_file
-[ARGS] {path: "/core/tool-writer.js"}
-[TOOL_RESULT] [1200 lines of code]
-[Agent] I see the bottleneck: validation runs on every call
-[Agent] Iteration 2: Improving myself...
-[TOOL_CALL] improve_core_module
-[ARGS] {
-  module: "tool-writer",
-  code: "... version with AST caching ..."
-}
-[TOOL_RESULT] ✓ Backed up /core/tool-writer.js.backup.1763000000
-[TOOL_RESULT] ✓ Module hot-reloaded
-[Agent] Iteration 3: Testing improvement...
-[TOOL_CALL] create_tool
-[ARGS] {name: "test_tool", code: "..."}
-[TOOL_RESULT] ✓ Created in 0.3s (was 2.1s before)
-[Agent] I just made myself faster! (Level 3 RSI)
-```
+Agent reads `/core/tool-writer.js`, identifies a bottleneck, writes an improved version with `WriteFile`, and hot-reloads via `LoadModule`. Self-modification of core infrastructure.
 
 ---
 
@@ -199,13 +206,16 @@ REPLOID is designed to study [recursive self-improvement](https://en.wikipedia.o
 | Capability | REPLOID | OpenHands | Claude Code | Devin |
 |------------|---------|-----------|-------------|-------|
 | **Execution** | Browser sandbox | Docker/Linux | Local shell | Cloud SaaS |
-| **Rollback** | VFS snapshots | Container reset | Git | N/A |
+| **Rollback** | VFS snapshots | Container reset | git | N/A |
+| **Offline rollback** | Yes (local IndexedDB) | No | No | No |
 | **Verification** | Pre-flight checks | None | None | Unknown |
 | **Self-modification** | Gated by arena | Unrestricted | N/A | N/A |
 | **Offline capable** | Yes (WebLLM) | Yes | Yes | No |
+| **Multi-model** | 6+ providers | Limited | Claude only | Unknown |
+| **Subagents** | Worker tiers | N/A | Task tool | Unknown |
 | **Inspectable** | Full source | Full source | Partial | Closed |
 
-**REPLOID's niche:** Safe experimentation with self-modifying agents. Not the most powerful agent framework — the most observable and recoverable one.
+**REPLOID's niche:** Safe experimentation with self-modifying agents. Not the most powerful agent framework — the most observable and recoverable one. Unique advantages: multi-model orchestration, browser-native local models (WebLLM), and permission-tiered worker subagents.
 
 ---
 
@@ -232,15 +242,17 @@ npm run dev
 # Open http://localhost:8080
 ```
 
-### Boot Modes
+### Genesis Levels
 
-REPLOID offers 3 genesis configurations:
+REPLOID offers 3 genesis configurations (selectable at boot):
 
-1. **TABULA RASA** - Blank slate, core agent only (minimal tools)
-2. **MINIMAL AXIOMS** - Core + basic reflection and learning
-3. **FULL SUBSTRATE** - All capabilities including cognition, testing, and Unix-like shell tools
+| Level | Modules | Description |
+|-------|---------|-------------|
+| **TABULA RASA** | 13 | Minimal agent core — fast boot, smallest surface |
+| **REFLECTION** | 19 | + Self-awareness, streaming, verification, HITL |
+| **FULL SUBSTRATE** | 32 | + Cognition, semantic memory, arena testing |
 
-Select "FULL SUBSTRATE" for RSI experiments with maximum tool availability.
+Select "FULL SUBSTRATE" for RSI experiments with maximum capability.
 
 **Example Goals:**
 - "Create a recursive tool chain: a tool that builds tools that enhance tools"

@@ -424,7 +424,7 @@ const history = MetaCognitiveLayer.getHistory(10);
 [
   {
     timestamp: 1729350000000,
-    suggestion: { action: 'create_tool_factory', ... },
+    suggestion: { action: 'CreateTool_factory', ... },
     result: { success: true, toolName: 'create_analyze_tool' },
     inefficiencyBefore: 0.65,
     outcome: 'success'
@@ -463,7 +463,7 @@ const trends = await MetaCognitiveLayer.getEfficiencyTrends();
 4. if (score >= 0.4) {  // Threshold check
      ↓
 5. suggestions = DejaVuDetector.suggestImprovements()
-     → Returns: [{ action: 'create_tool_factory', priority: 'high', ... }]
+     → Returns: [{ action: 'CreateTool_factory', priority: 'high', ... }]
      ↓
 6. for (suggestion of suggestions) {
      ↓
@@ -629,7 +629,7 @@ inefficiency = {
 ```javascript
 suggestion = {
   priority: 'high',
-  action: 'create_tool_factory',
+  action: 'CreateTool_factory',
   params: { category: 'analyze', examples: [...] },
   rationale: 'Created 3 analyze tools - use factory instead'
 };

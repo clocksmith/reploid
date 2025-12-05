@@ -1,7 +1,7 @@
 const LLMConfigPanel = {
   metadata: {
     id: 'LLMConfigPanel',
-    version: '1.1.0', // Updated to use LLMClient
+    version: '1.0.0', // Updated to use LLMClient
     dependencies: ['Utils', 'EventBus', 'LLMClient', 'ToastNotifications?'],
     async: false,
     type: 'ui'

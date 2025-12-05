@@ -365,7 +365,7 @@ This document provides an overview of REPLOID's module API. For detailed JSDoc c
 - `list_checkpoints` - List checkpoints
 
 **RSI Tools (when enabled):**
-- `create_tool` - Meta-tool for tool creation
+- `CreateTool` - Meta-tool for tool creation
 - `modify_goal` - Safe goal evolution
 - `create_blueprint` - Knowledge transfer
 

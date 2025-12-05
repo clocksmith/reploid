@@ -2,28 +2,136 @@
   "levels": {
     "tabula": {
       "name": "TABULA RASA",
-      "description": "Minimal RSI core - 8 essential modules for autonomous code modification",
-      "modules": ["Utils", "EventBus", "VFS", "LLMClient", "ResponseParser", "ToolRunner", "AgentLoop", "StateManager"]
+      "description": "Minimal agent core - 13 modules for autonomous operation",
+      "modules": [
+        "Utils", "EventBus", "VFS", "StateHelpersPure", "CircuitBreaker",
+        "ResponseParser", "LLMClient", "ContextManager",
+        "ToolWriter", "PersonaManager", "StateManager", "ToolRunner", "AgentLoop"
+      ]
     },
     "reflection": {
       "name": "REFLECTION",
-      "description": "Tabula + self-awareness - 14 modules with introspection and verification",
+      "description": "Tabula + self-awareness - 6 additional modules",
+      "extends": "tabula",
       "modules": [
-        "Utils", "EventBus", "VFS", "LLMClient", "ResponseParser", "ToolRunner", "AgentLoop", "StateManager",
-        "ReflectionStore", "ReflectionAnalyzer", "PersonaManager", "ContextManager", "VerificationManager", "StateHelpersPure"
+        "RateLimiter", "StreamParser", "ReflectionStore",
+        "ReflectionAnalyzer", "VerificationManager", "HITLController"
       ]
     },
     "full": {
       "name": "FULL SUBSTRATE",
-      "description": "Complete system - 32 modules with infrastructure, cognition, and meta-capabilities",
+      "description": "Complete cognitive system - 15 additional modules",
+      "extends": "reflection",
       "modules": [
-        "Utils", "EventBus", "VFS", "LLMClient", "ResponseParser", "ToolRunner", "AgentLoop", "StateManager",
-        "ReflectionStore", "ReflectionAnalyzer", "PersonaManager", "ContextManager", "VerificationManager", "StateHelpersPure",
-        "RateLimiter", "CircuitBreaker", "StreamParser", "IndexedDBHelper", "HITLController", "GenesisSnapshot", "Observability", "VFSHMR",
-        "TransformersClient", "EmbeddingStore", "SemanticMemory", "KnowledgeGraph", "RuleEngine", "SymbolGrounder", "CognitionAPI",
-        "MultiModelCoordinator", "PerformanceMonitor", "AuditLogger"
+        "IndexedDBHelper", "GenesisSnapshot", "Observability", "VFSHMR",
+        "AuditLogger", "PerformanceMonitor", "TransformersClient",
+        "EmbeddingStore", "SemanticMemory", "KnowledgeGraph",
+        "RuleEngine", "SymbolGrounder", "CognitionAPI", "WorkerManager",
+        "SubstrateLoader"
       ]
     }
+  },
+  "moduleFiles": {
+    "Utils": ["core/utils.js"],
+    "EventBus": ["infrastructure/event-bus.js"],
+    "VFS": ["core/vfs.js"],
+    "StateHelpersPure": ["core/state-helpers-pure.js"],
+    "CircuitBreaker": ["infrastructure/circuit-breaker.js"],
+    "ResponseParser": ["core/response-parser.js"],
+    "LLMClient": ["core/llm-client.js"],
+    "ContextManager": ["core/context-manager.js"],
+    "ToolWriter": ["core/tool-writer.js"],
+    "PersonaManager": ["core/persona-manager.js"],
+    "StateManager": ["core/state-manager.js"],
+    "ToolRunner": ["core/tool-runner.js"],
+    "AgentLoop": ["core/agent-loop.js"],
+    "RateLimiter": ["infrastructure/rate-limiter.js"],
+    "StreamParser": ["infrastructure/stream-parser.js"],
+    "ReflectionStore": ["capabilities/reflection/reflection-store.js"],
+    "ReflectionAnalyzer": ["capabilities/reflection/reflection-analyzer.js"],
+    "VerificationManager": ["core/verification-manager.js"],
+    "HITLController": ["infrastructure/hitl-controller.js"],
+    "IndexedDBHelper": ["infrastructure/indexed-db-helper.js"],
+    "GenesisSnapshot": ["infrastructure/genesis-snapshot.js"],
+    "Observability": ["infrastructure/observability.js"],
+    "VFSHMR": ["infrastructure/vfs-hmr.js"],
+    "AuditLogger": ["infrastructure/audit-logger.js"],
+    "PerformanceMonitor": ["capabilities/performance/performance-monitor.js"],
+    "TransformersClient": ["core/transformers-client.js"],
+    "EmbeddingStore": ["capabilities/cognition/semantic/embedding-store.js"],
+    "SemanticMemory": ["capabilities/cognition/semantic/semantic-memory.js"],
+    "KnowledgeGraph": ["capabilities/cognition/symbolic/knowledge-graph.js"],
+    "RuleEngine": ["capabilities/cognition/symbolic/rule-engine.js"],
+    "SymbolGrounder": ["capabilities/cognition/symbolic/symbol-grounder.js"],
+    "CognitionAPI": ["capabilities/cognition/cognition-api.js"],
+    "WorkerManager": ["core/worker-manager.js", "core/worker-agent.js"],
+    "SubstrateLoader": ["capabilities/system/substrate-loader.js"],
+    "SelfTester": ["capabilities/testing/self-tester.js"],
+    "VFSSandbox": ["testing/arena/vfs-sandbox.js"],
+    "ArenaCompetitor": ["testing/arena/competitor.js"],
+    "ArenaMetrics": ["testing/arena/arena-metrics.js"],
+    "ArenaHarness": ["testing/arena/arena-harness.js", "testing/arena/index.js"],
+    "MultiModelCoordinator": ["capabilities/intelligence/multi-model-coordinator.js"]
+  },
+  "sharedFiles": {
+    "tools": [
+      "tools/ReadFile.js",
+      "tools/WriteFile.js",
+      "tools/ListFiles.js",
+      "tools/DeleteFile.js",
+      "tools/CreateTool.js",
+      "tools/ListTools.js",
+      "tools/LoadModule.js",
+      "tools/FileOutline.js",
+      "tools/Cat.js",
+      "tools/Head.js",
+      "tools/Tail.js",
+      "tools/Touch.js",
+      "tools/Grep.js",
+      "tools/Find.js",
+      "tools/Sed.js",
+      "tools/Jq.js",
+      "tools/Mkdir.js",
+      "tools/Rm.js",
+      "tools/Mv.js",
+      "tools/Cp.js",
+      "tools/Ls.js",
+      "tools/Pwd.js",
+      "tools/ListMemories.js",
+      "tools/ListKnowledge.js",
+      "tools/Git.js",
+      "tools/Edit.js",
+      "tools/SpawnWorker.js",
+      "tools/ListWorkers.js",
+      "tools/AwaitWorkers.js"
+    ],
+    "ui": [
+      "ui/proto.js",
+      "ui/toast.js",
+      "ui/command-palette.js",
+      "ui/panels/chat-panel.js",
+      "ui/panels/code-panel.js",
+      "ui/panels/llm-config-panel.js",
+      "ui/panels/metrics-panel.js",
+      "ui/panels/python-repl-panel.js",
+      "ui/panels/vfs-panel.js",
+      "ui/panels/cognition-panel.js",
+      "ui/components/confirmation-modal.js",
+      "ui/components/diff-viewer-ui.js",
+      "ui/components/toast-notifications.js",
+      "ui/components/hitl-widget.js",
+      "ui/dashboard/metrics-dashboard.js",
+      "ui/dashboard/ui-manager.js",
+      "ui/dashboard/vfs-explorer.js"
+    ],
+    "styles": [
+      "styles/proto.css",
+      "styles/theme.css",
+      "styles/vfs-explorer.css"
+    ],
+    "docs": [
+      "docs/REPLOID_README.md"
+    ]
   },
   "blueprintPaths": {
     "none": {
@@ -33,38 +141,33 @@
     },
     "reflection": {
       "name": "Path to Reflection",
-      "description": "Documentation to build from Tabula to Reflection (6 modules)",
+      "description": "Tabula → Reflection: +6 modules for self-awareness and streaming",
       "modules": {
+        "RateLimiter": "blueprints/0x00002C-rate-limiting-strategies.md",
+        "StreamParser": "blueprints/0x00003F-streaming-response-handler.md",
         "ReflectionStore": "blueprints/0x000035-reflection-store-architecture.md",
         "ReflectionAnalyzer": "blueprints/0x000036-reflection-analysis-engine.md",
-        "PersonaManager": "blueprints/0x00004B-persona-management-system.md",
-        "ContextManager": "blueprints/0x000040-context-management.md",
         "VerificationManager": "blueprints/0x000047-verification-manager.md",
-        "StateHelpersPure": "blueprints/0x000006-pure-state-helpers.md"
+        "HITLController": "blueprints/0x000051-hitl-controller.md"
       }
     },
     "full": {
       "name": "Path to Full Substrate",
-      "description": "Documentation to build from Reflection to Full (18 modules)",
+      "description": "Reflection → Full: +13 modules for cognition and infrastructure",
       "modules": {
-        "RateLimiter": "blueprints/0x00002C-rate-limiting-strategies.md",
-        "CircuitBreaker": "blueprints/0x000067-circuit-breaker-pattern.md",
-        "StreamParser": "blueprints/0x00003F-streaming-response-handler.md",
         "IndexedDBHelper": "blueprints/0x000011-advanced-storage-backend-indexeddb.md",
-        "HITLController": "blueprints/0x000051-hitl-controller.md",
         "GenesisSnapshot": "blueprints/0x000043-genesis-snapshot-system.md",
         "Observability": "blueprints/0x000026-performance-monitoring-stack.md",
         "VFSHMR": "blueprints/0x000052-hot-module-reload.md",
+        "AuditLogger": "blueprints/0x00002E-audit-logging-policy.md",
+        "PerformanceMonitor": "blueprints/0x000026-performance-monitoring-stack.md",
         "TransformersClient": "blueprints/0x000068-transformers-client.md",
         "EmbeddingStore": "blueprints/0x000069-embedding-store.md",
         "SemanticMemory": "blueprints/0x000070-semantic-memory.md",
         "KnowledgeGraph": "blueprints/0x000071-knowledge-graph.md",
         "RuleEngine": "blueprints/0x000072-rule-engine.md",
         "SymbolGrounder": "blueprints/0x000073-symbol-grounder.md",
-        "CognitionAPI": "blueprints/0x000074-cognition-api.md",
-        "MultiModelCoordinator": "blueprints/0x000033-hybrid-llm-orchestration.md",
-        "PerformanceMonitor": "blueprints/0x000026-performance-monitoring-stack.md",
-        "AuditLogger": "blueprints/0x00002E-audit-logging-policy.md"
+        "CognitionAPI": "blueprints/0x000074-cognition-api.md"
       }
     },
     "beyond": {
@@ -81,47 +184,35 @@
       }
     }
   },
-  "moduleImports": {
-    "Utils": "./core/utils.js",
-    "EventBus": "./infrastructure/event-bus.js",
-    "VFS": "./core/vfs.js",
-    "LLMClient": "./core/llm-client.js",
-    "ResponseParser": "./core/response-parser.js",
-    "ToolRunner": "./core/tool-runner.js",
-    "AgentLoop": "./core/agent-loop.js",
-    "StateManager": "./core/state-manager.js",
-    "ReflectionStore": "./capabilities/reflection/reflection-store.js",
-    "ReflectionAnalyzer": "./capabilities/reflection/reflection-analyzer.js",
-    "PersonaManager": "./core/persona-manager.js",
-    "ContextManager": "./core/context-manager.js",
-    "VerificationManager": "./core/verification-manager.js",
-    "StateHelpersPure": "./core/state-helpers-pure.js",
-    "RateLimiter": "./infrastructure/rate-limiter.js",
-    "CircuitBreaker": "./infrastructure/circuit-breaker.js",
-    "StreamParser": "./infrastructure/stream-parser.js",
-    "IndexedDBHelper": "./infrastructure/indexed-db-helper.js",
-    "HITLController": "./infrastructure/hitl-controller.js",
-    "GenesisSnapshot": "./infrastructure/genesis-snapshot.js",
-    "Observability": "./infrastructure/observability.js",
-    "VFSHMR": "./infrastructure/vfs-hmr.js",
-    "TransformersClient": "./core/transformers-client.js",
-    "EmbeddingStore": "./capabilities/cognition/semantic/embedding-store.js",
-    "SemanticMemory": "./capabilities/cognition/semantic/semantic-memory.js",
-    "KnowledgeGraph": "./capabilities/cognition/symbolic/knowledge-graph.js",
-    "RuleEngine": "./capabilities/cognition/symbolic/rule-engine.js",
-    "SymbolGrounder": "./capabilities/cognition/symbolic/symbol-grounder.js",
-    "CognitionAPI": "./capabilities/cognition/cognition-api.js",
-    "MultiModelCoordinator": "./capabilities/intelligence/multi-model-coordinator.js",
-    "PerformanceMonitor": "./capabilities/performance/performance-monitor.js",
-    "AuditLogger": "./infrastructure/audit-logger.js",
-    "ToolWriter": "./core/tool-writer.js",
-    "SubstrateLoader": "./capabilities/system/substrate-loader.js",
-    "SelfTester": "./capabilities/testing/self-tester.js",
-    "VFSSandbox": "./testing/arena/vfs-sandbox.js",
-    "ArenaCompetitor": "./testing/arena/competitor.js",
-    "ArenaMetrics": "./testing/arena/arena-metrics.js",
-    "ArenaHarness": "./testing/arena/arena-harness.js"
+  "defaultLevel": "full",
+  "defaultBlueprintPath": "none",
+  "workerTypes": {
+    "explore": {
+      "name": "Explore",
+      "description": "Read-only reconnaissance - safe information gathering",
+      "tools": ["ReadFile", "ListFiles", "FileOutline", "Grep", "Find", "Cat", "Head", "Tail", "Ls", "Pwd"],
+      "canSpawnWorkers": false,
+      "defaultModelRole": "fast"
+    },
+    "analyze": {
+      "name": "Analyze",
+      "description": "Read + draft capabilities (no persistent writes)",
+      "tools": ["ReadFile", "ListFiles", "FileOutline", "Grep", "Find", "Cat", "Head", "Tail", "Ls", "Pwd", "Jq"],
+      "canSpawnWorkers": false,
+      "defaultModelRole": "fast"
+    },
+    "execute": {
+      "name": "Execute",
+      "description": "Full RSI capability - can modify VFS",
+      "tools": "*",
+      "canSpawnWorkers": false,
+      "defaultModelRole": "primary"
+    }
   },
-  "defaultLevel": "tabula",
-  "defaultBlueprintPath": "none"
+  "modelRoles": {
+    "orchestrator": { "description": "Main agent brain - strategic thinking", "default": null },
+    "fast": { "description": "Quick tasks - exploration, summarization", "default": null },
+    "code": { "description": "Code generation and analysis", "default": null },
+    "local": { "description": "Local model for low-latency tasks", "default": null }
+  }
 }

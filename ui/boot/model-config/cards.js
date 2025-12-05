@@ -18,8 +18,8 @@ export function renderModelCards() {
     const consensusSection = document.getElementById('consensus-section');
     const selectedModels = getSelectedModels();
 
-    if (!container) {
-        console.warn('[ModelConfig] Model cards container not found in DOM');
+    if (!container || !addCard) {
+        console.warn('[ModelConfig] Model cards container or add-card not found in DOM');
         return;
     }
 
@@ -31,6 +31,16 @@ export function renderModelCards() {
     });
 
     container.appendChild(addCard);
+
+    // Make add button prominent when no model cards are visible (excluding add-model-card)
+    const visibleModelCards = container.querySelectorAll('.model-card:not(.add-model-card)').length;
+    if (visibleModelCards === 0) {
+        addCard.classList.add('prominent');
+        console.log('[ModelConfig] Add card is PROMINENT (no models)');
+    } else {
+        addCard.classList.remove('prominent');
+        console.log('[ModelConfig] Add card is normal (' + visibleModelCards + ' models)');
+    }
 
     if (consensusSection) {
         if (selectedModels.length >= 2) {
@@ -53,7 +63,7 @@ function createModelCard(model, index) {
                 <div class="model-card-connection">${HOST_TYPE_LABELS[model.hostType] || model.hostType}</div>
             </div>
             <div class="model-card-actions">
-                <button class="model-card-btn edit" data-index="${index}">Edit</button>
+                <button class="model-card-btn edit" data-index="${index}">edit</button>
                 <button class="model-card-btn remove" data-index="${index}">Remove</button>
             </div>
         </div>
@@ -97,7 +107,11 @@ export function updateStatusDots() {
     const proxyCloudIcon = document.getElementById('proxy-cloud-icon');
     const proxyCloudText = document.getElementById('proxy-cloud-text');
     if (proxyCloudIcon && proxyCloudText) {
-        if (providers.proxy.online) {
+        if (!providers.proxy.checked) {
+            proxyCloudIcon.className = 'provider-status-icon checking';
+            proxyCloudText.className = 'provider-status-value checking';
+            proxyCloudText.textContent = 'Checking...';
+        } else if (providers.proxy.online) {
             proxyCloudIcon.className = 'provider-status-icon online';
             proxyCloudText.className = 'provider-status-value online';
             proxyCloudText.textContent = 'Available';
@@ -112,14 +126,18 @@ export function updateStatusDots() {
     const browserLocalIcon = document.getElementById('browser-local-icon');
     const browserLocalText = document.getElementById('browser-local-text');
     if (browserLocalIcon && browserLocalText) {
-        if (providers.webgpu.online) {
+        if (!providers.webgpu.checked) {
+            browserLocalIcon.className = 'provider-status-icon checking';
+            browserLocalText.className = 'provider-status-value checking';
+            browserLocalText.textContent = 'Checking...';
+        } else if (providers.webgpu.online) {
             browserLocalIcon.className = 'provider-status-icon online';
             browserLocalText.className = 'provider-status-value online';
             browserLocalText.textContent = 'WebGPU Available';
         } else {
             browserLocalIcon.className = 'provider-status-icon offline';
             browserLocalText.className = 'provider-status-value offline';
-            browserLocalText.textContent = 'WebGPU Unavailable';
+            browserLocalText.textContent = 'No WebGPU';
         }
     }
 
@@ -127,14 +145,18 @@ export function updateStatusDots() {
     const proxyLocalIcon = document.getElementById('proxy-local-icon');
     const proxyLocalText = document.getElementById('proxy-local-text');
     if (proxyLocalIcon && proxyLocalText) {
-        if (providers.ollama.online) {
+        if (!providers.ollama.checked) {
+            proxyLocalIcon.className = 'provider-status-icon checking';
+            proxyLocalText.className = 'provider-status-value checking';
+            proxyLocalText.textContent = 'Checking...';
+        } else if (providers.ollama.online) {
             proxyLocalIcon.className = 'provider-status-icon online';
             proxyLocalText.className = 'provider-status-value online';
             proxyLocalText.textContent = `Ollama (${providers.ollama.models.length} models)`;
         } else {
             proxyLocalIcon.className = 'provider-status-icon offline';
             proxyLocalText.className = 'provider-status-value offline';
-            proxyLocalText.textContent = 'Ollama Offline';
+            proxyLocalText.textContent = 'Unavailable';
         }
     }
 }

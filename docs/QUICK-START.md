@@ -1,28 +1,28 @@
-# 🚀 REPLOID Quick Start Guide
+# REPLOID Quick Start Guide
 
 **Welcome to REPLOID!** This guide will get you up and running in 5 minutes.
 
 ---
 
-## ☷ Prerequisites
+## Prerequisites
 
 - **Modern browser** (Chrome 90+, Firefox 88+, Safari 14+, Edge 90+)
 - **Node.js 18+** (for development server)
-- **Git** (recommended for version control)
+- **git** (recommended for version control)
 
 ---
 
-## ⚡ 1-Minute Quick Start
+## 1-Minute Quick Start
 
 ### Step 1: Start the Server
 
 ```bash
-# Option A: Python (simplest)
-python3 -m http.server 8000
-
-# Option B: Node.js with live reload
+# Option A: Node.js with live reload (recommended)
 npm install
 npm run dev
+
+# Option B: Python (simplest)
+python3 -m http.server 8000
 
 # Option C: Any static server
 npx serve -p 8000
@@ -32,345 +32,227 @@ npx serve -p 8000
 
 Navigate to **http://localhost:8000** in your browser.
 
-### Step 3: Choose Your Configuration (NEW!)
+### Step 3: Configure Your Agent
 
-You'll see the **Simple Mode** tab by default with 3 clear options:
+You'll see the boot screen with configuration options:
 
-#### ⚡ Minimal RSI Core (Recommended - Selected by Default)
-- **8 essential modules** only
-- Fastest startup, agent can self-evolve by loading more modules as needed
-- Perfect for learning and experimentation
+#### Genesis Levels
 
-#### 📚 Core + All Blueprints
-- 8 core modules + 26 knowledge documents
-- Agent has maximum knowledge from the start
-- Great for complex tasks requiring deep understanding
+| Level | Modules | Best For |
+|-------|---------|----------|
+| **Tabula Rasa** | ~13 | Fastest boot, minimal footprint |
+| **Reflection** | ~19 | + Streaming, verification, HITL |
+| **Full Substrate** | ~32 | Full RSI capability, arena testing |
 
-#### 🚀 All Upgrades + Blueprints
-- 40 modules + 26 blueprints
-- Full power from the start
-- Best for production use or advanced workflows
+#### Model Configuration
 
-**Advanced Options:**
-- **Templates Tab** - Pre-configured personas (Website Builder, RSI Lab, RFC Author, etc.)
-- **Hunter Protocol** - Manual module/blueprint selection for experts
+- **Cloud APIs**: Enter API keys for OpenAI, Anthropic, or Gemini
+- **Local Models**: Configure Ollama endpoint or use WebLLM
+- **Proxy Mode**: Route through `server/proxy.js` for key management
 
 ### Step 4: Set Your First Goal
 
-Type a goal in the input box and click **"Launch Agent"**. Examples:
+Type a goal in the input box and click **"Awaken Agent"**. Examples:
 
-**With Minimal RSI Core (default):**
 ```
 Create a simple hello world function
 ```
 
 ```
-Analyze my current module architecture
+Analyze the files in /tools and list what each one does
 ```
 
-**With All Blueprints:**
 ```
-Study blueprint 0x000016 and create a new tool
+Create a new tool called GreetUser that returns a friendly message
 ```
-
-**With All Upgrades:**
-```
-Create a landing page for a coffee shop called "Bean There"
-```
-
-The Sentinel Agent will start working through its FSM states automatically!
 
 ---
 
-## 🎯 Interactive Tutorial
+## Understanding the Proto UI
 
-### Example 1: Building a Website (Easiest)
+### Workspace Header
 
-**Persona:** Website Builder
+- **Goal**: Current objective
+- **Token Budget**: Usage bar
+- **State**: IDLE / RUNNING / ERROR
+- **Iterations**: Current cycle count
+- **Workers**: Active worker count (click to view)
 
-**Goal:** `Create a simple landing page for a yoga studio`
+### Sidebar Tabs
 
-**What happens:**
-1. ☍ **CURATING_CONTEXT** - Agent selects HTML/CSS/JS template files
-2. ✋ **AWAITING_CONTEXT_APPROVAL** - Review selected files (click "Approve")
-3. 🧠 **PLANNING_WITH_CONTEXT** - Agent analyzes requirements
-4. 📝 **GENERATING_PROPOSAL** - Creates HTML/CSS/JS files
-5. ✋ **AWAITING_PROPOSAL_APPROVAL** - **Review changes in interactive diff viewer**
-   - ✓ Green = additions
-   - ✗ Red = deletions
-   - 👁️ Side-by-side comparison
-   - Click "Approve All" or selectively approve files
-6. ⎈ **APPLYING_CHANGES** - Writes files to VFS
-7. ⚲ **REFLECTING** - Agent learns from the outcome
-8. [x] **DONE** - View your site in the **Live Preview** panel!
+| Tab | Purpose |
+|-----|---------|
+| **History** | LLM responses, tool calls/results, streaming output |
+| **Reflections** | Agent learning entries with success/error status |
+| **Status** | Agent state, token usage, model info, errors |
+| **Workers** | Active/completed workers, per-worker logs |
+| **Debug** | System prompt, conversation context, model config |
 
-### Example 2: Self-Improvement Experiment (Advanced)
+### VFS Browser (Middle Panel)
 
-**Persona:** RSI Lab Sandbox
-
-**Goal:** `Study blueprint 0x000016 and create a new tool named 'greet_user' that returns a friendly message`
-
-**What happens:**
-1. Agent reads `/blueprints/0x000016-meta-tool-creation-patterns.md`
-2. Agent proposes creating `upgrades/tools-dynamic/greet_user.json`
-3. You review the proposed tool definition
-4. Agent applies the change to its own toolset
-5. **The agent has now improved itself!** 🎉
-
-### Example 3: Code Analysis (Intermediate)
-
-**Persona:** Code Refactorer
-
-**Goal:** `Analyze state-manager.js for potential performance optimizations`
-
-**What happens:**
-1. Agent uses **Introspector** module to analyze code complexity
-2. Agent uses **PerformanceMonitor** to check current metrics
-3. Agent proposes refactoring patterns (memoization, debouncing, lazy loading)
-4. You review proposals in diff viewer
-5. Agent applies approved changes and runs self-tests
-
----
-
-## ☲ Understanding the Proto
-
-### Top Status Bar
-- **⚪ IDLE** → Agent waiting for goal
-- **🔵 CURATING_CONTEXT** → Selecting files
-- **🟡 AWAITING_CONTEXT_APPROVAL** → Your approval needed
-- **★ APPLYING_CHANGES** → Writing files
-- **🟣 REFLECTING** → Learning from outcome
-
-### Left Panel: Current Goal
-Shows the goal you set and progress
-
-### Center Panel: Agent Thoughts (Toggles with 7 views)
-Click **"Show Performance"** to cycle through:
-1. **Agent Thoughts** - Real-time reasoning stream
-2. **Performance Metrics** - Session stats, LLM calls, memory usage
-3. **Self-Analysis** - Module graph, tool catalog, capabilities
-4. **Learning History** - Past reflections and patterns
-5. **Self-Tests** - Validation suite results (80% pass threshold)
-6. **Browser APIs** - File System, Notifications, Storage status
-7. **Advanced Logs** - Detailed event log
-
-### Right Panel: VFS Explorer
 - Browse virtual filesystem
 - Search files
-- Preview content
-- Copy file paths
+- View/edit content
+- **Preview**: Execute HTML/CSS/JS in sandboxed iframe
+- **Diff**: Compare current state to Genesis snapshot
+- **Snapshots**: View/restore saved states
 
-### Bottom Panel: Visual Diffs
-When agent proposes changes, you'll see:
-- Side-by-side diff viewer
-- Syntax-highlighted code
-- Approve/reject individual files
-- Export changes as markdown
+### Command Palette
+
+Press **Ctrl+K** (Cmd+K on Mac) for quick commands:
+- Start/stop agent
+- Export session
+- Clear history
+- Refresh VFS
+- Toggle panels
 
 ---
 
-## 🔑 Key Concepts
+## Example Workflows
 
-### PAWS Philosophy
-**Prepare Artifacts With SWAP**
+### Example 1: Code Analysis
 
-- **cats.md**: Context bundles (selected files for LLM)
-- **dogs.md**: Change proposals (explicit modifications)
-- Human approvals at 2 checkpoints
+**Goal:** `Read the files in /core and explain what each module does`
 
-### Sentinel Agent FSM
-8-state finite state machine ensures controlled execution:
-```
-IDLE → CURATING → AWAITING_APPROVAL → PLANNING →
-GENERATING → AWAITING_APPROVAL → APPLYING → REFLECTING → DONE
-```
+**What happens:**
+1. Agent uses `ListFiles` to discover `/core/*.js`
+2. Agent uses `ReadFile` to read each file
+3. Agent uses `FileOutline` for structural analysis
+4. Agent provides summary in response
+
+### Example 2: Tool Creation (L1 RSI)
+
+**Goal:** `Create a tool called AddNumbers that takes two numbers and returns their sum`
+
+**What happens:**
+1. Agent plans the tool structure
+2. Agent uses `CreateTool` with name and code
+3. Tool is written to `/tools/AddNumbers.js`
+4. Tool is immediately available for use
+5. Agent tests the new tool
+
+### Example 3: Multi-Worker Task
+
+**Goal:** `Spawn workers to analyze different directories in parallel`
+
+**What happens:**
+1. Agent uses `SpawnWorker` with type "explore" for each directory
+2. Workers run with read-only permissions
+3. Agent uses `AwaitWorkers` to collect results
+4. Results appear in Workers tab
+5. Agent synthesizes findings
+
+### Example 4: Self-Modification (L3 RSI)
+
+**Goal:** `Read /core/tool-runner.js and propose an optimization`
+
+**What happens:**
+1. Agent reads and analyzes the file
+2. Agent proposes changes via `Edit` tool
+3. Changes go through verification pipeline
+4. If arena gating enabled, multiple models compete
+5. Only verified changes are applied
+6. Agent can hot-reload via `LoadModule`
+
+---
+
+## Key Concepts
 
 ### Virtual File System (VFS)
+
 - All files stored in browser IndexedDB
-- Git-based version control
-- Checkpoint/rollback capability
-- Syncs to real filesystem via File System Access API
+- No access to host filesystem
+- Genesis snapshot enables instant rollback
+- Service worker serves modules from VFS
 
-### RSI (Recursive Self-Improvement)
-The agent can modify its own source code:
-- Tool creation (`tools-write.json` provides `create_tool` function)
-- Goal modification (`goal-modifier.js` for safe goal evolution)
-- Blueprint creation (`blueprint-creator.js` for knowledge transfer)
+### Genesis Snapshots
 
----
+Captured at boot, before any agent action:
+- Full VFS state preserved
+- Diff viewer shows all changes
+- Restore to pristine state anytime
+- Works offline (no network needed)
 
-## 🎓 Sample Goals by Persona
+### RSI Levels
 
-### Website Builder
-```
-Create a landing page for a tech startup with hero section, features, and contact form
-Build a portfolio page with image gallery and project cards
-Design a pricing page with three tiers and comparison table
-```
+| Level | Description | Safety Gate |
+|-------|-------------|-------------|
+| **L1: Tools** | Create new tools at runtime | Verification Worker |
+| **L2: Meta** | Improve tool-creation mechanism | Arena Mode |
+| **L3: Substrate** | Modify core agent loop | HITL Approval |
 
-### RSI Lab Sandbox
-```
-Study blueprint 0x000016 and create a new tool named 'greet_user'
-Observe your own goal state and add a sub-goal to document findings
-Use blueprint 0x000018 to create a blueprint about tool composition patterns
-```
+### Worker Types
 
-### Code Refactorer
-```
-Analyze state-manager.js and find performance bottlenecks
-Use self-evaluation to assess the quality of agent-cycle.js
-Refactor ui-manager.js to reduce code duplication
-```
+| Type | Permissions | Use Case |
+|------|-------------|----------|
+| **explore** | Read-only | Codebase analysis |
+| **analyze** | Read + JSON tools | Data processing |
+| **execute** | Full access | Task execution |
 
-### RFC Author
-```
-Create an RFC proposing a dark mode theme system
-Analyze recent VFS modifications and draft an RFC summarizing changes
-Draft an RFC for implementing keyboard shortcuts in the UI
-```
+### Model Roles
 
-### Product Prototype Factory
-```
-Build an interactive todo app with drag-and-drop functionality
-Create a proto prototype with charts and data visualizations
-Design a settings panel with tabs and form controls
-```
-
-### Creative Writer
-```
-Write a technical blog post explaining the PAWS philosophy
-Create a tutorial on using the Sentinel Agent for beginners
-Draft release notes for version 2.0 of REPLOID
-```
+| Role | Purpose |
+|------|---------|
+| **orchestrator** | Main agent, full capability |
+| **fast** | Quick tasks, lower cost |
+| **code** | Code-specialized model |
+| **local** | WebLLM/Ollama for offline |
 
 ---
 
-## 🐛 Troubleshooting
+## Troubleshooting
 
 ### Problem: "Failed to load module"
 **Solution:** Clear browser cache (Ctrl+Shift+Delete) and refresh
 
-### Problem: Agent stuck in CURATING_CONTEXT
-**Solution:** Check browser console for errors. Likely API key issue or network problem.
-
-### Problem: Diff viewer shows no changes
-**Solution:** Agent may have proposed empty changeset. Check "Agent Thoughts" panel for reasoning.
+### Problem: Agent stuck in RUNNING state
+**Solution:** Check browser console for errors. May be API key issue or network problem.
 
 ### Problem: IndexedDB quota exceeded
-**Solution:** Export important sessions, then run `StateManager.clearAllData()` in console
+**Solution:** Export important sessions, then clear VFS via command palette
 
-### Problem: Preview not showing
-**Solution:** Ensure persona is Website Builder or Product Prototype Factory. Check that `/vfs/preview/index.html` exists.
+### Problem: Workers not completing
+**Solution:** Check Workers tab for error logs. Workers have iteration limits.
 
-### Problem: File System Access denied
-**Solution:** Browser APIs panel → "☗ Connect Directory" button. Grant permission to directory.
-
-### Problem: Self-tests failing
-**Solution:** Check Self-Tests panel for failure details. Common causes:
-- Missing dependencies in module
-- Tool execution errors
-- IndexedDB corruption
+### Problem: Changes not persisting
+**Solution:** Ensure VFS writes completed. Check audit log in Debug tab.
 
 ---
 
-## ⎈ Advanced Features
+## Keyboard Shortcuts
 
-### CLI Mode (cats/dogs)
-
-```bash
-# Create context bundle
-bin/cats "upgrades/*.js" -o context.cats.md
-
-# Validate bundle
-bin/cats validate context.cats.md
-
-# Apply changes
-bin/dogs changes.dogs.md
-
-# Dry-run with diff
-bin/dogs diff changes.dogs.md
-
-# Run with verification
-bin/dogs changes.dogs.md --verify "npm test"
-```
-
-### API Keys
-
-REPLOID uses Gemini API by default. To use other providers:
-
-1. Create `.env` file:
-```bash
-GEMINI_API_KEY=your_key_here
-OPENAI_API_KEY=your_key_here
-ANTHROPIC_API_KEY=your_key_here
-```
-
-2. Update `config.json`:
-```json
-{
-  "providers": {
-    "default": "openai",
-    "fallbackProviders": ["gemini", "anthropic"]
-  }
-}
-```
-
-3. Restart server (or use proxy mode):
-```bash
-npm start
-```
-
-### Keyboard Shortcuts
-
-- `Ctrl/Cmd + K` - Focus goal input
-- `Ctrl/Cmd + Enter` - Set goal
-- `Ctrl/Cmd + L` - Toggle panel view
-- `Ctrl/Cmd + E` - Export session report
-- `Ctrl/Cmd + /` - Open VFS search
+| Shortcut | Action |
+|----------|--------|
+| `Ctrl+K` | Open command palette |
+| `Ctrl+Enter` | Submit goal |
+| `Escape` | Close modals/palette |
 
 ---
 
-## 📚 Next Steps
+## Next Steps
 
-Once you're comfortable with the basics:
-
-1. **Read the Blueprints** (`/blueprints/`) - Learn system architecture
-2. **Explore Architecture** (`docs/SYSTEM_ARCHITECTURE.md`) - Deep dive into design
-3. **Test Sentinel Flow** (`test-sentinel-flow.md`) - Deep dive testing
-4. **API Reference** (`docs/API.md`) - Module documentation
-
----
-
-## 💡 Pro Tips
-
-1. **Use descriptive goals** - "Create a landing page" → "Create a landing page for a coffee shop with hero, menu, and contact sections"
-
-2. **Review context carefully** - In AWAITING_CONTEXT_APPROVAL, ensure agent selected the right files
-
-3. **Check diffs line-by-line** - Don't approve blindly! The diff viewer highlights every change
-
-4. **Export sessions regularly** - Click "⚿ Export" in status bar to save markdown report
-
-5. **Use reflections** - Agent learns from each interaction. Check "Learning History" to see patterns
-
-6. **Experiment in Lab Sandbox** - Safe environment for RSI experiments with undo capability
-
-7. **Monitor performance** - Keep an eye on "Performance Metrics" to optimize agent behavior
-
-8. **Connect filesystem** - Use File System Access API to sync VFS to real directories
-
-9. **Run self-tests** - Before major changes, click "☇️ Run Tests" to validate system integrity
-
-10. **Read agent thoughts** - The thought stream reveals reasoning. Use it to understand decisions!
+1. **Explore RSI**: Try creating tools and watching the agent improve itself
+2. **Read Architecture**: See [SYSTEM_ARCHITECTURE.md](./SYSTEM_ARCHITECTURE.md)
+3. **Study Blueprints**: Browse `/blueprints/` for specifications
+4. **Configure Models**: See [LOCAL_MODELS.md](./LOCAL_MODELS.md) for WebLLM/Ollama setup
+5. **API Reference**: See [API.md](./API.md) for module documentation
 
 ---
 
-## 🎉 You're Ready!
+## Tips for Success
 
-Start with the **Website Builder** persona and a simple goal. As you get comfortable, explore more advanced personas like **RSI Lab Sandbox** to see the agent improve itself!
-
-**Questions?** Check `docs/TROUBLESHOOTING.md` or file an issue on GitHub.
+1. **Start simple** — Begin with analysis tasks before modification
+2. **Watch the History tab** — See exactly what the agent is doing
+3. **Use Genesis diff** — Verify all changes before proceeding
+4. **Enable arena gating** — For safer self-modification experiments
+5. **Export sessions** — Save your work regularly
+6. **Check Workers tab** — Monitor parallel task progress
+7. **Read Debug tab** — Understand what system prompt the agent sees
 
 ---
 
-*Happy building! The Sentinel Agent is here to help.* ⚡
+*Happy experimenting! REPLOID is your sandbox for safe RSI research.*
+
+---
+
+*Last updated: December 2025*

@@ -136,7 +136,7 @@ self.onmessage = async (e) => {
         // D. Capability Boundary Check - detect writes to forbidden paths
         const writePatterns = [
           /VFS\.write\s*\(\s*['"`]([^'"`]+)['"`]/g,
-          /write_file.*path['":\s]+['"`]([^'"`]+)['"`]/g
+          /WriteFile.*path['":\s]+['"`]([^'"`]+)['"`]/g
         ];
 
         for (const wp of writePatterns) {

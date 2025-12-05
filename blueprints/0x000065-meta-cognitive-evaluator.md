@@ -120,7 +120,7 @@ const CognitiveStrategies = {
       tool_usage: 'Parallel exploration, diverse tool combinations',
       evaluation: 'Early comparison of alternatives'
     },
-    strengths: ['Good for complex/ambiguous problems', 'Finds creative solutions'],
+    strengths: ['Good for complex/ambiguous problems', 'finds creative solutions'],
     weaknesses: ['Higher overhead', 'Can be overwhelming']
   },
 
@@ -366,7 +366,7 @@ const ReasoningLearner = {
       };
     }
 
-    // Find best performing pattern
+    // find best performing pattern
     const best = relevantPatterns.reduce((a, b) =>
       a.successMetrics.reasoning_quality > b.successMetrics.reasoning_quality ? a : b
     );

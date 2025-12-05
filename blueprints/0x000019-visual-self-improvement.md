@@ -22,7 +22,7 @@ Visual representations of internal state and architecture create a new cognitive
 // The agent visualizes its module dependencies
 const depGraph = await VizDataAdapter.getDependencyGraph();
 // Identify circular dependencies visually
-// Find orphaned modules
+// find orphaned modules
 // Detect over-coupled components
 // Propose refactoring based on visual clustering
 ```
@@ -35,7 +35,7 @@ const depGraph = await VizDataAdapter.getDependencyGraph();
 const cogFlow = await VizDataAdapter.getCognitiveFlow();
 // Identify bottlenecks in decision making
 // See which stages take longest
-// Find repetitive patterns
+// find repetitive patterns
 // Optimize based on visual flow analysis
 ```
 
@@ -46,7 +46,7 @@ const cogFlow = await VizDataAdapter.getCognitiveFlow();
 // Create heatmap of memory/artifact access
 const heatmap = await VizDataAdapter.getMemoryHeatmap();
 // Identify hot spots (frequently accessed data)
-// Find cold areas (unused artifacts)
+// find cold areas (unused artifacts)
 // Optimize caching strategies
 // Reorganize data layout for efficiency
 ```
@@ -59,7 +59,7 @@ const heatmap = await VizDataAdapter.getMemoryHeatmap();
 const goalTree = await VizDataAdapter.getGoalTree();
 // See which branches are incomplete
 // Identify parallel execution opportunities
-// Find redundant subgoals
+// find redundant subgoals
 // Rebalance tree for better performance
 ```
 
@@ -69,7 +69,7 @@ const goalTree = await VizDataAdapter.getGoalTree();
 ```javascript
 // Graph tool relationships and usage
 const toolNet = await VizDataAdapter.getToolUsage();
-// Find tool clusters (frequently used together)
+// find tool clusters (frequently used together)
 // Identify unused tools
 // Detect tool creation opportunities
 // Merge similar tools based on visual proximity
@@ -81,7 +81,7 @@ const toolNet = await VizDataAdapter.getToolUsage();
 
 ### Pattern Detection
 1. **Cluster Analysis**: Group similar nodes visually
-2. **Path Finding**: Identify critical paths in graphs
+2. **Path finding**: Identify critical paths in graphs
 3. **Anomaly Detection**: Spot visual outliers
 4. **Trend Analysis**: Track changes over time visually
 
@@ -90,7 +90,7 @@ const toolNet = await VizDataAdapter.getToolUsage();
 - **Flow Efficiency**: Animate and measure cycle times
 - **Heat Distribution**: Identify resource imbalances
 - **Tree Balance**: Measure goal hierarchy efficiency
-- **Network Centrality**: Find critical components
+- **Network Centrality**: find critical components
 
 ## Web Component Widget Pattern
 

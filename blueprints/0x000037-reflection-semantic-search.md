@@ -22,7 +22,7 @@ Agents learn fastest when they can retrieve analogous experiences. Keyword searc
 ```javascript
 const Search = await ModuleLoader.getModule('ReflectionSearch');
 await Search.init();
-const results = await Search.api.search('timeout while calling GitHub API', { limit: 5, outcome: 'successful' });
+const results = await Search.api.search('timeout while calling gitHub API', { limit: 5, outcome: 'successful' });
 ```
 
 Key mechanics:

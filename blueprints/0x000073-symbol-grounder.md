@@ -60,7 +60,7 @@ const SymbolGrounder = {
 // Ground 'read-code' symbol to VFS.read tool
 symbolGrounder.ground('read-code', {
   type: 'tool',
-  reference: 'read_file',
+  reference: 'ReadFile',
   description: 'Reading code from VFS',
   operational: async (args) => await VFS.read(args.path)
 });

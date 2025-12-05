@@ -7,7 +7,7 @@
 const AuditLogger = {
   metadata: {
     id: 'AuditLogger',
-    version: '2.1.0',
+    version: '1.0.0',
     dependencies: ['Utils', 'VFS'],
     async: true,
     type: 'infrastructure'

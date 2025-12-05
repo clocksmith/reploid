@@ -6,7 +6,7 @@
 const StateHelpersPure = {
   metadata: {
     id: 'StateHelpersPure',
-    version: '2.0.0',
+    version: '1.0.0',
     dependencies: [],
     type: 'pure'
   },
@@ -14,7 +14,7 @@ const StateHelpersPure = {
   factory: () => {
 
     const DEFAULT_STATE = {
-      version: '2.0.0',
+      version: '1.0.0',
       totalCycles: 0,
       currentGoal: null,
       session: {
