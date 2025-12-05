@@ -174,7 +174,11 @@ async function run() {
 
       // Configure model and genesis level
       const genesisLevel = process.env.GENESIS || 'full';
-      const apiKey = process.env.GEMINI_API_KEY || 'AIzaSyCqhyPUKx9_QAXkoAoru72GeqUT46MWpI0';
+      const apiKey = process.env.GEMINI_API_KEY;
+      if (!apiKey) {
+        console.error('ERROR: GEMINI_API_KEY environment variable is required for awaken tests');
+        process.exit(1);
+      }
 
       await page.evaluate(({ key, genesis }) => {
         localStorage.setItem('REPLOID_GENESIS_LEVEL', genesis);
