@@ -10,6 +10,40 @@ import { spawn, exec } from 'child_process';
 import { promisify } from 'util';
 import SignalingServer from './signaling-server.js';
 import AgentBridge from './agent-bridge.js';
+import fetch from 'node-fetch';
+
+// Crash protection - keep server alive on uncaught errors
+process.on('uncaughtException', (err) => {
+  console.error('[CRASH PROTECTION] Uncaught exception:', err.message);
+  console.error(err.stack);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('[CRASH PROTECTION] Unhandled rejection at:', promise);
+  console.error('Reason:', reason);
+});
+
+// Simple rate limiter for API stability
+const rateLimiter = {
+  requests: new Map(),
+  windowMs: 1000,  // 1 second window
+  maxRequests: 5,  // max 5 requests per second per origin
+  check(origin) {
+    const now = Date.now();
+    const key = origin || 'unknown';
+    const data = this.requests.get(key) || { count: 0, resetAt: now + this.windowMs };
+
+    if (now > data.resetAt) {
+      data.count = 0;
+      data.resetAt = now + this.windowMs;
+    }
+
+    data.count++;
+    this.requests.set(key, data);
+
+    return data.count <= this.maxRequests;
+  }
+};
 
 const execPromise = promisify(exec);
 
@@ -180,7 +214,6 @@ const GPU_MONITOR_INTERVAL = 60000; // 60 seconds
 
 async function checkOllamaRunning() {
   try {
-    const fetch = (await import('node-fetch')).default;
     const response = await fetch(`${LOCAL_MODEL_ENDPOINT}/api/tags`, {
       method: 'GET',
       signal: AbortSignal.timeout(2000)
@@ -416,7 +449,6 @@ app.post('/api/gemini/*', async (req, res) => {
   const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/${geminiPath}?key=${GEMINI_API_KEY}`;
 
   try {
-    const fetch = (await import('node-fetch')).default;
     const response = await fetch(geminiUrl, {
       method: 'POST',
       headers: {
@@ -460,7 +492,6 @@ app.post('/api/local/*', async (req, res) => {
   console.log(`[API Local ${requestId}] Proxying request to ${localPath}`);
 
   try {
-    const fetch = (await import('node-fetch')).default;
     const response = await fetch(localUrl, {
       method: 'POST',
       headers: {
@@ -514,7 +545,6 @@ app.post('/api/openai/*', async (req, res) => {
   const openaiUrl = `https://api.openai.com/v1/${openaiPath}`;
 
   try {
-    const fetch = (await import('node-fetch')).default;
     const response = await fetch(openaiUrl, {
       method: 'POST',
       headers: {
@@ -561,7 +591,6 @@ app.post('/api/anthropic/*', async (req, res) => {
   const anthropicUrl = `https://api.anthropic.com/v1/${anthropicPath}`;
 
   try {
-    const fetch = (await import('node-fetch')).default;
     const response = await fetch(anthropicUrl, {
       method: 'POST',
       headers: {
@@ -610,7 +639,6 @@ app.post('/api/huggingface/models/:model(*)', async (req, res) => {
   const huggingfaceUrl = `https://api-inference.huggingface.co/models/${modelId}`;
 
   try {
-    const fetch = (await import('node-fetch')).default;
     const response = await fetch(huggingfaceUrl, {
       method: 'POST',
       headers: {
@@ -649,6 +677,17 @@ app.post('/api/huggingface/models/:model(*)', async (req, res) => {
 // Unified chat endpoint (routes to appropriate provider)
 app.post('/api/chat', async (req, res) => {
   const requestId = Math.random().toString(36).substring(7);
+  const origin = req.headers.origin || req.ip;
+
+  // Rate limiting check
+  if (!rateLimiter.check(origin)) {
+    console.log(`[API Chat ${requestId}] Rate limited: ${origin}`);
+    return res.status(429).json({
+      error: 'Too many requests. Please slow down.',
+      retryAfter: 1
+    });
+  }
+
   console.log(`[API Chat ${requestId}] Incoming request from ${req.headers['user-agent']?.substring(0, 50) || 'unknown'}`);
   console.log(`[API Chat ${requestId}] Request body:`, JSON.stringify(req.body, null, 2).substring(0, 500));
 
@@ -664,7 +703,6 @@ app.post('/api/chat', async (req, res) => {
     }
 
     console.log(`[API Chat ${requestId}] Routing to provider: ${provider}, model: ${model}`);
-    const fetch = (await import('node-fetch')).default;
     let response, data;
 
     switch (provider) {
@@ -1024,7 +1062,6 @@ app.get('/api/proxy-status', (req, res) => {
 // Endpoint to get available Ollama models
 app.get('/api/ollama/models', async (req, res) => {
   try {
-    const fetch = (await import('node-fetch')).default;
     const response = await fetch(`${LOCAL_MODEL_ENDPOINT}/api/tags`, {
       method: 'GET',
       signal: AbortSignal.timeout(5000)
@@ -1214,8 +1251,21 @@ app.get('/api/agent-bridge/stats', (req, res) => {
 });
 // --- End Agent Bridge Endpoints ---
 
-// Serve static files from the project root
-app.use(express.static(path.join(__dirname, '..')));
+// Serve static files from the project root with WGSL MIME type support
+app.use((req, res, next) => {
+  // Set correct MIME type for WebGPU shader files
+  if (req.path.endsWith('.wgsl')) {
+    res.type('text/plain; charset=utf-8');
+  }
+  next();
+});
+app.use(express.static(path.join(__dirname, '..'), {
+  setHeaders: (res, filePath) => {
+    if (filePath.endsWith('.wgsl')) {
+      res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+    }
+  }
+}));
 
 // 404 handler
 app.use((req, res) => {

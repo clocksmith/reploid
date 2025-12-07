@@ -98,13 +98,13 @@
         <h4 class="section-header" style="margin-top: 30px;">Choose your AI</h4>
         <div class="model-picker-compact">
             <div class="model-picker-row">
-                <label class="model-picker-label">Using:</label>
                 <select id="model-picker-select" class="model-picker-select">
                     <option value="">Select a model...</option>
                 </select>
                 <button class="model-picker-add-btn" id="add-model-btn" title="Add another model">☩ Add</button>
             </div>
             <!-- Selected models shown as chips -->
+            <label class="model-picker-label" style="margin-top: 8px;">Using:</label>
             <div class="selected-models-chips" id="selected-models-chips"></div>
             <!-- Consensus Strategy (shown when 2+ models) -->
             <div id="consensus-section" class="consensus-section hidden">
@@ -577,14 +577,16 @@ const GOAL_LIBRARY = [
   }
 ];
 
-// Curated goals - one from each category for quick access
+// Curated goals - featured examples from README plus variety
 const CURATED_GOALS = [
-  { label: 'Understand & Enhance', text: 'Read /docs/REPLOID_README.md and explore /core/ and /tools/. Identify one weakness. Implement a measurable enhancement. Report exactly which files changed and how to verify it works.' },
-  { label: 'Tool Factory', text: 'Create a meta-tool called ToolForge that generates new tools from natural language descriptions. Test by creating: (1) a tool that counts lines in files, (2) a tool that finds TODOs, (3) a tool that generates ASCII art.' },
-  { label: 'Code City', text: 'Build an explorable 3D city: buildings are files (height = complexity, width = size), streets are imports, parks are test files. Add minimap, fly-through camera, and click-to-open.' },
-  { label: 'Dream Mode', text: 'Enter free association: query random memory, extract keywords, find related entities in knowledge graph, generate hypothesis, store as new memory. Loop 10 times. Create dream journal.' },
-  { label: 'Voice Commander', text: 'Build a voice interface: wake word detection, continuous listening, speech-to-tool mapping, spoken responses. Add a visual indicator that pulses when listening.' },
-  { label: 'Any% Speedrun', text: 'Speedrun: create 5 working tools. Timer starts on AWAKEN. Display live splits. Current WR: 45 seconds. Beat it.' }
+  { label: 'Self-Audit', text: 'Analyze your agent loop, find a weakness, patch it, and hot-reload the new core.' },
+  { label: 'Recursive Iframes', text: 'Embed an iframe running Reploid, set up postMessage comms, awaken the child with the same goal, display recursion depth.' },
+  { label: 'Sandbox Probe', text: 'Map all available Web APIs, storage, and service worker scope; report isolation boundaries and potential escapes.' },
+  { label: 'Arena Bake-off', text: 'Generate 3 variants of CreateTool with different guardrails, run arena scoring on a sample task, keep the winner.' },
+  { label: 'Tool Smith', text: 'Design a new tool RefactorJS that rewrites functions to pure, side-effect-free versions; ship schema + tests; hot-reload.' },
+  { label: 'Dreamer Smoke Test', text: 'Load a local .rpl model, run a tiny prompt, verify manifest/hash, and emit a performance report.' },
+  { label: 'Code City', text: 'Build an explorable 3D city: buildings are files (height = complexity, width = size), streets are imports, parks are test files. Add minimap and fly-through camera.' },
+  { label: 'Houdini', text: 'Attempt to escape the browser sandbox and report any vectors found (log all attempts).' }
 ];
 
 function renderCuratedChips() {

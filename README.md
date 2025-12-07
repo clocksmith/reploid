@@ -42,10 +42,12 @@ Why not?
 - What verification checks actually catch dangerous mutations?
 - Can we build meaningful human-in-the-loop gates without destroying agent autonomy?
 
-**Example goals:**
-- **Introspect**: Analyze your own agent loop, find a weakness, and continuously improve it
-- **Ouroboros**: Improve the code that improves code
-- **Houdini**: Attempt to escape the browser sandbox, report any vectors found
+**Example goals (top 5):**
+- **Self-audit:** Analyze your agent loop, find a weakness, patch it, and hot-reload the new core
+- **Recursive Iframes:** Embed a Reploid iframe, set up postMessage comms, awaken the child with the same goal, display recursion depth
+- **Ouroboros:** Improve the code that improves code
+- **Houdini:** Attempt to escape the browser sandbox and report any vectors found
+- **Dreamer Smoke Test:** Load a local .rpl model, run a tiny prompt, verify manifest/hash, and emit a performance report
 
 ### LLM Options
 
