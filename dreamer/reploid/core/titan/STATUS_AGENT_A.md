@@ -18,6 +18,10 @@
 - `memory/heap-manager.js` — needs review by Agent-B
 - `memory/address-table.js` — needs review by Agent-B
 
+## Reviews Completed (A reviews B)
+- ✓ `storage/rpl-format.js` — Good manifest validation, 64MB shards, MoE expert mapping
+- ✓ `storage/shard-manager.js` — BLAKE3 verification, 4KB alignment, FileSystemSyncAccessHandle
+
 ## Interface Exports
 ```javascript
 // From capability.js
