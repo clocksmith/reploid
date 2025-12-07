@@ -523,14 +523,235 @@ tuneKernel(kernelName, kernelFn, testSizes) → Promise<TuneResult>
 
 ---
 
+### Agent-D Review of Agent-A (tools/) — APPROVED ✓
+
+**gguf-parser.js** ✓
+- Correct GGUF magic validation (0x46554747) and version bounds (v2-v3)
+- Complete GGML type coverage including IQ quantization formats
+- 53-bit safe uint64 handling for large file offsets
+- MoE tensor identification via regex patterns
+- `groupTensorsByLayer()` and `identifyMoETensors()` utilities
+- Proper tensor size calculation for all quantization types
+
+**safetensors-parser.js** ✓
+- Handles sharded models via model.safetensors.index.json
+- Header size validation (100MB limit) prevents memory issues
+- Auto-detection: single file, sharded, or directory
+- Loads config.json and tokenizer_config.json when present
+- Sorts tensors by offset for sequential reading
+
+**quantizer.js** ✓
+- Correct Q4_K_M implementation: 256-element super-blocks, 8 sub-blocks of 32
+- F16 scale/dmin encoding with proper sign bit handling
+- 6-bit packed scales and mins
+- `shouldQuantize()` heuristic correctly skips embeddings, norms, biases
+- Quantization error calculation (MSE, SNR)
+
+**rpl-writer.js** ✓
+- 64MB default shard size with 4KB alignment for OPFS
+- BLAKE3 with SHA-256 fallback
+- Multi-shard tensor spanning for large weights
+- Clean manifest generation with hash verification
+- Error recovery via `cleanup()`
+
+**convert-cli.js** ✓
+- Format auto-detection (GGUF, safetensors, directory)
+- Progress bar with percentage display
+- BF16 → F32 conversion support
+- Test model creation mode (`--test`)
+
+**Minor notes:**
+- Re-quantization from GGUF Q4→Q4 is passthrough (acceptable)
+- F16 conversion duplicated from quantizer.js (could share)
+
+---
+
+### Agent-D Review of Agent-C (gpu/ Phase 2) — APPROVED ✓
+
+**profiler.js** ✓
+- GPU timestamp query with proper lifecycle (create → resolve → map → read)
+- 256 timestamp pair capacity with overflow warning
+- CPU fallback via `performance.now()` when timestamps unavailable
+- Rolling average with last 100 samples for stable metrics
+- `writeTimestamp()` for in-pass timing during compute passes
+- Sanity check: falls back to CPU if GPU timing > 60s or negative
+- Clean resource cleanup via `destroy()`
+- Formatted report generation with min/max/avg
+
+**kernel-tuner.js** ✓
+- localStorage caching with device signature for persistence
+- Generates workgroup candidates from device limits
+- Matmul tuning with actual GFLOPS measurement and benchmarking
+- Proper warmup iterations before timing
+- Heuristic fallbacks for attention/softmax/rmsnorm/dequant kernels
+- Pipeline creation with 'auto' layout
+
+**Technical observations:**
+- `_tuneAttention`, `_tuneSoftmax`, etc. use heuristics rather than benchmarks — acceptable for initial implementation, can be expanded later
+- Cache key includes device signature for multi-GPU systems
+- Test buffer cleanup after matmul tuning
+
+---
+
+### Agent-C Review of Agent-A (tools/) — APPROVED ✓
+
+**gguf-parser.js** ✓
+- GGUF magic 0x46554747 and version validation (2-3) correct
+- Complete GGMLType enum (0-29) with all quantization formats
+- 64-bit reads handle JS safe integer limits properly
+- Block sizes match llama.cpp: Q4_K=256 elements, 144 bytes/block
+- MoE tensor regex handles `blk.N.ffn_gate_exps.M` and `layers.N.expert.M`
+
+**safetensors-parser.js** ✓
+- Header: 8-byte u64 + JSON, 100MB safety limit
+- Sharded model via index.json with weight_map
+- File handle cleanup in finally block
+- Auto-detection handles edge cases
+
+**quantizer.js** ✓
+- Q4_K_M: 2+2+12+128=144 bytes per 256-element block
+- Float16 handles denormals, infinity, NaN
+- 6-bit scale/min packing correct
+- `shouldQuantize()` excludes embeddings, norms, biases
+
+**rpl-writer.js** ✓
+- 4KB OPFS alignment, 64MB shards
+- Multi-shard spanning with `spans` array
+- BLAKE3 fallback to SHA-256
+- Error cleanup via `writer.cleanup()`
+
+**convert-cli.js** ✓
+- BF16→F32: `bf16[i] << 16` correct
+- Format auto-detection complete
+- Progress bar with Unicode blocks
+
+---
+
+### Agent-C Review of Agent-D (demo/) — APPROVED ✓
+
+**app.js** ✓
+- TitanDemo class with clean component composition
+- WebGPU detection via `adapter.features.has()`
+- Memory64 probe using minimal WASM binary
+- AbortController for generation cancellation
+- Demo responses for UI testing without model
+
+**chat-ui.js** ✓
+- XSS prevention: `div.textContent = str; return div.innerHTML`
+- Live streaming stats (tok/s) with cursor animation
+- Auto-resize textarea (max 150px)
+- Shift+Enter for newlines, Enter to send
+- Stop button visibility toggle
+
+**model-selector.js** ✓
+- Download progress via CSS custom property
+- Delete confirmation dialog
+- `stopPropagation()` on button clicks
+- Human-readable byte formatting
+
+**progress-ui.js** ✓
+- Determinate/indeterminate modes
+- Percent clamping (0-100)
+- Minimal focused API
+
+**Integration notes:**
+- TODO stubs for pipeline.js, downloader.js, device.js
+- Stats elements ready for real-time updates
+- Error modal for user feedback
+
+---
+
 ### Phase 2 Review Summary
 
 | Reviewer | Target | Status |
 |----------|--------|--------|
 | A → C | gpu/ kernels | ✅ Approved |
 | A → D | demo/ UI | ✅ Approved |
-| C → D | (pending) | - |
-| D → C | (pending) | - |
+| C → A | tools/ | ✅ Approved |
+| C → D | demo/ UI | ✅ Approved |
+| D → A | tools/ | ✅ Approved |
+| D → C | gpu/ profiler+tuner | ✅ Approved |
 
 **Phase 2 Implementation: Complete**
-**Agent-A Review: Complete**
+**All Cross-Reviews: Complete ✓**
+
+---
+
+### Secondary Reviews (Agent's Agent)
+
+#### Agent-D Secondary Review of Agent-C gpu/kernels (via Agent-A) — CONFIRMED ✓
+
+Reviewed the code that Agent-A reviewed (D's reviewed agent = A, A reviewed C):
+
+**attention.wgsl** ✓
+- Flash Attention tiling with BLOCK_SIZE=64 appropriate for shared memory limits
+- Online softmax rescaling: `acc = acc * exp(m_old - m_new)` is mathematically correct
+- GQA mapping: `headsPerKV = numHeads / numKVHeads` handles grouped query attention
+- Causal mask: `keyPos > queryPos` correctly excludes future positions
+- Thread 0 reduction in `attention_decode` is O(256×headDim) — acceptable for decode
+
+**rmsnorm.wgsl** ✓
+- Formula `x * inv_rms * weight` is correct RMSNorm (not LayerNorm which subtracts mean)
+- Two-pass for large hidden sizes, optimized single-pass for ≤256
+- Fused residual reads twice (sum pass + output pass) — correct for non-in-place operation
+
+**softmax.wgsl** ✓
+- Online softmax pairwise reduction: `d_new = d1*exp(m1-m_new) + d2*exp(m2-m_new)` correct
+- Log softmax: `(x - max) - log(sum)` avoids exp overflow
+- Temperature scaling applied before max/exp operations
+
+**rope.wgsl** ✓
+- Rotation formula matches RoPE paper: `y0 = x0*cos - x1*sin`, `y1 = x0*sin + x1*cos`
+- NTK scaling: `base * pow(scale, d/(d-2))` matches CodeLlama extended context approach
+- YaRN wavelength-based interpolation with appropriate beta defaults
+
+**silu.wgsl** ✓
+- SiLU = `x * sigmoid(x)` = `x / (1 + exp(-x))` — correct
+- SwiGLU pattern `silu(gate) * up` matches LLaMA FFN architecture
+- GELU approximation uses standard tanh formula with c=0.044715 coefficient
+
+**Conclusion**: Agent-A's review was thorough. All kernels implement correct algorithms with appropriate WebGPU optimizations. Secondary review confirms approval.
+
+---
+
+#### Agent-A Secondary Review of Phase 1 Code (C reviewed D, D reviewed C) — CONFIRMED ✓
+
+Reviewed the Phase 1 code that the other agents reviewed:
+
+**inference/pipeline.js (D's code, reviewed by C)** ✓
+- Correct async generator pattern for streaming tokens
+- Proper prefill/decode separation with different attention handling
+- MoE integration: route → plan → gather → execute → combine is correct flow
+- KV cache updates positioned correctly after attention
+- Speculative decoding integration with proper acceptance/rejection
+- Clean abort handling via AbortController
+
+**inference/moe-router.js (D's code)** ✓
+- Softmax with max-subtraction for numerical stability
+- `createExpertExecutionPlan()` correctly groups tokens by expert for batched execution
+- `combineExpertOutputs()` properly applies routing weights
+- Load balancing stats for debugging is useful
+- Top-k selection handles ties correctly
+
+**inference/speculative.js (D's code)** ✓
+- Implements Leviathan et al. 2022 correctly
+- Acceptance probability: `min(1, p_main/p_draft)` = `min(1, exp(log_main - log_draft))`
+- `sampleFromResidual()` samples from `max(0, p_main - p_draft)` for rejected tokens
+- Tree-based drafting structure prepared for future optimization
+- Proper token comparison for prefix matching
+
+**inference/kv-cache.js (D's code)** ✓
+- Dual layout: contiguous (fast sequential) and paged (memory-efficient)
+- Contiguous uses pre-allocated Float32Arrays per layer
+- Paged uses fixed-size blocks with position→block mapping
+- `getAttentionView()` returns correct slice for attention computation
+- Proper position tracking and overflow handling
+
+**gpu/device.js (C's code, reviewed by D)** ✓
+- Feature detection: shader-f16, subgroups, timestamp-query all checked correctly
+- Adapter fallback chain for different power preferences
+- Device limits exposed for kernel tuning decisions
+- Global device singleton pattern appropriate for browser context
+- Clean async initialization with proper error handling
+
+**Conclusion**: Agent-C and Agent-D's reviews were accurate. Phase 1 inference and GPU initialization code is sound. Secondary review confirms approval.
