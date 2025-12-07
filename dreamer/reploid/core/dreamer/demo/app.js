@@ -1,8 +1,8 @@
 /**
- * app.js - Titan Demo Application Controller
+ * app.js - Dreamer Demo Application Controller
  * Agent-D | Phase 2 | demo/
  *
- * Main application that wires together all components and the Titan inference pipeline.
+ * Main application that wires together all components and the Dreamer inference pipeline.
  */
 
 import { ModelSelector } from './model-selector.js';
@@ -52,7 +52,7 @@ const MODEL_REGISTRY = [
 /**
  * Main Demo Application
  */
-export class TitanDemo {
+export class DreamerDemo {
   constructor() {
     /** @type {ModelSelector} */
     this.modelSelector = null;
@@ -86,7 +86,7 @@ export class TitanDemo {
    * Initialize the application
    */
   async init() {
-    console.log('[TitanDemo] Initializing...');
+    console.log('[DreamerDemo] Initializing...');
 
     // Get DOM references
     this.statusDot = document.querySelector('.status-dot');
@@ -117,7 +117,7 @@ export class TitanDemo {
       this._showError('WebGPU is not available in this browser. Please use Chrome 113+, Edge 113+, or Firefox Nightly with WebGPU enabled.');
     }
 
-    console.log('[TitanDemo] Initialized');
+    console.log('[DreamerDemo] Initialized');
   }
 
   /**
@@ -153,7 +153,7 @@ export class TitanDemo {
    * @private
    */
   async _detectCapabilities() {
-    console.log('[TitanDemo] Detecting capabilities...');
+    console.log('[DreamerDemo] Detecting capabilities...');
 
     // WebGPU
     if (navigator.gpu) {
@@ -168,10 +168,10 @@ export class TitanDemo {
 
           // Get adapter info for logging
           const info = await adapter.requestAdapterInfo?.() || {};
-          console.log('[TitanDemo] GPU:', info.vendor, info.architecture);
+          console.log('[DreamerDemo] GPU:', info.vendor, info.architecture);
         }
       } catch (e) {
-        console.warn('[TitanDemo] WebGPU init failed:', e);
+        console.warn('[DreamerDemo] WebGPU init failed:', e);
       }
     }
 
@@ -216,7 +216,7 @@ export class TitanDemo {
   async _loadCachedModels() {
     // TODO: Query OPFS for cached models via storage/shard-manager.js
     // For now, mark none as downloaded
-    console.log('[TitanDemo] Checking cached models...');
+    console.log('[DreamerDemo] Checking cached models...');
 
     // In production:
     // const cachedModels = await listModels();
@@ -248,7 +248,7 @@ export class TitanDemo {
       return;
     }
 
-    console.log(`[TitanDemo] Loading model: ${modelId}`);
+    console.log(`[DreamerDemo] Loading model: ${modelId}`);
     this._setStatus('loading', 'Loading model...');
     this.progressUI.show('Loading model...');
 
@@ -279,10 +279,10 @@ export class TitanDemo {
       this.chatUI.setInputEnabled(true);
       this.chatUI.focusInput();
 
-      console.log(`[TitanDemo] Model loaded: ${modelId}`);
+      console.log(`[DreamerDemo] Model loaded: ${modelId}`);
 
     } catch (error) {
-      console.error('[TitanDemo] Model load failed:', error);
+      console.error('[DreamerDemo] Model load failed:', error);
       this.progressUI.hide();
       this._setStatus('error', 'Load failed');
       this._showError(`Failed to load model: ${error.message}`);
@@ -298,7 +298,7 @@ export class TitanDemo {
     const model = MODEL_REGISTRY.find(m => m.id === modelId);
     if (!model) return;
 
-    console.log(`[TitanDemo] Downloading model: ${modelId}`);
+    console.log(`[DreamerDemo] Downloading model: ${modelId}`);
     this._setStatus('loading', 'Downloading...');
 
     try {
@@ -317,10 +317,10 @@ export class TitanDemo {
       model.downloaded = true;
       this._setStatus('ready', 'Download complete');
 
-      console.log(`[TitanDemo] Download complete: ${modelId}`);
+      console.log(`[DreamerDemo] Download complete: ${modelId}`);
 
     } catch (error) {
-      console.error('[TitanDemo] Download failed:', error);
+      console.error('[DreamerDemo] Download failed:', error);
       this.modelSelector.setDownloadProgress(modelId, 0);
       this._setStatus('error', 'Download failed');
       this._showError(`Download failed: ${error.message}`);
@@ -335,7 +335,7 @@ export class TitanDemo {
     const model = MODEL_REGISTRY.find(m => m.id === modelId);
     if (!model) return;
 
-    console.log(`[TitanDemo] Deleting model: ${modelId}`);
+    console.log(`[DreamerDemo] Deleting model: ${modelId}`);
 
     try {
       // Unload if currently active
@@ -357,7 +357,7 @@ export class TitanDemo {
       this._setStatus('ready', 'Model deleted');
 
     } catch (error) {
-      console.error('[TitanDemo] Delete failed:', error);
+      console.error('[DreamerDemo] Delete failed:', error);
       this._showError(`Delete failed: ${error.message}`);
     }
   }
@@ -377,7 +377,7 @@ export class TitanDemo {
       return;
     }
 
-    console.log(`[TitanDemo] Generating response...`);
+    console.log(`[DreamerDemo] Generating response...`);
     this.isGenerating = true;
     this.abortController = new AbortController();
 
@@ -415,7 +415,7 @@ export class TitanDemo {
         this.chatUI.cancelStream();
         this._setStatus('ready', 'Stopped');
       } else {
-        console.error('[TitanDemo] Generation error:', error);
+        console.error('[DreamerDemo] Generation error:', error);
         this.chatUI.cancelStream();
         this._setStatus('error', 'Generation failed');
         this._showError(`Generation failed: ${error.message}`);
@@ -442,7 +442,7 @@ export class TitanDemo {
     if (this.pipeline) {
       // this.pipeline.clearKVCache();
     }
-    console.log('[TitanDemo] Conversation cleared');
+    console.log('[DreamerDemo] Conversation cleared');
   }
 
   /**
@@ -503,8 +503,8 @@ export class TitanDemo {
    */
   _generateDemoResponse(message) {
     const responses = [
-      "I'm a demo response from Titan! The real model isn't loaded yet, but once you connect the inference pipeline, I'll generate actual responses using WebGPU acceleration.",
-      "This is a placeholder response. When the full Titan pipeline is connected, you'll see real LLM outputs with streaming tokens and performance metrics.",
+      "I'm a demo response from Dreamer! The real model isn't loaded yet, but once you connect the inference pipeline, I'll generate actual responses using WebGPU acceleration.",
+      "This is a placeholder response. When the full Dreamer pipeline is connected, you'll see real LLM outputs with streaming tokens and performance metrics.",
       "Hello! I'm simulating what the chat experience will be like. The actual inference will run entirely in your browser using WebGPU for acceleration.",
     ];
     return responses[Math.floor(Math.random() * responses.length)];
@@ -513,11 +513,11 @@ export class TitanDemo {
 
 // Initialize on DOM ready
 document.addEventListener('DOMContentLoaded', () => {
-  const app = new TitanDemo();
+  const app = new DreamerDemo();
   app.init().catch(console.error);
 
   // Expose for debugging
-  window.titanDemo = app;
+  window.dreamerDemo = app;
 });
 
-export default TitanDemo;
+export default DreamerDemo;

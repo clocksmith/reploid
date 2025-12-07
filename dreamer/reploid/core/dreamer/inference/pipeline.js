@@ -8,6 +8,11 @@
  * - Optional speculative decoding
  * - GPU/CPU compute dispatch
  *
+ * GPU-Native Execution:
+ * - Dense models: Fully GPU-native (no CPU readback until final logits for sampling)
+ * - MoE models: GPU-native except for expert routing (intentional CPU fallback)
+ *   See _processLayerGPU for details on MoE CPU fallback rationale
+ *
  * @module inference/pipeline
  */
 
@@ -25,8 +30,8 @@ import { loadShard, getManifest } from '../storage/shard-manager.js';
 // GPU interfaces (Agent-C)
 import { getDevice, getKernelCapabilities } from '../gpu/device.js';
 
-// TitanLoader for weight loading
-import { getTitanLoader } from '../loader/titan-loader.js';
+// DreamerLoader for weight loading
+import { getDreamerLoader } from '../loader/dreamer-loader.js';
 import {
   runMatmul,
   dequantize,
@@ -87,8 +92,8 @@ export class InferencePipeline {
     this.isGenerating = false;
     this.currentSeqLen = 0;
 
-    // TitanLoader instance
-    this.titanLoader = null;
+    // DreamerLoader instance
+    this.dreamerLoader = null;
 
     // GPU context (from Agent-C)
     this.gpuContext = null;
@@ -264,49 +269,59 @@ export class InferencePipeline {
   }
 
   /**
-   * Load model weights from storage via TitanLoader
+   * Load model weights from storage via DreamerLoader
    * @private
    */
   async _loadWeights() {
-    // Initialize TitanLoader if not already done
-    if (!this.titanLoader) {
-      this.titanLoader = getTitanLoader();
-      await this.titanLoader.init();
+    // Initialize DreamerLoader if not already done
+    if (!this.dreamerLoader) {
+      this.dreamerLoader = getDreamerLoader();
+      await this.dreamerLoader.init();
     }
 
-    // Load model via TitanLoader
+    // If custom shard loader provided (e.g., Native Bridge), configure DreamerLoader
+    if (this.storageContext?.loadShard) {
+      console.log('[Pipeline] Using custom shard loader (Native Bridge or external)');
+      this.dreamerLoader.setCustomShardLoader(this.storageContext.loadShard, {
+        verify: true, // Enable hash verification for bridge-loaded shards
+      });
+      // Set manifest from pipeline (loaded by dreamer-provider.js via bridge)
+      this.dreamerLoader.setManifest(this.manifest);
+    }
+
+    // Load model via DreamerLoader
     const modelId = this.manifest.modelId || this.manifest.model_id || 'default';
-    await this.titanLoader.load(modelId, {
-      verifyHashes: true,
+    await this.dreamerLoader.load(modelId, {
+      verifyHashes: !this.storageContext?.loadShard, // Skip OPFS integrity check if using custom loader
       onProgress: (info) => {
         console.log(`[Pipeline] Loading: ${info.stage} - ${Math.round(info.progress * 100)}%`);
       },
     });
 
-    // Map TitanLoader layers to pipeline weights
+    // Map DreamerLoader layers to pipeline weights
     for (let l = 0; l < this.modelConfig.numLayers; l++) {
-      const layerWeights = this.titanLoader.getLayerWeights(l);
+      const layerWeights = this.dreamerLoader.getLayerWeights(l);
       if (layerWeights) {
         this.weights.set(`layer_${l}`, layerWeights);
       }
     }
 
     // Store embeddings reference
-    if (this.titanLoader.embeddings) {
-      this.weights.set('embed', this.titanLoader.embeddings);
+    if (this.dreamerLoader.embeddings) {
+      this.weights.set('embed', this.dreamerLoader.embeddings);
     }
 
     // Store LM head reference
-    if (this.titanLoader.lmHead) {
-      this.weights.set('lm_head', this.titanLoader.lmHead);
+    if (this.dreamerLoader.lmHead) {
+      this.weights.set('lm_head', this.dreamerLoader.lmHead);
     }
 
     // Store final norm reference
-    if (this.titanLoader.finalNorm) {
-      this.weights.set('final_norm', this.titanLoader.finalNorm);
+    if (this.dreamerLoader.finalNorm) {
+      this.weights.set('final_norm', this.dreamerLoader.finalNorm);
     }
 
-    // MoE router weights - loaded on demand via titanLoader.loadExpert()
+    // MoE router weights - loaded on demand via dreamerLoader.loadExpert()
     if (this.moeRouter && this.modelConfig.useMoE) {
       console.log('[Pipeline] MoE model - experts will be loaded on demand');
     }
@@ -422,7 +437,17 @@ export class InferencePipeline {
     let hiddenStates = await this._embed(inputIds);
 
     for (let l = 0; l < this.modelConfig.numLayers; l++) {
+      const prevStates = hiddenStates;
       hiddenStates = await this._processLayer(l, hiddenStates, numTokens, true);
+      // Release intermediate GPU buffer (no longer needed after layer processes it)
+      if (prevStates instanceof GPUBuffer && prevStates !== hiddenStates) {
+        releaseBuffer(prevStates);
+      }
+    }
+
+    // Release final hidden states (prefill only populates KV cache)
+    if (hiddenStates instanceof GPUBuffer) {
+      releaseBuffer(hiddenStates);
     }
 
     this.currentSeqLen = numTokens;
@@ -435,15 +460,27 @@ export class InferencePipeline {
   async _decodeStep(currentIds, opts) {
     // Only process the last token (use cached KV for previous)
     const lastToken = currentIds[currentIds.length - 1];
+    const numTokens = 1;
 
     let hiddenStates = await this._embed([lastToken]);
 
     for (let l = 0; l < this.modelConfig.numLayers; l++) {
-      hiddenStates = await this._processLayer(l, hiddenStates, 1, false);
+      const prevStates = hiddenStates;
+      hiddenStates = await this._processLayer(l, hiddenStates, numTokens, false);
+      // Release intermediate GPU buffer
+      if (prevStates instanceof GPUBuffer && prevStates !== hiddenStates) {
+        releaseBuffer(prevStates);
+      }
     }
 
     // Apply final layer norm and LM head
-    const logits = await this._computeLogits(hiddenStates);
+    // Pass numTokens since hiddenStates may be GPUBuffer
+    const logits = await this._computeLogits(hiddenStates, numTokens);
+
+    // Release final GPU buffer (logits computation is done)
+    if (hiddenStates instanceof GPUBuffer) {
+      releaseBuffer(hiddenStates);
+    }
 
     // Apply repetition penalty
     this._applyRepetitionPenalty(logits, currentIds, opts.repetitionPenalty);
@@ -479,7 +516,7 @@ export class InferencePipeline {
     const { hiddenSize, vocabSize } = this.modelConfig;
     const numTokens = tokenIds.length;
 
-    // Get embeddings buffer from TitanLoader
+    // Get embeddings buffer from DreamerLoader
     const embedBuffer = this.weights.get('embed');
     if (!embedBuffer) {
       console.warn('[Pipeline] Embeddings not loaded, using placeholder');
@@ -511,15 +548,17 @@ export class InferencePipeline {
 
     // Get or create embedding GPU buffer
     let embedGPUBuffer;
+    let embedGPUBufferOwned = false;
     if (embedBuffer instanceof GPUBuffer) {
       embedGPUBuffer = embedBuffer;
     } else {
-      // Upload embeddings to GPU (should already be there from TitanLoader)
+      // Upload embeddings to GPU (should already be there from DreamerLoader)
       embedGPUBuffer = acquireBuffer(embedBuffer.byteLength, undefined, 'embeddings');
       device.queue.writeBuffer(embedGPUBuffer, 0, embedBuffer);
+      embedGPUBufferOwned = true;
     }
 
-    // Run gather kernel on GPU - no CPU readback needed
+    // Run gather kernel on GPU - returns GPUBuffer, NO CPU readback
     const outputBuffer = await runGather(
       tokenIdBuffer,
       embedGPUBuffer,
@@ -528,16 +567,12 @@ export class InferencePipeline {
       vocabSize
     );
 
-    // Read back the gathered embeddings (needed for subsequent CPU operations)
-    // In a fully GPU pipeline, we'd keep this on GPU
-    const outputData = await readBuffer(outputBuffer, numTokens * hiddenSize * 4);
-
-    // Cleanup
+    // Cleanup input buffers only - output stays on GPU
     releaseBuffer(tokenIdBuffer);
-    if (!(embedBuffer instanceof GPUBuffer)) releaseBuffer(embedGPUBuffer);
-    releaseBuffer(outputBuffer);
+    if (embedGPUBufferOwned) releaseBuffer(embedGPUBuffer);
 
-    return new Float32Array(outputData);
+    // Return GPUBuffer directly for GPU-native pipeline flow
+    return outputBuffer;
   }
 
   /**
@@ -621,12 +656,19 @@ export class InferencePipeline {
     // 4. FFN (or MoE FFN)
     let ffnOutput;
     if (this.modelConfig.useMoE && this._isMoELayer(layerIdx)) {
-      // MoE still needs some CPU coordination for routing
+      // ============================================================
+      // INTENTIONAL CPU FALLBACK: MoE routing requires dynamic expert
+      // selection which is not yet implemented on GPU. The routing
+      // weights and expert gating are computed on CPU, then results
+      // are uploaded back to GPU. This is a known performance gap.
+      // TODO: Implement GPU-native MoE routing for full GPU residency
+      // ============================================================
       const normedData = await readBuffer(normedBuffer, size * 4);
       const ffnResult = await this._moeFeedForward(layerIdx, new Float32Array(normedData), numTokens);
-      ffnOutput = acquireBuffer(size * 4, undefined, 'ffn_output');
+      ffnOutput = acquireBuffer(size * 4, undefined, 'moe_ffn_output');
       device.queue.writeBuffer(ffnOutput, 0, ffnResult);
     } else {
+      // Dense FFN: fully GPU-native path
       ffnOutput = await this._feedForwardGPU(layerIdx, normedBuffer, numTokens);
     }
 
@@ -1074,9 +1116,9 @@ export class InferencePipeline {
     const key = `layer_${layerIdx}_expert_${expertIdx}`;
     if (this.expertWeights.has(key)) return;
 
-    // Load expert weights via TitanLoader
-    if (this.titanLoader) {
-      const weights = await this.titanLoader.loadExpert(layerIdx, expertIdx);
+    // Load expert weights via DreamerLoader
+    if (this.dreamerLoader) {
+      const weights = await this.dreamerLoader.loadExpert(layerIdx, expertIdx);
       if (weights) {
         this.expertWeights.set(key, weights);
       }
@@ -1182,8 +1224,11 @@ export class InferencePipeline {
   /**
    * Compute output logits from final hidden states
    * @private
+   * @param {Float32Array|GPUBuffer} hiddenStates - Input hidden states (GPU or CPU)
+   * @param {number} [numTokens] - Number of tokens (required if hiddenStates is GPUBuffer)
+   * @returns {Promise<Float32Array>} Logits for sampling (always CPU for sampling)
    */
-  async _computeLogits(hiddenStates) {
+  async _computeLogits(hiddenStates, numTokens = null) {
     const { hiddenSize, vocabSize } = this.modelConfig;
     const device = getDevice();
 
@@ -1196,19 +1241,39 @@ export class InferencePipeline {
       return new Float32Array(vocabSize);
     }
 
-    // For single token decode, hiddenStates is [hiddenSize]
-    const numTokens = hiddenStates.length / hiddenSize;
+    // Determine if input is GPU buffer
+    const inputIsGPU = hiddenStates instanceof GPUBuffer;
+
+    // Calculate numTokens from input if not provided
+    if (numTokens === null) {
+      if (inputIsGPU) {
+        throw new Error('numTokens required when hiddenStates is GPUBuffer');
+      }
+      numTokens = hiddenStates.length / hiddenSize;
+    }
 
     if (!device || !this.useGPU) {
       // CPU path: simple RMSNorm + matmul
+      if (inputIsGPU) {
+        // Read back GPU buffer for CPU path
+        const data = await readBuffer(hiddenStates, numTokens * hiddenSize * 4);
+        hiddenStates = new Float32Array(data);
+      }
       const normed = this._rmsNormCPU(hiddenStates, finalNorm);
       return this._matmulCPU(normed, lmHead, numTokens, vocabSize, hiddenSize);
     }
 
     // GPU path
-    // 1. Upload hidden states
-    const inputBuffer = acquireBuffer(hiddenStates.byteLength, undefined, 'logits_input');
-    device.queue.writeBuffer(inputBuffer, 0, hiddenStates);
+    // 1. Get or create input buffer (no upload if already GPU)
+    let inputBuffer;
+    let inputBufferOwned = false;
+    if (inputIsGPU) {
+      inputBuffer = hiddenStates;
+    } else {
+      inputBuffer = acquireBuffer(hiddenStates.byteLength, undefined, 'logits_input');
+      device.queue.writeBuffer(inputBuffer, 0, hiddenStates);
+      inputBufferOwned = true;
+    }
 
     // 2. Apply final RMSNorm
     const normWeightBuffer = finalNorm instanceof GPUBuffer ? finalNorm :
@@ -1233,11 +1298,11 @@ export class InferencePipeline {
 
     const logitsBuffer = await runMatmul(normedBuffer, lmHeadBuffer, numTokens, vocabSize, hiddenSize);
 
-    // 4. Read back logits
+    // 4. Read back logits (required for CPU sampling)
     const logitsData = await readBuffer(logitsBuffer, numTokens * vocabSize * 4);
 
     // Cleanup
-    releaseBuffer(inputBuffer);
+    if (inputBufferOwned) releaseBuffer(inputBuffer);
     releaseBuffer(normedBuffer);
     releaseBuffer(logitsBuffer);
     if (!(finalNorm instanceof GPUBuffer)) releaseBuffer(normWeightBuffer);

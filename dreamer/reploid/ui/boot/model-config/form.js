@@ -9,7 +9,20 @@ import {
     updateModel
 } from './state.js';
 import { cloudProviders, getModelsForProvider, getConnectionOptions } from './providers.js';
-import { renderModelCards, updateGoalInputState } from './cards.js';
+import { renderModelCards, updateGoalInputState, updateModelPickerDropdown } from './cards.js';
+
+// Check if Native Bridge is available (lazy loaded)
+let bridgeAvailableCache = null;
+async function checkBridgeAvailable() {
+    if (bridgeAvailableCache !== null) return bridgeAvailableCache;
+    try {
+        const { isBridgeAvailable } = await import('../../../core/dreamer/bridge/index.js');
+        bridgeAvailableCache = isBridgeAvailable();
+    } catch {
+        bridgeAvailableCache = false;
+    }
+    return bridgeAvailableCache;
+}
 
 // Open inline form for adding/editing
 export function openInlineForm(editingIndex = null) {
@@ -71,6 +84,12 @@ function populateProviderSelect() {
         options.push('<option value="transformers">Transformers.js (Browser)</option>');
     }
 
+    if (providers.dreamer?.online) {
+        const caps = providers.dreamer.capabilities;
+        const tierLabel = caps?.TIER_NAME ? ` (${caps.TIER_NAME})` : '';
+        options.push(`<option value="dreamer">Dreamer${tierLabel} (Local WebGPU)</option>`);
+    }
+
     // Cloud providers always available - user provides API key
     options.push('<option value="gemini">Google Gemini (Cloud)</option>');
     options.push('<option value="openai">OpenAI (Cloud)</option>');
@@ -86,11 +105,13 @@ export function onProviderChange(e) {
     const modelSelect = document.getElementById('model-select-dropdown');
     const apiKeyGroup = document.getElementById('api-key-group');
     const connectionTypeGroup = document.getElementById('connection-type-group');
+    const modelUrlGroup = document.getElementById('model-url-group');
     const saveBtn = document.getElementById('save-model-btn');
 
     modelSelectGroup.classList.add('hidden');
     apiKeyGroup.classList.add('hidden');
     connectionTypeGroup.classList.add('hidden');
+    if (modelUrlGroup) modelUrlGroup.classList.add('hidden');
     saveBtn.disabled = true;
 
     if (!provider) return;
@@ -113,6 +134,48 @@ export function onProviderChange(e) {
         connectionTypeGroup.classList.remove('hidden');
     }
     onConnectionTypeChange({ target: { value: autoConnectionType } });
+
+    // Show model URL field for Dreamer provider
+    if (modelUrlGroup) {
+        if (provider === 'dreamer') {
+            modelUrlGroup.classList.remove('hidden');
+        } else {
+            modelUrlGroup.classList.add('hidden');
+            const urlInput = document.getElementById('model-url-input');
+            if (urlInput) urlInput.value = '';
+        }
+    }
+
+    // Show local path field for Dreamer when Native Bridge is available
+    const localPathGroup = document.getElementById('local-path-group');
+    if (localPathGroup) {
+        if (provider === 'dreamer') {
+            // Check bridge availability asynchronously
+            checkBridgeAvailable().then(available => {
+                if (available) {
+                    localPathGroup.classList.remove('hidden');
+                } else {
+                    localPathGroup.classList.add('hidden');
+                }
+            });
+        } else {
+            localPathGroup.classList.add('hidden');
+            const pathInput = document.getElementById('local-path-input');
+            if (pathInput) pathInput.value = '';
+        }
+    }
+
+    // Show GGUF import button for Dreamer provider (browser import via File System Access)
+    const ggufImportGroup = document.getElementById('gguf-import-group');
+    const ggufProgressGroup = document.getElementById('gguf-import-progress');
+    if (ggufImportGroup) {
+        if (provider === 'dreamer') {
+            ggufImportGroup.classList.remove('hidden');
+        } else {
+            ggufImportGroup.classList.add('hidden');
+            if (ggufProgressGroup) ggufProgressGroup.classList.add('hidden');
+        }
+    }
 }
 
 function applyConnectionTypeOptions(connectionOptions, selectedType) {
@@ -181,6 +244,8 @@ export function saveModel() {
     const modelName = document.getElementById('model-select-dropdown').selectedOptions[0]?.text;
     const connectionType = document.getElementById('connection-type-select').value;
     const apiKey = document.getElementById('model-api-key').value.trim();
+    const modelUrl = document.getElementById('model-url-input')?.value.trim() || null;
+    const localPath = document.getElementById('local-path-input')?.value.trim() || null;
     const editingIndex = document.getElementById('save-model-btn').dataset.editingIndex;
 
     if (!provider || !modelId || !connectionType) {
@@ -212,7 +277,9 @@ export function saveModel() {
         hostType: connectionType,
         queryMethod: queryMethod,
         keySource: keySource,
-        keyId: keyId
+        keyId: keyId,
+        modelUrl: modelUrl || null,
+        localPath: localPath || null
     };
 
     if (editingIndex !== '') {
@@ -227,6 +294,7 @@ export function saveModel() {
     renderModelCards();
     saveToStorage();
     updateGoalInputState();
+    updateModelPickerDropdown();
     closeInlineForm();
 
     console.log('[ModelConfig] Model saved:', modelConfig);
@@ -238,9 +306,21 @@ function resetInlineForm() {
     document.getElementById('model-select-dropdown').innerHTML = '<option value="">Select model...</option>';
     document.getElementById('connection-type-select').innerHTML = '<option value="">Select connection type...</option>';
     document.getElementById('model-api-key').value = '';
+    const modelUrlInput = document.getElementById('model-url-input');
+    if (modelUrlInput) modelUrlInput.value = '';
+    const localPathInput = document.getElementById('local-path-input');
+    if (localPathInput) localPathInput.value = '';
     document.getElementById('model-select-group').classList.add('hidden');
     document.getElementById('connection-type-group').classList.add('hidden');
     document.getElementById('api-key-group').classList.add('hidden');
+    const modelUrlGroup = document.getElementById('model-url-group');
+    if (modelUrlGroup) modelUrlGroup.classList.add('hidden');
+    const localPathGroup = document.getElementById('local-path-group');
+    if (localPathGroup) localPathGroup.classList.add('hidden');
+    const ggufImportGroup = document.getElementById('gguf-import-group');
+    if (ggufImportGroup) ggufImportGroup.classList.add('hidden');
+    const ggufProgressGroup = document.getElementById('gguf-import-progress');
+    if (ggufProgressGroup) ggufProgressGroup.classList.add('hidden');
     document.getElementById('save-model-btn').disabled = true;
 }
 
@@ -261,6 +341,18 @@ function populateeditForm(model) {
         }
         connectionSelect.value = model.hostType;
         onConnectionTypeChange({ target: { value: model.hostType } });
+
+        // Restore model URL if present
+        if (model.modelUrl) {
+            const urlInput = document.getElementById('model-url-input');
+            if (urlInput) urlInput.value = model.modelUrl;
+        }
+
+        // Restore local path if present
+        if (model.localPath) {
+            const pathInput = document.getElementById('local-path-input');
+            if (pathInput) pathInput.value = model.localPath;
+        }
 
         // Re-validate after a short delay to ensure all values are set
         setTimeout(() => validateForm(), 50);
@@ -350,4 +442,231 @@ export function setupFormListeners() {
             }
         }
     });
+
+    // Check for URL parameters (from serve-cli auto-open)
+    handleUrlParams();
+
+    // Setup GGUF import listeners
+    setupGGUFImportListeners();
+}
+
+/**
+ * Handle URL query parameters for auto-filling the form.
+ * Used when serve-cli opens browser with ?provider=dreamer&modelUrl=...
+ */
+function handleUrlParams() {
+    const params = new URLSearchParams(window.location.search);
+    const provider = params.get('provider');
+    const modelUrl = params.get('modelUrl');
+
+    if (provider === 'dreamer' && modelUrl) {
+        console.log('[ModelConfig] URL params detected, auto-opening form with Dreamer + modelUrl');
+
+        // Wait for providers to be detected, then open form
+        setTimeout(() => {
+            // Open the add model form
+            openInlineForm();
+
+            // Wait for form to open, then fill in values
+            setTimeout(() => {
+                // Select Dreamer provider
+                const providerSelect = document.getElementById('provider-select');
+                if (providerSelect) {
+                    providerSelect.value = 'dreamer';
+                    onProviderChange({ target: { value: 'dreamer' } });
+                }
+
+                // Fill in the model URL
+                setTimeout(() => {
+                    const urlInput = document.getElementById('model-url-input');
+                    if (urlInput) {
+                        urlInput.value = decodeURIComponent(modelUrl);
+                    }
+                }, 100);
+            }, 100);
+        }, 500);
+
+        // Clear URL params to avoid re-triggering on refresh
+        const cleanUrl = window.location.pathname + window.location.hash;
+        window.history.replaceState({}, '', cleanUrl);
+    }
+}
+
+// ============================================================================
+// GGUF Import Handling
+// ============================================================================
+
+let ggufImportController = null;
+
+/**
+ * Setup GGUF import button listener
+ */
+export function setupGGUFImportListeners() {
+    const importBtn = document.getElementById('import-gguf-btn');
+    const cancelBtn = document.getElementById('gguf-import-cancel');
+
+    if (importBtn) {
+        importBtn.addEventListener('click', handleGGUFImportClick);
+    }
+
+    if (cancelBtn) {
+        cancelBtn.addEventListener('click', handleGGUFImportCancel);
+    }
+}
+
+/**
+ * Handle GGUF import button click
+ */
+async function handleGGUFImportClick() {
+    try {
+        // Dynamically import the modules (lazy load)
+        const { pickGGUFFile } = await import('../../../core/dreamer/browser/file-picker.js');
+        const { importGGUFFile, ImportStage } = await import('../../../core/dreamer/browser/gguf-importer.js');
+
+        // Pick file
+        const file = await pickGGUFFile();
+        if (!file) {
+            console.log('[GGUF Import] User cancelled file picker');
+            return;
+        }
+
+        console.log('[GGUF Import] Selected file:', file.name, 'Size:', (file.size / 1024 / 1024).toFixed(1), 'MB');
+
+        // Show progress UI
+        showImportProgress();
+
+        // Create abort controller for cancellation
+        ggufImportController = new AbortController();
+
+        // Start import
+        const modelId = await importGGUFFile(file, {
+            onProgress: updateImportProgress,
+            signal: ggufImportController.signal,
+        });
+
+        console.log('[GGUF Import] Complete! Model ID:', modelId);
+
+        // Auto-add the model
+        await autoAddImportedModel(modelId);
+
+        // Hide progress UI
+        hideImportProgress();
+
+        // Close the form
+        closeInlineForm();
+
+    } catch (error) {
+        if (error.name === 'AbortError') {
+            console.log('[GGUF Import] Cancelled by user');
+        } else {
+            console.error('[GGUF Import] Error:', error);
+            alert(`Import failed: ${error.message}`);
+        }
+        hideImportProgress();
+    } finally {
+        ggufImportController = null;
+    }
+}
+
+/**
+ * Handle cancel button click
+ */
+function handleGGUFImportCancel() {
+    if (ggufImportController) {
+        ggufImportController.abort();
+        ggufImportController = null;
+    }
+    hideImportProgress();
+}
+
+/**
+ * Show import progress UI
+ */
+function showImportProgress() {
+    const importGroup = document.getElementById('gguf-import-group');
+    const progressGroup = document.getElementById('gguf-import-progress');
+    const progressBar = document.getElementById('gguf-import-progress-bar');
+    const progressText = document.getElementById('gguf-import-progress-text');
+
+    if (importGroup) importGroup.classList.add('hidden');
+    if (progressGroup) progressGroup.classList.remove('hidden');
+    if (progressBar) progressBar.value = 0;
+    if (progressText) progressText.textContent = 'Starting...';
+}
+
+/**
+ * Hide import progress UI
+ */
+function hideImportProgress() {
+    const importGroup = document.getElementById('gguf-import-group');
+    const progressGroup = document.getElementById('gguf-import-progress');
+
+    if (progressGroup) progressGroup.classList.add('hidden');
+    if (importGroup) importGroup.classList.remove('hidden');
+}
+
+/**
+ * Update progress UI
+ */
+function updateImportProgress(progress) {
+    const progressBar = document.getElementById('gguf-import-progress-bar');
+    const progressText = document.getElementById('gguf-import-progress-text');
+
+    if (progress.percent !== undefined && progressBar) {
+        progressBar.value = progress.percent;
+    }
+
+    if (progressText) {
+        switch (progress.stage) {
+            case 'parsing':
+                progressText.textContent = progress.message || 'Parsing header...';
+                break;
+            case 'sharding':
+                progressText.textContent = progress.message || `${progress.percent || 0}%`;
+                break;
+            case 'writing':
+                progressText.textContent = progress.message || 'Saving manifest...';
+                break;
+            case 'complete':
+                progressText.textContent = 'Complete!';
+                if (progressBar) progressBar.value = 100;
+                break;
+            case 'error':
+                progressText.textContent = `Error: ${progress.message}`;
+                break;
+            default:
+                progressText.textContent = progress.message || 'Processing...';
+        }
+    }
+}
+
+/**
+ * Auto-add imported model to the model list
+ */
+async function autoAddImportedModel(modelId) {
+    // Add model with minimal config - it's already in OPFS
+    const modelConfig = {
+        id: modelId,
+        name: modelId,
+        provider: 'dreamer',
+        hostType: 'browser-local',
+        queryMethod: 'browser',
+        keySource: 'none',
+        keyId: null,
+        modelUrl: null, // No URL needed - model is in OPFS
+        localPath: null,
+        isImported: true, // Flag to indicate this was imported
+    };
+
+    if (!addModel(modelConfig)) {
+        console.warn('[GGUF Import] Could not add model - max models reached?');
+        return;
+    }
+
+    renderModelCards();
+    saveToStorage();
+    updateGoalInputState();
+    updateModelPickerDropdown();
+
+    console.log('[GGUF Import] Model added to list:', modelConfig);
 }

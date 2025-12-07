@@ -12,7 +12,7 @@ import { getDevice, getKernelCapabilities, getDeviceLimits } from './device.js';
 import { GPUProfiler } from './profiler.js';
 
 // Cache key prefix
-const CACHE_PREFIX = 'titan_kernel_tune_';
+const CACHE_PREFIX = 'dreamer_kernel_tune_';
 
 // Default tuning iterations
 const DEFAULT_WARMUP = 3;

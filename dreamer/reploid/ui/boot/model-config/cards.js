@@ -94,6 +94,11 @@ function removeModel(index) {
 export function updateStatusDots() {
     const providers = getAvailableProviders();
 
+    // Update header badges (new compact UI)
+    if (window.updateHeaderBadges) {
+        window.updateHeaderBadges(providers);
+    }
+
     // Browser → Cloud (always ready)
     const browserCloudIcon = document.getElementById('browser-cloud-icon');
     const browserCloudText = document.getElementById('browser-cloud-text');
@@ -157,6 +162,130 @@ export function updateStatusDots() {
             proxyLocalIcon.className = 'provider-status-icon offline';
             proxyLocalText.className = 'provider-status-value offline';
             proxyLocalText.textContent = 'Unavailable';
+        }
+    }
+
+    // Update compact model picker dropdown
+    updateModelPickerDropdown();
+}
+
+// Populate compact model picker dropdown with available models
+export function updateModelPickerDropdown() {
+    const select = document.getElementById('model-picker-select');
+    if (!select) return;
+
+    const providers = getAvailableProviders();
+    const selectedModels = getSelectedModels();
+
+    // Clear existing options
+    select.innerHTML = '<option value="">Select a model...</option>';
+
+    // Add recommended default option
+    const defaultGroup = document.createElement('optgroup');
+    defaultGroup.label = 'Recommended';
+
+    // Add WebLLM default if WebGPU available
+    if (providers.webgpu?.online) {
+        const opt = document.createElement('option');
+        opt.value = 'webllm:Qwen2.5-3B-Instruct-q4f32_1-MLC';
+        opt.textContent = 'Qwen 2.5 3B (Local WebGPU)';
+        defaultGroup.appendChild(opt);
+    }
+
+    // Add Gemini Flash if proxy available
+    if (providers.proxy?.online) {
+        const opt = document.createElement('option');
+        opt.value = 'gemini:gemini-2.5-flash';
+        opt.textContent = 'Gemini 2.5 Flash (Cloud)';
+        defaultGroup.appendChild(opt);
+    }
+
+    if (defaultGroup.children.length > 0) {
+        select.appendChild(defaultGroup);
+    }
+
+    // Add Ollama models
+    if (providers.ollama?.online && providers.ollama.models?.length > 0) {
+        const ollamaGroup = document.createElement('optgroup');
+        ollamaGroup.label = 'Ollama (Local)';
+        providers.ollama.models.forEach(m => {
+            const opt = document.createElement('option');
+            opt.value = `ollama:${m.id}`;
+            opt.textContent = m.name || m.id;
+            ollamaGroup.appendChild(opt);
+        });
+        select.appendChild(ollamaGroup);
+    }
+
+    // Add WebLLM models (limit to popular ones)
+    if (providers.webgpu?.online && providers.webgpu.models?.length > 0) {
+        const webllmGroup = document.createElement('optgroup');
+        webllmGroup.label = 'WebLLM (Browser)';
+        const popularModels = providers.webgpu.models.filter(m =>
+            m.id.includes('Qwen') || m.id.includes('Llama') || m.id.includes('Phi')
+        ).slice(0, 10);
+        popularModels.forEach(m => {
+            const opt = document.createElement('option');
+            opt.value = `webllm:${m.id}`;
+            opt.textContent = m.name || m.id;
+            webllmGroup.appendChild(opt);
+        });
+        if (webllmGroup.children.length > 0) {
+            select.appendChild(webllmGroup);
+        }
+    }
+
+    // Add Dreamer models (local downloaded models)
+    if (providers.dreamer?.online && providers.dreamer.models?.length > 0) {
+        const dreamerGroup = document.createElement('optgroup');
+        const caps = providers.dreamer.capabilities;
+        dreamerGroup.label = `Dreamer${caps?.TIER_NAME ? ` (${caps.TIER_NAME})` : ''}`;
+        providers.dreamer.models.forEach(m => {
+            const opt = document.createElement('option');
+            opt.value = `dreamer:${m.id || m}`;
+            opt.textContent = m.name || m.id || m;
+            dreamerGroup.appendChild(opt);
+        });
+        select.appendChild(dreamerGroup);
+    }
+
+    // Render selected models as chips
+    renderSelectedModelChips();
+}
+
+// Render selected models as removable chips
+function renderSelectedModelChips() {
+    const container = document.getElementById('selected-models-chips');
+    if (!container) return;
+
+    const selectedModels = getSelectedModels();
+    container.innerHTML = '';
+
+    selectedModels.forEach((model, index) => {
+        const chip = document.createElement('div');
+        chip.className = 'selected-model-chip';
+        chip.innerHTML = `
+            <span class="chip-provider">${model.provider}</span>
+            <span class="chip-name">${model.name || model.id}</span>
+            <button class="chip-remove" data-index="${index}" title="Remove">×</button>
+        `;
+        chip.querySelector('.chip-remove').addEventListener('click', () => {
+            removeModelFromState(index);
+            renderModelCards();
+            renderSelectedModelChips();
+            saveToStorage();
+            updateGoalInputState();
+        });
+        container.appendChild(chip);
+    });
+
+    // Update consensus section visibility
+    const consensusSection = document.getElementById('consensus-section');
+    if (consensusSection) {
+        if (selectedModels.length >= 2) {
+            consensusSection.classList.remove('hidden');
+        } else {
+            consensusSection.classList.add('hidden');
         }
     }
 }
@@ -237,45 +366,80 @@ export function autoPopulateDefaultModels() {
 export function setupCardListeners() {
     const providers = getAvailableProviders();
 
-    // Quick WebLLM Demo button
-    const quickDemoBtn = document.getElementById('quick-webllm-demo-btn');
-    if (quickDemoBtn) {
-        quickDemoBtn.addEventListener('click', async () => {
-            if (!navigator.gpu) {
-                alert('WebGPU not supported in this browser. Use Chrome 113+ or Edge 113+.');
+    // Compact model picker dropdown
+    const modelPickerSelect = document.getElementById('model-picker-select');
+    if (modelPickerSelect) {
+        modelPickerSelect.addEventListener('change', (e) => {
+            const value = e.target.value;
+            if (!value) return;
+
+            const [provider, modelId] = value.split(':');
+            if (!provider || !modelId) return;
+
+            // Create model config based on provider
+            let model;
+            if (provider === 'webllm') {
+                model = {
+                    id: modelId,
+                    name: modelId.split('-').slice(0, 3).join(' '),
+                    provider: 'webllm',
+                    hostType: 'browser-local',
+                    queryMethod: 'browser',
+                    keySource: 'none'
+                };
+            } else if (provider === 'ollama') {
+                model = {
+                    id: modelId,
+                    name: modelId,
+                    provider: 'ollama',
+                    hostType: 'proxy-local',
+                    queryMethod: 'proxy',
+                    keySource: 'none'
+                };
+            } else if (provider === 'gemini') {
+                model = {
+                    id: modelId,
+                    name: 'Gemini Flash',
+                    provider: 'gemini',
+                    hostType: 'proxy-cloud',
+                    queryMethod: 'proxy',
+                    keySource: 'proxy-env'
+                };
+            } else if (provider === 'dreamer') {
+                model = {
+                    id: modelId,
+                    name: modelId,
+                    provider: 'dreamer',
+                    hostType: 'browser-local',
+                    queryMethod: 'browser',
+                    keySource: 'none'
+                };
+            } else {
                 return;
             }
 
-            const demoModel = {
-                id: 'Qwen2.5-3B-Instruct-q4f32_1-MLC',
-                name: 'Qwen 2.5 3B',
-                provider: 'webllm',
-                hostType: 'browser-local',
-                queryMethod: 'browser',
-                keySource: 'none'
-            };
+            // Add to selected models (replace if single model UI)
+            const selectedModels = getSelectedModels();
+            if (selectedModels.length === 0) {
+                setSelectedModels([model]);
+            } else {
+                // Add as additional model
+                setSelectedModels([...selectedModels, model]);
+            }
 
-            setSelectedModels([demoModel]);
             renderModelCards();
             saveToStorage();
             updateGoalInputState();
+            updateModelPickerDropdown();
 
-            console.log('[ModelConfig] Quick demo model added:', demoModel);
+            // Reset dropdown
+            e.target.value = '';
 
-            // Set a default goal for the demo
-            const goalInput = document.getElementById('goal-input');
-            if (goalInput && !goalInput.value.trim()) {
-                goalInput.value = 'Audit /core and /capabilities to summarize your mission, then iteratively refactor blockers to achieve recursive self-improvement.';
-            }
-
-            const awakenBtn = document.getElementById('awaken-btn');
-            if (awakenBtn && !awakenBtn.disabled) {
-                awakenBtn.click();
-            }
+            console.log('[ModelConfig] Model added via picker:', model);
         });
     }
 
-    // Add Model card click
+    // Add Model card click (legacy, still used by modal)
     const addModelCard = document.getElementById('add-model-card');
     if (addModelCard) {
         addModelCard.addEventListener('click', () => {

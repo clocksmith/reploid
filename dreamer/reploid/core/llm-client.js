@@ -564,6 +564,61 @@ const LLMClient = {
       };
     };
 
+    // --- Mode: Dreamer (Local WebGPU) ---
+    let _dreamerProvider = null;
+    const _chatDreamer = async (messages, modelConfig, onUpdate, requestId) => {
+      logger.info(`[LLM] Dreamer Request to ${modelConfig.modelId || modelConfig.id}`);
+
+      // Lazy load Dreamer provider
+      if (!_dreamerProvider) {
+        const { DreamerProvider } = await import('./dreamer/dreamer-provider.js');
+        _dreamerProvider = DreamerProvider;
+      }
+
+      // Initialize if needed
+      if (!_dreamerProvider.getCapabilities().initialized) {
+        await _dreamerProvider.init();
+      }
+
+      if (!_dreamerProvider.getCapabilities().available) {
+        throw new Errors.ConfigError('Dreamer not available - WebGPU may not be supported');
+      }
+
+      // Load model if different
+      const modelId = modelConfig.modelId || modelConfig.id;
+      const currentModel = _dreamerProvider.getCapabilities().currentModelId;
+      if (currentModel !== modelId) {
+        await _dreamerProvider.loadModel(modelId, modelConfig.modelUrl, onUpdate, modelConfig.localPath);
+      }
+
+      // Stream or sync based on callback
+      if (onUpdate) {
+        let fullContent = '';
+        for await (const token of _dreamerProvider.stream(messages, modelConfig)) {
+          fullContent += token;
+          onUpdate(token);
+        }
+        return {
+          requestId,
+          content: stripThoughts(fullContent),
+          raw: fullContent,
+          model: modelId,
+          timestamp: Date.now(),
+          provider: 'dreamer'
+        };
+      } else {
+        const result = await _dreamerProvider.chat(messages, modelConfig);
+        return {
+          requestId,
+          content: stripThoughts(result.content),
+          raw: result.content,
+          model: modelId,
+          timestamp: Date.now(),
+          provider: 'dreamer'
+        };
+      }
+    };
+
     /**
      * @param {Array} messages - Chat messages
      * @param {Object} modelConfig - Model configuration
@@ -585,7 +640,10 @@ const LLMClient = {
       }
 
       // Route to appropriate backend
-      if (modelConfig.provider === 'transformers' ||
+      if (modelConfig.provider === 'dreamer') {
+          // Local WebGPU inference via Dreamer
+          return await _chatDreamer(messages, configWithTools, onUpdate, requestId);
+      } else if (modelConfig.provider === 'transformers' ||
           (TransformersClient && TransformersClient.isTransformersModel && TransformersClient.isTransformersModel(modelConfig.id))) {
           return await _chatTransformers(messages, configWithTools, onUpdate, requestId);
       } else if (modelConfig.hostType === 'browser-cloud' && isCloudProvider) {
@@ -620,16 +678,25 @@ const LLMClient = {
         return TransformersClient.getStatus();
     };
 
+    const getDreamerStatus = () => {
+        if (!_dreamerProvider) return { available: false, initialized: false };
+        return _dreamerProvider.getCapabilities();
+    };
+
     // Release GPU memory (useful when switching providers or on error)
     const releaseGPUMemory = async () => {
       await cleanupWebLlmEngine();
       if (TransformersClient?.cleanup) {
         await TransformersClient.cleanup();
       }
+      if (_dreamerProvider?.destroy) {
+        await _dreamerProvider.destroy();
+        _dreamerProvider = null;
+      }
       logger.info('[LLM] All GPU memory released');
     };
 
-    return { chat, abortRequest, getWebLLMStatus, getTransformersStatus, releaseGPUMemory, supportsNativeTools };
+    return { chat, abortRequest, getWebLLMStatus, getTransformersStatus, getDreamerStatus, releaseGPUMemory, supportsNativeTools };
   }
 };
 

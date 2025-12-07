@@ -1,5 +1,5 @@
 /**
- * Titan Native Bridge Protocol
+ * Dreamer Native Bridge Protocol
  * Phase 3: Binary Protocol for Extension <-> Native Host
  *
  * Protocol format (little-endian):

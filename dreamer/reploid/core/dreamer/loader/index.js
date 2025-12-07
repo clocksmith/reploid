@@ -1,10 +1,10 @@
 /**
- * Titan Loader Module
+ * Dreamer Loader Module
  * @module loader
  */
 
 export {
-  TitanLoader,
-  getTitanLoader,
-  createTitanLoader,
-} from './titan-loader.js';
+  DreamerLoader,
+  getDreamerLoader,
+  createDreamerLoader,
+} from './dreamer-loader.js';

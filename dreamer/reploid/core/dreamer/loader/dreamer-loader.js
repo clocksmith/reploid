@@ -1,5 +1,5 @@
 /**
- * TitanLoader - Core Model Loader
+ * DreamerLoader - Core Model Loader
  * Phase 1: Foundation
  *
  * Orchestrates the complete model loading pipeline:
@@ -7,7 +7,7 @@
  * - Memory: Stage in heap (Memory64 or segmented)
  * - GPU: Transfer to VRAM for compute
  *
- * @module loader/titan-loader
+ * @module loader/dreamer-loader
  */
 
 import { getMemoryCapabilities } from '../memory/capability.js';
@@ -16,10 +16,11 @@ import { HeapManager, getHeapManager } from '../memory/heap-manager.js';
 import {
   initOPFS,
   openModelDirectory,
-  loadShard,
+  loadShard as loadShardFromOPFS,
   loadShardSync,
   verifyIntegrity,
   loadManifestFromOPFS,
+  computeHash,
 } from '../storage/shard-manager.js';
 import { parseManifest, getShardInfo, getShardCount, isMoE } from '../storage/rpl-format.js';
 import { initDevice, getDevice, getKernelCapabilities, getDeviceLimits } from '../gpu/device.js';
@@ -51,9 +52,9 @@ import { dequantize } from '../gpu/kernel-selector.js';
  */
 
 /**
- * TitanLoader class
+ * DreamerLoader class
  */
-export class TitanLoader {
+export class DreamerLoader {
   constructor() {
     // Capabilities
     this.memoryCapabilities = null;
@@ -80,6 +81,52 @@ export class TitanLoader {
     // Loading state
     this.loadedShards = new Set();
     this.tensorLocations = new Map(); // tensorName -> TensorLocation
+
+    // Custom shard loader (for Native Bridge support)
+    this.customLoadShard = null;
+    this.verifyCustomShards = true;
+  }
+
+  /**
+   * Set custom shard loader (e.g., for Native Bridge)
+   * @param {Function} loadShardFn - async function(shardIndex) => Uint8Array
+   * @param {Object} [options]
+   * @param {boolean} [options.verify=true] - Verify shard hashes
+   */
+  setCustomShardLoader(loadShardFn, options = {}) {
+    this.customLoadShard = loadShardFn;
+    this.verifyCustomShards = options.verify !== false;
+    console.log('[DreamerLoader] Custom shard loader configured');
+  }
+
+  /**
+   * Load shard using custom loader or OPFS
+   * @private
+   */
+  async _loadShard(shardIndex) {
+    if (this.customLoadShard) {
+      const data = await this.customLoadShard(shardIndex);
+
+      // Verify hash if enabled
+      if (this.verifyCustomShards && this.manifest) {
+        const shardInfo = this.manifest.shards?.[shardIndex];
+        // Support hash field (new) and blake3/sha256 fields (legacy)
+        const expectedHash = shardInfo?.hash || shardInfo?.blake3 || shardInfo?.sha256;
+        if (expectedHash) {
+          // Use manifest's hashAlgorithm, default to blake3 for legacy manifests
+          const algorithm = this.manifest.hashAlgorithm || 'blake3';
+          const computedHash = await computeHash(data, algorithm);
+          if (computedHash !== expectedHash) {
+            throw new Error(
+              `Shard ${shardIndex} hash mismatch. Expected: ${expectedHash}, got: ${computedHash}`
+            );
+          }
+        }
+      }
+
+      return data;
+    }
+    return loadShardFromOPFS(shardIndex);
   }
 
   /**
@@ -87,7 +134,7 @@ export class TitanLoader {
    * @returns {Promise<void>}
    */
   async init() {
-    console.log('[TitanLoader] Initializing...');
+    console.log('[DreamerLoader] Initializing...');
 
     // Detect memory capabilities
     this.memoryCapabilities = await getMemoryCapabilities();
@@ -107,7 +154,7 @@ export class TitanLoader {
     // Initialize OPFS
     await initOPFS();
 
-    console.log('[TitanLoader] Initialized:', {
+    console.log('[DreamerLoader] Initialized:', {
       memory64: this.memoryCapabilities.hasMemory64,
       unified: this.isUnifiedMemory,
       f16: this.gpuCapabilities.hasF16,
@@ -116,7 +163,17 @@ export class TitanLoader {
   }
 
   /**
-   * Load model from OPFS
+   * Set manifest directly (for bridge/external loading)
+   * @param {Object} manifest - Pre-loaded manifest
+   */
+  setManifest(manifest) {
+    this.manifest = manifest;
+    this.isMoE = manifest.moeConfig != null || manifest.config?.num_local_experts > 1;
+    console.log('[DreamerLoader] Manifest set externally');
+  }
+
+  /**
+   * Load model from OPFS or external source
    * @param {string} modelId - Model identifier
    * @param {Object} [options] - Loading options
    * @param {Function} [options.onProgress] - Progress callback
@@ -130,29 +187,39 @@ export class TitanLoader {
       await this.init();
     }
 
-    console.log(`[TitanLoader] Loading model: ${modelId}`);
+    console.log(`[DreamerLoader] Loading model: ${modelId}`);
     this.modelId = modelId;
 
-    // Open model directory
-    await openModelDirectory(modelId);
+    // If using custom shard loader (bridge), manifest should be set externally
+    // Skip OPFS operations in that case
+    if (!this.customLoadShard) {
+      // Open model directory
+      await openModelDirectory(modelId);
 
-    // Load and parse manifest
-    const manifestJson = await loadManifestFromOPFS();
-    this.manifest = parseManifest(manifestJson);
+      // Load and parse manifest
+      const manifestJson = await loadManifestFromOPFS();
+      this.manifest = parseManifest(manifestJson);
+    }
+
+    if (!this.manifest) {
+      throw new Error('No manifest available. Set manifest via setManifest() or ensure OPFS has the model.');
+    }
 
     // Check model type
-    this.isMoE = isMoE();
+    this.isMoE = this.manifest.moeConfig != null ||
+                 this.manifest.config?.num_local_experts > 1 ||
+                 isMoE();
 
     // Enforce dense/MoE gating based on hardware
     if (!this.isMoE && !this.isUnifiedMemory) {
       console.warn(
-        '[TitanLoader] Dense model on discrete GPU - performance will be severely limited. ' +
+        '[DreamerLoader] Dense model on discrete GPU - performance will be severely limited. ' +
         'Consider using an MoE model for better performance.'
       );
     }
 
-    // Verify integrity if requested
-    if (verifyHashes) {
+    // Verify integrity if requested (only for OPFS path)
+    if (verifyHashes && !this.customLoadShard) {
       const integrity = await verifyIntegrity();
       if (!integrity.valid) {
         throw new Error(
@@ -195,7 +262,7 @@ export class TitanLoader {
     }
 
     this.isLoaded = true;
-    console.log(`[TitanLoader] Model loaded: ${modelId}`);
+    console.log(`[DreamerLoader] Model loaded: ${modelId}`);
 
     return this.manifest.config;
   }
@@ -206,7 +273,7 @@ export class TitanLoader {
    */
   _buildTensorLocations() {
     if (!this.manifest.tensors) {
-      console.warn('[TitanLoader] No tensor locations in manifest');
+      console.warn('[DreamerLoader] No tensor locations in manifest');
       return;
     }
 
@@ -233,7 +300,7 @@ export class TitanLoader {
       if (altName) {
         return this._loadTensor(altName, toGPU);
       }
-      console.warn(`[TitanLoader] Tensor not found: ${name}`);
+      console.warn(`[DreamerLoader] Tensor not found: ${name}`);
       return null;
     }
 
@@ -243,7 +310,7 @@ export class TitanLoader {
       // Tensor spans multiple shards
       const chunks = [];
       for (const span of location.spans) {
-        const data = await loadShard(span.shardIndex);
+        const data = await this._loadShard(span.shardIndex);
         chunks.push(new Uint8Array(data, span.offset, span.size));
       }
       // Combine chunks
@@ -256,7 +323,7 @@ export class TitanLoader {
       }
       shardData = combined.buffer;
     } else {
-      const fullShard = await loadShard(location.shardIndex);
+      const fullShard = await this._loadShard(location.shardIndex);
       shardData = fullShard.slice(location.offset, location.offset + location.size);
     }
 
@@ -355,7 +422,7 @@ export class TitanLoader {
    * @private
    */
   async _loadEmbeddings(onProgress) {
-    console.log('[TitanLoader] Loading embeddings...');
+    console.log('[DreamerLoader] Loading embeddings...');
 
     const embeddingNames = [
       'embed_tokens.weight',
@@ -373,7 +440,7 @@ export class TitanLoader {
     }
 
     if (!this.embeddings) {
-      console.warn('[TitanLoader] Embeddings not found, will use placeholder');
+      console.warn('[DreamerLoader] Embeddings not found, will use placeholder');
     }
   }
 
@@ -450,7 +517,7 @@ export class TitanLoader {
       return this.experts.get(key);
     }
 
-    console.log(`[TitanLoader] Loading expert ${expertIdx} for layer ${layerIdx}`);
+    console.log(`[DreamerLoader] Loading expert ${expertIdx} for layer ${layerIdx}`);
 
     const prefix = `layers.${layerIdx}.block_sparse_moe.experts.${expertIdx}`;
     const altPrefix = `model.layers.${layerIdx}.block_sparse_moe.experts.${expertIdx}`;
@@ -473,7 +540,7 @@ export class TitanLoader {
    * @private
    */
   async _loadFinalWeights(onProgress) {
-    console.log('[TitanLoader] Loading final weights...');
+    console.log('[DreamerLoader] Loading final weights...');
 
     // Final norm
     this.finalNorm = await this._loadTensor('model.norm.weight') ||
@@ -530,7 +597,7 @@ export class TitanLoader {
    * Unload model and free resources
    */
   async unload() {
-    console.log('[TitanLoader] Unloading model...');
+    console.log('[DreamerLoader] Unloading model...');
 
     // Release GPU buffers
     for (const buffer of this.gpuBuffers) {
@@ -549,7 +616,7 @@ export class TitanLoader {
     this.isLoaded = false;
     this.tensorLocations.clear();
 
-    console.log('[TitanLoader] Model unloaded');
+    console.log('[DreamerLoader] Model unloaded');
   }
 }
 
@@ -557,22 +624,22 @@ export class TitanLoader {
 let globalLoader = null;
 
 /**
- * Get global TitanLoader instance
- * @returns {TitanLoader}
+ * Get global DreamerLoader instance
+ * @returns {DreamerLoader}
  */
-export function getTitanLoader() {
+export function getDreamerLoader() {
   if (!globalLoader) {
-    globalLoader = new TitanLoader();
+    globalLoader = new DreamerLoader();
   }
   return globalLoader;
 }
 
 /**
- * Create new TitanLoader instance
- * @returns {TitanLoader}
+ * Create new DreamerLoader instance
+ * @returns {DreamerLoader}
  */
-export function createTitanLoader() {
-  return new TitanLoader();
+export function createDreamerLoader() {
+  return new DreamerLoader();
 }
 
-export default TitanLoader;
+export default DreamerLoader;

@@ -87,6 +87,58 @@ body::after {
   text-shadow: 0 0 20px rgba(255,255,255,0.1);
 }
 
+.boot-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+/* Header Status Badges */
+.header-status-badges {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.status-badge {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--border-default);
+  cursor: help;
+  transition: all 0.2s ease;
+}
+
+.status-badge:hover {
+  border-color: var(--primary);
+  background: rgba(0, 255, 255, 0.05);
+}
+
+.badge-icon {
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+.badge-status {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.badge-status.checking { color: var(--warning); }
+.badge-status.online { color: var(--primary); }
+.badge-status.offline { color: var(--text-muted); }
+
+.status-badge.online .badge-icon {
+  color: var(--primary);
+  text-shadow: 0 0 6px rgba(0, 255, 255, 0.5);
+}
+
 .boot-header .subtitle {
   color: var(--primary);
   font-size: 1.1rem; letter-spacing: 2px; text-transform: uppercase;
@@ -456,6 +508,108 @@ body::after {
   box-shadow: none;
 }
 
+/* Secondary button (GGUF Import) */
+.inline-btn-secondary {
+  background: transparent;
+  border: 1px solid var(--primary);
+  color: var(--primary);
+  padding: 10px 20px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  width: 100%;
+}
+
+.inline-btn-secondary:hover {
+  background: rgba(0, 255, 255, 0.1);
+  box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+}
+
+.inline-btn-secondary:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(0, 255, 255, 0.3);
+}
+
+.inline-btn-secondary:active {
+  background: rgba(0, 255, 255, 0.2);
+  transform: translateY(1px);
+}
+
+/* Tertiary button (Cancel import) */
+.inline-btn-tertiary {
+  background: transparent;
+  border: 1px solid var(--secondary);
+  color: var(--secondary);
+  padding: 6px 12px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.inline-btn-tertiary:hover {
+  background: rgba(255, 0, 255, 0.1);
+  box-shadow: 0 0 6px rgba(255, 0, 255, 0.3);
+}
+
+.inline-btn-tertiary:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(255, 0, 255, 0.3);
+}
+
+/* Import Progress Container */
+.import-progress-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+}
+
+#gguf-import-progress {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+#gguf-import-progress-bar {
+  flex: 1;
+  height: 8px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: rgba(0, 255, 255, 0.1);
+  border: 1px solid rgba(0, 255, 255, 0.3);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+#gguf-import-progress-bar::-webkit-progress-bar {
+  background: rgba(0, 255, 255, 0.1);
+}
+
+#gguf-import-progress-bar::-webkit-progress-value {
+  background: linear-gradient(90deg, var(--primary), var(--secondary));
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+#gguf-import-progress-bar::-moz-progress-bar {
+  background: linear-gradient(90deg, var(--primary), var(--secondary));
+  border-radius: 4px;
+}
+
+#gguf-import-progress-text {
+  font-size: 11px;
+  color: var(--text-muted);
+  min-width: 80px;
+  text-align: right;
+}
+
 /* Model Card Buttons */
 .model-card-btn {
   background: transparent;
@@ -711,6 +865,234 @@ body::after {
   margin: 16px 0 6px;
   text-align: left;
   font-weight: 600;
+}
+
+/* Curated Goal Chips (compact, top-level) */
+.goal-chips-curated {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+}
+
+.goal-chips-expand-btn {
+  background: transparent;
+  border: 1px dashed var(--border-default);
+  color: var(--text-muted);
+  padding: 6px 14px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-top: 8px;
+}
+
+.goal-chips-expand-btn:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+  border-style: solid;
+}
+
+.goal-chips-expand-btn.expanded {
+  border-style: solid;
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+/* Compact Model Picker */
+.model-picker-compact {
+  background: var(--bg-panel);
+  border: 1px solid var(--border-default);
+  padding: 16px;
+}
+
+.model-picker-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.model-picker-label {
+  color: var(--text-secondary);
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.model-picker-select {
+  flex: 1;
+  padding: 10px 14px;
+  background: var(--bg-element);
+  border: 1px solid var(--border-default);
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.model-picker-select:hover {
+  border-color: var(--border-active);
+}
+
+.model-picker-select:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 8px rgba(0, 255, 255, 0.15);
+}
+
+.model-picker-add-btn {
+  background: transparent;
+  border: 1px solid var(--border-default);
+  color: var(--text-muted);
+  padding: 10px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.model-picker-add-btn:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+  background: rgba(0, 255, 255, 0.05);
+}
+
+/* Selected Models as Chips */
+.selected-models-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.selected-models-chips:empty {
+  display: none;
+}
+
+.selected-model-chip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(0, 255, 255, 0.08);
+  border: 1px solid var(--primary-dim);
+  padding: 6px 10px;
+  font-size: 13px;
+  color: var(--text-primary);
+}
+
+.selected-model-chip .chip-provider {
+  color: var(--text-muted);
+  font-size: 11px;
+  text-transform: uppercase;
+}
+
+.selected-model-chip .chip-remove {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 0 4px;
+  font-size: 14px;
+  line-height: 1;
+}
+
+.selected-model-chip .chip-remove:hover {
+  color: var(--secondary);
+}
+
+/* Compact Consensus Select */
+.consensus-section {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-default);
+}
+
+.consensus-section label {
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.consensus-select-compact {
+  padding: 6px 10px;
+  background: var(--bg-element);
+  border: 1px solid var(--border-default);
+  color: var(--text-primary);
+  font-size: 13px;
+}
+
+/* Config Row for Advanced Options */
+.config-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.config-row label {
+  min-width: 120px;
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.config-select {
+  flex: 1;
+  padding: 10px 12px;
+  background: var(--bg-element);
+  border: 1px solid var(--border-default);
+  color: var(--text-primary);
+  font-size: 14px;
+}
+
+.config-select:hover {
+  border-color: var(--border-active);
+}
+
+.config-select:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+/* Secondary Actions Inline */
+.secondary-actions-inline {
+  display: flex;
+  gap: 10px;
+}
+
+.btn.small {
+  padding: 8px 14px;
+  font-size: 12px;
+}
+
+/* Sticky Awaken Button (on scroll) */
+@media (max-height: 700px) {
+  .goal-input-group {
+    position: sticky;
+    bottom: 0;
+    background: var(--bg-app);
+    z-index: 100;
+    padding-bottom: 20px;
+    margin-bottom: 0;
+    border-top: 1px solid var(--border-default);
+  }
+}
+
+/* Awaken button pulse when ready */
+#awaken-btn:not(:disabled) {
+  animation: awaken-pulse 2s ease-in-out infinite;
+}
+
+@keyframes awaken-pulse {
+  0%, 100% {
+    box-shadow: 0 0 5px rgba(0, 255, 255, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+  }
 }
 
 /* Modals (Shared with Dashboard but used in Boot) */

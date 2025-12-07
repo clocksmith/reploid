@@ -47,8 +47,25 @@
 </head>
 <body>
     <div id="boot-container">
+        <!-- Header with Status Badges -->
         <div class="boot-header">
-            <h1>REPLOID</h1>
+            <div class="boot-header-row">
+                <h1>REPLOID</h1>
+                <div class="header-status-badges" id="header-status-badges">
+                    <span class="status-badge" id="badge-cloud" title="Browser to Cloud API">
+                        <span class="badge-icon">☁</span>
+                        <span class="badge-status checking">...</span>
+                    </span>
+                    <span class="status-badge" id="badge-local" title="Browser Local (WebGPU)">
+                        <span class="badge-icon">☖</span>
+                        <span class="badge-status checking">...</span>
+                    </span>
+                    <span class="status-badge" id="badge-proxy" title="Proxy Server">
+                        <span class="badge-icon">☍</span>
+                        <span class="badge-status checking">...</span>
+                    </span>
+                </div>
+            </div>
             <p class="subtitle">
                 <a href="https://github.com/clocksmith/reploid" target="_blank" class="subtitle-link">Browser-native sandbox for safe AI agent development</a>
             </p>
@@ -60,94 +77,181 @@
             <p><code>npm start</code> to boot the service, or read the <a href="https://github.com/clocksmith/deco/tree/main/docs" target="_blank" rel="noreferrer">setup guide</a>.</p>
         </div>
 
-        <!-- Quick Start -->
-        <h4 class="section-header">Quick Start</h4>
-        <div class="webllm-demo-card">
-            <div class="webllm-demo-desc">
-                Experimental: Run local browser model (Qwen 2.5 3B) for simple tasks.<br>
-                Limited capability - for demos only. Download ~3GB first time.
+        <!-- SECTION 1: Goal Input (First - What do you want to build?) -->
+        <h4 class="section-header">What do you want to build?</h4>
+        <div class="goal-container-top">
+            <div class="goal-input-group">
+                <textarea id="goal-input" placeholder="Describe your goal..." maxlength="1000" rows="3"></textarea>
+                <div class="goal-action-column">
+                    <button id="awaken-btn" class="btn primary">Awaken Agent</button>
+                </div>
+                <input type="file" id="import-file-input" accept=".json" style="display: none;" />
             </div>
-            <button id="quick-webllm-demo-btn" class="btn primary webllm-demo-btn">Go!</button>
+            <!-- Curated Goal Chips (5-6 shown, rest hidden) -->
+            <div class="goal-chips-curated" id="goal-chips-curated"></div>
+            <button class="goal-chips-expand-btn" id="goal-chips-expand-btn">More goals ▾</button>
+            <!-- Full Goal Library (hidden by default) -->
+            <div class="goal-example-chips hidden" id="goal-chips-container"></div>
         </div>
 
-        <!-- Model Cards Container -->
-        <h4 class="section-header">Active Models</h4>
-        <div class="model-cards-container" style="width: 100%;">
+        <!-- SECTION 2: Model Selection (Compact dropdown) -->
+        <h4 class="section-header" style="margin-top: 30px;">Choose your AI</h4>
+        <div class="model-picker-compact">
+            <div class="model-picker-row">
+                <label class="model-picker-label">Using:</label>
+                <select id="model-picker-select" class="model-picker-select">
+                    <option value="">Select a model...</option>
+                </select>
+                <button class="model-picker-add-btn" id="add-model-btn" title="Add another model">☩ Add</button>
+            </div>
+            <!-- Selected models shown as chips -->
+            <div class="selected-models-chips" id="selected-models-chips"></div>
+            <!-- Consensus Strategy (shown when 2+ models) -->
+            <div id="consensus-section" class="consensus-section hidden">
+                <label for="consensus-strategy">Consensus:</label>
+                <select id="consensus-strategy" class="consensus-select-compact">
+                    <option value="arena">Arena</option>
+                    <option value="peer-review">Peer Review</option>
+                </select>
+            </div>
+        </div>
 
-                <div class="model-cards-list" id="model-cards-list">
-                    <!-- Model cards will be added here dynamically -->
-
-                    <!-- Add Model card - always visible -->
-                    <div class="model-card add-model-card" id="add-model-card">
-                        <div class="add-model-icon">+</div>
-                        <div class="add-model-text">Add Model</div>
-                    </div>
+        <!-- Model Form Modal -->
+        <div id="model-form-overlay" class="model-form-overlay">
+            <div id="model-form-dialog" class="model-form-dialog">
+                <div class="model-form-header">
+                    <h5 id="model-form-title">Add Model</h5>
+                    <button class="close-btn-small" id="close-model-form">×</button>
                 </div>
 
-                <!-- Model Form Modal (moved to overlay) -->
-                <div id="model-form-overlay" class="model-form-overlay">
-                    <div id="model-form-dialog" class="model-form-dialog">
-                        <div class="model-form-header">
-                            <h5 id="model-form-title">Add Model</h5>
-                            <button class="close-btn-small" id="close-model-form">×</button>
-                        </div>
-
-                        <!-- Provider Selection -->
-                        <div class="inline-form-row">
-                            <label>Provider</label>
-                            <select id="provider-select" class="inline-select">
-                                <option value="">Select provider...</option>
-                            </select>
-                        </div>
-
-                        <!-- Model Selection -->
-                        <div class="inline-form-row hidden" id="model-select-group">
-                            <label>Model</label>
-                            <select id="model-select-dropdown" class="inline-select">
-                                <option value="">Select model...</option>
-                            </select>
-                        </div>
-
-                        <!-- API Key (if needed) -->
-                        <div class="inline-form-row hidden" id="api-key-group">
-                            <label>API Key</label>
-                            <input type="password" id="model-api-key" class="inline-input" placeholder="Enter API key..." />
-                        </div>
-
-                        <!-- Connection Type Selection -->
-                        <div class="inline-form-row hidden" id="connection-type-group">
-                            <label>Connection</label>
-                            <select id="connection-type-select" class="inline-select">
-                                <option value="">Select connection type...</option>
-                            </select>
-                        </div>
-
-                        <div class="inline-form-actions">
-                            <button class="inline-btn-cancel" id="cancel-model-btn">Cancel</button>
-                            <button class="inline-btn-save" id="save-model-btn" disabled>Add Model</button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Consensus Strategy (shown when 2+ models) -->
-                <div id="consensus-section" class="consensus-section hidden">
-                    <label for="consensus-strategy">Consensus Strategy</label>
-                    <select id="consensus-strategy" class="consensus-select">
-                        <option value="arena">Model Arena</option>
-                        <option value="peer-review">Peer Review</option>
+                <!-- Provider Selection -->
+                <div class="inline-form-row">
+                    <label>Provider</label>
+                    <select id="provider-select" class="inline-select">
+                        <option value="">Select provider...</option>
                     </select>
                 </div>
-            </div>
 
-        <!-- Advanced Options (collapsible on non-localhost) -->
+                <!-- Model Selection -->
+                <div class="inline-form-row hidden" id="model-select-group">
+                    <label>Model</label>
+                    <select id="model-select-dropdown" class="inline-select">
+                        <option value="">Select model...</option>
+                    </select>
+                </div>
+
+                <!-- API Key (if needed) -->
+                <div class="inline-form-row hidden" id="api-key-group">
+                    <label>API Key</label>
+                    <input type="password" id="model-api-key" class="inline-input" placeholder="Enter API key..." />
+                </div>
+
+                <!-- Connection Type Selection -->
+                <div class="inline-form-row hidden" id="connection-type-group">
+                    <label>Connection</label>
+                    <select id="connection-type-select" class="inline-select">
+                        <option value="">Select connection type...</option>
+                    </select>
+                </div>
+
+                <!-- Model URL (Dreamer remote/local serve) -->
+                <div class="inline-form-row hidden" id="model-url-group">
+                    <label>Model URL (optional)</label>
+                    <input type="url" id="model-url-input" class="inline-input"
+                           placeholder="http://localhost:8765" />
+                    <small class="form-hint">Base URL of served .rpl model folder (e.g. from dreamer-serve)</small>
+                </div>
+
+                <!-- Local Path (Native Bridge - direct file access) -->
+                <div class="inline-form-row hidden" id="local-path-group">
+                    <label>Local Path (optional)</label>
+                    <input type="text" id="local-path-input" class="inline-input"
+                           placeholder="/path/to/model.gguf or /path/to/model-rpl/" />
+                    <small class="form-hint">Direct file access via Native Bridge extension</small>
+                </div>
+
+                <!-- GGUF Import (Browser - File System Access API) -->
+                <div class="inline-form-row hidden" id="gguf-import-group">
+                    <button type="button" class="inline-btn-secondary" id="import-gguf-btn">
+                        Import GGUF from Disk
+                    </button>
+                    <small class="form-hint">Select a .gguf file to import directly to browser storage</small>
+                </div>
+
+                <!-- GGUF Import Progress -->
+                <div class="inline-form-row hidden" id="gguf-import-progress">
+                    <div class="import-progress-container">
+                        <progress id="gguf-import-progress-bar" max="100" value="0"></progress>
+                        <span id="gguf-import-progress-text">0%</span>
+                    </div>
+                    <button type="button" class="inline-btn-tertiary" id="gguf-import-cancel">Cancel</button>
+                </div>
+
+                <div class="inline-form-actions">
+                    <button class="inline-btn-cancel" id="cancel-model-btn">Cancel</button>
+                    <button class="inline-btn-save" id="save-model-btn" disabled>Add Model</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECTION 3: Advanced Options (Collapsed) -->
         <div id="advanced-options" class="advanced-options-container">
             <div class="advanced-options-toggle" onclick="toggleAdvancedOptions()">
                 <h4>Advanced Options</h4>
                 <span class="advanced-options-chevron">▼</span>
             </div>
             <div class="advanced-options-content">
-                <!-- Connection Status -->
-                <h4 class="section-header" style="margin-top: 20px;">Connection Status</h4>
+                <!-- Agent Configuration -->
+                <h4 class="section-header" style="margin-top: 20px;">Agent Configuration</h4>
+                <div class="config-section">
+                    <div class="config-row">
+                        <label>Persona</label>
+                        <select id="persona-select" class="config-select" onchange="selectPersona(this.value)">
+                            <option value="default" selected>RSI Agent - Recursive self-improvement</option>
+                            <option value="architect">Code Architect - Simplicity & quality</option>
+                            <option value="explorer">Codebase Explorer - Maps structure</option>
+                            <option value="debugger">Debug Specialist - Diagnoses issues</option>
+                        </select>
+                    </div>
+                    <div class="config-row">
+                        <label>Genesis Level</label>
+                        <select id="genesis-select" class="config-select" onchange="selectGenesisLevel(this.value)">
+                            <option value="full" selected>Full Substrate (32 modules)</option>
+                            <option value="reflection">Reflection (19 modules)</option>
+                            <option value="tabula">Tabula Rasa (13 modules)</option>
+                        </select>
+                    </div>
+                    <div class="config-row">
+                        <label>Blueprint Path</label>
+                        <select id="blueprint-select" class="config-select" onchange="selectBlueprintPath(this.value)">
+                            <option value="none" selected>No Blueprints</option>
+                            <option value="reflection">Path to Reflection (+6)</option>
+                            <option value="full">Path to Full (+13)</option>
+                            <option value="beyond">Path Beyond (+7)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Session Settings -->
+                <h4 class="section-header" style="margin-top: 24px;">Session</h4>
+                <div class="config-section">
+                    <label class="checkbox-option">
+                        <input type="checkbox" id="reset-vfs-checkbox" checked onchange="toggleResetVFS(this.checked)" />
+                        <span class="checkbox-label">
+                            <span class="checkbox-title">Reset VFS to Genesis</span>
+                            <span class="checkbox-desc">Clear agent-created files from previous sessions</span>
+                        </span>
+                    </label>
+                </div>
+                <div class="config-section" style="margin-top: 16px;">
+                    <div class="secondary-actions-inline">
+                        <button id="import-state-btn" class="btn secondary small" title="Import REPLOID state">Import State</button>
+                        <button id="clear-cache-btn" class="btn secondary small" title="Clear all data">Reset All Data</button>
+                    </div>
+                </div>
+
+                <!-- Connection Status (detailed view) -->
+                <h4 class="section-header" style="margin-top: 24px;">Connection Status</h4>
                 <div class="provider-status-bar">
                     <div class="provider-status-item">
                         <span class="provider-status-icon online" id="browser-cloud-icon">☁</span>
@@ -155,12 +259,12 @@
                         <span class="provider-status-value online" id="browser-cloud-text">Ready</span>
                     </div>
                     <div class="provider-status-item">
-                        <span class="provider-status-icon" id="proxy-cloud-icon">⇄</span>
+                        <span class="provider-status-icon" id="proxy-cloud-icon">☍</span>
                         <span class="provider-status-label">Proxy → Cloud</span>
                         <span class="provider-status-value" id="proxy-cloud-text">Checking...</span>
                     </div>
                     <div class="provider-status-item">
-                        <span class="provider-status-icon" id="browser-local-icon">◆</span>
+                        <span class="provider-status-icon" id="browser-local-icon">☖</span>
                         <span class="provider-status-label">Browser → Local</span>
                         <span class="provider-status-value" id="browser-local-text">Checking...</span>
                     </div>
@@ -170,94 +274,17 @@
                         <span class="provider-status-value" id="proxy-local-text">Checking...</span>
                     </div>
                 </div>
-
-                <!-- Genesis Level Selection -->
-                <h4 class="section-header" style="margin-top: 30px;">Genesis Level</h4>
-                <div class="config-section">
-                    <div class="boot-mode-options">
-                        <button class="boot-mode-btn selected recommended" data-genesis="full" onclick="selectGenesisLevel('full')">
-                            <div class="boot-mode-badge">RECOMMENDED</div>
-                            <div class="boot-mode-label">FULL SUBSTRATE</div>
-                            <div class="boot-mode-desc">32 modules - Cognition + infrastructure</div>
-                        </button>
-                        <button class="boot-mode-btn" data-genesis="reflection" onclick="selectGenesisLevel('reflection')">
-                            <div class="boot-mode-badge">STANDARD</div>
-                            <div class="boot-mode-label">REFLECTION</div>
-                            <div class="boot-mode-desc">19 modules - Self-awareness + streaming</div>
-                        </button>
-                        <button class="boot-mode-btn" data-genesis="tabula" onclick="selectGenesisLevel('tabula')">
-                            <div class="boot-mode-badge experimental-badge">MINIMAL</div>
-                            <div class="boot-mode-label">TABULA RASA</div>
-                            <div class="boot-mode-desc">13 modules - Minimal agent core</div>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Blueprint Path Selection -->
-                <h4 class="section-header" style="margin-top: 30px;">Blueprint Path</h4>
-                <div class="config-section">
-                    <div class="boot-mode-options">
-                        <button class="boot-mode-btn selected" data-blueprint="none" onclick="selectBlueprintPath('none')">
-                            <div class="boot-mode-badge">NONE</div>
-                            <div class="boot-mode-label">No Blueprints</div>
-                            <div class="boot-mode-desc">Pure discovery - explore on your own</div>
-                        </button>
-                        <button class="boot-mode-btn" data-blueprint="reflection" onclick="selectBlueprintPath('reflection')">
-                            <div class="boot-mode-label">Path to Reflection</div>
-                            <div class="boot-mode-desc">+6 blueprints - Streaming, introspection, HITL</div>
-                        </button>
-                        <button class="boot-mode-btn" data-blueprint="full" onclick="selectBlueprintPath('full')">
-                            <div class="boot-mode-label">Path to Full</div>
-                            <div class="boot-mode-desc">+13 blueprints - Cognition, persistence, monitoring</div>
-                        </button>
-                        <button class="boot-mode-btn" data-blueprint="beyond" onclick="selectBlueprintPath('beyond')">
-                            <div class="boot-mode-badge experimental-badge">EXPERIMENTAL</div>
-                            <div class="boot-mode-label">Path Beyond</div>
-                            <div class="boot-mode-desc">+7 blueprints - Arena, SelfTester, SubstrateLoader</div>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Agent Persona Selection -->
-                <h4 class="section-header" style="margin-top: 30px;">Agent Persona</h4>
-                <div class="config-section">
-                    <select id="persona-select" class="persona-select" onchange="selectPersona(this.value)">
-                        <option value="default" selected>RSI Agent - Recursive self-improvement focus</option>
-                        <option value="architect">Code Architect - Reviews for simplicity & quality</option>
-                        <option value="explorer">Codebase Explorer - Maps and documents structure</option>
-                        <option value="debugger">Debug Specialist - Diagnoses and fixes issues</option>
-                    </select>
-                </div>
-
-                <!-- Session Reset Option -->
-                <div class="config-section" style="margin-top: 24px;">
-                    <label class="checkbox-option">
-                        <input type="checkbox" id="reset-vfs-checkbox" checked onchange="toggleResetVFS(this.checked)" />
-                        <span class="checkbox-label">
-                            <span class="checkbox-title">Reset VFS to Genesis</span>
-                            <span class="checkbox-desc">Clear agent-created files from previous sessions</span>
-                        </span>
-                    </label>
-                </div>
             </div>
         </div>
 
-        <!-- Goal Input -->
-<h4 class="section-header" style="margin-top: 30px;">Agent Mission</h4>
-        <div class="goal-container-top">
-            <div class="goal-input-group">
-                <textarea id="goal-input" placeholder="Describe a goal..." maxlength="1000" disabled rows="3"></textarea>
-                <div class="goal-action-column">
-                    <button id="awaken-btn" class="btn primary" disabled>Awaken Agent</button>
+        <!-- Legacy model cards container (hidden, used by existing JS) -->
+        <div class="model-cards-container hidden" id="legacy-model-cards" style="display: none;">
+            <div class="model-cards-list" id="model-cards-list">
+                <div class="model-card add-model-card" id="add-model-card">
+                    <div class="add-model-icon">+</div>
+                    <div class="add-model-text">Add Model</div>
                 </div>
-                <input type="file" id="import-file-input" accept=".json" style="display: none;" />
             </div>
-            <!-- Example Goal Chips -->
-            <div class="goal-example-chips" id="goal-chips-container"></div>
-        </div>
-        <div class="secondary-actions">
-            <button id="import-state-btn" class="btn secondary" title="Import REPLOID state from exported JSON file">Import State</button>
-            <button id="clear-cache-btn" class="btn secondary" title="Clear all data (localStorage, IndexedDB, VFS) and reload">Reset All Data</button>
         </div>
 
         <!-- Info Overlay -->
@@ -526,6 +553,36 @@ const GOAL_LIBRARY = [
   }
 ];
 
+// Curated goals - one from each category for quick access
+const CURATED_GOALS = [
+  { label: 'Understand & Enhance', text: 'Read /docs/REPLOID_README.md and explore /core/ and /tools/. Identify one weakness. Implement a measurable enhancement. Report exactly which files changed and how to verify it works.' },
+  { label: 'Tool Factory', text: 'Create a meta-tool called ToolForge that generates new tools from natural language descriptions. Test by creating: (1) a tool that counts lines in files, (2) a tool that finds TODOs, (3) a tool that generates ASCII art.' },
+  { label: 'Code City', text: 'Build an explorable 3D city: buildings are files (height = complexity, width = size), streets are imports, parks are test files. Add minimap, fly-through camera, and click-to-open.' },
+  { label: 'Dream Mode', text: 'Enter free association: query random memory, extract keywords, find related entities in knowledge graph, generate hypothesis, store as new memory. Loop 10 times. Create dream journal.' },
+  { label: 'Voice Commander', text: 'Build a voice interface: wake word detection, continuous listening, speech-to-tool mapping, spoken responses. Add a visual indicator that pulses when listening.' },
+  { label: 'Any% Speedrun', text: 'Speedrun: create 5 working tools. Timer starts on AWAKEN. Display live splits. Current WR: 45 seconds. Beat it.' }
+];
+
+function renderCuratedChips() {
+  const container = document.getElementById('goal-chips-curated');
+  if (!container) return;
+
+  const goalInput = document.getElementById('goal-input');
+  container.innerHTML = '';
+
+  CURATED_GOALS.forEach(goal => {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'goal-chip';
+    button.textContent = goal.label;
+    button.title = goal.text;
+    button.addEventListener('click', () => {
+      if (goalInput) goalInput.value = goal.text;
+    });
+    container.appendChild(button);
+  });
+}
+
 function renderGoalChips(level) {
   const container = document.getElementById('goal-chips-container');
   if (!container) return;
@@ -557,6 +614,27 @@ function renderGoalChips(level) {
       container.appendChild(button);
     });
   });
+}
+
+// Toggle expanded goal chips
+function setupGoalChipsExpand() {
+  const expandBtn = document.getElementById('goal-chips-expand-btn');
+  const fullContainer = document.getElementById('goal-chips-container');
+
+  if (expandBtn && fullContainer) {
+    expandBtn.addEventListener('click', () => {
+      const isExpanded = !fullContainer.classList.contains('hidden');
+      if (isExpanded) {
+        fullContainer.classList.add('hidden');
+        expandBtn.classList.remove('expanded');
+        expandBtn.textContent = 'More goals ▾';
+      } else {
+        fullContainer.classList.remove('hidden');
+        expandBtn.classList.add('expanded');
+        expandBtn.textContent = 'Fewer goals ▴';
+      }
+    });
+  }
 }
 
 // Genesis level selection
@@ -668,28 +746,61 @@ function initAdvancedOptions() {
   console.log(`[Config] Advanced options init: host=${hostname}, localhost=${isLocalhost}, expanded=${container.classList.contains('expanded')}`);
 }
 
+// Update header status badges
+function updateHeaderBadges(providers) {
+  // Cloud badge - always ready (browser can call APIs directly)
+  const cloudBadge = document.getElementById('badge-cloud');
+  if (cloudBadge) {
+    cloudBadge.classList.add('online');
+    cloudBadge.querySelector('.badge-status').textContent = '★';
+    cloudBadge.querySelector('.badge-status').className = 'badge-status online';
+  }
+
+  // Local badge (WebGPU)
+  const localBadge = document.getElementById('badge-local');
+  if (localBadge && providers) {
+    const isOnline = providers.webgpu?.online || providers.transformers?.online || providers.dreamer?.online;
+    localBadge.classList.toggle('online', isOnline);
+    localBadge.querySelector('.badge-status').textContent = isOnline ? '★' : '☒';
+    localBadge.querySelector('.badge-status').className = `badge-status ${isOnline ? 'online' : 'offline'}`;
+  }
+
+  // Proxy badge
+  const proxyBadge = document.getElementById('badge-proxy');
+  if (proxyBadge && providers) {
+    const isOnline = providers.proxy?.online;
+    proxyBadge.classList.toggle('online', isOnline);
+    proxyBadge.querySelector('.badge-status').textContent = isOnline ? '★' : '☒';
+    proxyBadge.querySelector('.badge-status').className = `badge-status ${isOnline ? 'online' : 'offline'}`;
+  }
+}
+
+// Expose for model-config to call
+window.updateHeaderBadges = updateHeaderBadges;
+
 // Restore saved genesis level, blueprint path, and persona on load
 window.addEventListener('DOMContentLoaded', () => {
   // Initialize advanced options collapse state based on host
   initAdvancedOptions();
   initResetVFSCheckbox();
 
+  // Render curated chips first
+  renderCuratedChips();
+  setupGoalChipsExpand();
+
+  // Restore saved genesis level to dropdown
   const savedLevel = localStorage.getItem('REPLOID_GENESIS_LEVEL');
   if (savedLevel && ['full', 'reflection', 'tabula'].includes(savedLevel)) {
-    // Just update UI, don't trigger reload
-    document.querySelectorAll('[data-genesis]').forEach(btn => {
-      btn.classList.remove('selected');
-    });
-    const btn = document.querySelector(`[data-genesis="${savedLevel}"]`);
-    if (btn) btn.classList.add('selected');
     selectedGenesisLevel = savedLevel;
+    const genesisSelect = document.getElementById('genesis-select');
+    if (genesisSelect) genesisSelect.value = savedLevel;
   }
   renderGoalChips(selectedGenesisLevel);
 
   // Pre-fill goal input with Core Loop goal and select all on first focus
   const goalInput = document.getElementById('goal-input');
   if (goalInput) {
-    const defaultGoal = 'Study the core agent loop and capture a high-level Think → Act → Observe summary in a new report.';
+    const defaultGoal = 'Study the core agent loop and capture a high-level Think, Act, Observe summary in a new report.';
     goalInput.value = defaultGoal;
     let hasBeenFocused = false;
     goalInput.addEventListener('focus', () => {
@@ -700,14 +811,12 @@ window.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // Restore saved blueprint path to dropdown
   const savedPath = localStorage.getItem('REPLOID_BLUEPRINT_PATH');
   if (savedPath && ['none', 'reflection', 'full', 'beyond'].includes(savedPath)) {
-    document.querySelectorAll('[data-blueprint]').forEach(btn => {
-      btn.classList.remove('selected');
-    });
-    const btn = document.querySelector(`[data-blueprint="${savedPath}"]`);
-    if (btn) btn.classList.add('selected');
     selectedBlueprintPath = savedPath;
+    const blueprintSelect = document.getElementById('blueprint-select');
+    if (blueprintSelect) blueprintSelect.value = savedPath;
   }
 
   // Restore saved persona
@@ -717,6 +826,16 @@ window.addEventListener('DOMContentLoaded', () => {
     if (personaSelect) {
       personaSelect.value = savedPersona;
     }
+  }
+
+  // Setup add model button to open modal
+  const addModelBtn = document.getElementById('add-model-btn');
+  if (addModelBtn) {
+    addModelBtn.addEventListener('click', () => {
+      // Trigger the existing modal open (will be wired by model-config/form.js)
+      const addModelCard = document.getElementById('add-model-card');
+      if (addModelCard) addModelCard.click();
+    });
   }
 });
 

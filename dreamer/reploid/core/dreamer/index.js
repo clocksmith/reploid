@@ -1,9 +1,9 @@
 /**
- * Titan - High-Performance Offline Browser Inference
- * Main entry point for the Titan subsystem.
+ * Dreamer - High-Performance Offline Browser Inference
+ * Main entry point for the Dreamer subsystem.
  */
 
-export const TITAN_VERSION = '0.1.0';
+export const DREAMER_VERSION = '0.1.0';
 
 // Memory & Capability (Agent-A)
 export { getMemoryCapabilities } from './memory/capability.js';
@@ -80,10 +80,10 @@ export { Tokenizer } from './inference/tokenizer.js';
 
 // Loader
 export {
-  TitanLoader,
-  getTitanLoader,
-  createTitanLoader,
-} from './loader/titan-loader.js';
+  DreamerLoader,
+  getDreamerLoader,
+  createDreamerLoader,
+} from './loader/dreamer-loader.js';
 
 // Native Bridge (Phase 3)
 export {
