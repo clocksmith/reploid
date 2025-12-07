@@ -1,0 +1,9 @@
+{
+  "name": "dev.reploid.titan",
+  "description": "Titan Native Bridge - High-performance file access for LLM inference",
+  "path": "/usr/local/bin/titan-bridge",
+  "type": "stdio",
+  "allowed_origins": [
+    "chrome-extension://EXTENSION_ID_HERE/"
+  ]
+}

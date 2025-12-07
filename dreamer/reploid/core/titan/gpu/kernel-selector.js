@@ -9,6 +9,7 @@
  */
 
 import { getDevice, getKernelCapabilities, FEATURES } from './device.js';
+import { getKernelTuner } from './kernel-tuner.js';
 
 // Kernel source imports (loaded as strings)
 // Phase 1 kernels
@@ -545,6 +546,92 @@ export async function dequantize(quantized, numBlocks, options = {}) {
   uniformBuffer.destroy();
 
   return output;
+}
+
+/**
+ * Get tuned workgroup size for a kernel
+ * @param {string} operation - Operation type (matmul, attention, etc.)
+ * @param {Object} inputSizes - Dimensions relevant to the operation
+ * @returns {Promise<number[]>} Optimal [x, y, z] workgroup size
+ */
+export async function getTunedWorkgroupSize(operation, inputSizes = {}) {
+  try {
+    const tuner = await getKernelTuner();
+    const result = tuner.getCachedResult(operation, inputSizes);
+
+    if (result) {
+      return result.optimalWorkgroupSize;
+    }
+
+    // Run tuning if not cached
+    const tuneResult = await tuner.tuneKernel(operation, inputSizes);
+    return tuneResult.optimalWorkgroupSize;
+  } catch (e) {
+    console.warn(`[KernelSelector] Tuning failed for ${operation}, using defaults:`, e.message);
+    // Return defaults based on operation
+    switch (operation) {
+      case 'matmul':
+        return [16, 16, 1];
+      case 'attention':
+      case 'rmsnorm':
+      case 'softmax':
+        return [256, 1, 1];
+      case 'dequant':
+        return [64, 1, 1];
+      default:
+        return [256, 1, 1];
+    }
+  }
+}
+
+/**
+ * Run auto-tuning for all kernels with given sizes
+ * @param {Object} modelConfig - Model configuration with dimensions
+ * @returns {Promise<Object>} Tuning results for all kernels
+ */
+export async function autoTuneKernels(modelConfig = {}) {
+  const {
+    hiddenSize = 4096,
+    intermediateSize = 14336,
+    numHeads = 32,
+    headDim = 128,
+    maxSeqLen = 4096,
+    vocabSize = 32000,
+  } = modelConfig;
+
+  const tuner = await getKernelTuner();
+  const results = {};
+
+  // Tune matmul for common sizes
+  results.matmul_hidden = await tuner.tuneKernel('matmul', {
+    M: 1, N: hiddenSize, K: hiddenSize,
+  });
+  results.matmul_ffn = await tuner.tuneKernel('matmul', {
+    M: 1, N: intermediateSize, K: hiddenSize,
+  });
+
+  // Tune attention
+  results.attention = await tuner.tuneKernel('attention', {
+    seqLen: 1, numHeads, headDim,
+  });
+
+  // Tune softmax (LM head output)
+  results.softmax = await tuner.tuneKernel('softmax', {
+    innerSize: vocabSize, outerSize: 1,
+  });
+
+  // Tune RMSNorm
+  results.rmsnorm = await tuner.tuneKernel('rmsnorm', {
+    hiddenSize, numTokens: 1,
+  });
+
+  // Tune dequant
+  results.dequant = await tuner.tuneKernel('dequant', {
+    numBlocks: 1000,
+  });
+
+  console.log('[KernelSelector] Auto-tuning complete:', results);
+  return results;
 }
 
 /**
