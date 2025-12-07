@@ -8,7 +8,9 @@ DREAMER = Dynamic Recursive Engine Adapting Modules Evolving REPLOID
 
 > Browser-based AI agent sandbox
 
-AI agent that runs entirely client-side. Uses IndexedDB as a virtual filesystem. Supports recursive self-improvement (RSI) — the agent can create, modify, and improve its own tools at runtime, including the tool-creation mechanism itself.
+- Runs entirely client-side
+- Uses IndexedDB as a virtual filesystem
+- Supports recursive self-improvement (RSI): the agent can create, modify, and improve its own tools at runtime, including the tool-creation mechanism itself
 
 ## Quick Start
 
@@ -38,6 +40,8 @@ graph TD
 3. Tool executes against the VFS (IndexedDB)
 4. Results feed back to agent
 5. Repeat until done or iteration limit (default 50)
+
+**Why this is different:** You get a full Claude-Code-style sandbox (filesystem, tools, arena, verification) inside the browser, but the entire substrate also lives there. The agent can use the sandbox like a normal dev environment and, uniquely, can edit and hot-reload its own core/runtime code and tools on the fly—no backend, no rebuilds—so RSI is first-class, not bolted on.
 
 ### LLM Options
 
