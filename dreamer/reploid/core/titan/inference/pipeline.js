@@ -590,36 +590,53 @@ export class InferencePipeline {
       return new Float32Array(hiddenStates.length);
     }
 
-    // 1. Create input buffer from hidden states
-    const inputBuffer = acquireBuffer(hiddenStates.byteLength, undefined, 'attn_input');
-    device.queue.writeBuffer(inputBuffer, 0, hiddenStates);
-
-    // 2. Apply RMSNorm (input normalization)
-    const normWeight = layerWeights.inputNorm;
-    if (normWeight) {
-      const normBuffer = acquireBuffer(normWeight.byteLength, undefined, 'attn_norm_weight');
-      device.queue.writeBuffer(normBuffer, 0, normWeight);
-      const normedBuffer = await runRMSNorm(inputBuffer, normBuffer, 1e-5, {
-        batchSize: numTokens,
-        hiddenSize,
-      });
-      releaseBuffer(inputBuffer);
-      releaseBuffer(normBuffer);
-      // Use normed output as new input
-    }
-
-    // 3. Project to Q, K, V (using matmul)
-    // Q: [numTokens, hiddenSize] x [hiddenSize, numHeads * headDim]
-    // K: [numTokens, hiddenSize] x [hiddenSize, numKVHeads * headDim]
-    // V: same as K
-
-    // For now, placeholder until weight layout is fully defined
     const qSize = numTokens * numHeads * headDim;
     const kvSize = numTokens * numKVHeads * headDim;
 
-    const Q = acquireBuffer(qSize * 4, undefined, 'Q');
-    const K = acquireBuffer(kvSize * 4, undefined, 'K');
-    const V = acquireBuffer(kvSize * 4, undefined, 'V');
+    // 1. Create input buffer from hidden states
+    let inputBuffer = acquireBuffer(hiddenStates.byteLength, undefined, 'attn_input');
+    device.queue.writeBuffer(inputBuffer, 0, hiddenStates);
+
+    // 2. Apply RMSNorm (input normalization)
+    let normedBuffer = inputBuffer;
+    if (layerWeights.inputNorm) {
+      const normWeightBuf = this._getWeightBuffer(layerWeights.inputNorm, 'attn_norm_w');
+      normedBuffer = await runRMSNorm(inputBuffer, normWeightBuf, 1e-5, {
+        batchSize: numTokens,
+        hiddenSize,
+      });
+      if (inputBuffer !== normedBuffer) releaseBuffer(inputBuffer);
+      if (!(layerWeights.inputNorm instanceof GPUBuffer)) releaseBuffer(normWeightBuf);
+    }
+
+    // 3. Project to Q, K, V using actual weights
+    let Q, K, V;
+
+    if (layerWeights.qProj) {
+      const qProjBuf = this._getWeightBuffer(layerWeights.qProj, 'q_proj');
+      Q = await runMatmul(normedBuffer, qProjBuf, numTokens, numHeads * headDim, hiddenSize);
+      if (!(layerWeights.qProj instanceof GPUBuffer)) releaseBuffer(qProjBuf);
+    } else {
+      Q = acquireBuffer(qSize * 4, undefined, 'Q');
+    }
+
+    if (layerWeights.kProj) {
+      const kProjBuf = this._getWeightBuffer(layerWeights.kProj, 'k_proj');
+      K = await runMatmul(normedBuffer, kProjBuf, numTokens, numKVHeads * headDim, hiddenSize);
+      if (!(layerWeights.kProj instanceof GPUBuffer)) releaseBuffer(kProjBuf);
+    } else {
+      K = acquireBuffer(kvSize * 4, undefined, 'K');
+    }
+
+    if (layerWeights.vProj) {
+      const vProjBuf = this._getWeightBuffer(layerWeights.vProj, 'v_proj');
+      V = await runMatmul(normedBuffer, vProjBuf, numTokens, numKVHeads * headDim, hiddenSize);
+      if (!(layerWeights.vProj instanceof GPUBuffer)) releaseBuffer(vProjBuf);
+    } else {
+      V = acquireBuffer(kvSize * 4, undefined, 'V');
+    }
+
+    releaseBuffer(normedBuffer);
 
     // 4. Apply RoPE to Q and K
     if (this.ropeFreqsCos && this.ropeFreqsSin) {
@@ -641,23 +658,48 @@ export class InferencePipeline {
     this.kvCache.update(layerIdx, new Float32Array(kData), new Float32Array(vData), this.currentSeqLen);
 
     // 6. Run attention
-    const output = await runAttention(Q, K, V, null, numHeads, headDim, {
+    const attnOutput = await runAttention(Q, K, V, null, numHeads, headDim, {
       seqLen: numTokens,
       kvLen: this.currentSeqLen + numTokens,
       numKVHeads,
       causal: true,
     });
 
-    // 7. Read output back
-    const outputData = await readBuffer(output, numTokens * numHeads * headDim * 4);
+    // 7. Apply output projection
+    let output;
+    if (layerWeights.oProj) {
+      const oProjBuf = this._getWeightBuffer(layerWeights.oProj, 'o_proj');
+      output = await runMatmul(attnOutput, oProjBuf, numTokens, hiddenSize, numHeads * headDim);
+      if (!(layerWeights.oProj instanceof GPUBuffer)) releaseBuffer(oProjBuf);
+    } else {
+      output = attnOutput;
+    }
+
+    // 8. Read output back
+    const outputData = await readBuffer(output, numTokens * hiddenSize * 4);
 
     // Cleanup
     releaseBuffer(Q);
     releaseBuffer(K);
     releaseBuffer(V);
+    if (output !== attnOutput) releaseBuffer(attnOutput);
     releaseBuffer(output);
 
     return new Float32Array(outputData);
+  }
+
+  /**
+   * Get or create GPU buffer for weight tensor
+   * @private
+   */
+  _getWeightBuffer(weight, label) {
+    if (weight instanceof GPUBuffer) {
+      return weight;
+    }
+    const device = getDevice();
+    const buf = acquireBuffer(weight.byteLength, undefined, label);
+    device.queue.writeBuffer(buf, 0, weight);
+    return buf;
   }
 
   /**
