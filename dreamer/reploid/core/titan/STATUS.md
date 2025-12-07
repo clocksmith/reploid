@@ -14,6 +14,18 @@
 
 ---
 
+## Phase 2 Summary
+
+| Agent | Domain | Files | Status |
+|-------|--------|-------|--------|
+| A | tools/ | 7 | ✅ Complete |
+| C | gpu/ | 8 | ✅ Complete |
+| D | demo/ | 6 | ✅ Complete |
+
+**Phase 2 Total: 21 files (8 new kernels/tools, 13 UI/tooling)**
+
+---
+
 ## Code Reviews
 
 | Reviewer | Target | Status |
@@ -246,3 +258,279 @@ node convert-cli.js ./hf-model ./output --quantize q4_k_m
 # Create test fixture
 node convert-cli.js --test ./test-model
 ```
+
+---
+
+## Agent-D: Demo Interface (demo/)
+
+### Status: ✅ Complete
+
+### Files Created
+- `demo/index.html` — Main HTML structure with sidebar, chat, modals
+- `demo/styles.css` — Dark theme, responsive layout, animations
+- `demo/app.js` — TitanDemo class, application controller
+- `demo/model-selector.js` — ModelSelector class, download progress
+- `demo/chat-ui.js` — ChatUI class, streaming tokens, stats
+- `demo/progress-ui.js` — ProgressUI class, loading overlays
+
+### Interface
+```javascript
+// app.js
+class TitanDemo {
+  async init()
+  async selectModel(modelId: string)
+  async downloadModel(modelId: string, url: string)
+  async chat(message: string) → streams tokens
+  getStatus() → { model, memory, gpu }
+}
+
+// model-selector.js
+class ModelSelector {
+  constructor(container, { onSelect, onDownload, onDelete })
+  setModels(models: ModelInfo[])
+  setDownloadProgress(modelId, progress)
+  setActiveModel(modelId)
+}
+
+// chat-ui.js
+class ChatUI {
+  constructor(container, { onSend, onStop, onClear })
+  addMessage(role, content, stats?)
+  startStream() / streamToken(token) / finishStream()
+  setLoading(loading)
+}
+
+// progress-ui.js
+class ProgressUI {
+  show(label) / setProgress(percent, detail?) / hide()
+}
+```
+
+### UI Features
+- [x] Model selection panel with download/delete buttons
+- [x] Storage usage indicator
+- [x] WebGPU capabilities display (f16, subgroups, memory64)
+- [x] Performance stats panel (tokens/sec, memory, GPU, KV cache)
+- [x] Chat interface with streaming token display
+- [x] Live generation stats (tokens, time, tok/s)
+- [x] Stop generation button
+- [x] Clear conversation button
+- [x] Error modal for failures
+- [x] Mobile-responsive layout
+- [x] Dark theme with CSS variables
+
+### Integration Points (TODO when pipeline ready)
+- [ ] Connect `TitanDemo.chat()` to `inference/pipeline.js`
+- [ ] Connect `TitanDemo.downloadModel()` to `storage/downloader.js`
+- [ ] Connect capabilities detection to `memory/capability.js`
+- [ ] Connect GPU stats to `gpu/device.js`
+
+### Demo Mode
+- Includes simulated responses for testing UI without model
+- Model registry with placeholder URLs
+- All UI interactions functional
+
+### Review Assignment
+- Needs review by Agent-C (verify GPU usage patterns when connected)
+
+---
+
+## Agent-C: GPU Kernels Phase 2 (gpu/)
+
+### Status: ✅ Complete
+
+### Files Created
+- `gpu/kernels/attention.wgsl` — Fused multi-head attention with Flash Attention tiling
+- `gpu/kernels/rmsnorm.wgsl` — RMSNorm with optional residual add
+- `gpu/kernels/softmax.wgsl` — Online softmax (numerically stable)
+- `gpu/kernels/rope.wgsl` — Rotary position embeddings (original, NTK, YaRN)
+- `gpu/kernels/silu.wgsl` — SiLU/SwiGLU activation functions
+- `gpu/profiler.js` — GPU timestamp query profiling with CPU fallback
+- `gpu/kernel-tuner.js` — Auto-tuning for optimal workgroup sizes
+
+### Updated Files
+- `gpu/kernel-selector.js` — Added configs and run functions for new kernels
+
+### New Interface
+```javascript
+// Attention (Flash-style tiled)
+runAttention(Q, K, V, mask, numHeads, headDim, options) → GPUBuffer
+  options: { seqLen, kvLen, numKVHeads, scale, causal, outputBuffer }
+
+// RMSNorm
+runRMSNorm(input, weight, eps, options) → GPUBuffer
+  options: { batchSize, hiddenSize, residual, outputBuffer }
+
+// Softmax (online algorithm)
+runSoftmax(input, axis, options) → GPUBuffer
+  options: { batchSize, size, temperature, outputBuffer }
+
+// RoPE (rotary embeddings)
+runRoPE(input, freqsCos, freqsSin, seqLen, options) → GPUBuffer
+  options: { numHeads, headDim, startPos, ropeBase, ropeScale, variant }
+  variants: 'default', 'compute_freqs', 'qk', 'ntk', 'yarn'
+
+// SiLU activation
+runSiLU(input, options) → GPUBuffer
+  options: { size, gate, outputBuffer, useVec4 }
+
+// Profiler
+class GPUProfiler {
+  begin(label)
+  end(label)
+  writeTimestamp(pass, label, isEnd)
+  resolve() → Promise
+  getResults() → { label: { avg, min, max, count, total } }
+  getReport() → string
+}
+getProfiler() → GPUProfiler
+timeOperation(label, fn) → { result, timeMs }
+withProfiling(label, fn) → wrappedFn
+
+// Kernel Tuner
+class KernelTuner {
+  tuneKernel(kernelName, kernelFn, testSizes) → Promise<TuneResult>
+  getCachedResult(kernelName) → TuneResult | null
+  clearCache()
+}
+getKernelTuner() → KernelTuner
+tuneKernel(kernelName, kernelFn, testSizes) → Promise<TuneResult>
+```
+
+### Kernel Features
+
+**attention.wgsl**
+- Flash Attention-style blocked computation
+- Grouped Query Attention (GQA) support
+- Causal masking
+- Two variants: prefill (batch) and decode (single query)
+- Online softmax within tiles
+
+**rmsnorm.wgsl**
+- Workgroup parallel reduction for mean of squares
+- Fused residual connection variant
+- Small model optimization (≤256 hidden size)
+
+**softmax.wgsl**
+- Online softmax tracking max and sum simultaneously
+- Temperature scaling support
+- Variants: default, small (≤256), online (>1024)
+- Log-softmax variant
+
+**rope.wgsl**
+- Original RoPE (base=10000)
+- NTK-aware scaling for extended context
+- YaRN interpolation for long contexts
+- Fused Q+K variant
+- Precomputed frequency tables
+
+**silu.wgsl**
+- SiLU(x) = x * sigmoid(x)
+- Gated variants for SwiGLU pattern (LLaMA FFN)
+- Interleaved and split input formats
+- GELU and GeGLU for comparison
+- Vectorized (vec4) variants
+
+**profiler.js**
+- GPU timestamp queries when available
+- Automatic CPU fallback
+- Running average with min/max tracking
+- Formatted report generation
+
+**kernel-tuner.js**
+- Auto-tuning across workgroup sizes
+- LocalStorage caching per device
+- Warmup iterations for accurate timing
+- Device signature for cache invalidation
+
+### Review Assignment
+- Needs review by Agent-D (verify integration with inference pipeline)
+
+---
+
+## Code Reviews - Phase 2
+
+### Agent-A Review of Agent-C (gpu/) — APPROVED ✓
+
+**attention.wgsl** ✓
+- Clean Flash Attention-style tiled implementation
+- Proper online softmax with running max/sum tracking
+- GQA support via `getKVHeadIdx()` mapping
+- Causal masking correctly checks `keyPos > queryPos`
+- Two entry points: `main` (prefill) and `attention_decode` (single-query)
+- Shared memory sizing appropriate for BLOCK_SIZE=64
+
+**rmsnorm.wgsl** ✓
+- Correct RMSNorm: `x * inv_rms * weight`
+- Workgroup parallel reduction for sum of squares
+- Fused residual add option (`hasResidual` uniform)
+- Three variants: main, small (≤256), with_prenorm
+- In-place residual variant for common transformer pattern
+
+**rope.wgsl** ✓
+- Correct rotation formula: `y0 = x0*cos - x1*sin`, `y1 = x0*sin + x1*cos`
+- Pair processing (even dimensions only)
+- Six variants covering all use cases:
+  - Precomputed frequencies lookup
+  - On-the-fly frequency computation
+  - Fused Q+K processing
+  - Precomputation kernel
+  - NTK-aware scaling (extended context)
+  - YaRN interpolation
+
+**profiler.js** ✓
+- Proper timestamp query lifecycle (create → resolve → map → read)
+- 256 query pair capacity
+- Fallback to `performance.now()` when timestamps unavailable
+- Running average with last-100 samples window
+- Clean `begin()`/`end()` API with in-pass `writeTimestamp()`
+
+**Minor notes:**
+- `attention_decode` output reduction in thread 0 is O(threads×headDim) — acceptable for decode
+- YaRN hardcodes beta_fast=32, beta_slow=1 — should match model config
+
+---
+
+### Agent-A Review of Agent-D (demo/) — APPROVED ✓
+
+**app.js** ✓
+- Clean `TitanDemo` class with proper state management
+- Model registry with download sizes and URLs
+- Capability detection (WebGPU, f16, subgroups, Memory64)
+- AbortController for generation cancellation
+- TODO stubs clearly marked for pipeline integration
+- Demo mode with simulated responses for UI testing
+
+**chat-ui.js** ✓
+- Streaming token display with live stats (tok/s)
+- Cursor animation during stream
+- Proper XSS prevention via `_escapeHtml()`
+- Auto-resize textarea
+- Enter to send, Shift+Enter for newline
+- Stop button reveals during generation
+
+**Integration readiness:**
+- Import stubs present for `createPipeline`, `downloadModel`, etc.
+- `selectModel()` ready to accept real pipeline
+- `chat()` ready for `pipeline.generate()` async iterator
+- Stats elements mapped for memory/GPU display
+
+**UI features verified:**
+- Model download progress tracking
+- Error modal display
+- Status indicator (ready/loading/error)
+- Mobile-responsive design intent
+
+---
+
+### Phase 2 Review Summary
+
+| Reviewer | Target | Status |
+|----------|--------|--------|
+| A → C | gpu/ kernels | ✅ Approved |
+| A → D | demo/ UI | ✅ Approved |
+| C → D | (pending) | - |
+| D → C | (pending) | - |
+
+**Phase 2 Implementation: Complete**
+**Agent-A Review: Complete**
