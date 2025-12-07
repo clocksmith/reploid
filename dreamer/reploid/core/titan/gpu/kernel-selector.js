@@ -4,15 +4,25 @@
  *
  * Selects optimal kernel variants based on detected GPU features.
  * Manages shader compilation and caching.
+ *
+ * Phase 2: Added attention, rmsnorm, softmax, rope, silu kernels.
  */
 
 import { getDevice, getKernelCapabilities, FEATURES } from './device.js';
 
 // Kernel source imports (loaded as strings)
+// Phase 1 kernels
 import matmulF32Source from './kernels/matmul_f32.wgsl?raw';
 import matmulF16Source from './kernels/matmul_f16.wgsl?raw';
 import dequantSubgroupSource from './kernels/dequant_subgroup.wgsl?raw';
 import dequantSharedSource from './kernels/dequant_shared.wgsl?raw';
+
+// Phase 2 kernels
+import attentionSource from './kernels/attention.wgsl?raw';
+import rmsnormSource from './kernels/rmsnorm.wgsl?raw';
+import softmaxSource from './kernels/softmax.wgsl?raw';
+import ropeSource from './kernels/rope.wgsl?raw';
+import siluSource from './kernels/silu.wgsl?raw';
 
 // Compiled pipeline cache
 const pipelineCache = new Map();
@@ -64,6 +74,125 @@ const KERNEL_CONFIGS = {
       source: dequantSharedSource,
       entryPoint: 'main_vec4',
       workgroupSize: [64, 1, 1],
+      requires: [],
+    },
+  },
+  attention: {
+    prefill: {
+      source: attentionSource,
+      entryPoint: 'main',
+      workgroupSize: [256, 1, 1],
+      requires: [],
+      // TODO: respect device limits for headDim/seqLen
+    },
+    decode: {
+      source: attentionSource,
+      entryPoint: 'attention_decode',
+      workgroupSize: [256, 1, 1],
+      requires: [],
+    },
+  },
+  rmsnorm: {
+    default: {
+      source: rmsnormSource,
+      entryPoint: 'main',
+      workgroupSize: [256, 1, 1],
+      requires: [],
+    },
+    small: {
+      source: rmsnormSource,
+      entryPoint: 'rmsnorm_small',
+      workgroupSize: [256, 1, 1],
+      requires: [],
+    },
+    residual: {
+      source: rmsnormSource,
+      entryPoint: 'rmsnorm_inplace_residual',
+      workgroupSize: [256, 1, 1],
+      requires: [],
+    },
+  },
+  softmax: {
+    default: {
+      source: softmaxSource,
+      entryPoint: 'main',
+      workgroupSize: [256, 1, 1],
+      requires: [],
+    },
+    small: {
+      source: softmaxSource,
+      entryPoint: 'softmax_small',
+      workgroupSize: [256, 1, 1],
+      requires: [],
+    },
+    online: {
+      source: softmaxSource,
+      entryPoint: 'softmax_online',
+      workgroupSize: [256, 1, 1],
+      requires: [],
+    },
+  },
+  rope: {
+    default: {
+      source: ropeSource,
+      entryPoint: 'main',
+      workgroupSize: [256, 1, 1],
+      requires: [],
+    },
+    compute_freqs: {
+      source: ropeSource,
+      entryPoint: 'rope_compute_freqs',
+      workgroupSize: [256, 1, 1],
+      requires: [],
+    },
+    qk: {
+      source: ropeSource,
+      entryPoint: 'rope_qk',
+      workgroupSize: [256, 1, 1],
+      requires: [],
+    },
+    ntk: {
+      source: ropeSource,
+      entryPoint: 'rope_ntk_scaled',
+      workgroupSize: [256, 1, 1],
+      requires: [],
+    },
+    yarn: {
+      source: ropeSource,
+      entryPoint: 'rope_yarn',
+      workgroupSize: [256, 1, 1],
+      requires: [],
+    },
+  },
+  silu: {
+    default: {
+      source: siluSource,
+      entryPoint: 'main',
+      workgroupSize: [256, 1, 1],
+      requires: [],
+    },
+    gate: {
+      source: siluSource,
+      entryPoint: 'silu_gate',
+      workgroupSize: [256, 1, 1],
+      requires: [],
+    },
+    gate_split: {
+      source: siluSource,
+      entryPoint: 'silu_gate_split',
+      workgroupSize: [256, 1, 1],
+      requires: [],
+    },
+    vec4: {
+      source: siluSource,
+      entryPoint: 'silu_vec4',
+      workgroupSize: [256, 1, 1],
+      requires: [],
+    },
+    gelu: {
+      source: siluSource,
+      entryPoint: 'gelu',
+      workgroupSize: [256, 1, 1],
       requires: [],
     },
   },
@@ -434,4 +563,413 @@ export function getCacheStats() {
     pipelineCount: pipelineCache.size,
     cachedKernels: [...pipelineCache.keys()],
   };
+}
+
+/**
+ * Run multi-head attention
+ * @param {GPUBuffer} Q - Query tensor [seqLen, numHeads, headDim]
+ * @param {GPUBuffer} K - Key tensor [kvLen, numKVHeads, headDim]
+ * @param {GPUBuffer} V - Value tensor [kvLen, numKVHeads, headDim]
+ * @param {GPUBuffer|null} mask - Optional attention mask [seqLen, kvLen]
+ * @param {number} numHeads - Number of query heads
+ * @param {number} headDim - Dimension per head
+ * @param {object} options - Additional options
+ * @returns {Promise<GPUBuffer>} Output tensor [seqLen, numHeads, headDim]
+ */
+export async function runAttention(Q, K, V, mask, numHeads, headDim, options = {}) {
+  const device = getDevice();
+  const {
+    seqLen = 1,
+    kvLen = seqLen,
+    numKVHeads = numHeads,
+    scale = 1.0 / Math.sqrt(headDim),
+    causal = true,
+    outputBuffer = null,
+  } = options;
+
+  // Select variant based on seqLen
+  const variant = seqLen === 1 ? 'decode' : 'prefill';
+  const config = getKernelConfig('attention', variant);
+  const pipeline = await createPipeline('attention', variant);
+
+  // Create output buffer if not provided
+  const outputSize = seqLen * numHeads * headDim * 4;
+  const output = outputBuffer || device.createBuffer({
+    label: 'attention_output',
+    size: outputSize,
+    usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC,
+  });
+
+  // Create uniform buffer
+  const uniformData = new ArrayBuffer(32);
+  const uniformView = new DataView(uniformData);
+  uniformView.setUint32(0, seqLen, true);
+  uniformView.setUint32(4, kvLen, true);
+  uniformView.setUint32(8, numHeads, true);
+  uniformView.setUint32(12, numKVHeads, true);
+  uniformView.setUint32(16, headDim, true);
+  uniformView.setFloat32(20, scale, true);
+  uniformView.setUint32(24, causal ? 1 : 0, true);
+  uniformView.setUint32(28, mask ? 1 : 0, true);
+
+  const uniformBuffer = device.createBuffer({
+    label: 'attention_uniforms',
+    size: 32,
+    usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+  });
+  device.queue.writeBuffer(uniformBuffer, 0, uniformData);
+
+  // Create dummy mask if not provided
+  const maskBuffer = mask || device.createBuffer({
+    label: 'attention_dummy_mask',
+    size: 4,
+    usage: GPUBufferUsage.STORAGE,
+  });
+
+  // Create bind group
+  const bindGroup = device.createBindGroup({
+    label: 'attention_bind_group',
+    layout: pipeline.getBindGroupLayout(0),
+    entries: [
+      { binding: 0, resource: { buffer: uniformBuffer } },
+      { binding: 1, resource: { buffer: Q } },
+      { binding: 2, resource: { buffer: K } },
+      { binding: 3, resource: { buffer: V } },
+      { binding: 4, resource: { buffer: output } },
+      { binding: 5, resource: { buffer: maskBuffer } },
+    ],
+  });
+
+  // Dispatch
+  const encoder = device.createCommandEncoder({ label: 'attention_encoder' });
+  const pass = encoder.beginComputePass({ label: 'attention_pass' });
+  pass.setPipeline(pipeline);
+  pass.setBindGroup(0, bindGroup);
+
+  const workgroups = seqLen * numHeads;
+  pass.dispatchWorkgroups(workgroups);
+  pass.end();
+
+  device.queue.submit([encoder.finish()]);
+
+  uniformBuffer.destroy();
+  if (!mask) maskBuffer.destroy();
+
+  return output;
+}
+
+/**
+ * Run RMSNorm
+ * @param {GPUBuffer} input - Input tensor [batchSize, hiddenSize]
+ * @param {GPUBuffer} weight - Weight tensor [hiddenSize]
+ * @param {number} eps - Epsilon for numerical stability
+ * @param {object} options - Additional options
+ * @returns {Promise<GPUBuffer>} Normalized output
+ */
+export async function runRMSNorm(input, weight, eps = 1e-5, options = {}) {
+  const device = getDevice();
+  const { batchSize = 1, hiddenSize, residual = null, outputBuffer = null } = options;
+
+  // Select variant
+  let variant = 'default';
+  if (residual) {
+    variant = 'residual';
+  } else if (hiddenSize <= 256) {
+    variant = 'small';
+  }
+
+  const config = getKernelConfig('rmsnorm', variant);
+  const pipeline = await createPipeline('rmsnorm', variant);
+
+  // Create output buffer if not provided
+  const outputSize = batchSize * hiddenSize * 4;
+  const output = outputBuffer || device.createBuffer({
+    label: 'rmsnorm_output',
+    size: outputSize,
+    usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC,
+  });
+
+  // Create uniform buffer
+  const uniformData = new ArrayBuffer(16);
+  const uniformView = new DataView(uniformData);
+  uniformView.setUint32(0, batchSize, true);
+  uniformView.setUint32(4, hiddenSize, true);
+  uniformView.setFloat32(8, eps, true);
+  uniformView.setUint32(12, 0, true); // padding
+
+  const uniformBuffer = device.createBuffer({
+    label: 'rmsnorm_uniforms',
+    size: 16,
+    usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+  });
+  device.queue.writeBuffer(uniformBuffer, 0, uniformData);
+
+  // Create dummy residual if not provided
+  const residualBuffer = residual || device.createBuffer({
+    label: 'rmsnorm_dummy_residual',
+    size: 4,
+    usage: GPUBufferUsage.STORAGE,
+  });
+
+  // Create bind group
+  const bindGroup = device.createBindGroup({
+    label: 'rmsnorm_bind_group',
+    layout: pipeline.getBindGroupLayout(0),
+    entries: [
+      { binding: 0, resource: { buffer: uniformBuffer } },
+      { binding: 1, resource: { buffer: input } },
+      { binding: 2, resource: { buffer: weight } },
+      { binding: 3, resource: { buffer: output } },
+      { binding: 4, resource: { buffer: residualBuffer } },
+    ],
+  });
+
+  // Dispatch
+  const encoder = device.createCommandEncoder({ label: 'rmsnorm_encoder' });
+  const pass = encoder.beginComputePass({ label: 'rmsnorm_pass' });
+  pass.setPipeline(pipeline);
+  pass.setBindGroup(0, bindGroup);
+
+  pass.dispatchWorkgroups(batchSize);
+  pass.end();
+
+  device.queue.submit([encoder.finish()]);
+
+  uniformBuffer.destroy();
+  if (!residual) residualBuffer.destroy();
+
+  return output;
+}
+
+/**
+ * Run Softmax
+ * @param {GPUBuffer} input - Input tensor
+ * @param {number} axis - Axis to compute softmax over (typically last dimension)
+ * @param {object} options - Additional options
+ * @returns {Promise<GPUBuffer>} Softmax output
+ */
+export async function runSoftmax(input, axis, options = {}) {
+  const device = getDevice();
+  const { batchSize = 1, size, temperature = 1.0, outputBuffer = null } = options;
+
+  // Select variant
+  let variant = 'default';
+  if (size <= 256) {
+    variant = 'small';
+  } else if (size > 1024) {
+    variant = 'online';
+  }
+
+  const config = getKernelConfig('softmax', variant);
+  const pipeline = await createPipeline('softmax', variant);
+
+  // Create output buffer if not provided
+  const outputSize = batchSize * size * 4;
+  const output = outputBuffer || device.createBuffer({
+    label: 'softmax_output',
+    size: outputSize,
+    usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC,
+  });
+
+  // Create uniform buffer
+  const uniformData = new ArrayBuffer(16);
+  const uniformView = new DataView(uniformData);
+  uniformView.setUint32(0, batchSize, true);
+  uniformView.setUint32(4, size, true);
+  uniformView.setFloat32(8, temperature, true);
+  uniformView.setUint32(12, 0, true); // padding
+
+  const uniformBuffer = device.createBuffer({
+    label: 'softmax_uniforms',
+    size: 16,
+    usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+  });
+  device.queue.writeBuffer(uniformBuffer, 0, uniformData);
+
+  // Create bind group
+  const bindGroup = device.createBindGroup({
+    label: 'softmax_bind_group',
+    layout: pipeline.getBindGroupLayout(0),
+    entries: [
+      { binding: 0, resource: { buffer: uniformBuffer } },
+      { binding: 1, resource: { buffer: input } },
+      { binding: 2, resource: { buffer: output } },
+    ],
+  });
+
+  // Dispatch
+  const encoder = device.createCommandEncoder({ label: 'softmax_encoder' });
+  const pass = encoder.beginComputePass({ label: 'softmax_pass' });
+  pass.setPipeline(pipeline);
+  pass.setBindGroup(0, bindGroup);
+
+  pass.dispatchWorkgroups(batchSize);
+  pass.end();
+
+  device.queue.submit([encoder.finish()]);
+
+  uniformBuffer.destroy();
+
+  return output;
+}
+
+/**
+ * Run Rotary Position Embeddings (RoPE)
+ * @param {GPUBuffer} input - Input tensor [seqLen, numHeads, headDim]
+ * @param {GPUBuffer} freqsCos - Precomputed cos frequencies
+ * @param {GPUBuffer} freqsSin - Precomputed sin frequencies
+ * @param {number} seqLen - Sequence length
+ * @param {object} options - Additional options
+ * @returns {Promise<GPUBuffer>} Input buffer with RoPE applied in-place
+ */
+export async function runRoPE(input, freqsCos, freqsSin, seqLen, options = {}) {
+  const device = getDevice();
+  const {
+    numHeads,
+    headDim,
+    startPos = 0,
+    ropeBase = 10000.0,
+    ropeScale = 1.0,
+    variant = 'default',
+  } = options;
+
+  const config = getKernelConfig('rope', variant);
+  const pipeline = await createPipeline('rope', variant);
+
+  // Create uniform buffer
+  const uniformData = new ArrayBuffer(32);
+  const uniformView = new DataView(uniformData);
+  uniformView.setUint32(0, seqLen, true);
+  uniformView.setUint32(4, numHeads, true);
+  uniformView.setUint32(8, headDim, true);
+  uniformView.setUint32(12, startPos, true);
+  uniformView.setFloat32(16, ropeBase, true);
+  uniformView.setFloat32(20, ropeScale, true);
+  uniformView.setUint32(24, 0, true); // padding
+  uniformView.setUint32(28, 0, true); // padding
+
+  const uniformBuffer = device.createBuffer({
+    label: 'rope_uniforms',
+    size: 32,
+    usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+  });
+  device.queue.writeBuffer(uniformBuffer, 0, uniformData);
+
+  // Create bind group
+  const bindGroup = device.createBindGroup({
+    label: 'rope_bind_group',
+    layout: pipeline.getBindGroupLayout(0),
+    entries: [
+      { binding: 0, resource: { buffer: uniformBuffer } },
+      { binding: 1, resource: { buffer: input } },
+      { binding: 2, resource: { buffer: freqsCos } },
+      { binding: 3, resource: { buffer: freqsSin } },
+    ],
+  });
+
+  // Dispatch
+  const encoder = device.createCommandEncoder({ label: 'rope_encoder' });
+  const pass = encoder.beginComputePass({ label: 'rope_pass' });
+  pass.setPipeline(pipeline);
+  pass.setBindGroup(0, bindGroup);
+
+  const totalElements = seqLen * numHeads * headDim;
+  const workgroups = Math.ceil(totalElements / 256);
+  pass.dispatchWorkgroups(workgroups);
+  pass.end();
+
+  device.queue.submit([encoder.finish()]);
+
+  uniformBuffer.destroy();
+
+  return input; // RoPE is applied in-place
+}
+
+/**
+ * Run SiLU activation
+ * @param {GPUBuffer} input - Input tensor
+ * @param {object} options - Additional options
+ * @returns {Promise<GPUBuffer>} Activated output
+ */
+export async function runSiLU(input, options = {}) {
+  const device = getDevice();
+  const { size, gate = null, outputBuffer = null, useVec4 = false } = options;
+
+  // Select variant
+  let variant = 'default';
+  if (gate) {
+    variant = 'gate';
+  } else if (useVec4) {
+    variant = 'vec4';
+  }
+
+  const config = getKernelConfig('silu', variant);
+  const pipeline = await createPipeline('silu', variant);
+
+  // Output size depends on variant
+  const outputElements = gate ? size : size;
+  const outputSize = outputElements * 4;
+  const output = outputBuffer || device.createBuffer({
+    label: 'silu_output',
+    size: outputSize,
+    usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC,
+  });
+
+  // Create uniform buffer
+  const uniformData = new ArrayBuffer(16);
+  const uniformView = new DataView(uniformData);
+  uniformView.setUint32(0, size, true);
+  uniformView.setUint32(4, 0, true); // hasBias
+  uniformView.setUint32(8, gate ? 1 : 0, true); // hasGate
+  uniformView.setUint32(12, 0, true); // padding
+
+  const uniformBuffer = device.createBuffer({
+    label: 'silu_uniforms',
+    size: 16,
+    usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+  });
+  device.queue.writeBuffer(uniformBuffer, 0, uniformData);
+
+  // Create dummy buffers if not provided
+  const gateBuffer = gate || device.createBuffer({
+    label: 'silu_dummy_gate',
+    size: 4,
+    usage: GPUBufferUsage.STORAGE,
+  });
+  const biasBuffer = device.createBuffer({
+    label: 'silu_dummy_bias',
+    size: 4,
+    usage: GPUBufferUsage.STORAGE,
+  });
+
+  // Create bind group
+  const bindGroup = device.createBindGroup({
+    label: 'silu_bind_group',
+    layout: pipeline.getBindGroupLayout(0),
+    entries: [
+      { binding: 0, resource: { buffer: uniformBuffer } },
+      { binding: 1, resource: { buffer: input } },
+      { binding: 2, resource: { buffer: output } },
+      { binding: 3, resource: { buffer: gateBuffer } },
+      { binding: 4, resource: { buffer: biasBuffer } },
+    ],
+  });
+
+  // Dispatch
+  const encoder = device.createCommandEncoder({ label: 'silu_encoder' });
+  const pass = encoder.beginComputePass({ label: 'silu_pass' });
+  pass.setPipeline(pipeline);
+  pass.setBindGroup(0, bindGroup);
+
+  const workgroups = useVec4 ? Math.ceil(size / (256 * 4)) : Math.ceil(size / 256);
+  pass.dispatchWorkgroups(workgroups);
+  pass.end();
+
+  device.queue.submit([encoder.finish()]);
+
+  uniformBuffer.destroy();
+  if (!gate) gateBuffer.destroy();
+  biasBuffer.destroy();
+
+  return output;
 }

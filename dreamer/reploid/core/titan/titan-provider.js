@@ -176,16 +176,21 @@ export async function loadModel(modelId, modelUrl = null, onProgress = null) {
       );
     }
 
-    // Initialize pipeline
+    // Initialize pipeline with current capabilities
+    const gpuCaps = getKernelCapabilities();
+    const memCaps = await getMemoryCapabilities();
+
     pipeline = await createPipeline(manifest, {
       gpu: {
         capabilities: gpuCaps,
+        device: await initDevice(),
       },
       memory: {
         capabilities: memCaps,
+        heapManager: getHeapManager(),
       },
       storage: {
-        // placeholder: storage context wiring goes here
+        loadShard: (idx) => import('./storage/shard-manager.js').then(m => m.loadShard(idx)),
       }
     });
 

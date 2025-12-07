@@ -43,11 +43,17 @@ export {
   initDevice,
   getDevice,
   getKernelCapabilities,
+  getDeviceLimits,
   destroyDevice,
 } from './gpu/device.js';
 export {
   runMatmul,
   dequantize,
+  runAttention,
+  runRMSNorm,
+  runSoftmax,
+  runRoPE,
+  runSiLU,
   selectMatmulKernel,
   selectDequantKernel,
 } from './gpu/kernel-selector.js';
@@ -58,6 +64,8 @@ export {
   releaseBuffer,
   readBuffer,
 } from './gpu/buffer-pool.js';
+export { GPUProfiler, getProfiler, createProfiler } from './gpu/profiler.js';
+export { KernelTuner, getKernelTuner } from './gpu/kernel-tuner.js';
 
 // Inference Pipeline (Agent-D)
 export { MoERouter } from './inference/moe-router.js';
