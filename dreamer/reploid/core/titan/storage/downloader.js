@@ -430,19 +430,35 @@ export async function downloadModel(baseUrl, onProgress, options = {}) {
     }
   };
 
+  // Track errors from concurrent downloads
+  const downloadErrors = [];
+
   try {
     // Process queue with concurrency limit
+    const downloadPromises = new Set();
+
     while (downloadQueue.length > 0 || inFlight.size > 0) {
       if (abortController.signal.aborted) break;
 
       // Start new downloads up to concurrency limit
       while (inFlight.size < concurrency && downloadQueue.length > 0) {
-        downloadNext().catch(() => {}); // Errors handled inside
+        const promise = downloadNext().catch((error) => {
+          // Collect errors instead of swallowing them
+          if (error.name !== 'AbortError') {
+            downloadErrors.push(error);
+            console.error('[Downloader] Shard download failed:', error.message);
+          }
+        });
+        downloadPromises.add(promise);
+        promise.finally(() => downloadPromises.delete(promise));
       }
 
       // Wait a bit before checking again
       await new Promise(r => setTimeout(r, 100));
     }
+
+    // Wait for any remaining downloads to complete
+    await Promise.all([...downloadPromises]);
 
     // Verify all shards completed
     if (state.completedShards.size === totalShards) {
@@ -456,6 +472,12 @@ export async function downloadModel(baseUrl, onProgress, options = {}) {
 
       updateProgress(null);
       return true;
+    }
+
+    // If we have errors and not all shards completed, report them
+    if (downloadErrors.length > 0) {
+      const errorMessages = downloadErrors.map(e => e.message).join('; ');
+      throw new Error(`Download incomplete: ${downloadErrors.length} shard(s) failed. Errors: ${errorMessages}`);
     }
 
     return false;

@@ -90,6 +90,29 @@ class BufferPool {
     const alignedSize = alignTo(size, this.config.alignmentBytes);
     const bucket = getSizeBucket(alignedSize);
 
+    // Check device limits before allocation
+    const limits = getDeviceLimits();
+    if (limits) {
+      const maxSize = limits.maxBufferSize || Infinity;
+      const maxStorageSize = limits.maxStorageBufferBindingSize || Infinity;
+
+      if (bucket > maxSize) {
+        throw new Error(
+          `Buffer size ${bucket} exceeds device maxBufferSize (${maxSize}). ` +
+          `Requested: ${size} bytes, bucketed to: ${bucket} bytes.`
+        );
+      }
+
+      // Check storage binding size for storage buffers
+      const isStorageBuffer = (usage & GPUBufferUsage.STORAGE) !== 0;
+      if (isStorageBuffer && bucket > maxStorageSize) {
+        throw new Error(
+          `Storage buffer size ${bucket} exceeds device maxStorageBufferBindingSize (${maxStorageSize}). ` +
+          `Consider splitting into smaller buffers or using a different strategy.`
+        );
+      }
+    }
+
     // Try to get from pool
     if (this.config.enablePooling) {
       const pooled = this._getFromPool(bucket, usage);

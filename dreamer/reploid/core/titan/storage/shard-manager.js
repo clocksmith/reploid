@@ -27,56 +27,74 @@ let modelsDir = null;
 let currentModelDir = null;
 let blake3Module = null;
 
+// Track which hash algorithm is being used
+let hashAlgorithm = null;
+
 /**
  * Initializes the BLAKE3 hashing module
- * Uses the BLAKE3 WASM implementation
+ * Uses the BLAKE3 WASM implementation, falls back to SHA-256
+ * @param {string} [requiredAlgorithm] - Required algorithm from manifest ('blake3' or 'sha256')
  * @returns {Promise<void>}
  */
-async function initBlake3() {
-  if (blake3Module) return;
+async function initBlake3(requiredAlgorithm = null) {
+  if (blake3Module && hashAlgorithm) return;
 
   // Try to load BLAKE3 WASM module
-  // Falls back to a JavaScript implementation if WASM unavailable
   try {
     // Dynamic import of blake3 module (should be bundled or loaded separately)
     if (typeof globalThis.blake3 !== 'undefined') {
       blake3Module = globalThis.blake3;
-    } else {
-      // Fallback: create a simple interface that will use Web Crypto for verification
-      // Note: This is a placeholder - in production, use actual BLAKE3 implementation
-      blake3Module = {
-        hash: async (data) => {
-          // Fallback to SHA-256 if BLAKE3 not available (for development only)
-          console.warn('BLAKE3 not available, using SHA-256 fallback');
-          const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-          return new Uint8Array(hashBuffer);
+      hashAlgorithm = 'blake3';
+      return;
+    }
+  } catch (e) {
+    console.warn('BLAKE3 WASM module not available:', e.message);
+  }
+
+  // If BLAKE3 is explicitly required and not available, fail
+  if (requiredAlgorithm === 'blake3') {
+    throw new Error(
+      'BLAKE3 required by manifest but not available. ' +
+      'Install blake3 WASM module or re-convert model with SHA-256.'
+    );
+  }
+
+  // Fallback to SHA-256
+  console.warn('[shard-manager] BLAKE3 not available, using SHA-256');
+  hashAlgorithm = 'sha256';
+  blake3Module = {
+    hash: async (data) => {
+      const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+      return new Uint8Array(hashBuffer);
+    },
+    createHasher: () => {
+      const chunks = [];
+      return {
+        update: (data) => {
+          chunks.push(new Uint8Array(data));
         },
-        createHasher: () => {
-          // Streaming hasher fallback
-          const chunks = [];
-          return {
-            update: (data) => {
-              chunks.push(new Uint8Array(data));
-            },
-            finalize: async () => {
-              const totalLength = chunks.reduce((acc, c) => acc + c.length, 0);
-              const combined = new Uint8Array(totalLength);
-              let offset = 0;
-              for (const chunk of chunks) {
-                combined.set(chunk, offset);
-                offset += chunk.length;
-              }
-              const hashBuffer = await crypto.subtle.digest('SHA-256', combined);
-              return new Uint8Array(hashBuffer);
-            }
-          };
+        finalize: async () => {
+          const totalLength = chunks.reduce((acc, c) => acc + c.length, 0);
+          const combined = new Uint8Array(totalLength);
+          let offset = 0;
+          for (const chunk of chunks) {
+            combined.set(chunk, offset);
+            offset += chunk.length;
+          }
+          const hashBuffer = await crypto.subtle.digest('SHA-256', combined);
+          return new Uint8Array(hashBuffer);
         }
       };
     }
-  } catch (e) {
-    console.error('Failed to initialize BLAKE3:', e);
-    throw new Error('BLAKE3 initialization failed');
-  }
+  };
+}
+
+/**
+ * Get the current hash algorithm in use
+ * @returns {string|null} 'blake3' or 'sha256'
+ */
+export function getHashAlgorithm() {
+  return hashAlgorithm;
 }
 
 /**

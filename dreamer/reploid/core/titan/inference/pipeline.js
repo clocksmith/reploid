@@ -16,14 +16,24 @@ import { SpeculativeDecoder } from './speculative.js';
 import { KVCache, SlidingWindowKVCache } from './kv-cache.js';
 import { Tokenizer } from './tokenizer.js';
 
-// TODO: Waiting on Agent-A for memory interfaces
-// import { getMemoryCapabilities, allocateBuffer } from '../memory/capability.js';
+// Memory interfaces (Agent-A)
+import { getMemoryCapabilities } from '../memory/capability.js';
 
-// TODO: Waiting on Agent-B for storage interfaces
-// import { loadShard, getManifest } from '../storage/shard-manager.js';
+// Storage interfaces (Agent-B)
+import { loadShard, getManifest } from '../storage/shard-manager.js';
 
-// TODO: Waiting on Agent-C for GPU interfaces
-// import { initDevice, runMatmul, dequantize, getKernelCapabilities } from '../gpu/device.js';
+// GPU interfaces (Agent-C)
+import { getDevice, getKernelCapabilities } from '../gpu/device.js';
+import {
+  runMatmul,
+  dequantize,
+  runAttention,
+  runRMSNorm,
+  runSoftmax,
+  runRoPE,
+  runSiLU,
+} from '../gpu/kernel-selector.js';
+import { acquireBuffer, releaseBuffer, readBuffer } from '../gpu/buffer-pool.js';
 
 /**
  * Generation Options
@@ -437,21 +447,101 @@ export class InferencePipeline {
    * @private
    */
   async _attention(layerIdx, hiddenStates, numTokens, isPrefill) {
+    const { numHeads, numKVHeads, headDim, hiddenSize } = this.modelConfig;
+    const device = getDevice();
+
+    if (!this.useGPU || !device) {
+      // CPU fallback - simplified attention
+      return this._attentionCPU(layerIdx, hiddenStates, numTokens, isPrefill);
+    }
+
+    // Get layer weights
+    const layerWeights = this.weights.get(`layer_${layerIdx}`);
+    if (!layerWeights) {
+      console.warn(`[Pipeline] Layer ${layerIdx} weights not loaded, using placeholder`);
+      return new Float32Array(hiddenStates.length);
+    }
+
+    // 1. Create input buffer from hidden states
+    const inputBuffer = acquireBuffer(hiddenStates.byteLength, undefined, 'attn_input');
+    device.queue.writeBuffer(inputBuffer, 0, hiddenStates);
+
+    // 2. Apply RMSNorm (input normalization)
+    const normWeight = layerWeights.inputNorm;
+    if (normWeight) {
+      const normBuffer = acquireBuffer(normWeight.byteLength, undefined, 'attn_norm_weight');
+      device.queue.writeBuffer(normBuffer, 0, normWeight);
+      const normedBuffer = await runRMSNorm(inputBuffer, normBuffer, 1e-5, {
+        batchSize: numTokens,
+        hiddenSize,
+      });
+      releaseBuffer(inputBuffer);
+      releaseBuffer(normBuffer);
+      // Use normed output as new input
+    }
+
+    // 3. Project to Q, K, V (using matmul)
+    // Q: [numTokens, hiddenSize] x [hiddenSize, numHeads * headDim]
+    // K: [numTokens, hiddenSize] x [hiddenSize, numKVHeads * headDim]
+    // V: same as K
+
+    // For now, placeholder until weight layout is fully defined
+    const qSize = numTokens * numHeads * headDim;
+    const kvSize = numTokens * numKVHeads * headDim;
+
+    const Q = acquireBuffer(qSize * 4, undefined, 'Q');
+    const K = acquireBuffer(kvSize * 4, undefined, 'K');
+    const V = acquireBuffer(kvSize * 4, undefined, 'V');
+
+    // 4. Apply RoPE to Q and K
+    if (this.ropeFreqsCos && this.ropeFreqsSin) {
+      await runRoPE(Q, this.ropeFreqsCos, this.ropeFreqsSin, numTokens, {
+        numHeads,
+        headDim,
+        startPos: this.currentSeqLen,
+      });
+      await runRoPE(K, this.ropeFreqsCos, this.ropeFreqsSin, numTokens, {
+        numHeads: numKVHeads,
+        headDim,
+        startPos: this.currentSeqLen,
+      });
+    }
+
+    // 5. Update KV cache
+    const kData = await readBuffer(K, kvSize * 4);
+    const vData = await readBuffer(V, kvSize * 4);
+    this.kvCache.update(layerIdx, new Float32Array(kData), new Float32Array(vData), this.currentSeqLen);
+
+    // 6. Run attention
+    const output = await runAttention(Q, K, V, null, numHeads, headDim, {
+      seqLen: numTokens,
+      kvLen: this.currentSeqLen + numTokens,
+      numKVHeads,
+      causal: true,
+    });
+
+    // 7. Read output back
+    const outputData = await readBuffer(output, numTokens * numHeads * headDim * 4);
+
+    // Cleanup
+    releaseBuffer(Q);
+    releaseBuffer(K);
+    releaseBuffer(V);
+    releaseBuffer(output);
+
+    return new Float32Array(outputData);
+  }
+
+  /**
+   * CPU fallback for attention
+   * @private
+   */
+  _attentionCPU(layerIdx, hiddenStates, numTokens, isPrefill) {
     const { numHeads, numKVHeads, headDim } = this.modelConfig;
-
-    // TODO: Implement actual attention with Agent-C's GPU kernels
-    // 1. Project Q, K, V
-    // 2. Update KV cache
-    // 3. Compute attention scores
-    // 4. Apply softmax
-    // 5. Compute attention output
-    // 6. Project output
-
-    // Placeholder: update KV cache
+    // Placeholder: update KV cache with zeros
     const kvSize = numKVHeads * headDim;
     const dummyKV = new Float32Array(numTokens * kvSize);
     this.kvCache.update(layerIdx, dummyKV, dummyKV, this.currentSeqLen);
-
     return new Float32Array(hiddenStates.length);
   }
 
@@ -460,12 +550,60 @@ export class InferencePipeline {
    * @private
    */
   async _feedForward(layerIdx, hiddenStates) {
-    // TODO: Implement FFN with Agent-C's GPU kernels
-    // 1. Up projection
-    // 2. Activation (SiLU/GELU)
-    // 3. Down projection
+    const { hiddenSize, intermediateSize } = this.modelConfig;
+    const device = getDevice();
+    const numTokens = hiddenStates.length / hiddenSize;
 
-    return new Float32Array(hiddenStates.length);
+    if (!this.useGPU || !device) {
+      // CPU fallback
+      return new Float32Array(hiddenStates.length);
+    }
+
+    const layerWeights = this.weights.get(`layer_${layerIdx}`);
+    if (!layerWeights || !layerWeights.ffnGate || !layerWeights.ffnUp || !layerWeights.ffnDown) {
+      console.warn(`[Pipeline] Layer ${layerIdx} FFN weights not loaded`);
+      return new Float32Array(hiddenStates.length);
+    }
+
+    // 1. Create input buffer
+    const inputBuffer = acquireBuffer(hiddenStates.byteLength, undefined, 'ffn_input');
+    device.queue.writeBuffer(inputBuffer, 0, hiddenStates);
+
+    // 2. Gate projection: gate = W_gate @ x
+    const gateWeightBuffer = acquireBuffer(layerWeights.ffnGate.byteLength, undefined, 'ffn_gate_w');
+    device.queue.writeBuffer(gateWeightBuffer, 0, layerWeights.ffnGate);
+    const gateOutput = await runMatmul(inputBuffer, gateWeightBuffer, numTokens, intermediateSize, hiddenSize);
+
+    // 3. Up projection: up = W_up @ x
+    const upWeightBuffer = acquireBuffer(layerWeights.ffnUp.byteLength, undefined, 'ffn_up_w');
+    device.queue.writeBuffer(upWeightBuffer, 0, layerWeights.ffnUp);
+    const upOutput = await runMatmul(inputBuffer, upWeightBuffer, numTokens, intermediateSize, hiddenSize);
+
+    // 4. SiLU activation on gate, multiply with up: out = silu(gate) * up
+    const activatedOutput = await runSiLU(gateOutput, {
+      size: numTokens * intermediateSize,
+      gate: upOutput,
+    });
+
+    // 5. Down projection: result = W_down @ activated
+    const downWeightBuffer = acquireBuffer(layerWeights.ffnDown.byteLength, undefined, 'ffn_down_w');
+    device.queue.writeBuffer(downWeightBuffer, 0, layerWeights.ffnDown);
+    const output = await runMatmul(activatedOutput, downWeightBuffer, numTokens, hiddenSize, intermediateSize);
+
+    // 6. Read output back
+    const outputData = await readBuffer(output, hiddenStates.byteLength);
+
+    // Cleanup
+    releaseBuffer(inputBuffer);
+    releaseBuffer(gateWeightBuffer);
+    releaseBuffer(upWeightBuffer);
+    releaseBuffer(downWeightBuffer);
+    releaseBuffer(gateOutput);
+    releaseBuffer(upOutput);
+    releaseBuffer(activatedOutput);
+    releaseBuffer(output);
+
+    return new Float32Array(outputData);
   }
 
   /**

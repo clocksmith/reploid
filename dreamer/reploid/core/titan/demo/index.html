@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Titan - Browser LLM</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="app">
+    <!-- Header -->
+    <header class="header">
+      <h1 class="header-title">Titan</h1>
+      <span class="header-subtitle">Browser-native LLM Inference</span>
+      <div id="status-indicator" class="status-indicator">
+        <span class="status-dot"></span>
+        <span class="status-text">Initializing...</span>
+      </div>
+    </header>
+
+    <!-- Main Layout -->
+    <main class="main-layout">
+      <!-- Sidebar: Model Selection -->
+      <aside class="sidebar" id="sidebar">
+        <section class="panel model-panel">
+          <h2 class="panel-title">Models</h2>
+          <div id="model-list" class="model-list">
+            <!-- Model items populated by model-selector.js -->
+          </div>
+          <div class="storage-info" id="storage-info">
+            <span class="storage-label">Storage:</span>
+            <span class="storage-value" id="storage-used">-- / --</span>
+          </div>
+        </section>
+
+        <section class="panel capabilities-panel">
+          <h2 class="panel-title">Capabilities</h2>
+          <ul class="capabilities-list" id="capabilities-list">
+            <li data-cap="webgpu"><span class="cap-icon">?</span> WebGPU</li>
+            <li data-cap="f16"><span class="cap-icon">?</span> FP16 Shaders</li>
+            <li data-cap="subgroups"><span class="cap-icon">?</span> Subgroups</li>
+            <li data-cap="memory64"><span class="cap-icon">?</span> Memory64</li>
+          </ul>
+        </section>
+
+        <section class="panel stats-panel">
+          <h2 class="panel-title">Performance</h2>
+          <div class="stats-grid" id="stats-grid">
+            <div class="stat-item">
+              <span class="stat-label">Tokens/sec</span>
+              <span class="stat-value" id="stat-tps">--</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-label">Memory</span>
+              <span class="stat-value" id="stat-memory">--</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-label">GPU Buffers</span>
+              <span class="stat-value" id="stat-gpu">--</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-label">KV Cache</span>
+              <span class="stat-value" id="stat-kv">--</span>
+            </div>
+          </div>
+        </section>
+      </aside>
+
+      <!-- Chat Area -->
+      <section class="chat-container" id="chat-container">
+        <!-- Progress Overlay -->
+        <div class="progress-overlay" id="progress-overlay" hidden>
+          <div class="progress-content">
+            <div class="progress-label" id="progress-label">Loading...</div>
+            <div class="progress-bar-container">
+              <div class="progress-bar" id="progress-bar"></div>
+            </div>
+            <div class="progress-detail" id="progress-detail"></div>
+          </div>
+        </div>
+
+        <!-- Chat Messages -->
+        <div class="chat-messages" id="chat-messages">
+          <div class="welcome-message" id="welcome-message">
+            <h2>Welcome to Titan</h2>
+            <p>Select a model from the sidebar to begin.</p>
+            <p class="requirements-note">Requires WebGPU-enabled browser (Chrome 113+, Edge 113+, or Firefox Nightly)</p>
+          </div>
+        </div>
+
+        <!-- Chat Input -->
+        <div class="chat-input-container">
+          <div class="chat-input-wrapper">
+            <textarea
+              id="chat-input"
+              class="chat-input"
+              placeholder="Type a message..."
+              rows="1"
+              disabled
+            ></textarea>
+            <button id="send-btn" class="send-btn" disabled>
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+                <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+              </svg>
+            </button>
+          </div>
+          <div class="chat-actions">
+            <button id="stop-btn" class="action-btn" hidden>Stop</button>
+            <button id="clear-btn" class="action-btn">Clear</button>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Error Modal -->
+    <div class="modal-overlay" id="error-modal" hidden>
+      <div class="modal-content">
+        <h3 class="modal-title">Error</h3>
+        <p class="modal-message" id="error-message"></p>
+        <button class="modal-close" id="error-close">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Module Scripts -->
+  <script type="module" src="app.js"></script>
+</body>
+</html>
