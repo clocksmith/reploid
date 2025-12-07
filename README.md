@@ -92,7 +92,7 @@ Three boot configurations:
 | REFLECTION | + streaming, verification, HITL |
 | FULL SUBSTRATE | + cognition, semantic memory, arena |
 
-**Blueprints** (optional): Architectural docs mapping to each module. With blueprints loaded, the agent has everything needed to reproduce the entire substrate from scratch.
+**Blueprints** (optional): Architectural docs mapping to each module. With blueprints loaded, the agent has everything needed to reproduce the entire substrate from scratch. There are currently ~100, for example:
 
 | Blueprint | Module | File |
 |-----------|--------|------|
@@ -108,11 +108,11 @@ The agent can modify its own code at three levels:
 |-------|------|---------|
 | L1: Tools | Create new tools | Agent writes an AddNumbers tool |
 | L2: Meta | Improve tool-creation | Agent improves CreateTool to generate better code |
-| L3: Substrate | Modify core loop | Agent rewrites its own execution logic |
+| L3: Substrate | Modify core loop and capabilities | Agent rewrites its own execution logic |
 
 All modifications are verified before execution and logged. VFS snapshots allow rollback if something breaks.
 
-### Arena Mode
+### Arena Mode (Experimental)
 
 For L2+ modifications, arena mode generates multiple candidates, runs them against tests, and keeps the best one.
 
