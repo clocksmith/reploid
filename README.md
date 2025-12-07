@@ -1,6 +1,6 @@
-# REPLOID - browser-based ai agent sandbox
+# Reploid - browser-based agent sandbox
 
-**Reploid**: **R**ecursive **E**volution **P**rotocol **L**oop **O**ptimizing **I**ntelligent **D**reamer (**D**ynamic **R**ecursive **E**ngine **A**dapting **M**odules **E**volving **R**eploid (... ∞))
+**R**ecursive **E**volution **P**rotocol **L**oop **O**ptimizing **I**ntelligent **D**reamer (**D**ynamic **R**ecursive **E**ngine **A**dapting **M**odules **E**volving **R**eploid (... ∞))
 
 - Can run entirely client-side, and even offline
 - Spawns and evolves itself with virtual filesystem in the browser
