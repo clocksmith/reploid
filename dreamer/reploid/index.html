@@ -165,9 +165,33 @@
                 <!-- Local Path (Native Bridge - direct file access) -->
                 <div class="inline-form-row hidden" id="local-path-group">
                     <label>Local Path (optional)</label>
-                    <input type="text" id="local-path-input" class="inline-input"
-                           placeholder="/path/to/model.gguf or /path/to/model-rpl/" />
+                    <div class="input-with-button">
+                        <input type="text" id="local-path-input" class="inline-input"
+                               placeholder="/path/to/model.gguf or /path/to/model-rpl/" />
+                        <button type="button" class="inline-btn-secondary" id="browse-path-btn" title="Browse">📁</button>
+                    </div>
                     <small class="form-hint">Direct file access via Native Bridge extension</small>
+                </div>
+                <!-- Browse Modal for Native Bridge -->
+                <div class="modal-overlay hidden" id="browse-modal">
+                    <div class="modal-content browse-modal">
+                        <div class="modal-header">
+                            <h3>Browse Files</h3>
+                            <button type="button" class="modal-close" id="browse-modal-close">×</button>
+                        </div>
+                        <div class="browse-path-bar">
+                            <button type="button" class="browse-nav-btn" id="browse-up-btn">⬆️ Up</button>
+                            <input type="text" id="browse-current-path" class="browse-path-input" value="/Users" />
+                            <button type="button" class="browse-nav-btn" id="browse-go-btn">Go</button>
+                        </div>
+                        <div class="browse-entries" id="browse-entries">
+                            <!-- Directory entries populated by JS -->
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="inline-btn-secondary" id="browse-cancel-btn">Cancel</button>
+                            <button type="button" class="inline-btn" id="browse-select-btn">Select</button>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- GGUF Import (Browser - File System Access API) -->

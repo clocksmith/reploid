@@ -7,7 +7,7 @@
 import { spawn } from 'child_process';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
-import { writeFileSync, unlinkSync } from 'fs';
+import { writeFileSync, unlinkSync, mkdirSync, rmdirSync } from 'fs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -21,6 +21,8 @@ const CMD_PING = 0x00;
 const CMD_PONG = 0x01;
 const CMD_READ = 0x02;
 const CMD_READ_RESPONSE = 0x03;
+const CMD_LIST = 0x06;
+const CMD_LIST_RESPONSE = 0x07;
 const CMD_ERROR = 0xff;
 
 // Flags
@@ -80,6 +82,16 @@ function createReadMessage(reqId, filePath, offset = 0, length = 1024) {
   const header = createHeader(CMD_READ, 0, reqId, payloadLen);
   const message = Buffer.concat([header, payload]);
 
+  return { type: 'binary', data: Array.from(message) };
+}
+
+/**
+ * Create LIST message
+ */
+function createListMessage(reqId, dirPath) {
+  const pathBuf = Buffer.from(dirPath, 'utf8');
+  const header = createHeader(CMD_LIST, 0, reqId, pathBuf.length);
+  const message = Buffer.concat([header, pathBuf]);
   return { type: 'binary', data: Array.from(message) };
 }
 
@@ -249,6 +261,56 @@ async function runTests() {
       }
     } else {
       console.log('  FAIL: Expected permission error, got:', secRead, '\n');
+    }
+
+    // Test 5: LIST directory
+    console.log('Test 5: LIST directory');
+    const testDir = join(__dirname, 'test-list-dir');
+    mkdirSync(testDir, { recursive: true });
+    writeFileSync(join(testDir, 'file1.txt'), 'content1');
+    writeFileSync(join(testDir, 'file2.txt'), 'content2');
+    mkdirSync(join(testDir, 'subdir'), { recursive: true });
+
+    const listMsg = createListMessage(5, testDir);
+    const listResp = await sendAndWait(listMsg);
+    const list = parseResponse(listResp);
+
+    if (list.cmd === CMD_LIST_RESPONSE && list.reqId === 5) {
+      const entries = JSON.parse(list.payload.toString('utf8'));
+      const hasSubdir = entries.some(e => e.name === 'subdir' && e.isDir);
+      const hasFile1 = entries.some(e => e.name === 'file1.txt' && !e.isDir);
+      const hasFile2 = entries.some(e => e.name === 'file2.txt' && !e.isDir);
+
+      if (hasSubdir && hasFile1 && hasFile2) {
+        console.log(`  PASS: Listed ${entries.length} entries (dirs first)\n`);
+      } else {
+        console.log(`  FAIL: Missing expected entries. Got:`, entries, '\n');
+      }
+    } else if (list.cmd === CMD_ERROR) {
+      const errCode = list.payload.readUInt32LE(0);
+      const errMsg = list.payload.slice(4).toString('utf8');
+      console.log(`  FAIL: Error ${errCode}: ${errMsg}\n`);
+    } else {
+      console.log('  FAIL: Unexpected response:', list, '\n');
+    }
+
+    // Cleanup test directory
+    unlinkSync(join(testDir, 'file1.txt'));
+    unlinkSync(join(testDir, 'file2.txt'));
+    rmdirSync(join(testDir, 'subdir'));
+    rmdirSync(testDir);
+
+    // Test 6: LIST non-existent directory
+    console.log('Test 6: LIST non-existent directory');
+    const badListMsg = createListMessage(6, '/tmp/nonexistent-dreamer-test-dir');
+    const badListResp = await sendAndWait(badListMsg);
+    const badList = parseResponse(badListResp);
+
+    if (badList.cmd === CMD_ERROR) {
+      const errCode = badList.payload.readUInt32LE(0);
+      console.log(`  PASS: Got expected error code ${errCode}\n`);
+    } else {
+      console.log('  FAIL: Expected error response, got:', badList, '\n');
     }
 
     console.log('=== All tests completed ===');

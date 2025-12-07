@@ -1100,6 +1100,30 @@ body::after {
 .modal-content { background: var(--bg-app); border: 1px solid var(--primary); padding: 0; width: 500px; max-width: 90vw; }
 .modal-header { padding: 15px; background: var(--bg-panel); border-bottom: 1px solid var(--border-default); display: flex; justify-content: space-between; }
 .modal-body { padding: 20px; }
+.modal-footer { padding: 15px; background: var(--bg-panel); border-top: 1px solid var(--border-default); display: flex; justify-content: flex-end; gap: 10px; }
+.modal-close { background: none; border: none; color: var(--text-muted); font-size: 24px; cursor: pointer; padding: 0; line-height: 1; }
+.modal-close:hover { color: var(--text-primary); }
+
+/* Browse Modal (Native Bridge) */
+.browse-modal { width: 600px; max-height: 80vh; display: flex; flex-direction: column; }
+.browse-path-bar { display: flex; gap: 8px; padding: 10px 15px; background: var(--bg-panel); border-bottom: 1px solid var(--border-default); }
+.browse-path-input { flex: 1; background: var(--bg-input); border: 1px solid var(--border-default); color: var(--text-primary); padding: 6px 10px; font-family: var(--font-mono); font-size: 12px; }
+.browse-nav-btn { background: var(--bg-panel); border: 1px solid var(--border-default); color: var(--text-primary); padding: 6px 12px; cursor: pointer; font-size: 12px; }
+.browse-nav-btn:hover { background: var(--bg-hover); border-color: var(--primary); }
+.browse-entries { flex: 1; overflow-y: auto; max-height: 400px; min-height: 200px; }
+.browse-entry { display: flex; align-items: center; padding: 8px 15px; cursor: pointer; border-bottom: 1px solid var(--border-subtle); gap: 10px; }
+.browse-entry:hover { background: var(--bg-hover); }
+.browse-entry.selected { background: var(--primary-bg); border-color: var(--primary); }
+.browse-entry-icon { font-size: 16px; width: 24px; text-align: center; }
+.browse-entry-name { flex: 1; font-family: var(--font-mono); font-size: 13px; }
+.browse-entry-size { color: var(--text-muted); font-size: 11px; font-family: var(--font-mono); }
+.browse-entry-dir .browse-entry-name { color: var(--secondary); }
+.browse-empty { padding: 40px; text-align: center; color: var(--text-muted); }
+
+/* Input with button */
+.input-with-button { display: flex; gap: 8px; }
+.input-with-button .inline-input { flex: 1; }
+.input-with-button .inline-btn-secondary { padding: 8px 12px; }
 
 /* Crosshair - Corner Lines */
 .reticle-line {
