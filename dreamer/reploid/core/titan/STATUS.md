@@ -191,3 +191,58 @@ Storage (B)     Memory (A)      GPU (C)         Inference (D)
 - Speculative decoder includes experimental tree-based drafting
 - Pipeline handles MoE expert loading on-demand
 - BLAKE3 uses SHA-256 fallback until WASM module integrated
+
+---
+
+# Phase 2 Progress
+
+## Agent-A: Model Conversion (tools/)
+
+### Status: ✅ Complete
+
+### Files Created
+- `tools/gguf-parser.js` — GGUF format parser (llama.cpp models)
+- `tools/safetensors-parser.js` — Safetensors format parser (HuggingFace models)
+- `tools/quantizer.js` — Q4_K_M quantization/dequantization
+- `tools/rpl-writer.js` — .rpl format writer with shard management
+- `tools/convert-cli.js` — CLI for model conversion
+- `tools/generate-fixture.js` — Test model generator
+- `tools/index.js` — Module exports
+
+### Test Fixture
+- `tests/fixtures/tiny-model/` — Generated test model (904KB, 15 tensors)
+  - vocab_size: 1000
+  - hidden_size: 64
+  - num_layers: 2
+  - Ready for Agent-B testing
+
+### Interface
+```javascript
+// GGUF
+parseGGUF(buffer) → { metadata, tensors, quantization, config }
+parseGGUFFile(path) → Promise<parsed>
+
+// Safetensors
+parseSafetensors(pathOrDir) → { tensors, config, shards }
+readTensorData(tensor) → Promise<ArrayBuffer>
+
+// Quantizer
+quantizeToQ4KM(data, shape) → { quantized, numBlocks }
+dequantizeQ4KM(quantized, numBlocks, shape) → Float32Array
+
+// RPL Writer
+writeRPL(outputDir, modelInfo, getTensorData, options) → { shardCount, totalSize }
+createTestModel(outputDir) → { manifestPath, tensorCount }
+```
+
+### CLI Usage
+```bash
+# Convert GGUF
+node convert-cli.js model.gguf ./output
+
+# Convert HuggingFace with quantization
+node convert-cli.js ./hf-model ./output --quantize q4_k_m
+
+# Create test fixture
+node convert-cli.js --test ./test-model
+```
