@@ -32,8 +32,9 @@ export {
 } from './storage/shard-manager.js';
 export { downloadModel } from './storage/downloader.js';
 export {
-  requestPersistentStorage,
-  getStorageInfo,
+  requestPersistence,
+  getQuotaInfo,
+  getStorageReport,
   checkSpaceAvailable,
 } from './storage/quota.js';
 
@@ -61,6 +62,6 @@ export {
 // Inference Pipeline (Agent-D)
 export { MoERouter } from './inference/moe-router.js';
 export { SpeculativeDecoder } from './inference/speculative.js';
-export { TitanPipeline } from './inference/pipeline.js';
+export { InferencePipeline, createPipeline } from './inference/pipeline.js';
 export { KVCache } from './inference/kv-cache.js';
 export { Tokenizer } from './inference/tokenizer.js';

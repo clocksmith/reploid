@@ -10,12 +10,13 @@ import {
   openModelDirectory,
   verifyIntegrity,
   listModels,
+  loadManifestFromOPFS,
 } from './storage/shard-manager.js';
 import { getManifest, parseManifest } from './storage/rpl-format.js';
 import { downloadModel } from './storage/downloader.js';
-import { requestPersistentStorage, getStorageInfo } from './storage/quota.js';
+import { requestPersistence, getQuotaInfo, getStorageReport } from './storage/quota.js';
 import { initDevice, getKernelCapabilities, destroyDevice } from './gpu/device.js';
-import { TitanPipeline } from './inference/pipeline.js';
+import { createPipeline } from './inference/pipeline.js';
 
 export const TITAN_PROVIDER_VERSION = '0.1.0';
 
@@ -78,7 +79,7 @@ export async function initTitan() {
     await initOPFS();
 
     // Request persistent storage
-    await requestPersistentStorage();
+    await requestPersistence();
 
     // Initialize heap manager
     const heapManager = getHeapManager();
@@ -127,11 +128,23 @@ export async function loadModel(modelId, modelUrl = null, onProgress = null) {
     // Open model directory
     await openModelDirectory(modelId);
 
-    // Check if model exists and is valid
-    const integrity = await verifyIntegrity().catch(() => ({
-      valid: false,
-      missingShards: [],
-    }));
+    // Attempt to load manifest from OPFS (if present)
+    let manifest = null;
+    try {
+      const manifestJson = await loadManifestFromOPFS();
+      manifest = parseManifest(manifestJson);
+    } catch {
+      manifest = null;
+    }
+
+    // Check if model exists and is valid (only if manifest loaded)
+    let integrity = { valid: false, missingShards: [] };
+    if (manifest) {
+      integrity = await verifyIntegrity().catch(() => ({
+        valid: false,
+        missingShards: [],
+      }));
+    }
 
     if (!integrity.valid && modelUrl) {
       console.log(`[Titan] Model not cached, downloading from ${modelUrl}`);
@@ -144,7 +157,7 @@ export async function loadModel(modelId, modelUrl = null, onProgress = null) {
     }
 
     // Get manifest
-    const manifest = getManifest();
+    manifest = getManifest();
     if (!manifest) {
       throw new Error('Failed to load model manifest');
     }
@@ -164,8 +177,17 @@ export async function loadModel(modelId, modelUrl = null, onProgress = null) {
     }
 
     // Initialize pipeline
-    pipeline = new TitanPipeline();
-    await pipeline.init(manifest);
+    pipeline = await createPipeline(manifest, {
+      gpu: {
+        capabilities: gpuCaps,
+      },
+      memory: {
+        capabilities: memCaps,
+      },
+      storage: {
+        // placeholder: storage context wiring goes here
+      }
+    });
 
     currentModelId = modelId;
     console.log(`[Titan] Model loaded: ${modelId}`);
@@ -181,7 +203,9 @@ export async function loadModel(modelId, modelUrl = null, onProgress = null) {
  */
 export async function unloadModel() {
   if (pipeline) {
-    await pipeline.cleanup();
+    if (typeof pipeline.unload === 'function') {
+      await pipeline.unload();
+    }
     pipeline = null;
   }
   currentModelId = null;
@@ -265,7 +289,8 @@ export async function getAvailableModels() {
  * @returns {Promise<Object>}
  */
 export async function getTitanStorageInfo() {
-  return getStorageInfo();
+  // Provide quota + OPFS report
+  return getStorageReport();
 }
 
 /**
