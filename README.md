@@ -1,5 +1,9 @@
 # REPLOID
 
+**R**ecursive **E**volution **P**rotocol **L**oop **O**ptimizing **I**ntelligent **D**REAMER
+**D**ynamic **R**ecursive **E**ngine **A**dapting **M**odules **E**volving **R**EPLOID
+→ REPLOID ↔ DREAMER ↔ ∞
+
 > Browser-native sandbox for safe AI agent development and research
 
 A containment environment for AI agents that can write and execute code. Built for researchers, alignment engineers, and teams building autonomous systems who need **observability, rollback, and human oversight** — not black-box execution.
@@ -174,7 +178,7 @@ These are open questions. REPLOID is infrastructure for exploring them, not answ
 
 ```bash
 git clone https://github.com/clocksmith/reploid
-cd reploid
+cd reploid/dreamer/reploid
 npm install
 npm run dev
 # Open http://localhost:8080
