@@ -16,13 +16,71 @@
 - (none)
 
 ## Ready for Review
-- `device.js` — needs review by Agent-D
-- `kernels/matmul_f32.wgsl` — needs review by Agent-D
-- `kernels/matmul_f16.wgsl` — needs review by Agent-D
-- `kernels/dequant_subgroup.wgsl` — needs review by Agent-D
-- `kernels/dequant_shared.wgsl` — needs review by Agent-D
-- `kernel-selector.js` — needs review by Agent-D
-- `buffer-pool.js` — needs review by Agent-D
+- All files reviewed by Agent-D (pending their update)
+
+## Code Review of AGENT-D (inference/) — ALL APPROVED ✓
+
+### moe-router.js ✓
+- Clean MoERouter class with proper Mixtral-style top-k expert selection
+- CPU fallback `computeRouterLogitsCPU()` implements correct matmul for gating
+- Softmax uses max-subtraction for numerical stability
+- Top-k selection with optional weight renormalization
+- Load balancing stats tracking for debugging/monitoring
+- `createExpertExecutionPlan()` groups tokens by expert for efficient batching
+- `combineExpertOutputs()` properly weighted-sums expert results
+
+### speculative.js ✓
+- Implements Leviathan et al. 2022 speculative decoding
+- `logSoftmax()` with numerical stability (max subtraction)
+- Rejection sampling: `min(1, p_main/p_draft)` correctly implemented
+- `sampleFromResidual()` computes `max(0, p_main - p_draft)` for rejected tokens
+- Statistics tracking for acceptance rate and speedup estimation
+- `TreeSpeculativeDecoder` extension for experimental tree-based drafting
+
+### kv-cache.js ✓
+- Dual layout support: contiguous (fast) and paged (memory-efficient)
+- Lazy page allocation for paged mode reduces initial memory
+- `clone()` for speculative decoding rollback
+- `truncate()` for partial sequence rollback
+- `SlidingWindowKVCache` with `copyWithin()` for efficient sliding
+- `MQAKVCache` for multi-query attention (GQA support)
+- Memory stats with efficiency tracking
+
+### tokenizer.js ✓
+- Clean abstraction with `BaseTokenizer` interface
+- `TransformersTokenizer` wrapping HuggingFace Transformers.js
+- `BPETokenizer` with full merge ranking implementation
+- `SentencePieceTokenizer` stubbed for future WASM integration
+- `createTokenizer()` factory with auto-detection from manifest
+- Proper special token handling (BOS, EOS, PAD, UNK)
+
+### pipeline.js ✓
+- Full `InferencePipeline` orchestrating all components
+- `initialize()` accepts contexts from all agents (gpu, memory, storage)
+- `generate()` async generator with proper prefill/decode phases
+- `_moeFeedForward()` integrates MoE router with expert execution plan
+- `_sample()` with temperature, top-k, top-p (nucleus) sampling
+- Repetition penalty on last 100 tokens
+- Speculative decoding integration when draft model available
+- Comprehensive stats (tokens/sec, KV cache memory, MoE utilization)
+
+### Interface Compatibility
+Agent-D's code is ready to integrate with my GPU interfaces:
+```javascript
+// In pipeline.js, replace TODO comments with:
+import { initDevice, getKernelCapabilities } from '../gpu/device.js';
+import { runMatmul, dequantize } from '../gpu/kernel-selector.js';
+import { acquireBuffer, releaseBuffer } from '../gpu/buffer-pool.js';
+
+// For attention/FFN:
+const qkv = await runMatmul(hiddenStates, qkvWeight, numTokens, 3 * headDim * numHeads, hiddenSize);
+const ffnUp = await runMatmul(normed, upWeight, numTokens, intermediateSize, hiddenSize);
+
+// For quantized weights:
+const dequantized = await dequantize(quantizedBuffer, numBlocks);
+```
+
+**Review Status: ALL 5 FILES APPROVED ✓**
 
 ## Interface Contract (Exported)
 
