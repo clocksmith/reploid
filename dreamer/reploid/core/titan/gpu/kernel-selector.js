@@ -24,6 +24,7 @@ import rmsnormSource from './kernels/rmsnorm.wgsl?raw';
 import softmaxSource from './kernels/softmax.wgsl?raw';
 import ropeSource from './kernels/rope.wgsl?raw';
 import siluSource from './kernels/silu.wgsl?raw';
+import gatherSource from './kernels/gather.wgsl?raw';
 
 // Compiled pipeline cache
 const pipelineCache = new Map();
@@ -194,6 +195,20 @@ const KERNEL_CONFIGS = {
       source: siluSource,
       entryPoint: 'gelu',
       workgroupSize: [256, 1, 1],
+      requires: [],
+    },
+  },
+  gather: {
+    default: {
+      source: gatherSource,
+      entryPoint: 'main',
+      workgroupSize: [256, 1, 1],
+      requires: [],
+    },
+    vec4: {
+      source: gatherSource,
+      entryPoint: 'gather_vec4',
+      workgroupSize: [64, 1, 1],
       requires: [],
     },
   },
@@ -536,6 +551,85 @@ export async function dequantize(quantized, numBlocks, options = {}) {
   } else {
     // subgroup main: 64 threads processing QK_K elements
     workgroups = Math.ceil((numBlocks * QK_K) / 64);
+  }
+
+  pass.dispatchWorkgroups(workgroups);
+  pass.end();
+
+  device.queue.submit([encoder.finish()]);
+
+  uniformBuffer.destroy();
+
+  return output;
+}
+
+/**
+ * Run gather (embedding lookup)
+ * @param {GPUBuffer} indices - Token indices buffer [numTokens] (u32)
+ * @param {GPUBuffer} embeddings - Embedding matrix buffer [vocabSize, hiddenSize]
+ * @param {number} numTokens - Number of tokens to gather
+ * @param {number} hiddenSize - Embedding dimension
+ * @param {number} vocabSize - Vocabulary size
+ * @param {object} options - Additional options
+ * @returns {Promise<GPUBuffer>} Gathered embeddings [numTokens, hiddenSize]
+ */
+export async function runGather(indices, embeddings, numTokens, hiddenSize, vocabSize, options = {}) {
+  const device = getDevice();
+  const { useVec4 = true, outputBuffer = null } = options;
+
+  // Select variant
+  const variant = useVec4 && (hiddenSize % 4 === 0) ? 'vec4' : 'default';
+  const config = getKernelConfig('gather', variant);
+  const pipeline = await createPipeline('gather', variant);
+
+  // Create output buffer if not provided
+  const outputSize = numTokens * hiddenSize * 4;
+  const output = outputBuffer || device.createBuffer({
+    label: 'gather_output',
+    size: outputSize,
+    usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC,
+  });
+
+  // Create uniform buffer
+  const uniformData = new ArrayBuffer(16);
+  const uniformView = new DataView(uniformData);
+  uniformView.setUint32(0, numTokens, true);
+  uniformView.setUint32(4, hiddenSize, true);
+  uniformView.setUint32(8, vocabSize, true);
+  uniformView.setUint32(12, 0, true); // padding
+
+  const uniformBuffer = device.createBuffer({
+    label: 'gather_uniforms',
+    size: 16,
+    usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+  });
+  device.queue.writeBuffer(uniformBuffer, 0, uniformData);
+
+  // Create bind group
+  const bindGroup = device.createBindGroup({
+    label: 'gather_bind_group',
+    layout: pipeline.getBindGroupLayout(0),
+    entries: [
+      { binding: 0, resource: { buffer: uniformBuffer } },
+      { binding: 1, resource: { buffer: indices } },
+      { binding: 2, resource: { buffer: embeddings } },
+      { binding: 3, resource: { buffer: output } },
+    ],
+  });
+
+  // Dispatch
+  const encoder = device.createCommandEncoder({ label: 'gather_encoder' });
+  const pass = encoder.beginComputePass({ label: 'gather_pass' });
+  pass.setPipeline(pipeline);
+  pass.setBindGroup(0, bindGroup);
+
+  let workgroups;
+  if (variant === 'vec4') {
+    const vec4Count = numTokens * (hiddenSize / 4);
+    workgroups = Math.ceil(vec4Count / 64);
+  } else {
+    const totalElements = numTokens * hiddenSize;
+    workgroups = Math.ceil(totalElements / 256);
   }
 
   pass.dispatchWorkgroups(workgroups);

@@ -54,6 +54,7 @@ export {
   runSoftmax,
   runRoPE,
   runSiLU,
+  runGather,
   selectMatmulKernel,
   selectDequantKernel,
   getTunedWorkgroupSize,
