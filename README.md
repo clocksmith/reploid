@@ -26,14 +26,9 @@ Or use the hosted version at https://replo.id
 
 ## How It Works
 
-```mermaid
-graph TD
-    Agent[Agent Loop] --> LLM[LLM Client]
-    Agent --> Tools[Tool Runner]
-    Tools --> VFS[(Virtual File System)]
-    Tools --> Verify[Verification Worker]
-    Verify --> VFS
-```
+Flow (ASCII):
+- Agent → LLM Client → Tool Runner → VFS → Agent (loop)
+- Verification Worker → VFS (gates writes)
 
 1. Agent receives a goal
 2. LLM decides which tool to call
@@ -41,7 +36,12 @@ graph TD
 4. Results feed back to agent
 5. Repeat until done or iteration limit (default 50)
 
-**Why this is different:** You get a full Claude-Code-style sandbox (filesystem, tools, arena, verification) inside the browser, but the entire substrate also lives there. The agent can use the sandbox like a normal dev environment and, uniquely, can edit and hot-reload its own core/runtime code and tools on the fly—no backend, no rebuilds—so RSI is first-class, not bolted on.
+**Why this is different:** You get a full Claude-Code-style sandbox (filesystem, tools, arena, verification) inside the browser, but the entire substrate also lives there. The agent uses the sandbox like a normal dev environment and can edit and hot-reload its own runtime code and tools on the fly without a backend, rebuild step, or restart.
+
+Example goals:
+- **Better Self** — Analyze your own agent-loop.js, find a weakness, and continuously improve it
+- **Ouroboros** — Tool that benchmarks itself and rewrites itself faster
+- **Meta-Improve** — Improve the code that improves code
 
 ### LLM Options
 
