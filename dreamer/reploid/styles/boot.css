@@ -41,7 +41,7 @@ body.no-grid-pattern::before {
   width: min(1400px, calc(100% - 80px));
   margin: auto;
   padding: 40px 40px;
-  text-align: center;
+  text-align: left;
   max-height: calc(100vh - 40px);
   overflow-y: auto;
   box-sizing: border-box;
@@ -75,9 +75,8 @@ body::after {
   -webkit-mask-mode: luminance;
 }
 
-#boot-container h3,
-#boot-container h4 {
-  text-align: left;
+.boot-header {
+  text-align: center;
 }
 
 .boot-header h1 {
@@ -968,6 +967,11 @@ body::after {
 }
 
 .selected-models-chips:empty {
+  display: none;
+}
+
+/* Hide Using: label when no models selected */
+.model-picker-label:has(+ .selected-models-chips:empty) {
   display: none;
 }
 

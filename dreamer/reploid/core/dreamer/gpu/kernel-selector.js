@@ -11,44 +11,60 @@
 import { getDevice, getKernelCapabilities, FEATURES } from './device.js';
 import { getKernelTuner } from './kernel-tuner.js';
 
-// Kernel source imports (loaded as strings)
-// Phase 1 kernels
-import matmulF32Source from './kernels/matmul_f32.wgsl?raw';
-import matmulF16Source from './kernels/matmul_f16.wgsl?raw';
-import dequantSubgroupSource from './kernels/dequant_subgroup.wgsl?raw';
-import dequantSharedSource from './kernels/dequant_shared.wgsl?raw';
+// Shader source cache (loaded via fetch)
+const shaderSourceCache = new Map();
 
-// Phase 2 kernels
-import attentionSource from './kernels/attention.wgsl?raw';
-import rmsnormSource from './kernels/rmsnorm.wgsl?raw';
-import softmaxSource from './kernels/softmax.wgsl?raw';
-import ropeSource from './kernels/rope.wgsl?raw';
-import siluSource from './kernels/silu.wgsl?raw';
-import gatherSource from './kernels/gather.wgsl?raw';
-import residualSource from './kernels/residual.wgsl?raw';
+// Base path for kernel files
+const KERNEL_BASE_PATH = '/core/dreamer/gpu/kernels';
+
+/**
+ * Load a WGSL shader file via fetch
+ * @param {string} filename - Shader filename (e.g., 'matmul_f32.wgsl')
+ * @returns {Promise<string>} Shader source code
+ */
+async function loadShaderSource(filename) {
+  if (shaderSourceCache.has(filename)) {
+    return shaderSourceCache.get(filename);
+  }
+
+  const url = `${KERNEL_BASE_PATH}/${filename}`;
+  try {
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`Failed to load shader ${filename}: ${response.status}`);
+    }
+    const source = await response.text();
+    shaderSourceCache.set(filename, source);
+    return source;
+  } catch (error) {
+    console.error(`[KernelSelector] Failed to load shader ${filename}:`, error);
+    throw error;
+  }
+}
 
 // Compiled pipeline cache
 const pipelineCache = new Map();
 
 /**
  * Kernel configuration for different operations
+ * Uses shader filenames instead of pre-imported sources
  */
 const KERNEL_CONFIGS = {
   matmul: {
     f16: {
-      source: matmulF16Source,
+      shaderFile: 'matmul_f16.wgsl',
       entryPoint: 'main',
       workgroupSize: [16, 16, 1],
       requires: ['shader-f16'],
     },
     f16_vec4: {
-      source: matmulF16Source,
+      shaderFile: 'matmul_f16.wgsl',
       entryPoint: 'main_vec4',
       workgroupSize: [16, 16, 1],
       requires: ['shader-f16'],
     },
     f32: {
-      source: matmulF32Source,
+      shaderFile: 'matmul_f32.wgsl',
       entryPoint: 'main',
       workgroupSize: [16, 16, 1],
       requires: [],
@@ -56,25 +72,25 @@ const KERNEL_CONFIGS = {
   },
   dequant: {
     subgroup: {
-      source: dequantSubgroupSource,
+      shaderFile: 'dequant_subgroup.wgsl',
       entryPoint: 'main',
       workgroupSize: [64, 1, 1],
       requires: ['subgroups'],
     },
     subgroup_vec4: {
-      source: dequantSubgroupSource,
+      shaderFile: 'dequant_subgroup.wgsl',
       entryPoint: 'main_vec4',
       workgroupSize: [64, 1, 1],
       requires: ['subgroups'],
     },
     shared: {
-      source: dequantSharedSource,
+      shaderFile: 'dequant_shared.wgsl',
       entryPoint: 'main',
       workgroupSize: [256, 1, 1],
       requires: [],
     },
     shared_vec4: {
-      source: dequantSharedSource,
+      shaderFile: 'dequant_shared.wgsl',
       entryPoint: 'main_vec4',
       workgroupSize: [64, 1, 1],
       requires: [],
@@ -82,14 +98,14 @@ const KERNEL_CONFIGS = {
   },
   attention: {
     prefill: {
-      source: attentionSource,
+      shaderFile: 'attention.wgsl',
       entryPoint: 'main',
       workgroupSize: [256, 1, 1],
       requires: [],
       // TODO: respect device limits for headDim/seqLen
     },
     decode: {
-      source: attentionSource,
+      shaderFile: 'attention.wgsl',
       entryPoint: 'attention_decode',
       workgroupSize: [256, 1, 1],
       requires: [],
@@ -97,19 +113,19 @@ const KERNEL_CONFIGS = {
   },
   rmsnorm: {
     default: {
-      source: rmsnormSource,
+      shaderFile: 'rmsnorm.wgsl',
       entryPoint: 'main',
       workgroupSize: [256, 1, 1],
       requires: [],
     },
     small: {
-      source: rmsnormSource,
+      shaderFile: 'rmsnorm.wgsl',
       entryPoint: 'rmsnorm_small',
       workgroupSize: [256, 1, 1],
       requires: [],
     },
     residual: {
-      source: rmsnormSource,
+      shaderFile: 'rmsnorm.wgsl',
       entryPoint: 'rmsnorm_inplace_residual',
       workgroupSize: [256, 1, 1],
       requires: [],
@@ -117,19 +133,19 @@ const KERNEL_CONFIGS = {
   },
   softmax: {
     default: {
-      source: softmaxSource,
+      shaderFile: 'softmax.wgsl',
       entryPoint: 'main',
       workgroupSize: [256, 1, 1],
       requires: [],
     },
     small: {
-      source: softmaxSource,
+      shaderFile: 'softmax.wgsl',
       entryPoint: 'softmax_small',
       workgroupSize: [256, 1, 1],
       requires: [],
     },
     online: {
-      source: softmaxSource,
+      shaderFile: 'softmax.wgsl',
       entryPoint: 'softmax_online',
       workgroupSize: [256, 1, 1],
       requires: [],
@@ -137,31 +153,31 @@ const KERNEL_CONFIGS = {
   },
   rope: {
     default: {
-      source: ropeSource,
+      shaderFile: 'rope.wgsl',
       entryPoint: 'main',
       workgroupSize: [256, 1, 1],
       requires: [],
     },
     compute_freqs: {
-      source: ropeSource,
+      shaderFile: 'rope.wgsl',
       entryPoint: 'rope_compute_freqs',
       workgroupSize: [256, 1, 1],
       requires: [],
     },
     qk: {
-      source: ropeSource,
+      shaderFile: 'rope.wgsl',
       entryPoint: 'rope_qk',
       workgroupSize: [256, 1, 1],
       requires: [],
     },
     ntk: {
-      source: ropeSource,
+      shaderFile: 'rope.wgsl',
       entryPoint: 'rope_ntk_scaled',
       workgroupSize: [256, 1, 1],
       requires: [],
     },
     yarn: {
-      source: ropeSource,
+      shaderFile: 'rope.wgsl',
       entryPoint: 'rope_yarn',
       workgroupSize: [256, 1, 1],
       requires: [],
@@ -169,31 +185,31 @@ const KERNEL_CONFIGS = {
   },
   silu: {
     default: {
-      source: siluSource,
+      shaderFile: 'silu.wgsl',
       entryPoint: 'main',
       workgroupSize: [256, 1, 1],
       requires: [],
     },
     gate: {
-      source: siluSource,
+      shaderFile: 'silu.wgsl',
       entryPoint: 'silu_gate',
       workgroupSize: [256, 1, 1],
       requires: [],
     },
     gate_split: {
-      source: siluSource,
+      shaderFile: 'silu.wgsl',
       entryPoint: 'silu_gate_split',
       workgroupSize: [256, 1, 1],
       requires: [],
     },
     vec4: {
-      source: siluSource,
+      shaderFile: 'silu.wgsl',
       entryPoint: 'silu_vec4',
       workgroupSize: [256, 1, 1],
       requires: [],
     },
     gelu: {
-      source: siluSource,
+      shaderFile: 'silu.wgsl',
       entryPoint: 'gelu',
       workgroupSize: [256, 1, 1],
       requires: [],
@@ -201,13 +217,13 @@ const KERNEL_CONFIGS = {
   },
   gather: {
     default: {
-      source: gatherSource,
+      shaderFile: 'gather.wgsl',
       entryPoint: 'main',
       workgroupSize: [256, 1, 1],
       requires: [],
     },
     vec4: {
-      source: gatherSource,
+      shaderFile: 'gather.wgsl',
       entryPoint: 'gather_vec4',
       workgroupSize: [64, 1, 1],
       requires: [],
@@ -215,13 +231,13 @@ const KERNEL_CONFIGS = {
   },
   residual: {
     default: {
-      source: residualSource,
+      shaderFile: 'residual.wgsl',
       entryPoint: 'main',
       workgroupSize: [256, 1, 1],
       requires: [],
     },
     vec4: {
-      source: residualSource,
+      shaderFile: 'residual.wgsl',
       entryPoint: 'add_vec4',
       workgroupSize: [64, 1, 1],
       requires: [],

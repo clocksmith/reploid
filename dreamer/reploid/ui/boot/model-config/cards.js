@@ -10,6 +10,7 @@ import {
     clearModels
 } from './state.js';
 import { openInlineForm } from './form.js';
+import { cloudProviders } from './providers.js';
 
 // Render model cards
 export function renderModelCards() {
@@ -217,14 +218,35 @@ export function updateModelPickerDropdown() {
         select.appendChild(ollamaGroup);
     }
 
-    // Add WebLLM models (limit to popular ones)
+    // Add WebLLM models (curated popular models with varying sizes)
     if (providers.webgpu?.online && providers.webgpu.models?.length > 0) {
         const webllmGroup = document.createElement('optgroup');
         webllmGroup.label = 'WebLLM (Browser)';
-        const popularModels = providers.webgpu.models.filter(m =>
-            m.id.includes('Qwen') || m.id.includes('Llama') || m.id.includes('Phi')
-        ).slice(0, 10);
-        popularModels.forEach(m => {
+
+        // Curated list of popular models (Dec 2025) - varying sizes for different hardware
+        const curatedModels = [
+            'SmolLM2-360M-Instruct',      // Tiny: 360M - runs anywhere
+            'Qwen2.5-0.5B-Instruct',      // Tiny: 0.5B
+            'Llama-3.2-1B-Instruct',      // Small: 1B
+            'Qwen2.5-1.5B-Instruct',      // Small: 1.5B
+            'Qwen2.5-3B-Instruct',        // Medium: 3B (recommended)
+            'Llama-3.2-3B-Instruct',      // Medium: 3B
+            'Phi-3.5-mini-instruct',      // Medium: 3.8B
+            'Qwen2.5-7B-Instruct',        // Large: 7B (needs 8GB+ VRAM)
+        ];
+
+        // Match curated models from available models (prefer q4f16, fallback to q4f32)
+        const matched = [];
+        for (const name of curatedModels) {
+            const model = providers.webgpu.models.find(m =>
+                m.id.includes(name) && (m.id.includes('q4f16') || m.id.includes('q4f32'))
+            );
+            if (model && !matched.some(m => m.id === model.id)) {
+                matched.push(model);
+            }
+        }
+
+        matched.forEach(m => {
             const opt = document.createElement('option');
             opt.value = `webllm:${m.id}`;
             opt.textContent = m.name || m.id;
@@ -247,6 +269,19 @@ export function updateModelPickerDropdown() {
             dreamerGroup.appendChild(opt);
         });
         select.appendChild(dreamerGroup);
+    }
+
+    // Add cloud provider models (Gemini, OpenAI, Anthropic)
+    for (const [providerId, provider] of Object.entries(cloudProviders)) {
+        const group = document.createElement('optgroup');
+        group.label = provider.name;
+        provider.models.forEach(m => {
+            const opt = document.createElement('option');
+            opt.value = `${providerId}:${m.id}`;
+            opt.textContent = m.name;
+            group.appendChild(opt);
+        });
+        select.appendChild(group);
     }
 
     // Render selected models as chips
