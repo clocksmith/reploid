@@ -423,17 +423,20 @@ line3\` }`;
     });
   });
 
-  describe('isDone', () => {
-    it('should return true for GOAL_ACHIEVED', () => {
-      expect(responseParser.isDone('Task complete. GOAL_ACHIEVED')).toBe(true);
+  // NOTE: In RSI mode, isDone() ALWAYS returns false
+  // The agent should never self-terminate - only circuit breaker or user stops it
+  // This enables continuous self-improvement behavior
+  describe('isDone (RSI mode)', () => {
+    it('should return false for GOAL_ACHIEVED (RSI mode ignores completion markers)', () => {
+      expect(responseParser.isDone('Task complete. GOAL_ACHIEVED')).toBe(false);
     });
 
-    it('should return true for GOAL_COMPLETE', () => {
-      expect(responseParser.isDone('All tasks done. GOAL_COMPLETE')).toBe(true);
+    it('should return false for GOAL_COMPLETE (RSI mode ignores completion markers)', () => {
+      expect(responseParser.isDone('All tasks done. GOAL_COMPLETE')).toBe(false);
     });
 
-    it('should return true for DONE', () => {
-      expect(responseParser.isDone('Everything is finished. DONE')).toBe(true);
+    it('should return false for DONE (RSI mode ignores completion markers)', () => {
+      expect(responseParser.isDone('Everything is finished. DONE')).toBe(false);
     });
 
     it('should return false for text without completion markers', () => {
@@ -452,12 +455,12 @@ line3\` }`;
       expect(responseParser.isDone('')).toBe(false);
     });
 
-    it('should be case-sensitive (lowercase done should not match)', () => {
+    it('should return false for lowercase done', () => {
       expect(responseParser.isDone('done')).toBe(false);
     });
 
-    it('should match DONE anywhere in text', () => {
-      expect(responseParser.isDone('prefix DONE suffix')).toBe(true);
+    it('should return false even with DONE in text (RSI mode)', () => {
+      expect(responseParser.isDone('prefix DONE suffix')).toBe(false);
     });
   });
 

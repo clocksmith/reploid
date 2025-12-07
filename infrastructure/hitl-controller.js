@@ -7,6 +7,7 @@ const HITLController = {
   metadata: {
     id: 'HITLController',
     version: '1.0.0',
+    genesis: { introduced: 'reflection' },
     dependencies: ['Utils', 'EventBus'],
     async: false,
     type: 'infrastructure'

@@ -8,6 +8,7 @@ const RuleEngine = {
   metadata: {
     id: 'RuleEngine',
     version: '1.0.0',
+    genesis: { introduced: 'full' },
     dependencies: ['Utils', 'VFS', 'EventBus', 'KnowledgeGraph'],
     async: true,
     type: 'service'

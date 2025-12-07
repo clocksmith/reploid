@@ -10,13 +10,15 @@ const WorkerManager = {
   metadata: {
     id: 'WorkerManager',
     version: '1.0.0',
-    dependencies: ['Utils', 'VFS', 'LLMClient', 'ToolRunner', 'ResponseParser', 'EventBus', 'AuditLogger?'],
+    genesis: { introduced: 'full' },
+    files: ['core/worker-manager.js', 'core/worker-agent.js'],
+    dependencies: ['Utils', 'VFS', 'LLMClient', 'ToolRunner', 'ResponseParser', 'EventBus', 'AuditLogger?', 'SchemaRegistry?'],
     async: true,
     type: 'core'
   },
 
   factory: (deps) => {
-    const { Utils, VFS, LLMClient, ToolRunner, ResponseParser, EventBus, AuditLogger } = deps;
+    const { Utils, VFS, LLMClient, ToolRunner, ResponseParser, EventBus, AuditLogger, SchemaRegistry } = deps;
     const { logger } = Utils;
 
     const _activeWorkers = new Map();
@@ -35,6 +37,9 @@ const WorkerManager = {
       _workerConfig = config?.workerTypes || {};
       _modelRoles = config?.modelRoles || {};
       _modelConfig = modelConfig;
+      if (SchemaRegistry && _workerConfig) {
+        SchemaRegistry.registerWorkerTypes(_workerConfig, { builtin: true });
+      }
       logger.info('[WorkerManager] Initialized with worker types:', Object.keys(_workerConfig));
       logger.info('[WorkerManager] Model roles available:', Object.keys(_modelRoles));
       return true;
@@ -77,13 +82,19 @@ const WorkerManager = {
      * @param {string} type - Worker type (explore, analyze, execute)
      * @returns {string[]|'*'} - List of allowed tool names or '*' for all
      */
+    const _getWorkerDefinition = (type) => {
+      const schemaDef = SchemaRegistry?.getWorkerType(type);
+      if (schemaDef) return schemaDef;
+      return _workerConfig?.[type] || null;
+    };
+
     const getToolsForType = (type) => {
-      const workerType = _workerConfig[type];
+      let workerType = _getWorkerDefinition(type);
       if (!workerType) {
         logger.warn(`[WorkerManager] Unknown worker type: ${type}, defaulting to explore`);
-        return _workerConfig.explore?.tools || [];
+        workerType = _getWorkerDefinition('explore');
       }
-      return workerType.tools;
+      return workerType?.tools || [];
     };
 
     /**

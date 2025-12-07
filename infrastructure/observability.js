@@ -7,6 +7,7 @@ const Observability = {
   metadata: {
     id: 'Observability',
     version: '1.0.0',
+    genesis: { introduced: 'full' },
     dependencies: ['Utils', 'EventBus', 'StateManager?'],
     async: false,
     type: 'infrastructure'

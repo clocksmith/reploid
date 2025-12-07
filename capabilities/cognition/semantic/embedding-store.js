@@ -8,6 +8,7 @@ const EmbeddingStore = {
   metadata: {
     id: 'EmbeddingStore',
     version: '1.0.0',
+    genesis: { introduced: 'full' },
     dependencies: ['Utils'],
     async: true,
     type: 'service'

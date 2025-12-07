@@ -7,6 +7,7 @@ const AgentLoop = {
   metadata: {
     id: 'AgentLoop',
     version: '1.1.0', // Parallel read-only tool execution
+    genesis: { introduced: 'tabula' },
     dependencies: [
       'Utils', 'EventBus', 'LLMClient', 'ToolRunner', 'ContextManager',
       'ResponseParser', 'StateManager', 'PersonaManager', 'CircuitBreaker',

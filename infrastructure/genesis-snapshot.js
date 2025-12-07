@@ -7,6 +7,7 @@ const GenesisSnapshot = {
   metadata: {
     id: 'GenesisSnapshot',
     version: '1.0.0',
+    genesis: { introduced: 'full' },
     dependencies: ['Utils', 'VFS', 'EventBus'],
     async: true,
     type: 'infrastructure'

@@ -9,6 +9,7 @@ const VFS = {
   metadata: {
     id: 'VFS',
     version: '1.0.0',
+    genesis: { introduced: 'tabula' },
     dependencies: ['Utils', 'EventBus?'],
     async: true,
     type: 'service'

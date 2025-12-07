@@ -8,6 +8,7 @@ const KnowledgeGraph = {
   metadata: {
     id: 'KnowledgeGraph',
     version: '1.0.0',
+    genesis: { introduced: 'full' },
     dependencies: ['Utils', 'VFS', 'EventBus'],
     async: true,
     type: 'service'

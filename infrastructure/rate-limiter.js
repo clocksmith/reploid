@@ -6,6 +6,7 @@ const RateLimiter = {
   metadata: {
     id: 'RateLimiter',
     version: '1.0.0',
+    genesis: { introduced: 'reflection' },
     dependencies: ['Utils'],
     type: 'infrastructure'
   },

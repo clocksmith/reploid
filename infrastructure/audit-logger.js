@@ -8,13 +8,14 @@ const AuditLogger = {
   metadata: {
     id: 'AuditLogger',
     version: '1.0.0',
-    dependencies: ['Utils', 'VFS'],
+    genesis: { introduced: 'full' },
+    dependencies: ['Utils', 'VFS', 'TelemetryTimeline?'],
     async: true,
     type: 'infrastructure'
   },
 
   factory: (deps) => {
-    const { Utils, VFS } = deps;
+    const { Utils, VFS, TelemetryTimeline } = deps;
     const { logger, generateId } = Utils;
     const LOG_DIR = '/.logs/audit';
 
@@ -49,6 +50,9 @@ const AuditLogger = {
           }
           content += JSON.stringify(entry) + '\n';
           await VFS.write(path, content);
+          if (TelemetryTimeline) {
+            await TelemetryTimeline.record(`audit:${type}`, entry.data, { severity, tags: ['audit'] });
+          }
           return; // Success
         } catch (e) {
           if (attempt === 0) {

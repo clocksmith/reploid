@@ -18,6 +18,7 @@ describe('AgentLoop - Integration Tests', () => {
   let mockPersonaManager;
   let mockReflectionStore;
   let mockReflectionAnalyzer;
+  let mockCircuitBreaker;
 
   const createMocks = () => {
     mockUtils = {
@@ -83,6 +84,31 @@ describe('AgentLoop - Integration Tests', () => {
         detectFailurePatterns: vi.fn().mockResolvedValue([])
       }
     };
+
+    // CircuitBreaker mock - simulates real circuit breaker behavior
+    mockCircuitBreaker = {
+      create: vi.fn().mockImplementation(() => {
+        const failures = {};
+        const tripTimes = {};
+        const THRESHOLD = 3;
+        return {
+          isOpen: vi.fn().mockImplementation((tool) => (failures[tool] || 0) >= THRESHOLD),
+          getState: vi.fn().mockImplementation((tool) => ({
+            failures: failures[tool] || 0,
+            lastFailureTime: Date.now(),
+            tripTime: tripTimes[tool] || Date.now()
+          })),
+          recordSuccess: vi.fn().mockImplementation((tool) => { failures[tool] = 0; }),
+          recordFailure: vi.fn().mockImplementation((tool) => {
+            failures[tool] = (failures[tool] || 0) + 1;
+            if (failures[tool] >= THRESHOLD) {
+              tripTimes[tool] = Date.now();
+            }
+          }),
+          reset: vi.fn().mockImplementation((tool) => { failures[tool] = 0; })
+        };
+      })
+    };
   };
 
   beforeEach(() => {
@@ -97,7 +123,8 @@ describe('AgentLoop - Integration Tests', () => {
       StateManager: mockStateManager,
       PersonaManager: mockPersonaManager,
       ReflectionStore: mockReflectionStore,
-      ReflectionAnalyzer: mockReflectionAnalyzer
+      ReflectionAnalyzer: mockReflectionAnalyzer,
+      CircuitBreaker: mockCircuitBreaker
     });
   });
 
@@ -161,13 +188,15 @@ describe('AgentLoop - Integration Tests', () => {
       await agentLoop.run('Test goal');
 
       expect(mockPersonaManager.getSystemPrompt).toHaveBeenCalled();
+      // LLMClient.chat takes 4 args: context, modelConfig, streamCallback, options
       expect(mockLLMClient.chat).toHaveBeenCalledWith(
         expect.arrayContaining([
           expect.objectContaining({ role: 'system' }),
           expect.objectContaining({ role: 'user' })
         ]),
         expect.any(Object),
-        expect.any(Function)
+        expect.any(Function),
+        expect.any(Object)  // options object with tools
       );
     });
 
@@ -342,11 +371,15 @@ describe('AgentLoop - Integration Tests', () => {
     });
 
     it('should limit tool calls per iteration', async () => {
+      // Request 7 tools but MAX_TOOL_CALLS_PER_ITERATION is 5
       mockResponseParser.parseToolCalls.mockReturnValue([
         { name: 'tool1', args: {} },
         { name: 'tool2', args: {} },
         { name: 'tool3', args: {} },
-        { name: 'tool4', args: {} }
+        { name: 'tool4', args: {} },
+        { name: 'tool5', args: {} },
+        { name: 'tool6', args: {} },
+        { name: 'tool7', args: {} }
       ]);
 
       let iteration = 0;
@@ -364,8 +397,8 @@ describe('AgentLoop - Integration Tests', () => {
 
       await agentLoop.run('Test');
 
-      // Should only execute 3 tools (MAX_TOOL_CALLS_PER_ITERATION)
-      expect(mockToolRunner.execute).toHaveBeenCalledTimes(3);
+      // Should only execute 5 tools (MAX_TOOL_CALLS_PER_ITERATION = 5)
+      expect(mockToolRunner.execute).toHaveBeenCalledTimes(5);
     });
   });
 
@@ -374,13 +407,14 @@ describe('AgentLoop - Integration Tests', () => {
       agentLoop.setModel({ id: 'test-model', provider: 'test' });
     });
 
-    it('should trip circuit after repeated failures', async () => {
+    it('should skip tool when circuit is open after repeated failures', async () => {
       const failingTool = { name: 'failing_tool', args: {} };
       let iteration = 0;
 
       mockLLMClient.chat.mockImplementation(() => {
         iteration++;
-        if (iteration <= 4) {
+        // After 3+ failures, circuit is open and tool should be skipped
+        if (iteration <= 5) {
           mockResponseParser.parseToolCalls.mockReturnValue([failingTool]);
           return Promise.resolve({ content: 'Try tool' });
         }
@@ -393,7 +427,8 @@ describe('AgentLoop - Integration Tests', () => {
 
       await agentLoop.run('Test circuit');
 
-      expect(mockEventBus.emit).toHaveBeenCalledWith('tool:circuit_open', expect.objectContaining({
+      // After 3 failures, circuit opens and emits tool:circuit_skip
+      expect(mockEventBus.emit).toHaveBeenCalledWith('tool:circuit_skip', expect.objectContaining({
         tool: 'failing_tool'
       }));
     });

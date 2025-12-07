@@ -180,18 +180,21 @@ async function run() {
         process.exit(1);
       }
 
-      await page.evaluate(({ key, genesis }) => {
+      const modelId = process.env.MODEL || 'gemini-3-pro-preview';
+      const modelName = modelId === 'gemini-3-pro-preview' ? 'Gemini 3 Pro Preview' : 'Gemini 2.5 Flash';
+
+      await page.evaluate(({ key, genesis, model, name }) => {
         localStorage.setItem('REPLOID_GENESIS_LEVEL', genesis);
         localStorage.setItem('SELECTED_MODELS', JSON.stringify([{
-          id: 'gemini-2.5-flash',
-          name: 'Gemini 2.5 Flash',
+          id: model,
+          name: name,
           provider: 'gemini',
           hostType: 'browser-cloud'
         }]));
-        localStorage.setItem('SELECTED_MODEL', 'gemini-2.5-flash');
+        localStorage.setItem('SELECTED_MODEL', model);
         localStorage.setItem('AI_PROVIDER', 'gemini');
         localStorage.setItem('GEMINI_API_KEY', key);
-      }, { key: apiKey, genesis: genesisLevel });
+      }, { key: apiKey, genesis: genesisLevel, model: modelId, name: modelName });
 
       // Reload to apply config
       console.log(`--- Reloading with genesis level: ${genesisLevel} ---`);

@@ -7,6 +7,7 @@ const ToolWriter = {
   metadata: {
     id: 'ToolWriter',
     version: '1.0.0',
+    genesis: { introduced: 'tabula' },
     dependencies: ['Utils', 'VFS', 'SubstrateLoader?'],
     type: 'service'
   },

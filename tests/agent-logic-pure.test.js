@@ -1,18 +1,13 @@
 /**
  * @fileoverview Unit tests for agent-logic-pure.js pure functions
  * Tests pure helper functions for agent reasoning and prompt assembly
- *
- * @module AgentLogicPureTests
- * @version 1.0.0
- * @category tests
  */
 
-// Mock dependencies for testing
-const deps = {};
+import { describe, it, expect } from 'vitest';
 
-// Load the module
+// Define the pure helper functions inline (same as original implementation)
 const AgentLogicPureHelpers = {
-  factory: (deps) => {
+  factory: () => {
     const getArtifactListSummaryPure = (allMetaMap) => {
       if (!allMetaMap) return "Error: Artifact metadata map not available.";
       return (
@@ -78,250 +73,175 @@ const AgentLogicPureHelpers = {
 };
 
 // Initialize module
-const helpers = AgentLogicPureHelpers.factory(deps);
+const helpers = AgentLogicPureHelpers.factory();
 
-// Test results storage
-const results = {
-  passed: 0,
-  failed: 0,
-  tests: []
-};
+describe('getArtifactListSummaryPure', () => {
+  it('should return error when allMetaMap is null', () => {
+    const result = helpers.getArtifactListSummaryPure(null);
+    expect(result).toBe("Error: Artifact metadata map not available.");
+  });
 
-// Test framework helpers
-function assert(condition, message) {
-  if (!condition) {
-    throw new Error(message || 'Assertion failed');
-  }
-}
+  it('should return "None" for empty metadata map', () => {
+    const result = helpers.getArtifactListSummaryPure({});
+    expect(result).toBe("None");
+  });
 
-function assertEqual(actual, expected, message) {
-  if (actual !== expected) {
-    throw new Error(`${message || 'Values not equal'}\nExpected: ${expected}\nActual: ${actual}`);
-  }
-}
+  it('should format single artifact correctly', () => {
+    const metaMap = {
+      '/vfs/test.js': [{ latestCycle: 5 }]
+    };
+    const result = helpers.getArtifactListSummaryPure(metaMap);
+    expect(result).toBe('* /vfs/test.js (Cycle 5)');
+  });
 
-function assertIncludes(text, substring, message) {
-  if (!text.includes(substring)) {
-    throw new Error(`${message || 'String does not include substring'}\nText: ${text}\nSubstring: ${substring}`);
-  }
-}
+  it('should format multiple artifacts correctly', () => {
+    const metaMap = {
+      '/vfs/test.js': [{ latestCycle: 5 }],
+      '/vfs/app.js': [{ latestCycle: 3 }]
+    };
+    const result = helpers.getArtifactListSummaryPure(metaMap);
+    expect(result).toContain('/vfs/test.js (Cycle 5)');
+    expect(result).toContain('/vfs/app.js (Cycle 3)');
+  });
 
-function test(name, fn) {
-  try {
-    fn();
-    results.passed++;
-    results.tests.push({ name, passed: true });
-    console.log(`★ ${name}`);
-  } catch (error) {
-    results.failed++;
-    results.tests.push({ name, passed: false, error: error.message });
-    console.error(`☒ ${name}`);
-    console.error(`   ${error.message}`);
-  }
-}
-
-// ========================================
-// Test Suite: getArtifactListSummaryPure
-// ========================================
-
-test('getArtifactListSummaryPure: Returns error when allMetaMap is null', () => {
-  const result = helpers.getArtifactListSummaryPure(null);
-  assertEqual(result, "Error: Artifact metadata map not available.");
+  it('should handle missing latestCycle', () => {
+    const metaMap = {
+      '/vfs/test.js': [{}]
+    };
+    const result = helpers.getArtifactListSummaryPure(metaMap);
+    expect(result).toBe('* /vfs/test.js (Cycle 0)');
+  });
 });
 
-test('getArtifactListSummaryPure: Returns "None" for empty metadata map', () => {
-  const result = helpers.getArtifactListSummaryPure({});
-  assertEqual(result, "None");
+describe('getToolListSummaryPure', () => {
+  it('should return error when staticTools is null', () => {
+    const result = helpers.getToolListSummaryPure(null, [], (t) => t);
+    expect(result).toBe("Error: Tool lists or truncFn not available.");
+  });
+
+  it('should return error when truncFn is null', () => {
+    const result = helpers.getToolListSummaryPure([], [], null);
+    expect(result).toBe("Error: Tool lists or truncFn not available.");
+  });
+
+  it('should format static tools correctly', () => {
+    const staticTools = [
+      { name: 'ReadFile', description: 'Read file contents' },
+      { name: 'WriteFile', description: 'Write file contents' }
+    ];
+    const truncFn = (text, len) => text.substring(0, len);
+
+    const result = helpers.getToolListSummaryPure(staticTools, [], truncFn);
+    expect(result).toContain('[S] ReadFile: Read file contents');
+    expect(result).toContain('[S] WriteFile: Write file contents');
+  });
+
+  it('should truncate long descriptions', () => {
+    const staticTools = [
+      { name: 'long_tool', description: 'This is a very long description that should be truncated to the specified length' }
+    ];
+    const truncFn = (text, len) => text.substring(0, len);
+
+    const result = helpers.getToolListSummaryPure(staticTools, [], truncFn);
+    expect(result).toContain('[S] long_tool: This is a very long description that should be truncated');
+    expect(result).not.toContain('to the specified length');
+  });
+
+  it('should format dynamic tools correctly', () => {
+    const dynamicTools = [
+      { declaration: { name: 'custom_tool', description: 'Custom tool description' } }
+    ];
+    const truncFn = (text, len) => text.substring(0, len);
+
+    const result = helpers.getToolListSummaryPure([], dynamicTools, truncFn);
+    expect(result).toContain('[D] custom_tool: Custom tool description');
+  });
+
+  it('should combine static and dynamic tools', () => {
+    const staticTools = [
+      { name: 'static_tool', description: 'Static description' }
+    ];
+    const dynamicTools = [
+      { declaration: { name: 'dynamic_tool', description: 'Dynamic description' } }
+    ];
+    const truncFn = (text, len) => text.substring(0, len);
+
+    const result = helpers.getToolListSummaryPure(staticTools, dynamicTools, truncFn);
+    expect(result).toContain('[S] static_tool');
+    expect(result).toContain('[D] dynamic_tool');
+  });
 });
 
-test('getArtifactListSummaryPure: Formats single artifact correctly', () => {
-  const metaMap = {
-    '/vfs/test.js': [{ latestCycle: 5 }]
-  };
-  const result = helpers.getArtifactListSummaryPure(metaMap);
-  assertEqual(result, '* /vfs/test.js (Cycle 5)');
-});
+describe('assembleCorePromptPure', () => {
+  it('should return error when template is null', () => {
+    const result = helpers.assembleCorePromptPure(null, {}, {}, '', '');
+    expect(result.error).toBe("Core prompt template missing.");
+  });
 
-test('getArtifactListSummaryPure: Formats multiple artifacts correctly', () => {
-  const metaMap = {
-    '/vfs/test.js': [{ latestCycle: 5 }],
-    '/vfs/app.js': [{ latestCycle: 3 }]
-  };
-  const result = helpers.getArtifactListSummaryPure(metaMap);
-  assertIncludes(result, '/vfs/test.js (Cycle 5)');
-  assertIncludes(result, '/vfs/app.js (Cycle 3)');
-});
+  it('should replace CYCLE_COUNT placeholder', () => {
+    const template = "Current cycle: [[CYCLE_COUNT]]";
+    const state = { totalCycles: 42 };
+    const goalInfo = { latestGoal: '' };
 
-test('getArtifactListSummaryPure: Handles missing latestCycle', () => {
-  const metaMap = {
-    '/vfs/test.js': [{}]
-  };
-  const result = helpers.getArtifactListSummaryPure(metaMap);
-  assertEqual(result, '* /vfs/test.js (Cycle 0)');
-});
+    const result = helpers.assembleCorePromptPure(template, state, goalInfo, '', '');
+    expect(result.prompt).toBe("Current cycle: 42");
+  });
 
-// ========================================
-// Test Suite: getToolListSummaryPure
-// ========================================
+  it('should replace TOOL_LIST placeholder', () => {
+    const template = "Tools:\n[[TOOL_LIST]]";
+    const state = { totalCycles: 0 };
+    const goalInfo = { latestGoal: '' };
+    const toolList = "* ReadFile\n* WriteFile";
 
-test('getToolListSummaryPure: Returns error when staticTools is null', () => {
-  const result = helpers.getToolListSummaryPure(null, [], (t) => t);
-  assertEqual(result, "Error: Tool lists or truncFn not available.");
-});
+    const result = helpers.assembleCorePromptPure(template, state, goalInfo, '', toolList);
+    expect(result.prompt).toContain("* ReadFile");
+    expect(result.prompt).toContain("* WriteFile");
+  });
 
-test('getToolListSummaryPure: Returns error when truncFn is null', () => {
-  const result = helpers.getToolListSummaryPure([], [], null);
-  assertEqual(result, "Error: Tool lists or truncFn not available.");
-});
+  it('should replace ARTIFACT_LIST placeholder', () => {
+    const template = "Artifacts:\n[[ARTIFACT_LIST]]";
+    const state = { totalCycles: 0 };
+    const goalInfo = { latestGoal: '' };
+    const artifactList = "* /vfs/test.js\n* /vfs/app.js";
 
-test('getToolListSummaryPure: Formats static tools correctly', () => {
-  const staticTools = [
-    { name: 'ReadFile', description: 'Read file contents' },
-    { name: 'WriteFile', description: 'Write file contents' }
-  ];
-  const truncFn = (text, len) => text.substring(0, len);
+    const result = helpers.assembleCorePromptPure(template, state, goalInfo, artifactList, '');
+    expect(result.prompt).toContain("* /vfs/test.js");
+    expect(result.prompt).toContain("* /vfs/app.js");
+  });
 
-  const result = helpers.getToolListSummaryPure(staticTools, [], truncFn);
-  assertIncludes(result, '[S] ReadFile: Read file contents');
-  assertIncludes(result, '[S] WriteFile: Write file contents');
-});
+  it('should replace CUMULATIVE_GOAL placeholder', () => {
+    const template = "Goal: [[CUMULATIVE_GOAL]]";
+    const state = { totalCycles: 0 };
+    const goalInfo = { latestGoal: 'Build a REST API' };
 
-test('getToolListSummaryPure: Truncates long descriptions', () => {
-  const staticTools = [
-    { name: 'long_tool', description: 'This is a very long description that should be truncated to the specified length' }
-  ];
-  const truncFn = (text, len) => text.substring(0, len);
+    const result = helpers.assembleCorePromptPure(template, state, goalInfo, '', '');
+    expect(result.prompt).toBe("Goal: Build a REST API");
+  });
 
-  const result = helpers.getToolListSummaryPure(staticTools, [], truncFn);
-  assertIncludes(result, '[S] long_tool: This is a very long description that should be truncated');
-  assert(!result.includes('to the specified length'), 'Description should be truncated');
-});
+  it('should use fallback for missing goal', () => {
+    const template = "Goal: [[CUMULATIVE_GOAL]]";
+    const state = { totalCycles: 0 };
+    const goalInfo = { latestGoal: null };
 
-test('getToolListSummaryPure: Formats dynamic tools correctly', () => {
-  const dynamicTools = [
-    { declaration: { name: 'custom_tool', description: 'Custom tool description' } }
-  ];
-  const truncFn = (text, len) => text.substring(0, len);
+    const result = helpers.assembleCorePromptPure(template, state, goalInfo, '', '');
+    expect(result.prompt).toBe("Goal: No goal set.");
+  });
 
-  const result = helpers.getToolListSummaryPure([], dynamicTools, truncFn);
-  assertIncludes(result, '[D] custom_tool: Custom tool description');
-});
-
-test('getToolListSummaryPure: Combines static and dynamic tools', () => {
-  const staticTools = [
-    { name: 'static_tool', description: 'Static description' }
-  ];
-  const dynamicTools = [
-    { declaration: { name: 'dynamic_tool', description: 'Dynamic description' } }
-  ];
-  const truncFn = (text, len) => text.substring(0, len);
-
-  const result = helpers.getToolListSummaryPure(staticTools, dynamicTools, truncFn);
-  assertIncludes(result, '[S] static_tool');
-  assertIncludes(result, '[D] dynamic_tool');
-});
-
-// ========================================
-// Test Suite: assembleCorePromptPure
-// ========================================
-
-test('assembleCorePromptPure: Returns error when template is null', () => {
-  const result = helpers.assembleCorePromptPure(null, {}, {}, '', '');
-  assert(result.error, 'Should return error object');
-  assertEqual(result.error, "Core prompt template missing.");
-});
-
-test('assembleCorePromptPure: Replaces CYCLE_COUNT placeholder', () => {
-  const template = "Current cycle: [[CYCLE_COUNT]]";
-  const state = { totalCycles: 42 };
-  const goalInfo = { latestGoal: '' };
-
-  const result = helpers.assembleCorePromptPure(template, state, goalInfo, '', '');
-  assertEqual(result.prompt, "Current cycle: 42");
-});
-
-test('assembleCorePromptPure: Replaces TOOL_LIST placeholder', () => {
-  const template = "Tools:\n[[TOOL_LIST]]";
-  const state = { totalCycles: 0 };
-  const goalInfo = { latestGoal: '' };
-  const toolList = "* ReadFile\n* WriteFile";
-
-  const result = helpers.assembleCorePromptPure(template, state, goalInfo, '', toolList);
-  assertIncludes(result.prompt, "* ReadFile");
-  assertIncludes(result.prompt, "* WriteFile");
-});
-
-test('assembleCorePromptPure: Replaces ARTIFACT_LIST placeholder', () => {
-  const template = "Artifacts:\n[[ARTIFACT_LIST]]";
-  const state = { totalCycles: 0 };
-  const goalInfo = { latestGoal: '' };
-  const artifactList = "* /vfs/test.js\n* /vfs/app.js";
-
-  const result = helpers.assembleCorePromptPure(template, state, goalInfo, artifactList, '');
-  assertIncludes(result.prompt, "* /vfs/test.js");
-  assertIncludes(result.prompt, "* /vfs/app.js");
-});
-
-test('assembleCorePromptPure: Replaces CUMULATIVE_GOAL placeholder', () => {
-  const template = "Goal: [[CUMULATIVE_GOAL]]";
-  const state = { totalCycles: 0 };
-  const goalInfo = { latestGoal: 'Build a REST API' };
-
-  const result = helpers.assembleCorePromptPure(template, state, goalInfo, '', '');
-  assertEqual(result.prompt, "Goal: Build a REST API");
-});
-
-test('assembleCorePromptPure: Uses fallback for missing goal', () => {
-  const template = "Goal: [[CUMULATIVE_GOAL]]";
-  const state = { totalCycles: 0 };
-  const goalInfo = { latestGoal: null };
-
-  const result = helpers.assembleCorePromptPure(template, state, goalInfo, '', '');
-  assertEqual(result.prompt, "Goal: No goal set.");
-});
-
-test('assembleCorePromptPure: Replaces all placeholders simultaneously', () => {
-  const template = `Cycle: [[CYCLE_COUNT]]
+  it('should replace all placeholders simultaneously', () => {
+    const template = `Cycle: [[CYCLE_COUNT]]
 Goal: [[CUMULATIVE_GOAL]]
 Tools: [[TOOL_LIST]]
 Artifacts: [[ARTIFACT_LIST]]`;
 
-  const state = { totalCycles: 10 };
-  const goalInfo = { latestGoal: 'Test goal' };
-  const artifactList = '* test.js';
-  const toolList = '* ReadFile';
+    const state = { totalCycles: 10 };
+    const goalInfo = { latestGoal: 'Test goal' };
+    const artifactList = '* test.js';
+    const toolList = '* ReadFile';
 
-  const result = helpers.assembleCorePromptPure(template, state, goalInfo, artifactList, toolList);
-  assertIncludes(result.prompt, "Cycle: 10");
-  assertIncludes(result.prompt, "Goal: Test goal");
-  assertIncludes(result.prompt, "Tools: * ReadFile");
-  assertIncludes(result.prompt, "Artifacts: * test.js");
+    const result = helpers.assembleCorePromptPure(template, state, goalInfo, artifactList, toolList);
+    expect(result.prompt).toContain("Cycle: 10");
+    expect(result.prompt).toContain("Goal: Test goal");
+    expect(result.prompt).toContain("Tools: * ReadFile");
+    expect(result.prompt).toContain("Artifacts: * test.js");
+  });
 });
-
-// ========================================
-// Print Test Results
-// ========================================
-
-console.log('\n========================================');
-console.log('Test Results Summary');
-console.log('========================================');
-console.log(`Total Tests: ${results.passed + results.failed}`);
-console.log(`Passed: ${results.passed}`);
-console.log(`Failed: ${results.failed}`);
-console.log(`Success Rate: ${((results.passed / (results.passed + results.failed)) * 100).toFixed(1)}%`);
-console.log('========================================\n');
-
-if (results.failed > 0) {
-  console.log('Failed Tests:');
-  results.tests
-    .filter(t => !t.passed)
-    .forEach(t => {
-      console.log(`  ☒ ${t.name}`);
-      console.log(`     ${t.error}`);
-    });
-}
-
-// Export for external use
-if (typeof module !== 'undefined' && module.exports) {
-  module.exports = { results };
-}
