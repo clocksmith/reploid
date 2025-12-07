@@ -3,12 +3,13 @@
  *
  * Implements efficient key-value cache for transformer inference.
  * Supports both contiguous and paged memory layouts.
+ * GPU-native storage to avoid CPU readbacks during inference.
  *
  * @module inference/kv-cache
  */
 
-// TODO: Waiting on Agent-A for memory allocation interfaces (allocateBuffer)
-// TODO: Waiting on Agent-C for GPU buffer management (createStagingBuffer)
+import { getDevice } from '../gpu/device.js';
+import { acquireBuffer, releaseBuffer, readBuffer } from '../gpu/buffer-pool.js';
 
 /**
  * KV Cache Configuration
@@ -80,12 +81,37 @@ export class KVCache {
     const sizePerLayer = this.maxSeqLen * this.kvSize;
     const bytesPerLayer = sizePerLayer * 4 * 2; // float32, K + V
 
+    const device = this.useGPU ? getDevice() : null;
+
     for (let l = 0; l < this.numLayers; l++) {
-      this.layers[l] = {
-        keys: new Float32Array(sizePerLayer),
-        values: new Float32Array(sizePerLayer),
-        seqLen: 0
-      };
+      if (device && this.useGPU) {
+        // GPU-native storage
+        this.layers[l] = {
+          keysGPU: device.createBuffer({
+            label: `kv_cache_keys_layer_${l}`,
+            size: sizePerLayer * 4,
+            usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST | GPUBufferUsage.COPY_SRC,
+          }),
+          valuesGPU: device.createBuffer({
+            label: `kv_cache_values_layer_${l}`,
+            size: sizePerLayer * 4,
+            usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST | GPUBufferUsage.COPY_SRC,
+          }),
+          // Keep CPU shadow for fallback/debugging
+          keys: new Float32Array(sizePerLayer),
+          values: new Float32Array(sizePerLayer),
+          seqLen: 0
+        };
+      } else {
+        // CPU-only storage
+        this.layers[l] = {
+          keys: new Float32Array(sizePerLayer),
+          values: new Float32Array(sizePerLayer),
+          keysGPU: null,
+          valuesGPU: null,
+          seqLen: 0
+        };
+      }
       this.memoryUsage += bytesPerLayer;
     }
   }
@@ -155,12 +181,14 @@ export class KVCache {
   /**
    * Update cache with new key-value pairs for a layer
    * @param {number} layerIdx - Layer index
-   * @param {Float32Array} keys - New keys [batchSize, numHeads, headDim]
-   * @param {Float32Array} values - New values [batchSize, numHeads, headDim]
+   * @param {Float32Array|GPUBuffer} keys - New keys [batchSize, numHeads, headDim]
+   * @param {Float32Array|GPUBuffer} values - New values [batchSize, numHeads, headDim]
    * @param {number} startPos - Starting position in sequence
    */
   update(layerIdx, keys, values, startPos = this.currentSeqLen) {
-    const numNewTokens = keys.length / this.kvSize;
+    const numNewTokens = keys instanceof GPUBuffer
+      ? keys.size / (this.kvSize * 4)
+      : keys.length / this.kvSize;
 
     if (startPos + numNewTokens > this.maxSeqLen) {
       throw new Error(
@@ -185,13 +213,69 @@ export class KVCache {
   }
 
   /**
+   * Update cache directly from GPU buffers (zero-copy)
+   * @param {number} layerIdx - Layer index
+   * @param {GPUBuffer} keysBuffer - GPU buffer with new keys
+   * @param {GPUBuffer} valuesBuffer - GPU buffer with new values
+   * @param {number} startPos - Starting position in sequence
+   * @param {number} numTokens - Number of tokens to update
+   */
+  updateFromGPU(layerIdx, keysBuffer, valuesBuffer, startPos, numTokens) {
+    const layer = this.layers[layerIdx];
+    const device = getDevice();
+
+    if (!device || !layer.keysGPU) {
+      throw new Error('GPU cache not initialized');
+    }
+
+    const byteOffset = startPos * this.kvSize * 4;
+    const byteSize = numTokens * this.kvSize * 4;
+
+    // Copy directly from source buffers to cache buffers
+    const encoder = device.createCommandEncoder({ label: 'kv_cache_update' });
+    encoder.copyBufferToBuffer(keysBuffer, 0, layer.keysGPU, byteOffset, byteSize);
+    encoder.copyBufferToBuffer(valuesBuffer, 0, layer.valuesGPU, byteOffset, byteSize);
+    device.queue.submit([encoder.finish()]);
+
+    layer.seqLen = Math.max(layer.seqLen, startPos + numTokens);
+
+    if (layerIdx === this.numLayers - 1) {
+      this.currentSeqLen = Math.max(this.currentSeqLen, startPos + numTokens);
+    }
+  }
+
+  /**
    * Update contiguous storage
    * @private
    */
   _updateContiguous(layer, keys, values, startPos, numNewTokens) {
     const offset = startPos * this.kvSize;
+    const device = getDevice();
+
+    // Handle GPU buffer inputs
+    if (keys instanceof GPUBuffer) {
+      // For GPU inputs, copy to GPU cache directly
+      if (layer.keysGPU && device) {
+        const byteOffset = offset * 4;
+        const byteSize = numNewTokens * this.kvSize * 4;
+        const encoder = device.createCommandEncoder({ label: 'kv_update_gpu' });
+        encoder.copyBufferToBuffer(keys, 0, layer.keysGPU, byteOffset, byteSize);
+        encoder.copyBufferToBuffer(values, 0, layer.valuesGPU, byteOffset, byteSize);
+        device.queue.submit([encoder.finish()]);
+      }
+      return;
+    }
+
+    // CPU path
     layer.keys.set(keys, offset);
     layer.values.set(values, offset);
+
+    // Also update GPU if available
+    if (layer.keysGPU && device) {
+      const byteOffset = offset * 4;
+      device.queue.writeBuffer(layer.keysGPU, byteOffset, keys);
+      device.queue.writeBuffer(layer.valuesGPU, byteOffset, values);
+    }
   }
 
   /**
@@ -233,6 +317,33 @@ export class KVCache {
     } else {
       return this._getContiguous(layer, startPos, endPos);
     }
+  }
+
+  /**
+   * Get GPU buffers for a layer (for GPU-native attention)
+   * @param {number} layerIdx - Layer index
+   * @returns {{keysGPU: GPUBuffer, valuesGPU: GPUBuffer, seqLen: number}|null}
+   */
+  getGPUBuffers(layerIdx) {
+    const layer = this.layers[layerIdx];
+
+    if (!layer.keysGPU || !layer.valuesGPU) {
+      return null;
+    }
+
+    return {
+      keysGPU: layer.keysGPU,
+      valuesGPU: layer.valuesGPU,
+      seqLen: layer.seqLen,
+    };
+  }
+
+  /**
+   * Check if GPU cache is available
+   * @returns {boolean}
+   */
+  hasGPUCache() {
+    return this.useGPU && this.layers[0]?.keysGPU != null;
   }
 
   /**

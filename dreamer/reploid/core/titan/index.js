@@ -55,6 +55,7 @@ export {
   runRoPE,
   runSiLU,
   runGather,
+  runResidualAdd,
   selectMatmulKernel,
   selectDequantKernel,
   getTunedWorkgroupSize,

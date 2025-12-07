@@ -36,6 +36,7 @@ import {
   runRoPE,
   runSiLU,
   runGather,
+  runResidualAdd,
 } from '../gpu/kernel-selector.js';
 import { acquireBuffer, releaseBuffer, readBuffer } from '../gpu/buffer-pool.js';
 
@@ -542,10 +543,23 @@ export class InferencePipeline {
   /**
    * Process a single transformer layer
    * @private
+   * @param {number} layerIdx - Layer index
+   * @param {Float32Array|GPUBuffer} hiddenStates - Input hidden states
+   * @param {number} numTokens - Number of tokens
+   * @param {boolean} isPrefill - Whether this is prefill phase
+   * @returns {Promise<Float32Array|GPUBuffer>} Output hidden states
    */
   async _processLayer(layerIdx, hiddenStates, numTokens, isPrefill) {
-    const hiddenSize = this.modelConfig.hiddenSize;
+    const { hiddenSize } = this.modelConfig;
+    const device = getDevice();
+    const size = numTokens * hiddenSize;
 
+    // GPU-native path
+    if (device && this.useGPU && hiddenStates instanceof GPUBuffer) {
+      return this._processLayerGPU(layerIdx, hiddenStates, numTokens, isPrefill, size);
+    }
+
+    // CPU fallback path
     // 1. Self-attention
     let attnOutput = await this._attention(
       layerIdx, hiddenStates, numTokens, isPrefill
@@ -573,6 +587,210 @@ export class InferencePipeline {
     }
 
     return ffnOutput;
+  }
+
+  /**
+   * GPU-native layer processing (no CPU readbacks)
+   * @private
+   */
+  async _processLayerGPU(layerIdx, inputBuffer, numTokens, isPrefill, size) {
+    const device = getDevice();
+    const { hiddenSize } = this.modelConfig;
+    const layerWeights = this.weights.get(`layer_${layerIdx}`);
+
+    // 1. Self-attention (returns GPU buffer)
+    const attnOutput = await this._attentionGPU(layerIdx, inputBuffer, numTokens, isPrefill);
+
+    // 2. Residual add: attnOutput + input
+    const postAttn = await runResidualAdd(attnOutput, inputBuffer, size);
+    releaseBuffer(attnOutput);
+
+    // 3. Post-attention norm
+    let normedBuffer;
+    if (layerWeights?.postAttnNorm) {
+      const normWeightBuf = this._getWeightBuffer(layerWeights.postAttnNorm, 'post_attn_norm');
+      normedBuffer = await runRMSNorm(postAttn, normWeightBuf, 1e-5, {
+        batchSize: numTokens,
+        hiddenSize,
+      });
+      if (!(layerWeights.postAttnNorm instanceof GPUBuffer)) releaseBuffer(normWeightBuf);
+    } else {
+      normedBuffer = postAttn;
+    }
+
+    // 4. FFN (or MoE FFN)
+    let ffnOutput;
+    if (this.modelConfig.useMoE && this._isMoELayer(layerIdx)) {
+      // MoE still needs some CPU coordination for routing
+      const normedData = await readBuffer(normedBuffer, size * 4);
+      const ffnResult = await this._moeFeedForward(layerIdx, new Float32Array(normedData), numTokens);
+      ffnOutput = acquireBuffer(size * 4, undefined, 'ffn_output');
+      device.queue.writeBuffer(ffnOutput, 0, ffnResult);
+    } else {
+      ffnOutput = await this._feedForwardGPU(layerIdx, normedBuffer, numTokens);
+    }
+
+    // 5. Residual add: ffnOutput + postAttn
+    const output = await runResidualAdd(ffnOutput, postAttn, size);
+
+    // Cleanup intermediate buffers
+    if (normedBuffer !== postAttn) releaseBuffer(normedBuffer);
+    releaseBuffer(postAttn);
+    releaseBuffer(ffnOutput);
+
+    return output;
+  }
+
+  /**
+   * GPU-native attention (returns GPU buffer)
+   * @private
+   */
+  async _attentionGPU(layerIdx, inputBuffer, numTokens, isPrefill) {
+    const { numHeads, numKVHeads, headDim, hiddenSize } = this.modelConfig;
+    const device = getDevice();
+
+    const layerWeights = this.weights.get(`layer_${layerIdx}`);
+    if (!layerWeights) {
+      // Return zeros
+      const output = acquireBuffer(numTokens * hiddenSize * 4, undefined, 'attn_output');
+      return output;
+    }
+
+    const qSize = numTokens * numHeads * headDim;
+    const kvSize = numTokens * numKVHeads * headDim;
+
+    // 1. Input norm
+    let normedBuffer = inputBuffer;
+    if (layerWeights.inputNorm) {
+      const normWeightBuf = this._getWeightBuffer(layerWeights.inputNorm, 'input_norm');
+      normedBuffer = await runRMSNorm(inputBuffer, normWeightBuf, 1e-5, {
+        batchSize: numTokens,
+        hiddenSize,
+      });
+      if (!(layerWeights.inputNorm instanceof GPUBuffer)) releaseBuffer(normWeightBuf);
+    }
+
+    // 2. Q/K/V projections
+    let Q, K, V;
+
+    if (layerWeights.qProj) {
+      const qProjBuf = this._getWeightBuffer(layerWeights.qProj, 'q_proj');
+      Q = await runMatmul(normedBuffer, qProjBuf, numTokens, numHeads * headDim, hiddenSize);
+      if (!(layerWeights.qProj instanceof GPUBuffer)) releaseBuffer(qProjBuf);
+    } else {
+      Q = acquireBuffer(qSize * 4, undefined, 'Q');
+    }
+
+    if (layerWeights.kProj) {
+      const kProjBuf = this._getWeightBuffer(layerWeights.kProj, 'k_proj');
+      K = await runMatmul(normedBuffer, kProjBuf, numTokens, numKVHeads * headDim, hiddenSize);
+      if (!(layerWeights.kProj instanceof GPUBuffer)) releaseBuffer(kProjBuf);
+    } else {
+      K = acquireBuffer(kvSize * 4, undefined, 'K');
+    }
+
+    if (layerWeights.vProj) {
+      const vProjBuf = this._getWeightBuffer(layerWeights.vProj, 'v_proj');
+      V = await runMatmul(normedBuffer, vProjBuf, numTokens, numKVHeads * headDim, hiddenSize);
+      if (!(layerWeights.vProj instanceof GPUBuffer)) releaseBuffer(vProjBuf);
+    } else {
+      V = acquireBuffer(kvSize * 4, undefined, 'V');
+    }
+
+    if (normedBuffer !== inputBuffer) releaseBuffer(normedBuffer);
+
+    // 3. RoPE
+    if (this.ropeFreqsCos && this.ropeFreqsSin) {
+      await runRoPE(Q, this.ropeFreqsCos, this.ropeFreqsSin, numTokens, {
+        numHeads, headDim, startPos: this.currentSeqLen,
+      });
+      await runRoPE(K, this.ropeFreqsCos, this.ropeFreqsSin, numTokens, {
+        numHeads: numKVHeads, headDim, startPos: this.currentSeqLen,
+      });
+    }
+
+    // 4. Update KV cache (GPU-native)
+    let cachedK, cachedV;
+    if (this.kvCache.hasGPUCache()) {
+      this.kvCache.updateFromGPU(layerIdx, K, V, this.currentSeqLen, numTokens);
+      const gpuBuffers = this.kvCache.getGPUBuffers(layerIdx);
+      cachedK = gpuBuffers.keysGPU;
+      cachedV = gpuBuffers.valuesGPU;
+    } else {
+      cachedK = K;
+      cachedV = V;
+    }
+
+    // 5. Attention
+    const attnOutput = await runAttention(Q, cachedK, cachedV, null, numHeads, headDim, {
+      seqLen: numTokens,
+      kvLen: this.currentSeqLen + numTokens,
+      numKVHeads,
+      causal: true,
+    });
+
+    // 6. Output projection
+    let output;
+    if (layerWeights.oProj) {
+      const oProjBuf = this._getWeightBuffer(layerWeights.oProj, 'o_proj');
+      output = await runMatmul(attnOutput, oProjBuf, numTokens, hiddenSize, numHeads * headDim);
+      if (!(layerWeights.oProj instanceof GPUBuffer)) releaseBuffer(oProjBuf);
+    } else {
+      output = attnOutput;
+    }
+
+    // Cleanup
+    releaseBuffer(Q);
+    releaseBuffer(K);
+    releaseBuffer(V);
+    if (output !== attnOutput) releaseBuffer(attnOutput);
+
+    return output;
+  }
+
+  /**
+   * GPU-native feed-forward (returns GPU buffer)
+   * @private
+   */
+  async _feedForwardGPU(layerIdx, inputBuffer, numTokens) {
+    const { hiddenSize, intermediateSize } = this.modelConfig;
+    const device = getDevice();
+
+    const layerWeights = this.weights.get(`layer_${layerIdx}`);
+    if (!layerWeights || !layerWeights.gate || !layerWeights.up || !layerWeights.down) {
+      // Return input (no FFN)
+      const output = acquireBuffer(numTokens * hiddenSize * 4, undefined, 'ffn_output');
+      const encoder = device.createCommandEncoder();
+      encoder.copyBufferToBuffer(inputBuffer, 0, output, 0, numTokens * hiddenSize * 4);
+      device.queue.submit([encoder.finish()]);
+      return output;
+    }
+
+    // 1. Gate projection
+    const gateBuf = this._getWeightBuffer(layerWeights.gate, 'ffn_gate');
+    const gateOutput = await runMatmul(inputBuffer, gateBuf, numTokens, intermediateSize, hiddenSize);
+    if (!(layerWeights.gate instanceof GPUBuffer)) releaseBuffer(gateBuf);
+
+    // 2. Up projection
+    const upBuf = this._getWeightBuffer(layerWeights.up, 'ffn_up');
+    const upOutput = await runMatmul(inputBuffer, upBuf, numTokens, intermediateSize, hiddenSize);
+    if (!(layerWeights.up instanceof GPUBuffer)) releaseBuffer(upBuf);
+
+    // 3. SiLU activation with gate
+    const activatedOutput = await runSiLU(gateOutput, {
+      size: numTokens * intermediateSize,
+      gate: upOutput,
+    });
+    releaseBuffer(gateOutput);
+    releaseBuffer(upOutput);
+
+    // 4. Down projection
+    const downBuf = this._getWeightBuffer(layerWeights.down, 'ffn_down');
+    const output = await runMatmul(activatedOutput, downBuf, numTokens, hiddenSize, intermediateSize);
+    if (!(layerWeights.down instanceof GPUBuffer)) releaseBuffer(downBuf);
+    releaseBuffer(activatedOutput);
+
+    return output;
   }
 
   /**
@@ -657,13 +875,25 @@ export class InferencePipeline {
       });
     }
 
-    // 5. Update KV cache
-    const kData = await readBuffer(K, kvSize * 4);
-    const vData = await readBuffer(V, kvSize * 4);
-    this.kvCache.update(layerIdx, new Float32Array(kData), new Float32Array(vData), this.currentSeqLen);
+    // 5. Update KV cache (GPU-native if available)
+    let cachedK, cachedV;
+    if (this.kvCache.hasGPUCache()) {
+      // GPU-native: copy K/V directly to cache buffers, no readback
+      this.kvCache.updateFromGPU(layerIdx, K, V, this.currentSeqLen, numTokens);
+      const gpuBuffers = this.kvCache.getGPUBuffers(layerIdx);
+      cachedK = gpuBuffers.keysGPU;
+      cachedV = gpuBuffers.valuesGPU;
+    } else {
+      // CPU fallback: read back and store
+      const kData = await readBuffer(K, kvSize * 4);
+      const vData = await readBuffer(V, kvSize * 4);
+      this.kvCache.update(layerIdx, new Float32Array(kData), new Float32Array(vData), this.currentSeqLen);
+      cachedK = K;
+      cachedV = V;
+    }
 
-    // 6. Run attention
-    const attnOutput = await runAttention(Q, K, V, null, numHeads, headDim, {
+    // 6. Run attention with full KV cache
+    const attnOutput = await runAttention(Q, cachedK, cachedV, null, numHeads, headDim, {
       seqLen: numTokens,
       kvLen: this.currentSeqLen + numTokens,
       numKVHeads,
