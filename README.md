@@ -1,6 +1,6 @@
 # Reploid - browser-based agent sandbox
 
-**R**ecursive **E**volution **P**rotocol **L**oop **O**ptimizing **I**ntelligent **D**reamer (**D**ynamic **R**ecursive **E**ngine **A**dapting **M**odules **E**volving **R**eploid (... ∞))
+**R**ecursive **E**volution **P**rotocol **L**oop **O**ptimizing **I**ntelligent **Dreamer** (**D**ynamic **R**ecursive **E**ngine **A**dapting **M**odules **E**volving **Reploid** (... ∞))
 
 - Can run entirely client-side, and even offline
 - Spawns and evolves itself with virtual filesystem in the browser
