@@ -56,6 +56,8 @@ export {
   runSiLU,
   selectMatmulKernel,
   selectDequantKernel,
+  getTunedWorkgroupSize,
+  autoTuneKernels,
 } from './gpu/kernel-selector.js';
 export {
   getBufferPool,
@@ -73,3 +75,28 @@ export { SpeculativeDecoder } from './inference/speculative.js';
 export { InferencePipeline, createPipeline } from './inference/pipeline.js';
 export { KVCache } from './inference/kv-cache.js';
 export { Tokenizer } from './inference/tokenizer.js';
+
+// Loader
+export {
+  TitanLoader,
+  getTitanLoader,
+  createTitanLoader,
+} from './loader/titan-loader.js';
+
+// Native Bridge (Phase 3)
+export {
+  MAGIC as BRIDGE_MAGIC,
+  HEADER_SIZE as BRIDGE_HEADER_SIZE,
+  CMD as BRIDGE_CMD,
+  FLAGS as BRIDGE_FLAGS,
+  encodeMessage,
+  decodeHeader,
+  createReadRequest,
+  createAck,
+  ExtensionBridgeClient,
+  BridgeStatus,
+  getBridgeClient,
+  isBridgeAvailable,
+  createBridgeClient,
+  readFileNative,
+} from './bridge/index.js';

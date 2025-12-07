@@ -24,6 +24,9 @@ import { loadShard, getManifest } from '../storage/shard-manager.js';
 
 // GPU interfaces (Agent-C)
 import { getDevice, getKernelCapabilities } from '../gpu/device.js';
+
+// TitanLoader for weight loading
+import { getTitanLoader } from '../loader/titan-loader.js';
 import {
   runMatmul,
   dequantize,
@@ -81,6 +84,9 @@ export class InferencePipeline {
     this.isLoaded = false;
     this.isGenerating = false;
     this.currentSeqLen = 0;
+
+    // TitanLoader instance
+    this.titanLoader = null;
 
     // GPU context (from Agent-C)
     this.gpuContext = null;
@@ -207,32 +213,51 @@ export class InferencePipeline {
   }
 
   /**
-   * Load model weights from storage
+   * Load model weights from storage via TitanLoader
    * @private
    */
   async _loadWeights() {
-    // TODO: Implement actual weight loading from Agent-B's storage
-    // For now, this is a placeholder
-
-    if (!this.storageContext) {
-      console.warn('Storage context not set - weights not loaded');
-      return;
+    // Initialize TitanLoader if not already done
+    if (!this.titanLoader) {
+      this.titanLoader = getTitanLoader();
+      await this.titanLoader.init();
     }
 
-    // Load embedding weights
-    // const embedWeights = await this.storageContext.loadShard(0);
-    // this.weights.set('embed', embedWeights);
+    // Load model via TitanLoader
+    const modelId = this.manifest.modelId || this.manifest.model_id || 'default';
+    await this.titanLoader.load(modelId, {
+      verifyHashes: true,
+      onProgress: (info) => {
+        console.log(`[Pipeline] Loading: ${info.stage} - ${Math.round(info.progress * 100)}%`);
+      },
+    });
 
-    // Load layer weights
-    // for (let l = 0; l < this.modelConfig.numLayers; l++) {
-    //   const layerWeights = await this.storageContext.loadShard(l + 1);
-    //   this.weights.set(`layer_${l}`, layerWeights);
-    // }
+    // Map TitanLoader layers to pipeline weights
+    for (let l = 0; l < this.modelConfig.numLayers; l++) {
+      const layerWeights = this.titanLoader.getLayerWeights(l);
+      if (layerWeights) {
+        this.weights.set(`layer_${l}`, layerWeights);
+      }
+    }
 
-    // MoE router weights
+    // Store embeddings reference
+    if (this.titanLoader.embeddings) {
+      this.weights.set('embed', this.titanLoader.embeddings);
+    }
+
+    // Store LM head reference
+    if (this.titanLoader.lmHead) {
+      this.weights.set('lm_head', this.titanLoader.lmHead);
+    }
+
+    // Store final norm reference
+    if (this.titanLoader.finalNorm) {
+      this.weights.set('final_norm', this.titanLoader.finalNorm);
+    }
+
+    // MoE router weights - loaded on demand via titanLoader.loadExpert()
     if (this.moeRouter && this.modelConfig.useMoE) {
-      // Load router gate weights for each MoE layer
-      // this.moeRouter.loadWeights(routerWeights);
+      console.log('[Pipeline] MoE model - experts will be loaded on demand');
     }
   }
 
@@ -400,10 +425,64 @@ export class InferencePipeline {
    * @private
    */
   async _embed(tokenIds) {
-    // TODO: Implement actual embedding lookup
-    // For now, return placeholder
     const hiddenSize = this.modelConfig.hiddenSize;
-    return new Float32Array(tokenIds.length * hiddenSize);
+    const numTokens = tokenIds.length;
+
+    // Get embeddings buffer from TitanLoader
+    const embedBuffer = this.weights.get('embed');
+    if (!embedBuffer) {
+      console.warn('[Pipeline] Embeddings not loaded, using placeholder');
+      return new Float32Array(numTokens * hiddenSize);
+    }
+
+    const device = getDevice();
+    if (!device || !this.useGPU) {
+      // CPU fallback - read embeddings if possible
+      if (embedBuffer instanceof Float32Array) {
+        const result = new Float32Array(numTokens * hiddenSize);
+        for (let i = 0; i < numTokens; i++) {
+          const tokenId = tokenIds[i];
+          const srcOffset = tokenId * hiddenSize;
+          const dstOffset = i * hiddenSize;
+          for (let j = 0; j < hiddenSize; j++) {
+            result[dstOffset + j] = embedBuffer[srcOffset + j];
+          }
+        }
+        return result;
+      }
+      return new Float32Array(numTokens * hiddenSize);
+    }
+
+    // GPU path: gather embeddings
+    // Create token indices buffer
+    const tokenIdBuffer = acquireBuffer(numTokens * 4, undefined, 'token_ids');
+    device.queue.writeBuffer(tokenIdBuffer, 0, new Uint32Array(tokenIds));
+
+    // Create output buffer for gathered embeddings
+    const outputSize = numTokens * hiddenSize * 4;
+    const outputBuffer = acquireBuffer(outputSize, undefined, 'embedded_tokens');
+
+    // For now, read back from GPU embeddings and do gather on CPU
+    // Full GPU gather would require a custom kernel
+    const embeddingData = await readBuffer(embedBuffer, this.modelConfig.vocabSize * hiddenSize * 4);
+    const embeddings = new Float32Array(embeddingData);
+    const result = new Float32Array(numTokens * hiddenSize);
+
+    for (let i = 0; i < numTokens; i++) {
+      const tokenId = tokenIds[i];
+      const srcOffset = tokenId * hiddenSize;
+      const dstOffset = i * hiddenSize;
+      for (let j = 0; j < hiddenSize; j++) {
+        result[dstOffset + j] = embeddings[srcOffset + j];
+      }
+    }
+
+    // Upload result to GPU
+    device.queue.writeBuffer(outputBuffer, 0, result);
+
+    releaseBuffer(tokenIdBuffer);
+
+    return result;
   }
 
   /**
@@ -669,9 +748,13 @@ export class InferencePipeline {
     const key = `layer_${layerIdx}_expert_${expertIdx}`;
     if (this.expertWeights.has(key)) return;
 
-    // TODO: Load expert weights from storage on demand
-    // const weights = await this.storageContext.loadExpert(layerIdx, expertIdx);
-    // this.expertWeights.set(key, weights);
+    // Load expert weights via TitanLoader
+    if (this.titanLoader) {
+      const weights = await this.titanLoader.loadExpert(layerIdx, expertIdx);
+      if (weights) {
+        this.expertWeights.set(key, weights);
+      }
+    }
   }
 
   /**
@@ -679,8 +762,54 @@ export class InferencePipeline {
    * @private
    */
   async _runExpert(layerIdx, expertIdx, input) {
-    // TODO: Implement with Agent-C's GPU kernels
-    return new Float32Array(input.length);
+    const key = `layer_${layerIdx}_expert_${expertIdx}`;
+    const weights = this.expertWeights.get(key);
+
+    if (!weights || !weights.gate || !weights.up || !weights.down) {
+      console.warn(`[Pipeline] Expert ${expertIdx} weights not available for layer ${layerIdx}`);
+      return new Float32Array(input.length);
+    }
+
+    const device = getDevice();
+    const hiddenSize = this.modelConfig.hiddenSize;
+    const intermediateSize = this.modelConfig.intermediateSize;
+    const numTokens = input.length / hiddenSize;
+
+    if (!device || !this.useGPU) {
+      // CPU fallback
+      return new Float32Array(input.length);
+    }
+
+    // 1. Create input buffer
+    const inputBuffer = acquireBuffer(input.byteLength, undefined, 'expert_input');
+    device.queue.writeBuffer(inputBuffer, 0, input);
+
+    // 2. Gate projection: gate = W_gate @ x
+    const gateOutput = await runMatmul(inputBuffer, weights.gate, numTokens, intermediateSize, hiddenSize);
+
+    // 3. Up projection: up = W_up @ x
+    const upOutput = await runMatmul(inputBuffer, weights.up, numTokens, intermediateSize, hiddenSize);
+
+    // 4. SiLU activation: out = silu(gate) * up
+    const activatedOutput = await runSiLU(gateOutput, {
+      size: numTokens * intermediateSize,
+      gate: upOutput,
+    });
+
+    // 5. Down projection: result = W_down @ activated
+    const output = await runMatmul(activatedOutput, weights.down, numTokens, hiddenSize, intermediateSize);
+
+    // 6. Read output back
+    const outputData = await readBuffer(output, input.byteLength);
+
+    // Cleanup
+    releaseBuffer(inputBuffer);
+    releaseBuffer(gateOutput);
+    releaseBuffer(upOutput);
+    releaseBuffer(activatedOutput);
+    releaseBuffer(output);
+
+    return new Float32Array(outputData);
   }
 
   /**
