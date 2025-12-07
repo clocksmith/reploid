@@ -92,12 +92,26 @@ All modifications are verified before execution and logged. VFS snapshots allow 
 
 For L2+ modifications, arena mode generates multiple candidates, runs them against tests, and keeps the best one.
 
+## Research Goals
+
+**RSI Questions:**
+- Can an agent improve its own tool-creation mechanism in a measurable way?
+- What happens when the agent modifies its own prompt or system instructions?
+- Can arena-style selection pressure produce better code than single-shot generation?
+
+**Security/Containment:**
+- Is browser sandboxing sufficient for code-writing agents?
+- What verification checks actually catch dangerous mutations?
+- Can we build meaningful human-in-the-loop gates without destroying agent autonomy?
+
+**Current Limitation:** Small models that run locally via WebLLM (1-7B params) struggle with tool-use and code generation. They often fail to follow the tool schema or produce syntactically invalid code. For now, frontier models (Claude, GPT-4, etc.) via API produce much better results. WebLLM becomes more useful as local models improve.
+
 ## Why Browser-Based
 
 - No Docker, no shell access, no filesystem access
-- Runs offline after initial load (with WebLLM)
 - VFS snapshots enable rollback
 - Service Worker intercepts imports, serves from VFS
+- Designed for frontier API models, with WebLLM as fallback for offline/privacy use cases
 
 ## Why JavaScript
 
