@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Titan Bridge",
+  "name": "Dreamer Bridge",
   "version": "1.0.0",
-  "description": "Native bridge for Titan LLM inference - bypasses browser storage limits",
+  "description": "Native bridge for Dreamer LLM inference - bypasses browser storage limits",
 
   "permissions": [
     "nativeMessaging",

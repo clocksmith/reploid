@@ -226,8 +226,35 @@ export async function checkAvailability() {
         }
     };
 
+    const checkDreamer = async () => {
+        if (providers.webgpu.online) {
+            try {
+                const { DreamerProvider } = await import('../../../core/dreamer/dreamer-provider.js');
+                const available = await DreamerProvider.init();
+                if (available) {
+                    const capabilities = DreamerProvider.getCapabilities();
+                    const models = await DreamerProvider.getModels();
+                    providers.dreamer = {
+                        online: true,
+                        checked: true,
+                        models: models.map(id => ({ id, name: id })),
+                        capabilities
+                    };
+                    console.log('[ModelConfig] Dreamer available:', capabilities.TIER_NAME, `(Tier ${capabilities.TIER_LEVEL})`);
+                } else {
+                    providers.dreamer = { online: false, checked: true, models: [] };
+                }
+            } catch (e) {
+                console.log('[ModelConfig] Dreamer not available:', e.message);
+                providers.dreamer = { online: false, checked: true, models: [] };
+            }
+            setAvailableProviders(providers);
+            if (onStatusChange) onStatusChange();
+        }
+    };
+
     // Run all checks in parallel
-    await Promise.all([checkOllama(), checkProxy(), loadWebLLMModels()]);
+    await Promise.all([checkOllama(), checkProxy(), loadWebLLMModels(), checkDreamer()]);
 }
 
 // Get models for a specific provider
@@ -240,6 +267,8 @@ export function getModelsForProvider(provider) {
         return providers.webgpu.models;
     } else if (provider === 'transformers') {
         return providers.transformers.models;
+    } else if (provider === 'dreamer') {
+        return providers.dreamer?.models || [];
     } else if (cloudProviders[provider]) {
         return cloudProviders[provider].models;
     }
@@ -257,6 +286,8 @@ export function getConnectionOptions(provider) {
         options.push('browser-local');
     } else if (provider === 'transformers') {
         options.push('browser-local');
+    } else if (provider === 'dreamer') {
+        options.push('browser-local');
     } else if (cloudProviders[provider]) {
         // Browser-cloud (direct API) is always available
         options.push('browser-cloud');
@@ -267,4 +298,10 @@ export function getConnectionOptions(provider) {
     }
 
     return options;
+}
+
+// Get Dreamer capabilities
+export function getDreamerCapabilities() {
+    const providers = getAvailableProviders();
+    return providers.dreamer?.capabilities || null;
 }

@@ -1,7 +1,7 @@
 /**
  * rpl-writer.js - .rpl Model Format Writer
  *
- * Writes models in Titan's .rpl format:
+ * Writes models in Dreamer's .rpl format:
  * - manifest.json with model metadata and shard layout
  * - 64MB shard files with tensor data
  * - BLAKE3 hashes for integrity verification

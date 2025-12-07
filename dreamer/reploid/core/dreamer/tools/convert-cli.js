@@ -2,7 +2,7 @@
 /**
  * convert-cli.js - Model Conversion CLI
  *
- * Converts GGUF or Safetensors models to Titan's .rpl format.
+ * Converts GGUF or Safetensors models to Dreamer's .rpl format.
  *
  * Usage:
  *   node convert-cli.js <input> <output-dir> [options]
@@ -77,7 +77,7 @@ function parseArgs(args) {
 // Print help
 function printHelp() {
   console.log(`
-Titan Model Converter - Convert models to .rpl format
+Dreamer Model Converter - Convert models to .rpl format
 
 Usage:
   node convert-cli.js <input> <output-dir> [options]

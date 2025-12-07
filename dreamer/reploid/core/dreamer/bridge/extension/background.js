@@ -1,5 +1,5 @@
 /**
- * Titan Bridge Background Script
+ * Dreamer Bridge Background Script
  * Phase 3: Native Messaging Bridge
  *
  * Handles:
@@ -9,7 +9,7 @@
  * - Backpressure management
  */
 
-const NATIVE_HOST_NAME = 'dev.reploid.titan';
+const NATIVE_HOST_NAME = 'dev.reploid.dreamer';
 const MAX_MESSAGE_SIZE = 1024 * 1024; // 1MB Chrome native messaging limit
 
 // Active connections
@@ -18,16 +18,13 @@ const connections = new Map(); // portId -> { webPort, nativePort }
 // Message queue for backpressure
 const messageQueues = new Map(); // reqId -> chunks[]
 
-/**
- * Handle incoming connection from web page
- */
-chrome.runtime.onConnectExternal.addListener((webPort) => {
-  if (webPort.name !== 'titan-bridge') {
-    console.warn('[TitanBridge] Unknown connection:', webPort.name);
+function handleWebConnection(webPort) {
+  if (webPort.name !== 'dreamer-bridge') {
+    console.warn('[DreamerBridge] Unknown connection:', webPort.name);
     return;
   }
 
-  console.log('[TitanBridge] Web page connected');
+  console.log('[DreamerBridge] Web page connected');
 
   const portId = crypto.randomUUID();
   let nativePort = null;
@@ -35,9 +32,9 @@ chrome.runtime.onConnectExternal.addListener((webPort) => {
   // Connect to native host
   try {
     nativePort = chrome.runtime.connectNative(NATIVE_HOST_NAME);
-    console.log('[TitanBridge] Connected to native host');
+    console.log('[DreamerBridge] Connected to native host');
   } catch (err) {
-    console.error('[TitanBridge] Failed to connect to native host:', err);
+    console.error('[DreamerBridge] Failed to connect to native host:', err);
     webPort.postMessage({
       type: 'error',
       message: `Failed to connect to native host: ${err.message}`,
@@ -60,14 +57,14 @@ chrome.runtime.onConnectExternal.addListener((webPort) => {
 
   // Handle web page disconnect
   webPort.onDisconnect.addListener(() => {
-    console.log('[TitanBridge] Web page disconnected');
+    console.log('[DreamerBridge] Web page disconnected');
     cleanupConnection(portId);
   });
 
   // Handle native host disconnect
   nativePort.onDisconnect.addListener(() => {
     const error = chrome.runtime.lastError;
-    console.log('[TitanBridge] Native host disconnected:', error?.message);
+    console.log('[DreamerBridge] Native host disconnected:', error?.message);
 
     // Notify web page
     try {
@@ -81,7 +78,12 @@ chrome.runtime.onConnectExternal.addListener((webPort) => {
 
     cleanupConnection(portId);
   });
-});
+}
+
+/**
+ * Handle incoming connection from web page (external)
+ */
+chrome.runtime.onConnectExternal.addListener(handleWebConnection);
 
 /**
  * Handle message from web page
@@ -89,7 +91,7 @@ chrome.runtime.onConnectExternal.addListener((webPort) => {
 function handleWebMessage(portId, message) {
   const conn = connections.get(portId);
   if (!conn) {
-    console.error('[TitanBridge] No connection for port:', portId);
+    console.error('[DreamerBridge] No connection for port:', portId);
     return;
   }
 
@@ -107,7 +109,7 @@ function handleWebMessage(portId, message) {
       reqId: message.reqId,
     });
   } else {
-    console.warn('[TitanBridge] Unknown message type from web:', message.type);
+    console.warn('[DreamerBridge] Unknown message type from web:', message.type);
   }
 }
 
@@ -117,7 +119,7 @@ function handleWebMessage(portId, message) {
 function handleNativeMessage(portId, message) {
   const conn = connections.get(portId);
   if (!conn) {
-    console.error('[TitanBridge] No connection for port:', portId);
+    console.error('[DreamerBridge] No connection for port:', portId);
     return;
   }
 
@@ -133,7 +135,7 @@ function handleNativeMessage(portId, message) {
       message: message.message,
     });
   } else {
-    console.warn('[TitanBridge] Unknown message type from native:', message.type);
+    console.warn('[DreamerBridge] Unknown message type from native:', message.type);
   }
 }
 
@@ -157,10 +159,9 @@ function cleanupConnection(portId) {
  * Handle internal connections (same extension)
  */
 chrome.runtime.onConnect.addListener((port) => {
-  if (port.name === 'titan-bridge') {
-    // Same handling as external
-    chrome.runtime.onConnectExternal.dispatch(port);
+  if (port.name === 'dreamer-bridge') {
+    handleWebConnection(port);
   }
 });
 
-console.log('[TitanBridge] Background script loaded');
+console.log('[DreamerBridge] Background script loaded');

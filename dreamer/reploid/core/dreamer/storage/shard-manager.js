@@ -16,7 +16,7 @@ import { isOPFSAvailable, QuotaExceededError, checkSpaceAvailable } from './quot
 // Constants
 const ALIGNMENT = 4096; // 4KB alignment for optimal disk I/O
 const READ_CHUNK_SIZE = 1024 * 1024; // 1MB chunks for streaming reads
-const MODELS_DIR = 'titan-models';
+const MODELS_DIR = 'dreamer-models';
 
 // BLAKE3 constants
 const BLAKE3_OUT_LEN = 32; // 256-bit output
@@ -135,6 +135,30 @@ export async function computeBlake3(data) {
 }
 
 /**
+ * Computes SHA-256 hash of data
+ * @param {Uint8Array|ArrayBuffer} data
+ * @returns {Promise<string>} Hex-encoded hash
+ */
+export async function computeSHA256(data) {
+  const bytes = data instanceof ArrayBuffer ? new Uint8Array(data) : data;
+  const hashBuffer = await crypto.subtle.digest('SHA-256', bytes);
+  return bytesToHex(new Uint8Array(hashBuffer));
+}
+
+/**
+ * Computes hash using specified algorithm
+ * @param {Uint8Array|ArrayBuffer} data
+ * @param {string} algorithm - 'blake3' or 'sha256'
+ * @returns {Promise<string>} Hex-encoded hash
+ */
+export async function computeHash(data, algorithm = 'blake3') {
+  if (algorithm === 'sha256') {
+    return computeSHA256(data);
+  }
+  return computeBlake3(data);
+}
+
+/**
  * Creates a streaming BLAKE3 hasher for large data
  * @returns {Promise<{update: Function, finalize: Function}>}
  */
@@ -228,11 +252,15 @@ export async function writeShard(shardIndex, data, options = { verify: true }) {
 
     // Verify hash if requested
     if (options.verify) {
-      const hash = await computeBlake3(data);
-      if (hash !== shardInfo.blake3) {
+      const manifest = getManifest();
+      const algorithm = manifest?.hashAlgorithm || 'blake3';
+      const hash = await computeHash(data, algorithm);
+      const expectedHash = shardInfo.hash || shardInfo.blake3;
+
+      if (hash !== expectedHash) {
         // Delete the corrupted shard
         await currentModelDir.removeEntry(shardInfo.filename);
-        throw new Error(`Hash mismatch for shard ${shardIndex}: expected ${shardInfo.blake3}, got ${hash}`);
+        throw new Error(`Hash mismatch for shard ${shardIndex}: expected ${expectedHash}, got ${hash}`);
       }
       return { success: true, hash };
     }
@@ -268,9 +296,13 @@ export async function loadShard(shardIndex, options = { verify: false }) {
 
     // Verify hash if requested
     if (options.verify) {
-      const hash = await computeBlake3(buffer);
-      if (hash !== shardInfo.blake3) {
-        throw new Error(`Hash mismatch for shard ${shardIndex}: expected ${shardInfo.blake3}, got ${hash}`);
+      const manifest = getManifest();
+      const algorithm = manifest?.hashAlgorithm || 'blake3';
+      const hash = await computeHash(buffer, algorithm);
+      const expectedHash = shardInfo.hash || shardInfo.blake3;
+
+      if (hash !== expectedHash) {
+        throw new Error(`Hash mismatch for shard ${shardIndex}: expected ${expectedHash}, got ${hash}`);
       }
     }
 
@@ -371,6 +403,9 @@ export async function verifyIntegrity() {
     throw new Error('No model directory open');
   }
 
+  // Get hash algorithm from manifest (default to blake3 for backwards compatibility)
+  const algorithm = manifest.hashAlgorithm || 'blake3';
+
   const missingShards = [];
   const corruptShards = [];
   const shardCount = getShardCount();
@@ -385,10 +420,13 @@ export async function verifyIntegrity() {
     // Verify hash
     try {
       const buffer = await loadShard(i, { verify: false });
-      const hash = await computeBlake3(buffer);
+      const hash = await computeHash(buffer, algorithm);
       const shardInfo = getShardInfo(i);
 
-      if (hash !== shardInfo.blake3) {
+      // Support both 'blake3' and 'hash' field names
+      const expectedHash = shardInfo.hash || shardInfo.blake3;
+
+      if (hash !== expectedHash) {
         corruptShards.push(i);
       }
     } catch (error) {

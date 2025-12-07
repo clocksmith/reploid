@@ -1,5 +1,5 @@
 /**
- * Titan Native Bridge Module
+ * Dreamer Native Bridge Module
  * Phase 3: Native Host Communication
  *
  * @module bridge

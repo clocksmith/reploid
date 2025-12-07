@@ -24,6 +24,8 @@ import {
   openModelDirectory,
   writeShard,
   shardExists,
+  loadShard,
+  deleteShard,
   saveManifest,
   computeBlake3
 } from './shard-manager.js';
@@ -37,7 +39,7 @@ import {
 } from './quota.js';
 
 // Constants
-const DB_NAME = 'titan-download-state';
+const DB_NAME = 'dreamer-download-state';
 const DB_VERSION = 1;
 const STORE_NAME = 'downloads';
 
@@ -327,6 +329,16 @@ export async function downloadModel(baseUrl, onProgress, options = {}) {
         state.completedShards.delete(idx);
       }
     }
+    // Verify hashes for completed shards; drop and re-download corrupt shards
+    for (const idx of Array.from(state.completedShards)) {
+      try {
+        await loadShard(idx, { verify: true });
+      } catch (err) {
+        console.warn(`[downloader] Shard ${idx} failed verification, re-downloading`, err);
+        state.completedShards.delete(idx);
+        await deleteShard(idx);
+      }
+    }
   }
 
   // Create abort controller
@@ -358,6 +370,7 @@ export async function downloadModel(baseUrl, onProgress, options = {}) {
     lastTime: Date.now(),
     speed: 0
   };
+  const shardProgress = new Map();
 
   const updateProgress = (currentShard) => {
     const now = Date.now();
@@ -400,8 +413,12 @@ export async function downloadModel(baseUrl, onProgress, options = {}) {
       const buffer = await downloadShard(baseUrl, shardIndex, {
         signal: abortController.signal,
         onProgress: (p) => {
-          // Update per-shard progress
-          // Calculate incremental bytes for speed tracking
+          // Update per-shard progress and global throughput
+          const prev = shardProgress.get(shardIndex) || 0;
+          const delta = Math.max(0, p.receivedBytes - prev);
+          shardProgress.set(shardIndex, p.receivedBytes);
+          downloadedBytes += delta;
+          updateProgress(shardIndex);
         }
       });
 
@@ -411,7 +428,7 @@ export async function downloadModel(baseUrl, onProgress, options = {}) {
       // Update state
       state.completedShards.add(shardIndex);
       const info = getShardInfo(shardIndex);
-      downloadedBytes += info.size;
+      shardProgress.delete(shardIndex);
 
       // Save progress
       await saveDownloadState(state);

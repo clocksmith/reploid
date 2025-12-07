@@ -157,10 +157,10 @@ export async function initDevice() {
 
   // Log adapter info for debugging
   const adapterInfo = await adapter.requestAdapterInfo?.() || {};
-  console.log('[TITAN GPU] Adapter:', adapterInfo.vendor || 'unknown', adapterInfo.architecture || '');
-  console.log('[TITAN GPU] Available features:', [...availableFeatures].join(', '));
-  console.log('[TITAN GPU] Requesting features:', requestedFeatures.join(', ') || 'none');
-  console.log('[TITAN GPU] Max storage buffer:', (limits.maxStorageBufferBindingSize / (1024 * 1024 * 1024)).toFixed(2), 'GB');
+  console.log('[DREAMER GPU] Adapter:', adapterInfo.vendor || 'unknown', adapterInfo.architecture || '');
+  console.log('[DREAMER GPU] Available features:', [...availableFeatures].join(', '));
+  console.log('[DREAMER GPU] Requesting features:', requestedFeatures.join(', ') || 'none');
+  console.log('[DREAMER GPU] Max storage buffer:', (limits.maxStorageBufferBindingSize / (1024 * 1024 * 1024)).toFixed(2), 'GB');
 
   try {
     gpuDevice = await adapter.requestDevice({
@@ -169,7 +169,7 @@ export async function initDevice() {
     });
   } catch (e) {
     // Fallback: request device without optional features
-    console.warn('[TITAN GPU] Failed to request device with features, trying minimal config:', e.message);
+    console.warn('[DREAMER GPU] Failed to request device with features, trying minimal config:', e.message);
     gpuDevice = await adapter.requestDevice();
   }
 
@@ -179,7 +179,7 @@ export async function initDevice() {
 
   // Set up device lost handler
   gpuDevice.lost.then((info) => {
-    console.error('[TITAN GPU] Device lost:', info.message, 'Reason:', info.reason);
+    console.error('[DREAMER GPU] Device lost:', info.message, 'Reason:', info.reason);
     gpuDevice = null;
     kernelCapabilities = null;
   });
@@ -201,7 +201,7 @@ export async function initDevice() {
     },
   };
 
-  console.log('[TITAN GPU] Device initialized:', {
+  console.log('[DREAMER GPU] Device initialized:', {
     f16: kernelCapabilities.hasF16,
     subgroups: kernelCapabilities.hasSubgroups,
     maxBuffer: `${(kernelCapabilities.maxBufferSize / (1024 * 1024 * 1024)).toFixed(2)} GB`,

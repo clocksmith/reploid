@@ -1,7 +1,7 @@
 /**
  * storage/index.js - Storage Module Exports
  *
- * Consolidates all storage-related functionality for the Titan engine.
+ * Consolidates all storage-related functionality for the Dreamer engine.
  *
  * @module storage
  */

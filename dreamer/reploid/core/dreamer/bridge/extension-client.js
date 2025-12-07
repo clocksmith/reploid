@@ -55,7 +55,7 @@ export class ExtensionBridgeClient {
   }
 
   /**
-   * Check if the Titan extension is installed
+   * Check if the Dreamer extension is installed
    * @returns {boolean}
    */
   static isExtensionAvailable() {
@@ -65,7 +65,7 @@ export class ExtensionBridgeClient {
   }
 
   /**
-   * Connect to the Titan extension
+   * Connect to the Dreamer extension
    * @param {string} [extensionId] - Extension ID (optional, uses known ID)
    * @returns {Promise<void>}
    */
@@ -81,7 +81,7 @@ export class ExtensionBridgeClient {
     return new Promise((resolve, reject) => {
       try {
         // Connect to extension's background script
-        const connectInfo = { name: 'titan-bridge' };
+        const connectInfo = { name: 'dreamer-bridge' };
 
         if (extensionId) {
           this.port = chrome.runtime.connect(extensionId, connectInfo);
@@ -181,7 +181,13 @@ export class ExtensionBridgeClient {
    * @private
    */
   _getNextReqId() {
-    return this.nextReqId++;
+    // Wrap at 32-bit unsigned max to avoid overflow
+    const current = this.nextReqId;
+    this.nextReqId = (this.nextReqId + 1) >>> 0;
+    if (this.nextReqId === 0) {
+      this.nextReqId = 1;
+    }
+    return current;
   }
 
   /**
