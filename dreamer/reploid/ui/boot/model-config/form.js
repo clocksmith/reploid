@@ -448,6 +448,9 @@ export function setupFormListeners() {
 
     // Setup GGUF import listeners
     setupGGUFImportListeners();
+
+    // Setup browse button listener
+    setupBrowseListeners();
 }
 
 /**
@@ -669,4 +672,235 @@ async function autoAddImportedModel(modelId) {
     updateModelPickerDropdown();
 
     console.log('[GGUF Import] Model added to list:', modelConfig);
+}
+
+// ========================================
+// Native Bridge Browse Functionality
+// ========================================
+
+let browseClient = null;
+let browseCurrentPath = '/Users';
+let browseSelectedEntry = null;
+
+/**
+ * Setup browse button and modal listeners
+ */
+function setupBrowseListeners() {
+    const browseBtn = document.getElementById('browse-path-btn');
+    const closeBtn = document.getElementById('browse-modal-close');
+    const cancelBtn = document.getElementById('browse-cancel-btn');
+    const selectBtn = document.getElementById('browse-select-btn');
+    const upBtn = document.getElementById('browse-up-btn');
+    const goBtn = document.getElementById('browse-go-btn');
+    const pathInput = document.getElementById('browse-current-path');
+    const modal = document.getElementById('browse-modal');
+
+    if (browseBtn) {
+        browseBtn.addEventListener('click', openBrowseModal);
+    }
+
+    if (closeBtn) {
+        closeBtn.addEventListener('click', closeBrowseModal);
+    }
+
+    if (cancelBtn) {
+        cancelBtn.addEventListener('click', closeBrowseModal);
+    }
+
+    if (selectBtn) {
+        selectBtn.addEventListener('click', selectBrowsePath);
+    }
+
+    if (upBtn) {
+        upBtn.addEventListener('click', navigateUp);
+    }
+
+    if (goBtn) {
+        goBtn.addEventListener('click', () => {
+            const newPath = pathInput?.value;
+            if (newPath) navigateToPath(newPath);
+        });
+    }
+
+    if (pathInput) {
+        pathInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                navigateToPath(pathInput.value);
+            }
+        });
+    }
+
+    // Click outside to close
+    if (modal) {
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) closeBrowseModal();
+        });
+    }
+}
+
+/**
+ * Open the browse modal
+ */
+async function openBrowseModal() {
+    const modal = document.getElementById('browse-modal');
+    if (!modal) return;
+
+    // Initialize bridge client if needed
+    if (!browseClient) {
+        try {
+            const { createBridgeClient } = await import('../../../core/dreamer/bridge/index.js');
+            browseClient = await createBridgeClient();
+        } catch (err) {
+            console.error('[Browse] Failed to create bridge client:', err);
+            alert('Failed to connect to Native Bridge. Make sure the extension is installed.');
+            return;
+        }
+    }
+
+    modal.classList.remove('hidden');
+    browseSelectedEntry = null;
+
+    // Load initial directory
+    await navigateToPath(browseCurrentPath);
+}
+
+/**
+ * Close the browse modal
+ */
+function closeBrowseModal() {
+    const modal = document.getElementById('browse-modal');
+    if (modal) modal.classList.add('hidden');
+}
+
+/**
+ * Navigate to a path
+ */
+async function navigateToPath(path) {
+    if (!browseClient) return;
+
+    const entriesContainer = document.getElementById('browse-entries');
+    const pathInput = document.getElementById('browse-current-path');
+
+    if (entriesContainer) {
+        entriesContainer.innerHTML = '<div class="browse-empty">Loading...</div>';
+    }
+
+    try {
+        const entries = await browseClient.list(path);
+        browseCurrentPath = path;
+        browseSelectedEntry = null;
+
+        if (pathInput) pathInput.value = path;
+
+        renderBrowseEntries(entries);
+    } catch (err) {
+        console.error('[Browse] Failed to list directory:', err);
+        if (entriesContainer) {
+            entriesContainer.innerHTML = `<div class="browse-empty">Error: ${err.message}</div>`;
+        }
+    }
+}
+
+/**
+ * Navigate up one directory
+ */
+function navigateUp() {
+    const parts = browseCurrentPath.split('/').filter(Boolean);
+    if (parts.length > 0) {
+        parts.pop();
+        const newPath = '/' + parts.join('/') || '/';
+        navigateToPath(newPath);
+    }
+}
+
+/**
+ * Render directory entries
+ */
+function renderBrowseEntries(entries) {
+    const container = document.getElementById('browse-entries');
+    if (!container) return;
+
+    if (!entries || entries.length === 0) {
+        container.innerHTML = '<div class="browse-empty">Empty directory</div>';
+        return;
+    }
+
+    container.innerHTML = entries.map(entry => `
+        <div class="browse-entry ${entry.isDir ? 'browse-entry-dir' : ''}"
+             data-name="${entry.name}"
+             data-isdir="${entry.isDir}">
+            <span class="browse-entry-icon">${entry.isDir ? '📁' : '📄'}</span>
+            <span class="browse-entry-name">${entry.name}</span>
+            <span class="browse-entry-size">${entry.isDir ? '' : formatSize(entry.size)}</span>
+        </div>
+    `).join('');
+
+    // Add click handlers
+    container.querySelectorAll('.browse-entry').forEach(el => {
+        el.addEventListener('click', () => handleEntryClick(el));
+        el.addEventListener('dblclick', () => handleEntryDblClick(el));
+    });
+}
+
+/**
+ * Handle single click on entry (select)
+ */
+function handleEntryClick(el) {
+    // Deselect previous
+    document.querySelectorAll('.browse-entry.selected').forEach(e => e.classList.remove('selected'));
+
+    // Select this one
+    el.classList.add('selected');
+    browseSelectedEntry = {
+        name: el.dataset.name,
+        isDir: el.dataset.isdir === 'true',
+    };
+}
+
+/**
+ * Handle double click on entry (navigate into dir or select file)
+ */
+function handleEntryDblClick(el) {
+    const name = el.dataset.name;
+    const isDir = el.dataset.isdir === 'true';
+
+    if (isDir) {
+        const newPath = browseCurrentPath === '/' ? `/${name}` : `${browseCurrentPath}/${name}`;
+        navigateToPath(newPath);
+    } else {
+        // Double-click file = select it
+        browseSelectedEntry = { name, isDir: false };
+        selectBrowsePath();
+    }
+}
+
+/**
+ * Select the current path/entry and close modal
+ */
+function selectBrowsePath() {
+    let selectedPath = browseCurrentPath;
+
+    if (browseSelectedEntry) {
+        selectedPath = browseCurrentPath === '/'
+            ? `/${browseSelectedEntry.name}`
+            : `${browseCurrentPath}/${browseSelectedEntry.name}`;
+    }
+
+    // Set the path in the input
+    const pathInput = document.getElementById('local-path-input');
+    if (pathInput) {
+        pathInput.value = selectedPath;
+    }
+
+    closeBrowseModal();
+}
+
+/**
+ * Format file size
+ */
+function formatSize(bytes) {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    if (bytes < 1024 * 1024 * 1024) return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
+    return `${(bytes / 1024 / 1024 / 1024).toFixed(1)} GB`;
 }

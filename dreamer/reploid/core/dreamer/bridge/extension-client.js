@@ -19,8 +19,10 @@ import {
   encodeMessage,
   decodeHeader,
   createReadRequest,
+  createListRequest,
   createAck,
   parseReadResponse,
+  parseListResponse,
   parseErrorResponse,
 } from './protocol.js';
 
@@ -177,6 +179,31 @@ export class ExtensionBridgeClient {
   }
 
   /**
+   * List directory contents via native host
+   * @param {string} path - Directory path
+   * @returns {Promise<Array<{name: string, isDir: boolean, size: number}>>}
+   */
+  async list(path) {
+    if (this.status !== BridgeStatus.CONNECTED) {
+      throw new Error('Not connected to extension');
+    }
+
+    const reqId = this._getNextReqId();
+    const request = createListRequest(reqId, path);
+
+    // Create pending request
+    const pending = this._createPendingRequest(reqId, 30000);
+
+    // Send request
+    this.port.postMessage({
+      type: 'binary',
+      data: Array.from(new Uint8Array(request)),
+    });
+
+    return pending;
+  }
+
+  /**
    * Get next request ID
    * @private
    */
@@ -280,6 +307,15 @@ export class ExtensionBridgeClient {
 
             pending.resolve(result);
           }
+        }
+        break;
+
+      case CMD.LIST_RESPONSE:
+        if (pending) {
+          clearTimeout(pending.timeout);
+          this.pendingRequests.delete(header.reqId);
+          const entries = parseListResponse(payload);
+          pending.resolve(entries);
         }
         break;
 

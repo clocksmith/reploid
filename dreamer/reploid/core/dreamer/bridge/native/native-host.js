@@ -7,9 +7,9 @@
  * Provides file access to bypass browser storage limits.
  */
 
-import { createReadStream, statSync } from 'fs';
-import { readFile } from 'fs/promises';
-import { resolve, normalize } from 'path';
+import { createReadStream, statSync, readdirSync } from 'fs';
+import { readFile, readdir, stat } from 'fs/promises';
+import { resolve, normalize, join } from 'path';
 
 // Protocol constants (must match extension-client.js and protocol.js)
 const MAGIC = 0x5245504C; // "REPL"
@@ -21,6 +21,8 @@ const CMD_PING = 0x00;
 const CMD_PONG = 0x01;
 const CMD_READ = 0x02;
 const CMD_READ_RESPONSE = 0x03;
+const CMD_LIST = 0x06;
+const CMD_LIST_RESPONSE = 0x07;
 const CMD_ERROR = 0xFF;
 
 // Flags
@@ -128,6 +130,84 @@ function createErrorResponse(reqId, code, errorMsg) {
 }
 
 /**
+ * Create LIST_RESPONSE
+ */
+function createListResponse(reqId, entries) {
+  const jsonStr = JSON.stringify(entries);
+  const jsonBytes = Buffer.from(jsonStr, 'utf8');
+  const payloadLen = jsonBytes.length;
+  const message = Buffer.alloc(HEADER_SIZE + payloadLen);
+
+  // Header
+  message.writeUInt32LE(MAGIC, 0);
+  message.writeUInt8(CMD_LIST_RESPONSE, 4);
+  message.writeUInt8(FLAG_LAST_CHUNK, 5); // Always single response
+  message.writeUInt32LE(reqId, 8);
+  message.writeUInt32LE(payloadLen, 12);
+
+  // Payload: JSON array of entries
+  jsonBytes.copy(message, HEADER_SIZE);
+
+  return { type: 'binary', data: Array.from(message) };
+}
+
+/**
+ * Handle LIST request
+ */
+async function handleListRequest(reqId, payload) {
+  // Parse path from payload
+  const dirPath = payload.toString('utf8');
+
+  // Security check
+  if (!isPathAllowed(dirPath)) {
+    return [createErrorResponse(reqId, ERR_PERMISSION_DENIED, 'Path not in allowed directory')];
+  }
+
+  try {
+    const stats = statSync(dirPath);
+    if (!stats.isDirectory()) {
+      return [createErrorResponse(reqId, ERR_INVALID_REQUEST, 'Path is not a directory')];
+    }
+
+    // Read directory entries
+    const dirents = readdirSync(dirPath, { withFileTypes: true });
+    const entries = [];
+
+    for (const dirent of dirents) {
+      const entryPath = join(dirPath, dirent.name);
+      try {
+        const entryStat = statSync(entryPath);
+        entries.push({
+          name: dirent.name,
+          isDir: dirent.isDirectory(),
+          size: entryStat.size,
+        });
+      } catch {
+        // Skip entries we can't stat
+        entries.push({
+          name: dirent.name,
+          isDir: dirent.isDirectory(),
+          size: 0,
+        });
+      }
+    }
+
+    // Sort: directories first, then alphabetically
+    entries.sort((a, b) => {
+      if (a.isDir !== b.isDir) return b.isDir - a.isDir;
+      return a.name.localeCompare(b.name);
+    });
+
+    return [createListResponse(reqId, entries)];
+  } catch (err) {
+    const code = err.code === 'ENOENT' ? ERR_NOT_FOUND :
+                 err.code === 'EACCES' ? ERR_PERMISSION_DENIED :
+                 ERR_IO_ERROR;
+    return [createErrorResponse(reqId, code, err.message)];
+  }
+}
+
+/**
  * Handle READ request
  */
 async function handleReadRequest(reqId, payload) {
@@ -223,6 +303,8 @@ async function handleMessage(msg) {
         return [createPongResponse(reqId)];
       case CMD_READ:
         return await handleReadRequest(reqId, payload);
+      case CMD_LIST:
+        return await handleListRequest(reqId, payload);
       default:
         return [createErrorResponse(reqId, ERR_INVALID_REQUEST, 'Unknown command')];
     }

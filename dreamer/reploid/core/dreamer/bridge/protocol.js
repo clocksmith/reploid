@@ -163,6 +163,30 @@ export function parseErrorResponse(payload) {
   return { code, message };
 }
 
+/**
+ * Create a LIST request
+ * @param {number} reqId - Request ID
+ * @param {string} path - Directory path to list
+ * @returns {ArrayBuffer}
+ */
+export function createListRequest(reqId, path) {
+  const encoder = new TextEncoder();
+  const pathBytes = encoder.encode(path);
+  return encodeMessage(CMD.LIST, reqId, pathBytes);
+}
+
+/**
+ * Parse LIST response payload
+ * Returns array of entries: { name, isDir, size }
+ * @param {Uint8Array} payload
+ * @returns {Array<{name: string, isDir: boolean, size: number}>}
+ */
+export function parseListResponse(payload) {
+  const decoder = new TextDecoder();
+  const json = decoder.decode(payload);
+  return JSON.parse(json);
+}
+
 // Error codes
 export const ERROR_CODES = {
   OK: 0,
@@ -183,7 +207,9 @@ export default {
   encodeMessage,
   decodeHeader,
   createReadRequest,
+  createListRequest,
   createAck,
   parseReadResponse,
+  parseListResponse,
   parseErrorResponse,
 };
