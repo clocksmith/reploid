@@ -8,7 +8,7 @@ DREAMER = Dynamic Recursive Engine Adapting Modules Evolving REPLOID
 
 > Browser-based AI agent sandbox
 
-AI agent that runs entirely client-side. Uses IndexedDB as a virtual filesystem. Supports multiple LLM providers. Can create and modify its own tools at runtime.
+AI agent that runs entirely client-side. Uses IndexedDB as a virtual filesystem. Supports recursive self-improvement (RSI) — the agent can create, modify, and improve its own tools at runtime, including the tool-creation mechanism itself.
 
 ## Quick Start
 
@@ -39,10 +39,22 @@ graph TD
 4. Results feed back to agent
 5. Repeat until done or iteration limit (default 50)
 
+### LLM Options
+
+Designed for local-first use, but supports frontier models:
+
+| Mode | Provider | Notes |
+|------|----------|-------|
+| Local | WebLLM | Runs in browser via WebGPU, fully offline |
+| Local | Ollama | Local server, connect via proxy |
+| API | OpenAI, Anthropic, Google, Groq | Direct from client or via proxy |
+
+The proxy (`npm start`) routes API calls through your machine for CORS and key management.
+
 ### Components
 
 - **VFS** — Virtual filesystem in IndexedDB with snapshot/restore
-- **LLM Client** — WebLLM, Ollama, OpenAI, Anthropic, Google, Groq
+- **LLM Client** — Multi-provider abstraction
 - **Tool Runner** — Loads tools from VFS, executes them
 - **Verification Worker** — Syntax checks code before writing to VFS
 - **Worker Manager** — Spawns subagents with permission tiers (read-only, read+json, full)
@@ -64,9 +76,21 @@ Three boot configurations:
 | REFLECTION | + streaming, verification, HITL |
 | FULL SUBSTRATE | + cognition, semantic memory, arena |
 
+### Recursive Self-Improvement (RSI)
+
+The agent can modify its own code at three levels:
+
+| Level | What | Example |
+|-------|------|---------|
+| L1: Tools | Create new tools | Agent writes an AddNumbers tool |
+| L2: Meta | Improve tool-creation | Agent improves CreateTool to generate better code |
+| L3: Substrate | Modify core loop | Agent rewrites its own execution logic |
+
+All modifications are verified before execution and logged. VFS snapshots allow rollback if something breaks.
+
 ### Arena Mode
 
-When the agent modifies tools, arena mode can run multiple candidate implementations and pick the one that passes tests.
+For L2+ modifications, arena mode generates multiple candidates, runs them against tests, and keeps the best one.
 
 ## Why Browser-Based
 
