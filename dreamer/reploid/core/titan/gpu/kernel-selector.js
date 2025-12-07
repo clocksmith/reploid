@@ -25,6 +25,7 @@ import softmaxSource from './kernels/softmax.wgsl?raw';
 import ropeSource from './kernels/rope.wgsl?raw';
 import siluSource from './kernels/silu.wgsl?raw';
 import gatherSource from './kernels/gather.wgsl?raw';
+import residualSource from './kernels/residual.wgsl?raw';
 
 // Compiled pipeline cache
 const pipelineCache = new Map();
@@ -208,6 +209,20 @@ const KERNEL_CONFIGS = {
     vec4: {
       source: gatherSource,
       entryPoint: 'gather_vec4',
+      workgroupSize: [64, 1, 1],
+      requires: [],
+    },
+  },
+  residual: {
+    default: {
+      source: residualSource,
+      entryPoint: 'main',
+      workgroupSize: [256, 1, 1],
+      requires: [],
+    },
+    vec4: {
+      source: residualSource,
+      entryPoint: 'add_vec4',
       workgroupSize: [64, 1, 1],
       requires: [],
     },
@@ -631,6 +646,73 @@ export async function runGather(indices, embeddings, numTokens, hiddenSize, voca
     const totalElements = numTokens * hiddenSize;
     workgroups = Math.ceil(totalElements / 256);
   }
+
+  pass.dispatchWorkgroups(workgroups);
+  pass.end();
+
+  device.queue.submit([encoder.finish()]);
+
+  uniformBuffer.destroy();
+
+  return output;
+}
+
+/**
+ * Run residual add: output = a + b
+ * @param {GPUBuffer} a - First input buffer
+ * @param {GPUBuffer} b - Second input buffer
+ * @param {number} size - Number of elements
+ * @param {object} options - Additional options
+ * @returns {Promise<GPUBuffer>} Output buffer with sum
+ */
+export async function runResidualAdd(a, b, size, options = {}) {
+  const device = getDevice();
+  const { useVec4 = true, outputBuffer = null } = options;
+
+  // Select variant
+  const variant = useVec4 && (size % 4 === 0) ? 'vec4' : 'default';
+  const pipeline = await createPipeline('residual', variant);
+
+  // Create output buffer if not provided
+  const output = outputBuffer || device.createBuffer({
+    label: 'residual_output',
+    size: size * 4,
+    usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC,
+  });
+
+  // Create uniform buffer
+  const uniformData = new ArrayBuffer(16);
+  const uniformView = new DataView(uniformData);
+  uniformView.setUint32(0, size, true);
+
+  const uniformBuffer = device.createBuffer({
+    label: 'residual_uniforms',
+    size: 16,
+    usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+  });
+  device.queue.writeBuffer(uniformBuffer, 0, uniformData);
+
+  // Create bind group
+  const bindGroup = device.createBindGroup({
+    label: 'residual_bind_group',
+    layout: pipeline.getBindGroupLayout(0),
+    entries: [
+      { binding: 0, resource: { buffer: uniformBuffer } },
+      { binding: 1, resource: { buffer: a } },
+      { binding: 2, resource: { buffer: b } },
+      { binding: 3, resource: { buffer: output } },
+    ],
+  });
+
+  // Dispatch
+  const encoder = device.createCommandEncoder({ label: 'residual_encoder' });
+  const pass = encoder.beginComputePass({ label: 'residual_pass' });
+  pass.setPipeline(pipeline);
+  pass.setBindGroup(0, bindGroup);
+
+  const workgroups = variant === 'vec4'
+    ? Math.ceil(size / 4 / 64)
+    : Math.ceil(size / 256);
 
   pass.dispatchWorkgroups(workgroups);
   pass.end();
