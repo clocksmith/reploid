@@ -39,6 +39,8 @@ const LOCAL_MODEL_ENDPOINT = appConfig?.api?.localEndpoint || process.env.LOCAL_
 const OPENAI_API_KEY = appConfig?.api?.openaiKey || process.env.OPENAI_API_KEY;
 const ANTHROPIC_API_KEY = appConfig?.api?.anthropicKey || process.env.ANTHROPIC_API_KEY;
 const HUGGINGFACE_API_KEY = appConfig?.api?.huggingfaceKey || process.env.HUGGINGFACE_API_KEY;
+const GROQ_API_KEY = appConfig?.api?.groqKey || process.env.GROQ_API_KEY;
+const VLLM_ENDPOINT = appConfig?.api?.vllmEndpoint || process.env.VLLM_ENDPOINT || 'http://localhost:8000';
 const DEFAULT_CORS_ORIGINS = ['http://localhost:8080', 'https://replo.id'];
 const ENV_CORS_ORIGINS = process.env.CORS_ORIGINS
   ? process.env.CORS_ORIGINS.split(',').map(origin => origin.trim()).filter(Boolean)
@@ -57,7 +59,9 @@ if (GEMINI_API_KEY) console.log('   ★ Google Gemini');
 if (OPENAI_API_KEY) console.log('   ★ OpenAI');
 if (ANTHROPIC_API_KEY) console.log('   ★ Anthropic');
 if (HUGGINGFACE_API_KEY) console.log('   ★ HuggingFace');
-console.log(`   ☖  Local models at: ${LOCAL_MODEL_ENDPOINT}`);
+if (GROQ_API_KEY) console.log('   ★ Groq');
+console.log(`   ☖  Ollama at: ${LOCAL_MODEL_ENDPOINT}`);
+console.log(`   ☖  vLLM at: ${VLLM_ENDPOINT}`);
 
 const setupSse = (res) => {
   if (res.headersSent) return;
@@ -382,7 +386,9 @@ app.get('/api/health', (req, res) => {
   if (OPENAI_API_KEY) providers.push('openai');
   if (ANTHROPIC_API_KEY) providers.push('anthropic');
   if (HUGGINGFACE_API_KEY) providers.push('huggingface');
-  providers.push('local');
+  if (GROQ_API_KEY) providers.push('groq');
+  providers.push('ollama');
+  providers.push('vllm');
 
   res.json({
     status: 'ok',
@@ -789,6 +795,82 @@ app.post('/api/chat', async (req, res) => {
           usage: data.usage
         });
 
+      case 'groq':
+        console.log(`[API Chat ${requestId}] Handling Groq request`);
+        if (!GROQ_API_KEY) {
+          console.log(`[API Chat ${requestId}] ERROR: Groq API key not configured`);
+          return res.status(500).json({ error: 'Groq API key not configured' });
+        }
+        console.log(`[API Chat ${requestId}] Calling Groq API`);
+        const groqBody = { model, messages };
+        if (shouldStream) groqBody.stream = true;
+        response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${GROQ_API_KEY}`
+          },
+          body: JSON.stringify(groqBody)
+        });
+        console.log(`[API Chat ${requestId}] Groq response status: ${response.status}`);
+        if (!response.ok) {
+          const responseText = await response.text();
+          try {
+            data = JSON.parse(responseText);
+          } catch {
+            data = { error: responseText };
+          }
+          console.log(`[API Chat ${requestId}] ERROR: Groq API error:`, data);
+          return res.status(response.status).json(data);
+        }
+
+        if (shouldStream) {
+          await streamOpenAIResponse(response, res);
+          return;
+        }
+
+        data = await response.json();
+        console.log(`[API Chat ${requestId}] SUCCESS: Returning Groq response`);
+        return res.json({
+          content: data.choices[0].message.content,
+          usage: data.usage
+        });
+
+      case 'vllm':
+        console.log(`[API Chat ${requestId}] Handling vLLM request`);
+        const vllmUrl = `${VLLM_ENDPOINT}/v1/chat/completions`;
+        console.log(`[API Chat ${requestId}] Calling vLLM at: ${vllmUrl} with model: ${model}`);
+        const vllmBody = { model, messages };
+        if (shouldStream) vllmBody.stream = true;
+        response = await fetch(vllmUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(vllmBody)
+        });
+        console.log(`[API Chat ${requestId}] vLLM response status: ${response.status}`);
+        if (!response.ok) {
+          const responseText = await response.text();
+          try {
+            data = JSON.parse(responseText);
+          } catch {
+            data = { error: responseText };
+          }
+          console.log(`[API Chat ${requestId}] ERROR: vLLM API error:`, data);
+          return res.status(response.status).json(data);
+        }
+
+        if (shouldStream) {
+          await streamOpenAIResponse(response, res);
+          return;
+        }
+
+        data = await response.json();
+        console.log(`[API Chat ${requestId}] SUCCESS: Returning vLLM response`);
+        return res.json({
+          content: data.choices[0].message.content,
+          usage: data.usage
+        });
+
       case 'ollama':
         console.log(`[API Chat ${requestId}] Handling Ollama request`);
         const ollamaUrl = `${LOCAL_MODEL_ENDPOINT}/api/chat`;
@@ -930,8 +1012,11 @@ app.get('/api/proxy-status', (req, res) => {
       openai: !!OPENAI_API_KEY,
       anthropic: !!ANTHROPIC_API_KEY,
       huggingface: !!HUGGINGFACE_API_KEY,
-      local: true
+      groq: !!GROQ_API_KEY,
+      ollama: true,
+      vllm: true
     },
+    vllmEndpoint: VLLM_ENDPOINT,
     localEndpoint: LOCAL_MODEL_ENDPOINT
   });
 });
