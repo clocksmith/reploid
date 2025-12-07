@@ -7,6 +7,7 @@ const PersonaManager = {
   metadata: {
     id: 'PersonaManager',
     version: '1.0.0',
+    genesis: { introduced: 'tabula' },
     dependencies: ['Utils'],
     async: true,
     type: 'core'

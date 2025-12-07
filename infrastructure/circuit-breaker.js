@@ -8,6 +8,7 @@ const CircuitBreaker = {
   metadata: {
     id: 'CircuitBreaker',
     version: '1.0.0',
+    genesis: { introduced: 'tabula' },
     dependencies: ['Utils', 'EventBus?'],
     async: false,
     type: 'utility'

@@ -7,6 +7,7 @@ const Utils = {
   metadata: {
     id: 'Utils',
     version: '1.0.0', // Merged ParserUtils
+    genesis: { introduced: 'tabula' },
     dependencies: [],
     type: 'pure'
   },

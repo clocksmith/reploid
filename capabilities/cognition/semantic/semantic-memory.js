@@ -8,6 +8,7 @@ const SemanticMemory = {
   metadata: {
     id: 'SemanticMemory',
     version: '1.0.0',
+    genesis: { introduced: 'full' },
     dependencies: ['Utils', 'EventBus', 'EmbeddingStore'],
     async: true,
     type: 'capability'

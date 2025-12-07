@@ -10,6 +10,7 @@ const IndexedDBHelper = {
   metadata: {
     id: 'IndexedDBHelper',
     version: '1.0.0',
+    genesis: { introduced: 'full' },
     dependencies: ['Utils'],
     async: false,
     type: 'utility'

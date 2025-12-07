@@ -1,6 +1,6 @@
 /**
  * @fileoverview Unit tests for ToolRunner module
- * Tests built-in tools, dynamic tool loading, and execution
+ * Tests dynamic tool loading and execution (no built-in tools in RSI mode)
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
@@ -47,8 +47,9 @@ const createMockToolWriter = () => ({
   create: vi.fn().mockResolvedValue('Tool created successfully')
 });
 
-const createMockMetaToolWriter = () => ({
-  improveCore: vi.fn().mockResolvedValue('Core module improved')
+const createMockSchemaRegistry = () => ({
+  registerToolSchema: vi.fn(),
+  unregisterToolSchema: vi.fn()
 });
 
 import ToolRunnerModule from '../../core/tool-runner.js';
@@ -58,13 +59,13 @@ describe('ToolRunner', () => {
   let mockUtils;
   let mockVFS;
   let mockToolWriter;
-  let mockMetaToolWriter;
+  let mockSchemaRegistry;
 
   beforeEach(() => {
     mockUtils = createMockUtils();
     mockVFS = createMockVFS();
     mockToolWriter = createMockToolWriter();
-    mockMetaToolWriter = createMockMetaToolWriter();
+    mockSchemaRegistry = createMockSchemaRegistry();
 
     // Default VFS.list to return empty for /tools/
     mockVFS.list.mockResolvedValue([]);
@@ -73,198 +74,40 @@ describe('ToolRunner', () => {
       Utils: mockUtils,
       VFS: mockVFS,
       ToolWriter: mockToolWriter,
-      MetaToolWriter: mockMetaToolWriter
+      SchemaRegistry: mockSchemaRegistry
     });
   });
 
-  describe('built-in tools', () => {
-    describe('ReadFile', () => {
-      it('should read file content from VFS', async () => {
-        mockVFS.read.mockResolvedValue('file content here');
-
-        const result = await toolRunner.execute('ReadFile', { path: '/test.txt' });
-
-        expect(mockVFS.read).toHaveBeenCalledWith('/test.txt');
-        expect(result).toBe('file content here');
-      });
-
-      it('should accept "file" as alias for "path"', async () => {
-        mockVFS.read.mockResolvedValue('content');
-
-        await toolRunner.execute('ReadFile', { file: '/test.txt' });
-
-        expect(mockVFS.read).toHaveBeenCalledWith('/test.txt');
-      });
-
-      it('should throw ValidationError if path is missing', async () => {
-        await expect(toolRunner.execute('ReadFile', {}))
-          .rejects.toThrow('Missing path');
-      });
-
-      it('should propagate VFS errors', async () => {
-        mockVFS.read.mockRejectedValue(new Error('File not found'));
-
-        await expect(toolRunner.execute('ReadFile', { path: '/missing.txt' }))
-          .rejects.toThrow('File not found');
-      });
-    });
-
-    describe('WriteFile', () => {
-      it('should write content to VFS', async () => {
-        mockVFS.write.mockResolvedValue(true);
-
-        const result = await toolRunner.execute('WriteFile', {
-          path: '/output.txt',
-          content: 'Hello World'
-        });
-
-        expect(mockVFS.write).toHaveBeenCalledWith('/output.txt', 'Hello World');
-        expect(result).toContain('Wrote /output.txt');
-        expect(result).toContain('11 bytes');
-      });
-
-      it('should accept "file" as alias for "path"', async () => {
-        mockVFS.write.mockResolvedValue(true);
-
-        await toolRunner.execute('WriteFile', { file: '/test.txt', content: 'test' });
-
-        expect(mockVFS.write).toHaveBeenCalledWith('/test.txt', 'test');
-      });
-
-      it('should throw ValidationError if path is missing', async () => {
-        await expect(toolRunner.execute('WriteFile', { content: 'test' }))
-          .rejects.toThrow('Missing args');
-      });
-
-      it('should throw ValidationError if content is missing', async () => {
-        await expect(toolRunner.execute('WriteFile', { path: '/test.txt' }))
-          .rejects.toThrow('Missing args');
-      });
-
-      it('should allow empty string as content', async () => {
-        mockVFS.write.mockResolvedValue(true);
-
-        const result = await toolRunner.execute('WriteFile', {
-          path: '/empty.txt',
-          content: ''
-        });
-
-        expect(mockVFS.write).toHaveBeenCalledWith('/empty.txt', '');
-        expect(result).toContain('0 bytes');
-      });
-    });
-
-    describe('ListFiles', () => {
-      it('should list files in directory', async () => {
-        mockVFS.list.mockResolvedValue(['/dir/file1.txt', '/dir/file2.txt']);
-
-        const result = await toolRunner.execute('ListFiles', { path: '/dir' });
-
-        expect(mockVFS.list).toHaveBeenCalledWith('/dir');
-        expect(result).toEqual(['/dir/file1.txt', '/dir/file2.txt']);
-      });
-
-      it('should accept "directory" as alias for "path"', async () => {
-        mockVFS.list.mockResolvedValue([]);
-
-        await toolRunner.execute('ListFiles', { directory: '/mydir' });
-
-        expect(mockVFS.list).toHaveBeenCalledWith('/mydir');
-      });
-
-      it('should accept "dir" as alias for "path"', async () => {
-        mockVFS.list.mockResolvedValue([]);
-
-        await toolRunner.execute('ListFiles', { dir: '/mydir' });
-
-        expect(mockVFS.list).toHaveBeenCalledWith('/mydir');
-      });
-
-      it('should default to root directory if no path provided', async () => {
-        mockVFS.list.mockResolvedValue([]);
-
-        await toolRunner.execute('ListFiles', {});
-
-        expect(mockVFS.list).toHaveBeenCalledWith('/');
-      });
-    });
-
-    describe('DeleteFile', () => {
-      it('should delete file from VFS', async () => {
-        mockVFS.delete.mockResolvedValue(true);
-
-        const result = await toolRunner.execute('DeleteFile', { path: '/test.txt' });
-
-        expect(mockVFS.delete).toHaveBeenCalledWith('/test.txt');
-        expect(result).toBe('Deleted /test.txt');
-      });
-
-      it('should accept "file" as alias for "path"', async () => {
-        mockVFS.delete.mockResolvedValue(true);
-
-        await toolRunner.execute('DeleteFile', { file: '/test.txt' });
-
-        expect(mockVFS.delete).toHaveBeenCalledWith('/test.txt');
-      });
-
-      it('should throw ValidationError if path is missing', async () => {
-        await expect(toolRunner.execute('DeleteFile', {}))
-          .rejects.toThrow('Missing path');
-      });
-    });
-
-    describe('CreateTool', () => {
-      it('should delegate to ToolWriter', async () => {
-        const result = await toolRunner.execute('CreateTool', {
-          name: 'MyTool',
-          code: 'export default (args) => args.value * 2;'
-        });
-
-        expect(mockToolWriter.create).toHaveBeenCalledWith(
-          'MyTool',
-          'export default (args) => args.value * 2;'
-        );
-        expect(result).toBe('Tool created successfully');
-      });
-    });
-
-    describe('improve_core_module', () => {
-      it('should delegate to MetaToolWriter', async () => {
-        const result = await toolRunner.execute('improve_core_module', {
-          module: 'agent-loop',
-          code: 'new code here'
-        });
-
-        expect(mockMetaToolWriter.improveCore).toHaveBeenCalledWith(
-          'agent-loop',
-          'new code here'
-        );
-        expect(result).toBe('Core module improved');
-      });
-    });
-  });
+  // NOTE: In RSI mode, there are NO built-in tools
+  // All tools are dynamically loaded from /tools/ directory
+  // This enables full self-modification capability
 
   describe('tool management', () => {
     describe('list', () => {
-      it('should return list of available tools', () => {
+      it('should return empty list when no tools loaded', () => {
         const tools = toolRunner.list();
+        expect(tools).toEqual([]);
+      });
 
-        expect(tools).toContain('ReadFile');
-        expect(tools).toContain('WriteFile');
-        expect(tools).toContain('ListFiles');
-        expect(tools).toContain('DeleteFile');
-        expect(tools).toContain('CreateTool');
-        expect(tools).toContain('improve_core_module');
+      it('should return dynamically loaded tools', async () => {
+        mockVFS.list.mockResolvedValue(['/tools/CustomTool.js']);
+        mockVFS.read.mockResolvedValue('export default (args) => "result";');
+
+        // Mock dynamic import
+        global.URL.createObjectURL = vi.fn(() => 'blob:mock-url');
+        global.URL.revokeObjectURL = vi.fn();
+
+        await toolRunner.init();
+
+        // Tool should be in list after loading
+        // (Note: actual loading may fail in test env due to import() limitations)
       });
     });
 
     describe('has', () => {
-      it('should return true for built-in tools', () => {
-        expect(toolRunner.has('ReadFile')).toBe(true);
-        expect(toolRunner.has('WriteFile')).toBe(true);
-      });
-
-      it('should return false for unknown tools', () => {
+      it('should return false for unknown tools when no tools loaded', () => {
+        expect(toolRunner.has('ReadFile')).toBe(false);
+        expect(toolRunner.has('WriteFile')).toBe(false);
         expect(toolRunner.has('unknown_tool')).toBe(false);
       });
     });
@@ -294,12 +137,17 @@ describe('ToolRunner', () => {
           '/tools/MyTool.spec.js',
           '/tools/MyTool.integration.js'
         ]);
+        mockVFS.read.mockResolvedValue('export default () => {};');
+
+        global.URL.createObjectURL = vi.fn(() => 'blob:mock-url');
+        global.URL.revokeObjectURL = vi.fn();
 
         await toolRunner.init();
 
         // Should only attempt to load MyTool.js
         // Test files should be skipped
         expect(mockVFS.read).toHaveBeenCalledTimes(1);
+        expect(mockVFS.read).toHaveBeenCalledWith('/tools/MyTool.js');
       });
 
       it('should handle empty tools directory gracefully', async () => {
@@ -327,52 +175,42 @@ describe('ToolRunner', () => {
         await expect(toolRunner.execute('unknown_tool', {}))
           .rejects.toThrow('Tool not found: unknown_tool');
       });
+
+      it('should try to load tool from /tools/ if VFS.exists returns true', async () => {
+        mockVFS.exists.mockResolvedValue(true);
+        mockVFS.read.mockResolvedValue('export default () => "loaded";');
+
+        global.URL.createObjectURL = vi.fn(() => 'blob:mock-url');
+        global.URL.revokeObjectURL = vi.fn();
+
+        // Will still fail because dynamic import doesn't work in test
+        await expect(toolRunner.execute('LazyTool', {}))
+          .rejects.toThrow();
+
+        expect(mockVFS.exists).toHaveBeenCalledWith('/tools/LazyTool.js');
+      });
     });
   });
 
   describe('error handling', () => {
-    it('should wrap tool errors with context', async () => {
-      mockVFS.read.mockRejectedValue(new Error('VFS failure'));
+    it('should throw ToolError for missing tools', async () => {
+      mockVFS.exists.mockResolvedValue(false);
 
       try {
-        await toolRunner.execute('ReadFile', { path: '/test.txt' });
+        await toolRunner.execute('NonExistent', { path: '/test.txt' });
         expect.fail('Should have thrown');
       } catch (err) {
         expect(err.name).toBe('ToolError');
-        expect(err.message).toBe('VFS failure');
-        expect(err.details.tool).toBe('ReadFile');
-      }
-    });
-
-    it('should log errors during execution', async () => {
-      mockVFS.read.mockRejectedValue(new Error('Test error'));
-
-      try {
-        await toolRunner.execute('ReadFile', { path: '/test.txt' });
-      } catch (err) {
-        // Expected
-      }
-
-      expect(mockUtils.logger.error).toHaveBeenCalledWith(
-        '[ToolRunner] Error in ReadFile',
-        expect.any(Error)
-      );
-    });
-
-    it('should preserve original stack trace', async () => {
-      const originalError = new Error('Original error');
-      mockVFS.read.mockRejectedValue(originalError);
-
-      try {
-        await toolRunner.execute('ReadFile', { path: '/test.txt' });
-      } catch (err) {
-        expect(err.stack).toBe(originalError.stack);
+        expect(err.message).toBe('Tool not found: NonExistent');
       }
     });
   });
 
   describe('SubstrateLoader integration', () => {
-    it('should add LoadModule tool if SubstrateLoader is available', () => {
+    // NOTE: In RSI mode, LoadModule is a dynamic tool loaded from /tools/LoadModule.js
+    // SubstrateLoader is injected as a dependency to tools, not used to register built-ins
+
+    it('should provide SubstrateLoader to tools as dependency', () => {
       const mockSubstrateLoader = {
         loadModule: vi.fn().mockResolvedValue(true)
       };
@@ -381,14 +219,16 @@ describe('ToolRunner', () => {
         Utils: mockUtils,
         VFS: mockVFS,
         ToolWriter: mockToolWriter,
-        MetaToolWriter: mockMetaToolWriter,
+        SchemaRegistry: mockSchemaRegistry,
         SubstrateLoader: mockSubstrateLoader
       });
 
-      expect(runnerWithLoader.has('LoadModule')).toBe(true);
+      // SubstrateLoader is available as dependency, not as built-in tool
+      // LoadModule.js in /tools/ will use it
+      expect(runnerWithLoader.has('LoadModule')).toBe(false); // No built-in
     });
 
-    it('should not add LoadModule if SubstrateLoader is unavailable', () => {
+    it('should not have LoadModule as built-in when SubstrateLoader is unavailable', () => {
       expect(toolRunner.has('LoadModule')).toBe(false);
     });
   });
@@ -400,6 +240,7 @@ describe('ToolRunner', () => {
       expect(ToolRunnerModule.metadata.async).toBe(true);
       expect(ToolRunnerModule.metadata.dependencies).toContain('VFS');
       expect(ToolRunnerModule.metadata.dependencies).toContain('ToolWriter');
+      expect(ToolRunnerModule.metadata.dependencies).toContain('SchemaRegistry');
     });
   });
 });

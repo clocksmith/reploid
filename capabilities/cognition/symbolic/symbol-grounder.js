@@ -8,6 +8,7 @@ const SymbolGrounder = {
   metadata: {
     id: 'SymbolGrounder',
     version: '1.0.0',
+    genesis: { introduced: 'full' },
     dependencies: ['Utils', 'EventBus', 'KnowledgeGraph', 'SemanticMemory'],
     async: true,
     type: 'service'

@@ -3,25 +3,16 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { createRequire } from 'module';
-import { fileURLToPath } from 'url';
-import { dirname, resolve } from 'path';
-
-const require = createRequire(import.meta.url);
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-
-// Load modules
-const Utils = require(resolve(__dirname, '../../upgrades/utils.js'));
-const EventBusModule = require(resolve(__dirname, '../../upgrades/event-bus.js'));
+import UtilsModule from '../../core/utils.js';
+import EventBusModule from '../../infrastructure/event-bus.js';
 
 describe('EventBus', () => {
   let eventBus;
 
   beforeEach(() => {
-    const utils = Utils.factory();
-    const eventBusInstance = EventBusModule.factory({ Utils: utils });
-    eventBus = eventBusInstance.api;
+    const utils = UtilsModule.factory();
+    // EventBus.factory returns { on, emit, unsubscribeModule } directly
+    eventBus = EventBusModule.factory({ Utils: utils });
   });
 
   describe('on/off', () => {
@@ -48,11 +39,11 @@ describe('EventBus', () => {
       expect(listener2).toHaveBeenCalled();
     });
 
-    it('should remove listener with off', () => {
+    it('should remove listener with returned unsubscribe function', () => {
       const listener = vi.fn();
-      eventBus.on('test:event', listener);
+      const unsubscribe = eventBus.on('test:event', listener);
 
-      eventBus.off('test:event', listener);
+      unsubscribe();
       eventBus.emit('test:event', { data: 'test' });
 
       expect(listener).not.toHaveBeenCalled();
@@ -70,10 +61,15 @@ describe('EventBus', () => {
       expect(listener).not.toHaveBeenCalled();
     });
 
-    it('should handle removing non-existent listener gracefully', () => {
+    it('should handle calling unsubscribe multiple times gracefully', () => {
       const listener = vi.fn();
+      const unsubscribe = eventBus.on('test:event', listener);
+
+      // First unsubscribe
+      unsubscribe();
+      // Second unsubscribe should not throw
       expect(() => {
-        eventBus.off('nonexistent:event', listener);
+        unsubscribe();
       }).not.toThrow();
     });
   });
@@ -116,16 +112,19 @@ describe('EventBus', () => {
   });
 
   describe('Subscription Tracking', () => {
-    it('should track subscriptions by module ID', () => {
+    it('should allow registering listeners with module ID', () => {
       const listener1 = vi.fn();
       const listener2 = vi.fn();
 
+      // Registering with ownerId should work and be callable
       eventBus.on('event1', listener1, 'TestModule');
       eventBus.on('event2', listener2, 'TestModule');
 
-      const report = eventBus.getSubscriptionReport();
-      expect(report).toHaveProperty('TestModule');
-      expect(report.TestModule).toBe(2);
+      eventBus.emit('event1', { data: 1 });
+      eventBus.emit('event2', { data: 2 });
+
+      expect(listener1).toHaveBeenCalledWith({ data: 1 });
+      expect(listener2).toHaveBeenCalledWith({ data: 2 });
     });
 
     it('should unsubscribe all listeners for a module', () => {
@@ -135,7 +134,7 @@ describe('EventBus', () => {
       eventBus.on('event1', listener1, 'TestModule');
       eventBus.on('event2', listener2, 'TestModule');
 
-      eventBus.unsubscribeAll('TestModule');
+      eventBus.unsubscribeModule('TestModule');
 
       eventBus.emit('event1', {});
       eventBus.emit('event2', {});
@@ -151,7 +150,7 @@ describe('EventBus', () => {
       eventBus.on('event1', listener1, 'Module1');
       eventBus.on('event2', listener2, 'Module2');
 
-      eventBus.unsubscribeAll('Module1');
+      eventBus.unsubscribeModule('Module1');
 
       eventBus.emit('event1', {});
       eventBus.emit('event2', {});
@@ -258,7 +257,7 @@ describe('EventBus', () => {
       }
 
       // Unsubscribe all
-      eventBus.unsubscribeAll('TestModule');
+      eventBus.unsubscribeModule('TestModule');
 
       // Emit should not call any listeners
       eventBus.emit('test:event', {});

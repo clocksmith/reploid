@@ -8,6 +8,7 @@ const LLMClient = {
   metadata: {
     id: 'LLMClient',
     version: '1.0.0',
+    genesis: { introduced: 'tabula' },
     dependencies: ['Utils', 'RateLimiter?', 'StreamParser?', 'TransformersClient?'],
     type: 'service'
   },

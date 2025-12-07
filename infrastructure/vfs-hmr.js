@@ -8,6 +8,7 @@ const VFSHMR = {
   metadata: {
     id: 'VFSHMR',
     version: '1.0.0',
+    genesis: { introduced: 'full' },
     dependencies: ['Utils', 'EventBus', 'VFS'],
     async: true,
     type: 'infrastructure'

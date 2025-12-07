@@ -7,6 +7,7 @@ const VerificationManager = {
   metadata: {
     id: 'VerificationManager',
     version: '1.0.0',
+    genesis: { introduced: 'reflection' },
     dependencies: ['Utils', 'VFS'],
     async: true,
     type: 'service'

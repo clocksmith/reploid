@@ -131,9 +131,9 @@ describe('ContextManager', () => {
       expect(contextManager.shouldCompact(context)).toBe(false);
     });
 
-    it('should return true when tokens exceed 12000', () => {
-      // Need ~48000 chars to get >12000 tokens
-      const longContent = 'x'.repeat(50000);
+    it('should return true when tokens exceed 30000', () => {
+      // Need ~120000 chars to get >30000 tokens (30000 * 4 = 120000)
+      const longContent = 'x'.repeat(125000);
       const context = [
         { role: 'user', content: longContent }
       ];
@@ -142,8 +142,8 @@ describe('ContextManager', () => {
     });
 
     it('should return false for context just under threshold', () => {
-      // 47000 chars = ~11750 tokens (under 12000)
-      const content = 'x'.repeat(47000);
+      // 115000 chars = ~28750 tokens (under 30000)
+      const content = 'x'.repeat(115000);
       const context = [
         { role: 'user', content: content }
       ];
@@ -166,33 +166,36 @@ describe('ContextManager', () => {
       expect(mockLLMClient.chat).not.toHaveBeenCalled();
     });
 
-    it('should compact large context and preserve first 2 and last 5 messages', async () => {
-      const longContent = 'x'.repeat(60000);
+    it('should compact large context and preserve first 2 and last 8 messages', async () => {
+      const longContent = 'x'.repeat(125000); // >30000 tokens threshold
       const context = [
         { role: 'system', content: 'System prompt' },          // Keep (first 2)
         { role: 'user', content: 'First user message' },       // Keep (first 2)
         { role: 'assistant', content: longContent },           // Summarize
         { role: 'user', content: 'Middle 1' },                 // Summarize
         { role: 'assistant', content: 'Middle 2' },            // Summarize
-        { role: 'user', content: 'Last 5 - 1' },               // Keep (last 5)
-        { role: 'assistant', content: 'Last 5 - 2' },          // Keep (last 5)
-        { role: 'user', content: 'Last 5 - 3' },               // Keep (last 5)
-        { role: 'assistant', content: 'Last 5 - 4' },          // Keep (last 5)
-        { role: 'user', content: 'Last 5 - 5' }                // Keep (last 5)
+        { role: 'user', content: 'Last 8 - 1' },               // Keep (last 8)
+        { role: 'assistant', content: 'Last 8 - 2' },          // Keep (last 8)
+        { role: 'user', content: 'Last 8 - 3' },               // Keep (last 8)
+        { role: 'assistant', content: 'Last 8 - 4' },          // Keep (last 8)
+        { role: 'user', content: 'Last 8 - 5' },               // Keep (last 8)
+        { role: 'assistant', content: 'Last 8 - 6' },          // Keep (last 8)
+        { role: 'user', content: 'Last 8 - 7' },               // Keep (last 8)
+        { role: 'assistant', content: 'Last 8 - 8' }           // Keep (last 8)
       ];
 
       const result = await contextManager.compact(context, { model: 'test' });
 
-      // Should have: 2 (start) + 1 (summary) + 5 (end) = 8 messages
-      expect(result.length).toBe(8);
+      // Should have: 2 (start) + 1 (summary) + 8 (end) = 11 messages
+      expect(result.length).toBe(11);
       expect(result[0].content).toBe('System prompt');
       expect(result[1].content).toBe('First user message');
-      expect(result[2].content).toContain('[CONTEXT SUMMARY]');
-      expect(result[result.length - 1].content).toBe('Last 5 - 5');
+      expect(result[2].content).toContain('[CONTEXT COMPACTED');
+      expect(result[result.length - 1].content).toBe('Last 8 - 8');
     });
 
     it('should emit context:compacted event after compaction', async () => {
-      const longContent = 'x'.repeat(60000);
+      const longContent = 'x'.repeat(125000); // >30000 tokens threshold
       const context = [
         { role: 'system', content: 'System' },
         { role: 'user', content: 'User' },
@@ -201,7 +204,10 @@ describe('ContextManager', () => {
         { role: 'assistant', content: 'B' },
         { role: 'user', content: 'C' },
         { role: 'assistant', content: 'D' },
-        { role: 'user', content: 'E' }
+        { role: 'user', content: 'E' },
+        { role: 'assistant', content: 'F' },
+        { role: 'user', content: 'G' },
+        { role: 'assistant', content: 'H' }
       ];
 
       await contextManager.compact(context, { model: 'test' });
@@ -215,30 +221,35 @@ describe('ContextManager', () => {
       );
     });
 
-    it('should return pruned context if LLM summarization fails', async () => {
-      mockLLMClient.chat.mockRejectedValue(new Error('LLM error'));
-
-      const longContent = 'x'.repeat(60000);
+    it('should use structured extraction (no LLM) for compaction', async () => {
+      // NOTE: ContextManager now uses structured extraction, not LLM summarization
+      const longContent = 'x'.repeat(125000); // >30000 tokens threshold
       const context = [
         { role: 'system', content: 'System' },
         { role: 'user', content: 'User' },
         { role: 'assistant', content: longContent },
-        { role: 'user', content: 'A' },
-        { role: 'assistant', content: 'B' },
-        { role: 'user', content: 'C' },
-        { role: 'assistant', content: 'D' },
-        { role: 'user', content: 'E' }
+        { role: 'user', content: 'Middle msg' },
+        { role: 'assistant', content: 'A' },
+        { role: 'user', content: 'B' },
+        { role: 'assistant', content: 'C' },
+        { role: 'user', content: 'D' },
+        { role: 'assistant', content: 'E' },
+        { role: 'user', content: 'F' },
+        { role: 'assistant', content: 'G' },
+        { role: 'user', content: 'H' }
       ];
 
       const result = await contextManager.compact(context, { model: 'test' });
 
-      expect(result.length).toBe(8);
-      expect(result[2].content).toContain('pruned due to length');
-      expect(mockUtils.logger.error).toHaveBeenCalled();
+      // Compaction uses structured extraction, not LLM
+      expect(mockLLMClient.chat).not.toHaveBeenCalled();
+      // Result should have: 2 (start) + 1 (summary) + 8 (end) = 11 messages
+      expect(result.length).toBe(11);
+      expect(result[2].content).toContain('[CONTEXT COMPACTED');
     });
 
     it('should warn and return original if no model config provided', async () => {
-      const longContent = 'x'.repeat(60000);
+      const longContent = 'x'.repeat(125000); // >30000 tokens threshold
       const context = [
         { role: 'system', content: 'System' },
         { role: 'user', content: longContent }
@@ -253,18 +264,21 @@ describe('ContextManager', () => {
     });
 
     it('should not compact if middle section is empty', async () => {
-      const longContent = 'x'.repeat(20000);
+      const longContent = 'x'.repeat(65000); // ~16250 tokens each, total >30000 threshold
       const context = [
         { role: 'system', content: longContent },     // First 2
         { role: 'user', content: longContent },       // First 2
-        { role: 'assistant', content: 'A' },          // Last 5
-        { role: 'user', content: 'B' },               // Last 5
-        { role: 'assistant', content: 'C' },          // Last 5
-        { role: 'user', content: 'D' },               // Last 5
-        { role: 'assistant', content: 'E' }           // Last 5
+        { role: 'assistant', content: 'A' },          // Last 8
+        { role: 'user', content: 'B' },               // Last 8
+        { role: 'assistant', content: 'C' },          // Last 8
+        { role: 'user', content: 'D' },               // Last 8
+        { role: 'assistant', content: 'E' },          // Last 8
+        { role: 'user', content: 'F' },               // Last 8
+        { role: 'assistant', content: 'G' },          // Last 8
+        { role: 'user', content: 'H' }                // Last 8
       ];
 
-      // With 7 messages: first 2 + last 5 = 7, middle is empty
+      // With 10 messages: first 2 + last 8 = 10, middle is empty
       const result = await contextManager.compact(context, { model: 'test' });
 
       expect(result).toEqual(context);
@@ -273,14 +287,19 @@ describe('ContextManager', () => {
   });
 
   describe('emitTokens', () => {
-    it('should emit token count via EventBus', () => {
+    it('should emit token count with limit info via EventBus', () => {
       const context = [
         { role: 'user', content: 'Hello world' }
       ];
 
       const tokens = contextManager.emitTokens(context);
 
-      expect(mockEventBus.emit).toHaveBeenCalledWith('agent:tokens', { tokens: 3 });
+      // emitTokens now includes exceeded flag and limit
+      expect(mockEventBus.emit).toHaveBeenCalledWith('agent:tokens', {
+        tokens: 3,
+        exceeded: false,
+        limit: 120000  // MAX_CONTEXT_TOKENS
+      });
       expect(tokens).toBe(3);
     });
 

@@ -8,6 +8,7 @@ const TransformersClient = {
   metadata: {
     id: 'TransformersClient',
     version: '1.0.0',
+    genesis: { introduced: 'full' },
     dependencies: ['Utils', 'EventBus'],
     type: 'service'
   },

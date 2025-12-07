@@ -12,6 +12,8 @@ describe('LLMClient - Integration Tests', () => {
   let mockRateLimiter;
   let mockTransformersClient;
 
+  let mockStreamParser;
+
   const createMocks = () => {
     mockUtils = {
       logger: {
@@ -43,6 +45,13 @@ describe('LLMClient - Integration Tests', () => {
       getStatus: vi.fn().mockReturnValue({ available: true }),
       cleanup: vi.fn().mockResolvedValue(true)
     };
+
+    // StreamParser mock - enables streaming mode in LLMClient
+    mockStreamParser = {
+      DEFAULT_STREAM_TIMEOUT_MS: 60000,
+      withStreamTimeout: vi.fn((reader) => reader), // Pass through reader
+      parseForProvider: vi.fn().mockResolvedValue('Streamed content')
+    };
   };
 
   beforeEach(() => {
@@ -54,7 +63,8 @@ describe('LLMClient - Integration Tests', () => {
     llmClient = LLMClientModule.factory({
       Utils: mockUtils,
       RateLimiter: mockRateLimiter,
-      TransformersClient: mockTransformersClient
+      TransformersClient: mockTransformersClient,
+      StreamParser: mockStreamParser
     });
   });
 
@@ -68,7 +78,8 @@ describe('LLMClient - Integration Tests', () => {
       expect(LLMClientModule.metadata.id).toBe('LLMClient');
       expect(LLMClientModule.metadata.type).toBe('service');
       expect(LLMClientModule.metadata.dependencies).toContain('Utils');
-      expect(LLMClientModule.metadata.dependencies).toContain('RateLimiter');
+      // Optional deps are marked with ? suffix
+      expect(LLMClientModule.metadata.dependencies).toContain('RateLimiter?');
     });
   });
 
@@ -130,7 +141,8 @@ describe('LLMClient - Integration Tests', () => {
             done: false,
             value: new TextEncoder().encode('data: {"choices":[{"delta":{"content":" World"}}]}\n')
           })
-          .mockResolvedValueOnce({ done: true })
+          .mockResolvedValueOnce({ done: true }),
+        releaseLock: vi.fn()
       };
 
       global.fetch.mockResolvedValue({
@@ -493,7 +505,8 @@ describe('LLMClient - Integration Tests', () => {
             done: false,
             value: new TextEncoder().encode('lo"}}]}\ndata: {"choices":[{"delta":{"content":" World"}}]}\n')
           })
-          .mockResolvedValueOnce({ done: true })
+          .mockResolvedValueOnce({ done: true }),
+        releaseLock: vi.fn()
       };
 
       global.fetch.mockResolvedValue({
@@ -520,7 +533,8 @@ describe('LLMClient - Integration Tests', () => {
             done: false,
             value: new TextEncoder().encode('data: {"choices":[{"delta":{"content":"Hi"}}]}\ndata: [DONE]\n')
           })
-          .mockResolvedValueOnce({ done: true })
+          .mockResolvedValueOnce({ done: true }),
+        releaseLock: vi.fn()
       };
 
       global.fetch.mockResolvedValue({
@@ -546,7 +560,8 @@ describe('LLMClient - Integration Tests', () => {
             done: false,
             value: new TextEncoder().encode('data: not-valid-json\ndata: {"choices":[{"delta":{"content":"Valid"}}]}\n')
           })
-          .mockResolvedValueOnce({ done: true })
+          .mockResolvedValueOnce({ done: true }),
+        releaseLock: vi.fn()
       };
 
       global.fetch.mockResolvedValue({

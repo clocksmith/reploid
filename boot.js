@@ -15,6 +15,7 @@ import HITLController from './infrastructure/hitl-controller.js';
 import GenesisSnapshot from './infrastructure/genesis-snapshot.js';
 import Observability from './infrastructure/observability.js';
 import VFSHMR from './infrastructure/vfs-hmr.js';
+import TelemetryTimeline from './infrastructure/telemetry-timeline.js';
 
 import VFS from './core/vfs.js';
 import StateManager from './core/state-manager.js';
@@ -28,6 +29,7 @@ import VerificationManager from './core/verification-manager.js';
 
 import ToolRunner from './core/tool-runner.js';
 import ToolWriter from './core/tool-writer.js';
+import SchemaRegistry from './core/schema-registry.js';
 
 import AgentLoop from './core/agent-loop.js';
 import PersonaManager from './core/persona-manager.js';
@@ -157,11 +159,11 @@ import GoalHistory from './ui/goal-history.js';
       CircuitBreaker, StreamParser, IndexedDBHelper, HITLController, GenesisSnapshot, Observability,
       VFS, VFSHMR, StateHelpersPure, StateManager,
       LLMClient, TransformersClient, ResponseParser, ContextManager, VerificationManager,
-      ToolWriter, ToolRunner, PersonaManager, ReflectionStore,
+      ToolWriter, ToolRunner, SchemaRegistry, PersonaManager, ReflectionStore,
       ReflectionAnalyzer, AgentLoop, SubstrateLoader, PerformanceMonitor, SelfTester,
       EmbeddingStore, SemanticMemory, KnowledgeGraph, RuleEngine, SymbolGrounder, CognitionAPI, MultiModelCoordinator,
       VFSSandbox, ArenaCompetitor, ArenaMetrics, ArenaHarness,
-      WorkerManager
+      WorkerManager, TelemetryTimeline
     };
 
     // Register all modules from resolved list (includes inherited)
@@ -292,6 +294,8 @@ import GoalHistory from './ui/goal-history.js';
     await container.resolve('StateManager');
     await container.resolve('ToolRunner');
 
+    const schemaRegistry = await container.resolve('SchemaRegistry');
+    const telemetryTimeline = await container.resolve('TelemetryTimeline');
     const agent = await container.resolve('AgentLoop');
 
     // Expose global for debugging (and for dynamic tools to access system)
@@ -303,7 +307,9 @@ import GoalHistory from './ui/goal-history.js';
       // Pre-resolve commonly needed modules for sync access by tools
       transformersClient: await container.resolve('TransformersClient').catch(() => null),
       llmClient: await container.resolve('LLMClient'),
-      toolRunner: await container.resolve('ToolRunner')
+      toolRunner: await container.resolve('ToolRunner'),
+      schemaRegistry,
+      telemetryTimeline
     };
 
     // Expose DI helper for sync module access (convenience wrapper)

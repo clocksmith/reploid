@@ -3,17 +3,10 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { createRequire } from 'module';
-import { fileURLToPath } from 'url';
-import { dirname, resolve } from 'path';
+import UtilsModule from '../../core/utils.js';
 
-const require = createRequire(import.meta.url);
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-
-// Load Utils module
-const Utils = require(resolve(__dirname, '../../upgrades/utils.js'));
-const utils = Utils.factory();
+// Initialize Utils module
+const utils = UtilsModule.factory();
 
 describe('Utils - Error Classes', () => {
   it('should create ApplicationError with message and details', () => {
@@ -64,43 +57,42 @@ describe('Utils - Logger', () => {
     consoleErrorSpy.mockRestore();
   });
 
+  // Logger uses format: console.debug('[DEBUG]', message, details)
+  // So first arg is prefix, second is message
+
   it('should log debug messages', () => {
     utils.logger.debug('Debug message', { test: true });
     expect(consoleDebugSpy).toHaveBeenCalled();
-    const logOutput = consoleDebugSpy.mock.calls[0][0];
-    expect(logOutput).toContain('DEBUG');
-    expect(logOutput).toContain('Debug message');
+    expect(consoleDebugSpy.mock.calls[0][0]).toBe('[DEBUG]');
+    expect(consoleDebugSpy.mock.calls[0][1]).toBe('Debug message');
   });
 
   it('should log info messages', () => {
     utils.logger.info('Info message');
     expect(consoleInfoSpy).toHaveBeenCalled();
-    const logOutput = consoleInfoSpy.mock.calls[0][0];
-    expect(logOutput).toContain('INFO');
-    expect(logOutput).toContain('Info message');
+    expect(consoleInfoSpy.mock.calls[0][0]).toBe('[INFO]');
+    expect(consoleInfoSpy.mock.calls[0][1]).toBe('Info message');
   });
 
   it('should log warning messages', () => {
     utils.logger.warn('Warning message');
     expect(consoleWarnSpy).toHaveBeenCalled();
-    const logOutput = consoleWarnSpy.mock.calls[0][0];
-    expect(logOutput).toContain('WARN');
-    expect(logOutput).toContain('Warning message');
+    expect(consoleWarnSpy.mock.calls[0][0]).toBe('[WARN]');
+    expect(consoleWarnSpy.mock.calls[0][1]).toBe('Warning message');
   });
 
   it('should log error messages', () => {
     utils.logger.error('Error message', { error: 'test' });
     expect(consoleErrorSpy).toHaveBeenCalled();
-    const logOutput = consoleErrorSpy.mock.calls[0][0];
-    expect(logOutput).toContain('ERROR');
-    expect(logOutput).toContain('Error message');
+    expect(consoleErrorSpy.mock.calls[0][0]).toBe('[ERROR]');
+    expect(consoleErrorSpy.mock.calls[0][1]).toBe('Error message');
   });
 
-  it('should include timestamp in log output', () => {
-    utils.logger.info('Test');
-    expect(consoleInfoSpy).toHaveBeenCalled();
-    const logOutput = consoleInfoSpy.mock.calls[0][0];
-    expect(logOutput).toMatch(/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/);
+  it('should track log history', () => {
+    utils.logger.info('Test message');
+    const history = utils.logger.getHistory();
+    expect(history.length).toBeGreaterThan(0);
+    expect(history[history.length - 1].msg).toBe('Test message');
   });
 });
 
@@ -154,49 +146,42 @@ describe('Utils - String Utilities', () => {
   describe('sanitizeLlmJsonRespPure', () => {
     it('should extract JSON from markdown code blocks', () => {
       const input = '```json\n{"key": "value"}\n```';
-      const result = utils.sanitizeLlmJsonRespPure(input, utils.logger);
-      expect(result.sanitizedJson).toBe('{"key": "value"}');
-      expect(result.method).toBe('code block');
+      const result = utils.sanitizeLlmJsonRespPure(input);
+      expect(result.json).toBe('{"key": "value"}');
+      expect(result.method).toBe('block');
     });
 
-    it('should handle JSON without code blocks', () => {
+    it('should handle JSON without code blocks (direct parse)', () => {
       const input = '{"key": "value"}';
-      const result = utils.sanitizeLlmJsonRespPure(input, utils.logger);
-      expect(result.sanitizedJson).toBe('{"key": "value"}');
-      expect(result.method).toBe('direct parse');
+      const result = utils.sanitizeLlmJsonRespPure(input);
+      expect(result.json).toBe('{"key": "value"}');
+      expect(result.method).toBe('direct');
     });
 
-    it('should extract JSON from text with prefix/suffix', () => {
+    it('should extract JSON from text with prefix/suffix (heuristic)', () => {
       const input = 'Here is the response:\n{"key": "value"}\nEnd of response';
-      const result = utils.sanitizeLlmJsonRespPure(input, utils.logger);
-      expect(result.sanitizedJson).toBe('{"key": "value"}');
-      expect(result.method).toBe('heuristic slice');
+      const result = utils.sanitizeLlmJsonRespPure(input);
+      expect(result.json).toBe('{"key": "value"}');
+      expect(result.method).toBe('heuristic');
+    });
+
+    it('should return empty JSON for invalid input', () => {
+      const result = utils.sanitizeLlmJsonRespPure('not valid json at all');
+      expect(result.json).toBe('{}');
+      expect(result.method).toBe('failed');
     });
   });
 });
 
 describe('Utils - DRY Helpers', () => {
   describe('createSubscriptionTracker', () => {
-    it('should create tracker with correct methods', () => {
+    it('should create tracker with track and unsubscribeAll methods', () => {
       const tracker = utils.createSubscriptionTracker();
       expect(tracker).toHaveProperty('track');
       expect(tracker).toHaveProperty('unsubscribeAll');
-      expect(tracker).toHaveProperty('getActiveCount');
-      expect(tracker).toHaveProperty('getAllActive');
     });
 
-    it('should track subscriptions by module ID', () => {
-      const tracker = utils.createSubscriptionTracker();
-      const unsub1 = vi.fn();
-      const unsub2 = vi.fn();
-
-      tracker.track('TestModule', unsub1);
-      tracker.track('TestModule', unsub2);
-
-      expect(tracker.getActiveCount('TestModule')).toBe(2);
-    });
-
-    it('should unsubscribe all for a module', () => {
+    it('should unsubscribe all tracked functions for a module', () => {
       const tracker = utils.createSubscriptionTracker();
       const unsub1 = vi.fn();
       const unsub2 = vi.fn();
@@ -207,7 +192,6 @@ describe('Utils - DRY Helpers', () => {
 
       expect(unsub1).toHaveBeenCalled();
       expect(unsub2).toHaveBeenCalled();
-      expect(tracker.getActiveCount('TestModule')).toBe(0);
     });
 
     it('should handle multiple modules independently', () => {
@@ -218,142 +202,18 @@ describe('Utils - DRY Helpers', () => {
       tracker.track('Module1', unsub1);
       tracker.track('Module2', unsub2);
 
-      expect(tracker.getActiveCount('Module1')).toBe(1);
-      expect(tracker.getActiveCount('Module2')).toBe(1);
-
       tracker.unsubscribeAll('Module1');
       expect(unsub1).toHaveBeenCalled();
       expect(unsub2).not.toHaveBeenCalled();
     });
-  });
 
-  describe('showButtonSuccess', () => {
-    beforeEach(() => {
-      vi.useFakeTimers();
-    });
-
-    afterEach(() => {
-      vi.useRealTimers();
-    });
-
-    it('should update button text and restore after duration', () => {
-      const button = { textContent: 'Original', disabled: false };
-      utils.showButtonSuccess(button, 'Original', '✓ Success', 1000);
-
-      expect(button.textContent).toBe('✓ Success');
-      expect(button.disabled).toBe(true);
-
-      vi.advanceTimersByTime(1000);
-
-      expect(button.textContent).toBe('Original');
-      expect(button.disabled).toBe(false);
-    });
-
-    it('should use default duration if not specified', () => {
-      const button = { textContent: 'Original', disabled: false };
-      utils.showButtonSuccess(button, 'Original', '✓');
-
-      expect(button.textContent).toBe('✓');
-
-      vi.advanceTimersByTime(2000);
-
-      expect(button.textContent).toBe('Original');
+    it('should handle unsubscribe for non-existent module gracefully', () => {
+      const tracker = utils.createSubscriptionTracker();
+      // Should not throw
+      expect(() => tracker.unsubscribeAll('NonExistent')).not.toThrow();
     });
   });
 
-  describe('exportAsMarkdown', () => {
-    let createElementSpy;
-    let createObjectURLSpy;
-    let revokeObjectURLSpy;
-
-    beforeEach(() => {
-      // Mock document.createElement
-      const mockLink = {
-        href: '',
-        download: '',
-        click: vi.fn()
-      };
-      createElementSpy = vi.spyOn(document, 'createElement').mockReturnValue(mockLink);
-
-      // Mock URL methods
-      createObjectURLSpy = vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:mock-url');
-      revokeObjectURLSpy = vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {});
-    });
-
-    afterEach(() => {
-      createElementSpy.mockRestore();
-      createObjectURLSpy.mockRestore();
-      revokeObjectURLSpy.mockRestore();
-    });
-
-    it('should create download link with correct filename', () => {
-      utils.exportAsMarkdown('test.md', '# Test Content');
-
-      expect(createElementSpy).toHaveBeenCalledWith('a');
-      const mockLink = createElementSpy.mock.results[0].value;
-      expect(mockLink.download).toBe('test.md');
-    });
-
-    it('should create blob with markdown content', () => {
-      utils.exportAsMarkdown('test.md', '# Heading\n\nContent');
-
-      expect(createObjectURLSpy).toHaveBeenCalled();
-      const blobArg = createObjectURLSpy.mock.calls[0][0];
-      expect(blobArg).toBeInstanceOf(Blob);
-      expect(blobArg.type).toBe('text/markdown');
-    });
-
-    it('should trigger download and cleanup', () => {
-      utils.exportAsMarkdown('test.md', 'content');
-
-      const mockLink = createElementSpy.mock.results[0].value;
-      expect(mockLink.click).toHaveBeenCalled();
-
-      // Check that URL was revoked after a delay (cleanup)
-      setTimeout(() => {
-        expect(revokeObjectURLSpy).toHaveBeenCalledWith('blob:mock-url');
-      }, 100);
-    });
-  });
-});
-
-describe('Utils - HTTP Utilities', () => {
-  describe('post', () => {
-    let fetchSpy;
-
-    beforeEach(() => {
-      global.fetch = vi.fn();
-      fetchSpy = global.fetch;
-    });
-
-    afterEach(() => {
-      delete global.fetch;
-    });
-
-    it('should make POST request with JSON body', async () => {
-      fetchSpy.mockResolvedValue({
-        ok: true,
-        json: async () => ({ success: true })
-      });
-
-      const result = await utils.post('http://test.com', { key: 'value' });
-
-      expect(fetchSpy).toHaveBeenCalledWith('http://test.com', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ key: 'value' })
-      });
-      expect(result).toEqual({ success: true });
-    });
-
-    it('should handle HTTP errors', async () => {
-      fetchSpy.mockResolvedValue({
-        ok: false,
-        status: 500,
-        statusText: 'Internal Server Error'
-      });
-
-      await expect(utils.post('http://test.com', {})).rejects.toThrow();
-    });
-  });
+  // NOTE: showButtonSuccess, exportAsMarkdown, and HTTP utilities (post/get)
+  // were removed from the Utils module - these tests are no longer applicable
 });

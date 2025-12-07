@@ -29,6 +29,10 @@ const CommandPalette = {
       { id: 'tab-history', icon: '▶', label: 'Show History Tab', shortcut: '1', action: () => this._callbacks.onSwitchTab?.('history') },
       { id: 'tab-reflections', icon: '✱', label: 'Show Reflections Tab', shortcut: '2', action: () => this._callbacks.onSwitchTab?.('reflections') },
       { id: 'tab-status', icon: 'ℹ', label: 'Show Status Tab', shortcut: '3', action: () => this._callbacks.onSwitchTab?.('status') },
+      { id: 'tab-telemetry', icon: '☡', label: 'Show Telemetry Tab', shortcut: '4', action: () => this._callbacks.onSwitchTab?.('telemetry') },
+      { id: 'tab-schemas', icon: '☰', label: 'Show Schema Registry', shortcut: '5', action: () => this._callbacks.onSwitchTab?.('schemas') },
+      { id: 'tab-workers', icon: '⚒', label: 'Show Workers Tab', action: () => this._callbacks.onSwitchTab?.('workers') },
+      { id: 'tab-debug', icon: '⚙', label: 'Show Debug Tab', action: () => this._callbacks.onSwitchTab?.('debug') },
       { id: 'back-boot', icon: '←', label: 'Back to Boot Screen', action: () => location.reload() },
       { id: 'toggle-vfs', icon: '◫', label: 'Toggle VFS Panel', action: () => this._callbacks.onToggleVFS?.() },
     ];
@@ -74,9 +78,10 @@ const CommandPalette = {
       }
 
       // Number keys for tab switching (when not typing)
-      if (['1', '2', '3'].includes(e.key)) {
-        const tabs = ['history', 'reflections', 'status'];
-        this._callbacks.onSwitchTab?.(tabs[parseInt(e.key) - 1]);
+      if (['1', '2', '3', '4', '5'].includes(e.key)) {
+        const tabs = ['history', 'reflections', 'status', 'telemetry', 'schemas'];
+        const index = parseInt(e.key, 10) - 1;
+        this._callbacks.onSwitchTab?.(tabs[index]);
         return;
       }
     });

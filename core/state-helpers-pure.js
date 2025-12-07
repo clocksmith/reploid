@@ -7,6 +7,7 @@ const StateHelpersPure = {
   metadata: {
     id: 'StateHelpersPure',
     version: '1.0.0',
+    genesis: { introduced: 'tabula' },
     dependencies: [],
     type: 'pure'
   },

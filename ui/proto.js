@@ -36,6 +36,20 @@ const Proto = {
     const MAX_WORKER_LOGS = 40;
     let _lastWorkerUpdate = null;
 
+    // Telemetry runtime state
+    const TELEMETRY_LIMIT = 200;
+    const _telemetryEntries = [];
+    let _telemetryFilter = 'all';
+    let _telemetryTimelineSvc = null;
+    let _telemetryLoaded = false;
+
+    // Schema registry runtime state
+    let _schemaRegistrySvc = null;
+    let _toolSchemas = [];
+    let _workerSchemas = [];
+    let _schemaSearch = '';
+    let _schemaLoaded = false;
+
     // --- Event Subscription Tracking (for cleanup) ---
     let _subscriptionIds = [];
 
@@ -52,6 +66,196 @@ const Proto = {
         _historyScrollScheduled = false;
       });
     };
+
+    // --- Telemetry Panel ---
+    const resolveTelemetryTimeline = async () => {
+      if (_telemetryTimelineSvc) return _telemetryTimelineSvc;
+      try {
+        _telemetryTimelineSvc = window.REPLOID?.telemetryTimeline
+          || (await window.REPLOID_DI?.resolve?.('TelemetryTimeline'));
+      } catch (e) {
+        logger.warn('[Proto] TelemetryTimeline unavailable', e?.message || e);
+      }
+      return _telemetryTimelineSvc;
+    };
+
+    const formatPayloadSummary = (payload) => {
+      if (!payload) return '';
+      try {
+        const json = JSON.stringify(payload, null, 2);
+        const limit = 500;
+        return json.length > limit ? `${json.slice(0, limit)}…` : json;
+      } catch {
+        return String(payload);
+      }
+    };
+
+    const renderTelemetryPanel = () => {
+      const listEl = document.getElementById('telemetry-list');
+      const countEl = document.getElementById('telemetry-count');
+      const statusEl = document.getElementById('telemetry-status');
+      if (!listEl || !countEl) return;
+
+      const filtered = _telemetryEntries.filter(entry => {
+        if (_telemetryFilter === 'all') return true;
+        return (entry.severity || '').toLowerCase() === _telemetryFilter;
+      });
+
+      countEl.textContent = `${filtered.length} events`;
+      if (filtered.length === 0) {
+        listEl.innerHTML = '<div class="telemetry-empty text-muted">No telemetry events yet</div>';
+      } else {
+        const items = filtered.slice().reverse().map(entry => {
+          const severity = (entry.severity || 'info').toLowerCase();
+          const tags = (entry.tags || []).map(tag => `<span class="telemetry-tag">${escapeHtml(tag)}</span>`).join('');
+          return `
+            <article class="telemetry-entry telemetry-${severity}">
+              <header>
+                <div>
+                  <strong>${escapeHtml(entry.type || 'event')}</strong>
+                  <span class="telemetry-time">${formatTimestamp(entry.ts)}</span>
+                </div>
+                <span class="telemetry-severity">${escapeHtml(severity.toUpperCase())}</span>
+              </header>
+              <div class="telemetry-meta">
+                ${tags}
+                ${entry.id ? `<span class="telemetry-id">${escapeHtml(entry.id)}</span>` : ''}
+              </div>
+              ${entry.payload ? `<pre>${escapeHtml(formatPayloadSummary(entry.payload))}</pre>` : ''}
+            </article>
+          `;
+        }).join('');
+        listEl.innerHTML = items;
+      }
+
+      if (statusEl) {
+        if (_telemetryLoaded) {
+          statusEl.textContent = `Updated ${formatTimestamp(Date.now())}`;
+        } else if (!_telemetryTimelineSvc) {
+          statusEl.textContent = 'Waiting for telemetry service...';
+        }
+      }
+    };
+
+    const appendTelemetryEntry = (entry) => {
+      if (!entry) return;
+      _telemetryEntries.push(entry);
+      if (_telemetryEntries.length > TELEMETRY_LIMIT) {
+        _telemetryEntries.splice(0, _telemetryEntries.length - TELEMETRY_LIMIT);
+      }
+      renderTelemetryPanel();
+    };
+
+    const loadTelemetryHistory = async () => {
+      const svc = await resolveTelemetryTimeline();
+      if (!svc?.getRecent) {
+        const statusEl = document.getElementById('telemetry-status');
+        if (statusEl) statusEl.textContent = 'Telemetry service unavailable';
+        return;
+      }
+      try {
+        const entries = await svc.getRecent(TELEMETRY_LIMIT);
+        _telemetryEntries.length = 0;
+        _telemetryEntries.push(...entries);
+        _telemetryLoaded = true;
+        renderTelemetryPanel();
+      } catch (e) {
+        logger.warn('[Proto] Failed to load telemetry history', e?.message || e);
+        const statusEl = document.getElementById('telemetry-status');
+        if (statusEl) statusEl.textContent = `Failed to load telemetry: ${e?.message || 'unknown error'}`;
+      }
+    };
+
+    // --- Schema Registry Panel ---
+    const resolveSchemaRegistry = async () => {
+      if (_schemaRegistrySvc) return _schemaRegistrySvc;
+      try {
+        _schemaRegistrySvc = window.REPLOID?.schemaRegistry
+          || (await window.REPLOID_DI?.resolve?.('SchemaRegistry'));
+      } catch (e) {
+        logger.warn('[Proto] SchemaRegistry unavailable', e?.message || e);
+      }
+      return _schemaRegistrySvc;
+    };
+
+    const renderSchemaPanel = () => {
+      const toolList = document.getElementById('schema-tool-list');
+      const workerList = document.getElementById('schema-worker-list');
+      const toolCountEl = document.getElementById('schema-tool-count');
+      const workerCountEl = document.getElementById('schema-worker-count');
+      if (!toolList || !workerList) return;
+
+      const query = _schemaSearch.trim().toLowerCase();
+      const filteredTools = _toolSchemas.filter(entry => entry.name.toLowerCase().includes(query));
+      const filteredWorkers = _workerSchemas.filter(entry => entry.name.toLowerCase().includes(query));
+
+      if (toolCountEl) toolCountEl.textContent = `${filteredTools.length} tools`;
+      if (workerCountEl) workerCountEl.textContent = `${filteredWorkers.length} worker types`;
+
+      toolList.innerHTML = filteredTools.length === 0
+        ? '<div class="schema-empty text-muted">No tool schemas match your search</div>'
+        : filteredTools.map(entry => {
+            const description = entry.schema?.description || 'No description';
+            const payload = entry.schema?.parameters ? JSON.stringify(entry.schema.parameters, null, 2) : '{}';
+            const badge = entry.builtin ? '<span class="schema-badge">core</span>' : '';
+            return `
+              <article class="schema-card">
+                <header>
+                  <div>
+                    <strong>${escapeHtml(entry.name)}</strong>
+                    ${badge}
+                  </div>
+                  <small>${escapeHtml(description)}</small>
+                </header>
+                <pre>${escapeHtml(payload)}</pre>
+              </article>
+            `;
+          }).join('');
+
+      workerList.innerHTML = filteredWorkers.length === 0
+        ? '<div class="schema-empty text-muted">No worker definitions match your search</div>'
+        : filteredWorkers.map(entry => {
+            const config = entry.config || {};
+            const badge = entry.builtin ? '<span class="schema-badge">core</span>' : '';
+            const toolSummary = config.tools === '*'
+              ? 'All tools'
+              : (config.tools || []).map(t => `<code>${escapeHtml(t)}</code>`).join('');
+            return `
+              <article class="schema-card">
+                <header>
+                  <div>
+                    <strong>${escapeHtml(entry.name)}</strong>
+                    ${badge}
+                  </div>
+                  <small>${escapeHtml(config.description || '')}</small>
+                </header>
+                <div class="schema-worker-meta">
+                  <div><span class="schema-meta-label">Default role:</span> ${escapeHtml(config.defaultModelRole || '—')}</div>
+                  <div><span class="schema-meta-label">Can spawn:</span> ${config.canSpawnWorkers ? 'Yes' : 'No'}</div>
+                </div>
+                <div class="schema-tools">${toolSummary || 'No tools configured'}</div>
+              </article>
+            `;
+          }).join('');
+    };
+
+    const refreshSchemaData = async () => {
+      const svc = await resolveSchemaRegistry();
+      if (!svc?.listToolSchemas) {
+        const toolList = document.getElementById('schema-tool-list');
+        if (toolList) toolList.innerHTML = '<div class="schema-empty text-muted">Schema registry unavailable</div>';
+        return;
+      }
+      try {
+        _toolSchemas = svc.listToolSchemas() || [];
+        _workerSchemas = svc.listWorkerTypes?.() || [];
+        _schemaLoaded = true;
+        renderSchemaPanel();
+      } catch (e) {
+        logger.warn('[Proto] Failed to load schema registry', e?.message || e);
+      }
+    };
+
 
     const scheduleReflectionScroll = () => {
       if (_reflectionScrollScheduled) return;
@@ -471,6 +675,12 @@ const Proto = {
       if (tabId === 'debug') {
         updateDebugPanel();
       }
+      if (tabId === 'telemetry' && !_telemetryLoaded) {
+        loadTelemetryHistory();
+      }
+      if (tabId === 'schemas' && !_schemaLoaded) {
+        refreshSchemaData();
+      }
     };
 
     const updateDebugPanel = () => {
@@ -545,8 +755,10 @@ const Proto = {
           <button class="sidebar-btn active" data-tab="history" title="Agent Activity (1)">&#x2261;</button>
           <button class="sidebar-btn" data-tab="reflections" title="Reflections (2)">&#x2731;</button>
           <button class="sidebar-btn" data-tab="status" title="Status (3)">&#x2139;</button>
-          <button class="sidebar-btn" data-tab="workers" title="Workers (0)" id="workers-tab-btn">&#x2692;</button>
-          <button class="sidebar-btn" data-tab="debug" title="Debug (4)">&#x2699;</button>
+          <button class="sidebar-btn" data-tab="telemetry" title="Telemetry (4)">☡</button>
+          <button class="sidebar-btn" data-tab="schemas" title="Schemas (5)">☰</button>
+          <button class="sidebar-btn" data-tab="workers" title="Workers" id="workers-tab-btn">&#x2692;</button>
+          <button class="sidebar-btn" data-tab="debug" title="Debug">⚙</button>
           <div class="sidebar-spacer"></div>
           <button id="btn-palette" class="sidebar-btn" title="Commands (Ctrl+K)">&#x2630;</button>
           <button id="btn-toggle" class="sidebar-btn" title="Stop (Esc)">&#x25A0;</button>
@@ -613,6 +825,63 @@ const Proto = {
           <div class="workspace-content hidden" id="tab-reflections">
             <div id="reflections-container" class="reflections-stream">
               <div class="text-muted">Insights and learnings will appear here.</div>
+            </div>
+          </div>
+
+          <div class="workspace-content hidden" id="tab-telemetry">
+            <div class="telemetry-panel">
+              <div class="telemetry-header">
+                <div>
+                  <strong>Telemetry Timeline</strong>
+                  <span id="telemetry-count">0 events</span>
+                </div>
+                <div class="telemetry-controls">
+                  <label>
+                    Filter
+                    <select id="telemetry-filter">
+                      <option value="all">All</option>
+                      <option value="info">Info</option>
+                      <option value="warn">Warn</option>
+                      <option value="error">Error</option>
+                    </select>
+                  </label>
+                  <button id="telemetry-refresh" class="btn btn-sm btn-secondary">Refresh</button>
+                </div>
+              </div>
+              <div id="telemetry-status" class="telemetry-status text-muted">Waiting for telemetry service...</div>
+              <div id="telemetry-list" class="telemetry-list">
+                <div class="telemetry-empty text-muted">No telemetry events yet</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="workspace-content hidden" id="tab-schemas">
+            <div class="schema-panel">
+              <div class="schema-header">
+                <div>
+                  <strong>Schema Registry</strong>
+                  <span id="schema-tool-count">0 tools</span> ·
+                  <span id="schema-worker-count">0 worker types</span>
+                </div>
+                <div class="schema-controls">
+                  <input id="schema-search" class="schema-search" type="text" placeholder="Search tools or worker types..." />
+                  <button id="schema-refresh" class="btn btn-sm btn-secondary">Refresh</button>
+                </div>
+              </div>
+              <div class="schema-columns">
+                <section>
+                  <h4>Tool Schemas</h4>
+                  <div id="schema-tool-list" class="schema-list">
+                    <div class="schema-empty text-muted">Loading...</div>
+                  </div>
+                </section>
+                <section>
+                  <h4>Worker Types</h4>
+                  <div id="schema-worker-list" class="schema-list">
+                    <div class="schema-empty text-muted">Loading...</div>
+                  </div>
+                </section>
+              </div>
             </div>
           </div>
 
@@ -758,6 +1027,29 @@ const Proto = {
 
       // Command palette button
       btnPalette.onclick = () => CommandPalette.toggle();
+
+      const telemetryFilter = container.querySelector('#telemetry-filter');
+      if (telemetryFilter) {
+        telemetryFilter.addEventListener('change', (event) => {
+          _telemetryFilter = event.target.value;
+          renderTelemetryPanel();
+        });
+      }
+      const telemetryRefresh = container.querySelector('#telemetry-refresh');
+      if (telemetryRefresh) {
+        telemetryRefresh.addEventListener('click', () => loadTelemetryHistory());
+      }
+      const schemaSearchInput = container.querySelector('#schema-search');
+      if (schemaSearchInput) {
+        schemaSearchInput.addEventListener('input', (event) => {
+          _schemaSearch = event.target.value || '';
+          renderSchemaPanel();
+        });
+      }
+      const schemaRefreshBtn = container.querySelector('#schema-refresh');
+      if (schemaRefreshBtn) {
+        schemaRefreshBtn.addEventListener('click', () => refreshSchemaData());
+      }
 
       // Set initial button state (stop symbol since agent starts running)
       btnToggle.innerHTML = '&#x25A0;';
@@ -1009,6 +1301,10 @@ const Proto = {
 
       _subscriptionIds.push(EventBus.on('worker:terminated', (payload) => {
         handleWorkerTerminated(payload);
+      }));
+
+      _subscriptionIds.push(EventBus.on('telemetry:event', (entry) => {
+        appendTelemetryEntry(entry);
       }));
 
       // Subscribe to context compaction notifications
@@ -1356,6 +1652,10 @@ const Proto = {
         const path = data?.path || data;
         if (path) markFileModified(path, 'modified');
       }));
+
+      // Kick off initial data fetches
+      loadTelemetryHistory();
+      refreshSchemaData();
     };
 
     // --- Cleanup Function (prevents memory leaks) ---

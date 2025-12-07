@@ -237,25 +237,34 @@ describe('Toast', () => {
       expect(toast.classList.contains('toast-success')).toBe(true);
     });
 
-    it('should create warning toast with correct type', () => {
-      const id = Toast.warning('Title', 'Message');
-      const toast = document.getElementById(id);
-      expect(toast.classList.contains('toast-warning')).toBe(true);
+    // NOTE: warning() and error() no longer show popup toasts
+    // They log to error history and update the status badge instead
+    it('should log warning to history (no popup toast)', () => {
+      Toast.clearErrorHistory();
+      const id = Toast.warning('Warning Title', 'Warning Message');
+
+      // warning() returns null (no popup toast)
+      expect(id).toBeNull();
+
+      // Should be logged to error history
+      const history = Toast.getErrorHistory();
+      expect(history.length).toBe(1);
+      expect(history[0].title).toBe('Warning Title');
+      expect(history[0].type).toBe('warning');
     });
 
-    it('should create error toast with correct type and no auto-dismiss', () => {
-      vi.useFakeTimers();
+    it('should log error to history (no popup toast)', () => {
+      Toast.clearErrorHistory();
+      const id = Toast.error('Error Title', 'Error Message');
 
-      const id = Toast.error('Title', 'Message');
-      const toast = document.getElementById(id);
+      // error() returns null (no popup toast)
+      expect(id).toBeNull();
 
-      expect(toast.classList.contains('toast-error')).toBe(true);
-
-      // Error toasts should persist
-      vi.advanceTimersByTime(10000);
-      expect(document.getElementById(id)).not.toBeNull();
-
-      vi.useRealTimers();
+      // Should be logged to error history
+      const history = Toast.getErrorHistory();
+      expect(history.length).toBe(1);
+      expect(history[0].title).toBe('Error Title');
+      expect(history[0].message).toBe('Error Message');
     });
 
     it('should merge additional options', () => {

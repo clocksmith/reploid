@@ -7,6 +7,7 @@ const ReflectionStore = {
   metadata: {
     id: 'ReflectionStore',
     version: '1.0.0',
+    genesis: { introduced: 'reflection' },
     dependencies: ['Utils', 'VFS', 'EventBus'],
     async: true,
     type: 'capability'

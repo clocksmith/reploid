@@ -3,171 +3,22 @@
     "tabula": {
       "name": "TABULA RASA",
       "description": "Minimal agent core - 13 modules for autonomous operation",
-      "modules": [
-        "AgentLoop",
-        "CircuitBreaker",
-        "ContextManager",
-        "EventBus",
-        "LLMClient",
-        "PersonaManager",
-        "ResponseParser",
-        "SchemaRegistry",
-        "StateHelpersPure",
-        "StateManager",
-        "TelemetryTimeline",
-        "ToolRunner",
-        "ToolWriter",
-        "Utils",
-        "VFS"
-      ]
+      "modules": []
     },
     "reflection": {
       "name": "REFLECTION",
       "description": "Tabula + self-awareness - 6 additional modules",
       "extends": "tabula",
-      "modules": [
-        "HITLController",
-        "RateLimiter",
-        "ReflectionAnalyzer",
-        "ReflectionStore",
-        "StreamParser",
-        "VerificationManager"
-      ]
+      "modules": []
     },
     "full": {
       "name": "FULL SUBSTRATE",
       "description": "Complete cognitive system - 15 additional modules",
       "extends": "reflection",
-      "modules": [
-        "AuditLogger",
-        "CognitionAPI",
-        "EmbeddingStore",
-        "GenesisSnapshot",
-        "IndexedDBHelper",
-        "KnowledgeGraph",
-        "Observability",
-        "PerformanceMonitor",
-        "RuleEngine",
-        "SemanticMemory",
-        "SubstrateLoader",
-        "SymbolGrounder",
-        "TransformersClient",
-        "VFSHMR",
-        "WorkerManager"
-      ]
+      "modules": []
     }
   },
-  "moduleFiles": {
-    "AgentLoop": [
-      "core/agent-loop.js"
-    ],
-    "AuditLogger": [
-      "infrastructure/audit-logger.js"
-    ],
-    "CircuitBreaker": [
-      "infrastructure/circuit-breaker.js"
-    ],
-    "CognitionAPI": [
-      "capabilities/cognition/cognition-api.js"
-    ],
-    "ContextManager": [
-      "core/context-manager.js"
-    ],
-    "EmbeddingStore": [
-      "capabilities/cognition/semantic/embedding-store.js"
-    ],
-    "EventBus": [
-      "infrastructure/event-bus.js"
-    ],
-    "GenesisSnapshot": [
-      "infrastructure/genesis-snapshot.js"
-    ],
-    "HITLController": [
-      "infrastructure/hitl-controller.js"
-    ],
-    "IndexedDBHelper": [
-      "infrastructure/indexed-db-helper.js"
-    ],
-    "KnowledgeGraph": [
-      "capabilities/cognition/symbolic/knowledge-graph.js"
-    ],
-    "LLMClient": [
-      "core/llm-client.js"
-    ],
-    "Observability": [
-      "infrastructure/observability.js"
-    ],
-    "PerformanceMonitor": [
-      "capabilities/performance/performance-monitor.js"
-    ],
-    "PersonaManager": [
-      "core/persona-manager.js"
-    ],
-    "RateLimiter": [
-      "infrastructure/rate-limiter.js"
-    ],
-    "ReflectionAnalyzer": [
-      "capabilities/reflection/reflection-analyzer.js"
-    ],
-    "ReflectionStore": [
-      "capabilities/reflection/reflection-store.js"
-    ],
-    "ResponseParser": [
-      "core/response-parser.js"
-    ],
-    "RuleEngine": [
-      "capabilities/cognition/symbolic/rule-engine.js"
-    ],
-    "SchemaRegistry": [
-      "core/schema-registry.js"
-    ],
-    "SemanticMemory": [
-      "capabilities/cognition/semantic/semantic-memory.js"
-    ],
-    "StateHelpersPure": [
-      "core/state-helpers-pure.js"
-    ],
-    "StateManager": [
-      "core/state-manager.js"
-    ],
-    "StreamParser": [
-      "infrastructure/stream-parser.js"
-    ],
-    "SubstrateLoader": [
-      "capabilities/system/substrate-loader.js"
-    ],
-    "SymbolGrounder": [
-      "capabilities/cognition/symbolic/symbol-grounder.js"
-    ],
-    "TelemetryTimeline": [
-      "infrastructure/telemetry-timeline.js"
-    ],
-    "ToolRunner": [
-      "core/tool-runner.js"
-    ],
-    "ToolWriter": [
-      "core/tool-writer.js"
-    ],
-    "TransformersClient": [
-      "core/transformers-client.js"
-    ],
-    "Utils": [
-      "core/utils.js"
-    ],
-    "VFS": [
-      "core/vfs.js"
-    ],
-    "VFSHMR": [
-      "infrastructure/vfs-hmr.js"
-    ],
-    "VerificationManager": [
-      "core/verification-manager.js"
-    ],
-    "WorkerManager": [
-      "core/worker-manager.js",
-      "core/worker-agent.js"
-    ]
-  },
+  "moduleFiles": {},
   "sharedFiles": {
     "tools": [
       "tools/ReadFile.js",
@@ -285,37 +136,14 @@
     "explore": {
       "name": "Explore",
       "description": "Read-only reconnaissance - safe information gathering",
-      "tools": [
-        "ReadFile",
-        "ListFiles",
-        "FileOutline",
-        "Grep",
-        "Find",
-        "Cat",
-        "Head",
-        "Tail",
-        "Ls",
-        "Pwd"
-      ],
+      "tools": ["ReadFile", "ListFiles", "FileOutline", "Grep", "Find", "Cat", "Head", "Tail", "Ls", "Pwd"],
       "canSpawnWorkers": false,
       "defaultModelRole": "fast"
     },
     "analyze": {
       "name": "Analyze",
       "description": "Read + draft capabilities (no persistent writes)",
-      "tools": [
-        "ReadFile",
-        "ListFiles",
-        "FileOutline",
-        "Grep",
-        "Find",
-        "Cat",
-        "Head",
-        "Tail",
-        "Ls",
-        "Pwd",
-        "Jq"
-      ],
+      "tools": ["ReadFile", "ListFiles", "FileOutline", "Grep", "Find", "Cat", "Head", "Tail", "Ls", "Pwd", "Jq"],
       "canSpawnWorkers": false,
       "defaultModelRole": "fast"
     },
@@ -328,21 +156,9 @@
     }
   },
   "modelRoles": {
-    "orchestrator": {
-      "description": "Main agent brain - strategic thinking",
-      "default": null
-    },
-    "fast": {
-      "description": "Quick tasks - exploration, summarization",
-      "default": null
-    },
-    "code": {
-      "description": "Code generation and analysis",
-      "default": null
-    },
-    "local": {
-      "description": "Local model for low-latency tasks",
-      "default": null
-    }
+    "orchestrator": { "description": "Main agent brain - strategic thinking", "default": null },
+    "fast": { "description": "Quick tasks - exploration, summarization", "default": null },
+    "code": { "description": "Code generation and analysis", "default": null },
+    "local": { "description": "Local model for low-latency tasks", "default": null }
   }
 }

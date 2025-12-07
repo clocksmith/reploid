@@ -7,13 +7,14 @@ const ToolRunner = {
   metadata: {
     id: 'ToolRunner',
     version: '1.0.0',
-    dependencies: ['Utils', 'VFS', 'ToolWriter', 'SubstrateLoader?', 'EventBus', 'AuditLogger?', 'HITLController?', 'ArenaHarness?', 'VFSSandbox?', 'VerificationManager?', 'Shell?', 'gitTools?', 'WorkerManager?', 'EmbeddingStore?', 'SemanticMemory?', 'KnowledgeGraph?'],
+    genesis: { introduced: 'tabula' },
+    dependencies: ['Utils', 'VFS', 'ToolWriter', 'SubstrateLoader?', 'EventBus', 'AuditLogger?', 'HITLController?', 'ArenaHarness?', 'VFSSandbox?', 'VerificationManager?', 'Shell?', 'gitTools?', 'WorkerManager?', 'EmbeddingStore?', 'SemanticMemory?', 'KnowledgeGraph?', 'SchemaRegistry'],
     async: true,
     type: 'service'
   },
 
   factory: (deps) => {
-    const { Utils, VFS, ToolWriter, SubstrateLoader, EventBus, AuditLogger, HITLController, ArenaHarness, VFSSandbox, VerificationManager, Shell, gitTools, WorkerManager, EmbeddingStore, SemanticMemory, KnowledgeGraph } = deps;
+    const { Utils, VFS, ToolWriter, SubstrateLoader, EventBus, AuditLogger, HITLController, ArenaHarness, VFSSandbox, VerificationManager, Shell, gitTools, WorkerManager, EmbeddingStore, SemanticMemory, KnowledgeGraph, SchemaRegistry } = deps;
     const { logger, Errors } = Utils;
 
     // Arena verification for self-modification (opt-in via config)
@@ -25,77 +26,6 @@ const ToolRunner = {
 
     const _tools = new Map();
     const _dynamicTools = new Set();
-    const _toolSchemas = new Map(); // Stores schemas for native tool calling
-
-    // Built-in tool schemas (OpenAI function calling format)
-    const _builtInSchemas = {
-      ReadFile: {
-        description: 'Read contents of a file from the virtual filesystem',
-        parameters: {
-          type: 'object',
-          required: ['path'],
-          properties: {
-            path: { type: 'string', description: 'VFS path to read (e.g. /core/agent-loop.js)' }
-          }
-        }
-      },
-      WriteFile: {
-        description: 'Write content to a file in the virtual filesystem',
-        parameters: {
-          type: 'object',
-          required: ['path', 'content'],
-          properties: {
-            path: { type: 'string', description: 'VFS path to write' },
-            content: { type: 'string', description: 'Content to write' }
-          }
-        }
-      },
-      ListFiles: {
-        description: 'List files in a directory',
-        parameters: {
-          type: 'object',
-          properties: {
-            path: { type: 'string', description: 'Directory path (default: /)' }
-          }
-        }
-      },
-      DeleteFile: {
-        description: 'Delete a file from the virtual filesystem',
-        parameters: {
-          type: 'object',
-          required: ['path'],
-          properties: {
-            path: { type: 'string', description: 'VFS path to delete' }
-          }
-        }
-      },
-      CreateTool: {
-        description: 'Create a new tool at runtime (Level 1 RSI)',
-        parameters: {
-          type: 'object',
-          required: ['name', 'code'],
-          properties: {
-            name: { type: 'string', description: 'Tool name (CamelCase, e.g., ReadFile, AnalyzeLogs)' },
-            code: { type: 'string', description: 'JavaScript code with export default async function' }
-          }
-        }
-      },
-      ListTools: {
-        description: 'List all available tools',
-        parameters: { type: 'object', properties: {} }
-      },
-      LoadModule: {
-        description: 'Hot-reload a module from the VFS',
-        parameters: {
-          type: 'object',
-          required: ['path'],
-          properties: {
-            path: { type: 'string', description: 'VFS path to module' }
-          }
-        }
-      }
-    };
-
     // --- Arena Verification for Core Changes ---
 
     /**
@@ -166,7 +96,7 @@ const ToolRunner = {
 
           // Capture schema from dynamic tool if available
           if (mod.tool?.inputSchema || mod.tool?.description) {
-            _toolSchemas.set(name, {
+            SchemaRegistry.registerToolSchema(name, {
               description: mod.tool.description || `Dynamic tool: ${name}`,
               parameters: mod.tool.inputSchema || { type: 'object', properties: {} }
             });
@@ -186,6 +116,7 @@ const ToolRunner = {
     const unloadDynamicTools = () => {
       for (const name of _dynamicTools) {
         _tools.delete(name);
+        SchemaRegistry.unregisterToolSchema(name);
       }
       _dynamicTools.clear();
     };
@@ -417,7 +348,7 @@ const ToolRunner = {
 
       for (const [name] of _tools) {
         // Check dynamic schema first, then built-in
-        const schema = _toolSchemas.get(name) || _builtInSchemas[name];
+        const schema = SchemaRegistry.getToolSchema(name);
         if (schema) {
           schemas.push({
             type: 'function',

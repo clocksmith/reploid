@@ -16,6 +16,7 @@
   "scripts": {
     "start": "node server/proxy.js",
     "cli": "node bin/reploid-cli.js",
+    "build:genesis": "node scripts/build-genesis-manifest.js",
     "dev": "concurrently \"npm run dev:proxy\" \"npm run dev:browser\"",
     "dev:proxy": "nodemon server/proxy.js",
     "dev:browser": "python3 -m http.server 8080 || python -m http.server 8080",

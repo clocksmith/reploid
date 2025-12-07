@@ -8,6 +8,7 @@ const StreamParser = {
   metadata: {
     id: 'StreamParser',
     version: '1.0.0',
+    genesis: { introduced: 'reflection' },
     dependencies: [],
     async: false,
     type: 'utility'
