@@ -1,12 +1,6 @@
-# REPLOID
+# REPLOID - browser-based ai agent sandbox
 
-```
-REPLOID = Recursive Evolution Protocol Loop Optimizing Intelligent DREAMER
-DREAMER = Dynamic Recursive Engine Adapting Modules Evolving REPLOID
-→ REPLOID ↔ DREAMER ↔ ∞
-```
-
-> Browser-based AI agent sandbox
+**Reploid**: Recursive Evolution Protocol Loop Optimizing Intelligent Dreamer (Dynamic Recursive Engine Adapting Modules Evolving Reploid (... ∞))
 
 - Runs entirely client-side
 - Uses IndexedDB as a virtual filesystem
@@ -26,22 +20,18 @@ Or use the hosted version at https://replo.id
 
 ## How It Works
 
-Flow (ASCII):
-- Agent → LLM Client → Tool Runner → VFS → Agent (loop)
-- Verification Worker → VFS (gates writes)
-
 1. Agent receives a goal
 2. LLM decides which tool to call
 3. Tool executes against the VFS (IndexedDB)
 4. Results feed back to agent
 5. Repeat until done or iteration limit (default 50)
 
-**Why this is different:** You get a full Claude-Code-style sandbox (filesystem, tools, arena, verification) inside the browser, but the entire substrate also lives there. The agent uses the sandbox like a normal dev environment and can edit and hot-reload its own runtime code and tools on the fly without a backend, rebuild step, or restart.
+Sound familiar? This is pretty much every agentic workflow. Here's how Reploid is different: you get a full Claude-Code-style sandbox (filesystem, tools, arena, verification) inside the browser, but the entire substrate also lives there. The agent uses the sandbox like a normal dev environment and can edit and hot-reload its own runtime code and tools on the fly without a backend, rebuild step, or restart.
 
 Example goals:
-- **Better Self** — Analyze your own agent-loop.js, find a weakness, and continuously improve it
-- **Ouroboros** — Tool that benchmarks itself and rewrites itself faster
-- **Meta-Improve** — Improve the code that improves code
+- **Better Self**: Analyze your own agent-loop.js, find a weakness, and continuously improve it
+- **Ouroboros**: Tool that benchmarks itself and rewrites itself faster
+- **Meta-Improve**: Improve the code that improves code
 
 ### LLM Options
 
@@ -57,21 +47,23 @@ Designed for local-first use, but supports frontier models:
 The proxy (`npm start`) routes API calls through your machine for CORS and key management.
 
 #### Local model choices: why each exists
-- **WebLLM** (MLC, WebGPU): zero install, runs entirely in browser; great for privacy and offline use, but limited by browser memory/VRAM and slower kernels.
-- **Transformers.js** (ONNX/WASM): widest browser compatibility and CPU/Metal paths; slower than WebGPU-first stacks but safest fallback when GPUs or WebGPU features are unavailable.
-- **Dreamer** (.rpl + WebGPU + OPFS): built for medium/large models with sharded storage, hash verification, and multiple ingestion paths (serve CLI, in-browser GGUF import, native bridge). Higher performance and provenance guarantees, but requires conversion or the bridge install step.
+- **WebLLM** (MLC, WebGPU): zero install, runs entirely in browser, great for privacy and offline use. Limited by browser memory/VRAM and slower kernels. Models are too small for real RSI but fun to experiment with.
+- **Transformers.js** (ONNX/WASM): widest browser compatibility with CPU/Metal paths. Slower than WebGPU-first stacks but safest fallback when GPUs or WebGPU are unavailable.
+- **Dreamer** (.rpl + WebGPU + OPFS): built for medium/large models with sharded storage, hash verification, and multiple ingestion paths (serve CLI, in-browser GGUF import, native bridge). Higher performance and provenance guarantees, but requires conversion or the bridge install step. Needs at least 16GB VRAM or unified RAM, preferably 64GB+ for frontier models in the 30-70GB range.
 
 ### Components
 
-- **VFS** — Virtual filesystem in IndexedDB with snapshot/restore
-- **LLM Client** — Multi-provider abstraction
-- **Tool Runner** — Loads tools from VFS, executes them
-- **Verification Worker** — Syntax checks code before writing to VFS
-- **Worker Manager** — Spawns subagents with permission tiers (read-only, read+json, full)
+- **VFS**: Virtual filesystem in IndexedDB with snapshot/restore
+- **LLM Client**: Multi-provider abstraction
+- **Tool Runner**: Loads tools from VFS, executes them
+- **Verification Worker**: Syntax checks code before writing to VFS
+- **Worker Manager**: Spawns subagents with permission tiers (read-only, read+json, full)
 
 ### Tools
 
-Tools are JS modules in the VFS. The agent can:
+Tools are JS modules in the VFS. Similar to MCP, but the tools live inside the sandbox rather than on external servers, and the agent can create and modify them at runtime.
+
+The agent can:
 - Use existing tools (ReadFile, WriteFile, Grep, etc.)
 - Create new tools via CreateTool
 - Modify existing tools (including CreateTool itself)
@@ -85,34 +77,6 @@ Three boot configurations:
 | TABULA RASA | Minimal core |
 | REFLECTION | + streaming, verification, HITL |
 | FULL SUBSTRATE | + cognition, semantic memory, arena |
-
-### Dreamer: Local Models in the Browser
-
-Dreamer is the local WebGPU path for medium/large models. It uses the `.rpl` format (manifest + shard_*.bin) and supports three ways to load models:
-
-1) Serve CLI (all browsers)
-- `node dreamer/reploid/core/dreamer/tools/serve-cli.js /path/to/model.gguf`
-- Converts GGUF → .rpl (temp dir) and serves with CORS (default http://localhost:8765).
-- In the boot UI, pick provider “Dreamer” and paste the Model URL. Dreamer downloads into OPFS and caches it.
-
-2) Import GGUF in-browser (Chrome/Edge)
-- In the model form, choose “Dreamer” → click “Import GGUF from Disk”.
-- Streams GGUF → .rpl directly into OPFS with progress UI. No CLI/server needed.
-
-3) Native Bridge (extension + host, with browse modal)
-- Load the Chrome extension from `core/dreamer/bridge/extension/` (dev mode).
-- Run `core/dreamer/bridge/native/install.sh <extension-id>` to install the native host.
-- In the model form, choose “Dreamer”; a Local Path field and browse button appear. Browse to a local `.rpl` directory; shards stream from disk with hash verification.
-
-Notes:
-- Manifests include tensor locations and shard hashes; `hashAlgorithm` may be `sha256` or `blake3`.
-- Unified memory (Apple/Strix) is ideal for dense models; discrete GPUs benefit from MoE or smaller shards.
-
-#### Dreamer troubleshooting & testing
-- **Extension + host install:** Load the Chrome extension from `core/dreamer/bridge/extension/` (dev mode). Run `core/dreamer/bridge/native/install.sh <extension-id>` to register the native host.
-- **Where models live:** Downloaded/imported `.rpl` shards live in browser storage (OPFS/IndexedDB). Clear via DevTools → Application → Storage → Clear site data to reclaim space.
-- **Logs:** Open DevTools console for importer/bridge logs. For native host, check terminal output from `install.sh` and the host process (launched by the extension).
-- **Connectivity tests:** `core/dreamer/bridge/native/test-host.js` exercises PING/READ/LIST; use it if the bridge isn’t responding.
 
 ### Recursive Self-Improvement (RSI)
 
@@ -153,7 +117,37 @@ For L2+ modifications, arena mode generates multiple candidates, runs them again
 
 ## Why JavaScript
 
-The agent writes code that executes immediately. No compilation step. TypeScript would require bundling a compiler.
+The agent writes code that executes immediately. No compilation step. TypeScript would require bundling a compiler or stripping types at runtime. That said, if the agent decides to add TypeScript support itself, and it works, so be it.
+
+---
+
+## Appendix: Dreamer Setup
+
+Dreamer is the local WebGPU path for medium/large models. It uses the `.rpl` format (manifest + shard_*.bin) and supports three ways to load models:
+
+1) Serve CLI (all browsers)
+- `node dreamer/reploid/core/dreamer/tools/serve-cli.js /path/to/model.gguf`
+- Converts GGUF → .rpl (temp dir) and serves with CORS (default http://localhost:8765).
+- In the boot UI, pick provider "Dreamer" and paste the Model URL. Dreamer downloads into OPFS and caches it.
+
+2) Import GGUF in-browser (Chrome/Edge)
+- In the model form, choose "Dreamer" → click "Import GGUF from Disk".
+- Streams GGUF → .rpl directly into OPFS with progress UI. No CLI/server needed.
+
+3) Native Bridge (extension + host, with browse modal)
+- Load the Chrome extension from `core/dreamer/bridge/extension/` (dev mode).
+- Run `core/dreamer/bridge/native/install.sh <extension-id>` to install the native host.
+- In the model form, choose "Dreamer"; a Local Path field and browse button appear. Browse to a local `.rpl` directory; shards stream from disk with hash verification.
+
+Notes:
+- Manifests include tensor locations and shard hashes; `hashAlgorithm` may be `sha256` or `blake3`.
+- Unified memory (Apple/Strix) is ideal for dense models; discrete GPUs benefit from MoE or smaller shards.
+
+### Dreamer troubleshooting & testing
+- **Extension + host install**: Load the Chrome extension from `core/dreamer/bridge/extension/` (dev mode). Run `core/dreamer/bridge/native/install.sh <extension-id>` to register the native host.
+- **Where models live**: Downloaded/imported `.rpl` shards live in browser storage (OPFS/IndexedDB). Clear via DevTools → Application → Storage → Clear site data to reclaim space.
+- **Logs**: Open DevTools console for importer/bridge logs. For native host, check terminal output from `install.sh` and the host process (launched by the extension).
+- **Connectivity tests**: `core/dreamer/bridge/native/test-host.js` exercises PING/READ/LIST; use it if the bridge isn't responding.
 
 ## License
 
