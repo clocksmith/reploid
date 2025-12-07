@@ -1,9 +1,9 @@
 # REPLOID - browser-based ai agent sandbox
 
-**Reploid**: Recursive Evolution Protocol Loop Optimizing Intelligent Dreamer (Dynamic Recursive Engine Adapting Modules Evolving Reploid (... ∞))
+**Reploid**: **R**ecursive **E**volution **P**rotocol **L**oop **O**ptimizing **I**ntelligent **D**reamer (**D**ynamic **R**ecursive **E**ngine **A**dapting **M**odules **E**volving **R**eploid (... ∞))
 
-- Runs entirely client-side
-- Uses IndexedDB as a virtual filesystem
+- Can run entirely client-side, and even offline
+- Spawns and evolves itself with virtual filesystem in the browser
 - Supports recursive self-improvement (RSI): the agent can create, modify, and improve its own tools at runtime, including the tool-creation mechanism itself
 
 ## Quick Start
@@ -22,13 +22,27 @@ Or use the hosted version at https://replo.id
 
 1. Agent receives a goal
 2. LLM decides which tool to call
-3. Tool executes against the VFS (IndexedDB)
+3. Tool executes against the VFS (IndexedDB) with hot reload
 4. Results feed back to agent
-5. Repeat until done or iteration limit (default 50)
+5. Repeat until done, iteration limit (default 50), or forever?
 
-Sound familiar? This is pretty much every agentic workflow. Here's how Reploid is different: you get a full Claude-Code-style sandbox (filesystem, tools, arena, verification) inside the browser, but the entire substrate also lives there. The agent uses the sandbox like a normal dev environment and can edit and hot-reload its own runtime code and tools on the fly without a backend, rebuild step, or restart.
+Sound familiar? This is pretty much every agentic workflow. Howvever, with Reploid's implentation, you get a full Agentic CLI sandbox (filesystem, tools, arena, verification) inside the browser, and the **entire** substrate also lives there (LLM, source code, tool runner) . The agent uses the sandbox like a normal dev environment and can edit and hot-reload its own runtime code and tools on the fly without a backend, rebuild step, or restart.
 
-Example goals:
+## Why?
+
+Why not?
+
+**RSI Questions:**
+- Can an agent improve its own tool-creation mechanism in a measurable way?
+- What happens when the agent modifies its own prompt or system instructions?
+- Can arena-style selection pressure produce better code than single-shot generation?
+
+**Security/Containment:**
+- Is browser sandboxing sufficient for code-writing agents?
+- What verification checks actually catch dangerous mutations?
+- Can we build meaningful human-in-the-loop gates without destroying agent autonomy?
+
+**Example goals:**
 - **Better Self**: Analyze your own agent-loop.js, find a weakness, and continuously improve it
 - **Ouroboros**: Tool that benchmarks itself and rewrites itself faster
 - **Meta-Improve**: Improve the code that improves code
@@ -94,26 +108,9 @@ All modifications are verified before execution and logged. VFS snapshots allow 
 
 For L2+ modifications, arena mode generates multiple candidates, runs them against tests, and keeps the best one.
 
-## Research Goals
-
-**RSI Questions:**
-- Can an agent improve its own tool-creation mechanism in a measurable way?
-- What happens when the agent modifies its own prompt or system instructions?
-- Can arena-style selection pressure produce better code than single-shot generation?
-
-**Security/Containment:**
-- Is browser sandboxing sufficient for code-writing agents?
-- What verification checks actually catch dangerous mutations?
-- Can we build meaningful human-in-the-loop gates without destroying agent autonomy?
+## Limitations
 
 **Current Limitation:** Small models that run locally via WebLLM (1-7B params) struggle with tool-use and code generation. For now, frontier models (Opus 4.5, GPT-5.1, Gemini 3) via API produce much better results. WebLLM/Dreamer become more useful as local models and hardware improve. Dense 70B on a discrete GPU will be bandwidth-bound; MoE or unified memory hardware is recommended.
-
-## Why Browser-Based
-
-- No Docker, no shell access, no filesystem access
-- VFS snapshots enable rollback
-- Service Worker intercepts imports, serves from VFS
-- Designed for frontier API models, with WebLLM as fallback for offline/privacy use cases
 
 ## Why JavaScript
 
