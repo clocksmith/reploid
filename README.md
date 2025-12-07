@@ -92,6 +92,14 @@ Three boot configurations:
 | REFLECTION | + streaming, verification, HITL |
 | FULL SUBSTRATE | + cognition, semantic memory, arena |
 
+**Blueprints** (optional): Architectural docs mapping to each module. With blueprints loaded, the agent has everything needed to reproduce the entire substrate from scratch.
+
+| Blueprint | Module | File |
+|-----------|--------|------|
+| `0x000008` Agent Cognitive Cycle | AgentLoop | `core/agent-loop.js` |
+| `0x000015` Dynamic Tool Creation | ToolWriter | `core/tool-writer.js` |
+| `0x000071` Knowledge Graph | KnowledgeGraph | `capabilities/cognition/symbolic/knowledge-graph.js` |
+
 ### Recursive Self-Improvement (RSI)
 
 The agent can modify its own code at three levels:
