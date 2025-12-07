@@ -46,7 +46,7 @@ Designed for local-first use, but supports frontier models:
 | Mode | Provider | Notes |
 |------|----------|-------|
 | Local | WebLLM | Runs in browser via WebGPU, fully offline |
-| Local | Ollama | Local server, connect via proxy |
+| Local | Ollama, vLLM | Local server, connect via proxy |
 | API | OpenAI, Anthropic, Google, Groq | Direct from client or via proxy |
 
 The proxy (`npm start`) routes API calls through your machine for CORS and key management.
@@ -104,7 +104,7 @@ For L2+ modifications, arena mode generates multiple candidates, runs them again
 - What verification checks actually catch dangerous mutations?
 - Can we build meaningful human-in-the-loop gates without destroying agent autonomy?
 
-**Current Limitation:** Small models that run locally via WebLLM (1-7B params) struggle with tool-use and code generation. They often fail to follow the tool schema or produce syntactically invalid code. For now, frontier models (Claude, GPT-4, etc.) via API produce much better results. WebLLM becomes more useful as local models improve.
+**Current Limitation:** Small models that run locally via WebLLM (1-7B params) struggle with tool-use and code generation. They often fail to follow the tool schema or produce syntactically invalid code. For now, frontier models (Opus 4.5, GPT-5.1, Gemini 3) via API produce much better results. WebLLM becomes more useful as local models improve.
 
 ## Why Browser-Based
 
