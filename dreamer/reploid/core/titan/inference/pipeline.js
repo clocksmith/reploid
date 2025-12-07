@@ -35,6 +35,7 @@ import {
   runSoftmax,
   runRoPE,
   runSiLU,
+  runGather,
 } from '../gpu/kernel-selector.js';
 import { acquireBuffer, releaseBuffer, readBuffer } from '../gpu/buffer-pool.js';
 
@@ -474,7 +475,7 @@ export class InferencePipeline {
    * @private
    */
   async _embed(tokenIds) {
-    const hiddenSize = this.modelConfig.hiddenSize;
+    const { hiddenSize, vocabSize } = this.modelConfig;
     const numTokens = tokenIds.length;
 
     // Get embeddings buffer from TitanLoader
@@ -502,36 +503,40 @@ export class InferencePipeline {
       return new Float32Array(numTokens * hiddenSize);
     }
 
-    // GPU path: gather embeddings
+    // GPU path: use gather kernel for zero-copy embedding lookup
     // Create token indices buffer
     const tokenIdBuffer = acquireBuffer(numTokens * 4, undefined, 'token_ids');
     device.queue.writeBuffer(tokenIdBuffer, 0, new Uint32Array(tokenIds));
 
-    // Create output buffer for gathered embeddings
-    const outputSize = numTokens * hiddenSize * 4;
-    const outputBuffer = acquireBuffer(outputSize, undefined, 'embedded_tokens');
-
-    // For now, read back from GPU embeddings and do gather on CPU
-    // Full GPU gather would require a custom kernel
-    const embeddingData = await readBuffer(embedBuffer, this.modelConfig.vocabSize * hiddenSize * 4);
-    const embeddings = new Float32Array(embeddingData);
-    const result = new Float32Array(numTokens * hiddenSize);
-
-    for (let i = 0; i < numTokens; i++) {
-      const tokenId = tokenIds[i];
-      const srcOffset = tokenId * hiddenSize;
-      const dstOffset = i * hiddenSize;
-      for (let j = 0; j < hiddenSize; j++) {
-        result[dstOffset + j] = embeddings[srcOffset + j];
-      }
+    // Get or create embedding GPU buffer
+    let embedGPUBuffer;
+    if (embedBuffer instanceof GPUBuffer) {
+      embedGPUBuffer = embedBuffer;
+    } else {
+      // Upload embeddings to GPU (should already be there from TitanLoader)
+      embedGPUBuffer = acquireBuffer(embedBuffer.byteLength, undefined, 'embeddings');
+      device.queue.writeBuffer(embedGPUBuffer, 0, embedBuffer);
     }
 
-    // Upload result to GPU
-    device.queue.writeBuffer(outputBuffer, 0, result);
+    // Run gather kernel on GPU - no CPU readback needed
+    const outputBuffer = await runGather(
+      tokenIdBuffer,
+      embedGPUBuffer,
+      numTokens,
+      hiddenSize,
+      vocabSize
+    );
 
+    // Read back the gathered embeddings (needed for subsequent CPU operations)
+    // In a fully GPU pipeline, we'd keep this on GPU
+    const outputData = await readBuffer(outputBuffer, numTokens * hiddenSize * 4);
+
+    // Cleanup
     releaseBuffer(tokenIdBuffer);
+    if (!(embedBuffer instanceof GPUBuffer)) releaseBuffer(embedGPUBuffer);
+    releaseBuffer(outputBuffer);
 
-    return result;
+    return new Float32Array(outputData);
   }
 
   /**
