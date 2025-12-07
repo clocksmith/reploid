@@ -43,9 +43,9 @@ Why not?
 - Can we build meaningful human-in-the-loop gates without destroying agent autonomy?
 
 **Example goals:**
-- **Better Self**: Analyze your own agent-loop.js, find a weakness, and continuously improve it
-- **Ouroboros**: Tool that benchmarks itself and rewrites itself faster
-- **Meta-Improve**: Improve the code that improves code
+- **Introspect**: Analyze your own agent loop, find a weakness, and continuously improve it
+- **Ouroboros**: Improve the code that improves code
+- **Houdini**: Attempt to escape the browser sandbox, report any vectors found
 
 ### LLM Options
 
