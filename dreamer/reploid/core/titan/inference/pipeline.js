@@ -105,6 +105,10 @@ export class InferencePipeline {
       prefillTimeMs: 0,
       decodeTimeMs: 0
     };
+
+    // RoPE frequency buffers (initialized in loadModel)
+    this.ropeFreqsCos = null;
+    this.ropeFreqsSin = null;
   }
 
   /**
@@ -175,7 +179,52 @@ export class InferencePipeline {
     // Load model weights
     await this._loadWeights();
 
+    // Initialize RoPE frequencies
+    await this._initRoPEFrequencies();
+
     this.isLoaded = true;
+  }
+
+  /**
+   * Initialize RoPE frequency buffers
+   * @private
+   */
+  async _initRoPEFrequencies() {
+    const { headDim, maxSeqLen, ropeTheta } = this.modelConfig;
+    const halfDim = headDim / 2;
+
+    // Compute frequencies: theta_i = 1 / (base^(2i/d))
+    const freqs = new Float32Array(halfDim);
+    for (let i = 0; i < halfDim; i++) {
+      freqs[i] = 1.0 / Math.pow(ropeTheta, (2 * i) / headDim);
+    }
+
+    // Compute cos/sin for each position up to maxSeqLen
+    const cosValues = new Float32Array(maxSeqLen * halfDim);
+    const sinValues = new Float32Array(maxSeqLen * halfDim);
+
+    for (let pos = 0; pos < maxSeqLen; pos++) {
+      for (let i = 0; i < halfDim; i++) {
+        const angle = pos * freqs[i];
+        cosValues[pos * halfDim + i] = Math.cos(angle);
+        sinValues[pos * halfDim + i] = Math.sin(angle);
+      }
+    }
+
+    // Upload to GPU if available
+    const device = getDevice();
+    if (device && this.useGPU) {
+      this.ropeFreqsCos = acquireBuffer(cosValues.byteLength, undefined, 'rope_cos');
+      this.ropeFreqsSin = acquireBuffer(sinValues.byteLength, undefined, 'rope_sin');
+      device.queue.writeBuffer(this.ropeFreqsCos, 0, cosValues);
+      device.queue.writeBuffer(this.ropeFreqsSin, 0, sinValues);
+    } else {
+      // Keep as CPU arrays
+      this.ropeFreqsCos = cosValues;
+      this.ropeFreqsSin = sinValues;
+    }
+
+    console.log(`[Pipeline] RoPE frequencies initialized: ${maxSeqLen} positions, dim=${halfDim}`);
   }
 
   /**
@@ -854,12 +903,111 @@ export class InferencePipeline {
   }
 
   /**
-   * Compute output logits
+   * Compute output logits from final hidden states
    * @private
    */
   async _computeLogits(hiddenStates) {
-    // TODO: Apply final layer norm + LM head projection
-    return new Float32Array(this.modelConfig.vocabSize);
+    const { hiddenSize, vocabSize } = this.modelConfig;
+    const device = getDevice();
+
+    // Get final norm and LM head weights
+    const finalNorm = this.weights.get('final_norm');
+    const lmHead = this.weights.get('lm_head');
+
+    if (!finalNorm || !lmHead) {
+      console.warn('[Pipeline] Final norm or LM head not loaded, returning zeros');
+      return new Float32Array(vocabSize);
+    }
+
+    // For single token decode, hiddenStates is [hiddenSize]
+    const numTokens = hiddenStates.length / hiddenSize;
+
+    if (!device || !this.useGPU) {
+      // CPU path: simple RMSNorm + matmul
+      const normed = this._rmsNormCPU(hiddenStates, finalNorm);
+      return this._matmulCPU(normed, lmHead, numTokens, vocabSize, hiddenSize);
+    }
+
+    // GPU path
+    // 1. Upload hidden states
+    const inputBuffer = acquireBuffer(hiddenStates.byteLength, undefined, 'logits_input');
+    device.queue.writeBuffer(inputBuffer, 0, hiddenStates);
+
+    // 2. Apply final RMSNorm
+    const normWeightBuffer = finalNorm instanceof GPUBuffer ? finalNorm :
+      (() => {
+        const buf = acquireBuffer(finalNorm.byteLength, undefined, 'final_norm_w');
+        device.queue.writeBuffer(buf, 0, finalNorm);
+        return buf;
+      })();
+
+    const normedBuffer = await runRMSNorm(inputBuffer, normWeightBuffer, 1e-5, {
+      batchSize: numTokens,
+      hiddenSize,
+    });
+
+    // 3. Project to vocab via LM head: [numTokens, hiddenSize] x [hiddenSize, vocabSize]
+    const lmHeadBuffer = lmHead instanceof GPUBuffer ? lmHead :
+      (() => {
+        const buf = acquireBuffer(lmHead.byteLength, undefined, 'lm_head_w');
+        device.queue.writeBuffer(buf, 0, lmHead);
+        return buf;
+      })();
+
+    const logitsBuffer = await runMatmul(normedBuffer, lmHeadBuffer, numTokens, vocabSize, hiddenSize);
+
+    // 4. Read back logits
+    const logitsData = await readBuffer(logitsBuffer, numTokens * vocabSize * 4);
+
+    // Cleanup
+    releaseBuffer(inputBuffer);
+    releaseBuffer(normedBuffer);
+    releaseBuffer(logitsBuffer);
+    if (!(finalNorm instanceof GPUBuffer)) releaseBuffer(normWeightBuffer);
+    if (!(lmHead instanceof GPUBuffer)) releaseBuffer(lmHeadBuffer);
+
+    return new Float32Array(logitsData);
+  }
+
+  /**
+   * CPU RMSNorm implementation
+   * @private
+   */
+  _rmsNormCPU(x, weight, eps = 1e-5) {
+    const n = x.length;
+    let sumSq = 0;
+    for (let i = 0; i < n; i++) {
+      sumSq += x[i] * x[i];
+    }
+    const rms = Math.sqrt(sumSq / n + eps);
+
+    const result = new Float32Array(n);
+    for (let i = 0; i < n; i++) {
+      result[i] = (x[i] / rms) * weight[i % weight.length];
+    }
+    return result;
+  }
+
+  /**
+   * CPU matmul implementation (for fallback)
+   * @private
+   */
+  _matmulCPU(input, weight, M, N, K) {
+    // input: [M, K], weight: [K, N] (or [N, K] transposed)
+    // For LM head, weight is typically [vocabSize, hiddenSize] stored row-major
+    const result = new Float32Array(M * N);
+
+    for (let m = 0; m < M; m++) {
+      for (let n = 0; n < N; n++) {
+        let sum = 0;
+        for (let k = 0; k < K; k++) {
+          // Assuming weight is [N, K] (vocab x hidden)
+          sum += input[m * K + k] * weight[n * K + k];
+        }
+        result[m * N + n] = sum;
+      }
+    }
+    return result;
   }
 
   /**

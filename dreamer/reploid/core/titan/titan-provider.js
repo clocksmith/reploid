@@ -179,11 +179,12 @@ export async function loadModel(modelId, modelUrl = null, onProgress = null) {
     // Initialize pipeline with current capabilities
     const gpuCaps = getKernelCapabilities();
     const memCaps = await getMemoryCapabilities();
+    const { getDevice } = await import('./gpu/device.js');
 
     pipeline = await createPipeline(manifest, {
       gpu: {
         capabilities: gpuCaps,
-        device: await initDevice(),
+        device: getDevice(), // Use existing device, don't re-init
       },
       memory: {
         capabilities: memCaps,
