@@ -16,6 +16,7 @@ import GenesisSnapshot from './infrastructure/genesis-snapshot.js';
 import Observability from './infrastructure/observability.js';
 import VFSHMR from './infrastructure/vfs-hmr.js';
 import TelemetryTimeline from './infrastructure/telemetry-timeline.js';
+import ErrorStore from './infrastructure/error-store.js';
 
 import VFS from './core/vfs.js';
 import StateManager from './core/state-manager.js';
@@ -163,7 +164,7 @@ import GoalHistory from './ui/goal-history.js';
       ReflectionAnalyzer, AgentLoop, SubstrateLoader, PerformanceMonitor, SelfTester,
       EmbeddingStore, SemanticMemory, KnowledgeGraph, RuleEngine, SymbolGrounder, CognitionAPI, MultiModelCoordinator,
       VFSSandbox, ArenaCompetitor, ArenaMetrics, ArenaHarness,
-      WorkerManager, TelemetryTimeline
+      WorkerManager, TelemetryTimeline, ErrorStore
     };
 
     // Register all modules from resolved list (includes inherited)
@@ -210,7 +211,7 @@ import GoalHistory from './ui/goal-history.js';
 
         // Clear session UI files (except core UI components)
         const coreUIFiles = new Set([
-          'proto.js', 'toast.js', 'command-palette.js'
+          'proto.js', 'toast.js'
         ]);
         const uiFiles = await vfs.list('/ui/');
         for (const file of uiFiles) {
@@ -323,28 +324,14 @@ import GoalHistory from './ui/goal-history.js';
       const stateManager = await container.resolve('StateManager');
       const vfs = await container.resolve('VFS');
 
-      // Get all VFS files
+      // Use VFS.exportAll() - single source of truth
+      const vfsExport = await vfs.exportAll();
       const vfsFiles = {};
-      const allPaths = await vfs.list('/');
+      for (const [path, entry] of Object.entries(vfsExport.files)) {
+        vfsFiles[path] = entry.content;
+      }
 
-      const collectFiles = async (paths) => {
-        for (const path of paths) {
-          try {
-            const stat = await vfs.stat(path);
-            if (stat.isDirectory) {
-              const subPaths = await vfs.list(path);
-              await collectFiles(subPaths);
-            } else {
-              vfsFiles[path] = await vfs.read(path);
-            }
-          } catch (e) {
-            logger.warn(`[Export] Failed to read ${path}:`, e.message);
-          }
-        }
-      };
-      await collectFiles(allPaths);
-
-      // Get state
+      // Get state (also persisted in VFS at /.system/state.json)
       const state = stateManager.getState();
 
       // Collect recent agent log entries if available
@@ -399,6 +386,32 @@ import GoalHistory from './ui/goal-history.js';
       URL.revokeObjectURL(url);
 
       logger.info(`[Export] Downloaded ${filename} with ${Object.keys(vfsFiles).length} files, ${conversationContext.length} context messages`);
+    };
+
+    // Import function for restoring REPLOID state from exported JSON
+    window.importREPLOID = async (jsonData, options = {}) => {
+      const { clearFirst = false } = options;
+      const vfs = await container.resolve('VFS');
+
+      // Parse if string
+      const data = typeof jsonData === 'string' ? JSON.parse(jsonData) : jsonData;
+
+      if (!data.vfs || typeof data.vfs !== 'object') {
+        throw new Error('Invalid import data: missing vfs object');
+      }
+
+      // Convert from flat format to importAll format
+      const importData = {
+        files: {}
+      };
+      for (const [path, content] of Object.entries(data.vfs)) {
+        importData.files[path] = { content };
+      }
+
+      const count = await vfs.importAll(importData, clearFirst);
+      logger.info(`[Import] Imported ${count} files from export`);
+
+      return { imported: count };
     };
 
     logger.info('[Boot] Core System Ready.');
@@ -484,25 +497,46 @@ import GoalHistory from './ui/goal-history.js';
           // Get model config from localStorage
           const savedModels = localStorage.getItem('SELECTED_MODELS');
           const consensusStrategy = localStorage.getItem('CONSENSUS_TYPE') || 'arena';
+          let models = [];
 
           if (savedModels) {
-            const models = JSON.parse(savedModels);
-            if (models.length > 0) {
-              // Set all models for multi-model support
-              agent.setModels(models);
-              agent.setConsensusStrategy(consensusStrategy);
+            models = JSON.parse(savedModels);
+          }
 
-              logger.info(`[Boot] Configured ${models.length} model(s), consensus: ${consensusStrategy}`);
+          // Auto-select default model if none configured
+          if (models.length === 0) {
+            // Check if WebGPU is available for local models
+            if (navigator.gpu) {
+              // Default to small Transformers.js model
+              const defaultModel = {
+                id: 'smollm2-360m',
+                name: 'SmolLM2 360M (Auto)',
+                provider: 'transformers',
+                hostType: 'browser-local'
+              };
+              models = [defaultModel];
+              logger.info('[Boot] No model configured, auto-selected: ' + defaultModel.name);
+            } else {
+              logger.error('[Boot] No model configured and WebGPU not available. Please select a model.');
+              return;
+            }
+          }
 
-              // Initialize WorkerManager with model config (FULL SUBSTRATE only)
-              if (workerManager) {
-                try {
-                  await workerManager.init(genesisConfig);
-                  workerManager.setModelConfig(models[0]);
-                  logger.info('[Boot] WorkerManager initialized with model config');
-                } catch (e) {
-                  logger.warn('[Boot] WorkerManager init failed:', e.message);
-                }
+          if (models.length > 0) {
+            // Set all models for multi-model support
+            agent.setModels(models);
+            agent.setConsensusStrategy(consensusStrategy);
+
+            logger.info(`[Boot] Configured ${models.length} model(s), consensus: ${consensusStrategy}`);
+
+            // Initialize WorkerManager with model config (FULL SUBSTRATE only)
+            if (workerManager) {
+              try {
+                await workerManager.init(genesisConfig);
+                workerManager.setModelConfig(models[0]);
+                logger.info('[Boot] WorkerManager initialized with model config');
+              } catch (e) {
+                logger.warn('[Boot] WorkerManager init failed:', e.message);
               }
             }
           }
@@ -594,9 +628,22 @@ async function seedWorkspaceFiles(vfs, genesisConfig, resolvedModules) {
       const webPath = file.startsWith('./') ? file : `./${file}`;
       const vfsPath = '/' + file.replace(/^\.\//, '');
 
-      // Skip if already exists (unless it's FileOutline which may need updating)
+      // Skip if already exists (unless it's a file that may need updating)
+      const alwaysRefresh = new Set([
+        '/tools/FileOutline.js',
+        '/ui/proto.js',
+        '/ui/proto/index.js',
+        '/ui/proto/template.js',
+        '/ui/proto/telemetry.js',
+        '/ui/proto/schemas.js',
+        '/ui/proto/workers.js',
+        '/ui/proto/vfs.js',
+        '/ui/proto/utils.js',
+        '/ui/components/inline-chat.js',
+        '/ui/toast.js'
+      ]);
       const exists = await vfs.exists(vfsPath);
-      if (exists && vfsPath !== '/tools/FileOutline.js') continue;
+      if (exists && !alwaysRefresh.has(vfsPath)) continue;
 
       // Check if FileOutline needs updating (old version had zod import)
       if (exists && vfsPath === '/tools/FileOutline.js') {

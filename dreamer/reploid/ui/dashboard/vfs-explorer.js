@@ -205,7 +205,7 @@ const VFSExplorer = {
       getFileIcon(path) {
         const ext = path.split('.').pop().toLowerCase();
         const iconMap = {
-          'js': '☰',
+          'js': 'ƒ',
           'json': '☷',
           'md': '☐',
           'css': '☲',

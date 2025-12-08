@@ -4,7 +4,7 @@
  * Enables REPLOID to run entirely from IndexedDB with hot-reloading.
  */
 
-const CACHE_NAME = 'reploid-modules-v1';
+const CACHE_NAME = 'reploid-modules-v2';
 const VFS_DB_NAME = 'reploid-vfs-v2';
 const VFS_STORE_NAME = 'files';
 
@@ -87,6 +87,25 @@ self.addEventListener('fetch', (event) => {
   // Only intercept requests from our origin
   if (url.origin !== self.location.origin) {
     return;
+  }
+
+  // Never intercept critical files - always fetch from network
+  const alwaysNetwork = [
+    '/boot.js',
+    '/sw-module-loader.js',
+    '/ui/proto.js',
+    '/ui/proto/index.js',
+    '/ui/proto/template.js',
+    '/ui/proto/workers.js',
+    '/ui/proto/vfs.js',
+    '/ui/proto/schemas.js',
+    '/ui/proto/telemetry.js',
+    '/ui/proto/utils.js',
+    '/ui/toast.js',
+    '/ui/components/inline-chat.js'
+  ];
+  if (alwaysNetwork.some(f => url.pathname.endsWith(f))) {
+    return; // Let browser fetch from network
   }
 
   event.respondWith(handleModuleRequest(event.request, url));

@@ -22,7 +22,7 @@ This codebase follows a **strict no-emoji policy**. Use Unicode symbols for visu
 | ☗ | Folder |
 | ☐ | Document |
 | ⎈ | Settings |
-| ☰ | Code file |
+| ƒ | Code file |
 | ☷ | Data/JSON |
 | ☊ | HTML |
 | ☲ | CSS |

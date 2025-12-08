@@ -193,6 +193,72 @@ const VFS = {
       });
     };
 
+    /**
+     * Export all VFS contents as a single JSON object
+     * @returns {Promise<Object>} { files: { path: content, ... }, meta: { ... } }
+     */
+    const exportAll = async () => {
+      await openDB();
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction([STORE_FILES], 'readonly');
+        const store = tx.objectStore(STORE_FILES);
+        const req = store.getAll();
+        req.onsuccess = () => {
+          const files = {};
+          const entries = req.result || [];
+          for (const entry of entries) {
+            files[entry.path] = {
+              content: entry.content,
+              size: entry.size,
+              updated: entry.updated
+            };
+          }
+          resolve({
+            files,
+            meta: {
+              exportedAt: Date.now(),
+              version: '2.0',
+              fileCount: entries.length
+            }
+          });
+        };
+        req.onerror = () => reject(new Errors.ArtifactError('Export failed'));
+      });
+    };
+
+    /**
+     * Import all files from exported JSON
+     * @param {Object} data - { files: { path: { content, ... }, ... } }
+     * @param {boolean} [clearFirst=false] - Clear VFS before import
+     * @returns {Promise<number>} Number of files imported
+     */
+    const importAll = async (data, clearFirst = false) => {
+      if (!data?.files || typeof data.files !== 'object') {
+        throw new Errors.ValidationError('Invalid import data: missing files object');
+      }
+
+      await openDB();
+
+      if (clearFirst) {
+        await clear();
+      }
+
+      const paths = Object.keys(data.files);
+      let imported = 0;
+
+      for (const path of paths) {
+        const entry = data.files[path];
+        const content = typeof entry === 'string' ? entry : entry.content;
+        if (content !== undefined) {
+          await write(path, content);
+          imported++;
+        }
+      }
+
+      logger.info(`[VFS] Imported ${imported} files`);
+      return imported;
+    };
+
     return {
       init,
       read,
@@ -203,7 +269,9 @@ const VFS = {
       exists,
       isEmpty,
       mkdir,
-      clear
+      clear,
+      exportAll,
+      importAll
     };
   }
 };
