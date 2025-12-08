@@ -6,27 +6,8 @@
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text fill='%237fff7f' x='50%25' y='50%25' font-size='95' font-weight='bold' text-anchor='middle' dominant-baseline='central'>R</text></svg>" />
     <title>Reploid</title>
 
-    <!-- Early reset check - runs BEFORE any modules load -->
-    <script>
-      (async function() {
-        if (localStorage.getItem('REPLOID_PENDING_RESET') === 'true') {
-          console.log('[Reset] Pending reset detected, clearing all data...');
-          localStorage.clear();
-          const dbs = await indexedDB.databases();
-          await Promise.all(dbs.map(db => new Promise((resolve) => {
-            const req = indexedDB.deleteDatabase(db.name);
-            req.onsuccess = req.onerror = resolve;
-          })));
-          console.log('[Reset] All data cleared');
-          location.reload();
-        }
-      })();
-    </script>
-
     <link rel="stylesheet" href="styles/theme.css?v=1733620800">
     <link rel="stylesheet" href="styles/boot.css?v=1733620800">
-    <!-- Proto styles - modular -->
-    <link rel="stylesheet" href="styles/proto/index.css?v=1733620800">
 
     <!-- Service Worker Module Loader (Self-Hosting VFS Architecture) -->
     <script>
@@ -456,7 +437,7 @@ const GOAL_LIBRARY = [
   { label: 'Code Archaeologist', text: 'Implement a history tracking system. For every file change, store a diff. Create a visualization that shows the evolution of a specific file over time.' },
   { label: 'Polyglot', text: 'Integrate Pyodide (Python via WASM). Write a tool that executes Python code alongside JavaScript. Solve a data science problem using pandas within your JS environment.' },
   { label: 'Garbage Collector', text: 'Analyze your VFS for dead code—tools that haven\'t been used in 50 turns, or files that aren\'t imported by anything. Generate a report and offer to delete them.' },
-  { label: 'Understand & Enhance', text: 'Read /docs/REPLOID_README.md and explore /core/ and /tools/. Identify one weakness. Implement a measurable enhancement. Report exactly which files changed and how to verify it works.' },
+  { label: 'Understand & Enhance', text: 'Read /docs/REPLOID.md and explore /core/ and /tools/. Identify one weakness. Implement a measurable enhancement. Report exactly which files changed and how to verify it works.' },
   { label: 'Code City', text: 'Build an explorable 3D city: buildings are files (height = complexity, width = size), streets are imports, parks are test files. Add minimap, fly-through camera, and click-to-open.' },
   { label: 'Memory Palace', text: 'Build a 3D navigable visualization of your semantic memory. Each memory is a room. Similar memories are adjacent. Walk through your own mind. Click memories to recall full content.' },
   { label: 'Knowledge Cartography', text: 'Render the knowledge graph as an interactive force-directed graph. Entities are nodes, predicates are edges. Color by type, size by connection count. Add semantic zoom. Export as SVG.' },
@@ -853,19 +834,12 @@ window.addEventListener('DOMContentLoaded', () => {
 window.getGenesisLevel = () => selectedGenesisLevel;
 window.getBlueprintPath = () => selectedBlueprintPath;
 
-// Reset All Data button handler - sets flag and reloads, early script does the actual clearing
+// Reset All Data button - navigates to dedicated reset page
 window.addEventListener('DOMContentLoaded', () => {
   const clearBtn = document.getElementById('clear-cache-btn');
   if (clearBtn) {
     clearBtn.addEventListener('click', () => {
-      if (!confirm('This will delete ALL data including:\n\n• LocalStorage settings\n• IndexedDB (VFS, reflections, state)\n• Selected models\n\nAre you sure?')) {
-        return;
-      }
-
-      // Set pending reset flag - the early script at page top will do the actual clearing
-      localStorage.setItem('REPLOID_PENDING_RESET', 'true');
-      console.log('[Reset] Pending reset flag set, reloading...');
-      location.reload();
+      window.location.href = '/reset.html';
     });
   }
 });

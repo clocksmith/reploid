@@ -18,6 +18,7 @@ async function call(args = {}, deps = {}) {
 export const tool = {
   name: "Tail",
   description: "Show the last N lines of a file (tail)",
+  readOnly: true,
   call
 };
 

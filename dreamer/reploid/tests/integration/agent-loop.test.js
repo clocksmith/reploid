@@ -58,7 +58,12 @@ describe('AgentLoop - Integration Tests', () => {
 
     mockContextManager = {
       compact: vi.fn().mockImplementation((ctx) => Promise.resolve(ctx)),
-      emitTokens: vi.fn()
+      emitTokens: vi.fn(),
+      manage: vi.fn().mockImplementation((ctx) => Promise.resolve({
+        context: ctx,
+        halted: false,
+        error: null
+      }))
     };
 
     mockResponseParser = {
@@ -232,13 +237,13 @@ describe('AgentLoop - Integration Tests', () => {
       expect(mockStateManager.incrementCycle).toHaveBeenCalledTimes(2);
     });
 
-    it('should compact context before LLM call', async () => {
+    it('should manage context before LLM call', async () => {
       mockLLMClient.chat.mockResolvedValue({ content: 'DONE' });
       mockResponseParser.isDone.mockReturnValue(true);
 
       await agentLoop.run('Test goal');
 
-      expect(mockContextManager.compact).toHaveBeenCalled();
+      expect(mockContextManager.manage).toHaveBeenCalled();
     });
 
     it('should emit history events', async () => {

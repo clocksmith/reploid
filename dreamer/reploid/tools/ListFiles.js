@@ -13,6 +13,7 @@ async function call(args = {}, deps = {}) {
 export const tool = {
   name: "ListFiles",
   description: "List files in a VFS directory",
+  readOnly: true,
   inputSchema: {
     type: 'object',
     properties: {

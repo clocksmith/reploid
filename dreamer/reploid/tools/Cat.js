@@ -16,6 +16,7 @@ async function call(args = {}, deps = {}) {
 export const tool = {
   name: "Cat",
   description: "Output file contents (cat)",
+  readOnly: true,
   call
 };
 

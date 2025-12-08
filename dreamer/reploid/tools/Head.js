@@ -18,6 +18,7 @@ async function call(args = {}, deps = {}) {
 export const tool = {
   name: "Head",
   description: "Show the first N lines of a file (head)",
+  readOnly: true,
   call
 };
 

@@ -28,6 +28,7 @@ async function call(args = {}, deps = {}) {
 export const tool = {
   name: "ListWorkers",
   description: "List all active worker agents and optionally completed workers",
+  readOnly: true,
   inputSchema: {
     type: 'object',
     properties: {

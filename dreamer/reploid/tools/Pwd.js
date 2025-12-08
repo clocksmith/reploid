@@ -10,6 +10,7 @@ async function call(args = {}, deps = {}) {
 export const tool = {
   name: "Pwd",
   description: "Print working directory (pwd)",
+  readOnly: true,
   call
 };
 

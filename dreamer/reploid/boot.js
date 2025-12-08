@@ -17,6 +17,8 @@ import Observability from './infrastructure/observability.js';
 import VFSHMR from './infrastructure/vfs-hmr.js';
 import TelemetryTimeline from './infrastructure/telemetry-timeline.js';
 import ErrorStore from './infrastructure/error-store.js';
+import ReplayEngine from './infrastructure/replay-engine.js';
+import ToolExecutor from './infrastructure/tool-executor.js';
 
 import VFS from './core/vfs.js';
 import StateManager from './core/state-manager.js';
@@ -67,6 +69,18 @@ import GoalHistory from './ui/goal-history.js';
   const logger = Utils.factory().logger;
   logger.info('[Boot] Starting REPLOID System...');
 
+  // Lazy-load Proto styles when dashboard mounts (keep boot lean)
+  const ensureProtoStyles = () => {
+    const existing = document.getElementById('proto-stylesheet');
+    if (existing) return;
+    const link = document.createElement('link');
+    link.id = 'proto-stylesheet';
+    link.rel = 'stylesheet';
+    link.href = 'styles/proto/index.css';
+    document.head.appendChild(link);
+    logger.info('[Boot] Proto styles loaded');
+  };
+
   // Iframe child mode detection - auto-awaken with goal from parent
   const isIframeChild = window.parent !== window;
   let pendingParentGoal = null;
@@ -109,11 +123,13 @@ import GoalHistory from './ui/goal-history.js';
     const defaultLevel = genesisConfig.defaultLevel || validLevels[0] || 'tabula';
     let genesisLevel = localStorage.getItem('REPLOID_GENESIS_LEVEL');
 
-    // Validate and fallback
+    // Validate and fallback - only write if actually changing
     if (!genesisLevel || !validLevels.includes(genesisLevel)) {
       if (genesisLevel) logger.warn(`[Boot] Unknown genesis level: ${genesisLevel}, falling back to ${defaultLevel}`);
       genesisLevel = defaultLevel;
-      localStorage.setItem('REPLOID_GENESIS_LEVEL', genesisLevel);
+      if (localStorage.getItem('REPLOID_GENESIS_LEVEL') !== genesisLevel) {
+        localStorage.setItem('REPLOID_GENESIS_LEVEL', genesisLevel);
+      }
     }
 
     // Resolve extends chain to get full module list
@@ -164,7 +180,7 @@ import GoalHistory from './ui/goal-history.js';
       ReflectionAnalyzer, AgentLoop, SubstrateLoader, PerformanceMonitor, SelfTester,
       EmbeddingStore, SemanticMemory, KnowledgeGraph, RuleEngine, SymbolGrounder, CognitionAPI, MultiModelCoordinator,
       VFSSandbox, ArenaCompetitor, ArenaMetrics, ArenaHarness,
-      WorkerManager, TelemetryTimeline, ErrorStore
+      WorkerManager, TelemetryTimeline, ErrorStore, ReplayEngine, ToolExecutor
     };
 
     // Register all modules from resolved list (includes inherited)
@@ -250,8 +266,10 @@ import GoalHistory from './ui/goal-history.js';
         }
 
         logger.info('[Boot] Session reset complete');
-        // Clear the flag after reset (one-time action)
-        localStorage.setItem('REPLOID_RESET_VFS', 'false');
+        // Clear the flag after reset (one-time action) - only write if changing
+        if (localStorage.getItem('REPLOID_RESET_VFS') !== 'false') {
+          localStorage.setItem('REPLOID_RESET_VFS', 'false');
+        }
       } catch (e) {
         logger.warn('[Boot] Session reset failed:', e.message);
       }
@@ -438,12 +456,18 @@ import GoalHistory from './ui/goal-history.js';
         // Use override goal (from parent iframe) or get from input
         const goal = overrideGoal || goalInput?.value?.trim() || '';
         if (goal) {
-          localStorage.setItem('REPLOID_GOAL', goal);
+          // Only write to localStorage if changed
+          if (localStorage.getItem('REPLOID_GOAL') !== goal) {
+            localStorage.setItem('REPLOID_GOAL', goal);
+          }
           // Add to goal history (skip for iframe children)
           if (!isIframeChild) {
             GoalHistory.add(goal);
           }
         }
+
+        // Load Proto styles only when dashboard is needed
+        ensureProtoStyles();
 
         const { default: Proto } = await import('./ui/proto.js');
 
@@ -645,14 +669,6 @@ async function seedWorkspaceFiles(vfs, genesisConfig, resolvedModules) {
       const exists = await vfs.exists(vfsPath);
       if (exists && !alwaysRefresh.has(vfsPath)) continue;
 
-      // Check if FileOutline needs updating (old version had zod import)
-      if (exists && vfsPath === '/tools/FileOutline.js') {
-        try {
-          const code = await vfs.read(vfsPath);
-          if (!code.includes('import { z')) continue;
-        } catch { /* proceed with hydration */ }
-      }
-
       try {
         const resp = await fetch(webPath);
         if (!resp.ok) {
@@ -660,6 +676,15 @@ async function seedWorkspaceFiles(vfs, genesisConfig, resolvedModules) {
           continue;
         }
         const contents = await resp.text();
+
+        // Skip write if content unchanged (reduce VFS churn)
+        if (exists) {
+          try {
+            const existing = await vfs.read(vfsPath);
+            if (existing === contents) continue; // No change, skip write
+          } catch { /* proceed with write */ }
+        }
+
         await vfs.write(vfsPath, contents);
         logger.info(`[Boot] Hydrated ${vfsPath}`);
       } catch (err) {

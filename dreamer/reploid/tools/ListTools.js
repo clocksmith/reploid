@@ -12,6 +12,7 @@ async function call(args = {}, deps = {}) {
 export const tool = {
   name: "ListTools",
   description: "List all available tools (both built-in and dynamic)",
+  readOnly: true,
   inputSchema: {
     type: 'object',
     properties: {}

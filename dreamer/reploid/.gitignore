@@ -63,3 +63,6 @@ vfs_backup.json
 sessions/
 output/
 *.ndjson
+
+# Exported session runs (keep README, ignore JSON exports)
+runs/*.json

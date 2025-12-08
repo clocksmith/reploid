@@ -40,6 +40,7 @@ async function call(args = {}, deps = {}) {
 export const tool = {
   name: "Grep",
   description: "Search file contents for text or regex patterns (grep)",
+  readOnly: true,
   call
 };
 

@@ -29,6 +29,7 @@ async function call(args = {}, deps = {}) {
 export const tool = {
   name: "Ls",
   description: "List directory contents (ls)",
+  readOnly: true,
   call
 };
 

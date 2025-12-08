@@ -26,6 +26,17 @@ const ToolRunner = {
 
     const _tools = new Map();
     const _dynamicTools = new Set();
+
+    // Schema cache for performance (#3)
+    let _schemaCache = null;
+    let _schemaCacheVersion = 0;
+    let _toolsVersion = 0;
+
+    const invalidateSchemaCache = () => {
+      _toolsVersion++;
+      _schemaCache = null;
+    };
+
     // --- Arena Verification for Core Changes ---
 
     /**
@@ -93,6 +104,7 @@ const ToolRunner = {
           const name = forcedName || path.split('/').pop().replace('.js', '');
           _tools.set(name, handler);
           _dynamicTools.add(name);
+          invalidateSchemaCache(); // Invalidate cache when tools change
 
           // Capture schema from dynamic tool if available
           if (mod.tool?.inputSchema || mod.tool?.description) {
@@ -341,9 +353,15 @@ const ToolRunner = {
 
     /**
      * Get tool schemas for native tool calling (OpenAI format)
+     * Uses caching for performance - invalidated when tools change
      * @returns {Array<{type: string, function: {name: string, description: string, parameters: object}}>}
      */
     const getToolSchemas = () => {
+      // Return cached if valid
+      if (_schemaCache && _schemaCacheVersion === _toolsVersion) {
+        return _schemaCache;
+      }
+
       const schemas = [];
 
       for (const [name] of _tools) {
@@ -360,6 +378,11 @@ const ToolRunner = {
           });
         }
       }
+
+      // Cache the result
+      _schemaCache = schemas;
+      _schemaCacheVersion = _toolsVersion;
+      logger.debug(`[ToolRunner] Schema cache built: ${schemas.length} tools`);
 
       return schemas;
     };

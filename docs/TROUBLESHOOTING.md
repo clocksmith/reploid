@@ -1,10 +1,10 @@
-# 🔧 REPLOID Troubleshooting Guide
+# REPLOID Troubleshooting Guide
 
 This document provides solutions to common issues you may encounter while using REPLOID.
 
 ---
 
-## 📑 Table of Contents
+## Table of Contents
 
 - [Installation & Setup](#installation--setup)
 - [Browser Issues](#browser-issues)
@@ -955,9 +955,10 @@ worker.postMessage({
 
 ### Contact & Support
 
-- **gitHub Issues**: https://github.com/anthropics/reploid/issues
+- **GitHub Issues**: https://github.com/clocksmith/reploid/issues
 - **Documentation**: `docs/` directory
-- **Architecture**: `blueprints/` directory
+- **Architecture**: `dreamer/reploid/blueprints/` directory
+- **Security**: See [SECURITY.md](./SECURITY.md) for security-related issues
 
 ---
 

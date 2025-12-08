@@ -34,6 +34,7 @@ async function call(args = {}, deps = {}) {
 export const tool = {
   name: "Find",
   description: "Find files matching a name pattern (find)",
+  readOnly: true,
   call
 };
 

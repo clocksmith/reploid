@@ -7,7 +7,7 @@ This document provides an overview of REPLOID's module API. For detailed JSDoc c
 
 ---
 
-## 📚 Core Modules
+## Core Modules
 
 ### Utils (`upgrades/utils.js`)
 
@@ -99,7 +99,7 @@ This document provides an overview of REPLOID's module API. For detailed JSDoc c
 
 ---
 
-## 🧠 RSI Modules
+## RSI Modules
 
 ### Introspector (`upgrades/introspector.js`)
 
@@ -231,7 +231,7 @@ This document provides an overview of REPLOID's module API. For detailed JSDoc c
 
 ---
 
-## ☲ UI Modules
+## UI Modules
 
 ### UI (`upgrades/ui-manager.js`)
 
@@ -304,7 +304,7 @@ This document provides an overview of REPLOID's module API. For detailed JSDoc c
 
 ---
 
-## 🤖 Agent Modules
+## Agent Modules
 
 ### SentinelFSM (`upgrades/sentinel-fsm.js`)
 
@@ -341,7 +341,7 @@ This document provides an overview of REPLOID's module API. For detailed JSDoc c
 
 ---
 
-## 🛠️ Tool System
+## Tool System
 
 ### ToolRunner (`upgrades/tool-runner.js`)
 
@@ -371,7 +371,7 @@ This document provides an overview of REPLOID's module API. For detailed JSDoc c
 
 ---
 
-## 🔌 Integration Examples
+## Integration Examples
 
 ### Example 1: Using Utils for Logging
 
@@ -464,24 +464,25 @@ exportAsMarkdown('performance.md', report);
 
 ---
 
-## 📖 Further Reading
+## Further Reading
 
-- **Architecture Blueprints:** `blueprints/` directory - Design specifications
-- **Module Source Code:** `upgrades/` directory - Fully documented with JSDoc
+- **Architecture Blueprints:** `dreamer/reploid/blueprints/` directory - Design specifications
+- **Module Source Code:** `dreamer/reploid/core/` and `dreamer/reploid/infrastructure/` - Fully documented with JSDoc
 - **Quick Start Guide:** `docs/QUICK-START.md` - Interactive tutorial
 - **Troubleshooting:** `docs/TROUBLESHOOTING.md` - Common issues and solutions
+- **Security Model:** `docs/SECURITY.md` - Containment and safety architecture
 
 ---
 
-## 🔄 Versioning
+## Versioning
 
 REPLOID follows semantic versioning:
 - **Major:** Breaking API changes
 - **Minor:** New features, backward compatible
 - **Patch:** Bug fixes, documentation updates
 
-Current version: **1.0.0** (RSI Core 5/5 complete)
-
 ---
 
-*For detailed API documentation, see JSDoc comments in source files.* 📚
+*For detailed API documentation, see JSDoc comments in source files.*
+
+*Last updated: December 2025*

@@ -1,6 +1,6 @@
 /**
  * @fileoverview Unit tests for ContextManager module
- * Tests token counting, compaction logic, and caching
+ * Tests token counting, compaction logic, model-aware limits, and caching
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
@@ -40,31 +40,35 @@ describe('ContextManager', () => {
       LLMClient: mockLLMClient,
       EventBus: mockEventBus
     });
+    // Clear any runtime overrides
+    contextManager.clearLimitOverrides();
   });
 
   describe('countTokens', () => {
-    it('should estimate tokens based on character count (~4 chars per token)', () => {
+    it('should estimate tokens using word-based heuristics', () => {
       const context = [
-        { role: 'user', content: 'Hello world' } // 11 chars
+        { role: 'user', content: 'Hello world' } // 2 words
       ];
 
       const tokens = contextManager.countTokens(context);
 
-      // 11 chars * 0.25 = 2.75, ceil = 3
-      expect(tokens).toBe(3);
+      // 2 words (~2-3 tokens) + 4 overhead = ~7 tokens
+      expect(tokens).toBeGreaterThanOrEqual(5);
+      expect(tokens).toBeLessThanOrEqual(10);
     });
 
     it('should count tokens across multiple messages', () => {
       const context = [
-        { role: 'system', content: 'You are a helpful assistant.' }, // 29 chars
-        { role: 'user', content: 'Hello' }, // 5 chars
-        { role: 'assistant', content: 'Hi there!' } // 9 chars
+        { role: 'system', content: 'You are a helpful assistant.' }, // 5 words
+        { role: 'user', content: 'Hello' }, // 1 word
+        { role: 'assistant', content: 'Hi there!' } // 2 words
       ];
-      // Total: 43 chars * 0.25 = 10.75, ceil = 11
+      // ~8 words + 3x4 overhead = ~20-24 tokens
 
       const tokens = contextManager.countTokens(context);
 
-      expect(tokens).toBe(11);
+      expect(tokens).toBeGreaterThanOrEqual(18);
+      expect(tokens).toBeLessThanOrEqual(30);
     });
 
     it('should return 0 for empty context', () => {
@@ -79,7 +83,9 @@ describe('ContextManager', () => {
 
       const tokens = contextManager.countTokens(context);
 
-      expect(tokens).toBe(2); // Only 'Hello' (5 chars) = ceil(1.25)
+      // 1 word + 2x4 overhead = ~9-10 tokens
+      expect(tokens).toBeGreaterThanOrEqual(8);
+      expect(tokens).toBeLessThanOrEqual(12);
     });
 
     it('should handle messages with null content', () => {
@@ -90,7 +96,9 @@ describe('ContextManager', () => {
 
       const tokens = contextManager.countTokens(context);
 
-      expect(tokens).toBe(1); // 4 chars = 1 token
+      // 1 word + 2x4 overhead = ~9 tokens
+      expect(tokens).toBeGreaterThanOrEqual(8);
+      expect(tokens).toBeLessThanOrEqual(11);
     });
 
     it('should use cache for repeated calls with same context', () => {
@@ -122,6 +130,71 @@ describe('ContextManager', () => {
     });
   });
 
+  describe('getLimitsForModel', () => {
+    it('should return default limits for unknown models', () => {
+      const limits = contextManager.getLimitsForModel('unknown-model-xyz');
+
+      expect(limits.compact).toBe(30000);
+      expect(limits.warning).toBe(100000);
+      expect(limits.hard).toBe(120000);
+    });
+
+    it('should return Gemini limits for gemini models', () => {
+      // Should match any gemini model (gemini-2, gemini-3, etc.)
+      expect(contextManager.getLimitsForModel('gemini-2.0-flash').compact).toBe(200000);
+      expect(contextManager.getLimitsForModel('gemini-3.0-pro').compact).toBe(200000);
+      expect(contextManager.getLimitsForModel('gemini-exp-1234').compact).toBe(200000);
+      expect(contextManager.getLimitsForModel('gemini-2.0-flash').hard).toBe(500000);
+    });
+
+    it('should return Claude limits for claude models', () => {
+      const limits = contextManager.getLimitsForModel('claude-3-opus-20240229');
+
+      expect(limits.compact).toBe(150000);
+      expect(limits.hard).toBe(190000);
+    });
+
+    it('should return GPT-4o limits for gpt-4o models', () => {
+      const limits = contextManager.getLimitsForModel('gpt-4o-2024-05-13');
+
+      expect(limits.compact).toBe(100000);
+      expect(limits.hard).toBe(125000);
+    });
+
+    it('should return smaller limits for local models', () => {
+      const limits = contextManager.getLimitsForModel('phi-3-mini');
+
+      expect(limits.compact).toBe(3000);
+      expect(limits.hard).toBe(4000);
+    });
+
+    it('should handle null modelId gracefully', () => {
+      const limits = contextManager.getLimitsForModel(null);
+
+      expect(limits.compact).toBe(30000);
+    });
+  });
+
+  describe('setLimits and clearLimitOverrides', () => {
+    it('should allow runtime override of limits', () => {
+      contextManager.setLimits({ compact: 50000, hard: 200000 });
+
+      const limits = contextManager.getLimitsForModel('any-model');
+
+      expect(limits.compact).toBe(50000);
+      expect(limits.hard).toBe(200000);
+    });
+
+    it('should clear overrides and restore model-based limits', () => {
+      contextManager.setLimits({ compact: 50000 });
+      contextManager.clearLimitOverrides();
+
+      const limits = contextManager.getLimitsForModel('gemini-2.0-flash');
+
+      expect(limits.compact).toBe(200000); // Model-specific, not override
+    });
+  });
+
   describe('shouldCompact', () => {
     it('should return false for small context', () => {
       const context = [
@@ -131,7 +204,7 @@ describe('ContextManager', () => {
       expect(contextManager.shouldCompact(context)).toBe(false);
     });
 
-    it('should return true when tokens exceed 30000', () => {
+    it('should return true when tokens exceed default threshold (30000)', () => {
       // Need ~120000 chars to get >30000 tokens (30000 * 4 = 120000)
       const longContent = 'x'.repeat(125000);
       const context = [
@@ -139,6 +212,16 @@ describe('ContextManager', () => {
       ];
 
       expect(contextManager.shouldCompact(context)).toBe(true);
+    });
+
+    it('should use model-specific threshold for Gemini', () => {
+      // 125000 chars = ~31250 tokens, over default 30k but under Gemini's 400k
+      const longContent = 'x'.repeat(125000);
+      const context = [
+        { role: 'user', content: longContent }
+      ];
+
+      expect(contextManager.shouldCompact(context, 'gemini-2.0-flash')).toBe(false);
     });
 
     it('should return false for context just under threshold', () => {
@@ -160,10 +243,10 @@ describe('ContextManager', () => {
         { role: 'assistant', content: 'Hi' }
       ];
 
-      const result = await contextManager.compact(context, { model: 'test' });
+      const result = await contextManager.compact(context, { id: 'test-model' });
 
-      expect(result).toEqual(context);
-      expect(mockLLMClient.chat).not.toHaveBeenCalled();
+      expect(result.compacted).toBe(false);
+      expect(result.context).toEqual(context);
     });
 
     it('should compact large context and preserve first 2 and last 8 messages', async () => {
@@ -184,18 +267,40 @@ describe('ContextManager', () => {
         { role: 'assistant', content: 'Last 8 - 8' }           // Keep (last 8)
       ];
 
-      const result = await contextManager.compact(context, { model: 'test' });
+      const result = await contextManager.compact(context, { id: 'test-model' });
 
+      expect(result.compacted).toBe(true);
       // Should have: 2 (start) + 1 (summary) + 8 (end) = 11 messages
-      expect(result.length).toBe(11);
-      expect(result[0].content).toBe('System prompt');
-      expect(result[1].content).toBe('First user message');
-      expect(result[2].content).toContain('[CONTEXT COMPACTED');
-      expect(result[result.length - 1].content).toBe('Last 8 - 8');
+      expect(result.context.length).toBe(11);
+      expect(result.context[0].content).toBe('System prompt');
+      expect(result.context[1].content).toBe('First user message');
+      expect(result.context[2].content).toContain('[CONTEXT COMPACTED');
+      expect(result.context[result.context.length - 1].content).toBe('Last 8 - 8');
+    });
+
+    it('should use aggressive mode with only last 4 messages when specified', async () => {
+      const longContent = 'x'.repeat(125000);
+      const context = [
+        { role: 'system', content: 'System prompt' },
+        { role: 'user', content: 'First user message' },
+        { role: 'assistant', content: longContent },
+        { role: 'user', content: 'Middle 1' },
+        { role: 'assistant', content: 'Last 4 - 1' },
+        { role: 'user', content: 'Last 4 - 2' },
+        { role: 'assistant', content: 'Last 4 - 3' },
+        { role: 'user', content: 'Last 4 - 4' }
+      ];
+
+      const result = await contextManager.compact(context, { id: 'test-model' }, { aggressive: true });
+
+      expect(result.compacted).toBe(true);
+      // Should have: 2 (start) + 1 (summary) + 4 (end) = 7 messages
+      expect(result.context.length).toBe(7);
+      expect(result.context[2].content).toContain('AGGRESSIVE');
     });
 
     it('should emit context:compacted event after compaction', async () => {
-      const longContent = 'x'.repeat(125000); // >30000 tokens threshold
+      const longContent = 'x'.repeat(125000);
       const context = [
         { role: 'system', content: 'System' },
         { role: 'user', content: 'User' },
@@ -210,46 +315,21 @@ describe('ContextManager', () => {
         { role: 'assistant', content: 'H' }
       ];
 
-      await contextManager.compact(context, { model: 'test' });
+      await contextManager.compact(context, { id: 'test-model' });
 
       expect(mockEventBus.emit).toHaveBeenCalledWith(
         'context:compacted',
         expect.objectContaining({
+          mode: 'STANDARD',
           previousTokens: expect.any(Number),
-          newTokens: expect.any(Number)
+          newTokens: expect.any(Number),
+          reduction: expect.any(Number)
         })
       );
     });
 
-    it('should use structured extraction (no LLM) for compaction', async () => {
-      // NOTE: ContextManager now uses structured extraction, not LLM summarization
-      const longContent = 'x'.repeat(125000); // >30000 tokens threshold
-      const context = [
-        { role: 'system', content: 'System' },
-        { role: 'user', content: 'User' },
-        { role: 'assistant', content: longContent },
-        { role: 'user', content: 'Middle msg' },
-        { role: 'assistant', content: 'A' },
-        { role: 'user', content: 'B' },
-        { role: 'assistant', content: 'C' },
-        { role: 'user', content: 'D' },
-        { role: 'assistant', content: 'E' },
-        { role: 'user', content: 'F' },
-        { role: 'assistant', content: 'G' },
-        { role: 'user', content: 'H' }
-      ];
-
-      const result = await contextManager.compact(context, { model: 'test' });
-
-      // Compaction uses structured extraction, not LLM
-      expect(mockLLMClient.chat).not.toHaveBeenCalled();
-      // Result should have: 2 (start) + 1 (summary) + 8 (end) = 11 messages
-      expect(result.length).toBe(11);
-      expect(result[2].content).toContain('[CONTEXT COMPACTED');
-    });
-
     it('should warn and return original if no model config provided', async () => {
-      const longContent = 'x'.repeat(125000); // >30000 tokens threshold
+      const longContent = 'x'.repeat(125000);
       const context = [
         { role: 'system', content: 'System' },
         { role: 'user', content: longContent }
@@ -257,7 +337,8 @@ describe('ContextManager', () => {
 
       const result = await contextManager.compact(context, null);
 
-      expect(result).toEqual(context);
+      expect(result.compacted).toBe(false);
+      expect(result.context).toEqual(context);
       expect(mockUtils.logger.warn).toHaveBeenCalledWith(
         expect.stringContaining('No model config')
       );
@@ -279,28 +360,118 @@ describe('ContextManager', () => {
       ];
 
       // With 10 messages: first 2 + last 8 = 10, middle is empty
-      const result = await contextManager.compact(context, { model: 'test' });
+      const result = await contextManager.compact(context, { id: 'test-model' });
 
-      expect(result).toEqual(context);
-      expect(mockLLMClient.chat).not.toHaveBeenCalled();
+      expect(result.compacted).toBe(false);
+      expect(result.context).toEqual(context);
+    });
+  });
+
+  describe('manage', () => {
+    it('should return context unchanged when under all limits', async () => {
+      const context = [
+        { role: 'system', content: 'System' },
+        { role: 'user', content: 'Hello' }
+      ];
+
+      const result = await contextManager.manage(context, { id: 'test-model' });
+
+      expect(result.halted).toBe(false);
+      expect(result.error).toBeNull();
+      expect(result.context).toEqual(context);
+    });
+
+    it('should compact when over threshold', async () => {
+      const longContent = 'x'.repeat(125000);
+      // 13 messages: 2 start + 3 middle + 8 end
+      const context = [
+        { role: 'system', content: 'System' },
+        { role: 'user', content: 'Goal' },
+        { role: 'assistant', content: longContent }, // middle - gets compacted
+        { role: 'user', content: 'middle-msg-1' },   // middle - gets compacted
+        { role: 'assistant', content: 'middle-msg-2' }, // middle - gets compacted
+        ...Array(8).fill(0).map((_, i) => ({ role: i % 2 === 0 ? 'user' : 'assistant', content: `msg-${i}` }))
+      ];
+      // Total: 13 messages
+
+      const result = await contextManager.manage(context, { id: 'test-model' });
+
+      expect(result.halted).toBe(false);
+      // After compaction: 2 start + 1 summary + 8 end = 11 messages (less than 13)
+      expect(result.context.length).toBe(11);
+      expect(result.context.length).toBeLessThan(context.length);
+    });
+
+    it('should emit warning event when at warning level', async () => {
+      // Set custom limits to test warning level
+      contextManager.setLimits({ compact: 100, warning: 200, hard: 300 });
+
+      // Create context at ~250 tokens (between warning 200 and hard 300)
+      const context = [
+        { role: 'user', content: 'x'.repeat(1000) } // ~250 tokens
+      ];
+
+      await contextManager.manage(context, { id: 'test-model' });
+
+      expect(mockEventBus.emit).toHaveBeenCalledWith(
+        'context:warning',
+        expect.objectContaining({
+          tokens: expect.any(Number),
+          limit: 300,
+          percentage: expect.any(Number)
+        })
+      );
+    });
+
+    it('should halt when context exceeds hard limit after compaction', async () => {
+      // Set very small limits to force hard limit scenario
+      contextManager.setLimits({ compact: 10, warning: 50, hard: 100 });
+
+      // Create context way over limit with no room to compact
+      const context = [
+        { role: 'system', content: 'x'.repeat(500) }, // ~125 tokens
+        { role: 'user', content: 'x'.repeat(500) }    // ~125 tokens
+      ];
+
+      const result = await contextManager.manage(context, { id: 'test-model' });
+
+      expect(result.halted).toBe(true);
+      expect(result.error).toContain('hard limit');
     });
   });
 
   describe('emitTokens', () => {
-    it('should emit token count with limit info via EventBus', () => {
+    it('should emit token count with full limit info via EventBus', () => {
       const context = [
         { role: 'user', content: 'Hello world' }
       ];
 
-      const tokens = contextManager.emitTokens(context);
+      const tokens = contextManager.emitTokens(context, 'test-model');
 
-      // emitTokens now includes exceeded flag and limit
       expect(mockEventBus.emit).toHaveBeenCalledWith('agent:tokens', {
-        tokens: 3,
+        tokens: expect.any(Number),
+        compact: 30000,
+        warning: 100000,
+        limit: 120000,
         exceeded: false,
-        limit: 120000  // MAX_CONTEXT_TOKENS
+        percentage: expect.any(Number)
       });
-      expect(tokens).toBe(3);
+      // Word-based estimation: "Hello world" = 2 words + 4 overhead = ~6 tokens
+      expect(tokens).toBeGreaterThanOrEqual(5);
+      expect(tokens).toBeLessThanOrEqual(10);
+    });
+
+    it('should use model-specific limits when provided', () => {
+      const context = [
+        { role: 'user', content: 'Hello world' }
+      ];
+
+      contextManager.emitTokens(context, 'gemini-2.0-flash');
+
+      expect(mockEventBus.emit).toHaveBeenCalledWith('agent:tokens', expect.objectContaining({
+        compact: 200000,
+        limit: 500000
+      }));
     });
 
     it('should handle missing EventBus gracefully', () => {
@@ -314,6 +485,33 @@ describe('ContextManager', () => {
 
       // Should not throw
       expect(() => managerNoEventBus.emitTokens(context)).not.toThrow();
+    });
+  });
+
+  describe('exceedsHardLimit', () => {
+    it('should return exceeded=true when over hard limit', () => {
+      // Set small limit
+      contextManager.setLimits({ hard: 100 });
+
+      const context = [
+        { role: 'user', content: 'x'.repeat(500) } // ~125 tokens
+      ];
+
+      const result = contextManager.exceedsHardLimit(context, 'test');
+
+      expect(result.exceeded).toBe(true);
+      expect(result.tokens).toBeGreaterThan(100);
+      expect(result.limit).toBe(100);
+    });
+
+    it('should return exceeded=false when under hard limit', () => {
+      const context = [
+        { role: 'user', content: 'Hello' }
+      ];
+
+      const result = contextManager.exceedsHardLimit(context, 'test');
+
+      expect(result.exceeded).toBe(false);
     });
   });
 
@@ -344,10 +542,28 @@ describe('ContextManager', () => {
   describe('metadata', () => {
     it('should have correct module metadata', () => {
       expect(ContextManagerModule.metadata.id).toBe('ContextManager');
+      expect(ContextManagerModule.metadata.version).toBe('2.0.0');
       expect(ContextManagerModule.metadata.type).toBe('service');
       expect(ContextManagerModule.metadata.dependencies).toContain('Utils');
       expect(ContextManagerModule.metadata.dependencies).toContain('LLMClient');
       expect(ContextManagerModule.metadata.dependencies).toContain('EventBus');
+    });
+  });
+
+  describe('exposed constants', () => {
+    it('should expose DEFAULT_LIMITS', () => {
+      expect(contextManager.DEFAULT_LIMITS).toEqual({
+        compact: 30000,
+        warning: 100000,
+        hard: 120000
+      });
+    });
+
+    it('should expose MODEL_LIMITS', () => {
+      expect(contextManager.MODEL_LIMITS).toHaveProperty('gemini-');
+      expect(contextManager.MODEL_LIMITS).toHaveProperty('claude-3-opus');
+      expect(contextManager.MODEL_LIMITS).toHaveProperty('gpt-4o');
+      expect(contextManager.MODEL_LIMITS).toHaveProperty('gpt-5');
     });
   });
 });

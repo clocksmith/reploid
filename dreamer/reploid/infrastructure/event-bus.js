@@ -23,7 +23,13 @@ const EventBus = {
 
       const unsub = () => {
         const set = _listeners.get(event);
-        if (set) set.delete(fn);
+        if (set) {
+          set.delete(fn);
+          // Clean up empty Sets to prevent memory leak
+          if (set.size === 0) {
+            _listeners.delete(event);
+          }
+        }
       };
 
       if (ownerId) _tracker.track(ownerId, unsub);

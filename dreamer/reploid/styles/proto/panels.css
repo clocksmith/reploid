@@ -676,3 +676,151 @@
     white-space: pre-wrap;
     word-break: break-word;
 }
+
+/* Replay Panel */
+.replay-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    height: 100%;
+    padding: 8px 0;
+}
+
+.replay-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.replay-loader {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.replay-file-label {
+    cursor: pointer;
+}
+
+.replay-file-label input[type="file"] {
+    display: none;
+}
+
+.replay-metadata {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 8px;
+    padding: 12px;
+    background: var(--bg-secondary);
+    border-radius: 4px;
+}
+
+.replay-meta-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.replay-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 12px;
+    background: var(--bg-secondary);
+    border-radius: 4px;
+}
+
+.replay-progress {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.replay-progress-bar {
+    flex: 1;
+    height: 8px;
+    background: var(--bg-element);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.replay-progress-fill {
+    height: 100%;
+    background: var(--text-link);
+    transition: width 0.1s ease-out;
+}
+
+.replay-buttons {
+    display: flex;
+    gap: 8px;
+}
+
+.replay-buttons button {
+    min-width: 40px;
+}
+
+.replay-speed {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+}
+
+.replay-speed select {
+    background: var(--bg-element);
+    color: var(--text-primary);
+    border: 1px solid var(--border-default);
+    padding: 4px 8px;
+    font-family: inherit;
+    border-radius: 4px;
+}
+
+.replay-event-log {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 8px;
+    background: var(--bg-secondary);
+    border-radius: 4px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+}
+
+.replay-event {
+    padding: 4px 8px;
+    border-radius: 2px;
+    display: flex;
+    gap: 8px;
+}
+
+.replay-event.agent {
+    background: rgba(99, 179, 237, 0.1);
+}
+
+.replay-event.tool {
+    background: rgba(154, 230, 180, 0.1);
+}
+
+.replay-event.error {
+    background: rgba(252, 129, 129, 0.1);
+}
+
+.replay-event-time {
+    color: var(--text-muted);
+    flex-shrink: 0;
+}
+
+.replay-event-type {
+    color: var(--text-secondary);
+    flex-shrink: 0;
+    min-width: 100px;
+}
+
+.replay-event-content {
+    color: var(--text-primary);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}

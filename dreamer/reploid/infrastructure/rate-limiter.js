@@ -20,6 +20,7 @@ const RateLimiter = {
         this.tokens = capacity;
         this.refillRate = refillRate; // tokens per second
         this.lastRefill = Date.now();
+        this._pendingWait = null;  // Lock for concurrent access
       }
 
       _refill() {
@@ -33,6 +34,12 @@ const RateLimiter = {
       }
 
       async waitForToken() {
+        // If already waiting, chain onto existing wait to prevent race condition
+        if (this._pendingWait) {
+          await this._pendingWait;
+          return this.waitForToken();
+        }
+
         this._refill();
         if (this.tokens >= 1) {
           this.tokens -= 1;
@@ -42,10 +49,16 @@ const RateLimiter = {
         const needed = 1 - this.tokens;
         const waitMs = (needed / this.refillRate) * 1000;
         logger.debug(`[RateLimiter] Throttling for ${Math.ceil(waitMs)}ms`);
-        await new Promise(r => setTimeout(r, waitMs));
 
-        this.tokens = 0;
-        this.lastRefill = Date.now();
+        // Create wait promise that concurrent calls can chain onto
+        this._pendingWait = new Promise(r => setTimeout(r, waitMs));
+        await this._pendingWait;
+        this._pendingWait = null;
+
+        this._refill();  // Refill after wait instead of hard reset
+        if (this.tokens >= 1) {
+          this.tokens -= 1;
+        }
         return true;
       }
     }

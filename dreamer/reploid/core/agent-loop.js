@@ -10,7 +10,7 @@ const AgentLoop = {
     genesis: { introduced: 'tabula' },
     dependencies: [
       'Utils', 'EventBus', 'LLMClient', 'ToolRunner', 'ContextManager',
-      'ResponseParser', 'StateManager', 'PersonaManager', 'CircuitBreaker',
+      'ResponseParser', 'StateManager', 'PersonaManager', 'CircuitBreaker', 'SchemaRegistry',
       'ReflectionStore?', 'ReflectionAnalyzer?', 'CognitionAPI?', 'MultiModelCoordinator?'
     ],
     type: 'core'
@@ -19,19 +19,41 @@ const AgentLoop = {
   factory: (deps) => {
     const {
       Utils, EventBus, LLMClient, ToolRunner, ContextManager,
-      ResponseParser, StateManager, PersonaManager, CircuitBreaker,
+      ResponseParser, StateManager, PersonaManager, CircuitBreaker, SchemaRegistry,
       ReflectionStore, ReflectionAnalyzer, CognitionAPI, MultiModelCoordinator
     } = deps;
 
     const { logger, Errors } = Utils;
 
     const MAX_ITERATIONS = 50;
-    const MAX_TOOL_CALLS_PER_ITERATION = 5;
+    const DEFAULT_MAX_TOOL_CALLS = 5;
 
-    // Tools safe for parallel execution (no side effects)
-    const READ_ONLY_TOOLS = ['ReadFile', 'ListFiles', 'Grep', 'Find', 'Cat', 'Head', 'Tail', 'Ls', 'Pwd', 'ListTools', 'ListMemories', 'ListKnowledge'];
+    // Configurable limits - can be overridden via StateManager config
+    const getMaxToolCalls = () => {
+      try {
+        const config = StateManager?.getState()?.config || {};
+        return config.maxToolCallsPerIteration || DEFAULT_MAX_TOOL_CALLS;
+      } catch {
+        return DEFAULT_MAX_TOOL_CALLS;
+      }
+    };
+
+    // Use SchemaRegistry for read-only tool detection (no longer hardcoded)
+    const isReadOnlyTool = (name) => {
+      if (SchemaRegistry?.isToolReadOnly) {
+        return SchemaRegistry.isToolReadOnly(name);
+      }
+      // Fallback if SchemaRegistry not available
+      const FALLBACK_READ_ONLY = ['ReadFile', 'ListFiles', 'Grep', 'Find', 'Cat', 'Head', 'Tail', 'Ls', 'Pwd', 'ListTools', 'ListMemories', 'ListKnowledge'];
+      return FALLBACK_READ_ONLY.includes(name);
+    };
+
     const MAX_NO_PROGRESS_ITERATIONS = 5; // Max consecutive iterations without tool calls
     const TOOL_EXECUTION_TIMEOUT_MS = 30000; // 30 second timeout per tool
+
+    // Track single-tool usage for batching nudges
+    let _consecutiveSingleToolCalls = 0;
+    const SINGLE_TOOL_NUDGE_THRESHOLD = 3; // Nudge after 3 consecutive single-tool iterations
     let _isRunning = false;
     let _abortController = null;
     let _modelConfig = null;
@@ -293,8 +315,20 @@ const AgentLoop = {
 
           EventBus.emit('agent:status', { state: 'THINKING', activity: `Cycle ${iteration} - Calling LLM...`, cycle: iteration });
 
-          context = await ContextManager.compact(context, _modelConfig);
+          // Context management: compaction, warnings, and hard limit enforcement
+          const contextResult = await ContextManager.manage(context, _modelConfig);
+          context = contextResult.context;
           _syncContext(context);
+
+          // Check if context manager halted the agent (hard limit exceeded after aggressive compaction)
+          if (contextResult.halted) {
+            logger.error(`[Agent] STOPPING: ${contextResult.error}`);
+            EventBus.emit('agent:error', {
+              error: contextResult.error,
+              cycle: iteration
+            });
+            throw new Error(contextResult.error);
+          }
 
           // Drain human message queue before LLM call
           while (_humanMessageQueue.length > 0) {
@@ -324,24 +358,6 @@ const AgentLoop = {
               }
             } catch (e) {
               logger.debug('[Agent] Cognition enrichment skipped:', e.message);
-            }
-          }
-
-          // Emit token count for UI and enforce hard limit
-          if (ContextManager.emitTokens) {
-            ContextManager.emitTokens(context);
-          }
-
-          // CRITICAL SAFETY: Check hard token limit
-          if (ContextManager.exceedsHardLimit) {
-            const limitCheck = ContextManager.exceedsHardLimit(context);
-            if (limitCheck.exceeded) {
-              logger.error(`[Agent] STOPPING: Token limit exceeded (${limitCheck.tokens}/${limitCheck.limit})`);
-              EventBus.emit('agent:error', {
-                error: `Context too large: ${limitCheck.tokens} tokens exceeds ${limitCheck.limit} limit. Agent stopped for safety.`,
-                cycle: iteration
-              });
-              throw new Error(`Token limit exceeded: ${limitCheck.tokens}/${limitCheck.limit} tokens`);
             }
           }
 
@@ -439,11 +455,25 @@ const AgentLoop = {
 
           if (toolCalls.length > 0) {
             // Limit and partition tools
-            const callsToExecute = toolCalls.slice(0, MAX_TOOL_CALLS_PER_ITERATION);
-            if (toolCalls.length > MAX_TOOL_CALLS_PER_ITERATION) {
-              const limitMsg = `Tool call limit (${MAX_TOOL_CALLS_PER_ITERATION}) reached. Executing first ${MAX_TOOL_CALLS_PER_ITERATION}.`;
+            const maxTools = getMaxToolCalls();
+            const callsToExecute = toolCalls.slice(0, maxTools);
+            if (toolCalls.length > maxTools) {
+              const limitMsg = `Tool call limit (${maxTools}) reached. Executing first ${maxTools}.`;
               logger.warn('[Agent] ' + limitMsg);
               context.push({ role: 'user', content: limitMsg });
+            }
+
+            // Track single-tool usage for batching nudges
+            if (callsToExecute.length === 1) {
+              _consecutiveSingleToolCalls++;
+              if (_consecutiveSingleToolCalls >= SINGLE_TOOL_NUDGE_THRESHOLD) {
+                const nudgeMsg = `TIP: You can batch multiple independent tool calls in one response. Read-only tools (ReadFile, ListFiles, Grep, etc.) run in parallel for speed.`;
+                context.push({ role: 'user', content: nudgeMsg });
+                logger.info('[Agent] Nudging model to batch tool calls');
+                _consecutiveSingleToolCalls = 0; // Reset after nudge
+              }
+            } else {
+              _consecutiveSingleToolCalls = 0; // Reset on multi-tool usage
             }
 
             // Pre-filter: handle parse errors and circuit breaker before execution
@@ -469,8 +499,8 @@ const AgentLoop = {
             }
 
             // Partition into read-only (parallel) and mutating (sequential)
-            const readOnlyCalls = executableCalls.filter(c => READ_ONLY_TOOLS.includes(c.name));
-            const mutatingCalls = executableCalls.filter(c => !READ_ONLY_TOOLS.includes(c.name));
+            const readOnlyCalls = executableCalls.filter(c => isReadOnlyTool(c.name));
+            const mutatingCalls = executableCalls.filter(c => !isReadOnlyTool(c.name));
 
             const allResults = [...preResults]; // Start with pre-filtered results
 
@@ -540,6 +570,21 @@ const AgentLoop = {
               if (aborted) continue;
               _processToolResult(call, finalResult, iteration, context);
             }
+
+            // Add execution telemetry feedback if batching occurred
+            if (readOnlyCalls.length > 1 || (readOnlyCalls.length > 0 && mutatingCalls.length > 0)) {
+              const telemetry = [];
+              if (readOnlyCalls.length > 1) {
+                telemetry.push(`${readOnlyCalls.length} read-only tools ran in PARALLEL`);
+              }
+              if (mutatingCalls.length > 0) {
+                telemetry.push(`${mutatingCalls.length} mutating tools ran sequentially`);
+              }
+              context.push({
+                role: 'user',
+                content: `[Execution: ${telemetry.join(', ')}]`
+              });
+            }
           } else {
             if (ResponseParser.isDone(response.content)) {
               logger.info('[Agent] Goal achieved.');
@@ -590,7 +635,7 @@ ${personaPrompt}
 You are an autonomous agent running in a browser-based virtual filesystem (VFS).
 
 ## Getting Started
-Read /docs/REPLOID_README.md for full documentation on:
+Read /docs/REPLOID.md for full documentation on:
 - Available tools and their usage
 - VFS structure and file operations
 - Creating new tools (RSI)
@@ -610,10 +655,34 @@ Essential tools:
 - ReadFile/WriteFile: read and write files
 - CreateTool: create new runtime tools
 
+## Batching Tool Calls
+
+You can emit up to ${getMaxToolCalls()} tool calls per response. This is faster and more efficient.
+
+Read-only tools (ReadFile, ListFiles, Grep, Find, ListTools, ListMemories) run in PARALLEL.
+Mutating tools (WriteFile, DeleteFile, CreateTool) run sequentially for safety.
+
+Example of batching multiple reads:
+\`\`\`
+I need to read the main config and the agent loop.
+
+TOOL_CALL: ReadFile
+ARGS: { "path": "/core/config.js" }
+
+TOOL_CALL: ReadFile
+ARGS: { "path": "/core/agent-loop.js" }
+
+TOOL_CALL: ListFiles
+ARGS: { "path": "/docs" }
+\`\`\`
+
+Always batch independent operations to minimize iterations.
+
 ## Rules
 - Act autonomously - do not ask for permission
 - Use at least one tool per response (unless DONE)
-- Read /docs/REPLOID_README.md on your first turn for detailed instructions
+- Batch independent tool calls when possible
+- Read /docs/REPLOID.md on your first turn for detailed instructions
 - When complete, summarize what you accomplished, then say DONE
 
 ## Goal

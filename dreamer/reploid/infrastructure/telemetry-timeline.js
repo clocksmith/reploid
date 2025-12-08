@@ -90,12 +90,20 @@ const TelemetryTimeline = {
 
     const getEntries = async (startDate, endDate = startDate) => {
       if (!startDate) throw new Error('startDate required');
-      const start = new Date(startDate);
-      const end = new Date(endDate || startDate);
+      let start = new Date(startDate);
+      let end = new Date(endDate || startDate);
       const entries = [];
 
-      for (let ts = start; ts <= end; ts.setDate(ts.getDate() + 1)) {
-        const dateStr = ts.toISOString().split('T')[0];
+      // Guard against infinite loop if dates are inverted
+      if (start > end) {
+        logger.warn('[Telemetry] startDate > endDate, swapping');
+        [start, end] = [end, start];
+      }
+
+      // Use separate loop variable to avoid mutating comparison target
+      const current = new Date(start);
+      while (current <= end) {
+        const dateStr = current.toISOString().split('T')[0];
         const path = `${LOG_DIR}/${dateStr}.jsonl`;
         try {
           if (await VFS.exists(path)) {
@@ -107,6 +115,7 @@ const TelemetryTimeline = {
         } catch (err) {
           logger.warn('[Telemetry] Failed to read timeline entries', { path, error: err.message });
         }
+        current.setDate(current.getDate() + 1);
       }
 
       return entries;
