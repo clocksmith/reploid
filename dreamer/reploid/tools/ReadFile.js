@@ -15,6 +15,7 @@ async function call(args = {}, deps = {}) {
 export const tool = {
   name: "ReadFile",
   description: "Read contents of a file from the virtual filesystem",
+  readOnly: true,
   inputSchema: {
     type: 'object',
     required: ['path'],

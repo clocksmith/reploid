@@ -32,7 +32,7 @@
     overflow-y: auto;
     overflow-x: hidden;
     padding: 8px;
-    font-size: 11px;
+    font-size: var(--font-sm);
 }
 
 .vfs-tree .vfs-dir {
@@ -53,8 +53,9 @@
 .vfs-tree .vfs-file {
     padding: 2px var(--space-sm);
     cursor: pointer;
-    color: var(--text-secondary);
+    color: var(--text-primary);
     border-radius: var(--radius-sm);
+    font-size: var(--font-sm);
 }
 
 .vfs-tree .vfs-file:hover {
@@ -95,7 +96,7 @@
 }
 
 .vfs-dir-icon {
-    font-size: 8px;
+    font-size: 10px;
     color: var(--text-muted);
     width: 12px;
 }
@@ -113,7 +114,7 @@
     background: var(--bg-element);
     border: 1px solid var(--border-default);
     color: var(--text-primary);
-    font-size: 11px;
+    font-size: var(--font-sm);
     font-family: 'Courier New', monospace;
 }
 
@@ -128,7 +129,7 @@
     display: flex;
     flex-direction: column;
     background: var(--bg-app);
-    font-size: 11px;
+    font-size: var(--font-sm);
     overflow: hidden;
     padding: 16px;
     min-height: 0;
@@ -181,7 +182,7 @@
     border: 1px solid var(--border-default);
     color: var(--text-primary);
     font-family: var(--font-mono);
-    font-size: var(--font-xs);
+    font-size: var(--font-md);
     padding: var(--space-sm);
     resize: vertical;
 }
@@ -290,4 +291,63 @@
 .snapshot-actions .btn {
     font-size: 11px;
     padding: 4px 8px;
+}
+
+/* Diff Content Styles */
+.diff-header {
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border-default);
+}
+
+.diff-stats {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+}
+
+.diff-content {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    line-height: 1.5;
+    background: var(--bg-element);
+    padding: 12px;
+    border-radius: 4px;
+    overflow: auto;
+}
+
+.diff-same {
+    color: var(--text-secondary);
+}
+
+.diff-add {
+    color: var(--success);
+    background: rgba(0, 255, 0, 0.1);
+    display: block;
+}
+
+.diff-del {
+    color: var(--error);
+    background: rgba(255, 0, 0, 0.1);
+    display: block;
+}
+
+/* Snapshot List Styles */
+.snapshot-name {
+    font-weight: 500;
+    display: block;
+    margin-bottom: 4px;
+}
+
+.snapshot-date {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-right: 12px;
+}
+
+.snapshot-files {
+    font-size: 11px;
+    color: var(--primary);
 }

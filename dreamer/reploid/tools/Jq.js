@@ -74,6 +74,7 @@ function applyFilter(data, filter) {
 export const tool = {
   name: "Jq",
   description: "Query and transform JSON files (jq)",
+  readOnly: true,
   call
 };
 

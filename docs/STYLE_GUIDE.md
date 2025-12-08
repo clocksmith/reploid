@@ -80,7 +80,54 @@ Use markdown checkboxes instead of emoji:
 3. **No emoji in blueprints** - Keep technical documents clean
 4. **Consistency** - Use the same symbol for the same concept throughout
 
-## Examples
+---
+
+## Writing Style
+
+### Prose Guidelines
+
+- **Terse, direct sentences** - Avoid filler words
+- **No emdashes** - Use hyphens, colons, or separate sentences
+- **Active voice** - "Agent executes tool" not "Tool is executed by agent"
+- **Present tense** - "Returns result" not "Will return result"
+
+### Documentation Format
+
+- Use tables for structured data (options, configurations, comparisons)
+- Use code blocks for examples, commands, file paths
+- Use bullet points for lists of 3+ items
+- Use `---` horizontal rules to separate major sections
+- End docs with `*Last updated: Month Year*`
+
+### Example Documentation Style
+
+```markdown
+## Feature Name
+
+Brief description of what this does.
+
+### Configuration
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| enabled | boolean | true | Enable the feature |
+| timeout | number | 30000 | Timeout in milliseconds |
+
+### Usage
+
+\`\`\`javascript
+const result = doThing(options);
+\`\`\`
+
+### Notes
+
+- Note one
+- Note two
+```
+
+---
+
+## Code Examples
 
 ```javascript
 // Toast notifications
@@ -104,3 +151,7 @@ console.log('★ Build complete');
 console.log('☒ Test failed');
 console.log('☡ Deprecated API');
 ```
+
+---
+
+*Last updated: December 2025*

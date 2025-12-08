@@ -30,7 +30,7 @@ npx serve -p 8000
 
 ### Step 2: Open in Browser
 
-Navigate to **http://localhost:8000** in your browser.
+Navigate to **http://localhost:8080** in your browser (or 8000 for Python server).
 
 ### Step 3: Configure Your Agent
 
@@ -217,6 +217,8 @@ Captured at boot, before any agent action:
 ### Problem: Changes not persisting
 **Solution:** Ensure VFS writes completed. Check audit log in Debug tab.
 
+For more detailed solutions, see [TROUBLESHOOTING.md](./TROUBLESHOOTING.md).
+
 ---
 
 ## Keyboard Shortcuts
@@ -251,7 +253,7 @@ Captured at boot, before any agent action:
 
 ---
 
-*Happy experimenting! REPLOID is your sandbox for safe RSI research.*
+REPLOID is your sandbox for safe RSI research.
 
 ---
 

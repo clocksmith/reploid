@@ -470,9 +470,15 @@ const LLMClient = {
           let toolCalls = null;
 
           if (onUpdate && response.body && StreamParser) {
-            // Streaming mode - tool calls come in chunks, harder to parse
-            // For now, fall back to text parsing in streaming mode
-            fullContent = await StreamParser.parseForProvider(response, 'openai', onUpdate, { abortController: controller });
+            // Streaming mode with tool call support
+            if (StreamParser.parseOpenAIStreamWithTools) {
+              const streamResult = await StreamParser.parseOpenAIStreamWithTools(response, onUpdate, { abortController: controller });
+              fullContent = streamResult.content;
+              toolCalls = streamResult.toolCalls;
+            } else {
+              // Fallback to text-only parsing
+              fullContent = await StreamParser.parseForProvider(response, 'openai', onUpdate, { abortController: controller });
+            }
           } else {
             const data = await response.json();
             const message = data.choices?.[0]?.message;

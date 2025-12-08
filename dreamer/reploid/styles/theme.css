@@ -19,8 +19,8 @@
 
   /* ---- Text ---- */
   --text-primary: #ffffff;
-  --text-secondary: #7f7f7f;
-  --text-muted: #7f7f7f;
+  --text-secondary: #a8a8a8;
+  --text-muted: #919191;
   --text-inverse: #000000;
 
   /* ---- Accents (Green) ---- */
@@ -39,6 +39,11 @@
   --font-mono: 'Courier New', 'Consolas', monospace;
   --font-sans: 'Inter', system-ui, sans-serif;
   --font-base: 13px;
+  --font-xs: 11px;
+  --font-sm: 12px;
+  --font-md: var(--font-base);
+  --font-lg: 14px;
+  --font-xl: 16px;
 
   /* ---- Spacing & Radius ---- */
   --space-sm: 8px;

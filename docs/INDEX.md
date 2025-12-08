@@ -16,14 +16,16 @@ Guide to all documentation in the REPLOID project.
 
 ### Architecture
 - **[docs/SYSTEM_ARCHITECTURE.md](./SYSTEM_ARCHITECTURE.md)** - Complete system design
-- **[/blueprints/](../blueprints/)** - Architectural specifications (100+ files)
-  - See [blueprints/README.md](../blueprints/README.md) for index
+- **[dreamer/reploid/blueprints/](../dreamer/reploid/blueprints/)** - Architectural specifications (100+ files)
+  - See [blueprints/README.md](../dreamer/reploid/blueprints/README.md) for index
 
 ### Reference
 - **[docs/API.md](./API.md)** - Module API documentation
 - **[docs/LOCAL_MODELS.md](./LOCAL_MODELS.md)** - WebLLM and Ollama setup
 - **[docs/TROUBLESHOOTING.md](./TROUBLESHOOTING.md)** - Common issues and solutions
 - **[docs/STYLE_GUIDE.md](./STYLE_GUIDE.md)** - Code and UI conventions
+- **[docs/SECURITY.md](./SECURITY.md)** - Security model and containment layers
+- **[docs/CONTRIBUTING.md](./CONTRIBUTING.md)** - Contribution guidelines
 
 ---
 
@@ -83,14 +85,20 @@ reploid/
 
 ### For Developers
 1. [SYSTEM_ARCHITECTURE.md](./SYSTEM_ARCHITECTURE.md) - Understand architecture
-2. [blueprints/README.md](../blueprints/README.md) - Study specifications
+2. [blueprints/README.md](../dreamer/reploid/blueprints/README.md) - Study specifications
 3. [API.md](./API.md) - Learn module APIs
-4. [tools/README.md](../tools/README.md) - Tool development
+4. [CONTRIBUTING.md](./CONTRIBUTING.md) - Contribution guidelines
+5. [tools/README.md](../dreamer/reploid/tools/README.md) - Tool development
 
 ### For RSI Research
 1. [README.md](../README.md) - Core RSI thesis
-2. [blueprints/0x000015-dynamic-tool-creation.md](../blueprints/0x000015-dynamic-tool-creation.md) - Tool creation
-3. [blueprints/0x000016-meta-tool-creation-patterns.md](../blueprints/0x000016-meta-tool-creation-patterns.md) - Meta-tools
+2. [blueprints/0x000015-dynamic-tool-creation.md](../dreamer/reploid/blueprints/0x000015-dynamic-tool-creation.md) - Tool creation
+3. [blueprints/0x000016-meta-tool-creation-patterns.md](../dreamer/reploid/blueprints/0x000016-meta-tool-creation-patterns.md) - Meta-tools
+
+### For Security Researchers
+1. [SECURITY.md](./SECURITY.md) - Security model and containment
+2. [blueprints/0x000056-verification-worker-sandboxing.md](../dreamer/reploid/blueprints/0x000056-verification-worker-sandboxing.md) - Sandbox design
+3. [blueprints/0x000067-circuit-breaker-pattern.md](../dreamer/reploid/blueprints/0x000067-circuit-breaker-pattern.md) - Failure containment
 
 ---
 

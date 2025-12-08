@@ -22,9 +22,13 @@ const SchemaRegistry = {
     const _toolSchemas = new Map();   // name -> { schema, builtin }
     const _workerSchemas = new Map(); // name -> { config, builtin }
 
+    // Tool schemas with readOnly flag for parallel execution
+    // readOnly: true = safe for parallel execution (no side effects)
+    // readOnly: false/undefined = mutating, must execute sequentially
     const DEFAULT_TOOL_SCHEMAS = {
       ReadFile: {
         description: 'Read contents of a file from the virtual filesystem',
+        readOnly: true,
         parameters: {
           type: 'object',
           required: ['path'],
@@ -35,6 +39,7 @@ const SchemaRegistry = {
       },
       WriteFile: {
         description: 'Write content to a file in the virtual filesystem',
+        readOnly: false,
         parameters: {
           type: 'object',
           required: ['path', 'content'],
@@ -46,6 +51,7 @@ const SchemaRegistry = {
       },
       ListFiles: {
         description: 'List files in a directory',
+        readOnly: true,
         parameters: {
           type: 'object',
           properties: {
@@ -55,6 +61,7 @@ const SchemaRegistry = {
       },
       DeleteFile: {
         description: 'Delete a file from the virtual filesystem',
+        readOnly: false,
         parameters: {
           type: 'object',
           required: ['path'],
@@ -65,21 +72,24 @@ const SchemaRegistry = {
       },
       CreateTool: {
         description: 'Create a new tool at runtime (Level 1 RSI)',
+        readOnly: false,
         parameters: {
           type: 'object',
           required: ['name', 'code'],
           properties: {
             name: { type: 'string', description: 'Tool name (CamelCase, e.g., ReadFile, AnalyzeLogs)' },
-            code: { type: 'string', description: 'JavaScript code with export default async function' }
+            code: { type: 'string', description: 'JavaScript code with export default { metadata: { readOnly: true/false }, call: async (args, deps) => {...} }. Set readOnly: true for tools that only read data (enables parallel execution).' }
           }
         }
       },
       ListTools: {
         description: 'List all available tools',
+        readOnly: true,
         parameters: { type: 'object', properties: {} }
       },
       LoadModule: {
         description: 'Hot-reload a module from the VFS',
+        readOnly: false,
         parameters: {
           type: 'object',
           required: ['path'],
@@ -166,6 +176,40 @@ const SchemaRegistry = {
 
     const getToolSchema = (name) => _toolSchemas.get(name)?.schema || null;
 
+    /**
+     * Check if a tool is read-only (safe for parallel execution)
+     * Falls back to hardcoded list for tools without explicit metadata
+     */
+    const isToolReadOnly = (name) => {
+      const entry = _toolSchemas.get(name);
+      if (entry?.schema?.readOnly !== undefined) {
+        return entry.schema.readOnly;
+      }
+      // Fallback for tools without explicit readOnly metadata
+      const FALLBACK_READ_ONLY = ['Grep', 'Find', 'Cat', 'Head', 'Tail', 'Ls', 'Pwd', 'ListMemories', 'ListKnowledge', 'Search'];
+      return FALLBACK_READ_ONLY.includes(name);
+    };
+
+    /**
+     * Get list of all read-only tool names
+     */
+    const getReadOnlyTools = () => {
+      const readOnly = [];
+      for (const [name, entry] of _toolSchemas.entries()) {
+        if (entry.schema?.readOnly === true) {
+          readOnly.push(name);
+        }
+      }
+      // Add fallback tools
+      const FALLBACK_READ_ONLY = ['Grep', 'Find', 'Cat', 'Head', 'Tail', 'Ls', 'Pwd', 'ListMemories', 'ListKnowledge', 'Search'];
+      for (const name of FALLBACK_READ_ONLY) {
+        if (!readOnly.includes(name)) {
+          readOnly.push(name);
+        }
+      }
+      return readOnly;
+    };
+
     const listToolSchemas = () => {
       const result = [];
       for (const [name, entry] of _toolSchemas.entries()) {
@@ -214,6 +258,8 @@ const SchemaRegistry = {
       registerToolSchema,
       unregisterToolSchema,
       getToolSchema,
+      isToolReadOnly,
+      getReadOnlyTools,
       listToolSchemas,
       registerWorkerTypes,
       getWorkerType,

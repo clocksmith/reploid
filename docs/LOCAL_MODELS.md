@@ -178,20 +178,24 @@ curl http://localhost:8000/api/local/api/generate -H "Content-Type: application/
 
 For best performance with REPLOID:
 
-1. **Qwen3-Coder 32B** - Good balance of capability and speed
-   ```bash
-   ollama pull qwen3-coder-32b
-   ```
+| Model | Size | Best For | Command |
+|-------|------|----------|---------|
+| Qwen2.5-Coder 32B | ~18GB | Code generation, tool use | `ollama pull qwen2.5-coder:32b` |
+| Qwen2.5-Coder 7B | ~4GB | Balanced performance | `ollama pull qwen2.5-coder:7b` |
+| DeepSeek-Coder-V2 | ~16GB | Code reasoning | `ollama pull deepseek-coder-v2` |
+| Llama 3.2 3B | ~2GB | Fast responses | `ollama pull llama3.2:3b` |
+| Mistral 7B | ~4GB | General purpose | `ollama pull mistral` |
 
-2. **Mistral 7B** - Fast and capable
-   ```bash
-   ollama pull mistral
-   ```
+### Hardware Requirements
 
-3. **Phi-2** - Very fast, smaller model
-   ```bash
-   ollama pull phi
-   ```
+| Model Size | RAM | VRAM | Notes |
+|------------|-----|------|-------|
+| 3B params | 4GB | 4GB | Works on most systems |
+| 7B params | 8GB | 6GB | Good balance |
+| 13B params | 16GB | 10GB | Better quality |
+| 32B+ params | 32GB | 24GB | Requires high-end GPU |
+
+For WebGPU-based local models (Dreamer), see [DREAMER_SETUP.md](./DREAMER_SETUP.md).
 
 ## Architecture Overview
 

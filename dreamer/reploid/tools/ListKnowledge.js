@@ -63,6 +63,7 @@ async function call(args = {}, deps = {}) {
 export const tool = {
   name: "ListKnowledge",
   description: "Query the knowledge graph. Use 'entity' to get details, 'predicate'/'subject'/'object' to query triples, or no args for overview.",
+  readOnly: true,
   call
 };
 

@@ -57,6 +57,7 @@ async function call(args = {}, deps = {}) {
 export const tool = {
   name: "ListMemories",
   description: "List or search semantic memories. Use 'query' for semantic search, or list all with optional 'domain' filter.",
+  readOnly: true,
   call
 };
 

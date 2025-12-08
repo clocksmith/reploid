@@ -74,8 +74,10 @@ describe('Toast', () => {
     });
 
     it('should display correct icon for each type', () => {
-      const types = ['info', 'success', 'warning', 'error'];
-      const expectedIcons = { info: '○', success: '✓', warning: '⚠', error: '✗' };
+      // Only info and success types show popup toasts now
+      // Warning/error moved to ErrorStore (no popup)
+      const types = ['info', 'success'];
+      const expectedIcons = { info: '○', success: '✓' };
 
       types.forEach(type => {
         const id = Toast.show({ type, title: type });
@@ -238,8 +240,8 @@ describe('Toast', () => {
     });
 
     // NOTE: warning() and error() no longer show popup toasts
-    // They log to error history and update the status badge instead
-    it('should log warning to history (no popup toast)', () => {
+    // Error history functionality moved to ErrorStore (see plan)
+    it.skip('should log warning to history (no popup toast)', () => {
       Toast.clearErrorHistory();
       const id = Toast.warning('Warning Title', 'Warning Message');
 
@@ -253,7 +255,7 @@ describe('Toast', () => {
       expect(history[0].type).toBe('warning');
     });
 
-    it('should log error to history (no popup toast)', () => {
+    it.skip('should log error to history (no popup toast)', () => {
       Toast.clearErrorHistory();
       const id = Toast.error('Error Title', 'Error Message');
 
@@ -278,7 +280,8 @@ describe('Toast', () => {
     });
   });
 
-  describe('error history', () => {
+  // Note: error history functionality moved to ErrorStore (see plan)
+  describe.skip('error history', () => {
     it('should log errors to history', () => {
       Toast.logError({ title: 'Error 1', message: 'Details 1' });
       Toast.logError({ title: 'Error 2', message: 'Details 2' });

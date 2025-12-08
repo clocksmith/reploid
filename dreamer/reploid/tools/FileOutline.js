@@ -101,6 +101,7 @@ async function call(input = {}, deps = {}) {
 export const tool = {
   name: "FileOutline",
   description: "Analyzes a file's structure (functions, exports, imports) without reading the full content. Use this first to save tokens when exploring code.",
+  readOnly: true,
   inputSchema,
   call
 };

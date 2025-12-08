@@ -1,5 +1,9 @@
 # REPLOID App Mounting System - Design Specification
 
+**Status:** Proposed (not yet implemented)
+
+> **Note:** This is a design specification for a planned feature. For architectural blueprints, see `dreamer/reploid/blueprints/`.
+
 ## Overview
 
 Enable agents to create self-contained UI applications that integrate into the REPLOID dashboard, providing custom visualizations, tools, and interfaces.
@@ -31,7 +35,7 @@ Agents create apps in `/apps/` with a manifest:
   "name": "Performance Visualizer",
   "version": "1.0.0",
   "entry": "/apps/my-viz/index.html",
-  "icon": "📊",
+  "icon": "perf",
   "autoMount": true,
   "permissions": ["vfs.read", "state.read", "events.subscribe"],
   "api": "v1"
@@ -52,7 +56,7 @@ Agents create apps in `/apps/` with a manifest:
 ### 3. Dashboard Integration
 
 **Apps Tab:**
-- New sidebar tab (📦 Apps)
+- New sidebar tab (Apps)
 - Lists all installed apps from `/apps/*/manifest.json`
 - Click app → Mounts in workspace as new tab
 - Apps can be pinned/unpinned
@@ -252,8 +256,21 @@ EventBus.emit('app:installed', { id: 'my-viz', name: '...' });
 - No security escapes (sandboxing holds)
 - User can pin/unpin apps without restart
 
+## Implementation Status
+
+| Phase | Description | Status |
+|-------|-------------|--------|
+| Phase 1 | App Discovery | Planned |
+| Phase 2 | UI Integration | Planned |
+| Phase 3 | Sandbox Bridge | Planned |
+| Phase 4 | Auto-Mount | Planned |
+
 ## References
 
 - **Jupyter Widgets**: Similar concept of kernel-created UIs
 - **VS Code Extensions**: Webview API for custom panels
 - **Observable Framework**: Reactive notebooks with custom visualizations
+
+---
+
+*Last updated: December 2025*

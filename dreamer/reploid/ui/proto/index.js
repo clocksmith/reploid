@@ -11,6 +11,7 @@ import { createTelemetryManager } from './telemetry.js';
 import { createSchemaManager } from './schemas.js';
 import { createWorkerManager } from './workers.js';
 import { createVFSManager } from './vfs.js';
+import { createReplayManager } from './replay.js';
 import { renderProtoTemplate } from './template.js';
 
 const Proto = {
@@ -23,6 +24,7 @@ const Proto = {
     const schemaManager = createSchemaManager({ logger, escapeHtml });
     const workerManager = createWorkerManager({ escapeHtml, WorkerManager });
     const vfsManager = createVFSManager({ escapeHtml, logger, Toast });
+    const replayManager = createReplayManager({ logger, escapeHtml, EventBus });
 
     // UI state
     let _root = null;
@@ -31,9 +33,9 @@ const Proto = {
     let _vfsPanelCollapsed = false;
     let _vfsSearchTimeout = null;
 
-    // Token tracking
+    // Token tracking - values come from ContextManager via EventBus
     let _tokenCount = 0;
-    let _maxTokens = 32000;
+    let _maxTokens = 32000;  // Updated by agent:tokens events
 
     // Event subscriptions
     let _subscriptionIds = [];
@@ -509,22 +511,45 @@ const Proto = {
       };
 
       const exportState = async () => {
+        console.log('[Proto] Export button clicked');
         try {
           if (window.downloadREPLOID) {
+            console.log('[Proto] Using window.downloadREPLOID');
             await window.downloadREPLOID(`reploid-export-${Date.now()}.json`);
             Toast.success('Export Complete', 'State and VFS exported successfully');
           } else {
-            const state = StateManager.getState();
-            const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+            console.log('[Proto] Fallback: window.downloadREPLOID not available');
+            // Try to resolve VFS from DI container if available
+            let exportData = { state: StateManager.getState(), vfs: {} };
+            try {
+              if (window.REPLOID_DI?.resolve) {
+                const vfs = await window.REPLOID_DI.resolve('VFS');
+                if (vfs?.exportAll) {
+                  const vfsExport = await vfs.exportAll();
+                  exportData.vfs = vfsExport.files || {};
+                  console.log('[Proto] VFS export included:', Object.keys(exportData.vfs).length, 'files');
+                }
+              }
+            } catch (vfsErr) {
+              console.warn('[Proto] VFS export failed:', vfsErr.message);
+            }
+            exportData.exportedAt = new Date().toISOString();
+            exportData.version = '1.1';
+
+            const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `reploid-state-${Date.now()}.json`;
+            a.download = `reploid-export-${Date.now()}.json`;
+            document.body.appendChild(a);
             a.click();
+            document.body.removeChild(a);
             URL.revokeObjectURL(url);
-            Toast.success('Export Complete', 'State exported (VFS not available)');
+            Toast.success('Export Complete', `Exported ${Object.keys(exportData.vfs).length} VFS files`);
           }
         } catch (e) {
+          console.error('[Proto] Export failed:', e);
+          Toast.error('Export Failed', e.message);
           EventBus.emit('agent:error', { message: 'Export Failed', error: e.message });
         }
       };
@@ -563,6 +588,159 @@ const Proto = {
       container.querySelector('#vfs-diff-close').onclick = () => vfsManager.closeDiff();
       container.querySelector('#vfs-snapshot-close').onclick = () => vfsManager.closeSnapshots();
 
+      // VFS Toolbar buttons
+      const vfsRefreshBtn = container.querySelector('#vfs-refresh');
+      const vfsDiffBtn = container.querySelector('#vfs-diff-btn');
+      const vfsSnapshotBtn = container.querySelector('#vfs-snapshot-btn');
+
+      if (vfsRefreshBtn) {
+        vfsRefreshBtn.onclick = () => {
+          vfsManager.loadVFSTree();
+          Toast.info('VFS Refreshed', 'File tree reloaded from IndexedDB');
+        };
+      }
+
+      if (vfsDiffBtn) {
+        vfsDiffBtn.onclick = async () => {
+          const currentPath = vfsManager.getCurrentPath();
+          if (!currentPath) {
+            Toast.error('No File Selected', 'Select a file to view diff');
+            return;
+          }
+
+          try {
+            // Get VFS content
+            const vfs = await window.REPLOID_DI?.resolve('VFS');
+            if (!vfs) {
+              Toast.error('Diff', 'VFS not available');
+              return;
+            }
+
+            const vfsContent = await vfs.read(currentPath);
+
+            // Try to fetch original from network
+            const networkPath = currentPath.startsWith('/') ? currentPath.slice(1) : currentPath;
+            let originalContent = null;
+            try {
+              const response = await fetch(`/${networkPath}`);
+              if (response.ok) {
+                originalContent = await response.text();
+              }
+            } catch (e) {
+              console.warn('[Diff] Could not fetch original:', e);
+            }
+
+            // Show diff panel
+            const diffPanel = container.querySelector('#vfs-diff-panel');
+            const diffContent = container.querySelector('#vfs-diff-content');
+            const contentBody = container.querySelector('#vfs-content-body');
+
+            if (!diffPanel || !diffContent) {
+              Toast.error('Diff', 'Diff panel not found');
+              return;
+            }
+
+            if (!originalContent) {
+              diffContent.innerHTML = `<div class="vfs-empty">
+                <p>No original source to compare against.</p>
+                <p>File: ${currentPath}</p>
+                <p>This file exists only in VFS (created by the agent).</p>
+              </div>`;
+            } else if (originalContent === vfsContent) {
+              diffContent.innerHTML = `<div class="vfs-empty">
+                <p>No changes. VFS content matches source.</p>
+                <p>File: ${currentPath}</p>
+              </div>`;
+            } else {
+              // Simple diff display
+              const vfsLines = (vfsContent || '').split('\n');
+              const origLines = (originalContent || '').split('\n');
+              let diffHtml = `<div class="diff-header">Diff: ${currentPath}</div>`;
+              diffHtml += `<div class="diff-stats">VFS: ${vfsLines.length} lines, Source: ${origLines.length} lines</div>`;
+              diffHtml += '<pre class="diff-content">';
+
+              // Very simple line-by-line diff
+              const maxLen = Math.max(vfsLines.length, origLines.length);
+              for (let i = 0; i < Math.min(maxLen, 100); i++) {
+                const vLine = vfsLines[i] || '';
+                const oLine = origLines[i] || '';
+                if (vLine === oLine) {
+                  diffHtml += `<span class="diff-same">${Utils.escapeHtml(vLine)}</span>\n`;
+                } else if (!origLines[i]) {
+                  diffHtml += `<span class="diff-add">+ ${Utils.escapeHtml(vLine)}</span>\n`;
+                } else if (!vfsLines[i]) {
+                  diffHtml += `<span class="diff-del">- ${Utils.escapeHtml(oLine)}</span>\n`;
+                } else {
+                  diffHtml += `<span class="diff-del">- ${Utils.escapeHtml(oLine)}</span>\n`;
+                  diffHtml += `<span class="diff-add">+ ${Utils.escapeHtml(vLine)}</span>\n`;
+                }
+              }
+              if (maxLen > 100) {
+                diffHtml += `\n... and ${maxLen - 100} more lines`;
+              }
+              diffHtml += '</pre>';
+              diffContent.innerHTML = diffHtml;
+            }
+
+            if (contentBody) contentBody.classList.add('hidden');
+            diffPanel.classList.remove('hidden');
+
+          } catch (e) {
+            console.error('[Diff] Error:', e);
+            Toast.error('Diff Failed', e.message);
+          }
+        };
+      }
+
+      if (vfsSnapshotBtn) {
+        vfsSnapshotBtn.onclick = async () => {
+          try {
+            const snapshotPanel = container.querySelector('#vfs-snapshot-panel');
+            const timeline = container.querySelector('#vfs-snapshot-timeline');
+            const contentBody = container.querySelector('#vfs-content-body');
+
+            if (!snapshotPanel || !timeline) {
+              Toast.error('Snapshot Panel', 'UI elements not found');
+              return;
+            }
+
+            // Try to get GenesisSnapshot from DI
+            let snapshots = [];
+            try {
+              if (window.REPLOID_DI?.resolve) {
+                const GenesisSnapshot = await window.REPLOID_DI.resolve('GenesisSnapshot');
+                if (GenesisSnapshot?.listSnapshots) {
+                  snapshots = await GenesisSnapshot.listSnapshots();
+                }
+              }
+            } catch (e) {
+              console.warn('[Proto] GenesisSnapshot not available:', e.message);
+            }
+
+            // Render snapshot list
+            if (snapshots.length === 0) {
+              timeline.innerHTML = '<div class="vfs-empty">No snapshots yet. Snapshots are created during genesis or via the API.</div>';
+            } else {
+              timeline.innerHTML = snapshots.map(s => `
+                <div class="snapshot-item" data-id="${s.id}">
+                  <span class="snapshot-name">${s.name}</span>
+                  <span class="snapshot-date">${new Date(s.timestamp).toLocaleString()}</span>
+                  <span class="snapshot-files">${s.fileCount || '?'} files</span>
+                </div>
+              `).join('');
+            }
+
+            // Show panel
+            if (contentBody) contentBody.classList.add('hidden');
+            snapshotPanel.classList.remove('hidden');
+
+          } catch (e) {
+            console.error('[Proto] Snapshot error:', e);
+            Toast.error('Snapshots', e.message);
+          }
+        };
+      }
+
       _reflectionsContainer = container.querySelector('#reflections-container');
 
       return container;
@@ -577,6 +755,9 @@ const Proto = {
       // Load persisted history and errors
       renderSavedHistory();
       updateStatusBadge();
+
+      // Wire up replay panel
+      replayManager.wireEvents();
 
       Toast.init();
 
@@ -617,7 +798,7 @@ const Proto = {
                 <span class="model-provider model-provider-${providerBadge}">${escapeHtml(provider)}</span>
               </div>`;
             }).join('');
-            // Use first model's context size for token display
+            // Initial estimate from model config - will be updated by ContextManager via agent:tokens
             _maxTokens = models[0].contextSize || 32000;
           }
         }
@@ -641,6 +822,8 @@ const Proto = {
       }));
 
       _subscriptionIds.push(EventBus.on('agent:tokens', (data) => {
+        // Update max from ContextManager's model-aware limits
+        if (data.limit) _maxTokens = data.limit;
         updateTokenBudget(data.tokens);
         const tokensEl = document.getElementById('agent-tokens');
         if (tokensEl) tokensEl.textContent = `${data.tokens} / ${_maxTokens}`;
@@ -729,8 +912,9 @@ const Proto = {
         }
 
         if (!text.startsWith('[System:')) {
+          // Rough streaming estimate for real-time display (tokens/sec)
+          // Not used for budget - ContextManager emits accurate count via agent:tokens
           tokenCount += Math.ceil(text.length / 4);
-          updateTokenBudget(_tokenCount + tokenCount);
         }
 
         const elapsed = (Date.now() - streamStartTime) / 1000;
@@ -754,7 +938,7 @@ const Proto = {
           streamingEntry.remove();
           streamingEntry = null;
           streamStartTime = null;
-          _tokenCount += tokenCount;
+          // Don't manually update _tokenCount - ContextManager will emit agent:tokens with accurate count
           tokenCount = 0;
           EventBus.emit('progress:update', { visible: false });
         }

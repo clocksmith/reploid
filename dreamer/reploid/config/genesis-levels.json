@@ -24,7 +24,7 @@
     },
     "reflection": {
       "name": "REFLECTION",
-      "description": "Tabula + self-awareness - 6 additional modules",
+      "description": "Tabula + self-awareness - 7 additional modules",
       "extends": "tabula",
       "modules": [
         "HITLController",
@@ -32,6 +32,7 @@
         "ReflectionAnalyzer",
         "ReflectionStore",
         "StreamParser",
+        "ToolExecutor",
         "VerificationManager"
       ]
     },
@@ -133,6 +134,9 @@
     ],
     "StreamParser": [
       "infrastructure/stream-parser.js"
+    ],
+    "ToolExecutor": [
+      "infrastructure/tool-executor.js"
     ],
     "SubstrateLoader": [
       "capabilities/system/substrate-loader.js"
@@ -240,7 +244,7 @@
       "styles/proto/responsive.css"
     ],
     "docs": [
-      "docs/REPLOID_README.md"
+      "docs/REPLOID.md"
     ]
   },
   "blueprintPaths": {
@@ -256,7 +260,7 @@
         "RateLimiter": "blueprints/0x00002C-rate-limiting-strategies.md",
         "StreamParser": "blueprints/0x00003F-streaming-response-handler.md",
         "ReflectionStore": "blueprints/0x000035-reflection-store-architecture.md",
-        "ReflectionAnalyzer": "blueprints/0x000036-reflection-analysis-engine.md",
+        "ReflectionAnalyzer": "blueprints/0x000035-reflection-store-architecture.md",
         "VerificationManager": "blueprints/0x000047-verification-manager.md",
         "HITLController": "blueprints/0x000051-hitl-controller.md"
       }

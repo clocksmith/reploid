@@ -132,11 +132,42 @@ const VFS = {
       await openDB();
       const cleanDir = normalize(dir);
       const prefix = cleanDir.endsWith('/') ? cleanDir : cleanDir + '/';
+
       return new Promise((resolve) => {
         const tx = db.transaction([STORE_FILES], 'readonly');
-        const req = tx.objectStore(STORE_FILES).getAllKeys();
+        const store = tx.objectStore(STORE_FILES);
+
+        // Try to use IndexedDB key range for O(log n + m) instead of O(n) scan
+        // IDBKeyRange may not be available in test environments
+        const IDB = typeof IDBKeyRange !== 'undefined' ? IDBKeyRange : null;
+
+        if (IDB) {
+          try {
+            // Create key range: [prefix, prefix + '\uffff')
+            // '\uffff' is highest Unicode char, so this captures all strings starting with prefix
+            const range = IDB.bound(prefix, prefix + '\uffff', false, true);
+            const req = store.getAllKeys(range);
+
+            req.onsuccess = () => {
+              resolve(req.result || []);
+            };
+            req.onerror = () => {
+              // Fallback to full scan if key range fails
+              const fallbackReq = store.getAllKeys();
+              fallbackReq.onsuccess = () => {
+                const all = fallbackReq.result || [];
+                resolve(all.filter(p => p.startsWith(prefix)));
+              };
+            };
+            return;
+          } catch (e) {
+            // Fall through to fallback
+          }
+        }
+
+        // Fallback: full scan with filter
+        const req = store.getAllKeys();
         req.onsuccess = () => {
-          // Filter by prefix (simulating directory structure)
           const all = req.result || [];
           resolve(all.filter(p => p.startsWith(prefix)));
         };

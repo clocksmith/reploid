@@ -22,6 +22,7 @@ const WorkerManager = {
     const { logger } = Utils;
 
     const WORKERS_DIR = '/.system/workers';
+    const MAX_COMPLETED_WORKERS = 100;  // Prevent unbounded memory growth
     const _activeWorkers = new Map();
     const _completedWorkers = new Map();
     const _maxConcurrentWorkers = 10;
@@ -251,6 +252,11 @@ const WorkerManager = {
             duration: Date.now() - (workerData?.startTime || startTime)
           };
           _completedWorkers.set(workerId, completedRecord);
+          // Evict oldest if over limit (LRU)
+          if (_completedWorkers.size > MAX_COMPLETED_WORKERS) {
+            const oldestKey = _completedWorkers.keys().next().value;
+            _completedWorkers.delete(oldestKey);
+          }
           _persistWorker(workerId, completedRecord);
           if (EventBus) {
             EventBus.emit('worker:completed', { workerId, result });
@@ -271,6 +277,11 @@ const WorkerManager = {
             duration: Date.now() - (workerData?.startTime || startTime)
           };
           _completedWorkers.set(workerId, errorRecord);
+          // Evict oldest if over limit (LRU)
+          if (_completedWorkers.size > MAX_COMPLETED_WORKERS) {
+            const oldestKey = _completedWorkers.keys().next().value;
+            _completedWorkers.delete(oldestKey);
+          }
           _persistWorker(workerId, errorRecord);
           if (EventBus) {
             EventBus.emit('worker:error', { workerId, error: error.message });
@@ -335,6 +346,10 @@ ARGS: {"arg": "value"}`;
       // Get filtered tool schemas
       const toolSchemas = ToolRunner.getToolSchemasFiltered(allowedTools);
 
+      // Track consecutive single-tool calls for nudging
+      let consecutiveSingleToolCalls = 0;
+      const SINGLE_TOOL_NUDGE_THRESHOLD = 3;
+
       try {
         // Simple agent loop
         while (iterations < maxIterations) {
@@ -379,14 +394,27 @@ ARGS: {"arg": "value"}`;
                 });
               }
             }
+            // Track single-tool calls and nudge
+            if (response.toolCalls.length === 1) {
+              consecutiveSingleToolCalls++;
+              if (consecutiveSingleToolCalls >= SINGLE_TOOL_NUDGE_THRESHOLD) {
+                messages.push({
+                  role: 'user',
+                  content: 'TIP: You can batch multiple independent tool calls in a single response. Read-only tools (ReadFile, ListFiles, Grep, Find) run in parallel for better efficiency.'
+                });
+                consecutiveSingleToolCalls = 0;
+              }
+            } else {
+              consecutiveSingleToolCalls = 0;
+            }
             continue; // Continue loop to process tool results
           }
 
           // Parse text-based tool calls
-          const parsed = ResponseParser.parse(response.content);
+          const toolCalls = ResponseParser.parseToolCalls(response.content);
 
-          if (parsed.toolCalls?.length > 0) {
-            for (const tc of parsed.toolCalls) {
+          if (toolCalls?.length > 0) {
+            for (const tc of toolCalls) {
               logger.info(`[WorkerManager] Worker ${workerId} text tool call: ${tc.name}`);
               try {
                 const result = await ToolRunner.execute(tc.name, tc.args, {
@@ -405,6 +433,19 @@ ARGS: {"arg": "value"}`;
                   content: `TOOL_ERROR for ${tc.name}: ${err.message}`
                 });
               }
+            }
+            // Track single-tool calls and nudge
+            if (toolCalls.length === 1) {
+              consecutiveSingleToolCalls++;
+              if (consecutiveSingleToolCalls >= SINGLE_TOOL_NUDGE_THRESHOLD) {
+                messages.push({
+                  role: 'user',
+                  content: 'TIP: You can batch multiple independent tool calls in a single response. Read-only tools (ReadFile, ListFiles, Grep, Find) run in parallel for better efficiency.'
+                });
+                consecutiveSingleToolCalls = 0;
+              }
+            } else {
+              consecutiveSingleToolCalls = 0;
             }
             continue; // Continue loop to process tool results
           }

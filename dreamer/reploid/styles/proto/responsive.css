@@ -49,11 +49,11 @@
     }
 
     .workspace-title {
-        font-size: var(--font-xs);
+        font-size: var(--font-sm);
     }
 
     .workspace-status {
-        font-size: var(--font-xs);
+        font-size: var(--font-sm);
     }
 
     .workspace-content {
@@ -189,7 +189,7 @@
 
     .vfs-editor {
         min-height: 150px;
-        font-size: 12px;
+        font-size: var(--font-sm);
     }
 }
 

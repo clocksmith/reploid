@@ -320,6 +320,9 @@ You can change modes anytime:
 
 ### For Maximum Quality
 
+Use **Node.js Server** with cloud APIs (Claude, GPT-4) and arena gating enabled.
+
+For security considerations across modes, see [SECURITY.md](./SECURITY.md).
 
 ---
 

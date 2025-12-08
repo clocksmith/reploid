@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>REPLOID - Reset Data</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #0a0a0a;
+      color: #e0e0e0;
+      min-height: 100vh;
+      padding: 40px 20px;
+    }
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    h1 {
+      color: #7fff7f;
+      font-size: 24px;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    h1 .logo {
+      width: 40px;
+      height: 40px;
+      background: #1a1a1a;
+      border: 2px solid #7fff7f;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 24px;
+    }
+    .subtitle {
+      color: #888;
+      margin-bottom: 30px;
+    }
+    .card {
+      background: #141414;
+      border: 1px solid #2a2a2a;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+    .card-title {
+      font-size: 16px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .card-title .icon {
+      font-size: 20px;
+    }
+    .card-desc {
+      color: #888;
+      font-size: 13px;
+      line-height: 1.5;
+      margin-bottom: 12px;
+    }
+    .stats {
+      background: #1a1a1a;
+      border-radius: 8px;
+      padding: 12px;
+      font-family: 'Monaco', 'Menlo', monospace;
+      font-size: 12px;
+    }
+    .stats-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 4px 0;
+      border-bottom: 1px solid #252525;
+    }
+    .stats-row:last-child {
+      border-bottom: none;
+    }
+    .stats-label {
+      color: #888;
+    }
+    .stats-value {
+      color: #7fff7f;
+    }
+    .stats-value.warning {
+      color: #ffa500;
+    }
+    .stats-value.empty {
+      color: #666;
+    }
+    .toggle {
+      position: relative;
+      width: 50px;
+      height: 26px;
+    }
+    .toggle input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    .toggle-slider {
+      position: absolute;
+      cursor: pointer;
+      inset: 0;
+      background: #333;
+      border-radius: 26px;
+      transition: 0.2s;
+    }
+    .toggle-slider:before {
+      position: absolute;
+      content: "";
+      height: 20px;
+      width: 20px;
+      left: 3px;
+      bottom: 3px;
+      background: #666;
+      border-radius: 50%;
+      transition: 0.2s;
+    }
+    .toggle input:checked + .toggle-slider {
+      background: #2d5a2d;
+    }
+    .toggle input:checked + .toggle-slider:before {
+      transform: translateX(24px);
+      background: #7fff7f;
+    }
+    .actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 24px;
+    }
+    .btn {
+      flex: 1;
+      padding: 14px 24px;
+      border: none;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    .btn-primary {
+      background: #c62828;
+      color: white;
+    }
+    .btn-primary:hover:not(:disabled) {
+      background: #e53935;
+    }
+    .btn-secondary {
+      background: #2a2a2a;
+      color: #e0e0e0;
+    }
+    .btn-secondary:hover:not(:disabled) {
+      background: #333;
+    }
+    .status {
+      margin-top: 20px;
+      padding: 16px;
+      border-radius: 8px;
+      display: none;
+    }
+    .status.success {
+      display: block;
+      background: #1b3d1b;
+      border: 1px solid #2d5a2d;
+      color: #7fff7f;
+    }
+    .status.error {
+      display: block;
+      background: #3d1b1b;
+      border: 1px solid #5a2d2d;
+      color: #ff7f7f;
+    }
+    .status.progress {
+      display: block;
+      background: #1a1a1a;
+      border: 1px solid #333;
+      color: #888;
+    }
+    .progress-item {
+      padding: 4px 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .progress-item .check {
+      color: #7fff7f;
+    }
+    .loading {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border: 2px solid #333;
+      border-top-color: #7fff7f;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    .back-link {
+      display: inline-block;
+      margin-top: 24px;
+      color: #7fff7f;
+      text-decoration: none;
+      font-size: 14px;
+    }
+    .back-link:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>
+      <span class="logo">R</span>
+      REPLOID Reset
+    </h1>
+    <p class="subtitle">Selectively clear cached data to fix issues or start fresh</p>
+
+    <!-- Service Workers -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">
+          <span class="icon">&#9881;</span>
+          Service Workers
+        </div>
+        <label class="toggle">
+          <input type="checkbox" id="reset-sw" checked>
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+      <p class="card-desc">
+        Service workers intercept network requests and can serve cached JavaScript modules.
+        Unregistering them forces fresh code to load from the server.
+      </p>
+      <div class="stats" id="stats-sw">
+        <div class="stats-row">
+          <span class="stats-label">Registered</span>
+          <span class="stats-value" id="sw-count">Scanning...</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Browser Caches -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">
+          <span class="icon">&#128451;</span>
+          Browser Caches
+        </div>
+        <label class="toggle">
+          <input type="checkbox" id="reset-cache" checked>
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+      <p class="card-desc">
+        Browser caches store responses for offline use and faster loading.
+        Clearing them ensures you get the latest versions of all files.
+      </p>
+      <div class="stats" id="stats-cache">
+        <div class="stats-row">
+          <span class="stats-label">Cache buckets</span>
+          <span class="stats-value" id="cache-count">Scanning...</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- LocalStorage -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">
+          <span class="icon">&#128190;</span>
+          LocalStorage
+        </div>
+        <label class="toggle">
+          <input type="checkbox" id="reset-localstorage" checked>
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+      <p class="card-desc">
+        Stores user preferences like selected models, genesis level, and UI settings.
+        Clearing this resets all configuration to defaults.
+      </p>
+      <div class="stats" id="stats-ls">
+        <div class="stats-row">
+          <span class="stats-label">Keys stored</span>
+          <span class="stats-value" id="ls-count">Scanning...</span>
+        </div>
+        <div class="stats-row">
+          <span class="stats-label">Total size</span>
+          <span class="stats-value" id="ls-size">Scanning...</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- IndexedDB -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">
+          <span class="icon">&#128463;</span>
+          IndexedDB (VFS)
+        </div>
+        <label class="toggle">
+          <input type="checkbox" id="reset-idb" checked>
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+      <p class="card-desc">
+        The Virtual File System stores all agent code, reflections, knowledge graph,
+        embeddings, and state. This is the main data store for REPLOID.
+      </p>
+      <div class="stats" id="stats-idb">
+        <div class="stats-row">
+          <span class="stats-label">Databases</span>
+          <span class="stats-value" id="idb-count">Scanning...</span>
+        </div>
+        <div class="stats-row" id="idb-list"></div>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button class="btn btn-secondary" onclick="window.location.href='/'">Cancel</button>
+      <button class="btn btn-primary" id="reset-btn" onclick="performReset()">Reset Selected</button>
+    </div>
+
+    <div class="status" id="status"></div>
+
+    <a href="/" class="back-link">&larr; Back to REPLOID</a>
+  </div>
+
+  <script>
+    // Scan and display current stats
+    async function scanData() {
+      // Service Workers
+      if ('serviceWorker' in navigator) {
+        const regs = await navigator.serviceWorker.getRegistrations();
+        document.getElementById('sw-count').textContent = regs.length || 'None';
+        document.getElementById('sw-count').className = 'stats-value' + (regs.length ? ' warning' : ' empty');
+      } else {
+        document.getElementById('sw-count').textContent = 'Not supported';
+        document.getElementById('sw-count').className = 'stats-value empty';
+      }
+
+      // Browser Caches
+      if ('caches' in window) {
+        const cacheNames = await caches.keys();
+        document.getElementById('cache-count').textContent = cacheNames.length || 'None';
+        document.getElementById('cache-count').className = 'stats-value' + (cacheNames.length ? ' warning' : ' empty');
+      } else {
+        document.getElementById('cache-count').textContent = 'Not supported';
+        document.getElementById('cache-count').className = 'stats-value empty';
+      }
+
+      // LocalStorage
+      const lsKeys = Object.keys(localStorage);
+      document.getElementById('ls-count').textContent = lsKeys.length || 'None';
+      document.getElementById('ls-count').className = 'stats-value' + (lsKeys.length ? '' : ' empty');
+
+      let lsSize = 0;
+      for (const key of lsKeys) {
+        lsSize += localStorage.getItem(key).length * 2; // UTF-16
+      }
+      document.getElementById('ls-size').textContent = formatBytes(lsSize);
+      document.getElementById('ls-size').className = 'stats-value' + (lsSize ? '' : ' empty');
+
+      // IndexedDB
+      if ('databases' in indexedDB) {
+        const dbs = await indexedDB.databases();
+        document.getElementById('idb-count').textContent = dbs.length || 'None';
+        document.getElementById('idb-count').className = 'stats-value' + (dbs.length ? ' warning' : ' empty');
+
+        if (dbs.length > 0) {
+          const listEl = document.getElementById('idb-list');
+          listEl.innerHTML = '<span class="stats-label">Names</span><span class="stats-value">' +
+            dbs.map(db => db.name).join(', ') + '</span>';
+        }
+      } else {
+        document.getElementById('idb-count').textContent = 'Cannot enumerate';
+        document.getElementById('idb-count').className = 'stats-value empty';
+      }
+    }
+
+    function formatBytes(bytes) {
+      if (bytes === 0) return '0 B';
+      const k = 1024;
+      const sizes = ['B', 'KB', 'MB', 'GB'];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+    }
+
+    async function performReset() {
+      const btn = document.getElementById('reset-btn');
+      const status = document.getElementById('status');
+
+      btn.disabled = true;
+      btn.textContent = 'Resetting...';
+
+      status.className = 'status progress';
+      status.innerHTML = '<div class="progress-item"><span class="loading"></span> Starting reset...</div>';
+
+      const steps = [];
+
+      try {
+        // Service Workers
+        if (document.getElementById('reset-sw').checked && 'serviceWorker' in navigator) {
+          status.innerHTML += '<div class="progress-item"><span class="loading"></span> Unregistering service workers...</div>';
+          const regs = await navigator.serviceWorker.getRegistrations();
+          await Promise.all(regs.map(reg => reg.unregister()));
+          steps.push(`Unregistered ${regs.length} service worker(s)`);
+          updateProgress(status, 'Unregistered service workers');
+        }
+
+        // Browser Caches
+        if (document.getElementById('reset-cache').checked && 'caches' in window) {
+          status.innerHTML += '<div class="progress-item"><span class="loading"></span> Clearing browser caches...</div>';
+          const cacheNames = await caches.keys();
+          await Promise.all(cacheNames.map(name => caches.delete(name)));
+          steps.push(`Cleared ${cacheNames.length} cache(s)`);
+          updateProgress(status, 'Cleared browser caches');
+        }
+
+        // LocalStorage
+        if (document.getElementById('reset-localstorage').checked) {
+          status.innerHTML += '<div class="progress-item"><span class="loading"></span> Clearing localStorage...</div>';
+          const count = localStorage.length;
+          localStorage.clear();
+          steps.push(`Cleared ${count} localStorage keys`);
+          updateProgress(status, 'Cleared localStorage');
+        }
+
+        // IndexedDB
+        if (document.getElementById('reset-idb').checked) {
+          status.innerHTML += '<div class="progress-item"><span class="loading"></span> Deleting IndexedDB databases...</div>';
+          const dbs = await indexedDB.databases();
+          await Promise.all(dbs.map(db => new Promise((resolve) => {
+            const req = indexedDB.deleteDatabase(db.name);
+            req.onsuccess = req.onerror = resolve;
+          })));
+          steps.push(`Deleted ${dbs.length} database(s)`);
+          updateProgress(status, 'Deleted IndexedDB databases');
+        }
+
+        status.className = 'status success';
+        status.innerHTML = '<strong>Reset complete!</strong><br><br>' +
+          steps.map(s => '&#10003; ' + s).join('<br>') +
+          '<br><br>Redirecting to REPLOID...';
+
+        setTimeout(() => {
+          window.location.href = '/';
+        }, 2000);
+
+      } catch (e) {
+        status.className = 'status error';
+        status.innerHTML = '<strong>Reset failed:</strong><br>' + e.message;
+        btn.disabled = false;
+        btn.textContent = 'Retry Reset';
+      }
+    }
+
+    function updateProgress(status, message) {
+      const items = status.querySelectorAll('.progress-item');
+      if (items.length > 0) {
+        const last = items[items.length - 1];
+        last.innerHTML = '<span class="check">&#10003;</span> ' + message;
+      }
+    }
+
+    // Initialize
+    scanData();
+  </script>
+</body>
+</html>

@@ -11,6 +11,7 @@ export const renderProtoTemplate = (escapeHtml, goalFromBoot) => `
     <button class="sidebar-btn" data-tab="telemetry" title="Telemetry (4)">☡</button>
     <button class="sidebar-btn" data-tab="schemas" title="Schemas (5)">☷</button>
     <button class="sidebar-btn" data-tab="workers" title="Workers" id="workers-tab-btn">&#x2692;</button>
+    <button class="sidebar-btn" data-tab="replay" title="Replay (R)">&#x25B6;</button>
     <button class="sidebar-btn" data-tab="debug" title="Debug">⚙</button>
     <div class="sidebar-spacer"></div>
     <button id="btn-toggle" class="sidebar-btn" title="Stop (Esc)">&#x25A0;</button>
@@ -218,6 +219,73 @@ export const renderProtoTemplate = (escapeHtml, goalFromBoot) => `
         <div class="debug-section">
           <div class="debug-section-header">Model Configuration</div>
           <pre id="debug-model-config" class="debug-content">Loading...</pre>
+        </div>
+      </div>
+    </div>
+
+    <div class="workspace-content hidden" id="tab-replay">
+      <div class="replay-panel">
+        <div class="replay-header">
+          <strong>Run Replay</strong>
+          <span id="replay-status" class="text-muted">No run loaded</span>
+        </div>
+
+        <div class="replay-loader">
+          <label class="replay-file-label">
+            <input type="file" id="replay-file-input" accept=".json" />
+            <span class="btn btn-secondary">Load Run File</span>
+          </label>
+          <span id="replay-filename" class="text-muted"></span>
+        </div>
+
+        <div id="replay-metadata" class="replay-metadata hidden">
+          <div class="replay-meta-item">
+            <span class="status-label">Exported</span>
+            <span id="replay-exported"></span>
+          </div>
+          <div class="replay-meta-item">
+            <span class="status-label">Cycles</span>
+            <span id="replay-cycles"></span>
+          </div>
+          <div class="replay-meta-item">
+            <span class="status-label">Events</span>
+            <span id="replay-events"></span>
+          </div>
+          <div class="replay-meta-item">
+            <span class="status-label">Files</span>
+            <span id="replay-files"></span>
+          </div>
+        </div>
+
+        <div id="replay-controls" class="replay-controls hidden">
+          <div class="replay-progress">
+            <div class="replay-progress-bar">
+              <div class="replay-progress-fill" id="replay-progress-fill" style="width: 0%"></div>
+            </div>
+            <span id="replay-progress-text">0 / 0</span>
+          </div>
+
+          <div class="replay-buttons">
+            <button id="replay-play" class="btn btn-primary" title="Play">▶</button>
+            <button id="replay-pause" class="btn btn-secondary" title="Pause" disabled>⏸</button>
+            <button id="replay-step" class="btn btn-secondary" title="Step">⏭</button>
+            <button id="replay-stop" class="btn btn-secondary" title="Reset">⏹</button>
+          </div>
+
+          <div class="replay-speed">
+            <span>Speed:</span>
+            <select id="replay-speed-select">
+              <option value="1">1x</option>
+              <option value="2">2x</option>
+              <option value="5" selected>5x</option>
+              <option value="10">10x</option>
+              <option value="50">50x</option>
+            </select>
+          </div>
+        </div>
+
+        <div id="replay-event-log" class="replay-event-log">
+          <div class="text-muted">Events will appear here during replay...</div>
         </div>
       </div>
     </div>

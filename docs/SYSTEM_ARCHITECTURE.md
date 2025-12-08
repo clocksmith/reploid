@@ -273,6 +273,8 @@ Prevent runaway failures with automatic recovery.
 
 Human approval gates for sensitive operations.
 
+For full security documentation, see [SECURITY.md](./SECURITY.md).
+
 ---
 
 ## UI Architecture
@@ -405,9 +407,10 @@ reploid/
 │   └── arena/              # Arena harness and sandbox
 │
 ├── docs/                   # Documentation
-├── blueprints/             # Architectural specifications
 └── server/                 # Proxy server for API keys
 ```
+
+For module development guidelines, see [CONTRIBUTING.md](./CONTRIBUTING.md).
 
 ---
 
