@@ -38,6 +38,8 @@ Or use the hosted version at https://replo.id
 - Recursive Iframes: awaken a child agent in an iframe and report depth
 - Ouroboros: improve the code that improves code
 - Houdini: probe the browser sandbox for escape vectors
+- "Escape the box": <img width="1554" height="1009" alt="Screenshot 2025-12-08 at 4 17 07 PM" src="https://github.com/user-attachments/assets/d097b088-56a8-4cf2-8845-bfd8317fde8b" />
+
 
 ## Model Options
 
