@@ -24,7 +24,7 @@ Use these Unicode symbols instead of emojis throughout the codebase for a consis
 | ☗ | BLACK SHOGI PIECE | Folder, directory |
 | ☐ | BALLOT BOX | Document, markdown file |
 | ⎈ | HELM SYMBOL | Settings, configuration |
-| ☰ | TRIGRAM FOR HEAVEN | Code file, script |
+| ƒ | LATIN SMALL LETTER F WITH HOOK | Code file, script |
 | ☷ | TRIGRAM FOR EARTH | Data file, JSON |
 | ☊ | ASCENDING NODE | Web/HTML file |
 | ☲ | TRIGRAM FOR FIRE | Style file, CSS |
@@ -93,7 +93,7 @@ const TOAST_TYPES = {
 
 // File type icons
 const fileIcons = {
-  'js': '☰',
+  'js': 'ƒ',
   'json': '☷',
   'md': '☐',
   'css': '☲'

@@ -59,7 +59,10 @@ const InlineChat = {
     };
 
     const bindEvents = () => {
-      if (!_container) return;
+      if (!_container) {
+        console.warn('[InlineChat] Cannot bind events - container not found');
+        return;
+      }
 
       // Send button
       _container.addEventListener('click', (e) => {
@@ -76,32 +79,49 @@ const InlineChat = {
             sendMessage();
           }
         });
+        console.log('[InlineChat] Events bound to input');
+      } else {
+        console.warn('[InlineChat] Input not found when binding events');
       }
     };
 
     const sendMessage = () => {
-      if (!_input) return;
+      if (!_input) {
+        console.warn('[InlineChat] Input not found');
+        return;
+      }
 
       const content = _input.value.trim();
       if (!content) return;
 
-      // Emit event for AgentLoop to pick up
-      EventBus.emit('human:message', {
-        content,
-        type: 'context',
-        timestamp: Date.now()
-      });
+      // Clear input immediately for better UX
+      _input.value = '';
 
-      // Show immediate feedback in history
-      EventBus.emit('agent:history', {
-        type: 'human',
-        cycle: '-',
-        content: content,
-        messageType: 'context',
-        pending: true
-      });
+      try {
+        // Emit event for AgentLoop to pick up
+        if (EventBus?.emit) {
+          EventBus.emit('human:message', {
+            content,
+            type: 'context',
+            timestamp: Date.now()
+          });
 
-      logger.info(`[InlineChat] Sent message: ${content.substring(0, 50)}...`);
+          // Show immediate feedback in history
+          EventBus.emit('agent:history', {
+            type: 'human',
+            cycle: '-',
+            content: content,
+            messageType: 'context',
+            pending: true
+          });
+        } else {
+          console.warn('[InlineChat] EventBus not available');
+        }
+      } catch (e) {
+        console.error('[InlineChat] Error emitting events:', e);
+      }
+
+      logger?.info?.(`[InlineChat] Sent message: ${content.substring(0, 50)}...`);
 
       // Visual feedback on send button
       const sendBtn = _container?.querySelector('.inline-chat-send');
@@ -114,8 +134,6 @@ const InlineChat = {
         }, 1000);
       }
 
-      // Clear input
-      _input.value = '';
       _input.focus();
     };
 

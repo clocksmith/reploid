@@ -353,8 +353,11 @@ export async function createPipeline(operation, variant, bindGroupLayout = null)
     );
   }
 
+  // Load shader source via fetch (handles caching internally)
+  const shaderSource = await loadShaderSource(config.shaderFile);
+
   // Compile shader
-  const shaderModule = compileShader(device, config.source, `${operation}_${variant}`);
+  const shaderModule = compileShader(device, shaderSource, `${operation}_${variant}`);
 
   // Create pipeline
   const pipelineDescriptor = {

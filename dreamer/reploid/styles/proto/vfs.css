@@ -1,0 +1,293 @@
+/* Proto VFS - Browser, Tree, Content, Editor */
+
+/* VFS Browser Panel (middle column) */
+.vfs-browser-panel {
+    display: flex;
+    flex-direction: column;
+    background: var(--bg-secondary);
+    border-right: 1px solid var(--border-default);
+    min-height: 0;
+    overflow: hidden;
+}
+
+.vfs-browser-panel.collapsed {
+    width: 40px;
+    min-width: 40px;
+}
+
+.vfs-browser-header {
+    padding: 12px;
+    border-bottom: 1px solid var(--border-default);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+    color: var(--text-muted);
+    flex-shrink: 0;
+}
+
+.vfs-tree {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 8px;
+    font-size: 11px;
+}
+
+.vfs-tree .vfs-dir {
+    color: var(--warning);
+    font-weight: 600;
+    margin-top: var(--space-xs);
+    cursor: pointer;
+    padding: 2px var(--space-sm);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.vfs-tree .vfs-dir:hover {
+    background: var(--bg-hover);
+}
+
+.vfs-tree .vfs-file {
+    padding: 2px var(--space-sm);
+    cursor: pointer;
+    color: var(--text-secondary);
+    border-radius: var(--radius-sm);
+}
+
+.vfs-tree .vfs-file:hover {
+    background: var(--bg-hover);
+    color: var(--primary);
+}
+
+/* VFS File modification indicators */
+.vfs-tree .vfs-file-created {
+    color: var(--success);
+    font-weight: 600;
+    animation: vfs-pulse 1s ease-in-out 3;
+}
+
+.vfs-tree .vfs-file-modified {
+    color: var(--warning);
+    font-weight: 600;
+    animation: vfs-pulse 1s ease-in-out 3;
+}
+
+.vfs-tree .vfs-file-deleted {
+    color: var(--error);
+    text-decoration: line-through;
+    opacity: 0.7;
+    font-weight: 600;
+    animation: vfs-fade-out 2s ease-out forwards;
+}
+
+@keyframes vfs-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+}
+
+@keyframes vfs-fade-out {
+    0% { opacity: 0.7; }
+    70% { opacity: 0.7; }
+    100% { opacity: 0; }
+}
+
+.vfs-dir-icon {
+    font-size: 8px;
+    color: var(--text-muted);
+    width: 12px;
+}
+
+/* VFS Search */
+.vfs-search-container {
+    padding: 8px;
+    border-bottom: 1px solid var(--border-default);
+    flex-shrink: 0;
+}
+
+.vfs-search-input {
+    width: 100%;
+    padding: 6px 8px;
+    background: var(--bg-element);
+    border: 1px solid var(--border-default);
+    color: var(--text-primary);
+    font-size: 11px;
+    font-family: 'Courier New', monospace;
+}
+
+.vfs-search-input:focus {
+    outline: none;
+    border-color: var(--primary);
+}
+
+/* VFS Content (in workspace) */
+.vfs-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: var(--bg-app);
+    font-size: 11px;
+    overflow: hidden;
+    padding: 16px;
+    min-height: 0;
+}
+
+.vfs-content.hidden {
+    display: none;
+}
+
+.vfs-file-path {
+    color: var(--primary);
+    font-weight: 600;
+    margin-bottom: var(--space-sm);
+    padding-bottom: var(--space-xs);
+    border-bottom: 1px solid var(--border-subtle);
+}
+
+/* VFS Content Header with Actions */
+.vfs-content-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: var(--space-sm);
+    margin-bottom: var(--space-sm);
+    border-bottom: 1px solid var(--border-subtle);
+}
+
+.vfs-content-actions {
+    display: flex;
+    gap: 4px;
+}
+
+.vfs-content-body {
+    overflow: auto;
+    flex: 1;
+}
+
+.vfs-content-body pre {
+    margin: 0;
+    white-space: pre-wrap;
+    word-break: break-all;
+}
+
+/* VFS Editor */
+.vfs-editor {
+    width: 100%;
+    min-height: 200px;
+    flex: 1;
+    background: var(--bg-element);
+    border: 1px solid var(--border-default);
+    color: var(--text-primary);
+    font-family: var(--font-mono);
+    font-size: var(--font-xs);
+    padding: var(--space-sm);
+    resize: vertical;
+}
+
+.vfs-editor:focus {
+    border-color: var(--primary);
+    outline: none;
+}
+
+/* VFS Browser Collapsed State (desktop) */
+.vfs-browser-panel.collapsed .vfs-browser-header {
+    justify-content: center;
+    padding: var(--space-sm);
+}
+
+.vfs-browser-panel.collapsed #vfs-refresh {
+    display: none;
+}
+
+/* VFS Preview, Diff, and Snapshot Panels */
+.vfs-preview-panel,
+.vfs-diff-panel,
+.vfs-snapshot-panel {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--bg-panel);
+    display: flex;
+    flex-direction: column;
+    z-index: 10;
+}
+
+.vfs-preview-header,
+.vfs-diff-header,
+.vfs-snapshot-header {
+    padding: 8px 12px;
+    background: var(--bg-element);
+    border-bottom: 1px solid var(--border-default);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+#vfs-preview-iframe {
+    flex: 1;
+    border: none;
+    width: 100%;
+    background: white;
+}
+
+#vfs-diff-content,
+#vfs-snapshot-timeline {
+    flex: 1;
+    overflow: auto;
+    padding: 12px;
+}
+
+#vfs-snapshot-viewer {
+    flex: 1;
+    overflow: auto;
+    border-top: 1px solid var(--border-default);
+    padding: 12px;
+}
+
+/* Snapshot timeline */
+.snapshot-item {
+    padding: 10px;
+    margin-bottom: 8px;
+    background: var(--bg-element);
+    border: 1px solid var(--border-default);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.snapshot-item:hover {
+    background: var(--bg-hover);
+}
+
+.snapshot-item.active {
+    border-color: var(--primary);
+    background: var(--bg-hover);
+}
+
+.snapshot-timestamp {
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+.snapshot-stats {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 4px;
+}
+
+.snapshot-actions {
+    margin-top: 8px;
+    display: flex;
+    gap: 8px;
+}
+
+.snapshot-actions .btn {
+    font-size: 11px;
+    padding: 4px 8px;
+}

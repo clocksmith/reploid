@@ -7,6 +7,7 @@
         "AgentLoop",
         "CircuitBreaker",
         "ContextManager",
+        "ErrorStore",
         "EventBus",
         "LLMClient",
         "PersonaManager",
@@ -202,8 +203,14 @@
     ],
     "ui": [
       "ui/proto.js",
+      "ui/proto/index.js",
+      "ui/proto/template.js",
+      "ui/proto/telemetry.js",
+      "ui/proto/schemas.js",
+      "ui/proto/workers.js",
+      "ui/proto/vfs.js",
+      "ui/proto/utils.js",
       "ui/toast.js",
-      "ui/command-palette.js",
       "ui/panels/chat-panel.js",
       "ui/panels/code-panel.js",
       "ui/panels/llm-config-panel.js",
@@ -215,6 +222,7 @@
       "ui/components/diff-viewer-ui.js",
       "ui/components/toast-notifications.js",
       "ui/components/hitl-widget.js",
+      "ui/components/inline-chat.js",
       "ui/dashboard/metrics-dashboard.js",
       "ui/dashboard/ui-manager.js",
       "ui/dashboard/vfs-explorer.js"
@@ -222,7 +230,14 @@
     "styles": [
       "styles/proto.css",
       "styles/theme.css",
-      "styles/vfs-explorer.css"
+      "styles/vfs-explorer.css",
+      "styles/proto/index.css",
+      "styles/proto/layout.css",
+      "styles/proto/components.css",
+      "styles/proto/history.css",
+      "styles/proto/panels.css",
+      "styles/proto/vfs.css",
+      "styles/proto/responsive.css"
     ],
     "docs": [
       "docs/REPLOID_README.md"

@@ -4,36 +4,36 @@
    ======================================== */
 
 :root {
-  /* ---- Core Palette (Cyberpunk) ---- */
-  --bg-app: #050505;       /* Deepest Black */
-  --bg-panel: #0a0a0a;     /* Panel Background */
-  --bg-element: #111111;   /* Input/Item Background */
-  --bg-hover: #1a1a1a;     /* Hover State */
-  --bg-active: rgba(0, 255, 255, 0.1);
+  /* ---- Core Palette (Monochrome + Green) ---- */
+  --bg-app: #000000;       /* Pure Black */
+  --bg-panel: #000000;     /* Pure Black */
+  --bg-element: #000000;   /* Pure Black */
+  --bg-hover: #000000;     /* Pure Black */
+  --bg-active: rgba(127, 255, 127, 0.1);
 
-  /* ---- Borders (Scanlines) ---- */
-  --border-subtle: #222;
-  --border-default: #333;
-  --border-light: #555;    /* Lighter border for readability */
-  --border-active: #00ffff; /* Cyan active border */
+  /* ---- Borders ---- */
+  --border-subtle: #7f7f7f;
+  --border-default: #7f7f7f;
+  --border-light: #7f7f7f;
+  --border-active: #7fff7f;
 
-  /* ---- Text (Terminal) ---- */
-  --text-primary: #e0e0e0;
-  --text-secondary: #a0a0a0;
-  --text-muted: #666666;
+  /* ---- Text ---- */
+  --text-primary: #ffffff;
+  --text-secondary: #7f7f7f;
+  --text-muted: #7f7f7f;
   --text-inverse: #000000;
 
-  /* ---- Accents (Neon) ---- */
-  --primary: #00ffff;      /* Cyan */
-  --primary-dim: rgba(0, 255, 255, 0.15);
-  --primary-glow: 0 0 10px rgba(0, 255, 255, 0.4);
+  /* ---- Accents (Green) ---- */
+  --primary: #7fff7f;
+  --primary-dim: rgba(127, 255, 127, 0.15);
+  --primary-glow: 0 0 10px rgba(127, 255, 127, 0.4);
 
-  --secondary: #ff00ff;    /* Magenta */
-  --secondary-dim: rgba(255, 0, 255, 0.15);
-  
-  --success: #00ff00;      /* Green */
-  --warning: #ffd700;      /* Gold */
-  --danger: #ff3333;       /* Red */
+  --secondary: #7fff7f;
+  --secondary-dim: rgba(127, 255, 127, 0.15);
+
+  --success: #7fff7f;
+  --warning: #7fff7f;
+  --danger: #7fff7f;
 
   /* ---- Typography ---- */
   --font-mono: 'Courier New', 'Consolas', monospace;
@@ -44,7 +44,7 @@
   --space-sm: 8px;
   --space-md: 12px;
   --space-lg: 20px;
-  --radius-none: 0px;      /* Hard edges for cyberpunk feel */
+  --radius-none: 0px;
   --radius-sm: 2px;
 }
 
@@ -67,7 +67,7 @@ body::before {
   content: " ";
   display: block;
   position: fixed; top: 0; left: 0; bottom: 0; right: 0;
-  background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+  background: linear-gradient(rgba(0, 0, 0, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(127, 255, 127, 0.02), rgba(127, 255, 127, 0.02), rgba(127, 255, 127, 0.02));
   z-index: 2;
   background-size: 100% 2px, 3px 100%;
   pointer-events: none;
@@ -99,7 +99,7 @@ body::before {
 .btn.primary {
   border-color: var(--primary);
   color: var(--primary);
-  box-shadow: 0 0 5px rgba(0,255,255,0.1);
+  box-shadow: 0 0 5px rgba(127,255,127,0.1);
 }
 
 .btn.primary:hover:not(:disabled) {
@@ -144,7 +144,7 @@ input, select, textarea {
 input:focus, select:focus, textarea:focus {
   outline: none;
   border-color: var(--primary);
-  box-shadow: inset 0 0 10px rgba(0, 255, 255, 0.1);
+  box-shadow: inset 0 0 10px rgba(127, 255, 127, 0.1);
 }
 
 /* ========================================
@@ -343,100 +343,6 @@ input:focus, select:focus, textarea:focus {
 }
 
 /* ========================================
-   COMMAND PALETTE
-   ======================================== */
-.command-palette-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.8);
-  z-index: 10001;
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  padding-top: 15vh;
-  animation: fadeIn 0.15s ease;
-}
-
-.command-palette {
-  width: 500px;
-  max-width: 90vw;
-  background: var(--bg-panel);
-  border: 1px solid var(--primary);
-  box-shadow: 0 0 30px rgba(0, 255, 255, 0.2);
-  animation: slideDown 0.2s ease;
-}
-
-@keyframes slideDown {
-  from { transform: translateY(-20px); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
-}
-
-.command-palette-input {
-  width: 100%;
-  padding: 16px;
-  background: var(--bg-element);
-  border: none;
-  border-bottom: 1px solid var(--border-default);
-  color: var(--text-primary);
-  font-family: var(--font-mono);
-  font-size: 14px;
-}
-
-.command-palette-input:focus {
-  outline: none;
-}
-
-.command-palette-list {
-  max-height: 300px;
-  overflow-y: auto;
-}
-
-.command-palette-item {
-  padding: 12px 16px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  cursor: pointer;
-  border-bottom: 1px solid var(--border-subtle);
-}
-
-.command-palette-item:hover,
-.command-palette-item.selected {
-  background: var(--bg-hover);
-}
-
-.command-palette-item.selected {
-  border-left: 2px solid var(--primary);
-}
-
-.command-palette-icon {
-  color: var(--text-muted);
-  font-size: 14px;
-  width: 20px;
-  text-align: center;
-}
-
-.command-palette-label {
-  flex: 1;
-  font-size: 13px;
-}
-
-.command-palette-shortcut {
-  font-size: 10px;
-  color: var(--text-muted);
-  background: var(--bg-element);
-  padding: 2px 6px;
-  border: 1px solid var(--border-subtle);
-}
-
-.command-palette-empty {
-  padding: 20px;
-  text-align: center;
-  color: var(--text-muted);
-  font-size: 12px;
-}
-
-/* ========================================
    GOAL HISTORY DROPDOWN
    ======================================== */
 .goal-history-container {
@@ -511,7 +417,7 @@ input:focus, select:focus, textarea:focus {
   max-height: 80vh;
   background: var(--bg-panel);
   border: 1px solid var(--danger);
-  box-shadow: 0 0 30px rgba(255, 100, 100, 0.2);
+  box-shadow: 0 0 30px rgba(127, 255, 127, 0.2);
   display: flex;
   flex-direction: column;
   animation: slideDown 0.2s ease;
@@ -523,7 +429,7 @@ input:focus, select:focus, textarea:focus {
   justify-content: space-between;
   padding: 16px;
   border-bottom: 1px solid var(--border-default);
-  background: rgba(255, 100, 100, 0.1);
+  background: rgba(127, 255, 127, 0.1);
 }
 
 .error-modal-title {

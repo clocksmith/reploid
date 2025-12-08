@@ -62,12 +62,12 @@
 
 .sidebar-btn:hover {
     color: var(--primary);
-    background: rgba(0, 255, 255, 0.1);
+    background: rgba(127, 255, 127, 0.1);
 }
 
 .sidebar-btn.active {
     color: var(--primary);
-    background: rgba(0, 255, 255, 0.15);
+    background: rgba(127, 255, 127, 0.15);
     border-left: 2px solid var(--primary);
 }
 
@@ -277,7 +277,7 @@
 }
 
 .telemetry-tag {
-    background: rgba(0, 255, 255, 0.08);
+    background: rgba(127, 255, 127, 0.08);
     padding: 0 6px;
     border-radius: 3px;
 }
@@ -292,11 +292,11 @@
 }
 
 .telemetry-entry.telemetry-warn {
-    border-color: #f9c74f;
+    border-color: #7fff7f;
 }
 
 .telemetry-entry.telemetry-error {
-    border-color: #f94144;
+    border-color: #7fff7f;
 }
 
 /* Schema registry panel */
@@ -436,7 +436,7 @@
 
 .dashboard-header h1 {
     margin: 0 0 var(--space-sm) 0;
-    color: var(--accent-cyan);
+    color: var(--primary);
     font-size: var(--font-xl);
 }
 
@@ -465,15 +465,15 @@
 
 .controls input:focus {
     outline: none;
-    border-color: var(--accent-cyan);
+    border-color: var(--primary);
 }
 
 .controls button {
     padding: var(--space-sm) var(--space-lg);
-    background: var(--accent-cyan-dim);
-    border: 1px solid var(--accent-cyan);
+    background: var(--primary-dim);
+    border: 1px solid var(--primary);
     border-radius: var(--radius-md);
-    color: var(--accent-cyan);
+    color: var(--primary);
     cursor: pointer;
     font-weight: 600;
     font-family: inherit;
@@ -481,7 +481,7 @@
 }
 
 .controls button:hover:not(:disabled) {
-    background: var(--accent-cyan-bright);
+    background: rgba(127, 255, 127, 0.3);
 }
 
 .controls button:disabled {
@@ -492,10 +492,10 @@
 /* Small button variant */
 .btn-small {
     padding: var(--space-xs) var(--space-sm);
-    background: var(--accent-cyan-dim);
-    border: 1px solid var(--accent-cyan);
+    background: var(--primary-dim);
+    border: 1px solid var(--primary);
     border-radius: var(--radius-sm);
-    color: var(--accent-cyan);
+    color: var(--primary);
     cursor: pointer;
     font-size: var(--font-xs);
     font-family: inherit;
@@ -503,7 +503,7 @@
 }
 
 .btn-small:hover {
-    background: var(--accent-cyan-bright);
+    background: rgba(127, 255, 127, 0.3);
 }
 
 .dashboard-main {
@@ -646,7 +646,7 @@
 }
 
 .card-header {
-    color: var(--accent-cyan);
+    color: var(--primary);
     font-weight: bold;
     margin-bottom: var(--space-md);
     padding-bottom: var(--space-sm);
@@ -686,7 +686,7 @@
 }
 
 .status-value {
-    color: var(--accent-cyan);
+    color: var(--primary);
     font-size: var(--font-sm);
     font-weight: 600;
 }
@@ -704,7 +704,7 @@
     padding: var(--space-sm) var(--space-md);
     font-size: var(--font-sm);
     font-weight: 600;
-    color: var(--accent-cyan);
+    color: var(--primary);
     border-bottom: 1px solid var(--border-secondary);
 }
 
@@ -736,12 +736,12 @@
 
 /* Arena Results */
 .arena-result {
-    border-left: 3px solid var(--accent-gold);
+    border-left: 3px solid var(--primary);
 }
 
 .arena-header {
     background: var(--bg-tertiary);
-    color: var(--accent-gold);
+    color: var(--primary);
 }
 
 .arena-solutions {
@@ -759,8 +759,8 @@
 }
 
 .arena-solution.arena-winner {
-    border-color: var(--accent-gold);
-    background: rgba(255, 215, 0, 0.05);
+    border-color: var(--primary);
+    background: rgba(127, 255, 127, 0.05);
 }
 
 .arena-solution-header {
@@ -774,7 +774,7 @@
 .winner-badge {
     display: inline-block;
     padding: 2px 6px;
-    background: var(--accent-gold);
+    background: var(--primary);
     color: var(--bg-primary);
     font-size: 10px;
     font-weight: 700;
@@ -851,7 +851,7 @@
     border-bottom: 1px solid var(--border-default);
     font-size: var(--font-sm);
     font-weight: bold;
-    color: var(--accent-cyan);
+    color: var(--primary);
 }
 
 .debug-content {
@@ -882,7 +882,7 @@
 }
 
 .debug-content::-webkit-scrollbar-thumb:hover {
-    background: var(--accent-cyan);
+    background: var(--primary);
 }
 
 /* Mobile breakpoint */
@@ -1195,19 +1195,6 @@
         padding: 8px 16px;
     }
 
-    /* Command palette on mobile */
-    .command-palette-overlay {
-        padding-top: 10vh;
-    }
-
-    .command-palette {
-        width: 95vw;
-    }
-
-    .command-palette-item {
-        min-height: 48px;
-    }
-
     /* History actions touch friendly */
     .history-actions .toast-btn {
         min-height: 36px;
@@ -1308,7 +1295,7 @@
 .worker-indicator.has-workers {
     border-color: var(--primary);
     color: var(--primary);
-    background: rgba(0, 255, 255, 0.1);
+    background: rgba(127, 255, 127, 0.1);
 }
 
 #worker-indicator-count {
@@ -1392,15 +1379,15 @@
 }
 
 .worker-card.worker-completed {
-    border-left-color: var(--success, #00d084);
+    border-left-color: var(--success, #7fff7f);
 }
 
 .worker-card.worker-error {
-    border-left-color: var(--danger, #ff5555);
+    border-left-color: var(--danger, #7fff7f);
 }
 
 .worker-card.worker-terminated {
-    border-left-color: #ffa000;
+    border-left-color: #7fff7f;
 }
 
 .worker-card-header {
@@ -1479,8 +1466,8 @@
 }
 
 .worker-output-error {
-    color: var(--danger, #ff5555);
-    border-color: var(--danger, #ff5555);
+    color: var(--danger, #7fff7f);
+    border-color: var(--danger, #7fff7f);
 }
 
 .empty-state {
@@ -2126,19 +2113,19 @@ kbd {
 
 /* Genesis diff color coding */
 .diff-added {
-  background: rgba(0, 255, 0, 0.1);
-  border-left: 3px solid #0f0;
+  background: rgba(127, 255, 127, 0.1);
+  border-left: 3px solid #7fff7f;
 }
 
 .diff-deleted {
-  background: rgba(255, 0, 0, 0.1);
-  border-left: 3px solid #f00;
+  background: rgba(127, 127, 127, 0.1);
+  border-left: 3px solid #7f7f7f;
   text-decoration: line-through;
 }
 
 .diff-modified {
-  background: rgba(255, 255, 0, 0.1);
-  border-left: 3px solid #ff0;
+  background: rgba(127, 255, 127, 0.05);
+  border-left: 3px solid #7fff7f;
 }
 
 /* Snapshot timeline */

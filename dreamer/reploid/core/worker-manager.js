@@ -21,12 +21,56 @@ const WorkerManager = {
     const { Utils, VFS, LLMClient, ToolRunner, ResponseParser, EventBus, AuditLogger, SchemaRegistry } = deps;
     const { logger } = Utils;
 
+    const WORKERS_DIR = '/.system/workers';
     const _activeWorkers = new Map();
     const _completedWorkers = new Map();
     const _maxConcurrentWorkers = 10;
     let _workerConfig = null;
     let _modelConfig = null; // Default model config for workers
     let _modelRoles = null; // Role-based model configs (fast, code, orchestrator, local)
+
+    /**
+     * Persist worker state to VFS
+     * @private
+     */
+    const _persistWorker = async (workerId, data) => {
+      if (!VFS) return;
+      try {
+        const path = `${WORKERS_DIR}/${workerId}.json`;
+        await VFS.write(path, JSON.stringify(data, null, 2));
+      } catch (e) {
+        logger.warn(`[WorkerManager] Failed to persist worker ${workerId}:`, e.message);
+      }
+    };
+
+    /**
+     * Load persisted workers from VFS on init
+     * @private
+     */
+    const _loadPersistedWorkers = async () => {
+      if (!VFS) return;
+      try {
+        const files = await VFS.list(WORKERS_DIR);
+        for (const file of files) {
+          if (!file.endsWith('.json')) continue;
+          try {
+            const content = await VFS.read(file);
+            const data = JSON.parse(content);
+            if (data.workerId && data.status !== 'running') {
+              // Only restore completed/error/terminated workers
+              _completedWorkers.set(data.workerId, data);
+            }
+          } catch (e) {
+            // Skip invalid files
+          }
+        }
+        if (_completedWorkers.size > 0) {
+          logger.info(`[WorkerManager] Loaded ${_completedWorkers.size} persisted workers from VFS`);
+        }
+      } catch (e) {
+        // Directory may not exist yet
+      }
+    };
 
     /**
      * Initialize with worker type configuration
@@ -40,6 +84,8 @@ const WorkerManager = {
       if (SchemaRegistry && _workerConfig) {
         SchemaRegistry.registerWorkerTypes(_workerConfig, { builtin: true });
       }
+      // Load persisted workers from VFS
+      await _loadPersistedWorkers();
       logger.info('[WorkerManager] Initialized with worker types:', Object.keys(_workerConfig));
       logger.info('[WorkerManager] Model roles available:', Object.keys(_modelRoles));
       return true;
@@ -171,42 +217,61 @@ const WorkerManager = {
       });
 
       // Track active worker
-      _activeWorkers.set(workerId, {
+      const startTime = Date.now();
+      const workerRecord = {
+        workerId,
         type,
         task,
-        startTime: Date.now(),
+        startTime,
         status: 'running',
+        logs: []
+      };
+      _activeWorkers.set(workerId, {
+        ...workerRecord,
         promise: workerPromise
       });
+
+      // Persist initial worker state
+      _persistWorker(workerId, workerRecord);
 
       // Handle completion
       workerPromise
         .then(result => {
           const workerData = _activeWorkers.get(workerId);
-          const startTime = workerData?.startTime || Date.now();
           _activeWorkers.delete(workerId);
-          _completedWorkers.set(workerId, {
+          const completedRecord = {
+            workerId,
             type,
             task,
+            startTime: workerData?.startTime || startTime,
             status: 'completed',
             result,
-            duration: Date.now() - startTime
-          });
+            logs: workerData?.logs || [],
+            completedTime: Date.now(),
+            duration: Date.now() - (workerData?.startTime || startTime)
+          };
+          _completedWorkers.set(workerId, completedRecord);
+          _persistWorker(workerId, completedRecord);
           if (EventBus) {
             EventBus.emit('worker:completed', { workerId, result });
           }
         })
         .catch(error => {
           const workerData = _activeWorkers.get(workerId);
-          const startTime = workerData?.startTime || Date.now();
           _activeWorkers.delete(workerId);
-          _completedWorkers.set(workerId, {
+          const errorRecord = {
+            workerId,
             type,
             task,
+            startTime: workerData?.startTime || startTime,
             status: 'error',
             error: error.message,
-            duration: Date.now() - startTime
-          });
+            logs: workerData?.logs || [],
+            completedTime: Date.now(),
+            duration: Date.now() - (workerData?.startTime || startTime)
+          };
+          _completedWorkers.set(workerId, errorRecord);
+          _persistWorker(workerId, errorRecord);
           if (EventBus) {
             EventBus.emit('worker:error', { workerId, error: error.message });
           }
@@ -428,6 +493,29 @@ ARGS: {"arg": "value"}`;
     };
 
     /**
+     * Add a log entry to a worker
+     * @param {string} workerId
+     * @param {string} message
+     */
+    const addLog = (workerId, message) => {
+      const worker = _activeWorkers.get(workerId);
+      if (worker) {
+        const logEntry = { timestamp: Date.now(), message };
+        worker.logs = worker.logs || [];
+        worker.logs.push(logEntry);
+        // Persist with updated logs
+        _persistWorker(workerId, {
+          workerId,
+          type: worker.type,
+          task: worker.task,
+          startTime: worker.startTime,
+          status: worker.status,
+          logs: worker.logs
+        });
+      }
+    };
+
+    /**
      * Terminate a specific worker
      * @param {string} workerId
      */
@@ -437,10 +525,18 @@ ARGS: {"arg": "value"}`;
         logger.info(`[WorkerManager] Terminating worker: ${workerId}`);
         // TODO: Actually terminate the Web Worker in Phase 3
         _activeWorkers.delete(workerId);
-        _completedWorkers.set(workerId, {
-          ...worker,
-          status: 'terminated'
-        });
+        const terminatedRecord = {
+          workerId,
+          type: worker.type,
+          task: worker.task,
+          startTime: worker.startTime,
+          status: 'terminated',
+          logs: worker.logs || [],
+          completedTime: Date.now(),
+          duration: Date.now() - worker.startTime
+        };
+        _completedWorkers.set(workerId, terminatedRecord);
+        _persistWorker(workerId, terminatedRecord);
         if (EventBus) {
           EventBus.emit('worker:terminated', { workerId });
         }
@@ -464,9 +560,19 @@ ARGS: {"arg": "value"}`;
     };
 
     /**
-     * Clear completed worker history
+     * Clear completed worker history (also deletes from VFS)
      */
-    const clearHistory = () => {
+    const clearHistory = async () => {
+      // Delete files from VFS
+      if (VFS) {
+        for (const workerId of _completedWorkers.keys()) {
+          try {
+            await VFS.delete(`${WORKERS_DIR}/${workerId}.json`);
+          } catch (e) {
+            // Ignore deletion errors
+          }
+        }
+      }
       _completedWorkers.clear();
     };
 
@@ -478,6 +584,7 @@ ARGS: {"arg": "value"}`;
       list,
       awaitWorkers,
       terminate,
+      addLog,
       getResults,
       clearHistory,
       getToolsForType,

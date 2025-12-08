@@ -72,7 +72,6 @@
 /tools/Tail.js
 /tools/Touch.js
 /tools/WriteFile.js
-/ui/command-palette.js
 /ui/components/confirmation-modal.js
 /ui/components/diff-viewer-ui.js
 /ui/components/hitl-widget.js
