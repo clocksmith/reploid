@@ -38,7 +38,7 @@
     },
     "full": {
       "name": "FULL SUBSTRATE",
-      "description": "Complete cognitive system - 15 additional modules",
+      "description": "Complete cognitive system - 17 additional modules",
       "extends": "reflection",
       "modules": [
         "AuditLogger",
@@ -55,7 +55,9 @@
         "SymbolGrounder",
         "TransformersClient",
         "VFSHMR",
-        "WorkerManager"
+        "WorkerManager",
+        "WebRTCSwarm",
+        "SwarmSync"
       ]
     }
   },
@@ -171,6 +173,12 @@
     "WorkerManager": [
       "core/worker-manager.js",
       "core/worker-agent.js"
+    ],
+    "WebRTCSwarm": [
+      "capabilities/communication/webrtc-swarm.js"
+    ],
+    "SwarmSync": [
+      "capabilities/communication/swarm-sync.js"
     ]
   },
   "sharedFiles": {

@@ -319,6 +319,38 @@ Available capabilities:
 
 The main UI container is `#app`. You can inject elements, modify styles, or create entirely new interfaces.
 
+## Multi-Tab Coordination (WebRTC Swarm)
+
+Multiple browser tabs can coordinate via peer-to-peer WebRTC connections.
+
+### Enabling
+
+Add `?swarm=<room>` to the URL:
+
+```
+Tab 1: http://localhost:8000?swarm=myroom
+Tab 2: http://localhost:8000?swarm=myroom
+```
+
+Both tabs auto-connect to room `reploid-swarm-myroom` and sync state.
+
+**URL param options:**
+- `?swarm=true` - Enable with session-based room (unique per browser)
+- `?swarm=myroom` - Join shared room `reploid-swarm-myroom`
+- `?swarm=goal-abc` - Use any identifier as room name
+
+**Alternative:** `localStorage.setItem('REPLOID_SWARM_ENABLED', 'true')`
+
+### What Syncs
+- Goals and state updates (Last-Writer-Wins merge with Lamport clocks)
+- Reflections (with provenance tracking)
+- Artifacts (chunked transfer, 256KB max)
+
+### Limitations
+- STUN-only (no TURN relay) - may fail behind symmetric NAT
+- 64KB max message size
+- Requires signaling server running (`npm run dev` includes it)
+
 ## Tips
 
 - Read `/core/agent-loop.js` to understand your own execution

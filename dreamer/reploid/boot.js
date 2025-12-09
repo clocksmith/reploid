@@ -57,6 +57,10 @@ import SymbolGrounder from './capabilities/cognition/symbolic/symbol-grounder.js
 import CognitionAPI from './capabilities/cognition/cognition-api.js';
 import MultiModelCoordinator from './capabilities/intelligence/multi-model-coordinator.js';
 
+// Communication modules
+import WebRTCSwarm from './capabilities/communication/webrtc-swarm.js';
+import SwarmSync from './capabilities/communication/swarm-sync.js';
+
 // Boot UI (model config, provider detection)
 import { initModelConfig } from './ui/boot/model-config/index.js';
 import GoalHistory from './ui/goal-history.js';
@@ -180,7 +184,8 @@ import GoalHistory from './ui/goal-history.js';
       ReflectionAnalyzer, AgentLoop, SubstrateLoader, PerformanceMonitor, SelfTester,
       EmbeddingStore, SemanticMemory, KnowledgeGraph, RuleEngine, SymbolGrounder, CognitionAPI, MultiModelCoordinator,
       VFSSandbox, ArenaCompetitor, ArenaMetrics, ArenaHarness,
-      WorkerManager, TelemetryTimeline, ErrorStore, ReplayEngine, ToolExecutor
+      WorkerManager, TelemetryTimeline, ErrorStore, ReplayEngine, ToolExecutor,
+      WebRTCSwarm, SwarmSync
     };
 
     // Register all modules from resolved list (includes inherited)
@@ -308,6 +313,33 @@ import GoalHistory from './ui/goal-history.js';
       logger.info('[Boot] Genesis snapshot created - pristine state preserved');
     } catch (e) {
       logger.warn('[Boot] Failed to create genesis snapshot:', e.message);
+    }
+
+    // Initialize WebRTC Swarm (opt-in via feature flag or URL param)
+    if (resolvedModules.includes('WebRTCSwarm')) {
+      try {
+        // Check URL param first, then localStorage
+        const urlParams = new URLSearchParams(window.location.search);
+        const swarmParam = urlParams.get('swarm');
+        const swarmEnabled = swarmParam || localStorage.getItem('REPLOID_SWARM_ENABLED') === 'true';
+        if (swarmEnabled) {
+          const swarm = await container.resolve('WebRTCSwarm');
+          await swarm.init();
+          logger.info('[Boot] WebRTC Swarm initialized');
+
+          // Initialize SwarmSync if swarm is active
+          if (resolvedModules.includes('SwarmSync')) {
+            const swarmSync = await container.resolve('SwarmSync');
+            await swarmSync.init();
+            logger.info('[Boot] Swarm Sync initialized');
+          }
+        } else {
+          logger.info('[Boot] WebRTC Swarm disabled (set REPLOID_SWARM_ENABLED=true to enable)');
+        }
+      } catch (e) {
+        logger.warn('[Boot] WebRTC Swarm failed to initialize:', e.message);
+        // Fail quietly - swarm is optional
+      }
     }
 
     await container.resolve('StateManager');

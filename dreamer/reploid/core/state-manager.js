@@ -81,6 +81,8 @@ const StateManager = {
     const setGoal = async (goalText) => {
       if (!_state) await load();
 
+      const goalId = generateId('goal');
+
       // Use pure helper to maintain goal history
       _state = StateHelpersPure.pushGoal(_state, goalText);
 
@@ -89,6 +91,9 @@ const StateManager = {
       if (AuditLogger && AuditLogger.logAgentAction) {
         AuditLogger.logAgentAction('SET_GOAL', 'StateManager', { goal: goalText });
       }
+
+      // Emit event for swarm sync
+      EventBus.emit('goal:set', { id: goalId, goal: goalText, timestamp: Date.now() });
 
       logger.info(`[StateManager] Goal set: "${goalText.substring(0, 50)}..."`);
     };
