@@ -89,9 +89,7 @@
       "styles/proto/vfs.css",
       "styles/proto/responsive.css"
     ],
-    "docs": [
-      "docs/REPLOID.md"
-    ]
+    "docs": []
   },
   "blueprintPaths": {
     "none": {

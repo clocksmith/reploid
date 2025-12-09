@@ -9,13 +9,13 @@
   --bg-panel: #000000;     /* Pure Black */
   --bg-element: #000000;   /* Pure Black */
   --bg-hover: #000000;     /* Pure Black */
-  --bg-active: rgba(127, 255, 127, 0.1);
+  --bg-active: rgba(173, 252, 65, 0.1);
 
   /* ---- Borders ---- */
   --border-subtle: #7f7f7f;
   --border-default: #7f7f7f;
   --border-light: #7f7f7f;
-  --border-active: #7fff7f;
+  --border-active: #adfc41;
 
   /* ---- Text ---- */
   --text-primary: #ffffff;
@@ -24,26 +24,26 @@
   --text-inverse: #000000;
 
   /* ---- Accents (Green) ---- */
-  --primary: #7fff7f;
-  --primary-dim: rgba(127, 255, 127, 0.15);
-  --primary-glow: 0 0 10px rgba(127, 255, 127, 0.4);
+  --primary: #adfc41;
+  --primary-dim: rgba(173, 252, 65, 0.15);
+  --primary-glow: 0 0 10px rgba(173, 252, 65, 0.4);
 
-  --secondary: #7fff7f;
-  --secondary-dim: rgba(127, 255, 127, 0.15);
+  --secondary: #adfc41;
+  --secondary-dim: rgba(173, 252, 65, 0.15);
 
-  --success: #7fff7f;
-  --warning: #7fff7f;
-  --danger: #7fff7f;
+  --success: #adfc41;
+  --warning: #adfc41;
+  --danger: #adfc41;
 
   /* ---- Typography ---- */
   --font-mono: 'Courier New', 'Consolas', monospace;
   --font-sans: 'Inter', system-ui, sans-serif;
-  --font-base: 13px;
-  --font-xs: 11px;
-  --font-sm: 12px;
+  --font-base: 14px;
+  --font-xs: 12px;
+  --font-sm: 13px;
   --font-md: var(--font-base);
-  --font-lg: 14px;
-  --font-xl: 16px;
+  --font-lg: 15px;
+  --font-xl: 17px;
 
   /* ---- Spacing & Radius ---- */
   --space-sm: 8px;
@@ -72,7 +72,7 @@ body::before {
   content: " ";
   display: block;
   position: fixed; top: 0; left: 0; bottom: 0; right: 0;
-  background: linear-gradient(rgba(0, 0, 0, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(127, 255, 127, 0.02), rgba(127, 255, 127, 0.02), rgba(127, 255, 127, 0.02));
+  background: linear-gradient(rgba(0, 0, 0, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(173, 252, 65, 0.02), rgba(173, 252, 65, 0.02), rgba(173, 252, 65, 0.02));
   z-index: 2;
   background-size: 100% 2px, 3px 100%;
   pointer-events: none;
@@ -104,7 +104,7 @@ body::before {
 .btn.primary {
   border-color: var(--primary);
   color: var(--primary);
-  box-shadow: 0 0 5px rgba(127,255,127,0.1);
+  box-shadow: 0 0 5px rgba(173,252,65,0.1);
 }
 
 .btn.primary:hover:not(:disabled) {
@@ -149,7 +149,7 @@ input, select, textarea {
 input:focus, select:focus, textarea:focus {
   outline: none;
   border-color: var(--primary);
-  box-shadow: inset 0 0 10px rgba(127, 255, 127, 0.1);
+  box-shadow: inset 0 0 10px rgba(173, 252, 65, 0.1);
 }
 
 /* ========================================
@@ -314,8 +314,8 @@ input:focus, select:focus, textarea:focus {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 10px;
-  color: var(--text-muted);
+  font-size: 12px;
+  color: var(--text-primary);
 }
 
 .token-budget-bar {
@@ -422,7 +422,7 @@ input:focus, select:focus, textarea:focus {
   max-height: 80vh;
   background: var(--bg-panel);
   border: 1px solid var(--danger);
-  box-shadow: 0 0 30px rgba(127, 255, 127, 0.2);
+  box-shadow: 0 0 30px rgba(173, 252, 65, 0.2);
   display: flex;
   flex-direction: column;
   animation: slideDown 0.2s ease;
@@ -434,7 +434,7 @@ input:focus, select:focus, textarea:focus {
   justify-content: space-between;
   padding: 16px;
   border-bottom: 1px solid var(--border-default);
-  background: rgba(127, 255, 127, 0.1);
+  background: rgba(173, 252, 65, 0.1);
 }
 
 .error-modal-title {

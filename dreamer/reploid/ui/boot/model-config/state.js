@@ -6,8 +6,8 @@ export const MAX_MODELS = 4;
 export const CONNECTION_TYPE_LABELS = {
     'proxy-local': 'Proxy → Local (Ollama)',
     'browser-local': 'Browser (WebLLM/Transformers)',
-    'proxy-cloud': 'Via Proxy Server',
-    'browser-cloud': 'Direct API (Recommended)'
+    'proxy-cloud': 'Via Proxy Server (Recommended)',
+    'browser-cloud': 'Direct API (Requires Key)'
 };
 
 export const HOST_TYPE_LABELS = {
@@ -29,7 +29,7 @@ let availableProviders = {
     webgpu: { online: false, models: [] },
     transformers: { online: false, models: [] },
     dreamer: { online: false, models: [], capabilities: null },
-    proxy: { online: false }
+    proxy: { online: false, configuredProviders: [] }
 };
 
 // Getters

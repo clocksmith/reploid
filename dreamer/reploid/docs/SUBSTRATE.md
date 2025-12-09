@@ -108,8 +108,6 @@ Event namespaces: `agent:*`, `tool:*`, `worker:*`, `vfs:*`, `reflection:*`, `goa
 - `webrtc-swarm.js` - WebRTC P2P transport with session-scoped rooms
 - `swarm-sync.js` - LWW state synchronization with Lamport clocks
 
-See [REPLOID.md](./REPLOID.md) for swarm usage instructions.
-
 ---
 
 ## Server Components

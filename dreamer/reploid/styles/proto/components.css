@@ -14,7 +14,7 @@
 }
 
 .btn-small:hover {
-    background: rgba(127, 255, 127, 0.3);
+    background: rgba(173, 252, 65, 0.3);
 }
 
 /* Utility Classes */
@@ -285,8 +285,8 @@ kbd {
 
 /* Genesis diff color coding */
 .diff-added {
-    background: rgba(127, 255, 127, 0.1);
-    border-left: 3px solid #7fff7f;
+    background: rgba(173, 252, 65, 0.1);
+    border-left: 3px solid #adfc41;
 }
 
 .diff-deleted {
@@ -296,8 +296,8 @@ kbd {
 }
 
 .diff-modified {
-    background: rgba(127, 255, 127, 0.05);
-    border-left: 3px solid #7fff7f;
+    background: rgba(173, 252, 65, 0.05);
+    border-left: 3px solid #adfc41;
 }
 
 /* Scrollbar */

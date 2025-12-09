@@ -17,7 +17,14 @@ Guide to all documentation in the REPLOID project.
 ### Architecture
 - **[docs/SYSTEM_ARCHITECTURE.md](./SYSTEM_ARCHITECTURE.md)** - Complete system design
 - **[dreamer/reploid/blueprints/](../dreamer/reploid/blueprints/)** - Architectural specifications (100+ files)
-  - See [blueprints/README.md](../dreamer/reploid/blueprints/README.md) for index
+
+**Key Blueprints:**
+- [0x000002 - Application Orchestration](../dreamer/reploid/blueprints/0x000002-application-orchestration.md) - Boot and DI
+- [0x000008 - Agent Cognitive Cycle](../dreamer/reploid/blueprints/0x000008-agent-cognitive-cycle.md) - Core loop
+- [0x000047 - Verification Manager](../dreamer/reploid/blueprints/0x000047-verification-manager.md) - Safety checks
+- [0x000051 - HITL Controller](../dreamer/reploid/blueprints/0x000051-hitl-controller.md) - Human oversight
+- [0x000043 - Genesis Snapshot](../dreamer/reploid/blueprints/0x000043-genesis-snapshot-system.md) - Rollback system
+- [0x000034 - Swarm Orchestration](../dreamer/reploid/blueprints/0x000034-swarm-orchestration.md) - Multi-agent
 
 ### Reference
 - **[docs/API.md](./API.md)** - Module API documentation
@@ -33,45 +40,39 @@ Guide to all documentation in the REPLOID project.
 
 ```
 reploid/
-├── index.html              # Boot screen entry point
-├── boot.js                 # Hydration and initialization
-├── sw-module-loader.js     # Service worker for VFS modules
+├── dreamer/reploid/            # Main application
+│   ├── index.html              # Boot screen entry point
+│   ├── boot.js                 # Hydration and initialization
+│   ├── sw-module-loader.js     # Service worker for VFS modules
+│   │
+│   ├── core/                   # Core substrate
+│   │   ├── agent-loop.js       # Cognitive cycle (Think → Act → Observe)
+│   │   ├── vfs.js              # Virtual filesystem (IndexedDB)
+│   │   ├── llm-client.js       # Multi-provider LLM abstraction
+│   │   ├── tool-runner.js      # Dynamic tool loading/execution
+│   │   └── verification-manager.js  # Pre-flight safety checks
+│   │
+│   ├── infrastructure/         # Support services
+│   │   ├── event-bus.js        # Pub/sub event system
+│   │   ├── di-container.js     # Dependency injection
+│   │   ├── hitl-controller.js  # Human-in-the-loop oversight
+│   │   └── audit-logger.js     # Execution logging
+│   │
+│   ├── capabilities/           # Extended capabilities
+│   │   └── communication/      # Swarm sync, WebRTC transport
+│   │
+│   ├── tools/                  # Agent tools (CamelCase)
+│   │
+│   ├── config/                 # Configuration
+│   │   └── genesis-levels.json # Module/worker/role definitions
+│   │
+│   ├── blueprints/             # Architectural specifications
+│   │   └── (100+ design docs)
+│   │
+│   └── tests/                  # Test suites
 │
-├── core/                   # Core substrate
-│   ├── agent-loop.js       # Cognitive cycle (Think → Act → Observe)
-│   ├── vfs.js              # Virtual filesystem (IndexedDB)
-│   ├── llm-client.js       # Multi-provider LLM abstraction
-│   ├── tool-runner.js      # Dynamic tool loading/execution
-│   ├── worker-manager.js   # Multi-worker orchestration
-│   ├── persona-manager.js  # System prompt customization
-│   ├── response-parser.js  # Tool call parsing
-│   └── verification-manager.js  # Pre-flight safety checks
-│
-├── infrastructure/         # Support services
-│   ├── event-bus.js        # Pub/sub event system
-│   ├── di-container.js     # Dependency injection
-│   ├── hitl-controller.js  # Human-in-the-loop oversight
-│   ├── audit-logger.js     # Execution logging
-│   ├── circuit-breaker.js  # Failure tracking
-│   └── rate-limiter.js     # API rate limiting
-│
-├── ui/                     # User interface
-│   └── proto.js            # Proto UI (main interface)
-│
-├── tools/                  # Agent tools (CamelCase)
-│   ├── ReadFile.js, WriteFile.js, ...
-│   ├── SpawnWorker.js, ListWorkers.js, AwaitWorkers.js
-│   └── python/             # Pyodide runtime
-│
-├── config/                 # Configuration
-│   └── genesis-levels.json # Module/worker/role definitions
-│
-├── testing/                # Test infrastructure
-│   └── arena/              # Arena harness and VFS sandbox
-│
-├── docs/                   # Documentation
-├── blueprints/             # Architectural specifications
-└── server/                 # Proxy server
+├── docs/                       # Human-facing documentation
+└── server/                     # Proxy server
 ```
 
 ---
@@ -105,17 +106,17 @@ reploid/
 ## Quick Reference
 
 **Key Files:**
-- `/config/genesis-levels.json` - Module registry and worker types
-- `/boot.js` - Application bootstrap
-- `/index.html` - Entry point
+- `dreamer/reploid/config/genesis-levels.json` - Module registry and worker types
+- `dreamer/reploid/boot.js` - Application bootstrap
+- `dreamer/reploid/index.html` - Entry point
 
 **Key Directories:**
-- `/core` - Agent substrate modules
-- `/tools` - Dynamic agent tools
-- `/infrastructure` - Support services
-- `/ui` - Proto UI
-- `/docs` - Documentation
-- `/blueprints` - Architectural specifications
+- `dreamer/reploid/core/` - Agent substrate modules
+- `dreamer/reploid/tools/` - Dynamic agent tools
+- `dreamer/reploid/infrastructure/` - Support services
+- `dreamer/reploid/ui/` - Proto UI
+- `dreamer/reploid/blueprints/` - Architectural specifications
+- `docs/` - Human-facing documentation
 
 ---
 

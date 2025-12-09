@@ -105,16 +105,16 @@ These are high-value but high-effort. Pursue only after Phase 3.
 - [ ] Proof-carrying code for self-modifications
 - [ ] Invariant checking across mutations
 
-### Multi-Agent Coordination
+### Multi-Agent Coordination (Partial)
 
-- [ ] Swarm orchestration (`blueprints/0x000034-swarm-orchestration.md`)
-- [ ] Cross-tab coordination (`blueprints/0x00003A-tab-coordination.md`)
+- [x] Swarm orchestration (`blueprints/0x000034-swarm-orchestration.md`) - SwarmSync implemented
+- [x] Cross-tab coordination (`blueprints/0x00003A-tab-coordination.md`) - BroadcastChannel transport
 - [ ] Consensus protocols for distributed agents
 
-### WebRTC P2P
+### WebRTC P2P (Partial)
 
-- [ ] Peer-to-peer agent communication (`blueprints/0x00003E-webrtc-swarm-transport.md`)
-- [ ] Distributed VFS sync
+- [x] Peer-to-peer agent communication (`blueprints/0x00003E-webrtc-swarm-transport.md`) - SwarmTransport implemented
+- [x] Distributed VFS sync - LWW merge with Lamport timestamps
 - [ ] Federated learning primitives
 
 ---
@@ -131,13 +131,13 @@ These are explicitly out of scope:
 
 ## Metrics for Success
 
-| Metric | Target | Current |
-|--------|--------|---------|
-| Core module test coverage | >80% | ~40% |
-| Mean time to recovery (bad mutation) | <5s | ~30s |
-| HITL adoption (users who opt-in) | tracked | ready |
-| Audit log completeness | 100% | ~95% |
-| Arena pass rate (self-mod gating) | >90% | ready |
+| Metric | Target | Status |
+|--------|--------|--------|
+| Core module test coverage | >80% | In progress |
+| Mean time to recovery (bad mutation) | <5s | Genesis rollback ready |
+| HITL adoption (users who opt-in) | tracked | Implemented |
+| Audit log completeness | 100% | Implemented |
+| Arena pass rate (self-mod gating) | >90% | Implemented |
 
 ---
 

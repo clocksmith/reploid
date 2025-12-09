@@ -9,7 +9,7 @@ import {
     updateModel
 } from './state.js';
 import { cloudProviders, getModelsForProvider, getConnectionOptions } from './providers.js';
-import { renderModelCards, updateGoalInputState, updateModelPickerDropdown } from './cards.js';
+import { renderModelCards, updateGoalInputState } from './cards.js';
 
 // Check if Native Bridge is available (lazy loaded)
 let bridgeAvailableCache = null;
@@ -294,7 +294,6 @@ export function saveModel() {
     renderModelCards();
     saveToStorage();
     updateGoalInputState();
-    updateModelPickerDropdown();
     closeInlineForm();
 
     console.log('[ModelConfig] Model saved:', modelConfig);
@@ -669,7 +668,6 @@ async function autoAddImportedModel(modelId) {
     renderModelCards();
     saveToStorage();
     updateGoalInputState();
-    updateModelPickerDropdown();
 
     console.log('[GGUF Import] Model added to list:', modelConfig);
 }
@@ -829,7 +827,7 @@ function renderBrowseEntries(entries) {
         <div class="browse-entry ${entry.isDir ? 'browse-entry-dir' : ''}"
              data-name="${entry.name}"
              data-isdir="${entry.isDir}">
-            <span class="browse-entry-icon">${entry.isDir ? '📁' : '📄'}</span>
+            <span class="browse-entry-icon">${entry.isDir ? '☗' : '☐'}</span>
             <span class="browse-entry-name">${entry.name}</span>
             <span class="browse-entry-size">${entry.isDir ? '' : formatSize(entry.size)}</span>
         </div>

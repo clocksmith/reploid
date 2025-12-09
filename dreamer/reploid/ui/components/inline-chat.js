@@ -64,12 +64,14 @@ const InlineChat = {
         return;
       }
 
-      // Send button
-      _container.addEventListener('click', (e) => {
-        if (e.target.closest('.inline-chat-send')) {
+      // Send button - bind directly to button element
+      const sendBtn = _container.querySelector('.inline-chat-send');
+      if (sendBtn) {
+        sendBtn.addEventListener('click', (e) => {
+          e.preventDefault();
           sendMessage();
-        }
-      });
+        });
+      }
 
       // Enter key to send
       if (_input) {
@@ -86,16 +88,18 @@ const InlineChat = {
     };
 
     const sendMessage = () => {
-      if (!_input) {
+      // Use cached _input reference first, fall back to query
+      const input = _input || _container?.querySelector('.inline-chat-input');
+      if (!input) {
         console.warn('[InlineChat] Input not found');
         return;
       }
 
-      const content = _input.value.trim();
+      const content = input.value.trim();
       if (!content) return;
 
       // Clear input immediately for better UX
-      _input.value = '';
+      input.value = '';
 
       try {
         // Emit event for AgentLoop to pick up
@@ -134,11 +138,12 @@ const InlineChat = {
         }, 1000);
       }
 
-      _input.focus();
+      input.focus();
     };
 
     const focus = () => {
-      if (_input) _input.focus();
+      const input = _container?.querySelector('.inline-chat-input');
+      if (input) input.focus();
     };
 
     const cleanup = () => {
@@ -155,163 +160,4 @@ const InlineChat = {
   }
 };
 
-// CSS styles - using cyan (#00bcd4) for consistency with REPLOID theme
-const INLINE_CHAT_STYLES = `
-.inline-chat {
-  background: rgba(0, 0, 0, 0.4);
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  padding: 8px 12px;
-}
-
-.inline-chat-input-row {
-  display: flex;
-  gap: 8px;
-}
-
-.inline-chat-input {
-  flex: 1;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: 6px;
-  padding: 8px 12px;
-  color: #fff;
-  font-size: 13px;
-  font-family: inherit;
-  outline: none;
-  transition: border-color 0.15s ease;
-}
-
-.inline-chat-input:focus {
-  border-color: rgba(0, 188, 212, 0.5);
-}
-
-.inline-chat-input::placeholder {
-  color: rgba(255, 255, 255, 0.3);
-}
-
-.inline-chat-send {
-  background: rgba(0, 188, 212, 0.2);
-  border: 1px solid rgba(0, 188, 212, 0.3);
-  color: #00bcd4;
-  padding: 8px 14px;
-  border-radius: 6px;
-  font-size: 14px;
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-
-.inline-chat-send:hover {
-  background: rgba(0, 188, 212, 0.3);
-  border-color: rgba(0, 188, 212, 0.5);
-}
-
-.inline-chat-send:active {
-  transform: scale(0.95);
-}
-
-.inline-chat-send.sent {
-  background: rgba(102, 187, 106, 0.3);
-  border-color: rgba(102, 187, 106, 0.5);
-  color: #66bb6a;
-}
-
-/* Human message display in history */
-.history-entry.human-message {
-  background: rgba(0, 188, 212, 0.1);
-  border-left: 3px solid #00bcd4;
-}
-
-.history-entry.human-message .entry-label {
-  color: #00bcd4;
-}
-
-/* Approval prompt in history */
-.history-entry.approval-pending {
-  background: rgba(255, 165, 0, 0.15);
-  border-left: 3px solid #ffa500;
-  padding: 12px;
-}
-
-.approval-header {
-  font-weight: 600;
-  color: #ffa500;
-  margin-bottom: 8px;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.approval-action {
-  font-size: 12px;
-  color: rgba(255, 255, 255, 0.8);
-  margin-bottom: 8px;
-}
-
-.approval-data {
-  background: rgba(0, 0, 0, 0.3);
-  border-radius: 4px;
-  padding: 8px;
-  font-size: 11px;
-  max-height: 150px;
-  overflow-y: auto;
-  margin-bottom: 10px;
-  white-space: pre-wrap;
-  word-break: break-all;
-}
-
-.approval-buttons {
-  display: flex;
-  gap: 8px;
-}
-
-.approval-buttons button {
-  flex: 1;
-  padding: 8px 16px;
-  border-radius: 4px;
-  border: none;
-  cursor: pointer;
-  font-size: 12px;
-  font-weight: 500;
-  transition: all 0.15s ease;
-}
-
-.approval-buttons .approve-btn {
-  background: rgba(102, 187, 106, 0.2);
-  color: #66bb6a;
-  border: 1px solid rgba(102, 187, 106, 0.3);
-}
-
-.approval-buttons .approve-btn:hover {
-  background: rgba(102, 187, 106, 0.3);
-}
-
-.approval-buttons .reject-btn {
-  background: rgba(244, 135, 113, 0.2);
-  color: #f48771;
-  border: 1px solid rgba(244, 135, 113, 0.3);
-}
-
-.approval-buttons .reject-btn:hover {
-  background: rgba(244, 135, 113, 0.3);
-}
-
-.approval-resolved {
-  opacity: 0.5;
-  pointer-events: none;
-}
-
-.approval-resolved .approval-buttons {
-  display: none;
-}
-
-.approval-resolved::after {
-  content: attr(data-resolution);
-  display: block;
-  margin-top: 8px;
-  font-size: 11px;
-  color: rgba(255, 255, 255, 0.5);
-}
-`;
-
 export default InlineChat;
-export { INLINE_CHAT_STYLES };

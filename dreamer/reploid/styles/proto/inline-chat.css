@@ -1,0 +1,158 @@
+/* Inline Chat - Human-in-the-loop message input */
+
+.inline-chat {
+  background: rgba(0, 0, 0, 0.4);
+  border-top: 1px solid var(--primary-dim, rgba(173, 252, 65, 0.2));
+  padding: 8px 12px;
+}
+
+.inline-chat-input-row {
+  display: flex;
+  gap: 8px;
+}
+
+.inline-chat-input {
+  flex: 1;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--primary-dim, rgba(173, 252, 65, 0.3));
+  border-radius: 4px;
+  padding: 8px 12px;
+  color: var(--text-primary, #fff);
+  font-size: 13px;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+
+.inline-chat-input:focus {
+  border-color: var(--primary, rgba(173, 252, 65, 0.6));
+}
+
+.inline-chat-input::placeholder {
+  color: var(--text-muted, rgba(255, 255, 255, 0.3));
+}
+
+.inline-chat-send {
+  background: var(--primary-dim, rgba(173, 252, 65, 0.15));
+  border: 1px solid rgba(173, 252, 65, 0.4);
+  color: var(--primary, #adfc41);
+  padding: 8px 14px;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  pointer-events: auto;
+  user-select: none;
+}
+
+.inline-chat-send:hover {
+  background: rgba(173, 252, 65, 0.25);
+  border-color: rgba(173, 252, 65, 0.6);
+}
+
+.inline-chat-send:active {
+  transform: scale(0.95);
+}
+
+.inline-chat-send.sent {
+  background: rgba(173, 252, 65, 0.3);
+  border-color: rgba(173, 252, 65, 0.6);
+  color: var(--primary, #adfc41);
+}
+
+/* Human message display in history */
+.history-entry.human-message {
+  background: rgba(173, 252, 65, 0.1);
+  border-left: 3px solid var(--primary, #adfc41);
+}
+
+.history-entry.human-message .entry-label {
+  color: var(--primary, #adfc41);
+}
+
+/* Approval prompt in history */
+.history-entry.approval-pending {
+  background: rgba(255, 165, 0, 0.15);
+  border-left: 3px solid var(--warning, #ffa500);
+  padding: 12px;
+}
+
+.approval-header {
+  font-weight: 600;
+  color: var(--warning, #ffa500);
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.approval-action {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.8);
+  margin-bottom: 8px;
+}
+
+.approval-data {
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 4px;
+  padding: 8px;
+  font-size: 11px;
+  max-height: 150px;
+  overflow-y: auto;
+  margin-bottom: 10px;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.approval-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.approval-buttons button {
+  flex: 1;
+  padding: 8px 16px;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 500;
+  transition: all 0.15s ease;
+}
+
+.approval-buttons .approve-btn {
+  background: rgba(102, 187, 106, 0.2);
+  color: var(--success, #66bb6a);
+  border: 1px solid rgba(102, 187, 106, 0.3);
+}
+
+.approval-buttons .approve-btn:hover {
+  background: rgba(102, 187, 106, 0.3);
+}
+
+.approval-buttons .reject-btn {
+  background: rgba(244, 135, 113, 0.2);
+  color: var(--danger, #f48771);
+  border: 1px solid rgba(244, 135, 113, 0.3);
+}
+
+.approval-buttons .reject-btn:hover {
+  background: rgba(244, 135, 113, 0.3);
+}
+
+.approval-resolved {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.approval-resolved .approval-buttons {
+  display: none;
+}
+
+.approval-resolved::after {
+  content: attr(data-resolution);
+  display: block;
+  margin-top: 8px;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.5);
+}

@@ -5,7 +5,7 @@
  */
 
 import Toast from '../toast.js';
-import InlineChat, { INLINE_CHAT_STYLES } from '../components/inline-chat.js';
+import InlineChat from '../components/inline-chat.js';
 
 import { createTelemetryManager } from './telemetry.js';
 import { createSchemaManager } from './schemas.js';
@@ -40,12 +40,14 @@ const Proto = {
     // Event subscriptions
     let _subscriptionIds = [];
 
-    // Scroll throttling
+    // Scroll throttling and sticky scroll behavior
     let _historyScrollScheduled = false;
     let _reflectionScrollScheduled = false;
+    let _historyFollowMode = true; // Auto-scroll to bottom on new content
 
     const scheduleHistoryScroll = () => {
       if (_historyScrollScheduled) return;
+      if (!_historyFollowMode) return; // Don't auto-scroll if user scrolled away
       _historyScrollScheduled = true;
       requestAnimationFrame(() => {
         const container = document.getElementById('history-container');
@@ -765,12 +767,21 @@ const Proto = {
       const chatContainer = document.getElementById('inline-chat-container');
       if (chatContainer && _inlineChat) {
         _inlineChat.init(chatContainer);
-        if (!document.getElementById('inline-chat-styles')) {
-          const style = document.createElement('style');
-          style.id = 'inline-chat-styles';
-          style.textContent = INLINE_CHAT_STYLES;
-          document.head.appendChild(style);
-        }
+      }
+
+      // Sticky scroll: track when user scrolls away/back to bottom
+      const historyContainer = document.getElementById('history-container');
+      if (historyContainer) {
+        historyContainer.addEventListener('scroll', () => {
+          const distanceFromBottom = historyContainer.scrollHeight - historyContainer.scrollTop - historyContainer.clientHeight;
+          // If user scrolls more than 100px from bottom, disable follow mode
+          // If user scrolls back to within 50px of bottom, re-enable follow mode
+          if (distanceFromBottom > 100) {
+            _historyFollowMode = false;
+          } else if (distanceFromBottom < 50) {
+            _historyFollowMode = true;
+          }
+        });
       }
 
       // Load initial state

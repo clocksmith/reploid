@@ -6,4 +6,6 @@
 @import url('./vfs.css');
 @import url('./history.css');
 @import url('./components.css');
+@import url('./inline-chat.css');
+@import url('./hitl.css');
 @import url('./responsive.css');

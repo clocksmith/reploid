@@ -11,7 +11,7 @@ export const renderProtoTemplate = (escapeHtml, goalFromBoot) => `
     <button class="sidebar-btn" data-tab="telemetry" title="Telemetry (4)">☡</button>
     <button class="sidebar-btn" data-tab="schemas" title="Schemas (5)">☷</button>
     <button class="sidebar-btn" data-tab="workers" title="Workers" id="workers-tab-btn">&#x2692;</button>
-    <button class="sidebar-btn" data-tab="replay" title="Replay (R)">&#x25B6;</button>
+    <button class="sidebar-btn" data-tab="replay" title="Replay (R)">&#x21BA;</button>
     <button class="sidebar-btn" data-tab="debug" title="Debug">⚙</button>
     <div class="sidebar-spacer"></div>
     <button id="btn-toggle" class="sidebar-btn" title="Stop (Esc)">&#x25A0;</button>
@@ -37,10 +37,7 @@ export const renderProtoTemplate = (escapeHtml, goalFromBoot) => `
     <div class="workspace-header">
       <div class="workspace-title">
         <span class="text-secondary">Goal:</span>
-        <span id="agent-goal">${escapeHtml(goalFromBoot)}</span>
-        <div class="worker-indicator" id="worker-indicator" title="No active workers">
-          &#x2692; workers <span id="worker-indicator-count">0</span>
-        </div>
+        <span id="agent-goal" class="goal-text">${escapeHtml(goalFromBoot)}</span>
       </div>
       <div class="workspace-status">
         <div class="token-budget" title="Token Budget">
@@ -54,6 +51,9 @@ export const renderProtoTemplate = (escapeHtml, goalFromBoot) => `
         <span class="text-muted">|</span>
         <span class="text-muted">Cycle</span>
         <span id="agent-cycle">0</span>
+        <span class="text-muted">|</span>
+        <span class="text-muted">Workers</span>
+        <span id="worker-indicator-count">0</span>
       </div>
     </div>
 

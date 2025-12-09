@@ -14,13 +14,13 @@ const SwarmSync = {
     id: 'SwarmSync',
     version: '1.0.0',
     genesis: { introduced: 'full' },
-    dependencies: ['Utils', 'EventBus', 'WebRTCSwarm', 'StateManager', 'ReflectionStore'],
+    dependencies: ['Utils', 'EventBus', 'SwarmTransport', 'VFS', 'ReflectionStore'],
     async: true,
     type: 'capability'
   },
 
   factory: (deps) => {
-    const { Utils, EventBus, WebRTCSwarm, StateManager, ReflectionStore } = deps;
+    const { Utils, EventBus, SwarmTransport, VFS, ReflectionStore } = deps;
     const { logger, generateId } = Utils;
 
     // LWW State Store: id -> { value, clock, peerId, updatedAt }
@@ -56,8 +56,8 @@ const SwarmSync = {
       return {
         id,
         value,
-        clock: WebRTCSwarm.tick(), // Increment clock on local write
-        peerId: WebRTCSwarm._getPeerId(),
+        clock: SwarmTransport.tick(), // Increment clock on local write
+        peerId: SwarmTransport._getPeerId(),
         updatedAt: Date.now(),
         sharedFrom: null
       };
@@ -71,7 +71,7 @@ const SwarmSync = {
       _syncedState.set(id, entry);
 
       // Broadcast update
-      WebRTCSwarm.broadcast('goal-update', {
+      SwarmTransport.broadcast('goal-update', {
         id,
         value,
         clock: entry.clock,
@@ -135,14 +135,14 @@ const SwarmSync = {
      */
     const init = async () => {
       // Register WebRTC message handlers
-      WebRTCSwarm.onMessage('sync-request', handleSyncRequest);
-      WebRTCSwarm.onMessage('sync-response', handleSyncResponse);
-      WebRTCSwarm.onMessage('goal-update', handleGoalUpdate);
-      WebRTCSwarm.onMessage('reflection-share', handleReflectionShare);
-      WebRTCSwarm.onMessage('artifact-announce', handleArtifactAnnounce);
-      WebRTCSwarm.onMessage('artifact-request', handleArtifactRequest);
-      WebRTCSwarm.onMessage('artifact-chunk', handleArtifactChunk);
-      WebRTCSwarm.onMessage('artifact-ack', handleArtifactAck);
+      SwarmTransport.onMessage('sync-request', handleSyncRequest);
+      SwarmTransport.onMessage('sync-response', handleSyncResponse);
+      SwarmTransport.onMessage('goal-update', handleGoalUpdate);
+      SwarmTransport.onMessage('reflection-share', handleReflectionShare);
+      SwarmTransport.onMessage('artifact-announce', handleArtifactAnnounce);
+      SwarmTransport.onMessage('artifact-request', handleArtifactRequest);
+      SwarmTransport.onMessage('artifact-chunk', handleArtifactChunk);
+      SwarmTransport.onMessage('artifact-ack', handleArtifactAck);
 
       // Subscribe to local state changes to auto-sync
       EventBus.on('goal:set', (data) => {
@@ -162,7 +162,19 @@ const SwarmSync = {
         shareReflection(reflection);
       }, 'SwarmSync');
 
-      logger.info('[SwarmSync] Initialized with auto-sync for goals and reflections');
+      // Auto-save received artifacts to VFS
+      EventBus.on('swarm:artifact-received', async ({ artifactId, content, peerId }) => {
+        try {
+          // Save to /shared/ directory, preserving path structure
+          const targetPath = `/shared${artifactId.startsWith('/') ? '' : '/'}${artifactId}`;
+          await VFS.write(targetPath, content);
+          logger.info(`[SwarmSync] Saved shared file from ${peerId} to ${targetPath}`);
+        } catch (e) {
+          logger.error(`[SwarmSync] Failed to save shared file:`, e);
+        }
+      }, 'SwarmSync');
+
+      logger.info('[SwarmSync] Initialized with auto-sync for goals, reflections, and files');
       return true;
     };
 
@@ -177,7 +189,7 @@ const SwarmSync = {
         timestamp: Date.now()
       };
 
-      WebRTCSwarm.sendToPeer(peerId, 'sync-response', snapshot);
+      SwarmTransport.sendToPeer(peerId, 'sync-response', snapshot);
     };
 
     /**
@@ -245,39 +257,46 @@ const SwarmSync = {
      * Share a reflection with the swarm
      */
     const shareReflection = (reflection) => {
-      const count = WebRTCSwarm.broadcast('reflection-share', { reflection });
+      const count = SwarmTransport.broadcast('reflection-share', { reflection });
       logger.info(`[SwarmSync] Shared reflection with ${count} peers`);
       return count;
     };
 
     /**
      * Announce artifact availability (pull model)
+     * @param {string} path - VFS path to share (e.g. /data/report.json)
      */
-    const announceArtifact = async (artifactId) => {
+    const announceArtifact = async (path) => {
       try {
-        const metadata = await StateManager.getArtifactMetadata(artifactId);
-        if (!metadata) {
-          logger.warn(`[SwarmSync] Artifact not found: ${artifactId}`);
+        // Check if file exists in VFS
+        const exists = await VFS.exists(path);
+        if (!exists) {
+          logger.warn(`[SwarmSync] File not found in VFS: ${path}`);
           return 0;
         }
 
-        const content = await StateManager.getArtifactContent(artifactId);
+        // Read content from VFS
+        const content = await VFS.read(path);
+        const stat = await VFS.stat(path);
         const size = content?.length || 0;
 
         if (size > MAX_ARTIFACT_SIZE) {
-          logger.warn(`[SwarmSync] Artifact too large to share: ${size} > ${MAX_ARTIFACT_SIZE}`);
+          logger.warn(`[SwarmSync] File too large to share: ${size} > ${MAX_ARTIFACT_SIZE}`);
           return 0;
         }
 
-        const count = WebRTCSwarm.broadcast('artifact-announce', {
-          id: artifactId,
-          name: metadata.name,
-          type: metadata.type,
+        // Extract filename from path
+        const name = path.split('/').pop();
+
+        const count = SwarmTransport.broadcast('artifact-announce', {
+          id: path,  // Use VFS path as artifact ID
+          name,
+          type: 'file',
           size,
           hash: simpleHash(content)
         });
 
-        logger.info(`[SwarmSync] Announced artifact ${artifactId} to ${count} peers`);
+        logger.info(`[SwarmSync] Announced file ${path} to ${count} peers`);
         return count;
       } catch (e) {
         logger.error(`[SwarmSync] Failed to announce artifact:`, e);
@@ -337,29 +356,36 @@ const SwarmSync = {
       }, TRANSFER_TIMEOUT);
       _requestTimeouts.set(transferKey, timeoutId);
 
-      WebRTCSwarm.sendToPeer(peerId, 'artifact-request', { id: artifactId });
+      SwarmTransport.sendToPeer(peerId, 'artifact-request', { id: artifactId });
       logger.info(`[SwarmSync] Requested artifact ${artifactId} from ${peerId}`);
 
       return true;
     };
 
     /**
-     * Handle artifact request
+     * Handle artifact request - read from VFS and send
      */
     const handleArtifactRequest = async (peerId, payload) => {
-      const { id } = payload;
+      const { id } = payload;  // id is now a VFS path
 
       logger.info(`[SwarmSync] Artifact request from ${peerId}: ${id}`);
 
       try {
-        const content = await StateManager.getArtifactContent(id);
+        // Read content from VFS
+        const exists = await VFS.exists(id);
+        if (!exists) {
+          logger.warn(`[SwarmSync] Requested file not found in VFS: ${id}`);
+          return;
+        }
+
+        const content = await VFS.read(id);
         if (!content) {
-          logger.warn(`[SwarmSync] Requested artifact not found: ${id}`);
+          logger.warn(`[SwarmSync] Requested file is empty: ${id}`);
           return;
         }
 
         if (content.length > MAX_ARTIFACT_SIZE) {
-          logger.warn(`[SwarmSync] Artifact too large: ${content.length}`);
+          logger.warn(`[SwarmSync] File too large: ${content.length}`);
           return;
         }
 
@@ -368,7 +394,7 @@ const SwarmSync = {
         const transferId = generateId('xfer');
 
         for (let i = 0; i < chunks.length; i++) {
-          WebRTCSwarm.sendToPeer(peerId, 'artifact-chunk', {
+          SwarmTransport.sendToPeer(peerId, 'artifact-chunk', {
             transferId,
             artifactId: id,
             seq: i,
@@ -377,9 +403,9 @@ const SwarmSync = {
           });
         }
 
-        logger.info(`[SwarmSync] Sent artifact ${id} in ${chunks.length} chunks`);
+        logger.info(`[SwarmSync] Sent file ${id} in ${chunks.length} chunks`);
       } catch (e) {
-        logger.error(`[SwarmSync] Failed to send artifact:`, e);
+        logger.error(`[SwarmSync] Failed to send file:`, e);
       }
     };
 
@@ -422,7 +448,7 @@ const SwarmSync = {
       }
 
       // Send ack
-      WebRTCSwarm.sendToPeer(peerId, 'artifact-ack', {
+      SwarmTransport.sendToPeer(peerId, 'artifact-ack', {
         transferId,
         seq
       });

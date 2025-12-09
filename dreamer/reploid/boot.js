@@ -58,6 +58,7 @@ import CognitionAPI from './capabilities/cognition/cognition-api.js';
 import MultiModelCoordinator from './capabilities/intelligence/multi-model-coordinator.js';
 
 // Communication modules
+import SwarmTransport from './capabilities/communication/swarm-transport.js';
 import WebRTCSwarm from './capabilities/communication/webrtc-swarm.js';
 import SwarmSync from './capabilities/communication/swarm-sync.js';
 
@@ -72,6 +73,19 @@ import GoalHistory from './ui/goal-history.js';
 (async () => {
   const logger = Utils.factory().logger;
   logger.info('[Boot] Starting REPLOID System...');
+
+  // Check for full reset request (must happen BEFORE any IndexedDB connections)
+  if (typeof window.shouldResetAll === 'function' && window.shouldResetAll()) {
+    logger.info('[Boot] Full reset requested - deleting all databases...');
+    try {
+      const steps = await window.performFullReset();
+      logger.info('[Boot] Full reset complete:', steps);
+      // Clear the flag after reset so we don't reset again on next load
+      localStorage.setItem('REPLOID_RESET_ALL', 'false');
+    } catch (e) {
+      logger.warn('[Boot] Full reset failed:', e.message);
+    }
+  }
 
   // Lazy-load Proto styles when dashboard mounts (keep boot lean)
   const ensureProtoStyles = () => {
@@ -185,7 +199,7 @@ import GoalHistory from './ui/goal-history.js';
       EmbeddingStore, SemanticMemory, KnowledgeGraph, RuleEngine, SymbolGrounder, CognitionAPI, MultiModelCoordinator,
       VFSSandbox, ArenaCompetitor, ArenaMetrics, ArenaHarness,
       WorkerManager, TelemetryTimeline, ErrorStore, ReplayEngine, ToolExecutor,
-      WebRTCSwarm, SwarmSync
+      SwarmTransport, WebRTCSwarm, SwarmSync
     };
 
     // Register all modules from resolved list (includes inherited)
@@ -300,7 +314,7 @@ import GoalHistory from './ui/goal-history.js';
     };
 
     await seedCodeIntel();
-    await seedWorkspaceFiles(vfs, genesisConfig, resolvedModules);
+    await seedWorkspaceFiles(vfs, genesisConfig, resolvedModules, genesisLevel);
 
     // Create genesis snapshot AFTER full VFS hydration
     logger.info('[Boot] Creating genesis snapshot...');
@@ -315,29 +329,35 @@ import GoalHistory from './ui/goal-history.js';
       logger.warn('[Boot] Failed to create genesis snapshot:', e.message);
     }
 
-    // Initialize WebRTC Swarm (opt-in via feature flag or URL param)
-    if (resolvedModules.includes('WebRTCSwarm')) {
+    // Initialize Swarm Transport (opt-in via feature flag or URL param)
+    // SwarmTransport auto-selects best transport: BroadcastChannel (same browser) or WebRTC (cross-machine)
+    if (resolvedModules.includes('SwarmTransport')) {
       try {
         // Check URL param first, then localStorage
         const urlParams = new URLSearchParams(window.location.search);
         const swarmParam = urlParams.get('swarm');
         const swarmEnabled = swarmParam || localStorage.getItem('REPLOID_SWARM_ENABLED') === 'true';
         if (swarmEnabled) {
-          const swarm = await container.resolve('WebRTCSwarm');
-          await swarm.init();
-          logger.info('[Boot] WebRTC Swarm initialized');
+          const transport = await container.resolve('SwarmTransport');
+          const initOk = await transport.init();
+          if (initOk) {
+            logger.info(`[Boot] Swarm Transport initialized (${transport.getTransportType()})`);
 
-          // Initialize SwarmSync if swarm is active
-          if (resolvedModules.includes('SwarmSync')) {
-            const swarmSync = await container.resolve('SwarmSync');
-            await swarmSync.init();
-            logger.info('[Boot] Swarm Sync initialized');
+            // Expose container for SwarmTransport to resolve WebRTCSwarm if needed
+            window.__REPLOID_CONTAINER__ = container;
+
+            // Initialize SwarmSync if transport is active
+            if (resolvedModules.includes('SwarmSync')) {
+              const swarmSync = await container.resolve('SwarmSync');
+              await swarmSync.init();
+              logger.info('[Boot] Swarm Sync initialized');
+            }
           }
         } else {
-          logger.info('[Boot] WebRTC Swarm disabled (set REPLOID_SWARM_ENABLED=true to enable)');
+          logger.info('[Boot] Swarm disabled (add ?swarm=true or set REPLOID_SWARM_ENABLED=true)');
         }
       } catch (e) {
-        logger.warn('[Boot] WebRTC Swarm failed to initialize:', e.message);
+        logger.warn('[Boot] Swarm Transport failed to initialize:', e.message);
         // Fail quietly - swarm is optional
       }
     }
@@ -646,7 +666,7 @@ import GoalHistory from './ui/goal-history.js';
   }
 })();
 
-async function seedWorkspaceFiles(vfs, genesisConfig, resolvedModules) {
+async function seedWorkspaceFiles(vfs, genesisConfig, resolvedModules, genesisLevel) {
   const logger = Utils.factory().logger;
 
   try {
@@ -672,6 +692,17 @@ async function seedWorkspaceFiles(vfs, genesisConfig, resolvedModules) {
       for (const file of sharedFiles[category]) {
         filesToSeed.add(file);
       }
+    }
+
+    // 3. Add level-specific files (tools that only work with certain modules)
+    const levelFiles = genesisConfig?.levelFiles?.[genesisLevel];
+    if (levelFiles) {
+      for (const category of Object.keys(levelFiles)) {
+        for (const file of levelFiles[category]) {
+          filesToSeed.add(file);
+        }
+      }
+      logger.debug(`[Boot] Added ${Object.values(levelFiles).flat().length} level-specific files for "${genesisLevel}"`);
     }
 
     // NOTE: Entry points (boot.js, index.html, sw-module-loader.js) should NOT be in VFS

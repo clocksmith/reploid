@@ -9,7 +9,7 @@ This document provides an overview of REPLOID's module API. For detailed JSDoc c
 
 ## Core Modules
 
-### Utils (`upgrades/utils.js`)
+### Utils (`core/utils.js`)
 
 **Type:** Pure utility module (no dependencies)
 **Status:** [x] Fully documented with JSDoc
@@ -46,7 +46,7 @@ This document provides an overview of REPLOID's module API. For detailed JSDoc c
 
 ---
 
-### StateManager (`upgrades/state-manager.js`)
+### StateManager (`core/state-manager.js`)
 
 **Type:** Singleton state management with VFS
 **Dependencies:** Utils, Storage (IndexedDB or localStorage)
@@ -76,7 +76,7 @@ This document provides an overview of REPLOID's module API. For detailed JSDoc c
 
 ---
 
-### EventBus (`upgrades/event-bus.js`)
+### EventBus (`infrastructure/event-bus.js`)
 
 **Type:** Pub/sub event system
 **Dependencies:** Utils
@@ -101,7 +101,7 @@ This document provides an overview of REPLOID's module API. For detailed JSDoc c
 
 ## RSI Modules
 
-### Introspector (`upgrades/introspector.js`)
+### Introspector (`infrastructure/introspector.js`)
 
 **Type:** Self-analysis and code introspection
 **Dependencies:** Utils, EventBus, StateManager
@@ -121,7 +121,7 @@ This document provides an overview of REPLOID's module API. For detailed JSDoc c
 
 ---
 
-### ReflectionStore (`upgrades/reflection-store.js`)
+### ReflectionStore (`infrastructure/reflection-store.js`)
 
 **Type:** Persistent learning storage
 **Dependencies:** Utils, IndexedDB
@@ -148,7 +148,7 @@ This document provides an overview of REPLOID's module API. For detailed JSDoc c
 
 ---
 
-### SelfTester (`upgrades/self-tester.js`)
+### SelfTester (`infrastructure/self-tester.js`)
 
 **Type:** Automated validation framework
 **Dependencies:** Utils, EventBus, StateManager
@@ -174,7 +174,7 @@ This document provides an overview of REPLOID's module API. For detailed JSDoc c
 
 ---
 
-### PerformanceMonitor (`upgrades/performance-monitor.js`)
+### PerformanceMonitor (`infrastructure/performance-monitor.js`)
 
 **Type:** Metrics collection and analysis
 **Dependencies:** Utils, EventBus
@@ -200,7 +200,7 @@ This document provides an overview of REPLOID's module API. For detailed JSDoc c
 
 ---
 
-### BrowserAPIs (`upgrades/browser-apis.js`)
+### BrowserAPIs (`infrastructure/browser-apis.js`)
 
 **Type:** Web API integration layer
 **Dependencies:** Utils, EventBus, StateManager
@@ -233,7 +233,7 @@ This document provides an overview of REPLOID's module API. For detailed JSDoc c
 
 ## UI Modules
 
-### UI (`upgrades/ui-manager.js`)
+### UI (`ui/ui-manager.js`)
 
 **Type:** Proto orchestration
 **Dependencies:** Utils, EventBus, StateManager, DiffGenerator, VFSExplorer, PerformanceMonitor, Introspector, ReflectionStore, SelfTester, BrowserAPIs
@@ -257,7 +257,7 @@ This document provides an overview of REPLOID's module API. For detailed JSDoc c
 
 ---
 
-### VFSExplorer (`upgrades/vfs-explorer.js`)
+### VFSExplorer (`ui/vfs-explorer.js`)
 
 **Type:** File tree UI component
 **Dependencies:** Utils, EventBus, StateManager
@@ -278,7 +278,7 @@ This document provides an overview of REPLOID's module API. For detailed JSDoc c
 
 ---
 
-### DiffGenerator (`upgrades/diff-generator.js`)
+### DiffGenerator (`ui/diff-generator.js`)
 
 **Type:** Diff computation
 **Dependencies:** Utils
@@ -306,7 +306,7 @@ This document provides an overview of REPLOID's module API. For detailed JSDoc c
 
 ## Agent Modules
 
-### SentinelFSM (`upgrades/sentinel-fsm.js`)
+### SentinelFSM (`core/sentinel-fsm.js`)
 
 **Type:** Sentinel Agent finite state machine
 **Dependencies:** Utils, EventBus, StateManager, Tools, SelfTester
@@ -343,7 +343,7 @@ This document provides an overview of REPLOID's module API. For detailed JSDoc c
 
 ## Tool System
 
-### ToolRunner (`upgrades/tool-runner.js`)
+### ToolRunner (`core/tool-runner.js`)
 
 **Type:** Tool execution engine
 **Dependencies:** Utils, EventBus, StateManager

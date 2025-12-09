@@ -18,24 +18,9 @@
       margin: 0 auto;
     }
     h1 {
-      color: #7fff7f;
+      color: #adfc41;
       font-size: 24px;
       margin-bottom: 8px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-    h1 .logo {
-      width: 40px;
-      height: 40px;
-      background: #1a1a1a;
-      border: 2px solid #7fff7f;
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: bold;
-      font-size: 24px;
     }
     .subtitle {
       color: #888;
@@ -44,7 +29,6 @@
     .card {
       background: #141414;
       border: 1px solid #2a2a2a;
-      border-radius: 12px;
       padding: 20px;
       margin-bottom: 16px;
     }
@@ -72,7 +56,6 @@
     }
     .stats {
       background: #1a1a1a;
-      border-radius: 8px;
       padding: 12px;
       font-family: 'Monaco', 'Menlo', monospace;
       font-size: 12px;
@@ -90,7 +73,7 @@
       color: #888;
     }
     .stats-value {
-      color: #7fff7f;
+      color: #adfc41;
     }
     .stats-value.warning {
       color: #ffa500;
@@ -113,26 +96,26 @@
       cursor: pointer;
       inset: 0;
       background: #333;
-      border-radius: 26px;
+      border: 1px solid #444;
       transition: 0.2s;
     }
     .toggle-slider:before {
       position: absolute;
       content: "";
-      height: 20px;
-      width: 20px;
+      height: 18px;
+      width: 18px;
       left: 3px;
       bottom: 3px;
       background: #666;
-      border-radius: 50%;
       transition: 0.2s;
     }
     .toggle input:checked + .toggle-slider {
-      background: #2d5a2d;
+      background: rgba(173, 252, 65, 0.15);
+      border-color: rgba(173, 252, 65, 0.4);
     }
     .toggle input:checked + .toggle-slider:before {
       transform: translateX(24px);
-      background: #7fff7f;
+      background: #adfc41;
     }
     .actions {
       display: flex;
@@ -143,7 +126,6 @@
       flex: 1;
       padding: 14px 24px;
       border: none;
-      border-radius: 8px;
       font-size: 15px;
       font-weight: 600;
       cursor: pointer;
@@ -154,30 +136,33 @@
       cursor: not-allowed;
     }
     .btn-primary {
-      background: #c62828;
-      color: white;
+      background: rgba(173, 252, 65, 0.15);
+      border: 1px solid rgba(173, 252, 65, 0.4);
+      color: #adfc41;
     }
     .btn-primary:hover:not(:disabled) {
-      background: #e53935;
+      background: rgba(173, 252, 65, 0.25);
+      border-color: rgba(173, 252, 65, 0.6);
     }
     .btn-secondary {
-      background: #2a2a2a;
+      background: transparent;
+      border: 1px solid #666;
       color: #e0e0e0;
     }
     .btn-secondary:hover:not(:disabled) {
-      background: #333;
+      border-color: #adfc41;
+      color: #adfc41;
     }
     .status {
       margin-top: 20px;
       padding: 16px;
-      border-radius: 8px;
       display: none;
     }
     .status.success {
       display: block;
       background: #1b3d1b;
       border: 1px solid #2d5a2d;
-      color: #7fff7f;
+      color: #adfc41;
     }
     .status.error {
       display: block;
@@ -198,15 +183,14 @@
       gap: 8px;
     }
     .progress-item .check {
-      color: #7fff7f;
+      color: #adfc41;
     }
     .loading {
       display: inline-block;
       width: 14px;
       height: 14px;
       border: 2px solid #333;
-      border-top-color: #7fff7f;
-      border-radius: 50%;
+      border-top-color: #adfc41;
       animation: spin 0.8s linear infinite;
     }
     @keyframes spin {
@@ -215,7 +199,7 @@
     .back-link {
       display: inline-block;
       margin-top: 24px;
-      color: #7fff7f;
+      color: #adfc41;
       text-decoration: none;
       font-size: 14px;
     }
@@ -226,17 +210,14 @@
 </head>
 <body>
   <div class="container">
-    <h1>
-      <span class="logo">R</span>
-      REPLOID Reset
-    </h1>
+    <h1>REPLOID Reset</h1>
     <p class="subtitle">Selectively clear cached data to fix issues or start fresh</p>
 
     <!-- Service Workers -->
     <div class="card">
       <div class="card-header">
         <div class="card-title">
-          <span class="icon">&#9881;</span>
+          <span class="icon">&#9032;</span>
           Service Workers
         </div>
         <label class="toggle">
@@ -260,7 +241,7 @@
     <div class="card">
       <div class="card-header">
         <div class="card-title">
-          <span class="icon">&#128451;</span>
+          <span class="icon">&#9850;</span>
           Browser Caches
         </div>
         <label class="toggle">
@@ -284,7 +265,7 @@
     <div class="card">
       <div class="card-header">
         <div class="card-title">
-          <span class="icon">&#128190;</span>
+          <span class="icon">&#9719;</span>
           LocalStorage
         </div>
         <label class="toggle">
@@ -312,7 +293,7 @@
     <div class="card">
       <div class="card-header">
         <div class="card-title">
-          <span class="icon">&#128463;</span>
+          <span class="icon">&#9751;</span>
           IndexedDB (VFS)
         </div>
         <label class="toggle">
@@ -447,11 +428,31 @@
         if (document.getElementById('reset-idb').checked) {
           status.innerHTML += '<div class="progress-item"><span class="loading"></span> Deleting IndexedDB databases...</div>';
           const dbs = await indexedDB.databases();
-          await Promise.all(dbs.map(db => new Promise((resolve) => {
+          const deleteResults = await Promise.all(dbs.map(db => new Promise((resolve) => {
+            const timeoutId = setTimeout(() => {
+              resolve({ name: db.name, status: 'timeout' });
+            }, 3000);
             const req = indexedDB.deleteDatabase(db.name);
-            req.onsuccess = req.onerror = resolve;
+            req.onsuccess = () => {
+              clearTimeout(timeoutId);
+              resolve({ name: db.name, status: 'deleted' });
+            };
+            req.onerror = () => {
+              clearTimeout(timeoutId);
+              resolve({ name: db.name, status: 'error' });
+            };
+            req.onblocked = () => {
+              clearTimeout(timeoutId);
+              resolve({ name: db.name, status: 'blocked' });
+            };
           })));
-          steps.push(`Deleted ${dbs.length} database(s)`);
+          const deleted = deleteResults.filter(r => r.status === 'deleted').length;
+          const blocked = deleteResults.filter(r => r.status === 'blocked' || r.status === 'timeout').length;
+          if (blocked > 0) {
+            steps.push(`Deleted ${deleted}/${dbs.length} database(s), ${blocked} blocked (reload page to retry)`);
+          } else {
+            steps.push(`Deleted ${dbs.length} database(s)`);
+          }
           updateProgress(status, 'Deleted IndexedDB databases');
         }
 

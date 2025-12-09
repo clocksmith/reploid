@@ -197,7 +197,10 @@ export async function checkAvailability() {
                 signal: AbortSignal.timeout(2000)
             });
             if (response.ok) {
+                const data = await response.json();
                 providers.proxy.online = true;
+                providers.proxy.configuredProviders = data.providers || [];
+                console.log('[ModelConfig] Proxy configured providers:', providers.proxy.configuredProviders);
             }
         } catch (error) {
             console.log('[ModelConfig] Proxy not available:', error.message);
@@ -289,11 +292,20 @@ export function getConnectionOptions(provider) {
     } else if (provider === 'dreamer') {
         options.push('browser-local');
     } else if (cloudProviders[provider]) {
-        // Browser-cloud (direct API) is always available
-        options.push('browser-cloud');
-        // Proxy-cloud only if proxy server is running
-        if (providers.proxy.online) {
+        // Check if proxy has keys for this provider
+        const proxyHasKeys = providers.proxy.online &&
+            providers.proxy.configuredProviders?.includes(provider);
+
+        if (proxyHasKeys) {
+            // Prefer proxy when it has keys configured
             options.push('proxy-cloud');
+            options.push('browser-cloud');
+        } else {
+            // Fall back to direct API when proxy doesn't have keys
+            options.push('browser-cloud');
+            if (providers.proxy.online) {
+                options.push('proxy-cloud');
+            }
         }
     }
 
