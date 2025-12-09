@@ -172,7 +172,7 @@
 
 .arena-solution.arena-winner {
     border-color: var(--primary);
-    background: rgba(127, 255, 127, 0.05);
+    background: rgba(173, 252, 65, 0.05);
 }
 
 .arena-solution-header {

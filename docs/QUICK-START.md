@@ -30,7 +30,7 @@ npx serve -p 8000
 
 ### Step 2: Open in Browser
 
-Navigate to **http://localhost:8080** in your browser (or 8000 for Python server).
+Navigate to **http://localhost:8000** in your browser.
 
 ### Step 3: Configure Your Agent
 

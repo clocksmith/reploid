@@ -3,27 +3,34 @@
 **Prime Directive:** Write JavaScript for the self-modifying RSI substrate running in the browser.
 
 ### Before Starting
-- Read `README.md` for architecture and philosophy
-- Read `docs/STYLE_GUIDE.md` for complete style guidelines
+- Read `/docs/INDEX.md` for documentation overview
+- Read `/docs/STYLE_GUIDE.md` for complete style guidelines
 - Read `EMOJI.md` for approved Unicode symbols
 - Review `blueprints/` for architectural documentation
 
 ### Key Paths
-- `infrastructure/` - Core modules (VFS, EventBus, StateManager)
-- `agents/` - Agent logic and tool definitions
-- `ui/components/` - UI components
-- `ui/proto/` - Proto panels
-- `examples/` - Example scripts
+- `core/` - Agent loop, VFS, LLM client, tool runner
+- `infrastructure/` - EventBus, DI container, HITL controller
+- `tools/` - Agent tools (CamelCase naming)
+- `ui/` - Proto UI components
+- `config/` - Genesis levels, module registry
 - `tests/` - Test suites
 
 ### Guardrails
 - Enforce `EMOJI.md`; use only approved Unicode symbols, no emojis
 - All code changes must pass Verification Worker sandbox
 - Preserve Genesis Kernel immutability for recovery
-- Level 3 RSI (substrate modification) requires explicit approval
 - Test in browser environment; uses IndexedDB for VFS
+
+### RSI Levels
+| Level | Scope | Examples | Safety Gate |
+|-------|-------|----------|-------------|
+| L1 | Tools | CreateTool, new tool in `/tools/` | Verification Worker |
+| L2 | Meta | Modify tool-writer, improve CreateTool | Arena consensus |
+| L3 | Substrate | Edit agent-loop.js, core modules | HITL approval required |
 
 ### Key Concepts
 - **VFS:** Virtual file system in IndexedDB
-- **RSI Levels:** L1 (tools), L2 (meta-tools), L3 (substrate)
-- **Safety:** Verification Worker sandbox, Genesis snapshots
+- **Genesis:** Immutable snapshot for rollback
+- **HITL:** Human-in-the-loop approval gates
+- **Arena:** Multi-model consensus for risky changes

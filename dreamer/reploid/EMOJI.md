@@ -5,43 +5,43 @@ This codebase follows a **strict no-emoji policy**. Use Unicode symbols for visu
 ## Approved Unicode Symbols
 
 ### Status & System
-| Symbol | Usage |
-|--------|-------|
-| ★ | Success, completed |
-| ☒ | Error, failure |
-| ☡ | Warning |
-| ☛ | Info, pointer |
-| ☍ | Sync, connection |
-| ☖ | Build |
-| ☁ | Cloud/network |
-| ☨ | Debug |
+| Symbol | HTML Entity | Usage |
+|--------|-------------|-------|
+| ★ | `&#9733;` | Success, completed |
+| ☒ | `&#9746;` | Error, failure |
+| ☡ | `&#9761;` | Warning |
+| ☛ | `&#9755;` | Info, pointer |
+| ☍ | `&#9741;` | Sync, connection |
+| ☖ | `&#9750;` | Build |
+| ☁ | `&#9729;` | Cloud/network |
+| ☨ | `&#9768;` | Debug |
 
 ### File System & Data
-| Symbol | Usage |
-|--------|-------|
-| ☗ | Folder |
-| ☐ | Document |
-| ⎈ | Settings |
-| ƒ | Code file |
-| ☷ | Data/JSON |
-| ☊ | HTML |
-| ☲ | CSS |
-| ☻ | Media |
-| ⛝ | Package |
-| ☙ | Text/log |
+| Symbol | HTML Entity | Usage |
+|--------|-------------|-------|
+| ☗ | `&#9751;` | Folder |
+| ☐ | `&#9744;` | Document |
+| ⎈ | `&#9032;` | Settings, helm |
+| ƒ | `&#402;` | Code file |
+| ☷ | `&#9719;` | Data/JSON |
+| ☊ | `&#9738;` | HTML |
+| ☲ | `&#9714;` | CSS |
+| ☻ | `&#9787;` | Media |
+| ⛝ | `&#9949;` | Package |
+| ☙ | `&#9753;` | Text/log |
 
 ### Actions & Controls
-| Symbol | Usage |
-|--------|-------|
-| ⚲ | Search |
-| ✎ | edit |
-| ✄ | Delete |
-| ☩ | Add/create |
-| ☇ | Execute |
-| ♺ | Refresh |
-| ⚿ | Lock/auth |
-| ☈ | Clear |
-| ✓ | Confirm |
+| Symbol | HTML Entity | Usage |
+|--------|-------------|-------|
+| ⚲ | `&#9906;` | Search |
+| ✎ | `&#9998;` | Edit |
+| ✄ | `&#9988;` | Delete |
+| ☩ | `&#9769;` | Add/create |
+| ☇ | `&#9735;` | Execute |
+| ♺ | `&#9850;` | Refresh |
+| ⚿ | `&#9919;` | Lock/auth |
+| ☈ | `&#9800;` | Clear, reset |
+| ✓ | `&#10003;` | Confirm |
 
 ## Checkboxes
 

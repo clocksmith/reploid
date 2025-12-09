@@ -54,7 +54,6 @@ const VFSExplorer = {
                      value="${escapeHtml(this.searchTerm)}"
                      aria-label="Search files"
                      role="searchbox">
-              <button class="vfs-refresh" title="Refresh" aria-label="Refresh file tree">↻</button>
               <button class="vfs-collapse-all" title="Collapse All" aria-label="Collapse all folders">⊟</button>
               <button class="vfs-expand-all" title="Expand All" aria-label="Expand all folders">⊞</button>
             </div>
@@ -276,16 +275,6 @@ const VFSExplorer = {
               searchInput.value = '';
               this.render();
             }
-          });
-        }
-
-        // Refresh button
-        const refreshBtn = this.container.querySelector('.vfs-refresh');
-        if (refreshBtn) {
-          refreshBtn.addEventListener('click', () => {
-            this.render();
-            if (ToastNotifications) ToastNotifications.success('File tree refreshed');
-            logger.info('[VFSExplorer] Refreshed');
           });
         }
 

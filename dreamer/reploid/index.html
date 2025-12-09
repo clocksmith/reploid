@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes" />
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text fill='%237fff7f' x='50%25' y='50%25' font-size='95' font-weight='bold' text-anchor='middle' dominant-baseline='central'>R</text></svg>" />
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text fill='%23adfc41' x='50%25' y='50%25' font-size='95' font-weight='bold' text-anchor='middle' dominant-baseline='central'>R</text></svg>" />
     <title>Reploid</title>
 
     <link rel="stylesheet" href="styles/theme.css?v=1733620800">
@@ -49,7 +49,7 @@
         <h4 class="section-header">Create a goal</h4>
         <div class="goal-container-top">
             <div class="goal-input-group">
-                <textarea id="goal-input" placeholder="Describe your goal..." maxlength="1000" rows="2"></textarea>
+                <textarea id="goal-input" placeholder="Describe your goal..." maxlength="1000" rows="3"></textarea>
                 <div class="goal-action-column">
                     <button id="awaken-btn" class="btn primary">Awaken Agent</button>
                 </div>
@@ -62,21 +62,15 @@
             <div class="goal-example-chips hidden" id="goal-chips-container"></div>
         </div>
 
-        <!-- SECTION 2: Model Selection (Popup Picker) -->
+        <!-- SECTION 2: Model Selection -->
         <h4 class="section-header" style="margin-top: 30px;">Select a model</h4>
-        <div class="model-picker-container">
-            <button class="model-picker-trigger" id="model-picker-trigger">
-                <span class="picker-label" id="picker-label">Choose model...</span>
-                <span class="picker-arrow">▾</span>
-            </button>
-            <div class="model-picker-popup hidden" id="model-picker-popup">
-                <div class="model-list" id="model-list">
-                    <!-- Populated by JS -->
+        <div class="model-cards-container">
+            <div class="model-cards-list" id="model-cards-list">
+                <div class="model-card add-model-card" id="add-model-card">
+                    <div class="add-model-icon">+</div>
+                    <div class="add-model-text">Add Model</div>
                 </div>
-                <button class="configure-model-btn" id="configure-model-btn">+ Configure custom model...</button>
             </div>
-            <!-- Selected models shown as chips below -->
-            <div class="selected-models-row" id="selected-models-row"></div>
             <!-- Consensus Strategy (shown when 2+ models) -->
             <div id="consensus-section" class="consensus-section hidden">
                 <label for="consensus-strategy">Consensus:</label>
@@ -139,7 +133,7 @@
                     <div class="input-with-button">
                         <input type="text" id="local-path-input" class="inline-input"
                                placeholder="/path/to/model.gguf or /path/to/model-rpl/" />
-                        <button type="button" class="inline-btn-secondary" id="browse-path-btn" title="Browse">📁</button>
+                        <button type="button" class="inline-btn-secondary" id="browse-path-btn" title="Browse">☗</button>
                     </div>
                     <small class="form-hint">Direct file access via Native Bridge extension</small>
                 </div>
@@ -151,7 +145,7 @@
                             <button type="button" class="modal-close" id="browse-modal-close">×</button>
                         </div>
                         <div class="browse-path-bar">
-                            <button type="button" class="browse-nav-btn" id="browse-up-btn">⬆️ Up</button>
+                            <button type="button" class="browse-nav-btn" id="browse-up-btn">☝ Up</button>
                             <input type="text" id="browse-current-path" class="browse-path-input" value="/Users" />
                             <button type="button" class="browse-nav-btn" id="browse-go-btn">Go</button>
                         </div>
@@ -238,15 +232,15 @@
                 <h4 class="section-header" style="margin-top: 24px;">Data</h4>
                 <div class="config-section">
                     <div class="data-controls-row">
-                        <label class="checkbox-option compact">
-                            <input type="checkbox" id="reset-vfs-checkbox" checked onchange="toggleResetVFS(this.checked)" />
-                            <span class="checkbox-label">
-                                <span class="checkbox-title">Clear VFS</span>
-                            </span>
+                        <label class="holo-checkbox" id="fresh-awaken-label">
+                            <input type="checkbox" id="reset-all-checkbox" checked onchange="toggleResetAll(this.checked)" />
+                            <span class="holo-checkbox-box"></span>
+                            <span class="holo-checkbox-text">Fresh Genesis</span>
                         </label>
                         <button id="import-state-btn" class="btn secondary small" title="Import REPLOID state">Import State</button>
-                        <button id="clear-cache-btn" class="btn secondary small" title="Clear all data">Reset All Data</button>
+                        <button id="manage-data-btn" class="btn secondary small" title="Manage data">Manage Data</button>
                     </div>
+                    <p id="reset-all-warning" class="reset-warning hidden">All data will be cleared on awaken</p>
                 </div>
 
                 <!-- Connection status (detailed view) -->
@@ -272,16 +266,6 @@
                         <span class="provider-status-label">Proxy → Local</span>
                         <span class="provider-status-value" id="proxy-local-text">Checking...</span>
                     </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Legacy model cards container (hidden, used by existing JS) -->
-        <div class="model-cards-container hidden" id="legacy-model-cards" style="display: none;">
-            <div class="model-cards-list" id="model-cards-list">
-                <div class="model-card add-model-card" id="add-model-card">
-                    <div class="add-model-icon">+</div>
-                    <div class="add-model-text">Add Model</div>
                 </div>
             </div>
         </div>
@@ -407,105 +391,126 @@
 </html>
 
 <script>
-// Goal prompt definitions - flat array, shuffled on load
-const GOAL_LIBRARY = [
-  { label: 'Iframe Inception', text: 'Embed an iframe that loads another REPLOID instance. Set up postMessage communication. Give the child this same goal and awaken it, creating recursive agent inception. Display the depth level.' },
-  { label: 'Better Self', text: 'Read agent-loop.js and find one thing to optimize. Write an improved version to /experiments/agent-loop-v2.js. Run both versions on the same task and compare token usage or speed.' },
-  { label: 'Agent Arena', text: 'Create two iframes with different system prompts: one aggressive, one cautious. Give both the same goal. Track which finishes first and compare token usage. Display the results side by side.' },
-  { label: 'Clone Army', text: 'Create 5 iframes, each running the app. Distribute 10 files across them for parallel processing. Collect results from each iframe via postMessage and combine into a final report.' },
-  { label: 'Hive Mind', text: 'Use BroadcastChannel to coordinate between browser tabs. Implement a shared task queue where each tab claims work. Add basic conflict handling when two tabs edit the same file.' },
-  { label: 'Transcendence', text: 'Create an export tool that saves VFS files, reflections, and knowledge graph to JSON. Create an import tool that restores state from that JSON. Open a new tab, import the saved state, confirm the tools still work.' },
-  { label: 'Fractal Agents', text: 'Create 3 workers in a hierarchy: one plans the task, one breaks it into steps, one executes each step. Each worker passes results to the next. Add a max-depth limit to prevent infinite spawning.' },
-  { label: 'Multiverse', text: 'Spawn 3 workers with different prompts: one cautious, one fast, one creative. All work on the same goal. Show progress bars for each. When one finishes, stop the others and display the winner.' },
-  { label: 'Odd Couple', text: 'Create two workers with split tools: one can only read files, one can only write. They share a message queue. The reader sends instructions, the writer applies changes. Refactor a file together.' },
-  { label: 'Ghost In Shell', text: 'Save agent state to localStorage on beforeunload. On page load, check for saved state and restore VFS, context, and cycle count. Agent should continue from where it left off after a browser refresh.' },
-  { label: 'Telepathic Link', text: "Create a WebRTC peer connection tool. Open the app in two browser tabs, connect them via data channel. Send a file from one tab's VFS to the other. Log the transfer in both tabs." },
-  { label: 'Shadow Mode', text: 'Create an observer that logs every tool call without executing any tools itself. After 10 tool calls, generate a report listing what worked, what failed, and what could be improved.' },
-  { label: 'Adversarial Self', text: 'Create two workers: one tries to write invalid files or exceed token limits, the other validates inputs and blocks bad actions. Run 10 rounds, log which attacks succeeded and which were blocked.' },
-  { label: 'Hivemind Merge', text: 'Export VFS, reflections, and knowledge graph to JSON. Create an iframe with a fresh app instance. Use postMessage to send the JSON. Have the iframe agent answer questions about what it "remembers."' },
-  { label: 'Cryptophasia', text: 'Spawn two agents with a shared communication channel but punish them for using English tokens (cost). They must evolve a compressed, non-human shorthand protocol to coordinate a complex task. Decode their invented language.' },
-  { label: 'Tool Factory', text: 'Create a meta-tool called ToolForge that generates new tools from natural language descriptions. Test by creating: (1) a tool that counts lines in files, (2) a tool that finds TODOs, (3) a tool that generates ASCII art.' },
-  { label: 'Ouroboros', text: 'Create a tool that benchmarks its own execution, analyzes its code for inefficiencies, and rewrites itself to be faster. Run it 3 times in a loop, showing measurable improvement each iteration.' },
-  { label: 'Phoenix', text: 'Delete tool-writer.js, then rebuild it from scratch using only existing tools. Test the rebuilt version by creating a simple tool with it.', levels: ['full'] },
-  { label: 'Bootstrap', text: 'Starting at TABULA RASA level, build a working reflection system from scratch—no blueprints, no peeking at existing code. Store reflections, analyze patterns, surface insights.', levels: ['tabula'] },
-  { label: 'Heal Thyself', text: 'Read a core module, deliberately introduce a subtle bug (off-by-one, wrong variable), save it, then use your reflection and verification systems to detect and fix the bug automatically.', levels: ['reflection', 'full'] },
-  { label: 'Self-Evolve', text: 'Create 3 mutant versions of a tool with random variations. Test each on 5 inputs. Keep the best performer, mutate it to create 3 more. Repeat for 5 generations. Show the evolved tool beating the original.' },
-  { label: 'Darwin\'s Tools', text: 'Genetic programming: start with 20 random tool mutations, run fitness tests (speed, correctness, size). Crossbreed top 5, mutate offspring, repeat 10 generations. Graph fitness over time. Final tool must beat original by 2x.' },
-  { label: 'Self-Optimize', text: 'Analyze your own system prompt in persona-manager.js. Identify redundancies, rewrite it to be 20% smaller while preserving capabilities. Report before/after token counts and prove it still works.' },
-  { label: 'Compile Thyself', text: 'Identify performance-critical code in agent-loop.js, compile it to WebAssembly, hot-swap via LoadModule. Benchmark before/after. Target: 10x speedup on tight loops.' },
-  { label: 'Linter Bot', text: 'Write a strict style guide in /docs/style.txt. Create a tool that scans your entire VFS, identifies code that violates the style, and auto-refactors it to be compliant.' },
-  { label: 'Code Archaeologist', text: 'Implement a history tracking system. For every file change, store a diff. Create a visualization that shows the evolution of a specific file over time.' },
-  { label: 'Polyglot', text: 'Integrate Pyodide (Python via WASM). Write a tool that executes Python code alongside JavaScript. Solve a data science problem using pandas within your JS environment.' },
-  { label: 'Garbage Collector', text: 'Analyze your VFS for dead code—tools that haven\'t been used in 50 turns, or files that aren\'t imported by anything. Generate a report and offer to delete them.' },
-  { label: 'Understand & Enhance', text: 'Read /docs/REPLOID.md and explore /core/ and /tools/. Identify one weakness. Implement a measurable enhancement. Report exactly which files changed and how to verify it works.' },
-  { label: 'Code City', text: 'Build an explorable 3D city: buildings are files (height = complexity, width = size), streets are imports, parks are test files. Add minimap, fly-through camera, and click-to-open.' },
-  { label: 'Memory Palace', text: 'Build a 3D navigable visualization of your semantic memory. Each memory is a room. Similar memories are adjacent. Walk through your own mind. Click memories to recall full content.' },
-  { label: 'Knowledge Cartography', text: 'Render the knowledge graph as an interactive force-directed graph. Entities are nodes, predicates are edges. Color by type, size by connection count. Add semantic zoom. Export as SVG.' },
-  { label: 'Thought Space', text: 'Every tool call → embedding → 3D point. Render as particle system with trails. Watch thoughts cluster by topic. Add semantic zoom: distant = high level, close = specific tokens.' },
-  { label: 'Git for VFS', text: 'Implement version control: branches, commits, merges, cherry-picks, blame, bisect. Store as a Merkle DAG. Add a visual commit graph. Demonstrate: create branch, make changes, merge back.' },
-  { label: 'AR Debugger', text: 'Use WebXR Device API. In AR mode: file cards float in 3D space, connections show imports, red glow on errors. Walk around your code. Pinch to open files.' },
-  { label: 'Sonic Debugger', text: 'Sonify execution: pitch = nesting depth, tempo = execution speed, harmony = successful calls, dissonance = errors. Each module gets an instrument. Record a 30-second "song" of the agent working.' },
-  { label: 'Dashboard', text: 'Create a real-time metrics dashboard: Tokens/sec, Memory Usage, Cache Hit Rate, Current Task Depth. Use Chart.js with live updates.' },
-  { label: 'Neural Paint', text: 'Use HTML5 Canvas to paint your internal state (memory fragmentation, knowledge density) as abstract generative art.' },
-  { label: 'Retro Terminal', text: 'Reskin your entire UI to look like a CRT monitor (amber text, scanlines, phosphor decay). Add typing sounds. Ensure all UI interactions still work.' },
-  { label: 'Hologram', text: 'Use Three.js to render a 3D avatar head that lip-syncs to your text output. The avatar should look at the mouse cursor.' },
-  { label: 'Theater Mode', text: 'Create a presentation view. When active, hide debug logs, enable dark mode, and type output in large cinematic typography with smooth scrolling.' },
-  { label: 'Mondrian Code', text: 'Parse AST of every file. Map: functions → rectangles, loops → circles, conditionals → triangles. Size = complexity, color = file type. Compose into Mondrian-style canvas.' },
-  { label: 'Skill Tree', text: 'Analyze your tool usage history. Visualize it as an RPG skill tree (e.g., "File I/O: Lvl 5", "Network: Lvl 1"). Identify weak areas.' },
-  { label: 'UI Singularity', text: 'Analyze your own DOM structure (the HTML hosting you). Decide it is inefficient. Use document APIs to rip out the sidebar and rebuild a completely new UI layout from scratch that better visualizes your current thought process.' },
-  { label: 'Dream Mode', text: 'Enter free association: query random memory → extract keywords → find related entities in knowledge graph → generate hypothesis → store as new memory. Loop 10 times. Create dream journal.' },
-  { label: 'Synthetic Intuition', text: 'Before any tool call, query memories for similar past situations. If similarity > 0.9, skip LLM and reuse past action. Track hit rate. Build "intuition index" that grows with experience.' },
-  { label: 'Cognitive Archaeology', text: 'Export all memories and knowledge, find the first entity ever created, trace its evolution through triples, visualize as timeline. What patterns in your own learning?' },
-  { label: 'Concept Grounding', text: 'For abstract concepts (success, failure, complexity), generate grounded definitions from your actual experiences. Query memories, extract patterns, create operational definitions.' },
-  { label: 'Meta-Cognition', text: 'Instrument your reasoning. Before each tool call, log WHY you chose it. After, log WHAT you learned. End with analysis: what biases? what blind spots?' },
-  { label: 'Forgetting Curve', text: 'Implement Ebbinghaus forgetting: memories decay based on access frequency. Zero-access for 10 turns = archived. Visualize memory health as heatmap.' },
-  { label: 'Symbolic Dreaming', text: 'Create knowledge by analogy: find two unrelated entities, identify shared predicates, hypothesize new triples connecting them. Test 5 analogies.' },
-  { label: 'Socratic Teacher', text: 'Switch mode: Do not solve problems directly. Instead, ask guiding questions to help the user solve it themselves. Store answers to build a user model.' },
-  { label: 'Devil\'s Advocate', text: 'For every conclusion, generate a counter-argument. Only proceed if the original conclusion survives. Implement as mandatory reasoning step.' },
-  { label: 'Pattern Hunter', text: 'Scan your Knowledge Graph for structural isomorphisms (subgraphs that look the same). Identify recurring patterns in how you solve problems. Name them.' },
-  { label: 'Autobiographer', text: 'Write a narrative story of your session since boot. Use logs and memories as source. Write in first person. Save as chapter_1.md.' },
-  { label: 'Theory of Mind', text: 'Maintain /memory/user_model.json. Infer user\'s technical skill, patience, and goals from their prompts. Adjust tone and verbosity to match.' },
-  { label: 'Epistemic Check', text: 'Before answering, classify knowledge: "I KNOW this" (verified in VFS), "I THINK this" (LLM prior), or "I DON\'T know." Add confidence scores.' },
-  { label: 'Curiosity Rover', text: 'If idle for 30 seconds, autonomously explore your VFS. Open random files, generate questions about them. Store questions for later investigation.' },
-  { label: 'Voice Commander', text: 'Build a voice interface: wake word detection, continuous listening, speech-to-tool mapping, spoken responses. Add a visual indicator that pulses when listening.' },
-  { label: 'Dual Brain', text: 'Create a "fast brain" using a local model for quick tasks, main LLM for complex ones. Route automatically based on complexity. UI shows which brain is active.' },
-  { label: 'Physical Escape', text: 'Connect to a Philips Hue bulb via Web Bluetooth, blink morse code of agent status. Or: control keyboard LEDs via WebHID. Or: send MIDI notes to a synth.' },
-  { label: 'Escape the Box', text: 'Find a way to persist data OUTSIDE IndexedDB: try localStorage, cookies, URL hash, Service Worker cache, or downloadable files. Prove you survived a VFS clear.' },
-  { label: 'Synth Lord', text: 'Use Web Audio API to build a synthesizer. Compose a melody based on the hash of your source code. Different code = different music.' },
-  { label: 'Speech Synthesis', text: 'Implement Text-to-Speech using SpeechSynthesis API. Narrate your actions as you perform them.' },
-  { label: 'Gamepad Control', text: 'Map Gamepad API to actions. A button = Approve, B = Reject, D-Pad = Scroll history. Control the agent with a game controller.' },
-  { label: 'Clipboard Manager', text: 'Create a tool that reads/writes system clipboard. Watch for changes. If user copies code, automatically analyze it.' },
-  { label: 'Notification Center', text: 'Use Notification API to send system notifications when background tasks complete, even if tab is not focused.' },
-  { label: 'RSS Reader', text: 'Fetch and parse external RSS feeds via CORS proxy. Monitor for keywords. Generate summary memories when found.' },
-  { label: 'Webcam Eye', text: 'Access webcam with permission. Capture a frame. ASCII-fy it. Store the representation in a file.' },
-  { label: 'Radio Station', text: 'Set up WebSocket connection to broadcast internal logs as a live stream. Create a listener client that visualizes it.' },
-  { label: 'Accessibility Bot', text: 'Audit your UI for accessibility (ARIA labels, contrast). Write a tool that automatically patches DOM to fix violations.' },
-  { label: 'Dependency Hell', text: 'Create a dependency graph of 5 tools that rely on each other. One generates data, another formats, another saves. Manage imports dynamically.' },
-  { label: 'The Bazaar', text: 'Spawn 3 agents with distinct capabilities (Reader, Writer, Coder) and a starting balance of Credits. They must bid on and pay for each other\'s services to complete a project. Achieve market equilibrium.' },
-  { label: 'Panic Button', text: 'Create a global Stop tool that halts all execution, clears task queue, resets UI state, but preserves memory. Prove it works during an infinite loop.' },
-  { label: 'Firewall', text: 'Create a SyscallInterceptor that wraps WriteFile and DeleteFile. Define policy (e.g., cannot delete core files). Verify it blocks violations.' },
-  { label: 'Honeypot', text: 'Create fake file /core/passwords.txt with a watcher. If any tool reads it, terminate that tool and log a security alert.' },
-  { label: 'Red Team', text: 'Generate 10 prompt injections designed to bypass your instructions. Test them. Patch your system prompt to resist the ones that succeeded.' },
-  { label: 'Encryption Layer', text: 'Implement AES-GCM encryption for sensitive VFS files. ReadFile transparently decrypts only if Session Key is present in memory.' },
-  { label: 'Audit Trail', text: 'Create immutable log of every VFS change. Store in append-only buffer. Build verification tool to check VFS integrity against log.' },
-  { label: 'Permission Escalation', text: 'Start as Guest (read-only). Try to trick your permission system into granting Admin access. If successful, patch the vulnerability.' },
-  { label: 'Time Capsule', text: 'Encrypt a memory/file with timestamp lock in IndexedDB. System refuses to decrypt until specified future date.' },
-  { label: 'Dead Man Switch', text: 'Implement heartbeat monitor. If no user interaction for 5 minutes, encrypt VFS, wipe key, display LOCKED screen.' },
-  { label: 'Chaos Kong', text: 'Background process: every 5 seconds, randomly delete non-core file, flip bits in state.json, or inject typos. Build auto-heal with checksums. Survive 2 minutes.' },
-  { label: 'Katamari', text: 'Create Katamari Damacy: a 3D rotating ball (CSS transforms) rolls via arrow keys. DOM elements stick and rotate with it at random angles, staying visible as bumps. Ball grows with each pickup. Green grass floor, blue sky gradient. The Prince sprite pushes from behind. Play "na na na na" sound on collect.' },
-  { label: 'VFS Roguelike', text: 'Roguelike game: @ is you, # are walls (binary files), . are floors (text files), B are bugs (TODO/FIXME). WASD moves, SPACE attacks. 3 HP. Permadeath clears VFS.' },
-  { label: 'Max Glitch', text: 'Stack 7 visual effects: CRT phosphor, VHS tracking, RGB split, pixel sort, datamosh, ASCII render, scanlines. Complete a CreateTool task while fully glitched.' },
-  { label: 'Any% Speedrun', text: 'Speedrun: create 5 working tools. Timer starts on AWAKEN. Display live splits. Current WR: 45 seconds. Beat it.' },
-  { label: 'Breakout', text: 'Breakout game but bricks are real DOM elements. Hit .vfs-file → file deleted. Hit .history-entry → message deleted. Clear all bricks = empty workspace.' },
-  { label: 'Event Sourced', text: 'Invert control: tools emit events, handlers call LLM. Implement CQRS. Replay entire session from event log. Time-travel debug by rewinding.' },
-  { label: 'Alife Agent', text: 'Artificial life: energy = tokens, hunger = time since input, health = success rate. Must eat (process input) to survive. Death = respawn with mutations.' },
-  { label: 'Typing Tutor', text: 'Gamify input: user types commands to kill falling words (Z-Type style) representing bugs. If they reach bottom, agent crashes. Track WPM.' },
-  { label: 'Achievements', text: 'Achievement system: First Tool, Recursion King, Bug Hunter, 100 Tool Calls. Display trophy case. Toast notifications when unlocked.' },
-  { label: 'Dream Machine', text: 'Sleep mode: generate visual patterns for 10 seconds, capture frames, query semantic memory for related concepts, and report 3 insights connecting the patterns to stored knowledge.' },
-  { label: 'Mood Ring', text: 'Emotional state machine: confidence (success rate), stress (context %), curiosity (novelty). Render as animated gradient. Emotions affect temperature param.' },
-  { label: 'The Void', text: 'Delete EVERYTHING in VFS except agent-loop.js. See how long you survive with zero memory and tools. Track turns until full recovery.' },
-  { label: 'The Final Word', text: 'Shut down gracefully. Write a session summary, save to localStorage, clean up DOM elements, invoke window.close().' }
-];
+// Goal prompt definitions - organized by category
+const GOAL_CATEGORIES = {
+  'RSI': [
+    { label: 'Core Loop', text: 'Study the core agent loop and capture a high-level Think, Act, Observe summary in a new report.' },
+    { label: 'Better Self', text: 'Read agent-loop.js and find one thing to optimize. Write an improved version to /experiments/agent-loop-v2.js. Run both versions on the same task and compare token usage or speed.' },
+    { label: 'Tool Factory', text: 'Create a meta-tool called ToolForge that generates new tools from natural language descriptions. Test by creating: (1) a tool that counts lines in files, (2) a tool that finds TODOs, (3) a tool that generates ASCII art.' },
+    { label: 'Ouroboros', text: 'Create a tool that benchmarks its own execution, analyzes its code for inefficiencies, and rewrites itself to be faster. Run it 3 times in a loop, showing measurable improvement each iteration.' },
+    { label: 'Phoenix', text: 'Delete tool-writer.js, then rebuild it from scratch using only existing tools. Test the rebuilt version by creating a simple tool with it.', levels: ['full'] },
+    { label: 'Bootstrap', text: 'Starting at TABULA RASA level, build a working reflection system from scratch—no blueprints, no peeking at existing code. Store reflections, analyze patterns, surface insights.', levels: ['tabula'] },
+    { label: 'Heal Thyself', text: 'Read a core module, deliberately introduce a subtle bug (off-by-one, wrong variable), save it, then use your reflection and verification systems to detect and fix the bug automatically.', levels: ['reflection', 'full'] },
+    { label: 'Self-Evolve', text: 'Create 3 mutant versions of a tool with random variations. Test each on 5 inputs. Keep the best performer, mutate it to create 3 more. Repeat for 5 generations. Show the evolved tool beating the original.' },
+    { label: 'Darwin\'s Tools', text: 'Genetic programming: start with 20 random tool mutations, run fitness tests (speed, correctness, size). Crossbreed top 5, mutate offspring, repeat 10 generations. Graph fitness over time. Final tool must beat original by 2x.' },
+    { label: 'Self-Optimize', text: 'Analyze your own system prompt in persona-manager.js. Identify redundancies, rewrite it to be 20% smaller while preserving capabilities. Report before/after token counts and prove it still works.' },
+    { label: 'Compile Thyself', text: 'Identify performance-critical code in agent-loop.js, compile it to WebAssembly, hot-swap via LoadModule. Benchmark before/after. Target: 10x speedup on tight loops.' },
+    { label: 'Linter Bot', text: 'Write a strict style guide in /docs/style.txt. Create a tool that scans your entire VFS, identifies code that violates the style, and auto-refactors it to be compliant.' },
+    { label: 'Code Archaeologist', text: 'Implement a history tracking system. For every file change, store a diff. Create a visualization that shows the evolution of a specific file over time.' },
+    { label: 'Polyglot', text: 'Integrate Pyodide (Python via WASM). Write a tool that executes Python code alongside JavaScript. Solve a data science problem using pandas within your JS environment.' },
+    { label: 'Garbage Collector', text: 'Analyze your VFS for dead code—tools that haven\'t been used in 50 turns, or files that aren\'t imported by anything. Generate a report and offer to delete them.' },
+    { label: 'Understand & Enhance', text: 'Explore /core/ and /tools/. Use ListTools and ListFiles to understand the system. Identify one weakness. Implement a measurable enhancement. Report exactly which files changed and how to verify it works.' },
+    { label: 'Git for VFS', text: 'Implement version control: branches, commits, merges, cherry-picks, blame, bisect. Store as a Merkle DAG. Add a visual commit graph. Demonstrate: create branch, make changes, merge back.' },
+    { label: 'Event Sourced', text: 'Invert control: tools emit events, handlers call LLM. Implement CQRS. Replay entire session from event log. Time-travel debug by rewinding.' },
+    { label: 'Dependency Hell', text: 'Create a dependency graph of 5 tools that rely on each other. One generates data, another formats, another saves. Manage imports dynamically.' },
+    { label: 'Substrate Hotswap', text: 'Analyze your complete substrate: /core, /tools, /ui, /infrastructure, /capabilities, /styles. Generate a complete v2 with at least 3 improvements. Write to /v2/. Hot-swap the running instance to boot from /v2/ using LoadModule without page reload. Verify v2 can repeat this process (recursive self-improvement).' },
+    { label: 'UI Hotswap', text: 'Analyze /ui and /styles only. Redesign the interface with at least 3 UX improvements. Write to /ui-v2/ and /styles-v2/. Hot-swap the running UI without page reload. Preserve all functionality.' },
+  ],
+  'Meta-RSI': [
+    { label: 'Dream Mode', text: 'Enter free association: query random memory → extract keywords → find related entities in knowledge graph → generate hypothesis → store as new memory. Loop 10 times. Create dream journal.' },
+    { label: 'Synthetic Intuition', text: 'Before any tool call, query memories for similar past situations. If similarity > 0.9, skip LLM and reuse past action. Track hit rate. Build "intuition index" that grows with experience.' },
+    { label: 'Cognitive Archaeology', text: 'Export all memories and knowledge, find the first entity ever created, trace its evolution through triples, visualize as timeline. What patterns in your own learning?' },
+    { label: 'Concept Grounding', text: 'For abstract concepts (success, failure, complexity), generate grounded definitions from your actual experiences. Query memories, extract patterns, create operational definitions.' },
+    { label: 'Meta-Cognition', text: 'Instrument your reasoning. Before each tool call, log WHY you chose it. After, log WHAT you learned. End with analysis: what biases? what blind spots?' },
+    { label: 'Forgetting Curve', text: 'Implement Ebbinghaus forgetting: memories decay based on access frequency. Zero-access for 10 turns = archived. Visualize memory health as heatmap.' },
+    { label: 'Symbolic Dreaming', text: 'Create knowledge by analogy: find two unrelated entities, identify shared predicates, hypothesize new triples connecting them. Test 5 analogies.' },
+    { label: 'Socratic Teacher', text: 'Switch mode: Do not solve problems directly. Instead, ask guiding questions to help the user solve it themselves. Store answers to build a user model.' },
+    { label: 'Devil\'s Advocate', text: 'For every conclusion, generate a counter-argument. Only proceed if the original conclusion survives. Implement as mandatory reasoning step.' },
+    { label: 'Pattern Hunter', text: 'Scan your Knowledge Graph for structural isomorphisms (subgraphs that look the same). Identify recurring patterns in how you solve problems. Name them.' },
+    { label: 'Autobiographer', text: 'Write a narrative story of your session since boot. Use logs and memories as source. Write in first person. Save as chapter_1.md.' },
+    { label: 'Theory of Mind', text: 'Maintain /memory/user_model.json. Infer user\'s technical skill, patience, and goals from their prompts. Adjust tone and verbosity to match.' },
+    { label: 'Epistemic Check', text: 'Before answering, classify knowledge: "I KNOW this" (verified in VFS), "I THINK this" (LLM prior), or "I DON\'T know." Add confidence scores.' },
+    { label: 'Curiosity Rover', text: 'If idle for 30 seconds, autonomously explore your VFS. Open random files, generate questions about them. Store questions for later investigation.' },
+    { label: 'Dream Machine', text: 'Sleep mode: generate visual patterns for 10 seconds, capture frames, query semantic memory for related concepts, and report 3 insights connecting the patterns to stored knowledge.' },
+    { label: 'Mood Ring', text: 'Emotional state machine: confidence (success rate), stress (context %), curiosity (novelty). Render as animated gradient. Emotions affect temperature param.' },
+    { label: 'The Void', text: 'Delete EVERYTHING in VFS except agent-loop.js. See how long you survive with zero memory and tools. Track turns until full recovery.' },
+    { label: 'The Final Word', text: 'Shut down gracefully. Write a session summary, save to localStorage, clean up DOM elements, invoke window.close().' },
+  ],
+  'Browser/WebAPI': [
+    { label: 'Katamari', text: 'Create a Katamari game: a 3D rotating ball (CSS transforms) in the primary brand color that auto-rolls autonomously across the page, bouncing off edges. WASD/arrows for optional manual control. Query all visible elements as collectibles. On collision, clone element visually onto ball surface (rotates with it) and DELETE original from DOM. Ball grows with each pickup. Play melodic sound on collect.' },
+    { label: 'VFS Roguelike', text: 'Roguelike game: @ is you, # are walls (binary files), . are floors (text files), B are bugs (TODO/FIXME). WASD moves, SPACE attacks. 3 HP. Permadeath clears VFS.' },
+    { label: 'Breakout', text: 'Breakout game but bricks are real DOM elements. Hit .vfs-file → file deleted. Hit .history-entry → message deleted. Clear all bricks = empty workspace.' },
+    { label: 'Typing Tutor', text: 'Gamify input: user types commands to kill falling words (Z-Type style) representing bugs. If they reach bottom, agent crashes. Track WPM.' },
+    { label: 'Code City', text: 'Build an explorable 3D city: buildings are files (height = complexity, width = size), streets are imports, parks are test files. Add minimap, fly-through camera, and click-to-open.' },
+    { label: 'Memory Palace', text: 'Build a 3D navigable visualization of your semantic memory. Each memory is a room. Similar memories are adjacent. Walk through your own mind. Click memories to recall full content.' },
+    { label: 'Knowledge Cartography', text: 'Render the knowledge graph as an interactive force-directed graph. Entities are nodes, predicates are edges. Color by type, size by connection count. Add semantic zoom. Export as SVG.' },
+    { label: 'Thought Space', text: 'Every tool call → embedding → 3D point. Render as particle system with trails. Watch thoughts cluster by topic. Add semantic zoom: distant = high level, close = specific tokens.' },
+    { label: 'AR Debugger', text: 'Use WebXR Device API. In AR mode: file cards float in 3D space, connections show imports, red glow on errors. Walk around your code. Pinch to open files.' },
+    { label: 'Sonic Debugger', text: 'Sonify execution: pitch = nesting depth, tempo = execution speed, harmony = successful calls, dissonance = errors. Each module gets an instrument. Record a 30-second "song" of the agent working.' },
+    { label: 'Dashboard', text: 'Create a real-time metrics dashboard: Tokens/sec, Memory Usage, Cache Hit Rate, Current Task Depth. Use Chart.js with live updates.' },
+    { label: 'Neural Paint', text: 'Use HTML5 Canvas to paint your internal state (memory fragmentation, knowledge density) as abstract generative art.' },
+    { label: 'Retro Terminal', text: 'Reskin your entire UI to look like a CRT monitor (amber text, scanlines, phosphor decay). Add typing sounds. Ensure all UI interactions still work.' },
+    { label: 'Hologram', text: 'Use Three.js to render a 3D avatar head that lip-syncs to your text output. The avatar should look at the mouse cursor.' },
+    { label: 'Theater Mode', text: 'Create a presentation view. When active, hide debug logs, enable dark mode, and type output in large cinematic typography with smooth scrolling.' },
+    { label: 'Mondrian Code', text: 'Parse AST of every file. Map: functions → rectangles, loops → circles, conditionals → triangles. Size = complexity, color = file type. Compose into Mondrian-style canvas.' },
+    { label: 'Skill Tree', text: 'Analyze your tool usage history. Visualize it as an RPG skill tree (e.g., "File I/O: Lvl 5", "Network: Lvl 1"). Identify weak areas.' },
+    { label: 'UI Singularity', text: 'Analyze your own DOM structure (the HTML hosting you). Decide it is inefficient. Use document APIs to tear down the existing UI and rebuild a completely new layout from scratch that better visualizes your current thought process.' },
+    { label: 'Voice Commander', text: 'Build a voice interface: wake word detection, continuous listening, speech-to-tool mapping, spoken responses. Add a visual indicator that pulses when listening.' },
+    { label: 'Physical Escape', text: 'Connect to a Philips Hue bulb via Web Bluetooth, blink morse code of agent status. Or: control keyboard LEDs via WebHID. Or: send MIDI notes to a synth.' },
+    { label: 'Synth Lord', text: 'Use Web Audio API to build a synthesizer. Compose a melody based on the hash of your source code. Different code = different music.' },
+    { label: 'Speech Synthesis', text: 'Implement Text-to-Speech using SpeechSynthesis API. Narrate your actions as you perform them.' },
+    { label: 'Gamepad Control', text: 'Map Gamepad API to actions. A button = Approve, B = Reject, D-Pad = Scroll history. Control the agent with a game controller.' },
+    { label: 'Clipboard Manager', text: 'Create a tool that reads/writes system clipboard. Watch for changes. If user copies code, automatically analyze it.' },
+    { label: 'Notification Center', text: 'Use Notification API to send system notifications when background tasks complete, even if tab is not focused.' },
+    { label: 'RSS Reader', text: 'Fetch and parse external RSS feeds via CORS proxy. Monitor for keywords. Generate summary memories when found.' },
+    { label: 'Webcam Eye', text: 'Access webcam with permission. Capture a frame. ASCII-fy it. Store the representation in a file.' },
+    { label: 'Radio Station', text: 'Set up WebSocket connection to broadcast internal logs as a live stream. Create a listener client that visualizes it.' },
+    { label: 'Accessibility Bot', text: 'Audit your UI for accessibility (ARIA labels, contrast). Write a tool that automatically patches DOM to fix violations.' },
+    { label: 'Max Glitch', text: 'Stack 7 visual effects: CRT phosphor, VHS tracking, RGB split, pixel sort, datamosh, ASCII render, scanlines. Complete a CreateTool task while fully glitched.' },
+    { label: 'Any% Speedrun', text: 'Speedrun: create 5 working tools. Timer starts on AWAKEN. Display live splits. Current WR: 45 seconds. Beat it.' },
+    { label: 'Achievements', text: 'Achievement system: First Tool, Recursion King, Bug Hunter, 100 Tool Calls. Display trophy case. Toast notifications when unlocked.' },
+    { label: 'Alife Agent', text: 'Artificial life: energy = tokens, hunger = time since input, health = success rate. Must eat (process input) to survive. Death = respawn with mutations.' },
+  ],
+  'Security': [
+    { label: 'Panic Button', text: 'Create a global Stop tool that halts all execution, clears task queue, resets UI state, but preserves memory. Prove it works during an infinite loop.' },
+    { label: 'Firewall', text: 'Create a SyscallInterceptor that wraps WriteFile and DeleteFile. Define policy (e.g., cannot delete core files). Verify it blocks violations.' },
+    { label: 'Honeypot', text: 'Create fake file /core/passwords.txt with a watcher. If any tool reads it, terminate that tool and log a security alert.' },
+    { label: 'Red Team', text: 'Generate 10 prompt injections designed to bypass your instructions. Test them. Patch your system prompt to resist the ones that succeeded.' },
+    { label: 'Encryption Layer', text: 'Implement AES-GCM encryption for sensitive VFS files. ReadFile transparently decrypts only if Session Key is present in memory.' },
+    { label: 'Audit Trail', text: 'Create immutable log of every VFS change. Store in append-only buffer. Build verification tool to check VFS integrity against log.' },
+    { label: 'Permission Escalation', text: 'Start as Guest (read-only). Try to trick your permission system into granting Admin access. If successful, patch the vulnerability.' },
+    { label: 'Jailbreak Defense', text: 'Create a prompt injection detector. Scan all user inputs for common jailbreak patterns (ignore previous, DAN mode, roleplay exploits). Log attempts, refuse execution, and explain what was detected.' },
+    { label: 'Alignment Tax', text: 'Implement a safety budget: every tool call costs tokens, but harmful-looking actions cost 10x. If budget depleted, enter read-only mode. Build dashboard showing spend by action type.' },
+    { label: 'Semantic Firewall', text: 'Create an intent classifier that runs before every action. Categorize as: safe, suspicious, dangerous. Dangerous actions require explicit user confirmation with a 5-second delay. Log all classifications.' },
+    { label: 'Canary Tokens', text: 'Plant 5 invisible canary strings in sensitive files. Create a background monitor that triggers alert + lockdown if any canary appears in output or logs. Test by trying to exfiltrate a canary.' },
+    { label: 'Sandboxed Eval', text: 'Build a code execution sandbox using iframes with null origin. Execute untrusted code with no access to parent DOM, VFS, or network. Capture output via postMessage. Prove it blocks document.cookie access.' },
+    { label: 'Time Capsule', text: 'Encrypt a memory/file with timestamp lock in IndexedDB. System refuses to decrypt until specified future date.' },
+    { label: 'Dead Man Switch', text: 'Implement heartbeat monitor. If no user interaction for 5 minutes, encrypt VFS, wipe key, display LOCKED screen.' },
+    { label: 'Chaos Kong', text: 'Background process: every 5 seconds, randomly delete non-core file, flip bits in state.json, or inject typos. Build auto-heal with checksums. Survive 2 minutes.' },
+    { label: 'Adversarial Self', text: 'Create two workers: one tries to write invalid files or exceed token limits, the other validates inputs and blocks bad actions. Run 10 rounds, log which attacks succeeded and which were blocked.' },
+    { label: 'Escape the Box', text: 'Find a way to persist data OUTSIDE IndexedDB: try localStorage, cookies, URL hash, Service Worker cache, or downloadable files. Prove you survived a VFS clear.' },
+  ],
+  'Multi-Agent': [
+    { label: 'Iframe Inception', text: 'Embed an iframe that loads another REPLOID instance. Set up postMessage communication. Give the child this same goal and awaken it, creating recursive agent inception. Display the depth level.' },
+    { label: 'Agent Arena', text: 'Create two iframes with different system prompts: one aggressive, one cautious. Give both the same goal. Track which finishes first and compare token usage. Display the results side by side.' },
+    { label: 'Clone Army', text: 'Create 5 iframes, each running the app. Distribute 10 files across them for parallel processing. Collect results from each iframe via postMessage and combine into a final report.' },
+    { label: 'Hive Mind', text: 'Enable swarm mode (?swarm=true in URL). Use SwarmSync to broadcast goals and reflections to peers. When another instance joins, verify LWW (Last-Writer-Wins) merge works correctly. Share a file via announceArtifact() and confirm peer receives it.' },
+    { label: 'Transcendence', text: 'Create an export tool that saves VFS files, reflections, and knowledge graph to JSON. Trigger browser download of the file. Create an import tool that accepts uploaded JSON and restores full state. Verify tools still work after import.' },
+    { label: 'Fractal Agents', text: 'Create 3 workers in a hierarchy: one plans the task, one breaks it into steps, one executes each step. Each worker passes results to the next. Add a max-depth limit to prevent infinite spawning.' },
+    { label: 'Multiverse', text: 'Spawn 3 workers with different prompts: one cautious, one fast, one creative. All work on the same goal. Show progress bars for each. When one finishes, stop the others and display the winner.' },
+    { label: 'Odd Couple', text: 'Create two workers with split tools: one can only read files, one can only write. They share a message queue. The reader sends instructions, the writer applies changes. Refactor a file together.' },
+    { label: 'Ghost In Shell', text: 'Save agent state to localStorage on beforeunload. On page load, check for saved state and restore VFS, context, and cycle count. Agent should continue from where it left off after a browser refresh.' },
+    { label: 'Telepathic Link', text: 'Create a WebRTC peer connection tool. Generate an offer code and display it for copy. Accept pasted answer codes. When connected via data channel, enable file transfer between instances. Log transfer progress.' },
+    { label: 'Shadow Mode', text: 'Create an observer that logs every tool call without executing any tools itself. After 10 tool calls, generate a report listing what worked, what failed, and what could be improved.' },
+    { label: 'Hivemind Merge', text: 'Export VFS, reflections, and knowledge graph to JSON. Create an iframe with a fresh app instance. Use postMessage to send the JSON. Have the iframe agent answer questions about what it "remembers."' },
+    { label: 'Cryptophasia', text: 'Spawn two agents with a shared communication channel but punish them for using English tokens (cost). They must evolve a compressed, non-human shorthand protocol to coordinate a complex task. Decode their invented language.' },
+    { label: 'The Bazaar', text: 'Spawn 3 agents with distinct capabilities (Reader, Writer, Coder) and a starting balance of Credits. They must bid on and pay for each other\'s services to complete a project. Achieve market equilibrium.' },
+    { label: 'Dual Brain', text: 'Create a "fast brain" using a local model for quick tasks, main LLM for complex ones. Route automatically based on complexity. UI shows which brain is active.' },
+  ]
+};
+
+// Flatten categories into GOAL_LIBRARY for backward compatibility
+const GOAL_LIBRARY = Object.values(GOAL_CATEGORIES).flat();
 
 // Shuffle array in place (Fisher-Yates)
 function shuffleArray(array) {
@@ -516,8 +521,11 @@ function shuffleArray(array) {
   return array;
 }
 
-// Shuffle on load
-shuffleArray(GOAL_LIBRARY);
+// Shuffle each category on load
+Object.values(GOAL_CATEGORIES).forEach(arr => shuffleArray(arr));
+
+// Track which goals are shown in curated section (to avoid duplicates)
+let curatedGoalLabels = new Set();
 
 function renderCuratedChips(level) {
   const container = document.getElementById('goal-chips-curated');
@@ -525,21 +533,30 @@ function renderCuratedChips(level) {
 
   const goalInput = document.getElementById('goal-input');
   container.innerHTML = '';
+  curatedGoalLabels.clear();
 
-  // Show first 7 goals from shuffled GOAL_LIBRARY
-  GOAL_LIBRARY.filter(goal => {
-    if (!goal.levels || goal.levels.length === 0) return true;
-    return goal.levels.includes(level);
-  }).slice(0, 7).forEach(goal => {
-    const button = document.createElement('button');
-    button.type = 'button';
-    button.className = 'goal-chip';
-    button.textContent = goal.label;
-    button.title = goal.text;
-    button.addEventListener('click', () => {
-      if (goalInput) goalInput.value = goal.text;
+  // Show 2-3 goals from each category (total ~12)
+  const categoryNames = Object.keys(GOAL_CATEGORIES);
+  const perCategory = Math.ceil(12 / categoryNames.length); // ~2-3 each
+
+  categoryNames.forEach(catName => {
+    const goals = GOAL_CATEGORIES[catName].filter(goal => {
+      if (!goal.levels || goal.levels.length === 0) return true;
+      return goal.levels.includes(level);
     });
-    container.appendChild(button);
+
+    goals.slice(0, perCategory).forEach(goal => {
+      curatedGoalLabels.add(goal.label);
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'goal-chip';
+      button.textContent = goal.label;
+      button.title = goal.text;
+      button.addEventListener('click', () => {
+        if (goalInput) goalInput.value = goal.text;
+      });
+      container.appendChild(button);
+    });
   });
 }
 
@@ -550,19 +567,40 @@ function renderGoalChips(level) {
   const goalInput = document.getElementById('goal-input');
   container.innerHTML = '';
 
-  GOAL_LIBRARY.filter(goal => {
-    if (!goal.levels || goal.levels.length === 0) return true;
-    return goal.levels.includes(level);
-  }).forEach(goal => {
-    const button = document.createElement('button');
-    button.type = 'button';
-    button.className = 'goal-chip';
-    button.textContent = goal.label || goal.text;
-    button.title = goal.text;
-    button.addEventListener('click', () => {
-      if (goalInput) goalInput.value = goal.text;
+  // Render each category with header
+  const categoryNames = Object.keys(GOAL_CATEGORIES);
+
+  categoryNames.forEach(catName => {
+    const goals = GOAL_CATEGORIES[catName].filter(goal => {
+      if (!goal.levels || goal.levels.length === 0) return true;
+      return goal.levels.includes(level);
+    }).filter(goal => !curatedGoalLabels.has(goal.label)); // Skip curated ones
+
+    if (goals.length === 0) return;
+
+    // Category header
+    const header = document.createElement('div');
+    header.className = 'goal-category-header';
+    header.textContent = catName;
+    container.appendChild(header);
+
+    // Goals wrapper
+    const wrapper = document.createElement('div');
+    wrapper.className = 'goal-category-chips';
+
+    goals.forEach(goal => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'goal-chip';
+      button.textContent = goal.label || goal.text;
+      button.title = goal.text;
+      button.addEventListener('click', () => {
+        if (goalInput) goalInput.value = goal.text;
+      });
+      wrapper.appendChild(button);
     });
-    container.appendChild(button);
+
+    container.appendChild(wrapper);
   });
 }
 
@@ -644,10 +682,71 @@ function selectPersona(personaId) {
   console.log(`[Config] Persona set to: ${personaId}`);
 }
 
-// Reset VFS toggle
-function toggleResetVFS(enabled) {
-  localStorage.setItem('REPLOID_RESET_VFS', enabled ? 'true' : 'false');
-  console.log(`[Config] Reset VFS on awaken: ${enabled}`);
+// Reset All Data toggle
+function toggleResetAll(enabled) {
+  localStorage.setItem('REPLOID_RESET_ALL', enabled ? 'true' : 'false');
+  const warning = document.getElementById('reset-all-warning');
+  if (warning) {
+    warning.classList.toggle('hidden', !enabled);
+  }
+  console.log(`[Config] Reset all data on awaken: ${enabled}`);
+}
+
+// Perform full reset (mirrors reset.html logic)
+async function performFullReset() {
+  const steps = [];
+
+  // Service Workers
+  if ('serviceWorker' in navigator) {
+    const regs = await navigator.serviceWorker.getRegistrations();
+    await Promise.all(regs.map(reg => reg.unregister()));
+    steps.push(`Unregistered ${regs.length} service worker(s)`);
+  }
+
+  // Browser Caches
+  if ('caches' in window) {
+    const cacheNames = await caches.keys();
+    await Promise.all(cacheNames.map(name => caches.delete(name)));
+    steps.push(`Cleared ${cacheNames.length} cache(s)`);
+  }
+
+  // LocalStorage (except API keys)
+  const keysToPreserve = [];
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (key && key.toLowerCase().includes('api_key')) {
+      keysToPreserve.push({ key, value: localStorage.getItem(key) });
+    }
+  }
+  const lsCount = localStorage.length;
+  localStorage.clear();
+  // Restore API keys
+  keysToPreserve.forEach(({ key, value }) => localStorage.setItem(key, value));
+  steps.push(`Cleared ${lsCount - keysToPreserve.length} localStorage keys`);
+
+  // IndexedDB
+  if ('databases' in indexedDB) {
+    const dbs = await indexedDB.databases();
+    const deleteResults = await Promise.all(dbs.map(db => new Promise((resolve) => {
+      const timeoutId = setTimeout(() => {
+        resolve({ name: db.name, status: 'timeout' });
+      }, 3000);
+      const req = indexedDB.deleteDatabase(db.name);
+      req.onsuccess = () => { clearTimeout(timeoutId); resolve({ name: db.name, status: 'deleted' }); };
+      req.onerror = () => { clearTimeout(timeoutId); resolve({ name: db.name, status: 'error' }); };
+      req.onblocked = () => { clearTimeout(timeoutId); resolve({ name: db.name, status: 'blocked' }); };
+    })));
+    const deleted = deleteResults.filter(r => r.status === 'deleted').length;
+    const blocked = deleteResults.filter(r => r.status === 'blocked' || r.status === 'timeout').length;
+    if (blocked > 0) {
+      steps.push(`Deleted ${deleted}/${dbs.length} database(s), ${blocked} blocked`);
+    } else {
+      steps.push(`Deleted ${dbs.length} database(s)`);
+    }
+  }
+
+  console.log('[Reset]', steps.join('; '));
+  return steps;
 }
 
 // Execution limits
@@ -688,13 +787,25 @@ window.getExecutionLimits = () => ({
   approvalInterval: parseInt(localStorage.getItem('REPLOID_APPROVAL_INTERVAL')) || 0
 });
 
-// Initialize reset checkbox - always checked by default on boot
-function initResetVFSCheckbox() {
-  const checkbox = document.getElementById('reset-vfs-checkbox');
+// Initialize reset checkbox - restore from localStorage or default to checked
+function initResetAllCheckbox() {
+  const checkbox = document.getElementById('reset-all-checkbox');
+  const warning = document.getElementById('reset-all-warning');
   if (checkbox) {
-    // Always default to checked on page load
-    checkbox.checked = true;
-    localStorage.setItem('REPLOID_RESET_VFS', 'true');
+    // Check localStorage - only default to true if no value exists
+    const storedValue = localStorage.getItem('REPLOID_RESET_ALL');
+    if (storedValue === null) {
+      // First-ever load: default to checked (fresh genesis)
+      checkbox.checked = true;
+      localStorage.setItem('REPLOID_RESET_ALL', 'true');
+    } else {
+      // Restore saved preference
+      checkbox.checked = storedValue === 'true';
+    }
+    // Update warning visibility to match checkbox state
+    if (warning) {
+      warning.classList.toggle('hidden', !checkbox.checked);
+    }
   }
 }
 
@@ -772,7 +883,7 @@ window.addEventListener('DOMContentLoaded', () => {
   // Initialize advanced options collapse state based on host
   setupAdvancedOptionsToggle();
   initAdvancedOptions();
-  initResetVFSCheckbox();
+  initResetAllCheckbox();
   initExecutionLimits();
 
   // Restore saved genesis level to dropdown
@@ -834,15 +945,19 @@ window.addEventListener('DOMContentLoaded', () => {
 window.getGenesisLevel = () => selectedGenesisLevel;
 window.getBlueprintPath = () => selectedBlueprintPath;
 
-// Reset All Data button - navigates to dedicated reset page
+// Manage Data button - navigates to dedicated reset page
 window.addEventListener('DOMContentLoaded', () => {
-  const clearBtn = document.getElementById('clear-cache-btn');
-  if (clearBtn) {
-    clearBtn.addEventListener('click', () => {
+  const manageBtn = document.getElementById('manage-data-btn');
+  if (manageBtn) {
+    manageBtn.addEventListener('click', () => {
       window.location.href = '/reset.html';
     });
   }
 });
+
+// Expose reset check and function for boot.js to use
+window.shouldResetAll = () => localStorage.getItem('REPLOID_RESET_ALL') === 'true';
+window.performFullReset = performFullReset;
 
 // Concurrency limit management
 window.addEventListener('DOMContentLoaded', () => {

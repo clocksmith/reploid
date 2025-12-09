@@ -47,14 +47,17 @@ npm test -- tests/unit/event-bus.test.js
 
 ```
 reploid/
-├── docs/                   # Human-facing documentation (you are here)
-├── dreamer/reploid/
-│   ├── core/               # Core substrate modules
-│   ├── infrastructure/     # Support services
-│   ├── tools/              # Agent tools (CamelCase)
-│   ├── ui/                 # Proto UI
-│   ├── blueprints/         # Architectural specifications
-│   └── tests/              # Test suites
+├── docs/                       # Human-facing documentation (you are here)
+├── dreamer/reploid/            # Main application
+│   ├── core/                   # Core substrate modules
+│   ├── infrastructure/         # Support services
+│   ├── capabilities/           # Extended capabilities (swarm, etc.)
+│   ├── tools/                  # Agent tools (CamelCase)
+│   ├── ui/                     # Proto UI
+│   ├── config/                 # Genesis levels, module registry
+│   ├── blueprints/             # Architectural specifications
+│   └── tests/                  # Test suites
+└── server/                     # Proxy server for API routing
 ```
 
 ---
@@ -181,9 +184,15 @@ npm run test:coverage
 
 ### Blueprint Format
 
-Blueprints follow a specific format. See `blueprints/README.md` for conventions.
+Blueprints follow a specific format with these sections:
+- Strategic Imperative (why)
+- Architectural Solution (how)
+- Implementation Pathway (steps)
+- Success Criteria (checklist)
 
 File naming: `0x{HEX_ID}-{kebab-case-name}.md`
+
+See existing blueprints in `dreamer/reploid/blueprints/` for examples.
 
 ---
 

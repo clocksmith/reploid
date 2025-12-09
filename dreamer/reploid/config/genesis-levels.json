@@ -56,6 +56,7 @@
         "TransformersClient",
         "VFSHMR",
         "WorkerManager",
+        "SwarmTransport",
         "WebRTCSwarm",
         "SwarmSync"
       ]
@@ -174,6 +175,9 @@
       "core/worker-manager.js",
       "core/worker-agent.js"
     ],
+    "SwarmTransport": [
+      "capabilities/communication/swarm-transport.js"
+    ],
     "WebRTCSwarm": [
       "capabilities/communication/webrtc-swarm.js"
     ],
@@ -189,7 +193,6 @@
       "tools/DeleteFile.js",
       "tools/CreateTool.js",
       "tools/ListTools.js",
-      "tools/LoadModule.js",
       "tools/FileOutline.js",
       "tools/Cat.js",
       "tools/Head.js",
@@ -205,13 +208,8 @@
       "tools/Cp.js",
       "tools/Ls.js",
       "tools/Pwd.js",
-      "tools/ListMemories.js",
-      "tools/ListKnowledge.js",
       "tools/Git.js",
-      "tools/Edit.js",
-      "tools/SpawnWorker.js",
-      "tools/ListWorkers.js",
-      "tools/AwaitWorkers.js"
+      "tools/Edit.js"
     ],
     "ui": [
       "ui/proto.js",
@@ -240,7 +238,6 @@
       "ui/dashboard/vfs-explorer.js"
     ],
     "styles": [
-      "styles/proto.css",
       "styles/theme.css",
       "styles/vfs-explorer.css",
       "styles/proto/index.css",
@@ -249,11 +246,33 @@
       "styles/proto/history.css",
       "styles/proto/panels.css",
       "styles/proto/vfs.css",
+      "styles/proto/inline-chat.css",
+      "styles/proto/hitl.css",
       "styles/proto/responsive.css"
     ],
-    "docs": [
-      "docs/REPLOID.md"
-    ]
+    "docs": []
+  },
+  "levelFiles": {
+    "tabula": {
+      "tools": []
+    },
+    "reflection": {
+      "tools": []
+    },
+    "full": {
+      "tools": [
+        "tools/SwarmShareFile.js",
+        "tools/SwarmRequestFile.js",
+        "tools/SwarmListPeers.js",
+        "tools/SwarmGetStatus.js",
+        "tools/SpawnWorker.js",
+        "tools/ListWorkers.js",
+        "tools/AwaitWorkers.js",
+        "tools/ListMemories.js",
+        "tools/ListKnowledge.js",
+        "tools/LoadModule.js"
+      ]
+    }
   },
   "blueprintPaths": {
     "none": {

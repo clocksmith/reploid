@@ -79,7 +79,7 @@
 }
 
 .telemetry-tag {
-    background: rgba(127, 255, 127, 0.08);
+    background: rgba(173, 252, 65, 0.08);
     padding: 0 6px;
     border-radius: 3px;
 }
@@ -94,11 +94,11 @@
 }
 
 .telemetry-entry.telemetry-warn {
-    border-color: #7fff7f;
+    border-color: #adfc41;
 }
 
 .telemetry-entry.telemetry-error {
-    border-color: #7fff7f;
+    border-color: #adfc41;
 }
 
 /* Schema Registry Panel */
@@ -279,7 +279,7 @@
 
 .model-provider-ollama,
 .model-provider-local {
-    background: rgba(127, 255, 127, 0.15);
+    background: rgba(173, 252, 65, 0.15);
     color: var(--primary);
 }
 
@@ -366,15 +366,15 @@
 }
 
 .worker-card.worker-completed {
-    border-left-color: var(--success, #7fff7f);
+    border-left-color: var(--success, #adfc41);
 }
 
 .worker-card.worker-error {
-    border-left-color: var(--danger, #7fff7f);
+    border-left-color: var(--danger, #adfc41);
 }
 
 .worker-card.worker-terminated {
-    border-left-color: #7fff7f;
+    border-left-color: #adfc41;
 }
 
 .worker-card-header {
@@ -453,8 +453,8 @@
 }
 
 .worker-output-error {
-    color: var(--danger, #7fff7f);
-    border-color: var(--danger, #7fff7f);
+    color: var(--danger, #adfc41);
+    border-color: var(--danger, #adfc41);
 }
 
 .worker-indicator {
@@ -478,7 +478,7 @@
 .worker-indicator.has-workers {
     border-color: var(--primary);
     color: var(--primary);
-    background: rgba(127, 255, 127, 0.1);
+    background: rgba(173, 252, 65, 0.1);
 }
 
 #worker-indicator-count {

@@ -13,8 +13,8 @@ Choose one of the following:
 # Install Ollama
 curl -fsSL https://ollama.ai/install.sh | sh
 
-# Pull a model (e.g., Llama 2)
-ollama pull qwen3-coder-32b
+# Pull a model
+ollama pull qwen2.5-coder:32b
 
 # Start Ollama server (runs on port 11434 by default)
 ollama serve
@@ -115,10 +115,10 @@ edit `config.json` to set default models for each provider:
   "default": "local",
   "fallbackProviders": ["gemini", "openai"],
   "localEndpoint": "http://localhost:11434",
-  "localModel": "qwen3-coder-32b",
-  "geminiModel": "gemini-3-pro-preview",
-  "openaiModel": "gpt-5.1-turbo",
-  "anthropicModel": "claude-sonnet-4-5"
+  "localModel": "qwen2.5-coder:32b",
+  "geminiModel": "gemini-2.0-flash",
+  "openaiModel": "gpt-4o",
+  "anthropicModel": "claude-sonnet-4-20250514"
 }
 ```
 
@@ -131,7 +131,7 @@ curl http://localhost:11434/api/tags
 
 # Test generation
 curl http://localhost:11434/api/generate -d '{
-  "model": "qwen3-coder-32b",
+  "model": "qwen2.5-coder:32b",
   "prompt": "Hello, world!"
 }'
 ```
@@ -143,7 +143,7 @@ curl http://localhost:8000/api/proxy-status
 
 # Test local model through proxy
 curl http://localhost:8000/api/local/api/generate -H "Content-Type: application/json" -d '{
-  "model": "qwen3-coder-32b",
+  "model": "qwen2.5-coder:32b",
   "prompt": "Hello from REPLOID!"
 }'
 ```
