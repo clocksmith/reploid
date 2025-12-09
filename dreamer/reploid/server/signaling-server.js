@@ -126,10 +126,21 @@ class SignalingServer extends EventEmitter {
   }
 
   handleJoin(ws, message) {
-    const { peerId, roomId, metadata } = message;
+    const { peerId, roomId, token, metadata } = message;
 
     if (!peerId || !roomId) {
       return this.sendError(ws, 'Missing peerId or roomId');
+    }
+
+    // Token validation for session-scoped rooms
+    // Room format: reploid-swarm-{sessionId}
+    // Token should match the sessionId portion
+    if (roomId.startsWith('reploid-swarm-')) {
+      const expectedToken = roomId.replace('reploid-swarm-', '');
+      if (!token || token !== expectedToken) {
+        console.log(`[SignalingServer] Unauthorized room access: ${peerId} to ${roomId}`);
+        return this.sendError(ws, 'Unauthorized room access');
+      }
     }
 
     console.log(`[SignalingServer] Peer ${peerId} joining room ${roomId}`);
