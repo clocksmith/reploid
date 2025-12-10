@@ -167,10 +167,44 @@ async function convertGGUF(inputPath, outputDir, options) {
   const getTensorData = async (tensor) => {
     const data = fileBuffer.buffer.slice(tensor.offset, tensor.offset + tensor.size);
 
-    // Optionally re-quantize
+    // Optionally re-quantize if source is F16/F32 and we want Q4_K_M
     if (options.quantize === 'q4_k_m' && shouldQuantize(tensor.name, tensor.shape)) {
-      // Already quantized in GGUF, just return as-is for now
-      // TODO: Implement re-quantization if source is F16/F32
+      const sourceQuant = tensor.quantization || modelInfo.quantization;
+
+      // Only re-quantize if source is floating point
+      if (sourceQuant === 'F16' || sourceQuant === 'F32' || sourceQuant === 'BF16') {
+        // Convert to F32 first
+        let f32Data;
+        if (sourceQuant === 'F32') {
+          f32Data = new Float32Array(data);
+        } else if (sourceQuant === 'F16') {
+          const f16 = new Uint16Array(data);
+          f32Data = new Float32Array(f16.length);
+          for (let i = 0; i < f16.length; i++) {
+            f32Data[i] = float16ToFloat32(f16[i]);
+          }
+        } else if (sourceQuant === 'BF16') {
+          const bf16 = new Uint16Array(data);
+          f32Data = new Float32Array(bf16.length);
+          for (let i = 0; i < bf16.length; i++) {
+            const f32View = new Float32Array(1);
+            const u32View = new Uint32Array(f32View.buffer);
+            u32View[0] = bf16[i] << 16;
+            f32Data[i] = f32View[0];
+          }
+        }
+
+        // Quantize to Q4_K_M
+        const { quantized } = quantizeToQ4KM(f32Data, tensor.shape);
+        tensor.dtype = 'Q4_K_M';
+        tensor.size = quantized.length;
+
+        if (options.verbose) {
+          console.log(`  Re-quantized ${tensor.name}: ${sourceQuant} -> Q4_K_M`);
+        }
+
+        return quantized.buffer;
+      }
     }
 
     return data;

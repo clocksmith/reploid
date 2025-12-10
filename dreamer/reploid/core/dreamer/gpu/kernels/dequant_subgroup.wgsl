@@ -1,5 +1,4 @@
 // Q4_K_M Dequantization Kernel - Subgroup Optimized
-// AGENT-C: gpu/kernels/dequant_subgroup.wgsl
 //
 // Dequantizes Q4_K_M quantized weights using subgroup broadcast operations.
 // Q4_K_M format: 256 elements per super-block

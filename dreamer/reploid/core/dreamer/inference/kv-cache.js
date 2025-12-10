@@ -471,11 +471,139 @@ export class KVCache {
 
   /**
    * Set GPU context for GPU-based caching
-   * @param {Object} gpuContext - GPU context from Agent-C
+   * @param {Object} gpuContext - GPU context with device
    */
   setGPUContext(gpuContext) {
     this.gpuContext = gpuContext;
-    // TODO: Migrate existing cache to GPU if needed
+
+    // Migrate existing cache to GPU if we have data
+    if (this.currentSeqLen > 0 && gpuContext?.device) {
+      this._migrateToGPU(gpuContext.device);
+    }
+  }
+
+  /**
+   * Migrate existing CPU cache data to GPU buffers
+   * @private
+   * @param {GPUDevice} device - WebGPU device
+   */
+  _migrateToGPU(device) {
+    if (this.layout === 'paged') {
+      console.warn('[KVCache] GPU migration not supported for paged layout');
+      return;
+    }
+
+    console.log(`[KVCache] Migrating ${this.currentSeqLen} positions to GPU...`);
+    const sizePerLayer = this.maxSeqLen * this.kvSize;
+
+    for (let l = 0; l < this.numLayers; l++) {
+      const layer = this.layers[l];
+
+      // Create GPU buffers if they don't exist
+      if (!layer.keysGPU) {
+        layer.keysGPU = device.createBuffer({
+          label: `kv_cache_keys_layer_${l}`,
+          size: sizePerLayer * 4,
+          usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST | GPUBufferUsage.COPY_SRC,
+        });
+      }
+      if (!layer.valuesGPU) {
+        layer.valuesGPU = device.createBuffer({
+          label: `kv_cache_values_layer_${l}`,
+          size: sizePerLayer * 4,
+          usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST | GPUBufferUsage.COPY_SRC,
+        });
+      }
+
+      // Upload existing CPU data to GPU
+      const usedSize = layer.seqLen * this.kvSize * 4;
+      if (usedSize > 0) {
+        device.queue.writeBuffer(
+          layer.keysGPU,
+          0,
+          layer.keys.buffer,
+          layer.keys.byteOffset,
+          usedSize
+        );
+        device.queue.writeBuffer(
+          layer.valuesGPU,
+          0,
+          layer.values.buffer,
+          layer.values.byteOffset,
+          usedSize
+        );
+      }
+    }
+
+    this.useGPU = true;
+    console.log('[KVCache] Migration complete');
+  }
+
+  /**
+   * Sync GPU cache back to CPU (for debugging or fallback)
+   * @returns {Promise<void>}
+   */
+  async syncToCPU() {
+    if (!this.useGPU || this.layout === 'paged') return;
+
+    const device = getDevice();
+    if (!device) return;
+
+    for (let l = 0; l < this.numLayers; l++) {
+      const layer = this.layers[l];
+      if (!layer.keysGPU || !layer.valuesGPU) continue;
+
+      const usedSize = layer.seqLen * this.kvSize * 4;
+      if (usedSize === 0) continue;
+
+      // Create staging buffers for readback
+      const keysStaging = device.createBuffer({
+        size: usedSize,
+        usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST,
+      });
+      const valuesStaging = device.createBuffer({
+        size: usedSize,
+        usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST,
+      });
+
+      // Copy from GPU cache to staging
+      const encoder = device.createCommandEncoder({ label: 'kv_cache_sync' });
+      encoder.copyBufferToBuffer(layer.keysGPU, 0, keysStaging, 0, usedSize);
+      encoder.copyBufferToBuffer(layer.valuesGPU, 0, valuesStaging, 0, usedSize);
+      device.queue.submit([encoder.finish()]);
+
+      // Map and copy to CPU arrays
+      await keysStaging.mapAsync(GPUMapMode.READ);
+      await valuesStaging.mapAsync(GPUMapMode.READ);
+
+      const keysData = new Float32Array(keysStaging.getMappedRange().slice(0));
+      const valuesData = new Float32Array(valuesStaging.getMappedRange().slice(0));
+
+      layer.keys.set(keysData);
+      layer.values.set(valuesData);
+
+      keysStaging.unmap();
+      valuesStaging.unmap();
+      keysStaging.destroy();
+      valuesStaging.destroy();
+    }
+  }
+
+  /**
+   * Destroy GPU resources
+   */
+  destroy() {
+    for (let l = 0; l < this.numLayers; l++) {
+      const layer = this.layers[l];
+      if (layer.keysGPU) {
+        layer.keysGPU.destroy();
+        layer.keysGPU = null;
+      }
+      if (layer.valuesGPU) {
+        layer.valuesGPU.destroy();
+        layer.valuesGPU = null;
+      }
+    }
   }
 }
 

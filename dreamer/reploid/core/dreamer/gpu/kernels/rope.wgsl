@@ -1,5 +1,4 @@
 // Rotary Position Embeddings (RoPE) Kernel
-// AGENT-C Phase 2: gpu/kernels/rope.wgsl
 //
 // Applies rotary position embeddings to Q and K tensors.
 // RoPE rotates pairs of dimensions based on position and frequency.

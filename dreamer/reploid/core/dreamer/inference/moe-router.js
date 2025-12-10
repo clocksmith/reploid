@@ -7,7 +7,9 @@
  * @module inference/moe-router
  */
 
-// TODO: Waiting on Agent-C for GPU kernel interfaces (runMatmul, dequantize)
+import { getDevice } from '../gpu/device.js';
+import { runMatmul, runSoftmax } from '../gpu/kernel-selector.js';
+import { acquireBuffer, releaseBuffer, readBuffer } from '../gpu/buffer-pool.js';
 
 /**
  * MoE Router Configuration
@@ -88,21 +90,90 @@ export class MoERouter {
 
   /**
    * Compute router logits using GPU (when available)
-   * @param {GPUBuffer} hiddenStates - Input tensor on GPU
+   * @param {GPUBuffer} hiddenStates - Input tensor on GPU [numTokens, hiddenSize]
    * @param {number} numTokens - Number of tokens
-   * @param {Object} gpuContext - GPU context from Agent-C
-   * @returns {Promise<GPUBuffer>} Router logits on GPU
+   * @param {Object} gpuContext - GPU context (optional, uses global device if not provided)
+   * @returns {Promise<GPUBuffer>} Router logits on GPU [numTokens, numExperts]
    */
-  async computeRouterLogitsGPU(hiddenStates, numTokens, gpuContext) {
-    // TODO: Waiting on Agent-C for runMatmul interface
-    // return await gpuContext.runMatmul(
-    //   hiddenStates,
-    //   this.gateWeight,
-    //   numTokens,
-    //   this.numExperts,
-    //   this.hiddenSize
-    // );
-    throw new Error('GPU router logits not yet implemented - waiting on Agent-C');
+  async computeRouterLogitsGPU(hiddenStates, numTokens, gpuContext = null) {
+    const device = gpuContext?.device || getDevice();
+    if (!device) {
+      throw new Error('GPU device not available');
+    }
+
+    if (!this.gateWeight) {
+      throw new Error('Router gate weights not loaded');
+    }
+
+    // Ensure gate weight is on GPU
+    let gateWeightBuffer = this.gateWeight;
+    let createdGateBuffer = false;
+
+    if (!(this.gateWeight instanceof GPUBuffer)) {
+      // Upload gate weights to GPU
+      gateWeightBuffer = device.createBuffer({
+        label: 'moe_gate_weight',
+        size: this.gateWeight.byteLength,
+        usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
+      });
+      device.queue.writeBuffer(gateWeightBuffer, 0, this.gateWeight);
+      createdGateBuffer = true;
+
+      // Cache the GPU buffer for reuse
+      this.gateWeightGPU = gateWeightBuffer;
+    }
+
+    // Matrix multiply: hidden_states [numTokens, hiddenSize] @ gate_weight [hiddenSize, numExperts]
+    // Result: [numTokens, numExperts]
+    const logitsBuffer = await runMatmul(
+      hiddenStates,
+      gateWeightBuffer,
+      numTokens,           // M
+      this.numExperts,     // N
+      this.hiddenSize,     // K
+      { preferF16: false } // Use F32 for routing precision
+    );
+
+    return logitsBuffer;
+  }
+
+  /**
+   * Route tokens using GPU and read back results
+   * @param {GPUBuffer} hiddenStates - Hidden states on GPU
+   * @param {number} numTokens - Number of tokens
+   * @returns {Promise<ExpertSelection[]>} Expert selections for each token
+   */
+  async routeGPU(hiddenStates, numTokens) {
+    // Compute router logits on GPU
+    const logitsBuffer = await this.computeRouterLogitsGPU(hiddenStates, numTokens);
+
+    // Read back logits to CPU for top-k selection
+    // (GPU top-k is complex and not always faster for small numExperts)
+    const logits = await readBuffer(logitsBuffer, Float32Array);
+
+    const selections = [];
+    this.activeExperts.clear();
+
+    for (let t = 0; t < numTokens; t++) {
+      const tokenLogits = logits.subarray(
+        t * this.numExperts,
+        (t + 1) * this.numExperts
+      );
+
+      const selection = this.selectExpertsForToken(tokenLogits);
+      selections.push(selection);
+
+      for (const idx of selection.indices) {
+        this.activeExperts.add(idx);
+        this.loadBalanceStats.expertCounts[idx]++;
+      }
+      this.loadBalanceStats.totalTokens++;
+    }
+
+    // Clean up logits buffer
+    logitsBuffer.destroy();
+
+    return selections;
   }
 
   /**

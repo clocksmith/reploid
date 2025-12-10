@@ -1,6 +1,5 @@
 /**
  * app.js - Dreamer Demo Application Controller
- * Agent-D | Phase 2 | demo/
  *
  * Main application that wires together all components and the Dreamer inference pipeline.
  */
@@ -9,11 +8,14 @@ import { ModelSelector } from './model-selector.js';
 import { ChatUI } from './chat-ui.js';
 import { ProgressUI } from './progress-ui.js';
 
-// Phase 1 imports (will be connected when running in full environment)
-// import { createPipeline } from '../inference/pipeline.js';
-// import { downloadModel } from '../storage/downloader.js';
-// import { getMemoryCapabilities } from '../memory/capability.js';
-// import { initDevice, getKernelCapabilities } from '../gpu/device.js';
+// Dreamer pipeline imports
+import { createPipeline } from '../inference/pipeline.js';
+import { downloadModel } from '../storage/downloader.js';
+import { listModels, openModelDirectory, loadManifestFromOPFS, deleteModel as deleteModelFromOPFS } from '../storage/shard-manager.js';
+import { parseManifest } from '../storage/rpl-format.js';
+import { getMemoryCapabilities } from '../memory/capability.js';
+import { getHeapManager } from '../memory/heap-manager.js';
+import { initDevice, getKernelCapabilities, getDevice } from '../gpu/device.js';
 
 /**
  * Available models registry
@@ -214,15 +216,17 @@ export class DreamerDemo {
    * @private
    */
   async _loadCachedModels() {
-    // TODO: Query OPFS for cached models via storage/shard-manager.js
-    // For now, mark none as downloaded
     console.log('[DreamerDemo] Checking cached models...');
 
-    // In production:
-    // const cachedModels = await listModels();
-    // MODEL_REGISTRY.forEach(model => {
-    //   model.downloaded = cachedModels.includes(model.id);
-    // });
+    try {
+      const cachedModels = await listModels();
+      MODEL_REGISTRY.forEach(model => {
+        model.downloaded = cachedModels.includes(model.id);
+      });
+      console.log('[DreamerDemo] Found cached models:', cachedModels);
+    } catch (err) {
+      console.warn('[DreamerDemo] Could not query cached models:', err.message);
+    }
 
     this.modelSelector.setModels(MODEL_REGISTRY);
   }
@@ -255,22 +259,51 @@ export class DreamerDemo {
     try {
       // Unload current model if any
       if (this.pipeline) {
-        await this.pipeline.unload();
+        if (typeof this.pipeline.unload === 'function') {
+          await this.pipeline.unload();
+        }
         this.pipeline = null;
       }
 
-      // TODO: Load model via pipeline.js
-      // this.pipeline = await createPipeline(manifest, {
-      //   gpu: await initDevice(),
-      //   memory: await getHeapManager(),
-      //   storage: storageContext
-      // });
+      // Open model directory and load manifest
+      await openModelDirectory(modelId);
+      this.progressUI.setProgress(10, 'Loading manifest...');
 
-      // Simulate loading for demo
-      for (let i = 0; i <= 100; i += 10) {
-        await new Promise(r => setTimeout(r, 100));
-        this.progressUI.setProgress(i, `Loading weights... ${i}%`);
-      }
+      const manifestJson = await loadManifestFromOPFS();
+      const manifest = parseManifest(manifestJson);
+      this.progressUI.setProgress(20, 'Initializing GPU...');
+
+      // Ensure GPU device is initialized
+      const device = getDevice() || await initDevice();
+      const gpuCaps = getKernelCapabilities();
+      const memCaps = await getMemoryCapabilities();
+      const heapManager = getHeapManager();
+      await heapManager.init();
+
+      this.progressUI.setProgress(30, 'Creating pipeline...');
+
+      // Create shard loader for OPFS
+      const { loadShard } = await import('../storage/shard-manager.js');
+      const loadShardFn = (idx) => loadShard(idx);
+
+      // Create pipeline with progress tracking
+      this.pipeline = await createPipeline(manifest, {
+        gpu: {
+          capabilities: gpuCaps,
+          device: device,
+        },
+        memory: {
+          capabilities: memCaps,
+          heapManager: heapManager,
+        },
+        storage: {
+          loadShard: loadShardFn,
+        },
+        onProgress: (progress) => {
+          const percent = 30 + Math.round(progress.percent * 0.7);
+          this.progressUI.setProgress(percent, progress.message || 'Loading weights...');
+        },
+      });
 
       this.currentModel = model;
       this.modelSelector.setActiveModel(modelId);
@@ -302,15 +335,18 @@ export class DreamerDemo {
     this._setStatus('loading', 'Downloading...');
 
     try {
-      // TODO: Use storage/downloader.js
-      // await downloadModel(url, (progress) => {
-      //   this.modelSelector.setDownloadProgress(modelId, progress.percent);
-      // });
+      // Use real downloader
+      const success = await downloadModel(url, (progress) => {
+        const percent = Math.round((progress.downloadedBytes / progress.totalBytes) * 100);
+        this.modelSelector.setDownloadProgress(modelId, percent);
 
-      // Simulate download for demo
-      for (let i = 0; i <= 100; i += 5) {
-        await new Promise(r => setTimeout(r, 200));
-        this.modelSelector.setDownloadProgress(modelId, i);
+        if (progress.stage === 'verifying') {
+          this._setStatus('loading', 'Verifying...');
+        }
+      });
+
+      if (!success) {
+        throw new Error('Download failed');
       }
 
       this.modelSelector.setDownloaded(modelId);
@@ -341,7 +377,9 @@ export class DreamerDemo {
       // Unload if currently active
       if (this.currentModel?.id === modelId) {
         if (this.pipeline) {
-          await this.pipeline.unload();
+          if (typeof this.pipeline.unload === 'function') {
+            await this.pipeline.unload();
+          }
           this.pipeline = null;
         }
         this.currentModel = null;
@@ -349,8 +387,8 @@ export class DreamerDemo {
         this.chatUI.setInputEnabled(false);
       }
 
-      // TODO: Delete from OPFS via storage/shard-manager.js
-      // await deleteModel(modelId);
+      // Delete from OPFS
+      await deleteModelFromOPFS(modelId);
 
       model.downloaded = false;
       this.modelSelector.updateModel(modelId, { downloaded: false });
@@ -373,6 +411,11 @@ export class DreamerDemo {
       return;
     }
 
+    if (!this.pipeline) {
+      this._showError('Pipeline not initialized');
+      return;
+    }
+
     if (this.isGenerating) {
       return;
     }
@@ -389,21 +432,26 @@ export class DreamerDemo {
     this._setStatus('loading', 'Generating...');
 
     try {
-      // TODO: Use pipeline.generate()
-      // for await (const token of this.pipeline.generate(message, {
-      //   maxTokens: 512,
-      //   temperature: 0.7,
-      //   signal: this.abortController.signal
-      // })) {
-      //   this.chatUI.streamToken(token);
-      // }
+      // Use real pipeline generation
+      let tokenCount = 0;
+      const startTime = performance.now();
 
-      // Simulate generation for demo
-      const demoResponse = this._generateDemoResponse(message);
-      for (const char of demoResponse) {
+      for await (const token of this.pipeline.generate(message, {
+        maxTokens: 512,
+        temperature: 0.7,
+        topP: 0.9,
+        topK: 40,
+        signal: this.abortController.signal
+      })) {
         if (this.abortController.signal.aborted) break;
-        await new Promise(r => setTimeout(r, 20 + Math.random() * 30));
-        this.chatUI.streamToken(char);
+        this.chatUI.streamToken(token);
+        tokenCount++;
+
+        // Update TPS periodically
+        if (tokenCount % 10 === 0) {
+          const elapsed = (performance.now() - startTime) / 1000;
+          this._updateStats(tokenCount / elapsed);
+        }
       }
 
       const stats = this.chatUI.finishStream();
@@ -439,9 +487,10 @@ export class DreamerDemo {
    * Clear conversation history
    */
   clearConversation() {
-    if (this.pipeline) {
-      // this.pipeline.clearKVCache();
+    if (this.pipeline && typeof this.pipeline.clearKVCache === 'function') {
+      this.pipeline.clearKVCache();
     }
+    this.chatUI.clear();
     console.log('[DreamerDemo] Conversation cleared');
   }
 
@@ -450,13 +499,27 @@ export class DreamerDemo {
    * @returns {Object}
    */
   getStatus() {
+    let memoryUsage = null;
+    let gpuUsage = null;
+
+    if (this.pipeline) {
+      // Get memory stats from pipeline if available
+      if (typeof this.pipeline.getMemoryStats === 'function') {
+        memoryUsage = this.pipeline.getMemoryStats();
+      }
+      // Get GPU stats if available
+      if (typeof this.pipeline.getGPUStats === 'function') {
+        gpuUsage = this.pipeline.getGPUStats();
+      }
+    }
+
     return {
       model: this.currentModel?.id || null,
       modelName: this.currentModel?.name || null,
       isGenerating: this.isGenerating,
       capabilities: { ...this.capabilities },
-      memory: null, // TODO: Get from memory manager
-      gpu: null     // TODO: Get from GPU context
+      memory: memoryUsage,
+      gpu: gpuUsage
     };
   }
 
@@ -474,8 +537,27 @@ export class DreamerDemo {
    * @private
    */
   _updateStats(tps) {
-    this.statsElements.tps.textContent = tps.toFixed(1);
-    // TODO: Update memory and GPU stats from pipeline
+    if (this.statsElements.tps) {
+      this.statsElements.tps.textContent = tps.toFixed(1);
+    }
+
+    // Update memory and GPU stats from pipeline
+    if (this.pipeline) {
+      if (this.statsElements.memory && typeof this.pipeline.getMemoryStats === 'function') {
+        const memStats = this.pipeline.getMemoryStats();
+        if (memStats && memStats.used) {
+          const usedMB = (memStats.used / 1024 / 1024).toFixed(0);
+          this.statsElements.memory.textContent = `${usedMB} MB`;
+        }
+      }
+
+      if (this.statsElements.kv && typeof this.pipeline.getKVCacheStats === 'function') {
+        const kvStats = this.pipeline.getKVCacheStats();
+        if (kvStats) {
+          this.statsElements.kv.textContent = `${kvStats.seqLen}/${kvStats.maxSeqLen}`;
+        }
+      }
+    }
   }
 
   /**

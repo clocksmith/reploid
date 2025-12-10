@@ -1,5 +1,4 @@
 // Matrix Multiplication Kernel - FP16 (Half Precision)
-// AGENT-C: gpu/kernels/matmul_f16.wgsl
 //
 // Tiled matrix multiplication using FP16 for improved throughput.
 // Requires 'shader-f16' feature enabled.

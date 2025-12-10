@@ -1,5 +1,4 @@
 // Fused Multi-Head Attention Kernel
-// AGENT-C Phase 2: gpu/kernels/attention.wgsl
 //
 // Implements fused Q @ K^T → scale → mask → softmax → @ V
 // Uses tiled/blocked approach to avoid materializing full attention matrix.

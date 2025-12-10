@@ -1,6 +1,5 @@
 /**
  * WebGPU Device Initialization and Feature Probing
- * AGENT-C: gpu/device.js
  *
  * Handles WebGPU adapter/device setup with comprehensive feature detection
  * for optimal kernel selection.

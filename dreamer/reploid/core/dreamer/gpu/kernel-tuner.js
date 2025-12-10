@@ -1,6 +1,5 @@
 /**
  * Kernel Auto-Tuner - Optimal Workgroup Size Selection
- * AGENT-C Phase 2: gpu/kernel-tuner.js
  *
  * Automatically finds optimal workgroup sizes for different kernels
  * by running benchmarks with various configurations.
