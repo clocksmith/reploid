@@ -1,5 +1,4 @@
 // Online Softmax Kernel
-// AGENT-C Phase 2: gpu/kernels/softmax.wgsl
 //
 // Numerically stable softmax using online algorithm:
 // 1. Track running max while iterating

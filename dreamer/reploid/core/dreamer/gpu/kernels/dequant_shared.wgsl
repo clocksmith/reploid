@@ -1,5 +1,4 @@
 // Q4_K_M Dequantization Kernel - Shared Memory Fallback
-// AGENT-C: gpu/kernels/dequant_shared.wgsl
 //
 // Dequantizes Q4_K_M quantized weights using workgroup shared memory.
 // This is the fallback when subgroup operations are unavailable.

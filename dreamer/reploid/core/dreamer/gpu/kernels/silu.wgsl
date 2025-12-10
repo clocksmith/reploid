@@ -1,5 +1,4 @@
 // SiLU (Swish) Activation Kernel
-// AGENT-C Phase 2: gpu/kernels/silu.wgsl
 //
 // SiLU(x) = x * sigmoid(x) = x * (1 / (1 + exp(-x)))
 //

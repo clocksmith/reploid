@@ -1,6 +1,5 @@
 /**
  * GPU Profiler - Timestamp-based Performance Profiling
- * AGENT-C Phase 2: gpu/profiler.js
  *
  * Provides GPU-side timing using WebGPU timestamp queries.
  * Falls back to CPU timing when timestamp queries unavailable.

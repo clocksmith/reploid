@@ -333,6 +333,17 @@ export async function dreamerChat(messages, options = {}) {
     })
     .join('\n') + '\nAssistant:';
 
+  // Count prompt tokens using pipeline's tokenizer
+  let promptTokens = 0;
+  if (pipeline && pipeline.tokenizer) {
+    try {
+      const encoded = pipeline.tokenizer.encode(prompt);
+      promptTokens = encoded.length;
+    } catch (e) {
+      console.warn('[Dreamer] Failed to count prompt tokens:', e.message);
+    }
+  }
+
   const tokens = [];
   for await (const token of generate(prompt, options)) {
     tokens.push(token);
@@ -341,9 +352,9 @@ export async function dreamerChat(messages, options = {}) {
   return {
     content: tokens.join(''),
     usage: {
-      promptTokens: 0, // TODO: count from tokenizer
+      promptTokens,
       completionTokens: tokens.length,
-      totalTokens: tokens.length,
+      totalTokens: promptTokens + tokens.length,
     },
   };
 }

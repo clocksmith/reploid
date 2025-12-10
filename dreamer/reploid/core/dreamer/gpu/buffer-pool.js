@@ -1,6 +1,5 @@
 /**
  * GPU Buffer Pool - Efficient Buffer Allocation and Reuse
- * AGENT-C: gpu/buffer-pool.js
  *
  * Manages GPU buffer allocation with pooling for reuse,
  * reducing allocation overhead during inference.

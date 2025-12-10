@@ -1,6 +1,5 @@
 /**
  * Kernel Selector - Runtime Kernel Selection Based on Device Capabilities
- * AGENT-C: gpu/kernel-selector.js
  *
  * Selects optimal kernel variants based on detected GPU features.
  * Manages shader compilation and caching.
@@ -8,8 +7,50 @@
  * Phase 2: Added attention, rmsnorm, softmax, rope, silu kernels.
  */
 
-import { getDevice, getKernelCapabilities, FEATURES } from './device.js';
+import { getDevice, getKernelCapabilities, getDeviceLimits, FEATURES } from './device.js';
 import { getKernelTuner } from './kernel-tuner.js';
+
+/**
+ * Validate that attention parameters are within device limits
+ * @param {number} seqLen - Sequence length
+ * @param {number} numHeads - Number of attention heads
+ * @param {number} headDim - Dimension per head
+ * @throws {Error} If parameters exceed device limits
+ */
+function validateAttentionLimits(seqLen, numHeads, headDim) {
+  const limits = getDeviceLimits();
+  if (!limits) return; // No device, validation will fail later
+
+  // Check workgroup invocations limit
+  const workgroupInvocations = seqLen * numHeads;
+  if (workgroupInvocations > limits.maxComputeWorkgroupsPerDimension) {
+    throw new Error(
+      `Attention parameters exceed device limits: ${workgroupInvocations} workgroups ` +
+      `> ${limits.maxComputeWorkgroupsPerDimension} max per dimension. ` +
+      `Try reducing seqLen (${seqLen}) or numHeads (${numHeads}).`
+    );
+  }
+
+  // Check buffer size limits for KV cache
+  const kvCacheSize = seqLen * numHeads * headDim * 4; // float32
+  if (kvCacheSize > limits.maxStorageBufferBindingSize) {
+    throw new Error(
+      `KV cache size ${(kvCacheSize / 1e9).toFixed(2)}GB exceeds device limit ` +
+      `${(limits.maxStorageBufferBindingSize / 1e9).toFixed(2)}GB. ` +
+      `Reduce sequence length or use paged attention.`
+    );
+  }
+
+  // Check shared memory requirements for attention tile
+  const tileSize = 64; // TILE_SIZE in attention.wgsl
+  const sharedMemRequired = tileSize * headDim * 4 * 2; // K and V tiles
+  if (sharedMemRequired > limits.maxComputeWorkgroupStorageSize) {
+    console.warn(
+      `[KernelSelector] Attention may be slow: tile requires ${sharedMemRequired} bytes ` +
+      `but device has ${limits.maxComputeWorkgroupStorageSize} bytes shared memory.`
+    );
+  }
+}
 
 // Shader source cache (loaded via fetch)
 const shaderSourceCache = new Map();
@@ -102,7 +143,7 @@ const KERNEL_CONFIGS = {
       entryPoint: 'main',
       workgroupSize: [256, 1, 1],
       requires: [],
-      // TODO: respect device limits for headDim/seqLen
+      validate: validateAttentionLimits, // Device limits validation
     },
     decode: {
       shaderFile: 'attention.wgsl',
@@ -868,6 +909,9 @@ export async function runAttention(Q, K, V, mask, numHeads, headDim, options = {
     causal = true,
     outputBuffer = null,
   } = options;
+
+  // Validate device limits before proceeding
+  validateAttentionLimits(Math.max(seqLen, kvLen), numHeads, headDim);
 
   // Select variant based on seqLen
   const variant = seqLen === 1 ? 'decode' : 'prefill';

@@ -1,5 +1,4 @@
 // RMSNorm Kernel with Fused Residual Add
-// AGENT-C Phase 2: gpu/kernels/rmsnorm.wgsl
 //
 // RMSNorm(x) = x / sqrt(mean(x^2) + eps) * weight
 //

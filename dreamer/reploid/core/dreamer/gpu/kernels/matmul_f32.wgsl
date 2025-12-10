@@ -1,5 +1,4 @@
 // Matrix Multiplication Kernel - FP32 Fallback
-// AGENT-C: gpu/kernels/matmul_f32.wgsl
 //
 // Tiled matrix multiplication using shared memory (workgroup storage)
 // C[M,N] = A[M,K] * B[K,N]
