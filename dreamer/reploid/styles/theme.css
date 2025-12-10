@@ -13,14 +13,13 @@
 
   /* ---- Borders ---- */
   --border-subtle: #7f7f7f;
-  --border-default: #7f7f7f;
-  --border-light: #7f7f7f;
+  --border-default: #999999;
   --border-active: #adfc41;
 
   /* ---- Text ---- */
   --text-primary: #ffffff;
-  --text-secondary: #a8a8a8;
-  --text-muted: #919191;
+  --text-secondary: #b8b8b8;
+  --text-muted: #a0a0a0;
   --text-inverse: #000000;
 
   /* ---- Accents (Green) ---- */
@@ -38,12 +37,12 @@
   /* ---- Typography ---- */
   --font-mono: 'Courier New', 'Consolas', monospace;
   --font-sans: 'Inter', system-ui, sans-serif;
-  --font-base: 14px;
-  --font-xs: 12px;
-  --font-sm: 13px;
+  --font-base: 15px;
+  --font-xs: 13px;
+  --font-sm: 14px;
   --font-md: var(--font-base);
-  --font-lg: 15px;
-  --font-xl: 17px;
+  --font-lg: 16px;
+  --font-xl: 18px;
 
   /* ---- Spacing & Radius ---- */
   --space-sm: 8px;
@@ -565,7 +564,7 @@ input:focus, select:focus, textarea:focus {
 }
 
 .checkbox-option:hover {
-  border-color: var(--border-light);
+  border-color: var(--border-subtle);
   background: var(--bg-hover);
 }
 

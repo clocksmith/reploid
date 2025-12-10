@@ -2,7 +2,7 @@
 
 /* History/Reflections Streams */
 .history-stream, .reflections-stream {
-    font-size: 12px;
+    font-size: var(--font-xs);
     line-height: 1.6;
     flex: 1;
     min-height: 0;
@@ -79,7 +79,7 @@
 .error-badge {
     background: var(--danger);
     color: var(--bg-app);
-    font-size: 9px;
+    font-size: var(--font-xs);
     padding: 2px 6px;
     margin-left: 8px;
     text-transform: uppercase;
@@ -188,7 +188,7 @@
     padding: 2px 6px;
     background: var(--primary);
     color: var(--bg-primary);
-    font-size: 10px;
+    font-size: var(--font-xs);
     font-weight: 700;
     border-radius: 3px;
     text-transform: uppercase;

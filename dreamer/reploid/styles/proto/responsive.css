@@ -76,17 +76,17 @@
 
     .vfs-browser-header {
         padding: 8px 12px;
-        font-size: 11px;
+        font-size: var(--font-xs);
     }
 
     .vfs-tree {
         max-height: 100px;
-        font-size: 10px;
+        font-size: var(--font-xs);
     }
 
     .vfs-content {
         max-height: 80px;
-        font-size: 9px;
+        font-size: var(--font-xs);
     }
 
     .dashboard-main {
@@ -114,7 +114,7 @@
 
     .history-content {
         padding: var(--space-sm);
-        font-size: 10px;
+        font-size: var(--font-xs);
         max-height: 200px;
     }
 
@@ -124,7 +124,7 @@
 
     .status-label,
     .status-value {
-        font-size: 10px;
+        font-size: var(--font-xs);
     }
 
     .controls {
@@ -201,7 +201,7 @@
 
     .sidebar-btn {
         height: 44px;
-        font-size: 14px;
+        font-size: var(--font-sm);
     }
 
     .workspace-header {
@@ -222,7 +222,7 @@
 
     .vfs-browser-header {
         padding: 6px 10px;
-        font-size: 10px;
+        font-size: var(--font-xs);
     }
 
     .vfs-tree {
@@ -237,7 +237,7 @@
 
     .history-stream,
     .reflections-stream {
-        font-size: 11px;
+        font-size: var(--font-xs);
     }
 
     .history-content {
@@ -253,7 +253,7 @@
     }
 
     .reflection-detail {
-        font-size: 9px;
+        font-size: var(--font-xs);
     }
 
     .log-container {
@@ -290,7 +290,7 @@
 
     .line-number {
         width: 30px;
-        font-size: 9px;
+        font-size: var(--font-xs);
     }
 }
 

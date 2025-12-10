@@ -21,7 +21,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    font-size: 12px;
+    font-size: var(--font-xs);
     color: var(--text-muted);
     flex-shrink: 0;
 }
@@ -96,7 +96,7 @@
 }
 
 .vfs-dir-icon {
-    font-size: 10px;
+    font-size: var(--font-xs);
     color: var(--text-muted);
     width: 12px;
 }
@@ -226,7 +226,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    font-size: 13px;
+    font-size: var(--font-sm);
     font-weight: 500;
 }
 
@@ -272,12 +272,12 @@
 }
 
 .snapshot-timestamp {
-    font-size: 12px;
+    font-size: var(--font-xs);
     color: var(--text-muted);
 }
 
 .snapshot-stats {
-    font-size: 11px;
+    font-size: var(--font-xs);
     color: var(--text-muted);
     margin-top: 4px;
 }
@@ -289,7 +289,7 @@
 }
 
 .snapshot-actions .btn {
-    font-size: 11px;
+    font-size: var(--font-xs);
     padding: 4px 8px;
 }
 
@@ -303,14 +303,14 @@
 }
 
 .diff-stats {
-    font-size: 11px;
+    font-size: var(--font-xs);
     color: var(--text-muted);
     margin-bottom: 12px;
 }
 
 .diff-content {
     font-family: var(--font-mono);
-    font-size: 11px;
+    font-size: var(--font-xs);
     line-height: 1.5;
     background: var(--bg-element);
     padding: 12px;
@@ -342,12 +342,12 @@
 }
 
 .snapshot-date {
-    font-size: 11px;
+    font-size: var(--font-xs);
     color: var(--text-muted);
     margin-right: 12px;
 }
 
 .snapshot-files {
-    font-size: 11px;
+    font-size: var(--font-xs);
     color: var(--primary);
 }

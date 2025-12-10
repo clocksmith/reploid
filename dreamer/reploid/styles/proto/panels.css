@@ -20,7 +20,7 @@
     display: flex;
     gap: 8px;
     align-items: center;
-    font-size: 11px;
+    font-size: var(--font-xs);
 }
 
 .telemetry-controls select {
@@ -32,7 +32,7 @@
 }
 
 .telemetry-status {
-    font-size: 11px;
+    font-size: var(--font-xs);
 }
 
 .telemetry-list {
@@ -48,7 +48,7 @@
     background: var(--bg-secondary);
     padding: 12px;
     border-radius: 4px;
-    font-size: 12px;
+    font-size: var(--font-xs);
 }
 
 .telemetry-entry header {
@@ -59,13 +59,13 @@
 }
 
 .telemetry-time {
-    font-size: 11px;
+    font-size: var(--font-xs);
     color: var(--text-muted);
     margin-left: 6px;
 }
 
 .telemetry-severity {
-    font-size: 11px;
+    font-size: var(--font-xs);
     letter-spacing: 0.1em;
 }
 
@@ -73,7 +73,7 @@
     display: flex;
     flex-wrap: wrap;
     gap: 6px;
-    font-size: 10px;
+    font-size: var(--font-xs);
     color: var(--text-muted);
     margin-bottom: 6px;
 }
@@ -130,7 +130,7 @@
     color: var(--text-primary);
     border: 1px solid var(--border-default);
     font-family: inherit;
-    font-size: 11px;
+    font-size: var(--font-xs);
 }
 
 .schema-columns {
@@ -146,7 +146,7 @@
     border: 1px solid var(--border-default);
     border-radius: 4px;
     padding: 12px;
-    font-size: 12px;
+    font-size: var(--font-xs);
 }
 
 .schema-card header {
@@ -164,11 +164,11 @@
     padding: 8px;
     max-height: 200px;
     overflow: auto;
-    font-size: 11px;
+    font-size: var(--font-xs);
 }
 
 .schema-badge {
-    font-size: 10px;
+    font-size: var(--font-xs);
     border: 1px solid var(--border-default);
     padding: 1px 6px;
     border-radius: 999px;
@@ -179,7 +179,7 @@
     display: flex;
     gap: 16px;
     flex-wrap: wrap;
-    font-size: 11px;
+    font-size: var(--font-xs);
     margin-bottom: 6px;
 }
 
@@ -192,7 +192,7 @@
     display: flex;
     flex-wrap: wrap;
     gap: 6px;
-    font-size: 11px;
+    font-size: var(--font-xs);
 }
 
 .schema-tools code {
@@ -218,12 +218,12 @@
 
 .status-label {
     color: var(--text-muted);
-    font-size: 11px;
+    font-size: var(--font-xs);
 }
 
 .status-value {
     color: var(--primary);
-    font-size: 11px;
+    font-size: var(--font-xs);
 }
 
 /* Models list in Status panel */
@@ -251,11 +251,11 @@
 
 .model-name {
     color: var(--primary);
-    font-size: 11px;
+    font-size: var(--font-xs);
 }
 
 .model-provider {
-    font-size: 9px;
+    font-size: var(--font-xs);
     padding: 1px 6px;
     border-radius: 2px;
     text-transform: uppercase;
@@ -386,7 +386,7 @@
 }
 
 .worker-type {
-    font-size: 9px;
+    font-size: var(--font-xs);
     letter-spacing: 0.1em;
     color: var(--text-muted);
     margin-right: 8px;
@@ -524,7 +524,7 @@
     padding: var(--space-md);
     margin: 0;
     font-family: 'Courier New', monospace;
-    font-size: 11px;
+    font-size: var(--font-xs);
     line-height: 1.5;
     color: var(--text-primary);
     background: var(--bg-app);
@@ -574,7 +574,7 @@
     right: 4px;
     background: var(--error);
     color: var(--text-primary);
-    font-size: 10px;
+    font-size: var(--font-xs);
     font-weight: bold;
     padding: 2px 5px;
     border-radius: 10px;
@@ -596,7 +596,7 @@
     border: none;
     color: var(--primary);
     cursor: pointer;
-    font-size: 12px;
+    font-size: var(--font-xs);
     text-decoration: underline;
 }
 
@@ -653,12 +653,12 @@
 
 .error-title {
     flex: 1;
-    font-size: 13px;
+    font-size: var(--font-sm);
     color: var(--text-primary);
 }
 
 .error-time {
-    font-size: 11px;
+    font-size: var(--font-xs);
     color: var(--text-muted);
     flex-shrink: 0;
 }
@@ -671,7 +671,7 @@
 
 .error-details pre {
     margin: 0;
-    font-size: 12px;
+    font-size: var(--font-xs);
     color: var(--text-muted);
     white-space: pre-wrap;
     word-break: break-word;
@@ -763,7 +763,7 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    font-size: 12px;
+    font-size: var(--font-xs);
 }
 
 .replay-speed select {
@@ -785,7 +785,7 @@
     background: var(--bg-secondary);
     border-radius: 4px;
     font-family: var(--font-mono);
-    font-size: 11px;
+    font-size: var(--font-xs);
 }
 
 .replay-event {

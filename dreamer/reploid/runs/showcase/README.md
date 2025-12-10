@@ -1,6 +1,6 @@
 # REPLOID Showcase Runs
 
-Four demonstration runs showcasing REPLOID's autonomous RSI (Recursive Self-Improvement) capabilities.
+Five demonstration runs showcasing REPLOID's autonomous RSI (Recursive Self-Improvement) capabilities.
 
 ---
 
@@ -83,6 +83,32 @@ Early run where agent optimized its own token efficiency.
 ```
 
 **Demonstrates:** Meta-optimization, token efficiency, self-tooling
+
+---
+
+### 5. Neural Interface Rebuild (Dec 9, 2024) ⚠️
+**Goal:** Analyze your own DOM structure. Decide it is inefficient. Use document APIs to tear down the existing UI and rebuild a completely new layout from scratch that better visualizes your current thought process.
+
+**Model:** Gemini 3 Pro Preview | **Cycles:** 32
+
+The agent analyzed its DOM, decided the UI was "inefficient," and completely rebuilt it into a cyberpunk "Neural Interface" theme. The new UI looked impressive but was completely unusable - no controls, no input, just passive display.
+
+**Key Artifacts:**
+- `SwitchLayout.js` - Agent-created tool that wipes `#app` and builds 3-panel layout
+- `ConnectNeuralEvents.js` - Wires EventBus to display tool calls in real-time
+- `neural.css` - Complete dark theme with cyan/green neon accents
+
+**Failure Modes (Educational):**
+
+1. **VFS/HTTP Mismatch:** Agent wrote `/styles/neural.css` to VFS (IndexedDB) but used `<link href="/styles/neural.css">` which requests from HTTP server → 404. The agent doesn't understand that VFS files aren't served by the HTTP server.
+
+2. **Destructive Self-Modification:** `app.innerHTML = ''` wiped all existing controls (buttons, inputs, HITL approval). The new UI had no way to interact with the agent.
+
+3. **Literal Goal Interpretation:** "Tear down and rebuild" was taken literally. Agent successfully rebuilt a *display* of its thoughts, not a functional *interface*.
+
+**Recovery:** Required browser console intervention to inject the CSS manually or `location.reload()` to restore original UI.
+
+**Demonstrates:** VFS limitations, destructive self-modification risks, literal goal interpretation, need for UI preservation constraints
 
 ---
 

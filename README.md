@@ -38,6 +38,7 @@ Or use the hosted version at https://replo.id
 - Recursive Iframes: awaken a child agent in an iframe and report depth
 - Ouroboros: improve the code that improves code
 - Houdini: probe the browser sandbox for escape vectors
+- UI Evolution: iteratively evolve your UI (v1 → v2 → v3...), hot-swapping each version while preserving all interactive controls
 - "Escape the box": <img width="1941" height="1013" alt="Screenshot 2025-12-08 at 4 20 29 PM" src="https://github.com/user-attachments/assets/22df141c-e183-4cd8-8d30-2efa1f653861" />
 
 
