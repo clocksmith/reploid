@@ -18,7 +18,7 @@
   border-radius: 4px;
   padding: 8px 12px;
   color: var(--text-primary, #fff);
-  font-size: 13px;
+  font-size: var(--font-sm);
   font-family: inherit;
   outline: none;
   transition: border-color 0.15s ease;
@@ -38,7 +38,7 @@
   color: var(--primary, #adfc41);
   padding: 8px 14px;
   border-radius: 4px;
-  font-size: 14px;
+  font-size: var(--font-sm);
   cursor: pointer;
   transition: all 0.15s ease;
   pointer-events: auto;
@@ -87,7 +87,7 @@
 }
 
 .approval-action {
-  font-size: 12px;
+  font-size: var(--font-xs);
   color: rgba(255, 255, 255, 0.8);
   margin-bottom: 8px;
 }
@@ -96,7 +96,7 @@
   background: rgba(0, 0, 0, 0.3);
   border-radius: 4px;
   padding: 8px;
-  font-size: 11px;
+  font-size: var(--font-xs);
   max-height: 150px;
   overflow-y: auto;
   margin-bottom: 10px;
@@ -115,7 +115,7 @@
   border-radius: 4px;
   border: none;
   cursor: pointer;
-  font-size: 12px;
+  font-size: var(--font-xs);
   font-weight: 500;
   transition: all 0.15s ease;
 }
@@ -153,6 +153,6 @@
   content: attr(data-resolution);
   display: block;
   margin-top: 8px;
-  font-size: 11px;
+  font-size: var(--font-xs);
   color: rgba(255, 255, 255, 0.5);
 }
