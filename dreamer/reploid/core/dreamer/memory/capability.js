@@ -59,23 +59,33 @@ async function probeMaxHeapSize() {
  * Returns max size per ArrayBuffer and recommended segment count
  */
 function probeSegmentedLimits() {
-  const GB = 1024 * 1024 * 1024;
+  const MB = 1024 * 1024;
+  const GB = 1024 * MB;
 
-  // Most browsers limit ArrayBuffer to ~2GB or 4GB
-  let maxSegmentSize = 4 * GB;
-  try {
-    // Test if we can reference 4GB (don't actually allocate)
-    const testSize = 4 * GB - 1;
-    if (testSize > Number.MAX_SAFE_INTEGER) {
-      maxSegmentSize = 2 * GB;
+  // Test actual allocation limits - browsers often can't allocate large ArrayBuffers
+  // Start with smaller sizes that are more likely to succeed
+  const testSizes = [1 * GB, 512 * MB, 256 * MB, 128 * MB];
+
+  let maxSegmentSize = 256 * MB; // Safe default
+
+  for (const size of testSizes) {
+    try {
+      // Actually try to allocate to see if it works
+      const testBuffer = new ArrayBuffer(size);
+      if (testBuffer.byteLength === size) {
+        maxSegmentSize = size;
+        console.log(`[Memory] Segment allocation test passed: ${size / MB}MB`);
+        break; // Use the largest working size
+      }
+    } catch (e) {
+      console.log(`[Memory] Segment allocation test failed at ${size / MB}MB:`, e.message);
+      continue;
     }
-  } catch {
-    maxSegmentSize = 2 * GB;
   }
 
   return {
     maxSegmentSize,
-    recommendedSegments: 8, // 8 x 4GB = 32GB virtual address space
+    recommendedSegments: Math.ceil((8 * GB) / maxSegmentSize), // Target ~8GB address space
   };
 }
 

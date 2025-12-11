@@ -206,3 +206,88 @@
   text-align: center;
   padding: 20px;
 }
+
+/* Mobile responsive styles for HITL widget */
+@media (max-width: 768px) {
+  .hitl-widget {
+    padding: 10px;
+  }
+
+  .hitl-header {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .hitl-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+
+  .hitl-item-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+
+  .hitl-stats {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  .hitl-widget {
+    padding: 8px;
+    font-size: 11px;
+  }
+
+  .hitl-icon {
+    font-size: 14px;
+  }
+
+  .hitl-title {
+    font-size: 12px;
+  }
+
+  .hitl-mode-select {
+    padding: 6px;
+    font-size: 11px;
+  }
+
+  .hitl-approve,
+  .hitl-reject {
+    width: 32px;
+    height: 32px;
+  }
+
+  .hitl-stat {
+    font-size: 10px;
+    padding: 2px 6px;
+  }
+
+  .hitl-config {
+    padding: 6px;
+  }
+
+  .hitl-queue {
+    padding: 6px;
+  }
+}
+
+/* Touch optimization for HITL */
+@media (pointer: coarse) {
+  .hitl-approve,
+  .hitl-reject {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .hitl-toggle {
+    min-height: 36px;
+    padding: 6px 12px;
+  }
+
+  .hitl-mode-select {
+    min-height: 40px;
+  }
+}

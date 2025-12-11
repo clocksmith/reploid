@@ -10,16 +10,65 @@ const VFS_STORE_NAME = 'files';
 
 // Open IndexedDB connection to VFS
 let vfsDB = null;
+let vfsDBOpening = false;
 
 async function openVFS() {
+  // Return existing connection
   if (vfsDB) return vfsDB;
 
+  // Prevent concurrent open attempts
+  if (vfsDBOpening) {
+    // Wait for the pending open to complete
+    return new Promise((resolve) => {
+      const check = setInterval(() => {
+        if (vfsDB) {
+          clearInterval(check);
+          resolve(vfsDB);
+        }
+      }, 50);
+    });
+  }
+
+  vfsDBOpening = true;
+
   return new Promise((resolve, reject) => {
+    const timeout = setTimeout(() => {
+      vfsDBOpening = false;
+      reject(new Error('VFS DB open timed out in service worker'));
+    }, 5000);
+
     const request = indexedDB.open(VFS_DB_NAME, 1);
 
-    request.onerror = () => reject(request.error);
+    request.onerror = () => {
+      clearTimeout(timeout);
+      vfsDBOpening = false;
+      reject(request.error);
+    };
+
+    request.onblocked = () => {
+      clearTimeout(timeout);
+      vfsDBOpening = false;
+      console.warn('[SW] VFS DB blocked - another connection may be open');
+      reject(new Error('VFS DB blocked'));
+    };
+
     request.onsuccess = () => {
+      clearTimeout(timeout);
       vfsDB = request.result;
+      vfsDBOpening = false;
+
+      // Handle database close events (e.g., when deleted elsewhere)
+      vfsDB.onclose = () => {
+        console.log('[SW] VFS DB connection closed');
+        vfsDB = null;
+      };
+
+      vfsDB.onversionchange = () => {
+        console.log('[SW] VFS DB version change - closing connection');
+        vfsDB.close();
+        vfsDB = null;
+      };
+
       resolve(vfsDB);
     };
 
@@ -30,6 +79,15 @@ async function openVFS() {
       }
     };
   });
+}
+
+// Close VFS connection (called before reset)
+function closeVFS() {
+  if (vfsDB) {
+    vfsDB.close();
+    vfsDB = null;
+    console.log('[SW] VFS DB connection closed manually');
+  }
 }
 
 // Read file from VFS
@@ -174,18 +232,25 @@ self.addEventListener('message', (event) => {
       // Clear cache for specific module to force reload
       console.log(`[SW] Invalidating module cache: ${data.path}`);
       // Service worker will automatically serve fresh version from VFS on next request
-      event.ports[0].postMessage({ success: true });
+      if (event.ports[0]) event.ports[0].postMessage({ success: true });
       break;
 
     case 'INVALIDATE_ALL':
       // Clear all module caches
       console.log('[SW] Invalidating all module caches');
-      event.ports[0].postMessage({ success: true });
+      if (event.ports[0]) event.ports[0].postMessage({ success: true });
+      break;
+
+    case 'CLOSE_VFS':
+      // Close VFS connection before database deletion
+      console.log('[SW] Received CLOSE_VFS request');
+      closeVFS();
+      if (event.ports[0]) event.ports[0].postMessage({ success: true });
       break;
 
     case 'PING':
       // Health check
-      event.ports[0].postMessage({ pong: true, timestamp: Date.now() });
+      if (event.ports[0]) event.ports[0].postMessage({ pong: true, timestamp: Date.now() });
       break;
 
     default:

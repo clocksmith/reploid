@@ -4,23 +4,26 @@
 const VFSExplorer = {
   metadata: {
     id: 'VFSExplorer',
-    version: '1.0.0',
-    dependencies: ['Utils', 'EventBus', 'StateManager', 'ToastNotifications'],
+    version: '1.1.0',
+    dependencies: ['Utils', 'EventBus', 'VFS', 'ToastNotifications'],
     async: false,
     type: 'ui'
   },
 
   factory: (deps) => {
-    const { Utils, EventBus, StateManager, ToastNotifications } = deps;
+    const { Utils, EventBus, VFS, ToastNotifications } = deps;
     const { logger, escapeHtml } = Utils;
+
+    const BASELINE_KEY = 'REPLOID_VFS_BASELINE';
 
     class Explorer {
       constructor() {
-        this.expanded = new Set(['/vfs']); // Track expanded folders
+        this.expanded = new Set(['/']); // Track expanded folders
         this.selectedFile = null;
         this.searchTerm = '';
         this.container = null;
         this.fileViewerModal = null;
+        this.baseline = null; // Genesis baseline for state tracking
       }
 
       async init(containerId) {
@@ -30,19 +33,120 @@ const VFSExplorer = {
           return;
         }
 
+        // Load or create baseline
+        await this.loadBaseline();
+
         await this.render();
 
         // Listen for VFS changes
         EventBus.on('vfs:updated', () => this.render());
+        EventBus.on('vfs:file_changed', () => this.render());
         EventBus.on('artifact:created', () => this.render());
         EventBus.on('artifact:updated', () => this.render());
         EventBus.on('artifact:deleted', () => this.render());
       }
 
+      /**
+       * Load baseline from localStorage or create one
+       */
+      async loadBaseline() {
+        try {
+          const stored = localStorage.getItem(BASELINE_KEY);
+          if (stored) {
+            this.baseline = JSON.parse(stored);
+            logger.debug(`[VFSExplorer] Loaded baseline with ${Object.keys(this.baseline.files).length} files`);
+          }
+        } catch (e) {
+          logger.warn('[VFSExplorer] Could not load baseline:', e.message);
+        }
+      }
+
+      /**
+       * Create a new baseline snapshot (call at genesis)
+       */
+      async createBaseline() {
+        try {
+          const allMeta = await this.getAllFileMetadata();
+          this.baseline = {
+            timestamp: Date.now(),
+            files: {}
+          };
+          for (const path in allMeta) {
+            this.baseline.files[path] = {
+              size: allMeta[path].size,
+              updated: allMeta[path].updated
+            };
+          }
+          localStorage.setItem(BASELINE_KEY, JSON.stringify(this.baseline));
+          logger.info(`[VFSExplorer] Created baseline with ${Object.keys(this.baseline.files).length} files`);
+          return this.baseline;
+        } catch (e) {
+          logger.error('[VFSExplorer] Failed to create baseline:', e.message);
+          return null;
+        }
+      }
+
+      /**
+       * Get all file metadata from VFS
+       */
+      async getAllFileMetadata() {
+        const allPaths = await VFS.list('/');
+        const metadata = {};
+        for (const path of allPaths) {
+          try {
+            const stat = await VFS.stat(path);
+            if (stat && stat.type === 'file') {
+              metadata[path] = stat;
+            }
+          } catch (e) {
+            // Skip files we can't stat
+          }
+        }
+        return metadata;
+      }
+
+      /**
+       * Get file state relative to baseline
+       */
+      getFileState(path, currentMeta) {
+        if (!this.baseline) return null;
+
+        const baselineFile = this.baseline.files[path];
+
+        if (!baselineFile) {
+          return 'created'; // New file since genesis
+        }
+
+        if (currentMeta.updated > baselineFile.updated || currentMeta.size !== baselineFile.size) {
+          return 'modified'; // Modified since genesis
+        }
+
+        return null; // Unchanged
+      }
+
       async render() {
         if (!this.container) return;
 
-        const allMeta = await StateManager.getAllArtifactMetadata();
+        const allMeta = await this.getAllFileMetadata();
+
+        // Add state info based on baseline comparison
+        for (const path in allMeta) {
+          allMeta[path].state = this.getFileState(path, allMeta[path]);
+        }
+
+        // Check for deleted files (in baseline but not in current)
+        if (this.baseline) {
+          for (const path in this.baseline.files) {
+            if (!allMeta[path]) {
+              allMeta[path] = {
+                size: this.baseline.files[path].size,
+                state: 'deleted',
+                type: 'file'
+              };
+            }
+          }
+        }
+
         const tree = this.buildTree(allMeta);
 
         this.container.innerHTML = `
@@ -149,20 +253,46 @@ const VFSExplorer = {
         const highlight = this.searchTerm && node.name.toLowerCase().includes(this.searchTerm.toLowerCase())
           ? 'highlight' : '';
 
+        // File state classes based on metadata
+        const fileState = this.getFileStateClass(node.metadata);
+        const stateIcon = this.getFileStateIcon(node.metadata);
+
         return `
-          <div class="vfs-item vfs-file ${selected} ${highlight}"
+          <div class="vfs-item vfs-file ${selected} ${highlight} ${fileState}"
                data-path="${escapeHtml(node.path)}"
                data-type="file"
+               data-state="${node.metadata?.state || 'unchanged'}"
                role="treeitem"
                aria-selected="${selected ? 'true' : 'false'}"
-               aria-label="${escapeHtml(node.name)} (${this.formatSize(node.size)})"
+               aria-label="${escapeHtml(node.name)} (${this.formatSize(node.size)})${stateIcon ? ' - ' + node.metadata?.state : ''}"
                tabindex="${selected ? '0' : '-1'}"
                style="padding-left:${depth * 20 + 20}px">
             <span class="vfs-icon" aria-hidden="true">${icon}</span>
             <span class="vfs-name">${escapeHtml(node.name)}</span>
+            ${stateIcon ? `<span class="vfs-state-icon" title="${node.metadata?.state || ''}">${stateIcon}</span>` : ''}
             <span class="vfs-size">${this.formatSize(node.size)}</span>
           </div>
         `;
+      }
+
+      getFileStateClass(metadata) {
+        if (!metadata?.state) return '';
+        switch (metadata.state) {
+          case 'created': return 'vfs-file-created';
+          case 'modified': return 'vfs-file-modified';
+          case 'deleted': return 'vfs-file-deleted';
+          default: return '';
+        }
+      }
+
+      getFileStateIcon(metadata) {
+        if (!metadata?.state) return '';
+        switch (metadata.state) {
+          case 'created': return '+';
+          case 'modified': return '~';
+          case 'deleted': return '×';
+          default: return '';
+        }
       }
 
       renderFolder(node, depth) {
@@ -360,8 +490,8 @@ const VFSExplorer = {
 
       async showFileViewer(path) {
         try {
-          const content = await StateManager.getArtifactContent(path);
-          const metadata = await StateManager.getArtifactMetadata(path);
+          const content = await VFS.read(path);
+          const metadata = await VFS.stat(path);
 
           // Create modal if it doesn't exist
           if (!this.fileViewerModal) {
@@ -430,9 +560,9 @@ const VFSExplorer = {
           });
 
           this.fileViewerModal.querySelector('.vfs-file-viewer-history').addEventListener('click', async () => {
-            const history = await StateManager.getArtifactHistory?.(path) || [];
-            logger.info(`[VFSExplorer] History for ${path}:`, history);
-            if (ToastNotifications) ToastNotifications.info(`History: ${history.length} versions available`);
+            // History feature requires integration with GenesisSnapshot
+            logger.info(`[VFSExplorer] History for ${path} - feature requires GenesisSnapshot integration`);
+            if (ToastNotifications) ToastNotifications.info('File history available via GenesisSnapshot module');
           });
 
           this.fileViewerModal.querySelector('.vfs-file-viewer-edit').addEventListener('click', () => {
@@ -502,6 +632,14 @@ const VFSExplorer = {
         selectFile: (path) => {
           explorer.selectedFile = path;
           explorer.showFileViewer(path);
+        },
+        // Baseline management for file state tracking
+        createBaseline: () => explorer.createBaseline(),
+        hasBaseline: () => !!explorer.baseline,
+        clearBaseline: () => {
+          explorer.baseline = null;
+          localStorage.removeItem(BASELINE_KEY);
+          explorer.render();
         }
       }
     };
@@ -509,4 +647,4 @@ const VFSExplorer = {
 };
 
 // Export
-VFSExplorer;
+export default VFSExplorer;

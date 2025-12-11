@@ -26,9 +26,25 @@ const VFS = {
     const openDB = () => {
       return new Promise((resolve, reject) => {
         if (db) return resolve(db);
+
+        logger.debug('[VFS] Opening IndexedDB...');
+
+        // Timeout to detect blocked IndexedDB (e.g., another tab holding connection)
+        const timeout = setTimeout(() => {
+          logger.error('[VFS] IndexedDB open timed out after 10s. Try closing other tabs or clearing IndexedDB.');
+          reject(new Errors.StateError('VFS DB open timed out - close other tabs and reload'));
+        }, 10000);
+
         const request = indexedDB.open(DB_NAME, 1);
 
+        request.onblocked = () => {
+          clearTimeout(timeout);
+          logger.error('[VFS] IndexedDB blocked - another tab may have an open connection');
+          reject(new Errors.StateError('VFS DB blocked - close other tabs'));
+        };
+
         request.onupgradeneeded = (event) => {
+          logger.debug('[VFS] IndexedDB upgrade needed');
           const d = event.target.result;
           if (!d.objectStoreNames.contains(STORE_FILES)) {
             d.createObjectStore(STORE_FILES, { keyPath: 'path' });
@@ -36,11 +52,17 @@ const VFS = {
         };
 
         request.onsuccess = (e) => {
+          clearTimeout(timeout);
           db = e.target.result;
           logger.info('[VFS] Database connected');
           resolve(db);
         };
-        request.onerror = () => reject(new Errors.StateError('Failed to open VFS DB'));
+
+        request.onerror = (e) => {
+          clearTimeout(timeout);
+          logger.error('[VFS] IndexedDB open error:', e.target.error);
+          reject(new Errors.StateError('Failed to open VFS DB: ' + (e.target.error?.message || 'unknown error')));
+        };
       });
     };
 

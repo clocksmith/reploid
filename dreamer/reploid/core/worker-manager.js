@@ -87,6 +87,14 @@ const WorkerManager = {
       }
       // Load persisted workers from VFS
       await _loadPersistedWorkers();
+
+      // Update ToolRunner's WorkerManager reference (circular dependency workaround)
+      // ToolRunner initializes before WorkerManager, so it has undefined WorkerManager
+      // We need to update it so SpawnWorker tool can access WorkerManager
+      if (ToolRunner?.setWorkerManager) {
+        ToolRunner.setWorkerManager(api);
+      }
+
       logger.info('[WorkerManager] Initialized with worker types:', Object.keys(_workerConfig));
       logger.info('[WorkerManager] Model roles available:', Object.keys(_modelRoles));
       return true;
@@ -617,7 +625,8 @@ ARGS: {"arg": "value"}`;
       _completedWorkers.clear();
     };
 
-    return {
+    // Create API object so we can reference it in init for circular dependency fix
+    const api = {
       init,
       setModelConfig,
       setModelRoles,
@@ -631,6 +640,8 @@ ARGS: {"arg": "value"}`;
       getToolsForType,
       isToolAllowed
     };
+
+    return api;
   }
 };
 

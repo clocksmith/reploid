@@ -13,6 +13,9 @@
 import { getManifest, getShardInfo, getShardCount } from './rpl-format.js';
 import { isOPFSAvailable, QuotaExceededError, checkSpaceAvailable } from './quota.js';
 
+// Re-export getManifest for consumers that import from shard-manager
+export { getManifest } from './rpl-format.js';
+
 // Constants
 const ALIGNMENT = 4096; // 4KB alignment for optimal disk I/O
 const READ_CHUNK_SIZE = 1024 * 1024; // 1MB chunks for streaming reads

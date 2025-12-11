@@ -156,3 +156,81 @@
   font-size: var(--font-xs);
   color: rgba(255, 255, 255, 0.5);
 }
+
+/* Mobile responsive styles for inline chat */
+@media (max-width: 768px) {
+  .inline-chat {
+    padding: 6px 10px;
+  }
+
+  .inline-chat-input-row {
+    gap: 6px;
+  }
+
+  .inline-chat-input {
+    padding: 10px;
+    font-size: 14px;
+  }
+
+  .inline-chat-send {
+    padding: 10px 12px;
+    font-size: 14px;
+  }
+
+  .approval-data {
+    max-height: 100px;
+    font-size: 11px;
+  }
+
+  .approval-buttons {
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .approval-buttons button {
+    padding: 10px 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .inline-chat {
+    padding: 6px 8px;
+  }
+
+  .inline-chat-input {
+    padding: 8px 10px;
+    font-size: 14px;
+    min-height: 40px;
+  }
+
+  .inline-chat-send {
+    padding: 8px 10px;
+    font-size: 13px;
+    min-width: 60px;
+  }
+
+  .history-entry.approval-pending {
+    padding: 10px;
+  }
+
+  .approval-header {
+    font-size: var(--font-xs);
+  }
+
+  .approval-data {
+    max-height: 80px;
+    padding: 6px;
+  }
+}
+
+/* Touch optimization for inline chat */
+@media (pointer: coarse) {
+  .inline-chat-input,
+  .inline-chat-send {
+    min-height: 44px;
+  }
+
+  .approval-buttons button {
+    min-height: 44px;
+  }
+}

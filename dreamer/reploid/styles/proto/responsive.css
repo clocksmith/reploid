@@ -196,43 +196,65 @@
 /* Small mobile */
 @media (max-width: 480px) {
     .app-shell {
-        grid-template-rows: auto 1fr 56px;
+        grid-template-rows: auto 1fr 52px;
+    }
+
+    .sidebar {
+        padding: 0 4px;
     }
 
     .sidebar-btn {
-        height: 44px;
+        height: 42px;
+        min-width: 42px;
+        padding: 0 8px;
         font-size: var(--font-sm);
     }
 
     .workspace-header {
-        padding: 8px 10px;
+        padding: 6px 8px;
+        min-height: 40px;
+    }
+
+    .workspace-title {
+        font-size: var(--font-sm);
     }
 
     .workspace-title span:last-child {
-        max-width: 150px;
+        max-width: 120px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .workspace-status {
+        font-size: var(--font-xs);
     }
 
     .workspace-content {
-        padding: 10px;
+        padding: 8px;
     }
 
     .vfs-browser-panel {
-        max-height: 150px;
+        max-height: 120px;
+    }
+
+    .vfs-browser-panel.expanded {
+        max-height: 35vh;
     }
 
     .vfs-browser-header {
-        padding: 6px 10px;
+        padding: 6px 8px;
         font-size: var(--font-xs);
     }
 
     .vfs-tree {
-        max-height: 70px;
-        padding: 6px;
+        max-height: 60px;
+        padding: 4px;
     }
 
     .vfs-content {
-        max-height: 60px;
-        padding: 6px;
+        max-height: 50px;
+        padding: 4px;
     }
 
     .history-stream,
@@ -240,8 +262,19 @@
         font-size: var(--font-xs);
     }
 
+    .history-entry {
+        margin-bottom: var(--space-xs);
+    }
+
+    .history-header {
+        padding: var(--space-xs);
+        font-size: 10px;
+    }
+
     .history-content {
-        max-height: 150px;
+        padding: var(--space-xs);
+        max-height: 120px;
+        font-size: 11px;
     }
 
     .reflection-entry {
@@ -262,22 +295,23 @@
     }
 
     .card {
-        padding: var(--space-md);
+        padding: var(--space-sm);
     }
 
     .card-header {
         font-size: var(--font-sm);
-        margin-bottom: var(--space-sm);
+        margin-bottom: var(--space-xs);
     }
 
     .diff-viewer {
-        padding: var(--space-md);
+        padding: var(--space-sm);
     }
 
     .diff-file-header {
         flex-direction: column;
         align-items: flex-start;
-        gap: var(--space-sm);
+        gap: var(--space-xs);
+        padding: var(--space-sm);
     }
 
     .diff-file-actions {
@@ -289,8 +323,51 @@
     }
 
     .line-number {
-        width: 30px;
-        font-size: var(--font-xs);
+        width: 28px;
+        font-size: 10px;
+    }
+
+    /* Panel adjustments */
+    .panel {
+        padding: var(--space-sm);
+    }
+
+    .status-item {
+        padding: var(--space-xs);
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 2px;
+    }
+
+    /* Schema panel */
+    .schema-columns {
+        grid-template-columns: 1fr;
+    }
+
+    .schema-search {
+        width: 100%;
+    }
+
+    /* Telemetry panel */
+    .telemetry-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 6px;
+    }
+
+    /* Workers panel */
+    .workers-sections {
+        grid-template-columns: 1fr;
+        gap: var(--space-sm);
+    }
+
+    .workers-summary {
+        gap: var(--space-xs);
+    }
+
+    .workers-summary-item {
+        min-width: 100px;
+        padding: 6px 8px;
     }
 }
 

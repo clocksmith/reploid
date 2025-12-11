@@ -13,7 +13,8 @@
 const SEGMENT_BITS = 8;
 const OFFSET_BITS = 45;
 const MAX_SEGMENTS = (1 << SEGMENT_BITS); // 256
-const MAX_OFFSET = (1 << OFFSET_BITS) - 1; // ~35TB (but we limit to segment size)
+// Note: Can't use << for OFFSET_BITS since JS bitwise ops are 32-bit. Use ** instead.
+const MAX_OFFSET = (2 ** OFFSET_BITS) - 1; // ~35TB (but we limit to segment size)
 
 export class AddressTable {
   /**
