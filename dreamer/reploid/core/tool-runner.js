@@ -14,8 +14,13 @@ const ToolRunner = {
   },
 
   factory: (deps) => {
-    const { Utils, VFS, ToolWriter, SubstrateLoader, EventBus, AuditLogger, HITLController, ArenaHarness, VFSSandbox, VerificationManager, Shell, gitTools, WorkerManager, EmbeddingStore, SemanticMemory, KnowledgeGraph, SchemaRegistry } = deps;
+    const { Utils, VFS, ToolWriter, SubstrateLoader, EventBus, AuditLogger, HITLController, ArenaHarness, VFSSandbox, VerificationManager, Shell, gitTools, EmbeddingStore, SemanticMemory, KnowledgeGraph, SchemaRegistry } = deps;
     const { logger, Errors } = Utils;
+
+    // WorkerManager is mutable because of circular dependency:
+    // ToolRunner -> WorkerManager? (optional) -> ToolRunner
+    // WorkerManager initializes AFTER ToolRunner, so we need to update the reference later
+    let _workerManager = deps.WorkerManager || null;
 
     // Arena verification for self-modification (opt-in via config)
     let _arenaGatingEnabled = false;
@@ -238,7 +243,7 @@ const ToolRunner = {
           SubstrateLoader,
           VFSSandbox,
           VerificationManager,
-          WorkerManager,
+          WorkerManager: _workerManager, // Use mutable reference (updated after init)
           TransformersClient,
           EmbeddingStore,
           SemanticMemory,
@@ -419,7 +424,12 @@ const ToolRunner = {
       setArenaGating,
       isArenaGatingEnabled,
       getToolSchemas,
-      getToolSchemasFiltered
+      getToolSchemasFiltered,
+      // Setter for late-bound WorkerManager (circular dependency workaround)
+      setWorkerManager: (wm) => {
+        _workerManager = wm;
+        logger.debug('[ToolRunner] WorkerManager reference updated');
+      }
     };
   }
 };

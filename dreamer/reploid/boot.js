@@ -560,11 +560,7 @@ import GoalHistory from './ui/goal-history.js';
         // Pass VFS to proto for browser
         proto.setVFS(vfs);
 
-        // Wire up refresh button
-        const refreshBtn = document.getElementById('vfs-refresh');
-        if (refreshBtn) {
-          refreshBtn.onclick = () => proto.refreshVFS();
-        }
+        // VFS auto-refreshes via EventBus (vfs:file_changed, artifact:created, etc.)
 
         logger.info('[Boot] UI Mounted.');
 

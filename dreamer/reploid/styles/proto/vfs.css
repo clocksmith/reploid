@@ -63,25 +63,76 @@
     color: var(--primary);
 }
 
+/* VFS File selected state */
+.vfs-tree .vfs-file.selected,
+.vfs-item.vfs-file.selected {
+    background: rgba(173, 252, 65, 0.15);
+    color: var(--primary);
+    border-left: 2px solid var(--primary);
+    font-weight: 500;
+}
+
+.vfs-tree .vfs-file.selected:hover,
+.vfs-item.vfs-file.selected:hover {
+    background: rgba(173, 252, 65, 0.2);
+}
+
+/* VFS Search highlight */
+.vfs-tree .vfs-file.highlight,
+.vfs-item.vfs-file.highlight {
+    background: rgba(255, 200, 0, 0.15);
+    border-left: 2px solid var(--warning);
+}
+
+.vfs-tree .vfs-file.highlight.selected,
+.vfs-item.vfs-file.highlight.selected {
+    background: rgba(173, 252, 65, 0.2);
+    border-left: 2px solid var(--primary);
+}
+
+/* VFS File state icon */
+.vfs-state-icon {
+    font-size: 10px;
+    font-weight: 700;
+    margin-left: 4px;
+    padding: 0 3px;
+    border-radius: 2px;
+    line-height: 1;
+}
+
 /* VFS File modification indicators */
-.vfs-tree .vfs-file-created {
-    color: var(--success);
-    font-weight: 600;
-    animation: vfs-pulse 1s ease-in-out 3;
+.vfs-tree .vfs-file-created,
+.vfs-item.vfs-file-created {
+    color: var(--success, #66bb6a);
+    font-weight: 500;
 }
 
-.vfs-tree .vfs-file-modified {
-    color: var(--warning);
-    font-weight: 600;
-    animation: vfs-pulse 1s ease-in-out 3;
+.vfs-file-created .vfs-state-icon {
+    background: rgba(102, 187, 106, 0.25);
+    color: var(--success, #66bb6a);
 }
 
-.vfs-tree .vfs-file-deleted {
-    color: var(--error);
+.vfs-tree .vfs-file-modified,
+.vfs-item.vfs-file-modified {
+    color: var(--warning, #ffa500);
+    font-weight: 500;
+}
+
+.vfs-file-modified .vfs-state-icon {
+    background: rgba(255, 165, 0, 0.25);
+    color: var(--warning, #ffa500);
+}
+
+.vfs-tree .vfs-file-deleted,
+.vfs-item.vfs-file-deleted {
+    color: var(--error, #f48771);
     text-decoration: line-through;
-    opacity: 0.7;
-    font-weight: 600;
-    animation: vfs-fade-out 2s ease-out forwards;
+    opacity: 0.6;
+}
+
+.vfs-file-deleted .vfs-state-icon {
+    background: rgba(244, 135, 113, 0.25);
+    color: var(--error, #f48771);
 }
 
 @keyframes vfs-pulse {
@@ -196,10 +247,6 @@
 .vfs-browser-panel.collapsed .vfs-browser-header {
     justify-content: center;
     padding: var(--space-sm);
-}
-
-.vfs-browser-panel.collapsed #vfs-refresh {
-    display: none;
 }
 
 /* VFS Preview, Diff, and Snapshot Panels */

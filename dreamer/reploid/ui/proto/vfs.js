@@ -3,20 +3,52 @@
  */
 
 export const createVFSManager = (deps) => {
-  const { escapeHtml, logger, Toast } = deps;
+  const { escapeHtml, logger, Toast, EventBus } = deps;
 
   let _vfs = null;
   let _currentFilePath = null;
   let _isEditing = false;
   let _allFiles = [];
+  let _eventBusInitialized = false;
 
   // Track recently modified files for color coding
   const _recentlyModified = new Map();
   const RECENT_HIGHLIGHT_DURATION = 5000;
   const MAX_VFS_FILES = 500;
 
+  // Initialize EventBus listeners for auto-refresh
+  const initEventBusListeners = () => {
+    if (_eventBusInitialized || !EventBus) return;
+    _eventBusInitialized = true;
+
+    // Auto-refresh on VFS changes
+    EventBus.on('vfs:file_changed', (data) => {
+      if (data?.path) {
+        markFileModified(data.path, data.operation === 'delete' ? 'deleted' : data.operation === 'write' ? 'created' : 'modified');
+      }
+      loadVFSTree();
+    });
+
+    EventBus.on('vfs:updated', () => loadVFSTree());
+    EventBus.on('artifact:created', (data) => {
+      if (data?.path) markFileModified(data.path, 'created');
+      loadVFSTree();
+    });
+    EventBus.on('artifact:updated', (data) => {
+      if (data?.path) markFileModified(data.path, 'modified');
+      loadVFSTree();
+    });
+    EventBus.on('artifact:deleted', (data) => {
+      if (data?.path) markFileModified(data.path, 'deleted');
+      loadVFSTree();
+    });
+
+    logger.debug('[VFSManager] EventBus listeners initialized for auto-refresh');
+  };
+
   const setVFS = (vfs) => {
     _vfs = vfs;
+    initEventBusListeners();
     loadVFSTree();
   };
 
@@ -104,17 +136,19 @@ export const createVFSManager = (deps) => {
           if (modInfo) {
             if (modInfo.type === 'created') {
               modClass = 'vfs-file-created';
-              modIndicator = ' ✦';
+              modIndicator = ' +';
             } else if (modInfo.type === 'deleted') {
               modClass = 'vfs-file-deleted';
-              modIndicator = ' ✗';
+              modIndicator = ' ×';
             } else {
               modClass = 'vfs-file-modified';
-              modIndicator = ' ●';
+              modIndicator = ' ~';
             }
           }
+          // Add selected class if this is the current file
+          const selectedClass = value === _currentFilePath ? 'selected' : '';
           html += `
-            <div class="vfs-file ${modClass}" role="button" data-path="${safePath}" style="padding-left: ${padding + 16}px">
+            <div class="vfs-file ${modClass} ${selectedClass}" role="button" data-path="${safePath}" style="padding-left: ${padding + 16}px">
               ${escapeHtml(name)}${modIndicator}
             </div>
           `;
@@ -176,8 +210,14 @@ export const createVFSManager = (deps) => {
 
     if (!contentBody || !_vfs) return;
 
+    const previousPath = _currentFilePath;
     _currentFilePath = path;
     cancelEditing();
+
+    // Re-render tree to update selected state
+    if (previousPath !== path) {
+      renderVFSTree(_allFiles);
+    }
 
     // Hide all other workspace tabs and show VFS content
     const container = document.querySelector('.app-shell');

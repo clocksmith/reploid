@@ -426,12 +426,30 @@
 
         // IndexedDB
         if (document.getElementById('reset-idb').checked) {
+          // First, tell service worker to close its VFS connection
+          status.innerHTML += '<div class="progress-item"><span class="loading"></span> Closing service worker VFS connection...</div>';
+          try {
+            const regs = await navigator.serviceWorker.getRegistrations();
+            for (const reg of regs) {
+              if (reg.active) {
+                // Send CLOSE_VFS message to service worker
+                const channel = new MessageChannel();
+                reg.active.postMessage({ type: 'CLOSE_VFS' }, [channel.port2]);
+                // Wait a bit for SW to close its connection
+                await new Promise(resolve => setTimeout(resolve, 100));
+              }
+            }
+          } catch (e) {
+            console.warn('Could not notify service worker:', e);
+          }
+          updateProgress(status, 'Notified service worker to close VFS');
+
           status.innerHTML += '<div class="progress-item"><span class="loading"></span> Deleting IndexedDB databases...</div>';
           const dbs = await indexedDB.databases();
           const deleteResults = await Promise.all(dbs.map(db => new Promise((resolve) => {
             const timeoutId = setTimeout(() => {
               resolve({ name: db.name, status: 'timeout' });
-            }, 3000);
+            }, 5000);
             const req = indexedDB.deleteDatabase(db.name);
             req.onsuccess = () => {
               clearTimeout(timeoutId);
@@ -442,8 +460,9 @@
               resolve({ name: db.name, status: 'error' });
             };
             req.onblocked = () => {
-              clearTimeout(timeoutId);
-              resolve({ name: db.name, status: 'blocked' });
+              // Wait longer for blocked databases
+              console.warn(`Database ${db.name} blocked, waiting...`);
+              // Don't resolve immediately - let the timeout handle it or onsuccess
             };
           })));
           const deleted = deleteResults.filter(r => r.status === 'deleted').length;
@@ -459,11 +478,14 @@
         status.className = 'status success';
         status.innerHTML = '<strong>Reset complete!</strong><br><br>' +
           steps.map(s => '&#10003; ' + s).join('<br>') +
-          '<br><br>Redirecting to REPLOID...';
+          '<br><br><button class="btn btn-primary" onclick="window.location.href=\'/\'" style="margin-top: 12px;">Launch REPLOID</button>' +
+          '<button class="btn btn-secondary" onclick="location.reload()" style="margin-top: 12px; margin-left: 8px;">Refresh Status</button>';
 
-        setTimeout(() => {
-          window.location.href = '/';
-        }, 2000);
+        // Re-scan to show updated stats (don't redirect)
+        await scanData();
+
+        btn.disabled = false;
+        btn.textContent = 'Reset Again';
 
       } catch (e) {
         status.className = 'status error';

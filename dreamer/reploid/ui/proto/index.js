@@ -23,7 +23,7 @@ const Proto = {
     const telemetryManager = createTelemetryManager({ logger, escapeHtml });
     const schemaManager = createSchemaManager({ logger, escapeHtml });
     const workerManager = createWorkerManager({ escapeHtml, WorkerManager });
-    const vfsManager = createVFSManager({ escapeHtml, logger, Toast });
+    const vfsManager = createVFSManager({ escapeHtml, logger, Toast, EventBus });
     const replayManager = createReplayManager({ logger, escapeHtml, EventBus });
 
     // UI state
@@ -590,17 +590,9 @@ const Proto = {
       container.querySelector('#vfs-diff-close').onclick = () => vfsManager.closeDiff();
       container.querySelector('#vfs-snapshot-close').onclick = () => vfsManager.closeSnapshots();
 
-      // VFS Toolbar buttons
-      const vfsRefreshBtn = container.querySelector('#vfs-refresh');
+      // VFS Toolbar buttons (refresh removed - VFS auto-refreshes via EventBus)
       const vfsDiffBtn = container.querySelector('#vfs-diff-btn');
       const vfsSnapshotBtn = container.querySelector('#vfs-snapshot-btn');
-
-      if (vfsRefreshBtn) {
-        vfsRefreshBtn.onclick = () => {
-          vfsManager.loadVFSTree();
-          Toast.info('VFS Refreshed', 'File tree reloaded from IndexedDB');
-        };
-      }
 
       if (vfsDiffBtn) {
         vfsDiffBtn.onclick = async () => {

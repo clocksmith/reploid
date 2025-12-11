@@ -85,13 +85,41 @@ export class HeapManager {
    */
   _allocateSegment() {
     const segmentSize = this.addressTable.segmentSize;
-    const segment = {
-      index: this.segments.length,
-      buffer: new ArrayBuffer(segmentSize),
-      used: 0,
-    };
-    this.segments.push(segment);
-    return segment;
+
+    try {
+      const segment = {
+        index: this.segments.length,
+        buffer: new ArrayBuffer(segmentSize),
+        used: 0,
+      };
+      this.segments.push(segment);
+      console.log(`[HeapManager] Allocated segment ${segment.index}: ${(segmentSize / (1024 * 1024)).toFixed(0)}MB`);
+      return segment;
+    } catch (e) {
+      // If allocation fails, try smaller sizes
+      const MB = 1024 * 1024;
+      const fallbackSizes = [512 * MB, 256 * MB, 128 * MB];
+
+      for (const size of fallbackSizes) {
+        if (size >= segmentSize) continue; // Already tried this size
+        try {
+          const segment = {
+            index: this.segments.length,
+            buffer: new ArrayBuffer(size),
+            used: 0,
+          };
+          this.segments.push(segment);
+          // Update address table's segment size for consistency
+          this.addressTable.segmentSize = size;
+          console.warn(`[HeapManager] Allocation fallback to ${size / MB}MB segment`);
+          return segment;
+        } catch {
+          continue;
+        }
+      }
+
+      throw new Error(`Failed to allocate segment: ${e.message}. Try closing other tabs.`);
+    }
   }
 
   /**

@@ -1485,19 +1485,48 @@ body.reticle-active .reticle-line {
 /* Mobile breakpoint */
 @media (max-width: 480px) {
     #boot-container {
-        width: calc(100% - 24px);
-        padding: 20px 12px;
-        max-height: calc(100vh - 20px);
+        width: calc(100% - 16px);
+        padding: 16px 8px;
+        max-height: calc(100vh - 16px);
     }
 
     .boot-header h1 {
-        font-size: 2rem;
+        font-size: 1.75rem;
         letter-spacing: 1px;
     }
 
     .boot-header .subtitle {
-        font-size: 0.75rem;
-        letter-spacing: 1px;
+        font-size: 0.7rem;
+        letter-spacing: 0.5px;
+    }
+
+    .boot-header-row {
+        gap: 12px;
+    }
+
+    /* Header status badges - compact on mobile */
+    .header-status-badges {
+        gap: 6px;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .status-badge {
+        padding: 3px 6px;
+    }
+
+    .badge-icon {
+        font-size: 12px;
+    }
+
+    .badge-status {
+        font-size: 9px;
+    }
+
+    /* Section headers */
+    .section-header {
+        font-size: 12px;
+        margin-top: 16px !important;
     }
 
     /* WebLLM Demo - compact on mobile */
@@ -1570,17 +1599,49 @@ body.reticle-active .reticle-line {
 
     /* Model Cards */
     .model-cards-container {
-        padding: 12px;
-        margin-bottom: 15px;
+        padding: 10px;
+        margin-bottom: 12px;
     }
 
     .model-cards-title {
-        font-size: 12px;
+        font-size: 11px;
+    }
+
+    .model-cards-list {
+        gap: 8px;
     }
 
     .model-card {
-        min-width: 160px;
-        padding: 12px;
+        min-width: 140px;
+        padding: 10px;
+    }
+
+    .add-model-card {
+        min-height: 80px;
+    }
+
+    .add-model-icon {
+        font-size: 28px;
+    }
+
+    .add-model-text {
+        font-size: 11px;
+    }
+
+    /* Goal input group - better mobile stacking */
+    .goal-input-group {
+        padding: 10px;
+        gap: 10px;
+    }
+
+    #goal-input {
+        font-size: 14px;
+        min-height: 40px;
+    }
+
+    #awaken-btn {
+        padding: 10px 16px;
+        font-size: 14px;
     }
 
     /* Buttons - touch friendly */
@@ -1592,7 +1653,48 @@ body.reticle-active .reticle-line {
     .model-card-btn {
         min-height: 32px;
         padding: 6px 10px;
+        font-size: 10px;
+    }
+
+    /* Expand buttons - compact */
+    .expand-btn,
+    .goal-chips-expand-btn {
+        font-size: 12px;
+        padding: 5px 10px;
+    }
+
+    /* Advanced options spacing */
+    .config-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 6px;
+    }
+
+    .config-row label {
+        min-width: auto;
         font-size: 11px;
+    }
+
+    .config-select {
+        width: 100%;
+        font-size: 12px;
+        padding: 8px 24px 8px 10px;
+    }
+
+    .execution-limits-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    .limit-input {
+        width: 60px;
+    }
+
+    .data-controls-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
     }
 
     /* Modal - full width on small screens */
@@ -1606,7 +1708,30 @@ body.reticle-active .reticle-line {
     }
 
     .modal-body {
-        padding: 15px;
+        padding: 12px;
+    }
+
+    /* Model form dialog */
+    .model-form-dialog {
+        padding: 16px 12px;
+    }
+
+    .inline-form-row label {
+        font-size: 10px;
+    }
+
+    .inline-select, .inline-input {
+        font-size: 14px;
+        padding: 10px 12px;
+    }
+
+    .inline-form-actions {
+        gap: 8px;
+    }
+
+    .inline-btn-cancel, .inline-btn-save {
+        padding: 10px 14px;
+        font-size: 12px;
     }
 }
 

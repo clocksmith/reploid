@@ -18,11 +18,10 @@ export const renderProtoTemplate = (escapeHtml, goalFromBoot) => `
     <button id="btn-export" class="sidebar-btn" title="Export (Ctrl+E)">&#x2913;</button>
   </nav>
 
-  <!-- VFS Browser Panel -->
+  <!-- VFS Browser Panel (auto-refreshes via EventBus) -->
   <aside class="vfs-browser-panel" id="vfs-browser">
     <div class="vfs-browser-header">
       <span>VFS</span>
-      <button id="vfs-refresh" class="btn btn-sm btn-secondary" title="Refresh">↻</button>
     </div>
     <div class="vfs-search-container">
       <input type="text" id="vfs-search" class="vfs-search-input" placeholder="Search files..." />
