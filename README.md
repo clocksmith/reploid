@@ -75,7 +75,7 @@ The proxy (`npm start`) routes API calls through your machine for CORS and key m
 
 - Quick start guide: [docs/QUICK-START.md](docs/QUICK-START.md)
 - Architecture and boot sequence: [docs/SYSTEM_ARCHITECTURE.md](docs/SYSTEM_ARCHITECTURE.md)
-- In-substrate agent manual: [dreamer/reploid/docs/REPLOID.md](dreamer/reploid/docs/REPLOID.md)
+- In-substrate agent manual: [dreamer/reploid/docs/SUBSTRATE.md](dreamer/reploid/docs/SUBSTRATE.md)
 - Dreamer setup (local WebGPU): [docs/DREAMER_SETUP.md](docs/DREAMER_SETUP.md)
 - Local models (Ollama, WebLLM): [docs/LOCAL_MODELS.md](docs/LOCAL_MODELS.md)
 - Security model: [docs/SECURITY.md](docs/SECURITY.md)
