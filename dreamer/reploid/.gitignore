@@ -64,5 +64,10 @@ sessions/
 output/
 *.ndjson
 
-# Exported session runs (keep README, ignore JSON exports)
+# Exported session runs (ignore most, keep showcase runs)
 runs/*.json
+!runs/reploid-gemini3-run.json
+!runs/reploid-export-1764910293555.json
+!runs/reploid-export-1765143717007.json
+!runs/reploid-export-1764172457231.json
+!runs/reploid-export-1765420266028.json
