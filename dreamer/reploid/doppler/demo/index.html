@@ -122,6 +122,23 @@
             </div>
           </div>
         </section>
+
+        <section class="panel convert-panel">
+          <h2 class="panel-title">Convert Model</h2>
+          <p class="convert-description">Import GGUF or HuggingFace models</p>
+          <button id="convert-btn" class="convert-btn">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+              <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+            </svg>
+            Select Files
+          </button>
+          <div id="convert-status" class="convert-status" hidden>
+            <div class="convert-progress-bar">
+              <div id="convert-progress" class="convert-progress"></div>
+            </div>
+            <span id="convert-message" class="convert-message">Ready</span>
+          </div>
+        </section>
       </aside>
 
       <!-- Chat Area -->

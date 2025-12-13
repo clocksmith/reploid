@@ -8,6 +8,9 @@ import { ModelSelector } from './model-selector.js';
 import { ChatUI } from './chat-ui.js';
 import { ProgressUI } from './progress-ui.js';
 
+// Browser model converter
+import { convertModel, pickModelFiles, isConversionSupported, ConvertStage } from '../browser/model-converter.js';
+
 // DOPPLER pipeline imports
 import { createPipeline } from '../inference/pipeline.js';
 import { downloadModel } from '../storage/downloader.js';
@@ -137,6 +140,13 @@ export class DOPPLERDemo {
     this.temperatureInput = null;
     this.topPInput = null;
     this.topKInput = null;
+
+    // Converter UI
+    this.convertBtn = null;
+    this.convertStatus = null;
+    this.convertProgress = null;
+    this.convertMessage = null;
+    this.isConverting = false;
   }
 
   /**
@@ -177,6 +187,12 @@ export class DOPPLERDemo {
     this.temperatureInput = document.querySelector('#temperature-input');
     this.topPInput = document.querySelector('#top-p-input');
     this.topKInput = document.querySelector('#top-k-input');
+
+    // Converter elements
+    this.convertBtn = document.querySelector('#convert-btn');
+    this.convertStatus = document.querySelector('#convert-status');
+    this.convertProgress = document.querySelector('#convert-progress');
+    this.convertMessage = document.querySelector('#convert-message');
 
     // Initialize UI components
     this._initComponents();
@@ -250,6 +266,16 @@ export class DOPPLERDemo {
     }
     if (this.topKInput) {
       this.topKInput.addEventListener('change', () => clampNumber(this.topKInput, 0, 200));
+    }
+
+    // Convert button
+    if (this.convertBtn) {
+      if (isConversionSupported()) {
+        this.convertBtn.addEventListener('click', () => this._handleConvert());
+      } else {
+        this.convertBtn.disabled = true;
+        this.convertBtn.title = 'Model conversion requires File System Access API (Chrome/Edge)';
+      }
     }
   }
 
@@ -1047,6 +1073,87 @@ export class DOPPLERDemo {
       "Hello! I'm simulating what the chat experience will be like. The actual inference will run entirely in your browser using WebGPU for acceleration.",
     ];
     return responses[Math.floor(Math.random() * responses.length)];
+  }
+
+  /**
+   * Handle model conversion
+   * @private
+   */
+  async _handleConvert() {
+    if (this.isConverting) {
+      return;
+    }
+
+    try {
+      // Pick files
+      const files = await pickModelFiles();
+      if (!files || files.length === 0) {
+        return;
+      }
+
+      console.log(`[DOPPLERDemo] Converting ${files.length} files...`);
+      this.isConverting = true;
+      this.convertBtn.disabled = true;
+
+      // Show progress UI
+      if (this.convertStatus) {
+        this.convertStatus.hidden = false;
+      }
+      this._updateConvertProgress(0, 'Starting conversion...');
+
+      // Convert model
+      const modelId = await convertModel(files, {
+        onProgress: (progress) => {
+          const percent = progress.percent || 0;
+          const message = progress.message || progress.stage;
+          this._updateConvertProgress(percent, message);
+
+          if (progress.stage === ConvertStage.ERROR) {
+            throw new Error(progress.message);
+          }
+        },
+      });
+
+      console.log(`[DOPPLERDemo] Conversion complete: ${modelId}`);
+      this._updateConvertProgress(100, `Done! Model: ${modelId}`);
+
+      // Refresh model list
+      await this._loadCachedModels();
+
+      // Hide progress after delay
+      setTimeout(() => {
+        if (this.convertStatus) {
+          this.convertStatus.hidden = true;
+        }
+        this._updateConvertProgress(0, 'Ready');
+      }, 3000);
+
+    } catch (error) {
+      if (error.name === 'AbortError') {
+        console.log('[DOPPLERDemo] Conversion cancelled');
+        this._updateConvertProgress(0, 'Cancelled');
+      } else {
+        console.error('[DOPPLERDemo] Conversion failed:', error);
+        this._updateConvertProgress(0, `Error: ${error.message}`);
+        this._showError(`Conversion failed: ${error.message}`);
+      }
+    } finally {
+      this.isConverting = false;
+      this.convertBtn.disabled = false;
+    }
+  }
+
+  /**
+   * Update conversion progress UI
+   * @private
+   */
+  _updateConvertProgress(percent, message) {
+    if (this.convertProgress) {
+      this.convertProgress.style.width = `${percent}%`;
+    }
+    if (this.convertMessage) {
+      this.convertMessage.textContent = message;
+    }
   }
 }
 

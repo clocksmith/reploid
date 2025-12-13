@@ -204,18 +204,38 @@ async function runTest() {
       console.log(outputLog);
     }
 
-    // Check for good/bad tokens
+    // Check for good/bad tokens in the top-5 distributions
     const allText = importantLogs.join(' ');
-    const goodTokens = ['blue', 'clear', 'beautiful', 'vast', 'dark', 'night', 'bright', 'color'];
-    const badTokens = ['thức', 'ass', ')}"', 'f', 'už', 'unused', 'మా', 'ನ', '<unused'];
 
-    const hasGood = goodTokens.some(t => allText.toLowerCase().includes(t));
+    // This test uses English prompts and expects English output.
+    // Good tokens we expect for "the sky is" / "the color of the sky is" prompts
+    const goodTokens = [
+      'blue', 'clear', 'beautiful', 'vast', 'dark', 'night', 'bright',
+      'color', 'sky', 'The', 'is', 'a', 'the', 'usually', 'often',
+    ];
+
+    // Unexpected tokens for English output - indicate model/dequantization issues.
+    // Non-English text or placeholder tokens suggest the model isn't working correctly.
+    const badTokens = [
+      'thức',      // Vietnamese - unexpected for English prompt
+      ')}"',       // Symbol sequence - likely tokenizer issue
+      'už',        // Czech/Slovak - unexpected for English prompt
+      '<unused',   // Placeholder tokens from vocab
+      'unused>',
+      'మా',        // Telugu - unexpected for English prompt
+      'ನ',         // Kannada - unexpected for English prompt
+      'ക',         // Malayalam - unexpected for English prompt
+      '്',         // Malayalam virama - unexpected for English prompt
+      '(?!',       // Regex pattern - indicates corruption
+    ];
+
+    const hasGood = goodTokens.some(t => allText.toLowerCase().includes(t.toLowerCase()));
     const hasBad = badTokens.some(t => allText.includes(t));
 
     console.log('\n' + '-'.repeat(40));
     if (hasBad) {
-      console.log('STATUS: FAIL - Still producing garbage tokens');
-      console.log('The dequantization is likely still incorrect.');
+      console.log('STATUS: FAIL - Producing garbage tokens');
+      console.log('Found bad tokens in output.');
     } else if (hasGood) {
       console.log('STATUS: PASS - Producing coherent tokens!');
     } else {

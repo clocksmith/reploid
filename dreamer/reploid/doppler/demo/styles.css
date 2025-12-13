@@ -699,6 +699,67 @@ body {
   background: var(--border);
 }
 
+/* Convert Panel */
+.convert-panel {
+  border-top: 1px solid var(--border);
+}
+
+.convert-description {
+  font-size: 12px;
+  color: var(--text-dim);
+  margin: 0 0 12px 0;
+}
+
+.convert-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px 16px;
+  background: var(--accent);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.convert-btn:hover {
+  background: var(--accent-hover);
+}
+
+.convert-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.convert-status {
+  margin-top: 12px;
+}
+
+.convert-progress-bar {
+  height: 4px;
+  background: var(--bg-tertiary);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+.convert-progress {
+  height: 100%;
+  background: var(--accent);
+  width: 0%;
+  transition: width 0.3s ease;
+}
+
+.convert-message {
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .main-layout {
