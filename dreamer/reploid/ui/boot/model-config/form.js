@@ -16,7 +16,7 @@ let bridgeAvailableCache = null;
 async function checkBridgeAvailable() {
     if (bridgeAvailableCache !== null) return bridgeAvailableCache;
     try {
-        const { isBridgeAvailable } = await import('../../../dreamer/bridge/index.js');
+        const { isBridgeAvailable } = await import('../../../doppler/bridge/index.js');
         bridgeAvailableCache = isBridgeAvailable();
     } catch {
         bridgeAvailableCache = false;
@@ -84,10 +84,10 @@ function populateProviderSelect() {
         options.push('<option value="transformers">Transformers.js (Browser)</option>');
     }
 
-    if (providers.dreamer?.online) {
-        const caps = providers.dreamer.capabilities;
+    if (providers.doppler?.online) {
+        const caps = providers.doppler.capabilities;
         const tierLabel = caps?.TIER_NAME ? ` (${caps.TIER_NAME})` : '';
-        options.push(`<option value="dreamer">Dreamer${tierLabel} (Local WebGPU)</option>`);
+        options.push(`<option value="doppler">DOPPLER${tierLabel} (Local WebGPU)</option>`);
     }
 
     // Cloud providers always available - user provides API key
@@ -135,9 +135,9 @@ export function onProviderChange(e) {
     }
     onConnectionTypeChange({ target: { value: autoConnectionType } });
 
-    // Show model URL field for Dreamer provider
+    // Show model URL field for DOPPLER provider
     if (modelUrlGroup) {
-        if (provider === 'dreamer') {
+        if (provider === 'doppler') {
             modelUrlGroup.classList.remove('hidden');
         } else {
             modelUrlGroup.classList.add('hidden');
@@ -146,10 +146,10 @@ export function onProviderChange(e) {
         }
     }
 
-    // Show local path field for Dreamer when Native Bridge is available
+    // Show local path field for DOPPLER when Native Bridge is available
     const localPathGroup = document.getElementById('local-path-group');
     if (localPathGroup) {
-        if (provider === 'dreamer') {
+        if (provider === 'doppler') {
             // Check bridge availability asynchronously
             checkBridgeAvailable().then(available => {
                 if (available) {
@@ -165,11 +165,11 @@ export function onProviderChange(e) {
         }
     }
 
-    // Show GGUF import button for Dreamer provider (browser import via File System Access)
+    // Show GGUF import button for DOPPLER provider (browser import via File System Access)
     const ggufImportGroup = document.getElementById('gguf-import-group');
     const ggufProgressGroup = document.getElementById('gguf-import-progress');
     if (ggufImportGroup) {
-        if (provider === 'dreamer') {
+        if (provider === 'doppler') {
             ggufImportGroup.classList.remove('hidden');
         } else {
             ggufImportGroup.classList.add('hidden');
@@ -454,15 +454,15 @@ export function setupFormListeners() {
 
 /**
  * Handle URL query parameters for auto-filling the form.
- * Used when serve-cli opens browser with ?provider=dreamer&modelUrl=...
+ * Used when serve-cli opens browser with ?provider=doppler&modelUrl=...
  */
 function handleUrlParams() {
     const params = new URLSearchParams(window.location.search);
     const provider = params.get('provider');
     const modelUrl = params.get('modelUrl');
 
-    if (provider === 'dreamer' && modelUrl) {
-        console.log('[ModelConfig] URL params detected, auto-opening form with Dreamer + modelUrl');
+    if (provider === 'doppler' && modelUrl) {
+        console.log('[ModelConfig] URL params detected, auto-opening form with DOPPLER + modelUrl');
 
         // Wait for providers to be detected, then open form
         setTimeout(() => {
@@ -471,11 +471,11 @@ function handleUrlParams() {
 
             // Wait for form to open, then fill in values
             setTimeout(() => {
-                // Select Dreamer provider
+                // Select DOPPLER provider
                 const providerSelect = document.getElementById('provider-select');
                 if (providerSelect) {
-                    providerSelect.value = 'dreamer';
-                    onProviderChange({ target: { value: 'dreamer' } });
+                    providerSelect.value = 'doppler';
+                    onProviderChange({ target: { value: 'doppler' } });
                 }
 
                 // Fill in the model URL
@@ -522,8 +522,8 @@ export function setupGGUFImportListeners() {
 async function handleGGUFImportClick() {
     try {
         // Dynamically import the modules (lazy load)
-        const { pickGGUFFile } = await import('../../../dreamer/browser/file-picker.js');
-        const { importGGUFFile, ImportStage } = await import('../../../dreamer/browser/gguf-importer.js');
+        const { pickGGUFFile } = await import('../../../doppler/browser/file-picker.js');
+        const { importGGUFFile, ImportStage } = await import('../../../doppler/browser/gguf-importer.js');
 
         // Pick file
         const file = await pickGGUFFile();
@@ -650,7 +650,7 @@ async function autoAddImportedModel(modelId) {
     const modelConfig = {
         id: modelId,
         name: modelId,
-        provider: 'dreamer',
+        provider: 'doppler',
         hostType: 'browser-local',
         queryMethod: 'browser',
         keySource: 'none',
@@ -746,7 +746,7 @@ async function openBrowseModal() {
     // Initialize bridge client if needed
     if (!browseClient) {
         try {
-            const { createBridgeClient } = await import('../../../dreamer/bridge/index.js');
+            const { createBridgeClient } = await import('../../../doppler/bridge/index.js');
             browseClient = await createBridgeClient();
         } catch (err) {
             console.error('[Browse] Failed to create bridge client:', err);

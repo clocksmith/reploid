@@ -119,12 +119,12 @@
                     </select>
                 </div>
 
-                <!-- Model URL (Dreamer remote/local serve) -->
+                <!-- Model URL (DOPPLER remote/local serve) -->
                 <div class="inline-form-row hidden" id="model-url-group">
                     <label>Model URL (optional)</label>
                     <input type="url" id="model-url-input" class="inline-input"
                            placeholder="http://localhost:8765" />
-                    <small class="form-hint">Base URL of served .rpl model folder (e.g. from dreamer-serve)</small>
+                    <small class="form-hint">Base URL of served .rdrr model folder (e.g. from doppler-serve)</small>
                 </div>
 
                 <!-- Local Path (Native Bridge - direct file access) -->
@@ -859,7 +859,7 @@ function updateHeaderBadges(providers) {
   // Local badge (WebGPU)
   const localBadge = document.getElementById('badge-local');
   if (localBadge && providers) {
-    const isOnline = providers.webgpu?.online || providers.transformers?.online || providers.dreamer?.online;
+    const isOnline = providers.webgpu?.online || providers.transformers?.online || providers.doppler?.online;
     localBadge.classList.toggle('online', isOnline);
     localBadge.querySelector('.badge-status').textContent = isOnline ? '★' : '☒';
     localBadge.querySelector('.badge-status').className = `badge-status ${isOnline ? 'online' : 'offline'}`;

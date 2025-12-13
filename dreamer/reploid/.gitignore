@@ -57,6 +57,13 @@ firebase-debug.log
 # Large data files
 vfs_backup.json
 
+# RDRR model files (large binary shards)
+doppler/models/
+doppler/tools/*-rdrr/
+*.gguf
+shard_*.bin
+!doppler/tests/fixtures/*/shard_*.bin
+
 # Project-specific runtime/cache
 .paws/
 .reploidrc.json

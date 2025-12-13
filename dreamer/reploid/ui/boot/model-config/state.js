@@ -28,7 +28,7 @@ let availableProviders = {
     ollama: { online: false, models: [] },
     webgpu: { online: false, models: [] },
     transformers: { online: false, models: [] },
-    dreamer: { online: false, models: [], capabilities: null },
+    doppler: { online: false, models: [], capabilities: null },
     proxy: { online: false, configuredProviders: [] }
 };
 
