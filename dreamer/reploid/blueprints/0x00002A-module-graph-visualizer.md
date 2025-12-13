@@ -1,10 +1,10 @@
-# Blueprint 0x000030: Module Dependency Graph Visualizer
+# Blueprint 0x00002A: Module Dependency Graph Visualizer
 
 **Objective:** Standardize the D3.js visual representation of REPLOID’s module dependency graph, powered by Introspector data.
 
 **Target Upgrade:** MGRV (`module-graph-visualizer.js`)
 
-**Prerequisites:** 0x00001B (Code Introspection & Self-Analysis), 0x000025 (Universal Module Loader), 0x000026 (Module Manifest Governance)
+**Prerequisites:** 0x00001B (Code Introspection & Self-Analysis), 0x00001F (Universal Module Loader), 0x000020 (Module Manifest & Dependency Governance)
 
 **Affected Artifacts:** `/upgrades/module-graph-visualizer.js`, `/styles/proto.css`, `/upgrades/introspector.js`
 
@@ -87,7 +87,7 @@ Key features:
 1. **Web Component Registration**
    - Define `ModuleGraphVisualizerWidget` extending `HTMLElement`.
    - Register custom element: `customElements.define('module-graph-visualizer-widget', ModuleGraphVisualizerWidget)`.
-   - Export widget metadata: `{ element, displayName: 'Module Graph', icon: '⚌️', category: 'ui', updateInterval: null }`.
+   - Export widget metadata: `{ element, displayName: 'Module Graph', icon: '☍', category: 'ui', updateInterval: null }`.
 2. **Lifecycle: connectedCallback**
    - Call `attachShadow({ mode: 'open' })` in constructor.
    - No auto-refresh interval (manual refresh only).

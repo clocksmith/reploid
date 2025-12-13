@@ -1,4 +1,4 @@
-# Blueprint 0x000022: Write Tools Manifest
+# Blueprint 0x00001C: Write Tools Manifest
 
 **Objective:** To explain the structure and purpose of the JSON artifact that defines the agent's write-capable toolset, enabling recursive self-improvement through code modification.
 
@@ -458,8 +458,8 @@ The write tools manifest (`tools-write.json`) defines the **contract for self-ev
 **Related Blueprints:**
 - 0x000010 (Static Tool Manifest) - Read-only tools
 - 0x000015 (Dynamic Tool Creation) - Runtime tool generation
-- 0x000016 (Meta-Tool Creation Patterns) - Design principles
-- 0x00001D (Self-Testing Framework) - Validation before apply
+- 0x000015 (Dynamic Tool Creation) - Design principles
+- 0x00003C (Self-Testing Framework) - Validation before apply
 - 0x00001B (Code Introspection) - Analyze own architecture
 
 **Related RFCs:**

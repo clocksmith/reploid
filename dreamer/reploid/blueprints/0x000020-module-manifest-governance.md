@@ -1,4 +1,4 @@
-# Blueprint 0x000026: Module Manifest & Dependency Governance
+# Blueprint 0x000020: Module Manifest & Dependency Governance
 
 **Objective:** Define the structure, lifecycle, and review process for `/upgrades/module-manifest.json`, the authoritative catalog for REPLOID modules.
 
@@ -7,7 +7,7 @@
 
 **Target Artifact:** MMNF (`module-manifest.json`)
 
-**Prerequisites:** 0x000002 (Application Orchestration), 0x000013 (System Configuration Structure), 0x000025 (Universal Module Loader)
+**Prerequisites:** 0x000002 (Application Orchestration), 0x000013 (System Configuration Structure), 0x00001F (Universal Module Loader)
 
 **Affected Artifacts:** `/upgrades/module-manifest.json`, `/upgrades/boot-module-loader.js`, `/upgrades/state-manager.js`
 

@@ -232,7 +232,7 @@ export async function checkAvailability() {
     const checkDreamer = async () => {
         if (providers.webgpu.online) {
             try {
-                const { DreamerProvider } = await import('../../../core/dreamer/dreamer-provider.js');
+                const { DreamerProvider } = await import('../../../dreamer/dreamer-provider.js');
                 const available = await DreamerProvider.init();
                 if (available) {
                     const capabilities = DreamerProvider.getCapabilities();

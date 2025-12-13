@@ -1,4 +1,4 @@
-# Embedding Store
+# Blueprint 0x000069: Embedding Store
 
 **Module:** `EmbeddingStore`
 **File:** `./capabilities/cognition/semantic/embedding-store.js`

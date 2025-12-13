@@ -16,11 +16,11 @@
 
 For true Recursive Self-Improvement (RSI), the agent must possess the ability to:
 
-- 📊 **Analyze its own code complexity** - Identify functions that need refactoring
+- **Analyze its own code complexity** - Identify functions that need refactoring
 - ⚲ **Map its dependency graph** - Understand which modules depend on which
-- 📈 **Measure performance metrics** - find bottlenecks in its own execution
-- 🧬 **Parse its own AST** - Understand code structure at a deep level
-- 🗺️ **Visualize its architecture** - See the big picture of how it's built
+- **Measure performance metrics** - find bottlenecks in its own execution
+- **Parse its own AST** - Understand code structure at a deep level
+- **Visualize its architecture** - See the big picture of how it's built
 
 Without introspection, the agent is **blind to its own design**. It can modify code, but it cannot make *intelligent* modifications because it lacks self-awareness.
 
@@ -485,17 +485,17 @@ assert(analysis.lines_of_code > 50);
 Without it, RSI is blind trial-and-error. With it, RSI becomes intelligent, targeted self-improvement.
 
 The agent can:
-- ⚲ **See its own structure**
-- 📊 **Measure its own quality**
-- 🎯 **Identify improvement opportunities**
-- 📚 **Document its own evolution**
+- **See its own structure**
+- **Measure its own quality**
+- **Identify improvement opportunities**
+- **Document its own evolution**
 
 **An agent that knows itself can improve itself.**
 
 ---
 
 **Related Blueprints:**
-- 0x000022 (Write Tools) - Apply modifications based on introspection
-- 0x00001C (Reflection Storage) - Persist learnings from introspection
-- 0x00001D (Self-Testing) - Validate introspection-driven changes
-- 0x000021 (Performance Monitoring) - Runtime metrics complement static analysis
+- 0x00001C (Write Tools Manifest) - Apply modifications based on introspection
+- 0x000035 (Reflection Store Architecture) - Persist learnings from introspection
+- 0x00003C (Self-Testing & Validation Framework) - Validate introspection-driven changes
+- 0x000026 (Performance Monitoring Stack) - Runtime metrics complement static analysis

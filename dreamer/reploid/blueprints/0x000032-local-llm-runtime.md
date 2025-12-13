@@ -1,10 +1,10 @@
-# Blueprint 0x000038: Local LLM Runtime
+# Blueprint 0x000032: Local LLM Runtime
 
 **Objective:** Capture the design considerations for running quantized LLMs inside the browser via WebLLM and WebGPU.
 
 **Target Upgrade:** LLMR (`local-llm.js`)
 
-**Prerequisites:** 0x000027 (Multi-Provider API Gateway), 0x00002C (Performance Monitoring Stack), WebLLM CDN import
+**Prerequisites:** 0x000021 (Multi-Provider API Gateway), 0x000026 (Performance Monitoring Stack), WebLLM CDN import
 
 **Affected Artifacts:** `/upgrades/local-llm.js`, `/index.html` (WebLLM script tag), `/styles/proto.css`, `/upgrades/hybrid-llm-provider.js`
 

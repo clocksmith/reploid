@@ -1,4 +1,4 @@
-# Blueprint 0x000024: Penteract Analytics & Visualization
+# Blueprint 0x00001E: Penteract Analytics & Visualization
 
 **Objective:** Transform Arena and Penteract competition telemetry into a real-time, human-auditable proto that guides approval decisions and future persona tuning.
 

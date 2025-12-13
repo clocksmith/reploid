@@ -1,10 +1,10 @@
-# Blueprint 0x000044: WebRTC Swarm Transport
+# Blueprint 0x00003E: WebRTC Swarm Transport
 
 **Objective:** Establish the signalling, connection, and messaging model for peer-to-peer coordination across REPLOID instances.
 
 **Target Upgrade:** WRTS (`webrtc-swarm.js`)
 
-**Prerequisites:** 0x00003A (Swarm Orchestration), 0x000043 (Browser API Integration), signalling server deployment
+**Prerequisites:** 0x000034 (Swarm Orchestration), 0x00003D (Browser API Integration), signalling server deployment
 
 **Affected Artifacts:** `/upgrades/webrtc-swarm.js`, `/upgrades/webrtc-coordinator.js`, `/styles/proto.css`
 

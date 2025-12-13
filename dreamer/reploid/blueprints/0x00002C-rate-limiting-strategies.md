@@ -1,10 +1,10 @@
-# Blueprint 0x000032: Rate Limiting Strategies
+# Blueprint 0x00002C: Rate Limiting Strategies
 
 **Objective:** Govern the token-bucket and sliding-window rate limiter utilities used to protect external APIs and internal resources.
 
 **Target Upgrade:** RATE (`rate-limiter.js`)
 
-**Prerequisites:** 0x000007 (API Client & Communication), 0x000027 (Multi-Provider API Gateway), 0x000002 (Application Orchestration)
+**Prerequisites:** 0x000007 (API Client & Communication), 0x000021 (Multi-Provider API Gateway), 0x000002 (Application Orchestration)
 
 **Affected Artifacts:** `/upgrades/rate-limiter.js`, `/upgrades/api-client.js`, `/upgrades/api-client-multi.js`, `/upgrades/performance-monitor.js`
 

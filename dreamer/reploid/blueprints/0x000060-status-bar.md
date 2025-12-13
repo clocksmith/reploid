@@ -396,8 +396,8 @@ Add feature flag check in UIManager to choose between monolithic and modular Sta
 - `EVENTBUS_EVENT_CATALOG.md` - Events: `fsm:state:changed`, `ui:panel-ready`, `ui:panel-error`
 - `FEATURE_FLAGS.md` - Feature flag: `useModularPanels.StatusBar`
 - `MODULE_WIDGET_PROTOCOL.md` - Widget protocol v2.0, `getStatus()` contract
-- Blueprint 0x00006A (ProgressTracker) - Reference implementation
-- Blueprint 0x00006C (LogPanel) - Reference implementation
+- Blueprint 0x00005F (Progress Tracker Panel) - Reference implementation
+- Blueprint 0x000061 (Log Panel) - Reference implementation
 
 **Referenced By:**
 - Phase 4 Integration Tests - System health aggregation tests

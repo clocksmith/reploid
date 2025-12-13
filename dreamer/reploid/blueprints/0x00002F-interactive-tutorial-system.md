@@ -1,10 +1,10 @@
-# Blueprint 0x000035: Interactive Tutorial System
+# Blueprint 0x00002F: Interactive Tutorial System
 
 **Objective:** Outline the structure and lifecycle of the in-app tutorial engine that guides new operators through REPLOID.
 
 **Target Upgrade:** TUTR (`tutorial-system.js`)
 
-**Prerequisites:** 0x00000D (UI Manager), 0x000005 (State Management Architecture), 0x000031 (Toast Notification System)
+**Prerequisites:** 0x00000D (UI Management), 0x000005 (State Management Architecture), 0x00002B (Toast Notification System)
 
 **Affected Artifacts:** `/upgrades/tutorial-system.js`, `/styles/proto.css`, `/upgrades/event-bus.js`
 

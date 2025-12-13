@@ -1,4 +1,4 @@
-# Blueprint 0x000021: Meta-Cognitive Evaluator
+# Blueprint 0x000065: Meta-Cognitive Evaluator
 
 **Objective:** Create a system that scores the agent's own reasoning quality and dynamically adjusts cognitive strategies based on performance patterns.
 

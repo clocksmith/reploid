@@ -1,10 +1,10 @@
-# Blueprint 0x000037: Python Tool Interface
+# Blueprint 0x000031: Python Tool Interface
 
 **Objective:** Specify the tool contract that exposes Pyodide capabilities to the agent via structured tool calls.
 
 **Target Upgrade:** PYTH (`python-tool.js`)
 
-**Prerequisites:** 0x000036 (Pyodide Runtime Orchestration), 0x000010 (Static Tool Manifest), 0x000025 (Universal Module Loader)
+**Prerequisites:** 0x000030 (Pyodide Runtime Orchestration), 0x000010 (Static Tool Manifest), 0x00001F (Universal Module Loader)
 
 **Affected Artifacts:** `/upgrades/python-tool.js`, `/modules/tools-write.json`, `/upgrades/tool-runner.js`
 

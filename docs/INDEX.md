@@ -30,6 +30,7 @@ Guide to all documentation in the REPLOID project.
 - **[docs/API.md](./API.md)** - Module API documentation
 - **[docs/LOCAL_MODELS.md](./LOCAL_MODELS.md)** - WebLLM and Ollama setup
 - **[docs/TROUBLESHOOTING.md](./TROUBLESHOOTING.md)** - Common issues and solutions
+- **[docs/CYCLICAL_ACRONYMS.md](./CYCLICAL_ACRONYMS.md)** - Cyclical acronyms taxonomy
 - **[docs/STYLE_GUIDE.md](./STYLE_GUIDE.md)** - Code and UI conventions
 - **[docs/SECURITY.md](./SECURITY.md)** - Security model and containment layers
 - **[docs/CONTRIBUTING.md](./CONTRIBUTING.md)** - Contribution guidelines
@@ -94,11 +95,11 @@ reploid/
 ### For RSI Research
 1. [README.md](../README.md) - Core RSI thesis
 2. [blueprints/0x000015-dynamic-tool-creation.md](../dreamer/reploid/blueprints/0x000015-dynamic-tool-creation.md) - Tool creation
-3. [blueprints/0x000016-meta-tool-creation-patterns.md](../dreamer/reploid/blueprints/0x000016-meta-tool-creation-patterns.md) - Meta-tools
+3. [blueprints/0x000066-recursive-goal-decomposition.md](../dreamer/reploid/blueprints/0x000066-recursive-goal-decomposition.md) - Recursive goal decomposition
 
 ### For Security Researchers
 1. [SECURITY.md](./SECURITY.md) - Security model and containment
-2. [blueprints/0x000056-verification-worker-sandboxing.md](../dreamer/reploid/blueprints/0x000056-verification-worker-sandboxing.md) - Sandbox design
+2. [blueprints/0x000047-verification-manager.md](../dreamer/reploid/blueprints/0x000047-verification-manager.md) - Verification and sandbox design
 3. [blueprints/0x000067-circuit-breaker-pattern.md](../dreamer/reploid/blueprints/0x000067-circuit-breaker-pattern.md) - Failure containment
 
 ---

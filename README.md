@@ -5,6 +5,7 @@
 - Runs fully in the browser (offline-capable)
 - Self-modifies: tools live in the VFS and hot-reload instantly
 - Sandbox focus: IndexedDB filesystem, verification, arena, audit trail
+- The cyclical acronym taxonomy is documented in [docs/CYCLICAL_ACRONYMS.md](docs/CYCLICAL_ACRONYMS.md)
 
 ## Quick Start
 

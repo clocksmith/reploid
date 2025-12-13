@@ -4,7 +4,7 @@
 
 ---
 
-> **Note:** This atlas organizes the 102 architectural blueprints of the REPLOID system into 7 functional domains. Each blueprint describes a specific capability, module, or pattern essential to the agent's operation and recursive self-improvement.
+> **Note:** This atlas organizes the architectural blueprints of the REPLOID system into 7 functional domains. Each blueprint describes a specific capability, module, or pattern essential to the agent's operation and recursive self-improvement.
 
 ## Canonical mappings (deduped)
 Some blueprints overlap. Use the canonical IDs below; older IDs are deprecated.
@@ -32,7 +32,8 @@ Some blueprints overlap. Use the canonical IDs below; older IDs are deprecated.
 | `0x000026` | [Performance Monitoring Stack](0x000026-performance-monitoring-stack.md) | Telemetry collection and metrics. |
 | `0x000049` | [Dependency Injection Container](0x000049-dependency-injection-container.md) | Service resolution and singletons. |
 | `0x00004A` | [Config Management](0x00004A-config-management.md) | Logic for loading/saving config. |
-| `0x00005D` | [System Tools Manifest](0x00005D-system-tools-manifest.md) | Deprecated – see 0x000010. |
+| `0x00005D` | [System Tools Manifest](0x00005D-system-tools-manifest.md) | Deprecated: see 0x000010. |
+| `0x000067` | [Circuit Breaker Pattern](0x000067-circuit-breaker-pattern.md) | Failure isolation and fast-fail recovery. |
 
 ## 2. State & Memory (The Hippocampus)
 *Data persistence, virtual file system (VFS), and context management.*
@@ -49,8 +50,11 @@ Some blueprints overlap. Use the canonical IDs below; older IDs are deprecated.
 | `0x000040` | [Context Management](0x000040-context-management.md) | Token window optimization. |
 | `0x000043` | [Genesis Snapshot System](0x000043-genesis-snapshot-system.md) | Boot state preservation. |
 | `0x000053` | [git VFS Version Control](0x000053-git-vfs-version-control.md) | git-backed file system. |
-| `0x00005C` | [VFS Tools Manifest](0x00005C-vfs-tools-manifest.md) | Deprecated – see 0x000010. |
+| `0x00005C` | [VFS Tools Manifest](0x00005C-vfs-tools-manifest.md) | Deprecated: see 0x000010. |
 | `0x000062` | [Internal Patch Format](0x000062-internal-patch-format.md) | JSON-based delta format. |
+| `0x000069` | [Embedding Store](0x000069-embedding-store.md) | Vector embedding storage and retrieval. |
+| `0x000070` | [Semantic Memory](0x000070-semantic-memory.md) | Long-term retrieval by meaning. |
+| `0x000071` | [Knowledge Graph](0x000071-knowledge-graph.md) | Structured entities and relationships. |
 
 ## 3. Agent Cognition (The Frontal Cortex)
 *Reasoning, planning, decision-making, and LLM interaction.*
@@ -66,13 +70,16 @@ Some blueprints overlap. Use the canonical IDs below; older IDs are deprecated.
 | `0x000033` | [Hybrid LLM Orchestration](0x000033-hybrid-llm-orchestration.md) | Mixing local and cloud AI. |
 | `0x000039` | [API Cost Tracker](0x000039-api-cost-tracker.md) | Token usage and budget governance. |
 | `0x00003F` | [Streaming Response Handler](0x00003F-streaming-response-handler.md) | Real-time token streaming. |
-| `0x000041` | [Structured Agent Cycle](0x000041-structured-agent-cycle.md) | Deprecated – see 0x000008. |
+| `0x000041` | [Structured Agent Cycle](0x000041-structured-agent-cycle.md) | Deprecated: see 0x000008. |
 | `0x000051` | [HITL Controller](0x000051-hitl-controller.md) | Autonomy level management. |
 | `0x000059` | [Sentinel FSM](0x000059-sentinel-fsm.md) | Finite State Machine for safety. |
 | `0x000063` | [Browser Native Paxos](0x000063-browser-native-paxos.md) | Consensus algorithms. |
 | `0x000064` | [Recursive Prompt Engineering](0x000064-recursive-prompt-engineering.md) | Self-improving prompts. |
 | `0x000065` | [Meta-Cognitive Evaluator](0x000065-meta-cognitive-evaluator.md) | Assessing own thought quality. |
 | `0x000066` | [Recursive Goal Decomposition](0x000066-recursive-goal-decomposition.md) | Breaking down complex tasks. |
+| `0x000072` | [Rule Engine](0x000072-rule-engine.md) | Deterministic IF-THEN reasoning. |
+| `0x000073` | [Symbol Grounder](0x000073-symbol-grounder.md) | Mapping symbols to actions and meaning. |
+| `0x000074` | [Cognition API](0x000074-cognition-api.md) | Unified semantic and symbolic interface. |
 
 ## 4. Tooling & Runtime (The Hands)
 *Execution engines, Python/Pyodide environments, and tool capabilities.*
@@ -84,7 +91,7 @@ Some blueprints overlap. Use the canonical IDs below; older IDs are deprecated.
 | `0x00000C` | [Sandboxed Tool Worker](0x00000C-sandboxed-tool-worker.md) | Isolated execution thread. |
 | `0x000010` | [Static Tool Manifest](0x000010-static-tool-manifest.md) | Built-in tool definitions. |
 | `0x000015` | [Dynamic Tool Creation](0x000015-dynamic-tool-creation.md) | Runtime tool generation. |
-| `0x000016` | [Meta-Tool Creation Patterns](0x000016-meta-tool-creation-patterns.md) | Deprecated – see 0x000015. |
+| `0x000016` | [Meta-Tool Creation Patterns](0x000016-meta-tool-creation-patterns.md) | Deprecated: see 0x000015. |
 | `0x00001C` | [Write Tools Manifest](0x00001C-write-tools-manifest.md) | File modification capabilities. |
 | `0x000030` | [Pyodide Runtime Orchestration](0x000030-pyodide-runtime-orchestration.md) | Python environment manager. |
 | `0x000031` | [Python Tool Interface](0x000031-python-tool-interface.md) | Python execution tools. |
@@ -96,7 +103,8 @@ Some blueprints overlap. Use the canonical IDs below; older IDs are deprecated.
 | `0x00004F` | [Worker Pool Parallelization](0x00004F-worker-pool-parallelization.md) | Thread management. |
 | `0x000052` | [Hot Module Reload](0x000052-hot-module-reload.md) | Live code updating. |
 | `0x000055` | [Pyodide Worker Visualization](0x000055-pyodide-worker-visualization.md) | Python runtime monitor. |
-| `0x000056` | [Verification Worker Sandboxing](0x000056-verification-worker-sandboxing.md) | Deprecated – see 0x000047. |
+| `0x000056` | [Verification Worker Sandboxing](0x000056-verification-worker-sandboxing.md) | Deprecated: see 0x000047. |
+| `0x000068` | [Transformers.js Client](0x000068-transformers-client.md) | Browser-native model inference via WebGPU. |
 
 ## 5. User Interface & Panels (The Face)
 *Visual proto, modular panels, and interaction components.*
@@ -151,8 +159,8 @@ Some blueprints overlap. Use the canonical IDs below; older IDs are deprecated.
 | `0x00001B` | [Code Introspection](0x00001B-code-introspection-self-analysis.md) | Source code analysis. |
 | `0x00001D` | [Autonomous Curator Mode](0x00001D-autonomous-orchestrator-curator-mode.md) | Overnight improvement. |
 | `0x00002D` | [Module Integrity](0x00002D-module-integrity-verification.md) | Code signing/hashing. |
-| `0x000036` | [Reflection Analysis Engine](0x000036-reflection-analysis-engine.md) | Deprecated – see 0x000035. |
-| `0x000037` | [Reflection Semantic Search](0x000037-reflection-semantic-search.md) | Deprecated – see 0x000035. |
+| `0x000036` | [Reflection Analysis Engine](0x000036-reflection-analysis-engine.md) | Deprecated: see 0x000035. |
+| `0x000037` | [Reflection Semantic Search](0x000037-reflection-semantic-search.md) | Deprecated: see 0x000035. |
 | `0x00003B` | [Tool Doc Generator](0x00003B-tool-documentation-generator.md) | Auto-documentation. |
 | `0x00003C` | [Self-Testing Framework](0x00003C-self-testing-framework.md) | Automated validation. |
 | `0x00003D` | [Browser API Integration](0x00003D-browser-api-integration.md) | Native capabilities. |
@@ -160,3 +168,6 @@ Some blueprints overlap. Use the canonical IDs below; older IDs are deprecated.
 | `0x000045` | [Meta-Cognitive Coordination](0x000045-meta-cognitive-coordination.md) | Improvement strategy. |
 | `0x000046` | [Diff Utilities](0x000046-diff-utilities.md) | Code comparison logic. |
 | `0x00004B` | [Persona Management](0x00004B-persona-management-system.md) | Personality switching. |
+| `0x000075` | [Arena Competitor](0x000075-arena-competitor.md) | Agent competitor representation. |
+| `0x000076` | [Arena Metrics](0x000076-arena-metrics.md) | Scoring and comparisons for arena runs. |
+| `0x000077` | [Arena Harness](0x000077-arena-harness.md) | Orchestrates arena battles and runs. |

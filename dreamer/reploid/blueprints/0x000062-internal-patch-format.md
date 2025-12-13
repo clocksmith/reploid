@@ -172,7 +172,7 @@ class InternalPatchFormatWidget extends HTMLElement {
 Create `/upgrades/internal-patch-format.js`:
 
 ```javascript
-// @blueprint 0x00006D
+// @blueprint 0x000062
 
 const InternalPatchFormat = {
   metadata: {

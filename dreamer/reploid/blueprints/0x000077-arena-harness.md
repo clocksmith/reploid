@@ -1,4 +1,4 @@
-# Arena Harness
+# Blueprint 0x000077: Arena Harness
 
 **Module:** `ArenaHarness`
 **File:** `./testing/arena/arena-harness.js`

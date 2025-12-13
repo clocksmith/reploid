@@ -1,10 +1,10 @@
-# Blueprint 0x00003B: Reflection Store Architecture
+# Blueprint 0x000035: Reflection Store Architecture
 
 **Objective:** Define the persistence and querying strategy that allows REPLOID to learn from past actions.
 
 **Target Upgrade:** REFL (`reflection-store.js`)
 
-**Prerequisites:** 0x000003 (Core Utilities & Error Handling), 0x000008 (Agent Cognitive Cycle), 0x000034 (Audit Logging Policy)
+**Prerequisites:** 0x000003 (Core Utilities & Error Handling), 0x000008 (Agent Cognitive Cycle), 0x00002E (Audit Logging Policy)
 
 **Affected Artifacts:** `/upgrades/reflection-store.js`, `/styles/proto.css`, `/upgrades/reflection-analyzer.js`, `/upgrades/reflection-search.js`
 
@@ -158,8 +158,8 @@ const widget = {
    - Always handle promise rejections gracefully (e.g., DB blocked).
    - Support pagination via `limit` and time-based filtering.
 4. **Analysis**
-   - `ReflectionAnalyzer` (0x00003C) uses success/failure patterns to generate recommendations.
-   - `ReflectionSearch` (0x00003D) performs semantic lookup; ensure store exposes necessary fields.
+   - `ReflectionAnalyzer` (0x000036) uses success/failure patterns to generate recommendations.
+   - `ReflectionSearch` (0x000037) performs semantic lookup; ensure store exposes necessary fields.
    - Implement `getSuccessPatterns()` and `getFailurePatterns()` for pattern extraction.
    - Implement `getLearningSummary()` for aggregated metrics.
 5. **Data Hygiene**

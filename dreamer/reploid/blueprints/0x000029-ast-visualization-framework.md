@@ -1,4 +1,4 @@
-# Blueprint 0x00002F: AST Visualization Framework
+# Blueprint 0x000029: AST Visualization Framework
 
 **Objective:** Describe how REPLOID parses, transforms, and renders JavaScript ASTs for introspection and education.
 

@@ -1,10 +1,10 @@
-# Blueprint 0x00003F: API Cost Tracker & Rate Governance
+# Blueprint 0x000039: API Cost Tracker & Rate Governance
 
 **Objective:** Provide a framework for tracking token usage, estimating spend, and enforcing rate limits across LLM providers.
 
 **Target Upgrade:** COST (`cost-tracker.js`)
 
-**Prerequisites:** 0x000027 (Multi-Provider API Gateway), 0x000032 (Rate Limiting Strategies), 0x00002C (Performance Monitoring Stack)
+**Prerequisites:** 0x000021 (Multi-Provider API Gateway), 0x00002C (Rate Limiting Strategies), 0x000026 (Performance Monitoring Stack)
 
 **Affected Artifacts:** `/upgrades/cost-tracker.js`, `/upgrades/api-client-multi.js`, `/styles/proto.css`
 
@@ -155,7 +155,7 @@ const widget = {
    - Offer UI to set session/weekly budget thresholds; emit `cost:warning` when nearing limit (future enhancement).
 3. **Rate Enforcement**
    - Call `checkRateLimit()` before issuing requests; if false, delay or queue.
-   - Use `RateLimiter` (0x000032) for fine-grained control; cost tracker handles per-provider quotas.
+   - Use `RateLimiter` (0x00002C) for fine-grained control; cost tracker handles per-provider quotas.
 4. **Analytics Display**
    - Feed data to metrics proto (cost over time chart, provider pie chart).
    - Provide quick summary in status bar (e.g., `$0.12 today`).

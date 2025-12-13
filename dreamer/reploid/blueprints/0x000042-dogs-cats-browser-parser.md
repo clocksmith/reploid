@@ -1,4 +1,4 @@
-# Blueprint 0x000048: Browser-Native DOGS/CATS Parser
+# Blueprint 0x000042: Browser-Native DOGS/CATS Parser
 
 **Module ID:** `DGPR`
 **File:** `dogs-parser-browser.js`

@@ -1,4 +1,4 @@
-# Blueprint 0x00004F: Dependency Injection Container
+# Blueprint 0x000049: Dependency Injection Container
 
 **Objective:** To formalize the Dependency Injection (DI) Container architecture that manages module registration, dependency resolution, and lifecycle management for the REPLOID agent system.
 

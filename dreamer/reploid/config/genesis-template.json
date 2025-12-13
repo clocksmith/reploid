@@ -135,7 +135,7 @@
         "ToolWriter": "blueprints/0x000015-dynamic-tool-creation.md",
         "SubstrateLoader": "blueprints/0x00001F-universal-module-loader.md",
         "SelfTester": "blueprints/0x00003C-self-testing-framework.md",
-        "VFSSandbox": "blueprints/0x000056-verification-worker-sandboxing.md",
+        "VFSSandbox": "blueprints/0x000047-verification-manager.md",
         "ArenaCompetitor": "blueprints/0x000075-arena-competitor.md",
         "ArenaMetrics": "blueprints/0x000076-arena-metrics.md",
         "ArenaHarness": "blueprints/0x000077-arena-harness.md"

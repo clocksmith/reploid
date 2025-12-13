@@ -1,4 +1,4 @@
-# Circuit Breaker Pattern
+# Blueprint 0x000067: Circuit Breaker Pattern
 
 **Module:** `CircuitBreaker`
 **File:** `./infrastructure/circuit-breaker.js`

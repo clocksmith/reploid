@@ -1,4 +1,4 @@
-# Blueprint 0x000045: Streaming Response Handler
+# Blueprint 0x00003F: Streaming Response Handler
 
 **Status:** [x] Implemented
 **Module ID:** STRM

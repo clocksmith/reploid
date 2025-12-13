@@ -1,4 +1,4 @@
-# Knowledge Graph
+# Blueprint 0x000071: Knowledge Graph
 
 **Module:** `KnowledgeGraph`
 **File:** `./capabilities/cognition/symbolic/knowledge-graph.js`

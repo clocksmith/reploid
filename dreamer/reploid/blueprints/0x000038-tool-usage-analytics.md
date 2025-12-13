@@ -1,10 +1,10 @@
-# Blueprint 0x00003E: Tool Usage Analytics
+# Blueprint 0x000038: Tool Usage Analytics
 
 **Objective:** Establish the telemetry required to understand how tools perform, fail, and evolve over time.
 
 **Target Upgrade:** TOAN (`tool-analytics.js`)
 
-**Prerequisites:** 0x00002C (Performance Monitoring Stack), 0x00000A (Tool Runner Engine), 0x000031 (Toast Notification System)
+**Prerequisites:** 0x000026 (Performance Monitoring Stack), 0x00000A (Tool Runner Engine), 0x00002B (Toast Notification System)
 
 **Affected Artifacts:** `/upgrades/tool-analytics.js`, `/upgrades/tool-runner.js`, `/styles/proto.css`
 

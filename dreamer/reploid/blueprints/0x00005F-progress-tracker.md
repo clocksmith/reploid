@@ -114,12 +114,12 @@ class ProgressTrackerWidget extends HTMLElement {
         button { padding: 4px 8px; margin: 4px; background: #0a0; color: #000; border: none; cursor: pointer; }
       </style>
       <div class="progress-panel">
-        <h4>📊 Progress Tracker</h4>
+        <h4>Progress Tracker</h4>
         <div class="current-state">State: ${currentState}</div>
         <div>Total Events: ${eventCount}</div>
         <div>Last Event: ${lastEventTime ? new Date(lastEventTime).toLocaleTimeString() : 'Never'}</div>
         <button id="clear-btn">✄ Clear History</button>
-        <button id="export-btn">📤 Export Events</button>
+        <button id="export-btn">Export Events</button>
         <div class="event-list">
           ${eventHistory.slice(-20).reverse().map(evt => `
             <div class="event-item ${evt.type === 'state-change' ? 'state-change' : ''}">
@@ -309,7 +309,7 @@ return {
   widget: {
     element: 'progress-tracker-widget',
     displayName: 'Progress Tracker',
-    icon: '📊',
+    icon: '☖',
     category: 'UI/Panels',
     visible: isModularPanelEnabled('ProgressTracker'),
     priority: 5,          // High priority (render near top)
@@ -475,7 +475,7 @@ describe('ProgressTracker Module', () => {
 
       expect(widget.element).toBe('progress-tracker-widget');
       expect(widget.displayName).toBe('Progress Tracker');
-      expect(widget.icon).toBe('📊');
+      expect(widget.icon).toBe('☖');
       expect(widget.category).toBe('UI/Panels');
     });
 
@@ -604,14 +604,14 @@ Add to `/config.json`:
 - `PANEL_COMMUNICATION_CONTRACT.md` - Cleanup patterns, event handling
 
 **Referenced By:**
-- Blueprint 0x00006B (StatusBar) - Similar panel extraction pattern
-- Blueprint 0x00006C (LogPanel) - Similar panel extraction pattern
+- Blueprint 0x000060 (Status Bar) - Similar panel extraction pattern
+- Blueprint 0x000061 (Log Panel) - Similar panel extraction pattern
 - Phase 4 Integration Tests - Multi-panel coordination tests
 
 **Related Blueprints:**
-- 0x000065 (ThoughtPanel) - CLUSTER 2, similar pattern
-- 0x000066 (GoalPanel) - CLUSTER 2, similar pattern
-- 0x000069 (SentinelPanel) - CLUSTER 2, similar pattern
+- 0x00005A (Thought Panel Module) - CLUSTER 2, similar pattern
+- 0x00005B (Goal Panel Module) - CLUSTER 2, similar pattern
+- 0x00005E (Sentinel Panel Module) - CLUSTER 2, similar pattern
 
 ---
 

@@ -16,7 +16,7 @@ let bridgeAvailableCache = null;
 async function checkBridgeAvailable() {
     if (bridgeAvailableCache !== null) return bridgeAvailableCache;
     try {
-        const { isBridgeAvailable } = await import('../../../core/dreamer/bridge/index.js');
+        const { isBridgeAvailable } = await import('../../../dreamer/bridge/index.js');
         bridgeAvailableCache = isBridgeAvailable();
     } catch {
         bridgeAvailableCache = false;
@@ -522,8 +522,8 @@ export function setupGGUFImportListeners() {
 async function handleGGUFImportClick() {
     try {
         // Dynamically import the modules (lazy load)
-        const { pickGGUFFile } = await import('../../../core/dreamer/browser/file-picker.js');
-        const { importGGUFFile, ImportStage } = await import('../../../core/dreamer/browser/gguf-importer.js');
+        const { pickGGUFFile } = await import('../../../dreamer/browser/file-picker.js');
+        const { importGGUFFile, ImportStage } = await import('../../../dreamer/browser/gguf-importer.js');
 
         // Pick file
         const file = await pickGGUFFile();
@@ -746,7 +746,7 @@ async function openBrowseModal() {
     // Initialize bridge client if needed
     if (!browseClient) {
         try {
-            const { createBridgeClient } = await import('../../../core/dreamer/bridge/index.js');
+            const { createBridgeClient } = await import('../../../dreamer/bridge/index.js');
             browseClient = await createBridgeClient();
         } catch (err) {
             console.error('[Browse] Failed to create bridge client:', err);

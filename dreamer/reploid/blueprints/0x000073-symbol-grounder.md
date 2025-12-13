@@ -1,4 +1,4 @@
-# Symbol Grounder
+# Blueprint 0x000073: Symbol Grounder
 
 **Module:** `SymbolGrounder`
 **File:** `./capabilities/cognition/symbolic/symbol-grounder.js`

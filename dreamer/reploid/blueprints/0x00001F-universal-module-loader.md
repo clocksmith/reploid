@@ -1,4 +1,4 @@
-# Blueprint 0x000025: Universal Module Loader & Lifecycle Governance
+# Blueprint 0x00001F: Universal Module Loader & Lifecycle Governance
 
 **Objective:** Formalize how REPLOID bootstraps, hydrates, and supervises runtime upgrades through the `ModuleLoader` orchestrator.
 
@@ -159,7 +159,7 @@ The loader is the choke point between configuration intent and executable code. 
    - Ensure every module ID in `module-manifest.json` resolves to a loader-aware upgrade (see 0x000026).
    - Use manifest load groups to batch `loadModule` calls before `instantiate`.
 3. **Instrument Audit Logging**
-   - Inject `AuditLogger` (0x000034) when initializing the loader so successes/failures persist.
+   - Inject `AuditLogger` (0x00002E) when initializing the loader so successes/failures persist.
    - Include contextual payloads (`codeSize`, `loadTimeMs`, `isLegacy`) for forensic utility.
 4. **Handle Failures**
    - Wrap load/instantiate in try/catch, propagate errors with descriptive context.

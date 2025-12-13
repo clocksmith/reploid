@@ -1,10 +1,10 @@
-# Blueprint 0x00004E: Module Widget Protocol
+# Blueprint 0x000048: Module Widget Protocol
 
 **Target Upgrade:** MWPR (`module-widget-protocol.js`), MDSH (`module-proto.js`)
 
 **Objective:** Establish standardized interface for ALL modules to expose their state, metrics, and controls in the proto, enabling consistent presentation and meta-cognitive awareness.
 
-**Prerequisites:** 0x000009 (Dependency Injection), 0x00000B (Event Bus)
+**Prerequisites:** 0x000049 (Dependency Injection Container), 0x000058 (Event Bus Infrastructure)
 
 **Affected Artifacts:** `/upgrades/module-widget-protocol.js`, `/upgrades/module-proto.js`, `/boot/index.html`, all module files
 

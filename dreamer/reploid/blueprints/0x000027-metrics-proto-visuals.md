@@ -1,10 +1,10 @@
-# Blueprint 0x00002D: Metrics Proto & Charting
+# Blueprint 0x000027: Metrics Proto & Charting
 
 **Objective:** Govern the Chart.js-powered proto that visualises REPLOID performance metrics in real time.
 
 **Target Upgrade:** MDSH (`metrics-proto.js`)
 
-**Prerequisites:** 0x00002C (Performance Monitoring Stack), 0x000019 (Visual Self-Improvement), 0x000025 (Universal Module Loader)
+**Prerequisites:** 0x000026 (Performance Monitoring Stack), 0x000019 (Visual Self-Improvement), 0x00001F (Universal Module Loader)
 
 **Affected Artifacts:** `/upgrades/metrics-proto.js`, `/styles/proto.css`, `/index.html` (Chart.js CDN include)
 
