@@ -1,10 +1,10 @@
-# Blueprint 0x000040: Inter-Tab Coordination
+# Blueprint 0x00003A: Inter-Tab Coordination
 
 **Objective:** Define the messaging protocol that keeps multiple REPLOID tabs synchronized and conflict-free.
 
 **Target Upgrade:** TABC (`tab-coordinator.js`)
 
-**Prerequisites:** 0x000005 (State Management Architecture), 0x000006 (Pure State Helpers), 0x000034 (Audit Logging Policy)
+**Prerequisites:** 0x000005 (State Management Architecture), 0x000006 (Pure State Helpers), 0x00002E (Audit Logging Policy)
 
 **Affected Artifacts:** `/upgrades/tab-coordinator.js`, `/styles/proto.css`, `/upgrades/state-manager.js`
 

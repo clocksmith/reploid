@@ -1,4 +1,4 @@
-# Blueprint 0x000022: Recursive Goal Decomposition
+# Blueprint 0x000066: Recursive Goal Decomposition
 
 **Objective:** Implement a system that breaks down goals into subgoals, then recursively improves the decomposition algorithm itself based on success patterns.
 

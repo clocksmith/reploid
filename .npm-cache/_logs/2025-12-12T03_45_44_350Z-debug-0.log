@@ -1,0 +1,18 @@
+0 verbose cli /Users/xyz/.nvm/versions/node/v22.20.0/bin/node /Users/xyz/.nvm/versions/node/v22.20.0/bin/npm
+1 info using npm@10.9.3
+2 info using node@v22.20.0
+3 silly config load:file:/Users/xyz/.nvm/versions/node/v22.20.0/lib/node_modules/npm/npmrc
+4 silly config load:file:/Users/xyz/deco/reploid/dreamer/reploid/.npmrc
+5 silly config load:file:/Users/xyz/deco/reploid/.npmrc
+6 silly config load:file:/Users/xyz/.nvm/versions/node/v22.20.0/etc/npmrc
+7 verbose title npm test
+8 verbose argv "test"
+9 verbose logfile logs-max:10 dir:/Users/xyz/deco/reploid/.npm-cache/_logs/2025-12-12T03_45_44_350Z-
+10 verbose logfile /Users/xyz/deco/reploid/.npm-cache/_logs/2025-12-12T03_45_44_350Z-debug-0.log
+11 silly logfile done cleaning log files
+12 verbose cwd /Users/xyz/deco/reploid/dreamer/reploid
+13 verbose os Darwin 25.1.0
+14 verbose node v22.20.0
+15 verbose npm  v10.9.3
+16 verbose exit 0
+17 info ok

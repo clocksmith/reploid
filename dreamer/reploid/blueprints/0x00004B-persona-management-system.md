@@ -4,7 +4,7 @@
 
 **Target Upgrade:** PMGR (`persona-manager.js`)
 
-**Prerequisites:** 0x000003 (Core Utilities), 0x00004A (Config Management)
+**Prerequisites:** 0x000003 (Core Utilities & Error Handling), 0x00004A (Centralized Configuration Management)
 
 **Affected Artifacts:** `/upgrades/persona-manager.js`
 
@@ -122,7 +122,7 @@ class PersonaManagerWidget extends HTMLElement {
     return personas.map(p => ({
       id: `switch-${p.id}`,
       label: `Switch to ${p.id}`,
-      icon: p.metadata.icon || '👤',
+      icon: p.metadata.icon || '⎈',
       action: () => {
         switchPersona(p.id);
         return { success: true, message: `Switched to ${p.id}` };
@@ -171,7 +171,7 @@ class PersonaManagerWidget extends HTMLElement {
       </style>
 
       <div class="persona-panel">
-        <h3>👤 Persona Manager</h3>
+        <h3>Persona Manager</h3>
 
         <div class="stats">
           <div>Active: <span class="stat-value">${active ? active.metadata.id : 'None'}</span></div>
@@ -211,7 +211,7 @@ if (!customElements.get('persona-manager-widget')) {
 const widget = {
   element: 'persona-manager-widget',
   displayName: 'Persona Manager',
-  icon: '👤',
+  icon: '⎈',
   category: 'core'
 };
 ```

@@ -1,4 +1,4 @@
-# Blueprint 0x000051: Sentinel Finite State Machine
+# Blueprint 0x000059: Sentinel Finite State Machine
 
 **Target Upgrade:** SFSM (`sentinel-fsm.js`)
 

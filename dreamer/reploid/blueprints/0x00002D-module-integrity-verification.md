@@ -1,10 +1,10 @@
-# Blueprint 0x000033: Module Integrity Verification
+# Blueprint 0x00002D: Module Integrity Verification
 
 **Objective:** Define the signing, hashing, and verification processes that guard REPLOID against tampered upgrades.
 
 **Target Upgrade:** MINT (`module-integrity.js`)
 
-**Prerequisites:** 0x000003 (Core Utilities & Error Handling), 0x000005 (State Management Architecture), 0x000025 (Universal Module Loader)
+**Prerequisites:** 0x000003 (Core Utilities & Error Handling), 0x000005 (State Management Architecture), 0x00001F (Universal Module Loader)
 
 **Affected Artifacts:** `/upgrades/module-integrity.js`, `/vfs/security/module-signatures.json`, `/upgrades/boot-module-loader.js`
 

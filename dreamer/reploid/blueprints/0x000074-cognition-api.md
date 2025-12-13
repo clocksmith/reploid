@@ -1,4 +1,4 @@
-# Cognition API
+# Blueprint 0x000074: Cognition API
 
 **Module:** `CognitionAPI`
 **File:** `./capabilities/cognition/cognition-api.js`

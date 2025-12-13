@@ -4,7 +4,7 @@
 
 **Target Upgrade:** PenteractVisualizer (`penteract-visualizer.js`)
 
-**Prerequisites:** 0x000024 (Penteract Analytics), 0x00001C (EventBus)
+**Prerequisites:** 0x00001E (Penteract Analytics & Visualization), 0x000058 (Event Bus Infrastructure)
 
 **Affected Artifacts:** `/upgrades/penteract-visualizer.js`
 

@@ -1,10 +1,10 @@
-# Blueprint 0x000042: Self-Testing & Validation Framework
+# Blueprint 0x00003C: Self-Testing & Validation Framework
 
 **Objective:** Ensure REPLOID runs safety-critical validation suites before/after self-modification.
 
 **Target Upgrade:** TEST (`self-tester.js`)
 
-**Prerequisites:** 0x000025 (Universal Module Loader), 0x00002C (Performance Monitoring Stack), 0x000034 (Audit Logging Policy)
+**Prerequisites:** 0x00001F (Universal Module Loader), 0x000026 (Performance Monitoring Stack), 0x00002E (Audit Logging Policy)
 
 **Affected Artifacts:** `/upgrades/self-tester.js`, `/styles/proto.css`, `/upgrades/tool-runner.js`, `/upgrades/state-manager.js`
 

@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Standalone Gather Test</title>
+</head>
+<body>
+  <h1>Standalone Gather Test</h1>
+  <pre id="output">Loading...</pre>
+  <script type="module">
+    const output = document.getElementById('output');
+    const log = (msg) => {
+      console.log(msg);
+      output.textContent += msg + '\n';
+    };
+
+    async function runTest() {
+      try {
+        log('Starting standalone test...');
+
+        // Import directly
+        const { initDevice, getDevice } = await import('../gpu/device.js');
+        const { downloadModel } = await import('../storage/downloader.js');
+        const { InferencePipeline } = await import('../inference/pipeline.js');
+        const { runGather } = await import('../gpu/kernel-selector.js');
+        const { acquireBuffer, releaseBuffer } = await import('../gpu/buffer-pool.js');
+
+        // Initialize GPU
+        log('Initializing GPU...');
+        await initDevice();
+        const device = getDevice();
+        log('GPU initialized');
+
+        // Fetch manifest from model server
+        const modelUrl = 'http://localhost:8765';
+        log(`Fetching manifest from ${modelUrl}...`);
+        const manifestResp = await fetch(`${modelUrl}/manifest.json`);
+        const manifest = await manifestResp.json();
+        log(`Model: ${manifest.modelId}`);
+
+        // Download model
+        log('Downloading model...');
+        const success = await downloadModel(modelUrl, (p) => {
+          if (p.stage === 'downloading') log(`Progress: ${p.percent}%`);
+        });
+        if (!success) throw new Error('Download failed');
+
+        // Create pipeline with GPU context
+        log('Creating pipeline...');
+        const { getKernelCapabilities } = await import('../gpu/device.js');
+        const gpuCaps = getKernelCapabilities();
+
+        const pipeline = new InferencePipeline();
+        await pipeline.initialize({
+          gpu: {
+            capabilities: gpuCaps,
+            device: device,
+          },
+          runtime: { debug: true }
+        });
+        await pipeline.loadModel(manifest);
+
+        // Get embedding buffer
+        const embedBuffer = pipeline.weights.get('embed');
+        const hiddenSize = pipeline.modelConfig.hiddenSize;
+        const vocabSize = pipeline.modelConfig.vocabSize;
+
+        log(`Embed buffer size: ${embedBuffer.size}`);
+        log(`Hidden size: ${hiddenSize}, Vocab size: ${vocabSize}`);
+
+        // Test direct gather
+        const tokenIds = [2, 105, 2430, 107];
+        const numTokens = tokenIds.length;
+
+        log(`\nTesting gather with tokens: [${tokenIds.join(', ')}]`);
+
+        const tokenIdBuffer = acquireBuffer(numTokens * 4, undefined, 'test_tokens');
+        device.queue.writeBuffer(tokenIdBuffer, 0, new Uint32Array(tokenIds));
+
+        const outputBuffer = await runGather(
+          tokenIdBuffer,
+          embedBuffer,
+          numTokens,
+          hiddenSize,
+          vocabSize
+        );
+
+        // Read output
+        const readBuf = device.createBuffer({
+          label: 'output_read',
+          size: 256,
+          usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ,
+        });
+        const encoder = device.createCommandEncoder();
+        encoder.copyBufferToBuffer(outputBuffer, 0, readBuf, 0, 256);
+        device.queue.submit([encoder.finish()]);
+        await readBuf.mapAsync(GPUMapMode.READ);
+        const gatherOut = new Float32Array(readBuf.getMappedRange().slice(0));
+        readBuf.unmap();
+
+        const zeros = gatherOut.filter(x => x === 0).length;
+        log(`\nGather output: ${zeros}/${gatherOut.length} zeros`);
+        log(`First 8 values: [${Array.from(gatherOut.slice(0, 8)).map(v => v.toFixed(4)).join(', ')}]`);
+
+        releaseBuffer(tokenIdBuffer);
+        releaseBuffer(outputBuffer);
+
+        // Now test pipeline._embed directly
+        log('\n--- Testing pipeline._embed() ---');
+
+        // Call _embed directly
+        const embedResult = await pipeline._embed(tokenIds);
+        log(`Embed result type: ${embedResult.constructor.name}`);
+        log(`Embed result size: ${embedResult.size || embedResult.length}`);
+
+        // Read result
+        if (embedResult instanceof GPUBuffer) {
+          const readBuf2 = device.createBuffer({
+            label: 'embed_read',
+            size: 256,
+            usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ,
+          });
+          const enc2 = device.createCommandEncoder();
+          enc2.copyBufferToBuffer(embedResult, 0, readBuf2, 0, 256);
+          device.queue.submit([enc2.finish()]);
+          await readBuf2.mapAsync(GPUMapMode.READ);
+          const embedOut = new Float32Array(readBuf2.getMappedRange().slice(0));
+          readBuf2.unmap();
+
+          const embedZeros = embedOut.filter(x => x === 0).length;
+          log(`Embed output: ${embedZeros}/${embedOut.length} zeros`);
+          log(`First 8 values: [${Array.from(embedOut.slice(0, 8)).map(v => v.toFixed(4)).join(', ')}]`);
+        }
+
+        log('\n=== TEST COMPLETE ===');
+      } catch (err) {
+        log(`ERROR: ${err.message}`);
+        console.error(err);
+      }
+    }
+
+    runTest();
+  </script>
+</body>
+</html>

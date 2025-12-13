@@ -1,4 +1,4 @@
-# Semantic Memory
+# Blueprint 0x000070: Semantic Memory
 
 **Module:** `SemanticMemory`
 **File:** `./capabilities/cognition/semantic/semantic-memory.js`

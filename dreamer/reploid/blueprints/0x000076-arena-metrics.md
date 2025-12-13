@@ -1,4 +1,4 @@
-# Arena Metrics
+# Blueprint 0x000076: Arena Metrics
 
 **Module:** `ArenaMetrics`
 **File:** `./testing/arena/arena-metrics.js`

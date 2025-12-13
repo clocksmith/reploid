@@ -1,4 +1,4 @@
-# Blueprint 0x00004C: Diff Utilities
+# Blueprint 0x000046: Diff Utilities
 
 **Target Upgrade:** DIFF (`diff-utils.js`)
 

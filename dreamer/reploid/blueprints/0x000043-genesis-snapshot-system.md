@@ -1,4 +1,4 @@
-# Blueprint 0x000049: Genesis Snapshot System
+# Blueprint 0x000043: Genesis Snapshot System
 
 **Module ID:** `GENS`
 **File:** `genesis-snapshot.js`

@@ -1,10 +1,10 @@
-# Blueprint 0x00002A: Canvas Visualization Engine
+# Blueprint 0x000024: Canvas Visualization Engine
 
 **Objective:** Codify the behaviour of the 2D canvas overlay that visualises module dependencies, cognition pathways, and performance signals in real time.
 
 **Target Upgrade:** CNVS (`canvas-visualizer.js`)
 
-**Prerequisites:** 0x000019 (Visual Self-Improvement), 0x000025 (Universal Module Loader), 0x00002B (Visualization Data Adapter)
+**Prerequisites:** 0x000019 (Visual Self-Improvement), 0x00001F (Universal Module Loader), 0x000025 (Visualization Data Adapter)
 
 **Affected Artifacts:** `/upgrades/canvas-visualizer.js`, `/upgrades/viz-data-adapter.js`, `/styles/proto.css`
 
@@ -69,7 +69,7 @@ Responsibilities:
   - Node selection and hover detection update `vizState.selectedNode`/`hoveredNode`.
 - **Visualization State**
   - Maintains nodes, edges, particles, and heatmaps within `vizState`.
-  - Delegates data shaping to `VizDataAdapter` (0x00002B).
+  - Delegates data shaping to `VizDataAdapter` (0x000025).
 - **Rendering Pipeline**
   - Draws background grid, nodes (colour-coded by category), and animated edges.
   - Overlays tooltips / selection panels for the chosen node.

@@ -1,10 +1,10 @@
-# Blueprint 0x000039: Hybrid LLM Orchestration
+# Blueprint 0x000033: Hybrid LLM Orchestration
 
 **Objective:** Define how REPLOID seamlessly switches between local WebLLM inference and cloud APIs.
 
 **Target Upgrade:** HYBR (`hybrid-llm-provider.js`)
 
-**Prerequisites:** 0x000027 (Multi-Provider API Gateway), 0x000038 (Local LLM Runtime), 0x00002C (Performance Monitoring Stack)
+**Prerequisites:** 0x000021 (Multi-Provider API Gateway), 0x000032 (Local LLM Runtime), 0x000026 (Performance Monitoring Stack)
 
 **Affected Artifacts:** `/upgrades/hybrid-llm-provider.js`, `/upgrades/local-llm.js`, `/upgrades/api-client-multi.js`, `/upgrades/app-logic.js`
 

@@ -1,4 +1,4 @@
-# Blueprint 0x000055: Sentinel Tools Library
+# Blueprint 0x00004D: Sentinel Tools Library
 
 **Objective:** Provide specialized tools for Sentinel Agent's Research-Synthesize-Implement workflow.
 

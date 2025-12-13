@@ -1,10 +1,10 @@
-# Blueprint 0x000028: Confirmation Modal & Safety Interlocks
+# Blueprint 0x000022: Confirmation Modal & Safety Interlocks
 
 **Objective:** Document the UX and security contract for REPLOID’s confirmation modal system that guards destructive or privileged actions.
 
 **Target Upgrade:** CFMD (`confirmation-modal.js`)
 
-**Prerequisites:** 0x000003 (Core Utilities & Error Handling), 0x00000D (UI Manager), 0x000018 (Blueprint Creation Meta)
+**Prerequisites:** 0x000003 (Core Utilities & Error Handling), 0x00000D (UI Management), 0x000018 (Blueprint Creation Meta)
 
 **Affected Artifacts:** `/upgrades/confirmation-modal.js`, `/styles/proto.css`, `/upgrades/event-bus.js`
 
@@ -15,7 +15,7 @@ Agents that can edit files, alter goals, or trigger network actions must request
 - **User intent validation** before applying irreversible changes.
 - **Context clarity** via configurable messages and optional details.
 - **Accessibility compliance** (focus traps, keyboard escape routes).
-- **Event auditing** in tandem with `AuditLogger` (0x000034).
+- **Event auditing** in tandem with `AuditLogger` (0x00002E).
 
 Without a blueprint, destructive actions might bypass confirmation or deliver inconsistent messaging that confuses operators.
 

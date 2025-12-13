@@ -1,4 +1,4 @@
-# Blueprint 0x000023: Autonomous Orchestrator - Curator Mode
+# Blueprint 0x00001D: Autonomous Orchestrator - Curator Mode
 
 **Module ID:** AUOR
 **Module Path:** `upgrades/autonomous-orchestrator.js`

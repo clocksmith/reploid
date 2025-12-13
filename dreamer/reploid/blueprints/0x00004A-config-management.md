@@ -1,4 +1,4 @@
-# Blueprint 0x000050: Centralized Configuration Management
+# Blueprint 0x00004A: Centralized Configuration Management
 
 **Objective:** Provide a centralized, type-guarded configuration system that serves as the single source of truth for all agent configuration.
 

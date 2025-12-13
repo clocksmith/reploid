@@ -1,4 +1,4 @@
-# Blueprint 0x000036: Pyodide Runtime Orchestration
+# Blueprint 0x000030: Pyodide Runtime Orchestration
 
 **Objective:** Document the worker-based Python runtime that powers REPLOID’s Pyodide integration.
 

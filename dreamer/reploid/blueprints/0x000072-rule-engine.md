@@ -1,4 +1,4 @@
-# Rule Engine
+# Blueprint 0x000072: Rule Engine
 
 **Module:** `RuleEngine`
 **File:** `./capabilities/cognition/symbolic/rule-engine.js`

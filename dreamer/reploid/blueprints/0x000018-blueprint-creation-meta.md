@@ -7,7 +7,7 @@
 **Prerequisites:**
 - TLWR upgrade
 - Understanding of existing blueprints
-- **0x00004E** (Module Widget Protocol) - REQUIRED when creating blueprints for new upgrades
+- **0x000048** (Module Widget Protocol) - REQUIRED when creating blueprints for new upgrades
 
 **Affected Artifacts:** `/docs/0x*-*.md` (new blueprints)
 
@@ -60,7 +60,7 @@ Blueprints are **knowledge artifacts** that describe HOW to build capabilities, 
 **Upgrade Blueprints (0x000001-0x000FFF):**
 - Describe how to build specific upgrades/modules
 - Map 1:1 to upgrade files
-- **MUST reference 0x00004E (Module Widget Protocol)** in prerequisites
+- **MUST reference 0x000048 (Module Widget Protocol)** in prerequisites
 - **MUST describe widget implementation** (all upgrades require widgets)
 - Example: "How to build a state manager"
 
@@ -155,7 +155,7 @@ const createBlueprint = async (capability) => {
 
 - [ ] **Clear Objective:** States what will be built
 - [ ] **Complete Prerequisites:** Lists all dependencies
-- [ ] **Widget Protocol Reference:** References 0x00004E if creating upgrade
+- [ ] **Widget Protocol Reference:** References 0x000048 if creating upgrade
 - [ ] **Widget Implementation:** Describes web component widget (REQUIRED for upgrades)
 - [ ] **Step-by-Step Instructions:** Could a new agent follow?
 - [ ] **Code Examples:** Shows key implementations including widget
@@ -221,13 +221,13 @@ To create a blueprint about creating blueprints:
 - CAN be created via self-modification
 - Examples: state-manager.js, api-client.js, tool-runner.js
 - **REQUIRES blueprint** (1:1 correspondence)
-- **REQUIRES web component widget** (see 0x00004E)
+- **REQUIRES web component widget** (see 0x000048)
 - **REQUIRES unit test** (1:1 correspondence)
 
 **Dynamic Tools (Internal):**
 - JSON tool definitions in `/system/tools-dynamic.json`
 - Created using meta-tool-creator.js
-- See Blueprint 0x000016
+- See Blueprint 0x000015
 - NO widget required (tools, not modules)
 
 See **docs/MCP_TOOLS_VS_UPGRADES.md** for comprehensive guide.
@@ -284,7 +284,7 @@ class BlueprintCreatorWidget extends HTMLElement {
     return [
       {
         id: 'view-stats',
-        label: '📊 View Stats',
+        label: 'View Stats',
         action: () => {
           // Display creation statistics
           return { success: true, message: 'Stats displayed' };
@@ -304,7 +304,7 @@ class BlueprintCreatorWidget extends HTMLElement {
         /* Additional styles for blueprint creation stats */
       </style>
       <div class="blueprint-creator-panel">
-        <h4>📘 Blueprint Creator</h4>
+        <h4>Blueprint Creator</h4>
         <!-- Blueprint creation stats and recent activity -->
       </div>
     `;
@@ -320,7 +320,7 @@ if (!customElements.get(elementName)) {
 const widget = {
   element: elementName,
   displayName: 'Blueprint Creator',
-  icon: '📘',
+  icon: '☐',
   category: 'rsi'
 };
 ```

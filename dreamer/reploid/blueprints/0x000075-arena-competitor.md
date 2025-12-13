@@ -1,4 +1,4 @@
-# Arena Competitor
+# Blueprint 0x000075: Arena Competitor
 
 **Module:** `ArenaCompetitor`
 **File:** `./testing/arena/competitor.js`

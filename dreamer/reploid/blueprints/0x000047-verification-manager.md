@@ -1,4 +1,4 @@
-# Blueprint 0x00004D: Verification Manager
+# Blueprint 0x000047: Verification Manager
 
 **Target Upgrade:** VRFY (`verification-manager.js`)
 

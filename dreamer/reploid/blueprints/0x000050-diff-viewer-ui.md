@@ -4,7 +4,7 @@
 
 **Target Upgrade:** DIFF (`diff-viewer-ui.js`)
 
-**Prerequisites:** 0x000003 (Core Utilities & Error Handling), 0x000005 (State Management), 0x000007 (API Client), 0x000034 (Audit Logging)
+**Prerequisites:** 0x000003 (Core Utilities & Error Handling), 0x000005 (State Management Architecture), 0x000007 (API Client & Communication), 0x00002E (Audit Logging Policy)
 
 **Affected Artifacts:** `/upgrades/diff-viewer-ui.js`, `/upgrades/dogs-parser-browser.js`, `/upgrades/sentinel-tools.js`
 

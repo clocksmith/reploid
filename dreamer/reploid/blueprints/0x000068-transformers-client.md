@@ -1,4 +1,4 @@
-# Transformers.js Client
+# Blueprint 0x000068: Transformers.js Client
 
 **Module:** `TransformersClient`
 **File:** `./core/transformers-client.js`

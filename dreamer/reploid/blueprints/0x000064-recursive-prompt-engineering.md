@@ -1,4 +1,4 @@
-# Blueprint 0x000020: Recursive Prompt Engineering
+# Blueprint 0x000064: Recursive Prompt Engineering
 
 **Objective:** Enable the agent to improve its own system prompt across iterations, creating a self-improving reasoning system.
 

@@ -1,10 +1,10 @@
-# Blueprint 0x000052: HITL Control Panel UI
+# Blueprint 0x00004C: HITL Control Panel UI
 
 **Objective:** Provide a visual interface for managing Human-in-the-Loop vs Autonomous modes across modules with real-time approval queue management.
 
 **Target Upgrade:** HITL_PANEL (`hitl-control-panel.js`)
 
-**Prerequisites:** 0x00001C (HITL Controller), 0x000003 (Core Utilities)
+**Prerequisites:** 0x000051 (Human-in-the-Loop Controller), 0x000003 (Core Utilities & Error Handling)
 
 **Affected Artifacts:** `/upgrades/hitl-control-panel.js`
 
@@ -383,6 +383,6 @@ EventBus.on('hitl:approval-rejected', onApprovalRejected);         // Re-render 
 
 ---
 
-**Remember:** This is the **UI layer** for HITL control. The actual approval logic lives in `HITLController` (0x00001C).
+**Remember:** This is the **UI layer** for HITL control. The actual approval logic lives in `HITLController` (0x000051).
 
 The control panel makes autonomy management **visual and accessible**.

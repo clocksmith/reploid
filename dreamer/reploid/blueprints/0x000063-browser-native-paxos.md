@@ -296,7 +296,7 @@ class MultiModelArenaWidget extends HTMLElement {
 ### Step 1: Create Module Skeleton
 
 ```javascript
-// @blueprint 0x00006E
+// @blueprint 0x000063
 
 const MultiModelArena = {
   metadata: {

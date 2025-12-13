@@ -1,10 +1,10 @@
-# Blueprint 0x000053: Tool Execution Visual Panel
+# Blueprint 0x00004E: Tool Execution Visual Panel
 
 **Target Upgrade:** TEXP (`tool-execution-panel.js`)
 
 **Objective:** Provide real-time visual representation of tool executions with interactive cards showing status, progress, and results for enhanced observability during agent operations.
 
-**Prerequisites:** 0x00000D (UI Manager), 0x00000A (Tool Runner Engine), 0x000022 (Event Bus)
+**Prerequisites:** 0x00000D (UI Management), 0x00000A (Tool Runner Engine), 0x000058 (Event Bus Infrastructure)
 
 **Affected Artifacts:** `/upgrades/tool-execution-panel.js`, `/upgrades/ui-manager.js`, `/boot/style.css`
 
@@ -75,11 +75,11 @@ const STATUS_COLORS = {
 };
 
 const TOOL_ICONS = {
-  'create_cats_bundle': 'ψ',
-  'apply_dogs_bundle': '⚡',
+  'create_cats_bundle': '☩',
+  'apply_dogs_bundle': '☇',
   'verify_dogs_bundle': '✓',
-  'read_artifact': '◉️',
-  'introspect': '⌕',
+  'read_artifact': '⚲',
+  'introspect': '☨',
   'default': '⎈'
 };
 ```

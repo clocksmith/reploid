@@ -1,10 +1,10 @@
-# Blueprint 0x000034: Audit Logging Policy
+# Blueprint 0x00002E: Audit Logging Policy
 
 **Objective:** Establish the logging, persistence, and review guarantees provided by the Audit Logger service.
 
 **Target Upgrade:** AUDT (`audit-logger.js`)
 
-**Prerequisites:** 0x000003 (Core Utilities & Error Handling), 0x000005 (State Management Architecture), 0x000033 (Module Integrity Verification)
+**Prerequisites:** 0x000003 (Core Utilities & Error Handling), 0x000005 (State Management Architecture), 0x00002D (Module Integrity Verification)
 
 **Affected Artifacts:** `/upgrades/audit-logger.js`, `/.audit/*.jsonl`, `/upgrades/boot-module-loader.js`, `/upgrades/rate-limiter.js`
 

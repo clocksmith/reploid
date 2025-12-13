@@ -160,7 +160,7 @@ class LogPanelWidget extends HTMLElement {
           <input type="text" id="text-filter" placeholder="Search logs..." value="${this._filters.text}">
 
           <button id="clear-btn">✄ Clear</button>
-          <button id="export-btn">📤 Export</button>
+          <button id="export-btn">Export</button>
 
           <label style="margin-left: auto; color: #ccc;">
             <input type="checkbox" id="autoscroll-toggle" ${this._filters.autoScroll ? 'checked' : ''}> Auto-scroll
@@ -373,10 +373,10 @@ Add feature flag check in UIManager to switch between monolithic and modular Log
 - `EVENTBUS_EVENT_CATALOG.md` - Events: `log:message`, `log:clear`
 - `FEATURE_FLAGS.md` - Feature flag: `useModularPanels.LogPanel`
 - `MODULE_WIDGET_PROTOCOL.md` - Widget protocol v2.0
-- Blueprint 0x00006A (ProgressTracker) - Reference implementation
+- Blueprint 0x00005F (Progress Tracker Panel) - Reference implementation
 
 **Referenced By:**
-- Blueprint 0x00006B (StatusBar) - May display log summary
+- Blueprint 0x000060 (Status Bar) - May display log summary
 - Phase 4 Integration Tests - Multi-panel coordination
 
 ---

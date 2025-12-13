@@ -1,4 +1,4 @@
-# Blueprint 0x000027: Multi-Provider API Gateway
+# Blueprint 0x000021: Multi-Provider API Gateway
 
 **Objective:** Establish the contract for routing LLM traffic across Gemini, OpenAI, Anthropic, and local inference backends through a unified client.
 
@@ -155,7 +155,7 @@ The widget provides critical visibility into multi-provider API orchestration, e
    - Translate tool definitions from `tools-*.json` to provider-compatible function schemas.
    - Ensure providers lacking tool support short-circuit gracefully with informative errors.
 3. **Safety & Observability**
-   - Integrate with `RateLimiter` (0x000032) and `CostTracker` (0x00003F) to record usage.
+   - Integrate with `RateLimiter` (0x00002C) and `CostTracker` (0x000039) to record usage.
    - Emit structured logs through `logger.info/error` so analytics protos capture latency and failures.
 4. **Cancellation Semantics**
    - Maintain `currentAbortController` and expose `client.abortCurrentRequest()` to UI components.

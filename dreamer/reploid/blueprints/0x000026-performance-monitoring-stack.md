@@ -1,10 +1,10 @@
-# Blueprint 0x00002C: Performance Monitoring Stack
+# Blueprint 0x000026: Performance Monitoring Stack
 
 **Objective:** Define the observability contract for tracking tool execution, state transitions, LLM usage, and memory across REPLOID sessions.
 
 **Target Upgrade:** PMON (`performance-monitor.js`)
 
-**Prerequisites:** 0x000006 (Pure State Helpers), 0x000007 (API Client & Communication), 0x000008 (Agent Cognitive Cycle), 0x000031 (Toast Notifications)
+**Prerequisites:** 0x000006 (Pure State Helpers), 0x000007 (API Client & Communication), 0x000008 (Agent Cognitive Cycle), 0x00002B (Toast Notification System)
 
 **Affected Artifacts:** `/upgrades/performance-monitor.js`, `/upgrades/metrics-proto.js`, `/upgrades/tool-analytics.js`
 

@@ -1,10 +1,10 @@
-# Blueprint 0x000041: Tool Documentation Generator
+# Blueprint 0x00003B: Tool Documentation Generator
 
 **Objective:** Ensure tool schemas are automatically documented into comprehensive markdown references.
 
 **Target Upgrade:** TDOC (`tool-doc-generator.js`)
 
-**Prerequisites:** 0x000010 (Static Tool Manifest), 0x00000A (Tool Runner Engine), 0x000031 (Toast Notification System)
+**Prerequisites:** 0x000010 (Static Tool Manifest), 0x00000A (Tool Runner Engine), 0x00002B (Toast Notification System)
 
 **Affected Artifacts:** `/upgrades/tool-doc-generator.js`, `/upgrades/tools-read.json`, `/upgrades/tools-write.json`, `/docs/tools/*.md`
 
