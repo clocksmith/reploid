@@ -184,7 +184,8 @@ async function convertGGUF(inputPath, outputDir, options) {
     const data = fileBuffer.buffer.slice(tensor.offset, tensor.offset + tensor.size);
 
     // Optionally re-quantize if source is F16/F32 and we want Q4_K_M
-    if (options.quantize === 'q4_k_m' && shouldQuantize(tensor.name, tensor.shape)) {
+    const modulesToNotConvert = modelInfo.config?.quantization_config?.modules_to_not_convert;
+    if (options.quantize === 'q4_k_m' && shouldQuantize(tensor.name, tensor.shape, modulesToNotConvert)) {
       const sourceQuant = tensor.quantization || modelInfo.quantization;
 
       // Only re-quantize if source is floating point
@@ -439,9 +440,10 @@ async function convertSafetensors(inputPath, outputDir, options) {
       data = await readTensorData(tensor);
     }
 
-    // Only quantize floating-point tensors
+    // Only quantize floating-point tensors (respect modules_to_not_convert from HF config)
     const floatDtypes = ['F32', 'F16', 'BF16'];
-    if (targetQuant === 'q4_k_m' && floatDtypes.includes(tensor.dtype) && shouldQuantize(tensor.name, tensor.shape)) {
+    const modulesToNotConvert = modelInfo.config?.quantization_config?.modules_to_not_convert;
+    if (targetQuant === 'q4_k_m' && floatDtypes.includes(tensor.dtype) && shouldQuantize(tensor.name, tensor.shape, modulesToNotConvert)) {
       // Quantize to Q4_K_M
       const f32Data = tensor.dtype === 'F32'
         ? new Float32Array(data)
