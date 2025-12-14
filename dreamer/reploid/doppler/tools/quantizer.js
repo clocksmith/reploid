@@ -415,7 +415,7 @@ export function quantizeF16ToQ4KM(f16Data, shape) {
  * @param {number[]} shape - Tensor shape
  * @returns {boolean} True if tensor should be quantized
  */
-export function shouldQuantize(tensorName, shape) {
+export function shouldQuantize(tensorName, shape, modulesToNotConvert = null) {
   // Don't quantize small tensors
   const numElements = shape.reduce((a, b) => a * b, 1);
   if (numElements < 1024) {
@@ -436,6 +436,26 @@ export function shouldQuantize(tensorName, shape) {
   // Don't quantize biases
   if (lowerName.endsWith('.bias') || lowerName.endsWith('_bias')) {
     return false;
+  }
+
+  // Don't quantize MoE router weights - critical for routing precision
+  // Router weights like "model.layers.X.mlp.router.weight" must stay in F16/F32
+  if (lowerName.includes('router') || lowerName.includes('gate.weight')) {
+    return false;
+  }
+
+  // Check against explicit modules_to_not_convert list (from HuggingFace config)
+  if (modulesToNotConvert && Array.isArray(modulesToNotConvert)) {
+    for (const pattern of modulesToNotConvert) {
+      // Convert glob pattern to regex: "model.layers.*.mlp.router" -> /model\.layers\.\d+\.mlp\.router/
+      const regexPattern = pattern
+        .replace(/\./g, '\\.')
+        .replace(/\*/g, '\\d+');
+      const regex = new RegExp(regexPattern);
+      if (regex.test(tensorName)) {
+        return false;
+      }
+    }
   }
 
   // Quantize attention and FFN weights
