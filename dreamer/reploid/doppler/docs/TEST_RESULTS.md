@@ -64,10 +64,13 @@ node tools/convert-cli.js \
 Prompt: "the color of the sky is"
 Top-5 tokens: ".hk"(5.9%), "_ASC"(2.9%), "adaptive"(2.7%), "ÅĤÄħ"(2.2%), "Hayden"(1.9%)
 ```
-Output tokens are incoherent - suggests further issues with:
-- Router weight dequantization
-- Expert weight application
-- Tokenizer/vocabulary mismatch
+Output tokens are incoherent - ROOT CAUSE IDENTIFIED:
+- Router weight (`mlp.router.weight`) is stored as Q4_K_M in manifest
+- HuggingFace config says `modules_to_not_convert: ["model.layers.*.mlp.router"]`
+- Q4_K_M quantization on router causes extreme logits (56 vs -39 range)
+- Softmax collapses to single expert (weights 1.0, 0.0, 0.0, 0.0)
+
+**Fix required**: Reconvert model keeping router weights in F16/F32 precision
 
 **Test command**: `node tests/test-gptoss.js`
 
