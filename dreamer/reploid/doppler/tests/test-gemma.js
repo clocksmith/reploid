@@ -8,7 +8,7 @@
 
 import { chromium } from 'playwright';
 
-const BASE_URL = 'http://localhost:8080/demo/';
+const BASE_URL = 'http://localhost:8080/dreamer/reploid/doppler/demo/';
 const PROMPT = 'the color of the sky is';
 const TIMEOUT = 180000; // 3 minutes total timeout
 
@@ -17,7 +17,7 @@ async function runTest() {
   console.log('Gemma 3 1B Inference Test');
   console.log('='.repeat(60));
 
-  const browser = await chromium.launch({ headless: false });
+  const browser = await chromium.launch({ headless: true });
   const page = await browser.newPage();
 
   const logs = [];

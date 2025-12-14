@@ -18,8 +18,14 @@ Shared testing log for Gemma 3 1B and other DOPPLER models across different hard
 1. ✓ Located Gemma 3 1B model in HuggingFace cache
 2. ✓ Converted to RDRR format (Q4_K_M quantization) - 965MB, 15 shards
 3. ✓ Test server running on http://localhost:8080
-4. ⏳ **READY FOR MANUAL TEST**: Browser testing requires GUI
-5. ⏳ Results pending
+4. ✓ Playwright test infrastructure set up (headless mode)
+5. ❌ **BLOCKED**: Headless browser cannot access WebGPU (no GPU in headless environment)
+
+**Test Limitation**: The Linux environment runs headless without X server or GPU access. WebGPU requires either:
+- A headed browser with GPU drivers (X11/Wayland + working GPU)
+- OR Manual testing in a desktop environment
+
+**Model is ready** - just needs a desktop browser to test.
 
 **Model path**:
 - Source: `/home/clocksmith/.cache/huggingface/hub/models--google--gemma-3-1b-it/snapshots/dcc83ea841ab6100d6b47a070329e1ba4cf78752`
