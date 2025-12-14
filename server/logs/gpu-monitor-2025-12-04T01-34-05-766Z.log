@@ -1,0 +1,11 @@
+=== GPU Status at 2025-12-04T01:34:05.766Z ===
+{
+  "timestamp": "2025-12-04T01:34:05.766Z",
+  "ollama": {
+    "status": "running",
+    "endpoint": "http://localhost:11434"
+  },
+  "rocm": {},
+  "recentEvents": []
+}
+
