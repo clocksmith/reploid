@@ -49,10 +49,31 @@ node tools/convert-cli.js \
 
 **Tester**: MacBook with M3
 **GPU**: Apple M3 (unified memory)
-**Model**: GPT-OSS 20B MoE
-**Status**: IN PROGRESS (separate tester)
+**Model**: GPT-OSS 20B MoE (Q4_K_M, 32 experts, topK=4)
+**Status**: PARTIAL - MoE pipeline functional, output quality under investigation
 
-**Notes**: Working on getting GPT-OSS 20B MoE to work. This is a larger MoE model with different architecture requirements.
+**MoE Bug Fixed**:
+- Root cause: WebGPU `layout: 'auto'` only includes bindings used by each entry point
+- `count_and_map` used 4/6 bindings, `gather_tokens` used 6/6
+- Bind group creation with mismatched layout caused silent failure
+- Fix: Created explicit bind group layout with all 6 bindings
+- See: `docs/MOE-EXPLICIT-LAYOUT-POSTMORTEM.md`
+
+**Current Output (needs investigation)**:
+```
+Prompt: "the color of the sky is"
+Top-5 tokens: ".hk"(5.9%), "_ASC"(2.9%), "adaptive"(2.7%), "ÅĤÄħ"(2.2%), "Hayden"(1.9%)
+```
+Output tokens are incoherent - suggests further issues with:
+- Router weight dequantization
+- Expert weight application
+- Tokenizer/vocabulary mismatch
+
+**Test command**: `node tests/test-gptoss.js`
+
+**Files modified**:
+- `gpu/kernel-selector.js` - Added explicit bind group layout for MoE
+- `gpu/kernels/moe_gather.wgsl` - Cleaned up, added layout note
 
 ---
 
@@ -62,7 +83,7 @@ node tools/convert-cli.js \
 |------|-----|------|---------|----|----|-------|-------|
 | 2025-12 | Apple M3 | Unified | Safari/Chrome | macOS | Gemma 3 1B | ✓ WORKING | Reference implementation |
 | 2025-12-14 | AMD Strix Halo | Integrated | Chrome 142 | Linux | Gemma 3 1B | ⏳ TESTING | In progress |
-| 2025-12-14 | Apple M3 | Unified | TBD | macOS | GPT-OSS 20B | ⏳ TESTING | Separate session |
+| 2025-12-14 | Apple M3 | Unified | Chrome | macOS | GPT-OSS 20B | ⚠️ PARTIAL | MoE pipeline works, output quality poor |
 
 ## Test Protocol
 
