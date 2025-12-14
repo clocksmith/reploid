@@ -73,7 +73,7 @@ Testing status for Gemma 3 1B and other DOPPLER models across different GPU/brow
 | Model | Status | Notes | Date |
 |-------|--------|-------|------|
 | Gemma 3 1B | WORKING | Coherent output verified | 2025-01 |
-| GPT-OSS 20B | PARTIAL | MoE pipeline works, output quality under investigation | 2025-12-14 |
+| GPT-OSS 20B | BLOCKED | MoE pipeline works, but router weights incorrectly quantized. Needs reconversion. | 2025-12-14 |
 
 ## Test Checklist
 
