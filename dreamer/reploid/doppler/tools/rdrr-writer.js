@@ -470,10 +470,16 @@ export async function writeRDRR(outputDir, modelInfo, getTensorData, options = {
 
     // Check for MoE
     if (modelInfo.config?.expertCount || modelInfo.config?.num_local_experts) {
+      const numExperts = modelInfo.config.expertCount || modelInfo.config.num_local_experts;
+      const numExpertsPerToken = modelInfo.config.expertUsedCount ||
+                                  modelInfo.config.num_experts_per_tok ||
+                                  modelInfo.config.experts_per_token ||
+                                  2;
       writer.setMoEConfig({
-        numExperts: modelInfo.config.expertCount || modelInfo.config.num_local_experts,
-        topK: modelInfo.config.expertUsedCount || modelInfo.config.num_experts_per_tok || 2,
+        numExperts,
+        numExpertsPerToken,  // Field name expected by rdrr-format validation
       });
+      console.log(`  MoE config: ${numExperts} experts, ${numExpertsPerToken} active per token`);
     }
 
     // Write tensors

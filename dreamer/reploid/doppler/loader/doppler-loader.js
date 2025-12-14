@@ -450,7 +450,9 @@ export class DopplerLoader {
           const numElements = location.size / 2;
           const dstBuffer = await this._convertBF16ToF32GPU(srcBuffer, numElements, name);
           releaseBuffer(srcBuffer);
-          this.gpuBuffers.add(dstBuffer);
+          if (dstBuffer instanceof GPUBuffer) {
+            this.gpuBuffers.add(dstBuffer);
+          }
           return dstBuffer;
         }
 

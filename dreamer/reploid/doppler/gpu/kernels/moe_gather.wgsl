@@ -1,5 +1,6 @@
 /**
  * MoE Gather Kernel - Gather tokens by expert for batched execution
+ * VERSION: DEBUG_V2 - Added sentinel write test
  *
  * Groups tokens by their selected experts so that each expert can
  * process its assigned tokens in a single batched operation.
@@ -38,6 +39,10 @@ struct MoEGatherUniforms {
 fn count_and_map(@builtin(global_invocation_id) gid: vec3<u32>) {
     let tid = gid.x;
     let totalSlots = uniforms.numTokens * uniforms.topK;
+
+    // DEBUG: ALL threads write to tokenCounts[31] to verify kernel executes
+    // This expert index (31) shouldn't be used by normal routing
+    atomicAdd(&tokenCounts[31], 1u);
 
     if (tid >= totalSlots) {
         return;

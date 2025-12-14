@@ -2,12 +2,15 @@
 //
 // Converts BF16 (bfloat16) data to F32.
 // BF16 is just the upper 16 bits of F32, so conversion is a simple shift.
+//
+// Supports 2D dispatch for large tensors (>65535 workgroups).
 
 const WORKGROUP_SIZE: u32 = 256u;
+const MAX_WORKGROUPS_X: u32 = 65535u;
 
 struct Uniforms {
     numElements: u32,
-    _pad1: u32,
+    workgroupsX: u32,  // Actual X workgroups dispatched (for 2D linearization)
     _pad2: u32,
     _pad3: u32,
 }
@@ -18,10 +21,13 @@ struct Uniforms {
 
 @compute @workgroup_size(256, 1, 1)
 fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
-    let idx = global_id.x;
+    // Compute linear thread index from 2D dispatch
+    // For 2D dispatch (Wx, Wy), linear_idx = y * (Wx * 256) + x
+    let threads_per_row = uniforms.workgroupsX * WORKGROUP_SIZE;
+    let linear_idx = global_id.y * threads_per_row + global_id.x;
 
     // Each thread processes 2 BF16 values (one u32 contains 2 bf16)
-    let pair_idx = idx;
+    let pair_idx = linear_idx;
     let elem_idx = pair_idx * 2u;
 
     if (elem_idx >= uniforms.numElements) {
