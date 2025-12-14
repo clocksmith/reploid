@@ -47,6 +47,7 @@ function parseArgs(args) {
     test: false,
     verbose: false,
     fast: false,
+    textOnly: false,
     help: false,
   };
 
@@ -62,6 +63,8 @@ function parseArgs(args) {
       options.verbose = true;
     } else if (arg === '--fast') {
       options.fast = true;
+    } else if (arg === '--text-only') {
+      options.textOnly = true;
     } else if (arg === '--quantize' || arg === '-q') {
       options.quantize = args[++i]?.toLowerCase();
     } else if (arg === '--shard-size') {
@@ -98,6 +101,7 @@ Options:
   --quantize <type>   Quantize weights (q4_k_m, f16, f32)
   --shard-size <mb>   Shard size in MB (default: 64)
   --model-id <id>     Override model ID in manifest
+  --text-only         Extract only text model (skip vision/projector, strip prefixes)
   --fast              Pre-load shards into memory (faster, uses more RAM)
   --test              Create tiny test model (ignores input)
   --verbose, -v       Verbose output
@@ -109,6 +113,9 @@ Examples:
 
   # Convert HuggingFace model with quantization
   node convert-cli.js ./Llama-3.2-1B ./llama-rdrr --quantize q4_k_m
+
+  # Convert multimodal model to text-only
+  node convert-cli.js ./gemma-3-4b-it ./gemma-4b-text --text-only --quantize q4_k_m
 
   # Create test fixture
   node convert-cli.js --test ./test-model
@@ -219,6 +226,9 @@ async function convertGGUF(inputPath, outputDir, options) {
     return data;
   };
 
+  // Infer missing config values from tensor shapes
+  inferConfigFromTensors(modelInfo);
+
   // Write .rdrr
   const result = await writeRDRR(outputDir, modelInfo, getTensorData, {
     modelId: options.modelId || modelInfo.modelName,
@@ -236,6 +246,109 @@ async function convertGGUF(inputPath, outputDir, options) {
   return result;
 }
 
+/**
+ * Infer missing config values from tensor shapes
+ * This ensures the manifest has all required parameters even if the source config is incomplete
+ */
+function inferConfigFromTensors(modelInfo) {
+  if (!modelInfo.config) {
+    modelInfo.config = {};
+  }
+  const config = modelInfo.config;
+
+  // Find layer 0 attention tensors to infer dimensions
+  const qProj = modelInfo.tensors.find(t => t.name.includes('.0.self_attn.q_proj.weight'));
+  const kProj = modelInfo.tensors.find(t => t.name.includes('.0.self_attn.k_proj.weight'));
+  const qNorm = modelInfo.tensors.find(t => t.name.includes('.0.self_attn.q_norm.weight'));
+
+  // Infer hidden_size from embedding
+  const embed = modelInfo.tensors.find(t => t.name.includes('embed_tokens.weight'));
+  if (embed && !config.hidden_size) {
+    config.hidden_size = embed.shape[1];
+    console.log(`  Inferred hidden_size=${config.hidden_size} from embedding`);
+  }
+
+  // Infer num_hidden_layers by counting layers
+  if (!config.num_hidden_layers) {
+    const layerNums = modelInfo.tensors
+      .filter(t => t.name.includes('.layers.'))
+      .map(t => {
+        const match = t.name.match(/\.layers\.(\d+)\./);
+        return match ? parseInt(match[1]) : -1;
+      })
+      .filter(n => n >= 0);
+    if (layerNums.length > 0) {
+      config.num_hidden_layers = Math.max(...layerNums) + 1;
+      console.log(`  Inferred num_hidden_layers=${config.num_hidden_layers}`);
+    }
+  }
+
+  // Infer head_dim from q_norm (which has shape [head_dim])
+  if (qNorm && !config.head_dim) {
+    config.head_dim = qNorm.shape[0];
+    console.log(`  Inferred head_dim=${config.head_dim} from q_norm`);
+  }
+
+  // Infer num_attention_heads and num_key_value_heads from projection shapes
+  // q_proj: [num_heads * head_dim, hidden_size]
+  // k_proj: [num_kv_heads * head_dim, hidden_size]
+  if (qProj && config.head_dim && !config.num_attention_heads) {
+    config.num_attention_heads = qProj.shape[0] / config.head_dim;
+    console.log(`  Inferred num_attention_heads=${config.num_attention_heads} from q_proj`);
+  }
+  if (kProj && config.head_dim && !config.num_key_value_heads) {
+    config.num_key_value_heads = kProj.shape[0] / config.head_dim;
+    console.log(`  Inferred num_key_value_heads=${config.num_key_value_heads} from k_proj`);
+  }
+
+  // Infer intermediate_size from FFN projections
+  const gateProj = modelInfo.tensors.find(t => t.name.includes('.0.mlp.gate_proj.weight'));
+  if (gateProj && !config.intermediate_size) {
+    config.intermediate_size = gateProj.shape[0];
+    console.log(`  Inferred intermediate_size=${config.intermediate_size} from gate_proj`);
+  }
+
+  // Set/fix rope_theta based on architecture
+  // Many source configs have incorrect or missing rope_theta
+  const arch = config.architectures?.[0] || '';
+  let expectedTheta = 10000;  // Default for most models
+  if (arch.includes('Gemma')) {
+    expectedTheta = 1000000;  // Gemma uses 10^6
+  } else if (arch.includes('Llama') || arch.includes('Mistral') || arch.includes('Qwen')) {
+    expectedTheta = 10000;  // LLaMA/Mistral/Qwen use 10^4
+  } else if (arch.includes('GptOss')) {
+    expectedTheta = 150000;  // GPT-OSS uses 150000
+  }
+
+  if (!config.rope_theta) {
+    config.rope_theta = expectedTheta;
+    console.log(`  Set rope_theta=${config.rope_theta} for ${arch || 'unknown'}`);
+  } else if (config.rope_theta !== expectedTheta &&
+             (arch.includes('Mistral') || arch.includes('Llama'))) {
+    // Fix common misconfiguration for Mistral/Llama models
+    console.warn(`  Warning: rope_theta=${config.rope_theta} unusual for ${arch}, expected ${expectedTheta}`);
+  }
+
+  // Infer head_dim if missing
+  if (!config.head_dim && config.hidden_size && config.num_attention_heads) {
+    // Default: head_dim = hidden_size / num_attention_heads
+    // Exception: Gemma 3 uses fixed head_dim=256 regardless of hidden_size
+    if (arch.includes('Gemma3') || arch.includes('Gemma 3')) {
+      config.head_dim = 256;
+    } else {
+      config.head_dim = Math.floor(config.hidden_size / config.num_attention_heads);
+    }
+    console.log(`  Inferred head_dim=${config.head_dim}`);
+  }
+
+  // Validate required fields
+  const required = ['hidden_size', 'num_hidden_layers', 'num_attention_heads'];
+  const missing = required.filter(k => !config[k]);
+  if (missing.length > 0) {
+    console.warn(`  Warning: Could not infer config values: ${missing.join(', ')}`);
+  }
+}
+
 // Convert Safetensors model
 async function convertSafetensors(inputPath, outputDir, options) {
   console.log(`\nParsing Safetensors: ${inputPath}`);
@@ -250,6 +363,45 @@ async function convertSafetensors(inputPath, outputDir, options) {
     console.log(`  Hidden size: ${modelInfo.config.hidden_size || 'unknown'}`);
     console.log(`  Layers: ${modelInfo.config.num_hidden_layers || 'unknown'}`);
   }
+
+  // Handle --text-only: filter out vision tensors and strip language_model prefix
+  if (options.textOnly) {
+    const originalCount = modelInfo.tensors.length;
+
+    // Filter out vision and projector tensors
+    modelInfo.tensors = modelInfo.tensors.filter(t => {
+      if (t.name.startsWith('vision_tower.')) return false;
+      if (t.name.startsWith('multi_modal_projector.')) return false;
+      return true;
+    });
+
+    // Strip language_model. prefix from tensor names
+    for (const tensor of modelInfo.tensors) {
+      if (tensor.name.startsWith('language_model.')) {
+        tensor.name = tensor.name.replace('language_model.', '');
+      }
+    }
+
+    // Update architecture in config for text-only model
+    if (modelInfo.config) {
+      // Use text_config if available (multimodal models)
+      if (modelInfo.config.text_config) {
+        const textConfig = modelInfo.config.text_config;
+        modelInfo.config = {
+          ...modelInfo.config,
+          ...textConfig,
+          architectures: ['Gemma3ForCausalLM'],
+        };
+        delete modelInfo.config.text_config;
+        delete modelInfo.config.vision_config;
+      }
+    }
+
+    console.log(`  Text-only: ${originalCount} -> ${modelInfo.tensors.length} tensors`);
+  }
+
+  // Infer missing config values from tensor shapes
+  inferConfigFromTensors(modelInfo);
 
   // Determine output quantization
   const targetQuant = options.quantize || 'f16';

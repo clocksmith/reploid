@@ -611,11 +611,25 @@ export function getKernelConfig(operation, variant) {
  * @param {string} label - Debug label
  * @returns {GPUShaderModule}
  */
-function compileShader(device, source, label) {
-  return device.createShaderModule({
+async function compileShader(device, source, label) {
+  const module = device.createShaderModule({
     label,
     code: source,
   });
+
+  // Check for compilation errors
+  const compilationInfo = await module.getCompilationInfo();
+  if (compilationInfo.messages.length > 0) {
+    for (const msg of compilationInfo.messages) {
+      const type = msg.type === 'error' ? 'ERROR' : msg.type === 'warning' ? 'WARN' : 'INFO';
+      console.log(`[DEBUG compileShader ${label}] ${type}: ${msg.message} (line ${msg.lineNum}:${msg.linePos})`);
+    }
+    if (compilationInfo.messages.some(m => m.type === 'error')) {
+      throw new Error(`Shader compilation failed for ${label}`);
+    }
+  }
+
+  return module;
 }
 
 /**
@@ -630,8 +644,10 @@ export async function createPipeline(operation, variant, bindGroupLayout = null)
 
   // Return cached pipeline if available
   if (pipelineCache.has(cacheKey)) {
+    console.log(`[DEBUG createPipeline] Cache HIT for ${cacheKey}`);
     return pipelineCache.get(cacheKey);
   }
+  console.log(`[DEBUG createPipeline] Cache MISS for ${cacheKey}, creating new pipeline`);
 
   const device = getDevice();
   if (!device) {
@@ -651,8 +667,8 @@ export async function createPipeline(operation, variant, bindGroupLayout = null)
   // Load shader source via fetch (handles caching internally)
   const shaderSource = await loadShaderSource(config.shaderFile);
 
-  // Compile shader
-  const shaderModule = compileShader(device, shaderSource, `${operation}_${variant}`);
+  // Compile shader (now async to check for errors)
+  const shaderModule = await compileShader(device, shaderSource, `${operation}_${variant}`);
 
   // Create pipeline
   const pipelineDescriptor = {
@@ -1226,10 +1242,26 @@ export async function runBF16ToF32(input, numElements, name = 'bf16_to_f32_outpu
   // Output is f32 (4 bytes per element)
   const output = acquireBuffer(outputBytes, undefined, name);
 
-  // Create uniform buffer
+  // Each thread processes 2 BF16 elements (packed in u32)
+  const totalWorkgroups = Math.ceil(numElements / 2 / 256);
+  const MAX_WORKGROUPS = 65535;
+
+  // Determine dispatch dimensions
+  let workgroupsX, workgroupsY;
+  if (totalWorkgroups <= MAX_WORKGROUPS) {
+    workgroupsX = totalWorkgroups;
+    workgroupsY = 1;
+  } else {
+    // Use 2D dispatch for large tensors
+    workgroupsX = MAX_WORKGROUPS;
+    workgroupsY = Math.ceil(totalWorkgroups / MAX_WORKGROUPS);
+  }
+
+  // Create uniform buffer with workgroupsX for 2D linearization
   const uniformData = new ArrayBuffer(16);
   const uniformView = new DataView(uniformData);
   uniformView.setUint32(0, numElements, true);
+  uniformView.setUint32(4, workgroupsX, true);  // workgroupsX for kernel linearization
 
   const uniformBuffer = device.createBuffer({
     label: 'bf16_to_f32_uniforms',
@@ -1248,24 +1280,13 @@ export async function runBF16ToF32(input, numElements, name = 'bf16_to_f32_outpu
     ],
   });
 
-  // Each thread processes 2 BF16 elements (packed in u32)
-  const workgroups = Math.ceil(numElements / 2 / 256);
-  const MAX_WORKGROUPS = 65535;
-
   const encoder = device.createCommandEncoder({ label: 'bf16_to_f32_encoder' });
   const pass = encoder.beginComputePass({ label: 'bf16_to_f32_pass' });
   pass.setPipeline(pipeline);
   pass.setBindGroup(0, bindGroup);
-
-  if (workgroups <= MAX_WORKGROUPS) {
-    pass.dispatchWorkgroups(workgroups);
-  } else {
-    // Large tensor: dispatch in multiple batches
-    const wgY = Math.ceil(workgroups / MAX_WORKGROUPS);
-    pass.dispatchWorkgroups(MAX_WORKGROUPS, wgY);
-  }
-
+  pass.dispatchWorkgroups(workgroupsX, workgroupsY);
   pass.end();
+
   device.queue.submit([encoder.finish()]);
 
   uniformBuffer.destroy();
@@ -2422,13 +2443,184 @@ export async function runMoEGather(hiddenStates, expertIndices, numTokens, hidde
   const device = getDevice();
   const { maxTokensPerExpert = numTokens * topK } = options;
 
+  // DEBUG: Test minimal kernel to verify WebGPU compute works
+  const testShaderCode = `
+    @group(0) @binding(0) var<storage, read_write> output: array<u32>;
+
+    @compute @workgroup_size(1)
+    fn main() {
+      output[0] = 0xCAFEBABEu;
+    }
+  `;
+  const testModule = device.createShaderModule({ label: 'test_kernel', code: testShaderCode });
+  const testCompilation = await testModule.getCompilationInfo();
+  console.log(`[DEBUG runMoEGather] Test kernel compilation messages: ${testCompilation.messages.length}`);
+
+  const testPipeline = device.createComputePipeline({
+    label: 'test_pipeline',
+    layout: 'auto',
+    compute: { module: testModule, entryPoint: 'main' },
+  });
+
+  const testBuffer = device.createBuffer({
+    label: 'test_buffer',
+    size: 4,
+    usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC,
+    mappedAtCreation: true,
+  });
+  new Uint32Array(testBuffer.getMappedRange()).fill(0);
+  testBuffer.unmap();
+
+  const testBindGroup = device.createBindGroup({
+    layout: testPipeline.getBindGroupLayout(0),
+    entries: [{ binding: 0, resource: { buffer: testBuffer } }],
+  });
+
+  const testEncoder = device.createCommandEncoder();
+  const testPass = testEncoder.beginComputePass();
+  testPass.setPipeline(testPipeline);
+  testPass.setBindGroup(0, testBindGroup);
+  testPass.dispatchWorkgroups(1);
+  testPass.end();
+  device.queue.submit([testEncoder.finish()]);
+  await device.queue.onSubmittedWorkDone();
+
+  const testReadBuf = device.createBuffer({
+    size: 4,
+    usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ,
+  });
+  const testCopyEncoder = device.createCommandEncoder();
+  testCopyEncoder.copyBufferToBuffer(testBuffer, 0, testReadBuf, 0, 4);
+  device.queue.submit([testCopyEncoder.finish()]);
+  await testReadBuf.mapAsync(GPUMapMode.READ);
+  const testResult = new Uint32Array(testReadBuf.getMappedRange().slice(0));
+  testReadBuf.unmap();
+  testReadBuf.destroy();
+  testBuffer.destroy();
+  console.log(`[DEBUG runMoEGather] Test kernel result: 0x${testResult[0].toString(16).toUpperCase()} (expected 0xCAFEBABE)`);
+
+  // DEBUG: Test moe_gather-like kernel with same bindings but simpler logic
+  const testMoECode = `
+    struct MoEGatherUniforms {
+      numTokens: u32,
+      hiddenSize: u32,
+      numExperts: u32,
+      topK: u32,
+      maxTokensPerExpert: u32,
+      _pad1: u32,
+      _pad2: u32,
+      _pad3: u32,
+    }
+
+    @group(0) @binding(0) var<uniform> uniforms: MoEGatherUniforms;
+    @group(0) @binding(1) var<storage, read> hiddenStates: array<f32>;
+    @group(0) @binding(2) var<storage, read> expertIndices: array<u32>;
+    @group(0) @binding(3) var<storage, read_write> gathered: array<f32>;
+    @group(0) @binding(4) var<storage, read_write> tokenCounts: array<atomic<u32>>;
+    @group(0) @binding(5) var<storage, read_write> tokenMap: array<u32>;
+
+    @compute @workgroup_size(256, 1, 1)
+    fn test_count(@builtin(global_invocation_id) gid: vec3<u32>) {
+      // Touch all bindings to ensure they're included in auto layout
+      let _ = uniforms.numTokens;
+      let __ = hiddenStates[0];
+      let ___ = expertIndices[0];
+      gathered[0] = 0.0;
+      tokenMap[0] = 0u;
+
+      // Write 1 to tokenCounts[0] for all threads
+      atomicAdd(&tokenCounts[0], 1u);
+    }
+  `;
+  const testMoEModule = device.createShaderModule({ label: 'test_moe_kernel', code: testMoECode });
+  const testMoECompilation = await testMoEModule.getCompilationInfo();
+  console.log(`[DEBUG runMoEGather] Test MoE kernel compilation messages: ${testMoECompilation.messages.length}`);
+  for (const msg of testMoECompilation.messages) {
+    console.log(`[DEBUG TEST_MOE_COMPILE] ${JSON.stringify(msg)}`);
+  }
+
+  // Create test MoE pipeline and run it
+  const testMoEPipeline = device.createComputePipeline({
+    label: 'test_moe_pipeline',
+    layout: 'auto',
+    compute: { module: testMoEModule, entryPoint: 'test_count' },
+  });
+
+  // Create test buffers matching moe_gather bindings
+  const testUniformBuf = device.createBuffer({ size: 32, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
+  const testHiddenBuf = device.createBuffer({ size: 1024, usage: GPUBufferUsage.STORAGE });
+  const testIndicesBuf = device.createBuffer({ size: 512, usage: GPUBufferUsage.STORAGE });
+  const testGatheredBuf = device.createBuffer({ size: 1024, usage: GPUBufferUsage.STORAGE });
+  const testCountsBuf = device.createBuffer({
+    size: 128,
+    usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC,
+    mappedAtCreation: true,
+  });
+  new Uint32Array(testCountsBuf.getMappedRange()).fill(0);
+  testCountsBuf.unmap();
+  const testMapBuf = device.createBuffer({ size: 1024, usage: GPUBufferUsage.STORAGE });
+
+  const testMoEBindGroup = device.createBindGroup({
+    layout: testMoEPipeline.getBindGroupLayout(0),
+    entries: [
+      { binding: 0, resource: { buffer: testUniformBuf } },
+      { binding: 1, resource: { buffer: testHiddenBuf } },
+      { binding: 2, resource: { buffer: testIndicesBuf } },
+      { binding: 3, resource: { buffer: testGatheredBuf } },
+      { binding: 4, resource: { buffer: testCountsBuf } },
+      { binding: 5, resource: { buffer: testMapBuf } },
+    ],
+  });
+
+  const testMoEEncoder = device.createCommandEncoder();
+  const testMoEPass = testMoEEncoder.beginComputePass();
+  testMoEPass.setPipeline(testMoEPipeline);
+  testMoEPass.setBindGroup(0, testMoEBindGroup);
+  testMoEPass.dispatchWorkgroups(1);
+  testMoEPass.end();
+  device.queue.submit([testMoEEncoder.finish()]);
+  await device.queue.onSubmittedWorkDone();
+
+  const testMoEReadBuf = device.createBuffer({
+    size: 128,
+    usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ,
+  });
+  const testMoECopyEncoder = device.createCommandEncoder();
+  testMoECopyEncoder.copyBufferToBuffer(testCountsBuf, 0, testMoEReadBuf, 0, 128);
+  device.queue.submit([testMoECopyEncoder.finish()]);
+  await testMoEReadBuf.mapAsync(GPUMapMode.READ);
+  const testMoEResult = new Uint32Array(testMoEReadBuf.getMappedRange().slice(0));
+  testMoEReadBuf.unmap();
+  testMoEReadBuf.destroy();
+  console.log(`[DEBUG runMoEGather] Test MoE kernel result - tokenCounts[0]: ${testMoEResult[0]} (expected 256)`);
+
+  testUniformBuf.destroy();
+  testHiddenBuf.destroy();
+  testIndicesBuf.destroy();
+  testGatheredBuf.destroy();
+  testCountsBuf.destroy();
+  testMapBuf.destroy();
+
   // Phase 1: Count tokens and build map
+  // Load and check shader source for debugging
+  const shaderSource = await loadShaderSource('moe_gather.wgsl');
+  console.log(`[DEBUG runMoEGather] Shader source length: ${shaderSource.length}`);
+  console.log(`[DEBUG runMoEGather] Shader contains DEBUG_V2: ${shaderSource.includes('DEBUG_V2')}`);
+  console.log(`[DEBUG runMoEGather] Shader contains atomicStore: ${shaderSource.includes('atomicStore')}`);
+
+  // Clear pipeline cache to force recompilation (for debugging)
+  pipelineCache.delete('moe_gather:count');
+  pipelineCache.delete('moe_gather:gather');
+  pipelineCache.delete('moe_gather:gather_vec4');
+
   const countPipeline = await createPipeline('moe_gather', 'count');
+  console.log(`[DEBUG runMoEGather] Count pipeline created: ${countPipeline ? 'yes' : 'no'}, label=${countPipeline?.label}`);
 
   // Phase 2: Gather tokens
   const useVec4 = hiddenSize % 4 === 0;
   const gatherVariant = useVec4 ? 'gather_vec4' : 'gather';
   const gatherPipeline = await createPipeline('moe_gather', gatherVariant);
+  console.log(`[DEBUG runMoEGather] Gather pipeline created (${gatherVariant}): ${gatherPipeline ? 'yes' : 'no'}`);
 
   // Create output buffers
   const gatheredBuffer = acquireBuffer(
@@ -2469,33 +2661,67 @@ export async function runMoEGather(hiddenStates, expertIndices, numTokens, hidde
   });
   device.queue.writeBuffer(uniformBuffer, 0, uniformData);
 
-  // Create bind group for both phases (same layout)
-  const bindGroup = device.createBindGroup({
-    label: 'moe_gather_bind_group',
+  // DEBUG: Verify expertIndices buffer before kernel
+  console.log(`[DEBUG runMoEGather] numTokens=${numTokens}, hiddenSize=${hiddenSize}, numExperts=${numExperts}, topK=${topK}, maxTokensPerExpert=${maxTokensPerExpert}`);
+  console.log(`[DEBUG runMoEGather] expertIndices buffer size=${expertIndices.size}, hiddenStates buffer size=${hiddenStates.size}`);
+
+  // Create separate bind groups for each pipeline to avoid layout mismatch with 'auto' layout
+  const bindGroupEntries = [
+    { binding: 0, resource: { buffer: uniformBuffer } },
+    { binding: 1, resource: { buffer: hiddenStates } },
+    { binding: 2, resource: { buffer: expertIndices } },
+    { binding: 3, resource: { buffer: gatheredBuffer } },
+    { binding: 4, resource: { buffer: tokenCountsBuffer } },
+    { binding: 5, resource: { buffer: tokenMapBuffer } },
+  ];
+
+  const countBindGroup = device.createBindGroup({
+    label: 'moe_gather_count_bind_group',
     layout: countPipeline.getBindGroupLayout(0),
-    entries: [
-      { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: hiddenStates } },
-      { binding: 2, resource: { buffer: expertIndices } },
-      { binding: 3, resource: { buffer: gatheredBuffer } },
-      { binding: 4, resource: { buffer: tokenCountsBuffer } },
-      { binding: 5, resource: { buffer: tokenMapBuffer } },
-    ],
+    entries: bindGroupEntries,
   });
+
+  const gatherBindGroup = device.createBindGroup({
+    label: 'moe_gather_gather_bind_group',
+    layout: gatherPipeline.getBindGroupLayout(0),
+    entries: bindGroupEntries,
+  });
+
+  // DEBUG: Read expert indices to verify buffer content
+  const debugIndicesSize = numTokens * topK * 4;
+  const debugReadBuf = device.createBuffer({
+    label: 'debug_indices_read',
+    size: debugIndicesSize,
+    usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ,
+  });
+  const debugEncoder = device.createCommandEncoder({ label: 'debug_copy' });
+  debugEncoder.copyBufferToBuffer(expertIndices, 0, debugReadBuf, 0, debugIndicesSize);
+  device.queue.submit([debugEncoder.finish()]);
+  await debugReadBuf.mapAsync(GPUMapMode.READ);
+  const debugIndicesData = new Uint32Array(debugReadBuf.getMappedRange().slice(0));
+  debugReadBuf.unmap();
+  debugReadBuf.destroy();
+  console.log(`[DEBUG runMoEGather] Expert indices buffer first 20 values:`, Array.from(debugIndicesData.slice(0, 20)));
+  console.log(`[DEBUG runMoEGather] Expert indices unique values:`, [...new Set(debugIndicesData)]);
 
   const encoder = device.createCommandEncoder({ label: 'moe_gather_encoder' });
 
   // Phase 1: Count and map
+  const countWorkgroups = Math.ceil((numTokens * topK) / 256);
+  console.log(`[DEBUG runMoEGather] Dispatching count_and_map with ${countWorkgroups} workgroups for ${numTokens * topK} slots`);
+
   const countPass = encoder.beginComputePass({ label: 'moe_count_pass' });
   countPass.setPipeline(countPipeline);
-  countPass.setBindGroup(0, bindGroup);
-  countPass.dispatchWorkgroups(Math.ceil((numTokens * topK) / 256));
+  countPass.setBindGroup(0, countBindGroup);
+  console.log(`[DEBUG runMoEGather] About to dispatch count_and_map`);
+  countPass.dispatchWorkgroups(countWorkgroups);
   countPass.end();
+  console.log(`[DEBUG runMoEGather] Count pass ended`);
 
   // Phase 2: Gather
   const gatherPass = encoder.beginComputePass({ label: 'moe_gather_pass' });
   gatherPass.setPipeline(gatherPipeline);
-  gatherPass.setBindGroup(0, bindGroup);
+  gatherPass.setBindGroup(0, gatherBindGroup);
 
   const totalElements = numExperts * maxTokensPerExpert * hiddenSize;
   const workgroups = useVec4
@@ -2505,7 +2731,35 @@ export async function runMoEGather(hiddenStates, expertIndices, numTokens, hidde
   gatherPass.dispatchWorkgroups(workgroups);
   gatherPass.end();
 
-  device.queue.submit([encoder.finish()]);
+  const commandBuffer = encoder.finish();
+  console.log(`[DEBUG runMoEGather] Command buffer created`);
+  device.queue.submit([commandBuffer]);
+  console.log(`[DEBUG runMoEGather] Commands submitted, waiting for GPU...`);
+  await device.queue.onSubmittedWorkDone();
+  console.log(`[DEBUG runMoEGather] GPU work completed`);
+
+  // DEBUG: Read back token counts to verify kernel ran
+  const debugCountsBuf = device.createBuffer({
+    label: 'debug_counts_read',
+    size: numExperts * 4,
+    usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ,
+  });
+  const debugCountsEncoder = device.createCommandEncoder({ label: 'debug_counts_copy' });
+  debugCountsEncoder.copyBufferToBuffer(tokenCountsBuffer, 0, debugCountsBuf, 0, numExperts * 4);
+  device.queue.submit([debugCountsEncoder.finish()]);
+  await debugCountsBuf.mapAsync(GPUMapMode.READ);
+  const debugCountsData = new Uint32Array(debugCountsBuf.getMappedRange().slice(0));
+  debugCountsBuf.unmap();
+  debugCountsBuf.destroy();
+  const nonZeroCounts = [];
+  for (let i = 0; i < numExperts; i++) {
+    if (debugCountsData[i] > 0) nonZeroCounts.push(`e${i}:${debugCountsData[i]}`);
+  }
+  console.log(`[DEBUG runMoEGather] Token counts after kernel:`, nonZeroCounts.length > 0 ? nonZeroCounts.join(', ') : 'ALL ZERO');
+  console.log(`[DEBUG runMoEGather] Total mapped:`, Array.from(debugCountsData).reduce((a, b) => a + b, 0));
+  console.log(`[DEBUG runMoEGather] tokenCounts[0] raw hex:`, '0x' + debugCountsData[0].toString(16).toUpperCase());
+  console.log(`[DEBUG runMoEGather] tokenCounts[31] raw hex:`, '0x' + debugCountsData[31].toString(16).toUpperCase());
+  console.log(`[DEBUG runMoEGather] All tokenCounts values:`, Array.from(debugCountsData));
 
   uniformBuffer.destroy();
 
