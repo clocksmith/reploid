@@ -16,9 +16,9 @@ Shared testing log for Gemma 3 1B and other DOPPLER models across different hard
 
 **Steps completed**:
 1. ✓ Located Gemma 3 1B model in HuggingFace cache
-2. ✓ Converting to RDRR format (Q4_K_M quantization)
-3. ⏳ Awaiting conversion completion
-4. ⏳ Browser testing pending
+2. ✓ Converted to RDRR format (Q4_K_M quantization) - 965MB, 15 shards
+3. ✓ Test server running on http://localhost:8080
+4. ⏳ **READY FOR MANUAL TEST**: Browser testing requires GUI
 5. ⏳ Results pending
 
 **Model path**:
@@ -35,13 +35,27 @@ node tools/convert-cli.js \
 
 **Expected model size**: ~1.2GB (340 tensors, 26 layers, 1152 hidden size)
 
-#### Next steps:
-1. Complete RDRR conversion
-2. Run E2E test via Playwright: `npx playwright test doppler/tests/gemma-e2e.spec.js --headed`
-3. Collect WebGPU adapter info from browser console
-4. Test prompt: "the sky is"
-5. Verify coherent token generation (not `<unused16>` garbage)
-6. Record performance metrics (tok/s)
+#### Manual Test Instructions:
+
+**Server is running at: http://localhost:8080**
+
+1. Open Chrome browser and navigate to: `http://localhost:8080/dreamer/reploid/doppler/demo/`
+2. Open DevTools Console (F12)
+3. Run this to check WebGPU adapter:
+   ```javascript
+   const adapter = await navigator.gpu.requestAdapter();
+   const info = await adapter.requestAdapterInfo();
+   console.log('Adapter:', info);
+   console.log('Features:', Array.from(adapter.features));
+   ```
+4. Select "Gemma 3 1B" from model dropdown
+5. Wait for model to load (watch console for progress)
+6. Enter test prompt: "the sky is"
+7. **Verify output**: Should generate coherent tokens like "blue", "clear", "beautiful" (NOT `<unused16>` or garbage)
+8. Record performance from console logs (tokens/sec)
+9. Document results below
+
+**Expected GPU**: AMD Strix Halo (Radeon 8050S/8060S Graphics)
 
 ---
 
