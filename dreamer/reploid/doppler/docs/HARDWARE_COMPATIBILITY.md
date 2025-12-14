@@ -76,7 +76,7 @@ Testing status for Gemma 3 1B and other DOPPLER models across different GPU/brow
 |-------|--------|----------|-------|------|
 | Gemma 3 1B | ✓ WORKING | Mac M3 | Coherent output verified | 2025-01 |
 | Gemma 3 1B | ⏳ TESTING | AMD Strix Halo (Linux) | Conversion complete, browser test pending | 2025-12-14 |
-| GPT-OSS 20B MoE | ❌ BLOCKED | Mac M3 | MoE pipeline works, but router weights incorrectly quantized. Needs reconversion. | 2025-12-14 |
+| GPT-OSS 20B MoE | ⏳ PARTIAL | Mac M3 | Router fixed (BF16), expert loading in progress | 2025-12-14 |
 
 ### Architecture Support (No E2E Testing Yet)
 
