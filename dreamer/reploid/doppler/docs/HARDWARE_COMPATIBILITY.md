@@ -70,10 +70,27 @@ Testing status for Gemma 3 1B and other DOPPLER models across different GPU/brow
 
 ## Model Compatibility Status
 
-| Model | Status | Notes | Date |
-|-------|--------|-------|------|
-| Gemma 3 1B | WORKING | Coherent output verified | 2025-01 |
-| GPT-OSS 20B | BLOCKED | MoE pipeline works, but router weights incorrectly quantized. Needs reconversion. | 2025-12-14 |
+### Tested End-to-End
+
+| Model | Status | Platform | Notes | Date |
+|-------|--------|----------|-------|------|
+| Gemma 3 1B | ✓ WORKING | Mac M3 | Coherent output verified | 2025-01 |
+| Gemma 3 1B | ⏳ TESTING | AMD Strix Halo (Linux) | Conversion complete, browser test pending | 2025-12-14 |
+| GPT-OSS 20B MoE | ❌ BLOCKED | Mac M3 | MoE pipeline works, but router weights incorrectly quantized. Needs reconversion. | 2025-12-14 |
+
+### Architecture Support (No E2E Testing Yet)
+
+The following models have architecture support implemented but lack confirmed end-to-end test results:
+
+| Model | Architecture | Quantization | Est. VRAM | Status |
+|-------|--------------|--------------|-----------|--------|
+| Gemma 3 4B | Dense transformer | Q4_K_M | 3.5GB | Untested |
+| LLaMA 2 7B | Dense transformer | Q4_K_M | 5GB | Untested |
+| LLaMA 3 7B | Dense transformer | Q4_K_M | 5GB | Untested |
+| Mistral 7B | Dense transformer | Q4_K_M | 5GB | Untested |
+| Mixtral 8x7B | MoE (8 experts) | Q4_K_M | 28GB | Untested |
+
+**Note**: Architectural support exists (kernels, quantization, etc.) but these models need conversion and browser testing to confirm full compatibility.
 
 ## Test Checklist
 
