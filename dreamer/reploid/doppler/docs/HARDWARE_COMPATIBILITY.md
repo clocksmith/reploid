@@ -63,9 +63,17 @@ Testing status for Gemma 3 1B and other DOPPLER models across different GPU/brow
 |-------|--------------|--------------|------------------|-------|
 | Gemma 3 1B | Q4_K_M | 1.2GB | 2GB | Includes KV cache overhead |
 | Gemma 3 4B | Q4_K_M | 3.5GB | 6GB | — |
+| GPT-OSS 20B | Q4_K_M | 12GB | 16GB | MoE model, 32 experts, 4 active per token |
 | LLaMA 2 7B | Q4_K_M | 5GB | 8GB | — |
 | Mistral 7B | Q4_K_M | 5GB | 8GB | — |
 | Mixtral 8x7B | Q4_K_M | 28GB | 32GB | MoE model, all experts |
+
+## Model Compatibility Status
+
+| Model | Status | Notes | Date |
+|-------|--------|-------|------|
+| Gemma 3 1B | WORKING | Coherent output verified | 2025-01 |
+| GPT-OSS 20B | PARTIAL | MoE pipeline works, output quality under investigation | 2025-12-14 |
 
 ## Test Checklist
 
