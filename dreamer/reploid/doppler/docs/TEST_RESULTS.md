@@ -64,33 +64,42 @@ node tools/convert-cli.js \
 **Tester**: MacBook with M3
 **GPU**: Apple M3 (unified memory)
 **Model**: GPT-OSS 20B MoE (Q4_K_M, 32 experts, topK=4)
-**Status**: PARTIAL - MoE pipeline functional, output quality under investigation
+**Status**: PARTIAL - Router fixed, expert loading in progress
 
-**MoE Bug Fixed**:
+#### Bug Fix 1: MoE Gather Kernel (FIXED)
 - Root cause: WebGPU `layout: 'auto'` only includes bindings used by each entry point
 - `count_and_map` used 4/6 bindings, `gather_tokens` used 6/6
 - Bind group creation with mismatched layout caused silent failure
 - Fix: Created explicit bind group layout with all 6 bindings
 - See: `docs/MOE-EXPLICIT-LAYOUT-POSTMORTEM.md`
 
-**Current Output (needs investigation)**:
-```
-Prompt: "the color of the sky is"
-Top-5 tokens: ".hk"(5.9%), "_ASC"(2.9%), "adaptive"(2.7%), "ÅĤÄħ"(2.2%), "Hayden"(1.9%)
-```
-Output tokens are incoherent - ROOT CAUSE IDENTIFIED:
-- Router weight (`mlp.router.weight`) is stored as Q4_K_M in manifest
-- HuggingFace config says `modules_to_not_convert: ["model.layers.*.mlp.router"]`
-- Q4_K_M quantization on router causes extreme logits (56 vs -39 range)
-- Softmax collapses to single expert (weights 1.0, 0.0, 0.0, 0.0)
+#### Bug Fix 2: Router Weight Quantization (FIXED)
+- Root cause: Router weights quantized to Q4_K_M despite HuggingFace config `modules_to_not_convert`
+- Symptom: Router logits extreme (56 vs -39), softmax collapses to [1.0, 0.0, 0.0, 0.0]
+- Fix: Updated `shouldQuantize()` in quantizer.js to check:
+  1. Hard-coded `router` and `gate.weight` patterns
+  2. HuggingFace `modules_to_not_convert` config from quantization_config
+- Reconverted model: Router weights now BF16 (184KB vs 52KB Q4_K_M)
+- **Result**: Router now produces distributed weights!
+  ```
+  [DEBUG MoE L0] Router logits (first 8 experts): -0.14, 0.59, 0.11, 0.88, -0.98, -1.73, 2.58, -0.54
+  [DEBUG MoE L0] Expert weights: [0.5896, 0.1668, 0.1359, 0.1078, ...]
+  ```
+  vs before: `[1.0, 0.0, 0.0, 0.0]`
 
-**Fix required**: Reconvert model keeping router weights in F16/F32 precision
+#### Current Status: Expert Loading
+- Router works correctly (distributed weights)
+- Expert tensor loading attempted but using wrong naming convention
+- GPT-OSS uses packed MXFP4 experts (`model.layers.X.mlp.experts.gate_up_proj_blocks`)
+- Loader fallback exists but may need debugging
 
 **Test command**: `node tests/test-gptoss.js`
 
 **Files modified**:
 - `gpu/kernel-selector.js` - Added explicit bind group layout for MoE
 - `gpu/kernels/moe_gather.wgsl` - Cleaned up, added layout note
+- `tools/quantizer.js` - Added router check in `shouldQuantize()`
+- `tools/convert-cli.js` - Pass `modules_to_not_convert` to shouldQuantize
 
 ---
 
