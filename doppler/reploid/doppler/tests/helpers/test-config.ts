@@ -189,8 +189,26 @@ export const BASE_LOG_PATTERNS = [
   'Loading model',
   'Model loaded',
   'Error',
+  'ERROR',
   'from browser',
   'cached',
+  '[BF16ToF32]',  // Debug: BF16 conversion
+  '[BF16→F32',  // Debug: BF16 conversion
+  '[_convertBF16',  // Debug: BF16 conversion
+  'Checking',  // Debug
+  'Creating staging',  // Debug
+  'Copying',  // Debug
+  'Mapping staging',  // Debug
+  'Reading data',  // Debug
+  'INPUT CHECK',  // Debug: BF16 input verification
+  'Dispatching',  // Debug: workgroup dispatch
+  'Pipeline created',  // Debug: pipeline creation
+  'BindGroup',  // Debug: bind group creation
+  'GPU work',  // Debug: GPU sync
+  'After layer',  // Debug: layer output check
+  'LAYER_LOOP',  // Debug: layer processing
+  'FINAL_HIDDEN',  // Debug: final hidden state check
+  'LOOP_DONE',  // Debug: layer loop done
 ];
 
 /**

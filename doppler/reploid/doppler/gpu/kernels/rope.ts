@@ -45,17 +45,21 @@ export async function runRoPE(
   const outputSize = seqLen * numHeads * headDim * 4;
   const output = outputBuffer || acquireBuffer(outputSize, undefined, 'rope_output');
 
-  // Create uniform buffer
-  const uniformData = new ArrayBuffer(16);
+  // Create uniform buffer (32 bytes to match WGSL struct)
+  // struct RoPEUniforms { seqLen, numHeads, headDim, startPos, ropeBase, ropeScale, _pad0, _pad1 }
+  const uniformData = new ArrayBuffer(32);
   const uniformView = new DataView(uniformData);
-  uniformView.setUint32(0, seqLen, true);
-  uniformView.setUint32(4, numHeads, true);
-  uniformView.setUint32(8, headDim, true);
-  uniformView.setFloat32(12, ropeTheta, true);
+  uniformView.setUint32(0, seqLen, true);          // seqLen
+  uniformView.setUint32(4, numHeads, true);        // numHeads
+  uniformView.setUint32(8, headDim, true);         // headDim
+  uniformView.setUint32(12, options.startPos || 0, true);  // startPos
+  uniformView.setFloat32(16, ropeTheta, true);     // ropeBase
+  uniformView.setFloat32(20, 1.0, true);           // ropeScale (default 1.0)
+  // _pad0 and _pad1 at bytes 24-31 are already 0
 
   const uniformBuffer = device.createBuffer({
     label: 'rope_uniforms',
-    size: 16,
+    size: 32,
     usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
   });
   device.queue.writeBuffer(uniformBuffer, 0, uniformData);

@@ -165,7 +165,12 @@
 
         // Custom shard loader
         const loadShard = async (idx) => {
+          log(`   Loading shard idx=${idx}, type=${typeof idx}, shards.length=${manifest.shards.length}`);
           const shard = manifest.shards[idx];
+          if (!shard) {
+            log(`   ERROR: No shard at index ${idx}`, 'error');
+            throw new Error(`No shard at index ${idx}`);
+          }
           log(`   Loading shard ${idx}: ${shard.fileName}`);
           const resp = await fetch(`${MODEL_URL}/${shard.fileName}`);
           if (!resp.ok) throw new Error(`Failed to load shard ${idx}`);
@@ -176,7 +181,7 @@
 
         const pipeline = await createPipeline(modelInfo, {
           storage: { loadShard },
-          gpu: device,
+          gpu: { device },
           baseUrl: MODEL_URL,
           runtime: { debug: true },
           onProgress: (phase, progress, detail) => {

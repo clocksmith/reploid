@@ -57,7 +57,21 @@ async function runDirectMode(browser: Browser, config: TestConfig): Promise<Test
   console.log(`URL: ${URLS.minimal}`);
   console.log(`Prompt: "${prompt}"`);
 
-  const page: Page = await browser.newPage();
+  // Create context with cache disabled to ensure fresh JS is loaded
+  const context = await browser.newContext({
+    bypassCSP: true,
+  });
+  // Clear browser cache by setting extra HTTP headers
+  await context.route('**/*', (route) => {
+    route.continue({
+      headers: {
+        ...route.request().headers(),
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+      },
+    });
+  });
+  const page: Page = await context.newPage();
   const logs: string[] = [];
   const importantLogs: string[] = [];
   const patterns = getLogPatterns(model);
@@ -147,6 +161,7 @@ async function runDirectMode(browser: Browser, config: TestConfig): Promise<Test
   }
 
   await page.close();
+  await context.close();
   return results;
 }
 
