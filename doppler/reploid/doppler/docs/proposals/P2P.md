@@ -421,7 +421,7 @@ await downloadModel(manifestUrl);
 
 ### Hash Verification
 
-Uses existing `computeHash()` from shard-manager.js:
+Uses existing `computeHash()` from shard-manager.ts:
 
 ```javascript
 import { computeHash } from 'doppler/storage/shard-manager';
@@ -638,14 +638,14 @@ Peer D: all experts (full seeder)
 ### Phase 1: Shard Replication (MVP)
 
 **Files to create**:
-- `p2p/swarm.js` - Peer swarm management
-- `p2p/tracker-client.js` - WebTorrent tracker signaling
-- `p2p/peer-connection.js` - WebRTC wrapper
-- `p2p/shard-protocol.js` - Shard request/transfer
+- `p2p/swarm.ts` - Peer swarm management
+- `p2p/tracker-client.ts` - WebTorrent tracker signaling
+- `p2p/peer-connection.ts` - WebRTC wrapper
+- `p2p/shard-protocol.ts` - Shard request/transfer
 
 **Integration points**:
-- Hook into `setCustomShardLoader()` in doppler-loader.js
-- Use `computeHash()` from shard-manager.js for verification
+- Hook into `setCustomShardLoader()` in doppler-loader.ts
+- Use `computeHash()` from shard-manager.ts for verification
 
 **Deliverables**:
 - Download shards from peers
@@ -723,10 +723,10 @@ class TrackerClient {
 
 | File | Purpose |
 |------|---------|
-| `loader/doppler-loader.js` | `setCustomShardLoader()` extension point |
-| `storage/shard-manager.js` | `computeHash()` for verification |
-| `storage/rdrr-format.js` | `getShardsForExpert()` for MoE |
-| `storage/downloader.js` | HTTP fallback implementation |
+| `loader/doppler-loader.ts` | `setCustomShardLoader()` extension point |
+| `storage/shard-manager.ts` | `computeHash()` for verification |
+| `storage/rdrr-format.ts` | `getShardsForExpert()` for MoE |
+| `storage/downloader.ts` | HTTP fallback implementation |
 
 ---
 

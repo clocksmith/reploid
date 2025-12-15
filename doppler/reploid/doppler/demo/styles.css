@@ -1,20 +1,36 @@
 /* DOPPLER Demo - Minimal Styling */
 
 :root {
-  --bg-primary: #0f0f0f;
-  --bg-secondary: #1a1a1a;
-  --bg-tertiary: #252525;
+  /* ---- DOPPLER Palette (Purple + Red/Blue) ---- */
+  --bg-primary: #0a0a0a;
+  --bg-secondary: #111111;
+  --bg-tertiary: #1a1a1a;
   --text-primary: #e0e0e0;
-  --text-secondary: #888;
-  --text-muted: #555;
-  --accent: #7c3aed;
-  --accent-hover: #8b5cf6;
-  --accent-secondary: #f0b4c8;
-  --accent-secondary-hover: #f5c6d6;
-  --success: #4caf50;
-  --warning: #ff9800;
-  --error: #f44336;
-  --border: #333;
+  --text-secondary: #888888;
+  --text-muted: #555555;
+
+  /* ---- Primary (Purple) ---- */
+  --accent: #a855f7;
+  --accent-hover: #c084fc;
+  --accent-dim: rgba(168, 85, 247, 0.15);
+  --accent-glow: 0 0 10px rgba(168, 85, 247, 0.4);
+
+  /* ---- Secondary (Red) ---- */
+  --accent-secondary: #ef4444;
+  --accent-secondary-hover: #f87171;
+  --accent-secondary-dim: rgba(239, 68, 68, 0.15);
+
+  /* ---- Tertiary (Blue) ---- */
+  --accent-tertiary: #3b82f6;
+  --accent-tertiary-hover: #60a5fa;
+  --accent-tertiary-dim: rgba(59, 130, 246, 0.15);
+
+  /* ---- Semantic ---- */
+  --success: #22c55e;
+  --warning: #fbbf24;
+  --error: #ef4444;
+
+  --border: #333333;
   --radius: 8px;
   --radius-sm: 4px;
 }
@@ -53,7 +69,7 @@ body {
 .header-title {
   font-size: 20px;
   font-weight: 600;
-  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-secondary) 100%);
+  background: linear-gradient(135deg, var(--accent-tertiary) 0%, var(--accent) 50%, var(--accent-secondary) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -187,7 +203,7 @@ body {
 
 .model-item.active {
   border: 2px solid var(--accent);
-  box-shadow: 0 0 8px rgba(138, 92, 246, 0.3);
+  box-shadow: var(--accent-glow);
 }
 
 .model-item.downloading {
@@ -510,7 +526,7 @@ body {
 .message.user {
   background: var(--bg-tertiary);
   margin-left: 60px;
-  border-left: 3px solid var(--accent-secondary);
+  border-left: 3px solid var(--accent-tertiary);
 }
 
 .message.assistant {
@@ -536,7 +552,7 @@ body {
   display: inline-block;
   width: 8px;
   height: 16px;
-  background: var(--accent-secondary);
+  background: var(--accent);
   animation: blink 1s step-end infinite;
   vertical-align: text-bottom;
   margin-left: 2px;

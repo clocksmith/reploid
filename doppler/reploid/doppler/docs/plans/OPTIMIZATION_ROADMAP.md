@@ -30,8 +30,80 @@ Tracking performance and UX work for the DOPPLER WebGPU path.
 
 Notes:
 - Regenerate `.rdrr` packs to include bundled `tokenizer.json`.
-- Benchmark methodology and output schema: `docs/BENCHMARK_HARNESS.md`
-- Kernel test strategy: `docs/KERNEL_TESTING.md`
+- Benchmark methodology and output schema: `docs/spec/BENCHMARK_HARNESS.md`
+- Kernel test strategy: `docs/spec/KERNEL_TESTING.md`
+- Competitive context and constraints: `docs/analysis/COMPETITIVE.md`
+
+---
+
+## Competitive Checklist
+
+This file is the single source of truth for actionable work. `docs/analysis/COMPETITIVE.md` provides the rationale.
+
+### WeInfer-Style Pipeline Improvements
+
+Goal: remove avoidable WebGPU overhead (buffer churn, redundant submits, unnecessary readbacks).
+
+| Action Item | Priority | Status | File(s) |
+|-------------|----------|--------|---------|
+| Audit current buffer lifecycle | P0 | TODO | `gpu/buffer-pool.ts` |
+| Implement buffer reuse strategy | P0 | TODO | `gpu/buffer-pool.ts` |
+| Implement async pipeline (prep vs dispatch) | P0 | TODO | `inference/pipeline.ts` |
+| Implement deferred result fetching (lazy GPU to CPU readback) | P0 | TODO | `inference/pipeline.ts` |
+
+Note: command buffer batching is tracked in the next section. It is a major overhead reducer.
+
+### Scale and Storage (Native Bridge, OPFS, Unified Memory)
+
+| Action Item | Priority | Status | File(s) |
+|-------------|----------|--------|---------|
+| Validate 8GB model load via Native Bridge | P0 | TODO | `bridge/`, `storage/` |
+| Validate 16GB model load on unified memory | P0 | TODO | `memory/capability.ts` |
+| Validate 40GB+ model load (theoretical 60GB claim) | P1 | TODO | n/a |
+| Benchmark Native Bridge vs OPFS load times | P1 | TODO | `storage/` |
+| Document memory tier auto-detection | P2 | TODO | `memory/capability.ts` |
+| Track ONNX WASM64 progress monthly | P2 | TODO | n/a |
+
+### Model Coverage
+
+| Action Item | Priority | Status | File(s) |
+|-------------|----------|--------|---------|
+| Create model compatibility matrix (what works today) | P0 | TODO | `docs/` |
+| Test Llama-3.2-1B-Instruct E2E | P0 | TODO | `tests/` |
+| Test Llama-3.2-3B-Instruct E2E | P0 | TODO | `tests/` |
+| Test Llama-3.1-8B-Instruct E2E | P0 | TODO | `tests/` |
+| Test Mistral-7B-Instruct E2E | P1 | TODO | `tests/` |
+| Document VRAM requirements per model | P2 | TODO | `docs/` |
+| Create automated model test suite (CI) | P2 | TODO | `tests/` |
+
+### MoE Performance vs WebLLM (Mixtral)
+
+| Action Item | Priority | Status | File(s) |
+|-------------|----------|--------|---------|
+| Convert Mixtral-8x7B-Instruct to RDRR format | P0 | TODO | `tools/convert-cli.ts` |
+| Run Mixtral-8x7B-Instruct E2E (expert swapping) | P0 | TODO | `inference/pipeline.ts` |
+| Benchmark MoE decode throughput | P0 | TODO | `tests/` |
+| Benchmark vs WebLLM Mixtral (tok/s, TTFT, VRAM) | P0 | TODO | `tests/` |
+
+### Benchmarks and Correctness
+
+| Action Item | Priority | Status | File(s) |
+|-------------|----------|--------|---------|
+| Create standardized pipeline benchmark harness | P0 | TODO | `tests/benchmark/`, `docs/spec/BENCHMARK_HARNESS.md` |
+| Compare vs WebLLM on identical hardware and model | P0 | TODO | n/a |
+| Add WGSL kernel unit tests and segment tests | P0 | TODO | `tests/`, `docs/spec/KERNEL_TESTING.md` |
+
+Note: kernel unit tests and microbenchmarks already exist in `doppler/kernel-tests/`. The remaining gap is
+pipeline segment tests tied to `inference/pipeline.ts` and end-to-end generation benchmarks.
+
+### Multimodal (Optional)
+
+| Action Item | Priority | Status | File(s) |
+|-------------|----------|--------|---------|
+| Research vision encoder architectures (ViT, SigLIP) | P2 | TODO | n/a |
+| Implement image preprocessing pipeline (resize, normalize) | P2 | TODO | `inference/` |
+| Add vision encoder WGSL kernels (patch embed, attention) | P2 | TODO | `gpu/kernels/` |
+| Test one vision-language model | P3 | TODO | n/a |
 
 ---
 
@@ -104,8 +176,6 @@ async *generate(prompt, options) {
   - Current state: weights and KV cache are f16 where supported. Activations remain f32.
   - Next: add f16 variants for rmsnorm, rope, silu, softmax if quality holds.
   - Note: May cause quality degradation on some models - needs testing
-- [ ] Benchmark Mixtral MoE against WebLLM (tok/s, TTFT, VRAM)
-- [ ] Add kernel unit tests and pipeline segment tests (WGSL correctness)
 
 ---
 

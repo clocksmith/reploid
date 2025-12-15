@@ -10,15 +10,17 @@ Quick index for DOPPLER documentation.
 - [Architecture](ARCHITECTURE.md) - High-level module layout and subsystem responsibilities.
 - [Inference README](../inference/README.md) - Step-by-step inference flow (init, load, prefill, decode).
 - [Hardware Compatibility](HARDWARE_COMPATIBILITY.md) - Browser and GPU support notes.
-- [Benchmark Harness](BENCHMARK_HARNESS.md) - Standardized benchmarking spec and JSON output schema.
-- [Kernel Testing](KERNEL_TESTING.md) - WGSL unit tests and pipeline segment tests.
+- [Benchmark Harness](spec/BENCHMARK_HARNESS.md) - Standardized benchmarking spec and JSON output schema.
+- [Kernel Testing](spec/KERNEL_TESTING.md) - WGSL unit tests and pipeline segment tests.
+- [Kernel Tests (Implemented)](../../../kernel-tests/TODO.md) - Implemented kernel correctness and microbenchmark harness.
+- [Kernel Benchmarks](../../../kernel-tests/BENCHMARKS.md) - Baseline expectations and benchmark notes.
 
 ---
 
 ## Planning and Roadmaps
 
-- [Optimization Roadmap](OPTIMIZATION_ROADMAP.md) - Performance and UX work tracking.
-- [Competitive Landscape](COMPETITIVE.md) - Competitor analysis and strategic priorities.
+- [Optimization Roadmap](plans/OPTIMIZATION_ROADMAP.md) - Performance and UX work tracking.
+- [Competitive Landscape](analysis/COMPETITIVE.md) - Competitor analysis and strategic priorities.
 - [P2P (Planned)](proposals/P2P.md) - Peer-to-peer distribution design notes and proposals.
 
 ---

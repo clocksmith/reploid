@@ -2,6 +2,8 @@
 
 Defines a testing framework for WGSL kernels and kernel combinations in the inference pipeline.
 
+See also: `docs/plans/OPTIMIZATION_ROADMAP.md` for pipeline segment test work items.
+
 ---
 
 ## Goals
@@ -10,6 +12,18 @@ Defines a testing framework for WGSL kernels and kernel combinations in the infe
 - Provide unit tests for individual WGSL kernels.
 - Provide integration tests for kernel sequences that occur in real inference.
 - Make results interpretable across different GPUs and browsers.
+
+---
+
+## Existing Kernel Test Harness
+
+Kernel unit tests and kernel microbenchmarks are implemented in `doppler/kernel-tests/`:
+
+- Correctness tests: `doppler/kernel-tests/tests/correctness/*.spec.js`
+- Microbenchmarks: `doppler/kernel-tests/tests/benchmarks/*.bench.js`
+- Browser harness: `doppler/kernel-tests/browser/`
+
+This document focuses on DOPPLER-specific pipeline segment tests and how to interpret correctness for real inference graphs.
 
 ---
 
@@ -82,33 +96,6 @@ Attention and softmax tests should check:
 
 ---
 
-## Test Runner Architecture (Recommended)
-
-### Browser Runner
-
-Run tests in a headed browser because WebGPU support is not reliable in headless mode on many systems.
-
-Runner behavior:
-
-- Enumerate tests from a manifest file (JSON list of tests).
-- For each test:
-  - Upload inputs to GPU buffers
-  - Dispatch kernel
-  - Read back outputs
-  - Compare to CPU reference
-  - Record pass/fail with max error
-
-Output:
-
-- Human-readable summary in the page
-- Machine-readable JSON results
-
-### Worker Option
-
-Use a Web Worker for tests that need synchronous reads via OPFS or that benefit from isolating long GPU workloads.
-
----
-
 ## Pipeline Combination Tests (Required)
 
 Define a small set of "golden" segment tests that combine kernels in the same way inference does.
@@ -156,14 +143,10 @@ For failures, store:
 
 ---
 
-## Recommended Repo Layout (Non-binding)
+## Recommended Layout (Non-binding)
 
-- `tests/kernels/`:
-  - `cases/`: JSON test vectors
-  - `refs/`: CPU reference implementations
-  - `runner.html`: browser runner UI
-  - `runner.ts`: test harness
-  - `results/`: saved JSON outputs
+- Kernel unit tests and microbenchmarks: use `doppler/kernel-tests/`.
+- DOPPLER pipeline segment tests (recommended): `doppler/reploid/doppler/tests/segments/` with CPU refs and saved JSON outputs.
 
 This document specifies what must be tested, not how the code is organized.
 

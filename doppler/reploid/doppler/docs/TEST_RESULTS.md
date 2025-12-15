@@ -1,10 +1,25 @@
 # WebGPU Inference Test Results
 
-Shared testing log for Gemma 3 1B and other DOPPLER models across different hardware configurations.
+Index of DOPPLER validation sessions across different hardware and browsers.
+
+This file is a human-readable log. Store machine-readable benchmark outputs as JSON using
+`docs/spec/BENCHMARK_HARNESS.md` so results can be compared automatically.
 
 See also:
-- `docs/BENCHMARK_HARNESS.md` for benchmark methodology and JSON result schema.
-- `docs/KERNEL_TESTING.md` for WGSL kernel and pipeline segment testing.
+- `docs/spec/BENCHMARK_HARNESS.md` for benchmark methodology and JSON result schema.
+- `docs/spec/KERNEL_TESTING.md` for WGSL kernel and pipeline segment testing.
+- `doppler/kernel-tests/TODO.md` for the implemented kernel test harness.
+- `doppler/kernel-tests/BENCHMARKS.md` for kernel microbenchmark baselines.
+
+## Result Artifacts (Recommended)
+
+| Artifact | Purpose | Suggested Path |
+|----------|---------|----------------|
+| Pipeline benchmark JSON | TTFT, tok/s, submits, readback, memory | `doppler/reploid/doppler/tests/results/` |
+| Kernel correctness JSON/HTML | per-kernel correctness | `doppler/kernel-tests/results/` |
+| Kernel benchmark JSON/HTML | per-kernel timings | `doppler/kernel-tests/results/` |
+
+If a run does not have a JSON artifact yet, record the session here and file it as follow-up work.
 
 ## Test Sessions
 
@@ -21,9 +36,8 @@ See also:
 **Steps completed**:
 1. ✓ Located Gemma 3 1B model in HuggingFace cache
 2. ✓ Converted to RDRR format (Q4_K_M quantization) - 965MB, 15 shards
-3. ✓ Test server running on http://localhost:8080
-4. ✓ Playwright test infrastructure set up (headless mode)
-5. ❌ **BLOCKED**: Headless browser cannot access WebGPU (no GPU in headless environment)
+3. ✓ Model served locally for browser load
+4. ❌ **BLOCKED**: Headless browser cannot access WebGPU (no GPU in headless environment)
 
 **Test Limitation**: The Linux environment runs headless without X server or GPU access. WebGPU requires either:
 - A headed browser with GPU drivers (X11/Wayland + working GPU)
@@ -35,37 +49,7 @@ See also:
 - Source: `/home/clocksmith/.cache/huggingface/hub/models--google--gemma-3-1b-it/snapshots/dcc83ea841ab6100d6b47a070329e1ba4cf78752`
 - RDRR output: `doppler/reploid/doppler/models/gemma-3-1b-q4/`
 
-**Conversion command**:
-```bash
-npx tsx tools/convert-cli.ts \
-  --input /home/clocksmith/.cache/huggingface/hub/models--google--gemma-3-1b-it/snapshots/dcc83ea841ab6100d6b47a070329e1ba4cf78752 \
-  --output models/gemma-3-1b-q4 \
-  --quantize q4_k_m
-```
-
 **Expected model size**: ~1.2GB (340 tensors, 26 layers, 1152 hidden size)
-
-#### Manual Test Instructions:
-
-**Server is running at: http://localhost:8080**
-
-1. Open Chrome browser and navigate to: `http://localhost:8080/doppler/reploid/doppler/demo/`
-2. Open DevTools Console (F12)
-3. Run this to check WebGPU adapter:
-   ```javascript
-   const adapter = await navigator.gpu.requestAdapter();
-   const info = await adapter.requestAdapterInfo();
-   console.log('Adapter:', info);
-   console.log('Features:', Array.from(adapter.features));
-   ```
-4. Select "Gemma 3 1B" from model dropdown
-5. Wait for model to load (watch console for progress)
-6. Enter test prompt: "the sky is"
-7. **Verify output**: Should generate coherent tokens like "blue", "clear", "beautiful" (NOT `<unused16>` or garbage)
-8. Record performance from console logs (tokens/sec)
-9. Document results below
-
-**Expected GPU**: AMD Strix Halo (Radeon 8050S/8060S Graphics)
 
 ---
 
@@ -132,63 +116,13 @@ For each performance session, record:
 
 Preferred output:
 
-- A JSON file per run matching `docs/BENCHMARK_HARNESS.md`.
+- A JSON file per run matching `docs/spec/BENCHMARK_HARNESS.md`.
 - A short narrative summary in this document for context and troubleshooting.
 
-### 1. Model Conversion
-- Source format: GGUF or SafeTensors
-- Target: RDRR with Q4_K_M quantization
-- Tool: `doppler/tools/convert-cli.ts`
-- Verify: manifest.json created, shard files present
+To avoid instruction drift, prefer linking to the canonical runner docs:
 
-### 2. Browser Test (Automated)
-```bash
-cd doppler/kernel-tests
-npx playwright test doppler/tests/gemma-e2e.spec.ts --headed
-```
-
-Expected output:
-- Model loads without errors
-- Generates coherent tokens for "the sky is"
-- No `<unused16>` or garbage tokens
-- Reasonable performance (>10 tok/s for 1B models)
-
-### 3. Browser Test (Manual)
-```bash
-npx serve .
-# Open http://localhost:3000/doppler/demo/
-```
-
-Steps:
-1. Select model from dropdown
-2. Wait for load completion
-3. Enter prompt in chat
-4. Verify output quality
-
-### 4. Collect Diagnostics
-
-In browser console:
-```javascript
-const adapter = await navigator.gpu.requestAdapter();
-const info = await adapter.requestAdapterInfo();
-console.log('Adapter:', info);
-console.log('Features:', Array.from(adapter.features));
-console.log('Limits:', adapter.limits);
-```
-
-Record:
-- Adapter vendor/device
-- F16 support (shader-f16 feature)
-- Subgroups support
-- Buffer size limits
-
-### 5. Performance Metrics
-
-Collect if available:
-- Time to first token (TTFT)
-- Tokens per second (prefill)
-- Tokens per second (decode)
-- Peak VRAM usage
+- Kernel tests and microbenchmarks: `doppler/kernel-tests/TODO.md` and `doppler/kernel-tests/BENCHMARKS.md`
+- DOPPLER end-to-end tests: `doppler/reploid/doppler/tests/` and `doppler/reploid/doppler/tests/helpers/test-config.ts`
 
 ## Known Issues by Platform
 

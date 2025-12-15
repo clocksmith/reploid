@@ -31,13 +31,13 @@ import { log, setGPUDevice } from '../../debug/index.js';
  * External contexts that can be injected into the pipeline.
  */
 export interface PipelineContexts {
-  /** GPU context (device, adapter info) */
-  gpu?: GPUDevice;
+  /** GPU context (device, capabilities) */
+  gpu?: { device?: GPUDevice; capabilities?: any };
   /** Memory context for allocation */
-  memory?: any;
+  memory?: Record<string, unknown>;
   /** Storage context for custom shard loading */
   storage?: {
-    loadShard?: (shardIdx: number) => Promise<ArrayBuffer>;
+    loadShard?: (index: number) => Promise<ArrayBuffer | Uint8Array>;
   };
   /** Base URL for loading model files */
   baseUrl?: string;
@@ -46,6 +46,8 @@ export interface PipelineContexts {
     attentionKernel?: string;
     debug?: boolean;
   };
+  /** Progress callback for weight loading */
+  onProgress?: (progress: { percent: number; message?: string }) => void;
 }
 
 /**

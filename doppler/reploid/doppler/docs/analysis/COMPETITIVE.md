@@ -1,7 +1,7 @@
 # DOPPLER: Competitive Landscape & Technical Context
 
 **DOPPLER** (Distributed Object Parallel Processing Layer Executing REPLOID) is a browser-native LLM inference engine. It is part of the REPLOID system (Recursive Evolution Protocol Loop Orchestrating Inference DOPPLER), with model distribution handled by RDRR (Recursive DOPPLER Runtime Registry).
-See also: [Glossary](GLOSSARY.md)
+See also: [Glossary](../GLOSSARY.md)
 
 ## TL;DR
 
@@ -13,160 +13,29 @@ DOPPLER is a browser-native LLM inference engine using hand-written WebGPU (WGSL
 4. **Native Bridge** - mmap access to local files, bypassing OPFS limits
 
 **Caveat:** Performance benchmarks pending. WebLLM supports MoE (Mixtral) via TVM. DOPPLER must prove better performance.
-See: `docs/BENCHMARK_HARNESS.md` and `docs/KERNEL_TESTING.md`.
+See: `docs/spec/BENCHMARK_HARNESS.md` and `docs/spec/KERNEL_TESTING.md`.
 
 ---
 
-## DOPPLER Roadmap: Beat Every Competitor
+## Roadmap and Metrics
 
-**Goal:** By end of 2025, DOPPLER should demonstrably outperform WebLLM on specific metrics (TTFT, VRAM usage).
+This document focuses on competitor context and technical constraints.
 
-### 1. Beat WeInfer (3.76x over WebLLM)
+Implementation work, task tracking, and priorities live in `docs/plans/OPTIMIZATION_ROADMAP.md`.
 
-WeInfer's techniques are framework-agnostic. DOPPLER must implement them first.
+Benchmark and testing specs:
 
-| Action Item | Priority | Status | File(s) |
-|-------------|----------|--------|---------|
-| **1.1** Audit current buffer lifecycle in `buffer-pool.ts` | P0 | TODO | `gpu/buffer-pool.ts` |
-| **1.2** Implement buffer reuse strategy (avoid create/destroy per inference) | P0 | TODO | `gpu/buffer-pool.ts` |
-| **1.3** Implement async pipeline: decouple resource prep from GPU dispatch | P0 | TODO | `inference/pipeline.ts` |
-| **1.4** Implement deferred result fetching (lazy GPU→CPU readback) | P0 | TODO | `inference/pipeline.ts` |
-| **1.5** Benchmark decode tok/s vs WebLLM on Llama-3.2-3B | P0 | TODO | `tests/` |
-| **1.6** Benchmark decode tok/s vs WeInfer paper numbers (if code released) | P1 | BLOCKED | n/a |
-| **1.7** Profile GPU timeline to identify remaining bottlenecks | P1 | TODO | n/a |
+- `docs/spec/BENCHMARK_HARNESS.md` (pipeline and system benchmarks, result schema)
+- `docs/spec/KERNEL_TESTING.md` (kernel and segment tests, how to interpret correctness)
+- `docs/plans/OPTIMIZATION_ROADMAP.md` (action items and priorities)
 
-**Success metric:** ≥4x decode speedup over WebLLM (beating WeInfer's 3.76x)
+Key success metrics (the minimum needed for credible comparisons):
 
----
-
-### 2. Beat ONNX WASM64 (When It Ships)
-
-ONNX's 4GB limit will eventually be lifted. DOPPLER must stay ahead.
-
-| Action Item | Priority | Status | File(s) |
-|-------------|----------|--------|---------|
-| **2.1** Validate 8GB model load via Native Bridge (mmap) | P0 | TODO | `bridge/`, `storage/` |
-| **2.2** Validate 16GB model load on Apple Silicon unified memory | P0 | TODO | `memory/capability.ts` |
-| **2.3** Validate 40GB+ model load (theoretical 60GB claim) | P1 | TODO | n/a |
-| **2.4** Benchmark Native Bridge vs OPFS load times | P1 | TODO | `storage/` |
-| **2.5** Document memory tier auto-detection | P2 | TODO | `memory/capability.ts` |
-| **2.6** Track ONNX WASM64 progress monthly | P2 | TODO | n/a |
-
-**Success metric:** Validated 40GB+ model running in browser before ONNX ships WASM64
-
----
-
-### 3. Beat WebLLM Model Coverage (50+ variants)
-
-WebLLM has extensive model catalog with VRAM requirements documented.
-
-| Action Item | Priority | Status | File(s) |
-|-------------|----------|--------|---------|
-| **3.1** Create model compatibility matrix (what works today) | P0 | TODO | `docs/` |
-| **3.2** Test Llama-3.2-1B-Instruct E2E | P0 | TODO | `tests/` |
-| **3.3** Test Llama-3.2-3B-Instruct E2E | P0 | TODO | `tests/` |
-| **3.4** Test Llama-3.1-8B-Instruct E2E | P0 | TODO | `tests/` |
-| **3.5** Test Qwen2.5-Coder-7B E2E | P1 | TODO | `tests/` |
-| **3.6** Test Phi-3.5-mini-instruct E2E | P1 | TODO | `tests/` |
-| **3.7** Test Gemma-2-2B E2E | P1 | TODO | `tests/` |
-| **3.8** Test Mistral-7B-Instruct E2E | P1 | TODO | `tests/` |
-| **3.9** Add GGUF import for any HuggingFace model | P1 | PARTIAL | `tools/gguf-parser.ts` |
-| **3.10** Create automated model test suite (CI) | P2 | TODO | `tests/` |
-| **3.11** Document VRAM requirements per model | P2 | TODO | `docs/` |
-
-**Success metric:** 20+ models tested E2E with documented VRAM requirements
-
----
-
-### 4. Beat WebLLM MoE Performance (Mixtral)
-
-WebLLM supports Mixtral via TVM. DOPPLER must prove its hand-written kernels are faster or use less VRAM.
-
-| Action Item | Priority | Status | File(s) |
-|-------------|----------|--------|---------|
-| **4.1** Convert Mixtral-8x7B-Instruct to RDRR format | P0 | TODO | `tools/convert-cli.ts` |
-| **4.2** Run Mixtral-8x7B-Instruct E2E (expert swapping) | P0 | TODO | `inference/pipeline.ts` |
-| **4.3** Benchmark MoE decode tok/s | P0 | TODO | `tests/` |
-| **4.4** Benchmark vs WebLLM Mixtral (tok/s, TTFT, VRAM) | P0 | TODO | `tests/` |
-| **4.5** Test DeepSeek-MoE-16B (different routing) | P1 | TODO | n/a |
-| **4.6** Verify `topk.wgsl` correctness vs CPU reference | P1 | TODO | `tests/` |
-| **4.7** Verify `scatter_add.wgsl` correctness vs CPU reference | P1 | TODO | `tests/` |
-| **4.8** Profile expert dispatch latency | P2 | TODO | n/a |
-| **4.9** Implement expert caching for memory-constrained devices | P2 | TODO | `inference/` |
-
-**Success metric:** Mixtral-8x7B running in browser with published benchmarks
-
----
-
-### 5. Beat MediaPipe Multimodal (Gemma-3n Image+Audio)
-
-MediaPipe supports image and audio input. DOPPLER is text-only.
-
-| Action Item | Priority | Status | File(s) |
-|-------------|----------|--------|---------|
-| **5.1** Research vision encoder architectures (ViT, SigLIP) | P2 | TODO | n/a |
-| **5.2** Implement image preprocessing pipeline (resize, normalize) | P2 | TODO | `inference/` |
-| **5.3** Add vision encoder WGSL kernels (patch embed, attention) | P2 | TODO | `gpu/kernels/` |
-| **5.4** Test LLaVA or similar vision-language model | P3 | TODO | n/a |
-| **5.5** Research audio encoder (Whisper-style) | P3 | TODO | n/a |
-| **5.6** Add audio preprocessing (mel spectrogram) | P3 | TODO | n/a |
-
-**Success metric:** One vision-language model (e.g., Phi-3.5-vision) running E2E
-
----
-
-### 6. Performance Validation (Prove All Claims)
-
-No claim is valid without benchmarks.
-
-| Action Item | Priority | Status | File(s) |
-|-------------|----------|--------|---------|
-| **6.1** Create standardized benchmark harness | P0 | TODO | `tests/benchmark/`, `docs/BENCHMARK_HARNESS.md` |
-| **6.2** Measure prefill tok/s (vary sequence length) | P0 | TODO | n/a |
-| **6.3** Measure decode tok/s (single token generation) | P0 | TODO | n/a |
-| **6.4** Measure time-to-first-token (TTFT) | P0 | TODO | n/a |
-| **6.5** Measure peak VRAM usage | P0 | TODO | n/a |
-| **6.6** Test on Apple M1/M2/M3 (unified memory) | P1 | TODO | n/a |
-| **6.7** Test on NVIDIA RTX 3080/4090 (discrete GPU) | P1 | TODO | n/a |
-| **6.8** Test on Chrome, Safari, Firefox | P1 | TODO | n/a |
-| **6.9** Publish benchmark results in README | P1 | TODO | `README.md` |
-| **6.10** Compare vs WebLLM on identical hardware/model | P0 | TODO | n/a |
-| **6.11** Add WGSL kernel unit tests and segment tests | P0 | TODO | `tests/`, `docs/KERNEL_TESTING.md` |
-
-**Success metric:** Published benchmarks showing DOPPLER ≥ WebLLM on all metrics
-
----
-
-### Priority Summary
-
-| Priority | Count | Focus |
-|----------|-------|-------|
-| **P0** | 18 | Must ship - core competitive advantage |
-| **P1** | 12 | Should ship - strengthens position |
-| **P2** | 6 | Nice to have - future-proofing |
-| **P3** | 2 | Stretch - multimodal expansion |
-
-### Recommended Order of Attack
-
-```
-Phase 1: Prove What Exists
-├── 6.1-6.5  Benchmark harness + baseline metrics
-├── 3.2-3.4  Test 3 core models E2E (Llama family)
-└── 4.1-4.3  Mixtral MoE demo
-
-Phase 2: Beat WeInfer
-├── 1.1-1.4  Buffer reuse + async pipeline
-├── 1.5      Benchmark vs WebLLM
-└── 1.7      Profile and optimize
-
-Phase 3: Validate Scale
-├── 2.1-2.3  Large model validation (8GB→40GB)
-└── 3.5-3.8  Expand model coverage
-
-Phase 4: Expand
-├── 5.1-5.4  Vision-language support
-└── 4.4-4.8  Advanced MoE models
-```
+- Time to first token (cold and warm).
+- Decode throughput (warm): tokens per second for greedy decode on a fixed workload set.
+- Peak VRAM and readback bytes per token (logits and debug reads).
+- MoE path correctness and performance (Mixtral and GPT-OSS).
+- Model coverage matrix with VRAM requirements.
 
 ---
 
