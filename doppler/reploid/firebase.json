@@ -17,7 +17,12 @@
       "eslint.config.js",
       "*.md",
       "test-results/**",
-      "playwright-report/**"
+      "playwright-report/**",
+      "doppler/models/**",
+      "doppler/tools/*-rdrr/**",
+      "**/*.gguf",
+      "**/shard_*.bin",
+      "runs/**"
     ],
     "rewrites": [
       { "source": "/r", "destination": "/index.html" },
