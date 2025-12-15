@@ -37,13 +37,11 @@ export async function runRoPE(
     numHeads = 1,
     headDim = 64,
     ropeTheta = 10000.0,
-    outputBuffer = null,
   } = options;
 
   const pipeline = await createPipeline('rope', 'default');
 
-  const outputSize = seqLen * numHeads * headDim * 4;
-  const output = outputBuffer || acquireBuffer(outputSize, undefined, 'rope_output');
+  // Note: RoPE shader modifies input in-place (no output buffer)
 
   // Create uniform buffer (32 bytes to match WGSL struct)
   // struct RoPEUniforms { seqLen, numHeads, headDim, startPos, ropeBase, ropeScale, _pad0, _pad1 }
@@ -64,7 +62,7 @@ export async function runRoPE(
   });
   device.queue.writeBuffer(uniformBuffer, 0, uniformData);
 
-  // Create bind group
+  // Create bind group (only 4 bindings - shader modifies input in-place)
   const bindGroup = device.createBindGroup({
     label: 'rope_bind_group',
     layout: pipeline.getBindGroupLayout(0),
@@ -73,7 +71,6 @@ export async function runRoPE(
       { binding: 1, resource: { buffer: input } },
       { binding: 2, resource: { buffer: freqsCos } },
       { binding: 3, resource: { buffer: freqsSin } },
-      { binding: 4, resource: { buffer: output } },
     ],
   });
 
@@ -91,7 +88,8 @@ export async function runRoPE(
 
   uniformBuffer.destroy();
 
-  return output;
+  // Return input buffer (modified in-place by shader)
+  return input;
 }
 
 /**
@@ -109,24 +107,27 @@ export async function recordRoPE(
   const {
     numHeads = 1,
     headDim = 64,
-    outputBuffer = null,
   } = options;
 
   const pipeline = await createPipeline('rope', 'default');
 
-  const outputSize = seqLen * numHeads * headDim * 4;
-  const output = outputBuffer || acquireBuffer(outputSize, undefined, 'rope_output');
+  // Note: RoPE shader modifies input in-place (no output buffer)
 
-  // Uniform buffer
-  const uniformData = new ArrayBuffer(16);
+  // Uniform buffer (32 bytes to match WGSL struct)
+  // struct RoPEUniforms { seqLen, numHeads, headDim, startPos, ropeBase, ropeScale, _pad0, _pad1 }
+  const uniformData = new ArrayBuffer(32);
   const uniformView = new DataView(uniformData);
-  uniformView.setUint32(0, seqLen, true);
-  uniformView.setUint32(4, numHeads, true);
-  uniformView.setUint32(8, headDim, true);
+  uniformView.setUint32(0, seqLen, true);          // seqLen
+  uniformView.setUint32(4, numHeads, true);        // numHeads
+  uniformView.setUint32(8, headDim, true);         // headDim
+  uniformView.setUint32(12, options.startPos || 0, true);  // startPos
+  uniformView.setFloat32(16, 10000.0, true);       // ropeBase (default)
+  uniformView.setFloat32(20, 1.0, true);           // ropeScale (default 1.0)
+  // _pad0 and _pad1 at bytes 24-31 are already 0
 
   const uniformBuffer = recorder.createUniformBuffer(uniformData, 'rope_uniforms');
 
-  // Bind group
+  // Bind group (only 4 bindings - shader modifies input in-place)
   const bindGroup = device.createBindGroup({
     label: 'rope_bind_group',
     layout: pipeline.getBindGroupLayout(0),
@@ -135,7 +136,6 @@ export async function recordRoPE(
       { binding: 1, resource: { buffer: input } },
       { binding: 2, resource: { buffer: freqsCos } },
       { binding: 3, resource: { buffer: freqsSin } },
-      { binding: 4, resource: { buffer: output } },
     ],
   });
 
@@ -148,6 +148,7 @@ export async function recordRoPE(
   pass.dispatchWorkgroups(workgroups);
   pass.end();
 
-  setBufferDtype(output, 'f32');
-  return output;
+  setBufferDtype(input, 'f32');
+  // Return input buffer (modified in-place by shader)
+  return input;
 }
