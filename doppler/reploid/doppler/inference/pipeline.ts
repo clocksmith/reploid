@@ -420,6 +420,27 @@ export class InferencePipeline {
       const prevStates = hiddenStates;
       hiddenStates = await processLayer(l, hiddenStates, numTokens, true, context) as GPUBuffer;
       if (l < 3) console.log(`[Pipeline] Layer ${l} done, hiddenStates type=${hiddenStates?.constructor?.name}`);
+
+      // Debug: sample hidden states after key layers to find where values explode
+      if ((l === 0 || l === 5 || l === 10 || l === 15 || l === 20 || l === 25) && hiddenStates instanceof GPUBuffer) {
+        const device = getDevice();
+        const sampleSize = Math.min(512, hiddenStates.size);
+        const staging = device.createBuffer({
+          size: sampleSize,
+          usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ,
+        });
+        const enc = device.createCommandEncoder();
+        enc.copyBufferToBuffer(hiddenStates, 0, staging, 0, sampleSize);
+        device.queue.submit([enc.finish()]);
+        await staging.mapAsync(GPUMapMode.READ);
+        const data = new Float32Array(staging.getMappedRange().slice(0));
+        staging.unmap();
+        staging.destroy();
+        const maxAbs = Math.max(...Array.from(data).map(x => Math.abs(x)));
+        const sample = Array.from(data).filter(x => Number.isFinite(x)).slice(0, 3).map(x => x.toFixed(2)).join(', ');
+        console.log(`[Pipeline] After layer ${l}: maxAbs=${maxAbs.toFixed(2)}, sample=[${sample}]`);
+      }
+
       if (prevStates instanceof GPUBuffer && prevStates !== hiddenStates) {
         releaseBuffer(prevStates);
       }
@@ -465,7 +486,7 @@ export class InferencePipeline {
     const lastLogits = extractLastPositionLogits(logits, numTokens, config.vocabSize);
 
     // Log prefill logits for debug
-    logitsSanity(lastLogits, 'Prefill', { vocabSize: config.vocabSize });
+    logitsSanity(lastLogits, 'Prefill', (tokens) => this.tokenizer?.decode?.(tokens) || '?');
 
     return lastLogits;
   }
