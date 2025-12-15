@@ -2,7 +2,7 @@
 
 **Status:** Proposed (not yet implemented)
 
-> **Note:** This is a design specification for a planned feature. For architectural blueprints, see `dreamer/reploid/blueprints/`.
+> **Note:** This is a design specification for a planned feature. For architectural blueprints, see `doppler/reploid/blueprints/`.
 
 ## Overview
 
