@@ -16,15 +16,15 @@ Guide to all documentation in the REPLOID project.
 
 ### Architecture
 - **[docs/SYSTEM_ARCHITECTURE.md](./SYSTEM_ARCHITECTURE.md)** - Complete system design
-- **[dreamer/reploid/blueprints/](../dreamer/reploid/blueprints/)** - Architectural specifications (100+ files)
+- **[doppler/reploid/blueprints/](../doppler/reploid/blueprints/)** - Architectural specifications (100+ files)
 
 **Key Blueprints:**
-- [0x000002 - Application Orchestration](../dreamer/reploid/blueprints/0x000002-application-orchestration.md) - Boot and DI
-- [0x000008 - Agent Cognitive Cycle](../dreamer/reploid/blueprints/0x000008-agent-cognitive-cycle.md) - Core loop
-- [0x000047 - Verification Manager](../dreamer/reploid/blueprints/0x000047-verification-manager.md) - Safety checks
-- [0x000051 - HITL Controller](../dreamer/reploid/blueprints/0x000051-hitl-controller.md) - Human oversight
-- [0x000043 - Genesis Snapshot](../dreamer/reploid/blueprints/0x000043-genesis-snapshot-system.md) - Rollback system
-- [0x000034 - Swarm Orchestration](../dreamer/reploid/blueprints/0x000034-swarm-orchestration.md) - Multi-agent
+- [0x000002 - Application Orchestration](../doppler/reploid/blueprints/0x000002-application-orchestration.md) - Boot and DI
+- [0x000008 - Agent Cognitive Cycle](../doppler/reploid/blueprints/0x000008-agent-cognitive-cycle.md) - Core loop
+- [0x000047 - Verification Manager](../doppler/reploid/blueprints/0x000047-verification-manager.md) - Safety checks
+- [0x000051 - HITL Controller](../doppler/reploid/blueprints/0x000051-hitl-controller.md) - Human oversight
+- [0x000043 - Genesis Snapshot](../doppler/reploid/blueprints/0x000043-genesis-snapshot-system.md) - Rollback system
+- [0x000034 - Swarm Orchestration](../doppler/reploid/blueprints/0x000034-swarm-orchestration.md) - Multi-agent
 
 ### Reference
 - **[docs/API.md](./API.md)** - Module API documentation
@@ -41,7 +41,7 @@ Guide to all documentation in the REPLOID project.
 
 ```
 reploid/
-├── dreamer/reploid/            # Main application
+├── doppler/reploid/            # Main application
 │   ├── index.html              # Boot screen entry point
 │   ├── boot.js                 # Hydration and initialization
 │   ├── sw-module-loader.js     # Service worker for VFS modules
@@ -70,6 +70,12 @@ reploid/
 │   ├── blueprints/             # Architectural specifications
 │   │   └── (100+ design docs)
 │   │
+│   ├── doppler/                # WebGPU inference engine
+│   │   ├── inference/          # Pipeline, KV cache, MoE
+│   │   ├── gpu/                # WebGPU kernels
+│   │   ├── storage/            # OPFS shard management
+│   │   └── docs/               # Doppler-specific docs
+│   │
 │   └── tests/                  # Test suites
 │
 ├── docs/                       # Human-facing documentation
@@ -87,36 +93,37 @@ reploid/
 
 ### For Developers
 1. [SYSTEM_ARCHITECTURE.md](./SYSTEM_ARCHITECTURE.md) - Understand architecture
-2. [blueprints/README.md](../dreamer/reploid/blueprints/README.md) - Study specifications
+2. [blueprints/README.md](../doppler/reploid/blueprints/README.md) - Study specifications
 3. [API.md](./API.md) - Learn module APIs
 4. [CONTRIBUTING.md](./CONTRIBUTING.md) - Contribution guidelines
-5. [tools/README.md](../dreamer/reploid/tools/README.md) - Tool development
+5. [tools/README.md](../doppler/reploid/tools/README.md) - Tool development
 
 ### For RSI Research
 1. [README.md](../README.md) - Core RSI thesis
-2. [blueprints/0x000015-dynamic-tool-creation.md](../dreamer/reploid/blueprints/0x000015-dynamic-tool-creation.md) - Tool creation
-3. [blueprints/0x000066-recursive-goal-decomposition.md](../dreamer/reploid/blueprints/0x000066-recursive-goal-decomposition.md) - Recursive goal decomposition
+2. [blueprints/0x000015-dynamic-tool-creation.md](../doppler/reploid/blueprints/0x000015-dynamic-tool-creation.md) - Tool creation
+3. [blueprints/0x000066-recursive-goal-decomposition.md](../doppler/reploid/blueprints/0x000066-recursive-goal-decomposition.md) - Recursive goal decomposition
 
 ### For Security Researchers
 1. [SECURITY.md](./SECURITY.md) - Security model and containment
-2. [blueprints/0x000047-verification-manager.md](../dreamer/reploid/blueprints/0x000047-verification-manager.md) - Verification and sandbox design
-3. [blueprints/0x000067-circuit-breaker-pattern.md](../dreamer/reploid/blueprints/0x000067-circuit-breaker-pattern.md) - Failure containment
+2. [blueprints/0x000047-verification-manager.md](../doppler/reploid/blueprints/0x000047-verification-manager.md) - Verification and sandbox design
+3. [blueprints/0x000067-circuit-breaker-pattern.md](../doppler/reploid/blueprints/0x000067-circuit-breaker-pattern.md) - Failure containment
 
 ---
 
 ## Quick Reference
 
 **Key Files:**
-- `dreamer/reploid/config/genesis-levels.json` - Module registry and worker types
-- `dreamer/reploid/boot.js` - Application bootstrap
-- `dreamer/reploid/index.html` - Entry point
+- `doppler/reploid/config/genesis-levels.json` - Module registry and worker types
+- `doppler/reploid/boot.js` - Application bootstrap
+- `doppler/reploid/index.html` - Entry point
 
 **Key Directories:**
-- `dreamer/reploid/core/` - Agent substrate modules
-- `dreamer/reploid/tools/` - Dynamic agent tools
-- `dreamer/reploid/infrastructure/` - Support services
-- `dreamer/reploid/ui/` - Proto UI
-- `dreamer/reploid/blueprints/` - Architectural specifications
+- `doppler/reploid/core/` - Agent substrate modules
+- `doppler/reploid/tools/` - Dynamic agent tools
+- `doppler/reploid/infrastructure/` - Support services
+- `doppler/reploid/ui/` - Proto UI
+- `doppler/reploid/blueprints/` - Architectural specifications
+- `doppler/reploid/doppler/` - WebGPU inference engine
 - `docs/` - Human-facing documentation
 
 ---

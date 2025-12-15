@@ -466,8 +466,8 @@ exportAsMarkdown('performance.md', report);
 
 ## Further Reading
 
-- **Architecture Blueprints:** `dreamer/reploid/blueprints/` directory - Design specifications
-- **Module Source Code:** `dreamer/reploid/core/` and `dreamer/reploid/infrastructure/` - Fully documented with JSDoc
+- **Architecture Blueprints:** `doppler/reploid/blueprints/` directory - Design specifications
+- **Module Source Code:** `doppler/reploid/core/` and `doppler/reploid/infrastructure/` - Fully documented with JSDoc
 - **Quick Start Guide:** `docs/QUICK-START.md` - Interactive tutorial
 - **Troubleshooting:** `docs/TROUBLESHOOTING.md` - Common issues and solutions
 - **Security Model:** `docs/SECURITY.md` - Containment and safety architecture

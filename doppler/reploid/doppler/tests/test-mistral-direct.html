@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Mistral 7B Direct Test</title>
+  <style>
+    body { font-family: monospace; padding: 20px; background: #1a1a2e; color: #eee; }
+    #log { white-space: pre-wrap; font-size: 12px; background: #16213e; padding: 10px; max-height: 80vh; overflow-y: auto; }
+    button { padding: 10px 20px; margin: 5px; cursor: pointer; }
+    .error { color: #ff6b6b; }
+    .success { color: #6bff6b; }
+    .info { color: #6b9fff; }
+  </style>
+</head>
+<body>
+  <h1>Mistral 7B Direct Test</h1>
+  <div>
+    <button id="runTest">Run Inference Test</button>
+    <button id="clearLog">Clear Log</button>
+  </div>
+  <div id="log"></div>
+
+  <script type="module">
+    const log = document.getElementById('log');
+    const MODEL_URL = 'http://localhost:8765';
+    // Try simple prompt without chat template
+    const PROMPT = 'The sky is';
+
+    function addLog(msg, className = '') {
+      const line = document.createElement('div');
+      line.className = className;
+      line.textContent = `[${new Date().toISOString().slice(11, 19)}] ${msg}`;
+      log.appendChild(line);
+      log.scrollTop = log.scrollHeight;
+      console.log(msg);
+    }
+
+    async function runTest() {
+      addLog('='.repeat(60));
+      addLog('Starting Mistral 7B Direct Test', 'info');
+      addLog('='.repeat(60));
+
+      try {
+        // 1. Initialize WebGPU
+        addLog('1. Initializing WebGPU...');
+        const { initDevice, getKernelCapabilities } = await import('../gpu/device.js');
+        await initDevice();
+        const caps = getKernelCapabilities();
+        addLog(`   GPU initialized: hasF16=${caps.hasF16}, hasSubgroups=${caps.hasSubgroups}`, 'success');
+
+        // 2. Download manifest
+        addLog('2. Fetching manifest...');
+        const manifestResp = await fetch(`${MODEL_URL}/manifest.json`);
+        if (!manifestResp.ok) throw new Error(`Failed to fetch manifest: ${manifestResp.status}`);
+        const manifest = await manifestResp.json();
+        addLog(`   Model: ${manifest.architecture}, ${manifest.config.num_hidden_layers} layers`, 'success');
+        addLog(`   Vocab: ${manifest.config.vocab_size}, Hidden: ${manifest.config.hidden_size}`);
+
+        // 3. Parse manifest
+        addLog('3. Parsing manifest...');
+        const { parseManifest } = await import('../storage/rdrr-format.js');
+        const modelInfo = parseManifest(JSON.stringify(manifest));
+        addLog(`   Parsed ${modelInfo.tensors.size} tensors`, 'success');
+
+        // 4. Create pipeline with storage context
+        addLog('4. Creating pipeline...');
+        const { createPipeline } = await import('../inference/pipeline.js');
+
+        // Create custom shard loader
+        const customLoadShard = async (idx) => {
+          const shard = manifest.shards[idx];
+          addLog(`      Loading shard ${idx}: ${shard.fileName}`);
+          const resp = await fetch(`${MODEL_URL}/${shard.fileName}`);
+          if (!resp.ok) throw new Error(`Failed to load shard ${idx}: ${resp.status}`);
+          const data = new Uint8Array(await resp.arrayBuffer());
+          addLog(`      Shard ${idx} loaded: ${(data.byteLength / 1024 / 1024).toFixed(1)}MB`);
+          return data;
+        };
+
+        // Get GPU device for context
+        const { getDevice } = await import('../gpu/device.js');
+        const gpuDevice = getDevice();
+        addLog(`   GPU device: ${gpuDevice ? 'available' : 'NOT AVAILABLE'}`, gpuDevice ? 'success' : 'error');
+
+        // Pass storage context with custom loader to createPipeline
+        const pipeline = await createPipeline(modelInfo, {
+          storage: { loadShard: customLoadShard },
+          gpu: gpuDevice,  // This enables useGPU=true in pipeline
+          runtime: { debug: true },
+          onProgress: (phase, progress, detail) => {
+            if (detail) {
+              addLog(`   [${phase}] ${Math.round(progress * 100)}% - ${detail}`);
+            }
+          }
+        });
+
+        addLog('   Pipeline created and model loaded!', 'success');
+
+        // 6. Generate
+        addLog(`6. Generating from prompt: "${PROMPT}"`);
+        addLog('   Tokenizing...');
+
+        let tokens = [];
+        let startTime = Date.now();
+
+        // generate() yields plain token strings, not event objects
+        for await (const tokenText of pipeline.generate(PROMPT, {
+          maxTokens: 10,
+          temperature: 0,  // Greedy decoding to see consistent output
+          topK: 40,
+          topP: 0.9
+        })) {
+          tokens.push(tokenText);
+          addLog(`   Token ${tokens.length}: "${tokenText}"`, 'info');
+        }
+
+        const elapsed = Date.now() - startTime;
+        const tokPerSec = tokens.length / (elapsed / 1000);
+
+        addLog('='.repeat(60));
+        addLog(`Output: ${tokens.join('')}`, 'success');
+        addLog(`Generated ${tokens.length} tokens in ${elapsed}ms (${tokPerSec.toFixed(1)} tok/s)`);
+        addLog('='.repeat(60));
+
+        // Check output quality
+        const output = tokens.join('').toLowerCase();
+        const goodWords = ['blue', 'clear', 'beautiful', 'cloudy', 'dark', 'bright', 'typically'];
+        const hasGood = goodWords.some(w => output.includes(w));
+
+        if (hasGood) {
+          addLog('STATUS: PASS - Output looks coherent!', 'success');
+        } else {
+          addLog('STATUS: CHECK - Output may need review', 'error');
+        }
+
+      } catch (err) {
+        addLog(`ERROR: ${err.message}`, 'error');
+        addLog(err.stack, 'error');
+      }
+    }
+
+    document.getElementById('runTest').onclick = runTest;
+    document.getElementById('clearLog').onclick = () => { log.innerHTML = ''; };
+
+    addLog('Ready. Click "Run Inference Test" to start.');
+    addLog(`Model URL: ${MODEL_URL}`);
+  </script>
+</body>
+</html>

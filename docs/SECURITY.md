@@ -321,9 +321,9 @@ For security vulnerabilities:
 ## References
 
 - [SYSTEM_ARCHITECTURE.md](./SYSTEM_ARCHITECTURE.md) - Full architecture details
-- [blueprints/0x000022-confirmation-modal-safety.md](../dreamer/reploid/blueprints/0x000022-confirmation-modal-safety.md) - HITL design
-- [blueprints/0x000047-verification-manager.md](../dreamer/reploid/blueprints/0x000047-verification-manager.md) - Verification and sandbox design
-- [blueprints/0x000067-circuit-breaker-pattern.md](../dreamer/reploid/blueprints/0x000067-circuit-breaker-pattern.md) - Circuit breaker design
+- [blueprints/0x000022-confirmation-modal-safety.md](../doppler/reploid/blueprints/0x000022-confirmation-modal-safety.md) - HITL design
+- [blueprints/0x000047-verification-manager.md](../doppler/reploid/blueprints/0x000047-verification-manager.md) - Verification and sandbox design
+- [blueprints/0x000067-circuit-breaker-pattern.md](../doppler/reploid/blueprints/0x000067-circuit-breaker-pattern.md) - Circuit breaker design
 
 ---
 

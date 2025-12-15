@@ -1,0 +1,599 @@
+#!/usr/bin/env node
+/**
+ * Model Conversion CLI - Converts GGUF or SafeTensors to RDRR format.
+ */
+
+import { readFile, stat } from 'fs/promises';
+import { basename, extname, resolve, dirname, join } from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+import { parseGGUFFile, type GGUFParseResult, type GGUFTensor, type GGUFConfig } from './gguf-parser.js';
+import { parseSafetensors, readTensorData, type ParsedSafetensorsFile, type ParsedSafetensorsIndex, type SafetensorsTensor } from './safetensors-parser.js';
+import { quantizeToQ4KM, shouldQuantize, float16ToFloat32 } from './quantizer.js';
+import { writeRDRR, createTestModel, type ProgressEvent, type TensorInfo as RDRRTensorInfo } from './rdrr-writer.js';
+
+export type InputFormat = 'gguf' | 'safetensors' | 'safetensors-dir' | 'safetensors-index';
+export type QuantizationType = 'q4_k_m' | 'f16' | 'f32';
+
+export interface ConvertOptions {
+  input: string | null;
+  output: string | null;
+  quantize: QuantizationType | null;
+  shardSize: number;
+  modelId: string | null;
+  test: boolean;
+  verbose: boolean;
+  fast: boolean;
+  textOnly: boolean;
+  help: boolean;
+}
+
+export interface ConvertResult {
+  shardCount: number;
+  tensorCount: number;
+  totalSize: number;
+  manifestPath: string;
+}
+
+export interface ModelInfo {
+  architecture?: string;
+  modelName?: string;
+  quantization?: string;
+  tensors: TensorInfo[];
+  config?: ModelConfig;
+  fileSize?: number;
+  shards?: Array<{ file: string; path: string; size: number }>;
+}
+
+export interface TensorInfo {
+  name: string;
+  shape: number[];
+  dtype: string;
+  offset: number;
+  size: number;
+  quantization?: string;
+  filePath?: string;
+  shardPath?: string;
+}
+
+export interface ModelConfig {
+  architectures?: string[];
+  hidden_size?: number;
+  num_hidden_layers?: number;
+  num_attention_heads?: number;
+  num_key_value_heads?: number;
+  head_dim?: number;
+  intermediate_size?: number;
+  rope_theta?: number;
+  text_config?: ModelConfig;
+  vision_config?: Record<string, unknown>;
+  quantization_config?: {
+    modules_to_not_convert?: string[];
+  };
+  [key: string]: unknown;
+}
+
+function parseArgs(args: string[]): ConvertOptions {
+  const options: ConvertOptions = {
+    input: null,
+    output: null,
+    quantize: null,
+    shardSize: 64,
+    modelId: null,
+    test: false,
+    verbose: false,
+    fast: false,
+    textOnly: false,
+    help: false,
+  };
+
+  let i = 0;
+  while (i < args.length) {
+    const arg = args[i];
+
+    if (arg === '--help' || arg === '-h') {
+      options.help = true;
+    } else if (arg === '--test') {
+      options.test = true;
+    } else if (arg === '--verbose' || arg === '-v') {
+      options.verbose = true;
+    } else if (arg === '--fast') {
+      options.fast = true;
+    } else if (arg === '--text-only') {
+      options.textOnly = true;
+    } else if (arg === '--quantize' || arg === '-q') {
+      options.quantize = args[++i]?.toLowerCase() as QuantizationType;
+    } else if (arg === '--shard-size') {
+      options.shardSize = parseInt(args[++i], 10);
+    } else if (arg === '--model-id') {
+      options.modelId = args[++i];
+    } else if (!arg.startsWith('-')) {
+      if (!options.input) {
+        options.input = arg;
+      } else if (!options.output) {
+        options.output = arg;
+      }
+    }
+
+    i++;
+  }
+
+  return options;
+}
+
+function printHelp(): void {
+  console.log(`
+DOPPLER Model Converter - Convert models to .rdrr format
+
+Usage:
+  node convert-cli.js <input> [output-dir] [options]
+
+Arguments:
+  input       Path to GGUF file, safetensors file, or HuggingFace model directory
+  output-dir  Directory to write .rdrr output (default: ../models/<model-name>)
+
+Options:
+  --quantize <type>   Quantize weights (q4_k_m, f16, f32)
+  --shard-size <mb>   Shard size in MB (default: 64)
+  --model-id <id>     Override model ID in manifest
+  --text-only         Extract only text model (skip vision/projector, strip prefixes)
+  --fast              Pre-load shards into memory (faster, uses more RAM)
+  --test              Create tiny test model (ignores input)
+  --verbose, -v       Verbose output
+  --help, -h          Show this help
+
+Examples:
+  # Convert GGUF model
+  node convert-cli.js tinyllama-1.1b-q4_k_m.gguf ./tinyllama-rdrr
+
+  # Convert HuggingFace model with quantization
+  node convert-cli.js ./Llama-3.2-1B ./llama-rdrr --quantize q4_k_m
+
+  # Convert multimodal model to text-only
+  node convert-cli.js ./gemma-3-4b-it ./gemma-4b-text --text-only --quantize q4_k_m
+
+  # Create test fixture
+  node convert-cli.js --test ./test-model
+
+Supported formats:
+  - GGUF (.gguf) - llama.cpp format
+  - Safetensors (.safetensors) - HuggingFace format
+  - HuggingFace directory (with model.safetensors or index.json)
+`);
+}
+
+function progressBar(current: number, total: number, width = 40): string {
+  const percent = current / total;
+  const filled = Math.round(width * percent);
+  const empty = width - filled;
+  const bar = '█'.repeat(filled) + '░'.repeat(empty);
+  return `[${bar}] ${Math.round(percent * 100)}%`;
+}
+
+function formatBytes(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  if (bytes < 1024 * 1024 * 1024) return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
+  return `${(bytes / 1024 / 1024 / 1024).toFixed(2)} GB`;
+}
+
+async function detectFormat(inputPath: string): Promise<InputFormat> {
+  const stats = await stat(inputPath);
+
+  if (stats.isDirectory()) {
+    return 'safetensors-dir';
+  }
+
+  const ext = extname(inputPath).toLowerCase();
+  if (ext === '.gguf') {
+    return 'gguf';
+  }
+  if (ext === '.safetensors') {
+    return 'safetensors';
+  }
+  if (ext === '.json' && inputPath.includes('index')) {
+    return 'safetensors-index';
+  }
+
+  throw new Error(`Unknown input format: ${inputPath}`);
+}
+
+function inferConfigFromTensors(modelInfo: ModelInfo): void {
+  if (!modelInfo.config) {
+    modelInfo.config = {};
+  }
+  const config = modelInfo.config;
+
+  const qProj = modelInfo.tensors.find(t => t.name.includes('.0.self_attn.q_proj.weight'));
+  const kProj = modelInfo.tensors.find(t => t.name.includes('.0.self_attn.k_proj.weight'));
+  const qNorm = modelInfo.tensors.find(t => t.name.includes('.0.self_attn.q_norm.weight'));
+
+  const embed = modelInfo.tensors.find(t => t.name.includes('embed_tokens.weight'));
+  if (embed && !config.hidden_size) {
+    config.hidden_size = embed.shape[1];
+    console.log(`  Inferred hidden_size=${config.hidden_size} from embedding`);
+  }
+
+  if (!config.num_hidden_layers) {
+    const layerNums = modelInfo.tensors
+      .filter(t => t.name.includes('.layers.'))
+      .map(t => {
+        const match = t.name.match(/\.layers\.(\d+)\./);
+        return match ? parseInt(match[1]) : -1;
+      })
+      .filter(n => n >= 0);
+    if (layerNums.length > 0) {
+      config.num_hidden_layers = Math.max(...layerNums) + 1;
+      console.log(`  Inferred num_hidden_layers=${config.num_hidden_layers}`);
+    }
+  }
+
+  if (qNorm && !config.head_dim) {
+    config.head_dim = qNorm.shape[0];
+    console.log(`  Inferred head_dim=${config.head_dim} from q_norm`);
+  }
+
+  if (qProj && config.head_dim && !config.num_attention_heads) {
+    config.num_attention_heads = qProj.shape[0] / config.head_dim;
+    console.log(`  Inferred num_attention_heads=${config.num_attention_heads} from q_proj`);
+  }
+  if (kProj && config.head_dim && !config.num_key_value_heads) {
+    config.num_key_value_heads = kProj.shape[0] / config.head_dim;
+    console.log(`  Inferred num_key_value_heads=${config.num_key_value_heads} from k_proj`);
+  }
+
+  const gateProj = modelInfo.tensors.find(t => t.name.includes('.0.mlp.gate_proj.weight'));
+  if (gateProj && !config.intermediate_size) {
+    config.intermediate_size = gateProj.shape[0];
+    console.log(`  Inferred intermediate_size=${config.intermediate_size} from gate_proj`);
+  }
+
+  const arch = config.architectures?.[0] || '';
+  let expectedTheta = 10000;
+  if (arch.includes('Gemma')) {
+    expectedTheta = 1000000;
+  } else if (arch.includes('Llama') || arch.includes('Mistral') || arch.includes('Qwen')) {
+    expectedTheta = 10000;
+  } else if (arch.includes('GptOss')) {
+    expectedTheta = 150000;
+  }
+
+  if (!config.rope_theta) {
+    config.rope_theta = expectedTheta;
+    console.log(`  Set rope_theta=${config.rope_theta} for ${arch || 'unknown'}`);
+  } else if (config.rope_theta !== expectedTheta &&
+             (arch.includes('Mistral') || arch.includes('Llama'))) {
+    console.warn(`  Warning: rope_theta=${config.rope_theta} unusual for ${arch}, expected ${expectedTheta}`);
+  }
+
+  if (!config.head_dim && config.hidden_size && config.num_attention_heads) {
+    if (arch.includes('Gemma3') || arch.includes('Gemma 3')) {
+      config.head_dim = 256;
+    } else {
+      config.head_dim = Math.floor(config.hidden_size / config.num_attention_heads);
+    }
+    console.log(`  Inferred head_dim=${config.head_dim}`);
+  }
+
+  const required = ['hidden_size', 'num_hidden_layers', 'num_attention_heads'];
+  const missing = required.filter(k => !config[k]);
+  if (missing.length > 0) {
+    console.warn(`  Warning: Could not infer config values: ${missing.join(', ')}`);
+  }
+}
+
+function bf16ToF32(bf16: number): number {
+  const f32View = new Float32Array(1);
+  const u32View = new Uint32Array(f32View.buffer);
+  u32View[0] = bf16 << 16;
+  return f32View[0];
+}
+
+function convertToF32(buffer: ArrayBuffer, dtype: string): Float32Array {
+  if (dtype === 'F32') {
+    return new Float32Array(buffer);
+  }
+
+  if (dtype === 'F16') {
+    const f16 = new Uint16Array(buffer);
+    const f32 = new Float32Array(f16.length);
+    for (let i = 0; i < f16.length; i++) {
+      f32[i] = float16ToFloat32(f16[i]);
+    }
+    return f32;
+  }
+
+  if (dtype === 'BF16') {
+    const bf16 = new Uint16Array(buffer);
+    const f32 = new Float32Array(bf16.length);
+    for (let i = 0; i < bf16.length; i++) {
+      f32[i] = bf16ToF32(bf16[i]);
+    }
+    return f32;
+  }
+
+  throw new Error(`Unsupported dtype for conversion: ${dtype}`);
+}
+
+async function convertGGUF(inputPath: string, outputDir: string, options: ConvertOptions): Promise<ConvertResult> {
+  console.log(`\nParsing GGUF: ${inputPath}`);
+
+  const parsed = await parseGGUFFile(inputPath);
+  console.log(`  Architecture: ${parsed.architecture}`);
+  console.log(`  Quantization: ${parsed.quantization}`);
+  console.log(`  Tensors: ${parsed.tensors.length}`);
+  console.log(`  File size: ${formatBytes(parsed.fileSize)}`);
+
+  const fileBuffer = await readFile(inputPath);
+
+  const modelInfo: ModelInfo = {
+    architecture: parsed.architecture,
+    modelName: parsed.modelName,
+    quantization: parsed.quantization,
+    tensors: parsed.tensors.map(t => ({
+      name: t.name,
+      shape: t.shape,
+      dtype: t.dtype,
+      offset: t.offset,
+      size: t.size,
+      quantization: parsed.quantization,
+    })),
+    config: parsed.config as unknown as ModelConfig,
+    fileSize: parsed.fileSize,
+  };
+
+  const getTensorData = async (tensor: RDRRTensorInfo): Promise<ArrayBuffer> => {
+    // Find full tensor info from our local array
+    const localTensor = modelInfo.tensors.find(t => t.name === tensor.name)!;
+    const data = fileBuffer.buffer.slice(localTensor.offset, localTensor.offset + localTensor.size) as ArrayBuffer;
+    const modulesToNotConvert = modelInfo.config?.quantization_config?.modules_to_not_convert ?? null;
+
+    if (options.quantize === 'q4_k_m' && shouldQuantize(tensor.name, tensor.shape, modulesToNotConvert)) {
+      const sourceQuant = localTensor.quantization || modelInfo.quantization;
+
+      if (sourceQuant === 'F16' || sourceQuant === 'F32' || sourceQuant === 'BF16') {
+        const f32Data = convertToF32(data, sourceQuant);
+        const { quantized } = quantizeToQ4KM(f32Data, tensor.shape);
+        localTensor.dtype = 'Q4_K_M';
+        localTensor.size = quantized.length;
+
+        if (options.verbose) {
+          console.log(`  Re-quantized ${tensor.name}: ${sourceQuant} -> Q4_K_M`);
+        }
+
+        return quantized.buffer as ArrayBuffer;
+      }
+    }
+
+    return data;
+  };
+
+  inferConfigFromTensors(modelInfo);
+
+  const result = await writeRDRR(outputDir, modelInfo, getTensorData, {
+    modelId: options.modelId || modelInfo.modelName || 'unknown',
+    quantization: modelInfo.quantization || 'unknown',
+    shardSize: options.shardSize * 1024 * 1024,
+    onProgress: (progress: ProgressEvent) => {
+      if (progress.stage === 'writing' && options.verbose) {
+        process.stdout.write(`\r  Writing tensors: ${progressBar(progress.current, progress.total)} ${progress.tensorName?.slice(0, 30) || ''}`.padEnd(80));
+      } else if (progress.stage === 'complete') {
+        console.log(`\n  Complete!`);
+      }
+    },
+  });
+
+  return result;
+}
+
+async function convertSafetensors(inputPath: string, outputDir: string, options: ConvertOptions): Promise<ConvertResult> {
+  console.log(`\nParsing Safetensors: ${inputPath}`);
+
+  const parsed = await parseSafetensors(inputPath);
+  console.log(`  Tensors: ${parsed.tensors.length}`);
+
+  const isIndex = 'shards' in parsed;
+  if (isIndex) {
+    const indexParsed = parsed as ParsedSafetensorsIndex;
+    console.log(`  Shards: ${indexParsed.shards.length}`);
+  }
+
+  const config = parsed.config as ModelConfig | undefined;
+  if (config) {
+    console.log(`  Architecture: ${config.architectures?.[0] || 'unknown'}`);
+    console.log(`  Hidden size: ${config.hidden_size || 'unknown'}`);
+    console.log(`  Layers: ${config.num_hidden_layers || 'unknown'}`);
+  }
+
+  let tensors: TensorInfo[] = parsed.tensors.map(t => ({
+    name: t.name,
+    shape: t.shape,
+    dtype: t.dtype,
+    offset: t.offset,
+    size: t.size,
+    filePath: t.filePath,
+    shardPath: t.shardPath,
+  }));
+
+  const modelInfo: ModelInfo = {
+    tensors,
+    config: config || {},
+    shards: isIndex ? (parsed as ParsedSafetensorsIndex).shards : undefined,
+  };
+
+  if (options.textOnly) {
+    const originalCount = modelInfo.tensors.length;
+
+    modelInfo.tensors = modelInfo.tensors.filter(t => {
+      if (t.name.startsWith('vision_tower.')) return false;
+      if (t.name.startsWith('multi_modal_projector.')) return false;
+      return true;
+    });
+
+    for (const tensor of modelInfo.tensors) {
+      if (tensor.name.startsWith('language_model.')) {
+        tensor.name = tensor.name.replace('language_model.', '');
+      }
+    }
+
+    if (modelInfo.config?.text_config) {
+      const textConfig = modelInfo.config.text_config;
+      modelInfo.config = {
+        ...modelInfo.config,
+        ...textConfig,
+        architectures: ['Gemma3ForCausalLM'],
+      };
+      delete modelInfo.config.text_config;
+      delete modelInfo.config.vision_config;
+    }
+
+    console.log(`  Text-only: ${originalCount} -> ${modelInfo.tensors.length} tensors`);
+  }
+
+  inferConfigFromTensors(modelInfo);
+
+  const targetQuant = options.quantize || 'f16';
+
+  const shardBuffers = new Map<string, Buffer>();
+  if (options.fast) {
+    console.log(`  Pre-loading shard files into memory...`);
+    const uniqueShards = new Set<string>();
+    for (const tensor of modelInfo.tensors) {
+      const path = tensor.shardPath || tensor.filePath;
+      if (path) uniqueShards.add(path);
+    }
+    let totalLoaded = 0;
+    for (const shardPath of uniqueShards) {
+      const buffer = await readFile(shardPath);
+      shardBuffers.set(shardPath, buffer);
+      totalLoaded += buffer.length;
+      console.log(`    Loaded ${basename(shardPath)} (${formatBytes(buffer.length)})`);
+    }
+    console.log(`  Total loaded: ${formatBytes(totalLoaded)}`);
+  }
+
+  const getTensorData = async (tensor: RDRRTensorInfo): Promise<ArrayBuffer> => {
+    // Find full tensor info from our local array
+    const localTensor = modelInfo.tensors.find(t => t.name === tensor.name)!;
+    let data: ArrayBuffer;
+    const filePath = localTensor.shardPath || localTensor.filePath;
+
+    if (options.fast && filePath && shardBuffers.has(filePath)) {
+      const buffer = shardBuffers.get(filePath)!;
+      data = buffer.buffer.slice(localTensor.offset, localTensor.offset + localTensor.size) as ArrayBuffer;
+    } else {
+      data = await readTensorData(localTensor as SafetensorsTensor);
+    }
+
+    const floatDtypes = ['F32', 'F16', 'BF16'];
+    const modulesToNotConvert = modelInfo.config?.quantization_config?.modules_to_not_convert ?? null;
+    if (targetQuant === 'q4_k_m' && floatDtypes.includes(localTensor.dtype) && shouldQuantize(tensor.name, tensor.shape, modulesToNotConvert)) {
+      const f32Data = localTensor.dtype === 'F32'
+        ? new Float32Array(data)
+        : convertToF32(data, localTensor.dtype);
+
+      const { quantized } = quantizeToQ4KM(f32Data, tensor.shape);
+      localTensor.dtype = 'Q4_K_M';
+      localTensor.size = quantized.length;
+      return quantized.buffer as ArrayBuffer;
+    }
+
+    return data;
+  };
+
+  const result = await writeRDRR(outputDir, modelInfo, getTensorData, {
+    modelId: options.modelId || basename(inputPath).replace(/\.(safetensors|json)$/, ''),
+    quantization: targetQuant.toUpperCase(),
+    shardSize: options.shardSize * 1024 * 1024,
+    onProgress: (progress: ProgressEvent) => {
+      if (progress.stage === 'writing') {
+        process.stdout.write(`\r  Writing tensors: ${progressBar(progress.current, progress.total)} ${progress.tensorName?.slice(0, 30) || ''}`.padEnd(80));
+      } else if (progress.stage === 'complete') {
+        console.log(`\n  Complete!`);
+      }
+    },
+  });
+
+  return result;
+}
+
+async function main(): Promise<void> {
+  const args = process.argv.slice(2);
+  const options = parseArgs(args);
+
+  if (options.help) {
+    printHelp();
+    process.exit(0);
+  }
+
+  if (options.test) {
+    const outputDir = options.output || options.input || './test-model';
+    console.log(`Creating test model in: ${outputDir}`);
+
+    const result = await createTestModel(resolve(outputDir));
+    console.log(`\nTest model created:`);
+    console.log(`  Shards: ${result.shardCount}`);
+    console.log(`  Tensors: ${result.tensorCount}`);
+    console.log(`  Total size: ${formatBytes(result.totalSize)}`);
+    console.log(`  Manifest: ${result.manifestPath}`);
+    process.exit(0);
+  }
+
+  if (!options.input) {
+    console.error('Error: Input file/directory is required');
+    console.error('Use --help for usage information');
+    process.exit(1);
+  }
+
+  const inputPath = resolve(options.input);
+
+  let outputDir: string;
+  if (options.output) {
+    outputDir = resolve(options.output);
+  } else {
+    const inputBasename = basename(inputPath);
+    const modelName = inputBasename.replace(/\.(gguf|safetensors)$/i, '').replace(/\s+/g, '-').toLowerCase();
+    outputDir = join(__dirname, '..', 'models', modelName);
+    console.log(`Output directory not specified, using: ${outputDir}`);
+  }
+
+  try {
+    const format = await detectFormat(inputPath);
+    console.log(`Detected format: ${format}`);
+
+    let result: ConvertResult;
+
+    if (format === 'gguf') {
+      result = await convertGGUF(inputPath, outputDir, options);
+    } else if (format === 'safetensors' || format === 'safetensors-dir' || format === 'safetensors-index') {
+      result = await convertSafetensors(inputPath, outputDir, options);
+    } else {
+      throw new Error(`Unsupported format: ${format}`);
+    }
+
+    console.log(`\nConversion complete:`);
+    console.log(`  Output: ${outputDir}`);
+    console.log(`  Shards: ${result.shardCount}`);
+    console.log(`  Tensors: ${result.tensorCount}`);
+    console.log(`  Total size: ${formatBytes(result.totalSize)}`);
+    console.log(`  Manifest: ${result.manifestPath}`);
+
+  } catch (error) {
+    const err = error as Error;
+    console.error(`\nError: ${err.message}`);
+    if (options.verbose) {
+      console.error(err.stack);
+    }
+    process.exit(1);
+  }
+}
+
+main().catch((error) => {
+  console.error('Fatal error:', error);
+  process.exit(1);
+});
+
+export { parseArgs, detectFormat, convertGGUF, convertSafetensors, inferConfigFromTensors, formatBytes };
