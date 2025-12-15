@@ -446,7 +446,8 @@ export class DopplerLoader {
 
     for (const [name, info] of Object.entries(this.manifest.tensors)) {
       const tensorInfo = info as {
-        shard: number;
+        shard?: number;
+        shardIndex?: number;
         offset: number;
         size: number;
         shape: number[];
@@ -454,7 +455,7 @@ export class DopplerLoader {
         spans?: Array<{ shardIndex: number; offset: number; size: number }>;
       };
       this.tensorLocations.set(name, {
-        shardIndex: tensorInfo.shard,
+        shardIndex: tensorInfo.shardIndex ?? tensorInfo.shard ?? 0,
         offset: tensorInfo.offset,
         size: tensorInfo.size,
         shape: tensorInfo.shape,
@@ -487,6 +488,7 @@ export class DopplerLoader {
 
     // Fast path for multi-shard tensors when uploading to GPU
     if (location.spans && toGPU) {
+      console.log(`[DopplerLoader] Loading tensor "${name}" via spans path (${location.spans.length} spans, dtype=${location.dtype})`);
       const device = getDevice();
       if (!device) {
         console.warn('[DopplerLoader] GPU device not available; falling back to CPU assembly');
@@ -520,6 +522,7 @@ export class DopplerLoader {
 
         // BF16 tensors
         if (location.dtype === 'BF16') {
+          console.log(`[DopplerLoader] Loading BF16 tensor "${name}" with ${location.spans.length} spans, total size=${location.size}`);
           const srcBuffer = acquireBuffer(location.size, undefined, `${name}_bf16`);
           let tensorOffset = 0;
           for (const span of location.spans) {
@@ -532,15 +535,27 @@ export class DopplerLoader {
             const bytes = new Uint8Array(data, span.offset, span.size);
             device.queue.writeBuffer(srcBuffer, tensorOffset, bytes);
             tensorOffset += span.size;
+            console.log(`[DopplerLoader] Wrote span ${span.shardIndex}: offset=${tensorOffset}, first4bytes=[${bytes[0]}, ${bytes[1]}, ${bytes[2]}, ${bytes[3]}]`);
           }
 
           const numElements = location.size / 2;
-          const dstBuffer = await this._convertBF16ToF32GPU(srcBuffer, numElements, name);
-          releaseBuffer(srcBuffer);
-          if (dstBuffer instanceof GPUBuffer) {
-            this.gpuBuffers.add(dstBuffer);
+          console.log(`[DopplerLoader] Converting BF16→F32: ${numElements} elements`);
+          try {
+            // Ensure all writeBuffer operations are flushed to GPU before conversion
+            console.log(`[DopplerLoader] Waiting for GPU queue to flush...`);
+            await device.queue.onSubmittedWorkDone();
+            console.log(`[DopplerLoader] Calling _convertBF16ToF32GPU...`);
+            const dstBuffer = await this._convertBF16ToF32GPU(srcBuffer, numElements, name);
+            console.log(`[DopplerLoader] _convertBF16ToF32GPU returned, dstBuffer.size=${dstBuffer?.size}`);
+            releaseBuffer(srcBuffer);
+            if (dstBuffer instanceof GPUBuffer) {
+              this.gpuBuffers.add(dstBuffer);
+            }
+            return dstBuffer;
+          } catch (err) {
+            console.error(`[DopplerLoader] _convertBF16ToF32GPU failed:`, err);
+            throw err;
           }
-          return dstBuffer;
         }
 
         // Other dtypes
@@ -812,8 +827,44 @@ export class DopplerLoader {
     numElements: number,
     name: string
   ): Promise<GPUBuffer> {
-    const { runBF16ToF32 } = await import('../gpu/kernel-selector.js');
-    return runBF16ToF32(srcBuffer, numElements, name);
+    console.log(`[_convertBF16ToF32GPU] Importing cast.js...`);
+    const castModule = await import('../gpu/kernels/cast.js');
+    console.log(`[_convertBF16ToF32GPU] castModule keys:`, Object.keys(castModule));
+    const { runBF16ToF32 } = castModule;
+    console.log(`[_convertBF16ToF32GPU] runBF16ToF32 type: ${typeof runBF16ToF32}`);
+    const result = await runBF16ToF32(srcBuffer, numElements, name);
+    console.log(`[_convertBF16ToF32GPU] runBF16ToF32 returned, result.size=${result?.size}`);
+
+    // Debug: Verify conversion produced non-zero values
+    if (name.includes('embed') && name.includes('embed_tokens')) {
+      try {
+        console.log(`[_convertBF16ToF32GPU] Checking embed buffer for non-zeros...`);
+        const device = getDevice();
+        const sampleSize = Math.min(1024, result.size);
+        console.log(`[_convertBF16ToF32GPU] Creating staging buffer size=${sampleSize}`);
+        const stagingBuffer = device!.createBuffer({
+          size: sampleSize,
+          usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ,
+        });
+        console.log(`[_convertBF16ToF32GPU] Copying to staging buffer...`);
+        const encoder = device!.createCommandEncoder();
+        encoder.copyBufferToBuffer(result, 0, stagingBuffer, 0, sampleSize);
+        device!.queue.submit([encoder.finish()]);
+        console.log(`[_convertBF16ToF32GPU] Mapping staging buffer...`);
+        await stagingBuffer.mapAsync(GPUMapMode.READ);
+        console.log(`[_convertBF16ToF32GPU] Reading data...`);
+        const data = new Float32Array(stagingBuffer.getMappedRange().slice(0));
+        stagingBuffer.unmap();
+        stagingBuffer.destroy();
+        const nonZero = Array.from(data).filter(x => x !== 0);
+        const nanCount = data.filter(x => !Number.isFinite(x)).length;
+        console.log(`[BF16→F32 CHECK] nonZero=${nonZero.length}/${data.length}, nan=${nanCount}, sample=[${nonZero.slice(0, 5).map(x => x.toFixed(4)).join(', ')}]`);
+      } catch (err) {
+        console.error(`[_convertBF16ToF32GPU] ERROR checking embed buffer:`, (err as Error).message);
+      }
+    }
+
+    return result;
   }
 
   /**

@@ -20,7 +20,7 @@ import { SpeculativeDecoder } from './speculative.js';
 import { KVCache, SlidingWindowKVCache } from './kv-cache.js';
 import { Tokenizer } from './tokenizer.js';
 import { getDevice } from '../gpu/device.js';
-import { releaseBuffer } from '../gpu/buffer-pool.js';
+import { releaseBuffer, readBuffer } from '../gpu/buffer-pool.js';
 import { log, setGPUDevice } from '../debug/index.js';
 
 // Pipeline sub-modules
@@ -208,9 +208,9 @@ export class InferencePipeline {
     const tokenizerVocabSize = this.tokenizer.getVocabSize();
     if (Number.isFinite(tokenizerVocabSize) && tokenizerVocabSize > 0) {
       if (tokenizerVocabSize !== this.modelConfig.vocabSize) {
-        console.log(`[Pipeline] Using tokenizer vocabSize=${tokenizerVocabSize} (was ${this.modelConfig.vocabSize})`);
+        // Don't override - use model's vocab size for embedding compatibility
+        console.log(`[Pipeline] Tokenizer vocabSize=${tokenizerVocabSize} differs from model=${this.modelConfig.vocabSize}, using model size`);
       }
-      this.modelConfig.vocabSize = tokenizerVocabSize;
     }
 
     // Initialize KV cache
@@ -391,6 +391,8 @@ export class InferencePipeline {
 
     // Embed tokens
     const embedBuffer = this.weights.get('embed');
+    console.log(`[Pipeline] Embed buffer: type=${embedBuffer?.constructor?.name}, size=${embedBuffer?.size ?? 'N/A'}`);
+
     let hiddenStates = await embed(inputIds, embedBuffer, {
       hiddenSize: config.hiddenSize,
       vocabSize: config.vocabSize,
@@ -398,16 +400,51 @@ export class InferencePipeline {
       debug: opts.debug,
     });
 
+    // Debug: check hidden states after embedding
+    if (hiddenStates instanceof GPUBuffer) {
+      const sample = await readBuffer(hiddenStates, Math.min(512, hiddenStates.size));
+      const f32 = new Float32Array(sample);
+      const nanCount = f32.filter(x => !Number.isFinite(x)).length;
+      const nonZero = Array.from(f32).filter(x => x !== 0).slice(0, 5);
+      const sampleStr = nonZero.map(x => x.toFixed(4)).join(', ');
+      console.log(`[Pipeline] After embed: buffer.size=${hiddenStates.size}, nan=${nanCount}/${f32.length}, sample=[${sampleStr}]`);
+    }
+
     // Build layer context
     const context = this._buildLayerContext();
 
     // Process all layers
+    console.log(`[Pipeline] LAYER_LOOP_START: numLayers=${config.numLayers}, useGPU=${context.useGPU}, hiddenStates=${hiddenStates?.constructor?.name}`);
     for (let l = 0; l < config.numLayers; l++) {
+      console.log(`[Pipeline] LAYER_LOOP[${l}] begin`);
       const prevStates = hiddenStates;
       hiddenStates = await processLayer(l, hiddenStates, numTokens, true, context) as GPUBuffer;
+      if (l < 3) console.log(`[Pipeline] Layer ${l} done, hiddenStates type=${hiddenStates?.constructor?.name}`);
       if (prevStates instanceof GPUBuffer && prevStates !== hiddenStates) {
         releaseBuffer(prevStates);
       }
+
+    }
+
+    // Debug: check final hidden states before logits
+    console.log(`[Pipeline] LAYER_LOOP_DONE, hiddenStates type=${hiddenStates?.constructor?.name}`);
+    if (hiddenStates instanceof GPUBuffer) {
+      const device = getDevice();
+      const sampleSize = Math.min(512, hiddenStates.size);
+      const staging = device.createBuffer({
+        size: sampleSize,
+        usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ,
+      });
+      const enc = device.createCommandEncoder();
+      enc.copyBufferToBuffer(hiddenStates, 0, staging, 0, sampleSize);
+      device.queue.submit([enc.finish()]);
+      await staging.mapAsync(GPUMapMode.READ);
+      const data = new Float32Array(staging.getMappedRange().slice(0));
+      staging.unmap();
+      staging.destroy();
+      const nanCount = Array.from(data).filter(x => !Number.isFinite(x)).length;
+      const nonZero = Array.from(data).filter(x => Number.isFinite(x) && x !== 0).slice(0, 5);
+      console.log(`[Pipeline] FINAL_HIDDEN: nan=${nanCount}/${data.length}, sample=[${nonZero.map(x => x.toFixed(4)).join(', ')}]`);
     }
 
     // Compute logits
