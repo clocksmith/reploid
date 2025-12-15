@@ -461,8 +461,13 @@ export class InferencePipeline {
 
     this.currentSeqLen = numTokens;
 
-    // Return last position logits
-    return extractLastPositionLogits(logits, numTokens, config.vocabSize);
+    // Extract last position logits
+    const lastLogits = extractLastPositionLogits(logits, numTokens, config.vocabSize);
+
+    // Log prefill logits for debug
+    logitsSanity(lastLogits, 'Prefill', { vocabSize: config.vocabSize });
+
+    return lastLogits;
   }
 
   private async _decodeStep(currentIds: number[], opts: any): Promise<number> {
