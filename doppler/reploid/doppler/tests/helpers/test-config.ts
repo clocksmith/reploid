@@ -12,12 +12,12 @@
 // ============================================
 
 export const URLS = {
-  // Demo UI served from root
+  // Demo UI served from DOPPLER server
   demo: 'http://localhost:8080/demo/',
   // Minimal test page
   minimal: 'http://localhost:8080/tests/test-minimal.html',
   // Model server (for direct mode)
-  modelServer: 'http://localhost:8765',
+  modelServer: 'http://localhost:8080',
 };
 
 // ============================================
@@ -327,8 +327,14 @@ export function parseArgs(args: string[]): ParsedArgs {
       result.headless = true;
     } else if (arg === '--headed') {
       result.headless = false;
-    } else if (arg === '--inspect') {
-      result.inspectTime = parseInt(args[++i] || '30000', 10);
+    } else if (arg === '--inspect' || arg === '-i') {
+      const next = args[i + 1];
+      if (next && !next.startsWith('-')) {
+        result.inspectTime = parseInt(next, 10);
+        i++;
+      } else {
+        result.inspectTime = 10000; // default 10s
+      }
     } else if (!arg.startsWith('-') && !result.model) {
       // Positional: model name
       result.model = arg;
@@ -360,7 +366,7 @@ Options:
   --prompt <text> Custom prompt (default: "${DEFAULT_PROMPT}")
   --headless      Run browser in headless mode
   --headed        Run browser with visible window
-  --inspect <ms>  Keep browser open for inspection (default: 0)
+  -i, --inspect [ms]  Keep browser open for inspection (default: 10000ms)
   -h, --help      Show this help
 
 Examples:

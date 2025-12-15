@@ -1259,6 +1259,66 @@ app.use((req, res, next) => {
   }
   next();
 });
+
+// Main routes
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, '..', 'landing.html'));
+});
+
+app.get('/r', (req, res) => {
+  res.sendFile(path.join(__dirname, '..', 'index.html'));
+});
+
+app.get('/d', (req, res) => {
+  res.sendFile(path.join(__dirname, '..', 'doppler', 'demo', 'index.html'));
+});
+
+// DOPPLER model serving
+const dopplerModelsDir = path.join(__dirname, '..', 'doppler', 'models');
+
+app.get('/api/models', async (req, res) => {
+  try {
+    const entries = await fs.promises.readdir(dopplerModelsDir, { withFileTypes: true });
+    const models = [];
+    for (const entry of entries) {
+      if (!entry.isDirectory()) continue;
+      const modelPath = `models/${entry.name}`;
+      const manifestPath = path.join(dopplerModelsDir, entry.name, 'manifest.json');
+      try {
+        const manifestData = await fs.promises.readFile(manifestPath, 'utf-8');
+        const manifest = JSON.parse(manifestData);
+        const config = manifest.config || {};
+        const textConfig = config.text_config || config;
+        const totalSize = (manifest.shards || []).reduce((sum, s) => sum + (s.size || 0), 0);
+        models.push({
+          path: modelPath,
+          name: entry.name,
+          architecture: manifest.architecture || config.architectures?.[0] || null,
+          quantization: manifest.quantization || null,
+          size: textConfig.hidden_size ? `${textConfig.num_hidden_layers || 0}L/${textConfig.hidden_size}H` : null,
+          downloadSize: totalSize,
+          vocabSize: textConfig.vocab_size || null,
+          numLayers: textConfig.num_hidden_layers || null,
+        });
+      } catch {
+        models.push({ path: modelPath, name: entry.name });
+      }
+    }
+    res.json(models);
+  } catch {
+    res.json([]);
+  }
+});
+
+// Serve model files with range request support
+app.use('/models', express.static(dopplerModelsDir, {
+  acceptRanges: true,
+  setHeaders: (res, filePath) => {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Expose-Headers', 'Content-Length, Content-Range');
+  }
+}));
+
 app.use(express.static(path.join(__dirname, '..'), {
   setHeaders: (res, filePath) => {
     if (filePath.endsWith('.wgsl')) {

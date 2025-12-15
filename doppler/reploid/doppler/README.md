@@ -150,9 +150,9 @@ npx tsx convert-cli.ts gpt-oss-20b/ ./output
 - [Docs Index](docs/INDEX.md) - Quick map of all DOPPLER docs
 - [Architecture Overview](docs/ARCHITECTURE.md) - System design and data flow
 - [Glossary](docs/GLOSSARY.md) - Definitions for key terms and acronyms
-- [Pipeline Details](docs/PIPELINE.md) - Detailed inference pipeline docs
-- [Optimization Roadmap](docs/OPTIMIZATION_ROADMAP.md) - Performance improvements
-- [Competitive Analysis](docs/COMPETITIVE.md) - Comparison with other solutions
+- [Inference README](inference/README.md) - Detailed inference flow and kernel graphs
+- [Optimization Roadmap](docs/plans/OPTIMIZATION_ROADMAP.md) - Performance improvements
+- [Competitive Analysis](docs/analysis/COMPETITIVE.md) - Comparison with other solutions
 - [P2P Distribution](docs/proposals/P2P.md) - Peer-to-peer model sharing (proposal)
 
 ## Requirements

@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>REPLOID / DOPPLER</title>
+  <link rel="stylesheet" href="styles/landing.css">
+</head>
+<body>
+  <main class="landing">
+    <!-- Orbital rings -->
+    <div class="orbit-container" id="orbit">
+      <!-- Inner ring: REPLOID (7 letters, 360/7 = 51.4deg each) -->
+      <div class="ring inner" data-word="REPLOID">
+        <span style="--i:0; --rot:0deg">R</span>
+        <span style="--i:1; --rot:51.4deg">E</span>
+        <span style="--i:2; --rot:102.8deg">P</span>
+        <span style="--i:3; --rot:154.3deg">L</span>
+        <span style="--i:4; --rot:205.7deg">O</span>
+        <span style="--i:5; --rot:257.1deg">I</span>
+        <span style="--i:6; --rot:308.6deg" class="link" data-link="D">D</span>
+      </div>
+      <!-- Outer ring: DOPPLER (7 letters) -->
+      <div class="ring outer" data-word="DOPPLER">
+        <span style="--i:0; --rot:0deg">D</span>
+        <span style="--i:1; --rot:51.4deg">O</span>
+        <span style="--i:2; --rot:102.8deg">P</span>
+        <span style="--i:3; --rot:154.3deg">P</span>
+        <span style="--i:4; --rot:205.7deg">L</span>
+        <span style="--i:5; --rot:257.1deg">E</span>
+        <span style="--i:6; --rot:308.6deg" class="link" data-link="R">R</span>
+      </div>
+      <!-- Ripples from center -->
+      <div class="ripple r1"></div>
+      <div class="ripple r2"></div>
+      <div class="ripple r3"></div>
+    </div>
+
+    <!-- Project links below rings -->
+    <nav class="projects">
+      <a href="/r" class="project reploid">
+        <div class="box-recursive">
+          <div class="box-inner">
+            <span class="label">REPLOID</span>
+            <span class="desc">Browser sandbox for recursive self-improvement</span>
+          </div>
+        </div>
+      </a>
+      <span class="cycle">↕</span>
+      <a href="/d" class="project doppler">
+        <div class="box-recursive">
+          <div class="box-inner">
+            <span class="label">DOPPLER</span>
+            <span class="desc">WebGPU inference engine for distributed LLMs</span>
+          </div>
+        </div>
+      </a>
+    </nav>
+  </main>
+
+  <script>
+    const orbit = document.getElementById('orbit');
+    const innerRing = document.querySelector('.ring.inner');
+    const outerRing = document.querySelector('.ring.outer');
+    const reploidProject = document.querySelector('.project.reploid');
+    const dopplerProject = document.querySelector('.project.doppler');
+    const linkLetters = document.querySelectorAll('.ring span.link');
+    const innerSpans = document.querySelectorAll('.ring.inner span');
+    const outerSpans = document.querySelectorAll('.ring.outer span');
+
+    // Ring momentum state
+    const ringState = {
+      inner: { speed: 30, momentum: 0 },
+      outer: { speed: 30, momentum: 0 }
+    };
+
+    // Apply speed to ring
+    function applySpeed(ring, speed) {
+      ring.style.animationDuration = Math.max(5, Math.min(60, speed)) + 's';
+    }
+
+    // Momentum decay
+    function updateMomentum() {
+      ['inner', 'outer'].forEach(key => {
+        const state = ringState[key];
+        if (Math.abs(state.momentum) > 0.1) {
+          state.speed += state.momentum * 0.1;
+          state.speed = Math.max(5, Math.min(60, state.speed));
+          state.momentum *= 0.95; // decay
+          applySpeed(key === 'inner' ? innerRing : outerRing, state.speed);
+        }
+      });
+      requestAnimationFrame(updateMomentum);
+    }
+    updateMomentum();
+
+    // Click/tap on rings to add random momentum
+    innerRing.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const impulse = (Math.random() - 0.5) * 40;
+      ringState.inner.momentum += impulse;
+    });
+
+    outerRing.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const impulse = (Math.random() - 0.5) * 40;
+      ringState.outer.momentum += impulse;
+    });
+
+    // Click orbit center to pause/resume
+    orbit.addEventListener('click', (e) => {
+      if (e.target === orbit) {
+        orbit.classList.toggle('paused');
+      }
+    });
+
+    // Hover to speed up (desktop)
+    orbit.addEventListener('mouseenter', () => {
+      if (!orbit.classList.contains('paused')) orbit.classList.add('fast');
+    });
+    orbit.addEventListener('mouseleave', () => {
+      orbit.classList.remove('fast');
+    });
+
+    // Entanglement: Project hover affects orbital
+    reploidProject.addEventListener('mouseenter', () => {
+      orbit.classList.add('entangle-reploid');
+    });
+    reploidProject.addEventListener('mouseleave', () => {
+      orbit.classList.remove('entangle-reploid');
+    });
+    dopplerProject.addEventListener('mouseenter', () => {
+      orbit.classList.add('entangle-doppler');
+    });
+    dopplerProject.addEventListener('mouseleave', () => {
+      orbit.classList.remove('entangle-doppler');
+    });
+
+    // Bisymmetry: Hovering link letters highlights both D and R
+    linkLetters.forEach(letter => {
+      letter.addEventListener('mouseenter', () => {
+        orbit.classList.add('bisymmetry');
+      });
+      letter.addEventListener('mouseleave', () => {
+        orbit.classList.remove('bisymmetry');
+      });
+    });
+
+    // Letter crossing detection
+    function getLetterAngle(span) {
+      const ring = span.closest('.ring');
+      const computedStyle = window.getComputedStyle(ring);
+      const matrix = new DOMMatrix(computedStyle.transform);
+      const ringAngle = Math.atan2(matrix.b, matrix.a) * (180 / Math.PI);
+      const baseAngle = parseFloat(span.style.getPropertyValue('--rot')) || 0;
+      return (ringAngle + baseAngle + 360) % 360;
+    }
+
+    function checkCrossings() {
+      const threshold = 15;
+      let hasCrossing = false;
+
+      innerSpans.forEach(inner => {
+        const innerAngle = getLetterAngle(inner);
+        outerSpans.forEach(outer => {
+          const outerAngle = getLetterAngle(outer);
+          const diff = Math.abs((innerAngle - (360 - outerAngle) + 360) % 360);
+          const isClose = diff < threshold || diff > (360 - threshold);
+
+          if (isClose) {
+            hasCrossing = true;
+            inner.classList.add('crossing');
+            outer.classList.add('crossing');
+
+            const innerLetter = inner.textContent;
+            const outerLetter = outer.textContent;
+            if ((innerLetter === 'R' || innerLetter === 'D') &&
+                (outerLetter === 'R' || outerLetter === 'D')) {
+              orbit.classList.add('vertex-crossing');
+            }
+          } else {
+            inner.classList.remove('crossing');
+            outer.classList.remove('crossing');
+          }
+        });
+      });
+
+      if (!hasCrossing) {
+        orbit.classList.remove('vertex-crossing');
+      }
+
+      requestAnimationFrame(checkCrossings);
+    }
+
+    checkCrossings();
+  </script>
+</body>
+</html>

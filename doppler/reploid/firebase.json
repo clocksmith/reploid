@@ -18,6 +18,14 @@
       "*.md",
       "test-results/**",
       "playwright-report/**"
+    ],
+    "rewrites": [
+      { "source": "/r", "destination": "/index.html" },
+      { "source": "/r/**", "destination": "/index.html" },
+      { "source": "/d", "destination": "/doppler/demo/index.html" },
+      { "source": "/d/**", "destination": "/doppler/demo/index.html" },
+      { "source": "/api/models", "destination": "/api-models.json" },
+      { "source": "/", "destination": "/landing.html" }
     ]
   }
 }

@@ -2,6 +2,8 @@
 
 Defines a standardized benchmark harness for DOPPLER so performance claims are measurable and comparable across devices, browsers, and competing runtimes.
 
+See also: `docs/plans/OPTIMIZATION_ROADMAP.md` for benchmark work items.
+
 ---
 
 ## Goals
@@ -18,7 +20,9 @@ Defines a standardized benchmark harness for DOPPLER so performance claims are m
 The harness benchmarks three layers:
 
 1. **Kernel microbench**: single-op timings (matmul, attention, dequant) with synthetic tensors.
+   - Implemented in `doppler/kernel-tests/tests/benchmarks/`.
 2. **Pipeline benchmarks**: prefill and decode loops using a real model manifest.
+   - Planned for DOPPLER. Results should follow the JSON schema in this doc.
 3. **System benchmarks**: download and storage behavior (HTTP vs OPFS vs Native Bridge, and later P2P).
 
 ---
@@ -188,11 +192,9 @@ For WebLLM comparisons, record:
 
 ## Recommended Repo Layout (Non-binding)
 
-- `tests/benchmark/`:
-  - `runner.html`: browser runner UI that produces JSON
-  - `runner.ts`: orchestration for pipeline benchmarks
-  - `workloads.json`: standard prompt set and settings
-  - `results/`: saved JSON outputs
+- Kernel microbenchmarks: `doppler/kernel-tests/`
+- Pipeline benchmark harness (recommended): `doppler/reploid/doppler/tests/benchmark/`
+- Saved result JSON (recommended): `doppler/reploid/doppler/tests/results/`
 
 This document specifies what must be measured, not how the code is organized.
 
