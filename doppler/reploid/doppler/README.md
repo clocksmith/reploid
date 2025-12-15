@@ -4,6 +4,8 @@
 
 Browser-native LLM inference engine powered by WebGPU.
 
+**[Try it live at replo.id/d](https://replo.id/d)**
+
 ## The REPLOID Ecosystem
 
 | Component | Acronym | Role |
