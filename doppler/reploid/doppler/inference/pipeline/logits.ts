@@ -13,6 +13,7 @@
 import { getDevice } from '../../gpu/device.js';
 import { acquireBuffer, releaseBuffer, readBuffer } from '../../gpu/buffer-pool.js';
 import { runMatmul, runRMSNorm } from '../../gpu/kernel-selector.js';
+import { getBufferDtype } from '../../gpu/buffer-dtypes.js';
 
 // ============================================================================
 // Types
@@ -147,6 +148,7 @@ export async function computeLogits(
   getNormWeightBuffer?: (weight: any, label: string) => GPUBuffer,
   debugCheckBuffer?: (buffer: GPUBuffer, label: string, numTokens: number, expectedDim?: number) => Promise<void>
 ): Promise<Float32Array> {
+  console.log(`[Pipeline] LOGITS_ENTRY: numTokens=${numTokens}, useGPU=${useGPU}`);
   const { hiddenSize, vocabSize, rmsNormEps, useTiedEmbeddings, embeddingVocabSize } = config;
   const { finalNorm, lmHead } = weights;
   const device = getDevice();
@@ -160,6 +162,7 @@ export async function computeLogits(
   const inputIsGPU = hiddenStates instanceof GPUBuffer;
 
   // CPU fallback path
+  console.log(`[Pipeline] LOGITS_PATH: device=${!!device}, useGPU=${useGPU}, taking ${(!device || !useGPU) ? 'CPU' : 'GPU'} path`);
   if (!device || !useGPU) {
     let cpuHiddenStates: Float32Array;
     if (inputIsGPU) {
@@ -228,6 +231,11 @@ export async function computeLogits(
   const matmulVocabSize = useTiedEmbeddings && embeddingVocabSize
     ? embeddingVocabSize
     : vocabSize;
+
+  // Debug: Log buffer info for lm_head matmul
+  const lmHeadDtype = getBufferDtype(lmHeadBuffer);
+  const normedDtype = getBufferDtype(normedBuffer);
+  console.log(`[Pipeline] LM_HEAD_MATMUL: M=${numTokens}, N=${matmulVocabSize}, K=${hiddenSize}, lmHeadDtype=${lmHeadDtype}, normedDtype=${normedDtype}, size=${lmHeadBuffer.size}`);
 
   // HuggingFace models store lm_head as [vocabSize, hiddenSize], so transposeB=true
   const logitsBuffer = await runMatmul(normedBuffer, lmHeadBuffer, numTokens, matmulVocabSize, hiddenSize, {

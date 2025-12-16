@@ -54,9 +54,9 @@ export default defineConfig({
     },
   ],
 
-  // Development server
+  // Development server (doppler-only mode for isolated testing)
   webServer: {
-    command: 'npx tsx serve.ts',
+    command: 'npx tsx serve.ts --doppler-only',
     url: 'http://localhost:8080',
     reuseExistingServer: !process.env.CI,
     timeout: 30000,

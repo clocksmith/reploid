@@ -35,6 +35,7 @@ export interface ServerOptions {
   port: number;
   open: boolean;
   help: boolean;
+  dopplerOnly: boolean;
 }
 
 export interface ModelInfo {
@@ -53,6 +54,7 @@ function parseArgs(argv: string[]): ServerOptions {
     port: 8080,
     open: false,
     help: false,
+    dopplerOnly: false,
   };
 
   for (let i = 0; i < argv.length; i++) {
@@ -63,6 +65,8 @@ function parseArgs(argv: string[]): ServerOptions {
       args.port = parseInt(argv[++i], 10);
     } else if (arg === '--open' || arg === '-o') {
       args.open = true;
+    } else if (arg === '--doppler-only' || arg === '-d') {
+      args.dopplerOnly = true;
     }
   }
 
@@ -71,23 +75,29 @@ function parseArgs(argv: string[]): ServerOptions {
 
 function printHelp(): void {
   console.log(`
-DOPPLER Development Server
+Static Development Server
 
-Serves the demo UI and model files from a single server.
+Serves the landing page, Reploid, and Doppler apps with Firebase-style rewrites.
 
 Usage:
-  node serve.js [options]
+  npx tsx doppler/serve.ts [options]
 
 Options:
-  --port, -p <num>   Port to serve on (default: 8080)
-  --open, -o         Open browser automatically
-  --help, -h         Show this help
+  --port, -p <num>     Port to serve on (default: 8080)
+  --open, -o           Open browser automatically
+  --doppler-only, -d   Serve only Doppler at / (for isolated testing)
+  --help, -h           Show this help
 
-Demo URL:
-  http://localhost:<port>/demo/
+URLs (default mode):
+  http://localhost:<port>/      Landing page
+  http://localhost:<port>/r     Reploid app
+  http://localhost:<port>/d     Doppler app
+
+URLs (--doppler-only mode):
+  http://localhost:<port>/      Doppler app directly
 
 Models are served from:
-  http://localhost:<port>/models/<model-name>/
+  http://localhost:<port>/doppler/models/<model-name>/
 `);
 }
 
@@ -118,8 +128,11 @@ async function main(): Promise<void> {
     process.exit(0);
   }
 
-  const { port } = args;
-  const rootDir = __dirname;
+  const { port, dopplerOnly } = args;
+  // In doppler-only mode, serve from doppler/ directory
+  // In default mode, serve from project root with rewrites
+  const dopplerDir = __dirname;
+  const rootDir = dopplerOnly ? dopplerDir : join(__dirname, '..');
 
   function serveFile(filePath: string, stats: Stats, req: IncomingMessage, res: ServerResponse): void {
     const ext = extname(filePath).toLowerCase();
@@ -185,8 +198,9 @@ async function main(): Promise<void> {
       const url = new URL(req.url || '/', `http://localhost:${port}`);
       let pathname = decodeURIComponent(url.pathname);
 
+      // API endpoint for models (always from doppler/models)
       if (pathname === '/api/models') {
-        const modelsDir = join(rootDir, 'models');
+        const modelsDir = join(dopplerDir, 'models');
         try {
           const entries = await readdir(modelsDir, { withFileTypes: true });
           const models: ModelInfo[] = [];
@@ -222,15 +236,28 @@ async function main(): Promise<void> {
         }
       }
 
-      if (pathname === '/' || pathname === '') {
-        pathname = '/index.html';
+      // Firebase-style rewrites (only in default mode, not doppler-only)
+      if (!dopplerOnly) {
+        if (pathname === '/') {
+          pathname = '/landing.html';
+        } else if (pathname === '/r' || pathname.startsWith('/r/')) {
+          pathname = '/reploid.html';
+        } else if (pathname === '/d' || pathname.startsWith('/d/')) {
+          pathname = '/doppler/index.html';
+        }
+      } else {
+        // Doppler-only mode: serve index.html at /
+        if (pathname === '/' || pathname === '') {
+          pathname = '/index.html';
+        }
       }
 
       const safePath = pathname.replace(/^(\.\.[/\\])+/, '').replace(/\.\./g, '');
       const filePath = join(rootDir, safePath);
 
       const resolved = resolve(filePath);
-      if (!resolved.startsWith(rootDir)) {
+      const resolvedRoot = resolve(rootDir);
+      if (!resolved.startsWith(resolvedRoot)) {
         res.writeHead(403);
         return res.end('Forbidden');
       }
@@ -263,18 +290,33 @@ async function main(): Promise<void> {
   });
 
   server.listen(port, () => {
-    const demoUrl = `http://localhost:${port}/demo/`;
-    console.log(`
-DOPPLER Development Server
-==========================
-Demo:   ${demoUrl}
-Models: http://localhost:${port}/models/
+    const baseUrl = `http://localhost:${port}`;
+    if (dopplerOnly) {
+      console.log(`
+DOPPLER Development Server (doppler-only mode)
+==============================================
+App:    ${baseUrl}/
+Models: ${baseUrl}/models/
 
 Press Ctrl+C to stop
 `);
+      if (args.open) {
+        openBrowser(baseUrl);
+      }
+    } else {
+      console.log(`
+Static Development Server
+=========================
+Landing: ${baseUrl}/
+Reploid: ${baseUrl}/r
+Doppler: ${baseUrl}/d
+Models:  ${baseUrl}/doppler/models/
 
-    if (args.open) {
-      openBrowser(demoUrl);
+Press Ctrl+C to stop
+`);
+      if (args.open) {
+        openBrowser(baseUrl);
+      }
     }
   });
 

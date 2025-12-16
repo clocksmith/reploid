@@ -31,10 +31,10 @@ export default defineConfig({
 
   // Start local dev server before tests
   webServer: {
-    command: 'python3 -m http.server 8000',
+    command: 'npx tsx doppler/serve.ts --port 8000',
     url: 'http://localhost:8000',
     reuseExistingServer: !process.env.CI,
-    timeout: 10000,
+    timeout: 15000,
     stderr: 'pipe',
     stdout: 'pipe',
   },

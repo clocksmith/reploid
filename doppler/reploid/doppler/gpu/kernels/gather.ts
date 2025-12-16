@@ -76,6 +76,7 @@ export async function runGather(
 
   uniformBuffer.destroy();
 
+  setBufferDtype(output, 'f32');
   return output;
 }
 

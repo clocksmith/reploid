@@ -12,8 +12,9 @@ See the main [README](../../README.md) for full documentation.
 
 ```bash
 npm install
-npm run dev
-# Open http://localhost:8080
+npm run serve     # Landing page + /r (Reploid) + /d (Doppler) at :8080
+npm run dev       # Full dev server with API proxies at :8000
+npm run doppler   # Doppler-only mode at :8080
 ```
 
 ## Related

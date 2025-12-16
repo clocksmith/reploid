@@ -16,7 +16,9 @@
   "scripts": {
     "start": "node server/proxy.js",
     "reploid": "node server/proxy.js",
-    "doppler": "tsx doppler/serve.ts --open",
+    "serve": "tsx doppler/serve.ts",
+    "serve:doppler": "tsx doppler/serve.ts --doppler-only",
+    "doppler": "tsx doppler/serve.ts --doppler-only --open",
     "cli": "node bin/reploid-cli.js",
     "build:genesis": "node scripts/build-genesis-manifest.js",
     "dev": "nodemon server/proxy.js",
