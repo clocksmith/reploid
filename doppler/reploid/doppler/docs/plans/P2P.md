@@ -1,8 +1,21 @@
-# DOPPLER P2P Architecture
+# DOPPLER P2P Distribution Plan
 
 Peer-to-peer model distribution and remote inference for browser-based LLMs.
 
-Status: Proposal. Not implemented.
+**Status:** Planning. Not implemented.
+
+**Related:** See [COMPETITIVE.md](../analysis/COMPETITIVE.md#p2p-model-distribution-landscape) for P2P landscape analysis.
+
+## Competitive Context
+
+| Project | Approach | Browser Support | Notes |
+|---------|----------|-----------------|-------|
+| **IPFS** | DHT-based P2P | Via js-ipfs | Content-addressed, versioned |
+| **WebTorrent** | BitTorrent over WebRTC | Native | Tracker-based discovery |
+| **Petals** | Distributed inference | WebSocket only | Server-side Python, 405B models |
+| **WebFLex** | Federated learning | WebRTC | Training, not inference |
+
+DOPPLER's approach: WebTorrent for shard distribution (MVP), with optional IPFS fallback.
 
 ## Overview
 

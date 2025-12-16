@@ -70,6 +70,10 @@ export interface LayerWeights {
   ffnGate: GPUBuffer | Float32Array | null;
   ffnUp: GPUBuffer | Float32Array | null;
   ffnDown: GPUBuffer | Float32Array | null;
+  // Aliases for pipeline compatibility
+  gate?: GPUBuffer | Float32Array | null;
+  up?: GPUBuffer | Float32Array | null;
+  down?: GPUBuffer | Float32Array | null;
   routerWeight?: GPUBuffer | Float32Array | null;
   routerBias?: GPUBuffer | Float32Array | null;
   attentionSinks?: GPUBuffer | Float32Array | null;
@@ -991,6 +995,10 @@ export class DopplerLoader {
       weights.ffnGate = await tryLoad(['mlp.gate_proj.weight', 'feed_forward.w1.weight', 'ffn_gate.weight']);
       weights.ffnUp = await tryLoad(['mlp.up_proj.weight', 'feed_forward.w3.weight', 'ffn_up.weight']);
       weights.ffnDown = await tryLoad(['mlp.down_proj.weight', 'feed_forward.w2.weight', 'ffn_down.weight']);
+      // Set aliases for pipeline compatibility (pipeline expects gate/up/down, not ffnGate/ffnUp/ffnDown)
+      weights.gate = weights.ffnGate;
+      weights.up = weights.ffnUp;
+      weights.down = weights.ffnDown;
     }
 
     if (this.isMoE && this._isExpertLayer(layerIdx)) {

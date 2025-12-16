@@ -100,6 +100,8 @@ export async function runLayerAttentionGPU(
 
   const device = getDevice();
 
+  // Debug logging moved to debug-utils.ts (enable via setDebugConfig)
+
   if (!layerWeights) {
     // Return zeros if no weights
     const output = acquireBuffer(numTokens * hiddenSize * 4, undefined, 'attn_output');
@@ -215,7 +217,9 @@ export async function runLayerAttentionGPU(
   let causalForAttention = true;
   let startPosForMask = currentSeqLen;
 
-  if (state.kvCache?.hasGPUCache?.()) {
+  const hasCache = state.kvCache?.hasGPUCache?.();
+
+  if (hasCache) {
     if (state.kvCache.kvDtype === 'f16') {
       const kElems = kvSize;
       const kF16 = await castF32ToF16(K, kElems);

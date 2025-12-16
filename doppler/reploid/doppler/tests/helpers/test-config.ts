@@ -100,7 +100,7 @@ export const MODELS: ModelConfigs = {
 // Default Test Prompt
 // ============================================
 
-export const DEFAULT_PROMPT = 'the color of the sky is';
+export const DEFAULT_PROMPT = 'Hello world';
 
 // ============================================
 // Token Quality Validation
@@ -197,6 +197,11 @@ export const BASE_LOG_PATTERNS = [
   '[_convertBF16',  // Debug: BF16 conversion
   'Checking',  // Debug
   'Creating staging',  // Debug
+  '[ATT]',  // Attention debug
+  '[ATT_DEBUG]',  // Attention debug
+  '[ATT_PARAMS]',  // Attention debug
+  '[Attention]',  // Attention debug
+  '[Decode]',  // Decode step debug
   'Copying',  // Debug
   'Mapping staging',  // Debug
   'Reading data',  // Debug
@@ -209,6 +214,9 @@ export const BASE_LOG_PATTERNS = [
   'LAYER_LOOP',  // Debug: layer processing
   'FINAL_HIDDEN',  // Debug: final hidden state check
   'LOOP_DONE',  // Debug: layer loop done
+  'LAYER_ROUTE',  // Debug: layer routing
+  'LAYER_GPU',  // Debug: GPU layer entry
+  'LAYER_DEBUG',  // Debug: layer debug output
 ];
 
 /**

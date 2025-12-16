@@ -24,7 +24,7 @@ import { releaseBuffer, readBuffer } from '../gpu/buffer-pool.js';
 import { log, setGPUDevice } from '../debug/index.js';
 
 // Pipeline sub-modules
-import { sample, applyRepetitionPenalty, logitsSanity, type SamplingOptions } from './pipeline/sampling.js';
+import { sample, applyRepetitionPenalty, logitsSanity, getTopK, type SamplingOptions } from './pipeline/sampling.js';
 import { parseModelConfig, type ParsedModelConfig, type Manifest } from './pipeline/config.js';
 import {
   normalizeAttentionKernel,
@@ -327,13 +327,25 @@ export class InferencePipeline {
       const prefillLogits = await this._prefill(inputIds, opts);
       this.stats.prefillTimeMs = performance.now() - prefillStart;
 
+      // Debug: show input tokens
+      const inputTokenTexts = inputIds.map(id => `${id}="${this.tokenizer?.decode?.([id]) || '?'}"`).join(', ');
+      console.log(`[Pipeline] Input tokens (${inputIds.length}): ${inputTokenTexts}`);
+
       // Apply repetition penalty and sample first token
       applyRepetitionPenalty(prefillLogits, generatedIds, opts.repetitionPenalty);
+
+      // Debug: check logits after repetition penalty
+      const topAfterPenalty = getTopK(prefillLogits, 5, (tokens) => this.tokenizer?.decode?.(tokens) || '?');
+      console.log(`[Pipeline] After rep penalty top-5: ${topAfterPenalty.map(t => `"${t.text}"(${(t.prob * 100).toFixed(1)}%)`).join(', ')}`);
+
       const firstToken = sample(prefillLogits, {
         temperature: opts.temperature,
         topP: opts.topP,
         topK: opts.topK,
       });
+
+      console.log(`[Pipeline] First token sampled: id=${firstToken} text="${this.tokenizer?.decode?.([firstToken]) || '?'}"`);
+
       generatedIds.push(firstToken);
 
       // Yield first token
@@ -488,6 +500,13 @@ export class InferencePipeline {
     // Log prefill logits for debug
     logitsSanity(lastLogits, 'Prefill', (tokens) => this.tokenizer?.decode?.(tokens) || '?');
 
+    // Debug: check KV cache state after prefill
+    if (this.kvCache?.hasGPUCache?.()) {
+      console.log(`[Pipeline] KV cache active after prefill: seqLen=${this.kvCache.layers?.[0]?.seqLen ?? '?'}`);
+    } else {
+      console.log(`[Pipeline] WARNING: KV cache NOT active after prefill! hasGPUCache=${this.kvCache?.hasGPUCache?.()}`);
+    }
+
     return lastLogits;
   }
 
@@ -511,8 +530,24 @@ export class InferencePipeline {
       scaleEmbeddings: config.isGemma ?? false,
     });
 
+    // Debug: check embedding output for decode step 1
+    if (this._decodeStepCount === 1 && hiddenStates instanceof GPUBuffer) {
+      const embedData = await readBuffer(hiddenStates);
+      const embedArr = new Float32Array(embedData);
+      const sample = embedArr.slice(0, 5);
+      const maxAbs = Math.max(...embedArr.map(Math.abs));
+      const nonZero = embedArr.filter(x => Math.abs(x) > 1e-10).length;
+      console.log(`[Decode][1] Embed check: maxAbs=${maxAbs.toFixed(2)}, nonZero=${nonZero}/${embedArr.length}, sample=[${Array.from(sample).map(v => v.toFixed(3)).join(', ')}]`);
+    }
+
     // Build layer context
     const context = this._buildLayerContext();
+
+    // Debug: check KV cache status for decode
+    const hasGPUCache = context.kvCache?.hasGPUCache?.() ?? false;
+    if (this._decodeStepCount === 1) {
+      console.log(`[Decode] KV cache check: hasGPUCache=${hasGPUCache}, currentSeqLen=${context.currentSeqLen}`);
+    }
 
     // Process all layers
     for (let l = 0; l < config.numLayers; l++) {
@@ -520,6 +555,15 @@ export class InferencePipeline {
       hiddenStates = await processLayer(l, hiddenStates, numTokens, false, context) as GPUBuffer;
       if (prevStates instanceof GPUBuffer && prevStates !== hiddenStates) {
         releaseBuffer(prevStates);
+      }
+
+      // Debug: check hidden states at layer 0 and layer 25 for decode step 1
+      if (this._decodeStepCount === 1 && (l === 0 || l === config.numLayers - 1) && hiddenStates instanceof GPUBuffer) {
+        const layerData = await readBuffer(hiddenStates);
+        const layerArr = new Float32Array(layerData);
+        const sample = layerArr.slice(0, 5);
+        const maxAbs = Math.max(...layerArr.map(Math.abs));
+        console.log(`[Decode][1] After L${l}: maxAbs=${maxAbs.toFixed(2)}, sample=[${Array.from(sample).map(v => v.toFixed(3)).join(', ')}]`);
       }
     }
 

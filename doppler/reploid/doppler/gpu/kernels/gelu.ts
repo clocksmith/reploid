@@ -27,7 +27,9 @@ export async function runGeLU(
   const device = getDevice();
   const { size, gate = null, outputBuffer = null } = options;
 
-  const pipeline = await createPipeline('silu', 'gelu');
+  // Select gated variant when gate buffer is provided
+  const variant = gate ? 'geglu' : 'gelu';
+  const pipeline = await createPipeline('silu', variant);
 
   const inferredSize = size || (input.size / 4);
   const outputSize = inferredSize * 4;
@@ -46,6 +48,7 @@ export async function runGeLU(
   device.queue.writeBuffer(uniformBuffer, 0, uniformData);
 
   // Create bind group
+  // WGSL bindings: 0=uniforms, 1=input, 2=output, 3=gate, 4=bias
   const gateBuffer = gate || input;
   const bindGroup = device.createBindGroup({
     label: 'gelu_bind_group',
@@ -53,8 +56,8 @@ export async function runGeLU(
     entries: [
       { binding: 0, resource: { buffer: uniformBuffer } },
       { binding: 1, resource: { buffer: input } },
-      { binding: 2, resource: { buffer: gateBuffer } },
-      { binding: 3, resource: { buffer: output } },
+      { binding: 2, resource: { buffer: output } },
+      { binding: 3, resource: { buffer: gateBuffer } },
     ],
   });
 
