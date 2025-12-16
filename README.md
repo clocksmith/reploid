@@ -1,11 +1,10 @@
 # Reploid - browser-based agent sandbox
 
-**R**ecursive **E**volution **P**rotocol **L**oop **O**ptimizing **I**ntelligent **Dreamer** (**D**ynamic **R**ecursive **E**ngine **A**dapting **M**odules **E**volving **Reploid** (... ∞))
+**R**ecursive **E**volution **P**rotocol **L**oop **O**rchestrating **I**nference [**D**oppler](doppler/reploid/doppler/README.md) (**D**istributed **O**n-device **P**ipeline **P**rocessing **L**arge **E**mbedded [**R**eploid](doppler/reploid/README.md) (... ∞))
 
 - Runs fully in the browser (offline-capable)
 - Self-modifies: tools live in the VFS and hot-reload instantly
 - Sandbox focus: IndexedDB filesystem, verification, arena, audit trail
-- The cyclical acronym taxonomy is documented in [docs/CYCLICAL_ACRONYMS.md](docs/CYCLICAL_ACRONYMS.md)
 
 ## Quick Start
 
@@ -22,6 +21,19 @@ Or use the hosted versions:
 - **[replo.id/r](https://replo.id/r)** - REPLOID agent sandbox
 - **[replo.id/d](https://replo.id/d)** - DOPPLER inference demo
 
+## Showcase
+
+<img width="1941" height="1013" alt="Screenshot 2025-12-08 at 4 20 29 PM" src="https://github.com/user-attachments/assets/22df141c-e183-4cd8-8d30-2efa1f653861" />
+
+**Example Goals:**
+- **Self-audit**: read the agent loop, find a weakness, patch it, hot-reload → [security-analysis.md](doppler/reploid/runs/showcase/security-analysis.md)
+- **Recursive Iframes**: awaken a child agent in an iframe and report depth → [inception-awaken-child.js](doppler/reploid/runs/showcase/inception-awaken-child.js)
+- **Ouroboros**: improve the code that improves code → [self-study-report.md](doppler/reploid/runs/showcase/self-study-report.md)
+- **Houdini**: probe the browser sandbox for escape vectors → [prompt-injection-audit.md](doppler/reploid/runs/showcase/prompt-injection-audit.md)
+- **UI Evolution**: iteratively evolve your UI (v1 → v2 → v3...), hot-swapping each version
+
+See all runs: [doppler/reploid/runs/showcase/](doppler/reploid/runs/showcase/)
+
 ## How It Works
 
 1. Agent receives a goal
@@ -35,17 +47,6 @@ Or use the hosted versions:
 - Study recursive self-improvement without host access
 - Let the agent edit its own substrate live (tools, prompts, core loop)
 - Explore containment: verification, audit, arena gating, HITL
-
-## Example Goals
-
-- Self-audit: read the agent loop, find a weakness, patch it, hot-reload
-- Recursive Iframes: awaken a child agent in an iframe and report depth
-- Ouroboros: improve the code that improves code
-- Houdini: probe the browser sandbox for escape vectors
-- UI Evolution: iteratively evolve your UI (v1 → v2 → v3...), hot-swapping each version while preserving all interactive controls
-- "Escape the box": <img width="1941" height="1013" alt="Screenshot 2025-12-08 at 4 20 29 PM" src="https://github.com/user-attachments/assets/22df141c-e183-4cd8-8d30-2efa1f653861" />
-
-
 
 ## Model Options
 
@@ -79,13 +80,13 @@ The proxy (`npm start`) routes API calls through your machine for CORS and key m
 
 - Quick start guide: [docs/QUICK-START.md](docs/QUICK-START.md)
 - Architecture and boot sequence: [docs/SYSTEM_ARCHITECTURE.md](docs/SYSTEM_ARCHITECTURE.md)
+- Cyclical acronym taxonomy: [docs/CYCLICAL_ACRONYMS.md](docs/CYCLICAL_ACRONYMS.md)
 - In-substrate agent manual: [doppler/reploid/docs/SUBSTRATE.md](doppler/reploid/docs/SUBSTRATE.md)
 - DOPPLER setup (local WebGPU): [docs/DOPPLER_SETUP.md](docs/DOPPLER_SETUP.md)
 - Local models (Ollama, WebLLM): [docs/LOCAL_MODELS.md](docs/LOCAL_MODELS.md)
 - Security model: [docs/SECURITY.md](docs/SECURITY.md)
 - Contributing: [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md)
 - Troubleshooting: [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md)
-- Showcase runs: [doppler/reploid/runs/showcase/](doppler/reploid/runs/showcase/)
 
 ## Limitations
 
