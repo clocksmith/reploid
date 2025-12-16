@@ -6,14 +6,15 @@ Quick index for DOPPLER documentation.
 
 ## Vision & Roadmap
 
-**Start here:** [VISION.md](VISION.md) - Phased roadmap from performance parity to P2P self-healing agents.
+**Start here:** [VISION.md](VISION.md) - Capability thesis and phased roadmap overview.
 
-| Phase | Goal | Plan |
-|-------|------|------|
-| 1 | Performance parity with WebLLM | [OPTIMIZATION_ROADMAP.md](plans/OPTIMIZATION_ROADMAP.md) |
-| 2 | Efficient MoE support | [OPTIMIZATION_ROADMAP.md](plans/OPTIMIZATION_ROADMAP.md#moe-performance-vs-webllm-mixtral) |
-| 3 | Scale beyond WebLLM (>31GB) | [VISION.md#phase-3](VISION.md#phase-3-scale-beyond-webllm) |
-| 4 | P2P self-healing agents | [P2P.md](plans/P2P.md) |
+| Phase | Goal | Status | Roadmap |
+|-------|------|--------|---------|
+| 1 | Performance Parity | In Progress | [PHASE_1_PERFORMANCE.md](roadmap/PHASE_1_PERFORMANCE.md) |
+| 2 | MoE Efficiency | Partial | [PHASE_2_MOE.md](roadmap/PHASE_2_MOE.md) |
+| 3 | Scale Beyond WebLLM | Planned | [PHASE_3_SCALE.md](roadmap/PHASE_3_SCALE.md) |
+| 4 | P2P Distribution | Design | [PHASE_4_P2P.md](roadmap/PHASE_4_P2P.md) |
+| 5 | Evolution | Design | [PHASE_5_EVOLUTION.md](roadmap/PHASE_5_EVOLUTION.md) |
 
 ---
 
@@ -21,19 +22,19 @@ Quick index for DOPPLER documentation.
 
 - [Architecture](ARCHITECTURE.md) - High-level module layout and subsystem responsibilities.
 - [Glossary](GLOSSARY.md) - Terms and definitions used across DOPPLER.
-- [Debug Guide](DEBUG.md) - Comprehensive debugging strategies for inference issues.
+- [Troubleshooting Guide](DOPPLER-TROUBLESHOOTING.md) - Comprehensive debugging strategies for inference issues.
 - [Inference README](../inference/README.md) - Step-by-step inference flow (init, load, prefill, decode).
 - [Hardware Compatibility](HARDWARE_COMPATIBILITY.md) - Browser and GPU support notes.
 
 ---
 
-## Plans (Detailed Roadmaps)
+## Reference Docs
 
-| Plan | Scope |
-|------|-------|
-| [Optimization Roadmap](plans/OPTIMIZATION_ROADMAP.md) | Buffer reuse, async pipeline, command batching, MoE |
-| [P2P Distribution](plans/P2P.md) | Shard distribution, expert paging, remote inference |
+| Document | Content |
+|----------|---------|
+| [Model Support](plans/MODEL_SUPPORT.md) | Model compatibility matrix |
 | [Competitive Analysis](analysis/COMPETITIVE.md) | WebLLM, WeInfer, Transformers.js comparison |
+| [RDRR Format](spec/RDRR_FORMAT.md) | Model format specification |
 
 ---
 

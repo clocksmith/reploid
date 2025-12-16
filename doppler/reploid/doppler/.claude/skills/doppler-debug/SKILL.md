@@ -5,87 +5,48 @@ description: Debug DOPPLER WebGPU inference issues. Use when investigating model
 
 # DOPPLER Debug Skill
 
-You are debugging DOPPLER, a browser-native WebGPU LLM inference engine. Use this skill when investigating inference issues.
+You are debugging DOPPLER, a browser-native WebGPU LLM inference engine.
 
-## Quick Start
+## Resources
 
-1. Read the debug guide: `doppler/reploid/doppler/docs/DEBUG.md`
-2. Check postmortems in `doppler/reploid/doppler/docs/postmortems/`
-3. Understand the pipeline: `doppler/reploid/doppler/inference/README.md`
+1. **Troubleshooting Guide**: `doppler/reploid/doppler/docs/DOPPLER-TROUBLESHOOTING.md`
+   - Quick diagnosis table (symptoms -> causes)
+   - Pipeline stage debugging with expected value ranges
+   - Common bug patterns and fixes
+   - Browser cache clearing procedures
 
-## Key Diagnostic Steps
+2. **Postmortems**: `doppler/reploid/doppler/docs/postmortems/`
+   - GEMMA3-DEBUG-POSTMORTEM.md - Q4_K quantization issues
+   - PIPELINE-VERIFICATION-POSTMORTEM.md - FFN value explosion
+   - BF16-2D-DISPATCH-POSTMORTEM.md - Zero embeddings for high token IDs
+   - MOE-EXPLICIT-LAYOUT-POSTMORTEM.md - Kernel outputs zeros
 
-### 1. Identify Symptoms
+3. **Architecture**: `doppler/reploid/doppler/docs/ARCHITECTURE.md`
 
-| Symptom | Likely Cause |
-|---------|--------------|
-| Garbage tokens | Quantization format mismatch |
-| Positive bias accumulation | Sign handling bug in dequant |
-| FFN explosion (>1000) | SiLU gating bug |
-| Near-uniform logits | Early layer corruption |
-| Decode broken, prefill works | KV cache or position indexing |
-| Zeros for high token IDs | 2D dispatch linearization |
+## Key Files to Instrument
 
-### 2. Key Files to Check
-
-- `gpu/kernels/silu.ts` - FFN activation (check gate parameter handling)
-- `inference/pipeline/attention.ts` - KV cache, RoPE, attention
-- `inference/pipeline/layer.ts` - Per-layer processing
-- `gpu/kernel-selector.ts` - Kernel dispatch
-- `loader/doppler-loader.ts` - Weight loading
-
-### 3. Add Strategic Logging
-
-```typescript
-// Track value ranges through layers
-console.log(`[L${idx}] maxAbs=${maxAbs.toFixed(2)}`);
-
-// Check FFN gating
-console.log(`[SiLU] variant=${variant}, hasGate=${!!gate}`);
-
-// Verify KV cache
-console.log(`[ATT] kvLen=${kvLenForAttention}, startPos=${startPosForMask}`);
-```
-
-### 4. Common Fixes
-
-**SiLU gating bug (decode fails)**:
-```typescript
-// silu.ts - ensure gate is checked FIRST
-const variant = gate ? 'gate' : (useVec4 ? 'vec4' : 'default');
-```
-
-**2D dispatch (large tensors broken)**:
-```wgsl
-// Linearize from 2D dispatch
-let linear_idx = global_id.y * (uniforms.workgroupsX * 256u) + global_id.x;
-```
-
-**'auto' layout mismatch (kernel outputs zeros)**:
-```typescript
-// Use explicit bind group layout for multi-entry-point shaders
-const explicitLayout = device.createBindGroupLayout({ entries: [...] });
-```
+| File | Debug Focus |
+|------|-------------|
+| `inference/pipeline.ts` | Overall flow, token loop |
+| `inference/pipeline/layer.ts` | Per-layer processing |
+| `inference/pipeline/attention.ts` | KV cache, RoPE, attention |
+| `gpu/kernels/silu.ts` | FFN activation gating |
+| `gpu/kernel-selector.ts` | Kernel dispatch, buffer management |
+| `loader/doppler-loader.ts` | Weight loading, dequantization |
 
 ## Test Commands
 
 ```bash
-# Run Gemma 1B test with browser UI
+# Run Gemma test with browser UI
 npx tsx tests/test-runner.ts gemma --direct --headed
 
-# Clear browser caches if needed
-# In console: localStorage.clear(); caches.keys().then(k => k.forEach(c => caches.delete(c)));
+# Playwright E2E
+npx playwright test doppler/tests/gemma-e2e.spec.ts --headed
 ```
 
-## Red Flags
+## Workflow
 
-- `maxAbs > 1000` at any layer - value explosion
-- `min >= 0` for all values - missing negatives (sign bug)
-- Top token probability < 5% - near-uniform (signal destroyed)
-- Top token probability > 99% - overconfident (sampling bug)
-
-## Reference
-
-- DEBUG.md: `doppler/reploid/doppler/docs/DEBUG.md`
-- Architecture: `doppler/reploid/doppler/docs/ARCHITECTURE.md`
-- Postmortems: `doppler/reploid/doppler/docs/postmortems/`
+1. Read the troubleshooting guide first
+2. Check if a similar issue exists in postmortems
+3. Add strategic logging at pipeline stages
+4. Compare against llama.cpp or transformers.js as ground truth
