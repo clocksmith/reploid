@@ -231,6 +231,8 @@ export const BASE_LOG_PATTERNS = [
   '[RMSNorm]',  // Debug: RMSNorm kernel params
   'createPipeline',  // Debug: pipeline creation
   'BEFORE_DISPATCH',  // Debug: kernel pre-dispatch
+  'AFTER_DISPATCH',  // Debug: kernel post-dispatch
+  'WEIGHTS:',  // Debug: weight values
 ];
 
 /**
