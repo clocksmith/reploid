@@ -126,36 +126,9 @@ interface ServerModel {
 
 /**
  * Remote models available for download
+ * Currently empty - only local models (discovered via /api/models) are shown
  */
-const REMOTE_MODELS: RemoteModel[] = [
-  {
-    id: 'tinyllama-1.1b-q4',
-    name: 'TinyLlama 1.1B',
-    size: '1.1B',
-    quantization: 'Q4_K_M',
-    downloadSize: 668 * 1024 * 1024,
-    url: 'https://huggingface.co/models/tinyllama-1.1b-q4km-rdrr',
-    source: 'remote',
-  },
-  {
-    id: 'smollm-360m-q4',
-    name: 'SmolLM 360M',
-    size: '360M',
-    quantization: 'Q4_K_M',
-    downloadSize: 220 * 1024 * 1024,
-    url: 'https://huggingface.co/models/smollm-360m-q4km-rdrr',
-    source: 'remote',
-  },
-  {
-    id: 'qwen-0.5b-q4',
-    name: 'Qwen 0.5B',
-    size: '0.5B',
-    quantization: 'Q4_K_M',
-    downloadSize: 350 * 1024 * 1024,
-    url: 'https://huggingface.co/models/qwen-0.5b-q4km-rdrr',
-    source: 'remote',
-  },
-];
+const REMOTE_MODELS: RemoteModel[] = [];
 
 /** Dynamic model registry populated at runtime */
 let MODEL_REGISTRY: RegisteredModel[] = [];
