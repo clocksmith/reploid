@@ -88,7 +88,7 @@ def enrich(task, prompt):
 
 ---
 
-## Web Pentest Memories
+## Reploid Security Memory Exmaples
 
 This application of RAG to cybersecurity is known as **"Automated Vulnerability Management with LLMs"** [[AutoPentest, 2025](https://arxiv.org/abs/2505.10321v1)].
 
