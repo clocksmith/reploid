@@ -5,6 +5,7 @@ import {
     getSelectedModels,
     getAvailableProviders,
     saveToStorage,
+    addModel,
     removeModel as removeModelFromState
 } from './state.js';
 import { openInlineForm } from './form.js';
@@ -182,9 +183,40 @@ export function updateGoalInputState() {
     }
 }
 
-// Auto-populate default models (disabled - user must explicitly add models)
+// Auto-populate default model: Doppler Gemma 1B when available
 export function autoPopulateDefaultModels() {
-    // No-op: models are not auto-populated after reset
+    const selectedModels = getSelectedModels();
+    const providers = getAvailableProviders();
+
+    // Only auto-populate if no models are selected and Doppler is available
+    if (selectedModels.length > 0) return;
+    if (!providers.doppler?.online) return;
+
+    // Find Gemma 1B model in Doppler's available models
+    const dopplerModels = providers.doppler.models || [];
+    const gemmaModel = dopplerModels.find(m =>
+        m.id.toLowerCase().includes('gemma') && m.id.includes('1b')
+    );
+
+    if (gemmaModel) {
+        const defaultModel = {
+            id: gemmaModel.id,
+            name: gemmaModel.name || gemmaModel.id,
+            provider: 'doppler',
+            hostType: 'browser-local',
+            queryMethod: 'browser',
+            keySource: 'none',
+            keyId: null,
+            modelUrl: null,
+            localPath: null,
+        };
+
+        addModel(defaultModel);
+        renderModelCards();
+        saveToStorage();
+        updateGoalInputState();
+        console.log('[ModelConfig] Auto-populated default model:', defaultModel.name);
+    }
 }
 
 // Setup card-related event listeners

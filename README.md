@@ -6,6 +6,11 @@
 - Self-modifies: tools live in the VFS and hot-reload instantly
 - Sandbox focus: IndexedDB filesystem, verification, arena, audit trail
 
+**DOPPLER** powers local inference:
+- Custom WebGPU kernels for attention, FFN, and RMSNorm
+- `.rdrr` format with sharded weight streaming (no full download needed)
+- GGUF import converts models directly in browser
+
 ## Quick Start
 
 ```bash
@@ -62,31 +67,10 @@ Designed for local-first use, but supports frontier models:
 
 The proxy (`npm start`) routes API calls through your machine for CORS and key management.
 
-## Capabilities Snapshot
-
-- VFS: IndexedDB filesystem with genesis snapshots and export/import
-- Tool Runner: dynamic tools in `/tools`, hot-reload, native tool schemas
-- Agent Loop: Think → Act → Observe with multi-tool batching and circuit breakers
-- Workers/Arena: parallel workers with allowlists; arena for model selection
-- Verification/HITL/Audit: optional syntax checks, human approval, and audit logs
-
-## System Requirements
-
-- Node.js 18+
-- Modern browser: Chrome 90+, Firefox 88+, Safari 14+, Edge 90+
-- For local models: 4-8GB RAM, WebGPU-capable GPU recommended
-
 ## Documentation
 
-- Quick start guide: [docs/QUICK-START.md](docs/QUICK-START.md)
-- Architecture and boot sequence: [docs/SYSTEM_ARCHITECTURE.md](docs/SYSTEM_ARCHITECTURE.md)
-- Cyclical acronym taxonomy: [docs/CYCLICAL_ACRONYMS.md](docs/CYCLICAL_ACRONYMS.md)
-- In-substrate agent manual: [doppler/reploid/docs/SUBSTRATE.md](doppler/reploid/docs/SUBSTRATE.md)
-- DOPPLER setup (local WebGPU): [docs/DOPPLER_SETUP.md](docs/DOPPLER_SETUP.md)
-- Local models (Ollama, WebLLM): [docs/LOCAL_MODELS.md](docs/LOCAL_MODELS.md)
-- Security model: [docs/SECURITY.md](docs/SECURITY.md)
-- Contributing: [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md)
-- Troubleshooting: [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md)
+- [Reploid docs](doppler/reploid/docs/) - Agent sandbox documentation
+- [Doppler docs](doppler/reploid/doppler/docs/) - WebGPU inference engine documentation
 
 ## Limitations
 
