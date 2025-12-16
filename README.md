@@ -11,13 +11,16 @@
 
 ```bash
 git clone https://github.com/clocksmith/reploid
-cd reploid/dreamer/reploid
+cd reploid/doppler/reploid
 npm install
 npm run dev
 # Open http://localhost:8080
 ```
 
-Or use the hosted version at https://replo.id
+Or use the hosted versions:
+- **[replo.id](https://replo.id)** - Landing page
+- **[replo.id/r](https://replo.id/r)** - REPLOID agent sandbox
+- **[replo.id/d](https://replo.id/d)** - DOPPLER inference demo
 
 ## How It Works
 
@@ -52,7 +55,7 @@ Designed for local-first use, but supports frontier models:
 |------|----------|-------|
 | Local (Browser) | WebLLM | Runs in browser via WebGPU, fully offline |
 | Local (Browser) | Transformers.js | ONNX/WASM CPU/Metal fallback, widest compatibility |
-| Local (Browser) | Dreamer | .rpl format, GGUF import, Native Bridge |
+| Local (Browser) | DOPPLER | .rdrr format, GGUF import, Native Bridge |
 | Local (Server) | Ollama, vLLM | Local server, connect via proxy |
 | API | OpenAI, Anthropic, Google, Groq | Direct from client or via proxy |
 
@@ -76,18 +79,18 @@ The proxy (`npm start`) routes API calls through your machine for CORS and key m
 
 - Quick start guide: [docs/QUICK-START.md](docs/QUICK-START.md)
 - Architecture and boot sequence: [docs/SYSTEM_ARCHITECTURE.md](docs/SYSTEM_ARCHITECTURE.md)
-- In-substrate agent manual: [dreamer/reploid/docs/SUBSTRATE.md](dreamer/reploid/docs/SUBSTRATE.md)
-- Dreamer setup (local WebGPU): [docs/DREAMER_SETUP.md](docs/DREAMER_SETUP.md)
+- In-substrate agent manual: [doppler/reploid/docs/SUBSTRATE.md](doppler/reploid/docs/SUBSTRATE.md)
+- DOPPLER setup (local WebGPU): [docs/DOPPLER_SETUP.md](docs/DOPPLER_SETUP.md)
 - Local models (Ollama, WebLLM): [docs/LOCAL_MODELS.md](docs/LOCAL_MODELS.md)
 - Security model: [docs/SECURITY.md](docs/SECURITY.md)
 - Contributing: [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md)
 - Troubleshooting: [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md)
-- Showcase runs: [dreamer/reploid/runs/showcase/](dreamer/reploid/runs/showcase/)
+- Showcase runs: [doppler/reploid/runs/showcase/](doppler/reploid/runs/showcase/)
 
 ## Limitations
 
 - Small local WebLLM models struggle with tool use and codegen; frontier APIs or stronger local models work best.
-- Browser resources (memory/VRAM) bound Dreamer for large models; prefer MoE or unified memory.
+- Browser resources (memory/VRAM) bound DOPPLER for large models; prefer MoE or unified memory.
 
 ## License
 

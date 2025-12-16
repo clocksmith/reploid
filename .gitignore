@@ -1,9 +1,0 @@
-# OS artifacts
-.DS_Store
-...
-
-# Local model artifacts (large binaries, cached manifests)
-# Keep the directory, ignore model subfolders/files by default.
-dreamer/reploid/dreamer/models/*
-!dreamer/reploid/dreamer/models/.gitkeep
-!dreamer/reploid/dreamer/models/README.md
