@@ -32,7 +32,7 @@ export async function runSiLU(
   const device = getDevice();
   const { size, gate = null, outputBuffer = null, useVec4 = false } = options;
 
-  const variant = useVec4 ? 'vec4' : 'default';
+  const variant = gate ? 'gate' : (useVec4 ? 'vec4' : 'default');
   const pipeline = await createPipeline('silu', variant);
 
   const inferredSize = size || (input.size / 4);
@@ -52,6 +52,7 @@ export async function runSiLU(
   device.queue.writeBuffer(uniformBuffer, 0, uniformData);
 
   // Create bind group
+  // WGSL bindings: 0=uniforms, 1=input, 2=output, 3=gate, 4=bias
   const gateBuffer = gate || input; // Use input as dummy if no gate
   const bindGroup = device.createBindGroup({
     label: 'silu_bind_group',
@@ -59,8 +60,8 @@ export async function runSiLU(
     entries: [
       { binding: 0, resource: { buffer: uniformBuffer } },
       { binding: 1, resource: { buffer: input } },
-      { binding: 2, resource: { buffer: gateBuffer } },
-      { binding: 3, resource: { buffer: output } },
+      { binding: 2, resource: { buffer: output } },
+      { binding: 3, resource: { buffer: gateBuffer } },
     ],
   });
 

@@ -5,10 +5,10 @@ See also: [Glossary](../GLOSSARY.md)
 
 ## TL;DR
 
-DOPPLER is a browser-native LLM inference engine using hand-written WebGPU (WGSL) kernels. Key differentiators:
+DOPPLER is a browser-native LLM inference engine using custom WebGPU (WGSL) kernels (no compiler like TVM). Key differentiators:
 
 1. **Flash Attention in WGSL** - No other browser framework implements tiled Flash Attention directly in WGSL
-2. **Hand-Optimized MoE** - Custom scatter-add routing (vs TVM-generated gather) for lower VRAM overhead
+2. **Custom MoE routing** - Direct WGSL scatter-add (vs TVM-generated gather) for lower VRAM overhead
 3. **60GB model support (theoretical)** - Tiered memory system for unified memory architectures
 4. **Native Bridge** - mmap access to local files, bypassing OPFS limits
 
@@ -85,34 +85,36 @@ Source: [WebLLM GitHub #683](https://github.com/mlc-ai/web-llm/issues/683), Dec 
 
 MoE support: Mixtral support is reported. Verify current WebLLM catalog and hardware requirements.
 
-### WeInfer (ACM Web Conference 2025) - Critical Threat
+### WeInfer (ACM Web Conference 2025) - Research Artifact
 
-Academic research showing significant improvements over WebLLM. **If open-sourced, could leapfrog both WebLLM and DOPPLER.**
+**Status (Dec 2025):** Stale research artifact. Last commit February 2025, based on WebLLM 0.2.46 (current is 0.2.80).
 
 > "Evaluations across 9 different LLMs and 5 heterogeneous devices show that WeInfer delivers substantial improvements in decoding speed, achieving up to a 3.76x performance boost compared with WebLLM."
 >
 > Source: [ACM WWW 2025](https://dl.acm.org/doi/10.1145/3696410.3714553), April 2025
 
-**Performance claims:**
+**Performance claims (validated):**
 - 3.76x faster decode vs WebLLM v0.2.46
 - Tested: 9 LLMs, 5 devices (RTX 4090, Apple M2, Windows GPUs)
-- Baseline: WebLLM v0.2.46 (Dec 2024)
 
-**Key innovations (directly applicable to DOPPLER):**
+**Key techniques (implement from scratch, don't use stale code):**
 
 | Technique | Description | DOPPLER Status |
 |-----------|-------------|----------------|
-| **Buffer Reuse** | Optimized WebGPU buffer lifecycle management | Partial (buffer-pool.ts) |
-| **Async Pipeline** | Decouples resource prep from GPU execution | Not implemented |
-| **Deferred Result Fetching** | Parallelized computation with lazy readback | Not implemented |
+| **Buffer Reuse** | Pre-allocate fixed pool, reuse across ops | Partial (buffer-pool.ts) |
+| **Async Pipeline** | Decouple buffer prep from kernel dispatch | Not implemented |
+| **Deferred Readback** | Batch GPU→CPU transfers, read only when needed | Not implemented |
 
 **Threat assessment:**
-- Paper published April 2025, no public repository yet (as of Dec 2025)
-- Techniques are framework-agnostic. Could be adopted by WebLLM
-- DOPPLER should implement similar buffer pooling and async dispatch
-- **Track:** Search for "WeInfer" GitHub releases
+- **WeInfer itself: Low threat** - abandoned research artifact
+- **The techniques: High value** - 3.76x gains are real and reproducible
+- **Real threat:** WebLLM adopting these optimizations
+- DOPPLER should implement buffer reuse + async pipeline from first principles
 
-**OpenReview:** [https://openreview.net/forum?id=Qu2itILaoZ](https://openreview.net/forum?id=Qu2itILaoZ)
+**Resources:**
+- Paper: [ACM WWW 2025](https://dl.acm.org/doi/10.1145/3696410.3714553)
+- OpenReview: [openreview.net/forum?id=Qu2itILaoZ](https://openreview.net/forum?id=Qu2itILaoZ)
+- Repo (stale): [github.com/csAugust/WeInfer](https://github.com/csAugust/WeInfer)
 
 ### Transformers.js (Hugging Face)
 
@@ -211,7 +213,7 @@ Source: [MediaPipe Web Guide](https://ai.google.dev/edge/mediapipe/solutions/gen
 
 ## MoE Support Comparison (Dec 2025)
 
-**DOPPLER's key differentiator:** Hand-tuned routing kernels vs TVM compilation, and potential for demand-paging experts from disk (Native Bridge).
+**DOPPLER's key differentiator:** Custom routing kernels (direct WGSL vs TVM compilation), and potential for demand-paging experts from disk (Native Bridge).
 
 | Framework | MoE Status | Models | Implementation |
 |-----------|------------|--------|----------------|
@@ -243,7 +245,7 @@ Source: [Red Hat vLLM+DeepSeek](https://developers.redhat.com/articles/2025/09/0
 
 ---
 
-## TVM Compilation vs Hand-Written WGSL
+## TVM Compilation vs Direct WGSL
 
 ### TVM Approach (WebLLM)
 
@@ -272,7 +274,7 @@ Apache TVM uses machine learning to auto-tune kernel configurations.
 
 - Requires compilation step to add new models
 
-### Hand-Written WGSL Approach (DOPPLER)
+### Direct WGSL Approach (DOPPLER)
 
 **Advantages:**
 - Full control over memory layout and access patterns
@@ -281,10 +283,12 @@ Apache TVM uses machine learning to auto-tune kernel configurations.
 - Tighter integration with host application
 
 **Disadvantages:**
-- Massive engineering effort (~95KB of shader code)
+- Significant engineering effort (~100KB of shader code)
 - Must manually optimize for each GPU architecture
-- Higher bug risk
-- No auto-tuning
+- Higher bug risk without compiler validation
+- No auto-tuning (must implement separately)
+
+Note: "Direct WGSL" means kernels are written directly without a compiler like TVM, not necessarily by hand. LLM coding agents can write WGSL, but there's no automated compilation/optimization pipeline.
 
 ### Industry Context
 
@@ -292,7 +296,7 @@ Apache TVM uses machine learning to auto-tune kernel configurations.
 >
 > Source: [Modular Blog](https://www.modular.com/blog/democratizing-ai-compute-part-6-what-about-ai-compilers)
 
-DOPPLER intentionally takes the "first-generation" approach for WebGPU, betting that hand-tuned WGSL can outperform TVM-compiled kernels in the browser environment.
+DOPPLER takes a "direct kernel" approach for WebGPU - writing WGSL kernels without a compiler pipeline like TVM. This trades auto-tuning for full control. Whether kernels are written by humans or LLM coding agents, the key distinction is the absence of automated compilation/optimization.
 
 ---
 
@@ -404,7 +408,7 @@ No other browser LLM framework offers native file access.
 | `gather.wgsl` | 80+ | Embedding lookup |
 | `residual.wgsl` | 65+ | Residual addition |
 
-**Total:** ~100KB+ of hand-written WGSL shader code
+**Total:** ~100KB+ of custom WGSL shader code (direct, not TVM-compiled)
 
 ---
 
@@ -437,7 +441,38 @@ No other browser LLM framework offers native file access.
 
 ---
 
-## ONNX Runtime Web: 4GB Limit Tracking
+## Chrome Built-in AI (window.ai / Gemini Nano)
+
+**Status (Dec 2025):** Available in Chrome Canary/Beta 127+, limited to desktop platforms.
+
+> "Chrome's built-in AI (Gemini Nano) runs locally in the browser, offering zero-latency inference and complete privacy. The tradeoff: strict resource constraints — limited context windows (~2K-4K tokens), sequential execution to avoid crashes."
+>
+> Source: [Chrome Built-in AI Docs](https://developer.chrome.com/docs/ai/built-in)
+
+**Available APIs:**
+- Prompt API (web + extensions)
+- Summarizer, Writer, Rewriter APIs
+- Translator API (W3C WebML Working Group)
+- Language Detector API
+
+**System Requirements:**
+- Platforms: Windows 10/11, macOS 13+, Linux (NOT Android, iOS, ChromeOS)
+- Hardware: 22GB+ free disk, 4GB+ VRAM
+- Model auto-downloads on first use
+
+**Threat Assessment:**
+- **Low threat to DOPPLER** - Limited to small models (Gemini Nano)
+- 2-4K context window unsuitable for most LLM workloads
+- No custom model support - locked to Google's models
+- Useful for lightweight tasks (summarization, rewriting)
+
+**Google I/O 2025:** Announced broader Gemini integration in Chrome desktop for AI Pro/Ultra subscribers.
+
+**Track:** [developer.chrome.com/docs/ai](https://developer.chrome.com/docs/ai)
+
+---
+
+## ONNX Runtime Web: 4GB Limit Update
 
 **Current State (Dec 2025):**
 
@@ -445,47 +480,122 @@ No other browser LLM framework offers native file access.
 >
 > Source: [ONNX Runtime Docs](https://onnxruntime.ai/docs/tutorials/web/large-models.html), Dec 2025
 
+**WASM64 Progress:**
+- **WASM64 support now available** (build from source only)
+- No pre-built packages published yet
+- Source: [ONNX Runtime Releases](https://github.com/microsoft/onnxruntime/releases)
+
 **Planned Solutions:**
-1. **WASM64** - 64-bit addressing would remove 4GB cap
+1. **WASM64** - 64-bit addressing removes 4GB cap (**in progress**)
 2. **Direct GPU Weight Loading** - Bypass WASM entirely for weights
 
 **Impact on DOPPLER:**
-If either solution ships, Transformers.js (1.4M monthly users) instantly gains large model support, eliminating DOPPLER's size advantage.
+When WASM64 packages ship, Transformers.js (1.4M monthly users) gains large model support. Timeline unclear but likely 2025-2026.
 
 **Track:** [GitHub Issue #13006](https://github.com/microsoft/onnxruntime/issues/13006)
 
 ---
 
-## Competitive Threat Timeline
+## Distributed Inference Competitors
+
+### Petals - BitTorrent-Style LLM Inference
+
+Petals enables distributed inference across volunteer GPUs, running models up to 405B parameters.
+
+> "Single-batch inference runs at up to 6 tokens/sec for Llama 2 (70B) and up to 4 tokens/sec for Falcon (180B) — enough for chatbots and interactive apps."
+>
+> Source: [petals.dev](https://petals.dev/)
+
+**Key Features:**
+- Splits model into blocks hosted on different servers
+- Anyone can contribute GPU resources
+- Web interface at [chat.petals.dev](https://chat.petals.dev) (WebSocket API)
+- Supports Llama 3.1 (405B), Mixtral (8x22B), Falcon (40B+), BLOOM (176B)
+
+**Relevance to DOPPLER:**
+- Petals is server-side Python, not browser-based
+- However, the swarm architecture is similar to DOPPLER's P2P proposal
+- DOPPLER could potentially connect to Petals network for remote inference offload
+
+### Federated Attention (FedAttn) - Research
+
+> "FedAttn enables participants to perform local self-attention over their own token representations while periodically exchanging and aggregating Key-Value (KV) matrices."
+>
+> Source: [arXiv:2511.02647](https://arxiv.org/abs/2511.02647)
+
+**Key Innovation:** Distributed attention without exposing raw data - only KV matrices exchanged.
+
+**Relevance:** Academic research, not production-ready. But KV exchange pattern could inform DOPPLER's remote inference design.
+
+### WebFLex - Browser P2P Federated Learning
+
+> "WebFLex utilizes peer-to-peer interactions and secure weight exchanges utilizing browser-to-browser WebRTC, efficiently preventing the need for a main central server."
+>
+> Source: [ScienceDirect](https://www.sciencedirect.com/org/science/article/pii/S154622182400359X)
+
+**Relevance:** Training-focused (federated learning), not inference. But demonstrates WebRTC P2P for ML weights in browser.
+
+---
+
+## P2P Model Distribution Landscape
+
+### IPFS for ML Models
+
+> "IPFS's cryptographic hashing preserves data integrity, with built-in versioning, making it easy to manage datasets and models efficiently."
+>
+> Source: [Preprints.org - Decentralizing AI with IPFS](https://www.preprints.org/manuscript/202411.0565/v1)
+
+**Community efforts:**
+- [pollinations/ipfs_model_hosting](https://github.com/pollinations/ipfs_model_hosting) - Hosting models on IPFS
+
+**DOPPLER consideration:**
+- IPFS could serve as alternative to WebTorrent for shard distribution
+- Content-addressed hashing aligns with RDRR manifest design
+- IPFS gateway fallback could improve cold start
+
+### WebTorrent vs IPFS
+
+Both are viable for P2P shard distribution:
+- **WebTorrent:** Browser-native, mature WebRTC stack, tracker-based discovery
+- **IPFS:** DHT-based discovery, content routing, larger ecosystem
+
+DOPPLER's P2P proposal currently uses WebTorrent. IPFS could be a future alternative.
+
+---
+
+## Competitive Threat Timeline (Updated Dec 2025)
 
 | Threat | Likelihood | Timeframe | Impact on DOPPLER |
 |--------|------------|-----------|-------------------|
-| WeInfer open-source release | Medium | 2025 H1-H2 | **High** - buffer/async techniques applicable to all |
-| ONNX WASM64 | Low | 2025-2026 | **High** - removes 4GB limit for Transformers.js |
-| WebLLM optimizes MoE | High | 2025 | **High** - DOPPLER must win on performance and VRAM |
-| Chrome built-in AI (`window.ai`) | Medium | 2025-2026 | **High** - native APIs could obsolete frameworks |
+| WebLLM adopts buffer reuse/async | High | 2025-2026 | **High** - incumbent gains 3.76x edge |
+| ONNX WASM64 packages | Medium | 2025-2026 | **High** - removes 4GB limit for Transformers.js |
+| Chrome built-in AI expansion | Low | 2025-2026 | Low - locked to small Gemini Nano models |
 | MediaPipe model expansion | High | Ongoing | Low - still Google-model focused |
 | FlashInfer WebGPU port | Low | 2026+ | **High** - would match DOPPLER's attention perf |
+| Petals browser client | Low | 2026+ | Medium - enables distributed inference |
 
-### Defensive Priorities
+Note: WeInfer itself is not a threat (stale since Feb 2025), but its techniques could be adopted by WebLLM.
 
-1. **Urgent:** Validate performance vs WebLLM baseline
-2. **High:** Implement WeInfer-style buffer pooling + async dispatch
-3. **High:** Ship working MoE demo (Mixtral or similar)
-4. **Medium:** Document Native Bridge advantages over OPFS
-5. **Medium:** Ship useful P2P shard cache (distribution)
-6. **Medium:** Track ONNX WASM64 progress
+### Defensive Priorities (Updated Dec 2025)
+
+1. **CRITICAL:** Implement buffer reuse strategy (see WeInfer paper, not stale code)
+2. **CRITICAL:** Implement async pipeline + deferred readback
+3. **CRITICAL:** Command buffer batching (single submit per forward)
+4. **Urgent:** Validate performance vs WebLLM baseline
+5. **High:** Ship working MoE demo (Mixtral or similar)
+6. **Medium:** Document Native Bridge advantages over OPFS
+7. **Medium:** Ship P2P shard cache (see `docs/plans/P2P.md`)
 
 ### DOPPLER's Defensible Moats
 
 | Differentiator | Threat Level | Notes |
 |----------------|--------------|-------|
 | Flash Attention in WGSL | Safe (2025) | No competitor has this in browser |
-| Hand-tuned MoE | Contested | WebLLM supports MoE. Battle is on performance |
+| Custom MoE routing | Contested | WebLLM supports MoE. Battle is on performance |
 | 60GB unified memory | Untested | If validated, unique advantage |
 | Native Bridge (mmap) | Unique | No competitor offers local file access |
 | P2P shard cache | Planned | Swarm shard distribution reduces origin bandwidth and improves cold start |
-| Hand-written kernels | Double-edged | More control but WeInfer shows optimization gaps |
+| Custom WGSL (no compiler) | Double-edged | More control, but requires manual optimization |
 
 ---
 
@@ -539,7 +649,7 @@ If either solution ships, Transformers.js (1.4M monthly users) instantly gains l
 
 11. **Modular on AI Compilers** (2024)
     - URL: https://www.modular.com/blog/democratizing-ai-compute-part-6-what-about-ai-compilers
-    - Key insight: TVM/XLA as second-gen approach to hand-written kernels
+    - Key insight: TVM/XLA as second-gen approach vs direct kernel authoring
 
 ### GitHub Repositories
 

@@ -19,6 +19,7 @@ import { acquireBuffer, releaseBuffer } from '../../gpu/buffer-pool.js';
 import { runRMSNorm, runResidualAdd, runMatmul, runSiLU, runGeLU } from '../../gpu/kernel-selector.js';
 import { runLayerAttentionGPU, type AttentionConfig, type AttentionState } from './attention.js';
 import { getWeightBuffer, getNormWeightBuffer, type WeightBufferConfig, type WeightDebugFlags } from './weights.js';
+import { logLayerEntry, logBufferStats, logFFNOutput, shouldLog } from './debug-utils.js';
 
 // ============================================================================
 // Types
@@ -175,6 +176,11 @@ export async function processLayer(
   const { hiddenSize } = config;
   const size = numTokens * hiddenSize;
 
+  // Debug routing (uses debug-utils)
+  if (shouldLog(layerIdx, 'attn')) {
+    logLayerEntry(layerIdx, isPrefill, numTokens, size);
+  }
+
   // GPU-native path
   if (useGPU && hiddenStates instanceof GPUBuffer) {
     return processLayerGPU(layerIdx, hiddenStates, numTokens, isPrefill, size, context);
@@ -199,6 +205,11 @@ export async function processLayerGPU(
   size: number,
   context: LayerContext
 ): Promise<GPUBuffer> {
+  // Debug entry (uses debug-utils)
+  if (shouldLog(layerIdx, 'attn')) {
+    logLayerEntry(layerIdx, isPrefill, numTokens, size);
+  }
+
   const device = getDevice();
   if (!device) throw new Error('No GPU device available');
 
@@ -240,6 +251,9 @@ export async function processLayerGPU(
     (weight, label) => getWeightBuffer(weight, label),
     (weight, label) => getNormWeightBuffer(weight, label, weightConfig, debugFlags)
   );
+
+  // Debug: trace attn output (uses debug-utils)
+  await logBufferStats(attnOutput, `attn (${isPrefill ? 'prefill' : 'decode'})`, layerIdx, 'attn');
 
   // 2. Handle residual connection based on architecture
   let postAttn: GPUBuffer;
@@ -305,6 +319,9 @@ async function processFFNWithSandwichNorm(
   }
 
   if (ffnInput !== postAttn) releaseBuffer(ffnInput);
+
+  // Debug: trace FFN output (uses debug-utils)
+  await logFFNOutput(ffnOutput, layerIdx, numTokens);
 
   // 3. Post-FFN norm - applied to FFN output BEFORE residual add
   let ffnOutputNormed = ffnOutput;

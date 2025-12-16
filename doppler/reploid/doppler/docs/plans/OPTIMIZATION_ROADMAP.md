@@ -40,16 +40,61 @@ Notes:
 
 This file is the single source of truth for actionable work. `docs/analysis/COMPETITIVE.md` provides the rationale.
 
-### WeInfer-Style Pipeline Improvements
+### WebGPU Pipeline Optimizations (Buffer Reuse + Async)
+
+**Context:** WeInfer paper (WWW 2025) demonstrated 3.76x speedup over WebLLM using buffer reuse and async pipeline techniques. The WeInfer repo is stale (last commit Feb 2025, based on WebLLM 0.2.46), so implement from first principles using the paper as reference.
+
+**Paper:** [ACM WWW 2025](https://dl.acm.org/doi/10.1145/3696410.3714553)
 
 Goal: remove avoidable WebGPU overhead (buffer churn, redundant submits, unnecessary readbacks).
 
-| Action Item | Priority | Status | File(s) |
-|-------------|----------|--------|---------|
-| Audit current buffer lifecycle | P0 | TODO | `gpu/buffer-pool.ts` |
-| Implement buffer reuse strategy | P0 | TODO | `gpu/buffer-pool.ts` |
-| Implement async pipeline (prep vs dispatch) | P0 | TODO | `inference/pipeline.ts` |
-| Implement deferred result fetching (lazy GPU to CPU readback) | P0 | TODO | `inference/pipeline.ts` |
+**Techniques for 3.76x speedup:**
+
+| Action Item | Priority | Status | File(s) | Technique |
+|-------------|----------|--------|---------|-----------|
+| Audit current buffer lifecycle | P0 | TODO | `gpu/buffer-pool.ts` | Understand current allocation patterns |
+| Implement buffer reuse strategy | P0 | TODO | `gpu/buffer-pool.ts` | Pre-allocate fixed pool, reuse across ops |
+| Implement async pipeline | P0 | TODO | `inference/pipeline.ts` | Decouple buffer prep from kernel dispatch |
+| Implement deferred result fetching | P0 | TODO | `inference/pipeline.ts` | Batch GPU→CPU transfers, read only at sampling |
+
+**Implementation approach (don't copy stale WeInfer code):**
+
+```javascript
+// Buffer reuse: pre-allocate and recycle
+class PersistentBufferPool {
+  constructor(device) {
+    this.pools = new Map(); // size -> available buffers
+  }
+
+  acquire(size, usage) {
+    // Return existing buffer if available, else create
+    const key = `${size}_${usage}`;
+    if (this.pools.has(key) && this.pools.get(key).length > 0) {
+      return this.pools.get(key).pop();
+    }
+    return device.createBuffer({ size, usage });
+  }
+
+  release(buffer) {
+    // Return to pool instead of destroy
+    const key = `${buffer.size}_${buffer.usage}`;
+    if (!this.pools.has(key)) this.pools.set(key, []);
+    this.pools.get(key).push(buffer);
+  }
+}
+
+// Async pipeline: overlap prep with execution
+async function forwardPass(encoder, inputs) {
+  // Stage 1: Prep next layer's buffers while current executes
+  const prepPromise = prepareLayerBuffers(layerIdx + 1);
+
+  // Stage 2: Record current layer
+  recordLayer(encoder, layerIdx, inputs);
+
+  // Stage 3: Await prep for next iteration
+  await prepPromise;
+}
+```
 
 Note: command buffer batching is tracked in the next section. It is a major overhead reducer.
 
