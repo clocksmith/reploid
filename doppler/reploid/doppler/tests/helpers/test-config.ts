@@ -228,6 +228,7 @@ export const BASE_LOG_PATTERNS = [
   'NORM_WEIGHTS',  // Debug: norm weight values
   'NORM_INPUT',  // Debug: norm input values
   'NORM_OUTPUT',  // Debug: norm output values
+  '[RMSNorm]',  // Debug: RMSNorm kernel params
 ];
 
 /**
