@@ -13,8 +13,22 @@ const shaderSourceCache = new Map<string, string>();
 /** Compiled pipeline cache */
 const pipelineCache = new Map<string, GPUComputePipeline>();
 
-/** Base path for kernel files */
-const KERNEL_BASE_PATH = '/gpu/kernels';
+/**
+ * Base path for kernel files
+ * Detects if running under /doppler/ (replo.id deployment) or standalone
+ */
+function getKernelBasePath(): string {
+  // Check if we're running from /doppler/ path (replo.id deployment)
+  if (typeof location !== 'undefined') {
+    const path = location.pathname;
+    if (path.startsWith('/d') || path.startsWith('/doppler/') || location.host.includes('replo')) {
+      return '/doppler/gpu/kernels';
+    }
+  }
+  return '/gpu/kernels';
+}
+
+const KERNEL_BASE_PATH = getKernelBasePath();
 
 /** Kernel configuration */
 export interface KernelConfig {
@@ -58,6 +72,32 @@ export const KERNEL_CONFIGS: Record<string, Record<string, KernelConfig>> = {
       entryPoint: 'main',
       workgroupSize: [256, 1, 1],
       requires: ['shader-f16'],
+    },
+    // Subgroup-optimized GEMV - 1.5x faster using subgroupAdd
+    gemv_subgroup: {
+      shaderFile: 'matmul_gemv_subgroup.wgsl',
+      entryPoint: 'main',
+      workgroupSize: [256, 1, 1],
+      requires: ['shader-f16', 'subgroups'],
+    },
+    gemv_subgroup_vec4: {
+      shaderFile: 'matmul_gemv_subgroup.wgsl',
+      entryPoint: 'main_vec4',
+      workgroupSize: [256, 1, 1],
+      requires: ['shader-f16', 'subgroups'],
+    },
+    // Fused Q4_K dequant + matmul - 2-3x faster (no separate dequant pass)
+    q4_fused: {
+      shaderFile: 'matmul_q4_fused.wgsl',
+      entryPoint: 'main',
+      workgroupSize: [256, 1, 1],
+      requires: ['shader-f16', 'subgroups'],
+    },
+    q4_fused_batched: {
+      shaderFile: 'matmul_q4_fused.wgsl',
+      entryPoint: 'main_batched',
+      workgroupSize: [64, 4, 1],
+      requires: ['shader-f16', 'subgroups'],
     },
     f32: {
       shaderFile: 'matmul_f32.wgsl',

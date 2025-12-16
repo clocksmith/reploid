@@ -182,8 +182,14 @@ export async function runMatmul(
   // Use optimized GEMV kernel for M=1 decode with f16 weights (transposeB required)
   // GEMV uses shared memory for A vector, avoiding 256x redundant global reads
   const useGemv = M === 1 && bDtype === 'f16' && aDtype === 'f32' && transposeB;
+  const capabilities = getKernelCapabilities();
   if (useGemv) {
-    variant = 'gemv';
+    // Prefer subgroup-optimized GEMV when available (1.5x faster)
+    if (capabilities.hasSubgroups) {
+      variant = 'gemv_subgroup';
+    } else {
+      variant = 'gemv';
+    }
   } else if (M === 1 && bDtype === 'f16' && aDtype === 'f32') {
     // Fallback to naive for non-transposed (rare case)
     variant = 'f16w_f32a_naive';
