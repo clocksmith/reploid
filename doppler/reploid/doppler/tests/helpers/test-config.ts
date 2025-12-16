@@ -186,6 +186,8 @@ export const BASE_LOG_PATTERNS = [
   '[DOPPLERDemo]',
   '[DopplerLoader]',
   '[DEBUG]',
+  '[Benchmark]',  // Performance metrics
+  '[UnifiedDetect]',  // Memory detection debug
   'Loading model',
   'Model loaded',
   'Error',

@@ -357,7 +357,11 @@ export class DOPPLERDemo {
       onSelect: (model, opts) => this.selectModel(model as RegisteredModel, opts),
       onDownload: (model, opts) => this.downloadModel(model as RegisteredModel, opts),
       onDelete: (model) => this.deleteModel(model as RegisteredModel),
-      onQuickStart: (model) => this.startQuickStart(model.key),
+      onQuickStart: (model) => {
+        // Use the remote source ID (e.g., 'gemma-1b-instruct') for QUICKSTART_MODELS lookup
+        const modelId = model.sources?.remote?.id || model.key;
+        this.startQuickStart(modelId);
+      },
     });
 
     // Chat UI

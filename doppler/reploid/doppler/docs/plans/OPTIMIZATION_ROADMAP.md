@@ -488,4 +488,70 @@ AFTER command batching (implemented Dec 2025):
 
 ---
 
+## Performance Gap Analysis: Doppler vs WebLLM
+
+**Current state (December 2025):**
+- Doppler: ~6 tok/s on Gemma 3 1B (M3)
+- WebLLM: ~70 tok/s on Phi-3.5-mini 3.8B (M3 Max)
+- Gap: ~10x slower
+
+**Root causes and fixes:**
+
+### High Priority - Kernel Optimization
+
+| Action Item | Priority | Status | Impact | Notes |
+|-------------|----------|--------|--------|-------|
+| Tiled matmul with configurable tile sizes | P0 | TODO | 2-3x | Current matmul is naive, WebLLM uses TVM-optimized tiles |
+| Subgroup operations for reductions | P0 | TODO | 1.5x | We detect subgroups but don't use them optimally |
+| Workgroup size auto-tuning | P1 | TODO | 1.2-1.5x | Different GPUs prefer different workgroup sizes |
+| FlashAttention-style fused attention | P1 | TODO | 2x | Current attention does multiple passes |
+| Fused FFN kernel (gate+up+SiLU+down) | P1 | TODO | 1.3x | SwiGLU done, need full fusion with down proj |
+
+### High Priority - Precision and Memory
+
+| Action Item | Priority | Status | Impact | Notes |
+|-------------|----------|--------|--------|-------|
+| Full f16 activation pipeline | P0 | IN PROGRESS | 1.5-2x | Apple Silicon has fast f16, currently only KV cache |
+| W4A16 quantized matmul | P0 | TODO | 2-3x | 4-bit weights, 16-bit activations in same kernel |
+| Memory layout optimization (column-major) | P1 | TODO | 1.2x | Better cache utilization for weight matrices |
+| Tensor packing for coalesced access | P1 | TODO | 1.3x | Pack weights for sequential memory reads |
+
+### Medium Priority - Pipeline
+
+| Action Item | Priority | Status | Impact | Notes |
+|-------------|----------|--------|--------|-------|
+| Layer-level pipelining | P1 | TODO | 1.2x | Prep layer N+1 while executing N |
+| Async weight loading during decode | P2 | TODO | 1.1x | Background load next layer weights |
+| KV cache update batching | P1 | ✅ DONE | 1.1x | Fixed: was submitting separately from recorder |
+
+### Low Priority - Advanced
+
+| Action Item | Priority | Status | Impact | Notes |
+|-------------|----------|--------|--------|-------|
+| Custom WGSL compiler/optimizer | P3 | TODO | 1.5x | Like TVM but for WGSL |
+| Continuous batching | P3 | TODO | 2-3x | Multi-sequence inference |
+| PagedAttention | P3 | TODO | 1.2x | Better KV cache memory efficiency |
+
+### Blocked / Waiting
+
+| Action Item | Blocker | Notes |
+|-------------|---------|-------|
+| INT4 native matmul | WebGPU spec | No int4 type in WGSL |
+| Tensor cores / WMMA | WebGPU spec | No matrix hardware intrinsics |
+| Shared memory atomics | Browser support | Limited atomic support in WebGPU |
+
+---
+
+## Benchmark Targets
+
+| Model | Current | Target | WebLLM Reference |
+|-------|---------|--------|------------------|
+| Gemma 3 1B | 6 tok/s | 50+ tok/s | N/A |
+| Phi-3.5-mini 3.8B | N/A | 60+ tok/s | 71 tok/s |
+| Llama-3.1-8B | N/A | 35+ tok/s | 41 tok/s |
+
+**Hardware**: Apple M3 (unified memory)
+
+---
+
 *Last updated: December 2025*

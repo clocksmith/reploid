@@ -107,20 +107,20 @@ const MB = 1024 * 1024;
  * Gemma 1B requirements (Q4_K_M quantization)
  */
 export const GEMMA_1B_REQUIREMENTS: ModelRequirements = {
-  modelId: 'gemma-1b-instruct',
-  displayName: 'Gemma 1B Instruct',
+  modelId: 'gemma3-1b-q4',
+  displayName: 'Gemma 3 1B (Q4)',
   downloadSize: 1.2 * GB,       // ~1.2GB for Q4_K_M shards
   vramRequired: 1.5 * GB,       // ~1.5GB VRAM for inference (weights + KV cache)
   paramCount: '1B',
   quantization: 'Q4_K_M',
-  architecture: 'gemma3',
+  architecture: 'Gemma3ForCausalLM',
 };
 
 /**
  * All available model requirements
  */
 export const MODEL_REQUIREMENTS: Record<string, ModelRequirements> = {
-  'gemma-1b-instruct': GEMMA_1B_REQUIREMENTS,
+  'gemma3-1b-q4': GEMMA_1B_REQUIREMENTS,
 };
 
 // ============================================================================

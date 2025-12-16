@@ -184,21 +184,40 @@ export async function detectUnifiedMemory(): Promise<UnifiedMemoryInfo> {
       };
     }
 
-    const device = await adapter.requestDevice();
+    // Request device with maximum limits to detect actual hardware capabilities
+    const adapterLimits = adapter.limits;
+    const device = await adapter.requestDevice({
+      requiredLimits: {
+        maxBufferSize: adapterLimits.maxBufferSize,
+        maxStorageBufferBindingSize: adapterLimits.maxStorageBufferBindingSize,
+      }
+    });
 
     const apple = await detectAppleSilicon(adapter);
     const amd = await detectAMDUnified(adapter);
     const limits = checkUnifiedIndicators(adapter, device);
 
     // Determine if unified
-    const isUnified = apple.isApple || amd.isAMDUnified;
+    // Fallback: macOS + large buffer limits = likely Apple Silicon
+    const isMacOS = navigator.platform?.toLowerCase().includes('mac') ||
+                    navigator.userAgent?.toLowerCase().includes('mac');
+    const hasLargeBuffers = limits.largeBuffers;
+
+    // Apple Silicon: either detected via adapter OR (macOS + large buffers)
+    const isAppleSilicon = apple.isApple || (isMacOS && hasLargeBuffers);
+    const isUnified = isAppleSilicon || amd.isAMDUnified;
 
     // Estimate available unified memory
     let estimatedMemoryGB: number | null = null;
-    if (apple.isApple) {
-      // Apple M-series: estimate based on generation
-      // M1: 8-16GB, M1 Pro/Max: 16-64GB, M2/M3/M4 Max: up to 128GB
-      estimatedMemoryGB = (apple.mSeriesGen ?? 0) >= 4 ? 128 : 64;
+    if (isAppleSilicon) {
+      // Apple M-series: estimate based on generation or buffer limits
+      if (apple.mSeriesGen) {
+        estimatedMemoryGB = apple.mSeriesGen >= 4 ? 128 : 64;
+      } else {
+        // Fallback: estimate from max buffer size
+        const maxBufferGB = (limits.maxBufferSize || 0) / (1024 * 1024 * 1024);
+        estimatedMemoryGB = Math.min(128, Math.max(8, Math.floor(maxBufferGB * 2)));
+      }
     } else if (amd.isStrix) {
       // Strix Halo: up to 128GB
       estimatedMemoryGB = 128;
