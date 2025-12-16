@@ -247,6 +247,12 @@ async function main(): Promise<void> {
         }
       } else {
         // Doppler-only mode: serve index.html at /
+        // Also strip /doppler/ prefix for Firebase-compatible paths
+        if (pathname.startsWith('/doppler/')) {
+          pathname = pathname.replace('/doppler/', '/');
+        } else if (pathname === '/doppler') {
+          pathname = '/index.html';
+        }
         if (pathname === '/' || pathname === '') {
           pathname = '/index.html';
         }
