@@ -233,6 +233,7 @@ export const BASE_LOG_PATTERNS = [
   'BEFORE_DISPATCH',  // Debug: kernel pre-dispatch
   'AFTER_DISPATCH',  // Debug: kernel post-dispatch
   'WEIGHTS:',  // Debug: weight values
+  'specific:',  // Debug: specific token logits
 ];
 
 /**

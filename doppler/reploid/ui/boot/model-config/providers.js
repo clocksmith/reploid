@@ -232,7 +232,7 @@ export async function checkAvailability() {
     const checkDoppler = async () => {
         if (providers.webgpu.online) {
             try {
-                const { DopplerProvider } = await import('../../../doppler/doppler-provider.js');
+                const { DopplerProvider } = await import('../../../doppler/dist/doppler-provider.js');
                 const available = await DopplerProvider.init();
                 if (available) {
                     const capabilities = DopplerProvider.getCapabilities();

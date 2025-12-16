@@ -586,13 +586,20 @@ export class DOPPLERDemo {
 
   /**
    * Generate a deduplication key for a model
+   * Uses architecture + quantization only (size varies between sources)
    */
-  private _getModelKey(arch: string | undefined, quant: string | undefined, size: number | string): string {
-    // Normalize architecture name
-    const normArch = (arch || 'unknown').toLowerCase().replace(/forcausallm|forconditionalgeneration/gi, '');
-    const normQuant = (quant || 'unknown').toLowerCase();
-    const normSize = String(size || 0);
-    return `${normArch}:${normQuant}:${normSize}`;
+  private _getModelKey(arch: string | undefined, quant: string | undefined, _size?: number | string): string {
+    // Normalize architecture: extract base model family (gemma, llama, mistral, etc.)
+    const normArch = (arch || 'unknown')
+      .toLowerCase()
+      .replace(/forcausallm|forconditionalgeneration|model/gi, '')
+      .replace(/[^a-z0-9]/g, '');
+
+    // Normalize quantization
+    const normQuant = (quant || 'unknown').toLowerCase().replace(/[^a-z0-9]/g, '');
+
+    // Size intentionally excluded - varies between manifest and estimates
+    return `${normArch}:${normQuant}`;
   }
 
   /**
