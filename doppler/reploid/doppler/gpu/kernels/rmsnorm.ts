@@ -94,6 +94,9 @@ export async function runRMSNorm(
     ],
   });
 
+  // Debug: log RMSNorm parameters
+  console.log(`[RMSNorm] variant=${variant}, batchSize=${batchSize}, inferredHiddenSize=${inferredHiddenSize}, eps=${eps}, inputSize=${input.size}, weightSize=${weight.size}, outputSize=${outputSize}`);
+
   // Dispatch
   const encoder = device.createCommandEncoder({ label: 'rmsnorm_encoder' });
   const pass = encoder.beginComputePass({ label: 'rmsnorm_pass' });
@@ -108,6 +111,7 @@ export async function runRMSNorm(
   uniformBuffer.destroy();
   if (!residual) residualBuffer.destroy();
 
+  setBufferDtype(output, 'f32');
   return output;
 }
 
