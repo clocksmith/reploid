@@ -1,6 +1,6 @@
-Here is the annotated version with authoritative post-2015 sources added inline.
+# Semantic Memory
 
-#Semantic Memory (Annotated)###How Reploid Uses ItReploid's agent loop enriches every LLM call with relevant memories. This pattern is formally known as **Memory-Augmented Generation** or **Reflexion**, where agents "recall" past experiences before acting [[Park et al., 2023, "Generative Agents"](https://arxiv.org/abs/2304.03442); [Shinn et al., 2023, "Reflexion"](https://arxiv.org/abs/2303.11366)].
+###How Reploid Uses ItReploid's agent loop enriches every LLM call with relevant memories. This pattern is formally known as **Memory-Augmented Generation** or **Reflexion**, where agents "recall" past experiences before acting [[Park et al., 2023, "Generative Agents"](https://arxiv.org/abs/2304.03442); [Shinn et al., 2023, "Reflexion"](https://arxiv.org/abs/2303.11366)].
 
 ```javascript
 // Before each LLM call (agent-loop.js:351)
