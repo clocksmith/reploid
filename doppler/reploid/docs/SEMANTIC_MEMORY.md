@@ -1,38 +1,24 @@
 # Semantic Memory
 
-## How Reploid Uses It
+## Why Semantic
 
-Reploid enriches every LLM call with relevant memories before acting:
+| | Text RAG | Semantic |
+|---|----------|----------|
+| **Matches** | Words | Meaning |
+| "bypass login" finds "SQLi grants admin" | No | Yes |
+| "steal session" finds "XSS in search" | No | Yes |
 
-```javascript
-// agent-loop.js - before each LLM call
-if (CognitionAPI) {
-  context = await CognitionAPI.semantic.enrich(userMessage, context);
-}
-```
+Both store vectors. The difference: **Lexical Overlap** vs **Conceptual Distance**.
 
-The `enrich()` function:
-1. Embeds the query into a 384-dim vector
-2. Searches IndexedDB for similar memories (cosine > 0.5)
-3. Injects top matches as system context
+## Python vs Reploid
 
-This lets the agent recall past findings, tool outputs, and learned patterns without explicit prompting.
+| | Python | Reploid |
+|---|--------|---------|
+| **Embedding** | sentence-transformers | Transformers.js |
+| **Storage** | ChromaDB | IndexedDB |
+| **Runtime** | Server | Browser (offline) |
 
-## Why Semantic Over Keywords
-
-**Query:** "bypass authentication"
-**Memory:** "SQL injection in login field grants admin"
-
-| Approach | Result |
-|----------|--------|
-| Keyword search | No match (0 word overlap) |
-| Semantic search | 0.82 similarity → MATCH |
-
-The embedding model maps meaning, not words. "bypass" and "injection" land in the same vector neighborhood.
-
-## Security Applications
-
-Semantic memory excels at connecting related security concepts:
+### Python
 
 ```python
 from sentence_transformers import SentenceTransformer
@@ -40,49 +26,44 @@ import chromadb
 
 model = SentenceTransformer('all-MiniLM-L6-v2')
 db = chromadb.PersistentClient("./mem")
-findings = db.get_or_create_collection("findings")
+col = db.get_or_create_collection("findings")
 
-def store(text, category):
-    findings.add(ids=[f"{hash(text)%10**8}"], documents=[text], metadatas=[{"cat": category}])
+def store(text, meta={}):
+    col.add(ids=[f"{hash(text)%10**8}"], documents=[text], metadatas=[meta])
 
 def recall(query, k=5):
-    return findings.query(query_texts=[query], n_results=k)["documents"][0]
+    return col.query(query_texts=[query], n_results=k)["documents"][0]
 ```
 
-<<<<<<< HEAD
----
+### Reploid
 
-## Reploid Security Memory Exmaples
+```javascript
+// Transformers.js + IndexedDB
+const store = async (text, metadata = {}) => {
+  const embedding = await embed(text);
+  await EmbeddingStore.addMemory({ content: text, embedding, ...metadata });
+};
 
-This application of RAG to cybersecurity is known as **"Automated Vulnerability Management with LLMs"** [[AutoPentest, 2025](https://arxiv.org/abs/2505.10321v1)].
+const search = async (query, topK = 5) => {
+  const embedding = await embed(query);
+  return EmbeddingStore.searchSimilar(embedding, topK, 0.5);
+};
+```
 
-=======
-**Example memories:**
->>>>>>> 97ee3996 (.)
+## Examples
+
 ```python
-# Web security
-store("' OR '1'='1 bypasses login - blind SQLi", "web")
-store("<svg/onload=alert(1)> stored in search field", "web")
+store("' OR '1'='1 bypasses login - SQLi", {"cat": "web"})
+store("SSH key in .git/config - lateral movement", {"cat": "infra"})
+store("Docker socket exposed - container escape", {"cat": "infra"})
 
-# Infrastructure
-store("SSH key in .git/config - lateral movement possible", "infra")
-store("Docker socket exposed - container escape via mount", "infra")
-
-# Code review
-store("eval(user_input) in parser.js line 42", "code")
-store("Hardcoded AWS keys in config.py", "code")
+recall("need admin access")      # → SQLi bypass
+recall("move between systems")   # → SSH key leak
+recall("escape sandbox")         # → Docker socket
 ```
-
-**Queries that match without keyword overlap:**
-- "need admin access" → finds SQLi bypass
-- "move between systems" → finds SSH key leak
-- "escape sandbox" → finds Docker socket exposure
-- "secrets in repo" → finds hardcoded AWS keys
-
-The model learned these associations from pre-training on security corpora, documentation, and code.
 
 ## References
 
-- [RAG: Retrieval-Augmented Generation](https://arxiv.org/abs/2005.11401)
 - [Sentence-BERT](https://arxiv.org/abs/1908.10084)
-- [MemGPT: Memory Management for LLMs](https://arxiv.org/abs/2310.08560)
+- [RAG](https://arxiv.org/abs/2005.11401)
+- [MemGPT](https://arxiv.org/abs/2310.08560)
