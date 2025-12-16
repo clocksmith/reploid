@@ -12,8 +12,6 @@
  * @module inference/pipeline/layer
  */
 
-console.log('[LAYER_MODULE] layer.ts module loaded');
-
 import type { ParsedModelConfig } from './config.js';
 import type { LayerWeights, MaybeGPUBuffer } from './types.js';
 import { getDevice } from '../../gpu/device.js';
@@ -302,10 +300,6 @@ export async function processLayer(
   isPrefill: boolean,
   context: LayerContext
 ): Promise<GPUBuffer | Float32Array> {
-  if (layerIdx === 0) {
-    throw new Error('[LAYER_TS] TEST ERROR - processLayer was called from layer.ts');
-  }
-  console.log(`[LAYER_TS] processLayer called, layerIdx=${layerIdx}`);
   const { config, useGPU } = context;
   const { hiddenSize } = config;
   const size = numTokens * hiddenSize;

@@ -219,6 +219,11 @@ export const BASE_LOG_PATTERNS = [
   'LAYER_ROUTE',  // Debug: layer routing
   'LAYER_GPU',  // Debug: GPU layer entry
   'LAYER_DEBUG',  // Debug: layer debug output
+  '[Layer0]',  // Debug: layer 0 specific output
+  '[Layer',  // Debug: any layer output
+  'ATTN_OUT',  // Debug: attention output
+  'POST_ATTN',  // Debug: post attention
+  'ARCH:',  // Debug: architecture path
 ];
 
 /**
