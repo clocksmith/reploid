@@ -451,8 +451,8 @@ export class InferencePipeline {
       const prevStates = hiddenStates;
       hiddenStates = await processLayer(l, hiddenStates, numTokens, true, context) as GPUBuffer;
 
-      // Debug: trace hidden state growth through layers (first 3 layers only to limit spam)
-      if (l < 3 && hiddenStates instanceof GPUBuffer) {
+      // Debug: trace hidden state growth through layers (every 5th layer to track growth)
+      if ((l < 3 || l % 5 === 0 || l === config.numLayers - 1) && hiddenStates instanceof GPUBuffer) {
         const device = getDevice();
         if (device) {
           try {
@@ -475,7 +475,7 @@ export class InferencePipeline {
             console.log(`[Pipeline] LAYER_${l}_OUT: error reading buffer: ${e}`);
           }
         }
-      } else if (l < 3) {
+      } else if (l < 3 || l % 5 === 0 || l === config.numLayers - 1) {
         console.log(`[Pipeline] LAYER_${l}_OUT: hiddenStates is ${hiddenStates?.constructor?.name}`);
       }
 
