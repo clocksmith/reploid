@@ -2,7 +2,18 @@
 
 Defines a standardized benchmark harness for DOPPLER so performance claims are measurable and comparable across devices, browsers, and competing runtimes.
 
-See also: `docs/plans/OPTIMIZATION_ROADMAP.md` for benchmark work items.
+---
+
+## Implementation Status
+
+| Component | Status | Location |
+|-----------|--------|----------|
+| Kernel microbenchmarks | ✅ Implemented | `kernel-tests/tests/benchmarks/` |
+| Pipeline benchmark harness | ✅ Implemented | `tests/benchmark/` |
+| Standard prompts | ✅ Implemented | `tests/benchmark/prompts.ts` |
+| JSON result schema | ✅ Implemented | `tests/benchmark/types.ts` |
+| System benchmarks | ⬜ TODO | - |
+| Saved results storage | ⬜ TODO | `tests/results/` |
 
 ---
 
@@ -20,10 +31,11 @@ See also: `docs/plans/OPTIMIZATION_ROADMAP.md` for benchmark work items.
 The harness benchmarks three layers:
 
 1. **Kernel microbench**: single-op timings (matmul, attention, dequant) with synthetic tensors.
-   - Implemented in `doppler/kernel-tests/tests/benchmarks/`.
+   - Implemented in `kernel-tests/tests/benchmarks/`.
 2. **Pipeline benchmarks**: prefill and decode loops using a real model manifest.
-   - Planned for DOPPLER. Results should follow the JSON schema in this doc.
+   - Implemented in `tests/benchmark/pipeline-benchmark.ts`.
 3. **System benchmarks**: download and storage behavior (HTTP vs OPFS vs Native Bridge, and later P2P).
+   - TODO: Not yet implemented.
 
 ---
 
@@ -61,7 +73,7 @@ The harness benchmarks three layers:
 - `opfs_bytes_written`: bytes written to OPFS during model acquisition.
 - `download_wall_ms`: wall time to populate local cache from origin.
 
-P2P extension metrics are defined in `docs/proposals/P2P.md`.
+P2P extension metrics are defined in Phase 4 roadmap.
 
 ---
 
@@ -192,11 +204,48 @@ For WebLLM comparisons, record:
 
 ## Recommended Repo Layout (Non-binding)
 
-- Kernel microbenchmarks: `doppler/kernel-tests/`
-- Pipeline benchmark harness (recommended): `doppler/reploid/doppler/tests/benchmark/`
-- Saved result JSON (recommended): `doppler/reploid/doppler/tests/results/`
+- Kernel microbenchmarks: `kernel-tests/tests/benchmarks/`
+- Pipeline benchmark harness: `tests/benchmark/`
+- Saved result JSON: `tests/results/`
 
-This document specifies what must be measured, not how the code is organized.
+---
+
+## Usage
+
+### Quick Benchmark (Browser Console)
+
+```typescript
+import { runQuickBenchmark, formatBenchmarkSummary } from './tests/benchmark/index.js';
+
+const result = await runQuickBenchmark('http://localhost:8080/models/gemma-1b');
+console.log(formatBenchmarkSummary(result));
+console.log(JSON.stringify(result, null, 2));
+```
+
+### Full Benchmark Suite
+
+```typescript
+import { PipelineBenchmark } from './tests/benchmark/index.js';
+
+const harness = new PipelineBenchmark({
+  modelPath: 'http://localhost:8080/models/gemma-1b',
+  promptName: 'medium',
+  maxNewTokens: 128,
+  warmupRuns: 2,
+  timedRuns: 3,
+  sampling: { temperature: 0, topK: 1, topP: 1 },
+});
+
+const result = await harness.run();
+```
+
+### Available Prompts
+
+| Name | Token Range | Use Case |
+|------|-------------|----------|
+| `short` | 16-64 | Quick validation |
+| `medium` | 256-512 | Standard benchmark |
+| `long` | ~2048 | Stress test |
 
 ---
 
