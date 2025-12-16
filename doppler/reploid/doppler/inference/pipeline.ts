@@ -434,7 +434,8 @@ export class InferencePipeline {
     // Create CommandRecorder for batched GPU operations
     // This reduces GPU submits from 260+ per forward pass to 1
     const device = getDevice();
-    const recorder = device ? createCommandRecorder('prefill') : undefined;
+    // DEBUG: Disable batching to get accurate per-layer debug
+    const recorder = undefined; // device ? createCommandRecorder('prefill') : undefined;
     const context = this._buildLayerContext(recorder);
 
     // Enable submit tracking for benchmarking
