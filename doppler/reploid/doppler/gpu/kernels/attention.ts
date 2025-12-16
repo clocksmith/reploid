@@ -67,16 +67,35 @@ export async function runAttention(
   const SMALL_REQUIRED_SHARED_F32 = 2 * SMALL_BLOCK_SIZE * SMALL_HEAD_TILE * 4;
   const SMALL_REQUIRED_SHARED_F16 = 2 * SMALL_BLOCK_SIZE * SMALL_HEAD_TILE * 2;
 
+  const isDecode = seqLen === 1;
+  const canLarge =
+    headDim <= LARGE_MAX_HEAD_DIM &&
+    sharedLimit >= LARGE_REQUIRED_SHARED;
+  const smallRequired = useF16KV ? SMALL_REQUIRED_SHARED_F16 : SMALL_REQUIRED_SHARED_F32;
+  const canSmall =
+    headDim <= SMALL_MAX_HEAD_DIM &&
+    sharedLimit >= smallRequired;
+
   let tier = attentionKernel;
+
+  // Validate manifest/user-specified tier against device limits
+  if (tier === 'tiled_large' && !canLarge) {
+    console.warn(
+      `[Attention] Requested tiled_large but device doesn't support it ` +
+      `(headDim=${headDim}, shared=${sharedLimit}). Falling back.`
+    );
+    tier = null; // Force auto-selection
+  }
+  if (tier === 'tiled_small' && !canSmall) {
+    console.warn(
+      `[Attention] Requested tiled_small but device doesn't support it ` +
+      `(headDim=${headDim}, shared=${sharedLimit}). Falling back.`
+    );
+    tier = null;
+  }
+
+  // Auto-select if not specified or invalid
   if (!tier) {
-    const isDecode = seqLen === 1;
-    const canLarge =
-      headDim <= LARGE_MAX_HEAD_DIM &&
-      sharedLimit >= LARGE_REQUIRED_SHARED;
-    const smallRequired = useF16KV ? SMALL_REQUIRED_SHARED_F16 : SMALL_REQUIRED_SHARED_F32;
-    const canSmall =
-      headDim <= SMALL_MAX_HEAD_DIM &&
-      sharedLimit >= smallRequired;
     if (canLarge) {
       tier = 'tiled_large';
     } else if (canSmall) {
@@ -85,7 +104,7 @@ export async function runAttention(
       tier = 'streaming';
     } else {
       console.warn(
-        `[KernelSelector] No tiled attention fits prefill (headDim=${headDim}, shared=${sharedLimit}). ` +
+        `[Attention] No tiled kernel fits prefill (headDim=${headDim}, shared=${sharedLimit}). ` +
         `Falling back to streaming. Expect slow prefill.`
       );
       tier = 'streaming';
@@ -194,15 +213,66 @@ export async function recordAttention(
     scale = 1.0 / Math.sqrt(headDim),
     causal = true,
     startPos = 0,
+    attentionKernel = null,
     outputBuffer = null,
   } = options;
 
-  // Similar logic to runAttention for kernel selection
+  // Kernel selection with device limit validation (same logic as runAttention)
+  const limits = getDeviceLimits();
+  const sharedLimit = limits?.maxComputeWorkgroupStorageSize ?? Infinity;
+
   const kvDtype = getBufferDtype(K) || 'f32';
   const useF16KV = kvDtype === 'f16';
-  const variant = seqLen === 1 ?
-    (useF16KV ? 'decode_streaming_f16kv' : 'decode_streaming') :
-    (useF16KV ? 'prefill_f16kv' : 'prefill');
+
+  const LARGE_MAX_HEAD_DIM = 64;
+  const SMALL_MAX_HEAD_DIM = 256;
+  const LARGE_REQUIRED_SHARED = 49152;
+  const SMALL_BLOCK_SIZE = 32;
+  const SMALL_HEAD_TILE = 32;
+  const SMALL_REQUIRED_SHARED_F32 = 2 * SMALL_BLOCK_SIZE * SMALL_HEAD_TILE * 4;
+  const SMALL_REQUIRED_SHARED_F16 = 2 * SMALL_BLOCK_SIZE * SMALL_HEAD_TILE * 2;
+
+  const isDecode = seqLen === 1;
+  const canLarge =
+    headDim <= LARGE_MAX_HEAD_DIM &&
+    sharedLimit >= LARGE_REQUIRED_SHARED;
+  const smallRequired = useF16KV ? SMALL_REQUIRED_SHARED_F16 : SMALL_REQUIRED_SHARED_F32;
+  const canSmall =
+    headDim <= SMALL_MAX_HEAD_DIM &&
+    sharedLimit >= smallRequired;
+
+  let tier = attentionKernel;
+
+  // Validate requested tier against device limits
+  if (tier === 'tiled_large' && !canLarge) {
+    tier = null;
+  }
+  if (tier === 'tiled_small' && !canSmall) {
+    tier = null;
+  }
+
+  // Auto-select if not specified or invalid
+  if (!tier) {
+    if (canLarge) {
+      tier = 'tiled_large';
+    } else if (canSmall) {
+      tier = 'tiled_small';
+    } else {
+      tier = 'streaming';
+    }
+  }
+
+  // Select variant based on tier, phase, and KV dtype
+  let variant: string;
+  if (isDecode) {
+    variant = useF16KV ? 'decode_streaming_f16kv' : 'decode_streaming';
+  } else if (tier === 'tiled_large') {
+    variant = useF16KV ? 'prefill_f16kv' : 'prefill';
+  } else if (tier === 'tiled_small') {
+    variant = useF16KV ? 'prefill_small_f16kv' : 'prefill_small';
+  } else {
+    variant = useF16KV ? 'prefill_streaming_f16kv' : 'prefill_streaming';
+  }
 
   const pipeline = await createPipeline('attention', variant);
 

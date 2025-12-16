@@ -19,8 +19,11 @@ import { MoERouter } from './moe-router.js';
 import { SpeculativeDecoder } from './speculative.js';
 import { KVCache, SlidingWindowKVCache } from './kv-cache.js';
 import { Tokenizer } from './tokenizer.js';
-import { getDevice } from '../gpu/device.js';
+import { getDevice, setTrackSubmits } from '../gpu/device.js';
 import { releaseBuffer, readBuffer } from '../gpu/buffer-pool.js';
+import { runArgmax, runGPUSample, isGPUSamplingAvailable } from '../gpu/kernels/sample.js';
+import { resetSubmitStats, logSubmitStats, getSubmitStats } from '../gpu/submit-tracker.js';
+import { createCommandRecorder, type CommandRecorder } from '../gpu/command-recorder.js';
 import { log, setGPUDevice } from '../debug/index.js';
 
 // Pipeline sub-modules
@@ -40,7 +43,7 @@ import {
 } from './pipeline/init.js';
 import { embed } from './pipeline/embed.js';
 import { processLayer, type LayerContext } from './pipeline/layer.js';
-import { computeLogits, extractLastPositionLogits, type LogitsConfig, type LogitsWeights } from './pipeline/logits.js';
+import { computeLogits, computeLogitsGPU, extractLastPositionLogits, type LogitsConfig, type LogitsWeights } from './pipeline/logits.js';
 import { createWeightBufferHelpers, type WeightBufferConfig, type WeightDebugFlags } from './pipeline/weights.js';
 import type { LayerWeights, ExpertWeights, RouterWeights } from './pipeline/types.js';
 import type { LogitsDebugFlags } from './pipeline/logits.js';
@@ -388,6 +391,12 @@ export class InferencePipeline {
       if (opts.debug) {
         console.log(`[Pipeline] Generated ${tokensGenerated} tokens in ${this.stats.totalTimeMs.toFixed(0)}ms`);
       }
+
+      // Always log benchmark stats
+      const ttft = this.stats.prefillTimeMs;
+      const decodeTokens = tokensGenerated - 1; // First token comes from prefill
+      const decodeSpeed = decodeTokens > 0 ? (decodeTokens / this.stats.decodeTimeMs * 1000) : 0;
+      console.log(`[Benchmark] TTFT: ${ttft.toFixed(0)}ms | Prefill: ${this.stats.prefillTimeMs.toFixed(0)}ms | Decode: ${this.stats.decodeTimeMs.toFixed(0)}ms (${decodeTokens} tokens @ ${decodeSpeed.toFixed(1)} tok/s)`);
     } finally {
       this.isGenerating = false;
     }
@@ -422,8 +431,18 @@ export class InferencePipeline {
       console.log(`[Pipeline] After embed: buffer.size=${hiddenStates.size}, nan=${nanCount}/${f32.length}, sample=[${sampleStr}]`);
     }
 
-    // Build layer context
-    const context = this._buildLayerContext();
+    // Create CommandRecorder for batched GPU operations
+    // This reduces GPU submits from 260+ per forward pass to 1
+    const device = getDevice();
+    const recorder = device ? createCommandRecorder('prefill') : undefined;
+    const context = this._buildLayerContext(recorder);
+
+    // Enable submit tracking for benchmarking
+    const benchmarkSubmits = opts.debug;
+    if (benchmarkSubmits) {
+      setTrackSubmits(true);
+      resetSubmitStats();
+    }
 
     // Process all layers
     console.log(`[Pipeline] LAYER_LOOP_START: numLayers=${config.numLayers}, useGPU=${context.useGPU}, hiddenStates=${hiddenStates?.constructor?.name}`);
@@ -457,6 +476,17 @@ export class InferencePipeline {
         releaseBuffer(prevStates);
       }
 
+    }
+
+    // Submit batched commands (cleanup happens automatically in submit)
+    if (recorder) {
+      await recorder.submitAndWait();
+    }
+
+    // Log submit stats after layer loop
+    if (benchmarkSubmits) {
+      logSubmitStats(`Prefill (${numTokens} tokens, ${config.numLayers} layers)`);
+      setTrackSubmits(false);
     }
 
     // Debug: check final hidden states before logits
@@ -540,8 +570,17 @@ export class InferencePipeline {
       console.log(`[Decode][1] Embed check: maxAbs=${maxAbs.toFixed(2)}, nonZero=${nonZero}/${embedArr.length}, sample=[${Array.from(sample).map(v => v.toFixed(3)).join(', ')}]`);
     }
 
-    // Build layer context
-    const context = this._buildLayerContext();
+    // Create CommandRecorder for batched GPU operations
+    const device = getDevice();
+    const recorder = device ? createCommandRecorder('decode') : undefined;
+    const context = this._buildLayerContext(recorder);
+
+    // Enable submit tracking for first decode step benchmarking
+    const benchmarkSubmits = this._decodeStepCount <= 3 && opts.debug;
+    if (benchmarkSubmits) {
+      setTrackSubmits(true);
+      resetSubmitStats();
+    }
 
     // Debug: check KV cache status for decode
     const hasGPUCache = context.kvCache?.hasGPUCache?.() ?? false;
@@ -567,7 +606,52 @@ export class InferencePipeline {
       }
     }
 
-    // Compute logits
+    // Submit batched commands (cleanup happens automatically in submit)
+    if (recorder) {
+      await recorder.submitAndWait();
+    }
+
+    // Log submit stats after decode layer loop
+    if (benchmarkSubmits) {
+      logSubmitStats(`Decode step ${this._decodeStepCount} (${config.numLayers} layers)`);
+      setTrackSubmits(false);
+    }
+
+    // Try GPU-side sampling for deferred readback (avoids ~1MB logits readback)
+    const useGPUSampling = this.useGPU && isGPUSamplingAvailable() && !isDebugStep;
+
+    if (useGPUSampling) {
+      // GPU path: compute logits on GPU, sample on GPU, read back only 4 bytes
+      const logitsResult = await computeLogitsGPU(
+        hiddenStates,
+        numTokens,
+        this._getLogitsWeights(),
+        this._getLogitsConfig(),
+        this._debugFlags as any
+      );
+
+      if (hiddenStates instanceof GPUBuffer) releaseBuffer(hiddenStates);
+
+      if (logitsResult) {
+        const { logitsBuffer, vocabSize } = logitsResult;
+
+        // GPU-side sampling (greedy for now, temperature sampling later)
+        // TODO: Add GPU-side repetition penalty and temperature sampling
+        const nextToken = opts.temperature < 0.01
+          ? await runArgmax(logitsBuffer, vocabSize)
+          : await runGPUSample(logitsBuffer, vocabSize, {
+              temperature: opts.temperature,
+              topK: opts.topK,
+            });
+
+        releaseBuffer(logitsBuffer);
+        this.currentSeqLen++;
+        return nextToken;
+      }
+      // Fall through to CPU path if GPU sampling failed
+    }
+
+    // CPU path: read back logits, sample on CPU
     const logits = await computeLogits(
       hiddenStates,
       numTokens,
@@ -600,7 +684,7 @@ export class InferencePipeline {
   // Context and Config Builders
   // ==========================================================================
 
-  private _buildLayerContext(): LayerContext {
+  private _buildLayerContext(recorder?: CommandRecorder): LayerContext {
     const config = this.modelConfig!;
     const { getWeightBuffer, getNormWeightBuffer } = createWeightBufferHelpers(
       this._getWeightBufferConfig(),
@@ -623,6 +707,7 @@ export class InferencePipeline {
       expertLoader: this.dopplerLoader,
       moeRouter: this.moeRouter,
       layerRouterWeights: this.layerRouterWeights ?? undefined,
+      recorder,
     };
   }
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * DOPPLER Development Server - Serves demo UI and model files.
+ * DOPPLER Development Server - Serves the app UI and model files.
  */
 
 import http, { IncomingMessage, ServerResponse } from 'http';
@@ -223,7 +223,7 @@ async function main(): Promise<void> {
       }
 
       if (pathname === '/' || pathname === '') {
-        pathname = '/demo/index.html';
+        pathname = '/index.html';
       }
 
       const safePath = pathname.replace(/^(\.\.[/\\])+/, '').replace(/\.\./g, '');

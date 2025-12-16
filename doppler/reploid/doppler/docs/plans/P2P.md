@@ -1,8 +1,12 @@
 # DOPPLER P2P Distribution Plan
 
+**Part of:** [VISION.md](../VISION.md) - Phase 4 (P2P Self-Healing Agents)
+
 Peer-to-peer model distribution and remote inference for browser-based LLMs.
 
 **Status:** Planning. Not implemented.
+
+**Prerequisites:** Phases 1-3 (performance parity, MoE efficiency, scale beyond WebLLM)
 
 **Related:** See [COMPETITIVE.md](../analysis/COMPETITIVE.md#p2p-model-distribution-landscape) for P2P landscape analysis.
 

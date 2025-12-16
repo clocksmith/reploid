@@ -135,6 +135,19 @@ export class CommandRecorder {
   }
 
   /**
+   * Track an externally created buffer for cleanup after submit.
+   * Use for buffers created outside the recorder that need cleanup.
+   *
+   * @param buffer - Buffer to track for destruction
+   */
+  trackTemporaryBuffer(buffer: GPUBuffer): void {
+    if (this.submitted) {
+      throw new Error('[CommandRecorder] Cannot track buffers after submit');
+    }
+    this.tempBuffers.push(buffer);
+  }
+
+  /**
    * Submit all recorded commands and clean up temporary buffers.
    * After calling this, the recorder cannot be reused.
    */

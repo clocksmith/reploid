@@ -292,6 +292,9 @@ console.log('[Pool]', getPoolStats());
 ## 10. Test Commands
 
 ```bash
+# Start dev server (serves demo at http://localhost:8080/)
+npx tsx serve.ts
+
 # Full test with browser UI
 npx tsx tests/test-runner.ts gemma --direct --headed
 
@@ -301,6 +304,59 @@ HEADLESS=true npx tsx tests/test-runner.ts gemma --direct
 # Playwright e2e
 npx playwright test doppler/tests/gemma-e2e.spec.ts --headed
 ```
+
+**Note**: The app UI is served at `http://localhost:8080/` (root).
+
+---
+
+## 11. Performance Debugging
+
+### GPU Submit Tracking
+
+DOPPLER includes submit tracking to measure per-token GPU overhead:
+
+```typescript
+import { setTrackSubmits, resetSubmitStats, logSubmitStats } from '../gpu/device.js';
+
+// Enable tracking
+setTrackSubmits(true);
+resetSubmitStats();
+
+// ... run forward pass ...
+
+// Log results
+logSubmitStats('Forward pass');
+setTrackSubmits(false);
+```
+
+### Command Buffer Batching
+
+**Before batching**: ~260+ GPU submits per forward pass (~50-100ms overhead)
+**After batching**: 1 submit per forward pass (~0.5ms overhead)
+
+The batching system uses `CommandRecorder` to record GPU operations into a single command buffer:
+
+```typescript
+import { createCommandRecorder } from '../gpu/command-recorder.js';
+
+const recorder = createCommandRecorder('forward_pass');
+
+// Use record* variants instead of run*
+await recordMatmul(recorder, A, B, M, N, K);
+await recordRMSNorm(recorder, input, weight, eps);
+
+// Submit all at once
+await recorder.submitAndWait();
+```
+
+### Key Files for Performance
+
+| File | Debug Focus |
+|------|-------------|
+| `gpu/command-recorder.ts` | Batched command recording |
+| `gpu/submit-tracker.ts` | GPU submit statistics |
+| `inference/pipeline.ts` | Forward pass orchestration |
+| `inference/pipeline/layer.ts` | do* wrappers for run/record variants |
 
 ---
 

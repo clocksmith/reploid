@@ -59,7 +59,7 @@ DOPPLER is the "Neuro Computer" that powers REPLOID agents. It runs large langua
 
 ```
 doppler/
-├── demo/           # Interactive demo UI
+├── app/            # Application UI
 ├── docs/           # Documentation
 ├── gpu/            # WebGPU kernels and device management
 ├── inference/      # Inference pipeline
@@ -81,7 +81,7 @@ doppler/
 # From reploid root, serve with any static server
 npx serve .
 
-# Open http://localhost:3000/doppler/demo/
+# Open http://localhost:3000/doppler/
 ```
 
 ### Convert a Model

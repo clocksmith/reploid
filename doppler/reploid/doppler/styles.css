@@ -307,6 +307,16 @@ body {
   background: var(--accent-hover);
 }
 
+.model-btn.quick-start {
+  background: linear-gradient(135deg, var(--accent), #10b981);
+  color: white;
+  font-weight: 600;
+}
+
+.model-btn.quick-start:hover {
+  background: linear-gradient(135deg, var(--accent-hover), #059669);
+}
+
 .model-btn.delete {
   background: transparent;
   border: 1px solid var(--error);
@@ -485,6 +495,153 @@ body {
   margin-top: 8px;
   font-size: 13px;
   color: var(--text-secondary);
+}
+
+/* Quick-Start Overlay */
+.quickstart-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 15, 15, 0.95);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 20;
+}
+
+.quickstart-overlay[hidden] {
+  display: none;
+}
+
+.quickstart-content {
+  width: 360px;
+  max-width: 90%;
+}
+
+.quickstart-panel {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+}
+
+.quickstart-panel[hidden] {
+  display: none;
+}
+
+.quickstart-title {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0 0 16px;
+  color: var(--text-primary);
+}
+
+.quickstart-title.error {
+  color: #ef4444;
+}
+
+.quickstart-title.success {
+  color: #22c55e;
+}
+
+.quickstart-info {
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-sm);
+  padding: 12px;
+  margin-bottom: 16px;
+}
+
+.quickstart-info .info-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 0;
+}
+
+.quickstart-info .info-row:not(:last-child) {
+  border-bottom: 1px solid var(--border);
+}
+
+.quickstart-info .info-label {
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.quickstart-info .info-value {
+  color: var(--text-primary);
+  font-weight: 500;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+.quickstart-note {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin: 0 0 20px;
+  line-height: 1.5;
+}
+
+.quickstart-note.error {
+  color: #ef4444;
+}
+
+.quickstart-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.quickstart-btn {
+  padding: 10px 20px;
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  transition: background 0.2s;
+}
+
+.quickstart-btn.primary {
+  background: var(--accent);
+  color: white;
+}
+
+.quickstart-btn.primary:hover {
+  background: var(--accent-secondary);
+}
+
+.quickstart-btn.cancel {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+}
+
+.quickstart-btn.cancel:hover {
+  background: var(--bg-primary);
+}
+
+.quickstart-progress {
+  margin-bottom: 12px;
+}
+
+.quickstart-stats {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  margin-bottom: 8px;
+}
+
+.quickstart-stats span {
+  color: var(--text-secondary);
+}
+
+.quickstart-stats span:first-child {
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.quickstart-detail {
+  font-size: 12px;
+  color: var(--text-muted);
+  text-align: center;
 }
 
 /* Chat Messages */

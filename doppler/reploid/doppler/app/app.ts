@@ -1,14 +1,22 @@
 /**
- * app.ts - DOPPLER Demo Application Controller
+ * app.ts - DOPPLER Application Controller
  *
  * Main application that wires together all components and the DOPPLER inference pipeline.
  *
- * @module demo/app
+ * @module app/app
  */
 
 import { ModelSelector, ModelInfo, ModelSources } from './model-selector.js';
 import { ChatUI } from './chat-ui.js';
 import { ProgressUI } from './progress-ui.js';
+import { QuickStartUI } from './quickstart-ui.js';
+
+// Quick-start downloader
+import {
+  downloadQuickStartModel,
+  QUICKSTART_MODELS,
+  type QuickStartDownloadResult,
+} from '../storage/quickstart-downloader.js';
 
 // Browser model converter
 import {
@@ -208,6 +216,7 @@ export class DOPPLERDemo {
   private modelSelector: ModelSelector | null = null;
   private chatUI: ChatUI | null = null;
   private progressUI: ProgressUI | null = null;
+  private quickStartUI: QuickStartUI | null = null;
 
   // Pipeline state
   private pipeline: Pipeline | null = null;
@@ -348,6 +357,7 @@ export class DOPPLERDemo {
       onSelect: (model, opts) => this.selectModel(model as RegisteredModel, opts),
       onDownload: (model, opts) => this.downloadModel(model as RegisteredModel, opts),
       onDelete: (model) => this.deleteModel(model as RegisteredModel),
+      onQuickStart: (model) => this.startQuickStart(model.key),
     });
 
     // Chat UI
@@ -359,6 +369,13 @@ export class DOPPLERDemo {
 
     // Progress UI
     this.progressUI = new ProgressUI(container);
+
+    // Quick-Start UI
+    this.quickStartUI = new QuickStartUI(container, {
+      onDownloadComplete: (modelId) => this._onQuickStartComplete(modelId),
+      onRunModel: (modelId) => this._runQuickStartModel(modelId),
+      onCancel: () => console.log('[QuickStart] Cancelled by user'),
+    });
 
     // Attention kernel override dropdown
     if (this.attentionKernelSelect) {
@@ -724,7 +741,33 @@ export class DOPPLERDemo {
       );
     }
 
-    // 4. Convert map to array and sort by availability
+    // 4. Add Quick Start models (CDN-hosted with preflight checks)
+    for (const [modelId, config] of Object.entries(QUICKSTART_MODELS)) {
+      const req = config.requirements;
+      const key = this._getModelKey(req.architecture || modelId, req.quantization, req.downloadSize);
+      const existing = modelMap.get(key);
+      if (existing) {
+        // Mark existing model as quick-start available
+        existing.quickStartAvailable = true;
+      } else {
+        // Add as new remote model with quick-start
+        addModel(
+          key,
+          {
+            name: config.displayName,
+            size: req.paramCount,
+            quantization: req.quantization,
+            downloadSize: req.downloadSize,
+            architecture: req.architecture,
+            quickStartAvailable: true,
+          },
+          'remote',
+          { id: modelId, url: config.baseUrl }
+        );
+      }
+    }
+
+    // 5. Convert map to array and sort by availability
     // Priority: server+browser > server > browser > remote
     const getAvailabilityScore = (m: RegisteredModel): number => {
       let score = 0;
@@ -1316,6 +1359,100 @@ export class DOPPLERDemo {
     }
     if (this.convertMessage) {
       this.convertMessage.textContent = message;
+    }
+  }
+
+  // ============================================================================
+  // Quick-Start Methods
+  // ============================================================================
+
+  /**
+   * Start quick-start flow for a model
+   */
+  async startQuickStart(modelId: string): Promise<void> {
+    const config = QUICKSTART_MODELS[modelId];
+    if (!config) {
+      this._showError(`Unknown quick-start model: ${modelId}`);
+      return;
+    }
+
+    console.log(`[QuickStart] Starting download for ${modelId}`);
+
+    const result = await downloadQuickStartModel(modelId, {
+      onPreflightComplete: (preflight) => {
+        console.log('[QuickStart] Preflight:', preflight);
+
+        // Show VRAM blocker if needed
+        if (!preflight.vram.sufficient) {
+          this.quickStartUI?.showVRAMBlocker(
+            preflight.vram.required,
+            preflight.vram.available
+          );
+        }
+      },
+      onStorageConsent: async (required, available, modelName) => {
+        // Show consent dialog and wait for user response
+        const consent = await this.quickStartUI?.showStorageConsent(
+          modelName,
+          required,
+          available
+        );
+        if (consent) {
+          this.quickStartUI?.showDownloadProgress();
+        }
+        return consent ?? false;
+      },
+      onProgress: (progress) => {
+        this.quickStartUI?.setDownloadProgress(
+          progress.percent,
+          progress.downloadedBytes,
+          progress.totalBytes,
+          progress.speed
+        );
+      },
+    });
+
+    if (result.success) {
+      this.quickStartUI?.showReady(modelId);
+    } else if (result.blockedByPreflight) {
+      // Already showing VRAM blocker
+      console.log('[QuickStart] Blocked by preflight:', result.error);
+    } else if (result.userDeclined) {
+      console.log('[QuickStart] User declined');
+      this.quickStartUI?.hide();
+    } else {
+      this.quickStartUI?.showError(result.error || 'Download failed');
+    }
+  }
+
+  /**
+   * Handle quick-start download completion
+   */
+  private async _onQuickStartComplete(modelId: string): Promise<void> {
+    console.log(`[QuickStart] Download complete for ${modelId}`);
+    // Refresh model list to show the downloaded model
+    await this._loadCachedModels();
+  }
+
+  /**
+   * Run model after quick-start download
+   */
+  private async _runQuickStartModel(modelId: string): Promise<void> {
+    console.log(`[QuickStart] Running model ${modelId}`);
+
+    // Find the model in registry and select it
+    const model = MODEL_REGISTRY.find((m) => m.key === modelId || m.sources.browser?.id === modelId);
+    if (model) {
+      await this.selectModel(model);
+    } else {
+      // Refresh and try again
+      await this._loadCachedModels();
+      const refreshedModel = MODEL_REGISTRY.find((m) => m.key === modelId || m.sources.browser?.id === modelId);
+      if (refreshedModel) {
+        await this.selectModel(refreshedModel);
+      } else {
+        this._showError(`Model ${modelId} not found after download`);
+      }
     }
   }
 }

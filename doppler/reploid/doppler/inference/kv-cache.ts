@@ -379,6 +379,60 @@ export class KVCache {
   }
 
   /**
+   * Record KV cache update to an external encoder (for batched GPU operations).
+   * Does NOT submit - caller is responsible for submitting the encoder.
+   *
+   * @param encoder - GPU command encoder to record operations to
+   * @param layerIdx - Layer index
+   * @param keysBuffer - GPU buffer with new keys
+   * @param valuesBuffer - GPU buffer with new values
+   * @param startPos - Starting position in sequence
+   * @param numTokens - Number of tokens to update
+   */
+  recordUpdateFromGPU(
+    encoder: GPUCommandEncoder,
+    layerIdx: number,
+    keysBuffer: GPUBuffer,
+    valuesBuffer: GPUBuffer,
+    startPos: number,
+    numTokens: number
+  ): void {
+    const layer = this.layers[layerIdx] as ContiguousLayerCache;
+
+    if (!layer.keysGPU) {
+      throw new Error('GPU cache not initialized');
+    }
+
+    if (startPos + numTokens > this.maxSeqLen) {
+      throw new Error(
+        `Cache overflow: ${startPos + numTokens} > ${this.maxSeqLen}`
+      );
+    }
+
+    if (this.kvDtype === 'f16') {
+      const kd = getBufferDtype(keysBuffer);
+      const vd = getBufferDtype(valuesBuffer);
+      if (kd !== 'f16' || vd !== 'f16') {
+        throw new Error('KV cache is f16 but source buffers are not f16');
+      }
+    }
+
+    const byteOffset = startPos * this.kvSize * this.bytesPerElem;
+    const byteSize = numTokens * this.kvSize * this.bytesPerElem;
+
+    // Record copy operations to the provided encoder (no submit)
+    encoder.copyBufferToBuffer(keysBuffer, 0, layer.keysGPU, byteOffset, byteSize);
+    encoder.copyBufferToBuffer(valuesBuffer, 0, layer.valuesGPU!, byteOffset, byteSize);
+
+    // Update seqLen metadata (this happens immediately, copies happen when encoder is submitted)
+    layer.seqLen = Math.max(layer.seqLen, startPos + numTokens);
+
+    if (layerIdx === this.numLayers - 1) {
+      this.currentSeqLen = Math.max(this.currentSeqLen, startPos + numTokens);
+    }
+  }
+
+  /**
    * Update contiguous storage
    * @private
    */
@@ -869,6 +923,62 @@ export class SlidingWindowKVCache extends KVCache {
 
     device.queue.submit([encoder.finish()]);
 
+    const seen = Math.max(this.totalTokensSeen, startPos + numTokens);
+    this.totalTokensSeen = seen;
+    const storedLen = Math.min(windowSize, seen);
+
+    layer.seqLen = Math.max(layer.seqLen || 0, storedLen);
+    if (layerIdx === this.numLayers - 1) {
+      this.currentSeqLen = storedLen;
+    }
+  }
+
+  /**
+   * Record KV cache update with ring-buffer semantics to an external encoder.
+   * Does NOT submit - caller is responsible for submitting the encoder.
+   */
+  override recordUpdateFromGPU(
+    encoder: GPUCommandEncoder,
+    layerIdx: number,
+    keysBuffer: GPUBuffer,
+    valuesBuffer: GPUBuffer,
+    startPos: number,
+    numTokens: number
+  ): void {
+    const layer = this.layers[layerIdx] as ContiguousLayerCache;
+
+    if (!layer.keysGPU) {
+      throw new Error('GPU cache not initialized');
+    }
+
+    if (this.kvDtype === 'f16') {
+      const kd = getBufferDtype(keysBuffer);
+      const vd = getBufferDtype(valuesBuffer);
+      if (kd !== 'f16' || vd !== 'f16') {
+        throw new Error('KV cache is f16 but source buffers are not f16');
+      }
+    }
+
+    const windowSize = this.windowSize;
+    const bytesPerToken = this.kvSize * this.bytesPerElem;
+    const writePos = startPos % windowSize;
+
+    const firstChunkTokens = Math.min(numTokens, windowSize - writePos);
+    const firstChunkBytes = firstChunkTokens * bytesPerToken;
+    const secondChunkTokens = numTokens - firstChunkTokens;
+    const secondChunkBytes = secondChunkTokens * bytesPerToken;
+
+    const destByteOffset1 = writePos * bytesPerToken;
+    encoder.copyBufferToBuffer(keysBuffer, 0, layer.keysGPU, destByteOffset1, firstChunkBytes);
+    encoder.copyBufferToBuffer(valuesBuffer, 0, layer.valuesGPU!, destByteOffset1, firstChunkBytes);
+
+    if (secondChunkTokens > 0) {
+      const srcByteOffset2 = firstChunkBytes;
+      encoder.copyBufferToBuffer(keysBuffer, srcByteOffset2, layer.keysGPU, 0, secondChunkBytes);
+      encoder.copyBufferToBuffer(valuesBuffer, srcByteOffset2, layer.valuesGPU!, 0, secondChunkBytes);
+    }
+
+    // Update metadata (copies happen when encoder is submitted)
     const seen = Math.max(this.totalTokensSeen, startPos + numTokens);
     this.totalTokensSeen = seen;
     const storedLen = Math.min(windowSize, seen);

@@ -115,9 +115,20 @@ export {
 // Type Casting
 export {
   castF32ToF16,
+  recordCastF32ToF16,
   runBF16ToF32,
   type CastOptions,
 } from './cast.js';
+
+// GPU-Side Sampling
+export {
+  runArgmax,
+  runGPUSample,
+  recordArgmax,
+  isGPUSamplingAvailable,
+  type SampleOptions,
+  type SampleResult,
+} from './sample.js';
 
 // Re-export CommandRecorder types for convenience
 export { CommandRecorder, createCommandRecorder } from '../command-recorder.js';

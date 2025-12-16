@@ -1,10 +1,10 @@
 /**
  * progress-ui.ts - Progress Indicator Component
- * Agent-D | Phase 2 | demo/
+ * Agent-D | Phase 2 | app/
  *
  * Handles download and loading progress display.
  *
- * @module demo/progress-ui
+ * @module app/progress-ui
  */
 
 // ============================================================================

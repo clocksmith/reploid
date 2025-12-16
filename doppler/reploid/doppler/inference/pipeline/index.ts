@@ -182,6 +182,7 @@ export type {
 
 export {
   computeLogits,
+  computeLogitsGPU,
   rmsNormCPU,
   matmulCPU,
   extractLastPositionLogits,

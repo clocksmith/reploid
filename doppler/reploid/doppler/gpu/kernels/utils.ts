@@ -442,6 +442,44 @@ export const KERNEL_CONFIGS: Record<string, Record<string, KernelConfig>> = {
       requires: ['shader-f16'],
     },
   },
+  sample: {
+    argmax: {
+      shaderFile: 'sample.wgsl',
+      entryPoint: 'argmax',
+      workgroupSize: [256, 1, 1],
+      requires: [],
+    },
+    argmax_reduce: {
+      shaderFile: 'sample.wgsl',
+      entryPoint: 'argmax_reduce',
+      workgroupSize: [256, 1, 1],
+      requires: [],
+    },
+    find_topk_phase1: {
+      shaderFile: 'sample.wgsl',
+      entryPoint: 'find_topk_phase1',
+      workgroupSize: [256, 1, 1],
+      requires: [],
+    },
+    find_topk_phase2: {
+      shaderFile: 'sample.wgsl',
+      entryPoint: 'find_topk_phase2',
+      workgroupSize: [256, 1, 1],
+      requires: [],
+    },
+    softmax_and_sample: {
+      shaderFile: 'sample.wgsl',
+      entryPoint: 'softmax_and_sample',
+      workgroupSize: [256, 1, 1],
+      requires: [],
+    },
+    single_pass: {
+      shaderFile: 'sample.wgsl',
+      entryPoint: 'sample_single_pass',
+      workgroupSize: [256, 1, 1],
+      requires: [],
+    },
+  },
   bf16_to_f32: {
     default: {
       shaderFile: 'bf16_to_f32.wgsl',

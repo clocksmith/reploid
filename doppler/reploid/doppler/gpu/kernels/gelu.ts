@@ -80,6 +80,7 @@ export async function runGeLU(
 
 /**
  * Record GeLU (batched, no submit)
+ * Supports gated variant (GeGLU) when options.gate is provided.
  */
 export async function recordGeLU(
   recorder: CommandRecorder,
@@ -87,9 +88,11 @@ export async function recordGeLU(
   options: GeLUOptions = {}
 ): Promise<GPUBuffer> {
   const device = recorder.device;
-  const { size, outputBuffer = null } = options;
+  const { size, gate = null, outputBuffer = null } = options;
 
-  const pipeline = await createPipeline('silu', 'gelu');
+  // Select gated variant when gate buffer is provided
+  const variant = gate ? 'geglu' : 'gelu';
+  const pipeline = await createPipeline('silu', variant);
 
   const inferredSize = size || (input.size / 4);
   const outputSize = inferredSize * 4;
@@ -102,15 +105,23 @@ export async function recordGeLU(
 
   const uniformBuffer = recorder.createUniformBuffer(uniformData, 'gelu_uniforms');
 
-  // Bind group
+  // Bind group entries - gate variant needs binding 3
+  const gateBuffer = gate || input; // Use input as dummy if no gate
+  const entries: GPUBindGroupEntry[] = [
+    { binding: 0, resource: { buffer: uniformBuffer } },
+    { binding: 1, resource: { buffer: input } },
+    { binding: 2, resource: { buffer: output } },
+  ];
+
+  // Add gate binding for gated variant
+  if (gate) {
+    entries.push({ binding: 3, resource: { buffer: gateBuffer } });
+  }
+
   const bindGroup = device.createBindGroup({
     label: 'gelu_bind_group',
     layout: pipeline.getBindGroupLayout(0),
-    entries: [
-      { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: input } },
-      { binding: 2, resource: { buffer: output } },
-    ],
+    entries,
   });
 
   // Record pass

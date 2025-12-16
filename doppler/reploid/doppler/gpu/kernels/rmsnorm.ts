@@ -74,9 +74,9 @@ export async function runRMSNorm(
   });
   device.queue.writeBuffer(uniformBuffer, 0, uniformData);
 
-  // Create dummy residual if not provided
+  // Shader expects 5 bindings - create placeholder when no residual (uniform flags it as unused)
   const residualBuffer = residual || device.createBuffer({
-    label: 'rmsnorm_dummy_residual',
+    label: 'rmsnorm_residual_placeholder',
     size: 4,
     usage: GPUBufferUsage.STORAGE,
   });
@@ -125,6 +125,7 @@ export async function recordRMSNorm(
   const {
     batchSize = 1,
     hiddenSize = null,
+    residual = null,
     outputBuffer = null,
   } = options;
 
@@ -142,11 +143,19 @@ export async function recordRMSNorm(
   // Uniform buffer
   const uniformData = new ArrayBuffer(16);
   const uniformView = new DataView(uniformData);
-  uniformView.setUint32(0, batchSize, true);
-  uniformView.setUint32(4, inferredHiddenSize, true);
+  uniformView.setUint32(0, inferredHiddenSize, true);
+  uniformView.setUint32(4, batchSize, true);
   uniformView.setFloat32(8, eps, true);
+  uniformView.setUint32(12, residual ? 1 : 0, true); // hasResidual flag
 
   const uniformBuffer = recorder.createUniformBuffer(uniformData, 'rmsnorm_uniforms');
+
+  // Shader expects 5 bindings - create placeholder when no residual (uniform flags it as unused)
+  const residualBuffer = residual || device.createBuffer({
+    label: 'rmsnorm_residual_placeholder',
+    size: 4,
+    usage: GPUBufferUsage.STORAGE,
+  });
 
   // Bind group
   const bindGroup = device.createBindGroup({
@@ -157,6 +166,7 @@ export async function recordRMSNorm(
       { binding: 1, resource: { buffer: input } },
       { binding: 2, resource: { buffer: weight } },
       { binding: 3, resource: { buffer: output } },
+      { binding: 4, resource: { buffer: residualBuffer } },
     ],
   });
 
@@ -166,6 +176,11 @@ export async function recordRMSNorm(
   pass.setBindGroup(0, bindGroup);
   pass.dispatchWorkgroups(batchSize);
   pass.end();
+
+  // Track dummy buffer for cleanup if we created it
+  if (!residual) {
+    recorder.trackTemporaryBuffer(residualBuffer);
+  }
 
   setBufferDtype(output, 'f32');
   return output;

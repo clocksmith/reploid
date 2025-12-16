@@ -10,6 +10,7 @@ import { getDevice } from '../device.js';
 import { setBufferDtype } from '../buffer-dtypes.js';
 import { acquireBuffer } from '../buffer-pool.js';
 import { createPipeline } from './utils.js';
+import type { CommandRecorder } from '../command-recorder.js';
 
 /** Cast kernel options */
 export interface CastOptions {
@@ -63,6 +64,49 @@ export async function castF32ToF16(
   device.queue.submit([encoder.finish()]);
 
   uniformBuffer.destroy();
+
+  setBufferDtype(output, 'f16');
+  return output;
+}
+
+/**
+ * Record F32 to F16 cast (batched, no submit)
+ */
+export async function recordCastF32ToF16(
+  recorder: CommandRecorder,
+  input: GPUBuffer,
+  numElements: number,
+  options: CastOptions = {}
+): Promise<GPUBuffer> {
+  const device = recorder.device;
+  const { outputBuffer = null } = options;
+
+  const pipeline = await createPipeline('cast', 'f32_to_f16');
+
+  const output = outputBuffer || acquireBuffer(numElements * 2, undefined, 'cast_f32_to_f16_output');
+
+  const uniformData = new ArrayBuffer(16);
+  new DataView(uniformData).setUint32(0, numElements, true);
+
+  const uniformBuffer = recorder.createUniformBuffer(uniformData, 'cast_f32_to_f16_uniforms');
+
+  const bindGroup = device.createBindGroup({
+    label: 'cast_f32_to_f16_bind_group',
+    layout: pipeline.getBindGroupLayout(0),
+    entries: [
+      { binding: 0, resource: { buffer: uniformBuffer } },
+      { binding: 1, resource: { buffer: input } },
+      { binding: 2, resource: { buffer: output } },
+    ],
+  });
+
+  const pass = recorder.beginComputePass('cast_f32_to_f16');
+  pass.setPipeline(pipeline);
+  pass.setBindGroup(0, bindGroup);
+
+  const workgroups = Math.ceil(numElements / 256);
+  pass.dispatchWorkgroups(workgroups);
+  pass.end();
 
   setBufferDtype(output, 'f16');
   return output;
