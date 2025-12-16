@@ -12,6 +12,8 @@
  * @module inference/pipeline/layer
  */
 
+console.log('[LAYER_MODULE] layer.ts module loaded');
+
 import type { ParsedModelConfig } from './config.js';
 import type { LayerWeights, MaybeGPUBuffer } from './types.js';
 import { getDevice } from '../../gpu/device.js';
