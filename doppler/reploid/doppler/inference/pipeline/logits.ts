@@ -210,6 +210,22 @@ export async function computeLogits(
     hiddenSize,
   });
 
+  // Debug: always check post-norm values
+  {
+    const sampleSize = Math.min(128, normedBuffer.size);
+    const staging = device.createBuffer({ size: sampleSize, usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ });
+    const enc = device.createCommandEncoder();
+    enc.copyBufferToBuffer(normedBuffer, 0, staging, 0, sampleSize);
+    device.queue.submit([enc.finish()]);
+    await staging.mapAsync(GPUMapMode.READ);
+    const data = new Float32Array(staging.getMappedRange().slice(0));
+    staging.unmap();
+    staging.destroy();
+    const maxAbs = Math.max(...Array.from(data).map(x => Math.abs(x)));
+    const nonZero = Array.from(data).filter(x => x !== 0).length;
+    console.log(`[Pipeline] AFTER_FINAL_NORM: maxAbs=${maxAbs.toFixed(4)}, nonZero=${nonZero}/${data.length}, sample=[${Array.from(data).slice(0, 5).map(x => x.toFixed(4)).join(', ')}]`);
+  }
+
   // Debug: Check hidden state after final norm
   if (!debugFlags.afterFinalNormDebugDone && debugCheckBuffer) {
     debugFlags.afterFinalNormDebugDone = true;
@@ -236,6 +252,22 @@ export async function computeLogits(
   const lmHeadDtype = getBufferDtype(lmHeadBuffer);
   const normedDtype = getBufferDtype(normedBuffer);
   console.log(`[Pipeline] LM_HEAD_MATMUL: M=${numTokens}, N=${matmulVocabSize}, K=${hiddenSize}, lmHeadDtype=${lmHeadDtype}, normedDtype=${normedDtype}, size=${lmHeadBuffer.size}`);
+
+  // Debug: Sample lm_head weights
+  {
+    const sampleSize = 256;  // Sample first 64 floats (256 bytes)
+    const staging = device.createBuffer({ size: sampleSize, usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ });
+    const enc = device.createCommandEncoder();
+    enc.copyBufferToBuffer(lmHeadBuffer, 0, staging, 0, sampleSize);
+    device.queue.submit([enc.finish()]);
+    await staging.mapAsync(GPUMapMode.READ);
+    const data = new Float32Array(staging.getMappedRange().slice(0));
+    staging.unmap();
+    staging.destroy();
+    const maxAbs = Math.max(...Array.from(data).map(x => Math.abs(x)));
+    const nonZero = Array.from(data).filter(x => x !== 0).length;
+    console.log(`[Pipeline] LM_HEAD_WEIGHTS: maxAbs=${maxAbs.toFixed(4)}, nonZero=${nonZero}/${data.length}, sample=[${Array.from(data).slice(0, 8).map(x => x.toFixed(4)).join(', ')}]`);
+  }
 
   // HuggingFace models store lm_head as [vocabSize, hiddenSize], so transposeB=true
   const logitsBuffer = await runMatmul(normedBuffer, lmHeadBuffer, numTokens, matmulVocabSize, hiddenSize, {
