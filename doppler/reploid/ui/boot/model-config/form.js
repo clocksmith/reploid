@@ -16,7 +16,7 @@ let bridgeAvailableCache = null;
 async function checkBridgeAvailable() {
     if (bridgeAvailableCache !== null) return bridgeAvailableCache;
     try {
-        const { isBridgeAvailable } = await import('../../../doppler/bridge/index.js');
+        const { isBridgeAvailable } = await import('../../../doppler/dist/bridge/index.js');
         bridgeAvailableCache = isBridgeAvailable();
     } catch {
         bridgeAvailableCache = false;
@@ -517,57 +517,168 @@ export function setupGGUFImportListeners() {
 }
 
 /**
- * Handle GGUF import button click
+ * Handle model import button click - shows choice dialog
  */
 async function handleGGUFImportClick() {
+    // Show choice dialog
+    const choice = await showImportChoiceDialog();
+    if (!choice) return;
+
     try {
         // Dynamically import the modules (lazy load)
-        const { pickGGUFFile } = await import('../../../doppler/browser/file-picker.js');
-        const { importGGUFFile, ImportStage } = await import('../../../doppler/browser/gguf-importer.js');
+        const filePicker = await import('../../../doppler/dist/browser/file-picker.js');
+        const { importGGUFFile, ImportStage } = await import('../../../doppler/dist/browser/gguf-importer.js');
 
-        // Pick file
-        const file = await pickGGUFFile();
-        if (!file) {
-            console.log('[GGUF Import] User cancelled file picker');
+        let result;
+        if (choice === 'files') {
+            result = await filePicker.pickModelFiles({ multiple: true });
+        } else {
+            result = await filePicker.pickModelDirectory();
+        }
+
+        if (!result || result.files.length === 0) {
+            console.log('[Model Import] User cancelled or no files selected');
             return;
         }
 
-        console.log('[GGUF Import] Selected file:', file.name, 'Size:', (file.size / 1024 / 1024).toFixed(1), 'MB');
+        // Categorize files
+        const categorized = filePicker.categorizeModelFiles(result.files);
+        const format = filePicker.detectModelFormat(result.files);
 
-        // Show progress UI
-        showImportProgress();
-
-        // Create abort controller for cancellation
-        ggufImportController = new AbortController();
-
-        // Start import
-        const modelId = await importGGUFFile(file, {
-            onProgress: updateImportProgress,
-            signal: ggufImportController.signal,
+        console.log('[Model Import] Selected:', {
+            format,
+            weights: categorized.weights.length,
+            hasConfig: !!categorized.config,
+            hasTokenizer: !!categorized.tokenizer,
+            directory: result.directoryName
         });
 
-        console.log('[GGUF Import] Complete! Model ID:', modelId);
+        if (categorized.weights.length === 0) {
+            alert('No model weight files found (.gguf or .safetensors)');
+            return;
+        }
 
-        // Auto-add the model
-        await autoAddImportedModel(modelId);
+        // For now, only GGUF single-file import is fully supported
+        if (format === 'gguf' && categorized.weights.length === 1) {
+            const file = categorized.weights[0];
+            console.log('[Model Import] Importing GGUF:', file.name, 'Size:', (file.size / 1024 / 1024).toFixed(1), 'MB');
 
-        // Hide progress UI
-        hideImportProgress();
+            showImportProgress();
+            ggufImportController = new AbortController();
 
-        // Close the form
-        closeInlineForm();
+            const modelId = await importGGUFFile(file, {
+                onProgress: updateImportProgress,
+                signal: ggufImportController.signal,
+            });
+
+            console.log('[Model Import] Complete! Model ID:', modelId);
+            await autoAddImportedModel(modelId);
+            hideImportProgress();
+            closeInlineForm();
+
+        } else if (format === 'safetensors') {
+            // SafeTensors support - show info about what's needed
+            const totalSize = categorized.weights.reduce((sum, f) => sum + f.size, 0);
+            alert(`SafeTensors import coming soon!\n\nFound ${categorized.weights.length} weight file(s)\nTotal size: ${(totalSize / 1024 / 1024 / 1024).toFixed(2)} GB\n\nFor now, please convert to GGUF format using llama.cpp.`);
+        } else if (categorized.weights.length > 1) {
+            alert(`Multi-file GGUF support coming soon!\n\nFound ${categorized.weights.length} weight files.\n\nFor now, please use a single consolidated GGUF file.`);
+        }
 
     } catch (error) {
         if (error.name === 'AbortError') {
-            console.log('[GGUF Import] Cancelled by user');
+            console.log('[Model Import] Cancelled by user');
         } else {
-            console.error('[GGUF Import] Error:', error);
+            console.error('[Model Import] Error:', error);
             alert(`Import failed: ${error.message}`);
         }
         hideImportProgress();
     } finally {
         ggufImportController = null;
     }
+}
+
+/**
+ * Show choice dialog for import method
+ */
+function showImportChoiceDialog() {
+    return new Promise((resolve) => {
+        // Create modal
+        const overlay = document.createElement('div');
+        overlay.className = 'import-choice-overlay';
+        overlay.style.cssText = `
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.7); z-index: 10000;
+            display: flex; align-items: center; justify-content: center;
+        `;
+
+        const dialog = document.createElement('div');
+        dialog.style.cssText = `
+            background: var(--surface-1, #1a1a2e); padding: 24px; border-radius: 12px;
+            min-width: 320px; color: var(--text-1, #fff);
+            border: 1px solid var(--border-1, #333);
+        `;
+
+        dialog.innerHTML = `
+            <h3 style="margin: 0 0 16px; font-size: 18px;">Import Model</h3>
+            <p style="margin: 0 0 20px; opacity: 0.7; font-size: 14px;">
+                Choose how to import your model files
+            </p>
+            <div style="display: flex; flex-direction: column; gap: 12px;">
+                <button id="import-files-btn" style="
+                    padding: 12px 16px; border: 1px solid var(--border-1, #444);
+                    background: var(--surface-2, #252540); color: inherit;
+                    border-radius: 8px; cursor: pointer; text-align: left;
+                ">
+                    <strong>[+] Select Files</strong><br>
+                    <small style="opacity: 0.7;">Pick .gguf or .safetensors files</small>
+                </button>
+                <button id="import-folder-btn" style="
+                    padding: 12px 16px; border: 1px solid var(--border-1, #444);
+                    background: var(--surface-2, #252540); color: inherit;
+                    border-radius: 8px; cursor: pointer; text-align: left;
+                ">
+                    <strong>[/] Select Folder</strong><br>
+                    <small style="opacity: 0.7;">Pick a model directory</small>
+                </button>
+                <button id="import-cancel-btn" style="
+                    padding: 8px 16px; border: none;
+                    background: transparent; color: inherit;
+                    border-radius: 8px; cursor: pointer; opacity: 0.7;
+                ">
+                    Cancel
+                </button>
+            </div>
+        `;
+
+        overlay.appendChild(dialog);
+        document.body.appendChild(overlay);
+
+        const cleanup = () => {
+            document.body.removeChild(overlay);
+        };
+
+        dialog.querySelector('#import-files-btn').onclick = () => {
+            cleanup();
+            resolve('files');
+        };
+
+        dialog.querySelector('#import-folder-btn').onclick = () => {
+            cleanup();
+            resolve('folder');
+        };
+
+        dialog.querySelector('#import-cancel-btn').onclick = () => {
+            cleanup();
+            resolve(null);
+        };
+
+        overlay.onclick = (e) => {
+            if (e.target === overlay) {
+                cleanup();
+                resolve(null);
+            }
+        };
+    });
 }
 
 /**
@@ -746,7 +857,7 @@ async function openBrowseModal() {
     // Initialize bridge client if needed
     if (!browseClient) {
         try {
-            const { createBridgeClient } = await import('../../../doppler/bridge/index.js');
+            const { createBridgeClient } = await import('../../../doppler/dist/bridge/index.js');
             browseClient = await createBridgeClient();
         } catch (err) {
             console.error('[Browse] Failed to create bridge client:', err);

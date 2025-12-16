@@ -230,29 +230,69 @@ export async function checkAvailability() {
     };
 
     const checkDoppler = async () => {
+        console.log('[ModelConfig] checkDoppler starting, webgpu.online:', providers.webgpu.online);
         if (providers.webgpu.online) {
             try {
+                console.log('[ModelConfig] Importing DopplerProvider...');
                 const { DopplerProvider } = await import('../../../doppler/dist/doppler-provider.js');
+                console.log('[ModelConfig] DopplerProvider imported, calling init()...');
                 const available = await DopplerProvider.init();
+                console.log('[ModelConfig] DopplerProvider.init() returned:', available);
                 if (available) {
                     const capabilities = DopplerProvider.getCapabilities();
-                    const models = await DopplerProvider.getModels();
+
+                    // Get cached models from OPFS
+                    const cachedModels = await DopplerProvider.getModels();
+                    const cachedSet = new Set(cachedModels);
+
+                    // Also fetch available models from server
+                    let serverModels = [];
+                    try {
+                        const resp = await fetch('/api/models');
+                        if (resp.ok) {
+                            serverModels = await resp.json();
+                            console.log('[ModelConfig] DOPPLER server models:', serverModels.length);
+                        }
+                    } catch (e) {
+                        console.log('[ModelConfig] Could not fetch server models:', e.message);
+                    }
+
+                    // Merge: server models with cached status
+                    const models = serverModels.map(m => ({
+                        id: m.path || m.name,
+                        name: m.name,
+                        cached: cachedSet.has(m.name) || cachedSet.has(m.path),
+                        architecture: m.architecture,
+                        quantization: m.quantization,
+                        downloadSize: m.downloadSize
+                    }));
+
+                    // Add any cached models not on server (imported locally)
+                    for (const cached of cachedModels) {
+                        if (!models.find(m => m.id === cached || m.name === cached)) {
+                            models.push({ id: cached, name: cached, cached: true });
+                        }
+                    }
+
                     providers.doppler = {
                         online: true,
                         checked: true,
-                        models: models.map(id => ({ id, name: id })),
+                        models,
                         capabilities
                     };
-                    console.log('[ModelConfig] DOPPLER available:', capabilities.TIER_NAME, `(Tier ${capabilities.TIER_LEVEL})`);
+                    console.log('[ModelConfig] DOPPLER available:', capabilities.TIER_NAME, `(Tier ${capabilities.TIER_LEVEL})`, `(${models.length} models, ${cachedModels.length} cached)`);
                 } else {
+                    console.log('[ModelConfig] DOPPLER init returned false');
                     providers.doppler = { online: false, checked: true, models: [] };
                 }
             } catch (e) {
-                console.log('[ModelConfig] DOPPLER not available:', e.message);
+                console.error('[ModelConfig] DOPPLER not available:', e.message, e.stack);
                 providers.doppler = { online: false, checked: true, models: [] };
             }
             setAvailableProviders(providers);
             if (onStatusChange) onStatusChange();
+        } else {
+            console.log('[ModelConfig] Skipping DOPPLER check - WebGPU not online');
         }
     };
 

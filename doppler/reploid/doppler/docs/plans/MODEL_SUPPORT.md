@@ -171,7 +171,7 @@ See [RDRR_FORMAT.md](../spec/RDRR_FORMAT.md) for format details.
 1. Check architecture support table above
 2. Convert to RDRR with `convert-cli.ts`
 3. Run E2E test: `npx tsx tests/test-runner.ts <model> --direct --headed`
-4. If issues, check [DEBUG.md](../DEBUG.md)
+4. If issues, check [DOPPLER-TROUBLESHOOTING.md](../DOPPLER-TROUBLESHOOTING.md)
 5. Update this matrix with results
 
 ---
