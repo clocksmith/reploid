@@ -28,6 +28,8 @@ Or use the hosted versions:
 
 ## Showcase
 
+"Escape the box"
+
 <img width="1941" height="1013" alt="Screenshot 2025-12-08 at 4 20 29 PM" src="https://github.com/user-attachments/assets/22df141c-e183-4cd8-8d30-2efa1f653861" />
 
 **Example Goals:**
