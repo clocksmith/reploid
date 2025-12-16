@@ -178,6 +178,21 @@ export function logitsSanity(
   let nanCount = 0;
   let infCount = 0;
 
+  // Debug: Compare logits for specific tokens
+  // "▁blue" = 3730, "▁BLUENRG" = 77590, "▁sky" = 7217
+  const debugTokens = [
+    { id: 3730, name: 'blue' },
+    { id: 77590, name: 'BLUENRG' },
+    { id: 7217, name: 'sky' },
+    { id: 9595, name: 'Blue' },
+    { id: 51481, name: 'BLUE' },
+  ];
+  const debugLogits = debugTokens
+    .filter(t => t.id < logits.length)
+    .map(t => `${t.name}:${logits[t.id]?.toFixed(2)}`)
+    .join(', ');
+  console.log(`[Pipeline] ${label} specific: ${debugLogits}`);
+
   for (let i = 0; i < logits.length; i++) {
     const v = logits[i];
     if (Number.isNaN(v)) {
