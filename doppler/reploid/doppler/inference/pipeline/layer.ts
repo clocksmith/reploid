@@ -475,18 +475,63 @@ async function processFFNWithSandwichNorm(
   layerWeights: LayerWeights | undefined,
   sandwichNorm: SandwichNormInfo
 ): Promise<GPUBuffer> {
+  const device = getDevice();
   const { config, weightConfig, debugFlags, recorder } = context;
   const { hiddenSize, rmsNormEps } = config;
+
+  // Debug helper for layer 0
+  const debugL0 = async (buf: GPUBuffer, label: string) => {
+    if (layerIdx !== 0 || !device) return;
+    try {
+      const sampleSize = Math.min(128, buf.size);
+      const staging = device.createBuffer({ size: sampleSize, usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ });
+      const enc = device.createCommandEncoder();
+      enc.copyBufferToBuffer(buf, 0, staging, 0, sampleSize);
+      device.queue.submit([enc.finish()]);
+      await staging.mapAsync(GPUMapMode.READ);
+      const data = new Float32Array(staging.getMappedRange().slice(0));
+      staging.unmap();
+      staging.destroy();
+      const maxAbs = Math.max(...Array.from(data).map(x => Math.abs(x)));
+      const nonZero = Array.from(data).filter(x => x !== 0).length;
+      console.log(`[Layer0] FFN_${label}: maxAbs=${maxAbs.toFixed(4)}, nonZero=${nonZero}/${data.length}`);
+    } catch (e) {
+      console.log(`[Layer0] FFN_${label} error: ${e}`);
+    }
+  };
 
   // 1. Pre-FFN norm (applied to residual stream before FFN)
   let ffnInput = postAttn;
   if (sandwichNorm.hasPreFeedforwardNorm && layerWeights?.preFeedforwardNorm) {
     const normWeightBuf = getNormWeightBuffer(layerWeights.preFeedforwardNorm, 'pre_feedforward_norm', weightConfig, debugFlags);
+
+    // Debug: check norm weight values for layer 0
+    if (layerIdx === 0 && device) {
+      try {
+        const ws = Math.min(128, normWeightBuf.size);
+        const wstaging = device.createBuffer({ size: ws, usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ });
+        const wenc = device.createCommandEncoder();
+        wenc.copyBufferToBuffer(normWeightBuf, 0, wstaging, 0, ws);
+        device.queue.submit([wenc.finish()]);
+        await wstaging.mapAsync(GPUMapMode.READ);
+        const wdata = new Float32Array(wstaging.getMappedRange().slice(0));
+        wstaging.unmap();
+        wstaging.destroy();
+        const wmaxAbs = Math.max(...Array.from(wdata).map(x => Math.abs(x)));
+        const wnonZero = Array.from(wdata).filter(x => x !== 0).length;
+        console.log(`[Layer0] PRE_FFN_NORM_WEIGHTS: maxAbs=${wmaxAbs.toFixed(4)}, nonZero=${wnonZero}/${wdata.length}, sample=[${Array.from(wdata).slice(0, 5).map(x => x.toFixed(4)).join(', ')}]`);
+      } catch (e) { console.log(`[Layer0] PRE_FFN_NORM_WEIGHTS error: ${e}`); }
+    }
+
+    // Debug: check input values for layer 0
+    await debugL0(postAttn, 'PRE_NORM_INPUT');
+
     ffnInput = await doRMSNorm(postAttn, normWeightBuf, rmsNormEps, {
       batchSize: numTokens,
       hiddenSize,
     }, recorder);
     if (!(layerWeights.preFeedforwardNorm instanceof GPUBuffer)) releaseBuffer(normWeightBuf);
+    await debugL0(ffnInput, 'PRE_NORM_OUTPUT');
   }
 
   // 2. FFN (or MoE FFN)
@@ -496,6 +541,7 @@ async function processFFNWithSandwichNorm(
   } else {
     ffnOutput = await runDenseFFNGPU(layerIdx, ffnInput, numTokens, context, layerWeights);
   }
+  await debugL0(ffnOutput, 'FFN_OUT');
 
   if (ffnInput !== postAttn) releaseBuffer(ffnInput);
 
@@ -512,10 +558,12 @@ async function processFFNWithSandwichNorm(
     }, recorder);
     if (!(layerWeights.postFeedforwardNorm instanceof GPUBuffer)) releaseBuffer(normWeightBuf);
     releaseBuffer(ffnOutput);
+    await debugL0(ffnOutputNormed, 'POST_NORM');
   }
 
   // 4. Residual add: postAttn + ffnOutputNormed
   const output = await doResidualAdd(ffnOutputNormed, postAttn, size, recorder);
+  await debugL0(output, 'FINAL');
   if (ffnOutputNormed !== ffnOutput) releaseBuffer(ffnOutputNormed);
   releaseBuffer(postAttn);
 

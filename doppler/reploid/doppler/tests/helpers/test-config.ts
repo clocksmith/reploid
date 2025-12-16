@@ -224,6 +224,10 @@ export const BASE_LOG_PATTERNS = [
   'ATTN_OUT',  // Debug: attention output
   'POST_ATTN',  // Debug: post attention
   'ARCH:',  // Debug: architecture path
+  'FFN_',  // Debug: FFN stages
+  'NORM_WEIGHTS',  // Debug: norm weight values
+  'NORM_INPUT',  // Debug: norm input values
+  'NORM_OUTPUT',  // Debug: norm output values
 ];
 
 /**
