@@ -18,11 +18,17 @@
       "*.md",
       "test-results/**",
       "playwright-report/**",
-      "doppler/models/**",
       "doppler/tools/*-rdrr/**",
       "**/*.gguf",
-      "**/shard_*.bin",
       "runs/**"
+    ],
+    "headers": [
+      {
+        "source": "/doppler/models/**",
+        "headers": [
+          { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+        ]
+      }
     ],
     "rewrites": [
       { "source": "/r", "destination": "/reploid.html" },

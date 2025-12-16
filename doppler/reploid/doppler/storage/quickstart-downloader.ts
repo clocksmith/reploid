@@ -80,9 +80,24 @@ export interface QuickStartDownloadResult {
 
 /**
  * CDN base URL for model hosting
- * Configure this based on your hosting setup
+ * Configure this based on your hosting setup.
+ * Default uses same-origin /doppler/models/ path (for Firebase Hosting or local dev)
  */
-let CDN_BASE_URL = 'https://storage.googleapis.com/doppler-models';
+let CDN_BASE_URL = '';
+
+/**
+ * Get the auto-detected or configured CDN base URL
+ */
+function getEffectiveCDNBaseUrl(): string {
+  if (CDN_BASE_URL) return CDN_BASE_URL;
+
+  // Auto-detect: use same origin for Firebase Hosting or local dev
+  if (typeof window !== 'undefined') {
+    return `${window.location.origin}/doppler/models`;
+  }
+  // Fallback for Node.js/SSR
+  return '/doppler/models';
+}
 
 /**
  * Set the CDN base URL for model downloads
@@ -95,7 +110,7 @@ export function setCDNBaseUrl(url: string): void {
  * Get the current CDN base URL
  */
 export function getCDNBaseUrl(): string {
-  return CDN_BASE_URL;
+  return getEffectiveCDNBaseUrl();
 }
 
 /**
@@ -103,11 +118,11 @@ export function getCDNBaseUrl(): string {
  * These are models with pre-configured requirements and hosted shards
  */
 export const QUICKSTART_MODELS: Record<string, RemoteModelConfig> = {
-  'gemma-1b-instruct': {
-    modelId: 'gemma-1b-instruct',
-    displayName: 'Gemma 1B Instruct',
+  'gemma3-1b-q4': {
+    modelId: 'gemma3-1b-q4',
+    displayName: 'Gemma 3 1B (Q4)',
     get baseUrl() {
-      return `${CDN_BASE_URL}/gemma-1b-instruct`;
+      return `${getEffectiveCDNBaseUrl()}/gemma3-1b-q4`;
     },
     requirements: GEMMA_1B_REQUIREMENTS,
   },
