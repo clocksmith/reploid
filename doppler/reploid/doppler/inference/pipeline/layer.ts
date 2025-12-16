@@ -556,7 +556,6 @@ async function runDenseFFNGPU(
   if (!(layerWeights.up instanceof GPUBuffer)) releaseBuffer(upWeight);
 
   // 3. Activation: activation(gate) * up
-  // NOTE: doSiLU/doGeLU with gate falls back to run* variants (record* doesn't support gate yet)
   const activationFn = hiddenActivation === 'gelu' ? doGeLU : doSiLU;
   const activatedOutput = await activationFn(upOutput, {
     size: numTokens * intermediateSize,
