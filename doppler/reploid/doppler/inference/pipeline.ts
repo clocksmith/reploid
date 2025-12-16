@@ -446,12 +446,9 @@ export class InferencePipeline {
 
     // Process all layers
     console.log(`[Pipeline] LAYER_LOOP_START: numLayers=${config.numLayers}, useGPU=${context.useGPU}`);
-    console.log(`[Pipeline] processLayer function: ${processLayer.name}, typeof=${typeof processLayer}`);
     for (let l = 0; l < config.numLayers; l++) {
-      if (l === 0) console.log(`[Pipeline] PRE_LAYER_0: calling processLayer...`);
       const prevStates = hiddenStates;
       hiddenStates = await processLayer(l, hiddenStates, numTokens, true, context) as GPUBuffer;
-      if (l === 0) console.log(`[Pipeline] POST_LAYER_0: processLayer returned`);
 
       // Debug: trace hidden state growth through layers (first 3 layers only to limit spam)
       if (l < 3 && hiddenStates instanceof GPUBuffer) {
