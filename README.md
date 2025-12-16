@@ -9,7 +9,7 @@
 **DOPPLER** powers local inference:
 - Custom WebGPU kernels for attention, FFN, and RMSNorm
 - `.rdrr` format with sharded weight streaming (no full download needed)
-- GGUF import converts models directly in browser
+- GGUF & Safetensor import converts models directly in browser
 
 ## Quick Start
 
