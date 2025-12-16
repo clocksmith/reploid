@@ -14,8 +14,8 @@
 export const URLS = {
   // Demo UI served at / in doppler-only mode (doppler/index.html)
   demo: 'http://localhost:8080/',
-  // Minimal test page
-  minimal: 'http://localhost:8080/tests/test-minimal.html',
+  // Minimal test page (served under /doppler/ prefix)
+  minimal: 'http://localhost:8080/doppler/tests/test-minimal.html',
   // Model server (for direct mode)
   modelServer: 'http://localhost:8080',
 };

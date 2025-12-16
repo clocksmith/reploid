@@ -21,6 +21,7 @@ const MIME_TYPES: Record<string, string> = {
   '.json': 'application/json; charset=utf-8',
   '.bin': 'application/octet-stream',
   '.wasm': 'application/wasm',
+  '.wgsl': 'text/plain; charset=utf-8',
   '.png': 'image/png',
   '.jpg': 'image/jpeg',
   '.jpeg': 'image/jpeg',
