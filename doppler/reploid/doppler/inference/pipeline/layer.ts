@@ -16,8 +16,12 @@ import type { ParsedModelConfig } from './config.js';
 import type { LayerWeights, MaybeGPUBuffer } from './types.js';
 import { getDevice } from '../../gpu/device.js';
 import { acquireBuffer, releaseBuffer } from '../../gpu/buffer-pool.js';
-import { runRMSNorm, runResidualAdd, runMatmul, runSiLU, runGeLU } from '../../gpu/kernel-selector.js';
-import { runLayerAttentionGPU, type AttentionConfig, type AttentionState } from './attention.js';
+import {
+  runRMSNorm, runResidualAdd, runMatmul, runSiLU, runGeLU,
+  recordRMSNorm, recordResidualAdd, recordMatmul, recordSiLU, recordGeLU,
+  CommandRecorder,
+} from '../../gpu/kernel-selector.js';
+import { runLayerAttentionGPU, recordLayerAttentionGPU, type AttentionConfig, type AttentionState } from './attention.js';
 import { getWeightBuffer, getNormWeightBuffer, type WeightBufferConfig, type WeightDebugFlags } from './weights.js';
 import { logLayerEntry, logBufferStats, logFFNOutput, shouldLog } from './debug-utils.js';
 
@@ -58,6 +62,8 @@ export interface LayerContext {
   moeRouter?: any;
   /** Layer router weights (for models with per-layer routers) */
   layerRouterWeights?: Map<number, any>;
+  /** Command recorder for batched GPU operations (optional) */
+  recorder?: CommandRecorder;
 }
 
 /**
@@ -82,6 +88,128 @@ export interface SandwichNormInfo {
   hasPostFeedforwardNorm: boolean;
   /** Has post-attention norm */
   hasPostAttentionNorm: boolean;
+}
+
+// ============================================================================
+// Kernel Wrappers (run or record based on context)
+// ============================================================================
+
+/**
+ * RMSNorm that uses record variant when recorder is provided.
+ */
+async function doRMSNorm(
+  input: GPUBuffer,
+  weight: GPUBuffer,
+  eps: number,
+  options: { batchSize: number; hiddenSize: number },
+  recorder?: CommandRecorder
+): Promise<GPUBuffer> {
+  if (recorder) {
+    return recordRMSNorm(recorder, input, weight, eps, options);
+  }
+  return runRMSNorm(input, weight, eps, options);
+}
+
+/**
+ * ResidualAdd that uses record variant when recorder is provided.
+ */
+async function doResidualAdd(
+  a: GPUBuffer,
+  b: GPUBuffer,
+  size: number,
+  recorder?: CommandRecorder
+): Promise<GPUBuffer> {
+  if (recorder) {
+    return recordResidualAdd(recorder, a, b, size);
+  }
+  return runResidualAdd(a, b, size);
+}
+
+/**
+ * Matmul that uses record variant when recorder is provided.
+ */
+async function doMatmul(
+  A: GPUBuffer,
+  B: GPUBuffer,
+  M: number,
+  N: number,
+  K: number,
+  options: { transposeB?: boolean } = {},
+  recorder?: CommandRecorder
+): Promise<GPUBuffer> {
+  if (recorder) {
+    return recordMatmul(recorder, A, B, M, N, K, options);
+  }
+  return runMatmul(A, B, M, N, K, options);
+}
+
+/**
+ * SiLU that uses record variant when recorder is provided.
+ * Supports gated variant (SiLU with gate multiplication).
+ */
+async function doSiLU(
+  input: GPUBuffer,
+  options: { size?: number; gate?: GPUBuffer } = {},
+  recorder?: CommandRecorder
+): Promise<GPUBuffer> {
+  if (recorder) {
+    return recordSiLU(recorder, input, options);
+  }
+  return runSiLU(input, options);
+}
+
+/**
+ * GeLU that uses record variant when recorder is provided.
+ * Supports gated variant (GeGLU).
+ */
+async function doGeLU(
+  input: GPUBuffer,
+  options: { size?: number; gate?: GPUBuffer } = {},
+  recorder?: CommandRecorder
+): Promise<GPUBuffer> {
+  if (recorder) {
+    return recordGeLU(recorder, input, options);
+  }
+  return runGeLU(input, options);
+}
+
+/**
+ * Attention that uses record variant when recorder is provided.
+ */
+async function doAttention(
+  inputBuffer: GPUBuffer,
+  layerWeights: LayerWeights | null,
+  config: AttentionConfig,
+  state: AttentionState,
+  debug: boolean,
+  debugFlags: {},
+  getWeightBufferFn: (weight: any, label: string) => GPUBuffer,
+  getNormWeightBufferFn: (weight: any, label: string) => GPUBuffer,
+  recorder?: CommandRecorder
+): Promise<GPUBuffer> {
+  if (recorder) {
+    return recordLayerAttentionGPU(
+      recorder,
+      inputBuffer,
+      layerWeights,
+      config,
+      state,
+      debug,
+      debugFlags,
+      getWeightBufferFn,
+      getNormWeightBufferFn
+    );
+  }
+  return runLayerAttentionGPU(
+    inputBuffer,
+    layerWeights,
+    config,
+    state,
+    debug,
+    debugFlags,
+    getWeightBufferFn,
+    getNormWeightBufferFn
+  );
 }
 
 // ============================================================================
@@ -213,7 +341,7 @@ export async function processLayerGPU(
   const device = getDevice();
   if (!device) throw new Error('No GPU device available');
 
-  const { config, weights, weightConfig, debugFlags, kvCache, ropeFreqsCos, ropeFreqsSin, attentionKernelOverride } = context;
+  const { config, weights, weightConfig, debugFlags, kvCache, ropeFreqsCos, ropeFreqsSin, attentionKernelOverride, recorder } = context;
   const { hiddenSize, numHeads, numKVHeads, headDim, rmsNormEps } = config;
 
   const layerWeights = weights.get(`layer_${layerIdx}`) as LayerWeights | undefined;
@@ -241,7 +369,7 @@ export async function processLayerGPU(
     kvCache,
   };
 
-  const attnOutput = await runLayerAttentionGPU(
+  const attnOutput = await doAttention(
     inputBuffer,
     layerWeights ?? null,
     attnConfig,
@@ -249,7 +377,8 @@ export async function processLayerGPU(
     context.debug,
     {},
     (weight, label) => getWeightBuffer(weight, label),
-    (weight, label) => getNormWeightBuffer(weight, label, weightConfig, debugFlags)
+    (weight, label) => getNormWeightBuffer(weight, label, weightConfig, debugFlags),
+    recorder
   );
 
   // Debug: trace attn output (uses debug-utils)
@@ -260,19 +389,19 @@ export async function processLayerGPU(
   if (sandwichNorm.useSandwichNorm && sandwichNorm.hasPostAttentionNorm && layerWeights?.postAttentionNorm) {
     // Gemma 3 path: norm attention output BEFORE residual add
     const normWeightBuf = getNormWeightBuffer(layerWeights.postAttentionNorm, 'post_attention_norm', weightConfig, debugFlags);
-    const attnOutputNormed = await runRMSNorm(attnOutput, normWeightBuf, rmsNormEps, {
+    const attnOutputNormed = await doRMSNorm(attnOutput, normWeightBuf, rmsNormEps, {
       batchSize: numTokens,
       hiddenSize,
-    });
+    }, recorder);
     if (!(layerWeights.postAttentionNorm instanceof GPUBuffer)) releaseBuffer(normWeightBuf);
     releaseBuffer(attnOutput);
 
     // Now add the normed attention output to the residual stream
-    postAttn = await runResidualAdd(attnOutputNormed, inputBuffer, size);
+    postAttn = await doResidualAdd(attnOutputNormed, inputBuffer, size, recorder);
     releaseBuffer(attnOutputNormed);
   } else {
     // Standard path: residual add first
-    postAttn = await runResidualAdd(attnOutput, inputBuffer, size);
+    postAttn = await doResidualAdd(attnOutput, inputBuffer, size, recorder);
     releaseBuffer(attnOutput);
   }
 
@@ -296,17 +425,17 @@ async function processFFNWithSandwichNorm(
   layerWeights: LayerWeights | undefined,
   sandwichNorm: SandwichNormInfo
 ): Promise<GPUBuffer> {
-  const { config, weightConfig, debugFlags } = context;
+  const { config, weightConfig, debugFlags, recorder } = context;
   const { hiddenSize, rmsNormEps } = config;
 
   // 1. Pre-FFN norm (applied to residual stream before FFN)
   let ffnInput = postAttn;
   if (sandwichNorm.hasPreFeedforwardNorm && layerWeights?.preFeedforwardNorm) {
     const normWeightBuf = getNormWeightBuffer(layerWeights.preFeedforwardNorm, 'pre_feedforward_norm', weightConfig, debugFlags);
-    ffnInput = await runRMSNorm(postAttn, normWeightBuf, rmsNormEps, {
+    ffnInput = await doRMSNorm(postAttn, normWeightBuf, rmsNormEps, {
       batchSize: numTokens,
       hiddenSize,
-    });
+    }, recorder);
     if (!(layerWeights.preFeedforwardNorm instanceof GPUBuffer)) releaseBuffer(normWeightBuf);
   }
 
@@ -327,16 +456,16 @@ async function processFFNWithSandwichNorm(
   let ffnOutputNormed = ffnOutput;
   if (sandwichNorm.hasPostFeedforwardNorm && layerWeights?.postFeedforwardNorm) {
     const normWeightBuf = getNormWeightBuffer(layerWeights.postFeedforwardNorm, 'post_feedforward_norm', weightConfig, debugFlags);
-    ffnOutputNormed = await runRMSNorm(ffnOutput, normWeightBuf, rmsNormEps, {
+    ffnOutputNormed = await doRMSNorm(ffnOutput, normWeightBuf, rmsNormEps, {
       batchSize: numTokens,
       hiddenSize,
-    });
+    }, recorder);
     if (!(layerWeights.postFeedforwardNorm instanceof GPUBuffer)) releaseBuffer(normWeightBuf);
     releaseBuffer(ffnOutput);
   }
 
   // 4. Residual add: postAttn + ffnOutputNormed
-  const output = await runResidualAdd(ffnOutputNormed, postAttn, size);
+  const output = await doResidualAdd(ffnOutputNormed, postAttn, size, recorder);
   if (ffnOutputNormed !== ffnOutput) releaseBuffer(ffnOutputNormed);
   releaseBuffer(postAttn);
 
@@ -354,17 +483,17 @@ async function processFFNStandard(
   context: LayerContext,
   layerWeights: LayerWeights | undefined
 ): Promise<GPUBuffer> {
-  const { config, weightConfig, debugFlags } = context;
+  const { config, weightConfig, debugFlags, recorder } = context;
   const { hiddenSize, rmsNormEps } = config;
 
   // 1. Post-attention norm (LLaMA-style pre-FFN norm)
   let normedBuffer = postAttn;
   if (layerWeights?.postAttnNorm) {
     const normWeightBuf = getNormWeightBuffer(layerWeights.postAttnNorm, 'post_attn_norm', weightConfig, debugFlags);
-    normedBuffer = await runRMSNorm(postAttn, normWeightBuf, rmsNormEps, {
+    normedBuffer = await doRMSNorm(postAttn, normWeightBuf, rmsNormEps, {
       batchSize: numTokens,
       hiddenSize,
-    });
+    }, recorder);
     if (!(layerWeights.postAttnNorm instanceof GPUBuffer)) releaseBuffer(normWeightBuf);
   }
 
@@ -377,7 +506,7 @@ async function processFFNStandard(
   }
 
   // 3. Residual add: ffnOutput + postAttn
-  const output = await runResidualAdd(ffnOutput, postAttn, size);
+  const output = await doResidualAdd(ffnOutput, postAttn, size, recorder);
 
   // Cleanup intermediate buffers
   if (normedBuffer !== postAttn) releaseBuffer(normedBuffer);
@@ -404,7 +533,7 @@ async function runDenseFFNGPU(
   const device = getDevice();
   if (!device) throw new Error('No GPU device');
 
-  const { config } = context;
+  const { config, recorder } = context;
   const { hiddenSize, intermediateSize, hiddenActivation } = config;
 
   if (!layerWeights?.gate || !layerWeights?.up || !layerWeights?.down) {
@@ -418,27 +547,28 @@ async function runDenseFFNGPU(
 
   // 1. Gate projection
   const gateWeight = getWeightBuffer(layerWeights.gate, 'ffn_gate');
-  const gateOutput = await runMatmul(inputBuffer, gateWeight, numTokens, intermediateSize, hiddenSize, { transposeB: true });
+  const gateOutput = await doMatmul(inputBuffer, gateWeight, numTokens, intermediateSize, hiddenSize, { transposeB: true }, recorder);
   if (!(layerWeights.gate instanceof GPUBuffer)) releaseBuffer(gateWeight);
 
   // 2. Up projection
   const upWeight = getWeightBuffer(layerWeights.up, 'ffn_up');
-  const upOutput = await runMatmul(inputBuffer, upWeight, numTokens, intermediateSize, hiddenSize, { transposeB: true });
+  const upOutput = await doMatmul(inputBuffer, upWeight, numTokens, intermediateSize, hiddenSize, { transposeB: true }, recorder);
   if (!(layerWeights.up instanceof GPUBuffer)) releaseBuffer(upWeight);
 
   // 3. Activation: activation(gate) * up
-  const activationFn = hiddenActivation === 'gelu' ? runGeLU : runSiLU;
+  // NOTE: doSiLU/doGeLU with gate falls back to run* variants (record* doesn't support gate yet)
+  const activationFn = hiddenActivation === 'gelu' ? doGeLU : doSiLU;
   const activatedOutput = await activationFn(upOutput, {
     size: numTokens * intermediateSize,
     gate: gateOutput,
-  });
+  }, recorder);
 
   releaseBuffer(gateOutput);
   releaseBuffer(upOutput);
 
   // 4. Down projection
   const downWeight = getWeightBuffer(layerWeights.down, 'ffn_down');
-  const output = await runMatmul(activatedOutput, downWeight, numTokens, hiddenSize, intermediateSize, { transposeB: true });
+  const output = await doMatmul(activatedOutput, downWeight, numTokens, hiddenSize, intermediateSize, { transposeB: true }, recorder);
   if (!(layerWeights.down instanceof GPUBuffer)) releaseBuffer(downWeight);
   releaseBuffer(activatedOutput);
 

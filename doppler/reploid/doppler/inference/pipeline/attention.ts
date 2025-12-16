@@ -21,6 +21,12 @@ import {
   runRoPE,
   runAttention,
   castF32ToF16,
+  recordMatmul,
+  recordRMSNorm,
+  recordRoPE,
+  recordAttention,
+  recordCastF32ToF16,
+  CommandRecorder,
 } from '../../gpu/kernel-selector.js';
 
 /**
@@ -285,6 +291,202 @@ export async function runLayerAttentionGPU(
   if (layerIdx === 0 && isPrefill && !debugFlags.l0OProjDebugDone && debugCheckBuffer) {
     debugFlags.l0OProjDebugDone = true;
     await debugCheckBuffer(output, 'L0 attention output (after o_proj, GPU)', numTokens, hiddenSize);
+  }
+
+  // Cleanup
+  releaseBuffer(Q);
+  releaseBuffer(K);
+  releaseBuffer(V);
+  if (output !== attnOutput) releaseBuffer(attnOutput);
+
+  return output;
+}
+
+/**
+ * Record attention for a single layer (batched, no submit).
+ *
+ * Uses record* kernel variants to batch all GPU operations into a shared
+ * command encoder. No GPU submits happen here - submit once at end of forward pass.
+ */
+export async function recordLayerAttentionGPU(
+  recorder: CommandRecorder,
+  inputBuffer: GPUBuffer,
+  layerWeights: LayerWeights | null,
+  config: AttentionConfig,
+  state: AttentionState,
+  debug: boolean = false,
+  debugFlags: AttentionDebugFlags = {},
+  getWeightBuffer?: (weight: any, label: string) => GPUBuffer,
+  getNormWeightBuffer?: (weight: any, label: string) => GPUBuffer,
+  debugCheckBuffer?: (buffer: GPUBuffer, label: string, numTokens: number, expectedDim?: number) => Promise<void>
+): Promise<GPUBuffer> {
+  const {
+    layerIdx,
+    numTokens,
+    isPrefill,
+    numHeads,
+    numKVHeads,
+    headDim,
+    hiddenSize,
+    rmsNormEps,
+    currentSeqLen,
+    slidingWindow,
+    layerType,
+    attentionKernelOverride,
+  } = config;
+
+  if (!layerWeights) {
+    const output = acquireBuffer(numTokens * hiddenSize * 4, undefined, 'attn_output');
+    return output;
+  }
+
+  const qSize = numTokens * numHeads * headDim;
+  const kvSize = numTokens * numKVHeads * headDim;
+
+  // 1. Input norm
+  let normedBuffer = inputBuffer;
+  if (layerWeights.inputNorm && getNormWeightBuffer) {
+    const normWeightBuf = getNormWeightBuffer(layerWeights.inputNorm, 'input_norm');
+    normedBuffer = await recordRMSNorm(recorder, inputBuffer, normWeightBuf, rmsNormEps, {
+      batchSize: numTokens,
+      hiddenSize,
+    });
+    if (!(layerWeights.inputNorm instanceof GPUBuffer)) releaseBuffer(normWeightBuf);
+  }
+
+  // 2. Q/K/V projections
+  let Q: GPUBuffer, K: GPUBuffer, V: GPUBuffer;
+
+  if (layerWeights.qProj && getWeightBuffer) {
+    const qProjBuf = getWeightBuffer(layerWeights.qProj, 'q_proj');
+    Q = await recordMatmul(recorder, normedBuffer, qProjBuf, numTokens, numHeads * headDim, hiddenSize, { transposeB: true });
+    if (!(layerWeights.qProj instanceof GPUBuffer)) releaseBuffer(qProjBuf);
+  } else {
+    Q = acquireBuffer(qSize * 4, undefined, 'Q');
+  }
+
+  if (layerWeights.kProj && getWeightBuffer) {
+    const kProjBuf = getWeightBuffer(layerWeights.kProj, 'k_proj');
+    K = await recordMatmul(recorder, normedBuffer, kProjBuf, numTokens, numKVHeads * headDim, hiddenSize, { transposeB: true });
+    if (!(layerWeights.kProj instanceof GPUBuffer)) releaseBuffer(kProjBuf);
+  } else {
+    K = acquireBuffer(kvSize * 4, undefined, 'K');
+  }
+
+  if (layerWeights.vProj && getWeightBuffer) {
+    const vProjBuf = getWeightBuffer(layerWeights.vProj, 'v_proj');
+    V = await recordMatmul(recorder, normedBuffer, vProjBuf, numTokens, numKVHeads * headDim, hiddenSize, { transposeB: true });
+    if (!(layerWeights.vProj instanceof GPUBuffer)) releaseBuffer(vProjBuf);
+  } else {
+    V = acquireBuffer(kvSize * 4, undefined, 'V');
+  }
+
+  // Optional per-head Q/K norm (Gemma-family)
+  if ((layerWeights as any).qNorm && getNormWeightBuffer) {
+    const qNormBuf = getNormWeightBuffer((layerWeights as any).qNorm, 'q_norm');
+    const qElems = qNormBuf.size / 4;
+    if (qElems === headDim) {
+      const qNormed = await recordRMSNorm(recorder, Q, qNormBuf, rmsNormEps, {
+        batchSize: numTokens * numHeads,
+        hiddenSize: headDim,
+      });
+      releaseBuffer(Q);
+      Q = qNormed;
+    }
+    if (!((layerWeights as any).qNorm instanceof GPUBuffer)) releaseBuffer(qNormBuf);
+  }
+
+  if ((layerWeights as any).kNorm && getNormWeightBuffer) {
+    const kNormBuf = getNormWeightBuffer((layerWeights as any).kNorm, 'k_norm');
+    const kElems = kNormBuf.size / 4;
+    if (kElems === headDim) {
+      const kNormed = await recordRMSNorm(recorder, K, kNormBuf, rmsNormEps, {
+        batchSize: numTokens * numKVHeads,
+        hiddenSize: headDim,
+      });
+      releaseBuffer(K);
+      K = kNormed;
+    }
+    if (!((layerWeights as any).kNorm instanceof GPUBuffer)) releaseBuffer(kNormBuf);
+  }
+
+  if (normedBuffer !== inputBuffer) releaseBuffer(normedBuffer);
+
+  // 3. RoPE
+  if (state.ropeFreqsCos && state.ropeFreqsSin) {
+    await recordRoPE(recorder, Q, state.ropeFreqsCos, state.ropeFreqsSin, numTokens, {
+      numHeads, headDim, startPos: currentSeqLen,
+    });
+    await recordRoPE(recorder, K, state.ropeFreqsCos, state.ropeFreqsSin, numTokens, {
+      numHeads: numKVHeads, headDim, startPos: currentSeqLen,
+    });
+  }
+
+  // 4. Update KV cache
+  let cachedK: GPUBuffer, cachedV: GPUBuffer;
+  let kvLenForAttention = currentSeqLen + numTokens;
+  let causalForAttention = true;
+  let startPosForMask = currentSeqLen;
+
+  const hasCache = state.kvCache?.hasGPUCache?.();
+
+  if (hasCache) {
+    // Use recordUpdateFromGPU to record copy operations to the recorder's encoder
+    // This ensures K/V buffers are populated before copying (all ops submitted together)
+    const enc = recorder.getEncoder();
+    if (state.kvCache.kvDtype === 'f16') {
+      const kElems = kvSize;
+      const kF16 = await recordCastF32ToF16(recorder, K, kElems);
+      const vF16 = await recordCastF32ToF16(recorder, V, kElems);
+      state.kvCache.recordUpdateFromGPU(enc, layerIdx, kF16, vF16, currentSeqLen, numTokens);
+      releaseBuffer(kF16);
+      releaseBuffer(vF16);
+    } else {
+      state.kvCache.recordUpdateFromGPU(enc, layerIdx, K, V, currentSeqLen, numTokens);
+    }
+    const gpuBuffers = state.kvCache.getGPUBuffers(layerIdx);
+    cachedK = gpuBuffers.keysGPU;
+    cachedV = gpuBuffers.valuesGPU;
+    kvLenForAttention = gpuBuffers.seqLen;
+  } else {
+    cachedK = K;
+    cachedV = V;
+    kvLenForAttention = numTokens;
+    startPosForMask = 0;
+  }
+
+  // Sliding window attention for specific layers
+  const isLayerSliding = layerType === 'sliding_attention';
+  const effectiveSlidingWindow = isLayerSliding ? slidingWindow : null;
+
+  if (!isPrefill && isLayerSliding && slidingWindow) {
+    causalForAttention = false;
+    startPosForMask = 0;
+  }
+
+  if (kvLenForAttention <= 0) {
+    throw new Error(`Invalid kvLen ${kvLenForAttention} at layer ${layerIdx}`);
+  }
+
+  // 5. Attention
+  const attnOutput = await recordAttention(recorder, Q, cachedK, cachedV, null, numHeads, headDim, {
+    seqLen: numTokens,
+    kvLen: kvLenForAttention,
+    numKVHeads,
+    causal: causalForAttention,
+    startPos: startPosForMask,
+    attentionKernel: attentionKernelOverride || undefined,
+    slidingWindow: effectiveSlidingWindow,
+  });
+
+  // 6. Output projection
+  let output: GPUBuffer;
+  if (layerWeights.oProj && getWeightBuffer) {
+    const oProjBuf = getWeightBuffer(layerWeights.oProj, 'o_proj');
+    output = await recordMatmul(recorder, attnOutput, oProjBuf, numTokens, hiddenSize, numHeads * headDim, { transposeB: true });
+    if (!(layerWeights.oProj instanceof GPUBuffer)) releaseBuffer(oProjBuf);
+  } else {
+    output = attnOutput;
   }
 
   // Cleanup

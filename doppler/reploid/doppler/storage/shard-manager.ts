@@ -633,6 +633,14 @@ export async function getModelInfo(modelId: string): Promise<ModelInfo> {
 }
 
 /**
+ * Checks if a model exists in OPFS
+ */
+export async function modelExists(modelId: string): Promise<boolean> {
+  const info = await getModelInfo(modelId);
+  return info.exists && info.hasManifest;
+}
+
+/**
  * Saves the manifest to OPFS
  */
 export async function saveManifest(manifestJson: string): Promise<void> {

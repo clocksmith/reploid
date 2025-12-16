@@ -267,6 +267,96 @@ export async function computeLogits(
 }
 
 /**
+ * Compute logits and return GPU buffer directly (deferred readback).
+ *
+ * This variant avoids the ~1MB readback per token, enabling GPU-side sampling.
+ * Use with runGPUSample or runArgmax to sample directly on GPU.
+ *
+ * @param hiddenStates - Hidden states from transformer [numTokens, hiddenSize]
+ * @param numTokens - Number of tokens
+ * @param weights - Final norm and LM head weights
+ * @param config - Model configuration for logits
+ * @param debugFlags - Debug flags
+ * @param getNormWeightBuffer - Helper to get norm weight buffer
+ * @returns GPU buffer containing logits [numTokens, vocabSize]
+ */
+export async function computeLogitsGPU(
+  hiddenStates: GPUBuffer | Float32Array,
+  numTokens: number,
+  weights: LogitsWeights,
+  config: LogitsConfig,
+  debugFlags: LogitsDebugFlags = {},
+  getNormWeightBuffer?: (weight: any, label: string) => GPUBuffer,
+): Promise<{ logitsBuffer: GPUBuffer; vocabSize: number } | null> {
+  const { hiddenSize, vocabSize, rmsNormEps, useTiedEmbeddings, embeddingVocabSize } = config;
+  const { finalNorm, lmHead } = weights;
+  const device = getDevice();
+
+  if (!device) {
+    return null;
+  }
+
+  if (!finalNorm || !lmHead) {
+    console.warn('[Pipeline] Final norm or LM head not loaded');
+    return null;
+  }
+
+  // Get or create input buffer
+  let inputBuffer: GPUBuffer;
+  let inputBufferOwned = false;
+  if (hiddenStates instanceof GPUBuffer) {
+    inputBuffer = hiddenStates;
+  } else {
+    inputBuffer = acquireBuffer((hiddenStates as Float32Array).byteLength, undefined, 'logits_input');
+    device.queue.writeBuffer(inputBuffer, 0, hiddenStates as unknown as BufferSource);
+    inputBufferOwned = true;
+  }
+
+  // Apply final RMSNorm
+  let normWeightBuffer: GPUBuffer;
+  if (getNormWeightBuffer) {
+    normWeightBuffer = getNormWeightBuffer(finalNorm, 'final_norm_w');
+  } else if (finalNorm instanceof GPUBuffer) {
+    normWeightBuffer = finalNorm;
+  } else {
+    normWeightBuffer = acquireBuffer((finalNorm as Float32Array).byteLength, undefined, 'final_norm_w');
+    device.queue.writeBuffer(normWeightBuffer, 0, finalNorm as unknown as BufferSource);
+  }
+
+  const normedBuffer = await runRMSNorm(inputBuffer, normWeightBuffer, rmsNormEps, {
+    batchSize: numTokens,
+    hiddenSize,
+  });
+
+  // Project to vocab via LM head
+  let lmHeadBuffer: GPUBuffer;
+  let lmHeadBufferOwned = false;
+  if (lmHead instanceof GPUBuffer) {
+    lmHeadBuffer = lmHead;
+  } else {
+    lmHeadBuffer = acquireBuffer((lmHead as Float32Array).byteLength, undefined, 'lm_head_w');
+    device.queue.writeBuffer(lmHeadBuffer, 0, lmHead as unknown as BufferSource);
+    lmHeadBufferOwned = true;
+  }
+
+  const matmulVocabSize = useTiedEmbeddings && embeddingVocabSize
+    ? embeddingVocabSize
+    : vocabSize;
+
+  const logitsBuffer = await runMatmul(normedBuffer, lmHeadBuffer, numTokens, matmulVocabSize, hiddenSize, {
+    transposeB: true,
+  });
+
+  // Cleanup intermediate buffers (but keep logitsBuffer)
+  if (inputBufferOwned) releaseBuffer(inputBuffer);
+  releaseBuffer(normedBuffer);
+  if (!getNormWeightBuffer && !(finalNorm instanceof GPUBuffer)) releaseBuffer(normWeightBuffer);
+  if (lmHeadBufferOwned) releaseBuffer(lmHeadBuffer);
+
+  return { logitsBuffer, vocabSize: matmulVocabSize };
+}
+
+/**
  * Extract logits for only the last position.
  *
  * Used after prefill to get logits for sampling the first generated token.

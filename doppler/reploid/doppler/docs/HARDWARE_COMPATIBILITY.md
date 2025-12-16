@@ -127,7 +127,7 @@ npx playwright test doppler/tests/gemma-e2e.spec.ts --headed
 # From reploid root
 npx serve .
 
-# Open http://localhost:3000/doppler/reploid/doppler/demo/
+# Open http://localhost:3000/doppler/
 # Select Gemma 3 1B
 # Wait for model load
 # Try prompt: "the sky is"

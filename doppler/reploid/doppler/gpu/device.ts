@@ -6,9 +6,13 @@
  */
 
 import type { GpuCapabilities, GpuLimits } from '../types/gpu.js';
+import { wrapQueueForTracking, TRACK_SUBMITS, setTrackSubmits } from './submit-tracker.js';
 
 // Re-export types for convenience
 export type { GpuCapabilities, GpuLimits };
+
+// Re-export submit tracker for convenience
+export { setTrackSubmits };
 
 /**
  * GPU adapter information
@@ -234,6 +238,9 @@ export async function initDevice(): Promise<GPUDevice> {
     gpuDevice = null;
     kernelCapabilities = null;
   });
+
+  // Wrap queue for submit tracking (when enabled)
+  wrapQueueForTracking(gpuDevice.queue);
 
   // Cache kernel capabilities
   kernelCapabilities = {

@@ -145,6 +145,7 @@ export async function runSwiGLURowsplitBias(
 
 /**
  * Record SiLU (batched, no submit)
+ * Supports gated variant when options.gate is provided.
  */
 export async function recordSiLU(
   recorder: CommandRecorder,
@@ -152,9 +153,10 @@ export async function recordSiLU(
   options: SiLUOptions = {}
 ): Promise<GPUBuffer> {
   const device = recorder.device;
-  const { size, outputBuffer = null } = options;
+  const { size, gate = null, outputBuffer = null } = options;
 
-  const pipeline = await createPipeline('silu', 'default');
+  const variant = gate ? 'gate' : 'default';
+  const pipeline = await createPipeline('silu', variant);
 
   const inferredSize = size || (input.size / 4);
   const outputSize = inferredSize * 4;
@@ -167,15 +169,23 @@ export async function recordSiLU(
 
   const uniformBuffer = recorder.createUniformBuffer(uniformData, 'silu_uniforms');
 
-  // Bind group
+  // Bind group entries - gate variant needs binding 3
+  const gateBuffer = gate || input; // Use input as dummy if no gate
+  const entries: GPUBindGroupEntry[] = [
+    { binding: 0, resource: { buffer: uniformBuffer } },
+    { binding: 1, resource: { buffer: input } },
+    { binding: 2, resource: { buffer: output } },
+  ];
+
+  // Add gate binding for gate variant
+  if (gate) {
+    entries.push({ binding: 3, resource: { buffer: gateBuffer } });
+  }
+
   const bindGroup = device.createBindGroup({
     label: 'silu_bind_group',
     layout: pipeline.getBindGroupLayout(0),
-    entries: [
-      { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: input } },
-      { binding: 2, resource: { buffer: output } },
-    ],
+    entries,
   });
 
   // Record pass

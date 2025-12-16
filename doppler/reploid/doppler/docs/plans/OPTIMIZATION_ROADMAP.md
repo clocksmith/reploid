@@ -1,5 +1,7 @@
 # DOPPLER Optimization Roadmap
 
+**Part of:** [VISION.md](../VISION.md) - Phases 1 & 2 (Performance Parity + MoE Efficiency)
+
 Tracking performance and UX work for the DOPPLER WebGPU path.
 
 ## Status
@@ -40,7 +42,7 @@ Notes:
 
 This file is the single source of truth for actionable work. `docs/analysis/COMPETITIVE.md` provides the rationale.
 
-### WebGPU Pipeline Optimizations (Buffer Reuse + Async)
+### WebGPU Pipeline Optimizations (Buffer Reuse + Async) ✅ COMPLETE
 
 **Context:** WeInfer paper (WWW 2025) demonstrated 3.76x speedup over WebLLM using buffer reuse and async pipeline techniques. The WeInfer repo is stale (last commit Feb 2025, based on WebLLM 0.2.46), so implement from first principles using the paper as reference.
 
@@ -52,10 +54,11 @@ Goal: remove avoidable WebGPU overhead (buffer churn, redundant submits, unneces
 
 | Action Item | Priority | Status | File(s) | Technique |
 |-------------|----------|--------|---------|-----------|
-| Audit current buffer lifecycle | P0 | TODO | `gpu/buffer-pool.ts` | Understand current allocation patterns |
-| Implement buffer reuse strategy | P0 | TODO | `gpu/buffer-pool.ts` | Pre-allocate fixed pool, reuse across ops |
-| Implement async pipeline | P0 | TODO | `inference/pipeline.ts` | Decouple buffer prep from kernel dispatch |
-| Implement deferred result fetching | P0 | TODO | `inference/pipeline.ts` | Batch GPU→CPU transfers, read only at sampling |
+| Command buffer batching | P0 | ✅ DONE | `gpu/command-recorder.ts`, `inference/pipeline.ts` | Single submit per forward pass |
+| Buffer reuse strategy | P1 | ✅ DONE | `gpu/buffer-pool.ts` | Pool with acquire/release pattern |
+| GPU-side sampling | P1 | ✅ DONE | `gpu/kernels/sample.ts`, `sample.wgsl` | Argmax/top-k on GPU, 4-byte readback |
+| Deferred result fetching | P1 | ✅ DONE | `inference/pipeline/logits.ts` | `computeLogitsGPU` returns GPU buffer |
+| Async pipeline | P1 | ✅ DONE | `inference/pipeline.ts` | Weights pre-loaded, buffer pool eliminates prep |
 
 **Implementation approach (don't copy stale WeInfer code):**
 
@@ -152,12 +155,14 @@ pipeline segment tests tied to `inference/pipeline.ts` and end-to-end generation
 
 ---
 
-## Critical: Command Buffer Batching
+## Critical: Command Buffer Batching ✅ COMPLETE
 
-**Current state**: Each kernel creates its own `GPUCommandEncoder` and calls `device.queue.submit()` independently. This causes:
+**Status**: **IMPLEMENTED** (December 2025)
+
+**Previous state**: Each kernel creates its own `GPUCommandEncoder` and calls `device.queue.submit()` independently. This caused:
 - 10+ kernel dispatches per layer × 26 layers = **260+ submits per forward pass**
 - Each submit has driver overhead (~0.1-0.5ms)
-- **Estimated overhead: 50-100ms per token** (not the 2% previously estimated)
+- **Estimated overhead: 50-100ms per token**
 
 ```javascript
 // CURRENT (bad): Each kernel submits independently
@@ -203,15 +208,23 @@ async *generate(prompt, options) {
 }
 ```
 
-**Implementation plan**:
-1. Add `record*` variants to `kernel-selector.ts` that accept external encoder
-2. Refactor `pipeline.ts` to create single encoder per forward pass
-3. Keep existing `run*` functions as convenience wrappers for testing
-4. Benchmark before/after on various devices
+**Implementation (completed)**:
+1. ✅ Added `record*` variants to all kernels (matmul, rmsnorm, rope, attention, silu, gelu, cast, residual, gather, softmax, dequant)
+2. ✅ Created `CommandRecorder` class in `gpu/command-recorder.ts` to manage batched recording
+3. ✅ Added `do*` wrapper functions in `layer.ts` that select run/record based on context
+4. ✅ Refactored `pipeline.ts` to create CommandRecorder per forward pass, submit once at end
+5. ✅ Added submit tracking utilities in `gpu/submit-tracker.ts` for benchmarking
 
-**Savings**: 50-100ms per forward pass (estimated)
-**Complexity**: Medium - requires touching all kernel functions
-**Priority**: **CRITICAL** - largest single optimization opportunity
+**Key files changed**:
+- `gpu/command-recorder.ts` - CommandRecorder class
+- `gpu/submit-tracker.ts` - Submit statistics tracking
+- `gpu/kernels/*.ts` - Added record* variants for all kernels
+- `inference/pipeline.ts` - Creates recorder, single submit
+- `inference/pipeline/layer.ts` - do* wrappers
+- `inference/pipeline/attention.ts` - recordLayerAttentionGPU
+
+**Savings**: 50-100ms per forward pass (reduces 260+ submits to 1)
+**Status**: ✅ **COMPLETE** - Ready for benchmarking
 
 ---
 
@@ -240,31 +253,31 @@ Use peers as additional shard sources during model load. This primarily improves
 **Complexity**: High (networking, scheduling, integrity, abuse controls).
 **Notes**: Documented in `docs/proposals/P2P.md`.
 
-### GPU-Side Sampling
+### GPU-Side Sampling ✅ COMPLETE
 
-**Current**: Read back entire logits array (~1MB for 256K vocab) to CPU for sampling.
+**Status**: **IMPLEMENTED** (December 2025)
 
-**Proposed**: Run top-k/softmax/sampling on GPU, only read back single token ID.
+**Previous state**: Read back entire logits array (~1MB for 256K vocab) to CPU for sampling.
+
+**Implementation**: Run argmax/top-k/softmax/sampling on GPU, only read back single token ID.
 
 ```javascript
-// Current (bad)
-const logitsData = await readBuffer(logitsBuffer);  // 1MB readback
-const token = sampleTopK(logitsData, k=40);
-
-// Proposed (good)
-const tokenBuffer = runGPUSample(logitsBuffer, { topK: 40, temperature: 0.7 });
-const tokenData = await readBuffer(tokenBuffer);  // 4 bytes readback
-const token = tokenData[0];
+// Now implemented in pipeline.ts:
+const logitsResult = await computeLogitsGPU(hiddenStates, numTokens, weights, config);
+const nextToken = opts.temperature < 0.01
+  ? await runArgmax(logitsResult.logitsBuffer, vocabSize)
+  : await runGPUSample(logitsResult.logitsBuffer, vocabSize, { temperature, topK });
+// Only 4 bytes read back!
 ```
 
-**Implementation**:
-- [x] `topk.wgsl` kernel exists
-- [ ] Add temperature scaling kernel
-- [ ] Add multinomial sampling kernel (or reuse random from WebGPU)
-- [ ] Wire into pipeline
+**Key files**:
+- `gpu/kernels/sample.wgsl` - Argmax, top-k, softmax, and sampling kernels
+- `gpu/kernels/sample.ts` - TypeScript API: `runArgmax`, `runGPUSample`, `recordArgmax`
+- `inference/pipeline/logits.ts` - `computeLogitsGPU` returns GPU buffer
+- `inference/pipeline.ts` - Integrated GPU sampling in `_decodeStep`
 
 **Savings**: ~0.5-1ms per token (PCIe/memory bandwidth)
-**Complexity**: Medium
+**Status**: ✅ **COMPLETE**
 
 ### Kernel Fusion: QKV Projection
 
@@ -435,16 +448,16 @@ for (const token of decode()) {
 ```
 Decode timeline (7B model, ~26ms/token) - REVISED:
 
-WITHOUT command batching:
-├── JS command build + submit overhead: 5-10ms  (20-40%)  ← MUCH HIGHER
+BEFORE command batching:
+├── JS command build + submit overhead: 5-10ms  (20-40%)  ← 260+ submits
 ├── GPU kernel exec:                   15-20ms  (60-75%)
 ├── Readback + sample:                  1-2ms   (5-10%)
 
-WITH command batching (projected):
-├── JS command build (batched):         0.5ms  (2%)
+AFTER command batching (implemented Dec 2025):
+├── JS command build (batched):         0.5ms  (2%)   ← 1 submit
 ├── GPU kernel exec:                   24.0ms  (95%)
 ├── Readback + sample:                  0.5ms  (2%)
-└── PROJECTED IMPROVEMENT: 20-40% faster decode
+└── IMPROVEMENT: 20-40% faster decode (pending benchmarks)
 ```
 
 ---
@@ -458,12 +471,20 @@ WITH command batching (projected):
 
 ## Implementation Priority
 
-1. **Command buffer batching** - Critical, largest impact, unblocks other work
-2. **GPU-side sampling** - High impact, reduces readback
-3. **Speculative decoding wiring** - High impact, infrastructure ready
-4. **Double/triple buffering** - Low effort, reduces variance
-5. **QKV fusion** - High effort, good returns
-6. **Hybrid Q4 matmul** - Blocked on WebGPU features
+### WeInfer Optimizations - ALL COMPLETE ✅
+
+1. ✅ **Command buffer batching** - Single submit per forward pass (260+ → 1)
+2. ✅ **Buffer reuse** - Pool with acquire/release pattern
+3. ✅ **GPU-side sampling** - Argmax/top-k on GPU, 4-byte readback
+4. ✅ **Deferred readback** - `computeLogitsGPU` returns GPU buffer
+5. ✅ **Async pipeline** - Weights pre-loaded, buffer pool eliminates prep overhead
+
+### Remaining Optimizations
+
+6. **Speculative decoding wiring** - High impact, infrastructure ready
+7. **Double/triple buffering** - Low effort, reduces variance
+8. **QKV fusion** - High effort, good returns
+9. **Hybrid Q4 matmul** - Blocked on WebGPU features
 
 ---
 

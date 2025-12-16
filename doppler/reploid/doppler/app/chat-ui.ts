@@ -1,10 +1,10 @@
 /**
  * chat-ui.ts - Chat Interface Component
- * Agent-D | Phase 2 | demo/
+ * Agent-D | Phase 2 | app/
  *
  * Handles chat message display, streaming tokens, and user input.
  *
- * @module demo/chat-ui
+ * @module app/chat-ui
  */
 
 // ============================================================================

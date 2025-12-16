@@ -1,10 +1,10 @@
 /**
  * model-selector.ts - Model Selection Component
- * Agent-D | Phase 2 | demo/
+ * Agent-D | Phase 2 | app/
  *
  * Handles model list display, download progress, and selection.
  *
- * @module demo/model-selector
+ * @module app/model-selector
  */
 
 // ============================================================================
@@ -40,6 +40,8 @@ export interface ModelInfo {
   downloadProgress?: number;
   /** Available sources */
   sources?: ModelSources;
+  /** Whether Quick Start is available for this model (CDN with preflight checks) */
+  quickStartAvailable?: boolean;
 }
 
 /**
@@ -52,6 +54,8 @@ export interface ModelSelectorCallbacks {
   onDownload?: (model: ModelInfo, opts?: { runAfter?: boolean }) => void;
   /** Called when delete is requested */
   onDelete?: (model: ModelInfo) => void;
+  /** Called when Quick Start is requested (CDN download with preflight checks) */
+  onQuickStart?: (model: ModelInfo) => void;
 }
 
 // ============================================================================
@@ -66,6 +70,7 @@ export class ModelSelector {
   private onSelect: (model: ModelInfo, opts?: { preferredSource?: string }) => void;
   private onDownload: (model: ModelInfo, opts?: { runAfter?: boolean }) => void;
   private onDelete: (model: ModelInfo) => void;
+  private onQuickStart: (model: ModelInfo) => void;
 
   private models: ModelInfo[] = [];
   private activeModelId: string | null = null;
@@ -83,6 +88,7 @@ export class ModelSelector {
     this.onSelect = callbacks.onSelect || (() => {});
     this.onDownload = callbacks.onDownload || (() => {});
     this.onDelete = callbacks.onDelete || (() => {});
+    this.onQuickStart = callbacks.onQuickStart || (() => {});
   }
 
   /**
@@ -277,14 +283,26 @@ export class ModelSelector {
         `;
       }
     } else if (hasRemote) {
-      actionsHtml = `
-        <button class="model-btn download" ${isDownloading ? 'disabled' : ''} title="${downloadTooltip}">
-          ${isDownloading ? `${Math.round(model.downloadProgress || 0)}%` : 'Download'}
-        </button>
-        <button class="model-btn download-run" ${isDownloading ? 'disabled' : ''} title="${dlRunTooltip}">
-          DL & Run
-        </button>
-      `;
+      const quickStartTooltip = 'One-click setup: checks VRAM, downloads to browser storage, then runs.';
+      if (model.quickStartAvailable) {
+        actionsHtml = `
+          <button class="model-btn quick-start" ${isDownloading ? 'disabled' : ''} title="${quickStartTooltip}">
+            Quick Start
+          </button>
+          <button class="model-btn download" ${isDownloading ? 'disabled' : ''} title="${downloadTooltip}">
+            ${isDownloading ? `${Math.round(model.downloadProgress || 0)}%` : 'Download'}
+          </button>
+        `;
+      } else {
+        actionsHtml = `
+          <button class="model-btn download" ${isDownloading ? 'disabled' : ''} title="${downloadTooltip}">
+            ${isDownloading ? `${Math.round(model.downloadProgress || 0)}%` : 'Download'}
+          </button>
+          <button class="model-btn download-run" ${isDownloading ? 'disabled' : ''} title="${dlRunTooltip}">
+            DL & Run
+          </button>
+        `;
+      }
     }
 
     item.innerHTML = `
@@ -299,6 +317,7 @@ export class ModelSelector {
     const downloadBtn = item.querySelector('.model-btn.download');
     const downloadRunBtn = item.querySelector('.model-btn.download-run');
     const deleteBtn = item.querySelector('.model-btn.delete');
+    const quickStartBtn = item.querySelector('.model-btn.quick-start');
 
     runBtns.forEach((btn) => {
       btn.addEventListener('click', (e) => {
@@ -328,6 +347,13 @@ export class ModelSelector {
       downloadRunBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         this.onDownload(model, { runAfter: true });
+      });
+    }
+
+    if (quickStartBtn) {
+      quickStartBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.onQuickStart(model);
       });
     }
 

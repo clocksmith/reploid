@@ -154,6 +154,82 @@
           </div>
         </div>
 
+        <!-- Quick-Start Overlay -->
+        <div class="quickstart-overlay" id="quickstart-overlay" hidden>
+          <div class="quickstart-content">
+            <!-- Storage Consent Panel -->
+            <div class="quickstart-panel" id="quickstart-consent" hidden>
+              <h3 class="quickstart-title">Download Model?</h3>
+              <div class="quickstart-info">
+                <div class="info-row">
+                  <span class="info-label">Download Size</span>
+                  <span class="info-value" id="quickstart-download-size">--</span>
+                </div>
+                <div class="info-row">
+                  <span class="info-label">Storage Available</span>
+                  <span class="info-value" id="quickstart-storage-available">--</span>
+                </div>
+              </div>
+              <p class="quickstart-note">
+                Model will be stored in your browser for offline use.
+              </p>
+              <div class="quickstart-actions">
+                <button class="quickstart-btn cancel" id="quickstart-cancel">Cancel</button>
+                <button class="quickstart-btn primary" id="quickstart-confirm">Download</button>
+              </div>
+            </div>
+
+            <!-- VRAM Blocker Panel -->
+            <div class="quickstart-panel" id="quickstart-vram-blocker" hidden>
+              <h3 class="quickstart-title error">Insufficient GPU Memory</h3>
+              <div class="quickstart-info">
+                <div class="info-row">
+                  <span class="info-label">Required</span>
+                  <span class="info-value" id="quickstart-vram-required">--</span>
+                </div>
+                <div class="info-row">
+                  <span class="info-label">Available</span>
+                  <span class="info-value" id="quickstart-vram-available">--</span>
+                </div>
+              </div>
+              <p class="quickstart-note error">
+                Your GPU does not have enough memory to run this model.
+                Try a smaller model or use a device with more VRAM.
+              </p>
+              <div class="quickstart-actions">
+                <button class="quickstart-btn primary" id="quickstart-blocker-close">Close</button>
+              </div>
+            </div>
+
+            <!-- Download Progress Panel -->
+            <div class="quickstart-panel" id="quickstart-progress" hidden>
+              <h3 class="quickstart-title">Downloading Model</h3>
+              <div class="progress-bar-container quickstart-progress">
+                <div class="progress-bar" id="quickstart-progress-bar"></div>
+              </div>
+              <div class="quickstart-stats">
+                <span id="quickstart-progress-percent">0%</span>
+                <span id="quickstart-progress-speed">-- MB/s</span>
+                <span id="quickstart-progress-eta">--</span>
+              </div>
+              <div class="quickstart-detail" id="quickstart-progress-detail">
+                Preparing download...
+              </div>
+            </div>
+
+            <!-- Ready Panel -->
+            <div class="quickstart-panel" id="quickstart-ready" hidden>
+              <h3 class="quickstart-title success">Model Ready!</h3>
+              <p class="quickstart-note">
+                Model downloaded and verified. Ready to chat.
+              </p>
+              <div class="quickstart-actions">
+                <button class="quickstart-btn primary" id="quickstart-run">Start Chat</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- Chat Messages -->
         <div class="chat-messages" id="chat-messages">
           <div class="welcome-message" id="welcome-message">
@@ -198,6 +274,6 @@
   </div>
 
   <!-- Module Scripts (built from TypeScript via ./build.sh) -->
-  <script type="module" src="/doppler/dist/demo/app.js"></script>
+  <script type="module" src="/doppler/dist/app/app.js"></script>
 </body>
 </html>

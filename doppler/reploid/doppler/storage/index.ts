@@ -129,3 +129,41 @@ export type {
   DownloadNeededResult,
   ProgressCallback,
 } from './downloader.js';
+
+// Re-export from preflight
+export {
+  runPreflightChecks,
+  formatPreflightResult,
+  GEMMA_1B_REQUIREMENTS,
+  MODEL_REQUIREMENTS,
+} from './preflight.js';
+
+// Re-export types from preflight
+export type {
+  VRAMCheckResult,
+  StorageCheckResult,
+  GPUCheckResult,
+  PreflightResult,
+  ModelRequirements,
+} from './preflight.js';
+
+// Re-export from quickstart-downloader
+export {
+  downloadQuickStartModel,
+  isModelDownloaded,
+  getModelDownloadSize,
+  formatModelInfo,
+  getQuickStartModel,
+  listQuickStartModels,
+  registerQuickStartModel,
+  setCDNBaseUrl,
+  getCDNBaseUrl,
+  QUICKSTART_MODELS,
+} from './quickstart-downloader.js';
+
+// Re-export types from quickstart-downloader
+export type {
+  RemoteModelConfig,
+  QuickStartDownloadOptions,
+  QuickStartDownloadResult,
+} from './quickstart-downloader.js';
