@@ -46,12 +46,16 @@ Implement the techniques that gave WeInfer 3.76x speedup over WebLLM:
 
 | Tactic | Status | Impact | Doc |
 |--------|--------|--------|-----|
+| Command batching | **Done** | Critical | [OPTIMIZATION_ROADMAP.md](plans/OPTIMIZATION_ROADMAP.md) |
+| Deferred readback | **Done** | High | [OPTIMIZATION_ROADMAP.md](plans/OPTIMIZATION_ROADMAP.md) |
 | Buffer reuse | TODO | High | [OPTIMIZATION_ROADMAP.md](plans/OPTIMIZATION_ROADMAP.md) |
 | Async pipeline | TODO | High | [OPTIMIZATION_ROADMAP.md](plans/OPTIMIZATION_ROADMAP.md) |
-| Deferred readback | TODO | High | [OPTIMIZATION_ROADMAP.md](plans/OPTIMIZATION_ROADMAP.md) |
-| Command batching | **In Progress** | Critical | [OPTIMIZATION_ROADMAP.md](plans/OPTIMIZATION_ROADMAP.md) |
 
-**Command batching progress:** Submit tracker created, `do*` wrappers for FFN/norms/residuals done, `CommandRecorder` infrastructure ready. Remaining: `recordCastF32ToF16`, attention refactor, pipeline integration.
+**Command batching:** All kernels have `record*` variants, `CommandRecorder` batches prefill/decode into single GPU submit.
+
+**Deferred readback:** GPU-side sampling (`runArgmax`, `runGPUSample`) avoids logits readback.
+
+**Current performance (Gemma 1B on M3):** TTFT ~360ms, Decode ~6 tok/s. Target: 40+ tok/s.
 
 ### 1.2 Target Models
 

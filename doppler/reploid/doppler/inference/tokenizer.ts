@@ -245,25 +245,15 @@ export class TransformersTokenizer extends BaseTokenizer {
 
   /**
    * Load tokenizer from HuggingFace model
+   * @deprecated Use BundledTokenizer instead - no external dependencies
    */
-  async load(modelId: string): Promise<void> {
-    // Dynamic import of Transformers.js from CDN (runtime-only, no compile-time resolution)
-    const cdnUrl = 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@3';
-    const transformers = await (import(/* webpackIgnore: true */ cdnUrl) as Promise<TransformersModule>);
-
-    console.log(`[Tokenizer] Loading tokenizer for ${modelId}...`);
-    this.tokenizer = await transformers.AutoTokenizer.from_pretrained(modelId);
-    this.modelId = modelId;
-
-    // Update special tokens from loaded tokenizer
-    if (this.tokenizer.special_tokens_map) {
-      const map = this.tokenizer.special_tokens_map;
-      if (map.pad_token) this.specialTokens.pad = this.tokenizer.pad_token_id;
-      if (map.bos_token) this.specialTokens.bos = this.tokenizer.bos_token_id;
-      if (map.eos_token) this.specialTokens.eos = this.tokenizer.eos_token_id;
-      if (map.unk_token) this.specialTokens.unk = this.tokenizer.unk_token_id;
-    }
-    console.log(`[Tokenizer] Loaded successfully. Vocab size: ${this.tokenizer.model?.vocab ? Object.keys(this.tokenizer.model.vocab).length : 'unknown'}`);
+  async load(_modelId: string): Promise<void> {
+    // DOPPLER uses bundled tokenizers only - no external CDN dependencies
+    throw new Error(
+      '[Tokenizer] TransformersTokenizer is deprecated. ' +
+      'Use bundled tokenizer (type: "bundled" or "huggingface" with file). ' +
+      'DOPPLER requires no external runtime dependencies.'
+    );
   }
 
   encode(text: string): number[] {
@@ -1336,8 +1326,12 @@ export class Tokenizer {
         return;
       }
 
-      console.warn('[Tokenizer] Bundled tokenizer not available, falling back to HuggingFace');
-      // Fall through to try other methods
+      // No external fallback - bundled tokenizer is required
+      throw new Error(
+        '[Tokenizer] Bundled tokenizer not found. ' +
+        'Ensure tokenizer.json is in OPFS or model directory. ' +
+        'Clear browser storage and re-download the model.'
+      );
     }
 
     // Try to infer HuggingFace model ID from manifest if not explicitly set
@@ -1397,7 +1391,7 @@ export class Tokenizer {
     // Map architecture names to public HuggingFace tokenizer repos
     // Using Xenova's repos where possible as they are optimized for Transformers.js
     const archToHF: Record<string, string> = {
-      'gemma3': 'google/gemma-3-4b-it',    // Gemma 3 has different tokenizer than Gemma 1/2
+      'gemma3': 'google/gemma-3-4b-it',    // Gemma 3 (fallback only - bundled tokenizer preferred)
       'gemma2': 'Xenova/gemma-tokenizer',
       'gemma': 'Xenova/gemma-tokenizer',
       'llama3': 'Xenova/llama3-tokenizer-new',

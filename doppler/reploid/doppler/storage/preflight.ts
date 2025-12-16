@@ -109,7 +109,7 @@ const MB = 1024 * 1024;
 export const GEMMA_1B_REQUIREMENTS: ModelRequirements = {
   modelId: 'gemma3-1b-q4',
   displayName: 'Gemma 3 1B (Q4)',
-  downloadSize: 1.2 * GB,       // ~1.2GB for Q4_K_M shards
+  downloadSize: 551 * MB,       // ~551MB with Q4 embeddings + tokenizer
   vramRequired: 1.5 * GB,       // ~1.5GB VRAM for inference (weights + KV cache)
   paramCount: '1B',
   quantization: 'Q4_K_M',

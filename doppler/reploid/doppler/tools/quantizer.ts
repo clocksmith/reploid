@@ -297,11 +297,20 @@ export function quantizeF16ToQ4KM(f16Data: Uint16Array, shape: number[]): Quanti
   return quantizeToQ4KM(f32Data, shape);
 }
 
+export interface QuantizeOptions {
+  /** Also quantize embedding tables (default: false) */
+  quantizeEmbeddings?: boolean;
+  /** Modules to skip (from HF config) */
+  modulesToNotConvert?: string[] | null;
+}
+
 export function shouldQuantize(
   tensorName: string,
   shape: number[],
-  modulesToNotConvert: string[] | null = null
+  options: QuantizeOptions = {}
 ): boolean {
+  const { quantizeEmbeddings = false, modulesToNotConvert = null } = options;
+
   const numElements = shape.reduce((a, b) => a * b, 1);
   if (numElements < 1024) {
     return false;
@@ -309,8 +318,12 @@ export function shouldQuantize(
 
   const lowerName = tensorName.toLowerCase();
 
+  // Embeddings: skip unless explicitly enabled
   if (lowerName.includes('embed') || lowerName.includes('lm_head')) {
-    return false;
+    if (!quantizeEmbeddings) {
+      return false;
+    }
+    // If embeddings enabled, continue to other checks
   }
 
   if (lowerName.includes('norm') || lowerName.includes('ln_')) {
