@@ -171,7 +171,7 @@ export async function runMatmul(
     throw new Error(`[runMatmul] B buffer too small: ${B.size} < ${bRequired} (N=${N}, K=${K}, bDtype=${bDtype}, transposeB=${transposeB})`);
   }
 
-  // Select kernel - use naive kernel for M=1 decode with f16 weights
+  // Select kernel - use optimized GEMV for M=1 decode with f16 weights
   let variant = selectMatmulKernel({
     ...options,
     aDtype,
@@ -179,10 +179,13 @@ export async function runMatmul(
     outputDtype: requestedOutputDtype,
   });
 
-  // Use naive (non-tiled) kernel for M=1 decode with f16 weights
-  // The tiled kernel has issues with large K dimensions
-  const useNaive = M === 1 && bDtype === 'f16' && aDtype === 'f32';
-  if (useNaive) {
+  // Use optimized GEMV kernel for M=1 decode with f16 weights (transposeB required)
+  // GEMV uses shared memory for A vector, avoiding 256x redundant global reads
+  const useGemv = M === 1 && bDtype === 'f16' && aDtype === 'f32' && transposeB;
+  if (useGemv) {
+    variant = 'gemv';
+  } else if (M === 1 && bDtype === 'f16' && aDtype === 'f32') {
+    // Fallback to naive for non-transposed (rare case)
     variant = 'f16w_f32a_naive';
   }
 
@@ -247,8 +250,12 @@ export async function runMatmul(
   const [wgX, wgY] = config.workgroupSize;
   let workgroupsX: number, workgroupsY: number;
 
-  // Naive kernel uses 1D dispatch (gid.x = output column)
-  if (useNaive) {
+  // GEMV uses parallel reduction: one workgroup per output column
+  if (useGemv) {
+    workgroupsX = N;  // Each workgroup computes one output element
+    workgroupsY = 1;
+  } else if (variant === 'f16w_f32a_naive') {
+    // Naive kernel: one thread per output
     workgroupsX = Math.ceil(N / wgX);
     workgroupsY = 1;
   } else {
@@ -325,10 +332,14 @@ export async function recordMatmul(
     throw new Error(`[recordMatmul] B buffer too small: ${B.size} < ${bOffset + bBindingSize}`);
   }
 
-  // Select kernel
+  // Select kernel - use optimized GEMV for M=1 decode with f16 weights
   let variant = selectMatmulKernel({ ...options, aDtype, bDtype, outputDtype: requestedOutputDtype });
-  const useNaive = M === 1 && bDtype === 'f16' && aDtype === 'f32';
-  if (useNaive) variant = 'f16w_f32a_naive';
+  const useGemv = M === 1 && bDtype === 'f16' && aDtype === 'f32' && transposeB;
+  if (useGemv) {
+    variant = 'gemv';
+  } else if (M === 1 && bDtype === 'f16' && aDtype === 'f32') {
+    variant = 'f16w_f32a_naive';
+  }
 
   const config = getKernelConfig('matmul', variant);
   const pipeline = await createPipeline('matmul', variant);
@@ -371,7 +382,10 @@ export async function recordMatmul(
   pass.setBindGroup(0, bindGroup);
 
   const [wgX, wgY] = config.workgroupSize;
-  if (useNaive) {
+  // GEMV uses parallel reduction: one workgroup per output column
+  if (useGemv) {
+    pass.dispatchWorkgroups(N, 1);  // Each workgroup computes one output element
+  } else if (variant === 'f16w_f32a_naive') {
     pass.dispatchWorkgroups(Math.ceil(N / wgX), 1);
   } else {
     pass.dispatchWorkgroups(Math.ceil(M / wgX), Math.ceil(N / wgY));

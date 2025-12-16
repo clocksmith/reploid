@@ -52,6 +52,13 @@ export const KERNEL_CONFIGS: Record<string, Record<string, KernelConfig>> = {
       workgroupSize: [256, 1, 1],
       requires: ['shader-f16'],
     },
+    // Optimized GEMV for M=1 decode: uses shared memory for A vector
+    gemv: {
+      shaderFile: 'matmul_gemv.wgsl',
+      entryPoint: 'main',
+      workgroupSize: [256, 1, 1],
+      requires: ['shader-f16'],
+    },
     f32: {
       shaderFile: 'matmul_f32.wgsl',
       entryPoint: 'main',

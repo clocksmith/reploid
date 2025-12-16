@@ -28,6 +28,7 @@ export interface ConvertOptions {
   verbose: boolean;
   fast: boolean;
   textOnly: boolean;
+  quantizeEmbeddings: boolean;
   help: boolean;
 }
 
@@ -87,6 +88,7 @@ function parseArgs(args: string[]): ConvertOptions {
     verbose: false,
     fast: false,
     textOnly: false,
+    quantizeEmbeddings: false,
     help: false,
   };
 
@@ -104,6 +106,8 @@ function parseArgs(args: string[]): ConvertOptions {
       options.fast = true;
     } else if (arg === '--text-only') {
       options.textOnly = true;
+    } else if (arg === '--quantize-embeddings') {
+      options.quantizeEmbeddings = true;
     } else if (arg === '--quantize' || arg === '-q') {
       options.quantize = args[++i]?.toLowerCase() as QuantizationType;
     } else if (arg === '--shard-size') {
@@ -136,14 +140,15 @@ Arguments:
   output-dir  Directory to write .rdrr output (default: ../models/<model-name>)
 
 Options:
-  --quantize <type>   Quantize weights (q4_k_m, f16, f32)
-  --shard-size <mb>   Shard size in MB (default: 64)
-  --model-id <id>     Override model ID in manifest
-  --text-only         Extract only text model (skip vision/projector, strip prefixes)
-  --fast              Pre-load shards into memory (faster, uses more RAM)
-  --test              Create tiny test model (ignores input)
-  --verbose, -v       Verbose output
-  --help, -h          Show this help
+  --quantize <type>       Quantize weights (q4_k_m, f16, f32)
+  --quantize-embeddings   Also quantize embedding table (saves ~50% for large vocabs)
+  --shard-size <mb>       Shard size in MB (default: 64)
+  --model-id <id>         Override model ID in manifest
+  --text-only             Extract only text model (skip vision/projector, strip prefixes)
+  --fast                  Pre-load shards into memory (faster, uses more RAM)
+  --test                  Create tiny test model (ignores input)
+  --verbose, -v           Verbose output
+  --help, -h              Show this help
 
 Examples:
   # Convert GGUF model
@@ -351,7 +356,10 @@ async function convertGGUF(inputPath: string, outputDir: string, options: Conver
     const data = fileBuffer.buffer.slice(localTensor.offset, localTensor.offset + localTensor.size) as ArrayBuffer;
     const modulesToNotConvert = modelInfo.config?.quantization_config?.modules_to_not_convert ?? null;
 
-    if (options.quantize === 'q4_k_m' && shouldQuantize(tensor.name, tensor.shape, modulesToNotConvert)) {
+    if (options.quantize === 'q4_k_m' && shouldQuantize(tensor.name, tensor.shape, {
+      quantizeEmbeddings: options.quantizeEmbeddings,
+      modulesToNotConvert,
+    })) {
       const sourceQuant = localTensor.quantization || modelInfo.quantization;
 
       if (sourceQuant === 'F16' || sourceQuant === 'F32' || sourceQuant === 'BF16') {
@@ -424,6 +432,20 @@ async function convertSafetensors(inputPath: string, outputDir: string, options:
     shards: isIndex ? (parsed as ParsedSafetensorsIndex).shards : undefined,
   };
 
+  // Load tokenizer.json if present in the input directory
+  const inputDir = (await stat(inputPath)).isDirectory() ? inputPath : dirname(inputPath);
+  const tokenizerPath = join(inputDir, 'tokenizer.json');
+  try {
+    const tokenizerData = await readFile(tokenizerPath, 'utf-8');
+    const tokenizerJson = JSON.parse(tokenizerData);
+    if (tokenizerJson.model) {
+      (modelInfo as { tokenizerJson?: unknown }).tokenizerJson = tokenizerJson;
+      console.log(`  Tokenizer: ${tokenizerPath}`);
+    }
+  } catch {
+    // tokenizer.json not found or invalid, will skip
+  }
+
   if (options.textOnly) {
     const originalCount = modelInfo.tensors.length;
 
@@ -490,7 +512,10 @@ async function convertSafetensors(inputPath: string, outputDir: string, options:
 
     const floatDtypes = ['F32', 'F16', 'BF16'];
     const modulesToNotConvert = modelInfo.config?.quantization_config?.modules_to_not_convert ?? null;
-    if (targetQuant === 'q4_k_m' && floatDtypes.includes(localTensor.dtype) && shouldQuantize(tensor.name, tensor.shape, modulesToNotConvert)) {
+    if (targetQuant === 'q4_k_m' && floatDtypes.includes(localTensor.dtype) && shouldQuantize(tensor.name, tensor.shape, {
+      quantizeEmbeddings: options.quantizeEmbeddings,
+      modulesToNotConvert,
+    })) {
       const f32Data = localTensor.dtype === 'F32'
         ? new Float32Array(data)
         : convertToF32(data, localTensor.dtype);
