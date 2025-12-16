@@ -189,6 +189,11 @@ export async function runMatmul(
     variant = 'f16w_f32a_naive';
   }
 
+  // Debug: Log kernel selection for large matmuls (lm_head projection)
+  if (N > 100000) {
+    console.log(`[Pipeline] MATMUL_LARGE: N=${N}, variant=${variant}, aDtype=${aDtype}, bDtype=${bDtype}, transposeB=${transposeB}`);
+  }
+
   const config = getKernelConfig('matmul', variant);
   const pipeline = await createPipeline('matmul', variant);
 

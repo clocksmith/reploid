@@ -17,20 +17,27 @@
 ### Step 1: Start the Server
 
 ```bash
-# Option A: Node.js with live reload (recommended)
 npm install
+
+# Option A: Static server (landing + /r Reploid + /d Doppler)
+npm run serve
+
+# Option B: Full dev server with API proxies (recommended for development)
 npm run dev
 
-# Option B: Python (simplest)
-python3 -m http.server 8000
-
-# Option C: Any static server
-npx serve -p 8000
+# Option C: Doppler-only mode (for WebGPU inference testing)
+npm run doppler
 ```
 
 ### Step 2: Open in Browser
 
-Navigate to **http://localhost:8000** in your browser.
+| Mode | URL | Description |
+|------|-----|-------------|
+| `npm run serve` | http://localhost:8080 | Landing page with links to /r and /d |
+| `npm run serve` | http://localhost:8080/r | Reploid agent app |
+| `npm run serve` | http://localhost:8080/d | Doppler inference app |
+| `npm run dev` | http://localhost:8000 | Full dev with API proxies |
+| `npm run doppler` | http://localhost:8080 | Doppler only (opens automatically) |
 
 ### Step 3: Configure Your Agent
 

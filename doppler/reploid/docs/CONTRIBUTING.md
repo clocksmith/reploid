@@ -33,11 +33,20 @@ Guidelines for contributing code, documentation, and blueprints.
 ### Running Locally
 
 ```bash
-# Development server with live reload
-npm run dev
+# Static server (landing + /r Reploid + /d Doppler)
+npm run serve              # http://localhost:8080
+
+# Full dev server with API proxies
+npm run dev                # http://localhost:8000
+
+# Doppler-only mode (WebGPU inference)
+npm run doppler            # http://localhost:8080 (opens browser)
 
 # Run tests
 npm test
+
+# Run E2E tests (uses serve.ts automatically)
+npm run test:e2e
 
 # Run specific test file
 npm test -- tests/unit/event-bus.test.js

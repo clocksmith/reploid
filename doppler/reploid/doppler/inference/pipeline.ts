@@ -445,37 +445,42 @@ export class InferencePipeline {
     }
 
     // Process all layers
-    console.log(`[Pipeline] LAYER_LOOP_START: numLayers=${config.numLayers}, useGPU=${context.useGPU}, hiddenStates=${hiddenStates?.constructor?.name}`);
+    console.log(`[Pipeline] LAYER_LOOP_START: numLayers=${config.numLayers}, useGPU=${context.useGPU}`);
     for (let l = 0; l < config.numLayers; l++) {
-      console.log(`[Pipeline] LAYER_LOOP[${l}] begin`);
       const prevStates = hiddenStates;
       hiddenStates = await processLayer(l, hiddenStates, numTokens, true, context) as GPUBuffer;
-      if (l < 3) console.log(`[Pipeline] Layer ${l} done, hiddenStates type=${hiddenStates?.constructor?.name}`);
 
-      // Debug: sample hidden states after key layers to find where values explode
-      if ((l === 0 || l === 5 || l === 10 || l === 15 || l === 20 || l === 25) && hiddenStates instanceof GPUBuffer) {
+      // Debug: trace hidden state growth through layers (first 3 layers only to limit spam)
+      if (l < 3 && hiddenStates instanceof GPUBuffer) {
         const device = getDevice();
-        const sampleSize = Math.min(512, hiddenStates.size);
-        const staging = device.createBuffer({
-          size: sampleSize,
-          usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ,
-        });
-        const enc = device.createCommandEncoder();
-        enc.copyBufferToBuffer(hiddenStates, 0, staging, 0, sampleSize);
-        device.queue.submit([enc.finish()]);
-        await staging.mapAsync(GPUMapMode.READ);
-        const data = new Float32Array(staging.getMappedRange().slice(0));
-        staging.unmap();
-        staging.destroy();
-        const maxAbs = Math.max(...Array.from(data).map(x => Math.abs(x)));
-        const sample = Array.from(data).filter(x => Number.isFinite(x)).slice(0, 3).map(x => x.toFixed(2)).join(', ');
-        console.log(`[Pipeline] After layer ${l}: maxAbs=${maxAbs.toFixed(2)}, sample=[${sample}]`);
+        if (device) {
+          try {
+            const sampleSize = Math.min(256, hiddenStates.size);
+            const staging = device.createBuffer({
+              size: sampleSize,
+              usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ,
+            });
+            const enc = device.createCommandEncoder();
+            enc.copyBufferToBuffer(hiddenStates, 0, staging, 0, sampleSize);
+            device.queue.submit([enc.finish()]);
+            await staging.mapAsync(GPUMapMode.READ);
+            const data = new Float32Array(staging.getMappedRange().slice(0));
+            staging.unmap();
+            staging.destroy();
+            const maxAbs = Math.max(...Array.from(data).map(x => Math.abs(x)));
+            const sample = Array.from(data).slice(0, 3).map(x => x.toFixed(3)).join(', ');
+            console.log(`[Pipeline] LAYER_${l}_OUT: maxAbs=${maxAbs.toFixed(2)}, sample=[${sample}]`);
+          } catch (e) {
+            console.log(`[Pipeline] LAYER_${l}_OUT: error reading buffer: ${e}`);
+          }
+        }
+      } else if (l < 3) {
+        console.log(`[Pipeline] LAYER_${l}_OUT: hiddenStates is ${hiddenStates?.constructor?.name}`);
       }
 
       if (prevStates instanceof GPUBuffer && prevStates !== hiddenStates) {
         releaseBuffer(prevStates);
       }
-
     }
 
     // Submit batched commands (cleanup happens automatically in submit)
@@ -594,15 +599,6 @@ export class InferencePipeline {
       hiddenStates = await processLayer(l, hiddenStates, numTokens, false, context) as GPUBuffer;
       if (prevStates instanceof GPUBuffer && prevStates !== hiddenStates) {
         releaseBuffer(prevStates);
-      }
-
-      // Debug: check hidden states at layer 0 and layer 25 for decode step 1
-      if (this._decodeStepCount === 1 && (l === 0 || l === config.numLayers - 1) && hiddenStates instanceof GPUBuffer) {
-        const layerData = await readBuffer(hiddenStates);
-        const layerArr = new Float32Array(layerData);
-        const sample = layerArr.slice(0, 5);
-        const maxAbs = Math.max(...layerArr.map(Math.abs));
-        console.log(`[Decode][1] After L${l}: maxAbs=${maxAbs.toFixed(2)}, sample=[${Array.from(sample).map(v => v.toFixed(3)).join(', ')}]`);
       }
     }
 

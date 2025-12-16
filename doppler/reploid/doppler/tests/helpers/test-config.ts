@@ -12,7 +12,7 @@
 // ============================================
 
 export const URLS = {
-  // Demo UI served from DOPPLER server (root index.html)
+  // Demo UI served at / in doppler-only mode (doppler/index.html)
   demo: 'http://localhost:8080/',
   // Minimal test page
   minimal: 'http://localhost:8080/tests/test-minimal.html',

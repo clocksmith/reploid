@@ -300,6 +300,7 @@ export async function processLayer(
   isPrefill: boolean,
   context: LayerContext
 ): Promise<GPUBuffer | Float32Array> {
+  console.log(`[LAYER_TS] processLayer called, layerIdx=${layerIdx}`);
   const { config, useGPU } = context;
   const { hiddenSize } = config;
   const size = numTokens * hiddenSize;
@@ -307,6 +308,11 @@ export async function processLayer(
   // Debug routing (uses debug-utils)
   if (shouldLog(layerIdx, 'attn')) {
     logLayerEntry(layerIdx, isPrefill, numTokens, size);
+  }
+
+  // Debug: check path being taken for layer 0
+  if (layerIdx === 0) {
+    console.log(`[processLayer] L0 routing: useGPU=${useGPU}, isGPUBuffer=${hiddenStates instanceof GPUBuffer}, constructor=${hiddenStates?.constructor?.name}`);
   }
 
   // GPU-native path
@@ -384,7 +390,33 @@ export async function processLayerGPU(
   // Debug: trace attn output (uses debug-utils)
   await logBufferStats(attnOutput, `attn (${isPrefill ? 'prefill' : 'decode'})`, layerIdx, 'attn');
 
+  // Debug layer 0 attention output specifically
+  console.log(`[Layer${layerIdx}] attnOutput type check: isGPU=${attnOutput instanceof GPUBuffer}, type=${typeof attnOutput}, constructor=${attnOutput?.constructor?.name}`);
+  if (layerIdx === 0 && attnOutput instanceof GPUBuffer) {
+    try {
+      const sampleSize = Math.min(128, attnOutput.size);
+      const staging = device.createBuffer({ size: sampleSize, usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ });
+      const enc = device.createCommandEncoder();
+      enc.copyBufferToBuffer(attnOutput, 0, staging, 0, sampleSize);
+      device.queue.submit([enc.finish()]);
+      await staging.mapAsync(GPUMapMode.READ);
+      const data = new Float32Array(staging.getMappedRange().slice(0));
+      staging.unmap();
+      staging.destroy();
+      const maxAbs = Math.max(...Array.from(data).map(x => Math.abs(x)));
+      const nonZero = Array.from(data).filter(x => x !== 0).length;
+      console.log(`[Layer0] ATTN_OUT: maxAbs=${maxAbs.toFixed(4)}, nonZero=${nonZero}/${data.length}, sample=[${Array.from(data).slice(0, 5).map(x => x.toFixed(4)).join(', ')}]`);
+    } catch (e) {
+      console.log(`[Layer0] ATTN_OUT error: ${e}`);
+    }
+  }
+
   // 2. Handle residual connection based on architecture
+  // Debug: log architecture path for layer 0
+  if (layerIdx === 0) {
+    console.log(`[Layer0] ARCH: sandwich=${sandwichNorm.useSandwichNorm}, hasPostAttnNorm=${sandwichNorm.hasPostAttentionNorm}, hasWeights=${!!layerWeights?.postAttentionNorm}`);
+  }
+
   let postAttn: GPUBuffer;
   if (sandwichNorm.useSandwichNorm && sandwichNorm.hasPostAttentionNorm && layerWeights?.postAttentionNorm) {
     // Gemma 3 path: norm attention output BEFORE residual add
@@ -403,6 +435,25 @@ export async function processLayerGPU(
     // Standard path: residual add first
     postAttn = await doResidualAdd(attnOutput, inputBuffer, size, recorder);
     releaseBuffer(attnOutput);
+  }
+
+  // Debug: log postAttn for layer 0
+  if (layerIdx === 0 && postAttn instanceof GPUBuffer) {
+    try {
+      const sampleSize = Math.min(128, postAttn.size);
+      const staging = device.createBuffer({ size: sampleSize, usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ });
+      const enc = device.createCommandEncoder();
+      enc.copyBufferToBuffer(postAttn, 0, staging, 0, sampleSize);
+      device.queue.submit([enc.finish()]);
+      await staging.mapAsync(GPUMapMode.READ);
+      const data = new Float32Array(staging.getMappedRange().slice(0));
+      staging.unmap();
+      staging.destroy();
+      const maxAbs = Math.max(...Array.from(data).map(x => Math.abs(x)));
+      console.log(`[Layer0] POST_ATTN: maxAbs=${maxAbs.toFixed(4)}, sample=[${Array.from(data).slice(0, 5).map(x => x.toFixed(4)).join(', ')}]`);
+    } catch (e) {
+      console.log(`[Layer0] POST_ATTN error: ${e}`);
+    }
   }
 
   // 3. Feed-forward network
