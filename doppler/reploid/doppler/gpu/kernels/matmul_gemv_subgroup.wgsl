@@ -8,6 +8,9 @@
 // 4. Loop unrolling for better ILP
 //
 // A is f32 (activations), B is f16 (weights transposed [N,K]), C is f32.
+//
+// IMPORTANT: This kernel maintains uniform control flow for subgroup operations.
+// All threads execute subgroupAdd - invalid threads contribute 0.
 
 enable f16;
 enable subgroups;
@@ -50,54 +53,54 @@ fn main(
     let base_col = wg_id.x * COLS_PER_WG;
     let col = base_col + col_in_wg;
 
-    // Early exit if this column is out of bounds
-    if (col >= uniforms.N) {
-        return;
-    }
-
-    // B is stored transposed [N, K], so B[col, k] = B[col * K + k]
-    let b_row_offset = col * uniforms.K;
+    // Track validity - NO early return to maintain uniform control flow
+    let is_valid = col < uniforms.N;
 
     // Each thread computes partial sum for its assigned k values
     var partial_sum: f32 = 0.0;
 
-    // Process K in chunks, each thread handles K/64 elements
-    // Use vec4 loads when possible for 4x bandwidth
-    let k_per_thread = (uniforms.K + THREADS_PER_COL - 1u) / THREADS_PER_COL;
-    let k_start = thread_in_col * k_per_thread;
-    let k_end = min(k_start + k_per_thread, uniforms.K);
+    // Only do work if this column is valid
+    if (is_valid) {
+        // B is stored transposed [N, K], so B[col, k] = B[col * K + k]
+        let b_row_offset = col * uniforms.K;
 
-    // Main loop - process 4 elements at a time when aligned
-    var k = k_start;
-    let k_aligned_end = k_start + ((k_end - k_start) / 4u) * 4u;
+        // Process K in chunks, each thread handles K/64 elements
+        let k_per_thread = (uniforms.K + THREADS_PER_COL - 1u) / THREADS_PER_COL;
+        let k_start = thread_in_col * k_per_thread;
+        let k_end = min(k_start + k_per_thread, uniforms.K);
 
-    for (; k < k_aligned_end; k = k + 4u) {
-        // Load 4 activation values
-        let a0 = A[k];
-        let a1 = A[k + 1u];
-        let a2 = A[k + 2u];
-        let a3 = A[k + 3u];
+        // Main loop - process 4 elements at a time when aligned
+        var k = k_start;
+        let k_aligned_end = k_start + ((k_end - k_start) / 4u) * 4u;
 
-        // Load 4 weight values
-        let b0 = f32(B[b_row_offset + k]);
-        let b1 = f32(B[b_row_offset + k + 1u]);
-        let b2 = f32(B[b_row_offset + k + 2u]);
-        let b3 = f32(B[b_row_offset + k + 3u]);
+        for (; k < k_aligned_end; k = k + 4u) {
+            // Load 4 activation values
+            let a0 = A[k];
+            let a1 = A[k + 1u];
+            let a2 = A[k + 2u];
+            let a3 = A[k + 3u];
 
-        // FMA operations
-        partial_sum = partial_sum + a0 * b0 + a1 * b1 + a2 * b2 + a3 * b3;
+            // Load 4 weight values
+            let b0 = f32(B[b_row_offset + k]);
+            let b1 = f32(B[b_row_offset + k + 1u]);
+            let b2 = f32(B[b_row_offset + k + 2u]);
+            let b3 = f32(B[b_row_offset + k + 3u]);
+
+            // FMA operations
+            partial_sum = partial_sum + a0 * b0 + a1 * b1 + a2 * b2 + a3 * b3;
+        }
+
+        // Handle remaining elements
+        for (; k < k_end; k = k + 1u) {
+            partial_sum = partial_sum + A[k] * f32(B[b_row_offset + k]);
+        }
     }
 
-    // Handle remaining elements
-    for (; k < k_end; k = k + 1u) {
-        partial_sum = partial_sum + A[k] * f32(B[b_row_offset + k]);
-    }
-
-    // Subgroup reduction - much faster than shared memory!
+    // Subgroup reduction - ALL threads must execute this (uniform control flow)
+    // Invalid threads contribute 0 to the sum
     let sg_sum = subgroupAdd(partial_sum);
 
     // Only one thread per subgroup writes to shared memory
-    let subgroup_id = local_id / sg_size;
     let num_subgroups_per_col = (THREADS_PER_COL + sg_size - 1u) / sg_size;
 
     if (sg_id == 0u && thread_in_col < THREADS_PER_COL) {
@@ -108,7 +111,7 @@ fn main(
     workgroupBarrier();
 
     // Final reduction - first thread of each column sums subgroup results
-    if (thread_in_col == 0u && col < uniforms.N) {
+    if (thread_in_col == 0u && is_valid) {
         var final_sum: f32 = 0.0;
         for (var i: u32 = 0u; i < num_subgroups_per_col; i = i + 1u) {
             final_sum = final_sum + wg_sums[col_in_wg * 8u + i];
@@ -133,37 +136,39 @@ fn main_vec4(
     let base_col = wg_id.x * COLS_PER_WG;
     let col = base_col + col_in_wg;
 
-    if (col >= uniforms.N) {
-        return;
-    }
+    // Track validity - NO early return to maintain uniform control flow
+    let is_valid = col < uniforms.N;
 
-    let b_row_offset = col * uniforms.K;
     var partial_sum: f32 = 0.0;
 
-    // K is guaranteed to be multiple of 4
-    let K4 = uniforms.K / 4u;
-    let k4_per_thread = (K4 + THREADS_PER_COL - 1u) / THREADS_PER_COL;
-    let k4_start = thread_in_col * k4_per_thread;
-    let k4_end = min(k4_start + k4_per_thread, K4);
+    if (is_valid) {
+        let b_row_offset = col * uniforms.K;
 
-    for (var k4: u32 = k4_start; k4 < k4_end; k4 = k4 + 1u) {
-        let k = k4 * 4u;
+        // K is guaranteed to be multiple of 4
+        let K4 = uniforms.K / 4u;
+        let k4_per_thread = (K4 + THREADS_PER_COL - 1u) / THREADS_PER_COL;
+        let k4_start = thread_in_col * k4_per_thread;
+        let k4_end = min(k4_start + k4_per_thread, K4);
 
-        // Load vec4 of activations
-        let a = vec4<f32>(A[k], A[k + 1u], A[k + 2u], A[k + 3u]);
+        for (var k4: u32 = k4_start; k4 < k4_end; k4 = k4 + 1u) {
+            let k = k4 * 4u;
 
-        // Load vec4 of weights
-        let b = vec4<f32>(
-            f32(B[b_row_offset + k]),
-            f32(B[b_row_offset + k + 1u]),
-            f32(B[b_row_offset + k + 2u]),
-            f32(B[b_row_offset + k + 3u])
-        );
+            // Load vec4 of activations
+            let a = vec4<f32>(A[k], A[k + 1u], A[k + 2u], A[k + 3u]);
 
-        partial_sum = partial_sum + dot(a, b);
+            // Load vec4 of weights
+            let b = vec4<f32>(
+                f32(B[b_row_offset + k]),
+                f32(B[b_row_offset + k + 1u]),
+                f32(B[b_row_offset + k + 2u]),
+                f32(B[b_row_offset + k + 3u])
+            );
+
+            partial_sum = partial_sum + dot(a, b);
+        }
     }
 
-    // Subgroup reduction
+    // Subgroup reduction - ALL threads must execute this (uniform control flow)
     let sg_sum = subgroupAdd(partial_sum);
 
     let num_subgroups_per_col = (THREADS_PER_COL + sg_size - 1u) / sg_size;
@@ -175,7 +180,7 @@ fn main_vec4(
 
     workgroupBarrier();
 
-    if (thread_in_col == 0u && col < uniforms.N) {
+    if (thread_in_col == 0u && is_valid) {
         var final_sum: f32 = 0.0;
         for (var i: u32 = 0u; i < num_subgroups_per_col; i = i + 1u) {
             final_sum = final_sum + wg_sums[col_in_wg * 8u + i];

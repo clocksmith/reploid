@@ -34,6 +34,21 @@ You are debugging DOPPLER, a browser-native WebGPU LLM inference engine.
 | `gpu/kernel-selector.ts` | Kernel dispatch, buffer management |
 | `loader/doppler-loader.ts` | Weight loading, dequantization |
 
+## Build Commands
+
+**IMPORTANT:** After modifying any TypeScript files in `doppler/`, you must rebuild before testing in the browser:
+
+```bash
+# From doppler/reploid directory (contains package.json)
+cd /path/to/reploid/doppler/reploid
+npm run build:doppler
+
+# Verify changes are compiled (example: check for new kernel)
+grep "gemv_subgroup" doppler/dist/gpu/kernels/matmul.js
+```
+
+The browser loads JavaScript from `/doppler/dist/`, not TypeScript directly. Changes to `.ts` files won't take effect until rebuilt.
+
 ## Test Commands
 
 ```bash
@@ -50,3 +65,8 @@ npx playwright test doppler/tests/gemma-e2e.spec.ts --headed
 2. Check if a similar issue exists in postmortems
 3. Add strategic logging at pipeline stages
 4. Compare against llama.cpp or transformers.js as ground truth
+
+## Related Skills
+
+- **doppler-benchmark**: Run performance benchmarks to measure throughput and latency
+- **model-convert**: Convert GGUF/SafeTensors to RDRR format
