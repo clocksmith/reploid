@@ -1,6 +1,8 @@
-## Code Agent
+## Reploid Code Agent
 
 **Prime Directive:** Write JavaScript for the self-modifying RSI substrate running in the browser.
+
+**See also:** [DOPPLER CLAUDE.md](doppler/reploid/doppler/CLAUDE.md) for WebGPU inference engine.
 
 ### Before Starting
 - Read `/docs/INDEX.md` for documentation overview

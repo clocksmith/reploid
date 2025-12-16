@@ -229,6 +229,8 @@ export const BASE_LOG_PATTERNS = [
   'NORM_INPUT',  // Debug: norm input values
   'NORM_OUTPUT',  // Debug: norm output values
   '[RMSNorm]',  // Debug: RMSNorm kernel params
+  'createPipeline',  // Debug: pipeline creation
+  'BEFORE_DISPATCH',  // Debug: kernel pre-dispatch
 ];
 
 /**

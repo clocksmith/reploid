@@ -483,6 +483,9 @@ async function processFFNWithSandwichNorm(
   const debugL0 = async (buf: GPUBuffer, label: string) => {
     if (layerIdx !== 0 || !device) return;
     try {
+      // Force GPU sync before reading
+      await device.queue.onSubmittedWorkDone();
+
       const sampleSize = Math.min(128, buf.size);
       const staging = device.createBuffer({ size: sampleSize, usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ });
       const enc = device.createCommandEncoder();
