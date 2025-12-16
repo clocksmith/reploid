@@ -20,8 +20,8 @@ test.describe('Gemma 3 1B Inference', () => {
   test('should generate coherent text for "the sky is"', async ({ page }) => {
     // Setup
     const demo = new DemoPage(page);
-    const console = new ConsoleCapture();
-    console.attach(page, { printImportant: true });
+    const capture = new ConsoleCapture();
+    capture.attach(page, { printImportant: true });
 
     // Navigate to demo
     await test.step('Open demo page', async () => {
@@ -51,7 +51,7 @@ test.describe('Gemma 3 1B Inference', () => {
     await test.step('Wait for generation', async () => {
       await demo.waitForGeneration({
         timeout: 30000,
-        logs: console.getLogTexts(),
+        logs: capture.getLogTexts(),
       });
     });
 
@@ -59,9 +59,9 @@ test.describe('Gemma 3 1B Inference', () => {
     const responseText = await demo.getLastResponse();
 
     // Analyze results
-    console.printSummary();
+    capture.printSummary();
 
-    const quality = console.analyzeTokenQuality();
+    const quality = capture.analyzeTokenQuality();
 
     // Report findings
     if (quality.hasBad) {
