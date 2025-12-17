@@ -29,6 +29,7 @@ export interface ConvertOptions {
   fast: boolean;
   textOnly: boolean;
   quantizeEmbeddings: boolean;
+  fuseGateUp: boolean;
   help: boolean;
 }
 
@@ -89,6 +90,7 @@ function parseArgs(args: string[]): ConvertOptions {
     fast: false,
     textOnly: false,
     quantizeEmbeddings: false,
+    fuseGateUp: false,
     help: false,
   };
 
@@ -108,6 +110,8 @@ function parseArgs(args: string[]): ConvertOptions {
       options.textOnly = true;
     } else if (arg === '--quantize-embeddings') {
       options.quantizeEmbeddings = true;
+    } else if (arg === '--fuse-gate-up') {
+      options.fuseGateUp = true;
     } else if (arg === '--quantize' || arg === '-q') {
       options.quantize = args[++i]?.toLowerCase() as QuantizationType;
     } else if (arg === '--shard-size') {
@@ -142,6 +146,7 @@ Arguments:
 Options:
   --quantize <type>       Quantize weights (q4_k_m, f16, f32)
   --quantize-embeddings   Also quantize embedding table (saves ~50% for large vocabs)
+  --fuse-gate-up          Fuse gate+up projections for 2-pass FFN (faster inference)
   --shard-size <mb>       Shard size in MB (default: 64)
   --model-id <id>         Override model ID in manifest
   --text-only             Extract only text model (skip vision/projector, strip prefixes)
@@ -385,6 +390,7 @@ async function convertGGUF(inputPath: string, outputDir: string, options: Conver
     modelId: options.modelId || modelInfo.modelName || 'unknown',
     quantization: modelInfo.quantization || 'unknown',
     shardSize: options.shardSize * 1024 * 1024,
+    fuseGateUp: options.fuseGateUp,
     onProgress: (progress: ProgressEvent) => {
       if (progress.stage === 'writing' && options.verbose) {
         process.stdout.write(`\r  Writing tensors: ${progressBar(progress.current, progress.total)} ${progress.tensorName?.slice(0, 30) || ''}`.padEnd(80));
@@ -533,6 +539,7 @@ async function convertSafetensors(inputPath: string, outputDir: string, options:
     modelId: options.modelId || basename(inputPath).replace(/\.(safetensors|json)$/, ''),
     quantization: targetQuant.toUpperCase(),
     shardSize: options.shardSize * 1024 * 1024,
+    fuseGateUp: options.fuseGateUp,
     onProgress: (progress: ProgressEvent) => {
       if (progress.stage === 'writing') {
         process.stdout.write(`\r  Writing tensors: ${progressBar(progress.current, progress.total)} ${progress.tensorName?.slice(0, 30) || ''}`.padEnd(80));

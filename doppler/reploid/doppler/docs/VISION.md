@@ -50,6 +50,8 @@ A frontier-class model (e.g., DeepSeek-V3, 671B parameters) is not a monolithic 
 | OPFS | 10-50GB | ~50ms | Cold experts, cached shards |
 | P2P Swarm | Unlimited | ~200ms | Rare experts, full model |
 
+See [PHASE_3_SCALE.md](roadmap/PHASE_3_SCALE.md) for detailed tiered memory architecture.
+
 **Result:** 600B model on consumer hardware.
 
 ---

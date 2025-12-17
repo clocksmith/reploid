@@ -147,15 +147,36 @@ npx tsx convert-cli.ts gpt-oss-20b/ ./output
 | RoPE | Standard/YARN | Standard | YARN (factor=32) |
 | Context | Fixed window | Fixed window | 128 sliding + sinks |
 
+## Benchmarking
+
+Run performance benchmarks via the CLI:
+
+```bash
+# Start dev server first
+npm run dev
+
+# Run benchmark (requires Playwright)
+npx tsx tools/benchmark-cli.ts gemma-1b                    # Default pipeline benchmark
+npx tsx tools/benchmark-cli.ts gemma-1b --suite quick      # Fast validation
+npx tsx tools/benchmark-cli.ts gemma-1b --suite full       # All prompt sizes
+npx tsx tools/benchmark-cli.ts gemma-1b --suite system     # Download/storage perf
+npx tsx tools/benchmark-cli.ts gemma-1b --runs 5 --prompt medium  # Custom config
+npx tsx tools/benchmark-cli.ts --help                      # Show all options
+```
+
+Results auto-save to `tests/results/` with naming: `{suite}_{model}_{timestamp}.json`
+
+See [Benchmark Harness Spec](docs/spec/BENCHMARK_HARNESS.md) for metrics and methodology.
+
 ## Documentation
 
 - [Docs Index](docs/INDEX.md) - Quick map of all DOPPLER docs
 - [Architecture Overview](docs/ARCHITECTURE.md) - System design and data flow
 - [Glossary](docs/GLOSSARY.md) - Definitions for key terms and acronyms
 - [Inference README](inference/README.md) - Detailed inference flow and kernel graphs
-- [Optimization Roadmap](docs/plans/OPTIMIZATION_ROADMAP.md) - Performance improvements
+- [Performance Roadmap](docs/roadmap/PHASE_1_PERFORMANCE.md) - Performance improvements
 - [Competitive Analysis](docs/analysis/COMPETITIVE.md) - Comparison with other solutions
-- [P2P Distribution](docs/proposals/P2P.md) - Peer-to-peer model sharing (proposal)
+- [P2P Distribution](docs/roadmap/PHASE_4_P2P.md) - Peer-to-peer model sharing
 
 ## Requirements
 

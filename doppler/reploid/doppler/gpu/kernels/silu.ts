@@ -144,6 +144,128 @@ export async function runSwiGLURowsplitBias(
 }
 
 /**
+ * Row-split SiLU options for fused gate+up FFN
+ */
+export interface SiLURowSplitOptions {
+  numTokens: number;
+  dim: number;  // intermediateSize
+  activation?: 'silu' | 'gelu';
+  outputBuffer?: GPUBuffer | null;
+}
+
+/**
+ * Run row-split SiLU/GELU for fused gate+up FFN.
+ *
+ * Input: [numTokens, 2*dim] where each row is [gate[0..dim), up[0..dim)]
+ * Output: [numTokens, dim] = activation(gate) * up
+ */
+export async function runSiLURowSplit(
+  input: GPUBuffer,
+  options: SiLURowSplitOptions
+): Promise<GPUBuffer> {
+  const device = getDevice();
+  const { numTokens, dim, activation = 'silu', outputBuffer = null } = options;
+
+  const variant = activation === 'gelu' ? 'geglu_rowsplit' : 'gate_rowsplit';
+  const pipeline = await createPipeline('silu', variant);
+
+  const outputSize = numTokens * dim * 4;  // f32 elements
+  const output = outputBuffer || acquireBuffer(outputSize, undefined, 'silu_rowsplit_output');
+
+  // Create uniform buffer
+  // size = output elements, hasBias = dim (repurposed for rowsplit)
+  const uniformData = new ArrayBuffer(16);
+  const uniformView = new DataView(uniformData);
+  uniformView.setUint32(0, numTokens * dim, true);  // size
+  uniformView.setUint32(4, dim, true);               // hasBias = dim
+  uniformView.setUint32(8, 0, true);                 // hasGate (unused)
+
+  const uniformBuffer = device.createBuffer({
+    label: 'silu_rowsplit_uniforms',
+    size: 16,
+    usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+  });
+  device.queue.writeBuffer(uniformBuffer, 0, uniformData);
+
+  // Create bind group - rowsplit only needs input and output
+  const bindGroup = device.createBindGroup({
+    label: 'silu_rowsplit_bind_group',
+    layout: pipeline.getBindGroupLayout(0),
+    entries: [
+      { binding: 0, resource: { buffer: uniformBuffer } },
+      { binding: 1, resource: { buffer: input } },
+      { binding: 2, resource: { buffer: output } },
+      { binding: 3, resource: { buffer: input } },  // Dummy for gate binding
+    ],
+  });
+
+  // Dispatch
+  const encoder = device.createCommandEncoder({ label: 'silu_rowsplit_encoder' });
+  const pass = encoder.beginComputePass({ label: 'silu_rowsplit_pass' });
+  pass.setPipeline(pipeline);
+  pass.setBindGroup(0, bindGroup);
+
+  const workgroups = Math.ceil((numTokens * dim) / 256);
+  pass.dispatchWorkgroups(workgroups);
+  pass.end();
+
+  device.queue.submit([encoder.finish()]);
+
+  uniformBuffer.destroy();
+  setBufferDtype(output, 'f32');
+
+  return output;
+}
+
+/**
+ * Record row-split SiLU/GELU (batched, no submit)
+ */
+export async function recordSiLURowSplit(
+  recorder: CommandRecorder,
+  input: GPUBuffer,
+  options: SiLURowSplitOptions
+): Promise<GPUBuffer> {
+  const device = recorder.device;
+  const { numTokens, dim, activation = 'silu', outputBuffer = null } = options;
+
+  const variant = activation === 'gelu' ? 'geglu_rowsplit' : 'gate_rowsplit';
+  const pipeline = await createPipeline('silu', variant);
+
+  const outputSize = numTokens * dim * 4;
+  const output = outputBuffer || acquireBuffer(outputSize, undefined, 'silu_rowsplit_output');
+
+  // Uniform buffer
+  const uniformData = new ArrayBuffer(16);
+  const uniformView = new DataView(uniformData);
+  uniformView.setUint32(0, numTokens * dim, true);  // size
+  uniformView.setUint32(4, dim, true);               // hasBias = dim
+
+  const uniformBuffer = recorder.createUniformBuffer(uniformData, 'silu_rowsplit_uniforms');
+
+  const bindGroup = device.createBindGroup({
+    label: 'silu_rowsplit_bind_group',
+    layout: pipeline.getBindGroupLayout(0),
+    entries: [
+      { binding: 0, resource: { buffer: uniformBuffer } },
+      { binding: 1, resource: { buffer: input } },
+      { binding: 2, resource: { buffer: output } },
+      { binding: 3, resource: { buffer: input } },  // Dummy for gate binding
+    ],
+  });
+
+  const pass = recorder.beginComputePass('silu_rowsplit');
+  pass.setPipeline(pipeline);
+  pass.setBindGroup(0, bindGroup);
+
+  const workgroups = Math.ceil((numTokens * dim) / 256);
+  pass.dispatchWorkgroups(workgroups);
+  pass.end();
+
+  setBufferDtype(output, 'f32');
+  return output;
+}
+
+/**
  * Record SiLU (batched, no submit)
  * Supports gated variant when options.gate is provided.
  */

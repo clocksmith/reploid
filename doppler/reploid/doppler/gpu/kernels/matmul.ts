@@ -9,27 +9,38 @@
  */
 
 import { getDevice, getKernelCapabilities } from '../device.js';
-import { getBufferDtype, setBufferDtype, type BufferDType } from '../buffer-dtypes.js';
+import { getBufferDtype, setBufferDtype, getBufferLayout, isColumnMajorBuffer, type BufferDType } from '../buffer-dtypes.js';
 import { acquireBuffer } from '../buffer-pool.js';
 import type { CommandRecorder } from '../command-recorder.js';
 import { getKernelConfig, createPipeline } from './utils.js';
 
+/** Matmul-supported buffer types (includes q4k for fused W4A16) */
+type MatmulDtype = 'f16' | 'f32' | 'q4k';
+
 /** Helper to narrow BufferDType to matmul-supported types */
-function toMatmulDtype(dtype: BufferDType | null): 'f16' | 'f32' {
-  return dtype === 'f16' ? 'f16' : 'f32';
+function toMatmulDtype(dtype: BufferDType | null): MatmulDtype {
+  if (dtype === 'f16') return 'f16';
+  if (dtype === 'q4k') return 'q4k';
+  return 'f32';
 }
 
 /** Matmul kernel options */
 export interface MatmulOptions {
   alpha?: number;
   outputBuffer?: GPUBuffer | null;
-  transposeB?: boolean;
+  /**
+   * Whether B matrix is stored transposed.
+   * - true: B is [N,K] (SafeTensors/row-major), needs transpose
+   * - false: B is [K,N] (column-major/pre-transposed), direct access
+   * - 'auto': Auto-detect from buffer layout metadata (default)
+   */
+  transposeB?: boolean | 'auto';
   aOffset?: number;
   bOffset?: number;
   cOffset?: number;
   outputDtype?: 'f16' | 'f32';
   aDtype?: 'f16' | 'f32' | null;
-  bDtype?: 'f16' | 'f32' | null;
+  bDtype?: 'f16' | 'f32' | 'q4k' | null;
   preferF16?: boolean;
   useVec4?: boolean;
 }
@@ -110,11 +121,21 @@ export async function runMatmul(
   const {
     alpha = 1.0,
     outputBuffer = null,
-    transposeB = false,
+    transposeB: transposeBOption = true,  // Default: assume row-major (SafeTensors)
     aOffset = 0,
     bOffset = 0,
     cOffset = 0,
   } = options;
+
+  // Resolve transposeB: 'auto' checks buffer layout metadata
+  // Column-major (pre-transposed) buffers don't need transpose
+  // Row-major (default SafeTensors) buffers need transpose
+  let transposeB: boolean;
+  if (transposeBOption === 'auto') {
+    transposeB = !isColumnMajorBuffer(B);  // Column-major = no transpose needed
+  } else {
+    transposeB = transposeBOption;
+  }
 
   // Validate dimensions
   if (!Number.isFinite(M) || !Number.isFinite(N) || !Number.isFinite(K)) {
@@ -162,37 +183,60 @@ export async function runMatmul(
     throw new Error(`[runMatmul] A buffer too small: ${A.size} < ${aRequired} (M=${M}, K=${K}, aDtype=${aDtype})`);
   }
 
-  // Validate B buffer size
-  const bBytesPerElem = bDtype === 'f16' ? 2 : 4;
-  const bElements = transposeB ? N * K : K * N;
-  const bBindingSize = Math.ceil((bElements * bBytesPerElem) / 4) * 4;
-  const bRequired = bOffset + bBindingSize;
+  // Validate B buffer size - Q4_K uses 144 bytes per 256-element block
+  let bBindingSize: number;
+  let bRequired: number;
+  const QK_K = 256;  // Elements per Q4_K super-block
+  const Q4_K_BLOCK_SIZE = 144;  // Bytes per Q4_K block
+
+  if (bDtype === 'q4k') {
+    // Q4_K: N rows * ceil(K/256) blocks per row * 144 bytes per block
+    const numBlocksPerRow = Math.ceil(K / QK_K);
+    bBindingSize = Math.ceil((N * numBlocksPerRow * Q4_K_BLOCK_SIZE) / 4) * 4;
+    bRequired = bOffset + bBindingSize;
+  } else {
+    const bBytesPerElem = bDtype === 'f16' ? 2 : 4;
+    const bElements = transposeB ? N * K : K * N;
+    bBindingSize = Math.ceil((bElements * bBytesPerElem) / 4) * 4;
+    bRequired = bOffset + bBindingSize;
+  }
   if (B.size < bRequired) {
     throw new Error(`[runMatmul] B buffer too small: ${B.size} < ${bRequired} (N=${N}, K=${K}, bDtype=${bDtype}, transposeB=${transposeB})`);
   }
 
-  // Select kernel - use optimized GEMV for M=1 decode with f16 weights
-  let variant = selectMatmulKernel({
-    ...options,
-    aDtype,
-    bDtype,
-    outputDtype: requestedOutputDtype,
-  });
-
-  // Use optimized GEMV kernel for M=1 decode with f16 weights (transposeB required)
-  // GEMV uses shared memory for A vector, avoiding 256x redundant global reads
-  const useGemv = M === 1 && bDtype === 'f16' && aDtype === 'f32' && transposeB;
+  // Select kernel - detect q4k for fused W4A16, or use optimized GEMV for f16 weights
   const capabilities = getKernelCapabilities();
-  if (useGemv) {
-    // Prefer subgroup-optimized GEMV when available (1.5x faster)
-    if (capabilities.hasSubgroups) {
-      variant = 'gemv_subgroup';
-    } else {
-      variant = 'gemv';
+  let variant: string;
+  let useQ4KFused = false;
+  let useGemv = false;
+
+  if (bDtype === 'q4k') {
+    // Fused Q4_K matmul: dequant + multiply in one pass (2-3x speedup)
+    useQ4KFused = true;
+    variant = M === 1 ? 'q4_fused' : 'q4_fused_batched';
+  } else {
+    // Select kernel for dequantized weights (bDtype is f16/f32 here, not q4k)
+    variant = selectMatmulKernel({
+      ...options,
+      aDtype: aDtype === 'q4k' ? 'f32' : aDtype,  // activations are never q4k in practice
+      bDtype: bDtype as 'f16' | 'f32',  // q4k case handled above
+      outputDtype: requestedOutputDtype,
+    });
+
+    // Use optimized GEMV kernel for M=1 decode with f16 weights (transposeB required)
+    // GEMV uses shared memory for A vector, avoiding 256x redundant global reads
+    useGemv = M === 1 && bDtype === 'f16' && aDtype === 'f32' && transposeB;
+    if (useGemv) {
+      // Prefer subgroup-optimized GEMV when available (1.5x faster)
+      if (capabilities.hasSubgroups) {
+        variant = 'gemv_subgroup';
+      } else {
+        variant = 'gemv';
+      }
+    } else if (M === 1 && bDtype === 'f16' && aDtype === 'f32') {
+      // Fallback to naive for non-transposed (rare case)
+      variant = 'f16w_f32a_naive';
     }
-  } else if (M === 1 && bDtype === 'f16' && aDtype === 'f32') {
-    // Fallback to naive for non-transposed (rare case)
-    variant = 'f16w_f32a_naive';
   }
 
   // Debug: Log kernel selection for large matmuls (lm_head projection)
@@ -203,7 +247,7 @@ export async function runMatmul(
   const config = getKernelConfig('matmul', variant);
   const pipeline = await createPipeline('matmul', variant);
 
-  // Determine element size based on kernel
+  // Determine element size based on kernel (q4_fused outputs f32)
   const outputsF16 = variant === 'f16' || variant === 'f16_vec4';
   const elementSize = outputsF16 ? 2 : 4;
   const actualOutputDtype = outputsF16 ? 'f16' : 'f32';
@@ -224,14 +268,21 @@ export async function runMatmul(
     );
   }
 
-  // Create uniform buffer (M, N, K, alpha, transposeB)
+  // Create uniform buffer
+  // Standard kernels: (M, N, K, alpha, transposeB) - 20 bytes
+  // Q4_K fused: (M, N, K, alpha, num_blocks_per_row) - 20 bytes
   const uniformData = new ArrayBuffer(20);
   const uniformView = new DataView(uniformData);
   uniformView.setUint32(0, M, true);
   uniformView.setUint32(4, N, true);
   uniformView.setUint32(8, K, true);
   uniformView.setFloat32(12, alpha, true);
-  uniformView.setUint32(16, transposeB ? 1 : 0, true);
+  if (useQ4KFused) {
+    const numBlocksPerRow = Math.ceil(K / QK_K);
+    uniformView.setUint32(16, numBlocksPerRow, true);
+  } else {
+    uniformView.setUint32(16, transposeB ? 1 : 0, true);
+  }
 
   const uniformBuffer = device.createBuffer({
     label: 'matmul_uniforms',
@@ -261,8 +312,19 @@ export async function runMatmul(
   const [wgX, wgY] = config.workgroupSize;
   let workgroupsX: number, workgroupsY: number;
 
-  // GEMV uses parallel reduction
-  if (useGemv) {
+  // Dispatch based on kernel variant
+  if (useQ4KFused) {
+    if (variant === 'q4_fused') {
+      // Q4_K fused GEMV: one workgroup per output column
+      workgroupsX = N;
+      workgroupsY = 1;
+    } else {
+      // Q4_K fused batched: 2D dispatch with TILE_M=4, TILE_N=4
+      const TILE_M = 4, TILE_N = 4;
+      workgroupsX = Math.ceil(N / TILE_N);
+      workgroupsY = Math.ceil(M / TILE_M);
+    }
+  } else if (useGemv) {
     if (variant === 'gemv_subgroup') {
       // Subgroup GEMV processes 4 columns per workgroup
       workgroupsX = Math.ceil(N / 4);
@@ -308,11 +370,19 @@ export async function recordMatmul(
   const {
     alpha = 1.0,
     outputBuffer = null,
-    transposeB = false,
+    transposeB: transposeBOption = true,  // Default: assume row-major (SafeTensors)
     aOffset = 0,
     bOffset = 0,
     cOffset = 0,
   } = options;
+
+  // Resolve transposeB: 'auto' checks buffer layout metadata
+  let transposeB: boolean;
+  if (transposeBOption === 'auto') {
+    transposeB = !isColumnMajorBuffer(B);  // Column-major = no transpose needed
+  } else {
+    transposeB = transposeBOption;
+  }
 
   // Validate dimensions
   if (!Number.isFinite(M) || !Number.isFinite(N) || !Number.isFinite(K)) {
@@ -342,32 +412,56 @@ export async function recordMatmul(
     throw new Error(`[recordMatmul] A buffer too small: ${A.size} < ${aOffset + aBindingSize}`);
   }
 
-  const bBytesPerElem = bDtype === 'f16' ? 2 : 4;
-  const bElements = transposeB ? N * K : K * N;
-  const bBindingSize = Math.ceil((bElements * bBytesPerElem) / 4) * 4;
+  // Validate B buffer size - Q4_K uses 144 bytes per 256-element block
+  const QK_K = 256;  // Elements per Q4_K super-block
+  const Q4_K_BLOCK_SIZE = 144;  // Bytes per Q4_K block
+  let bBindingSize: number;
+
+  if (bDtype === 'q4k') {
+    // Q4_K: N rows * ceil(K/256) blocks per row * 144 bytes per block
+    const numBlocksPerRow = Math.ceil(K / QK_K);
+    bBindingSize = Math.ceil((N * numBlocksPerRow * Q4_K_BLOCK_SIZE) / 4) * 4;
+  } else {
+    const bBytesPerElem = bDtype === 'f16' ? 2 : 4;
+    const bElements = transposeB ? N * K : K * N;
+    bBindingSize = Math.ceil((bElements * bBytesPerElem) / 4) * 4;
+  }
   if (B.size < bOffset + bBindingSize) {
-    throw new Error(`[recordMatmul] B buffer too small: ${B.size} < ${bOffset + bBindingSize}`);
+    throw new Error(`[recordMatmul] B buffer too small: ${B.size} < ${bOffset + bBindingSize} (N=${N}, K=${K}, bDtype=${bDtype})`);
   }
 
-  // Select kernel - use optimized GEMV for M=1 decode with f16 weights
-  let variant = selectMatmulKernel({ ...options, aDtype, bDtype, outputDtype: requestedOutputDtype });
-  const useGemv = M === 1 && bDtype === 'f16' && aDtype === 'f32' && transposeB;
+  // Select kernel - detect q4k for fused W4A16, or use optimized GEMV for f16 weights
   const capabilities = getKernelCapabilities();
-  if (useGemv) {
-    // Prefer subgroup-optimized GEMV when available (1.5x faster)
-    if (capabilities.hasSubgroups) {
-      variant = 'gemv_subgroup';
-    } else {
-      variant = 'gemv';
+  let variant: string;
+  let useQ4KFused = false;
+  let useGemv = false;
+
+  if (bDtype === 'q4k') {
+    // Fused Q4_K matmul: dequant + multiply in one pass
+    useQ4KFused = true;
+    variant = M === 1 ? 'q4_fused' : 'q4_fused_batched';
+  } else {
+    // Select kernel for dequantized weights
+    const effectiveBDtype = bDtype as 'f16' | 'f32';
+    variant = selectMatmulKernel({
+      ...options,
+      aDtype: aDtype === 'q4k' ? 'f32' : aDtype,
+      bDtype: effectiveBDtype,
+      outputDtype: requestedOutputDtype,
+    });
+    useGemv = M === 1 && effectiveBDtype === 'f16' && aDtype === 'f32' && transposeB;
+    if (useGemv) {
+      // Prefer subgroup-optimized GEMV when available (1.5x faster)
+      variant = capabilities.hasSubgroups ? 'gemv_subgroup' : 'gemv';
+    } else if (M === 1 && bDtype === 'f16' && aDtype === 'f32') {
+      variant = 'f16w_f32a_naive';
     }
-  } else if (M === 1 && bDtype === 'f16' && aDtype === 'f32') {
-    variant = 'f16w_f32a_naive';
   }
 
   const config = getKernelConfig('matmul', variant);
   const pipeline = await createPipeline('matmul', variant);
 
-  // Output buffer
+  // Output buffer (q4_fused outputs f32)
   const outputsF16 = variant === 'f16' || variant === 'f16_vec4';
   const elementSize = outputsF16 ? 2 : 4;
   const actualOutputDtype = outputsF16 ? 'f16' : 'f32';
@@ -377,13 +471,20 @@ export async function recordMatmul(
   const C = outputBuffer || acquireBuffer(outputSize, undefined, 'matmul_output');
 
   // Create uniform buffer (tracked by recorder for cleanup)
+  // Standard kernels: (M, N, K, alpha, transposeB) - 20 bytes
+  // Q4_K fused: (M, N, K, alpha, num_blocks_per_row) - 20 bytes
   const uniformData = new ArrayBuffer(20);
   const uniformView = new DataView(uniformData);
   uniformView.setUint32(0, M, true);
   uniformView.setUint32(4, N, true);
   uniformView.setUint32(8, K, true);
   uniformView.setFloat32(12, alpha, true);
-  uniformView.setUint32(16, transposeB ? 1 : 0, true);
+  if (useQ4KFused) {
+    const numBlocksPerRow = Math.ceil(K / QK_K);
+    uniformView.setUint32(16, numBlocksPerRow, true);
+  } else {
+    uniformView.setUint32(16, transposeB ? 1 : 0, true);
+  }
 
   const uniformBuffer = recorder.createUniformBuffer(uniformData, 'matmul_uniforms');
 
@@ -405,20 +506,37 @@ export async function recordMatmul(
   pass.setBindGroup(0, bindGroup);
 
   const [wgX, wgY] = config.workgroupSize;
-  // GEMV uses parallel reduction
-  if (useGemv) {
+  let workgroupsX: number, workgroupsY: number;
+
+  // Dispatch based on kernel variant
+  if (useQ4KFused) {
+    if (variant === 'q4_fused') {
+      // Q4_K fused GEMV: one workgroup per output column
+      workgroupsX = N;
+      workgroupsY = 1;
+    } else {
+      // Q4_K fused batched: 2D dispatch with TILE_M=4, TILE_N=4
+      const TILE_M = 4, TILE_N = 4;
+      workgroupsX = Math.ceil(N / TILE_N);
+      workgroupsY = Math.ceil(M / TILE_M);
+    }
+  } else if (useGemv) {
     if (variant === 'gemv_subgroup') {
       // Subgroup GEMV processes 4 columns per workgroup
-      pass.dispatchWorkgroups(Math.ceil(N / 4), 1);
+      workgroupsX = Math.ceil(N / 4);
     } else {
       // Original GEMV: one workgroup per output column
-      pass.dispatchWorkgroups(N, 1);
+      workgroupsX = N;
     }
+    workgroupsY = 1;
   } else if (variant === 'f16w_f32a_naive') {
-    pass.dispatchWorkgroups(Math.ceil(N / wgX), 1);
+    workgroupsX = Math.ceil(N / wgX);
+    workgroupsY = 1;
   } else {
-    pass.dispatchWorkgroups(Math.ceil(M / wgX), Math.ceil(N / wgY));
+    workgroupsX = Math.ceil(M / wgX);
+    workgroupsY = Math.ceil(N / wgY);
   }
+  pass.dispatchWorkgroups(workgroupsX, workgroupsY);
   pass.end();
 
   setBufferDtype(C, actualOutputDtype);

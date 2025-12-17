@@ -196,6 +196,7 @@ export interface LayerWeights {
   gate?: GPUBuffer | Float32Array;
   up?: GPUBuffer | Float32Array;
   down?: GPUBuffer | Float32Array;
+  gateUp?: GPUBuffer | Float32Array;  // Fused gate+up for 2-pass FFN
 
   // Sandwich norms (Gemma 3)
   preFeedforwardNorm?: GPUBuffer | Float32Array;

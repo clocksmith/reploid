@@ -190,6 +190,8 @@ export class PipelineBenchmark {
     const { initDevice, hasFeature, FEATURES } = await import('../../gpu/device.js');
     const { createProfiler } = await import('../../gpu/profiler.js');
     const { getBufferPool } = await import('../../gpu/buffer-pool.js');
+    const { downloadModel } = await import('../../storage/downloader.js');
+    const { loadManifestFromOPFS, initOPFS } = await import('../../storage/shard-manager.js');
 
     const loadStart = performance.now();
 
@@ -209,13 +211,34 @@ export class PipelineBenchmark {
     const bufferPool = getBufferPool();
     // Note: We can't reset peakBytesAllocated directly, but stats are cumulative
 
-    // Fetch manifest
+    // Fetch manifest from HTTP
     const manifestUrl = this.config.modelPath.endsWith('.json')
       ? this.config.modelPath
       : `${this.config.modelPath}/manifest.json`;
 
     const manifestResponse = await fetch(manifestUrl);
     this.manifest = await manifestResponse.json();
+    const modelId = this.manifest.modelId || this.manifest.model_id;
+
+    // Check if model is in OPFS, download if not
+    await initOPFS();
+    let opfsManifest = null;
+    try {
+      opfsManifest = await loadManifestFromOPFS(modelId);
+    } catch (e) {
+      // Model not in OPFS
+    }
+
+    if (!opfsManifest) {
+      console.log('[Benchmark] Model not in OPFS, downloading...');
+      const baseUrl = this.config.modelPath.replace(/\/manifest\.json$/, '');
+      await downloadModel(baseUrl, (progress) => {
+        if (progress.percent % 10 === 0) {
+          console.log(`[Benchmark] Download: ${progress.percent}%`);
+        }
+      }, { modelId });
+      console.log('[Benchmark] Download complete');
+    }
 
     // Create pipeline
     this.pipeline = await createPipeline(this.manifest, {
@@ -251,7 +274,7 @@ export class PipelineBenchmark {
   // ==========================================================================
 
   private async runInference(prompt: string, isWarmup: boolean): Promise<TimedRunResult> {
-    const { setTrackSubmits, resetSubmitStats, getSubmitStats } = await import('../../gpu/submit-tracker.js');
+    const { setTrackSubmits, resetSubmitStats, getSubmitStats, setSubmitPhase, getPhaseSubmitStats } = await import('../../gpu/submit-tracker.js');
     const { getBufferPool } = await import('../../gpu/buffer-pool.js');
 
     // Enable submit tracking
@@ -274,7 +297,8 @@ export class PipelineBenchmark {
     let tokenCount = 0;
     let lastTokenTime = 0;
 
-    // Start GPU timing for prefill
+    // Start GPU timing for prefill and set phase
+    setSubmitPhase('prefill');
     if (this.profiler) {
       this.profiler.begin('prefill');
     }
@@ -299,6 +323,8 @@ export class PipelineBenchmark {
             this.profiler.end('prefill');
             this.profiler.begin('decode');
           }
+          // Switch to decode phase for submit tracking
+          setSubmitPhase('decode');
           // Track logits readback (~vocab_size * 4 bytes for f32 logits)
           const vocabSize = this.manifest?.config?.vocab_size ?? 32000;
           trackReadback(vocabSize * 4);
@@ -321,6 +347,7 @@ export class PipelineBenchmark {
     if (this.profiler) {
       this.profiler.end('decode');
     }
+    setSubmitPhase('other');
 
     const inferenceEnd = performance.now();
 
@@ -335,8 +362,10 @@ export class PipelineBenchmark {
       gpuTimeDecodeMs = decodeResult?.avg;
     }
 
-    // Get submit stats
-    const stats = getSubmitStats();
+    // Get submit stats by phase (accurate, not estimated)
+    const prefillStats = getPhaseSubmitStats('prefill');
+    const decodeStats = getPhaseSubmitStats('decode');
+    const globalStats = getSubmitStats();
     setTrackSubmits(false);
 
     // Get pipeline stats
@@ -344,10 +373,6 @@ export class PipelineBenchmark {
 
     // Get buffer pool stats for peak VRAM
     const bufferStats = getBufferPool().getStats();
-
-    // Estimate prefill vs decode submits (heuristic: first batch is prefill)
-    const prefillSubmits = Math.min(stats.count, 10); // Rough estimate
-    const decodeSubmits = Math.max(0, stats.count - prefillSubmits);
 
     return {
       ttftMs: ttft,
@@ -358,9 +383,9 @@ export class PipelineBenchmark {
       text,
       promptTokens: this.pipeline.tokenizer?.encode(prompt)?.length ?? 0,
       generatedTokens: tokens.length,
-      gpuSubmitCountPrefill: prefillSubmits,
-      gpuSubmitCountDecode: decodeSubmits,
-      submitTimesMs: stats.timestamps,
+      gpuSubmitCountPrefill: prefillStats.count,
+      gpuSubmitCountDecode: decodeStats.count,
+      submitTimesMs: globalStats.timestamps,
       gpuTimePrefillMs,
       gpuTimeDecodeMs,
       gpuReadbackBytes: getReadbackBytes(),
@@ -494,8 +519,13 @@ export class PipelineBenchmark {
 
   private percentile(sorted: number[], p: number): number {
     if (sorted.length === 0) return 0;
-    const idx = Math.ceil((p / 100) * sorted.length) - 1;
-    return sorted[Math.max(0, Math.min(idx, sorted.length - 1))];
+    if (sorted.length === 1) return sorted[0];
+    // Linear interpolation for accurate percentiles
+    const idx = (p / 100) * (sorted.length - 1);
+    const lo = Math.floor(idx);
+    const hi = Math.ceil(idx);
+    if (lo === hi) return sorted[lo];
+    return sorted[lo] + (sorted[hi] - sorted[lo]) * (idx - lo);
   }
 }
 

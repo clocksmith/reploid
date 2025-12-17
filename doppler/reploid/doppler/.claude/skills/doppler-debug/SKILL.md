@@ -49,6 +49,20 @@ grep "gemv_subgroup" doppler/dist/gpu/kernels/matmul.js
 
 The browser loads JavaScript from `/doppler/dist/`, not TypeScript directly. Changes to `.ts` files won't take effect until rebuilt.
 
+## Debug Output Control
+
+**IMPORTANT:** Debug GPU readbacks are gated behind a flag to avoid performance impact.
+
+- **CLI:** Pass `--debug` to enable verbose layer-by-layer output
+- **Code:** Set `debug: true` in generate options
+
+```typescript
+// Enable debug output programmatically
+await pipeline.generate(prompt, { debug: true, maxTokens: 10 });
+```
+
+Without the debug flag, benchmarks run at full speed with no GPU sync points for debugging.
+
 ## Test Commands
 
 ```bash
@@ -57,7 +71,35 @@ npx tsx tests/test-runner.ts gemma --direct --headed
 
 # Playwright E2E
 npx playwright test doppler/tests/gemma-e2e.spec.ts --headed
+
+# Quick benchmark with debug output
+npm run benchmark:headed -- --suite quick --verbose --prompt "The color of the sky is"
+
+# Filter for specific debug output
+npm run benchmark:headed -- --suite quick --verbose 2>&1 | grep -E "logits|top-5|sampled" | head -20
 ```
+
+## Current Known Issue: Decode Zero Logits
+
+**Symptom:** Prefill works (valid logits range -175 to +331), but decode produces all-zero logits.
+
+| Phase | Logits Range | Status |
+|-------|--------------|--------|
+| Prefill | min=-175, max=331 | Working |
+| Decode[1+] | min=0, max=0 | Broken |
+
+**Likely Causes:**
+1. KV cache not being read during decode - check `kv-cache.ts`
+2. Decode attention returning zeros - check `attention.ts` decode vs prefill branching
+3. Layer processing skipping decode path - check `layer.ts` numTokens=1 handling
+
+**Debug Commands:**
+```bash
+npm run benchmark:headed -- --suite quick --verbose --prompt "The color of the sky is" 2>&1 | grep -E "logits|top-5|sampled" | head -20
+npm run benchmark:headed -- --suite quick --verbose --prompt "The 5th planet from the sun is" 2>&1 | grep -E "Decode.*logits" | head -10
+```
+
+See also: `docs/DEBUG_SESSION.md` for full context.
 
 ## Workflow
 

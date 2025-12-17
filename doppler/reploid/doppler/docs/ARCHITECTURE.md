@@ -417,6 +417,8 @@ const response = await dopplerChat(messages, options);
 
 ## Data Flow: Single Token Generation
 
+For detailed kernel-level execution trace including tensor shapes, kernel selection, and fusion analysis, see [EXECUTION_PIPELINE.md](EXECUTION_PIPELINE.md).
+
 ```
 User prompt: "Hello"
          │
@@ -530,6 +532,8 @@ Different devices get different kernel implementations:
 - Subgroup support → shuffle-based reductions
 - Large context → streaming attention
 
+See [EXECUTION_PIPELINE.md Part III](EXECUTION_PIPELINE.md#part-iii-capability-based-kernel-selection) for complete kernel selection decision trees and RDRR runtime hints.
+
 ---
 
 ## File Reference
@@ -556,8 +560,8 @@ Different devices get different kernel implementations:
 ## Related Documentation
 
 - `docs/GEMMA3-DEBUG-POSTMORTEM.md` - Q4_K quantizer bug analysis
-- `docs/proposals/P2P.md` - P2P model distribution (planned)
-- `storage/RDRR-FORMAT.md` - RDRR format specification
+- `roadmap/PHASE_4_P2P.md` - P2P model distribution
+- `docs/spec/RDRR_FORMAT.md` - RDRR format specification
 
 ---
 

@@ -107,22 +107,23 @@ fn main(
     let col = wg_id.x;  // Output column this workgroup computes
     let local_id = lid.x;
 
-    if (col >= uniforms.N) {
-        return;
-    }
+    // Track validity - NO early return to maintain uniform control flow for subgroupAdd
+    let is_valid = col < uniforms.N;
 
     var partial_sum: f32 = 0.0;
 
-    // Each thread processes some Q4_K blocks
-    let num_blocks = uniforms.num_blocks_per_row;
-    let blocks_per_thread = (num_blocks + WG_SIZE - 1u) / WG_SIZE;
-    let block_start = local_id * blocks_per_thread;
-    let block_end = min(block_start + blocks_per_thread, num_blocks);
+    // Only do work if this column is valid
+    if (is_valid) {
+        // Each thread processes some Q4_K blocks
+        let num_blocks = uniforms.num_blocks_per_row;
+        let blocks_per_thread = (num_blocks + WG_SIZE - 1u) / WG_SIZE;
+        let block_start = local_id * blocks_per_thread;
+        let block_end = min(block_start + blocks_per_thread, num_blocks);
 
-    // B_q4k layout: for row `col`, blocks are at col * num_blocks + block_idx
-    let row_block_offset = col * num_blocks;
+        // B_q4k layout: for row `col`, blocks are at col * num_blocks + block_idx
+        let row_block_offset = col * num_blocks;
 
-    for (var b: u32 = block_start; b < block_end; b = b + 1u) {
+        for (var b: u32 = block_start; b < block_end; b = b + 1u) {
         let block = B_q4k[row_block_offset + b];
 
         // Extract super-block scale and min
@@ -175,9 +176,10 @@ fn main(
                 partial_sum = partial_sum + a0 * w0 + a1 * w1 + a2 * w2 + a3 * w3;
             }
         }
-    }
+        }
+    }  // end if (is_valid)
 
-    // Subgroup reduction
+    // Subgroup reduction - ALL threads must execute (uniform control flow)
     let sg_sum = subgroupAdd(partial_sum);
 
     // Inter-subgroup reduction via shared memory
@@ -190,8 +192,8 @@ fn main(
 
     workgroupBarrier();
 
-    // Thread 0 does final reduction and writes result
-    if (local_id == 0u) {
+    // Thread 0 does final reduction and writes result (only if valid column)
+    if (local_id == 0u && is_valid) {
         var final_sum: f32 = 0.0;
         for (var i: u32 = 0u; i < num_subgroups; i = i + 1u) {
             final_sum = final_sum + wg_sums[i];
@@ -216,45 +218,47 @@ fn main_batched(
     let col = wg_id.x * TILE_N + (lid.x / 16u);
     let k_thread = lid.x % 16u;
 
-    if (row >= uniforms.M || col >= uniforms.N) {
-        return;
-    }
+    // Track validity - NO early return to maintain uniform control flow for subgroupAdd
+    let is_valid = row < uniforms.M && col < uniforms.N;
 
     var partial_sum: f32 = 0.0;
 
-    let num_blocks = uniforms.num_blocks_per_row;
-    let row_block_offset = col * num_blocks;
+    // Only do work if this output cell is valid
+    if (is_valid) {
+        let num_blocks = uniforms.num_blocks_per_row;
+        let row_block_offset = col * num_blocks;
 
-    // Each thread processes every 16th block
-    for (var b: u32 = k_thread; b < num_blocks; b = b + 16u) {
-        let block = B_q4k[row_block_offset + b];
-        let d = unpack_f16_lo(block.d_dmin);
-        let dmin = unpack_f16_hi(block.d_dmin);
-        let k_base = b * QK_K;
+        // Each thread processes every 16th block
+        for (var b: u32 = k_thread; b < num_blocks; b = b + 16u) {
+            let block = B_q4k[row_block_offset + b];
+            let d = unpack_f16_lo(block.d_dmin);
+            let dmin = unpack_f16_hi(block.d_dmin);
+            let k_base = b * QK_K;
 
-        for (var sb: u32 = 0u; sb < 8u; sb = sb + 1u) {
-            let sm = get_scale_min_k4(block.scales, sb);
-            let scale = d * f32(sm.x);
-            let min_val = dmin * f32(sm.y);
+            for (var sb: u32 = 0u; sb < 8u; sb = sb + 1u) {
+                let sm = get_scale_min_k4(block.scales, sb);
+                let scale = d * f32(sm.x);
+                let min_val = dmin * f32(sm.y);
 
-            for (var i: u32 = 0u; i < SUBBLOCK_SIZE; i = i + 1u) {
-                let elem = sb * SUBBLOCK_SIZE + i;
-                let k = k_base + elem;
-                if (k < uniforms.K) {
-                    let a_val = A[row * uniforms.K + k];
-                    let q = get_q4(block.qs, elem);
-                    let w = scale * f32(q) - min_val;
-                    partial_sum = partial_sum + a_val * w;
+                for (var i: u32 = 0u; i < SUBBLOCK_SIZE; i = i + 1u) {
+                    let elem = sb * SUBBLOCK_SIZE + i;
+                    let k = k_base + elem;
+                    if (k < uniforms.K) {
+                        let a_val = A[row * uniforms.K + k];
+                        let q = get_q4(block.qs, elem);
+                        let w = scale * f32(q) - min_val;
+                        partial_sum = partial_sum + a_val * w;
+                    }
                 }
             }
         }
-    }
+    }  // end if (is_valid)
 
-    // Subgroup reduction across k_threads
+    // Subgroup reduction across k_threads - ALL threads must execute (uniform control flow)
     let sg_sum = subgroupAdd(partial_sum);
 
-    // Write result (only thread with k_thread=0 writes)
-    if (k_thread == 0u && row < uniforms.M && col < uniforms.N) {
+    // Write result (only thread with k_thread=0 writes, and only if valid)
+    if (k_thread == 0u && is_valid) {
         C[row * uniforms.N + col] = sg_sum * uniforms.alpha;
     }
 }

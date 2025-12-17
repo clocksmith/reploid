@@ -133,6 +133,90 @@ For tensors spanning multiple shards, use the `spans` field:
 | `runtimeOptimizations` | object | Hints for kernel selection |
 | `blake3Full` | string | Full-model BLAKE3 hash |
 
+### runtimeOptimizations Schema
+
+The `runtimeOptimizations` field provides hints to the DOPPLER runtime for kernel selection and performance tuning. These hints influence but do not override capability-based decisions.
+
+```json
+{
+  "runtimeOptimizations": {
+    "preferredKernels": {
+      "matmul": "q4_fused",
+      "attention": "tiled_f16",
+      "rmsnorm": "f16_subgroup"
+    },
+    "workgroupOverrides": {
+      "matmul_f16": [128, 1, 1],
+      "rmsnorm": [256, 1, 1]
+    },
+    "disableFeatures": ["subgroups"],
+    "forceF32Accumulation": true,
+    "attentionTier": "streaming",
+    "targetDevice": "apple-m1"
+  }
+}
+```
+
+#### Field Definitions
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `preferredKernels` | object | Map of operation → kernel variant name |
+| `workgroupOverrides` | object | Map of kernel → `[x, y, z]` workgroup size |
+| `disableFeatures` | string[] | GPU features to disable (e.g., `subgroups`, `shader-f16`) |
+| `forceF32Accumulation` | boolean | Force F32 accumulators even when F16 available |
+| `attentionTier` | string | Force attention tier: `"tiled"`, `"streaming"`, or `"basic"` |
+| `targetDevice` | string | Hint for device-specific tuning (e.g., `"apple-m1"`, `"nvidia-rtx"`) |
+
+#### Kernel Variant Names
+
+Valid values for `preferredKernels`:
+
+| Operation | Valid Variants |
+|-----------|----------------|
+| `matmul` | `f32`, `f16`, `gemv_f16`, `q4_fused`, `q4_fused_batched` |
+| `attention` | `tiled_f16`, `streaming_f16`, `basic_f32` |
+| `rmsnorm` | `f32`, `f16`, `f16_subgroup` |
+| `dequant` | `q4k`, `q8`, `f16_passthrough` |
+| `softmax` | `f32`, `f16_online` |
+
+#### Precedence Rules
+
+1. **GPU capabilities always win**: If hardware doesn't support F16, the `f16` variant won't be used regardless of hints
+2. **Hints are advisory**: Runtime may ignore hints if they would cause correctness issues
+3. **Auto-tuning overrides**: If auto-tuning is enabled, tuned workgroup sizes take precedence over `workgroupOverrides`
+
+#### Example: Optimized for Apple Silicon
+
+```json
+{
+  "runtimeOptimizations": {
+    "preferredKernels": {
+      "matmul": "f16",
+      "attention": "tiled_f16"
+    },
+    "workgroupOverrides": {
+      "matmul_f16": [64, 4, 1]
+    },
+    "targetDevice": "apple-m1"
+  }
+}
+```
+
+#### Example: Conservative Settings for Compatibility
+
+```json
+{
+  "runtimeOptimizations": {
+    "disableFeatures": ["subgroups", "shader-f16"],
+    "forceF32Accumulation": true,
+    "attentionTier": "basic"
+  }
+}
+```
+
+See [EXECUTION_PIPELINE.md](../EXECUTION_PIPELINE.md#rdrr-runtime-hints) for how these hints integrate with capability-based kernel selection.
+
 ---
 
 ## Design Principles

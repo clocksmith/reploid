@@ -57,8 +57,17 @@ export async function castF32ToF16(
   pass.setPipeline(pipeline);
   pass.setBindGroup(0, bindGroup);
 
+  // WebGPU has a limit of 65535 workgroups per dimension
+  // Use 2D dispatch for large tensors (like embeddings with 300M+ elements)
   const workgroups = Math.ceil(numElements / 256);
-  pass.dispatchWorkgroups(workgroups);
+  const maxWorkgroupsPerDim = 65535;
+  if (workgroups <= maxWorkgroupsPerDim) {
+    pass.dispatchWorkgroups(workgroups, 1, 1);
+  } else {
+    const workgroupsX = maxWorkgroupsPerDim;
+    const workgroupsY = Math.ceil(workgroups / maxWorkgroupsPerDim);
+    pass.dispatchWorkgroups(workgroupsX, workgroupsY, 1);
+  }
   pass.end();
 
   device.queue.submit([encoder.finish()]);
@@ -104,8 +113,17 @@ export async function recordCastF32ToF16(
   pass.setPipeline(pipeline);
   pass.setBindGroup(0, bindGroup);
 
+  // WebGPU has a limit of 65535 workgroups per dimension
+  // Use 2D dispatch for large tensors
   const workgroups = Math.ceil(numElements / 256);
-  pass.dispatchWorkgroups(workgroups);
+  const maxWorkgroupsPerDim = 65535;
+  if (workgroups <= maxWorkgroupsPerDim) {
+    pass.dispatchWorkgroups(workgroups, 1, 1);
+  } else {
+    const workgroupsX = maxWorkgroupsPerDim;
+    const workgroupsY = Math.ceil(workgroups / maxWorkgroupsPerDim);
+    pass.dispatchWorkgroups(workgroupsX, workgroupsY, 1);
+  }
   pass.end();
 
   setBufferDtype(output, 'f16');

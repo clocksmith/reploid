@@ -31,7 +31,10 @@
     "test:e2e:ui": "playwright test --ui",
     "typecheck": "tsc --project doppler/tsconfig.json",
     "typecheck:watch": "tsc --project doppler/tsconfig.json --watch",
-    "build:doppler": "tsc --project doppler/tsconfig.build.json"
+    "build:doppler": "tsc --project doppler/tsconfig.build.json",
+    "build:benchmark": "esbuild doppler/tests/benchmark/index.ts --bundle --format=esm --outfile=doppler/dist/tests/benchmark/index.js --platform=browser",
+    "benchmark": "npm run build:benchmark && tsx doppler/tools/benchmark-cli.ts",
+    "benchmark:headed": "npm run build:benchmark && tsx doppler/tools/benchmark-cli.ts --headed"
   },
   "keywords": [
     "reploid",

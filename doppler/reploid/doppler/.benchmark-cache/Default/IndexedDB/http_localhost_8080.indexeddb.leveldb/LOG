@@ -1,0 +1,6 @@
+2025/12/16-20:39:17.651 46180d Reusing MANIFEST /Users/xyz/deco/reploid/doppler/reploid/doppler/.benchmark-cache/Default/IndexedDB/http_localhost_8080.indexeddb.leveldb/MANIFEST-000001
+2025/12/16-20:39:17.651 46180d Recovering log #31
+2025/12/16-20:39:17.652 46180d Reusing old log /Users/xyz/deco/reploid/doppler/reploid/doppler/.benchmark-cache/Default/IndexedDB/http_localhost_8080.indexeddb.leveldb/000031.log 
+2025/12/16-20:39:22.659 46180e Level-0 table #37: started
+2025/12/16-20:39:22.669 46180e Level-0 table #37: 700334 bytes OK
+2025/12/16-20:39:22.702 46180e Delete type=0 #31

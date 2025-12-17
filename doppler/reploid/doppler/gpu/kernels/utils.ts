@@ -364,6 +364,18 @@ export const KERNEL_CONFIGS: Record<string, Record<string, KernelConfig>> = {
       workgroupSize: [256, 1, 1],
       requires: [],
     },
+    gate_rowsplit: {
+      shaderFile: 'silu.wgsl',
+      entryPoint: 'silu_gate_rowsplit',
+      workgroupSize: [256, 1, 1],
+      requires: [],
+    },
+    geglu_rowsplit: {
+      shaderFile: 'silu.wgsl',
+      entryPoint: 'geglu_rowsplit',
+      workgroupSize: [256, 1, 1],
+      requires: [],
+    },
   },
   gather: {
     default: {
@@ -377,6 +389,19 @@ export const KERNEL_CONFIGS: Record<string, Record<string, KernelConfig>> = {
       entryPoint: 'gather_vec4',
       workgroupSize: [64, 1, 1],
       requires: [],
+    },
+    // F16 embeddings → F32 output (for weight-tied lm_head optimization)
+    f16: {
+      shaderFile: 'gather_f16.wgsl',
+      entryPoint: 'main',
+      workgroupSize: [256, 1, 1],
+      requires: ['shader-f16'],
+    },
+    f16_vec4: {
+      shaderFile: 'gather_f16.wgsl',
+      entryPoint: 'gather_vec4',
+      workgroupSize: [64, 1, 1],
+      requires: ['shader-f16'],
     },
   },
   residual: {
