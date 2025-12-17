@@ -59,6 +59,7 @@ vfs_backup.json
 
 # RDRR model files (large binary shards)
 doppler/models/
+doppler/doppler/models/
 doppler/tools/*-rdrr/
 *.gguf
 shard_*.bin
