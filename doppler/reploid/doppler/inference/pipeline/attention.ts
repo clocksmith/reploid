@@ -439,8 +439,9 @@ export async function recordLayerAttentionGPU(
       const kF16 = await recordCastF32ToF16(recorder, K, kElems);
       const vF16 = await recordCastF32ToF16(recorder, V, kElems);
       state.kvCache.recordUpdateFromGPU(enc, layerIdx, kF16, vF16, currentSeqLen, numTokens);
-      releaseBuffer(kF16);
-      releaseBuffer(vF16);
+      // Track for cleanup after submit (not release!) - buffers are used by recorded copy ops
+      recorder.trackTemporaryBuffer(kF16);
+      recorder.trackTemporaryBuffer(vF16);
     } else {
       state.kvCache.recordUpdateFromGPU(enc, layerIdx, K, V, currentSeqLen, numTokens);
     }
@@ -489,11 +490,14 @@ export async function recordLayerAttentionGPU(
     output = attnOutput;
   }
 
-  // Cleanup
-  releaseBuffer(Q);
-  releaseBuffer(K);
-  releaseBuffer(V);
-  if (output !== attnOutput) releaseBuffer(attnOutput);
+  // Track intermediate buffers for cleanup after submit (not release!)
+  // These buffers are used by recorded operations that haven't executed yet.
+  // Releasing them back to the pool would allow reuse before the encoder is submitted,
+  // causing data corruption (especially for small decode buffers).
+  recorder.trackTemporaryBuffer(Q);
+  recorder.trackTemporaryBuffer(K);
+  recorder.trackTemporaryBuffer(V);
+  if (output !== attnOutput) recorder.trackTemporaryBuffer(attnOutput);
 
   return output;
 }

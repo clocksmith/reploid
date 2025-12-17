@@ -1101,6 +1101,7 @@ async function main(): Promise<void> {
       console.log(JSON.stringify(results, null, 2));
     }
 
+    process.exit(0);
   } catch (err) {
     console.error('\nBenchmark failed:', (err as Error).message);
     process.exit(1);

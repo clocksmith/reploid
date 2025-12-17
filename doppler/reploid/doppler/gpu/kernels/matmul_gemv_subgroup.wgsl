@@ -18,6 +18,7 @@ enable subgroups;
 const WG_SIZE: u32 = 256u;
 const COLS_PER_WG: u32 = 4u;  // Each workgroup computes 4 output columns
 const THREADS_PER_COL: u32 = 64u;  // 256 / 4 = 64 threads per column
+const MAX_SUBGROUPS_PER_COL: u32 = 16u;  // Support sg_size >= 4 (64/4 = 16)
 
 struct Uniforms {
     M: u32,
@@ -32,8 +33,9 @@ struct Uniforms {
 @group(0) @binding(2) var<storage, read> B: array<f16>;
 @group(0) @binding(3) var<storage, read_write> C: array<f32>;
 
-// Small shared memory for final reduction across subgroups
-var<workgroup> wg_sums: array<f32, 32>;  // Max 8 subgroups * 4 columns
+// Shared memory for final reduction across subgroups
+// Size: 16 subgroups * 4 columns = 64 (supports sg_size >= 4)
+var<workgroup> wg_sums: array<f32, 64>;
 
 @compute @workgroup_size(256, 1, 1)
 fn main(
@@ -105,7 +107,7 @@ fn main(
 
     if (sg_id == 0u && thread_in_col < THREADS_PER_COL) {
         let sg_idx_in_col = thread_in_col / sg_size;
-        wg_sums[col_in_wg * 8u + sg_idx_in_col] = sg_sum;
+        wg_sums[col_in_wg * MAX_SUBGROUPS_PER_COL + sg_idx_in_col] = sg_sum;
     }
 
     workgroupBarrier();
@@ -114,7 +116,7 @@ fn main(
     if (thread_in_col == 0u && is_valid) {
         var final_sum: f32 = 0.0;
         for (var i: u32 = 0u; i < num_subgroups_per_col; i = i + 1u) {
-            final_sum = final_sum + wg_sums[col_in_wg * 8u + i];
+            final_sum = final_sum + wg_sums[col_in_wg * MAX_SUBGROUPS_PER_COL + i];
         }
         C[col] = final_sum * uniforms.alpha;
     }
@@ -175,7 +177,7 @@ fn main_vec4(
 
     if (sg_id == 0u && thread_in_col < THREADS_PER_COL) {
         let sg_idx_in_col = thread_in_col / sg_size;
-        wg_sums[col_in_wg * 8u + sg_idx_in_col] = sg_sum;
+        wg_sums[col_in_wg * MAX_SUBGROUPS_PER_COL + sg_idx_in_col] = sg_sum;
     }
 
     workgroupBarrier();
@@ -183,7 +185,7 @@ fn main_vec4(
     if (thread_in_col == 0u && is_valid) {
         var final_sum: f32 = 0.0;
         for (var i: u32 = 0u; i < num_subgroups_per_col; i = i + 1u) {
-            final_sum = final_sum + wg_sums[col_in_wg * 8u + i];
+            final_sum = final_sum + wg_sums[col_in_wg * MAX_SUBGROUPS_PER_COL + i];
         }
         C[col] = final_sum * uniforms.alpha;
     }
