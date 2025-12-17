@@ -248,8 +248,12 @@ export class InferencePipeline {
     const result = await loadWeights(
       this.manifest!,
       this.modelConfig!,
-      this.storageContext ?? undefined,
-      (info) => console.log(`[Pipeline] Loading: ${info.stage} - ${Math.round(info.progress * 100)}%`)
+      {
+        storageContext: this.storageContext ?? undefined,
+        onProgress: (info) => console.log(`[Pipeline] Loading: ${info.stage} - ${Math.round(info.progress * 100)}%`),
+        // Skip hash verification - already verified during download
+        verifyHashes: false,
+      }
     );
 
     // Store weights in map
@@ -445,10 +449,6 @@ export class InferencePipeline {
     }
 
     // Process all layers
-    // IMPORTANT: When using CommandRecorder, buffer releases must be deferred until after submit.
-    // Releasing buffers immediately would allow them to be reused by later layers, but the
-    // recorded operations haven't executed yet - causing use-after-free / zero output bugs.
-    const deferredReleases: GPUBuffer[] = [];
     console.log(`[Pipeline] LAYER_LOOP_START: numLayers=${config.numLayers}, useGPU=${context.useGPU}`);
     for (let l = 0; l < config.numLayers; l++) {
       const prevStates = hiddenStates;
@@ -483,21 +483,13 @@ export class InferencePipeline {
       }
 
       if (prevStates instanceof GPUBuffer && prevStates !== hiddenStates) {
-        if (recorder) {
-          deferredReleases.push(prevStates);
-        } else {
-          releaseBuffer(prevStates);
-        }
+        releaseBuffer(prevStates);
       }
     }
 
     // Submit batched commands (cleanup happens automatically in submit)
     if (recorder) {
       await recorder.submitAndWait();
-      // Now safe to release buffers - all recorded ops have completed
-      for (const buf of deferredReleases) {
-        releaseBuffer(buf);
-      }
     }
 
     // Log submit stats after layer loop
@@ -606,30 +598,17 @@ export class InferencePipeline {
     }
 
     // Process all layers
-    // IMPORTANT: When using CommandRecorder, buffer releases must be deferred until after submit.
-    // Releasing buffers immediately would allow them to be reused by later layers, but the
-    // recorded operations haven't executed yet - causing use-after-free / zero output bugs.
-    const deferredReleases: GPUBuffer[] = [];
     for (let l = 0; l < config.numLayers; l++) {
       const prevStates = hiddenStates;
       hiddenStates = await processLayer(l, hiddenStates, numTokens, false, context) as GPUBuffer;
       if (prevStates instanceof GPUBuffer && prevStates !== hiddenStates) {
-        if (recorder) {
-          // Defer release until after command buffer executes
-          deferredReleases.push(prevStates);
-        } else {
-          releaseBuffer(prevStates);
-        }
+        releaseBuffer(prevStates);
       }
     }
 
     // Submit batched commands (cleanup happens automatically in submit)
     if (recorder) {
       await recorder.submitAndWait();
-      // Now safe to release buffers - all recorded ops have completed
-      for (const buf of deferredReleases) {
-        releaseBuffer(buf);
-      }
     }
 
     // Log submit stats after decode layer loop

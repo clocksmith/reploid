@@ -1112,35 +1112,55 @@ export class DopplerLoader {
       return tensor;
     };
 
-    weights.inputNorm = await tryLoadNorm(['input_layernorm.weight', 'attn_norm.weight']);
-    weights.qProj = await tryLoad(['self_attn.q_proj.weight', 'attention.wq.weight', 'attn_q.weight']);
-    weights.kProj = await tryLoad(['self_attn.k_proj.weight', 'attention.wk.weight', 'attn_k.weight']);
-    weights.vProj = await tryLoad(['self_attn.v_proj.weight', 'attention.wv.weight', 'attn_v.weight']);
-    weights.oProj = await tryLoad(['self_attn.o_proj.weight', 'attention.wo.weight', 'attn_output.weight']);
-    weights.qNorm = await tryLoadNorm(['self_attn.q_norm.weight', 'attn_q_norm.weight']);
-    weights.kNorm = await tryLoadNorm(['self_attn.k_norm.weight', 'attn_k_norm.weight']);
-    weights.postAttentionNorm = await tryLoadNorm(['post_attention_layernorm.weight', 'post_attention_norm.weight']);
-    weights.preFeedforwardNorm = await tryLoadNorm(['pre_feedforward_layernorm.weight', 'ffn_norm.weight']);
-    weights.postFeedforwardNorm = await tryLoadNorm(['post_feedforward_layernorm.weight', 'post_ffw_norm.weight']);
+    // Load attention weights in parallel
+    const [inputNorm, qProj, kProj, vProj, oProj, qNorm, kNorm, postAttentionNorm, preFeedforwardNorm, postFeedforwardNorm] = await Promise.all([
+      tryLoadNorm(['input_layernorm.weight', 'attn_norm.weight']),
+      tryLoad(['self_attn.q_proj.weight', 'attention.wq.weight', 'attn_q.weight']),
+      tryLoad(['self_attn.k_proj.weight', 'attention.wk.weight', 'attn_k.weight']),
+      tryLoad(['self_attn.v_proj.weight', 'attention.wv.weight', 'attn_v.weight']),
+      tryLoad(['self_attn.o_proj.weight', 'attention.wo.weight', 'attn_output.weight']),
+      tryLoadNorm(['self_attn.q_norm.weight', 'attn_q_norm.weight']),
+      tryLoadNorm(['self_attn.k_norm.weight', 'attn_k_norm.weight']),
+      tryLoadNorm(['post_attention_layernorm.weight', 'post_attention_norm.weight']),
+      tryLoadNorm(['pre_feedforward_layernorm.weight', 'ffn_norm.weight']),
+      tryLoadNorm(['post_feedforward_layernorm.weight', 'post_ffw_norm.weight']),
+    ]);
+
+    weights.inputNorm = inputNorm;
+    weights.qProj = qProj;
+    weights.kProj = kProj;
+    weights.vProj = vProj;
+    weights.oProj = oProj;
+    weights.qNorm = qNorm;
+    weights.kNorm = kNorm;
+    weights.postAttentionNorm = postAttentionNorm;
+    weights.preFeedforwardNorm = preFeedforwardNorm;
+    weights.postFeedforwardNorm = postFeedforwardNorm;
     weights.postNorm = weights.postAttentionNorm || weights.preFeedforwardNorm;
     weights.postAttnNorm = weights.postNorm;
 
     if (!this.isMoE || !this._isExpertLayer(layerIdx)) {
-      // Try to load fused gate+up first (2-pass FFN)
-      weights.ffnGateUp = await tryLoad(['mlp.gate_up_proj.weight', 'ffn_gate_up.weight', 'feed_forward.w1_w3.weight']);
+      // Load FFN weights in parallel
+      const [ffnGateUp, ffnGate, ffnUp, ffnDown] = await Promise.all([
+        tryLoad(['mlp.gate_up_proj.weight', 'ffn_gate_up.weight', 'feed_forward.w1_w3.weight']),
+        tryLoad(['mlp.gate_proj.weight', 'feed_forward.w1.weight', 'ffn_gate.weight']),
+        tryLoad(['mlp.up_proj.weight', 'feed_forward.w3.weight', 'ffn_up.weight']),
+        tryLoad(['mlp.down_proj.weight', 'feed_forward.w2.weight', 'ffn_down.weight']),
+      ]);
 
-      if (weights.ffnGateUp) {
+      if (ffnGateUp) {
         // Fused path: no separate gate/up weights
+        weights.ffnGateUp = ffnGateUp;
         weights.ffnGate = null;
         weights.ffnUp = null;
         console.log(`[DopplerLoader] Layer ${layerIdx}: Using fused gate_up_proj for 2-pass FFN`);
       } else {
-        // Separate path: load gate and up individually (3-pass FFN)
-        weights.ffnGate = await tryLoad(['mlp.gate_proj.weight', 'feed_forward.w1.weight', 'ffn_gate.weight']);
-        weights.ffnUp = await tryLoad(['mlp.up_proj.weight', 'feed_forward.w3.weight', 'ffn_up.weight']);
+        // Separate path: use gate and up individually (3-pass FFN)
+        weights.ffnGate = ffnGate;
+        weights.ffnUp = ffnUp;
       }
 
-      weights.ffnDown = await tryLoad(['mlp.down_proj.weight', 'feed_forward.w2.weight', 'ffn_down.weight']);
+      weights.ffnDown = ffnDown;
 
       // Set aliases for pipeline compatibility
       weights.gate = weights.ffnGate;
@@ -1150,8 +1170,12 @@ export class DopplerLoader {
     }
 
     if (this.isMoE && this._isExpertLayer(layerIdx)) {
-      weights.routerWeight = await tryLoad(['mlp.router.weight', 'block_sparse_moe.gate.weight']);
-      weights.routerBias = await tryLoad(['mlp.router.bias']);
+      const [routerWeight, routerBias] = await Promise.all([
+        tryLoad(['mlp.router.weight', 'block_sparse_moe.gate.weight']),
+        tryLoad(['mlp.router.bias']),
+      ]);
+      weights.routerWeight = routerWeight;
+      weights.routerBias = routerBias;
     }
 
     weights.attentionSinks = await tryLoad(['self_attn.sinks']);
