@@ -617,6 +617,28 @@ export class InferencePipeline {
       setTrackSubmits(false);
     }
 
+    // Debug: check hidden states after layer processing (decode step 1)
+    if (this._decodeStepCount === 1 && hiddenStates instanceof GPUBuffer) {
+      const debugDevice = getDevice();
+      if (debugDevice) {
+        const sampleSize = Math.min(512, hiddenStates.size);
+        const staging = debugDevice.createBuffer({
+          size: sampleSize,
+          usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ,
+        });
+        const enc = debugDevice.createCommandEncoder();
+        enc.copyBufferToBuffer(hiddenStates, 0, staging, 0, sampleSize);
+        debugDevice.queue.submit([enc.finish()]);
+        await staging.mapAsync(GPUMapMode.READ);
+        const data = new Float32Array(staging.getMappedRange().slice(0));
+        staging.unmap();
+        staging.destroy();
+        const nanCount = Array.from(data).filter(x => !Number.isFinite(x)).length;
+        const nonZero = Array.from(data).filter(x => Number.isFinite(x) && x !== 0).slice(0, 5);
+        console.log(`[Decode][1] HIDDEN_AFTER_LAYERS: nan=${nanCount}/${data.length}, nonZero=${nonZero.length}, sample=[${nonZero.map(x => x.toFixed(4)).join(', ')}]`);
+      }
+    }
+
     // Try GPU-side sampling for deferred readback (avoids ~1MB logits readback)
     const useGPUSampling = this.useGPU && isGPUSamplingAvailable() && !isDebugStep;
 
