@@ -308,6 +308,12 @@ async function runBenchmarkInBrowser(opts: BenchmarkOptions): Promise<any> {
       const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
       console.log(`\nBenchmark complete! (${elapsed}s)`);
 
+      // Keep browser open for inspection in headed mode
+      if (opts.headed) {
+        console.log('Keeping browser open for 30s (headed mode)...');
+        await page.waitForTimeout(30000);
+      }
+
       await context.close();
       return result;
     } catch (err) {

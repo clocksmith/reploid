@@ -346,21 +346,34 @@ export interface WeightLoadResult {
   layerRouterWeights: Map<number, { weight: any; bias: any }>;
 }
 
+/** Options for loadWeights */
+export interface LoadWeightsOptions {
+  /** Custom storage context for shard loading */
+  storageContext?: { loadShard?: (shardIdx: number) => Promise<ArrayBuffer> };
+  /** Progress callback */
+  onProgress?: (info: { stage: string; progress: number }) => void;
+  /**
+   * Verify shard hashes before loading. Defaults to false since verification
+   * happens during download. Enable for extra safety when loading from untrusted sources.
+   */
+  verifyHashes?: boolean;
+}
+
 /**
  * Load model weights via DopplerLoader.
  *
  * @param manifest - Model manifest
  * @param modelConfig - Parsed model configuration
- * @param storageContext - Optional custom storage context
- * @param onProgress - Progress callback
+ * @param options - Load options
  * @returns Loaded weights
  */
 export async function loadWeights(
   manifest: Manifest,
   modelConfig: ParsedModelConfig,
-  storageContext?: { loadShard?: (shardIdx: number) => Promise<ArrayBuffer> },
-  onProgress?: (info: { stage: string; progress: number }) => void
+  options: LoadWeightsOptions = {}
 ): Promise<WeightLoadResult> {
+  const { storageContext, onProgress, verifyHashes = false } = options;
+
   const dopplerLoader = getDopplerLoader();
   await dopplerLoader.init();
 
@@ -374,9 +387,10 @@ export async function loadWeights(
   }
 
   // Load model via DopplerLoader
+  // Skip hash verification by default - verification happens during download
   const modelId = manifest.modelId || (manifest as any).model_id || 'default';
   await dopplerLoader.load(modelId, {
-    verifyHashes: !storageContext?.loadShard,
+    verifyHashes: storageContext?.loadShard ? false : verifyHashes,
     onProgress: onProgress || ((info) => {
       console.log(`[Pipeline] Loading: ${info.stage} - ${Math.round(info.progress * 100)}%`);
     }),
