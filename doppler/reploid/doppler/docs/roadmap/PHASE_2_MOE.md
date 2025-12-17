@@ -1,6 +1,6 @@
 # Phase 2: MoE Efficiency
 
-**Status:** Partial
+**Status:** Advanced (infrastructure complete, model validation needed)
 **Prerequisites:** Phase 1 (buffer reuse, async pipeline)
 **Goal:** Run Mixture-of-Experts models efficiently with expert paging.
 
@@ -9,7 +9,7 @@
 ## Milestones
 
 - [x] GPU-native MoE routing working ✅
-- [x] GPT-OSS 20B experimental ✅
+- [x] GPT-OSS 20B experimental ⏳ Partial
 - [ ] Mixtral 8x7B E2E with expert paging (P0)
 - [ ] Expert cache hit rate > 80% (P1)
 
@@ -30,11 +30,21 @@
 
 | Task | Priority | Status | Notes |
 |------|----------|--------|-------|
-| Expert-level shard granularity | P0 | ⬜ TODO | RDRR manifest change |
-| `loadExpert(layerIdx, expertIdx)` API | P0 | ⬜ TODO | `loader/doppler-loader.ts` |
-| Expert LRU cache in VRAM | P0 | ⬜ TODO | Track hot experts |
-| Prefetch next-layer experts | P1 | ⬜ TODO | Overlap with compute |
-| Expert hit rate tracking | P1 | ⬜ TODO | Metrics for tuning |
+| Expert-level shard granularity | P0 | ✅ Done | `expertShardMap` in manifest |
+| `loadExpert(layerIdx, expertIdx)` API | P0 | ✅ Done | `loader/doppler-loader.ts` |
+| Expert LRU cache in VRAM | P0 | ✅ Done | `loader/expert-cache.ts` |
+| Prefetch next-layer experts | P1 | ✅ Done | `prefetchExperts()` method |
+| Expert hit rate tracking | P1 | ✅ Done | `CacheStats` interface |
+| Cache auto-tuning | P1 | ✅ Done | `autoTune()` detects VRAM |
+| Smart eviction (in-use protection) | P1 | ✅ Done | `markInUse()` / `markNotInUse()` |
+| Shared expert pinning | P1 | ✅ Done | `pinSharedExperts()` for DeepSeek |
+
+### 2.2b Storage Optimization (Quick Wins)
+
+| Task | Priority | Status | Notes |
+|------|----------|--------|-------|
+| Expand shard cache (2 → 8) | P0 | ✅ Done | Dynamic based on MoE config |
+| Dynamic cache size based on model | P1 | ✅ Done | `numExpertsPerToken * 2 + 1`, capped at 16 |
 
 ### 2.3 Model Validation
 
@@ -88,8 +98,10 @@ P2P swarm:    Rare experts (bottom 25%) → Phase 4
 | `inference/moe-router.ts` | Router implementation |
 | `gpu/kernels/moe_gather.wgsl` | Expert gathering |
 | `gpu/kernels/scatter_add.wgsl` | Output combination |
-| `loader/doppler-loader.ts` | Expert loading API |
-| `storage/shard-manager.ts` | Shard granularity |
+| `loader/doppler-loader.ts` | Expert loading API, prefetching |
+| `loader/expert-cache.ts` | LRU cache with smart eviction |
+| `storage/rdrr-format.ts` | `MoEConfig` with expert mapping |
+| `tools/rdrr-writer.ts` | Expert tensor detection during conversion |
 
 ---
 

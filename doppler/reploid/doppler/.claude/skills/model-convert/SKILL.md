@@ -112,3 +112,8 @@ models/<model-name>/
 - Model support matrix: `doppler/reploid/doppler/docs/plans/MODEL_SUPPORT.md`
 - RDRR format spec: `doppler/reploid/doppler/docs/spec/RDRR_FORMAT.md`
 - Troubleshooting: `doppler/reploid/doppler/docs/DOPPLER-TROUBLESHOOTING.md`
+
+## Related Skills
+
+- **doppler-debug**: Debug inference issues with converted models
+- **doppler-benchmark**: Measure performance of converted models

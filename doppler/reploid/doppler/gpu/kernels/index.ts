@@ -76,8 +76,11 @@ export {
 export {
   runSiLU,
   runSwiGLURowsplitBias,
+  runSiLURowSplit,
   recordSiLU,
+  recordSiLURowSplit,
   type SiLUOptions,
+  type SiLURowSplitOptions,
 } from './silu.js';
 
 // GeLU Activation

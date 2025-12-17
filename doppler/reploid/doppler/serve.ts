@@ -259,6 +259,17 @@ async function main(): Promise<void> {
         }
       }
 
+      // Serve tests/benchmark from esbuild bundle (browser needs JS, not TS)
+      if (pathname.startsWith('/tests/benchmark/') && pathname.endsWith('.js')) {
+        const distPath = join(dopplerDir, 'dist', pathname);
+        try {
+          const distStats = await stat(distPath);
+          return serveFile(distPath, distStats, req, res);
+        } catch {
+          // Fall through to normal resolution
+        }
+      }
+
       const safePath = pathname.replace(/^(\.\.[/\\])+/, '').replace(/\.\./g, '');
       const filePath = join(rootDir, safePath);
 

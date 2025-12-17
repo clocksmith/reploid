@@ -24,15 +24,66 @@ You are running performance benchmarks for DOPPLER, a browser-native WebGPU LLM 
    - `all-kernels.bench.ts` - Full kernel suite
    - `config.ts` - Workload configurations
 
+## Prerequisites
+
+Start the dev server (from `doppler/reploid/` directory):
+
+```bash
+npm run serve
+```
+
+## Quick Start (CLI)
+
+The CLI handles building and running benchmarks. From `doppler/reploid/`:
+
+```bash
+# Simple benchmark (builds, downloads model if needed, runs)
+npm run benchmark                              # Headless (default: gemma3-1b-q4)
+npm run benchmark:headed                       # With visible browser window
+
+# Or run directly with options
+npm run benchmark -- --model gemma3-1b-q4 --suite quick --verbose
+npm run benchmark -- --suite full              # All prompt sizes (short/medium/long)
+npm run benchmark -- --runs 5 --prompt medium  # Custom config
+npx tsx tools/benchmark-cli.ts --help                      # Show all options
+```
+
+**CLI Options:**
+| Flag | Description | Default |
+|------|-------------|---------|
+| `--model, -m` | Model name in models/ | gemma-1b |
+| `--suite, -s` | quick, pipeline, full, system | pipeline |
+| `--prompt, -p` | short, medium, long | medium |
+| `--runs, -r` | Number of timed runs | 3 |
+| `--warmup, -w` | Number of warmup runs | 2 |
+| `--max-tokens, -t` | Max tokens to generate | 128 |
+| `--output, -o` | Additional JSON output path | (none) |
+| `--html` | Custom HTML report path | auto-generated |
+| `--compare, -c` | Baseline JSON for comparison | (none) |
+| `--retries` | Retry failed runs | 2 |
+| `--verbose, -v` | Show all browser logs | false |
+| `--quiet, -q` | Suppress JSON to stdout | false |
+| `--headed` | Show browser window | false |
+| `--debug` | Enable debug GPU readbacks | false |
+
+**Debug Flag Note:** The `--debug` flag enables verbose layer-by-layer GPU readbacks. This significantly slows benchmarks (adds GPU sync points). Only use for debugging, not performance measurement.
+
+**Auto-generated outputs:**
+```
+tests/results/
+├── pipeline_gemma-1b_apple-m1_2024-01-15T10-30-00.json   # Raw data
+└── pipeline_gemma-1b_apple-m1_2024-01-15T10-30-00.html   # Visual report
+```
+
 ## Quick Start (Browser Console)
 
 ```typescript
-// Quick benchmark
+// Quick pipeline benchmark
 import { runQuickBenchmark, formatBenchmarkSummary } from './tests/benchmark/index.js';
 const result = await runQuickBenchmark('http://localhost:8080/models/gemma-1b');
 console.log(formatBenchmarkSummary(result));
 
-// Full benchmark with config
+// Full pipeline benchmark with config
 import { PipelineBenchmark } from './tests/benchmark/index.js';
 const harness = new PipelineBenchmark({
   modelPath: 'http://localhost:8080/models/gemma-1b',
@@ -44,9 +95,29 @@ const harness = new PipelineBenchmark({
 });
 const result = await harness.run();
 console.log(JSON.stringify(result, null, 2));
+
+// System benchmark (download/storage)
+import { runSystemBenchmark, formatSystemSummary } from './tests/benchmark/index.js';
+const sysResult = await runSystemBenchmark('http://localhost:8080/models/gemma-1b');
+console.log(formatSystemSummary(sysResult));
+
+// Save results to IndexedDB
+import { saveResult, downloadAsJSON } from './tests/benchmark/index.js';
+await saveResult(result);
+downloadAsJSON(result); // Downloads JSON file
+
+// Compare results
+import { loadResultsByModel, comparePipelineResults, formatComparison } from './tests/benchmark/index.js';
+const history = await loadResultsByModel('gemma-1b');
+if (history.length >= 2) {
+  const deltas = comparePipelineResults(history[0], history[1]);
+  console.log(formatComparison(deltas));
+}
 ```
 
 ## Metrics Collected
+
+### Pipeline Metrics
 
 | Metric | Description |
 |--------|-------------|
@@ -60,6 +131,16 @@ console.log(JSON.stringify(result, null, 2));
 | `gpu_time_ms_*` | GPU time (if timestamp query available) |
 | `estimated_vram_bytes_peak` | Peak VRAM usage |
 
+### System Metrics
+
+| Metric | Description |
+|--------|-------------|
+| `storage.mode` | Storage mode (opfs/http_only) |
+| `storage.quotaBytes` | Total storage quota |
+| `download.bytesPerSec` | HTTP download speed |
+| `opfs.writeBytesPerSec` | OPFS write speed |
+| `opfs.readBytesPerSec` | OPFS read speed |
+
 ## Standard Prompts
 
 | Name | Token Range | Use Case |
@@ -70,19 +151,74 @@ console.log(JSON.stringify(result, null, 2));
 
 ## Workflow
 
-1. Start the dev server: `npm run dev` in doppler directory
+**CLI (Recommended):**
+1. Start the dev server: `npm run dev`
+2. Run: `npx tsx tools/benchmark-cli.ts gemma-1b --suite pipeline`
+3. Results auto-save to `tests/results/` (both JSON + HTML report)
+
+**Browser Console:**
+1. Start the dev server: `npm run dev`
 2. Open browser to `http://localhost:8080`
 3. Open DevTools console
 4. Import and run benchmark harness
 5. Save JSON results for comparison
 
-## Comparing Results
+## Comparing Results & Statistical Significance
 
-To compare with WebLLM or other runtimes:
+**A/B Testing with Welch's t-test:**
+```bash
+# Save baseline
+npx tsx tools/benchmark-cli.ts gemma-1b -o baseline.json
+
+# Make changes, then compare
+npx tsx tools/benchmark-cli.ts gemma-1b --compare baseline.json
+
+# Output includes:
+# - Delta% for each metric (TTFT, throughput, latency)
+# - Welch's t-test on decode latencies
+# - Statistical significance (p < 0.05)
+```
+
+**Example output:**
+```
+COMPARISON VS BASELINE
+============================================================
+TTFT                       45.0 ->       42.0  -6.7% ↓ BETTER
+Decode tok/s               38.0 ->       41.0  +7.9% ↑ BETTER
+
+STATISTICAL SIGNIFICANCE (Welch's t-test)
+────────────────────────────────────────────────────────────
+Decode Latency: t=-2.45, df=18.3, p=0.0243 (SIGNIFICANT)
+  -> The difference IS statistically significant (p < 0.05)
+```
+
+**HTML Report Features:**
+- Summary cards with key metrics
+- SVG line chart of decode latency per token
+- Baseline vs current bar charts (when comparing)
+- Latency percentiles table
+- Environment info (browser, GPU, OS)
+
+**Comparing with WebLLM or other runtimes:**
 - Use same model and quantization
 - Use same prompt (record token count)
 - Use greedy sampling (temperature=0)
 - Record competitor version and config
+
+## Quick Debug Benchmarks
+
+Run benchmarks with specific prompts and filter output:
+
+```bash
+# Test prefill and decode with known prompt
+npm run benchmark:headed -- --suite quick --verbose --prompt "The color of the sky is" 2>&1 | grep -E "logits|top-5|sampled" | head -20
+
+# Alternative test prompt
+npm run benchmark:headed -- --suite quick --verbose --prompt "The 5th planet from the sun is" 2>&1 | grep -E "logits|sampled" | head -20
+
+# Check layer outputs
+npm run benchmark:headed -- --suite quick --verbose 2>&1 | grep -E "LAYER_0|LAYER_25|FFN_OUTPUT" | head -30
+```
 
 ## Related Skills
 

@@ -24,7 +24,7 @@ GGUF/RDRR -> Loader -> ShardManager -> Pipeline -> GPU Kernels -> Output
 ```
 
 ### Key Concepts
-- **RDRR:** Reploid Distributed Runtime Representation - sharded model format
+- **RDRR:** Recursive DOPPLER Runtime Registry - sharded model format
 - **Pipeline:** Orchestrates prefill and decode passes through transformer layers
 - **Kernels:** Custom WGSL shaders for RMSNorm, attention, FFN operations
 - **OPFS:** Origin Private File System for persistent model storage

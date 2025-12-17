@@ -19,7 +19,9 @@ import { acquireBuffer, releaseBuffer } from '../../gpu/buffer-pool.js';
 import {
   runRMSNorm, runResidualAdd, runMatmul, runSiLU, runGeLU,
   recordRMSNorm, recordResidualAdd, recordMatmul, recordSiLU, recordGeLU,
+  runSiLURowSplit, recordSiLURowSplit,
   CommandRecorder,
+  type SiLURowSplitOptions,
 } from '../../gpu/kernel-selector.js';
 import { runLayerAttentionGPU, recordLayerAttentionGPU, type AttentionConfig, type AttentionState } from './attention.js';
 import { getWeightBuffer, getNormWeightBuffer, type WeightBufferConfig, type WeightDebugFlags } from './weights.js';
@@ -174,6 +176,21 @@ async function doGeLU(
 }
 
 /**
+ * SiLURowSplit that uses record variant when recorder is provided.
+ * Used for fused gate+up FFN path: splits combined output and applies activation.
+ */
+async function doSiLURowSplit(
+  input: GPUBuffer,
+  options: SiLURowSplitOptions,
+  recorder?: CommandRecorder
+): Promise<GPUBuffer> {
+  if (recorder) {
+    return recordSiLURowSplit(recorder, input, options);
+  }
+  return runSiLURowSplit(input, options);
+}
+
+/**
  * Attention that uses record variant when recorder is provided.
  */
 async function doAttention(
@@ -310,7 +327,7 @@ export async function processLayer(
   }
 
   // Debug: check path being taken for layer 0
-  if (layerIdx === 0) {
+  if (context.debug && layerIdx === 0) {
     console.log(`[processLayer] L0 routing: useGPU=${useGPU}, isGPUBuffer=${hiddenStates instanceof GPUBuffer}, constructor=${hiddenStates?.constructor?.name}`);
   }
 
@@ -387,32 +404,34 @@ export async function processLayerGPU(
   );
 
   // Debug: trace attn output (uses debug-utils)
-  await logBufferStats(attnOutput, `attn (${isPrefill ? 'prefill' : 'decode'})`, layerIdx, 'attn');
+  if (context.debug) {
+    await logBufferStats(attnOutput, `attn (${isPrefill ? 'prefill' : 'decode'})`, layerIdx, 'attn');
 
-  // Debug layer 0 attention output specifically
-  console.log(`[Layer${layerIdx}] attnOutput type check: isGPU=${attnOutput instanceof GPUBuffer}, type=${typeof attnOutput}, constructor=${attnOutput?.constructor?.name}`);
-  if (layerIdx === 0 && attnOutput instanceof GPUBuffer) {
-    try {
-      const sampleSize = Math.min(128, attnOutput.size);
-      const staging = device.createBuffer({ size: sampleSize, usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ });
-      const enc = device.createCommandEncoder();
-      enc.copyBufferToBuffer(attnOutput, 0, staging, 0, sampleSize);
-      device.queue.submit([enc.finish()]);
-      await staging.mapAsync(GPUMapMode.READ);
-      const data = new Float32Array(staging.getMappedRange().slice(0));
-      staging.unmap();
-      staging.destroy();
-      const maxAbs = Math.max(...Array.from(data).map(x => Math.abs(x)));
-      const nonZero = Array.from(data).filter(x => x !== 0).length;
-      console.log(`[Layer0] ATTN_OUT: maxAbs=${maxAbs.toFixed(4)}, nonZero=${nonZero}/${data.length}, sample=[${Array.from(data).slice(0, 5).map(x => x.toFixed(4)).join(', ')}]`);
-    } catch (e) {
-      console.log(`[Layer0] ATTN_OUT error: ${e}`);
+    // Debug layer 0 attention output specifically
+    console.log(`[Layer${layerIdx}] attnOutput type check: isGPU=${attnOutput instanceof GPUBuffer}, type=${typeof attnOutput}, constructor=${attnOutput?.constructor?.name}`);
+    if (layerIdx === 0 && attnOutput instanceof GPUBuffer) {
+      try {
+        const sampleSize = Math.min(128, attnOutput.size);
+        const staging = device.createBuffer({ size: sampleSize, usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ });
+        const enc = device.createCommandEncoder();
+        enc.copyBufferToBuffer(attnOutput, 0, staging, 0, sampleSize);
+        device.queue.submit([enc.finish()]);
+        await staging.mapAsync(GPUMapMode.READ);
+        const data = new Float32Array(staging.getMappedRange().slice(0));
+        staging.unmap();
+        staging.destroy();
+        const maxAbs = Math.max(...Array.from(data).map(x => Math.abs(x)));
+        const nonZero = Array.from(data).filter(x => x !== 0).length;
+        console.log(`[Layer0] ATTN_OUT: maxAbs=${maxAbs.toFixed(4)}, nonZero=${nonZero}/${data.length}, sample=[${Array.from(data).slice(0, 5).map(x => x.toFixed(4)).join(', ')}]`);
+      } catch (e) {
+        console.log(`[Layer0] ATTN_OUT error: ${e}`);
+      }
     }
   }
 
   // 2. Handle residual connection based on architecture
   // Debug: log architecture path for layer 0
-  if (layerIdx === 0) {
+  if (context.debug && layerIdx === 0) {
     console.log(`[Layer0] ARCH: sandwich=${sandwichNorm.useSandwichNorm}, hasPostAttnNorm=${sandwichNorm.hasPostAttentionNorm}, hasWeights=${!!layerWeights?.postAttentionNorm}`);
   }
 
@@ -437,7 +456,7 @@ export async function processLayerGPU(
   }
 
   // Debug: log postAttn for layer 0
-  if (layerIdx === 0 && postAttn instanceof GPUBuffer) {
+  if (context.debug && layerIdx === 0 && postAttn instanceof GPUBuffer) {
     try {
       const sampleSize = Math.min(128, postAttn.size);
       const staging = device.createBuffer({ size: sampleSize, usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ });
@@ -479,9 +498,9 @@ async function processFFNWithSandwichNorm(
   const { config, weightConfig, debugFlags, recorder } = context;
   const { hiddenSize, rmsNormEps } = config;
 
-  // Debug helper for layer 0
+  // Debug helper for layer 0 (only runs when context.debug is true)
   const debugL0 = async (buf: GPUBuffer, label: string) => {
-    if (layerIdx !== 0 || !device) return;
+    if (!context.debug || layerIdx !== 0 || !device) return;
     try {
       // Force GPU sync before reading
       await device.queue.onSubmittedWorkDone();
@@ -509,7 +528,7 @@ async function processFFNWithSandwichNorm(
     const normWeightBuf = getNormWeightBuffer(layerWeights.preFeedforwardNorm, 'pre_feedforward_norm', weightConfig, debugFlags);
 
     // Debug: check norm weight values for layer 0
-    if (layerIdx === 0 && device) {
+    if (context.debug && layerIdx === 0 && device) {
       try {
         const ws = Math.min(128, normWeightBuf.size);
         const wstaging = device.createBuffer({ size: ws, usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ });
@@ -623,6 +642,10 @@ async function processFFNStandard(
 
 /**
  * Run dense FFN on GPU.
+ *
+ * Supports two paths:
+ * - Fused (2 matmuls): gateUp -> split+activate -> down
+ * - Separate (3 matmuls): gate, up -> activate -> down
  */
 async function runDenseFFNGPU(
   layerIdx: number,
@@ -637,8 +660,49 @@ async function runDenseFFNGPU(
   const { config, recorder } = context;
   const { hiddenSize, intermediateSize, hiddenActivation } = config;
 
+  // Check for fused gate+up path (2 matmuls instead of 3)
+  if (layerWeights?.gateUp && layerWeights?.down) {
+    const gateUpWeight = getWeightBuffer(layerWeights.gateUp, 'ffn_gate_up');
+    const downWeight = getWeightBuffer(layerWeights.down, 'ffn_down');
+
+    // 1. Fused gate+up projection: [numTokens, hiddenSize] @ [intermediateSize*2, hiddenSize]^T -> [numTokens, intermediateSize*2]
+    const gateUpOutput = await doMatmul(
+      inputBuffer, gateUpWeight,
+      numTokens, intermediateSize * 2, hiddenSize,
+      { transposeB: true },
+      recorder
+    );
+
+    if (!(layerWeights.gateUp instanceof GPUBuffer)) releaseBuffer(gateUpWeight);
+
+    // 2. Split + Activation: output[i] = activation(gate[i]) * up[i]
+    const activation = hiddenActivation === 'gelu' ? 'gelu' : 'silu';
+    const activatedOutput = await doSiLURowSplit(gateUpOutput, {
+      numTokens,
+      dim: intermediateSize,
+      activation,
+    }, recorder);
+
+    releaseBuffer(gateUpOutput);
+
+    // 3. Down projection: [numTokens, intermediateSize] @ [hiddenSize, intermediateSize]^T -> [numTokens, hiddenSize]
+    const output = await doMatmul(
+      activatedOutput, downWeight,
+      numTokens, hiddenSize, intermediateSize,
+      { transposeB: true },
+      recorder
+    );
+
+    if (!(layerWeights.down instanceof GPUBuffer)) releaseBuffer(downWeight);
+    releaseBuffer(activatedOutput);
+
+    return output;
+  }
+
+  // Fallback: separate gate/up path (3 matmuls)
   if (!layerWeights?.gate || !layerWeights?.up || !layerWeights?.down) {
     // Return copy of input (no FFN weights)
+    console.warn(`[Layer ${layerIdx}] FFN: no weights found (gateUp=${!!layerWeights?.gateUp}, gate=${!!layerWeights?.gate}, up=${!!layerWeights?.up}, down=${!!layerWeights?.down})`);
     const output = acquireBuffer(numTokens * hiddenSize * 4, undefined, 'ffn_output');
     const encoder = device.createCommandEncoder();
     encoder.copyBufferToBuffer(inputBuffer, 0, output, 0, numTokens * hiddenSize * 4);

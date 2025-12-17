@@ -4,8 +4,8 @@
  * Provides token embedding lookups from embedding tables.
  */
 
-import { getDevice } from '../device.js';
-import { setBufferDtype } from '../buffer-dtypes.js';
+import { getDevice, getKernelCapabilities } from '../device.js';
+import { getBufferDtype, setBufferDtype } from '../buffer-dtypes.js';
 import { acquireBuffer } from '../buffer-pool.js';
 import type { CommandRecorder } from '../command-recorder.js';
 import { createPipeline } from './utils.js';
@@ -14,10 +14,12 @@ import { createPipeline } from './utils.js';
 export interface GatherOptions {
   useVec4?: boolean;
   outputBuffer?: GPUBuffer | null;
+  embeddingDtype?: 'f16' | 'f32';  // Override auto-detection
 }
 
 /**
  * Run gather/embedding lookup
+ * Automatically detects F16 embeddings and uses optimized kernel
  */
 export async function runGather(
   indices: GPUBuffer,
@@ -28,9 +30,20 @@ export async function runGather(
   options: GatherOptions = {}
 ): Promise<GPUBuffer> {
   const device = getDevice();
-  const { useVec4 = true, outputBuffer = null } = options;
+  const { useVec4 = true, outputBuffer = null, embeddingDtype } = options;
 
-  const variant = useVec4 ? 'vec4' : 'default';
+  // Detect embedding dtype (F16 embeddings enable optimized lm_head)
+  const caps = getKernelCapabilities();
+  const detectedDtype = embeddingDtype || getBufferDtype(embeddings) || 'f32';
+  const useF16 = detectedDtype === 'f16' && caps.hasF16;
+
+  // Select kernel variant based on dtype and vec4 preference
+  let variant: string;
+  if (useF16) {
+    variant = useVec4 ? 'f16_vec4' : 'f16';
+  } else {
+    variant = useVec4 ? 'vec4' : 'default';
+  }
   const pipeline = await createPipeline('gather', variant);
 
   const outputSize = numTokens * hiddenSize * 4;

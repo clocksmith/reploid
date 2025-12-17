@@ -81,7 +81,7 @@ Remaining:
 
 ```bash
 # Install dependencies
-cd dreamer/kernel-tests
+cd kernel-tests
 npm install
 
 # Run all tests (unit + GPU)

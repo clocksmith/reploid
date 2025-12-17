@@ -14,7 +14,7 @@
 
 import { getDevice } from '../../gpu/device.js';
 import { acquireBuffer, releaseBuffer, readBuffer } from '../../gpu/buffer-pool.js';
-import { runMatmul, runSiLU, runGeLU } from '../../gpu/kernel-selector.js';
+import { runMatmul, runSiLU, runGeLU, runSiLURowSplit } from '../../gpu/kernel-selector.js';
 import type { LayerWeights, MaybeGPUBuffer } from './types.js';
 
 // ============================================================================
@@ -33,11 +33,20 @@ export interface FFNConfig {
 
 /**
  * FFN weights for a single layer.
+ *
+ * Supports two modes:
+ * 1. Separate gate/up (3 matmul passes): gate, up, down
+ * 2. Fused gate+up (2 matmul passes): gateUp, down
  */
 export interface FFNWeights {
-  gate: GPUBuffer | Float32Array;
-  up: GPUBuffer | Float32Array;
+  /** Gate projection [intermediateSize, hiddenSize] - optional if gateUp provided */
+  gate?: GPUBuffer | Float32Array;
+  /** Up projection [intermediateSize, hiddenSize] - optional if gateUp provided */
+  up?: GPUBuffer | Float32Array;
+  /** Down projection [hiddenSize, intermediateSize] */
   down: GPUBuffer | Float32Array;
+  /** Fused gate+up projection [intermediateSize*2, hiddenSize] - enables 2-pass FFN */
+  gateUp?: GPUBuffer | Float32Array;
 }
 
 // ============================================================================
@@ -50,8 +59,12 @@ export interface FFNWeights {
  * Computes: output = down(activation(gate(x)) * up(x))
  * where activation is either SiLU or GELU depending on model.
  *
+ * Supports two paths:
+ * - Fused (2 matmuls): gateUp -> split+activate -> down
+ * - Separate (3 matmuls): gate, up -> activate -> down
+ *
  * @param inputBuffer - Input hidden states [numTokens, hiddenSize]
- * @param weights - FFN weight buffers (gate, up, down)
+ * @param weights - FFN weight buffers (gate, up, down) or (gateUp, down)
  * @param config - FFN configuration
  * @param numTokens - Number of tokens in batch
  * @returns Output buffer [numTokens, hiddenSize]
@@ -63,14 +76,49 @@ export async function runFFNGPU(
   numTokens: number
 ): Promise<GPUBuffer> {
   const { hiddenSize, intermediateSize, hiddenActivation } = config;
-
-  // Ensure weights are GPUBuffers
-  const gateWeight = weights.gate;
-  const upWeight = weights.up;
   const downWeight = weights.down;
 
-  if (!(gateWeight instanceof GPUBuffer) || !(upWeight instanceof GPUBuffer) || !(downWeight instanceof GPUBuffer)) {
-    throw new Error('FFN weights must be GPUBuffers for GPU path');
+  if (!(downWeight instanceof GPUBuffer)) {
+    throw new Error('FFN down weight must be GPUBuffer for GPU path');
+  }
+
+  // Check for fused gate+up path (2 matmuls instead of 3)
+  if (weights.gateUp && weights.gateUp instanceof GPUBuffer) {
+    // Fused path: single matmul for gate+up, then split+activate
+    const gateUpWeight = weights.gateUp;
+
+    // 1. Fused gate+up projection: [numTokens, hiddenSize] @ [intermediateSize*2, hiddenSize]^T -> [numTokens, intermediateSize*2]
+    const gateUpOutput = await runMatmul(
+      inputBuffer, gateUpWeight,
+      numTokens, intermediateSize * 2, hiddenSize,
+      { transposeB: true }
+    );
+
+    // 2. Split + Activation: output[i] = activation(gate[i]) * up[i]
+    // Input is [numTokens, intermediateSize*2] where each row is [gate, up]
+    const activation = hiddenActivation === 'gelu' ? 'gelu' : 'silu';
+    const activatedOutput = await runSiLURowSplit(gateUpOutput, {
+      numTokens,
+      dim: intermediateSize,
+      activation,
+    });
+
+    releaseBuffer(gateUpOutput);
+
+    // 3. Down projection: [numTokens, intermediateSize] @ [hiddenSize, intermediateSize]^T -> [numTokens, hiddenSize]
+    const output = await runMatmul(activatedOutput, downWeight, numTokens, hiddenSize, intermediateSize, { transposeB: true });
+
+    releaseBuffer(activatedOutput);
+
+    return output;
+  }
+
+  // Separate path: 3 matmuls (original)
+  const gateWeight = weights.gate;
+  const upWeight = weights.up;
+
+  if (!(gateWeight instanceof GPUBuffer) || !(upWeight instanceof GPUBuffer)) {
+    throw new Error('FFN gate/up weights must be GPUBuffers for GPU path (or provide gateUp for fused path)');
   }
 
   // 1. Gate projection: gate = W_gate @ x (transposeB for SafeTensors layout)

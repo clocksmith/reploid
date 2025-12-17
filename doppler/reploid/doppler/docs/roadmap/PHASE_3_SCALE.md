@@ -44,6 +44,99 @@
 | Sliding window + spill hybrid | P2 | ⬜ TODO | Keep recent in VRAM |
 | KV cache compression | P2 | ⬜ TODO | Reduce memory footprint |
 
+### 3.4 Storage Layout Optimization
+
+| Task | Priority | Status | Notes |
+|------|----------|--------|-------|
+| Expert-aligned tensor ordering | P0 | ⬜ TODO | Group expert tensors in writer |
+| Expert-per-shard sharding | P0 | ⬜ TODO | 1 shard = 1 expert |
+| Variable shard sizes | P1 | ⬜ TODO | Match shard to expert size |
+| `shardingStrategy` manifest field | P1 | ⬜ TODO | `fixed` / `expert` / `layer` |
+| Shard type metadata | P1 | ⬜ TODO | `dense` vs `expert` shards |
+| Column-major storage (TP) | P2 | ⬜ TODO | For tensor parallelism |
+| Partial tensor loading | P2 | ⬜ TODO | Load slices for distributed |
+
+#### Storage Layout Comparison
+
+| Layout | Reads/Expert | Bytes/Expert | Use Case |
+|--------|--------------|--------------|----------|
+| Current (interleaved) | 2-4 shards | ~192MB | Dense models |
+| Expert-aligned | 1 shard | ~80MB | MoE models |
+| Column-major | 1 slice | ~20MB | Tensor parallel |
+
+#### Expert-Aligned Manifest Example
+
+```json
+{
+  "shardingStrategy": "expert",
+  "shards": [
+    { "index": 0, "type": "dense", "size": 134217728 },
+    { "index": 1, "type": "expert", "expertKey": "0_0", "size": 83886080 },
+    { "index": 2, "type": "expert", "expertKey": "0_1", "size": 83886080 }
+  ]
+}
+```
+
+### 3.5 Column-Major Storage for Tensor Parallelism
+
+| Task | Priority | Status | Notes |
+|------|----------|--------|-------|
+| Add `layout` field to TensorLocation | P2 | ⬜ TODO | `'row' \| 'column'` |
+| Add `sliceDim`, `sliceIdx`, `sliceCount` fields | P2 | ⬜ TODO | For partial tensor loading |
+| Implement column-wise tensor splitting in writer | P2 | ⬜ TODO | Split along output dimension |
+| Update loader for partial tensor reads | P2 | ⬜ TODO | Load specific slices |
+| Add transposed matmul kernels | P2 | ⬜ TODO | For column-major weights |
+
+#### Column-Major Storage Layout
+
+For tensor-parallel inference, store weights column-wise to enable partial loading:
+
+```
+Standard (row-major):  W[out, in] stored row-by-row
+  Shard contains: rows 0-N of full weight matrix
+  Loading: Must load entire tensor
+
+Column-major:          W[out, in] stored column-by-column
+  Shard 0: W[:, 0:K/4]      // First quarter of columns
+  Shard 1: W[:, K/4:K/2]    // Second quarter
+  Shard 2: W[:, K/2:3K/4]   // Third quarter
+  Shard 3: W[:, 3K/4:K]     // Fourth quarter
+  Loading: Can load partial tensor for TP rank
+```
+
+#### Column-Major Manifest Example
+
+```json
+{
+  "defaultWeightLayout": "column",
+  "tensors": {
+    "layers.0.self_attn.q_proj.weight": {
+      "shard": 0,
+      "offset": 0,
+      "size": 8388608,
+      "shape": [4096, 4096],
+      "dtype": "f16",
+      "layout": "column",
+      "originalShape": [4096, 4096],
+      "sliceDim": 1,
+      "sliceIdx": 0,
+      "sliceCount": 4
+    }
+  }
+}
+```
+
+#### Tensor Parallelism Use Cases
+
+| TP Rank | Loads | Output | Notes |
+|---------|-------|--------|-------|
+| 0 (of 4) | W[:, 0:K/4] | Y[:, 0:N/4] | First quarter |
+| 1 (of 4) | W[:, K/4:K/2] | Y[:, N/4:N/2] | Second quarter |
+| 2 (of 4) | W[:, K/2:3K/4] | Y[:, N/2:3N/4] | Third quarter |
+| 3 (of 4) | W[:, 3K/4:K] | Y[:, 3N/4:N] | Fourth quarter |
+
+Each rank only loads 25% of weight → 4x memory reduction per device.
+
 ---
 
 ## Architecture
@@ -113,8 +206,12 @@
 | File | Purpose |
 |------|---------|
 | `memory/capability.ts` | Unified memory detection |
-| `loader/doppler-loader.ts` | `loadExpert()` API |
+| `loader/doppler-loader.ts` | `loadExpert()` API, shard cache, partial tensor loading |
+| `loader/expert-cache.ts` | LRU expert cache |
 | `storage/shard-manager.ts` | Expert-level granularity |
+| `storage/rdrr-format.ts` | Manifest types, sharding strategy, layout fields |
+| `tools/rdrr-writer.ts` | Expert-aligned ordering, column-major transpose, weight fusion |
+| `gpu/kernels/matmul.ts` | Layout-aware kernel selection |
 | `inference/pipeline.ts` | Expert prefetch scheduling |
 | `inference/kv-cache.ts` | Overflow to unified memory |
 

@@ -9,11 +9,23 @@ Defines a standardized benchmark harness for DOPPLER so performance claims are m
 | Component | Status | Location |
 |-----------|--------|----------|
 | Kernel microbenchmarks | ✅ Implemented | `kernel-tests/tests/benchmarks/` |
-| Pipeline benchmark harness | ✅ Implemented | `tests/benchmark/` |
+| Pipeline benchmark harness | ✅ Implemented | `tests/benchmark/pipeline-benchmark.ts` |
+| System benchmarks | ✅ Implemented | `tests/benchmark/system-benchmark.ts` |
 | Standard prompts | ✅ Implemented | `tests/benchmark/prompts.ts` |
 | JSON result schema | ✅ Implemented | `tests/benchmark/types.ts` |
-| System benchmarks | ⬜ TODO | - |
-| Saved results storage | ⬜ TODO | `tests/results/` |
+| GPU timestamp queries | ✅ Implemented | Uses `gpu/profiler.ts` |
+| GPU readback tracking | ✅ Implemented | Tracked in harness |
+| Peak VRAM estimation | ✅ Implemented | Uses `gpu/buffer-pool.ts` |
+| OPFS storage metrics | ✅ Implemented | Via Storage API |
+| Results storage (IndexedDB) | ✅ Implemented | `tests/benchmark/results-storage.ts` |
+| Results export (JSON) | ✅ Implemented | `tests/benchmark/results-storage.ts` |
+| Results directory | ✅ Implemented | `tests/results/` |
+| Comparison utilities | ✅ Implemented | `tests/benchmark/results-storage.ts` |
+| CLI tool | ✅ Implemented | `tools/benchmark-cli.ts` |
+
+### Claude Skill
+
+Use `doppler-benchmark` skill (`.claude/skills/doppler-benchmark/SKILL.md`) for guided benchmarking.
 
 ---
 
@@ -35,7 +47,7 @@ The harness benchmarks three layers:
 2. **Pipeline benchmarks**: prefill and decode loops using a real model manifest.
    - Implemented in `tests/benchmark/pipeline-benchmark.ts`.
 3. **System benchmarks**: download and storage behavior (HTTP vs OPFS vs Native Bridge, and later P2P).
-   - TODO: Not yet implemented.
+   - Implemented in `tests/benchmark/system-benchmark.ts`.
 
 ---
 
@@ -212,7 +224,30 @@ For WebLLM comparisons, record:
 
 ## Usage
 
-### Quick Benchmark (Browser Console)
+### CLI (Recommended)
+
+The CLI is the single entry point for running benchmarks:
+
+```bash
+# Start dev server first
+npm run dev
+
+# Run benchmarks
+npx tsx tools/benchmark-cli.ts gemma-1b                    # Default pipeline benchmark
+npx tsx tools/benchmark-cli.ts gemma-1b --suite quick      # Fast validation
+npx tsx tools/benchmark-cli.ts gemma-1b --suite full       # All prompt sizes
+npx tsx tools/benchmark-cli.ts gemma-1b --suite system     # Download/storage perf
+npx tsx tools/benchmark-cli.ts gemma-1b --runs 5 --prompt medium
+npx tsx tools/benchmark-cli.ts --help                      # Show all options
+```
+
+Results auto-save to `tests/results/{suite}_{model}_{timestamp}.json`
+
+### Browser Console
+
+For interactive benchmarking in the browser DevTools console:
+
+### Quick Pipeline Benchmark
 
 ```typescript
 import { runQuickBenchmark, formatBenchmarkSummary } from './tests/benchmark/index.js';
@@ -222,7 +257,7 @@ console.log(formatBenchmarkSummary(result));
 console.log(JSON.stringify(result, null, 2));
 ```
 
-### Full Benchmark Suite
+### Full Pipeline Benchmark
 
 ```typescript
 import { PipelineBenchmark } from './tests/benchmark/index.js';
@@ -237,6 +272,40 @@ const harness = new PipelineBenchmark({
 });
 
 const result = await harness.run();
+```
+
+### System Benchmark (Download/Storage)
+
+```typescript
+import { runSystemBenchmark, formatSystemSummary } from './tests/benchmark/index.js';
+
+const result = await runSystemBenchmark('http://localhost:8080/models/gemma-1b');
+console.log(formatSystemSummary(result));
+```
+
+### Save and Compare Results
+
+```typescript
+import {
+  saveResult,
+  downloadAsJSON,
+  loadResultsByModel,
+  comparePipelineResults,
+  formatComparison
+} from './tests/benchmark/index.js';
+
+// Save to IndexedDB
+await saveResult(result);
+
+// Download as JSON file
+downloadAsJSON(result);
+
+// Compare historical results
+const history = await loadResultsByModel('gemma-1b');
+if (history.length >= 2) {
+  const deltas = comparePipelineResults(history[0], history[1]);
+  console.log(formatComparison(deltas));
+}
 ```
 
 ### Available Prompts

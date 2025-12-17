@@ -24,7 +24,14 @@ export interface MoEConfig {
   numExperts: number;
   numExpertsPerToken: number;
   expertSize?: number;
-  expertShardMap?: number[] | number[][];
+  /** Maps expert key (e.g., "0_0" for layer 0, expert 0) to shard indices */
+  expertShardMap?: Record<string, number[]>;
+  /** Maps expert key to tensor names for that expert */
+  expertTensors?: Record<string, string[]>;
+  /** Total size of a single expert in bytes (for memory planning) */
+  expertBytes?: number;
+  /** Shared expert indices (DeepSeek-style) - these should stay pinned in cache */
+  sharedExperts?: number[];
 }
 
 export interface LayerConfig {
@@ -38,6 +45,8 @@ export interface LayerConfig {
   maxSeqLen: number;
 }
 
+export type WeightLayout = 'row' | 'column';
+
 export interface TensorLocation {
   shard: number;
   offset: number;
@@ -45,6 +54,10 @@ export interface TensorLocation {
   shape: number[];
   dtype: string;
   spans?: Array<{ shardIndex: number; offset: number; size: number }>;
+  /** Weight storage layout: 'row' (default) or 'column' (pre-transposed for faster matmul) */
+  layout?: WeightLayout;
+  /** Original shape before transpose (if layout is 'column') */
+  originalShape?: number[];
 }
 
 export interface RuntimeOptimizations {
@@ -69,6 +82,8 @@ export interface RDRRManifest {
   tokenizer?: Record<string, unknown>;
   tensorCount?: number;
   name?: string;
+  /** Default weight storage layout for matmul weights */
+  defaultWeightLayout?: WeightLayout;
 }
 
 export interface ValidationResult {
@@ -259,12 +274,43 @@ export function isMoE(): boolean {
   return currentManifest?.moeConfig !== null;
 }
 
-export function getShardsForExpert(expertIndex: number): number[] {
+/**
+ * Get shard indices containing an expert's weights
+ * @param layerIdx - Layer index
+ * @param expertIdx - Expert index within layer
+ * @returns Array of shard indices, empty if not found
+ */
+export function getShardsForExpert(layerIdx: number, expertIdx: number): number[] {
   if (!currentManifest?.moeConfig?.expertShardMap) {
     return [];
   }
-  const shardIndices = currentManifest.moeConfig.expertShardMap[expertIndex];
-  return Array.isArray(shardIndices) ? shardIndices as number[] : [shardIndices as number];
+  const key = `${layerIdx}_${expertIdx}`;
+  const shardIndices = currentManifest.moeConfig.expertShardMap[key];
+  if (!shardIndices) {
+    return [];
+  }
+  return Array.isArray(shardIndices) ? shardIndices : [shardIndices];
+}
+
+/**
+ * Get tensor names for an expert
+ * @param layerIdx - Layer index
+ * @param expertIdx - Expert index within layer
+ * @returns Array of tensor names, empty if not found
+ */
+export function getTensorsForExpert(layerIdx: number, expertIdx: number): string[] {
+  if (!currentManifest?.moeConfig?.expertTensors) {
+    return [];
+  }
+  const key = `${layerIdx}_${expertIdx}`;
+  return currentManifest.moeConfig.expertTensors[key] || [];
+}
+
+/**
+ * Get estimated memory for a single expert
+ */
+export function getExpertBytes(): number {
+  return currentManifest?.moeConfig?.expertBytes || 0;
 }
 
 export function generateShardFilename(index: number): string {

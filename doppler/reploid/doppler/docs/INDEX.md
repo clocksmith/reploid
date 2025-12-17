@@ -21,6 +21,7 @@ Quick index for DOPPLER documentation.
 ## Core Docs
 
 - [Architecture](ARCHITECTURE.md) - High-level module layout and subsystem responsibilities.
+- [Execution Pipeline](EXECUTION_PIPELINE.md) - Kernel-by-kernel inference walkthrough and fusion analysis.
 - [Glossary](GLOSSARY.md) - Terms and definitions used across DOPPLER.
 - [Troubleshooting Guide](DOPPLER-TROUBLESHOOTING.md) - Comprehensive debugging strategies for inference issues.
 - [Inference README](../inference/README.md) - Step-by-step inference flow (init, load, prefill, decode).

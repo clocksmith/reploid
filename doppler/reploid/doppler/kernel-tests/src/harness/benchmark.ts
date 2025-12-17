@@ -17,8 +17,12 @@ export interface BenchmarkStats {
   p95Ms: number;
   p99Ms: number;
   stdDevMs: number;
+  ci95Ms: number; // 95% confidence interval half-width
   samples: number;
+  samplesAfterOutlierRemoval: number;
+  outliersRemoved: number;
   rawTimes: number[];
+  warnings: string[];
 }
 
 export interface BenchmarkStatsWithMetrics extends BenchmarkStats {
@@ -26,6 +30,75 @@ export interface BenchmarkStatsWithMetrics extends BenchmarkStats {
   gflops?: number;
   bytesTransferred?: number;
   throughputGbps?: number;
+}
+
+// ============================================================================
+// Statistical Helper Functions
+// ============================================================================
+
+/**
+ * Compute percentile using linear interpolation
+ * @param sorted Sorted array of values
+ * @param p Percentile (0-100)
+ */
+function percentile(sorted: number[], p: number): number {
+  if (sorted.length === 0) return 0;
+  if (sorted.length === 1) return sorted[0];
+  const idx = (p / 100) * (sorted.length - 1);
+  const lo = Math.floor(idx);
+  const hi = Math.ceil(idx);
+  if (lo === hi) return sorted[lo];
+  return sorted[lo] + (sorted[hi] - sorted[lo]) * (idx - lo);
+}
+
+/**
+ * Compute median (average of middle two for even-length arrays)
+ * @param sorted Sorted array of values
+ */
+function median(sorted: number[]): number {
+  const n = sorted.length;
+  if (n === 0) return 0;
+  const mid = Math.floor(n / 2);
+  return n % 2 === 0 ? (sorted[mid - 1] + sorted[mid]) / 2 : sorted[mid];
+}
+
+/**
+ * Remove outliers using IQR method
+ * @param times Array of timing samples
+ * @returns Object with filtered array and count of removed outliers
+ */
+function removeOutliers(times: number[]): { filtered: number[]; removed: number } {
+  if (times.length < 4) return { filtered: times, removed: 0 };
+
+  const sorted = [...times].sort((a, b) => a - b);
+  const q1 = percentile(sorted, 25);
+  const q3 = percentile(sorted, 75);
+  const iqr = q3 - q1;
+  const lower = q1 - 1.5 * iqr;
+  const upper = q3 + 1.5 * iqr;
+
+  const filtered = times.filter((t) => t >= lower && t <= upper);
+  return { filtered, removed: times.length - filtered.length };
+}
+
+/**
+ * Compute sample standard deviation (n-1 denominator)
+ */
+function sampleStdDev(values: number[], mean: number): number {
+  const n = values.length;
+  if (n < 2) return 0;
+  const variance = values.reduce((sum, t) => sum + (t - mean) ** 2, 0) / (n - 1);
+  return Math.sqrt(variance);
+}
+
+/**
+ * Compute 95% confidence interval half-width
+ */
+function confidenceInterval95(stdDev: number, n: number): number {
+  if (n < 2) return 0;
+  // For n >= 30, use 1.96 (z-score). For smaller n, use t-distribution approximation.
+  const tValue = n >= 30 ? 1.96 : 2.0 + 3.0 / n; // Rough approximation for t-distribution
+  return tValue * (stdDev / Math.sqrt(n));
 }
 
 /**
@@ -48,11 +121,24 @@ export class KernelBenchmark {
    */
   async runBenchmark(kernelFn: () => Promise<void>, options: BenchmarkOptions = {}): Promise<BenchmarkStats> {
     const { warmupRuns = 5, timedRuns = 20, label = 'kernel' } = options;
+    const warnings: string[] = [];
 
     // Warmup (compile shaders, warm caches)
+    const warmupTimes: number[] = [];
     for (let i = 0; i < warmupRuns; i++) {
+      const start = performance.now();
       await kernelFn();
       await this.device.queue.onSubmittedWorkDone();
+      warmupTimes.push(performance.now() - start);
+    }
+
+    // Verify warmup stabilized (last two runs within 10% of each other)
+    if (warmupTimes.length >= 2) {
+      const last = warmupTimes[warmupTimes.length - 1];
+      const prev = warmupTimes[warmupTimes.length - 2];
+      if (Math.abs(last - prev) / Math.max(prev, 0.001) > 0.1) {
+        warnings.push('Warmup may not have stabilized (>10% variance in last 2 runs)');
+      }
     }
 
     // Timed runs
@@ -65,7 +151,20 @@ export class KernelBenchmark {
       times.push(end - start);
     }
 
-    return this.computeStats(times, label);
+    // Detect thermal throttling (last 3 runs >10% slower than first 3)
+    if (times.length >= 6) {
+      const firstThree = times.slice(0, 3);
+      const lastThree = times.slice(-3);
+      const firstAvg = firstThree.reduce((a, b) => a + b, 0) / 3;
+      const lastAvg = lastThree.reduce((a, b) => a + b, 0) / 3;
+      if (lastAvg > firstAvg * 1.1) {
+        warnings.push(`Possible thermal throttling detected (last runs ${((lastAvg / firstAvg - 1) * 100).toFixed(1)}% slower)`);
+      }
+    }
+
+    const stats = this.computeStats(times, label);
+    stats.warnings.push(...warnings);
+    return stats;
   }
 
   /**
@@ -75,31 +174,64 @@ export class KernelBenchmark {
    * @returns Benchmark statistics
    */
   computeStats(times: number[], label: string): BenchmarkStats {
-    const sorted = [...times].sort((a, b) => a - b);
+    const warnings: string[] = [];
+
+    // Remove outliers using IQR method
+    const { filtered, removed } = removeOutliers(times);
+    if (removed > 0) {
+      warnings.push(`Removed ${removed} outlier(s)`);
+    }
+
+    const sorted = [...filtered].sort((a, b) => a - b);
     const n = sorted.length;
 
-    const median = sorted[Math.floor(n / 2)];
-    const mean = times.reduce((a, b) => a + b, 0) / n;
-    const min = sorted[0];
-    const max = sorted[n - 1];
-    const p95 = sorted[Math.floor(n * 0.95)];
-    const p99 = sorted[Math.floor(n * 0.99)];
+    if (n === 0) {
+      return {
+        label,
+        medianMs: 0,
+        meanMs: 0,
+        minMs: 0,
+        maxMs: 0,
+        p95Ms: 0,
+        p99Ms: 0,
+        stdDevMs: 0,
+        ci95Ms: 0,
+        samples: times.length,
+        samplesAfterOutlierRemoval: 0,
+        outliersRemoved: removed,
+        rawTimes: times,
+        warnings: ['No valid samples after outlier removal'],
+      };
+    }
 
-    // Standard deviation
-    const variance = times.reduce((sum, t) => sum + (t - mean) ** 2, 0) / n;
-    const stdDev = Math.sqrt(variance);
+    const medianVal = median(sorted);
+    const meanVal = filtered.reduce((a, b) => a + b, 0) / n;
+    const minVal = sorted[0];
+    const maxVal = sorted[n - 1];
+    const p95Val = percentile(sorted, 95);
+    const p99Val = percentile(sorted, 99);
+
+    // Sample standard deviation (n-1 denominator for unbiased estimate)
+    const stdDev = sampleStdDev(filtered, meanVal);
+
+    // 95% confidence interval
+    const ci95 = confidenceInterval95(stdDev, n);
 
     return {
       label,
-      medianMs: median,
-      meanMs: mean,
-      minMs: min,
-      maxMs: max,
-      p95Ms: p95,
-      p99Ms: p99,
+      medianMs: medianVal,
+      meanMs: meanVal,
+      minMs: minVal,
+      maxMs: maxVal,
+      p95Ms: p95Val,
+      p99Ms: p99Val,
       stdDevMs: stdDev,
-      samples: n,
+      ci95Ms: ci95,
+      samples: times.length,
+      samplesAfterOutlierRemoval: n,
+      outliersRemoved: removed,
       rawTimes: times,
+      warnings,
     };
   }
 }
@@ -208,10 +340,12 @@ export function computeMetrics(stats: BenchmarkStats, workload: Workload): Bench
 export function formatBenchmarkResult(stats: BenchmarkStatsWithMetrics): string {
   const lines = [
     `${stats.label}:`,
-    `  Median: ${stats.medianMs.toFixed(3)} ms`,
+    `  Median: ${stats.medianMs.toFixed(3)} ms (+/- ${stats.ci95Ms.toFixed(3)} ms, 95% CI)`,
+    `  Mean: ${stats.meanMs.toFixed(3)} ms`,
     `  Min/Max: ${stats.minMs.toFixed(3)} / ${stats.maxMs.toFixed(3)} ms`,
-    `  P95: ${stats.p95Ms.toFixed(3)} ms`,
+    `  P95/P99: ${stats.p95Ms.toFixed(3)} / ${stats.p99Ms.toFixed(3)} ms`,
     `  StdDev: ${stats.stdDevMs.toFixed(3)} ms`,
+    `  Samples: ${stats.samplesAfterOutlierRemoval}/${stats.samples} (${stats.outliersRemoved} outliers removed)`,
   ];
 
   if (stats.gflops) {
@@ -219,6 +353,10 @@ export function formatBenchmarkResult(stats: BenchmarkStatsWithMetrics): string 
   }
   if (stats.throughputGbps) {
     lines.push(`  Throughput: ${stats.throughputGbps.toFixed(1)} GB/s`);
+  }
+
+  if (stats.warnings && stats.warnings.length > 0) {
+    lines.push(`  Warnings: ${stats.warnings.join('; ')}`);
   }
 
   return lines.join('\n');

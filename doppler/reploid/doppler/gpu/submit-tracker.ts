@@ -35,12 +35,30 @@ export interface SubmitStats {
   timestamps: number[];
 }
 
+/** Phase-based submit statistics */
+export interface PhaseSubmitStats {
+  prefill: SubmitStats;
+  decode: SubmitStats;
+  other: SubmitStats;
+}
+
+/** Current phase for submit tracking */
+export type SubmitPhase = 'prefill' | 'decode' | 'other';
+
 /** Internal tracking state */
 let submitCount = 0;
 let submitTimes: number[] = [];
 let totalSubmitMs = 0;
 let maxSubmitMs = 0;
 let minSubmitMs = Infinity;
+
+/** Phase-based tracking state */
+let currentPhase: SubmitPhase = 'other';
+const phaseStats: Record<SubmitPhase, { count: number; times: number[]; totalMs: number; maxMs: number; minMs: number }> = {
+  prefill: { count: 0, times: [], totalMs: 0, maxMs: 0, minMs: Infinity },
+  decode: { count: 0, times: [], totalMs: 0, maxMs: 0, minMs: Infinity },
+  other: { count: 0, times: [], totalMs: 0, maxMs: 0, minMs: Infinity },
+};
 
 /**
  * Enable/disable submit tracking.
@@ -66,6 +84,20 @@ export function resetSubmitStats(): void {
   totalSubmitMs = 0;
   maxSubmitMs = 0;
   minSubmitMs = Infinity;
+  currentPhase = 'other';
+
+  // Reset phase stats
+  for (const phase of ['prefill', 'decode', 'other'] as const) {
+    phaseStats[phase] = { count: 0, times: [], totalMs: 0, maxMs: 0, minMs: Infinity };
+  }
+}
+
+/**
+ * Set the current phase for submit tracking.
+ * @param phase - The phase to track ('prefill', 'decode', or 'other')
+ */
+export function setSubmitPhase(phase: SubmitPhase): void {
+  currentPhase = phase;
 }
 
 /**
@@ -76,11 +108,20 @@ export function resetSubmitStats(): void {
 export function recordSubmit(durationMs: number): void {
   if (!TRACK_SUBMITS) return;
 
+  // Global stats
   submitCount++;
   submitTimes.push(durationMs);
   totalSubmitMs += durationMs;
   maxSubmitMs = Math.max(maxSubmitMs, durationMs);
   minSubmitMs = Math.min(minSubmitMs, durationMs);
+
+  // Phase-specific stats
+  const ps = phaseStats[currentPhase];
+  ps.count++;
+  ps.times.push(durationMs);
+  ps.totalMs += durationMs;
+  ps.maxMs = Math.max(ps.maxMs, durationMs);
+  ps.minMs = Math.min(ps.minMs, durationMs);
 }
 
 /**
@@ -95,6 +136,35 @@ export function getSubmitStats(): SubmitStats {
     maxMs: maxSubmitMs,
     minMs: minSubmitMs === Infinity ? 0 : minSubmitMs,
     timestamps: [...submitTimes],
+  };
+}
+
+/**
+ * Get submit statistics for a specific phase.
+ * @param phase - The phase to get stats for
+ * @returns Submit statistics for the phase
+ */
+export function getPhaseSubmitStats(phase: SubmitPhase): SubmitStats {
+  const ps = phaseStats[phase];
+  return {
+    count: ps.count,
+    totalMs: ps.totalMs,
+    avgMs: ps.count > 0 ? ps.totalMs / ps.count : 0,
+    maxMs: ps.maxMs,
+    minMs: ps.minMs === Infinity ? 0 : ps.minMs,
+    timestamps: [...ps.times],
+  };
+}
+
+/**
+ * Get submit statistics for all phases.
+ * @returns Submit statistics by phase
+ */
+export function getAllPhaseSubmitStats(): PhaseSubmitStats {
+  return {
+    prefill: getPhaseSubmitStats('prefill'),
+    decode: getPhaseSubmitStats('decode'),
+    other: getPhaseSubmitStats('other'),
   };
 }
 

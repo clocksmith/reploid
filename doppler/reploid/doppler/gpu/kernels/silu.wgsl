@@ -284,6 +284,86 @@ fn silu_mul(
     output[idx] = silu(a) * b;
 }
 
+// Row-split gated SiLU (for fused gate+up FFN)
+// Input format: [numTokens, 2*dim] where each row is [gate[0..dim), up[0..dim)]
+// Output format: [numTokens, dim]
+// uniforms.size = numTokens * dim (output size)
+@compute @workgroup_size(256, 1, 1)
+fn silu_gate_rowsplit(
+    @builtin(global_invocation_id) global_id: vec3<u32>
+) {
+    let idx = global_id.x;
+
+    // size is the output size (numTokens * dim)
+    if (idx >= uniforms.size) {
+        return;
+    }
+
+    // Calculate position in output
+    // uniforms.size = numTokens * dim, so dim = size / numTokens
+    // But we need dim to be passed in uniforms. For now, assume hasBias encodes dim.
+    // Actually, let's use: idx maps to output[token, d], input has [token, gate_d, up_d]
+    // The input has 2x the elements of output, so:
+    //   output_idx = token * dim + d
+    //   gate_idx = token * (dim * 2) + d
+    //   up_idx = token * (dim * 2) + dim + d
+    // We can compute: halfInputSize = output size = numTokens * dim
+    // So: token = idx / dim, d = idx % dim (but we don't know dim separately)
+    //
+    // Alternative: use gate buffer to pass dim as first element (hacky)
+    // Better: use hasBias to encode dim (multiply by workgroup size)
+    // Best: Just require the fused path to pre-calculate indices
+    //
+    // Simplest approach: input is [N, 2D], output is [N, D]
+    // Total output elements = N * D = uniforms.size
+    // Total input elements = N * 2D = 2 * uniforms.size
+    // For output[i], we need input[2*row*D + col] and input[2*row*D + D + col]
+    // where row = i / D and col = i % D
+    // But we need D! Use hasGate to encode log2(D) or similar...
+    //
+    // Actually simplest: assume dim is passed via hasBias field (repurposed)
+    let dim = uniforms.hasBias;  // Repurposed: hasBias stores dim for rowsplit variant
+    let token_idx = idx / dim;
+    let dim_idx = idx % dim;
+
+    let row_base = token_idx * dim * 2u;
+    let g = input[row_base + dim_idx];
+    let up = input[row_base + dim + dim_idx];
+
+    output[idx] = silu(g) * up;
+}
+
+// Row-split gated GELU (GeGLU) variant for models using GELU activation
+// Input format: [numTokens, 2*dim] where each row is [gate[0..dim), up[0..dim)]
+// Output format: [numTokens, dim]
+@compute @workgroup_size(256, 1, 1)
+fn geglu_rowsplit(
+    @builtin(global_invocation_id) global_id: vec3<u32>
+) {
+    let idx = global_id.x;
+
+    if (idx >= uniforms.size) {
+        return;
+    }
+
+    let dim = uniforms.hasBias;  // Repurposed: hasBias stores dim for rowsplit variant
+    let token_idx = idx / dim;
+    let dim_idx = idx % dim;
+
+    let row_base = token_idx * dim * 2u;
+    let g = input[row_base + dim_idx];
+    let up = input[row_base + dim + dim_idx];
+
+    // GELU(gate) * up
+    let sqrt_2_over_pi: f32 = 0.7978845608;
+    let c: f32 = 0.044715;
+    let inner = sqrt_2_over_pi * (g + c * g * g * g);
+    let inner_clamped = clamp(inner, -15.0, 15.0);
+    let gelu_g = 0.5 * g * (1.0 + tanh(inner_clamped));
+
+    output[idx] = gelu_g * up;
+}
+
 // Batched SiLU with separate batch dimension
 // input shape: [batchSize, hiddenSize]
 // Each thread handles one element
