@@ -253,13 +253,18 @@ async function runBenchmarkInBrowser(opts: BenchmarkOptions): Promise<any> {
     const page = context.pages()[0] || await context.newPage();
 
     // Capture console logs with expanded filtering
-    const relevantTags = ['[Benchmark]', '[Pipeline]', '[Loader]', '[GPU]', '[Kernel]', 'ERROR', 'WARN'];
+    const relevantTags = ['[Benchmark]', '[Pipeline]', '[Loader]', '[DopplerLoader]', '[GPU]', '[Kernel]', 'ERROR', 'WARN', 'error', 'Error'];
     page.on('console', (msg) => {
       const text = msg.text();
       const isRelevant = relevantTags.some((tag) => text.includes(tag));
       if (opts.verbose || isRelevant) {
         console.log(`[browser] ${text}`);
       }
+    });
+
+    // Also capture page errors
+    page.on('pageerror', (err) => {
+      console.error(`[browser error] ${err.message}`);
     });
 
     try {
