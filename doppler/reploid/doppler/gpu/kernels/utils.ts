@@ -688,10 +688,8 @@ export async function createPipeline(
 
   // Return cached pipeline if available
   if (pipelineCache.has(cacheKey)) {
-    console.log(`[DEBUG createPipeline] Cache HIT for ${cacheKey}`);
     return pipelineCache.get(cacheKey)!;
   }
-  console.log(`[DEBUG createPipeline] Cache MISS for ${cacheKey}, creating new pipeline`);
 
   const device = getDevice();
   if (!device) {

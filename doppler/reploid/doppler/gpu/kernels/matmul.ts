@@ -225,6 +225,7 @@ export async function runMatmul(
 
     // Use optimized GEMV kernel for M=1 decode with f16 weights (transposeB required)
     // GEMV uses shared memory for A vector, avoiding 256x redundant global reads
+    // Fixed: shared memory sizing for small subgroup sizes (sg_size >= 4)
     useGemv = M === 1 && bDtype === 'f16' && aDtype === 'f32' && transposeB;
     if (useGemv) {
       // Prefer subgroup-optimized GEMV when available (1.5x faster)

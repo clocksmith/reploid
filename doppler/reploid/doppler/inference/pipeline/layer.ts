@@ -444,15 +444,30 @@ export async function processLayerGPU(
       hiddenSize,
     }, recorder);
     if (!(layerWeights.postAttentionNorm instanceof GPUBuffer)) releaseBuffer(normWeightBuf);
-    releaseBuffer(attnOutput);
+    // Track for cleanup after submit if using recorder, otherwise release immediately
+    if (recorder) {
+      recorder.trackTemporaryBuffer(attnOutput);
+    } else {
+      releaseBuffer(attnOutput);
+    }
 
     // Now add the normed attention output to the residual stream
     postAttn = await doResidualAdd(attnOutputNormed, inputBuffer, size, recorder);
-    releaseBuffer(attnOutputNormed);
+    // Track for cleanup after submit if using recorder, otherwise release immediately
+    if (recorder) {
+      recorder.trackTemporaryBuffer(attnOutputNormed);
+    } else {
+      releaseBuffer(attnOutputNormed);
+    }
   } else {
     // Standard path: residual add first
     postAttn = await doResidualAdd(attnOutput, inputBuffer, size, recorder);
-    releaseBuffer(attnOutput);
+    // Track for cleanup after submit if using recorder, otherwise release immediately
+    if (recorder) {
+      recorder.trackTemporaryBuffer(attnOutput);
+    } else {
+      releaseBuffer(attnOutput);
+    }
   }
 
   // Debug: log postAttn for layer 0
@@ -565,7 +580,14 @@ async function processFFNWithSandwichNorm(
   }
   await debugL0(ffnOutput, 'FFN_OUT');
 
-  if (ffnInput !== postAttn) releaseBuffer(ffnInput);
+  // Track for cleanup after submit if using recorder, otherwise release immediately
+  if (ffnInput !== postAttn) {
+    if (recorder) {
+      recorder.trackTemporaryBuffer(ffnInput);
+    } else {
+      releaseBuffer(ffnInput);
+    }
+  }
 
   // Debug: trace FFN output (uses debug-utils)
   await logFFNOutput(ffnOutput, layerIdx, numTokens);
@@ -579,15 +601,31 @@ async function processFFNWithSandwichNorm(
       hiddenSize,
     }, recorder);
     if (!(layerWeights.postFeedforwardNorm instanceof GPUBuffer)) releaseBuffer(normWeightBuf);
-    releaseBuffer(ffnOutput);
+    // Track for cleanup after submit if using recorder, otherwise release immediately
+    if (recorder) {
+      recorder.trackTemporaryBuffer(ffnOutput);
+    } else {
+      releaseBuffer(ffnOutput);
+    }
     await debugL0(ffnOutputNormed, 'POST_NORM');
   }
 
   // 4. Residual add: postAttn + ffnOutputNormed
   const output = await doResidualAdd(ffnOutputNormed, postAttn, size, recorder);
   await debugL0(output, 'FINAL');
-  if (ffnOutputNormed !== ffnOutput) releaseBuffer(ffnOutputNormed);
-  releaseBuffer(postAttn);
+  // Track for cleanup after submit if using recorder, otherwise release immediately
+  if (ffnOutputNormed !== ffnOutput) {
+    if (recorder) {
+      recorder.trackTemporaryBuffer(ffnOutputNormed);
+    } else {
+      releaseBuffer(ffnOutputNormed);
+    }
+  }
+  if (recorder) {
+    recorder.trackTemporaryBuffer(postAttn);
+  } else {
+    releaseBuffer(postAttn);
+  }
 
   return output;
 }
@@ -628,10 +666,21 @@ async function processFFNStandard(
   // 3. Residual add: ffnOutput + postAttn
   const output = await doResidualAdd(ffnOutput, postAttn, size, recorder);
 
-  // Cleanup intermediate buffers
-  if (normedBuffer !== postAttn) releaseBuffer(normedBuffer);
-  releaseBuffer(postAttn);
-  releaseBuffer(ffnOutput);
+  // Track for cleanup after submit if using recorder, otherwise release immediately
+  if (normedBuffer !== postAttn) {
+    if (recorder) {
+      recorder.trackTemporaryBuffer(normedBuffer);
+    } else {
+      releaseBuffer(normedBuffer);
+    }
+  }
+  if (recorder) {
+    recorder.trackTemporaryBuffer(postAttn);
+    recorder.trackTemporaryBuffer(ffnOutput);
+  } else {
+    releaseBuffer(postAttn);
+    releaseBuffer(ffnOutput);
+  }
 
   return output;
 }
@@ -683,7 +732,12 @@ async function runDenseFFNGPU(
       activation,
     }, recorder);
 
-    releaseBuffer(gateUpOutput);
+    // Track for cleanup after submit if using recorder, otherwise release immediately
+    if (recorder) {
+      recorder.trackTemporaryBuffer(gateUpOutput);
+    } else {
+      releaseBuffer(gateUpOutput);
+    }
 
     // 3. Down projection: [numTokens, intermediateSize] @ [hiddenSize, intermediateSize]^T -> [numTokens, hiddenSize]
     const output = await doMatmul(
@@ -694,7 +748,12 @@ async function runDenseFFNGPU(
     );
 
     if (!(layerWeights.down instanceof GPUBuffer)) releaseBuffer(downWeight);
-    releaseBuffer(activatedOutput);
+    // Track for cleanup after submit if using recorder, otherwise release immediately
+    if (recorder) {
+      recorder.trackTemporaryBuffer(activatedOutput);
+    } else {
+      releaseBuffer(activatedOutput);
+    }
 
     return output;
   }
@@ -727,14 +786,25 @@ async function runDenseFFNGPU(
     gate: gateOutput,
   }, recorder);
 
-  releaseBuffer(gateOutput);
-  releaseBuffer(upOutput);
+  // Track for cleanup after submit if using recorder, otherwise release immediately
+  if (recorder) {
+    recorder.trackTemporaryBuffer(gateOutput);
+    recorder.trackTemporaryBuffer(upOutput);
+  } else {
+    releaseBuffer(gateOutput);
+    releaseBuffer(upOutput);
+  }
 
   // 4. Down projection
   const downWeight = getWeightBuffer(layerWeights.down, 'ffn_down');
   const output = await doMatmul(activatedOutput, downWeight, numTokens, hiddenSize, intermediateSize, { transposeB: true }, recorder);
   if (!(layerWeights.down instanceof GPUBuffer)) releaseBuffer(downWeight);
-  releaseBuffer(activatedOutput);
+  // Track for cleanup after submit if using recorder, otherwise release immediately
+  if (recorder) {
+    recorder.trackTemporaryBuffer(activatedOutput);
+  } else {
+    releaseBuffer(activatedOutput);
+  }
 
   return output;
 }
