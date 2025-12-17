@@ -121,9 +121,7 @@ export const QUICKSTART_MODELS: Record<string, RemoteModelConfig> = {
   'gemma3-1b-q4': {
     modelId: 'gemma3-1b-q4',
     displayName: 'Gemma 3 1B (Q4)',
-    get baseUrl() {
-      return `${getEffectiveCDNBaseUrl()}/gemma3-1b-q4`;
-    },
+    baseUrl: 'https://huggingface.co/clocksmith/gemma3-1b-rdrr/resolve/main',
     requirements: GEMMA_1B_REQUIREMENTS,
   },
 };

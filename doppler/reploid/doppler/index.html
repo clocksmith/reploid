@@ -55,15 +55,23 @@
         <section class="panel memory-panel">
           <h2 class="panel-title">Memory Usage</h2>
           <div class="memory-bars" id="memory-bars">
-            <div class="memory-bar-row">
+            <div class="memory-bar-row memory-total-row">
+              <span class="memory-label">Total</span>
+              <div class="memory-bar-container memory-bar-stacked">
+                <div class="memory-bar memory-bar-heap-stacked" id="memory-bar-heap-stacked" style="width: 0%"></div>
+                <div class="memory-bar memory-bar-gpu-stacked" id="memory-bar-gpu-stacked" style="width: 0%"></div>
+              </div>
+              <span class="memory-value" id="memory-total">--</span>
+            </div>
+            <div class="memory-bar-row memory-sub-row">
               <span class="memory-label">JS Heap</span>
               <div class="memory-bar-container">
                 <div class="memory-bar" id="memory-bar-heap" style="width: 0%"></div>
               </div>
               <span class="memory-value" id="memory-heap">--</span>
             </div>
-            <div class="memory-bar-row">
-              <span class="memory-label">GPU Buffers</span>
+            <div class="memory-bar-row memory-sub-row">
+              <span class="memory-label">GPU</span>
               <div class="memory-bar-container">
                 <div class="memory-bar memory-bar-gpu" id="memory-bar-gpu" style="width: 0%"></div>
               </div>
@@ -146,11 +154,33 @@
         <!-- Progress Overlay -->
         <div class="progress-overlay" id="progress-overlay" hidden>
           <div class="progress-content">
-            <div class="progress-label" id="progress-label">Loading...</div>
-            <div class="progress-bar-container">
-              <div class="progress-bar" id="progress-bar"></div>
+            <div class="progress-title" id="progress-title">Loading Model</div>
+            <div class="progress-phases" id="progress-phases">
+              <!-- Download Phase -->
+              <div class="progress-phase-row" data-phase="download">
+                <span class="progress-phase-label">Download</span>
+                <div class="progress-bar-container">
+                  <div class="progress-bar progress-phase-bar" style="background-color: #3b82f6;"></div>
+                </div>
+                <span class="progress-phase-value">--</span>
+              </div>
+              <!-- Storage Phase -->
+              <div class="progress-phase-row" data-phase="storage">
+                <span class="progress-phase-label">Storage</span>
+                <div class="progress-bar-container">
+                  <div class="progress-bar progress-phase-bar" style="background-color: #22c55e;"></div>
+                </div>
+                <span class="progress-phase-value">--</span>
+              </div>
+              <!-- GPU Phase -->
+              <div class="progress-phase-row" data-phase="gpu">
+                <span class="progress-phase-label">GPU Load</span>
+                <div class="progress-bar-container">
+                  <div class="progress-bar progress-phase-bar" style="background-color: #f59e0b;"></div>
+                </div>
+                <span class="progress-phase-value">--</span>
+              </div>
             </div>
-            <div class="progress-detail" id="progress-detail"></div>
           </div>
         </div>
 

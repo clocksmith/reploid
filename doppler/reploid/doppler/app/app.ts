@@ -97,6 +97,10 @@ interface MemoryElements {
   heapValue: HTMLElement | null;
   gpuBar: HTMLElement | null;
   gpuValue: HTMLElement | null;
+  // Stacked total bar
+  heapStackedBar: HTMLElement | null;
+  gpuStackedBar: HTMLElement | null;
+  totalValue: HTMLElement | null;
 }
 
 /**
@@ -229,6 +233,9 @@ export class DOPPLERDemo {
     heapValue: null,
     gpuBar: null,
     gpuValue: null,
+    heapStackedBar: null,
+    gpuStackedBar: null,
+    totalValue: null,
   };
 
   // Attention kernel UI
@@ -281,6 +288,10 @@ export class DOPPLERDemo {
       heapValue: document.querySelector('#memory-heap'),
       gpuBar: document.querySelector('#memory-bar-gpu'),
       gpuValue: document.querySelector('#memory-gpu'),
+      // Stacked total bar
+      heapStackedBar: document.querySelector('#memory-bar-heap-stacked'),
+      gpuStackedBar: document.querySelector('#memory-bar-gpu-stacked'),
+      totalValue: document.querySelector('#memory-total'),
     };
 
     this.attentionKernelSelect = document.querySelector('#attention-kernel-select');
@@ -513,6 +524,10 @@ export class DOPPLERDemo {
   private _updateMemoryStats(): void {
     if (!this.memoryElements.heapBar) return;
 
+    let usedHeap = 0;
+    let usedGpu = 0;
+    let totalLimit = 0;
+
     // JS Heap (from performance.memory if available - Chrome only)
     const memory = (performance as Performance & { memory?: {
       usedJSHeapSize?: number;
@@ -520,9 +535,10 @@ export class DOPPLERDemo {
       totalJSHeapSize?: number;
     } }).memory;
     if (memory) {
-      const usedHeap = memory.usedJSHeapSize || 0;
+      usedHeap = memory.usedJSHeapSize || 0;
       const totalHeap = memory.jsHeapSizeLimit || memory.totalJSHeapSize || 1;
       const heapPercent = Math.min(100, (usedHeap / totalHeap) * 100);
+      totalLimit = totalHeap;
 
       this.memoryElements.heapBar.style.width = `${heapPercent}%`;
       this.memoryElements.heapValue!.textContent = this._formatBytes(usedHeap);
@@ -535,17 +551,36 @@ export class DOPPLERDemo {
       const heapManager = getHeapManager();
       if (heapManager && typeof heapManager.getStats === 'function') {
         const stats = heapManager.getStats();
-        const gpuUsed = stats.allocated || stats.totalAllocated || 0;
+        usedGpu = stats.allocated || stats.totalAllocated || 0;
         const gpuLimit = stats.limit || stats.maxSize || 4 * 1024 * 1024 * 1024; // 4GB default
-        const gpuPercent = Math.min(100, (gpuUsed / gpuLimit) * 100);
+        const gpuPercent = Math.min(100, (usedGpu / gpuLimit) * 100);
 
         this.memoryElements.gpuBar!.style.width = `${gpuPercent}%`;
-        this.memoryElements.gpuValue!.textContent = this._formatBytes(gpuUsed);
+        this.memoryElements.gpuValue!.textContent = this._formatBytes(usedGpu);
+
+        // Use GPU limit for total if larger than heap limit
+        if (gpuLimit > totalLimit) totalLimit = gpuLimit;
       } else {
         this.memoryElements.gpuValue!.textContent = '--';
       }
     } catch {
       this.memoryElements.gpuValue!.textContent = '--';
+    }
+
+    // Update stacked total bar
+    if (this.memoryElements.heapStackedBar && this.memoryElements.gpuStackedBar) {
+      const totalUsed = usedHeap + usedGpu;
+      // Calculate percentages relative to combined limit (or reasonable max)
+      const combinedLimit = Math.max(totalLimit, 8 * 1024 * 1024 * 1024); // At least 8GB scale
+      const heapStackedPercent = Math.min(50, (usedHeap / combinedLimit) * 100);
+      const gpuStackedPercent = Math.min(50, (usedGpu / combinedLimit) * 100);
+
+      this.memoryElements.heapStackedBar.style.width = `${heapStackedPercent}%`;
+      this.memoryElements.gpuStackedBar.style.width = `${gpuStackedPercent}%`;
+
+      if (this.memoryElements.totalValue) {
+        this.memoryElements.totalValue.textContent = this._formatBytes(totalUsed);
+      }
     }
   }
 
@@ -829,9 +864,12 @@ export class DOPPLERDemo {
       let manifest: RDRRManifest;
       let loadShardFn: (idx: number) => Promise<ArrayBuffer>;
 
+      // Track loading source for multi-phase progress
+      const isNetworkLoad = useServer;
+
       if (useServer) {
-        // Load from HTTP (dev server)
-        this.progressUI?.setProgress(10, 'Loading manifest...');
+        // Load from HTTP (dev server) - show download phase
+        this.progressUI?.setPhaseProgress({ phase: 'download', percent: 5, message: 'Fetching manifest...' });
         const manifestUrl = `${sourceInfo.url}/manifest.json`;
         const response = await fetch(manifestUrl);
         if (!response.ok) throw new Error(`Failed to fetch manifest: ${response.status}`);
@@ -846,18 +884,22 @@ export class DOPPLERDemo {
           return await res.arrayBuffer();
         };
       } else {
-        // Load from OPFS (browser cache)
+        // Load from OPFS (browser cache) - show storage phase
         await openModelDirectory(sourceInfo.id);
-        this.progressUI?.setProgress(10, 'Loading manifest...');
+        this.progressUI?.setPhaseProgress({ phase: 'storage', percent: 5, message: 'Loading manifest...' });
         const manifestJson = await loadManifestFromOPFS();
         manifest = parseManifest(manifestJson);
+
+        // Mark download as complete (model already cached)
+        this.progressUI?.setPhaseProgress({ phase: 'download', percent: 100, message: 'Cached' });
 
         // Create OPFS shard loader
         const { loadShard } = await import('../storage/shard-manager.js');
         loadShardFn = (idx: number) => loadShard(idx);
       }
 
-      this.progressUI?.setProgress(20, 'Initializing GPU...');
+      // Initialize GPU - show GPU phase starting
+      this.progressUI?.setPhaseProgress({ phase: 'gpu', percent: 5, message: 'Initializing...' });
 
       // Capture manifest default attention kernel preference.
       this.manifestAttentionKernelDefault =
@@ -873,9 +915,9 @@ export class DOPPLERDemo {
       const heapManager = getHeapManager();
       await heapManager.init();
 
-      this.progressUI?.setProgress(30, 'Creating pipeline...');
+      this.progressUI?.setPhaseProgress({ phase: 'gpu', percent: 10, message: 'Creating pipeline...' });
 
-      // Create pipeline with progress tracking
+      // Create pipeline with multi-phase progress tracking
       this.pipeline = await createPipeline(manifest, {
         gpu: {
           capabilities: gpuCaps,
@@ -893,9 +935,56 @@ export class DOPPLERDemo {
           attentionKernel: this.attentionKernelSelect?.value || 'auto',
           debug: new URLSearchParams(window.location.search).has('debug'),
         },
-        onProgress: (progress: { percent: number; message?: string }) => {
-          const percent = 30 + Math.round(progress.percent * 0.7);
-          this.progressUI?.setProgress(percent, progress.message || 'Loading weights...');
+        onProgress: (progress: {
+          percent: number;
+          message?: string;
+          stage?: string;
+          layer?: number;
+          total?: number;
+          bytesLoaded?: number;
+          totalBytes?: number;
+          bytesPerSecond?: number;
+        }) => {
+          const stage = progress.stage || 'layers';
+
+          // Map loader stages to UI phases
+          if (stage === 'manifest' || stage === 'shards') {
+            // Shard loading: download (network) or storage (OPFS)
+            const phase = isNetworkLoad ? 'download' : 'storage';
+            this.progressUI?.setPhaseProgress({
+              phase,
+              percent: Math.min(100, progress.percent * 1.2), // Scale to show some progress
+              bytesLoaded: progress.bytesLoaded,
+              totalBytes: progress.totalBytes,
+              speed: progress.bytesPerSecond,
+            });
+          } else if (stage === 'layers' || stage === 'gpu_transfer') {
+            // Mark storage/download complete once we're processing layers
+            if (isNetworkLoad) {
+              this.progressUI?.setPhaseProgress({ phase: 'download', percent: 100, message: 'Complete' });
+            } else {
+              this.progressUI?.setPhaseProgress({ phase: 'storage', percent: 100, message: 'Complete' });
+            }
+
+            // GPU phase: weight upload and processing
+            const gpuPercent = 10 + (progress.percent * 0.9);
+            let message = progress.message;
+            if (!message && progress.layer !== undefined && progress.total) {
+              message = `Layer ${progress.layer}/${progress.total}`;
+            }
+            this.progressUI?.setPhaseProgress({
+              phase: 'gpu',
+              percent: gpuPercent,
+              bytesLoaded: progress.bytesLoaded,
+              totalBytes: progress.totalBytes,
+              message,
+            });
+          } else if (stage === 'complete') {
+            // All phases complete
+            this.progressUI?.setPhaseProgress({ phase: 'download', percent: 100 });
+            this.progressUI?.setPhaseProgress({ phase: 'storage', percent: 100 });
+            this.progressUI?.setPhaseProgress({ phase: 'gpu', percent: 100, message: 'Complete' });
+          }
         },
       });
 

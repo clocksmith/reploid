@@ -1,11 +1,29 @@
 /**
- * progress-ui.ts - Progress Indicator Component
+ * progress-ui.ts - Multi-Phase Progress Indicator Component
  * Agent-D | Phase 2 | app/
  *
- * Handles download and loading progress display.
+ * Displays stacked loading bars for different phases:
+ * - Download: Fetching model from network
+ * - Storage: Writing to OPFS (browser cache)
+ * - GPU: Loading weights into VRAM
  *
  * @module app/progress-ui
  */
+
+// ============================================================================
+// Types
+// ============================================================================
+
+export type ProgressPhase = 'download' | 'storage' | 'gpu';
+
+export interface PhaseProgress {
+  phase: ProgressPhase;
+  percent: number;
+  bytesLoaded?: number;
+  totalBytes?: number;
+  speed?: number;
+  message?: string;
+}
 
 // ============================================================================
 // ProgressUI Class
@@ -14,10 +32,22 @@
 export class ProgressUI {
   private container: HTMLElement;
   private overlay: HTMLElement;
-  private label: HTMLElement;
-  private bar: HTMLElement;
-  private detail: HTMLElement;
+  private title: HTMLElement;
+  private phasesContainer: HTMLElement;
+  private phases: Map<ProgressPhase, {
+    row: HTMLElement;
+    bar: HTMLElement;
+    label: HTMLElement;
+    value: HTMLElement;
+  }> = new Map();
   private isVisible = false;
+
+  // Phase configuration
+  private static readonly PHASE_CONFIG: Record<ProgressPhase, { label: string; color: string }> = {
+    download: { label: 'Download', color: '#3b82f6' },  // Blue
+    storage: { label: 'Storage', color: '#22c55e' },    // Green
+    gpu: { label: 'GPU Load', color: '#f59e0b' },       // Amber
+  };
 
   /**
    * @param container - Container element for progress overlay
@@ -25,33 +55,155 @@ export class ProgressUI {
   constructor(container: HTMLElement) {
     this.container = container;
     this.overlay = container.querySelector('#progress-overlay') as HTMLElement;
-    this.label = container.querySelector('#progress-label') as HTMLElement;
-    this.bar = container.querySelector('#progress-bar') as HTMLElement;
-    this.detail = container.querySelector('#progress-detail') as HTMLElement;
+    this.title = container.querySelector('#progress-title') as HTMLElement;
+    this.phasesContainer = container.querySelector('#progress-phases') as HTMLElement;
+
+    // Create phase bars if they don't exist (backwards compatibility)
+    if (!this.phasesContainer) {
+      this._createPhaseElements();
+    } else {
+      this._initPhaseElements();
+    }
   }
 
   /**
-   * Show progress overlay with label
-   * @param label - Progress label text
+   * Create phase elements dynamically (for backwards compatibility)
    */
-  show(label: string): void {
-    this.label.textContent = label;
-    this.bar.style.width = '0%';
-    this.detail.textContent = '';
+  private _createPhaseElements(): void {
+    const content = this.overlay.querySelector('.progress-content');
+    if (!content) return;
+
+    // Create phases container
+    this.phasesContainer = document.createElement('div');
+    this.phasesContainer.id = 'progress-phases';
+    this.phasesContainer.className = 'progress-phases';
+    content.appendChild(this.phasesContainer);
+
+    // Create phase bars
+    for (const phase of ['download', 'storage', 'gpu'] as ProgressPhase[]) {
+      this._createPhaseBar(phase);
+    }
+  }
+
+  /**
+   * Create a single phase bar
+   */
+  private _createPhaseBar(phase: ProgressPhase): void {
+    const config = ProgressUI.PHASE_CONFIG[phase];
+
+    const row = document.createElement('div');
+    row.className = 'progress-phase-row';
+    row.dataset.phase = phase;
+
+    const label = document.createElement('span');
+    label.className = 'progress-phase-label';
+    label.textContent = config.label;
+
+    const barContainer = document.createElement('div');
+    barContainer.className = 'progress-bar-container';
+
+    const bar = document.createElement('div');
+    bar.className = 'progress-bar progress-phase-bar';
+    bar.style.backgroundColor = config.color;
+    bar.style.width = '0%';
+    barContainer.appendChild(bar);
+
+    const value = document.createElement('span');
+    value.className = 'progress-phase-value';
+    value.textContent = '--';
+
+    row.appendChild(label);
+    row.appendChild(barContainer);
+    row.appendChild(value);
+    this.phasesContainer.appendChild(row);
+
+    this.phases.set(phase, { row, bar, label, value });
+  }
+
+  /**
+   * Initialize existing phase elements from HTML
+   */
+  private _initPhaseElements(): void {
+    for (const phase of ['download', 'storage', 'gpu'] as ProgressPhase[]) {
+      const row = this.phasesContainer.querySelector(`[data-phase="${phase}"]`) as HTMLElement;
+      if (row) {
+        this.phases.set(phase, {
+          row,
+          bar: row.querySelector('.progress-phase-bar') as HTMLElement,
+          label: row.querySelector('.progress-phase-label') as HTMLElement,
+          value: row.querySelector('.progress-phase-value') as HTMLElement,
+        });
+      }
+    }
+  }
+
+  /**
+   * Show progress overlay
+   * @param title - Title text (e.g., "Loading Model")
+   */
+  show(title: string = 'Loading...'): void {
+    if (this.title) {
+      this.title.textContent = title;
+    }
+
+    // Reset all phases
+    for (const [, elements] of this.phases) {
+      elements.bar.style.width = '0%';
+      elements.value.textContent = '--';
+      elements.row.classList.remove('active', 'complete');
+    }
+
     this.overlay.hidden = false;
     this.isVisible = true;
   }
 
   /**
-   * Update progress bar and detail text
-   * @param percent - Progress percentage (0-100)
-   * @param detail - Optional detail text
+   * Update a specific phase's progress
+   */
+  setPhaseProgress(progress: PhaseProgress): void {
+    const elements = this.phases.get(progress.phase);
+    if (!elements) return;
+
+    const percent = Math.min(100, Math.max(0, progress.percent));
+    elements.bar.style.width = `${percent}%`;
+    elements.row.classList.add('active');
+
+    // Format the value text
+    let valueText: string;
+    if (progress.bytesLoaded !== undefined && progress.totalBytes !== undefined) {
+      const loaded = this._formatBytes(progress.bytesLoaded);
+      const total = this._formatBytes(progress.totalBytes);
+      if (progress.speed !== undefined && progress.speed > 0) {
+        const speed = this._formatBytes(progress.speed);
+        valueText = `${loaded} / ${total} @ ${speed}/s`;
+      } else {
+        valueText = `${loaded} / ${total}`;
+      }
+    } else if (progress.message) {
+      valueText = progress.message;
+    } else {
+      valueText = `${Math.round(percent)}%`;
+    }
+
+    elements.value.textContent = valueText;
+
+    // Mark complete when done
+    if (percent >= 100) {
+      elements.row.classList.remove('active');
+      elements.row.classList.add('complete');
+    }
+  }
+
+  /**
+   * Legacy single-bar progress (for backwards compatibility)
+   * Maps to GPU phase
    */
   setProgress(percent: number, detail?: string): void {
-    this.bar.style.width = `${Math.min(100, Math.max(0, percent))}%`;
-    if (detail !== undefined) {
-      this.detail.textContent = detail;
-    }
+    this.setPhaseProgress({
+      phase: 'gpu',
+      percent,
+      message: detail,
+    });
   }
 
   /**
@@ -63,20 +215,27 @@ export class ProgressUI {
   }
 
   /**
-   * Show indeterminate progress (animated)
-   * @param label - Progress label text
+   * Show indeterminate progress for a phase
    */
-  showIndeterminate(label: string): void {
-    this.show(label);
-    this.bar.style.width = '100%';
-    this.bar.style.animation = 'indeterminate 1.5s ease-in-out infinite';
+  showIndeterminate(phase: ProgressPhase, message?: string): void {
+    const elements = this.phases.get(phase);
+    if (!elements) return;
+
+    elements.bar.style.width = '100%';
+    elements.bar.style.animation = 'indeterminate 1.5s ease-in-out infinite';
+    elements.row.classList.add('active');
+    if (message) {
+      elements.value.textContent = message;
+    }
   }
 
   /**
-   * Reset to determinate mode
+   * Reset phase to determinate mode
    */
-  setDeterminate(): void {
-    this.bar.style.animation = 'none';
+  setDeterminate(phase: ProgressPhase): void {
+    const elements = this.phases.get(phase);
+    if (!elements) return;
+    elements.bar.style.animation = 'none';
   }
 
   /**
@@ -84,6 +243,20 @@ export class ProgressUI {
    */
   isShowing(): boolean {
     return this.isVisible;
+  }
+
+  /**
+   * Format bytes to human-readable string
+   */
+  private _formatBytes(bytes: number): string {
+    if (bytes === 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    const value = bytes / Math.pow(k, i);
+    // Show 1 decimal for MB/GB, 0 for smaller
+    const decimals = i >= 2 ? 1 : 0;
+    return value.toFixed(decimals) + ' ' + sizes[i];
   }
 }
 

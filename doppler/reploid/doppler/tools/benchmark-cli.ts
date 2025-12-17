@@ -52,7 +52,7 @@ interface BenchmarkOptions {
 function parseArgs(argv: string[]): BenchmarkOptions {
   const opts: BenchmarkOptions = {
     model: 'gemma3-1b-q4',
-    baseUrl: 'http://localhost:8080/doppler',
+    baseUrl: 'http://localhost:8080/d',
     prompt: 'medium',
     maxTokens: 128,
     warmupRuns: 2,

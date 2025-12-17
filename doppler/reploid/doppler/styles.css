@@ -451,7 +451,7 @@ body {
   overflow: hidden;
 }
 
-/* Progress Overlay */
+/* Progress Overlay - Multi-Phase */
 .progress-overlay {
   position: absolute;
   inset: 0;
@@ -467,20 +467,56 @@ body {
 }
 
 .progress-content {
-  width: 300px;
-  text-align: center;
+  width: 400px;
+  max-width: 90%;
 }
 
-.progress-label {
-  font-size: 16px;
+.progress-title {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 20px;
+  text-align: center;
+  color: var(--text-primary);
+}
+
+.progress-phases {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.progress-phase-row {
+  display: grid;
+  grid-template-columns: 80px 1fr 140px;
+  gap: 12px;
+  align-items: center;
+  opacity: 0.4;
+  transition: opacity 0.3s;
+}
+
+.progress-phase-row.active,
+.progress-phase-row.complete {
+  opacity: 1;
+}
+
+.progress-phase-label {
+  font-size: 13px;
   font-weight: 500;
-  margin-bottom: 16px;
+  color: var(--text-secondary);
+}
+
+.progress-phase-row.active .progress-phase-label {
+  color: var(--text-primary);
+}
+
+.progress-phase-row.complete .progress-phase-label {
+  color: var(--success);
 }
 
 .progress-bar-container {
-  height: 6px;
+  height: 8px;
   background: var(--bg-tertiary);
-  border-radius: 3px;
+  border-radius: 4px;
   overflow: hidden;
 }
 
@@ -488,13 +524,53 @@ body {
   height: 100%;
   background: var(--accent);
   width: 0%;
-  transition: width 0.3s;
+  transition: width 0.2s ease-out;
+}
+
+.progress-phase-bar {
+  border-radius: 4px;
+}
+
+.progress-phase-value {
+  font-size: 12px;
+  color: var(--text-secondary);
+  text-align: right;
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', monospace;
+}
+
+.progress-phase-row.complete .progress-phase-value {
+  color: var(--success);
+}
+
+/* Indeterminate animation */
+@keyframes indeterminate {
+  0% {
+    transform: translateX(-100%);
+    width: 30%;
+  }
+  50% {
+    transform: translateX(150%);
+    width: 30%;
+  }
+  100% {
+    transform: translateX(-100%);
+    width: 30%;
+  }
+}
+
+/* Legacy single bar support */
+.progress-label {
+  font-size: 16px;
+  font-weight: 500;
+  margin-bottom: 16px;
+  text-align: center;
 }
 
 .progress-detail {
   margin-top: 8px;
   font-size: 13px;
   color: var(--text-secondary);
+  text-align: center;
 }
 
 /* Quick-Start Overlay */
@@ -1055,6 +1131,41 @@ body {
 
 .memory-bar-gpu {
   background: var(--success);
+}
+
+/* Stacked memory bar (total) */
+.memory-total-row {
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 4px;
+}
+
+.memory-total-row .memory-label {
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.memory-sub-row .memory-label {
+  font-size: 11px;
+}
+
+.memory-sub-row .memory-value {
+  font-size: 11px;
+}
+
+.memory-bar-stacked {
+  display: flex;
+  position: relative;
+}
+
+.memory-bar-heap-stacked {
+  background: var(--accent);
+  z-index: 1;
+}
+
+.memory-bar-gpu-stacked {
+  background: var(--success);
+  z-index: 0;
 }
 
 .memory-value {

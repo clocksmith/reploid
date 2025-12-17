@@ -14,14 +14,10 @@
     "reploid-config": "./bin/reploid-config"
   },
   "scripts": {
-    "start": "node server/proxy.js",
-    "reploid": "node server/proxy.js",
-    "serve": "tsx doppler/serve.ts",
-    "serve:doppler": "tsx doppler/serve.ts --doppler-only",
-    "doppler": "tsx doppler/serve.ts --doppler-only --open",
+    "start": "tsx doppler/serve.ts",
+    "dev": "tsx doppler/serve.ts --open",
     "cli": "node bin/reploid-cli.js",
     "build:genesis": "node scripts/build-genesis-manifest.js",
-    "dev": "nodemon server/proxy.js",
     "test": "NODE_OPTIONS='--max-old-space-size=4096' vitest run",
     "test:watch": "NODE_OPTIONS='--max-old-space-size=4096' vitest",
     "test:ui": "NODE_OPTIONS='--max-old-space-size=4096' vitest --ui",
