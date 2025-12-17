@@ -248,7 +248,8 @@ async function runBenchmarkInBrowser(opts: BenchmarkOptions): Promise<any> {
     const userDataDir = resolve(__dirname, '../.benchmark-cache');
     const context = await chromium.launchPersistentContext(userDataDir, {
       headless: !opts.headed,
-      args: ['--enable-unsafe-webgpu', '--enable-features=Vulkan'],
+      devtools: opts.headed, // Open DevTools console in headed mode
+      args: ['--enable-unsafe-webgpu', '--enable-features=Vulkan', '--auto-open-devtools-for-tabs'],
     });
     const page = context.pages()[0] || await context.newPage();
 
