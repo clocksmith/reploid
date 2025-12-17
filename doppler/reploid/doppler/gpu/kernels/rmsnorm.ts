@@ -34,16 +34,12 @@ export function selectRMSNormKernel(options: RMSNormOptions = {}): string {
 /**
  * Run RMSNorm
  */
-// Debug counter to identify RMSNorm calls
-let rmsNormCallCount = 0;
-
 export async function runRMSNorm(
   input: GPUBuffer,
   weight: GPUBuffer,
   eps: number = 1e-5,
   options: RMSNormOptions = {}
 ): Promise<GPUBuffer> {
-  const callId = rmsNormCallCount++;
   const device = getDevice();
   const { batchSize = 1, hiddenSize, residual = null, outputBuffer = null } = options;
 
@@ -55,7 +51,6 @@ export async function runRMSNorm(
     variant = 'small';
   }
 
-  const config = getKernelConfig('rmsnorm', variant);
   const pipeline = await createPipeline('rmsnorm', variant);
 
   // Create output buffer if not provided
@@ -98,30 +93,6 @@ export async function runRMSNorm(
     ],
   });
 
-  // Debug: log RMSNorm parameters
-  console.log(`[RMSNorm#${callId}] variant=${variant}, batchSize=${batchSize}, hiddenSize=${inferredHiddenSize}, weightSize=${weight.size / 4}`);
-
-  // Debug: verify input buffer has data before kernel dispatch
-  if (batchSize <= 4) {
-    try {
-      await device.queue.onSubmittedWorkDone();
-      const debugSize = Math.min(64, input.size);
-      const debugStaging = device.createBuffer({ size: debugSize, usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ });
-      const debugEnc = device.createCommandEncoder();
-      debugEnc.copyBufferToBuffer(input, 0, debugStaging, 0, debugSize);
-      device.queue.submit([debugEnc.finish()]);
-      await debugStaging.mapAsync(GPUMapMode.READ);
-      const debugData = new Float32Array(debugStaging.getMappedRange().slice(0));
-      debugStaging.unmap();
-      debugStaging.destroy();
-      const maxAbs = Math.max(...Array.from(debugData).map(x => Math.abs(x)));
-      const nonZero = Array.from(debugData).filter(x => x !== 0).length;
-      console.log(`[RMSNorm#${callId}] BEFORE_DISPATCH: input maxAbs=${maxAbs.toFixed(4)}, nonZero=${nonZero}/${debugData.length}`);
-    } catch (e) {
-      console.log(`[RMSNorm#${callId}] BEFORE_DISPATCH error: ${e}`);
-    }
-  }
-
   // Dispatch
   const encoder = device.createCommandEncoder({ label: 'rmsnorm_encoder' });
   const pass = encoder.beginComputePass({ label: 'rmsnorm_pass' });
@@ -132,41 +103,6 @@ export async function runRMSNorm(
   pass.end();
 
   device.queue.submit([encoder.finish()]);
-
-  // Debug: verify output buffer has data AFTER kernel dispatch
-  if (batchSize <= 4) {
-    try {
-      await device.queue.onSubmittedWorkDone();
-      const debugSize = Math.min(64, output.size);
-      const debugStaging = device.createBuffer({ size: debugSize, usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ });
-      const debugEnc = device.createCommandEncoder();
-      debugEnc.copyBufferToBuffer(output, 0, debugStaging, 0, debugSize);
-      device.queue.submit([debugEnc.finish()]);
-      await debugStaging.mapAsync(GPUMapMode.READ);
-      const debugData = new Float32Array(debugStaging.getMappedRange().slice(0));
-      debugStaging.unmap();
-      debugStaging.destroy();
-      const maxAbs = Math.max(...Array.from(debugData).map(x => Math.abs(x)));
-      const nonZero = Array.from(debugData).filter(x => x !== 0).length;
-      console.log(`[RMSNorm#${callId}] AFTER_DISPATCH: output maxAbs=${maxAbs.toFixed(4)}, nonZero=${nonZero}/${debugData.length}`);
-
-      // Also log weight values
-      const weightDebugSize = Math.min(64, weight.size);
-      const weightStaging = device.createBuffer({ size: weightDebugSize, usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ });
-      const weightEnc = device.createCommandEncoder();
-      weightEnc.copyBufferToBuffer(weight, 0, weightStaging, 0, weightDebugSize);
-      device.queue.submit([weightEnc.finish()]);
-      await weightStaging.mapAsync(GPUMapMode.READ);
-      const weightData = new Float32Array(weightStaging.getMappedRange().slice(0));
-      weightStaging.unmap();
-      weightStaging.destroy();
-      const weightMax = Math.max(...Array.from(weightData).map(x => Math.abs(x)));
-      const weightNonZero = Array.from(weightData).filter(x => x !== 0).length;
-      console.log(`[RMSNorm#${callId}] WEIGHTS: maxAbs=${weightMax.toFixed(4)}, nonZero=${weightNonZero}/${weightData.length}, first5=${Array.from(weightData.slice(0, 5)).map(x => x.toFixed(4)).join(', ')}`);
-    } catch (e) {
-      console.log(`[RMSNorm#${callId}] AFTER_DISPATCH error: ${e}`);
-    }
-  }
 
   uniformBuffer.destroy();
   if (!residual) residualBuffer.destroy();

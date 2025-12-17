@@ -187,7 +187,7 @@ export async function runSiLURowSplit(
   });
   device.queue.writeBuffer(uniformBuffer, 0, uniformData);
 
-  // Create bind group - rowsplit only needs input and output
+  // Create bind group - rowsplit only needs uniforms, input, and output (no gate binding)
   const bindGroup = device.createBindGroup({
     label: 'silu_rowsplit_bind_group',
     layout: pipeline.getBindGroupLayout(0),
@@ -195,7 +195,6 @@ export async function runSiLURowSplit(
       { binding: 0, resource: { buffer: uniformBuffer } },
       { binding: 1, resource: { buffer: input } },
       { binding: 2, resource: { buffer: output } },
-      { binding: 3, resource: { buffer: input } },  // Dummy for gate binding
     ],
   });
 
@@ -242,6 +241,7 @@ export async function recordSiLURowSplit(
 
   const uniformBuffer = recorder.createUniformBuffer(uniformData, 'silu_rowsplit_uniforms');
 
+  // Rowsplit only needs uniforms, input, and output (no gate binding)
   const bindGroup = device.createBindGroup({
     label: 'silu_rowsplit_bind_group',
     layout: pipeline.getBindGroupLayout(0),
@@ -249,7 +249,6 @@ export async function recordSiLURowSplit(
       { binding: 0, resource: { buffer: uniformBuffer } },
       { binding: 1, resource: { buffer: input } },
       { binding: 2, resource: { buffer: output } },
-      { binding: 3, resource: { buffer: input } },  // Dummy for gate binding
     ],
   });
 

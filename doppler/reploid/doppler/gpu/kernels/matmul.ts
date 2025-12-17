@@ -269,10 +269,28 @@ export async function runMatmul(
     );
   }
 
+  // Calculate workgroup dispatch dimensions
+  // WebGPU limit: 65535 workgroups per dimension
+  const MAX_WORKGROUPS = 65535;
+  let workgroupsX: number, workgroupsY: number;
+
+  // Pre-calculate workgroups for GEMV variants to check for 2D dispatch need
+  let gemvWorkgroupsX = 0;
+  if (useGemv) {
+    if (variant === 'gemv_subgroup') {
+      gemvWorkgroupsX = Math.ceil(N / 4);  // 4 columns per workgroup
+    } else {
+      gemvWorkgroupsX = N;  // 1 column per workgroup
+    }
+  }
+
   // Create uniform buffer
   // Standard kernels: (M, N, K, alpha, transposeB) - 20 bytes
+  // GEMV subgroup: (M, N, K, alpha, transposeB, workgroups_x) - 24 bytes
   // Q4_K fused: (M, N, K, alpha, num_blocks_per_row) - 20 bytes
-  const uniformData = new ArrayBuffer(20);
+  const needsWorkgroupsX = variant === 'gemv_subgroup';
+  const uniformSize = needsWorkgroupsX ? 24 : 20;
+  const uniformData = new ArrayBuffer(uniformSize);
   const uniformView = new DataView(uniformData);
   uniformView.setUint32(0, M, true);
   uniformView.setUint32(4, N, true);
@@ -285,9 +303,22 @@ export async function runMatmul(
     uniformView.setUint32(16, transposeB ? 1 : 0, true);
   }
 
+  // For gemv_subgroup, add workgroups_x for 2D dispatch support
+  if (needsWorkgroupsX) {
+    // Use 2D dispatch if exceeds limit
+    if (gemvWorkgroupsX > MAX_WORKGROUPS) {
+      workgroupsX = MAX_WORKGROUPS;
+      workgroupsY = Math.ceil(gemvWorkgroupsX / MAX_WORKGROUPS);
+    } else {
+      workgroupsX = gemvWorkgroupsX;
+      workgroupsY = 1;
+    }
+    uniformView.setUint32(20, workgroupsX, true);
+  }
+
   const uniformBuffer = device.createBuffer({
     label: 'matmul_uniforms',
-    size: 20,
+    size: uniformSize,
     usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
   });
   device.queue.writeBuffer(uniformBuffer, 0, uniformData);
@@ -311,9 +342,9 @@ export async function runMatmul(
   pass.setBindGroup(0, bindGroup);
 
   const [wgX, wgY] = config.workgroupSize;
-  let workgroupsX: number, workgroupsY: number;
 
   // Dispatch based on kernel variant
+  // Note: workgroupsX/Y for gemv_subgroup already calculated above (supports 2D dispatch)
   if (useQ4KFused) {
     if (variant === 'q4_fused') {
       // Q4_K fused GEMV: one workgroup per output column
@@ -327,13 +358,12 @@ export async function runMatmul(
     }
   } else if (useGemv) {
     if (variant === 'gemv_subgroup') {
-      // Subgroup GEMV processes 4 columns per workgroup
-      workgroupsX = Math.ceil(N / 4);
+      // workgroupsX/Y already computed above with 2D dispatch support
     } else {
       // Original GEMV: one workgroup per output column
       workgroupsX = N;
+      workgroupsY = 1;
     }
-    workgroupsY = 1;
   } else if (variant === 'f16w_f32a_naive') {
     // Naive kernel: one thread per output
     workgroupsX = Math.ceil(N / wgX);
@@ -343,7 +373,7 @@ export async function runMatmul(
     workgroupsX = Math.ceil(M / wgX);
     workgroupsY = Math.ceil(N / wgY);
   }
-  pass.dispatchWorkgroups(workgroupsX, workgroupsY);
+  pass.dispatchWorkgroups(workgroupsX!, workgroupsY!);
   pass.end();
 
   device.queue.submit([encoder.finish()]);
@@ -471,10 +501,28 @@ export async function recordMatmul(
 
   const C = outputBuffer || acquireBuffer(outputSize, undefined, 'matmul_output');
 
+  // Calculate workgroup dispatch dimensions for GEMV
+  // WebGPU limit: 65535 workgroups per dimension
+  const MAX_WORKGROUPS = 65535;
+  let workgroupsX: number, workgroupsY: number;
+
+  // Pre-calculate workgroups for GEMV variants to check for 2D dispatch need
+  let gemvWorkgroupsX = 0;
+  if (useGemv) {
+    if (variant === 'gemv_subgroup') {
+      gemvWorkgroupsX = Math.ceil(N / 4);  // 4 columns per workgroup
+    } else {
+      gemvWorkgroupsX = N;  // 1 column per workgroup
+    }
+  }
+
   // Create uniform buffer (tracked by recorder for cleanup)
   // Standard kernels: (M, N, K, alpha, transposeB) - 20 bytes
+  // GEMV subgroup: (M, N, K, alpha, transposeB, workgroups_x) - 24 bytes
   // Q4_K fused: (M, N, K, alpha, num_blocks_per_row) - 20 bytes
-  const uniformData = new ArrayBuffer(20);
+  const needsWorkgroupsX = variant === 'gemv_subgroup';
+  const uniformSize = needsWorkgroupsX ? 24 : 20;
+  const uniformData = new ArrayBuffer(uniformSize);
   const uniformView = new DataView(uniformData);
   uniformView.setUint32(0, M, true);
   uniformView.setUint32(4, N, true);
@@ -485,6 +533,19 @@ export async function recordMatmul(
     uniformView.setUint32(16, numBlocksPerRow, true);
   } else {
     uniformView.setUint32(16, transposeB ? 1 : 0, true);
+  }
+
+  // For gemv_subgroup, add workgroups_x for 2D dispatch support
+  if (needsWorkgroupsX) {
+    // Use 2D dispatch if exceeds limit
+    if (gemvWorkgroupsX > MAX_WORKGROUPS) {
+      workgroupsX = MAX_WORKGROUPS;
+      workgroupsY = Math.ceil(gemvWorkgroupsX / MAX_WORKGROUPS);
+    } else {
+      workgroupsX = gemvWorkgroupsX;
+      workgroupsY = 1;
+    }
+    uniformView.setUint32(20, workgroupsX, true);
   }
 
   const uniformBuffer = recorder.createUniformBuffer(uniformData, 'matmul_uniforms');
@@ -507,9 +568,9 @@ export async function recordMatmul(
   pass.setBindGroup(0, bindGroup);
 
   const [wgX, wgY] = config.workgroupSize;
-  let workgroupsX: number, workgroupsY: number;
 
   // Dispatch based on kernel variant
+  // Note: workgroupsX/Y for gemv_subgroup already calculated above (supports 2D dispatch)
   if (useQ4KFused) {
     if (variant === 'q4_fused') {
       // Q4_K fused GEMV: one workgroup per output column
@@ -523,13 +584,12 @@ export async function recordMatmul(
     }
   } else if (useGemv) {
     if (variant === 'gemv_subgroup') {
-      // Subgroup GEMV processes 4 columns per workgroup
-      workgroupsX = Math.ceil(N / 4);
+      // workgroupsX/Y already computed above with 2D dispatch support
     } else {
       // Original GEMV: one workgroup per output column
       workgroupsX = N;
+      workgroupsY = 1;
     }
-    workgroupsY = 1;
   } else if (variant === 'f16w_f32a_naive') {
     workgroupsX = Math.ceil(N / wgX);
     workgroupsY = 1;

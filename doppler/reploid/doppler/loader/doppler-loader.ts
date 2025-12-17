@@ -113,10 +113,24 @@ export interface ExpertWeights {
  * Loading progress information
  */
 export interface LoadProgress {
-  stage: 'manifest' | 'layers' | 'complete';
+  stage: 'manifest' | 'shards' | 'layers' | 'gpu_transfer' | 'complete';
   progress: number;
+  /** Current layer index */
   layer?: number;
+  /** Total layers */
   total?: number;
+  /** Current shard index */
+  shard?: number;
+  /** Total shards */
+  totalShards?: number;
+  /** Bytes loaded so far */
+  bytesLoaded?: number;
+  /** Total bytes to load */
+  totalBytes?: number;
+  /** Loading speed in bytes per second */
+  bytesPerSecond?: number;
+  /** Human-readable message */
+  message?: string;
 }
 
 /**
@@ -426,11 +440,64 @@ export class DopplerLoader {
     // Build tensor location map from manifest
     this._buildTensorLocations();
 
+    // Calculate total bytes for progress tracking
+    const totalBytes = (this.manifest.shards || []).reduce((sum, s) => sum + (s.size || 0), 0);
+    const totalShards = this.manifest.shards?.length || 0;
+    const loadStartTime = Date.now();
+    let bytesLoaded = 0;
+    let shardsLoaded = 0;
+
+    // Helper to format bytes
+    const formatBytes = (bytes: number): string => {
+      if (bytes >= 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024 * 1024)).toFixed(1)} GB`;
+      if (bytes >= 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+      if (bytes >= 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+      return `${bytes} B`;
+    };
+
+    // Helper to calculate speed
+    const getSpeed = (): number => {
+      const elapsed = (Date.now() - loadStartTime) / 1000;
+      return elapsed > 0 ? bytesLoaded / elapsed : 0;
+    };
+
+    // Helper to report detailed progress
+    const reportProgress = (stage: LoadProgress['stage'], baseProgress: number, detail?: string): void => {
+      if (!onProgress) return;
+      const speed = getSpeed();
+      const speedStr = speed > 0 ? `${formatBytes(speed)}/s` : '';
+      const message = detail ||
+        `${formatBytes(bytesLoaded)} / ${formatBytes(totalBytes)} ${speedStr ? `• ${speedStr}` : ''}`;
+      onProgress({
+        stage,
+        progress: baseProgress,
+        shard: shardsLoaded,
+        totalShards,
+        bytesLoaded,
+        totalBytes,
+        bytesPerSecond: speed,
+        message,
+      });
+    };
+
     if (onProgress) {
-      onProgress({ stage: 'manifest', progress: 0.05 });
+      onProgress({ stage: 'manifest', progress: 0.05, message: 'Parsing manifest...' });
     }
 
+    // Track shard loading with progress
+    const originalLoadShard = this._loadShard.bind(this);
+    this._loadShard = async (shardIndex: number): Promise<ArrayBuffer> => {
+      const shardInfo = this.manifest?.shards?.[shardIndex];
+      const shardSize = shardInfo?.size || 0;
+      const data = await originalLoadShard(shardIndex);
+      bytesLoaded += shardSize;
+      shardsLoaded++;
+      reportProgress('shards', 0.1 + (bytesLoaded / totalBytes) * 0.7);
+      return data;
+    };
+
     // Load embeddings (always needed)
+    reportProgress('shards', 0.1, 'Loading embeddings...');
     await this._loadEmbeddings(onProgress);
 
     // Load layers
@@ -446,12 +513,25 @@ export class DopplerLoader {
       await this._loadLayer(l, onProgress);
 
       if (onProgress) {
-        const layerProgress = 0.1 + (l / numLayers) * 0.8;
-        onProgress({ stage: 'layers', layer: l, total: numLayers, progress: layerProgress });
+        const layerProgress = 0.1 + (bytesLoaded / totalBytes) * 0.7;
+        const speed = getSpeed();
+        onProgress({
+          stage: 'layers',
+          layer: l + 1,
+          total: numLayers,
+          progress: layerProgress,
+          shard: shardsLoaded,
+          totalShards,
+          bytesLoaded,
+          totalBytes,
+          bytesPerSecond: speed,
+          message: `Layer ${l + 1}/${numLayers} • ${formatBytes(bytesLoaded)} / ${formatBytes(totalBytes)} • ${formatBytes(speed)}/s`,
+        });
       }
     }
 
     // Load final norm and LM head
+    reportProgress('gpu_transfer', 0.85, 'Loading final weights...');
     await this._loadFinalWeights(onProgress);
 
     if (onProgress) {

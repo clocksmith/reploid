@@ -243,8 +243,14 @@ async function main(): Promise<void> {
           pathname = '/landing.html';
         } else if (pathname === '/r' || pathname.startsWith('/r/')) {
           pathname = '/reploid.html';
-        } else if (pathname === '/d' || pathname.startsWith('/d/')) {
+        } else if (pathname === '/d') {
           pathname = '/doppler/index.html';
+        } else if (pathname.startsWith('/d/')) {
+          // Rewrite /d/* to /doppler/* (models, tests, etc.)
+          pathname = '/doppler' + pathname.slice(2);
+        } else if (pathname.startsWith('/models/')) {
+          // Rewrite /models/* to /doppler/models/* for API compatibility
+          pathname = '/doppler' + pathname;
         }
       } else {
         // Doppler-only mode: serve index.html at /

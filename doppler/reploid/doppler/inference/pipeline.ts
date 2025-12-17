@@ -158,6 +158,9 @@ export class InferencePipeline {
   private _debugFlags: Record<string, boolean> = {};
   private _decodeStepCount = 0;
 
+  // Progress callback
+  private _onProgress: ((progress: { percent: number; message?: string; stage?: string; layer?: number; total?: number }) => void) | null = null;
+
   constructor() {}
 
   // ==========================================================================
@@ -177,6 +180,7 @@ export class InferencePipeline {
       this.attentionKernelOverride = normalizeAttentionKernel(contexts.runtime.attentionKernel);
     }
     if (contexts.runtime?.debug) this.debug = true;
+    if (contexts.onProgress) this._onProgress = contexts.onProgress;
 
     const device = getDevice();
     if (device) setGPUDevice(device);
@@ -250,7 +254,20 @@ export class InferencePipeline {
       this.modelConfig!,
       {
         storageContext: this.storageContext ?? undefined,
-        onProgress: (info) => console.log(`[Pipeline] Loading: ${info.stage} - ${Math.round(info.progress * 100)}%`),
+        onProgress: (info: any) => {
+          // Log to console
+          console.log(`[Pipeline] Loading: ${info.stage} - ${Math.round(info.progress * 100)}%${info.message ? ` - ${info.message}` : ''}`);
+          // Forward to UI callback if set
+          if (this._onProgress) {
+            this._onProgress({
+              percent: info.progress * 100,
+              message: info.message,
+              stage: info.stage,
+              layer: info.layer,
+              total: info.total,
+            });
+          }
+        },
         // Skip hash verification - already verified during download
         verifyHashes: false,
       }
@@ -483,7 +500,13 @@ export class InferencePipeline {
       }
 
       if (prevStates instanceof GPUBuffer && prevStates !== hiddenStates) {
-        releaseBuffer(prevStates);
+        // When using recorder, track for deferred cleanup after submit
+        // (releasing now would allow pool reuse before recorded ops execute)
+        if (recorder) {
+          recorder.trackTemporaryBuffer(prevStates);
+        } else {
+          releaseBuffer(prevStates);
+        }
       }
     }
 
@@ -602,7 +625,13 @@ export class InferencePipeline {
       const prevStates = hiddenStates;
       hiddenStates = await processLayer(l, hiddenStates, numTokens, false, context) as GPUBuffer;
       if (prevStates instanceof GPUBuffer && prevStates !== hiddenStates) {
-        releaseBuffer(prevStates);
+        // When using recorder, track for deferred cleanup after submit
+        // (releasing now would allow pool reuse before recorded ops execute)
+        if (recorder) {
+          recorder.trackTemporaryBuffer(prevStates);
+        } else {
+          releaseBuffer(prevStates);
+        }
       }
     }
 

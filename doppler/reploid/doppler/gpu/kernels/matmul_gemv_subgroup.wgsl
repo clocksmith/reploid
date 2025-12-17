@@ -26,6 +26,7 @@ struct Uniforms {
     K: u32,
     alpha: f32,
     transposeB: u32,
+    workgroups_x: u32,  // For 2D dispatch when N > 65535*4
 }
 
 @group(0) @binding(0) var<uniform> uniforms: Uniforms;
@@ -51,8 +52,10 @@ fn main(
     let col_in_wg = local_id / THREADS_PER_COL;
     let thread_in_col = local_id % THREADS_PER_COL;
 
-    // Global output column
-    let base_col = wg_id.x * COLS_PER_WG;
+    // Global output column (supports 2D dispatch for large N)
+    // Linear workgroup ID = wg_id.y * workgroups_x + wg_id.x
+    let wg_linear = wg_id.y * uniforms.workgroups_x + wg_id.x;
+    let base_col = wg_linear * COLS_PER_WG;
     let col = base_col + col_in_wg;
 
     // Track validity - NO early return to maintain uniform control flow
@@ -135,7 +138,9 @@ fn main_vec4(
     let col_in_wg = local_id / THREADS_PER_COL;
     let thread_in_col = local_id % THREADS_PER_COL;
 
-    let base_col = wg_id.x * COLS_PER_WG;
+    // Global output column (supports 2D dispatch for large N)
+    let wg_linear = wg_id.y * uniforms.workgroups_x + wg_id.x;
+    let base_col = wg_linear * COLS_PER_WG;
     let col = base_col + col_in_wg;
 
     // Track validity - NO early return to maintain uniform control flow
