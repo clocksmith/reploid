@@ -34,6 +34,29 @@ Browser-native LLM inference engine powered by WebGPU.
 └─────────────────────────────────────────────────────┘
 ```
 
+## Why Pure JS + WGSL
+
+DOPPLER uses **JavaScript orchestration** with **hand-written WGSL kernels**. No TVM compiler, no WASM runtime.
+
+**The math:** GPU compute is 96% of decode time. JS orchestration is 2%. Optimizing 2% with WASM doesn't matter.
+
+| | WebLLM (TVM/WASM) | DOPPLER (JS/WGSL) |
+|---|---|---|
+| Unit of distribution | Compiled model binary | Weight shards + shared kernels |
+| Runtime LoRA | Impossible (fused at compile) | Hot-swap at runtime |
+| Expert paging | Fixed at compile | Dynamic (bind different buffers) |
+| Device-specific kernels | One binary fits all | Per-device optimization |
+| P2P integration | Awkward (binary blob) | Native (JS fetch/WebRTC) |
+| Debugging | Hard (compiled) | Chrome DevTools |
+
+**Unique capabilities enabled by this architecture:**
+- Flash Attention in pure WGSL (no other browser framework has this)
+- GPU-native MoE routing with custom scatter-add kernels
+- Runtime kernel hot-swap for device-specific optimization
+- Native Bridge for mmap access to local files (bypasses OPFS limits)
+
+See [Competitive Analysis](docs/analysis/COMPETITIVE.md) for full technical comparison.
+
 ## Quick Start
 
 ```bash
