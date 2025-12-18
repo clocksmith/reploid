@@ -717,7 +717,9 @@ export class InferencePipeline {
     }
 
     // Try GPU-side sampling for deferred readback (avoids ~1MB logits readback)
-    const useGPUSampling = this.useGPU && isGPUSamplingAvailable() && !isDebugStep;
+    // NOTE: Always use GPU sampling when available for 2x speedup (from ~600ms to ~300ms per token)
+    // Debug info (logitsSanity) is only available in CPU fallback path
+    const useGPUSampling = this.useGPU && isGPUSamplingAvailable();
 
     if (useGPUSampling) {
       // GPU path: compute logits on GPU, sample on GPU, read back only 4 bytes
