@@ -94,13 +94,76 @@
 | Store layout metadata in manifest | P0 | ✅ Done | `weightsTransposed: true` in manifest |
 | Update matmul kernel selection | P0 | ✅ Done | `matmul.ts` handles `transposeB` based on layout |
 | Re-convert test models with column layout | P0 | ✅ Done | Use `--transpose-weights` flag |
+| **Column-wise Q4K quantization** | P0 | ⬜ TODO | Transpose before quantize, new kernel |
 
 **Implementation:** `rdrr-writer.ts` has `transposeWeights` option that pre-transposes matmul weights. Manifest stores `weightsTransposed: true`. Loader sets `transposeB: false` when weights are pre-transposed.
 
+#### Why Column-Major is Faster (GPU Coalescing)
+
+**The operation:** `output[1, out] = input[1, K] @ weight[out, K]^T`
+
+When threads in a GPU warp access consecutive memory addresses, the hardware coalesces into a single transaction. Strided access splits into multiple transactions → high latency.
+
 ```
-Row-major W[out, in]:     GPU reads strided
-Column-major W^T[in, out]: GPU reads contiguous → 1.5-2x faster
+Row-major W[out, K]:
+Thread 0 reads W[0, 0]    ← address 0
+Thread 1 reads W[1, 0]    ← address K (strided - BAD)
+Thread 2 reads W[2, 0]    ← address 2K
+
+Column-major W^T[K, out]:
+Thread 0 reads W^T[0, 0]  ← address 0
+Thread 1 reads W^T[0, 1]  ← address 1 (contiguous - GOOD)
+Thread 2 reads W^T[0, 2]  ← address 2
 ```
+
+| Layout | Memory Pattern | GPU Coalescing | Performance |
+|--------|----------------|----------------|-------------|
+| Row-major W[out, K] | Row i contiguous | Threads read strided | Slower |
+| Column-major W^T[K, out] | Column i contiguous | Threads read contiguous | **1.5-2x faster** |
+
+#### Current State by Format
+
+| Format | Current Layout | Optimal Layout | Status |
+|--------|---------------|----------------|--------|
+| F16/BF16 | Column-major ✅ | Column-major | Done |
+| Q4K | Flat packed ❌ | Column-wise blocks | **Needs work** |
+
+#### Q4K Block Layout Problem
+
+Q4K has 256-value super-blocks with embedded metadata:
+```
+Block (144 bytes): [d: f16, dmin: f16, scales: 12B, nibbles: 128B]
+```
+
+**Current (flat packed):** Blocks cross row boundaries
+```
+Flat: [blk0][blk1][blk2][blk3][blk4][blk5]...
+       ←─row 0──→←─row 0──→←row 1→←─row 1──→  ← WRONG!
+```
+
+**Row-wise Q4K:** Blocks aligned to rows (current kernel expectation)
+```
+Row 0: [blk0][blk1][blk2][pad]  ← K=1152 needs 5 blocks
+Row 1: [blk3][blk4][blk5][pad]
+```
+
+**Column-wise Q4K:** Blocks aligned to columns (optimal, needs new kernel)
+```
+Col 0: [blk0][blk1][blk2]...  ← column blocks contiguous
+Col 1: [blk3][blk4][blk5]...  ← coalesced thread access
+```
+
+#### Fix Path for Column-wise Q4K
+
+1. Transpose weight matrix BEFORE quantization
+2. Run Q4K quantization on transposed matrix (blocks along original columns)
+3. Update fused kernel for column-wise block addressing
+4. Expected speedup: **1.5-2x** (same as F16 column-major gains)
+
+**References:**
+- [NVIDIA Efficient Matrix Transpose](https://developer.nvidia.com/blog/efficient-matrix-transpose-cuda-cc/)
+- [WebGPU Matmul 1TFLOP Optimization](https://www.nuss-and-bolts.com/p/optimizing-a-webgpu-matmul-kernel)
+- [llama.cpp K-Quants Discussion](https://github.com/ggml-org/llama.cpp/discussions/5063)
 
 ### 1.7 Enable Fused Q4K Matmul
 
