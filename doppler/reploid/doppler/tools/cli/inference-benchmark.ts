@@ -22,7 +22,7 @@ function buildBenchmarkScript(opts: CLIOptions, modelPath: string, customPromptT
       topK: 1,
       topP: 1,
     },
-    debug: true,
+    debug: false,  // Enables command buffer batching for 100x fewer GPU submits
     debugLayers: opts.debugLayers,
   };
 
