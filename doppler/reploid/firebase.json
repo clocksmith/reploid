@@ -20,7 +20,10 @@
       "playwright-report/**",
       "doppler/tools/*-rdrr/**",
       "doppler/models/**",
+      "doppler/tests/**",
       "**/*.gguf",
+      "**/*.bin",
+      "**/*.safetensors",
       "runs/**"
     ],
     "rewrites": [
