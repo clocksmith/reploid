@@ -1,8 +1,8 @@
 # Reploid - browser-based agent sandbox
 
-**R**ecursive **E**volution **P**rotocol **L**oop **O**rchestrating **I**nference [**D**oppler](doppler/reploid/doppler/README.md) (**D**istributed **O**n-device **P**ipeline **P**rocessing **L**arge **E**mbedded [**R**eploid](doppler/reploid/README.md) (... ∞))
+**[replo.id](https://replo.id)**
 
-- **[replo.id](https://replo.id)**
+**R**ecursive **E**volution **P**rotocol **L**oop **O**rchestrating **I**nference [**D**oppler](doppler/reploid/doppler/README.md) (**D**istributed **O**n-device **P**ipeline **P**rocessing **L**arge **E**mbedded [**R**eploid](doppler/reploid/README.md) (... ∞))
 
 - Runs fully in the browser (offline-capable)
 - Self-modifies: tools live in the VFS and hot-reload instantly
