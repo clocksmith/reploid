@@ -55,35 +55,9 @@ DOPPLER is the "Neuro Computer" that powers REPLOID agents. It runs large langua
 - **RDRR format** - Optimized model format for browser delivery
 - **MoE support** - Mixture of Experts with GPU-native routing
 
-## Directory Structure
-
-```
-doppler/
-├── app/            # Application UI
-├── docs/           # Documentation
-├── gpu/            # WebGPU kernels and device management
-├── inference/      # Inference pipeline
-├── loader/         # Model loading and weight management
-├── memory/         # Memory management and heap allocation
-├── storage/        # OPFS caching and shard management
-├── bridge/         # External runtime bridge (llama.cpp etc)
-├── browser/        # Browser-specific utilities
-├── tools/          # Model conversion and utilities
-├── debug/          # Unified debugging and testing
-└── tests/          # Test suite
-```
-
 ## Quick Start
 
 ### CLI Setup
-
-Add this alias to your shell (e.g., `~/.zshrc`):
-
-```bash
-alias doppler='npm run doppler --'
-```
-
-Then reload: `source ~/.zshrc`
 
 ### Run the Demo
 
