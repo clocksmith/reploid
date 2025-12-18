@@ -21,7 +21,7 @@ Defines a standardized benchmark harness for DOPPLER so performance claims are m
 | Results export (JSON) | ✅ Implemented | `tests/benchmark/results-storage.ts` |
 | Results directory | ✅ Implemented | `tests/results/` |
 | Comparison utilities | ✅ Implemented | `tests/benchmark/results-storage.ts` |
-| CLI tool | ✅ Implemented | `tools/benchmark-cli.ts` |
+| CLI tool | ✅ Implemented | `tools/doppler-cli.ts` |
 
 ### Claude Skill
 
@@ -137,6 +137,11 @@ Each benchmark suite runs:
 - `cold`: OPFS empty (or model directory deleted), then download and load.
 - `warm`: model already cached in OPFS, then load and run.
 
+**CLI note:** When running via `tools/doppler-cli.ts`, OPFS persistence depends on using a stable Playwright profile directory. Use `--profile-dir` to explicitly control this:
+
+- `warm`: reuse the same `--profile-dir`
+- `cold`: use a fresh `--profile-dir` (or delete the profile dir)
+
 ### Warmup
 
 Perform warmup passes to avoid shader compilation skew:
@@ -226,19 +231,20 @@ For WebLLM comparisons, record:
 
 ### CLI (Recommended)
 
-The CLI is the single entry point for running benchmarks:
+The CLI is the single entry point for running benchmarks (server auto-starts):
 
 ```bash
-# Start dev server first
-npm run dev
+# Quick benchmark with xs prompt (headed browser)
+doppler bench inference --prompt xs --headed
 
-# Run benchmarks
-npx tsx tools/benchmark-cli.ts gemma-1b                    # Default pipeline benchmark
-npx tsx tools/benchmark-cli.ts gemma-1b --suite quick      # Fast validation
-npx tsx tools/benchmark-cli.ts gemma-1b --suite full       # All prompt sizes
-npx tsx tools/benchmark-cli.ts gemma-1b --suite system     # Download/storage perf
-npx tsx tools/benchmark-cli.ts gemma-1b --runs 5 --prompt medium
-npx tsx tools/benchmark-cli.ts --help                      # Show all options
+# Standard benchmarks
+doppler bench inference                        # Headless (default: gemma3-1b-q4)
+doppler bench inference --headed               # With visible browser window
+
+# Custom options
+doppler bench inference --prompt medium        # Different prompt size (xs/short/medium/long)
+doppler bench inference --runs 3               # Multiple runs for statistics
+doppler --help                                 # Show all CLI options
 ```
 
 Results auto-save to `tests/results/{suite}_{model}_{timestamp}.json`
@@ -252,7 +258,7 @@ For interactive benchmarking in the browser DevTools console:
 ```typescript
 import { runQuickBenchmark, formatBenchmarkSummary } from './tests/benchmark/index.js';
 
-const result = await runQuickBenchmark('http://localhost:8080/models/gemma-1b');
+const result = await runQuickBenchmark('http://localhost:8080/models/gemma-3-1b-q4');
 console.log(formatBenchmarkSummary(result));
 console.log(JSON.stringify(result, null, 2));
 ```
@@ -263,7 +269,7 @@ console.log(JSON.stringify(result, null, 2));
 import { PipelineBenchmark } from './tests/benchmark/index.js';
 
 const harness = new PipelineBenchmark({
-  modelPath: 'http://localhost:8080/models/gemma-1b',
+  modelPath: 'http://localhost:8080/models/gemma-3-1b-q4',
   promptName: 'medium',
   maxNewTokens: 128,
   warmupRuns: 2,
@@ -279,7 +285,7 @@ const result = await harness.run();
 ```typescript
 import { runSystemBenchmark, formatSystemSummary } from './tests/benchmark/index.js';
 
-const result = await runSystemBenchmark('http://localhost:8080/models/gemma-1b');
+const result = await runSystemBenchmark('http://localhost:8080/models/gemma-3-1b-q4');
 console.log(formatSystemSummary(result));
 ```
 
@@ -301,7 +307,7 @@ await saveResult(result);
 downloadAsJSON(result);
 
 // Compare historical results
-const history = await loadResultsByModel('gemma-1b');
+const history = await loadResultsByModel('gemma-3-1b-q4');
 if (history.length >= 2) {
   const deltas = comparePipelineResults(history[0], history[1]);
   console.log(formatComparison(deltas));
@@ -312,6 +318,7 @@ if (history.length >= 2) {
 
 | Name | Token Range | Use Case |
 |------|-------------|----------|
+| `xs` | 6-10 | Fast iteration ("The color of the sky is") |
 | `short` | 16-64 | Quick validation |
 | `medium` | 256-512 | Standard benchmark |
 | `long` | ~2048 | Stress test |

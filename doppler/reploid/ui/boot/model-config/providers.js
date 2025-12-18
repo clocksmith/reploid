@@ -151,9 +151,11 @@ export function setStatusChangeCallback(callback) {
 // Check availability of all providers with progressive UI updates
 export async function checkAvailability() {
     const providers = getAvailableProviders();
-    const proxyUrl = window.location.origin.includes('file://')
+    // Use port 8000 for local dev (file:// or localhost:8080), otherwise same origin
+    const origin = window.location.origin;
+    const proxyUrl = origin.includes('file://') || origin.includes('localhost:8080')
         ? 'http://localhost:8000'
-        : window.location.origin;
+        : origin;
 
     // Check WebGPU immediately (synchronous check)
     providers.webgpu.online = !!navigator.gpu;

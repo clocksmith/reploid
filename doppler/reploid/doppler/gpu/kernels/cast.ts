@@ -72,6 +72,10 @@ export async function castF32ToF16(
 
   device.queue.submit([encoder.finish()]);
 
+  // Wait for GPU work to complete before returning
+  // Critical for large tensors (embeddings/lm_head) that may take time to convert
+  await device.queue.onSubmittedWorkDone();
+
   uniformBuffer.destroy();
 
   setBufferDtype(output, 'f16');
@@ -143,13 +147,22 @@ export async function runBF16ToF32(
 
   // Check for size limits (handle chunking if needed)
   const limits = device.limits;
-  const maxBufferSize = limits.maxStorageBufferBindingSize;
+  const maxBufferSize = limits.maxBufferSize;
+  const maxBindingSize = limits.maxStorageBufferBindingSize;
   const outputSize = numElements * 4; // F32
-  console.log(`[BF16ToF32] outputSize=${outputSize}, maxBufferSize=${maxBufferSize}, needsChunking=${outputSize > maxBufferSize}`);
+  console.log(`[BF16ToF32] outputSize=${outputSize}, maxBufferSize=${maxBufferSize}, maxBindingSize=${maxBindingSize}`);
 
   if (outputSize > maxBufferSize) {
-    // Need to chunk - call chunked version
-    return runBF16ToF32Chunked(input, numElements, name, maxBufferSize);
+    throw new Error(
+      `BF16→F32 output (${outputSize} bytes) exceeds device maxBufferSize (${maxBufferSize}). ` +
+      `This often happens for large-vocab models when converting embeddings/LM head. ` +
+      `Enable F16 and use BF16→F16 weights, or run on a device with a higher maxBufferSize.`
+    );
+  }
+
+  if (outputSize > maxBindingSize) {
+    // Need to chunk - output buffer can exist, but must be bound in smaller ranges.
+    return runBF16ToF32Chunked(input, numElements, name, maxBindingSize);
   }
 
   // DEBUG: Verify input buffer has non-zero data before conversion
@@ -241,19 +254,120 @@ export async function runBF16ToF32(
 }
 
 /**
+ * Convert BF16 buffer to F16 on GPU (no intermediate F32 buffer)
+ */
+export async function runBF16ToF16(
+  input: GPUBuffer,
+  numElements: number,
+  name: string = 'bf16_to_f16_output'
+): Promise<GPUBuffer> {
+  const device = getDevice();
+  const pipeline = await createPipeline('bf16_to_f16', 'default');
+
+  const limits = device.limits;
+  const maxBufferSize = limits.maxBufferSize;
+  const maxBindingSize = limits.maxStorageBufferBindingSize;
+  const outputSize = numElements * 2; // F16
+
+  if (outputSize > maxBufferSize) {
+    throw new Error(
+      `BF16→F16 output (${outputSize} bytes) exceeds device maxBufferSize (${maxBufferSize}).`
+    );
+  }
+  if (outputSize > maxBindingSize) {
+    throw new Error(
+      `BF16→F16 output (${outputSize} bytes) exceeds device maxStorageBufferBindingSize (${maxBindingSize}).`
+    );
+  }
+
+  const output = acquireBuffer(outputSize, undefined, name);
+
+  const uniformData = new ArrayBuffer(16);
+  const uniformView = new DataView(uniformData);
+  uniformView.setUint32(0, numElements, true);
+  uniformView.setUint32(4, 0, true);
+  uniformView.setUint32(8, 0, true);
+
+  const uniformBuffer = device.createBuffer({
+    label: 'bf16_to_f16_uniforms',
+    size: 16,
+    usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+  });
+  device.queue.writeBuffer(uniformBuffer, 0, uniformData);
+
+  const bindGroup = device.createBindGroup({
+    label: 'bf16_to_f16_bind_group',
+    layout: pipeline.getBindGroupLayout(0),
+    entries: [
+      { binding: 0, resource: { buffer: uniformBuffer } },
+      { binding: 1, resource: { buffer: input } },
+      { binding: 2, resource: { buffer: output } },
+    ],
+  });
+
+  const encoder = device.createCommandEncoder({ label: 'bf16_to_f16_encoder' });
+  const pass = encoder.beginComputePass({ label: 'bf16_to_f16_pass' });
+  pass.setPipeline(pipeline);
+  pass.setBindGroup(0, bindGroup);
+
+  const numPairs = Math.ceil(numElements / 2);
+  const workgroups = Math.ceil(numPairs / 256);
+  const maxWorkgroupsPerDim = 65535;
+  if (workgroups <= maxWorkgroupsPerDim) {
+    pass.dispatchWorkgroups(workgroups, 1, 1);
+  } else {
+    const workgroupsX = maxWorkgroupsPerDim;
+    const workgroupsY = Math.ceil(workgroups / maxWorkgroupsPerDim);
+    pass.dispatchWorkgroups(workgroupsX, workgroupsY, 1);
+  }
+  pass.end();
+
+  device.queue.submit([encoder.finish()]);
+  await device.queue.onSubmittedWorkDone();
+
+  uniformBuffer.destroy();
+
+  setBufferDtype(output, 'f16');
+  return output;
+}
+
+/**
  * Convert BF16 to F32 in chunks (for large buffers)
  */
 async function runBF16ToF32Chunked(
   input: GPUBuffer,
   numElements: number,
   name: string,
-  maxBufferSize: number
+  maxBindingSize: number
 ): Promise<GPUBuffer> {
   const device = getDevice();
   const pipeline = await createPipeline('bf16_to_f32', 'default');
 
   // Calculate chunk size
-  const maxElementsPerChunk = Math.floor(maxBufferSize / 4); // F32 output
+  const alignmentBytes = device.limits.minStorageBufferOffsetAlignment;
+  const lcm = (a: number, b: number): number => {
+    const gcd = (x: number, y: number): number => {
+      let a0 = x;
+      let b0 = y;
+      while (b0 !== 0) {
+        const t = b0;
+        b0 = a0 % b0;
+        a0 = t;
+      }
+      return a0;
+    };
+    return (a / gcd(a, b)) * b;
+  };
+
+  const inElemAlign = Math.max(1, Math.floor(alignmentBytes / 2)); // BF16 elements
+  const outElemAlign = Math.max(1, Math.floor(alignmentBytes / 4)); // F32 elements
+  const elemAlign = lcm(inElemAlign, outElemAlign);
+
+  let maxElementsPerChunk = Math.floor(maxBindingSize / 4); // F32 output bytes
+  maxElementsPerChunk -= maxElementsPerChunk % elemAlign;
+  if (maxElementsPerChunk <= 0) {
+    throw new Error(`BF16→F32 chunk size underflow (maxBindingSize=${maxBindingSize}, alignment=${alignmentBytes})`);
+  }
   const numChunks = Math.ceil(numElements / maxElementsPerChunk);
 
   // Create full output buffer
@@ -270,8 +384,8 @@ async function runBF16ToF32Chunked(
     const uniformData = new ArrayBuffer(16);
     const uniformView = new DataView(uniformData);
     uniformView.setUint32(0, chunkSize, true);
-    uniformView.setUint32(4, chunkStart, true); // input offset
-    uniformView.setUint32(8, chunkStart, true); // output offset
+    uniformView.setUint32(4, 0, true);
+    uniformView.setUint32(8, 0, true);
 
     const uniformBuffer = device.createBuffer({
       label: `bf16_to_f32_chunk${chunkIdx}_uniforms`,
@@ -280,13 +394,19 @@ async function runBF16ToF32Chunked(
     });
     device.queue.writeBuffer(uniformBuffer, 0, uniformData);
 
+    const inputOffsetBytes = chunkStart * 2;
+    const outputOffsetBytes = chunkStart * 4;
+    const inputPairs = Math.ceil(chunkSize / 2);
+    const inputSizeBytes = inputPairs * 4;
+    const outputSizeBytes = chunkSize * 4;
+
     const bindGroup = device.createBindGroup({
       label: `bf16_to_f32_chunk${chunkIdx}_bind_group`,
       layout: pipeline.getBindGroupLayout(0),
       entries: [
         { binding: 0, resource: { buffer: uniformBuffer } },
-        { binding: 1, resource: { buffer: input } },
-        { binding: 2, resource: { buffer: output } },
+        { binding: 1, resource: { buffer: input, offset: inputOffsetBytes, size: inputSizeBytes } },
+        { binding: 2, resource: { buffer: output, offset: outputOffsetBytes, size: outputSizeBytes } },
       ],
     });
 

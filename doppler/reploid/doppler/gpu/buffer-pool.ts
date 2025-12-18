@@ -80,6 +80,20 @@ function getSizeBucket(size: number, maxAllowedSize: number = Infinity): number 
   const minBucket = 256;
   if (size <= minBucket) return minBucket;
 
+  // Avoid power-of-two rounding for very large buffers.
+  // For weights and large activations, rounding 600MB → 1GB can cause OOM even when the
+  // exact-sized buffer would fit. Use coarse-grained bucketing to retain most pooling
+  // benefits without 2x blowups.
+  const largeThreshold = 32 * 1024 * 1024; // 32MB
+  if (size >= largeThreshold) {
+    const largeStep = 16 * 1024 * 1024; // 16MB
+    const bucket = Math.ceil(size / largeStep) * largeStep;
+    if (bucket > maxAllowedSize) {
+      return alignTo(size, 256);
+    }
+    return bucket;
+  }
+
   // Round up to next power of 2
   // Use Math.pow instead of bit shift to avoid 32-bit signed integer overflow
   // (1 << 31 = -2147483648 in JavaScript due to signed 32-bit arithmetic)

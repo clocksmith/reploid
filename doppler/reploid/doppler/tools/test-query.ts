@@ -4,7 +4,7 @@
  *
  * Usage:
  *   npx tsx tools/test-query.ts "the color of the sky is "
- *   npx tsx tools/test-query.ts --model gemma3-1b-q4 "hello world"
+ *   npx tsx tools/test-query.ts --model gemma-3-1b-it-q4 "hello world"
  *   npx tsx tools/test-query.ts --repl  # Interactive mode with cached model
  */
 
@@ -28,7 +28,7 @@ interface Options {
 function parseArgs(argv: string[]): Options {
   const opts: Options = {
     prompt: 'the color of the sky is ',
-    model: 'gemma3-1b-q4',
+    model: 'gemma-3-1b-it-q4',
     baseUrl: 'http://localhost:8080/d',
     maxTokens: 32,
     timeout: 120000,
@@ -68,7 +68,7 @@ Usage:
   npx tsx tools/test-query.ts --repl   # Interactive REPL mode
 
 Options:
-  --model, -m <name>   Model name (default: gemma3-1b-q4)
+  --model, -m <name>   Model name (default: gemma-3-1b-it-q4)
   --base-url, -u <url> Server URL (default: http://localhost:8080/d)
   --max-tokens, -t <n> Max tokens (default: 32)
   --timeout <ms>       Timeout (default: 120000)
@@ -85,7 +85,7 @@ REPL Commands:
 Examples:
   npx tsx tools/test-query.ts "the color of the sky is "
   npx tsx tools/test-query.ts --repl
-  npx tsx tools/test-query.ts -m gemma3-1b-q4 -t 64 "once upon a time"
+  npx tsx tools/test-query.ts -m gemma-3-1b-it-q4 -t 64 "once upon a time"
 `);
         process.exit(0);
       default:

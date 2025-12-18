@@ -259,6 +259,169 @@ test.describe('Matrix Multiplication Kernel', () => {
     });
   });
 
+  test.describe('Q4K Fused Matmul', () => {
+    test('should compute C = A @ dequant(B_q4k) correctly for M=1 (GEMV)', async ({ gpuPage }) => {
+      const result = await gpuPage.evaluate(async (): Promise<MatmulResult> => {
+        const { matmulRef, quantizeQ4_KRef, dequantQ4_KRef } = window.testHarness.references;
+
+        // M=1 uses q4_fused kernel (GEMV variant)
+        const M = 1, K = 256, N = 4;  // K must be multiple of 256 for Q4K
+
+        // Create activation matrix A[M, K]
+        const A = new Float32Array(M * K);
+        for (let i = 0; i < A.length; i++) {
+          A[i] = (Math.random() * 2 - 1) * 0.5;
+        }
+
+        // Create weight matrix B[N, K] (N output rows, K input cols)
+        const B_f32 = new Float32Array(N * K);
+        for (let i = 0; i < B_f32.length; i++) {
+          B_f32[i] = (Math.random() * 2 - 1) * 0.5;
+        }
+
+        // Quantize B to Q4K format
+        const numBlocks = N * (K / 256);  // N rows × (K/256) blocks per row
+        const B_q4k = quantizeQ4_KRef(B_f32, numBlocks);
+
+        // Reference: dequant then matmul
+        const B_dequant = dequantQ4_KRef(B_q4k, numBlocks);
+        // matmulRef expects B[K, N] for C[M,N] = A[M,K] @ B[K,N]
+        // But B_dequant is [N, K], so we need to compute A @ B^T
+        // which is sum_k(A[m,k] * B[n,k]) for each output[m,n]
+        const refC = new Float32Array(M * N);
+        for (let m = 0; m < M; m++) {
+          for (let n = 0; n < N; n++) {
+            let sum = 0;
+            for (let k = 0; k < K; k++) {
+              sum += A[m * K + k] * B_dequant[n * K + k];
+            }
+            refC[m * N + n] = sum;
+          }
+        }
+
+        // GPU
+        const gpu = await window.testHarness.getGPU();
+        const gpuC = await window.testHarness.runMatmulQ4K(gpu.device, A, B_q4k, M, N, K);
+
+        // Compare
+        let maxError = 0;
+        for (let i = 0; i < refC.length; i++) {
+          maxError = Math.max(maxError, Math.abs(gpuC[i] - refC[i]));
+        }
+
+        return { maxError, M, K, N };
+      });
+
+      // Q4K quantization introduces error, allow larger tolerance
+      expect(result.maxError).toBeLessThan(0.1);
+    });
+
+    test('should compute C = A @ dequant(B_q4k) correctly for M>1 (batched)', async ({ gpuPage }) => {
+      const result = await gpuPage.evaluate(async (): Promise<MatmulResult> => {
+        const { quantizeQ4_KRef, dequantQ4_KRef } = window.testHarness.references;
+
+        // M>1 uses q4_fused_batched kernel (tests the subgroup column mixing fix)
+        const M = 4, K = 256, N = 8;  // K must be multiple of 256 for Q4K
+
+        // Create activation matrix A[M, K]
+        const A = new Float32Array(M * K);
+        for (let i = 0; i < A.length; i++) {
+          A[i] = (Math.random() * 2 - 1) * 0.5;
+        }
+
+        // Create weight matrix B[N, K]
+        const B_f32 = new Float32Array(N * K);
+        for (let i = 0; i < B_f32.length; i++) {
+          B_f32[i] = (Math.random() * 2 - 1) * 0.5;
+        }
+
+        // Quantize B to Q4K format
+        const numBlocks = N * (K / 256);
+        const B_q4k = quantizeQ4_KRef(B_f32, numBlocks);
+
+        // Reference: dequant then matmul (A @ B^T)
+        const B_dequant = dequantQ4_KRef(B_q4k, numBlocks);
+        const refC = new Float32Array(M * N);
+        for (let m = 0; m < M; m++) {
+          for (let n = 0; n < N; n++) {
+            let sum = 0;
+            for (let k = 0; k < K; k++) {
+              sum += A[m * K + k] * B_dequant[n * K + k];
+            }
+            refC[m * N + n] = sum;
+          }
+        }
+
+        // GPU
+        const gpu = await window.testHarness.getGPU();
+        const gpuC = await window.testHarness.runMatmulQ4K(gpu.device, A, B_q4k, M, N, K);
+
+        // Compare
+        let maxError = 0;
+        let hasNaN = false;
+        let hasInf = false;
+        for (let i = 0; i < refC.length; i++) {
+          if (isNaN(gpuC[i])) hasNaN = true;
+          if (!isFinite(gpuC[i])) hasInf = true;
+          maxError = Math.max(maxError, Math.abs(gpuC[i] - refC[i]));
+        }
+
+        return { maxError, M, K, N, hasNaN, hasInf };
+      });
+
+      expect(result.hasNaN).toBe(false);
+      expect(result.hasInf).toBe(false);
+      // Q4K quantization introduces error, allow larger tolerance
+      expect(result.maxError).toBeLessThan(0.1);
+    });
+
+    test('should handle larger K dimension (multiple Q4K blocks)', async ({ gpuPage }) => {
+      const result = await gpuPage.evaluate(async (): Promise<MatmulResult> => {
+        const { quantizeQ4_KRef, dequantQ4_KRef } = window.testHarness.references;
+
+        // Test with K = 512 (2 Q4K blocks per row)
+        const M = 4, K = 512, N = 4;
+
+        const A = new Float32Array(M * K);
+        for (let i = 0; i < A.length; i++) {
+          A[i] = (Math.random() * 2 - 1) * 0.3;
+        }
+
+        const B_f32 = new Float32Array(N * K);
+        for (let i = 0; i < B_f32.length; i++) {
+          B_f32[i] = (Math.random() * 2 - 1) * 0.3;
+        }
+
+        const numBlocks = N * (K / 256);
+        const B_q4k = quantizeQ4_KRef(B_f32, numBlocks);
+        const B_dequant = dequantQ4_KRef(B_q4k, numBlocks);
+
+        const refC = new Float32Array(M * N);
+        for (let m = 0; m < M; m++) {
+          for (let n = 0; n < N; n++) {
+            let sum = 0;
+            for (let k = 0; k < K; k++) {
+              sum += A[m * K + k] * B_dequant[n * K + k];
+            }
+            refC[m * N + n] = sum;
+          }
+        }
+
+        const gpu = await window.testHarness.getGPU();
+        const gpuC = await window.testHarness.runMatmulQ4K(gpu.device, A, B_q4k, M, N, K);
+
+        let maxError = 0;
+        for (let i = 0; i < refC.length; i++) {
+          maxError = Math.max(maxError, Math.abs(gpuC[i] - refC[i]));
+        }
+
+        return { maxError, M, K, N };
+      });
+
+      expect(result.maxError).toBeLessThan(0.15);
+    });
+  });
+
   test.describe('Numerical stability', () => {
     test('should handle large values', async ({ gpuPage }) => {
       const result = await gpuPage.evaluate(async (): Promise<MatmulResult> => {

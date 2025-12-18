@@ -658,6 +658,144 @@ export function getDebugSnapshot(): DebugSnapshot {
 }
 
 // ============================================================================
+// Pipeline Debug Categories Integration
+// ============================================================================
+
+import {
+  setDebugCategories,
+  resetDebugConfig,
+  getDebugConfig,
+  DEBUG_PRESETS,
+  type DebugCategory,
+  type DebugConfig as PipelineDebugConfig,
+} from '../inference/pipeline/debug-utils.js';
+
+export type { DebugCategory, PipelineDebugConfig };
+export { DEBUG_PRESETS };
+
+/**
+ * Main debug control function for pipeline categories.
+ *
+ * Usage in browser console:
+ *   DOPPLER.debug({ embed: true, logits: true })  // Enable categories
+ *   DOPPLER.debug('quick')                         // Use preset
+ *   DOPPLER.debug('off')                           // Disable all
+ *   DOPPLER.debug()                                // Show current config
+ *
+ * @param config - Categories object, preset name, or 'off'
+ * @param options - Additional options (layers, maxDecodeSteps, etc.)
+ */
+export function debug(
+  config?: Partial<Record<DebugCategory, boolean>> | keyof typeof DEBUG_PRESETS | 'off',
+  options?: Partial<Omit<PipelineDebugConfig, 'categories'>>
+): PipelineDebugConfig {
+  if (config === undefined) {
+    const current = getDebugConfig();
+    console.log('Pipeline debug config:', current);
+    console.log('Presets:', Object.keys(DEBUG_PRESETS).join(', '), '+ off');
+    console.log('Categories: embed, layer, attn, ffn, kv, logits, sample, io, perf, all');
+    return current;
+  }
+
+  if (config === 'off') {
+    resetDebugConfig();
+    console.log('Pipeline debug disabled');
+    return getDebugConfig();
+  }
+
+  if (typeof config === 'string') {
+    const preset = DEBUG_PRESETS[config as keyof typeof DEBUG_PRESETS];
+    if (preset) {
+      setDebugCategories(preset, options);
+      console.log(`Pipeline debug preset '${config}' enabled:`, preset);
+    } else {
+      console.error(`Unknown preset: ${config}. Available: ${Object.keys(DEBUG_PRESETS).join(', ')}`);
+    }
+    return getDebugConfig();
+  }
+
+  setDebugCategories(config, options);
+  console.log('Pipeline debug categories:', config);
+  return getDebugConfig();
+}
+
+/**
+ * Quick enable for specific layer debugging.
+ */
+export function debugLayer(
+  layerIdx: number | number[],
+  categories?: Partial<Record<DebugCategory, boolean>>
+): void {
+  const layers = Array.isArray(layerIdx) ? layerIdx : [layerIdx];
+  setDebugCategories(categories || { layer: true, attn: true, ffn: true }, { layers });
+  console.log(`Debug enabled for layer(s) ${layers.join(', ')}`);
+}
+
+/**
+ * Quick buffer stats toggle (expensive - requires GPU readback).
+ */
+export function debugBuffers(enabled: boolean = true): void {
+  setDebugCategories({}, { bufferStats: enabled });
+  console.log(`Buffer stats ${enabled ? 'enabled (expensive!)' : 'disabled'}`);
+}
+
+// ============================================================================
+// Browser Console Global API
+// ============================================================================
+
+/**
+ * DOPPLER debug API exposed to browser console.
+ */
+export interface DopplerDebugAPI {
+  // Pipeline debug
+  debug: typeof debug;
+  debugLayer: typeof debugLayer;
+  debugBuffers: typeof debugBuffers;
+  presets: typeof DEBUG_PRESETS;
+  getConfig: typeof getDebugConfig;
+  resetDebug: typeof resetDebugConfig;
+  // Module logging
+  log: typeof log;
+  setLogLevel: typeof setLogLevel;
+  enableModules: typeof enableModules;
+  disableModules: typeof disableModules;
+  // Tensor inspection
+  tensor: typeof tensor;
+  // Performance
+  perf: typeof perf;
+  // History
+  getLogHistory: typeof getLogHistory;
+  printLogSummary: typeof printLogSummary;
+  getDebugSnapshot: typeof getDebugSnapshot;
+}
+
+const DOPPLER_API: DopplerDebugAPI = {
+  debug,
+  debugLayer,
+  debugBuffers,
+  presets: DEBUG_PRESETS,
+  getConfig: getDebugConfig,
+  resetDebug: resetDebugConfig,
+  log,
+  setLogLevel,
+  enableModules,
+  disableModules,
+  tensor,
+  perf,
+  getLogHistory,
+  printLogSummary,
+  getDebugSnapshot,
+};
+
+// Expose to window in browser environment
+if (typeof window !== 'undefined') {
+  (window as any).DOPPLER = {
+    ...((window as any).DOPPLER || {}),
+    ...DOPPLER_API,
+  };
+}
+
+// ============================================================================
 // Default Export
 // ============================================================================
 
@@ -665,6 +803,9 @@ export default {
   log,
   tensor,
   perf,
+  debug,
+  debugLayer,
+  debugBuffers,
   setLogLevel,
   setGPUDevice,
   enableModules,
@@ -675,4 +816,5 @@ export default {
   printLogSummary,
   getDebugSnapshot,
   LOG_LEVELS,
+  DEBUG_PRESETS,
 };

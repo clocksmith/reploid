@@ -43,13 +43,12 @@ npm run dev                # http://localhost:8000
 npm run doppler            # http://localhost:8080 (opens browser)
 
 # Run tests
-npm test
+npm test                    # Quick kernel validation
+npm run test:inference      # Model inference test
+npm run test:vitest         # CPU unit tests
 
-# Run E2E tests (uses serve.ts automatically)
-npm run test:e2e
-
-# Run specific test file
-npm test -- tests/unit/event-bus.test.js
+# Run specific kernel test
+npm test -- --filter matmul
 ```
 
 ### Project Structure

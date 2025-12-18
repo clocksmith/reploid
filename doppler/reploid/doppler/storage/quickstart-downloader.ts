@@ -118,9 +118,9 @@ export function getCDNBaseUrl(): string {
  * These are models with pre-configured requirements and hosted shards
  */
 export const QUICKSTART_MODELS: Record<string, RemoteModelConfig> = {
-  'gemma3-1b-q4': {
-    modelId: 'gemma3-1b-q4',
-    displayName: 'Gemma 3 1B (Q4)',
+  'gemma-3-1b-it-q4': {
+    modelId: 'gemma-3-1b-it-q4',
+    displayName: 'Gemma 3 1B IT (Q4)',
     baseUrl: 'https://huggingface.co/clocksmith/gemma3-1b-rdrr/resolve/main',
     requirements: GEMMA_1B_REQUIREMENTS,
   },

@@ -111,8 +111,8 @@ export async function runAttention(
     }
   }
 
-  // Select variant based on tier and KV dtype.
-  const base = 'prefill';
+  // Select variant based on tier, phase (prefill/decode), and KV dtype.
+  const base = isDecode ? 'decode' : 'prefill';
   let variant: string;
   if (tier === 'tiled_large') {
     variant = base + (useF16KV ? '_f16kv' : '');
@@ -274,6 +274,9 @@ export async function recordAttention(
     variant = useF16KV ? 'prefill_streaming_f16kv' : 'prefill_streaming';
   }
 
+  // Debug: log tier and variant selection
+  console.log(`[ATTN] recordAttention: isDecode=${isDecode}, tier=${tier}, variant=${variant}, seqLen=${seqLen}, kvLen=${kvLen}, numHeads=${numHeads}, headDim=${headDim}, useF16KV=${useF16KV}`);
+
   const pipeline = await createPipeline('attention', variant);
 
   const outputSize = seqLen * numHeads * headDim * 4;
@@ -309,7 +312,18 @@ export async function recordAttention(
   pass.setPipeline(pipeline);
   pass.setBindGroup(0, bindGroup);
 
-  const workgroups = seqLen * numHeads;
+  // Calculate workgroups based on tier (must match shader expectations)
+  let workgroups: number;
+  if (tier === 'streaming') {
+    workgroups = seqLen * numHeads;
+  } else if (tier === 'tiled_large') {
+    const blockSize = 64;
+    workgroups = Math.ceil(seqLen / blockSize) * numHeads;
+  } else {
+    // tiled_small
+    const blockSize = 32;
+    workgroups = Math.ceil(seqLen / blockSize) * numHeads;
+  }
   pass.dispatchWorkgroups(workgroups);
   pass.end();
 

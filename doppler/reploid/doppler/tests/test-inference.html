@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Minimal Inference Test</title>
+  <title>DOPPLER Inference Test</title>
   <style>
     body {
       font-family: monospace;
@@ -15,16 +15,19 @@
       font-size: 12px;
       background: #16213e;
       padding: 10px;
-      max-height: 70vh;
+      max-height: 60vh;
       overflow-y: auto;
       margin-top: 10px;
     }
     .controls {
       margin-bottom: 10px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
     }
     button {
       padding: 8px 16px;
-      margin-right: 8px;
       cursor: pointer;
       background: #0f3460;
       color: #eee;
@@ -39,27 +42,31 @@
       color: #eee;
       border: 1px solid #1a5276;
       border-radius: 4px;
-      margin-right: 8px;
     }
-    input { width: 300px; }
+    #prompt-input { width: 300px; }
+    #model-select { min-width: 180px; }
     .error { color: #ff6b6b; }
     .success { color: #6bff6b; }
     .info { color: #6b9fff; }
     .status { margin: 10px 0; padding: 10px; background: #0f3460; border-radius: 4px; }
     #output { margin-top: 10px; padding: 10px; background: #1e3a5f; border-radius: 4px; min-height: 50px; }
+    .model-info { font-size: 11px; color: #888; margin-top: 4px; }
   </style>
 </head>
 <body>
-  <h1>Minimal Inference Test</h1>
+  <h1>DOPPLER Inference Test</h1>
 
   <div class="controls">
+    <select id="model-select">
+      <option value="">Loading models...</option>
+    </select>
     <input type="text" id="prompt-input" value="the color of the sky is" placeholder="Enter prompt...">
-    <button id="run-btn">Run Test</button>
+    <button id="run-btn" disabled>Run Test</button>
     <button id="clear-btn">Clear Log</button>
   </div>
 
   <div class="status">
-    <strong>Status:</strong> <span id="status-text">Ready</span>
+    <strong>Status:</strong> <span id="status-text">Initializing...</span>
   </div>
 
   <div id="output">
@@ -69,13 +76,20 @@
   <div id="log"></div>
 
   <script type="module">
-    const MODEL_URL = 'http://localhost:8080/doppler/models/gemma3-1b-q4';
+    // Parse query params: ?model=gemma3-1b-q4&prompt=hello&autorun=1
+    const params = new URLSearchParams(window.location.search);
+    const paramModel = params.get('model');
+    const paramPrompt = params.get('prompt');
+    const paramAutorun = params.get('autorun') === '1';
+
+    const BASE_URL = 'http://localhost:8080/doppler/models';
 
     const logEl = document.getElementById('log');
     const statusEl = document.getElementById('status-text');
     const outputEl = document.getElementById('output-text');
     const runBtn = document.getElementById('run-btn');
     const promptInput = document.getElementById('prompt-input');
+    const modelSelect = document.getElementById('model-select');
 
     // Expose state for Playwright
     window.testState = {
@@ -87,6 +101,7 @@
       output: '',
       tokens: [],
       errors: [],
+      model: null,
     };
 
     function log(msg, className = '') {
@@ -104,11 +119,55 @@
       statusEl.className = className;
     }
 
+    // Discover available models
+    async function discoverModels() {
+      try {
+        const resp = await fetch('/api/models');
+        if (resp.ok) {
+          const models = await resp.json();
+          return models.map(m => m.id || m.name || m);
+        }
+      } catch (e) {
+        // Fallback: try common model names
+      }
+      return ['gemma3-1b-q4', 'mistral-7b-q4', 'llama3-8b-q4'];
+    }
+
+    async function initModelSelector() {
+      const models = await discoverModels();
+      modelSelect.innerHTML = '';
+
+      for (const model of models) {
+        const opt = document.createElement('option');
+        opt.value = model;
+        opt.textContent = model;
+        modelSelect.appendChild(opt);
+      }
+
+      // Select from query param or default
+      if (paramModel && models.includes(paramModel)) {
+        modelSelect.value = paramModel;
+      } else if (paramModel) {
+        // Add custom model from param even if not in list
+        const opt = document.createElement('option');
+        opt.value = paramModel;
+        opt.textContent = `${paramModel} (custom)`;
+        modelSelect.appendChild(opt);
+        modelSelect.value = paramModel;
+      }
+
+      window.testState.model = modelSelect.value;
+      runBtn.disabled = false;
+      setStatus('Ready');
+    }
+
     async function runTest() {
+      const model = modelSelect.value;
       const prompt = promptInput.value || 'the color of the sky is';
+      const MODEL_URL = `${BASE_URL}/${model}`;
 
       window.testState = {
-        ready: false,
+        ready: true,
         loading: true,
         loaded: false,
         generating: false,
@@ -116,6 +175,7 @@
         output: '',
         tokens: [],
         errors: [],
+        model,
       };
 
       logEl.innerHTML = '';
@@ -124,7 +184,7 @@
 
       try {
         log('='.repeat(50));
-        log('Starting Minimal Inference Test', 'info');
+        log(`DOPPLER Inference Test: ${model}`, 'info');
         log('='.repeat(50));
 
         // 1. Initialize WebGPU
@@ -136,7 +196,7 @@
         const device = getDevice();
         const caps = getKernelCapabilities();
 
-        log(`   GPU initialized: hasF16=${caps.hasF16}, hasSubgroups=${caps.hasSubgroups}`, 'success');
+        log(`   GPU: hasF16=${caps.hasF16}, hasSubgroups=${caps.hasSubgroups}`, 'success');
 
         // 2. Fetch manifest
         setStatus('Fetching manifest...', 'info');
@@ -163,14 +223,9 @@
 
         const { createPipeline } = await import('/doppler/dist/inference/pipeline.js');
 
-        // Custom shard loader
         const loadShard = async (idx) => {
-          log(`   Loading shard idx=${idx}, type=${typeof idx}, shards.length=${manifest.shards.length}`);
           const shard = manifest.shards[idx];
-          if (!shard) {
-            log(`   ERROR: No shard at index ${idx}`, 'error');
-            throw new Error(`No shard at index ${idx}`);
-          }
+          if (!shard) throw new Error(`No shard at index ${idx}`);
           log(`   Loading shard ${idx}: ${shard.fileName}`);
           const resp = await fetch(`${MODEL_URL}/${shard.fileName}`);
           if (!resp.ok) throw new Error(`Failed to load shard ${idx}`);
@@ -212,8 +267,6 @@
           tokens.push(tokenText);
           window.testState.tokens = tokens;
           log(`   Token ${tokens.length}: "${tokenText}"`, 'info');
-
-          // Update output live
           outputEl.textContent = tokens.join('');
         }
 
@@ -231,7 +284,7 @@
         log('='.repeat(50));
 
         // Analyze output
-        const goodWords = ['blue', 'clear', 'beautiful', 'cloudy', 'dark', 'bright', 'typically', 'usually'];
+        const goodWords = ['blue', 'clear', 'beautiful', 'cloudy', 'dark', 'bright', 'typically', 'usually', 'sky', 'color'];
         const hasGood = goodWords.some(w => output.toLowerCase().includes(w));
 
         if (hasGood) {
@@ -265,10 +318,27 @@
       if (e.key === 'Enter' && !runBtn.disabled) runTest();
     });
 
-    // Mark ready
-    window.testState.ready = true;
-    log('Ready. Click "Run Test" or press Enter to start.');
-    log(`Model server: ${MODEL_URL}`);
+    modelSelect.addEventListener('change', () => {
+      window.testState.model = modelSelect.value;
+    });
+
+    // Apply prompt from query param
+    if (paramPrompt) {
+      promptInput.value = paramPrompt;
+    }
+
+    // Initialize
+    initModelSelector().then(() => {
+      window.testState.ready = true;
+      log('Ready. Select a model and click "Run Test".');
+      log(`Query params: model=${paramModel || '(default)'}, autorun=${paramAutorun}`);
+
+      // Auto-run if requested via query param
+      if (paramAutorun && modelSelect.value) {
+        log('Auto-running test...');
+        runTest();
+      }
+    });
   </script>
 </body>
 </html>

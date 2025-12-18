@@ -69,6 +69,10 @@ export interface GenerateOptions {
   useChatTemplate?: boolean;
   decode?: (tokens: number[]) => string;
   debug?: boolean;
+  /** Specific layers to debug (enables batching with selective checkpoints).
+   *  If set, CommandRecorder stays enabled but flushes at these layers.
+   *  Example: [0, 12, 25] debugs first, middle, and last layers only. */
+  debugLayers?: number[];
   signal?: AbortSignal;
 }
 
@@ -136,9 +140,12 @@ export class InferencePipeline {
   // Base URL for loading assets
   baseUrl: string | null = null;
 
-  // RoPE frequency buffers
+  // RoPE frequency buffers (global for full_attention layers)
   ropeFreqsCos: Float32Array | GPUBuffer | null = null;
   ropeFreqsSin: Float32Array | GPUBuffer | null = null;
+  // Local RoPE frequencies for sliding_attention layers (Gemma 3: 10K theta vs 1M global)
+  ropeLocalCos: Float32Array | GPUBuffer | null = null;
+  ropeLocalSin: Float32Array | GPUBuffer | null = null;
 
   // Attention kernel override
   attentionKernelOverride: 'tiled_large' | 'tiled_small' | 'streaming' | null = null;
@@ -298,12 +305,15 @@ export class InferencePipeline {
       headDim: config.headDim,
       maxSeqLen: config.maxSeqLen || 4096,
       ropeTheta: config.ropeTheta,
+      ropeLocalTheta: config.ropeLocalTheta,  // Gemma 3: 10K for local layers
       ropeScale: config.ropeScale,
       ropeScalingType: config.ropeScalingType,
       ropeScaling: config.ropeScaling,
     }, this.useGPU);
     this.ropeFreqsCos = ropeBuffers.cos;
     this.ropeFreqsSin = ropeBuffers.sin;
+    this.ropeLocalCos = ropeBuffers.localCos ?? null;
+    this.ropeLocalSin = ropeBuffers.localSin ?? null;
   }
 
   // ==========================================================================
@@ -328,12 +338,13 @@ export class InferencePipeline {
       useSpeculative: options.useSpeculative ?? false,
       useChatTemplate: options.useChatTemplate ?? false,
       debug: options.debug ?? this.debug,
+      debugLayers: options.debugLayers,  // Selective layer debugging
     };
 
     try {
       // Apply chat template if requested
       let processedPrompt = prompt;
-      if (opts.useChatTemplate && this.modelConfig!.isGemma) {
+      if (opts.useChatTemplate && this.modelConfig!.isGemma3) {
         processedPrompt = applyGemmaChatTemplate(prompt);
         if (opts.debug) console.log('[Pipeline] Applied Gemma chat template');
       }
@@ -438,7 +449,7 @@ export class InferencePipeline {
     let hiddenStates = await embed(inputIds, embedBuffer, {
       hiddenSize: config.hiddenSize,
       vocabSize: config.vocabSize,
-      scaleEmbeddings: config.isGemma ?? false,
+      scaleEmbeddings: config.scaleEmbeddings,
       debug: opts.debug,
     });
 
@@ -455,7 +466,11 @@ export class InferencePipeline {
     // Create CommandRecorder for batched GPU operations
     // This reduces GPU submits from 260+ per forward pass to 1
     const device = getDevice();
-    const recorder = device ? createCommandRecorder('prefill') : undefined;
+    // Disable CommandRecorder in full debug mode to allow per-layer GPU readbacks.
+    // But if debugLayers is set, keep recorder enabled and flush only at checkpoints.
+    const useCheckpoints = opts.debugLayers && opts.debugLayers.length > 0;
+    const disableBatching = opts.debug && !useCheckpoints;
+    const recorder = device && !disableBatching ? createCommandRecorder('prefill') : undefined;
     const context = this._buildLayerContext(recorder);
 
     // Enable submit tracking for benchmarking
@@ -467,43 +482,72 @@ export class InferencePipeline {
 
     // Process all layers
     console.log(`[Pipeline] LAYER_LOOP_START: numLayers=${config.numLayers}, useGPU=${context.useGPU}`);
+    let currentRecorder = recorder;
     for (let l = 0; l < config.numLayers; l++) {
+      // Update context recorder in case it changed at checkpoint
+      context.recorder = currentRecorder;
+
       const prevStates = hiddenStates;
       hiddenStates = await processLayer(l, hiddenStates, numTokens, true, context) as GPUBuffer;
 
-      // Debug: trace hidden state growth through layers (every 5th layer to track growth)
-      if ((l < 3 || l % 5 === 0 || l === config.numLayers - 1) && hiddenStates instanceof GPUBuffer) {
+      // Check if this layer is a debug checkpoint
+      const isCheckpoint = useCheckpoints && opts.debugLayers?.includes(l);
+
+      // Flush recorder at checkpoint to enable GPU readback
+      if (isCheckpoint && currentRecorder) {
+        await currentRecorder.submitAndWait();
+        currentRecorder = undefined;  // Clear so debug readback works
+      }
+
+      // Debug: trace last-token hidden state through layers (position-sensitive issues)
+      // Runs when: (1) full debug mode without recorder, OR (2) at checkpoint layers
+      const shouldDebug = opts.debug && hiddenStates instanceof GPUBuffer && (!recorder || isCheckpoint);
+      if (shouldDebug && !currentRecorder) {
         const device = getDevice();
         if (device) {
           try {
-            const sampleSize = Math.min(256, hiddenStates.size);
+            // Read the full last-token vector to match reference maxAbs (HF hooks use full hidden_size).
+            const sampleSize = config.hiddenSize * 4;
             const staging = device.createBuffer({
               size: sampleSize,
               usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ,
             });
             const enc = device.createCommandEncoder();
-            enc.copyBufferToBuffer(hiddenStates, 0, staging, 0, sampleSize);
+            const lastTokenOffset = (numTokens - 1) * config.hiddenSize * 4;
+            enc.copyBufferToBuffer(hiddenStates, lastTokenOffset, staging, 0, sampleSize);
             device.queue.submit([enc.finish()]);
             await staging.mapAsync(GPUMapMode.READ);
             const data = new Float32Array(staging.getMappedRange().slice(0));
             staging.unmap();
             staging.destroy();
-            const maxAbs = Math.max(...Array.from(data).map(x => Math.abs(x)));
+            let min = Infinity;
+            let max = -Infinity;
+            let maxAbs = 0;
+            for (const v of data) {
+              if (!Number.isFinite(v)) continue;
+              if (v < min) min = v;
+              if (v > max) max = v;
+              const av = Math.abs(v);
+              if (av > maxAbs) maxAbs = av;
+            }
             const sample = Array.from(data).slice(0, 3).map(x => x.toFixed(3)).join(', ');
-            console.log(`[Pipeline] LAYER_${l}_OUT: maxAbs=${maxAbs.toFixed(2)}, sample=[${sample}]`);
+            console.log(`[Pipeline] LAYER_${l}_LAST[pos=${numTokens - 1}]: min=${min.toFixed(3)}, max=${max.toFixed(3)}, maxAbs=${maxAbs.toFixed(2)}, sample=[${sample}]`);
           } catch (e) {
-            console.log(`[Pipeline] LAYER_${l}_OUT: error reading buffer: ${e}`);
+            console.log(`[Pipeline] LAYER_${l}_LAST: error reading buffer: ${e}`);
           }
         }
-      } else if (l < 3 || l % 5 === 0 || l === config.numLayers - 1) {
-        console.log(`[Pipeline] LAYER_${l}_OUT: hiddenStates is ${hiddenStates?.constructor?.name}`);
+      }
+
+      // Recreate recorder after checkpoint to continue batching for remaining layers
+      if (isCheckpoint && useCheckpoints && l < config.numLayers - 1) {
+        currentRecorder = device ? createCommandRecorder('prefill-cont') : undefined;
       }
 
       if (prevStates instanceof GPUBuffer && prevStates !== hiddenStates) {
         // When using recorder, track for deferred cleanup after submit
         // (releasing now would allow pool reuse before recorded ops execute)
-        if (recorder) {
-          recorder.trackTemporaryBuffer(prevStates);
+        if (currentRecorder) {
+          currentRecorder.trackTemporaryBuffer(prevStates);
         } else {
           releaseBuffer(prevStates);
         }
@@ -511,8 +555,8 @@ export class InferencePipeline {
     }
 
     // Submit batched commands (cleanup happens automatically in submit)
-    if (recorder) {
-      await recorder.submitAndWait();
+    if (currentRecorder) {
+      await currentRecorder.submitAndWait();
     }
 
     // Log submit stats after layer loop
@@ -521,17 +565,20 @@ export class InferencePipeline {
       setTrackSubmits(false);
     }
 
-    // Debug: check final hidden states before logits
+    // Debug: check final hidden states before logits (at LAST token position)
     console.log(`[Pipeline] LAYER_LOOP_DONE, hiddenStates type=${hiddenStates?.constructor?.name}`);
     if (hiddenStates instanceof GPUBuffer) {
       const device = getDevice();
-      const sampleSize = Math.min(512, hiddenStates.size);
+      // Read from LAST token position (where logits will be computed from)
+      const lastTokenOffset = (numTokens - 1) * config.hiddenSize * 4;  // F32
+      // Read the full last-token vector for accurate stats.
+      const sampleSize = config.hiddenSize * 4;
       const staging = device.createBuffer({
         size: sampleSize,
         usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ,
       });
       const enc = device.createCommandEncoder();
-      enc.copyBufferToBuffer(hiddenStates, 0, staging, 0, sampleSize);
+      enc.copyBufferToBuffer(hiddenStates, lastTokenOffset, staging, 0, sampleSize);
       device.queue.submit([enc.finish()]);
       await staging.mapAsync(GPUMapMode.READ);
       const data = new Float32Array(staging.getMappedRange().slice(0));
@@ -539,7 +586,7 @@ export class InferencePipeline {
       staging.destroy();
       const nanCount = Array.from(data).filter(x => !Number.isFinite(x)).length;
       const nonZero = Array.from(data).filter(x => Number.isFinite(x) && x !== 0).slice(0, 5);
-      console.log(`[Pipeline] FINAL_HIDDEN: nan=${nanCount}/${data.length}, sample=[${nonZero.map(x => x.toFixed(4)).join(', ')}]`);
+      console.log(`[Pipeline] FINAL_HIDDEN[pos=${numTokens - 1}]: nan=${nanCount}/${data.length}, sample=[${nonZero.map(x => x.toFixed(4)).join(', ')}]`);
     }
 
     // Compute logits
@@ -589,7 +636,7 @@ export class InferencePipeline {
     let hiddenStates = await embed([lastToken], embedBuffer, {
       hiddenSize: config.hiddenSize,
       vocabSize: config.vocabSize,
-      scaleEmbeddings: config.isGemma ?? false,
+      scaleEmbeddings: config.scaleEmbeddings,
     });
 
     // Debug: check embedding output for decode step 1
@@ -604,7 +651,8 @@ export class InferencePipeline {
 
     // Create CommandRecorder for batched GPU operations
     const device = getDevice();
-    const recorder = device ? createCommandRecorder('decode') : undefined;
+    // Disable CommandRecorder in debug mode to allow per-step debug readbacks.
+    const recorder = device && !opts.debug ? createCommandRecorder('decode') : undefined;
     const context = this._buildLayerContext(recorder);
 
     // Enable submit tracking for first decode step benchmarking
@@ -751,6 +799,8 @@ export class InferencePipeline {
       debug: this.debug,
       ropeFreqsCos: this.ropeFreqsCos,
       ropeFreqsSin: this.ropeFreqsSin,
+      ropeLocalCos: this.ropeLocalCos,  // Gemma 3: Local RoPE for sliding_attention layers
+      ropeLocalSin: this.ropeLocalSin,
       attentionKernelOverride: this.attentionKernelOverride,
       weightConfig: this._getWeightBufferConfig(),
       debugFlags: this._debugFlags as any,
@@ -764,7 +814,7 @@ export class InferencePipeline {
 
   private _getWeightBufferConfig(): WeightBufferConfig {
     return {
-      rmsNormWeightOffset: this.modelConfig!.isGemma ?? false,
+      rmsNormWeightOffset: this.modelConfig!.rmsNormWeightOffset,
     };
   }
 

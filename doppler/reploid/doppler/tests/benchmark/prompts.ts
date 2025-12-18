@@ -10,6 +10,16 @@
 import type { Prompt, PromptCategory } from './types.js';
 
 /**
+ * Extra-small prompt: 6-10 tokens
+ * Minimal completion for quick testing
+ */
+export const XS_PROMPT: Prompt = {
+  name: 'xs',
+  text: 'The color of the sky is',
+  expectedTokenCount: { min: 6, max: 10 },
+};
+
+/**
  * Short prompt: 16-64 tokens
  * Simple completion task
  */
@@ -99,6 +109,7 @@ Provide your analysis in a structured format with clear recommendations and just
  * All standard prompts indexed by category
  */
 export const PROMPTS: Record<PromptCategory, Prompt> = {
+  xs: XS_PROMPT,
   short: SHORT_PROMPT,
   medium: MEDIUM_PROMPT,
   long: LONG_PROMPT,
@@ -115,5 +126,5 @@ export function getPrompt(category: PromptCategory): Prompt {
  * Get all prompt categories
  */
 export function getPromptCategories(): PromptCategory[] {
-  return ['short', 'medium', 'long'];
+  return ['xs', 'short', 'medium', 'long'];
 }

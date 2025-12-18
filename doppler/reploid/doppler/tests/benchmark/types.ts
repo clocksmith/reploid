@@ -108,8 +108,8 @@ export interface ModelInfo {
 // ============================================================================
 
 export interface WorkloadInfo {
-  /** Prompt category: short, medium, long */
-  promptName: 'short' | 'medium' | 'long' | 'custom';
+  /** Prompt category: xs, short, medium, long */
+  promptName: 'xs' | 'short' | 'medium' | 'long' | 'custom';
 
   /** Number of prompt tokens */
   promptTokens: number;
@@ -235,7 +235,7 @@ export interface BenchmarkConfig {
   modelPath: string;
 
   /** Which prompt workload to use */
-  promptName: 'short' | 'medium' | 'long' | 'custom';
+  promptName: 'xs' | 'short' | 'medium' | 'long' | 'custom';
 
   /** Custom prompt text (if promptName is 'custom') */
   customPrompt?: string;
@@ -260,6 +260,12 @@ export interface BenchmarkConfig {
 
   /** Enable debug logging */
   debug?: boolean;
+
+  /** Specific layers to checkpoint during debug (e.g., [0, 12, 25]) */
+  debugLayers?: number[];
+
+  /** Apply model-specific chat template to prompt before tokenization/inference. */
+  useChatTemplate?: boolean;
 }
 
 // ============================================================================
@@ -327,7 +333,7 @@ export interface ComparisonResult {
 // Helper Types
 // ============================================================================
 
-export type PromptCategory = 'short' | 'medium' | 'long';
+export type PromptCategory = 'xs' | 'short' | 'medium' | 'long';
 
 export interface Prompt {
   name: PromptCategory;
@@ -350,4 +356,5 @@ export const DEFAULT_BENCHMARK_CONFIG: Partial<BenchmarkConfig> = {
     topP: 1,
   },
   debug: false,
+  useChatTemplate: false,
 };

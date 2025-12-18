@@ -29,11 +29,16 @@ GGUF/RDRR -> Loader -> ShardManager -> Pipeline -> GPU Kernels -> Output
 - **Kernels:** Custom WGSL shaders for RMSNorm, attention, FFN operations
 - **OPFS:** Origin Private File System for persistent model storage
 
+### CLI Setup
+Add alias to `~/.zshrc`: `alias doppler='npm run doppler --'`
+
 ### Testing
 ```bash
-npm run test:gpu      # GPU kernel tests
-npm run test:e2e      # Playwright E2E tests
-npx playwright test   # Run specific test file
+doppler test quick         # Fast kernel validation (default)
+doppler test correctness   # Full kernel correctness tests
+doppler test inference     # Model load + generate test
+doppler bench inference    # Performance benchmarks
+npm run test:vitest        # CPU unit tests
 ```
 
 ### Guardrails

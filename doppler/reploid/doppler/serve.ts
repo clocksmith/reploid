@@ -265,14 +265,17 @@ async function main(): Promise<void> {
         }
       }
 
-      // Serve tests/benchmark from esbuild bundle (browser needs JS, not TS)
-      if (pathname.startsWith('/tests/benchmark/') && pathname.endsWith('.js')) {
-        const distPath = join(dopplerDir, 'dist', pathname);
+      // Serve JS files from dist/ (TypeScript is compiled there)
+      // This handles: tests/benchmark/, inference/, gpu/, etc.
+      if (pathname.endsWith('.js') && !pathname.includes('node_modules')) {
+        // Strip /doppler/ prefix if present (added by /d/* rewrite)
+        const jsPath = pathname.startsWith('/doppler/') ? pathname.slice(8) : pathname;
+        const distPath = join(dopplerDir, 'dist', jsPath);
         try {
           const distStats = await stat(distPath);
           return serveFile(distPath, distStats, req, res);
         } catch {
-          // Fall through to normal resolution
+          // Fall through to normal resolution (for vendor JS, etc.)
         }
       }
 

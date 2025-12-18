@@ -14,6 +14,18 @@ import { acquireBuffer } from '../buffer-pool.js';
 import type { CommandRecorder } from '../command-recorder.js';
 import { getKernelConfig, createPipeline } from './utils.js';
 
+/**
+ * Debug flag to disable fused Q4K kernels.
+ * When true, Q4K weights will be dequantized first, then use standard matmul.
+ * Set via: window.DOPPLER_DISABLE_FUSED_Q4K = true
+ */
+export function isFusedQ4KDisabled(): boolean {
+  if (typeof window !== 'undefined') {
+    return !!(window as any).DOPPLER_DISABLE_FUSED_Q4K;
+  }
+  return false;
+}
+
 /** Matmul-supported buffer types (includes q4k for fused W4A16) */
 type MatmulDtype = 'f16' | 'f32' | 'q4k';
 
@@ -211,9 +223,18 @@ export async function runMatmul(
   let useGemv = false;
 
   if (bDtype === 'q4k') {
+    // Fused Q4_K matmul requires subgroup operations for reduction
+    if (!capabilities.hasSubgroups) {
+      throw new Error(
+        'Q4_K fused matmul requires subgroup support. ' +
+        'Your GPU/browser may not support WebGPU subgroups. ' +
+        'Consider using a dequantized model (F16) as fallback.'
+      );
+    }
     // Fused Q4_K matmul: dequant + multiply in one pass (2-3x speedup)
     useQ4KFused = true;
     variant = M === 1 ? 'q4_fused' : 'q4_fused_batched';
+    console.log(`[Matmul] Q4K fused: M=${M}, N=${N}, K=${K}, variant=${variant}`);
   } else {
     // Select kernel for dequantized weights (bDtype is f16/f32 here, not q4k)
     variant = selectMatmulKernel({
@@ -351,9 +372,11 @@ export async function runMatmul(
       workgroupsX = N;
       workgroupsY = 1;
     } else {
-      // Q4_K fused batched: 2D dispatch with TILE_M=4, TILE_N=4
-      const TILE_M = 4, TILE_N = 4;
-      workgroupsX = Math.ceil(N / TILE_N);
+      // Q4_K fused batched: 2D dispatch with TILE_M=4, 1 column per workgroup
+      // NOTE: Kernel was fixed to use 64 threads per column (not 16) to prevent
+      // subgroup mixing when sg_size=32. Now processes 1 column per workgroup.
+      const TILE_M = 4;
+      workgroupsX = N;  // One column per workgroup (was N/4 before fix)
       workgroupsY = Math.ceil(M / TILE_M);
     }
   } else if (useGemv) {
@@ -468,6 +491,14 @@ export async function recordMatmul(
   let useGemv = false;
 
   if (bDtype === 'q4k') {
+    // Fused Q4_K matmul requires subgroup operations for reduction
+    if (!capabilities.hasSubgroups) {
+      throw new Error(
+        'Q4_K fused matmul requires subgroup support. ' +
+        'Your GPU/browser may not support WebGPU subgroups. ' +
+        'Consider using a dequantized model (F16) as fallback.'
+      );
+    }
     // Fused Q4_K matmul: dequant + multiply in one pass
     useQ4KFused = true;
     variant = M === 1 ? 'q4_fused' : 'q4_fused_batched';
@@ -577,9 +608,11 @@ export async function recordMatmul(
       workgroupsX = N;
       workgroupsY = 1;
     } else {
-      // Q4_K fused batched: 2D dispatch with TILE_M=4, TILE_N=4
-      const TILE_M = 4, TILE_N = 4;
-      workgroupsX = Math.ceil(N / TILE_N);
+      // Q4_K fused batched: 2D dispatch with TILE_M=4, 1 column per workgroup
+      // NOTE: Kernel was fixed to use 64 threads per column (not 16) to prevent
+      // subgroup mixing when sg_size=32. Now processes 1 column per workgroup.
+      const TILE_M = 4;
+      workgroupsX = N;  // One column per workgroup (was N/4 before fix)
       workgroupsY = Math.ceil(M / TILE_M);
     }
   } else if (useGemv) {

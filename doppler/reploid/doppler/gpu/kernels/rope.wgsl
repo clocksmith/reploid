@@ -42,45 +42,39 @@ fn main(
     let seqLen = uniforms.seqLen;
     let startPos = uniforms.startPos;
 
-    // Global thread index
-    let totalElements = seqLen * numHeads * headDim;
+    // Global thread index (one thread per complex pair)
+    let halfDim = headDim / 2u;
+    let totalPairs = seqLen * numHeads * halfDim;
     let idx = global_id.x;
 
-    if (idx >= totalElements) {
+    if (idx >= totalPairs) {
         return;
     }
 
     // Decompose index
-    let pos = idx / (numHeads * headDim);
-    let remainder = idx % (numHeads * headDim);
-    let headIdx = remainder / headDim;
-    let dimIdx = remainder % headDim;
-
-    // Only process even dimensions (pairs)
-    if (dimIdx % 2u != 0u) {
-        return;  // Odd dimension handled with its even pair
-    }
-
-    let pairIdx = dimIdx / 2u;
+    let pos = idx / (numHeads * halfDim);
+    let remainder = idx % (numHeads * halfDim);
+    let headIdx = remainder / halfDim;
+    let pairIdx = remainder % halfDim;
     let actualPos = startPos + pos;
 
     // Get precomputed cos/sin for this position and dimension
-    let freqIdx = actualPos * (headDim / 2u) + pairIdx;
+    let freqIdx = actualPos * halfDim + pairIdx;
     let cosVal = freqsCos[freqIdx];
     let sinVal = freqsSin[freqIdx];
 
-    // Get the pair of values
+    // Apply "rotate-half" layout: pair (x[i], x[i + halfDim])
     let baseIdx = pos * numHeads * headDim + headIdx * headDim;
-    let x0 = input[baseIdx + dimIdx];
-    let x1 = input[baseIdx + dimIdx + 1u];
+    let x0 = input[baseIdx + pairIdx];
+    let x1 = input[baseIdx + pairIdx + halfDim];
 
     // Apply rotation
     let y0 = x0 * cosVal - x1 * sinVal;
     let y1 = x0 * sinVal + x1 * cosVal;
 
     // Write back
-    input[baseIdx + dimIdx] = y0;
-    input[baseIdx + dimIdx + 1u] = y1;
+    input[baseIdx + pairIdx] = y0;
+    input[baseIdx + pairIdx + halfDim] = y1;
 }
 
 // Compute frequencies on-the-fly (no precomputation needed)
@@ -96,37 +90,37 @@ fn rope_compute_freqs(
     let ropeScale = uniforms.ropeScale;
 
     let idx = global_id.x;
-    let totalPairs = seqLen * numHeads * (headDim / 2u);
+    let halfDim = headDim / 2u;
+    let totalPairs = seqLen * numHeads * halfDim;
 
     if (idx >= totalPairs) {
         return;
     }
 
     // Decompose index
-    let pos = idx / (numHeads * (headDim / 2u));
-    let remainder = idx % (numHeads * (headDim / 2u));
-    let headIdx = remainder / (headDim / 2u);
-    let pairIdx = remainder % (headDim / 2u);
+    let pos = idx / (numHeads * halfDim);
+    let remainder = idx % (numHeads * halfDim);
+    let headIdx = remainder / halfDim;
+    let pairIdx = remainder % halfDim;
 
     let actualPos = f32(startPos + pos) / ropeScale;
-    let dimIdx = pairIdx * 2u;
 
     // Compute frequency: 1 / (base^(2*pairIdx/headDim))
-    let exponent = f32(dimIdx) / f32(headDim);
+    let exponent = f32(pairIdx * 2u) / f32(headDim);
     let freq = 1.0 / pow(ropeBase, exponent);
     let theta = actualPos * freq;
 
     let cosVal = cos(theta);
     let sinVal = sin(theta);
 
-    // Get input values
+    // Apply "rotate-half" layout: pair (x[i], x[i + halfDim])
     let baseIdx = pos * numHeads * headDim + headIdx * headDim;
-    let x0 = input[baseIdx + dimIdx];
-    let x1 = input[baseIdx + dimIdx + 1u];
+    let x0 = input[baseIdx + pairIdx];
+    let x1 = input[baseIdx + pairIdx + halfDim];
 
     // Apply rotation
-    input[baseIdx + dimIdx] = x0 * cosVal - x1 * sinVal;
-    input[baseIdx + dimIdx + 1u] = x0 * sinVal + x1 * cosVal;
+    input[baseIdx + pairIdx] = x0 * cosVal - x1 * sinVal;
+    input[baseIdx + pairIdx + halfDim] = x0 * sinVal + x1 * cosVal;
 }
 
 // Apply RoPE to both Q and K in one pass
@@ -144,22 +138,22 @@ fn rope_qk(
 
     let idx = global_id.x;
     // Each thread handles one Q-K pair at one dimension pair
-    let totalPairs = seqLen * numHeads * (headDim / 2u);
+    let halfDim = headDim / 2u;
+    let totalPairs = seqLen * numHeads * halfDim;
 
     if (idx >= totalPairs) {
         return;
     }
 
-    let pos = idx / (numHeads * (headDim / 2u));
-    let remainder = idx % (numHeads * (headDim / 2u));
-    let headIdx = remainder / (headDim / 2u);
-    let pairIdx = remainder % (headDim / 2u);
+    let pos = idx / (numHeads * halfDim);
+    let remainder = idx % (numHeads * halfDim);
+    let headIdx = remainder / halfDim;
+    let pairIdx = remainder % halfDim;
 
     let actualPos = f32(startPos + pos) / ropeScale;
-    let dimIdx = pairIdx * 2u;
 
     // Compute frequency
-    let exponent = f32(dimIdx) / f32(headDim);
+    let exponent = f32(pairIdx * 2u) / f32(headDim);
     let freq = 1.0 / pow(ropeBase, exponent);
     let theta = actualPos * freq;
 
@@ -171,16 +165,16 @@ fn rope_qk(
     let kBaseIdx = qBaseIdx + headDim;  // K starts after Q
 
     // Process Q
-    let q0 = input[qBaseIdx + dimIdx];
-    let q1 = input[qBaseIdx + dimIdx + 1u];
-    input[qBaseIdx + dimIdx] = q0 * cosVal - q1 * sinVal;
-    input[qBaseIdx + dimIdx + 1u] = q0 * sinVal + q1 * cosVal;
+    let q0 = input[qBaseIdx + pairIdx];
+    let q1 = input[qBaseIdx + pairIdx + halfDim];
+    input[qBaseIdx + pairIdx] = q0 * cosVal - q1 * sinVal;
+    input[qBaseIdx + pairIdx + halfDim] = q0 * sinVal + q1 * cosVal;
 
     // Process K
-    let k0 = input[kBaseIdx + dimIdx];
-    let k1 = input[kBaseIdx + dimIdx + 1u];
-    input[kBaseIdx + dimIdx] = k0 * cosVal - k1 * sinVal;
-    input[kBaseIdx + dimIdx + 1u] = k0 * sinVal + k1 * cosVal;
+    let k0 = input[kBaseIdx + pairIdx];
+    let k1 = input[kBaseIdx + pairIdx + halfDim];
+    input[kBaseIdx + pairIdx] = k0 * cosVal - k1 * sinVal;
+    input[kBaseIdx + pairIdx + halfDim] = k0 * sinVal + k1 * cosVal;
 }
 
 // Precompute frequency table (run once at init)
@@ -228,7 +222,8 @@ fn rope_ntk_scaled(
     let ropeScale = uniforms.ropeScale;
 
     let idx = global_id.x;
-    let totalPairs = seqLen * numHeads * (headDim / 2u);
+    let halfDim = headDim / 2u;
+    let totalPairs = seqLen * numHeads * halfDim;
 
     if (idx >= totalPairs) {
         return;
@@ -238,15 +233,14 @@ fn rope_ntk_scaled(
     // This preserves high-frequency components better than linear interpolation
     ropeBase = ropeBase * pow(ropeScale, f32(headDim) / (f32(headDim) - 2.0));
 
-    let pos = idx / (numHeads * (headDim / 2u));
-    let remainder = idx % (numHeads * (headDim / 2u));
-    let headIdx = remainder / (headDim / 2u);
-    let pairIdx = remainder % (headDim / 2u);
+    let pos = idx / (numHeads * halfDim);
+    let remainder = idx % (numHeads * halfDim);
+    let headIdx = remainder / halfDim;
+    let pairIdx = remainder % halfDim;
 
     let actualPos = f32(startPos + pos);
-    let dimIdx = pairIdx * 2u;
 
-    let exponent = f32(dimIdx) / f32(headDim);
+    let exponent = f32(pairIdx * 2u) / f32(headDim);
     let freq = 1.0 / pow(ropeBase, exponent);
     let theta = actualPos * freq;
 
@@ -254,11 +248,11 @@ fn rope_ntk_scaled(
     let sinVal = sin(theta);
 
     let baseIdx = pos * numHeads * headDim + headIdx * headDim;
-    let x0 = input[baseIdx + dimIdx];
-    let x1 = input[baseIdx + dimIdx + 1u];
+    let x0 = input[baseIdx + pairIdx];
+    let x1 = input[baseIdx + pairIdx + halfDim];
 
-    input[baseIdx + dimIdx] = x0 * cosVal - x1 * sinVal;
-    input[baseIdx + dimIdx + 1u] = x0 * sinVal + x1 * cosVal;
+    input[baseIdx + pairIdx] = x0 * cosVal - x1 * sinVal;
+    input[baseIdx + pairIdx + halfDim] = x0 * sinVal + x1 * cosVal;
 }
 
 // YaRN-style RoPE with attention scaling
@@ -275,19 +269,19 @@ fn rope_yarn(
     let ropeScale = uniforms.ropeScale;
 
     let idx = global_id.x;
-    let totalPairs = seqLen * numHeads * (headDim / 2u);
+    let halfDim = headDim / 2u;
+    let totalPairs = seqLen * numHeads * halfDim;
 
     if (idx >= totalPairs) {
         return;
     }
 
-    let pos = idx / (numHeads * (headDim / 2u));
-    let remainder = idx % (numHeads * (headDim / 2u));
-    let headIdx = remainder / (headDim / 2u);
-    let pairIdx = remainder % (headDim / 2u);
+    let pos = idx / (numHeads * halfDim);
+    let remainder = idx % (numHeads * halfDim);
+    let headIdx = remainder / halfDim;
+    let pairIdx = remainder % halfDim;
 
     let actualPos = f32(startPos + pos);
-    let dimIdx = pairIdx * 2u;
 
     // YaRN parameters
     let beta_fast: f32 = 32.0;
@@ -295,7 +289,7 @@ fn rope_yarn(
     let alpha: f32 = 1.0;
 
     // Compute original frequency
-    let exponent = f32(dimIdx) / f32(headDim);
+    let exponent = f32(pairIdx * 2u) / f32(headDim);
     let origFreq = 1.0 / pow(ropeBase, exponent);
 
     // Compute wavelength
@@ -323,9 +317,9 @@ fn rope_yarn(
     let sinVal = sin(theta);
 
     let baseIdx = pos * numHeads * headDim + headIdx * headDim;
-    let x0 = input[baseIdx + dimIdx];
-    let x1 = input[baseIdx + dimIdx + 1u];
+    let x0 = input[baseIdx + pairIdx];
+    let x1 = input[baseIdx + pairIdx + halfDim];
 
-    input[baseIdx + dimIdx] = x0 * cosVal - x1 * sinVal;
-    input[baseIdx + dimIdx + 1u] = x0 * sinVal + x1 * cosVal;
+    input[baseIdx + pairIdx] = x0 * cosVal - x1 * sinVal;
+    input[baseIdx + pairIdx + halfDim] = x0 * sinVal + x1 * cosVal;
 }

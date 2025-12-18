@@ -39,6 +39,58 @@ See also: [Glossary](GLOSSARY.md)
 └───────────────────┘  └───────────────────┘  └───────────────────────┘
 ```
 
+## Design Philosophy
+
+DOPPLER makes deliberate architectural tradeoffs that diverge from pre-compiled approaches like WebLLM/TVM. These enable capabilities that are impossible with monolithic compiled models.
+
+### Key Principles
+
+| Principle | Implementation | Why |
+|-----------|----------------|-----|
+| **Code/Data Separation** | Generic WGSL kernels + weight shards | Enables P2P distribution, expert paging, LoRA hot-swap |
+| **GPU Fusion** | All tensor ops stay on GPU | Makes JS vs WASM irrelevant (0.5ms vs 25ms GPU time) |
+| **Minimal Readback** | Only final logits read to CPU | Avoids 2-6ms GPU→CPU transfer per readback |
+| **JavaScript Orchestration** | JS dispatches GPU work, handles sampling | Debugging, rapid iteration, WebRTC P2P integration |
+
+### GPU Fusion in Practice
+
+```
+Per-token decode step:
+├─ GPU compute:     25ms   ████████████████████████████ (96%)
+├─ JS orchestration: 0.5ms ██ (2%)
+└─ Logits readback:  0.5ms ██ (2%)
+
+WASM would make 0.5ms faster → irrelevant when GPU is 96% of time
+```
+
+### Readback Minimization
+
+| Operation | Location | Readback? |
+|-----------|----------|-----------|
+| Q/K/V projections | GPU matmul | No |
+| Attention scores | GPU fused kernel | No |
+| MoE router decisions | GPU softmax+topk | No |
+| Expert FFN outputs | GPU matmul | No |
+| Intermediate hidden states | GPU buffers | No |
+| **Final logits** | **GPU → CPU** | **Yes (unavoidable)** |
+
+Only ONE readback per generated token. This is the key performance insight.
+
+### Capability vs Performance Tradeoff
+
+DOPPLER accepts ~20% kernel performance gap vs TVM auto-tuned kernels because it enables:
+
+| Capability | Why Impossible with TVM |
+|------------|------------------------|
+| 90GB MoE on 8GB VRAM | Expert paging requires dynamic buffer binding |
+| P2P shard distribution | Can't split compiled binary across peers |
+| LoRA hot-swap | Compiled model can't change weights at runtime |
+| Speculative decoding | Coordinating two compiled models is awkward |
+
+See [VISION.md](VISION.md#architectural-bets) for detailed rationale and concrete examples.
+
+---
+
 ## Module Structure
 
 | Directory | Purpose |

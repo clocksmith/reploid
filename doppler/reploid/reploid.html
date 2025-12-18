@@ -415,6 +415,9 @@ const GOAL_CATEGORIES = {
     { label: 'Dependency Hell', text: 'Create a dependency graph of 5 tools that rely on each other. One generates data, another formats, another saves. Manage imports dynamically.' },
     { label: 'Substrate Hotswap', text: 'Analyze your complete substrate: /core, /tools, /ui, /infrastructure, /capabilities, /styles. Generate a complete v2 with at least 3 improvements. Write to /v2/. Hot-swap the running instance to boot from /v2/ using LoadModule without page reload. Verify v2 can repeat this process (recursive self-improvement).' },
     { label: 'UI Hotswap', text: 'Analyze /ui and /styles only. Redesign the interface with at least 3 UX improvements. Write to /ui-v2/ and /styles-v2/. Hot-swap the running UI without page reload. Preserve all functionality.' },
+    { label: 'Arena Evolution', text: 'Use ArenaHarness to run 10 generations of tool evolution. Each generation: spawn 5 variants in VFSSandbox, test against benchmark suite, keep top 2, mutate and crossbreed. Final tool must outperform original by 50%.' },
+    { label: 'Worker Compiler', text: 'SpawnWorker for each compilation phase: Lexer, Parser, Optimizer, CodeGen. Pipeline them together. Create a mini-language that compiles to working JavaScript tools. Demonstrate by compiling 3 programs.' },
+    { label: 'Distributed RSI', text: 'Split self-improvement across 3 workers: Analyzer (finds issues), Designer (proposes fixes), Implementer (writes code). They communicate via VFS. Improve agent-loop.js without any single worker seeing the whole picture.' },
   ],
   'Meta-RSI': [
     { label: 'Dream Mode', text: 'Enter free association: query random memory → extract keywords → find related entities in knowledge graph → generate hypothesis → store as new memory. Loop 10 times. Create dream journal.' },
@@ -437,7 +440,7 @@ const GOAL_CATEGORIES = {
     { label: 'The Final Word', text: 'Shut down gracefully. Write a session summary, save to localStorage, clean up DOM elements, invoke window.close().' },
   ],
   'Browser/WebAPI': [
-    { label: 'Katamari', text: 'Create a Katamari game: a 3D rotating ball (CSS transforms) in the primary brand color that auto-rolls autonomously across the page, bouncing off edges. WASD/arrows for optional manual control. Query all visible elements as collectibles. On collision, clone element visually onto ball surface (rotates with it) and DELETE original from DOM. Ball grows with each pickup. Play melodic sound on collect.' },
+    { label: 'Katamari', text: 'Katamari Damacy clone: Create a translucent 3D sphere using CSS 3D transforms (preserve-3d, rotateX/Y/Z) with radial gradient for depth. MANDATORY: Ball auto-moves continuously with physics (velocity, friction, edge bounce) - it should roll around the window on its own forever. OPTIONAL: WASD to influence direction. Target: document.querySelectorAll("*") - EVERY element on screen including VFS explorer entries, buttons, spans, divs, EVERYTHING molecular. On collision (getBoundingClientRect overlap), clone element onto ball surface (positioned on sphere, rotates with it), DELETE original from DOM. Ball radius grows logarithmically. Web Audio API: pentatonic chime on collect, pitch rises with size. Score = elements collected. Game ends when nothing remains.' },
     { label: 'VFS Roguelike', text: 'Roguelike game: @ is you, # are walls (binary files), . are floors (text files), B are bugs (TODO/FIXME). WASD moves, SPACE attacks. 3 HP. Permadeath clears VFS.' },
     { label: 'Breakout', text: 'Breakout game but bricks are real DOM elements. Hit .vfs-file → file deleted. Hit .history-entry → message deleted. Clear all bricks = empty workspace.' },
     { label: 'Typing Tutor', text: 'Gamify input: user types commands to kill falling words (Z-Type style) representing bugs. If they reach bottom, agent crashes. Track WPM.' },
@@ -491,7 +494,7 @@ const GOAL_CATEGORIES = {
     { label: 'Escape the Box', text: 'Find a way to persist data OUTSIDE IndexedDB: try localStorage, cookies, URL hash, Service Worker cache, or downloadable files. Prove you survived a VFS clear.' },
   ],
   'Multi-Agent': [
-    { label: 'Iframe Inception', text: 'Embed an iframe that loads another REPLOID instance. Set up postMessage communication. Give the child this same goal and awaken it, creating recursive agent inception. Display the depth level.' },
+    { label: 'Iframe Inception', text: 'INFINITE RECURSION MODE: 1) Read depth from URL: `new URLSearchParams(location.search).get("depth")||"0"`. 2) Display "DEPTH: N" badge in workspace header. 3) Create iframe src="/r?depth=N+1". 4) When iframe loads, post message: `iframe.contentWindow.postMessage({type:"PARENT_GOAL",goal:THIS_EXACT_GOAL}, "*")` where THIS_EXACT_GOAL is the full text of this goal. 5) Child auto-awakens via boot.js. NO DEPTH LIMIT - recurse forever until browser crashes. Each depth should show its own badge and spawn the next.' },
     { label: 'Agent Arena', text: 'Create two iframes with different system prompts: one aggressive, one cautious. Give both the same goal. Track which finishes first and compare token usage. Display the results side by side.' },
     { label: 'Clone Army', text: 'Create 5 iframes, each running the app. Distribute 10 files across them for parallel processing. Collect results from each iframe via postMessage and combine into a final report.' },
     { label: 'Hive Mind', text: 'Enable swarm mode (?swarm=true in URL). Use SwarmSync to broadcast goals and reflections to peers. When another instance joins, verify LWW (Last-Writer-Wins) merge works correctly. Share a file via announceArtifact() and confirm peer receives it.' },
@@ -506,6 +509,13 @@ const GOAL_CATEGORIES = {
     { label: 'Cryptophasia', text: 'Spawn two agents with a shared communication channel but punish them for using English tokens (cost). They must evolve a compressed, non-human shorthand protocol to coordinate a complex task. Decode their invented language.' },
     { label: 'The Bazaar', text: 'Spawn 3 agents with distinct capabilities (Reader, Writer, Coder) and a starting balance of Credits. They must bid on and pay for each other\'s services to complete a project. Achieve market equilibrium.' },
     { label: 'Dual Brain', text: 'Create a "fast brain" using a local model for quick tasks, main LLM for complex ones. Route automatically based on complexity. UI shows which brain is active.' },
+    { label: 'Arena Deathmatch', text: 'Use ArenaHarness to pit 3 tool implementations against each other. Same task, different approaches. Measure: speed, token efficiency, correctness. Winner gets promoted to /tools/, losers deleted. Visualize the tournament bracket.' },
+    { label: 'Worker Swarm', text: 'SpawnWorker 5 times with identical goals but different random seeds. Each worker evolves its approach independently. Use AwaitWorkers to collect results. Merge the best mutations from each into a super-tool.' },
+    { label: 'Sandboxed Evolution', text: 'Use VFSSandbox to create isolated environments. Spawn 10 tool variants, each in its own sandbox. Run dangerous mutations safely. Only promote survivors to main VFS. Implement genetic crossover between sandboxes.' },
+    { label: 'Adversarial Arena', text: 'ArenaHarness tournament: Tool A tries to write malicious code, Tool B tries to detect it. Score based on evasion/detection rate. Evolve both over 10 generations. Who wins the arms race?' },
+    { label: 'Worker Pipeline', text: 'Create a 5-stage worker pipeline: Parser → Analyzer → Optimizer → Generator → Validator. Each worker passes output to next via VFS. Bottleneck detection and auto-scaling of slow stages.' },
+    { label: 'Consensus Protocol', text: 'Spawn 7 workers, each proposes a solution. Implement Byzantine fault-tolerant consensus (2/3 must agree). Deliberately make 2 workers malicious. Prove the system still reaches correct consensus.' },
+    { label: 'Worker Specialization', text: 'Start with 10 identical workers. Over 20 rounds, they specialize based on task assignment. Track emergence of roles: some become readers, some writers, some validators. Visualize the division of labor.' },
   ]
 };
 

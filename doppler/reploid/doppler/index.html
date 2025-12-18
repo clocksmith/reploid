@@ -77,6 +77,13 @@
               </div>
               <span class="memory-value" id="memory-gpu">--</span>
             </div>
+            <div class="memory-bar-row memory-sub-row">
+              <span class="memory-label">Cache</span>
+              <div class="memory-bar-container">
+                <div class="memory-bar memory-bar-opfs" id="memory-bar-opfs" style="width: 0%"></div>
+              </div>
+              <span class="memory-value" id="memory-opfs">--</span>
+            </div>
           </div>
         </section>
 
@@ -156,25 +163,25 @@
           <div class="progress-content">
             <div class="progress-title" id="progress-title">Loading Model</div>
             <div class="progress-phases" id="progress-phases">
-              <!-- Download Phase -->
-              <div class="progress-phase-row" data-phase="download">
-                <span class="progress-phase-label">Download</span>
+              <!-- Network Phase (only shown when downloading) -->
+              <div class="progress-phase-row" data-phase="network">
+                <span class="progress-phase-label">Network</span>
                 <div class="progress-bar-container">
                   <div class="progress-bar progress-phase-bar" style="background-color: #3b82f6;"></div>
                 </div>
                 <span class="progress-phase-value">--</span>
               </div>
-              <!-- Storage Phase -->
-              <div class="progress-phase-row" data-phase="storage">
-                <span class="progress-phase-label">Storage</span>
+              <!-- Cache/OPFS Phase -->
+              <div class="progress-phase-row" data-phase="cache">
+                <span class="progress-phase-label">Cache</span>
                 <div class="progress-bar-container">
-                  <div class="progress-bar progress-phase-bar" style="background-color: #22c55e;"></div>
+                  <div class="progress-bar progress-phase-bar" style="background-color: #a855f7;"></div>
                 </div>
                 <span class="progress-phase-value">--</span>
               </div>
-              <!-- GPU Phase -->
-              <div class="progress-phase-row" data-phase="gpu">
-                <span class="progress-phase-label">GPU Load</span>
+              <!-- VRAM Phase -->
+              <div class="progress-phase-row" data-phase="vram">
+                <span class="progress-phase-label">VRAM</span>
                 <div class="progress-bar-container">
                   <div class="progress-bar progress-phase-bar" style="background-color: #f59e0b;"></div>
                 </div>

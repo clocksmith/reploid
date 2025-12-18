@@ -91,7 +91,7 @@ export async function runFFNGPU(
     const gateUpOutput = await runMatmul(
       inputBuffer, gateUpWeight,
       numTokens, intermediateSize * 2, hiddenSize,
-      { transposeB: true }
+      { transposeB: 'auto' }
     );
 
     // 2. Split + Activation: output[i] = activation(gate[i]) * up[i]
@@ -106,7 +106,7 @@ export async function runFFNGPU(
     releaseBuffer(gateUpOutput);
 
     // 3. Down projection: [numTokens, intermediateSize] @ [hiddenSize, intermediateSize]^T -> [numTokens, hiddenSize]
-    const output = await runMatmul(activatedOutput, downWeight, numTokens, hiddenSize, intermediateSize, { transposeB: true });
+    const output = await runMatmul(activatedOutput, downWeight, numTokens, hiddenSize, intermediateSize, { transposeB: 'auto' });
 
     releaseBuffer(activatedOutput);
 
@@ -122,10 +122,10 @@ export async function runFFNGPU(
   }
 
   // 1. Gate projection: gate = W_gate @ x (transposeB for SafeTensors layout)
-  const gateOutput = await runMatmul(inputBuffer, gateWeight, numTokens, intermediateSize, hiddenSize, { transposeB: true });
+  const gateOutput = await runMatmul(inputBuffer, gateWeight, numTokens, intermediateSize, hiddenSize, { transposeB: 'auto' });
 
   // 2. Up projection: up = W_up @ x (transposeB for SafeTensors layout)
-  const upOutput = await runMatmul(inputBuffer, upWeight, numTokens, intermediateSize, hiddenSize, { transposeB: true });
+  const upOutput = await runMatmul(inputBuffer, upWeight, numTokens, intermediateSize, hiddenSize, { transposeB: 'auto' });
 
   // 3. Activation: activation(gate) * up
   // Use GELU for Gemma 3, SiLU for LLaMA/Mistral/Qwen
@@ -139,7 +139,7 @@ export async function runFFNGPU(
   releaseBuffer(upOutput);
 
   // 4. Down projection: result = W_down @ activated (transposeB for SafeTensors layout)
-  const output = await runMatmul(activatedOutput, downWeight, numTokens, hiddenSize, intermediateSize, { transposeB: true });
+  const output = await runMatmul(activatedOutput, downWeight, numTokens, hiddenSize, intermediateSize, { transposeB: 'auto' });
 
   releaseBuffer(activatedOutput);
 
@@ -207,10 +207,10 @@ export async function runFFN(
   }
 
   // 3. Gate projection
-  const gateOutput = await runMatmul(inputBuffer, gateWeightBuffer, numTokens, intermediateSize, hiddenSize, { transposeB: true });
+  const gateOutput = await runMatmul(inputBuffer, gateWeightBuffer, numTokens, intermediateSize, hiddenSize, { transposeB: 'auto' });
 
   // 4. Up projection
-  const upOutput = await runMatmul(inputBuffer, upWeightBuffer, numTokens, intermediateSize, hiddenSize, { transposeB: true });
+  const upOutput = await runMatmul(inputBuffer, upWeightBuffer, numTokens, intermediateSize, hiddenSize, { transposeB: 'auto' });
 
   // 5. Activation
   const activationFn = hiddenActivation === 'gelu' ? runGeLU : runSiLU;
@@ -220,7 +220,7 @@ export async function runFFN(
   });
 
   // 6. Down projection
-  const output = await runMatmul(activatedOutput, downWeightBuffer, numTokens, hiddenSize, intermediateSize, { transposeB: true });
+  const output = await runMatmul(activatedOutput, downWeightBuffer, numTokens, hiddenSize, intermediateSize, { transposeB: 'auto' });
 
   // 7. Read output back
   const outputData = await readBuffer(output, hiddenStates.byteLength);

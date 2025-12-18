@@ -22,6 +22,7 @@ export interface TestHarness {
   runMatmul(device: GPUDevice, A: Float32Array, B: Float32Array, M: number, N: number, K: number, alpha?: number): Promise<Float32Array>;
   runBatchMatmul(device: GPUDevice, A: Float32Array, B: Float32Array, batch: number, M: number, N: number, K: number): Promise<Float32Array>;
   runMatvec(device: GPUDevice, A: Float32Array, x: Float32Array, M: number, K: number): Promise<Float32Array>;
+  runMatmulQ4K(device: GPUDevice, A: Float32Array, B_q4k: Uint8Array, M: number, N: number, K: number, alpha?: number): Promise<Float32Array>;
   runAttention(device: GPUDevice, Q: Float32Array, K: Float32Array, V: Float32Array, seqLen: number, kvLen: number, numHeads: number, numKVHeads: number, headDim: number, mask?: Float32Array): Promise<Float32Array>;
   runRMSNorm(device: GPUDevice, input: Float32Array, weight: Float32Array, batchSize: number, hiddenSize: number): Promise<Float32Array>;
   runSoftmax(device: GPUDevice, input: Float32Array, innerSize: number, outerSize: number, temperature?: number): Promise<Float32Array>;
@@ -33,6 +34,7 @@ export interface TestHarness {
   runMoEGather(device: GPUDevice, tokens: Float32Array, expertIndices: Uint32Array, numTokens: number, hiddenSize: number, numExperts: number, topK: number): Promise<{ tokenCounts: Uint32Array }>;
   runSoftmaxTopK(device: GPUDevice, logits: Float32Array, numTokens: number, numExperts: number, topK: number): Promise<{ indices: Uint32Array; weights: Float32Array }>;
   runResidual(device: GPUDevice, x: Float32Array, residual: Float32Array): Promise<Float32Array>;
+  runDequantQ4K(device: GPUDevice, quantized: Uint8Array, numBlocks: number): Promise<Float32Array>;
   references: {
     matmulRef(A: Float32Array, B: Float32Array, M: number, N: number, K: number, alpha?: number): Float32Array;
     batchMatmulRef(A: Float32Array, B: Float32Array, batch: number, M: number, N: number, K: number): Float32Array;
@@ -56,6 +58,8 @@ export interface TestHarness {
     dequantInt8Ref(quantized: Int8Array, scales: Float32Array, zeroPoints: Int8Array | null, numChannels: number, channelSize: number): Float32Array;
     dequantInt4Ref(quantized: Uint8Array, scales: Float32Array, numElements: number, groupSize: number): Float32Array;
     dequantQ4_0Ref(quantized: Uint8Array, numBlocks: number): Float32Array;
+    quantizeQ4_KRef(values: Float32Array, numBlocks: number): Uint8Array;
+    dequantQ4_KRef(quantized: Uint8Array, numBlocks: number): Float32Array;
   };
 }
 

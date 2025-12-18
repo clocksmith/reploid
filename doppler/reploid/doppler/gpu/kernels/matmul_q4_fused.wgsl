@@ -42,7 +42,9 @@ struct Q4KBlock {
 @group(0) @binding(2) var<storage, read> B_q4k: array<Q4KBlock>;
 @group(0) @binding(3) var<storage, read_write> C: array<f32>;
 
-var<workgroup> wg_sums: array<f32, 8>;
+// Shared memory for subgroup reduction
+// Size 32 supports sg_size >= 8 (256 threads / 8 = 32 subgroups max)
+var<workgroup> wg_sums: array<f32, 32>;
 
 // Extract f16 from packed u32
 fn unpack_f16_lo(packed: u32) -> f32 {
@@ -203,9 +205,18 @@ fn main(
 }
 
 // Batched version for prefill (M > 1)
-// Uses 2D dispatch: workgroup (x,y) computes output C[y, x*TILE_N : (x+1)*TILE_N]
+// Uses 2D dispatch: workgroup (x,y) computes output C[y*TILE_M : (y+1)*TILE_M, x]
+// Each workgroup computes TILE_M rows × 1 column
+//
+// IMPORTANT: Previous version used 16 threads per column which caused subgroup
+// mixing when sg_size=32 (two columns in same subgroup). This version uses
+// 64 threads per column to ensure correct subgroup reduction.
 const TILE_M: u32 = 4u;
-const TILE_N: u32 = 4u;
+const THREADS_PER_COL: u32 = 64u;
+const MAX_SUBGROUPS_PER_ROW: u32 = 16u;  // Support sg_size >= 4 (64/4 = 16)
+
+// Shared memory for per-row subgroup reduction: 4 rows × 16 max subgroups = 64
+var<workgroup> batched_wg_sums: array<f32, 64>;
 
 @compute @workgroup_size(64, 4, 1)
 fn main_batched(
@@ -214,9 +225,9 @@ fn main_batched(
     @builtin(subgroup_invocation_id) sg_id: u32,
     @builtin(subgroup_size) sg_size: u32
 ) {
+    let local_id = lid.x;
     let row = wg_id.y * TILE_M + lid.y;
-    let col = wg_id.x * TILE_N + (lid.x / 16u);
-    let k_thread = lid.x % 16u;
+    let col = wg_id.x;  // One column per workgroup X (no more /16 mixing)
 
     // Track validity - NO early return to maintain uniform control flow for subgroupAdd
     let is_valid = row < uniforms.M && col < uniforms.N;
@@ -228,8 +239,8 @@ fn main_batched(
         let num_blocks = uniforms.num_blocks_per_row;
         let row_block_offset = col * num_blocks;
 
-        // Each thread processes every 16th block
-        for (var b: u32 = k_thread; b < num_blocks; b = b + 16u) {
+        // Each thread processes every 64th block (instead of 16th)
+        for (var b: u32 = local_id; b < num_blocks; b = b + THREADS_PER_COL) {
             let block = B_q4k[row_block_offset + b];
             let d = unpack_f16_lo(block.d_dmin);
             let dmin = unpack_f16_hi(block.d_dmin);
@@ -254,11 +265,25 @@ fn main_batched(
         }
     }  // end if (is_valid)
 
-    // Subgroup reduction across k_threads - ALL threads must execute (uniform control flow)
+    // Subgroup reduction - ALL threads must execute (uniform control flow)
     let sg_sum = subgroupAdd(partial_sum);
 
-    // Write result (only thread with k_thread=0 writes, and only if valid)
-    if (k_thread == 0u && is_valid) {
-        C[row * uniforms.N + col] = sg_sum * uniforms.alpha;
+    // Store subgroup results to shared memory (per-row)
+    let num_subgroups = (THREADS_PER_COL + sg_size - 1u) / sg_size;
+
+    if (sg_id == 0u && local_id < THREADS_PER_COL) {
+        let sg_idx = local_id / sg_size;
+        batched_wg_sums[lid.y * MAX_SUBGROUPS_PER_ROW + sg_idx] = sg_sum;
+    }
+
+    workgroupBarrier();
+
+    // Thread 0 of each row does final reduction and writes result
+    if (local_id == 0u && is_valid) {
+        var final_sum: f32 = 0.0;
+        for (var i: u32 = 0u; i < num_subgroups; i = i + 1u) {
+            final_sum = final_sum + batched_wg_sums[lid.y * MAX_SUBGROUPS_PER_ROW + i];
+        }
+        C[row * uniforms.N + col] = final_sum * uniforms.alpha;
     }
 }

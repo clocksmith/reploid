@@ -53,16 +53,19 @@ export async function runSiLU(
 
   // Create bind group
   // WGSL bindings: 0=uniforms, 1=input, 2=output, 3=gate, 4=bias
-  const gateBuffer = gate || input; // Use input as dummy if no gate
+  const entries: GPUBindGroupEntry[] = [
+    { binding: 0, resource: { buffer: uniformBuffer } },
+    { binding: 1, resource: { buffer: input } },
+    { binding: 2, resource: { buffer: output } },
+  ];
+  if (gate) {
+    entries.push({ binding: 3, resource: { buffer: gate } });
+  }
+
   const bindGroup = device.createBindGroup({
     label: 'silu_bind_group',
     layout: pipeline.getBindGroupLayout(0),
-    entries: [
-      { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: input } },
-      { binding: 2, resource: { buffer: output } },
-      { binding: 3, resource: { buffer: gateBuffer } },
-    ],
+    entries,
   });
 
   // Dispatch

@@ -32,8 +32,9 @@ var<workgroup> shared_V: array<f32, 4096>;  // BLOCK_SIZE * HEAD_TILE
 var<workgroup> shared_scores: array<f32, 4096>;  // BLOCK_SIZE * BLOCK_SIZE
 
 // Online softmax accumulators (per-thread)
-var<workgroup> row_max: array<f32, 64>;   // BLOCK_SIZE
-var<workgroup> row_sum: array<f32, 64>;   // BLOCK_SIZE
+// Sized for 256 to support attention_decode workgroup size (prefill uses 64)
+var<workgroup> row_max: array<f32, 256>;
+var<workgroup> row_sum: array<f32, 256>;
 
 // Get KV head index for grouped query attention
 fn getKVHeadIdx(queryHeadIdx: u32) -> u32 {

@@ -20,6 +20,9 @@ export {
   formatBenchmarkSummary,
 } from './pipeline-benchmark.js';
 
+// Debug utilities (bundled by build:benchmark so CLI --trace works without extra HTTP modules)
+export { setDebugCategories, DEBUG_PRESETS } from '../../inference/pipeline/debug-utils.js';
+
 // System benchmarks
 export {
   SystemBenchmark,

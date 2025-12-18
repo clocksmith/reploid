@@ -16,6 +16,12 @@ Quick index for DOPPLER documentation.
 | 4 | P2P Distribution | Design | [PHASE_4_P2P.md](roadmap/PHASE_4_P2P.md) |
 | 5 | Evolution | Design | [PHASE_5_EVOLUTION.md](roadmap/PHASE_5_EVOLUTION.md) |
 
+**Infrastructure:**
+
+| Feature | Status | Roadmap |
+|---------|--------|---------|
+| YAML Kernel Config | Planned | [KERNEL_CONFIG_SYSTEM.md](roadmap/KERNEL_CONFIG_SYSTEM.md) |
+
 ---
 
 ## Core Docs

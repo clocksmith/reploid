@@ -120,6 +120,7 @@ export {
   castF32ToF16,
   recordCastF32ToF16,
   runBF16ToF32,
+  runBF16ToF16,
   type CastOptions,
 } from './cast.js';
 

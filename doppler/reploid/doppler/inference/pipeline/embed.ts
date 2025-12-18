@@ -101,8 +101,11 @@ export async function embed(
 
   if (!device) throw new Error('GPU device not available');
 
+  // Always log scaleEmbeddings status (to debug scaling issue)
+  console.log(`[Embed] tokens=${numTokens}, hidden=${hiddenSize}, scaleEmbeddings=${scaleEmbeddings}, debug=${debug}`);
+
   if (debug) {
-    console.log(`[Embed] tokens=${numTokens}, hidden=${hiddenSize}, vocab=${vocabSize}`);
+    console.log(`[Embed] DEBUG tokens=${numTokens}, hidden=${hiddenSize}, vocab=${vocabSize}, scaleEmbeddings=${scaleEmbeddings}`);
   }
 
   const tokenIdBuffer = acquireBuffer(Math.max(numTokens * 4, 256), undefined, 'embed_tokens');
@@ -115,12 +118,23 @@ export async function embed(
 
   // Apply Gemma scaling: sqrt(hiddenSize)
   const scaleFactor = Math.sqrt(hiddenSize);
+
+  // Debug: check raw embedding values before scaling
+  if (debug) {
+    const sample = await readBuffer(outputBuffer, Math.min(outputBuffer.size, numTokens * hiddenSize * 4));
+    const f32 = new Float32Array(sample);
+    const maxAbs = Math.max(...Array.from(f32).map(x => Math.abs(x)));
+    console.log(`[Embed] RAW (before scale): maxAbs=${maxAbs.toFixed(4)}, scaleFactor=${scaleFactor.toFixed(4)}`);
+  }
+
   const scaledBuffer = await scaleGPUBuffer(outputBuffer, scaleFactor, numTokens * hiddenSize);
   releaseBuffer(outputBuffer);
 
   if (debug) {
-    const sample = await readBuffer(scaledBuffer, Math.min(256, scaledBuffer.size));
+    const sample = await readBuffer(scaledBuffer, Math.min(scaledBuffer.size, numTokens * hiddenSize * 4));
     const f32 = new Float32Array(sample);
+    const maxAbs = Math.max(...Array.from(f32).map(x => Math.abs(x)));
+    console.log(`[Embed] SCALED (after *${scaleFactor.toFixed(2)}): maxAbs=${maxAbs.toFixed(4)}`);
     if (f32.some(x => !Number.isFinite(x))) {
       throw new Error('[Embed] Scaled embedding contains NaN/Inf');
     }

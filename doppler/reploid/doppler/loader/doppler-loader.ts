@@ -35,7 +35,7 @@ import {
 } from '../storage/rdrr-format.js';
 import { initDevice, getDevice, getKernelCapabilities } from '../gpu/device.js';
 import { acquireBuffer, releaseBuffer } from '../gpu/buffer-pool.js';
-import { dequantize, castF32ToF16, runBF16ToF32 } from '../gpu/kernel-selector.js';
+import { dequantize, castF32ToF16, runBF16ToF16 } from '../gpu/kernel-selector.js';
 import { getBufferDtype, setBufferDtype, setBufferLayout, type BufferLayout } from '../gpu/buffer-dtypes.js';
 import { ExpertCache, getExpertCache, type CacheStats } from './expert-cache.js';
 
@@ -623,9 +623,21 @@ export class DopplerLoader {
         if (location.dtype === 'Q4_K_M' || location.dtype === 'Q4_K') {
           const caps = this.gpuCapabilities || getKernelCapabilities();
           const isMatmulWeight = this._shouldDequantizeToF16(name);
+          const Q4K_K = 256;
+          const Q4K_BLOCK_BYTES = 144;
+
+          const isPackedQ4K =
+            Array.isArray(location.shape) &&
+            location.shape.length === 2 &&
+            (() => {
+              const [rows, cols] = location.shape;
+              const expectedRowwise = rows * Math.ceil(cols / Q4K_K) * Q4K_BLOCK_BYTES;
+              return location.size < expectedRowwise;
+            })();
 
           // Fused Q4K path: keep raw quantized buffer for matmul weights
-          if (this.useFusedQ4K && isMatmulWeight && caps?.hasSubgroups) {
+          if (this.useFusedQ4K && isMatmulWeight && caps?.hasSubgroups && !isPackedQ4K) {
+            console.log(`[DopplerLoader] Loading Q4K weight: ${name} (size=${location.size})`);
             const q4kBuffer = acquireBuffer(location.size, undefined, `q4k_${name}`);
             let tensorOffset = 0;
             for (const span of location.spans) {
@@ -645,6 +657,15 @@ export class DopplerLoader {
           }
 
           // Standard dequant path
+          if (this.useFusedQ4K && isMatmulWeight && caps?.hasSubgroups && isPackedQ4K) {
+            const [rows, cols] = location.shape;
+            const expectedRowwise = rows * Math.ceil(cols / Q4K_K) * Q4K_BLOCK_BYTES;
+            console.warn(
+              `[DopplerLoader] Packed Q4K matmul weight (incompatible with fused matmul): ${name} ` +
+              `shape=[${rows},${cols}] size=${location.size} expectedRowwise=${expectedRowwise}. ` +
+              `Falling back to dequantized weights for correctness.`
+            );
+          }
           const quantBuffer = acquireBuffer(location.size, undefined, `quant_${name}`);
           let tensorOffset = 0;
           for (const span of location.spans) {
@@ -694,13 +715,11 @@ export class DopplerLoader {
             // Ensure all writeBuffer operations are flushed to GPU before conversion
             await device.queue.onSubmittedWorkDone();
 
-            // For matmul weights with F16 support: BF16 → F32 → F16 for optimized GEMV
+            // For matmul weights with F16 support: BF16 → F16 (no intermediate F32 buffer)
             // This is critical for lm_head (262k vocab) which dominates decode time
             if (caps?.hasF16 && isMatmulWeight) {
-              const f32Buffer = await this._convertBF16ToF32GPU(srcBuffer, numElements, `${name}_f32_temp`);
+              const f16Buffer = await runBF16ToF16(srcBuffer, numElements, name);
               releaseBuffer(srcBuffer);
-              const f16Buffer = await castF32ToF16(f32Buffer, numElements);
-              releaseBuffer(f32Buffer);
               this.gpuBuffers.add(f16Buffer);
               console.log(`[DopplerLoader] BF16→F16 for matmul weight: ${name} (${numElements} elements, spans path)`);
               return this._applyBufferLayout(f16Buffer, location);
@@ -772,15 +791,37 @@ export class DopplerLoader {
         const device = getDevice();
         const caps = this.gpuCapabilities || getKernelCapabilities();
         const isMatmulWeight = this._shouldDequantizeToF16(name);
+        const Q4K_K = 256;
+        const Q4K_BLOCK_BYTES = 144;
+
+        const isPackedQ4K =
+          Array.isArray(location.shape) &&
+          location.shape.length === 2 &&
+          (() => {
+            const [rows, cols] = location.shape;
+            const expectedRowwise = rows * Math.ceil(cols / Q4K_K) * Q4K_BLOCK_BYTES;
+            return location.size < expectedRowwise;
+          })();
 
         // Fused Q4K path: keep raw quantized buffer for matmul weights
         // This enables 2-3x speedup by doing dequant+matmul in one kernel pass
-        if (this.useFusedQ4K && isMatmulWeight && caps?.hasSubgroups) {
+        if (this.useFusedQ4K && isMatmulWeight && caps?.hasSubgroups && !isPackedQ4K) {
+          console.log(`[DopplerLoader] Loading Q4K weight (single-shard): ${name} (size=${location.size})`);
           const q4kBuffer = acquireBuffer(location.size, undefined, `q4k_${name}`);
           device!.queue.writeBuffer(q4kBuffer, 0, new Uint8Array(shardData));
           setBufferDtype(q4kBuffer, 'q4k');
           this.gpuBuffers.add(q4kBuffer);
           return q4kBuffer;
+        }
+
+        if (this.useFusedQ4K && isMatmulWeight && caps?.hasSubgroups && isPackedQ4K) {
+          const [rows, cols] = location.shape;
+          const expectedRowwise = rows * Math.ceil(cols / Q4K_K) * Q4K_BLOCK_BYTES;
+          console.warn(
+            `[DopplerLoader] Packed Q4K matmul weight (incompatible with fused matmul): ${name} ` +
+            `shape=[${rows},${cols}] size=${location.size} expectedRowwise=${expectedRowwise}. ` +
+            `Falling back to dequantized weights for correctness.`
+          );
         }
 
         // Standard dequant path: dequantize to f16 or f32
@@ -810,13 +851,11 @@ export class DopplerLoader {
         const caps = this.gpuCapabilities || getKernelCapabilities();
         const isMatmulWeight = this._shouldDequantizeToF16(name);
 
-        // For matmul weights with F16 support: BF16 → F32 → F16 for optimized GEMV
+        // For matmul weights with F16 support: BF16 → F16 (no intermediate F32 buffer)
         // This is critical for lm_head (262k vocab) which dominates decode time
         if (caps?.hasF16 && isMatmulWeight) {
-          const f32Buffer = await this._convertBF16ToF32GPU(srcBuffer, numElements, `${name}_f32_temp`);
+          const f16Buffer = await runBF16ToF16(srcBuffer, numElements, name);
           releaseBuffer(srcBuffer);
-          const f16Buffer = await castF32ToF16(f32Buffer, numElements);
-          releaseBuffer(f32Buffer);
           this.gpuBuffers.add(f16Buffer);
           console.log(`[DopplerLoader] BF16→F16 for matmul weight: ${name} (${numElements} elements)`);
           return this._applyBufferLayout(f16Buffer, location);
@@ -962,9 +1001,13 @@ export class DopplerLoader {
 
   /**
    * Apply +1 offset to norm weights for Gemma 3+ models
+   *
+   * IMPORTANT: actualNumElements must be provided to avoid reading garbage padding
+   * from the buffer pool's power-of-2 bucketing.
    */
   private async _applyNormWeightOffset(
-    tensor: GPUBuffer | Float32Array
+    tensor: GPUBuffer | Float32Array,
+    actualNumElements?: number
   ): Promise<GPUBuffer | Float32Array> {
     const device = getDevice();
     if (!device) {
@@ -973,14 +1016,18 @@ export class DopplerLoader {
     }
 
     if (tensor instanceof GPUBuffer) {
-      const size = tensor.size;
+      // Use actual element count if provided, otherwise fall back to buffer size
+      // Buffer pool rounds up to power of 2, so tensor.size may include garbage padding
+      const numElements = actualNumElements ?? Math.floor(tensor.size / 4);
+      const dataSize = numElements * 4;
+
       const stagingBuffer = device.createBuffer({
-        size,
+        size: dataSize,
         usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ,
       });
 
       const encoder = device.createCommandEncoder();
-      encoder.copyBufferToBuffer(tensor, 0, stagingBuffer, 0, size);
+      encoder.copyBufferToBuffer(tensor, 0, stagingBuffer, 0, dataSize);
       device.queue.submit([encoder.finish()]);
 
       await stagingBuffer.mapAsync(GPUMapMode.READ);
@@ -988,8 +1035,8 @@ export class DopplerLoader {
       stagingBuffer.unmap();
       stagingBuffer.destroy();
 
-      const offsetData = new Float32Array(data.length);
-      for (let i = 0; i < data.length; i++) {
+      const offsetData = new Float32Array(numElements);
+      for (let i = 0; i < numElements; i++) {
         offsetData[i] = 1.0 + data[i];
       }
 
@@ -1000,8 +1047,9 @@ export class DopplerLoader {
     }
 
     if (tensor instanceof Float32Array) {
-      const offsetData = new Float32Array(tensor.length);
-      for (let i = 0; i < tensor.length; i++) {
+      const numElements = actualNumElements ?? tensor.length;
+      const offsetData = new Float32Array(numElements);
+      for (let i = 0; i < numElements; i++) {
         offsetData[i] = 1.0 + tensor[i];
       }
       return offsetData;
@@ -1183,11 +1231,26 @@ export class DopplerLoader {
     };
 
     const tryLoadNorm = async (suffixes: string[]): Promise<GPUBuffer | Float32Array | null> => {
+      // Find tensor location to get actual shape (needed to avoid reading garbage from buffer pool padding)
+      let actualNumElements: number | undefined;
+      for (const prefix of prefixes) {
+        for (const suffix of suffixes) {
+          const name = `${prefix}.${suffix}`;
+          const location = this.tensorLocations.get(name);
+          if (location) {
+            // Norm weights are 1D tensors with shape [hiddenSize]
+            actualNumElements = location.shape.reduce((a, b) => a * b, 1);
+            break;
+          }
+        }
+        if (actualNumElements) break;
+      }
+
       const tensor = await tryLoad(suffixes);
       if (!tensor) return null;
 
       if (this._needsNormWeightOffset()) {
-        return this._applyNormWeightOffset(tensor);
+        return this._applyNormWeightOffset(tensor, actualNumElements);
       }
       return tensor;
     };
@@ -1199,6 +1262,7 @@ export class DopplerLoader {
       tryLoad(['self_attn.k_proj.weight', 'attention.wk.weight', 'attn_k.weight']),
       tryLoad(['self_attn.v_proj.weight', 'attention.wv.weight', 'attn_v.weight']),
       tryLoad(['self_attn.o_proj.weight', 'attention.wo.weight', 'attn_output.weight']),
+      // Gemma 3 RMSNorm uses (1 + weight) for ALL norm layers, including q_norm/k_norm.
       tryLoadNorm(['self_attn.q_norm.weight', 'attn_q_norm.weight']),
       tryLoadNorm(['self_attn.k_norm.weight', 'attn_k_norm.weight']),
       tryLoadNorm(['post_attention_layernorm.weight', 'post_attention_norm.weight']),
@@ -1480,14 +1544,26 @@ export class DopplerLoader {
    * Load final layer norm and LM head
    */
   private async _loadFinalWeights(_onProgress: ((progress: LoadProgress) => void) | null): Promise<void> {
-    this.finalNorm = (await this._loadTensor('language_model.model.norm.weight', true, true) ||
-                     await this._loadTensor('model.norm.weight', true, true) ||
-                     await this._loadTensor('norm.weight', true, true) ||
-                     await this._loadTensor('output_norm.weight', true, true) ||
-                     await this._loadTensor('transformer.ln_f.weight', true, true)) as GPUBuffer | Float32Array | null;
+    // Try loading final norm with known names
+    const finalNormNames = [
+      'language_model.model.norm.weight',
+      'model.norm.weight',
+      'norm.weight',
+      'output_norm.weight',
+      'transformer.ln_f.weight',
+    ];
+    let finalNormElements: number | undefined;
+    for (const name of finalNormNames) {
+      const location = this.tensorLocations.get(name);
+      if (location) {
+        finalNormElements = location.shape.reduce((a, b) => a * b, 1);
+        this.finalNorm = await this._loadTensor(name, true, true) as GPUBuffer | Float32Array | null;
+        break;
+      }
+    }
 
     if (this.finalNorm && this._needsNormWeightOffset()) {
-      this.finalNorm = await this._applyNormWeightOffset(this.finalNorm);
+      this.finalNorm = await this._applyNormWeightOffset(this.finalNorm, finalNormElements);
     }
 
     if (!this.finalNorm) {

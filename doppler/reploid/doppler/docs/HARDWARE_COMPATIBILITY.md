@@ -117,8 +117,10 @@ For prompt "the sky is", Gemma 3 1B should generate coherent continuations like:
 ### 1. Run E2E Test (Automated)
 
 ```bash
-cd doppler/kernel-tests
-npx playwright test doppler/tests/gemma-e2e.spec.ts --headed
+# From reploid root
+doppler test demo --headed           # Demo UI test
+doppler test inference               # Quick inference validation
+doppler bench inference --headed     # Full inference benchmark
 ```
 
 ### 2. Run Demo (Manual)

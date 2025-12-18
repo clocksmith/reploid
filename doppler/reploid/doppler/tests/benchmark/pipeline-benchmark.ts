@@ -25,6 +25,7 @@ import type {
 } from './types.js';
 import { DEFAULT_BENCHMARK_CONFIG } from './types.js';
 import { getPrompt } from './prompts.js';
+import { applyGemmaChatTemplate } from '../../inference/pipeline/init.js';
 
 // Track GPU readback bytes globally during benchmark
 let readbackBytesTotal = 0;
@@ -191,7 +192,7 @@ export class PipelineBenchmark {
     const { createProfiler } = await import('../../gpu/profiler.js');
     const { getBufferPool } = await import('../../gpu/buffer-pool.js');
     const { downloadModel } = await import('../../storage/downloader.js');
-    const { loadManifestFromOPFS, initOPFS } = await import('../../storage/shard-manager.js');
+    const { modelExists, initOPFS } = await import('../../storage/shard-manager.js');
 
     const loadStart = performance.now();
 
@@ -220,16 +221,12 @@ export class PipelineBenchmark {
     this.manifest = await manifestResponse.json();
     const modelId = this.manifest.modelId || this.manifest.model_id;
 
-    // Check if model is in OPFS, download if not
+    // Check if model is in OPFS, download if not.
+    // NOTE: shard-manager APIs require selecting a model directory before reading files.
+    // modelExists() checks for a manifest without relying on global currentModelDir.
     await initOPFS();
-    let opfsManifest = null;
-    try {
-      opfsManifest = await loadManifestFromOPFS(modelId);
-    } catch (e) {
-      // Model not in OPFS
-    }
-
-    if (!opfsManifest) {
+    const isCached = await modelExists(modelId);
+    if (!isCached) {
       console.log('[Benchmark] Model not in OPFS, downloading...');
       const baseUrl = this.config.modelPath.replace(/\/manifest\.json$/, '');
       await downloadModel(baseUrl, (progress) => {
@@ -304,11 +301,17 @@ export class PipelineBenchmark {
     }
 
     // Run generation
+    const useChatTemplate = this.config.useChatTemplate ?? false;
     const generator = this.pipeline.generate(prompt, {
       maxTokens: this.config.maxNewTokens,
       temperature: this.config.sampling.temperature,
       topK: this.config.sampling.topK,
       topP: this.config.sampling.topP,
+      debug: this.config.debug ?? true,
+      // Use debugLayers from config for selective layer checkpointing
+      // Without debugLayers, debug mode syncs at EVERY layer (very slow)
+      debugLayers: this.config.debugLayers,
+      useChatTemplate,
       onToken: (id: number, t: string) => {
         const now = performance.now();
         tokens.push(id);
@@ -374,6 +377,11 @@ export class PipelineBenchmark {
     // Get buffer pool stats for peak VRAM
     const bufferStats = getBufferPool().getStats();
 
+    const promptForTokenCount =
+      useChatTemplate && this.manifest?.architecture?.includes('Gemma3')
+        ? applyGemmaChatTemplate(prompt)
+        : prompt;
+
     return {
       ttftMs: ttft,
       prefillMs: pipelineStats.prefillTimeMs,
@@ -381,7 +389,7 @@ export class PipelineBenchmark {
       decodeLatencies,
       tokens,
       text,
-      promptTokens: this.pipeline.tokenizer?.encode(prompt)?.length ?? 0,
+      promptTokens: this.pipeline.tokenizer?.encode(promptForTokenCount)?.length ?? 0,
       generatedTokens: tokens.length,
       gpuSubmitCountPrefill: prefillStats.count,
       gpuSubmitCountDecode: decodeStats.count,

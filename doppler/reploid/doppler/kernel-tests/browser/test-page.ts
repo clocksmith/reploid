@@ -6,6 +6,9 @@
 // When served from doppler/, paths are relative to that root
 import { initDevice, getKernelCapabilities, getDeviceLimits, destroyDevice } from '../../gpu/device.js';
 
+// Import buffer dtype tracking for Q4K matmul testing
+import { setBufferDtype } from '../../gpu/buffer-dtypes.js';
+
 // Import kernel functions - some may not exist, so we import what's available
 import * as kernelSelector from '../../gpu/kernel-selector.js';
 
@@ -23,7 +26,11 @@ const {
   runGather = null,
   runResidualAdd = null,
   runAttention = null,
+  dequantize = null,
 } = kernelSelector;
+
+// Import sample kernel
+import * as sampleKernel from '../../gpu/kernels/sample.js';
 
 // Optional buffer pool
 let bufferPool: any = null;
@@ -71,7 +78,7 @@ async function getGPU(): Promise<{ device: GPUDevice; queue: GPUQueue }> {
  * Wrapper to create GPU buffer from typed array
  */
 function makeBuffer(
-  data: Float32Array | Uint32Array | Int32Array | ArrayBuffer,
+  data: Float32Array | Uint32Array | Int32Array | Uint8Array | ArrayBuffer,
   usage: number = GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC
 ): GPUBuffer {
   const byteLength = data instanceof ArrayBuffer ? data.byteLength : data.byteLength;
@@ -88,6 +95,8 @@ function makeBuffer(
     new Uint32Array(mappedRange).set(data);
   } else if (data instanceof Int32Array) {
     new Int32Array(mappedRange).set(data);
+  } else if (data instanceof Uint8Array) {
+    new Uint8Array(mappedRange).set(data);
   } else {
     new Uint8Array(mappedRange).set(new Uint8Array(data));
   }
@@ -180,6 +189,16 @@ interface TestHarnessImpl {
     K: number
   ): Promise<Float32Array>;
 
+  runMatmulQ4K(
+    dev: GPUDevice,
+    A: Float32Array,
+    B_q4k: Uint8Array,
+    M: number,
+    N: number,
+    K: number,
+    alpha?: number
+  ): Promise<Float32Array>;
+
   runSoftmax(
     dev: GPUDevice,
     input: Float32Array,
@@ -249,6 +268,12 @@ interface TestHarnessImpl {
 
   runResidual(dev: GPUDevice, x: Float32Array, residual: Float32Array): Promise<Float32Array>;
 
+  runDequantQ4K(
+    dev: GPUDevice,
+    quantized: Uint8Array,
+    numBlocks: number
+  ): Promise<Float32Array>;
+
   runAttention(
     dev: GPUDevice,
     Q: Float32Array,
@@ -271,6 +296,16 @@ interface TestHarnessImpl {
     numExperts: number,
     topK: number
   ): Promise<MoEGatherResult>;
+
+  runArgmax(dev: GPUDevice, logits: Float32Array): Promise<number>;
+
+  runSampleTopK(
+    dev: GPUDevice,
+    logits: Float32Array,
+    temperature: number,
+    topK: number,
+    randomValue: number
+  ): Promise<number>;
 }
 
 const testHarness: TestHarnessImpl = {
@@ -309,7 +344,9 @@ const testHarness: TestHarnessImpl = {
     const bufA = makeBuffer(A);
     const bufB = makeBuffer(B);
 
-    const resultBuf = await runMatmul(bufA, bufB, M, N, K, { alpha });
+    // Test uses standard layout B [K, N], so transposeB = false
+    // (GPU kernel defaults to transposeB=true for SafeTensors [N, K] layout)
+    const resultBuf = await runMatmul(bufA, bufB, M, N, K, { alpha, transposeB: false });
 
     const result = new Float32Array(await readBufferData(resultBuf, M * N * 4));
 
@@ -334,6 +371,36 @@ const testHarness: TestHarnessImpl = {
   async runMatvec(dev, A, x, M, K) {
     // Always use reference - matvec kernel may not be implemented
     return references.matvecRef(A, x, M, K);
+  },
+
+  /**
+   * Run Q4_K fused matmul kernel (tests q4_fused/q4_fused_batched)
+   * C = A[M,K] @ dequant(B_q4k[N,K])^T = C[M,N]
+   */
+  async runMatmulQ4K(dev, A, B_q4k, M, N, K, alpha = 1.0) {
+    if (!runMatmul) {
+      throw new Error('runMatmul kernel not available');
+    }
+
+    // Create A buffer (activations)
+    const bufA = makeBuffer(A);
+
+    // Create B buffer and mark it as Q4K dtype
+    // This triggers the fused Q4K kernel selection in matmul.ts
+    const bufB = makeBuffer(B_q4k, GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC);
+    setBufferDtype(bufB, 'q4k');
+
+    // Run matmul - kernel auto-detects q4k and uses fused variant
+    // transposeB is implicit for Q4K (weight matrix stored as [N, K])
+    const resultBuf = await runMatmul(bufA, bufB, M, N, K, { alpha });
+
+    const result = new Float32Array(await readBufferData(resultBuf, M * N * 4));
+
+    bufA.destroy();
+    bufB.destroy();
+    resultBuf.destroy();
+
+    return result;
   },
 
   /**
@@ -473,30 +540,72 @@ const testHarness: TestHarnessImpl = {
 
   /**
    * Run RoPE kernel
-   * TODO: GPU kernel has issues, using reference for now
    */
   async runRoPE(dev, input, seqLen, numHeads, headDim, startPos = 0) {
-    // TODO: Fix rope.wgsl kernel
     const { cos, sin } = references.computeRopeFreqs(headDim, seqLen + startPos);
-    return references.ropeRef(input, cos, sin, seqLen, numHeads, headDim, startPos);
+
+    if (!runRoPE) {
+      return references.ropeRef(input, cos, sin, seqLen, numHeads, headDim, startPos);
+    }
+
+    const inputBuf = makeBuffer(input);
+    const cosBuf = makeBuffer(cos);
+    const sinBuf = makeBuffer(sin);
+
+    await runRoPE(inputBuf, cosBuf, sinBuf, seqLen, {
+      numHeads,
+      headDim,
+      startPos,
+    });
+
+    const result = new Float32Array(
+      await readBufferData(inputBuf, seqLen * numHeads * headDim * 4)
+    );
+
+    inputBuf.destroy();
+    cosBuf.destroy();
+    sinBuf.destroy();
+
+    return result;
   },
 
   /**
    * Run SiLU kernel
-   * TODO: GPU kernel has issues (large errors ~6x), using reference for now
    */
   async runSiLU(dev, input) {
-    // TODO: Fix silu.wgsl kernel (produces incorrect output)
-    return references.siluRef(input);
+    if (!runSiLU) {
+      return references.siluRef(input);
+    }
+
+    const inputBuf = makeBuffer(input);
+    const resultBuf = await runSiLU(inputBuf, { size: input.length });
+    const result = new Float32Array(await readBufferData(resultBuf, input.length * 4));
+
+    inputBuf.destroy();
+    resultBuf.destroy();
+
+    return result;
   },
 
   /**
    * Run SiLU with gating
-   * TODO: GPU kernel has issues, using reference for now
    */
   async runSiLUGated(dev, gate, up) {
-    // TODO: Fix silu.wgsl gated variant
-    return references.siluGatedRef(gate, up);
+    if (!runSiLU) {
+      return references.siluGatedRef(gate, up);
+    }
+
+    const gateBuf = makeBuffer(gate);
+    const upBuf = makeBuffer(up);
+
+    const resultBuf = await runSiLU(upBuf, { size: up.length, gate: gateBuf });
+    const result = new Float32Array(await readBufferData(resultBuf, up.length * 4));
+
+    gateBuf.destroy();
+    upBuf.destroy();
+    resultBuf.destroy();
+
+    return result;
   },
 
   /**
@@ -544,6 +653,25 @@ const testHarness: TestHarnessImpl = {
   },
 
   /**
+   * Run Q4_K dequantization (Q4_K_M) on GPU
+   * kernel-selector API: dequantize(quantized, numBlocks, options)
+   */
+  async runDequantQ4K(dev, quantized, numBlocks) {
+    if (!dequantize) {
+      throw new Error('dequantize kernel not available');
+    }
+
+    const qBuf = makeBuffer(quantized, GPUBufferUsage.STORAGE);
+    const outBuf = await dequantize(qBuf, numBlocks, { outputDtype: 'f32', useVec4: false });
+    const out = new Float32Array(await readBufferData(outBuf, numBlocks * 256 * 4));
+
+    qBuf.destroy();
+    outBuf.destroy();
+
+    return out;
+  },
+
+  /**
    * Run attention kernel
    * kernel-selector API: runAttention(Q, K, V, mask, numHeads, headDim, options)
    * options: { seqLen, kvLen, numKVHeads, scale, causal }
@@ -568,6 +696,30 @@ const testHarness: TestHarnessImpl = {
       gatheredTokens: result.gatheredTokens,
       tokenCounts: result.tokenCounts,
     };
+  },
+
+  /**
+   * Run GPU argmax (greedy decoding)
+   */
+  async runArgmax(dev, logits) {
+    const logitsBuf = makeBuffer(logits);
+    const tokenId = await sampleKernel.runArgmax(logitsBuf, logits.length);
+    logitsBuf.destroy();
+    return tokenId;
+  },
+
+  /**
+   * Run GPU top-k sampling with temperature
+   */
+  async runSampleTopK(dev, logits, temperature, topK, randomValue) {
+    const logitsBuf = makeBuffer(logits);
+    const tokenId = await sampleKernel.runGPUSample(logitsBuf, logits.length, {
+      temperature,
+      topK,
+      randomSeed: randomValue * 10000, // Convert to seed
+    });
+    logitsBuf.destroy();
+    return tokenId;
   },
 };
 
