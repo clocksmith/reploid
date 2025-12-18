@@ -61,13 +61,13 @@ Designed for local-first use, but supports frontier models:
 
 | Mode | Provider | Notes |
 |------|----------|-------|
-| Local (Browser) | WebLLM | Runs in browser via WebGPU, fully offline |
-| Local (Browser) | Transformers.js | ONNX/WASM CPU/Metal fallback, widest compatibility |
-| Local (Browser) | DOPPLER | .rdrr format, GGUF import, Native Bridge |
-| Local (Server) | Ollama, vLLM | Local server, connect via proxy |
-| API | OpenAI, Anthropic, Google, Groq | Direct from client or via proxy |
+| Local (Browser) | WebLLM | WebGPU, TVM-compiled |
+| Local (Browser) | Transformers.js | ONNX/WASM, widest compatibility |
+| Local (Browser) | DOPPLER | WebGPU, custom WGSL kernels |
+| Local (Server) | Ollama, vLLM | Via proxy |
+| API | OpenAI, Anthropic, Google, Groq | Via proxy |
 
-The proxy (`npm start`) routes API calls through your machine for CORS and key management.
+The proxy (`npm start`) handles CORS and API key management.
 
 ## Documentation
 
