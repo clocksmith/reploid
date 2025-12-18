@@ -33,4 +33,22 @@ export { gatherRef, batchGatherRef, gatherWithPosRef } from './gather.js';
 export { residualAddRef, residualAddInplaceRef, scaledResidualAddRef } from './residual.js';
 
 // Quantization
-export { dequantInt8Ref, dequantInt4Ref, dequantQ4_0Ref } from './dequant.js';
+export {
+  float32ToFloat16,
+  dequantInt8Ref,
+  dequantInt4Ref,
+  dequantQ4_0Ref,
+  quantizeQ4_KRef,
+  quantizeQ4_KBlockRef,
+  dequantQ4_KRef,
+  dequantizeQ4_KBlockRef,
+} from './dequant.js';
+
+// Sampling
+export {
+  argmaxRef,
+  topkArgmaxRef,
+  softmaxWithTemp,
+  sampleTopKRef,
+  seededRandom,
+} from './sample.js';

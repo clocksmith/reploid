@@ -107,8 +107,8 @@ const MB = 1024 * 1024;
  * Gemma 1B requirements (Q4_K_M quantization)
  */
 export const GEMMA_1B_REQUIREMENTS: ModelRequirements = {
-  modelId: 'gemma3-1b-q4',
-  displayName: 'Gemma 3 1B (Q4)',
+  modelId: 'gemma-3-1b-it-q4',
+  displayName: 'Gemma 3 1B IT (Q4)',
   downloadSize: 537 * MB,       // ~537MB actual size from manifest shards
   vramRequired: 1.5 * GB,       // ~1.5GB VRAM for inference (weights + KV cache)
   paramCount: '1B',
@@ -118,9 +118,11 @@ export const GEMMA_1B_REQUIREMENTS: ModelRequirements = {
 
 /**
  * All available model requirements
+ * Naming convention: {family}-{version}-{size}-{variant}-{quant}
+ * Examples: gemma-3-1b-it-q4, llama-3.2-1b-q4, mistral-7b-v0.3-q4
  */
 export const MODEL_REQUIREMENTS: Record<string, ModelRequirements> = {
-  'gemma3-1b-q4': GEMMA_1B_REQUIREMENTS,
+  'gemma-3-1b-it-q4': GEMMA_1B_REQUIREMENTS,
 };
 
 // ============================================================================

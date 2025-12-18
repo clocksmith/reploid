@@ -205,17 +205,50 @@ export async function computeLogits(
     await debugCheckBuffer(normWeightBuffer, 'Final norm weights', 1, 100);
   }
 
+  // Debug: Always log hidden state BEFORE final norm for last token
+  {
+    const lastTokenOffset = (numTokens - 1) * hiddenSize * 4;
+    // Read full last-token vector for accurate maxAbs comparisons vs HF.
+    const sampleSize = hiddenSize * 4;
+    const staging = device.createBuffer({ size: sampleSize, usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ });
+    const enc = device.createCommandEncoder();
+    enc.copyBufferToBuffer(inputBuffer, lastTokenOffset, staging, 0, sampleSize);
+    device.queue.submit([enc.finish()]);
+    await staging.mapAsync(GPUMapMode.READ);
+    const data = new Float32Array(staging.getMappedRange().slice(0));
+    staging.unmap();
+    staging.destroy();
+    const maxAbs = Math.max(...Array.from(data).map(x => Math.abs(x)));
+    console.log(`[Pipeline] BEFORE_FINAL_NORM[pos=${numTokens - 1}]: maxAbs=${maxAbs.toFixed(4)}, first5=[${Array.from(data).slice(0, 5).map(x => x.toFixed(4)).join(', ')}]`);
+
+    // Also read FULL final norm weights
+    const wsSize = normWeightBuffer.size;
+    const wstaging = device.createBuffer({ size: wsSize, usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ });
+    const wenc = device.createCommandEncoder();
+    wenc.copyBufferToBuffer(normWeightBuffer, 0, wstaging, 0, wsSize);
+    device.queue.submit([wenc.finish()]);
+    await wstaging.mapAsync(GPUMapMode.READ);
+    const wdata = new Float32Array(wstaging.getMappedRange().slice(0));
+    wstaging.unmap();
+    wstaging.destroy();
+    const wmaxAbs = Math.max(...Array.from(wdata).map(x => Math.abs(x)));
+    console.log(`[Pipeline] FULL_FINAL_NORM_WEIGHTS: maxAbs=${wmaxAbs.toFixed(4)}, size=${wdata.length}, first5=[${Array.from(wdata).slice(0, 5).map(x => x.toFixed(4)).join(', ')}]`);
+  }
+
   const normedBuffer = await runRMSNorm(inputBuffer, normWeightBuffer, rmsNormEps, {
     batchSize: numTokens,
     hiddenSize,
   });
 
-  // Debug: always check post-norm values
+  // Debug: check post-norm values at LAST token position (used for logits)
   {
-    const sampleSize = Math.min(128, normedBuffer.size);
+    // Hidden state for LAST token is at offset (numTokens-1) * hiddenSize
+    const lastTokenOffset = (numTokens - 1) * hiddenSize * 4;  // F32
+    // Read full last-token vector for accurate maxAbs comparisons vs HF.
+    const sampleSize = hiddenSize * 4;
     const staging = device.createBuffer({ size: sampleSize, usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ });
     const enc = device.createCommandEncoder();
-    enc.copyBufferToBuffer(normedBuffer, 0, staging, 0, sampleSize);
+    enc.copyBufferToBuffer(normedBuffer, lastTokenOffset, staging, 0, sampleSize);
     device.queue.submit([enc.finish()]);
     await staging.mapAsync(GPUMapMode.READ);
     const data = new Float32Array(staging.getMappedRange().slice(0));
@@ -223,7 +256,7 @@ export async function computeLogits(
     staging.destroy();
     const maxAbs = Math.max(...Array.from(data).map(x => Math.abs(x)));
     const nonZero = Array.from(data).filter(x => x !== 0).length;
-    console.log(`[Pipeline] AFTER_FINAL_NORM: maxAbs=${maxAbs.toFixed(4)}, nonZero=${nonZero}/${data.length}, sample=[${Array.from(data).slice(0, 5).map(x => x.toFixed(4)).join(', ')}]`);
+    console.log(`[Pipeline] LAST_TOKEN_HIDDEN[pos=${numTokens - 1}]: maxAbs=${maxAbs.toFixed(4)}, nonZero=${nonZero}/${data.length}, sample=[${Array.from(data).slice(0, 5).map(x => x.toFixed(4)).join(', ')}]`);
   }
 
   // Debug: Check hidden state after final norm
@@ -253,25 +286,71 @@ export async function computeLogits(
   const normedDtype = getBufferDtype(normedBuffer);
   console.log(`[Pipeline] LM_HEAD_MATMUL: M=${numTokens}, N=${matmulVocabSize}, K=${hiddenSize}, lmHeadDtype=${lmHeadDtype}, normedDtype=${normedDtype}, size=${lmHeadBuffer.size}`);
 
-  // Debug: Sample lm_head weights
+  // Debug: Sample lm_head weights at different positions
+  // Check token 3730 ("blue") vs token 44821 ("Kaw") to understand the logit difference
   {
-    const sampleSize = 256;  // Sample first 64 floats (256 bytes)
-    const staging = device.createBuffer({ size: sampleSize, usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ });
-    const enc = device.createCommandEncoder();
-    enc.copyBufferToBuffer(lmHeadBuffer, 0, staging, 0, sampleSize);
-    device.queue.submit([enc.finish()]);
-    await staging.mapAsync(GPUMapMode.READ);
-    const data = new Float32Array(staging.getMappedRange().slice(0));
-    staging.unmap();
-    staging.destroy();
-    const maxAbs = Math.max(...Array.from(data).map(x => Math.abs(x)));
-    const nonZero = Array.from(data).filter(x => x !== 0).length;
-    console.log(`[Pipeline] LM_HEAD_WEIGHTS: maxAbs=${maxAbs.toFixed(4)}, nonZero=${nonZero}/${data.length}, sample=[${Array.from(data).slice(0, 8).map(x => x.toFixed(4)).join(', ')}]`);
+    const bytesPerElem = lmHeadDtype === 'f16' ? 2 : 4;
+    const rowBytes = hiddenSize * bytesPerElem;
+
+    // Sample rows for specific tokens
+    const debugRows = [
+      { id: 3730, name: 'blue' },
+      { id: 44821, name: 'Kaw' },
+      { id: 0, name: 'PAD' },
+    ];
+
+    for (const { id, name } of debugRows) {
+      const rowOffset = id * rowBytes;
+      if (rowOffset + 32 > lmHeadBuffer.size) {
+        console.log(`[Pipeline] LM_HEAD_ROW[${name}]: offset ${rowOffset} exceeds buffer size ${lmHeadBuffer.size}`);
+        continue;
+      }
+      const sampleSize = Math.min(32, rowBytes);  // Sample first 16 values (as F16)
+      const staging = device.createBuffer({ size: sampleSize, usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ });
+      const enc = device.createCommandEncoder();
+      enc.copyBufferToBuffer(lmHeadBuffer, rowOffset, staging, 0, sampleSize);
+      device.queue.submit([enc.finish()]);
+      await staging.mapAsync(GPUMapMode.READ);
+      const rawData = staging.getMappedRange().slice(0);
+
+      // Convert F16 to F32 for display
+      let values: number[];
+      if (lmHeadDtype === 'f16') {
+        const u16 = new Uint16Array(rawData);
+        const f32 = new Float32Array(u16.length);
+        for (let i = 0; i < u16.length; i++) {
+          // F16 to F32 conversion
+          const h = u16[i];
+          const sign = (h & 0x8000) >> 15;
+          const exp = (h & 0x7C00) >> 10;
+          const mant = h & 0x03FF;
+          let f: number;
+          if (exp === 0) {
+            f = mant === 0 ? 0 : Math.pow(2, -14) * (mant / 1024);
+          } else if (exp === 31) {
+            f = mant === 0 ? Infinity : NaN;
+          } else {
+            f = Math.pow(2, exp - 15) * (1 + mant / 1024);
+          }
+          f32[i] = sign ? -f : f;
+        }
+        values = Array.from(f32);
+      } else {
+        values = Array.from(new Float32Array(rawData));
+      }
+
+      staging.unmap();
+      staging.destroy();
+
+      const maxAbs = Math.max(...values.map(x => Math.abs(x)));
+      const nonZero = values.filter(x => x !== 0).length;
+      console.log(`[Pipeline] LM_HEAD_ROW[${name}(${id})]: maxAbs=${maxAbs.toFixed(4)}, nonZero=${nonZero}/${values.length}, sample=[${values.slice(0, 5).map(x => x.toFixed(4)).join(', ')}]`);
+    }
   }
 
   // HuggingFace models store lm_head as [vocabSize, hiddenSize], so transposeB=true
   const logitsBuffer = await runMatmul(normedBuffer, lmHeadBuffer, numTokens, matmulVocabSize, hiddenSize, {
-    transposeB: true,
+    transposeB: 'auto',
   });
 
   // 4. Read back logits
@@ -384,7 +463,7 @@ export async function computeLogitsGPU(
     : vocabSize;
 
   const logitsBuffer = await runMatmul(normedBuffer, lmHeadBuffer, numTokens, matmulVocabSize, hiddenSize, {
-    transposeB: true,
+    transposeB: 'auto',
   });
 
   // Cleanup intermediate buffers (but keep logitsBuffer)

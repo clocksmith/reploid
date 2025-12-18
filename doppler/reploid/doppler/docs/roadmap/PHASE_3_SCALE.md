@@ -183,9 +183,12 @@ Each rank only loads 25% of weight → 4x memory reduction per device.
 |-------|------------|-------------|----------|
 | Llama 3.1 8B | ~8GB | 8GB | Unified memory |
 | Llama 3.1 70B | ~35GB | 35GB | Unified memory (64GB Mac) |
+| Phi-mini-MoE | ~15GB | ~2.5GB | Expert paging (small) |
 | Mixtral 8x7B | ~90GB | ~24GB | Expert paging |
 | GPT-OSS 20B | ~40GB | ~8GB | Expert paging |
-| DeepSeek-V3 | ~671GB | ~37GB | Expert paging + P2P |
+| Qwen3-30B-A3B | ~60GB | ~9GB | Expert paging |
+| Qwen3-235B-A22B | ~470GB | ~51GB | Expert paging + P2P |
+| Kimi K2 (1T) | ~2TB | ~82GB | P2P distributed (stretch) |
 
 ---
 

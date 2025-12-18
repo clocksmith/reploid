@@ -39,6 +39,7 @@ import {
 import { parseManifest, RDRRManifest } from '../storage/rdrr-format.js';
 import { getMemoryCapabilities, MemoryCapabilities } from '../memory/capability.js';
 import { getHeapManager, HeapManager } from '../memory/heap-manager.js';
+import { getBufferPool } from '../gpu/buffer-pool.js';
 import { initDevice, getKernelCapabilities, getDevice, KernelCapabilities } from '../gpu/device.js';
 
 // ============================================================================
@@ -97,6 +98,8 @@ interface MemoryElements {
   heapValue: HTMLElement | null;
   gpuBar: HTMLElement | null;
   gpuValue: HTMLElement | null;
+  opfsBar: HTMLElement | null;
+  opfsValue: HTMLElement | null;
   // Stacked total bar
   heapStackedBar: HTMLElement | null;
   gpuStackedBar: HTMLElement | null;
@@ -233,6 +236,8 @@ export class DOPPLERDemo {
     heapValue: null,
     gpuBar: null,
     gpuValue: null,
+    opfsBar: null,
+    opfsValue: null,
     heapStackedBar: null,
     gpuStackedBar: null,
     totalValue: null,
@@ -288,6 +293,8 @@ export class DOPPLERDemo {
       heapValue: document.querySelector('#memory-heap'),
       gpuBar: document.querySelector('#memory-bar-gpu'),
       gpuValue: document.querySelector('#memory-gpu'),
+      opfsBar: document.querySelector('#memory-bar-opfs'),
+      opfsValue: document.querySelector('#memory-opfs'),
       // Stacked total bar
       heapStackedBar: document.querySelector('#memory-bar-heap-stacked'),
       gpuStackedBar: document.querySelector('#memory-bar-gpu-stacked'),
@@ -475,16 +482,56 @@ export class DOPPLERDemo {
   }
 
   /**
+   * Resolve GPU device name from adapter info with fallback chain
+   */
+  private _resolveGPUName(info: GPUAdapterInfo): string {
+    const vendor = (info.vendor || '').toLowerCase();
+    const device = (info.device || '').toLowerCase();
+    const arch = (info.architecture || '').toLowerCase();
+
+    // 1. Try parsing architecture string (works well on Apple Silicon)
+    if (arch) {
+      // Match patterns like "apple-m1", "apple-m2-pro", "apple-m3-max"
+      const appleMatch = arch.match(/apple[- ]?(m\d+)(?:[- ]?(pro|max|ultra))?/i);
+      if (appleMatch) {
+        const chip = appleMatch[1].toUpperCase(); // M1, M2, M3, M4
+        const variant = appleMatch[2]
+          ? ` ${appleMatch[2].charAt(0).toUpperCase() + appleMatch[2].slice(1)}`
+          : '';
+        return `Apple ${chip}${variant}`;
+      }
+      // Return capitalized architecture if it looks meaningful
+      if (arch.length > 3 && !arch.startsWith('0x')) {
+        return arch.split('-').map(s => s.charAt(0).toUpperCase() + s.slice(1)).join(' ');
+      }
+    }
+
+    // 2. Try description field
+    if (info.description && info.description.length > 3) {
+      return info.description;
+    }
+
+    // 3. Last resort: vendor + device (log for future mapping)
+    if (vendor && device) {
+      console.log(`[GPU] Unknown device: vendor=${vendor}, device=${device}, arch=${arch}`);
+      // Capitalize vendor
+      const vendorName = vendor.charAt(0).toUpperCase() + vendor.slice(1);
+      return `${vendorName} GPU`;
+    }
+
+    return 'Unknown GPU';
+  }
+
+  /**
    * Populate GPU info panel with adapter details
    */
   private _populateGPUInfo(adapter: GPUAdapter, info: GPUAdapterInfo): void {
     if (!this.gpuElements.device) return;
 
-    // Device name
-    const deviceName = info.device || info.description || info.architecture || 'Unknown GPU';
-    const vendor = info.vendor || '';
-    this.gpuElements.device.textContent = vendor ? `${vendor} ${deviceName}` : deviceName;
-    this.gpuElements.device.title = this.gpuElements.device.textContent;
+    // Device name with friendly resolution
+    const deviceName = this._resolveGPUName(info);
+    this.gpuElements.device.textContent = deviceName;
+    this.gpuElements.device.title = deviceName;
 
     // VRAM limit (from adapter limits)
     const limits = (adapter.limits || {}) as GPUSupportedLimits & { maxBufferSize?: number; maxStorageBufferBindingSize?: number };
@@ -546,25 +593,36 @@ export class DOPPLERDemo {
       this.memoryElements.heapValue!.textContent = 'N/A';
     }
 
-    // GPU buffer usage (from heap manager if available)
+    // GPU buffer usage (from buffer pool)
     try {
-      const heapManager = getHeapManager();
-      if (heapManager && typeof heapManager.getStats === 'function') {
-        const stats = heapManager.getStats();
-        usedGpu = stats.allocated || stats.totalAllocated || 0;
-        const gpuLimit = stats.limit || stats.maxSize || 4 * 1024 * 1024 * 1024; // 4GB default
-        const gpuPercent = Math.min(100, (usedGpu / gpuLimit) * 100);
+      const bufferPool = getBufferPool();
+      const poolStats = bufferPool.getStats();
+      usedGpu = poolStats.currentBytesAllocated || 0;
+      // Use peak as a rough limit, or device max buffer size
+      const gpuLimit = Math.max(poolStats.peakBytesAllocated, 4 * 1024 * 1024 * 1024); // At least 4GB scale
+      const gpuPercent = Math.min(100, (usedGpu / gpuLimit) * 100);
 
-        this.memoryElements.gpuBar!.style.width = `${gpuPercent}%`;
-        this.memoryElements.gpuValue!.textContent = this._formatBytes(usedGpu);
+      this.memoryElements.gpuBar!.style.width = `${gpuPercent}%`;
+      this.memoryElements.gpuValue!.textContent = this._formatBytes(usedGpu);
 
-        // Use GPU limit for total if larger than heap limit
-        if (gpuLimit > totalLimit) totalLimit = gpuLimit;
-      } else {
-        this.memoryElements.gpuValue!.textContent = '--';
-      }
+      // Use GPU limit for total if larger than heap limit
+      if (gpuLimit > totalLimit) totalLimit = gpuLimit;
     } catch {
       this.memoryElements.gpuValue!.textContent = '--';
+    }
+
+    // OPFS cache storage (async, but we'll update on next cycle)
+    if (this.memoryElements.opfsBar && this.memoryElements.opfsValue) {
+      navigator.storage.estimate().then((estimate) => {
+        const opfsUsed = estimate.usage || 0;
+        const opfsQuota = estimate.quota || 1;
+        const opfsPercent = Math.min(100, (opfsUsed / opfsQuota) * 100);
+
+        this.memoryElements.opfsBar!.style.width = `${opfsPercent}%`;
+        this.memoryElements.opfsValue!.textContent = this._formatBytes(opfsUsed);
+      }).catch(() => {
+        this.memoryElements.opfsValue!.textContent = '--';
+      });
     }
 
     // Update stacked total bar
@@ -868,8 +926,8 @@ export class DOPPLERDemo {
       const isNetworkLoad = useServer;
 
       if (useServer) {
-        // Load from HTTP (dev server) - show download phase
-        this.progressUI?.setPhaseProgress({ phase: 'download', percent: 5, message: 'Fetching manifest...' });
+        // Load from HTTP (dev server) - show network phase
+        this.progressUI?.setPhaseProgress({ phase: 'network', percent: 5, message: 'Fetching manifest...' });
         const manifestUrl = `${sourceInfo.url}/manifest.json`;
         const response = await fetch(manifestUrl);
         if (!response.ok) throw new Error(`Failed to fetch manifest: ${response.status}`);
@@ -884,22 +942,22 @@ export class DOPPLERDemo {
           return await res.arrayBuffer();
         };
       } else {
-        // Load from OPFS (browser cache) - show storage phase
+        // Load from OPFS (browser cache) - show cache phase
         await openModelDirectory(sourceInfo.id);
-        this.progressUI?.setPhaseProgress({ phase: 'storage', percent: 5, message: 'Loading manifest...' });
+        this.progressUI?.setPhaseProgress({ phase: 'cache', percent: 5, message: 'Loading manifest...' });
         const manifestJson = await loadManifestFromOPFS();
         manifest = parseManifest(manifestJson);
 
-        // Mark download as complete (model already cached)
-        this.progressUI?.setPhaseProgress({ phase: 'download', percent: 100, message: 'Cached' });
+        // Mark network as skipped (model already cached)
+        this.progressUI?.setPhaseProgress({ phase: 'network', percent: 100, message: 'Cached' });
 
         // Create OPFS shard loader
         const { loadShard } = await import('../storage/shard-manager.js');
         loadShardFn = (idx: number) => loadShard(idx);
       }
 
-      // Initialize GPU - show GPU phase starting
-      this.progressUI?.setPhaseProgress({ phase: 'gpu', percent: 5, message: 'Initializing...' });
+      // Initialize GPU - show VRAM phase starting
+      this.progressUI?.setPhaseProgress({ phase: 'vram', percent: 5, message: 'Initializing...' });
 
       // Capture manifest default attention kernel preference.
       this.manifestAttentionKernelDefault =
@@ -915,7 +973,7 @@ export class DOPPLERDemo {
       const heapManager = getHeapManager();
       await heapManager.init();
 
-      this.progressUI?.setPhaseProgress({ phase: 'gpu', percent: 10, message: 'Creating pipeline...' });
+      this.progressUI?.setPhaseProgress({ phase: 'vram', percent: 10, message: 'Creating pipeline...' });
 
       // Create pipeline with multi-phase progress tracking
       this.pipeline = await createPipeline(manifest, {
@@ -949,8 +1007,9 @@ export class DOPPLERDemo {
 
           // Map loader stages to UI phases
           if (stage === 'manifest' || stage === 'shards') {
-            // Shard loading: download (network) or storage (OPFS)
-            const phase = isNetworkLoad ? 'download' : 'storage';
+            // Shard loading: network (HTTP) or cache (OPFS)
+            // Show bytes here - they make sense for raw shard data
+            const phase = isNetworkLoad ? 'network' : 'cache';
             this.progressUI?.setPhaseProgress({
               phase,
               percent: Math.min(100, progress.percent * 1.2), // Scale to show some progress
@@ -959,31 +1018,33 @@ export class DOPPLERDemo {
               speed: progress.bytesPerSecond,
             });
           } else if (stage === 'layers' || stage === 'gpu_transfer') {
-            // Mark storage/download complete once we're processing layers
+            // Mark network/cache complete once we're processing layers
             if (isNetworkLoad) {
-              this.progressUI?.setPhaseProgress({ phase: 'download', percent: 100, message: 'Complete' });
+              this.progressUI?.setPhaseProgress({ phase: 'network', percent: 100, message: 'Complete' });
             } else {
-              this.progressUI?.setPhaseProgress({ phase: 'storage', percent: 100, message: 'Complete' });
+              this.progressUI?.setPhaseProgress({ phase: 'cache', percent: 100, message: 'Complete' });
             }
 
-            // GPU phase: weight upload and processing
-            const gpuPercent = 10 + (progress.percent * 0.9);
-            let message = progress.message;
-            if (!message && progress.layer !== undefined && progress.total) {
+            // VRAM phase: show layer progress (not bytes - they inflate after dequant)
+            const vramPercent = 10 + (progress.percent * 0.9);
+            let message: string;
+            if (progress.layer !== undefined && progress.total) {
               message = `Layer ${progress.layer}/${progress.total}`;
+            } else if (stage === 'gpu_transfer') {
+              message = 'Uploading weights...';
+            } else {
+              message = `${Math.round(vramPercent)}%`;
             }
             this.progressUI?.setPhaseProgress({
-              phase: 'gpu',
-              percent: gpuPercent,
-              bytesLoaded: progress.bytesLoaded,
-              totalBytes: progress.totalBytes,
+              phase: 'vram',
+              percent: vramPercent,
               message,
             });
           } else if (stage === 'complete') {
             // All phases complete
-            this.progressUI?.setPhaseProgress({ phase: 'download', percent: 100 });
-            this.progressUI?.setPhaseProgress({ phase: 'storage', percent: 100 });
-            this.progressUI?.setPhaseProgress({ phase: 'gpu', percent: 100, message: 'Complete' });
+            this.progressUI?.setPhaseProgress({ phase: 'network', percent: 100, message: 'Done' });
+            this.progressUI?.setPhaseProgress({ phase: 'cache', percent: 100, message: 'Done' });
+            this.progressUI?.setPhaseProgress({ phase: 'vram', percent: 100, message: 'Ready' });
           }
         },
       });

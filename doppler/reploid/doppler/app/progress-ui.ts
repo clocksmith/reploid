@@ -3,9 +3,9 @@
  * Agent-D | Phase 2 | app/
  *
  * Displays stacked loading bars for different phases:
- * - Download: Fetching model from network
- * - Storage: Writing to OPFS (browser cache)
- * - GPU: Loading weights into VRAM
+ * - Network: Downloading model from internet (only if not cached)
+ * - Cache: Reading from OPFS browser storage
+ * - VRAM: Uploading weights to GPU memory
  *
  * @module app/progress-ui
  */
@@ -14,7 +14,7 @@
 // Types
 // ============================================================================
 
-export type ProgressPhase = 'download' | 'storage' | 'gpu';
+export type ProgressPhase = 'network' | 'cache' | 'vram';
 
 export interface PhaseProgress {
   phase: ProgressPhase;
@@ -44,9 +44,9 @@ export class ProgressUI {
 
   // Phase configuration
   private static readonly PHASE_CONFIG: Record<ProgressPhase, { label: string; color: string }> = {
-    download: { label: 'Download', color: '#3b82f6' },  // Blue
-    storage: { label: 'Storage', color: '#22c55e' },    // Green
-    gpu: { label: 'GPU Load', color: '#f59e0b' },       // Amber
+    network: { label: 'Network', color: '#3b82f6' },  // Blue - downloading from internet
+    cache: { label: 'Cache', color: '#22c55e' },      // Green - reading from OPFS
+    vram: { label: 'VRAM', color: '#f59e0b' },        // Amber - uploading to GPU
   };
 
   /**
@@ -80,7 +80,7 @@ export class ProgressUI {
     content.appendChild(this.phasesContainer);
 
     // Create phase bars
-    for (const phase of ['download', 'storage', 'gpu'] as ProgressPhase[]) {
+    for (const phase of ['network', 'cache', 'vram'] as ProgressPhase[]) {
       this._createPhaseBar(phase);
     }
   }
@@ -124,7 +124,7 @@ export class ProgressUI {
    * Initialize existing phase elements from HTML
    */
   private _initPhaseElements(): void {
-    for (const phase of ['download', 'storage', 'gpu'] as ProgressPhase[]) {
+    for (const phase of ['network', 'cache', 'vram'] as ProgressPhase[]) {
       const row = this.phasesContainer.querySelector(`[data-phase="${phase}"]`) as HTMLElement;
       if (row) {
         this.phases.set(phase, {
@@ -196,11 +196,11 @@ export class ProgressUI {
 
   /**
    * Legacy single-bar progress (for backwards compatibility)
-   * Maps to GPU phase
+   * Maps to VRAM phase
    */
   setProgress(percent: number, detail?: string): void {
     this.setPhaseProgress({
-      phase: 'gpu',
+      phase: 'vram',
       percent,
       message: detail,
     });

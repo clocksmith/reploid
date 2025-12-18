@@ -40,10 +40,11 @@ export async function runSoftmax(
   const output = outputBuffer || acquireBuffer(outputSize, undefined, 'softmax_output');
 
   // Create uniform buffer
+  // WGSL struct: { innerSize: u32, outerSize: u32, temperature: f32, _pad: u32 }
   const uniformData = new ArrayBuffer(16);
   const uniformView = new DataView(uniformData);
-  uniformView.setUint32(0, batchSize, true);
-  uniformView.setUint32(4, inferredSize, true);
+  uniformView.setUint32(0, inferredSize, true);  // innerSize at offset 0
+  uniformView.setUint32(4, batchSize, true);     // outerSize at offset 4
   uniformView.setFloat32(8, temperature, true);
 
   const uniformBuffer = device.createBuffer({
@@ -171,10 +172,12 @@ export async function recordSoftmax(
   const output = outputBuffer || acquireBuffer(outputSize, undefined, 'softmax_output');
 
   // Uniform buffer
+  // WGSL struct: { innerSize: u32, outerSize: u32, temperature: f32, _pad: u32 }
   const uniformData = new ArrayBuffer(16);
   const uniformView = new DataView(uniformData);
-  uniformView.setUint32(0, batchSize, true);
-  uniformView.setUint32(4, inferredSeqLen, true);
+  uniformView.setUint32(0, inferredSeqLen, true);  // innerSize at offset 0
+  uniformView.setUint32(4, batchSize, true);       // outerSize at offset 4
+  uniformView.setFloat32(8, 1.0, true);            // temperature (default 1.0)
 
   const uniformBuffer = recorder.createUniformBuffer(uniformData, 'softmax_uniforms');
 

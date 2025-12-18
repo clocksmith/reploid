@@ -2,7 +2,7 @@
 
 .inline-chat {
   background: rgba(0, 0, 0, 0.4);
-  border-top: 1px solid var(--primary-dim, rgba(173, 252, 65, 0.2));
+  border-top: 1px solid var(--primary-dim, rgba(0, 217, 255, 0.2));
   padding: 8px 12px;
 }
 
@@ -14,7 +14,7 @@
 .inline-chat-input {
   flex: 1;
   background: rgba(0, 0, 0, 0.3);
-  border: 1px solid var(--primary-dim, rgba(173, 252, 65, 0.3));
+  border: 1px solid var(--primary-dim, rgba(0, 217, 255, 0.3));
   border-radius: 4px;
   padding: 8px 12px;
   color: var(--text-primary, #fff);
@@ -25,7 +25,7 @@
 }
 
 .inline-chat-input:focus {
-  border-color: var(--primary, rgba(173, 252, 65, 0.6));
+  border-color: var(--primary, rgba(0, 217, 255, 0.6));
 }
 
 .inline-chat-input::placeholder {
@@ -33,9 +33,9 @@
 }
 
 .inline-chat-send {
-  background: var(--primary-dim, rgba(173, 252, 65, 0.15));
-  border: 1px solid rgba(173, 252, 65, 0.4);
-  color: var(--primary, #adfc41);
+  background: var(--primary-dim, rgba(0, 217, 255, 0.15));
+  border: 1px solid rgba(0, 217, 255, 0.4);
+  color: var(--primary, #00d9ff);
   padding: 8px 14px;
   border-radius: 4px;
   font-size: var(--font-sm);
@@ -46,8 +46,8 @@
 }
 
 .inline-chat-send:hover {
-  background: rgba(173, 252, 65, 0.25);
-  border-color: rgba(173, 252, 65, 0.6);
+  background: rgba(0, 217, 255, 0.25);
+  border-color: rgba(0, 217, 255, 0.6);
 }
 
 .inline-chat-send:active {
@@ -55,19 +55,19 @@
 }
 
 .inline-chat-send.sent {
-  background: rgba(173, 252, 65, 0.3);
-  border-color: rgba(173, 252, 65, 0.6);
-  color: var(--primary, #adfc41);
+  background: rgba(0, 217, 255, 0.3);
+  border-color: rgba(0, 217, 255, 0.6);
+  color: var(--primary, #00d9ff);
 }
 
 /* Human message display in history */
 .history-entry.human-message {
-  background: rgba(173, 252, 65, 0.1);
-  border-left: 3px solid var(--primary, #adfc41);
+  background: rgba(0, 217, 255, 0.1);
+  border-left: 3px solid var(--primary, #00d9ff);
 }
 
 .history-entry.human-message .entry-label {
-  color: var(--primary, #adfc41);
+  color: var(--primary, #00d9ff);
 }
 
 /* Approval prompt in history */

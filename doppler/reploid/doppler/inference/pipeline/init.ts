@@ -57,6 +57,7 @@ export interface RoPEConfig {
   headDim: number;
   maxSeqLen: number;
   ropeTheta: number;
+  ropeLocalTheta?: number | null;  // For local/sliding attention layers (Gemma 3: 10K vs 1M global)
   ropeScale?: number;
   ropeScalingType?: string;
   ropeScaling?: {
@@ -73,6 +74,9 @@ export interface RoPEConfig {
 export interface RoPEBuffers {
   cos: GPUBuffer | Float32Array;
   sin: GPUBuffer | Float32Array;
+  // Local RoPE frequencies for sliding_attention layers (Gemma 3: 10K theta vs 1M global)
+  localCos?: GPUBuffer | Float32Array;
+  localSin?: GPUBuffer | Float32Array;
 }
 
 /**
@@ -119,29 +123,17 @@ export function normalizeAttentionKernel(
 // ============================================================================
 
 /**
- * Initialize RoPE (Rotary Position Embedding) frequency buffers.
- *
- * Supports two scaling modes:
- * - Linear: Uniform scaling across all dimensions
- * - YARN (Yet Another RoPE eNhancement): Per-dimension scaling based on wavelength
- *
- * @param config - RoPE configuration
- * @param useGPU - Whether to upload to GPU
- * @returns RoPE frequency buffers (cos and sin)
+ * Compute RoPE cos/sin frequencies for a given theta.
+ * Internal helper for initRoPEFrequencies.
  */
-export async function initRoPEFrequencies(
-  config: RoPEConfig,
-  useGPU: boolean
-): Promise<RoPEBuffers> {
-  const {
-    headDim,
-    maxSeqLen,
-    ropeTheta,
-    ropeScale = 1.0,
-    ropeScalingType,
-    ropeScaling,
-  } = config;
-
+function computeRoPEFreqsForTheta(
+  theta: number,
+  headDim: number,
+  maxSeqLen: number,
+  ropeScale: number,
+  ropeScalingType: string | undefined,
+  ropeScaling: RoPEConfig['ropeScaling']
+): { cos: Float32Array; sin: Float32Array } {
   const halfDim = headDim / 2;
 
   // YARN scaling parameters
@@ -154,7 +146,7 @@ export async function initRoPEFrequencies(
   // Compute base frequencies: theta_i = 1 / (base^(2i/d))
   const freqs = new Float32Array(halfDim);
   for (let i = 0; i < halfDim; i++) {
-    freqs[i] = 1.0 / Math.pow(ropeTheta, (2 * i) / headDim);
+    freqs[i] = 1.0 / Math.pow(theta, (2 * i) / headDim);
   }
 
   // Compute per-dimension scaling factors
@@ -167,20 +159,14 @@ export async function initRoPEFrequencies(
       const highThresh = originalMaxPos / yarnBetaFast;
 
       if (wavelength < highThresh) {
-        // High frequency -> extrapolation (no scaling)
         scales[i] = 1.0;
       } else if (wavelength > lowThresh) {
-        // Low frequency -> full interpolation
         scales[i] = yarnFactor;
       } else {
-        // Smooth transition region
         const t = (wavelength - highThresh) / (lowThresh - highThresh);
         scales[i] = 1.0 + (yarnFactor - 1.0) * t;
       }
     }
-    console.log(
-      `[Pipeline] YARN RoPE: factor=${yarnFactor}, beta_fast=${yarnBetaFast}, beta_slow=${yarnBetaSlow}`
-    );
   } else {
     // Linear scaling: uniform across all dimensions
     for (let i = 0; i < halfDim; i++) {
@@ -201,28 +187,105 @@ export async function initRoPEFrequencies(
     }
   }
 
+  return { cos: cosValues, sin: sinValues };
+}
+
+/**
+ * Initialize RoPE (Rotary Position Embedding) frequency buffers.
+ *
+ * Supports:
+ * - Linear scaling: Uniform scaling across all dimensions
+ * - YARN (Yet Another RoPE eNhancement): Per-dimension scaling based on wavelength
+ * - Dual theta: Different RoPE theta for local vs global attention (Gemma 3)
+ *
+ * @param config - RoPE configuration
+ * @param useGPU - Whether to upload to GPU
+ * @returns RoPE frequency buffers (cos and sin, plus localCos/localSin if ropeLocalTheta differs)
+ */
+export async function initRoPEFrequencies(
+  config: RoPEConfig,
+  useGPU: boolean
+): Promise<RoPEBuffers> {
+  const {
+    headDim,
+    maxSeqLen,
+    ropeTheta,
+    ropeLocalTheta,
+    ropeScale = 1.0,
+    ropeScalingType,
+    ropeScaling,
+  } = config;
+
+  const halfDim = headDim / 2;
+  const isYarn = ropeScalingType === 'yarn';
+
+  // Compute global (full_attention) frequencies
+  const globalFreqs = computeRoPEFreqsForTheta(
+    ropeTheta, headDim, maxSeqLen, ropeScale, ropeScalingType, ropeScaling
+  );
+
+  // Compute local (sliding_attention) frequencies if different from global
+  // Gemma 3 uses 10K for local layers and 1M for global layers
+  let localFreqs: { cos: Float32Array; sin: Float32Array } | null = null;
+  if (ropeLocalTheta && ropeLocalTheta !== ropeTheta) {
+    localFreqs = computeRoPEFreqsForTheta(
+      ropeLocalTheta, headDim, maxSeqLen, ropeScale, ropeScalingType, ropeScaling
+    );
+    console.log(
+      `[Pipeline] Dual RoPE: local theta=${ropeLocalTheta}, global theta=${ropeTheta}`
+    );
+  }
+
+  if (isYarn) {
+    const yarnFactor = ropeScaling?.factor || ropeScale;
+    const yarnBetaFast = ropeScaling?.beta_fast || 32;
+    const yarnBetaSlow = ropeScaling?.beta_slow || 1;
+    console.log(
+      `[Pipeline] YARN RoPE: factor=${yarnFactor}, beta_fast=${yarnBetaFast}, beta_slow=${yarnBetaSlow}`
+    );
+  }
+
   // Upload to GPU if available
   const device = getDevice();
   if (device && useGPU) {
-    const cosBuffer = acquireBuffer(cosValues.byteLength, undefined, 'rope_cos');
-    const sinBuffer = acquireBuffer(sinValues.byteLength, undefined, 'rope_sin');
-    device.queue.writeBuffer(cosBuffer, 0, cosValues);
-    device.queue.writeBuffer(sinBuffer, 0, sinValues);
+    const cosBuffer = acquireBuffer(globalFreqs.cos.byteLength, undefined, 'rope_cos');
+    const sinBuffer = acquireBuffer(globalFreqs.sin.byteLength, undefined, 'rope_sin');
+    device.queue.writeBuffer(cosBuffer, 0, globalFreqs.cos.buffer, globalFreqs.cos.byteOffset, globalFreqs.cos.byteLength);
+    device.queue.writeBuffer(sinBuffer, 0, globalFreqs.sin.buffer, globalFreqs.sin.byteOffset, globalFreqs.sin.byteLength);
+
+    let localCosBuffer: GPUBuffer | undefined;
+    let localSinBuffer: GPUBuffer | undefined;
+    if (localFreqs) {
+      localCosBuffer = acquireBuffer(localFreqs.cos.byteLength, undefined, 'rope_local_cos');
+      localSinBuffer = acquireBuffer(localFreqs.sin.byteLength, undefined, 'rope_local_sin');
+      device.queue.writeBuffer(localCosBuffer, 0, localFreqs.cos.buffer, localFreqs.cos.byteOffset, localFreqs.cos.byteLength);
+      device.queue.writeBuffer(localSinBuffer, 0, localFreqs.sin.buffer, localFreqs.sin.byteOffset, localFreqs.sin.byteLength);
+    }
 
     console.log(
       `[Pipeline] RoPE frequencies initialized (GPU): ${maxSeqLen} positions, dim=${halfDim}, ` +
-      `headDim=${headDim}, theta=${ropeTheta}, scaling=${isYarn ? 'yarn' : 'linear'}`
+      `headDim=${headDim}, theta=${ropeTheta}${ropeLocalTheta ? `, localTheta=${ropeLocalTheta}` : ''}, scaling=${isYarn ? 'yarn' : 'linear'}`
     );
 
-    return { cos: cosBuffer, sin: sinBuffer };
+    return {
+      cos: cosBuffer,
+      sin: sinBuffer,
+      localCos: localCosBuffer,
+      localSin: localSinBuffer,
+    };
   }
 
   console.log(
     `[Pipeline] RoPE frequencies initialized (CPU): ${maxSeqLen} positions, dim=${halfDim}, ` +
-    `headDim=${headDim}, theta=${ropeTheta}, scaling=${isYarn ? 'yarn' : 'linear'}`
+    `headDim=${headDim}, theta=${ropeTheta}${ropeLocalTheta ? `, localTheta=${ropeLocalTheta}` : ''}, scaling=${isYarn ? 'yarn' : 'linear'}`
   );
 
-  return { cos: cosValues, sin: sinValues };
+  return {
+    cos: globalFreqs.cos,
+    sin: globalFreqs.sin,
+    localCos: localFreqs?.cos,
+    localSin: localFreqs?.sin,
+  };
 }
 
 // ============================================================================

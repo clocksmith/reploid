@@ -55,12 +55,12 @@
 
 .sidebar-btn:hover {
     color: var(--primary);
-    background: rgba(173, 252, 65, 0.1);
+    background: rgba(0, 217, 255, 0.1);
 }
 
 .sidebar-btn.active {
     color: var(--primary);
-    background: rgba(173, 252, 65, 0.15);
+    background: rgba(0, 217, 255, 0.15);
     border-left: 2px solid var(--primary);
 }
 
@@ -217,7 +217,7 @@
 }
 
 .controls button:hover:not(:disabled) {
-    background: rgba(173, 252, 65, 0.3);
+    background: rgba(0, 217, 255, 0.3);
 }
 
 .controls button:disabled {

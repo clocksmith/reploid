@@ -25,7 +25,7 @@ import {
 } from '../../gpu/kernel-selector.js';
 import { runLayerAttentionGPU, recordLayerAttentionGPU, type AttentionConfig, type AttentionState } from './attention.js';
 import { getWeightBuffer, getNormWeightBuffer, type WeightBufferConfig, type WeightDebugFlags } from './weights.js';
-import { logLayerEntry, logBufferStats, logFFNOutput, shouldLog } from './debug-utils.js';
+import { logLayer, logAttn, logFFN, getBufferStats, isKernelDebugEnabled, dumpTokenVector, logKernelStep } from './debug-utils.js';
 
 // ============================================================================
 // Types
@@ -47,9 +47,12 @@ export interface LayerContext {
   useGPU: boolean;
   /** Debug mode */
   debug: boolean;
-  /** RoPE frequency buffers */
+  /** RoPE frequency buffers (global for full_attention layers) */
   ropeFreqsCos: GPUBuffer | Float32Array | null;
   ropeFreqsSin: GPUBuffer | Float32Array | null;
+  /** Local RoPE frequency buffers for sliding_attention layers (Gemma 3: 10K theta) */
+  ropeLocalCos?: GPUBuffer | Float32Array | null;
+  ropeLocalSin?: GPUBuffer | Float32Array | null;
   /** Attention kernel override */
   attentionKernelOverride: string | null;
   /** Weight buffer config */
@@ -136,7 +139,7 @@ async function doMatmul(
   M: number,
   N: number,
   K: number,
-  options: { transposeB?: boolean } = {},
+  options: { transposeB?: boolean | 'auto' } = {},
   recorder?: CommandRecorder
 ): Promise<GPUBuffer> {
   if (recorder) {
@@ -322,9 +325,7 @@ export async function processLayer(
   const size = numTokens * hiddenSize;
 
   // Debug routing (uses debug-utils)
-  if (shouldLog(layerIdx, 'attn')) {
-    logLayerEntry(layerIdx, isPrefill, numTokens, size);
-  }
+  logLayer(layerIdx, 'enter', isPrefill, { numTokens });
 
   // Debug: check path being taken for layer 0
   if (context.debug && layerIdx === 0) {
@@ -356,9 +357,7 @@ export async function processLayerGPU(
   context: LayerContext
 ): Promise<GPUBuffer> {
   // Debug entry (uses debug-utils)
-  if (shouldLog(layerIdx, 'attn')) {
-    logLayerEntry(layerIdx, isPrefill, numTokens, size);
-  }
+  logLayer(layerIdx, 'enter', isPrefill, { numTokens });
 
   const device = getDevice();
   if (!device) throw new Error('No GPU device available');
@@ -368,8 +367,23 @@ export async function processLayerGPU(
 
   const layerWeights = weights.get(`layer_${layerIdx}`) as LayerWeights | undefined;
   const sandwichNorm = detectSandwichNorm(layerWeights);
+  const lastTokenIdx = Math.max(0, numTokens - 1);
+
+  if (isKernelDebugEnabled(layerIdx) && !recorder) {
+    logKernelStep('layer', { layerIdx, label: `seqLen=${numTokens} prefill=${isPrefill}` });
+    await dumpTokenVector(inputBuffer, 'layer_in', { layerIdx, tokenIdx: lastTokenIdx, rowSize: hiddenSize });
+  }
 
   // 1. Self-attention (returns GPU buffer)
+  // Determine layer type for RoPE frequency selection (Gemma 3: sliding vs full attention)
+  const layerType = config.layerTypes?.[layerIdx];
+  const isLocalLayer = layerType === 'sliding_attention';
+
+  // Debug: log RoPE selection for first few layers
+  if (context.debug && layerIdx < 3) {
+    console.log(`[Layer${layerIdx}] RoPE selection: layerType=${layerType}, isLocal=${isLocalLayer}, hasLocalCos=${!!context.ropeLocalCos}, hasLocalSin=${!!context.ropeLocalSin}`);
+  }
+
   const attnConfig: AttentionConfig = {
     layerIdx,
     numTokens,
@@ -381,13 +395,20 @@ export async function processLayerGPU(
     rmsNormEps,
     currentSeqLen: context.currentSeqLen,
     slidingWindow: config.slidingWindow,
-    layerType: (config as any).layerTypes?.[layerIdx],
+    layerType,
     attentionKernelOverride,
   };
 
+  // Select RoPE frequencies based on layer type:
+  // - Local (sliding_attention) layers use ropeLocalTheta (10K for Gemma 3)
+  // - Global (full_attention) layers use ropeTheta (1M for Gemma 3)
   const attnState: AttentionState = {
-    ropeFreqsCos: ropeFreqsCos as GPUBuffer | null,
-    ropeFreqsSin: ropeFreqsSin as GPUBuffer | null,
+    ropeFreqsCos: (isLocalLayer && context.ropeLocalCos)
+      ? context.ropeLocalCos as GPUBuffer | null
+      : ropeFreqsCos as GPUBuffer | null,
+    ropeFreqsSin: (isLocalLayer && context.ropeLocalSin)
+      ? context.ropeLocalSin as GPUBuffer | null
+      : ropeFreqsSin as GPUBuffer | null,
     kvCache,
   };
 
@@ -403,13 +424,19 @@ export async function processLayerGPU(
     recorder
   );
 
+  if (isKernelDebugEnabled(layerIdx) && !recorder) {
+    await dumpTokenVector(attnOutput, 'attn_out', { layerIdx, tokenIdx: lastTokenIdx, rowSize: hiddenSize });
+  }
+
   // Debug: trace attn output (uses debug-utils)
   if (context.debug) {
-    await logBufferStats(attnOutput, `attn (${isPrefill ? 'prefill' : 'decode'})`, layerIdx, 'attn');
+    const stats = await getBufferStats(attnOutput);
+    if (stats) logAttn(layerIdx, isPrefill, { numTokens, kvLen: context.currentSeqLen + (isPrefill ? numTokens : 1), maxAbsOut: stats.maxAbs });
 
-    // Debug layer 0 attention output specifically
-    console.log(`[Layer${layerIdx}] attnOutput type check: isGPU=${attnOutput instanceof GPUBuffer}, type=${typeof attnOutput}, constructor=${attnOutput?.constructor?.name}`);
-    if (layerIdx === 0 && attnOutput instanceof GPUBuffer) {
+    // Debug layer 0, 2, and 17 attention output specifically (2 is where decode explosion happens)
+    // NOTE: Skip detailed readback when using recorder (batched mode) - buffers aren't populated yet!
+    console.log(`[Layer${layerIdx}] attnOutput type check: isGPU=${attnOutput instanceof GPUBuffer}, type=${typeof attnOutput}, constructor=${attnOutput?.constructor?.name}, isPrefill=${isPrefill}`);
+    if ((layerIdx === 0 || layerIdx === 2 || layerIdx === 17) && attnOutput instanceof GPUBuffer && !recorder) {
       try {
         const sampleSize = Math.min(128, attnOutput.size);
         const staging = device.createBuffer({ size: sampleSize, usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ });
@@ -422,17 +449,19 @@ export async function processLayerGPU(
         staging.destroy();
         const maxAbs = Math.max(...Array.from(data).map(x => Math.abs(x)));
         const nonZero = Array.from(data).filter(x => x !== 0).length;
-        console.log(`[Layer0] ATTN_OUT: maxAbs=${maxAbs.toFixed(4)}, nonZero=${nonZero}/${data.length}, sample=[${Array.from(data).slice(0, 5).map(x => x.toFixed(4)).join(', ')}]`);
+        console.log(`[Layer${layerIdx}] ATTN_OUT: maxAbs=${maxAbs.toFixed(4)}, nonZero=${nonZero}/${data.length}, sample=[${Array.from(data).slice(0, 5).map(x => x.toFixed(4)).join(', ')}]`);
       } catch (e) {
-        console.log(`[Layer0] ATTN_OUT error: ${e}`);
+        console.log(`[Layer${layerIdx}] ATTN_OUT error: ${e}`);
       }
+    } else if ((layerIdx === 0 || layerIdx === 2 || layerIdx === 17) && attnOutput instanceof GPUBuffer && recorder) {
+      console.log(`[Layer${layerIdx}] ATTN_OUT: (skipped - using batched recorder, values not available until submit)`);
     }
   }
 
   // 2. Handle residual connection based on architecture
-  // Debug: log architecture path for layer 0
-  if (context.debug && layerIdx === 0) {
-    console.log(`[Layer0] ARCH: sandwich=${sandwichNorm.useSandwichNorm}, hasPostAttnNorm=${sandwichNorm.hasPostAttentionNorm}, hasWeights=${!!layerWeights?.postAttentionNorm}`);
+  // Debug: log architecture path for layer 0, 2, and 17
+  if (context.debug && (layerIdx === 0 || layerIdx === 2 || layerIdx === 17)) {
+    console.log(`[Layer${layerIdx}] ARCH: sandwich=${sandwichNorm.useSandwichNorm}, hasPostAttnNorm=${sandwichNorm.hasPostAttentionNorm}, hasWeights=${!!layerWeights?.postAttentionNorm}`);
   }
 
   let postAttn: GPUBuffer;
@@ -443,6 +472,50 @@ export async function processLayerGPU(
       batchSize: numTokens,
       hiddenSize,
     }, recorder);
+
+    if (isKernelDebugEnabled(layerIdx) && !recorder) {
+      await dumpTokenVector(attnOutputNormed, 'post_attention_norm_out', { layerIdx, tokenIdx: lastTokenIdx, rowSize: hiddenSize });
+    }
+
+    // Debug: check attnOutputNormed and inputBuffer before residual add
+    // NOTE: Skip debug readback when using recorder (batched mode) - buffers aren't populated yet!
+    if (context.debug && (layerIdx === 0 || layerIdx === 2) && device && !recorder) {
+      await device.queue.onSubmittedWorkDone(); // Sync GPU before reading
+      try {
+        // Check attnOutputNormed
+        const sampleSize = Math.min(128, attnOutputNormed.size);
+        const staging1 = device.createBuffer({ size: sampleSize, usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ });
+        const enc1 = device.createCommandEncoder();
+        enc1.copyBufferToBuffer(attnOutputNormed, 0, staging1, 0, sampleSize);
+        device.queue.submit([enc1.finish()]);
+        await staging1.mapAsync(GPUMapMode.READ);
+        const data1 = new Float32Array(staging1.getMappedRange().slice(0));
+        staging1.unmap();
+        staging1.destroy();
+        const maxAbs1 = Math.max(...Array.from(data1).map(x => Math.abs(x)));
+        const nonZero1 = Array.from(data1).filter(x => x !== 0).length;
+        console.log(`[Layer0] ATTN_NORMED: maxAbs=${maxAbs1.toFixed(4)}, nonZero=${nonZero1}/${data1.length}, sample=[${Array.from(data1).slice(0, 5).map(x => x.toFixed(4)).join(', ')}]`);
+
+        // Check inputBuffer
+        const sampleSize2 = Math.min(128, inputBuffer.size);
+        const staging2 = device.createBuffer({ size: sampleSize2, usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ });
+        const enc2 = device.createCommandEncoder();
+        enc2.copyBufferToBuffer(inputBuffer, 0, staging2, 0, sampleSize2);
+        device.queue.submit([enc2.finish()]);
+        await staging2.mapAsync(GPUMapMode.READ);
+        const data2 = new Float32Array(staging2.getMappedRange().slice(0));
+        staging2.unmap();
+        staging2.destroy();
+        const maxAbs2 = Math.max(...Array.from(data2).map(x => Math.abs(x)));
+        const nonZero2 = Array.from(data2).filter(x => x !== 0).length;
+        console.log(`[Layer0] INPUT_BUF: maxAbs=${maxAbs2.toFixed(4)}, nonZero=${nonZero2}/${data2.length}, sample=[${Array.from(data2).slice(0, 5).map(x => x.toFixed(4)).join(', ')}]`);
+      } catch (e) {
+        console.log(`[Layer0] Debug error: ${e}`);
+      }
+    } else if (context.debug && (layerIdx === 0 || layerIdx === 2) && recorder) {
+      console.log(`[Layer0] Skipping debug readback (using batched recorder - buffers not populated yet)`);
+    }
+
     if (!(layerWeights.postAttentionNorm instanceof GPUBuffer)) releaseBuffer(normWeightBuf);
     // Track for cleanup after submit if using recorder, otherwise release immediately
     if (recorder) {
@@ -470,9 +543,15 @@ export async function processLayerGPU(
     }
   }
 
+  if (isKernelDebugEnabled(layerIdx) && !recorder) {
+    await dumpTokenVector(postAttn, 'x_after_attn', { layerIdx, tokenIdx: lastTokenIdx, rowSize: hiddenSize });
+  }
+
   // Debug: log postAttn for layer 0
-  if (context.debug && layerIdx === 0 && postAttn instanceof GPUBuffer) {
+  // NOTE: Skip when using recorder (batched mode) - buffers not populated yet
+  if (context.debug && layerIdx === 0 && postAttn instanceof GPUBuffer && !recorder) {
     try {
+      await device.queue.onSubmittedWorkDone();
       const sampleSize = Math.min(128, postAttn.size);
       const staging = device.createBuffer({ size: sampleSize, usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ });
       const enc = device.createCommandEncoder();
@@ -512,10 +591,12 @@ async function processFFNWithSandwichNorm(
   const device = getDevice();
   const { config, weightConfig, debugFlags, recorder } = context;
   const { hiddenSize, rmsNormEps } = config;
+  const lastTokenIdx = Math.max(0, numTokens - 1);
 
-  // Debug helper for layer 0 (only runs when context.debug is true)
-  const debugL0 = async (buf: GPUBuffer, label: string) => {
-    if (!context.debug || layerIdx !== 0 || !device) return;
+  // Debug helper for layers 0, 2, and 17 (only runs when context.debug is true)
+  // NOTE: Skip when using recorder (batched mode) - buffers not populated yet
+  const debugLayer = async (buf: GPUBuffer, label: string) => {
+    if (!context.debug || (layerIdx !== 0 && layerIdx !== 2 && layerIdx !== 17) || !device || recorder) return;
     try {
       // Force GPU sync before reading
       await device.queue.onSubmittedWorkDone();
@@ -531,9 +612,9 @@ async function processFFNWithSandwichNorm(
       staging.destroy();
       const maxAbs = Math.max(...Array.from(data).map(x => Math.abs(x)));
       const nonZero = Array.from(data).filter(x => x !== 0).length;
-      console.log(`[Layer0] FFN_${label}: maxAbs=${maxAbs.toFixed(4)}, nonZero=${nonZero}/${data.length}`);
+      console.log(`[Layer${layerIdx}] FFN_${label}: maxAbs=${maxAbs.toFixed(4)}, nonZero=${nonZero}/${data.length}`);
     } catch (e) {
-      console.log(`[Layer0] FFN_${label} error: ${e}`);
+      console.log(`[Layer${layerIdx}] FFN_${label} error: ${e}`);
     }
   };
 
@@ -542,8 +623,8 @@ async function processFFNWithSandwichNorm(
   if (sandwichNorm.hasPreFeedforwardNorm && layerWeights?.preFeedforwardNorm) {
     const normWeightBuf = getNormWeightBuffer(layerWeights.preFeedforwardNorm, 'pre_feedforward_norm', weightConfig, debugFlags);
 
-    // Debug: check norm weight values for layer 0
-    if (context.debug && layerIdx === 0 && device) {
+    // Debug: check norm weight values for layer 0, 2, and 17
+    if (context.debug && (layerIdx === 0 || layerIdx === 2 || layerIdx === 17) && device) {
       try {
         const ws = Math.min(128, normWeightBuf.size);
         const wstaging = device.createBuffer({ size: ws, usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ });
@@ -556,19 +637,23 @@ async function processFFNWithSandwichNorm(
         wstaging.destroy();
         const wmaxAbs = Math.max(...Array.from(wdata).map(x => Math.abs(x)));
         const wnonZero = Array.from(wdata).filter(x => x !== 0).length;
-        console.log(`[Layer0] PRE_FFN_NORM_WEIGHTS: maxAbs=${wmaxAbs.toFixed(4)}, nonZero=${wnonZero}/${wdata.length}, sample=[${Array.from(wdata).slice(0, 5).map(x => x.toFixed(4)).join(', ')}]`);
-      } catch (e) { console.log(`[Layer0] PRE_FFN_NORM_WEIGHTS error: ${e}`); }
+        console.log(`[Layer${layerIdx}] PRE_FFN_NORM_WEIGHTS: maxAbs=${wmaxAbs.toFixed(4)}, nonZero=${wnonZero}/${wdata.length}, sample=[${Array.from(wdata).slice(0, 5).map(x => x.toFixed(4)).join(', ')}]`);
+      } catch (e) { console.log(`[Layer${layerIdx}] PRE_FFN_NORM_WEIGHTS error: ${e}`); }
     }
 
-    // Debug: check input values for layer 0
-    await debugL0(postAttn, 'PRE_NORM_INPUT');
+    // Debug: check input values for layers 0 and 17
+    await debugLayer(postAttn, 'PRE_NORM_INPUT');
 
     ffnInput = await doRMSNorm(postAttn, normWeightBuf, rmsNormEps, {
       batchSize: numTokens,
       hiddenSize,
     }, recorder);
     if (!(layerWeights.preFeedforwardNorm instanceof GPUBuffer)) releaseBuffer(normWeightBuf);
-    await debugL0(ffnInput, 'PRE_NORM_OUTPUT');
+    await debugLayer(ffnInput, 'PRE_NORM_OUTPUT');
+  }
+
+  if (isKernelDebugEnabled(layerIdx) && !recorder) {
+    await dumpTokenVector(ffnInput, 'pre_ffn_norm_out', { layerIdx, tokenIdx: lastTokenIdx, rowSize: hiddenSize });
   }
 
   // 2. FFN (or MoE FFN)
@@ -578,7 +663,11 @@ async function processFFNWithSandwichNorm(
   } else {
     ffnOutput = await runDenseFFNGPU(layerIdx, ffnInput, numTokens, context, layerWeights);
   }
-  await debugL0(ffnOutput, 'FFN_OUT');
+  await debugLayer(ffnOutput, 'FFN_OUT');
+
+  if (isKernelDebugEnabled(layerIdx) && !recorder) {
+    await dumpTokenVector(ffnOutput, 'ffn_out', { layerIdx, tokenIdx: lastTokenIdx, rowSize: hiddenSize });
+  }
 
   // Track for cleanup after submit if using recorder, otherwise release immediately
   if (ffnInput !== postAttn) {
@@ -590,12 +679,33 @@ async function processFFNWithSandwichNorm(
   }
 
   // Debug: trace FFN output (uses debug-utils)
-  await logFFNOutput(ffnOutput, layerIdx, numTokens);
+  const ffnStats = await getBufferStats(ffnOutput);
+  if (ffnStats) logFFN(layerIdx, { maxAbsOut: ffnStats.maxAbs });
 
   // 3. Post-FFN norm - applied to FFN output BEFORE residual add
   let ffnOutputNormed = ffnOutput;
   if (sandwichNorm.hasPostFeedforwardNorm && layerWeights?.postFeedforwardNorm) {
     const normWeightBuf = getNormWeightBuffer(layerWeights.postFeedforwardNorm, 'post_feedforward_norm', weightConfig, debugFlags);
+
+    // Debug: check post_feedforward_norm weight values for all layers
+    if (context.debug && device && !recorder) {
+      try {
+        // Read FULL buffer, not just first 128 bytes
+        const ws = normWeightBuf.size;
+        const wstaging = device.createBuffer({ size: ws, usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ });
+        const wenc = device.createCommandEncoder();
+        wenc.copyBufferToBuffer(normWeightBuf, 0, wstaging, 0, ws);
+        device.queue.submit([wenc.finish()]);
+        await wstaging.mapAsync(GPUMapMode.READ);
+        const wdata = new Float32Array(wstaging.getMappedRange().slice(0));
+        wstaging.unmap();
+        wstaging.destroy();
+        const wmaxAbs = Math.max(...Array.from(wdata).map(x => Math.abs(x)));
+        const wnonZero = Array.from(wdata).filter(x => x !== 0).length;
+        console.log(`[Layer${layerIdx}] POST_FFN_NORM: bufSize=${ws}, maxAbs=${wmaxAbs.toFixed(4)}, nonZero=${wnonZero}/${wdata.length}, sample=[${Array.from(wdata).slice(0, 5).map(x => x.toFixed(4)).join(', ')}]`);
+      } catch (e) { console.log(`[Layer${layerIdx}] POST_FFN_NORM_WEIGHTS error: ${e}`); }
+    }
+
     ffnOutputNormed = await doRMSNorm(ffnOutput, normWeightBuf, rmsNormEps, {
       batchSize: numTokens,
       hiddenSize,
@@ -607,12 +717,46 @@ async function processFFNWithSandwichNorm(
     } else {
       releaseBuffer(ffnOutput);
     }
-    await debugL0(ffnOutputNormed, 'POST_NORM');
+    await debugLayer(ffnOutputNormed, 'POST_NORM');
+  }
+
+  if (isKernelDebugEnabled(layerIdx) && !recorder) {
+    await dumpTokenVector(ffnOutputNormed, 'post_ffn_norm_out', { layerIdx, tokenIdx: lastTokenIdx, rowSize: hiddenSize });
   }
 
   // 4. Residual add: postAttn + ffnOutputNormed
   const output = await doResidualAdd(ffnOutputNormed, postAttn, size, recorder);
-  await debugL0(output, 'FINAL');
+  await debugLayer(output, 'FINAL');
+
+  if (isKernelDebugEnabled(layerIdx) && !recorder) {
+    await dumpTokenVector(output, 'layer_out', { layerIdx, tokenIdx: lastTokenIdx, rowSize: hiddenSize });
+  }
+
+  // Debug: Log output magnitude for EVERY layer to track growth
+  if (context.debug && device && !recorder) {
+    try {
+      const fullSize = output.size;
+      const staging = device.createBuffer({ size: fullSize, usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ });
+      const enc = device.createCommandEncoder();
+      enc.copyBufferToBuffer(output, 0, staging, 0, fullSize);
+      device.queue.submit([enc.finish()]);
+      await staging.mapAsync(GPUMapMode.READ);
+      const data = new Float32Array(staging.getMappedRange().slice(0));
+      staging.unmap();
+      staging.destroy();
+      // Find max value and its position
+      let maxAbs = 0;
+      let maxIdx = -1;
+      for (let i = 0; i < data.length; i++) {
+        const abs = Math.abs(data[i]);
+        if (abs > maxAbs) { maxAbs = abs; maxIdx = i; }
+      }
+      // Calculate which token this is (hiddenSize = 1152 for Gemma 3 1B)
+      const tokenIdx = Math.floor(maxIdx / hiddenSize);
+      const dimIdx = maxIdx % hiddenSize;
+      console.log(`[LAYER_OUT] L${layerIdx}: maxAbs=${maxAbs.toFixed(4)} at idx=${maxIdx} (token=${tokenIdx}, dim=${dimIdx}), bufSize=${data.length}`);
+    } catch (e) { /* ignore */ }
+  }
   // Track for cleanup after submit if using recorder, otherwise release immediately
   if (ffnOutputNormed !== ffnOutput) {
     if (recorder) {
@@ -708,6 +852,7 @@ async function runDenseFFNGPU(
 
   const { config, recorder } = context;
   const { hiddenSize, intermediateSize, hiddenActivation } = config;
+  const lastTokenIdx = Math.max(0, numTokens - 1);
 
   // Check for fused gate+up path (2 matmuls instead of 3)
   if (layerWeights?.gateUp && layerWeights?.down) {
@@ -718,9 +863,17 @@ async function runDenseFFNGPU(
     const gateUpOutput = await doMatmul(
       inputBuffer, gateUpWeight,
       numTokens, intermediateSize * 2, hiddenSize,
-      { transposeB: true },
+      { transposeB: 'auto' },
       recorder
     );
+
+    if (isKernelDebugEnabled(layerIdx) && !recorder) {
+      await dumpTokenVector(gateUpOutput, 'ffn_gate_up', {
+        layerIdx,
+        tokenIdx: lastTokenIdx,
+        rowSize: intermediateSize * 2,
+      });
+    }
 
     if (!(layerWeights.gateUp instanceof GPUBuffer)) releaseBuffer(gateUpWeight);
 
@@ -731,6 +884,14 @@ async function runDenseFFNGPU(
       dim: intermediateSize,
       activation,
     }, recorder);
+
+    if (isKernelDebugEnabled(layerIdx) && !recorder) {
+      await dumpTokenVector(activatedOutput, 'ffn_activated', {
+        layerIdx,
+        tokenIdx: lastTokenIdx,
+        rowSize: intermediateSize,
+      });
+    }
 
     // Track for cleanup after submit if using recorder, otherwise release immediately
     if (recorder) {
@@ -743,9 +904,17 @@ async function runDenseFFNGPU(
     const output = await doMatmul(
       activatedOutput, downWeight,
       numTokens, hiddenSize, intermediateSize,
-      { transposeB: true },
+      { transposeB: 'auto' },
       recorder
     );
+
+    if (isKernelDebugEnabled(layerIdx) && !recorder) {
+      await dumpTokenVector(output, 'ffn_down_out', {
+        layerIdx,
+        tokenIdx: lastTokenIdx,
+        rowSize: hiddenSize,
+      });
+    }
 
     if (!(layerWeights.down instanceof GPUBuffer)) releaseBuffer(downWeight);
     // Track for cleanup after submit if using recorder, otherwise release immediately
@@ -771,13 +940,26 @@ async function runDenseFFNGPU(
 
   // 1. Gate projection
   const gateWeight = getWeightBuffer(layerWeights.gate, 'ffn_gate');
-  const gateOutput = await doMatmul(inputBuffer, gateWeight, numTokens, intermediateSize, hiddenSize, { transposeB: true }, recorder);
+  const gateOutput = await doMatmul(inputBuffer, gateWeight, numTokens, intermediateSize, hiddenSize, { transposeB: 'auto' }, recorder);
   if (!(layerWeights.gate instanceof GPUBuffer)) releaseBuffer(gateWeight);
 
   // 2. Up projection
   const upWeight = getWeightBuffer(layerWeights.up, 'ffn_up');
-  const upOutput = await doMatmul(inputBuffer, upWeight, numTokens, intermediateSize, hiddenSize, { transposeB: true }, recorder);
+  const upOutput = await doMatmul(inputBuffer, upWeight, numTokens, intermediateSize, hiddenSize, { transposeB: 'auto' }, recorder);
   if (!(layerWeights.up instanceof GPUBuffer)) releaseBuffer(upWeight);
+
+  if (isKernelDebugEnabled(layerIdx) && !recorder) {
+    await dumpTokenVector(gateOutput, 'ffn_gate', {
+      layerIdx,
+      tokenIdx: lastTokenIdx,
+      rowSize: intermediateSize,
+    });
+    await dumpTokenVector(upOutput, 'ffn_up', {
+      layerIdx,
+      tokenIdx: lastTokenIdx,
+      rowSize: intermediateSize,
+    });
+  }
 
   // 3. Activation: activation(gate) * up
   const activationFn = hiddenActivation === 'gelu' ? doGeLU : doSiLU;
@@ -785,6 +967,14 @@ async function runDenseFFNGPU(
     size: numTokens * intermediateSize,
     gate: gateOutput,
   }, recorder);
+
+  if (isKernelDebugEnabled(layerIdx) && !recorder) {
+    await dumpTokenVector(activatedOutput, 'ffn_activated', {
+      layerIdx,
+      tokenIdx: lastTokenIdx,
+      rowSize: intermediateSize,
+    });
+  }
 
   // Track for cleanup after submit if using recorder, otherwise release immediately
   if (recorder) {
@@ -797,7 +987,16 @@ async function runDenseFFNGPU(
 
   // 4. Down projection
   const downWeight = getWeightBuffer(layerWeights.down, 'ffn_down');
-  const output = await doMatmul(activatedOutput, downWeight, numTokens, hiddenSize, intermediateSize, { transposeB: true }, recorder);
+  const output = await doMatmul(activatedOutput, downWeight, numTokens, hiddenSize, intermediateSize, { transposeB: 'auto' }, recorder);
+
+  if (isKernelDebugEnabled(layerIdx) && !recorder) {
+    await dumpTokenVector(output, 'ffn_down_out', {
+      layerIdx,
+      tokenIdx: lastTokenIdx,
+      rowSize: hiddenSize,
+    });
+  }
+
   if (!(layerWeights.down instanceof GPUBuffer)) releaseBuffer(downWeight);
   // Track for cleanup after submit if using recorder, otherwise release immediately
   if (recorder) {

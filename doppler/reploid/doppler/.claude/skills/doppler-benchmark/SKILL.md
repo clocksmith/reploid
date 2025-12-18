@@ -24,36 +24,30 @@ You are running performance benchmarks for DOPPLER, a browser-native WebGPU LLM 
    - `all-kernels.bench.ts` - Full kernel suite
    - `config.ts` - Workload configurations
 
-## Prerequisites
-
-Start the dev server (from `doppler/reploid/` directory):
-
-```bash
-npm run serve
-```
-
 ## Quick Start (CLI)
 
-The CLI handles building and running benchmarks. From `doppler/reploid/`:
+The CLI handles building, server startup, and benchmarks automatically. From `doppler/reploid/`:
 
 ```bash
-# Simple benchmark (builds, downloads model if needed, runs)
-npm run benchmark                              # Headless (default: gemma3-1b-q4)
-npm run benchmark:headed                       # With visible browser window
+# Quick benchmark with xs prompt (headed) - fastest iteration
+doppler bench inference --prompt xs --headed
 
-# Or run directly with options
-npm run benchmark -- --model gemma3-1b-q4 --suite quick --verbose
-npm run benchmark -- --suite full              # All prompt sizes (short/medium/long)
-npm run benchmark -- --runs 5 --prompt medium  # Custom config
-npx tsx tools/benchmark-cli.ts --help                      # Show all options
+# Standard benchmarks
+doppler bench inference                        # Headless (default: gemma3-1b-q4)
+doppler bench inference --headed               # With visible browser window
+
+# Custom options
+doppler bench inference --headed --prompt medium    # Different prompt size
+doppler bench inference --prompt short --runs 3     # Multiple runs for statistics
+doppler --help                                      # Show all options
 ```
 
 **CLI Options:**
 | Flag | Description | Default |
 |------|-------------|---------|
-| `--model, -m` | Model name in models/ | gemma-1b |
+| `--model, -m` | Model name in models/ | gemma3-1b-q4 |
 | `--suite, -s` | quick, pipeline, full, system | pipeline |
-| `--prompt, -p` | short, medium, long | medium |
+| `--prompt, -p` | xs, short, medium, long | medium |
 | `--runs, -r` | Number of timed runs | 3 |
 | `--warmup, -w` | Number of warmup runs | 2 |
 | `--max-tokens, -t` | Max tokens to generate | 128 |
@@ -145,6 +139,7 @@ if (history.length >= 2) {
 
 | Name | Token Range | Use Case |
 |------|-------------|----------|
+| `xs` | 6-10 | Fast iteration ("The color of the sky is") |
 | `short` | 16-64 | Quick validation |
 | `medium` | 256-512 | Standard benchmark |
 | `long` | ~2048 | Stress test |
@@ -152,12 +147,13 @@ if (history.length >= 2) {
 ## Workflow
 
 **CLI (Recommended):**
-1. Start the dev server: `npm run dev`
-2. Run: `npx tsx tools/benchmark-cli.ts gemma-1b --suite pipeline`
-3. Results auto-save to `tests/results/` (both JSON + HTML report)
+1. Run: `doppler bench inference --prompt xs --headed` (quick) or `doppler bench inference` (full)
+2. Results auto-save to `tests/results/` (both JSON + HTML report)
 
-**Browser Console:**
-1. Start the dev server: `npm run dev`
+   Server auto-starts if not running.
+
+**Browser Console (Manual):**
+1. Start the dev server: `npm start`
 2. Open browser to `http://localhost:8080`
 3. Open DevTools console
 4. Import and run benchmark harness
@@ -168,10 +164,10 @@ if (history.length >= 2) {
 **A/B Testing with Welch's t-test:**
 ```bash
 # Save baseline
-npx tsx tools/benchmark-cli.ts gemma-1b -o baseline.json
+doppler bench inference -o baseline.json
 
 # Make changes, then compare
-npx tsx tools/benchmark-cli.ts gemma-1b --compare baseline.json
+doppler bench inference --compare baseline.json
 
 # Output includes:
 # - Delta% for each metric (TTFT, throughput, latency)
@@ -207,17 +203,17 @@ Decode Latency: t=-2.45, df=18.3, p=0.0243 (SIGNIFICANT)
 
 ## Quick Debug Benchmarks
 
-Run benchmarks with specific prompts and filter output:
+Run benchmarks and filter output:
 
 ```bash
-# Test prefill and decode with known prompt
-npm run benchmark:headed -- --suite quick --verbose --prompt "The color of the sky is" 2>&1 | grep -E "logits|top-5|sampled" | head -20
+# Quick benchmark with xs prompt (uses "The color of the sky is")
+doppler bench inference --prompt xs --headed
 
-# Alternative test prompt
-npm run benchmark:headed -- --suite quick --verbose --prompt "The 5th planet from the sun is" 2>&1 | grep -E "logits|sampled" | head -20
+# With verbose output filtering
+doppler bench inference --prompt xs --verbose 2>&1 | grep -E "logits|top-5|sampled" | head -20
 
 # Check layer outputs
-npm run benchmark:headed -- --suite quick --verbose 2>&1 | grep -E "LAYER_0|LAYER_25|FFN_OUTPUT" | head -30
+doppler bench inference --prompt xs --verbose 2>&1 | grep -E "LAYER_0|LAYER_25|FFN_OUTPUT" | head -30
 ```
 
 ## Related Skills

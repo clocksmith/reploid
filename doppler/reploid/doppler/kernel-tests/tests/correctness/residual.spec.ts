@@ -183,3 +183,132 @@ test.describe('Residual Add Kernel', () => {
     });
   });
 });
+
+test.describe('Bias Add Kernel', () => {
+  test('should add bias correctly', async ({ gpuPage }) => {
+    const result = await gpuPage.evaluate(async (): Promise<ResidualResult> => {
+      const numTokens = 4;
+      const dim = 64;
+      const size = numTokens * dim;
+
+      const data = new Float32Array(size);
+      const bias = new Float32Array(dim);
+
+      for (let i = 0; i < size; i++) data[i] = Math.random() * 2 - 1;
+      for (let i = 0; i < dim; i++) bias[i] = Math.random() * 0.5 - 0.25;
+
+      // Reference: add bias to each row
+      const expected = new Float32Array(size);
+      for (let t = 0; t < numTokens; t++) {
+        for (let d = 0; d < dim; d++) {
+          expected[t * dim + d] = data[t * dim + d] + bias[d];
+        }
+      }
+
+      const gpu = await window.testHarness.getGPU();
+      const device = gpu.device;
+
+      const dataBuffer = device.createBuffer({
+        size: data.byteLength,
+        usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST | GPUBufferUsage.COPY_SRC,
+      });
+      device.queue.writeBuffer(dataBuffer, 0, data);
+
+      const biasBuffer = device.createBuffer({
+        size: bias.byteLength,
+        usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
+      });
+      device.queue.writeBuffer(biasBuffer, 0, bias);
+
+      const { runBiasAdd } = await import('../../gpu/kernels/residual.js');
+      await runBiasAdd(dataBuffer, biasBuffer, numTokens, dim);
+
+      // Read back
+      const staging = device.createBuffer({
+        size: size * 4,
+        usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ,
+      });
+      const encoder = device.createCommandEncoder();
+      encoder.copyBufferToBuffer(dataBuffer, 0, staging, 0, size * 4);
+      device.queue.submit([encoder.finish()]);
+      await staging.mapAsync(GPUMapMode.READ);
+      const actual = new Float32Array(staging.getMappedRange().slice(0));
+      staging.unmap();
+      staging.destroy();
+
+      let maxError = 0;
+      for (let i = 0; i < size; i++) {
+        maxError = Math.max(maxError, Math.abs(actual[i] - expected[i]));
+      }
+
+      dataBuffer.destroy();
+      biasBuffer.destroy();
+
+      return { maxError };
+    });
+
+    expect(result.maxError).toBeLessThan(1e-5);
+  });
+
+  test('should handle single token', async ({ gpuPage }) => {
+    const result = await gpuPage.evaluate(async (): Promise<ResidualResult> => {
+      const numTokens = 1;
+      const dim = 128;
+
+      const data = new Float32Array(dim);
+      const bias = new Float32Array(dim);
+
+      for (let i = 0; i < dim; i++) {
+        data[i] = Math.random() * 2 - 1;
+        bias[i] = Math.random() * 0.5 - 0.25;
+      }
+
+      const expected = new Float32Array(dim);
+      for (let i = 0; i < dim; i++) {
+        expected[i] = data[i] + bias[i];
+      }
+
+      const gpu = await window.testHarness.getGPU();
+      const device = gpu.device;
+
+      const dataBuffer = device.createBuffer({
+        size: data.byteLength,
+        usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST | GPUBufferUsage.COPY_SRC,
+      });
+      device.queue.writeBuffer(dataBuffer, 0, data);
+
+      const biasBuffer = device.createBuffer({
+        size: bias.byteLength,
+        usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
+      });
+      device.queue.writeBuffer(biasBuffer, 0, bias);
+
+      const { runBiasAdd } = await import('../../gpu/kernels/residual.js');
+      await runBiasAdd(dataBuffer, biasBuffer, numTokens, dim);
+
+      const staging = device.createBuffer({
+        size: dim * 4,
+        usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ,
+      });
+      const encoder = device.createCommandEncoder();
+      encoder.copyBufferToBuffer(dataBuffer, 0, staging, 0, dim * 4);
+      device.queue.submit([encoder.finish()]);
+      await staging.mapAsync(GPUMapMode.READ);
+      const actual = new Float32Array(staging.getMappedRange().slice(0));
+      staging.unmap();
+      staging.destroy();
+
+      let maxError = 0;
+      for (let i = 0; i < dim; i++) {
+        maxError = Math.max(maxError, Math.abs(actual[i] - expected[i]));
+      }
+
+      dataBuffer.destroy();
+      biasBuffer.destroy();
+
+      return { maxError };
+    });
+
+    expect(result.maxError).toBeLessThan(1e-5);
+  });
+});

@@ -560,6 +560,14 @@ export const KERNEL_CONFIGS: Record<string, Record<string, KernelConfig>> = {
       requires: [],
     },
   },
+  bf16_to_f16: {
+    default: {
+      shaderFile: 'bf16_to_f16.wgsl',
+      entryPoint: 'main',
+      workgroupSize: [256, 1, 1],
+      requires: ['shader-f16'],
+    },
+  },
 };
 
 /**

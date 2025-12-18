@@ -3,7 +3,7 @@
  * Model Conversion CLI - Converts GGUF or SafeTensors to RDRR format.
  */
 
-import { readFile, stat } from 'fs/promises';
+import { readFile, stat, rm } from 'fs/promises';
 import { basename, extname, resolve, dirname, join } from 'path';
 import { fileURLToPath } from 'url';
 
@@ -30,6 +30,7 @@ export interface ConvertOptions {
   textOnly: boolean;
   quantizeEmbeddings: boolean;
   fuseGateUp: boolean;
+  cleanOutput: boolean;  // Delete existing output directory before converting
   help: boolean;
 }
 
@@ -91,6 +92,7 @@ function parseArgs(args: string[]): ConvertOptions {
     textOnly: false,
     quantizeEmbeddings: false,
     fuseGateUp: false,
+    cleanOutput: true,  // Default: clean output directory to avoid stale files
     help: false,
   };
 
@@ -112,6 +114,10 @@ function parseArgs(args: string[]): ConvertOptions {
       options.quantizeEmbeddings = true;
     } else if (arg === '--fuse-gate-up') {
       options.fuseGateUp = true;
+    } else if (arg === '--no-clean') {
+      options.cleanOutput = false;
+    } else if (arg === '--clean') {
+      options.cleanOutput = true;
     } else if (arg === '--quantize' || arg === '-q') {
       options.quantize = args[++i]?.toLowerCase() as QuantizationType;
     } else if (arg === '--shard-size') {
@@ -148,12 +154,22 @@ Options:
   --quantize-embeddings   Also quantize embedding table (saves ~50% for large vocabs)
   --fuse-gate-up          Fuse gate+up projections for 2-pass FFN (faster inference)
   --shard-size <mb>       Shard size in MB (default: 64)
-  --model-id <id>         Override model ID in manifest
+  --model-id <id>         Override model ID in manifest (use standard naming: gemma-3-1b-it-q4)
   --text-only             Extract only text model (skip vision/projector, strip prefixes)
+  --no-clean              Don't delete existing output directory (default: clean before convert)
   --fast                  Pre-load shards into memory (faster, uses more RAM)
   --test                  Create tiny test model (ignores input)
   --verbose, -v           Verbose output
   --help, -h              Show this help
+
+Model Naming Convention:
+  {family}-{version}-{size}-{variant}-{quant}
+
+  Examples:
+    gemma-3-1b-it-q4      Gemma 3, 1B params, instruction-tuned, Q4_K_M quantized
+    gemma-3-4b-it-q4      Gemma 3, 4B params, instruction-tuned, Q4_K_M quantized
+    llama-3.2-1b-q4       Llama 3.2, 1B params, base model, Q4_K_M quantized
+    mistral-7b-v0.3-q4    Mistral 7B v0.3, Q4_K_M quantized
 
 Examples:
   # Convert GGUF model
@@ -261,13 +277,21 @@ function inferConfigFromTensors(modelInfo: ModelInfo): void {
     console.log(`  Inferred intermediate_size=${config.intermediate_size} from gate_proj`);
   }
 
+  // Detect architecture for defaults
   const arch = config.architectures?.[0] || '';
+  const isGemma = /gemma/i.test(arch);
+  const isQwen3 = /qwen.*3|qwen3/i.test(arch);
+  const isKimiK2 = /kimi.*k2|kimi_k2/i.test(arch);
+  const isMixtral = /mixtral/i.test(arch);
+  const isGptOss = /gptoss|gpt.*oss/i.test(arch);
+
+  // RoPE theta defaults by architecture
   let expectedTheta = 10000;
-  if (arch.includes('Gemma')) {
+  if (isGemma || isQwen3 || isMixtral) {
     expectedTheta = 1000000;
-  } else if (arch.includes('Llama') || arch.includes('Mistral') || arch.includes('Qwen')) {
-    expectedTheta = 10000;
-  } else if (arch.includes('GptOss')) {
+  } else if (isKimiK2) {
+    expectedTheta = 50000;  // Kimi K2 uses YARN 32x scaling
+  } else if (isGptOss) {
     expectedTheta = 150000;
   }
 
@@ -286,6 +310,52 @@ function inferConfigFromTensors(modelInfo: ModelInfo): void {
       config.head_dim = Math.floor(config.hidden_size / config.num_attention_heads);
     }
     console.log(`  Inferred head_dim=${config.head_dim}`);
+  }
+
+  // ==========================================================================
+  // DOPPLER-specific config (architectural quirks for runtime)
+  // These are set explicitly in manifest so pipeline doesn't need name-matching
+  // ==========================================================================
+
+  // Gemma family: scale embeddings by sqrt(hidden_size), GELU activation, high RoPE theta
+  if (isGemma) {
+    config.scale_embeddings = true;
+    config.rms_norm_weight_offset = true;  // Gemma 3 adds +1 to norm weights
+    config.hidden_activation = config.hidden_activation ?? 'gelu';  // Gemma uses GELU, not SiLU
+    console.log(`  Set Gemma defaults: scale_embeddings=true, rms_norm_weight_offset=true, hidden_activation=gelu`);
+  }
+
+  // Qwen3 MoE: uses SiLU activation, standard norm weights
+  if (isQwen3) {
+    config.scale_embeddings = false;
+    config.rms_norm_weight_offset = false;
+    config.hidden_activation = 'silu';
+    console.log(`  Set Qwen3 defaults: scale_embeddings=false, hidden_activation=silu`);
+  }
+
+  // Kimi K2: uses MLA (Multi-head Latent Attention), SwiGLU, YARN scaling
+  // 1T params, 32B active, 384 experts + 1 shared, top-8
+  if (isKimiK2) {
+    config.scale_embeddings = false;
+    config.rms_norm_weight_offset = false;
+    config.hidden_activation = 'silu';
+    console.log(`  Set Kimi K2 defaults: scale_embeddings=false, hidden_activation=silu (MLA attention)`);
+  }
+
+  // Mixtral: standard MoE with SiLU, high rope_theta
+  if (isMixtral) {
+    config.scale_embeddings = false;
+    config.rms_norm_weight_offset = false;
+    config.hidden_activation = 'silu';
+    console.log(`  Set Mixtral defaults: scale_embeddings=false, hidden_activation=silu`);
+  }
+
+  // GPT-OSS: standard LLaMA-like architecture
+  if (isGptOss) {
+    config.scale_embeddings = false;
+    config.rms_norm_weight_offset = false;
+    config.hidden_activation = 'silu';
+    console.log(`  Set GPT-OSS defaults: scale_embeddings=false, hidden_activation=silu`);
   }
 
   const required = ['hidden_size', 'num_hidden_layers', 'num_attention_heads'];
@@ -593,6 +663,19 @@ async function main(): Promise<void> {
   }
 
   try {
+    // Clean output directory if it exists (default behavior to avoid stale files)
+    if (options.cleanOutput) {
+      try {
+        const outputStat = await stat(outputDir);
+        if (outputStat.isDirectory()) {
+          console.log(`Cleaning existing output directory: ${outputDir}`);
+          await rm(outputDir, { recursive: true, force: true });
+        }
+      } catch {
+        // Directory doesn't exist, nothing to clean
+      }
+    }
+
     const format = await detectFormat(inputPath);
     console.log(`Detected format: ${format}`);
 
@@ -612,6 +695,10 @@ async function main(): Promise<void> {
     console.log(`  Tensors: ${result.tensorCount}`);
     console.log(`  Total size: ${formatBytes(result.totalSize)}`);
     console.log(`  Manifest: ${result.manifestPath}`);
+    console.log(`\nNote: If model was previously loaded in browser, clear OPFS cache:`);
+    console.log(`  - Use the "Clear Cache" button in the model selector UI`);
+    console.log(`  - Or call: await deleteModel('${options.modelId || basename(outputDir)}')`);
+    console.log(`  - Or delete browser profile: rm -rf doppler/.benchmark-cache/`);
 
   } catch (error) {
     const err = error as Error;

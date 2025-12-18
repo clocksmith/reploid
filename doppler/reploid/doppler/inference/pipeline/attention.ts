@@ -28,6 +28,7 @@ import {
   recordCastF32ToF16,
   CommandRecorder,
 } from '../../gpu/kernel-selector.js';
+import { isKernelDebugEnabled, dumpTokenVector, dumpKVCache, logKernelStep } from './debug-utils.js';
 
 /**
  * Attention configuration for a layer.
@@ -121,11 +122,21 @@ export async function runLayerAttentionGPU(
   let normedBuffer = inputBuffer;
   if (layerWeights.inputNorm && getNormWeightBuffer) {
     const normWeightBuf = getNormWeightBuffer(layerWeights.inputNorm, 'input_norm');
+
     normedBuffer = await runRMSNorm(inputBuffer, normWeightBuf, rmsNormEps, {
       batchSize: numTokens,
       hiddenSize,
     });
     if (!(layerWeights.inputNorm instanceof GPUBuffer)) releaseBuffer(normWeightBuf);
+
+    if (isKernelDebugEnabled(layerIdx)) {
+      logKernelStep('rmsnorm', { layerIdx, label: 'input_norm', size: numTokens * hiddenSize });
+      await dumpTokenVector(normedBuffer, 'input_norm_out', {
+        layerIdx,
+        tokenIdx: Math.max(0, numTokens - 1),
+        rowSize: hiddenSize,
+      });
+    }
   }
 
   // Debug: Check normed input for L0 prefill
@@ -134,12 +145,20 @@ export async function runLayerAttentionGPU(
     await debugCheckBuffer(normedBuffer, 'L0 normed input (GPU)', numTokens);
   }
 
+  if (isKernelDebugEnabled(layerIdx)) {
+    await dumpTokenVector(normedBuffer, 'attn_in', {
+      layerIdx,
+      tokenIdx: Math.max(0, numTokens - 1),
+      rowSize: hiddenSize,
+    });
+  }
+
   // 2. Q/K/V projections
   let Q: GPUBuffer, K: GPUBuffer, V: GPUBuffer;
 
   if (layerWeights.qProj && getWeightBuffer) {
     const qProjBuf = getWeightBuffer(layerWeights.qProj, 'q_proj');
-    Q = await runMatmul(normedBuffer, qProjBuf, numTokens, numHeads * headDim, hiddenSize, { transposeB: true });
+    Q = await runMatmul(normedBuffer, qProjBuf, numTokens, numHeads * headDim, hiddenSize, { transposeB: 'auto' });
     if (!(layerWeights.qProj instanceof GPUBuffer)) releaseBuffer(qProjBuf);
   } else {
     Q = acquireBuffer(qSize * 4, undefined, 'Q');
@@ -147,7 +166,7 @@ export async function runLayerAttentionGPU(
 
   if (layerWeights.kProj && getWeightBuffer) {
     const kProjBuf = getWeightBuffer(layerWeights.kProj, 'k_proj');
-    K = await runMatmul(normedBuffer, kProjBuf, numTokens, numKVHeads * headDim, hiddenSize, { transposeB: true });
+    K = await runMatmul(normedBuffer, kProjBuf, numTokens, numKVHeads * headDim, hiddenSize, { transposeB: 'auto' });
     if (!(layerWeights.kProj instanceof GPUBuffer)) releaseBuffer(kProjBuf);
   } else {
     K = acquireBuffer(kvSize * 4, undefined, 'K');
@@ -155,10 +174,20 @@ export async function runLayerAttentionGPU(
 
   if (layerWeights.vProj && getWeightBuffer) {
     const vProjBuf = getWeightBuffer(layerWeights.vProj, 'v_proj');
-    V = await runMatmul(normedBuffer, vProjBuf, numTokens, numKVHeads * headDim, hiddenSize, { transposeB: true });
+    V = await runMatmul(normedBuffer, vProjBuf, numTokens, numKVHeads * headDim, hiddenSize, { transposeB: 'auto' });
     if (!(layerWeights.vProj instanceof GPUBuffer)) releaseBuffer(vProjBuf);
   } else {
     V = acquireBuffer(kvSize * 4, undefined, 'V');
+  }
+
+  // Kernel step debug: Q/K/V projections
+  if (isKernelDebugEnabled(layerIdx)) {
+    logKernelStep('matmul', { layerIdx, label: 'Q_proj', M: numTokens, N: numHeads * headDim, K: hiddenSize });
+    await dumpTokenVector(Q, 'Q_proj', { layerIdx, tokenIdx: Math.max(0, numTokens - 1), rowSize: numHeads * headDim });
+    logKernelStep('matmul', { layerIdx, label: 'K_proj', M: numTokens, N: numKVHeads * headDim, K: hiddenSize });
+    await dumpTokenVector(K, 'K_proj', { layerIdx, tokenIdx: Math.max(0, numTokens - 1), rowSize: numKVHeads * headDim });
+    logKernelStep('matmul', { layerIdx, label: 'V_proj', M: numTokens, N: numKVHeads * headDim, K: hiddenSize });
+    await dumpTokenVector(V, 'V_proj', { layerIdx, tokenIdx: Math.max(0, numTokens - 1), rowSize: numKVHeads * headDim });
   }
 
   // Debug: Check Q/K/V after projections for L0 prefill
@@ -170,7 +199,13 @@ export async function runLayerAttentionGPU(
   }
 
   // Optional per-head Q/K norm (Gemma-family)
-  if ((layerWeights as any).qNorm && getNormWeightBuffer) {
+  const hasQNorm = !!(layerWeights as any).qNorm;
+  const hasKNorm = !!(layerWeights as any).kNorm;
+  if (isKernelDebugEnabled(layerIdx)) {
+    logKernelStep('qk_norm', { layerIdx, label: `hasQ=${hasQNorm} hasK=${hasKNorm}` });
+  }
+
+  if (hasQNorm && getNormWeightBuffer) {
     const qNormBuf = getNormWeightBuffer((layerWeights as any).qNorm, 'q_norm');
     const qElems = qNormBuf.size / 4;
     if (qElems === headDim) {
@@ -180,11 +215,14 @@ export async function runLayerAttentionGPU(
       });
       releaseBuffer(Q);
       Q = qNormed;
+      if (isKernelDebugEnabled(layerIdx)) {
+        await dumpTokenVector(Q, 'Q_norm', { layerIdx, tokenIdx: Math.max(0, numTokens - 1), rowSize: numHeads * headDim });
+      }
     }
     if (!((layerWeights as any).qNorm instanceof GPUBuffer)) releaseBuffer(qNormBuf);
   }
 
-  if ((layerWeights as any).kNorm && getNormWeightBuffer) {
+  if (hasKNorm && getNormWeightBuffer) {
     const kNormBuf = getNormWeightBuffer((layerWeights as any).kNorm, 'k_norm');
     const kElems = kNormBuf.size / 4;
     if (kElems === headDim) {
@@ -194,6 +232,9 @@ export async function runLayerAttentionGPU(
       });
       releaseBuffer(K);
       K = kNormed;
+      if (isKernelDebugEnabled(layerIdx)) {
+        await dumpTokenVector(K, 'K_norm', { layerIdx, tokenIdx: Math.max(0, numTokens - 1), rowSize: numKVHeads * headDim });
+      }
     }
     if (!((layerWeights as any).kNorm instanceof GPUBuffer)) releaseBuffer(kNormBuf);
   }
@@ -208,6 +249,11 @@ export async function runLayerAttentionGPU(
     await runRoPE(K, state.ropeFreqsCos, state.ropeFreqsSin, numTokens, {
       numHeads: numKVHeads, headDim, startPos: currentSeqLen,
     });
+  }
+  if (isKernelDebugEnabled(layerIdx)) {
+    logKernelStep('rope', { layerIdx, label: `startPos=${currentSeqLen}` });
+    await dumpTokenVector(Q, 'Q_rope', { layerIdx, tokenIdx: Math.max(0, numTokens - 1), rowSize: numHeads * headDim });
+    await dumpTokenVector(K, 'K_rope', { layerIdx, tokenIdx: Math.max(0, numTokens - 1), rowSize: numKVHeads * headDim });
   }
 
   // Debug: Check Q/K after RoPE for L0 prefill
@@ -240,6 +286,12 @@ export async function runLayerAttentionGPU(
     cachedK = gpuBuffers.keysGPU;
     cachedV = gpuBuffers.valuesGPU;
     kvLenForAttention = gpuBuffers.seqLen;
+
+    // Kernel step debug: KV cache state after update
+    if (isKernelDebugEnabled(layerIdx)) {
+      console.log(`[KERNEL][L${layerIdx}] KV cache updated: kvLen=${kvLenForAttention}, startPos=${currentSeqLen}, numTokens=${numTokens}`);
+      await dumpKVCache(state.kvCache, layerIdx);
+    }
   } else {
     cachedK = K;
     cachedV = V;
@@ -271,6 +323,12 @@ export async function runLayerAttentionGPU(
     slidingWindow: effectiveSlidingWindow,
   });
 
+  // Kernel step debug: attention output
+  if (isKernelDebugEnabled(layerIdx)) {
+    logKernelStep('attention', { layerIdx, label: `seqLen=${numTokens} kvLen=${kvLenForAttention}` });
+    await dumpTokenVector(attnOutput, 'attn_out', { layerIdx, tokenIdx: Math.max(0, numTokens - 1), rowSize: numHeads * headDim });
+  }
+
   // Debug: Check attention output for L0 prefill
   if (layerIdx === 0 && isPrefill && !debugFlags.l0AttnDebugDone && debugCheckBuffer) {
     debugFlags.l0AttnDebugDone = true;
@@ -281,8 +339,14 @@ export async function runLayerAttentionGPU(
   let output: GPUBuffer;
   if (layerWeights.oProj && getWeightBuffer) {
     const oProjBuf = getWeightBuffer(layerWeights.oProj, 'o_proj');
-    output = await runMatmul(attnOutput, oProjBuf, numTokens, hiddenSize, numHeads * headDim, { transposeB: true });
+    output = await runMatmul(attnOutput, oProjBuf, numTokens, hiddenSize, numHeads * headDim, { transposeB: 'auto' });
     if (!(layerWeights.oProj instanceof GPUBuffer)) releaseBuffer(oProjBuf);
+
+    // Kernel step debug: output projection
+    if (isKernelDebugEnabled(layerIdx)) {
+      logKernelStep('matmul', { layerIdx, label: 'O_proj', M: numTokens, N: hiddenSize, K: numHeads * headDim });
+      await dumpTokenVector(output, 'o_proj_out', { layerIdx, tokenIdx: Math.max(0, numTokens - 1), rowSize: hiddenSize });
+    }
   } else {
     output = attnOutput;
   }
@@ -359,7 +423,7 @@ export async function recordLayerAttentionGPU(
 
   if (layerWeights.qProj && getWeightBuffer) {
     const qProjBuf = getWeightBuffer(layerWeights.qProj, 'q_proj');
-    Q = await recordMatmul(recorder, normedBuffer, qProjBuf, numTokens, numHeads * headDim, hiddenSize, { transposeB: true });
+    Q = await recordMatmul(recorder, normedBuffer, qProjBuf, numTokens, numHeads * headDim, hiddenSize, { transposeB: 'auto' });
     if (!(layerWeights.qProj instanceof GPUBuffer)) releaseBuffer(qProjBuf);
   } else {
     Q = acquireBuffer(qSize * 4, undefined, 'Q');
@@ -367,7 +431,7 @@ export async function recordLayerAttentionGPU(
 
   if (layerWeights.kProj && getWeightBuffer) {
     const kProjBuf = getWeightBuffer(layerWeights.kProj, 'k_proj');
-    K = await recordMatmul(recorder, normedBuffer, kProjBuf, numTokens, numKVHeads * headDim, hiddenSize, { transposeB: true });
+    K = await recordMatmul(recorder, normedBuffer, kProjBuf, numTokens, numKVHeads * headDim, hiddenSize, { transposeB: 'auto' });
     if (!(layerWeights.kProj instanceof GPUBuffer)) releaseBuffer(kProjBuf);
   } else {
     K = acquireBuffer(kvSize * 4, undefined, 'K');
@@ -375,7 +439,7 @@ export async function recordLayerAttentionGPU(
 
   if (layerWeights.vProj && getWeightBuffer) {
     const vProjBuf = getWeightBuffer(layerWeights.vProj, 'v_proj');
-    V = await recordMatmul(recorder, normedBuffer, vProjBuf, numTokens, numKVHeads * headDim, hiddenSize, { transposeB: true });
+    V = await recordMatmul(recorder, normedBuffer, vProjBuf, numTokens, numKVHeads * headDim, hiddenSize, { transposeB: 'auto' });
     if (!(layerWeights.vProj instanceof GPUBuffer)) releaseBuffer(vProjBuf);
   } else {
     V = acquireBuffer(kvSize * 4, undefined, 'V');
@@ -484,7 +548,7 @@ export async function recordLayerAttentionGPU(
   let output: GPUBuffer;
   if (layerWeights.oProj && getWeightBuffer) {
     const oProjBuf = getWeightBuffer(layerWeights.oProj, 'o_proj');
-    output = await recordMatmul(recorder, attnOutput, oProjBuf, numTokens, hiddenSize, numHeads * headDim, { transposeB: true });
+    output = await recordMatmul(recorder, attnOutput, oProjBuf, numTokens, hiddenSize, numHeads * headDim, { transposeB: 'auto' });
     if (!(layerWeights.oProj instanceof GPUBuffer)) releaseBuffer(oProjBuf);
   } else {
     output = attnOutput;

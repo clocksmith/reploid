@@ -212,6 +212,47 @@ test.describe('Dequantization Kernels', () => {
     });
   });
 
+  test.describe('Q4_K (Q4_K_M) GPU Dequantization', () => {
+    test('should dequantize Q4_K blocks on GPU (mixed sign)', async ({ gpuPage }) => {
+      const result = await gpuPage.evaluate(async () => {
+        const { quantizeQ4_KRef, dequantQ4_KRef } = window.testHarness.references;
+        const numBlocks = 4;
+        const blockElems = 256;
+
+        // Deterministic mixed-sign input to avoid flukes
+        const values = new Float32Array(numBlocks * blockElems);
+        for (let i = 0; i < values.length; i++) {
+          values[i] = Math.sin(i * 0.1) * 0.75 + Math.cos(i * 0.03) * 0.25;
+        }
+
+        const quantized = quantizeQ4_KRef(values, numBlocks);
+        const expected = dequantQ4_KRef(quantized, numBlocks);
+
+        const gpu = await window.testHarness.getGPU();
+        const actual = await window.testHarness.runDequantQ4K(gpu.device, quantized, numBlocks);
+
+        let maxError = 0;
+        let minVal = Infinity;
+        let maxVal = -Infinity;
+        for (let i = 0; i < expected.length; i++) {
+          const e = expected[i];
+          const a = actual[i];
+          const err = Math.abs(e - a);
+          if (err > maxError) maxError = err;
+          if (a < minVal) minVal = a;
+          if (a > maxVal) maxVal = a;
+        }
+
+        return { maxError, minVal, maxVal, length: actual.length };
+      });
+
+      expect(result.length).toBe(4 * 256);
+      expect(result.maxError).toBeLessThan(1e-3);
+      expect(result.minVal).toBeLessThan(0);
+      expect(result.maxVal).toBeGreaterThan(0);
+    });
+  });
+
   test.describe('Size variations', () => {
     const sizes = [32, 64, 256, 1024, 4096];
 

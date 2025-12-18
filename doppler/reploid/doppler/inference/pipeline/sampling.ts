@@ -180,12 +180,18 @@ export function logitsSanity(
 
   // Debug: Compare logits for specific tokens
   // "▁blue" = 3730, "▁BLUENRG" = 77590, "▁sky" = 7217
+  // Plus the garbage tokens to understand why they have high logits
   const debugTokens = [
     { id: 3730, name: 'blue' },
     { id: 77590, name: 'BLUENRG' },
     { id: 7217, name: 'sky' },
     { id: 9595, name: 'Blue' },
     { id: 51481, name: 'BLUE' },
+    { id: 44821, name: 'Kaw' },  // Garbage output token
+    { id: 84327, name: 'Мини' },  // Russian "Mini" - another garbage
+    { id: 0, name: 'PAD' },  // Check padding token
+    { id: 1, name: 'BOS' },  // Check BOS token
+    { id: 2, name: 'EOS' },  // Check EOS token
   ];
   const debugLogits = debugTokens
     .filter(t => t.id < logits.length)

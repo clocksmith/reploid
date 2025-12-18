@@ -75,13 +75,23 @@ doppler/
 
 ## Quick Start
 
+### CLI Setup
+
+Add this alias to your shell (e.g., `~/.zshrc`):
+
+```bash
+alias doppler='npm run doppler --'
+```
+
+Then reload: `source ~/.zshrc`
+
 ### Run the Demo
 
 ```bash
-# From reploid root, serve with any static server
-npx serve .
+# Start the dev server
+npm start
 
-# Open http://localhost:3000/doppler/
+# Open http://localhost:8080/d
 ```
 
 ### Convert a Model
@@ -149,19 +159,21 @@ npx tsx convert-cli.ts gpt-oss-20b/ ./output
 
 ## Benchmarking
 
-Run performance benchmarks via the CLI:
+Run performance benchmarks via the unified CLI (server auto-starts):
 
 ```bash
-# Start dev server first
-npm run dev
+# Quick benchmark with xs prompt (headed browser)
+doppler bench inference --prompt xs --headed
 
-# Run benchmark (requires Playwright)
-npx tsx tools/benchmark-cli.ts gemma-1b                    # Default pipeline benchmark
-npx tsx tools/benchmark-cli.ts gemma-1b --suite quick      # Fast validation
-npx tsx tools/benchmark-cli.ts gemma-1b --suite full       # All prompt sizes
-npx tsx tools/benchmark-cli.ts gemma-1b --suite system     # Download/storage perf
-npx tsx tools/benchmark-cli.ts gemma-1b --runs 5 --prompt medium  # Custom config
-npx tsx tools/benchmark-cli.ts --help                      # Show all options
+# Standard benchmarks
+doppler bench inference                        # Headless (default: gemma3-1b-q4)
+doppler bench inference --headed               # With visible browser window
+
+# Custom options
+doppler bench inference --headed --prompt medium    # Different prompt size (xs/short/medium/long)
+doppler bench kernels                               # Kernel microbenchmarks
+doppler bench system                                # Download/storage perf
+doppler --help                                      # Show all options
 ```
 
 Results auto-save to `tests/results/` with naming: `{suite}_{model}_{timestamp}.json`
@@ -208,6 +220,8 @@ See [Benchmark Harness Spec](docs/spec/BENCHMARK_HARNESS.md) for metrics and met
 
 DOPPLER uses JavaScript for orchestration and WGSL compute kernels for tensor math.
 JS dispatches GPU work asynchronously and only blocks when reading results.
+
+**Why JavaScript instead of WASM?** GPU compute is 96% of decode time (~25ms). JS orchestration is ~0.5ms (2%). Optimizing the 2% with WASM doesn't matter - but JavaScript enables P2P integration (WebRTC), debugging (DevTools), and rapid iteration. See [VISION.md](docs/VISION.md#architectural-bets) for full rationale.
 
 ### Per-Layer Kernel Execution
 

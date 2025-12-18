@@ -39,8 +39,10 @@ export type {
 
 export {
   parseModelConfig,
-  isGemmaModel,
   isGemma3Model,
+  isQwen3Model,
+  isKimiK2Model,
+  isMixtralModel,
   isGptOssModel,
   normalizeActivation,
   getStopTokenIds,

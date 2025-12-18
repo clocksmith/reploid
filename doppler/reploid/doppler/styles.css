@@ -26,7 +26,7 @@
   --accent-tertiary-dim: rgba(59, 130, 246, 0.15);
 
   /* ---- Semantic ---- */
-  --success: #22c55e;
+  --success: #3b82f6;    /* Use brand blue for success */
   --warning: #fbbf24;
   --error: #ef4444;
 
@@ -265,15 +265,15 @@ body {
   color: white;
 }
 
-/* Run from Server - green */
+/* Run from Server - blue */
 .model-btn.run-server,
 .model-btn.run[data-source="server"] {
-  background: var(--success);
+  background: var(--accent-tertiary);
 }
 
 .model-btn.run-server:hover,
 .model-btn.run[data-source="server"]:hover {
-  background: #5cbf60;
+  background: var(--accent-tertiary-hover);
 }
 
 /* Run from Cache - purple */
@@ -308,13 +308,13 @@ body {
 }
 
 .model-btn.quick-start {
-  background: linear-gradient(135deg, var(--accent), #10b981);
+  background: linear-gradient(135deg, var(--accent), var(--accent-tertiary));
   color: white;
   font-weight: 600;
 }
 
 .model-btn.quick-start:hover {
-  background: linear-gradient(135deg, var(--accent-hover), #059669);
+  background: linear-gradient(135deg, var(--accent-hover), var(--accent-tertiary-hover));
 }
 
 .model-btn.delete {
@@ -616,7 +616,7 @@ body {
 }
 
 .quickstart-title.success {
-  color: #22c55e;
+  color: var(--accent-tertiary);
 }
 
 .quickstart-info {
@@ -1166,6 +1166,10 @@ body {
 .memory-bar-gpu-stacked {
   background: var(--success);
   z-index: 0;
+}
+
+.memory-bar-opfs {
+  background: var(--accent-tertiary);  /* Blue for disk/cache */
 }
 
 .memory-value {

@@ -80,7 +80,11 @@ export async function runRoPE(
   pass.setPipeline(pipeline);
   pass.setBindGroup(0, bindGroup);
 
-  const workgroups = Math.ceil((seqLen * numHeads * headDim) / 256);
+  if (headDim % 2 !== 0) {
+    throw new Error(`RoPE headDim must be even, got ${headDim}`);
+  }
+  const halfDim = headDim / 2;
+  const workgroups = Math.ceil((seqLen * numHeads * halfDim) / 256);
   pass.dispatchWorkgroups(workgroups);
   pass.end();
 
@@ -144,7 +148,11 @@ export async function recordRoPE(
   pass.setPipeline(pipeline);
   pass.setBindGroup(0, bindGroup);
 
-  const workgroups = Math.ceil((seqLen * numHeads * headDim) / 256);
+  if (headDim % 2 !== 0) {
+    throw new Error(`RoPE headDim must be even, got ${headDim}`);
+  }
+  const halfDim = headDim / 2;
+  const workgroups = Math.ceil((seqLen * numHeads * halfDim) / 256);
   pass.dispatchWorkgroups(workgroups);
   pass.end();
 

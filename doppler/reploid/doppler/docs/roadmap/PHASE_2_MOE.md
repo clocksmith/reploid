@@ -72,11 +72,14 @@ P2P swarm:    Rare experts (bottom 25%) → Phase 4
 
 | Model | Total Experts | Active/Token | Total Size | Active Size |
 |-------|---------------|--------------|------------|-------------|
+| Phi-mini-MoE | 16 | 2 | ~15GB | ~2.5GB |
 | Mixtral 8x7B | 8 | 2 | ~90GB | ~24GB |
 | GPT-OSS 20B | 32 | 4 | ~40GB | ~8GB |
-| DeepSeek-V3 | 256 | 8 | ~671GB | ~37GB |
+| Qwen3-30B-A3B | 128 | 8 | ~60GB | ~9GB |
+| Qwen3-235B-A22B | 128 | 8 | ~470GB | ~51GB |
+| Kimi K2 | 385 (384+1 shared) | 8 | ~2TB | ~82GB |
 
-**Key insight:** Only ~25% of experts active per token. Page the rest.
+**Key insight:** Only ~6-25% of experts active per token. Page the rest.
 
 ---
 

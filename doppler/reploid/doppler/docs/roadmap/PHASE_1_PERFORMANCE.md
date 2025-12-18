@@ -12,7 +12,7 @@
 - [x] Tiled matmul optimization ✅
 - [x] FlashAttention-style fusion ✅
 - [x] W4A16 quantized matmul ✅
-- [ ] 40+ tok/s decode on Gemma 1B (P0) - currently ~6 tok/s
+- [ ] 40+ tok/s decode on Gemma 3 1B (P0) - currently ~6 tok/s
 - [ ] Llama 3.2 models validated (P0)
 
 ---
@@ -25,7 +25,7 @@
 |------|----------|--------|-------|
 | Command buffer batching | P0 | ✅ Done | `gpu/command-recorder.ts` |
 | Buffer reuse strategy | P0 | ✅ Done | `gpu/buffer-pool.ts` |
-| GPU-side sampling | P0 | ✅ Done | `gpu/kernels/sample.ts` |
+| GPU-side sampling | P0 | ⚠️ Partial | Kernel exists but reading full 1MB logits, not single token |
 | Deferred result fetching | P0 | ✅ Done | `inference/pipeline/logits.ts` |
 | Async pipeline | P0 | ✅ Done | Weights pre-loaded |
 
@@ -69,8 +69,8 @@
 
 ### 1.5 Performance Roadmap (6 → 40+ tok/s)
 
-**Current:** ~6 tok/s decode on Gemma 1B (M3)
-**Target:** ≥40 tok/s decode (6.7x improvement needed)
+**Current:** ~3 tok/s decode on Gemma 3 1B (M3) - Dec 2025 benchmark
+**Target:** ≥40 tok/s decode (13x improvement needed)
 
 | Optimization | Est. Speedup | Cumulative | Priority | Status |
 |--------------|--------------|------------|----------|--------|
@@ -107,10 +107,21 @@ Column-major W^T[in, out]: GPU reads contiguous → 1.5-2x faster
 | Task | Priority | Status | Notes |
 |------|----------|--------|-------|
 | Change `useFusedQ4K = true` | P0 | ✅ Done | Enabled in `doppler-loader.ts` |
-| Validate Q4K block alignment | P0 | ✅ Done | 256-element blocks handled |
+| Validate Q4K block alignment | P0 | ⚠️ Failing | Shape mismatch causes fallback |
 | Benchmark fused vs separate | P0 | ⏳ Pending | Need benchmark comparison |
 
-**Status:** Fused Q4K kernel is now enabled by default. Single memory read for dequant+matmul.
+**Status:** ⚠️ **FALLING BACK** - Fused kernel enabled but not used due to shape incompatibility.
+
+**Evidence from benchmark logs:**
+```
+[DopplerLoader] Packed Q4K matmul weight (incompatible with fused matmul):
+model.layers.0.self_attn.q_proj.weight shape=[1024,1152] size=663552 expectedRowwise=737280
+Falling back to dequantized weights for correctness.
+```
+
+**Impact:** Every matmul does 2 passes (dequant → matmul) instead of 1 fused pass. ~1.5-2x slower.
+
+**Root cause:** Q4K block packing expects row-wise layout with specific padding. Current model weights have different size than expected (663552 vs 737280). May need model re-conversion.
 
 ### 1.8 FFN Gate+Up Fusion
 
@@ -200,15 +211,53 @@ const kvDtype = caps?.hasF16 ? 'f16' : 'f32';
 | Fused Q4K | ~same | 1.3-1.5x faster |
 | F16 activations | 2x activation memory | ~1.2x faster (bandwidth) |
 
+### 1.11 Readback Minimization (Critical)
+
+**Current:** 128KB/token (full vocab logits: 262144 × 4 bytes)
+**Target:** 4 bytes/token (single token ID)
+
+| Task | Priority | Status | Notes |
+|------|----------|--------|-------|
+| GPU argmax kernel | P0 | ⬜ TODO | Return single i32 instead of full logits |
+| GPU top-k sampling | P0 | ⬜ TODO | Sample on GPU, read only token ID |
+| Measure readback overhead | P0 | ⬜ TODO | Isolate GPU→CPU transfer time |
+
+**Impact:** Each 128KB readback costs 2-6ms. At 8 tokens, that's 1MB total readback.
+
+**Measurement:**
+```bash
+# Check readback bytes per run
+npm run doppler -- bench inference --prompt xs 2>&1 | grep "readback"
+# Should see: gpu_readback_bytes_total in results JSON
+```
+
+**Implementation options:**
+1. **GPU argmax:** Single parallel reduction → read 1 u32
+2. **GPU top-k + sample:** Full sampling on GPU → read 1 u32
+3. **Streaming readback:** Read only top-k logits (~1KB) instead of full vocab
+
 ---
 
 ## Success Metrics
 
 | Metric | Target | Current | Status |
 |--------|--------|---------|--------|
-| Decode tok/s (Gemma 1B, M3) | >= 40 | ~6 | ⬜ |
-| Time to first token | <= 800ms | ~360ms | ✅ |
+| Decode tok/s (Gemma 3 1B, M3) | >= 40 | ~3 | ⬜ |
+| Time to first token | <= 800ms | ~760ms | ⚠️ |
 | VRAM usage vs WebLLM | <= 110% | TBD | ⬜ |
+| Readback bytes/token | <= 4KB | 128KB | ⬜ |
+
+**Measurement commands:**
+```bash
+# Quick performance check
+npm run doppler -- bench inference --prompt xs --headed
+
+# Check if fused Q4K is actually used
+npm run doppler -- bench inference --prompt xs 2>&1 | grep -i "falling back"
+
+# View detailed results
+cat doppler/tests/results/*.json | jq '.metrics'
+```
 
 ---
 

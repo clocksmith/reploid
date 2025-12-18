@@ -245,6 +245,74 @@ Source: [Red Hat vLLM+DeepSeek](https://developers.redhat.com/articles/2025/09/0
 
 ---
 
+## JavaScript vs WASM Orchestration
+
+A key architectural difference often overlooked: **what runs the non-GPU logic?**
+
+### WebLLM: WASM Orchestration
+
+WebLLM compiles orchestration logic (layer loops, tokenization, sampling) into WASM:
+
+```
+WebLLM Runtime:
+├─ model.wasm
+│   ├─ TVM-generated WGSL shaders (GPU kernels)
+│   └─ Compiled C++ (orchestration, tokenization, sampling)
+└─ model_weights.bin
+```
+
+> "The WASM library contains both compute kernels in WGSL (e.g. prefill, decode) and non-kernel functions in WebAssembly (e.g. BNFGrammar for JSON mode)."
+>
+> Source: [MLC Blog](https://blog.mlc.ai/2024/06/13/webllm-a-high-performance-in-browser-llm-inference-engine)
+
+### DOPPLER: JavaScript Orchestration
+
+DOPPLER uses JavaScript for all non-GPU logic:
+
+```
+DOPPLER Runtime:
+├─ doppler-runtime.js
+│   ├─ Hand-written WGSL shaders (GPU kernels)
+│   └─ JavaScript (orchestration, tokenization, sampling)
+└─ manifest.json + shard_*.rdrr (weight data only)
+```
+
+### Comparison
+
+| Aspect | WASM (WebLLM) | JavaScript (DOPPLER) |
+|--------|---------------|----------------------|
+| CPU performance | ~2-3x faster | JS engine overhead |
+| Debugging | Hard (compiled binary) | DevTools, breakpoints |
+| Hot reload | Recompile model | Just refresh browser |
+| Extensibility | C++ expertise | JS/TS expertise |
+| Dynamic loading | Fixed at compile | Runtime flexibility |
+| P2P integration | Awkward (binary blob) | Native (JS fetch/WebRTC) |
+
+### Why JavaScript is Acceptable
+
+**Bet: GPU fusion minimizes CPU work.**
+
+If decode step is 26ms total:
+- GPU compute: 25ms (96%)
+- JS orchestration: 0.5ms (2%)
+- Logits readback: 0.5ms (2%)
+
+WASM would make the 0.5ms faster, but **who cares?** The bottleneck is GPU, not CPU.
+
+> "For thin orchestration (dispatch commands, sample one token), JS overhead is ~0.5ms per decode step. This is 2% of a 26ms decode cycle."
+>
+> Source: [DOPPLER VISION.md](../VISION.md)
+
+### Why JavaScript is Advantageous
+
+1. **Dynamic weight loading**: `fetch()` + `device.queue.writeBuffer()` - trivial in JS
+2. **P2P integration**: WebRTC is a JS API, not available in WASM
+3. **Debugging**: Chrome DevTools for the entire inference pipeline
+4. **Rapid iteration**: No compilation step for model changes
+5. **Ecosystem**: npm packages for tokenizers, UI, networking
+
+---
+
 ## TVM Compilation vs Direct WGSL
 
 ### TVM Approach (WebLLM)
@@ -273,20 +341,24 @@ Apache TVM uses machine learning to auto-tune kernel configurations.
 > Source: [TVM Discussion](https://www.mail-archive.com/dev@tvm.apache.org/msg03451.html)
 
 - Requires compilation step to add new models
+- Model is monolithic unit (can't page experts)
 
 ### Direct WGSL Approach (DOPPLER)
 
 **Advantages:**
 - Full control over memory layout and access patterns
-- Can implement cutting-edge algorithms directly
+- Can implement cutting-edge algorithms directly (Flash Attention, fused MoE)
 - No compiler dependency or black box
-- Tighter integration with host application
+- Generic kernels work with any compatible model weights
+- Dynamic expert paging (bind different weight buffers to same kernel)
+- P2P-friendly (distribute data shards, not code)
 
 **Disadvantages:**
 - Significant engineering effort (~100KB of shader code)
 - Must manually optimize for each GPU architecture
 - Higher bug risk without compiler validation
 - No auto-tuning (must implement separately)
+- ~20% performance gap vs TVM auto-tuned kernels
 
 Note: "Direct WGSL" means kernels are written directly without a compiler like TVM, not necessarily by hand. LLM coding agents can write WGSL, but there's no automated compilation/optimization pipeline.
 
@@ -296,7 +368,175 @@ Note: "Direct WGSL" means kernels are written directly without a compiler like T
 >
 > Source: [Modular Blog](https://www.modular.com/blog/democratizing-ai-compute-part-6-what-about-ai-compilers)
 
-DOPPLER takes a "direct kernel" approach for WebGPU - writing WGSL kernels without a compiler pipeline like TVM. This trades auto-tuning for full control. Whether kernels are written by humans or LLM coding agents, the key distinction is the absence of automated compilation/optimization.
+DOPPLER takes a "direct kernel" approach for WebGPU - writing WGSL kernels without a compiler pipeline like TVM. This trades auto-tuning for **runtime flexibility**. The key distinction is:
+
+| Approach | Unit of Distribution | Flexibility |
+|----------|---------------------|-------------|
+| TVM/WebLLM | Compiled model binary | None (fixed at compile) |
+| DOPPLER | Weight shards + shared kernels | Full (paging, P2P, LoRA) |
+
+---
+
+## P2P and Evolution Potential
+
+The JavaScript + runtime WGSL architecture unlocks P2P evolution of **dynamic components** - something impossible with pre-compiled approaches.
+
+### The Key Insight: Static vs Dynamic
+
+| Component | Size | P2P Value | Recommendation |
+|-----------|------|-----------|----------------|
+| **Weight shards** | 64MB each | Low - CDN handles fine | HuggingFace/CDN |
+| **WGSL kernels** | ~5KB each | **High** - device-specific evolution | P2P swarm |
+| **LoRA adapters** | 50-200MB | **High** - personality/domain tunes | P2P swarm |
+| **Sampling strategies** | ~10KB | **High** - novel algorithms | P2P swarm |
+| **Router weights** | ~1MB | **Medium** - learned MoE routing | P2P swarm |
+| **Chat templates** | ~1KB | **Medium** - effective prompts | P2P swarm |
+
+**Static weights** are best served by CDN (HuggingFace, Cloudflare). **Dynamic components** benefit from decentralized evolution.
+
+### 1. Kernel Evolution (Primary P2P Value)
+
+WebLLM's TVM-compiled kernels are frozen at build time. DOPPLER's WGSL kernels are plain text that can evolve:
+
+```javascript
+// User A discovers 2x faster attention on M3 Max
+const kernel = await swarm.fetchKernel({
+  name: 'attention_flash_v3',
+  device: 'apple-m3-max',
+  hash: 'sha256:abc123...'
+});
+
+// Benchmark locally, confirm improvement
+const speedup = await benchmarkKernel(kernel, baseline);
+if (speedup > 1.2) {
+  swarm.endorse(kernel.hash);  // Signal to other M3 Max users
+}
+```
+
+| Evolution Type | WebLLM | DOPPLER |
+|----------------|--------|---------|
+| Device-specific optimization | Impossible (one binary) | Natural (kernel per device class) |
+| Community kernel improvements | Requires TVM recompile | Hot-swap at runtime |
+| A/B testing kernel variants | Ship multiple binaries | Runtime benchmark + select |
+| Rollback bad kernel | Redistribute binary | Revert to previous hash |
+
+### 2. LoRA and Adapter Sharing
+
+LoRA adapters are small (50-200MB) and high-value - perfect for P2P:
+
+```javascript
+// Fetch community LoRA for creative writing
+const lora = await swarm.fetchAdapter({
+  name: 'creative-writing-v2',
+  baseModel: 'gemma-3-4b',
+  hash: 'sha256:def456...'
+});
+
+// Apply without recompiling model
+pipeline.applyLoRA(lora, alpha=0.7);
+```
+
+**WebLLM cannot do this** - LoRA must be fused at TVM compile time.
+
+#### Current LoRA Ecosystem (Dec 2025)
+
+No true P2P LoRA sharing network exists yet. Current ecosystem is centralized:
+
+| Platform | Scale | Distribution |
+|----------|-------|--------------|
+| [HuggingFace](https://huggingface.co) | ~143,920 LoRAs (Oct 2024) | Centralized CDN |
+| [Civitai](https://civitai.com) | Largest for image LoRAs | Centralized |
+| [Tensor.Art](https://tensor.art) | Growing alternative | Centralized |
+
+**Academic research:**
+- **Dec-LoRA** ([arXiv:2501.15361](https://arxiv.org/abs/2501.15361), Jan 2025): Decentralized LoRA *training* - clients train locally, exchange updates with neighbors, no central server. 4-bit quantization reduces bandwidth. Privacy-preserving (data never leaves client).
+
+**Edge runtimes:**
+- **QVAC Fabric LLM** ([Tether.io](https://tether.io/news/tether-data-introduces-qvac-fabric-llm-the-edge-first-llm-inference-runtime-and-generalized-llm-lora-fine-tuning-framework-for-modern-ai-models-on-heterogeneous-gpus-smartphones-laptops-and-server/), Dec 2025): Open-source runtime for LoRA inference on phones/laptops. Apache 2.0 license. Not P2P sharing, but enables local execution.
+
+**Gap:** IPFS/BitTorrent for LoRA distribution not found in production. Everyone uses HuggingFace CDN. This is DOPPLER's opportunity - first browser-native P2P LoRA sharing.
+
+### 3. Sampling Strategy Sharing
+
+Novel sampling algorithms discovered and shared:
+
+```javascript
+// Someone implements better speculative decoding
+const sampler = await swarm.fetchSampler('speculative-tree-v2');
+
+// Or mirostat for better coherence
+const mirostat = await swarm.fetchSampler('mirostat-2.1');
+
+pipeline.setSampler(sampler);
+```
+
+### 4. Collective Tuning Data
+
+Swarm shares anonymized performance metrics:
+
+```javascript
+swarm.reportMetrics({
+  device: 'apple-m2-pro',
+  kernel: 'attention_flash_v2',
+  tokensPerSecond: 42.5,
+  expertHitRates: { expert_12: 0.23, expert_47: 0.18, ... }
+});
+
+// Aggregate helps everyone
+const bestKernel = swarm.getBestKernel('attention', myDevice);
+const hotExperts = swarm.getHotExperts('mixtral-8x7b');  // Pre-warm cache
+```
+
+---
+
+### Weight Shard P2P (Secondary, With Caveats)
+
+P2P distribution of weight shards IS architecturally possible but has significant challenges:
+
+| Aspect | Benefit | Challenge |
+|--------|---------|-----------|
+| Cold start elimination | Nearby peers faster than CDN | Requires peer density, online peers |
+| Bandwidth multiplication | N peers = Nx aggregate | WebRTC ~500KB/s limit per connection |
+| Partial model serving | 600B across swarm | 200ms latency per expert fetch |
+| Heterogeneous swarm | Peers contribute what they have | Coordination complexity, peer churn |
+
+**Practical challenges:**
+- NAT traversal fails 15-30% of connections
+- Users must keep tab open to seed (why would they?)
+- No browser P2P project has achieved critical mass
+- CDNs (Cloudflare, HuggingFace) are already fast and free
+
+**Recommendation:** Use CDN for weight shards. Reserve P2P for dynamic components where the evolution value outweighs coordination costs.
+
+---
+
+### 5. Swarm Intelligence
+
+The combination enables emergent optimization:
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    DOPPLER Swarm                             │
+├─────────────────────────────────────────────────────────────┤
+│                                                              │
+│  Peer A (8GB VRAM)         Peer B (24GB VRAM)               │
+│  ├─ Experts 0-49           ├─ Experts 0-255                 │
+│  ├─ Uses attention_v2      ├─ Uses attention_flash          │
+│  ├─ 25 tok/s               ├─ 45 tok/s                      │
+│  └─ Shares: hit rates,     └─ Shares: hit rates,            │
+│     latencies, kernel         latencies, kernel             │
+│     perf metrics              perf metrics                  │
+│                                                              │
+│  Swarm Coordinator (any peer or dedicated)                  │
+│  ├─ Aggregates metrics                                       │
+│  ├─ Routes queries to optimal peer                          │
+│  ├─ Suggests shard redistribution                           │
+│  └─ Propagates best-performing kernels                      │
+│                                                              │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**This is impossible with compiled binaries.** WebLLM's WASM approach creates islands; DOPPLER's JS approach creates a mesh.
 
 ---
 
@@ -650,6 +890,22 @@ Note: WeInfer itself is not a threat (stale since Feb 2025), but its techniques 
 11. **Modular on AI Compilers** (2024)
     - URL: https://www.modular.com/blog/democratizing-ai-compute-part-6-what-about-ai-compilers
     - Key insight: TVM/XLA as second-gen approach vs direct kernel authoring
+
+12. **Dec-LoRA: Decentralized Low-Rank Fine-Tuning** (Jan 2025)
+    - URL: https://arxiv.org/abs/2501.15361
+    - Key insight: First decentralized LoRA training algorithm, no central server, 4-bit quantization
+
+13. **QVAC Fabric LLM** (Dec 2025)
+    - URL: https://tether.io/news/tether-data-introduces-qvac-fabric-llm-the-edge-first-llm-inference-runtime-and-generalized-llm-lora-fine-tuning-framework-for-modern-ai-models-on-heterogeneous-gpus-smartphones-laptops-and-server/
+    - Key insight: Edge-first LoRA inference on phones/laptops, Apache 2.0
+
+14. **Civitai LoRA Training Guide** (2025)
+    - URL: https://civitai.com/articles/1716/opinionated-guide-to-all-lora-training-2025-update
+    - Key insight: Largest LoRA sharing platform for image models
+
+15. **Civitai Alternatives Analysis** (2025)
+    - URL: https://neurocanvas.net/blog/civitai-alternatives-2025/
+    - Key insight: HuggingFace has ~143,920 LoRAs (Oct 2024), no P2P distribution exists
 
 ### GitHub Repositories
 

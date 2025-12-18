@@ -47,14 +47,11 @@ npx tsx doppler/reploid/doppler/tools/convert-cli.ts --test ./test-model
 ## Testing the Converted Model
 
 ```bash
-# Start dev server
-npx tsx doppler/reploid/doppler/serve.ts &
+# Run inference test (server auto-starts)
+npm run test:inference -- --model <model-name> --headed
 
-# Run E2E test with browser UI
-npx tsx doppler/reploid/doppler/tests/test-runner.ts <model-name> --direct --headed
-
-# Or use Playwright
-npx playwright test doppler/reploid/doppler/tests/gemma-e2e.spec.ts --headed
+# Or test manually in browser (requires npm start first)
+# http://localhost:8080/doppler/tests/test-inference.html?model=<model-name>
 ```
 
 ## Workflow

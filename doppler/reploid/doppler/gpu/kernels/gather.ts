@@ -34,8 +34,10 @@ export async function runGather(
 
   // Detect embedding dtype (F16 embeddings enable optimized lm_head)
   const caps = getKernelCapabilities();
-  const detectedDtype = embeddingDtype || getBufferDtype(embeddings) || 'f32';
+  const bufferDtype = getBufferDtype(embeddings);
+  const detectedDtype = embeddingDtype || bufferDtype || 'f32';
   const useF16 = detectedDtype === 'f16' && caps.hasF16;
+  console.log(`[Gather] numTokens=${numTokens}, bufferDtype=${bufferDtype}, detectedDtype=${detectedDtype}, useF16=${useF16}, hasF16=${caps.hasF16}`);
 
   // Select kernel variant based on dtype and vec4 preference
   let variant: string;
@@ -106,9 +108,21 @@ export async function recordGather(
   options: GatherOptions = {}
 ): Promise<GPUBuffer> {
   const device = recorder.device;
-  const { outputBuffer = null } = options;
+  const { useVec4 = true, outputBuffer = null, embeddingDtype } = options;
 
-  const pipeline = await createPipeline('gather', 'default');
+  // Detect embedding dtype (same logic as runGather)
+  const caps = getKernelCapabilities();
+  const detectedDtype = embeddingDtype || getBufferDtype(embeddings) || 'f32';
+  const useF16 = detectedDtype === 'f16' && caps.hasF16;
+
+  // Select kernel variant based on dtype and vec4 preference
+  let variant: string;
+  if (useF16) {
+    variant = useVec4 ? 'f16_vec4' : 'f16';
+  } else {
+    variant = useVec4 ? 'vec4' : 'default';
+  }
+  const pipeline = await createPipeline('gather', variant);
 
   const outputSize = numTokens * hiddenSize * 4;
   const output = outputBuffer || acquireBuffer(outputSize, undefined, 'gather_output');
@@ -139,7 +153,8 @@ export async function recordGather(
   pass.setPipeline(pipeline);
   pass.setBindGroup(0, bindGroup);
 
-  const workgroups = Math.ceil((numTokens * hiddenSize) / 256);
+  // Use vec4 workgroup calculation when appropriate
+  const workgroups = useVec4 ? Math.ceil((numTokens * hiddenSize) / (64 * 4)) : Math.ceil((numTokens * hiddenSize) / 256);
   pass.dispatchWorkgroups(workgroups);
   pass.end();
 

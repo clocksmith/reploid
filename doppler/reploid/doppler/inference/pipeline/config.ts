@@ -28,6 +28,7 @@ export interface RawConfig {
   max_position_embeddings?: number;
   contextLength?: number;
   rope_theta?: number;
+  rope_local_base_freq?: number;  // Gemma 3: Different RoPE theta for local/sliding attention layers
   ropeFreqBase?: number;
   rms_norm_eps?: number;
   attentionLayerNormRMSEpsilon?: number;
@@ -36,6 +37,7 @@ export interface RawConfig {
   eos_token_id?: number | number[];
   rope_scaling?: RopeScalingConfig;
   sliding_window?: number;
+  sliding_window_pattern?: number;  // Gemma 3: ratio of local:global layers (e.g., 6 = every 6th is global)
   num_local_experts?: number;
   num_experts?: number;
   experts_per_token?: number;
@@ -44,6 +46,9 @@ export interface RawConfig {
   layer_types?: string[];
   attention_bias?: boolean;
   quantization_config?: { quant_method?: string };
+  // DOPPLER-specific config (can be set in manifest to override family defaults)
+  scale_embeddings?: boolean;        // Gemma: scale by sqrt(hiddenSize)
+  rms_norm_weight_offset?: boolean;  // Gemma 3: add +1 to norm weights
 }
 
 export interface RopeScalingConfig {
@@ -92,6 +97,7 @@ export interface ParsedModelConfig {
   moeTopK: number;
   slidingWindow: number | null;
   ropeTheta: number;
+  ropeLocalTheta: number | null;  // For local/sliding attention layers (Gemma 3: 10K vs 1M global)
   ropeScale: number;
   ropeScalingType: string | null;
   ropeScaling: RopeScalingConfig | null;
@@ -101,25 +107,37 @@ export interface ParsedModelConfig {
   rmsNormWeightOffset: boolean;
   scaleEmbeddings: boolean;
   hiddenActivation: ActivationType;
-  isGemma: boolean;
   isGemma3: boolean;
-  stopTokenIds: number[];
+  isQwen3: boolean;
   isGptOss: boolean;
+  stopTokenIds: number[];
   layerTypes: string[] | null;
   attentionBias: boolean;
   embeddingScale?: number;
 }
 
-export function isGemmaModel(config: RawConfig, manifest: Manifest): boolean {
-  const arch = manifest?.architecture ?? '';
+export function isGemma3Model(config: RawConfig, manifest: Manifest): boolean {
+  const arch = manifest?.architecture ?? config?.architectures?.[0] ?? '';
   const modelType = config?.model_type ?? config?.text_config?.model_type ?? '';
   return /gemma/i.test(arch) || /gemma/i.test(modelType);
 }
 
-export function isGemma3Model(config: RawConfig, manifest: Manifest): boolean {
+export function isQwen3Model(config: RawConfig, manifest: Manifest): boolean {
   const arch = manifest?.architecture ?? config?.architectures?.[0] ?? '';
   const modelType = config?.model_type ?? config?.text_config?.model_type ?? '';
-  return /gemma.*3|gemma3/i.test(arch) || /gemma.*3|gemma3/i.test(modelType) || arch.includes('Gemma3');
+  return /qwen.*3|qwen3/i.test(arch) || /qwen.*3|qwen3/i.test(modelType);
+}
+
+export function isKimiK2Model(config: RawConfig, manifest: Manifest): boolean {
+  const arch = manifest?.architecture ?? config?.architectures?.[0] ?? '';
+  const modelType = config?.model_type ?? config?.text_config?.model_type ?? '';
+  return /kimi.*k2|kimi_k2/i.test(arch) || /kimi.*k2|kimi_k2/i.test(modelType);
+}
+
+export function isMixtralModel(config: RawConfig, manifest: Manifest): boolean {
+  const arch = manifest?.architecture ?? config?.architectures?.[0] ?? '';
+  const modelType = config?.model_type ?? config?.text_config?.model_type ?? '';
+  return /mixtral/i.test(arch) || /mixtral/i.test(modelType);
 }
 
 export function isGptOssModel(config: RawConfig, manifest: Manifest): boolean {
@@ -141,7 +159,7 @@ export function getStopTokenIds(config: RawConfig, manifest: Manifest): number[]
 
   if (Array.isArray(eosTokenId)) return eosTokenId;
   if (typeof eosTokenId === 'number') return [eosTokenId];
-  if (isGemmaModel(config, manifest)) return [1, 106];
+  if (isGemma3Model(config, manifest)) return [1, 106];
   return [];
 }
 
@@ -284,13 +302,48 @@ export function parseModelConfig(manifest: Manifest): ParsedModelConfig {
     if (factor && factor > 0) ropeScale = factor;
   }
 
-  const isGemma = isGemmaModel(rawConfig, manifest);
+  // Model family detection (used for defaults, not hard branches)
   const isGemma3 = isGemma3Model(rawConfig, manifest);
+  const isQwen3 = isQwen3Model(rawConfig, manifest);
+  const isKimiK2 = isKimiK2Model(rawConfig, manifest);
+  const isMixtral = isMixtralModel(rawConfig, manifest);
   const isGptOss = isGptOssModel(rawConfig, manifest);
 
-  const rmsNormEps = config.rms_norm_eps ?? config.attentionLayerNormRMSEpsilon ?? (isGemma ? 1e-6 : 1e-5);
+  // Config values with family-based defaults
+  // Explicit config > family default > universal default
+  const rmsNormEps = config.rms_norm_eps ?? config.attentionLayerNormRMSEpsilon ?? (isGemma3 ? 1e-6 : 1e-5);
   const hiddenActivation = normalizeActivation(config.hidden_activation ?? config.hidden_act);
   const moeTopK = config.experts_per_token ?? config.num_experts_per_tok ?? config.top_k ?? 2;
+
+  // DOPPLER-specific architectural quirks (explicit config overrides family detection)
+  const scaleEmbeddings = config.scale_embeddings ?? isGemma3;
+  const rmsNormWeightOffset = config.rms_norm_weight_offset ?? isGemma3;
+
+  // RoPE theta defaults by architecture:
+  // - Gemma 3, Qwen3, Mixtral: 1,000,000
+  // - Kimi K2: 50,000 (with YARN scaling)
+  // - Others: 10,000
+  let defaultRopeTheta = 10000;
+  if (isGemma3 || isQwen3 || isMixtral) {
+    defaultRopeTheta = 1000000;
+  } else if (isKimiK2) {
+    defaultRopeTheta = 50000;  // Uses YARN 32x scaling for 128K context
+  }
+
+  // Generate layer_types for Gemma 3 if not present in config
+  // Gemma 3 uses sliding_window_pattern to determine which layers are global (full_attention)
+  // Every Nth layer is global (full_attention), others are local (sliding_attention)
+  // Pattern: layer 0, N, 2N, 3N... are global; others are local
+  let layerTypes: string[] | null = Array.isArray(config.layer_types) ? config.layer_types : null;
+  if (!layerTypes && isGemma3) {
+    const pattern = config.sliding_window_pattern ?? 6;  // Default to 6 if not specified
+    layerTypes = Array.from({ length: numLayers }, (_, i) =>
+      i % pattern === 0 ? 'full_attention' : 'sliding_attention'
+    );
+  }
+
+  // RoPE local theta for sliding attention layers (Gemma 3: 10K vs 1M global)
+  const ropeLocalTheta = config.rope_local_base_freq ?? null;
 
   return {
     numLayers,
@@ -305,21 +358,22 @@ export function parseModelConfig(manifest: Manifest): ParsedModelConfig {
     numExperts: config.num_local_experts ?? config.num_experts ?? 8,
     moeTopK,
     slidingWindow: config.sliding_window ?? null,
-    ropeTheta: config.rope_theta ?? config.ropeFreqBase ?? (isGemma ? 1000000 : 10000),
+    ropeTheta: config.rope_theta ?? config.ropeFreqBase ?? defaultRopeTheta,
+    ropeLocalTheta,
     ropeScale,
     ropeScalingType,
     ropeScaling: ropeScaling ? { ...ropeScaling, factor: ropeScale } : null,
     quantization: (manifest.quantization as string) ?? 'f16',
     quantMethod: config.quantization_config?.quant_method ?? null,
     rmsNormEps,
-    rmsNormWeightOffset: isGemma3,
-    scaleEmbeddings: isGemma,
+    rmsNormWeightOffset,
+    scaleEmbeddings,
     hiddenActivation,
-    isGemma,
     isGemma3,
-    stopTokenIds: getStopTokenIds(rawConfig, manifest),
+    isQwen3,
     isGptOss,
-    layerTypes: Array.isArray(config.layer_types) ? config.layer_types : null,
+    stopTokenIds: getStopTokenIds(rawConfig, manifest),
+    layerTypes,
     attentionBias: config.attention_bias ?? false,
   };
 }
