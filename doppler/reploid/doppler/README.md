@@ -1,6 +1,6 @@
 # DOPPLER
 
-**Distributed Object Parallel Processing Layer Executing REPLOID**
+**D**istributed **O**n-device **P**ipeline **P**rocessing **L**arge **E**mbedded [**R**eploid](../README.md) (**R**ecursive **E**volution **P**rotocol **L**oop **O**rchestrating **I**nference [**D**oppler](README.md) (... ∞))
 
 Browser-native LLM inference engine powered by WebGPU.
 
