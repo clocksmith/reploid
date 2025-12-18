@@ -14,6 +14,26 @@ Browser-native LLM inference engine powered by WebGPU.
 - **RDRR format** - Sharded weights, on-demand loading from OPFS or remote
 - **MoE support** - GPU-native expert routing with lazy expert loading
 
+## Architecture
+
+```
+┌─────────────────────────────────────────────────────┐
+│                    Demo UI                          │
+├─────────────────────────────────────────────────────┤
+│             DOPPLER Inference Pipeline              │
+│  ┌──────────┐ ┌──────────┐ ┌──────────┐            │
+│  │ Tokenize │→│ Forward  │→│ Sample   │→ tokens    │
+│  └──────────┘ └──────────┘ └──────────┘            │
+├─────────────────────────────────────────────────────┤
+│              GPU Kernels (WebGPU)                   │
+│  MatMul │ RMSNorm │ RoPE │ Attention │ SiLU        │
+├─────────────────────────────────────────────────────┤
+│           Memory / Buffer Management                │
+├─────────────────────────────────────────────────────┤
+│  Storage (OPFS)  │  RDRR Loader  │  Tokenizer      │
+└─────────────────────────────────────────────────────┘
+```
+
 ## Quick Start
 
 ```bash
@@ -30,28 +50,39 @@ doppler bench inference --headed  # Run benchmarks
 | Mixtral | Mixtral 8x7B | MoE support |
 | GPT-OSS | GPT-OSS 20B MoE | Experimental |
 
-## P2P Distribution (Planned)
+## P2P Evolution (Planned)
 
-DOPPLER's architecture enables peer-to-peer model distribution:
+Weight shards use CDN (HuggingFace). P2P is for **dynamic components** that benefit from decentralized evolution:
 
-- **Swarm shard cache** - WebRTC mesh shares verified weight shards
-- **Expert paging** - MoE experts fetched from nearest peer with inventory
-- **Remote inference** - Offload prefill to faster peers in the swarm
-- **Hierarchical routing** - Tier-1 gatekeeper prefetches expert clusters
+| Component | Size | P2P Value |
+|-----------|------|-----------|
+| **LoRA adapters** | 50-200MB | Fine-tuned personalities, domain experts |
+| **Router weights** | ~1MB | Learned MoE routing, hierarchical gating |
+| **WGSL kernels** | ~5KB each | Device-specific optimizations |
+| **Sampling strategies** | ~10KB | Novel decoding algorithms |
 
 ```
-Agent A ◄──── shard request ────► Agent B ◄──── shard request ────► Agent C
-         └──────────────── mesh gossip: who has what ─────────────────┘
+┌─────────────────────────────────────────────────────┐
+│                  DOPPLER Swarm                      │
+├─────────────────────────────────────────────────────┤
+│  Peer A              Peer B              Peer C     │
+│  ├─ LoRA: writer    ├─ LoRA: coder      ├─ LoRA: ? │
+│  ├─ Router v2       ├─ Router v3        │          │
+│  └─ Kernel: M3 Max  └─ Kernel: RTX 4090 │          │
+│                                                     │
+│  ◄──── LoRA/kernel/router exchange ────►           │
+│  └────── swarm gossip: who has what ──────┘        │
+└─────────────────────────────────────────────────────┘
 ```
 
-See [P2P Roadmap](docs/roadmap/PHASE_4_P2P.md) for implementation plan.
+See [P2P Roadmap](docs/roadmap/PHASE_4_P2P.md) and [Competitive Analysis](docs/analysis/COMPETITIVE.md#p2p-and-evolution-potential) for details.
 
 ## Documentation
 
 - [Architecture](docs/ARCHITECTURE.md) - System design and data flow
 - [Inference Pipeline](inference/README.md) - Kernel graphs and execution flow
 - [RDRR Format](docs/spec/RDRR_FORMAT.md) - Model packaging specification
-- [Performance Roadmap](docs/roadmap/PHASE_1_PERFORMANCE.md) - Optimization targets
+- [Competitive Analysis](docs/analysis/COMPETITIVE.md) - Landscape and differentiators
 
 ## Requirements
 
