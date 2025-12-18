@@ -12,7 +12,7 @@ const __dirname = dirname(__filename);
 
 import { parseGGUFFile, type GGUFParseResult, type GGUFTensor, type GGUFConfig } from './gguf-parser.js';
 import { parseSafetensors, readTensorData, type ParsedSafetensorsFile, type ParsedSafetensorsIndex, type SafetensorsTensor } from './safetensors-parser.js';
-import { quantizeToQ4KM, shouldQuantize, float16ToFloat32 } from './quantizer.js';
+import { quantizeToQ4KM, quantizeToQ4KMRowWise, quantizeToQ4KMColumnWise, shouldQuantize, float16ToFloat32, type Q4KLayout } from './quantizer.js';
 import { writeRDRR, createTestModel, type ProgressEvent, type TensorInfo as RDRRTensorInfo } from './rdrr-writer.js';
 
 export type InputFormat = 'gguf' | 'safetensors' | 'safetensors-dir' | 'safetensors-index';
@@ -22,6 +22,7 @@ export interface ConvertOptions {
   input: string | null;
   output: string | null;
   quantize: QuantizationType | null;
+  q4kLayout: Q4KLayout;  // Q4K block layout: 'flat', 'row_wise', or 'column_wise'
   shardSize: number;
   modelId: string | null;
   test: boolean;
@@ -84,6 +85,7 @@ function parseArgs(args: string[]): ConvertOptions {
     input: null,
     output: null,
     quantize: null,
+    q4kLayout: 'row_wise',  // Default: row-wise for fused kernel compatibility
     shardSize: 64,
     modelId: null,
     test: false,
@@ -120,6 +122,13 @@ function parseArgs(args: string[]): ConvertOptions {
       options.cleanOutput = true;
     } else if (arg === '--quantize' || arg === '-q') {
       options.quantize = args[++i]?.toLowerCase() as QuantizationType;
+    } else if (arg === '--q4k-layout') {
+      const layout = args[++i]?.toLowerCase();
+      if (layout === 'flat' || layout === 'row_wise' || layout === 'column_wise') {
+        options.q4kLayout = layout;
+      } else {
+        console.warn(`Warning: Unknown Q4K layout '${layout}', using 'row_wise'`);
+      }
     } else if (arg === '--shard-size') {
       options.shardSize = parseInt(args[++i], 10);
     } else if (arg === '--model-id') {
@@ -151,6 +160,10 @@ Arguments:
 
 Options:
   --quantize <type>       Quantize weights (q4_k_m, f16, f32)
+  --q4k-layout <layout>   Q4K block layout: row_wise (default), column_wise, or flat
+                          row_wise: Compatible with fused Q4K kernel (recommended)
+                          column_wise: Transpose + row_wise for coalesced GPU access (fastest)
+                          flat: Legacy sequential packing (not compatible with fused kernel)
   --quantize-embeddings   Also quantize embedding table (saves ~50% for large vocabs)
   --fuse-gate-up          Fuse gate+up projections for 2-pass FFN (faster inference)
   --shard-size <mb>       Shard size in MB (default: 64)
@@ -439,14 +452,36 @@ async function convertGGUF(inputPath: string, outputDir: string, options: Conver
 
       if (sourceQuant === 'F16' || sourceQuant === 'F32' || sourceQuant === 'BF16') {
         const f32Data = convertToF32(data, sourceQuant);
-        const { quantized } = quantizeToQ4KM(f32Data, tensor.shape);
-        localTensor.dtype = 'Q4_K_M';
-        localTensor.size = quantized.length;
 
-        if (options.verbose) {
-          console.log(`  Re-quantized ${tensor.name}: ${sourceQuant} -> Q4_K_M`);
+        // Use appropriate Q4K layout for 2D weight matrices
+        let quantized: Uint8Array;
+
+        if (tensor.shape.length === 2 && options.q4kLayout !== 'flat') {
+          const shape2D = tensor.shape as [number, number];
+
+          if (options.q4kLayout === 'column_wise') {
+            const result = quantizeToQ4KMColumnWise(f32Data, shape2D);
+            quantized = result.quantized;
+            if (options.verbose) {
+              console.log(`  Re-quantized ${tensor.name}: ${sourceQuant} -> Q4_K_M (column-wise, transposed)`);
+            }
+          } else {
+            const result = quantizeToQ4KMRowWise(f32Data, shape2D);
+            quantized = result.quantized;
+            if (options.verbose) {
+              console.log(`  Re-quantized ${tensor.name}: ${sourceQuant} -> Q4_K_M (row-wise)`);
+            }
+          }
+        } else {
+          const result = quantizeToQ4KM(f32Data, tensor.shape);
+          quantized = result.quantized;
+          if (options.verbose) {
+            console.log(`  Re-quantized ${tensor.name}: ${sourceQuant} -> Q4_K_M`);
+          }
         }
 
+        localTensor.dtype = 'Q4_K_M';
+        localTensor.size = quantized.length;
         return quantized.buffer as ArrayBuffer;
       }
     }
@@ -455,6 +490,13 @@ async function convertGGUF(inputPath: string, outputDir: string, options: Conver
   };
 
   inferConfigFromTensors(modelInfo);
+
+  // Add Q4K layout to config if quantizing
+  if (options.quantize === 'q4_k_m' && options.q4kLayout !== 'flat') {
+    modelInfo.config = modelInfo.config || {};
+    (modelInfo.config as Record<string, unknown>).q4kLayout = options.q4kLayout;
+    console.log(`  Q4K layout: ${options.q4kLayout}`);
+  }
 
   const result = await writeRDRR(outputDir, modelInfo, getTensorData, {
     modelId: options.modelId || modelInfo.modelName || 'unknown',
@@ -553,7 +595,13 @@ async function convertSafetensors(inputPath: string, outputDir: string, options:
 
   inferConfigFromTensors(modelInfo);
 
+  // Add Q4K layout to config if quantizing
   const targetQuant = options.quantize || 'f16';
+  if (targetQuant === 'q4_k_m' && options.q4kLayout !== 'flat') {
+    modelInfo.config = modelInfo.config || {};
+    (modelInfo.config as Record<string, unknown>).q4kLayout = options.q4kLayout;
+    console.log(`  Q4K layout: ${options.q4kLayout}`);
+  }
 
   const shardBuffers = new Map<string, Buffer>();
   if (options.fast) {
@@ -596,9 +644,44 @@ async function convertSafetensors(inputPath: string, outputDir: string, options:
         ? new Float32Array(data)
         : convertToF32(data, localTensor.dtype);
 
-      const { quantized } = quantizeToQ4KM(f32Data, tensor.shape);
+      // Use appropriate Q4K layout for 2D weight matrices
+      let quantized: Uint8Array;
+      let newShape = tensor.shape;
+
+      if (tensor.shape.length === 2 && options.q4kLayout !== 'flat') {
+        const shape2D = tensor.shape as [number, number];
+
+        if (options.q4kLayout === 'column_wise') {
+          // Transpose before quantization for coalesced GPU access
+          const result = quantizeToQ4KMColumnWise(f32Data, shape2D);
+          quantized = result.quantized;
+          newShape = result.transposedShape;  // [K, out] instead of [out, K]
+
+          if (options.verbose) {
+            console.log(`  Q4K column-wise: ${tensor.name} ${shape2D} -> ${newShape} (transposed)`);
+          }
+        } else {
+          // Row-wise: compatible with fused kernel
+          const result = quantizeToQ4KMRowWise(f32Data, shape2D);
+          quantized = result.quantized;
+
+          if (options.verbose) {
+            console.log(`  Q4K row-wise: ${tensor.name} ${shape2D} (${result.numBlocks} blocks)`);
+          }
+        }
+      } else {
+        // Flat packing for 1D or when explicitly requested
+        const result = quantizeToQ4KM(f32Data, tensor.shape);
+        quantized = result.quantized;
+
+        if (options.verbose && tensor.shape.length === 2) {
+          console.log(`  Q4K flat: ${tensor.name} ${tensor.shape} (legacy, not fused-kernel compatible)`);
+        }
+      }
+
       localTensor.dtype = 'Q4_K_M';
       localTensor.size = quantized.length;
+      // Note: shape update for column_wise would need manifest support
       return quantized.buffer as ArrayBuffer;
     }
 

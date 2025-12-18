@@ -94,7 +94,8 @@
 | Store layout metadata in manifest | P0 | ✅ Done | `weightsTransposed: true` in manifest |
 | Update matmul kernel selection | P0 | ✅ Done | `matmul.ts` handles `transposeB` based on layout |
 | Re-convert test models with column layout | P0 | ✅ Done | Use `--transpose-weights` flag |
-| **Column-wise Q4K quantization** | P0 | ⬜ TODO | Transpose before quantize, new kernel |
+| **Row-wise Q4K quantization** | P0 | ✅ **Done** | `--q4k-layout row_wise` (default) in convert-cli |
+| Column-wise Q4K (batched matmul only) | P2 | ⬜ TODO | Only helps prefill, not decode |
 
 **Implementation:** `rdrr-writer.ts` has `transposeWeights` option that pre-transposes matmul weights. Manifest stores `weightsTransposed: true`. Loader sets `transposeB: false` when weights are pre-transposed.
 
@@ -126,7 +127,7 @@ Thread 2 reads W^T[0, 2]  ← address 2
 | Format | Current Layout | Optimal Layout | Status |
 |--------|---------------|----------------|--------|
 | F16/BF16 | Column-major ✅ | Column-major | Done |
-| Q4K | Flat packed ❌ | Column-wise blocks | **Needs work** |
+| Q4K | Row-wise ✅ | Row-wise | **IMPLEMENTED** (converter uses `--q4k-layout row_wise` by default) |
 
 #### Q4K Block Layout Problem
 
@@ -141,24 +142,44 @@ Flat: [blk0][blk1][blk2][blk3][blk4][blk5]...
        ←─row 0──→←─row 0──→←row 1→←─row 1──→  ← WRONG!
 ```
 
-**Row-wise Q4K:** Blocks aligned to rows (current kernel expectation)
+**Row-wise Q4K:** Blocks aligned to rows (kernel expectation) - **IMPLEMENTED ✅**
 ```
-Row 0: [blk0][blk1][blk2][pad]  ← K=1152 needs 5 blocks
-Row 1: [blk3][blk4][blk5][pad]
-```
-
-**Column-wise Q4K:** Blocks aligned to columns (optimal, needs new kernel)
-```
-Col 0: [blk0][blk1][blk2]...  ← column blocks contiguous
-Col 1: [blk3][blk4][blk5]...  ← coalesced thread access
+Row 0: [blk0][blk1][blk2][blk3][blk4] ← K=1152 needs ceil(1152/256)=5 blocks
+Row 1: [blk5][blk6][blk7][blk8][blk9]
 ```
 
-#### Fix Path for Column-wise Q4K
+#### Row-wise Q4K Fix - IMPLEMENTED
 
-1. Transpose weight matrix BEFORE quantization
-2. Run Q4K quantization on transposed matrix (blocks along original columns)
-3. Update fused kernel for column-wise block addressing
-4. Expected speedup: **1.5-2x** (same as F16 column-major gains)
+**Status:** ✅ Implemented in `tools/quantizer.ts` and `tools/convert-cli.ts`
+
+**New functions:**
+- `quantizeToQ4KMRowWise(data, shape)` - Row-aligned Q4K blocks
+- `quantizeToQ4KMColumnWise(data, shape)` - Transpose + row-wise (for future batched matmul)
+- `transposeF32(data, shape)` - Matrix transpose helper
+- `getQ4KSize(shape, layout)` - Calculate expected Q4K size
+
+**Usage:**
+```bash
+# Convert with row-wise Q4K (default - recommended for GEMV decode)
+npx tsx doppler/tools/convert-cli.ts model/ output/ --quantize q4_k_m
+
+# Explicitly specify layout
+npx tsx doppler/tools/convert-cli.ts model/ output/ --quantize q4_k_m --q4k-layout row_wise
+```
+
+**Why row-wise, not column-wise?**
+
+For GEMV (decode with M=1), the current fused Q4K kernel has:
+- One workgroup per output column
+- 256 threads split K dimension blocks
+- Each thread processes blocks sequentially along row
+
+**Row-wise is optimal for this design:**
+- Row `col`'s blocks are contiguous at `col * num_blocks_per_row`
+- Sequential block reads benefit from L2 cache
+- Threads reading different K positions in same row get coalesced access
+
+**Column-wise would only help** for batched matmul (prefill with M > 1) where multiple threads read the same K position across different output rows.
 
 **References:**
 - [NVIDIA Efficient Matrix Transpose](https://developer.nvidia.com/blog/efficient-matrix-transpose-cuda-cc/)
@@ -170,21 +191,25 @@ Col 1: [blk3][blk4][blk5]...  ← coalesced thread access
 | Task | Priority | Status | Notes |
 |------|----------|--------|-------|
 | Change `useFusedQ4K = true` | P0 | ✅ Done | Enabled in `doppler-loader.ts` |
-| Validate Q4K block alignment | P0 | ⚠️ Failing | Shape mismatch causes fallback |
+| Validate Q4K block alignment | P0 | ✅ **FIXED** | Row-wise quantization implemented |
 | Benchmark fused vs separate | P0 | ⏳ Pending | Need benchmark comparison |
 
-**Status:** ⚠️ **FALLING BACK** - Fused kernel enabled but not used due to shape incompatibility.
+**Status:** ✅ **FIX AVAILABLE** - Converter now produces row-wise Q4K by default.
 
-**Evidence from benchmark logs:**
+**Previous issue (flat-packed models):**
 ```
 [DopplerLoader] Packed Q4K matmul weight (incompatible with fused matmul):
 model.layers.0.self_attn.q_proj.weight shape=[1024,1152] size=663552 expectedRowwise=737280
 Falling back to dequantized weights for correctness.
 ```
 
-**Impact:** Every matmul does 2 passes (dequant → matmul) instead of 1 fused pass. ~1.5-2x slower.
+**Fix:** Re-convert models with the updated converter:
+```bash
+npx tsx doppler/tools/convert-cli.ts model/ output/ --quantize q4_k_m
+# Now uses row-wise Q4K by default (--q4k-layout row_wise)
+```
 
-**Root cause:** Q4K block packing expects row-wise layout with specific padding. Current model weights have different size than expected (663552 vs 737280). May need model re-conversion.
+**Expected impact:** Fused kernel should work after re-conversion. ~1.5-2x faster matmul.
 
 ### 1.8 FFN Gate+Up Fusion
 
