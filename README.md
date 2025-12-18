@@ -2,16 +2,22 @@
 
 **R**ecursive **E**volution **P**rotocol **L**oop **O**rchestrating **I**nference [**D**oppler](doppler/reploid/doppler/README.md) (**D**istributed **O**n-device **P**ipeline **P**rocessing **L**arge **E**mbedded [**R**eploid](doppler/reploid/README.md) (... ∞))
 
+- **[replo.id](https://replo.id)**
+
 - Runs fully in the browser (offline-capable)
 - Self-modifies: tools live in the VFS and hot-reload instantly
 - Sandbox focus: IndexedDB filesystem, verification, arena, audit trail
+- **[replo.id/r](https://replo.id/r)** - Reploid agent sandbox
 
 **DOPPLER** powers local inference:
 - Custom WebGPU kernels for attention, FFN, and RMSNorm
 - `.rdrr` format with sharded weight streaming (no full download needed)
 - GGUF & Safetensor import converts models directly in browser
+- **[replo.id/d](https://replo.id/d)** - Doppler inference demo
 
 ## Quick Start
+
+(Local hosting is currently needed for proxy or loading large models)
 
 ```bash
 git clone https://github.com/clocksmith/reploid
@@ -20,11 +26,6 @@ npm install
 npm run dev
 # Open http://localhost:8080
 ```
-
-Or use the hosted versions:
-- **[replo.id](https://replo.id)** - Landing page
-- **[replo.id/r](https://replo.id/r)** - REPLOID agent sandbox
-- **[replo.id/d](https://replo.id/d)** - DOPPLER inference demo
 
 ## Showcase
 
