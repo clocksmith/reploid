@@ -71,8 +71,8 @@ The proxy (`npm start`) routes API calls through your machine for CORS and key m
 
 ## Documentation
 
-- [Reploid docs](doppler/reploid/docs/) - Agent sandbox documentation
-- [Doppler docs](doppler/reploid/doppler/docs/) - WebGPU inference engine documentation
+- [Reploid docs](doppler/reploid/docs/SYSTEM_ARCHITECTURE.md) - Agent sandbox documentation
+- [Doppler docs](doppler/reploid/doppler/docs/INDEX.md) - WebGPU inference engine documentation
 
 ## Limitations
 
