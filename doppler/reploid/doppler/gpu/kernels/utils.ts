@@ -86,6 +86,14 @@ export const KERNEL_CONFIGS: Record<string, Record<string, KernelConfig>> = {
       workgroupSize: [256, 1, 1],
       requires: ['shader-f16', 'subgroups'],
     },
+    // Multi-column GEMV for large vocab (LM head F16) - 32 columns per workgroup
+    // Reduces workgroups from 65K to 8K for vocab=262144
+    gemv_subgroup_multicol: {
+      shaderFile: 'matmul_gemv_subgroup.wgsl',
+      entryPoint: 'main_multicol',
+      workgroupSize: [256, 1, 1],
+      requires: ['shader-f16', 'subgroups'],
+    },
     // Fused Q4_K dequant + matmul - 2-3x faster (no separate dequant pass)
     q4_fused: {
       shaderFile: 'matmul_q4_fused.wgsl',
@@ -97,6 +105,13 @@ export const KERNEL_CONFIGS: Record<string, Record<string, KernelConfig>> = {
       shaderFile: 'matmul_q4_fused.wgsl',
       entryPoint: 'main_batched',
       workgroupSize: [64, 4, 1],
+      requires: ['shader-f16', 'subgroups'],
+    },
+    // Multi-column GEMV for large vocab (LM head) - 32 columns per workgroup
+    q4_fused_multicol: {
+      shaderFile: 'matmul_q4_fused.wgsl',
+      entryPoint: 'main_multicol',
+      workgroupSize: [256, 1, 1],
       requires: ['shader-f16', 'subgroups'],
     },
     f32: {

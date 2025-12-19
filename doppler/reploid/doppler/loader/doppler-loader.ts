@@ -636,7 +636,9 @@ export class DopplerLoader {
             })();
 
           // Fused Q4K path: keep raw quantized buffer for matmul weights
-          if (this.useFusedQ4K && isMatmulWeight && caps?.hasSubgroups && !isPackedQ4K) {
+          // EXCLUDE embeddings - gather kernel doesn't support Q4K, only matmul does
+          const isEmbedding = name.toLowerCase().includes('embed') || name.toLowerCase().includes('wte');
+          if (this.useFusedQ4K && isMatmulWeight && !isEmbedding && caps?.hasSubgroups && !isPackedQ4K) {
             console.log(`[DopplerLoader] Loading Q4K weight: ${name} (size=${location.size})`);
             const q4kBuffer = acquireBuffer(location.size, undefined, `q4k_${name}`);
             let tensorOffset = 0;
@@ -805,7 +807,9 @@ export class DopplerLoader {
 
         // Fused Q4K path: keep raw quantized buffer for matmul weights
         // This enables 2-3x speedup by doing dequant+matmul in one kernel pass
-        if (this.useFusedQ4K && isMatmulWeight && caps?.hasSubgroups && !isPackedQ4K) {
+        // EXCLUDE embeddings - gather kernel doesn't support Q4K, only matmul does
+        const isEmbedding = name.toLowerCase().includes('embed') || name.toLowerCase().includes('wte');
+        if (this.useFusedQ4K && isMatmulWeight && !isEmbedding && caps?.hasSubgroups && !isPackedQ4K) {
           console.log(`[DopplerLoader] Loading Q4K weight (single-shard): ${name} (size=${location.size})`);
           const q4kBuffer = acquireBuffer(location.size, undefined, `q4k_${name}`);
           device!.queue.writeBuffer(q4kBuffer, 0, new Uint8Array(shardData));

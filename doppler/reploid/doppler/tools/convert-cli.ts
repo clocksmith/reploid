@@ -12,8 +12,12 @@ const __dirname = dirname(__filename);
 
 import { parseGGUFFile, type GGUFParseResult, type GGUFTensor, type GGUFConfig } from './gguf-parser.js';
 import { parseSafetensors, readTensorData, type ParsedSafetensorsFile, type ParsedSafetensorsIndex, type SafetensorsTensor } from './safetensors-parser.js';
-import { quantizeToQ4KM, quantizeToQ4KMRowWise, quantizeToQ4KMColumnWise, shouldQuantize, float16ToFloat32, type Q4KLayout } from './quantizer.js';
+import { quantizeToQ4KM, quantizeToQ4KMRowWise, quantizeToQ4KMColumnWise, shouldQuantize, float16ToFloat32 } from './quantizer.js';
 import { writeRDRR, createTestModel, type ProgressEvent, type TensorInfo as RDRRTensorInfo } from './rdrr-writer.js';
+import type { ConversionInfo, RuntimeOptimizations, Q4KLayout, ComputePrecision } from '../storage/rdrr-format.js';
+
+// Converter version for reproducibility
+const CONVERTER_VERSION = '1.0.0';
 
 export type InputFormat = 'gguf' | 'safetensors' | 'safetensors-dir' | 'safetensors-index';
 export type QuantizationType = 'q4_k_m' | 'f16' | 'f32';
@@ -23,6 +27,7 @@ export interface ConvertOptions {
   output: string | null;
   quantize: QuantizationType | null;
   q4kLayout: Q4KLayout;  // Q4K block layout: 'flat', 'row_wise', or 'column_wise'
+  computePrecision: ComputePrecision;  // Preferred compute precision: 'f16', 'f32', or 'auto'
   shardSize: number;
   modelId: string | null;
   test: boolean;
@@ -85,7 +90,8 @@ function parseArgs(args: string[]): ConvertOptions {
     input: null,
     output: null,
     quantize: null,
-    q4kLayout: 'row_wise',  // Default: row-wise for fused kernel compatibility
+    q4kLayout: 'column_wise',  // Default: column-wise (14% faster than flat, 2.7x faster than row)
+    computePrecision: 'auto',  // Default: auto-detect GPU capabilities at runtime
     shardSize: 64,
     modelId: null,
     test: false,
@@ -129,6 +135,13 @@ function parseArgs(args: string[]): ConvertOptions {
       } else {
         console.warn(`Warning: Unknown Q4K layout '${layout}', using 'row_wise'`);
       }
+    } else if (arg === '--compute-precision' || arg === '-cp') {
+      const precision = args[++i]?.toLowerCase();
+      if (precision === 'f16' || precision === 'f32' || precision === 'auto') {
+        options.computePrecision = precision;
+      } else {
+        console.warn(`Warning: Unknown compute precision '${precision}', using 'auto'`);
+      }
     } else if (arg === '--shard-size') {
       options.shardSize = parseInt(args[++i], 10);
     } else if (arg === '--model-id') {
@@ -160,14 +173,18 @@ Arguments:
 
 Options:
   --quantize <type>       Quantize weights (q4_k_m, f16, f32)
-  --q4k-layout <layout>   Q4K block layout: row_wise (default), column_wise, or flat
-                          row_wise: Compatible with fused Q4K kernel (recommended)
-                          column_wise: Transpose + row_wise for coalesced GPU access (fastest)
-                          flat: Legacy sequential packing (not compatible with fused kernel)
+  --q4k-layout <layout>   Q4K block layout: column_wise (default), row_wise, or flat
+                          column_wise: Blocks by input column (FASTEST - 8 tok/s, optimal for GEMV)
+                          flat: Sequential packing (7.2 tok/s, simpler)
+                          row_wise: Blocks by output row (3 tok/s, poor thread utilization)
+  --compute-precision, -cp <prec>  Preferred compute precision: f16, f32, auto (default: auto)
+                          f16: Fast F16 arithmetic (requires shader-f16, like WebLLM q4f16)
+                          f32: Compatible F32 arithmetic (slower, works everywhere, like q4f32)
+                          auto: Detect GPU capabilities at runtime
   --quantize-embeddings   Also quantize embedding table (saves ~50% for large vocabs)
   --fuse-gate-up          Fuse gate+up projections for 2-pass FFN (faster inference)
   --shard-size <mb>       Shard size in MB (default: 64)
-  --model-id <id>         Override model ID in manifest (use standard naming: gemma-3-1b-it-q4)
+  --model-id <id>         Override model ID in manifest (use standard naming below)
   --text-only             Extract only text model (skip vision/projector, strip prefixes)
   --no-clean              Don't delete existing output directory (default: clean before convert)
   --fast                  Pre-load shards into memory (faster, uses more RAM)
@@ -176,12 +193,17 @@ Options:
   --help, -h              Show this help
 
 Model Naming Convention:
-  {family}-{version}-{size}-{variant}-{quant}
+  {family}-{version}-{size}-{variant}-{quant}[-{compute}]
+
+  Where:
+    {quant}   = q4 (Q4_K_M), f16, f32
+    {compute} = f16, f32, or omit for auto (optional, WebLLM-style suffix)
 
   Examples:
-    gemma-3-1b-it-q4      Gemma 3, 1B params, instruction-tuned, Q4_K_M quantized
-    gemma-3-4b-it-q4      Gemma 3, 4B params, instruction-tuned, Q4_K_M quantized
-    llama-3.2-1b-q4       Llama 3.2, 1B params, base model, Q4_K_M quantized
+    gemma-3-1b-it-q4       Gemma 3, 1B, Q4_K_M, auto compute precision
+    gemma-3-1b-it-q4-f16   Gemma 3, 1B, Q4_K_M, prefer F16 compute (like q4f16)
+    gemma-3-1b-it-q4-f32   Gemma 3, 1B, Q4_K_M, prefer F32 compute (like q4f32)
+    llama-3.2-1b-q4-f16    Llama 3.2, 1B, Q4_K_M, prefer F16 compute
     mistral-7b-v0.3-q4    Mistral 7B v0.3, Q4_K_M quantized
 
 Examples:
@@ -217,6 +239,80 @@ function formatBytes(bytes: number): string {
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
   if (bytes < 1024 * 1024 * 1024) return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
   return `${(bytes / 1024 / 1024 / 1024).toFixed(2)} GB`;
+}
+
+/**
+ * Build conversion metadata for reproducibility.
+ */
+function buildConversionInfo(
+  source: string,
+  options: ConvertOptions,
+  originalDtype?: string
+): ConversionInfo {
+  // Reconstruct the CLI command for reproducibility
+  const cmdParts = ['npx tsx doppler/tools/convert-cli.ts', source, options.output || '.'];
+  if (options.quantize) cmdParts.push(`--quantize ${options.quantize}`);
+  if (options.q4kLayout !== 'row_wise') cmdParts.push(`--q4k-layout ${options.q4kLayout}`);
+  if (options.fuseGateUp) cmdParts.push('--fuse-gate-up');
+  if (options.modelId) cmdParts.push(`--model-id ${options.modelId}`);
+  if (options.textOnly) cmdParts.push('--text-only');
+  if (options.quantizeEmbeddings) cmdParts.push('--quantize-embeddings');
+
+  return {
+    source,
+    convertedAt: new Date().toISOString(),
+    converterVersion: CONVERTER_VERSION,
+    command: cmdParts.join(' '),
+    quantization: {
+      type: options.quantize?.toUpperCase() || 'F16',
+      layout: options.quantize === 'q4_k_m' ? options.q4kLayout : undefined,
+      fuseGateUp: options.fuseGateUp,
+      quantizeEmbeddings: options.quantizeEmbeddings,
+    },
+    originalDtype,
+  };
+}
+
+/**
+ * Build default runtime optimizations based on model quantization and compute precision.
+ * These are embedded in the manifest; YAML profiles can override at runtime.
+ *
+ * Based on benchmark findings:
+ * - Q4K row-wise: dequant_f16 is 2x faster than fused_q4k (poor thread utilization in fused kernel)
+ * - F16 weights: gemv_subgroup with multicol for large N
+ *
+ * Compute precision follows WebLLM convention:
+ * - f16: Like q4f16 - fast F16 arithmetic (requires shader-f16)
+ * - f32: Like q4f32 - compatible F32 arithmetic
+ * - auto: Detect at runtime
+ */
+function buildOptimizations(options: ConvertOptions): RuntimeOptimizations {
+  const isQ4K = options.quantize === 'q4_k_m';
+  const precision = options.computePrecision;
+
+  // Determine Q4K matmul strategy based on compute precision
+  let q4kMatmul: 'dequant_f16' | 'dequant_f32' | undefined;
+  if (isQ4K) {
+    if (precision === 'f32') {
+      q4kMatmul = 'dequant_f32';  // Force F32 compute (like q4f32)
+    } else {
+      q4kMatmul = 'dequant_f16';  // Default to F16 dequant (faster, like q4f16)
+    }
+  }
+
+  return {
+    kernelHints: {
+      // Global compute precision preference
+      computePrecision: precision,
+      // Q4K: use dequant path with specified precision
+      q4kMatmul,
+      // F16: use subgroup GEMV
+      f16Matmul: 'gemv_subgroup',
+      // Default attention kernels
+      attentionPrefill: 'tiled_large',
+      attentionDecode: 'streaming',
+    },
+  };
 }
 
 async function detectFormat(inputPath: string): Promise<InputFormat> {
@@ -498,11 +594,17 @@ async function convertGGUF(inputPath: string, outputDir: string, options: Conver
     console.log(`  Q4K layout: ${options.q4kLayout}`);
   }
 
+  // Build conversion metadata and runtime optimizations
+  const conversion = buildConversionInfo(inputPath, options, 'gguf');
+  const optimizations = buildOptimizations(options);
+
   const result = await writeRDRR(outputDir, modelInfo, getTensorData, {
     modelId: options.modelId || modelInfo.modelName || 'unknown',
     quantization: modelInfo.quantization || 'unknown',
     shardSize: options.shardSize * 1024 * 1024,
     fuseGateUp: options.fuseGateUp,
+    conversion,
+    optimizations,
     onProgress: (progress: ProgressEvent) => {
       if (progress.stage === 'writing' && options.verbose) {
         process.stdout.write(`\r  Writing tensors: ${progressBar(progress.current, progress.total)} ${progress.tensorName?.slice(0, 30) || ''}`.padEnd(80));
@@ -688,11 +790,17 @@ async function convertSafetensors(inputPath: string, outputDir: string, options:
     return data;
   };
 
+  // Build conversion metadata and runtime optimizations
+  const conversion = buildConversionInfo(inputPath, options, config?.torch_dtype as string || 'bfloat16');
+  const optimizations = buildOptimizations(options);
+
   const result = await writeRDRR(outputDir, modelInfo, getTensorData, {
     modelId: options.modelId || basename(inputPath).replace(/\.(safetensors|json)$/, ''),
     quantization: targetQuant.toUpperCase(),
     shardSize: options.shardSize * 1024 * 1024,
     fuseGateUp: options.fuseGateUp,
+    conversion,
+    optimizations,
     onProgress: (progress: ProgressEvent) => {
       if (progress.stage === 'writing') {
         process.stdout.write(`\r  Writing tensors: ${progressBar(progress.current, progress.total)} ${progress.tensorName?.slice(0, 30) || ''}`.padEnd(80));

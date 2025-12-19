@@ -135,4 +135,10 @@ export {
 } from './sample.js';
 
 // Re-export CommandRecorder types for convenience
-export { CommandRecorder, createCommandRecorder } from '../command-recorder.js';
+export {
+  CommandRecorder,
+  createCommandRecorder,
+  createProfilingRecorder,
+  type RecorderOptions,
+  type ProfileTimings,
+} from '../command-recorder.js';

@@ -311,6 +311,8 @@ export class PipelineBenchmark {
       // Use debugLayers from config for selective layer checkpointing
       // Without debugLayers, debug mode syncs at EVERY layer (very slow)
       debugLayers: this.config.debugLayers,
+      // GPU timestamp profiling for per-kernel timing
+      profile: this.config.profile ?? false,
       useChatTemplate,
       onToken: (id: number, t: string) => {
         const now = performance.now();

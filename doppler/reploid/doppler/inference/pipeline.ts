@@ -21,9 +21,10 @@ import { KVCache, SlidingWindowKVCache } from './kv-cache.js';
 import { Tokenizer } from './tokenizer.js';
 import { getDevice, setTrackSubmits } from '../gpu/device.js';
 import { releaseBuffer, readBuffer } from '../gpu/buffer-pool.js';
-import { runArgmax, runGPUSample, isGPUSamplingAvailable } from '../gpu/kernels/sample.js';
+import { runArgmax, runGPUSample, recordArgmax, isGPUSamplingAvailable } from '../gpu/kernels/sample.js';
 import { resetSubmitStats, logSubmitStats, getSubmitStats } from '../gpu/submit-tracker.js';
-import { createCommandRecorder, type CommandRecorder } from '../gpu/command-recorder.js';
+import { createCommandRecorder, createProfilingRecorder, CommandRecorder, type ProfileTimings } from '../gpu/command-recorder.js';
+import { setKernelHints, clearKernelHints } from '../gpu/kernel-hints.js';
 import { log, setGPUDevice } from '../debug/index.js';
 
 // Pipeline sub-modules
@@ -43,7 +44,7 @@ import {
 } from './pipeline/init.js';
 import { embed } from './pipeline/embed.js';
 import { processLayer, type LayerContext } from './pipeline/layer.js';
-import { computeLogits, computeLogitsGPU, extractLastPositionLogits, type LogitsConfig, type LogitsWeights } from './pipeline/logits.js';
+import { computeLogits, computeLogitsGPU, recordLogitsGPU, extractLastPositionLogits, type LogitsConfig, type LogitsWeights } from './pipeline/logits.js';
 import { createWeightBufferHelpers, type WeightBufferConfig, type WeightDebugFlags } from './pipeline/weights.js';
 import type { LayerWeights, ExpertWeights, RouterWeights } from './pipeline/types.js';
 import type { LogitsDebugFlags } from './pipeline/logits.js';
@@ -74,6 +75,9 @@ export interface GenerateOptions {
    *  Example: [0, 12, 25] debugs first, middle, and last layers only. */
   debugLayers?: number[];
   signal?: AbortSignal;
+  /** Enable GPU timestamp profiling for kernel-level timing.
+   *  Requires 'timestamp-query' WebGPU feature. Results logged to console. */
+  profile?: boolean;
 }
 
 export interface LayerConfig {
@@ -200,6 +204,16 @@ export class InferencePipeline {
     this.modelConfig = parseModelConfig(manifest);
 
     if (manifest.optimizations?.debug || manifest.runtime?.debug) this.debug = true;
+
+    // Set kernel hints from manifest (if present)
+    const kernelHints = manifest.optimizations?.kernelHints;
+    if (kernelHints) {
+      setKernelHints(kernelHints, 'manifest');
+      console.log('[Pipeline] Kernel hints loaded from manifest:', kernelHints);
+    } else {
+      // Clear any previous hints when loading a new model
+      clearKernelHints();
+    }
 
     const manifestKernel = manifest.optimizations?.attentionKernel || manifest.attentionKernel || manifest.runtime?.attentionKernel;
     this.manifestAttentionKernelDefault = normalizeAttentionKernel(manifestKernel);
@@ -339,6 +353,7 @@ export class InferencePipeline {
       useChatTemplate: options.useChatTemplate ?? false,
       debug: options.debug ?? this.debug,
       debugLayers: options.debugLayers,  // Selective layer debugging
+      profile: options.profile ?? false,  // GPU timestamp profiling
     };
 
     try {
@@ -652,7 +667,13 @@ export class InferencePipeline {
     // Create CommandRecorder for batched GPU operations
     const device = getDevice();
     // Disable CommandRecorder in debug mode to allow per-step debug readbacks.
-    const recorder = device && !opts.debug ? createCommandRecorder('decode') : undefined;
+    // Use profiling recorder when profiling is enabled.
+    let recorder: CommandRecorder | undefined;
+    if (device && !opts.debug) {
+      recorder = opts.profile
+        ? createProfilingRecorder('decode')
+        : createCommandRecorder('decode');
+    }
     const context = this._buildLayerContext(recorder);
 
     // Enable submit tracking for first decode step benchmarking
@@ -683,9 +704,81 @@ export class InferencePipeline {
       }
     }
 
-    // Submit batched commands (cleanup happens automatically in submit)
+    // FUSED DECODE PATH: Record layers + logits + argmax in single command buffer
+    // This reduces GPU syncs from 3+ per token to 1, enabling ~2x speedup
+    const useGPUSampling = this.useGPU && isGPUSamplingAvailable();
+    const useFusedDecode = recorder && useGPUSampling && hiddenStates instanceof GPUBuffer && opts.temperature < 0.01;
+
+    if (useFusedDecode) {
+      // Continue recording logits into same command buffer (no submit yet)
+      const { logitsBuffer, vocabSize } = await recordLogitsGPU(
+        recorder,
+        hiddenStates,
+        numTokens,
+        this._getLogitsWeights(),
+        this._getLogitsConfig(),
+      );
+
+      // Continue recording argmax into same command buffer (no submit yet)
+      const argmaxOutputBuffer = await recordArgmax(recorder, logitsBuffer, vocabSize);
+
+      // Track buffers for cleanup after submit
+      recorder.trackTemporaryBuffer(hiddenStates);
+      recorder.trackTemporaryBuffer(logitsBuffer);
+
+      // NOW submit everything at once (layers + logits + argmax)
+      recorder.submit();
+
+      // Single sync point: copy argmax result to staging buffer and read
+      const stagingBuffer = device.createBuffer({
+        label: 'argmax_staging',
+        size: 4,
+        usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST,
+      });
+
+      const copyEncoder = device.createCommandEncoder({ label: 'argmax_copy' });
+      copyEncoder.copyBufferToBuffer(argmaxOutputBuffer, 0, stagingBuffer, 0, 4);
+      device.queue.submit([copyEncoder.finish()]);
+
+      await stagingBuffer.mapAsync(GPUMapMode.READ);
+      const nextToken = new Uint32Array(stagingBuffer.getMappedRange())[0];
+      stagingBuffer.unmap();
+      stagingBuffer.destroy();
+
+      releaseBuffer(argmaxOutputBuffer);
+
+      // Log submit stats
+      if (benchmarkSubmits) {
+        logSubmitStats(`Decode step ${this._decodeStepCount} (${config.numLayers} layers, fused)`);
+        setTrackSubmits(false);
+      }
+
+      // Resolve and log profiling timings
+      if (opts.profile && recorder.isProfilingEnabled()) {
+        const timings = await recorder.resolveProfileTimings();
+        if (timings) {
+          console.log(`[Profile] Decode step ${this._decodeStepCount}:`);
+          console.log(CommandRecorder.formatProfileReport(timings));
+        }
+      }
+
+      this.currentSeqLen++;
+      return nextToken;
+    }
+
+    // FALLBACK PATH: Submit layers first, then do logits + sampling separately
+    // Used when: debug mode, temperature > 0, or no recorder
     if (recorder) {
       await recorder.submitAndWait();
+
+      // Resolve and log profiling timings for layers (logits not included in this path)
+      if (opts.profile && recorder.isProfilingEnabled()) {
+        const timings = await recorder.resolveProfileTimings();
+        if (timings) {
+          console.log(`[Profile] Decode step ${this._decodeStepCount} (layers only):`);
+          console.log(CommandRecorder.formatProfileReport(timings));
+        }
+      }
     }
 
     // Log submit stats after decode layer loop
@@ -694,8 +787,8 @@ export class InferencePipeline {
       setTrackSubmits(false);
     }
 
-    // Debug: check hidden states after layer processing (decode step 1)
-    if (this._decodeStepCount === 1 && hiddenStates instanceof GPUBuffer) {
+    // Debug: check hidden states after layer processing (decode step 1 only in debug mode)
+    if (opts.debug && this._decodeStepCount === 1 && hiddenStates instanceof GPUBuffer) {
       const debugDevice = getDevice();
       if (debugDevice) {
         const sampleSize = Math.min(512, hiddenStates.size);
@@ -716,13 +809,8 @@ export class InferencePipeline {
       }
     }
 
-    // Try GPU-side sampling for deferred readback (avoids ~1MB logits readback)
-    // NOTE: Always use GPU sampling when available for 2x speedup (from ~600ms to ~300ms per token)
-    // Debug info (logitsSanity) is only available in CPU fallback path
-    const useGPUSampling = this.useGPU && isGPUSamplingAvailable();
-
+    // GPU sampling path (non-fused, for temperature > 0 or fallback)
     if (useGPUSampling) {
-      // GPU path: compute logits on GPU, sample on GPU, read back only 4 bytes
       const logitsResult = await computeLogitsGPU(
         hiddenStates,
         numTokens,
@@ -736,8 +824,6 @@ export class InferencePipeline {
       if (logitsResult) {
         const { logitsBuffer, vocabSize } = logitsResult;
 
-        // GPU-side sampling (greedy for now, temperature sampling later)
-        // TODO: Add GPU-side repetition penalty and temperature sampling
         const nextToken = opts.temperature < 0.01
           ? await runArgmax(logitsBuffer, vocabSize)
           : await runGPUSample(logitsBuffer, vocabSize, {
@@ -749,7 +835,6 @@ export class InferencePipeline {
         this.currentSeqLen++;
         return nextToken;
       }
-      // Fall through to CPU path if GPU sampling failed
     }
 
     // CPU path: read back logits, sample on CPU

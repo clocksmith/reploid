@@ -117,6 +117,7 @@ function parseArgs(argv: string[]): CLIOptions {
     retries: 2,
     quiet: false,
     help: false,
+    gpuProfile: false,
   };
 
   const tokens = [...argv];
@@ -174,7 +175,7 @@ function parseArgs(argv: string[]): CLIOptions {
         break;
       case '--max-tokens':
       case '-t':
-        opts.maxTokens = parseInt(tokens.shift() || '8', 10);
+        opts.maxTokens = parseInt(tokens.shift() || '64', 10);
         break;
       case '--temperature':
         opts.temperature = parseFloat(tokens.shift() || '0.7');
@@ -219,6 +220,9 @@ function parseArgs(argv: string[]): CLIOptions {
       case '--quiet':
       case '-q':
         opts.quiet = true;
+        break;
+      case '--gpu-profile':
+        opts.gpuProfile = true;
         break;
       default:
         // Positional arguments: [command] [suite]
@@ -287,7 +291,7 @@ Common Options:
 Benchmark Options:
   --runs, -r <n>         Timed runs (default: 1)
   --warmup, -w <n>       Warmup runs (default: 0)
-  --max-tokens, -t <n>   Max tokens to generate (default: 8)
+  --max-tokens, -t <n>   Max tokens to generate (default: 64)
   --temperature <n>      Sampling temperature (default: 0.7)
   --prompt, -p <size>    Prompt preset: xs, short, medium, long (default: medium)
   --text <string>        Custom prompt text (overrides --prompt)

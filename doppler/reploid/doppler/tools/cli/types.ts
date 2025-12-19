@@ -57,6 +57,9 @@ export interface CLIOptions {
   retries: number;           // Number of retries on failure
   quiet: boolean;            // Suppress JSON output
   help: boolean;
+  /** Enable GPU timestamp profiling for per-kernel timing.
+   *  Requires 'timestamp-query' WebGPU feature. */
+  gpuProfile: boolean;
 }
 
 // Alias for backward compatibility
