@@ -13,7 +13,10 @@
 import { getDevice } from '../../gpu/device.js';
 import { acquireBuffer, releaseBuffer, readBuffer } from '../../gpu/buffer-pool.js';
 import { runMatmul, runRMSNorm } from '../../gpu/kernel-selector.js';
+import { recordMatmul } from '../../gpu/kernels/matmul.js';
+import { recordRMSNorm } from '../../gpu/kernels/rmsnorm.js';
 import { getBufferDtype } from '../../gpu/buffer-dtypes.js';
+import type { CommandRecorder } from '../../gpu/command-recorder.js';
 
 // ============================================================================
 // Types
@@ -471,6 +474,69 @@ export async function computeLogitsGPU(
   releaseBuffer(normedBuffer);
   if (!getNormWeightBuffer && !(finalNorm instanceof GPUBuffer)) releaseBuffer(normWeightBuffer);
   if (lmHeadBufferOwned) releaseBuffer(lmHeadBuffer);
+
+  return { logitsBuffer, vocabSize: matmulVocabSize };
+}
+
+/**
+ * Record logits computation (batched, no submit).
+ *
+ * This variant uses the CommandRecorder to batch logits computation with
+ * preceding layer operations, avoiding a GPU sync point.
+ *
+ * @param recorder - CommandRecorder for batched operations
+ * @param hiddenStates - Hidden states from transformer [numTokens, hiddenSize]
+ * @param numTokens - Number of tokens
+ * @param weights - Final norm and LM head weights
+ * @param config - Model configuration for logits
+ * @returns GPU buffer containing logits [numTokens, vocabSize] and vocab size
+ */
+export async function recordLogitsGPU(
+  recorder: CommandRecorder,
+  hiddenStates: GPUBuffer,
+  numTokens: number,
+  weights: LogitsWeights,
+  config: LogitsConfig,
+): Promise<{ logitsBuffer: GPUBuffer; vocabSize: number }> {
+  const { hiddenSize, vocabSize, rmsNormEps, useTiedEmbeddings, embeddingVocabSize } = config;
+  const { finalNorm, lmHead } = weights;
+  const matmulVocabSize = useTiedEmbeddings && embeddingVocabSize ? embeddingVocabSize : vocabSize;
+
+  if (!finalNorm || !lmHead) {
+    throw new Error('[recordLogitsGPU] Final norm or LM head not loaded');
+  }
+
+  // Get norm weight buffer
+  let normWeightBuffer: GPUBuffer;
+  if (finalNorm instanceof GPUBuffer) {
+    normWeightBuffer = finalNorm;
+  } else {
+    normWeightBuffer = acquireBuffer((finalNorm as Float32Array).byteLength, undefined, 'final_norm_w');
+    recorder.device.queue.writeBuffer(normWeightBuffer, 0, finalNorm as unknown as BufferSource);
+  }
+
+  // Record RMSNorm (no submit)
+  const normedBuffer = await recordRMSNorm(recorder, hiddenStates, normWeightBuffer, rmsNormEps, {
+    batchSize: numTokens,
+    hiddenSize,
+  });
+
+  // Get LM head buffer
+  let lmHeadBuffer: GPUBuffer;
+  if (lmHead instanceof GPUBuffer) {
+    lmHeadBuffer = lmHead;
+  } else {
+    lmHeadBuffer = acquireBuffer((lmHead as Float32Array).byteLength, undefined, 'lm_head_w');
+    recorder.device.queue.writeBuffer(lmHeadBuffer, 0, lmHead as unknown as BufferSource);
+  }
+
+  // Record matmul (no submit)
+  const logitsBuffer = await recordMatmul(recorder, normedBuffer, lmHeadBuffer, numTokens, matmulVocabSize, hiddenSize, {
+    transposeB: 'auto',
+  });
+
+  // Track intermediate buffer for cleanup after submit
+  recorder.trackTemporaryBuffer(normedBuffer);
 
   return { logitsBuffer, vocabSize: matmulVocabSize };
 }

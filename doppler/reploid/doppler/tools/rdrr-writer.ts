@@ -6,7 +6,13 @@
 import { writeFile, mkdir, rm } from 'fs/promises';
 import { join } from 'path';
 import { createHash } from 'crypto';
-import type { HashAlgorithm, MoEConfig, WeightLayout } from '../storage/rdrr-format.js';
+import type {
+  HashAlgorithm,
+  MoEConfig,
+  WeightLayout,
+  ConversionInfo,
+  RuntimeOptimizations,
+} from '../storage/rdrr-format.js';
 
 const DEFAULT_SHARD_SIZE = 64 * 1024 * 1024;
 const ALIGNMENT = 4096;
@@ -175,6 +181,8 @@ export class RDRRWriter {
     totalSize: 0,
     tensorCount: 0,
     defaultWeightLayout: undefined as WeightLayout | undefined,
+    conversion: undefined as ConversionInfo | undefined,
+    optimizations: undefined as RuntimeOptimizations | undefined,
   };
 
   constructor(outputDir: string, options: WriterOptions = {}) {
@@ -646,6 +654,22 @@ export class RDRRWriter {
     this.manifest.moeConfig = moeConfig;
   }
 
+  /**
+   * Set conversion metadata - how this model was generated.
+   * Enables reproducibility and debugging.
+   */
+  setConversion(conversion: ConversionInfo): void {
+    this.manifest.conversion = conversion;
+  }
+
+  /**
+   * Set runtime optimizations including kernel hints.
+   * These are embedded in the manifest as defaults; YAML profiles can override at runtime.
+   */
+  setOptimizations(optimizations: RuntimeOptimizations): void {
+    this.manifest.optimizations = optimizations;
+  }
+
   setMetadata(meta: Record<string, unknown>): void {
     Object.assign(this.manifest, meta);
   }
@@ -841,6 +865,10 @@ export class RDRRWriter {
 
 export interface WriteRDRROptions extends WriterOptions {
   onProgress?: (event: ProgressEvent) => void;
+  /** Conversion metadata - how the model was generated */
+  conversion?: ConversionInfo;
+  /** Runtime optimizations including kernel hints */
+  optimizations?: RuntimeOptimizations;
 }
 
 export async function writeRDRR(
@@ -885,6 +913,16 @@ export async function writeRDRR(
       ) as number;
       writer.setMoEConfig({ numExperts, numExpertsPerToken });
       console.log(`  MoE config: ${numExperts} experts, ${numExpertsPerToken} active per token`);
+    }
+
+    // Set conversion metadata if provided
+    if (options.conversion) {
+      writer.setConversion(options.conversion);
+    }
+
+    // Set runtime optimizations (including kernel hints) if provided
+    if (options.optimizations) {
+      writer.setOptimizations(options.optimizations);
     }
 
     const progressCallback = options.onProgress || (() => {});

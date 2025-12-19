@@ -125,6 +125,93 @@ fn main(
     }
 }
 
+// ============================================================================
+// Multi-column GEMV for large vocab (LM head)
+// ============================================================================
+// For very large N (vocab=262144), 4 cols/workgroup still means 65K workgroups.
+// This variant processes 32 columns per workgroup:
+// - 262144/32 = 8192 workgroups (8x fewer than base kernel)
+// - Each thread handles more K elements, better amortizing A loads
+//
+// Layout: 256 threads = 8 threads per column × 32 columns
+const MULTICOL_COLS_PER_WG: u32 = 32u;
+const MULTICOL_THREADS_PER_COL: u32 = 8u;  // 256 / 32 = 8
+const MULTICOL_MAX_SUBGROUPS: u32 = 8u;    // Support sg_size >= 1 (unlikely but safe)
+
+// Shared memory: 32 columns × 8 values = 256
+var<workgroup> multicol_wg_sums: array<f32, 256>;
+
+@compute @workgroup_size(256, 1, 1)
+fn main_multicol(
+    @builtin(local_invocation_id) lid: vec3<u32>,
+    @builtin(workgroup_id) wg_id: vec3<u32>,
+    @builtin(subgroup_invocation_id) sg_id: u32,
+    @builtin(subgroup_size) sg_size: u32
+) {
+    let local_id = lid.x;
+
+    // Which column within this workgroup (0..31)
+    let col_in_wg = local_id / MULTICOL_THREADS_PER_COL;
+    // Which thread within the column (0..7)
+    let thread_in_col = local_id % MULTICOL_THREADS_PER_COL;
+
+    // Global output column (supports 2D dispatch)
+    let wg_linear = wg_id.y * uniforms.workgroups_x + wg_id.x;
+    let base_col = wg_linear * MULTICOL_COLS_PER_WG;
+    let col = base_col + col_in_wg;
+
+    // Track validity
+    let is_valid = col < uniforms.N;
+
+    var partial_sum: f32 = 0.0;
+
+    if (is_valid) {
+        let b_row_offset = col * uniforms.K;
+
+        // Each of 8 threads splits K
+        let k_per_thread = (uniforms.K + MULTICOL_THREADS_PER_COL - 1u) / MULTICOL_THREADS_PER_COL;
+        let k_start = thread_in_col * k_per_thread;
+        let k_end = min(k_start + k_per_thread, uniforms.K);
+
+        // Unroll by 4 for ILP
+        var k = k_start;
+        let k_aligned_end = k_start + ((k_end - k_start) / 4u) * 4u;
+
+        for (; k < k_aligned_end; k = k + 4u) {
+            let a0 = A[k];
+            let a1 = A[k + 1u];
+            let a2 = A[k + 2u];
+            let a3 = A[k + 3u];
+
+            let b0 = f32(B[b_row_offset + k]);
+            let b1 = f32(B[b_row_offset + k + 1u]);
+            let b2 = f32(B[b_row_offset + k + 2u]);
+            let b3 = f32(B[b_row_offset + k + 3u]);
+
+            partial_sum = partial_sum + a0 * b0 + a1 * b1 + a2 * b2 + a3 * b3;
+        }
+
+        // Remaining elements
+        for (; k < k_end; k = k + 1u) {
+            partial_sum = partial_sum + A[k] * f32(B[b_row_offset + k]);
+        }
+    }
+
+    // Write partial sums to shared memory for reduction
+    multicol_wg_sums[local_id] = partial_sum;
+    workgroupBarrier();
+
+    // Thread 0 of each column reduces its 8 values
+    if (thread_in_col == 0u && is_valid) {
+        var final_sum: f32 = 0.0;
+        let base = col_in_wg * MULTICOL_THREADS_PER_COL;
+        for (var i: u32 = 0u; i < MULTICOL_THREADS_PER_COL; i = i + 1u) {
+            final_sum = final_sum + multicol_wg_sums[base + i];
+        }
+        C[col] = final_sum * uniforms.alpha;
+    }
+}
+
 // Alternative entry point with vec4 weight loads (requires K % 4 == 0)
 @compute @workgroup_size(256, 1, 1)
 fn main_vec4(

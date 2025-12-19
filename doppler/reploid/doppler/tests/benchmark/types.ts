@@ -266,6 +266,10 @@ export interface BenchmarkConfig {
 
   /** Apply model-specific chat template to prompt before tokenization/inference. */
   useChatTemplate?: boolean;
+
+  /** Enable GPU timestamp profiling for per-kernel timing analysis.
+   *  Requires 'timestamp-query' WebGPU feature. */
+  profile?: boolean;
 }
 
 // ============================================================================

@@ -9,6 +9,14 @@ export const MANIFEST_FILENAME = 'manifest.json';
 
 export type HashAlgorithm = 'sha256' | 'blake3';
 export type AttentionKernel = 'auto' | 'tiled_large' | 'tiled_small' | 'streaming';
+export type MatmulKernel = 'auto' | 'fused_q4k' | 'dequant_f16' | 'dequant_f32' | 'gemv_subgroup';
+export type Q4KLayout = 'flat' | 'row_wise' | 'column_wise';
+
+/**
+ * Compute precision for arithmetic operations.
+ * Follows WebLLM convention: f16 = fast (shader-f16), f32 = compatible, auto = runtime detect
+ */
+export type ComputePrecision = 'f16' | 'f32' | 'auto';
 
 export interface ShardInfo {
   index: number;
@@ -60,8 +68,72 @@ export interface TensorLocation {
   originalShape?: number[];
 }
 
+/**
+ * Kernel selection hints - recorded from benchmarks or auto-tuning.
+ * Pipeline uses these to override auto-detection when available.
+ *
+ * Naming follows WebLLM convention where applicable:
+ * - computePrecision: 'f16' | 'f32' | 'auto' (like q4f16 vs q4f32)
+ * - q4kMatmul: explicit dequant precision (dequant_f16, dequant_f32)
+ */
+export interface KernelHints {
+  /**
+   * Global compute precision preference.
+   * - 'f16': Use F16 arithmetic (fast, requires shader-f16)
+   * - 'f32': Use F32 arithmetic (compatible, slower)
+   * - 'auto': Detect GPU capabilities at runtime (default)
+   */
+  computePrecision?: ComputePrecision;
+  /**
+   * Matmul strategy for Q4K quantized weights.
+   * - 'fused_q4k': Fused dequant+matmul (fewer passes, but poor thread utilization)
+   * - 'dequant_f16': Separate dequant to F16, then F16 GEMV (2x faster on M3)
+   * - 'dequant_f32': Separate dequant to F32, then F32 matmul (most compatible)
+   * - 'auto': Select based on GPU capabilities
+   */
+  q4kMatmul?: MatmulKernel;
+  /** Matmul strategy for F16 weights (e.g., LM head with tied embeddings) */
+  f16Matmul?: MatmulKernel;
+  /** Attention kernel for prefill (long sequences) */
+  attentionPrefill?: AttentionKernel;
+  /** Attention kernel for decode (single token) */
+  attentionDecode?: AttentionKernel;
+  /** Device/GPU the hints were tuned for (e.g., "Apple M3 Pro") */
+  tunedDevice?: string;
+  /** Benchmark tok/s achieved with these hints */
+  benchmarkTokPerSec?: number;
+}
+
+/**
+ * Conversion metadata - how the model was generated.
+ * Enables reproducibility and debugging.
+ */
+export interface ConversionInfo {
+  /** Source model (HuggingFace ID or path) */
+  source: string;
+  /** ISO 8601 timestamp */
+  convertedAt: string;
+  /** DOPPLER converter version */
+  converterVersion: string;
+  /** CLI command used (for reproducibility) */
+  command?: string;
+  /** Quantization settings */
+  quantization: {
+    type: string;              // "Q4_K_M", "F16", etc.
+    layout?: Q4KLayout;        // Q4K block layout
+    fuseGateUp?: boolean;      // Fused gate+up projection
+    quantizeEmbeddings?: boolean;  // Also quantized embed_tokens and lm_head
+  };
+  /** Original model dtype before quantization */
+  originalDtype?: string;
+  /** Notes about the conversion */
+  notes?: string;
+}
+
 export interface RuntimeOptimizations {
   attentionKernel?: AttentionKernel;
+  /** Kernel selection hints from benchmarking/tuning */
+  kernelHints?: KernelHints;
 }
 
 export interface RDRRManifest {
@@ -84,6 +156,8 @@ export interface RDRRManifest {
   name?: string;
   /** Default weight storage layout for matmul weights */
   defaultWeightLayout?: WeightLayout;
+  /** Conversion metadata - how this model was generated */
+  conversion?: ConversionInfo;
 }
 
 export interface ValidationResult {

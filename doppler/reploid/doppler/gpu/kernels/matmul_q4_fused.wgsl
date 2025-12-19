@@ -204,6 +204,110 @@ fn main(
     }
 }
 
+// ============================================================================
+// Multi-column GEMV for large vocab (LM head)
+// ============================================================================
+// For large N (e.g., vocab=262144), single-column-per-workgroup is inefficient:
+// - 262K workgroups with only ~5 blocks per thread
+// - GPU launch overhead dominates
+//
+// This variant processes COLS_PER_WG columns per workgroup:
+// - 262144/32 = 8192 workgroups (32x fewer)
+// - Each thread processes multiple columns, amortizing A loads
+// - Much better GPU occupancy and throughput
+//
+// Workgroup layout: 256 threads = 8 threads per column × 32 columns
+const COLS_PER_WG: u32 = 32u;
+const THREADS_PER_COL_GEMV: u32 = 8u;  // 256 / 32 = 8
+
+// Shared memory for reduction: 32 columns × 8 max subgroups = 256
+var<workgroup> multicol_sums: array<f32, 256>;
+
+@compute @workgroup_size(256, 1, 1)
+fn main_multicol(
+    @builtin(local_invocation_id) lid: vec3<u32>,
+    @builtin(workgroup_id) wg_id: vec3<u32>,
+    @builtin(subgroup_invocation_id) sg_id: u32,
+    @builtin(subgroup_size) sg_size: u32
+) {
+    let local_id = lid.x;
+
+    // Which column within this workgroup (0..31)
+    let col_in_wg = local_id / THREADS_PER_COL_GEMV;
+    // Which thread within the column (0..7)
+    let tid_in_col = local_id % THREADS_PER_COL_GEMV;
+
+    // Global column index
+    let col = wg_id.x * COLS_PER_WG + col_in_wg;
+
+    // Track validity
+    let is_valid = col < uniforms.N;
+
+    var partial_sum: f32 = 0.0;
+
+    if (is_valid) {
+        let num_blocks = uniforms.num_blocks_per_row;
+        let row_block_offset = col * num_blocks;
+
+        // Each of the 8 threads processes every 8th block
+        for (var b: u32 = tid_in_col; b < num_blocks; b = b + THREADS_PER_COL_GEMV) {
+            let block = B_q4k[row_block_offset + b];
+            let d = unpack_f16_lo(block.d_dmin);
+            let dmin = unpack_f16_hi(block.d_dmin);
+            let k_base = b * QK_K;
+
+            // Process all 8 sub-blocks
+            for (var sb: u32 = 0u; sb < 8u; sb = sb + 1u) {
+                let sm = get_scale_min_k4(block.scales, sb);
+                let scale = d * f32(sm.x);
+                let min_val = dmin * f32(sm.y);
+                let sb_base = sb * SUBBLOCK_SIZE;
+
+                // Unroll by 4 for better ILP
+                for (var i: u32 = 0u; i < SUBBLOCK_SIZE; i = i + 4u) {
+                    let k0 = k_base + sb_base + i;
+                    let k1 = k0 + 1u;
+                    let k2 = k0 + 2u;
+                    let k3 = k0 + 3u;
+
+                    let a0 = A[k0];
+                    let a1 = A[k1];
+                    let a2 = A[k2];
+                    let a3 = A[k3];
+
+                    let q0 = get_q4(block.qs, sb_base + i);
+                    let q1 = get_q4(block.qs, sb_base + i + 1u);
+                    let q2 = get_q4(block.qs, sb_base + i + 2u);
+                    let q3 = get_q4(block.qs, sb_base + i + 3u);
+
+                    let w0 = scale * f32(q0) - min_val;
+                    let w1 = scale * f32(q1) - min_val;
+                    let w2 = scale * f32(q2) - min_val;
+                    let w3 = scale * f32(q3) - min_val;
+
+                    partial_sum = partial_sum + a0 * w0 + a1 * w1 + a2 * w2 + a3 * w3;
+                }
+            }
+        }
+    }
+
+    // Reduction within each column's 8 threads
+    // Use shared memory since threads for one column may span multiple subgroups
+    multicol_sums[local_id] = partial_sum;
+    workgroupBarrier();
+
+    // Thread 0 of each column reduces its 8 values
+    if (tid_in_col == 0u && is_valid) {
+        var final_sum: f32 = 0.0;
+        let base = col_in_wg * THREADS_PER_COL_GEMV;
+        for (var i: u32 = 0u; i < THREADS_PER_COL_GEMV; i = i + 1u) {
+            final_sum = final_sum + multicol_sums[base + i];
+        }
+        C[col] = final_sum * uniforms.alpha;
+    }
+}
+
+// ============================================================================
 // Batched version for prefill (M > 1)
 // Uses 2D dispatch: workgroup (x,y) computes output C[y*TILE_M : (y+1)*TILE_M, x]
 // Each workgroup computes TILE_M rows × 1 column

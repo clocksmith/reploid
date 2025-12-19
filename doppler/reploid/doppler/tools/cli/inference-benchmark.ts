@@ -24,6 +24,7 @@ function buildBenchmarkScript(opts: CLIOptions, modelPath: string, customPromptT
     },
     debug: false,  // Enables command buffer batching for 100x fewer GPU submits
     debugLayers: opts.debugLayers,
+    profile: opts.gpuProfile,  // GPU timestamp profiling for per-kernel timing
   };
 
   if (customPromptText) {

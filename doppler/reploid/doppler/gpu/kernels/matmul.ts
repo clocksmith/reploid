@@ -13,17 +13,25 @@ import { getBufferDtype, setBufferDtype, getBufferLayout, isColumnMajorBuffer, t
 import { acquireBuffer } from '../buffer-pool.js';
 import type { CommandRecorder } from '../command-recorder.js';
 import { getKernelConfig, createPipeline } from './utils.js';
+import { shouldUseFusedQ4K } from '../kernel-hints.js';
 
 /**
  * Debug flag to disable fused Q4K kernels.
  * When true, Q4K weights will be dequantized first, then use standard matmul.
- * Set via: window.DOPPLER_DISABLE_FUSED_Q4K = true
+ *
+ * Check order:
+ * 1. window.DOPPLER_DISABLE_FUSED_Q4K (debug override)
+ * 2. Kernel hints from manifest (optimizations.kernelHints.q4kMatmul)
+ * 3. Default: false (use dequant path - 2x faster based on benchmarks)
  */
 export function isFusedQ4KDisabled(): boolean {
-  if (typeof window !== 'undefined') {
-    return !!(window as any).DOPPLER_DISABLE_FUSED_Q4K;
+  // Check window override first (debug flag)
+  if (typeof window !== 'undefined' && (window as any).DOPPLER_DISABLE_FUSED_Q4K) {
+    return true;
   }
-  return false;
+
+  // Check kernel hints - shouldUseFusedQ4K returns false if hints say to use dequant
+  return !shouldUseFusedQ4K();
 }
 
 /** Matmul-supported buffer types (includes q4k for fused W4A16) */
@@ -233,7 +241,15 @@ export async function runMatmul(
     }
     // Fused Q4_K matmul: dequant + multiply in one pass (2-3x speedup)
     useQ4KFused = true;
-    variant = M === 1 ? 'q4_fused' : 'q4_fused_batched';
+    // Use multi-column kernel for all GEMV (32 cols/workgroup instead of 1)
+    // q4_fused has 2% thread utilization for small K (5/256 threads active for K=1152)
+    // q4_fused_multicol has 62% utilization (32 cols × 5 threads = 160 active)
+    const MULTICOL_THRESHOLD = 256;  // Use multicol for all practical N
+    if (M === 1) {
+      variant = N > MULTICOL_THRESHOLD ? 'q4_fused_multicol' : 'q4_fused';
+    } else {
+      variant = 'q4_fused_batched';
+    }
     console.log(`[Matmul] Q4K fused: M=${M}, N=${N}, K=${K}, variant=${variant}`);
   } else {
     // Select kernel for dequantized weights (bDtype is f16/f32 here, not q4k)
@@ -251,7 +267,14 @@ export async function runMatmul(
     if (useGemv) {
       // Prefer subgroup-optimized GEMV when available (1.5x faster)
       if (capabilities.hasSubgroups) {
-        variant = 'gemv_subgroup';
+        // For large vocab (LM head), use multi-column kernel: 32 cols/workgroup instead of 4
+        // This reduces workgroups from 65K to 8K for vocab=262144
+        const F16_MULTICOL_THRESHOLD = 256;
+        if (N > F16_MULTICOL_THRESHOLD) {
+          variant = 'gemv_subgroup_multicol';
+        } else {
+          variant = 'gemv_subgroup';
+        }
       } else {
         variant = 'gemv';
       }
@@ -298,7 +321,9 @@ export async function runMatmul(
   // Pre-calculate workgroups for GEMV variants to check for 2D dispatch need
   let gemvWorkgroupsX = 0;
   if (useGemv) {
-    if (variant === 'gemv_subgroup') {
+    if (variant === 'gemv_subgroup_multicol') {
+      gemvWorkgroupsX = Math.ceil(N / 32);  // 32 columns per workgroup (LM head)
+    } else if (variant === 'gemv_subgroup') {
       gemvWorkgroupsX = Math.ceil(N / 4);  // 4 columns per workgroup
     } else {
       gemvWorkgroupsX = N;  // 1 column per workgroup
@@ -309,7 +334,7 @@ export async function runMatmul(
   // Standard kernels: (M, N, K, alpha, transposeB) - 20 bytes
   // GEMV subgroup: (M, N, K, alpha, transposeB, workgroups_x) - 24 bytes
   // Q4_K fused: (M, N, K, alpha, num_blocks_per_row) - 20 bytes
-  const needsWorkgroupsX = variant === 'gemv_subgroup';
+  const needsWorkgroupsX = variant === 'gemv_subgroup' || variant === 'gemv_subgroup_multicol';
   const uniformSize = needsWorkgroupsX ? 24 : 20;
   const uniformData = new ArrayBuffer(uniformSize);
   const uniformView = new DataView(uniformData);
@@ -371,6 +396,12 @@ export async function runMatmul(
       // Q4_K fused GEMV: one workgroup per output column
       workgroupsX = N;
       workgroupsY = 1;
+    } else if (variant === 'q4_fused_multicol') {
+      // Q4_K fused multi-column GEMV: 32 columns per workgroup
+      // For vocab=262144: 8192 workgroups instead of 262144 (32x reduction)
+      const COLS_PER_WG = 32;
+      workgroupsX = Math.ceil(N / COLS_PER_WG);
+      workgroupsY = 1;
     } else {
       // Q4_K fused batched: 2D dispatch with TILE_M=4, 1 column per workgroup
       // NOTE: Kernel was fixed to use 64 threads per column (not 16) to prevent
@@ -380,8 +411,9 @@ export async function runMatmul(
       workgroupsY = Math.ceil(M / TILE_M);
     }
   } else if (useGemv) {
-    if (variant === 'gemv_subgroup') {
+    if (variant === 'gemv_subgroup' || variant === 'gemv_subgroup_multicol') {
       // workgroupsX/Y already computed above with 2D dispatch support
+      // gemv_subgroup: 4 cols/workgroup, gemv_subgroup_multicol: 32 cols/workgroup
     } else {
       // Original GEMV: one workgroup per output column
       workgroupsX = N;
@@ -501,7 +533,13 @@ export async function recordMatmul(
     }
     // Fused Q4_K matmul: dequant + multiply in one pass
     useQ4KFused = true;
-    variant = M === 1 ? 'q4_fused' : 'q4_fused_batched';
+    // Use multi-column kernel for all GEMV (better thread utilization)
+    const MULTICOL_THRESHOLD = 256;
+    if (M === 1) {
+      variant = N > MULTICOL_THRESHOLD ? 'q4_fused_multicol' : 'q4_fused';
+    } else {
+      variant = 'q4_fused_batched';
+    }
   } else {
     // Select kernel for dequantized weights
     const effectiveBDtype = bDtype as 'f16' | 'f32';
@@ -514,7 +552,19 @@ export async function recordMatmul(
     useGemv = M === 1 && effectiveBDtype === 'f16' && aDtype === 'f32' && transposeB;
     if (useGemv) {
       // Prefer subgroup-optimized GEMV when available (1.5x faster)
-      variant = capabilities.hasSubgroups ? 'gemv_subgroup' : 'gemv';
+      if (capabilities.hasSubgroups) {
+        // For large vocab (LM head), use multi-column kernel. The threshold is lowered
+        // to 256 based on the Kernel Utilization Audit to improve thread utilization
+        // for all practical layer matmuls.
+        const MULTICOL_THRESHOLD = 256;
+        if (N > MULTICOL_THRESHOLD) {
+          variant = 'gemv_subgroup_multicol';
+        } else {
+          variant = 'gemv_subgroup';
+        }
+      } else {
+        variant = 'gemv';
+      }
     } else if (M === 1 && bDtype === 'f16' && aDtype === 'f32') {
       variant = 'f16w_f32a_naive';
     }
@@ -540,7 +590,9 @@ export async function recordMatmul(
   // Pre-calculate workgroups for GEMV variants to check for 2D dispatch need
   let gemvWorkgroupsX = 0;
   if (useGemv) {
-    if (variant === 'gemv_subgroup') {
+    if (variant === 'gemv_subgroup_multicol') {
+      gemvWorkgroupsX = Math.ceil(N / 32);  // 32 columns per workgroup (LM head)
+    } else if (variant === 'gemv_subgroup') {
       gemvWorkgroupsX = Math.ceil(N / 4);  // 4 columns per workgroup
     } else {
       gemvWorkgroupsX = N;  // 1 column per workgroup
@@ -551,7 +603,7 @@ export async function recordMatmul(
   // Standard kernels: (M, N, K, alpha, transposeB) - 20 bytes
   // GEMV subgroup: (M, N, K, alpha, transposeB, workgroups_x) - 24 bytes
   // Q4_K fused: (M, N, K, alpha, num_blocks_per_row) - 20 bytes
-  const needsWorkgroupsX = variant === 'gemv_subgroup';
+  const needsWorkgroupsX = variant === 'gemv_subgroup' || variant === 'gemv_subgroup_multicol';
   const uniformSize = needsWorkgroupsX ? 24 : 20;
   const uniformData = new ArrayBuffer(uniformSize);
   const uniformView = new DataView(uniformData);
@@ -607,6 +659,11 @@ export async function recordMatmul(
       // Q4_K fused GEMV: one workgroup per output column
       workgroupsX = N;
       workgroupsY = 1;
+    } else if (variant === 'q4_fused_multicol') {
+      // Q4_K fused multi-column GEMV: 32 columns per workgroup
+      const COLS_PER_WG = 32;
+      workgroupsX = Math.ceil(N / COLS_PER_WG);
+      workgroupsY = 1;
     } else {
       // Q4_K fused batched: 2D dispatch with TILE_M=4, 1 column per workgroup
       // NOTE: Kernel was fixed to use 64 threads per column (not 16) to prevent
@@ -616,8 +673,9 @@ export async function recordMatmul(
       workgroupsY = Math.ceil(M / TILE_M);
     }
   } else if (useGemv) {
-    if (variant === 'gemv_subgroup') {
+    if (variant === 'gemv_subgroup' || variant === 'gemv_subgroup_multicol') {
       // workgroupsX/Y already computed above with 2D dispatch support
+      // gemv_subgroup: 4 cols/workgroup, gemv_subgroup_multicol: 32 cols/workgroup
     } else {
       // Original GEMV: one workgroup per output column
       workgroupsX = N;
