@@ -577,7 +577,7 @@ const LLMClient = {
 
       // Lazy load DOPPLER provider
       if (!_dopplerProvider) {
-        const { DopplerProvider } = await import('../doppler/dist/doppler-provider.js');
+        const { DopplerProvider } = await import('@clocksmith/doppler/provider');
         _dopplerProvider = DopplerProvider;
       }
 

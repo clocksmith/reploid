@@ -1,3 +1,80 @@
-# Test artifacts
-doppler/test-results/
+# Dependencies
+node_modules/
 
+# Build outputs
+dist/
+build/
+*.log
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Log files
+console.log
+doppler/reploid/server/logs/
+
+# Test coverage
+coverage/
+.nyc_output/
+html/
+
+# Playwright
+playwright-report/
+playwright/.cache/
+test-results/
+
+# Vitest
+.vitest/
+
+# Temporary files
+*.tmp
+.cache/
+
+# Firebase
+.firebase/
+firebase-debug.log
+
+# Backup files
+*.bak
+*.bak2
+*.bak3
+*_backup.json
+
+# Large data files
+vfs_backup.json
+
+# RDRR model files (large binary shards)
+*.gguf
+shard_*.bin
+
+# Project-specific runtime/cache
+.paws/
+
+# Benchmark browser cache
+.benchmark-cache/
+.test-cache/
+
+# Auto-saved benchmark results (local, machine-specific)
+doppler/reploid/tests/results/
+.reploidrc.json
+sessions/
+output/
+*.ndjson
+
+# Exported session runs (ignore most, keep showcase runs)
+doppler/reploid/runs/*.json
+!doppler/reploid/runs/reploid-gemini3-run.json
+!doppler/reploid/runs/showcase/

@@ -14,29 +14,9 @@
     "reploid-config": "./bin/reploid-config"
   },
   "scripts": {
-    "start": "tsx doppler/serve.ts",
-    "dev": "tsx doppler/serve.ts --open",
+    "start": "node server.js",
     "cli": "node bin/reploid-cli.js",
-    "build:genesis": "node scripts/build-genesis-manifest.js",
-    "doppler": "tsx doppler/tools/doppler-cli.ts",
-    "test": "tsx doppler/tools/doppler-cli.ts test quick",
-    "test:all": "tsx doppler/tools/doppler-cli.ts test all",
-    "test:correctness": "tsx doppler/tools/doppler-cli.ts test correctness",
-    "test:inference": "tsx doppler/tools/doppler-cli.ts test inference",
-    "test:demo": "tsx doppler/tools/doppler-cli.ts test demo",
-    "test:headed": "tsx doppler/tools/doppler-cli.ts test quick --headed",
-    "test:vitest": "NODE_OPTIONS='--max-old-space-size=4096' vitest run",
-    "test:vitest:watch": "NODE_OPTIONS='--max-old-space-size=4096' vitest",
-    "test:vitest:ui": "NODE_OPTIONS='--max-old-space-size=4096' vitest --ui",
-    "test:vitest:coverage": "NODE_OPTIONS='--max-old-space-size=4096' vitest run --coverage",
-    "typecheck": "tsc --project doppler/tsconfig.json",
-    "typecheck:watch": "tsc --project doppler/tsconfig.json --watch",
-    "build:doppler": "tsc --project doppler/tsconfig.build.json",
-    "build:benchmark": "esbuild doppler/tests/benchmark/index.ts --bundle --format=esm --outfile=doppler/dist/tests/benchmark/index.js --platform=browser",
-    "bench": "tsx doppler/tools/doppler-cli.ts bench",
-    "bench:kernels": "tsx doppler/tools/doppler-cli.ts bench kernels",
-    "bench:inference": "tsx doppler/tools/doppler-cli.ts bench inference",
-    "bench:xs": "tsx doppler/tools/doppler-cli.ts bench inference --prompt xs --headed"
+    "build:genesis": "node scripts/build-genesis-manifest.js"
   },
   "keywords": [
     "reploid",
@@ -49,6 +29,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
+    "@clocksmith/doppler": "file:../doppler",
     "dotenv": "^16.3.1",
     "express": "^4.18.2",
     "node-fetch": "^3.3.2",
@@ -60,18 +41,8 @@
     "openai": "^4.20.1"
   },
   "devDependencies": {
-    "@playwright/test": "^1.55.1",
-    "@types/node": "^22.0.0",
-    "@vitest/coverage-v8": "^3.2.4",
-    "@vitest/ui": "^3.2.4",
-    "@webgpu/types": "^0.1.68",
     "concurrently": "^8.0.0",
-    "happy-dom": "^20.0.8",
-    "nodemon": "^3.0.1",
-    "playwright": "^1.55.1",
-    "tsx": "^4.21.0",
-    "typescript": "^5.9.3",
-    "vitest": "^3.2.4"
+    "nodemon": "^3.0.1"
   },
   "engines": {
     "node": ">=16.0.0"
