@@ -80,7 +80,56 @@ Autonomous by default. HITL is opt-in for users who want approval gates.
 
 ---
 
-## Phase 4: External Validation
+## Phase 4: Hierarchical Memory Architecture (Current)
+
+Prerequisites for external validation. Implements production-ready infinite context.
+
+### 4.1 MemGPT-Style Memory Hierarchy
+
+- [ ] Implement MemoryManager module (`/core/memory-manager.js`)
+- [ ] Working Memory tier (context window - 8K tokens)
+- [ ] Episodic Memory tier (VFS `/memory/episodes/` - full messages + embeddings)
+- [ ] Semantic Memory tier (VFS `/memory/knowledge/` - facts, preferences, patterns)
+- [ ] Recursive summarization on eviction (temp=0 for consistency)
+- [ ] Wire into agent-loop for automatic context management
+
+### 4.2 RAPTOR-Style Knowledge Tree
+
+- [ ] Implement hierarchical clustering (UMAP + GMM or simple k-means)
+- [ ] Recursive summarization to build tree levels
+- [ ] Collapsed tree retrieval (search ALL levels)
+- [ ] Persist tree structure in VFS `/memory/knowledge/tree.json`
+- [ ] Incremental updates (add documents without full rebuild)
+
+### 4.3 Enhanced Retrieval
+
+- [ ] Upgrade EmbeddingStore with temporal indexing
+- [ ] Hybrid retrieval: summary + semantic search + temporal contiguity
+- [ ] Anticipatory retrieval (predict future needs based on task)
+- [ ] Adaptive forgetting curves (not just LRU)
+
+### 4.4 Integration & Testing
+
+- [ ] Update Context Manager to use MemoryManager
+- [ ] Benchmark: memory reuse rate (target >50%, vs 0% for RAG)
+- [ ] Benchmark: context reconstruction accuracy
+- [ ] Long-session tests (100+ turns without degradation)
+
+**Research References:**
+- [RAPTOR](https://arxiv.org/abs/2401.18059) - Tree-organized retrieval, 20% accuracy gain
+- [MemGPT](https://arxiv.org/abs/2310.08560) - OS-inspired memory hierarchy
+- [Cognitive Workspace](https://arxiv.org/abs/2508.13171) - 54-60% memory reuse
+- [EM-LLM](https://arxiv.org/abs/2407.09450) - Human episodic memory patterns
+
+**See Also:**
+- [MEMORY_ARCHITECTURE.md](./MEMORY_ARCHITECTURE.md) - Full implementation plan (this repo)
+- Doppler: `docs/plans/FUNCTIONGEMMA.md` - FunctionGemma integration for local summarization (sibling repo)
+
+---
+
+## Phase 5: External Validation (Deferred)
+
+Requires Phase 4 completion for credible demonstration.
 
 - [ ] Security audit of sandbox boundaries
 - [ ] Publish safety primitives as standalone library
@@ -138,6 +187,9 @@ These are explicitly out of scope:
 | HITL adoption (users who opt-in) | tracked | Implemented |
 | Audit log completeness | 100% | Implemented |
 | Arena pass rate (self-mod gating) | >90% | Implemented |
+| Memory reuse rate | >50% | Phase 4 |
+| Context reconstruction accuracy | >90% | Phase 4 |
+| Max session length without degradation | 100+ turns | Phase 4 |
 
 ---
 
@@ -148,6 +200,10 @@ No dates — these are sequenced priorities:
 1. **Phase 1** — stabilization ✓
 2. **Phase 2** — safety infrastructure ✓
 3. **Phase 3** — trust building ✓
-4. **Phase 4** — validation (current)
+4. **Phase 4** — hierarchical memory (current)
+5. **Phase 5** — external validation (deferred)
+
+Phase 4 is prerequisite for Phase 5. A credible safety demonstration requires
+production-ready memory architecture (GEPA: Gemma-Enhanced Pipeline Architecture).
 
 Fund with existing revenue. No external pressure on timelines.
