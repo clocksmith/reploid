@@ -9,3 +9,4 @@ export { default as KnowledgeGraph } from './symbolic/knowledge-graph.js';
 export { default as RuleEngine } from './symbolic/rule-engine.js';
 export { default as SymbolGrounder } from './symbolic/symbol-grounder.js';
 export { default as CognitionAPI } from './cognition-api.js';
+export { default as GEPAOptimizer } from './gepa-optimizer.js';

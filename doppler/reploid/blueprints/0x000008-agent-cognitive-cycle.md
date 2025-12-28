@@ -7,7 +7,7 @@
 
 **Prerequisites:** `0x000001`, `0x000005`, `0x000007`, `0x00000A`
 
-**Affected Artifacts:** `/modules/agent-cycle.js`
+**Affected Artifacts:** `/core/agent-cycle.js`
 
 ---
 
@@ -74,7 +74,7 @@ This provides real-time FSM state visualization, transition history, and current
 
 ### 3. The Implementation Pathway
 
-1.  **Create Module:** Implement the `CycleLogicModule` factory function in `/modules/agent-cycle.js`.
+1.  **Create Module:** Implement the `CycleLogicModule` factory function in `/core/agent-cycle.js`.
 2.  **Implement `executeCycle`:** Build out the core `executeCycle` function, ensuring it follows the logical steps outlined above. It must be an `async` function to handle `await`ing results from the `ApiClient` and `ToolRunner`.
 3.  **Implement Helper Functions:** Create private helper functions within the module to encapsulate specific logic, such as `_assembleCorePromptContext`, `_handleToolExecution`, and `_applyLLMChanges`.
 4.  **Error and Abort Handling:** Wrap the entire `executeCycle` logic in a `try...catch...finally` block. The `catch` block should handle any errors thrown by sub-modules (like `ApiError` or `ToolError`) and log them appropriately. The `finally` block must ensure the agent's state is always set back to "not running." The logic must also check an `_abortRequested` flag periodically to allow for clean user-initiated cancellation.

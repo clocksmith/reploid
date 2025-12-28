@@ -1,6 +1,6 @@
-# Doppler Setup (Browser WebGPU path)
+# DOPPLER Setup (Browser WebGPU path)
 
-Doppler is the local WebGPU inference engine for medium/large models. It uses the `.rpl` format (manifest + shard_*.bin) and supports three ways to load models.
+DOPPLER is the local WebGPU inference engine for medium/large models. It uses the `.rpl` format (manifest + shard_*.bin) and supports three ways to load models.
 
 For Ollama and other local server options, see [LOCAL_MODELS.md](./LOCAL_MODELS.md).
 
@@ -25,18 +25,18 @@ For Ollama and other local server options, see [LOCAL_MODELS.md](./LOCAL_MODELS.
 ## Setup Methods
 
 1) Serve CLI (all browsers)
-- `node doppler/reploid/doppler/tools/serve-cli.ts /path/to/model.gguf`
+- From the DOPPLER repo: `node tools/serve-cli.ts /path/to/model.gguf`
 - Converts GGUF → .rpl (temp dir) and serves with CORS (default http://localhost:8765).
-- In the boot UI, pick provider "Doppler" and paste the Model URL. Doppler downloads into OPFS and caches it.
+- In the boot UI, pick provider "DOPPLER" and paste the Model URL. DOPPLER downloads into OPFS and caches it.
 
 2) Import GGUF in-browser (Chrome/Edge)
-- In the model form, choose "Doppler" → click "Import GGUF from Disk".
+- In the model form, choose "DOPPLER" → click "Import GGUF from Disk".
 - Streams GGUF → .rpl directly into OPFS with progress UI. No CLI/server needed.
 
 3) Native Bridge (extension + host, with browse modal)
-- Load the Chrome extension from `doppler/reploid/doppler/bridge/extension/` (dev mode).
-- Run `doppler/reploid/doppler/bridge/native/install.sh <extension-id>` to install the native host.
-- In the model form, choose "Doppler"; a Local Path field and browse button appear. Browse to a local `.rpl` directory; shards stream from disk with hash verification.
+- Load the Chrome extension from `bridge/extension/` in the DOPPLER repo (dev mode).
+- Run `bridge/native/install.sh <extension-id>` from the DOPPLER repo to install the native host.
+- In the model form, choose "DOPPLER"; a Local Path field and browse button appear. Browse to a local `.rpl` directory; shards stream from disk with hash verification.
 
 Notes:
 - Manifests include tensor locations and shard hashes; `hashAlgorithm` may be `sha256` or `blake3`.
@@ -63,9 +63,9 @@ Notes:
 
 ### Extension/Bridge Issues
 
-1. **Extension install:** Load from `doppler/reploid/doppler/bridge/extension/` (dev mode)
-2. **Native host:** Run `doppler/reploid/doppler/bridge/native/install.sh <extension-id>`
-3. **Connectivity test:** Use `doppler/reploid/doppler/bridge/native/test-host.ts` (PING/READ/LIST)
+1. **Extension install:** Load from `bridge/extension/` in the DOPPLER repo (dev mode)
+2. **Native host:** Run `bridge/native/install.sh <extension-id>` in the DOPPLER repo
+3. **Connectivity test:** Use `bridge/native/test-host.ts` in the DOPPLER repo (PING/READ/LIST)
 4. **Check logs:** DevTools console for importer/bridge logs
 
 ### Storage Management

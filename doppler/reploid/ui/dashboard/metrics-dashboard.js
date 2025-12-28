@@ -12,19 +12,20 @@ const MetricsDashboard = {
   metadata: {
     id: 'MetricsDashboard',
     version: '1.0.0',
-    dependencies: ['Utils', 'PerformanceMonitor'],
+    dependencies: ['Utils', 'PerformanceMonitor', 'Observability?'],
     async: false,
     type: 'ui'
   },
 
   factory: (deps) => {
-    const { Utils, PerformanceMonitor } = deps;
+    const { Utils, PerformanceMonitor, Observability } = deps;
     const { logger } = Utils;
 
     // Chart instances
     let memoryChart = null;
     let toolsChart = null;
     let tokensChart = null;
+    let refreshIntervalId = null;
 
     /**
      * Initialize metrics dashboard with Chart.js
@@ -44,6 +45,43 @@ const MetricsDashboard = {
 
       logger.info('[MetricsDashboard] Initializing metrics dashboard');
 
+      const summaryHTML = Observability?.getDashboard ? `
+        <div class="observability-summary" id="observability-summary">
+          <div class="summary-grid">
+            <div class="summary-card">
+              <div class="summary-label">Tokens</div>
+              <div class="summary-value" id="obs-token-total">0</div>
+              <div class="summary-sub" id="obs-token-cost">$0.00</div>
+            </div>
+            <div class="summary-card">
+              <div class="summary-label">Mutations</div>
+              <div class="summary-value" id="obs-mutation-total">0</div>
+              <div class="summary-sub">Recent changes</div>
+            </div>
+            <div class="summary-card">
+              <div class="summary-label">Decisions</div>
+              <div class="summary-value" id="obs-decision-total">0</div>
+              <div class="summary-sub">Agent choices</div>
+            </div>
+            <div class="summary-card">
+              <div class="summary-label">Errors</div>
+              <div class="summary-value" id="obs-error-total">0</div>
+              <div class="summary-sub">Warnings and failures</div>
+            </div>
+          </div>
+          <div class="summary-lists">
+            <div class="summary-list">
+              <div class="summary-list-title">Recent Mutations</div>
+              <div id="obs-mutation-list" class="summary-list-body">No mutations yet</div>
+            </div>
+            <div class="summary-list">
+              <div class="summary-list-title">Recent Decisions</div>
+              <div id="obs-decision-list" class="summary-list-body">No decisions yet</div>
+            </div>
+          </div>
+        </div>
+      ` : '';
+
       // Create chart canvases
       const chartsHTML = `
         <div class="charts-grid">
@@ -62,7 +100,7 @@ const MetricsDashboard = {
         </div>
       `;
 
-      container.insertAdjacentHTML('beforeend', chartsHTML);
+      container.insertAdjacentHTML('beforeend', summaryHTML + chartsHTML);
 
       // Initialize charts
       initMemoryChart();
@@ -70,9 +108,10 @@ const MetricsDashboard = {
       initTokensChart();
 
       // Auto-refresh every 5 seconds
-      setInterval(() => {
+      refreshIntervalId = setInterval(() => {
         updateCharts();
       }, 5000);
+      updateObservabilitySummary();
     };
 
     const buildChart = (canvasId, configFactory) => {
@@ -242,7 +281,52 @@ const MetricsDashboard = {
         tokensChart.update('none');
       }
 
+      updateObservabilitySummary();
       logger.debug('[MetricsDashboard] Charts updated');
+    };
+
+    const updateObservabilitySummary = () => {
+      if (!Observability?.getDashboard) return;
+      const dashboard = Observability.getDashboard();
+      if (!dashboard) return;
+
+      const tokenTotal = dashboard.tokens?.session?.total || 0;
+      const tokenCost = dashboard.tokens?.session?.estimatedCost || 0;
+      const mutationTotal = dashboard.mutations?.total || 0;
+      const decisionTotal = dashboard.decisions?.total || 0;
+      const errorTotal = Array.isArray(dashboard.errors) ? dashboard.errors.length : 0;
+
+      const tokenEl = document.getElementById('obs-token-total');
+      const tokenCostEl = document.getElementById('obs-token-cost');
+      const mutationEl = document.getElementById('obs-mutation-total');
+      const decisionEl = document.getElementById('obs-decision-total');
+      const errorEl = document.getElementById('obs-error-total');
+      const mutationListEl = document.getElementById('obs-mutation-list');
+      const decisionListEl = document.getElementById('obs-decision-list');
+
+      if (tokenEl) tokenEl.textContent = tokenTotal.toLocaleString();
+      if (tokenCostEl) tokenCostEl.textContent = `$${tokenCost.toFixed(4)}`;
+      if (mutationEl) mutationEl.textContent = mutationTotal.toLocaleString();
+      if (decisionEl) decisionEl.textContent = decisionTotal.toLocaleString();
+      if (errorEl) errorEl.textContent = errorTotal.toLocaleString();
+
+      if (mutationListEl) {
+        const recentMutations = dashboard.mutations?.recent || [];
+        mutationListEl.innerHTML = recentMutations.length === 0
+          ? 'No mutations yet'
+          : recentMutations.map((m) => (
+            `<div class="summary-list-item">${m.op || 'change'} ${m.path || ''}</div>`
+          )).join('');
+      }
+
+      if (decisionListEl) {
+        const recentDecisions = dashboard.decisions?.recent || [];
+        decisionListEl.innerHTML = recentDecisions.length === 0
+          ? 'No decisions yet'
+          : recentDecisions.map((d) => (
+            `<div class="summary-list-item">${d.action?.toolCallCount || 0} tool calls</div>`
+          )).join('');
+      }
     };
 
     /**
@@ -261,6 +345,10 @@ const MetricsDashboard = {
         tokensChart.destroy();
         tokensChart = null;
       }
+      if (refreshIntervalId) {
+        clearInterval(refreshIntervalId);
+        refreshIntervalId = null;
+      }
       logger.info('[MetricsDashboard] Destroyed');
     };
 
@@ -277,6 +365,16 @@ const MetricsDashboard = {
       const uptimeMin = Math.floor(uptime / 60000);
       const uptimeSec = Math.floor((uptime % 60000) / 1000);
 
+      const currentMem = memStats.current
+        ? (memStats.current.usedJSHeapSize / 1024 / 1024).toFixed(2)
+        : '0.00';
+      const peakMem = memStats.max
+        ? (memStats.max / 1024 / 1024).toFixed(2)
+        : '0.00';
+      const limitMem = memStats.current
+        ? (memStats.current.jsHeapSizeLimit / 1024 / 1024).toFixed(0)
+        : '0';
+
       return `
 # Metrics Dashboard Summary
 
@@ -289,9 +387,9 @@ const MetricsDashboard = {
 - **Error Rate:** ${(llmStats.errorRate * 100).toFixed(1)}%
 
 ## Memory
-- **Current:** ${(memStats.current.usedJSHeapSize / 1024 / 1024).toFixed(2)} MB
-- **Peak:** ${(memStats.max / 1024 / 1024).toFixed(2)} MB
-- **Limit:** ${(memStats.current.jsHeapSizeLimit / 1024 / 1024).toFixed(0)} MB
+- **Current:** ${currentMem} MB
+- **Peak:** ${peakMem} MB
+- **Limit:** ${limitMem} MB
 
 ## Top Tools
 ${Object.entries(metrics.tools)

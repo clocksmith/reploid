@@ -3,19 +3,21 @@
  * Execution engine for built-in and dynamic tools.
  */
 
+import { loadVfsModule } from './vfs-module-loader.js';
+
 const ToolRunner = {
   metadata: {
     id: 'ToolRunner',
     version: '1.0.0',
     genesis: { introduced: 'tabula' },
-    dependencies: ['Utils', 'VFS', 'ToolWriter', 'SubstrateLoader?', 'EventBus', 'AuditLogger?', 'HITLController?', 'ArenaHarness?', 'VFSSandbox?', 'VerificationManager?', 'Shell?', 'gitTools?', 'WorkerManager?', 'EmbeddingStore?', 'SemanticMemory?', 'KnowledgeGraph?', 'SchemaRegistry'],
+    dependencies: ['Utils', 'VFS', 'ToolWriter', 'SubstrateLoader?', 'EventBus', 'AuditLogger?', 'HITLController?', 'ArenaHarness?', 'VFSSandbox?', 'VerificationManager?', 'Shell?', 'gitTools?', 'WorkerManager?', 'EmbeddingStore?', 'SemanticMemory?', 'KnowledgeGraph?', 'GEPAOptimizer?', 'SchemaRegistry', 'TraceStore?', 'PersonaManager?'],
     async: true,
     type: 'service'
   },
 
   factory: (deps) => {
-    const { Utils, VFS, ToolWriter, SubstrateLoader, EventBus, AuditLogger, HITLController, ArenaHarness, VFSSandbox, VerificationManager, Shell, gitTools, EmbeddingStore, SemanticMemory, KnowledgeGraph, SchemaRegistry } = deps;
-    const { logger, Errors } = Utils;
+    const { Utils, VFS, ToolWriter, SubstrateLoader, EventBus, AuditLogger, HITLController, ArenaHarness, VFSSandbox, VerificationManager, Shell, gitTools, EmbeddingStore, SemanticMemory, KnowledgeGraph, GEPAOptimizer, SchemaRegistry, TraceStore, PersonaManager } = deps;
+    const { logger, Errors, trunc } = Utils;
 
     // WorkerManager is mutable because of circular dependency:
     // ToolRunner -> WorkerManager? (optional) -> ToolRunner
@@ -89,41 +91,38 @@ const ToolRunner = {
 
     const loadToolModule = async (path, forcedName = null) => {
       try {
-        const code = await VFS.read(path);
-        const blob = new Blob([code], { type: 'text/javascript' });
-        const url = URL.createObjectURL(blob);
+        const mod = await loadVfsModule({
+          VFS,
+          logger,
+          VerificationManager,
+          path
+        });
+        const handler = typeof mod.default === 'function'
+          ? mod.default
+          : typeof mod.tool?.call === 'function'
+            ? mod.tool.call
+            : null;
 
-        try {
-          const mod = await import(url);
-          const handler = typeof mod.default === 'function'
-            ? mod.default
-            : typeof mod.tool?.call === 'function'
-              ? mod.tool.call
-              : null;
-
-          if (!handler) {
-            logger.warn(`[ToolRunner] ${path} missing default export`);
-            return false;
-          }
-
-          const name = forcedName || path.split('/').pop().replace('.js', '');
-          _tools.set(name, handler);
-          _dynamicTools.add(name);
-          invalidateSchemaCache(); // Invalidate cache when tools change
-
-          // Capture schema from dynamic tool if available
-          if (mod.tool?.inputSchema || mod.tool?.description) {
-            SchemaRegistry.registerToolSchema(name, {
-              description: mod.tool.description || `Dynamic tool: ${name}`,
-              parameters: mod.tool.inputSchema || { type: 'object', properties: {} }
-            });
-          }
-
-          logger.info(`[ToolRunner] Loaded dynamic tool: ${name}`);
-          return true;
-        } finally {
-          URL.revokeObjectURL(url);
+        if (!handler) {
+          logger.warn(`[ToolRunner] ${path} missing default export`);
+          return false;
         }
+
+        const name = forcedName || path.split('/').pop().replace('.js', '');
+        _tools.set(name, handler);
+        _dynamicTools.add(name);
+        invalidateSchemaCache(); // Invalidate cache when tools change
+
+        // Capture schema from dynamic tool if available
+        if (mod.tool?.inputSchema || mod.tool?.description) {
+          SchemaRegistry.registerToolSchema(name, {
+            description: mod.tool.description || `Dynamic tool: ${name}`,
+            parameters: mod.tool.inputSchema || { type: 'object', properties: {} }
+          });
+        }
+
+        logger.info(`[ToolRunner] Loaded dynamic tool: ${name}`);
+        return true;
       } catch (e) {
         logger.error(`[ToolRunner] Failed to load ${path}`, e);
         return false;
@@ -181,6 +180,9 @@ const ToolRunner = {
      */
     const execute = async (name, args = {}, options = {}) => {
       const { allowedTools, workerId } = options;
+      const trace = options.trace || null;
+      const traceSessionId = trace?.sessionId;
+      const skipTrace = trace?.skipRunner;
 
       // Permission check for worker execution
       if (allowedTools && allowedTools !== '*') {
@@ -248,9 +250,34 @@ const ToolRunner = {
           EmbeddingStore,
           SemanticMemory,
           KnowledgeGraph,
+          PersonaManager,
           ToolRunner: { list: () => Array.from(_tools.keys()), execute, has: (n) => _tools.has(n) }
         };
+        if (name === 'RunGEPA') {
+          toolDeps.GEPAOptimizer = GEPAOptimizer;
+        }
         const result = await toolFn(args, toolDeps);
+
+        if (TraceStore && traceSessionId && !skipTrace) {
+          let resultPreview = '';
+          if (typeof result === 'string') {
+            resultPreview = trunc(result, 2000);
+          } else {
+            try {
+              resultPreview = trunc(JSON.stringify(result), 2000);
+            } catch {
+              resultPreview = '[Unserializable result]';
+            }
+          }
+          await TraceStore.record(traceSessionId, 'tool:execute', {
+            tool: name,
+            args: _sanitizeArgs(args),
+            durationMs: Date.now() - startTime,
+            success: true,
+            workerId,
+            resultPreview
+          }, { tags: ['tool'] });
+        }
 
         // Audit log successful execution
         if (AuditLogger) {
@@ -277,6 +304,17 @@ const ToolRunner = {
             error: err.message,
             ...(workerId && { workerId })
           }, 'ERROR');
+        }
+
+        if (TraceStore && traceSessionId && !skipTrace) {
+          await TraceStore.record(traceSessionId, 'tool:execute', {
+            tool: name,
+            args: _sanitizeArgs(args),
+            durationMs: Date.now() - startTime,
+            success: false,
+            workerId,
+            error: err.message
+          }, { tags: ['tool', 'error'] });
         }
 
         const errorWithContext = new Errors.ToolError(err.message, { tool: name, args });
@@ -309,7 +347,7 @@ const ToolRunner = {
     const _requiresApproval = (toolName) => {
       if (!HITLController) return false;
       const state = HITLController.getState();
-      const mode = state?.approvalMode || 'autonomous';
+      const mode = state?.config?.approvalMode || 'autonomous';
       if (mode === 'autonomous') return false;
       return CRITICAL_TOOLS.includes(toolName);
     };

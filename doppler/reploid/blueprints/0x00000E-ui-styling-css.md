@@ -1,13 +1,13 @@
 # Blueprint 0x00000E: UI Styling (CSS)
 
-**Objective:** To cover the role of the `/modules/ui-style.css` artifact in defining the visual appearance of the agent's developer console interface.
+**Objective:** To cover the role of the `/ui/ui-style.css` artifact in defining the visual appearance of the agent's developer console interface.
 
 **Target Upgrade:** STYL (`ui-style.css`)
 
 
 **Prerequisites:** `0x00000D`
 
-**Affected Artifacts:** `/modules/ui-style.css`, `/modules/ui-manager.js`
+**Affected Artifacts:** `/ui/ui-style.css`, `/ui/ui-manager.js`
 
 ---
 
@@ -17,7 +17,7 @@ The agent's user interface, while minimal, must be functional and readable. Its 
 
 ### 2. The Architectural Solution
 
-A dedicated CSS artifact, `/modules/ui-style.css`, will contain all the styling rules for the developer console UI. The `UIManager` module will be responsible for loading this artifact and injecting it into the document's `<head>`.
+A dedicated CSS artifact, `/ui/ui-style.css`, will contain all the styling rules for the developer console UI. The `UIManager` module will be responsible for loading this artifact and injecting it into the document's `<head>`.
 
 This architecture provides several benefits:
 -   **Evolvability:** The agent can read, reason about, and rewrite its own CSS artifact just like any other file in its VFS. It can change colors, fonts, and layout to improve its usability.
@@ -26,9 +26,9 @@ This architecture provides several benefits:
 
 ### 3. The Implementation Pathway
 
-1.  **Create CSS Artifact:** Create the `/modules/ui-style.css` file. It should contain simple, functional CSS rules for all the elements defined in the `/modules/ui-body-template.html` artifact.
+1.  **Create CSS Artifact:** Create the `/ui/ui-style.css` file. It should contain simple, functional CSS rules for all the elements defined in the `/ui/ui-body-template.html` artifact.
 2.  **Modify `UIManager`:**
-    a.  In the `init()` method of `/modules/ui-manager.js`, add logic to fetch the content of the `/modules/ui-style.css` artifact from the VFS using `Storage.getArtifactContent()`.
+    a.  In the `init()` method of `/ui/ui-manager.js`, add logic to fetch the content of the `/ui/ui-style.css` artifact from the VFS using `Storage.getArtifactContent()`.
     b.  Dynamically create a `<style>` element.
     c.  Set the `textContent` of the new style element to the content of the CSS artifact.
     d.  Append the new style element to the `<head>` of the main document.

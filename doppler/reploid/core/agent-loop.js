@@ -6,12 +6,14 @@
 const AgentLoop = {
   metadata: {
     id: 'AgentLoop',
-    version: '1.1.0', // Parallel read-only tool execution
+    version: '1.2.0', // MemoryManager integration
     genesis: { introduced: 'tabula' },
     dependencies: [
       'Utils', 'EventBus', 'LLMClient', 'ToolRunner', 'ContextManager',
       'ResponseParser', 'StateManager', 'PersonaManager', 'CircuitBreaker', 'SchemaRegistry',
-      'ReflectionStore?', 'ReflectionAnalyzer?', 'CognitionAPI?', 'MultiModelCoordinator?'
+      'ToolExecutor',
+      'ReflectionStore?', 'ReflectionAnalyzer?', 'CognitionAPI?', 'MultiModelCoordinator?', 'TraceStore?',
+      'MemoryManager?'
     ],
     type: 'core'
   },
@@ -19,8 +21,9 @@ const AgentLoop = {
   factory: (deps) => {
     const {
       Utils, EventBus, LLMClient, ToolRunner, ContextManager,
-      ResponseParser, StateManager, PersonaManager, CircuitBreaker, SchemaRegistry,
-      ReflectionStore, ReflectionAnalyzer, CognitionAPI, MultiModelCoordinator
+      ResponseParser, StateManager, PersonaManager, CircuitBreaker, SchemaRegistry, ToolExecutor,
+      ReflectionStore, ReflectionAnalyzer, CognitionAPI, MultiModelCoordinator, TraceStore,
+      MemoryManager
     } = deps;
 
     const { logger, Errors } = Utils;
@@ -65,6 +68,7 @@ const AgentLoop = {
     // Debug visibility - track current context and system prompt
     let _currentContext = [];
     let _currentSystemPrompt = '';
+    let _traceSessionId = null;
 
     // Human-in-the-loop message queue
     let _humanMessageQueue = [];
@@ -149,61 +153,16 @@ const AgentLoop = {
       }
     };
 
-    /**
-     * Execute a tool with retry logic and timeout
-     * @param {Object} call - Tool call object { name, args }
-     * @param {number} iteration - Current iteration number
-     * @returns {Promise<{result: string, error: Error|null}>}
-     */
-    const _executeToolWithRetry = async (call, iteration) => {
-      const MAX_RETRIES = 2;
-      let result = null;
-      let lastError = null;
-
-      const executeWithTimeout = () => Promise.race([
-        ToolRunner.execute(call.name, call.args),
-        new Promise((_, reject) =>
-          setTimeout(() => reject(new Error(`Tool timeout after ${TOOL_EXECUTION_TIMEOUT_MS}ms`)), TOOL_EXECUTION_TIMEOUT_MS)
-        )
-      ]);
-
-      for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
-        try {
-          const toolStartTime = Date.now();
-          const rawResult = await executeWithTimeout();
-          const toolDuration = Date.now() - toolStartTime;
-
-          // Warn on slow tools
-          if (toolDuration > TOOL_EXECUTION_TIMEOUT_MS * 0.7) {
-            logger.warn(`[Agent] Slow tool: ${call.name} took ${toolDuration}ms`);
-            EventBus.emit('tool:slow', { tool: call.name, ms: toolDuration, cycle: iteration });
-          }
-
-          result = typeof rawResult === 'string' ? rawResult : JSON.stringify(rawResult, null, 2);
-          if (result === 'undefined' || result === undefined) {
-            result = '(Tool returned no output)';
-          }
-          lastError = null;
-          break;
-        } catch (err) {
-          lastError = err;
-          const isTimeout = err.message?.includes('timeout');
-
-          if (isTimeout) {
-            logger.error(`[Agent] Tool ${call.name} TIMEOUT - exceeded ${TOOL_EXECUTION_TIMEOUT_MS}ms`);
-            result = `Error: Tool execution timed out after ${TOOL_EXECUTION_TIMEOUT_MS / 1000}s. The operation may still be running.`;
-            EventBus.emit('tool:timeout', { tool: call.name, timeout: TOOL_EXECUTION_TIMEOUT_MS, cycle: iteration });
-            break;
-          }
-
-          if (attempt < MAX_RETRIES) {
-            logger.warn(`[Agent] Tool ${call.name} failed (attempt ${attempt + 1}/${MAX_RETRIES + 1}), retrying...`);
-            await new Promise(r => setTimeout(r, 100 * (attempt + 1)));
-          }
-        }
+    const _executeTool = async (call, iteration) => {
+      if (!ToolExecutor) {
+        throw new Errors.ConfigError('ToolExecutor not available');
       }
-
-      return { result, error: lastError };
+      const { result, error } = await ToolExecutor.executeWithRetry(call, {
+        timeoutMs: TOOL_EXECUTION_TIMEOUT_MS,
+        iteration,
+        trace: _traceSessionId ? { sessionId: _traceSessionId, source: 'agent' } : null
+      });
+      return { result, error };
     };
 
     /**
@@ -281,6 +240,27 @@ const AgentLoop = {
       EventBus.emit('agent:status', { state: 'STARTING', activity: 'Initializing...' });
 
       await StateManager.setGoal(goal);
+      if (TraceStore) {
+        _traceSessionId = await TraceStore.startSession({
+          source: 'agent',
+          goal,
+          modelId: _modelConfig?.id || null
+        });
+      }
+
+      // Initialize MemoryManager for this session
+      if (MemoryManager) {
+        try {
+          await MemoryManager.init();
+          await MemoryManager.newSession();
+          // Store the initial goal
+          await MemoryManager.add({ role: 'user', content: goal, metadata: { type: 'goal' } });
+          logger.debug('[Agent] MemoryManager initialized for session');
+        } catch (e) {
+          logger.warn('[Agent] MemoryManager initialization failed:', e.message);
+        }
+      }
+
       let context = await _buildInitialContext(goal);
       let iteration = 0;
 
@@ -361,6 +341,30 @@ const AgentLoop = {
             }
           }
 
+          // MemoryManager: Retrieve relevant episodic memories (if available)
+          if (MemoryManager && iteration > 1) {
+            try {
+              const lastUserMsg = context.filter(m => m.role === 'user').pop();
+              if (lastUserMsg?.content) {
+                const retrieved = await MemoryManager.retrieve(lastUserMsg.content, { topK: 3 });
+                const episodic = retrieved.filter(r => r.type === 'episodic' && r.score > 0.5);
+                if (episodic.length > 0) {
+                  const memoryContext = episodic
+                    .map(r => `[Past Context] ${r.content.slice(0, 300)}`)
+                    .join('\n');
+                  // Insert memory after system messages
+                  const insertIdx = context.findIndex(m => m.role !== 'system');
+                  const idx = insertIdx === -1 ? context.length : insertIdx;
+                  context.splice(idx, 0, { role: 'system', content: memoryContext });
+                  _syncContext(context);
+                  logger.debug(`[Agent] Enriched with ${episodic.length} episodic memories`);
+                }
+              }
+            } catch (e) {
+              logger.debug('[Agent] MemoryManager retrieval skipped:', e.message);
+            }
+          }
+
           let llmResponseText = '';
           const streamCallback = (text) => {
             EventBus.emit('agent:stream', text);
@@ -373,6 +377,17 @@ const AgentLoop = {
           // Multi-model execution if multiple models configured
           let response;
           let arenaResult = null;
+
+          const llmStart = Date.now();
+          if (TraceStore && _traceSessionId) {
+            await TraceStore.record(_traceSessionId, 'llm:request', {
+              source: 'agent',
+              iteration,
+              modelId: _modelConfig?.id || null,
+              messageCount: context.length,
+              messages: context.slice(-10)
+            }, { tags: ['llm'] });
+          }
 
           if (_modelConfigs.length >= 2 && MultiModelCoordinator) {
             logger.info(`[Agent] Multi-model mode: ${_modelConfigs.length} models, strategy: ${_consensusStrategy}`);
@@ -389,6 +404,17 @@ const AgentLoop = {
             try {
               arenaResult = await MultiModelCoordinator.execute(context, multiModelConfig, onUpdate);
               response = arenaResult.result;
+              if (TraceStore && _traceSessionId) {
+                await TraceStore.record(_traceSessionId, 'llm:response', {
+                  source: 'agent',
+                  iteration,
+                  mode: arenaResult.mode,
+                  winner: arenaResult.winner?.model || null,
+                  latencyMs: Date.now() - llmStart,
+                  contentPreview: response?.content || '',
+                  toolCallCount: response?.toolCalls?.length || 0
+                }, { tags: ['llm', 'arena'] });
+              }
 
               // Emit arena results for UI
               EventBus.emit('agent:arena-result', {
@@ -402,10 +428,32 @@ const AgentLoop = {
             } catch (error) {
               logger.error('[Agent] Multi-model execution failed, falling back to single model:', error);
               response = await LLMClient.chat(context, _modelConfig || _modelConfigs[0], streamCallback, { tools: toolSchemas });
+              if (TraceStore && _traceSessionId) {
+                await TraceStore.record(_traceSessionId, 'llm:response', {
+                  source: 'agent',
+                  iteration,
+                  modelId: (_modelConfig || _modelConfigs[0])?.id || null,
+                  latencyMs: Date.now() - llmStart,
+                  contentPreview: response?.content || '',
+                  toolCallCount: response?.toolCalls?.length || 0,
+                  usage: response?.usage || null
+                }, { tags: ['llm'] });
+              }
             }
           } else {
             // Single model execution (with native tools if supported)
             response = await LLMClient.chat(context, _modelConfig, streamCallback, { tools: toolSchemas });
+            if (TraceStore && _traceSessionId) {
+              await TraceStore.record(_traceSessionId, 'llm:response', {
+                source: 'agent',
+                iteration,
+                modelId: _modelConfig?.id || null,
+                latencyMs: Date.now() - llmStart,
+                contentPreview: response?.content || '',
+                toolCallCount: response?.toolCalls?.length || 0,
+                usage: response?.usage || null
+              }, { tags: ['llm'] });
+            }
           }
 
           const llmEvent = {
@@ -417,6 +465,27 @@ const AgentLoop = {
           _pushActivity({ kind: 'llm_response', cycle: iteration, content: response.content });
 
           const responseContent = response?.content || '';
+          const usage = response?.usage || {};
+          const lastUserMessage = [...context].reverse().find(m => m.role === 'user');
+          const responseModel = arenaResult?.winner?.model || _modelConfig?.id || null;
+          const responseProvider = arenaResult?.winner?.provider || _modelConfig?.provider || null;
+          const inputTokens = usage.prompt_tokens ?? usage.input_tokens ?? usage.inputTokens ?? null;
+          const outputTokens = usage.completion_tokens ?? usage.output_tokens ?? usage.outputTokens ?? usage.tokens ?? null;
+          const contextTokenEstimate = ContextManager.countTokens(context);
+          const effectiveInputTokens = inputTokens ?? contextTokenEstimate;
+          const effectiveOutputTokens = outputTokens ?? null;
+          const totalTokens = (Number.isFinite(effectiveInputTokens) ? effectiveInputTokens : 0)
+            + (Number.isFinite(effectiveOutputTokens) ? effectiveOutputTokens : 0);
+
+          EventBus.emit('llm:complete', {
+            model: responseModel,
+            provider: responseProvider,
+            latency: Date.now() - llmStart,
+            inputTokens: effectiveInputTokens,
+            outputTokens: effectiveOutputTokens,
+            tokens: totalTokens,
+            outputText: responseContent
+          });
 
           // Cognition: Validation and Learning (post-LLM)
           if (CognitionAPI) {
@@ -443,8 +512,32 @@ const AgentLoop = {
             logger.info(`[Agent] Using ${response.toolCalls.length} native tool call(s)`);
           }
 
+          EventBus.emit('agent:decision', {
+            cycle: iteration,
+            goal,
+            context: lastUserMessage?.content || null,
+            reasoning: responseContent,
+            action: {
+              toolCalls: toolCalls.map(call => ({
+                name: call.name || 'unknown',
+                args: call.args || {},
+                error: call.error || null
+              })),
+              toolCallCount: toolCalls.length
+            },
+            model: responseModel,
+            provider: responseProvider
+          });
+
           context.push({ role: 'assistant', content: responseContent });
           _syncContext(context);
+
+          // Store in MemoryManager for long-term recall
+          if (MemoryManager && responseContent.length > 50) {
+            MemoryManager.add({ role: 'assistant', content: responseContent }).catch(e => {
+              logger.debug('[Agent] MemoryManager add failed:', e.message);
+            });
+          }
 
           // Check for stuck loop
           const healthCheck = _checkLoopHealth(iteration, toolCalls.length, responseContent.length);
@@ -511,7 +604,7 @@ const AgentLoop = {
 
               const parallelResults = await Promise.all(readOnlyCalls.map(async (call) => {
                 if (_abortController.signal.aborted) return { call, finalResult: 'Aborted', aborted: true };
-                const { result, error } = await _executeToolWithRetry(call, iteration);
+                const { result, error } = await _executeTool(call, iteration);
                 let finalResult = result;
                 if (error && !result) {
                   logger.error(`[Agent] Tool Error: ${call.name}`, error);
@@ -532,7 +625,7 @@ const AgentLoop = {
               logger.info(`[Agent] Tool Call: ${call.name}`);
               EventBus.emit('agent:status', { state: 'ACTING', activity: `Executing: ${call.name}` });
 
-              const { result, error } = await _executeToolWithRetry(call, iteration);
+              const { result, error } = await _executeTool(call, iteration);
               let finalResult = result;
               if (error && !result) {
                 logger.error(`[Agent] Tool Error: ${call.name}`, error);
@@ -550,7 +643,7 @@ const AgentLoop = {
                 for (const step of result.nextSteps) {
                   if (step.tool && step.args) {
                     const chainedCall = { name: step.tool, args: step.args };
-                    const { result: chainedResult, error: chainedError } = await _executeToolWithRetry(chainedCall, iteration);
+                    const { result: chainedResult, error: chainedError } = await _executeTool(chainedCall, iteration);
                     let chainedFinal = chainedResult;
                     if (chainedError && !chainedResult) {
                       chainedFinal = `Error: ${chainedError.message}`;
@@ -608,6 +701,14 @@ const AgentLoop = {
       } finally {
         _isRunning = false;
         _abortController = null;
+        if (TraceStore && _traceSessionId) {
+          await TraceStore.endSession(_traceSessionId, {
+            goal,
+            status: 'completed',
+            iterations: iteration
+          });
+          _traceSessionId = null;
+        }
         EventBus.emit('agent:status', { state: 'IDLE', activity: 'Stopped' });
       }
     };

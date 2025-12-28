@@ -113,10 +113,7 @@
       "name": "Path to Full Substrate",
       "description": "Reflection → Full: +13 modules for cognition and infrastructure",
       "modules": {
-        "IndexedDBHelper": "blueprints/0x000011-advanced-storage-backend-indexeddb.md",
         "GenesisSnapshot": "blueprints/0x000043-genesis-snapshot-system.md",
-        "Observability": "blueprints/0x000026-performance-monitoring-stack.md",
-        "VFSHMR": "blueprints/0x000052-hot-module-reload.md",
         "AuditLogger": "blueprints/0x00002E-audit-logging-policy.md",
         "PerformanceMonitor": "blueprints/0x000026-performance-monitoring-stack.md",
         "TransformersClient": "blueprints/0x000068-transformers-client.md",
@@ -125,7 +122,8 @@
         "KnowledgeGraph": "blueprints/0x000071-knowledge-graph.md",
         "RuleEngine": "blueprints/0x000072-rule-engine.md",
         "SymbolGrounder": "blueprints/0x000073-symbol-grounder.md",
-        "CognitionAPI": "blueprints/0x000074-cognition-api.md"
+        "CognitionAPI": "blueprints/0x000074-cognition-api.md",
+        "GEPAOptimizer": "blueprints/0x000078-gepa-prompt-evolution.md"
       }
     },
     "beyond": {
@@ -134,7 +132,6 @@
       "modules": {
         "ToolWriter": "blueprints/0x000015-dynamic-tool-creation.md",
         "SubstrateLoader": "blueprints/0x00001F-universal-module-loader.md",
-        "SelfTester": "blueprints/0x00003C-self-testing-framework.md",
         "VFSSandbox": "blueprints/0x000047-verification-manager.md",
         "ArenaCompetitor": "blueprints/0x000075-arena-competitor.md",
         "ArenaMetrics": "blueprints/0x000076-arena-metrics.md",

@@ -6,6 +6,7 @@
 
 import Toast from '../toast.js';
 import InlineChat from '../components/inline-chat.js';
+import ArenaResults from '../components/arena-results.js';
 
 import { createTelemetryManager } from './telemetry.js';
 import { createSchemaManager } from './schemas.js';
@@ -16,7 +17,7 @@ import { renderProtoTemplate } from './template.js';
 
 const Proto = {
   factory: (deps) => {
-    const { Utils, EventBus, AgentLoop, StateManager, WorkerManager, ErrorStore, VFS } = deps;
+    const { Utils, EventBus, AgentLoop, StateManager, WorkerManager, ErrorStore, VFS, ArenaHarness } = deps;
     const { logger, escapeHtml } = Utils;
 
     // Initialize managers
@@ -25,6 +26,7 @@ const Proto = {
     const workerManager = createWorkerManager({ escapeHtml, WorkerManager });
     const vfsManager = createVFSManager({ escapeHtml, logger, Toast, EventBus });
     const replayManager = createReplayManager({ logger, escapeHtml, EventBus });
+    const arenaResults = ArenaResults.factory({ Utils, EventBus, ArenaHarness });
 
     // UI state
     let _root = null;
@@ -515,12 +517,12 @@ const Proto = {
       const exportState = async () => {
         console.log('[Proto] Export button clicked');
         try {
-          if (window.downloadREPLOID) {
-            console.log('[Proto] Using window.downloadREPLOID');
-            await window.downloadREPLOID(`reploid-export-${Date.now()}.json`);
+          if (window.downloadReploid) {
+            console.log('[Proto] Using window.downloadReploid');
+            await window.downloadReploid(`reploid-export-${Date.now()}.json`);
             Toast.success('Export Complete', 'State and VFS exported successfully');
           } else {
-            console.log('[Proto] Fallback: window.downloadREPLOID not available');
+            console.log('[Proto] Fallback: window.downloadReploid not available');
             // Try to resolve VFS from DI container if available
             let exportData = { state: StateManager.getState(), vfs: {} };
             try {
@@ -759,6 +761,10 @@ const Proto = {
       const chatContainer = document.getElementById('inline-chat-container');
       if (chatContainer && _inlineChat) {
         _inlineChat.init(chatContainer);
+      }
+
+      if (arenaResults?.init) {
+        arenaResults.init('arena-panel');
       }
 
       // Sticky scroll: track when user scrolls away/back to bottom
@@ -1080,6 +1086,10 @@ const Proto = {
       if (_inlineChat && _inlineChat.cleanup) {
         _inlineChat.cleanup();
         _inlineChat = null;
+      }
+
+      if (arenaResults?.cleanup) {
+        arenaResults.cleanup();
       }
 
       clearTimeout(_vfsSearchTimeout);

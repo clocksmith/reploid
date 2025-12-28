@@ -7,7 +7,7 @@
 
 **Prerequisites:** `0x000003`, `0x000004`, `0x000005`, `0x00000B`, `0x00000C`
 
-**Affected Artifacts:** `/modules/tool-runner.js`
+**Affected Artifacts:** `/tools/tool-runner.js`
 
 ---
 
@@ -17,16 +17,16 @@ An LLM's output is just text. To affect its environment, an agent needs a mechan
 
 ### 2. The Architectural Solution
 
-The `/modules/tool-runner.js` will export a primary `runTool` function. This function acts as a central dispatcher.
+The `/tools/tool-runner.js` will export a primary `runTool` function. This function acts as a central dispatcher.
 
-1.  **Tool Identification:** It first checks if the requested `toolName` corresponds to a "static" tool. Static tools are built-in, trusted functions whose definitions are loaded from the `/modules/data-tools-static.json` artifact.
+1.  **Tool Identification:** It first checks if the requested `toolName` corresponds to a "static" tool. Static tools are built-in, trusted functions whose definitions are loaded from the `/config/data-tools-static.json` artifact.
 2.  **Static Tool Execution:** If a static tool is found, a `switch` statement is used to execute the corresponding hardcoded logic. This logic often involves calls to core services like `Storage` or `StateManager` (e.g., the `read_artifact` tool calls `Storage.getArtifactContent`).
-3.  **Dynamic Tool Execution (Future):** The architecture will be designed to be extensible. It will include a path for handling "dynamic" tools, which are tools the agent creates for itself. This logic will involve using the Sandboxed Tool Worker (`/modules/tool-worker.js`) to execute untrusted, agent-generated code securely.
+3.  **Dynamic Tool Execution (Future):** The architecture will be designed to be extensible. It will include a path for handling "dynamic" tools, which are tools the agent creates for itself. This logic will involve using the Sandboxed Tool Worker (`/tools/tool-worker.js`) to execute untrusted, agent-generated code securely.
 4.  **Error Handling:** The `runTool` function must be robust. If a tool is not found, or if its execution fails, it must throw a specific `ToolError` with detailed context, which can be caught by the `agent-cycle`.
 
 ### 3. The Implementation Pathway
 
-1.  **Create Module:** Implement the `ToolRunnerModule` factory function in `/modules/tool-runner.js`.
+1.  **Create Module:** Implement the `ToolRunnerModule` factory function in `/tools/tool-runner.js`.
 2.  **Implement `runTool`:**
     a.  The function will accept `toolName` and `toolArgs` as arguments.
     b.  It will load the static tool definitions from the JSON manifest.

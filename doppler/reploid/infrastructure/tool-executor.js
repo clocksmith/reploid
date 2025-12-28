@@ -8,14 +8,14 @@ const ToolExecutor = {
     id: 'ToolExecutor',
     version: '1.0.0',
     genesis: { introduced: 'reflection' },
-    dependencies: ['Utils', 'ToolRunner', 'EventBus?'],
+    dependencies: ['Utils', 'ToolRunner', 'EventBus?', 'TraceStore?'],
     async: false,
     type: 'utility'
   },
 
   factory: (deps) => {
-    const { Utils, ToolRunner, EventBus } = deps;
-    const { logger } = Utils;
+    const { Utils, ToolRunner, EventBus, TraceStore } = deps;
+    const { logger, trunc } = Utils;
 
     // Default configuration
     const DEFAULT_TIMEOUT_MS = 30000;  // 30s per tool
@@ -68,12 +68,16 @@ const ToolExecutor = {
         retryDelayMs = DEFAULT_RETRY_DELAY_MS,
         iteration = 0,
         workerId = null,
-        allowedTools = '*'
+        allowedTools = '*',
+        trace = null
       } = options;
 
       let result = null;
       let lastError = null;
       const startTime = Date.now();
+      if (EventBus) {
+        EventBus.emit('agent:tool:start', { tool: call.name, cycle: iteration, workerId });
+      }
 
       for (let attempt = 0; attempt <= maxRetries; attempt++) {
         try {
@@ -81,7 +85,8 @@ const ToolExecutor = {
           const rawResult = await executeWithTimeout(call.name, call.args, {
             timeoutMs,
             workerId,
-            allowedTools
+            allowedTools,
+            trace: trace ? { ...trace, skipRunner: true } : { skipRunner: true }
           });
           const toolDuration = Date.now() - toolStartTime;
 
@@ -99,6 +104,27 @@ const ToolExecutor = {
             result = '(Tool returned no output)';
           }
           lastError = null;
+          if (TraceStore && trace?.sessionId) {
+            let resultPreview = '';
+            if (typeof rawResult === 'string') {
+              resultPreview = trunc(rawResult, 2000);
+            } else {
+              try {
+                resultPreview = trunc(JSON.stringify(rawResult), 2000);
+              } catch {
+                resultPreview = '[Unserializable result]';
+              }
+            }
+            await TraceStore.record(trace.sessionId, 'tool:execute', {
+              tool: call.name,
+              args: call.args,
+              iteration,
+              workerId,
+              durationMs: toolDuration,
+              success: true,
+              resultPreview
+            }, { tags: ['tool'] });
+          }
           break;
         } catch (err) {
           lastError = err;
@@ -110,6 +136,18 @@ const ToolExecutor = {
             if (EventBus) {
               EventBus.emit('tool:timeout', { tool: call.name, timeout: timeoutMs, cycle: iteration, workerId });
             }
+            if (TraceStore && trace?.sessionId) {
+              await TraceStore.record(trace.sessionId, 'tool:execute', {
+                tool: call.name,
+                args: call.args,
+                iteration,
+                workerId,
+                durationMs: Date.now() - startTime,
+                success: false,
+                error: err.message,
+                timeout: true
+              }, { tags: ['tool', 'error'] });
+            }
             break;
           }
 
@@ -118,6 +156,28 @@ const ToolExecutor = {
             await new Promise(r => setTimeout(r, retryDelayMs * (attempt + 1)));
           }
         }
+      }
+
+      if (TraceStore && trace?.sessionId && lastError) {
+        await TraceStore.record(trace.sessionId, 'tool:execute', {
+          tool: call.name,
+          args: call.args,
+          iteration,
+          workerId,
+          durationMs: Date.now() - startTime,
+          success: false,
+          error: lastError.message
+        }, { tags: ['tool', 'error'] });
+      }
+
+      if (EventBus) {
+        EventBus.emit('agent:tool:end', {
+          tool: call.name,
+          cycle: iteration,
+          workerId,
+          durationMs: Date.now() - startTime,
+          success: !lastError
+        });
       }
 
       return {

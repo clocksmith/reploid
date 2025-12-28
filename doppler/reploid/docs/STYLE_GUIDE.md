@@ -80,6 +80,10 @@ Use markdown checkboxes instead of emoji:
 3. **No emoji in blueprints** - Keep technical documents clean
 4. **Consistency** - Use the same symbol for the same concept throughout
 
+## VFS Module Constraints
+
+Modules loaded via VFS blob imports must be single-file or use absolute URLs. Relative imports are not resolved by the blob loader.
+
 ---
 
 ## Writing Style

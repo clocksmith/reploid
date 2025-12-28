@@ -7,17 +7,17 @@
 
 **Prerequisites:** `0x00000A`
 
-**Affected Artifacts:** `/modules/tool-runner-pure-helpers.js`, `/modules/tool-runner.js`
+**Affected Artifacts:** `/core/tool-runner-pure-helpers.js`, `/core/tool-runner.js`
 
 ---
 
 ### 1. The Strategic Imperative
 
-The agent defines its tools using its own internal format (as seen in `/modules/data-tools-static.json`). However, to use the function-calling capabilities of an external LLM like Google Gemini, these tools must be described to the API in a very specific, and potentially verbose, JSON schema. Hardcoding this conversion logic within the main `ToolRunner` or `ApiClient` would be messy and difficult to maintain. A pure helper module provides the ideal, testable location for this complex data transformation logic.
+The agent defines its tools using its own internal format (as seen in `/config/data-tools-static.json`). However, to use the function-calling capabilities of an external LLM like Google Gemini, these tools must be described to the API in a very specific, and potentially verbose, JSON schema. Hardcoding this conversion logic within the main `ToolRunner` or `ApiClient` would be messy and difficult to maintain. A pure helper module provides the ideal, testable location for this complex data transformation logic.
 
 ### 2. The Architectural Solution
 
-The `/modules/tool-runner-pure-helpers.js` module will provide a `convertToGeminiFunctionDeclarationPure` function. This function will take a single tool definition object (in the agent's internal format) and return a new object that perfectly matches the structure required by the Gemini API's `functionDeclarations` field.
+The `/core/tool-runner-pure-helpers.js` module will provide a `convertToGeminiFunctionDeclarationPure` function. This function will take a single tool definition object (in the agent's internal format) and return a new object that perfectly matches the structure required by the Gemini API's `functionDeclarations` field.
 
 This involves several layers of pure data mapping:
 -   Mapping the tool's `name` and `description`.
@@ -85,9 +85,9 @@ Since this is a pure module with no internal state, the widget serves as static 
 
 ### 3. The Implementation Pathway
 
-1.  **Create Pure Module:** Implement the `/modules/tool-runner-pure-helpers.js` file. It will have no dependencies.
+1.  **Create Pure Module:** Implement the `/core/tool-runner-pure-helpers.js` file. It will have no dependencies.
 2.  **Implement Conversion Functions:**
     a.  Create a small, internal helper function `mapMcpTypeToGeminiPure` to handle the type string conversion (e.g., "string" -> "STRING").
     b.  Create a recursive function `convertMcpPropertiesToGeminiPure` that iterates through the `properties` of an input schema and builds the corresponding Gemini properties object.
     c.  Create the main exported function `convertToGeminiFunctionDeclarationPure` which orchestrates the process, calling the helper functions to build the final, valid Gemini Function Declaration object.
-3.  **Refactor `ToolRunner`:** Modify `/modules/tool-runner.js` to use the new helper. It will inject `ToolRunnerPureHelpers` as a dependency and will have its own `convertToGeminiFunctionDeclaration` method that simply calls the pure version from the helper module. This keeps the `ToolRunner` focused on execution, not schema formatting.
+3.  **Refactor `ToolRunner`:** Modify `/core/tool-runner.js` to use the new helper. It will inject `ToolRunnerPureHelpers` as a dependency and will have its own `convertToGeminiFunctionDeclaration` method that simply calls the pure version from the helper module. This keeps the `ToolRunner` focused on execution, not schema formatting.

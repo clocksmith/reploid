@@ -16,6 +16,7 @@
         "StateHelpersPure",
         "StateManager",
         "TelemetryTimeline",
+        "ToolExecutor",
         "ToolRunner",
         "ToolWriter",
         "Utils",
@@ -32,33 +33,46 @@
         "ReflectionAnalyzer",
         "ReflectionStore",
         "StreamParser",
-        "ToolExecutor",
         "VerificationManager"
       ]
     },
     "full": {
       "name": "FULL SUBSTRATE",
-      "description": "Complete cognitive system - 17 additional modules",
+      "description": "Complete cognitive system - 28 additional modules",
       "extends": "reflection",
       "modules": [
         "AuditLogger",
+        "BrowserAPIs",
         "CognitionAPI",
         "EmbeddingStore",
+        "FunctionGemmaOrchestrator",
+        "GEPAOptimizer",
         "GenesisSnapshot",
-        "IndexedDBHelper",
         "KnowledgeGraph",
+        "KnowledgeTree",
+        "MemoryManager",
+        "MultiModelCoordinator",
+        "FederatedLearning",
+        "NeuralCompiler",
         "Observability",
         "PerformanceMonitor",
+        "ReplayEngine",
         "RuleEngine",
         "SemanticMemory",
         "SubstrateLoader",
         "SymbolGrounder",
         "TransformersClient",
-        "VFSHMR",
+        "TraceStore",
         "WorkerManager",
+        "VFSSandbox",
+        "ArenaCompetitor",
+        "ArenaMetrics",
+        "ArenaHarness",
         "SwarmTransport",
         "WebRTCSwarm",
-        "SwarmSync"
+        "SwarmSync",
+        "Consensus",
+        "PromptMemory"
       ]
     }
   },
@@ -68,6 +82,9 @@
     ],
     "AuditLogger": [
       "infrastructure/audit-logger.js"
+    ],
+    "BrowserAPIs": [
+      "infrastructure/browser-apis.js"
     ],
     "CircuitBreaker": [
       "infrastructure/circuit-breaker.js"
@@ -81,6 +98,12 @@
     "EmbeddingStore": [
       "capabilities/cognition/semantic/embedding-store.js"
     ],
+    "ErrorStore": [
+      "infrastructure/error-store.js"
+    ],
+    "GEPAOptimizer": [
+      "capabilities/cognition/gepa-optimizer.js"
+    ],
     "EventBus": [
       "infrastructure/event-bus.js"
     ],
@@ -90,20 +113,38 @@
     "HITLController": [
       "infrastructure/hitl-controller.js"
     ],
-    "IndexedDBHelper": [
-      "infrastructure/indexed-db-helper.js"
-    ],
     "KnowledgeGraph": [
       "capabilities/cognition/symbolic/knowledge-graph.js"
     ],
+    "KnowledgeTree": [
+      "capabilities/cognition/knowledge-tree.js"
+    ],
     "LLMClient": [
       "core/llm-client.js"
+    ],
+    "MemoryManager": [
+      "core/memory-manager.js"
+    ],
+    "MultiModelCoordinator": [
+      "capabilities/intelligence/multi-model-coordinator.js"
+    ],
+    "FunctionGemmaOrchestrator": [
+      "capabilities/intelligence/functiongemma-orchestrator.js"
+    ],
+    "FederatedLearning": [
+      "capabilities/intelligence/federated-learning.js"
+    ],
+    "NeuralCompiler": [
+      "capabilities/intelligence/neural-compiler.js"
     ],
     "Observability": [
       "infrastructure/observability.js"
     ],
     "PerformanceMonitor": [
       "capabilities/performance/performance-monitor.js"
+    ],
+    "PromptMemory": [
+      "capabilities/cognition/prompt-memory.js"
     ],
     "PersonaManager": [
       "core/persona-manager.js"
@@ -113,6 +154,9 @@
     ],
     "ReflectionAnalyzer": [
       "capabilities/reflection/reflection-analyzer.js"
+    ],
+    "ReplayEngine": [
+      "infrastructure/replay-engine.js"
     ],
     "ReflectionStore": [
       "capabilities/reflection/reflection-store.js"
@@ -142,7 +186,8 @@
       "infrastructure/tool-executor.js"
     ],
     "SubstrateLoader": [
-      "capabilities/system/substrate-loader.js"
+      "capabilities/system/substrate-loader.js",
+      "core/vfs-module-loader.js"
     ],
     "SymbolGrounder": [
       "capabilities/cognition/symbolic/symbol-grounder.js"
@@ -156,6 +201,9 @@
     "ToolWriter": [
       "core/tool-writer.js"
     ],
+    "TraceStore": [
+      "infrastructure/trace-store.js"
+    ],
     "TransformersClient": [
       "core/transformers-client.js"
     ],
@@ -165,15 +213,24 @@
     "VFS": [
       "core/vfs.js"
     ],
-    "VFSHMR": [
-      "infrastructure/vfs-hmr.js"
-    ],
     "VerificationManager": [
       "core/verification-manager.js"
     ],
     "WorkerManager": [
       "core/worker-manager.js",
       "core/worker-agent.js"
+    ],
+    "VFSSandbox": [
+      "testing/arena/vfs-sandbox.js"
+    ],
+    "ArenaCompetitor": [
+      "testing/arena/competitor.js"
+    ],
+    "ArenaMetrics": [
+      "testing/arena/arena-metrics.js"
+    ],
+    "ArenaHarness": [
+      "testing/arena/arena-harness.js"
     ],
     "SwarmTransport": [
       "capabilities/communication/swarm-transport.js"
@@ -183,6 +240,9 @@
     ],
     "SwarmSync": [
       "capabilities/communication/swarm-sync.js"
+    ],
+    "Consensus": [
+      "capabilities/communication/consensus.js"
     ]
   },
   "sharedFiles": {
@@ -194,64 +254,35 @@
       "tools/CreateTool.js",
       "tools/ListTools.js",
       "tools/FileOutline.js",
-      "tools/Cat.js",
       "tools/Head.js",
       "tools/Tail.js",
-      "tools/Touch.js",
       "tools/Grep.js",
       "tools/Find.js",
-      "tools/Sed.js",
-      "tools/Jq.js",
       "tools/Mkdir.js",
       "tools/Rm.js",
       "tools/Mv.js",
       "tools/Cp.js",
       "tools/Ls.js",
-      "tools/Pwd.js",
       "tools/Git.js",
       "tools/Edit.js"
     ],
     "ui": [
       "ui/proto.js",
-      "ui/proto/index.js",
-      "ui/proto/template.js",
-      "ui/proto/telemetry.js",
-      "ui/proto/schemas.js",
-      "ui/proto/workers.js",
-      "ui/proto/vfs.js",
-      "ui/proto/utils.js",
       "ui/toast.js",
-      "ui/panels/chat-panel.js",
-      "ui/panels/code-panel.js",
-      "ui/panels/llm-config-panel.js",
-      "ui/panels/metrics-panel.js",
-      "ui/panels/python-repl-panel.js",
-      "ui/panels/vfs-panel.js",
-      "ui/panels/cognition-panel.js",
-      "ui/components/confirmation-modal.js",
-      "ui/components/diff-viewer-ui.js",
-      "ui/components/toast-notifications.js",
-      "ui/components/hitl-widget.js",
-      "ui/components/inline-chat.js",
-      "ui/dashboard/metrics-dashboard.js",
-      "ui/dashboard/ui-manager.js",
-      "ui/dashboard/vfs-explorer.js"
+      "ui/goal-history.js",
+      "ui/components/arena-results.js"
     ],
     "styles": [
       "styles/theme.css",
-      "styles/vfs-explorer.css",
-      "styles/proto/index.css",
-      "styles/proto/layout.css",
-      "styles/proto/components.css",
-      "styles/proto/history.css",
-      "styles/proto/panels.css",
-      "styles/proto/vfs.css",
-      "styles/proto/inline-chat.css",
-      "styles/proto/hitl.css",
-      "styles/proto/responsive.css"
+      "styles/proto/index.css"
     ],
     "docs": []
   },
+  "preserveOnReset": {
+    "ui": ["proto.js", "toast.js", "goal-history.js"],
+    "styles": ["theme.css", "proto.css", "boot.css"]
+  },
+  "refreshOnBoot": [],
   "levelFiles": {
     "tabula": {
       "tools": []
@@ -270,6 +301,7 @@
         "tools/AwaitWorkers.js",
         "tools/ListMemories.js",
         "tools/ListKnowledge.js",
+        "tools/RunGEPA.js",
         "tools/LoadModule.js"
       ]
     }
@@ -284,31 +316,32 @@
       "name": "Path to Reflection",
       "description": "Tabula → Reflection: +6 modules for self-awareness and streaming",
       "modules": {
-        "RateLimiter": "blueprints/0x00002C-rate-limiting-strategies.md",
-        "StreamParser": "blueprints/0x00003F-streaming-response-handler.md",
-        "ReflectionStore": "blueprints/0x000035-reflection-store-architecture.md",
-        "ReflectionAnalyzer": "blueprints/0x000035-reflection-store-architecture.md",
-        "VerificationManager": "blueprints/0x000047-verification-manager.md",
-        "HITLController": "blueprints/0x000051-hitl-controller.md"
+        "RateLimiter": "blueprints/0x000029-rate-limiting-strategies.md",
+        "StreamParser": "blueprints/0x000039-streaming-response-handler.md",
+        "ReflectionStore": "blueprints/0x000032-reflection-store-architecture.md",
+        "ReflectionAnalyzer": "blueprints/0x000032-reflection-store-architecture.md",
+        "VerificationManager": "blueprints/0x000040-verification-manager.md",
+        "HITLController": "blueprints/0x000049-hitl-controller.md"
       }
     },
     "full": {
       "name": "Path to Full Substrate",
       "description": "Reflection → Full: +13 modules for cognition and infrastructure",
       "modules": {
-        "IndexedDBHelper": "blueprints/0x000011-advanced-storage-backend-indexeddb.md",
-        "GenesisSnapshot": "blueprints/0x000043-genesis-snapshot-system.md",
-        "Observability": "blueprints/0x000026-performance-monitoring-stack.md",
-        "VFSHMR": "blueprints/0x000052-hot-module-reload.md",
-        "AuditLogger": "blueprints/0x00002E-audit-logging-policy.md",
-        "PerformanceMonitor": "blueprints/0x000026-performance-monitoring-stack.md",
-        "TransformersClient": "blueprints/0x000068-transformers-client.md",
-        "EmbeddingStore": "blueprints/0x000069-embedding-store.md",
-        "SemanticMemory": "blueprints/0x000070-semantic-memory.md",
-        "KnowledgeGraph": "blueprints/0x000071-knowledge-graph.md",
-        "RuleEngine": "blueprints/0x000072-rule-engine.md",
-        "SymbolGrounder": "blueprints/0x000073-symbol-grounder.md",
-        "CognitionAPI": "blueprints/0x000074-cognition-api.md"
+        "GenesisSnapshot": "blueprints/0x00003C-genesis-snapshot-system.md",
+        "AuditLogger": "blueprints/0x00002B-audit-logging-policy.md",
+        "PerformanceMonitor": "blueprints/0x000023-performance-monitoring-stack.md",
+        "TransformersClient": "blueprints/0x00005D-transformers-client.md",
+        "EmbeddingStore": "blueprints/0x00005E-embedding-store.md",
+        "SemanticMemory": "blueprints/0x00005F-semantic-memory.md",
+        "KnowledgeGraph": "blueprints/0x000060-knowledge-graph.md",
+        "KnowledgeTree": "blueprints/0x000068-hierarchical-memory-architecture.md",
+        "MemoryManager": "blueprints/0x000068-hierarchical-memory-architecture.md",
+        "RuleEngine": "blueprints/0x000061-rule-engine.md",
+        "SymbolGrounder": "blueprints/0x000062-symbol-grounder.md",
+        "CognitionAPI": "blueprints/0x000063-cognition-api.md",
+        "GEPAOptimizer": "blueprints/0x000067-gepa-prompt-evolution.md",
+        "NeuralCompiler": "blueprints/0x00007E-hot-swappable-neural-compiler.md"
       }
     },
     "beyond": {
@@ -316,12 +349,11 @@
       "description": "Ideas for novel capabilities not in any genesis level",
       "modules": {
         "ToolWriter": "blueprints/0x000015-dynamic-tool-creation.md",
-        "SubstrateLoader": "blueprints/0x00001F-universal-module-loader.md",
-        "SelfTester": "blueprints/0x00003C-self-testing-framework.md",
-        "VFSSandbox": "blueprints/0x000047-verification-manager.md",
-        "ArenaCompetitor": "blueprints/0x000075-arena-competitor.md",
-        "ArenaMetrics": "blueprints/0x000076-arena-metrics.md",
-        "ArenaHarness": "blueprints/0x000077-arena-harness.md"
+        "SubstrateLoader": "blueprints/0x000071-substrate-loader.md",
+        "VFSSandbox": "blueprints/0x000040-verification-manager.md",
+        "ArenaCompetitor": "blueprints/0x000064-arena-competitor.md",
+        "ArenaMetrics": "blueprints/0x000065-arena-metrics.md",
+        "ArenaHarness": "blueprints/0x000066-arena-harness.md"
       }
     }
   },
@@ -337,11 +369,9 @@
         "FileOutline",
         "Grep",
         "Find",
-        "Cat",
         "Head",
         "Tail",
-        "Ls",
-        "Pwd"
+        "Ls"
       ],
       "canSpawnWorkers": false,
       "defaultModelRole": "fast"
@@ -355,12 +385,9 @@
         "FileOutline",
         "Grep",
         "Find",
-        "Cat",
         "Head",
         "Tail",
-        "Ls",
-        "Pwd",
-        "Jq"
+        "Ls"
       ],
       "canSpawnWorkers": false,
       "defaultModelRole": "fast"

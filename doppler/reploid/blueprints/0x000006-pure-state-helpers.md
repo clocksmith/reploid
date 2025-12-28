@@ -7,7 +7,7 @@
 
 **Prerequisites:** `0x000005`
 
-**Affected Artifacts:** `/modules/state-helpers-pure.js`, `/modules/state-manager.js`
+**Affected Artifacts:** `/core/state-helpers-pure.js`, `/core/state-manager.js`
 
 ---
 
@@ -17,7 +17,7 @@ The `StateManager` module has complex responsibilities, including I/O and managi
 
 ### 2. The Architectural Solution
 
-A new `/modules/state-helpers-pure.js` artifact will be created. This module will be "pure" in the sense that it has zero dependencies on other agent modules and its functions' outputs depend solely on their inputs. It will export a collection of functions designed to operate on state-related data structures.
+A new `/core/state-helpers-pure.js` artifact will be created. This module will be "pure" in the sense that it has zero dependencies on other agent modules and its functions' outputs depend solely on their inputs. It will export a collection of functions designed to operate on state-related data structures.
 
 **Example Functions:**
 -   `validateStateStructurePure(stateObj, ...)`: Takes a state object and returns `null` if valid or an error string if not.
@@ -96,9 +96,9 @@ const widget = {
 
 ### 3. The Implementation Pathway
 
-1.  **Create Pure Module:** Implement the `/modules/state-helpers-pure.js` file, ensuring it has no `import` or `require` statements for other agent modules.
+1.  **Create Pure Module:** Implement the `/core/state-helpers-pure.js` file, ensuring it has no `import` or `require` statements for other agent modules.
 2.  **Define Helper Functions:** Create the necessary pure functions for validation, statistics, and merging, as described above. These functions will be thoroughly testable in isolation.
 3.  **Refactor `StateManager`:**
-    a.  Modify `/modules/state-manager.js` to receive `StateHelpersPure` as an injected dependency.
+    a.  Modify `/core/state-manager.js` to receive `StateHelpersPure` as an injected dependency.
     b.  In the `init()` method, call `StateHelpersPure.validateStateStructurePure()` and `StateHelpersPure.mergeWithDefaultsPure()` to handle the loading of persisted state robustly.
     c.  In the `updateAndSaveState()` method, after a state update, call `StateHelpersPure.calculateDerivedStatsPure()` to re-calculate and attach statistics to the state object before it is saved.

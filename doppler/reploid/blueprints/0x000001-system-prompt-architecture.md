@@ -7,7 +7,7 @@
 
 **Prerequisites:** None
 
-**Affected Artifacts:** `/modules/prompt-system.md`, `/modules/agent-cycle.js`, `/modules/agent-logic-pure.js`
+**Affected Artifacts:** `/core/prompt-system.md`, `/core/agent-cycle.js`, `/core/agent-logic-pure.js`
 
 ---
 
@@ -17,7 +17,7 @@ An agent's core prompt is its constitution. A static, hardcoded prompt is inflex
 
 ### 2. The Architectural Solution
 
-The solution is to treat the system prompt as a template artifact (`/modules/prompt-system.md`) containing clearly defined placeholders. A dedicated pure helper module (`agent-logic-pure.js`) will be responsible for assembling the final prompt string. This separates the prompt's structure (the template) from the logic required to populate it (the pure helper).
+The solution is to treat the system prompt as a template artifact (`/core/prompt-system.md`) containing clearly defined placeholders. A dedicated pure helper module (`agent-logic-pure.js`) will be responsible for assembling the final prompt string. This separates the prompt's structure (the template) from the logic required to populate it (the pure helper).
 
 **Example Placeholder in `prompt-system.md`:**
 
@@ -34,9 +34,9 @@ The `agent-logic-pure.js` module will contain a function like `assembleCorePromp
 
 ### 3. The Implementation Pathway
 
-1.  **Create Template:** Design the `/modules/prompt-system.md` artifact with logical sections and placeholders for all dynamic data (e.g., `[[CYCLE_COUNT]]`, `[[CUMULATIVE_GOAL]]`, `[[ARTIFACT_LIST]]`).
-2.  **Implement Pure Assembler:** In `/modules/agent-logic-pure.js`, create the `assembleCorePromptPure` function. This function will accept the template content and the current state object as arguments and perform a series of `.replace()` operations to inject the data into the placeholders.
-3.  **Integrate into Cycle:** Modify `/modules/agent-cycle.js`. In the `executeCycle` function, before calling the API, it must:
+1.  **Create Template:** Design the `/core/prompt-system.md` artifact with logical sections and placeholders for all dynamic data (e.g., `[[CYCLE_COUNT]]`, `[[CUMULATIVE_GOAL]]`, `[[ARTIFACT_LIST]]`).
+2.  **Implement Pure Assembler:** In `/core/agent-logic-pure.js`, create the `assembleCorePromptPure` function. This function will accept the template content and the current state object as arguments and perform a series of `.replace()` operations to inject the data into the placeholders.
+3.  **Integrate into Cycle:** Modify `/core/agent-cycle.js`. In the `executeCycle` function, before calling the API, it must:
     a.  Fetch the system prompt template from the VFS using `Storage.getArtifactContent()`.
     b.  Gather all necessary data from the `StateManager`.
     c.  Call the `assembleCorePromptPure` helper function to create the final prompt.

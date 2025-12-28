@@ -81,8 +81,10 @@ const VFS = {
       const cleanPath = normalize(path);
 
       // Check if file exists to determine operation type
-      const fileExists = await exists(cleanPath);
+      const previous = await stat(cleanPath);
+      const fileExists = !!previous;
       const operation = fileExists ? 'update' : 'write';
+      const beforeSize = previous?.size || 0;
 
       return new Promise((resolve, reject) => {
         const tx = db.transaction([STORE_FILES], 'readwrite');
@@ -101,6 +103,8 @@ const VFS = {
               path: cleanPath,
               operation,
               size: content.length,
+              beforeSize,
+              afterSize: content.length,
               timestamp: Date.now()
             });
           }
@@ -126,6 +130,8 @@ const VFS = {
     const remove = async (path) => {
       await openDB();
       const cleanPath = normalize(path);
+      const previous = await stat(cleanPath);
+      const beforeSize = previous?.size || 0;
       return new Promise((resolve, reject) => {
         const tx = db.transaction([STORE_FILES], 'readwrite');
         const req = tx.objectStore(STORE_FILES).delete(cleanPath);
@@ -137,6 +143,8 @@ const VFS = {
             EventBus.emit('vfs:file_changed', {
               path: cleanPath,
               operation: 'delete',
+              beforeSize,
+              afterSize: 0,
               timestamp: Date.now()
             });
           }

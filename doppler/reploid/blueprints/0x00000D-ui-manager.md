@@ -7,7 +7,7 @@
 
 **Prerequisites:** `0x00000E`, `0x00000F`, `0x000048` (Module Widget Protocol)
 
-**Affected Artifacts:** `/modules/ui-manager.js`
+**Affected Artifacts:** `/ui/ui-manager.js`
 
 ---
 
@@ -17,7 +17,7 @@ The agent needs an interface to communicate with its human operator. A dedicated
 
 ### 2. The Architectural Solution
 
-The `/upgrades/ui-manager.js` is a comprehensive UI orchestration module that manages the agent's browser-based developer console. It coordinates multiple visualization panels, handles WebSocket-based progress streaming, and provides a real-time activity monitoring widget.
+The `/ui/ui-manager.js` is a comprehensive UI orchestration module that manages the agent's browser-based developer console. It coordinates multiple visualization panels, handles WebSocket-based progress streaming, and provides a real-time activity monitoring widget.
 
 #### Module Structure
 
@@ -30,7 +30,7 @@ const UI = {
     dependencies: [
       'config', 'Utils', 'StateManager', 'DiffGenerator', 'EventBus',
       'VFSExplorer', 'PerformanceMonitor', 'MetricsProto', 'Introspector',
-      'ReflectionStore', 'SelfTester', 'BrowserAPIs', 'AgentVisualizer',
+      'ReflectionStore', 'BrowserAPIs', 'AgentVisualizer',
       'ASTVisualizer', 'ModuleGraphVisualizer', 'ToastNotifications',
       'TutorialSystem', 'PyodideRuntime', 'LocalLLM'
     ],
@@ -242,8 +242,8 @@ The `init()` function performs the following:
 ```javascript
 const init = async (bootConfig = {}) => {
   // 1. Fetch UI template and styles from VFS
-  const templateHtml = await vfs.read('/upgrades/ui-body-template.html');
-  const templateCss = await vfs.read('/upgrades/ui-style.css');
+  const templateHtml = await vfs.read('/ui/ui-body-template.html');
+  const templateCss = await vfs.read('/ui/ui-style.css');
 
   // 2. Inject into DOM
   const styleEl = document.createElement('style');
@@ -526,7 +526,7 @@ Phase 9 integrates all 6 modular panels (ProgressTracker, LogPanel, StatusBar, T
 
 #### 1. Dependency Updates (v5.0.0)
 
-**File:** `upgrades/ui-manager.js:6-10`
+**File:** `ui/ui-manager.js:6-10`
 
 Added 6 optional modular panel dependencies:
 
@@ -550,7 +550,7 @@ const {
 
 #### 2. Feature Flag Helper
 
-**File:** `upgrades/ui-manager.js:330-338`
+**File:** `ui/ui-manager.js:330-338`
 
 ```javascript
 const isModularPanelEnabled = (panelName) => {
@@ -567,7 +567,7 @@ Checks `window.reploidConfig.featureFlags.useModularPanels[panelName]` for each 
 
 #### 3. Modular Panel Initialization
 
-**File:** `upgrades/ui-manager.js:340-391`
+**File:** `ui/ui-manager.js:340-391`
 
 ```javascript
 const initializeModularPanels = () => {
@@ -609,7 +609,7 @@ Called from `init()` after `ToastNotifications.init()`.
 
 Added guards to prevent duplicate UI updates when modular panels are enabled:
 
-**ProgressTracker Guard** (`upgrades/ui-manager.js:2197-2198`):
+**ProgressTracker Guard** (`ui/ui-manager.js:2197-2198`):
 ```javascript
 const updateProgressTracker = (currentState) => {
   if (isModularPanelEnabled('ProgressTracker')) return;
@@ -617,7 +617,7 @@ const updateProgressTracker = (currentState) => {
 };
 ```
 
-**LogPanel Guard** (`upgrades/ui-manager.js:2399-2400`):
+**LogPanel Guard** (`ui/ui-manager.js:2399-2400`):
 ```javascript
 const logToAdvanced = (data, type = 'info') => {
   if (isModularPanelEnabled('LogPanel')) return;
@@ -625,7 +625,7 @@ const logToAdvanced = (data, type = 'info') => {
 };
 ```
 
-**StatusBar Guard** (`upgrades/ui-manager.js:2143-2144`):
+**StatusBar Guard** (`ui/ui-manager.js:2143-2144`):
 ```javascript
 const updateStatusBar = (state, detail, progress) => {
   if (isModularPanelEnabled('StatusBar')) return;
@@ -633,7 +633,7 @@ const updateStatusBar = (state, detail, progress) => {
 };
 ```
 
-**ThoughtPanel Guards** (`upgrades/ui-manager.js:2357-2358`, `2370-2371`):
+**ThoughtPanel Guards** (`ui/ui-manager.js:2357-2358`, `2370-2371`):
 ```javascript
 const streamThought = (textChunk) => {
   if (isModularPanelEnabled('ThoughtPanel')) return;
@@ -646,7 +646,7 @@ const clearThoughts = () => {
 };
 ```
 
-**GoalPanel Guard** (`upgrades/ui-manager.js:2323-2324`):
+**GoalPanel Guard** (`ui/ui-manager.js:2323-2324`):
 ```javascript
 const updateGoal = (text) => {
   if (isModularPanelEnabled('GoalPanel')) return;
@@ -654,7 +654,7 @@ const updateGoal = (text) => {
 };
 ```
 
-**SentinelPanel Guard** (`upgrades/ui-manager.js:2230-2235`):
+**SentinelPanel Guard** (`ui/ui-manager.js:2230-2235`):
 ```javascript
 const handleStateChange = async ({ newState, context }) => {
   if (isModularPanelEnabled('SentinelPanel')) {
@@ -720,7 +720,7 @@ window.reploidConfig = {
 
 ### Bug Fixes During Integration
 
-1. **GoalPanel history tracking** (`upgrades/goal-panel.js:133`):
+1. **GoalPanel history tracking** (`ui/panels/goal-panel.js:133`):
    - Added `addToHistory(text)` call in `setGoal()` method
    - Fixed 8 failing history tests
 

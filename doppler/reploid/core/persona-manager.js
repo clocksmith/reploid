@@ -8,13 +8,13 @@ const PersonaManager = {
     id: 'PersonaManager',
     version: '1.0.0',
     genesis: { introduced: 'tabula' },
-    dependencies: ['Utils'],
+    dependencies: ['Utils', 'VFS', 'EventBus?'],
     async: true,
     type: 'core'
   },
 
   factory: (deps) => {
-    const { Utils } = deps;
+    const { Utils, VFS, EventBus } = deps;
     const { logger } = Utils;
 
     // Core RSI instructions - always included
@@ -34,6 +34,8 @@ All tools live in /tools/. Tools receive a \`deps\` object: { VFS, EventBus, Too
 - Tool names MUST use CamelCase (e.g., ReadFile, InspectCore)`;
 
     let _config = null;
+    let _overrides = null;
+    const OVERRIDES_PATH = '/.memory/persona-overrides.json';
 
     const loadConfig = async () => {
       if (_config) return _config;
@@ -48,6 +50,54 @@ All tools live in /tools/. Tools receive a \`deps\` object: { VFS, EventBus, Too
       return _config;
     };
 
+    const loadOverrides = async () => {
+      if (_overrides) return _overrides;
+      _overrides = { personas: {}, updatedAt: Date.now() };
+      if (!VFS) return _overrides;
+      try {
+        if (await VFS.exists(OVERRIDES_PATH)) {
+          const content = await VFS.read(OVERRIDES_PATH);
+          const parsed = JSON.parse(content);
+          _overrides = {
+            personas: parsed?.personas || {},
+            updatedAt: parsed?.updatedAt || Date.now()
+          };
+        }
+      } catch (err) {
+        logger.warn('[PersonaManager] Failed to load overrides', err.message);
+      }
+      return _overrides;
+    };
+
+    const saveOverrides = async () => {
+      if (!VFS || !_overrides) return false;
+      _overrides.updatedAt = Date.now();
+      await VFS.write(OVERRIDES_PATH, JSON.stringify(_overrides, null, 2));
+      if (EventBus) {
+        EventBus.emit('persona:overrides_updated', { updatedAt: _overrides.updatedAt });
+      }
+      return true;
+    };
+
+    const getActivePersonaId = (config) => {
+      return localStorage.getItem('REPLOID_PERSONA_ID')
+        || config.defaultPersona
+        || 'default';
+    };
+
+    const buildSystemPrompt = (personaDef, override = {}) => {
+      if (!personaDef) return CORE_INSTRUCTIONS;
+      const description = override.description || personaDef.description;
+      const instructions = override.instructions || personaDef.instructions || 'Focus on continuous improvement.';
+      return `${CORE_INSTRUCTIONS}
+
+## PERSONA: ${personaDef.name}
+${description}
+
+## BEHAVIORAL FOCUS
+${instructions}`;
+    };
+
     const getSystemPrompt = async () => {
       try {
         const config = await loadConfig();
@@ -56,25 +106,19 @@ All tools live in /tools/. Tools receive a \`deps\` object: { VFS, EventBus, Too
         }
 
         // Get selection from localStorage, fallback to config default
-        const selectedId = localStorage.getItem('REPLOID_PERSONA_ID')
-          || config.defaultPersona
-          || 'default';
+        const selectedId = getActivePersonaId(config);
 
         const personaDef = config.personas.find(p => p.id === selectedId);
         if (!personaDef) {
           return CORE_INSTRUCTIONS;
         }
 
+        const overrides = await loadOverrides();
+        const personaOverride = overrides?.personas?.[selectedId] || {};
+
         logger.info(`[PersonaManager] Active Persona: ${personaDef.name}`);
 
-        // Combine core instructions with persona-specific guidance
-        return `${CORE_INSTRUCTIONS}
-
-## PERSONA: ${personaDef.name}
-${personaDef.description}
-
-## BEHAVIORAL FOCUS
-${personaDef.instructions || "Focus on continuous improvement."}`;
+        return buildSystemPrompt(personaDef, personaOverride);
 
       } catch (err) {
         logger.error('[PersonaManager] Failed to load persona', err);
@@ -87,7 +131,56 @@ ${personaDef.instructions || "Focus on continuous improvement."}`;
       return config?.personas || [];
     };
 
-    return { getSystemPrompt, getPersonas };
+    const getActivePersona = async () => {
+      const config = await loadConfig();
+      const personaId = getActivePersonaId(config || {});
+      const personaDef = config?.personas?.find(p => p.id === personaId) || null;
+      const overrides = await loadOverrides();
+      const personaOverride = overrides?.personas?.[personaId] || {};
+      if (!personaDef) return null;
+      return {
+        ...personaDef,
+        description: personaOverride.description || personaDef.description,
+        instructions: personaOverride.instructions || personaDef.instructions
+      };
+    };
+
+    const getPromptSlots = async (personaId = null) => {
+      const config = await loadConfig();
+      const resolvedId = personaId || getActivePersonaId(config || {});
+      const personaDef = config?.personas?.find(p => p.id === resolvedId) || null;
+      const overrides = await loadOverrides();
+      const personaOverride = overrides?.personas?.[resolvedId] || {};
+      return {
+        coreInstructions: CORE_INSTRUCTIONS,
+        personaId: resolvedId,
+        personaName: personaDef?.name || null,
+        description: personaOverride.description || personaDef?.description || '',
+        instructions: personaOverride.instructions || personaDef?.instructions || ''
+      };
+    };
+
+    const applySlotMutation = async ({ personaId, slot, content, mode = 'replace' }) => {
+      if (!personaId || !slot) {
+        throw new Error('personaId and slot required');
+      }
+      if (!['description', 'instructions'].includes(slot)) {
+        throw new Error(`Unsupported slot: ${slot}`);
+      }
+      const overrides = await loadOverrides();
+      const current = overrides.personas[personaId]?.[slot] || '';
+      let next = content;
+      if (mode === 'append') next = `${current}\n${content}`.trim();
+      if (mode === 'prepend') next = `${content}\n${current}`.trim();
+      overrides.personas[personaId] = {
+        ...overrides.personas[personaId],
+        [slot]: next
+      };
+      await saveOverrides();
+      return { personaId, slot, content: next };
+    };
+
+    return { getSystemPrompt, getPersonas, getActivePersona, getPromptSlots, applySlotMutation, buildSystemPrompt };
   }
 };
 

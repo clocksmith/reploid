@@ -7,7 +7,7 @@
 
 **Prerequisites:** None
 
-**Affected Artifacts:** `/modules/utils.js`
+**Affected Artifacts:** `/core/utils.js`
 
 ---
 
@@ -17,7 +17,7 @@ A robust software system avoids code duplication and provides clear, specific er
 
 ### 2. The Architectural Solution
 
-The `/upgrades/utils.js` module is structured as a standardized REPLOID module with three main components:
+The `/core/utils.js` module is structured as a standardized REPLOID module with three main components:
 
 1.  **Helper Functions:** A collection of simple, pure functions for common tasks (e.g., `trunc`, `escapeHtml`, `kabobToCamel`, `sanitizeLlmJsonRespPure`).
 2.  **`Errors` Object:** A container for custom error classes that inherit from the base `Error` object. This allows the system to `throw new Errors.ApiError(...)` or `throw new Errors.ToolError(...)`, enabling specific `catch` blocks and more intelligent failure response logic throughout the application.
@@ -136,7 +136,7 @@ export default Utils;
 
 ### 3. The Implementation Pathway
 
-1.  **Define Error Taxonomy:** Create a hierarchy of custom error classes within `/upgrades/utils.js`, starting with a base `ApplicationError` and extending it for specific domains like `ApiError`, `ToolError`, `StateError`, and `ArtifactError`.
+1.  **Define Error Taxonomy:** Create a hierarchy of custom error classes within `/core/utils.js`, starting with a base `ApplicationError` and extending it for specific domains like `ApiError`, `ToolError`, `StateError`, and `ArtifactError`.
 2.  **Implement Helper Functions:** Add common, pure helper functions to the module (trunc, escapeHtml, kabobToCamel, sanitizeLlmJsonRespPure, etc.).
 3.  **Implement Logger with Statistics:** Include a `logger` object with methods (debug, info, warn, error) that track call counts in `_loggerStats`.
 4.  **Track Error Creation:** Maintain `_errorStats` and `_recentErrors` to track error instantiation for widget display.

@@ -30,12 +30,25 @@ const VerificationManager = {
       return snapshot;
     };
 
+    const normalizeChanges = (changes) => {
+      if (Array.isArray(changes)) return changes;
+      if (changes && typeof changes === 'object') {
+        return Object.entries(changes).map(([path, content]) => ({
+          operation: content === null ? 'DELETE' : 'WRITE',
+          file_path: path,
+          new_content: content
+        }));
+      }
+      return [];
+    };
+
     const verifyProposal = async (changes) => {
       logger.info('[Verifier] Snapshotting...');
       const snapshot = await createSnapshot();
 
       // Overlay changes
-      for (const c of changes) {
+      const normalized = normalizeChanges(changes);
+      for (const c of normalized) {
         if (c.operation === 'DELETE') delete snapshot[c.file_path];
         else snapshot[c.file_path] = c.new_content;
       }

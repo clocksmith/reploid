@@ -32,11 +32,16 @@ const CognitionAPI = {
     } = deps;
     const { logger, generateId } = Utils;
 
+    // Load boot config from localStorage if available
+    const bootConfig = typeof window !== 'undefined' && window.getCognitionConfig
+      ? window.getCognitionConfig()
+      : {};
+
     // State
     let _isInitialized = false;
     let _config = {
-      semantic: { enabled: true },
-      symbolic: { enabled: true },
+      semantic: { enabled: bootConfig.semantic ?? true },
+      symbolic: { enabled: bootConfig.symbolic ?? true },
       learning: { enabled: true, autoLearn: true, minConfidence: 0.8 }
     };
 

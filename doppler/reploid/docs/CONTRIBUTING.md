@@ -33,14 +33,11 @@ Guidelines for contributing code, documentation, and blueprints.
 ### Running Locally
 
 ```bash
-# Static server (landing + /r Reploid + /d Doppler)
+# Static server (landing + /r Reploid)
 npm run serve              # http://localhost:8080
 
 # Full dev server with API proxies
 npm run dev                # http://localhost:8000
-
-# Doppler-only mode (WebGPU inference)
-npm run doppler            # http://localhost:8080 (opens browser)
 
 # Run tests
 npm test                    # Quick kernel validation

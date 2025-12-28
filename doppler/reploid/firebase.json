@@ -25,28 +25,11 @@
       "**/*.sh",
       "**/*.ts",
       "**/tsconfig*.json",
-      "doppler/tools/**",
-      "doppler/models/**",
-      "doppler/downloads/**",
-      "doppler/tests/**",
-      "doppler/kernel-tests/**",
-      "doppler/bridge/**",
-      "doppler/browser/**",
-      "doppler/debug/**",
-      "doppler/docs/**",
-      "doppler/gpu/**",
-      "doppler/inference/**",
-      "doppler/loader/**",
-      "doppler/memory/**",
-      "doppler/storage/**",
-      "doppler/types/**"
+      "doppler/**"
     ],
     "rewrites": [
       { "source": "/r", "destination": "/reploid.html" },
       { "source": "/r/**", "destination": "/reploid.html" },
-      { "source": "/d", "destination": "/doppler/index.html" },
-      { "source": "/d/**", "destination": "/doppler/index.html" },
-      { "source": "/api/models", "destination": "/api-models.json" },
       { "source": "/", "destination": "/landing.html" }
     ]
   }

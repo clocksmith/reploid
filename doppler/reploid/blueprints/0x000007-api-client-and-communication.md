@@ -7,7 +7,7 @@
 
 **Prerequisites:** `0x000003`, `0x000048` (Module Widget Protocol)
 
-**Affected Artifacts:** `/modules/api-client.js`
+**Affected Artifacts:** `/core/api-client.js`
 
 ---
 

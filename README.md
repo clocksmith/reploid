@@ -1,10 +1,10 @@
 # REPLOID
 
-**Recursive Evolution Protocol Loop Orchestrating Inference DOPPLER**
+**R**ecursive **E**volution **P**rotocol **L**oop **O**rchestrating **I**nference **D**oppler
 
 Browser-native sandbox for safe AI agent development with self-modification capabilities.
 
-**[Try it live at replo.id/r](https://replo.id/r)** | **[GitHub](https://github.com/clocksmith/reploid)**
+**[Try it live](https://replo.id/r)** | **[GitHub](https://github.com/clocksmith/reploid)**
 
 Project source is in `doppler/reploid/`. Root-level `AGENTS.md`, `CLAUDE.md`, and `EMOJI.md` are symlinked there.
 
@@ -27,7 +27,7 @@ npm run dev       # Full dev server with API proxies at :8000
 
 - [Recursive self-improvement](https://en.wikipedia.org/wiki/Recursive_self-improvement) - Wikipedia
 - [Gato](https://arxiv.org/abs/2205.06175) - A Generalist Agent (DeepMind)
-- [GEPA](https://arxiv.org/abs/2505.20997) - Reflective Prompt Evolution Can Outperform Reinforcement Learning
+- [GEPA](https://arxiv.org/abs/2507.19457) - Reflective Prompt Evolution Can Outperform Reinforcement Learning
 - [ReAct](https://arxiv.org/abs/2210.03629) - Synergizing Reasoning and Acting (ICLR 2023)
 - [Absolute Zero Reasoner](https://arxiv.org/abs/2505.03335) - Self-play RL with zero data
 - [SWE-agent](https://arxiv.org/abs/2405.15793) - Agent-Computer Interfaces (NeurIPS 2024)

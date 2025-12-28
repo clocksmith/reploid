@@ -199,6 +199,73 @@ input:focus, select:focus, textarea:focus {
   100% { transform: translateX(400%); }
 }
 
+/* Observability Summary (Metrics Dashboard) */
+.observability-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 8px;
+}
+
+.summary-card {
+  background: var(--bg-element);
+  border: 1px solid var(--border-default);
+  padding: 10px;
+}
+
+.summary-label {
+  font-size: 12px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.summary-value {
+  font-size: 20px;
+  color: var(--primary);
+  margin-top: 6px;
+}
+
+.summary-sub {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+.summary-lists {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+}
+
+.summary-list {
+  background: var(--bg-element);
+  border: 1px solid var(--border-default);
+  padding: 10px;
+  max-height: 180px;
+  overflow: auto;
+}
+
+.summary-list-title {
+  font-size: 12px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 8px;
+}
+
+.summary-list-item {
+  font-size: 12px;
+  color: var(--text-primary);
+  margin-bottom: 6px;
+}
+
 /* ========================================
    TOAST NOTIFICATIONS
    ======================================== */
