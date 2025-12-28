@@ -7,7 +7,7 @@
 
 **Prerequisites:** `0x000004`
 
-**Affected Artifacts:** `/modules/storage-indexeddb.js`, `/modules/state-manager.js`, `/modules/tool-runner.js`, `/modules/agent-cycle.js`
+**Affected Artifacts:** `/core/storage-indexeddb.js`, `/core/state-manager.js`, `/core/tool-runner.js`, `/core/agent-cycle.js`
 
 ---
 
@@ -17,7 +17,7 @@ The default `localStorage` backend is simple but severely limited in both storag
 
 ### 2. The Architectural Solution
 
-This upgrade requires creating a new, alternative storage module, `/modules/storage-indexeddb.js`. This module will expose the same API contract as the original `storage.js` (e.g., `getArtifactContent`, `setArtifactContent`), but its methods will be `async` and return `Promise`s.
+This upgrade requires creating a new, alternative storage module, `/core/storage-indexeddb.js`. This module will expose the same API contract as the original `storage.js` (e.g., `getArtifactContent`, `setArtifactContent`), but its methods will be `async` and return `Promise`s.
 
 The core challenge of this upgrade is not the implementation of the `IndexedDB` logic itself, but managing the **"asynchronous cascade"** it creates. Because the storage methods become `async`, every function in every module that calls them must also become `async` and use `await` to get the result.
 
@@ -110,7 +110,7 @@ The widget provides visibility into the git-powered persistence layer, essential
 
 ### 3. The Implementation Pathway
 
-1.  **Create `idb` Upgrade:** Create a new upgrade file, `/modules/storage-indexeddb.js`.
+1.  **Create `idb` Upgrade:** Create a new upgrade file, `/core/storage-indexeddb.js`.
 2.  **Implement `IndexedDB` Logic:** Inside the new module, implement the necessary logic for opening a database, creating an object store, and wrapping `get`, `put`, and `delete` operations in `Promise`s.
 3.  **Analyze the Call Stack:** The agent must perform a full-system analysis to identify every function that directly or indirectly calls a `Storage` method.
 4.  **Propose Widespread Refactoring:** The agent must propose a large set of `modified` artifact changes. These changes will involve adding the `async` and `await` keywords to functions throughout the entire codebase (`state-manager.js`, `tool-runner.js`, `agent-cycle.js`, `app-logic.js`, etc.) to correctly handle the new asynchronous nature of the VFS.

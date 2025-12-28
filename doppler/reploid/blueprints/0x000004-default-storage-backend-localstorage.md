@@ -7,7 +7,7 @@
 
 **Prerequisites:** `0x000003`
 
-**Affected Artifacts:** `/modules/storage.js`
+**Affected Artifacts:** `/core/storage.js`
 
 ---
 
@@ -17,7 +17,7 @@ An agent requires a persistent memory to store its state, its own source code (a
 
 ### 2. The Architectural Solution
 
-The `/modules/storage.js` artifact will act as a dedicated wrapper around the global `localStorage` object. This abstraction is critical, as it isolates the rest of the application from the specific storage implementation. The module will expose a clean, file-system-like API for other modules to use.
+The `/core/storage.js` artifact will act as a dedicated wrapper around the global `localStorage` object. This abstraction is critical, as it isolates the rest of the application from the specific storage implementation. The module will expose a clean, file-system-like API for other modules to use.
 
 Key features of the implementation:
 -   **VFS Prefixing:** All keys stored in `localStorage` will be prefixed with a unique string (e.g., `_x0_vfs_`) to prevent collisions with other web applications using the same origin.
@@ -103,10 +103,10 @@ The widget provides essential visibility into the persistence layer, critical fo
 
 ### 3. The Implementation Pathway
 
-1.  **Create Module:** Implement the `StorageModule` factory function in `/modules/storage.js`.
+1.  **Create Module:** Implement the `StorageModule` factory function in `/core/storage.js`.
 2.  **Implement Core Functions:**
     -   `getArtifactContent(path)`: Constructs the prefixed key and calls `localStorage.getItem()`.
     -   `setArtifactContent(path, content)`: Constructs the key and calls `localStorage.setItem()`.
     -   `deleteArtifactVersion(path)`: Constructs the key and calls `localStorage.removeItem()`.
-3.  **Implement State Helpers:** Create convenience functions like `getState()` and `saveState(stateString)` that simply call the core functions with the hardcoded path for the state artifact (e.g., `/system/state.json`).
-4.  **Dependency Injection:** The `/modules/app-logic.js` orchestrator will inject the initialized `Storage` module into the `StateManager`, which will then use it for all persistence operations.
+3.  **Implement State Helpers:** Create convenience functions like `getState()` and `saveState(stateString)` that simply call the core functions with the hardcoded path for the state artifact (e.g., `/config/state.json`).
+4.  **Dependency Injection:** The `/core/app-logic.js` orchestrator will inject the initialized `Storage` module into the `StateManager`, which will then use it for all persistence operations.

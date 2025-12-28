@@ -572,16 +572,12 @@ const LLMClient = {
 
     // --- Mode: DOPPLER (Local WebGPU) ---
     let _dopplerProvider = null;
-    const _chatDoppler = async (messages, modelConfig, onUpdate, requestId) => {
-      logger.info(`[LLM] DOPPLER Request to ${modelConfig.modelId || modelConfig.id}`);
-
-      // Lazy load DOPPLER provider
+    const _ensureDopplerProvider = async () => {
       if (!_dopplerProvider) {
         const { DopplerProvider } = await import('@clocksmith/doppler/provider');
         _dopplerProvider = DopplerProvider;
       }
 
-      // Initialize if needed
       if (!_dopplerProvider.getCapabilities().initialized) {
         await _dopplerProvider.init();
       }
@@ -589,6 +585,14 @@ const LLMClient = {
       if (!_dopplerProvider.getCapabilities().available) {
         throw new Errors.ConfigError('DOPPLER not available - WebGPU may not be supported');
       }
+
+      return _dopplerProvider;
+    };
+
+    const _chatDoppler = async (messages, modelConfig, onUpdate, requestId) => {
+      logger.info(`[LLM] DOPPLER Request to ${modelConfig.modelId || modelConfig.id}`);
+
+      await _ensureDopplerProvider();
 
       // Load model if different
       const modelId = modelConfig.modelId || modelConfig.id;
@@ -623,6 +627,47 @@ const LLMClient = {
           provider: 'doppler'
         };
       }
+    };
+
+    const loadLoRAAdapter = async (adapter) => {
+      await _ensureDopplerProvider();
+      if (typeof _dopplerProvider.loadLoRAAdapter !== 'function') {
+        throw new Errors.ConfigError('DOPPLER provider does not support LoRA adapters');
+      }
+      await _dopplerProvider.loadLoRAAdapter(adapter);
+      return _dopplerProvider.getActiveLoRA ? _dopplerProvider.getActiveLoRA() : null;
+    };
+
+    const unloadLoRAAdapter = async () => {
+      await _ensureDopplerProvider();
+      if (typeof _dopplerProvider.unloadLoRAAdapter !== 'function') {
+        throw new Errors.ConfigError('DOPPLER provider does not support LoRA adapters');
+      }
+      await _dopplerProvider.unloadLoRAAdapter();
+    };
+
+    const getActiveLoRA = () => {
+      if (!_dopplerProvider || typeof _dopplerProvider.getActiveLoRA !== 'function') return null;
+      return _dopplerProvider.getActiveLoRA();
+    };
+
+    const prefillKV = async (prompt, modelConfig, options = {}) => {
+      if (!modelConfig) {
+        throw new Errors.ConfigError('Model config required for KV prefill');
+      }
+      await _ensureDopplerProvider();
+
+      if (typeof _dopplerProvider.prefillKV !== 'function') {
+        throw new Errors.ConfigError('DOPPLER provider does not support KV prefill');
+      }
+
+      const modelId = modelConfig.modelId || modelConfig.id;
+      const currentModel = _dopplerProvider.getCapabilities().currentModelId;
+      if (currentModel !== modelId) {
+        await _dopplerProvider.loadModel(modelId, modelConfig.modelUrl, null, modelConfig.localPath);
+      }
+
+      return _dopplerProvider.prefillKV(prompt, options);
     };
 
     /**
@@ -702,7 +747,19 @@ const LLMClient = {
       logger.info('[LLM] All GPU memory released');
     };
 
-    return { chat, abortRequest, getWebLLMStatus, getTransformersStatus, getDopplerStatus, releaseGPUMemory, supportsNativeTools };
+    return {
+      chat,
+      abortRequest,
+      getWebLLMStatus,
+      getTransformersStatus,
+      getDopplerStatus,
+      loadLoRAAdapter,
+      unloadLoRAAdapter,
+      getActiveLoRA,
+      prefillKV,
+      releaseGPUMemory,
+      supportsNativeTools
+    };
   }
 };
 

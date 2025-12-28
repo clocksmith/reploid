@@ -7,7 +7,7 @@
 
 **Prerequisites:** `0x000003`, `0x000004`, `0x000048` (Module Widget Protocol)
 
-**Affected Artifacts:** `/modules/state-manager.js`
+**Affected Artifacts:** `/core/state-manager.js`
 
 ---
 

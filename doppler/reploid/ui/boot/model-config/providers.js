@@ -237,7 +237,7 @@ export async function checkAvailability() {
         if (providers.webgpu.online) {
             try {
                 console.log('[ModelConfig] Importing DopplerProvider...');
-                const { DopplerProvider } = await import('../../../doppler/dist/doppler-provider.js');
+                const { DopplerProvider } = await import('@clocksmith/doppler/provider');
                 console.log('[ModelConfig] DopplerProvider imported, calling init()...');
                 const available = await DopplerProvider.init();
                 console.log('[ModelConfig] DopplerProvider.init() returned:', available);
@@ -246,36 +246,11 @@ export async function checkAvailability() {
 
                     // Get cached models from OPFS
                     const cachedModels = await DopplerProvider.getModels();
-                    const cachedSet = new Set(cachedModels);
-
-                    // Also fetch available models from server
-                    let serverModels = [];
-                    try {
-                        const resp = await fetch('/api/models');
-                        if (resp.ok) {
-                            serverModels = await resp.json();
-                            console.log('[ModelConfig] DOPPLER server models:', serverModels.length);
-                        }
-                    } catch (e) {
-                        console.log('[ModelConfig] Could not fetch server models:', e.message);
-                    }
-
-                    // Merge: server models with cached status
-                    const models = serverModels.map(m => ({
-                        id: m.path || m.name,
-                        name: m.name,
-                        cached: cachedSet.has(m.name) || cachedSet.has(m.path),
-                        architecture: m.architecture,
-                        quantization: m.quantization,
-                        downloadSize: m.downloadSize
+                    const models = cachedModels.map(modelId => ({
+                        id: modelId,
+                        name: modelId,
+                        cached: true
                     }));
-
-                    // Add any cached models not on server (imported locally)
-                    for (const cached of cachedModels) {
-                        if (!models.find(m => m.id === cached || m.name === cached)) {
-                            models.push({ id: cached, name: cached, cached: true });
-                        }
-                    }
 
                     providers.doppler = {
                         online: true,
@@ -283,7 +258,7 @@ export async function checkAvailability() {
                         models,
                         capabilities
                     };
-                    console.log('[ModelConfig] DOPPLER available:', capabilities.TIER_NAME, `(Tier ${capabilities.TIER_LEVEL})`, `(${models.length} models, ${cachedModels.length} cached)`);
+                    console.log('[ModelConfig] DOPPLER available:', capabilities.TIER_NAME, `(Tier ${capabilities.TIER_LEVEL})`, `(${models.length} cached models)`);
                 } else {
                     console.log('[ModelConfig] DOPPLER init returned false');
                     providers.doppler = { online: false, checked: true, models: [] };

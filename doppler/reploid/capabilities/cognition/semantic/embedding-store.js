@@ -288,13 +288,103 @@ const EmbeddingStore = {
       });
     };
 
+    // --- Temporal Indexing & Contiguity Search ---
+
+    const searchByTimeRange = async (startTime, endTime, options = {}) => {
+      const { limit = 100, domain = null } = options;
+      const memories = await getAllMemories();
+
+      return memories
+        .filter(m => {
+          const inRange = m.timestamp >= startTime && m.timestamp <= endTime;
+          const matchesDomain = !domain || m.domain === domain;
+          return inRange && matchesDomain;
+        })
+        .sort((a, b) => b.timestamp - a.timestamp)
+        .slice(0, limit);
+    };
+
+    const searchWithContiguity = async (queryEmbedding, options = {}) => {
+      const {
+        topK = 10,
+        minSimilarity = 0.3,
+        contiguityWindowMs = 60000,  // 1 minute
+        contiguityBoost = 0.15
+      } = options;
+
+      // Get base semantic matches
+      const baseResults = await searchSimilar(queryEmbedding, topK * 2, minSimilarity);
+
+      if (baseResults.length < 2) return baseResults;
+
+      // Extract timestamps
+      const timestamps = baseResults.map(r =>
+        r.memory.metadata?.timestamp || r.memory.timestamp
+      );
+
+      // Apply temporal contiguity boost
+      const boosted = baseResults.map((result, i) => {
+        const myTime = timestamps[i];
+        if (!myTime) return result;
+
+        // Check if temporally adjacent items are in result set
+        const hasTemporalNeighbor = timestamps.some((t, j) => {
+          if (i === j || !t) return false;
+          return Math.abs(t - myTime) < contiguityWindowMs;
+        });
+
+        return {
+          ...result,
+          similarity: result.similarity + (hasTemporalNeighbor ? contiguityBoost : 0),
+          hasContiguity: hasTemporalNeighbor
+        };
+      });
+
+      // Re-sort by boosted similarity
+      return boosted
+        .sort((a, b) => b.similarity - a.similarity)
+        .slice(0, topK);
+    };
+
+    const getRecentMemories = async (count = 20, domain = null) => {
+      const memories = await getAllMemories();
+
+      return memories
+        .filter(m => !domain || m.domain === domain)
+        .sort((a, b) => b.timestamp - a.timestamp)
+        .slice(0, count);
+    };
+
+    const getSessionMemories = async (sessionId) => {
+      const memories = await getAllMemories();
+      return memories.filter(m =>
+        m.metadata?.sessionId === sessionId
+      ).sort((a, b) => a.timestamp - b.timestamp);
+    };
+
+    const addMemoryWithSession = async (memory, sessionId) => {
+      return addMemory({
+        ...memory,
+        metadata: {
+          ...(memory.metadata || {}),
+          sessionId,
+          timestamp: Date.now()
+        }
+      });
+    };
+
     return {
       init,
       addMemory,
+      addMemoryWithSession,
       getMemory,
       getAllMemories,
       deleteMemory,
       searchSimilar,
+      searchWithContiguity,
+      searchByTimeRange,
+      getRecentMemories,
+      getSessionMemories,
       updateVocabulary,
       getVocabulary,
       pruneOldMemories,

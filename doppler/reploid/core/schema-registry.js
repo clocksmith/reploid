@@ -238,6 +238,172 @@ const SchemaRegistry = {
       return result;
     };
 
+    // ─────────────────────────────────────────────────────────────────────────
+    // FunctionGemma Output Validation & Merging
+    // ─────────────────────────────────────────────────────────────────────────
+
+    /**
+     * Validate a value against a JSON schema (simplified).
+     * @param {*} value - Value to validate
+     * @param {Object} schema - JSON schema
+     * @returns {Object} { valid: boolean, errors: string[] }
+     */
+    const validateSchema = (value, schema) => {
+      const errors = [];
+
+      if (!schema || typeof schema !== 'object') {
+        return { valid: true, errors: [] };
+      }
+
+      // Type check
+      if (schema.type) {
+        const actualType = Array.isArray(value) ? 'array' : typeof value;
+        if (schema.type === 'object' && (value === null || actualType !== 'object')) {
+          errors.push(`Expected object, got ${actualType}`);
+        } else if (schema.type === 'array' && actualType !== 'array') {
+          errors.push(`Expected array, got ${actualType}`);
+        } else if (schema.type !== 'object' && schema.type !== 'array' && actualType !== schema.type) {
+          errors.push(`Expected ${schema.type}, got ${actualType}`);
+        }
+      }
+
+      // Required fields
+      if (schema.required && Array.isArray(schema.required) && typeof value === 'object' && value !== null) {
+        for (const key of schema.required) {
+          if (!(key in value)) {
+            errors.push(`Missing required field: ${key}`);
+          }
+        }
+      }
+
+      // Properties type check
+      if (schema.properties && typeof value === 'object' && value !== null) {
+        for (const [key, propSchema] of Object.entries(schema.properties)) {
+          if (key in value && propSchema.type) {
+            const propType = Array.isArray(value[key]) ? 'array' : typeof value[key];
+            if (propSchema.type !== propType && value[key] !== null) {
+              errors.push(`Field ${key}: expected ${propSchema.type}, got ${propType}`);
+            }
+          }
+        }
+      }
+
+      return { valid: errors.length === 0, errors };
+    };
+
+    /**
+     * Validate combined outputs from multiple FunctionGemma experts.
+     * @param {Object} outputs - { expertId: output, ... }
+     * @param {Object|string} taskSchema - Schema object or schema name
+     * @returns {Object} { valid: boolean, errors: Array<{ expertId, errors }> }
+     */
+    const validateCombinedOutput = (outputs, taskSchema) => {
+      const schema = typeof taskSchema === 'string'
+        ? getToolSchema(taskSchema)?.parameters
+        : taskSchema;
+
+      const allErrors = [];
+
+      for (const [expertId, output] of Object.entries(outputs)) {
+        let parsed = output;
+
+        // Try to parse if string
+        if (typeof output === 'string') {
+          try {
+            parsed = JSON.parse(output);
+          } catch {
+            allErrors.push({ expertId, errors: ['Output is not valid JSON'] });
+            continue;
+          }
+        }
+
+        const result = validateSchema(parsed, schema);
+        if (!result.valid) {
+          allErrors.push({ expertId, errors: result.errors });
+        }
+      }
+
+      return {
+        valid: allErrors.length === 0,
+        errors: allErrors
+      };
+    };
+
+    /**
+     * Merge outputs from multiple FunctionGemma experts.
+     * @param {Array<{ output, weight }>} outputs - Weighted outputs
+     * @param {string} strategy - 'voting', 'weighted', or 'concatenate'
+     * @returns {Object} Merged output
+     */
+    const mergeOutputs = (outputs, strategy = 'weighted') => {
+      if (!outputs || outputs.length === 0) {
+        return null;
+      }
+
+      if (strategy === 'voting') {
+        // Simple majority voting on parsed outputs
+        const votes = new Map();
+        for (const { output } of outputs) {
+          const key = JSON.stringify(output);
+          votes.set(key, (votes.get(key) || 0) + 1);
+        }
+        let maxVotes = 0;
+        let winner = null;
+        for (const [key, count] of votes.entries()) {
+          if (count > maxVotes) {
+            maxVotes = count;
+            winner = JSON.parse(key);
+          }
+        }
+        return winner;
+      }
+
+      if (strategy === 'weighted') {
+        // Weighted merge - higher weight outputs take priority
+        const merged = { code: '', imports: new Set() };
+
+        // Sort by weight descending
+        const sorted = [...outputs].sort((a, b) => (b.weight || 0) - (a.weight || 0));
+
+        for (const { output, weight } of sorted) {
+          if ((weight || 0) < 0.5) continue;
+
+          const parsed = typeof output === 'string' ? JSON.parse(output) : output;
+
+          if (parsed?.code) {
+            merged.code += (merged.code ? '\n\n' : '') + parsed.code;
+          }
+          if (parsed?.imports) {
+            for (const imp of parsed.imports) {
+              merged.imports.add(imp);
+            }
+          }
+        }
+
+        merged.imports = [...merged.imports];
+        return merged;
+      }
+
+      // Default: concatenate
+      const merged = { code: '', imports: new Set() };
+
+      for (const { output } of outputs) {
+        const parsed = typeof output === 'string' ? JSON.parse(output) : output;
+
+        if (parsed?.code) {
+          merged.code += (merged.code ? '\n\n' : '') + parsed.code;
+        }
+        if (parsed?.imports) {
+          for (const imp of parsed.imports) {
+            merged.imports.add(imp);
+          }
+        }
+      }
+
+      merged.imports = [...merged.imports];
+      return merged;
+    };
+
     const init = async () => {
       // Register builtin schemas first
       registerToolSchema('ReadFile', DEFAULT_TOOL_SCHEMAS.ReadFile, { builtin: true });
@@ -263,7 +429,11 @@ const SchemaRegistry = {
       listToolSchemas,
       registerWorkerTypes,
       getWorkerType,
-      listWorkerTypes
+      listWorkerTypes,
+      // FunctionGemma output validation & merging
+      validateSchema,
+      validateCombinedOutput,
+      mergeOutputs
     };
   }
 };

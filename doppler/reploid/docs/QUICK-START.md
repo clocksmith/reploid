@@ -19,25 +19,22 @@
 ```bash
 npm install
 
-# Option A: Static server (landing + /r Reploid + /d Doppler)
+# Option A: Static server (landing + /r Reploid)
 npm run serve
 
 # Option B: Full dev server with API proxies (recommended for development)
 npm run dev
-
-# Option C: Doppler-only mode (for WebGPU inference testing)
-npm run doppler
 ```
 
 ### Step 2: Open in Browser
 
 | Mode | URL | Description |
 |------|-----|-------------|
-| `npm run serve` | http://localhost:8080 | Landing page with links to /r and /d |
+| `npm run serve` | http://localhost:8080 | Landing page with link to /r |
 | `npm run serve` | http://localhost:8080/r | Reploid agent app |
-| `npm run serve` | http://localhost:8080/d | Doppler inference app |
 | `npm run dev` | http://localhost:8000 | Full dev with API proxies |
-| `npm run doppler` | http://localhost:8080 | Doppler only (opens automatically) |
+
+Note: The Doppler provider loads client assets from `/vendor/doppler`, which is only served by the dev server.
 
 ### Step 3: Configure Your Agent
 

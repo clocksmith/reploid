@@ -54,7 +54,6 @@ grep "path" config.json
 **Prevention:**
 - Use `npm run dev` for live reload during development
 - Always validate config.json after editing
-- Run self-tests after adding new modules: `SelfTester.runAllTests()`
 
 ---
 
@@ -804,18 +803,6 @@ PerformanceMonitor.resetMetrics();
 PerformanceMonitor.startTracking();
 ```
 
-**Run Specific Test Suite:**
-
-```javascript
-// In browser console
-const result = await SelfTester.testModuleLoading();
-console.log('Module tests:', result);
-
-const result2 = await SelfTester.testToolExecution();
-console.log('Tool tests:', result2);
-```
-
----
 
 ### Console Flooded with Logs
 
@@ -938,7 +925,7 @@ worker.postMessage({
      modules: DIContainer.getAllModules(),
      subscriptions: EventBus.getSubscriptionReport(),
      performance: PerformanceMonitor.getMetrics(),
-     testResults: await SelfTester.runAllTests()
+     testResults: []
    };
    console.log(JSON.stringify(report, null, 2));
    // Copy output

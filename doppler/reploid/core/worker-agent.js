@@ -1,129 +1,153 @@
 /**
  * @fileoverview Worker Agent
- * Minimal agent loop that runs inside a Web Worker for isolated task execution.
- * Receives task + allowed tools via postMessage, returns results.
- * Cannot spawn workers (flat hierarchy enforced via depth check).
+ * Web Worker agent loop that delegates LLM and tool execution to main thread via RPC.
  */
 
-// Web Worker context - no DOM access, no shared state
-self.onmessage = async (e) => {
-  const {
-    workerId,
-    type,
-    task,
-    model,
-    allowedTools,
-    maxIterations = 20,
-    depth,
-    config
-  } = e.data;
+const RPC_TIMEOUT_MS = 60000;
+let _workerId = null;
+let _allowedTools = [];
+let _maxIterations = 10;
+const _pending = new Map();
 
-  // Safety check: Workers cannot spawn other workers
-  if (depth > 1) {
-    self.postMessage({
-      type: 'error',
-      workerId,
-      error: 'Workers cannot spawn other workers (flat hierarchy enforced)'
-    });
-    return;
-  }
+const _post = (message) => self.postMessage(message);
 
-  try {
-    self.postMessage({ type: 'started', workerId });
+const _rpc = (op, payload) => {
+  const requestId = `${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
 
-    // Import required modules (these will be loaded from VFS via Service Worker)
-    // Note: In Web Worker context, we need to import dynamically
-    const result = await executeWorkerTask({
-      workerId,
-      type,
-      task,
-      model,
-      allowedTools,
-      maxIterations,
-      config
-    });
+  _post({
+    type: 'rpc',
+    workerId: _workerId,
+    requestId,
+    op,
+    payload
+  });
 
-    self.postMessage({
-      type: 'complete',
-      workerId,
-      result
-    });
+  return new Promise((resolve, reject) => {
+    const timeout = setTimeout(() => {
+      _pending.delete(requestId);
+      reject(new Error(`RPC timeout: ${op}`));
+    }, RPC_TIMEOUT_MS);
 
-  } catch (error) {
-    self.postMessage({
-      type: 'error',
-      workerId,
-      error: error.message,
-      stack: error.stack
-    });
-  }
+    _pending.set(requestId, { resolve, reject, timeout });
+  });
 };
 
-/**
- * Execute the worker's task with a simplified agent loop
- */
-async function executeWorkerTask({ workerId, type, task, model, allowedTools, maxIterations, config }) {
+const _log = (message) => _post({ type: 'log', workerId: _workerId, message });
+
+const _progress = (iteration, message) => _post({
+  type: 'progress',
+  workerId: _workerId,
+  iteration,
+  maxIterations: _maxIterations,
+  message
+});
+
+const _executeLoop = async (task) => {
   const startTime = Date.now();
   let iterations = 0;
   const toolResults = [];
 
-  // Progress reporting
-  const reportProgress = (message) => {
-    self.postMessage({
-      type: 'progress',
-      workerId,
-      iteration: iterations,
-      message
-    });
-  };
+  const messages = [
+    {
+      role: 'system',
+      content: `You are a worker agent executing a specific task.
+Task: ${task}
+Use tools when needed and report results clearly.`
+    },
+    { role: 'user', content: `Please complete this task: ${task}` }
+  ];
 
-  reportProgress(`Starting ${type} worker for task: ${task.substring(0, 50)}...`);
+  while (iterations < _maxIterations) {
+    iterations++;
+    _progress(iterations, `Iteration ${iterations}/${_maxIterations}`);
 
-  // For Phase 3 stub: Return placeholder result
-  // TODO: Implement full agent loop with:
-  // 1. LLM call with task + allowed tools
-  // 2. Tool execution with permission filtering
-  // 3. Result aggregation
-  // 4. Iteration until done or maxIterations
+    const response = await _rpc('llm:chat', { messages });
+    const content = response?.content || '';
 
-  // Placeholder implementation
-  await new Promise(resolve => setTimeout(resolve, 100)); // Simulate work
+    messages.push({ role: 'assistant', content });
+
+    const nativeToolCalls = Array.isArray(response?.toolCalls) ? response.toolCalls : [];
+    let toolCalls = nativeToolCalls;
+
+    if (toolCalls.length === 0 && content) {
+      toolCalls = await _rpc('parse:tool_calls', { text: content });
+    }
+
+    if (!toolCalls || toolCalls.length === 0) {
+      break;
+    }
+
+    for (const call of toolCalls) {
+      const name = call.name || call.tool || call.function || '';
+      const args = call.args || {};
+      if (!name) continue;
+
+      const toolResponse = await _rpc('tool:execute', {
+        call: { name, args },
+        iteration: iterations
+      });
+
+      const result = toolResponse?.result || '';
+      const error = toolResponse?.error || null;
+      toolResults.push({
+        tool: name,
+        args,
+        result,
+        success: !error,
+        error
+      });
+
+      const toolMessage = error
+        ? `TOOL_ERROR (${name}): ${error}`
+        : `TOOL_RESULT (${name}):\n${result}`;
+      messages.push({ role: 'user', content: toolMessage });
+    }
+  }
+
+  const lastAssistant = messages.filter(m => m.role === 'assistant').pop();
+  const output = lastAssistant?.content || 'No output';
 
   return {
-    workerId,
-    type,
-    task: task.substring(0, 100),
+    workerId: _workerId,
+    status: 'completed',
+    task: task.substring(0, 200),
     iterations,
     duration: Date.now() - startTime,
-    status: 'completed',
-    output: `[Worker ${workerId}] Placeholder result - full implementation in Phase 3`,
-    allowedTools: Array.isArray(allowedTools) ? allowedTools : 'ALL',
-    note: 'Web Worker agent loop not yet fully implemented'
+    output,
+    allowedTools: Array.isArray(_allowedTools) ? _allowedTools : 'ALL',
+    toolResults
   };
-}
+};
 
-/**
- * Filter tools based on worker type permissions
- */
-function filterTools(allTools, allowedTools) {
-  if (allowedTools === '*') return allTools;
-  return allTools.filter(tool => allowedTools.includes(tool.name || tool));
-}
+self.onmessage = async (event) => {
+  const message = event.data || {};
 
-/**
- * Simple tool execution within worker context
- * Only allowed tools can be executed
- */
-async function executeToolInWorker(toolName, args, allowedTools, toolImplementations) {
-  // Check permission
-  if (allowedTools !== '*' && !allowedTools.includes(toolName)) {
-    throw new Error(`Tool '${toolName}' not allowed for this worker type`);
+  if (message.type === 'rpc:response') {
+    const pending = _pending.get(message.requestId);
+    if (!pending) return;
+    clearTimeout(pending.timeout);
+    _pending.delete(message.requestId);
+
+    if (message.ok) {
+      pending.resolve(message.payload);
+    } else {
+      pending.reject(new Error(message.payload?.error || 'RPC error'));
+    }
+    return;
   }
 
-  const tool = toolImplementations[toolName];
-  if (!tool) {
-    throw new Error(`Tool '${toolName}' not found`);
-  }
+  if (message.type !== 'start') return;
 
-  return await tool(args);
-}
+  _workerId = message.workerId;
+  _allowedTools = message.allowedTools || [];
+  _maxIterations = message.maxIterations || 10;
+
+  _post({ type: 'started', workerId: _workerId });
+
+  try {
+    const result = await _executeLoop(message.task || '');
+    _post({ type: 'complete', workerId: _workerId, result });
+  } catch (error) {
+    _post({ type: 'error', workerId: _workerId, error: error.message, stack: error.stack });
+  }
+};

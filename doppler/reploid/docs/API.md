@@ -1,7 +1,7 @@
 # REPLOID API Documentation
 
-**Version:** 1.0.0
-**Last Updated:** 2025-09-30
+**Version:** 1.2.0
+**Last Updated:** December 2025
 
 This document provides an overview of REPLOID's module API. For detailed JSDoc comments, see the source files.
 
@@ -73,6 +73,24 @@ This document provides an overview of REPLOID's module API. For detailed JSDoc c
 **Checkpoints:**
 - `createCheckpoint(label)` - Create rollback point
 - `restoreCheckpoint(checkpointId)` - Rollback to checkpoint
+
+---
+
+### PersonaManager (`core/persona-manager.js`)
+
+**Type:** Persona prompt composition and overrides
+**Dependencies:** Utils, VFS
+
+**API:**
+- `getSystemPrompt()` - Build the active system prompt
+- `getPersonas()` - List persona definitions from config
+- `getActivePersona()` - Get resolved active persona (with overrides)
+- `getPromptSlots(personaId?)` - Return prompt slots for a persona
+- `applySlotMutation({ personaId, slot, content, mode })` - Mutate a slot (replace/append/prepend)
+- `buildSystemPrompt(personaDef, override)` - Compose system prompt from persona + override
+
+**Notes:**
+- Overrides persist to `/.memory/persona-overrides.json`
 
 ---
 
@@ -148,29 +166,85 @@ This document provides an overview of REPLOID's module API. For detailed JSDoc c
 
 ---
 
-### SelfTester (`infrastructure/self-tester.js`)
+## Cognition Modules
 
-**Type:** Automated validation framework
-**Dependencies:** Utils, EventBus, StateManager
+### GEPAOptimizer (`capabilities/cognition/gepa-optimizer.js`)
+
+**Type:** Genetic-Pareto prompt evolution system
+**Dependencies:** Utils, EventBus, VFS, LLMClient
+**Status:** Implemented (December 2025)
 
 **API:**
-- `runAllTests()` - Execute all test suites
-- `testModuleLoading()` - Verify modules load correctly
-- `testToolExecution()` - Verify tools work
-- `testFSMTransitions()` - Verify state machine integrity
-- `testStorageSystems()` - Verify IndexedDB/VFS
-- `testPerformanceMonitoring()` - Verify metrics collection
-- `getLastResults()` - Get cached test results
-- `generateReport()` - Export markdown report
+- `evolve(seedPrompt, taskSet, options)` - Run evolution loop
+- `evaluate(population, taskBatch)` - Score candidates on objectives
+- `reflect(evaluationResults)` - Analyze failures, propose mutations
+- `mutate(candidate, reflections)` - Apply reflection-guided changes
+- `paretoSelect(candidates, objectives, targetSize)` - NSGA-II selection
+- `promoteCandidate(candidate, options)` - Promote a candidate into safe storage
 
-**Test Suites:**
-1. Module Loading (5 tests)
-2. Tool Execution (4 tests)
-3. FSM Transitions (6 tests)
-4. Storage Systems (5 tests)
-5. Performance Monitoring (4 tests)
+**Options:**
+- `populationSize` - Number of candidates (default: 10)
+- `maxGenerations` - Evolution iterations (default: 20)
+- `objectives` - Score dimensions: `['accuracy', 'efficiency', 'robustness']`
+- `evaluationModel` - Model for task evaluation
+- `reflectionModel` - Model for failure analysis (recommend: Sonnet)
+- `targetType` - Target type: `'prompt'` | `'persona_slot'`
+- `targetMeta` - Extra targeting metadata (personaId, slot, etc)
+- `promoteBest` - Promote best candidate to safe store
+- `promoteOptions` - Promotion config (storagePath, arenaValidate, applyToPersona)
 
-**Validation Threshold:** 80% pass rate required for change approval
+**Events:**
+- `gepa:started` - Evolution begun
+- `gepa:evaluated` - Generation scored
+- `gepa:reflected` - Failure analysis complete
+- `gepa:generation-complete` - Generation finished with frontier stats
+
+**Checkpoints:** `/.memory/gepa/gen_X.json`
+
+**See Also:** [Blueprint 0x000078](../blueprints/0x000078-gepa-prompt-evolution.md)
+
+---
+
+## Intelligence Modules
+
+### NeuralCompiler (`capabilities/intelligence/neural-compiler.js`)
+
+**Type:** LoRA adapter router and task scheduler
+**Dependencies:** Utils, VFS, LLMClient, SemanticMemory
+**Status:** Implemented (December 2025)
+
+**API:**
+- `registerAdapter(name, manifestPath, options)` - Register adapter metadata for routing
+- `unregisterAdapter(name)` - Remove adapter from registry
+- `listAdapters()` - List registered adapters
+- `getActiveAdapter()` - Current active adapter name
+- `executeTask(task, options)` - Route a single task and execute with LoRA swap
+- `scheduleTasks(tasks, options)` - Batch tasks by adapter and execute in swap-minimizing order
+
+**Registry:** `/.memory/neural-compiler/adapters.json`
+
+**See Also:** [Blueprint 0x000095](../blueprints/0x000095-hot-swappable-neural-compiler.md)
+
+---
+
+## Infrastructure Modules
+
+### TraceStore (`infrastructure/trace-store.js`)
+
+**Type:** Persistent execution traces
+**Dependencies:** Utils, VFS, EventBus
+
+**API:**
+- `startSession(meta)` - Start a trace session
+- `record(sessionId, type, payload, options?)` - Append a trace entry
+- `endSession(sessionId, summary?)` - Close a session with summary
+- `listSessions(limit?)` - Read recent session index entries
+- `getSessionTraces(sessionId)` - Read a session's trace entries
+- `getSessionSummary(sessionId)` - Summarize a session
+
+**Storage:**
+- `/.memory/traces/index.jsonl`
+- `/.memory/traces/<sessionId>.jsonl`
 
 ---
 
@@ -236,7 +310,7 @@ This document provides an overview of REPLOID's module API. For detailed JSDoc c
 ### UI (`ui/ui-manager.js`)
 
 **Type:** Proto orchestration
-**Dependencies:** Utils, EventBus, StateManager, DiffGenerator, VFSExplorer, PerformanceMonitor, Introspector, ReflectionStore, SelfTester, BrowserAPIs
+**Dependencies:** Utils, EventBus, StateManager, DiffGenerator, VFSExplorer, PerformanceMonitor, Introspector, ReflectionStore, BrowserAPIs
 
 **API:**
 - `init(config)` - Initialize proto
@@ -248,7 +322,6 @@ This document provides an overview of REPLOID's module API. For detailed JSDoc c
 - `renderPerformancePanel()` - Metrics proto
 - `renderIntrospectionPanel()` - Self-analysis view
 - `renderReflectionsPanel()` - Learning history
-- `renderSelfTestPanel()` - Test results
 - `renderBrowserAPIsPanel()` - Browser capabilities
 
 **Session Export:**
@@ -309,7 +382,7 @@ This document provides an overview of REPLOID's module API. For detailed JSDoc c
 ### SentinelFSM (`core/sentinel-fsm.js`)
 
 **Type:** Sentinel Agent finite state machine
-**Dependencies:** Utils, EventBus, StateManager, Tools, SelfTester
+**Dependencies:** Utils, EventBus, StateManager, Tools
 
 **States:**
 1. `IDLE` - Waiting for goal
@@ -354,20 +427,29 @@ This document provides an overview of REPLOID's module API. For detailed JSDoc c
 - `registerTool(definition)` - Add dynamic tool
 - `unregisterTool(toolName)` - Remove tool
 
-**Built-in Tools:**
-- `read_artifact` - Read VFS file
-- `write_artifact` - Write VFS file
-- `list_artifacts` - List VFS files
-- `delete_artifact` - Delete VFS file
-- `get_state` - Read agent state
-- `update_state` - Modify agent state
-- `create_checkpoint` - Create rollback point
-- `list_checkpoints` - List checkpoints
+**Built-in Tools (CamelCase naming):**
+- `ReadFile` - Read VFS file
+- `WriteFile` - Write VFS file
+- `ListFiles` - List VFS files
+- `DeleteFile` - Delete VFS file
+- `Grep` - Search file contents
+- `Find` - Find files by name
+- `Edit` - Find/replace in file
 
-**RSI Tools (when enabled):**
+**RSI Tools:**
 - `CreateTool` - Meta-tool for tool creation
-- `modify_goal` - Safe goal evolution
-- `create_blueprint` - Knowledge transfer
+- `LoadModule` - Dynamic module loading
+- `ListTools` - List available tools
+
+**Worker Tools:**
+- `SpawnWorker` - Spawn sub-agent worker
+- `ListWorkers` - List active workers
+- `AwaitWorkers` - Wait for worker completion
+
+**Cognition Tools:**
+- `RunGEPA` - Execute GEPA prompt evolution
+  - Supports `targetType: "persona_slot"` with `personaSlot` and `personaId`
+  - Supports promotion via `promote: true` and `promoteOptions`
 
 ---
 
@@ -422,24 +504,6 @@ const allFiles = await StateManager.getAllArtifactMetadata();
 console.log(Object.keys(allFiles)); // ['/docs/README.md', ...]
 ```
 
-### Example 4: Running Self-Tests
-
-```javascript
-const SelfTester = await DIContainer.resolve('SelfTester');
-
-// Run all test suites
-const results = await SelfTester.runAllTests();
-
-console.log(`Success rate: ${results.summary.successRate.toFixed(1)}%`);
-console.log(`Passed: ${results.summary.passed}/${results.summary.total}`);
-
-// Check threshold
-if (results.summary.successRate >= 80) {
-  console.log('✓ Tests passed - safe to proceed');
-} else {
-  console.log('✗ Tests failed - blocking changes');
-}
-```
 
 ### Example 5: Performance Monitoring
 
@@ -447,7 +511,7 @@ if (results.summary.successRate >= 80) {
 const PerformanceMonitor = await DIContainer.resolve('PerformanceMonitor');
 
 // Record tool execution
-PerformanceMonitor.recordToolExecution('read_artifact', 45); // 45ms
+PerformanceMonitor.recordToolExecution('ReadFile', 45); // 45ms
 
 // Record LLM call
 PerformanceMonitor.recordLLMCall('gemini-1.5-flash', 1500, 2300); // 1500 tokens, 2.3s

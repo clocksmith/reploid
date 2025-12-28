@@ -23,11 +23,16 @@ const SemanticMemory = {
     let _loaderPromise = null;
     let _isInitialized = false;
 
+    // Load boot config from localStorage if available
+    const bootConfig = typeof window !== 'undefined' && window.getCognitionConfig
+      ? window.getCognitionConfig()
+      : {};
+
     // Configuration
     const CONFIG = {
       model: 'Xenova/all-MiniLM-L6-v2', // 384-dim, fast
-      minSimilarity: 0.5,
-      topK: 5,
+      minSimilarity: bootConfig.minSimilarity ?? 0.5,
+      topK: bootConfig.topK ?? 5,
       batchSize: 10,
       idleTrainingDelay: 2000
     };
@@ -320,6 +325,68 @@ const SemanticMemory = {
       }
     };
 
+    // --- FunctionGemma Expert Routing ---
+
+    /**
+     * Compute cosine similarity between two vectors
+     */
+    const cosineSimilarity = (a, b) => {
+      if (a.length !== b.length) return 0;
+      let dot = 0, normA = 0, normB = 0;
+      for (let i = 0; i < a.length; i++) {
+        dot += a[i] * b[i];
+        normA += a[i] * a[i];
+        normB += b[i] * b[i];
+      }
+      return dot / (Math.sqrt(normA) * Math.sqrt(normB) + 1e-8);
+    };
+
+    /**
+     * Route a task to the best FunctionGemma experts based on semantic similarity.
+     * @param {Object} task - Task object with description and optional topK
+     * @param {Array} experts - Array of expert objects with id and specialization
+     * @returns {Array} Top-k experts sorted by relevance
+     */
+    const routeToExpert = async (task, experts) => {
+      if (!task?.description) {
+        throw new Errors.ValidationError('Task description is required for routing');
+      }
+      if (!experts || experts.length === 0) {
+        return [];
+      }
+
+      const taskEmbed = await embed(task.description);
+
+      // Compute similarity to each expert's specialization
+      const scores = await Promise.all(experts.map(async expert => {
+        // Cache embeddings on expert objects for performance
+        if (!expert._embedding && expert.specialization) {
+          expert._embedding = await embed(expert.specialization);
+        }
+        const expertEmbed = expert._embedding;
+
+        if (!expertEmbed) {
+          return { expert, score: 0 };
+        }
+
+        return {
+          expert,
+          score: cosineSimilarity(taskEmbed, expertEmbed)
+        };
+      }));
+
+      // Sort by score descending and return top-k
+      scores.sort((a, b) => b.score - a.score);
+      const topK = task.topK || 1;
+
+      EventBus.emit('cognition:semantic:route', {
+        task: task.description.slice(0, 50),
+        topExperts: scores.slice(0, topK).map(s => ({ id: s.expert.id, score: s.score.toFixed(3) }))
+      });
+
+      return scores.slice(0, topK).map(s => s.expert);
+    };
+
     // --- Maintenance ---
 
     const prune = async () => {
@@ -367,6 +434,8 @@ const SemanticMemory = {
       store,
       search,
       enrich,
+      routeToExpert,
+      cosineSimilarity,
       prune,
       getStats,
       clear,

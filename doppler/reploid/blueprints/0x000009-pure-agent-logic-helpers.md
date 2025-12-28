@@ -7,7 +7,7 @@
 
 **Prerequisites:** `0x000001`, `0x000048` (Module Widget Protocol)
 
-**Affected Artifacts:** `/modules/agent-logic-pure.js`, `/modules/agent-cycle.js`
+**Affected Artifacts:** `/core/agent-logic-pure.js`, `/core/agent-cycle.js`
 
 ---
 
@@ -17,7 +17,7 @@ The process of assembling the final prompt for the LLM is a complex data transfo
 
 ### 2. The Architectural Solution
 
-The `/modules/agent-logic-pure.js` module will export a collection of pure functions. These functions will take raw data (as strings or simple objects) as input and return a transformed string or object as output. They will have no dependencies on other agent modules and perform no side effects.
+The `/core/agent-logic-pure.js` module will export a collection of pure functions. These functions will take raw data (as strings or simple objects) as input and return a transformed string or object as output. They will have no dependencies on other agent modules and perform no side effects.
 
 **Key Functions:**
 -   `getArtifactListSummaryPure(allMetaMap)`: Takes a map of artifact metadata and returns a formatted markdown string listing the artifacts.
@@ -102,9 +102,9 @@ Since this is a pure module with no internal state, the widget does not need aut
 
 ### 3. The Implementation Pathway
 
-1.  **Create Pure Module:** Implement the `/modules/agent-logic-pure.js` file as a dependency-free module.
+1.  **Create Pure Module:** Implement the `/core/agent-logic-pure.js` file as a dependency-free module.
 2.  **Define Pure Functions:** Implement the prompt-building helper functions. They should perform all necessary string formatting, truncation, and replacement operations.
-3.  **Refactor Agent Cycle:** Modify `/modules/agent-cycle.js` to use the new helper.
+3.  **Refactor Agent Cycle:** Modify `/core/agent-cycle.js` to use the new helper.
     a.  Inject `AgentLogicPureHelpers` as a dependency.
     b.  In the `_assembleCorePromptContext` helper function, instead of performing string manipulation itself, it will first gather all the raw data (from `StateManager`, `Storage`, etc.).
     c.  It will then pass this raw data and the prompt template to the `AgentLogicPureHelpers.assembleCorePromptPure` function.

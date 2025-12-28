@@ -6,7 +6,7 @@
 
 **Prerequisites:** `0x000005` (State Management)
 
-**Affected Artifacts:** `/upgrades/system-config.json`, `/upgrades/state-manager.js`
+**Affected Artifacts:** `/config/system-config.json`, `/core/state-manager.js`
 
 ---
 
@@ -16,7 +16,7 @@ An agent needs runtime configuration to control its behavior without code modifi
 
 ### 2. The Architectural Solution
 
-The solution is a JSON configuration artifact at `/upgrades/system-config.json` that is loaded into the agent's state at initialization and can be modified during runtime.
+The solution is a JSON configuration artifact at `/config/system-config.json` that is loaded into the agent's state at initialization and can be modified during runtime.
 
 **Configuration Structure:**
 ```json
@@ -63,7 +63,7 @@ The solution is a JSON configuration artifact at `/upgrades/system-config.json` 
      features: { dynamicTools: false, selfModification: true }
    };
    await StateManager.createArtifact(
-     "/upgrades/system-config.json",
+     "/config/system-config.json",
      "json",
      JSON.stringify(defaultConfig, null, 2),
      "System configuration parameters"
@@ -73,7 +73,7 @@ The solution is a JSON configuration artifact at `/upgrades/system-config.json` 
 2. **Load Configuration in State Manager:**
    ```javascript
    // In state-manager.js init()
-   const sysCfgContent = await Storage.getArtifactContent('/upgrades/system-config.json');
+   const sysCfgContent = await Storage.getArtifactContent('/config/system-config.json');
    if (sysCfgContent) {
      globalState.cfg = JSON.parse(sysCfgContent);
    }
@@ -89,9 +89,9 @@ The solution is a JSON configuration artifact at `/upgrades/system-config.json` 
 4. **Update Configuration Dynamically:**
    ```javascript
    // Agent can modify its own config
-   const config = JSON.parse(await Storage.getArtifactContent('/upgrades/system-config.json'));
+   const config = JSON.parse(await Storage.getArtifactContent('/config/system-config.json'));
    config.api.temperature = 0.9; // Increase creativity
-   await StateManager.updateArtifact('/upgrades/system-config.json', JSON.stringify(config, null, 2));
+   await StateManager.updateArtifact('/config/system-config.json', JSON.stringify(config, null, 2));
    ```
 
 ### 4. Configuration Categories

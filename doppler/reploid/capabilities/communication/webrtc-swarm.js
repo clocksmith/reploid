@@ -15,7 +15,11 @@ const MESSAGE_TYPES = new Set([
   'sync-request', 'sync-response',
   'goal-update', 'reflection-share',
   'artifact-announce', 'artifact-request', 'artifact-chunk', 'artifact-ack',
-  'ping', 'pong'
+  'ping', 'pong',
+  'raft:request-vote', 'raft:request-vote-response',
+  'raft:append-entries', 'raft:append-entries-response',
+  'raft:client-request', 'raft:client-response',
+  'fl:hello', 'fl:round-start', 'fl:update', 'fl:round-commit', 'fl:round-failed'
 ]);
 
 const WebRTCSwarm = {

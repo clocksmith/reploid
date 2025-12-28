@@ -8,15 +8,17 @@ const ArenaHarness = {
     id: 'ArenaHarness',
     version: '1.0.0',
     dependencies: ['VFSSandbox', 'ArenaCompetitor', 'ArenaMetrics',
-                   'VerificationManager', 'EventBus', 'Utils'],
+                   'VerificationManager', 'EventBus', 'Utils', 'SchemaRegistry?'],
     async: false,
     type: 'testing'
   },
 
   factory: (deps) => {
     const { VFSSandbox, ArenaCompetitor, ArenaMetrics,
-            VerificationManager, EventBus, Utils } = deps;
-    const { logger } = Utils;
+            VerificationManager, EventBus, Utils, SchemaRegistry } = deps;
+    const { logger, generateId } = Utils;
+    let _lastConfig = null;
+    let _lastRunId = null;
 
     /**
      * Run a competition between multiple competitors
@@ -31,9 +33,13 @@ const ArenaHarness = {
     const runCompetition = async (config) => {
       const { task, context, competitors, parseChanges, options = {} } = config;
       const { timeout = 60000, continueOnError = true } = options;
+      const runId = generateId('arena');
+      _lastConfig = config;
+      _lastRunId = runId;
 
       logger.info(`[Arena] Starting competition: ${competitors.length} competitors`);
       EventBus.emit('arena:start', {
+        runId,
         competitorCount: competitors.length,
         task: task.slice(0, 100)
       });
@@ -141,7 +147,10 @@ const ArenaHarness = {
       const ranked = ArenaMetrics.rankResults(results);
 
       EventBus.emit('arena:complete', {
+        runId,
         ...summary,
+        summary,
+        results: ranked,
         winner: summary.fastestPassing
       });
 
@@ -200,6 +209,125 @@ const ArenaHarness = {
       }
     };
 
+    const validateAgainstSchema = (value, schema) => {
+      if (!schema || typeof schema !== 'object') return { valid: true, errors: [] };
+      const errors = [];
+      const required = Array.isArray(schema.required) ? schema.required : [];
+      const properties = schema.properties || {};
+
+      if (schema.type === 'object' && (value === null || typeof value !== 'object' || Array.isArray(value))) {
+        errors.push('Expected object');
+        return { valid: false, errors };
+      }
+
+      for (const key of required) {
+        if (!(key in (value || {}))) {
+          errors.push(`Missing required field: ${key}`);
+        }
+      }
+
+      for (const [key, def] of Object.entries(properties)) {
+        if (!(key in (value || {}))) continue;
+        const expectedType = def?.type;
+        if (!expectedType) continue;
+        const actual = value[key];
+        if (expectedType === 'array' && !Array.isArray(actual)) {
+          errors.push(`Field ${key} expected array`);
+        } else if (expectedType === 'object' && (typeof actual !== 'object' || actual === null || Array.isArray(actual))) {
+          errors.push(`Field ${key} expected object`);
+        } else if (expectedType !== 'array' && expectedType !== 'object' && typeof actual !== expectedType) {
+          errors.push(`Field ${key} expected ${expectedType}`);
+        }
+      }
+
+      return { valid: errors.length === 0, errors };
+    };
+
+    const scoreOutput = (output, task, options = {}) => {
+      const schema = task.schema || (task.schemaName && SchemaRegistry?.getToolSchema?.(task.schemaName)?.parameters) || null;
+      const scored = {
+        score: 0,
+        valid: true,
+        errors: [],
+        parsed: output
+      };
+
+      if (schema) {
+        let parsed = output;
+        if (typeof output === 'string') {
+          try {
+            parsed = JSON.parse(output);
+          } catch (err) {
+            scored.valid = false;
+            scored.errors.push('Output is not valid JSON');
+            return scored;
+          }
+        }
+        const validation = validateAgainstSchema(parsed, schema);
+        scored.valid = validation.valid;
+        scored.errors = validation.errors;
+        scored.parsed = parsed;
+        scored.score += validation.valid ? 0.7 : 0;
+      } else {
+        scored.score += 0.4;
+      }
+
+      if (typeof options.scoreOutput === 'function') {
+        const extra = options.scoreOutput(output, task, scored);
+        if (typeof extra === 'number') scored.score += extra;
+      }
+
+      return scored;
+    };
+
+    const runExpertPool = async (task, experts, doppler, options = {}) => {
+      if (!Array.isArray(experts) || experts.length === 0) {
+        throw new Error('Expert pool is empty');
+      }
+      const runner = options.run
+        || doppler?.executeExpert
+        || doppler?.inference
+        || null;
+      if (!runner) {
+        throw new Error('No runner available for expert pool');
+      }
+
+      const outputs = await Promise.all(experts.map(async (expert) => {
+        const started = Date.now();
+        const result = await runner(expert.modelId || expert.id, task.prompt || task.input || task.description || '', {
+          loraAdapter: expert.adapter,
+          maxTokens: task.maxTokens,
+          temperature: task.temperature,
+          topP: task.topP,
+          topK: task.topK
+        });
+        return {
+          expert,
+          output: result,
+          durationMs: Date.now() - started
+        };
+      }));
+
+      const scored = outputs.map((entry) => {
+        const score = scoreOutput(entry.output, task, options);
+        return { ...entry, score };
+      });
+
+      scored.sort((a, b) => b.score.score - a.score.score);
+      return {
+        winner: scored[0] || null,
+        results: scored
+      };
+    };
+
+    const rerunLast = async () => {
+      if (!_lastConfig) {
+        throw new Error('No previous arena run available');
+      }
+      logger.info(`[Arena] Re-running last competition (${_lastRunId || 'unknown'})`);
+      return runCompetition(_lastConfig);
+    };
+
     /**
      * Helper: Add timeout to a promise
      */
@@ -214,7 +342,9 @@ const ArenaHarness = {
 
     return {
       runCompetition,
-      verifySolution
+      verifySolution,
+      runExpertPool,
+      rerunLast
     };
   }
 };

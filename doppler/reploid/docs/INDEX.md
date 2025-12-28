@@ -28,9 +28,11 @@ Guide to all documentation in the REPLOID project.
 
 ### Reference
 - **[docs/API.md](./API.md)** - Module API documentation
+- **[docs/CONFIGURATION.md](./CONFIGURATION.md)** - Boot page settings and localStorage keys
 - **[docs/LOCAL_MODELS.md](./LOCAL_MODELS.md)** - WebLLM and Ollama setup
 - **[docs/TROUBLESHOOTING.md](./TROUBLESHOOTING.md)** - Common issues and solutions
 - **[docs/CYCLICAL_ACRONYMS.md](./CYCLICAL_ACRONYMS.md)** - Cyclical acronyms taxonomy
+- **[docs/MEMORY_ARCHITECTURE.md](./MEMORY_ARCHITECTURE.md)** - See [Blueprint 0x000079](../blueprints/0x000079-hierarchical-memory-architecture.md)
 - **[docs/STYLE_GUIDE.md](./STYLE_GUIDE.md)** - Code and UI conventions
 - **[docs/SECURITY.md](./SECURITY.md)** - Security model and containment layers
 - **[docs/CONTRIBUTING.md](./CONTRIBUTING.md)** - Contribution guidelines
@@ -42,7 +44,7 @@ Guide to all documentation in the REPLOID project.
 ```
 reploid/
 ├── doppler/reploid/            # Main application
-│   ├── index.html              # Boot screen entry point
+│   ├── reploid.html            # Boot screen entry point
 │   ├── boot.js                 # Hydration and initialization
 │   ├── sw-module-loader.js     # Service worker for VFS modules
 │   │
@@ -69,12 +71,6 @@ reploid/
 │   │
 │   ├── blueprints/             # Architectural specifications
 │   │   └── (100+ design docs)
-│   │
-│   ├── doppler/                # WebGPU inference engine
-│   │   ├── inference/          # Pipeline, KV cache, MoE
-│   │   ├── gpu/                # WebGPU kernels
-│   │   ├── storage/            # OPFS shard management
-│   │   └── docs/               # Doppler-specific docs
 │   │
 │   └── tests/                  # Test suites
 │
@@ -115,7 +111,7 @@ reploid/
 **Key Files:**
 - `doppler/reploid/config/genesis-levels.json` - Module registry and worker types
 - `doppler/reploid/boot.js` - Application bootstrap
-- `doppler/reploid/index.html` - Entry point
+- `doppler/reploid/reploid.html` - Entry point
 
 **Key Directories:**
 - `doppler/reploid/core/` - Agent substrate modules
@@ -123,8 +119,10 @@ reploid/
 - `doppler/reploid/infrastructure/` - Support services
 - `doppler/reploid/ui/` - Proto UI
 - `doppler/reploid/blueprints/` - Architectural specifications
-- `doppler/reploid/doppler/` - WebGPU inference engine
 - `docs/` - Human-facing documentation
+
+**External Dependencies:**
+- `@clocksmith/doppler` - WebGPU inference engine (separate repo)
 
 ---
 

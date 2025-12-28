@@ -7,7 +7,7 @@
 
 **Prerequisites:** `0x00000A`
 
-**Affected Artifacts:** `/modules/tool-worker.js`, `/modules/tool-runner.js`
+**Affected Artifacts:** `/core/tool-worker.js`, `/core/tool-runner.js`
 
 ---
 
@@ -19,22 +19,22 @@ A core goal of the agent is to improve itself by creating new tools. However, ex
 
 The architecture involves a main thread `ToolRunner` and a separate `tool-worker.js` script.
 
-1.  **The Worker (`/modules/tool-worker.js`):**
+1.  **The Worker (`/core/tool-worker.js`):**
     -   This script runs in a completely separate global scope with no access to the `window` or `document` objects.
     -   It sets up an `onmessage` listener to receive code and arguments from the `ToolRunner`.
     -   It uses the `new Function()` constructor to safely execute the received tool code. The `Function` constructor provides a degree of sandboxing by controlling the scope of the executed code.
     -   It provides a "shim" API, allowing the sandboxed code to safely request data from the main thread (e.g., `LS_shim.getArtifactContent(...)`) via a `postMessage` request/response protocol.
 
-2.  **The Runner (`/modules/tool-runner.js`):**
+2.  **The Runner (`/core/tool-runner.js`):**
     -   When asked to run a *dynamic* tool, the `ToolRunner` will not execute the code itself.
-    -   Instead, it will instantiate a new `Worker`, passing it the path to `/modules/tool-worker.js`.
+    -   Instead, it will instantiate a new `Worker`, passing it the path to `/core/tool-worker.js`.
     -   It will use `worker.postMessage()` to send the tool's code and arguments to the worker.
     -   It will listen for the `message` event from the worker to receive the result (or an error) and `await` a `Promise` that resolves when the worker is finished.
     -   Crucially, it will implement a timeout to terminate the worker if it runs for too long, preventing infinite loops.
 
 ### 3. The Implementation Pathway
 
-1.  **Create Worker Script:** Implement `/modules/tool-worker.js`. It should contain the `onmessage` handler and the shimmed APIs for `localStorage` and `StateManager` access.
+1.  **Create Worker Script:** Implement `/core/tool-worker.js`. It should contain the `onmessage` handler and the shimmed APIs for `localStorage` and `StateManager` access.
 2.  **Modify `ToolRunner`:**
     a.  Add the logic to the `runTool` function to handle the `dynamicTool` case.
     b.  This logic will create a new `Worker` and return a `Promise`.

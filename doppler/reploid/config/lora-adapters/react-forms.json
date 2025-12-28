@@ -1,0 +1,47 @@
+{
+  "name": "react-forms",
+  "version": "1.0.0",
+  "description": "Specialized adapter for React form generation",
+  "baseModel": "functiongemma-2b",
+  "format": "safetensors",
+  "quantization": "q4",
+
+  "lora": {
+    "rank": 16,
+    "alpha": 32,
+    "targetModules": ["q_proj", "k_proj", "v_proj", "o_proj"],
+    "dropout": 0.05
+  },
+
+  "shards": [
+    {
+      "name": "adapter_model.safetensors",
+      "path": "/.lora/react-forms/adapter_model.safetensors",
+      "sizeBytes": 2097152,
+      "hash": "sha256:placeholder"
+    }
+  ],
+
+  "routing": {
+    "keywords": ["react", "form", "input", "validation", "submit", "useState", "useForm"],
+    "domains": ["frontend", "ui", "forms"],
+    "examples": [
+      "Create a login form with email and password fields",
+      "Build a multi-step registration wizard",
+      "Add form validation with error messages"
+    ]
+  },
+
+  "performance": {
+    "loadTimeMs": 50,
+    "mergeTimeMs": 100,
+    "contextOverhead": 0
+  },
+
+  "metadata": {
+    "author": "reploid",
+    "license": "MIT",
+    "trainedOn": "react-forms-dataset-v1",
+    "createdAt": "2025-12-25T00:00:00Z"
+  }
+}

@@ -8,7 +8,7 @@
 **Prerequisites:**
 - **0x00004E** (Module Widget Protocol) - REQUIRED for widget implementation
 
-**Affected Artifacts:** `/modules/app-logic.js`, `/boot.js`
+**Affected Artifacts:** `/core/app-logic.js`, `/boot.js`
 
 ---
 
@@ -18,7 +18,7 @@ A modular agent architecture requires a robust mechanism to "wire" its component
 
 ### 2. The Architectural Solution
 
-The `/upgrades/app-logic.js` artifact serves as the central orchestrator, executed first by the `/boot.js` harness. It implements a **Dependency Injection (DI) container-based architecture** for module loading and initialization, with comprehensive boot performance tracking via a Web Component proto widget.
+The `/core/app-logic.js` artifact serves as the central orchestrator, executed first by the `/boot.js` harness. It implements a **Dependency Injection (DI) container-based architecture** for module loading and initialization, with comprehensive boot performance tracking via a Web Component proto widget.
 
 #### Module Structure
 
@@ -200,15 +200,15 @@ Set `_bootStats.startTime = Date.now()` and `_bootStats.status = 'booting'` when
 
 #### Step 2: Load Foundation Modules
 
-The `/boot.js` harness loads and executes `/upgrades/app-logic.js`. The orchestrator manually loads the two foundation modules:
+The `/boot.js` harness loads and executes `/core/app-logic.js`. The orchestrator manually loads the two foundation modules:
 
 ```javascript
 // Load Utils (zero dependencies)
-const utilsContent = await vfs.read("/upgrades/utils.js");
+const utilsContent = await vfs.read("/core/utils.js");
 const Utils = new Function(utilsContent + "\nreturn Utils;")().factory();
 
 // Load DI Container
-const diContainerContent = await vfs.read("/upgrades/di-container.js");
+const diContainerContent = await vfs.read("/infrastructure/di-container.js");
 const DIContainerModule = new Function(diContainerContent + "\nreturn DIContainer;");
 const container = DIContainerModule().factory({ Utils });
 
@@ -243,14 +243,14 @@ Define the module manifest (list of all module paths) and use the DI container t
 
 ```javascript
 const moduleManifest = [
-  '/upgrades/event-bus.js',
-  '/upgrades/state-helpers-pure.js',
-  '/upgrades/storage-localstorage.js',
-  '/upgrades/state-manager.js',
-  '/upgrades/api-client.js',
-  '/upgrades/tool-runner.js',
-  '/upgrades/agent-cycle.js',
-  '/upgrades/ui-manager.js',
+  '/infrastructure/event-bus.js',
+  '/core/state-helpers-pure.js',
+  '/core/storage-localstorage.js',
+  '/core/state-manager.js',
+  '/core/api-client.js',
+  '/tools/tool-runner.js',
+  '/core/agent-cycle.js',
+  '/ui/ui-manager.js',
   // ... all other modules
 ];
 

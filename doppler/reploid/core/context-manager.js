@@ -65,6 +65,10 @@ const ContextManager = {
     // Runtime limit overrides (set via setLimits)
     let _runtimeOverrides = null;
 
+    // FunctionGemma KV prefix cache
+    let _kvPrefixCache = null;
+    let _expertPrompts = {};
+
     // ─────────────────────────────────────────────────────────────────────────
     // Limit Resolution
     // ─────────────────────────────────────────────────────────────────────────
@@ -458,6 +462,94 @@ const ContextManager = {
       return tokens;
     };
 
+    const buildPromptFromContext = (context) => {
+      return context
+        .map((m) => {
+          if (m.role === 'system') return `System: ${m.content}`;
+          if (m.role === 'user') return `User: ${m.content}`;
+          if (m.role === 'assistant') return `Assistant: ${m.content}`;
+          return m.content;
+        })
+        .join('\n') + '\nAssistant:';
+    };
+
+    const createSharedPrefix = async (context, modelConfig, options = {}) => {
+      if (!LLMClient?.prefillKV) {
+        return { snapshot: null, prompt: null };
+      }
+      const prompt = options.prompt || buildPromptFromContext(context);
+      const snapshot = await LLMClient.prefillKV(prompt, modelConfig, options);
+
+      if (EventBus) {
+        EventBus.emit('context:prefix', {
+          tokens: countTokens(context),
+          modelId: modelConfig?.id || null
+        });
+      }
+
+      return { snapshot, prompt };
+    };
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // FunctionGemma Expert Context
+    // ─────────────────────────────────────────────────────────────────────────
+
+    /**
+     * Initialize shared KV prefix for FunctionGemma expert network.
+     * Call once before using getExpertContext().
+     * @param {string} systemPrompt - Common system prompt for all experts
+     * @param {Object} modelConfig - Model configuration
+     * @returns {Promise<Object>} KV cache snapshot
+     */
+    const initSharedPrefix = async (systemPrompt, modelConfig) => {
+      const { snapshot, prompt } = await createSharedPrefix(
+        [{ role: 'system', content: systemPrompt }],
+        modelConfig
+      );
+      _kvPrefixCache = snapshot;
+
+      if (EventBus) {
+        EventBus.emit('context:expert:init', {
+          prefixCached: !!snapshot,
+          modelId: modelConfig?.id
+        });
+      }
+
+      return { snapshot, prompt };
+    };
+
+    /**
+     * Register an expert-specific prompt suffix.
+     * @param {string} expertId - Expert identifier
+     * @param {string} promptSuffix - Expert specialization prompt
+     */
+    const registerExpertPrompt = (expertId, promptSuffix) => {
+      _expertPrompts[expertId] = promptSuffix;
+    };
+
+    /**
+     * Get context for a specific FunctionGemma expert.
+     * @param {string} expertId - Expert identifier
+     * @returns {Object} { prefix: KVSnapshot, expertPrompt: string }
+     */
+    const getExpertContext = (expertId) => {
+      const expertPrompt = _expertPrompts[expertId] || '';
+
+      return {
+        prefix: _kvPrefixCache,
+        expertPrompt,
+        hasCachedPrefix: !!_kvPrefixCache
+      };
+    };
+
+    /**
+     * Clear expert context state.
+     */
+    const clearExpertContext = () => {
+      _kvPrefixCache = null;
+      _expertPrompts = {};
+    };
+
     // ─────────────────────────────────────────────────────────────────────────
     // Exports
     // ─────────────────────────────────────────────────────────────────────────
@@ -485,6 +577,15 @@ const ContextManager = {
 
       // Token events
       emitTokens,
+
+      // Shared prefix KV helpers
+      createSharedPrefix,
+
+      // FunctionGemma expert context
+      initSharedPrefix,
+      registerExpertPrompt,
+      getExpertContext,
+      clearExpertContext,
 
       // Expose defaults for reference
       DEFAULT_LIMITS,

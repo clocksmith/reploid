@@ -6,7 +6,7 @@
 
 **Prerequisites:** `0x00000A` (Tool Runner), `0x00000B` (Tool Helpers)
 
-**Affected Artifacts:** `/system/tools-dynamic.json`, `/modules/tool-runner.js`
+**Affected Artifacts:** `/config/tools-dynamic.json`, `/core/tool-runner.js`
 
 ---
 
@@ -16,7 +16,7 @@ Static tools are limited to what was anticipated at design time. Dynamic tool cr
 
 ### 2. The Architectural Solution
 
-A dynamic tool registry at `/system/tools-dynamic.json` that stores agent-created tools:
+A dynamic tool registry at `/config/tools-dynamic.json` that stores agent-created tools:
 
 **Dynamic Tool Structure:**
 ```json
@@ -54,7 +54,7 @@ A dynamic tool registry at `/system/tools-dynamic.json` that stores agent-create
 1. **Initialize Dynamic Tools Registry:**
    ```javascript
    // On first run or if missing
-   const dynamicToolsPath = "/system/tools-dynamic.json";
+   const dynamicToolsPath = "/config/tools-dynamic.json";
    if (!await StateManager.getArtifactMetadata(dynamicToolsPath)) {
      await StateManager.createArtifact(
        dynamicToolsPath,

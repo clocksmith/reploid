@@ -6,7 +6,7 @@
 
 **Prerequisites:** `0x000005` (State Management)
 
-**Affected Artifacts:** `/system/scratchpad.md`, `/modules/agent-cycle.js`
+**Affected Artifacts:** `/core/scratchpad.md`, `/core/agent-cycle.js`
 
 ---
 
@@ -16,7 +16,7 @@ Complex reasoning requires working memory - a space to decompose problems, track
 
 ### 2. The Architectural Solution
 
-A markdown artifact at `/system/scratchpad.md` that serves as the agent's notepad:
+A markdown artifact at `/core/scratchpad.md` that serves as the agent's notepad:
 
 **Scratchpad Structure:**
 ```markdown
@@ -51,7 +51,7 @@ A markdown artifact at `/system/scratchpad.md` that serves as the agent's notepa
 1. **Initialize Scratchpad:**
    ```javascript
    // In agent-cycle.js at cycle start
-   const scratchpadPath = "/system/scratchpad.md";
+   const scratchpadPath = "/core/scratchpad.md";
    const scratchpadContent = `# Cycle ${currentCycle} Scratchpad\n\n` +
      `## Goal\n${goalInfo.latestGoal}\n\n` +
      `## Working Notes\n\n` +
@@ -71,17 +71,17 @@ A markdown artifact at `/system/scratchpad.md` that serves as the agent's notepa
 2. **Update During Cycle:**
    ```javascript
    // After each tool call
-   const scratchpad = await Storage.getArtifactContent("/system/scratchpad.md");
+   const scratchpad = await Storage.getArtifactContent("/core/scratchpad.md");
    const updated = scratchpad + `\n### Tool: ${toolName}\n` +
      `Input: ${JSON.stringify(toolArgs)}\n` +
      `Result: ${JSON.stringify(result)}\n`;
-   await StateManager.updateArtifact("/system/scratchpad.md", updated);
+   await StateManager.updateArtifact("/core/scratchpad.md", updated);
    ```
 
 3. **Include in Prompt Context:**
    ```javascript
    // In prompt assembly
-   const scratchpadContent = await Storage.getArtifactContent("/system/scratchpad.md");
+   const scratchpadContent = await Storage.getArtifactContent("/core/scratchpad.md");
    const prompt = basePrompt + "\n\nYour working notes:\n" + scratchpadContent;
    ```
 

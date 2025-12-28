@@ -12,16 +12,17 @@ const WorkerManager = {
     version: '1.0.0',
     genesis: { introduced: 'full' },
     files: ['core/worker-manager.js', 'core/worker-agent.js'],
-    dependencies: ['Utils', 'VFS', 'LLMClient', 'ToolRunner', 'ResponseParser', 'EventBus', 'AuditLogger?', 'SchemaRegistry?'],
+    dependencies: ['Utils', 'VFS', 'LLMClient', 'ToolRunner', 'ResponseParser', 'EventBus', 'AuditLogger?', 'SchemaRegistry?', 'ToolExecutor', 'TraceStore?'],
     async: true,
     type: 'core'
   },
 
   factory: (deps) => {
-    const { Utils, VFS, LLMClient, ToolRunner, ResponseParser, EventBus, AuditLogger, SchemaRegistry } = deps;
+    const { Utils, VFS, LLMClient, ToolRunner, ResponseParser, EventBus, AuditLogger, SchemaRegistry, ToolExecutor, TraceStore } = deps;
     const { logger } = Utils;
 
     const WORKERS_DIR = '/.system/workers';
+    const WORKER_SCRIPT = './core/worker-agent.js';
     const MAX_COMPLETED_WORKERS = 100;  // Prevent unbounded memory growth
     const _activeWorkers = new Map();
     const _completedWorkers = new Map();
@@ -171,6 +172,87 @@ const WorkerManager = {
       return `worker_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
     };
 
+    const _ensureWorkerSupport = () => {
+      if (typeof Worker === 'undefined') {
+        throw new Error('Web Workers not supported in this environment');
+      }
+    };
+
+    const _postRpcResponse = (worker, requestId, ok, payload) => {
+      worker.postMessage({
+        type: 'rpc:response',
+        requestId,
+        ok,
+        payload
+      });
+    };
+
+    const _handleWorkerRpc = async (workerId, worker, message) => {
+      const record = _activeWorkers.get(workerId);
+      if (!record) return;
+
+      const { requestId, op, payload } = message;
+      if (!requestId || !op) return;
+      const traceSessionId = record.traceSessionId || null;
+
+      try {
+        if (op === 'llm:chat') {
+          const llmStart = Date.now();
+          if (TraceStore && traceSessionId) {
+            await TraceStore.record(traceSessionId, 'llm:request', {
+              source: 'worker',
+              workerId,
+              modelId: record.modelConfig?.id || null,
+              messageCount: payload.messages?.length || 0,
+              messages: Array.isArray(payload.messages)
+                ? payload.messages.slice(-10)
+                : []
+            }, { tags: ['llm'] });
+          }
+          const toolSchemas = ToolRunner.getToolSchemasFiltered(record.allowedTools);
+          const response = await LLMClient.chat(payload.messages, record.modelConfig, null, { tools: toolSchemas });
+          if (TraceStore && traceSessionId) {
+            await TraceStore.record(traceSessionId, 'llm:response', {
+              source: 'worker',
+              workerId,
+              modelId: record.modelConfig?.id || null,
+              latencyMs: Date.now() - llmStart,
+              toolCallCount: response.toolCalls?.length || 0,
+              usage: response.usage || null,
+              contentPreview: response.content
+            }, { tags: ['llm'] });
+          }
+          _postRpcResponse(worker, requestId, true, response);
+          return;
+        }
+
+        if (op === 'tool:execute') {
+          const { call, iteration } = payload;
+          const { result, error } = await ToolExecutor.executeWithRetry(call, {
+            iteration,
+            workerId,
+            allowedTools: record.allowedTools,
+            trace: traceSessionId ? { sessionId: traceSessionId, source: 'worker', workerId } : null
+          });
+          _postRpcResponse(worker, requestId, true, {
+            result,
+            error: error ? error.message : null
+          });
+          return;
+        }
+
+        if (op === 'parse:tool_calls') {
+          const calls = ResponseParser.parseToolCalls(payload.text || '');
+          _postRpcResponse(worker, requestId, true, calls);
+          return;
+        }
+
+        _postRpcResponse(worker, requestId, false, { error: `Unknown RPC op: ${op}` });
+      } catch (err) {
+        _postRpcResponse(worker, requestId, false, { error: err.message });
+      }
+    };
+
     /**
      * Spawn a new worker agent
      * @param {Object} options
@@ -187,6 +269,8 @@ const WorkerManager = {
         throw new Error('Workers cannot spawn other workers (flat hierarchy enforced)');
       }
 
+      _ensureWorkerSupport();
+
       // Check concurrent limit
       if (_activeWorkers.size >= _maxConcurrentWorkers) {
         throw new Error(`Maximum concurrent workers (${_maxConcurrentWorkers}) reached`);
@@ -195,6 +279,10 @@ const WorkerManager = {
       const workerId = _generateWorkerId();
       const workerType = _workerConfig[type] || _workerConfig.explore;
       const allowedTools = workerType?.tools || [];
+      const resolvedModelConfig = _resolveModelConfig(model || workerType?.defaultModelRole || 'fast');
+      if (!resolvedModelConfig) {
+        throw new Error(`No model config available for worker role '${model || workerType?.defaultModelRole || 'fast'}'`);
+      }
 
       logger.info(`[WorkerManager] Spawning ${type} worker: ${workerId}`);
       logger.info(`[WorkerManager] Task: ${task.substring(0, 100)}...`);
@@ -214,15 +302,66 @@ const WorkerManager = {
         EventBus.emit('worker:spawned', { workerId, type, task });
       }
 
-      // Create the worker execution promise
-      const workerPromise = _executeWorker({
-        workerId,
-        type,
-        task,
-        model: model || workerType?.defaultModelRole || 'fast',
-        allowedTools,
-        maxIterations,
-        depth: depth + 1
+      let traceSessionId = null;
+      if (TraceStore) {
+        traceSessionId = await TraceStore.startSession({
+          source: 'worker',
+          workerId,
+          type,
+          task: task.substring(0, 200),
+          modelId: resolvedModelConfig?.id || null
+        });
+      }
+
+      const worker = new Worker(WORKER_SCRIPT, { type: 'module' });
+      const workerPromise = new Promise((resolve, reject) => {
+        worker.onmessage = (e) => {
+          const message = e.data || {};
+          if (message.type === 'rpc') {
+            _handleWorkerRpc(workerId, worker, message);
+            return;
+          }
+
+          if (message.type === 'started') {
+            if (EventBus) {
+              EventBus.emit('worker:started', { workerId });
+            }
+            return;
+          }
+
+          if (message.type === 'progress') {
+            if (EventBus) {
+              EventBus.emit('worker:progress', {
+                workerId,
+                iteration: message.iteration,
+                maxIterations: message.maxIterations,
+                message: message.message
+              });
+            }
+            return;
+          }
+
+          if (message.type === 'log') {
+            addLog(workerId, message.message);
+            return;
+          }
+
+          if (message.type === 'complete') {
+            worker.terminate();
+            resolve(message.result);
+            return;
+          }
+
+          if (message.type === 'error') {
+            worker.terminate();
+            reject(new Error(message.error));
+          }
+        };
+
+        worker.onerror = (err) => {
+          worker.terminate();
+          reject(err);
+        };
       });
 
       // Track active worker
@@ -233,7 +372,11 @@ const WorkerManager = {
         task,
         startTime,
         status: 'running',
-        logs: []
+        logs: [],
+        worker,
+        allowedTools,
+        modelConfig: resolvedModelConfig,
+        traceSessionId
       };
       _activeWorkers.set(workerId, {
         ...workerRecord,
@@ -243,9 +386,18 @@ const WorkerManager = {
       // Persist initial worker state
       _persistWorker(workerId, workerRecord);
 
+      worker.postMessage({
+        type: 'start',
+        workerId,
+        workerType: type,
+        task,
+        allowedTools,
+        maxIterations: maxIterations || 10
+      });
+
       // Handle completion
       workerPromise
-        .then(result => {
+        .then(async (result) => {
           const workerData = _activeWorkers.get(workerId);
           _activeWorkers.delete(workerId);
           const completedRecord = {
@@ -260,6 +412,13 @@ const WorkerManager = {
             duration: Date.now() - (workerData?.startTime || startTime)
           };
           _completedWorkers.set(workerId, completedRecord);
+          if (TraceStore && workerData?.traceSessionId) {
+            await TraceStore.endSession(workerData.traceSessionId, {
+              status: 'completed',
+              durationMs: completedRecord.duration,
+              toolCount: Array.isArray(result?.toolResults) ? result.toolResults.length : 0
+            });
+          }
           // Evict oldest if over limit (LRU)
           if (_completedWorkers.size > MAX_COMPLETED_WORKERS) {
             const oldestKey = _completedWorkers.keys().next().value;
@@ -270,7 +429,7 @@ const WorkerManager = {
             EventBus.emit('worker:completed', { workerId, result });
           }
         })
-        .catch(error => {
+        .catch(async (error) => {
           const workerData = _activeWorkers.get(workerId);
           _activeWorkers.delete(workerId);
           const errorRecord = {
@@ -285,6 +444,13 @@ const WorkerManager = {
             duration: Date.now() - (workerData?.startTime || startTime)
           };
           _completedWorkers.set(workerId, errorRecord);
+          if (TraceStore && workerData?.traceSessionId) {
+            await TraceStore.endSession(workerData.traceSessionId, {
+              status: 'error',
+              durationMs: errorRecord.duration,
+              error: error.message
+            });
+          }
           // Evict oldest if over limit (LRU)
           if (_completedWorkers.size > MAX_COMPLETED_WORKERS) {
             const oldestKey = _completedWorkers.keys().next().value;
@@ -572,7 +738,9 @@ ARGS: {"arg": "value"}`;
       const worker = _activeWorkers.get(workerId);
       if (worker) {
         logger.info(`[WorkerManager] Terminating worker: ${workerId}`);
-        // TODO: Actually terminate the Web Worker in Phase 3
+        if (worker.worker) {
+          worker.worker.terminate();
+        }
         _activeWorkers.delete(workerId);
         const terminatedRecord = {
           workerId,

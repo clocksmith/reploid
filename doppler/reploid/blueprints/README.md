@@ -55,6 +55,7 @@ Some blueprints overlap. Use the canonical IDs below; older IDs are deprecated.
 | `0x000069` | [Embedding Store](0x000069-embedding-store.md) | Vector embedding storage and retrieval. |
 | `0x000070` | [Semantic Memory](0x000070-semantic-memory.md) | Long-term retrieval by meaning. |
 | `0x000071` | [Knowledge Graph](0x000071-knowledge-graph.md) | Structured entities and relationships. |
+| `0x000079` | [Hierarchical Memory Architecture](0x000079-hierarchical-memory-architecture.md) | Three-tier memory with RAPTOR-style retrieval. |
 
 ## 3. Agent Cognition (The Frontal Cortex)
 *Reasoning, planning, decision-making, and LLM interaction.*
@@ -129,6 +130,7 @@ Some blueprints overlap. Use the canonical IDs below; older IDs are deprecated.
 | `0x00005F` | [Progress Tracker](0x00005F-progress-tracker.md) | Task completion monitor. |
 | `0x000060` | [Status Bar](0x000060-status-bar.md) | Global system state. |
 | `0x000061` | [Log Panel](0x000061-log-panel.md) | System logs. |
+| `0x000080` | [App Mounting System](0x000080-app-mounting-system.md) | Agent-created UI applications. |
 
 ## 6. Visualization & Analytics (The Monitor)
 *Charts, graphs, introspection visuals, and performance tracking.*
@@ -171,3 +173,4 @@ Some blueprints overlap. Use the canonical IDs below; older IDs are deprecated.
 | `0x000075` | [Arena Competitor](0x000075-arena-competitor.md) | Agent competitor representation. |
 | `0x000076` | [Arena Metrics](0x000076-arena-metrics.md) | Scoring and comparisons for arena runs. |
 | `0x000077` | [Arena Harness](0x000077-arena-harness.md) | Orchestrates arena battles and runs. |
+| `0x000078` | [GEPA Prompt Evolution](0x000078-gepa-prompt-evolution.md) | Genetic-Pareto multi-objective prompt optimization. |

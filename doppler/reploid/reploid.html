@@ -9,6 +9,18 @@
     <link rel="stylesheet" href="styles/theme.css?v=1733620800">
     <link rel="stylesheet" href="styles/boot.css?v=1733620800">
 
+    <script type="importmap">
+      {
+        "imports": {
+          "@clocksmith/doppler": "/vendor/doppler/index.js",
+          "@clocksmith/doppler/provider": "/vendor/doppler/doppler-provider.js",
+          "@clocksmith/doppler/bridge/": "/vendor/doppler/bridge/",
+          "@clocksmith/doppler/browser/": "/vendor/doppler/browser/",
+          "@clocksmith/doppler/": "/vendor/doppler/"
+        }
+      }
+    </script>
+
     <!-- Service Worker Module Loader (Self-Hosting VFS Architecture) -->
     <script>
       if ('serviceWorker' in navigator) {
@@ -243,6 +255,66 @@
                     <p id="reset-all-warning" class="reset-warning hidden">All data will be cleared on awaken</p>
                 </div>
 
+                <!-- Cognition Settings -->
+                <h4 class="section-header" style="margin-top: 24px;">Cognition</h4>
+                <div class="config-section">
+                    <div class="config-row">
+                        <label class="holo-checkbox">
+                            <input type="checkbox" id="semantic-enabled" checked onchange="setCognitionOption('semantic', this.checked)" />
+                            <span class="holo-checkbox-box"></span>
+                            <span class="holo-checkbox-text">Semantic Memory</span>
+                        </label>
+                        <label class="holo-checkbox">
+                            <input type="checkbox" id="symbolic-enabled" checked onchange="setCognitionOption('symbolic', this.checked)" />
+                            <span class="holo-checkbox-box"></span>
+                            <span class="holo-checkbox-text">Symbolic Reasoning</span>
+                        </label>
+                    </div>
+                    <div class="execution-limits-row">
+                        <span class="limit-label">Similarity threshold</span>
+                        <input type="number" id="min-similarity" class="limit-input" value="0.5" min="0" max="1" step="0.1" onchange="setCognitionOption('minSimilarity', this.value)" />
+                        <span class="limit-label">Top-K results</span>
+                        <input type="number" id="top-k" class="limit-input" value="5" min="1" max="20" onchange="setCognitionOption('topK', this.value)" />
+                    </div>
+                </div>
+
+                <!-- GEPA Evolution Settings -->
+                <h4 class="section-header" style="margin-top: 24px;">GEPA Evolution</h4>
+                <div class="config-section">
+                    <div class="execution-limits-row">
+                        <span class="limit-label">Population</span>
+                        <input type="number" id="gepa-population" class="limit-input" value="6" min="2" max="20" onchange="setGEPAOption('populationSize', this.value)" />
+                        <span class="limit-label">Generations</span>
+                        <input type="number" id="gepa-generations" class="limit-input" value="5" min="1" max="50" onchange="setGEPAOption('maxGenerations', this.value)" />
+                    </div>
+                    <div class="execution-limits-row">
+                        <span class="limit-label">Mutation rate</span>
+                        <input type="number" id="gepa-mutation" class="limit-input" value="0.3" min="0" max="1" step="0.1" onchange="setGEPAOption('mutationRate', this.value)" />
+                        <span class="limit-label">Crossover rate</span>
+                        <input type="number" id="gepa-crossover" class="limit-input" value="0.5" min="0" max="1" step="0.1" onchange="setGEPAOption('crossoverRate', this.value)" />
+                    </div>
+                    <div class="config-row">
+                        <label>Match mode</label>
+                        <select id="gepa-match-mode" class="config-select" onchange="setGEPAOption('matchMode', this.value)">
+                            <option value="exact" selected>Exact</option>
+                            <option value="includes">Includes</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Swarm Settings -->
+                <h4 class="section-header" style="margin-top: 24px;">Swarm / P2P</h4>
+                <div class="config-section">
+                    <div class="config-row">
+                        <label class="holo-checkbox">
+                            <input type="checkbox" id="swarm-enabled" onchange="setSwarmEnabled(this.checked)" />
+                            <span class="holo-checkbox-box"></span>
+                            <span class="holo-checkbox-text">Enable P2P Swarm</span>
+                        </label>
+                    </div>
+                    <p class="form-hint" style="margin-top: 8px;">Connect with other Reploid instances via WebRTC for distributed tasks.</p>
+                </div>
+
                 <!-- Connection status (detailed view) -->
                 <h4 class="section-header" style="margin-top: 24px;">Connection status</h4>
                 <div class="provider-status-bar">
@@ -404,6 +476,8 @@ const GOAL_CATEGORIES = {
     { label: 'Self-Evolve', text: 'Create 3 mutant versions of a tool with random variations. Test each on 5 inputs. Keep the best performer, mutate it to create 3 more. Repeat for 5 generations. Show the evolved tool beating the original.' },
     { label: 'Darwin\'s Tools', text: 'Genetic programming: start with 20 random tool mutations, run fitness tests (speed, correctness, size). Crossbreed top 5, mutate offspring, repeat 10 generations. Graph fitness over time. Final tool must beat original by 2x.' },
     { label: 'Self-Optimize', text: 'Analyze your own system prompt in persona-manager.js. Identify redundancies, rewrite it to be 20% smaller while preserving capabilities. Report before/after token counts and prove it still works.' },
+    { label: 'GEPA Prompt Evolution', text: 'Use RunGEPA to evolve a system prompt against a small task set. Compare the Pareto frontier and deploy the best prompt. Store checkpoints in /.memory/gepa/.', levels: ['full'] },
+    { label: 'GEPA Error Reflection', text: 'Build a 5-task set with known failure patterns. Run RunGEPA with a strong reflection model and show the reflection-guided mutations that improved accuracy.', levels: ['full'] },
     { label: 'Compile Thyself', text: 'Identify performance-critical code in agent-loop.js, compile it to WebAssembly, hot-swap via LoadModule. Benchmark before/after. Target: 10x speedup on tight loops.' },
     { label: 'Linter Bot', text: 'Write a strict style guide in /docs/style.txt. Create a tool that scans your entire VFS, identifies code that violates the style, and auto-refactors it to be compliant.' },
     { label: 'Code Archaeologist', text: 'Implement a history tracking system. For every file change, store a diff. Create a visualization that shows the evolution of a specific file over time.' },
@@ -968,6 +1042,98 @@ window.addEventListener('DOMContentLoaded', () => {
 // Expose reset check and function for boot.js to use
 window.shouldResetAll = () => localStorage.getItem('REPLOID_RESET_ALL') === 'true';
 window.performFullReset = performFullReset;
+
+// Cognition settings
+function setCognitionOption(key, value) {
+  const config = JSON.parse(localStorage.getItem('REPLOID_COGNITION_CONFIG') || '{}');
+  config[key] = key === 'minSimilarity' ? parseFloat(value) : (key === 'topK' ? parseInt(value) : value);
+  localStorage.setItem('REPLOID_COGNITION_CONFIG', JSON.stringify(config));
+  console.log(`[Config] Cognition ${key} set to: ${value}`);
+}
+
+function initCognitionSettings() {
+  const config = JSON.parse(localStorage.getItem('REPLOID_COGNITION_CONFIG') || '{}');
+
+  const semanticCheckbox = document.getElementById('semantic-enabled');
+  if (semanticCheckbox && config.semantic !== undefined) {
+    semanticCheckbox.checked = config.semantic;
+  }
+
+  const symbolicCheckbox = document.getElementById('symbolic-enabled');
+  if (symbolicCheckbox && config.symbolic !== undefined) {
+    symbolicCheckbox.checked = config.symbolic;
+  }
+
+  const minSimilarity = document.getElementById('min-similarity');
+  if (minSimilarity && config.minSimilarity !== undefined) {
+    minSimilarity.value = config.minSimilarity;
+  }
+
+  const topK = document.getElementById('top-k');
+  if (topK && config.topK !== undefined) {
+    topK.value = config.topK;
+  }
+}
+
+// Expose for modules to read
+window.getCognitionConfig = () => JSON.parse(localStorage.getItem('REPLOID_COGNITION_CONFIG') || '{}');
+
+// GEPA settings
+function setGEPAOption(key, value) {
+  const config = JSON.parse(localStorage.getItem('REPLOID_GEPA_CONFIG') || '{}');
+  if (['populationSize', 'maxGenerations', 'eliteCount'].includes(key)) {
+    config[key] = parseInt(value);
+  } else if (['mutationRate', 'crossoverRate'].includes(key)) {
+    config[key] = parseFloat(value);
+  } else {
+    config[key] = value;
+  }
+  localStorage.setItem('REPLOID_GEPA_CONFIG', JSON.stringify(config));
+  console.log(`[Config] GEPA ${key} set to: ${value}`);
+}
+
+function initGEPASettings() {
+  const config = JSON.parse(localStorage.getItem('REPLOID_GEPA_CONFIG') || '{}');
+
+  const fields = {
+    'gepa-population': 'populationSize',
+    'gepa-generations': 'maxGenerations',
+    'gepa-mutation': 'mutationRate',
+    'gepa-crossover': 'crossoverRate',
+    'gepa-match-mode': 'matchMode'
+  };
+
+  Object.entries(fields).forEach(([id, key]) => {
+    const el = document.getElementById(id);
+    if (el && config[key] !== undefined) {
+      el.value = config[key];
+    }
+  });
+}
+
+// Expose for modules to read
+window.getGEPAConfig = () => JSON.parse(localStorage.getItem('REPLOID_GEPA_CONFIG') || '{}');
+
+// Swarm settings
+function setSwarmEnabled(enabled) {
+  localStorage.setItem('REPLOID_SWARM_ENABLED', enabled ? 'true' : 'false');
+  console.log(`[Config] Swarm enabled: ${enabled}`);
+}
+
+function initSwarmSettings() {
+  const enabled = localStorage.getItem('REPLOID_SWARM_ENABLED') === 'true';
+  const checkbox = document.getElementById('swarm-enabled');
+  if (checkbox) {
+    checkbox.checked = enabled;
+  }
+}
+
+// Initialize all advanced settings
+window.addEventListener('DOMContentLoaded', () => {
+  initCognitionSettings();
+  initGEPASettings();
+  initSwarmSettings();
+});
 
 // Concurrency limit management
 window.addEventListener('DOMContentLoaded', () => {

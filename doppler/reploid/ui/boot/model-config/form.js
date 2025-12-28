@@ -16,7 +16,7 @@ let bridgeAvailableCache = null;
 async function checkBridgeAvailable() {
     if (bridgeAvailableCache !== null) return bridgeAvailableCache;
     try {
-        const { isBridgeAvailable } = await import('../../../doppler/dist/bridge/index.js');
+        const { isBridgeAvailable } = await import('@clocksmith/doppler/bridge/index.js');
         bridgeAvailableCache = isBridgeAvailable();
     } catch {
         bridgeAvailableCache = false;
@@ -526,8 +526,8 @@ async function handleGGUFImportClick() {
 
     try {
         // Dynamically import the modules (lazy load)
-        const filePicker = await import('../../../doppler/dist/browser/file-picker.js');
-        const { importGGUFFile, ImportStage } = await import('../../../doppler/dist/browser/gguf-importer.js');
+        const filePicker = await import('@clocksmith/doppler/browser/file-picker.js');
+        const { importGGUFFile, ImportStage } = await import('@clocksmith/doppler/browser/gguf-importer.js');
 
         let result;
         if (choice === 'files') {
@@ -857,7 +857,7 @@ async function openBrowseModal() {
     // Initialize bridge client if needed
     if (!browseClient) {
         try {
-            const { createBridgeClient } = await import('../../../doppler/dist/bridge/index.js');
+            const { createBridgeClient } = await import('@clocksmith/doppler/bridge/index.js');
             browseClient = await createBridgeClient();
         } catch (err) {
             console.error('[Browse] Failed to create bridge client:', err);
