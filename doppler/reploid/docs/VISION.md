@@ -1,0 +1,136 @@
+# REPLOID Vision
+
+**R**ecursive **E**volution **P**rotocol **L**oop **O**rchestrating **I**nference **D**oppler
+
+---
+
+## The Strategic Imperative
+
+REPLOID exists to answer a fundamental question: **Can an AI agent safely improve itself within a constrained environment?**
+
+Traditional software is static - written by humans, executed by machines. REPLOID inverts this paradigm: the agent reads, reasons about, and modifies its own source code. This is **Recursive Self-Improvement (RSI)** - the ability to enhance one's own cognitive architecture.
+
+The browser provides an ideal sandbox for this experiment:
+
+| Property | Benefit |
+|----------|---------|
+| **Isolation** | Browser security model provides containment |
+| **Persistence** | IndexedDB enables durable state without external dependencies |
+| **Accessibility** | No installation, runs anywhere with a browser |
+| **Observability** | All operations are visible, debuggable, and reversible |
+
+---
+
+## Core Philosophy
+
+### The RSI Thesis
+
+Safe recursive self-improvement requires:
+
+1. **Transparency** - Every modification is logged, diff-able, and reversible
+2. **Gradual Capability** - Start minimal, earn capabilities through demonstrated safety
+3. **Human Oversight** - Critical operations require HITL (Human-in-the-Loop) approval
+4. **Verification** - Code changes pass through sandbox verification before execution
+5. **Rollback** - Genesis snapshots enable recovery from any failure
+
+### The OODA Loop
+
+REPLOID's cognitive architecture follows the OODA loop:
+
+```
+OBSERVE  ->  ORIENT  ->  DECIDE  ->  ACT
+   |            |           |         |
+   v            v           v         v
+[Read VFS]  [Analyze]  [Plan]    [Execute]
+   |                               |
+   +---------- FEEDBACK ----------+
+```
+
+---
+
+## RSI Levels
+
+Recursive self-improvement with graduated safety gates:
+
+| Level | Scope | Examples | Safety Gate |
+|-------|-------|----------|-------------|
+| **L1** | Tools | Create new tools in `/tools/` | Verification Worker |
+| **L2** | Meta | Modify tool-writer, improve CreateTool | Arena consensus |
+| **L3** | Substrate | Edit agent-loop.js, core modules | HITL approval required |
+
+---
+
+## The Ouroboros
+
+REPLOID and DOPPLER form a closed loop - the serpent eating its own tail:
+
+```
+    ┌─────────────────────────────────────┐
+    │                                     │
+    ▼                                     │
+┌────────┐   InferenceProvider    ┌───────────┐
+│DOPPLER │ ────────────────────▶  │  REPLOID  │
+│(Engine)│                        │  (Agent)  │
+└────────┘  ◀──────────────────── └───────────┘
+    ▲         AdaptationProvider          │
+    │                                     │
+    └─────────────────────────────────────┘
+```
+
+- **DOPPLER** provides inference (the brain)
+- **REPLOID** provides agency (the body)
+- Each can modify the other through a shared substrate
+
+---
+
+## Key Capabilities
+
+### Memory Hierarchy (MemGPT-style)
+- **Working Memory** - Context window (8K tokens)
+- **Episodic Memory** - Full messages with embeddings
+- **Semantic Memory** - Extracted facts, preferences, patterns
+
+### Safety Infrastructure
+- **HITL Controller** - Approval queue for risky operations
+- **Verification Worker** - Static analysis before execution
+- **Arena Consensus** - Multi-model voting for L2+ changes
+- **Genesis Snapshots** - Instant rollback to pristine state
+
+### Distribution
+- **Swarm Orchestration** - Multi-agent coordination
+- **P2P Networking** - WebRTC for cross-device collaboration
+- **Federated Learning** - Private data stays local
+
+---
+
+## What REPLOID Is Not
+
+- **Not a chatbot** - It's an agent that can modify its own code
+- **Not cloud-dependent** - Runs entirely in-browser with local models
+- **Not a framework** - It's a living system that evolves
+- **Not static** - The version you run today may rewrite itself tomorrow
+
+---
+
+## Success Metrics
+
+| Metric | Target |
+|--------|--------|
+| Core module test coverage | >80% |
+| Mean time to recovery | <5s (Genesis rollback) |
+| Arena pass rate | >90% |
+| Memory reuse rate | >50% |
+| Max session length | 100+ turns |
+
+---
+
+## Related
+
+- [README.md](../README.md) - Quick start and features
+- [blueprints/0x000000-reploid-genesis.md](../blueprints/0x000000-reploid-genesis.md) - Foundational architecture
+- [OUROBOROS.md](/Users/xyz/deco/OUROBOROS.md) - Combined Doppler+Reploid vision
+- [roadmap/OVERVIEW.md](./roadmap/OVERVIEW.md) - Implementation status
+
+---
+
+*The question is not whether AI will improve itself, but whether we can make it safe to do so.*

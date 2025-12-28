@@ -415,9 +415,36 @@ export class FunctionGemmaOrchestrator {
 
 ---
 
+## Agent Loop Routing (Optional)
+
+When a FunctionGemma config is provided, the agent loop can route requests to FunctionGemma automatically.
+
+Routing modes:
+- `always` (default): always use FunctionGemma when configured
+- `auto`: use a heuristic over the latest user prompt/goal
+- `disabled`: never use FunctionGemma
+
+Heuristic controls (optional):
+- `autoTriggers`: list of substrings or regex patterns that should trigger FunctionGemma
+- `autoBlocks`: list of substrings or regex patterns that should block FunctionGemma
+- `autoDefault`: if true, use FunctionGemma when no triggers match
+
+If `autoTriggers` or `autoBlocks` are provided, routing defaults to `auto` unless `routingMode` is set.
+
+Example config:
+```json
+{
+  "routingMode": "auto",
+  "autoTriggers": ["json", "schema", "structured"],
+  "autoBlocks": ["read file", "run tests", "list files"]
+}
+```
+
+---
+
 ## Roadmap
 
-Implementation tasks live in the roadmap: [FUNCTIONGEMMA.md](../roadmap/FUNCTIONGEMMA.md)
+Implementation tasks are tracked in `/Users/xyz/deco/TODO_FUNCTIONGEMMA.md`.
 
 ---
 

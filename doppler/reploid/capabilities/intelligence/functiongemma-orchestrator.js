@@ -33,6 +33,96 @@ const FunctionGemmaOrchestrator = {
     let _baseModelId = null;
     let _baseManifest = null;
     let _sharedPrefix = null;
+    const _routingStats = { samples: [], lastMs: null, maxSamples: 100 };
+    const _errorStats = { failures: 0, lastError: null };
+    const _expertPromptIds = new Set();
+
+    const nowMs = () => (
+      typeof performance !== 'undefined' && typeof performance.now === 'function'
+        ? performance.now()
+        : Date.now()
+    );
+
+    const recordRoutingLatency = (ms, meta = {}) => {
+      if (!Number.isFinite(ms)) return;
+      _routingStats.lastMs = ms;
+      _routingStats.samples.push(ms);
+      if (_routingStats.samples.length > _routingStats.maxSamples) {
+        _routingStats.samples.shift();
+      }
+
+      if (EventBus) {
+        EventBus.emit('functiongemma:routing:latency', {
+          ms,
+          taskType: meta.taskType || null,
+          topK: meta.topK || null
+        });
+      }
+    };
+
+    const summarizeLatency = (samples) => {
+      if (!samples || samples.length === 0) {
+        return { count: 0, min: 0, max: 0, avg: 0, p50: 0, p95: 0 };
+      }
+      const sorted = [...samples].sort((a, b) => a - b);
+      const sum = sorted.reduce((acc, value) => acc + value, 0);
+      const percentile = (p) => {
+        const idx = Math.min(sorted.length - 1, Math.floor(p * (sorted.length - 1)));
+        return sorted[idx];
+      };
+      return {
+        count: sorted.length,
+        min: sorted[0],
+        max: sorted[sorted.length - 1],
+        avg: sum / sorted.length,
+        p50: percentile(0.5),
+        p95: percentile(0.95)
+      };
+    };
+
+    const recordError = (stage, err, meta = {}) => {
+      _errorStats.failures += 1;
+      _errorStats.lastError = {
+        stage,
+        message: err?.message || String(err),
+        timestamp: Date.now()
+      };
+
+      if (EventBus) {
+        EventBus.emit('functiongemma:error', {
+          stage,
+          message: _errorStats.lastError.message,
+          taskType: meta.taskType || null
+        });
+      }
+    };
+
+    const getExpertContext = (expertId) => {
+      if (ContextManager?.getExpertContext) {
+        return ContextManager.getExpertContext(expertId);
+      }
+      return {
+        prefix: _sharedPrefix,
+        expertPrompt: '',
+        hasCachedPrefix: !!_sharedPrefix
+      };
+    };
+
+    const applyExpertContext = (expertId, prompt, options = {}) => {
+      const context = getExpertContext(expertId);
+      if (context?.prefix && context.prefix !== _sharedPrefix) {
+        setSharedPrefix(context.prefix);
+      }
+
+      const expertPrompt = context?.expertPrompt || '';
+      if (!expertPrompt) return prompt;
+
+      const placement = options.promptPlacement || 'prefix';
+      if (placement === 'suffix') {
+        return `${prompt}\n\n${expertPrompt}`;
+      }
+      return `${expertPrompt}\n\n${prompt}`;
+    };
 
     const _ensureImports = async () => {
       if (_imports) return _imports;
@@ -120,6 +210,16 @@ const FunctionGemmaOrchestrator = {
           embedding: expert.embedding,
           metadata: expert.metadata || {}
         });
+
+        if (ContextManager?.registerExpertPrompt) {
+          const promptSuffix = expert.promptSuffix
+            || expert.prompt
+            || (expert.specialization ? `Expert focus: ${expert.specialization}` : null);
+          if (promptSuffix) {
+            ContextManager.registerExpertPrompt(expert.id, promptSuffix);
+            _expertPromptIds.add(expert.id);
+          }
+        }
       }
       return _network.listExperts();
     };
@@ -142,17 +242,82 @@ const FunctionGemmaOrchestrator = {
       return snapshot;
     };
 
-    const selectExperts = async (task, topK = 1) => {
-      if (!_network) return [];
-      const text = task.routingText || task.description || task.prompt || '';
-      if (!SemanticMemory || !text) return _network.listExperts().slice(0, topK);
-      const embedding = await SemanticMemory.embed(text);
-      return _network.selectExpertsByEmbedding(embedding, topK);
+    const initExpertContext = async (systemPrompt, modelConfig, experts = []) => {
+      if (!ContextManager?.initSharedPrefix) return null;
+      if (!systemPrompt || !modelConfig) return null;
+
+      const { snapshot, prompt } = await ContextManager.initSharedPrefix(systemPrompt, modelConfig);
+      if (snapshot) {
+        setSharedPrefix(snapshot);
+      }
+
+      if (Array.isArray(experts) && ContextManager?.registerExpertPrompt) {
+        for (const expert of experts) {
+          const promptSuffix = expert.promptSuffix
+            || expert.prompt
+            || (expert.specialization ? `Expert focus: ${expert.specialization}` : null);
+          if (promptSuffix) {
+            ContextManager.registerExpertPrompt(expert.id, promptSuffix);
+            _expertPromptIds.add(expert.id);
+          }
+        }
+      }
+
+      return { snapshot, prompt };
     };
+
+    const selectExperts = async (task, topK = 1, options = {}) => {
+      const started = nowMs();
+      try {
+        if (!_network) return [];
+        const text = task?.routingText || task?.description || task?.prompt || '';
+        if (!SemanticMemory || !text) return _network.listExperts().slice(0, topK);
+        const embedding = await SemanticMemory.embed(text);
+        return _network.selectExpertsByEmbedding(embedding, topK);
+      } finally {
+        if (options.recordLatency !== false) {
+          recordRoutingLatency(nowMs() - started, {
+            taskType: task?.type || 'general',
+            topK
+          });
+        }
+      }
+    };
+
+    const benchmarkRoutingLatency = async (task, options = {}) => {
+      const runs = Math.max(1, options.runs || 10);
+      const topK = options.topK || 1;
+      const latencies = [];
+
+      for (let i = 0; i < runs; i++) {
+        const started = nowMs();
+        await selectExperts(task, topK, { recordLatency: false });
+        latencies.push(nowMs() - started);
+      }
+
+      const stats = summarizeLatency(latencies);
+      if (EventBus) {
+        EventBus.emit('functiongemma:routing:benchmark', {
+          runs,
+          topK,
+          ...stats
+        });
+      }
+      return stats;
+    };
+
+    const getRoutingStats = () => ({
+      lastMs: _routingStats.lastMs,
+      ...summarizeLatency(_routingStats.samples)
+    });
 
     const executeExpert = async (expertId, prompt, options = {}) => {
       if (!_network) throw new Errors.StateError('FunctionGemmaOrchestrator not initialized');
-      return _network.executeExpert(expertId, prompt, options);
+      const basePrompt = typeof prompt === 'string' ? prompt : String(prompt || '');
+      const finalPrompt = options.useExpertContext === false
+        ? basePrompt
+        : applyExpertContext(expertId, basePrompt, options);
+      return _network.executeExpert(expertId, finalPrompt, options);
     };
 
     const executeTopology = async (genome, task, options = {}) => {
@@ -161,8 +326,11 @@ const FunctionGemmaOrchestrator = {
       const nodes = genome?.nodes || [];
       const expertIds = nodes.map((n) => n.id);
 
+      const basePrompt = typeof task.prompt === 'string' ? task.prompt : String(task.prompt || '');
+      const useExpertContext = options.useExpertContext !== false;
+
       if (topology === 'ring') {
-        const outputs = await _network.executeRing(expertIds, task.prompt, options);
+        const outputs = await _network.executeRing(expertIds, basePrompt, options);
         return { outputs, combined: await _network.combineOutputs(outputs) };
       }
 
@@ -170,7 +338,7 @@ const FunctionGemmaOrchestrator = {
         const tasks = expertIds.map((id, idx) => ({
           id: `${task.id || 'task'}:${id}:${idx}`,
           expertId: id,
-          prompt: task.prompt
+          prompt: useExpertContext ? applyExpertContext(id, basePrompt, options) : basePrompt
         }));
         const resultMap = await _network.executeParallel(tasks, options);
         const outputs = Object.values(resultMap);
@@ -181,8 +349,11 @@ const FunctionGemmaOrchestrator = {
       const outputs = {};
       for (const nodeId of order) {
         const parents = (genome.edges || []).filter((e) => e.to === nodeId).map((e) => outputs[e.from]).filter(Boolean);
-        const prompt = buildNodePrompt(task.prompt, parents, nodeId, options);
-        outputs[nodeId] = await _network.executeExpert(nodeId, prompt, options);
+        const nodePrompt = buildNodePrompt(basePrompt, parents, nodeId, options);
+        const finalPrompt = useExpertContext
+          ? applyExpertContext(nodeId, nodePrompt, options)
+          : nodePrompt;
+        outputs[nodeId] = await _network.executeExpert(nodeId, finalPrompt, options);
       }
       const orderedOutputs = order.map((id) => outputs[id]).filter(Boolean);
       return { outputs: orderedOutputs, combined: await _network.combineOutputs(orderedOutputs) };
@@ -372,48 +543,131 @@ const FunctionGemmaOrchestrator = {
      * 4. Store winning configuration
      */
     const execute = async (task, options = {}) => {
+      if (!task) {
+        throw new Errors.ValidationError('Task required');
+      }
+
       const taskType = task.type || 'general';
+      const errors = [];
+      const recoveryEnabled = options.errorRecovery !== false;
+
+      const recordFailure = (stage, err) => {
+        const message = err?.message || String(err);
+        errors.push({ stage, message });
+        recordError(stage, err, { taskType });
+      };
+
+      const withErrors = (result) => {
+        if (errors.length === 0) return result;
+        return { ...result, errors };
+      };
 
       // Try cached genome first
       const cachedGenome = getCachedGenome(taskType);
       if (cachedGenome && !options.skipCache) {
-        logger.info(`[FunctionGemma] Using cached genome for ${taskType}`);
-        const result = await executeTopology(cachedGenome, task, options);
-        const scored = scoreCombinedOutput(result.combined, task);
+        try {
+          logger.info(`[FunctionGemma] Using cached genome for ${taskType}`);
+          const result = await executeTopology(cachedGenome, task, options);
+          const scored = scoreCombinedOutput(result.combined, task);
 
-        if (EventBus) {
-          EventBus.emit('functiongemma:execute:cached', {
-            taskType,
+          if (EventBus) {
+            EventBus.emit('functiongemma:execute:cached', {
+              taskType,
+              score: scored.score,
+              valid: scored.valid
+            });
+          }
+
+          return withErrors({
+            output: result.combined,
+            topology: cachedGenome.topology?.type || 'cached',
             score: scored.score,
-            valid: scored.valid
+            valid: scored.valid,
+            cached: true
           });
+        } catch (err) {
+          if (!recoveryEnabled) throw err;
+          recordFailure('cached_genome', err);
         }
-
-        return {
-          output: result.combined,
-          topology: cachedGenome.topology?.type || 'cached',
-          score: scored.score,
-          valid: scored.valid,
-          cached: true
-        };
       }
 
       // Route to experts
-      const selectedExperts = await selectExperts(task, options.topK || 3);
+      let selectedExperts = [];
+      try {
+        selectedExperts = await selectExperts(task, options.topK || 3);
+      } catch (err) {
+        if (!recoveryEnabled) throw err;
+        recordFailure('routing', err);
+        selectedExperts = _network?.listExperts().slice(0, options.topK || 1) || [];
+      }
 
       if (selectedExperts.length === 0) {
-        throw new Errors.StateError('No experts available for task');
+        const err = new Errors.StateError('No experts available for task');
+        if (!recoveryEnabled) throw err;
+        recordFailure('routing', err);
+        return withErrors({
+          output: '',
+          valid: false,
+          cached: false,
+          error: err.message
+        });
       }
 
       // Run expert pool competition
-      const poolResult = await runExpertPool(task, {
-        ...options,
-        experts: selectedExperts
-      });
+      let poolResult = null;
+      try {
+        poolResult = await runExpertPool(task, {
+          ...options,
+          experts: selectedExperts
+        });
+      } catch (err) {
+        if (!recoveryEnabled) throw err;
+        recordFailure('expert_pool', err);
+      }
 
-      const winner = poolResult.winner;
+      const winner = poolResult?.winner || null;
       if (!winner) {
-        throw new Errors.StateError('Expert pool produced no winner');
+        if (!recoveryEnabled) {
+          throw new Errors.StateError('Expert pool produced no winner');
+        }
+
+        const fallbackExpert = selectedExperts[0];
+        if (!fallbackExpert) {
+          const err = new Errors.StateError('No fallback expert available');
+          recordFailure('fallback_expert', err);
+          return withErrors({
+            output: '',
+            valid: false,
+            cached: false,
+            error: err.message
+          });
+        }
+
+        try {
+          const output = await executeExpert(fallbackExpert.id, task.prompt, options);
+          const validation = SchemaRegistry?.validateCombinedOutput
+            ? SchemaRegistry.validateCombinedOutput({ [fallbackExpert.id]: output }, task.schema)
+            : { valid: true, errors: [] };
+
+          await updateAdapterStats(taskType, fallbackExpert.adapter || fallbackExpert.id, validation.valid);
+
+          return withErrors({
+            output,
+            expert: fallbackExpert.id,
+            score: 0,
+            valid: validation.valid,
+            cached: false,
+            recovered: true
+          });
+        } catch (err) {
+          recordFailure('fallback_expert', err);
+          return withErrors({
+            output: '',
+            valid: false,
+            cached: false,
+            error: err?.message || String(err)
+          });
+        }
       }
 
       // Validate output
@@ -433,13 +687,214 @@ const FunctionGemmaOrchestrator = {
         });
       }
 
-      return {
+      return withErrors({
         output: winner.output,
         expert: winner.expert.id,
         score: winner.score?.score || 0,
         valid: validation.valid,
         cached: false
+      });
+    };
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Temporal Self-Ring Execution
+    // ─────────────────────────────────────────────────────────────────────────
+
+    /**
+     * Execute using Temporal Self-Ring topology.
+     * Same model at N temporal states for self-reflective improvement.
+     * Based on Gödel Agent, RISE, and Reflexion research.
+     *
+     * @param {Object} task - Task with description, prompt, maxTokens, schema
+     * @param {Object} config - Configuration for temporal ring execution
+     * @param {number} config.turns - Max iterations (default: 5)
+     * @param {number} config.temperatureStart - Initial temperature (default: 0.8)
+     * @param {number} config.temperatureDecay - Decay per turn (default: 0.15)
+     * @param {number} config.temperatureMin - Minimum temperature (default: 0.1)
+     * @param {boolean} config.enableShortcuts - Enable Möbius Ring shortcuts (default: false)
+     * @param {number} config.shortcutInterval - Turns between shortcuts (default: 2)
+     * @param {number} config.convergenceThreshold - Similarity threshold for convergence
+     * @param {boolean} config.persistHistory - Store history in ReflectionStore
+     * @returns {Object} { finalOutput, history, turnsUsed, converged, valid }
+     */
+    const executeTemporalSelfRing = async (task, config = {}) => {
+      if (!_network) {
+        throw new Errors.StateError('FunctionGemmaOrchestrator not initialized');
+      }
+
+      const {
+        turns = 5,
+        temperatureStart = 0.8,
+        temperatureDecay = 0.15,
+        temperatureMin = 0.1,
+        enableShortcuts = false,
+        shortcutInterval = 2,
+        convergenceThreshold,
+        persistHistory = false,
+        expertId = 'base'
+      } = config;
+
+      const taskType = task.type || 'temporal-ring';
+      const taskDescription = task.description || task.prompt || '';
+
+      const history = [];
+      let currentOutput = '';
+      let converged = false;
+
+      logger.info(`[FunctionGemma] Starting Temporal Self-Ring (max ${turns} turns)`);
+
+      for (let t = 0; t < turns; t++) {
+        const temperature = Math.max(temperatureMin, temperatureStart - t * temperatureDecay);
+        const role = t === 0 ? 'seed' : t % 2 === 1 ? 'reflect' : 'refine';
+
+        // Build temporal prompt
+        let prompt = buildTemporalSelfRingPrompt(taskDescription, t, history, currentOutput, role);
+
+        // Möbius Ring: Add shortcuts to earlier temporal states
+        if (enableShortcuts && t >= shortcutInterval) {
+          const shortcutIdx = t - shortcutInterval;
+          const shortcutEntry = history[shortcutIdx];
+          if (shortcutEntry) {
+            prompt += `\n\n### Earlier Context (turn ${shortcutIdx}):\n${shortcutEntry.output}`;
+          }
+        }
+
+        // Execute with temporal context
+        try {
+          currentOutput = await executeExpert(expertId, prompt, {
+            ...task,
+            temperature,
+            useExpertContext: false // Pure temporal execution
+          });
+        } catch (err) {
+          logger.error(`[FunctionGemma] Temporal ring turn ${t} failed:`, err.message);
+          recordError('temporal_ring', err, { taskType, turn: t });
+          break;
+        }
+
+        history.push({
+          turn: t,
+          output: currentOutput,
+          timestamp: Date.now(),
+          role,
+          temperature
+        });
+
+        // Convergence detection
+        if (detectTemporalConvergence(currentOutput, history, convergenceThreshold)) {
+          converged = true;
+          logger.info(`[FunctionGemma] Temporal Self-Ring converged at turn ${t}`);
+          break;
+        }
+      }
+
+      // Validate final output
+      const validation = task.schema && SchemaRegistry?.validateCombinedOutput
+        ? SchemaRegistry.validateCombinedOutput({ temporal: currentOutput }, task.schema)
+        : { valid: true, errors: [] };
+
+      // Persist history for cross-session memory if enabled
+      if (persistHistory && ReflectionStore?.add) {
+        await ReflectionStore.add({
+          type: 'success',
+          content: `Temporal Self-Ring completed: ${converged ? 'converged' : 'max turns'}`,
+          context: {
+            taskType,
+            turnsUsed: history.length,
+            converged,
+            outcome: validation.valid ? 'success' : 'failure'
+          },
+          tags: ['temporal-ring', taskType],
+          description: `Temporal ring execution with ${history.length} turns`
+        });
+      }
+
+      if (EventBus) {
+        EventBus.emit('functiongemma:temporal:complete', {
+          taskType,
+          turnsUsed: history.length,
+          converged,
+          valid: validation.valid
+        });
+      }
+
+      return {
+        finalOutput: currentOutput,
+        history,
+        turnsUsed: history.length,
+        converged,
+        valid: validation.valid,
+        errors: validation.errors
       };
+    };
+
+    /**
+     * Build prompt for temporal self-ring iteration.
+     */
+    const buildTemporalSelfRingPrompt = (taskDescription, turn, history, lastOutput, role) => {
+      if (role === 'seed') {
+        return `Generate code for: ${taskDescription}\n\nOutput JSON: { "code": string, "reasoning": string }`;
+      }
+
+      if (role === 'reflect') {
+        return `Review this code and identify issues:\n\n${lastOutput}\n\nOutput JSON: { "issues": string[], "severity": string, "suggestions": string[] }`;
+      }
+
+      // role === 'refine'
+      const originalTurn = turn - 2;
+      const originalOutput = history[originalTurn]?.output || lastOutput;
+      return `Improve the code based on this feedback:\n\nOriginal code:\n${originalOutput}\n\nCritique:\n${lastOutput}\n\nOutput improved JSON: { "code": string, "changes": string[], "converged": boolean }`;
+    };
+
+    /**
+     * Detect convergence in temporal self-ring.
+     */
+    const detectTemporalConvergence = (currentOutput, history, threshold) => {
+      if (history.length < 2) return false;
+
+      // Check for explicit convergence signal
+      if (currentOutput.includes('"converged": true') || currentOutput.includes('"converged":true')) {
+        return true;
+      }
+
+      // Check for output stability (same as previous)
+      const prevOutput = history[history.length - 1]?.output;
+      if (currentOutput === prevOutput) {
+        return true;
+      }
+
+      // Similarity-based convergence
+      if (threshold !== undefined && prevOutput) {
+        const similarity = computeJaccardSimilarity(currentOutput, prevOutput);
+        if (similarity >= threshold) {
+          return true;
+        }
+      }
+
+      return false;
+    };
+
+    /**
+     * Simple Jaccard similarity on tokens.
+     */
+    const computeJaccardSimilarity = (a, b) => {
+      const tokensA = new Set(a.toLowerCase().split(/\s+/));
+      const tokensB = new Set(b.toLowerCase().split(/\s+/));
+      const intersection = new Set([...tokensA].filter((x) => tokensB.has(x)));
+      const union = new Set([...tokensA, ...tokensB]);
+      return union.size > 0 ? intersection.size / union.size : 0;
+    };
+
+    /**
+     * Execute Möbius Ring variant with small-world shortcuts.
+     * Wrapper around executeTemporalSelfRing with shortcuts enabled.
+     */
+    const executeMobiusRing = async (task, config = {}) => {
+      return executeTemporalSelfRing(task, {
+        ...config,
+        enableShortcuts: true,
+        shortcutInterval: config.shortcutInterval || 2
+      });
     };
 
     return {
@@ -453,13 +908,20 @@ const FunctionGemmaOrchestrator = {
       setCombiner,
       setSharedPrefix,
       setSharedPrefixFromContext,
+      initExpertContext,
       // Genome caching
       getCachedGenome,
       storeGenome,
       selectAdapterUCB1,
       updateAdapterStats,
+      // Routing metrics
+      benchmarkRoutingLatency,
+      getRoutingStats,
       // High-level API
-      execute
+      execute,
+      // Temporal Self-Ring (single evolving brain)
+      executeTemporalSelfRing,
+      executeMobiusRing
     };
   }
 };

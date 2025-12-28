@@ -16,7 +16,14 @@
   "scripts": {
     "start": "node server.js",
     "cli": "node bin/reploid-cli.js",
-    "build:genesis": "node scripts/build-genesis-manifest.js"
+    "build:genesis": "node scripts/build-genesis-manifest.js",
+    "test": "vitest run",
+    "test:unit": "vitest run tests/unit",
+    "test:integration": "vitest run tests/integration",
+    "test:e2e": "playwright test tests/e2e",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "test:ci": "vitest run --coverage --reporter=json"
   },
   "keywords": [
     "reploid",

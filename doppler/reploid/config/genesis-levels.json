@@ -267,8 +267,6 @@
       "tools/Edit.js"
     ],
     "ui": [
-      "ui/proto.js",
-      "ui/toast.js",
       "ui/goal-history.js",
       "ui/components/arena-results.js"
     ],
@@ -279,7 +277,7 @@
     "docs": []
   },
   "preserveOnReset": {
-    "ui": ["proto.js", "toast.js", "goal-history.js"],
+    "ui": ["goal-history.js"],
     "styles": ["theme.css", "proto.css", "boot.css"]
   },
   "refreshOnBoot": [],

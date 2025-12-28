@@ -1,6 +1,6 @@
 # REPLOID Roadmap
 
-**WARNING: All roadmap and task items are now tracked in `docs/roadmap/`:**
+**WARNING: Reploid roadmap items are tracked in `docs/roadmap/`. FunctionGemma cross-stack tasks live in `/Users/xyz/deco/TODO_FUNCTIONGEMMA.md`.**
 
 - [Phase 1: Core Platform](roadmap/CORE.md)
 - [Phase 2: Safety & Governance](roadmap/SAFETY.md)
@@ -8,6 +8,7 @@
 - [Phase 4: Distribution](roadmap/DISTRIBUTION.md)
 - [Phase 5: Hardening & Validation](roadmap/HARDENING.md)
 - [FunctionGemma Integration](roadmap/FUNCTIONGEMMA.md)
+- FunctionGemma TODOs (cross-stack): `/Users/xyz/deco/TODO_FUNCTIONGEMMA.md`
 - [Roadmap Overview](roadmap/OVERVIEW.md)
 
 ---
