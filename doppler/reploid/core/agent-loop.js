@@ -12,7 +12,7 @@ const AgentLoop = {
       'Utils', 'EventBus', 'LLMClient', 'ToolRunner', 'ContextManager',
       'ResponseParser', 'StateManager', 'PersonaManager', 'CircuitBreaker', 'SchemaRegistry',
       'ToolExecutor',
-      'ReflectionStore?', 'ReflectionAnalyzer?', 'CognitionAPI?', 'MultiModelCoordinator?', 'TraceStore?',
+      'ReflectionStore?', 'ReflectionAnalyzer?', 'CognitionAPI?', 'MultiModelCoordinator?', 'FunctionGemmaOrchestrator?', 'TraceStore?',
       'MemoryManager?'
     ],
     type: 'core'
@@ -22,7 +22,7 @@ const AgentLoop = {
     const {
       Utils, EventBus, LLMClient, ToolRunner, ContextManager,
       ResponseParser, StateManager, PersonaManager, CircuitBreaker, SchemaRegistry, ToolExecutor,
-      ReflectionStore, ReflectionAnalyzer, CognitionAPI, MultiModelCoordinator, TraceStore,
+      ReflectionStore, ReflectionAnalyzer, CognitionAPI, MultiModelCoordinator, FunctionGemmaOrchestrator, TraceStore,
       MemoryManager
     } = deps;
 
@@ -51,6 +51,268 @@ const AgentLoop = {
       return FALLBACK_READ_ONLY.includes(name);
     };
 
+    const readLocalStorageJson = (key) => {
+      try {
+        const raw = localStorage.getItem(key);
+        if (!raw) return null;
+        const parsed = JSON.parse(raw);
+        if (parsed && typeof parsed === 'object') {
+          return parsed;
+        }
+        return null;
+      } catch (e) {
+        logger.warn(`[Agent] Failed to parse ${key}: ${e.message}`);
+        return null;
+      }
+    };
+
+    const getFunctionGemmaConfigFromState = () => {
+      try {
+        const state = StateManager?.getState?.();
+        return state?.functionGemma || state?.config?.functionGemma || null;
+      } catch {
+        return null;
+      }
+    };
+
+    const resolveFunctionGemmaConfig = () => {
+      if (!FunctionGemmaOrchestrator) return null;
+      const candidates = [
+        _modelConfig?.functionGemma,
+        _modelConfig?.functionGemmaConfig,
+        getFunctionGemmaConfigFromState(),
+        readLocalStorageJson('REPLOID_FUNCTIONGEMMA_CONFIG')
+      ].filter(Boolean);
+
+      if (candidates.length === 0) return null;
+      const config = { ...candidates[0] };
+      if (config.enabled === false) return null;
+      return config;
+    };
+
+    const getFunctionGemmaRoutingMode = (config) => {
+      if (!config) return 'disabled';
+      if (config.enabled === false) return 'disabled';
+
+      const mode = (config.routingMode || config.mode || '').toLowerCase();
+      if (['disabled', 'off', 'none'].includes(mode)) return 'disabled';
+      if (['auto', 'heuristic'].includes(mode)) return 'auto';
+      if (mode === 'always') return 'always';
+
+      if (config.autoRouting === true || config.useHeuristic === true) return 'auto';
+      if (config.autoRouting === false || config.useHeuristic === false) return 'always';
+      if (Array.isArray(config.autoTriggers) || Array.isArray(config.autoBlocks) || config.autoDefault === true) {
+        return 'auto';
+      }
+
+      return 'always';
+    };
+
+    const DEFAULT_FG_TRIGGERS = [
+      /\bjson\b/i,
+      /\bschema\b/i,
+      /\bstructured\b/i,
+      /\byaml\b/i,
+      /\bxml\b/i,
+      /\bcsv\b/i,
+      /\btable\b/i,
+      /\btype signature\b/i,
+      /\binterface\b/i,
+      /\btypescript\b/i,
+      /\bjavascript\b/i,
+      /\bcode\b/i,
+      /\bclass\b/i,
+      /\bpatch\b/i,
+      /\bdiff\b/i,
+      /\boutput format\b/i
+    ];
+
+    const DEFAULT_FG_BLOCKS = [
+      'list files', 'read file', 'open file', 'edit file', 'update file', 'write file',
+      'grep', 'search repo', 'search code', 'find file',
+      'run tests', 'run test', 'install', 'build', 'compile',
+      'shell', 'terminal', 'command line', 'cli', 'git',
+      /\b[a-z0-9._-]+\/[a-z0-9._-]+\.(js|ts|jsx|tsx|json|md|css|html|yml|yaml)\b/i
+    ];
+
+    const normalizePatterns = (patterns, fallback) => {
+      if (!Array.isArray(patterns) || patterns.length === 0) return fallback;
+      return patterns;
+    };
+
+    const matchesPattern = (text, pattern) => {
+      if (!pattern) return false;
+      if (pattern instanceof RegExp) return pattern.test(text);
+      if (typeof pattern === 'string') return text.toLowerCase().includes(pattern.toLowerCase());
+      return false;
+    };
+
+    const matchesAny = (text, patterns) => {
+      if (!text) return false;
+      return patterns.some((pattern) => matchesPattern(text, pattern));
+    };
+
+    const shouldUseFunctionGemma = (text, config) => {
+      if (!text) return false;
+
+      const blocks = normalizePatterns(config?.autoBlocks, DEFAULT_FG_BLOCKS);
+      if (matchesAny(text, blocks)) return false;
+
+      const triggers = normalizePatterns(config?.autoTriggers, DEFAULT_FG_TRIGGERS);
+      if (matchesAny(text, triggers)) return true;
+
+      return config?.autoDefault === true;
+    };
+
+    const getFunctionGemmaModelId = (config) => {
+      if (!config) return null;
+      return config.modelId
+        || config.baseModelId
+        || config.model
+        || config.baseModel
+        || config.modelConfig?.modelId
+        || config.modelConfig?.id
+        || (_modelConfig?.provider === 'doppler' ? (_modelConfig.modelId || _modelConfig.id) : null);
+    };
+
+    const getFunctionGemmaModelConfig = (config) => {
+      if (config?.modelConfig) return config.modelConfig;
+      if (config?.baseModelConfig) return config.baseModelConfig;
+      if (_modelConfig?.provider === 'doppler') return _modelConfig;
+      return null;
+    };
+
+    const getFunctionGemmaRoutingText = (context, goal, config) => {
+      if (config?.routingText) return config.routingText;
+      const lastUserMsg = [...context].reverse().find((m) => m.role === 'user');
+      return lastUserMsg?.content || goal || '';
+    };
+
+    const buildPromptFromContext = (context, options = {}) => {
+      const omitSystemPrompt = options.omitSystemPrompt === true;
+      let skippedFirstSystem = false;
+      return context
+        .filter((m) => {
+          if (!omitSystemPrompt || m.role !== 'system') return true;
+          if (skippedFirstSystem) return true;
+          skippedFirstSystem = true;
+          return false;
+        })
+        .map((m) => {
+          if (m.role === 'system') return `System: ${m.content}`;
+          if (m.role === 'user') return `User: ${m.content}`;
+          if (m.role === 'assistant') return `Assistant: ${m.content}`;
+          return m.content;
+        })
+        .join('\n') + '\nAssistant:';
+    };
+
+    const buildFunctionGemmaKey = (config, modelId) => {
+      const expertIds = Array.isArray(config?.experts)
+        ? config.experts.map((expert) => expert.id || expert.adapterName || expert.adapter).filter(Boolean)
+        : [];
+      return JSON.stringify({
+        modelId: modelId || null,
+        baseUrl: config?.baseUrl || null,
+        usePool: config?.usePool !== false,
+        expertIds
+      });
+    };
+
+    const ensureFunctionGemmaReady = async (context, config) => {
+      if (!FunctionGemmaOrchestrator || !config) return false;
+
+      const modelId = getFunctionGemmaModelId(config);
+      if (!modelId && !config.manifest) {
+        logger.warn('[Agent] FunctionGemma config missing modelId/manifest; skipping.');
+        return false;
+      }
+
+      const experts = Array.isArray(config.experts) ? config.experts : [];
+      if (experts.length === 0) {
+        logger.warn('[Agent] FunctionGemma config missing experts; skipping.');
+        return false;
+      }
+
+      const nextKey = buildFunctionGemmaKey(config, modelId);
+      if (_functionGemmaReady && _functionGemmaKey === nextKey) {
+        return true;
+      }
+
+      if (_functionGemmaInitPromise) {
+        return _functionGemmaInitPromise;
+      }
+
+      _functionGemmaKey = nextKey;
+      _functionGemmaInitPromise = (async () => {
+        _functionGemmaReady = false;
+        _functionGemmaHasPrefix = false;
+
+        if (ContextManager?.clearExpertContext) {
+          ContextManager.clearExpertContext();
+        }
+
+        await FunctionGemmaOrchestrator.initBase({
+          modelId,
+          manifest: config.manifest,
+          baseUrl: config.baseUrl || null,
+          usePool: config.usePool !== false,
+          storageContext: config.storageContext
+        });
+
+        await FunctionGemmaOrchestrator.registerExperts(experts);
+
+        if (config.combiner) {
+          FunctionGemmaOrchestrator.setCombiner(config.combiner);
+        }
+
+        const modelConfig = getFunctionGemmaModelConfig(config);
+        const systemPrompt = config.systemPrompt || _currentSystemPrompt;
+        if (config.useSharedPrefix !== false && systemPrompt && modelConfig) {
+          try {
+            const prefix = await FunctionGemmaOrchestrator.initExpertContext(systemPrompt, modelConfig, experts);
+            _functionGemmaHasPrefix = !!prefix?.snapshot;
+          } catch (err) {
+            logger.warn('[Agent] FunctionGemma shared prefix init failed:', err.message);
+          }
+        }
+
+        if (config.benchmarkRouting) {
+          const taskText = context?.[context.length - 1]?.content || 'benchmark';
+          const benchmarkTask = { type: 'benchmark', prompt: taskText, description: taskText, routingText: taskText };
+          const benchmarkOptions = typeof config.benchmarkRouting === 'object'
+            ? config.benchmarkRouting
+            : { runs: config.benchmarkRuns || 10, topK: config.topK || 1 };
+          try {
+            await FunctionGemmaOrchestrator.benchmarkRoutingLatency(benchmarkTask, benchmarkOptions);
+          } catch (err) {
+            logger.warn('[Agent] FunctionGemma benchmark failed:', err.message);
+          }
+        }
+
+        _functionGemmaReady = true;
+        return true;
+      })();
+
+      try {
+        return await _functionGemmaInitPromise;
+      } catch (err) {
+        logger.error('[Agent] FunctionGemma init failed:', err);
+        _functionGemmaReady = false;
+        _functionGemmaHasPrefix = false;
+        return false;
+      } finally {
+        _functionGemmaInitPromise = null;
+      }
+    };
+
+    const resetFunctionGemmaState = () => {
+      _functionGemmaReady = false;
+      _functionGemmaHasPrefix = false;
+      _functionGemmaInitPromise = null;
+      _functionGemmaKey = null;
+    };
+
     const MAX_NO_PROGRESS_ITERATIONS = 5; // Max consecutive iterations without tool calls
     const TOOL_EXECUTION_TIMEOUT_MS = 30000; // 30 second timeout per tool
 
@@ -62,6 +324,10 @@ const AgentLoop = {
     let _modelConfig = null;
     let _modelConfigs = []; // Array of models for multi-model mode
     let _consensusStrategy = 'arena'; // arena, peer-review, swarm
+    let _functionGemmaReady = false;
+    let _functionGemmaHasPrefix = false;
+    let _functionGemmaInitPromise = null;
+    let _functionGemmaKey = null;
     const MAX_ACTIVITY_LOG = 200;
     const _activityLog = [];
 
@@ -263,6 +529,11 @@ const AgentLoop = {
 
       let context = await _buildInitialContext(goal);
       let iteration = 0;
+      const functionGemmaConfig = resolveFunctionGemmaConfig();
+      let functionGemmaEnabled = !!functionGemmaConfig;
+      if (functionGemmaEnabled) {
+        functionGemmaEnabled = await ensureFunctionGemmaReady(context, functionGemmaConfig);
+      }
 
       // Update tracked context after initialization
       _currentContext = [...context];
@@ -377,19 +648,105 @@ const AgentLoop = {
           // Multi-model execution if multiple models configured
           let response;
           let arenaResult = null;
+          let functionGemmaResult = null;
+          let functionGemmaInfo = null;
 
           const llmStart = Date.now();
+          const multiModelActive = _modelConfigs.length >= 2 && MultiModelCoordinator;
+          const functionGemmaRoutingMode = functionGemmaEnabled
+            ? getFunctionGemmaRoutingMode(functionGemmaConfig)
+            : 'disabled';
+          const functionGemmaRoutingText = functionGemmaEnabled
+            ? getFunctionGemmaRoutingText(context, goal, functionGemmaConfig)
+            : '';
+          const functionGemmaModelId = functionGemmaEnabled ? getFunctionGemmaModelId(functionGemmaConfig) : null;
+          const functionGemmaAutoOk = functionGemmaRoutingMode === 'always'
+            || (functionGemmaRoutingMode === 'auto' && shouldUseFunctionGemma(functionGemmaRoutingText, functionGemmaConfig));
+          const useFunctionGemma = functionGemmaEnabled
+            && _functionGemmaReady
+            && functionGemmaRoutingMode !== 'disabled'
+            && functionGemmaAutoOk
+            && (!multiModelActive || functionGemmaConfig?.overrideMultiModel);
+
           if (TraceStore && _traceSessionId) {
+            const tags = ['llm'];
+            if (useFunctionGemma) tags.push('functiongemma');
             await TraceStore.record(_traceSessionId, 'llm:request', {
               source: 'agent',
               iteration,
-              modelId: _modelConfig?.id || null,
+              modelId: useFunctionGemma ? functionGemmaModelId : (_modelConfig?.id || null),
               messageCount: context.length,
               messages: context.slice(-10)
-            }, { tags: ['llm'] });
+            }, { tags });
           }
 
-          if (_modelConfigs.length >= 2 && MultiModelCoordinator) {
+          if (useFunctionGemma) {
+            try {
+              EventBus.emit('agent:status', { state: 'THINKING', activity: `Cycle ${iteration} - FunctionGemma routing...`, cycle: iteration });
+              const prompt = buildPromptFromContext(context, { omitSystemPrompt: _functionGemmaHasPrefix });
+              const task = {
+                id: `agent:${iteration}`,
+                type: functionGemmaConfig?.taskType || 'agent',
+                description: functionGemmaRoutingText,
+                routingText: functionGemmaRoutingText,
+                prompt,
+                schema: functionGemmaConfig?.schema || null,
+                schemaName: functionGemmaConfig?.schemaName || null
+              };
+              const options = {
+                topK: functionGemmaConfig?.topK || 3,
+                useExpertContext: functionGemmaConfig?.useExpertContext,
+                errorRecovery: functionGemmaConfig?.errorRecovery,
+                skipCache: functionGemmaConfig?.skipCache,
+                promptPlacement: functionGemmaConfig?.promptPlacement,
+                maxTokens: functionGemmaConfig?.maxTokens,
+                temperature: functionGemmaConfig?.temperature
+              };
+
+              functionGemmaResult = await FunctionGemmaOrchestrator.execute(task, options);
+              const output = functionGemmaResult?.output || '';
+              response = {
+                content: output,
+                toolCalls: [],
+                usage: null,
+                functionGemma: functionGemmaResult
+              };
+
+              if (output) {
+                streamCallback(output);
+              }
+
+              functionGemmaInfo = {
+                modelId: functionGemmaModelId || null,
+                provider: 'doppler',
+                cached: functionGemmaResult?.cached || false
+              };
+
+              if (TraceStore && _traceSessionId) {
+                await TraceStore.record(_traceSessionId, 'llm:response', {
+                  source: 'agent',
+                  iteration,
+                  modelId: functionGemmaModelId || null,
+                  latencyMs: Date.now() - llmStart,
+                  contentPreview: output || '',
+                  toolCallCount: 0,
+                  functionGemma: {
+                    cached: functionGemmaResult?.cached || false,
+                    expert: functionGemmaResult?.expert || null,
+                    topology: functionGemmaResult?.topology || null,
+                    valid: typeof functionGemmaResult?.valid === 'boolean' ? functionGemmaResult.valid : null,
+                    recovered: functionGemmaResult?.recovered || false,
+                    errors: functionGemmaResult?.errors || []
+                  }
+                }, { tags: ['llm', 'functiongemma'] });
+              }
+            } catch (error) {
+              logger.error('[Agent] FunctionGemma execution failed, falling back to LLM:', error);
+              response = null;
+            }
+          }
+
+          if (!response && multiModelActive) {
             logger.info(`[Agent] Multi-model mode: ${_modelConfigs.length} models, strategy: ${_consensusStrategy}`);
 
             const multiModelConfig = {
@@ -440,7 +797,7 @@ const AgentLoop = {
                 }, { tags: ['llm'] });
               }
             }
-          } else {
+          } else if (!response) {
             // Single model execution (with native tools if supported)
             response = await LLMClient.chat(context, _modelConfig, streamCallback, { tools: toolSchemas });
             if (TraceStore && _traceSessionId) {
@@ -467,8 +824,8 @@ const AgentLoop = {
           const responseContent = response?.content || '';
           const usage = response?.usage || {};
           const lastUserMessage = [...context].reverse().find(m => m.role === 'user');
-          const responseModel = arenaResult?.winner?.model || _modelConfig?.id || null;
-          const responseProvider = arenaResult?.winner?.provider || _modelConfig?.provider || null;
+          const responseModel = functionGemmaInfo?.modelId || arenaResult?.winner?.model || _modelConfig?.id || null;
+          const responseProvider = functionGemmaInfo?.provider || arenaResult?.winner?.provider || _modelConfig?.provider || null;
           const inputTokens = usage.prompt_tokens ?? usage.input_tokens ?? usage.inputTokens ?? null;
           const outputTokens = usage.completion_tokens ?? usage.output_tokens ?? usage.outputTokens ?? usage.tokens ?? null;
           const contextTokenEstimate = ContextManager.countTokens(context);
@@ -809,13 +1166,14 @@ ${goal}
     return {
       run,
       stop: () => { if (_abortController) _abortController.abort(); _isRunning = false; },
-      setModel: (c) => { _modelConfig = c; },
+      setModel: (c) => { _modelConfig = c; resetFunctionGemmaState(); },
       setModels: (models) => {
         _modelConfigs = models || [];
         // Set primary model as first one for fallback
         if (models && models.length > 0) {
           _modelConfig = models[0];
         }
+        resetFunctionGemmaState();
       },
       setConsensusStrategy: (strategy) => { _consensusStrategy = strategy || 'arena'; },
       isRunning: () => _isRunning,
