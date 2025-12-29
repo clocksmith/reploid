@@ -511,21 +511,23 @@ describe('Core Hardening', () => {
         const breaker = circuitBreaker.create({
           threshold: 2,
           resetMs: 1000,
-          halfOpenMaxConcurrent: 2
+          halfOpenMaxConcurrent: 3 // 3 max concurrent
         });
 
         // Trip and transition to half-open
         breaker.recordFailure('test-service', new Error('Fail 1'));
         breaker.recordFailure('test-service', new Error('Fail 2'));
         vi.advanceTimersByTime(1100);
+        // isOpen() already acquires the first probe slot (count becomes 1)
         breaker.isOpen('test-service');
 
-        expect(breaker.acquireProbe('test-service')).toBe(true);
-        expect(breaker.acquireProbe('test-service')).toBe(true);
+        // Can acquire 2 more (1 from isOpen + 2 more = 3 total = limit)
+        expect(breaker.acquireProbe('test-service')).toBe(true); // count: 2
+        expect(breaker.acquireProbe('test-service')).toBe(true); // count: 3
         expect(breaker.acquireProbe('test-service')).toBe(false); // Limit reached
 
-        breaker.releaseProbe('test-service');
-        expect(breaker.acquireProbe('test-service')).toBe(true); // Now allowed
+        breaker.releaseProbe('test-service'); // count: 2
+        expect(breaker.acquireProbe('test-service')).toBe(true); // Now allowed, count: 3
       });
     });
 
@@ -737,22 +739,20 @@ describe('Core Hardening', () => {
       };
 
       const abortController = new AbortController();
-      let abortError = null;
+      const reader = streamParser.withStreamTimeout(mockReader, 1000, abortController);
 
-      abortController.signal.addEventListener('abort', () => {
-        abortError = abortController.signal.reason;
-      });
-
-      streamParser.withStreamTimeout(mockReader, 1000, abortController);
-
-      // Trigger a read to start the timeout
-      mockReader.read();
+      // Trigger a read to start the timeout (this initiates the timeout)
+      const readPromise = reader.read();
 
       await vi.advanceTimersByTimeAsync(1100);
 
-      expect(abortError).toBeDefined();
-      expect(abortError.code).toBe('STREAM_TIMEOUT');
-      expect(abortError.message).toContain('1000ms');
+      // The abort should have been triggered
+      expect(abortController.signal.aborted).toBe(true);
+
+      // Check that cancel was called with appropriate message
+      expect(mockReader.cancel).toHaveBeenCalledWith(
+        expect.stringContaining('Stream timeout')
+      );
     });
 
     it('should allow custom timeout values', async () => {
@@ -786,6 +786,280 @@ describe('Core Hardening', () => {
     it('CircuitBreaker should have correct version', () => {
       expect(CircuitBreakerModule.metadata.version).toBe('2.0.0');
       expect(CircuitBreakerModule.metadata.id).toBe('CircuitBreaker');
+    });
+  });
+
+  describe('Tool Call Streaming Parsers', () => {
+    let streamParser;
+
+    beforeEach(() => {
+      streamParser = StreamParserModule.factory();
+    });
+
+    /**
+     * Helper to create a mock readable stream from SSE lines
+     */
+    const createMockResponse = (chunks) => {
+      let chunkIndex = 0;
+      return {
+        body: {
+          getReader: () => ({
+            read: async () => {
+              if (chunkIndex >= chunks.length) {
+                return { done: true, value: undefined };
+              }
+              const chunk = chunks[chunkIndex++];
+              return { done: false, value: new TextEncoder().encode(chunk) };
+            },
+            cancel: vi.fn(),
+            releaseLock: vi.fn()
+          })
+        }
+      };
+    };
+
+    describe('parseOpenAIStreamWithTools', () => {
+      it('should parse text content from OpenAI stream', async () => {
+        const chunks = [
+          'data: {"choices":[{"delta":{"content":"Hello"}}]}\n',
+          'data: {"choices":[{"delta":{"content":" World"}}]}\n',
+          'data: [DONE]\n'
+        ];
+        const response = createMockResponse(chunks);
+        const onUpdate = vi.fn();
+
+        const result = await streamParser.parseOpenAIStreamWithTools(response, onUpdate);
+
+        expect(result.content).toBe('Hello World');
+        expect(result.toolCalls).toBeNull();
+        expect(onUpdate).toHaveBeenCalledWith('Hello');
+        expect(onUpdate).toHaveBeenCalledWith(' World');
+      });
+
+      it('should parse tool calls from OpenAI stream', async () => {
+        const chunks = [
+          'data: {"choices":[{"delta":{"tool_calls":[{"index":0,"id":"call_123","function":{"name":"read_file"}}]}}]}\n',
+          'data: {"choices":[{"delta":{"tool_calls":[{"index":0,"function":{"arguments":"{\\"path\\""}}]}}]}\n',
+          'data: {"choices":[{"delta":{"tool_calls":[{"index":0,"function":{"arguments":": \\"/test.js\\"}"}}]}}]}\n',
+          'data: [DONE]\n'
+        ];
+        const response = createMockResponse(chunks);
+
+        const result = await streamParser.parseOpenAIStreamWithTools(response, null);
+
+        expect(result.toolCalls).toHaveLength(1);
+        expect(result.toolCalls[0].id).toBe('call_123');
+        expect(result.toolCalls[0].name).toBe('read_file');
+        expect(result.toolCalls[0].args).toEqual({ path: '/test.js' });
+      });
+
+      it('should handle multiple tool calls with different indices', async () => {
+        const chunks = [
+          'data: {"choices":[{"delta":{"tool_calls":[{"index":0,"id":"call_1","function":{"name":"read_file","arguments":"{\\"path\\":\\"/a.js\\"}"}}]}}]}\n',
+          'data: {"choices":[{"delta":{"tool_calls":[{"index":1,"id":"call_2","function":{"name":"write_file","arguments":"{\\"path\\":\\"/b.js\\"}"}}]}}]}\n',
+          'data: [DONE]\n'
+        ];
+        const response = createMockResponse(chunks);
+
+        const result = await streamParser.parseOpenAIStreamWithTools(response, null);
+
+        expect(result.toolCalls).toHaveLength(2);
+        expect(result.toolCalls[0].name).toBe('read_file');
+        expect(result.toolCalls[1].name).toBe('write_file');
+      });
+
+      it('should handle buffer flushing at stream end', async () => {
+        // Simulate a chunk that ends without newline (content in buffer at stream end)
+        const chunks = [
+          'data: {"choices":[{"delta":{"content":"Hello"}}]}\ndata: {"choices":[{"delta":{"content":" World"}}]}'
+        ];
+        const response = createMockResponse(chunks);
+
+        const result = await streamParser.parseOpenAIStreamWithTools(response, null);
+
+        expect(result.content).toBe('Hello World');
+      });
+
+      it('should handle malformed JSON gracefully', async () => {
+        const chunks = [
+          'data: {"choices":[{"delta":{"content":"Valid"}}]}\n',
+          'data: {malformed json\n',
+          'data: {"choices":[{"delta":{"content":" text"}}]}\n'
+        ];
+        const response = createMockResponse(chunks);
+
+        const result = await streamParser.parseOpenAIStreamWithTools(response, null);
+
+        expect(result.content).toBe('Valid text');
+      });
+
+      it('should throw if response body is not readable', async () => {
+        const response = { body: null };
+
+        await expect(
+          streamParser.parseOpenAIStreamWithTools(response, null)
+        ).rejects.toThrow('Response body is not readable');
+      });
+    });
+
+    describe('parseAnthropicStreamWithTools', () => {
+      it('should parse text content from Anthropic stream', async () => {
+        const chunks = [
+          'data: {"type":"content_block_delta","delta":{"type":"text_delta","text":"Hello"}}\n',
+          'data: {"type":"content_block_delta","delta":{"type":"text_delta","text":" World"}}\n'
+        ];
+        const response = createMockResponse(chunks);
+        const onUpdate = vi.fn();
+
+        const result = await streamParser.parseAnthropicStreamWithTools(response, onUpdate);
+
+        expect(result.content).toBe('Hello World');
+        expect(result.toolCalls).toBeNull();
+        expect(onUpdate).toHaveBeenCalledWith('Hello');
+        expect(onUpdate).toHaveBeenCalledWith(' World');
+      });
+
+      it('should parse tool calls from Anthropic stream', async () => {
+        const chunks = [
+          'data: {"type":"content_block_start","content_block":{"type":"tool_use","id":"tool_1","name":"read_file"}}\n',
+          'data: {"type":"content_block_delta","delta":{"type":"input_json_delta","partial_json":"{\\"path\\""}}\n',
+          'data: {"type":"content_block_delta","delta":{"type":"input_json_delta","partial_json":": \\"/test.js\\"}"}}\n',
+          'data: {"type":"content_block_stop"}\n'
+        ];
+        const response = createMockResponse(chunks);
+
+        const result = await streamParser.parseAnthropicStreamWithTools(response, null);
+
+        expect(result.toolCalls).toHaveLength(1);
+        expect(result.toolCalls[0].id).toBe('tool_1');
+        expect(result.toolCalls[0].name).toBe('read_file');
+        expect(result.toolCalls[0].args).toEqual({ path: '/test.js' });
+      });
+
+      it('should handle mixed content and tool calls', async () => {
+        const chunks = [
+          'data: {"type":"content_block_delta","delta":{"type":"text_delta","text":"I will read the file."}}\n',
+          'data: {"type":"content_block_start","content_block":{"type":"tool_use","id":"tool_1","name":"read_file"}}\n',
+          'data: {"type":"content_block_delta","delta":{"type":"input_json_delta","partial_json":"{}"}}\n',
+          'data: {"type":"content_block_stop"}\n'
+        ];
+        const response = createMockResponse(chunks);
+
+        const result = await streamParser.parseAnthropicStreamWithTools(response, null);
+
+        expect(result.content).toBe('I will read the file.');
+        expect(result.toolCalls).toHaveLength(1);
+      });
+
+      it('should handle buffer flushing at stream end', async () => {
+        const chunks = [
+          'data: {"type":"content_block_delta","delta":{"type":"text_delta","text":"Hello"}}\ndata: {"type":"content_block_delta","delta":{"type":"text_delta","text":" World"}}'
+        ];
+        const response = createMockResponse(chunks);
+
+        const result = await streamParser.parseAnthropicStreamWithTools(response, null);
+
+        expect(result.content).toBe('Hello World');
+      });
+
+      it('should throw if response body is not readable', async () => {
+        const response = { body: null };
+
+        await expect(
+          streamParser.parseAnthropicStreamWithTools(response, null)
+        ).rejects.toThrow('Response body is not readable');
+      });
+    });
+
+    describe('parseGeminiStreamWithTools', () => {
+      it('should parse text content from Gemini stream', async () => {
+        const chunks = [
+          'data: {"candidates":[{"content":{"parts":[{"text":"Hello"}]}}]}\n',
+          'data: {"candidates":[{"content":{"parts":[{"text":" World"}]}}]}\n',
+          'data: [DONE]\n'
+        ];
+        const response = createMockResponse(chunks);
+        const onUpdate = vi.fn();
+
+        const result = await streamParser.parseGeminiStreamWithTools(response, onUpdate);
+
+        expect(result.content).toBe('Hello World');
+        expect(result.toolCalls).toBeNull();
+        expect(onUpdate).toHaveBeenCalledWith('Hello');
+        expect(onUpdate).toHaveBeenCalledWith(' World');
+      });
+
+      it('should parse function calls from Gemini stream', async () => {
+        const chunks = [
+          'data: {"candidates":[{"content":{"parts":[{"functionCall":{"name":"read_file","args":{"path":"/test.js"}}}]}}]}\n',
+          'data: [DONE]\n'
+        ];
+        const response = createMockResponse(chunks);
+
+        const result = await streamParser.parseGeminiStreamWithTools(response, null);
+
+        expect(result.toolCalls).toHaveLength(1);
+        expect(result.toolCalls[0].name).toBe('read_file');
+        expect(result.toolCalls[0].args).toEqual({ path: '/test.js' });
+        expect(result.toolCalls[0].id).toMatch(/^gemini_/);
+      });
+
+      it('should handle buffer flushing at stream end', async () => {
+        const chunks = [
+          'data: {"candidates":[{"content":{"parts":[{"text":"Hello"}]}}]}\ndata: {"candidates":[{"content":{"parts":[{"text":" World"}]}}]}'
+        ];
+        const response = createMockResponse(chunks);
+
+        const result = await streamParser.parseGeminiStreamWithTools(response, null);
+
+        expect(result.content).toBe('Hello World');
+      });
+
+      it('should throw if response body is not readable', async () => {
+        const response = { body: null };
+
+        await expect(
+          streamParser.parseGeminiStreamWithTools(response, null)
+        ).rejects.toThrow('Response body is not readable');
+      });
+    });
+
+    describe('UTF-8 Handling in Tool Call Parsers', () => {
+      it('should handle multi-byte UTF-8 in OpenAI content', async () => {
+        const text = 'Hello, 世界!';
+        const chunks = [
+          `data: {"choices":[{"delta":{"content":"${text}"}}]}\n`
+        ];
+        const response = createMockResponse(chunks);
+
+        const result = await streamParser.parseOpenAIStreamWithTools(response, null);
+
+        expect(result.content).toBe(text);
+      });
+
+      it('should handle multi-byte UTF-8 in Anthropic content', async () => {
+        const text = 'Hello, 世界!';
+        const chunks = [
+          `data: {"type":"content_block_delta","delta":{"type":"text_delta","text":"${text}"}}\n`
+        ];
+        const response = createMockResponse(chunks);
+
+        const result = await streamParser.parseAnthropicStreamWithTools(response, null);
+
+        expect(result.content).toBe(text);
+      });
+
+      it('should handle multi-byte UTF-8 in Gemini content', async () => {
+        const text = 'Hello, 世界!';
+        const chunks = [
+          `data: {"candidates":[{"content":{"parts":[{"text":"${text}"}]}}]}\n`
+        ];
+        const response = createMockResponse(chunks);
+
+        const result = await streamParser.parseGeminiStreamWithTools(response, null);
+
+        expect(result.content).toBe(text);
+      });
     });
   });
 });

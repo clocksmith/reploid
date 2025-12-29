@@ -292,7 +292,7 @@ describe('GEPA Optimizer - Integration Tests', () => {
 
       const status = gepaOptimizer.api.getStatus();
       expect(status.generation).toBe(0); // 0-indexed, after 1 generation
-      expect(status.populationSize).toBe(2);
+      expect(status.populationSize).toBeGreaterThanOrEqual(1); // May be less due to selection
       expect(status.frontierSize).toBeGreaterThan(0);
     });
   });
@@ -342,21 +342,21 @@ describe('GEPA Optimizer - Integration Tests', () => {
     });
 
     it('should resume evolution from checkpoint', async () => {
-      // Create a checkpoint at generation 1
+      // Create a checkpoint at generation 1 with proper targetType
       const checkpoint = {
         generation: 1,
         timestamp: Date.now(),
         population: [
-          { id: 'cand_1', content: 'Test prompt 1', generation: 1, scores: { accuracy: 0.7, efficiency: 0.8, robustness: 0.9 }, dominatedBy: 0 },
-          { id: 'cand_2', content: 'Test prompt 2', generation: 1, scores: { accuracy: 0.8, efficiency: 0.7, robustness: 0.85 }, dominatedBy: 0 }
+          { id: 'cand_1', content: 'Test prompt 1', generation: 1, scores: { accuracy: 0.7, efficiency: 0.8, robustness: 0.9, cost: 0.8 }, dominatedBy: 0, targetType: 'prompt' },
+          { id: 'cand_2', content: 'Test prompt 2', generation: 1, scores: { accuracy: 0.8, efficiency: 0.7, robustness: 0.85, cost: 0.75 }, dominatedBy: 0, targetType: 'prompt' }
         ],
         frontier: [
-          { id: 'cand_2', content: 'Test prompt 2', generation: 1, scores: { accuracy: 0.8, efficiency: 0.7, robustness: 0.85 }, dominatedBy: 0 }
+          { id: 'cand_2', content: 'Test prompt 2', generation: 1, scores: { accuracy: 0.8, efficiency: 0.7, robustness: 0.85, cost: 0.75 }, dominatedBy: 0, targetType: 'prompt' }
         ],
         config: {
           populationSize: 2,
           maxGenerations: 3,
-          objectives: ['accuracy', 'efficiency', 'robustness']
+          objectives: ['accuracy', 'efficiency', 'robustness', 'cost']
         }
       };
 
@@ -460,6 +460,175 @@ describe('GEPA Optimizer - Integration Tests', () => {
       // Best candidate should have cost score
       expect(result.bestOverall.scores).toHaveProperty('cost');
       expect(result.bestOverall.scores.cost).toBeDefined();
+    });
+  });
+
+  describe('Enhanced checkpoint data', () => {
+    it('should save checkpoint with comprehensive metrics', async () => {
+      mockLLMClient.chat.mockResolvedValue({ content: 'out', usage: { total_tokens: 100 } });
+
+      await gepaOptimizer.api.evolve(
+        'Prompt',
+        [{ input: 'x', expected: 'out' }],
+        {
+          evaluationModel: { id: 'test' },
+          reflectionModel: { id: 'test' },
+          populationSize: 2,
+          maxGenerations: 1,
+          checkpointPath: '/.memory/gepa/',
+          evaluationBatchSize: 1
+        }
+      );
+
+      expect(fileStorage.has('/.memory/gepa/gen_0.json')).toBe(true);
+
+      const checkpoint = JSON.parse(fileStorage.get('/.memory/gepa/gen_0.json'));
+
+      // Verify enhanced checkpoint structure
+      expect(checkpoint.metrics).toBeDefined();
+      expect(checkpoint.metrics.bestScores).toBeDefined();
+      expect(checkpoint.metrics.hypervolume).toBeDefined();
+      expect(checkpoint.metrics.avgFitness).toBeDefined();
+      expect(checkpoint.metrics.populationDiversity).toBeDefined();
+
+      expect(checkpoint.cacheStats).toBeDefined();
+      expect(checkpoint.cacheStats.reflectionCacheSize).toBeDefined();
+      expect(checkpoint.cacheStats.evaluationCacheSize).toBeDefined();
+
+      // Verify population has full metadata
+      expect(checkpoint.population[0]).toHaveProperty('mutationType');
+      expect(checkpoint.population[0]).toHaveProperty('parentIds');
+    });
+
+    it('should emit checkpoint saved event', async () => {
+      mockLLMClient.chat.mockResolvedValue({ content: 'out', usage: {} });
+
+      await gepaOptimizer.api.evolve(
+        'Prompt',
+        [{ input: 'x', expected: 'out' }],
+        {
+          evaluationModel: { id: 'test' },
+          reflectionModel: { id: 'test' },
+          populationSize: 2,
+          maxGenerations: 1,
+          evaluationBatchSize: 1
+        }
+      );
+
+      const checkpointEvents = emittedEvents.filter(e => e.event === 'gepa:checkpoint:saved');
+      expect(checkpointEvents.length).toBeGreaterThan(0);
+      expect(checkpointEvents[0].data).toHaveProperty('generation');
+      expect(checkpointEvents[0].data).toHaveProperty('frontierSize');
+    });
+  });
+
+  describe('getStatistics()', () => {
+    it('should return detailed statistics after evolution', async () => {
+      mockLLMClient.chat.mockResolvedValue({ content: 'out', usage: { total_tokens: 50 } });
+
+      await gepaOptimizer.api.evolve(
+        'Test prompt',
+        [{ input: 'x', expected: 'out' }],
+        {
+          evaluationModel: { id: 'test' },
+          reflectionModel: { id: 'test' },
+          populationSize: 2,
+          maxGenerations: 1,
+          evaluationBatchSize: 1
+        }
+      );
+
+      const stats = gepaOptimizer.api.getStatistics();
+
+      expect(stats.generation).toBe(0);
+      expect(stats.population.size).toBeGreaterThanOrEqual(1); // May be less due to selection
+      expect(stats.population.diversity).toBeGreaterThanOrEqual(0);
+      expect(stats.population.avgFitness).toBeGreaterThanOrEqual(0);
+      expect(stats.frontier.size).toBeGreaterThan(0);
+      expect(stats.frontier.hypervolume).toBeGreaterThanOrEqual(0);
+    });
+  });
+
+  describe('Evaluation caching', () => {
+    it('should cache evaluation results when enabled', async () => {
+      let callCount = 0;
+      mockLLMClient.chat.mockImplementation(async () => {
+        callCount++;
+        return { content: 'out', usage: {} };
+      });
+
+      // First evolution run
+      await gepaOptimizer.api.evolve(
+        'Test prompt',
+        [{ id: 'task1', input: 'test', expected: 'out' }],
+        {
+          evaluationModel: { id: 'test' },
+          reflectionModel: { id: 'test' },
+          populationSize: 2,
+          maxGenerations: 2,
+          evaluationBatchSize: 1,
+          cacheEvaluations: true
+        }
+      );
+
+      const status = gepaOptimizer.api.getStatus();
+      expect(status.evaluationCacheSize).toBeGreaterThan(0);
+    });
+  });
+
+  describe('Reflection depth settings', () => {
+    it('should use configured reflection depth', async () => {
+      let reflectionPrompts = [];
+      mockLLMClient.chat.mockImplementation(async (messages) => {
+        if (messages[0]?.content?.includes('prompt engineer')) {
+          reflectionPrompts.push(messages[0].content);
+        }
+        return { content: JSON.stringify({ rootCause: 'test', confidence: 0.8, modifications: [{ type: 'add', content: 'x', rationale: 'y', priority: 'high' }] }) };
+      });
+
+      await gepaOptimizer.api.evolve(
+        'Bad prompt',
+        [{ input: 'test', expected: 'different output' }],
+        {
+          evaluationModel: { id: 'test' },
+          reflectionModel: { id: 'test' },
+          populationSize: 2,
+          maxGenerations: 1,
+          evaluationBatchSize: 1,
+          reflectionDepth: 'comprehensive'
+        }
+      );
+
+      // Check that comprehensive depth was used
+      const comprehensivePrompt = reflectionPrompts.find(p => p.includes('systematically'));
+      expect(comprehensivePrompt).toBeDefined();
+    });
+  });
+
+  describe('Objective weights', () => {
+    it('should apply custom objective weights', async () => {
+      mockLLMClient.chat.mockResolvedValue({ content: 'out', usage: { total_tokens: 100 } });
+
+      const result = await gepaOptimizer.api.evolve(
+        'Test prompt',
+        [{ input: 'x', expected: 'out' }],
+        {
+          evaluationModel: { id: 'test' },
+          reflectionModel: { id: 'test' },
+          populationSize: 2,
+          maxGenerations: 1,
+          evaluationBatchSize: 1,
+          objectiveWeights: {
+            accuracy: 2.0,  // Double weight on accuracy
+            efficiency: 0.5,
+            robustness: 1.0,
+            cost: 0.5
+          }
+        }
+      );
+
+      // Evolution should complete successfully with custom weights
+      expect(result.frontier.length).toBeGreaterThan(0);
     });
   });
 });

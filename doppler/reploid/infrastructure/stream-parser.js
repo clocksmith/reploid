@@ -360,6 +360,46 @@ const StreamParser = {
      * @param {Object} [options] - Optional settings
      * @returns {Promise<{content: string, toolCalls: Array|null}>} Content and tool calls
      */
+    /**
+     * Process a line from SSE stream for OpenAI tool calls
+     * @param {string} line - SSE line
+     * @param {string} fullContent - Current accumulated content
+     * @param {Map} toolCallsMap - Tool calls accumulator
+     * @param {Function} onUpdate - Update callback
+     * @returns {{fullContent: string}} Updated content
+     */
+    const processOpenAILine = (line, fullContent, toolCallsMap, onUpdate) => {
+      if (line.startsWith('data: ') && line !== 'data: [DONE]') {
+        try {
+          const data = JSON.parse(line.slice(6));
+          const delta = data.choices?.[0]?.delta;
+
+          // Handle text content
+          if (delta?.content) {
+            fullContent += delta.content;
+            onUpdate?.(delta.content);
+          }
+
+          // Handle tool calls (accumulate by index)
+          if (delta?.tool_calls) {
+            for (const tc of delta.tool_calls) {
+              const idx = tc.index ?? 0;
+              if (!toolCallsMap.has(idx)) {
+                toolCallsMap.set(idx, { id: '', name: '', arguments: '' });
+              }
+              const entry = toolCallsMap.get(idx);
+              if (tc.id) entry.id = tc.id;
+              if (tc.function?.name) entry.name = tc.function.name;
+              if (tc.function?.arguments) entry.arguments += tc.function.arguments;
+            }
+          }
+        } catch {
+          // Skip malformed JSON chunks
+        }
+      }
+      return { fullContent };
+    };
+
     const parseOpenAIStreamWithTools = async (response, onUpdate, options = {}) => {
       if (!response.body) {
         throw new Error('Response body is not readable');
@@ -368,7 +408,7 @@ const StreamParser = {
       const { abortController, timeoutMs = DEFAULT_STREAM_TIMEOUT_MS } = options;
       const rawReader = response.body.getReader();
       const reader = withStreamTimeout(rawReader, timeoutMs, abortController);
-      const decoder = new TextDecoder();
+      const tokenDecoder = createPartialTokenDecoder();
       let buffer = '';
       let fullContent = '';
 
@@ -380,39 +420,29 @@ const StreamParser = {
           const { done, value } = await reader.read();
           if (done) break;
 
-          buffer += decoder.decode(value, { stream: true });
+          // Use partial token decoder for proper UTF-8 handling
+          buffer += tokenDecoder.decode(value, true);
           const lines = buffer.split('\n');
           buffer = lines.pop() || '';
 
           for (const line of lines) {
-            if (line.startsWith('data: ') && line !== 'data: [DONE]') {
-              try {
-                const data = JSON.parse(line.slice(6));
-                const delta = data.choices?.[0]?.delta;
+            const result = processOpenAILine(line, fullContent, toolCallsMap, onUpdate);
+            fullContent = result.fullContent;
+          }
+        }
 
-                // Handle text content
-                if (delta?.content) {
-                  fullContent += delta.content;
-                  onUpdate?.(delta.content);
-                }
+        // Flush any remaining partial UTF-8 sequences
+        const flushed = tokenDecoder.flush();
+        if (flushed) {
+          buffer += flushed;
+        }
 
-                // Handle tool calls (accumulate by index)
-                if (delta?.tool_calls) {
-                  for (const tc of delta.tool_calls) {
-                    const idx = tc.index ?? 0;
-                    if (!toolCallsMap.has(idx)) {
-                      toolCallsMap.set(idx, { id: '', name: '', arguments: '' });
-                    }
-                    const entry = toolCallsMap.get(idx);
-                    if (tc.id) entry.id = tc.id;
-                    if (tc.function?.name) entry.name = tc.function.name;
-                    if (tc.function?.arguments) entry.arguments += tc.function.arguments;
-                  }
-                }
-              } catch {
-                // Skip malformed JSON chunks
-              }
-            }
+        // Process remaining buffer content (final flush)
+        if (buffer.trim()) {
+          const remainingLines = buffer.split('\n');
+          for (const line of remainingLines) {
+            const result = processOpenAILine(line, fullContent, toolCallsMap, onUpdate);
+            fullContent = result.fullContent;
           }
         }
       } finally {
@@ -451,6 +481,66 @@ const StreamParser = {
      * @param {Object} [options] - Optional settings
      * @returns {Promise<{content: string, toolCalls: Array|null}>}
      */
+    /**
+     * Process a line from SSE stream for Anthropic tool calls
+     * @param {string} line - SSE line
+     * @param {Object} state - {fullContent, toolCalls, currentToolUse}
+     * @param {Function} onUpdate - Update callback
+     * @returns {Object} Updated state
+     */
+    const processAnthropicLine = (line, state, onUpdate) => {
+      let { fullContent, toolCalls, currentToolUse } = state;
+
+      if (line.startsWith('data: ')) {
+        try {
+          const data = JSON.parse(line.slice(6));
+
+          // Handle text content
+          if (data.type === 'content_block_delta' && data.delta?.type === 'text_delta') {
+            const text = data.delta.text || '';
+            if (text) {
+              fullContent += text;
+              onUpdate?.(text);
+            }
+          }
+
+          // Handle tool use start
+          if (data.type === 'content_block_start' && data.content_block?.type === 'tool_use') {
+            currentToolUse = {
+              id: data.content_block.id,
+              name: data.content_block.name,
+              arguments: ''
+            };
+          }
+
+          // Handle tool use input delta
+          if (data.type === 'content_block_delta' && data.delta?.type === 'input_json_delta') {
+            if (currentToolUse) {
+              currentToolUse.arguments += data.delta.partial_json || '';
+            }
+          }
+
+          // Handle tool use end
+          if (data.type === 'content_block_stop' && currentToolUse) {
+            let args = {};
+            try {
+              args = JSON.parse(currentToolUse.arguments || '{}');
+            } catch { /* Invalid JSON */ }
+            toolCalls.push({
+              id: currentToolUse.id,
+              name: currentToolUse.name,
+              args
+            });
+            currentToolUse = null;
+          }
+        } catch {
+          // Skip malformed JSON chunks
+        }
+      }
+
+      return { fullContent, toolCalls, currentToolUse };
+    };
+
     const parseAnthropicStreamWithTools = async (response, onUpdate, options = {}) => {
       if (!response.body) {
         throw new Error('Response body is not readable');
@@ -459,75 +549,82 @@ const StreamParser = {
       const { abortController, timeoutMs = DEFAULT_STREAM_TIMEOUT_MS } = options;
       const rawReader = response.body.getReader();
       const reader = withStreamTimeout(rawReader, timeoutMs, abortController);
-      const decoder = new TextDecoder();
+      const tokenDecoder = createPartialTokenDecoder();
       let buffer = '';
-      let fullContent = '';
-      const toolCalls = [];
-      let currentToolUse = null;
+      let state = { fullContent: '', toolCalls: [], currentToolUse: null };
 
       try {
         while (true) {
           const { done, value } = await reader.read();
           if (done) break;
 
-          buffer += decoder.decode(value, { stream: true });
+          // Use partial token decoder for proper UTF-8 handling
+          buffer += tokenDecoder.decode(value, true);
           const lines = buffer.split('\n');
           buffer = lines.pop() || '';
 
           for (const line of lines) {
-            if (line.startsWith('data: ')) {
-              try {
-                const data = JSON.parse(line.slice(6));
+            state = processAnthropicLine(line, state, onUpdate);
+          }
+        }
 
-                // Handle text content
-                if (data.type === 'content_block_delta' && data.delta?.type === 'text_delta') {
-                  const text = data.delta.text || '';
-                  if (text) {
-                    fullContent += text;
-                    onUpdate?.(text);
-                  }
-                }
+        // Flush any remaining partial UTF-8 sequences
+        const flushed = tokenDecoder.flush();
+        if (flushed) {
+          buffer += flushed;
+        }
 
-                // Handle tool use start
-                if (data.type === 'content_block_start' && data.content_block?.type === 'tool_use') {
-                  currentToolUse = {
-                    id: data.content_block.id,
-                    name: data.content_block.name,
-                    arguments: ''
-                  };
-                }
-
-                // Handle tool use input delta
-                if (data.type === 'content_block_delta' && data.delta?.type === 'input_json_delta') {
-                  if (currentToolUse) {
-                    currentToolUse.arguments += data.delta.partial_json || '';
-                  }
-                }
-
-                // Handle tool use end
-                if (data.type === 'content_block_stop' && currentToolUse) {
-                  let args = {};
-                  try {
-                    args = JSON.parse(currentToolUse.arguments || '{}');
-                  } catch { /* Invalid JSON */ }
-                  toolCalls.push({
-                    id: currentToolUse.id,
-                    name: currentToolUse.name,
-                    args
-                  });
-                  currentToolUse = null;
-                }
-              } catch {
-                // Skip malformed JSON chunks
-              }
-            }
+        // Process remaining buffer content (final flush)
+        if (buffer.trim()) {
+          const remainingLines = buffer.split('\n');
+          for (const line of remainingLines) {
+            state = processAnthropicLine(line, state, onUpdate);
           }
         }
       } finally {
         reader.releaseLock();
       }
 
-      return { content: fullContent, toolCalls: toolCalls.length > 0 ? toolCalls : null };
+      return { content: state.fullContent, toolCalls: state.toolCalls.length > 0 ? state.toolCalls : null };
+    };
+
+    /**
+     * Process a line from SSE stream for Gemini tool calls
+     * @param {string} line - SSE line
+     * @param {Object} state - {fullContent, toolCalls}
+     * @param {Function} onUpdate - Update callback
+     * @returns {Object} Updated state
+     */
+    const processGeminiLine = (line, state, onUpdate) => {
+      let { fullContent, toolCalls } = state;
+
+      if (line.startsWith('data: ') && line !== 'data: [DONE]') {
+        try {
+          const data = JSON.parse(line.slice(6));
+          const candidate = data.candidates?.[0];
+
+          // Handle text content
+          const text = candidate?.content?.parts?.[0]?.text || '';
+          if (text) {
+            fullContent += text;
+            onUpdate?.(text);
+          }
+
+          // Handle function calls
+          const functionCall = candidate?.content?.parts?.[0]?.functionCall;
+          if (functionCall) {
+            toolCalls.push({
+              id: `gemini_${Date.now()}_${toolCalls.length}`,
+              name: functionCall.name,
+              args: functionCall.args || {}
+            });
+          }
+        } catch {
+          // Skip malformed JSON chunks
+        }
+      }
+
+      return { fullContent, toolCalls };
     };
 
     /**
@@ -546,53 +643,43 @@ const StreamParser = {
       const { abortController, timeoutMs = DEFAULT_STREAM_TIMEOUT_MS } = options;
       const rawReader = response.body.getReader();
       const reader = withStreamTimeout(rawReader, timeoutMs, abortController);
-      const decoder = new TextDecoder();
+      const tokenDecoder = createPartialTokenDecoder();
       let buffer = '';
-      let fullContent = '';
-      const toolCalls = [];
+      let state = { fullContent: '', toolCalls: [] };
 
       try {
         while (true) {
           const { done, value } = await reader.read();
           if (done) break;
 
-          buffer += decoder.decode(value, { stream: true });
+          // Use partial token decoder for proper UTF-8 handling
+          buffer += tokenDecoder.decode(value, true);
           const lines = buffer.split('\n');
           buffer = lines.pop() || '';
 
           for (const line of lines) {
-            if (line.startsWith('data: ') && line !== 'data: [DONE]') {
-              try {
-                const data = JSON.parse(line.slice(6));
-                const candidate = data.candidates?.[0];
+            state = processGeminiLine(line, state, onUpdate);
+          }
+        }
 
-                // Handle text content
-                const text = candidate?.content?.parts?.[0]?.text || '';
-                if (text) {
-                  fullContent += text;
-                  onUpdate?.(text);
-                }
+        // Flush any remaining partial UTF-8 sequences
+        const flushed = tokenDecoder.flush();
+        if (flushed) {
+          buffer += flushed;
+        }
 
-                // Handle function calls
-                const functionCall = candidate?.content?.parts?.[0]?.functionCall;
-                if (functionCall) {
-                  toolCalls.push({
-                    id: `gemini_${Date.now()}_${toolCalls.length}`,
-                    name: functionCall.name,
-                    args: functionCall.args || {}
-                  });
-                }
-              } catch {
-                // Skip malformed JSON chunks
-              }
-            }
+        // Process remaining buffer content (final flush)
+        if (buffer.trim()) {
+          const remainingLines = buffer.split('\n');
+          for (const line of remainingLines) {
+            state = processGeminiLine(line, state, onUpdate);
           }
         }
       } finally {
         reader.releaseLock();
       }
 
-      return { content: fullContent, toolCalls: toolCalls.length > 0 ? toolCalls : null };
+      return { content: state.fullContent, toolCalls: state.toolCalls.length > 0 ? state.toolCalls : null };
     };
 
     return {
