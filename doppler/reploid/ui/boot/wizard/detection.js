@@ -294,8 +294,11 @@ export async function runDetection(options = {}) {
 
 /**
  * Test API key validity
+ * @param {string} provider - Provider name
+ * @param {string} apiKey - API key
+ * @param {string} [baseUrl] - Custom base URL for 'other' provider
  */
-export async function testApiKey(provider, apiKey) {
+export async function testApiKey(provider, apiKey, baseUrl = null) {
   const endpoints = {
     anthropic: {
       url: 'https://api.anthropic.com/v1/messages',
@@ -322,12 +325,20 @@ export async function testApiKey(provider, apiKey) {
       url: `https://generativelanguage.googleapis.com/v1/models?key=${apiKey}`,
       method: 'GET',
       headers: {}
-    }
+    },
+    other: baseUrl ? {
+      // For custom providers, use OpenAI-compatible /v1/models endpoint
+      url: `${baseUrl.replace(/\/$/, '')}/models`,
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`
+      }
+    } : null
   };
 
   const config = endpoints[provider];
   if (!config) {
-    return { success: false, error: 'Unknown provider' };
+    return { success: false, error: provider === 'other' ? 'Base URL required' : 'Unknown provider' };
   }
 
   try {

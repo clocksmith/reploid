@@ -977,13 +977,14 @@ function handleClick(e) {
       goToStep(STEPS.CHOOSE);
       break;
 
-    case 'back-to-config':
-      const ct = state.connectionType;
-      if (ct === 'api') goToStep(STEPS.API_CONFIG);
-      else if (ct === 'proxy') goToStep(STEPS.PROXY_CONFIG);
-      else if (ct === 'local') goToStep(STEPS.LOCAL_CONFIG);
+    case 'back-to-config': {
+      const backConnType = state.connectionType;
+      if (backConnType === 'api') goToStep(STEPS.API_CONFIG);
+      else if (backConnType === 'proxy') goToStep(STEPS.PROXY_CONFIG);
+      else if (backConnType === 'local') goToStep(STEPS.LOCAL_CONFIG);
       else goToStep(STEPS.DOPPLER_CONFIG);
       break;
+    }
 
     case 'test-api-key':
       handleTestApiKey();
@@ -1026,14 +1027,15 @@ function handleClick(e) {
       handleTestFromAwaken();
       break;
 
-    case 'edit-config':
+    case 'edit-config': {
       // Go back to config step from AWAKEN warning
-      const ct = state.connectionType;
-      if (ct === 'api') goToStep(STEPS.API_CONFIG);
-      else if (ct === 'proxy') goToStep(STEPS.PROXY_CONFIG);
-      else if (ct === 'local') goToStep(STEPS.LOCAL_CONFIG);
+      const connType = state.connectionType;
+      if (connType === 'api') goToStep(STEPS.API_CONFIG);
+      else if (connType === 'proxy') goToStep(STEPS.PROXY_CONFIG);
+      else if (connType === 'local') goToStep(STEPS.LOCAL_CONFIG);
       else goToStep(STEPS.DOPPLER_CONFIG);
       break;
+    }
 
     case 'awaken-anyway':
       // Proceed despite unverified connection
@@ -1133,14 +1135,15 @@ function handleInput(e) {
 
 async function handleTestApiKey() {
   const state = getState();
-  const { provider, apiKey } = state.apiConfig;
+  const { provider, apiKey, baseUrl } = state.apiConfig;
 
   if (!provider || !apiKey) return;
+  if (provider === 'other' && !baseUrl) return;
 
   setNestedState('apiConfig', { verifyState: VERIFY_STATE.TESTING });
   render();
 
-  const result = await testApiKey(provider, apiKey);
+  const result = await testApiKey(provider, apiKey, baseUrl);
 
   setNestedState('apiConfig', {
     verifyState: result.success ? VERIFY_STATE.VERIFIED : VERIFY_STATE.FAILED,
