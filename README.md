@@ -2,9 +2,20 @@
 
 **R**ecursive **E**volution **P**rotocol **L**oop **O**rchestrating **I**nference **D**oppler
 
-Browser-native sandbox for safe AI agent development with self-modification capabilities.
+Browser-native recursive self-improvement—an agent that rewrites its own code and kernels in a live loop.
 
 **[Try it live](https://replo.id/r)** | **[GitHub](https://github.com/clocksmith/reploid)**
+
+## Why This Works
+
+Code lives in the VFS, modules load dynamically, and the Ouroboros loop moves updates through a tiny shared contract.
+
+| Capability | Claim |
+|------------|-------|
+| **VFS hot-reload** | IndexedDB-backed filesystem ([BrowserFS/Doppio](https://github.com/jvilk/BrowserFS), [MDN IndexedDB](https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API)) |
+| **WebGPU in-process** | 80% native performance ([WebLLM 2024](https://arxiv.org/abs/2412.15803)) |
+| **Zero-install** | URL distribution ([PWA Research 2020](https://www.researchgate.net/publication/343472764_Dawning_of_Progressive_Web_Applications_PWA_Edging_Out_the_Pitfalls_of_Traditional_Mobile_Development)) |
+| **Tight loop** | RSI validated by [Gödel Agent 2024](https://arxiv.org/abs/2410.04444), [RISE NeurIPS 2024](https://proceedings.neurips.cc/paper_files/paper/2024/file/639d992f819c2b40387d4d5170b8ffd7-Paper-Conference.pdf) |
 
 Project source is in `doppler/reploid/`. Root-level `AGENTS.md`, `CLAUDE.md`, and `EMOJI.md` are symlinked there.
 
