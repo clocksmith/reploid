@@ -7,7 +7,7 @@ import {
   STEPS, VERIFY_STATE,
   getState, setState, setNestedState, subscribe,
   goToStep, checkSavedConfig, saveConfig, forgetDevice,
-  canAwaken, getCapabilityLevel
+  canAwaken, getCapabilityLevel, hydrateSavedConfig
 } from './state.js';
 
 import {
@@ -38,12 +38,14 @@ const CLOUD_MODELS = {
 
 // DOM container reference
 let container = null;
+let listenersAttached = false;
 
 /**
  * Initialize wizard
  */
 export function initWizard(containerEl) {
   container = containerEl;
+  listenersAttached = false;
   subscribe(render);
   handleStart();
 }
@@ -58,27 +60,27 @@ function handleStart() {
     // Have saved config, render resume option
     setState({ savedConfig: saved, currentStep: STEPS.START });
   } else {
-    // No saved config, go to detection
+    // No saved config, show detection consent screen
     goToStep(STEPS.DETECT);
-    startDetection();
   }
 }
 
 /**
- * Start detection phase
+ * Start detection phase (after user consent)
  */
 async function startDetection() {
-  goToStep(STEPS.DETECT);
+  setNestedState('detection', { scanning: true });
   render();
 
   await runDetection({
     skipLocalScan: false,
-    onProgress: (progress) => {
+    onProgress: () => {
       // Re-render on each progress update
       render();
     }
   });
 
+  setNestedState('detection', { scanning: false });
   // Auto-advance to choose after detection
   goToStep(STEPS.CHOOSE);
 }
@@ -133,7 +135,12 @@ function render() {
   html += renderFooter();
 
   container.innerHTML = html;
-  attachEventListeners();
+
+  // Only attach listeners once (use event delegation)
+  if (!listenersAttached) {
+    attachEventListeners();
+    listenersAttached = true;
+  }
 }
 
 /**
@@ -148,26 +155,40 @@ function renderHeader() {
   let statusText = 'Not configured';
   let modelName = '';
 
+  // Get verify state and model based on connection type
+  let verifyState = VERIFY_STATE.UNVERIFIED;
+
   if (connectionType === 'api') {
     modelName = apiConfig.model || apiConfig.provider || '';
-    if (apiConfig.verifyState === VERIFY_STATE.VERIFIED) {
-      statusIcon = '✓';
-      statusClass = 'verified';
-      statusText = 'Verified';
-    } else if (apiConfig.verifyState === VERIFY_STATE.FAILED) {
-      statusIcon = '✗';
-      statusClass = 'failed';
-      statusText = 'Failed';
-    } else {
-      statusIcon = '⚠';
-      statusClass = 'unverified';
-      statusText = 'Unverified';
-    }
+    verifyState = apiConfig.verifyState;
+  } else if (connectionType === 'proxy') {
+    modelName = proxyConfig.model || 'Proxy';
+    verifyState = proxyConfig.verifyState;
+  } else if (connectionType === 'local') {
+    modelName = localConfig.model || 'Local';
+    verifyState = localConfig.verifyState;
   } else if (connectionType === 'browser') {
     modelName = dopplerConfig.model || 'Doppler WebGPU';
-    statusIcon = '✓';
+    verifyState = VERIFY_STATE.VERIFIED; // Local browser is always verified
+  }
+
+  // Set status display based on verify state
+  if (verifyState === VERIFY_STATE.VERIFIED) {
+    statusIcon = '★';
     statusClass = 'verified';
-    statusText = 'Local';
+    statusText = connectionType === 'browser' ? 'Local' : 'Verified';
+  } else if (verifyState === VERIFY_STATE.FAILED) {
+    statusIcon = '☒';
+    statusClass = 'failed';
+    statusText = 'Failed';
+  } else if (verifyState === VERIFY_STATE.TESTING) {
+    statusIcon = '☍';
+    statusClass = 'testing';
+    statusText = 'Testing...';
+  } else {
+    statusIcon = '☡';
+    statusClass = 'unverified';
+    statusText = 'Unverified';
   }
 
   return `
@@ -239,21 +260,52 @@ function renderDetectStep() {
   const state = getState();
   const { detection } = state;
   const isHttps = checkHttps();
+  const isScanning = detection.scanning;
 
+  // If not scanning yet, show consent screen
+  if (!isScanning && !detection.webgpu.checked) {
+    return `
+      <div class="wizard-step wizard-detect">
+        <h2>Connection Detection</h2>
+        <p class="wizard-subtitle">We can scan for available model providers.</p>
+
+        ${isHttps ? `
+          <div class="wizard-note warning">
+            <span class="note-icon">☡</span>
+            You're on HTTPS. Local servers (http://localhost) may be blocked by your browser.
+          </div>
+        ` : ''}
+
+        <div class="detection-consent">
+          <p>This will check for:</p>
+          <ul>
+            <li>WebGPU support for browser-local models</li>
+            <li>Ollama at localhost:11434</li>
+            <li>Proxy server at localhost:8000</li>
+          </ul>
+        </div>
+
+        <div class="wizard-actions">
+          <button class="btn btn-primary" data-action="start-scan">
+            Scan for connections
+          </button>
+          <button class="btn btn-tertiary" data-action="skip-detection">
+            Skip and configure manually
+          </button>
+        </div>
+      </div>
+    `;
+  }
+
+  // Scanning or completed scan
   return `
     <div class="wizard-step wizard-detect">
       <h2>Detecting Connections</h2>
       <p class="wizard-subtitle">Checking for available model providers...</p>
 
-      ${isHttps ? `
-        <div class="wizard-note warning">
-          You're on HTTPS. Local servers (http://localhost) may be blocked.
-        </div>
-      ` : ''}
-
       <div class="detection-list">
         <div class="detection-item ${detection.webgpu.checked ? (detection.webgpu.supported ? 'online' : 'offline') : 'checking'}">
-          <span class="detection-icon">${detection.webgpu.checked ? (detection.webgpu.supported ? '✓' : '✗') : '◐'}</span>
+          <span class="detection-icon">${detection.webgpu.checked ? (detection.webgpu.supported ? '★' : '☒') : '☍'}</span>
           <span class="detection-label">WebGPU</span>
           <span class="detection-status">
             ${detection.webgpu.checked ? (detection.webgpu.supported ? 'Available' : 'Not supported') : 'Checking...'}
@@ -261,7 +313,7 @@ function renderDetectStep() {
         </div>
 
         <div class="detection-item ${detection.doppler?.checked ? (detection.doppler?.supported ? 'online' : 'offline') : 'checking'}">
-          <span class="detection-icon">${detection.doppler?.checked ? (detection.doppler?.supported ? '✓' : '✗') : '◐'}</span>
+          <span class="detection-icon">${detection.doppler?.checked ? (detection.doppler?.supported ? '★' : '☒') : '☍'}</span>
           <span class="detection-label">Doppler Engine</span>
           <span class="detection-status">
             ${detection.doppler?.checked ? (detection.doppler?.supported ? 'Ready' : 'Not available') : 'Checking...'}
@@ -269,7 +321,7 @@ function renderDetectStep() {
         </div>
 
         <div class="detection-item ${detection.ollama?.checked ? (detection.ollama?.detected ? 'online' : 'offline') : 'checking'}">
-          <span class="detection-icon">${detection.ollama?.checked ? (detection.ollama?.detected ? '✓' : detection.ollama?.blocked ? '⚠' : '✗') : '◐'}</span>
+          <span class="detection-icon">${detection.ollama?.checked ? (detection.ollama?.detected ? '★' : detection.ollama?.blocked ? '☡' : '☒') : '☍'}</span>
           <span class="detection-label">Ollama</span>
           <span class="detection-status">
             ${detection.ollama?.checked
@@ -283,7 +335,7 @@ function renderDetectStep() {
         </div>
 
         <div class="detection-item ${detection.proxy?.checked ? (detection.proxy?.detected ? 'online' : 'offline') : 'checking'}">
-          <span class="detection-icon">${detection.proxy?.checked ? (detection.proxy?.detected ? '✓' : detection.proxy?.blocked ? '⚠' : '✗') : '◐'}</span>
+          <span class="detection-icon">${detection.proxy?.checked ? (detection.proxy?.detected ? '★' : detection.proxy?.blocked ? '☡' : '☒') : '☍'}</span>
           <span class="detection-label">Proxy Server</span>
           <span class="detection-status">
             ${detection.proxy?.checked
@@ -299,7 +351,7 @@ function renderDetectStep() {
 
       <div class="wizard-actions">
         <button class="btn btn-tertiary" data-action="skip-detection">
-          Skip detection
+          Skip
         </button>
       </div>
     </div>
@@ -327,7 +379,7 @@ function renderChooseStep() {
                 data-action="choose-browser"
                 ${!webgpuSupported ? 'disabled' : ''}>
           <div class="option-header">
-            <span class="option-icon">◈</span>
+            <span class="option-icon">☖</span>
             <span class="option-title">Browser Model (Doppler)</span>
             ${webgpuSupported ? '<span class="option-badge recommended">Recommended</span>' : ''}
           </div>
@@ -337,9 +389,9 @@ function renderChooseStep() {
               : 'WebGPU not supported in this browser'}
           </div>
           <div class="option-capabilities">
-            <span class="cap-tag cap-substrate">✓ Full substrate access</span>
-            <span class="cap-tag cap-privacy">✓ Private</span>
-            <span class="cap-tag cap-warn">⚠ Limited reasoning</span>
+            <span class="cap-tag cap-substrate">★ Full substrate access</span>
+            <span class="cap-tag cap-privacy">★ Private</span>
+            <span class="cap-tag cap-warn">☡ Limited reasoning</span>
           </div>
         </button>
 
@@ -352,14 +404,14 @@ function renderChooseStep() {
             Use Claude, GPT-4, or Gemini with your API key
           </div>
           <div class="option-capabilities">
-            <span class="cap-tag cap-reasoning">✓ High reasoning</span>
-            <span class="cap-tag cap-warn">✗ No substrate access</span>
+            <span class="cap-tag cap-reasoning">★ High reasoning</span>
+            <span class="cap-tag cap-warn">☒ No substrate access</span>
           </div>
         </button>
 
         <button class="connection-option" data-action="choose-proxy">
           <div class="option-header">
-            <span class="option-icon">⇄</span>
+            <span class="option-icon">☍</span>
             <span class="option-title">Proxy Server</span>
             ${proxyDetected ? '<span class="option-badge detected">Detected</span>' : ''}
           </div>
@@ -377,7 +429,7 @@ function renderChooseStep() {
 
         <button class="connection-option" data-action="choose-local">
           <div class="option-header">
-            <span class="option-icon">⌂</span>
+            <span class="option-icon">☗</span>
             <span class="option-title">Local Server</span>
             ${ollamaDetected ? '<span class="option-badge detected">Ollama detected</span>' : ''}
           </div>
@@ -395,7 +447,7 @@ function renderChooseStep() {
 
         <button class="connection-option tertiary" data-action="explore-docs">
           <div class="option-header">
-            <span class="option-icon">📖</span>
+            <span class="option-icon">☐</span>
             <span class="option-title">Explore docs only</span>
           </div>
           <div class="option-description">
@@ -412,8 +464,9 @@ function renderChooseStep() {
  */
 function renderApiConfigStep() {
   const state = getState();
-  const { apiConfig, detection } = state;
-  const models = apiConfig.provider ? (CLOUD_MODELS[apiConfig.provider] || []) : [];
+  const { apiConfig, detection, enableDopplerSubstrate } = state;
+  const isOther = apiConfig.provider === 'other';
+  const models = apiConfig.provider && !isOther ? (CLOUD_MODELS[apiConfig.provider] || []) : [];
 
   return `
     <div class="wizard-step wizard-api-config">
@@ -427,9 +480,21 @@ function renderApiConfigStep() {
             <option value="anthropic" ${apiConfig.provider === 'anthropic' ? 'selected' : ''}>Anthropic (Claude)</option>
             <option value="openai" ${apiConfig.provider === 'openai' ? 'selected' : ''}>OpenAI (GPT-4)</option>
             <option value="gemini" ${apiConfig.provider === 'gemini' ? 'selected' : ''}>Google (Gemini)</option>
-            <option value="other" ${apiConfig.provider === 'other' ? 'selected' : ''}>Other</option>
+            <option value="other" ${apiConfig.provider === 'other' ? 'selected' : ''}>Other (OpenAI-compatible)</option>
           </select>
         </div>
+
+        ${isOther ? `
+          <div class="form-row">
+            <label>Base URL</label>
+            <input type="text"
+                   id="api-base-url"
+                   class="config-input"
+                   placeholder="https://api.example.com/v1"
+                   value="${apiConfig.baseUrl || ''}" />
+            <div class="form-note">OpenAI-compatible API base URL</div>
+          </div>
+        ` : ''}
 
         <div class="form-row">
           <label>API Key</label>
@@ -439,15 +504,17 @@ function renderApiConfigStep() {
                    class="config-input"
                    placeholder="Enter your API key"
                    value="${apiConfig.apiKey || ''}" />
-            <button class="btn btn-secondary" data-action="test-api-key">
+            <button class="btn btn-secondary"
+                    data-action="test-api-key"
+                    ${isOther && !apiConfig.baseUrl ? 'disabled' : ''}>
               ${apiConfig.verifyState === VERIFY_STATE.TESTING ? 'Testing...' : 'Test'}
             </button>
           </div>
           ${apiConfig.verifyState === VERIFY_STATE.VERIFIED ? `
-            <div class="form-success">✓ Connection verified</div>
+            <div class="form-success">★ Connection verified</div>
           ` : ''}
           ${apiConfig.verifyState === VERIFY_STATE.FAILED ? `
-            <div class="form-error">✗ ${apiConfig.verifyError || 'Connection failed'}</div>
+            <div class="form-error">☒ ${apiConfig.verifyError || 'Connection failed'}</div>
           ` : ''}
           ${apiConfig.provider === 'anthropic' ? `
             <div class="form-note">Test sends minimal request (~10 tokens, ~$0.00001)</div>
@@ -466,12 +533,20 @@ function renderApiConfigStep() {
 
         <div class="form-row">
           <label>Model</label>
-          <select id="api-model" class="config-select" ${!apiConfig.provider ? 'disabled' : ''}>
-            <option value="">Select model...</option>
-            ${models.map(m => `
-              <option value="${m.id}" ${apiConfig.model === m.id ? 'selected' : ''}>${m.name}</option>
-            `).join('')}
-          </select>
+          ${isOther ? `
+            <input type="text"
+                   id="api-model"
+                   class="config-input"
+                   placeholder="Enter model name (e.g., gpt-4)"
+                   value="${apiConfig.model || ''}" />
+          ` : `
+            <select id="api-model" class="config-select" ${!apiConfig.provider ? 'disabled' : ''}>
+              <option value="">Select model...</option>
+              ${models.map(m => `
+                <option value="${m.id}" ${apiConfig.model === m.id ? 'selected' : ''}>${m.name}</option>
+              `).join('')}
+            </select>
+          `}
         </div>
 
         ${detection.webgpu.supported ? `
@@ -479,11 +554,21 @@ function renderApiConfigStep() {
             <label class="checkbox-label">
               <input type="checkbox"
                      id="enable-doppler"
-                     ${state.enableDopplerSubstrate ? 'checked' : ''} />
+                     ${enableDopplerSubstrate ? 'checked' : ''} />
               <span>Also enable Doppler for substrate access</span>
             </label>
             <div class="form-note">Enables LoRA, activation steering, weight inspection</div>
           </div>
+          ${enableDopplerSubstrate ? `
+            <div class="form-row doppler-model-inline">
+              <label>Doppler Model</label>
+              <select id="doppler-model-inline" class="config-select">
+                <option value="smollm2-360m" ${state.dopplerConfig?.model === 'smollm2-360m' ? 'selected' : ''}>SmolLM2 360M (Recommended)</option>
+                <option value="gemma-2b" ${state.dopplerConfig?.model === 'gemma-2b' ? 'selected' : ''}>Gemma 2B</option>
+                <option value="qwen-0.5b" ${state.dopplerConfig?.model === 'qwen-0.5b' ? 'selected' : ''}>Qwen 0.5B</option>
+              </select>
+            </div>
+          ` : ''}
         ` : ''}
       </div>
 
@@ -527,10 +612,10 @@ function renderProxyConfigStep() {
             </button>
           </div>
           ${proxyConfig.verifyState === VERIFY_STATE.VERIFIED ? `
-            <div class="form-success">✓ Connection verified</div>
+            <div class="form-success">★ Connection verified</div>
           ` : ''}
           ${proxyConfig.verifyState === VERIFY_STATE.FAILED ? `
-            <div class="form-error">✗ ${proxyConfig.verifyError || 'Connection failed'}</div>
+            <div class="form-error">☒ ${proxyConfig.verifyError || 'Connection failed'}</div>
           ` : ''}
         </div>
 
@@ -585,10 +670,10 @@ function renderLocalConfigStep() {
             </button>
           </div>
           ${localConfig.verifyState === VERIFY_STATE.VERIFIED ? `
-            <div class="form-success">✓ Connection verified</div>
+            <div class="form-success">★ Connection verified</div>
           ` : ''}
           ${localConfig.verifyState === VERIFY_STATE.FAILED ? `
-            <div class="form-error">✗ ${localConfig.verifyError || 'Connection failed'}</div>
+            <div class="form-error">☒ ${localConfig.verifyError || 'Connection failed'}</div>
           ` : ''}
         </div>
 
@@ -658,7 +743,7 @@ function renderDopplerConfigStep() {
               </div>
               <div class="model-meta">
                 <span class="model-size">${m.size}</span>
-                <span class="model-status">${cached ? '✓ Cached' : 'Download required'}</span>
+                <span class="model-status">${cached ? '★ Cached' : 'Download required'}</span>
               </div>
             </button>
           `;
@@ -755,14 +840,26 @@ function renderGoalStep() {
  */
 function renderAwakenStep() {
   const state = getState();
-  const verifyState = state.apiConfig?.verifyState || state.proxyConfig?.verifyState || VERIFY_STATE.VERIFIED;
+  const { connectionType, apiConfig, proxyConfig, localConfig, dopplerConfig } = state;
+
+  // Get verify state based on connection type
+  let verifyState = VERIFY_STATE.VERIFIED;
+  if (connectionType === 'api') {
+    verifyState = apiConfig.verifyState;
+  } else if (connectionType === 'proxy') {
+    verifyState = proxyConfig.verifyState;
+  } else if (connectionType === 'local') {
+    verifyState = localConfig.verifyState;
+  } else if (connectionType === 'browser') {
+    verifyState = VERIFY_STATE.VERIFIED; // Local browser is always verified
+  }
 
   return `
     <div class="wizard-step wizard-awaken">
       ${verifyState !== VERIFY_STATE.VERIFIED ? `
         <div class="awaken-warning">
-          <h3>⚠ Connection not verified</h3>
-          <p>Your API connection hasn't been tested. The agent may fail to start.</p>
+          <h3>☡ Connection not verified</h3>
+          <p>Your connection hasn't been tested. The agent may fail to start.</p>
           <div class="warning-actions">
             <button class="btn btn-secondary" data-action="test-now">Test now</button>
             <button class="btn btn-tertiary" data-action="edit-config">Edit config</button>
@@ -823,21 +920,26 @@ function handleClick(e) {
 
   switch (action) {
     case 'continue-saved':
-      setState({ connectionType: state.savedConfig?.models?.[0]?.provider === 'doppler' ? 'browser' : 'api' });
+      // Hydrate state from saved config and go to GOAL
+      hydrateSavedConfig(state.savedConfig);
       goToStep(STEPS.GOAL);
       break;
 
     case 'continue-with-key':
       const keyInput = document.getElementById('saved-api-key');
       if (keyInput?.value) {
-        setNestedState('apiConfig', { apiKey: keyInput.value });
-        setState({ connectionType: 'api' });
+        // Hydrate state with the provided key
+        hydrateSavedConfig(state.savedConfig, keyInput.value);
         goToStep(STEPS.GOAL);
       }
       break;
 
     case 'reconfigure':
       goToStep(STEPS.DETECT);
+      break;
+
+    case 'start-scan':
+      // User consented to scanning
       startDetection();
       break;
 
@@ -919,11 +1021,29 @@ function handleClick(e) {
       handleAwaken();
       break;
 
+    case 'test-now':
+      // Test connection from AWAKEN warning screen
+      handleTestFromAwaken();
+      break;
+
+    case 'edit-config':
+      // Go back to config step from AWAKEN warning
+      const ct = state.connectionType;
+      if (ct === 'api') goToStep(STEPS.API_CONFIG);
+      else if (ct === 'proxy') goToStep(STEPS.PROXY_CONFIG);
+      else if (ct === 'local') goToStep(STEPS.LOCAL_CONFIG);
+      else goToStep(STEPS.DOPPLER_CONFIG);
+      break;
+
+    case 'awaken-anyway':
+      // Proceed despite unverified connection
+      doAwaken();
+      break;
+
     case 'forget-device':
       if (confirm('This will clear all saved configuration and API keys. Continue?')) {
         forgetDevice();
         goToStep(STEPS.DETECT);
-        startDetection();
       }
       break;
 
@@ -942,6 +1062,14 @@ function handleChange(e) {
       setNestedState('apiConfig', {
         provider: value,
         model: null,
+        baseUrl: null,
+        verifyState: VERIFY_STATE.UNVERIFIED
+      });
+      break;
+
+    case 'api-base-url':
+      setNestedState('apiConfig', {
+        baseUrl: value,
         verifyState: VERIFY_STATE.UNVERIFIED
       });
       break;
@@ -963,6 +1091,14 @@ function handleChange(e) {
 
     case 'enable-doppler':
       setState({ enableDopplerSubstrate: value });
+      // Auto-select a default model if enabling
+      if (value && !getState().dopplerConfig.model) {
+        setNestedState('dopplerConfig', { model: 'smollm2-360m' });
+      }
+      break;
+
+    case 'doppler-model-inline':
+      setNestedState('dopplerConfig', { model: value });
       break;
 
     case 'proxy-url':
@@ -1046,19 +1182,67 @@ async function handleTestLocal() {
   });
 }
 
-async function handleAwaken() {
+/**
+ * Test connection from AWAKEN warning screen
+ */
+async function handleTestFromAwaken() {
+  const state = getState();
+  const { connectionType, apiConfig, proxyConfig, localConfig } = state;
+
+  if (connectionType === 'api') {
+    await handleTestApiKey();
+  } else if (connectionType === 'proxy') {
+    await handleTestProxy();
+  } else if (connectionType === 'local') {
+    await handleTestLocal();
+  }
+
+  // If now verified, proceed to awaken
+  const updatedState = getState();
+  let newVerifyState = VERIFY_STATE.UNVERIFIED;
+  if (connectionType === 'api') newVerifyState = updatedState.apiConfig.verifyState;
+  else if (connectionType === 'proxy') newVerifyState = updatedState.proxyConfig.verifyState;
+  else if (connectionType === 'local') newVerifyState = updatedState.localConfig.verifyState;
+
+  if (newVerifyState === VERIFY_STATE.VERIFIED) {
+    doAwaken();
+  }
+}
+
+/**
+ * Actually perform the awaken
+ */
+function doAwaken() {
   const state = getState();
 
   // Save config
   saveConfig();
 
-  // Go to awaken step
-  goToStep(STEPS.AWAKEN);
-
   // Trigger the actual boot awaken
-  // This will be called by the boot system
   if (window.triggerAwaken) {
     window.triggerAwaken(state.goal);
+  }
+}
+
+/**
+ * Handle awaken button click - go to AWAKEN step (shows warning if unverified)
+ */
+async function handleAwaken() {
+  const state = getState();
+  const { connectionType, apiConfig, proxyConfig, localConfig } = state;
+
+  // Check verify state
+  let verifyState = VERIFY_STATE.VERIFIED;
+  if (connectionType === 'api') verifyState = apiConfig.verifyState;
+  else if (connectionType === 'proxy') verifyState = proxyConfig.verifyState;
+  else if (connectionType === 'local') verifyState = localConfig.verifyState;
+
+  // Go to awaken step (will show warning if not verified)
+  goToStep(STEPS.AWAKEN);
+
+  // If already verified, proceed immediately
+  if (verifyState === VERIFY_STATE.VERIFIED) {
+    doAwaken();
   }
 }
 
