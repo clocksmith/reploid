@@ -36,29 +36,18 @@ body {
   justify-content: center;
 }
 
+
 /* Soft repeating grid background */
 body::after {
   content: "";
   position: fixed;
   inset: 0;
   background-image:
-    linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
-  background-size: 50px 50px;
+    linear-gradient(rgba(255, 255, 255, 0.009) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.009) 1px, transparent 1px);
+  background-size: 65px 65px;
   pointer-events: none;
   z-index: -1;
-}
-
-/* Scanline overlay */
-body::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  background: linear-gradient(transparent 50%, rgba(0, 0, 0, 0.15) 50%);
-  background-size: 100% 3px;
-  pointer-events: none;
-  z-index: 100;
-  opacity: 0.3;
 }
 
 .landing {

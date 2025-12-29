@@ -574,7 +574,7 @@ function renderApiConfigStep() {
 
       <div class="wizard-actions">
         <button class="btn btn-tertiary" data-action="back-to-choose">
-          ← Back
+          Back
         </button>
         <button class="btn btn-primary"
                 data-action="continue-to-goal"
@@ -631,7 +631,7 @@ function renderProxyConfigStep() {
 
       <div class="wizard-actions">
         <button class="btn btn-tertiary" data-action="back-to-choose">
-          ← Back
+          Back
         </button>
         <button class="btn btn-primary"
                 data-action="continue-to-goal"
@@ -698,7 +698,7 @@ function renderLocalConfigStep() {
 
       <div class="wizard-actions">
         <button class="btn btn-tertiary" data-action="back-to-choose">
-          ← Back
+          Back
         </button>
         <button class="btn btn-primary"
                 data-action="continue-to-goal"
@@ -761,7 +761,7 @@ function renderDopplerConfigStep() {
 
       <div class="wizard-actions">
         <button class="btn btn-tertiary" data-action="back-to-choose">
-          ← Back
+          Back
         </button>
         <button class="btn btn-primary"
                 data-action="continue-to-goal"
@@ -820,7 +820,7 @@ function renderGoalStep() {
 
       <div class="wizard-actions">
         <button class="btn btn-tertiary" data-action="back-to-config">
-          ← Back
+          Back
         </button>
         <button class="btn btn-secondary" data-action="advanced-options">
           Advanced Options
