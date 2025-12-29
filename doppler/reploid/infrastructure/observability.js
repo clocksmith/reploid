@@ -19,6 +19,7 @@ const Observability = {
 
     const MUTATION_LOG_DIR = '/.logs/mutations';
     const DECISION_LOG_DIR = '/.logs/decisions';
+    const SUBSTRATE_LOG_DIR = '/.logs/substrate';
     const MAX_MUTATIONS = 1000;
     const MAX_DECISIONS = 200;
     const MAX_ERRORS = 200;
@@ -26,9 +27,11 @@ const Observability = {
     const _mutations = [];
     const _decisions = [];
     const _errors = [];
+    const _arenaResults = [];
+    const MAX_ARENA_RESULTS = 100;
     let _initialized = false;
 
-    const IGNORE_PREFIXES = [MUTATION_LOG_DIR, DECISION_LOG_DIR];
+    const IGNORE_PREFIXES = [MUTATION_LOG_DIR, DECISION_LOG_DIR, SUBSTRATE_LOG_DIR];
 
     const shouldIgnorePath = (path) => {
       if (!path) return false;
@@ -226,6 +229,79 @@ const Observability = {
       _errors.length = 0;
     };
 
+    // --- Arena Results (Success Rate Tracking) ---
+    const recordArenaResult = (result = {}) => {
+      const entry = {
+        id: generateId('arena'),
+        timestamp: Date.now(),
+        passed: Boolean(result.passed),
+        passRate: Number.isFinite(result.passRate) ? result.passRate : null,
+        task: result.task || null,
+        level: result.level || null, // L1, L2, L3
+        competitorCount: Number.isFinite(result.competitorCount) ? result.competitorCount : null
+      };
+
+      _arenaResults.push(entry);
+      if (_arenaResults.length > MAX_ARENA_RESULTS) _arenaResults.shift();
+
+      EventBus.emit('observability:arena_result', entry);
+      return entry;
+    };
+
+    const getSuccessRate = (windowSize = 10) => {
+      if (_arenaResults.length === 0) return { rate: 0, count: 0, passed: 0, failed: 0 };
+
+      const window = _arenaResults.slice(Math.max(0, _arenaResults.length - windowSize));
+      const passed = window.filter(r => r.passed).length;
+      const failed = window.length - passed;
+      const rate = window.length > 0 ? (passed / window.length) * 100 : 0;
+
+      return {
+        rate: Math.round(rate * 100) / 100, // 2 decimal places
+        count: window.length,
+        passed,
+        failed,
+        window: windowSize,
+        oldest: window[0]?.timestamp || null,
+        newest: window[window.length - 1]?.timestamp || null
+      };
+    };
+
+    const getArenaResults = (limit = 20) => {
+      if (limit <= 0) return [];
+      return _arenaResults.slice(Math.max(0, _arenaResults.length - limit));
+    };
+
+    // --- L3 Substrate Change Logging ---
+    const CORE_PREFIXES = ['/core/', '/infrastructure/'];
+
+    const isSubstrateChange = (path) => {
+      if (!path) return false;
+      return CORE_PREFIXES.some(prefix => path.startsWith(prefix));
+    };
+
+    const recordSubstrateChange = async (change = {}) => {
+      const entry = {
+        id: generateId('sub'),
+        timestamp: Date.now(),
+        path: change.path || null,
+        op: change.op || 'write',
+        passed: Boolean(change.passed),
+        passRate: Number.isFinite(change.passRate) ? change.passRate : null,
+        rolledBack: Boolean(change.rolledBack),
+        reason: change.reason || null,
+        beforeHash: change.beforeHash || null,
+        afterHash: change.afterHash || null
+      };
+
+      // Always persist L3 changes to JSONL (audit trail)
+      await appendJsonl(SUBSTRATE_LOG_DIR, entry);
+
+      EventBus.emit('observability:substrate_change', entry);
+      logger.info(`[Observability] L3 substrate change: ${entry.path} (passed: ${entry.passed})`);
+      return entry;
+    };
+
     // --- Dashboard ---
     const getDashboard = () => {
       const performance = PerformanceMonitor?.getMetrics
@@ -246,6 +322,11 @@ const Observability = {
         decisions: {
           recent: getDecisions(20),
           total: _decisions.length
+        },
+        arena: {
+          recent: getArenaResults(20),
+          total: _arenaResults.length,
+          successRate: getSuccessRate(10)
         },
         performance,
         errors: [..._errors]
@@ -281,6 +362,18 @@ const Observability = {
 
       EventBus.on('error:added', (error) => addError(error), 'Observability');
       EventBus.on('error:cleared', () => clearErrors(), 'Observability');
+
+      // Wire arena completion for success rate tracking
+      EventBus.on('arena:complete', (data = {}) => {
+        const summary = data.summary || {};
+        recordArenaResult({
+          passed: summary.passRate >= 80, // 80% threshold for "passed"
+          passRate: summary.passRate,
+          task: data.task,
+          level: data.level,
+          competitorCount: summary.total
+        });
+      }, 'Observability');
     };
 
     const init = async () => {
@@ -304,6 +397,13 @@ const Observability = {
       // Decisions
       recordDecision,
       getDecisions,
+      // Arena / Success Rate
+      recordArenaResult,
+      getArenaResults,
+      getSuccessRate,
+      // L3 Substrate
+      isSubstrateChange,
+      recordSubstrateChange,
       // Dashboard
       getDashboard
     };

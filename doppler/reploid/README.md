@@ -44,13 +44,15 @@ Browser-native sandbox for safe AI agent development with self-modification capa
 
 ## RSI Levels
 
-Recursive Self-Improvement with graduated safety gates:
+Fully autonomous recursive self-improvement with graduated safety gates:
 
 | Level | Scope | Examples | Safety Gate |
 |-------|-------|----------|-------------|
 | **L1** | Tools | CreateTool - new agent tools | Verification Worker sandbox |
 | **L2** | Meta | Modify tool-writer, improve CreateTool | Arena consensus |
-| **L3** | Substrate | Edit agent-loop.js, core modules | HITL human approval |
+| **L3** | Substrate | Edit agent-loop.js, core modules | Arena + GenesisSnapshot rollback |
+
+**No HITL gates required.** See [Security](docs/SECURITY.md) for details.
 
 ## Quick Start
 
