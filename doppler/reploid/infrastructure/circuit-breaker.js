@@ -110,11 +110,11 @@ const CircuitBreaker = {
             // Transition to HALF_OPEN (test recovery)
             record.state = State.HALF_OPEN;
             record.testSuccesses = 0;
-            record.halfOpenConcurrent = 0;
+            record.halfOpenConcurrent = 1; // First probe is being allowed now
             record.halfOpenStartTime = now;
             logger.info(`[${name}] Circuit half-open for: ${key} (testing recovery after ${currentResetMs}ms)`);
             emit('circuit:half_open', { key, backoffMs: currentResetMs, consecutiveTrips: record.consecutiveTrips || 1 });
-            return false; // Allow test call
+            return false; // Allow test call (first probe)
           }
           return true; // Still in cooldown
         }
@@ -126,7 +126,7 @@ const CircuitBreaker = {
             logger.debug(`[${name}] Half-open concurrent limit reached for: ${key}`);
             return true;
           }
-          // Allow this request as a probe
+          // Allow this request as a probe and increment counter
           record.halfOpenConcurrent = (record.halfOpenConcurrent || 0) + 1;
           return false;
         }
@@ -290,7 +290,7 @@ const CircuitBreaker = {
           record.tripTime = now;
         } else if (state === State.HALF_OPEN) {
           record.testSuccesses = 0;
-          record.halfOpenConcurrent = 0;
+          record.halfOpenConcurrent = 0; // No probes in flight initially when forced
           record.halfOpenStartTime = now;
         }
 

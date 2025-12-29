@@ -1,12 +1,22 @@
 /**
  * @fileoverview GEPA Optimizer
- * Genetic-Pareto prompt evolution with execution trace reflection.
+ * Genetic Evolution of Prompt Architectures (GEPA)
+ * Multi-objective Pareto prompt evolution with execution trace reflection.
+ *
+ * Features:
+ * - Evaluation Engine: Run prompts against test cases, collect execution traces
+ * - Reflection Engine: LLM analyzes failures, suggests prompt improvements
+ * - NSGA-II Selection: Pareto-optimal selection on multiple objectives
+ * - VFS Checkpoints: Save/resume population state
+ * - Transfer Learning: Seed population from historical prompts via PromptMemory
+ *
+ * @see Blueprint 0x000070: Genetic Evolution of Prompt Architectures
  */
 
 const GEPAOptimizer = {
   metadata: {
     id: 'GEPAOptimizer',
-    version: '1.0.0',
+    version: '2.0.0',
     genesis: { introduced: 'full' },
     dependencies: ['LLMClient', 'EventBus', 'Utils', 'VFS', 'PersonaManager?', 'ArenaHarness?', 'PromptMemory?'],
     async: true,
@@ -28,17 +38,560 @@ const GEPAOptimizer = {
       mutationRate: bootConfig.mutationRate ?? 0.3,
       crossoverRate: bootConfig.crossoverRate ?? 0.5,
       eliteCount: bootConfig.eliteCount ?? 2,
-      objectives: ['accuracy', 'efficiency', 'robustness'],
+      objectives: ['accuracy', 'efficiency', 'robustness', 'cost'],
+      objectiveWeights: {
+        accuracy: 1.0,
+        efficiency: 0.8,
+        robustness: 0.9,
+        cost: 0.6
+      },
       evaluationBatchSize: 6,
       maxReflectionSamples: 5,
       checkpointPath: '/.memory/gepa/',
-      matchMode: bootConfig.matchMode ?? 'exact'
+      matchMode: bootConfig.matchMode ?? 'exact',
+      // Evaluation engine settings
+      evalTimeout: 30000,        // 30s timeout per evaluation
+      evalRetries: 2,           // Retries on transient failures
+      cacheEvaluations: true,   // Cache evaluation results
+      // Reflection engine settings
+      reflectionDepth: 'detailed',  // 'basic', 'detailed', 'comprehensive'
+      maxReflectionRetries: 1,
+      // NSGA-II settings
+      nsgaConvergenceThreshold: 0.01,
+      nsgaMaxStagnantGens: 3
     };
 
     let _population = [];
     let _paretoFrontier = [];
     let _generation = 0;
     let _reflectionCache = new Map();
+    let _evaluationCache = new Map();
+    let _stagnantGenerations = 0;
+    let _previousBestScores = null;
+
+    // =========================================================================
+    // EVALUATION ENGINE
+    // Runs prompts against test cases, collects detailed execution traces
+    // =========================================================================
+
+    const EvaluationEngine = {
+      /**
+       * Clear evaluation cache
+       */
+      clearCache() {
+        _evaluationCache.clear();
+      },
+
+      /**
+       * Get cache key for a candidate-task pair
+       */
+      getCacheKey(candidateId, taskId) {
+        return `${candidateId}:${taskId}`;
+      },
+
+      /**
+       * Execute a single evaluation with retry logic
+       * @param {Object} candidate - The prompt candidate
+       * @param {Object} task - The test task
+       * @param {Object} config - Evaluation configuration
+       * @returns {Promise<Object>} Execution trace
+       */
+      async executeOne(candidate, task, config) {
+        const cacheKey = this.getCacheKey(candidate.id, task.id || generateId('task'));
+
+        // Check cache
+        if (config.cacheEvaluations && _evaluationCache.has(cacheKey)) {
+          const cached = _evaluationCache.get(cacheKey);
+          return { ...cached, fromCache: true };
+        }
+
+        let lastError = null;
+        const retries = config.evalRetries || DEFAULTS.evalRetries;
+
+        for (let attempt = 0; attempt <= retries; attempt++) {
+          try {
+            const trace = await this.executeWithTimeout(candidate, task, config);
+
+            // Cache successful result
+            if (config.cacheEvaluations) {
+              _evaluationCache.set(cacheKey, trace);
+            }
+
+            return trace;
+          } catch (error) {
+            lastError = error;
+            if (attempt < retries) {
+              logger.debug(`[GEPA:Eval] Retry ${attempt + 1}/${retries} for ${candidate.id}`);
+              await new Promise(r => setTimeout(r, 100 * (attempt + 1))); // Exponential backoff
+            }
+          }
+        }
+
+        // Return failure trace after all retries exhausted
+        return {
+          candidateId: candidate.id,
+          taskId: task.id || generateId('task'),
+          input: task.input || task,
+          success: false,
+          errorType: 'execution_error',
+          error: lastError?.message || 'Unknown error',
+          retryExhausted: true
+        };
+      },
+
+      /**
+       * Execute evaluation with timeout
+       */
+      async executeWithTimeout(candidate, task, config) {
+        const timeout = config.evalTimeout || DEFAULTS.evalTimeout;
+
+        const evaluationPromise = this.executeCore(candidate, task, config);
+
+        const timeoutPromise = new Promise((_, reject) => {
+          setTimeout(() => reject(new Error('Evaluation timeout')), timeout);
+        });
+
+        return Promise.race([evaluationPromise, timeoutPromise]);
+      },
+
+      /**
+       * Core evaluation logic
+       */
+      async executeCore(candidate, task, config) {
+        const startTime = performance.now();
+
+        const response = await LLMClient.chat([
+          { role: 'system', content: candidate.content },
+          { role: 'user', content: task.input || task }
+        ], config.evaluationModel);
+
+        const latencyMs = performance.now() - startTime;
+        const actualOutput = response.content;
+        const expectedOutput = task.expectedOutput || task.expected;
+        const success = evaluateResponse(actualOutput, expectedOutput, config.matchMode);
+
+        return {
+          candidateId: candidate.id,
+          taskId: task.id || generateId('task'),
+          input: task.input || task,
+          expectedOutput,
+          actualOutput,
+          success,
+          errorType: success ? null : classifyError(actualOutput, expectedOutput),
+          latencyMs,
+          tokenCount: response.usage?.total_tokens || 0,
+          promptTokens: response.usage?.prompt_tokens || 0,
+          completionTokens: response.usage?.completion_tokens || 0,
+          timestamp: Date.now()
+        };
+      },
+
+      /**
+       * Evaluate a batch of candidates against task set
+       * @param {Array} candidates - Prompt candidates
+       * @param {Array} taskBatch - Test tasks
+       * @param {Object} config - Configuration
+       * @returns {Promise<Array>} Evaluation results with scores and traces
+       */
+      async evaluateBatch(candidates, taskBatch, config) {
+        const results = [];
+
+        for (const candidate of candidates) {
+          // Handle persona_slot type
+          if (candidate.targetType === 'persona_slot') {
+            const result = await this.evaluatePersonaSlot(candidate, taskBatch, config);
+            results.push(result);
+            continue;
+          }
+
+          if (candidate.targetType !== 'prompt') {
+            throw new Errors.ConfigError(`Unsupported target type: ${candidate.targetType}`);
+          }
+
+          const traces = [];
+
+          // Parallel execution of task evaluations
+          const tracePromises = taskBatch.map(task =>
+            this.executeOne(candidate, task, config)
+          );
+
+          const traceResults = await Promise.all(tracePromises);
+          traces.push(...traceResults);
+
+          // Compute scores from traces
+          const scores = this.computeScores(traces, config);
+
+          results.push({
+            candidate,
+            scores,
+            traces,
+            metrics: this.computeMetrics(traces)
+          });
+        }
+
+        return results;
+      },
+
+      /**
+       * Evaluate persona_slot type candidates
+       */
+      async evaluatePersonaSlot(candidate, taskBatch, config) {
+        if (!PersonaManager?.getPersonas || !PersonaManager?.buildSystemPrompt) {
+          throw new Errors.ConfigError('PersonaManager not available for persona_slot evaluation');
+        }
+
+        const personas = await PersonaManager.getPersonas();
+        const personaId = candidate.payload?.personaId || null;
+        const resolvedId = personaId || (await PersonaManager.getPromptSlots()).personaId;
+        const personaDef = personas.find(p => p.id === resolvedId) || personas[0];
+
+        if (!personaDef) {
+          throw new Errors.ConfigError('No persona available for persona_slot evaluation');
+        }
+
+        const slot = candidate.payload?.slot || 'instructions';
+        const override = {
+          description: slot === 'description' ? candidate.content : personaDef.description,
+          instructions: slot === 'instructions' ? candidate.content : personaDef.instructions
+        };
+
+        const composedPrompt = PersonaManager.buildSystemPrompt(personaDef, override);
+        const promptCandidate = { ...candidate, content: composedPrompt, targetType: 'prompt' };
+
+        const promptResult = await this.evaluateBatch([promptCandidate], taskBatch, {
+          ...config,
+          targetType: 'prompt'
+        });
+
+        return { ...promptResult[0], candidate };
+      },
+
+      /**
+       * Compute objective scores from execution traces
+       */
+      computeScores(traces, config) {
+        const traceCount = traces.length || 1;
+        const successCount = traces.filter(t => t.success).length;
+        const errorCount = traces.filter(t => t.errorType === 'execution_error').length;
+        const totalTokens = traces.reduce((sum, t) => sum + (t.tokenCount || 0), 0);
+        const avgLatency = avg(traces.map(t => t.latencyMs || 0));
+
+        return {
+          accuracy: successCount / traceCount,
+          efficiency: 1 - Math.min(avgLatency / 10000, 1),
+          robustness: 1 - (errorCount / traceCount),
+          cost: 1 - Math.min(totalTokens / (traceCount * 1000), 1)
+        };
+      },
+
+      /**
+       * Compute detailed metrics from traces
+       */
+      computeMetrics(traces) {
+        const successTraces = traces.filter(t => t.success);
+        const failedTraces = traces.filter(t => !t.success);
+
+        return {
+          totalTokens: traces.reduce((sum, t) => sum + (t.tokenCount || 0), 0),
+          avgLatency: avg(traces.map(t => t.latencyMs || 0)),
+          minLatency: Math.min(...traces.map(t => t.latencyMs || Infinity)),
+          maxLatency: Math.max(...traces.map(t => t.latencyMs || 0)),
+          successRate: traces.length ? successTraces.length / traces.length : 0,
+          errorTypeCounts: this.countErrorTypes(failedTraces),
+          cacheHitRate: traces.filter(t => t.fromCache).length / (traces.length || 1)
+        };
+      },
+
+      /**
+       * Count occurrences of each error type
+       */
+      countErrorTypes(failedTraces) {
+        const counts = {};
+        for (const trace of failedTraces) {
+          const type = trace.errorType || 'unknown';
+          counts[type] = (counts[type] || 0) + 1;
+        }
+        return counts;
+      }
+    };
+
+    // =========================================================================
+    // REFLECTION ENGINE
+    // Analyzes failures and suggests targeted prompt improvements
+    // =========================================================================
+
+    const ReflectionEngine = {
+      /**
+       * Generate reflections for evaluation failures
+       * @param {Array} evaluationResults - Results from EvaluationEngine
+       * @param {Object} config - Configuration
+       * @returns {Promise<Array>} Reflection suggestions
+       */
+      async analyze(evaluationResults, config) {
+        if (!config.reflectionModel) {
+          throw new Errors.ConfigError('GEPA reflectionModel is required');
+        }
+
+        // Group failures by error type
+        const failureGroups = this.groupFailuresByType(evaluationResults);
+
+        if (Object.keys(failureGroups).length === 0) {
+          logger.debug('[GEPA:Reflect] No failures to analyze');
+          return [];
+        }
+
+        const reflections = [];
+
+        for (const [errorType, failures] of Object.entries(failureGroups)) {
+          // Check cache first
+          const cachedReflection = _reflectionCache.get(errorType);
+          if (cachedReflection && cachedReflection.timestamp > Date.now() - 300000) {
+            reflections.push(cachedReflection);
+            continue;
+          }
+
+          const samples = failures.slice(0, config.maxReflectionSamples);
+          const reflection = await this.generateReflection(errorType, samples, config);
+
+          if (reflection) {
+            reflection.timestamp = Date.now();
+            _reflectionCache.set(errorType, reflection);
+            reflections.push(reflection);
+          }
+        }
+
+        return reflections;
+      },
+
+      /**
+       * Group failures by error type
+       */
+      groupFailuresByType(evaluationResults) {
+        const groups = {};
+
+        for (const result of evaluationResults) {
+          for (const trace of result.traces.filter(t => !t.success)) {
+            const key = trace.errorType || 'unknown';
+            if (!groups[key]) groups[key] = [];
+            groups[key].push({ candidate: result.candidate, trace });
+          }
+        }
+
+        return groups;
+      },
+
+      /**
+       * Generate a reflection for a specific error type
+       */
+      async generateReflection(errorType, samples, config) {
+        const prompt = this.buildReflectionPrompt(errorType, samples, config);
+
+        try {
+          const response = await LLMClient.chat([
+            { role: 'system', content: this.getReflectionSystemPrompt(config) },
+            { role: 'user', content: prompt }
+          ], config.reflectionModel);
+
+          const { json } = sanitizeLlmJsonRespPure(response.content || '');
+          const parsed = JSON.parse(json);
+
+          return {
+            errorType,
+            failureCount: samples.length,
+            ...parsed,
+            validated: this.validateReflection(parsed)
+          };
+        } catch (e) {
+          logger.warn('[GEPA:Reflect] Parse failed', e.message);
+
+          // Retry once if configured
+          if (config.maxReflectionRetries > 0) {
+            return this.retryReflection(errorType, samples, {
+              ...config,
+              maxReflectionRetries: config.maxReflectionRetries - 1
+            });
+          }
+
+          return null;
+        }
+      },
+
+      /**
+       * Retry reflection with simplified prompt
+       */
+      async retryReflection(errorType, samples, config) {
+        const simplifiedPrompt = this.buildSimplifiedPrompt(errorType, samples[0]);
+
+        try {
+          const response = await LLMClient.chat([
+            { role: 'system', content: 'You are a prompt engineer. Respond only in valid JSON.' },
+            { role: 'user', content: simplifiedPrompt }
+          ], config.reflectionModel);
+
+          const { json } = sanitizeLlmJsonRespPure(response.content || '');
+          const parsed = JSON.parse(json);
+
+          return {
+            errorType,
+            failureCount: samples.length,
+            ...parsed,
+            retried: true
+          };
+        } catch (e) {
+          logger.warn('[GEPA:Reflect] Retry failed', e.message);
+          return null;
+        }
+      },
+
+      /**
+       * Get system prompt for reflection based on depth setting
+       */
+      getReflectionSystemPrompt(config) {
+        const depth = config.reflectionDepth || DEFAULTS.reflectionDepth;
+
+        if (depth === 'comprehensive') {
+          return `You are an expert prompt engineer with deep expertise in LLM behavior.
+Analyze prompt failures systematically:
+1. Identify root cause patterns
+2. Consider model limitations and biases
+3. Propose multiple improvement strategies
+4. Rank suggestions by expected impact
+5. Include specific examples of improved phrasing
+Respond in valid JSON format.`;
+        }
+
+        if (depth === 'basic') {
+          return 'You are a prompt engineer. Analyze failures and suggest fixes. Respond in JSON.';
+        }
+
+        // Default: detailed
+        return `You are an expert prompt engineer.
+Analyze prompt failures and propose targeted fixes.
+Consider error patterns, output expectations, and prompt clarity.
+Respond in valid JSON format.`;
+      },
+
+      /**
+       * Build reflection prompt with error-type-specific guidance
+       */
+      buildReflectionPrompt(errorType, samples, config) {
+        const guidance = this.getErrorGuidance(errorType);
+        const depth = config.reflectionDepth || DEFAULTS.reflectionDepth;
+
+        let prompt = `## Error Type: ${errorType}
+
+## Analysis Guidance
+${guidance}
+
+## Failed Examples
+${samples.map((sample, idx) => this.formatSample(sample, idx)).join('\n')}
+
+## Task
+1. Identify the root cause specific to this error pattern.
+2. Propose ${depth === 'comprehensive' ? '3-5' : '2-3'} specific, actionable prompt modifications.
+3. Prioritize modifications by expected impact.`;
+
+        if (depth === 'comprehensive') {
+          prompt += `
+4. For each modification, explain the cognitive mechanism it addresses.
+5. Suggest test cases to verify the fix.`;
+        }
+
+        prompt += `
+
+Respond in JSON:
+{
+  "rootCause": "string describing the fundamental issue",
+  "confidence": 0.0-1.0,
+  "modifications": [
+    {
+      "type": "add" | "remove" | "replace" | "restructure",
+      "target": "specific section or phrase to modify",
+      "content": "new or modified text",
+      "rationale": "why this addresses the root cause",
+      "priority": "high" | "medium" | "low"${depth === 'comprehensive' ? ',\n      "mechanism": "cognitive mechanism addressed",\n      "testCase": { "input": "...", "expected": "..." }' : ''}
+    }
+  ]${depth !== 'basic' ? ',\n  "alternativeStrategies": ["strategy 1", "strategy 2"]' : ''}
+}`;
+
+        return prompt;
+      },
+
+      /**
+       * Build simplified prompt for retry
+       */
+      buildSimplifiedPrompt(errorType, sample) {
+        return `A prompt failed with error type: ${errorType}
+
+Prompt: ${(sample.candidate.content || '').slice(0, 300)}...
+Input: ${sample.trace.input}
+Expected: ${sample.trace.expectedOutput || 'N/A'}
+Got: ${(sample.trace.actualOutput || '').slice(0, 200)}
+
+Suggest ONE fix. JSON format:
+{"rootCause": "...", "confidence": 0.7, "modifications": [{"type": "add", "target": "end", "content": "...", "rationale": "...", "priority": "high"}]}`;
+      },
+
+      /**
+       * Get error-type specific guidance
+       */
+      getErrorGuidance(errorType) {
+        const guidance = {
+          empty_response: 'The model produced no output. Focus on clarity of instructions, explicit output requirements, and ensuring the prompt is not too restrictive.',
+          partial_match: 'The output is close but incomplete. Focus on precision, completeness requirements, and explicit formatting instructions.',
+          format_error: 'The output format is wrong. Focus on explicit formatting instructions, examples, and output structure requirements.',
+          semantic_drift: 'The output captures intent but uses wrong terminology. Focus on vocabulary constraints, terminology definitions, and concrete examples.',
+          partial_understanding: 'The model partially understood the task. Focus on decomposing instructions, providing step-by-step guidance, and clarifying ambiguities.',
+          mismatch: 'The output is fundamentally wrong. Consider if the prompt clearly conveys the task objective, provides necessary context, and avoids misleading information.',
+          execution_error: 'The model call failed. This may indicate prompt length, complexity issues, or content policy violations.',
+          unknown: 'Unable to classify the error. Analyze the examples holistically for patterns.'
+        };
+
+        return guidance[errorType] || guidance.unknown;
+      },
+
+      /**
+       * Format a sample for the reflection prompt
+       */
+      formatSample(sample, index) {
+        const promptPreview = sample.candidate.content.length > 500
+          ? sample.candidate.content.substring(0, 500) + '...'
+          : sample.candidate.content;
+
+        return `### Example ${index + 1}
+**Prompt (preview):**
+\`\`\`
+${promptPreview}
+\`\`\`
+
+**Input:** ${sample.trace.input}
+**Expected:** ${sample.trace.expectedOutput || '(not specified)'}
+**Actual:** ${(sample.trace.actualOutput || '(empty)').slice(0, 500)}
+**Latency:** ${sample.trace.latencyMs ? sample.trace.latencyMs.toFixed(0) + 'ms' : 'N/A'}`;
+      },
+
+      /**
+       * Validate reflection structure
+       */
+      validateReflection(reflection) {
+        if (!reflection.rootCause) return false;
+        if (!Array.isArray(reflection.modifications)) return false;
+        if (reflection.modifications.length === 0) return false;
+
+        for (const mod of reflection.modifications) {
+          if (!mod.type || !mod.content) return false;
+        }
+
+        return true;
+      },
+
+      /**
+       * Clear reflection cache
+       */
+      clearCache() {
+        _reflectionCache.clear();
+      }
+    };
 
     const ensureVfsPath = async (path) => {
       if (!VFS) return;
@@ -126,6 +679,10 @@ const GEPAOptimizer = {
       return shuffled.slice(0, batchSize);
     };
 
+    /**
+     * Evaluate candidates using the EvaluationEngine.
+     * Wraps EvaluationEngine.evaluateBatch with validation.
+     */
     const evaluate = async (candidates, taskBatch, config) => {
       if (!config.evaluationModel) {
         throw new Errors.ConfigError('GEPA evaluationModel is required');
@@ -134,191 +691,15 @@ const GEPAOptimizer = {
         throw new Errors.ValidationError('GEPA taskBatch is empty');
       }
 
-      const results = [];
-
-      for (const candidate of candidates) {
-        if (candidate.targetType !== 'prompt') {
-          if (candidate.targetType === 'persona_slot') {
-            if (!PersonaManager?.getPersonas || !PersonaManager?.buildSystemPrompt) {
-              throw new Errors.ConfigError('PersonaManager not available for persona_slot evaluation');
-            }
-            const personas = await PersonaManager.getPersonas();
-            const personaId = candidate.payload?.personaId || null;
-            const resolvedId = personaId || (await PersonaManager.getPromptSlots()).personaId;
-            const personaDef = personas.find(p => p.id === resolvedId) || personas[0];
-            if (!personaDef) {
-              throw new Errors.ConfigError('No persona available for persona_slot evaluation');
-            }
-            const slot = candidate.payload?.slot || 'instructions';
-            const override = {
-              description: slot === 'description' ? candidate.content : personaDef.description,
-              instructions: slot === 'instructions' ? candidate.content : personaDef.instructions
-            };
-            const composedPrompt = PersonaManager.buildSystemPrompt(personaDef, override);
-            const personaCandidate = { ...candidate, content: composedPrompt, targetType: 'prompt' };
-            const promptResult = await evaluate([personaCandidate], taskBatch, {
-              ...config,
-              targetType: 'prompt'
-            });
-            results.push({ ...promptResult[0], candidate });
-            continue;
-          }
-          throw new Errors.ConfigError(`Unsupported target type: ${candidate.targetType}`);
-        }
-
-        const traces = [];
-
-        for (const task of taskBatch) {
-          const startTime = performance.now();
-          try {
-            const response = await LLMClient.chat([
-              { role: 'system', content: candidate.content },
-              { role: 'user', content: task.input || task }
-            ], config.evaluationModel);
-
-            const latencyMs = performance.now() - startTime;
-            const success = evaluateResponse(response.content, task.expectedOutput || task.expected, config.matchMode);
-
-            traces.push({
-              candidateId: candidate.id,
-              taskId: task.id || generateId('task'),
-              input: task.input || task,
-              expectedOutput: task.expectedOutput || task.expected,
-              actualOutput: response.content,
-              success,
-              errorType: success ? null : classifyError(response.content, task.expectedOutput || task.expected),
-              latencyMs,
-              tokenCount: response.usage?.total_tokens || 0
-            });
-          } catch (error) {
-            traces.push({
-              candidateId: candidate.id,
-              taskId: task.id || generateId('task'),
-              input: task.input || task,
-              success: false,
-              errorType: 'execution_error',
-              error: error.message
-            });
-          }
-        }
-
-        const traceCount = traces.length || 1;
-        const totalTokens = traces.reduce((sum, t) => sum + (t.tokenCount || 0), 0);
-        const avgLatency = avg(traces.map(t => t.latencyMs || 0));
-
-        const scores = {
-          accuracy: traces.filter(t => t.success).length / traceCount,
-          efficiency: 1 - Math.min(avgLatency / 10000, 1), // Latency objective (lower is better)
-          robustness: 1 - (traces.filter(t => t.errorType === 'execution_error').length / traceCount),
-          cost: 1 - Math.min(totalTokens / (traceCount * 1000), 1) // Cost objective based on tokens
-        };
-
-        results.push({ candidate, scores, traces, metrics: { totalTokens, avgLatency } });
-      }
-
-      return results;
+      return EvaluationEngine.evaluateBatch(candidates, taskBatch, config);
     };
 
     /**
-     * Build reflection prompt with error-type-specific guidance.
+     * Generate reflections using the ReflectionEngine.
+     * Wraps ReflectionEngine.analyze with validation.
      */
-    const buildReflectionPrompt = (errorType, samples) => {
-      const errorGuidance = {
-        empty_response: 'The model produced no output. Focus on clarity of instructions and explicit output requirements.',
-        partial_match: 'The output is close but incomplete. Focus on precision and completeness requirements.',
-        format_error: 'The output format is wrong. Focus on explicit formatting instructions and examples.',
-        semantic_drift: 'The output captures intent but uses wrong terminology. Focus on vocabulary and terminology constraints.',
-        partial_understanding: 'The model partially understood the task. Focus on decomposing instructions more clearly.',
-        mismatch: 'The output is fundamentally wrong. Consider if the prompt clearly conveys the task objective.',
-        execution_error: 'The model call failed. This may indicate prompt length or complexity issues.',
-        unknown: 'Unable to classify the error. Analyze the examples holistically.'
-      };
-
-      const guidance = errorGuidance[errorType] || errorGuidance.unknown;
-
-      return `You analyze prompt failures and propose targeted fixes.
-
-## Error Type
-${errorType}
-
-## Analysis Guidance
-${guidance}
-
-## Failed Examples
-${samples.map((sample, index) => `
-### Example ${index + 1}
-**Prompt (truncated):**
-\`\`\`
-${sample.candidate.content.substring(0, 500)}${sample.candidate.content.length > 500 ? '...' : ''}
-\`\`\`
-
-**Input:** ${sample.trace.input}
-**Expected:** ${sample.trace.expectedOutput || '(not specified)'}
-**Actual:** ${sample.trace.actualOutput || '(empty)'}
-**Latency:** ${sample.trace.latencyMs ? sample.trace.latencyMs.toFixed(0) + 'ms' : 'N/A'}
-`).join('\n')}
-
-## Task
-1. Identify the root cause specific to this error pattern.
-2. Propose 2-3 specific, actionable prompt modifications.
-3. Prioritize modifications by expected impact.
-
-Respond in JSON:
-{
-  "rootCause": "string describing the fundamental issue",
-  "confidence": 0.0-1.0,
-  "modifications": [
-    {
-      "type": "add" | "remove" | "replace",
-      "target": "specific section or phrase to modify",
-      "content": "new or modified text",
-      "rationale": "why this addresses the root cause",
-      "priority": "high" | "medium" | "low"
-    }
-  ]
-}`;
-    };
-
     const reflect = async (evaluationResults, config) => {
-      if (!config.reflectionModel) {
-        throw new Errors.ConfigError('GEPA reflectionModel is required');
-      }
-
-      const failureGroups = {};
-      for (const result of evaluationResults) {
-        for (const trace of result.traces.filter(t => !t.success)) {
-          const key = trace.errorType || 'unknown';
-          if (!failureGroups[key]) failureGroups[key] = [];
-          failureGroups[key].push({ candidate: result.candidate, trace });
-        }
-      }
-
-      const reflections = [];
-
-      for (const [errorType, failures] of Object.entries(failureGroups)) {
-        const samples = failures.slice(0, config.maxReflectionSamples);
-        const prompt = buildReflectionPrompt(errorType, samples);
-
-        try {
-          const response = await LLMClient.chat([
-            { role: 'system', content: 'You are an expert prompt engineer.' },
-            { role: 'user', content: prompt }
-          ], config.reflectionModel);
-
-          const { json } = sanitizeLlmJsonRespPure(response.content || '');
-          const parsed = JSON.parse(json);
-
-          reflections.push({
-            errorType,
-            failureCount: failures.length,
-            ...parsed
-          });
-        } catch (e) {
-          logger.warn('[GEPA] Reflection parse failed', e.message);
-        }
-      }
-
-      return reflections;
+      return ReflectionEngine.analyze(evaluationResults, config);
     };
 
     const applyAddition = (content, mod) => `${content}\n\n${mod.content}`.trim();
@@ -500,107 +881,329 @@ Respond in JSON:
       return { promoted: true, passed: true, path: storagePath };
     };
 
-    const checkDominance = (a, b, objectives) => {
-      let aBetter = 0;
-      let bBetter = 0;
-      for (const obj of objectives) {
-        if (a.scores[obj] > b.scores[obj]) aBetter++;
-        if (b.scores[obj] > a.scores[obj]) bBetter++;
-      }
-      if (aBetter > 0 && bBetter === 0) return 1;
-      if (bBetter > 0 && aBetter === 0) return -1;
-      return 0;
-    };
+    // =========================================================================
+    // NSGA-II SELECTION ENGINE
+    // Pareto-optimal selection with weighted objectives and convergence detection
+    // =========================================================================
 
-    const calculateCrowdingDistance = (front, objectives) => {
-      for (const c of front) c.crowdingDistance = 0;
+    const NSGAEngine = {
+      /**
+       * Check if candidate A dominates candidate B (weighted comparison)
+       * @param {Object} a - First candidate
+       * @param {Object} b - Second candidate
+       * @param {Array} objectives - Objective names
+       * @param {Object} weights - Objective weights
+       * @returns {number} 1 if A dominates, -1 if B dominates, 0 if neither
+       */
+      checkDominance(a, b, objectives, weights = {}) {
+        let aBetter = 0;
+        let bBetter = 0;
 
-      for (const obj of objectives) {
-        front.sort((a, b) => a.scores[obj] - b.scores[obj]);
-        front[0].crowdingDistance = Infinity;
-        front[front.length - 1].crowdingDistance = Infinity;
+        for (const obj of objectives) {
+          const weight = weights[obj] || 1.0;
+          const aScore = (a.scores[obj] || 0) * weight;
+          const bScore = (b.scores[obj] || 0) * weight;
 
-        const range = front[front.length - 1].scores[obj] - front[0].scores[obj];
-        if (range === 0) continue;
-
-        for (let i = 1; i < front.length - 1; i++) {
-          front[i].crowdingDistance +=
-            (front[i + 1].scores[obj] - front[i - 1].scores[obj]) / range;
+          if (aScore > bScore) aBetter++;
+          if (bScore > aScore) bBetter++;
         }
-      }
 
-      return front;
-    };
+        if (aBetter > 0 && bBetter === 0) return 1;
+        if (bBetter > 0 && aBetter === 0) return -1;
+        return 0;
+      },
 
-    const paretoSelect = (candidates, objectives, targetSize) => {
-      for (const c of candidates) {
-        c.dominatedBy = 0;
-        c.dominates = [];
-      }
+      /**
+       * Calculate crowding distance for diversity preservation
+       * @param {Array} front - Non-dominated front
+       * @param {Array} objectives - Objective names
+       * @returns {Array} Front with crowdingDistance set
+       */
+      calculateCrowdingDistance(front, objectives) {
+        if (front.length <= 2) {
+          for (const c of front) c.crowdingDistance = Infinity;
+          return front;
+        }
 
-      for (let i = 0; i < candidates.length; i++) {
-        for (let j = i + 1; j < candidates.length; j++) {
-          const dominated = checkDominance(candidates[i], candidates[j], objectives);
-          if (dominated === 1) {
-            candidates[j].dominatedBy++;
-            candidates[i].dominates.push(j);
-          } else if (dominated === -1) {
-            candidates[i].dominatedBy++;
-            candidates[j].dominates.push(i);
+        for (const c of front) c.crowdingDistance = 0;
+
+        for (const obj of objectives) {
+          front.sort((a, b) => (a.scores[obj] || 0) - (b.scores[obj] || 0));
+          front[0].crowdingDistance = Infinity;
+          front[front.length - 1].crowdingDistance = Infinity;
+
+          const range = (front[front.length - 1].scores[obj] || 0) - (front[0].scores[obj] || 0);
+          if (range === 0) continue;
+
+          for (let i = 1; i < front.length - 1; i++) {
+            front[i].crowdingDistance +=
+              ((front[i + 1].scores[obj] || 0) - (front[i - 1].scores[obj] || 0)) / range;
           }
         }
-      }
 
-      const fronts = [];
-      let remaining = [...candidates];
-      while (remaining.length > 0) {
-        const front = remaining.filter(c => c.dominatedBy === 0);
-        fronts.push(front);
-        for (const c of front) {
-          for (const dominated of c.dominates) {
-            candidates[dominated].dominatedBy--;
+        return front;
+      },
+
+      /**
+       * Perform NSGA-II selection
+       * @param {Array} candidates - All candidates
+       * @param {Array} objectives - Objective names
+       * @param {number} targetSize - Target population size
+       * @param {Object} config - Configuration including weights
+       * @returns {Array} Selected candidates
+       */
+      select(candidates, objectives, targetSize, config = {}) {
+        const weights = config.objectiveWeights || DEFAULTS.objectiveWeights;
+
+        // Reset dominance counters
+        for (const c of candidates) {
+          c.dominatedBy = 0;
+          c.dominates = [];
+          c.rank = -1;
+        }
+
+        // Calculate dominance relationships
+        for (let i = 0; i < candidates.length; i++) {
+          for (let j = i + 1; j < candidates.length; j++) {
+            const dominated = this.checkDominance(candidates[i], candidates[j], objectives, weights);
+            if (dominated === 1) {
+              candidates[j].dominatedBy++;
+              candidates[i].dominates.push(j);
+            } else if (dominated === -1) {
+              candidates[i].dominatedBy++;
+              candidates[j].dominates.push(i);
+            }
           }
         }
-        remaining = remaining.filter(c => c.dominatedBy > 0);
-      }
 
-      const selected = [];
-      for (const front of fronts) {
-        if (selected.length + front.length <= targetSize) {
-          selected.push(...front);
-        } else {
-          const withCrowding = calculateCrowdingDistance(front, objectives);
-          withCrowding.sort((a, b) => b.crowdingDistance - a.crowdingDistance);
-          selected.push(...withCrowding.slice(0, targetSize - selected.length));
-          break;
+        // Build Pareto fronts
+        const fronts = [];
+        let remaining = [...candidates];
+        let rank = 0;
+
+        while (remaining.length > 0) {
+          const front = remaining.filter(c => c.dominatedBy === 0);
+          for (const c of front) c.rank = rank;
+          fronts.push(front);
+
+          for (const c of front) {
+            for (const dominatedIdx of c.dominates) {
+              candidates[dominatedIdx].dominatedBy--;
+            }
+          }
+
+          remaining = remaining.filter(c => c.dominatedBy > 0);
+          rank++;
         }
-      }
 
-      return selected;
+        // Select candidates from fronts
+        const selected = [];
+        for (const front of fronts) {
+          if (selected.length + front.length <= targetSize) {
+            selected.push(...front);
+          } else {
+            // Use crowding distance for tie-breaking
+            const withCrowding = this.calculateCrowdingDistance(front, objectives);
+            withCrowding.sort((a, b) => b.crowdingDistance - a.crowdingDistance);
+            selected.push(...withCrowding.slice(0, targetSize - selected.length));
+            break;
+          }
+        }
+
+        return selected;
+      },
+
+      /**
+       * Compute composite fitness score for a candidate
+       * @param {Object} candidate - Candidate with scores
+       * @param {Array} objectives - Objective names
+       * @param {Object} weights - Objective weights
+       * @returns {number} Composite fitness
+       */
+      computeCompositeFitness(candidate, objectives, weights = {}) {
+        let totalWeight = 0;
+        let weightedSum = 0;
+
+        for (const obj of objectives) {
+          const weight = weights[obj] || 1.0;
+          const score = candidate.scores[obj] || 0;
+          weightedSum += score * weight;
+          totalWeight += weight;
+        }
+
+        return totalWeight > 0 ? weightedSum / totalWeight : 0;
+      },
+
+      /**
+       * Check if evolution has converged (stagnation detection)
+       * @param {Object} currentBest - Current best scores
+       * @param {Object} previousBest - Previous best scores
+       * @param {Array} objectives - Objective names
+       * @param {number} threshold - Convergence threshold
+       * @returns {boolean} True if converged
+       */
+      checkConvergence(currentBest, previousBest, objectives, threshold) {
+        if (!previousBest) return false;
+
+        for (const obj of objectives) {
+          const current = currentBest[obj] || 0;
+          const previous = previousBest[obj] || 0;
+          const improvement = current - previous;
+
+          if (improvement > threshold) {
+            return false; // Still improving
+          }
+        }
+
+        return true;
+      },
+
+      /**
+       * Get hypervolume indicator (quality metric for Pareto fronts)
+       * Uses a reference point of [0, 0, ..., 0]
+       * @param {Array} front - Non-dominated front
+       * @param {Array} objectives - Objective names
+       * @returns {number} Hypervolume approximation
+       */
+      computeHypervolume(front, objectives) {
+        if (front.length === 0) return 0;
+
+        // Simple hypervolume approximation using dominated area
+        let volume = 0;
+
+        for (const candidate of front) {
+          let contribution = 1;
+          for (const obj of objectives) {
+            contribution *= (candidate.scores[obj] || 0);
+          }
+          volume += contribution;
+        }
+
+        return volume;
+      }
     };
 
+    // Backward compatibility wrappers
+    const checkDominance = (a, b, objectives) =>
+      NSGAEngine.checkDominance(a, b, objectives, DEFAULTS.objectiveWeights);
+
+    const calculateCrowdingDistance = (front, objectives) =>
+      NSGAEngine.calculateCrowdingDistance(front, objectives);
+
+    const paretoSelect = (candidates, objectives, targetSize, config = {}) =>
+      NSGAEngine.select(candidates, objectives, targetSize, config);
+
+
+    /**
+     * Save checkpoint to VFS with comprehensive metadata.
+     * @param {number} generation - Current generation number
+     * @param {Array} population - Current population
+     * @param {Array} frontier - Current Pareto frontier
+     * @param {Object} config - Evolution configuration
+     * @param {Object} metadata - Additional metadata
+     */
     const saveCheckpoint = async (generation, population, frontier, config, metadata = {}) => {
       if (!VFS) return;
       await ensureVfsPath(config.checkpointPath);
       const path = `${config.checkpointPath}gen_${generation}.json`;
-      await VFS.write(path, JSON.stringify({
+
+      // Compute checkpoint metrics
+      const bestScores = getBestScores(population, config.objectives);
+      const hypervolume = NSGAEngine.computeHypervolume(frontier, config.objectives);
+      const avgFitness = population.reduce((sum, c) =>
+        sum + NSGAEngine.computeCompositeFitness(c, config.objectives, config.objectiveWeights || {}), 0
+      ) / (population.length || 1);
+
+      const checkpointData = {
         generation,
         timestamp: Date.now(),
-        population,
-        frontier,
+        population: population.map(c => ({
+          id: c.id,
+          content: c.content,
+          generation: c.generation,
+          scores: c.scores,
+          dominatedBy: c.dominatedBy,
+          rank: c.rank,
+          crowdingDistance: c.crowdingDistance,
+          targetType: c.targetType || 'prompt',
+          payload: c.payload || null,
+          parentIds: c.parentIds || [],
+          mutationType: c.mutationType || 'unknown',
+          appliedReflections: c.appliedReflections || []
+        })),
+        frontier: frontier.map(c => ({
+          id: c.id,
+          content: c.content,
+          generation: c.generation,
+          scores: c.scores,
+          rank: c.rank,
+          targetType: c.targetType || 'prompt'
+        })),
         config: {
           populationSize: config.populationSize,
           maxGenerations: config.maxGenerations,
           objectives: config.objectives,
+          objectiveWeights: config.objectiveWeights || DEFAULTS.objectiveWeights,
           taskDescription: config.taskDescription || '',
-          targetType: config.targetType || 'prompt'
+          targetType: config.targetType || 'prompt',
+          mutationRate: config.mutationRate,
+          crossoverRate: config.crossoverRate,
+          eliteCount: config.eliteCount
         },
-        metadata: {
-          ...metadata,
-          reflectionCount: _reflectionCache.size,
-          bestScores: getBestScores(population, config.objectives)
+        metrics: {
+          bestScores,
+          hypervolume,
+          avgFitness,
+          frontierSize: frontier.length,
+          populationDiversity: calculatePopulationDiversity(population),
+          stagnantGenerations: _stagnantGenerations,
+          ...metadata
+        },
+        cacheStats: {
+          reflectionCacheSize: _reflectionCache.size,
+          evaluationCacheSize: _evaluationCache.size
         }
-      }, null, 2));
+      };
+
+      await VFS.write(path, JSON.stringify(checkpointData, null, 2));
+
+      EventBus.emit('gepa:checkpoint:saved', {
+        generation,
+        path,
+        frontierSize: frontier.length,
+        hypervolume
+      });
+
+      return path;
+    };
+
+    /**
+     * Calculate population diversity using pairwise content similarity.
+     * @param {Array} population - Population to analyze
+     * @returns {number} Diversity score (0-1, higher = more diverse)
+     */
+    const calculatePopulationDiversity = (population) => {
+      if (population.length < 2) return 1;
+
+      let totalDiff = 0;
+      let comparisons = 0;
+
+      for (let i = 0; i < population.length; i++) {
+        for (let j = i + 1; j < population.length; j++) {
+          const a = population[i].content || '';
+          const b = population[j].content || '';
+          // Simple Jaccard-like diversity based on word sets
+          const wordsA = new Set(a.toLowerCase().split(/\s+/));
+          const wordsB = new Set(b.toLowerCase().split(/\s+/));
+          const intersection = [...wordsA].filter(w => wordsB.has(w)).length;
+          const union = new Set([...wordsA, ...wordsB]).size;
+          const similarity = union > 0 ? intersection / union : 0;
+          totalDiff += (1 - similarity);
+          comparisons++;
+        }
+      }
+
+      return comparisons > 0 ? totalDiff / comparisons : 1;
     };
 
     /**
@@ -985,12 +1588,67 @@ Respond in JSON:
       return result;
     };
 
+    /**
+     * Get current evolution status with detailed metrics.
+     * @returns {Object} Status object
+     */
     const getStatus = () => ({
       generation: _generation,
       populationSize: _population.length,
       frontierSize: _paretoFrontier.length,
-      reflectionCount: _reflectionCache.size
+      reflectionCount: _reflectionCache.size,
+      evaluationCacheSize: _evaluationCache.size,
+      stagnantGenerations: _stagnantGenerations,
+      hypervolume: _paretoFrontier.length > 0
+        ? NSGAEngine.computeHypervolume(_paretoFrontier, DEFAULTS.objectives)
+        : 0,
+      diversity: _population.length > 0
+        ? calculatePopulationDiversity(_population)
+        : 0
     });
+
+    /**
+     * Clear all caches (evaluation and reflection).
+     */
+    const clearCaches = () => {
+      EvaluationEngine.clearCache();
+      ReflectionEngine.clearCache();
+      _stagnantGenerations = 0;
+      _previousBestScores = null;
+    };
+
+    /**
+     * Get detailed statistics about the evolution run.
+     * @returns {Object} Statistics object
+     */
+    const getStatistics = () => {
+      const frontierScores = _paretoFrontier.map(c => c.scores);
+      const populationScores = _population.map(c => c.scores);
+
+      return {
+        generation: _generation,
+        population: {
+          size: _population.length,
+          diversity: calculatePopulationDiversity(_population),
+          avgFitness: _population.reduce((sum, c) =>
+            sum + NSGAEngine.computeCompositeFitness(c, DEFAULTS.objectives, DEFAULTS.objectiveWeights), 0
+          ) / (_population.length || 1)
+        },
+        frontier: {
+          size: _paretoFrontier.length,
+          hypervolume: NSGAEngine.computeHypervolume(_paretoFrontier, DEFAULTS.objectives),
+          bestScores: getBestScores(_paretoFrontier, DEFAULTS.objectives)
+        },
+        caches: {
+          reflection: _reflectionCache.size,
+          evaluation: _evaluationCache.size
+        },
+        convergence: {
+          stagnantGenerations: _stagnantGenerations,
+          previousBest: _previousBestScores
+        }
+      };
+    };
 
     return {
       api: {
@@ -999,7 +1657,15 @@ Respond in JSON:
         promoteCandidate,
         loadCheckpoint,
         listCheckpoints,
-        getStatus
+        getStatus,
+        getStatistics,
+        clearCaches
+      },
+      // Expose engines for advanced usage and testing
+      engines: {
+        EvaluationEngine,
+        ReflectionEngine,
+        NSGAEngine
       }
     };
   }

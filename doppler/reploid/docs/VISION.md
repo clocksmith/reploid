@@ -56,7 +56,9 @@ Recursive self-improvement with graduated safety gates:
 |-------|-------|----------|-------------|
 | **L1** | Tools | Create new tools in `/tools/` | Verification Worker |
 | **L2** | Meta | Modify tool-writer, improve CreateTool | Arena consensus |
-| **L3** | Substrate | Edit agent-loop.js, core modules | HITL approval required |
+| **L3** | Substrate | Edit agent-loop.js, core modules | Arena consensus + GenesisSnapshot rollback |
+
+> **Note:** L3 was previously HITL-required. Current policy allows autonomous L3 with multi-model Arena validation and instant rollback via GenesisSnapshot if mutations fail.
 
 ---
 
@@ -96,10 +98,12 @@ REPLOID and DOPPLER form a closed loop - the serpent eating its own tail:
 - **Arena Consensus** - Multi-model voting for L2+ changes
 - **Genesis Snapshots** - Instant rollback to pristine state
 
-### Distribution
-- **Swarm Orchestration** - Multi-agent coordination
-- **P2P Networking** - WebRTC for cross-device collaboration
-- **Federated Learning** - Private data stays local
+### Distribution *(Planned)*
+- **Swarm Orchestration** - Multi-agent coordination *(P2)*
+- **P2P Networking** - WebRTC for cross-device collaboration *(P2)*
+- **Federated Learning** - Private data stays local *(P2)*
+
+> These capabilities are on the roadmap but not yet implemented. See [roadmap/OVERVIEW.md](./roadmap/OVERVIEW.md).
 
 ---
 

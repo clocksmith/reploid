@@ -2,7 +2,8 @@
  * @fileoverview Rule Engine
  * Stratified Datalog-like inference engine for symbolic reasoning.
  * Supports forward chaining, constraint validation, defeasible rules,
- * rule induction from examples, and policy enforcement integration.
+ * rule induction from examples, policy enforcement integration,
+ * and declarative agent rules with pattern matching and action execution.
  *
  * @module RuleEngine
  * @requires Utils
@@ -14,10 +15,10 @@
 const RuleEngine = {
   metadata: {
     id: 'RuleEngine',
-    version: '2.0.0',
+    version: '3.0.0',
     genesis: { introduced: 'full' },
     dependencies: ['Utils', 'VFS', 'EventBus', 'KnowledgeGraph'],
-    optional: ['HITLController', 'VerificationManager'],
+    optional: ['HITLController', 'VerificationManager', 'ToolRunner', 'StateManager'],
     async: true,
     type: 'service'
   },
@@ -26,6 +27,8 @@ const RuleEngine = {
     const { Utils, VFS, EventBus, KnowledgeGraph } = deps;
     const HITLController = deps.HITLController || null;
     const VerificationManager = deps.VerificationManager || null;
+    const ToolRunner = deps.ToolRunner || null;
+    const StateManager = deps.StateManager || null;
     const { logger, generateId } = Utils;
 
     const STORE_PATH = '/.memory/rules.json';
@@ -38,6 +41,8 @@ const RuleEngine = {
     let _inducedRules = []; // Auto-learned rules
     let _policies = []; // Policy enforcement rules
     let _examples = []; // Training examples for rule induction
+    let _agentRules = []; // Declarative agent rules with conditions and actions
+    let _actionHandlers = new Map(); // Custom action handlers
 
     // HITL registration
     const HITL_MODULE_ID = 'RuleEngine';
@@ -64,8 +69,9 @@ const RuleEngine = {
           _constraints = data.constraints || [];
           _inducedRules = data.inducedRules || [];
           _policies = data.policies || [];
+          _agentRules = data.agentRules || [];
           _examples = data.examples || [];
-          logger.info(`[RuleEngine] Loaded ${_rules.length} rules, ${_constraints.length} constraints`);
+          logger.info(`[RuleEngine] Loaded ${_rules.length} rules, ${_agentRules.length} agent rules, ${_constraints.length} constraints`);
         } catch (e) {
           logger.error('[RuleEngine] Corrupt store, starting fresh', e);
         }
@@ -74,8 +80,12 @@ const RuleEngine = {
       // Load rules from VFS /rules/ directory
       await loadRulesFromVFS();
 
+      // Register default action handlers
+      registerDefaultActionHandlers();
+
       // Add built-in rules
       addBuiltinRules();
+      addBuiltinAgentRules();
 
       // Register with HITL if available
       if (HITLController) {
@@ -193,6 +203,7 @@ const RuleEngine = {
         constraints: _constraints,
         inducedRules: _inducedRules,
         policies: _policies,
+        agentRules: _agentRules.filter(r => !r.builtin), // Don't persist builtins
         examples: _examples.slice(-1000) // Keep last 1000 examples
       }, null, 2));
     };
@@ -244,7 +255,8 @@ const RuleEngine = {
             { predicate: 'subClassOf', args: ['?y', '?z'] }
           ],
           priority: 100,
-          builtin: true
+          builtin: true,
+          enabled: true
         });
       }
 
@@ -262,7 +274,8 @@ const RuleEngine = {
             { predicate: '!=', args: ['?c1', '?c3'] }
           ],
           priority: 80,
-          builtin: true
+          builtin: true,
+          enabled: true
         });
       }
 
@@ -1204,6 +1217,712 @@ const RuleEngine = {
       return { ...result, allowed: false, reason: 'No approval mechanism available' };
     };
 
+    // --- Agent Rules: Declarative Rules with Conditions and Actions ---
+
+    /**
+     * Register default action handlers for agent rules.
+     * @private
+     */
+    const registerDefaultActionHandlers = () => {
+      // Log action - simply logs a message
+      _actionHandlers.set('log', async (params, context) => {
+        const message = resolveTemplate(params.message || params, context);
+        logger.info(`[RuleEngine:Action] ${message}`);
+        EventBus.emit('rule:action:log', { message, context });
+        return { success: true, message };
+      });
+
+      // Set state action - updates StateManager
+      _actionHandlers.set('setState', async (params, context) => {
+        if (!StateManager) {
+          return { success: false, error: 'StateManager not available' };
+        }
+        const key = resolveTemplate(params.key, context);
+        const value = resolveValue(params.value, context);
+        try {
+          const state = StateManager.getState();
+          const newState = setNestedValue(state, key, value);
+          StateManager.setState(newState);
+          EventBus.emit('rule:action:setState', { key, value });
+          return { success: true, key, value };
+        } catch (e) {
+          return { success: false, error: e.message };
+        }
+      });
+
+      // Emit event action
+      _actionHandlers.set('emit', async (params, context) => {
+        const event = resolveTemplate(params.event, context);
+        const data = resolveValue(params.data || {}, context);
+        EventBus.emit(event, data);
+        return { success: true, event, data };
+      });
+
+      // Execute tool action
+      _actionHandlers.set('executeTool', async (params, context) => {
+        if (!ToolRunner) {
+          return { success: false, error: 'ToolRunner not available' };
+        }
+        const toolName = resolveTemplate(params.tool, context);
+        const args = resolveValue(params.args || {}, context);
+        try {
+          const result = await ToolRunner.execute(toolName, args);
+          EventBus.emit('rule:action:tool', { tool: toolName, args, result });
+          return { success: true, tool: toolName, result };
+        } catch (e) {
+          return { success: false, error: e.message, tool: toolName };
+        }
+      });
+
+      // Add fact to KnowledgeGraph
+      _actionHandlers.set('addFact', async (params, context) => {
+        const subject = resolveTemplate(params.subject, context);
+        const predicate = resolveTemplate(params.predicate, context);
+        const object = resolveTemplate(params.object, context);
+        const metadata = resolveValue(params.metadata || {}, context);
+        try {
+          const id = await KnowledgeGraph.addTriple(subject, predicate, object, metadata);
+          return { success: true, id };
+        } catch (e) {
+          return { success: false, error: e.message };
+        }
+      });
+
+      // Compound action - execute multiple actions in sequence
+      _actionHandlers.set('sequence', async (params, context) => {
+        const results = [];
+        for (const action of (params.actions || [])) {
+          const result = await executeAction(action, context);
+          results.push(result);
+          if (!result.success && params.stopOnError !== false) {
+            return { success: false, results, stoppedAt: results.length - 1 };
+          }
+        }
+        return { success: true, results };
+      });
+
+      // Conditional action - execute based on condition
+      _actionHandlers.set('conditional', async (params, context) => {
+        const conditionMet = matchCondition(params.condition, context);
+        if (conditionMet) {
+          return await executeAction(params.then, context);
+        } else if (params.else) {
+          return await executeAction(params.else, context);
+        }
+        return { success: true, skipped: true };
+      });
+    };
+
+    /**
+     * Register a custom action handler.
+     * @param {string} name - Action type name
+     * @param {Function} handler - Handler function (params, context) => Promise<result>
+     */
+    const registerActionHandler = (name, handler) => {
+      if (typeof handler !== 'function') {
+        throw new Error('Action handler must be a function');
+      }
+      _actionHandlers.set(name, handler);
+      logger.debug(`[RuleEngine] Registered action handler: ${name}`);
+    };
+
+    /**
+     * Get a nested value from an object using dot notation or array path.
+     * Supports wildcards (*) for array matching.
+     * @param {Object} obj - The object to query
+     * @param {string|string[]} path - Path like "a.b.c" or ["a", "b", "c"]
+     * @returns {*} The value at the path or undefined
+     * @private
+     */
+    const getNestedValue = (obj, path) => {
+      if (!obj || !path) return undefined;
+      const parts = Array.isArray(path) ? path : path.split('.');
+      let current = obj;
+
+      for (let i = 0; i < parts.length; i++) {
+        const part = parts[i];
+
+        if (current === null || current === undefined) {
+          return undefined;
+        }
+
+        // Handle array wildcard
+        if (part === '*' && Array.isArray(current)) {
+          const remainingPath = parts.slice(i + 1);
+          if (remainingPath.length === 0) {
+            return current;
+          }
+          return current.map(item => getNestedValue(item, remainingPath));
+        }
+
+        // Handle array index
+        if (/^\d+$/.test(part)) {
+          current = current[parseInt(part, 10)];
+        } else {
+          current = current[part];
+        }
+      }
+
+      return current;
+    };
+
+    /**
+     * Set a nested value in an object using dot notation.
+     * @param {Object} obj - The object to modify
+     * @param {string} path - Path like "a.b.c"
+     * @param {*} value - Value to set
+     * @returns {Object} Modified object (new reference)
+     * @private
+     */
+    const setNestedValue = (obj, path, value) => {
+      const parts = path.split('.');
+      const result = JSON.parse(JSON.stringify(obj || {}));
+      let current = result;
+
+      for (let i = 0; i < parts.length - 1; i++) {
+        const part = parts[i];
+        if (!(part in current) || typeof current[part] !== 'object') {
+          current[part] = /^\d+$/.test(parts[i + 1]) ? [] : {};
+        }
+        current = current[part];
+      }
+
+      current[parts[parts.length - 1]] = value;
+      return result;
+    };
+
+    /**
+     * Resolve a template string with context values.
+     * Supports ${path} syntax for variable interpolation.
+     * @param {string} template - Template string
+     * @param {Object} context - Context object for variable resolution
+     * @returns {string} Resolved string
+     * @private
+     */
+    const resolveTemplate = (template, context) => {
+      if (typeof template !== 'string') return template;
+      return template.replace(/\$\{([^}]+)\}/g, (match, path) => {
+        const value = getNestedValue(context, path.trim());
+        return value !== undefined ? String(value) : match;
+      });
+    };
+
+    /**
+     * Resolve a value that may contain template references.
+     * Recursively processes objects and arrays.
+     * @param {*} value - Value to resolve
+     * @param {Object} context - Context object
+     * @returns {*} Resolved value
+     * @private
+     */
+    const resolveValue = (value, context) => {
+      if (typeof value === 'string') {
+        // Check if entire string is a variable reference
+        const varMatch = value.match(/^\$\{([^}]+)\}$/);
+        if (varMatch) {
+          return getNestedValue(context, varMatch[1].trim());
+        }
+        return resolveTemplate(value, context);
+      }
+      if (Array.isArray(value)) {
+        return value.map(v => resolveValue(v, context));
+      }
+      if (value && typeof value === 'object') {
+        const result = {};
+        for (const [k, v] of Object.entries(value)) {
+          result[resolveTemplate(k, context)] = resolveValue(v, context);
+        }
+        return result;
+      }
+      return value;
+    };
+
+    /**
+     * Match a single condition against context.
+     * Supports various operators: eq, neq, gt, gte, lt, lte, in, nin,
+     * contains, startsWith, endsWith, matches, exists, typeof, and, or, not.
+     * @param {Object} condition - Condition object
+     * @param {Object} context - Context to match against
+     * @returns {boolean} True if condition matches
+     * @private
+     */
+    const matchCondition = (condition, context) => {
+      if (!condition || typeof condition !== 'object') {
+        return Boolean(condition);
+      }
+
+      // Handle logical operators
+      if ('and' in condition) {
+        return condition.and.every(c => matchCondition(c, context));
+      }
+      if ('or' in condition) {
+        return condition.or.some(c => matchCondition(c, context));
+      }
+      if ('not' in condition) {
+        return !matchCondition(condition.not, context);
+      }
+
+      // Get the path and actual value from context
+      const path = condition.path || condition.field;
+      if (!path) {
+        // Direct value comparison
+        if ('value' in condition && 'eq' in condition) {
+          return condition.value === condition.eq;
+        }
+        return false;
+      }
+
+      const actualValue = getNestedValue(context, path);
+      const expectedValue = resolveValue(condition.value, context);
+
+      // Handle operators
+      const op = condition.op || condition.operator || 'eq';
+
+      switch (op) {
+        case 'eq':
+        case 'equals':
+        case '==':
+          return actualValue === expectedValue;
+
+        case 'neq':
+        case 'notEquals':
+        case '!=':
+          return actualValue !== expectedValue;
+
+        case 'gt':
+        case '>':
+          return actualValue > expectedValue;
+
+        case 'gte':
+        case '>=':
+          return actualValue >= expectedValue;
+
+        case 'lt':
+        case '<':
+          return actualValue < expectedValue;
+
+        case 'lte':
+        case '<=':
+          return actualValue <= expectedValue;
+
+        case 'in':
+          return Array.isArray(expectedValue) && expectedValue.includes(actualValue);
+
+        case 'nin':
+        case 'notIn':
+          return !Array.isArray(expectedValue) || !expectedValue.includes(actualValue);
+
+        case 'contains':
+          if (Array.isArray(actualValue)) {
+            return actualValue.includes(expectedValue);
+          }
+          if (typeof actualValue === 'string') {
+            return actualValue.includes(String(expectedValue));
+          }
+          return false;
+
+        case 'startsWith':
+          return typeof actualValue === 'string' && actualValue.startsWith(String(expectedValue));
+
+        case 'endsWith':
+          return typeof actualValue === 'string' && actualValue.endsWith(String(expectedValue));
+
+        case 'matches':
+        case 'regex':
+          try {
+            const regex = expectedValue instanceof RegExp
+              ? expectedValue
+              : new RegExp(expectedValue);
+            return regex.test(String(actualValue));
+          } catch {
+            return false;
+          }
+
+        case 'exists':
+          return expectedValue ? actualValue !== undefined : actualValue === undefined;
+
+        case 'typeof':
+          return typeof actualValue === expectedValue;
+
+        case 'isEmpty':
+          if (expectedValue) {
+            return actualValue === null || actualValue === undefined ||
+                   actualValue === '' ||
+                   (Array.isArray(actualValue) && actualValue.length === 0) ||
+                   (typeof actualValue === 'object' && Object.keys(actualValue).length === 0);
+          }
+          return !(actualValue === null || actualValue === undefined ||
+                  actualValue === '' ||
+                  (Array.isArray(actualValue) && actualValue.length === 0) ||
+                  (typeof actualValue === 'object' && Object.keys(actualValue).length === 0));
+
+        case 'hasProperty':
+          return actualValue && typeof actualValue === 'object' && expectedValue in actualValue;
+
+        default:
+          // Default to equality check
+          return actualValue === expectedValue;
+      }
+    };
+
+    /**
+     * Match all conditions of an agent rule against context.
+     * @param {Object[]} conditions - Array of conditions
+     * @param {Object} context - Context to match against
+     * @returns {boolean} True if all conditions match
+     * @private
+     */
+    const matchAllConditions = (conditions, context) => {
+      if (!Array.isArray(conditions) || conditions.length === 0) {
+        return true; // No conditions = always matches
+      }
+      return conditions.every(condition => matchCondition(condition, context));
+    };
+
+    /**
+     * Execute an action.
+     * @param {Object} action - Action to execute
+     * @param {Object} context - Execution context
+     * @returns {Promise<Object>} Action result
+     * @private
+     */
+    const executeAction = async (action, context) => {
+      if (!action || typeof action !== 'object') {
+        return { success: false, error: 'Invalid action' };
+      }
+
+      const actionType = action.type || action.action;
+      const handler = _actionHandlers.get(actionType);
+
+      if (!handler) {
+        logger.warn(`[RuleEngine] Unknown action type: ${actionType}`);
+        return { success: false, error: `Unknown action type: ${actionType}` };
+      }
+
+      try {
+        const result = await handler(action.params || action, context);
+        return result;
+      } catch (e) {
+        logger.error(`[RuleEngine] Action ${actionType} failed:`, e);
+        return { success: false, error: e.message, actionType };
+      }
+    };
+
+    /**
+     * Add a declarative agent rule.
+     * @param {Object} rule - Rule definition
+     * @param {string} [rule.id] - Unique identifier
+     * @param {string} [rule.name] - Human-readable name
+     * @param {string} [rule.description] - Rule description
+     * @param {Object[]} rule.conditions - Array of conditions to match
+     * @param {Object|Object[]} rule.actions - Action(s) to execute when conditions match
+     * @param {number} [rule.priority=50] - Priority (higher = evaluated first)
+     * @param {boolean} [rule.enabled=true] - Whether rule is active
+     * @param {boolean} [rule.once=false] - Only fire once per context
+     * @param {string[]} [rule.tags=[]] - Tags for categorization
+     * @returns {Promise<string>} Rule ID
+     */
+    const addAgentRule = async (rule) => {
+      const id = rule.id || generateId('arule');
+
+      const entry = {
+        id,
+        name: rule.name || id,
+        description: rule.description || '',
+        conditions: rule.conditions || [],
+        actions: Array.isArray(rule.actions) ? rule.actions : [rule.actions],
+        priority: rule.priority ?? 50,
+        enabled: rule.enabled !== false,
+        once: rule.once === true,
+        tags: rule.tags || [],
+        createdAt: Date.now(),
+        firedCount: 0,
+        lastFired: null
+      };
+
+      const existing = _agentRules.findIndex(r => r.id === id);
+      if (existing >= 0) {
+        _agentRules[existing] = { ..._agentRules[existing], ...entry, firedCount: _agentRules[existing].firedCount };
+      } else {
+        _agentRules.push(entry);
+      }
+
+      // Sort by priority (descending)
+      _agentRules.sort((a, b) => b.priority - a.priority);
+
+      await save();
+      EventBus.emit('rule:agent:added', { id, name: entry.name });
+      logger.debug(`[RuleEngine] Added agent rule: ${id} (priority: ${entry.priority})`);
+
+      return id;
+    };
+
+    /**
+     * Remove an agent rule by ID.
+     * @param {string} id - Rule ID
+     * @returns {Promise<boolean>} True if removed
+     */
+    const removeAgentRule = async (id) => {
+      const idx = _agentRules.findIndex(r => r.id === id);
+      if (idx === -1) return false;
+      if (_agentRules[idx].builtin) {
+        logger.warn(`[RuleEngine] Cannot remove builtin agent rule: ${id}`);
+        return false;
+      }
+      _agentRules.splice(idx, 1);
+      await save();
+      return true;
+    };
+
+    /**
+     * Get all enabled agent rules, sorted by priority.
+     * @param {string[]} [tags] - Filter by tags (optional)
+     * @returns {Object[]} Array of enabled rules
+     */
+    const getAgentRules = (tags = null) => {
+      let rules = _agentRules.filter(r => r.enabled);
+      if (tags && tags.length > 0) {
+        rules = rules.filter(r => tags.some(t => r.tags.includes(t)));
+      }
+      return rules;
+    };
+
+    /**
+     * Get an agent rule by ID.
+     * @param {string} id - Rule ID
+     * @returns {Object|null} Rule or null
+     */
+    const getAgentRule = (id) => _agentRules.find(r => r.id === id) || null;
+
+    /**
+     * Enable or disable an agent rule.
+     * @param {string} id - Rule ID
+     * @param {boolean} enabled - Enable/disable
+     * @returns {Promise<boolean>} Success
+     */
+    const setAgentRuleEnabled = async (id, enabled) => {
+      const rule = _agentRules.find(r => r.id === id);
+      if (!rule) return false;
+      rule.enabled = enabled;
+      await save();
+      return true;
+    };
+
+    /**
+     * Evaluate all agent rules against a context and execute matching actions.
+     * Rules are evaluated in priority order. Each rule can optionally stop propagation.
+     * @param {Object} context - Context object containing agent state, message, etc.
+     * @param {Object} [options] - Evaluation options
+     * @param {string[]} [options.tags] - Only evaluate rules with these tags
+     * @param {boolean} [options.dryRun=false] - If true, don't execute actions
+     * @param {number} [options.maxRules] - Maximum number of rules to fire
+     * @param {boolean} [options.stopOnFirst=false] - Stop after first matching rule
+     * @returns {Promise<Object>} Evaluation result with fired rules and action results
+     */
+    const evaluateAgentRules = async (context, options = {}) => {
+      const { tags = null, dryRun = false, maxRules = Infinity, stopOnFirst = false } = options;
+      const startTime = Date.now();
+
+      const rules = getAgentRules(tags);
+      const results = {
+        evaluated: 0,
+        matched: 0,
+        fired: [],
+        skipped: [],
+        actionResults: [],
+        dryRun,
+        duration: 0
+      };
+
+      // Track which "once" rules have already fired in this evaluation
+      const onceFired = new Set();
+
+      for (const rule of rules) {
+        if (results.matched >= maxRules) break;
+        results.evaluated++;
+
+        // Check if "once" rule has already fired
+        if (rule.once && (rule.lastFired || onceFired.has(rule.id))) {
+          results.skipped.push({ id: rule.id, reason: 'once' });
+          continue;
+        }
+
+        // Match conditions
+        const matches = matchAllConditions(rule.conditions, context);
+
+        if (matches) {
+          results.matched++;
+
+          if (rule.once) {
+            onceFired.add(rule.id);
+          }
+
+          if (dryRun) {
+            results.fired.push({
+              id: rule.id,
+              name: rule.name,
+              actions: rule.actions,
+              dryRun: true
+            });
+          } else {
+            // Execute actions
+            const actionResults = [];
+            for (const action of rule.actions) {
+              const result = await executeAction(action, context);
+              actionResults.push({ action, result });
+
+              // Check for stop propagation
+              if (result.stopPropagation) {
+                break;
+              }
+            }
+
+            // Update rule stats
+            rule.firedCount++;
+            rule.lastFired = Date.now();
+
+            results.fired.push({
+              id: rule.id,
+              name: rule.name,
+              actionResults
+            });
+            results.actionResults.push(...actionResults);
+
+            EventBus.emit('rule:agent:fired', {
+              id: rule.id,
+              name: rule.name,
+              context: Object.keys(context),
+              actionCount: actionResults.length
+            });
+          }
+
+          if (stopOnFirst) break;
+        }
+      }
+
+      results.duration = Date.now() - startTime;
+
+      // Save updated fire counts
+      if (results.matched > 0 && !dryRun) {
+        save().catch(e => logger.warn('[RuleEngine] Failed to save after rule evaluation:', e.message));
+      }
+
+      EventBus.emit('rule:agent:evaluated', {
+        evaluated: results.evaluated,
+        matched: results.matched,
+        duration: results.duration
+      });
+
+      return results;
+    };
+
+    /**
+     * Create a context object for agent rule evaluation.
+     * Combines various sources into a unified context.
+     * @param {Object} sources - Context sources
+     * @param {Object} [sources.state] - Agent state
+     * @param {Object} [sources.message] - Current message
+     * @param {Object} [sources.tool] - Tool call info
+     * @param {Object} [sources.response] - LLM response
+     * @param {Object} [sources.cycle] - Cycle info
+     * @param {Object} [sources.custom] - Custom data
+     * @returns {Object} Unified context object
+     */
+    const createContext = (sources = {}) => {
+      const context = {
+        timestamp: Date.now(),
+        ...sources.custom
+      };
+
+      if (sources.state) {
+        context.state = sources.state;
+      } else if (StateManager) {
+        context.state = StateManager.getState();
+      }
+
+      if (sources.message) {
+        context.message = sources.message;
+      }
+
+      if (sources.tool) {
+        context.tool = sources.tool;
+      }
+
+      if (sources.response) {
+        context.response = sources.response;
+      }
+
+      if (sources.cycle !== undefined) {
+        context.cycle = sources.cycle;
+      }
+
+      return context;
+    };
+
+    /**
+     * Add built-in agent rules for common patterns.
+     * @private
+     */
+    const addBuiltinAgentRules = () => {
+      // Rule: Log warning when cycle count is high
+      if (!_agentRules.find(r => r.id === 'builtin-high-cycle-warning')) {
+        _agentRules.push({
+          id: 'builtin-high-cycle-warning',
+          name: 'High Cycle Warning',
+          description: 'Warn when cycle count exceeds threshold',
+          conditions: [
+            { path: 'cycle', op: 'gte', value: 40 }
+          ],
+          actions: [
+            {
+              type: 'log',
+              params: { message: 'Warning: High cycle count (${cycle}). Consider summarizing progress.' }
+            },
+            {
+              type: 'emit',
+              params: { event: 'agent:warning', data: { type: 'high_cycle', cycle: '${cycle}' } }
+            }
+          ],
+          priority: 90,
+          enabled: true,
+          once: true,
+          tags: ['agent', 'warning'],
+          builtin: true,
+          firedCount: 0,
+          lastFired: null
+        });
+      }
+
+      // Rule: Track tool errors for circuit breaker pattern
+      if (!_agentRules.find(r => r.id === 'builtin-tool-error-tracking')) {
+        _agentRules.push({
+          id: 'builtin-tool-error-tracking',
+          name: 'Tool Error Tracking',
+          description: 'Track tool execution errors',
+          conditions: [
+            { path: 'tool.error', op: 'exists', value: true }
+          ],
+          actions: [
+            {
+              type: 'addFact',
+              params: {
+                subject: '${tool.name}',
+                predicate: 'failedExecution',
+                object: '${cycle}',
+                metadata: { error: '${tool.error}', timestamp: '${timestamp}' }
+              }
+            }
+          ],
+          priority: 100,
+          enabled: true,
+          tags: ['tool', 'error'],
+          builtin: true,
+          firedCount: 0,
+          lastFired: null
+        });
+      }
+    };
+
     // --- Utilities ---
 
     /**
@@ -1215,9 +1934,12 @@ const RuleEngine = {
       constraintCount: _constraints.length,
       inducedRuleCount: _inducedRules.length,
       policyCount: _policies.length,
+      agentRuleCount: _agentRules.length,
       exampleCount: _examples.length,
       enabledRules: _rules.filter(r => r.enabled).length,
-      enabledPolicies: _policies.filter(p => p.enabled).length
+      enabledAgentRules: _agentRules.filter(r => r.enabled).length,
+      enabledPolicies: _policies.filter(p => p.enabled).length,
+      actionHandlers: Array.from(_actionHandlers.keys())
     });
 
     /**
@@ -1229,8 +1951,10 @@ const RuleEngine = {
       _constraints = [];
       _inducedRules = [];
       _policies = [];
+      _agentRules = [];
       _examples = [];
       addBuiltinRules();
+      addBuiltinAgentRules();
       await save();
       logger.info('[RuleEngine] Cleared all rules');
     };
@@ -1243,6 +1967,7 @@ const RuleEngine = {
       rules: _rules.filter(r => !r.builtin),
       constraints: _constraints,
       policies: _policies.filter(p => !p.builtin),
+      agentRules: _agentRules.filter(r => !r.builtin),
       inducedRules: _inducedRules,
       exportedAt: Date.now()
     });
@@ -1254,13 +1979,15 @@ const RuleEngine = {
      * @returns {Promise<Object>} Import statistics
      */
     const importRules = async (data, merge = true) => {
-      const stats = { rules: 0, constraints: 0, policies: 0 };
+      const stats = { rules: 0, constraints: 0, policies: 0, agentRules: 0 };
 
       if (!merge) {
         _rules = [];
         _constraints = [];
         _policies = [];
+        _agentRules = [];
         addBuiltinRules();
+        addBuiltinAgentRules();
       }
 
       if (Array.isArray(data.rules)) {
@@ -1290,8 +2017,19 @@ const RuleEngine = {
         }
       }
 
+      if (Array.isArray(data.agentRules)) {
+        for (const rule of data.agentRules) {
+          if (!_agentRules.find(r => r.id === rule.id)) {
+            _agentRules.push(rule);
+            stats.agentRules++;
+          }
+        }
+        // Re-sort by priority
+        _agentRules.sort((a, b) => b.priority - a.priority);
+      }
+
       await save();
-      logger.info(`[RuleEngine] Imported ${stats.rules} rules, ${stats.constraints} constraints, ${stats.policies} policies`);
+      logger.info(`[RuleEngine] Imported ${stats.rules} rules, ${stats.agentRules} agent rules, ${stats.constraints} constraints, ${stats.policies} policies`);
       return stats;
     };
 
@@ -1299,7 +2037,7 @@ const RuleEngine = {
       // Lifecycle
       init,
 
-      // Rule management
+      // Rule management (Datalog-style)
       addRule,
       removeRule,
       getRules,
@@ -1330,6 +2068,16 @@ const RuleEngine = {
       getPolicies,
       checkPolicy,
       enforcePolicy,
+
+      // Agent Rules (declarative conditions/actions)
+      addAgentRule,
+      removeAgentRule,
+      getAgentRules,
+      getAgentRule,
+      setAgentRuleEnabled,
+      evaluateAgentRules,
+      createContext,
+      registerActionHandler,
 
       // VFS persistence
       saveRulesToVFS,

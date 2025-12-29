@@ -641,14 +641,14 @@ Summary:`;
       return { taskType: 'general', confidence: 0 };
     };
 
-    const anticipatoryQuery = async (query, options = {}) => {
+    const anticipatoryQuery = async (queryText, options = {}) => {
       const { topK = 10, boostFactor = 0.2 } = options;
 
       // Detect task type
-      const { taskType, confidence } = detectTaskType(query);
+      const { taskType, confidence } = detectTaskType(queryText);
 
       // Get base hybrid results
-      const baseResults = await hybridQuery(query, { topK: topK * 2 });
+      const baseResults = await hybridQuery(queryText, { topK: topK * 2 });
 
       if (taskType === 'general' || confidence === 0) {
         return baseResults.slice(0, topK);
@@ -658,10 +658,10 @@ Summary:`;
       const contextPatterns = CONFIG.taskContextPatterns[taskType] || [];
       const anticipatoryQueries = contextPatterns.slice(0, 3); // Use top 3 patterns
 
-      // Gather additional context
+      // Gather additional context using the query function
       const anticipatedNodeIds = new Set();
-      for (const contextQuery of anticipatoryQueries) {
-        const contextResults = await query(contextQuery, { topK: 3 });
+      for (const contextQueryText of anticipatoryQueries) {
+        const contextResults = await query(contextQueryText, { topK: 3 });
         for (const result of contextResults) {
           anticipatedNodeIds.add(result.id);
         }
@@ -683,7 +683,7 @@ Summary:`;
         .slice(0, topK);
 
       EventBus.emit('knowledge:tree:anticipatory-query', {
-        query: query.slice(0, 50),
+        query: queryText.slice(0, 50),
         taskType,
         confidence,
         anticipatedCount: anticipatedNodeIds.size
