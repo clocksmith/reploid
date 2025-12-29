@@ -8,13 +8,13 @@ const Observability = {
     id: 'Observability',
     version: '1.0.0',
     genesis: { introduced: 'full' },
-    dependencies: ['Utils', 'EventBus', 'VFS', 'ErrorStore?', 'PerformanceMonitor?'],
+    dependencies: ['Utils', 'EventBus', 'VFS', 'ErrorStore?', 'PerformanceMonitor?', 'ReflectionStore?', 'PromptScoreMap?'],
     async: true,
     type: 'infrastructure'
   },
 
   factory: (deps) => {
-    const { Utils, EventBus, VFS, ErrorStore, PerformanceMonitor } = deps;
+    const { Utils, EventBus, VFS, ErrorStore, PerformanceMonitor, ReflectionStore, PromptScoreMap } = deps;
     const { logger, generateId, trunc } = Utils;
 
     const MUTATION_LOG_DIR = '/.logs/mutations';
@@ -366,13 +366,41 @@ const Observability = {
       // Wire arena completion for success rate tracking
       EventBus.on('arena:complete', (data = {}) => {
         const summary = data.summary || {};
+        const passed = summary.passRate >= 80; // 80% threshold for "passed"
+
         recordArenaResult({
-          passed: summary.passRate >= 80, // 80% threshold for "passed"
+          passed,
           passRate: summary.passRate,
           task: data.task,
           level: data.level,
           competitorCount: summary.total
         });
+
+        // Persist to ReflectionStore for long-term tracking
+        if (ReflectionStore?.add) {
+          ReflectionStore.add({
+            type: passed ? 'success' : 'error',
+            content: `Arena: ${summary.passRate}% pass rate (${summary.passed}/${summary.total})`,
+            context: {
+              outcome: passed ? 'successful' : 'failed',
+              passRate: summary.passRate,
+              passed: summary.passed,
+              total: summary.total,
+              winner: summary.fastestPassing,
+              task: data.task,
+              level: data.level
+            },
+            tags: ['arena', data.level || 'unknown'].filter(Boolean),
+            description: `Arena ${passed ? 'passed' : 'failed'}: ${summary.passRate}%`
+          }).catch(err => {
+            logger.warn('[Observability] Failed to persist arena result', err.message);
+          });
+        }
+
+        // Track task/prompt performance for RSI selection
+        if (PromptScoreMap?.record && data.task) {
+          PromptScoreMap.record(data.task, summary.passRate, data.level || 'default');
+        }
       }, 'Observability');
     };
 
