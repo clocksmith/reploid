@@ -173,6 +173,43 @@ const MemoryManager = {
       return evicted;
     };
 
+    /**
+     * Estimate token count for text (rough approximation: ~4 chars per token)
+     * @param {string} text - Text to estimate
+     * @returns {number} Estimated token count
+     */
+    const estimateSummaryTokens = (text) => {
+      if (!text) return 0;
+      return Math.ceil(text.length / 4);
+    };
+
+    /**
+     * Validate that summary achieves sufficient compression.
+     * @param {string} original - Original text being summarized
+     * @param {string} summary - Generated summary
+     * @param {number} minCompression - Minimum compression ratio (default 0.5 = 50% reduction)
+     * @returns {Object} Validation result
+     */
+    const validateSummary = (original, summary, minCompression = 0.5) => {
+      const originalTokens = estimateSummaryTokens(original);
+      const summaryTokens = estimateSummaryTokens(summary);
+
+      if (originalTokens === 0) {
+        return { valid: true, ratio: 1, reason: 'empty_original' };
+      }
+
+      const ratio = summaryTokens / originalTokens;
+      const valid = ratio <= (1 - minCompression);
+
+      return {
+        valid,
+        ratio,
+        originalTokens,
+        summaryTokens,
+        reason: valid ? 'compression_ok' : 'insufficient_compression'
+      };
+    };
+
     const updateSummary = async (evictedMessages) => {
       const formattedMessages = evictedMessages
         .map(m => `[${m.role}] ${m.content}`)
@@ -205,12 +242,52 @@ Summary:`;
 
         const newSummary = response.content || response;
 
+        // Validate compression
+        const inputText = _episodicSummary + '\n' + formattedMessages;
+        const validation = validateSummary(inputText, newSummary);
+
+        if (!validation.valid) {
+          logger.warn('[MemoryManager] Summary compression insufficient', {
+            ratio: validation.ratio.toFixed(2),
+            originalTokens: validation.originalTokens,
+            summaryTokens: validation.summaryTokens
+          });
+          // Still use the summary but log warning
+          EventBus.emit('memory:summary_validation', {
+            valid: false,
+            ratio: validation.ratio,
+            reason: validation.reason
+          });
+        }
+
         // Persist to VFS
         await VFS.write(CONFIG.summaryPath, newSummary);
 
+        // Track summary history for drift detection (keep last 5)
+        const historyPath = '/.memory/summary_history.jsonl';
+        const historyEntry = JSON.stringify({
+          timestamp: Date.now(),
+          tokens: validation.summaryTokens,
+          ratio: validation.ratio,
+          sessionId: _sessionId
+        }) + '\n';
+
+        try {
+          if (await VFS.exists(historyPath)) {
+            const existing = await VFS.read(historyPath);
+            const lines = existing.trim().split('\n').slice(-4); // Keep last 4
+            await VFS.write(historyPath, lines.join('\n') + '\n' + historyEntry);
+          } else {
+            await VFS.write(historyPath, historyEntry);
+          }
+        } catch (histErr) {
+          logger.debug('[MemoryManager] Summary history tracking failed:', histErr.message);
+        }
+
         logger.info('[MemoryManager] Summary updated', {
           prevLength: _episodicSummary.length,
-          newLength: newSummary.length
+          newLength: newSummary.length,
+          compressionRatio: validation.ratio.toFixed(2)
         });
 
         return newSummary;
@@ -219,6 +296,55 @@ Summary:`;
         logger.error('[MemoryManager] Summary generation failed:', err.message);
         // Return existing summary on failure
         return _episodicSummary;
+      }
+    };
+
+    /**
+     * Check for summary drift by comparing current summary against recent history.
+     * Detects if summaries are growing without bounds or losing compression.
+     * @returns {Promise<Object>} Drift detection result
+     */
+    const checkSummaryDrift = async () => {
+      const historyPath = '/.memory/summary_history.jsonl';
+
+      try {
+        if (!await VFS.exists(historyPath)) {
+          return { hasDrift: false, reason: 'no_history' };
+        }
+
+        const content = await VFS.read(historyPath);
+        const entries = content.trim().split('\n')
+          .filter(line => line.trim())
+          .map(line => JSON.parse(line));
+
+        if (entries.length < 3) {
+          return { hasDrift: false, reason: 'insufficient_history' };
+        }
+
+        // Check if token count is consistently increasing (drift)
+        const tokenTrend = entries.slice(-3).map(e => e.tokens);
+        const isIncreasing = tokenTrend.every((t, i, arr) =>
+          i === 0 || t >= arr[i - 1] * 0.9 // Allow 10% variance
+        );
+
+        // Check if compression ratio is degrading
+        const ratioTrend = entries.slice(-3).map(e => e.ratio);
+        const avgRatio = ratioTrend.reduce((a, b) => a + b, 0) / ratioTrend.length;
+        const isDegrading = avgRatio > 0.7; // Summaries should be <70% of input
+
+        const hasDrift = isIncreasing && entries[entries.length - 1].tokens > 2000;
+
+        return {
+          hasDrift,
+          isDegrading,
+          currentTokens: entries[entries.length - 1]?.tokens || 0,
+          avgRatio: avgRatio.toFixed(2),
+          reason: hasDrift ? 'summary_growing' : isDegrading ? 'poor_compression' : 'ok',
+          history: entries.slice(-3)
+        };
+      } catch (err) {
+        logger.debug('[MemoryManager] Drift detection failed:', err.message);
+        return { hasDrift: false, reason: 'error', error: err.message };
       }
     };
 
@@ -661,6 +787,51 @@ Summary:`;
       logger.info('[MemoryManager] Disposed');
     };
 
+    /**
+     * Called when context is compacted by ContextManager.
+     * Refreshes memory index and optionally updates summary.
+     * @param {Object} info - Compaction info
+     * @param {number} info.previousTokens - Token count before compaction
+     * @param {number} info.newTokens - Token count after compaction
+     * @param {Array} info.compactedContext - The compacted context
+     * @returns {Promise<void>}
+     */
+    const onContextCompacted = async (info) => {
+      if (!_isInitialized) return;
+
+      const { previousTokens, newTokens, compactedContext } = info;
+      logger.debug(`[MemoryManager] Context compacted: ${previousTokens} → ${newTokens} tokens`);
+
+      try {
+        // Extract any summaries from compacted context for memory indexing
+        const summaryMsgs = compactedContext.filter(m =>
+          m.role === 'user' && m.content?.includes('[messages compacted]')
+        );
+
+        if (summaryMsgs.length > 0) {
+          // Re-index the compaction summary into episodic memory
+          for (const msg of summaryMsgs) {
+            await add({
+              role: 'system',
+              content: `[Compaction Summary] ${msg.content.slice(0, 500)}`,
+              timestamp: Date.now()
+            });
+          }
+          logger.debug(`[MemoryManager] Indexed ${summaryMsgs.length} compaction summaries`);
+        }
+
+        // Emit event for observability
+        EventBus.emit('memory:context_compacted', {
+          previousTokens,
+          newTokens,
+          compressionRatio: newTokens / previousTokens,
+          summariesIndexed: summaryMsgs.length
+        });
+      } catch (err) {
+        logger.warn('[MemoryManager] Failed to process context compaction:', err.message);
+      }
+    };
+
     return {
       init,
       add,
@@ -670,6 +841,7 @@ Summary:`;
       anticipatoryRetrieve,
       adaptivePrune,
       calculateRetention,
+      checkSummaryDrift,
       getContext,
       buildContextMessages,
       getWorking,
@@ -679,7 +851,8 @@ Summary:`;
       clearWorking,
       clearSummary,
       newSession,
-      dispose
+      dispose,
+      onContextCompacted
     };
   }
 };

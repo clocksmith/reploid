@@ -2,22 +2,89 @@
  * @fileoverview Audit Logger
  * Security tracking. Writes to /.logs/audit/YYYY-MM-DD.jsonl
  * Supports structured export (JSON/CSV) for compliance and debugging.
+ * Emits events: audit:tool_exec, audit:core_write, audit:warning
  */
 
 const AuditLogger = {
   metadata: {
     id: 'AuditLogger',
-    version: '1.0.0',
+    version: '1.1.0',
     genesis: { introduced: 'full' },
-    dependencies: ['Utils', 'VFS', 'TelemetryTimeline?'],
+    dependencies: ['Utils', 'VFS', 'EventBus?', 'TelemetryTimeline?'],
     async: true,
     type: 'infrastructure'
   },
 
   factory: (deps) => {
-    const { Utils, VFS, TelemetryTimeline } = deps;
+    const { Utils, VFS, EventBus, TelemetryTimeline } = deps;
     const { logger, generateId } = Utils;
     const LOG_DIR = '/.logs/audit';
+
+    // Sensitive keys that should be redacted in logs
+    const SENSITIVE_KEYS = [
+      'apiKey', 'api_key', 'apikey',
+      'token', 'accessToken', 'access_token', 'refreshToken', 'refresh_token',
+      'password', 'passwd', 'secret', 'credential', 'credentials',
+      'authorization', 'auth', 'bearer',
+      'private_key', 'privateKey', 'key',
+      'ANTHROPIC_API_KEY', 'OPENAI_API_KEY', 'GOOGLE_API_KEY'
+    ];
+
+    // Max length for values before truncation
+    const MAX_VALUE_LENGTH = 500;
+
+    /**
+     * Sanitize arguments for logging - redact secrets, truncate large values
+     * @param {any} value - Value to sanitize
+     * @param {string} [key] - Key name (for sensitive detection)
+     * @returns {any} Sanitized value
+     */
+    const sanitizeValue = (value, key = '') => {
+      // Check if key is sensitive
+      const isSensitiveKey = SENSITIVE_KEYS.some(sk =>
+        key.toLowerCase().includes(sk.toLowerCase())
+      );
+
+      if (isSensitiveKey && value) {
+        return '[REDACTED]';
+      }
+
+      if (typeof value === 'string') {
+        // Check for patterns that look like secrets
+        if (value.match(/^(sk-|pk-|api-|key-|token-|bearer\s)/i)) {
+          return '[REDACTED]';
+        }
+        // Truncate long strings
+        if (value.length > MAX_VALUE_LENGTH) {
+          return value.substring(0, MAX_VALUE_LENGTH) + `... [truncated ${value.length - MAX_VALUE_LENGTH} chars]`;
+        }
+        return value;
+      }
+
+      if (Array.isArray(value)) {
+        return value.map((v, i) => sanitizeValue(v, String(i)));
+      }
+
+      if (value && typeof value === 'object') {
+        const sanitized = {};
+        for (const [k, v] of Object.entries(value)) {
+          sanitized[k] = sanitizeValue(v, k);
+        }
+        return sanitized;
+      }
+
+      return value;
+    };
+
+    /**
+     * Sanitize tool arguments for audit logging
+     * @param {Object} args - Tool arguments
+     * @returns {Object} Sanitized arguments
+     */
+    const sanitizeArgs = (args) => {
+      if (!args || typeof args !== 'object') return args;
+      return sanitizeValue(args);
+    };
 
     const init = async () => {
       // Directory check implied by VFS structure
@@ -36,6 +103,20 @@ const AuditLogger = {
       // Echo security warnings to console
       if (severity === 'ERROR' || severity === 'WARN') {
         logger.warn(`[Audit] ${type}`, data);
+      }
+
+      // Emit EventBus events for real-time monitoring
+      if (EventBus) {
+        // Map event types to specific audit events
+        if (type === 'TOOL_EXEC') {
+          EventBus.emit('audit:tool_exec', { ...entry.data, severity });
+        } else if (type === 'CORE_WRITE' || type === 'CORE_WRITE_BLOCKED') {
+          EventBus.emit('audit:core_write', { ...entry.data, severity });
+        }
+        // Emit generic warning event for WARN/ERROR severity
+        if (severity === 'WARN' || severity === 'ERROR') {
+          EventBus.emit('audit:warning', { type, data: entry.data, severity });
+        }
       }
 
       const date = new Date().toISOString().split('T')[0];
@@ -208,6 +289,65 @@ const AuditLogger = {
       return stats;
     };
 
+    // L3 substrate paths that require WARN severity
+    const SUBSTRATE_PREFIXES = ['/core/', '/infrastructure/'];
+
+    /**
+     * Check if path is a core/infrastructure (L3 substrate) path
+     * @param {string} path - File path
+     * @returns {boolean}
+     */
+    const isSubstratePath = (path) => {
+      if (!path) return false;
+      return SUBSTRATE_PREFIXES.some(prefix => path.startsWith(prefix));
+    };
+
+    /**
+     * Log tool execution with full context
+     * @param {Object} params - Execution parameters
+     * @param {string} params.tool - Tool name
+     * @param {Object} params.args - Tool arguments (will be sanitized)
+     * @param {number} params.durationMs - Execution duration in ms
+     * @param {boolean} params.success - Whether execution succeeded
+     * @param {string} [params.error] - Error message if failed
+     * @param {string} [params.workerId] - Worker ID if executed by worker
+     */
+    const logToolExec = async ({ tool, args, durationMs, success, error, workerId }) => {
+      const sanitizedArgs = sanitizeArgs(args);
+      const data = {
+        tool,
+        args: sanitizedArgs,
+        durationMs,
+        success,
+        ...(error && { error }),
+        ...(workerId && { workerId })
+      };
+      const severity = success ? 'INFO' : 'ERROR';
+      await logEvent('TOOL_EXEC', data, severity);
+    };
+
+    /**
+     * Log a core file write operation with WARN severity
+     * Emits audit:core_write event for L3 substrate changes
+     * @param {Object} params - Write parameters
+     * @param {string} params.path - File path
+     * @param {string} params.operation - Operation type (WriteFile, Edit, CreateTool)
+     * @param {boolean} params.existed - Whether file existed before
+     * @param {number} [params.bytesWritten] - Bytes written
+     * @param {boolean} [params.arenaVerified] - Whether arena verification was performed
+     */
+    const logCoreWrite = async ({ path, operation, existed, bytesWritten, arenaVerified }) => {
+      const data = {
+        path,
+        operation,
+        existed,
+        isSubstrate: true,
+        ...(bytesWritten !== undefined && { bytesWritten }),
+        ...(arenaVerified !== undefined && { arenaVerified })
+      };
+      await logEvent('CORE_WRITE', data, 'WARN');
+    };
+
     return {
       init,
       logEvent,
@@ -216,9 +356,16 @@ const AuditLogger = {
       exportCSV,
       download,
       getStats,
+      // Sanitization utilities
+      sanitizeArgs,
+      sanitizeValue,
+      isSubstratePath,
+      // Tool execution logging
+      logToolExec,
+      logCoreWrite,
       // Convenience aliases
-      logAgentAction: (action, tool, args) => logEvent('AGENT_ACTION', { action, tool, args }),
-      logSecurity: (type, details) => logEvent('SECURITY', { type, ...details }, 'ERROR')
+      logAgentAction: (action, tool, args) => logEvent('AGENT_ACTION', { action, tool, args: sanitizeArgs(args) }),
+      logSecurity: (type, details) => logEvent('SECURITY', { type, ...sanitizeValue(details) }, 'ERROR')
     };
   }
 };

@@ -1,6 +1,6 @@
 /**
  * @fileoverview Unit tests for AuditLogger module
- * Tests security logging, retry logic, and VFS integration
+ * Tests security logging, retry logic, VFS integration, sanitization, and EventBus events
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
@@ -23,23 +23,32 @@ const createMockVFS = () => ({
   write: vi.fn()
 });
 
+// Mock EventBus
+const createMockEventBus = () => ({
+  emit: vi.fn(),
+  on: vi.fn()
+});
+
 import AuditLoggerModule from '../../infrastructure/audit-logger.js';
 
 describe('AuditLogger', () => {
   let auditLogger;
   let mockUtils;
   let mockVFS;
+  let mockEventBus;
 
   beforeEach(() => {
     mockUtils = createMockUtils();
     mockVFS = createMockVFS();
+    mockEventBus = createMockEventBus();
     mockVFS.exists.mockResolvedValue(false);
     mockVFS.read.mockResolvedValue('');
     mockVFS.write.mockResolvedValue(true);
 
     auditLogger = AuditLoggerModule.factory({
       Utils: mockUtils,
-      VFS: mockVFS
+      VFS: mockVFS,
+      EventBus: mockEventBus
     });
   });
 
@@ -258,6 +267,331 @@ describe('AuditLogger', () => {
       expect(AuditLoggerModule.metadata.async).toBe(true);
       expect(AuditLoggerModule.metadata.dependencies).toContain('VFS');
       expect(AuditLoggerModule.metadata.dependencies).toContain('Utils');
+      expect(AuditLoggerModule.metadata.dependencies).toContain('EventBus?');
+    });
+  });
+
+  describe('sanitizeArgs', () => {
+    it('should redact sensitive keys like apiKey', () => {
+      const result = auditLogger.sanitizeArgs({
+        path: '/test.js',
+        apiKey: 'sk-secret-key-12345',
+        content: 'normal content'
+      });
+
+      expect(result.path).toBe('/test.js');
+      expect(result.apiKey).toBe('[REDACTED]');
+      expect(result.content).toBe('normal content');
+    });
+
+    it('should redact token, password, secret keys', () => {
+      const result = auditLogger.sanitizeArgs({
+        token: 'bearer-token-xyz',
+        password: 'mysecretpassword',
+        secret: 'shh-secret',
+        accessToken: 'access-123'
+      });
+
+      expect(result.token).toBe('[REDACTED]');
+      expect(result.password).toBe('[REDACTED]');
+      expect(result.secret).toBe('[REDACTED]');
+      expect(result.accessToken).toBe('[REDACTED]');
+    });
+
+    it('should redact values that look like API keys (sk- prefix)', () => {
+      const result = auditLogger.sanitizeArgs({
+        someField: 'sk-proj-abcdefghijk123456'
+      });
+
+      expect(result.someField).toBe('[REDACTED]');
+    });
+
+    it('should redact values with bearer prefix', () => {
+      const result = auditLogger.sanitizeArgs({
+        auth: 'bearer eyJhbGciOiJIUzI1NiJ9...'
+      });
+
+      expect(result.auth).toBe('[REDACTED]');
+    });
+
+    it('should truncate long string values', () => {
+      const longContent = 'x'.repeat(1000);
+      const result = auditLogger.sanitizeArgs({
+        content: longContent
+      });
+
+      expect(result.content.length).toBeLessThan(longContent.length);
+      expect(result.content).toContain('[truncated');
+    });
+
+    it('should handle nested objects', () => {
+      const result = auditLogger.sanitizeArgs({
+        config: {
+          apiKey: 'secret-key',
+          url: 'https://example.com'
+        }
+      });
+
+      expect(result.config.apiKey).toBe('[REDACTED]');
+      expect(result.config.url).toBe('https://example.com');
+    });
+
+    it('should handle arrays', () => {
+      const result = auditLogger.sanitizeArgs({
+        items: [
+          { password: 'secret1', name: 'item1' },
+          { password: 'secret2', name: 'item2' }
+        ]
+      });
+
+      expect(result.items[0].password).toBe('[REDACTED]');
+      expect(result.items[0].name).toBe('item1');
+      expect(result.items[1].password).toBe('[REDACTED]');
+    });
+
+    it('should handle null and undefined', () => {
+      const result = auditLogger.sanitizeArgs({
+        nullVal: null,
+        undefinedVal: undefined,
+        normalVal: 'test'
+      });
+
+      expect(result.nullVal).toBeNull();
+      expect(result.undefinedVal).toBeUndefined();
+      expect(result.normalVal).toBe('test');
+    });
+  });
+
+  describe('isSubstratePath', () => {
+    it('should return true for /core/ paths', () => {
+      expect(auditLogger.isSubstratePath('/core/agent-loop.js')).toBe(true);
+      expect(auditLogger.isSubstratePath('/core/tool-runner.js')).toBe(true);
+    });
+
+    it('should return true for /infrastructure/ paths', () => {
+      expect(auditLogger.isSubstratePath('/infrastructure/event-bus.js')).toBe(true);
+      expect(auditLogger.isSubstratePath('/infrastructure/audit-logger.js')).toBe(true);
+    });
+
+    it('should return false for other paths', () => {
+      expect(auditLogger.isSubstratePath('/tools/ReadFile.js')).toBe(false);
+      expect(auditLogger.isSubstratePath('/ui/proto/index.js')).toBe(false);
+      expect(auditLogger.isSubstratePath('/config/settings.json')).toBe(false);
+    });
+
+    it('should handle null/undefined paths', () => {
+      expect(auditLogger.isSubstratePath(null)).toBe(false);
+      expect(auditLogger.isSubstratePath(undefined)).toBe(false);
+      expect(auditLogger.isSubstratePath('')).toBe(false);
+    });
+  });
+
+  describe('logToolExec', () => {
+    it('should log successful tool execution with sanitized args', async () => {
+      await auditLogger.logToolExec({
+        tool: 'ReadFile',
+        args: { path: '/test.txt', apiKey: 'secret-key' },
+        durationMs: 50,
+        success: true
+      });
+
+      const content = mockVFS.write.mock.calls[0][1];
+      const entry = JSON.parse(content.trim());
+
+      expect(entry.type).toBe('TOOL_EXEC');
+      expect(entry.severity).toBe('INFO');
+      expect(entry.data.tool).toBe('ReadFile');
+      expect(entry.data.args.path).toBe('/test.txt');
+      expect(entry.data.args.apiKey).toBe('[REDACTED]');
+      expect(entry.data.durationMs).toBe(50);
+      expect(entry.data.success).toBe(true);
+    });
+
+    it('should log failed tool execution with ERROR severity', async () => {
+      await auditLogger.logToolExec({
+        tool: 'WriteFile',
+        args: { path: '/test.txt' },
+        durationMs: 100,
+        success: false,
+        error: 'Permission denied'
+      });
+
+      const content = mockVFS.write.mock.calls[0][1];
+      const entry = JSON.parse(content.trim());
+
+      expect(entry.type).toBe('TOOL_EXEC');
+      expect(entry.severity).toBe('ERROR');
+      expect(entry.data.success).toBe(false);
+      expect(entry.data.error).toBe('Permission denied');
+    });
+
+    it('should include workerId when provided', async () => {
+      await auditLogger.logToolExec({
+        tool: 'ReadFile',
+        args: { path: '/test.txt' },
+        durationMs: 25,
+        success: true,
+        workerId: 'worker_123'
+      });
+
+      const content = mockVFS.write.mock.calls[0][1];
+      const entry = JSON.parse(content.trim());
+
+      expect(entry.data.workerId).toBe('worker_123');
+    });
+
+    it('should emit audit:tool_exec event', async () => {
+      await auditLogger.logToolExec({
+        tool: 'ReadFile',
+        args: { path: '/test.txt' },
+        durationMs: 50,
+        success: true
+      });
+
+      expect(mockEventBus.emit).toHaveBeenCalledWith(
+        'audit:tool_exec',
+        expect.objectContaining({
+          tool: 'ReadFile',
+          success: true,
+          severity: 'INFO'
+        })
+      );
+    });
+  });
+
+  describe('logCoreWrite', () => {
+    it('should log core write with WARN severity', async () => {
+      await auditLogger.logCoreWrite({
+        path: '/core/agent-loop.js',
+        operation: 'WriteFile',
+        existed: true,
+        bytesWritten: 1500
+      });
+
+      const content = mockVFS.write.mock.calls[0][1];
+      const entry = JSON.parse(content.trim());
+
+      expect(entry.type).toBe('CORE_WRITE');
+      expect(entry.severity).toBe('WARN');
+      expect(entry.data.path).toBe('/core/agent-loop.js');
+      expect(entry.data.operation).toBe('WriteFile');
+      expect(entry.data.isSubstrate).toBe(true);
+      expect(entry.data.bytesWritten).toBe(1500);
+    });
+
+    it('should emit audit:core_write event', async () => {
+      await auditLogger.logCoreWrite({
+        path: '/infrastructure/event-bus.js',
+        operation: 'Edit',
+        existed: true
+      });
+
+      expect(mockEventBus.emit).toHaveBeenCalledWith(
+        'audit:core_write',
+        expect.objectContaining({
+          path: '/infrastructure/event-bus.js',
+          operation: 'Edit',
+          isSubstrate: true
+        })
+      );
+    });
+
+    it('should emit audit:warning event for core writes', async () => {
+      await auditLogger.logCoreWrite({
+        path: '/core/tool-runner.js',
+        operation: 'Edit',
+        existed: true
+      });
+
+      expect(mockEventBus.emit).toHaveBeenCalledWith(
+        'audit:warning',
+        expect.objectContaining({
+          type: 'CORE_WRITE',
+          severity: 'WARN'
+        })
+      );
+    });
+
+    it('should include arenaVerified when provided', async () => {
+      await auditLogger.logCoreWrite({
+        path: '/core/agent-loop.js',
+        operation: 'WriteFile',
+        existed: false,
+        bytesWritten: 2000,
+        arenaVerified: true
+      });
+
+      const content = mockVFS.write.mock.calls[0][1];
+      const entry = JSON.parse(content.trim());
+
+      expect(entry.data.arenaVerified).toBe(true);
+    });
+  });
+
+  describe('EventBus integration', () => {
+    it('should emit audit:tool_exec for TOOL_EXEC events', async () => {
+      await auditLogger.logEvent('TOOL_EXEC', { tool: 'TestTool', success: true });
+
+      expect(mockEventBus.emit).toHaveBeenCalledWith(
+        'audit:tool_exec',
+        expect.objectContaining({ tool: 'TestTool', success: true })
+      );
+    });
+
+    it('should emit audit:core_write for CORE_WRITE events', async () => {
+      await auditLogger.logEvent('CORE_WRITE', { path: '/core/test.js' }, 'WARN');
+
+      expect(mockEventBus.emit).toHaveBeenCalledWith(
+        'audit:core_write',
+        expect.objectContaining({ path: '/core/test.js' })
+      );
+    });
+
+    it('should emit audit:warning for WARN severity', async () => {
+      await auditLogger.logEvent('CUSTOM_WARNING', { reason: 'test' }, 'WARN');
+
+      expect(mockEventBus.emit).toHaveBeenCalledWith(
+        'audit:warning',
+        expect.objectContaining({
+          type: 'CUSTOM_WARNING',
+          severity: 'WARN'
+        })
+      );
+    });
+
+    it('should emit audit:warning for ERROR severity', async () => {
+      await auditLogger.logEvent('CRITICAL_ERROR', { details: 'crash' }, 'ERROR');
+
+      expect(mockEventBus.emit).toHaveBeenCalledWith(
+        'audit:warning',
+        expect.objectContaining({
+          type: 'CRITICAL_ERROR',
+          severity: 'ERROR'
+        })
+      );
+    });
+
+    it('should not emit warning events for INFO severity', async () => {
+      await auditLogger.logEvent('INFO_EVENT', { data: 'test' }, 'INFO');
+
+      // Should not emit audit:warning
+      const warningCalls = mockEventBus.emit.mock.calls.filter(
+        call => call[0] === 'audit:warning'
+      );
+      expect(warningCalls.length).toBe(0);
+    });
+
+    it('should work without EventBus (graceful degradation)', async () => {
+      const loggerNoEventBus = AuditLoggerModule.factory({
+        Utils: mockUtils,
+        VFS: mockVFS
+        // No EventBus
+      });
+
+      // Should not throw
+      await expect(
+        loggerNoEventBus.logEvent('TEST', { data: 'test' }, 'WARN')
+      ).resolves.toBeUndefined();
     });
   });
 });

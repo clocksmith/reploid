@@ -49,6 +49,10 @@ describe('GenesisSnapshot - Integration Tests', () => {
         vfsStorage.delete(path);
         return true;
       }),
+      stat: vi.fn().mockImplementation(async (path) => {
+        if (!vfsStorage.has(path)) throw new Error(`File not found: ${path}`);
+        return { isDirectory: false, size: vfsStorage.get(path)?.length || 0 };
+      }),
       _storage: vfsStorage // Expose for test manipulation
     };
 

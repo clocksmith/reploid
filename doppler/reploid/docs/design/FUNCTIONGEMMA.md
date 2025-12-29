@@ -3,7 +3,7 @@
 > Multi-FunctionGemma network orchestration layer
 
 **Status:** Research / Design Phase
-**Dependency:** [DOPPLER: MULTI_FUNCTIONGEMMA.md](../../../../../doppler/reploid/doppler/docs/roadmap/MULTI_FUNCTIONGEMMA.md)
+**Dependency:** DOPPLER inference engine (see `feature-log/doppler/inference.jsonl`)
 **Last Updated:** December 2025
 
 ---

@@ -24,7 +24,14 @@ const BrowserAPIs = {
       clipboard: () => 'clipboard' in navigator && 'writeText' in navigator.clipboard,
       webShare: () => 'share' in navigator,
       storageEstimation: () => 'storage' in navigator && 'estimate' in navigator.storage,
-      wakeLock: () => 'wakeLock' in navigator
+      wakeLock: () => 'wakeLock' in navigator,
+      visibility: () => 'visibilityState' in document,
+      online: () => 'onLine' in navigator,
+      vibration: () => 'vibrate' in navigator,
+      fullscreen: () => 'requestFullscreen' in document.documentElement,
+      permissions: () => 'permissions' in navigator,
+      deviceMemory: () => 'deviceMemory' in navigator,
+      hardwareConcurrency: () => 'hardwareConcurrency' in navigator
     };
 
     /**
@@ -429,6 +436,184 @@ const BrowserAPIs = {
       }
     };
 
+    // ===== VISIBILITY API =====
+
+    /**
+     * Check if page is visible
+     * @returns {boolean}
+     */
+    const isPageVisible = () => {
+      if (!capabilities.visibility) return true;
+      return document.visibilityState === 'visible';
+    };
+
+    /**
+     * Subscribe to visibility changes
+     * @param {Function} callback - Called with visibility state
+     * @returns {Function} Unsubscribe function
+     */
+    const onVisibilityChange = (callback) => {
+      if (!capabilities.visibility) return () => {};
+
+      const handler = () => {
+        const visible = document.visibilityState === 'visible';
+        callback(visible);
+        EventBus.emit('browser-apis:visibility', { visible });
+      };
+
+      document.addEventListener('visibilitychange', handler);
+      return () => document.removeEventListener('visibilitychange', handler);
+    };
+
+    // ===== ONLINE STATUS API =====
+
+    /**
+     * Check if browser is online
+     * @returns {boolean}
+     */
+    const isOnline = () => {
+      if (!capabilities.online) return true;
+      return navigator.onLine;
+    };
+
+    /**
+     * Subscribe to online/offline changes
+     * @param {Function} callback - Called with online state
+     * @returns {Function} Unsubscribe function
+     */
+    const onOnlineChange = (callback) => {
+      if (!capabilities.online) return () => {};
+
+      const onlineHandler = () => {
+        callback(true);
+        EventBus.emit('browser-apis:online', { online: true });
+      };
+      const offlineHandler = () => {
+        callback(false);
+        EventBus.emit('browser-apis:online', { online: false });
+      };
+
+      window.addEventListener('online', onlineHandler);
+      window.addEventListener('offline', offlineHandler);
+
+      return () => {
+        window.removeEventListener('online', onlineHandler);
+        window.removeEventListener('offline', offlineHandler);
+      };
+    };
+
+    // ===== FULLSCREEN API =====
+
+    /**
+     * Request fullscreen mode
+     * @param {HTMLElement} [element] - Element to fullscreen (default: document.documentElement)
+     * @returns {Promise<boolean>} Success status
+     */
+    const requestFullscreen = async (element = null) => {
+      if (!capabilities.fullscreen) {
+        logger.error('[BrowserAPIs] Fullscreen API not available');
+        return false;
+      }
+
+      try {
+        const target = element || document.documentElement;
+        await target.requestFullscreen();
+        logger.info('[BrowserAPIs] Entered fullscreen');
+        EventBus.emit('browser-apis:fullscreen', { active: true });
+        return true;
+      } catch (error) {
+        logger.error('[BrowserAPIs] Failed to enter fullscreen:', error);
+        return false;
+      }
+    };
+
+    /**
+     * Exit fullscreen mode
+     * @returns {Promise<boolean>} Success status
+     */
+    const exitFullscreen = async () => {
+      if (!document.fullscreenElement) return true;
+
+      try {
+        await document.exitFullscreen();
+        logger.info('[BrowserAPIs] Exited fullscreen');
+        EventBus.emit('browser-apis:fullscreen', { active: false });
+        return true;
+      } catch (error) {
+        logger.error('[BrowserAPIs] Failed to exit fullscreen:', error);
+        return false;
+      }
+    };
+
+    /**
+     * Check if in fullscreen mode
+     * @returns {boolean}
+     */
+    const isFullscreen = () => {
+      return !!document.fullscreenElement;
+    };
+
+    // ===== PERMISSION STATUS API =====
+
+    /**
+     * Query permission status
+     * @param {string} name - Permission name (e.g., 'clipboard-read', 'notifications')
+     * @returns {Promise<string|null>} Permission state or null
+     */
+    const queryPermission = async (name) => {
+      if (!capabilities.permissions) {
+        logger.error('[BrowserAPIs] Permissions API not available');
+        return null;
+      }
+
+      try {
+        const status = await navigator.permissions.query({ name });
+        return status.state;
+      } catch (error) {
+        logger.debug(`[BrowserAPIs] Permission query failed for ${name}:`, error.message);
+        return null;
+      }
+    };
+
+    // ===== DEVICE INFO =====
+
+    /**
+     * Get device hardware info
+     * @returns {Object} Device info
+     */
+    const getDeviceInfo = () => {
+      return {
+        memory: capabilities.deviceMemory ? navigator.deviceMemory : null,
+        cores: capabilities.hardwareConcurrency ? navigator.hardwareConcurrency : null,
+        platform: navigator.platform,
+        language: navigator.language,
+        languages: navigator.languages ? [...navigator.languages] : [navigator.language],
+        cookiesEnabled: navigator.cookieEnabled,
+        doNotTrack: navigator.doNotTrack,
+        online: isOnline(),
+        visible: isPageVisible()
+      };
+    };
+
+    // ===== VIBRATION API =====
+
+    /**
+     * Vibrate device (mobile)
+     * @param {number|number[]} pattern - Vibration pattern in ms
+     * @returns {boolean} Success status
+     */
+    const vibrate = (pattern) => {
+      if (!capabilities.vibration) {
+        return false;
+      }
+
+      try {
+        return navigator.vibrate(pattern);
+      } catch (error) {
+        return false;
+      }
+    };
+
     /**
      * Generate capability report
      * @returns {string} Markdown report
@@ -454,6 +639,14 @@ const BrowserAPIs = {
         md += '## Notifications\n\n';
         md += `- **Permission:** ${notificationPermission}\n\n`;
       }
+
+      const deviceInfo = getDeviceInfo();
+      md += '## Device Info\n\n';
+      md += `- **Memory:** ${deviceInfo.memory ? `${deviceInfo.memory} GB` : 'Unknown'}\n`;
+      md += `- **CPU Cores:** ${deviceInfo.cores || 'Unknown'}\n`;
+      md += `- **Platform:** ${deviceInfo.platform}\n`;
+      md += `- **Language:** ${deviceInfo.language}\n`;
+      md += `- **Online:** ${deviceInfo.online ? 'Yes' : 'No'}\n\n`;
 
       md += '---\n\n*Generated by REPLOID Browser APIs Module*\n';
       return md;
@@ -482,11 +675,26 @@ const BrowserAPIs = {
       // Wake Lock
       requestWakeLock,
       releaseWakeLock,
+      // Visibility
+      isPageVisible,
+      onVisibilityChange,
+      // Online Status
+      isOnline,
+      onOnlineChange,
+      // Fullscreen
+      requestFullscreen,
+      exitFullscreen,
+      isFullscreen,
+      // Permissions
+      queryPermission,
+      // Device Info
+      getDeviceInfo,
+      // Vibration
+      vibrate,
       // Reporting
       generateReport
     };
   }
 };
 
-// Export
-BrowserAPIs;
+export default BrowserAPIs;

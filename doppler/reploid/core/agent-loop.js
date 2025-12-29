@@ -571,6 +571,20 @@ const AgentLoop = {
           context = contextResult.context;
           _syncContext(context);
 
+          // Notify MemoryManager when context is compacted (for memory refresh)
+          if (contextResult.compacted && MemoryManager?.onContextCompacted) {
+            try {
+              await MemoryManager.onContextCompacted({
+                previousTokens: contextResult.previousTokens,
+                newTokens: contextResult.newTokens,
+                compactedContext: context
+              });
+              logger.debug('[Agent] Memory notified of context compaction');
+            } catch (e) {
+              logger.debug('[Agent] Memory refresh on compaction skipped:', e.message);
+            }
+          }
+
           // Check if context manager halted the agent (hard limit exceeded after aggressive compaction)
           if (contextResult.halted) {
             logger.error(`[Agent] STOPPING: ${contextResult.error}`);
@@ -612,23 +626,38 @@ const AgentLoop = {
             }
           }
 
-          // MemoryManager: Retrieve relevant episodic memories (if available)
+          // MemoryManager: Retrieve relevant episodic memories with anticipatory retrieval
           if (MemoryManager && iteration > 1) {
             try {
               const lastUserMsg = context.filter(m => m.role === 'user').pop();
               if (lastUserMsg?.content) {
-                const retrieved = await MemoryManager.retrieve(lastUserMsg.content, { topK: 3 });
-                const episodic = retrieved.filter(r => r.type === 'episodic' && r.score > 0.5);
-                if (episodic.length > 0) {
-                  const memoryContext = episodic
-                    .map(r => `[Past Context] ${r.content.slice(0, 300)}`)
+                // Use anticipatoryRetrieve for task-aware context retrieval
+                const retrieved = await MemoryManager.anticipatoryRetrieve(lastUserMsg.content, {
+                  topK: 5,
+                  includeAnticipated: true
+                });
+                // Filter by confidence score (episodic > 0.5, anticipated > 0.4)
+                const relevant = retrieved.filter(r => {
+                  if (r.type === 'anticipated') return r.score > 0.4;
+                  return r.type === 'episodic' && r.score > 0.5;
+                });
+                if (relevant.length > 0) {
+                  const memoryContext = relevant
+                    .map(r => {
+                      const prefix = r.type === 'anticipated'
+                        ? `[Anticipated: ${r.anticipationReason}]`
+                        : '[Past Context]';
+                      return `${prefix} ${r.content.slice(0, 300)}`;
+                    })
                     .join('\n');
                   // Insert memory after system messages
                   const insertIdx = context.findIndex(m => m.role !== 'system');
                   const idx = insertIdx === -1 ? context.length : insertIdx;
                   context.splice(idx, 0, { role: 'system', content: memoryContext });
                   _syncContext(context);
-                  logger.debug(`[Agent] Enriched with ${episodic.length} episodic memories`);
+                  const anticipated = relevant.filter(r => r.type === 'anticipated').length;
+                  const episodic = relevant.length - anticipated;
+                  logger.debug(`[Agent] Enriched with ${episodic} episodic + ${anticipated} anticipated memories`);
                 }
               }
             } catch (e) {
