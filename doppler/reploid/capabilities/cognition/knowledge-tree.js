@@ -1,7 +1,7 @@
 /**
  * @fileoverview Knowledge Tree
- * RAPTOR-style hierarchical knowledge organization.
- * Clusters documents, builds recursive summaries, enables multi-level retrieval.
+ * RAPTOR-style hierarchical knowledge organization with temporal indexing,
+ * hybrid retrieval, anticipatory context prediction, and adaptive forgetting.
  *
  * @see Blueprint 0x000068: Hierarchical Memory Architecture
  * @see https://arxiv.org/abs/2401.18059 (RAPTOR paper)
@@ -10,7 +10,7 @@
 const KnowledgeTree = {
   metadata: {
     id: 'KnowledgeTree',
-    version: '1.0.0',
+    version: '2.0.0',
     genesis: { introduced: 'full' },
     dependencies: ['Utils', 'VFS', 'LLMClient', 'SemanticMemory', 'EventBus'],
     async: true,
@@ -24,16 +24,40 @@ const KnowledgeTree = {
     // --- Configuration ---
     const CONFIG = {
       treePath: '/memory/knowledge/tree.json',
+      temporalIndexPath: '/memory/knowledge/temporal-index.json',
       minClusterSize: 2,
       maxClusterSize: 5,
       targetClusters: 3,       // Target number of clusters per level
       summaryTemperature: 0,   // Deterministic summaries
       maxTreeLevels: 5,        // Prevent infinite recursion
-      minDocsForTree: 3        // Minimum documents to build tree
+      minDocsForTree: 3,       // Minimum documents to build tree
+      // Temporal indexing
+      temporalBucketMs: 3600000,  // 1 hour buckets for temporal index
+      contiguityWindowMs: 300000, // 5 min window for temporal contiguity boost
+      contiguityBoost: 0.1,       // Similarity boost for temporally adjacent items
+      // Adaptive forgetting (Ebbinghaus)
+      decayHalfLifeMs: 86400000 * 7, // 7 days half-life for memory decay
+      accessBoostFactor: 0.15,       // Boost per access to slow decay
+      minRetentionScore: 0.1,        // Minimum score before item is eligible for pruning
+      // Hybrid retrieval weights
+      hybridWeights: {
+        semantic: 0.5,
+        summary: 0.3,
+        temporal: 0.2
+      },
+      // Anticipatory retrieval patterns
+      taskContextPatterns: {
+        debug: ['error', 'exception', 'bug', 'failure', 'stack', 'crash'],
+        implement: ['architecture', 'pattern', 'design', 'structure', 'interface'],
+        refactor: ['code smell', 'coupling', 'complexity', 'duplicate'],
+        test: ['test case', 'assertion', 'mock', 'coverage', 'fixture'],
+        document: ['api', 'usage', 'example', 'guide', 'reference']
+      }
     };
 
     // --- State ---
     let _tree = null;
+    let _temporalIndex = null; // { buckets: { timestamp: [nodeIds] }, nodeTimestamps: { nodeId: timestamp } }
     let _isBuilding = false;
 
     // --- Initialization ---
@@ -53,6 +77,23 @@ const KnowledgeTree = {
         logger.warn('[KnowledgeTree] Could not load tree:', err.message);
         _tree = null;
       }
+
+      // Load temporal index
+      try {
+        if (await VFS.exists(CONFIG.temporalIndexPath)) {
+          const content = await VFS.read(CONFIG.temporalIndexPath);
+          _temporalIndex = JSON.parse(content);
+          logger.info('[KnowledgeTree] Loaded temporal index', {
+            buckets: Object.keys(_temporalIndex?.buckets || {}).length
+          });
+        } else {
+          _temporalIndex = { buckets: {}, nodeTimestamps: {}, accessCounts: {} };
+        }
+      } catch (err) {
+        logger.warn('[KnowledgeTree] Could not load temporal index:', err.message);
+        _temporalIndex = { buckets: {}, nodeTimestamps: {}, accessCounts: {} };
+      }
+
       return true;
     };
 
@@ -298,7 +339,8 @@ Summary:`;
             embedding: node.embedding,
             level: node.level,
             children: node.children,
-            metadata: node.metadata
+            metadata: node.metadata,
+            timestamp: node.timestamp || Date.now()
           }))
         )
       };
@@ -306,10 +348,136 @@ Summary:`;
       await VFS.write(CONFIG.treePath, JSON.stringify(serializable, null, 2));
     };
 
-    // --- Retrieval (Collapsed Tree) ---
+    const persistTemporalIndex = async () => {
+      if (!_temporalIndex) return;
+      await VFS.write(CONFIG.temporalIndexPath, JSON.stringify(_temporalIndex, null, 2));
+    };
+
+    // --- Temporal Indexing ---
+
+    const getBucketKey = (timestamp) => {
+      return Math.floor(timestamp / CONFIG.temporalBucketMs) * CONFIG.temporalBucketMs;
+    };
+
+    const addToTemporalIndex = (nodeId, timestamp) => {
+      if (!_temporalIndex) {
+        _temporalIndex = { buckets: {}, nodeTimestamps: {}, accessCounts: {} };
+      }
+
+      const bucketKey = getBucketKey(timestamp);
+      if (!_temporalIndex.buckets[bucketKey]) {
+        _temporalIndex.buckets[bucketKey] = [];
+      }
+      if (!_temporalIndex.buckets[bucketKey].includes(nodeId)) {
+        _temporalIndex.buckets[bucketKey].push(nodeId);
+      }
+      _temporalIndex.nodeTimestamps[nodeId] = timestamp;
+      _temporalIndex.accessCounts[nodeId] = _temporalIndex.accessCounts[nodeId] || 0;
+    };
+
+    const recordAccess = (nodeId) => {
+      if (!_temporalIndex?.accessCounts) return;
+      _temporalIndex.accessCounts[nodeId] = (_temporalIndex.accessCounts[nodeId] || 0) + 1;
+    };
+
+    const getNodesInTimeRange = (startTime, endTime) => {
+      if (!_temporalIndex?.buckets) return [];
+
+      const nodeIds = new Set();
+      const startBucket = getBucketKey(startTime);
+      const endBucket = getBucketKey(endTime);
+
+      for (const bucketKey of Object.keys(_temporalIndex.buckets)) {
+        const key = parseInt(bucketKey, 10);
+        if (key >= startBucket && key <= endBucket) {
+          for (const nodeId of _temporalIndex.buckets[bucketKey]) {
+            const nodeTimestamp = _temporalIndex.nodeTimestamps[nodeId];
+            if (nodeTimestamp >= startTime && nodeTimestamp <= endTime) {
+              nodeIds.add(nodeId);
+            }
+          }
+        }
+      }
+
+      return Array.from(nodeIds);
+    };
+
+    // --- Adaptive Forgetting (Ebbinghaus-style) ---
+
+    const computeRetentionScore = (nodeId) => {
+      if (!_temporalIndex?.nodeTimestamps) return 1;
+
+      const timestamp = _temporalIndex.nodeTimestamps[nodeId];
+      if (!timestamp) return 1;
+
+      const age = Date.now() - timestamp;
+      const accessCount = _temporalIndex.accessCounts?.[nodeId] || 0;
+
+      // Ebbinghaus exponential decay: R = e^(-t/S)
+      // where S is strength, modified by access frequency
+      const strength = CONFIG.decayHalfLifeMs * (1 + accessCount * CONFIG.accessBoostFactor);
+      const retention = Math.exp(-age / strength);
+
+      return Math.max(CONFIG.minRetentionScore, retention);
+    };
+
+    const applyRetentionDecay = (nodes) => {
+      return nodes.map(node => ({
+        ...node,
+        retention: computeRetentionScore(node.id),
+        score: node.score * computeRetentionScore(node.id)
+      }));
+    };
+
+    const pruneDecayedNodes = async () => {
+      if (!_tree?.levels) return 0;
+
+      let pruned = 0;
+      const prunedIds = [];
+
+      // Only prune leaf nodes (level 0)
+      const originalCount = _tree.levels[0].length;
+      _tree.levels[0] = _tree.levels[0].filter(node => {
+        const retention = computeRetentionScore(node.id);
+        if (retention <= CONFIG.minRetentionScore) {
+          prunedIds.push(node.id);
+          pruned++;
+          return false;
+        }
+        return true;
+      });
+
+      // Clean up temporal index
+      for (const nodeId of prunedIds) {
+        const timestamp = _temporalIndex?.nodeTimestamps?.[nodeId];
+        if (timestamp) {
+          const bucketKey = getBucketKey(timestamp);
+          if (_temporalIndex.buckets[bucketKey]) {
+            _temporalIndex.buckets[bucketKey] = _temporalIndex.buckets[bucketKey].filter(id => id !== nodeId);
+            if (_temporalIndex.buckets[bucketKey].length === 0) {
+              delete _temporalIndex.buckets[bucketKey];
+            }
+          }
+          delete _temporalIndex.nodeTimestamps[nodeId];
+          delete _temporalIndex.accessCounts[nodeId];
+        }
+      }
+
+      if (pruned > 0) {
+        await persistTree();
+        await persistTemporalIndex();
+
+        logger.info('[KnowledgeTree] Pruned decayed nodes', { pruned, originalCount });
+        EventBus.emit('knowledge:tree:pruned', { pruned, prunedIds });
+      }
+
+      return pruned;
+    };
+
+    // --- Retrieval (Collapsed Tree with Hybrid & Temporal) ---
 
     const query = async (queryText, options = {}) => {
-      const { topK = 5, includeAllLevels = true } = options;
+      const { topK = 5, includeAllLevels = true, useHybrid = false, useRetention = true } = options;
 
       if (!_tree?.levels) {
         logger.warn('[KnowledgeTree] No tree available for query');
@@ -323,21 +491,33 @@ Summary:`;
         ? _tree.levels.flat()
         : _tree.levels[0]; // Only leaf nodes
 
-      const scored = allNodes.map(node => ({
+      let scored = allNodes.map(node => ({
         ...node,
         score: cosineSimilarity(queryEmbedding, node.embedding)
       }));
 
-      const results = scored
+      // Apply retention decay if enabled
+      if (useRetention) {
+        scored = applyRetentionDecay(scored);
+      }
+
+      // Record access for retrieved nodes
+      const topNodes = scored
         .sort((a, b) => b.score - a.score)
-        .slice(0, topK)
-        .map(node => ({
-          id: node.id,
-          content: node.content,
-          level: node.level,
-          score: node.score,
-          metadata: node.metadata
-        }));
+        .slice(0, topK);
+
+      for (const node of topNodes) {
+        recordAccess(node.id);
+      }
+
+      const results = topNodes.map(node => ({
+        id: node.id,
+        content: node.content,
+        level: node.level,
+        score: node.score,
+        retention: node.retention,
+        metadata: node.metadata
+      }));
 
       EventBus.emit('knowledge:tree:query', {
         query: queryText.slice(0, 50),
@@ -348,12 +528,215 @@ Summary:`;
       return results;
     };
 
+    // --- Hybrid Retrieval ---
+
+    const hybridQuery = async (queryText, options = {}) => {
+      const {
+        topK = 10,
+        timeRangeMs = null,
+        weights = CONFIG.hybridWeights
+      } = options;
+
+      if (!_tree?.levels) {
+        logger.warn('[KnowledgeTree] No tree available for hybrid query');
+        return [];
+      }
+
+      const queryEmbedding = await SemanticMemory.embed(queryText);
+      const now = Date.now();
+
+      // Get all candidate nodes
+      let allNodes = _tree.levels.flat();
+
+      // Apply time range filter if specified
+      if (timeRangeMs) {
+        const nodeIdsInRange = new Set(getNodesInTimeRange(now - timeRangeMs, now));
+        allNodes = allNodes.filter(n => nodeIdsInRange.has(n.id));
+      }
+
+      // Score each node with hybrid approach
+      const scored = allNodes.map(node => {
+        // Semantic similarity
+        const semanticScore = cosineSimilarity(queryEmbedding, node.embedding);
+
+        // Summary bonus (higher levels get boost for broad queries)
+        const summaryBonus = node.level > 0 ? 0.1 * node.level : 0;
+
+        // Temporal contiguity boost
+        let temporalBoost = 0;
+        const nodeTimestamp = _temporalIndex?.nodeTimestamps?.[node.id];
+        if (nodeTimestamp) {
+          // Check if other high-scoring nodes are temporally adjacent
+          const hasTemporalNeighbor = allNodes.some(other => {
+            if (other.id === node.id) return false;
+            const otherTimestamp = _temporalIndex?.nodeTimestamps?.[other.id];
+            if (!otherTimestamp) return false;
+            const timeDiff = Math.abs(nodeTimestamp - otherTimestamp);
+            const otherScore = cosineSimilarity(queryEmbedding, other.embedding);
+            return timeDiff < CONFIG.contiguityWindowMs && otherScore > 0.5;
+          });
+          temporalBoost = hasTemporalNeighbor ? CONFIG.contiguityBoost : 0;
+        }
+
+        // Apply retention decay
+        const retention = computeRetentionScore(node.id);
+
+        // Weighted hybrid score
+        const hybridScore = (
+          semanticScore * weights.semantic +
+          summaryBonus * weights.summary +
+          temporalBoost * weights.temporal
+        ) * retention;
+
+        return {
+          ...node,
+          semanticScore,
+          summaryBonus,
+          temporalBoost,
+          retention,
+          score: hybridScore
+        };
+      });
+
+      // Sort and return top-K
+      const results = scored
+        .sort((a, b) => b.score - a.score)
+        .slice(0, topK);
+
+      // Record access
+      for (const node of results) {
+        recordAccess(node.id);
+      }
+
+      EventBus.emit('knowledge:tree:hybrid-query', {
+        query: queryText.slice(0, 50),
+        resultCount: results.length,
+        timeRange: timeRangeMs
+      });
+
+      return results.map(node => ({
+        id: node.id,
+        content: node.content,
+        level: node.level,
+        score: node.score,
+        semanticScore: node.semanticScore,
+        temporalBoost: node.temporalBoost,
+        retention: node.retention,
+        metadata: node.metadata
+      }));
+    };
+
+    // --- Anticipatory Retrieval ---
+
+    const detectTaskType = (query) => {
+      const queryLower = query.toLowerCase();
+
+      for (const [taskType, patterns] of Object.entries(CONFIG.taskContextPatterns)) {
+        const matchCount = patterns.filter(p => queryLower.includes(p)).length;
+        if (matchCount > 0) {
+          return { taskType, confidence: matchCount / patterns.length };
+        }
+      }
+
+      return { taskType: 'general', confidence: 0 };
+    };
+
+    const anticipatoryQuery = async (query, options = {}) => {
+      const { topK = 10, boostFactor = 0.2 } = options;
+
+      // Detect task type
+      const { taskType, confidence } = detectTaskType(query);
+
+      // Get base hybrid results
+      const baseResults = await hybridQuery(query, { topK: topK * 2 });
+
+      if (taskType === 'general' || confidence === 0) {
+        return baseResults.slice(0, topK);
+      }
+
+      // Get anticipatory context based on task type
+      const contextPatterns = CONFIG.taskContextPatterns[taskType] || [];
+      const anticipatoryQueries = contextPatterns.slice(0, 3); // Use top 3 patterns
+
+      // Gather additional context
+      const anticipatedNodeIds = new Set();
+      for (const contextQuery of anticipatoryQueries) {
+        const contextResults = await query(contextQuery, { topK: 3 });
+        for (const result of contextResults) {
+          anticipatedNodeIds.add(result.id);
+        }
+      }
+
+      // Boost scores for anticipated nodes in base results
+      const boostedResults = baseResults.map(result => {
+        const isAnticipated = anticipatedNodeIds.has(result.id);
+        return {
+          ...result,
+          score: isAnticipated ? result.score * (1 + boostFactor * confidence) : result.score,
+          anticipated: isAnticipated
+        };
+      });
+
+      // Re-sort and return
+      const finalResults = boostedResults
+        .sort((a, b) => b.score - a.score)
+        .slice(0, topK);
+
+      EventBus.emit('knowledge:tree:anticipatory-query', {
+        query: query.slice(0, 50),
+        taskType,
+        confidence,
+        anticipatedCount: anticipatedNodeIds.size
+      });
+
+      return finalResults;
+    };
+
+    // --- Time Range Query ---
+
+    const queryByTimeRange = async (startTime, endTime, options = {}) => {
+      const { topK = 20 } = options;
+
+      const nodeIds = getNodesInTimeRange(startTime, endTime);
+
+      if (nodeIds.length === 0) {
+        return [];
+      }
+
+      // Get node objects
+      const allNodes = _tree?.levels?.flat() || [];
+      const nodeMap = new Map(allNodes.map(n => [n.id, n]));
+
+      const results = nodeIds
+        .map(id => nodeMap.get(id))
+        .filter(Boolean)
+        .map(node => ({
+          id: node.id,
+          content: node.content,
+          level: node.level,
+          timestamp: _temporalIndex?.nodeTimestamps?.[node.id],
+          metadata: node.metadata
+        }))
+        .sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0))
+        .slice(0, topK);
+
+      return results;
+    };
+
     // --- Incremental Updates ---
 
-    const addDocument = async (document) => {
+    const addDocument = async (document, options = {}) => {
+      const timestamp = options.timestamp || Date.now();
+
       if (!_tree) {
         // No tree exists, build new one
-        return build([document]);
+        const result = await build([document]);
+        // Add temporal index for the new node
+        if (result?.levels?.[0]?.[0]) {
+          addToTemporalIndex(result.levels[0][0].id, timestamp);
+          await persistTemporalIndex();
+        }
+        return result?.levels?.[0]?.[0]?.id;
       }
 
       const content = typeof document === 'string' ? document : document.content;
@@ -365,11 +748,15 @@ Summary:`;
         embedding,
         level: 0,
         children: [],
+        timestamp,
         metadata: typeof document === 'object' ? document.metadata : {}
       };
 
       // Add to level 0
       _tree.levels[0].push(newNode);
+
+      // Add to temporal index
+      addToTemporalIndex(newNode.id, timestamp);
 
       // Find best cluster to update
       if (_tree.levels.length > 1) {
@@ -377,8 +764,9 @@ Summary:`;
       }
 
       await persistTree();
+      await persistTemporalIndex();
 
-      EventBus.emit('knowledge:tree:add', { nodeId: newNode.id });
+      EventBus.emit('knowledge:tree:add', { nodeId: newNode.id, timestamp });
 
       return newNode.id;
     };
@@ -413,10 +801,15 @@ Summary:`;
 
     const getTree = () => _tree;
 
+    const getTemporalIndex = () => _temporalIndex;
+
     const getStats = () => {
       if (!_tree) {
-        return { hasTree: false, levels: 0, totalNodes: 0 };
+        return { hasTree: false, levels: 0, totalNodes: 0, temporalBuckets: 0 };
       }
+
+      const temporalBuckets = Object.keys(_temporalIndex?.buckets || {}).length;
+      const indexedNodes = Object.keys(_temporalIndex?.nodeTimestamps || {}).length;
 
       return {
         hasTree: true,
@@ -425,26 +818,64 @@ Summary:`;
         documentCount: _tree.documentCount,
         levels: _tree.levels.length,
         totalNodes: countNodes(_tree),
-        nodesPerLevel: _tree.levels.map(l => l.length)
+        nodesPerLevel: _tree.levels.map(l => l.length),
+        temporalBuckets,
+        indexedNodes,
+        config: {
+          decayHalfLifeMs: CONFIG.decayHalfLifeMs,
+          minRetentionScore: CONFIG.minRetentionScore
+        }
       };
     };
 
     const clear = async () => {
       _tree = null;
+      _temporalIndex = { buckets: {}, nodeTimestamps: {}, accessCounts: {} };
+
       if (await VFS.exists(CONFIG.treePath)) {
         await VFS.delete(CONFIG.treePath);
       }
+      if (await VFS.exists(CONFIG.temporalIndexPath)) {
+        await VFS.delete(CONFIG.temporalIndexPath);
+      }
+
       EventBus.emit('knowledge:tree:cleared');
     };
+
+    // --- Configuration ---
+
+    const configure = (newConfig) => {
+      Object.assign(CONFIG, newConfig);
+      logger.info('[KnowledgeTree] Configuration updated');
+    };
+
+    const getConfig = () => ({ ...CONFIG });
 
     return {
       init,
       build,
+      // Basic query
       query,
+      // Hybrid retrieval
+      hybridQuery,
+      // Anticipatory retrieval
+      anticipatoryQuery,
+      detectTaskType,
+      // Time-based queries
+      queryByTimeRange,
+      // Incremental updates
       addDocument,
+      // Adaptive forgetting
+      pruneDecayedNodes,
+      computeRetentionScore,
+      // Accessors
       getTree,
+      getTemporalIndex,
       getStats,
-      clear
+      // Maintenance
+      clear,
+      configure,
+      getConfig
     };
   }
 };

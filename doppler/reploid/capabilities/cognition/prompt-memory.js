@@ -500,12 +500,69 @@ const PromptMemory = {
       }
     };
 
+    /**
+     * Get a specific prompt by ID.
+     * @param {string} promptId - The memory ID
+     * @returns {Promise<Object|null>} Prompt data or null
+     */
+    const getPromptById = async (promptId) => {
+      try {
+        const memory = await EmbeddingStore.getMemory(promptId);
+        if (!memory || memory.metadata?.domain !== CONFIG.promptDomain) {
+          return null;
+        }
+        return {
+          id: memory.id,
+          content: memory.content,
+          taskType: memory.metadata?.taskType,
+          fitness: memory.metadata?.fitness,
+          generation: memory.metadata?.generation,
+          evolvedAt: memory.metadata?.evolvedAt
+        };
+      } catch (err) {
+        logger.debug('[PromptMemory] Failed to get prompt by ID', err.message);
+        return null;
+      }
+    };
+
+    /**
+     * Run automatic drift check and queue re-optimization for drifted prompts.
+     * @returns {Promise<Object>} Summary of drift scan results
+     */
+    const runDriftScan = async () => {
+      const drifted = await getDriftedPrompts();
+
+      for (const item of drifted) {
+        await triggerReoptimization(item.promptId, {
+          scoreDrop: item.scoreDrop,
+          successDrop: item.successDrop,
+          baseline: item.baseline,
+          recent: item.recent
+        });
+      }
+
+      const summary = {
+        scanned: true,
+        driftedCount: drifted.length,
+        reoptimizationQueued: drifted.length,
+        timestamp: Date.now()
+      };
+
+      EventBus.emit('prompt:memory:drift-scan', summary);
+
+      return summary;
+    };
+
     // --- Event Handlers ---
 
     const handleGEPAComplete = async (event) => {
-      // Auto-store frontier prompts when GEPA completes a generation
-      if (event.frontierSize > 0 && event.generation === event.maxGenerations - 1) {
-        logger.debug('[PromptMemory] GEPA complete, storing frontier prompts');
+      // Log completion of GEPA evolution
+      if (event.frontierSize > 0) {
+        logger.debug('[PromptMemory] GEPA generation complete', {
+          generation: event.generation,
+          frontierSize: event.frontierSize,
+          bestScores: event.bestScores
+        });
       }
     };
 
@@ -559,6 +616,7 @@ const PromptMemory = {
       // Prompt Storage
       storeEvolvedPrompt,
       getPromptsForTaskType,
+      getPromptById,
       // Transfer Learning
       getSeedPrompts,
       buildSeededPopulation,
@@ -567,6 +625,7 @@ const PromptMemory = {
       checkDrift,
       getDriftedPrompts,
       triggerReoptimization,
+      runDriftScan,
       // Maintenance
       getStats,
       clear
