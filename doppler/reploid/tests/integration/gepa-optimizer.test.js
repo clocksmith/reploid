@@ -40,7 +40,7 @@ describe('GEPA Optimizer - Integration Tests', () => {
     };
 
     mockVFS = {
-      exists: vi.fn().mockImplementation((path) => Promise.resolve(fileStorage.has(path))),
+      exists: vi.fn().mockImplementation((path) => Promise.resolve(fileStorage.has(path) || [...fileStorage.keys()].some(k => k.startsWith(path)))),
       read: vi.fn().mockImplementation((path) => {
         if (fileStorage.has(path)) return Promise.resolve(fileStorage.get(path));
         return Promise.reject(new Error('File not found'));
@@ -49,7 +49,15 @@ describe('GEPA Optimizer - Integration Tests', () => {
         fileStorage.set(path, content);
         return Promise.resolve(true);
       }),
-      mkdir: vi.fn().mockResolvedValue(true)
+      mkdir: vi.fn().mockResolvedValue(true),
+      readdir: vi.fn().mockImplementation((path) => {
+        const prefix = path.endsWith('/') ? path : path + '/';
+        const files = [...fileStorage.keys()]
+          .filter(k => k.startsWith(prefix))
+          .map(k => k.substring(prefix.length).split('/')[0])
+          .filter((v, i, a) => a.indexOf(v) === i); // unique
+        return Promise.resolve(files);
+      })
     };
 
     mockEventBus = {
@@ -286,6 +294,172 @@ describe('GEPA Optimizer - Integration Tests', () => {
       expect(status.generation).toBe(0); // 0-indexed, after 1 generation
       expect(status.populationSize).toBe(2);
       expect(status.frontierSize).toBeGreaterThan(0);
+    });
+  });
+
+  describe('Checkpoint resume', () => {
+    it('should load checkpoint from VFS', async () => {
+      // Create a checkpoint file
+      const checkpoint = {
+        generation: 2,
+        timestamp: Date.now(),
+        population: [
+          { id: 'cand_1', content: 'Test prompt', generation: 2, scores: { accuracy: 0.8 }, dominatedBy: 0 }
+        ],
+        frontier: [
+          { id: 'cand_1', content: 'Test prompt', generation: 2, scores: { accuracy: 0.8 }, dominatedBy: 0 }
+        ],
+        config: {
+          populationSize: 2,
+          maxGenerations: 3,
+          objectives: ['accuracy', 'efficiency', 'robustness']
+        }
+      };
+
+      fileStorage.set('/.memory/gepa/gen_2.json', JSON.stringify(checkpoint));
+
+      const loaded = await gepaOptimizer.api.loadCheckpoint('/.memory/gepa/');
+      expect(loaded).toBeDefined();
+      expect(loaded.generation).toBe(2);
+      expect(loaded.population.length).toBe(1);
+    });
+
+    it('should list available checkpoints', async () => {
+      // Create multiple checkpoint files
+      for (let i = 0; i < 3; i++) {
+        fileStorage.set(`/.memory/gepa/gen_${i}.json`, JSON.stringify({
+          generation: i,
+          timestamp: Date.now() + i * 1000,
+          population: [],
+          frontier: []
+        }));
+      }
+
+      const checkpoints = await gepaOptimizer.api.listCheckpoints('/.memory/gepa/');
+      expect(checkpoints.length).toBe(3);
+      expect(checkpoints[0].generation).toBe(0);
+      expect(checkpoints[2].generation).toBe(2);
+    });
+
+    it('should resume evolution from checkpoint', async () => {
+      // Create a checkpoint at generation 1
+      const checkpoint = {
+        generation: 1,
+        timestamp: Date.now(),
+        population: [
+          { id: 'cand_1', content: 'Test prompt 1', generation: 1, scores: { accuracy: 0.7, efficiency: 0.8, robustness: 0.9 }, dominatedBy: 0 },
+          { id: 'cand_2', content: 'Test prompt 2', generation: 1, scores: { accuracy: 0.8, efficiency: 0.7, robustness: 0.85 }, dominatedBy: 0 }
+        ],
+        frontier: [
+          { id: 'cand_2', content: 'Test prompt 2', generation: 1, scores: { accuracy: 0.8, efficiency: 0.7, robustness: 0.85 }, dominatedBy: 0 }
+        ],
+        config: {
+          populationSize: 2,
+          maxGenerations: 3,
+          objectives: ['accuracy', 'efficiency', 'robustness']
+        }
+      };
+
+      fileStorage.set('/.memory/gepa/gen_1.json', JSON.stringify(checkpoint));
+
+      mockLLMClient.chat.mockResolvedValue({ content: 'output', usage: { total_tokens: 50 } });
+
+      const result = await gepaOptimizer.api.resumeEvolution(
+        '/.memory/gepa/',
+        [{ input: 'test', expected: 'output' }],
+        {
+          evaluationModel: { id: 'test' },
+          reflectionModel: { id: 'test' },
+          evaluationBatchSize: 1
+        }
+      );
+
+      expect(result.resumed).toBe(true);
+      expect(result.resumedFromGeneration).toBe(1);
+      expect(result.generations).toBeGreaterThanOrEqual(2);
+    });
+
+    it('should return complete message if already at max generations', async () => {
+      const checkpoint = {
+        generation: 4,
+        timestamp: Date.now(),
+        population: [{ id: 'c1', content: 'Final prompt', generation: 4, scores: {}, dominatedBy: 0 }],
+        frontier: [{ id: 'c1', content: 'Final prompt', generation: 4, scores: {}, dominatedBy: 0 }],
+        config: {
+          populationSize: 2,
+          maxGenerations: 5
+        }
+      };
+
+      fileStorage.set('/.memory/gepa/gen_4.json', JSON.stringify(checkpoint));
+
+      const result = await gepaOptimizer.api.resumeEvolution(
+        '/.memory/gepa/',
+        [{ input: 'test' }],
+        {
+          evaluationModel: { id: 'test' },
+          reflectionModel: { id: 'test' }
+        }
+      );
+
+      expect(result.resumed).toBe(true);
+      expect(result.message).toBe('Evolution already complete');
+    });
+  });
+
+  describe('Error classification', () => {
+    it('should classify different error types', async () => {
+      let callCount = 0;
+      mockLLMClient.chat.mockImplementation(async () => {
+        callCount++;
+        // Return different outputs to trigger different error types
+        const outputs = ['', 'partial match here', '{"invalid": json}', 'completely wrong'];
+        return { content: outputs[callCount % outputs.length], usage: {} };
+      });
+
+      const result = await gepaOptimizer.api.evolve(
+        'Test prompt',
+        [
+          { input: 'test1', expected: 'partial match here with more text' },
+          { input: 'test2', expected: '{"valid": "json"}' },
+          { input: 'test3', expected: 'correct output' }
+        ],
+        {
+          evaluationModel: { id: 'test' },
+          reflectionModel: { id: 'test' },
+          populationSize: 2,
+          maxGenerations: 1,
+          evaluationBatchSize: 3
+        }
+      );
+
+      // Should complete without error
+      expect(result.generations).toBe(1);
+    });
+  });
+
+  describe('Cost tracking', () => {
+    it('should track token usage in scores', async () => {
+      mockLLMClient.chat.mockResolvedValue({
+        content: 'expected output',
+        usage: { total_tokens: 500 }
+      });
+
+      const result = await gepaOptimizer.api.evolve(
+        'Test prompt',
+        [{ input: 'test', expected: 'expected output' }],
+        {
+          evaluationModel: { id: 'test' },
+          reflectionModel: { id: 'test' },
+          populationSize: 2,
+          maxGenerations: 1,
+          evaluationBatchSize: 1
+        }
+      );
+
+      // Best candidate should have cost score
+      expect(result.bestOverall.scores).toHaveProperty('cost');
+      expect(result.bestOverall.scores.cost).toBeDefined();
     });
   });
 });

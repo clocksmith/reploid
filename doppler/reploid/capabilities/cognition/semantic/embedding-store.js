@@ -1,13 +1,14 @@
 /**
  * @fileoverview Embedding Store
  * IndexedDB-backed storage for semantic memory embeddings.
- * Provides vector storage, similarity search, and LRU pruning.
+ * Provides vector storage, similarity search, temporal indexing,
+ * and Ebbinghaus-style adaptive forgetting.
  */
 
 const EmbeddingStore = {
   metadata: {
     id: 'EmbeddingStore',
-    version: '1.0.0',
+    version: '2.0.0',
     genesis: { introduced: 'full' },
     dependencies: ['Utils'],
     async: true,
@@ -22,6 +23,14 @@ const EmbeddingStore = {
     const STORE_MEMORIES = 'memories';
     const STORE_VOCAB = 'vocabulary';
     const MAX_MEMORIES = 10000;
+
+    // Adaptive forgetting configuration (Ebbinghaus-style)
+    const FORGETTING_CONFIG = {
+      decayHalfLifeMs: 86400000 * 7,  // 7 days base half-life
+      accessBoostFactor: 0.15,         // Each access adds 15% to strength
+      minRetentionScore: 0.1,          // Threshold for pruning
+      importanceBoostFactor: 0.25      // Importance metadata boost
+    };
 
     let db = null;
 
@@ -373,6 +382,175 @@ const EmbeddingStore = {
       });
     };
 
+    // --- Adaptive Forgetting (Ebbinghaus-style) ---
+
+    /**
+     * Compute retention score for a memory using Ebbinghaus forgetting curve.
+     * R = e^(-t/S) where S is strength modified by access frequency and importance.
+     *
+     * @param {Object} memory - Memory object with timestamp and accessCount
+     * @returns {number} Retention score between minRetentionScore and 1
+     */
+    const computeRetentionScore = (memory) => {
+      if (!memory?.timestamp) return 1;
+
+      const age = Date.now() - memory.timestamp;
+      const accessCount = memory.accessCount || 0;
+      const importance = memory.metadata?.importance || 0;
+
+      // Calculate strength: base half-life * (1 + access boost + importance boost)
+      const strength = FORGETTING_CONFIG.decayHalfLifeMs * (
+        1 +
+        accessCount * FORGETTING_CONFIG.accessBoostFactor +
+        importance * FORGETTING_CONFIG.importanceBoostFactor
+      );
+
+      // Ebbinghaus exponential decay
+      const retention = Math.exp(-age / strength);
+
+      return Math.max(FORGETTING_CONFIG.minRetentionScore, retention);
+    };
+
+    /**
+     * Search with retention-weighted scoring.
+     * Combines semantic similarity with memory retention for adaptive recall.
+     *
+     * @param {Array} queryEmbedding - Query embedding vector
+     * @param {Object} options - Search options
+     * @returns {Promise<Array>} Results with retention-adjusted scores
+     */
+    const searchWithRetention = async (queryEmbedding, options = {}) => {
+      const {
+        topK = 10,
+        minSimilarity = 0.3,
+        retentionWeight = 0.3  // How much retention affects final score
+      } = options;
+
+      const memories = await getAllMemories();
+      const queryArray = Array.isArray(queryEmbedding)
+        ? queryEmbedding
+        : Array.from(queryEmbedding);
+
+      const scored = memories
+        .filter(m => m.embedding && m.embedding.length > 0)
+        .map(m => {
+          const embArray = Array.isArray(m.embedding)
+            ? m.embedding
+            : Array.from(m.embedding);
+          const similarity = cosineSimilarity(queryArray, embArray);
+          const retention = computeRetentionScore(m);
+
+          // Weighted combination: similarity * (1 - retentionWeight) + retention * retentionWeight
+          const combinedScore = similarity * (1 - retentionWeight) + retention * retentionWeight;
+
+          return {
+            memory: m,
+            similarity,
+            retention,
+            score: combinedScore
+          };
+        })
+        .filter(item => item.similarity >= minSimilarity)
+        .sort((a, b) => b.score - a.score)
+        .slice(0, topK);
+
+      // Update access counts
+      for (const item of scored) {
+        await updateAccessCount(item.memory.id);
+      }
+
+      return scored;
+    };
+
+    /**
+     * Prune memories below retention threshold.
+     * Implements adaptive forgetting based on Ebbinghaus decay.
+     *
+     * @returns {Promise<number>} Number of memories pruned
+     */
+    const pruneByRetention = async () => {
+      const memories = await getAllMemories();
+      let pruned = 0;
+
+      for (const memory of memories) {
+        const retention = computeRetentionScore(memory);
+        if (retention <= FORGETTING_CONFIG.minRetentionScore) {
+          await deleteMemory(memory.id);
+          pruned++;
+        }
+      }
+
+      if (pruned > 0) {
+        logger.info(`[EmbeddingStore] Pruned ${pruned} memories below retention threshold`);
+      }
+
+      return pruned;
+    };
+
+    /**
+     * Update memory importance to affect retention.
+     *
+     * @param {string} id - Memory ID
+     * @param {number} importance - Importance value (0-1)
+     * @returns {Promise<boolean>} Success status
+     */
+    const updateImportance = async (id, importance) => {
+      await openDB();
+      const memory = await getMemory(id);
+      if (!memory) return false;
+
+      memory.metadata = memory.metadata || {};
+      memory.metadata.importance = Math.max(0, Math.min(1, importance));
+
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction([STORE_MEMORIES], 'readwrite');
+        const store = tx.objectStore(STORE_MEMORIES);
+        store.put(memory).onsuccess = () => resolve(true);
+        tx.onerror = () => reject(new Errors.ArtifactError(`Failed to update importance: ${id}`));
+      });
+    };
+
+    /**
+     * Get memories grouped by retention level.
+     *
+     * @returns {Promise<Object>} Memories grouped into retention buckets
+     */
+    const getMemoriesByRetention = async () => {
+      const memories = await getAllMemories();
+
+      const buckets = {
+        strong: [],     // retention >= 0.7
+        moderate: [],   // 0.4 <= retention < 0.7
+        weak: [],       // 0.2 <= retention < 0.4
+        fading: []      // retention < 0.2
+      };
+
+      for (const memory of memories) {
+        const retention = computeRetentionScore(memory);
+        if (retention >= 0.7) {
+          buckets.strong.push({ memory, retention });
+        } else if (retention >= 0.4) {
+          buckets.moderate.push({ memory, retention });
+        } else if (retention >= 0.2) {
+          buckets.weak.push({ memory, retention });
+        } else {
+          buckets.fading.push({ memory, retention });
+        }
+      }
+
+      return buckets;
+    };
+
+    /**
+     * Configure forgetting parameters.
+     *
+     * @param {Object} config - New configuration values
+     */
+    const configureForgetting = (config) => {
+      Object.assign(FORGETTING_CONFIG, config);
+      logger.info('[EmbeddingStore] Forgetting config updated');
+    };
+
     return {
       init,
       addMemory,
@@ -382,12 +560,18 @@ const EmbeddingStore = {
       deleteMemory,
       searchSimilar,
       searchWithContiguity,
+      searchWithRetention,
       searchByTimeRange,
       getRecentMemories,
       getSessionMemories,
       updateVocabulary,
       getVocabulary,
       pruneOldMemories,
+      pruneByRetention,
+      computeRetentionScore,
+      updateImportance,
+      getMemoriesByRetention,
+      configureForgetting,
       getStats,
       clear
     };

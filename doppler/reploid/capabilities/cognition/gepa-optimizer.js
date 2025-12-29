@@ -73,8 +73,44 @@ const GEPAOptimizer = {
       return actualNorm === expectedNorm;
     };
 
+    /**
+     * Classify error type based on actual vs expected output.
+     * Provides detailed categorization for reflection engine.
+     */
     const classifyError = (actual, expected) => {
       if (expected === undefined || expected === null) return 'unknown';
+      if (!actual || actual.trim() === '') return 'empty_response';
+
+      const actualNorm = normalizeText(actual);
+      const expectedNorm = normalizeText(expected);
+
+      // Check for partial match
+      if (actualNorm.includes(expectedNorm) || expectedNorm.includes(actualNorm)) {
+        return 'partial_match';
+      }
+
+      // Check for format issues (JSON parsing, etc)
+      try {
+        JSON.parse(expected);
+        try {
+          JSON.parse(actual);
+        } catch {
+          return 'format_error';
+        }
+      } catch {
+        // Expected wasn't JSON, continue
+      }
+
+      // Check for semantic similarity hints
+      const actualWords = new Set(actualNorm.split(/\s+/));
+      const expectedWords = new Set(expectedNorm.split(/\s+/));
+      const overlap = [...actualWords].filter(w => expectedWords.has(w)).length;
+      const unionSize = new Set([...actualWords, ...expectedWords]).size;
+      const jaccard = overlap / (unionSize || 1);
+
+      if (jaccard > 0.5) return 'semantic_drift';
+      if (jaccard > 0.2) return 'partial_understanding';
+
       return 'mismatch';
     };
 
@@ -167,51 +203,81 @@ const GEPAOptimizer = {
         }
 
         const traceCount = traces.length || 1;
+        const totalTokens = traces.reduce((sum, t) => sum + (t.tokenCount || 0), 0);
+        const avgLatency = avg(traces.map(t => t.latencyMs || 0));
+
         const scores = {
           accuracy: traces.filter(t => t.success).length / traceCount,
-          efficiency: 1 - (avg(traces.map(t => t.latencyMs || 0)) / 10000),
-          robustness: 1 - (traces.filter(t => t.errorType === 'execution_error').length / traceCount)
+          efficiency: 1 - Math.min(avgLatency / 10000, 1), // Latency objective (lower is better)
+          robustness: 1 - (traces.filter(t => t.errorType === 'execution_error').length / traceCount),
+          cost: 1 - Math.min(totalTokens / (traceCount * 1000), 1) // Cost objective based on tokens
         };
 
-        results.push({ candidate, scores, traces });
+        results.push({ candidate, scores, traces, metrics: { totalTokens, avgLatency } });
       }
 
       return results;
     };
 
-    const buildReflectionPrompt = (errorType, samples) => `
-You analyze prompt failures and propose fixes.
+    /**
+     * Build reflection prompt with error-type-specific guidance.
+     */
+    const buildReflectionPrompt = (errorType, samples) => {
+      const errorGuidance = {
+        empty_response: 'The model produced no output. Focus on clarity of instructions and explicit output requirements.',
+        partial_match: 'The output is close but incomplete. Focus on precision and completeness requirements.',
+        format_error: 'The output format is wrong. Focus on explicit formatting instructions and examples.',
+        semantic_drift: 'The output captures intent but uses wrong terminology. Focus on vocabulary and terminology constraints.',
+        partial_understanding: 'The model partially understood the task. Focus on decomposing instructions more clearly.',
+        mismatch: 'The output is fundamentally wrong. Consider if the prompt clearly conveys the task objective.',
+        execution_error: 'The model call failed. This may indicate prompt length or complexity issues.',
+        unknown: 'Unable to classify the error. Analyze the examples holistically.'
+      };
+
+      const guidance = errorGuidance[errorType] || errorGuidance.unknown;
+
+      return `You analyze prompt failures and propose targeted fixes.
 
 ## Error Type
 ${errorType}
 
+## Analysis Guidance
+${guidance}
+
 ## Failed Examples
 ${samples.map((sample, index) => `
 ### Example ${index + 1}
-Prompt: ${sample.candidate.content.substring(0, 500)}...
-Input: ${sample.trace.input}
-Expected: ${sample.trace.expectedOutput}
-Actual: ${sample.trace.actualOutput}
-Trace: ${JSON.stringify(sample.trace.trace || 'N/A')}
+**Prompt (truncated):**
+\`\`\`
+${sample.candidate.content.substring(0, 500)}${sample.candidate.content.length > 500 ? '...' : ''}
+\`\`\`
+
+**Input:** ${sample.trace.input}
+**Expected:** ${sample.trace.expectedOutput || '(not specified)'}
+**Actual:** ${sample.trace.actualOutput || '(empty)'}
+**Latency:** ${sample.trace.latencyMs ? sample.trace.latencyMs.toFixed(0) + 'ms' : 'N/A'}
 `).join('\n')}
 
 ## Task
-1. Identify the root cause.
-2. Propose 2-3 specific prompt modifications.
-3. Explain why each helps.
+1. Identify the root cause specific to this error pattern.
+2. Propose 2-3 specific, actionable prompt modifications.
+3. Prioritize modifications by expected impact.
 
 Respond in JSON:
 {
-  "rootCause": "string",
+  "rootCause": "string describing the fundamental issue",
+  "confidence": 0.0-1.0,
   "modifications": [
     {
       "type": "add" | "remove" | "replace",
-      "target": "what part to modify",
-      "content": "new/modified text",
-      "rationale": "why this helps"
+      "target": "specific section or phrase to modify",
+      "content": "new or modified text",
+      "rationale": "why this addresses the root cause",
+      "priority": "high" | "medium" | "low"
     }
   ]
 }`;
+    };
 
     const reflect = async (evaluationResults, config) => {
       if (!config.reflectionModel) {
@@ -513,7 +579,7 @@ Respond in JSON:
       return selected;
     };
 
-    const saveCheckpoint = async (generation, population, frontier, config) => {
+    const saveCheckpoint = async (generation, population, frontier, config, metadata = {}) => {
       if (!VFS) return;
       await ensureVfsPath(config.checkpointPath);
       const path = `${config.checkpointPath}gen_${generation}.json`;
@@ -521,8 +587,106 @@ Respond in JSON:
         generation,
         timestamp: Date.now(),
         population,
-        frontier
+        frontier,
+        config: {
+          populationSize: config.populationSize,
+          maxGenerations: config.maxGenerations,
+          objectives: config.objectives,
+          taskDescription: config.taskDescription || '',
+          targetType: config.targetType || 'prompt'
+        },
+        metadata: {
+          ...metadata,
+          reflectionCount: _reflectionCache.size,
+          bestScores: getBestScores(population, config.objectives)
+        }
       }, null, 2));
+    };
+
+    /**
+     * Load checkpoint from VFS for resuming evolution.
+     * @param {string} checkpointPath - Path to checkpoint directory
+     * @param {number} [generation] - Specific generation to load (default: latest)
+     * @returns {Promise<Object|null>} Checkpoint data or null if not found
+     */
+    const loadCheckpoint = async (checkpointPath, generation = null) => {
+      if (!VFS) return null;
+
+      try {
+        if (generation !== null) {
+          const path = `${checkpointPath}gen_${generation}.json`;
+          if (await VFS.exists(path)) {
+            const content = await VFS.read(path);
+            return JSON.parse(content);
+          }
+          return null;
+        }
+
+        // Find latest checkpoint
+        if (!await VFS.exists(checkpointPath)) return null;
+
+        const files = await VFS.readdir(checkpointPath);
+        const genFiles = files
+          .filter(f => f.startsWith('gen_') && f.endsWith('.json'))
+          .map(f => ({
+            file: f,
+            gen: parseInt(f.replace('gen_', '').replace('.json', ''), 10)
+          }))
+          .filter(f => !isNaN(f.gen))
+          .sort((a, b) => b.gen - a.gen);
+
+        if (genFiles.length === 0) return null;
+
+        const latestPath = `${checkpointPath}${genFiles[0].file}`;
+        const content = await VFS.read(latestPath);
+        return JSON.parse(content);
+
+      } catch (err) {
+        logger.warn('[GEPA] Failed to load checkpoint', err.message);
+        return null;
+      }
+    };
+
+    /**
+     * List available checkpoints.
+     * @param {string} checkpointPath - Path to checkpoint directory
+     * @returns {Promise<Array>} List of checkpoint generations with metadata
+     */
+    const listCheckpoints = async (checkpointPath) => {
+      if (!VFS) return [];
+
+      try {
+        if (!await VFS.exists(checkpointPath)) return [];
+
+        const files = await VFS.readdir(checkpointPath);
+        const checkpoints = [];
+
+        for (const file of files) {
+          if (file.startsWith('gen_') && file.endsWith('.json')) {
+            const gen = parseInt(file.replace('gen_', '').replace('.json', ''), 10);
+            if (!isNaN(gen)) {
+              try {
+                const content = await VFS.read(`${checkpointPath}${file}`);
+                const data = JSON.parse(content);
+                checkpoints.push({
+                  generation: gen,
+                  timestamp: data.timestamp,
+                  populationSize: data.population?.length || 0,
+                  frontierSize: data.frontier?.length || 0,
+                  bestScores: data.metadata?.bestScores || {}
+                });
+              } catch (e) {
+                checkpoints.push({ generation: gen, error: e.message });
+              }
+            }
+          }
+        }
+
+        return checkpoints.sort((a, b) => a.generation - b.generation);
+      } catch (err) {
+        logger.warn('[GEPA] Failed to list checkpoints', err.message);
+        return [];
+      }
     };
 
     const getBestScores = (candidates, objectives) => {
@@ -541,6 +705,129 @@ Respond in JSON:
 
     const selectParent = (population) => {
       return population[Math.floor(Math.random() * population.length)];
+    };
+
+    /**
+     * Resume evolution from a checkpoint.
+     * @param {string} checkpointPath - Path to checkpoint directory
+     * @param {Array} taskSet - Task set for evaluation
+     * @param {Object} options - Evolution options
+     * @returns {Promise<Object>} Evolution result
+     */
+    const resumeEvolution = async (checkpointPath, taskSet, options = {}) => {
+      const checkpoint = await loadCheckpoint(checkpointPath);
+      if (!checkpoint) {
+        throw new Errors.ValidationError('No checkpoint found to resume from');
+      }
+
+      const config = {
+        ...DEFAULTS,
+        ...checkpoint.config,
+        ...options
+      };
+
+      // Restore population state
+      _population = checkpoint.population || [];
+      _paretoFrontier = checkpoint.frontier || [];
+      _generation = checkpoint.generation;
+
+      logger.info('[GEPA] Resuming from checkpoint', {
+        generation: _generation,
+        populationSize: _population.length,
+        frontierSize: _paretoFrontier.length
+      });
+
+      EventBus.emit('gepa:resumed', {
+        generation: _generation,
+        populationSize: _population.length,
+        checkpointPath
+      });
+
+      // Continue evolution from next generation
+      const startGen = _generation + 1;
+      const remainingGens = config.maxGenerations - startGen;
+
+      if (remainingGens <= 0) {
+        return {
+          frontier: _paretoFrontier,
+          bestOverall: _paretoFrontier[0] || null,
+          generations: _generation + 1,
+          resumed: true,
+          message: 'Evolution already complete'
+        };
+      }
+
+      // Run remaining generations
+      for (let gen = startGen; gen < config.maxGenerations; gen++) {
+        _generation = gen;
+        const taskBatch = sampleTasks(taskSet, config.evaluationBatchSize);
+        const evalResults = await evaluate(_population, taskBatch, config);
+
+        for (const result of evalResults) {
+          result.candidate.scores = result.scores;
+          result.candidate.traces = result.traces;
+        }
+
+        EventBus.emit('gepa:evaluated', {
+          generation: gen,
+          results: evalResults.map(r => ({ id: r.candidate.id, scores: r.scores }))
+        });
+
+        const reflections = await reflect(evalResults, config);
+        reflections.forEach(r => _reflectionCache.set(r.errorType, r));
+
+        EventBus.emit('gepa:reflected', {
+          generation: gen,
+          reflectionCount: reflections.length,
+          errorTypes: reflections.map(r => r.errorType)
+        });
+
+        const offspring = [];
+        const elite = paretoSelect(_population, config.objectives, config.eliteCount);
+        offspring.push(...elite);
+
+        while (offspring.length < config.populationSize * 0.5) {
+          const [p1, p2] = selectParents(_population);
+          if (Math.random() < config.crossoverRate) {
+            offspring.push(crossover(p1, p2));
+          }
+        }
+
+        while (offspring.length < config.populationSize) {
+          const parent = selectParent(_population);
+          if (Math.random() < config.mutationRate) {
+            offspring.push(mutate(parent, reflections));
+          } else {
+            offspring.push(randomMutate(parent));
+          }
+        }
+
+        _population = paretoSelect(offspring, config.objectives, config.populationSize);
+        _paretoFrontier = _population.filter(c => c.dominatedBy === 0);
+
+        EventBus.emit('gepa:generation-complete', {
+          generation: gen,
+          frontierSize: _paretoFrontier.length,
+          bestScores: getBestScores(_population, config.objectives)
+        });
+
+        await saveCheckpoint(gen, _population, _paretoFrontier, config);
+      }
+
+      const result = {
+        frontier: _paretoFrontier,
+        bestOverall: _paretoFrontier[0] || null,
+        generations: _generation + 1,
+        totalEvaluations: ((_generation + 1) - startGen) * config.populationSize * config.evaluationBatchSize,
+        resumed: true,
+        resumedFromGeneration: checkpoint.generation
+      };
+
+      if (config.promoteBest) {
+        result.promotion = await promoteCandidate(result.bestOverall, config.promoteOptions || {});
+      }
+
+      return result;
     };
 
     const evolve = async (seedPrompt, taskSet, options = {}) => {
@@ -708,7 +995,10 @@ Respond in JSON:
     return {
       api: {
         evolve,
+        resumeEvolution,
         promoteCandidate,
+        loadCheckpoint,
+        listCheckpoints,
         getStatus
       }
     };
