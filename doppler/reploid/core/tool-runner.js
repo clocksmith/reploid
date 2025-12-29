@@ -10,13 +10,13 @@ const ToolRunner = {
     id: 'ToolRunner',
     version: '1.0.0',
     genesis: { introduced: 'tabula' },
-    dependencies: ['Utils', 'VFS', 'ToolWriter', 'SubstrateLoader?', 'EventBus', 'AuditLogger?', 'HITLController?', 'ArenaHarness?', 'VFSSandbox?', 'VerificationManager?', 'Shell?', 'gitTools?', 'WorkerManager?', 'EmbeddingStore?', 'SemanticMemory?', 'KnowledgeGraph?', 'GEPAOptimizer?', 'SchemaRegistry', 'TraceStore?', 'PersonaManager?'],
+    dependencies: ['Utils', 'VFS', 'ToolWriter', 'SubstrateLoader?', 'EventBus', 'AuditLogger?', 'HITLController?', 'ArenaHarness?', 'VFSSandbox?', 'VerificationManager?', 'Shell?', 'gitTools?', 'WorkerManager?', 'EmbeddingStore?', 'SemanticMemory?', 'KnowledgeGraph?', 'GEPAOptimizer?', 'SchemaRegistry', 'TraceStore?', 'PersonaManager?', 'Observability?', 'GenesisSnapshot?'],
     async: true,
     type: 'service'
   },
 
   factory: (deps) => {
-    const { Utils, VFS, ToolWriter, SubstrateLoader, EventBus, AuditLogger, HITLController, ArenaHarness, VFSSandbox, VerificationManager, Shell, gitTools, EmbeddingStore, SemanticMemory, KnowledgeGraph, GEPAOptimizer, SchemaRegistry, TraceStore, PersonaManager } = deps;
+    const { Utils, VFS, ToolWriter, SubstrateLoader, EventBus, AuditLogger, HITLController, ArenaHarness, VFSSandbox, VerificationManager, Shell, gitTools, EmbeddingStore, SemanticMemory, KnowledgeGraph, GEPAOptimizer, SchemaRegistry, TraceStore, PersonaManager, Observability, GenesisSnapshot } = deps;
     const { logger, Errors, trunc } = Utils;
 
     // WorkerManager is mutable because of circular dependency:
@@ -46,16 +46,37 @@ const ToolRunner = {
 
     // --- Arena Verification for Core Changes ---
 
+    // L3 substrate paths that require arena verification
+    const SUBSTRATE_PREFIXES = ['/core/', '/infrastructure/'];
+
+    const isSubstratePath = (path) => {
+      if (!path) return false;
+      return SUBSTRATE_PREFIXES.some(prefix => path.startsWith(prefix));
+    };
+
     /**
      * Verify a core file change in sandbox before committing
      * @param {string} path - File path
      * @param {string} content - New content
-     * @returns {Promise<{passed: boolean, errors: string[]}>}
+     * @returns {Promise<{passed: boolean, errors: string[], rolledBack: boolean}>}
      */
     const _verifyCoreMutation = async (path, content) => {
+      const isL3 = isSubstratePath(path);
+
       // Skip verification if arena/verification not available or disabled
       if (!_arenaGatingEnabled || !VFSSandbox || !VerificationManager) {
-        return { passed: true, errors: [], skipped: true };
+        // Still log L3 changes even if verification is skipped
+        if (isL3 && Observability?.recordSubstrateChange) {
+          await Observability.recordSubstrateChange({
+            path,
+            op: 'write',
+            passed: true,
+            passRate: null,
+            rolledBack: false,
+            reason: 'verification_skipped'
+          });
+        }
+        return { passed: true, errors: [], skipped: true, rolledBack: false };
       }
 
       try {
@@ -70,19 +91,62 @@ const ToolRunner = {
 
           // Run verification
           const result = await VerificationManager.verifyProposal({ [path]: content });
+          const passed = result.passed && (result.passRate === undefined || result.passRate >= 80);
+
+          // Log L3 substrate changes
+          if (isL3 && Observability?.recordSubstrateChange) {
+            await Observability.recordSubstrateChange({
+              path,
+              op: 'write',
+              passed,
+              passRate: result.passRate,
+              rolledBack: !passed,
+              reason: passed ? 'verified' : (result.errors?.[0] || 'verification_failed')
+            });
+          }
+
+          if (!passed) {
+            logger.warn(`[ToolRunner] L3 change rejected: ${path} (passRate: ${result.passRate})`);
+            // Rollback is automatic via finally block
+          }
 
           return {
-            passed: result.passed,
+            passed,
             errors: result.errors || [],
-            warnings: result.warnings || []
+            warnings: result.warnings || [],
+            passRate: result.passRate,
+            rolledBack: !passed
           };
         } finally {
-          // Always restore original state
+          // Always restore original state (sandbox isolation)
           await VFSSandbox.restoreSnapshot(snapshot);
         }
       } catch (err) {
         logger.error('[ToolRunner] Arena verification failed:', err.message);
-        return { passed: false, errors: [err.message] };
+
+        // Log failed L3 change
+        if (isL3 && Observability?.recordSubstrateChange) {
+          await Observability.recordSubstrateChange({
+            path,
+            op: 'write',
+            passed: false,
+            passRate: null,
+            rolledBack: true,
+            reason: err.message
+          });
+        }
+
+        // Emergency rollback via GenesisSnapshot if available
+        if (GenesisSnapshot?.restoreFromLifeboat) {
+          logger.warn('[ToolRunner] Attempting Lifeboat restore after verification failure');
+          try {
+            await GenesisSnapshot.restoreFromLifeboat();
+          } catch (e) {
+            logger.error('[ToolRunner] Lifeboat restore failed:', e.message);
+          }
+        }
+
+        return { passed: false, errors: [err.message], rolledBack: true };
       }
     };
 
