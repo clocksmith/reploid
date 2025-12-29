@@ -71,6 +71,7 @@ const defaultState = {
   apiConfig: {
     provider: null,     // 'anthropic' | 'openai' | 'gemini' | 'other'
     apiKey: null,
+    baseUrl: null,      // For 'other' provider
     rememberKey: false,
     model: null,
     verifyState: VERIFY_STATE.UNVERIFIED,
