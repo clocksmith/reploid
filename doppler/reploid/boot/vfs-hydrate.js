@@ -42,7 +42,7 @@ export async function resetSession(vfs, genesisConfig, genesisLevel, logger) {
     const preserveConfig = genesisConfig.preserveOnReset || {};
     const coreTools = buildCoreToolSet(genesisConfig, genesisLevel);
     const coreUIFiles = new Set(preserveConfig.ui || ['proto.js', 'toast.js']);
-    const coreStyles = new Set(preserveConfig.styles || ['theme.css', 'proto.css', 'boot.css', 'vfs-explorer.css']);
+    const coreStyles = new Set(preserveConfig.styles || ['theme.css', 'proto.css', 'wizard.css', 'vfs-explorer.css']);
 
     // Clear non-core tools
     const allTools = await vfs.list('/tools/');
