@@ -30,6 +30,44 @@ reploid/
 - `config/` - Genesis levels, module registry
 - `tests/` - Test suites
 
+### Architecture
+```
+User Input -> AgentLoop -> LLMClient -> Tool Selection
+                  |             |
+            StateManager   ToolRunner -> VFS (IndexedDB)
+                  |             |
+            ContextManager  SchemaRegistry
+                  |
+            EventBus <-> HITL Controller
+                  |
+            GenesisSnapshot (immutable rollback)
+```
+
+### Testing
+```bash
+npm test                    # Run all tests
+npm run test:unit           # Unit tests only
+npm run test:integration    # Integration tests
+npm run test:e2e            # Playwright E2E tests
+npm run test:watch          # Watch mode
+npm run test:coverage       # With coverage report
+```
+
+### CLI
+```bash
+npm run cli                 # Start Reploid CLI
+npm run build:genesis       # Build genesis manifest
+npm start                   # Start server
+```
+
+### Debugging
+- **Agent loop hangs:** Check `core/agent-loop.js` for stuck awaits, inspect EventBus listeners
+- **Tool failures:** Check `core/tool-runner.js`, verify tool schema in `tools/`
+- **VFS issues:** Check IndexedDB in browser devtools, verify `capabilities/system/substrate-loader.js`
+- **HITL blocks:** Check `infrastructure/hitl-controller.js` approval state
+- **State corruption:** Use GenesisSnapshot rollback via `infrastructure/genesis-snapshot.js`
+- **LLM errors:** Check `core/llm-client.js`, verify API keys in `.env`
+
 ### Guardrails
 - Enforce `EMOJI.md`; use only approved Unicode symbols, no emojis
 - All code changes must pass Verification Worker sandbox

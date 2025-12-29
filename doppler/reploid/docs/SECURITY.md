@@ -2,7 +2,27 @@
 
 > Security architecture for safe recursive self-improvement research.
 
+**Foundational thesis:** See [`feature-log/RALLY.md`](../../../feature-log/RALLY.md) — Constraints aren't limitations; they're the engine that makes browser-native RSI work. The browser sandbox, VFS containment, and graduated safety gates create stable pressure toward compact, efficient self-modifications.
+
 This document provides a high-level overview of REPLOID's security model. For detailed implementation specifications, see the referenced blueprints.
+
+---
+
+## RSI Level Policy
+
+Fully autonomous operation with graduated automated safety gates:
+
+| Level | Scope | Mode | Safety Gate |
+|-------|-------|------|-------------|
+| **L1** | Tools (CreateTool, new tools in `/tools/`) | AUTONOMOUS | Verification Worker sandbox |
+| **L2** | Meta (modify tool-writer, improve CreateTool) | AUTONOMOUS | Arena consensus |
+| **L3** | Substrate (edit agent-loop.js, core modules) | AUTONOMOUS | Arena + GenesisSnapshot rollback |
+
+**No HITL gates.** Safety is enforced via automated verification:
+- All changes must pass Arena verification with passRate ≥ 80%
+- Failed changes trigger automatic rollback via GenesisSnapshot
+- All L3 changes logged to `/.logs/substrate/` for audit trail
+- Circuit breakers prevent runaway failures
 
 ---
 
