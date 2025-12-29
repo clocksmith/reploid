@@ -1,0 +1,1065 @@
+/**
+ * @fileoverview Boot Wizard UI
+ * Step-by-step configuration wizard for Reploid.
+ */
+
+import {
+  STEPS, VERIFY_STATE,
+  getState, setState, setNestedState, subscribe,
+  goToStep, checkSavedConfig, saveConfig, forgetDevice,
+  canAwaken, getCapabilityLevel
+} from './state.js';
+
+import {
+  checkHttps, checkWebGPU, runDetection,
+  testApiKey, testProxyConnection, testLocalConnection
+} from './detection.js';
+
+import { GOAL_CATEGORIES, filterGoalsByCapability } from './goals.js';
+
+// Cloud provider model lists
+const CLOUD_MODELS = {
+  anthropic: [
+    { id: 'claude-sonnet-4-20250514', name: 'Claude 4 Sonnet' },
+    { id: 'claude-opus-4-5-20251101', name: 'Claude 4.5 Opus' },
+    { id: 'claude-3-5-haiku-20241022', name: 'Claude 3.5 Haiku' }
+  ],
+  openai: [
+    { id: 'gpt-4o', name: 'GPT-4o' },
+    { id: 'gpt-4o-mini', name: 'GPT-4o Mini' },
+    { id: 'gpt-4-turbo', name: 'GPT-4 Turbo' }
+  ],
+  gemini: [
+    { id: 'gemini-2.0-flash', name: 'Gemini 2.0 Flash' },
+    { id: 'gemini-1.5-pro', name: 'Gemini 1.5 Pro' },
+    { id: 'gemini-1.5-flash', name: 'Gemini 1.5 Flash' }
+  ]
+};
+
+// DOM container reference
+let container = null;
+
+/**
+ * Initialize wizard
+ */
+export function initWizard(containerEl) {
+  container = containerEl;
+  subscribe(render);
+  handleStart();
+}
+
+/**
+ * Handle START step - check for saved config
+ */
+function handleStart() {
+  const saved = checkSavedConfig();
+
+  if (saved) {
+    // Have saved config, render resume option
+    setState({ savedConfig: saved, currentStep: STEPS.START });
+  } else {
+    // No saved config, go to detection
+    goToStep(STEPS.DETECT);
+    startDetection();
+  }
+}
+
+/**
+ * Start detection phase
+ */
+async function startDetection() {
+  goToStep(STEPS.DETECT);
+  render();
+
+  await runDetection({
+    skipLocalScan: false,
+    onProgress: (progress) => {
+      // Re-render on each progress update
+      render();
+    }
+  });
+
+  // Auto-advance to choose after detection
+  goToStep(STEPS.CHOOSE);
+}
+
+/**
+ * Main render function
+ */
+function render() {
+  if (!container) return;
+
+  const state = getState();
+  let html = '';
+
+  // Persistent header (shown after CHOOSE step)
+  if ([STEPS.API_CONFIG, STEPS.PROXY_CONFIG, STEPS.LOCAL_CONFIG,
+       STEPS.DOPPLER_CONFIG, STEPS.GOAL, STEPS.AWAKEN].includes(state.currentStep)) {
+    html += renderHeader();
+  }
+
+  // Step content
+  switch (state.currentStep) {
+    case STEPS.START:
+      html += renderStartStep();
+      break;
+    case STEPS.DETECT:
+      html += renderDetectStep();
+      break;
+    case STEPS.CHOOSE:
+      html += renderChooseStep();
+      break;
+    case STEPS.API_CONFIG:
+      html += renderApiConfigStep();
+      break;
+    case STEPS.PROXY_CONFIG:
+      html += renderProxyConfigStep();
+      break;
+    case STEPS.LOCAL_CONFIG:
+      html += renderLocalConfigStep();
+      break;
+    case STEPS.DOPPLER_CONFIG:
+      html += renderDopplerConfigStep();
+      break;
+    case STEPS.GOAL:
+      html += renderGoalStep();
+      break;
+    case STEPS.AWAKEN:
+      html += renderAwakenStep();
+      break;
+  }
+
+  // Footer
+  html += renderFooter();
+
+  container.innerHTML = html;
+  attachEventListeners();
+}
+
+/**
+ * Render persistent header with connection status
+ */
+function renderHeader() {
+  const state = getState();
+  const { connectionType, apiConfig, proxyConfig, localConfig, dopplerConfig } = state;
+
+  let statusIcon = '○';
+  let statusClass = 'unverified';
+  let statusText = 'Not configured';
+  let modelName = '';
+
+  if (connectionType === 'api') {
+    modelName = apiConfig.model || apiConfig.provider || '';
+    if (apiConfig.verifyState === VERIFY_STATE.VERIFIED) {
+      statusIcon = '✓';
+      statusClass = 'verified';
+      statusText = 'Verified';
+    } else if (apiConfig.verifyState === VERIFY_STATE.FAILED) {
+      statusIcon = '✗';
+      statusClass = 'failed';
+      statusText = 'Failed';
+    } else {
+      statusIcon = '⚠';
+      statusClass = 'unverified';
+      statusText = 'Unverified';
+    }
+  } else if (connectionType === 'browser') {
+    modelName = dopplerConfig.model || 'Doppler WebGPU';
+    statusIcon = '✓';
+    statusClass = 'verified';
+    statusText = 'Local';
+  }
+
+  return `
+    <div class="wizard-header">
+      <div class="wizard-connection-status ${statusClass}" data-action="edit-connection">
+        <span class="status-icon">${statusIcon}</span>
+        <span class="status-model">${modelName}</span>
+        <span class="status-text">${statusText}</span>
+      </div>
+    </div>
+  `;
+}
+
+/**
+ * Render START step (resume saved config)
+ */
+function renderStartStep() {
+  const state = getState();
+  const saved = state.savedConfig;
+
+  if (!saved) return '';
+
+  return `
+    <div class="wizard-step wizard-start">
+      <h2>Welcome Back</h2>
+      <div class="saved-config-summary">
+        <div class="config-item">
+          <span class="config-label">Provider</span>
+          <span class="config-value">${saved.primaryProvider}</span>
+        </div>
+        <div class="config-item">
+          <span class="config-label">Model</span>
+          <span class="config-value">${saved.primaryModel}</span>
+        </div>
+        <div class="config-item">
+          <span class="config-label">Key</span>
+          <span class="config-value">${saved.hasSavedKey ? 'Saved locally' : 'Not saved'}</span>
+        </div>
+      </div>
+
+      <div class="wizard-actions">
+        ${saved.hasSavedKey ? `
+          <button class="btn btn-primary" data-action="continue-saved">
+            Continue with this setup
+          </button>
+        ` : `
+          <div class="inline-key-entry">
+            <input type="password" id="saved-api-key" placeholder="Enter API key" class="inline-input" />
+            <button class="btn btn-primary" data-action="continue-with-key">
+              Continue
+            </button>
+          </div>
+        `}
+        <button class="btn btn-secondary" data-action="reconfigure">
+          Reconfigure
+        </button>
+        <button class="btn btn-tertiary" data-action="explore-docs">
+          Explore docs only
+        </button>
+      </div>
+    </div>
+  `;
+}
+
+/**
+ * Render DETECT step
+ */
+function renderDetectStep() {
+  const state = getState();
+  const { detection } = state;
+  const isHttps = checkHttps();
+
+  return `
+    <div class="wizard-step wizard-detect">
+      <h2>Detecting Connections</h2>
+      <p class="wizard-subtitle">Checking for available model providers...</p>
+
+      ${isHttps ? `
+        <div class="wizard-note warning">
+          You're on HTTPS. Local servers (http://localhost) may be blocked.
+        </div>
+      ` : ''}
+
+      <div class="detection-list">
+        <div class="detection-item ${detection.webgpu.checked ? (detection.webgpu.supported ? 'online' : 'offline') : 'checking'}">
+          <span class="detection-icon">${detection.webgpu.checked ? (detection.webgpu.supported ? '✓' : '✗') : '◐'}</span>
+          <span class="detection-label">WebGPU</span>
+          <span class="detection-status">
+            ${detection.webgpu.checked ? (detection.webgpu.supported ? 'Available' : 'Not supported') : 'Checking...'}
+          </span>
+        </div>
+
+        <div class="detection-item ${detection.doppler?.checked ? (detection.doppler?.supported ? 'online' : 'offline') : 'checking'}">
+          <span class="detection-icon">${detection.doppler?.checked ? (detection.doppler?.supported ? '✓' : '✗') : '◐'}</span>
+          <span class="detection-label">Doppler Engine</span>
+          <span class="detection-status">
+            ${detection.doppler?.checked ? (detection.doppler?.supported ? 'Ready' : 'Not available') : 'Checking...'}
+          </span>
+        </div>
+
+        <div class="detection-item ${detection.ollama?.checked ? (detection.ollama?.detected ? 'online' : 'offline') : 'checking'}">
+          <span class="detection-icon">${detection.ollama?.checked ? (detection.ollama?.detected ? '✓' : detection.ollama?.blocked ? '⚠' : '✗') : '◐'}</span>
+          <span class="detection-label">Ollama</span>
+          <span class="detection-status">
+            ${detection.ollama?.checked
+              ? (detection.ollama?.detected
+                ? `Found (${detection.ollama.models?.length || 0} models)`
+                : detection.ollama?.blocked
+                  ? 'Blocked by browser'
+                  : 'Not detected')
+              : 'Probing localhost:11434...'}
+          </span>
+        </div>
+
+        <div class="detection-item ${detection.proxy?.checked ? (detection.proxy?.detected ? 'online' : 'offline') : 'checking'}">
+          <span class="detection-icon">${detection.proxy?.checked ? (detection.proxy?.detected ? '✓' : detection.proxy?.blocked ? '⚠' : '✗') : '◐'}</span>
+          <span class="detection-label">Proxy Server</span>
+          <span class="detection-status">
+            ${detection.proxy?.checked
+              ? (detection.proxy?.detected
+                ? 'Found'
+                : detection.proxy?.blocked
+                  ? 'Blocked by browser'
+                  : 'Not detected')
+              : 'Probing...'}
+          </span>
+        </div>
+      </div>
+
+      <div class="wizard-actions">
+        <button class="btn btn-tertiary" data-action="skip-detection">
+          Skip detection
+        </button>
+      </div>
+    </div>
+  `;
+}
+
+/**
+ * Render CHOOSE step
+ */
+function renderChooseStep() {
+  const state = getState();
+  const { detection } = state;
+
+  const webgpuSupported = detection.webgpu.supported;
+  const ollamaDetected = detection.ollama?.detected;
+  const proxyDetected = detection.proxy?.detected;
+  const localBlocked = detection.ollama?.blocked || detection.proxy?.blocked;
+
+  return `
+    <div class="wizard-step wizard-choose">
+      <h2>How do you want to connect?</h2>
+
+      <div class="connection-options">
+        <button class="connection-option ${!webgpuSupported ? 'disabled' : ''}"
+                data-action="choose-browser"
+                ${!webgpuSupported ? 'disabled' : ''}>
+          <div class="option-header">
+            <span class="option-icon">◈</span>
+            <span class="option-title">Browser Model (Doppler)</span>
+            ${webgpuSupported ? '<span class="option-badge recommended">Recommended</span>' : ''}
+          </div>
+          <div class="option-description">
+            ${webgpuSupported
+              ? 'Run models locally in your browser via WebGPU'
+              : 'WebGPU not supported in this browser'}
+          </div>
+          <div class="option-capabilities">
+            <span class="cap-tag cap-substrate">✓ Full substrate access</span>
+            <span class="cap-tag cap-privacy">✓ Private</span>
+            <span class="cap-tag cap-warn">⚠ Limited reasoning</span>
+          </div>
+        </button>
+
+        <button class="connection-option" data-action="choose-api">
+          <div class="option-header">
+            <span class="option-icon">☁</span>
+            <span class="option-title">API Key</span>
+          </div>
+          <div class="option-description">
+            Use Claude, GPT-4, or Gemini with your API key
+          </div>
+          <div class="option-capabilities">
+            <span class="cap-tag cap-reasoning">✓ High reasoning</span>
+            <span class="cap-tag cap-warn">✗ No substrate access</span>
+          </div>
+        </button>
+
+        <button class="connection-option" data-action="choose-proxy">
+          <div class="option-header">
+            <span class="option-icon">⇄</span>
+            <span class="option-title">Proxy Server</span>
+            ${proxyDetected ? '<span class="option-badge detected">Detected</span>' : ''}
+          </div>
+          <div class="option-description">
+            ${proxyDetected
+              ? `Found at ${detection.proxy.url}`
+              : 'Connect to a proxy server'}
+          </div>
+          ${localBlocked ? `
+            <div class="option-warning">
+              Browser blocked auto-detect. Enter address manually.
+            </div>
+          ` : ''}
+        </button>
+
+        <button class="connection-option" data-action="choose-local">
+          <div class="option-header">
+            <span class="option-icon">⌂</span>
+            <span class="option-title">Local Server</span>
+            ${ollamaDetected ? '<span class="option-badge detected">Ollama detected</span>' : ''}
+          </div>
+          <div class="option-description">
+            ${ollamaDetected
+              ? `Found ${detection.ollama.models?.length || 0} models on localhost`
+              : 'Connect to Ollama or compatible server'}
+          </div>
+          ${localBlocked ? `
+            <div class="option-warning">
+              Browser blocked auto-detect. Enter address manually.
+            </div>
+          ` : ''}
+        </button>
+
+        <button class="connection-option tertiary" data-action="explore-docs">
+          <div class="option-header">
+            <span class="option-icon">📖</span>
+            <span class="option-title">Explore docs only</span>
+          </div>
+          <div class="option-description">
+            Browse documentation without an agent
+          </div>
+        </button>
+      </div>
+    </div>
+  `;
+}
+
+/**
+ * Render API_CONFIG step
+ */
+function renderApiConfigStep() {
+  const state = getState();
+  const { apiConfig, detection } = state;
+  const models = apiConfig.provider ? (CLOUD_MODELS[apiConfig.provider] || []) : [];
+
+  return `
+    <div class="wizard-step wizard-api-config">
+      <h2>API Configuration</h2>
+
+      <div class="config-form">
+        <div class="form-row">
+          <label>Provider</label>
+          <select id="api-provider" class="config-select">
+            <option value="">Select provider...</option>
+            <option value="anthropic" ${apiConfig.provider === 'anthropic' ? 'selected' : ''}>Anthropic (Claude)</option>
+            <option value="openai" ${apiConfig.provider === 'openai' ? 'selected' : ''}>OpenAI (GPT-4)</option>
+            <option value="gemini" ${apiConfig.provider === 'gemini' ? 'selected' : ''}>Google (Gemini)</option>
+            <option value="other" ${apiConfig.provider === 'other' ? 'selected' : ''}>Other</option>
+          </select>
+        </div>
+
+        <div class="form-row">
+          <label>API Key</label>
+          <div class="input-with-action">
+            <input type="password"
+                   id="api-key"
+                   class="config-input"
+                   placeholder="Enter your API key"
+                   value="${apiConfig.apiKey || ''}" />
+            <button class="btn btn-secondary" data-action="test-api-key">
+              ${apiConfig.verifyState === VERIFY_STATE.TESTING ? 'Testing...' : 'Test'}
+            </button>
+          </div>
+          ${apiConfig.verifyState === VERIFY_STATE.VERIFIED ? `
+            <div class="form-success">✓ Connection verified</div>
+          ` : ''}
+          ${apiConfig.verifyState === VERIFY_STATE.FAILED ? `
+            <div class="form-error">✗ ${apiConfig.verifyError || 'Connection failed'}</div>
+          ` : ''}
+          ${apiConfig.provider === 'anthropic' ? `
+            <div class="form-note">Test sends minimal request (~10 tokens, ~$0.00001)</div>
+          ` : ''}
+        </div>
+
+        <div class="form-row">
+          <label class="checkbox-label">
+            <input type="checkbox"
+                   id="remember-key"
+                   ${apiConfig.rememberKey ? 'checked' : ''} />
+            <span>Remember this key locally</span>
+          </label>
+          <div class="form-note warning">Key stored unencrypted in browser</div>
+        </div>
+
+        <div class="form-row">
+          <label>Model</label>
+          <select id="api-model" class="config-select" ${!apiConfig.provider ? 'disabled' : ''}>
+            <option value="">Select model...</option>
+            ${models.map(m => `
+              <option value="${m.id}" ${apiConfig.model === m.id ? 'selected' : ''}>${m.name}</option>
+            `).join('')}
+          </select>
+        </div>
+
+        ${detection.webgpu.supported ? `
+          <div class="form-row substrate-option">
+            <label class="checkbox-label">
+              <input type="checkbox"
+                     id="enable-doppler"
+                     ${state.enableDopplerSubstrate ? 'checked' : ''} />
+              <span>Also enable Doppler for substrate access</span>
+            </label>
+            <div class="form-note">Enables LoRA, activation steering, weight inspection</div>
+          </div>
+        ` : ''}
+      </div>
+
+      <div class="wizard-actions">
+        <button class="btn btn-tertiary" data-action="back-to-choose">
+          ← Back
+        </button>
+        <button class="btn btn-primary"
+                data-action="continue-to-goal"
+                ${!apiConfig.provider || !apiConfig.model ? 'disabled' : ''}>
+          Continue ${apiConfig.verifyState !== VERIFY_STATE.VERIFIED ? '(unverified)' : ''}
+        </button>
+      </div>
+    </div>
+  `;
+}
+
+/**
+ * Render PROXY_CONFIG step
+ */
+function renderProxyConfigStep() {
+  const state = getState();
+  const { proxyConfig, detection } = state;
+  const detectedUrl = detection.proxy?.url || '';
+
+  return `
+    <div class="wizard-step wizard-proxy-config">
+      <h2>Proxy Configuration</h2>
+
+      <div class="config-form">
+        <div class="form-row">
+          <label>Proxy URL</label>
+          <div class="input-with-action">
+            <input type="text"
+                   id="proxy-url"
+                   class="config-input"
+                   placeholder="http://localhost:8000"
+                   value="${proxyConfig.url || detectedUrl}" />
+            <button class="btn btn-secondary" data-action="test-proxy">
+              ${proxyConfig.verifyState === VERIFY_STATE.TESTING ? 'Testing...' : 'Test'}
+            </button>
+          </div>
+          ${proxyConfig.verifyState === VERIFY_STATE.VERIFIED ? `
+            <div class="form-success">✓ Connection verified</div>
+          ` : ''}
+          ${proxyConfig.verifyState === VERIFY_STATE.FAILED ? `
+            <div class="form-error">✗ ${proxyConfig.verifyError || 'Connection failed'}</div>
+          ` : ''}
+        </div>
+
+        <div class="form-row">
+          <label>Model</label>
+          <input type="text"
+                 id="proxy-model"
+                 class="config-input"
+                 placeholder="Enter model name"
+                 value="${proxyConfig.model || ''}" />
+        </div>
+      </div>
+
+      <div class="wizard-actions">
+        <button class="btn btn-tertiary" data-action="back-to-choose">
+          ← Back
+        </button>
+        <button class="btn btn-primary"
+                data-action="continue-to-goal"
+                ${!proxyConfig.url || !proxyConfig.model ? 'disabled' : ''}>
+          Continue ${proxyConfig.verifyState !== VERIFY_STATE.VERIFIED ? '(unverified)' : ''}
+        </button>
+      </div>
+    </div>
+  `;
+}
+
+/**
+ * Render LOCAL_CONFIG step
+ */
+function renderLocalConfigStep() {
+  const state = getState();
+  const { localConfig, detection } = state;
+  const detectedUrl = detection.ollama?.url || 'http://localhost:11434';
+  const detectedModels = detection.ollama?.models || [];
+
+  return `
+    <div class="wizard-step wizard-local-config">
+      <h2>Local Server Configuration</h2>
+
+      <div class="config-form">
+        <div class="form-row">
+          <label>Server URL</label>
+          <div class="input-with-action">
+            <input type="text"
+                   id="local-url"
+                   class="config-input"
+                   placeholder="http://localhost:11434"
+                   value="${localConfig.url || detectedUrl}" />
+            <button class="btn btn-secondary" data-action="test-local">
+              ${localConfig.verifyState === VERIFY_STATE.TESTING ? 'Testing...' : 'Test'}
+            </button>
+          </div>
+          ${localConfig.verifyState === VERIFY_STATE.VERIFIED ? `
+            <div class="form-success">✓ Connection verified</div>
+          ` : ''}
+          ${localConfig.verifyState === VERIFY_STATE.FAILED ? `
+            <div class="form-error">✗ ${localConfig.verifyError || 'Connection failed'}</div>
+          ` : ''}
+        </div>
+
+        <div class="form-row">
+          <label>Model</label>
+          ${detectedModels.length > 0 ? `
+            <select id="local-model" class="config-select">
+              <option value="">Select model...</option>
+              ${detectedModels.map(m => `
+                <option value="${m.id}" ${localConfig.model === m.id ? 'selected' : ''}>${m.name}</option>
+              `).join('')}
+            </select>
+          ` : `
+            <input type="text"
+                   id="local-model"
+                   class="config-input"
+                   placeholder="Enter model name (e.g., llama3:8b)"
+                   value="${localConfig.model || ''}" />
+          `}
+        </div>
+      </div>
+
+      <div class="wizard-actions">
+        <button class="btn btn-tertiary" data-action="back-to-choose">
+          ← Back
+        </button>
+        <button class="btn btn-primary"
+                data-action="continue-to-goal"
+                ${!localConfig.url || !localConfig.model ? 'disabled' : ''}>
+          Continue ${localConfig.verifyState !== VERIFY_STATE.VERIFIED ? '(unverified)' : ''}
+        </button>
+      </div>
+    </div>
+  `;
+}
+
+/**
+ * Render DOPPLER_CONFIG step
+ */
+function renderDopplerConfigStep() {
+  const state = getState();
+  const { dopplerConfig, detection } = state;
+  const models = detection.doppler?.models || [];
+
+  // Available Doppler models to download
+  const downloadableModels = [
+    { id: 'smollm2-360m', name: 'SmolLM2 360M', size: '200MB', recommended: true },
+    { id: 'gemma-2b', name: 'Gemma 2B', size: '1.2GB' },
+    { id: 'qwen-0.5b', name: 'Qwen 0.5B', size: '300MB' }
+  ];
+
+  return `
+    <div class="wizard-step wizard-doppler-config">
+      <h2>Browser Model Setup</h2>
+      <p class="wizard-subtitle">Select a model to run locally via WebGPU</p>
+
+      <div class="model-options">
+        ${downloadableModels.map(m => {
+          const cached = models.some(cm => cm.id === m.id);
+          return `
+            <button class="model-option ${dopplerConfig.model === m.id ? 'selected' : ''} ${cached ? 'cached' : ''}"
+                    data-action="select-doppler-model"
+                    data-model="${m.id}">
+              <div class="model-info">
+                <span class="model-name">${m.name}</span>
+                ${m.recommended ? '<span class="model-badge">Recommended</span>' : ''}
+              </div>
+              <div class="model-meta">
+                <span class="model-size">${m.size}</span>
+                <span class="model-status">${cached ? '✓ Cached' : 'Download required'}</span>
+              </div>
+            </button>
+          `;
+        }).join('')}
+      </div>
+
+      ${dopplerConfig.downloadProgress !== null ? `
+        <div class="download-progress">
+          <div class="progress-bar">
+            <div class="progress-fill" style="width: ${dopplerConfig.downloadProgress}%"></div>
+          </div>
+          <span class="progress-text">${dopplerConfig.downloadProgress}%</span>
+        </div>
+      ` : ''}
+
+      <div class="wizard-actions">
+        <button class="btn btn-tertiary" data-action="back-to-choose">
+          ← Back
+        </button>
+        <button class="btn btn-primary"
+                data-action="continue-to-goal"
+                ${!dopplerConfig.model ? 'disabled' : ''}>
+          Continue
+        </button>
+      </div>
+    </div>
+  `;
+}
+
+/**
+ * Render GOAL step
+ */
+function renderGoalStep() {
+  const state = getState();
+  const capabilities = getCapabilityLevel();
+  const filteredGoals = filterGoalsByCapability(GOAL_CATEGORIES, capabilities);
+
+  return `
+    <div class="wizard-step wizard-goal">
+      <h2>What do you want to do?</h2>
+
+      <div class="goal-categories">
+        ${Object.entries(filteredGoals).map(([category, goals]) => `
+          <div class="goal-category">
+            <div class="category-header">
+              <span class="category-name">${category}</span>
+              ${goals.some(g => g.locked) ? `
+                <span class="category-lock">Some goals require different setup</span>
+              ` : ''}
+            </div>
+            <div class="category-goals">
+              ${goals.map(goal => `
+                <button class="goal-chip ${goal.locked ? 'locked' : ''} ${goal.recommended ? 'recommended' : ''}"
+                        data-action="select-goal"
+                        data-goal="${goal.text}"
+                        ${goal.locked ? 'disabled' : ''}>
+                  ${goal.text}
+                  ${goal.recommended ? '<span class="goal-tag recommended">Recommended</span>' : ''}
+                  ${goal.locked ? `<span class="goal-tag locked">${goal.lockReason}</span>` : ''}
+                </button>
+              `).join('')}
+            </div>
+          </div>
+        `).join('')}
+      </div>
+
+      <div class="custom-goal">
+        <label>Or describe your own goal:</label>
+        <textarea id="custom-goal"
+                  class="goal-input"
+                  placeholder="What would you like the agent to do?"
+                  rows="3">${state.goal || ''}</textarea>
+      </div>
+
+      <div class="wizard-actions">
+        <button class="btn btn-tertiary" data-action="back-to-config">
+          ← Back
+        </button>
+        <button class="btn btn-secondary" data-action="advanced-options">
+          Advanced Options
+        </button>
+        <button class="btn btn-primary btn-awaken"
+                data-action="awaken"
+                ${!canAwaken() ? 'disabled' : ''}>
+          Awaken Agent
+        </button>
+      </div>
+    </div>
+  `;
+}
+
+/**
+ * Render AWAKEN step
+ */
+function renderAwakenStep() {
+  const state = getState();
+  const verifyState = state.apiConfig?.verifyState || state.proxyConfig?.verifyState || VERIFY_STATE.VERIFIED;
+
+  return `
+    <div class="wizard-step wizard-awaken">
+      ${verifyState !== VERIFY_STATE.VERIFIED ? `
+        <div class="awaken-warning">
+          <h3>⚠ Connection not verified</h3>
+          <p>Your API connection hasn't been tested. The agent may fail to start.</p>
+          <div class="warning-actions">
+            <button class="btn btn-secondary" data-action="test-now">Test now</button>
+            <button class="btn btn-tertiary" data-action="edit-config">Edit config</button>
+            <button class="btn btn-primary" data-action="awaken-anyway">Continue anyway</button>
+          </div>
+        </div>
+      ` : `
+        <div class="awaken-progress">
+          <h2>Awakening Agent</h2>
+          <div class="progress-steps">
+            <div class="progress-step" id="step-vfs">Initializing VFS...</div>
+            <div class="progress-step" id="step-snapshot">Creating genesis snapshot...</div>
+            <div class="progress-step" id="step-model">Connecting to model...</div>
+            <div class="progress-step" id="step-memory">Loading memory systems...</div>
+            <div class="progress-step" id="step-agent">Starting agent loop...</div>
+          </div>
+        </div>
+      `}
+    </div>
+  `;
+}
+
+/**
+ * Render footer
+ */
+function renderFooter() {
+  const state = getState();
+
+  // Don't show footer during awaken
+  if (state.currentStep === STEPS.AWAKEN) return '';
+
+  return `
+    <div class="wizard-footer">
+      <button class="btn btn-link" data-action="forget-device">
+        Forget this device
+      </button>
+    </div>
+  `;
+}
+
+/**
+ * Attach event listeners after render
+ */
+function attachEventListeners() {
+  if (!container) return;
+
+  // Use event delegation
+  container.addEventListener('click', handleClick);
+  container.addEventListener('change', handleChange);
+  container.addEventListener('input', handleInput);
+}
+
+function handleClick(e) {
+  const action = e.target.closest('[data-action]')?.dataset.action;
+  if (!action) return;
+
+  const state = getState();
+
+  switch (action) {
+    case 'continue-saved':
+      setState({ connectionType: state.savedConfig?.models?.[0]?.provider === 'doppler' ? 'browser' : 'api' });
+      goToStep(STEPS.GOAL);
+      break;
+
+    case 'continue-with-key':
+      const keyInput = document.getElementById('saved-api-key');
+      if (keyInput?.value) {
+        setNestedState('apiConfig', { apiKey: keyInput.value });
+        setState({ connectionType: 'api' });
+        goToStep(STEPS.GOAL);
+      }
+      break;
+
+    case 'reconfigure':
+      goToStep(STEPS.DETECT);
+      startDetection();
+      break;
+
+    case 'skip-detection':
+      setNestedState('detection', { scanSkipped: true });
+      goToStep(STEPS.CHOOSE);
+      break;
+
+    case 'choose-browser':
+      setState({ connectionType: 'browser' });
+      goToStep(STEPS.DOPPLER_CONFIG);
+      break;
+
+    case 'choose-api':
+      setState({ connectionType: 'api' });
+      goToStep(STEPS.API_CONFIG);
+      break;
+
+    case 'choose-proxy':
+      setState({ connectionType: 'proxy' });
+      goToStep(STEPS.PROXY_CONFIG);
+      break;
+
+    case 'choose-local':
+      setState({ connectionType: 'local' });
+      goToStep(STEPS.LOCAL_CONFIG);
+      break;
+
+    case 'explore-docs':
+      // Limited mode - just show docs
+      window.location.href = 'docs/INDEX.md';
+      break;
+
+    case 'back-to-choose':
+      goToStep(STEPS.CHOOSE);
+      break;
+
+    case 'back-to-config':
+      const ct = state.connectionType;
+      if (ct === 'api') goToStep(STEPS.API_CONFIG);
+      else if (ct === 'proxy') goToStep(STEPS.PROXY_CONFIG);
+      else if (ct === 'local') goToStep(STEPS.LOCAL_CONFIG);
+      else goToStep(STEPS.DOPPLER_CONFIG);
+      break;
+
+    case 'test-api-key':
+      handleTestApiKey();
+      break;
+
+    case 'test-proxy':
+      handleTestProxy();
+      break;
+
+    case 'test-local':
+      handleTestLocal();
+      break;
+
+    case 'continue-to-goal':
+      goToStep(STEPS.GOAL);
+      break;
+
+    case 'select-doppler-model':
+      const modelId = e.target.closest('[data-model]')?.dataset.model;
+      if (modelId) {
+        setNestedState('dopplerConfig', { model: modelId });
+      }
+      break;
+
+    case 'select-goal':
+      const goalText = e.target.closest('[data-goal]')?.dataset.goal;
+      if (goalText) {
+        setState({ goal: goalText });
+        const textarea = document.getElementById('custom-goal');
+        if (textarea) textarea.value = goalText;
+      }
+      break;
+
+    case 'awaken':
+      handleAwaken();
+      break;
+
+    case 'forget-device':
+      if (confirm('This will clear all saved configuration and API keys. Continue?')) {
+        forgetDevice();
+        goToStep(STEPS.DETECT);
+        startDetection();
+      }
+      break;
+
+    case 'edit-connection':
+      goToStep(STEPS.CHOOSE);
+      break;
+  }
+}
+
+function handleChange(e) {
+  const id = e.target.id;
+  const value = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
+
+  switch (id) {
+    case 'api-provider':
+      setNestedState('apiConfig', {
+        provider: value,
+        model: null,
+        verifyState: VERIFY_STATE.UNVERIFIED
+      });
+      break;
+
+    case 'api-key':
+      setNestedState('apiConfig', {
+        apiKey: value,
+        verifyState: VERIFY_STATE.UNVERIFIED
+      });
+      break;
+
+    case 'remember-key':
+      setNestedState('apiConfig', { rememberKey: value });
+      break;
+
+    case 'api-model':
+      setNestedState('apiConfig', { model: value });
+      break;
+
+    case 'enable-doppler':
+      setState({ enableDopplerSubstrate: value });
+      break;
+
+    case 'proxy-url':
+      setNestedState('proxyConfig', {
+        url: value,
+        verifyState: VERIFY_STATE.UNVERIFIED
+      });
+      break;
+
+    case 'proxy-model':
+      setNestedState('proxyConfig', { model: value });
+      break;
+
+    case 'local-url':
+      setNestedState('localConfig', {
+        url: value,
+        verifyState: VERIFY_STATE.UNVERIFIED
+      });
+      break;
+
+    case 'local-model':
+      setNestedState('localConfig', { model: value });
+      break;
+  }
+}
+
+function handleInput(e) {
+  if (e.target.id === 'custom-goal') {
+    setState({ goal: e.target.value });
+  }
+}
+
+async function handleTestApiKey() {
+  const state = getState();
+  const { provider, apiKey } = state.apiConfig;
+
+  if (!provider || !apiKey) return;
+
+  setNestedState('apiConfig', { verifyState: VERIFY_STATE.TESTING });
+  render();
+
+  const result = await testApiKey(provider, apiKey);
+
+  setNestedState('apiConfig', {
+    verifyState: result.success ? VERIFY_STATE.VERIFIED : VERIFY_STATE.FAILED,
+    verifyError: result.error
+  });
+}
+
+async function handleTestProxy() {
+  const state = getState();
+  const { url } = state.proxyConfig;
+
+  if (!url) return;
+
+  setNestedState('proxyConfig', { verifyState: VERIFY_STATE.TESTING });
+  render();
+
+  const result = await testProxyConnection(url);
+
+  setNestedState('proxyConfig', {
+    verifyState: result.success ? VERIFY_STATE.VERIFIED : VERIFY_STATE.FAILED,
+    verifyError: result.error
+  });
+}
+
+async function handleTestLocal() {
+  const state = getState();
+  const { url } = state.localConfig;
+
+  if (!url) return;
+
+  setNestedState('localConfig', { verifyState: VERIFY_STATE.TESTING });
+  render();
+
+  const result = await testLocalConnection(url);
+
+  setNestedState('localConfig', {
+    verifyState: result.success ? VERIFY_STATE.VERIFIED : VERIFY_STATE.FAILED,
+    verifyError: result.error
+  });
+}
+
+async function handleAwaken() {
+  const state = getState();
+
+  // Save config
+  saveConfig();
+
+  // Go to awaken step
+  goToStep(STEPS.AWAKEN);
+
+  // Trigger the actual boot awaken
+  // This will be called by the boot system
+  if (window.triggerAwaken) {
+    window.triggerAwaken(state.goal);
+  }
+}
+
+export { STEPS, getState, goToStep };

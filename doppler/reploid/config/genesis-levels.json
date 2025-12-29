@@ -267,18 +267,18 @@
       "tools/Edit.js"
     ],
     "ui": [
-      "ui/goal-history.js",
       "ui/components/arena-results.js"
     ],
     "styles": [
       "styles/theme.css",
+      "styles/wizard.css",
       "styles/proto/index.css"
     ],
     "docs": []
   },
   "preserveOnReset": {
-    "ui": ["goal-history.js"],
-    "styles": ["theme.css", "proto.css", "boot.css"]
+    "ui": [],
+    "styles": ["theme.css", "proto.css", "wizard.css"]
   },
   "refreshOnBoot": [],
   "levelFiles": {
