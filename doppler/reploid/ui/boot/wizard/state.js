@@ -56,6 +56,7 @@ const defaultState = {
 
   // Detection results
   detection: {
+    scanning: false,
     webgpu: { supported: false, checked: false },
     proxy: { detected: false, url: null, checked: false, blocked: false },
     ollama: { detected: false, models: [], checked: false },
