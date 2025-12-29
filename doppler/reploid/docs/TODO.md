@@ -1,19 +1,37 @@
-# REPLOID Roadmap
+# REPLOID Task Tracking
 
-**WARNING: Reploid roadmap items are tracked in `docs/roadmap/`. FunctionGemma cross-stack tasks live in `/Users/xyz/deco/TODO_FUNCTIONGEMMA.md`.**
+**All tasks are tracked in the feature-log system.**
 
-- [Phase 1: Core Platform](roadmap/CORE.md)
-- [Phase 2: Safety & Governance](roadmap/SAFETY.md)
-- [Phase 3: Memory & Intelligence](roadmap/INTELLIGENCE.md)
-- [Phase 4: Distribution](roadmap/DISTRIBUTION.md)
-- [Phase 5: Hardening & Validation](roadmap/HARDENING.md)
-- [FunctionGemma Integration](roadmap/FUNCTIONGEMMA.md)
-- FunctionGemma TODOs (cross-stack): `/Users/xyz/deco/TODO_FUNCTIONGEMMA.md`
-- [Roadmap Overview](roadmap/OVERVIEW.md)
+See:
+- `feature-log/reploid/*.jsonl` - JSONL database of all features and tasks
+- `/feature-log-query --status planned` - Query planned tasks
+- `/feature-log-query --priority P0` - Query P0 tasks
 
 ---
 
-## Status Overview
+## Progress Summary
 
-For metrics, progress, and research references, see:
-- [Roadmap Overview](roadmap/OVERVIEW.md)
+| Phase | Status |
+|-------|--------|
+| 1. Core Platform | Complete |
+| 2. Safety & Governance | Complete |
+| 3. Memory & Intelligence | Complete |
+| 4. Distribution | Complete |
+| 5. Hardening & Validation | In Progress |
+
+---
+
+## Research Foundation
+
+- [RAPTOR](https://arxiv.org/abs/2401.18059) - Tree-organized retrieval
+- [MemGPT](https://arxiv.org/abs/2310.08560) - OS-inspired memory hierarchy
+- [Cognitive Workspace](https://arxiv.org/abs/2508.13171) - 54-60% memory reuse
+- [EM-LLM](https://arxiv.org/abs/2407.09450) - Human episodic memory patterns
+- [GEPA](https://arxiv.org/abs/2507.19457) - Reflective prompt evolution
+
+---
+
+## Related
+
+- [VISION.md](VISION.md) - Strategic vision
+- [blueprints/](../blueprints/) - Architectural specifications

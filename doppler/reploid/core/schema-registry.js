@@ -1,20 +1,21 @@
 /**
  * @fileoverview Schema Registry
- * Central source for tool input schemas and worker type definitions.
+ * Central source for tool input schemas, output schemas, and worker type definitions.
+ * Integrates with SchemaValidator for runtime type safety.
  */
 
 const SchemaRegistry = {
   metadata: {
     id: 'SchemaRegistry',
-    version: '1.0.0',
+    version: '1.1.0',
     genesis: { introduced: 'tabula' },
-    dependencies: ['Utils', 'VFS'],
+    dependencies: ['Utils', 'VFS', 'SchemaValidator?'],
     async: true,
     type: 'service'
   },
 
   factory: (deps) => {
-    const { Utils, VFS } = deps;
+    const { Utils, VFS, SchemaValidator } = deps;
     const { logger } = Utils;
 
     const SCHEMAS_PATH = '/.system/schemas.json';
@@ -404,6 +405,68 @@ const SchemaRegistry = {
       return merged;
     };
 
+    // ─────────────────────────────────────────────────────────────────────────
+    // Output Schema Integration (via SchemaValidator)
+    // ─────────────────────────────────────────────────────────────────────────
+
+    /**
+     * Register an output schema for a tool (delegates to SchemaValidator)
+     * @param {string} toolName - Tool name
+     * @param {Object} schema - Zod-compatible schema
+     */
+    const registerOutputSchema = (toolName, schema) => {
+      if (SchemaValidator) {
+        SchemaValidator.registerOutputSchema(toolName, schema);
+      }
+    };
+
+    /**
+     * Get the output schema for a tool
+     * @param {string} toolName - Tool name
+     * @returns {Object|null}
+     */
+    const getOutputSchema = (toolName) => {
+      if (SchemaValidator) {
+        return SchemaValidator.getOutputSchema(toolName);
+      }
+      return null;
+    };
+
+    /**
+     * Validate tool output against its schema
+     * @param {string} toolName - Tool name
+     * @param {*} output - Output to validate
+     * @returns {Object} Validation result { success, data?, error? }
+     */
+    const validateToolOutput = (toolName, output) => {
+      if (SchemaValidator) {
+        return SchemaValidator.validateOutput(toolName, output);
+      }
+      // Fallback: no validation
+      return { success: true, data: output };
+    };
+
+    /**
+     * Enable or disable output validation
+     * @param {boolean} enabled
+     */
+    const setOutputValidationEnabled = (enabled) => {
+      if (SchemaValidator) {
+        SchemaValidator.setValidationEnabled(enabled);
+      }
+    };
+
+    /**
+     * Check if output validation is enabled
+     * @returns {boolean}
+     */
+    const isOutputValidationEnabled = () => {
+      if (SchemaValidator) {
+        return SchemaValidator.isValidationEnabled();
+      }
+      return false;
+    };
+
     const init = async () => {
       // Register builtin schemas first
       registerToolSchema('ReadFile', DEFAULT_TOOL_SCHEMAS.ReadFile, { builtin: true });
@@ -433,7 +496,13 @@ const SchemaRegistry = {
       // FunctionGemma output validation & merging
       validateSchema,
       validateCombinedOutput,
-      mergeOutputs
+      mergeOutputs,
+      // Output schema integration (via SchemaValidator)
+      registerOutputSchema,
+      getOutputSchema,
+      validateToolOutput,
+      setOutputValidationEnabled,
+      isOutputValidationEnabled
     };
   }
 };

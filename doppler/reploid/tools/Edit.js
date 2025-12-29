@@ -1,10 +1,11 @@
 /**
  * @fileoverview Edit - Targeted file modifications
  * Supports literal match/replace operations with optional counts.
+ * Emits audit:core_write events for L3 substrate changes (/core/, /infrastructure/)
  */
 
 async function call(args = {}, deps = {}) {
-  const { VFS } = deps;
+  const { VFS, AuditLogger, EventBus } = deps;
   if (!VFS) return 'VFS unavailable';
 
   const { path, operations } = args;
@@ -13,7 +14,11 @@ async function call(args = {}, deps = {}) {
     throw new Error('Provide at least one operation in "operations" array');
   }
 
+  // Check if this is a core/infrastructure path (L3 substrate)
+  const isCore = path.startsWith('/core/') || path.startsWith('/infrastructure/');
+
   let content = await VFS.read(path);
+  const beforeLength = content.length;
   let changed = false;
   const results = [];
 
@@ -49,12 +54,33 @@ async function call(args = {}, deps = {}) {
 
   if (changed) {
     await VFS.write(path, content);
+
+    // Audit log for core file changes (L3 substrate)
+    if (isCore && AuditLogger) {
+      await AuditLogger.logCoreWrite({
+        path,
+        operation: 'Edit',
+        existed: true,
+        bytesWritten: content.length,
+        bytesBefore: beforeLength
+      });
+    }
+
+    // Emit event for core writes
+    if (isCore && EventBus) {
+      EventBus.emit('tool:core_write', {
+        path,
+        operation: 'Edit',
+        operationCount: results.reduce((sum, r) => sum + r.replacements, 0)
+      });
+    }
   }
 
   return {
     success: true,
     path,
     changed,
+    isCore,
     operations: results
   };
 }

@@ -8,15 +8,15 @@ import { loadVfsModule } from './vfs-module-loader.js';
 const ToolRunner = {
   metadata: {
     id: 'ToolRunner',
-    version: '1.0.0',
+    version: '1.2.0',
     genesis: { introduced: 'tabula' },
-    dependencies: ['Utils', 'VFS', 'ToolWriter', 'SubstrateLoader?', 'EventBus', 'AuditLogger?', 'HITLController?', 'ArenaHarness?', 'VFSSandbox?', 'VerificationManager?', 'Shell?', 'gitTools?', 'WorkerManager?', 'EmbeddingStore?', 'SemanticMemory?', 'KnowledgeGraph?', 'GEPAOptimizer?', 'SchemaRegistry', 'TraceStore?', 'PersonaManager?', 'Observability?', 'GenesisSnapshot?'],
+    dependencies: ['Utils', 'VFS', 'ToolWriter', 'SubstrateLoader?', 'EventBus', 'AuditLogger?', 'HITLController?', 'ArenaHarness?', 'VFSSandbox?', 'VerificationManager?', 'Shell?', 'gitTools?', 'WorkerManager?', 'EmbeddingStore?', 'SemanticMemory?', 'KnowledgeGraph?', 'GEPAOptimizer?', 'SchemaRegistry', 'TraceStore?', 'PersonaManager?', 'Observability?', 'GenesisSnapshot?', 'PolicyEngine?', 'SchemaValidator?'],
     async: true,
     type: 'service'
   },
 
   factory: (deps) => {
-    const { Utils, VFS, ToolWriter, SubstrateLoader, EventBus, AuditLogger, HITLController, ArenaHarness, VFSSandbox, VerificationManager, Shell, gitTools, EmbeddingStore, SemanticMemory, KnowledgeGraph, GEPAOptimizer, SchemaRegistry, TraceStore, PersonaManager, Observability, GenesisSnapshot } = deps;
+    const { Utils, VFS, ToolWriter, SubstrateLoader, EventBus, AuditLogger, HITLController, ArenaHarness, VFSSandbox, VerificationManager, Shell, gitTools, EmbeddingStore, SemanticMemory, KnowledgeGraph, GEPAOptimizer, SchemaRegistry, TraceStore, PersonaManager, Observability, GenesisSnapshot, PolicyEngine, SchemaValidator } = deps;
     const { logger, Errors, trunc } = Utils;
 
     // WorkerManager is mutable because of circular dependency:
@@ -262,6 +262,44 @@ const ToolRunner = {
           throw error;
         }
       }
+
+      // Policy Engine pre-execution check
+      if (PolicyEngine) {
+        const policyResult = await PolicyEngine.check(name, args, { workerId });
+        if (!policyResult.allowed) {
+          const violationMsg = policyResult.violations.length > 0
+            ? policyResult.violations[0].message
+            : 'Blocked by policy';
+          const error = new Errors.ToolError(`Policy violation: ${violationMsg}`);
+          error.policyViolation = true;
+          error.violations = policyResult.violations;
+
+          if (AuditLogger) {
+            await AuditLogger.logEvent('TOOL_POLICY_BLOCKED', {
+              tool: name,
+              args: _sanitizeArgs(args),
+              violations: policyResult.violations,
+              workerId
+            }, 'WARN');
+          }
+
+          throw error;
+        }
+
+        // Log warnings in warn mode
+        if (policyResult.warnings && policyResult.warnings.length > 0) {
+          logger.warn(`[ToolRunner] Policy warnings for ${name}:`, policyResult.warnings);
+          if (AuditLogger) {
+            await AuditLogger.logEvent('TOOL_POLICY_WARNING', {
+              tool: name,
+              args: _sanitizeArgs(args),
+              warnings: policyResult.warnings,
+              workerId
+            }, 'WARN');
+          }
+        }
+      }
+
       if (!_tools.has(name)) {
         const loaded = await ensureToolLoaded(name);
         if (!loaded) {
@@ -320,7 +358,25 @@ const ToolRunner = {
         if (name === 'RunGEPA') {
           toolDeps.GEPAOptimizer = GEPAOptimizer;
         }
-        const result = await toolFn(args, toolDeps);
+        let result = await toolFn(args, toolDeps);
+
+        // Validate tool output if SchemaValidator is available and enabled
+        if (SchemaValidator && SchemaValidator.isValidationEnabled()) {
+          try {
+            result = SchemaValidator.validateToolOutput(name, result);
+          } catch (validationErr) {
+            // In strict mode, validation errors are thrown
+            logger.warn(`[ToolRunner] Output validation failed for ${name}: ${validationErr.message}`);
+            if (AuditLogger) {
+              await AuditLogger.logEvent('TOOL_OUTPUT_VALIDATION_FAILED', {
+                tool: name,
+                error: validationErr.message,
+                issues: validationErr.issues
+              }, 'WARN');
+            }
+            throw validationErr;
+          }
+        }
 
         if (TraceStore && traceSessionId && !skipTrace) {
           let resultPreview = '';
@@ -343,14 +399,14 @@ const ToolRunner = {
           }, { tags: ['tool'] });
         }
 
-        // Audit log successful execution
+        // Audit log successful execution (uses AuditLogger.logToolExec for enhanced sanitization)
         if (AuditLogger) {
-          await AuditLogger.logEvent('TOOL_EXEC', {
+          await AuditLogger.logToolExec({
             tool: name,
-            args: _sanitizeArgs(args),
+            args,
             durationMs: Date.now() - startTime,
             success: true,
-            ...(workerId && { workerId })
+            workerId
           });
         }
 
@@ -358,16 +414,16 @@ const ToolRunner = {
       } catch (err) {
         logger.error(`[ToolRunner] Error in ${name}`, err);
 
-        // Audit log failed execution
+        // Audit log failed execution (uses AuditLogger.logToolExec for enhanced sanitization)
         if (AuditLogger) {
-          await AuditLogger.logEvent('TOOL_EXEC', {
+          await AuditLogger.logToolExec({
             tool: name,
-            args: _sanitizeArgs(args),
+            args,
             durationMs: Date.now() - startTime,
             success: false,
             error: err.message,
-            ...(workerId && { workerId })
-          }, 'ERROR');
+            workerId
+          });
         }
 
         if (TraceStore && traceSessionId && !skipTrace) {
@@ -516,6 +572,42 @@ const ToolRunner = {
       return schemas.filter(s => allowedTools.includes(s.function.name));
     };
 
+    // ─────────────────────────────────────────────────────────────────────────
+    // Output Validation Control (via SchemaValidator)
+    // ─────────────────────────────────────────────────────────────────────────
+
+    /**
+     * Enable or disable output validation for tool results
+     * @param {boolean} enabled - Whether to enable validation
+     */
+    const setOutputValidation = (enabled) => {
+      if (SchemaValidator) {
+        SchemaValidator.setValidationEnabled(enabled);
+        logger.info(`[ToolRunner] Output validation ${enabled ? 'enabled' : 'disabled'}`);
+      } else {
+        logger.warn('[ToolRunner] SchemaValidator not available, cannot enable output validation');
+      }
+    };
+
+    /**
+     * Enable or disable strict mode (throws on validation failure)
+     * @param {boolean} strict - Whether to enable strict mode
+     */
+    const setStrictValidation = (strict) => {
+      if (SchemaValidator) {
+        SchemaValidator.setStrictMode(strict);
+        logger.info(`[ToolRunner] Strict validation ${strict ? 'enabled' : 'disabled'}`);
+      }
+    };
+
+    /**
+     * Check if output validation is enabled
+     * @returns {boolean}
+     */
+    const isOutputValidationEnabled = () => {
+      return SchemaValidator?.isValidationEnabled() || false;
+    };
+
     return {
       init: loadDynamicTools,
       execute,
@@ -527,6 +619,10 @@ const ToolRunner = {
       isArenaGatingEnabled,
       getToolSchemas,
       getToolSchemasFiltered,
+      // Output validation control
+      setOutputValidation,
+      setStrictValidation,
+      isOutputValidationEnabled,
       // Setter for late-bound WorkerManager (circular dependency workaround)
       setWorkerManager: (wm) => {
         _workerManager = wm;

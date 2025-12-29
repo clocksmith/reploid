@@ -103,7 +103,7 @@ REPLOID and DOPPLER form a closed loop - the serpent eating its own tail:
 - **P2P Networking** - WebRTC for cross-device collaboration *(P2)*
 - **Federated Learning** - Private data stays local *(P2)*
 
-> These capabilities are on the roadmap but not yet implemented. See [roadmap/OVERVIEW.md](./roadmap/OVERVIEW.md).
+> These capabilities are tracked in `feature-log/reploid/*.jsonl`.
 
 ---
 
@@ -133,7 +133,7 @@ REPLOID and DOPPLER form a closed loop - the serpent eating its own tail:
 - [README.md](../README.md) - Quick start and features
 - [blueprints/0x000000-reploid-genesis.md](../blueprints/0x000000-reploid-genesis.md) - Foundational architecture
 - [OUROBOROS.md](/Users/xyz/deco/OUROBOROS.md) - Combined Doppler+Reploid vision
-- [roadmap/OVERVIEW.md](./roadmap/OVERVIEW.md) - Implementation status
+- [TODO.md](./TODO.md) - Task tracking and research references
 
 ---
 

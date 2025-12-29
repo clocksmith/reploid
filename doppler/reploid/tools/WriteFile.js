@@ -13,7 +13,7 @@ async function call(args = {}, deps = {}) {
   if (!path) throw new Error('Missing path argument');
   if (content === undefined) throw new Error('Missing content argument');
 
-  const isCore = path.startsWith('/core/');
+  const isCore = path.startsWith('/core/') || path.startsWith('/infrastructure/');
   const existed = await VFS.exists(path);
   const beforeContent = existed ? await VFS.read(path).catch(() => null) : null;
 
@@ -57,16 +57,34 @@ async function call(args = {}, deps = {}) {
     EventBus.emit(existed ? 'vfs:write' : 'artifact:created', { path });
   }
 
-  // Audit log
+  // Audit log - use logCoreWrite for L3 substrate changes
   if (AuditLogger) {
-    await AuditLogger.logEvent('FILE_WRITE', {
+    if (isCore) {
+      await AuditLogger.logCoreWrite({
+        path,
+        operation: 'WriteFile',
+        existed,
+        bytesWritten: content.length,
+        arenaVerified: arenaGatingEnabled
+      });
+    } else {
+      await AuditLogger.logEvent('FILE_WRITE', {
+        path,
+        existed,
+        bytesWritten: content.length,
+        bytesBefore: beforeContent?.length || 0
+      }, 'INFO');
+    }
+  }
+
+  // Emit event for core writes (L3 substrate visibility)
+  if (isCore && EventBus) {
+    EventBus.emit('tool:core_write', {
       path,
+      operation: 'WriteFile',
       existed,
-      bytesWritten: content.length,
-      bytesBefore: beforeContent?.length || 0,
-      isCore,
-      arenaVerified: isCore && arenaGatingEnabled
-    }, isCore ? 'WARN' : 'INFO');
+      bytesWritten: content.length
+    });
   }
 
   // Auto-load module if requested and file is .js
