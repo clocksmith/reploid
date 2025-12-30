@@ -1,1 +1,1 @@
-doppler/reploid/AGENTS.md
+AGENTS.md
