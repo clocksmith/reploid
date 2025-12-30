@@ -28,6 +28,7 @@
       "doppler/**"
     ],
     "rewrites": [
+      { "source": "/design", "destination": "/design.html" },
       { "source": "**", "destination": "/reploid.html" }
     ]
   }

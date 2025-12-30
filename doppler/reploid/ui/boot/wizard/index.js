@@ -268,12 +268,12 @@ function renderDetectStep() {
 
         <div class="intro-actions">
           ${savedConfig ? `
-            <button class="btn btn-primary" data-action="continue-saved">
-              Continue${savedConfig.hasSavedKey ? '' : ' (enter key)'}
-            </button>
             ${!savedConfig.hasSavedKey ? `
-              <input type="password" id="saved-api-key" placeholder="API key" class="config-input" style="max-width: 200px; text-align: center;" />
+              <input type="password" id="saved-api-key" placeholder="API key" class="intro-key-input" />
             ` : ''}
+            <button class="btn btn-primary" data-action="continue-saved">
+              Continue
+            </button>
             <button class="btn" data-action="start-scan">
               New session
             </button>
