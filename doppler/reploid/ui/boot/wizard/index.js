@@ -217,11 +217,11 @@ function renderStartStep() {
       <div class="saved-config-summary">
         <div class="config-item">
           <span class="config-label">Provider</span>
-          <span class="config-value">${saved.primaryProvider}</span>
+          <span class="config-value">${saved.primaryProvider || 'Unknown'}</span>
         </div>
         <div class="config-item">
           <span class="config-label">Model</span>
-          <span class="config-value">${saved.primaryModel}</span>
+          <span class="config-value">${saved.primaryModel || 'Unknown'}</span>
         </div>
         <div class="config-item">
           <span class="config-label">Key</span>
@@ -229,94 +229,76 @@ function renderStartStep() {
         </div>
       </div>
 
-      <div class="wizard-actions">
-        ${saved.hasSavedKey ? `
+      ${saved.hasSavedKey ? `
+        <div class="wizard-actions stacked">
           <button class="btn btn-primary" data-action="continue-saved">
             Continue with this setup
           </button>
-        ` : `
-          <div class="inline-key-entry">
-            <input type="password" id="saved-api-key" placeholder="Enter API key" class="inline-input" />
-            <button class="btn btn-primary" data-action="continue-with-key">
-              Continue
-            </button>
-          </div>
-        `}
-        <button class="btn btn-secondary" data-action="reconfigure">
-          Reconfigure
-        </button>
-        <button class="btn btn-tertiary" data-action="explore-docs">
-          Explore docs only
-        </button>
-      </div>
+          <button class="btn btn-secondary" data-action="reconfigure">
+            Change configuration
+          </button>
+        </div>
+      ` : `
+        <form class="inline-key-entry" autocomplete="off" onsubmit="return false;">
+          <input type="text" name="username" autocomplete="username" style="display:none" aria-hidden="true" />
+          <input type="password" id="saved-api-key" placeholder="Enter API key" class="inline-input" autocomplete="new-password" />
+          <button type="button" class="btn btn-primary" data-action="continue-with-key">
+            Continue
+          </button>
+        </form>
+        <div class="wizard-actions stacked">
+          <button class="btn btn-secondary" data-action="reconfigure">
+            Change configuration
+          </button>
+        </div>
+      `}
     </div>
   `;
 }
 
 /**
- * Render DETECT step
+ * Render DETECT step - intro/landing page
  */
 function renderDetectStep() {
   const state = getState();
   const { detection } = state;
-  const isHttps = checkHttps();
   const isScanning = detection.scanning;
 
-  // If not scanning yet, show consent screen
+  // If not scanning yet, show intro/landing
   if (!isScanning && !detection.webgpu.checked) {
     return `
-      <div class="wizard-step wizard-detect">
-        <h2>Connection Detection</h2>
-        <p class="wizard-subtitle">We can scan for available model providers.</p>
+      <div class="wizard-step wizard-intro">
+        <h1 class="intro-title">REPLOID</h1>
+        <p class="intro-tagline"><span class="tagline-link">self-modifying agent in the browser</span></p>
 
-        ${isHttps ? `
-          <div class="wizard-note warning">
-            <span class="note-icon">☡</span>
-            You're on HTTPS. Local servers (http://localhost) may be blocked by your browser.
-          </div>
-        ` : ''}
-
-        <div class="detection-consent">
-          <p>This will check for:</p>
-          <ul>
-            <li>WebGPU support for browser-local models</li>
-            <li>Ollama at localhost:11434</li>
-            <li>Proxy server at localhost:8000</li>
-          </ul>
-        </div>
-
-        <div class="wizard-actions">
+        <div class="intro-actions">
           <button class="btn btn-primary" data-action="start-scan">
-            Scan for connections
-          </button>
-          <button class="btn btn-tertiary" data-action="skip-detection">
-            Skip and configure manually
+            Begin
           </button>
         </div>
       </div>
     `;
   }
 
-  // Scanning or completed scan
+  // Scanning in progress
   return `
     <div class="wizard-step wizard-detect">
-      <h2>Detecting Connections</h2>
-      <p class="wizard-subtitle">Checking for available model providers...</p>
+      <h2>Scanning</h2>
 
       <div class="detection-list">
         <div class="detection-item ${detection.webgpu.checked ? (detection.webgpu.supported ? 'online' : 'offline') : 'checking'}">
           <span class="detection-icon">${detection.webgpu.checked ? (detection.webgpu.supported ? '★' : '☒') : '☍'}</span>
           <span class="detection-label">WebGPU</span>
           <span class="detection-status">
-            ${detection.webgpu.checked ? (detection.webgpu.supported ? 'Available' : 'Not supported') : 'Checking...'}
+            ${detection.webgpu.checked ? (detection.webgpu.supported ? 'Available' : 'Not supported') : '...'}
           </span>
         </div>
 
         <div class="detection-item ${detection.doppler?.checked ? (detection.doppler?.supported ? 'online' : 'offline') : 'checking'}">
           <span class="detection-icon">${detection.doppler?.checked ? (detection.doppler?.supported ? '★' : '☒') : '☍'}</span>
-          <span class="detection-label">Doppler Engine</span>
+          <span class="detection-label">Doppler</span>
           <span class="detection-status">
-            ${detection.doppler?.checked ? (detection.doppler?.supported ? 'Ready' : 'Not available') : 'Checking...'}
+            ${detection.doppler?.checked ? (detection.doppler?.supported ? 'Ready' : 'N/A') : '...'}
           </span>
         </div>
 
@@ -326,30 +308,24 @@ function renderDetectStep() {
           <span class="detection-status">
             ${detection.ollama?.checked
               ? (detection.ollama?.detected
-                ? `Found (${detection.ollama.models?.length || 0} models)`
-                : detection.ollama?.blocked
-                  ? 'Blocked by browser'
-                  : 'Not detected')
-              : 'Probing localhost:11434...'}
+                ? `${detection.ollama.models?.length || 0} models`
+                : detection.ollama?.blocked ? 'Blocked' : 'N/A')
+              : '...'}
           </span>
         </div>
 
         <div class="detection-item ${detection.proxy?.checked ? (detection.proxy?.detected ? 'online' : 'offline') : 'checking'}">
           <span class="detection-icon">${detection.proxy?.checked ? (detection.proxy?.detected ? '★' : detection.proxy?.blocked ? '☡' : '☒') : '☍'}</span>
-          <span class="detection-label">Proxy Server</span>
+          <span class="detection-label">Proxy</span>
           <span class="detection-status">
             ${detection.proxy?.checked
-              ? (detection.proxy?.detected
-                ? 'Found'
-                : detection.proxy?.blocked
-                  ? 'Blocked by browser'
-                  : 'Not detected')
-              : 'Probing...'}
+              ? (detection.proxy?.detected ? 'Found' : detection.proxy?.blocked ? 'Blocked' : 'N/A')
+              : '...'}
           </span>
         </div>
       </div>
 
-      <div class="wizard-actions">
+      <div class="wizard-actions centered">
         <button class="btn btn-tertiary" data-action="skip-detection">
           Skip
         </button>
@@ -498,18 +474,21 @@ function renderApiConfigStep() {
 
         <div class="form-row">
           <label>API Key</label>
-          <div class="input-with-action">
+          <form class="input-with-action" autocomplete="off" onsubmit="return false;">
+            <input type="text" name="username" autocomplete="username" style="display:none" aria-hidden="true" />
             <input type="password"
                    id="api-key"
                    class="config-input"
                    placeholder="Enter your API key"
+                   autocomplete="new-password"
                    value="${apiConfig.apiKey || ''}" />
-            <button class="btn btn-secondary"
+            <button type="button"
+                    class="btn btn-secondary"
                     data-action="test-api-key"
                     ${isOther && !apiConfig.baseUrl ? 'disabled' : ''}>
               ${apiConfig.verifyState === VERIFY_STATE.TESTING ? 'Testing...' : 'Test'}
             </button>
-          </div>
+          </form>
           ${apiConfig.verifyState === VERIFY_STATE.VERIFIED ? `
             <div class="form-success">★ Connection verified</div>
           ` : ''}
@@ -888,14 +867,12 @@ function renderAwakenStep() {
 function renderFooter() {
   const state = getState();
 
-  // Don't show footer during awaken
-  if (state.currentStep === STEPS.AWAKEN) return '';
+  // Don't show footer on intro or during awaken
+  if (state.currentStep === STEPS.DETECT || state.currentStep === STEPS.AWAKEN) return '';
 
   return `
     <div class="wizard-footer">
-      <button class="btn btn-link" data-action="forget-device">
-        Forget this device
-      </button>
+      <a class="footer-link" data-action="forget-device">clear saved settings</a>
     </div>
   `;
 }
@@ -1128,8 +1105,44 @@ function handleChange(e) {
 }
 
 function handleInput(e) {
-  if (e.target.id === 'custom-goal') {
-    setState({ goal: e.target.value });
+  const id = e.target.id;
+  const value = e.target.value;
+
+  switch (id) {
+    case 'custom-goal':
+      setState({ goal: value });
+      break;
+
+    case 'api-key':
+      setNestedState('apiConfig', { apiKey: value });
+      break;
+
+    case 'api-base-url':
+      setNestedState('apiConfig', { baseUrl: value });
+      break;
+
+    case 'api-model':
+      // For "other" provider with text input
+      if (getState().apiConfig.provider === 'other') {
+        setNestedState('apiConfig', { model: value });
+      }
+      break;
+
+    case 'proxy-url':
+      setNestedState('proxyConfig', { url: value });
+      break;
+
+    case 'proxy-model':
+      setNestedState('proxyConfig', { model: value });
+      break;
+
+    case 'local-url':
+      setNestedState('localConfig', { url: value });
+      break;
+
+    case 'local-model':
+      setNestedState('localConfig', { model: value });
+      break;
   }
 }
 
@@ -1137,10 +1150,32 @@ async function handleTestApiKey() {
   const state = getState();
   const { provider, apiKey, baseUrl } = state.apiConfig;
 
-  if (!provider || !apiKey) return;
-  if (provider === 'other' && !baseUrl) return;
+  // Validation with user feedback
+  if (!provider) {
+    setNestedState('apiConfig', {
+      verifyState: VERIFY_STATE.FAILED,
+      verifyError: 'Select a provider first'
+    });
+    return;
+  }
 
-  setNestedState('apiConfig', { verifyState: VERIFY_STATE.TESTING });
+  if (!apiKey) {
+    setNestedState('apiConfig', {
+      verifyState: VERIFY_STATE.FAILED,
+      verifyError: 'Enter an API key first'
+    });
+    return;
+  }
+
+  if (provider === 'other' && !baseUrl) {
+    setNestedState('apiConfig', {
+      verifyState: VERIFY_STATE.FAILED,
+      verifyError: 'Enter a base URL for custom provider'
+    });
+    return;
+  }
+
+  setNestedState('apiConfig', { verifyState: VERIFY_STATE.TESTING, verifyError: null });
   render();
 
   const result = await testApiKey(provider, apiKey, baseUrl);
