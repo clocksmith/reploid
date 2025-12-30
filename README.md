@@ -2,7 +2,9 @@
 
 **R**ecursive **E**volution **P**rotocol **L**oop **O**rchestrating **I**nference **D**oppler
 
-Browser-native recursive self-improvement—an agent that rewrites its own code and kernels in a live loop.
+Browser-native recursive self-improvement—an agent that rewrites its own code and kernels in a live loop. Powered by [Doppler](https://github.com/clocksmith/doppler).
+
+Together, a recursive co-evolution: inference powers agency, agency reshapes inference.
 
 **[Try it live](https://replo.id/r)** | **[GitHub](https://github.com/clocksmith/reploid)**
 

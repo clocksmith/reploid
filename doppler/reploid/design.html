@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MONO Design System</title>
+  <title>RD Design System</title>
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
   <link rel="stylesheet" href="styles/mono.css">
   <style>
@@ -99,7 +99,7 @@
 <body>
   <div class="design-page">
     <header class="design-header">
-      <h1>MONO</h1>
+      <h1>RD</h1>
       <p>Black and white design system for REPLOID / DOPPLER</p>
     </header>
 
@@ -129,7 +129,7 @@
     <section class="design-section">
       <h2>Typography</h2>
       <div class="design-group">
-        <div class="design-label">Font A - IBM Plex Mono (geometric, technical)</div>
+        <div class="design-label">Font A - JetBrains Mono (technical)</div>
         <div class="font-sample font-a">
           <div style="font-size: 24px; font-weight: 300;">Light 24px</div>
           <div style="font-size: 16px; font-weight: 400;">Regular 16px</div>
@@ -138,7 +138,7 @@
         </div>
       </div>
       <div class="design-group">
-        <div class="design-label">Font B - JetBrains Mono (readable, code)</div>
+        <div class="design-label">Font B - Inconsolata (readable)</div>
         <div class="font-sample font-b">
           <div style="font-size: 24px; font-weight: 300;">Light 24px</div>
           <div style="font-size: 16px; font-weight: 400;">Regular 16px</div>
@@ -166,42 +166,12 @@
       <h2>Buttons</h2>
 
       <div class="design-group">
-        <div class="design-label">Primary (main action)</div>
         <div class="design-row">
-          <button class="btn btn-primary">Default</button>
-          <button class="btn btn-primary" style="background: var(--fg); color: var(--bg);">Hover</button>
-          <button class="btn btn-primary" style="border-width: 3px;">Active</button>
-        </div>
-        <p style="font-size: 11px; opacity: 0.5; margin-top: 8px;">2px solid → inverted on hover → 3px solid on active</p>
-      </div>
-
-      <div class="design-group">
-        <div class="design-label">Secondary (alternative action)</div>
-        <div class="design-row">
-          <button class="btn">Default</button>
-          <button class="btn" style="border-width: 2px;">Hover</button>
-          <button class="btn" style="background: var(--fg); color: var(--bg);">Active</button>
-        </div>
-        <p style="font-size: 11px; opacity: 0.5; margin-top: 8px;">1px solid → 2px solid on hover → inverted on active</p>
-      </div>
-
-      <div class="design-group">
-        <div class="design-label">Ghost / Tertiary</div>
-        <div class="design-row">
-          <button class="btn btn-ghost">Default</button>
-          <button class="btn btn-ghost" style="border-style: solid; border-width: 2px;">Hover</button>
-          <button class="btn btn-ghost" style="background: var(--fg); color: var(--bg); border-style: solid;">Active</button>
-        </div>
-        <p style="font-size: 11px; opacity: 0.5; margin-top: 8px;">1px dashed → solid 2px on hover → inverted on active</p>
-      </div>
-
-      <div class="design-group">
-        <div class="design-label">Disabled (non-interactive)</div>
-        <div class="design-row">
+          <button class="btn btn-primary">Primary</button>
+          <button class="btn">Secondary</button>
+          <button class="btn btn-ghost">Ghost</button>
           <button class="btn" disabled>Disabled</button>
-          <button class="btn btn-primary" disabled>Disabled Primary</button>
         </div>
-        <p style="font-size: 11px; opacity: 0.5; margin-top: 8px;">1px dashed, 50% opacity, cursor: not-allowed</p>
       </div>
 
       <div class="design-group">
@@ -357,9 +327,9 @@
           <td>inverted (black)</td>
         </tr>
         <tr style="border-bottom: 1px dotted var(--fg);">
-          <td style="padding: 8px 0;">Disabled / Muted</td>
+          <td style="padding: 8px 0;">Disabled</td>
           <td>1px dashed</td>
-          <td>white, 50% opacity</td>
+          <td>50% opacity</td>
         </tr>
         <tr>
           <td style="padding: 8px 0;">Tertiary / Ghost</td>
@@ -410,8 +380,8 @@
         <pre><code>:root {
   --fg: #000000;
   --bg: #FFFFFF;
-  --font-a: 'IBM Plex Mono', monospace;
-  --font-b: 'JetBrains Mono', monospace;
+  --font-a: 'JetBrains Mono', monospace;
+  --font-b: 'Inconsolata', monospace;
 }</code></pre>
       </div>
     </section>
@@ -451,7 +421,7 @@
     </section>
 
     <footer style="margin-top: 80px; padding-top: 20px; border-top: 1px solid var(--fg); opacity: 0.5; font-size: 12px;">
-      MONO Design System for REPLOID / DOPPLER
+      RD Design System for REPLOID / DOPPLER
     </footer>
   </div>
 </body>
