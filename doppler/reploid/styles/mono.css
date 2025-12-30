@@ -3,7 +3,7 @@
    Black & White Only | 2 Monospace Fonts | Border Variants
    ============================================ */
 
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;700&family=JetBrains+Mono:wght@400;500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inconsolata:wght@400;500;700&display=swap');
 
 :root {
   /* === COLORS - THE ONLY TWO === */
@@ -12,10 +12,10 @@
 
   /* === TYPOGRAPHY === */
 
-  /* Font A: Geometric, technical (headers, labels, code) */
-  --font-a: 'IBM Plex Mono', 'Consolas', monospace;
-  /* Font B: Softer, readable (body text, chat) */
-  --font-b: 'JetBrains Mono', 'Fira Code', monospace;
+  /* Font A: Technical (headers, labels, code) */
+  --font-a: 'JetBrains Mono', 'Consolas', monospace;
+  /* Font B: Readable (body text, chat) */
+  --font-b: 'Inconsolata', 'Courier New', monospace;
 
   /* Sizes */
   --text-xs: 11px;
@@ -140,6 +140,9 @@ body {
 .lowercase { text-transform: lowercase; }
 .capitalize { text-transform: capitalize; }
 
+/* Muted (de-emphasized) */
+.muted { opacity: 0.5; }
+
 /* === BORDERS === */
 
 /* Solid borders (default, primary) */
@@ -151,7 +154,7 @@ body {
 .border-dashed { border: var(--border-1) dashed var(--fg); }
 .border-dashed-2 { border: var(--border-2) dashed var(--fg); }
 
-/* Dotted borders (muted, disabled) */
+/* Dotted borders */
 .border-dotted { border: var(--border-1) dotted var(--fg); }
 .border-dotted-2 { border: var(--border-2) dotted var(--fg); }
 
@@ -274,8 +277,9 @@ body {
 }
 
 .panel-muted {
-  border: var(--border-1) dotted var(--fg);
+  border: var(--border-1) solid var(--fg);
   padding: var(--space-md);
+  opacity: 0.5;
 }
 
 .panel-emphasis {
