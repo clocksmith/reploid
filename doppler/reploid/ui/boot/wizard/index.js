@@ -213,7 +213,8 @@ function renderStartStep() {
 
   return `
     <div class="wizard-step wizard-start">
-      <h2>Welcome Back</h2>
+      <h1 class="intro-title">REPLOID</h1>
+      <p class="intro-tagline"><a href="https://github.com/clocksmith/reploid" target="_blank" class="tagline-link">self-modifying AI agent in the browser</a></p>
       <div class="saved-config-summary">
         <div class="config-item">
           <span class="config-label">Provider</span>
@@ -269,7 +270,7 @@ function renderDetectStep() {
     return `
       <div class="wizard-step wizard-intro">
         <h1 class="intro-title">REPLOID</h1>
-        <p class="intro-tagline"><span class="tagline-link">self-modifying agent in the browser</span></p>
+        <p class="intro-tagline"><a href="https://github.com/clocksmith/reploid" target="_blank" class="tagline-link">self-modifying AI agent in the browser</a></p>
 
         <div class="intro-actions">
           <button class="btn btn-primary" data-action="start-scan">
