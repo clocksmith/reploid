@@ -1,0 +1,408 @@
+/* Landing Page - MONO Edition
+   Black & White with Circular Border Variants */
+
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;700&display=swap');
+
+:root {
+  --fg: #000000;
+  --bg: #FFFFFF;
+  --font: 'IBM Plex Mono', 'Consolas', monospace;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font);
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.landing {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4rem;
+  padding: 2rem;
+}
+
+/* ============================================
+   ORBITAL RINGS - Circular Border Variants
+   ============================================ */
+
+.orbit-container {
+  position: relative;
+  width: 320px;
+  height: 320px;
+  cursor: pointer;
+}
+
+/* Circular track borders */
+.orbit-container::before,
+.orbit-container::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+/* Inner track (REPLOID) - solid circle */
+.orbit-container::before {
+  width: 150px;
+  height: 150px;
+  border: 1px solid var(--fg);
+  opacity: 0.15;
+}
+
+/* Outer track (DOPPLER) - dashed circle */
+.orbit-container::after {
+  width: 260px;
+  height: 260px;
+  border: 1px dashed var(--fg);
+  opacity: 0.15;
+}
+
+.ring {
+  position: absolute;
+  inset: 0;
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.ring span {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  margin-left: -0.5em;
+  margin-top: -0.5em;
+  width: 1em;
+  text-align: center;
+  transition: transform 0.3s, opacity 0.3s;
+}
+
+/* Inner ring letters (REPLOID) */
+.ring.inner span {
+  color: var(--fg);
+  opacity: 0.4;
+}
+
+/* Outer ring letters (DOPPLER) */
+.ring.outer span {
+  color: var(--fg);
+  opacity: 0.25;
+}
+
+/* Position letters in a circle */
+.ring.inner span { --r: 75px; }
+.ring.outer span { --r: 130px; }
+
+.ring span:nth-child(1) { transform: rotate(0deg) translateY(calc(var(--r) * -1)) rotate(0deg); }
+.ring span:nth-child(2) { transform: rotate(51.4deg) translateY(calc(var(--r) * -1)) rotate(-51.4deg); }
+.ring span:nth-child(3) { transform: rotate(102.8deg) translateY(calc(var(--r) * -1)) rotate(-102.8deg); }
+.ring span:nth-child(4) { transform: rotate(154.3deg) translateY(calc(var(--r) * -1)) rotate(-154.3deg); }
+.ring span:nth-child(5) { transform: rotate(205.7deg) translateY(calc(var(--r) * -1)) rotate(-205.7deg); }
+.ring span:nth-child(6) { transform: rotate(257.1deg) translateY(calc(var(--r) * -1)) rotate(-257.1deg); }
+.ring span:nth-child(7) { transform: rotate(308.6deg) translateY(calc(var(--r) * -1)) rotate(-308.6deg); }
+
+/* Inner ring: rotates clockwise */
+.ring.inner {
+  animation: spin-cw 30s linear infinite;
+}
+
+/* Outer ring: rotates counter-clockwise */
+.ring.outer {
+  animation: spin-ccw 30s linear infinite;
+}
+
+/* Paused state */
+.orbit-container.paused .ring {
+  animation-play-state: paused;
+}
+
+/* Fast state (hover) */
+.orbit-container.fast .ring.inner,
+.orbit-container.fast .ring.outer {
+  animation-duration: 10s;
+}
+
+/* Letter hover */
+.ring span:hover {
+  transform: rotate(var(--rot)) translateY(calc(var(--r) * -1)) rotate(calc(var(--rot) * -1)) scale(1.2);
+  z-index: 10;
+  opacity: 1 !important;
+}
+
+/* Container hover - brighten all */
+.orbit-container:hover .ring.inner span {
+  opacity: 0.6;
+}
+
+.orbit-container:hover .ring.outer span {
+  opacity: 0.4;
+}
+
+/* Link letters (D in REPLOID, R in DOPPLER) - underlined */
+.ring span.link {
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+/* Bisymmetry: hovering link letters */
+.orbit-container.bisymmetry .ring span.link {
+  opacity: 1 !important;
+  transform: rotate(var(--rot)) translateY(calc(var(--r) * -1)) rotate(calc(var(--rot) * -1)) scale(1.3);
+}
+
+/* ============================================
+   ENTANGLEMENT: Project hover affects orbital
+   ============================================ */
+
+.orbit-container.entangle-reploid .ring.inner {
+  animation-duration: 15s;
+}
+
+.orbit-container.entangle-reploid .ring.inner span {
+  opacity: 0.8;
+}
+
+.orbit-container.entangle-doppler .ring.outer {
+  animation-duration: 15s;
+}
+
+.orbit-container.entangle-doppler .ring.outer span {
+  opacity: 0.6;
+}
+
+/* ============================================
+   LETTER CROSSING EFFECTS
+   ============================================ */
+
+.ring span.crossing {
+  transform: rotate(var(--rot)) translateY(calc(var(--r) * -1)) rotate(calc(var(--rot) * -1)) scale(1.25) !important;
+  opacity: 0.8 !important;
+}
+
+.orbit-container.vertex-crossing .ring span.link {
+  transform: rotate(var(--rot)) translateY(calc(var(--r) * -1)) rotate(calc(var(--rot) * -1)) scale(1.4) !important;
+  opacity: 1 !important;
+}
+
+@keyframes spin-cw {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes spin-ccw {
+  to { transform: rotate(-360deg); }
+}
+
+/* Ripples - different border styles */
+.ripple {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  animation: ripple 4s ease-out infinite;
+  pointer-events: none;
+}
+
+.ripple.r1 {
+  border: 1px solid var(--fg);
+}
+
+.ripple.r2 {
+  border: 1px dashed var(--fg);
+  animation-delay: 1.3s;
+}
+
+.ripple.r3 {
+  border: 1px dotted var(--fg);
+  animation-delay: 2.6s;
+}
+
+@keyframes ripple {
+  0% {
+    width: 0;
+    height: 0;
+    opacity: 0.3;
+  }
+  100% {
+    width: 400px;
+    height: 400px;
+    opacity: 0;
+  }
+}
+
+/* ============================================
+   PROJECT LINKS - Border Style Variants
+   ============================================ */
+
+.projects {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  align-items: center;
+}
+
+.project {
+  text-decoration: none;
+  color: var(--fg);
+  transition: transform 0.3s ease;
+}
+
+.project:hover {
+  transform: scale(1.02);
+}
+
+/* Recursive box effect */
+.box-recursive {
+  position: relative;
+  padding: 4px;
+}
+
+/* Outer recursive border */
+.box-recursive::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border: 1px solid var(--fg);
+  opacity: 0.1;
+  transition: opacity 0.3s;
+}
+
+/* Middle recursive border */
+.box-recursive::after {
+  content: "";
+  position: absolute;
+  inset: 8px;
+  border: 1px solid var(--fg);
+  opacity: 0.15;
+  transition: opacity 0.3s;
+}
+
+.box-inner {
+  position: relative;
+  padding: 1.5rem 2rem;
+  border: 1px solid var(--fg);
+  background: var(--bg);
+  width: 340px;
+  text-align: center;
+  opacity: 0.5;
+  transition: opacity 0.3s, border-width 0.3s;
+}
+
+/* REPLOID - solid borders */
+.project.reploid .box-recursive::before,
+.project.reploid .box-recursive::after,
+.project.reploid .box-inner {
+  border-style: solid;
+}
+
+/* DOPPLER - dashed borders */
+.project.doppler .box-recursive::before,
+.project.doppler .box-recursive::after,
+.project.doppler .box-inner {
+  border-style: dashed;
+}
+
+/* Hover states */
+.project:hover .box-recursive::before {
+  opacity: 0.25;
+}
+
+.project:hover .box-recursive::after {
+  opacity: 0.4;
+}
+
+.project:hover .box-inner {
+  opacity: 1;
+  border-width: 2px;
+}
+
+/* Labels */
+.project .label {
+  font-size: 1.6rem;
+  font-weight: 700;
+  display: block;
+  margin-bottom: 0.5rem;
+  letter-spacing: 0.1em;
+}
+
+.project .desc {
+  font-size: 0.9rem;
+  display: block;
+  opacity: 0.6;
+}
+
+.cycle {
+  font-size: 1.5rem;
+  opacity: 0.2;
+  transition: opacity 0.3s;
+}
+
+.projects:hover .cycle {
+  opacity: 0.5;
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+
+@media (max-width: 700px) {
+  .orbit-container {
+    width: 260px;
+    height: 260px;
+  }
+
+  .orbit-container::before {
+    width: 120px;
+    height: 120px;
+  }
+
+  .orbit-container::after {
+    width: 210px;
+    height: 210px;
+  }
+
+  .ring {
+    font-size: 22px;
+  }
+
+  .ring.inner span { --r: 60px; }
+  .ring.outer span { --r: 105px; }
+
+  @keyframes ripple {
+    0% { width: 0; height: 0; opacity: 0.3; }
+    100% { width: 320px; height: 320px; opacity: 0; }
+  }
+
+  .project .label {
+    font-size: 1.4rem;
+  }
+
+  .box-inner {
+    padding: 1rem 1.5rem;
+    width: 280px;
+  }
+
+  /* Mobile: slightly more visible by default */
+  .box-inner {
+    opacity: 0.7;
+  }
+
+  .box-recursive::before {
+    opacity: 0.2;
+  }
+
+  .box-recursive::after {
+    opacity: 0.25;
+  }
+}

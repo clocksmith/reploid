@@ -1,5 +1,86 @@
-/* Proto Styles - Modular index
+/* Proto Styles - MONO Edition
+   Maps legacy theme variables to MONO design tokens
    Import all proto modules */
+
+/* ============================================
+   MONO Compatibility Layer
+   Maps old theme variables to --fg and --bg
+   ============================================ */
+
+:root {
+  /* Background hierarchy - all white */
+  --bg-app: var(--bg);
+  --bg-panel: var(--bg);
+  --bg-element: var(--bg);
+  --bg-secondary: var(--bg);
+  --bg-tertiary: var(--bg);
+  --bg-hover: var(--bg);
+  --bg-primary: var(--bg);
+
+  /* Text hierarchy - all black with opacity */
+  --text-primary: var(--fg);
+  --text-secondary: var(--fg);
+  --text-muted: var(--fg);
+  --text-link: var(--fg);
+
+  /* Primary color - black */
+  --primary: var(--fg);
+  --primary-dim: var(--fg);
+  --secondary: var(--fg);
+
+  /* Border hierarchy - all black */
+  --border-primary: var(--fg);
+  --border-secondary: var(--fg);
+  --border-default: var(--fg);
+  --border-subtle: var(--fg);
+  --border-active: var(--fg);
+
+  /* Status colors - all black (differentiated by border-style) */
+  --success: var(--fg);
+  --success-dim: var(--fg);
+  --warning: var(--fg);
+  --warning-dim: var(--fg);
+  --error: var(--fg);
+  --danger: var(--fg);
+  --danger-dim: var(--fg);
+
+  /* Spacing (keep as-is) */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 12px;
+  --space-lg: 16px;
+
+  /* Font sizes (keep as-is) */
+  --font-xs: 11px;
+  --font-sm: 12px;
+  --font-md: 13px;
+  --font-base: 14px;
+  --font-lg: 16px;
+  --font-xl: 20px;
+
+  /* Radius - none for MONO */
+  --radius-sm: 0;
+  --radius-md: 0;
+  --radius-lg: 0;
+
+  /* Transitions */
+  --transition-normal: 0.2s ease;
+
+  /* Scrollbar - mono */
+  --scrollbar-bg: var(--bg);
+  --scrollbar-thumb: var(--fg);
+  --scrollbar-thumb-hover: var(--fg);
+
+  /* Shadow - none for MONO */
+  --shadow-lg: none;
+
+  /* Font - mono */
+  --font-mono: var(--font);
+}
+
+/* ============================================
+   Proto Module Imports
+   ============================================ */
 
 @import url('./layout.css');
 @import url('./panels.css');

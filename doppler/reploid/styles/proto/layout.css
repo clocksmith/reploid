@@ -54,14 +54,14 @@
 }
 
 .sidebar-btn:hover {
-    color: var(--primary);
-    background: rgba(0, 217, 255, 0.1);
+    background: var(--fg);
+    color: var(--bg);
 }
 
 .sidebar-btn.active {
-    color: var(--primary);
-    background: rgba(0, 217, 255, 0.15);
-    border-left: 2px solid var(--primary);
+    background: var(--fg);
+    color: var(--bg);
+    border-left: 2px solid var(--bg);
 }
 
 .sidebar-spacer {
@@ -217,7 +217,8 @@
 }
 
 .controls button:hover:not(:disabled) {
-    background: rgba(0, 217, 255, 0.3);
+    background: var(--fg);
+    color: var(--bg);
 }
 
 .controls button:disabled {

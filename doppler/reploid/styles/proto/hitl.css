@@ -1,22 +1,22 @@
-/* HITL Widget - Human-in-the-loop approval UI */
+/* HITL Widget - Human-in-the-loop approval UI (MONO Edition) */
 
 .hitl-widget {
-  background: rgba(0, 0, 0, 0.3);
-  border-radius: 8px;
+  border: 1px solid var(--fg);
   padding: 12px;
   font-size: var(--font-xs);
 }
 
 .hitl-widget.hitl-active {
-  border-left: 3px solid var(--warning, #ffa500);
+  border-left: 3px solid var(--fg);
+  border-left-style: dashed;
 }
 
 .hitl-widget.hitl-auto {
-  border-left: 3px solid var(--success, #66bb6a);
+  border-left: 3px solid var(--fg);
 }
 
 .hitl-widget.hitl-every-n {
-  border-left: 3px solid var(--info, #42a5f5);
+  border-left: 3px dotted var(--fg);
 }
 
 .hitl-header {
@@ -36,38 +36,37 @@
 }
 
 .hitl-toggle {
-  background: rgba(255, 255, 255, 0.1);
-  border: none;
+  background: var(--bg);
+  border: 1px solid var(--fg);
   padding: 4px 8px;
-  border-radius: 4px;
   cursor: pointer;
   font-size: var(--font-xs);
-  color: var(--text-primary, #fff);
+  color: var(--fg);
 }
 
 .hitl-toggle:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background: var(--fg);
+  color: var(--bg);
 }
 
 .hitl-mode-select {
   flex: 1;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: var(--bg);
+  border: 1px solid var(--fg);
   padding: 4px 8px;
-  border-radius: 4px;
-  color: var(--text-primary, #fff);
+  color: var(--fg);
   font-size: var(--font-xs);
   cursor: pointer;
 }
 
 .hitl-mode-select:hover {
-  background: rgba(255, 255, 255, 0.15);
+  background: var(--fg);
+  color: var(--bg);
 }
 
 .hitl-config {
   margin: 8px 0;
-  background: rgba(66, 165, 245, 0.1);
-  border-radius: 4px;
+  border: 1px dashed var(--fg);
   padding: 8px;
 }
 
@@ -80,30 +79,27 @@
 
 .hitl-steps-input {
   width: 50px;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: var(--bg);
+  border: 1px solid var(--fg);
   padding: 2px 6px;
-  border-radius: 3px;
-  color: var(--text-primary, #fff);
+  color: var(--fg);
   font-size: var(--font-xs);
 }
 
 .hitl-step-counter {
-  color: var(--text-muted, rgba(255, 255, 255, 0.5));
+  opacity: 0.6;
   font-size: var(--font-xs);
 }
 
 .hitl-queue {
   margin: 8px 0;
-  background: rgba(255, 165, 0, 0.1);
-  border-radius: 4px;
+  border: 1px dashed var(--fg);
   padding: 8px;
 }
 
 .hitl-queue-header {
   font-weight: 500;
   margin-bottom: 8px;
-  color: var(--warning, #ffa500);
 }
 
 .hitl-item {
@@ -111,7 +107,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 6px 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px dotted var(--fg);
 }
 
 .hitl-item:last-child {
@@ -130,7 +126,7 @@
 }
 
 .hitl-item-action {
-  color: var(--text-secondary, rgba(255, 255, 255, 0.6));
+  opacity: 0.7;
   font-size: var(--font-xs);
 }
 
@@ -143,33 +139,30 @@
 .hitl-reject {
   width: 24px;
   height: 24px;
-  border: none;
-  border-radius: 4px;
+  border: 1px solid var(--fg);
   cursor: pointer;
   font-size: var(--font-xs);
+  background: var(--bg);
+  color: var(--fg);
+}
+
+.hitl-approve:hover,
+.hitl-reject:hover {
+  background: var(--fg);
+  color: var(--bg);
 }
 
 .hitl-approve {
-  background: rgba(102, 187, 106, 0.2);
-  color: var(--success, #66bb6a);
-}
-
-.hitl-approve:hover {
-  background: rgba(102, 187, 106, 0.4);
+  border-width: 2px;
 }
 
 .hitl-reject {
-  background: rgba(244, 135, 113, 0.2);
-  color: var(--danger, #f48771);
-}
-
-.hitl-reject:hover {
-  background: rgba(244, 135, 113, 0.4);
+  border-style: dashed;
 }
 
 .hitl-more {
   text-align: center;
-  color: var(--text-muted, rgba(255, 255, 255, 0.5));
+  opacity: 0.6;
   font-size: var(--font-xs);
   padding-top: 4px;
 }
@@ -182,27 +175,24 @@
 
 .hitl-stat {
   padding: 2px 8px;
-  border-radius: 10px;
   font-size: var(--font-xs);
+  border: 1px solid var(--fg);
 }
 
 .hitl-stat.approved {
-  background: rgba(102, 187, 106, 0.2);
-  color: var(--success, #66bb6a);
+  border-width: 2px;
 }
 
 .hitl-stat.rejected {
-  background: rgba(244, 135, 113, 0.2);
-  color: var(--danger, #f48771);
+  border-style: dashed;
 }
 
 .hitl-stat.auto {
-  background: rgba(255, 255, 255, 0.1);
-  color: var(--text-secondary, rgba(255, 255, 255, 0.6));
+  border-style: dotted;
 }
 
 .hitl-disabled {
-  color: var(--text-muted, rgba(255, 255, 255, 0.4));
+  opacity: 0.5;
   text-align: center;
   padding: 20px;
 }
