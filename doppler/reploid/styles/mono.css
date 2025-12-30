@@ -298,6 +298,8 @@ body {
 }
 
 /* --- Buttons --- */
+
+/* Secondary button (default) */
 .btn {
   display: inline-flex;
   align-items: center;
@@ -312,48 +314,73 @@ body {
   text-decoration: none;
   background: var(--bg);
   color: var(--fg);
-  border: var(--border-1) solid var(--fg);
+  border: 1px solid var(--fg);
   cursor: pointer;
   transition: none;
 }
 
+/* Secondary: hover -> 2px solid */
 .btn:hover {
+  border-width: 2px;
+}
+
+/* Secondary: active -> inverted */
+.btn:active {
   background: var(--fg);
   color: var(--bg);
 }
 
+/* Primary button (main action) */
 .btn-primary {
   background: var(--fg);
   color: var(--bg);
-  border-width: var(--border-2);
+  border-width: 2px;
 }
 
+/* Primary: hover -> un-inverted */
 .btn-primary:hover {
   background: var(--bg);
   color: var(--fg);
+  border-width: 2px;
 }
 
+/* Primary: active -> 3px solid */
+.btn-primary:active {
+  background: var(--fg);
+  color: var(--bg);
+  border-width: 3px;
+}
+
+/* Ghost button (tertiary) */
 .btn-ghost {
   border-style: dashed;
 }
 
 .btn-ghost:hover {
+  border-style: solid;
+  border-width: 2px;
+}
+
+.btn-ghost:active {
   background: var(--fg);
   color: var(--bg);
   border-style: solid;
 }
 
+/* Disabled button */
 .btn:disabled,
 .btn.disabled {
-  border-style: dotted;
+  border-style: dashed;
+  border-width: 1px;
   cursor: not-allowed;
-  opacity: 1;
+  opacity: 0.5;
 }
 
 .btn:disabled:hover,
 .btn.disabled:hover {
   background: var(--bg);
   color: var(--fg);
+  border-width: 1px;
 }
 
 .btn-sm {
@@ -990,6 +1017,22 @@ pre code {
   min-width: 160px;
   padding: 14px 32px;
   font-size: 14px;
+}
+
+.intro-key-input {
+  min-width: 160px;
+  padding: 14px 32px;
+  font-size: 14px;
+  text-align: center;
+  background: var(--bg);
+  color: var(--fg);
+  border: 1px dotted var(--fg);
+  font-family: var(--font);
+}
+
+.intro-key-input:focus {
+  outline: none;
+  border-style: solid;
 }
 
 .intro-actions .btn-link {
