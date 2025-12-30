@@ -2,7 +2,7 @@
 
 > Security architecture for safe recursive self-improvement research.
 
-**Foundational thesis:** See [`feature-log/RALLY.md`](../../../feature-log/RALLY.md) — Constraints aren't limitations; they're the engine that makes browser-native RSI work. The browser sandbox, VFS containment, and graduated safety gates create stable pressure toward compact, efficient self-modifications.
+**Foundational thesis:** See [`VISION.md`](../../../../VISION.md) — Constraints aren't limitations; they're the engine that makes browser-native RSI work. The browser sandbox, VFS containment, and graduated safety gates create stable pressure toward compact, efficient self-modifications.
 
 This document provides a high-level overview of REPLOID's security model. For detailed implementation specifications, see the referenced blueprints.
 
