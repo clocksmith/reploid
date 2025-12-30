@@ -51,18 +51,12 @@ export function initWizard(containerEl) {
 }
 
 /**
- * Handle START step - check for saved config
+ * Handle START step - always go to DETECT (unified intro)
  */
 function handleStart() {
   const saved = checkSavedConfig();
-
-  if (saved) {
-    // Have saved config, render resume option
-    setState({ savedConfig: saved, currentStep: STEPS.START });
-  } else {
-    // No saved config, show detection consent screen
-    goToStep(STEPS.DETECT);
-  }
+  // Store saved config but always go to unified DETECT screen
+  setState({ savedConfig: saved, currentStep: STEPS.DETECT });
 }
 
 /**
@@ -258,11 +252,11 @@ function renderStartStep() {
 }
 
 /**
- * Render DETECT step - intro/landing page
+ * Render DETECT step - unified intro/landing page
  */
 function renderDetectStep() {
   const state = getState();
-  const { detection } = state;
+  const { detection, savedConfig } = state;
   const isScanning = detection.scanning;
 
   // If not scanning yet, show intro/landing
@@ -273,9 +267,21 @@ function renderDetectStep() {
         <p class="intro-tagline"><a href="https://github.com/clocksmith/reploid" target="_blank" class="tagline-link">self-modifying AI agent in the browser</a></p>
 
         <div class="intro-actions">
-          <button class="btn btn-primary" data-action="start-scan">
-            Begin
-          </button>
+          ${savedConfig ? `
+            <button class="btn btn-primary" data-action="continue-saved">
+              Continue${savedConfig.hasSavedKey ? '' : ' (enter key)'}
+            </button>
+            ${!savedConfig.hasSavedKey ? `
+              <input type="password" id="saved-api-key" placeholder="API key" class="config-input" style="max-width: 200px; text-align: center;" />
+            ` : ''}
+            <button class="btn" data-action="start-scan">
+              New session
+            </button>
+          ` : `
+            <button class="btn btn-primary" data-action="start-scan">
+              Begin
+            </button>
+          `}
         </div>
       </div>
     `;
@@ -898,17 +904,18 @@ function handleClick(e) {
 
   switch (action) {
     case 'continue-saved':
-      // Hydrate state from saved config and go to GOAL
-      hydrateSavedConfig(state.savedConfig);
-      goToStep(STEPS.GOAL);
-      break;
-
-    case 'continue-with-key':
-      const keyInput = document.getElementById('saved-api-key');
-      if (keyInput?.value) {
-        // Hydrate state with the provided key
-        hydrateSavedConfig(state.savedConfig, keyInput.value);
+      // Check if we need a key
+      if (state.savedConfig?.hasSavedKey) {
+        // Has saved key, go straight to GOAL
+        hydrateSavedConfig(state.savedConfig);
         goToStep(STEPS.GOAL);
+      } else {
+        // Need to get key from input
+        const keyInput = document.getElementById('saved-api-key');
+        if (keyInput?.value) {
+          hydrateSavedConfig(state.savedConfig, keyInput.value);
+          goToStep(STEPS.GOAL);
+        }
       }
       break;
 
