@@ -4,83 +4,78 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>REPLOID - Reset Data</title>
+  <link rel="stylesheet" href="styles/mono.css">
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: #0a0a0a;
-      color: #e0e0e0;
-      min-height: 100vh;
-      padding: 40px 20px;
-    }
-    .container {
+    /* Reset-specific styles using MONO tokens */
+    .reset-container {
       max-width: 600px;
       margin: 0 auto;
+      padding: 40px 20px;
     }
-    h1 {
-      color: #00d9ff;
+    .reset-title {
       font-size: 24px;
+      font-weight: 700;
       margin-bottom: 8px;
     }
-    .subtitle {
-      color: #888;
+    .reset-subtitle {
+      opacity: 0.6;
       margin-bottom: 30px;
     }
-    .card {
-      background: #141414;
-      border: 1px solid #2a2a2a;
+    .reset-card {
+      border: 1px solid var(--fg);
       padding: 20px;
       margin-bottom: 16px;
     }
-    .card-header {
+    .reset-card-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
       margin-bottom: 12px;
     }
-    .card-title {
+    .reset-card-title {
       font-size: 16px;
       font-weight: 600;
       display: flex;
       align-items: center;
       gap: 10px;
     }
-    .card-title .icon {
+    .reset-card-title .icon {
       font-size: 20px;
     }
-    .card-desc {
-      color: #888;
+    .reset-card-desc {
+      opacity: 0.6;
       font-size: 13px;
       line-height: 1.5;
       margin-bottom: 12px;
     }
     .stats {
-      background: #1a1a1a;
+      border: 1px dashed var(--fg);
       padding: 12px;
-      font-family: 'Monaco', 'Menlo', monospace;
       font-size: 12px;
     }
     .stats-row {
       display: flex;
       justify-content: space-between;
       padding: 4px 0;
-      border-bottom: 1px solid #252525;
+      border-bottom: 1px dotted var(--fg);
+      opacity: 0.8;
     }
     .stats-row:last-child {
       border-bottom: none;
     }
     .stats-label {
-      color: #888;
+      opacity: 0.6;
     }
     .stats-value {
-      color: #00d9ff;
+      font-weight: 500;
     }
     .stats-value.warning {
-      color: #ffa500;
+      font-weight: 700;
     }
     .stats-value.empty {
-      color: #666;
+      opacity: 0.4;
     }
+    /* Toggle switch - MONO style */
     .toggle {
       position: relative;
       width: 50px;
@@ -95,8 +90,8 @@
       position: absolute;
       cursor: pointer;
       inset: 0;
-      background: #333;
-      border: 1px solid #444;
+      background: var(--bg);
+      border: 1px solid var(--fg);
       transition: 0.2s;
     }
     .toggle-slider:before {
@@ -106,75 +101,46 @@
       width: 18px;
       left: 3px;
       bottom: 3px;
-      background: #666;
+      background: var(--fg);
+      opacity: 0.3;
       transition: 0.2s;
     }
     .toggle input:checked + .toggle-slider {
-      background: rgba(0, 217, 255, 0.15);
-      border-color: rgba(0, 217, 255, 0.4);
+      background: var(--fg);
     }
     .toggle input:checked + .toggle-slider:before {
       transform: translateX(24px);
-      background: #00d9ff;
+      background: var(--bg);
+      opacity: 1;
     }
-    .actions {
+    .reset-actions {
       display: flex;
       gap: 12px;
       margin-top: 24px;
     }
-    .btn {
+    .reset-actions .btn {
       flex: 1;
       padding: 14px 24px;
-      border: none;
       font-size: 15px;
       font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s;
     }
-    .btn:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-    .btn-primary {
-      background: rgba(0, 217, 255, 0.15);
-      border: 1px solid rgba(0, 217, 255, 0.4);
-      color: #00d9ff;
-    }
-    .btn-primary:hover:not(:disabled) {
-      background: rgba(0, 217, 255, 0.25);
-      border-color: rgba(0, 217, 255, 0.6);
-    }
-    .btn-secondary {
-      background: transparent;
-      border: 1px solid #666;
-      color: #e0e0e0;
-    }
-    .btn-secondary:hover:not(:disabled) {
-      border-color: #00d9ff;
-      color: #00d9ff;
-    }
-    .status {
+    .reset-status {
       margin-top: 20px;
       padding: 16px;
+      border: 1px solid var(--fg);
       display: none;
     }
-    .status.success {
+    .reset-status.success {
       display: block;
-      background: #0d3744;
-      border: 1px solid #155e75;
-      color: #00d9ff;
+      border-width: 2px;
     }
-    .status.error {
+    .reset-status.error {
       display: block;
-      background: #3d1b1b;
-      border: 1px solid #5a2d2d;
-      color: #ff7f7f;
+      border-style: dashed;
     }
-    .status.progress {
+    .reset-status.progress {
       display: block;
-      background: #1a1a1a;
-      border: 1px solid #333;
-      color: #888;
+      border-style: dotted;
     }
     .progress-item {
       padding: 4px 0;
@@ -183,14 +149,14 @@
       gap: 8px;
     }
     .progress-item .check {
-      color: #00d9ff;
+      font-weight: bold;
     }
     .loading {
       display: inline-block;
       width: 14px;
       height: 14px;
-      border: 2px solid #333;
-      border-top-color: #00d9ff;
+      border: 2px solid var(--fg);
+      border-top-color: transparent;
       animation: spin 0.8s linear infinite;
     }
     @keyframes spin {
@@ -199,24 +165,24 @@
     .back-link {
       display: inline-block;
       margin-top: 24px;
-      color: #00d9ff;
       text-decoration: none;
       font-size: 14px;
+      border-bottom: 1px dotted var(--fg);
     }
     .back-link:hover {
-      text-decoration: underline;
+      border-bottom-style: solid;
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>REPLOID Reset</h1>
-    <p class="subtitle">Selectively clear cached data to fix issues or start fresh</p>
+  <div class="reset-container">
+    <h1 class="reset-title">REPLOID Reset</h1>
+    <p class="reset-subtitle">Selectively clear cached data to fix issues or start fresh</p>
 
     <!-- Service Workers -->
-    <div class="card">
-      <div class="card-header">
-        <div class="card-title">
+    <div class="reset-card">
+      <div class="reset-card-header">
+        <div class="reset-card-title">
           <span class="icon">&#9032;</span>
           Service Workers
         </div>
@@ -225,7 +191,7 @@
           <span class="toggle-slider"></span>
         </label>
       </div>
-      <p class="card-desc">
+      <p class="reset-card-desc">
         Service workers intercept network requests and can serve cached JavaScript modules.
         Unregistering them forces fresh code to load from the server.
       </p>
@@ -238,9 +204,9 @@
     </div>
 
     <!-- Browser Caches -->
-    <div class="card">
-      <div class="card-header">
-        <div class="card-title">
+    <div class="reset-card">
+      <div class="reset-card-header">
+        <div class="reset-card-title">
           <span class="icon">&#9850;</span>
           Browser Caches
         </div>
@@ -249,7 +215,7 @@
           <span class="toggle-slider"></span>
         </label>
       </div>
-      <p class="card-desc">
+      <p class="reset-card-desc">
         Browser caches store responses for offline use and faster loading.
         Clearing them ensures you get the latest versions of all files.
       </p>
@@ -262,9 +228,9 @@
     </div>
 
     <!-- LocalStorage -->
-    <div class="card">
-      <div class="card-header">
-        <div class="card-title">
+    <div class="reset-card">
+      <div class="reset-card-header">
+        <div class="reset-card-title">
           <span class="icon">&#9719;</span>
           LocalStorage
         </div>
@@ -273,7 +239,7 @@
           <span class="toggle-slider"></span>
         </label>
       </div>
-      <p class="card-desc">
+      <p class="reset-card-desc">
         Stores user preferences like selected models, genesis level, and UI settings.
         Clearing this resets all configuration to defaults.
       </p>
@@ -290,9 +256,9 @@
     </div>
 
     <!-- IndexedDB -->
-    <div class="card">
-      <div class="card-header">
-        <div class="card-title">
+    <div class="reset-card">
+      <div class="reset-card-header">
+        <div class="reset-card-title">
           <span class="icon">&#9751;</span>
           IndexedDB (VFS)
         </div>
@@ -301,7 +267,7 @@
           <span class="toggle-slider"></span>
         </label>
       </div>
-      <p class="card-desc">
+      <p class="reset-card-desc">
         The Virtual File System stores all agent code, reflections, knowledge graph,
         embeddings, and state. This is the main data store for REPLOID.
       </p>
@@ -314,12 +280,12 @@
       </div>
     </div>
 
-    <div class="actions">
-      <button class="btn btn-secondary" onclick="window.location.href='/'">Cancel</button>
+    <div class="reset-actions">
+      <button class="btn" onclick="window.location.href='/'">Cancel</button>
       <button class="btn btn-primary" id="reset-btn" onclick="performReset()">Reset Selected</button>
     </div>
 
-    <div class="status" id="status"></div>
+    <div class="reset-status" id="status"></div>
 
     <a href="/" class="back-link">&larr; Back to REPLOID</a>
   </div>
@@ -391,7 +357,7 @@
       btn.disabled = true;
       btn.textContent = 'Resetting...';
 
-      status.className = 'status progress';
+      status.className = 'reset-status progress';
       status.innerHTML = '<div class="progress-item"><span class="loading"></span> Starting reset...</div>';
 
       const steps = [];
@@ -475,11 +441,11 @@
           updateProgress(status, 'Deleted IndexedDB databases');
         }
 
-        status.className = 'status success';
+        status.className = 'reset-status success';
         status.innerHTML = '<strong>Reset complete!</strong><br><br>' +
           steps.map(s => '&#10003; ' + s).join('<br>') +
           '<br><br><button class="btn btn-primary" onclick="window.location.href=\'/\'" style="margin-top: 12px;">Launch REPLOID</button>' +
-          '<button class="btn btn-secondary" onclick="location.reload()" style="margin-top: 12px; margin-left: 8px;">Refresh Status</button>';
+          '<button class="btn" onclick="location.reload()" style="margin-top: 12px; margin-left: 8px;">Refresh Status</button>';
 
         // Re-scan to show updated stats (don't redirect)
         await scanData();
@@ -488,7 +454,7 @@
         btn.textContent = 'Reset Again';
 
       } catch (e) {
-        status.className = 'status error';
+        status.className = 'reset-status error';
         status.innerHTML = '<strong>Reset failed:</strong><br>' + e.message;
         btn.disabled = false;
         btn.textContent = 'Retry Reset';

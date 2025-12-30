@@ -14,7 +14,8 @@
 }
 
 .btn-small:hover {
-    background: rgba(0, 217, 255, 0.3);
+    background: var(--fg);
+    color: var(--bg);
 }
 
 /* Utility Classes */
@@ -76,7 +77,7 @@ kbd {
 .modal-overlay {
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.72);
+    background: var(--bg);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -256,15 +257,16 @@ kbd {
 }
 
 .diff-line.added {
-    background: rgba(16, 185, 129, 0.15);
+    border-left: 3px solid var(--fg);
 }
 
 .diff-line.removed {
-    background: rgba(239, 68, 68, 0.15);
+    border-left: 3px dashed var(--fg);
+    opacity: 0.6;
 }
 
 .diff-line.changed {
-    background: rgba(245, 158, 11, 0.15);
+    border-left: 3px dotted var(--fg);
 }
 
 .line-number {
@@ -283,21 +285,19 @@ kbd {
     font-size: var(--font-xs);
 }
 
-/* Genesis diff color coding */
+/* Genesis diff coding (MONO - border style variants) */
 .diff-added {
-    background: rgba(0, 217, 255, 0.1);
-    border-left: 3px solid #00d9ff;
+    border-left: 3px solid var(--fg);
 }
 
 .diff-deleted {
-    background: rgba(127, 127, 127, 0.1);
-    border-left: 3px solid #7f7f7f;
+    border-left: 3px dashed var(--fg);
     text-decoration: line-through;
+    opacity: 0.6;
 }
 
 .diff-modified {
-    background: rgba(0, 217, 255, 0.05);
-    border-left: 3px solid #00d9ff;
+    border-left: 3px dotted var(--fg);
 }
 
 /* Scrollbar */

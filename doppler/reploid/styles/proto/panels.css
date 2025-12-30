@@ -79,9 +79,8 @@
 }
 
 .telemetry-tag {
-    background: rgba(0, 217, 255, 0.08);
+    border: 1px dotted var(--fg);
     padding: 0 6px;
-    border-radius: 3px;
 }
 
 .telemetry-entry pre {
@@ -263,29 +262,25 @@
 }
 
 .model-provider-openai {
-    background: rgba(16, 163, 127, 0.2);
-    color: #10a37f;
+    border: 1px solid var(--fg);
 }
 
 .model-provider-anthropic {
-    background: rgba(204, 149, 92, 0.2);
-    color: #cc955c;
+    border: 1px double var(--fg);
 }
 
 .model-provider-google {
-    background: rgba(66, 133, 244, 0.2);
-    color: #4285f4;
+    border: 1px dashed var(--fg);
 }
 
 .model-provider-ollama,
 .model-provider-local {
-    background: rgba(0, 217, 255, 0.15);
-    color: var(--primary);
+    border: 2px solid var(--fg);
 }
 
 .model-provider-unknown {
-    background: rgba(127, 127, 127, 0.2);
-    color: var(--text-muted);
+    border: 1px dotted var(--fg);
+    opacity: 0.6;
 }
 
 /* Workers Panel */
@@ -476,9 +471,9 @@
 }
 
 .worker-indicator.has-workers {
-    border-color: var(--primary);
-    color: var(--primary);
-    background: rgba(0, 217, 255, 0.1);
+    border: 2px solid var(--fg);
+    background: var(--fg);
+    color: var(--bg);
 }
 
 #worker-indicator-count {
@@ -796,15 +791,15 @@
 }
 
 .replay-event.agent {
-    background: rgba(99, 179, 237, 0.1);
+    border-left: 2px solid var(--fg);
 }
 
 .replay-event.tool {
-    background: rgba(154, 230, 180, 0.1);
+    border-left: 2px dashed var(--fg);
 }
 
 .replay-event.error {
-    background: rgba(252, 129, 129, 0.1);
+    border-left: 2px dotted var(--fg);
 }
 
 .replay-event-time {
