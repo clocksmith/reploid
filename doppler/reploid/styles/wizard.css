@@ -9,6 +9,8 @@
   width: 100%;
   margin: 0 auto;
   padding: 40px 20px;
+  position: relative;
+  z-index: 10;
 }
 
 /* Wizard Steps */
@@ -33,6 +35,62 @@
   color: var(--text-secondary);
   font-size: 14px;
   margin: 0 0 24px 0;
+}
+
+/* Intro/Landing Page */
+.wizard-intro {
+  text-align: center;
+  padding: 60px 20px;
+}
+
+.intro-title {
+  font-size: 3rem;
+  font-weight: 300;
+  letter-spacing: 0.3em;
+  color: var(--primary);
+  margin: 0 0 16px 0;
+  text-shadow: 0 0 30px rgba(0, 217, 255, 0.3);
+}
+
+.intro-tagline {
+  margin: 0 0 48px 0;
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+.tagline-link {
+  border-bottom: 1px dotted var(--text-muted);
+  padding-bottom: 2px;
+}
+
+.intro-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.intro-actions .btn-primary {
+  min-width: 160px;
+  padding: 14px 32px;
+  font-size: 14px;
+}
+
+.intro-actions .btn-link {
+  font-size: 12px;
+  color: var(--text-muted);
+  text-decoration: none;
+  border-bottom: 1px dotted var(--text-muted);
+  padding: 0;
+  background: none;
+  border-top: none;
+  border-left: none;
+  border-right: none;
+}
+
+.intro-actions .btn-link:hover {
+  color: var(--text-secondary);
+  border-bottom-color: var(--text-secondary);
 }
 
 /* Wizard Header (persistent connection status) */
@@ -315,6 +373,16 @@
   font-family: var(--font-mono);
   font-size: 14px;
   transition: all 0.2s ease;
+  width: 100%;
+}
+
+.config-select {
+  cursor: pointer;
+}
+
+.config-select:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .config-input:hover,
@@ -336,6 +404,9 @@
 .input-with-action {
   display: flex;
   gap: 8px;
+  margin: 0;
+  padding: 0;
+  border: none;
 }
 
 .input-with-action .config-input {
@@ -351,10 +422,41 @@
   color: var(--text-primary);
 }
 
+/* Custom themed checkbox */
 .checkbox-label input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
   width: 16px;
   height: 16px;
-  accent-color: var(--primary);
+  background: var(--bg-element);
+  border: 1px solid var(--border-default);
+  cursor: pointer;
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.checkbox-label input[type="checkbox"]:hover {
+  border-color: var(--primary);
+}
+
+.checkbox-label input[type="checkbox"]:checked {
+  background: rgba(0, 217, 255, 0.15);
+  border-color: var(--primary);
+}
+
+.checkbox-label input[type="checkbox"]:checked::after {
+  content: '★';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 10px;
+  color: var(--primary);
+}
+
+.checkbox-label input[type="checkbox"]:focus {
+  outline: none;
+  box-shadow: 0 0 6px rgba(0, 217, 255, 0.3);
 }
 
 .form-note {
@@ -588,11 +690,26 @@
 /* Wizard Actions */
 .wizard-actions {
   display: flex;
+  flex-wrap: wrap;
   justify-content: flex-end;
+  align-items: center;
   gap: 12px;
   margin-top: 24px;
   padding-top: 20px;
   border-top: 1px solid var(--border-subtle);
+}
+
+.wizard-actions.centered {
+  justify-content: center;
+}
+
+.wizard-actions.stacked {
+  flex-direction: column;
+  align-items: center;
+}
+
+.wizard-actions.stacked .btn {
+  min-width: 260px;
 }
 
 .wizard-actions .btn-awaken {
@@ -611,18 +728,18 @@
   text-align: center;
 }
 
-.btn-link {
-  background: none;
-  border: none;
-  color: var(--text-muted);
+.footer-link {
   font-size: 12px;
+  color: var(--text-muted);
   cursor: pointer;
-  text-decoration: underline;
-  padding: 4px 8px;
+  text-decoration: none;
+  border-bottom: 1px dotted var(--text-muted);
+  padding-bottom: 1px;
 }
 
-.btn-link:hover {
+.footer-link:hover {
   color: var(--text-secondary);
+  border-bottom-color: var(--text-secondary);
 }
 
 /* Saved Config Summary */
@@ -655,7 +772,9 @@
 .inline-key-entry {
   display: flex;
   gap: 8px;
-  margin-bottom: 12px;
+  margin: 0 0 12px 0;
+  padding: 0;
+  border: none;
 }
 
 .inline-key-entry .inline-input {
