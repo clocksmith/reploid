@@ -1,4 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
   <rect width="32" height="32" fill="#ffffff" stroke="#000000" stroke-width="1"/>
-  <text x="16" y="22" font-family="monospace" font-size="14" fill="#000000" text-anchor="middle" font-weight="bold">R</text>
+  <text x="8" y="14" font-family="monospace" font-size="10" fill="#000000" font-weight="bold">7</text>
+  <text x="15" y="22" font-family="monospace" font-size="14" fill="#000000" font-weight="bold">7</text>
 </svg>
