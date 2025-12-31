@@ -38,7 +38,7 @@ export const createTelemetryManager = (deps) => {
 
     countEl.textContent = `${filtered.length} events`;
     if (filtered.length === 0) {
-      listEl.innerHTML = '<div class="telemetry-empty text-muted">No telemetry events yet</div>';
+      listEl.innerHTML = '<div class="telemetry-empty muted">No telemetry events yet</div>';
     } else {
       const items = filtered.slice().reverse().map(entry => {
         const severity = (entry.severity || 'info').toLowerCase();

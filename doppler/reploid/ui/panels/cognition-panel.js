@@ -28,25 +28,49 @@ const CognitionPanel = {
     let _hoveredNode = null;
     let _transform = { x: 0, y: 0, scale: 1 };
 
+    // Read CSS variables from DOM for canvas rendering (rd.css compliance)
+    const getColors = () => {
+      const styles = getComputedStyle(document.documentElement);
+      const fg = styles.getPropertyValue('--fg').trim() || '#000000';
+      const bg = styles.getPropertyValue('--bg').trim() || '#FFFFFF';
+      const opacityMuted = parseFloat(styles.getPropertyValue('--opacity-muted')) || 0.5;
+      const opacitySecondary = parseFloat(styles.getPropertyValue('--opacity-secondary')) || 0.6;
+      const opacityGhost = parseFloat(styles.getPropertyValue('--opacity-ghost')) || 0.7;
+
+      // Convert hex to rgba for opacity variations
+      const hexToRgba = (hex, alpha) => {
+        const r = parseInt(hex.slice(1, 3), 16);
+        const g = parseInt(hex.slice(3, 5), 16);
+        const b = parseInt(hex.slice(5, 7), 16);
+        return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+      };
+
+      return {
+        fg,
+        bg,
+        // Node types use fg with different opacities (no semantic colors)
+        Entity: hexToRgba(fg, opacityGhost),
+        Tool: hexToRgba(fg, 0.8),
+        File: hexToRgba(fg, opacitySecondary),
+        Error: fg,  // full opacity with dashed rendering
+        CodeElement: hexToRgba(fg, 0.75),
+        URL: hexToRgba(fg, opacityMuted),
+        default: hexToRgba(fg, opacityMuted),
+        edge: hexToRgba(fg, 0.25),
+        selected: fg,
+        hovered: fg
+      };
+    };
+
     const CONFIG = {
       nodeRadius: 15,
       edgeWidth: 1.5,
       repulsion: 300,
       attraction: 0.03,
-      damping: 0.85,
-      colors: {
-        Entity: '#4fc3f7',
-        Tool: '#81c784',
-        File: '#64b5f6',
-        Error: '#e57373',
-        CodeElement: '#ba68c8',
-        URL: '#ffb74d',
-        default: '#90a4ae',
-        edge: 'rgba(255, 255, 255, 0.25)',
-        selected: '#ffd700',
-        hovered: '#ffffff'
-      }
+      damping: 0.85
     };
+
+    let _colors = null;
 
     const init = (containerId) => {
       _container = document.getElementById(containerId);
@@ -54,6 +78,9 @@ const CognitionPanel = {
         logger.warn('[CognitionPanel] Container not found');
         return;
       }
+
+      // Initialize colors from CSS variables
+      _colors = getColors();
 
       render();
       setupEventListeners();
@@ -320,7 +347,9 @@ const CognitionPanel = {
     };
 
     const draw = () => {
-      _ctx.fillStyle = '#1a1a2e';
+      if (!_colors) _colors = getColors();
+
+      _ctx.fillStyle = _colors.bg;
       _ctx.fillRect(0, 0, _canvas.width, _canvas.height);
 
       // Draw edges
@@ -328,7 +357,7 @@ const CognitionPanel = {
         _ctx.beginPath();
         _ctx.moveTo(edge.source.x, edge.source.y);
         _ctx.lineTo(edge.target.x, edge.target.y);
-        _ctx.strokeStyle = CONFIG.colors.edge;
+        _ctx.strokeStyle = _colors.edge;
         _ctx.lineWidth = CONFIG.edgeWidth * (edge.confidence || 1);
         _ctx.stroke();
       }
@@ -337,25 +366,33 @@ const CognitionPanel = {
       for (const node of _nodes) {
         const isSelected = node === _selectedNode;
         const isHovered = node === _hoveredNode;
+        const isError = node.type === 'Error';
 
         _ctx.beginPath();
         _ctx.arc(node.x, node.y, CONFIG.nodeRadius, 0, Math.PI * 2);
-        _ctx.fillStyle = CONFIG.colors[node.type] || CONFIG.colors.default;
+        _ctx.fillStyle = _colors[node.type] || _colors.default;
         _ctx.fill();
 
+        // Border - use dashed for errors, solid otherwise
+        _ctx.strokeStyle = _colors.fg;
         if (isSelected) {
-          _ctx.strokeStyle = CONFIG.colors.selected;
           _ctx.lineWidth = 3;
+          _ctx.setLineDash([]);
           _ctx.stroke();
         } else if (isHovered) {
-          _ctx.strokeStyle = CONFIG.colors.hovered;
           _ctx.lineWidth = 2;
+          _ctx.setLineDash([]);
           _ctx.stroke();
+        } else if (isError) {
+          _ctx.lineWidth = 2;
+          _ctx.setLineDash([4, 2]);
+          _ctx.stroke();
+          _ctx.setLineDash([]);
         }
 
         // Label
-        _ctx.fillStyle = '#ffffff';
-        _ctx.font = '10px monospace';
+        _ctx.fillStyle = _colors.fg;
+        _ctx.font = '10px var(--font-a, monospace)';
         _ctx.textAlign = 'center';
         _ctx.fillText(
           node.label.slice(0, 12),
@@ -366,11 +403,11 @@ const CognitionPanel = {
 
       // Empty state
       if (_nodes.length === 0) {
-        _ctx.fillStyle = '#666';
-        _ctx.font = '14px monospace';
+        _ctx.fillStyle = _colors.default;
+        _ctx.font = '14px var(--font-a, monospace)';
         _ctx.textAlign = 'center';
         _ctx.fillText('No entities yet', _canvas.width / 2, _canvas.height / 2);
-        _ctx.font = '11px monospace';
+        _ctx.font = '11px var(--font-a, monospace)';
         _ctx.fillText('Knowledge will appear as you use the agent', _canvas.width / 2, _canvas.height / 2 + 20);
       }
     };

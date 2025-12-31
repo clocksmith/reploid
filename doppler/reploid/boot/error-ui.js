@@ -1,6 +1,7 @@
 /**
  * @fileoverview Safe Mode Error UI
  * Renders friendly recovery UI when boot fails.
+ * Uses rd.css classes: error-ui-*, btn, border-error
  */
 
 /**
@@ -9,91 +10,35 @@
  */
 export function renderErrorUI(error) {
   const html = `
-    <div style="
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      max-width: 600px;
-      margin: 50px auto;
-      padding: 30px;
-      background: #1a1a2e;
-      border: 1px solid #e94560;
-      border-radius: 8px;
-      color: #eee;
-    ">
-      <h1 style="color: #e94560; margin-top: 0; display: flex; align-items: center; gap: 10px;">
-        <span style="font-size: 1.5em;">&#x26A0;</span>
-        REPLOID Boot Failure
-      </h1>
+    <div class="error-ui panel border-error">
+      <h1 class="error-ui-header">REPLOID Boot Failure</h1>
 
-      <p style="color: #aaa; line-height: 1.6;">
+      <p class="error-ui-description">
         The system encountered an error during startup. You can try the recovery options below.
       </p>
 
-      <div style="
-        background: #0f0f1a;
-        padding: 15px;
-        border-radius: 4px;
-        margin: 20px 0;
-        font-family: monospace;
-        font-size: 13px;
-        overflow-x: auto;
-        white-space: pre-wrap;
-        word-break: break-all;
-        color: #ff6b6b;
-      ">${escapeHtml(error.message)}</div>
+      <div class="error-ui-message">${escapeHtml(error.message)}</div>
 
-      <details style="margin: 20px 0;">
-        <summary style="cursor: pointer; color: #aaa; padding: 10px 0;">
-          Show Stack Trace
-        </summary>
-        <pre style="
-          background: #0f0f1a;
-          padding: 15px;
-          border-radius: 4px;
-          font-size: 11px;
-          overflow-x: auto;
-          color: #888;
-        ">${escapeHtml(error.stack || 'No stack trace available')}</pre>
+      <details class="error-ui-details">
+        <summary>Show Stack Trace</summary>
+        <pre class="error-ui-stack">${escapeHtml(error.stack || 'No stack trace available')}</pre>
       </details>
 
-      <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 20px;">
-        <button onclick="location.reload()" style="
-          background: #16213e;
-          color: #eee;
-          border: 1px solid #0f3460;
-          padding: 12px 24px;
-          border-radius: 4px;
-          cursor: pointer;
-          font-size: 14px;
-        ">
-          &#x21BB; Reload Page
+      <div class="error-ui-actions">
+        <button onclick="location.reload()" class="btn">
+          \u21BB Reload Page
         </button>
 
-        <button onclick="factoryReset()" style="
-          background: #e94560;
-          color: #fff;
-          border: none;
-          padding: 12px 24px;
-          border-radius: 4px;
-          cursor: pointer;
-          font-size: 14px;
-        ">
-          &#x1F5D1; Factory Reset
+        <button onclick="factoryReset()" class="btn btn-primary">
+          \u2421 Factory Reset
         </button>
 
-        <button onclick="downloadLogs()" style="
-          background: #16213e;
-          color: #eee;
-          border: 1px solid #0f3460;
-          padding: 12px 24px;
-          border-radius: 4px;
-          cursor: pointer;
-          font-size: 14px;
-        ">
-          &#x1F4BE; Download Logs
+        <button onclick="downloadLogs()" class="btn">
+          \u2193 Download Logs
         </button>
       </div>
 
-      <p style="color: #666; font-size: 12px; margin-top: 30px;">
+      <p class="error-ui-hint">
         If the problem persists, try opening DevTools (F12) for more details.
       </p>
     </div>

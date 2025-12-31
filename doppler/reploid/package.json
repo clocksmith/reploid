@@ -14,16 +14,18 @@
     "reploid-config": "./bin/reploid-config"
   },
   "scripts": {
-    "start": "node server.js",
+    "start": "npx tsx tools/reploid-cli.ts start",
+    "test": "npx tsx tools/reploid-cli.ts test",
+    "test:unit": "npx tsx tools/reploid-cli.ts test --unit",
+    "test:integration": "npx tsx tools/reploid-cli.ts test --integration",
+    "test:e2e": "npx tsx tools/reploid-cli.ts test --e2e",
+    "test:watch": "npx tsx tools/reploid-cli.ts test --watch",
+    "test:coverage": "npx tsx tools/reploid-cli.ts test --coverage",
+    "test:ci": "vitest run --coverage --reporter=json",
+    "bench": "npx tsx tools/reploid-cli.ts bench",
+    "debug": "npx tsx tools/reploid-cli.ts debug",
     "cli": "node bin/reploid-cli.js",
-    "build:genesis": "node scripts/build-genesis-manifest.js",
-    "test": "vitest run",
-    "test:unit": "vitest run tests/unit",
-    "test:integration": "vitest run tests/integration",
-    "test:e2e": "playwright test tests/e2e",
-    "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage",
-    "test:ci": "vitest run --coverage --reporter=json"
+    "build:genesis": "node scripts/build-genesis-manifest.js"
   },
   "keywords": [
     "reploid",

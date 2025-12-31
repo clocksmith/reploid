@@ -1,5 +1,6 @@
 // Toast Notification System - Non-blocking user feedback
 // Replaces alert() calls with elegant toast notifications
+// Uses rd.css classes: toast-container, toast, toast-success/error/warning/info
 
 const ToastNotifications = {
   metadata: {
@@ -19,12 +20,12 @@ const ToastNotifications = {
     let toastQueue = [];
     let activeToasts = [];
 
-    // Toast types
-    const TOAST_TYPES = {
-      success: { icon: '★', color: '#4ec9b0', bg: 'rgba(76, 175, 80, 0.9)' },
-      error: { icon: '☒', color: '#f48771', bg: 'rgba(244, 135, 113, 0.9)' },
-      warning: { icon: '☡', color: '#ffd700', bg: 'rgba(255, 215, 0, 0.9)' },
-      info: { icon: '☛', color: '#4fc3f7', bg: 'rgba(79, 195, 247, 0.9)' }
+    // Toast types - icons only, styling comes from rd.css
+    const TOAST_ICONS = {
+      success: '\u2605',  // ★
+      error: '\u2612',    // ☒
+      warning: '\u2621',  // ☡
+      info: '\u261B'      // ☛
     };
 
     // Initialize toast container
@@ -33,16 +34,7 @@ const ToastNotifications = {
 
       container = document.createElement('div');
       container.id = 'toast-container';
-      container.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        z-index: 10001;
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
-        pointer-events: none;
-      `;
+      container.className = 'toast-container';
       document.body.appendChild(container);
       logger.info('[ToastNotifications] Initialized');
     };
@@ -51,51 +43,30 @@ const ToastNotifications = {
     const show = (message, type = 'info', duration = 4000) => {
       init(); // Ensure container exists
 
-      const config = TOAST_TYPES[type] || TOAST_TYPES.info;
+      const icon = TOAST_ICONS[type] || TOAST_ICONS.info;
 
-      // Create toast element
+      // Create toast element using rd.css classes
       const toast = document.createElement('div');
       toast.className = `toast toast-${type}`;
-      toast.style.cssText = `
-        background: ${config.bg};
-        color: white;
-        padding: 12px 16px;
-        border-radius: 4px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        min-width: 280px;
-        max-width: 400px;
-        font-size: 14px;
-        opacity: 0;
-        transform: translateX(400px);
-        transition: all 0.3s ease-out;
-        pointer-events: auto;
-        cursor: pointer;
-        border-left: 4px solid ${config.color};
-      `;
 
       toast.innerHTML = `
-        <span style="font-size: 18px; font-weight: bold;">${config.icon}</span>
-        <span style="flex: 1;">${message}</span>
-        <span style="font-size: 12px; color: rgba(255, 255, 255, 0.7); cursor: pointer;">☩</span>
+        <span class="toast-icon">${icon}</span>
+        <span class="toast-message">${message}</span>
+        <span class="toast-close">\u2A2F</span>
       `;
 
       // Add to container
       container.appendChild(toast);
       activeToasts.push(toast);
 
-      // Animate in
+      // Animate in using rd.css .visible class
       setTimeout(() => {
-        toast.style.opacity = '1';
-        toast.style.transform = 'translateX(0)';
+        toast.classList.add('visible');
       }, 10);
 
       // Auto-remove after duration
       const removeToast = () => {
-        toast.style.opacity = '0';
-        toast.style.transform = 'translateX(400px)';
+        toast.classList.remove('visible');
         setTimeout(() => {
           if (container && container.contains(toast)) {
             container.removeChild(toast);

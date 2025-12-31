@@ -37,7 +37,7 @@ export const createSchemaManager = (deps) => {
     if (workerCountEl) workerCountEl.textContent = `${filteredWorkers.length} worker types`;
 
     toolList.innerHTML = filteredTools.length === 0
-      ? '<div class="schema-empty text-muted">No tool schemas match your search</div>'
+      ? '<div class="schema-empty muted">No tool schemas match your search</div>'
       : filteredTools.map(entry => {
           const description = entry.schema?.description || 'No description';
           const payload = entry.schema?.parameters ? JSON.stringify(entry.schema.parameters, null, 2) : '{}';
@@ -57,7 +57,7 @@ export const createSchemaManager = (deps) => {
         }).join('');
 
     workerList.innerHTML = filteredWorkers.length === 0
-      ? '<div class="schema-empty text-muted">No worker definitions match your search</div>'
+      ? '<div class="schema-empty muted">No worker definitions match your search</div>'
       : filteredWorkers.map(entry => {
           const config = entry.config || {};
           const badge = entry.builtin ? '<span class="schema-badge">core</span>' : '';
@@ -87,7 +87,7 @@ export const createSchemaManager = (deps) => {
     const svc = await resolveSchemaRegistry();
     if (!svc?.listToolSchemas) {
       const toolList = document.getElementById('schema-tool-list');
-      if (toolList) toolList.innerHTML = '<div class="schema-empty text-muted">Schema registry unavailable</div>';
+      if (toolList) toolList.innerHTML = '<div class="schema-empty muted">Schema registry unavailable</div>';
       return;
     }
     try {

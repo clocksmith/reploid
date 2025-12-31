@@ -98,7 +98,7 @@ export const createReplayManager = (deps) => {
     if (!logEl) return;
 
     if (_eventLogEntries.length === 0) {
-      logEl.innerHTML = '<div class="text-muted">Events will appear here during replay...</div>';
+      logEl.innerHTML = '<div class="muted">Events will appear here during replay...</div>';
       return;
     }
 

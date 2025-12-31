@@ -161,7 +161,7 @@ const DiffViewerUI = {
              <button class="btn-rollback" data-action="rollback" aria-label="Emergency Rollback" title="Revert file system to pre-proposal state">
               ☈ Emergency Rollback
             </button>
-            <div class="spacer" style="flex: 1;"></div>
+            <div class="spacer flex-1"></div>
             <button class="btn-cancel" data-action="cancel" aria-label="Cancel and close">
               Cancel
             </button>
@@ -181,6 +181,9 @@ const DiffViewerUI = {
           renderFileDiff(change, index);
         }
       });
+
+      // Setup scroll sync after a short delay to ensure DOM is ready
+      setTimeout(setupScrollSync, 100);
     };
 
     const bindDiffEvents = () => {
@@ -352,79 +355,179 @@ const DiffViewerUI = {
       }
     };
 
-    // Calculate detailed diff statistics
+    // LCS-based diff algorithm for proper line matching
+    const computeLCS = (oldLines, newLines) => {
+      const m = oldLines.length;
+      const n = newLines.length;
+
+      // Build LCS table
+      const dp = Array(m + 1).fill(null).map(() => Array(n + 1).fill(0));
+      for (let i = 1; i <= m; i++) {
+        for (let j = 1; j <= n; j++) {
+          if (oldLines[i - 1] === newLines[j - 1]) {
+            dp[i][j] = dp[i - 1][j - 1] + 1;
+          } else {
+            dp[i][j] = Math.max(dp[i - 1][j], dp[i][j - 1]);
+          }
+        }
+      }
+
+      // Backtrack to find diff operations
+      const operations = [];
+      let i = m, j = n;
+
+      while (i > 0 || j > 0) {
+        if (i > 0 && j > 0 && oldLines[i - 1] === newLines[j - 1]) {
+          operations.unshift({ type: 'equal', oldIdx: i - 1, newIdx: j - 1 });
+          i--; j--;
+        } else if (j > 0 && (i === 0 || dp[i][j - 1] >= dp[i - 1][j])) {
+          operations.unshift({ type: 'add', newIdx: j - 1 });
+          j--;
+        } else {
+          operations.unshift({ type: 'remove', oldIdx: i - 1 });
+          i--;
+        }
+      }
+
+      return operations;
+    };
+
+    // Calculate detailed diff statistics using LCS
     const calculateDiffStats = (oldContent, newContent) => {
       const oldLines = oldContent.split('\n');
       const newLines = newContent.split('\n');
-      let added = 0, removed = 0, modified = 0, unchanged = 0;
-      const maxLines = Math.max(oldLines.length, newLines.length);
+      const ops = computeLCS(oldLines, newLines);
 
-      for (let i = 0; i < maxLines; i++) {
-        const oldLine = oldLines[i];
-        const newLine = newLines[i];
-
-        if (oldLine === undefined) added++;
-        else if (newLine === undefined) removed++;
-        else if (oldLine !== newLine) modified++;
+      let added = 0, removed = 0, unchanged = 0;
+      for (const op of ops) {
+        if (op.type === 'add') added++;
+        else if (op.type === 'remove') removed++;
         else unchanged++;
       }
 
-      return { added, removed, modified, unchanged, total: maxLines };
+      return { added, removed, modified: 0, unchanged, total: ops.length };
     };
 
-    // Generate side-by-side diff HTML
+    // Generate side-by-side diff HTML using LCS
     const generateSideBySideDiff = (oldContent, newContent, filePath = '') => {
       const oldLines = oldContent.split('\n');
       const newLines = newContent.split('\n');
-      const maxLines = Math.max(oldLines.length, newLines.length);
       const language = detectLanguage(filePath);
+      const ops = computeLCS(oldLines, newLines);
       const stats = calculateDiffStats(oldContent, newContent);
 
+      // Build aligned rows for side-by-side view
+      const rows = [];
+      for (const op of ops) {
+        if (op.type === 'equal') {
+          rows.push({
+            oldLine: oldLines[op.oldIdx],
+            oldNum: op.oldIdx + 1,
+            newLine: newLines[op.newIdx],
+            newNum: op.newIdx + 1,
+            type: 'equal'
+          });
+        } else if (op.type === 'remove') {
+          rows.push({
+            oldLine: oldLines[op.oldIdx],
+            oldNum: op.oldIdx + 1,
+            newLine: null,
+            newNum: null,
+            type: 'remove'
+          });
+        } else if (op.type === 'add') {
+          rows.push({
+            oldLine: null,
+            oldNum: null,
+            newLine: newLines[op.newIdx],
+            newNum: op.newIdx + 1,
+            type: 'add'
+          });
+        }
+      }
+
+      // Generate HTML
+      const diffId = `diff-${Date.now()}`;
       let html = '<div class="diff-stats-summary">';
       html += `<span class="diff-stat-item added">+${stats.added}</span>`;
       html += `<span class="diff-stat-item removed">-${stats.removed}</span>`;
-      html += `<span class="diff-stat-item modified">~${stats.modified}</span>`;
       html += '</div>';
 
-      html += '<div class="side-by-side-diff">';
-      html += '<div class="diff-pane diff-old"><div class="diff-pane-header">Original</div><div class="diff-lines">';
+      html += `<div class="side-by-side-diff" data-diff-id="${diffId}">`;
+      html += `<div class="diff-pane diff-old" data-pane="old"><div class="diff-pane-header">Original</div><div class="diff-lines" data-scroll-sync="${diffId}">`;
 
-      for (let i = 0; i < maxLines; i++) {
-        const oldLine = oldLines[i];
-        const newLine = newLines[i];
-        let lineClass = '';
-
-        if (oldLine === undefined) lineClass = 'empty';
-        else if (newLine === undefined) lineClass = 'removed';
-        else if (oldLine !== newLine) lineClass = 'changed';
-
-        if (oldLine !== undefined) {
-          html += `<div class="diff-line ${lineClass}"><span class="line-number">${i + 1}</span><span class="line-content">${highlightCode(oldLine, language)}</span></div>`;
+      for (const row of rows) {
+        const lineClass = row.type === 'remove' ? 'removed' : (row.type === 'add' ? 'empty' : '');
+        if (row.oldLine !== null) {
+          html += `<div class="diff-line ${lineClass}"><span class="line-number">${row.oldNum}</span><span class="line-content">${highlightCode(row.oldLine, language)}</span></div>`;
         } else {
           html += '<div class="diff-line empty"><span class="line-number"></span><span class="line-content">&nbsp;</span></div>';
         }
       }
       html += '</div></div>';
 
-      html += '<div class="diff-pane diff-new"><div class="diff-pane-header">Modified</div><div class="diff-lines">';
-      for (let i = 0; i < maxLines; i++) {
-        const oldLine = oldLines[i];
-        const newLine = newLines[i];
-        let lineClass = '';
-
-        if (newLine === undefined) lineClass = 'empty';
-        else if (oldLine === undefined) lineClass = 'added';
-        else if (oldLine !== newLine) lineClass = 'changed';
-
-        if (newLine !== undefined) {
-          html += `<div class="diff-line ${lineClass}"><span class="line-number">${i + 1}</span><span class="line-content">${highlightCode(newLine, language)}</span></div>`;
+      html += `<div class="diff-pane diff-new" data-pane="new"><div class="diff-pane-header">Modified</div><div class="diff-lines" data-scroll-sync="${diffId}">`;
+      for (const row of rows) {
+        const lineClass = row.type === 'add' ? 'added' : (row.type === 'remove' ? 'empty' : '');
+        if (row.newLine !== null) {
+          html += `<div class="diff-line ${lineClass}"><span class="line-number">${row.newNum}</span><span class="line-content">${highlightCode(row.newLine, language)}</span></div>`;
         } else {
           html += '<div class="diff-line empty"><span class="line-number"></span><span class="line-content">&nbsp;</span></div>';
         }
       }
       html += '</div></div></div>';
 
+      // Add scroll sync script
+      html += `<script>
+        (function() {
+          const panes = document.querySelectorAll('[data-scroll-sync="${diffId}"]');
+          if (panes.length !== 2) return;
+          let syncing = false;
+          panes.forEach(pane => {
+            pane.addEventListener('scroll', function() {
+              if (syncing) return;
+              syncing = true;
+              const scrollTop = this.scrollTop;
+              const scrollLeft = this.scrollLeft;
+              panes.forEach(p => {
+                if (p !== this) {
+                  p.scrollTop = scrollTop;
+                  p.scrollLeft = scrollLeft;
+                }
+              });
+              requestAnimationFrame(() => { syncing = false; });
+            });
+          });
+        })();
+      </script>`;
+
       return html;
+    };
+
+    // Setup scroll sync for diff panes (called after render)
+    const setupScrollSync = () => {
+      const diffs = container?.querySelectorAll('.side-by-side-diff');
+      diffs?.forEach(diff => {
+        const panes = diff.querySelectorAll('.diff-lines');
+        if (panes.length !== 2) return;
+
+        let syncing = false;
+        panes.forEach(pane => {
+          pane.addEventListener('scroll', function() {
+            if (syncing) return;
+            syncing = true;
+            const scrollTop = this.scrollTop;
+            const scrollLeft = this.scrollLeft;
+            panes.forEach(p => {
+              if (p !== this) {
+                p.scrollTop = scrollTop;
+                p.scrollLeft = scrollLeft;
+              }
+            });
+            requestAnimationFrame(() => { syncing = false; });
+          });
+        });
+      });
     };
 
     // Toggle file content expansion

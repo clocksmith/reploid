@@ -28,7 +28,7 @@ export const renderProtoTemplate = (escapeHtml, goalFromBoot) => `
       <input type="text" id="vfs-search" class="vfs-search-input" placeholder="Search files..." />
     </div>
     <div id="vfs-tree" class="vfs-tree mono">
-      <div class="text-muted">Loading...</div>
+      <div class="muted">Loading...</div>
     </div>
   </aside>
 
@@ -46,13 +46,13 @@ export const renderProtoTemplate = (escapeHtml, goalFromBoot) => `
           </div>
           <span class="token-budget-text" id="token-budget-text">0k / 32k</span>
         </div>
-        <span class="text-muted">|</span>
-        <span id="agent-state" class="text-muted">IDLE</span>
-        <span class="text-muted">|</span>
-        <span class="text-muted">Cycle</span>
+        <span class="muted">|</span>
+        <span id="agent-state" class="muted">IDLE</span>
+        <span class="muted">|</span>
+        <span class="muted">Cycle</span>
         <span id="agent-cycle">0</span>
-        <span class="text-muted">|</span>
-        <span class="text-muted">Workers</span>
+        <span class="muted">|</span>
+        <span class="muted">Workers</span>
         <span id="worker-indicator-count">0</span>
       </div>
     </div>
@@ -62,7 +62,7 @@ export const renderProtoTemplate = (escapeHtml, goalFromBoot) => `
       <div class="progress-bar" id="progress-bar">
         <div class="progress-bar-fill" id="progress-fill" style="width: 0%"></div>
       </div>
-      <div style="font-size: 10px; color: var(--text-muted); margin-top: 4px; text-align: center;">
+      <div class="muted type-caption" style="margin-top: 4px; text-align: center;">
         <span id="progress-text"></span>
       </div>
     </div>
@@ -70,14 +70,14 @@ export const renderProtoTemplate = (escapeHtml, goalFromBoot) => `
     <!-- Tab Panels -->
     <div class="workspace-content" id="tab-history">
       <div id="history-container" class="history-stream">
-        <div class="text-muted">Thinking and actions will appear here.</div>
+        <div class="muted">Thinking and actions will appear here.</div>
       </div>
       <div id="inline-chat-container"></div>
     </div>
 
     <div class="workspace-content hidden" id="tab-reflections">
       <div id="reflections-container" class="reflections-stream">
-        <div class="text-muted">Insights and learnings will appear here.</div>
+        <div class="muted">Insights and learnings will appear here.</div>
       </div>
     </div>
 
@@ -101,9 +101,9 @@ export const renderProtoTemplate = (escapeHtml, goalFromBoot) => `
             <button id="telemetry-refresh" class="btn btn-sm btn-secondary">Refresh</button>
           </div>
         </div>
-        <div id="telemetry-status" class="telemetry-status text-muted">Waiting for telemetry service...</div>
+        <div id="telemetry-status" class="telemetry-status muted">Waiting for telemetry service...</div>
         <div id="telemetry-list" class="telemetry-list">
-          <div class="telemetry-empty text-muted">No telemetry events yet</div>
+          <div class="telemetry-empty muted">No telemetry events yet</div>
         </div>
       </div>
     </div>
@@ -129,13 +129,13 @@ export const renderProtoTemplate = (escapeHtml, goalFromBoot) => `
           <section>
             <h4>Tool Schemas</h4>
             <div id="schema-tool-list" class="schema-list">
-              <div class="schema-empty text-muted">Loading...</div>
+              <div class="schema-empty muted">Loading...</div>
             </div>
           </section>
           <section>
             <h4>Worker Types</h4>
             <div id="schema-worker-list" class="schema-list">
-              <div class="schema-empty text-muted">Loading...</div>
+              <div class="schema-empty muted">Loading...</div>
             </div>
           </section>
         </div>
@@ -167,7 +167,7 @@ export const renderProtoTemplate = (escapeHtml, goalFromBoot) => `
           <button id="clear-errors-btn" class="btn-link" style="display: none;">Clear All</button>
         </div>
         <div id="errors-list" class="errors-list">
-          <div class="text-muted" style="padding: 10px;">No errors or warnings</div>
+          <div class="muted" style="padding: 10px;">No errors or warnings</div>
         </div>
       </div>
     </div>
@@ -231,7 +231,7 @@ export const renderProtoTemplate = (escapeHtml, goalFromBoot) => `
       <div class="replay-panel">
         <div class="replay-header">
           <strong>Run Replay</strong>
-          <span id="replay-status" class="text-muted">No run loaded</span>
+          <span id="replay-status" class="muted">No run loaded</span>
         </div>
 
         <div class="replay-loader">
@@ -239,7 +239,7 @@ export const renderProtoTemplate = (escapeHtml, goalFromBoot) => `
             <input type="file" id="replay-file-input" accept=".json" />
             <span class="btn btn-secondary">Load Run File</span>
           </label>
-          <span id="replay-filename" class="text-muted"></span>
+          <span id="replay-filename" class="muted"></span>
         </div>
 
         <div id="replay-metadata" class="replay-metadata hidden">
@@ -289,7 +289,7 @@ export const renderProtoTemplate = (escapeHtml, goalFromBoot) => `
         </div>
 
         <div id="replay-event-log" class="replay-event-log">
-          <div class="text-muted">Events will appear here during replay...</div>
+          <div class="muted">Events will appear here during replay...</div>
         </div>
       </div>
     </div>
@@ -308,7 +308,7 @@ export const renderProtoTemplate = (escapeHtml, goalFromBoot) => `
         </div>
       </div>
       <div id="vfs-content-body" class="vfs-content-body">
-        <div class="text-muted">Select a file to view contents</div>
+        <div class="muted">Select a file to view contents</div>
       </div>
       <div id="vfs-preview-panel" class="vfs-preview-panel hidden">
         <div class="vfs-preview-header">

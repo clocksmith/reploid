@@ -4,7 +4,7 @@
 const VFSExplorer = {
   metadata: {
     id: 'VFSExplorer',
-    version: '1.1.0',
+    version: '2.0.0',
     dependencies: ['Utils', 'EventBus', 'VFS', 'ToastNotifications'],
     async: false,
     type: 'ui'
@@ -20,10 +20,15 @@ const VFSExplorer = {
       constructor() {
         this.expanded = new Set(['/']); // Track expanded folders
         this.selectedFile = null;
+        this.selectedFiles = new Set(); // Multi-select support
         this.searchTerm = '';
         this.container = null;
         this.fileViewerModal = null;
+        this.contextMenu = null;
         this.baseline = null; // Genesis baseline for state tracking
+        this.editMode = false; // Track if currently editing
+        this.sortBy = 'name'; // 'name', 'size', 'date', 'type'
+        this.sortAsc = true;
       }
 
       async init(containerId) {
@@ -36,6 +41,9 @@ const VFSExplorer = {
         // Load or create baseline
         await this.loadBaseline();
 
+        // Create context menu element
+        this.createContextMenu();
+
         await this.render();
 
         // Listen for VFS changes
@@ -44,6 +52,250 @@ const VFSExplorer = {
         EventBus.on('artifact:created', () => this.render());
         EventBus.on('artifact:updated', () => this.render());
         EventBus.on('artifact:deleted', () => this.render());
+
+        // Close context menu on click outside
+        document.addEventListener('click', () => this.hideContextMenu());
+      }
+
+      /**
+       * Create the context menu element
+       */
+      createContextMenu() {
+        if (this.contextMenu) return;
+        this.contextMenu = document.createElement('div');
+        this.contextMenu.className = 'vfs-context-menu';
+        this.contextMenu.style.cssText = `
+          position: fixed;
+          display: none;
+          background: var(--bg);
+          border: var(--border-md) solid var(--fg);
+          min-width: 150px;
+          z-index: 10000;
+          padding: 4px 0;
+        `;
+        document.body.appendChild(this.contextMenu);
+      }
+
+      /**
+       * Show context menu at position
+       */
+      showContextMenu(x, y, path, type) {
+        if (!this.contextMenu) return;
+
+        const isFile = type === 'file';
+        const isDeleted = this.container.querySelector(`[data-path="${path}"]`)?.dataset.state === 'deleted';
+
+        let menuItems = [];
+
+        if (isFile && !isDeleted) {
+          menuItems = [
+            { label: '✎ Edit', action: () => this.editFile(path) },
+            { label: '☷ Copy', action: () => this.copyFile(path) },
+            { label: '↗ Rename', action: () => this.renameFile(path) },
+            { label: '↪ Move', action: () => this.moveFile(path) },
+            { label: '☓ Delete', action: () => this.deleteFile(path), danger: true }
+          ];
+        } else if (isFile && isDeleted) {
+          menuItems = [
+            { label: '↶ Restore', action: () => this.restoreFile(path) }
+          ];
+        } else {
+          // Folder
+          menuItems = [
+            { label: '☐ New File', action: () => this.createNewFile(path) },
+            { label: '☗ New Folder', action: () => this.createNewFolder(path) },
+            { label: '↗ Rename', action: () => this.renameFolder(path) },
+            { label: '☓ Delete', action: () => this.deleteFolder(path), danger: true }
+          ];
+        }
+
+        this.contextMenu.innerHTML = menuItems.map(item => `
+          <div class="vfs-context-item ${item.danger ? 'border-error' : ''} cursor-pointer"
+               data-action="${item.label}">
+            ${item.label}
+          </div>
+        `).join('');
+
+        // Attach click handlers
+        this.contextMenu.querySelectorAll('.vfs-context-item').forEach((el, i) => {
+          el.addEventListener('click', (e) => {
+            e.stopPropagation();
+            menuItems[i].action();
+            this.hideContextMenu();
+          });
+          el.addEventListener('mouseenter', () => {
+            el.classList.add('inverted');
+          });
+          el.addEventListener('mouseleave', () => {
+            el.classList.remove('inverted');
+          });
+        });
+
+        // Position menu
+        this.contextMenu.style.left = `${x}px`;
+        this.contextMenu.style.top = `${y}px`;
+        this.contextMenu.style.display = 'block';
+
+        // Adjust if overflowing viewport
+        const rect = this.contextMenu.getBoundingClientRect();
+        if (rect.right > window.innerWidth) {
+          this.contextMenu.style.left = `${window.innerWidth - rect.width - 10}px`;
+        }
+        if (rect.bottom > window.innerHeight) {
+          this.contextMenu.style.top = `${window.innerHeight - rect.height - 10}px`;
+        }
+      }
+
+      hideContextMenu() {
+        if (this.contextMenu) {
+          this.contextMenu.style.display = 'none';
+        }
+      }
+
+      /**
+       * File operations
+       */
+      async editFile(path) {
+        await this.showFileViewer(path, true); // Open in edit mode
+      }
+
+      async copyFile(path) {
+        try {
+          const content = await VFS.read(path);
+          await navigator.clipboard.writeText(content);
+          logger.info(`[VFSExplorer] Copied ${path} to clipboard`);
+          if (ToastNotifications) ToastNotifications.success('Copied to clipboard');
+        } catch (err) {
+          logger.error(`[VFSExplorer] Copy failed:`, err);
+          if (ToastNotifications) ToastNotifications.error('Failed to copy');
+        }
+      }
+
+      async renameFile(path) {
+        const fileName = path.split('/').pop();
+        const newName = prompt('Enter new name:', fileName);
+        if (!newName || newName === fileName) return;
+
+        const parentPath = path.substring(0, path.lastIndexOf('/')) || '/';
+        const newPath = `${parentPath}/${newName}`;
+
+        try {
+          const content = await VFS.read(path);
+          await VFS.write(newPath, content);
+          await VFS.delete(path);
+          logger.info(`[VFSExplorer] Renamed ${path} to ${newPath}`);
+          if (ToastNotifications) ToastNotifications.success(`Renamed to ${newName}`);
+          EventBus.emit('vfs:file_changed', { oldPath: path, newPath });
+        } catch (err) {
+          logger.error(`[VFSExplorer] Rename failed:`, err);
+          if (ToastNotifications) ToastNotifications.error('Failed to rename file');
+        }
+      }
+
+      async moveFile(path) {
+        const newPath = prompt('Enter destination path:', path);
+        if (!newPath || newPath === path) return;
+
+        try {
+          const content = await VFS.read(path);
+          await VFS.write(newPath, content);
+          await VFS.delete(path);
+          logger.info(`[VFSExplorer] Moved ${path} to ${newPath}`);
+          if (ToastNotifications) ToastNotifications.success(`Moved to ${newPath}`);
+          EventBus.emit('vfs:file_changed', { oldPath: path, newPath });
+        } catch (err) {
+          logger.error(`[VFSExplorer] Move failed:`, err);
+          if (ToastNotifications) ToastNotifications.error('Failed to move file');
+        }
+      }
+
+      async deleteFile(path) {
+        if (!confirm(`Delete ${path}?`)) return;
+
+        try {
+          await VFS.delete(path);
+          logger.info(`[VFSExplorer] Deleted ${path}`);
+          if (ToastNotifications) ToastNotifications.success('File deleted');
+          EventBus.emit('vfs:file_changed', { path, deleted: true });
+        } catch (err) {
+          logger.error(`[VFSExplorer] Delete failed:`, err);
+          if (ToastNotifications) ToastNotifications.error('Failed to delete file');
+        }
+      }
+
+      async restoreFile(path) {
+        // Restore from baseline if available
+        if (!this.baseline?.files[path]) {
+          if (ToastNotifications) ToastNotifications.error('No baseline data to restore from');
+          return;
+        }
+        if (ToastNotifications) ToastNotifications.info('Restore requires GenesisSnapshot integration');
+        logger.info(`[VFSExplorer] Restore for ${path} - requires GenesisSnapshot`);
+      }
+
+      async createNewFile(folderPath) {
+        const fileName = prompt('Enter file name:');
+        if (!fileName) return;
+
+        const newPath = folderPath ? `${folderPath}/${fileName}` : `/${fileName}`;
+
+        try {
+          await VFS.write(newPath, '');
+          logger.info(`[VFSExplorer] Created file ${newPath}`);
+          if (ToastNotifications) ToastNotifications.success(`Created ${fileName}`);
+          this.expanded.add(folderPath);
+          await this.showFileViewer(newPath, true); // Open in edit mode
+        } catch (err) {
+          logger.error(`[VFSExplorer] Create file failed:`, err);
+          if (ToastNotifications) ToastNotifications.error('Failed to create file');
+        }
+      }
+
+      async createNewFolder(parentPath) {
+        const folderName = prompt('Enter folder name:');
+        if (!folderName) return;
+
+        const newPath = parentPath ? `${parentPath}/${folderName}` : `/${folderName}`;
+        const placeholderPath = `${newPath}/.gitkeep`;
+
+        try {
+          await VFS.write(placeholderPath, '');
+          logger.info(`[VFSExplorer] Created folder ${newPath}`);
+          if (ToastNotifications) ToastNotifications.success(`Created folder ${folderName}`);
+          this.expanded.add(newPath);
+          this.render();
+        } catch (err) {
+          logger.error(`[VFSExplorer] Create folder failed:`, err);
+          if (ToastNotifications) ToastNotifications.error('Failed to create folder');
+        }
+      }
+
+      async renameFolder(path) {
+        const folderName = path.split('/').filter(p => p).pop();
+        const newName = prompt('Enter new folder name:', folderName);
+        if (!newName || newName === folderName) return;
+
+        // This requires moving all files in the folder
+        if (ToastNotifications) ToastNotifications.info('Folder rename requires moving all contents');
+        logger.info(`[VFSExplorer] Folder rename for ${path} - requires batch operations`);
+      }
+
+      async deleteFolder(path) {
+        if (!confirm(`Delete folder ${path} and all contents?`)) return;
+
+        try {
+          const allPaths = await VFS.list(path);
+          for (const filePath of allPaths) {
+            await VFS.delete(filePath);
+          }
+          logger.info(`[VFSExplorer] Deleted folder ${path} (${allPaths.length} files)`);
+          if (ToastNotifications) ToastNotifications.success(`Deleted folder with ${allPaths.length} files`);
+          this.expanded.delete(path);
+          this.render();
+        } catch (err) {
+          logger.error(`[VFSExplorer] Delete folder failed:`, err);
+          if (ToastNotifications) ToastNotifications.error('Failed to delete folder');
+        }
       }
 
       /**
@@ -149,6 +401,9 @@ const VFSExplorer = {
 
         const tree = this.buildTree(allMeta);
 
+        const selectedCount = this.selectedFiles.size;
+        const selectionInfo = selectedCount > 0 ? ` | ${selectedCount} selected` : '';
+
         this.container.innerHTML = `
           <div class="vfs-explorer">
             <div class="vfs-toolbar" role="toolbar" aria-label="File explorer controls">
@@ -158,12 +413,20 @@ const VFSExplorer = {
                      value="${escapeHtml(this.searchTerm)}"
                      aria-label="Search files"
                      role="searchbox">
+              <select class="vfs-sort" aria-label="Sort by">
+                <option value="name" ${this.sortBy === 'name' ? 'selected' : ''}>Name</option>
+                <option value="size" ${this.sortBy === 'size' ? 'selected' : ''}>Size</option>
+                <option value="date" ${this.sortBy === 'date' ? 'selected' : ''}>Date</option>
+                <option value="type" ${this.sortBy === 'type' ? 'selected' : ''}>Type</option>
+              </select>
+              <button class="vfs-sort-dir" title="Sort direction" aria-label="Toggle sort direction">${this.sortAsc ? '↑' : '↓'}</button>
               <button class="vfs-collapse-all" title="Collapse All" aria-label="Collapse all folders">⊟</button>
               <button class="vfs-expand-all" title="Expand All" aria-label="Expand all folders">⊞</button>
+              <button class="vfs-new-file" title="New File" aria-label="Create new file">☐+</button>
             </div>
             <div class="vfs-tree" role="tree" aria-label="File tree">${this.renderTree(tree)}</div>
             <div class="vfs-stats" role="status" aria-live="polite">
-              ${Object.keys(allMeta).length} files
+              ${Object.keys(allMeta).length} files${selectionInfo}
             </div>
           </div>
         `;
@@ -212,14 +475,35 @@ const VFSExplorer = {
           });
         }
 
-        // Sort: folders first, then files, alphabetically
+        // Sort: folders first, then files by configured sort field
         const sortChildren = (node) => {
           if (node.children) {
             node.children.sort((a, b) => {
+              // Folders always first
               if (a.type !== b.type) {
                 return a.type === 'folder' ? -1 : 1;
               }
-              return a.name.localeCompare(b.name);
+
+              let result = 0;
+              switch (this.sortBy) {
+                case 'size':
+                  result = (a.size || 0) - (b.size || 0);
+                  break;
+                case 'date':
+                  const aDate = a.metadata?.updated || 0;
+                  const bDate = b.metadata?.updated || 0;
+                  result = aDate - bDate;
+                  break;
+                case 'type':
+                  const aExt = a.name.split('.').pop() || '';
+                  const bExt = b.name.split('.').pop() || '';
+                  result = aExt.localeCompare(bExt);
+                  break;
+                case 'name':
+                default:
+                  result = a.name.localeCompare(b.name);
+              }
+              return this.sortAsc ? result : -result;
             });
             node.children.forEach(sortChildren);
           }
@@ -250,6 +534,7 @@ const VFSExplorer = {
       renderFile(node, depth) {
         const icon = this.getFileIcon(node.path);
         const selected = node.path === this.selectedFile ? 'selected' : '';
+        const multiSelected = this.selectedFiles.has(node.path) ? 'multi-selected' : '';
         const highlight = this.searchTerm && node.name.toLowerCase().includes(this.searchTerm.toLowerCase())
           ? 'highlight' : '';
 
@@ -258,15 +543,16 @@ const VFSExplorer = {
         const stateIcon = this.getFileStateIcon(node.metadata);
 
         return `
-          <div class="vfs-item vfs-file ${selected} ${highlight} ${fileState}"
+          <div class="vfs-item vfs-file ${selected} ${multiSelected} ${highlight} ${fileState}"
                data-path="${escapeHtml(node.path)}"
                data-type="file"
                data-state="${node.metadata?.state || 'unchanged'}"
                role="treeitem"
-               aria-selected="${selected ? 'true' : 'false'}"
+               aria-selected="${selected || multiSelected ? 'true' : 'false'}"
                aria-label="${escapeHtml(node.name)} (${this.formatSize(node.size)})${stateIcon ? ' - ' + node.metadata?.state : ''}"
                tabindex="${selected ? '0' : '-1'}"
-               style="padding-left:${depth * 20 + 20}px">
+               style="padding-left:${depth * 20 + 20}px${multiSelected ? '; background: rgba(100, 149, 237, 0.2);' : ''}">
+            ${multiSelected ? '<span class="vfs-checkbox" aria-hidden="true">☑</span>' : ''}
             <span class="vfs-icon" aria-hidden="true">${icon}</span>
             <span class="vfs-name">${escapeHtml(node.name)}</span>
             ${stateIcon ? `<span class="vfs-state-icon" title="${node.metadata?.state || ''}">${stateIcon}</span>` : ''}
@@ -421,10 +707,36 @@ const VFSExplorer = {
         const expandBtn = this.container.querySelector('.vfs-expand-all');
         if (expandBtn) {
           expandBtn.addEventListener('click', async () => {
-            const allMeta = await StateManager.getAllArtifactMetadata();
+            const allMeta = await this.getAllFileMetadata();
             const tree = this.buildTree(allMeta);
             this.expandAll(tree);
             this.render();
+          });
+        }
+
+        // Sort select
+        const sortSelect = this.container.querySelector('.vfs-sort');
+        if (sortSelect) {
+          sortSelect.addEventListener('change', (e) => {
+            this.sortBy = e.target.value;
+            this.render();
+          });
+        }
+
+        // Sort direction toggle
+        const sortDirBtn = this.container.querySelector('.vfs-sort-dir');
+        if (sortDirBtn) {
+          sortDirBtn.addEventListener('click', () => {
+            this.sortAsc = !this.sortAsc;
+            this.render();
+          });
+        }
+
+        // New file button
+        const newFileBtn = this.container.querySelector('.vfs-new-file');
+        if (newFileBtn) {
+          newFileBtn.addEventListener('click', () => {
+            this.createNewFile('/');
           });
         }
 
@@ -439,6 +751,14 @@ const VFSExplorer = {
               this.expanded.add(path);
             }
             this.render();
+          });
+
+          // Right-click context menu for folders
+          header.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const path = header.dataset.path;
+            this.showContextMenu(e.clientX, e.clientY, path, 'folder');
           });
 
           // Keyboard navigation: Enter/Space to toggle folder
@@ -461,9 +781,33 @@ const VFSExplorer = {
           fileItem.addEventListener('click', async (e) => {
             e.stopPropagation();
             const path = fileItem.dataset.path;
+
+            // Multi-select with Ctrl/Cmd
+            if (e.ctrlKey || e.metaKey) {
+              if (this.selectedFiles.has(path)) {
+                this.selectedFiles.delete(path);
+              } else {
+                this.selectedFiles.add(path);
+              }
+              this.selectedFile = path;
+              this.render();
+              return;
+            }
+
+            // Clear multi-select on regular click
+            this.selectedFiles.clear();
             this.selectedFile = path;
             await this.showFileViewer(path);
             this.render();
+          });
+
+          // Right-click context menu for files
+          fileItem.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const path = fileItem.dataset.path;
+            this.selectedFile = path;
+            this.showContextMenu(e.clientX, e.clientY, path, 'file');
           });
 
           // Keyboard navigation: Enter to open file
@@ -474,6 +818,12 @@ const VFSExplorer = {
               this.selectedFile = path;
               await this.showFileViewer(path);
               this.render();
+            }
+            // Delete key to delete selected file
+            if (e.key === 'Delete' || e.key === 'Backspace') {
+              e.preventDefault();
+              const path = fileItem.dataset.path;
+              await this.deleteFile(path);
             }
           });
         });
@@ -488,7 +838,7 @@ const VFSExplorer = {
         }
       }
 
-      async showFileViewer(path) {
+      async showFileViewer(path, editMode = false) {
         try {
           const content = await VFS.read(path);
           const metadata = await VFS.stat(path);
@@ -501,6 +851,33 @@ const VFSExplorer = {
           }
 
           const language = this.getLanguageFromPath(path);
+          this.editMode = editMode;
+
+          // Build body content based on mode
+          const bodyContent = editMode
+            ? `<textarea class="vfs-editor" spellcheck="false" style="
+                width: 100%;
+                height: 100%;
+                background: var(--bg);
+                color: var(--fg);
+                border: none;
+                font-family: var(--font-a);
+                font-size: 13px;
+                line-height: 1.5;
+                padding: var(--space-md);
+                resize: none;
+                outline: none;
+                tab-size: 2;
+              ">${escapeHtml(content || '')}</textarea>`
+            : `<pre><code class="language-${language}">${escapeHtml(content || '')}</code></pre>`;
+
+          // Build footer buttons based on mode
+          const footerButtons = editMode
+            ? `<button class="vfs-file-viewer-save btn-primary">✓ Save</button>
+               <button class="vfs-file-viewer-cancel">☓ Cancel</button>`
+            : `<button class="vfs-file-viewer-copy">☷ Copy</button>
+               <button class="vfs-file-viewer-history">☐ History</button>
+               <button class="vfs-file-viewer-edit">✎ Edit</button>`;
 
           this.fileViewerModal.innerHTML = `
             <div class="vfs-file-viewer-overlay"></div>
@@ -509,6 +886,7 @@ const VFSExplorer = {
                 <div class="vfs-file-viewer-title">
                   <span class="vfs-icon">${this.getFileIcon(path)}</span>
                   <span>${escapeHtml(path)}</span>
+                  ${editMode ? '<span class="muted" style="margin-left: 8px; border-bottom: var(--border-sm) dashed var(--fg);">[Editing]</span>' : ''}
                 </div>
                 <button class="vfs-file-viewer-close">☩</button>
               </div>
@@ -518,62 +896,109 @@ const VFSExplorer = {
                 Lines: ${(content || '').split('\n').length}
               </div>
               <div class="vfs-file-viewer-body">
-                <pre><code class="language-${language}">${escapeHtml(content || '')}</code></pre>
+                ${bodyContent}
               </div>
               <div class="vfs-file-viewer-footer">
-                <button class="vfs-file-viewer-copy">☷ Copy</button>
-                <button class="vfs-file-viewer-history">☐ History</button>
-                <button class="vfs-file-viewer-edit">✎ edit</button>
+                ${footerButtons}
               </div>
             </div>
           `;
 
           this.fileViewerModal.style.display = 'flex';
 
-          // Attach modal event listeners
-          this.fileViewerModal.querySelector('.vfs-file-viewer-close').addEventListener('click', () => {
-            this.fileViewerModal.style.display = 'none';
-          });
+          // Focus editor if in edit mode
+          if (editMode) {
+            const editor = this.fileViewerModal.querySelector('.vfs-editor');
+            if (editor) {
+              setTimeout(() => editor.focus(), 100);
 
-          this.fileViewerModal.querySelector('.vfs-file-viewer-overlay').addEventListener('click', () => {
-            this.fileViewerModal.style.display = 'none';
-          });
-
-          this.fileViewerModal.querySelector('.vfs-file-viewer-copy').addEventListener('click', async (e) => {
-            try {
-              await navigator.clipboard.writeText(content);
-              logger.info(`[VFSExplorer] Copied ${path} to clipboard`);
-
-              // Visual feedback
-              const btn = e.target;
-              const originalText = btn.innerHTML;
-              btn.innerHTML = '✓ Copied!';
-              btn.style.background = 'rgba(76, 175, 80, 0.3)';
-              setTimeout(() => {
-                btn.innerHTML = originalText;
-                btn.style.background = '';
-              }, 2000);
-            } catch (err) {
-              logger.error(`[VFSExplorer] Failed to copy to clipboard:`, err);
-              if (ToastNotifications) ToastNotifications.error('Failed to copy to clipboard');
+              // Handle Tab key for indentation
+              editor.addEventListener('keydown', (e) => {
+                if (e.key === 'Tab') {
+                  e.preventDefault();
+                  const start = editor.selectionStart;
+                  const end = editor.selectionEnd;
+                  editor.value = editor.value.substring(0, start) + '  ' + editor.value.substring(end);
+                  editor.selectionStart = editor.selectionEnd = start + 2;
+                }
+                // Ctrl/Cmd+S to save
+                if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+                  e.preventDefault();
+                  this.fileViewerModal.querySelector('.vfs-file-viewer-save')?.click();
+                }
+              });
             }
+          }
+
+          // Close button
+          this.fileViewerModal.querySelector('.vfs-file-viewer-close').addEventListener('click', () => {
+            this.closeFileViewer();
           });
 
-          this.fileViewerModal.querySelector('.vfs-file-viewer-history').addEventListener('click', async () => {
-            // History feature requires integration with GenesisSnapshot
-            logger.info(`[VFSExplorer] History for ${path} - feature requires GenesisSnapshot integration`);
-            if (ToastNotifications) ToastNotifications.info('File history available via GenesisSnapshot module');
+          // Overlay click to close
+          this.fileViewerModal.querySelector('.vfs-file-viewer-overlay').addEventListener('click', () => {
+            this.closeFileViewer();
           });
 
-          this.fileViewerModal.querySelector('.vfs-file-viewer-edit').addEventListener('click', () => {
-            EventBus.emit('vfs:edit-file', { path, content });
-            this.fileViewerModal.style.display = 'none';
-          });
+          // Edit mode buttons
+          if (editMode) {
+            this.fileViewerModal.querySelector('.vfs-file-viewer-save')?.addEventListener('click', async () => {
+              const editor = this.fileViewerModal.querySelector('.vfs-editor');
+              if (editor) {
+                try {
+                  await VFS.write(path, editor.value);
+                  logger.info(`[VFSExplorer] Saved ${path}`);
+                  if (ToastNotifications) ToastNotifications.success('File saved');
+                  EventBus.emit('vfs:file_changed', { path });
+                  this.editMode = false;
+                  await this.showFileViewer(path, false); // Switch back to view mode
+                } catch (err) {
+                  logger.error(`[VFSExplorer] Save failed:`, err);
+                  if (ToastNotifications) ToastNotifications.error('Failed to save file');
+                }
+              }
+            });
 
-          // ESC key to close
+            this.fileViewerModal.querySelector('.vfs-file-viewer-cancel')?.addEventListener('click', () => {
+              this.editMode = false;
+              this.showFileViewer(path, false); // Switch back to view mode
+            });
+          } else {
+            // View mode buttons
+            this.fileViewerModal.querySelector('.vfs-file-viewer-copy')?.addEventListener('click', async (e) => {
+              try {
+                await navigator.clipboard.writeText(content);
+                logger.info(`[VFSExplorer] Copied ${path} to clipboard`);
+
+                // Visual feedback
+                const btn = e.target;
+                const originalText = btn.innerHTML;
+                btn.innerHTML = '✓ Copied!';
+                btn.style.background = 'rgba(76, 175, 80, 0.3)';
+                setTimeout(() => {
+                  btn.innerHTML = originalText;
+                  btn.style.background = '';
+                }, 2000);
+              } catch (err) {
+                logger.error(`[VFSExplorer] Failed to copy to clipboard:`, err);
+                if (ToastNotifications) ToastNotifications.error('Failed to copy to clipboard');
+              }
+            });
+
+            this.fileViewerModal.querySelector('.vfs-file-viewer-history')?.addEventListener('click', async () => {
+              logger.info(`[VFSExplorer] History for ${path} - feature requires GenesisSnapshot integration`);
+              if (ToastNotifications) ToastNotifications.info('File history available via GenesisSnapshot module');
+            });
+
+            this.fileViewerModal.querySelector('.vfs-file-viewer-edit')?.addEventListener('click', () => {
+              this.showFileViewer(path, true); // Switch to edit mode
+            });
+          }
+
+          // ESC key to close (with unsaved changes warning in edit mode)
           const handleEsc = (e) => {
             if (e.key === 'Escape' && this.fileViewerModal.style.display === 'flex') {
-              this.fileViewerModal.style.display = 'none';
+              this.closeFileViewer();
               document.removeEventListener('keydown', handleEsc);
             }
           };
@@ -582,6 +1007,19 @@ const VFSExplorer = {
         } catch (error) {
           logger.error(`[VFSExplorer] Failed to load file ${path}:`, error);
           if (ToastNotifications) ToastNotifications.error(`Failed to load file: ${error.message}`);
+        }
+      }
+
+      closeFileViewer() {
+        if (this.editMode) {
+          const editor = this.fileViewerModal?.querySelector('.vfs-editor');
+          if (editor && editor.value !== editor.defaultValue) {
+            if (!confirm('Discard unsaved changes?')) return;
+          }
+        }
+        this.editMode = false;
+        if (this.fileViewerModal) {
+          this.fileViewerModal.style.display = 'none';
         }
       }
 
@@ -632,6 +1070,32 @@ const VFSExplorer = {
         selectFile: (path) => {
           explorer.selectedFile = path;
           explorer.showFileViewer(path);
+        },
+        // File operations
+        editFile: (path) => explorer.editFile(path),
+        createFile: (folderPath) => explorer.createNewFile(folderPath),
+        createFolder: (parentPath) => explorer.createNewFolder(parentPath),
+        deleteFile: (path) => explorer.deleteFile(path),
+        deleteFolder: (path) => explorer.deleteFolder(path),
+        renameFile: (path) => explorer.renameFile(path),
+        moveFile: (path) => explorer.moveFile(path),
+        copyFileToClipboard: (path) => explorer.copyFile(path),
+        // Multi-select
+        getSelectedFiles: () => Array.from(explorer.selectedFiles),
+        clearSelection: () => {
+          explorer.selectedFiles.clear();
+          explorer.selectedFile = null;
+          explorer.render();
+        },
+        selectMultiple: (paths) => {
+          paths.forEach(p => explorer.selectedFiles.add(p));
+          explorer.render();
+        },
+        // Sorting
+        setSortBy: (field, ascending = true) => {
+          explorer.sortBy = field;
+          explorer.sortAsc = ascending;
+          explorer.render();
         },
         // Baseline management for file state tracking
         createBaseline: () => explorer.createBaseline(),

@@ -112,7 +112,7 @@ const Proto = {
         const errors = await ErrorStore.getErrors();
 
         if (errors.length === 0) {
-          errorsList.innerHTML = '<div class="text-muted" style="padding: 10px;">No errors or warnings</div>';
+          errorsList.innerHTML = '<div class="muted p-sm">No errors or warnings</div>';
           if (clearBtn) clearBtn.style.display = 'none';
           return;
         }

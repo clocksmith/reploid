@@ -136,13 +136,13 @@ const ArenaResults = {
         `;
       }
 
-      return '<div class="arena-empty text-muted">No score data available</div>';
+      return '<div class="arena-empty muted">No score data available</div>';
     };
 
     const renderDiff = (entry) => {
       const pair = getDiffPair(entry);
       if (!pair) {
-        return '<div class="arena-empty text-muted">Diff unavailable for this run</div>';
+        return '<div class="arena-empty muted">Diff unavailable for this run</div>';
       }
 
       return `
@@ -207,7 +207,7 @@ const ArenaResults = {
         </div>
         <div class="arena-list">
           ${count === 0
-            ? '<div class="arena-empty text-muted">No arena runs yet</div>'
+            ? '<div class="arena-empty muted">No arena runs yet</div>'
             : _history.map(renderEntry).join('')}
         </div>
       `;

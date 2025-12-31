@@ -292,12 +292,33 @@
     <!-- TOAST -->
     <section class="design-section">
       <h2>Toast</h2>
-      <p class="design-label">Variants: default, info, warning, error | Container: .toast-container (fixed position)</p>
-      <div class="design-group toast-container" style="position: relative; top: 0; right: 0; max-width: 300px;">
-        <div class="toast">☛ Default toast</div>
-        <div class="toast toast-info">☛ Info toast (dotted)</div>
-        <div class="toast toast-warning">☡ Warning toast (dashed)</div>
-        <div class="toast toast-error">☒ Error toast (double)</div>
+      <p class="design-label">Variants: default, success, info, warning, error | Inner: .toast-icon, .toast-message, .toast-close</p>
+      <div class="design-group toast-container" style="position: relative; top: 0; right: 0; max-width: 400px;">
+        <div class="toast visible" style="opacity: 1; transform: none;">
+          <span class="toast-icon">☛</span>
+          <span class="toast-message">Default toast message</span>
+          <span class="toast-close">⨯</span>
+        </div>
+        <div class="toast toast-success visible" style="opacity: 1; transform: none;">
+          <span class="toast-icon">★</span>
+          <span class="toast-message">Success toast (solid left border)</span>
+          <span class="toast-close">⨯</span>
+        </div>
+        <div class="toast toast-info visible" style="opacity: 1; transform: none;">
+          <span class="toast-icon">☛</span>
+          <span class="toast-message">Info toast (dotted)</span>
+          <span class="toast-close">⨯</span>
+        </div>
+        <div class="toast toast-warning visible" style="opacity: 1; transform: none;">
+          <span class="toast-icon">☡</span>
+          <span class="toast-message">Warning toast (dashed)</span>
+          <span class="toast-close">⨯</span>
+        </div>
+        <div class="toast toast-error visible" style="opacity: 1; transform: none;">
+          <span class="toast-icon">☒</span>
+          <span class="toast-message">Error toast (double)</span>
+          <span class="toast-close">⨯</span>
+        </div>
       </div>
     </section>
 
@@ -384,6 +405,53 @@
       <div class="design-group">
         <div class="progress progress-indeterminate" style="max-width: 300px;">
           <div class="progress-fill"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PROGRESS PHASES -->
+    <section class="design-section">
+      <h2>Progress Phases</h2>
+      <p class="design-label">Row variants for source type differentiation: network (dotted), disk (dashed), cache (solid)</p>
+      <div class="design-group" style="max-width: 400px;">
+        <div class="progress-phase-row progress-phase-network" style="display: grid; grid-template-columns: 70px 1fr 80px; gap: var(--space-sm); align-items: center; padding: var(--space-sm);">
+          <span class="type-caption">Network</span>
+          <div class="progress"><div class="progress-fill" style="width: 45%;"></div></div>
+          <span class="type-caption muted">45%</span>
+        </div>
+        <div class="progress-phase-row progress-phase-disk" style="display: grid; grid-template-columns: 70px 1fr 80px; gap: var(--space-sm); align-items: center; padding: var(--space-sm);">
+          <span class="type-caption">Disk</span>
+          <div class="progress"><div class="progress-fill" style="width: 72%;"></div></div>
+          <span class="type-caption muted">72%</span>
+        </div>
+        <div class="progress-phase-row progress-phase-cache" style="display: grid; grid-template-columns: 70px 1fr 80px; gap: var(--space-sm); align-items: center; padding: var(--space-sm);">
+          <span class="type-caption">Cache</span>
+          <div class="progress"><div class="progress-fill" style="width: 100%;"></div></div>
+          <span class="type-caption muted">100%</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ERROR UI -->
+    <section class="design-section">
+      <h2>Error UI</h2>
+      <p class="design-label">Full-page error component for boot failures</p>
+      <div class="design-group">
+        <div class="error-ui panel border-error" style="max-width: 500px;">
+          <h1 class="error-ui-header">Boot Failure</h1>
+          <p class="error-ui-description muted">The application failed to start due to an unexpected error.</p>
+          <div class="error-ui-message">TypeError: Cannot read property 'init' of undefined</div>
+          <details class="error-ui-details">
+            <summary>Stack trace</summary>
+            <pre class="error-ui-stack">at boot.js:42:15
+at Module.load (loader.js:88:12)
+at require (runtime.js:33:8)</pre>
+          </details>
+          <p class="error-ui-hint muted type-caption">Try reloading the page or clearing browser storage.</p>
+          <div class="error-ui-actions">
+            <button class="btn">↻ Reload Page</button>
+            <button class="btn btn-primary">⌫ Factory Reset</button>
+          </div>
         </div>
       </div>
     </section>
