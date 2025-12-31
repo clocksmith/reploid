@@ -3,9 +3,6 @@
 // PX-3 Enhanced: Prism.js syntax highlighting + detailed statistics
 // PHASE 3 UPDATE: Added Event-Driven Rollback capability
 
-// Removed direct import - using injected Utils
-// import ParserUtils from '../../core/parser-utils.js';
-
 const DiffViewerUI = {
   metadata: {
     id: 'DiffViewerUI',

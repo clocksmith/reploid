@@ -60,7 +60,7 @@ const InlineChat = {
 
     const bindEvents = () => {
       if (!_container) {
-        console.warn('[InlineChat] Cannot bind events - container not found');
+        logger.warn('[InlineChat] Cannot bind events - container not found');
         return;
       }
 
@@ -81,9 +81,6 @@ const InlineChat = {
             sendMessage();
           }
         });
-        console.log('[InlineChat] Events bound to input');
-      } else {
-        console.warn('[InlineChat] Input not found when binding events');
       }
     };
 
@@ -91,7 +88,6 @@ const InlineChat = {
       // Use cached _input reference first, fall back to query
       const input = _input || _container?.querySelector('.inline-chat-input');
       if (!input) {
-        console.warn('[InlineChat] Input not found');
         return;
       }
 
@@ -118,11 +114,9 @@ const InlineChat = {
             messageType: 'context',
             pending: true
           });
-        } else {
-          console.warn('[InlineChat] EventBus not available');
         }
       } catch (e) {
-        console.error('[InlineChat] Error emitting events:', e);
+        logger.error('[InlineChat] Error emitting events:', e);
       }
 
       logger?.info?.(`[InlineChat] Sent message: ${content.substring(0, 50)}...`);
