@@ -1,4 +1,48 @@
-/* Inline Chat - Human-in-the-loop message input */
+/* === CHAT COMPONENTS === */
+/* Base chat UI styles for Doppler */
+
+.chat-container {
+  height: 100%;
+}
+
+.chat-messages {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.chat-message {
+  margin-bottom: var(--space-md);
+}
+
+.chat-message-user {
+  margin-left: 32px;
+  border-width: var(--border-md);
+}
+
+.chat-message-assistant {
+  margin-right: 32px;
+  border-style: dashed;
+}
+
+.chat-message-role {
+  font-family: var(--font-a);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  margin-bottom: var(--space-sm);
+}
+
+.chat-input-row {
+  display: flex;
+  gap: var(--space-sm);
+}
+
+.chat-input {
+  flex: 1;
+}
+
+/* === INLINE CHAT (HITL) === */
+/* Human-in-the-loop message input */
 
 .inline-chat {
   background: rgba(0, 0, 0, 0.4);
