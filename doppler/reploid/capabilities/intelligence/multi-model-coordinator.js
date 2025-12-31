@@ -49,7 +49,6 @@ const MultiModelCoordinator = {
      * All models get same prompt, generate solutions, best scored solution wins
      */
     const runArena = async (messages, models, onUpdate) => {
-      console.log(`[MultiModel] Arena mode: ${models.length} models competing`);
 
       if (onUpdate) {
         onUpdate({
@@ -85,7 +84,6 @@ const MultiModelCoordinator = {
               failed: false
             };
           } catch (error) {
-            console.error(`[MultiModel] Model ${model.id} failed:`, error);
             return {
               model: model.id,
               error: error.message,
@@ -130,8 +128,6 @@ const MultiModelCoordinator = {
       // Select winner (highest score)
       const winner = scoredSolutions.sort((a, b) => b.score - a.score)[0];
 
-      console.log(`[MultiModel] Arena winner: ${winner.model} (score: ${winner.score.toFixed(2)})`);
-
       return {
         mode: 'arena',
         winner,
@@ -148,7 +144,6 @@ const MultiModelCoordinator = {
      * Models work on same task in parallel, results are merged
      */
     const runSwarm = async (messages, models, onUpdate) => {
-      console.log(`[MultiModel] Swarm mode: ${models.length} models in parallel`);
 
       if (onUpdate) {
         onUpdate({
@@ -181,7 +176,6 @@ const MultiModelCoordinator = {
               failed: false
             };
           } catch (error) {
-            console.error(`[MultiModel] Model ${model.id} failed:`, error);
             return {
               model: model.id,
               error: error.message,
@@ -214,8 +208,6 @@ const MultiModelCoordinator = {
 
       const totalTokens = validResults.reduce((sum, r) => sum + r.tokens, 0);
 
-      console.log(`[MultiModel] Swarm complete: ${validResults.length} models succeeded`);
-
       return {
         mode: 'swarm',
         results: validResults,
@@ -232,7 +224,6 @@ const MultiModelCoordinator = {
      * Each model generates response, then all models vote on best
      */
     const runConsensus = async (messages, models, onUpdate) => {
-      console.log(`[MultiModel] Consensus mode: ${models.length} models voting`);
 
       if (onUpdate) {
         onUpdate({
@@ -265,7 +256,6 @@ const MultiModelCoordinator = {
               failed: false
             };
           } catch (error) {
-            console.error(`[MultiModel] Model ${model.id} failed:`, error);
             return {
               model: model.id,
               error: error.message,
@@ -332,7 +322,6 @@ SCORE:`;
               });
             }
           } catch (error) {
-            console.error(`[MultiModel] Vote failed:`, error);
             // Use neutral score on error
             votes.push({
               voter: voter.id,
@@ -354,8 +343,6 @@ SCORE:`;
 
       // Select winner by average score
       const winner = Object.values(tallies).sort((a, b) => b.avgScore - a.avgScore)[0];
-
-      console.log(`[MultiModel] Consensus winner: ${winner.solution.model} (score: ${winner.avgScore.toFixed(2)})`);
 
       return {
         mode: 'consensus',
@@ -380,8 +367,6 @@ SCORE:`;
       if (models.length < 2) {
         throw new Error('Multi-model mode requires at least 2 models');
       }
-
-      console.log(`[MultiModel] Executing in ${mode} mode with ${models.length} models`);
 
       switch (mode) {
         case 'arena':

@@ -515,14 +515,11 @@ const Proto = {
       };
 
       const exportState = async () => {
-        console.log('[Proto] Export button clicked');
         try {
           if (window.downloadReploid) {
-            console.log('[Proto] Using window.downloadReploid');
             await window.downloadReploid(`reploid-export-${Date.now()}.json`);
             Toast.success('Export Complete', 'State and VFS exported successfully');
           } else {
-            console.log('[Proto] Fallback: window.downloadReploid not available');
             // Try to resolve VFS from DI container if available
             let exportData = { state: StateManager.getState(), vfs: {} };
             try {
@@ -531,11 +528,10 @@ const Proto = {
                 if (vfs?.exportAll) {
                   const vfsExport = await vfs.exportAll();
                   exportData.vfs = vfsExport.files || {};
-                  console.log('[Proto] VFS export included:', Object.keys(exportData.vfs).length, 'files');
                 }
               }
             } catch (vfsErr) {
-              console.warn('[Proto] VFS export failed:', vfsErr.message);
+              logger.warn('[Proto] VFS export failed:', vfsErr.message);
             }
             exportData.exportedAt = new Date().toISOString();
             exportData.version = '1.1';
@@ -552,7 +548,7 @@ const Proto = {
             Toast.success('Export Complete', `Exported ${Object.keys(exportData.vfs).length} VFS files`);
           }
         } catch (e) {
-          console.error('[Proto] Export failed:', e);
+          logger.error('[Proto] Export failed:', e);
           Toast.error('Export Failed', e.message);
           EventBus.emit('agent:error', { message: 'Export Failed', error: e.message });
         }
@@ -623,7 +619,7 @@ const Proto = {
                 originalContent = await response.text();
               }
             } catch (e) {
-              console.warn('[Diff] Could not fetch original:', e);
+              // Original file not available for comparison
             }
 
             // Show diff panel
@@ -682,7 +678,7 @@ const Proto = {
             diffPanel.classList.remove('hidden');
 
           } catch (e) {
-            console.error('[Diff] Error:', e);
+            logger.error('[Diff] Error:', e);
             Toast.error('Diff Failed', e.message);
           }
         };
@@ -710,7 +706,7 @@ const Proto = {
                 }
               }
             } catch (e) {
-              console.warn('[Proto] GenesisSnapshot not available:', e.message);
+              // GenesisSnapshot not available
             }
 
             // Render snapshot list
@@ -731,7 +727,7 @@ const Proto = {
             snapshotPanel.classList.remove('hidden');
 
           } catch (e) {
-            console.error('[Proto] Snapshot error:', e);
+            logger.error('[Proto] Snapshot error:', e);
             Toast.error('Snapshots', e.message);
           }
         };

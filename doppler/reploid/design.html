@@ -122,6 +122,15 @@
 
     </section>
 
+    <!-- LINKS -->
+    <section class="design-section">
+      <h2>Links</h2>
+      <div class="design-row">
+        <a href="#">Default link</a>
+        <a href="#" class="link-secondary">Secondary link</a>
+      </div>
+    </section>
+
     <!-- TYPOGRAPHY -->
     <section class="design-section">
       <h2>Typography</h2>
@@ -208,15 +217,29 @@
     <!-- SELECT -->
     <section class="design-section">
       <h2>Select (custom)</h2>
-      <p class="design-label">States: closed, open, selected</p>
+      <p class="design-label">States: closed, .open, .selected | Click to toggle</p>
 
-      <div class="design-group">
-        <div class="select-custom" style="max-width: 300px;">
-          <div class="select-trigger">Choose option</div>
-          <div class="select-options">
-            <div class="select-option">Option 1</div>
-            <div class="select-option selected">Option 2</div>
-            <div class="select-option">Option 3</div>
+      <div class="design-row" style="align-items: flex-start;">
+        <div class="design-group">
+          <div class="design-label">Closed</div>
+          <div class="select-custom" style="width: 150px;">
+            <div class="select-trigger">Choose option</div>
+            <div class="select-options">
+              <div class="select-option">Option 1</div>
+              <div class="select-option selected">Option 2</div>
+              <div class="select-option">Option 3</div>
+            </div>
+          </div>
+        </div>
+        <div class="design-group">
+          <div class="design-label">Open (.open)</div>
+          <div class="select-custom open" style="width: 150px;">
+            <div class="select-trigger">Option 2</div>
+            <div class="select-options">
+              <div class="select-option">Option 1</div>
+              <div class="select-option selected">Option 2</div>
+              <div class="select-option">Option 3</div>
+            </div>
           </div>
         </div>
       </div>
@@ -269,8 +292,207 @@
     <!-- TOAST -->
     <section class="design-section">
       <h2>Toast</h2>
+      <p class="design-label">Variants: default, info, warning, error | Container: .toast-container (fixed position)</p>
+      <div class="design-group toast-container" style="position: relative; top: 0; right: 0; max-width: 300px;">
+        <div class="toast">☛ Default toast</div>
+        <div class="toast toast-info">☛ Info toast (dotted)</div>
+        <div class="toast toast-warning">☡ Warning toast (dashed)</div>
+        <div class="toast toast-error">☒ Error toast (double)</div>
+      </div>
+    </section>
+
+    <!-- CARD -->
+    <section class="design-section">
+      <h2>Card</h2>
       <div class="design-group">
-        <div class="toast" style="max-width: 300px;">☛ Notification message</div>
+        <div class="card" style="max-width: 300px;">
+          <div class="card-header">Card Header</div>
+          <div class="card-body">Card body content goes here.</div>
+          <div class="card-footer">Card footer</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- LIST -->
+    <section class="design-section">
+      <h2>List</h2>
+      <div class="design-group">
+        <ul class="list" style="max-width: 300px; border: var(--border-sm) solid var(--fg);">
+          <li class="list-item">List item one</li>
+          <li class="list-item">List item two (hover me)</li>
+          <li class="list-item">List item three</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- TAG -->
+    <section class="design-section">
+      <h2>Tag</h2>
+      <div class="design-row">
+        <span class="tag">tag-one</span>
+        <span class="tag">tag-two</span>
+        <span class="tag">tag-three</span>
+      </div>
+    </section>
+
+    <!-- BADGE VARIANTS -->
+    <section class="design-section">
+      <h2>Badge Variants</h2>
+      <div class="design-row">
+        <span class="badge">Outline</span>
+        <span class="badge badge-filled">Filled</span>
+      </div>
+    </section>
+
+    <!-- DIVIDER -->
+    <section class="design-section">
+      <h2>Divider</h2>
+      <div class="design-group" style="max-width: 300px;">
+        <p class="design-label">.divider (solid)</p>
+        <hr class="divider">
+        <p class="design-label">.divider-dashed</p>
+        <hr class="divider divider-dashed">
+        <p class="design-label">.divider-dotted</p>
+        <hr class="divider divider-dotted">
+      </div>
+    </section>
+
+    <!-- CHECKBOX & RADIO -->
+    <section class="design-section">
+      <h2>Checkbox & Radio</h2>
+      <div class="design-group">
+        <label class="checkbox-label">
+          <input type="checkbox" checked>
+          <span>Checkbox label</span>
+        </label>
+      </div>
+      <div class="design-group">
+        <label class="radio-label">
+          <input type="radio" name="demo" checked>
+          <span>Radio option A</span>
+        </label>
+        <label class="radio-label">
+          <input type="radio" name="demo">
+          <span>Radio option B</span>
+        </label>
+      </div>
+    </section>
+
+    <!-- PROGRESS INDETERMINATE -->
+    <section class="design-section">
+      <h2>Progress Indeterminate</h2>
+      <div class="design-group">
+        <div class="progress progress-indeterminate" style="max-width: 300px;">
+          <div class="progress-fill"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PANEL WITH HEADER -->
+    <section class="design-section">
+      <h2>Panel with Header</h2>
+      <div class="design-group">
+        <div class="panel" style="max-width: 300px; padding: 0;">
+          <div class="panel-header">Panel Title</div>
+          <div class="panel-body">Panel body content.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- MODAL -->
+    <section class="design-section">
+      <h2>Modal</h2>
+      <p class="design-label">Container: .modal-overlay (fixed fullscreen) | Shown inline below</p>
+      <div class="design-group modal-overlay" style="position: relative; inset: auto; height: auto; background: #f5f5f5; padding: 20px;">
+        <div class="modal" style="max-width: 300px; position: relative;">
+          <div class="modal-header">
+            <span class="type-h2">Modal Title</span>
+            <button class="btn btn-ghost" style="padding: 4px 8px;">×</button>
+          </div>
+          <div class="modal-body">Modal content goes here.</div>
+          <div class="modal-footer">
+            <button class="btn btn-ghost">Cancel</button>
+            <button class="btn btn-primary">Confirm</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- UTILITIES -->
+    <section class="design-section">
+      <h2>Utilities</h2>
+
+      <div class="design-group">
+        <div class="design-label">Opacity / Inverted</div>
+        <div class="design-row">
+          <span class="muted">.muted (0.5)</span>
+          <span class="inverted" style="padding: 4px 8px;">.inverted</span>
+        </div>
+      </div>
+
+      <div class="design-group">
+        <div class="design-label">Flex layout</div>
+        <div class="flex gap-md items-center" style="border: 1px dashed var(--fg); padding: 8px;">
+          <span>.flex</span>
+          <span class="flex-1" style="background: #eee;">.flex-1</span>
+          <span>.gap-md</span>
+        </div>
+        <div class="flex-col gap-sm" style="border: 1px dashed var(--fg); padding: 8px; margin-top: 8px;">
+          <span>.flex-col + .gap-sm</span>
+          <span>stacked items</span>
+        </div>
+      </div>
+
+      <div class="design-group">
+        <div class="design-label">Alignment</div>
+        <div class="design-row">
+          <div class="flex items-center justify-center" style="border: 1px solid var(--fg); width: 120px; height: 60px;">.justify-center</div>
+          <div class="flex items-center justify-between" style="border: 1px solid var(--fg); width: 120px; height: 60px;"><span>A</span><span>B</span></div>
+        </div>
+      </div>
+
+      <div class="design-group">
+        <div class="design-label">Spacing</div>
+        <div class="design-row">
+          <span class="p-sm" style="border: 1px solid var(--fg);">.p-sm</span>
+          <span class="p-md" style="border: 1px solid var(--fg);">.p-md</span>
+          <span class="p-lg" style="border: 1px solid var(--fg);">.p-lg</span>
+        </div>
+        <div class="design-row" style="margin-top: 8px;">
+          <span class="m-0" style="border: 1px solid var(--fg); padding: 4px;">.m-0</span>
+          <div style="width: 200px;"><div class="mx-auto" style="border: 1px solid var(--fg); padding: 4px; width: fit-content;">.mx-auto</div></div>
+        </div>
+      </div>
+
+      <div class="design-group">
+        <div class="design-label">Sizing</div>
+        <div class="design-row">
+          <div class="w-full" style="border: 1px solid var(--fg); padding: 4px;">.w-full</div>
+        </div>
+        <div class="design-row" style="margin-top: 8px;">
+          <div style="height: 40px; width: 100px; border: 1px dashed var(--fg);"><div class="h-full" style="background: #eee;">.h-full</div></div>
+          <div class="overflow-auto" style="border: 1px solid var(--fg); height: 40px; width: 100px; padding: 4px;">overflow-auto with scrollable content here...</div>
+          <div class="overflow-hidden" style="border: 1px solid var(--fg); height: 40px; width: 100px; padding: 4px;">overflow-hidden clips this long content</div>
+        </div>
+      </div>
+
+      <div class="design-group">
+        <div class="design-label">Interaction states</div>
+        <div class="design-row">
+          <span class="cursor-pointer" style="border: 1px solid var(--fg); padding: 4px 8px;">.cursor-pointer</span>
+          <span class="cursor-not-allowed" style="border: 1px solid var(--fg); padding: 4px 8px;">.cursor-not-allowed</span>
+          <span class="select-none" style="border: 1px solid var(--fg); padding: 4px 8px;">.select-none</span>
+          <span class="pointer-events-none" style="border: 1px solid var(--fg); padding: 4px 8px; opacity: 0.5;">.pointer-events-none</span>
+        </div>
+      </div>
+
+      <div class="design-group">
+        <div class="design-label">Visibility</div>
+        <div class="design-row">
+          <span style="border: 1px solid var(--fg); padding: 4px 8px;">visible</span>
+          <span class="hidden">.hidden (not visible)</span>
+          <span style="border: 1px dashed var(--fg); padding: 4px 8px; opacity: 0.5;">(hidden element here)</span>
+        </div>
       </div>
     </section>
 

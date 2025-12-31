@@ -49,7 +49,6 @@ export async function estimateGPUMemory() {
       adapterInfo: adapter.info || {}
     };
   } catch (e) {
-    console.warn('[Detection] GPU memory estimate failed:', e);
     return null;
   }
 }

@@ -48,7 +48,6 @@ async function openVFS() {
     request.onblocked = () => {
       clearTimeout(timeout);
       vfsDBOpening = false;
-      console.warn('[SW] VFS DB blocked - another connection may be open');
       reject(new Error('VFS DB blocked'));
     };
 
@@ -59,12 +58,10 @@ async function openVFS() {
 
       // Handle database close events (e.g., when deleted elsewhere)
       vfsDB.onclose = () => {
-        console.log('[SW] VFS DB connection closed');
         vfsDB = null;
       };
 
       vfsDB.onversionchange = () => {
-        console.log('[SW] VFS DB version change - closing connection');
         vfsDB.close();
         vfsDB = null;
       };
@@ -86,7 +83,6 @@ function closeVFS() {
   if (vfsDB) {
     vfsDB.close();
     vfsDB = null;
-    console.log('[SW] VFS DB connection closed manually');
   }
 }
 
