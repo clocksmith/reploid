@@ -5,458 +5,305 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>RD Design System</title>
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
-  <link rel="stylesheet" href="styles/mono.css">
+  <link rel="stylesheet" href="styles/rd.css">
   <style>
     .design-page {
-      max-width: 900px;
+      max-width: 800px;
       margin: 0 auto;
       padding: 40px 20px;
     }
     .design-header {
-      margin-bottom: 60px;
+      margin-bottom: 48px;
     }
     .design-header h1 {
-      font-size: 2.5rem;
-      font-weight: 300;
+      font: 300 2rem/1.2 var(--font-a);
       letter-spacing: 0.2em;
-      margin: 0 0 8px 0;
+      margin: 0 0 var(--space-sm) 0;
     }
     .design-header p {
-      opacity: 0.6;
+      opacity: var(--opacity-muted);
       margin: 0;
     }
     .design-section {
-      margin-bottom: 60px;
+      margin-bottom: 48px;
     }
     .design-section h2 {
-      font-size: 12px;
-      font-weight: 600;
+      font: 700 11px/1.2 var(--font-a);
       text-transform: uppercase;
       letter-spacing: 2px;
-      border-bottom: 1px solid var(--fg);
-      padding-bottom: 8px;
-      margin-bottom: 24px;
+      border-bottom: var(--border-sm) solid var(--fg);
+      padding-bottom: var(--space-sm);
+      margin-bottom: var(--space-lg);
     }
     .design-row {
       display: flex;
       flex-wrap: wrap;
-      gap: 16px;
-      margin-bottom: 24px;
+      gap: var(--space-md);
+      margin-bottom: var(--space-md);
       align-items: center;
     }
     .design-label {
       font-size: 11px;
-      opacity: 0.5;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      margin-bottom: 8px;
+      opacity: var(--opacity-muted);
+      margin-bottom: var(--space-sm);
     }
     .design-group {
-      margin-bottom: 24px;
+      margin-bottom: var(--space-lg);
     }
-    .design-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 16px;
-    }
-    .color-swatch {
-      display: flex;
+    .token {
+      display: inline-flex;
       align-items: center;
-      gap: 12px;
-      padding: 12px;
+      gap: var(--space-sm);
+      padding: var(--space-sm) 0;
+      font-size: 13px;
+    }
+    .token-swatch {
+      width: 20px;
+      height: 20px;
       border: 1px solid var(--fg);
     }
-    .color-swatch .swatch {
-      width: 40px;
-      height: 40px;
-      border: 1px solid var(--fg);
-    }
-    .color-swatch .swatch.fg { background: var(--fg); }
-    .color-swatch .swatch.bg { background: var(--bg); }
-    .font-sample {
-      padding: 16px;
-      border: 1px solid var(--fg);
-      margin-bottom: 12px;
-    }
-    .font-sample.font-a { font-family: var(--font-a); }
-    .font-sample.font-b { font-family: var(--font-b); }
-    .border-demo {
-      padding: 16px 24px;
-      background: var(--bg);
-    }
-    .border-demo.solid { border: 1px solid var(--fg); }
-    .border-demo.solid-2 { border: 2px solid var(--fg); }
-    .border-demo.solid-3 { border: 3px solid var(--fg); }
-    .border-demo.dashed { border: 1px dashed var(--fg); }
-    .border-demo.dotted { border: 2px dotted var(--fg); }
-    .border-demo.double { border: 4px double var(--fg); }
-    .space-demo {
-      background: var(--fg);
-      height: 8px;
-    }
+    .token-swatch.fg { background: var(--fg); }
+    .token-swatch.bg { background: var(--bg); }
   </style>
 </head>
 <body>
   <div class="design-page">
     <header class="design-header">
       <h1>RD</h1>
-      <p>Black and white design system for REPLOID / DOPPLER</p>
+      <p>Black & white, with a sprinkle of prism</p>
     </header>
 
-    <!-- Colors -->
+    <!-- PRIMITIVES -->
     <section class="design-section">
-      <h2>Colors</h2>
-      <div class="design-row">
-        <div class="color-swatch">
-          <div class="swatch fg"></div>
-          <div>
-            <div>Foreground</div>
-            <code>--fg: #000000</code>
-          </div>
-        </div>
-        <div class="color-swatch">
-          <div class="swatch bg"></div>
-          <div>
-            <div>Background</div>
-            <code>--bg: #FFFFFF</code>
-          </div>
-        </div>
-      </div>
-      <div class="design-group" style="margin-top: 24px;">
-        <div class="design-label">Opacity (no gray - use opacity instead)</div>
+      <h2>Primitives</h2>
+
+      <div class="design-group">
+        <div class="design-label">Colors</div>
         <div class="design-row">
-          <span>100%</span>
-          <span style="opacity: 0.7;">70%</span>
-          <span style="opacity: 0.5;">50%</span>
-          <span class="muted">muted</span>
+          <div class="token"><div class="token-swatch fg"></div> --fg</div>
+          <div class="token"><div class="token-swatch bg"></div> --bg</div>
+          <div class="token"><div class="token-swatch" style="background: conic-gradient(#ff0000, #ff8000, #ffff00, #00ff00, #00ffff, #0080ff, #8000ff, #ff0080, #ff0000);"></div> --prism</div>
         </div>
       </div>
+
+      <div class="design-group">
+        <div class="design-label">Fonts</div>
+        <div class="token">--font-a: <span style="font-family: var(--font-a);">SF Mono / Menlo / Consolas / DejaVu Sans Mono</span></div>
+        <div class="token">--font-b: <span style="font-family: var(--font-b);">Courier New / Courier / Liberation Mono / Nimbus Mono L</span></div>
+      </div>
+
+      <div class="design-group">
+        <div class="design-label">Spacing</div>
+        <div class="design-row">
+          <div class="token">--space-sm: 8px</div>
+          <div class="token">--space-md: 16px</div>
+          <div class="token">--space-lg: 24px</div>
+        </div>
+      </div>
+
+      <div class="design-group">
+        <div class="design-label">Border Widths</div>
+        <div class="design-row">
+          <div class="token">--border-sm: 1px</div>
+          <div class="token">--border-md: 2px</div>
+          <div class="token">--border-lg: 3px</div>
+        </div>
+      </div>
+
+      <div class="design-group">
+        <div class="design-label">Opacity</div>
+        <div class="design-row">
+          <div class="token" style="opacity: var(--opacity-ghost);">--opacity-ghost: 0.7</div>
+          <div class="token" style="opacity: var(--opacity-secondary);">--opacity-secondary: 0.6</div>
+          <div class="token" style="opacity: var(--opacity-muted);">--opacity-muted: 0.5</div>
+          <div class="token" style="opacity: var(--opacity-disabled);">--opacity-disabled: 0.3</div>
+        </div>
+      </div>
+
     </section>
 
-    <!-- Typography -->
+    <!-- TYPOGRAPHY -->
     <section class="design-section">
       <h2>Typography</h2>
       <div class="design-group">
-        <div class="design-label">Font A - JetBrains Mono (technical)</div>
-        <div class="font-sample font-a">
-          <div style="font-size: 24px; font-weight: 300;">Light 24px</div>
-          <div style="font-size: 16px; font-weight: 400;">Regular 16px</div>
-          <div style="font-size: 14px; font-weight: 500;">Medium 14px</div>
-          <div style="font-size: 12px; font-weight: 700;">Bold 12px</div>
-        </div>
+        <div class="token">.type-display</div>
+        <div class="type-display">Welcome to the Future</div>
       </div>
       <div class="design-group">
-        <div class="design-label">Font B - Inconsolata (readable)</div>
-        <div class="font-sample font-b">
-          <div style="font-size: 24px; font-weight: 300;">Light 24px</div>
-          <div style="font-size: 16px; font-weight: 400;">Regular 16px</div>
-          <div style="font-size: 14px; font-weight: 500;">Medium 14px</div>
-          <div style="font-size: 12px; font-weight: 700;">Bold 12px</div>
-        </div>
+        <div class="token">.type-h1</div>
+        <div class="type-h1">Primary Heading</div>
+      </div>
+      <div class="design-group">
+        <div class="token">.type-h2</div>
+        <div class="type-h2">Secondary Heading</div>
+      </div>
+      <div class="design-group">
+        <div class="token">.type-body</div>
+        <div class="type-body">The quick brown fox jumps over the lazy dog. This is body text used for paragraphs and readable content.</div>
+      </div>
+      <div class="design-group">
+        <div class="token">.type-label</div>
+        <div class="type-label">Status</div>
+      </div>
+      <div class="design-group">
+        <div class="token">.type-ui</div>
+        <div class="type-ui">Submit Form</div>
+      </div>
+      <div class="design-group">
+        <div class="token">.type-caption</div>
+        <div class="type-caption">Last updated 2 hours ago</div>
       </div>
     </section>
 
-    <!-- Borders -->
+    <!-- BORDERS -->
     <section class="design-section">
-      <h2>Border Tokens</h2>
-      <p class="design-label">Border style conveys hierarchy and state</p>
-      <div class="design-grid">
-        <div class="border-demo solid">1px solid</div>
-        <div class="border-demo solid-2">2px solid</div>
-        <div class="border-demo dashed">1px dashed</div>
-        <div class="border-demo dotted">2px dotted</div>
-        <div class="border-demo double">4px double</div>
+      <h2>Borders</h2>
+      <div class="design-row" style="flex-wrap: wrap;">
+        <div class="border-default" style="padding: var(--space-sm) var(--space-md);">.border-default</div>
+        <div class="border-subtle" style="padding: var(--space-sm) var(--space-md);">.border-subtle</div>
+        <div class="border-elevated" style="padding: var(--space-sm) var(--space-md);">.border-elevated</div>
+        <div class="border-ghost" style="padding: var(--space-sm) var(--space-md);">.border-ghost</div>
+        <div class="border-info" style="padding: var(--space-sm) var(--space-md);">.border-info</div>
+        <div class="border-warning" style="padding: var(--space-sm) var(--space-md);">.border-warning</div>
+        <div class="border-error" style="padding: var(--space-sm) var(--space-md);">.border-error</div>
+        <div class="border-disabled" style="padding: var(--space-sm) var(--space-md);">.border-disabled</div>
+        <div class="border-prism" style="padding: var(--space-sm) var(--space-md);">.border-prism</div>
       </div>
     </section>
 
-    <!-- Buttons -->
+    <!-- BUTTONS -->
     <section class="design-section">
-      <h2>Buttons</h2>
+      <h2>Button</h2>
+      <p class="design-label">Variants: secondary (default), primary, ghost, prism | States: hover, active, disabled</p>
 
-      <div class="design-group">
-        <div class="design-row">
-          <button class="btn btn-primary">Primary</button>
-          <button class="btn">Secondary</button>
-          <button class="btn btn-ghost">Ghost</button>
-          <button class="btn" disabled>Disabled</button>
-        </div>
-      </div>
-
-      <div class="design-group">
-        <div class="design-label">Sizes</div>
-        <div class="design-row">
-          <button class="btn btn-sm">Small</button>
-          <button class="btn">Medium</button>
-          <button class="btn btn-lg">Large</button>
-        </div>
-      </div>
-
-      <div class="design-group">
-        <div class="design-label">Rainbow (max 1 per page)</div>
-        <div class="design-row">
-          <button class="btn btn-rainbow">Special</button>
-        </div>
-      </div>
-    </section>
-
-    <!-- Inputs -->
-    <section class="design-section">
-      <h2>Inputs</h2>
-      <div class="design-group">
-        <div class="design-label">Text Input</div>
-        <input type="text" class="input" placeholder="Placeholder text" style="width: 300px;">
-      </div>
-      <div class="design-group">
-        <div class="design-label">Dotted Input (API key style)</div>
-        <input type="password" class="intro-key-input" placeholder="API key">
-      </div>
-      <div class="design-group">
-        <div class="design-label">Select</div>
-        <select class="select" style="width: 300px;">
-          <option>Option 1</option>
-          <option>Option 2</option>
-          <option>Option 3</option>
-        </select>
-      </div>
-      <div class="design-group">
-        <div class="design-label">Textarea</div>
-        <textarea class="textarea" placeholder="Enter text..." style="width: 300px; height: 80px;"></textarea>
-      </div>
-    </section>
-
-    <!-- Panels -->
-    <section class="design-section">
-      <h2>Panels</h2>
-      <div class="design-grid">
-        <div class="panel">
-          <div class="panel-header">Panel Header</div>
-          <div class="panel-body">Default panel with solid border</div>
-        </div>
-        <div class="panel panel-dashed">
-          <div class="panel-header">Dashed Panel</div>
-          <div class="panel-body">Secondary panel with dashed border</div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Cards -->
-    <section class="design-section">
-      <h2>Cards</h2>
-      <div class="design-grid">
-        <div class="card">
-          <div class="card-title">Card Title</div>
-          <div class="card-body">Card content goes here. Cards have solid borders.</div>
-        </div>
-        <div class="card card-active">
-          <div class="card-title">Active Card</div>
-          <div class="card-body">Selected state with 2px border.</div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Badges -->
-    <section class="design-section">
-      <h2>Badges</h2>
       <div class="design-row">
-        <span class="badge">Default</span>
-        <span class="badge badge-outline">Outline</span>
-        <span class="badge badge-solid">Solid</span>
+        <button class="btn btn-primary">Primary</button>
+        <button class="btn">Secondary</button>
+        <button class="btn btn-ghost">Ghost</button>
+        <button class="btn btn-prism">Prism</button>
       </div>
-      <div class="design-row" style="margin-top: 16px;">
-        <span class="badge badge-solid">★ Success</span>
+      <div class="design-row">
+        <button class="btn" disabled>Disabled</button>
+      </div>
+    </section>
+
+    <!-- INPUTS -->
+    <section class="design-section">
+      <h2>Input</h2>
+      <p class="design-label">States: empty (dotted), filled (solid), focus, disabled, error</p>
+
+      <div class="design-group">
+        <input type="text" placeholder="Empty (dotted border)" style="max-width: 300px;">
+      </div>
+      <div class="design-group">
+        <div class="input-error" style="max-width: 300px;">
+          <input type="text" class="error" value="Error state">
+        </div>
+      </div>
+      <div class="design-group">
+        <input type="text" value="Disabled" disabled style="max-width: 300px;">
+      </div>
+    </section>
+
+    <!-- SELECT -->
+    <section class="design-section">
+      <h2>Select (custom)</h2>
+      <p class="design-label">States: closed, open, selected</p>
+
+      <div class="design-group">
+        <div class="select-custom" style="max-width: 300px;">
+          <div class="select-trigger">Choose option</div>
+          <div class="select-options">
+            <div class="select-option">Option 1</div>
+            <div class="select-option selected">Option 2</div>
+            <div class="select-option">Option 3</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TEXTAREA -->
+    <section class="design-section">
+      <h2>Textarea</h2>
+      <div class="design-group">
+        <textarea placeholder="Enter text..." style="max-width: 300px; height: 80px;"></textarea>
+      </div>
+    </section>
+
+    <!-- PANEL -->
+    <section class="design-section">
+      <h2>Panel</h2>
+      <p class="design-label">Variants: default, muted | Border weight = elevation</p>
+
+      <div class="design-row" style="align-items: stretch;">
+        <div class="panel" style="flex: 1;">
+          <div class="panel-body">Default panel</div>
+        </div>
+        <div class="panel panel-muted" style="flex: 1;">
+          <div class="panel-body">Muted panel</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PROGRESS -->
+    <section class="design-section">
+      <h2>Progress</h2>
+      <div class="design-group">
+        <div class="progress" style="max-width: 300px;">
+          <div class="progress-fill" style="width: 60%;"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- BADGES -->
+    <section class="design-section">
+      <h2>Badge</h2>
+      <div class="design-row">
+        <span class="badge">★ Success</span>
         <span class="badge">☛ Info</span>
-        <span class="badge badge-outline">☡ Warning</span>
-        <span class="badge badge-outline">☒ Error</span>
+        <span class="badge">☡ Warning</span>
+        <span class="badge">☒ Error</span>
       </div>
     </section>
 
-    <!-- Progress -->
+    <!-- TOAST -->
     <section class="design-section">
-      <h2>Progress Bars</h2>
+      <h2>Toast</h2>
       <div class="design-group">
-        <div class="design-label">0%</div>
-        <div class="progress">
-          <div class="progress-fill" style="width: 0%"></div>
-        </div>
-      </div>
-      <div class="design-group">
-        <div class="design-label">25%</div>
-        <div class="progress">
-          <div class="progress-fill" style="width: 25%"></div>
-        </div>
-      </div>
-      <div class="design-group">
-        <div class="design-label">50%</div>
-        <div class="progress">
-          <div class="progress-fill" style="width: 50%"></div>
-        </div>
-      </div>
-      <div class="design-group">
-        <div class="design-label">75%</div>
-        <div class="progress">
-          <div class="progress-fill" style="width: 75%"></div>
-        </div>
-      </div>
-      <div class="design-group">
-        <div class="design-label">100%</div>
-        <div class="progress">
-          <div class="progress-fill" style="width: 100%"></div>
-        </div>
+        <div class="toast" style="max-width: 300px;">☛ Notification message</div>
       </div>
     </section>
 
-    <!-- Lists -->
-    <section class="design-section">
-      <h2>Lists</h2>
-      <div class="design-grid">
-        <div>
-          <div class="design-label">Default List</div>
-          <ul class="list">
-            <li class="list-item">List item 1</li>
-            <li class="list-item">List item 2</li>
-            <li class="list-item active">Active item</li>
-            <li class="list-item">List item 4</li>
-          </ul>
-        </div>
-        <div>
-          <div class="design-label">Bordered List</div>
-          <ul class="list list-bordered">
-            <li class="list-item">List item 1</li>
-            <li class="list-item">List item 2</li>
-            <li class="list-item">List item 3</li>
-          </ul>
-        </div>
-      </div>
-    </section>
-
-    <!-- State Summary -->
-    <section class="design-section">
-      <h2>State Summary</h2>
-      <p class="design-label">All states use border weight/style, never color</p>
-      <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
-        <tr style="border-bottom: 1px solid var(--fg);">
-          <th style="text-align: left; padding: 8px 0;">State</th>
-          <th style="text-align: left; padding: 8px 0;">Border</th>
-          <th style="text-align: left; padding: 8px 0;">Fill</th>
-        </tr>
-        <tr style="border-bottom: 1px dotted var(--fg);">
-          <td style="padding: 8px 0;">Default</td>
-          <td>1px solid</td>
-          <td>white</td>
-        </tr>
-        <tr style="border-bottom: 1px dotted var(--fg);">
-          <td style="padding: 8px 0;">Hover</td>
-          <td>2px solid</td>
-          <td>white</td>
-        </tr>
-        <tr style="border-bottom: 1px dotted var(--fg);">
-          <td style="padding: 8px 0;">Active / Selected</td>
-          <td>2px solid</td>
-          <td>inverted (black)</td>
-        </tr>
-        <tr style="border-bottom: 1px dotted var(--fg);">
-          <td style="padding: 8px 0;">Primary</td>
-          <td>2px solid</td>
-          <td>inverted (black)</td>
-        </tr>
-        <tr style="border-bottom: 1px dotted var(--fg);">
-          <td style="padding: 8px 0;">Disabled</td>
-          <td>1px dashed</td>
-          <td>50% opacity</td>
-        </tr>
-        <tr>
-          <td style="padding: 8px 0;">Tertiary / Ghost</td>
-          <td>1px dashed</td>
-          <td>white</td>
-        </tr>
-      </table>
-    </section>
-
-    <!-- Spacing -->
-    <section class="design-section">
-      <h2>Spacing Scale</h2>
-      <div class="design-group">
-        <div class="design-label">--space-xs: 4px</div>
-        <div class="space-demo" style="width: 4px;"></div>
-      </div>
-      <div class="design-group">
-        <div class="design-label">--space-sm: 8px</div>
-        <div class="space-demo" style="width: 8px;"></div>
-      </div>
-      <div class="design-group">
-        <div class="design-label">--space-md: 12px</div>
-        <div class="space-demo" style="width: 12px;"></div>
-      </div>
-      <div class="design-group">
-        <div class="design-label">--space-lg: 16px</div>
-        <div class="space-demo" style="width: 16px;"></div>
-      </div>
-      <div class="design-group">
-        <div class="design-label">--space-xl: 24px</div>
-        <div class="space-demo" style="width: 24px;"></div>
-      </div>
-      <div class="design-group">
-        <div class="design-label">--space-2xl: 32px</div>
-        <div class="space-demo" style="width: 32px;"></div>
-      </div>
-    </section>
-
-    <!-- Code -->
-    <section class="design-section">
-      <h2>Code</h2>
-      <div class="design-group">
-        <div class="design-label">Inline code</div>
-        <p>Use <code>var(--fg)</code> for foreground and <code>var(--bg)</code> for background.</p>
-      </div>
-      <div class="design-group">
-        <div class="design-label">Code block</div>
-        <pre><code>:root {
-  --fg: #000000;
-  --bg: #FFFFFF;
-  --font-a: 'JetBrains Mono', monospace;
-  --font-b: 'Inconsolata', monospace;
-}</code></pre>
-      </div>
-    </section>
-
-    <!-- Links -->
-    <section class="design-section">
-      <h2>Links</h2>
-      <div class="design-row">
-        <a href="#" class="tagline-link">Dotted link (hover for solid)</a>
-      </div>
-      <div class="design-row">
-        <a href="#" class="footer-link">Footer link style</a>
-      </div>
-    </section>
-
-    <!-- Modals -->
-    <section class="design-section">
-      <h2>Modal (static preview)</h2>
-      <div style="border: 1px solid var(--fg); padding: 24px; max-width: 400px;">
-        <div style="font-size: 18px; font-weight: 500; margin-bottom: 16px;">Modal Title</div>
-        <p style="opacity: 0.7; margin-bottom: 24px;">Modal content goes here. This is a static preview of the modal component.</p>
-        <div style="display: flex; gap: 12px; justify-content: flex-end;">
-          <button class="btn">Cancel</button>
-          <button class="btn btn-primary">Confirm</button>
-        </div>
-      </div>
-    </section>
-
-    <!-- Toast -->
-    <section class="design-section">
-      <h2>Toast Messages</h2>
-      <div class="design-grid">
-        <div class="toast">☛ Default toast message</div>
-        <div class="toast toast-success">★ Success message</div>
-        <div class="toast toast-error">☒ Error message</div>
-        <div class="toast">☡ Warning message</div>
-      </div>
-    </section>
-
-    <footer style="margin-top: 80px; padding-top: 20px; border-top: 1px solid var(--fg); opacity: 0.5; font-size: 12px;">
+    <footer style="margin-top: 48px; padding-top: 16px; border-top: 1px solid var(--fg); opacity: 0.5; font-size: 11px;">
       RD Design System for REPLOID / DOPPLER
     </footer>
   </div>
+
+  <script>
+    // Custom select interaction
+    document.querySelectorAll('.select-custom').forEach(select => {
+      const trigger = select.querySelector('.select-trigger');
+      const options = select.querySelectorAll('.select-option');
+
+      trigger.addEventListener('click', () => {
+        select.classList.toggle('open');
+      });
+
+      options.forEach(option => {
+        option.addEventListener('click', () => {
+          options.forEach(o => o.classList.remove('selected'));
+          option.classList.add('selected');
+          trigger.textContent = option.textContent;
+          select.classList.remove('open');
+        });
+      });
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.select-custom')) {
+        document.querySelectorAll('.select-custom.open').forEach(s => s.classList.remove('open'));
+      }
+    });
+  </script>
 </body>
 </html>
