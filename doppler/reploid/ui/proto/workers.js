@@ -14,7 +14,7 @@ export const createWorkerManager = (deps) => {
     const status = worker.status || 'pending';
     const logs = worker.logs || [];
     const logEntries = logs.length === 0
-      ? '<li class="worker-log-empty text-muted">No events yet</li>'
+      ? '<li class="worker-log-empty muted">No events yet</li>'
       : logs.map(log => `
           <li>
             <span class="worker-log-time">${formatTimestamp(log.timestamp)}</span>

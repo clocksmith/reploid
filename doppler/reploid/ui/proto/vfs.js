@@ -75,7 +75,7 @@ export const createVFSManager = (deps) => {
       _allFiles = files.sort();
 
       if (_allFiles.length === 0) {
-        treeEl.innerHTML = '<div class="text-muted">VFS is empty</div>';
+        treeEl.innerHTML = '<div class="muted">VFS is empty</div>';
         return;
       }
 
@@ -161,7 +161,7 @@ export const createVFSManager = (deps) => {
     let treeHtml = renderNode(tree);
 
     if (truncated) {
-      treeHtml += `<div class="vfs-truncated text-muted" style="padding: 8px; font-size: 10px;">
+      treeHtml += `<div class="vfs-truncated muted p-sm type-caption">
         Showing ${MAX_VFS_FILES} of ${files.length} files. Use search to filter.
       </div>`;
     }

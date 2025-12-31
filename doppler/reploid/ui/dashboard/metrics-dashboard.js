@@ -26,6 +26,35 @@ const MetricsDashboard = {
     let toolsChart = null;
     let tokensChart = null;
     let refreshIntervalId = null;
+    let _chartColors = null;
+
+    // Read CSS variables for Chart.js theming (rd.css compliance)
+    const getChartColors = () => {
+      const styles = getComputedStyle(document.documentElement);
+      const fg = styles.getPropertyValue('--fg').trim() || '#000000';
+      const bg = styles.getPropertyValue('--bg').trim() || '#FFFFFF';
+      const opacityMuted = parseFloat(styles.getPropertyValue('--opacity-muted')) || 0.5;
+      const opacitySecondary = parseFloat(styles.getPropertyValue('--opacity-secondary')) || 0.6;
+
+      // Convert hex to rgba for opacity variations
+      const hexToRgba = (hex, alpha) => {
+        const r = parseInt(hex.slice(1, 3), 16);
+        const g = parseInt(hex.slice(3, 5), 16);
+        const b = parseInt(hex.slice(5, 7), 16);
+        return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+      };
+
+      return {
+        fg,
+        bg,
+        primary: hexToRgba(fg, 0.8),
+        primaryFill: hexToRgba(fg, 0.1),
+        secondary: hexToRgba(fg, opacitySecondary),
+        secondaryFill: hexToRgba(fg, 0.05),
+        grid: hexToRgba(fg, 0.1),
+        text: hexToRgba(fg, opacityMuted)
+      };
+    };
 
     /**
      * Initialize metrics dashboard with Chart.js
@@ -102,6 +131,9 @@ const MetricsDashboard = {
 
       container.insertAdjacentHTML('beforeend', summaryHTML + chartsHTML);
 
+      // Initialize colors from CSS variables
+      _chartColors = getChartColors();
+
       // Initialize charts
       initMemoryChart();
       initToolsChart();
@@ -120,23 +152,26 @@ const MetricsDashboard = {
       return new Chart(canvas.getContext('2d'), configFactory());
     };
 
-    const baseOptions = (overrides = {}) => ({
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: { legend: { labels: { color: '#e0e0e0' } } },
-      scales: {
-        y: {
-          beginAtZero: true,
-          ticks: { color: '#aaa' },
-          grid: { color: 'rgba(255, 255, 255, 0.1)' }
+    const baseOptions = (overrides = {}) => {
+      const colors = _chartColors || getChartColors();
+      return {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { labels: { color: colors.text } } },
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: { color: colors.text },
+            grid: { color: colors.grid }
+          },
+          x: {
+            ticks: { color: colors.text },
+            grid: { color: colors.grid }
+          }
         },
-        x: {
-          ticks: { color: '#aaa' },
-          grid: { color: 'rgba(255, 255, 255, 0.1)' }
-        }
-      },
-      ...overrides
-    });
+        ...overrides
+      };
+    };
 
     const initMemoryChart = () => {
       const memStats = PerformanceMonitor.getMemoryStats();
@@ -150,6 +185,7 @@ const MetricsDashboard = {
       const labels = memStats.history.map((_, i) => `${i * 30}s`);
       const data = memStats.history.map(s => (s.usedJSHeapSize / 1024 / 1024).toFixed(2));
 
+      const colors = _chartColors || getChartColors();
       memoryChart = buildChart('memory-chart', () => ({
         type: 'line',
         data: {
@@ -157,8 +193,8 @@ const MetricsDashboard = {
           datasets: [{
             label: 'Memory Usage (MB)',
             data,
-            borderColor: 'rgba(0, 255, 255, 0.8)',
-            backgroundColor: 'rgba(0, 255, 255, 0.1)',
+            borderColor: colors.primary,
+            backgroundColor: colors.primaryFill,
             tension: 0.4,
             fill: true
           }]
@@ -182,6 +218,7 @@ const MetricsDashboard = {
         .sort((a, b) => b.calls - a.calls)
         .slice(0, 10);
 
+      const colors = _chartColors || getChartColors();
       toolsChart = buildChart('tools-chart', () => ({
         type: 'bar',
         data: {
@@ -189,8 +226,8 @@ const MetricsDashboard = {
           datasets: [{
             label: 'Call Count',
             data: toolData.map(t => t.calls),
-            backgroundColor: 'rgba(0, 255, 255, 0.6)',
-            borderColor: 'rgba(0, 255, 255, 1)',
+            backgroundColor: colors.secondary,
+            borderColor: colors.primary,
             borderWidth: 1
           }]
         },
@@ -198,8 +235,8 @@ const MetricsDashboard = {
           scales: {
             y: baseOptions().scales.y,
             x: {
-              ticks: { color: '#aaa', maxRotation: 45, minRotation: 45 },
-              grid: { color: 'rgba(255, 255, 255, 0.1)' }
+              ticks: { color: colors.text, maxRotation: 45, minRotation: 45 },
+              grid: { color: colors.grid }
             }
           }
         })
@@ -211,6 +248,7 @@ const MetricsDashboard = {
      */
     const initTokensChart = () => {
       const llmStats = PerformanceMonitor.getLLMStats();
+      const colors = _chartColors || getChartColors();
 
       tokensChart = buildChart('tokens-chart', () => ({
         type: 'doughnut',
@@ -219,12 +257,12 @@ const MetricsDashboard = {
           datasets: [{
             data: [llmStats.tokens.input, llmStats.tokens.output],
             backgroundColor: [
-              'rgba(0, 255, 255, 0.6)',
-              'rgba(255, 0, 255, 0.6)'
+              colors.primary,
+              colors.secondary
             ],
             borderColor: [
-              'rgba(0, 255, 255, 1)',
-              'rgba(255, 0, 255, 1)'
+              colors.fg,
+              colors.fg
             ],
             borderWidth: 1
           }]
@@ -235,7 +273,7 @@ const MetricsDashboard = {
           plugins: {
             legend: {
               position: 'bottom',
-              labels: { color: '#e0e0e0' }
+              labels: { color: colors.text }
             }
           }
         }

@@ -1,5 +1,5 @@
 /* === CHAT COMPONENTS === */
-/* Base chat UI styles for Doppler */
+/* Base chat UI styles - rd.css compliant */
 
 .chat-container {
   height: 100%;
@@ -12,15 +12,17 @@
 
 .chat-message {
   margin-bottom: var(--space-md);
+  border: var(--border-sm) solid var(--fg);
+  padding: var(--space-sm);
 }
 
 .chat-message-user {
-  margin-left: 32px;
+  margin-left: var(--space-lg);
   border-width: var(--border-md);
 }
 
 .chat-message-assistant {
-  margin-right: 32px;
+  margin-right: var(--space-lg);
   border-style: dashed;
 }
 
@@ -29,6 +31,7 @@
   font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
+  letter-spacing: 0.08em;
   margin-bottom: var(--space-sm);
 }
 
@@ -45,147 +48,143 @@
 /* Human-in-the-loop message input */
 
 .inline-chat {
-  background: rgba(0, 0, 0, 0.4);
-  border-top: 1px solid var(--primary-dim, rgba(0, 217, 255, 0.2));
-  padding: 8px 12px;
+  background: var(--bg);
+  border-top: var(--border-sm) solid var(--fg);
+  padding: var(--space-sm) var(--space-md);
 }
 
 .inline-chat-input-row {
   display: flex;
-  gap: 8px;
+  gap: var(--space-sm);
 }
 
 .inline-chat-input {
   flex: 1;
-  background: rgba(0, 0, 0, 0.3);
-  border: 1px solid var(--primary-dim, rgba(0, 217, 255, 0.3));
-  border-radius: 4px;
-  padding: 8px 12px;
-  color: var(--text-primary, #fff);
-  font-size: var(--font-sm);
-  font-family: inherit;
+  background: var(--bg);
+  border: var(--border-sm) solid var(--fg);
+  padding: var(--space-sm) var(--space-md);
+  color: var(--fg);
+  font-size: 13px;
+  font-family: var(--font-b);
   outline: none;
-  transition: border-color 0.15s ease;
 }
 
 .inline-chat-input:focus {
-  border-color: var(--primary, rgba(0, 217, 255, 0.6));
+  border-width: var(--border-md);
+}
+
+.inline-chat-input:placeholder-shown {
+  border-style: dotted;
 }
 
 .inline-chat-input::placeholder {
-  color: var(--text-muted, rgba(255, 255, 255, 0.3));
+  color: var(--fg);
+  opacity: var(--opacity-muted);
 }
 
 .inline-chat-send {
-  background: var(--primary-dim, rgba(0, 217, 255, 0.15));
-  border: 1px solid rgba(0, 217, 255, 0.4);
-  color: var(--primary, #00d9ff);
-  padding: 8px 14px;
-  border-radius: 4px;
-  font-size: var(--font-sm);
+  background: var(--bg);
+  border: var(--border-sm) solid var(--fg);
+  color: var(--fg);
+  padding: var(--space-sm) var(--space-md);
+  font-size: 13px;
   cursor: pointer;
-  transition: all 0.15s ease;
-  pointer-events: auto;
   user-select: none;
 }
 
 .inline-chat-send:hover {
-  background: rgba(0, 217, 255, 0.25);
-  border-color: rgba(0, 217, 255, 0.6);
+  background: var(--fg);
+  color: var(--bg);
 }
 
 .inline-chat-send:active {
-  transform: scale(0.95);
+  box-shadow: inset 0 0 0 var(--border-sm) var(--bg);
 }
 
 .inline-chat-send.sent {
-  background: rgba(0, 217, 255, 0.3);
-  border-color: rgba(0, 217, 255, 0.6);
-  color: var(--primary, #00d9ff);
+  background: var(--fg);
+  color: var(--bg);
 }
 
 /* Human message display in history */
 .history-entry.human-message {
-  background: rgba(0, 217, 255, 0.1);
-  border-left: 3px solid var(--primary, #00d9ff);
+  border-left: var(--border-lg) solid var(--fg);
 }
 
 .history-entry.human-message .entry-label {
-  color: var(--primary, #00d9ff);
+  font-weight: 700;
 }
 
-/* Approval prompt in history */
+/* Approval prompt in history - warning state uses dashed border */
 .history-entry.approval-pending {
-  background: rgba(255, 165, 0, 0.15);
-  border-left: 3px solid var(--warning, #ffa500);
-  padding: 12px;
+  border: var(--border-md) dashed var(--fg);
+  padding: var(--space-md);
 }
 
 .approval-header {
   font-weight: 600;
-  color: var(--warning, #ffa500);
-  margin-bottom: 8px;
+  margin-bottom: var(--space-sm);
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--space-sm);
 }
 
 .approval-action {
-  font-size: var(--font-xs);
-  color: rgba(255, 255, 255, 0.8);
-  margin-bottom: 8px;
+  font-size: 11px;
+  opacity: var(--opacity-ghost);
+  margin-bottom: var(--space-sm);
 }
 
 .approval-data {
-  background: rgba(0, 0, 0, 0.3);
-  border-radius: 4px;
-  padding: 8px;
-  font-size: var(--font-xs);
+  background: var(--bg);
+  border: var(--border-sm) dotted var(--fg);
+  padding: var(--space-sm);
+  font-size: 11px;
   max-height: 150px;
   overflow-y: auto;
-  margin-bottom: 10px;
+  margin-bottom: var(--space-sm);
   white-space: pre-wrap;
   word-break: break-all;
 }
 
 .approval-buttons {
   display: flex;
-  gap: 8px;
+  gap: var(--space-sm);
 }
 
 .approval-buttons button {
   flex: 1;
-  padding: 8px 16px;
-  border-radius: 4px;
-  border: none;
+  padding: var(--space-sm) var(--space-md);
+  border: var(--border-sm) solid var(--fg);
+  background: var(--bg);
+  color: var(--fg);
   cursor: pointer;
-  font-size: var(--font-xs);
+  font-size: 11px;
   font-weight: 500;
-  transition: all 0.15s ease;
 }
 
+/* Approve button - solid border for positive action */
 .approval-buttons .approve-btn {
-  background: rgba(102, 187, 106, 0.2);
-  color: var(--success, #66bb6a);
-  border: 1px solid rgba(102, 187, 106, 0.3);
+  border-width: var(--border-md);
 }
 
 .approval-buttons .approve-btn:hover {
-  background: rgba(102, 187, 106, 0.3);
+  background: var(--fg);
+  color: var(--bg);
 }
 
+/* Reject button - dashed border for negative action */
 .approval-buttons .reject-btn {
-  background: rgba(244, 135, 113, 0.2);
-  color: var(--danger, #f48771);
-  border: 1px solid rgba(244, 135, 113, 0.3);
+  border-style: dashed;
 }
 
 .approval-buttons .reject-btn:hover {
-  background: rgba(244, 135, 113, 0.3);
+  background: var(--fg);
+  color: var(--bg);
 }
 
 .approval-resolved {
-  opacity: 0.5;
+  opacity: var(--opacity-muted);
   pointer-events: none;
 }
 
@@ -196,28 +195,28 @@
 .approval-resolved::after {
   content: attr(data-resolution);
   display: block;
-  margin-top: 8px;
-  font-size: var(--font-xs);
-  color: rgba(255, 255, 255, 0.5);
+  margin-top: var(--space-sm);
+  font-size: 11px;
+  opacity: var(--opacity-muted);
 }
 
 /* Mobile responsive styles for inline chat */
 @media (max-width: 768px) {
   .inline-chat {
-    padding: 6px 10px;
+    padding: var(--space-sm);
   }
 
   .inline-chat-input-row {
-    gap: 6px;
+    gap: var(--space-sm);
   }
 
   .inline-chat-input {
-    padding: 10px;
+    padding: var(--space-sm);
     font-size: 14px;
   }
 
   .inline-chat-send {
-    padding: 10px 12px;
+    padding: var(--space-sm);
     font-size: 14px;
   }
 
@@ -228,42 +227,42 @@
 
   .approval-buttons {
     flex-direction: column;
-    gap: 6px;
+    gap: var(--space-sm);
   }
 
   .approval-buttons button {
-    padding: 10px 16px;
+    padding: var(--space-sm) var(--space-md);
   }
 }
 
 @media (max-width: 480px) {
   .inline-chat {
-    padding: 6px 8px;
+    padding: var(--space-sm);
   }
 
   .inline-chat-input {
-    padding: 8px 10px;
+    padding: var(--space-sm);
     font-size: 14px;
     min-height: 40px;
   }
 
   .inline-chat-send {
-    padding: 8px 10px;
+    padding: var(--space-sm);
     font-size: 13px;
     min-width: 60px;
   }
 
   .history-entry.approval-pending {
-    padding: 10px;
+    padding: var(--space-sm);
   }
 
   .approval-header {
-    font-size: var(--font-xs);
+    font-size: 11px;
   }
 
   .approval-data {
     max-height: 80px;
-    padding: 6px;
+    padding: var(--space-sm);
   }
 }
 
