@@ -182,6 +182,147 @@ const ReflectionStore = {
       return _genomes[taskType]?.generations || [];
     };
 
+    /**
+     * Get all winning configs across all task types.
+     * Returns the best genome for each task type.
+     * @returns {Object} { taskType: { genome, fitness, timestamp } }
+     */
+    const getAllWinnerConfigs = () => {
+      const winners = {};
+      for (const [taskType, data] of Object.entries(_genomes)) {
+        if (data.generations && data.generations.length > 0) {
+          winners[taskType] = data.generations[0]; // Already sorted by fitness
+        }
+      }
+      return winners;
+    };
+
+    /**
+     * Get all task types that have stored genomes.
+     * @returns {Array<string>} List of task types
+     */
+    const getGenomeTaskTypes = () => {
+      return Object.keys(_genomes);
+    };
+
+    /**
+     * Prune old genomes beyond retention limit.
+     * @param {Object} options - Pruning options
+     * @param {number} options.maxAge - Max age in ms (default: 30 days)
+     * @param {number} options.keepTop - Always keep top N per task type (default: 3)
+     * @returns {number} Number of genomes pruned
+     */
+    const pruneOldGenomes = async (options = {}) => {
+      const {
+        maxAge = 30 * 24 * 60 * 60 * 1000, // 30 days
+        keepTop = 3
+      } = options;
+
+      const now = Date.now();
+      let pruned = 0;
+
+      for (const [taskType, data] of Object.entries(_genomes)) {
+        if (!data.generations) continue;
+
+        const original = data.generations.length;
+
+        // Keep top N regardless of age
+        const kept = data.generations.slice(0, keepTop);
+        const rest = data.generations.slice(keepTop);
+
+        // Filter rest by age
+        const filtered = rest.filter((g) => (now - g.timestamp) <= maxAge);
+
+        data.generations = [...kept, ...filtered];
+        pruned += original - data.generations.length;
+      }
+
+      if (pruned > 0) {
+        await _saveGenomes();
+        logger.info(`[Reflection] Pruned ${pruned} old genomes`);
+      }
+
+      return pruned;
+    };
+
+    /**
+     * Export all winner configs for backup/transfer.
+     * @returns {Object} Exportable config object
+     */
+    const exportWinnerConfigs = () => {
+      return {
+        version: '1.0',
+        exportedAt: Date.now(),
+        genomes: { ..._genomes },
+        adapterStats: { ..._adapterStats }
+      };
+    };
+
+    /**
+     * Import winner configs from backup.
+     * @param {Object} data - Previously exported config
+     * @param {Object} options - Import options
+     * @param {boolean} options.merge - Merge with existing (default: true)
+     * @param {boolean} options.overwrite - Overwrite existing task types (default: false)
+     */
+    const importWinnerConfigs = async (data, options = {}) => {
+      const { merge = true, overwrite = false } = options;
+
+      if (!data?.genomes) {
+        throw new Error('Invalid import data: missing genomes');
+      }
+
+      if (!merge) {
+        _genomes = data.genomes;
+        _adapterStats = data.adapterStats || {};
+      } else {
+        for (const [taskType, taskData] of Object.entries(data.genomes)) {
+          if (!_genomes[taskType] || overwrite) {
+            _genomes[taskType] = taskData;
+          } else {
+            // Merge generations, re-sort, keep top 10
+            const merged = [
+              ...(_genomes[taskType].generations || []),
+              ...(taskData.generations || [])
+            ];
+            merged.sort((a, b) => b.fitness - a.fitness);
+            _genomes[taskType] = { generations: merged.slice(0, 10) };
+          }
+        }
+
+        if (data.adapterStats) {
+          for (const [key, stats] of Object.entries(data.adapterStats)) {
+            if (!_adapterStats[key] || overwrite) {
+              _adapterStats[key] = stats;
+            } else {
+              // Merge stats by summing
+              _adapterStats[key] = {
+                successes: _adapterStats[key].successes + stats.successes,
+                attempts: _adapterStats[key].attempts + stats.attempts
+              };
+            }
+          }
+        }
+      }
+
+      await _saveGenomes();
+      await _saveAdapterStats();
+
+      logger.info(`[Reflection] Imported winner configs (${Object.keys(data.genomes).length} task types)`);
+    };
+
+    /**
+     * Clear all genomes for a specific task type.
+     * @param {string} taskType - Task type to clear
+     */
+    const clearGenomes = async (taskType) => {
+      if (_genomes[taskType]) {
+        delete _genomes[taskType];
+        await _saveGenomes();
+        logger.info(`[Reflection] Cleared genomes for ${taskType}`);
+      }
+    };
+
     // ─────────────────────────────────────────────────────────────────────────
     // UCB1 Adapter Selection
     // ─────────────────────────────────────────────────────────────────────────
@@ -287,6 +428,13 @@ const ReflectionStore = {
       storeNetworkGenome,
       getBestGenome,
       getGenomes,
+      // Winner config management (Phase 5)
+      getAllWinnerConfigs,
+      getGenomeTaskTypes,
+      pruneOldGenomes,
+      exportWinnerConfigs,
+      importWinnerConfigs,
+      clearGenomes,
       // Adapter selection
       updateAdapterStats,
       getAdapterStats,

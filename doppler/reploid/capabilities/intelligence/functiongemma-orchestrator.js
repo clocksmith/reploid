@@ -483,7 +483,7 @@ const FunctionGemmaOrchestrator = {
         return total / tasks.length;
       });
 
-      return evolveNetwork({
+      const result = await evolveNetwork({
         populationSize: options.populationSize,
         generations: options.generations,
         eliteCount: options.eliteCount,
@@ -491,6 +491,15 @@ const FunctionGemmaOrchestrator = {
         evaluate,
         randomGenome
       });
+
+      // Persist best genome after evolution
+      if (result?.best && options.persistWinner !== false) {
+        const taskType = options.taskType || tasks[0]?.type || 'evolved';
+        await storeGenome(taskType, result.best.genome, result.best.fitness);
+        logger.info(`[FunctionGemma] Persisted evolved genome for ${taskType} (fitness: ${result.best.fitness.toFixed(3)})`);
+      }
+
+      return result;
     };
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -678,11 +687,28 @@ const FunctionGemmaOrchestrator = {
       // Update adapter stats
       await updateAdapterStats(taskType, winner.expert.adapter || winner.expert.id, validation.valid);
 
+      // Persist winning config as genome if valid and above threshold
+      const winnerScore = winner.score?.score || 0;
+      if (validation.valid && winnerScore >= (options.persistThreshold || 0.5)) {
+        const winnerGenome = {
+          topology: { type: 'single-expert' },
+          nodes: [{ id: winner.expert.id }],
+          edges: [],
+          combiner: { type: 'passthrough' },
+          metadata: {
+            adapterId: winner.expert.adapter || winner.expert.id,
+            createdAt: Date.now()
+          }
+        };
+        await storeGenome(taskType, winnerGenome, winnerScore);
+        logger.info(`[FunctionGemma] Persisted winning config for ${taskType} (score: ${winnerScore.toFixed(3)})`);
+      }
+
       if (EventBus) {
         EventBus.emit('functiongemma:execute:pool', {
           taskType,
           expertId: winner.expert.id,
-          score: winner.score?.score || 0,
+          score: winnerScore,
           valid: validation.valid
         });
       }
@@ -690,10 +716,222 @@ const FunctionGemmaOrchestrator = {
       return withErrors({
         output: winner.output,
         expert: winner.expert.id,
-        score: winner.score?.score || 0,
+        score: winnerScore,
         valid: validation.valid,
         cached: false
       });
+    };
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Arena FunctionGemma Integration (Phase 5)
+    // ─────────────────────────────────────────────────────────────────────────
+
+    /**
+     * Run arena-style competition between genomes for evolution.
+     * Evaluates multiple genome configurations, selects winners, persists best.
+     *
+     * @param {Array} tasks - Array of test tasks for evaluation
+     * @param {Object} options - Configuration options
+     * @param {number} options.populationSize - Number of genomes to compete (default: 8)
+     * @param {number} options.generations - Number of evolution generations (default: 3)
+     * @param {number} options.eliteCount - Number of elites to preserve (default: 2)
+     * @param {number} options.mutationRate - Mutation probability (default: 0.3)
+     * @param {string} options.taskType - Task type for genome storage
+     * @param {boolean} options.persistTop - Persist top N genomes (default: true)
+     * @param {number} options.persistCount - How many top genomes to persist (default: 3)
+     * @returns {Object} { winner, rankings, history, persisted }
+     */
+    const runArenaEvolution = async (tasks = [], options = {}) => {
+      if (!Array.isArray(tasks) || tasks.length === 0) {
+        throw new Errors.ValidationError('Task set required for arena evolution');
+      }
+
+      const {
+        populationSize = 8,
+        generations = 3,
+        eliteCount = 2,
+        mutationRate = 0.3,
+        taskType = tasks[0]?.type || 'arena-evolved',
+        persistTop = true,
+        persistCount = 3
+      } = options;
+
+      logger.info(`[FunctionGemma] Starting Arena Evolution: ${populationSize} genomes, ${generations} generations`);
+
+      if (EventBus) {
+        EventBus.emit('functiongemma:arena:start', {
+          taskType,
+          populationSize,
+          generations,
+          taskCount: tasks.length
+        });
+      }
+
+      // Run evolution with fitness tracking
+      const evolutionHistory = [];
+      let currentBest = null;
+
+      const trackingEvaluate = async (genome) => {
+        let totalScore = 0;
+        const taskScores = [];
+
+        for (const task of tasks) {
+          try {
+            const result = await executeTopology(genome, task, options);
+            const scored = scoreCombinedOutput(result.combined, task);
+            totalScore += scored.score;
+            taskScores.push({
+              taskId: task.id || task.type,
+              score: scored.score,
+              valid: scored.valid
+            });
+          } catch (err) {
+            logger.warn(`[FunctionGemma] Arena eval failed for task: ${err.message}`);
+            taskScores.push({
+              taskId: task.id || task.type,
+              score: 0,
+              valid: false,
+              error: err.message
+            });
+          }
+        }
+
+        const fitness = totalScore / tasks.length;
+
+        // Track best
+        if (!currentBest || fitness > currentBest.fitness) {
+          currentBest = { genome, fitness, taskScores };
+        }
+
+        return fitness;
+      };
+
+      // Run evolution
+      const evolutionResult = await evolveTopology(tasks, {
+        ...options,
+        populationSize,
+        generations,
+        eliteCount,
+        mutationRate,
+        evaluateGenome: trackingEvaluate,
+        persistWinner: false, // We'll persist multiple winners below
+        taskType
+      });
+
+      // Collect top genomes from final population
+      const rankings = (evolutionResult?.population || [])
+        .map((g) => ({ genome: g.genome, fitness: g.fitness }))
+        .sort((a, b) => b.fitness - a.fitness)
+        .slice(0, persistCount);
+
+      // Persist top genomes
+      const persisted = [];
+      if (persistTop && rankings.length > 0) {
+        for (let i = 0; i < Math.min(rankings.length, persistCount); i++) {
+          const entry = rankings[i];
+          await storeGenome(taskType, entry.genome, entry.fitness);
+          persisted.push({
+            rank: i + 1,
+            fitness: entry.fitness,
+            topology: entry.genome?.topology?.type || 'unknown'
+          });
+        }
+        logger.info(`[FunctionGemma] Persisted ${persisted.length} winning genomes for ${taskType}`);
+      }
+
+      const winner = rankings[0] || currentBest;
+
+      if (EventBus) {
+        EventBus.emit('functiongemma:arena:complete', {
+          taskType,
+          winnerFitness: winner?.fitness || 0,
+          persistedCount: persisted.length,
+          generations
+        });
+      }
+
+      // Record arena result in ReflectionStore
+      if (ReflectionStore?.add) {
+        await ReflectionStore.add({
+          type: 'success',
+          content: `Arena evolution completed: ${generations} generations, winner fitness ${(winner?.fitness || 0).toFixed(3)}`,
+          context: {
+            taskType,
+            outcome: 'success',
+            generations,
+            populationSize,
+            winnerFitness: winner?.fitness || 0,
+            persistedCount: persisted.length
+          },
+          tags: ['arena', 'evolution', taskType],
+          description: `Arena evolution for ${taskType}`
+        });
+      }
+
+      return {
+        winner,
+        rankings,
+        history: evolutionHistory,
+        persisted,
+        generations,
+        taskType
+      };
+    };
+
+    /**
+     * Run head-to-head competition between two genomes.
+     * Useful for A/B testing topology configurations.
+     *
+     * @param {Object} genomeA - First genome
+     * @param {Object} genomeB - Second genome
+     * @param {Array} tasks - Test tasks
+     * @param {Object} options - Execution options
+     * @returns {Object} { winner, scores, tie }
+     */
+    const runHeadToHead = async (genomeA, genomeB, tasks = [], options = {}) => {
+      if (!genomeA || !genomeB) {
+        throw new Errors.ValidationError('Two genomes required for head-to-head');
+      }
+
+      const evaluate = async (genome, label) => {
+        let total = 0;
+        const results = [];
+        for (const task of tasks) {
+          try {
+            const result = await executeTopology(genome, task, options);
+            const scored = scoreCombinedOutput(result.combined, task);
+            total += scored.score;
+            results.push({ taskId: task.id, score: scored.score, valid: scored.valid });
+          } catch (err) {
+            results.push({ taskId: task.id, score: 0, valid: false, error: err.message });
+          }
+        }
+        return { label, fitness: total / tasks.length, results };
+      };
+
+      const [scoreA, scoreB] = await Promise.all([
+        evaluate(genomeA, 'A'),
+        evaluate(genomeB, 'B')
+      ]);
+
+      const tie = Math.abs(scoreA.fitness - scoreB.fitness) < 0.01;
+      const winner = tie ? null : (scoreA.fitness > scoreB.fitness ? 'A' : 'B');
+
+      if (EventBus) {
+        EventBus.emit('functiongemma:headtohead:complete', {
+          winner,
+          tie,
+          fitnessA: scoreA.fitness,
+          fitnessB: scoreB.fitness
+        });
+      }
+
+      return {
+        winner,
+        tie,
+        scores: { A: scoreA, B: scoreB },
+        genomes: { A: genomeA, B: genomeB }
+      };
     };
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -919,6 +1157,9 @@ const FunctionGemmaOrchestrator = {
       getRoutingStats,
       // High-level API
       execute,
+      // Arena FunctionGemma integration (Phase 5)
+      runArenaEvolution,
+      runHeadToHead,
       // Temporal Self-Ring (single evolving brain)
       executeTemporalSelfRing,
       executeMobiusRing
