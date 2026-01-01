@@ -170,6 +170,24 @@ export function setupExportFunctions(container, logger) {
       }
     };
 
+    // Try localhost server save first
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+      try {
+        const res = await fetch('/api/export', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(exportData)
+        });
+        if (res.ok) {
+          const { filename: savedFile } = await res.json();
+          logger.info(`[Export] Saved to runs/${savedFile}`);
+          return;
+        }
+      } catch (e) {
+        logger.warn('[Export] Server save failed, falling back to download:', e.message);
+      }
+    }
+
     const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');

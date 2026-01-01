@@ -6,12 +6,15 @@
 import express from 'express';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
+import { writeFileSync, mkdirSync, existsSync } from 'fs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 8000;
+
+app.use(express.json({ limit: '50mb' }));
 
 // Serve static files from root
 app.use(express.static(__dirname, {
@@ -36,6 +39,22 @@ app.get('/', (req, res) => {
 // Health check
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: Date.now() });
+});
+
+// Export endpoint for localhost dev
+app.post('/api/export', (req, res) => {
+  try {
+    const runsDir = join(__dirname, 'runs');
+    if (!existsSync(runsDir)) {
+      mkdirSync(runsDir, { recursive: true });
+    }
+    const filename = `reploid-export-${Date.now()}.json`;
+    const filepath = join(runsDir, filename);
+    writeFileSync(filepath, JSON.stringify(req.body, null, 2));
+    res.json({ success: true, filename, path: filepath });
+  } catch (e) {
+    res.status(500).json({ success: false, error: e.message });
+  }
 });
 
 app.listen(PORT, () => {
