@@ -35,11 +35,11 @@ npm start
 
 | Path | Description |
 |------|-------------|
-| `doppler/reploid/core/` | Agent loop, VFS, LLM client, tool runner |
-| `doppler/reploid/infrastructure/` | EventBus, DI container, HITL controller |
-| `doppler/reploid/tools/` | Agent tools (CamelCase naming) |
-| `doppler/reploid/ui/` | Proto UI components |
-| `doppler/reploid/tests/` | Test suites |
+| `core/` | Agent loop, VFS, LLM client, tool runner |
+| `infrastructure/` | EventBus, DI container, HITL controller |
+| `tools/` | Agent tools (CamelCase naming) |
+| `ui/` | Proto UI components |
+| `tests/` | Test suites |
 
 ## Debug Commands
 

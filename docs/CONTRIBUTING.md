@@ -10,7 +10,7 @@ Guidelines for contributing code, documentation, and blueprints.
 2. Clone your fork:
    ```bash
    git clone https://github.com/YOUR_USERNAME/reploid
-   cd reploid/doppler/reploid
+   cd reploid
    npm install
    ```
 3. Create a feature branch:
@@ -53,7 +53,7 @@ npm test -- --filter matmul
 ```
 reploid/
 ├── docs/                       # Human-facing documentation (you are here)
-├── doppler/reploid/            # Main application
+├── ./            # Main application
 │   ├── core/                   # Core substrate modules
 │   ├── infrastructure/         # Support services
 │   ├── capabilities/           # Extended capabilities (swarm, etc.)
@@ -184,7 +184,7 @@ npm run test:coverage
 |------|----------|
 | User guides | `docs/*.md` |
 | Architecture specs | `blueprints/*.md` |
-| In-substrate manual | `doppler/reploid/docs/REPLOID.md` |
+| In-substrate manual | `./docs/REPLOID.md` |
 | Directory context | `*/README.md` |
 
 ### Blueprint Format
@@ -197,7 +197,7 @@ Blueprints follow a specific format with these sections:
 
 File naming: `0x{HEX_ID}-{kebab-case-name}.md`
 
-See existing blueprints in `doppler/reploid/blueprints/` for examples.
+See existing blueprints in `./blueprints/` for examples.
 
 ---
 

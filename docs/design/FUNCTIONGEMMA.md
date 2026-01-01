@@ -450,8 +450,8 @@ Implementation tasks are tracked in `/Users/xyz/deco/TODO_FUNCTIONGEMMA.md`.
 
 ## References
 
-- **Doppler Dependency:** [MULTI_FUNCTIONGEMMA_NETWORK.md](../../../../../doppler/reploid/doppler/docs/plans/MULTI_FUNCTIONGEMMA_NETWORK.md)
-- **Reploid Modules:** See `doppler/reploid/core/` and `doppler/reploid/infrastructure/`
+- **Doppler Dependency:** [MULTI_FUNCTIONGEMMA_NETWORK.md](../../../doppler/docs/plans/MULTI_FUNCTIONGEMMA_NETWORK.md)
+- **Reploid Modules:** See `core/` and `infrastructure/`
 
 ---
 
