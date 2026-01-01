@@ -120,7 +120,7 @@ async function completeAwaken(bootResult, goal, wizardContainer) {
 (async () => {
   try {
     // Show wizard FIRST, before boot
-    const { initWizard: initWizardUI } = await import('./ui/boot/wizard/index.js');
+    const { initWizard: initWizardUI } = await import('./ui/boot/index.js');
     const wizardContainer = document.getElementById('wizard-container');
 
     if (wizardContainer) {

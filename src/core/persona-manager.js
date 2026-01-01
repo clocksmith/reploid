@@ -40,7 +40,7 @@ All tools live in /tools/. Tools receive a \`deps\` object: { VFS, EventBus, Too
     const loadConfig = async () => {
       if (_config) return _config;
       try {
-        const response = await fetch('/config.json');
+        const response = await fetch('/personas/config.json');
         if (response.ok) {
           _config = await response.json();
         }

@@ -306,12 +306,12 @@ async function runDebug(opts: CLIOptions): Promise<number> {
 }
 
 async function runStart(opts: CLIOptions): Promise<number> {
-  header('REPLOID DEV SERVER');
+  header('REPLOID PROXY SERVER');
 
-  log('Starting development server...', colors.cyan);
-  log('Open http://localhost:3000 in your browser', colors.green);
+  log('Starting proxy server...', colors.cyan);
+  log('Open http://localhost:8000 in your browser', colors.green);
 
-  return runCommand('node', ['server.js']);
+  return runCommand('node', ['server/proxy.js']);
 }
 
 async function main(): Promise<void> {

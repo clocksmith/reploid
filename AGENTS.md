@@ -8,15 +8,17 @@
 ```
 reploid/
 ├── README.md                 ← Overview and quick start
-├── GUIDE.md                  ← Full documentation
 ├── AGENTS.md                 ← Agent instructions (this file)
-├── CLAUDE.md → AGENTS.md
 ├── EMOJI.md                  ← Approved Unicode symbols
-├── core/                     ← Agent loop, VFS, LLM client
-├── tools/                    ← Dynamic agent tools
-├── infrastructure/           ← EventBus, DI, HITL
-├── ui/                       ← Proto UI components
-├── blueprints/               ← Architectural specs
+├── src/                      ← Browser code (served to client)
+│   ├── core/                 ← Agent loop, VFS, LLM client
+│   ├── tools/                ← Dynamic agent tools
+│   ├── infrastructure/       ← EventBus, DI, HITL
+│   ├── ui/                   ← Proto UI components
+│   └── blueprints/           ← Architectural specs
+├── server/                   ← Proxy server (Node.js)
+├── tests/                    ← Test suites
+├── bin/                      ← CLI tools
 └── docs/                     ← Documentation
 ```
 
@@ -24,14 +26,15 @@ reploid/
 - Read `docs/INDEX.md` for documentation overview
 - Read `docs/STYLE_GUIDE.md` for complete style guidelines
 - Read `EMOJI.md` for approved Unicode symbols
-- Review `blueprints/` for architectural documentation
+- Review `src/blueprints/` for architectural documentation
 
 ### Key Paths
-- `core/` - Agent loop, VFS, LLM client, tool runner
-- `infrastructure/` - EventBus, DI container, HITL controller
-- `tools/` - Agent tools (CamelCase naming)
-- `ui/` - Proto UI components
-- `config/` - Genesis levels, module registry
+- `src/core/` - Agent loop, VFS, LLM client, tool runner
+- `src/infrastructure/` - EventBus, DI container, HITL controller
+- `src/tools/` - Agent tools (CamelCase naming)
+- `src/ui/` - Proto UI components
+- `src/config/` - Genesis levels, module registry
+- `server/` - Proxy server
 - `tests/` - Test suites
 
 ### Architecture

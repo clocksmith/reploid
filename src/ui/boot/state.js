@@ -8,10 +8,9 @@ export const STEPS = {
   START: 'start',           // Check saved config
   DETECT: 'detect',         // Probe connections
   CHOOSE: 'choose',         // Choose connection type
-  API_CONFIG: 'api_config', // API key entry
-  PROXY_CONFIG: 'proxy_config',
-  LOCAL_CONFIG: 'local_config',
-  DOPPLER_CONFIG: 'doppler_config',
+  DIRECT_CONFIG: 'direct_config',   // Direct cloud API (keys in browser)
+  PROXY_CONFIG: 'proxy_config',     // Proxy server (keys on server or local)
+  DOPPLER_CONFIG: 'doppler_config', // Browser WebGPU model
   GOAL: 'goal',             // Goal selection
   AWAKEN: 'awaken'          // Final initialization
 };
@@ -66,10 +65,10 @@ const defaultState = {
   },
 
   // Selected connection type
-  connectionType: null, // 'browser' | 'api' | 'proxy' | 'local'
+  connectionType: null, // 'browser' | 'direct' | 'proxy'
 
-  // Provider configurations
-  apiConfig: {
+  // Direct API configuration (keys in browser)
+  directConfig: {
     provider: null,     // 'anthropic' | 'openai' | 'gemini' | 'other'
     apiKey: null,
     baseUrl: null,      // For 'other' provider
@@ -79,16 +78,14 @@ const defaultState = {
     verifyError: null
   },
 
+  // Proxy server configuration (keys on server or local models)
   proxyConfig: {
     url: null,
+    serverType: null,   // 'reploid' | 'ollama' | 'openai-compatible' (auto-detected)
+    provider: null,     // For reploid proxy: which provider to use
     model: null,
-    verifyState: VERIFY_STATE.UNVERIFIED,
-    verifyError: null
-  },
-
-  localConfig: {
-    url: null,
-    model: null,
+    availableProviders: [], // From proxy /api/health
+    availableModels: [],    // From Ollama /api/tags or proxy
     verifyState: VERIFY_STATE.UNVERIFIED,
     verifyError: null
   },
@@ -212,20 +209,19 @@ export function hydrateSavedConfig(saved, apiKey = null) {
   const hostType = primary.hostType || '';
 
   // Determine connection type from hostType
-  let connectionType = 'api';
+  let connectionType = 'direct';
   if (hostType === 'browser-local' || primary.provider === 'doppler') {
     connectionType = 'browser';
-  } else if (hostType === 'proxy-cloud' || primary.provider === 'proxy') {
+  } else if (hostType === 'proxy-cloud' || primary.provider === 'proxy' ||
+             hostType === 'proxy-local' || primary.provider === 'ollama') {
     connectionType = 'proxy';
-  } else if (hostType === 'proxy-local' || primary.provider === 'ollama') {
-    connectionType = 'local';
   }
 
   // Hydrate the appropriate config
   const updates = { connectionType };
 
-  if (connectionType === 'api') {
-    updates.apiConfig = {
+  if (connectionType === 'direct') {
+    updates.directConfig = {
       provider: primary.provider,
       model: primary.id || primary.name,
       apiKey: apiKey || saved.savedKey || null,
@@ -234,15 +230,11 @@ export function hydrateSavedConfig(saved, apiKey = null) {
       verifyError: null
     };
   } else if (connectionType === 'proxy') {
+    const isOllama = hostType === 'proxy-local' || primary.provider === 'ollama';
     updates.proxyConfig = {
-      url: primary.proxyUrl || saved.proxyUrl,
-      model: primary.id || primary.name,
-      verifyState: VERIFY_STATE.UNVERIFIED,
-      verifyError: null
-    };
-  } else if (connectionType === 'local') {
-    updates.localConfig = {
-      url: primary.localUrl || saved.localUrl || 'http://localhost:11434',
+      url: primary.proxyUrl || primary.localUrl || saved.proxyUrl || saved.localUrl || 'http://localhost:8000',
+      serverType: isOllama ? 'ollama' : 'reploid',
+      provider: primary.provider,
       model: primary.id || primary.name,
       verifyState: VERIFY_STATE.UNVERIFIED,
       verifyError: null
@@ -266,44 +258,35 @@ export function hydrateSavedConfig(saved, apiKey = null) {
  * Save current config to localStorage
  */
 export function saveConfig() {
-  const { apiConfig, proxyConfig, localConfig, dopplerConfig, connectionType, goal } = state;
+  const { directConfig, proxyConfig, dopplerConfig, connectionType, goal } = state;
 
   const models = [];
 
   // Build model list based on connection type
-  if (connectionType === 'api' && apiConfig.model) {
+  if (connectionType === 'direct' && directConfig.model) {
     const model = {
-      id: apiConfig.model,
-      name: apiConfig.model,
-      provider: apiConfig.provider,
+      id: directConfig.model,
+      name: directConfig.model,
+      provider: directConfig.provider,
       hostType: 'browser-cloud'
     };
 
     // Only store key if user opted in
-    if (apiConfig.rememberKey && apiConfig.apiKey) {
-      localStorage.setItem(`REPLOID_KEY_${apiConfig.provider.toUpperCase()}`, apiConfig.apiKey);
+    if (directConfig.rememberKey && directConfig.apiKey) {
+      localStorage.setItem(`REPLOID_KEY_${directConfig.provider.toUpperCase()}`, directConfig.apiKey);
     }
 
     models.push(model);
   }
 
   if (connectionType === 'proxy' && proxyConfig.model) {
+    const isOllama = proxyConfig.serverType === 'ollama';
     models.push({
       id: proxyConfig.model,
       name: proxyConfig.model,
-      provider: 'proxy',
-      hostType: 'proxy-cloud',
+      provider: isOllama ? 'ollama' : (proxyConfig.provider || 'proxy'),
+      hostType: isOllama ? 'proxy-local' : 'proxy-cloud',
       proxyUrl: proxyConfig.url
-    });
-  }
-
-  if (connectionType === 'local' && localConfig.model) {
-    models.push({
-      id: localConfig.model,
-      name: localConfig.model,
-      provider: 'ollama',
-      hostType: 'proxy-local',
-      localUrl: localConfig.url
     });
   }
 
@@ -349,12 +332,11 @@ export function forgetDevice() {
  * Get the primary connection's verify state
  */
 export function getPrimaryVerifyState() {
-  const { connectionType, apiConfig, proxyConfig, localConfig, dopplerConfig } = state;
+  const { connectionType, directConfig, proxyConfig, dopplerConfig } = state;
 
   switch (connectionType) {
-    case 'api': return apiConfig.verifyState;
+    case 'direct': return directConfig.verifyState;
     case 'proxy': return proxyConfig.verifyState;
-    case 'local': return localConfig.verifyState;
     case 'browser': return dopplerConfig.verifyState;
     default: return VERIFY_STATE.UNVERIFIED;
   }
@@ -364,15 +346,13 @@ export function getPrimaryVerifyState() {
  * Check if current config is ready to awaken
  */
 export function canAwaken() {
-  const { connectionType, apiConfig, proxyConfig, localConfig, dopplerConfig } = state;
+  const { connectionType, directConfig, proxyConfig, dopplerConfig } = state;
 
   switch (connectionType) {
-    case 'api':
-      return apiConfig.provider && apiConfig.model;
+    case 'direct':
+      return directConfig.provider && directConfig.model;
     case 'proxy':
       return proxyConfig.url && proxyConfig.model;
-    case 'local':
-      return localConfig.url && localConfig.model;
     case 'browser':
       return dopplerConfig.model;
     default:
@@ -384,17 +364,23 @@ export function canAwaken() {
  * Get capability level based on current config
  */
 export function getCapabilityLevel() {
-  const { connectionType, apiConfig, enableDopplerSubstrate, detection } = state;
+  const { connectionType, directConfig, proxyConfig, enableDopplerSubstrate, detection } = state;
 
   // Determine reasoning capability
   let reasoning = 'low';
-  if (connectionType === 'api') {
-    const provider = apiConfig.provider;
+  if (connectionType === 'direct') {
+    const provider = directConfig.provider;
     if (['anthropic', 'openai', 'gemini'].includes(provider)) {
       reasoning = 'high';
     }
-  } else if (connectionType === 'local' || connectionType === 'proxy') {
-    reasoning = 'medium';
+  } else if (connectionType === 'proxy') {
+    // Proxy can be high if using cloud APIs, medium for local models
+    const provider = proxyConfig.provider;
+    if (['gemini', 'openai', 'anthropic'].includes(provider)) {
+      reasoning = 'high';
+    } else {
+      reasoning = 'medium';
+    }
   }
 
   // Determine substrate access
