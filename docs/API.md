@@ -530,8 +530,8 @@ exportAsMarkdown('performance.md', report);
 
 ## Further Reading
 
-- **Architecture Blueprints:** `doppler/reploid/blueprints/` directory - Design specifications
-- **Module Source Code:** `doppler/reploid/core/` and `doppler/reploid/infrastructure/` - Fully documented with JSDoc
+- **Architecture Blueprints:** `blueprints/` directory - Design specifications
+- **Module Source Code:** `core/` and `infrastructure/` - Fully documented with JSDoc
 - **Quick Start Guide:** `docs/QUICK-START.md` - Interactive tutorial
 - **Troubleshooting:** `docs/TROUBLESHOOTING.md` - Common issues and solutions
 - **Security Model:** `docs/SECURITY.md` - Containment and safety architecture

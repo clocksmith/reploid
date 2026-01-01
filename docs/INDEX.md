@@ -16,15 +16,15 @@ Guide to all documentation in the REPLOID project.
 
 ### Architecture
 - **[docs/SYSTEM_ARCHITECTURE.md](./SYSTEM_ARCHITECTURE.md)** - Complete system design
-- **[doppler/reploid/blueprints/](../doppler/reploid/blueprints/)** - Architectural specifications (100+ files)
+- **[./blueprints/](../blueprints/)** - Architectural specifications (100+ files)
 
 **Key Blueprints:**
-- [0x000002 - Application Orchestration](../doppler/reploid/blueprints/0x000002-application-orchestration.md) - Boot and DI
-- [0x000008 - Agent Cognitive Cycle](../doppler/reploid/blueprints/0x000008-agent-cognitive-cycle.md) - Core loop
-- [0x000047 - Verification Manager](../doppler/reploid/blueprints/0x000047-verification-manager.md) - Safety checks
-- [0x000051 - HITL Controller](../doppler/reploid/blueprints/0x000051-hitl-controller.md) - Human oversight
-- [0x000043 - Genesis Snapshot](../doppler/reploid/blueprints/0x000043-genesis-snapshot-system.md) - Rollback system
-- [0x000034 - Swarm Orchestration](../doppler/reploid/blueprints/0x000034-swarm-orchestration.md) - Multi-agent
+- [0x000002 - Application Orchestration](../blueprints/0x000002-application-orchestration.md) - Boot and DI
+- [0x000008 - Agent Cognitive Cycle](../blueprints/0x000008-agent-cognitive-cycle.md) - Core loop
+- [0x000047 - Verification Manager](../blueprints/0x000047-verification-manager.md) - Safety checks
+- [0x000051 - HITL Controller](../blueprints/0x000051-hitl-controller.md) - Human oversight
+- [0x000043 - Genesis Snapshot](../blueprints/0x000043-genesis-snapshot-system.md) - Rollback system
+- [0x000034 - Swarm Orchestration](../blueprints/0x000034-swarm-orchestration.md) - Multi-agent
 
 ### Reference
 - **[docs/API.md](./API.md)** - Module API documentation
@@ -43,7 +43,7 @@ Guide to all documentation in the REPLOID project.
 
 ```
 reploid/
-├── doppler/reploid/            # Main application
+├── ./            # Main application
 │   ├── reploid.html            # Boot screen entry point
 │   ├── boot.js                 # Hydration and initialization
 │   ├── sw-module-loader.js     # Service worker for VFS modules
@@ -89,36 +89,36 @@ reploid/
 
 ### For Developers
 1. [SYSTEM_ARCHITECTURE.md](./SYSTEM_ARCHITECTURE.md) - Understand architecture
-2. [blueprints/README.md](../doppler/reploid/blueprints/README.md) - Study specifications
+2. [blueprints/README.md](../blueprints/README.md) - Study specifications
 3. [API.md](./API.md) - Learn module APIs
 4. [CONTRIBUTING.md](./CONTRIBUTING.md) - Contribution guidelines
-5. [tools/README.md](../doppler/reploid/tools/README.md) - Tool development
+5. [tools/README.md](../tools/README.md) - Tool development
 
 ### For RSI Research
 1. [README.md](../README.md) - Core RSI thesis
-2. [blueprints/0x000015-dynamic-tool-creation.md](../doppler/reploid/blueprints/0x000015-dynamic-tool-creation.md) - Tool creation
-3. [blueprints/0x000066-recursive-goal-decomposition.md](../doppler/reploid/blueprints/0x000066-recursive-goal-decomposition.md) - Recursive goal decomposition
+2. [blueprints/0x000015-dynamic-tool-creation.md](../blueprints/0x000015-dynamic-tool-creation.md) - Tool creation
+3. [blueprints/0x000066-recursive-goal-decomposition.md](../blueprints/0x000066-recursive-goal-decomposition.md) - Recursive goal decomposition
 
 ### For Security Researchers
 1. [SECURITY.md](./SECURITY.md) - Security model and containment
-2. [blueprints/0x000047-verification-manager.md](../doppler/reploid/blueprints/0x000047-verification-manager.md) - Verification and sandbox design
-3. [blueprints/0x000067-circuit-breaker-pattern.md](../doppler/reploid/blueprints/0x000067-circuit-breaker-pattern.md) - Failure containment
+2. [blueprints/0x000047-verification-manager.md](../blueprints/0x000047-verification-manager.md) - Verification and sandbox design
+3. [blueprints/0x000067-circuit-breaker-pattern.md](../blueprints/0x000067-circuit-breaker-pattern.md) - Failure containment
 
 ---
 
 ## Quick Reference
 
 **Key Files:**
-- `doppler/reploid/config/genesis-levels.json` - Module registry and worker types
-- `doppler/reploid/boot.js` - Application bootstrap
-- `doppler/reploid/reploid.html` - Entry point
+- `./config/genesis-levels.json` - Module registry and worker types
+- `./boot.js` - Application bootstrap
+- `./reploid.html` - Entry point
 
 **Key Directories:**
-- `doppler/reploid/core/` - Agent substrate modules
-- `doppler/reploid/tools/` - Dynamic agent tools
-- `doppler/reploid/infrastructure/` - Support services
-- `doppler/reploid/ui/` - Proto UI
-- `doppler/reploid/blueprints/` - Architectural specifications
+- `./core/` - Agent substrate modules
+- `./tools/` - Dynamic agent tools
+- `./infrastructure/` - Support services
+- `./ui/` - Proto UI
+- `./blueprints/` - Architectural specifications
 - `docs/` - Human-facing documentation
 
 **External Dependencies:**

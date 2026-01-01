@@ -19,14 +19,11 @@ Code lives in the VFS, modules load dynamically, and the Ouroboros loop moves up
 | **Zero-install** | URL distribution ([PWA Research 2020](https://www.researchgate.net/publication/343472764_Dawning_of_Progressive_Web_Applications_PWA_Edging_Out_the_Pitfalls_of_Traditional_Mobile_Development)) |
 | **Tight loop** | RSI validated by [Gödel Agent 2024](https://arxiv.org/abs/2410.04444), [RISE NeurIPS 2024](https://proceedings.neurips.cc/paper_files/paper/2024/file/639d992f819c2b40387d4d5170b8ffd7-Paper-Conference.pdf) |
 
-Project source is in `doppler/reploid/`. Root-level `AGENTS.md`, `CLAUDE.md`, and `EMOJI.md` are symlinked there.
-
-See the main [README](doppler/reploid/README.md) for full documentation.
+See [GUIDE.md](GUIDE.md) for full documentation.
 
 ## Quick Start
 
 ```bash
-cd doppler/reploid
 npm install
 npm run serve     # Landing page + /r (Reploid) + /d (Doppler) at :8080
 npm run dev       # Full dev server with API proxies at :8000

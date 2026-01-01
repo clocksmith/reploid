@@ -69,7 +69,7 @@ REPLOID uses recursive acronyms to reinforce the self-referential nature:
 ### 3.1 Directory Structure
 
 ```
-doppler/reploid/
+
 |-- index.html              # Entry point
 |-- boot.js                 # Hydration and initialization
 |-- sw-module-loader.js     # Service worker for VFS modules
