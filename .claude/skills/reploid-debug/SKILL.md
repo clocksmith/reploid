@@ -44,8 +44,6 @@ npm start
 ## Debug Commands
 
 ```bash
-cd doppler/reploid
-
 # Testing (unified CLI)
 npm test                        # Run all tests
 npm test -- --unit              # Unit tests only
