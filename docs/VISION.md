@@ -132,7 +132,7 @@ REPLOID and DOPPLER form a closed loop - the serpent eating its own tail:
 
 - [README.md](../README.md) - Quick start and features
 - [blueprints/0x000000-reploid-genesis.md](../blueprints/0x000000-reploid-genesis.md) - Foundational architecture
-- [OUROBOROS.md](/Users/xyz/deco/OUROBOROS.md) - Combined Doppler+Reploid vision
+- [ARCHITECTURE.md](../../ARCHITECTURE.md) - Combined Doppler+Reploid vision
 - [TODO.md](./TODO.md) - Task tracking and research references
 
 ---
