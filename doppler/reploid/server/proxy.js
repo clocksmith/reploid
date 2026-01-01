@@ -1265,11 +1265,19 @@ app.use((req, res, next) => {
 
 // Main routes
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, '..', 'landing.html'));
+  res.sendFile(path.join(__dirname, '..', 'index.html'));
 });
 
-app.get('/r', (req, res) => {
-  res.sendFile(path.join(__dirname, '..', 'reploid.html'));
+app.get('/doppler', (req, res) => {
+  res.sendFile(path.join(dopplerPackageDir, 'index.html'));
+});
+
+app.get('/design', (req, res) => {
+  res.sendFile(path.join(__dirname, '..', 'design.html'));
+});
+
+app.get('/reset', (req, res) => {
+  res.sendFile(path.join(__dirname, '..', 'reset.html'));
 });
 
 // Serve DOPPLER client assets from the installed dependency
