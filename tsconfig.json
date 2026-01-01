@@ -27,12 +27,12 @@
     "isolatedModules": true
   },
   "include": [
-    "core/**/*.js",
-    "infrastructure/**/*.js",
-    "tools/**/*.js",
-    "ui/**/*.js",
-    "config/**/*.js",
-    "capabilities/**/*.js"
+    "src/core/**/*.js",
+    "src/infrastructure/**/*.js",
+    "src/tools/**/*.js",
+    "src/ui/**/*.js",
+    "src/config/**/*.js",
+    "src/capabilities/**/*.js"
   ],
   "exclude": [
     "node_modules",

@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes"
+    />
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+    <title>Reploid</title>
+
+    <link rel="stylesheet" href="styles/rd.css?v=1735500000" />
+    <style>
+      /* === REPLOID APP LAYOUT === */
+
+      .app-shell {
+        display: grid;
+        grid-template-columns: 48px 240px 1fr;
+        height: 100vh;
+        overflow: hidden;
+      }
+
+      .app-nav-item {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 48px;
+        height: 48px;
+        font-family: var(--font-a);
+        font-size: 18px;
+      }
+
+      .app-sidebar {
+        overflow: hidden;
+      }
+
+      .app-main {
+        overflow: hidden;
+      }
+
+      .app-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .app-content {
+        flex: 1;
+        overflow-y: auto;
+      }
+
+      /* === STATUS INDICATORS === */
+
+      /* Using border style for status */
+      .status-success {
+        border-style: solid;
+        border-width: var(--border-md);
+      }
+      .status-warning {
+        border-style: dashed;
+      }
+      .status-error {
+        border-style: double;
+        border-width: var(--border-lg);
+      }
+      .status-info {
+        border-style: dotted;
+      }
+
+      /* Status dots (filled/unfilled squares) */
+      .status-dot {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+      }
+
+      .status-dot-filled {
+        background: var(--fg);
+      }
+
+      /* === ANIMATIONS === */
+      @keyframes blink {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0;
+        }
+      }
+
+      .cursor-blink {
+        display: inline-block;
+        width: 8px;
+        height: 1em;
+        background: var(--fg);
+        animation: blink 1s step-end infinite;
+        vertical-align: text-bottom;
+      }
+
+      /* === RESPONSIVE === */
+      @media (max-width: 768px) {
+        .app-shell {
+          grid-template-columns: 48px 1fr;
+        }
+
+        .app-sidebar {
+          position: fixed;
+          left: 48px;
+          top: 0;
+          bottom: 0;
+          width: 240px;
+          background: var(--bg);
+          z-index: 50;
+          transform: translateX(-100%);
+        }
+
+        .app-sidebar.open {
+          transform: translateX(0);
+        }
+
+        .hide-mobile {
+          display: none;
+        }
+      }
+
+      @media (max-width: 480px) {
+        .app-shell {
+          grid-template-columns: 1fr;
+        }
+
+        .app-nav {
+          position: fixed;
+          bottom: 0;
+          left: 0;
+          right: 0;
+          flex-direction: row;
+          border-right: none;
+          border-top: var(--border-sm) solid var(--fg);
+          z-index: 50;
+          background: var(--bg);
+        }
+
+        .app-nav-item {
+          flex: 1;
+          height: 48px;
+          border-bottom: none;
+          border-right: var(--border-sm) solid var(--fg);
+        }
+
+        .app-nav-item:last-child {
+          border-right: none;
+        }
+      }
+
+      /* === WIZARD (Boot flow) === */
+
+      .wizard-container {
+        max-width: 640px;
+        width: 100%;
+        margin: 0 auto;
+        padding: 40px 20px;
+      }
+
+      .wizard-step {
+        animation: fadeIn 0.3s ease;
+      }
+
+      .wizard-step h2 {
+        font-size: 1.75rem;
+        font-weight: 300;
+        margin: 0 0 8px 0;
+        letter-spacing: 1px;
+      }
+
+      .wizard-subtitle {
+        font-size: 14px;
+        margin: 0 0 24px 0;
+      }
+
+      .wizard-intro {
+        text-align: center;
+        padding: 60px 20px;
+      }
+
+      .intro-title {
+        font-size: 3rem;
+        font-weight: 300;
+        letter-spacing: 0.3em;
+        margin: 0 0 16px 0;
+      }
+
+      .intro-tagline {
+        margin: 0 0 48px 0;
+        font-size: 14px;
+      }
+
+      .tagline-link {
+        text-decoration: none;
+        border-bottom: var(--border-sm) dotted var(--fg);
+        padding-bottom: 2px;
+      }
+
+      .tagline-link:hover {
+        border-bottom-style: solid;
+      }
+
+      .intro-actions {
+        align-items: center;
+        gap: 16px;
+      }
+
+      .intro-actions .btn-primary {
+        min-width: 160px;
+        padding: 14px 32px;
+        font-size: 14px;
+      }
+
+      .intro-key-input {
+        min-width: 160px;
+        padding: 14px 32px;
+        font-size: 14px;
+        text-align: center;
+        border: var(--border-sm) dotted var(--fg);
+        font-family: var(--font-a);
+      }
+
+      .intro-key-input:focus {
+        outline: none;
+        border-style: solid;
+      }
+
+      .intro-actions .btn-link {
+        font-size: 12px;
+        text-decoration: none;
+        border-bottom: var(--border-sm) dotted var(--fg);
+        background: none;
+        border-top: none;
+        border-left: none;
+        border-right: none;
+      }
+
+      .intro-actions .btn-link:hover {
+        opacity: 1;
+      }
+
+      .wizard-header {
+        display: flex;
+        justify-content: flex-end;
+        margin-bottom: 20px;
+        padding-bottom: 16px;
+      }
+
+      .wizard-connection-status {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 12px;
+      }
+
+      .wizard-connection-status .status-model {
+        font-size: 13px;
+        font-weight: 500;
+      }
+
+      .wizard-connection-status .status-text {
+        font-size: 11px;
+        letter-spacing: 0.5px;
+      }
+
+      .wizard-note {
+        padding: 10px 14px;
+        font-size: 13px;
+        margin-bottom: 16px;
+        border-left: var(--border-md) solid var(--fg);
+      }
+
+      .wizard-note.warning {
+        border-left-width: var(--border-lg);
+        border-left-style: dashed;
+      }
+
+      .detection-list {
+        gap: 8px;
+      }
+
+      .detection-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 16px;
+      }
+
+      .detection-item .detection-icon {
+        font-size: 16px;
+        width: 20px;
+        text-align: center;
+      }
+
+      .detection-item .detection-label {
+        flex: 1;
+        font-size: 14px;
+      }
+
+      .detection-item .detection-status {
+        font-size: 12px;
+      }
+
+      .detection-item.checking {
+        border-style: dotted;
+      }
+
+      .detection-item.online {
+        border-width: var(--border-md);
+      }
+
+      .detection-item.offline {
+        opacity: var(--opacity-disabled);
+      }
+
+      .connection-options {
+        gap: 12px;
+      }
+
+      .connection-option {
+        gap: 8px;
+        padding: 16px 20px;
+        text-align: left;
+      }
+
+      .connection-option.tertiary {
+        border-style: dashed;
+      }
+
+      .connection-option .option-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .connection-option .option-icon {
+        font-size: 20px;
+        width: 28px;
+        text-align: center;
+      }
+
+      .connection-option .option-title {
+        font-size: 15px;
+        font-weight: 500;
+      }
+
+      .connection-option .option-badge {
+        font-size: 10px;
+        padding: 2px 6px;
+        letter-spacing: 0.5px;
+        border: var(--border-sm) solid currentColor;
+      }
+
+      .connection-option .option-description {
+        font-size: 13px;
+        margin-left: 38px;
+      }
+
+      .connection-option .option-warning {
+        font-size: 12px;
+        margin-left: 38px;
+        margin-top: 4px;
+        font-weight: 600;
+      }
+
+      .connection-option .option-capabilities {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-left: 38px;
+        margin-top: 4px;
+      }
+
+      .cap-tag {
+        font-size: 11px;
+        padding: 2px 8px;
+      }
+
+      .config-form {
+        gap: 20px;
+      }
+
+      .form-row {
+        gap: 8px;
+      }
+
+      .form-row > label {
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 1px;
+      }
+
+      .config-input,
+      .config-select {
+        padding: 12px 14px;
+        font-family: var(--font-a);
+        font-size: 14px;
+      }
+
+      .config-input:focus,
+      .config-select:focus {
+        outline: none;
+        border-width: var(--border-md);
+      }
+
+      .checkbox-label {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 14px;
+      }
+
+      .checkbox-label input[type="checkbox"] {
+        appearance: none;
+        -webkit-appearance: none;
+        width: 16px;
+        height: 16px;
+        position: relative;
+      }
+
+      .checkbox-label input[type="checkbox"]:checked {
+        background: var(--fg);
+      }
+
+      .checkbox-label input[type="checkbox"]:checked::after {
+        content: "*";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 10px;
+        color: var(--bg);
+      }
+
+      .form-note {
+        font-size: 12px;
+      }
+
+      .form-note.warning {
+        font-weight: 600;
+        opacity: 1;
+      }
+
+      .model-options {
+        gap: 8px;
+      }
+
+      .model-option {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 14px 18px;
+        text-align: left;
+      }
+
+      .model-option.selected {
+        border-width: var(--border-md);
+      }
+
+      .model-option .model-info {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .model-option .model-name {
+        font-size: 14px;
+      }
+
+      .model-option .model-badge {
+        font-size: 10px;
+        padding: 2px 6px;
+        border: var(--border-sm) solid currentColor;
+      }
+
+      .model-option .model-meta {
+        display: flex;
+        gap: 12px;
+        font-size: 12px;
+      }
+
+      .download-progress {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin: 16px 0;
+      }
+
+      .wizard-actions {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        align-items: center;
+        gap: 12px;
+        margin-top: 24px;
+        padding-top: 20px;
+      }
+
+      .wizard-actions.centered {
+        justify-content: center;
+      }
+
+      .wizard-actions.stacked {
+        align-items: center;
+      }
+
+      .wizard-footer {
+        margin-top: 40px;
+        padding-top: 16px;
+        text-align: center;
+      }
+
+      .footer-link {
+        font-size: 12px;
+        text-decoration: none;
+        border-bottom: var(--border-sm) dotted var(--fg);
+      }
+
+      .footer-link:hover {
+        opacity: 1;
+        border-bottom-style: solid;
+      }
+
+      .goal-categories {
+        gap: 20px;
+      }
+
+      .category-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 14px;
+      }
+
+      .category-name {
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 1px;
+      }
+
+      .category-goals {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        padding: 12px;
+      }
+
+      .goal-chip {
+        padding: 8px 14px;
+        font-size: 13px;
+        text-align: left;
+      }
+
+      .goal-chip.recommended {
+        border-width: var(--border-md);
+      }
+
+      .goal-tag {
+        display: inline-block;
+        font-size: 9px;
+        padding: 1px 5px;
+        margin-left: 6px;
+        vertical-align: middle;
+        border: var(--border-sm) solid currentColor;
+      }
+
+      .custom-goal label {
+        display: block;
+        font-size: 13px;
+        margin-bottom: 8px;
+      }
+
+      .goal-input {
+        padding: 12px 14px;
+        font-family: var(--font-a);
+        font-size: 14px;
+        resize: vertical;
+        min-height: 60px;
+      }
+
+      .goal-input:focus {
+        outline: none;
+        border-width: var(--border-md);
+      }
+
+      .awaken-progress {
+        text-align: center;
+        padding: 30px;
+      }
+
+      .progress-steps {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin-top: 24px;
+        text-align: left;
+        max-width: 300px;
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      .progress-step {
+        font-size: 13px;
+        opacity: var(--opacity-secondary);
+        padding-left: 24px;
+        position: relative;
+      }
+
+      .progress-step::before {
+        content: "O";
+        position: absolute;
+        left: 0;
+      }
+
+      .progress-step.active {
+        opacity: 1;
+      }
+
+      .progress-step.active::before {
+        content: "*";
+        animation: blink 0.5s infinite;
+      }
+
+      .progress-step.done {
+        opacity: 1;
+      }
+
+      .progress-step.done::before {
+        content: "X";
+      }
+
+      /* Mobile wizard */
+      @media (max-width: 480px) {
+        .wizard-container {
+          padding: 20px 12px;
+        }
+
+        .wizard-step h2 {
+          font-size: 1.4rem;
+        }
+
+        .connection-option {
+          padding: 12px 14px;
+        }
+
+        .connection-option .option-description,
+        .connection-option .option-capabilities,
+        .connection-option .option-warning {
+          margin-left: 0;
+          margin-top: 8px;
+        }
+
+        .wizard-actions {
+          flex-direction: column;
+        }
+
+        .wizard-actions .btn {
+          width: 100%;
+        }
+
+        .goal-chip {
+          width: 100%;
+        }
+      }
+    </style>
+
+    <script type="importmap">
+      {
+        "imports": {
+          "@clocksmith/doppler": "/vendor/doppler/index.js",
+          "@clocksmith/doppler/provider": "/vendor/doppler/doppler-provider.js",
+          "@clocksmith/doppler/bridge/": "/vendor/doppler/bridge/",
+          "@clocksmith/doppler/browser/": "/vendor/doppler/browser/",
+          "@clocksmith/doppler/": "/vendor/doppler/"
+        }
+      }
+    </script>
+
+    <!-- Service Worker Module Loader (Self-Hosting VFS Architecture) -->
+    <script>
+      if ("serviceWorker" in navigator) {
+        window.addEventListener("load", () => {
+          navigator.serviceWorker
+            .register("./sw-module-loader.js")
+            .then((reg) => {
+              console.log(
+                "[SW] Service Worker registered for VFS module loading"
+              );
+              window.REPLOID_SW = reg;
+            })
+            .catch((err) => {
+              console.warn("[SW] Service Worker registration failed:", err);
+            });
+        });
+      }
+    </script>
+  </head>
+  <body>
+    <!-- Boot Wizard -->
+    <div id="wizard-container" class="wizard-container" style="display: none">
+      <!-- Wizard content rendered by ui/boot/index.js -->
+    </div>
+
+    <!-- App container for main UI -->
+    <div id="app"></div>
+
+    <script>
+      // Perform full reset (preserves API keys)
+      async function performFullReset() {
+        const steps = [];
+
+        // Service Workers
+        if ("serviceWorker" in navigator) {
+          const regs = await navigator.serviceWorker.getRegistrations();
+          await Promise.all(regs.map((reg) => reg.unregister()));
+          steps.push(`Unregistered ${regs.length} service worker(s)`);
+        }
+
+        // Browser Caches
+        if ("caches" in window) {
+          const cacheNames = await caches.keys();
+          await Promise.all(cacheNames.map((name) => caches.delete(name)));
+          steps.push(`Cleared ${cacheNames.length} cache(s)`);
+        }
+
+        // LocalStorage (preserve API keys)
+        const keysToPreserve = [];
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (key && (key.includes("KEY_") || key.includes("api_key"))) {
+            keysToPreserve.push({ key, value: localStorage.getItem(key) });
+          }
+        }
+        const lsCount = localStorage.length;
+        localStorage.clear();
+        keysToPreserve.forEach(({ key, value }) =>
+          localStorage.setItem(key, value)
+        );
+        steps.push(
+          `Cleared ${lsCount - keysToPreserve.length} localStorage keys`
+        );
+
+        // IndexedDB
+        if ("databases" in indexedDB) {
+          const dbs = await indexedDB.databases();
+          await Promise.all(
+            dbs.map(
+              (db) =>
+                new Promise((resolve) => {
+                  const timeoutId = setTimeout(() => resolve(), 3000);
+                  const req = indexedDB.deleteDatabase(db.name);
+                  req.onsuccess = () => {
+                    clearTimeout(timeoutId);
+                    resolve();
+                  };
+                  req.onerror = () => {
+                    clearTimeout(timeoutId);
+                    resolve();
+                  };
+                  req.onblocked = () => {
+                    clearTimeout(timeoutId);
+                    resolve();
+                  };
+                })
+            )
+          );
+          steps.push(`Deleted ${dbs.length} database(s)`);
+        }
+
+        console.log("[Reset]", steps.join("; "));
+        return steps;
+      }
+
+      // Expose reset functions for boot.js
+      window.shouldResetAll = () =>
+        localStorage.getItem("REPLOID_RESET_ALL") === "true";
+      window.performFullReset = performFullReset;
+
+      // Execution limits (used by agent-loop)
+      window.getExecutionLimits = () => {
+        const stored = localStorage.getItem("REPLOID_MAX_ITERATIONS");
+        // 0 means no limit, null/undefined defaults to 25
+        const maxIterations =
+          stored === "0" ? Infinity : parseInt(stored) || 25;
+        return {
+          maxIterations,
+          approvalInterval:
+            parseInt(localStorage.getItem("REPLOID_APPROVAL_INTERVAL")) || 0,
+        };
+      };
+
+      // Genesis level (used by boot)
+      window.getGenesisLevel = () =>
+        localStorage.getItem("REPLOID_GENESIS_LEVEL") || "full";
+
+      // Cognition config (used by memory systems)
+      window.getCognitionConfig = () => {
+        try {
+          return JSON.parse(
+            localStorage.getItem("REPLOID_COGNITION_CONFIG") || "{}"
+          );
+        } catch {
+          return {};
+        }
+      };
+
+      // GEPA config (used by GEPA optimizer)
+      window.getGEPAConfig = () => {
+        try {
+          return JSON.parse(
+            localStorage.getItem("REPLOID_GEPA_CONFIG") || "{}"
+          );
+        } catch {
+          return {};
+        }
+      };
+    </script>
+
+    <script type="module" src="boot.js?v=1735500000"></script>
+  </body>
+</html>

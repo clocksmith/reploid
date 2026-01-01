@@ -1296,7 +1296,7 @@ app.use('/gpu/kernels', express.static(dopplerKernelDir, {
   }
 }));
 
-app.use(express.static(path.join(__dirname, '..'), {
+app.use(express.static(path.join(__dirname, '..', 'src'), {
   setHeaders: (res, filePath) => {
     if (filePath.endsWith('.wgsl')) {
       res.setHeader('Content-Type', 'text/plain; charset=utf-8');
