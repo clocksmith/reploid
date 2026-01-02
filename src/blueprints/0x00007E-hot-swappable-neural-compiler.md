@@ -455,39 +455,38 @@ const executeWithRetry = async (task, maxRetries = 3) => {
 }
 ```
 
-### 4.2 IndexedDB Storage (Mirror EmbeddingStore Pattern)
+### 4.2 VFS Storage (Mirror EmbeddingStore Pattern)
 
 ```javascript
 const LoRACache = {
-  DB_NAME: 'reploid-lora-v1',
-  STORE_NAME: 'adapters',
+  CACHE_DIR: '/.cache/lora',
 
-  async init() {
-    this.db = await new Promise((resolve, reject) => {
-      const req = indexedDB.open(this.DB_NAME, 1);
-      req.onupgradeneeded = (e) => {
-        const db = e.target.result;
-        db.createObjectStore(this.STORE_NAME, { keyPath: 'name' });
-      };
-      req.onsuccess = () => resolve(req.result);
-      req.onerror = () => reject(req.error);
-    });
+  async init(VFS) {
+    this.VFS = VFS;
+    const exists = await VFS.exists(this.CACHE_DIR);
+    if (!exists) await VFS.mkdir(this.CACHE_DIR);
   },
 
   async store(manifest, weights) {
-    const tx = this.db.transaction(this.STORE_NAME, 'readwrite');
-    tx.objectStore(this.STORE_NAME).put({ ...manifest, weights });
-    return tx.complete;
+    const path = `${this.CACHE_DIR}/${manifest.name}.json`;
+    await this.VFS.write(path, JSON.stringify({ ...manifest, weights }));
   },
 
   async load(name) {
-    const tx = this.db.transaction(this.STORE_NAME, 'readonly');
-    return tx.objectStore(this.STORE_NAME).get(name);
+    const path = `${this.CACHE_DIR}/${name}.json`;
+    try {
+      const content = await this.VFS.read(path);
+      return JSON.parse(content);
+    } catch {
+      return null;
+    }
   },
 
   async list() {
-    const tx = this.db.transaction(this.STORE_NAME, 'readonly');
-    return tx.objectStore(this.STORE_NAME).getAllKeys();
+    const files = await this.VFS.list(this.CACHE_DIR);
+    return files
+      .filter(f => f.endsWith('.json'))
+      .map(f => f.replace(`${this.CACHE_DIR}/`, '').replace('.json', ''));
   }
 };
 ```
