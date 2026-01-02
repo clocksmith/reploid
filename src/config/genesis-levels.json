@@ -2,11 +2,12 @@
   "levels": {
     "tabula": {
       "name": "TABULA RASA",
-      "description": "Minimal agent core - 13 modules for autonomous operation",
+      "description": "Minimal agent core - 18 modules for autonomous operation",
       "modules": [
         "AgentLoop",
         "CircuitBreaker",
         "ContextManager",
+        "DIContainer",
         "ErrorStore",
         "EventBus",
         "LLMClient",
@@ -38,7 +39,7 @@
     },
     "full": {
       "name": "FULL SUBSTRATE",
-      "description": "Complete cognitive system - 28 additional modules",
+      "description": "Complete cognitive system - 30 additional modules",
       "extends": "reflection",
       "modules": [
         "AuditLogger",
@@ -56,8 +57,10 @@
         "NeuralCompiler",
         "Observability",
         "PerformanceMonitor",
+        "PolicyEngine",
         "ReplayEngine",
         "RuleEngine",
+        "SchemaValidator",
         "SemanticMemory",
         "SubstrateLoader",
         "SymbolGrounder",
@@ -94,6 +97,9 @@
     ],
     "ContextManager": [
       "core/context-manager.js"
+    ],
+    "DIContainer": [
+      "infrastructure/di-container.js"
     ],
     "EmbeddingStore": [
       "capabilities/cognition/semantic/embedding-store.js"
@@ -143,6 +149,9 @@
     "PerformanceMonitor": [
       "capabilities/performance/performance-monitor.js"
     ],
+    "PolicyEngine": [
+      "infrastructure/policy-engine.js"
+    ],
     "PromptMemory": [
       "capabilities/cognition/prompt-memory.js"
     ],
@@ -169,6 +178,9 @@
     ],
     "SchemaRegistry": [
       "core/schema-registry.js"
+    ],
+    "SchemaValidator": [
+      "core/schema-validator.js"
     ],
     "SemanticMemory": [
       "capabilities/cognition/semantic/semantic-memory.js"
@@ -270,17 +282,38 @@
       "ui/components/arena-results.js"
     ],
     "styles": [
-      "styles/theme.css",
-      "styles/wizard.css",
-      "styles/proto/index.css"
+      "styles/rd.css",
+      "styles/landing-mono.css",
+      "styles/vfs-explorer.css",
+      "styles/proto/index.css",
+      "styles/proto/layout.css",
+      "styles/proto/components.css",
+      "styles/proto/history.css",
+      "styles/proto/panels.css",
+      "styles/proto/vfs.css",
+      "styles/proto/responsive.css",
+      "styles/proto/inline-chat.css",
+      "styles/proto/hitl.css"
     ],
     "docs": []
   },
   "preserveOnReset": {
     "ui": [],
-    "styles": ["theme.css", "proto.css", "wizard.css"]
+    "styles": [
+      "rd.css",
+      "landing-mono.css",
+      "vfs-explorer.css",
+      "index.css",
+      "layout.css",
+      "components.css",
+      "history.css",
+      "panels.css",
+      "vfs.css",
+      "responsive.css",
+      "inline-chat.css",
+      "hitl.css"
+    ]
   },
-  "refreshOnBoot": [],
   "levelFiles": {
     "tabula": {
       "tools": []

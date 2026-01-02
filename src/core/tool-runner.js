@@ -10,13 +10,13 @@ const ToolRunner = {
     id: 'ToolRunner',
     version: '1.2.0',
     genesis: { introduced: 'tabula' },
-    dependencies: ['Utils', 'VFS', 'ToolWriter', 'SubstrateLoader?', 'EventBus', 'AuditLogger?', 'HITLController?', 'ArenaHarness?', 'VFSSandbox?', 'VerificationManager?', 'Shell?', 'gitTools?', 'WorkerManager?', 'EmbeddingStore?', 'SemanticMemory?', 'KnowledgeGraph?', 'GEPAOptimizer?', 'SchemaRegistry', 'TraceStore?', 'PersonaManager?', 'Observability?', 'GenesisSnapshot?', 'PolicyEngine?', 'SchemaValidator?'],
+    dependencies: ['Utils', 'VFS', 'ToolWriter', 'SubstrateLoader?', 'EventBus', 'AuditLogger?', 'HITLController?', 'ArenaHarness?', 'VFSSandbox?', 'VerificationManager?', 'Shell?', 'gitTools?', 'WorkerManager?', 'EmbeddingStore?', 'SemanticMemory?', 'KnowledgeGraph?', 'GEPAOptimizer?', 'PromptMemory?', 'SchemaRegistry', 'TraceStore?', 'PersonaManager?', 'Observability?', 'GenesisSnapshot?', 'PolicyEngine?', 'SchemaValidator?'],
     async: true,
     type: 'service'
   },
 
   factory: (deps) => {
-    const { Utils, VFS, ToolWriter, SubstrateLoader, EventBus, AuditLogger, HITLController, ArenaHarness, VFSSandbox, VerificationManager, Shell, gitTools, EmbeddingStore, SemanticMemory, KnowledgeGraph, GEPAOptimizer, SchemaRegistry, TraceStore, PersonaManager, Observability, GenesisSnapshot, PolicyEngine, SchemaValidator } = deps;
+    const { Utils, VFS, ToolWriter, SubstrateLoader, EventBus, AuditLogger, HITLController, ArenaHarness, VFSSandbox, VerificationManager, Shell, gitTools, EmbeddingStore, SemanticMemory, KnowledgeGraph, GEPAOptimizer, PromptMemory, SchemaRegistry, TraceStore, PersonaManager, Observability, GenesisSnapshot, PolicyEngine, SchemaValidator } = deps;
     const { logger, Errors, trunc } = Utils;
 
     // WorkerManager is mutable because of circular dependency:
@@ -336,6 +336,7 @@ const ToolRunner = {
         const TransformersClient = window.REPLOID?.transformersClient || null;
 
         // Inject comprehensive deps for full RSI capability
+        // All available modules are passed - tools can check availability via !!deps.ModuleName
         const toolDeps = {
           Utils,
           VFS,
@@ -343,6 +344,7 @@ const ToolRunner = {
           gitTools,
           EventBus,
           AuditLogger,
+          HITLController,
           ToolWriter,
           SubstrateLoader,
           VFSSandbox,
@@ -353,11 +355,17 @@ const ToolRunner = {
           SemanticMemory,
           KnowledgeGraph,
           PersonaManager,
+          GEPAOptimizer,
+          PromptMemory,
+          ArenaHarness,
+          TraceStore,
+          Observability,
+          GenesisSnapshot,
+          PolicyEngine,
+          SchemaValidator,
+          SchemaRegistry,
           ToolRunner: { list: () => Array.from(_tools.keys()), execute, has: (n) => _tools.has(n) }
         };
-        if (name === 'RunGEPA') {
-          toolDeps.GEPAOptimizer = GEPAOptimizer;
-        }
         let result = await toolFn(args, toolDeps);
 
         // Validate tool output if SchemaValidator is available and enabled

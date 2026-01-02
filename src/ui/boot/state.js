@@ -49,6 +49,16 @@ export const PROVIDER_TEST_ENDPOINTS = {
   }
 };
 
+const getStoredAdvancedConfig = () => {
+  if (typeof localStorage === 'undefined') {
+    return { preserveOnBoot: false };
+  }
+
+  return {
+    preserveOnBoot: localStorage.getItem('REPLOID_PRESERVE_ON_BOOT') === 'true'
+  };
+};
+
 // Default wizard state
 const defaultState = {
   currentStep: STEPS.START,
@@ -102,6 +112,10 @@ const defaultState = {
 
   // Whether to also use Doppler for model access (LoRA, activations, weights)
   enableModelAccess: false,
+
+  // Advanced options
+  advancedOpen: false,
+  advancedConfig: getStoredAdvancedConfig(),
 
   // Selected goal
   goal: null,
@@ -158,7 +172,11 @@ function notifyListeners() {
  * Reset wizard to initial state
  */
 export function resetWizard() {
-  state = { ...defaultState };
+  state = {
+    ...defaultState,
+    advancedOpen: false,
+    advancedConfig: getStoredAdvancedConfig()
+  };
   notifyListeners();
 }
 
@@ -325,7 +343,8 @@ export function forgetDevice() {
     'CONSENSUS_TYPE',
     'REPLOID_GENESIS_LEVEL',
     'REPLOID_PERSONA_ID',
-    'REPLOID_BLUEPRINT_PATH'
+    'REPLOID_BLUEPRINT_PATH',
+    'REPLOID_PRESERVE_ON_BOOT'
   ];
 
   keysToRemove.forEach(key => localStorage.removeItem(key));
@@ -368,7 +387,7 @@ export function canAwaken() {
  * Get capability level based on current config
  */
 export function getCapabilityLevel() {
-  const { connectionType, directConfig, proxyConfig, enableModelAccess, detection } = state;
+  const { connectionType, directConfig, proxyConfig, enableModelAccess, dopplerConfig } = state;
 
   // Determine reasoning capability
   let reasoning = 'low';
@@ -387,14 +406,18 @@ export function getCapabilityLevel() {
     }
   }
 
+  const hasDopplerModel = !!dopplerConfig?.model;
   // Determine model access (LoRA, activations, weights via Doppler)
   const hasModelAccess = connectionType === 'browser' || enableModelAccess;
+  const hasDopplerAccess = hasDopplerModel && (connectionType === 'browser' || enableModelAccess);
 
   return {
     reasoning,
     model: hasModelAccess,
+    doppler: hasDopplerAccess,
     // For goal filtering
     canDoModelRSI: hasModelAccess,
+    canDoDopplerEvolution: hasDopplerAccess,
     canDoBehavioralRSI: reasoning === 'high' || reasoning === 'medium',
     canDoComplexReasoning: reasoning === 'high'
   };

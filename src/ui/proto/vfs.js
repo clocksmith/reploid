@@ -216,6 +216,9 @@ export const createVFSManager = (deps) => {
     const previousPath = _currentFilePath;
     _currentFilePath = path;
     cancelEditing();
+    closePreview();
+    closeDiff();
+    closeSnapshots();
 
     // Re-render tree to update selected state
     if (previousPath !== path) {

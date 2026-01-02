@@ -142,6 +142,7 @@ Settings used by boot hydration and module registration.
 |-----|---------|
 | `moduleFiles` | Module entry and auxiliary files used for hydration and lazy imports |
 | `sharedFiles` | Always hydrated files (tools, UI, styles) |
-| `refreshOnBoot` | VFS paths to refresh even if already present |
+
+VFS hydration refreshes module and shared files from `src/` on each boot. Writes are skipped when content is byte-identical.
 
 *Last updated: December 2025*

@@ -15,30 +15,59 @@ export function renderGoalStep(state) {
   return `
     <div class="wizard-step wizard-goal">
       <h2 class="type-h1">What is the agent's goal?</h2>
+      <div class="goal-intro type-caption">
+        <div>Runtime: VFS refreshes from src on awaken. Tools receive the full module context for this genesis level.</div>
+        <div>Prompts use short view labels with full instructions. Doppler evolution appears when a Doppler model is active.</div>
+      </div>
 
       <div class="goal-categories">
-        ${Object.entries(filteredGoals).map(([category, goals]) => `
-          <div class="goal-category">
-            <div class="category-header">
-              <span class="category-name type-label">${category}</span>
-              ${goals.some(g => g.locked) ? `
-                <span class="type-caption">Some goals require different setup</span>
-              ` : ''}
+        ${Object.entries(filteredGoals).map(([category, goals]) => {
+          const isDopplerCategory = goals.length > 0 && goals.every(goal => goal.requires?.doppler);
+          if (isDopplerCategory && !capabilities.canDoDopplerEvolution) {
+            return '';
+          }
+
+          const meta = [
+            isDopplerCategory ? '<span class="category-note">Doppler active</span>' : '',
+            goals.some(g => g.locked) ? '<span class="type-caption">Some goals require different setup</span>' : ''
+          ].filter(Boolean).join('');
+
+          return `
+            <div class="goal-category ${isDopplerCategory ? 'doppler' : ''}">
+              <div class="category-header">
+                <span class="category-name type-label">${category}</span>
+                ${meta ? `<div class="category-meta">${meta}</div>` : ''}
+              </div>
+              <div class="category-goals">
+                ${goals.map(goal => {
+                  const goalValue = goal.text || goal.view || '';
+                  const viewText = goal.view || goalValue;
+                  const promptText = goal.text || goalValue;
+                  const showPrompt = viewText !== promptText;
+                  const flags = [
+                    goal.recommended ? '<span class="goal-tag recommended">Recommended</span>' : '',
+                    goal.locked ? `<span class="goal-tag locked">${goal.lockReason}</span>` : ''
+                  ].filter(Boolean).join('');
+                  const tags = (goal.tags || []).map(tag => `<span class="goal-tag">${tag}</span>`).join('');
+                  return `
+                    <button class="goal-chip ${goal.locked ? 'locked' : ''} ${goal.recommended ? 'recommended' : ''}"
+                            data-action="select-goal"
+                            data-goal="${goalValue}"
+                            title="${goalValue}"
+                            ${goal.locked ? 'disabled' : ''}>
+                      <div class="goal-chip-header">
+                        <span class="goal-view">${viewText}</span>
+                        ${flags ? `<span class="goal-flags">${flags}</span>` : ''}
+                      </div>
+                      ${showPrompt ? `<div class="goal-prompt"><span class="goal-prompt-label">Prompt</span>${promptText}</div>` : ''}
+                      ${tags ? `<div class="goal-meta">${tags}</div>` : ''}
+                    </button>
+                  `;
+                }).join('')}
+              </div>
             </div>
-            <div class="category-goals">
-              ${goals.map(goal => `
-                <button class="goal-chip ${goal.locked ? 'locked' : ''} ${goal.recommended ? 'recommended' : ''}"
-                        data-action="select-goal"
-                        data-goal="${goal.text}"
-                        ${goal.locked ? 'disabled' : ''}>
-                  ${goal.text}
-                  ${goal.recommended ? '<span class="goal-tag recommended">Recommended</span>' : ''}
-                  ${goal.locked ? `<span class="goal-tag locked">${goal.lockReason}</span>` : ''}
-                </button>
-              `).join('')}
-            </div>
-          </div>
-        `).join('')}
+          `;
+        }).join('')}
       </div>
 
       <div class="custom-goal">
