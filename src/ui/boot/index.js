@@ -11,12 +11,13 @@ import {
 } from './state.js';
 
 import {
-  runDetection, testApiKey, testProxyConnection, testLocalConnection
+  runDetection, testApiKey, testProxyConnection, testLocalConnection,
+  testProxyModel, testDirectModel
 } from './detection.js';
 
 // Step renderers
 import { renderChooseStep } from './steps/choose.js';
-import { renderDirectConfigStep } from './steps/direct.js';
+import { renderDirectConfigStep, CLOUD_MODELS } from './steps/direct.js';
 import { renderProxyConfigStep } from './steps/proxy.js';
 import { renderBrowserConfigStep } from './steps/browser.js';
 import { renderGoalStep } from './steps/goal.js';
@@ -42,8 +43,59 @@ export function initWizard(containerEl) {
 function handleStart() {
   const saved = checkSavedConfig();
   setState({ savedConfig: saved, currentStep: STEPS.CHOOSE });
-  // Run detection in background
-  runDetection({ skipLocalScan: false, onProgress: () => render() });
+  // Run detection in background, then auto-select if appropriate
+  runDetection({
+    skipLocalScan: false,
+    onProgress: () => render()
+  }).then(() => {
+    autoSelectConnectionType();
+  });
+}
+
+/**
+ * Auto-select connection type based on detection results
+ */
+function autoSelectConnectionType() {
+  const state = getState();
+  if (state.connectionType) return; // Already selected
+
+  const { detection, savedConfig } = state;
+  const proxyDetected = detection.proxy?.detected;
+  const hasSavedKeys = savedConfig?.hasSavedKey;
+  const webgpuSupported = detection.webgpu?.supported;
+
+  // Count how many options are available
+  const options = [];
+  if (proxyDetected) options.push('proxy');
+  if (hasSavedKeys) options.push('direct');
+  if (webgpuSupported && !proxyDetected && !hasSavedKeys) options.push('browser');
+
+  // Only auto-select if exactly one option detected
+  if (options.length === 1) {
+    const choice = options[0];
+    if (choice === 'proxy') {
+      // Trigger proxy selection with auto-config
+      const providers = detection.proxy?.configuredProviders || [];
+      const proxyUpdates = {
+        url: detection.proxy.url,
+        serverType: 'reploid'
+      };
+      if (providers.length > 0) {
+        proxyUpdates.provider = providers[0];
+        const providerModels = CLOUD_MODELS[providers[0]] || [];
+        if (providerModels.length > 0) {
+          proxyUpdates.model = providerModels[0].id;
+        }
+      }
+      setNestedState('proxyConfig', proxyUpdates);
+      setState({ connectionType: 'proxy' });
+    } else if (choice === 'direct') {
+      hydrateSavedConfig(savedConfig);
+    } else if (choice === 'browser') {
+      setState({ connectionType: 'browser' });
+      setNestedState('dopplerConfig', { model: 'smollm2-360m' });
+    }
+  }
 }
 
 /**
@@ -97,10 +149,6 @@ function render() {
   // Section 3: Show goal if config is ready
   if (canAwaken()) {
     html += renderGoalStep(state);
-  }
-
-  // Section 4: Show awaken button if goal is selected
-  if (canAwaken() && state.goal) {
     html += renderAwakenStep(state);
   }
 
@@ -164,9 +212,45 @@ function handleClick(e) {
       setState({ connectionType: 'direct' });
       break;
 
-    case 'choose-proxy':
+    case 'choose-proxy': {
+      const detection = getState().detection;
+      const currentProxyConfig = getState().proxyConfig;
+      const providers = detection.proxy?.configuredProviders || [];
+      const proxyDetected = detection.proxy?.detected;
+      const ollamaDetected = detection.ollama?.detected;
+
+      // Build updates for proxy config
+      const proxyUpdates = {};
+
+      // Set URL from detection if not already set
+      if (!currentProxyConfig.url) {
+        if (proxyDetected) {
+          proxyUpdates.url = detection.proxy.url;
+          proxyUpdates.serverType = 'reploid';
+        } else if (ollamaDetected) {
+          proxyUpdates.url = detection.ollama.url;
+          proxyUpdates.serverType = 'ollama';
+        } else {
+          proxyUpdates.url = 'http://localhost:8000';
+        }
+      }
+
+      // Auto-select first provider and model if available
+      if (providers.length > 0 && !currentProxyConfig.provider) {
+        const firstProvider = providers[0];
+        const providerModels = CLOUD_MODELS[firstProvider] || [];
+        proxyUpdates.provider = firstProvider;
+        if (providerModels.length > 0) {
+          proxyUpdates.model = providerModels[0].id;
+        }
+      }
+
+      if (Object.keys(proxyUpdates).length > 0) {
+        setNestedState('proxyConfig', proxyUpdates);
+      }
       setState({ connectionType: 'proxy' });
       break;
+    }
 
     case 'back-to-choose':
       setState({ connectionType: null });
@@ -183,6 +267,14 @@ function handleClick(e) {
 
     case 'test-proxy':
       handleTestProxy();
+      break;
+
+    case 'test-proxy-model':
+      handleTestProxyModel();
+      break;
+
+    case 'test-direct-model':
+      handleTestDirectModel();
       break;
 
     case 'continue-to-goal':
@@ -289,9 +381,13 @@ function handleChange(e) {
       });
       break;
 
-    case 'proxy-provider':
-      setNestedState('proxyConfig', { provider: value });
+    case 'proxy-provider': {
+      // Auto-select first model for this provider
+      const models = CLOUD_MODELS[value] || [];
+      const firstModel = models.length > 0 ? models[0].id : null;
+      setNestedState('proxyConfig', { provider: value, model: firstModel });
       break;
+    }
 
     case 'proxy-model':
       setNestedState('proxyConfig', { model: value });
@@ -423,6 +519,46 @@ async function handleTestFromAwaken() {
   }
 }
 
+async function handleTestProxyModel() {
+  const state = getState();
+  const { url, provider, model, serverType } = state.proxyConfig;
+
+  if (!model) return;
+
+  setNestedState('proxyConfig', { modelVerifyState: VERIFY_STATE.TESTING, modelVerifyError: null });
+  render();
+
+  let result;
+  if (serverType === 'ollama') {
+    // For Ollama, use generate endpoint
+    result = await testProxyModel(url, 'ollama', model);
+  } else {
+    result = await testProxyModel(url, provider, model);
+  }
+
+  setNestedState('proxyConfig', {
+    modelVerifyState: result.success ? VERIFY_STATE.VERIFIED : VERIFY_STATE.FAILED,
+    modelVerifyError: result.error
+  });
+}
+
+async function handleTestDirectModel() {
+  const state = getState();
+  const { provider, apiKey, model, baseUrl } = state.directConfig;
+
+  if (!model || !apiKey) return;
+
+  setNestedState('directConfig', { modelVerifyState: VERIFY_STATE.TESTING, modelVerifyError: null });
+  render();
+
+  const result = await testDirectModel(provider, apiKey, model, baseUrl);
+
+  setNestedState('directConfig', {
+    modelVerifyState: result.success ? VERIFY_STATE.VERIFIED : VERIFY_STATE.FAILED,
+    modelVerifyError: result.error
+  });
+}
+
 function doAwaken() {
   const state = getState();
   saveConfig();
@@ -433,16 +569,7 @@ function doAwaken() {
 }
 
 async function handleAwaken() {
-  const state = getState();
-  const { connectionType, directConfig, proxyConfig } = state;
-
-  let verifyState = VERIFY_STATE.VERIFIED;
-  if (connectionType === 'direct') verifyState = directConfig.verifyState;
-  else if (connectionType === 'proxy') verifyState = proxyConfig.verifyState;
-
-  if (verifyState === VERIFY_STATE.VERIFIED) {
-    doAwaken();
-  }
+  doAwaken();
 }
 
 export { STEPS, getState, goToStep };

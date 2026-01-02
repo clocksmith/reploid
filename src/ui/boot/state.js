@@ -75,7 +75,9 @@ const defaultState = {
     rememberKey: false,
     model: null,
     verifyState: VERIFY_STATE.UNVERIFIED,
-    verifyError: null
+    verifyError: null,
+    modelVerifyState: VERIFY_STATE.UNVERIFIED,
+    modelVerifyError: null
   },
 
   // Proxy server configuration (keys on server or local models)
@@ -87,7 +89,9 @@ const defaultState = {
     availableProviders: [], // From proxy /api/health
     availableModels: [],    // From Ollama /api/tags or proxy
     verifyState: VERIFY_STATE.UNVERIFIED,
-    verifyError: null
+    verifyError: null,
+    modelVerifyState: VERIFY_STATE.UNVERIFIED,
+    modelVerifyError: null
   },
 
   dopplerConfig: {

@@ -14,15 +14,15 @@ export function renderGoalStep(state) {
 
   return `
     <div class="wizard-step wizard-goal">
-      <h2>What do you want to do?</h2>
+      <h2 class="type-h1">What is the agent's goal?</h2>
 
       <div class="goal-categories">
         ${Object.entries(filteredGoals).map(([category, goals]) => `
           <div class="goal-category">
             <div class="category-header">
-              <span class="category-name">${category}</span>
+              <span class="category-name type-label">${category}</span>
               ${goals.some(g => g.locked) ? `
-                <span class="category-lock">Some goals require different setup</span>
+                <span class="type-caption">Some goals require different setup</span>
               ` : ''}
             </div>
             <div class="category-goals">
@@ -42,7 +42,7 @@ export function renderGoalStep(state) {
       </div>
 
       <div class="custom-goal">
-        <label>Or describe your own goal:</label>
+        <label class="type-label">Or describe your own goal:</label>
         <textarea id="custom-goal"
                   class="goal-input"
                   placeholder="What would you like the agent to do?"
@@ -50,16 +50,8 @@ export function renderGoalStep(state) {
       </div>
 
       <div class="wizard-actions">
-        <button class="btn btn-tertiary" data-action="back-to-config">
-          Back
-        </button>
-        <button class="btn btn-secondary" data-action="advanced-options">
-          Advanced Options
-        </button>
-        <button class="btn btn-primary btn-awaken"
-                data-action="awaken"
-                ${!canAwaken() ? 'disabled' : ''}>
-          Awaken Agent
+        <button class="btn btn-secondary" data-action="advanced-settings">
+          ⚙ Advanced Settings
         </button>
       </div>
     </div>

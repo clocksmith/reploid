@@ -3,6 +3,7 @@
  */
 
 import { VERIFY_STATE } from '../state.js';
+import { CLOUD_MODELS } from './direct.js';
 
 /**
  * Render PROXY_CONFIG step - unified proxy/server configuration
@@ -27,76 +28,82 @@ export function renderProxyConfigStep(state) {
   // Determine server type for display
   const serverType = proxyConfig.serverType || (proxyDetected ? 'reploid' : ollamaDetected ? 'ollama' : null);
   const serverTypeLabel = serverType === 'reploid' ? 'Reploid Proxy' : serverType === 'ollama' ? 'Ollama' : 'Server';
+  const detected = proxyDetected || ollamaDetected;
 
   return `
     <div class="wizard-step wizard-proxy-config">
-      <h2>Proxy Configuration</h2>
-      <p class="wizard-subtitle">Connect to a local or remote server</p>
+      <h2 class="type-h1">Proxy Configuration</h2>
+      ${!detected ? '<p class="type-caption">Connect to a local or remote server</p>' : ''}
 
       <div class="config-form">
         <div class="form-row">
-          <label>Server URL</label>
-          <div class="input-with-action">
+          <label class="type-label">Server URL</label>
+          <div class="input-row">
             <input type="text"
                    id="proxy-url"
-                                      placeholder="http://localhost:8000"
+                   placeholder="http://localhost:8000"
                    value="${proxyConfig.url || defaultUrl}" />
-            <button class="btn btn-secondary" data-action="test-proxy">
+            <button class="btn" data-action="test-proxy">
               ${proxyConfig.verifyState === VERIFY_STATE.TESTING ? 'Testing...' : 'Test'}
             </button>
           </div>
           ${proxyConfig.verifyState === VERIFY_STATE.VERIFIED ? `
-            <div class="form-success">★ ${serverTypeLabel} connected</div>
+            <span class="type-caption">★ ${serverTypeLabel} connected</span>
           ` : ''}
           ${proxyConfig.verifyState === VERIFY_STATE.FAILED ? `
-            <div class="form-error">☒ ${proxyConfig.verifyError || 'Connection failed'}</div>
+            <span class="type-caption">☒ ${proxyConfig.verifyError || 'Connection failed'}</span>
           ` : ''}
-          <div class="form-note">
-            Default ports: 8000 (Reploid proxy), 11434 (Ollama)
-          </div>
+          ${!detected ? '<span class="type-caption">Default ports: 8000 (Reploid proxy), 11434 (Ollama)</span>' : ''}
         </div>
 
         ${proxyProviders.length > 0 ? `
           <div class="form-row">
-            <label>Provider</label>
-            <select id="proxy-provider" class="config-select">
-              <option value="">Select provider...</option>
-              ${proxyProviders.map(p => `
-                <option value="${p}" ${proxyConfig.provider === p ? 'selected' : ''}>${p.charAt(0).toUpperCase() + p.slice(1)}</option>
+            <label class="type-label">Provider</label>
+            <select id="proxy-provider">
+              ${proxyProviders.map((p, i) => `
+                <option value="${p}" ${proxyConfig.provider === p || (!proxyConfig.provider && i === 0) ? 'selected' : ''}>${p.charAt(0).toUpperCase() + p.slice(1)}</option>
               `).join('')}
             </select>
-            <div class="form-note">Providers configured on the proxy server</div>
+            <span class="type-caption">Providers configured on the proxy server</span>
           </div>
         ` : ''}
 
         <div class="form-row">
-          <label>Model</label>
-          ${ollamaModels.length > 0 && serverType === 'ollama' ? `
-            <select id="proxy-model" class="config-select">
-              <option value="">Select model...</option>
-              ${ollamaModels.map(m => `
-                <option value="${m.id}" ${proxyConfig.model === m.id ? 'selected' : ''}>${m.name}</option>
-              `).join('')}
-            </select>
-          ` : `
-            <input type="text"
-                   id="proxy-model"
-                                      placeholder="${serverType === 'ollama' ? 'e.g., llama3:8b' : 'e.g., gemini-2.0-flash'}"
-                   value="${proxyConfig.model || ''}" />
-          `}
+          <label class="type-label">Model</label>
+          <div class="input-row">
+            ${ollamaModels.length > 0 && serverType === 'ollama' ? `
+              <select id="proxy-model">
+                <option value="">Select model...</option>
+                ${ollamaModels.map(m => `
+                  <option value="${m.id}" ${proxyConfig.model === m.id ? 'selected' : ''}>${m.name}</option>
+                `).join('')}
+              </select>
+            ` : serverType === 'reploid' && proxyConfig.provider && CLOUD_MODELS[proxyConfig.provider] ? `
+              <select id="proxy-model">
+                ${CLOUD_MODELS[proxyConfig.provider].map((m, i) => `
+                  <option value="${m.id}" ${proxyConfig.model === m.id || (!proxyConfig.model && i === 0) ? 'selected' : ''}>${m.name}</option>
+                `).join('')}
+              </select>
+            ` : `
+              <input type="text"
+                     id="proxy-model"
+                     placeholder="${serverType === 'ollama' ? 'e.g., llama3:8b' : 'e.g., gemini-2.0-flash'}"
+                     value="${proxyConfig.model || ''}" />
+            `}
+            <button class="btn" data-action="test-proxy-model"
+                    ${!proxyConfig.model ? 'disabled' : ''}>
+              ${proxyConfig.modelVerifyState === VERIFY_STATE.TESTING ? 'Testing...' : 'Test'}
+            </button>
+          </div>
+          ${proxyConfig.modelVerifyState === VERIFY_STATE.VERIFIED ? `
+            <span class="type-caption">★ Model responded</span>
+          ` : ''}
+          ${proxyConfig.modelVerifyState === VERIFY_STATE.FAILED ? `
+            <span class="type-caption">☒ ${proxyConfig.modelVerifyError || 'Model test failed'}</span>
+          ` : ''}
         </div>
       </div>
 
-      <div class="wizard-actions">
-        <button class="btn btn-tertiary" data-action="back-to-choose">
-          Back
-        </button>
-        <button class="btn btn-primary"
-                data-action="continue-to-goal"
-                ${!proxyConfig.url || !proxyConfig.model ? 'disabled' : ''}>
-          Continue ${proxyConfig.verifyState !== VERIFY_STATE.VERIFIED ? '(unverified)' : ''}
-        </button>
-      </div>
     </div>
   `;
 }

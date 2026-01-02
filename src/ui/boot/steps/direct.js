@@ -17,9 +17,9 @@ export const CLOUD_MODELS = {
     { id: 'gpt-4-turbo', name: 'GPT-4 Turbo' }
   ],
   gemini: [
+    { id: 'gemini-3-flash-preview', name: 'Gemini 3 Flash (Preview)' },
     { id: 'gemini-2.0-flash', name: 'Gemini 2.0 Flash' },
-    { id: 'gemini-1.5-pro', name: 'Gemini 1.5 Pro' },
-    { id: 'gemini-1.5-flash', name: 'Gemini 1.5 Flash' }
+    { id: 'gemini-1.5-pro', name: 'Gemini 1.5 Pro' }
   ]
 };
 
@@ -33,16 +33,16 @@ export function renderDirectConfigStep(state) {
 
   return `
     <div class="wizard-step wizard-direct-config">
-      <h2>Direct API Configuration</h2>
-      <p class="wizard-subtitle">API keys are stored in your browser</p>
+      <h2 class="type-h1">Direct API Configuration</h2>
+      <p class="type-caption">API keys are stored in your browser</p>
 
       <div class="config-form">
         <div class="form-row">
-          <label>Provider</label>
+          <label class="type-label">Provider</label>
           <select id="direct-provider">
             <option value="">Select provider...</option>
             <option value="anthropic" ${directConfig.provider === 'anthropic' ? 'selected' : ''}>Anthropic (Claude)</option>
-            <option value="openai" ${directConfig.provider === 'openai' ? 'selected' : ''}>OpenAI (GPT-4)</option>
+            <option value="openai" ${directConfig.provider === 'openai' ? 'selected' : ''}>OpenAI (GPT)</option>
             <option value="gemini" ${directConfig.provider === 'gemini' ? 'selected' : ''}>Google (Gemini)</option>
             <option value="other" ${directConfig.provider === 'other' ? 'selected' : ''}>Other (OpenAI-compatible)</option>
           </select>
@@ -50,39 +50,39 @@ export function renderDirectConfigStep(state) {
 
         ${isOther ? `
           <div class="form-row">
-            <label>Base URL</label>
+            <label class="type-label">Base URL</label>
             <input type="text"
                    id="direct-base-url"
-                                      placeholder="https://api.example.com/v1"
+                   placeholder="https://api.example.com/v1"
                    value="${directConfig.baseUrl || ''}" />
-            <div class="form-note">OpenAI-compatible API base URL</div>
+            <span class="type-caption">OpenAI-compatible API base URL</span>
           </div>
         ` : ''}
 
         <div class="form-row">
-          <label>API Key</label>
-          <form class="input-with-action" autocomplete="off" onsubmit="return false;">
+          <label class="type-label">API Key</label>
+          <form class="input-row" autocomplete="off" onsubmit="return false;">
             <input type="text" name="username" autocomplete="username" style="display:none" aria-hidden="true" />
             <input type="password"
                    id="direct-key"
-                                      placeholder="Enter your API key"
+                   placeholder="Enter your API key"
                    autocomplete="new-password"
                    value="${directConfig.apiKey || ''}" />
             <button type="button"
-                    class="btn btn-secondary"
+                    class="btn"
                     data-action="test-direct-key"
                     ${isOther && !directConfig.baseUrl ? 'disabled' : ''}>
               ${directConfig.verifyState === VERIFY_STATE.TESTING ? 'Testing...' : 'Test'}
             </button>
           </form>
           ${directConfig.verifyState === VERIFY_STATE.VERIFIED ? `
-            <div class="form-success">★ Connection verified</div>
+            <span class="type-caption">★ Connection verified</span>
           ` : ''}
           ${directConfig.verifyState === VERIFY_STATE.FAILED ? `
-            <div class="form-error">☒ ${directConfig.verifyError || 'Connection failed'}</div>
+            <span class="type-caption">☒ ${directConfig.verifyError || 'Connection failed'}</span>
           ` : ''}
           ${directConfig.provider === 'anthropic' ? `
-            <div class="form-note">Test sends minimal request (~10 tokens, ~$0.00001)</div>
+            <span class="type-caption">Test sends minimal request (~10 tokens, ~$0.00001)</span>
           ` : ''}
         </div>
 
@@ -93,24 +93,36 @@ export function renderDirectConfigStep(state) {
                    ${directConfig.rememberKey ? 'checked' : ''} />
             <span>Remember this key locally</span>
           </label>
-          <div class="form-note warning">Key stored unencrypted in browser</div>
+          <span class="type-caption">△ Key stored unencrypted in browser</span>
         </div>
 
         <div class="form-row">
-          <label>Model</label>
-          ${isOther ? `
-            <input type="text"
-                   id="direct-model"
-                                      placeholder="Enter model name (e.g., gpt-4)"
-                   value="${directConfig.model || ''}" />
-          ` : `
-            <select id="direct-model" class="config-select" ${!directConfig.provider ? 'disabled' : ''}>
-              <option value="">Select model...</option>
-              ${models.map(m => `
-                <option value="${m.id}" ${directConfig.model === m.id ? 'selected' : ''}>${m.name}</option>
-              `).join('')}
-            </select>
-          `}
+          <label class="type-label">Model</label>
+          <div class="input-row">
+            ${isOther ? `
+              <input type="text"
+                     id="direct-model"
+                     placeholder="Enter model name (e.g., gpt-4)"
+                     value="${directConfig.model || ''}" />
+            ` : `
+              <select id="direct-model" ${!directConfig.provider ? 'disabled' : ''}>
+                <option value="">Select model...</option>
+                ${models.map(m => `
+                  <option value="${m.id}" ${directConfig.model === m.id ? 'selected' : ''}>${m.name}</option>
+                `).join('')}
+              </select>
+            `}
+            <button class="btn" data-action="test-direct-model"
+                    ${!directConfig.model || !directConfig.apiKey ? 'disabled' : ''}>
+              ${directConfig.modelVerifyState === VERIFY_STATE.TESTING ? 'Testing...' : 'Test'}
+            </button>
+          </div>
+          ${directConfig.modelVerifyState === VERIFY_STATE.VERIFIED ? `
+            <span class="type-caption">★ Model responded</span>
+          ` : ''}
+          ${directConfig.modelVerifyState === VERIFY_STATE.FAILED ? `
+            <span class="type-caption">☒ ${directConfig.modelVerifyError || 'Model test failed'}</span>
+          ` : ''}
         </div>
 
         ${detection.webgpu.supported ? `
@@ -121,12 +133,12 @@ export function renderDirectConfigStep(state) {
                      ${enableDopplerSubstrate ? 'checked' : ''} />
               <span>Also enable Doppler for substrate access</span>
             </label>
-            <div class="form-note">Enables LoRA, activation steering, weight inspection</div>
+            <span class="type-caption">Enables LoRA, activation steering, weight inspection</span>
           </div>
           ${enableDopplerSubstrate ? `
             <div class="form-row doppler-model-inline">
-              <label>Doppler Model</label>
-              <select id="doppler-model-inline" class="config-select">
+              <label class="type-label">Doppler Model</label>
+              <select id="doppler-model-inline">
                 <option value="smollm2-360m" ${dopplerConfig?.model === 'smollm2-360m' ? 'selected' : ''}>SmolLM2 360M (Recommended)</option>
                 <option value="gemma-2b" ${dopplerConfig?.model === 'gemma-2b' ? 'selected' : ''}>Gemma 2B</option>
                 <option value="qwen-0.5b" ${dopplerConfig?.model === 'qwen-0.5b' ? 'selected' : ''}>Qwen 0.5B</option>
@@ -136,16 +148,6 @@ export function renderDirectConfigStep(state) {
         ` : ''}
       </div>
 
-      <div class="wizard-actions">
-        <button class="btn btn-tertiary" data-action="back-to-choose">
-          Back
-        </button>
-        <button class="btn btn-primary"
-                data-action="continue-to-goal"
-                ${!directConfig.provider || !directConfig.model ? 'disabled' : ''}>
-          Continue ${directConfig.verifyState !== VERIFY_STATE.VERIFIED ? '(unverified)' : ''}
-        </button>
-      </div>
     </div>
   `;
 }
