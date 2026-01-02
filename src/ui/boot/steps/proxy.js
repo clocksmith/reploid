@@ -39,8 +39,7 @@ export function renderProxyConfigStep(state) {
           <div class="input-with-action">
             <input type="text"
                    id="proxy-url"
-                   class="config-input"
-                   placeholder="http://localhost:8000"
+                                      placeholder="http://localhost:8000"
                    value="${proxyConfig.url || defaultUrl}" />
             <button class="btn btn-secondary" data-action="test-proxy">
               ${proxyConfig.verifyState === VERIFY_STATE.TESTING ? 'Testing...' : 'Test'}
@@ -82,8 +81,7 @@ export function renderProxyConfigStep(state) {
           ` : `
             <input type="text"
                    id="proxy-model"
-                   class="config-input"
-                   placeholder="${serverType === 'ollama' ? 'e.g., llama3:8b' : 'e.g., gemini-2.0-flash'}"
+                                      placeholder="${serverType === 'ollama' ? 'e.g., llama3:8b' : 'e.g., gemini-2.0-flash'}"
                    value="${proxyConfig.model || ''}" />
           `}
         </div>

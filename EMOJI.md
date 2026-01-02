@@ -9,7 +9,7 @@ This codebase follows a **strict no-emoji policy**. Use Unicode symbols for visu
 |--------|-------------|-------|
 | ★ | `&#9733;` | Success, completed |
 | ☒ | `&#9746;` | Error, failure |
-| ☡ | `&#9761;` | Warning |
+| △ | `&#9651;` | Warning, caution |
 | ☛ | `&#9755;` | Info, pointer |
 | ☍ | `&#9741;` | Sync, connection |
 | ☖ | `&#9750;` | Build |

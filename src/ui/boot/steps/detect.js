@@ -114,7 +114,7 @@ export function renderDetectStep(state) {
         </div>
 
         <div class="detection-item ${detection.ollama?.checked ? (detection.ollama?.detected ? 'online' : 'offline') : 'checking'}">
-          <span class="detection-icon">${detection.ollama?.checked ? (detection.ollama?.detected ? '★' : detection.ollama?.blocked ? '☡' : '☒') : '☍'}</span>
+          <span class="detection-icon">${detection.ollama?.checked ? (detection.ollama?.detected ? '★' : detection.ollama?.blocked ? '△' : '☒') : '☍'}</span>
           <span class="detection-label">Ollama</span>
           <span class="detection-status">
             ${detection.ollama?.checked
@@ -126,7 +126,7 @@ export function renderDetectStep(state) {
         </div>
 
         <div class="detection-item ${detection.proxy?.checked ? (detection.proxy?.detected ? 'online' : 'offline') : 'checking'}">
-          <span class="detection-icon">${detection.proxy?.checked ? (detection.proxy?.detected ? '★' : detection.proxy?.blocked ? '☡' : '☒') : '☍'}</span>
+          <span class="detection-icon">${detection.proxy?.checked ? (detection.proxy?.detected ? '★' : detection.proxy?.blocked ? '△' : '☒') : '☍'}</span>
           <span class="detection-label">Proxy</span>
           <span class="detection-status">
             ${detection.proxy?.checked

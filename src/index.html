@@ -156,64 +156,35 @@
       /* === WIZARD (Boot flow) === */
 
       .wizard-container {
-        max-width: 640px;
+        max-width: 1024px;
         width: 100%;
         margin: 0 auto;
-        padding: 40px 20px;
+        padding: var(--space-lg) var(--space-md);
+      }
+
+      .wizard-sections {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-lg);
       }
 
       .wizard-step {
         animation: fadeIn 0.3s ease;
       }
 
-      .wizard-step h2 {
-        font-size: 1.75rem;
-        font-weight: 300;
-        margin: 0 0 8px 0;
-        letter-spacing: 1px;
+      .wizard-brand {
+        text-align: left;
       }
 
-      .wizard-subtitle {
-        font-size: 14px;
-        margin: 0 0 24px 0;
-      }
-
-      .wizard-intro {
-        text-align: center;
-        padding: 60px 20px;
-      }
-
-      .intro-title {
-        font-size: 3rem;
-        font-weight: 300;
-        letter-spacing: 0.3em;
-        margin: 0 0 16px 0;
+      .brand-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
       }
 
       .intro-tagline {
-        margin: 0 0 48px 0;
-        font-size: 14px;
-      }
-
-      .tagline-link {
-        text-decoration: none;
-        border-bottom: var(--border-sm) dotted var(--fg);
-        padding-bottom: 2px;
-      }
-
-      .tagline-link:hover {
-        border-bottom-style: solid;
-      }
-
-      .intro-actions {
-        align-items: center;
-        gap: 16px;
-      }
-
-      .intro-actions .btn-primary {
-        min-width: 160px;
-        padding: 14px 32px;
-        font-size: 14px;
+        display: block;
+        margin-top: var(--space-sm);
       }
 
       .intro-key-input {
@@ -319,70 +290,35 @@
       }
 
       .connection-options {
-        gap: 12px;
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: var(--space-md);
       }
 
       .connection-option {
-        gap: 8px;
-        padding: 16px 20px;
+        flex: 1 1 calc(33% - var(--space-md));
+        min-width: 120px;
+        gap: var(--space-sm);
         text-align: left;
       }
 
-      .connection-option.tertiary {
-        border-style: dashed;
-      }
-
-      .connection-option .option-header {
+      a.connection-option {
+        text-decoration: none;
+        color: inherit;
         display: flex;
-        align-items: center;
-        gap: 10px;
-      }
-
-      .connection-option .option-icon {
-        font-size: 20px;
-        width: 28px;
-        text-align: center;
-      }
-
-      .connection-option .option-title {
-        font-size: 15px;
-        font-weight: 500;
-      }
-
-      .connection-option .option-badge {
-        font-size: 10px;
-        padding: 2px 6px;
-        letter-spacing: 0.5px;
-        border: var(--border-sm) solid currentColor;
-      }
-
-      .connection-option .option-description {
-        font-size: 13px;
-        margin-left: 38px;
-      }
-
-      .connection-option .option-warning {
-        font-size: 12px;
-        margin-left: 38px;
-        margin-top: 4px;
-        font-weight: 600;
+        flex-direction: column;
       }
 
       .connection-option .option-capabilities {
         display: flex;
         flex-wrap: wrap;
-        gap: 8px;
-        margin-left: 38px;
-        margin-top: 4px;
-      }
-
-      .cap-tag {
-        font-size: 11px;
-        padding: 2px 8px;
+        gap: var(--space-sm);
+        margin-top: var(--space-sm);
       }
 
       .config-form {
-        gap: 20px;
+        gap: var(--space-md);
       }
 
       .form-row {
@@ -393,19 +329,6 @@
         font-size: 12px;
         font-weight: 600;
         letter-spacing: 1px;
-      }
-
-      .config-input,
-      .config-select {
-        padding: 12px 14px;
-        font-family: var(--font-a);
-        font-size: 14px;
-      }
-
-      .config-input:focus,
-      .config-select:focus {
-        outline: none;
-        border-width: var(--border-md);
       }
 
       .checkbox-label {
