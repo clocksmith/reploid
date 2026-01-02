@@ -112,7 +112,7 @@ Agent rebuilt UI into cyberpunk "Neural Interface" theme. **Failure case:** new 
 
 **Model:** Gemini 3 Flash | **Cycles:** 144 | **VFS Size:** 43 MB
 
-Agent created `SelfReplicator` tool that embedded entire VFS (169 files, 22.6 MB) as a JSON literal. Then read the file back, injecting ~6M tokens into context - 12x beyond any model's limit. **Failure case:** The quine works perfectly; the agent just killed itself trying to read its own creation. **Fix applied:** ReadFile now has 1MB limit.
+Agent created `SelfReplicator` tool that embedded entire VFS (169 files, 22.6 MB) as a JSON literal. Then read the file back, injecting ~6M tokens into context - 12x beyond any model's limit. **Failure case:** The quine works perfectly; the agent just killed itself trying to read its own creation. **Fix applied:** ReadFile now has 1MB limit + line range support for large files.
 
 **Demonstrates:** Self-replication, context explosion from unbounded output, simple fix
 

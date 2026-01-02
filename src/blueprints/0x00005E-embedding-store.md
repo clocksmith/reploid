@@ -1,8 +1,8 @@
-# Blueprint 0x000069: Embedding Store
+# Blueprint 0x00005E: Embedding Store
 
 **Module:** `EmbeddingStore`
 **File:** `./capabilities/cognition/semantic/embedding-store.js`
-**Purpose:** Stores and retrieves vector embeddings for semantic search
+**Purpose:** VFS-backed storage for semantic memory embeddings
 
 ## Overview
 
@@ -12,58 +12,71 @@ Embeddings are numerical representations of text that capture semantic meaning. 
 
 - **Embedding** - Dense vector (e.g., 384 dimensions) representing text
 - **Cosine Similarity** - Measure of vector similarity (-1 to 1)
-- **IndexedDB** - Browser storage for embeddings
+- **VFS Storage** - Memories stored as JSON files in `/.memory/embeddings/`
+- **Ebbinghaus Forgetting** - Adaptive retention based on access patterns
 
-## Implementation
+## Storage Layout
+
+```
+/.memory/
+  embeddings/
+    {id}.json     # Individual memory files
+  vocab.json      # Vocabulary index
+```
+
+## API
 
 ```javascript
 const EmbeddingStore = {
   metadata: {
     id: 'EmbeddingStore',
-    dependencies: ['Utils', 'VFS', 'TransformersClient'],
-    type: 'capability'
+    version: '3.0.0',
+    dependencies: ['Utils', 'VFS'],
+    type: 'service'
   },
 
   factory: (deps) => {
-    const { logger } = deps.Utils;
-    const { TransformersClient } = deps;
+    // Memory operations
+    addMemory(memory)           // Store memory with embedding
+    getMemory(id)               // Retrieve by ID
+    getAllMemories()            // List all memories
+    deleteMemory(id)            // Remove memory
+    updateMemory(id, updates)   // Update memory fields
 
-    const _embeddings = new Map();
+    // Search operations
+    searchSimilar(embedding, topK, minSimilarity)
+    searchWithRetention(embedding, options)
+    searchWithContiguity(embedding, options)
+    searchByTimeRange(start, end, options)
 
-    const embed = async (text) => {
-      // Use TransformersClient to generate embedding
-      const model = await TransformersClient.getEmbeddingModel();
-      const vector = await model.embed(text);
-      return vector;
-    };
+    // Vocabulary
+    updateVocabulary(tokens)
+    getVocabulary()
 
-    const store = async (id, text, vector) => {
-      _embeddings.set(id, { text, vector, timestamp: Date.now() });
-    };
+    // Maintenance
+    pruneOldMemories(maxAge)
+    pruneByRetention()
+    getStats()
+    clear()
 
-    const cosineSimilarity = (a, b) => {
-      let dot = 0, magA = 0, magB = 0;
-      for (let i = 0; i < a.length; i++) {
-        dot += a[i] * b[i];
-        magA += a[i] * a[i];
-        magB += b[i] * b[i];
-      }
-      return dot / (Math.sqrt(magA) * Math.sqrt(magB));
-    };
-
-    const search = async (queryText, topK = 5) => {
-      const queryVector = await embed(queryText);
-      const results = [];
-
-      for (const [id, { text, vector }] of _embeddings) {
-        const similarity = cosineSimilarity(queryVector, vector);
-        results.push({ id, text, similarity });
-      }
-
-      return results.sort((a, b) => b.similarity - a.similarity).slice(0, topK);
-    };
-
-    return { embed, store, search };
+    // Retention scoring (Ebbinghaus)
+    computeRetentionScore(memory)
+    updateImportance(id, importance)
+    getMemoriesByRetention()
+    configureForgetting(config)
   }
+};
+```
+
+## Ebbinghaus Forgetting Curve
+
+Retention score: `R = e^(-t/S)` where S = strength modified by access frequency and importance.
+
+```javascript
+const FORGETTING_CONFIG = {
+  decayHalfLifeMs: 86400000 * 7,  // 7 days
+  accessBoostFactor: 0.15,
+  minRetentionScore: 0.1,
+  importanceBoostFactor: 0.25
 };
 ```

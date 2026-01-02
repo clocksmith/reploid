@@ -194,7 +194,7 @@ Total time from goal to crash: **~95 seconds**
 
 ## The Fix
 
-Added file size limit to `ReadFile.js`:
+Added file size limit + line range support to `ReadFile.js`:
 
 ```javascript
 // 1MB limit - prevents context explosion from huge files (see: quine incident)
@@ -203,19 +203,35 @@ const MAX_FILE_SIZE = 1 * 1024 * 1024;
 async function call(args = {}, deps = {}) {
   const { VFS } = deps;
   const path = args.path || args.file;
-
-  // Check file size before reading to prevent context explosion
   const stats = await VFS.stat(path);
-  if (stats && stats.size > MAX_FILE_SIZE) {
+
+  const { startLine, endLine } = args;
+  const hasRange = startLine !== undefined || endLine !== undefined;
+
+  // Allow large files if reading a specific range
+  if (!hasRange && stats.size > MAX_FILE_SIZE) {
     const sizeMB = (stats.size / 1024 / 1024).toFixed(1);
-    return `Error: File too large (${sizeMB} MB, limit is 1 MB). Use FileOutline for structure, or read specific line ranges.`;
+    return `Error: File too large (${sizeMB} MB). Use startLine/endLine to read a range.`;
   }
 
-  return await VFS.read(path);
+  const content = await VFS.read(path);
+  if (!hasRange) return content;
+
+  // Extract line range
+  const lines = content.split('\n');
+  const start = Math.max(1, startLine || 1) - 1;
+  const end = endLine ? Math.min(endLine, lines.length) : lines.length;
+  return `[Lines ${start + 1}-${end} of ${lines.length}]\n` + lines.slice(start, end).join('\n');
 }
 ```
 
-**Commit:** `src/tools/ReadFile.js` - Added 1MB size limit
+**Usage for large files:**
+```javascript
+// Read first 100 lines of a huge file
+ReadFile({ path: "/.system/replication-seed.js", startLine: 1, endLine: 100 })
+```
+
+**Commit:** `src/tools/ReadFile.js` - 1MB limit + line range support
 
 ---
 
