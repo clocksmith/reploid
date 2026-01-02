@@ -8,7 +8,7 @@
  * @returns {Promise<Object>} Genesis config object
  */
 export async function loadGenesisConfig() {
-  const response = await fetch('./config/genesis-levels.json');
+  const response = await fetch('../config/genesis-levels.json');
   if (!response.ok) {
     throw new Error('Failed to load genesis configuration');
   }

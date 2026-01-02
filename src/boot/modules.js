@@ -5,11 +5,18 @@
 
 /**
  * Resolve module file path.
- * @param {string} filePath - Relative file path
+ * Module paths in genesis-levels.json are relative to src/ (e.g., "core/vfs.js").
+ * Since this file is in src/boot/, we need to go up one level.
+ * @param {string} filePath - Relative file path from src/
  * @returns {string} Resolved path for import
  */
-const resolveModulePath = (filePath) =>
-  filePath.startsWith('./') ? filePath : `./${filePath}`;
+const resolveModulePath = (filePath) => {
+  if (filePath.startsWith('./') || filePath.startsWith('../')) {
+    return filePath;
+  }
+  // Paths are relative to src/, but we're in src/boot/, so go up one level
+  return `../${filePath}`;
+};
 
 /**
  * Load a single module definition.
@@ -87,6 +94,10 @@ export async function registerModules(resolvedModules, genesisConfig, container,
     }
     if (!definition) {
       logger.warn(`[Boot] Module "${moduleName}" not found in config`);
+      continue;
+    }
+    if (!definition.metadata?.id) {
+      logger.warn(`[Boot] Module "${moduleName}" has no metadata.id, skipping`);
       continue;
     }
     container.register(definition);

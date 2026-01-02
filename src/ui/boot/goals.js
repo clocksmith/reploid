@@ -4,66 +4,34 @@
  */
 
 /**
- * Goal categories with capability requirements
+ * Goal categories with capability requirements.
+ * Ordered by RSI level: Exploration (none) -> L1 (Tools) -> L2/L3 (Behavioral) -> Model (Neural)
  */
 export const GOAL_CATEGORIES = {
-  'Substrate RSI': [
+  // No RSI - just reading and understanding
+  'Exploration': [
     {
-      text: 'Fine-tune LoRA weights based on task performance',
-      requires: { substrate: true },
-      lockReason: 'Requires Doppler'
+      text: 'Explain how the agent loop works',
+      requires: {},
+      recommended: true
     },
     {
-      text: 'Implement activation steering for behavior control',
-      requires: { substrate: true },
-      lockReason: 'Requires Doppler'
+      text: 'List all available tools and their purposes',
+      requires: {}
     },
     {
-      text: 'Inspect attention patterns during inference',
-      requires: { substrate: true },
-      lockReason: 'Requires Doppler'
+      text: 'Analyze the VFS structure',
+      requires: {}
     },
     {
-      text: 'Optimize inference kernels for speed',
-      requires: { substrate: true },
-      lockReason: 'Requires Doppler'
-    },
-    {
-      text: 'Analyze hidden state evolution across layers',
-      requires: { substrate: true },
-      lockReason: 'Requires Doppler'
+      text: 'Trace a request through the system',
+      requires: { reasoning: 'medium' },
+      lockReason: 'May need stronger model'
     }
   ],
 
-  'Behavioral RSI': [
-    {
-      text: 'Evolve prompts with GEPA optimization',
-      requires: { reasoning: 'high' },
-      lockReason: 'Needs stronger model'
-    },
-    {
-      text: 'Modify agent loop for new capabilities',
-      requires: { reasoning: 'high' },
-      lockReason: 'Needs stronger model'
-    },
-    {
-      text: 'Create meta-tools that generate tools',
-      requires: { reasoning: 'high' },
-      lockReason: 'Needs stronger model'
-    },
-    {
-      text: 'Improve context management strategies',
-      requires: { reasoning: 'medium' },
-      lockReason: 'Needs stronger model'
-    },
-    {
-      text: 'Optimize tool selection heuristics',
-      requires: { reasoning: 'medium' },
-      lockReason: 'Needs stronger model'
-    }
-  ],
-
-  'Code Tasks': [
+  // L1: Tool-level RSI - creating and modifying tools
+  'Code Tasks (L1)': [
     {
       text: 'Build a new agent tool',
       requires: {},
@@ -88,24 +56,61 @@ export const GOAL_CATEGORIES = {
     }
   ],
 
-  'Exploration': [
+  // L2/L3: Behavioral RSI - modifying agent behavior, meta-tools, substrate
+  'Behavioral RSI (L2/L3)': [
     {
-      text: 'Explain how the agent loop works',
-      requires: {},
-      recommended: true
+      text: 'Create meta-tools that generate tools',
+      requires: { reasoning: 'high' },
+      lockReason: 'Needs stronger model'
     },
     {
-      text: 'List all available tools and their purposes',
-      requires: {}
+      text: 'Evolve prompts with GEPA optimization',
+      requires: { reasoning: 'high' },
+      lockReason: 'Needs stronger model'
     },
     {
-      text: 'Analyze the VFS structure',
-      requires: {}
-    },
-    {
-      text: 'Trace a request through the system',
+      text: 'Improve context management strategies',
       requires: { reasoning: 'medium' },
-      lockReason: 'May need stronger model'
+      lockReason: 'Needs stronger model'
+    },
+    {
+      text: 'Optimize tool selection heuristics',
+      requires: { reasoning: 'medium' },
+      lockReason: 'Needs stronger model'
+    },
+    {
+      text: 'Modify agent loop for new capabilities',
+      requires: { reasoning: 'high' },
+      lockReason: 'Needs stronger model'
+    }
+  ],
+
+  // Neural-level RSI - weight access, activations, LoRA (requires Doppler)
+  'Model RSI (Neural)': [
+    {
+      text: 'Inspect attention patterns during inference',
+      requires: { model: true },
+      lockReason: 'Requires Doppler'
+    },
+    {
+      text: 'Analyze hidden state evolution across layers',
+      requires: { model: true },
+      lockReason: 'Requires Doppler'
+    },
+    {
+      text: 'Implement activation steering for behavior control',
+      requires: { model: true },
+      lockReason: 'Requires Doppler'
+    },
+    {
+      text: 'Fine-tune LoRA weights based on task performance',
+      requires: { model: true },
+      lockReason: 'Requires Doppler'
+    },
+    {
+      text: 'Optimize inference kernels for speed',
+      requires: { model: true },
+      lockReason: 'Requires Doppler'
     }
   ]
 };
@@ -125,8 +130,8 @@ export function filterGoalsByCapability(categories, capabilities) {
       let locked = false;
       let lockReason = goal.lockReason || '';
 
-      // Check substrate requirement
-      if (requires.substrate && !capabilities.canDoSubstrateRSI) {
+      // Check model access requirement
+      if (requires.model && !capabilities.canDoModelRSI) {
         locked = true;
       }
 
@@ -141,13 +146,13 @@ export function filterGoalsByCapability(categories, capabilities) {
       // Determine if recommended for this setup
       let recommended = goal.recommended || false;
 
-      // Recommend substrate goals if user has substrate access
-      if (requires.substrate && capabilities.canDoSubstrateRSI) {
+      // Recommend model RSI goals if user has model access
+      if (requires.model && capabilities.canDoModelRSI) {
         recommended = true;
       }
 
       // Recommend behavioral RSI if user has high reasoning
-      if (category === 'Behavioral RSI' && capabilities.canDoComplexReasoning) {
+      if (category === 'Behavioral RSI (L2/L3)' && capabilities.canDoComplexReasoning) {
         recommended = true;
       }
 

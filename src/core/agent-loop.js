@@ -28,7 +28,7 @@ const AgentLoop = {
 
     const { logger, Errors } = Utils;
 
-    const MAX_ITERATIONS = 50;
+    const MAX_ITERATIONS = 256;
     const DEFAULT_MAX_TOOL_CALLS = 5;
 
     // Configurable limits - can be overridden via StateManager config
