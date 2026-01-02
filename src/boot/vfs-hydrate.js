@@ -151,7 +151,13 @@ export async function seedCodeIntel(vfs, logger) {
  */
 export async function hydrateVFS(vfs, genesisConfig, resolvedModules, genesisLevel, logger) {
   try {
+    const preserveOnBoot = typeof localStorage !== 'undefined' &&
+      localStorage.getItem('REPLOID_PRESERVE_ON_BOOT') === 'true';
+
     logger.info('[Boot] Beginning full VFS hydration (self-hosting mode)...');
+    if (preserveOnBoot) {
+      logger.info('[Boot] Preserve on boot enabled. Existing VFS files will not be overwritten.');
+    }
 
     const filesToSeed = new Set();
     const moduleFiles = genesisConfig?.moduleFiles || {};
@@ -192,6 +198,14 @@ export async function hydrateVFS(vfs, genesisConfig, resolvedModules, genesisLev
       const webPath = toWebPath(file);
 
       try {
+        if (preserveOnBoot) {
+          try {
+            if (await vfs.exists(vfsPath)) return;
+          } catch {
+            // Continue hydration if exists check fails
+          }
+        }
+
         const resp = await fetch(webPath, { cache: 'no-store' });
         if (!resp.ok) {
           logger.warn(`[Boot] Failed to fetch ${webPath} (${resp.status})`);

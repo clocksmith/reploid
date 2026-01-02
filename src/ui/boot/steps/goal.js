@@ -11,12 +11,17 @@ import { GOAL_CATEGORIES, filterGoalsByCapability } from '../goals.js';
 export function renderGoalStep(state) {
   const capabilities = getCapabilityLevel();
   const filteredGoals = filterGoalsByCapability(GOAL_CATEGORIES, capabilities);
+  const advancedOpen = !!state.advancedOpen;
+  const preserveOnBoot = !!state.advancedConfig?.preserveOnBoot;
+  const vfsRuntimeNote = preserveOnBoot
+    ? 'Runtime: VFS preserves module and shared files on boot. Missing paths hydrate from src.'
+    : 'Runtime: VFS refreshes from src on awaken. Advanced settings can preserve VFS files on boot.';
 
   return `
     <div class="wizard-step wizard-goal">
       <h2 class="type-h1">What is the agent's goal?</h2>
       <div class="goal-intro type-caption">
-        <div>Runtime: VFS refreshes from src on awaken. Tools receive the full module context for this genesis level.</div>
+        <div>${vfsRuntimeNote}</div>
         <div>Prompts use short view labels with full instructions. Doppler evolution appears when a Doppler model is active.</div>
       </div>
 
@@ -80,9 +85,31 @@ export function renderGoalStep(state) {
 
       <div class="wizard-actions">
         <button class="btn btn-secondary" data-action="advanced-settings">
-          ⚙ Advanced Settings
+          ${advancedOpen ? 'Hide advanced settings' : 'Advanced settings'}
         </button>
       </div>
+
+      ${advancedOpen ? `
+        <div class="advanced-panel">
+          <div class="advanced-header">
+            <span class="type-label">Advanced options</span>
+            <span class="type-caption">Stored in localStorage</span>
+          </div>
+          <div class="advanced-setting">
+            <label class="checkbox-label">
+              <input type="checkbox"
+                     id="preserve-on-boot"
+                     ${preserveOnBoot ? 'checked' : ''} />
+              <span>Preserve VFS module and shared files on boot</span>
+            </label>
+            <span class="type-caption">Keeps RSI edits across reloads. Missing files still hydrate from src.</span>
+            <div class="advanced-code">
+              <span class="type-caption">localStorage</span>
+              <code>REPLOID_PRESERVE_ON_BOOT = '${preserveOnBoot ? 'true' : 'false'}'</code>
+            </div>
+          </div>
+        </div>
+      ` : ''}
     </div>
   `;
 }
