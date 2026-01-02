@@ -24,7 +24,7 @@ const ToastNotifications = {
     const TOAST_ICONS = {
       success: '\u2605',  // ★
       error: '\u2612',    // ☒
-      warning: '\u2621',  // ☡
+      warning: '\u2621',  // △
       info: '\u261B'      // ☛
     };
 

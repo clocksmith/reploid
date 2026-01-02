@@ -39,7 +39,7 @@ export function renderDirectConfigStep(state) {
       <div class="config-form">
         <div class="form-row">
           <label>Provider</label>
-          <select id="direct-provider" class="config-select">
+          <select id="direct-provider">
             <option value="">Select provider...</option>
             <option value="anthropic" ${directConfig.provider === 'anthropic' ? 'selected' : ''}>Anthropic (Claude)</option>
             <option value="openai" ${directConfig.provider === 'openai' ? 'selected' : ''}>OpenAI (GPT-4)</option>
@@ -53,8 +53,7 @@ export function renderDirectConfigStep(state) {
             <label>Base URL</label>
             <input type="text"
                    id="direct-base-url"
-                   class="config-input"
-                   placeholder="https://api.example.com/v1"
+                                      placeholder="https://api.example.com/v1"
                    value="${directConfig.baseUrl || ''}" />
             <div class="form-note">OpenAI-compatible API base URL</div>
           </div>
@@ -66,8 +65,7 @@ export function renderDirectConfigStep(state) {
             <input type="text" name="username" autocomplete="username" style="display:none" aria-hidden="true" />
             <input type="password"
                    id="direct-key"
-                   class="config-input"
-                   placeholder="Enter your API key"
+                                      placeholder="Enter your API key"
                    autocomplete="new-password"
                    value="${directConfig.apiKey || ''}" />
             <button type="button"
@@ -103,8 +101,7 @@ export function renderDirectConfigStep(state) {
           ${isOther ? `
             <input type="text"
                    id="direct-model"
-                   class="config-input"
-                   placeholder="Enter model name (e.g., gpt-4)"
+                                      placeholder="Enter model name (e.g., gpt-4)"
                    value="${directConfig.model || ''}" />
           ` : `
             <select id="direct-model" class="config-select" ${!directConfig.provider ? 'disabled' : ''}>

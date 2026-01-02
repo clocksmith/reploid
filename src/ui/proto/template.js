@@ -8,7 +8,7 @@ export const renderProtoTemplate = (escapeHtml, goalFromBoot) => `
     <button class="sidebar-btn active" data-tab="history" title="Agent Activity (1)">&#x2261;</button>
     <button class="sidebar-btn" data-tab="reflections" title="Reflections (2)">&#x2731;</button>
     <button class="sidebar-btn" data-tab="status" title="Status (3)">&#x2139;</button>
-    <button class="sidebar-btn" data-tab="telemetry" title="Telemetry (4)">☡</button>
+    <button class="sidebar-btn" data-tab="telemetry" title="Telemetry (4)">△</button>
     <button class="sidebar-btn" data-tab="arena" title="Arena">A</button>
     <button class="sidebar-btn" data-tab="schemas" title="Schemas (5)">☷</button>
     <button class="sidebar-btn" data-tab="workers" title="Workers" id="workers-tab-btn">&#x2692;</button>

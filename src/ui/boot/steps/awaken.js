@@ -24,7 +24,7 @@ export function renderAwakenStep(state) {
     <div class="wizard-step wizard-awaken">
       ${verifyState !== VERIFY_STATE.VERIFIED ? `
         <div class="awaken-warning">
-          <h3>☡ Connection not verified</h3>
+          <h3>△ Connection not verified</h3>
           <p>Your connection hasn't been tested. The agent may fail to start.</p>
           <div class="warning-actions">
             <button class="btn btn-secondary" data-action="test-now">Test now</button>

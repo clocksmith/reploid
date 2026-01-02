@@ -26,71 +26,40 @@ export function renderChooseStep(state) {
 
   return `
     <div class="wizard-step wizard-choose">
-      <h2>How do you want to connect?</h2>
+      <h2 class="type-h1">How do you want to connect?</h2>
 
       <div class="connection-options">
-        <button class="connection-option ${!webgpuSupported ? 'disabled' : ''}"
+        <button class="panel connection-option ${!webgpuSupported ? 'disabled' : ''}"
                 data-action="choose-browser"
                 ${!webgpuSupported ? 'disabled' : ''}>
-          <div class="option-header">
-            <span class="option-icon">☖</span>
-            <span class="option-title">Browser</span>
-            ${webgpuSupported ? '<span class="option-badge recommended">Recommended</span>' : ''}
-          </div>
-          <div class="option-description">
-            ${webgpuSupported
-              ? 'Run models locally in your browser via WebGPU (Doppler)'
-              : 'WebGPU not supported in this browser'}
-          </div>
+          <span class="type-h2">⎈ Browser</span>
+          <span class="type-caption">${webgpuSupported
+            ? 'Run models locally in your browser via WebGPU (Doppler)'
+            : 'WebGPU not supported in this browser'}</span>
           <div class="option-capabilities">
-            <span class="cap-tag cap-substrate">★ Full substrate access</span>
-            <span class="cap-tag cap-privacy">★ Private</span>
-            <span class="cap-tag cap-warn">☡ Limited reasoning</span>
+            <span class="tag">★ Full substrate access</span>
+            <span class="tag">★ Private</span>
+            <span class="tag">△ Limited reasoning</span>
           </div>
         </button>
 
-        <button class="connection-option" data-action="choose-direct">
-          <div class="option-header">
-            <span class="option-icon">☁</span>
-            <span class="option-title">Direct</span>
-          </div>
-          <div class="option-description">
-            Call cloud APIs directly (Claude, GPT-4, Gemini)
-          </div>
+        <button class="panel connection-option" data-action="choose-direct">
+          <span class="type-h2">☁ Direct</span>
+          <span class="type-caption">Call cloud APIs directly (Claude, GPT, Gemini)</span>
           <div class="option-capabilities">
-            <span class="cap-tag cap-reasoning">★ High reasoning</span>
-            <span class="cap-tag cap-warn">☡ API key in browser</span>
+            <span class="tag">★ High reasoning</span>
+            <span class="tag">△ API key in browser</span>
           </div>
         </button>
 
-        <button class="connection-option" data-action="choose-proxy">
-          <div class="option-header">
-            <span class="option-icon">☍</span>
-            <span class="option-title">Proxy</span>
-            ${serverDetected ? '<span class="option-badge detected">Detected</span>' : ''}
-          </div>
-          <div class="option-description">
-            ${serverDescription}
-          </div>
+        <button class="panel connection-option" data-action="choose-proxy">
+          <span class="type-h2">☍ Proxy ${serverDetected ? '<span class="badge">Detected</span>' : ''}</span>
+          <span class="type-caption">${serverDescription}</span>
           <div class="option-capabilities">
-            <span class="cap-tag cap-reasoning">★ Cloud or local models</span>
-            <span class="cap-tag cap-privacy">★ Keys protected on server</span>
+            <span class="tag">★ Cloud or local models</span>
+            <span class="tag">★ Keys protected on server</span>
           </div>
-          ${localBlocked ? `
-            <div class="option-warning">
-              Browser blocked auto-detect. Enter address manually.
-            </div>
-          ` : ''}
-        </button>
-
-        <button class="connection-option tertiary" data-action="explore-docs">
-          <div class="option-header">
-            <span class="option-icon">☐</span>
-            <span class="option-title">Explore docs only</span>
-          </div>
-          <div class="option-description">
-            Browse documentation without an agent
-          </div>
+          ${localBlocked ? '<span class="type-caption">△ Browser blocked auto-detect. Enter address manually.</span>' : ''}
         </button>
       </div>
     </div>

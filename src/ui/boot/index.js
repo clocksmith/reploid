@@ -15,7 +15,6 @@ import {
 } from './detection.js';
 
 // Step renderers
-import { renderStartStep, renderDetectStep } from './steps/detect.js';
 import { renderChooseStep } from './steps/choose.js';
 import { renderDirectConfigStep } from './steps/direct.js';
 import { renderProxyConfigStep } from './steps/proxy.js';
@@ -38,11 +37,13 @@ export function initWizard(containerEl) {
 }
 
 /**
- * Handle START step - always go to DETECT (unified intro)
+ * Handle START - run detection in background and show choose step
  */
 function handleStart() {
   const saved = checkSavedConfig();
-  setState({ savedConfig: saved, currentStep: STEPS.DETECT });
+  setState({ savedConfig: saved, currentStep: STEPS.CHOOSE });
+  // Run detection in background
+  runDetection({ skipLocalScan: false, onProgress: () => render() });
 }
 
 /**
@@ -58,54 +59,52 @@ async function startDetection() {
   });
 
   setNestedState('detection', { scanning: false });
-  goToStep(STEPS.CHOOSE);
+  // Render will update with detection results
 }
 
 /**
- * Main render function
+ * Main render function - single page with progressive reveal
  */
 function render() {
   if (!container) return;
 
   const state = getState();
-  let html = '';
+  let html = '<div class="wizard-sections">';
 
-  // Persistent header (shown after CHOOSE step)
-  if ([STEPS.DIRECT_CONFIG, STEPS.PROXY_CONFIG,
-       STEPS.DOPPLER_CONFIG, STEPS.GOAL, STEPS.AWAKEN].includes(state.currentStep)) {
-    html += renderHeader(state);
+  // Header
+  html += `
+    <div class="wizard-brand">
+      <div class="brand-row">
+        <h1 class="type-display">REPLOID</h1>
+        <a class="link-secondary" data-action="forget-device">clear saved settings</a>
+      </div>
+      <a class="intro-tagline" href="https://github.com/clocksmith/reploid" target="_blank" rel="noopener">self-modifying AI agent in the browser → view source code</a>
+    </div>
+  `;
+
+  // Section 1: Always show connection type selection
+  html += renderChooseStep(state);
+
+  // Section 2: Show config for selected connection type
+  if (state.connectionType === 'direct') {
+    html += renderDirectConfigStep(state);
+  } else if (state.connectionType === 'proxy') {
+    html += renderProxyConfigStep(state);
+  } else if (state.connectionType === 'browser') {
+    html += renderBrowserConfigStep(state);
   }
 
-  // Step content
-  switch (state.currentStep) {
-    case STEPS.START:
-      html += renderStartStep(state);
-      break;
-    case STEPS.DETECT:
-      html += renderDetectStep(state);
-      break;
-    case STEPS.CHOOSE:
-      html += renderChooseStep(state);
-      break;
-    case STEPS.DIRECT_CONFIG:
-      html += renderDirectConfigStep(state);
-      break;
-    case STEPS.PROXY_CONFIG:
-      html += renderProxyConfigStep(state);
-      break;
-    case STEPS.DOPPLER_CONFIG:
-      html += renderBrowserConfigStep(state);
-      break;
-    case STEPS.GOAL:
-      html += renderGoalStep(state);
-      break;
-    case STEPS.AWAKEN:
-      html += renderAwakenStep(state);
-      break;
+  // Section 3: Show goal if config is ready
+  if (canAwaken()) {
+    html += renderGoalStep(state);
   }
 
-  // Footer
-  html += renderFooter(state);
+  // Section 4: Show awaken button if goal is selected
+  if (canAwaken() && state.goal) {
+    html += renderAwakenStep(state);
+  }
+
+  html += '</div>';
 
   container.innerHTML = html;
 
@@ -114,72 +113,6 @@ function render() {
     attachEventListeners();
     listenersAttached = true;
   }
-}
-
-/**
- * Render persistent header with connection status
- */
-function renderHeader(state) {
-  const { connectionType, directConfig, proxyConfig, dopplerConfig } = state;
-
-  let statusIcon = '○';
-  let statusClass = 'unverified';
-  let statusText = 'Not configured';
-  let modelName = '';
-
-  let verifyState = VERIFY_STATE.UNVERIFIED;
-
-  if (connectionType === 'direct') {
-    modelName = directConfig.model || directConfig.provider || '';
-    verifyState = directConfig.verifyState;
-  } else if (connectionType === 'proxy') {
-    modelName = proxyConfig.model || 'Proxy';
-    verifyState = proxyConfig.verifyState;
-  } else if (connectionType === 'browser') {
-    modelName = dopplerConfig.model || 'Doppler WebGPU';
-    verifyState = VERIFY_STATE.VERIFIED;
-  }
-
-  if (verifyState === VERIFY_STATE.VERIFIED) {
-    statusIcon = '★';
-    statusClass = 'verified';
-    statusText = connectionType === 'browser' ? 'Local' : 'Verified';
-  } else if (verifyState === VERIFY_STATE.FAILED) {
-    statusIcon = '☒';
-    statusClass = 'failed';
-    statusText = 'Failed';
-  } else if (verifyState === VERIFY_STATE.TESTING) {
-    statusIcon = '☍';
-    statusClass = 'testing';
-    statusText = 'Testing...';
-  } else {
-    statusIcon = '☡';
-    statusClass = 'unverified';
-    statusText = 'Unverified';
-  }
-
-  return `
-    <div class="wizard-header">
-      <div class="wizard-connection-status ${statusClass}" data-action="edit-connection">
-        <span class="status-icon">${statusIcon}</span>
-        <span class="status-model">${modelName}</span>
-        <span class="status-text">${statusText}</span>
-      </div>
-    </div>
-  `;
-}
-
-/**
- * Render footer
- */
-function renderFooter(state) {
-  if (state.currentStep === STEPS.DETECT || state.currentStep === STEPS.AWAKEN) return '';
-
-  return `
-    <div class="wizard-footer">
-      <a class="footer-link" data-action="forget-device">clear saved settings</a>
-    </div>
-  `;
 }
 
 /**
@@ -202,18 +135,17 @@ function handleClick(e) {
     case 'continue-saved':
       if (state.savedConfig?.hasSavedKey) {
         hydrateSavedConfig(state.savedConfig);
-        goToStep(STEPS.GOAL);
       } else {
         const keyInput = document.getElementById('saved-api-key');
         if (keyInput?.value) {
           hydrateSavedConfig(state.savedConfig, keyInput.value);
-          goToStep(STEPS.GOAL);
         }
       }
+      // Render will show the right sections based on state
       break;
 
     case 'reconfigure':
-      goToStep(STEPS.DETECT);
+      setState({ connectionType: null, goal: null });
       break;
 
     case 'start-scan':
@@ -221,38 +153,27 @@ function handleClick(e) {
       break;
 
     case 'skip-detection':
-      setNestedState('detection', { scanSkipped: true });
-      goToStep(STEPS.CHOOSE);
+      // No longer needed - detection runs in background
       break;
 
     case 'choose-browser':
       setState({ connectionType: 'browser' });
-      goToStep(STEPS.DOPPLER_CONFIG);
       break;
 
     case 'choose-direct':
       setState({ connectionType: 'direct' });
-      goToStep(STEPS.DIRECT_CONFIG);
       break;
 
     case 'choose-proxy':
       setState({ connectionType: 'proxy' });
-      goToStep(STEPS.PROXY_CONFIG);
-      break;
-
-    case 'explore-docs':
-      window.location.href = 'docs/INDEX.md';
       break;
 
     case 'back-to-choose':
-      goToStep(STEPS.CHOOSE);
+      setState({ connectionType: null });
       break;
 
     case 'back-to-config': {
-      const backConnType = state.connectionType;
-      if (backConnType === 'direct') goToStep(STEPS.DIRECT_CONFIG);
-      else if (backConnType === 'proxy') goToStep(STEPS.PROXY_CONFIG);
-      else goToStep(STEPS.DOPPLER_CONFIG);
+      // No longer needed - single page
       break;
     }
 
@@ -265,7 +186,7 @@ function handleClick(e) {
       break;
 
     case 'continue-to-goal':
-      goToStep(STEPS.GOAL);
+      // Goal shows automatically when config is ready
       break;
 
     case 'select-doppler-model': {
@@ -294,13 +215,9 @@ function handleClick(e) {
       handleTestFromAwaken();
       break;
 
-    case 'edit-config': {
-      const connType = state.connectionType;
-      if (connType === 'direct') goToStep(STEPS.DIRECT_CONFIG);
-      else if (connType === 'proxy') goToStep(STEPS.PROXY_CONFIG);
-      else goToStep(STEPS.DOPPLER_CONFIG);
+    case 'edit-config':
+      // Config section is always visible - user can scroll up
       break;
-    }
 
     case 'awaken-anyway':
       doAwaken();
@@ -309,12 +226,11 @@ function handleClick(e) {
     case 'forget-device':
       if (confirm('This will clear all saved configuration and API keys. Continue?')) {
         forgetDevice();
-        goToStep(STEPS.DETECT);
       }
       break;
 
     case 'edit-connection':
-      goToStep(STEPS.CHOOSE);
+      setState({ connectionType: null });
       break;
   }
 }
@@ -523,8 +439,6 @@ async function handleAwaken() {
   let verifyState = VERIFY_STATE.VERIFIED;
   if (connectionType === 'direct') verifyState = directConfig.verifyState;
   else if (connectionType === 'proxy') verifyState = proxyConfig.verifyState;
-
-  goToStep(STEPS.AWAKEN);
 
   if (verifyState === VERIFY_STATE.VERIFIED) {
     doAwaken();
