@@ -34,6 +34,7 @@ Guide to all documentation in the REPLOID project.
 - **[docs/CYCLICAL_ACRONYMS.md](./CYCLICAL_ACRONYMS.md)** - Cyclical acronyms taxonomy
 - **[docs/MEMORY_ARCHITECTURE.md](./MEMORY_ARCHITECTURE.md)** - See [Blueprint 0x000079](../blueprints/0x000079-hierarchical-memory-architecture.md)
 - **[docs/MODULE_SYSTEM_INVARIANTS.md](./MODULE_SYSTEM_INVARIANTS.md)** - Module, blueprint, and hydration rules
+- **[docs/MODULE_SYSTEM_MIGRATION_CHECKLIST.md](./MODULE_SYSTEM_MIGRATION_CHECKLIST.md)** - Refactor checklist for modules and blueprints
 - **[docs/STYLE_GUIDE.md](./STYLE_GUIDE.md)** - Code and UI conventions
 - **[docs/SECURITY.md](./SECURITY.md)** - Security model and containment layers
 - **[docs/CONTRIBUTING.md](./CONTRIBUTING.md)** - Contribution guidelines
