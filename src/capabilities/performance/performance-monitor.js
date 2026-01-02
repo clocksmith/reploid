@@ -7,7 +7,7 @@ const PerformanceMonitor = {
   metadata: {
     id: 'PerformanceMonitor',
     version: '1.0.0',
-    genesis: { introduced: 'full' },
+    genesis: { introduced: 'substrate' },
     dependencies: ['Utils', 'EventBus', 'TelemetryTimeline?'],
     type: 'capability'
   },

@@ -8,7 +8,7 @@ const SubstrateLoader = {
   metadata: {
     id: 'SubstrateLoader',
     version: '1.0.0',
-    genesis: { introduced: 'full' },
+    genesis: { introduced: 'substrate' },
     dependencies: ['Utils', 'VFS', 'VerificationManager?', 'VFSSandbox?', 'HITLController?'],
     type: 'capability'
   },

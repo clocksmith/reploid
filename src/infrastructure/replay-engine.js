@@ -8,7 +8,7 @@ const ReplayEngine = {
   metadata: {
     id: 'ReplayEngine',
     version: '2.0.0',
-    genesis: { introduced: 'tabula' },
+    genesis: { introduced: 'substrate' },
     dependencies: [
       'Utils', 'EventBus', 'VFS',
       'AuditLogger?', 'VFSSandbox?', 'ToolRunner?', 'LLMClient?'

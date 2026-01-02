@@ -7,7 +7,7 @@ const TraceStore = {
   metadata: {
     id: 'TraceStore',
     version: '1.0.0',
-    genesis: { introduced: 'full' },
+    genesis: { introduced: 'substrate' },
     dependencies: ['Utils', 'VFS', 'EventBus?'],
     async: true,
     type: 'infrastructure'

@@ -10,7 +10,7 @@ const MemoryManager = {
   metadata: {
     id: 'MemoryManager',
     version: '1.0.0',
-    genesis: { introduced: 'full' },
+    genesis: { introduced: 'cognition' },
     dependencies: ['Utils', 'VFS', 'LLMClient', 'EmbeddingStore', 'SemanticMemory', 'EventBus'],
     async: true,
     type: 'service'

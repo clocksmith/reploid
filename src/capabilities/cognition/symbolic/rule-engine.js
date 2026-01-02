@@ -16,7 +16,7 @@ const RuleEngine = {
   metadata: {
     id: 'RuleEngine',
     version: '3.0.0',
-    genesis: { introduced: 'full' },
+    genesis: { introduced: 'cognition' },
     dependencies: ['Utils', 'VFS', 'EventBus', 'KnowledgeGraph'],
     optional: ['HITLController', 'VerificationManager', 'ToolRunner', 'StateManager'],
     async: true,

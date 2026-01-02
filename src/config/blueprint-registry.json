@@ -1,0 +1,1972 @@
+{
+  "version": 1,
+  "generatedAt": "2026-01-02T19:19:41.959Z",
+  "features": [
+    {
+      "id": "0x000003",
+      "name": "core-utilities-and-error-handling",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x000003",
+          "path": "blueprints/0x000003-core-utilities-and-error-handling.md"
+        }
+      ],
+      "files": [
+        "core/utils.js"
+      ]
+    },
+    {
+      "id": "0x000005",
+      "name": "state-management-architecture",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x000005",
+          "path": "blueprints/0x000005-state-management-architecture.md"
+        }
+      ],
+      "files": [
+        "core/state-manager.js"
+      ]
+    },
+    {
+      "id": "0x000006",
+      "name": "pure-state-helpers",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x000006",
+          "path": "blueprints/0x000006-pure-state-helpers.md"
+        }
+      ],
+      "files": [
+        "core/state-helpers-pure.js"
+      ]
+    },
+    {
+      "id": "0x000007",
+      "name": "api-client-and-communication",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x000007",
+          "path": "blueprints/0x000007-api-client-and-communication.md"
+        }
+      ],
+      "files": [
+        "core/llm-client.js"
+      ]
+    },
+    {
+      "id": "0x000008",
+      "name": "agent-cognitive-cycle",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x000008",
+          "path": "blueprints/0x000008-agent-cognitive-cycle.md"
+        }
+      ],
+      "files": [
+        "core/agent-loop.js"
+      ]
+    },
+    {
+      "id": "0x00000A",
+      "name": "tool-runner-engine",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x00000A",
+          "path": "blueprints/0x00000A-tool-runner-engine.md"
+        }
+      ],
+      "files": [
+        "core/tool-runner.js"
+      ]
+    },
+    {
+      "id": "0x00000D",
+      "name": "ui-manager",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x00000D",
+          "path": "blueprints/0x00000D-ui-manager.md"
+        }
+      ],
+      "files": [
+        "ui/dashboard/ui-manager.js"
+      ]
+    },
+    {
+      "id": "0x000011",
+      "name": "advanced-storage-backend-indexeddb",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x000011",
+          "path": "blueprints/0x000011-advanced-storage-backend-indexeddb.md"
+        }
+      ],
+      "files": [
+        "core/vfs.js"
+      ]
+    },
+    {
+      "id": "0x000015",
+      "name": "dynamic-tool-creation",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x000015",
+          "path": "blueprints/0x000015-dynamic-tool-creation.md"
+        }
+      ],
+      "files": [
+        "core/tool-writer.js",
+        "tools/CreateTool.js"
+      ]
+    },
+    {
+      "id": "0x000020",
+      "name": "vfs-explorer-interaction",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x000020",
+          "path": "blueprints/0x000020-vfs-explorer-interaction.md"
+        }
+      ],
+      "files": [
+        "ui/dashboard/vfs-explorer.js"
+      ]
+    },
+    {
+      "id": "0x000023",
+      "name": "performance-monitoring-stack",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x000023",
+          "path": "blueprints/0x000023-performance-monitoring-stack.md"
+        }
+      ],
+      "files": [
+        "capabilities/performance/performance-monitor.js"
+      ]
+    },
+    {
+      "id": "0x000024",
+      "name": "metrics-proto-visuals",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x000024",
+          "path": "blueprints/0x000024-metrics-proto-visuals.md"
+        }
+      ],
+      "files": [
+        "ui/dashboard/metrics-dashboard.js"
+      ]
+    },
+    {
+      "id": "0x000029",
+      "name": "rate-limiting-strategies",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x000029",
+          "path": "blueprints/0x000029-rate-limiting-strategies.md"
+        }
+      ],
+      "files": [
+        "infrastructure/rate-limiter.js"
+      ]
+    },
+    {
+      "id": "0x00002A",
+      "name": "module-integrity-verification",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x00002A",
+          "path": "blueprints/0x00002A-module-integrity-verification.md"
+        }
+      ],
+      "files": [
+        "core/verification-worker.js"
+      ]
+    },
+    {
+      "id": "0x00002B",
+      "name": "audit-logging-policy",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x00002B",
+          "path": "blueprints/0x00002B-audit-logging-policy.md"
+        }
+      ],
+      "files": [
+        "infrastructure/audit-logger.js"
+      ]
+    },
+    {
+      "id": "0x00002D",
+      "name": "pyodide-runtime-orchestration",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x00002D",
+          "path": "blueprints/0x00002D-pyodide-runtime-orchestration.md"
+        }
+      ],
+      "files": [
+        "tools/python/pyodide-runtime.js"
+      ]
+    },
+    {
+      "id": "0x00002E",
+      "name": "python-tool-interface",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x00002E",
+          "path": "blueprints/0x00002E-python-tool-interface.md"
+        }
+      ],
+      "files": [
+        "tools/python/python-tool.js"
+      ]
+    },
+    {
+      "id": "0x000032",
+      "name": "reflection-store-architecture",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x000032",
+          "path": "blueprints/0x000032-reflection-store-architecture.md"
+        }
+      ],
+      "files": [
+        "capabilities/reflection/reflection-analyzer.js",
+        "capabilities/reflection/reflection-store.js"
+      ]
+    },
+    {
+      "id": "0x000037",
+      "name": "browser-api-integration",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x000037",
+          "path": "blueprints/0x000037-browser-api-integration.md"
+        }
+      ],
+      "files": [
+        "infrastructure/browser-apis.js"
+      ]
+    },
+    {
+      "id": "0x000038",
+      "name": "webrtc-swarm-transport",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x000038",
+          "path": "blueprints/0x000038-webrtc-swarm-transport.md"
+        }
+      ],
+      "files": [
+        "capabilities/communication/webrtc-swarm.js"
+      ]
+    },
+    {
+      "id": "0x000039",
+      "name": "streaming-response-handler",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x000039",
+          "path": "blueprints/0x000039-streaming-response-handler.md"
+        }
+      ],
+      "files": [
+        "infrastructure/stream-parser.js"
+      ]
+    },
+    {
+      "id": "0x00003A",
+      "name": "context-management",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x00003A",
+          "path": "blueprints/0x00003A-context-management.md"
+        }
+      ],
+      "files": [
+        "core/context-manager.js"
+      ]
+    },
+    {
+      "id": "0x00003C",
+      "name": "genesis-snapshot-system",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x00003C",
+          "path": "blueprints/0x00003C-genesis-snapshot-system.md"
+        }
+      ],
+      "files": [
+        "infrastructure/genesis-snapshot.js"
+      ]
+    },
+    {
+      "id": "0x000040",
+      "name": "verification-manager",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x000040",
+          "path": "blueprints/0x000040-verification-manager.md"
+        }
+      ],
+      "files": [
+        "core/verification-manager.js",
+        "testing/arena/vfs-sandbox.js"
+      ]
+    },
+    {
+      "id": "0x000042",
+      "name": "dependency-injection-container",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x000042",
+          "path": "blueprints/0x000042-dependency-injection-container.md"
+        }
+      ],
+      "files": [
+        "infrastructure/di-container.js"
+      ]
+    },
+    {
+      "id": "0x000043",
+      "name": "persona-management-system",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x000043",
+          "path": "blueprints/0x000043-persona-management-system.md"
+        }
+      ],
+      "files": [
+        "core/persona-manager.js"
+      ]
+    },
+    {
+      "id": "0x000044",
+      "name": "hitl-control-panel-ui",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x000044",
+          "path": "blueprints/0x000044-hitl-control-panel-ui.md"
+        }
+      ],
+      "files": [
+        "ui/components/hitl-widget.js"
+      ]
+    },
+    {
+      "id": "0x000047",
+      "name": "worker-pool-parallelization",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x000047",
+          "path": "blueprints/0x000047-worker-pool-parallelization.md"
+        }
+      ],
+      "files": [
+        "core/worker-manager.js"
+      ]
+    },
+    {
+      "id": "0x000049",
+      "name": "hitl-controller",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x000049",
+          "path": "blueprints/0x000049-hitl-controller.md"
+        }
+      ],
+      "files": [
+        "infrastructure/hitl-controller.js"
+      ]
+    },
+    {
+      "id": "0x00004C",
+      "name": "module-proto-orchestration",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x00004C",
+          "path": "blueprints/0x00004C-module-proto-orchestration.md"
+        }
+      ],
+      "files": [
+        "ui/proto.js"
+      ]
+    },
+    {
+      "id": "0x00004F",
+      "name": "event-bus-infrastructure",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x00004F",
+          "path": "blueprints/0x00004F-event-bus-infrastructure.md"
+        }
+      ],
+      "files": [
+        "infrastructure/event-bus.js"
+      ]
+    },
+    {
+      "id": "0x00005C",
+      "name": "circuit-breaker-pattern",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x00005C",
+          "path": "blueprints/0x00005C-circuit-breaker-pattern.md"
+        }
+      ],
+      "files": [
+        "infrastructure/circuit-breaker.js"
+      ]
+    },
+    {
+      "id": "0x00005D",
+      "name": "transformers-client",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x00005D",
+          "path": "blueprints/0x00005D-transformers-client.md"
+        }
+      ],
+      "files": [
+        "core/transformers-client.js"
+      ]
+    },
+    {
+      "id": "0x00005E",
+      "name": "embedding-store",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x00005E",
+          "path": "blueprints/0x00005E-embedding-store.md"
+        }
+      ],
+      "files": [
+        "capabilities/cognition/semantic/embedding-store.js"
+      ]
+    },
+    {
+      "id": "0x00005F",
+      "name": "semantic-memory",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x00005F",
+          "path": "blueprints/0x00005F-semantic-memory.md"
+        }
+      ],
+      "files": [
+        "capabilities/cognition/semantic/semantic-memory.js"
+      ]
+    },
+    {
+      "id": "0x000060",
+      "name": "knowledge-graph",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x000060",
+          "path": "blueprints/0x000060-knowledge-graph.md"
+        }
+      ],
+      "files": [
+        "capabilities/cognition/symbolic/knowledge-graph.js"
+      ]
+    },
+    {
+      "id": "0x000061",
+      "name": "rule-engine",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x000061",
+          "path": "blueprints/0x000061-rule-engine.md"
+        }
+      ],
+      "files": [
+        "capabilities/cognition/symbolic/rule-engine.js"
+      ]
+    },
+    {
+      "id": "0x000062",
+      "name": "symbol-grounder",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x000062",
+          "path": "blueprints/0x000062-symbol-grounder.md"
+        }
+      ],
+      "files": [
+        "capabilities/cognition/symbolic/symbol-grounder.js"
+      ]
+    },
+    {
+      "id": "0x000063",
+      "name": "cognition-api",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x000063",
+          "path": "blueprints/0x000063-cognition-api.md"
+        }
+      ],
+      "files": [
+        "capabilities/cognition/cognition-api.js"
+      ]
+    },
+    {
+      "id": "0x000064",
+      "name": "arena-competitor",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x000064",
+          "path": "blueprints/0x000064-arena-competitor.md"
+        }
+      ],
+      "files": [
+        "testing/arena/competitor.js"
+      ]
+    },
+    {
+      "id": "0x000065",
+      "name": "arena-metrics",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x000065",
+          "path": "blueprints/0x000065-arena-metrics.md"
+        }
+      ],
+      "files": [
+        "testing/arena/arena-metrics.js"
+      ]
+    },
+    {
+      "id": "0x000066",
+      "name": "arena-harness",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x000066",
+          "path": "blueprints/0x000066-arena-harness.md"
+        }
+      ],
+      "files": [
+        "testing/arena/arena-harness.js"
+      ]
+    },
+    {
+      "id": "0x000067",
+      "name": "gepa-prompt-evolution",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x000067",
+          "path": "blueprints/0x000067-gepa-prompt-evolution.md"
+        }
+      ],
+      "files": [
+        "capabilities/cognition/gepa-optimizer.js"
+      ]
+    },
+    {
+      "id": "0x000068",
+      "name": "hierarchical-memory-architecture",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x000068",
+          "path": "blueprints/0x000068-hierarchical-memory-architecture.md"
+        }
+      ],
+      "files": [
+        "capabilities/cognition/knowledge-tree.js",
+        "core/memory-manager.js"
+      ]
+    },
+    {
+      "id": "0x00006A",
+      "name": "response-parser",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x00006A",
+          "path": "blueprints/0x00006A-response-parser.md"
+        }
+      ],
+      "files": [
+        "core/response-parser.js"
+      ]
+    },
+    {
+      "id": "0x00006B",
+      "name": "schema-registry",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x00006B",
+          "path": "blueprints/0x00006B-schema-registry.md"
+        }
+      ],
+      "files": [
+        "core/schema-registry.js"
+      ]
+    },
+    {
+      "id": "0x00006C",
+      "name": "error-store",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x00006C",
+          "path": "blueprints/0x00006C-error-store.md"
+        }
+      ],
+      "files": [
+        "infrastructure/error-store.js"
+      ]
+    },
+    {
+      "id": "0x00006D",
+      "name": "observability",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x00006D",
+          "path": "blueprints/0x00006D-observability.md"
+        }
+      ],
+      "files": [
+        "infrastructure/observability.js"
+      ]
+    },
+    {
+      "id": "0x00006E",
+      "name": "replay-engine",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x00006E",
+          "path": "blueprints/0x00006E-replay-engine.md"
+        }
+      ],
+      "files": [
+        "infrastructure/replay-engine.js",
+        "ui/proto/replay.js"
+      ]
+    },
+    {
+      "id": "0x00006F",
+      "name": "telemetry-timeline",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x00006F",
+          "path": "blueprints/0x00006F-telemetry-timeline.md"
+        }
+      ],
+      "files": [
+        "infrastructure/telemetry-timeline.js"
+      ]
+    },
+    {
+      "id": "0x000070",
+      "name": "tool-executor",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x000070",
+          "path": "blueprints/0x000070-tool-executor.md"
+        }
+      ],
+      "files": [
+        "infrastructure/tool-executor.js"
+      ]
+    },
+    {
+      "id": "0x000071",
+      "name": "substrate-loader",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x000071",
+          "path": "blueprints/0x000071-substrate-loader.md"
+        }
+      ],
+      "files": [
+        "capabilities/system/substrate-loader.js",
+        "core/vfs-module-loader.js"
+      ]
+    },
+    {
+      "id": "0x000072",
+      "name": "agent-bridge",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x000072",
+          "path": "blueprints/0x000072-agent-bridge.md"
+        }
+      ],
+      "files": [
+        "boot/iframe-bridge.js"
+      ]
+    },
+    {
+      "id": "0x000075",
+      "name": "inline-chat",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x000075",
+          "path": "blueprints/0x000075-inline-chat.md"
+        }
+      ],
+      "files": [
+        "ui/components/inline-chat.js"
+      ]
+    },
+    {
+      "id": "0x00007A",
+      "name": "cognition-panel",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x00007A",
+          "path": "blueprints/0x00007A-cognition-panel.md"
+        }
+      ],
+      "files": [
+        "ui/panels/cognition-panel.js"
+      ]
+    },
+    {
+      "id": "0x00007B",
+      "name": "vfs-panel",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x00007B",
+          "path": "blueprints/0x00007B-vfs-panel.md"
+        }
+      ],
+      "files": [
+        "ui/panels/vfs-panel.js"
+      ]
+    },
+    {
+      "id": "0x00007C",
+      "name": "toast-notifications",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x00007C",
+          "path": "blueprints/0x00007C-toast-notifications.md"
+        }
+      ],
+      "files": [
+        "ui/components/toast-notifications.js"
+      ]
+    },
+    {
+      "id": "0x00007D",
+      "name": "diff-viewer-ui",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x00007D",
+          "path": "blueprints/0x00007D-diff-viewer-ui.md"
+        }
+      ],
+      "files": [
+        "ui/components/diff-viewer-ui.js"
+      ]
+    },
+    {
+      "id": "0x00007E",
+      "name": "hot-swappable-neural-compiler",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x00007E",
+          "path": "blueprints/0x00007E-hot-swappable-neural-compiler.md"
+        }
+      ],
+      "files": [
+        "capabilities/intelligence/neural-compiler.js"
+      ]
+    },
+    {
+      "id": "0x00008C",
+      "name": "chat-panel",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x00008C",
+          "path": "blueprints/0x00008C-chat-panel.md"
+        }
+      ],
+      "files": [
+        "ui/panels/chat-panel.js"
+      ]
+    },
+    {
+      "id": "0x00008D",
+      "name": "code-panel",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x00008D",
+          "path": "blueprints/0x00008D-code-panel.md"
+        }
+      ],
+      "files": [
+        "ui/panels/code-panel.js"
+      ]
+    },
+    {
+      "id": "0x00008E",
+      "name": "llm-config-panel",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x00008E",
+          "path": "blueprints/0x00008E-llm-config-panel.md"
+        }
+      ],
+      "files": [
+        "ui/panels/llm-config-panel.js"
+      ]
+    },
+    {
+      "id": "0x00008F",
+      "name": "python-repl-panel",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x00008F",
+          "path": "blueprints/0x00008F-python-repl-panel.md"
+        }
+      ],
+      "files": [
+        "ui/panels/python-repl-panel.js"
+      ]
+    },
+    {
+      "id": "0x000090",
+      "name": "boot",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x000090",
+          "path": "blueprints/0x000090-boot.md"
+        }
+      ],
+      "files": [
+        "boot.js"
+      ]
+    },
+    {
+      "id": "0x000091",
+      "name": "boot-config",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x000091",
+          "path": "blueprints/0x000091-boot-config.md"
+        }
+      ],
+      "files": [
+        "boot/config.js"
+      ]
+    },
+    {
+      "id": "0x000092",
+      "name": "boot-error-ui",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x000092",
+          "path": "blueprints/0x000092-boot-error-ui.md"
+        }
+      ],
+      "files": [
+        "boot/error-ui.js"
+      ]
+    },
+    {
+      "id": "0x000093",
+      "name": "boot-index",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x000093",
+          "path": "blueprints/0x000093-boot-index.md"
+        }
+      ],
+      "files": [
+        "boot/index.js"
+      ]
+    },
+    {
+      "id": "0x000094",
+      "name": "boot-modules",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x000094",
+          "path": "blueprints/0x000094-boot-modules.md"
+        }
+      ],
+      "files": [
+        "boot/modules.js"
+      ]
+    },
+    {
+      "id": "0x000095",
+      "name": "boot-services",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x000095",
+          "path": "blueprints/0x000095-boot-services.md"
+        }
+      ],
+      "files": [
+        "boot/services.js"
+      ]
+    },
+    {
+      "id": "0x000096",
+      "name": "boot-vfs-hydrate",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x000096",
+          "path": "blueprints/0x000096-boot-vfs-hydrate.md"
+        }
+      ],
+      "files": [
+        "boot/vfs-hydrate.js"
+      ]
+    },
+    {
+      "id": "0x000097",
+      "name": "capabilities-cognition-episodic-memory",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x000097",
+          "path": "blueprints/0x000097-capabilities-cognition-episodic-memory.md"
+        }
+      ],
+      "files": [
+        "capabilities/cognition/episodic-memory.js"
+      ]
+    },
+    {
+      "id": "0x000098",
+      "name": "capabilities-cognition-hybrid-retrieval",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x000098",
+          "path": "blueprints/0x000098-capabilities-cognition-hybrid-retrieval.md"
+        }
+      ],
+      "files": [
+        "capabilities/cognition/hybrid-retrieval.js"
+      ]
+    },
+    {
+      "id": "0x000099",
+      "name": "capabilities-cognition-index",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x000099",
+          "path": "blueprints/0x000099-capabilities-cognition-index.md"
+        }
+      ],
+      "files": [
+        "capabilities/cognition/index.js"
+      ]
+    },
+    {
+      "id": "0x00009a",
+      "name": "capabilities-cognition-prompt-memory",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x00009a",
+          "path": "blueprints/0x00009a-capabilities-cognition-prompt-memory.md"
+        }
+      ],
+      "files": [
+        "capabilities/cognition/prompt-memory.js"
+      ]
+    },
+    {
+      "id": "0x00009b",
+      "name": "capabilities-communication-consensus",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x00009b",
+          "path": "blueprints/0x00009b-capabilities-communication-consensus.md"
+        }
+      ],
+      "files": [
+        "capabilities/communication/consensus.js"
+      ]
+    },
+    {
+      "id": "0x00009c",
+      "name": "capabilities-communication-swarm-sync",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x00009c",
+          "path": "blueprints/0x00009c-capabilities-communication-swarm-sync.md"
+        }
+      ],
+      "files": [
+        "capabilities/communication/swarm-sync.js"
+      ]
+    },
+    {
+      "id": "0x00009d",
+      "name": "capabilities-communication-swarm-transport",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x00009d",
+          "path": "blueprints/0x00009d-capabilities-communication-swarm-transport.md"
+        }
+      ],
+      "files": [
+        "capabilities/communication/swarm-transport.js"
+      ]
+    },
+    {
+      "id": "0x00009e",
+      "name": "capabilities-intelligence-federated-learning",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x00009e",
+          "path": "blueprints/0x00009e-capabilities-intelligence-federated-learning.md"
+        }
+      ],
+      "files": [
+        "capabilities/intelligence/federated-learning.js"
+      ]
+    },
+    {
+      "id": "0x00009f",
+      "name": "capabilities-intelligence-functiongemma-orchestrator",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x00009f",
+          "path": "blueprints/0x00009f-capabilities-intelligence-functiongemma-orchestrator.md"
+        }
+      ],
+      "files": [
+        "capabilities/intelligence/functiongemma-orchestrator.js"
+      ]
+    },
+    {
+      "id": "0x0000a0",
+      "name": "capabilities-intelligence-multi-model-coordinator",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x0000a0",
+          "path": "blueprints/0x0000a0-capabilities-intelligence-multi-model-coordinator.md"
+        }
+      ],
+      "files": [
+        "capabilities/intelligence/multi-model-coordinator.js"
+      ]
+    },
+    {
+      "id": "0x0000a1",
+      "name": "capabilities-reflection-prompt-score-map",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x0000a1",
+          "path": "blueprints/0x0000a1-capabilities-reflection-prompt-score-map.md"
+        }
+      ],
+      "files": [
+        "capabilities/reflection/prompt-score-map.js"
+      ]
+    },
+    {
+      "id": "0x0000a2",
+      "name": "core-async-utils",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x0000a2",
+          "path": "blueprints/0x0000a2-core-async-utils.md"
+        }
+      ],
+      "files": [
+        "core/async-utils.js"
+      ]
+    },
+    {
+      "id": "0x0000a3",
+      "name": "core-schema-validator",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x0000a3",
+          "path": "blueprints/0x0000a3-core-schema-validator.md"
+        }
+      ],
+      "files": [
+        "core/schema-validator.js"
+      ]
+    },
+    {
+      "id": "0x0000a4",
+      "name": "core-worker-agent",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x0000a4",
+          "path": "blueprints/0x0000a4-core-worker-agent.md"
+        }
+      ],
+      "files": [
+        "core/worker-agent.js"
+      ]
+    },
+    {
+      "id": "0x0000a5",
+      "name": "infrastructure-policy-engine",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x0000a5",
+          "path": "blueprints/0x0000a5-infrastructure-policy-engine.md"
+        }
+      ],
+      "files": [
+        "infrastructure/policy-engine.js"
+      ]
+    },
+    {
+      "id": "0x0000a6",
+      "name": "infrastructure-trace-store",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x0000a6",
+          "path": "blueprints/0x0000a6-infrastructure-trace-store.md"
+        }
+      ],
+      "files": [
+        "infrastructure/trace-store.js"
+      ]
+    },
+    {
+      "id": "0x0000a7",
+      "name": "sw-module-loader",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x0000a7",
+          "path": "blueprints/0x0000a7-sw-module-loader.md"
+        }
+      ],
+      "files": [
+        "sw-module-loader.js"
+      ]
+    },
+    {
+      "id": "0x0000a8",
+      "name": "testing-arena-doppler-integration",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x0000a8",
+          "path": "blueprints/0x0000a8-testing-arena-doppler-integration.md"
+        }
+      ],
+      "files": [
+        "testing/arena/doppler-integration.js"
+      ]
+    },
+    {
+      "id": "0x0000a9",
+      "name": "testing-arena-index",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x0000a9",
+          "path": "blueprints/0x0000a9-testing-arena-index.md"
+        }
+      ],
+      "files": [
+        "testing/arena/index.js"
+      ]
+    },
+    {
+      "id": "0x0000aa",
+      "name": "tools-awaitworkers",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x0000aa",
+          "path": "blueprints/0x0000aa-tools-awaitworkers.md"
+        }
+      ],
+      "files": [
+        "tools/AwaitWorkers.js"
+      ]
+    },
+    {
+      "id": "0x0000ab",
+      "name": "tools-cp",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x0000ab",
+          "path": "blueprints/0x0000ab-tools-cp.md"
+        }
+      ],
+      "files": [
+        "tools/Cp.js"
+      ]
+    },
+    {
+      "id": "0x0000ac",
+      "name": "tools-deletefile",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x0000ac",
+          "path": "blueprints/0x0000ac-tools-deletefile.md"
+        }
+      ],
+      "files": [
+        "tools/DeleteFile.js"
+      ]
+    },
+    {
+      "id": "0x0000ad",
+      "name": "tools-edit",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x0000ad",
+          "path": "blueprints/0x0000ad-tools-edit.md"
+        }
+      ],
+      "files": [
+        "tools/Edit.js"
+      ]
+    },
+    {
+      "id": "0x0000ae",
+      "name": "tools-fileoutline",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x0000ae",
+          "path": "blueprints/0x0000ae-tools-fileoutline.md"
+        }
+      ],
+      "files": [
+        "tools/FileOutline.js"
+      ]
+    },
+    {
+      "id": "0x0000af",
+      "name": "tools-find",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x0000af",
+          "path": "blueprints/0x0000af-tools-find.md"
+        }
+      ],
+      "files": [
+        "tools/Find.js"
+      ]
+    },
+    {
+      "id": "0x0000b0",
+      "name": "tools-git",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x0000b0",
+          "path": "blueprints/0x0000b0-tools-git.md"
+        }
+      ],
+      "files": [
+        "tools/Git.js"
+      ]
+    },
+    {
+      "id": "0x0000b1",
+      "name": "tools-grep",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x0000b1",
+          "path": "blueprints/0x0000b1-tools-grep.md"
+        }
+      ],
+      "files": [
+        "tools/Grep.js"
+      ]
+    },
+    {
+      "id": "0x0000b2",
+      "name": "tools-head",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x0000b2",
+          "path": "blueprints/0x0000b2-tools-head.md"
+        }
+      ],
+      "files": [
+        "tools/Head.js"
+      ]
+    },
+    {
+      "id": "0x0000b3",
+      "name": "tools-listfiles",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x0000b3",
+          "path": "blueprints/0x0000b3-tools-listfiles.md"
+        }
+      ],
+      "files": [
+        "tools/ListFiles.js"
+      ]
+    },
+    {
+      "id": "0x0000b4",
+      "name": "tools-listknowledge",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x0000b4",
+          "path": "blueprints/0x0000b4-tools-listknowledge.md"
+        }
+      ],
+      "files": [
+        "tools/ListKnowledge.js"
+      ]
+    },
+    {
+      "id": "0x0000b5",
+      "name": "tools-listmemories",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x0000b5",
+          "path": "blueprints/0x0000b5-tools-listmemories.md"
+        }
+      ],
+      "files": [
+        "tools/ListMemories.js"
+      ]
+    },
+    {
+      "id": "0x0000b6",
+      "name": "tools-listtools",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x0000b6",
+          "path": "blueprints/0x0000b6-tools-listtools.md"
+        }
+      ],
+      "files": [
+        "tools/ListTools.js"
+      ]
+    },
+    {
+      "id": "0x0000b7",
+      "name": "tools-listworkers",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x0000b7",
+          "path": "blueprints/0x0000b7-tools-listworkers.md"
+        }
+      ],
+      "files": [
+        "tools/ListWorkers.js"
+      ]
+    },
+    {
+      "id": "0x0000b8",
+      "name": "tools-loadmodule",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x0000b8",
+          "path": "blueprints/0x0000b8-tools-loadmodule.md"
+        }
+      ],
+      "files": [
+        "tools/LoadModule.js"
+      ]
+    },
+    {
+      "id": "0x0000b9",
+      "name": "tools-ls",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x0000b9",
+          "path": "blueprints/0x0000b9-tools-ls.md"
+        }
+      ],
+      "files": [
+        "tools/Ls.js"
+      ]
+    },
+    {
+      "id": "0x0000ba",
+      "name": "tools-mkdir",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x0000ba",
+          "path": "blueprints/0x0000ba-tools-mkdir.md"
+        }
+      ],
+      "files": [
+        "tools/Mkdir.js"
+      ]
+    },
+    {
+      "id": "0x0000bb",
+      "name": "tools-mv",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x0000bb",
+          "path": "blueprints/0x0000bb-tools-mv.md"
+        }
+      ],
+      "files": [
+        "tools/Mv.js"
+      ]
+    },
+    {
+      "id": "0x0000bc",
+      "name": "tools-readfile",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x0000bc",
+          "path": "blueprints/0x0000bc-tools-readfile.md"
+        }
+      ],
+      "files": [
+        "tools/ReadFile.js"
+      ]
+    },
+    {
+      "id": "0x0000bd",
+      "name": "tools-rm",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x0000bd",
+          "path": "blueprints/0x0000bd-tools-rm.md"
+        }
+      ],
+      "files": [
+        "tools/Rm.js"
+      ]
+    },
+    {
+      "id": "0x0000be",
+      "name": "tools-rungepa",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x0000be",
+          "path": "blueprints/0x0000be-tools-rungepa.md"
+        }
+      ],
+      "files": [
+        "tools/RunGEPA.js"
+      ]
+    },
+    {
+      "id": "0x0000bf",
+      "name": "tools-spawnworker",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x0000bf",
+          "path": "blueprints/0x0000bf-tools-spawnworker.md"
+        }
+      ],
+      "files": [
+        "tools/SpawnWorker.js"
+      ]
+    },
+    {
+      "id": "0x0000c0",
+      "name": "tools-swarmgetstatus",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x0000c0",
+          "path": "blueprints/0x0000c0-tools-swarmgetstatus.md"
+        }
+      ],
+      "files": [
+        "tools/SwarmGetStatus.js"
+      ]
+    },
+    {
+      "id": "0x0000c1",
+      "name": "tools-swarmlistpeers",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x0000c1",
+          "path": "blueprints/0x0000c1-tools-swarmlistpeers.md"
+        }
+      ],
+      "files": [
+        "tools/SwarmListPeers.js"
+      ]
+    },
+    {
+      "id": "0x0000c2",
+      "name": "tools-swarmrequestfile",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x0000c2",
+          "path": "blueprints/0x0000c2-tools-swarmrequestfile.md"
+        }
+      ],
+      "files": [
+        "tools/SwarmRequestFile.js"
+      ]
+    },
+    {
+      "id": "0x0000c3",
+      "name": "tools-swarmsharefile",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x0000c3",
+          "path": "blueprints/0x0000c3-tools-swarmsharefile.md"
+        }
+      ],
+      "files": [
+        "tools/SwarmShareFile.js"
+      ]
+    },
+    {
+      "id": "0x0000c4",
+      "name": "tools-tail",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x0000c4",
+          "path": "blueprints/0x0000c4-tools-tail.md"
+        }
+      ],
+      "files": [
+        "tools/Tail.js"
+      ]
+    },
+    {
+      "id": "0x0000c5",
+      "name": "tools-writefile",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x0000c5",
+          "path": "blueprints/0x0000c5-tools-writefile.md"
+        }
+      ],
+      "files": [
+        "tools/WriteFile.js"
+      ]
+    },
+    {
+      "id": "0x0000c6",
+      "name": "tools-python-pyodide-worker",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x0000c6",
+          "path": "blueprints/0x0000c6-tools-python-pyodide-worker.md"
+        }
+      ],
+      "files": [
+        "tools/python/pyodide-worker.js"
+      ]
+    },
+    {
+      "id": "0x0000c7",
+      "name": "ui-boot-detection",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x0000c7",
+          "path": "blueprints/0x0000c7-ui-boot-detection.md"
+        }
+      ],
+      "files": [
+        "ui/boot/detection.js"
+      ]
+    },
+    {
+      "id": "0x0000c8",
+      "name": "ui-boot-goals",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x0000c8",
+          "path": "blueprints/0x0000c8-ui-boot-goals.md"
+        }
+      ],
+      "files": [
+        "ui/boot/goals.js"
+      ]
+    },
+    {
+      "id": "0x0000c9",
+      "name": "ui-boot-index",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x0000c9",
+          "path": "blueprints/0x0000c9-ui-boot-index.md"
+        }
+      ],
+      "files": [
+        "ui/boot/index.js"
+      ]
+    },
+    {
+      "id": "0x0000ca",
+      "name": "ui-boot-state",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x0000ca",
+          "path": "blueprints/0x0000ca-ui-boot-state.md"
+        }
+      ],
+      "files": [
+        "ui/boot/state.js"
+      ]
+    },
+    {
+      "id": "0x0000cb",
+      "name": "ui-boot-steps-awaken",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x0000cb",
+          "path": "blueprints/0x0000cb-ui-boot-steps-awaken.md"
+        }
+      ],
+      "files": [
+        "ui/boot/steps/awaken.js"
+      ]
+    },
+    {
+      "id": "0x0000cc",
+      "name": "ui-boot-steps-browser",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x0000cc",
+          "path": "blueprints/0x0000cc-ui-boot-steps-browser.md"
+        }
+      ],
+      "files": [
+        "ui/boot/steps/browser.js"
+      ]
+    },
+    {
+      "id": "0x0000cd",
+      "name": "ui-boot-steps-choose",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x0000cd",
+          "path": "blueprints/0x0000cd-ui-boot-steps-choose.md"
+        }
+      ],
+      "files": [
+        "ui/boot/steps/choose.js"
+      ]
+    },
+    {
+      "id": "0x0000ce",
+      "name": "ui-boot-steps-detect",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x0000ce",
+          "path": "blueprints/0x0000ce-ui-boot-steps-detect.md"
+        }
+      ],
+      "files": [
+        "ui/boot/steps/detect.js"
+      ]
+    },
+    {
+      "id": "0x0000cf",
+      "name": "ui-boot-steps-direct",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x0000cf",
+          "path": "blueprints/0x0000cf-ui-boot-steps-direct.md"
+        }
+      ],
+      "files": [
+        "ui/boot/steps/direct.js"
+      ]
+    },
+    {
+      "id": "0x0000d0",
+      "name": "ui-boot-steps-goal",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x0000d0",
+          "path": "blueprints/0x0000d0-ui-boot-steps-goal.md"
+        }
+      ],
+      "files": [
+        "ui/boot/steps/goal.js"
+      ]
+    },
+    {
+      "id": "0x0000d1",
+      "name": "ui-boot-steps-proxy",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x0000d1",
+          "path": "blueprints/0x0000d1-ui-boot-steps-proxy.md"
+        }
+      ],
+      "files": [
+        "ui/boot/steps/proxy.js"
+      ]
+    },
+    {
+      "id": "0x0000d2",
+      "name": "ui-components-arena-results",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x0000d2",
+          "path": "blueprints/0x0000d2-ui-components-arena-results.md"
+        }
+      ],
+      "files": [
+        "ui/components/arena-results.js"
+      ]
+    },
+    {
+      "id": "0x0000d3",
+      "name": "ui-components-confirmation-modal",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x0000d3",
+          "path": "blueprints/0x0000d3-ui-components-confirmation-modal.md"
+        }
+      ],
+      "files": [
+        "ui/components/confirmation-modal.js"
+      ]
+    },
+    {
+      "id": "0x0000d4",
+      "name": "ui-panels-metrics-panel",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x0000d4",
+          "path": "blueprints/0x0000d4-ui-panels-metrics-panel.md"
+        }
+      ],
+      "files": [
+        "ui/panels/metrics-panel.js"
+      ]
+    },
+    {
+      "id": "0x0000d5",
+      "name": "ui-proto-index",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x0000d5",
+          "path": "blueprints/0x0000d5-ui-proto-index.md"
+        }
+      ],
+      "files": [
+        "ui/proto/index.js"
+      ]
+    },
+    {
+      "id": "0x0000d6",
+      "name": "ui-proto-schemas",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x0000d6",
+          "path": "blueprints/0x0000d6-ui-proto-schemas.md"
+        }
+      ],
+      "files": [
+        "ui/proto/schemas.js"
+      ]
+    },
+    {
+      "id": "0x0000d7",
+      "name": "ui-proto-telemetry",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x0000d7",
+          "path": "blueprints/0x0000d7-ui-proto-telemetry.md"
+        }
+      ],
+      "files": [
+        "ui/proto/telemetry.js"
+      ]
+    },
+    {
+      "id": "0x0000d8",
+      "name": "ui-proto-template",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x0000d8",
+          "path": "blueprints/0x0000d8-ui-proto-template.md"
+        }
+      ],
+      "files": [
+        "ui/proto/template.js"
+      ]
+    },
+    {
+      "id": "0x0000d9",
+      "name": "ui-proto-utils",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x0000d9",
+          "path": "blueprints/0x0000d9-ui-proto-utils.md"
+        }
+      ],
+      "files": [
+        "ui/proto/utils.js"
+      ]
+    },
+    {
+      "id": "0x0000da",
+      "name": "ui-proto-vfs",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x0000da",
+          "path": "blueprints/0x0000da-ui-proto-vfs.md"
+        }
+      ],
+      "files": [
+        "ui/proto/vfs.js"
+      ]
+    },
+    {
+      "id": "0x0000db",
+      "name": "ui-proto-workers",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x0000db",
+          "path": "blueprints/0x0000db-ui-proto-workers.md"
+        }
+      ],
+      "files": [
+        "ui/proto/workers.js"
+      ]
+    },
+    {
+      "id": "0x0000dc",
+      "name": "ui-toast",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x0000dc",
+          "path": "blueprints/0x0000dc-ui-toast.md"
+        }
+      ],
+      "files": [
+        "ui/toast.js"
+      ]
+    }
+  ]
+}

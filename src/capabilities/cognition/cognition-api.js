@@ -8,7 +8,7 @@ const CognitionAPI = {
   metadata: {
     id: 'CognitionAPI',
     version: '1.0.0',
-    genesis: { introduced: 'full' },
+    genesis: { introduced: 'cognition' },
     dependencies: [
       'Utils',
       'EventBus',

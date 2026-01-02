@@ -30,6 +30,25 @@ const toWebPath = (file) => {
   return `../${file}`;
 };
 
+const loadVfsManifest = async (logger) => {
+  try {
+    const resp = await fetch('../config/vfs-manifest.json', { cache: 'no-store' });
+    if (!resp.ok) {
+      logger.warn(`[Boot] Failed to load VFS manifest (${resp.status})`);
+      return null;
+    }
+    const data = await resp.json();
+    if (!data || !Array.isArray(data.files)) {
+      logger.warn('[Boot] VFS manifest missing files list');
+      return null;
+    }
+    return data.files;
+  } catch (err) {
+    logger.warn('[Boot] Failed to parse VFS manifest', err);
+    return null;
+  }
+};
+
 /**
  * Reset session artifacts from VFS.
  * @param {Object} vfs - VFS instance
@@ -160,35 +179,42 @@ export async function hydrateVFS(vfs, genesisConfig, resolvedModules, genesisLev
     }
 
     const filesToSeed = new Set();
-    const moduleFiles = genesisConfig?.moduleFiles || {};
-    const sharedFiles = genesisConfig?.sharedFiles || {};
-
-    // Add files for each resolved module
-    for (const moduleName of resolvedModules) {
-      const files = moduleFiles[moduleName];
-      if (files) {
-        for (const file of files) {
-          filesToSeed.add(file);
-        }
-      }
-    }
-
-    // Add shared files (tools, ui, styles)
-    for (const category of Object.keys(sharedFiles)) {
-      for (const file of sharedFiles[category]) {
+    const manifestFiles = await loadVfsManifest(logger);
+    if (manifestFiles && manifestFiles.length > 0) {
+      for (const file of manifestFiles) {
         filesToSeed.add(file);
       }
-    }
+    } else {
+      const moduleFiles = genesisConfig?.moduleFiles || {};
+      const sharedFiles = genesisConfig?.sharedFiles || {};
 
-    // Add level-specific files
-    const levelFiles = genesisConfig?.levelFiles?.[genesisLevel];
-    if (levelFiles) {
-      for (const category of Object.keys(levelFiles)) {
-        for (const file of levelFiles[category]) {
+      // Add files for each resolved module
+      for (const moduleName of resolvedModules) {
+        const files = moduleFiles[moduleName];
+        if (files) {
+          for (const file of files) {
+            filesToSeed.add(file);
+          }
+        }
+      }
+
+      // Add shared files (tools, ui, styles)
+      for (const category of Object.keys(sharedFiles)) {
+        for (const file of sharedFiles[category]) {
           filesToSeed.add(file);
         }
       }
-      logger.debug(`[Boot] Added ${Object.values(levelFiles).flat().length} level-specific files`);
+
+      // Add level-specific files
+      const levelFiles = genesisConfig?.levelFiles?.[genesisLevel];
+      if (levelFiles) {
+        for (const category of Object.keys(levelFiles)) {
+          for (const file of levelFiles[category]) {
+            filesToSeed.add(file);
+          }
+        }
+        logger.debug(`[Boot] Added ${Object.values(levelFiles).flat().length} level-specific files`);
+      }
     }
 
     logger.info(`[Boot] Hydrating ${filesToSeed.size} files...`);

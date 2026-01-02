@@ -10,7 +10,7 @@ const PromptMemory = {
   metadata: {
     id: 'PromptMemory',
     version: '1.0.0',
-    genesis: { introduced: 'full' },
+    genesis: { introduced: 'cognition' },
     dependencies: ['Utils', 'EventBus', 'SemanticMemory', 'EmbeddingStore', 'KnowledgeTree', 'VFS'],
     async: true,
     type: 'capability'
