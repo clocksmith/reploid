@@ -28,6 +28,7 @@ Expand "Advanced options" on the boot page to access these settings.
 | Setting | localStorage Key | Values | Default |
 |---------|------------------|--------|---------|
 | Fresh Genesis | `REPLOID_RESET_ALL` | `'true'`, `'false'` | `'true'` |
+| Preserve VFS on boot | `REPLOID_PRESERVE_ON_BOOT` | `'true'`, `'false'` | `'false'` |
 
 ### Cognition
 
@@ -143,6 +144,6 @@ Settings used by boot hydration and module registration.
 | `moduleFiles` | Module entry and auxiliary files used for hydration and lazy imports |
 | `sharedFiles` | Always hydrated files (tools, UI, styles) |
 
-VFS hydration refreshes module and shared files from `src/` on each boot. Writes are skipped when content is byte-identical.
+VFS hydration refreshes module and shared files from `src/` on each boot. Writes are skipped when content is byte-identical. Set `REPLOID_PRESERVE_ON_BOOT` to `'true'` to keep existing VFS files and hydrate only missing paths.
 
 *Last updated: December 2025*
