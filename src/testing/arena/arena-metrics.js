@@ -7,6 +7,7 @@ const ArenaMetrics = {
   metadata: {
     id: 'ArenaMetrics',
     version: '1.0.0',
+    genesis: { introduced: 'full' },
     dependencies: ['Utils'],
     async: false,
     type: 'utility'

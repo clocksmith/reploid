@@ -7,6 +7,7 @@ const ArenaHarness = {
   metadata: {
     id: 'ArenaHarness',
     version: '1.0.0',
+    genesis: { introduced: 'full' },
     dependencies: ['VFSSandbox', 'ArenaCompetitor', 'ArenaMetrics',
                    'VerificationManager', 'EventBus', 'Utils', 'SchemaRegistry?'],
     async: false,

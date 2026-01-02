@@ -7,6 +7,7 @@ const ArenaCompetitor = {
   metadata: {
     id: 'ArenaCompetitor',
     version: '1.0.0',
+    genesis: { introduced: 'full' },
     dependencies: ['LLMClient', 'Utils'],
     async: false,
     type: 'utility'
