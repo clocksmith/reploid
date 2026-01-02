@@ -23,7 +23,7 @@ export function renderAwakenStep(state) {
   return `
     <div class="wizard-step wizard-awaken">
       <div class="wizard-actions">
-        <button class="btn btn-prism" data-action="awaken">
+        <button class="btn btn-lg btn-prism" data-action="awaken">
           Awaken Agent ${verifyState !== VERIFY_STATE.VERIFIED ? '(unverified)' : ''}
         </button>
       </div>

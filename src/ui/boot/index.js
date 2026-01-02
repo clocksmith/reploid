@@ -177,6 +177,9 @@ function handleClick(e) {
   const action = e.target.closest('[data-action]')?.dataset.action;
   if (!action) return;
 
+  // Prevent default browser behavior (form submission, link navigation, hash changes)
+  e.preventDefault();
+
   const state = getState();
 
   switch (action) {
@@ -309,6 +312,11 @@ function handleClick(e) {
 
     case 'edit-config':
       // Config section is always visible - user can scroll up
+      break;
+
+    case 'advanced-settings':
+      // TODO: Show advanced settings modal
+      alert('Advanced settings coming soon');
       break;
 
     case 'awaken-anyway':
