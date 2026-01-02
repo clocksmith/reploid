@@ -33,7 +33,12 @@ async function walkFiles(dir) {
 
 async function main() {
   const files = await walkFiles(SRC_DIR);
-  const relFiles = files.map((file) => toPosix(path.relative(SRC_DIR, file))).sort();
+  const relFiles = files.map((file) => toPosix(path.relative(SRC_DIR, file)));
+  const outputRel = toPosix(path.relative(SRC_DIR, OUTPUT_PATH));
+  if (!relFiles.includes(outputRel)) {
+    relFiles.push(outputRel);
+  }
+  relFiles.sort();
 
   const output = {
     version: 1,
