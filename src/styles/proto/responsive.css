@@ -3,7 +3,8 @@
 /* Tablet breakpoint */
 @media (max-width: 1024px) {
     .app-shell {
-        grid-template-columns: 50px 200px 1fr;
+        --vfs-panel-width: 200px;
+        grid-template-columns: 50px var(--vfs-panel-width) 1fr;
     }
 
     .vfs-browser-header {

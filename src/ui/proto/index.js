@@ -34,6 +34,9 @@ const Proto = {
     let _inlineChat = null;
     let _vfsPanelCollapsed = false;
     let _vfsSearchTimeout = null;
+    const VFS_WIDTH_KEY = 'REPLOID_VFS_WIDTH';
+    const VFS_WIDTH_OPTIONS = new Set(['0', '25', '50']);
+    const DEFAULT_VFS_WIDTH = '25';
 
     // Token tracking - values come from ContextManager via EventBus
     let _tokenCount = 0;
@@ -69,6 +72,26 @@ const Proto = {
 
     const MAX_REFLECTIONS = 100;
     const MAX_HISTORY_ENTRIES = 200;
+
+    const getStoredVFSWidth = () => {
+      const stored = localStorage.getItem(VFS_WIDTH_KEY);
+      return VFS_WIDTH_OPTIONS.has(stored) ? stored : DEFAULT_VFS_WIDTH;
+    };
+
+    const applyVFSWidth = (container, value) => {
+      if (!container) return DEFAULT_VFS_WIDTH;
+      const normalized = VFS_WIDTH_OPTIONS.has(value) ? value : DEFAULT_VFS_WIDTH;
+      container.dataset.vfsWidth = normalized;
+      const vfsPanel = container.querySelector('#vfs-browser');
+      if (vfsPanel) {
+        vfsPanel.setAttribute('aria-hidden', normalized === '0' ? 'true' : 'false');
+      }
+      const widthSelect = container.querySelector('#vfs-width-select');
+      if (widthSelect && widthSelect.value !== normalized) {
+        widthSelect.value = normalized;
+      }
+      return normalized;
+    };
 
     // Error handling via ErrorStore
     const updateStatusBadge = async () => {
@@ -418,6 +441,12 @@ const Proto = {
       const goalFromBoot = localStorage.getItem('REPLOID_GOAL') || 'No goal set';
       container.innerHTML = renderProtoTemplate(escapeHtml, goalFromBoot);
 
+      const initialVFSWidth = getStoredVFSWidth();
+      const appliedVFSWidth = applyVFSWidth(container, initialVFSWidth);
+      if (appliedVFSWidth !== initialVFSWidth) {
+        localStorage.setItem(VFS_WIDTH_KEY, appliedVFSWidth);
+      }
+
       // Bind Events
       const btnToggle = container.querySelector('#btn-toggle');
       const btnExport = container.querySelector('#btn-export');
@@ -563,6 +592,13 @@ const Proto = {
         clearTimeout(_vfsSearchTimeout);
         _vfsSearchTimeout = setTimeout(() => vfsManager.filterVFSTree(vfsSearch.value), 300);
       });
+      const vfsWidthSelect = container.querySelector('#vfs-width-select');
+      if (vfsWidthSelect) {
+        vfsWidthSelect.addEventListener('change', (event) => {
+          const nextWidth = applyVFSWidth(container, event.target.value);
+          localStorage.setItem(VFS_WIDTH_KEY, nextWidth);
+        });
+      }
 
       const editBtn = container.querySelector('#vfs-edit-btn');
       const saveBtn = container.querySelector('#vfs-save-btn');

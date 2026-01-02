@@ -315,8 +315,7 @@ function handleClick(e) {
       break;
 
     case 'advanced-settings':
-      // TODO: Show advanced settings modal
-      alert('Advanced settings coming soon');
+      setState({ advancedOpen: !state.advancedOpen });
       break;
 
     case 'awaken-anyway':
@@ -380,6 +379,11 @@ function handleChange(e) {
 
     case 'doppler-model-inline':
       setNestedState('dopplerConfig', { model: value });
+      break;
+
+    case 'preserve-on-boot':
+      localStorage.setItem('REPLOID_PRESERVE_ON_BOOT', value ? 'true' : 'false');
+      setNestedState('advancedConfig', { preserveOnBoot: value });
       break;
 
     case 'proxy-url':

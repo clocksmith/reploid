@@ -164,6 +164,32 @@
   border-width: var(--border-md);
 }
 
+/* VFS Width Control (workspace header) */
+.vfs-width-control {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+}
+
+.vfs-width-label {
+  opacity: var(--opacity-muted);
+}
+
+.vfs-width-select {
+  background: var(--bg);
+  color: var(--fg);
+  border: var(--border-sm) solid var(--fg);
+  padding: 2px 6px;
+  font-family: var(--font-a);
+  font-size: 11px;
+}
+
+.vfs-width-select:focus {
+  outline: none;
+  border-width: var(--border-md);
+}
+
 /* VFS Content (in workspace) */
 .vfs-content {
   flex: 1;

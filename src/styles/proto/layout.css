@@ -13,13 +13,30 @@
 }
 
 .app-shell {
+  --vfs-panel-width: 240px;
   display: grid;
-  grid-template-columns: 50px 240px 1fr;
+  grid-template-columns: 50px var(--vfs-panel-width) 1fr;
   height: 100vh;
   background: var(--bg);
   color: var(--fg);
   font-family: var(--font-a);
   overflow: hidden;
+}
+
+.app-shell[data-vfs-width="0"] {
+  --vfs-panel-width: 0%;
+}
+
+.app-shell[data-vfs-width="25"] {
+  --vfs-panel-width: 25%;
+}
+
+.app-shell[data-vfs-width="50"] {
+  --vfs-panel-width: 50%;
+}
+
+.app-shell[data-vfs-width="0"] .vfs-browser-panel {
+  display: none;
 }
 
 /* Sidebar Navigation */

@@ -50,7 +50,20 @@ export async function resetSession(vfs, genesisConfig, genesisLevel, logger) {
     const preserveConfig = genesisConfig.preserveOnReset || {};
     const coreTools = buildCoreToolSet(genesisConfig, genesisLevel);
     const coreUIFiles = new Set(preserveConfig.ui || ['proto.js', 'toast.js']);
-    const coreStyles = new Set(preserveConfig.styles || ['theme.css', 'proto.css', 'wizard.css', 'vfs-explorer.css']);
+    const coreStyles = new Set(preserveConfig.styles || [
+      'rd.css',
+      'landing-mono.css',
+      'vfs-explorer.css',
+      'index.css',
+      'layout.css',
+      'components.css',
+      'history.css',
+      'panels.css',
+      'vfs.css',
+      'responsive.css',
+      'inline-chat.css',
+      'hitl.css'
+    ]);
 
     // Clear non-core tools
     const allTools = await vfs.list('/tools/');
@@ -115,7 +128,7 @@ export async function seedCodeIntel(vfs, logger) {
 
   logger.info('[Boot] Seeding FileOutline tool...');
   try {
-    const resp = await fetch('../tools/FileOutline.js');
+    const resp = await fetch('../tools/FileOutline.js', { cache: 'no-store' });
     if (!resp.ok) {
       logger.warn('[Boot] FileOutline.js not found on server, skipping seed.');
       return;
@@ -174,34 +187,26 @@ export async function hydrateVFS(vfs, genesisConfig, resolvedModules, genesisLev
 
     logger.info(`[Boot] Hydrating ${filesToSeed.size} files...`);
 
-    const refreshOnBoot = genesisConfig?.refreshOnBoot || [];
-    const refreshSet = new Set(refreshOnBoot.map(toVfsPath));
-
     const hydrateFile = async (file) => {
       const vfsPath = toVfsPath(file);
       const webPath = toWebPath(file);
-      const shouldRefresh = refreshSet.has(vfsPath);
-
-      let existingContent = null;
-      try {
-        existingContent = await vfs.read(vfsPath);
-      } catch {
-        existingContent = null;
-      }
-
-      const exists = existingContent !== null;
-      if (exists && !shouldRefresh) return;
 
       try {
-        const resp = await fetch(webPath);
+        const resp = await fetch(webPath, { cache: 'no-store' });
         if (!resp.ok) {
           logger.warn(`[Boot] Failed to fetch ${webPath} (${resp.status})`);
           return;
         }
         const contents = await resp.text();
 
-        // Skip if unchanged
-        if (exists && existingContent === contents) return;
+        // Skip write if content is identical (bandwidth/perf optimization)
+        let existingContent = null;
+        try {
+          existingContent = await vfs.read(vfsPath);
+        } catch {
+          // File doesn't exist yet
+        }
+        if (existingContent === contents) return;
 
         await vfs.write(vfsPath, contents);
         logger.info(`[Boot] Hydrated ${vfsPath}`);
