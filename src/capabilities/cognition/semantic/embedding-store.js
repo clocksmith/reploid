@@ -19,7 +19,7 @@ const EmbeddingStore = {
     const { Utils } = deps;
     const { logger, generateId, Errors } = Utils;
 
-    const DB_NAME = 'reploid-semantic-v1';
+    const DB_NAME = 'reploid-semantic-v0';
     const STORE_MEMORIES = 'memories';
     const STORE_VOCAB = 'vocabulary';
     const MAX_MEMORIES = 10000;

@@ -4,8 +4,8 @@
  * Enables REPLOID to run entirely from IndexedDB with hot-reloading.
  */
 
-const CACHE_NAME = 'reploid-modules-v2';
-const VFS_DB_NAME = 'reploid-vfs-v2';
+const CACHE_NAME = 'reploid-modules-v0';
+const VFS_DB_NAME = 'reploid-vfs-v0';
 const VFS_STORE_NAME = 'files';
 
 // Open IndexedDB connection to VFS

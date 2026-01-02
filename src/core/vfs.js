@@ -2,7 +2,7 @@
  * @fileoverview Virtual File System (VFS)
  * IndexedDB-backed storage.
  *
- * BREAKING: Uses 'reploid-vfs-v2'. Previous v1 data is ignored.
+ * Database: 'reploid-vfs-v0'
  */
 
 const VFS = {
@@ -19,7 +19,7 @@ const VFS = {
     const { Utils, EventBus } = deps;
     const { logger, Errors } = Utils;
 
-    const DB_NAME = 'reploid-vfs-v2';
+    const DB_NAME = 'reploid-vfs-v0';
     const STORE_FILES = 'files';
     let db = null;
 
