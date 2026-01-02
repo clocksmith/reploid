@@ -9,6 +9,7 @@ const SubstrateLoader = {
     id: 'SubstrateLoader',
     version: '1.0.0',
     genesis: { introduced: 'substrate' },
+    files: ['capabilities/system/substrate-loader.js', 'core/vfs-module-loader.js'],
     dependencies: ['Utils', 'VFS', 'VerificationManager?', 'VFSSandbox?', 'HITLController?'],
     type: 'capability'
   },

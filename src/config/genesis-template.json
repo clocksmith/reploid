@@ -1,21 +1,103 @@
 {
   "levels": {
+    "seed": {
+      "name": "SEED",
+      "description": "Bootstrap substrate core - 7 foundational modules",
+      "modules": [
+        "DIContainer",
+        "ErrorStore",
+        "EventBus",
+        "StateHelpersPure",
+        "StateManager",
+        "Utils",
+        "VFS"
+      ]
+    },
     "tabula": {
       "name": "TABULA RASA",
-      "description": "Minimal agent core - 13 modules for autonomous operation",
-      "modules": []
+      "description": "Minimal agent core - 11 additional modules",
+      "extends": "seed",
+      "modules": [
+        "AgentLoop",
+        "CircuitBreaker",
+        "ContextManager",
+        "LLMClient",
+        "PersonaManager",
+        "ResponseParser",
+        "SchemaRegistry",
+        "TelemetryTimeline",
+        "ToolExecutor",
+        "ToolRunner",
+        "ToolWriter"
+      ]
     },
     "reflection": {
       "name": "REFLECTION",
       "description": "Tabula + self-awareness - 6 additional modules",
       "extends": "tabula",
-      "modules": []
+      "modules": [
+        "HITLController",
+        "RateLimiter",
+        "ReflectionAnalyzer",
+        "ReflectionStore",
+        "StreamParser",
+        "VerificationManager"
+      ]
+    },
+    "cognition": {
+      "name": "COGNITION",
+      "description": "Reflection + memory and reasoning - 11 additional modules",
+      "extends": "reflection",
+      "modules": [
+        "CognitionAPI",
+        "EmbeddingStore",
+        "GEPAOptimizer",
+        "KnowledgeGraph",
+        "KnowledgeTree",
+        "MemoryManager",
+        "PromptMemory",
+        "RuleEngine",
+        "SemanticMemory",
+        "SymbolGrounder",
+        "TransformersClient"
+      ]
+    },
+    "substrate": {
+      "name": "SUBSTRATE",
+      "description": "Cognition + runtime infrastructure - 12 additional modules",
+      "extends": "cognition",
+      "modules": [
+        "AuditLogger",
+        "BrowserAPIs",
+        "GenesisSnapshot",
+        "Observability",
+        "PerformanceMonitor",
+        "PolicyEngine",
+        "ReplayEngine",
+        "SchemaValidator",
+        "SubstrateLoader",
+        "TraceStore",
+        "VFSSandbox",
+        "WorkerManager"
+      ]
     },
     "full": {
-      "name": "FULL SUBSTRATE",
-      "description": "Complete cognitive system - 15 additional modules",
-      "extends": "reflection",
-      "modules": []
+      "name": "FULL",
+      "description": "Substrate + advanced multi-agent systems - 11 additional modules",
+      "extends": "substrate",
+      "modules": [
+        "ArenaCompetitor",
+        "ArenaHarness",
+        "ArenaMetrics",
+        "Consensus",
+        "FederatedLearning",
+        "FunctionGemmaOrchestrator",
+        "MultiModelCoordinator",
+        "NeuralCompiler",
+        "SwarmSync",
+        "SwarmTransport",
+        "WebRTCSwarm"
+      ]
     }
   },
   "moduleFiles": {},
@@ -142,14 +224,37 @@
     "explore": {
       "name": "Explore",
       "description": "Read-only reconnaissance - safe information gathering",
-      "tools": ["ReadFile", "ListFiles", "FileOutline", "Grep", "Find", "Cat", "Head", "Tail", "Ls", "Pwd"],
+      "tools": [
+        "ReadFile",
+        "ListFiles",
+        "FileOutline",
+        "Grep",
+        "Find",
+        "Cat",
+        "Head",
+        "Tail",
+        "Ls",
+        "Pwd"
+      ],
       "canSpawnWorkers": false,
       "defaultModelRole": "fast"
     },
     "analyze": {
       "name": "Analyze",
       "description": "Read + draft capabilities (no persistent writes)",
-      "tools": ["ReadFile", "ListFiles", "FileOutline", "Grep", "Find", "Cat", "Head", "Tail", "Ls", "Pwd", "Jq"],
+      "tools": [
+        "ReadFile",
+        "ListFiles",
+        "FileOutline",
+        "Grep",
+        "Find",
+        "Cat",
+        "Head",
+        "Tail",
+        "Ls",
+        "Pwd",
+        "Jq"
+      ],
       "canSpawnWorkers": false,
       "defaultModelRole": "fast"
     },
@@ -162,9 +267,21 @@
     }
   },
   "modelRoles": {
-    "orchestrator": { "description": "Main agent brain - strategic thinking", "default": null },
-    "fast": { "description": "Quick tasks - exploration, summarization", "default": null },
-    "code": { "description": "Code generation and analysis", "default": null },
-    "local": { "description": "Local model for low-latency tasks", "default": null }
+    "orchestrator": {
+      "description": "Main agent brain - strategic thinking",
+      "default": null
+    },
+    "fast": {
+      "description": "Quick tasks - exploration, summarization",
+      "default": null
+    },
+    "code": {
+      "description": "Code generation and analysis",
+      "default": null
+    },
+    "local": {
+      "description": "Local model for low-latency tasks",
+      "default": null
+    }
   }
 }

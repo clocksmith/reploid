@@ -3,8 +3,10 @@
 
 const MultiModelCoordinator = {
   metadata: {
+    id: 'MultiModelCoordinator',
     name: 'MultiModelCoordinator',
-    version: '1.0.0'
+    version: '1.0.0',
+    genesis: { introduced: 'full' }
   },
 
   factory: (deps) => {

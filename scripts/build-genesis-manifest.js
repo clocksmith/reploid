@@ -11,10 +11,13 @@ import { fileURLToPath, pathToFileURL } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const ROOT = path.resolve(__dirname, '..');
+const SRC_ROOT = path.join(ROOT, 'src');
 
-const TEMPLATE_PATH = path.join(ROOT, 'config', 'genesis-template.json');
-const OUTPUT_PATH = path.join(ROOT, 'config', 'genesis-levels.json');
-const SEARCH_ROOTS = ['core', 'infrastructure', 'capabilities', 'testing'];
+const TEMPLATE_PATH = path.join(SRC_ROOT, 'config', 'genesis-template.json');
+const OUTPUT_PATH = path.join(SRC_ROOT, 'config', 'genesis-levels.json');
+const SEARCH_ROOTS = ['core', 'infrastructure', 'capabilities', 'testing'].map((dir) =>
+  path.join(SRC_ROOT, dir)
+);
 
 const toPosix = (p) => p.split(path.sep).join('/');
 
@@ -68,7 +71,7 @@ async function collectModules() {
   const modules = [];
 
   for (const root of SEARCH_ROOTS) {
-    const dir = path.join(ROOT, root);
+    const dir = root;
     let files = [];
     try {
       files = await walkFiles(dir);
