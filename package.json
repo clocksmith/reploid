@@ -25,7 +25,9 @@
     "bench": "npx tsx bin/reploid-cli.ts bench",
     "debug": "npx tsx bin/reploid-cli.ts debug",
     "cli": "node bin/reploid-cli.js",
-    "build:genesis": "node scripts/build-genesis-manifest.js"
+    "build:genesis": "node scripts/build-genesis-manifest.js",
+    "build:blueprints": "node scripts/build-blueprint-registry.js",
+    "build:vfs-manifest": "node scripts/build-vfs-manifest.js"
   },
   "keywords": [
     "reploid",

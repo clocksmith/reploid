@@ -13,7 +13,7 @@ Expand "Advanced options" on the boot page to access these settings.
 | Setting | localStorage Key | Values | Default |
 |---------|------------------|--------|---------|
 | Persona | `REPLOID_PERSONA_ID` | `default`, `architect`, `explorer`, `debugger` | `default` |
-| Genesis Level | `REPLOID_GENESIS_LEVEL` | `full`, `reflection`, `tabula` | `full` |
+| Genesis Level | `REPLOID_GENESIS_LEVEL` | `full`, `substrate`, `cognition`, `reflection`, `tabula`, `seed` | `full` |
 | Blueprint Path | `REPLOID_BLUEPRINT_PATH` | `none`, `reflection`, `full`, `beyond` | `none` |
 
 ### Execution Limits
@@ -143,7 +143,28 @@ Settings used by boot hydration and module registration.
 |-----|---------|
 | `moduleFiles` | Module entry and auxiliary files used for hydration and lazy imports |
 | `sharedFiles` | Always hydrated files (tools, UI, styles) |
+| `levels` | Genesis level ladder and module grouping |
 
 VFS hydration refreshes module and shared files from `src/` on each boot. Writes are skipped when content is byte-identical. Set `REPLOID_PRESERVE_ON_BOOT` to `'true'` to keep existing VFS files and hydrate only missing paths.
+
+---
+
+## VFS Manifest (`config/vfs-manifest.json`)
+
+List of all files under `src/` that must be hydrated into VFS on awaken.
+
+| Key | Purpose |
+|-----|---------|
+| `files` | Relative paths from `src/` to hydrate |
+
+---
+
+## Blueprint Registry (`config/blueprint-registry.json`)
+
+Canonical map of runtime JavaScript files to blueprint documents.
+
+| Key | Purpose |
+|-----|---------|
+| `features` | Blueprint entries with file lists |
 
 *Last updated: December 2025*

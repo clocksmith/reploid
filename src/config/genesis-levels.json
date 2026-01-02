@@ -1,32 +1,39 @@
 {
   "levels": {
-    "tabula": {
-      "name": "TABULA RASA",
-      "description": "Minimal agent core - 18 modules for autonomous operation",
+    "seed": {
+      "name": "SEED",
+      "description": "Bootstrap substrate core - 7 foundational modules",
       "modules": [
-        "AgentLoop",
-        "CircuitBreaker",
-        "ContextManager",
         "DIContainer",
         "ErrorStore",
         "EventBus",
-        "LLMClient",
-        "PersonaManager",
-        "ResponseParser",
-        "SchemaRegistry",
         "StateHelpersPure",
         "StateManager",
-        "TelemetryTimeline",
-        "ToolExecutor",
-        "ToolRunner",
-        "ToolWriter",
         "Utils",
         "VFS"
       ]
     },
+    "tabula": {
+      "name": "TABULA RASA",
+      "description": "Minimal agent core - 11 additional modules",
+      "extends": "seed",
+      "modules": [
+        "AgentLoop",
+        "CircuitBreaker",
+        "ContextManager",
+        "LLMClient",
+        "PersonaManager",
+        "ResponseParser",
+        "SchemaRegistry",
+        "TelemetryTimeline",
+        "ToolExecutor",
+        "ToolRunner",
+        "ToolWriter"
+      ]
+    },
     "reflection": {
       "name": "REFLECTION",
-      "description": "Tabula + self-awareness - 7 additional modules",
+      "description": "Tabula + self-awareness - 6 additional modules",
       "extends": "tabula",
       "modules": [
         "HITLController",
@@ -37,45 +44,59 @@
         "VerificationManager"
       ]
     },
-    "full": {
-      "name": "FULL SUBSTRATE",
-      "description": "Complete cognitive system - 30 additional modules",
+    "cognition": {
+      "name": "COGNITION",
+      "description": "Reflection + memory and reasoning - 11 additional modules",
       "extends": "reflection",
       "modules": [
-        "AuditLogger",
-        "BrowserAPIs",
         "CognitionAPI",
         "EmbeddingStore",
-        "FunctionGemmaOrchestrator",
         "GEPAOptimizer",
-        "GenesisSnapshot",
         "KnowledgeGraph",
         "KnowledgeTree",
         "MemoryManager",
-        "MultiModelCoordinator",
-        "FederatedLearning",
-        "NeuralCompiler",
+        "PromptMemory",
+        "RuleEngine",
+        "SemanticMemory",
+        "SymbolGrounder",
+        "TransformersClient"
+      ]
+    },
+    "substrate": {
+      "name": "SUBSTRATE",
+      "description": "Cognition + runtime infrastructure - 12 additional modules",
+      "extends": "cognition",
+      "modules": [
+        "AuditLogger",
+        "BrowserAPIs",
+        "GenesisSnapshot",
         "Observability",
         "PerformanceMonitor",
         "PolicyEngine",
         "ReplayEngine",
-        "RuleEngine",
         "SchemaValidator",
-        "SemanticMemory",
         "SubstrateLoader",
-        "SymbolGrounder",
-        "TransformersClient",
         "TraceStore",
-        "WorkerManager",
         "VFSSandbox",
+        "WorkerManager"
+      ]
+    },
+    "full": {
+      "name": "FULL",
+      "description": "Substrate + advanced multi-agent systems - 11 additional modules",
+      "extends": "substrate",
+      "modules": [
         "ArenaCompetitor",
-        "ArenaMetrics",
         "ArenaHarness",
-        "SwarmTransport",
-        "WebRTCSwarm",
-        "SwarmSync",
+        "ArenaMetrics",
         "Consensus",
-        "PromptMemory"
+        "FederatedLearning",
+        "FunctionGemmaOrchestrator",
+        "MultiModelCoordinator",
+        "NeuralCompiler",
+        "SwarmSync",
+        "SwarmTransport",
+        "WebRTCSwarm"
       ]
     }
   },
