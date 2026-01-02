@@ -5,11 +5,15 @@
 | Metric | Count |
 |--------|-------|
 | Total JavaScript Files | 146 |
-| Files with metadata.id | 79 |
-| Files in Genesis Levels | 65 |
-| Files in moduleFiles | 107 |
-| Files with Blueprints | 65 |
-| Files Hydrated to VFS | 107 |
+| Files with metadata.id | ~83 |
+| Modules in Genesis Levels | 58 |
+| Module-to-File Mappings | 58 (60 files) |
+| Files Hydrated to VFS | ~90 |
+
+Notes:
+- Genesis has 58 modules: tabula(18) + reflection(6) + full(34)
+- 2 modules map to 2 files each (SubstrateLoader, WorkerManager)
+- VFS hydrates: 60 module files + 18 shared tools + 11 full tools + 1 UI = 90 JS files
 
 ---
 
@@ -55,9 +59,9 @@
 | infrastructure/tool-executor.js | infra | YES | ToolExecutor | tabula | YES | 0x000070 | YES |
 | infrastructure/trace-store.js | infra | YES | TraceStore | full | YES | NO | YES |
 | capabilities/cognition/cognition-api.js | capability | YES | CognitionAPI | full | YES | 0x000063 | YES |
-| capabilities/cognition/episodic-memory.js | capability | NO | - | NO | NO | NO | NO |
+| capabilities/cognition/episodic-memory.js | capability | YES | EpisodicMemory | NO | NO | NO | NO |
 | capabilities/cognition/gepa-optimizer.js | capability | YES | GEPAOptimizer | full | YES | 0x000067 | YES |
-| capabilities/cognition/hybrid-retrieval.js | capability | NO | - | NO | NO | NO | NO |
+| capabilities/cognition/hybrid-retrieval.js | capability | YES | HybridRetrieval | NO | NO | NO | NO |
 | capabilities/cognition/index.js | barrel | NO | - | NO | NO | NO | NO |
 | capabilities/cognition/knowledge-tree.js | capability | YES | KnowledgeTree | full | YES | 0x000068 | YES |
 | capabilities/cognition/prompt-memory.js | capability | YES | PromptMemory | full | YES | NO | YES |
@@ -75,45 +79,45 @@
 | capabilities/intelligence/multi-model-coordinator.js | capability | BUG | MultiModelCoordinator | full | YES | NO | YES |
 | capabilities/intelligence/neural-compiler.js | capability | YES | NeuralCompiler | full | YES | 0x00007E | YES |
 | capabilities/performance/performance-monitor.js | capability | YES | PerformanceMonitor | full | YES | 0x000023 | YES |
-| capabilities/reflection/prompt-score-map.js | capability | NO | - | NO | NO | NO | NO |
+| capabilities/reflection/prompt-score-map.js | capability | YES | PromptScoreMap | NO | NO | NO | NO |
 | capabilities/reflection/reflection-analyzer.js | capability | YES | ReflectionAnalyzer | reflection | YES | 0x000032 | YES |
 | capabilities/reflection/reflection-store.js | capability | YES | ReflectionStore | reflection | YES | 0x000032 | YES |
 | capabilities/system/substrate-loader.js | capability | YES | SubstrateLoader | full | YES | 0x000071 | YES |
 | testing/arena/arena-harness.js | testing | YES | ArenaHarness | full | YES | 0x000066 | YES |
 | testing/arena/arena-metrics.js | testing | YES | ArenaMetrics | full | YES | 0x000065 | YES |
 | testing/arena/competitor.js | testing | YES | ArenaCompetitor | full | YES | 0x000064 | YES |
-| testing/arena/doppler-integration.js | testing | NO | - | NO | NO | NO | NO |
+| testing/arena/doppler-integration.js | testing | YES | DopplerArenaIntegration | NO | NO | NO | NO |
 | testing/arena/index.js | barrel | NO | - | NO | NO | NO | NO |
 | testing/arena/vfs-sandbox.js | testing | YES | VFSSandbox | full | YES | 0x000040 | YES |
 | tools/AwaitWorkers.js | tool | NO | - | full | YES | NO | YES |
-| tools/Cp.js | tool | NO | - | full | YES | NO | YES |
-| tools/CreateTool.js | tool | NO | - | full | YES | 0x000015 | YES |
-| tools/DeleteFile.js | tool | NO | - | full | YES | NO | YES |
-| tools/Edit.js | tool | NO | - | full | YES | NO | YES |
-| tools/FileOutline.js | tool | NO | - | full | YES | NO | YES |
-| tools/Find.js | tool | NO | - | full | YES | NO | YES |
-| tools/Git.js | tool | NO | - | full | YES | NO | YES |
-| tools/Grep.js | tool | NO | - | full | YES | NO | YES |
-| tools/Head.js | tool | NO | - | full | YES | NO | YES |
-| tools/ListFiles.js | tool | NO | - | full | YES | NO | YES |
+| tools/Cp.js | tool | NO | - | shared | YES | NO | YES |
+| tools/CreateTool.js | tool | NO | - | shared | YES | 0x000015 | YES |
+| tools/DeleteFile.js | tool | NO | - | shared | YES | NO | YES |
+| tools/Edit.js | tool | NO | - | shared | YES | NO | YES |
+| tools/FileOutline.js | tool | NO | - | shared | YES | NO | YES |
+| tools/Find.js | tool | NO | - | shared | YES | NO | YES |
+| tools/Git.js | tool | NO | - | shared | YES | NO | YES |
+| tools/Grep.js | tool | NO | - | shared | YES | NO | YES |
+| tools/Head.js | tool | NO | - | shared | YES | NO | YES |
+| tools/ListFiles.js | tool | NO | - | shared | YES | NO | YES |
 | tools/ListKnowledge.js | tool | NO | - | full | YES | NO | YES |
 | tools/ListMemories.js | tool | NO | - | full | YES | NO | YES |
-| tools/ListTools.js | tool | NO | - | full | YES | NO | YES |
+| tools/ListTools.js | tool | NO | - | shared | YES | NO | YES |
 | tools/ListWorkers.js | tool | NO | - | full | YES | NO | YES |
 | tools/LoadModule.js | tool | NO | - | full | YES | NO | YES |
-| tools/Ls.js | tool | NO | - | full | YES | NO | YES |
-| tools/Mkdir.js | tool | NO | - | full | YES | NO | YES |
-| tools/Mv.js | tool | NO | - | full | YES | NO | YES |
-| tools/ReadFile.js | tool | NO | - | full | YES | NO | YES |
-| tools/Rm.js | tool | NO | - | full | YES | NO | YES |
+| tools/Ls.js | tool | NO | - | shared | YES | NO | YES |
+| tools/Mkdir.js | tool | NO | - | shared | YES | NO | YES |
+| tools/Mv.js | tool | NO | - | shared | YES | NO | YES |
+| tools/ReadFile.js | tool | NO | - | shared | YES | NO | YES |
+| tools/Rm.js | tool | NO | - | shared | YES | NO | YES |
 | tools/RunGEPA.js | tool | NO | - | full | YES | NO | YES |
 | tools/SpawnWorker.js | tool | NO | - | full | YES | NO | YES |
 | tools/SwarmGetStatus.js | tool | NO | - | full | YES | NO | YES |
 | tools/SwarmListPeers.js | tool | NO | - | full | YES | NO | YES |
 | tools/SwarmRequestFile.js | tool | NO | - | full | YES | NO | YES |
 | tools/SwarmShareFile.js | tool | NO | - | full | YES | NO | YES |
-| tools/Tail.js | tool | NO | - | full | YES | NO | YES |
-| tools/WriteFile.js | tool | NO | - | full | YES | NO | YES |
+| tools/Tail.js | tool | NO | - | shared | YES | NO | YES |
+| tools/WriteFile.js | tool | NO | - | shared | YES | NO | YES |
 | tools/python/pyodide-runtime.js | tool | NO | - | NO | NO | 0x00002D | NO |
 | tools/python/pyodide-worker.js | tool | NO | - | NO | NO | NO | NO |
 | tools/python/python-tool.js | tool | NO | - | NO | NO | 0x00002E | NO |
@@ -139,7 +143,7 @@
 | ui/components/confirmation-modal.js | ui | NO | - | NO | NO | NO | NO |
 | ui/components/diff-viewer-ui.js | ui | NO | - | NO | NO | 0x00007D | NO |
 | ui/components/hitl-widget.js | ui | NO | - | NO | NO | 0x000044 | NO |
-| ui/components/inline-chat.js | ui | NO | - | NO | YES | 0x000075 | YES |
+| ui/components/inline-chat.js | ui | NO | - | NO | NO | 0x000075 | NO |
 | ui/components/toast-notifications.js | ui | NO | - | NO | NO | 0x00007C | NO |
 | ui/dashboard/metrics-dashboard.js | ui | NO | - | NO | NO | 0x000024 | NO |
 | ui/dashboard/ui-manager.js | ui | NO | - | NO | NO | 0x00000D | NO |
@@ -169,18 +173,19 @@
 ## Issues Found
 
 ### 1. Bug: multi-model-coordinator.js missing metadata.id
-File has metadata object but `id` field is missing.
+File has `metadata.name` but no `metadata.id` field. Should add `id: 'MultiModelCoordinator'`.
 
-### 2. Orphan Files (have metadata.id but NOT in genesis)
-- capabilities/cognition/episodic-memory.js
-- capabilities/cognition/hybrid-retrieval.js
-- capabilities/reflection/prompt-score-map.js
-- testing/arena/doppler-integration.js
+### 2. Orphan Modules (have metadata.id but NOT in genesis levels)
+These modules have proper metadata.id but aren't registered in genesis-levels.json:
+- `capabilities/cognition/episodic-memory.js` (EpisodicMemory)
+- `capabilities/cognition/hybrid-retrieval.js` (HybridRetrieval)
+- `capabilities/reflection/prompt-score-map.js` (PromptScoreMap)
+- `testing/arena/doppler-integration.js` (DopplerArenaIntegration)
 
-### 3. Dead Barrel Files (not imported anywhere)
+### 3. Dead Barrel Files (index.js not imported anywhere)
 - capabilities/cognition/index.js
 - testing/arena/index.js
 
-### 4. Utilities without metadata.id (intentional)
-- core/async-utils.js - used by tools
-- core/verification-worker.js - web worker
+### 4. Utilities without metadata.id (intentional - not modules)
+- core/async-utils.js - helper functions
+- core/verification-worker.js - web worker script
