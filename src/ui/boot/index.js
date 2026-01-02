@@ -386,6 +386,11 @@ function handleChange(e) {
       setNestedState('advancedConfig', { preserveOnBoot: value });
       break;
 
+    case 'advanced-genesis-level':
+      localStorage.setItem('REPLOID_GENESIS_LEVEL', value);
+      setNestedState('advancedConfig', { genesisLevel: value });
+      break;
+
     case 'proxy-url':
       setNestedState('proxyConfig', {
         url: value,
