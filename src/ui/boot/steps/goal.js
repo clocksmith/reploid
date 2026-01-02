@@ -13,6 +13,7 @@ export function renderGoalStep(state) {
   const filteredGoals = filterGoalsByCapability(GOAL_CATEGORIES, capabilities);
   const advancedOpen = !!state.advancedOpen;
   const preserveOnBoot = !!state.advancedConfig?.preserveOnBoot;
+  const genesisLevel = state.advancedConfig?.genesisLevel || 'full';
   const vfsRuntimeNote = preserveOnBoot
     ? 'Runtime: VFS preserves module and shared files on boot. Missing paths hydrate from src.'
     : 'Runtime: VFS refreshes from src on awaken. Advanced settings can preserve VFS files on boot.';
@@ -106,6 +107,22 @@ export function renderGoalStep(state) {
             <div class="advanced-code">
               <span class="type-caption">localStorage</span>
               <code>REPLOID_PRESERVE_ON_BOOT = '${preserveOnBoot ? 'true' : 'false'}'</code>
+            </div>
+          </div>
+          <div class="advanced-setting">
+            <label class="type-label" for="advanced-genesis-level">Genesis level</label>
+            <select id="advanced-genesis-level">
+              <option value="seed" ${genesisLevel === 'seed' ? 'selected' : ''}>Seed</option>
+              <option value="tabula" ${genesisLevel === 'tabula' ? 'selected' : ''}>Tabula</option>
+              <option value="reflection" ${genesisLevel === 'reflection' ? 'selected' : ''}>Reflection</option>
+              <option value="cognition" ${genesisLevel === 'cognition' ? 'selected' : ''}>Cognition</option>
+              <option value="substrate" ${genesisLevel === 'substrate' ? 'selected' : ''}>Substrate</option>
+              <option value="full" ${genesisLevel === 'full' ? 'selected' : ''}>Full</option>
+            </select>
+            <span class="type-caption">Each level is a strict superset of the previous one.</span>
+            <div class="advanced-code">
+              <span class="type-caption">localStorage</span>
+              <code>REPLOID_GENESIS_LEVEL = '${genesisLevel}'</code>
             </div>
           </div>
         </div>

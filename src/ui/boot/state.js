@@ -51,11 +51,12 @@ export const PROVIDER_TEST_ENDPOINTS = {
 
 const getStoredAdvancedConfig = () => {
   if (typeof localStorage === 'undefined') {
-    return { preserveOnBoot: false };
+    return { preserveOnBoot: false, genesisLevel: 'full' };
   }
 
   return {
-    preserveOnBoot: localStorage.getItem('REPLOID_PRESERVE_ON_BOOT') === 'true'
+    preserveOnBoot: localStorage.getItem('REPLOID_PRESERVE_ON_BOOT') === 'true',
+    genesisLevel: localStorage.getItem('REPLOID_GENESIS_LEVEL') || 'full'
   };
 };
 
@@ -121,7 +122,7 @@ const defaultState = {
   goal: null,
 
   // Genesis level (auto or manual)
-  genesisLevel: 'auto'
+  genesisLevel: 'full'
 };
 
 // Current state (module-level singleton)
