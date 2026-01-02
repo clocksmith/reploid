@@ -11,13 +11,6 @@ export const GOAL_CATEGORIES = {
   // RSI L1: Tool-level tasks
   'RSI L1: Tooling': [
     {
-      view: 'VFS heatmap index',
-      text: 'Create a tool that scans VFS, groups files by path and extension, and writes a heatmap report to /.logs/vfs-heatmap.json with counts and sizes.',
-      tags: ['VFS', 'Tool', 'Report'],
-      requires: {},
-      recommended: true
-    },
-    {
       view: 'EventBus timeline log',
       text: 'Build a tool that subscribes to EventBus, captures the last 200 events with timestamps and channels, and writes them to /.logs/eventbus-trace.json.',
       tags: ['EventBus', 'Tool', 'Telemetry'],
@@ -40,6 +33,13 @@ export const GOAL_CATEGORIES = {
       text: 'Create a tool that checks HITL Controller state and writes a short audit to /.logs/hitl-audit.md.',
       tags: ['HITL', 'Tool', 'Audit'],
       requires: {}
+    },
+    {
+      view: 'Katamari 3D DOM collector',
+      text: 'Create a tool that scans the live DOM, collects element bounds, tags, and nesting depth, then writes a katamari-ready dataset to /.logs/katamari-dom.json.',
+      tags: ['DOM', 'Tool', 'UI'],
+      requires: {},
+      recommended: true
     }
   ],
 
@@ -86,9 +86,9 @@ export const GOAL_CATEGORIES = {
   // RSI L3: Substrate-level changes
   'RSI L3: Substrate': [
     {
-      view: 'Fix GEPA injection',
-      text: 'Diagnose why GEPAOptimizer, PromptMemory, or ArenaHarness are not injected at runtime despite genesis registration, then patch SubstrateLoader or module init order and add a runtime health check.',
-      tags: ['GEPA', 'Substrate', 'DI'],
+      view: 'Substrate module wiring audit',
+      text: 'Add a runtime audit that verifies DI injection for GEPAOptimizer, PromptMemory, ArenaHarness, WorkerManager, and SubstrateLoader. Log results to VFS and surface a health summary panel.',
+      tags: ['Substrate', 'DI', 'Diagnostics'],
       requires: { reasoning: 'high' },
       lockReason: 'Needs stronger model',
       recommended: true
@@ -153,6 +153,13 @@ export const GOAL_CATEGORIES = {
       tags: ['EventBus', 'UI', 'RSI'],
       requires: { reasoning: 'high' },
       lockReason: 'Needs stronger model'
+    },
+    {
+      view: 'Blueprint drift sentinel',
+      text: 'Add an RSI loop that diffs runtime code against the blueprint registry, proposes updates, runs VerificationWorker, and writes a drift report to VFS.',
+      tags: ['Blueprints', 'Registry', 'RSI'],
+      requires: { reasoning: 'high' },
+      lockReason: 'Needs stronger model'
     }
   ],
 
@@ -160,7 +167,7 @@ export const GOAL_CATEGORIES = {
   'RSI Very Hard': [
     {
       view: 'Deterministic substrate bootstrap',
-      text: 'Design a deterministic SubstrateLoader boot order that guarantees DI injection for GEPAOptimizer, WorkerManager, ArenaHarness, and PromptMemory, with tests and a debug panel for module health.',
+      text: 'Formalize a deterministic SubstrateLoader boot order that guarantees DI injection for GEPAOptimizer, WorkerManager, ArenaHarness, and PromptMemory, with tests and a module health panel.',
       tags: ['Substrate', 'DI', 'Tests'],
       requires: { reasoning: 'high' },
       lockReason: 'Needs stronger model',
@@ -184,6 +191,13 @@ export const GOAL_CATEGORIES = {
       view: 'Multi agent arena orchestration',
       text: 'Orchestrate a multi agent arena run across models, stream results to UI, and persist the consensus trace.',
       tags: ['Arena', 'Swarm', 'UI'],
+      requires: { reasoning: 'high' },
+      lockReason: 'Needs stronger model'
+    },
+    {
+      view: 'Genesis ladder compliance suite',
+      text: 'Build a harness that boots each genesis level in sequence, validates module availability and VFS hydration, and writes a compliance report to VFS.',
+      tags: ['Genesis', 'Verification', 'Automation'],
       requires: { reasoning: 'high' },
       lockReason: 'Needs stronger model'
     }
@@ -217,6 +231,13 @@ export const GOAL_CATEGORIES = {
       view: 'Weight diff ledger',
       text: 'Capture weight diffs across runs and write a compact ledger with hashes to VFS.',
       tags: ['Doppler', 'Weights', 'VFS'],
+      requires: { doppler: true, model: true },
+      lockReason: 'Requires Doppler'
+    },
+    {
+      view: 'Neuron ablation study',
+      text: 'Ablate neuron groups in Doppler, measure behavior deltas, and write a ranked ablation map to VFS.',
+      tags: ['Doppler', 'Ablation', 'Analysis'],
       requires: { doppler: true, model: true },
       lockReason: 'Requires Doppler'
     }
