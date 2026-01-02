@@ -3,7 +3,7 @@
  * Exports all cognition-related modules for registration.
  *
  * Memory System Components:
- * - EmbeddingStore: IndexedDB-backed vector storage with temporal indexing
+ * - EmbeddingStore: VFS-backed vector storage with temporal indexing
  * - SemanticMemory: Embedding generation and similarity search
  * - KnowledgeTree: RAPTOR-style hierarchical clustering with hybrid retrieval
  * - EpisodicMemory: Full conversation message storage with embeddings

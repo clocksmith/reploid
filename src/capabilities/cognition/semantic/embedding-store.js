@@ -1,27 +1,29 @@
 /**
  * @fileoverview Embedding Store
- * IndexedDB-backed storage for semantic memory embeddings.
+ * VFS-backed storage for semantic memory embeddings.
  * Provides vector storage, similarity search, temporal indexing,
  * and Ebbinghaus-style adaptive forgetting.
+ *
+ * Storage: /.memory/embeddings/*.json (one file per memory)
+ *          /.memory/vocab.json (vocabulary index)
  */
 
 const EmbeddingStore = {
   metadata: {
     id: 'EmbeddingStore',
-    version: '2.0.0',
+    version: '3.0.0',
     genesis: { introduced: 'full' },
-    dependencies: ['Utils'],
+    dependencies: ['Utils', 'VFS'],
     async: true,
     type: 'service'
   },
 
   factory: (deps) => {
-    const { Utils } = deps;
+    const { Utils, VFS } = deps;
     const { logger, generateId, Errors } = Utils;
 
-    const DB_NAME = 'reploid-semantic-v0';
-    const STORE_MEMORIES = 'memories';
-    const STORE_VOCAB = 'vocabulary';
+    const MEMORY_DIR = '/.memory/embeddings';
+    const VOCAB_PATH = '/.memory/vocab.json';
     const MAX_MEMORIES = 10000;
 
     // Adaptive forgetting configuration (Ebbinghaus-style)
@@ -32,62 +34,57 @@ const EmbeddingStore = {
       importanceBoostFactor: 0.25      // Importance metadata boost
     };
 
-    let db = null;
+    let initialized = false;
+
+    // --- Helpers ---
+
+    const memoryPath = (id) => `${MEMORY_DIR}/${id}.json`;
+
+    const ensureDir = async () => {
+      if (!initialized) {
+        try {
+          const exists = await VFS.exists(MEMORY_DIR);
+          if (!exists) {
+            await VFS.mkdir(MEMORY_DIR);
+          }
+        } catch {
+          // Directory may already exist
+        }
+        initialized = true;
+      }
+    };
+
+    const readJSON = async (path) => {
+      try {
+        const content = await VFS.read(path);
+        return JSON.parse(content);
+      } catch {
+        return null;
+      }
+    };
+
+    const writeJSON = async (path, data) => {
+      await VFS.write(path, JSON.stringify(data));
+    };
 
     // --- Database Setup ---
 
-    const openDB = () => {
-      return new Promise((resolve, reject) => {
-        if (db) return resolve(db);
-
-        const request = indexedDB.open(DB_NAME, 1);
-
-        request.onupgradeneeded = (event) => {
-          const d = event.target.result;
-
-          // Memories store
-          if (!d.objectStoreNames.contains(STORE_MEMORIES)) {
-            const memStore = d.createObjectStore(STORE_MEMORIES, { keyPath: 'id' });
-            memStore.createIndex('timestamp', 'timestamp', { unique: false });
-            memStore.createIndex('domain', 'domain', { unique: false });
-            memStore.createIndex('accessCount', 'accessCount', { unique: false });
-          }
-
-          // Vocabulary store
-          if (!d.objectStoreNames.contains(STORE_VOCAB)) {
-            const vocabStore = d.createObjectStore(STORE_VOCAB, { keyPath: 'token' });
-            vocabStore.createIndex('frequency', 'frequency', { unique: false });
-            vocabStore.createIndex('lastSeen', 'lastSeen', { unique: false });
-          }
-        };
-
-        request.onsuccess = (e) => {
-          db = e.target.result;
-          logger.info('[EmbeddingStore] Database connected');
-          resolve(db);
-        };
-
-        request.onerror = () => {
-          reject(new Errors.StateError('Failed to open EmbeddingStore DB'));
-        };
-      });
-    };
-
     const init = async () => {
-      await openDB();
+      await ensureDir();
+      logger.info('[EmbeddingStore] Initialized (VFS-backed)');
       return true;
     };
 
     // --- Memory Operations ---
 
     const addMemory = async (memory) => {
-      await openDB();
+      await ensureDir();
       const id = memory.id || generateId('mem');
 
       const entry = {
         id,
         content: memory.content,
-        embedding: memory.embedding, // Float32Array or array
+        embedding: memory.embedding, // Array
         domain: memory.domain || 'general',
         timestamp: Date.now(),
         accessCount: 0,
@@ -95,63 +92,53 @@ const EmbeddingStore = {
         metadata: memory.metadata || {}
       };
 
-      return new Promise((resolve, reject) => {
-        const tx = db.transaction([STORE_MEMORIES], 'readwrite');
-        const store = tx.objectStore(STORE_MEMORIES);
-        store.put(entry).onsuccess = () => {
-          logger.debug(`[EmbeddingStore] Added memory: ${id}`);
-          resolve(id);
-        };
-        tx.onerror = () => reject(new Errors.ArtifactError(`Failed to add memory: ${id}`));
-      });
+      await writeJSON(memoryPath(id), entry);
+      logger.debug(`[EmbeddingStore] Added memory: ${id}`);
+      return id;
     };
 
     const getMemory = async (id) => {
-      await openDB();
-      return new Promise((resolve, reject) => {
-        const tx = db.transaction([STORE_MEMORIES], 'readonly');
-        const req = tx.objectStore(STORE_MEMORIES).get(id);
-        req.onsuccess = () => resolve(req.result || null);
-        req.onerror = () => reject(new Errors.ArtifactError(`Failed to get memory: ${id}`));
-      });
+      await ensureDir();
+      return readJSON(memoryPath(id));
     };
 
     const getAllMemories = async () => {
-      await openDB();
-      return new Promise((resolve, reject) => {
-        const tx = db.transaction([STORE_MEMORIES], 'readonly');
-        const req = tx.objectStore(STORE_MEMORIES).getAll();
-        req.onsuccess = () => resolve(req.result || []);
-        req.onerror = () => reject(new Errors.ArtifactError('Failed to get all memories'));
-      });
+      await ensureDir();
+      try {
+        const files = await VFS.list(MEMORY_DIR);
+        const memories = [];
+
+        for (const file of files) {
+          if (file.endsWith('.json')) {
+            const memory = await readJSON(file);
+            if (memory) memories.push(memory);
+          }
+        }
+
+        return memories;
+      } catch {
+        return [];
+      }
     };
 
     const updateAccessCount = async (id) => {
-      await openDB();
       const memory = await getMemory(id);
       if (!memory) return;
 
       memory.accessCount = (memory.accessCount || 0) + 1;
-
-      return new Promise((resolve, reject) => {
-        const tx = db.transaction([STORE_MEMORIES], 'readwrite');
-        const store = tx.objectStore(STORE_MEMORIES);
-        store.put(memory).onsuccess = () => resolve(true);
-        tx.onerror = () => reject(new Errors.ArtifactError(`Failed to update access count: ${id}`));
-      });
+      await writeJSON(memoryPath(id), memory);
+      return true;
     };
 
     const deleteMemory = async (id) => {
-      await openDB();
-      return new Promise((resolve, reject) => {
-        const tx = db.transaction([STORE_MEMORIES], 'readwrite');
-        const req = tx.objectStore(STORE_MEMORIES).delete(id);
-        req.onsuccess = () => {
-          logger.debug(`[EmbeddingStore] Deleted memory: ${id}`);
-          resolve(true);
-        };
-        req.onerror = () => reject(new Errors.ArtifactError(`Failed to delete memory: ${id}`));
-      });
+      await ensureDir();
+      try {
+        await VFS.delete(memoryPath(id));
+        logger.debug(`[EmbeddingStore] Deleted memory: ${id}`);
+        return true;
+      } catch {
+        return false;
+      }
     };
 
     // --- Similarity Search ---
@@ -203,42 +190,25 @@ const EmbeddingStore = {
     // --- Vocabulary Operations ---
 
     const updateVocabulary = async (tokens) => {
-      await openDB();
+      await ensureDir();
       const now = Date.now();
+      let vocab = await readJSON(VOCAB_PATH) || {};
 
-      return new Promise((resolve, reject) => {
-        const tx = db.transaction([STORE_VOCAB], 'readwrite');
-        const store = tx.objectStore(STORE_VOCAB);
+      for (const token of tokens) {
+        const existing = vocab[token] || { token, frequency: 0, domains: [] };
+        existing.frequency += 1;
+        existing.lastSeen = now;
+        vocab[token] = existing;
+      }
 
-        let completed = 0;
-        const total = tokens.length;
-
-        for (const token of tokens) {
-          const getReq = store.get(token);
-          getReq.onsuccess = () => {
-            const existing = getReq.result;
-            const entry = existing || { token, frequency: 0, domains: [] };
-            entry.frequency += 1;
-            entry.lastSeen = now;
-            store.put(entry);
-            completed++;
-            if (completed === total) resolve(true);
-          };
-        }
-
-        if (total === 0) resolve(true);
-        tx.onerror = () => reject(new Errors.ArtifactError('Failed to update vocabulary'));
-      });
+      await writeJSON(VOCAB_PATH, vocab);
+      return true;
     };
 
     const getVocabulary = async () => {
-      await openDB();
-      return new Promise((resolve, reject) => {
-        const tx = db.transaction([STORE_VOCAB], 'readonly');
-        const req = tx.objectStore(STORE_VOCAB).getAll();
-        req.onsuccess = () => resolve(req.result || []);
-        req.onerror = () => reject(new Errors.ArtifactError('Failed to get vocabulary'));
-      });
+      await ensureDir();
+      const vocab = await readJSON(VOCAB_PATH) || {};
+      return Object.values(vocab);
     };
 
     // --- Maintenance ---
@@ -284,17 +254,19 @@ const EmbeddingStore = {
     };
 
     const clear = async () => {
-      await openDB();
-      return new Promise((resolve, reject) => {
-        const tx = db.transaction([STORE_MEMORIES, STORE_VOCAB], 'readwrite');
-        tx.objectStore(STORE_MEMORIES).clear();
-        tx.objectStore(STORE_VOCAB).clear();
-        tx.oncomplete = () => {
-          logger.info('[EmbeddingStore] Cleared all data');
-          resolve(true);
-        };
-        tx.onerror = () => reject(new Errors.ArtifactError('Failed to clear store'));
-      });
+      await ensureDir();
+      try {
+        const files = await VFS.list(MEMORY_DIR);
+        for (const file of files) {
+          await VFS.delete(file);
+        }
+        await VFS.delete(VOCAB_PATH);
+        logger.info('[EmbeddingStore] Cleared all data');
+        return true;
+      } catch (e) {
+        logger.warn('[EmbeddingStore] Clear failed:', e.message);
+        return false;
+      }
     };
 
     // --- Temporal Indexing & Contiguity Search ---
@@ -495,19 +467,30 @@ const EmbeddingStore = {
      * @returns {Promise<boolean>} Success status
      */
     const updateImportance = async (id, importance) => {
-      await openDB();
       const memory = await getMemory(id);
       if (!memory) return false;
 
       memory.metadata = memory.metadata || {};
       memory.metadata.importance = Math.max(0, Math.min(1, importance));
 
-      return new Promise((resolve, reject) => {
-        const tx = db.transaction([STORE_MEMORIES], 'readwrite');
-        const store = tx.objectStore(STORE_MEMORIES);
-        store.put(memory).onsuccess = () => resolve(true);
-        tx.onerror = () => reject(new Errors.ArtifactError(`Failed to update importance: ${id}`));
-      });
+      await writeJSON(memoryPath(id), memory);
+      return true;
+    };
+
+    /**
+     * Update memory metadata or content.
+     *
+     * @param {string} id - Memory ID
+     * @param {Object} updates - Fields to update
+     * @returns {Promise<boolean>} Success status
+     */
+    const updateMemory = async (id, updates) => {
+      const memory = await getMemory(id);
+      if (!memory) return false;
+
+      Object.assign(memory, updates);
+      await writeJSON(memoryPath(id), memory);
+      return true;
     };
 
     /**
@@ -558,6 +541,7 @@ const EmbeddingStore = {
       getMemory,
       getAllMemories,
       deleteMemory,
+      updateMemory,
       searchSimilar,
       searchWithContiguity,
       searchWithRetention,
@@ -569,6 +553,7 @@ const EmbeddingStore = {
       pruneOldMemories,
       pruneByRetention,
       computeRetentionScore,
+      updateAccessCount,
       updateImportance,
       getMemoriesByRetention,
       configureForgetting,

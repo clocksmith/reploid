@@ -350,13 +350,12 @@ const PromptMemory = {
 
       // Update EmbeddingStore metadata
       try {
-        const memory = await EmbeddingStore.getMemory(promptId);
-        if (memory) {
-          memory.metadata = memory.metadata || {};
-          memory.metadata.executionCount = perfData.executions.length;
-          memory.metadata.recentStats = perfData.recentStats;
-          // Note: EmbeddingStore may need an updateMemory method
-        }
+        await EmbeddingStore.updateMemory(promptId, {
+          metadata: {
+            executionCount: perfData.executions.length,
+            recentStats: perfData.recentStats
+          }
+        });
       } catch (err) {
         logger.debug('[PromptMemory] Could not update memory metadata', err.message);
       }
