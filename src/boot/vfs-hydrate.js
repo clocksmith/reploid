@@ -17,10 +17,18 @@ const toVfsPath = (file) => {
 
 /**
  * Convert file path to web fetch path.
- * @param {string} file - File path
- * @returns {string} Web path
+ * File paths in config are relative to src/ (e.g., "core/vfs.js").
+ * Since this file is in src/boot/, we need to go up one level.
+ * @param {string} file - File path from src/
+ * @returns {string} Web path for fetch
  */
-const toWebPath = (file) => (file.startsWith('./') ? file : `./${file}`);
+const toWebPath = (file) => {
+  if (file.startsWith('./') || file.startsWith('../')) {
+    return file;
+  }
+  // Paths are relative to src/, but we're in src/boot/, so go up one level
+  return `../${file}`;
+};
 
 /**
  * Reset session artifacts from VFS.
@@ -107,7 +115,7 @@ export async function seedCodeIntel(vfs, logger) {
 
   logger.info('[Boot] Seeding FileOutline tool...');
   try {
-    const resp = await fetch('./tools/FileOutline.js');
+    const resp = await fetch('../tools/FileOutline.js');
     if (!resp.ok) {
       logger.warn('[Boot] FileOutline.js not found on server, skipping seed.');
       return;

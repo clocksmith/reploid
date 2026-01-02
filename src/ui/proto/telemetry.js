@@ -4,7 +4,7 @@
 
 import { formatTimestamp, formatPayloadSummary } from './utils.js';
 
-const TELEMETRY_LIMIT = 200;
+const TELEMETRY_LIMIT = 1000;
 
 export const createTelemetryManager = (deps) => {
   const { logger, escapeHtml } = deps;

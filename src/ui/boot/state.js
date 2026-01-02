@@ -100,8 +100,8 @@ const defaultState = {
     verifyState: VERIFY_STATE.UNVERIFIED
   },
 
-  // Whether to also use Doppler for substrate access
-  enableDopplerSubstrate: false,
+  // Whether to also use Doppler for model access (LoRA, activations, weights)
+  enableModelAccess: false,
 
   // Selected goal
   goal: null,
@@ -294,7 +294,7 @@ export function saveConfig() {
     });
   }
 
-  if ((connectionType === 'browser' || state.enableDopplerSubstrate) && dopplerConfig.model) {
+  if ((connectionType === 'browser' || state.enableModelAccess) && dopplerConfig.model) {
     models.push({
       id: dopplerConfig.model,
       name: dopplerConfig.model,
@@ -368,7 +368,7 @@ export function canAwaken() {
  * Get capability level based on current config
  */
 export function getCapabilityLevel() {
-  const { connectionType, directConfig, proxyConfig, enableDopplerSubstrate, detection } = state;
+  const { connectionType, directConfig, proxyConfig, enableModelAccess, detection } = state;
 
   // Determine reasoning capability
   let reasoning = 'low';
@@ -387,14 +387,14 @@ export function getCapabilityLevel() {
     }
   }
 
-  // Determine substrate access
-  const hasSubstrateAccess = connectionType === 'browser' || enableDopplerSubstrate;
+  // Determine model access (LoRA, activations, weights via Doppler)
+  const hasModelAccess = connectionType === 'browser' || enableModelAccess;
 
   return {
     reasoning,
-    substrate: hasSubstrateAccess,
+    model: hasModelAccess,
     // For goal filtering
-    canDoSubstrateRSI: hasSubstrateAccess,
+    canDoModelRSI: hasModelAccess,
     canDoBehavioralRSI: reasoning === 'high' || reasoning === 'medium',
     canDoComplexReasoning: reasoning === 'high'
   };

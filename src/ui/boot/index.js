@@ -364,7 +364,7 @@ function handleChange(e) {
       break;
 
     case 'enable-doppler':
-      setState({ enableDopplerSubstrate: value });
+      setState({ enableModelAccess: value });
       if (value && !getState().dopplerConfig.model) {
         setNestedState('dopplerConfig', { model: 'smollm2-360m' });
       }

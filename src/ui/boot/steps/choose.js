@@ -40,7 +40,7 @@ export function renderChooseStep(state) {
             ? 'Run models locally in your browser via WebGPU (Doppler)'
             : 'WebGPU not supported in this browser'}</span>
           <div class="option-capabilities">
-            <span class="tag">★ Full substrate access</span>
+            <span class="tag">★ Full model access</span>
             <span class="tag">★ Private</span>
             <span class="tag">△ Limited reasoning</span>
           </div>

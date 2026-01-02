@@ -208,7 +208,15 @@ export const createVFSManager = (deps) => {
     const contentBody = document.getElementById('vfs-content-body');
     const pathEl = document.getElementById('vfs-current-path');
 
-    if (!contentBody || !_vfs) return;
+    if (!vfsContent || !contentBody || !_vfs) {
+      logger.warn('[VFSManager] Cannot load file - missing elements or VFS:', {
+        hasVfsContent: !!vfsContent,
+        hasContentBody: !!contentBody,
+        hasVfs: !!_vfs,
+        path
+      });
+      return;
+    }
 
     const previousPath = _currentFilePath;
     _currentFilePath = path;
@@ -226,6 +234,10 @@ export const createVFSManager = (deps) => {
         panel.classList.add('hidden');
       });
       vfsContent.classList.remove('hidden');
+    } else {
+      // Fallback: just try to show vfsContent directly
+      logger.warn('[VFSManager] .app-shell not found, showing vfsContent directly');
+      vfsContent.classList.remove('hidden');
     }
 
     try {
@@ -238,8 +250,8 @@ export const createVFSManager = (deps) => {
         } catch (e) { /* not valid JSON */ }
       }
 
-      contentHeader.classList.remove('hidden');
-      pathEl.textContent = path;
+      if (contentHeader) contentHeader.classList.remove('hidden');
+      if (pathEl) pathEl.textContent = path;
       contentBody.innerHTML = `<pre>${escapeHtml(displayContent)}</pre>`;
 
       const previewBtn = document.getElementById('vfs-preview-btn');
@@ -250,13 +262,16 @@ export const createVFSManager = (deps) => {
       }
 
       const stat = await _vfs.stat(path);
-      if (stat) {
+      if (stat && pathEl) {
         const size = stat.size > 1024 ? `${(stat.size / 1024).toFixed(1)}KB` : `${stat.size}B`;
         const updated = new Date(stat.updated).toLocaleString();
         pathEl.title = `Size: ${size} | Modified: ${updated}`;
       }
     } catch (e) {
-      contentBody.innerHTML = `<div class="text-danger">Error reading ${path}: ${e.message}</div>`;
+      logger.error('[VFSManager] Error reading file:', path, e);
+      if (contentHeader) contentHeader.classList.remove('hidden');
+      if (pathEl) pathEl.textContent = path;
+      contentBody.innerHTML = `<div class="text-danger">Error reading ${escapeHtml(path)}: ${escapeHtml(e.message)}</div>`;
     }
   };
 

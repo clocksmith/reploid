@@ -27,7 +27,7 @@ export const CLOUD_MODELS = {
  * Render DIRECT_CONFIG step - Direct cloud API with keys in browser
  */
 export function renderDirectConfigStep(state) {
-  const { directConfig, detection, enableDopplerSubstrate, dopplerConfig } = state;
+  const { directConfig, detection, enableModelAccess, dopplerConfig } = state;
   const isOther = directConfig.provider === 'other';
   const models = directConfig.provider && !isOther ? (CLOUD_MODELS[directConfig.provider] || []) : [];
 
@@ -126,16 +126,16 @@ export function renderDirectConfigStep(state) {
         </div>
 
         ${detection.webgpu.supported ? `
-          <div class="form-row substrate-option">
+          <div class="form-row model-access-option">
             <label class="checkbox-label">
               <input type="checkbox"
                      id="enable-doppler"
-                     ${enableDopplerSubstrate ? 'checked' : ''} />
-              <span>Also enable Doppler for substrate access</span>
+                     ${enableModelAccess ? 'checked' : ''} />
+              <span>Also enable Doppler for model access</span>
             </label>
             <span class="type-caption">Enables LoRA, activation steering, weight inspection</span>
           </div>
-          ${enableDopplerSubstrate ? `
+          ${enableModelAccess ? `
             <div class="form-row doppler-model-inline">
               <label class="type-label">Doppler Model</label>
               <select id="doppler-model-inline">
