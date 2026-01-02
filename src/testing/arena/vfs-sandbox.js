@@ -7,6 +7,7 @@ const VFSSandbox = {
   metadata: {
     id: 'VFSSandbox',
     version: '1.0.0',
+    genesis: { introduced: 'substrate' },
     dependencies: ['VFS', 'Utils'],
     async: false,
     type: 'utility'

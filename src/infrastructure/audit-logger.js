@@ -9,7 +9,7 @@ const AuditLogger = {
   metadata: {
     id: 'AuditLogger',
     version: '1.1.0',
-    genesis: { introduced: 'full' },
+    genesis: { introduced: 'substrate' },
     dependencies: ['Utils', 'VFS', 'EventBus?', 'TelemetryTimeline?'],
     async: true,
     type: 'infrastructure'

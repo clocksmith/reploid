@@ -12,7 +12,7 @@ const EmbeddingStore = {
   metadata: {
     id: 'EmbeddingStore',
     version: '3.0.0',
-    genesis: { introduced: 'full' },
+    genesis: { introduced: 'cognition' },
     dependencies: ['Utils', 'VFS'],
     async: true,
     type: 'service'

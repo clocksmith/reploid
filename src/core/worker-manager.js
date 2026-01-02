@@ -10,7 +10,7 @@ const WorkerManager = {
   metadata: {
     id: 'WorkerManager',
     version: '1.0.0',
-    genesis: { introduced: 'full' },
+    genesis: { introduced: 'substrate' },
     files: ['core/worker-manager.js', 'core/worker-agent.js'],
     dependencies: ['Utils', 'VFS', 'LLMClient', 'ToolRunner', 'ResponseParser', 'EventBus', 'AuditLogger?', 'SchemaRegistry?', 'ToolExecutor', 'TraceStore?'],
     async: true,

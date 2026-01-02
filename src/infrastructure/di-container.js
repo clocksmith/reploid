@@ -7,6 +7,7 @@ const DIContainer = {
   metadata: {
     id: 'DIContainer',
     version: '1.0.0',
+    genesis: { introduced: 'seed' },
     dependencies: ['Utils'],
     type: 'infrastructure'
   },

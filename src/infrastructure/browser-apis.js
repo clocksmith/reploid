@@ -5,6 +5,7 @@ const BrowserAPIs = {
   metadata: {
     id: 'BrowserAPIs',
     version: '1.0.0',
+    genesis: { introduced: 'substrate' },
     dependencies: ['Utils', 'EventBus', 'StateManager'],
     async: true,
     type: 'capability'

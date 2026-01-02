@@ -762,7 +762,7 @@ const SchemaValidator = {
   metadata: {
     id: 'SchemaValidator',
     version: '1.0.0',
-    genesis: { introduced: 'tabula' },
+    genesis: { introduced: 'substrate' },
     dependencies: ['Utils'],
     async: false,
     type: 'service'

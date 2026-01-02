@@ -17,7 +17,7 @@ const GEPAOptimizer = {
   metadata: {
     id: 'GEPAOptimizer',
     version: '2.0.0',
-    genesis: { introduced: 'full' },
+    genesis: { introduced: 'cognition' },
     dependencies: ['LLMClient', 'EventBus', 'Utils', 'VFS', 'PersonaManager?', 'ArenaHarness?', 'PromptMemory?'],
     async: true,
     type: 'capability'

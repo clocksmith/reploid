@@ -7,7 +7,7 @@ const StateManager = {
   metadata: {
     id: 'StateManager',
     version: '1.0.0',
-    genesis: { introduced: 'tabula' },
+    genesis: { introduced: 'seed' },
     dependencies: ['Utils', 'VFS', 'StateHelpersPure', 'EventBus', 'AuditLogger?'], // Optional AuditLogger
     async: true,
     type: 'service'

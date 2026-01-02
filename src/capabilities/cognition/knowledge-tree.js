@@ -11,7 +11,7 @@ const KnowledgeTree = {
   metadata: {
     id: 'KnowledgeTree',
     version: '2.0.0',
-    genesis: { introduced: 'full' },
+    genesis: { introduced: 'cognition' },
     dependencies: ['Utils', 'VFS', 'LLMClient', 'SemanticMemory', 'EventBus'],
     async: true,
     type: 'capability'

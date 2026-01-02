@@ -15,7 +15,7 @@ const PolicyEngine = {
   metadata: {
     id: 'PolicyEngine',
     version: '1.0.0',
-    genesis: { introduced: 'full' },
+    genesis: { introduced: 'substrate' },
     dependencies: ['Utils', 'VFS', 'EventBus'],
     optional: ['AuditLogger', 'RuleEngine'],
     async: true,
