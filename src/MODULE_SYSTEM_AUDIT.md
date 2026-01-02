@@ -5,15 +5,15 @@
 | Metric | Count |
 |--------|-------|
 | Total JavaScript Files | 146 |
-| Files with metadata.id | ~83 |
+| Files with metadata.id | ~80 |
 | Modules in Genesis Levels | 58 |
-| Module-to-File Mappings | 58 (60 files) |
+| Module-to-File Mappings | 58 |
 | Files Hydrated to VFS | ~90 |
 
 Notes:
 - Genesis has 58 modules: tabula(18) + reflection(6) + full(34)
-- 2 modules map to 2 files each (SubstrateLoader, WorkerManager)
-- VFS hydrates: 60 module files + 18 shared tools + 11 full tools + 1 UI = 90 JS files
+- Tools are in sharedFiles/levelFiles, NOT moduleFiles
+- VFS hydrates: moduleFiles + sharedFiles + levelFiles
 
 ---
 
@@ -38,9 +38,9 @@ Notes:
 | core/utils.js | core | YES | Utils | tabula | YES | 0x000003 | YES |
 | core/verification-manager.js | core | YES | VerificationManager | reflection | YES | 0x000040 | YES |
 | core/verification-worker.js | worker | NO | - | NO | NO | 0x00002A | NO |
-| core/vfs-module-loader.js | core | YES | SubstrateLoader | full | YES | 0x000071 | YES |
+| core/vfs-module-loader.js | core | NO | - | full | YES | 0x000071 | YES |
 | core/vfs.js | core | YES | VFS | tabula | YES | 0x000011 | YES |
-| core/worker-agent.js | core | YES | WorkerManager | full | YES | NO | YES |
+| core/worker-agent.js | core | NO | - | full | YES | NO | YES |
 | core/worker-manager.js | core | YES | WorkerManager | full | YES | 0x000047 | YES |
 | infrastructure/audit-logger.js | infra | YES | AuditLogger | full | YES | 0x00002B | YES |
 | infrastructure/browser-apis.js | infra | YES | BrowserAPIs | full | YES | 0x000037 | YES |
@@ -89,38 +89,38 @@ Notes:
 | testing/arena/doppler-integration.js | testing | YES | DopplerArenaIntegration | NO | NO | NO | NO |
 | testing/arena/index.js | barrel | NO | - | NO | NO | NO | NO |
 | testing/arena/vfs-sandbox.js | testing | YES | VFSSandbox | full | YES | 0x000040 | YES |
-| tools/AwaitWorkers.js | tool | NO | - | full | YES | NO | YES |
-| tools/Cp.js | tool | NO | - | shared | YES | NO | YES |
-| tools/CreateTool.js | tool | NO | - | shared | YES | 0x000015 | YES |
-| tools/DeleteFile.js | tool | NO | - | shared | YES | NO | YES |
-| tools/Edit.js | tool | NO | - | shared | YES | NO | YES |
-| tools/FileOutline.js | tool | NO | - | shared | YES | NO | YES |
-| tools/Find.js | tool | NO | - | shared | YES | NO | YES |
-| tools/Git.js | tool | NO | - | shared | YES | NO | YES |
-| tools/Grep.js | tool | NO | - | shared | YES | NO | YES |
-| tools/Head.js | tool | NO | - | shared | YES | NO | YES |
-| tools/ListFiles.js | tool | NO | - | shared | YES | NO | YES |
-| tools/ListKnowledge.js | tool | NO | - | full | YES | NO | YES |
-| tools/ListMemories.js | tool | NO | - | full | YES | NO | YES |
-| tools/ListTools.js | tool | NO | - | shared | YES | NO | YES |
-| tools/ListWorkers.js | tool | NO | - | full | YES | NO | YES |
-| tools/LoadModule.js | tool | NO | - | full | YES | NO | YES |
-| tools/Ls.js | tool | NO | - | shared | YES | NO | YES |
-| tools/Mkdir.js | tool | NO | - | shared | YES | NO | YES |
-| tools/Mv.js | tool | NO | - | shared | YES | NO | YES |
-| tools/ReadFile.js | tool | NO | - | shared | YES | NO | YES |
-| tools/Rm.js | tool | NO | - | shared | YES | NO | YES |
-| tools/RunGEPA.js | tool | NO | - | full | YES | NO | YES |
-| tools/SpawnWorker.js | tool | NO | - | full | YES | NO | YES |
-| tools/SwarmGetStatus.js | tool | NO | - | full | YES | NO | YES |
-| tools/SwarmListPeers.js | tool | NO | - | full | YES | NO | YES |
-| tools/SwarmRequestFile.js | tool | NO | - | full | YES | NO | YES |
-| tools/SwarmShareFile.js | tool | NO | - | full | YES | NO | YES |
-| tools/Tail.js | tool | NO | - | shared | YES | NO | YES |
-| tools/WriteFile.js | tool | NO | - | shared | YES | NO | YES |
-| tools/python/pyodide-runtime.js | tool | NO | - | NO | NO | 0x00002D | NO |
+| tools/AwaitWorkers.js | tool | NO | - | full | NO | NO | YES |
+| tools/Cp.js | tool | NO | - | shared | NO | NO | YES |
+| tools/CreateTool.js | tool | NO | - | shared | NO | 0x000015 | YES |
+| tools/DeleteFile.js | tool | NO | - | shared | NO | NO | YES |
+| tools/Edit.js | tool | NO | - | shared | NO | NO | YES |
+| tools/FileOutline.js | tool | NO | - | shared | NO | NO | YES |
+| tools/Find.js | tool | NO | - | shared | NO | NO | YES |
+| tools/Git.js | tool | NO | - | shared | NO | NO | YES |
+| tools/Grep.js | tool | NO | - | shared | NO | NO | YES |
+| tools/Head.js | tool | NO | - | shared | NO | NO | YES |
+| tools/ListFiles.js | tool | NO | - | shared | NO | NO | YES |
+| tools/ListKnowledge.js | tool | NO | - | full | NO | NO | YES |
+| tools/ListMemories.js | tool | NO | - | full | NO | NO | YES |
+| tools/ListTools.js | tool | NO | - | shared | NO | NO | YES |
+| tools/ListWorkers.js | tool | NO | - | full | NO | NO | YES |
+| tools/LoadModule.js | tool | NO | - | full | NO | NO | YES |
+| tools/Ls.js | tool | NO | - | shared | NO | NO | YES |
+| tools/Mkdir.js | tool | NO | - | shared | NO | NO | YES |
+| tools/Mv.js | tool | NO | - | shared | NO | NO | YES |
+| tools/ReadFile.js | tool | NO | - | shared | NO | NO | YES |
+| tools/Rm.js | tool | NO | - | shared | NO | NO | YES |
+| tools/RunGEPA.js | tool | NO | - | full | NO | NO | YES |
+| tools/SpawnWorker.js | tool | NO | - | full | NO | NO | YES |
+| tools/SwarmGetStatus.js | tool | NO | - | full | NO | NO | YES |
+| tools/SwarmListPeers.js | tool | NO | - | full | NO | NO | YES |
+| tools/SwarmRequestFile.js | tool | NO | - | full | NO | NO | YES |
+| tools/SwarmShareFile.js | tool | NO | - | full | NO | NO | YES |
+| tools/Tail.js | tool | NO | - | shared | NO | NO | YES |
+| tools/WriteFile.js | tool | NO | - | shared | NO | NO | YES |
+| tools/python/pyodide-runtime.js | tool | YES | PyodideRuntime | NO | NO | 0x00002D | NO |
 | tools/python/pyodide-worker.js | tool | NO | - | NO | NO | NO | NO |
-| tools/python/python-tool.js | tool | NO | - | NO | NO | 0x00002E | NO |
+| tools/python/python-tool.js | tool | YES | PythonTool | NO | NO | 0x00002E | NO |
 | boot/config.js | boot | NO | - | NO | NO | NO | NO |
 | boot/error-ui.js | boot | NO | - | NO | NO | NO | NO |
 | boot/iframe-bridge.js | boot | NO | - | NO | NO | 0x000072 | NO |
@@ -139,22 +139,22 @@ Notes:
 | ui/boot/steps/direct.js | ui | NO | - | NO | NO | NO | NO |
 | ui/boot/steps/goal.js | ui | NO | - | NO | NO | NO | NO |
 | ui/boot/steps/proxy.js | ui | NO | - | NO | NO | NO | NO |
-| ui/components/arena-results.js | ui | NO | - | NO | YES | NO | YES |
-| ui/components/confirmation-modal.js | ui | NO | - | NO | NO | NO | NO |
-| ui/components/diff-viewer-ui.js | ui | NO | - | NO | NO | 0x00007D | NO |
-| ui/components/hitl-widget.js | ui | NO | - | NO | NO | 0x000044 | NO |
-| ui/components/inline-chat.js | ui | NO | - | NO | NO | 0x000075 | NO |
-| ui/components/toast-notifications.js | ui | NO | - | NO | NO | 0x00007C | NO |
-| ui/dashboard/metrics-dashboard.js | ui | NO | - | NO | NO | 0x000024 | NO |
-| ui/dashboard/ui-manager.js | ui | NO | - | NO | NO | 0x00000D | NO |
-| ui/dashboard/vfs-explorer.js | ui | NO | - | NO | NO | 0x000020 | NO |
-| ui/panels/chat-panel.js | ui | NO | - | NO | NO | 0x00008C | NO |
-| ui/panels/code-panel.js | ui | NO | - | NO | NO | 0x00008D | NO |
-| ui/panels/cognition-panel.js | ui | NO | - | NO | NO | 0x00007A | NO |
-| ui/panels/llm-config-panel.js | ui | NO | - | NO | NO | 0x00008E | NO |
-| ui/panels/metrics-panel.js | ui | NO | - | NO | NO | NO | NO |
-| ui/panels/python-repl-panel.js | ui | NO | - | NO | NO | 0x00008F | NO |
-| ui/panels/vfs-panel.js | ui | NO | - | NO | NO | 0x00007B | NO |
+| ui/components/arena-results.js | ui | YES | ArenaResults | shared | NO | NO | YES |
+| ui/components/confirmation-modal.js | ui | YES | ConfirmationModal | NO | NO | NO | NO |
+| ui/components/diff-viewer-ui.js | ui | YES | DiffViewerUI | NO | NO | 0x00007D | NO |
+| ui/components/hitl-widget.js | ui | YES | HITLWidget | NO | NO | 0x000044 | NO |
+| ui/components/inline-chat.js | ui | YES | InlineChat | NO | NO | 0x000075 | NO |
+| ui/components/toast-notifications.js | ui | YES | ToastNotifications | NO | NO | 0x00007C | NO |
+| ui/dashboard/metrics-dashboard.js | ui | YES | MetricsDashboard | NO | NO | 0x000024 | NO |
+| ui/dashboard/ui-manager.js | ui | YES | UIManager | NO | NO | 0x00000D | NO |
+| ui/dashboard/vfs-explorer.js | ui | YES | VFSExplorer | NO | NO | 0x000020 | NO |
+| ui/panels/chat-panel.js | ui | YES | ChatPanel | NO | NO | 0x00008C | NO |
+| ui/panels/code-panel.js | ui | YES | CodePanel | NO | NO | 0x00008D | NO |
+| ui/panels/cognition-panel.js | ui | YES | CognitionPanel | NO | NO | 0x00007A | NO |
+| ui/panels/llm-config-panel.js | ui | YES | LLMConfigPanel | NO | NO | 0x00008E | NO |
+| ui/panels/metrics-panel.js | ui | YES | MetricsPanel | NO | NO | NO | NO |
+| ui/panels/python-repl-panel.js | ui | YES | PythonReplPanel | NO | NO | 0x00008F | NO |
+| ui/panels/vfs-panel.js | ui | YES | VFSPanel | NO | NO | 0x00007B | NO |
 | ui/proto.js | ui | NO | - | NO | NO | 0x00004C | NO |
 | ui/proto/index.js | ui | NO | - | NO | NO | NO | NO |
 | ui/proto/replay.js | ui | NO | - | NO | NO | 0x00006E | NO |
