@@ -22,28 +22,11 @@ export function renderAwakenStep(state) {
 
   return `
     <div class="wizard-step wizard-awaken">
-      ${verifyState !== VERIFY_STATE.VERIFIED ? `
-        <div class="awaken-warning">
-          <h3>△ Connection not verified</h3>
-          <p>Your connection hasn't been tested. The agent may fail to start.</p>
-          <div class="warning-actions">
-            <button class="btn btn-secondary" data-action="test-now">Test now</button>
-            <button class="btn btn-tertiary" data-action="edit-config">Edit config</button>
-            <button class="btn btn-primary" data-action="awaken-anyway">Continue anyway</button>
-          </div>
-        </div>
-      ` : `
-        <div class="awaken-progress">
-          <h2>Awakening Agent</h2>
-          <div class="progress-steps">
-            <div class="progress-step" id="step-vfs">Initializing VFS...</div>
-            <div class="progress-step" id="step-snapshot">Creating genesis snapshot...</div>
-            <div class="progress-step" id="step-model">Connecting to model...</div>
-            <div class="progress-step" id="step-memory">Loading memory systems...</div>
-            <div class="progress-step" id="step-agent">Starting agent loop...</div>
-          </div>
-        </div>
-      `}
+      <div class="wizard-actions">
+        <button class="btn btn-prism" data-action="awaken">
+          Awaken Agent ${verifyState !== VERIFY_STATE.VERIFIED ? '(unverified)' : ''}
+        </button>
+      </div>
     </div>
   `;
 }

@@ -18,8 +18,8 @@ export function renderBrowserConfigStep(state) {
 
   return `
     <div class="wizard-step wizard-doppler-config">
-      <h2>Browser Model Setup</h2>
-      <p class="wizard-subtitle">Select a model to run locally via WebGPU</p>
+      <h2 class="type-h1">Browser Model Setup</h2>
+      <p class="type-caption">Select a model to run locally via WebGPU</p>
 
       <div class="model-options">
         ${downloadableModels.map(m => {
@@ -49,17 +49,6 @@ export function renderBrowserConfigStep(state) {
           <span class="progress-text">${dopplerConfig.downloadProgress}%</span>
         </div>
       ` : ''}
-
-      <div class="wizard-actions">
-        <button class="btn btn-tertiary" data-action="back-to-choose">
-          Back
-        </button>
-        <button class="btn btn-primary"
-                data-action="continue-to-goal"
-                ${!dopplerConfig.model ? 'disabled' : ''}>
-          Continue
-        </button>
-      </div>
     </div>
   `;
 }

@@ -430,3 +430,119 @@ export async function testLocalConnection(url) {
     return { success: false, error: error.message };
   }
 }
+
+/**
+ * Test model via proxy - sends a minimal completion request
+ */
+export async function testProxyModel(url, provider, model) {
+  try {
+    const response = await fetch(`${url}/api/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        provider,
+        model,
+        messages: [{ role: 'user', content: 'Hi' }],
+        max_tokens: 1
+      }),
+      signal: AbortSignal.timeout(15000)
+    });
+
+    if (response.ok) {
+      return { success: true };
+    }
+
+    const errorData = await response.json().catch(() => ({}));
+    return {
+      success: false,
+      error: errorData.error?.message || `HTTP ${response.status}`
+    };
+  } catch (error) {
+    if (error.name === 'AbortError') {
+      return { success: false, error: 'Request timed out' };
+    }
+    return { success: false, error: error.message };
+  }
+}
+
+/**
+ * Test model via direct API - sends a minimal completion request
+ */
+export async function testDirectModel(provider, apiKey, model, baseUrl = null) {
+  const configs = {
+    anthropic: {
+      url: 'https://api.anthropic.com/v1/messages',
+      headers: {
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'content-type': 'application/json'
+      },
+      body: {
+        model,
+        max_tokens: 1,
+        messages: [{ role: 'user', content: 'Hi' }]
+      }
+    },
+    openai: {
+      url: 'https://api.openai.com/v1/chat/completions',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json'
+      },
+      body: {
+        model,
+        max_tokens: 1,
+        messages: [{ role: 'user', content: 'Hi' }]
+      }
+    },
+    gemini: {
+      url: `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
+      headers: { 'Content-Type': 'application/json' },
+      body: {
+        contents: [{ parts: [{ text: 'Hi' }] }],
+        generationConfig: { maxOutputTokens: 1 }
+      }
+    },
+    other: baseUrl ? {
+      url: `${baseUrl.replace(/\/$/, '')}/chat/completions`,
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json'
+      },
+      body: {
+        model,
+        max_tokens: 1,
+        messages: [{ role: 'user', content: 'Hi' }]
+      }
+    } : null
+  };
+
+  const config = configs[provider];
+  if (!config) {
+    return { success: false, error: 'Unknown provider' };
+  }
+
+  try {
+    const response = await fetch(config.url, {
+      method: 'POST',
+      headers: config.headers,
+      body: JSON.stringify(config.body),
+      signal: AbortSignal.timeout(15000)
+    });
+
+    if (response.ok) {
+      return { success: true };
+    }
+
+    const errorData = await response.json().catch(() => ({}));
+    return {
+      success: false,
+      error: errorData.error?.message || `HTTP ${response.status}`
+    };
+  } catch (error) {
+    if (error.name === 'AbortError') {
+      return { success: false, error: 'Request timed out' };
+    }
+    return { success: false, error: error.message };
+  }
+}
