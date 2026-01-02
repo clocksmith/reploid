@@ -1,5 +1,7 @@
 # Reploid Module System Audit Report
 
+> Note: This audit is legacy. Use `config/blueprint-registry.json` and `config/vfs-manifest.json` as the canonical sources of truth.
+
 ## Summary
 
 | Metric | Count |
