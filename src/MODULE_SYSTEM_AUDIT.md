@@ -76,7 +76,7 @@ Notes:
 | capabilities/communication/webrtc-swarm.js | capability | YES | WebRTCSwarm | full | YES | 0x000038 | YES |
 | capabilities/intelligence/federated-learning.js | capability | YES | FederatedLearning | full | YES | NO | YES |
 | capabilities/intelligence/functiongemma-orchestrator.js | capability | YES | FunctionGemmaOrchestrator | full | YES | NO | YES |
-| capabilities/intelligence/multi-model-coordinator.js | capability | BUG | MultiModelCoordinator | full | YES | NO | YES |
+| capabilities/intelligence/multi-model-coordinator.js | capability | NO | - | full | YES | NO | YES |
 | capabilities/intelligence/neural-compiler.js | capability | YES | NeuralCompiler | full | YES | 0x00007E | YES |
 | capabilities/performance/performance-monitor.js | capability | YES | PerformanceMonitor | full | YES | 0x000023 | YES |
 | capabilities/reflection/prompt-score-map.js | capability | YES | PromptScoreMap | NO | NO | NO | NO |
