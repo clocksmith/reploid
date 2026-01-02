@@ -209,12 +209,7 @@ export const createVFSManager = (deps) => {
     const pathEl = document.getElementById('vfs-current-path');
 
     if (!vfsContent || !contentBody || !_vfs) {
-      logger.warn('[VFSManager] Cannot load file - missing elements or VFS:', {
-        hasVfsContent: !!vfsContent,
-        hasContentBody: !!contentBody,
-        hasVfs: !!_vfs,
-        path
-      });
+      logger.warn('[VFSManager] Cannot load file - missing elements or VFS');
       return;
     }
 
@@ -235,8 +230,6 @@ export const createVFSManager = (deps) => {
       });
       vfsContent.classList.remove('hidden');
     } else {
-      // Fallback: just try to show vfsContent directly
-      logger.warn('[VFSManager] .app-shell not found, showing vfsContent directly');
       vfsContent.classList.remove('hidden');
     }
 

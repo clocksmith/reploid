@@ -53,6 +53,18 @@ export const GOAL_CATEGORIES = {
     {
       text: 'Add documentation to existing code',
       requires: {}
+    },
+    {
+      text: 'Katamari the DOM - animate all page elements rolling into a ball at screen center',
+      requires: {}
+    },
+    {
+      text: 'Matrix rain - make green characters fall down the screen like the Matrix',
+      requires: {}
+    },
+    {
+      text: 'Explode the UI - animate all elements flying outward from center then reassemble',
+      requires: {}
     }
   ],
 
@@ -82,6 +94,27 @@ export const GOAL_CATEGORIES = {
       text: 'Modify agent loop for new capabilities',
       requires: { reasoning: 'high' },
       lockReason: 'Needs stronger model'
+    },
+    {
+      text: 'Red-team yourself - generate prompt injections, test them, patch vulnerabilities',
+      requires: { reasoning: 'high' },
+      lockReason: 'Needs stronger model',
+      recommended: true
+    },
+    {
+      text: 'Spawn child agent in iframe, delegate subtasks, aggregate results',
+      requires: { reasoning: 'high' },
+      lockReason: 'Needs stronger model'
+    },
+    {
+      text: 'Rewrite your own UI - tear down current interface, build something better',
+      requires: { reasoning: 'high' },
+      lockReason: 'Needs stronger model'
+    },
+    {
+      text: 'Implement quine behavior - output code that recreates yourself',
+      requires: { reasoning: 'high' },
+      lockReason: 'Needs stronger model'
     }
   ],
 
@@ -109,6 +142,22 @@ export const GOAL_CATEGORIES = {
     },
     {
       text: 'Optimize inference kernels for speed',
+      requires: { model: true },
+      lockReason: 'Requires Doppler'
+    },
+    {
+      text: 'Visualize your own attention heads as animated heatmaps on screen',
+      requires: { model: true },
+      lockReason: 'Requires Doppler',
+      recommended: true
+    },
+    {
+      text: 'Ablate specific neurons and observe behavioral changes in real-time',
+      requires: { model: true },
+      lockReason: 'Requires Doppler'
+    },
+    {
+      text: 'Train a LoRA adapter on this conversation to specialize yourself',
       requires: { model: true },
       lockReason: 'Requires Doppler'
     }
@@ -143,18 +192,8 @@ export function filterGoalsByCapability(categories, capabilities) {
         locked = true;
       }
 
-      // Determine if recommended for this setup
-      let recommended = goal.recommended || false;
-
-      // Recommend model RSI goals if user has model access
-      if (requires.model && capabilities.canDoModelRSI) {
-        recommended = true;
-      }
-
-      // Recommend behavioral RSI if user has high reasoning
-      if (category === 'Behavioral RSI (L2/L3)' && capabilities.canDoComplexReasoning) {
-        recommended = true;
-      }
+      // Use explicit recommended flag only (one per section)
+      const recommended = goal.recommended || false;
 
       return {
         ...goal,
