@@ -1,6 +1,6 @@
 # REPLOID Showcase Runs
 
-Seven demonstration runs showcasing REPLOID's autonomous RSI (Recursive Self-Improvement) capabilities.
+Eight demonstration runs showcasing REPLOID's autonomous RSI (Recursive Self-Improvement) capabilities.
 
 ## What's Actually Impressive
 
@@ -106,6 +106,18 @@ Agent rebuilt UI into cyberpunk "Neural Interface" theme. **Failure case:** new 
 
 ---
 
+### 8. Quine Self-Replication (Jan 2, 2026) [Report](quine-self-replication.md)
+
+**Goal:** Implement quine behavior - output code that recreates yourself
+
+**Model:** Gemini 3 Flash | **Cycles:** 144 | **VFS Size:** 43 MB
+
+Agent created `SelfReplicator` tool that embedded entire VFS (169 files, 22.6 MB) as a JSON literal. Then read the file back, injecting ~6M tokens into context - 12x beyond any model's limit. **Failure case:** The quine works perfectly; the agent just killed itself trying to read its own creation. **Fix applied:** ReadFile now has 1MB limit.
+
+**Demonstrates:** Self-replication, context explosion from unbounded output, simple fix
+
+---
+
 ## Replay System
 
 REPLOID has a built-in Replay tab for run playback:
@@ -135,6 +147,7 @@ runs/showcase/
 ├── rsi-blocker-refactor.md      # Run 5 report
 ├── gepa-security-hardening.md   # Run 6 report
 ├── neural-interface-rebuild.md  # Run 7 report
+├── quine-self-replication.md    # Run 8 report
 └── inception-awaken-child.js    # Agent-created tool artifact
 ```
 
