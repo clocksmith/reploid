@@ -3,6 +3,8 @@
  * Manages step flow, config persistence, and validation state.
  */
 
+import { normalizeOverrides } from '../../config/module-resolution.js';
+
 // Wizard steps in order
 export const STEPS = {
   START: 'start',           // Check saved config
@@ -51,12 +53,23 @@ export const PROVIDER_TEST_ENDPOINTS = {
 
 const getStoredAdvancedConfig = () => {
   if (typeof localStorage === 'undefined') {
-    return { preserveOnBoot: false, genesisLevel: 'full' };
+    return { preserveOnBoot: false, genesisLevel: 'full', moduleOverrides: {} };
+  }
+
+  let moduleOverrides = {};
+  try {
+    const raw = localStorage.getItem('REPLOID_MODULE_OVERRIDES');
+    if (raw) {
+      moduleOverrides = normalizeOverrides(JSON.parse(raw));
+    }
+  } catch (e) {
+    moduleOverrides = {};
   }
 
   return {
     preserveOnBoot: localStorage.getItem('REPLOID_PRESERVE_ON_BOOT') === 'true',
-    genesisLevel: localStorage.getItem('REPLOID_GENESIS_LEVEL') || 'full'
+    genesisLevel: localStorage.getItem('REPLOID_GENESIS_LEVEL') || 'full',
+    moduleOverrides
   };
 };
 
@@ -117,6 +130,14 @@ const defaultState = {
   // Advanced options
   advancedOpen: false,
   advancedConfig: getStoredAdvancedConfig(),
+  moduleConfig: {
+    loading: false,
+    error: null,
+    genesis: null,
+    registry: null
+  },
+  moduleOverrideSearch: '',
+  moduleOverrideFilter: 'all',
 
   // Selected goal
   goal: null,
@@ -176,7 +197,15 @@ export function resetWizard() {
   state = {
     ...defaultState,
     advancedOpen: false,
-    advancedConfig: getStoredAdvancedConfig()
+    advancedConfig: getStoredAdvancedConfig(),
+    moduleOverrideSearch: '',
+    moduleOverrideFilter: 'all',
+    moduleConfig: {
+      loading: false,
+      error: null,
+      genesis: null,
+      registry: null
+    }
   };
   notifyListeners();
 }

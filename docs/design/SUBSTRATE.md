@@ -215,6 +215,9 @@ export default MyModule;
 ### Module Loading
 
 Modules are loaded based on Genesis Level in `config/genesis-levels.json`:
-- **tabula** - Minimal agent core (16 modules)
-- **reflection** - Tabula + self-awareness (+7 modules)
-- **full** - Complete cognitive system (+17 modules)
+- **tabula** - Bootstrap substrate core (7 modules)
+- **spark** - Minimal agent core (+11 modules)
+- **reflection** - Spark + self-awareness (+6 modules)
+- **cognition** - Reflection + memory and reasoning (+11 modules)
+- **substrate** - Cognition + runtime infrastructure (+12 modules)
+- **full** - Substrate + multi-agent systems (+11 modules)

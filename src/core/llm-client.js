@@ -8,7 +8,7 @@ const LLMClient = {
   metadata: {
     id: 'LLMClient',
     version: '1.0.0',
-    genesis: { introduced: 'tabula' },
+    genesis: { introduced: 'spark' },
     dependencies: ['Utils', 'RateLimiter?', 'StreamParser?', 'TransformersClient?'],
     type: 'service'
   },
@@ -280,11 +280,13 @@ const LLMClient = {
       _activeRequests.set(requestId, controller);
 
       try {
+        // Only request streaming if we have StreamParser to handle SSE format
+        const canStreamResponse = !!onUpdate && !!StreamParser;
         const requestBody = {
             model: modelConfig.id,
             provider: modelConfig.provider,
             messages: messages,
-            stream: !!onUpdate,
+            stream: canStreamResponse,
             apiKey: modelConfig.apiKey
         };
 
@@ -305,7 +307,7 @@ const LLMClient = {
 
         let fullContent = '';
 
-        if (onUpdate && response.body && StreamParser) {
+        if (canStreamResponse && response.body) {
           const rawReader = response.body.getReader();
           const reader = StreamParser.withStreamTimeout(rawReader, StreamParser.DEFAULT_STREAM_TIMEOUT_MS, controller);
           const decoder = new TextDecoder();

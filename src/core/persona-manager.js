@@ -7,7 +7,7 @@ const PersonaManager = {
   metadata: {
     id: 'PersonaManager',
     version: '1.0.0',
-    genesis: { introduced: 'tabula' },
+    genesis: { introduced: 'spark' },
     dependencies: ['Utils', 'VFS', 'EventBus?'],
     async: true,
     type: 'core'

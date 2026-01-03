@@ -147,6 +147,16 @@ self.addEventListener('fetch', (event) => {
   const alwaysNetwork = [
     '/boot.js',
     '/sw-module-loader.js',
+    '/ui/boot/index.js',
+    '/ui/boot/state.js',
+    '/ui/boot/detection.js',
+    '/ui/boot/goals.js',
+    '/ui/boot/steps/choose.js',
+    '/ui/boot/steps/direct.js',
+    '/ui/boot/steps/proxy.js',
+    '/ui/boot/steps/browser.js',
+    '/ui/boot/steps/goal.js',
+    '/ui/boot/steps/awaken.js',
     '/ui/proto.js',
     '/ui/proto/index.js',
     '/ui/proto/template.js',
@@ -156,7 +166,8 @@ self.addEventListener('fetch', (event) => {
     '/ui/proto/telemetry.js',
     '/ui/proto/utils.js',
     '/ui/toast.js',
-    '/ui/components/inline-chat.js'
+    '/ui/components/inline-chat.js',
+    '/config/module-resolution.js'
   ];
   if (alwaysNetwork.some(f => url.pathname.endsWith(f))) {
     return; // Let browser fetch from network

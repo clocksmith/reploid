@@ -4,7 +4,7 @@
 **File:** `core/schema-registry.js`
 **Purpose:** Central registry for tool input schemas and worker type definitions
 
-**Genesis Level:** tabula
+**Genesis Level:** spark
 
 ---
 
@@ -163,7 +163,7 @@ const sequential = toolCalls.filter(c => !isToolReadOnly(c.name));
 
 ## Genesis Level
 
-**tabula** - Core infrastructure module, part of the immutable genesis kernel. Cannot be modified without HITL approval.
+**spark** - Core agent module, part of the minimal agent core. Cannot be modified without HITL approval.
 
 ---
 

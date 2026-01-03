@@ -87,7 +87,7 @@ const ModuleName = {
   metadata: {
     id: 'ModuleName',
     version: '1.0.0',
-    genesis: { introduced: 'tabula' },
+    genesis: { introduced: 'spark' },
     dependencies: ['Utils', 'EventBus'],
     type: 'core'  // or 'infrastructure', 'tool', 'ui'
   },

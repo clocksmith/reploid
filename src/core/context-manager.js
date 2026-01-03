@@ -8,7 +8,7 @@ const ContextManager = {
   metadata: {
     id: 'ContextManager',
     version: '2.0.0',
-    genesis: { introduced: 'tabula' },
+    genesis: { introduced: 'spark' },
     dependencies: ['Utils', 'LLMClient', 'EventBus'],
     type: 'service'
   },

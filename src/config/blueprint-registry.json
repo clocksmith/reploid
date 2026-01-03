@@ -492,7 +492,7 @@
         }
       ],
       "files": [
-        "capabilities/cognition/semantic/semantic-memory.js"
+        "capabilities/cognition/semantic/semantic-memory-llm.js"
       ]
     },
     {

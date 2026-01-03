@@ -3,7 +3,15 @@
  * Slim entry point that coordinates the boot sequence.
  */
 
-import { loadGenesisConfig, getGenesisLevel, resolveModules, getLevelConfig } from './config.js';
+import {
+  loadGenesisConfig,
+  loadModuleRegistry,
+  getGenesisLevel,
+  getModuleOverrides,
+  resolveModules,
+  getLevelConfig
+} from './config.js';
+import { AWAKEN_REQUIRED_MODULES, getMissingModules } from '../config/module-resolution.js';
 import { loadExternalDependencies, registerModules } from './modules.js';
 import { resetSession, seedCodeIntel, hydrateVFS } from './vfs-hydrate.js';
 import { createGenesisSnapshot, initializeSwarm, resolveServices, setupExportFunctions } from './services.js';
@@ -38,9 +46,16 @@ export async function boot(Utils, DIContainer) {
   const genesisConfig = await loadGenesisConfig();
   const genesisLevel = getGenesisLevel(genesisConfig);
   const levelConfig = getLevelConfig(genesisLevel, genesisConfig);
-  const resolvedModules = resolveModules(genesisLevel, genesisConfig);
+  const moduleRegistry = await loadModuleRegistry();
+  const moduleOverrides = getModuleOverrides();
+  const resolvedModules = resolveModules(genesisLevel, genesisConfig, moduleRegistry, moduleOverrides);
 
   logger.info(`[Boot] Genesis level: ${levelConfig.name} (${resolvedModules.length} modules)`);
+  const missingModules = getMissingModules(AWAKEN_REQUIRED_MODULES, resolvedModules);
+  if (missingModules.length > 0) {
+    throw new Error(`Genesis configuration missing required modules: ${missingModules.join(', ')}. ` +
+      'Select a higher genesis level or update module overrides.');
+  }
 
   // Create DI container
   const container = DIContainer.factory({ Utils: Utils.factory() });

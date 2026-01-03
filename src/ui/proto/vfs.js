@@ -248,7 +248,11 @@ export const createVFSManager = (deps) => {
 
       if (contentHeader) contentHeader.classList.remove('hidden');
       if (pathEl) pathEl.textContent = path;
-      contentBody.innerHTML = `<pre>${escapeHtml(displayContent)}</pre>`;
+      contentBody.classList.remove('hidden');
+      contentBody.replaceChildren();
+      const pre = document.createElement('pre');
+      pre.textContent = displayContent;
+      contentBody.appendChild(pre);
 
       const previewBtn = document.getElementById('vfs-preview-btn');
       if (previewBtn && (path.endsWith('.html') || path.endsWith('.htm') || path.endsWith('.js') || path.endsWith('.css'))) {
@@ -267,7 +271,12 @@ export const createVFSManager = (deps) => {
       logger.error('[VFSManager] Error reading file:', path, e);
       if (contentHeader) contentHeader.classList.remove('hidden');
       if (pathEl) pathEl.textContent = path;
-      contentBody.innerHTML = `<div class="text-danger">Error reading ${escapeHtml(path)}: ${escapeHtml(e.message)}</div>`;
+      contentBody.classList.remove('hidden');
+      contentBody.replaceChildren();
+      const error = document.createElement('div');
+      error.className = 'text-danger';
+      error.textContent = `Error reading ${path}: ${e.message}`;
+      contentBody.appendChild(error);
     }
   };
 

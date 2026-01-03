@@ -8,7 +8,7 @@ const SchemaRegistry = {
   metadata: {
     id: 'SchemaRegistry',
     version: '1.1.0',
-    genesis: { introduced: 'tabula' },
+    genesis: { introduced: 'spark' },
     dependencies: ['Utils', 'VFS', 'SchemaValidator?'],
     async: true,
     type: 'service'

@@ -280,6 +280,12 @@
   z-index: 10;
 }
 
+.vfs-preview-panel.hidden,
+.vfs-diff-panel.hidden,
+.vfs-snapshot-panel.hidden {
+  display: none;
+}
+
 .vfs-preview-header,
 .vfs-diff-header,
 .vfs-snapshot-header {

@@ -8,7 +8,7 @@ const ErrorStore = {
   metadata: {
     id: 'ErrorStore',
     version: '1.0.0',
-    genesis: { introduced: 'seed' },
+    genesis: { introduced: 'tabula' },
     dependencies: ['Utils', 'VFS', 'EventBus?'],
     async: true,
     type: 'infrastructure'

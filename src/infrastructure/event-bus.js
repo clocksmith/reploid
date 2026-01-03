@@ -7,7 +7,7 @@ const EventBus = {
   metadata: {
     id: 'EventBus',
     version: '1.0.0',
-    genesis: { introduced: 'seed' },
+    genesis: { introduced: 'tabula' },
     dependencies: ['Utils'],
     type: 'infrastructure'
   },

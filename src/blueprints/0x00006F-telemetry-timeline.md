@@ -10,7 +10,7 @@
 
 **Category:** Infrastructure
 
-**Genesis:** tabula
+**Genesis:** spark
 
 ---
 
@@ -38,7 +38,7 @@ const TelemetryTimeline = {
     dependencies: ['Utils', 'VFS', 'EventBus'],
     async: true,
     type: 'infrastructure',
-    genesis: 'tabula'
+    genesis: 'spark'
   },
 
   factory: async (deps) => {

@@ -4,7 +4,7 @@
 **File:** `core/response-parser.js`
 **Purpose:** Extract tool calls from LLM text using robust regex parsing with brace counting
 
-**Genesis Level:** tabula
+**Genesis Level:** spark
 
 ---
 
@@ -131,7 +131,7 @@ const TOOL_CALL_PATTERN = /TOOL_CALL:\s*(\w+)\s*\nARGS:\s*(\{)/g;
 
 ## Genesis Level
 
-**tabula** - Core infrastructure module, part of the immutable genesis kernel. Cannot be modified without HITL approval.
+**spark** - Core agent module, part of the minimal agent core. Cannot be modified without HITL approval.
 
 ---
 
