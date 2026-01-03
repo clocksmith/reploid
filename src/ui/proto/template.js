@@ -58,7 +58,6 @@ export const renderProtoTemplate = (escapeHtml, goalFromBoot) => `
         <label class="vfs-width-control">
           <span class="vfs-width-label">VFS</span>
           <select id="vfs-width-select" class="vfs-width-select" aria-label="VFS panel width">
-            <option value="0">0%</option>
             <option value="25">25%</option>
             <option value="50">50%</option>
           </select>

@@ -177,6 +177,10 @@ let updateScheduled = false;
 // Track state that requires full re-render
 let lastModuleConfigState = null;
 let lastAdvancedOpen = null;
+let lastDirectVerifyState = null;
+let lastProxyVerifyState = null;
+let lastDirectModel = null;
+let lastDirectModelVerifyState = null;
 
 function scheduleUpdate() {
   if (updateScheduled) return;
@@ -189,10 +193,19 @@ function scheduleUpdate() {
     const moduleConfigState = JSON.stringify(state.moduleConfig);
     const moduleConfigChanged = moduleConfigState !== lastModuleConfigState;
     const advancedOpenChanged = state.advancedOpen !== lastAdvancedOpen;
+    const directVerifyChanged = state.directConfig?.verifyState !== lastDirectVerifyState;
+    const proxyVerifyChanged = state.proxyConfig?.verifyState !== lastProxyVerifyState;
+    const directModelChanged = state.directConfig?.model !== lastDirectModel;
+    const directModelVerifyChanged = state.directConfig?.modelVerifyState !== lastDirectModelVerifyState;
 
-    if (isInitialRender || moduleConfigChanged || advancedOpenChanged) {
+    if (isInitialRender || moduleConfigChanged || advancedOpenChanged ||
+        directVerifyChanged || proxyVerifyChanged || directModelChanged || directModelVerifyChanged) {
       lastModuleConfigState = moduleConfigState;
       lastAdvancedOpen = state.advancedOpen;
+      lastDirectVerifyState = state.directConfig?.verifyState;
+      lastProxyVerifyState = state.proxyConfig?.verifyState;
+      lastDirectModel = state.directConfig?.model;
+      lastDirectModelVerifyState = state.directConfig?.modelVerifyState;
       render();
     } else {
       updateUI();
@@ -585,9 +598,6 @@ function handleChange(e) {
       });
       break;
 
-    case 'remember-key':
-      setNestedState('directConfig', { rememberKey: value });
-      break;
 
     case 'direct-model':
       setNestedState('directConfig', { model: value });
@@ -678,7 +688,17 @@ function handleInput(e) {
 
 async function handleTestDirectKey() {
   const state = getState();
-  const { provider, apiKey, baseUrl } = state.directConfig;
+  let { provider, apiKey, baseUrl } = state.directConfig;
+
+  // Read values directly from inputs in case state is stale
+  const keyInput = document.getElementById('direct-key');
+  const urlInput = document.getElementById('direct-base-url');
+  if (keyInput?.value) apiKey = keyInput.value;
+  if (urlInput?.value) baseUrl = urlInput.value;
+
+  // Update state with current input values
+  if (keyInput?.value) setNestedState('directConfig', { apiKey });
+  if (urlInput?.value) setNestedState('directConfig', { baseUrl });
 
   if (!provider) {
     setNestedState('directConfig', {
@@ -709,10 +729,23 @@ async function handleTestDirectKey() {
 
   const result = await testApiKey(provider, apiKey, baseUrl);
 
-  setNestedState('directConfig', {
-    verifyState: result.success ? VERIFY_STATE.VERIFIED : VERIFY_STATE.FAILED,
-    verifyError: result.error
-  });
+  if (result.success) {
+    // Auto-select first model for this provider if none selected
+    const currentModel = getState().directConfig.model;
+    const models = CLOUD_MODELS[provider] || [];
+    const autoModel = !currentModel && models.length > 0 ? models[0].id : currentModel;
+
+    setNestedState('directConfig', {
+      verifyState: VERIFY_STATE.VERIFIED,
+      verifyError: null,
+      model: autoModel
+    });
+  } else {
+    setNestedState('directConfig', {
+      verifyState: VERIFY_STATE.FAILED,
+      verifyError: result.error
+    });
+  }
 }
 
 async function handleTestProxy() {

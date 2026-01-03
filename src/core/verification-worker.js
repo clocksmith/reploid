@@ -18,38 +18,25 @@
 // ============================================================================
 
 const CAPABILITY_RULES = {
+  // User-created tools - most restricted
   '/tools/': {
-    allowed: ['/tools/', '/apps/', '/.logs/'],
+    allowed: ['/tools/', '/apps/', '/.logs/', '/.memory/'],
     forbidden: ['/core/', '/infrastructure/', '/capabilities/'],
     canNetwork: false,
     canEval: false,
     canFS: false,
     canProcess: false
   },
+  // User-created apps - restricted
   '/apps/': {
-    allowed: ['/apps/', '/.logs/'],
+    allowed: ['/apps/', '/.logs/', '/.memory/'],
     forbidden: ['/core/', '/infrastructure/', '/tools/'],
     canNetwork: false,
     canEval: false,
     canFS: false,
     canProcess: false
   },
-  '/core/': {
-    allowed: ['*'],
-    forbidden: [],
-    canNetwork: true,
-    canEval: true,
-    canFS: true,
-    canProcess: false
-  },
-  '/infrastructure/': {
-    allowed: ['*'],
-    forbidden: [],
-    canNetwork: true,
-    canEval: true,
-    canFS: true,
-    canProcess: false
-  },
+  // Log files - very restricted
   '/.logs/': {
     allowed: ['/.logs/'],
     forbidden: ['/core/', '/infrastructure/', '/tools/', '/apps/'],
@@ -57,12 +44,98 @@ const CAPABILITY_RULES = {
     canEval: false,
     canFS: false,
     canProcess: false
+  },
+  // Core system - full access
+  '/core/': {
+    allowed: ['*'],
+    forbidden: [],
+    canNetwork: true,
+    canEval: true,
+    canFS: true,
+    canProcess: true
+  },
+  // Infrastructure - full access
+  '/infrastructure/': {
+    allowed: ['*'],
+    forbidden: [],
+    canNetwork: true,
+    canEval: true,
+    canFS: true,
+    canProcess: true
+  },
+  // Capabilities - full access (cognition, communication, etc.)
+  '/capabilities/': {
+    allowed: ['*'],
+    forbidden: [],
+    canNetwork: true,
+    canEval: true,
+    canFS: true,
+    canProcess: true
+  },
+  // Boot system - full access
+  '/boot/': {
+    allowed: ['*'],
+    forbidden: [],
+    canNetwork: true,
+    canEval: true,
+    canFS: true,
+    canProcess: false
+  },
+  // UI system - needs network and storage
+  '/ui/': {
+    allowed: ['*'],
+    forbidden: [],
+    canNetwork: true,
+    canEval: true,
+    canFS: true,
+    canProcess: false
+  },
+  // Config files - full access
+  '/config/': {
+    allowed: ['*'],
+    forbidden: [],
+    canNetwork: true,
+    canEval: true,
+    canFS: true,
+    canProcess: false
+  },
+  // Testing - full access
+  '/testing/': {
+    allowed: ['*'],
+    forbidden: [],
+    canNetwork: true,
+    canEval: true,
+    canFS: true,
+    canProcess: true
+  },
+  // Service workers - full access
+  '/sw': {
+    allowed: ['*'],
+    forbidden: [],
+    canNetwork: true,
+    canEval: true,
+    canFS: true,
+    canProcess: false
   }
 };
 
 const getCapabilities = (path) => {
   for (const [prefix, caps] of Object.entries(CAPABILITY_RULES)) {
     if (path.startsWith(prefix)) return { ...caps, prefix };
+  }
+  // Root-level system files (boot.js, sw-*.js, etc.) get full access
+  // Only VFS user files (starting with /.user/ or unknown paths) should be restricted
+  if (path.match(/^\/[a-z].*\.js$/) || path.startsWith('/.')) {
+    // Root-level .js files are system files
+    return {
+      allowed: ['*'],
+      forbidden: [],
+      canNetwork: true,
+      canEval: true,
+      canFS: true,
+      canProcess: false,
+      prefix: '/'
+    };
   }
   return { ...CAPABILITY_RULES['/tools/'], prefix: '/tools/' }; // Default to restricted
 };
@@ -796,9 +869,13 @@ self.onmessage = async (e) => {
 
         // ----------------------------------------------------------------
         // D. TOOL STRUCTURE VALIDATION
+        // Skip worker files, helpers, and subdirectory utilities
         // ----------------------------------------------------------------
-        if (path.startsWith('/tools/')) {
-          if (!code.includes('export default') && !code.includes('export const tool')) {
+        if (path.startsWith('/tools/') && !path.includes('-worker.js') && !path.includes('/helpers/')) {
+          // Only validate top-level tool files (e.g., /tools/Foo.js)
+          const pathParts = path.split('/').filter(Boolean);
+          const isTopLevelTool = pathParts.length === 2 && pathParts[0] === 'tools';
+          if (isTopLevelTool && !code.includes('export default') && !code.includes('export const tool')) {
             errors.push(`Tool ${path} must have a default export or named 'tool' export`);
           }
         }

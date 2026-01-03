@@ -320,11 +320,12 @@ export function saveConfig() {
       id: directConfig.model,
       name: directConfig.model,
       provider: directConfig.provider,
-      hostType: 'browser-cloud'
+      hostType: 'browser-cloud',
+      apiKey: directConfig.apiKey // Include API key in model config
     };
 
-    // Only store key if user opted in
-    if (directConfig.rememberKey && directConfig.apiKey) {
+    // Always store API key in localStorage (needed for agent to work)
+    if (directConfig.apiKey) {
       localStorage.setItem(`REPLOID_KEY_${directConfig.provider.toUpperCase()}`, directConfig.apiKey);
     }
 
@@ -346,7 +347,8 @@ export function saveConfig() {
     models.push({
       id: dopplerConfig.model,
       name: dopplerConfig.model,
-      provider: 'doppler',
+      provider: 'webllm',
+      queryMethod: 'browser',
       hostType: 'browser-local'
     });
   }

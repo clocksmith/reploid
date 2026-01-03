@@ -87,16 +87,6 @@ export function renderDirectConfigStep(state) {
         </div>
 
         <div class="form-row">
-          <label class="checkbox-label">
-            <input type="checkbox"
-                   id="remember-key"
-                   ${directConfig.rememberKey ? 'checked' : ''} />
-            <span>Remember this key locally</span>
-          </label>
-          <span class="type-caption">△ Key stored unencrypted in browser</span>
-        </div>
-
-        <div class="form-row">
           <label class="type-label">Model</label>
           <div class="input-row">
             ${isOther ? `
