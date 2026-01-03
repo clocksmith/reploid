@@ -17,6 +17,9 @@ const OUTPUT_PATH = path.join(SRC_DIR, 'config', 'module-registry.json');
 
 const toPosix = (p) => p.split(path.sep).join('/');
 
+// Normalize path: strip leading 'src/' if present
+const stripSrcPrefix = (p) => p.replace(/^src\//, '');
+
 function extractMetadataBlock(content) {
   const match = content.match(/\bmetadata\b\s*:\s*\{/);
   if (!match) return null;
@@ -110,7 +113,9 @@ async function main() {
   for (const [moduleName, files] of Object.entries(moduleFiles)) {
     if (!files || files.length === 0) continue;
     const entryFile = files[0];
-    const entryPath = path.join(SRC_DIR, entryFile);
+    // Handle paths that may or may not have src/ prefix
+    const normalizedEntry = stripSrcPrefix(entryFile);
+    const entryPath = path.join(SRC_DIR, normalizedEntry);
 
     let metadataId = null;
     let introduced = null;
@@ -126,12 +131,13 @@ async function main() {
       // Skip parse errors, fall back to config data
     }
 
-    const blueprint = blueprintMap.get(entryFile) || null;
+    // Blueprint lookup uses paths without src/ prefix
+    const blueprint = blueprintMap.get(normalizedEntry) || null;
 
     modules[moduleName] = {
       id: metadataId || moduleName,
-      entry: toPosix(entryFile),
-      files: files.map(file => toPosix(file)),
+      entry: toPosix(normalizedEntry),
+      files: files.map(file => toPosix(stripSrcPrefix(file))),
       introduced: introduced || moduleToLevel.get(moduleName) || 'unknown',
       dependencies,
       blueprint

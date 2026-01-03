@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-01-02T19:19:41.959Z",
+  "generatedAt": "2026-01-03T20:56:26.238Z",
   "features": [
     {
       "id": "0x000003",
@@ -1966,6 +1966,34 @@
       ],
       "files": [
         "ui/toast.js"
+      ]
+    },
+    {
+      "id": "0x0000dd",
+      "name": "config-module-resolution",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x0000dd",
+          "path": "blueprints/0x0000dd-config-module-resolution.md"
+        }
+      ],
+      "files": [
+        "config/module-resolution.js"
+      ]
+    },
+    {
+      "id": "0x0000de",
+      "name": "experimental-semantic-memory-neural",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x0000de",
+          "path": "blueprints/0x0000de-experimental-semantic-memory-neural.md"
+        }
+      ],
+      "files": [
+        "experimental/semantic-memory-neural.js"
       ]
     }
   ]

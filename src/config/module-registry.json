@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-01-03T00:46:04.789Z",
+  "generatedAt": "2026-01-03T20:56:26.273Z",
   "modules": {
     "AgentLoop": {
       "id": "AgentLoop",
@@ -84,6 +84,79 @@
         }
       ],
       "blueprint": "blueprints/0x000008-agent-cognitive-cycle.md"
+    },
+    "ArenaCompetitor": {
+      "id": "ArenaCompetitor",
+      "entry": "testing/arena/competitor.js",
+      "files": [
+        "testing/arena/competitor.js"
+      ],
+      "introduced": "full",
+      "dependencies": [
+        {
+          "id": "LLMClient",
+          "optional": false
+        },
+        {
+          "id": "Utils",
+          "optional": false
+        }
+      ],
+      "blueprint": "blueprints/0x000064-arena-competitor.md"
+    },
+    "ArenaHarness": {
+      "id": "ArenaHarness",
+      "entry": "testing/arena/arena-harness.js",
+      "files": [
+        "testing/arena/arena-harness.js"
+      ],
+      "introduced": "full",
+      "dependencies": [
+        {
+          "id": "VFSSandbox",
+          "optional": false
+        },
+        {
+          "id": "ArenaCompetitor",
+          "optional": false
+        },
+        {
+          "id": "ArenaMetrics",
+          "optional": false
+        },
+        {
+          "id": "VerificationManager",
+          "optional": false
+        },
+        {
+          "id": "EventBus",
+          "optional": false
+        },
+        {
+          "id": "Utils",
+          "optional": false
+        },
+        {
+          "id": "SchemaRegistry",
+          "optional": true
+        }
+      ],
+      "blueprint": "blueprints/0x000066-arena-harness.md"
+    },
+    "ArenaMetrics": {
+      "id": "ArenaMetrics",
+      "entry": "testing/arena/arena-metrics.js",
+      "files": [
+        "testing/arena/arena-metrics.js"
+      ],
+      "introduced": "full",
+      "dependencies": [
+        {
+          "id": "Utils",
+          "optional": false
+        }
+      ],
+      "blueprint": "blueprints/0x000065-arena-metrics.md"
     },
     "AuditLogger": {
       "id": "AuditLogger",
@@ -189,6 +262,33 @@
       ],
       "blueprint": "blueprints/0x000063-cognition-api.md"
     },
+    "Consensus": {
+      "id": "Consensus",
+      "entry": "capabilities/communication/consensus.js",
+      "files": [
+        "capabilities/communication/consensus.js"
+      ],
+      "introduced": "full",
+      "dependencies": [
+        {
+          "id": "Utils",
+          "optional": false
+        },
+        {
+          "id": "EventBus",
+          "optional": false
+        },
+        {
+          "id": "SwarmTransport",
+          "optional": false
+        },
+        {
+          "id": "VFS",
+          "optional": true
+        }
+      ],
+      "blueprint": "blueprints/0x00009b-capabilities-communication-consensus.md"
+    },
     "ContextManager": {
       "id": "ContextManager",
       "entry": "core/context-manager.js",
@@ -246,6 +346,33 @@
       ],
       "blueprint": "blueprints/0x00005E-embedding-store.md"
     },
+    "EpisodicMemory": {
+      "id": "EpisodicMemory",
+      "entry": "capabilities/cognition/episodic-memory.js",
+      "files": [
+        "capabilities/cognition/episodic-memory.js"
+      ],
+      "introduced": "full",
+      "dependencies": [
+        {
+          "id": "Utils",
+          "optional": false
+        },
+        {
+          "id": "VFS",
+          "optional": false
+        },
+        {
+          "id": "SemanticMemory",
+          "optional": false
+        },
+        {
+          "id": "EventBus",
+          "optional": false
+        }
+      ],
+      "blueprint": "blueprints/0x000097-capabilities-cognition-episodic-memory.md"
+    },
     "ErrorStore": {
       "id": "ErrorStore",
       "entry": "infrastructure/error-store.js",
@@ -268,6 +395,87 @@
         }
       ],
       "blueprint": "blueprints/0x00006C-error-store.md"
+    },
+    "EventBus": {
+      "id": "EventBus",
+      "entry": "infrastructure/event-bus.js",
+      "files": [
+        "infrastructure/event-bus.js"
+      ],
+      "introduced": "tabula",
+      "dependencies": [
+        {
+          "id": "Utils",
+          "optional": false
+        }
+      ],
+      "blueprint": "blueprints/0x00004F-event-bus-infrastructure.md"
+    },
+    "FederatedLearning": {
+      "id": "FederatedLearning",
+      "entry": "capabilities/intelligence/federated-learning.js",
+      "files": [
+        "capabilities/intelligence/federated-learning.js"
+      ],
+      "introduced": "full",
+      "dependencies": [
+        {
+          "id": "Utils",
+          "optional": false
+        },
+        {
+          "id": "EventBus",
+          "optional": false
+        },
+        {
+          "id": "SwarmTransport",
+          "optional": true
+        }
+      ],
+      "blueprint": "blueprints/0x00009e-capabilities-intelligence-federated-learning.md"
+    },
+    "FunctionGemmaOrchestrator": {
+      "id": "FunctionGemmaOrchestrator",
+      "entry": "capabilities/intelligence/functiongemma-orchestrator.js",
+      "files": [
+        "capabilities/intelligence/functiongemma-orchestrator.js"
+      ],
+      "introduced": "full",
+      "dependencies": [
+        {
+          "id": "Utils",
+          "optional": false
+        },
+        {
+          "id": "EventBus",
+          "optional": true
+        },
+        {
+          "id": "SemanticMemory",
+          "optional": true
+        },
+        {
+          "id": "ArenaHarness",
+          "optional": true
+        },
+        {
+          "id": "ContextManager",
+          "optional": true
+        },
+        {
+          "id": "SchemaRegistry",
+          "optional": true
+        },
+        {
+          "id": "ReflectionStore",
+          "optional": true
+        },
+        {
+          "id": "VFS",
+          "optional": false
+        }
+      ],
+      "blueprint": "blueprints/0x00009f-capabilities-intelligence-functiongemma-orchestrator.md"
     },
     "GEPAOptimizer": {
       "id": "GEPAOptimizer",
@@ -307,21 +515,6 @@
         }
       ],
       "blueprint": "blueprints/0x000067-gepa-prompt-evolution.md"
-    },
-    "EventBus": {
-      "id": "EventBus",
-      "entry": "infrastructure/event-bus.js",
-      "files": [
-        "infrastructure/event-bus.js"
-      ],
-      "introduced": "tabula",
-      "dependencies": [
-        {
-          "id": "Utils",
-          "optional": false
-        }
-      ],
-      "blueprint": "blueprints/0x00004F-event-bus-infrastructure.md"
     },
     "GenesisSnapshot": {
       "id": "GenesisSnapshot",
@@ -364,6 +557,41 @@
         }
       ],
       "blueprint": "blueprints/0x000049-hitl-controller.md"
+    },
+    "HybridRetrieval": {
+      "id": "HybridRetrieval",
+      "entry": "capabilities/cognition/hybrid-retrieval.js",
+      "files": [
+        "capabilities/cognition/hybrid-retrieval.js"
+      ],
+      "introduced": "full",
+      "dependencies": [
+        {
+          "id": "Utils",
+          "optional": false
+        },
+        {
+          "id": "EventBus",
+          "optional": false
+        },
+        {
+          "id": "SemanticMemory",
+          "optional": false
+        },
+        {
+          "id": "KnowledgeTree",
+          "optional": false
+        },
+        {
+          "id": "EpisodicMemory",
+          "optional": false
+        },
+        {
+          "id": "EmbeddingStore",
+          "optional": false
+        }
+      ],
+      "blueprint": "blueprints/0x000098-capabilities-cognition-hybrid-retrieval.md"
     },
     "KnowledgeGraph": {
       "id": "KnowledgeGraph",
@@ -491,72 +719,6 @@
       "dependencies": [],
       "blueprint": "blueprints/0x0000a0-capabilities-intelligence-multi-model-coordinator.md"
     },
-    "FunctionGemmaOrchestrator": {
-      "id": "FunctionGemmaOrchestrator",
-      "entry": "capabilities/intelligence/functiongemma-orchestrator.js",
-      "files": [
-        "capabilities/intelligence/functiongemma-orchestrator.js"
-      ],
-      "introduced": "full",
-      "dependencies": [
-        {
-          "id": "Utils",
-          "optional": false
-        },
-        {
-          "id": "EventBus",
-          "optional": true
-        },
-        {
-          "id": "SemanticMemory",
-          "optional": true
-        },
-        {
-          "id": "ArenaHarness",
-          "optional": true
-        },
-        {
-          "id": "ContextManager",
-          "optional": true
-        },
-        {
-          "id": "SchemaRegistry",
-          "optional": true
-        },
-        {
-          "id": "ReflectionStore",
-          "optional": true
-        },
-        {
-          "id": "VFS",
-          "optional": false
-        }
-      ],
-      "blueprint": "blueprints/0x00009f-capabilities-intelligence-functiongemma-orchestrator.md"
-    },
-    "FederatedLearning": {
-      "id": "FederatedLearning",
-      "entry": "capabilities/intelligence/federated-learning.js",
-      "files": [
-        "capabilities/intelligence/federated-learning.js"
-      ],
-      "introduced": "full",
-      "dependencies": [
-        {
-          "id": "Utils",
-          "optional": false
-        },
-        {
-          "id": "EventBus",
-          "optional": false
-        },
-        {
-          "id": "SwarmTransport",
-          "optional": true
-        }
-      ],
-      "blueprint": "blueprints/0x00009e-capabilities-intelligence-federated-learning.md"
-    },
     "NeuralCompiler": {
       "id": "NeuralCompiler",
       "entry": "capabilities/intelligence/neural-compiler.js",
@@ -650,6 +812,29 @@
       ],
       "blueprint": "blueprints/0x000023-performance-monitoring-stack.md"
     },
+    "PersonaManager": {
+      "id": "PersonaManager",
+      "entry": "core/persona-manager.js",
+      "files": [
+        "core/persona-manager.js"
+      ],
+      "introduced": "spark",
+      "dependencies": [
+        {
+          "id": "Utils",
+          "optional": false
+        },
+        {
+          "id": "VFS",
+          "optional": false
+        },
+        {
+          "id": "EventBus",
+          "optional": true
+        }
+      ],
+      "blueprint": "blueprints/0x000043-persona-management-system.md"
+    },
     "PolicyEngine": {
       "id": "PolicyEngine",
       "entry": "infrastructure/policy-engine.js",
@@ -708,28 +893,24 @@
       ],
       "blueprint": "blueprints/0x00009a-capabilities-cognition-prompt-memory.md"
     },
-    "PersonaManager": {
-      "id": "PersonaManager",
-      "entry": "core/persona-manager.js",
+    "PromptScoreMap": {
+      "id": "PromptScoreMap",
+      "entry": "capabilities/reflection/prompt-score-map.js",
       "files": [
-        "core/persona-manager.js"
+        "capabilities/reflection/prompt-score-map.js"
       ],
-      "introduced": "spark",
+      "introduced": "full",
       "dependencies": [
         {
           "id": "Utils",
           "optional": false
         },
         {
-          "id": "VFS",
-          "optional": false
-        },
-        {
           "id": "EventBus",
-          "optional": true
+          "optional": false
         }
       ],
-      "blueprint": "blueprints/0x000043-persona-management-system.md"
+      "blueprint": "blueprints/0x0000a1-capabilities-reflection-prompt-score-map.md"
     },
     "RateLimiter": {
       "id": "RateLimiter",
@@ -760,6 +941,29 @@
         },
         {
           "id": "Utils",
+          "optional": false
+        }
+      ],
+      "blueprint": "blueprints/0x000032-reflection-store-architecture.md"
+    },
+    "ReflectionStore": {
+      "id": "ReflectionStore",
+      "entry": "capabilities/reflection/reflection-store.js",
+      "files": [
+        "capabilities/reflection/reflection-store.js"
+      ],
+      "introduced": "reflection",
+      "dependencies": [
+        {
+          "id": "Utils",
+          "optional": false
+        },
+        {
+          "id": "VFS",
+          "optional": false
+        },
+        {
+          "id": "EventBus",
           "optional": false
         }
       ],
@@ -803,29 +1007,6 @@
         }
       ],
       "blueprint": "blueprints/0x00006E-replay-engine.md"
-    },
-    "ReflectionStore": {
-      "id": "ReflectionStore",
-      "entry": "capabilities/reflection/reflection-store.js",
-      "files": [
-        "capabilities/reflection/reflection-store.js"
-      ],
-      "introduced": "reflection",
-      "dependencies": [
-        {
-          "id": "Utils",
-          "optional": false
-        },
-        {
-          "id": "VFS",
-          "optional": false
-        },
-        {
-          "id": "EventBus",
-          "optional": false
-        }
-      ],
-      "blueprint": "blueprints/0x000032-reflection-store-architecture.md"
     },
     "ResponseParser": {
       "id": "ResponseParser",
@@ -985,33 +1166,6 @@
       "dependencies": [],
       "blueprint": "blueprints/0x000039-streaming-response-handler.md"
     },
-    "ToolExecutor": {
-      "id": "ToolExecutor",
-      "entry": "infrastructure/tool-executor.js",
-      "files": [
-        "infrastructure/tool-executor.js"
-      ],
-      "introduced": "spark",
-      "dependencies": [
-        {
-          "id": "Utils",
-          "optional": false
-        },
-        {
-          "id": "ToolRunner",
-          "optional": false
-        },
-        {
-          "id": "EventBus",
-          "optional": true
-        },
-        {
-          "id": "TraceStore",
-          "optional": true
-        }
-      ],
-      "blueprint": "blueprints/0x000070-tool-executor.md"
-    },
     "SubstrateLoader": {
       "id": "SubstrateLoader",
       "entry": "capabilities/system/substrate-loader.js",
@@ -1043,6 +1197,56 @@
         }
       ],
       "blueprint": "blueprints/0x000071-substrate-loader.md"
+    },
+    "SwarmSync": {
+      "id": "SwarmSync",
+      "entry": "capabilities/communication/swarm-sync.js",
+      "files": [
+        "capabilities/communication/swarm-sync.js"
+      ],
+      "introduced": "full",
+      "dependencies": [
+        {
+          "id": "Utils",
+          "optional": false
+        },
+        {
+          "id": "EventBus",
+          "optional": false
+        },
+        {
+          "id": "SwarmTransport",
+          "optional": false
+        },
+        {
+          "id": "VFS",
+          "optional": false
+        },
+        {
+          "id": "ReflectionStore",
+          "optional": false
+        }
+      ],
+      "blueprint": "blueprints/0x00009c-capabilities-communication-swarm-sync.md"
+    },
+    "SwarmTransport": {
+      "id": "SwarmTransport",
+      "entry": "capabilities/communication/swarm-transport.js",
+      "files": [
+        "capabilities/communication/swarm-transport.js"
+      ],
+      "introduced": "full",
+      "dependencies": [
+        {
+          "id": "Utils",
+          "optional": false
+        },
+        {
+          "id": "EventBus",
+          "optional": false
+        }
+      ],
+      "blueprint": "blueprints/0x00009d-capabilities-communication-swarm-transport.md"
     },
     "SymbolGrounder": {
       "id": "SymbolGrounder",
@@ -1093,6 +1297,33 @@
         }
       ],
       "blueprint": "blueprints/0x00006F-telemetry-timeline.md"
+    },
+    "ToolExecutor": {
+      "id": "ToolExecutor",
+      "entry": "infrastructure/tool-executor.js",
+      "files": [
+        "infrastructure/tool-executor.js"
+      ],
+      "introduced": "spark",
+      "dependencies": [
+        {
+          "id": "Utils",
+          "optional": false
+        },
+        {
+          "id": "ToolRunner",
+          "optional": false
+        },
+        {
+          "id": "EventBus",
+          "optional": true
+        },
+        {
+          "id": "TraceStore",
+          "optional": true
+        }
+      ],
+      "blueprint": "blueprints/0x000070-tool-executor.md"
     },
     "ToolRunner": {
       "id": "ToolRunner",
@@ -1299,6 +1530,25 @@
       ],
       "blueprint": "blueprints/0x000011-advanced-storage-backend-indexeddb.md"
     },
+    "VFSSandbox": {
+      "id": "VFSSandbox",
+      "entry": "testing/arena/vfs-sandbox.js",
+      "files": [
+        "testing/arena/vfs-sandbox.js"
+      ],
+      "introduced": "substrate",
+      "dependencies": [
+        {
+          "id": "VFS",
+          "optional": false
+        },
+        {
+          "id": "Utils",
+          "optional": false
+        }
+      ],
+      "blueprint": "blueprints/0x000040-verification-manager.md"
+    },
     "VerificationManager": {
       "id": "VerificationManager",
       "entry": "core/verification-manager.js",
@@ -1321,6 +1571,25 @@
         }
       ],
       "blueprint": "blueprints/0x000040-verification-manager.md"
+    },
+    "WebRTCSwarm": {
+      "id": "WebRTCSwarm",
+      "entry": "capabilities/communication/webrtc-swarm.js",
+      "files": [
+        "capabilities/communication/webrtc-swarm.js"
+      ],
+      "introduced": "full",
+      "dependencies": [
+        {
+          "id": "Utils",
+          "optional": false
+        },
+        {
+          "id": "EventBus",
+          "optional": false
+        }
+      ],
+      "blueprint": "blueprints/0x000038-webrtc-swarm-transport.md"
     },
     "WorkerManager": {
       "id": "WorkerManager",
@@ -1373,194 +1642,6 @@
         }
       ],
       "blueprint": "blueprints/0x000047-worker-pool-parallelization.md"
-    },
-    "VFSSandbox": {
-      "id": "VFSSandbox",
-      "entry": "testing/arena/vfs-sandbox.js",
-      "files": [
-        "testing/arena/vfs-sandbox.js"
-      ],
-      "introduced": "substrate",
-      "dependencies": [
-        {
-          "id": "VFS",
-          "optional": false
-        },
-        {
-          "id": "Utils",
-          "optional": false
-        }
-      ],
-      "blueprint": "blueprints/0x000040-verification-manager.md"
-    },
-    "ArenaCompetitor": {
-      "id": "ArenaCompetitor",
-      "entry": "testing/arena/competitor.js",
-      "files": [
-        "testing/arena/competitor.js"
-      ],
-      "introduced": "full",
-      "dependencies": [
-        {
-          "id": "LLMClient",
-          "optional": false
-        },
-        {
-          "id": "Utils",
-          "optional": false
-        }
-      ],
-      "blueprint": "blueprints/0x000064-arena-competitor.md"
-    },
-    "ArenaMetrics": {
-      "id": "ArenaMetrics",
-      "entry": "testing/arena/arena-metrics.js",
-      "files": [
-        "testing/arena/arena-metrics.js"
-      ],
-      "introduced": "full",
-      "dependencies": [
-        {
-          "id": "Utils",
-          "optional": false
-        }
-      ],
-      "blueprint": "blueprints/0x000065-arena-metrics.md"
-    },
-    "ArenaHarness": {
-      "id": "ArenaHarness",
-      "entry": "testing/arena/arena-harness.js",
-      "files": [
-        "testing/arena/arena-harness.js"
-      ],
-      "introduced": "full",
-      "dependencies": [
-        {
-          "id": "VFSSandbox",
-          "optional": false
-        },
-        {
-          "id": "ArenaCompetitor",
-          "optional": false
-        },
-        {
-          "id": "ArenaMetrics",
-          "optional": false
-        },
-        {
-          "id": "VerificationManager",
-          "optional": false
-        },
-        {
-          "id": "EventBus",
-          "optional": false
-        },
-        {
-          "id": "Utils",
-          "optional": false
-        },
-        {
-          "id": "SchemaRegistry",
-          "optional": true
-        }
-      ],
-      "blueprint": "blueprints/0x000066-arena-harness.md"
-    },
-    "SwarmTransport": {
-      "id": "SwarmTransport",
-      "entry": "capabilities/communication/swarm-transport.js",
-      "files": [
-        "capabilities/communication/swarm-transport.js"
-      ],
-      "introduced": "full",
-      "dependencies": [
-        {
-          "id": "Utils",
-          "optional": false
-        },
-        {
-          "id": "EventBus",
-          "optional": false
-        }
-      ],
-      "blueprint": "blueprints/0x00009d-capabilities-communication-swarm-transport.md"
-    },
-    "WebRTCSwarm": {
-      "id": "WebRTCSwarm",
-      "entry": "capabilities/communication/webrtc-swarm.js",
-      "files": [
-        "capabilities/communication/webrtc-swarm.js"
-      ],
-      "introduced": "full",
-      "dependencies": [
-        {
-          "id": "Utils",
-          "optional": false
-        },
-        {
-          "id": "EventBus",
-          "optional": false
-        }
-      ],
-      "blueprint": "blueprints/0x000038-webrtc-swarm-transport.md"
-    },
-    "SwarmSync": {
-      "id": "SwarmSync",
-      "entry": "capabilities/communication/swarm-sync.js",
-      "files": [
-        "capabilities/communication/swarm-sync.js"
-      ],
-      "introduced": "full",
-      "dependencies": [
-        {
-          "id": "Utils",
-          "optional": false
-        },
-        {
-          "id": "EventBus",
-          "optional": false
-        },
-        {
-          "id": "SwarmTransport",
-          "optional": false
-        },
-        {
-          "id": "VFS",
-          "optional": false
-        },
-        {
-          "id": "ReflectionStore",
-          "optional": false
-        }
-      ],
-      "blueprint": "blueprints/0x00009c-capabilities-communication-swarm-sync.md"
-    },
-    "Consensus": {
-      "id": "Consensus",
-      "entry": "capabilities/communication/consensus.js",
-      "files": [
-        "capabilities/communication/consensus.js"
-      ],
-      "introduced": "full",
-      "dependencies": [
-        {
-          "id": "Utils",
-          "optional": false
-        },
-        {
-          "id": "EventBus",
-          "optional": false
-        },
-        {
-          "id": "SwarmTransport",
-          "optional": false
-        },
-        {
-          "id": "VFS",
-          "optional": true
-        }
-      ],
-      "blueprint": "blueprints/0x00009b-capabilities-communication-consensus.md"
     }
   }
 }
