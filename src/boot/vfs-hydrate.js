@@ -16,23 +16,21 @@ const toVfsPath = (file) => {
 };
 
 /**
- * Convert file path to web fetch path.
- * File paths in config are relative to src/ (e.g., "core/vfs.js").
- * Since this file is in src/boot/, we need to go up one level.
+ * Resolve a URL relative to the current document base.
  * @param {string} file - File path from src/
- * @returns {string} Web path for fetch
+ * @returns {string} Resolved URL for fetch
  */
 const toWebPath = (file) => {
-  if (file.startsWith('./') || file.startsWith('../')) {
-    return file;
-  }
-  // Paths are relative to src/, but we're in src/boot/, so go up one level
-  return `../${file}`;
+  const base = (typeof document !== 'undefined' && document.baseURI)
+    ? document.baseURI
+    : (typeof window !== 'undefined' && window.location ? window.location.href : 'http://localhost/');
+  return new URL(file, base).toString();
 };
 
 const loadVfsManifest = async (logger) => {
   try {
-    const resp = await fetch('../config/vfs-manifest.json', { cache: 'no-store' });
+    const manifestUrl = toWebPath('config/vfs-manifest.json');
+    const resp = await fetch(manifestUrl, { cache: 'no-store' });
     if (!resp.ok) {
       logger.warn(`[Boot] Failed to load VFS manifest (${resp.status})`);
       return null;

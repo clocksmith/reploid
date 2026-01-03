@@ -1,10 +1,19 @@
 # Core Modules
 
-**Primary Genesis Level:** TABULA (minimal agent substrate)
+**Primary Genesis Level:** SPARK (minimal agent core)
 
-This directory contains foundational modules. Most are loaded at `tabula`, with some requiring higher levels.
+This directory contains foundational modules. Bootstrap storage and state live at `tabula`, the minimal agent core starts at `spark`, and higher levels add reflection, cognition, and substrate features.
 
-## TABULA Level (Loaded First)
+## TABULA Level (Bootstrap)
+
+| Module | File | Description |
+|--------|------|-------------|
+| StateHelpersPure | `state-helpers-pure.js` | Deterministic state logic |
+| StateManager | `state-manager.js` | VFS and session persistence |
+| Utils | `utils.js` | Shared utilities and error classes |
+| VFS | `vfs.js` | Virtual file system (IndexedDB) |
+
+## SPARK Level (Minimal Agent Core)
 
 | Module | File | Description |
 |--------|------|-------------|
@@ -14,12 +23,8 @@ This directory contains foundational modules. Most are loaded at `tabula`, with 
 | PersonaManager | `persona-manager.js` | System prompt composition |
 | ResponseParser | `response-parser.js` | LLM response extraction |
 | SchemaRegistry | `schema-registry.js` | Tool schema storage |
-| StateHelpersPure | `state-helpers-pure.js` | Deterministic state logic |
-| StateManager | `state-manager.js` | VFS and session persistence |
 | ToolRunner | `tool-runner.js` | Tool execution engine |
 | ToolWriter | `tool-writer.js` | Dynamic tool creation |
-| Utils | `utils.js` | Shared utilities and error classes |
-| VFS | `vfs.js` | Virtual file system (IndexedDB) |
 
 ## REFLECTION Level
 
@@ -27,12 +32,25 @@ This directory contains foundational modules. Most are loaded at `tabula`, with 
 |--------|------|-------------|
 | VerificationManager | `verification-manager.js` | Test execution orchestrator |
 
+## COGNITION Level
+
+| Module | File | Description |
+|--------|------|-------------|
+| MemoryManager | `memory-manager.js` | Working memory orchestration |
+| TransformersClient | `transformers-client.js` | Browser-native model inference (WebGPU) |
+
+## SUBSTRATE Level
+
+| Module | File | Description |
+|--------|------|-------------|
+| SchemaValidator | `schema-validator.js` | Schema validation utilities |
+| WorkerManager | `worker-manager.js` | Sub-agent worker spawning |
+
 ## FULL Level
 
 | Module | File | Description |
 |--------|------|-------------|
-| TransformersClient | `transformers-client.js` | Browser-native model inference (WebGPU) |
-| WorkerManager | `worker-manager.js` | Sub-agent worker spawning |
+| (none) | - | Full-level modules live in capabilities and infrastructure |
 
 ## See Also
 

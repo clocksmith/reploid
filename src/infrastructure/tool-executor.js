@@ -7,7 +7,7 @@ const ToolExecutor = {
   metadata: {
     id: 'ToolExecutor',
     version: '1.0.0',
-    genesis: { introduced: 'tabula' },
+    genesis: { introduced: 'spark' },
     dependencies: ['Utils', 'ToolRunner', 'EventBus?', 'TraceStore?'],
     async: false,
     type: 'utility'

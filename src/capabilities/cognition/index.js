@@ -17,7 +17,7 @@
  */
 
 export { default as EmbeddingStore } from './semantic/embedding-store.js';
-export { default as SemanticMemory } from './semantic/semantic-memory.js';
+export { default as SemanticMemory } from './semantic/semantic-memory-llm.js';
 export { default as KnowledgeTree } from './knowledge-tree.js';
 export { default as EpisodicMemory } from './episodic-memory.js';
 export { default as HybridRetrieval } from './hybrid-retrieval.js';

@@ -3,16 +3,56 @@
  * Loads and validates genesis-levels.json, resolves module inheritance.
  */
 
+import { applyModuleOverrides, normalizeOverrides, resolveBaseModules } from '../config/module-resolution.js';
+
+const resolveConfigUrl = (path) => {
+  if (typeof document !== 'undefined' && document.baseURI) {
+    return new URL(path, document.baseURI).toString();
+  }
+  return path;
+};
+
 /**
  * Load genesis configuration from server.
  * @returns {Promise<Object>} Genesis config object
  */
 export async function loadGenesisConfig() {
-  const response = await fetch('../config/genesis-levels.json');
+  const response = await fetch(resolveConfigUrl('config/genesis-levels.json'));
   if (!response.ok) {
     throw new Error('Failed to load genesis configuration');
   }
   return response.json();
+}
+
+/**
+ * Load module registry from server.
+ * @returns {Promise<Object|null>} Module registry or null when unavailable
+ */
+export async function loadModuleRegistry() {
+  try {
+    const response = await fetch(resolveConfigUrl('config/module-registry.json'), { cache: 'no-store' });
+    if (!response.ok) {
+      return null;
+    }
+    return response.json();
+  } catch (err) {
+    return null;
+  }
+}
+
+/**
+ * Read module overrides from localStorage.
+ * @returns {Object} Normalized module overrides
+ */
+export function getModuleOverrides() {
+  if (typeof localStorage === 'undefined') return {};
+  try {
+    const raw = localStorage.getItem('REPLOID_MODULE_OVERRIDES');
+    if (!raw) return {};
+    return normalizeOverrides(JSON.parse(raw));
+  } catch (e) {
+    return {};
+  }
 }
 
 /**
@@ -42,23 +82,19 @@ export function getGenesisLevel(genesisConfig) {
  * Resolve the extends chain to get full module list.
  * @param {string} levelName - Genesis level name
  * @param {Object} genesisConfig - Full genesis config
+ * @param {Object|null} moduleRegistry - Module registry data
+ * @param {Object|null} overrides - Module override map
  * @returns {string[]} Array of module names
  */
-export function resolveModules(levelName, genesisConfig) {
-  const resolve = (name, visited = new Set()) => {
-    if (visited.has(name)) {
-      throw new Error(`Circular extends detected: ${[...visited, name].join(' -> ')}`);
-    }
-    visited.add(name);
+export function resolveModules(levelName, genesisConfig, moduleRegistry = null, overrides = null) {
+  const baseModules = resolveBaseModules(levelName, genesisConfig);
+  const normalized = normalizeOverrides(overrides);
+  if (!moduleRegistry || Object.keys(normalized).length === 0) {
+    return baseModules;
+  }
 
-    const level = genesisConfig.levels[name];
-    if (!level) return [];
-
-    const parentModules = level.extends ? resolve(level.extends, visited) : [];
-    return [...parentModules, ...level.modules];
-  };
-
-  return resolve(levelName);
+  const resolution = applyModuleOverrides(baseModules, moduleRegistry, normalized);
+  return resolution.resolved;
 }
 
 /**

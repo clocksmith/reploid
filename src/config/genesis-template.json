@@ -1,7 +1,7 @@
 {
   "levels": {
-    "seed": {
-      "name": "SEED",
+    "tabula": {
+      "name": "TABULA",
       "description": "Bootstrap substrate core - 7 foundational modules",
       "modules": [
         "DIContainer",
@@ -13,10 +13,10 @@
         "VFS"
       ]
     },
-    "tabula": {
-      "name": "TABULA RASA",
+    "spark": {
+      "name": "SPARK",
       "description": "Minimal agent core - 11 additional modules",
-      "extends": "seed",
+      "extends": "tabula",
       "modules": [
         "AgentLoop",
         "CircuitBreaker",
@@ -33,8 +33,8 @@
     },
     "reflection": {
       "name": "REFLECTION",
-      "description": "Tabula + self-awareness - 6 additional modules",
-      "extends": "tabula",
+      "description": "Spark + self-awareness - 6 additional modules",
+      "extends": "spark",
       "modules": [
         "HITLController",
         "RateLimiter",
@@ -178,7 +178,7 @@
     },
     "reflection": {
       "name": "Path to Reflection",
-      "description": "Tabula → Reflection: +6 modules for self-awareness and streaming",
+      "description": "Spark → Reflection: +6 modules for self-awareness and streaming",
       "modules": {
         "RateLimiter": "blueprints/0x00002C-rate-limiting-strategies.md",
         "StreamParser": "blueprints/0x00003F-streaming-response-handler.md",

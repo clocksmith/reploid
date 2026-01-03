@@ -36,8 +36,8 @@ export const GOAL_CATEGORIES = {
     },
     {
       view: 'Katamari 3D DOM collector',
-      text: 'Create a tool that scans the live DOM, collects element bounds, tags, and nesting depth, then writes a katamari-ready dataset to /.logs/katamari-dom.json.',
-      tags: ['DOM', 'Tool', 'UI'],
+      text: 'Create a katamari ball that rolls around the page and scoops up DOM elements, attaching them to the 3D ball as it grows. Scan element bounds, tags, and nesting depth to determine collectible size. Smaller elements get collected first; the ball grows and can collect larger elements as mass increases.',
+      tags: ['DOM', 'Tool', 'UI', '3D'],
       requires: {},
       recommended: true
     }

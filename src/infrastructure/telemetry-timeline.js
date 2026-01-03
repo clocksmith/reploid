@@ -7,7 +7,7 @@ const TelemetryTimeline = {
   metadata: {
     id: 'TelemetryTimeline',
     version: '1.0.0',
-    genesis: { introduced: 'tabula' },
+    genesis: { introduced: 'spark' },
     dependencies: ['Utils', 'VFS', 'EventBus?'],
     async: true,
     type: 'infrastructure'

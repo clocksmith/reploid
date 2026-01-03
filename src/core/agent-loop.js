@@ -7,7 +7,7 @@ const AgentLoop = {
   metadata: {
     id: 'AgentLoop',
     version: '1.2.0', // MemoryManager integration
-    genesis: { introduced: 'tabula' },
+    genesis: { introduced: 'spark' },
     dependencies: [
       'Utils', 'EventBus', 'LLMClient', 'ToolRunner', 'ContextManager',
       'ResponseParser', 'StateManager', 'PersonaManager', 'CircuitBreaker', 'SchemaRegistry',

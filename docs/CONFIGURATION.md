@@ -13,8 +13,9 @@ Expand "Advanced options" on the boot page to access these settings.
 | Setting | localStorage Key | Values | Default |
 |---------|------------------|--------|---------|
 | Persona | `REPLOID_PERSONA_ID` | `default`, `architect`, `explorer`, `debugger` | `default` |
-| Genesis Level | `REPLOID_GENESIS_LEVEL` | `full`, `substrate`, `cognition`, `reflection`, `tabula`, `seed` | `full` |
+| Genesis Level | `REPLOID_GENESIS_LEVEL` | `full`, `substrate`, `cognition`, `reflection`, `spark`, `tabula` | `full` |
 | Blueprint Path | `REPLOID_BLUEPRINT_PATH` | `none`, `reflection`, `full`, `beyond` | `none` |
+| Module Overrides | `REPLOID_MODULE_OVERRIDES` | JSON map of module id to `on` or `off` | `{}` |
 
 ### Execution Limits
 
@@ -101,7 +102,7 @@ See [SECURITY.md](./SECURITY.md) for details.
 window.getCognitionConfig()   // → { semantic, symbolic, minSimilarity, topK }
 window.getGEPAConfig()        // → { populationSize, maxGenerations, ... }
 window.getExecutionLimits()   // → { maxIterations, approvalInterval }
-window.getGenesisLevel()      // → 'full' | 'reflection' | 'tabula'
+window.getGenesisLevel()      // → 'full' | 'reflection' | 'spark' | 'tabula'
 window.getBlueprintPath()     // → 'none' | 'reflection' | 'full' | 'beyond'
 ```
 
@@ -130,7 +131,7 @@ Some settings can be set via URL:
 | Parameter | Effect |
 |-----------|--------|
 | `?swarm=true` | Enable swarm mode |
-| `?genesis=tabula` | Set genesis level |
+| `?genesis=spark` | Set genesis level |
 | `?debug=true` | Enable debug logging |
 
 ---
@@ -166,5 +167,15 @@ Canonical map of runtime JavaScript files to blueprint documents.
 | Key | Purpose |
 |-----|---------|
 | `features` | Blueprint entries with file lists |
+
+---
+
+## Module Registry (`config/module-registry.json`)
+
+Derived map of runtime modules, dependencies, and genesis introduction levels.
+
+| Key | Purpose |
+|-----|---------|
+| `modules` | Module metadata with dependency lists |
 
 *Last updated: December 2025*

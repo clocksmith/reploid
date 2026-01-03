@@ -7,7 +7,7 @@ const ResponseParser = {
   metadata: {
     id: 'ResponseParser',
     version: '1.0.0', // Backtick template literal support
-    genesis: { introduced: 'tabula' },
+    genesis: { introduced: 'spark' },
     dependencies: ['Utils'],
     type: 'service'
   },

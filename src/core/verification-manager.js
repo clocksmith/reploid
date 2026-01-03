@@ -103,7 +103,8 @@ const VerificationManager = {
      * @returns {Promise<Object>} Verification result
      */
     const verifyProposal = async (changes, options = {}) => {
-      const { timeout = DEFAULT_TIMEOUT, quickMode = false } = options;
+      // Default to quickMode=true: only verify the changed files, not entire VFS
+      const { timeout = DEFAULT_TIMEOUT, quickMode = true } = options;
 
       logger.info('[Verifier] Starting verification...');
 

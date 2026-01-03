@@ -10,7 +10,7 @@
 
 **Category:** Infrastructure
 
-**Genesis:** tabula
+**Genesis:** substrate
 
 ---
 
@@ -38,7 +38,7 @@ const ReplayEngine = {
     dependencies: ['Utils', 'EventBus'],
     async: false,
     type: 'infrastructure',
-    genesis: 'tabula'
+    genesis: 'substrate'
   },
 
   factory: (deps) => {

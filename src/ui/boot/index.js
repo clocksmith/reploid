@@ -15,6 +15,8 @@ import {
   testProxyModel, testDirectModel
 } from './detection.js';
 
+import { serializeModuleOverrides } from '../../config/module-resolution.js';
+
 // Step renderers
 import { renderChooseStep } from './steps/choose.js';
 import { renderDirectConfigStep, CLOUD_MODELS } from './steps/direct.js';
@@ -27,13 +29,64 @@ import { renderAwakenStep } from './steps/awaken.js';
 let container = null;
 let listenersAttached = false;
 
+const resolveConfigUrl = (path) => {
+  if (typeof document !== 'undefined' && document.baseURI) {
+    return new URL(path, document.baseURI).toString();
+  }
+  return path;
+};
+
+async function ensureModuleConfigLoaded() {
+  const current = getState().moduleConfig || {};
+  if (current.loading || (current.genesis && current.registry)) return;
+
+  setState({ moduleConfig: { ...current, loading: true, error: null } });
+
+  try {
+    const [genesisRes, registryRes] = await Promise.all([
+      fetch(resolveConfigUrl('config/genesis-levels.json'), { cache: 'no-store' }),
+      fetch(resolveConfigUrl('config/module-registry.json'), { cache: 'no-store' })
+    ]);
+
+    if (!genesisRes.ok) {
+      throw new Error(`Failed to load genesis config (${genesisRes.status})`);
+    }
+    if (!registryRes.ok) {
+      throw new Error(`Failed to load module registry (${registryRes.status})`);
+    }
+
+    const genesis = await genesisRes.json();
+    const registry = await registryRes.json();
+
+    setState({
+      moduleConfig: {
+        loading: false,
+        error: null,
+        genesis,
+        registry
+      }
+    });
+  } catch (err) {
+    setState({
+      moduleConfig: {
+        loading: false,
+        error: err.message || 'Failed to load module registry',
+        genesis: null,
+        registry: null
+      }
+    });
+  }
+}
+
 /**
  * Initialize wizard
  */
 export function initWizard(containerEl) {
   container = containerEl;
   listenersAttached = false;
-  subscribe(render);
+  isInitialRender = true;
+  lastModuleConfigState = null;
+  subscribe(scheduleUpdate);
   handleStart();
 }
 
@@ -116,9 +169,122 @@ async function startDetection() {
 
 /**
  * Main render function - single page with progressive reveal
+ * First call builds DOM, subsequent calls update classes/attributes only
  */
+let isInitialRender = true;
+let updateScheduled = false;
+
+// Track state that requires full re-render
+let lastModuleConfigState = null;
+let lastAdvancedOpen = null;
+
+function scheduleUpdate() {
+  if (updateScheduled) return;
+  updateScheduled = true;
+  requestAnimationFrame(() => {
+    updateScheduled = false;
+    const state = getState();
+
+    // Full re-render when structural changes occur
+    const moduleConfigState = JSON.stringify(state.moduleConfig);
+    const moduleConfigChanged = moduleConfigState !== lastModuleConfigState;
+    const advancedOpenChanged = state.advancedOpen !== lastAdvancedOpen;
+
+    if (isInitialRender || moduleConfigChanged || advancedOpenChanged) {
+      lastModuleConfigState = moduleConfigState;
+      lastAdvancedOpen = state.advancedOpen;
+      render();
+    } else {
+      updateUI();
+    }
+  });
+}
+
+/**
+ * Update UI without full re-render - just toggle classes and attributes
+ */
+function updateUI() {
+  if (!container) return;
+  const state = getState();
+
+  // Update connection type selection
+  container.querySelectorAll('[data-action^="choose-"]').forEach(btn => {
+    const type = btn.dataset.action.replace('choose-', '');
+    btn.classList.toggle('border-ghost', state.connectionType !== type);
+  });
+
+  // Show/hide config sections based on connection type
+  const directSection = container.querySelector('.wizard-direct');
+  const proxySection = container.querySelector('.wizard-proxy');
+  const browserSection = container.querySelector('.wizard-browser');
+  const goalSection = container.querySelector('.wizard-goal');
+  const awakenSection = container.querySelector('.wizard-awaken');
+
+  if (directSection) directSection.style.display = state.connectionType === 'direct' ? '' : 'none';
+  if (proxySection) proxySection.style.display = state.connectionType === 'proxy' ? '' : 'none';
+  if (browserSection) browserSection.style.display = state.connectionType === 'browser' ? '' : 'none';
+
+  // Show goal/awaken when ready
+  const ready = canAwaken();
+  if (goalSection) goalSection.style.display = ready ? '' : 'none';
+  if (awakenSection) awakenSection.style.display = ready ? '' : 'none';
+
+  // Update accordion states
+  container.querySelectorAll('.accordion-header[data-category]').forEach(header => {
+    const category = header.dataset.category;
+    const isSelected = category === state.selectedGoalCategory;
+    header.setAttribute('aria-expanded', isSelected);
+    const content = header.nextElementSibling;
+    if (content) content.setAttribute('aria-hidden', !isSelected);
+  });
+
+  // Update advanced panel visibility
+  const advancedPanel = container.querySelector('.advanced-panel');
+  const advancedBtn = container.querySelector('[data-action="advanced-settings"]');
+  if (advancedPanel) advancedPanel.style.display = state.advancedOpen ? '' : 'none';
+  if (advancedBtn) advancedBtn.textContent = state.advancedOpen ? 'Hide advanced settings' : 'Advanced settings';
+
+  // Update genesis level select
+  const genesisSelect = container.querySelector('#advanced-genesis-level');
+  if (genesisSelect && state.advancedConfig?.genesisLevel) {
+    genesisSelect.value = state.advancedConfig.genesisLevel;
+  }
+
+  // Update preserve checkbox
+  const preserveCheckbox = container.querySelector('#preserve-on-boot');
+  if (preserveCheckbox) {
+    preserveCheckbox.checked = !!state.advancedConfig?.preserveOnBoot;
+  }
+
+  // Update awaken button based on goal
+  const awakenBtn = container.querySelector('[data-action="awaken"]');
+  const awakenNote = container.querySelector('.wizard-awaken .wizard-note');
+  const hasGoal = !!(state.goal && state.goal.trim());
+  if (awakenBtn) {
+    awakenBtn.disabled = !hasGoal;
+  }
+  if (awakenNote) {
+    awakenNote.style.display = hasGoal ? 'none' : '';
+    if (!hasGoal) {
+      awakenNote.textContent = 'Select or enter a goal above to awaken the agent.';
+    }
+  }
+
+  // Load module config if needed
+  if (state.advancedOpen || ready) {
+    ensureModuleConfigLoaded();
+  }
+}
+
 function render() {
   if (!container) return;
+
+  // Save focus/scroll before DOM replacement
+  const activeEl = document.activeElement;
+  const focusId = activeEl?.id || null;
+  const focusSelStart = activeEl?.selectionStart;
+  const focusSelEnd = activeEl?.selectionEnd;
+  const scrollTop = container.scrollTop;
 
   const state = getState();
   let html = '<div class="wizard-sections">';
@@ -137,24 +303,45 @@ function render() {
   // Section 1: Always show connection type selection
   html += renderChooseStep(state);
 
-  // Section 2: Show config for selected connection type
-  if (state.connectionType === 'direct') {
-    html += renderDirectConfigStep(state);
-  } else if (state.connectionType === 'proxy') {
-    html += renderProxyConfigStep(state);
-  } else if (state.connectionType === 'browser') {
-    html += renderBrowserConfigStep(state);
-  }
+  // Section 2: Render ALL config sections (hidden by CSS initially)
+  // Direct config
+  const directDisplay = state.connectionType === 'direct' ? '' : 'none';
+  html += `<div class="wizard-direct" style="display:${directDisplay}">${renderDirectConfigStep(state)}</div>`;
 
-  // Section 3: Show goal if config is ready
-  if (canAwaken()) {
-    html += renderGoalStep(state);
-    html += renderAwakenStep(state);
-  }
+  // Proxy config
+  const proxyDisplay = state.connectionType === 'proxy' ? '' : 'none';
+  html += `<div class="wizard-proxy" style="display:${proxyDisplay}">${renderProxyConfigStep(state)}</div>`;
+
+  // Browser config
+  const browserDisplay = state.connectionType === 'browser' ? '' : 'none';
+  html += `<div class="wizard-browser" style="display:${browserDisplay}">${renderBrowserConfigStep(state)}</div>`;
+
+  // Section 3: Goal and awaken (hidden until ready)
+  const ready = canAwaken();
+  const goalDisplay = ready ? '' : 'none';
+  html += `<div style="display:${goalDisplay}">${renderGoalStep(state)}</div>`;
+  html += `<div style="display:${goalDisplay}">${renderAwakenStep(state)}</div>`;
 
   html += '</div>';
 
   container.innerHTML = html;
+  isInitialRender = false;
+
+  // Restore scroll and focus
+  container.scrollTop = scrollTop;
+  if (focusId) {
+    const el = document.getElementById(focusId);
+    if (el) {
+      el.focus();
+      if (typeof focusSelStart === 'number' && typeof el.setSelectionRange === 'function') {
+        try { el.setSelectionRange(focusSelStart, focusSelEnd); } catch (e) { /* ignore */ }
+      }
+    }
+  }
+
+  if (state.advancedOpen || ready) {
+    ensureModuleConfigLoaded();
+  }
 
   // Only attach listeners once (use event delegation)
   if (!listenersAttached) {
@@ -292,6 +479,14 @@ function handleClick(e) {
       break;
     }
 
+    case 'toggle-goal-category': {
+      const category = e.target.closest('[data-category]')?.dataset.category;
+      if (category) {
+        setState({ selectedGoalCategory: category });
+      }
+      break;
+    }
+
     case 'select-goal': {
       const goalText = e.target.closest('[data-goal]')?.dataset.goal;
       if (goalText) {
@@ -317,6 +512,34 @@ function handleClick(e) {
     case 'advanced-settings':
       setState({ advancedOpen: !state.advancedOpen });
       break;
+
+    case 'module-override': {
+      const button = e.target.closest('[data-module][data-value]');
+      if (!button) break;
+      const moduleName = button.dataset.module;
+      const value = button.dataset.value;
+      if (!moduleName || !value) break;
+
+      const overrides = { ...(state.advancedConfig?.moduleOverrides || {}) };
+      if (value === 'inherit') {
+        delete overrides[moduleName];
+      } else if (value === 'on' || value === 'off') {
+        overrides[moduleName] = value;
+      }
+
+      const serialized = serializeModuleOverrides(overrides);
+      localStorage.setItem('REPLOID_MODULE_OVERRIDES', serialized);
+      setNestedState('advancedConfig', { moduleOverrides: overrides });
+      break;
+    }
+
+    case 'reset-module-overrides': {
+      if (confirm('Reset all module overrides?')) {
+        localStorage.removeItem('REPLOID_MODULE_OVERRIDES');
+        setNestedState('advancedConfig', { moduleOverrides: {} });
+      }
+      break;
+    }
 
     case 'awaken-anyway':
       doAwaken();
@@ -391,6 +614,10 @@ function handleChange(e) {
       setNestedState('advancedConfig', { genesisLevel: value });
       break;
 
+    case 'module-override-filter':
+      setState({ moduleOverrideFilter: value });
+      break;
+
     case 'proxy-url':
       setNestedState('proxyConfig', {
         url: value,
@@ -441,6 +668,10 @@ function handleInput(e) {
 
     case 'proxy-model':
       setNestedState('proxyConfig', { model: value });
+      break;
+
+    case 'module-override-search':
+      setState({ moduleOverrideSearch: value });
       break;
   }
 }
@@ -532,7 +763,7 @@ async function handleTestFromAwaken() {
   else if (connectionType === 'proxy') newVerifyState = updatedState.proxyConfig.verifyState;
 
   if (newVerifyState === VERIFY_STATE.VERIFIED) {
-    doAwaken();
+    await doAwaken();
   }
 }
 
@@ -576,17 +807,32 @@ async function handleTestDirectModel() {
   });
 }
 
-function doAwaken() {
+async function doAwaken() {
   const state = getState();
   saveConfig();
+
+  // Set loading state immediately
+  setState({ isAwakening: true });
+
+  // Clear VFS before awakening to ensure fresh hydration from source files
+  if (window.clearVFS) {
+    console.log('[Boot] Clearing VFS before awaken...');
+    try {
+      const steps = await window.clearVFS();
+      console.log('[Boot] VFS cleared:', steps);
+    } catch (err) {
+      console.warn('[Boot] VFS clear failed, continuing anyway:', err);
+    }
+  }
 
   if (window.triggerAwaken) {
     window.triggerAwaken(state.goal);
   }
+  // Note: isAwakening stays true since the page will transition to agent UI
 }
 
 async function handleAwaken() {
-  doAwaken();
+  await doAwaken();
 }
 
 export { STEPS, getState, goToStep };
