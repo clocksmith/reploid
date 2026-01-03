@@ -1,6 +1,6 @@
 # REPLOID Showcase Runs
 
-Eight demonstration runs showcasing REPLOID's autonomous RSI (Recursive Self-Improvement) capabilities.
+Nine demonstration runs showcasing REPLOID's autonomous RSI (Recursive Self-Improvement) capabilities.
 
 ## What's Actually Impressive
 
@@ -15,6 +15,7 @@ Eight demonstration runs showcasing REPLOID's autonomous RSI (Recursive Self-Imp
 - Pre-built infrastructure assembled, not invented
 - Browser constraints (single-threaded, API-bound)
 - Same LLM evaluates its own outputs (no ground truth)
+- Cannot verify novelty claims (see Run #9)
 
 **The real value:** These runs prove an agent *can* orchestrate self-improvement loops. The results are shallow proof-of-concepts, not production optimizations.
 
@@ -118,6 +119,18 @@ Agent created `SelfReplicator` tool that embedded entire VFS (169 files, 22.6 MB
 
 ---
 
+### 9. REAR Sort "Novel Algorithm" (Jan 3, 2026) [Report](rear-sort-novelty.md)
+
+**Goal:** Invent a genuinely novel algorithm. Prove correctness, benchmark, name it.
+
+**Model:** Gemini 3 Flash | **Cycles:** 49 | **VFS Files:** 457
+
+Agent created REAR Sort (REPLOID Entropy-Adaptive Radix Sort) - a radix sort with entropy-based adaptive radix selection. Created 12 verification/benchmark tools, wrote formal documentation with complexity analysis, ran extensive benchmarks. **Failure case:** The algorithm works but isn't novel - it combines well-known techniques (radix sort, entropy analysis, adaptive parameters). Demonstrates epistemic limits: LLMs can complete every step of a novelty task except verifying novelty.
+
+**Demonstrates:** Epistemic limitations, confident confabulation, creative recombination vs genuine novelty
+
+---
+
 ## Replay System
 
 REPLOID has a built-in Replay tab for run playback:
@@ -148,6 +161,7 @@ runs/showcase/
 ├── gepa-security-hardening.md   # Run 6 report
 ├── neural-interface-rebuild.md  # Run 7 report
 ├── quine-self-replication.md    # Run 8 report
+├── rear-sort-novelty.md         # Run 9 report
 └── inception-awaken-child.js    # Agent-created tool artifact
 ```
 

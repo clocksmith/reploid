@@ -16,6 +16,9 @@ export const createVFSManager = (deps) => {
   const RECENT_HIGHLIGHT_DURATION = 5000;
   const MAX_VFS_FILES = 500;
 
+  // Track collapsed folders (persists across re-renders)
+  const _collapsedFolders = new Set();
+
   // Initialize EventBus listeners for auto-refresh
   const initEventBusListeners = () => {
     if (_eventBusInitialized || !EventBus) return;
@@ -92,45 +95,106 @@ export const createVFSManager = (deps) => {
     const truncated = files.length > MAX_VFS_FILES;
     const displayFiles = truncated ? files.slice(0, MAX_VFS_FILES) : files;
 
-    // Group by directory
-    const tree = {};
+    // Group by directory with folder paths tracked
+    const tree = { __path: '', __children: {} };
     displayFiles.forEach(path => {
       const parts = path.split('/').filter(p => p);
       let current = tree;
+      let currentPath = '';
       parts.forEach((part, i) => {
+        currentPath = currentPath ? `${currentPath}/${part}` : part;
         if (i === parts.length - 1) {
-          current[part] = path;
+          // File leaf node
+          current.__children[part] = { __isFile: true, __path: path };
         } else {
-          current[part] = current[part] || {};
-          current = current[part];
+          // Folder node
+          if (!current.__children[part]) {
+            current.__children[part] = { __path: currentPath, __children: {} };
+          }
+          current = current.__children[part];
         }
       });
     });
 
-    const renderNode = (node, indent = 0) => {
+    // Get aggregate status for a folder's descendants
+    const getAggregateStatus = (node) => {
+      const statuses = new Set();
+      const collectStatuses = (n) => {
+        if (!n.__children) return;
+        for (const child of Object.values(n.__children)) {
+          if (child.__isFile) {
+            const modInfo = _recentlyModified.get(child.__path);
+            if (modInfo) statuses.add(modInfo.type);
+          } else {
+            collectStatuses(child);
+          }
+        }
+      };
+      collectStatuses(node);
+      // Priority: deleted > created > modified
+      if (statuses.has('deleted')) return { type: 'deleted', indicator: ' ×', class: 'vfs-file-deleted' };
+      if (statuses.has('created')) return { type: 'created', indicator: ' +', class: 'vfs-file-created' };
+      if (statuses.has('modified')) return { type: 'modified', indicator: ' ~', class: 'vfs-file-modified' };
+      return null;
+    };
+
+    // Count files in a folder
+    const countFiles = (node) => {
+      let count = 0;
+      if (!node.__children) return 0;
+      for (const child of Object.values(node.__children)) {
+        if (child.__isFile) count++;
+        else count += countFiles(child);
+      }
+      return count;
+    };
+
+    const renderNode = (node, indent = 0, parentCollapsed = false) => {
       let html = '';
-      const entries = Object.entries(node).sort(([a], [b]) => {
-        const aIsDir = typeof node[a] === 'object';
-        const bIsDir = typeof node[b] === 'object';
+      if (!node.__children) return html;
+
+      const entries = Object.entries(node.__children).sort(([a, aVal], [b, bVal]) => {
+        const aIsDir = !aVal.__isFile;
+        const bIsDir = !bVal.__isFile;
         if (aIsDir && !bIsDir) return -1;
         if (!aIsDir && bIsDir) return 1;
         return a.localeCompare(b);
       });
 
       entries.forEach(([name, value]) => {
-        const isDir = typeof value === 'object';
+        const isFile = value.__isFile;
         const padding = indent * 12;
+        const hiddenClass = parentCollapsed ? 'hidden' : '';
 
-        if (isDir) {
+        if (!isFile) {
+          // Folder
+          const folderPath = value.__path;
+          const isCollapsed = _collapsedFolders.has(folderPath);
+          const icon = isCollapsed ? '▶' : '▼';
+          const fileCount = countFiles(value);
+
+          // Show aggregate status when collapsed
+          let aggregateIndicator = '';
+          let aggregateClass = '';
+          if (isCollapsed) {
+            const aggStatus = getAggregateStatus(value);
+            if (aggStatus) {
+              aggregateIndicator = aggStatus.indicator;
+              aggregateClass = aggStatus.class;
+            }
+          }
+
           html += `
-            <div class="vfs-dir" style="padding-left: ${padding}px">
-              <span class="vfs-dir-icon">▼</span> ${escapeHtml(name)}
+            <div class="vfs-dir ${aggregateClass} ${hiddenClass}" data-folder-path="${escapeHtml(folderPath)}" style="padding-left: ${padding}px">
+              <span class="vfs-dir-icon">${icon}</span> ${escapeHtml(name)} <span class="muted">(${fileCount})</span>${aggregateIndicator}
             </div>
           `;
-          html += renderNode(value, indent + 1);
+          html += renderNode(value, indent + 1, parentCollapsed || isCollapsed);
         } else {
-          const safePath = escapeHtml(value);
-          const modInfo = _recentlyModified.get(value);
+          // File
+          const filePath = value.__path;
+          const safePath = escapeHtml(filePath);
+          const modInfo = _recentlyModified.get(filePath);
           let modClass = '';
           let modIndicator = '';
           if (modInfo) {
@@ -145,10 +209,9 @@ export const createVFSManager = (deps) => {
               modIndicator = ' ~';
             }
           }
-          // Add selected class if this is the current file
-          const selectedClass = value === _currentFilePath ? 'selected' : '';
+          const selectedClass = filePath === _currentFilePath ? 'selected' : '';
           html += `
-            <div class="vfs-file ${modClass} ${selectedClass}" role="button" data-path="${safePath}" style="padding-left: ${padding + 16}px">
+            <div class="vfs-file ${modClass} ${selectedClass} ${hiddenClass}" role="button" data-path="${safePath}" style="padding-left: ${padding + 16}px">
               ${escapeHtml(name)}${modIndicator}
             </div>
           `;
@@ -175,18 +238,18 @@ export const createVFSManager = (deps) => {
     treeEl.querySelectorAll('.vfs-dir').forEach(dir => {
       dir.onclick = (e) => {
         e.stopPropagation();
-        const icon = dir.querySelector('.vfs-dir-icon');
-        const isExpanded = icon.textContent === '▼';
-        icon.textContent = isExpanded ? '▶' : '▼';
+        const folderPath = dir.dataset.folderPath;
+        if (!folderPath) return;
 
-        let next = dir.nextElementSibling;
-        const dirIndent = parseInt(dir.style.paddingLeft) || 0;
-        while (next) {
-          const nextIndent = parseInt(next.style.paddingLeft) || 0;
-          if (nextIndent <= dirIndent) break;
-          next.classList.toggle('hidden', isExpanded);
-          next = next.nextElementSibling;
+        // Toggle collapsed state in the Set
+        if (_collapsedFolders.has(folderPath)) {
+          _collapsedFolders.delete(folderPath);
+        } else {
+          _collapsedFolders.add(folderPath);
         }
+
+        // Re-render to apply state
+        renderVFSTree(_allFiles);
       };
     });
   };

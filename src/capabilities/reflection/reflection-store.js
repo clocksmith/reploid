@@ -17,7 +17,7 @@ const ReflectionStore = {
     const { Utils, VFS, EventBus } = deps;
     const { logger, generateId } = Utils;
 
-    const STORE_PATH = '/.memory/reflections.json';
+    const STORE_PATH = '/.memory/reflections.jsonl';
     const GENOME_PATH = '/.memory/genomes.json';
     const ADAPTER_STATS_PATH = '/.memory/adapter-stats.json';
 
@@ -25,12 +25,20 @@ const ReflectionStore = {
     let _genomes = {};      // { taskType: { generations: [...] } }
     let _adapterStats = {}; // { taskType:adapterId: { successes, attempts } }
 
+    // JSONL helpers
+    const parseJsonl = (content) => {
+      if (!content) return [];
+      return content.split('\n').filter(line => line.trim()).map(line => JSON.parse(line));
+    };
+
+    const toJsonl = (arr) => arr.map(item => JSON.stringify(item)).join('\n');
+
     const init = async () => {
-      // Load reflections
+      // Load reflections (JSONL format)
       if (await VFS.exists(STORE_PATH)) {
         try {
           const content = await VFS.read(STORE_PATH);
-          _cache = JSON.parse(content);
+          _cache = parseJsonl(content);
         } catch (e) {
           logger.error('[Reflection] Corrupt store, resetting.', e);
           _cache = [];
@@ -109,7 +117,7 @@ const ReflectionStore = {
       if (!await VFS.exists('/.memory')) {
           await VFS.mkdir('/.memory');
       }
-      await VFS.write(STORE_PATH, JSON.stringify(_cache, null, 2));
+      await VFS.write(STORE_PATH, toJsonl(_cache));
     };
 
     const _saveGenomes = async () => {
