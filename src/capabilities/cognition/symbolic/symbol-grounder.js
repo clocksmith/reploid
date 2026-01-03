@@ -41,7 +41,7 @@ const SymbolGrounder = {
 
     const ground = async (text, context = {}) => {
       if (!text || typeof text !== 'string') {
-        return { entities: [], relations: [], facts: [] };
+        return { entities: [], newEntities: [], relations: [], facts: [] };
       }
 
       // Step 1: Extract mentions using patterns

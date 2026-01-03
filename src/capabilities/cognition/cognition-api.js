@@ -270,12 +270,12 @@ const CognitionAPI = {
           // Ground the response
           const grounding = await SymbolGrounder.ground(response, context);
 
-          // Filter by confidence threshold
-          const highConfidenceEntities = grounding.newEntities.filter(
+          // Filter by confidence threshold (with defensive checks)
+          const highConfidenceEntities = (grounding?.newEntities || []).filter(
             e => e.score >= _config.learning.minConfidence
           );
 
-          const highConfidenceRelations = grounding.relations.filter(
+          const highConfidenceRelations = (grounding?.relations || []).filter(
             r => r.confidence >= _config.learning.minConfidence
           );
 

@@ -240,7 +240,7 @@ export function renderGoalStep(state) {
         }).join('')}
       </div>
 
-      <div class="custom-goal" style="margin-top: var(--space-xl);">
+      <div class="custom-goal" style="margin-top: calc(var(--space-xl) * 2);">
         <label class="type-label">Or describe your own goal:</label>
         <textarea id="custom-goal"
                   class="goal-input"
