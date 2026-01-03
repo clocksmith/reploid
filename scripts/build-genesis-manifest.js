@@ -51,7 +51,7 @@ async function loadModuleMetadata(filePath) {
       return null;
     }
 
-    const relativePath = toPosix(path.relative(ROOT, filePath));
+    const relativePath = toPosix(path.relative(SRC_ROOT, filePath));
     const files = Array.isArray(metadata.files) && metadata.files.length > 0
       ? metadata.files.map(toPosix)
       : [relativePath];

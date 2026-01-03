@@ -105,185 +105,185 @@
   },
   "moduleFiles": {
     "AgentLoop": [
-      "src/core/agent-loop.js"
+      "core/agent-loop.js"
     ],
     "ArenaCompetitor": [
-      "src/testing/arena/competitor.js"
+      "testing/arena/competitor.js"
     ],
     "ArenaHarness": [
-      "src/testing/arena/arena-harness.js"
+      "testing/arena/arena-harness.js"
     ],
     "ArenaMetrics": [
-      "src/testing/arena/arena-metrics.js"
+      "testing/arena/arena-metrics.js"
     ],
     "AuditLogger": [
-      "src/infrastructure/audit-logger.js"
+      "infrastructure/audit-logger.js"
     ],
     "BrowserAPIs": [
-      "src/infrastructure/browser-apis.js"
+      "infrastructure/browser-apis.js"
     ],
     "CircuitBreaker": [
-      "src/infrastructure/circuit-breaker.js"
+      "infrastructure/circuit-breaker.js"
     ],
     "CognitionAPI": [
-      "src/capabilities/cognition/cognition-api.js"
+      "capabilities/cognition/cognition-api.js"
     ],
     "Consensus": [
-      "src/capabilities/communication/consensus.js"
+      "capabilities/communication/consensus.js"
     ],
     "ContextManager": [
-      "src/core/context-manager.js"
+      "core/context-manager.js"
     ],
     "DIContainer": [
-      "src/infrastructure/di-container.js"
+      "infrastructure/di-container.js"
     ],
     "EmbeddingStore": [
-      "src/capabilities/cognition/semantic/embedding-store.js"
+      "capabilities/cognition/semantic/embedding-store.js"
     ],
     "EpisodicMemory": [
-      "src/capabilities/cognition/episodic-memory.js"
+      "capabilities/cognition/episodic-memory.js"
     ],
     "ErrorStore": [
-      "src/infrastructure/error-store.js"
+      "infrastructure/error-store.js"
     ],
     "EventBus": [
-      "src/infrastructure/event-bus.js"
+      "infrastructure/event-bus.js"
     ],
     "FederatedLearning": [
-      "src/capabilities/intelligence/federated-learning.js"
+      "capabilities/intelligence/federated-learning.js"
     ],
     "FunctionGemmaOrchestrator": [
-      "src/capabilities/intelligence/functiongemma-orchestrator.js"
+      "capabilities/intelligence/functiongemma-orchestrator.js"
     ],
     "GEPAOptimizer": [
-      "src/capabilities/cognition/gepa-optimizer.js"
+      "capabilities/cognition/gepa-optimizer.js"
     ],
     "GenesisSnapshot": [
-      "src/infrastructure/genesis-snapshot.js"
+      "infrastructure/genesis-snapshot.js"
     ],
     "HITLController": [
-      "src/infrastructure/hitl-controller.js"
+      "infrastructure/hitl-controller.js"
     ],
     "HybridRetrieval": [
-      "src/capabilities/cognition/hybrid-retrieval.js"
+      "capabilities/cognition/hybrid-retrieval.js"
     ],
     "KnowledgeGraph": [
-      "src/capabilities/cognition/symbolic/knowledge-graph.js"
+      "capabilities/cognition/symbolic/knowledge-graph.js"
     ],
     "KnowledgeTree": [
-      "src/capabilities/cognition/knowledge-tree.js"
+      "capabilities/cognition/knowledge-tree.js"
     ],
     "LLMClient": [
-      "src/core/llm-client.js"
+      "core/llm-client.js"
     ],
     "MemoryManager": [
-      "src/core/memory-manager.js"
+      "core/memory-manager.js"
     ],
     "MultiModelCoordinator": [
-      "src/capabilities/intelligence/multi-model-coordinator.js"
+      "capabilities/intelligence/multi-model-coordinator.js"
     ],
     "NeuralCompiler": [
-      "src/capabilities/intelligence/neural-compiler.js"
+      "capabilities/intelligence/neural-compiler.js"
     ],
     "Observability": [
-      "src/infrastructure/observability.js"
+      "infrastructure/observability.js"
     ],
     "PerformanceMonitor": [
-      "src/capabilities/performance/performance-monitor.js"
+      "capabilities/performance/performance-monitor.js"
     ],
     "PersonaManager": [
-      "src/core/persona-manager.js"
+      "core/persona-manager.js"
     ],
     "PolicyEngine": [
-      "src/infrastructure/policy-engine.js"
+      "infrastructure/policy-engine.js"
     ],
     "PromptMemory": [
-      "src/capabilities/cognition/prompt-memory.js"
+      "capabilities/cognition/prompt-memory.js"
     ],
     "PromptScoreMap": [
-      "src/capabilities/reflection/prompt-score-map.js"
+      "capabilities/reflection/prompt-score-map.js"
     ],
     "RateLimiter": [
-      "src/infrastructure/rate-limiter.js"
+      "infrastructure/rate-limiter.js"
     ],
     "ReflectionAnalyzer": [
-      "src/capabilities/reflection/reflection-analyzer.js"
+      "capabilities/reflection/reflection-analyzer.js"
     ],
     "ReflectionStore": [
-      "src/capabilities/reflection/reflection-store.js"
+      "capabilities/reflection/reflection-store.js"
     ],
     "ReplayEngine": [
-      "src/infrastructure/replay-engine.js"
+      "infrastructure/replay-engine.js"
     ],
     "ResponseParser": [
-      "src/core/response-parser.js"
+      "core/response-parser.js"
     ],
     "RuleEngine": [
-      "src/capabilities/cognition/symbolic/rule-engine.js"
+      "capabilities/cognition/symbolic/rule-engine.js"
     ],
     "SchemaRegistry": [
-      "src/core/schema-registry.js"
+      "core/schema-registry.js"
     ],
     "SchemaValidator": [
-      "src/core/schema-validator.js"
+      "core/schema-validator.js"
     ],
     "SemanticMemory": [
-      "src/capabilities/cognition/semantic/semantic-memory-llm.js"
+      "capabilities/cognition/semantic/semantic-memory-llm.js"
     ],
     "StateHelpersPure": [
-      "src/core/state-helpers-pure.js"
+      "core/state-helpers-pure.js"
     ],
     "StateManager": [
-      "src/core/state-manager.js"
+      "core/state-manager.js"
     ],
     "StreamParser": [
-      "src/infrastructure/stream-parser.js"
+      "infrastructure/stream-parser.js"
     ],
     "SubstrateLoader": [
       "capabilities/system/substrate-loader.js",
       "core/vfs-module-loader.js"
     ],
     "SwarmSync": [
-      "src/capabilities/communication/swarm-sync.js"
+      "capabilities/communication/swarm-sync.js"
     ],
     "SwarmTransport": [
-      "src/capabilities/communication/swarm-transport.js"
+      "capabilities/communication/swarm-transport.js"
     ],
     "SymbolGrounder": [
-      "src/capabilities/cognition/symbolic/symbol-grounder.js"
+      "capabilities/cognition/symbolic/symbol-grounder.js"
     ],
     "TelemetryTimeline": [
-      "src/infrastructure/telemetry-timeline.js"
+      "infrastructure/telemetry-timeline.js"
     ],
     "ToolExecutor": [
-      "src/infrastructure/tool-executor.js"
+      "infrastructure/tool-executor.js"
     ],
     "ToolRunner": [
-      "src/core/tool-runner.js"
+      "core/tool-runner.js"
     ],
     "ToolWriter": [
-      "src/core/tool-writer.js"
+      "core/tool-writer.js"
     ],
     "TraceStore": [
-      "src/infrastructure/trace-store.js"
+      "infrastructure/trace-store.js"
     ],
     "TransformersClient": [
-      "src/core/transformers-client.js"
+      "core/transformers-client.js"
     ],
     "Utils": [
-      "src/core/utils.js"
+      "core/utils.js"
     ],
     "VFS": [
-      "src/core/vfs.js"
+      "core/vfs.js"
     ],
     "VFSSandbox": [
-      "src/testing/arena/vfs-sandbox.js"
+      "testing/arena/vfs-sandbox.js"
     ],
     "VerificationManager": [
-      "src/core/verification-manager.js"
+      "core/verification-manager.js"
     ],
     "WebRTCSwarm": [
-      "src/capabilities/communication/webrtc-swarm.js"
+      "capabilities/communication/webrtc-swarm.js"
     ],
     "WorkerManager": [
       "core/worker-manager.js",
