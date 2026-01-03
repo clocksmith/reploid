@@ -256,18 +256,26 @@ function updateUI() {
     preserveCheckbox.checked = !!state.advancedConfig?.preserveOnBoot;
   }
 
-  // Update awaken button based on goal
+  // Update awaken button based on goal and loading state
   const awakenBtn = container.querySelector('[data-action="awaken"]');
-  const awakenNote = container.querySelector('.wizard-awaken .wizard-note');
   const hasGoal = !!(state.goal && state.goal.trim());
+  const isAwakening = !!state.isAwakening;
   if (awakenBtn) {
-    awakenBtn.disabled = !hasGoal;
-  }
-  if (awakenNote) {
-    awakenNote.style.display = hasGoal ? 'none' : '';
-    if (!hasGoal) {
-      awakenNote.textContent = 'Select or enter a goal above to awaken the agent.';
+    awakenBtn.disabled = !hasGoal || isAwakening;
+    awakenBtn.classList.toggle('loading', isAwakening);
+    awakenBtn.setAttribute('aria-busy', isAwakening);
+    awakenBtn.textContent = isAwakening ? 'Awakening...' : 'Awaken Agent';
+    if (!hasGoal && !isAwakening) {
+      awakenBtn.title = 'Select or enter a goal above to awaken the agent.';
+    } else {
+      awakenBtn.removeAttribute('title');
     }
+  }
+
+  // Update advanced settings button text
+  const advancedBtnInAwaken = container.querySelector('.wizard-awaken [data-action="advanced-settings"]');
+  if (advancedBtnInAwaken) {
+    advancedBtnInAwaken.textContent = state.advancedOpen ? 'Hide advanced' : 'Advanced settings';
   }
 
   // Load module config if needed
