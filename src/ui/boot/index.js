@@ -240,9 +240,7 @@ function updateUI() {
 
   // Update advanced panel visibility
   const advancedPanel = container.querySelector('.advanced-panel');
-  const advancedBtn = container.querySelector('[data-action="advanced-settings"]');
   if (advancedPanel) advancedPanel.style.display = state.advancedOpen ? '' : 'none';
-  if (advancedBtn) advancedBtn.textContent = state.advancedOpen ? 'Hide advanced settings' : 'Advanced settings';
 
   // Update genesis level select
   const genesisSelect = container.querySelector('#advanced-genesis-level');
@@ -302,7 +300,7 @@ function render() {
     <div class="wizard-brand">
       <div class="brand-row">
         <h1 class="type-display">REPLOID</h1>
-        <a class="link-secondary" data-action="forget-device">clear saved settings</a>
+        <a class="link-secondary" href="/reset.html">clear saved settings</a>
       </div>
       <a class="intro-tagline" href="https://github.com/clocksmith/reploid" target="_blank" rel="noopener">self-modifying AI agent in the browser → view source code</a>
     </div>
@@ -551,12 +549,6 @@ function handleClick(e) {
 
     case 'awaken-anyway':
       doAwaken();
-      break;
-
-    case 'forget-device':
-      if (confirm('This will clear all saved configuration and API keys. Continue?')) {
-        forgetDevice();
-      }
       break;
 
     case 'edit-connection':

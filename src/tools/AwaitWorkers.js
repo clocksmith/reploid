@@ -2,7 +2,25 @@
  * @fileoverview AwaitWorkers - Wait for workers to complete and get results
  */
 
-import { withTimeout, TimeoutError } from '../core/async-utils.js';
+// Inline timeout utilities (VFS module loader doesn't support relative imports)
+class TimeoutError extends Error {
+  constructor(message) {
+    super(message);
+    this.name = 'TimeoutError';
+    this.isTimeout = true;
+  }
+}
+
+function withTimeout(promise, timeoutMs, operationName = 'Operation') {
+  return new Promise((resolve, reject) => {
+    const timeoutId = setTimeout(() => {
+      reject(new TimeoutError(`${operationName} timed out after ${timeoutMs}ms`));
+    }, timeoutMs);
+    promise
+      .then((result) => { clearTimeout(timeoutId); resolve(result); })
+      .catch((error) => { clearTimeout(timeoutId); reject(error); });
+  });
+}
 
 async function call(args = {}, deps = {}) {
   const { WorkerManager } = deps;
