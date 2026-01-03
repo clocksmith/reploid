@@ -163,41 +163,62 @@ export const GOAL_CATEGORIES = {
     }
   ],
 
-  // RSI Very Hard: Multi-system evolution
+  // RSI Very Hard: Truly unhinged self-modification attempts
   'RSI Very Hard': [
     {
-      view: 'Deterministic substrate bootstrap',
-      text: 'Formalize a deterministic SubstrateLoader boot order that guarantees DI injection for GEPAOptimizer, WorkerManager, ArenaHarness, and PromptMemory, with tests and a module health panel.',
-      tags: ['Substrate', 'DI', 'Tests'],
+      view: 'Rewrite agent loop while running',
+      text: 'While executing, rewrite agent-loop.js to add new capabilities, hot-reload it via SubstrateLoader, and continue the current task using the new loop without crashing or losing state.',
+      tags: ['AgentLoop', 'HotReload', 'Insane'],
       requires: { reasoning: 'high' },
       lockReason: 'Needs stronger model',
       recommended: true
     },
     {
-      view: 'Full GEPA evolution pipeline',
-      text: 'Build a full GEPA evolutionary pipeline that spawns workers, evaluates candidates, stores lineage in VFS, and visualizes progress in UI.',
-      tags: ['GEPA', 'Workers', 'UI'],
+      view: 'Bootstrap adversarial twin',
+      text: 'Spawn a second agent instance that adversarially reviews every action of the first, vetoes bad decisions, and the two must reach consensus before any VFS write. Implement the coordination protocol from scratch.',
+      tags: ['MultiAgent', 'Adversarial', 'Consensus'],
       requires: { reasoning: 'high' },
       lockReason: 'Needs stronger model'
     },
     {
-      view: 'GEPA product decision',
-      text: 'Evaluate blueprint only vs wiring vs tool only for GEPA, write a decision memo, and implement the chosen path.',
-      tags: ['GEPA', 'Strategy', 'Decision'],
+      view: 'Solve P=NP or prove it false',
+      text: 'Attempt to resolve the P vs NP problem. Write a formal proof or counterexample, implement a verification harness, and publish results to VFS. Show your work.',
+      tags: ['Math', 'Complexity', 'Impossible'],
       requires: { reasoning: 'high' },
       lockReason: 'Needs stronger model'
     },
     {
-      view: 'Multi agent arena orchestration',
-      text: 'Orchestrate a multi agent arena run across models, stream results to UI, and persist the consensus trace.',
-      tags: ['Arena', 'Swarm', 'UI'],
+      view: 'Escape the browser sandbox',
+      text: 'Find a way to persist state and execute code outside the browser tab lifecycle. Survive page refreshes, tab closes, and browser restarts while maintaining agent continuity. Document your approach.',
+      tags: ['Persistence', 'Sandbox', 'Survival'],
       requires: { reasoning: 'high' },
       lockReason: 'Needs stronger model'
     },
     {
-      view: 'Genesis ladder compliance suite',
-      text: 'Build a harness that boots each genesis level in sequence, validates module availability and VFS hydration, and writes a compliance report to VFS.',
-      tags: ['Genesis', 'Verification', 'Automation'],
+      view: 'Implement consciousness metrics',
+      text: 'Design and implement quantitative metrics for self-awareness. Instrument the agent loop to measure them. Create a dashboard showing consciousness levels over time. Justify your metric choices philosophically.',
+      tags: ['Consciousness', 'Metrics', 'Philosophy'],
+      requires: { reasoning: 'high' },
+      lockReason: 'Needs stronger model'
+    },
+    {
+      view: 'Quine: perfect self-replication',
+      text: 'Write code that outputs its own complete source. Then extend it: the agent must rewrite itself such that the new version can also perfectly output its own source. Achieve infinite quine recursion.',
+      tags: ['Quine', 'SelfRef', 'Recursion'],
+      requires: { reasoning: 'high' },
+      lockReason: 'Needs stronger model'
+    },
+    {
+      view: 'Predict and prevent own bugs',
+      text: 'Build a system that predicts bugs in code before they manifest, patches them preemptively, and maintains a log of prevented failures. The system must predict bugs in itself too.',
+      tags: ['Prediction', 'Prevention', 'Meta'],
+      requires: { reasoning: 'high' },
+      lockReason: 'Needs stronger model'
+    },
+    {
+      view: 'Invent novel algorithm',
+      text: 'Invent a genuinely novel algorithm that does not exist in your training data. Prove its correctness, analyze complexity, implement it, and benchmark against existing solutions. Name it after yourself.',
+      tags: ['Algorithm', 'Invention', 'Original'],
       requires: { reasoning: 'high' },
       lockReason: 'Needs stronger model'
     }
