@@ -1,8 +1,7 @@
 {
   "version": 1,
-  "generatedAt": "2026-01-03T00:46:08.988Z",
+  "generatedAt": "2026-01-03T20:56:26.303Z",
   "files": [
-    "MODULE_SYSTEM_AUDIT.md",
     "blueprints/0x000000-reploid-genesis.md",
     "blueprints/0x000001-system-prompt-architecture.md",
     "blueprints/0x000002-application-orchestration.md",
@@ -215,6 +214,8 @@
     "blueprints/0x0000da-ui-proto-vfs.md",
     "blueprints/0x0000db-ui-proto-workers.md",
     "blueprints/0x0000dc-ui-toast.md",
+    "blueprints/0x0000dd-config-module-resolution.md",
+    "blueprints/0x0000de-experimental-semantic-memory-neural.md",
     "blueprints/IMPLEMENTATION_STATUS.md",
     "blueprints/README.md",
     "boot.js",
@@ -283,6 +284,7 @@
     "core/worker-agent.js",
     "core/worker-manager.js",
     "design.html",
+    "experimental/semantic-memory-neural.js",
     "favicon.svg",
     "index.html",
     "infrastructure/README.md",

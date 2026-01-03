@@ -90,10 +90,13 @@
         "ArenaHarness",
         "ArenaMetrics",
         "Consensus",
+        "EpisodicMemory",
         "FederatedLearning",
         "FunctionGemmaOrchestrator",
+        "HybridRetrieval",
         "MultiModelCoordinator",
         "NeuralCompiler",
+        "PromptScoreMap",
         "SwarmSync",
         "SwarmTransport",
         "WebRTCSwarm"
@@ -102,180 +105,189 @@
   },
   "moduleFiles": {
     "AgentLoop": [
-      "core/agent-loop.js"
+      "src/core/agent-loop.js"
+    ],
+    "ArenaCompetitor": [
+      "src/testing/arena/competitor.js"
+    ],
+    "ArenaHarness": [
+      "src/testing/arena/arena-harness.js"
+    ],
+    "ArenaMetrics": [
+      "src/testing/arena/arena-metrics.js"
     ],
     "AuditLogger": [
-      "infrastructure/audit-logger.js"
+      "src/infrastructure/audit-logger.js"
     ],
     "BrowserAPIs": [
-      "infrastructure/browser-apis.js"
+      "src/infrastructure/browser-apis.js"
     ],
     "CircuitBreaker": [
-      "infrastructure/circuit-breaker.js"
+      "src/infrastructure/circuit-breaker.js"
     ],
     "CognitionAPI": [
-      "capabilities/cognition/cognition-api.js"
+      "src/capabilities/cognition/cognition-api.js"
+    ],
+    "Consensus": [
+      "src/capabilities/communication/consensus.js"
     ],
     "ContextManager": [
-      "core/context-manager.js"
+      "src/core/context-manager.js"
     ],
     "DIContainer": [
-      "infrastructure/di-container.js"
+      "src/infrastructure/di-container.js"
     ],
     "EmbeddingStore": [
-      "capabilities/cognition/semantic/embedding-store.js"
+      "src/capabilities/cognition/semantic/embedding-store.js"
+    ],
+    "EpisodicMemory": [
+      "src/capabilities/cognition/episodic-memory.js"
     ],
     "ErrorStore": [
-      "infrastructure/error-store.js"
-    ],
-    "GEPAOptimizer": [
-      "capabilities/cognition/gepa-optimizer.js"
+      "src/infrastructure/error-store.js"
     ],
     "EventBus": [
-      "infrastructure/event-bus.js"
-    ],
-    "GenesisSnapshot": [
-      "infrastructure/genesis-snapshot.js"
-    ],
-    "HITLController": [
-      "infrastructure/hitl-controller.js"
-    ],
-    "KnowledgeGraph": [
-      "capabilities/cognition/symbolic/knowledge-graph.js"
-    ],
-    "KnowledgeTree": [
-      "capabilities/cognition/knowledge-tree.js"
-    ],
-    "LLMClient": [
-      "core/llm-client.js"
-    ],
-    "MemoryManager": [
-      "core/memory-manager.js"
-    ],
-    "MultiModelCoordinator": [
-      "capabilities/intelligence/multi-model-coordinator.js"
-    ],
-    "FunctionGemmaOrchestrator": [
-      "capabilities/intelligence/functiongemma-orchestrator.js"
+      "src/infrastructure/event-bus.js"
     ],
     "FederatedLearning": [
-      "capabilities/intelligence/federated-learning.js"
+      "src/capabilities/intelligence/federated-learning.js"
+    ],
+    "FunctionGemmaOrchestrator": [
+      "src/capabilities/intelligence/functiongemma-orchestrator.js"
+    ],
+    "GEPAOptimizer": [
+      "src/capabilities/cognition/gepa-optimizer.js"
+    ],
+    "GenesisSnapshot": [
+      "src/infrastructure/genesis-snapshot.js"
+    ],
+    "HITLController": [
+      "src/infrastructure/hitl-controller.js"
+    ],
+    "HybridRetrieval": [
+      "src/capabilities/cognition/hybrid-retrieval.js"
+    ],
+    "KnowledgeGraph": [
+      "src/capabilities/cognition/symbolic/knowledge-graph.js"
+    ],
+    "KnowledgeTree": [
+      "src/capabilities/cognition/knowledge-tree.js"
+    ],
+    "LLMClient": [
+      "src/core/llm-client.js"
+    ],
+    "MemoryManager": [
+      "src/core/memory-manager.js"
+    ],
+    "MultiModelCoordinator": [
+      "src/capabilities/intelligence/multi-model-coordinator.js"
     ],
     "NeuralCompiler": [
-      "capabilities/intelligence/neural-compiler.js"
+      "src/capabilities/intelligence/neural-compiler.js"
     ],
     "Observability": [
-      "infrastructure/observability.js"
+      "src/infrastructure/observability.js"
     ],
     "PerformanceMonitor": [
-      "capabilities/performance/performance-monitor.js"
-    ],
-    "PolicyEngine": [
-      "infrastructure/policy-engine.js"
-    ],
-    "PromptMemory": [
-      "capabilities/cognition/prompt-memory.js"
+      "src/capabilities/performance/performance-monitor.js"
     ],
     "PersonaManager": [
-      "core/persona-manager.js"
+      "src/core/persona-manager.js"
+    ],
+    "PolicyEngine": [
+      "src/infrastructure/policy-engine.js"
+    ],
+    "PromptMemory": [
+      "src/capabilities/cognition/prompt-memory.js"
+    ],
+    "PromptScoreMap": [
+      "src/capabilities/reflection/prompt-score-map.js"
     ],
     "RateLimiter": [
-      "infrastructure/rate-limiter.js"
+      "src/infrastructure/rate-limiter.js"
     ],
     "ReflectionAnalyzer": [
-      "capabilities/reflection/reflection-analyzer.js"
-    ],
-    "ReplayEngine": [
-      "infrastructure/replay-engine.js"
+      "src/capabilities/reflection/reflection-analyzer.js"
     ],
     "ReflectionStore": [
-      "capabilities/reflection/reflection-store.js"
+      "src/capabilities/reflection/reflection-store.js"
+    ],
+    "ReplayEngine": [
+      "src/infrastructure/replay-engine.js"
     ],
     "ResponseParser": [
-      "core/response-parser.js"
+      "src/core/response-parser.js"
     ],
     "RuleEngine": [
-      "capabilities/cognition/symbolic/rule-engine.js"
+      "src/capabilities/cognition/symbolic/rule-engine.js"
     ],
     "SchemaRegistry": [
-      "core/schema-registry.js"
+      "src/core/schema-registry.js"
     ],
     "SchemaValidator": [
-      "core/schema-validator.js"
+      "src/core/schema-validator.js"
     ],
     "SemanticMemory": [
-      "capabilities/cognition/semantic/semantic-memory-llm.js"
+      "src/capabilities/cognition/semantic/semantic-memory-llm.js"
     ],
     "StateHelpersPure": [
-      "core/state-helpers-pure.js"
+      "src/core/state-helpers-pure.js"
     ],
     "StateManager": [
-      "core/state-manager.js"
+      "src/core/state-manager.js"
     ],
     "StreamParser": [
-      "infrastructure/stream-parser.js"
-    ],
-    "ToolExecutor": [
-      "infrastructure/tool-executor.js"
+      "src/infrastructure/stream-parser.js"
     ],
     "SubstrateLoader": [
       "capabilities/system/substrate-loader.js",
       "core/vfs-module-loader.js"
     ],
+    "SwarmSync": [
+      "src/capabilities/communication/swarm-sync.js"
+    ],
+    "SwarmTransport": [
+      "src/capabilities/communication/swarm-transport.js"
+    ],
     "SymbolGrounder": [
-      "capabilities/cognition/symbolic/symbol-grounder.js"
+      "src/capabilities/cognition/symbolic/symbol-grounder.js"
     ],
     "TelemetryTimeline": [
-      "infrastructure/telemetry-timeline.js"
+      "src/infrastructure/telemetry-timeline.js"
+    ],
+    "ToolExecutor": [
+      "src/infrastructure/tool-executor.js"
     ],
     "ToolRunner": [
-      "core/tool-runner.js"
+      "src/core/tool-runner.js"
     ],
     "ToolWriter": [
-      "core/tool-writer.js"
+      "src/core/tool-writer.js"
     ],
     "TraceStore": [
-      "infrastructure/trace-store.js"
+      "src/infrastructure/trace-store.js"
     ],
     "TransformersClient": [
-      "core/transformers-client.js"
+      "src/core/transformers-client.js"
     ],
     "Utils": [
-      "core/utils.js"
+      "src/core/utils.js"
     ],
     "VFS": [
-      "core/vfs.js"
+      "src/core/vfs.js"
+    ],
+    "VFSSandbox": [
+      "src/testing/arena/vfs-sandbox.js"
     ],
     "VerificationManager": [
-      "core/verification-manager.js"
+      "src/core/verification-manager.js"
+    ],
+    "WebRTCSwarm": [
+      "src/capabilities/communication/webrtc-swarm.js"
     ],
     "WorkerManager": [
       "core/worker-manager.js",
       "core/worker-agent.js"
-    ],
-    "VFSSandbox": [
-      "testing/arena/vfs-sandbox.js"
-    ],
-    "ArenaCompetitor": [
-      "testing/arena/competitor.js"
-    ],
-    "ArenaMetrics": [
-      "testing/arena/arena-metrics.js"
-    ],
-    "ArenaHarness": [
-      "testing/arena/arena-harness.js"
-    ],
-    "SwarmTransport": [
-      "capabilities/communication/swarm-transport.js"
-    ],
-    "WebRTCSwarm": [
-      "capabilities/communication/webrtc-swarm.js"
-    ],
-    "SwarmSync": [
-      "capabilities/communication/swarm-sync.js"
-    ],
-    "Consensus": [
-      "capabilities/communication/consensus.js"
     ]
   },
   "sharedFiles": {
@@ -286,6 +298,7 @@
       "tools/DeleteFile.js",
       "tools/CreateTool.js",
       "tools/ListTools.js",
+      "tools/LoadModule.js",
       "tools/FileOutline.js",
       "tools/Head.js",
       "tools/Tail.js",
@@ -296,17 +309,45 @@
       "tools/Mv.js",
       "tools/Cp.js",
       "tools/Ls.js",
+      "tools/ListMemories.js",
+      "tools/ListKnowledge.js",
       "tools/Git.js",
-      "tools/Edit.js"
+      "tools/Edit.js",
+      "tools/SpawnWorker.js",
+      "tools/ListWorkers.js",
+      "tools/AwaitWorkers.js"
     ],
     "ui": [
-      "ui/components/arena-results.js"
+      "ui/proto.js",
+      "ui/proto/index.js",
+      "ui/proto/template.js",
+      "ui/proto/telemetry.js",
+      "ui/proto/schemas.js",
+      "ui/proto/workers.js",
+      "ui/proto/vfs.js",
+      "ui/proto/utils.js",
+      "ui/toast.js",
+      "ui/panels/chat-panel.js",
+      "ui/panels/code-panel.js",
+      "ui/panels/llm-config-panel.js",
+      "ui/panels/metrics-panel.js",
+      "ui/panels/python-repl-panel.js",
+      "ui/panels/vfs-panel.js",
+      "ui/panels/cognition-panel.js",
+      "ui/components/confirmation-modal.js",
+      "ui/components/diff-viewer-ui.js",
+      "ui/components/toast-notifications.js",
+      "ui/components/hitl-widget.js",
+      "ui/components/inline-chat.js",
+      "ui/dashboard/metrics-dashboard.js",
+      "ui/dashboard/ui-manager.js",
+      "ui/dashboard/vfs-explorer.js"
     ],
     "styles": [
-      "styles/rd.css",
-      "styles/landing-mono.css",
       "styles/vfs-explorer.css",
       "styles/proto/index.css",
+      "styles/rd.css",
+      "styles/landing-mono.css",
       "styles/proto/layout.css",
       "styles/proto/components.css",
       "styles/proto/history.css",
@@ -318,49 +359,6 @@
     ],
     "docs": []
   },
-  "preserveOnReset": {
-    "ui": [],
-    "styles": [
-      "rd.css",
-      "landing-mono.css",
-      "vfs-explorer.css",
-      "index.css",
-      "layout.css",
-      "components.css",
-      "history.css",
-      "panels.css",
-      "vfs.css",
-      "responsive.css",
-      "inline-chat.css",
-      "hitl.css"
-    ]
-  },
-  "levelFiles": {
-    "tabula": {
-      "tools": []
-    },
-    "spark": {
-      "tools": []
-    },
-    "reflection": {
-      "tools": []
-    },
-    "full": {
-      "tools": [
-        "tools/SwarmShareFile.js",
-        "tools/SwarmRequestFile.js",
-        "tools/SwarmListPeers.js",
-        "tools/SwarmGetStatus.js",
-        "tools/SpawnWorker.js",
-        "tools/ListWorkers.js",
-        "tools/AwaitWorkers.js",
-        "tools/ListMemories.js",
-        "tools/ListKnowledge.js",
-        "tools/RunGEPA.js",
-        "tools/LoadModule.js"
-      ]
-    }
-  },
   "blueprintPaths": {
     "none": {
       "name": "No Blueprints",
@@ -371,32 +369,29 @@
       "name": "Path to Reflection",
       "description": "Spark → Reflection: +6 modules for self-awareness and streaming",
       "modules": {
-        "RateLimiter": "blueprints/0x000029-rate-limiting-strategies.md",
-        "StreamParser": "blueprints/0x000039-streaming-response-handler.md",
-        "ReflectionStore": "blueprints/0x000032-reflection-store-architecture.md",
-        "ReflectionAnalyzer": "blueprints/0x000032-reflection-store-architecture.md",
-        "VerificationManager": "blueprints/0x000040-verification-manager.md",
-        "HITLController": "blueprints/0x000049-hitl-controller.md"
+        "RateLimiter": "blueprints/0x00002C-rate-limiting-strategies.md",
+        "StreamParser": "blueprints/0x00003F-streaming-response-handler.md",
+        "ReflectionStore": "blueprints/0x000035-reflection-store-architecture.md",
+        "ReflectionAnalyzer": "blueprints/0x000035-reflection-store-architecture.md",
+        "VerificationManager": "blueprints/0x000047-verification-manager.md",
+        "HITLController": "blueprints/0x000051-hitl-controller.md"
       }
     },
     "full": {
       "name": "Path to Full Substrate",
       "description": "Reflection → Full: +13 modules for cognition and infrastructure",
       "modules": {
-        "GenesisSnapshot": "blueprints/0x00003C-genesis-snapshot-system.md",
-        "AuditLogger": "blueprints/0x00002B-audit-logging-policy.md",
-        "PerformanceMonitor": "blueprints/0x000023-performance-monitoring-stack.md",
-        "TransformersClient": "blueprints/0x00005D-transformers-client.md",
-        "EmbeddingStore": "blueprints/0x00005E-embedding-store.md",
-        "SemanticMemory": "blueprints/0x00005F-semantic-memory.md",
-        "KnowledgeGraph": "blueprints/0x000060-knowledge-graph.md",
-        "KnowledgeTree": "blueprints/0x000068-hierarchical-memory-architecture.md",
-        "MemoryManager": "blueprints/0x000068-hierarchical-memory-architecture.md",
-        "RuleEngine": "blueprints/0x000061-rule-engine.md",
-        "SymbolGrounder": "blueprints/0x000062-symbol-grounder.md",
-        "CognitionAPI": "blueprints/0x000063-cognition-api.md",
-        "GEPAOptimizer": "blueprints/0x000067-gepa-prompt-evolution.md",
-        "NeuralCompiler": "blueprints/0x00007E-hot-swappable-neural-compiler.md"
+        "GenesisSnapshot": "blueprints/0x000043-genesis-snapshot-system.md",
+        "AuditLogger": "blueprints/0x00002E-audit-logging-policy.md",
+        "PerformanceMonitor": "blueprints/0x000026-performance-monitoring-stack.md",
+        "TransformersClient": "blueprints/0x000068-transformers-client.md",
+        "EmbeddingStore": "blueprints/0x000069-embedding-store.md",
+        "SemanticMemory": "blueprints/0x000070-semantic-memory.md",
+        "KnowledgeGraph": "blueprints/0x000071-knowledge-graph.md",
+        "RuleEngine": "blueprints/0x000072-rule-engine.md",
+        "SymbolGrounder": "blueprints/0x000073-symbol-grounder.md",
+        "CognitionAPI": "blueprints/0x000074-cognition-api.md",
+        "GEPAOptimizer": "blueprints/0x000078-gepa-prompt-evolution.md"
       }
     },
     "beyond": {
@@ -404,11 +399,11 @@
       "description": "Ideas for novel capabilities not in any genesis level",
       "modules": {
         "ToolWriter": "blueprints/0x000015-dynamic-tool-creation.md",
-        "SubstrateLoader": "blueprints/0x000071-substrate-loader.md",
-        "VFSSandbox": "blueprints/0x000040-verification-manager.md",
-        "ArenaCompetitor": "blueprints/0x000064-arena-competitor.md",
-        "ArenaMetrics": "blueprints/0x000065-arena-metrics.md",
-        "ArenaHarness": "blueprints/0x000066-arena-harness.md"
+        "SubstrateLoader": "blueprints/0x00001F-universal-module-loader.md",
+        "VFSSandbox": "blueprints/0x000047-verification-manager.md",
+        "ArenaCompetitor": "blueprints/0x000075-arena-competitor.md",
+        "ArenaMetrics": "blueprints/0x000076-arena-metrics.md",
+        "ArenaHarness": "blueprints/0x000077-arena-harness.md"
       }
     }
   },
@@ -424,9 +419,11 @@
         "FileOutline",
         "Grep",
         "Find",
+        "Cat",
         "Head",
         "Tail",
-        "Ls"
+        "Ls",
+        "Pwd"
       ],
       "canSpawnWorkers": false,
       "defaultModelRole": "fast"
@@ -440,9 +437,12 @@
         "FileOutline",
         "Grep",
         "Find",
+        "Cat",
         "Head",
         "Tail",
-        "Ls"
+        "Ls",
+        "Pwd",
+        "Jq"
       ],
       "canSpawnWorkers": false,
       "defaultModelRole": "fast"
