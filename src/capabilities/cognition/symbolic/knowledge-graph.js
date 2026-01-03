@@ -18,7 +18,8 @@ const KnowledgeGraph = {
     const { Utils, VFS, EventBus } = deps;
     const { logger, generateId } = Utils;
 
-    const STORE_PATH = '/.memory/knowledge-graph.json';
+    const ENTITIES_PATH = '/.memory/knowledge-graph-entities.json';
+    const TRIPLES_PATH = '/.memory/knowledge-graph-triples.jsonl';
     const MAX_ENTITIES = 10000;
     const MAX_TRIPLES = 50000;
     const CONFIDENCE_DECAY_RATE = 0.999; // Per hour
@@ -30,21 +31,39 @@ const KnowledgeGraph = {
     let _subjectIndex = new Map();   // subject -> triple indices
     let _objectIndex = new Map();    // object -> triple indices
 
+    // JSONL helpers
+    const parseJsonl = (content) => {
+      if (!content) return [];
+      return content.split('\n').filter(line => line.trim()).map(line => JSON.parse(line));
+    };
+
+    const toJsonl = (arr) => arr.map(item => JSON.stringify(item)).join('\n');
+
     // --- Persistence ---
 
     const init = async () => {
-      if (await VFS.exists(STORE_PATH)) {
+      // Load entities (JSON)
+      if (await VFS.exists(ENTITIES_PATH)) {
         try {
-          const content = await VFS.read(STORE_PATH);
+          const content = await VFS.read(ENTITIES_PATH);
           const data = JSON.parse(content);
-          deserialize(data);
-          logger.info(`[KnowledgeGraph] Loaded ${_entities.size} entities, ${_triples.length} triples`);
+          _entities = new Map(data.entities || []);
         } catch (e) {
-          logger.error('[KnowledgeGraph] Corrupt store, starting fresh', e);
+          logger.error('[KnowledgeGraph] Corrupt entities, starting fresh', e);
           _entities = new Map();
+        }
+      }
+      // Load triples (JSONL)
+      if (await VFS.exists(TRIPLES_PATH)) {
+        try {
+          const content = await VFS.read(TRIPLES_PATH);
+          _triples = parseJsonl(content);
+        } catch (e) {
+          logger.error('[KnowledgeGraph] Corrupt triples, starting fresh', e);
           _triples = [];
         }
       }
+      logger.info(`[KnowledgeGraph] Loaded ${_entities.size} entities, ${_triples.length} triples`);
       rebuildIndices();
       return true;
     };
@@ -53,8 +72,10 @@ const KnowledgeGraph = {
       if (!await VFS.exists('/.memory')) {
         await VFS.mkdir('/.memory');
       }
-      const data = serialize();
-      await VFS.write(STORE_PATH, JSON.stringify(data, null, 2));
+      // Save entities as JSON (keyed lookup)
+      await VFS.write(ENTITIES_PATH, JSON.stringify({ entities: Array.from(_entities.entries()), version: 1 }, null, 2));
+      // Save triples as JSONL (append-friendly)
+      await VFS.write(TRIPLES_PATH, toJsonl(_triples));
     };
 
     const serialize = () => ({

@@ -19,7 +19,7 @@ const SemanticMemoryLLM = {
     const { logger, generateId, Errors } = Utils;
 
     // Storage path
-    const MEMORY_PATH = '/.memory/semantic-memories.json';
+    const MEMORY_PATH = '/.memory/semantic-memories.jsonl';
     const INDEX_PATH = '/.memory/semantic-index.json';
 
     // Configuration
@@ -36,13 +36,21 @@ const SemanticMemoryLLM = {
     let _tagIndex = {}; // tag -> [memoryIds]
     let _isInitialized = false;
 
+    // JSONL helpers
+    const parseJsonl = (content) => {
+      if (!content) return [];
+      return content.split('\n').filter(line => line.trim()).map(line => JSON.parse(line));
+    };
+
+    const toJsonl = (arr) => arr.map(item => JSON.stringify(item)).join('\n');
+
     // --- Storage ---
 
     const loadFromVFS = async () => {
       try {
         const data = await VFS.read(MEMORY_PATH);
         if (data) {
-          _memories = JSON.parse(data);
+          _memories = parseJsonl(data);
         }
       } catch (e) {
         _memories = [];
@@ -59,7 +67,7 @@ const SemanticMemoryLLM = {
     };
 
     const saveToVFS = async () => {
-      await VFS.write(MEMORY_PATH, JSON.stringify(_memories, null, 2));
+      await VFS.write(MEMORY_PATH, toJsonl(_memories));
       await VFS.write(INDEX_PATH, JSON.stringify(_tagIndex, null, 2));
     };
 

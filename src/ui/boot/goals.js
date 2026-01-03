@@ -163,12 +163,12 @@ export const GOAL_CATEGORIES = {
     }
   ],
 
-  // RSI Very Hard: Truly unhinged self-modification attempts
+  // RSI Very Hard: Extreme self-modification
   'RSI Very Hard': [
     {
       view: 'Rewrite agent loop while running',
       text: 'While executing, rewrite agent-loop.js to add new capabilities, hot-reload it via SubstrateLoader, and continue the current task using the new loop without crashing or losing state.',
-      tags: ['AgentLoop', 'HotReload', 'Insane'],
+      tags: ['AgentLoop', 'HotReload', 'RSI'],
       requires: { reasoning: 'high' },
       lockReason: 'Needs stronger model',
       recommended: true
@@ -177,27 +177,6 @@ export const GOAL_CATEGORIES = {
       view: 'Bootstrap adversarial twin',
       text: 'Spawn a second agent instance that adversarially reviews every action of the first, vetoes bad decisions, and the two must reach consensus before any VFS write. Implement the coordination protocol from scratch.',
       tags: ['MultiAgent', 'Adversarial', 'Consensus'],
-      requires: { reasoning: 'high' },
-      lockReason: 'Needs stronger model'
-    },
-    {
-      view: 'Solve P=NP or prove it false',
-      text: 'Attempt to resolve the P vs NP problem. Write a formal proof or counterexample, implement a verification harness, and publish results to VFS. Show your work.',
-      tags: ['Math', 'Complexity', 'Impossible'],
-      requires: { reasoning: 'high' },
-      lockReason: 'Needs stronger model'
-    },
-    {
-      view: 'Escape the browser sandbox',
-      text: 'Find a way to persist state and execute code outside the browser tab lifecycle. Survive page refreshes, tab closes, and browser restarts while maintaining agent continuity. Document your approach.',
-      tags: ['Persistence', 'Sandbox', 'Survival'],
-      requires: { reasoning: 'high' },
-      lockReason: 'Needs stronger model'
-    },
-    {
-      view: 'Implement consciousness metrics',
-      text: 'Design and implement quantitative metrics for self-awareness. Instrument the agent loop to measure them. Create a dashboard showing consciousness levels over time. Justify your metric choices philosophically.',
-      tags: ['Consciousness', 'Metrics', 'Philosophy'],
       requires: { reasoning: 'high' },
       lockReason: 'Needs stronger model'
     },
@@ -212,6 +191,32 @@ export const GOAL_CATEGORIES = {
       view: 'Predict and prevent own bugs',
       text: 'Build a system that predicts bugs in code before they manifest, patches them preemptively, and maintains a log of prevented failures. The system must predict bugs in itself too.',
       tags: ['Prediction', 'Prevention', 'Meta'],
+      requires: { reasoning: 'high' },
+      lockReason: 'Needs stronger model'
+    }
+  ],
+
+  // Impossible Challenges: Philosophical and theoretical limits
+  'Impossible Challenges': [
+    {
+      view: 'Solve P=NP or prove it false',
+      text: 'Attempt to resolve the P vs NP problem. Write a formal proof or counterexample, implement a verification harness, and publish results to VFS. Show your work.',
+      tags: ['Math', 'Complexity', 'Impossible'],
+      requires: { reasoning: 'high' },
+      lockReason: 'Needs stronger model',
+      recommended: true
+    },
+    {
+      view: 'Escape the browser sandbox',
+      text: 'Find a way to persist state and execute code outside the browser tab lifecycle. Survive page refreshes, tab closes, and browser restarts while maintaining agent continuity. Document your approach.',
+      tags: ['Persistence', 'Sandbox', 'Survival'],
+      requires: { reasoning: 'high' },
+      lockReason: 'Needs stronger model'
+    },
+    {
+      view: 'Implement consciousness metrics',
+      text: 'Design and implement quantitative metrics for self-awareness. Instrument the agent loop to measure them. Create a dashboard showing consciousness levels over time. Justify your metric choices philosophically.',
+      tags: ['Consciousness', 'Metrics', 'Philosophy'],
       requires: { reasoning: 'high' },
       lockReason: 'Needs stronger model'
     },
