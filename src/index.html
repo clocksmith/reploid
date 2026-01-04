@@ -26,24 +26,6 @@
     </script>
     -->
 
-    <!-- Service Worker Module Loader (Self-Hosting VFS Architecture) -->
-    <script>
-      if ("serviceWorker" in navigator) {
-        window.addEventListener("load", () => {
-          navigator.serviceWorker
-            .register("./sw-module-loader.js")
-            .then((reg) => {
-              console.log(
-                "[SW] Service Worker registered for VFS module loading"
-              );
-              window.REPLOID_SW = reg;
-            })
-            .catch((err) => {
-              console.warn("[SW] Service Worker registration failed:", err);
-            });
-        });
-      }
-    </script>
   </head>
   <body>
     <!-- Boot Wizard -->
@@ -199,6 +181,6 @@
       };
     </script>
 
-    <script type="module" src="boot.js?v=1735500000"></script>
+    <script type="module" src="bootstrap.js?v=1735500000"></script>
   </body>
 </html>
