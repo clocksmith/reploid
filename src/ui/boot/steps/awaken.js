@@ -58,9 +58,7 @@ export function renderAwakenStep(state) {
     verifyState = VERIFY_STATE.VERIFIED; // Local browser is always verified
   }
 
-  const buttonText = isAwakening
-    ? 'Awakening...'
-    : `Awaken Agent${verifyState !== VERIFY_STATE.VERIFIED ? ' (unverified)' : ''}`;
+  const buttonText = isAwakening ? 'Awakening...' : 'Awaken Agent';
 
   return `
     <div class="wizard-step wizard-awaken">
