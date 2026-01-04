@@ -16,8 +16,10 @@ export const createVFSManager = (deps) => {
   const RECENT_HIGHLIGHT_DURATION = 5000;
   const MAX_VFS_FILES = 500;
 
-  // Track collapsed folders (persists across re-renders)
-  const _collapsedFolders = new Set();
+  // Track EXPANDED folders (inverted: default is collapsed)
+  // Only root-level folders start expanded
+  const _expandedFolders = new Set();
+  let _initialized = false;
 
   // Initialize EventBus listeners for auto-refresh
   const initEventBusListeners = () => {
@@ -97,6 +99,8 @@ export const createVFSManager = (deps) => {
 
     // Group by directory with folder paths tracked
     const tree = { __path: '', __children: {} };
+    const allFolderPaths = new Set();
+
     displayFiles.forEach(path => {
       const parts = path.split('/').filter(p => p);
       let current = tree;
@@ -108,6 +112,7 @@ export const createVFSManager = (deps) => {
           current.__children[part] = { __isFile: true, __path: path };
         } else {
           // Folder node
+          allFolderPaths.add(currentPath);
           if (!current.__children[part]) {
             current.__children[part] = { __path: currentPath, __children: {} };
           }
@@ -115,6 +120,10 @@ export const createVFSManager = (deps) => {
         }
       });
     });
+
+    // On first load, everything starts collapsed (empty _expandedFolders)
+    // User clicks to expand what they need
+    _initialized = true;
 
     // Get aggregate status for a folder's descendants
     const getAggregateStatus = (node) => {
@@ -149,7 +158,7 @@ export const createVFSManager = (deps) => {
       return count;
     };
 
-    const renderNode = (node, indent = 0, parentCollapsed = false) => {
+    const renderNode = (node, indent = 0, parentHidden = false) => {
       let html = '';
       if (!node.__children) return html;
 
@@ -164,19 +173,19 @@ export const createVFSManager = (deps) => {
       entries.forEach(([name, value]) => {
         const isFile = value.__isFile;
         const padding = indent * 12;
-        const hiddenClass = parentCollapsed ? 'hidden' : '';
+        const hideStyle = parentHidden ? 'display:none;' : '';
 
         if (!isFile) {
           // Folder
           const folderPath = value.__path;
-          const isCollapsed = _collapsedFolders.has(folderPath);
-          const icon = isCollapsed ? '▶' : '▼';
+          const isExpanded = _expandedFolders.has(folderPath);
+          const icon = isExpanded ? '▼' : '▶';
           const fileCount = countFiles(value);
 
           // Show aggregate status when collapsed
           let aggregateIndicator = '';
           let aggregateClass = '';
-          if (isCollapsed) {
+          if (!isExpanded) {
             const aggStatus = getAggregateStatus(value);
             if (aggStatus) {
               aggregateIndicator = aggStatus.indicator;
@@ -185,11 +194,11 @@ export const createVFSManager = (deps) => {
           }
 
           html += `
-            <div class="vfs-dir ${aggregateClass} ${hiddenClass}" data-folder-path="${escapeHtml(folderPath)}" style="padding-left: ${padding}px">
+            <div class="vfs-dir ${aggregateClass}" data-folder-path="${escapeHtml(folderPath)}" style="padding-left: ${padding}px; ${hideStyle}">
               <span class="vfs-dir-icon">${icon}</span> ${escapeHtml(name)} <span class="muted">(${fileCount})</span>${aggregateIndicator}
             </div>
           `;
-          html += renderNode(value, indent + 1, parentCollapsed || isCollapsed);
+          html += renderNode(value, indent + 1, parentHidden || !isExpanded);
         } else {
           // File
           const filePath = value.__path;
@@ -211,7 +220,7 @@ export const createVFSManager = (deps) => {
           }
           const selectedClass = filePath === _currentFilePath ? 'selected' : '';
           html += `
-            <div class="vfs-file ${modClass} ${selectedClass} ${hiddenClass}" role="button" data-path="${safePath}" style="padding-left: ${padding + 16}px">
+            <div class="vfs-file ${modClass} ${selectedClass}" role="button" data-path="${safePath}" style="padding-left: ${padding + 16}px; ${hideStyle}">
               ${escapeHtml(name)}${modIndicator}
             </div>
           `;
@@ -241,11 +250,11 @@ export const createVFSManager = (deps) => {
         const folderPath = dir.dataset.folderPath;
         if (!folderPath) return;
 
-        // Toggle collapsed state in the Set
-        if (_collapsedFolders.has(folderPath)) {
-          _collapsedFolders.delete(folderPath);
+        // Toggle expanded state
+        if (_expandedFolders.has(folderPath)) {
+          _expandedFolders.delete(folderPath);
         } else {
-          _collapsedFolders.add(folderPath);
+          _expandedFolders.add(folderPath);
         }
 
         // Re-render to apply state
