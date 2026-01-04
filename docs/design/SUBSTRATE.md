@@ -42,22 +42,32 @@ The core provides fundamental capabilities for REPLOID's recursive self-improvem
 | `tool-writer.js` | Tool creation system - generates, validates, registers new tools |
 | `substrate-loader.js` | Hot-reload system - loads evolved code as living modules from VFS |
 
-### RSI Levels
+### Capability Levels
 
-**Level 1: Tool Creation** (`tool-writer.js`)
+**L0: Basic Functions** (`tool-writer.js`)
 - Agent creates new tools at runtime
-- Validates code syntax and structure
+- Uses Web APIs (WebGL, WebAudio, WebSocket, etc.)
 - Registers tools in runtime registry
 
-**Level 2: Meta-Improvement** (`meta-tool-writer.js`)
+**L1: Meta Tooling** (`meta-tool-writer.js`)
 - Agent improves its own tool-creation mechanism
-- Modifies core modules (agent-loop, tool-runner, etc.)
+- Tools that create or modify other tools
 - Hot-reloads improved versions
 
-**Level 3: Substrate Modification** (`substrate-loader.js`)
-- Agent modifies any core module
+**L2: Self-Modification (Substrate)** (`substrate-loader.js`)
+- Agent modifies core modules (agent-loop, tool-runner, etc.)
 - Creates widgets and Web Components
 - Executes arbitrary substrate code
+
+**L3: Weak RSI (Iterative)**
+- Bounded feedback loops for self-improvement
+- Proposes changes, verifies, rolls back on failure
+- Iterative but with diminishing returns
+
+**L4: True RSI (Impossible)**
+- Unbounded self-improvement (theoretical)
+- Gets better at getting better without ceiling
+- Currently impossible challenges
 
 ---
 

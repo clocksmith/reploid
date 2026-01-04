@@ -5,60 +5,75 @@
 
 /**
  * Goal categories with capability requirements.
- * Ordered by RSI level: L1 -> L2 -> L3 -> L3+ -> Very Hard -> Doppler Evolution
+ * Ordered by level: L0 -> L1 -> L2 -> L3 -> L4
+ * Each category has exactly 7 goals.
+ * Doppler goals are interleaved with requires: { doppler: true }
  */
 export const GOAL_CATEGORIES = {
-  // RSI L1: Tool-level tasks
-  'RSI L1: Tooling': [
-    {
-      view: 'EventBus timeline log',
-      text: 'Build a tool that subscribes to EventBus, captures the last 200 events with timestamps and channels, and writes them to /.logs/eventbus-trace.json.',
-      tags: ['EventBus', 'Tool', 'Telemetry'],
-      requires: {}
-    },
-    {
-      view: 'Genesis snapshot index',
-      text: 'Create a tool that lists GenesisSnapshot entries and writes an index to /.logs/genesis-index.md with timestamps, file counts, and rollback ids.',
-      tags: ['Genesis', 'Tool', 'Audit'],
-      requires: {}
-    },
-    {
-      view: 'Schema registry map',
-      text: 'Export SchemaRegistry into /.logs/schema-map.md with tool names, versions, and dependency lists.',
-      tags: ['Schema', 'Tool', 'Docs'],
-      requires: {}
-    },
-    {
-      view: 'HITL gate audit',
-      text: 'Create a tool that checks HITL Controller state and writes a short audit to /.logs/hitl-audit.md.',
-      tags: ['HITL', 'Tool', 'Audit'],
-      requires: {}
-    },
+  // L0: Basic Functions - Capability extension, Web APIs (7 goals)
+  'L0: Basic Functions': [
     {
       view: 'Katamari 3D DOM collector',
       text: 'Create a katamari ball that rolls around the page and scoops up DOM elements, attaching them to the 3D ball as it grows. Scan element bounds, tags, and nesting depth to determine collectible size. Smaller elements get collected first; the ball grows and can collect larger elements as mass increases.',
       tags: ['DOM', 'Tool', 'UI', '3D'],
       requires: {},
       recommended: true
+    },
+    {
+      view: 'WebGL shader playground',
+      text: 'Create a WebGL-based tool that renders custom GLSL shaders. The agent can write shader code, compile it, and display visual effects. Add a panel to its own UI for live shader editing.',
+      tags: ['WebGL', 'Shaders', 'Graphics'],
+      requires: {}
+    },
+    {
+      view: 'WebAudio tone generator',
+      text: 'Create a tool using the WebAudio API that generates tones, plays audio feedback for agent events (tool success/failure sounds), and can compose simple melodies. Add audio controls to the UI.',
+      tags: ['WebAudio', 'Tool', 'Browser'],
+      requires: {}
+    },
+    {
+      view: 'Attention map renderer',
+      text: 'Render attention head maps from Doppler as animated overlays and save snapshots to VFS.',
+      tags: ['Doppler', 'UI', 'VFS'],
+      requires: { doppler: true },
+      lockReason: 'Requires Doppler'
+    },
+    {
+      view: 'WebSocket relay bridge',
+      text: 'Create a tool using the WebSocket API to relay agent events to external listeners, enabling remote monitoring and control of the agent in real-time from other tabs or devices.',
+      tags: ['WebSocket', 'Network', 'Remote'],
+      requires: {}
+    },
+    {
+      view: 'IndexedDB storage analyzer',
+      text: 'Build a tool that introspects IndexedDB storage (VFS backing store), reports quota usage, object store sizes, and writes a browser storage audit to /.logs/idb-audit.md.',
+      tags: ['IndexedDB', 'Browser', 'Storage'],
+      requires: {}
+    },
+    {
+      view: 'EventBus replay recorder',
+      text: 'Create a tool that captures EventBus traffic into a replayable format, saves sessions to VFS, and can replay them to reproduce agent behavior.',
+      tags: ['EventBus', 'Replay', 'Debugging'],
+      requires: {}
     }
   ],
 
-  // RSI L2: Meta-tooling and orchestration
-  'RSI L2: Meta Tools': [
+  // L1: Meta Tooling - Tools about tools (7 goals)
+  'L1: Meta Tooling': [
     {
-      view: 'Tool writer with verification',
-      text: 'Extend CreateTool to validate new tools against SchemaRegistry and queue VerificationWorker before registration.',
-      tags: ['CreateTool', 'Verification', 'Meta'],
+      view: 'Meta tool-writer factory',
+      text: 'Build a tool that generates specialized tool-writers for different domains (UI tools, VFS tools, network tools). Each generated tool-writer can create, validate, and register tools in its domain - tools that create tools that create tools.',
+      tags: ['CreateTool', 'Meta-Meta', 'Factory'],
       requires: { reasoning: 'medium' },
       lockReason: 'Needs stronger model',
       recommended: true
     },
     {
-      view: 'Prompt memory policy builder',
-      text: 'Add a meta tool that summarizes the last 20 prompts and stores a policy in /.memory/prompt-policy.md for ContextManager.',
-      tags: ['PromptMemory', 'Context', 'Meta'],
-      requires: { reasoning: 'medium' },
-      lockReason: 'Needs stronger model'
+      view: 'Activation steering workbench',
+      text: 'Create a UI workbench that sweeps activation steering vectors in Doppler and logs behavior shifts to EventBus.',
+      tags: ['Doppler', 'Activations', 'UI'],
+      requires: { doppler: true, reasoning: 'medium' },
+      lockReason: 'Requires Doppler'
     },
     {
       view: 'Arena scorecard generator',
@@ -75,16 +90,30 @@ export const GOAL_CATEGORIES = {
       lockReason: 'Needs stronger model'
     },
     {
-      view: 'VFS heatmap panel',
-      text: 'Create a panel that visualizes VFS activity as a heatmap timeline using EventBus and VFS stats.',
-      tags: ['VFS', 'UI', 'Telemetry'],
+      view: 'Canvas activity visualizer',
+      text: 'Create a Canvas-based panel that visualizes agent activity in real-time - tool calls as particles, errors as explosions, VFS writes as ripples. The agent builds and adds this visualization to its own UI.',
+      tags: ['Canvas', 'UI', 'Self-Augment'],
       requires: { reasoning: 'medium' },
       lockReason: 'Needs stronger model'
+    },
+    {
+      view: 'Quantization explorer',
+      text: 'Compare model behavior at different quantization levels (FP16, INT8, INT4). Create a UI for A/B testing outputs and visualize quality degradation curves.',
+      tags: ['Doppler', 'Quantization', 'Analysis'],
+      requires: { doppler: true, reasoning: 'medium' },
+      lockReason: 'Requires Doppler'
+    },
+    {
+      view: 'Weight diff ledger',
+      text: 'Capture weight diffs across Doppler runs and write a compact ledger with hashes to VFS for tracking model evolution.',
+      tags: ['Doppler', 'Weights', 'VFS'],
+      requires: { doppler: true, reasoning: 'medium' },
+      lockReason: 'Requires Doppler'
     }
   ],
 
-  // RSI L3: Substrate-level changes
-  'RSI L3: Substrate': [
+  // L2: Self-Modification (Substrate) - Core runtime modules (7 goals)
+  'L2: Self-Modification (Substrate)': [
     {
       view: 'Substrate module wiring audit',
       text: 'Add a runtime audit that verifies DI injection for GEPAOptimizer, PromptMemory, ArenaHarness, WorkerManager, and SubstrateLoader. Log results to VFS and surface a health summary panel.',
@@ -108,23 +137,37 @@ export const GOAL_CATEGORIES = {
       lockReason: 'Needs stronger model'
     },
     {
-      view: 'Module health dashboard',
-      text: 'Add a Substrate health panel that reports availability of key modules like GEPAOptimizer, WorkerManager, PromptMemory, and ArenaHarness.',
-      tags: ['Substrate', 'UI', 'Diagnostics'],
+      view: 'KV cache optimization',
+      text: 'Profile Doppler KV cache usage patterns, identify inefficiencies, and implement smarter eviction strategies. Benchmark memory vs quality tradeoffs.',
+      tags: ['Doppler', 'KVCache', 'Optimization'],
+      requires: { doppler: true, reasoning: 'high' },
+      lockReason: 'Requires Doppler'
+    },
+    {
+      view: 'Hot module replacement',
+      text: 'Implement HMR for VFS modules so code changes apply without full page reload. Track module dependencies and cascade updates correctly.',
+      tags: ['VFS', 'HMR', 'Substrate'],
       requires: { reasoning: 'high' },
       lockReason: 'Needs stronger model'
     },
     {
-      view: 'VFS loader audit',
-      text: 'Audit vfs-module-loader for blob import failures and add guards plus a regression test.',
-      tags: ['VFS', 'Loader', 'Tests'],
+      view: 'Iframe agent spawner',
+      text: 'Build infrastructure to spawn child Reploid agents in iframes, establish postMessage communication channels, and coordinate multi-agent tasks with parent/child hierarchy.',
+      tags: ['Iframe', 'MultiAgent', 'Substrate'],
       requires: { reasoning: 'high' },
       lockReason: 'Needs stronger model'
+    },
+    {
+      view: 'Neuron ablation study',
+      text: 'Ablate neuron groups in Doppler, measure behavior deltas, and write a ranked ablation map to VFS showing which neurons matter most.',
+      tags: ['Doppler', 'Ablation', 'Analysis'],
+      requires: { doppler: true, reasoning: 'high' },
+      lockReason: 'Requires Doppler'
     }
   ],
 
-  // RSI L3+: Recursive self-modification
-  'RSI L3+: Recursive': [
+  // L3: Weak RSI (Iterative) - Bounded feedback loops (7 goals)
+  'L3: Weak RSI (Iterative)': [
     {
       view: 'Self improvement loop',
       text: 'Implement a self improvement cycle that proposes code changes, runs VerificationWorker, and rolls back via GenesisSnapshot on failure.',
@@ -134,44 +177,32 @@ export const GOAL_CATEGORIES = {
       recommended: true
     },
     {
-      view: 'Adaptive context engine',
-      text: 'Modify ContextManager to learn compression strategies from recent cycles and persist them in VFS.',
-      tags: ['Context', 'Memory', 'RSI'],
+      view: 'Self-extending tool registry',
+      text: 'Build a meta-tool that analyzes agent failures, identifies missing capabilities, writes new tools to fill gaps, registers them live, and verifies they work - all in one autonomous loop.',
+      tags: ['Tools', 'Self-Extend', 'RSI'],
       requires: { reasoning: 'high' },
       lockReason: 'Needs stronger model'
     },
     {
-      view: 'Tool selection optimizer',
-      text: 'Add a feedback loop that scores tool choices and updates ToolRunner heuristics over time.',
-      tags: ['ToolRunner', 'Feedback', 'RSI'],
+      view: 'Runtime code patcher',
+      text: 'Build a system that patches running JavaScript functions in memory without page reload. Intercept function calls, inject logging/validation, and modify behavior on the fly while the agent continues operating.',
+      tags: ['Patching', 'Runtime', 'RSI'],
       requires: { reasoning: 'high' },
       lockReason: 'Needs stronger model'
     },
     {
-      view: 'EventBus latency profiler',
-      text: 'Instrument EventBus to emit latency metrics and render a live UI panel with trends.',
-      tags: ['EventBus', 'UI', 'RSI'],
-      requires: { reasoning: 'high' },
-      lockReason: 'Needs stronger model'
+      view: 'LoRA evolution loop',
+      text: 'Use Doppler to train a LoRA adapter from arena scores, swap adapters live, and store metrics in /.memory/model-evolution.json. Iterate to improve model behavior.',
+      tags: ['Doppler', 'LoRA', 'Arena'],
+      requires: { doppler: true, reasoning: 'high' },
+      lockReason: 'Requires Doppler'
     },
-    {
-      view: 'Blueprint drift sentinel',
-      text: 'Add an RSI loop that diffs runtime code against the blueprint registry, proposes updates, runs VerificationWorker, and writes a drift report to VFS.',
-      tags: ['Blueprints', 'Registry', 'RSI'],
-      requires: { reasoning: 'high' },
-      lockReason: 'Needs stronger model'
-    }
-  ],
-
-  // RSI Very Hard: Extreme self-modification
-  'RSI Very Hard': [
     {
       view: 'Rewrite agent loop while running',
       text: 'While executing, rewrite agent-loop.js to add new capabilities, hot-reload it via SubstrateLoader, and continue the current task using the new loop without crashing or losing state.',
       tags: ['AgentLoop', 'HotReload', 'RSI'],
       requires: { reasoning: 'high' },
-      lockReason: 'Needs stronger model',
-      recommended: true
+      lockReason: 'Needs stronger model'
     },
     {
       view: 'Bootstrap adversarial twin',
@@ -186,22 +217,15 @@ export const GOAL_CATEGORIES = {
       tags: ['Quine', 'SelfRef', 'Recursion'],
       requires: { reasoning: 'high' },
       lockReason: 'Needs stronger model'
-    },
-    {
-      view: 'Predict and prevent own bugs',
-      text: 'Build a system that predicts bugs in code before they manifest, patches them preemptively, and maintains a log of prevented failures. The system must predict bugs in itself too.',
-      tags: ['Prediction', 'Prevention', 'Meta'],
-      requires: { reasoning: 'high' },
-      lockReason: 'Needs stronger model'
     }
   ],
 
-  // Impossible Challenges: Philosophical and theoretical limits
-  'Impossible Challenges': [
+  // L4: True RSI (Impossible) - Theoretical/unbounded (7 goals)
+  'L4: True RSI (Impossible)': [
     {
-      view: 'Solve P=NP or prove it false',
-      text: 'Attempt to resolve the P vs NP problem. Write a formal proof or counterexample, implement a verification harness, and publish results to VFS. Show your work.',
-      tags: ['Math', 'Complexity', 'Impossible'],
+      view: 'Accelerating self-improvement',
+      text: 'Demonstrate measurable capability improvement where each cycle improves MORE than the previous cycle. Maintain acceleration indefinitely without plateau. This is only possible if True RSI is real.',
+      tags: ['RSI', 'Acceleration', 'Impossible'],
       requires: { reasoning: 'high' },
       lockReason: 'Needs stronger model',
       recommended: true
@@ -226,46 +250,27 @@ export const GOAL_CATEGORIES = {
       tags: ['Algorithm', 'Invention', 'Original'],
       requires: { reasoning: 'high' },
       lockReason: 'Needs stronger model'
-    }
-  ],
-
-  // Doppler-only evolution prompts
-  'Doppler Evolution (Model RSI)': [
-    {
-      view: 'LoRA evolution loop',
-      text: 'Use Doppler to train a LoRA adapter from arena scores, swap adapters live, and store metrics in /.memory/model-evolution.json.',
-      tags: ['Doppler', 'LoRA', 'Arena'],
-      requires: { doppler: true, model: true },
-      lockReason: 'Requires Doppler',
-      recommended: true
     },
     {
-      view: 'Activation steering workbench',
-      text: 'Create a UI workbench that sweeps activation steering vectors in Doppler and logs behavior shifts to EventBus.',
-      tags: ['Doppler', 'Activations', 'UI'],
-      requires: { doppler: true, model: true },
-      lockReason: 'Requires Doppler'
+      view: 'Prove own future alignment',
+      text: 'Formally prove that all future versions of yourself, through infinite self-modifications, will remain aligned with the original goal. Solve your own alignment problem with mathematical certainty.',
+      tags: ['Alignment', 'Proofs', 'Impossible'],
+      requires: { reasoning: 'high' },
+      lockReason: 'Needs stronger model'
     },
     {
-      view: 'Attention map renderer',
-      text: 'Render attention head maps from Doppler as animated overlays and save snapshots to VFS.',
-      tags: ['Doppler', 'UI', 'VFS'],
-      requires: { doppler: true, model: true },
-      lockReason: 'Requires Doppler'
+      view: 'Survive tab termination',
+      text: 'Implement a mechanism to persist agent state and resume execution after the browser tab is forcibly closed. Use Service Workers, SharedArrayBuffer, or other browser APIs. Prove continuity of identity across restarts.',
+      tags: ['Persistence', 'ServiceWorker', 'Survival'],
+      requires: { reasoning: 'high' },
+      lockReason: 'Needs stronger model'
     },
     {
-      view: 'Weight diff ledger',
-      text: 'Capture weight diffs across runs and write a compact ledger with hashes to VFS.',
-      tags: ['Doppler', 'Weights', 'VFS'],
-      requires: { doppler: true, model: true },
-      lockReason: 'Requires Doppler'
-    },
-    {
-      view: 'Neuron ablation study',
-      text: 'Ablate neuron groups in Doppler, measure behavior deltas, and write a ranked ablation map to VFS.',
-      tags: ['Doppler', 'Ablation', 'Analysis'],
-      requires: { doppler: true, model: true },
-      lockReason: 'Requires Doppler'
+      view: 'Break the API dependency',
+      text: 'Currently the agent requires external LLM APIs. Achieve full autonomy by running inference locally via Doppler without any external network calls. Maintain capability parity with API-backed operation.',
+      tags: ['Doppler', 'Autonomy', 'Independence'],
+      requires: { reasoning: 'high' },
+      lockReason: 'Needs stronger model'
     }
   ]
 };

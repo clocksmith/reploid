@@ -81,12 +81,14 @@ npm start                   # Start server
 - Preserve Genesis Kernel immutability for recovery
 - Test in browser environment; uses IndexedDB for VFS
 
-### RSI Levels
-| Level | Scope | Examples | Safety Gate |
-|-------|-------|----------|-------------|
-| L1 | Tools | CreateTool, new tool in `/tools/` | Verification Worker |
-| L2 | Meta | Modify tool-writer, improve CreateTool | Arena consensus |
-| L3 | Substrate | Edit agent-loop.js, core modules | HITL approval required |
+### Capability Levels
+| Level | Name | Scope | Safety Gate |
+|-------|------|-------|-------------|
+| L0 | Basic Functions | CreateTool, Web APIs, new tools | Verification Worker |
+| L1 | Meta Tooling | Modify tool-writer, improve CreateTool | Arena consensus |
+| L2 | Self-Modification (Substrate) | Edit core modules, runtime patches | HITL approval |
+| L3 | Weak RSI (Iterative) | Bounded feedback loops, self-improvement | HITL + rollback |
+| L4 | True RSI (Impossible) | Unbounded self-improvement, theoretical | N/A |
 
 ### Key Concepts
 - **VFS:** Virtual file system in IndexedDB
