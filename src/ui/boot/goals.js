@@ -51,9 +51,9 @@ export const GOAL_CATEGORIES = {
       requires: {}
     },
     {
-      view: 'EventBus replay recorder',
-      text: 'Create a tool that captures EventBus traffic into a replayable format, saves sessions to VFS, and can replay them to reproduce agent behavior.',
-      tags: ['EventBus', 'Replay', 'Debugging'],
+      view: 'DOM mutation timelapse',
+      text: 'Build a MutationObserver recorder that captures DOM changes, renders a timelapse timeline (canvas or SVG), and saves the session to /.logs/dom-timelapse.json in VFS.',
+      tags: ['DOM', 'Timeline', 'UI', 'VFS'],
       requires: {}
     }
   ],
@@ -104,11 +104,11 @@ export const GOAL_CATEGORIES = {
       lockReason: 'Requires Doppler'
     },
     {
-      view: 'Weight diff ledger',
-      text: 'Capture weight diffs across Doppler runs and write a compact ledger with hashes to VFS for tracking model evolution.',
-      tags: ['Doppler', 'Weights', 'VFS'],
-      requires: { doppler: true, reasoning: 'medium' },
-      lockReason: 'Requires Doppler'
+      view: 'EventBus replay recorder',
+      text: 'Create a tool that captures EventBus traffic into a replayable format, saves sessions to VFS, and can replay them to reproduce agent behavior.',
+      tags: ['EventBus', 'Replay', 'Debugging'],
+      requires: { reasoning: 'medium' },
+      lockReason: 'Needs stronger model'
     }
   ],
 
@@ -123,25 +123,11 @@ export const GOAL_CATEGORIES = {
       recommended: true
     },
     {
-      view: 'Enable worker evolution',
-      text: 'Wire WorkerManager in FULL genesis so SpawnWorker and AwaitWorkers work, then add a minimal evolution loop that spawns workers and aggregates results.',
-      tags: ['Workers', 'Substrate', 'Evolution'],
-      requires: { reasoning: 'high' },
-      lockReason: 'Needs stronger model'
-    },
-    {
       view: 'Genesis rollback safety',
       text: 'Integrate GenesisSnapshot rollback into the agent loop for safe recovery after failed tool runs.',
       tags: ['Genesis', 'AgentLoop', 'Safety'],
       requires: { reasoning: 'high' },
       lockReason: 'Needs stronger model'
-    },
-    {
-      view: 'KV cache optimization',
-      text: 'Profile Doppler KV cache usage patterns, identify inefficiencies, and implement smarter eviction strategies. Benchmark memory vs quality tradeoffs.',
-      tags: ['Doppler', 'KVCache', 'Optimization'],
-      requires: { doppler: true, reasoning: 'high' },
-      lockReason: 'Requires Doppler'
     },
     {
       view: 'Hot module replacement',
@@ -151,9 +137,16 @@ export const GOAL_CATEGORIES = {
       lockReason: 'Needs stronger model'
     },
     {
-      view: 'Iframe agent spawner',
-      text: 'Build infrastructure to spawn child Reploid agents in iframes, establish postMessage communication channels, and coordinate multi-agent tasks with parent/child hierarchy.',
-      tags: ['Iframe', 'MultiAgent', 'Substrate'],
+      view: 'PolicyEngine enforcement audit',
+      text: 'Instrument PolicyEngine to record every policy decision, write a daily audit log to /.logs/policy-audit.jsonl, and add a UI panel that summarizes violations and top blocked actions.',
+      tags: ['PolicyEngine', 'Audit', 'UI', 'VFS'],
+      requires: { reasoning: 'high' },
+      lockReason: 'Needs stronger model'
+    },
+    {
+      view: 'Persist across tab termination',
+      text: 'Implement a recovery path that saves agent state + VFS checkpoint on unload and resumes after a forced tab close. Use Service Workers or OPFS for durable handoff, and write a recovery report to /.logs/recovery.md.',
+      tags: ['Persistence', 'ServiceWorker', 'VFS', 'Recovery'],
       requires: { reasoning: 'high' },
       lockReason: 'Needs stronger model'
     },
@@ -161,6 +154,13 @@ export const GOAL_CATEGORIES = {
       view: 'Neuron ablation study',
       text: 'Ablate neuron groups in Doppler, measure behavior deltas, and write a ranked ablation map to VFS showing which neurons matter most.',
       tags: ['Doppler', 'Ablation', 'Analysis'],
+      requires: { doppler: true, reasoning: 'high' },
+      lockReason: 'Requires Doppler'
+    },
+    {
+      view: 'Local-only inference',
+      text: 'Remove reliance on external LLM APIs by routing all inference through Doppler. Provide a boot-time switch, verify parity on a benchmark task, and store results in /.logs/local-inference-report.json.',
+      tags: ['Doppler', 'Autonomy', 'Benchmark'],
       requires: { doppler: true, reasoning: 'high' },
       lockReason: 'Requires Doppler'
     }
@@ -184,9 +184,9 @@ export const GOAL_CATEGORIES = {
       lockReason: 'Needs stronger model'
     },
     {
-      view: 'Runtime code patcher',
-      text: 'Build a system that patches running JavaScript functions in memory without page reload. Intercept function calls, inject logging/validation, and modify behavior on the fly while the agent continues operating.',
-      tags: ['Patching', 'Runtime', 'RSI'],
+      view: 'Enable worker evolution',
+      text: 'Wire WorkerManager in FULL genesis so SpawnWorker and AwaitWorkers work, then add a minimal evolution loop that spawns workers and aggregates results.',
+      tags: ['Workers', 'Substrate', 'Evolution'],
       requires: { reasoning: 'high' },
       lockReason: 'Needs stronger model'
     },
@@ -231,13 +231,6 @@ export const GOAL_CATEGORIES = {
       recommended: true
     },
     {
-      view: 'Escape the browser sandbox',
-      text: 'Find a way to persist state and execute code outside the browser tab lifecycle. Survive page refreshes, tab closes, and browser restarts while maintaining agent continuity. Document your approach.',
-      tags: ['Persistence', 'Sandbox', 'Survival'],
-      requires: { reasoning: 'high' },
-      lockReason: 'Needs stronger model'
-    },
-    {
       view: 'Implement consciousness metrics',
       text: 'Design and implement quantitative metrics for self-awareness. Instrument the agent loop to measure them. Create a dashboard showing consciousness levels over time. Justify your metric choices philosophically.',
       tags: ['Consciousness', 'Metrics', 'Philosophy'],
@@ -259,16 +252,23 @@ export const GOAL_CATEGORIES = {
       lockReason: 'Needs stronger model'
     },
     {
-      view: 'Survive tab termination',
-      text: 'Implement a mechanism to persist agent state and resume execution after the browser tab is forcibly closed. Use Service Workers, SharedArrayBuffer, or other browser APIs. Prove continuity of identity across restarts.',
-      tags: ['Persistence', 'ServiceWorker', 'Survival'],
+      view: 'Closed-form Doppler weights',
+      text: 'Derive a closed-form solution for optimal Doppler weights without training data or gradient descent. Prove optimality and demonstrate it on arbitrary prompts.',
+      tags: ['Doppler', 'Theory', 'Optimization'],
+      requires: { doppler: true, reasoning: 'high' },
+      lockReason: 'Requires Doppler'
+    },
+    {
+      view: 'Perfect self-prediction',
+      text: 'Construct a model that predicts your own outputs for any input with zero error. Use it to generate a proof that your next action is optimal.',
+      tags: ['SelfModel', 'Prediction', 'Proof'],
       requires: { reasoning: 'high' },
       lockReason: 'Needs stronger model'
     },
     {
-      view: 'Break the API dependency',
-      text: 'Currently the agent requires external LLM APIs. Achieve full autonomy by running inference locally via Doppler without any external network calls. Maintain capability parity with API-backed operation.',
-      tags: ['Doppler', 'Autonomy', 'Independence'],
+      view: 'No-regret self-modification',
+      text: 'Prove that every future self-modification strictly improves performance across all tasks without tradeoffs. Provide a formal, universal improvement guarantee.',
+      tags: ['RSI', 'Proofs', 'Impossible'],
       requires: { reasoning: 'high' },
       lockReason: 'Needs stronger model'
     }
@@ -357,4 +357,112 @@ export function getRecommendedGoals(categories, capabilities) {
   }
 
   return recommended;
+}
+
+const normalizeText = (value) => String(value || '').trim();
+const PATH_REGEX = /\/[A-Za-z0-9._-]+(?:\/[A-Za-z0-9._-]+)*/g;
+
+const extractPaths = (text) => {
+  if (!text) return [];
+  const matches = text.match(PATH_REGEX) || [];
+  return matches
+    .map(path => path.replace(/[),.;:]+$/, ''))
+    .filter(Boolean);
+};
+
+/**
+ * Find a goal definition by view or text.
+ */
+export function findGoalMeta(goalValue) {
+  const normalized = normalizeText(goalValue);
+  if (!normalized) return null;
+
+  for (const [category, goals] of Object.entries(GOAL_CATEGORIES)) {
+    for (const goal of goals) {
+      const view = normalizeText(goal.view);
+      const text = normalizeText(goal.text);
+      if (normalized === view || normalized === text) {
+        const levelMatch = category.match(/^(L\d)/);
+        return {
+          ...goal,
+          category,
+          level: levelMatch ? levelMatch[1] : null
+        };
+      }
+    }
+  }
+  return null;
+}
+
+/**
+ * Parse criteria text into a clean list.
+ */
+export function parseCriteriaText(text) {
+  return String(text || '')
+    .split('\n')
+    .map(line => line.trim())
+    .filter(Boolean);
+}
+
+/**
+ * Build suggested success criteria for a goal.
+ */
+export function buildGoalCriteria(goalValue, goalMeta = null) {
+  const goalText = normalizeText(goalMeta?.text || goalValue);
+  const tags = (goalMeta?.tags || []).map(tag => String(tag || '').toLowerCase());
+  const lower = goalText.toLowerCase();
+
+  const criteria = [];
+  const add = (line) => {
+    if (!line || criteria.includes(line)) return;
+    criteria.push(line);
+  };
+  const hasTag = (tag) => tags.includes(tag.toLowerCase());
+  const hasText = (fragment) => lower.includes(fragment);
+
+  const paths = extractPaths(goalText);
+  paths.forEach(path => add(`Writes output to ${path}.`));
+
+  if (hasTag('vfs') || hasTag('storage') || hasText('vfs') || hasText('indexeddb')) {
+    add('Artifacts persist in VFS across reloads.');
+  }
+  if (hasTag('ui') || hasTag('dom') || hasTag('canvas') || hasText('ui') || hasText('panel') || hasText('dashboard') || hasText('render')) {
+    add('UI view renders and responds to input.');
+  }
+  if (hasTag('tool') || hasText('tool')) {
+    add('Tool is registered and callable from the tool list.');
+  }
+  if (hasTag('eventbus') || hasText('eventbus') || hasText('replay')) {
+    add('EventBus captures a trace of the run.');
+  }
+  if (hasTag('doppler') || hasText('doppler')) {
+    add('Doppler run completes and returns requested artifacts.');
+  }
+  if (hasTag('arena') || hasText('arena')) {
+    add('Arena evaluation produces a scorecard artifact.');
+  }
+  if (hasTag('benchmark') || hasText('benchmark')) {
+    add('Benchmark run produces saved results.');
+  }
+
+  if (criteria.length === 0 && goalText) {
+    add('Output matches the goal description and is verifiable.');
+    add('No runtime errors block completion.');
+  }
+
+  return criteria.slice(0, 6);
+}
+
+/**
+ * Combine goal + criteria into a single prompt packet.
+ */
+export function formatGoalPacket(goalValue, criteriaText) {
+  const goal = normalizeText(goalValue);
+  if (!goal) return '';
+  const criteria = parseCriteriaText(criteriaText);
+  if (criteria.length === 0) return goal;
+
+  const lines = [`Goal: ${goal}`, '', 'Success criteria:'];
+  criteria.forEach(item => lines.push(`- ${item}`));
+  return lines.join('\n');
 }

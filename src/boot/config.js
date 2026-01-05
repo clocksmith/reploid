@@ -4,12 +4,14 @@
  */
 
 import { applyModuleOverrides, normalizeOverrides, resolveBaseModules } from '../config/module-resolution.js';
+import { readVfsFile } from './vfs-bootstrap.js';
 
-const resolveConfigUrl = (path) => {
-  if (typeof document !== 'undefined' && document.baseURI) {
-    return new URL(path, document.baseURI).toString();
+const readJsonFromVfs = async (path) => {
+  const content = await readVfsFile(path);
+  if (!content) {
+    throw new Error(`Missing VFS config: ${path}`);
   }
-  return path;
+  return JSON.parse(content);
 };
 
 /**
@@ -17,11 +19,7 @@ const resolveConfigUrl = (path) => {
  * @returns {Promise<Object>} Genesis config object
  */
 export async function loadGenesisConfig() {
-  const response = await fetch(resolveConfigUrl('config/genesis-levels.json'));
-  if (!response.ok) {
-    throw new Error('Failed to load genesis configuration');
-  }
-  return response.json();
+  return readJsonFromVfs('/config/genesis-levels.json');
 }
 
 /**
@@ -30,12 +28,8 @@ export async function loadGenesisConfig() {
  */
 export async function loadModuleRegistry() {
   try {
-    const response = await fetch(resolveConfigUrl('config/module-registry.json'), { cache: 'no-store' });
-    if (!response.ok) {
-      return null;
-    }
-    return response.json();
-  } catch (err) {
+    return await readJsonFromVfs('/config/module-registry.json');
+  } catch {
     return null;
   }
 }

@@ -3,7 +3,13 @@
  */
 
 import { canAwaken, getCapabilityLevel } from '../state.js';
-import { GOAL_CATEGORIES, filterGoalsByCapability } from '../goals.js';
+import {
+  GOAL_CATEGORIES,
+  buildGoalCriteria,
+  filterGoalsByCapability,
+  findGoalMeta,
+  parseCriteriaText
+} from '../goals.js';
 import {
   applyModuleOverrides,
   GENESIS_LEVEL_ORDER,
@@ -30,6 +36,33 @@ export function renderGoalStep(state) {
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;');
+  const goalValue = state.goal || '';
+  const goalMeta = findGoalMeta(goalValue);
+  const criteriaText = state.goalCriteria || '';
+  const criteriaList = parseCriteriaText(criteriaText);
+  const criteriaCountLabel = criteriaList.length > 0 ? `${criteriaList.length} criteria` : 'No criteria yet';
+  const criteriaSuggestions = buildGoalCriteria(goalValue, goalMeta);
+  const goalTitle = goalMeta?.view || (goalValue ? 'Custom goal' : 'No goal selected');
+  const goalDescription = goalMeta?.text || goalValue || 'Pick a goal to see details.';
+  const metaTags = [];
+  if (goalMeta?.level) metaTags.push(goalMeta.level);
+  if (goalMeta?.requires?.doppler) metaTags.push('Doppler');
+  if (goalMeta?.requires?.model) metaTags.push('Model access');
+  if (goalMeta?.requires?.reasoning) metaTags.push(`Reasoning ${goalMeta.requires.reasoning}`);
+  if (goalMeta?.recommended) metaTags.push('Recommended');
+  if (Array.isArray(goalMeta?.tags)) metaTags.push(...goalMeta.tags);
+  const uniqueTags = Array.from(new Set(metaTags)).slice(0, 10);
+  const metaTagsMarkup = uniqueTags.length > 0
+    ? uniqueTags.map(tag => `<span class="tag">${escapeText(tag)}</span>`).join('')
+    : '<span class="type-caption">No signals yet.</span>';
+  const criteriaSuggestionsMarkup = criteriaSuggestions.length > 0
+    ? criteriaSuggestions.map((item, index) => `
+        <li class="criteria-item">
+          <span class="criteria-index">${index + 1}</span>
+          <span class="criteria-text">${escapeText(item)}</span>
+        </li>
+      `).join('')
+    : '<li class="criteria-item criteria-empty type-caption">No suggestions yet.</li>';
   const vfsRuntimeNote = preserveOnBoot
     ? 'Runtime: VFS preserves module and shared files on boot. Missing paths hydrate from src.'
     : 'Runtime: VFS refreshes from src on awaken. Advanced settings can preserve VFS files on boot.';
@@ -246,6 +279,60 @@ export function renderGoalStep(state) {
                   class="goal-input"
                   placeholder="What would you like the agent to do?"
                   rows="3">${state.goal || ''}</textarea>
+      </div>
+
+      <div class="panel goal-builder">
+        <div class="panel-header">Goal builder</div>
+        <div class="panel-body goal-builder-grid">
+          <div class="goal-builder-main">
+            <div class="goal-builder-row">
+              <label class="type-label" for="goal-criteria">Success criteria</label>
+              <span class="type-caption goal-criteria-count" data-goal-criteria-count>${criteriaCountLabel}</span>
+            </div>
+            <textarea id="goal-criteria"
+                      class="goal-criteria-input"
+                      placeholder="One criterion per line"
+                      rows="6">${escapeText(criteriaText)}</textarea>
+            <div class="goal-builder-actions">
+              <button class="btn btn-secondary"
+                      data-action="apply-goal-suggestions"
+                      ${criteriaSuggestions.length > 0 ? '' : 'disabled'}>
+                Use suggested criteria
+              </button>
+              <button class="btn btn-ghost"
+                      data-action="clear-goal-criteria"
+                      ${criteriaText.trim() ? '' : 'disabled'}>
+                Clear
+              </button>
+            </div>
+            <div class="type-caption">Criteria are appended to the goal before awaken.</div>
+          </div>
+          <div class="goal-builder-side">
+            <div class="card">
+              <div class="card-header">Selected goal</div>
+              <div class="card-body">
+                <div class="goal-meta-title type-h2" data-goal-meta-title>${escapeText(goalTitle)}</div>
+                <div class="goal-meta-text type-caption" data-goal-meta-text>${escapeText(goalDescription)}</div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-header">Signals</div>
+              <div class="card-body">
+                <div class="goal-meta-tags" data-goal-meta-tags>
+                  ${metaTagsMarkup}
+                </div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-header">Suggested criteria</div>
+              <div class="card-body">
+                <ul class="criteria-list" data-goal-suggestions>
+                  ${criteriaSuggestionsMarkup}
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       ${advancedOpen ? `

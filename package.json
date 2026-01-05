@@ -2,7 +2,7 @@
   "name": "reploid",
   "version": "0.1.0",
   "description": "Browser-Native AI Agent with Recursive Self-Improvement",
-  "main": "src/boot.js",
+  "main": "src/bootstrap.js",
   "type": "module",
   "repository": {
     "type": "git",
@@ -29,6 +29,8 @@
     "build:blueprints": "node scripts/build-blueprint-registry.js",
     "build:module-registry": "node scripts/build-module-registry.js",
     "build:vfs-manifest": "node scripts/build-vfs-manifest.js",
+    "build:vfs-seed": "node scripts/build-vfs-seed.js",
+    "verify:vfs-seed": "node scripts/verify-vfs-seed.js",
     "verify:module-system": "node scripts/verify-module-system.js"
   },
   "keywords": [

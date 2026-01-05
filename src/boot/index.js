@@ -13,7 +13,7 @@ import {
 } from './config.js';
 import { AWAKEN_REQUIRED_MODULES, getMissingModules } from '../config/module-resolution.js';
 import { loadExternalDependencies, registerModules } from './modules.js';
-import { resetSession, seedCodeIntel, hydrateVFS } from './vfs-hydrate.js';
+import { resetSession } from './vfs-hydrate.js';
 import { createGenesisSnapshot, initializeSwarm, resolveServices, setupExportFunctions } from './services.js';
 import { initIframeBridge } from './iframe-bridge.js';
 import { renderErrorUI } from './error-ui.js';
@@ -27,17 +27,6 @@ import { renderErrorUI } from './error-ui.js';
 export async function boot(Utils, DIContainer) {
   const logger = Utils.factory().logger;
   logger.info('[Boot] Starting REPLOID System...');
-
-  // Check for full reset
-  if (typeof window.shouldResetAll === 'function' && window.shouldResetAll()) {
-    logger.info('[Boot] Full reset requested...');
-    try {
-      await window.performFullReset();
-      localStorage.setItem('REPLOID_RESET_ALL', 'false');
-    } catch (e) {
-      logger.warn('[Boot] Full reset failed:', e.message);
-    }
-  }
 
   // Initialize iframe bridge
   initIframeBridge(logger);
@@ -72,11 +61,7 @@ export async function boot(Utils, DIContainer) {
   // Reset session artifacts
   await resetSession(vfs, genesisConfig, genesisLevel, logger);
 
-  // Seed essential files
-  await seedCodeIntel(vfs, logger);
-
-  // Hydrate VFS with source files
-  await hydrateVFS(vfs, genesisConfig, resolvedModules, genesisLevel, logger);
+  // VFS is seeded in bootstrap before boot runs
 
   // Create genesis snapshot
   await createGenesisSnapshot(container, logger);

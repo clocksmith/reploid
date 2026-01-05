@@ -15,7 +15,15 @@ import {
   testProxyModel, testDirectModel
 } from './detection.js';
 
+import {
+  buildGoalCriteria,
+  findGoalMeta,
+  formatGoalPacket,
+  parseCriteriaText
+} from './goals.js';
+
 import { serializeModuleOverrides } from '../../config/module-resolution.js';
+import { readVfsFile } from '../../boot/vfs-bootstrap.js';
 
 // Step renderers
 import { renderChooseStep } from './steps/choose.js';
@@ -29,13 +37,6 @@ import { renderAwakenStep } from './steps/awaken.js';
 let container = null;
 let listenersAttached = false;
 
-const resolveConfigUrl = (path) => {
-  if (typeof document !== 'undefined' && document.baseURI) {
-    return new URL(path, document.baseURI).toString();
-  }
-  return path;
-};
-
 async function ensureModuleConfigLoaded() {
   const current = getState().moduleConfig || {};
   if (current.loading || (current.genesis && current.registry)) return;
@@ -43,20 +44,20 @@ async function ensureModuleConfigLoaded() {
   setState({ moduleConfig: { ...current, loading: true, error: null } });
 
   try {
-    const [genesisRes, registryRes] = await Promise.all([
-      fetch(resolveConfigUrl('config/genesis-levels.json'), { cache: 'no-store' }),
-      fetch(resolveConfigUrl('config/module-registry.json'), { cache: 'no-store' })
+    const [genesisText, registryText] = await Promise.all([
+      readVfsFile('/config/genesis-levels.json'),
+      readVfsFile('/config/module-registry.json')
     ]);
 
-    if (!genesisRes.ok) {
-      throw new Error(`Failed to load genesis config (${genesisRes.status})`);
+    if (!genesisText) {
+      throw new Error('Missing genesis config in VFS');
     }
-    if (!registryRes.ok) {
-      throw new Error(`Failed to load module registry (${registryRes.status})`);
+    if (!registryText) {
+      throw new Error('Missing module registry in VFS');
     }
 
-    const genesis = await genesisRes.json();
-    const registry = await registryRes.json();
+    const genesis = JSON.parse(genesisText);
+    const registry = JSON.parse(registryText);
 
     setState({
       moduleConfig: {
@@ -289,10 +290,100 @@ function updateUI() {
     advancedBtnInAwaken.textContent = state.advancedOpen ? 'Hide advanced' : 'Advanced settings';
   }
 
+  updateGoalBuilderUI(state);
+
   // Load module config if needed
   if (state.advancedOpen || ready) {
     ensureModuleConfigLoaded();
   }
+}
+
+function updateGoalBuilderUI(state) {
+  const builder = container.querySelector('.goal-builder');
+  if (!builder) return;
+
+  const criteriaText = state.goalCriteria || '';
+  const criteriaList = parseCriteriaText(criteriaText);
+  const criteriaCount = criteriaList.length;
+  const countEl = builder.querySelector('[data-goal-criteria-count]');
+  if (countEl) {
+    countEl.textContent = criteriaCount ? `${criteriaCount} criteria` : 'No criteria yet';
+  }
+
+  const goalMeta = findGoalMeta(state.goal);
+  const goalTitle = goalMeta?.view || (state.goal ? 'Custom goal' : 'No goal selected');
+  const goalDescription = goalMeta?.text || state.goal || 'Pick a goal to see details.';
+  const titleEl = builder.querySelector('[data-goal-meta-title]');
+  if (titleEl) titleEl.textContent = goalTitle;
+  const textEl = builder.querySelector('[data-goal-meta-text]');
+  if (textEl) textEl.textContent = goalDescription;
+
+  const tags = [];
+  if (goalMeta?.level) tags.push(goalMeta.level);
+  if (goalMeta?.requires?.doppler) tags.push('Doppler');
+  if (goalMeta?.requires?.model) tags.push('Model access');
+  if (goalMeta?.requires?.reasoning) tags.push(`Reasoning ${goalMeta.requires.reasoning}`);
+  if (goalMeta?.recommended) tags.push('Recommended');
+  if (Array.isArray(goalMeta?.tags)) tags.push(...goalMeta.tags);
+  const uniqueTags = Array.from(new Set(tags)).slice(0, 10);
+
+  const tagsEl = builder.querySelector('[data-goal-meta-tags]');
+  if (tagsEl) {
+    tagsEl.replaceChildren();
+    if (uniqueTags.length === 0) {
+      const emptyTag = document.createElement('span');
+      emptyTag.className = 'type-caption';
+      emptyTag.textContent = 'No signals yet.';
+      tagsEl.appendChild(emptyTag);
+    } else {
+      uniqueTags.forEach(tag => {
+        const tagEl = document.createElement('span');
+        tagEl.className = 'tag';
+        tagEl.textContent = tag;
+        tagsEl.appendChild(tagEl);
+      });
+    }
+  }
+
+  const suggestions = buildGoalCriteria(state.goal, goalMeta);
+  const suggestionsEl = builder.querySelector('[data-goal-suggestions]');
+  if (suggestionsEl) {
+    suggestionsEl.replaceChildren();
+    if (suggestions.length === 0) {
+      const empty = document.createElement('li');
+      empty.className = 'criteria-item criteria-empty type-caption';
+      empty.textContent = 'No suggestions yet.';
+      suggestionsEl.appendChild(empty);
+    } else {
+      suggestions.forEach((item, index) => {
+        const li = document.createElement('li');
+        li.className = 'criteria-item';
+        const indexEl = document.createElement('span');
+        indexEl.className = 'criteria-index';
+        indexEl.textContent = String(index + 1);
+        const textEl = document.createElement('span');
+        textEl.className = 'criteria-text';
+        textEl.textContent = item;
+        li.append(indexEl, textEl);
+        suggestionsEl.appendChild(li);
+      });
+    }
+  }
+
+  const criteriaInput = builder.querySelector('#goal-criteria');
+  if (criteriaInput && document.activeElement !== criteriaInput && criteriaInput.value !== criteriaText) {
+    criteriaInput.value = criteriaText;
+  }
+
+  const customGoalInput = container.querySelector('#custom-goal');
+  if (customGoalInput && document.activeElement !== customGoalInput && customGoalInput.value !== (state.goal || '')) {
+    customGoalInput.value = state.goal || '';
+  }
+
+  const applyButton = builder.querySelector('[data-action="apply-goal-suggestions"]');
+  if (applyButton) applyButton.disabled = suggestions.length === 0;
+  const clearButton = builder.querySelector('[data-action="clear-goal-criteria"]');
+  if (clearButton) clearButton.disabled = !criteriaText.trim();
 }
 
 function render() {
@@ -402,7 +493,12 @@ function handleClick(e) {
       break;
 
     case 'reconfigure':
-      setState({ connectionType: null, goal: null });
+      setState({
+        connectionType: null,
+        goal: null,
+        goalCriteria: '',
+        goalCriteriaSource: 'auto'
+      });
       break;
 
     case 'start-scan':
@@ -509,10 +605,39 @@ function handleClick(e) {
     case 'select-goal': {
       const goalText = e.target.closest('[data-goal]')?.dataset.goal;
       if (goalText) {
-        setState({ goal: goalText });
+        const goalMeta = findGoalMeta(goalText);
+        const suggestions = buildGoalCriteria(goalText, goalMeta);
+        const criteriaText = suggestions.join('\n');
+        setState({
+          goal: goalText,
+          goalCriteria: criteriaText,
+          goalCriteriaSource: 'auto'
+        });
         const textarea = document.getElementById('custom-goal');
         if (textarea) textarea.value = goalText;
+        const criteriaInput = document.getElementById('goal-criteria');
+        if (criteriaInput) criteriaInput.value = criteriaText;
       }
+      break;
+    }
+
+    case 'apply-goal-suggestions': {
+      const goalMeta = findGoalMeta(state.goal);
+      const suggestions = buildGoalCriteria(state.goal, goalMeta);
+      const criteriaText = suggestions.join('\n');
+      setState({
+        goalCriteria: criteriaText,
+        goalCriteriaSource: 'auto'
+      });
+      const criteriaInput = document.getElementById('goal-criteria');
+      if (criteriaInput) criteriaInput.value = criteriaText;
+      break;
+    }
+
+    case 'clear-goal-criteria': {
+      setState({ goalCriteria: '', goalCriteriaSource: 'custom' });
+      const criteriaInput = document.getElementById('goal-criteria');
+      if (criteriaInput) criteriaInput.value = '';
       break;
     }
 
@@ -655,7 +780,20 @@ function handleInput(e) {
 
   switch (id) {
     case 'custom-goal':
-      setState({ goal: value });
+      {
+        const current = getState();
+        const updates = { goal: value };
+        if (current.goalCriteriaSource === 'auto') {
+          const goalMeta = findGoalMeta(value);
+          const suggestions = buildGoalCriteria(value, goalMeta);
+          updates.goalCriteria = suggestions.join('\n');
+        }
+        setState(updates);
+      }
+      break;
+
+    case 'goal-criteria':
+      setState({ goalCriteria: value, goalCriteriaSource: 'custom' });
       break;
 
     case 'direct-key':
@@ -842,6 +980,7 @@ async function handleTestDirectModel() {
 
 async function doAwaken() {
   const state = getState();
+  const goalPacket = formatGoalPacket(state.goal, state.goalCriteria) || state.goal;
   saveConfig();
 
   // Set loading state immediately
@@ -859,7 +998,7 @@ async function doAwaken() {
   }
 
   if (window.triggerAwaken) {
-    window.triggerAwaken(state.goal);
+    window.triggerAwaken(goalPacket);
   }
   // Note: isAwakening stays true since the page will transition to agent UI
 }

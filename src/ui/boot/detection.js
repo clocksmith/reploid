@@ -4,8 +4,18 @@
  */
 
 import { getState, setNestedState } from './state.js';
+import { readVfsFile } from '../../boot/vfs-bootstrap.js';
 
 const PROBE_TIMEOUT = 3000;
+const PREFLIGHT_PENDING = 'Checking...';
+
+const buildPreflightItem = (id, label, status, detail, hint = null) => ({
+  id,
+  label,
+  status,
+  detail,
+  hint
+});
 
 /**
  * Check if page is served over HTTPS
@@ -103,6 +113,94 @@ async function probeLocalhost(port, path, name) {
 
     return { detected: false, url: null, blocked: false, error: error.message };
   }
+}
+
+/**
+ * Run preflight checks for VFS + boot readiness.
+ */
+export async function runPreflight() {
+  const pendingItems = [
+    buildPreflightItem('secure-context', 'Secure context', 'pending', PREFLIGHT_PENDING),
+    buildPreflightItem('service-worker', 'Service worker', 'pending', PREFLIGHT_PENDING),
+    buildPreflightItem('indexeddb', 'IndexedDB', 'pending', PREFLIGHT_PENDING),
+    buildPreflightItem('vfs-seed', 'VFS seed', 'pending', PREFLIGHT_PENDING),
+    buildPreflightItem('genesis-config', 'Genesis config', 'pending', PREFLIGHT_PENDING),
+    buildPreflightItem('module-registry', 'Module registry', 'pending', PREFLIGHT_PENDING)
+  ];
+
+  setNestedState('detection', {
+    preflight: { checked: false, items: pendingItems }
+  });
+
+  const items = [];
+  const isSecure = window.isSecureContext || checkHttps();
+  items.push(buildPreflightItem(
+    'secure-context',
+    'Secure context',
+    isSecure ? 'ready' : 'warn',
+    isSecure ? 'HTTPS or localhost' : 'Non-secure context'
+  ));
+
+  const swSupported = 'serviceWorker' in navigator;
+  const swControlled = swSupported && !!navigator.serviceWorker.controller;
+  const swStatus = !swSupported ? 'error' : swControlled ? 'ready' : 'pending';
+  const swDetail = !swSupported
+    ? 'Unsupported'
+    : swControlled ? 'Controlling' : 'Waiting for control';
+  items.push(buildPreflightItem('service-worker', 'Service worker', swStatus, swDetail));
+
+  let idbReady = false;
+  let idbError = null;
+  let seedText = null;
+  try {
+    seedText = await readVfsFile('/config/vfs-seed.json');
+    idbReady = true;
+  } catch (err) {
+    idbError = err;
+  }
+
+  items.push(buildPreflightItem(
+    'indexeddb',
+    'IndexedDB',
+    idbReady ? 'ready' : 'error',
+    idbReady ? 'VFS store online' : (idbError?.message || 'Unavailable')
+  ));
+
+  if (idbReady) {
+    const [genesisText, registryText] = await Promise.all([
+      readVfsFile('/config/genesis-levels.json'),
+      readVfsFile('/config/module-registry.json')
+    ]);
+
+    items.push(buildPreflightItem(
+      'vfs-seed',
+      'VFS seed',
+      seedText ? 'ready' : 'error',
+      seedText ? 'Seed bundle loaded' : 'Seed missing'
+    ));
+    items.push(buildPreflightItem(
+      'genesis-config',
+      'Genesis config',
+      genesisText ? 'ready' : 'error',
+      genesisText ? 'Levels ready' : 'Missing /config/genesis-levels.json'
+    ));
+    items.push(buildPreflightItem(
+      'module-registry',
+      'Module registry',
+      registryText ? 'ready' : 'error',
+      registryText ? 'Registry ready' : 'Missing /config/module-registry.json'
+    ));
+  } else {
+    items.push(buildPreflightItem('vfs-seed', 'VFS seed', 'error', 'IndexedDB unavailable'));
+    items.push(buildPreflightItem('genesis-config', 'Genesis config', 'error', 'IndexedDB unavailable'));
+    items.push(buildPreflightItem('module-registry', 'Module registry', 'error', 'IndexedDB unavailable'));
+  }
+
+  setNestedState('detection', {
+    preflight: { checked: true, items }
+  });
+
+  return items;
 }
 
 /**
@@ -253,6 +351,12 @@ export async function runDetection(options = {}) {
 
   // Run other checks in parallel
   const checks = [];
+  checks.push(
+    runPreflight().then(r => {
+      onProgress?.({ step: 'preflight', done: true, result: r.length });
+      return r;
+    })
+  );
 
   // Doppler check (depends on WebGPU)
   if (webgpuSupported) {

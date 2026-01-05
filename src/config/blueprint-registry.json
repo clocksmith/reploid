@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-01-03T23:08:33.090Z",
+  "generatedAt": "2026-01-04T17:02:48.859Z",
   "features": [
     {
       "id": "0x000003",
@@ -1994,6 +1994,34 @@
       ],
       "files": [
         "experimental/semantic-memory-neural.js"
+      ]
+    },
+    {
+      "id": "0x0000df",
+      "name": "boot-vfs-bootstrap",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x0000df",
+          "path": "blueprints/0x0000df-boot-vfs-bootstrap.md"
+        }
+      ],
+      "files": [
+        "boot/vfs-bootstrap.js"
+      ]
+    },
+    {
+      "id": "0x0000e0",
+      "name": "bootstrap",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x0000e0",
+          "path": "blueprints/0x0000e0-bootstrap.md"
+        }
+      ],
+      "files": [
+        "bootstrap.js"
       ]
     }
   ]
