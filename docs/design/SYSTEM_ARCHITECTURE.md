@@ -37,7 +37,7 @@ REPLOID is a browser-native research environment for studying recursive self-imp
 
 ## Boot Sequence
 
-### 1. Entry Point (`reploid.html`)
+### 1. Entry Point (`index.html` + `bootstrap.js`)
 
 The boot screen allows operators to configure:
 - **Genesis Level**: Tabula Rasa, Reflection, or Full Substrate
@@ -45,20 +45,19 @@ The boot screen allows operators to configure:
 - **Concurrency Limits**: Max workers, iteration caps
 - **Goal Chips**: Pre-defined or custom goals
 
-### 2. Hydration (`boot.js`)
+### 2. VFS-First Boot (`bootstrap.js` → `boot.js`)
 
-When "Awaken Agent" is pressed:
+On page load, the bootstrapper seeds the VFS and loads the boot UI. When "Awaken Agent" is pressed:
 
-1. **Static File Fetch**: Pull files over HTTP
-2. **VFS Hydration**: Write files to IndexedDB via `core/vfs.js`
-3. **Genesis Snapshot**: Capture pristine state for rollback
-4. **DI Container**: Resolve all module dependencies
-5. **Service Worker**: Register `sw-module-loader.js` for VFS-backed module interception (network allowlist remains)
-6. **Proto UI Mount**: Initialize UI into `#app`
-7. **WorkerManager Init**: Seed worker types and model roles
-8. **Agent Loop Start**: Begin Think → Act → Observe cycle
+1. **VFS Seed**: Fetch `config/vfs-seed.json` and write all `src/` files into IndexedDB
+2. **VFS Module Loader**: Ensure `sw-module-loader.js` controls the page (VFS-only module serving)
+3. **Boot from VFS**: Load `boot.js` from VFS and resolve the DI container
+4. **Genesis Snapshot**: Capture pristine state for rollback
+5. **Proto UI Mount**: Initialize UI into `#app`
+6. **WorkerManager Init**: Seed worker types and model roles
+7. **Agent Loop Start**: Begin Think → Act → Observe cycle
 
-Modules are imported based on `config/genesis-levels.json` module files for the selected genesis level.
+Modules are imported from VFS based on `config/genesis-levels.json` for the selected genesis level.
 
 ### 3. Genesis Levels (`config/genesis-levels.json`)
 
@@ -101,11 +100,11 @@ async run(goal) {
 Virtual File System backed by IndexedDB:
 
 - **Operations**: read, write, delete, list, stat
-- **Hydration**: Populate from network at boot
+- **VFS Seed**: Populate from `config/vfs-seed.json` before boot
 - **Snapshots**: GenesisSnapshot for offline rollback
 - **Watchers**: EventBus events (`vfs:write`, `vfs:delete`)
 
-Most module imports are intercepted by the service worker and served from VFS. Boot-critical files and a small UI allowlist stay on network, and VFS blob imports (tools and SubstrateLoader) bypass the service worker.
+Most module imports are intercepted by the service worker and served from VFS. The module loader is VFS-only after bootstrap, and VFS blob imports (tools and SubstrateLoader) bypass the service worker.
 
 ### `core/tool-runner.js`
 
@@ -372,8 +371,9 @@ export const schema = {
 
 ```
 reploid/
-├── reploid.html            # Boot screen entry point
-├── boot.js                 # Hydration and initialization
+├── index.html              # Entry point
+├── bootstrap.js            # VFS seed + SW activation
+├── boot.js                 # Boot orchestrator (runs from VFS)
 ├── sw-module-loader.js     # Service worker for VFS modules
 │
 ├── core/                   # Core substrate

@@ -107,16 +107,6 @@ async function readFromVFS(path) {
   });
 }
 
-// Check if file exists in VFS
-async function existsInVFS(path) {
-  try {
-    const content = await readFromVFS(path);
-    return content !== null;
-  } catch {
-    return false;
-  }
-}
-
 // Service Worker installation
 self.addEventListener('install', (event) => {
   console.log('[SW] Installing module loader...');
@@ -143,36 +133,6 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Never intercept critical files - always fetch from network
-  const alwaysNetwork = [
-    '/boot.js',
-    '/sw-module-loader.js',
-    '/ui/boot/index.js',
-    '/ui/boot/state.js',
-    '/ui/boot/detection.js',
-    '/ui/boot/goals.js',
-    '/ui/boot/steps/choose.js',
-    '/ui/boot/steps/direct.js',
-    '/ui/boot/steps/proxy.js',
-    '/ui/boot/steps/browser.js',
-    '/ui/boot/steps/goal.js',
-    '/ui/boot/steps/awaken.js',
-    '/ui/proto.js',
-    '/ui/proto/index.js',
-    '/ui/proto/template.js',
-    '/ui/proto/workers.js',
-    '/ui/proto/vfs.js',
-    '/ui/proto/schemas.js',
-    '/ui/proto/telemetry.js',
-    '/ui/proto/utils.js',
-    '/ui/toast.js',
-    '/ui/components/inline-chat.js',
-    '/config/module-resolution.js'
-  ];
-  if (alwaysNetwork.some(f => url.pathname.endsWith(f))) {
-    return; // Let browser fetch from network
-  }
-
   event.respondWith(handleModuleRequest(event.request, url));
 });
 
@@ -194,39 +154,34 @@ async function handleModuleRequest(request, url) {
   if (shouldLog) console.log(`[SW] Module request: ${pathname} -> VFS: ${vfsPath}`);
 
   try {
-    // Check if file exists in VFS
-    const inVFS = await existsInVFS(vfsPath);
+    const content = await readFromVFS(vfsPath);
 
-    if (inVFS) {
+    if (content !== null) {
       if (shouldLog) console.log(`[SW] Serving from VFS: ${vfsPath}`);
-      const content = await readFromVFS(vfsPath);
-
-      // Return as JavaScript module with proper MIME type
       return new Response(content, {
         status: 200,
         headers: {
           'Content-Type': 'application/javascript; charset=utf-8',
           'X-VFS-Source': 'true',
-          'Cache-Control': 'no-cache' // Don't cache VFS modules (for hot-reload)
+          'Cache-Control': 'no-cache'
         }
       });
-    } else {
-      if (shouldLog) console.log(`[SW] Not in VFS, fetching from network: ${pathname}`);
-      // Fallback to network if not in VFS
-      return fetch(request);
     }
+
+    console.error(`[SW] Missing module in VFS: ${vfsPath}`);
+    return new Response(`// Missing module in VFS: ${vfsPath}\nthrow new Error('Module missing in VFS: ${vfsPath}');`, {
+      status: 404,
+      headers: {
+        'Content-Type': 'application/javascript; charset=utf-8',
+        'X-VFS-Miss': 'true'
+      }
+    });
   } catch (error) {
     console.error(`[SW] Error loading module ${vfsPath}:`, error);
-
-    // Fallback to network on error
-    try {
-      return fetch(request);
-    } catch (networkError) {
-      return new Response(`// Module load failed: ${vfsPath}\nconsole.error('Failed to load module from VFS or network');`, {
-        status: 500,
-        headers: { 'Content-Type': 'application/javascript' }
-      });
-    }
+    return new Response(`// Module load failed: ${vfsPath}\nconsole.error('Failed to load module from VFS');`, {
+      status: 500,
+      headers: { 'Content-Type': 'application/javascript; charset=utf-8' }
+    });
   }
 }
 

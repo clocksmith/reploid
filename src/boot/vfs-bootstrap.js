@@ -18,6 +18,9 @@ const normalizePath = (path) => {
 
 const openVfsDb = () => {
   if (dbPromise) return dbPromise;
+  if (typeof indexedDB === 'undefined') {
+    throw new Error('IndexedDB is required for VFS boot');
+  }
   dbPromise = new Promise((resolve, reject) => {
     const timeout = setTimeout(() => {
       reject(new Error('VFS DB open timed out'));

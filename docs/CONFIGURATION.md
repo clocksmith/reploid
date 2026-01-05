@@ -138,27 +138,36 @@ Some settings can be set via URL:
 
 ## Genesis Config (`config/genesis-levels.json`)
 
-Settings used by boot hydration and module registration.
+Settings used by boot seeding and module registration.
 
 | Key | Purpose |
 |-----|---------|
-| `moduleFiles` | Module entry and auxiliary files used for hydration and lazy imports |
+| `moduleFiles` | Module entry and auxiliary files used for module registration and lazy imports |
 | `sharedFiles` | Always hydrated files (tools, UI, styles) |
 | `levels` | Genesis level ladder and module grouping |
 
-VFS hydration refreshes module and shared files from `src/` on each boot. Writes are skipped when content is byte-identical. Set `REPLOID_PRESERVE_ON_BOOT` to `'true'` to keep existing VFS files and hydrate only missing paths.
+VFS seeding loads `config/vfs-seed.json` at bootstrap and writes all `src/` files into IndexedDB before boot. Set `REPLOID_PRESERVE_ON_BOOT` to `'true'` to keep existing VFS files and only fill missing paths.
 
 ---
 
 ## VFS Manifest (`config/vfs-manifest.json`)
 
-List of all files under `src/` that must be hydrated into VFS on awaken.
+List of all files under `src/` used to generate the VFS seed bundle.
 
 | Key | Purpose |
 |-----|---------|
 | `files` | Relative paths from `src/` to hydrate |
 
 ---
+
+## VFS Seed Bundle (`config/vfs-seed.json`)
+
+Single-file bundle containing the full contents of `src/` for VFS-first boot.
+
+| Key | Purpose |
+|-----|---------|
+| `files` | Map of VFS path → file contents |
+| `generatedAt` | Bundle generation timestamp |
 
 ## Blueprint Registry (`config/blueprint-registry.json`)
 

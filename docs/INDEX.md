@@ -15,7 +15,7 @@ Guide to all documentation in the REPLOID project.
 ## Core Documentation
 
 ### Architecture
-- **[docs/SYSTEM_ARCHITECTURE.md](./SYSTEM_ARCHITECTURE.md)** - Complete system design
+- **[docs/design/SYSTEM_ARCHITECTURE.md](./design/SYSTEM_ARCHITECTURE.md)** - Complete system design
 - **[./blueprints/](../blueprints/)** - Architectural specifications (100+ files)
 
 **Key Blueprints:**
@@ -33,7 +33,7 @@ Guide to all documentation in the REPLOID project.
 - **[docs/TROUBLESHOOTING.md](./TROUBLESHOOTING.md)** - Common issues and solutions
 - **[docs/CYCLICAL_ACRONYMS.md](./CYCLICAL_ACRONYMS.md)** - Cyclical acronyms taxonomy
 - **[docs/MEMORY_ARCHITECTURE.md](./MEMORY_ARCHITECTURE.md)** - See [Blueprint 0x000079](../blueprints/0x000079-hierarchical-memory-architecture.md)
-- **[docs/MODULE_SYSTEM_INVARIANTS.md](./MODULE_SYSTEM_INVARIANTS.md)** - Module, blueprint, and hydration rules
+- **[docs/MODULE_SYSTEM_INVARIANTS.md](./MODULE_SYSTEM_INVARIANTS.md)** - Module, blueprint, and VFS seeding rules
 - **[docs/MODULE_SYSTEM_MIGRATION_CHECKLIST.md](./MODULE_SYSTEM_MIGRATION_CHECKLIST.md)** - Refactor checklist for modules and blueprints
 - **[docs/STYLE_GUIDE.md](./STYLE_GUIDE.md)** - Code and UI conventions
 - **[docs/SECURITY.md](./SECURITY.md)** - Security model and containment layers
@@ -46,8 +46,9 @@ Guide to all documentation in the REPLOID project.
 ```
 reploid/
 ├── ./            # Main application
-│   ├── reploid.html            # Boot screen entry point
-│   ├── boot.js                 # Hydration and initialization
+│   ├── index.html              # Entry point
+│   ├── bootstrap.js            # VFS seed + SW activation
+│   ├── boot.js                 # Boot orchestrator
 │   ├── sw-module-loader.js     # Service worker for VFS modules
 │   │
 │   ├── core/                   # Core substrate
@@ -112,8 +113,9 @@ reploid/
 
 **Key Files:**
 - `./config/genesis-levels.json` - Module registry and worker types
+- `./bootstrap.js` - VFS seed and boot loader
 - `./boot.js` - Application bootstrap
-- `./reploid.html` - Entry point
+- `./index.html` - Entry point
 
 **Key Directories:**
 - `./core/` - Agent substrate modules

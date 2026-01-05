@@ -63,6 +63,18 @@ export async function resetSession(vfs, genesisConfig, genesisLevel, logger) {
   logger.info('[Boot] Session reset requested - clearing session artifacts...');
 
   try {
+    let seededPaths = null;
+    try {
+      const seedText = await vfs.read('/config/vfs-seed.json');
+      const seed = JSON.parse(seedText);
+      const files = seed?.files && typeof seed.files === 'object' ? seed.files : null;
+      if (files) {
+        seededPaths = new Set(Object.keys(files));
+      }
+    } catch {
+      seededPaths = null;
+    }
+
     // Use preserveOnReset from config, or fall back to defaults
     const preserveConfig = genesisConfig.preserveOnReset || {};
     const coreTools = buildCoreToolSet(genesisConfig, genesisLevel);
@@ -85,6 +97,7 @@ export async function resetSession(vfs, genesisConfig, genesisLevel, logger) {
     // Clear non-core tools
     const allTools = await vfs.list('/tools/');
     for (const file of allTools) {
+      if (seededPaths && seededPaths.has(file)) continue;
       const toolName = file.replace('/tools/', '').replace('.js', '');
       if (!coreTools.has(toolName)) {
         await vfs.delete(file);
@@ -95,6 +108,7 @@ export async function resetSession(vfs, genesisConfig, genesisLevel, logger) {
     // Clear session UI files (except core)
     const uiFiles = await vfs.list('/ui/');
     for (const file of uiFiles) {
+      if (seededPaths && seededPaths.has(file)) continue;
       const fileName = file.split('/').pop();
       if (!file.includes('/ui/components/') &&
           !file.includes('/ui/dashboard/') &&
@@ -109,6 +123,7 @@ export async function resetSession(vfs, genesisConfig, genesisLevel, logger) {
     // Clear agent-created capabilities
     const capFiles = await vfs.list('/capabilities/');
     for (const file of capFiles) {
+      if (seededPaths && seededPaths.has(file)) continue;
       if (file.match(/^\/capabilities\/[^/]+\.js$/)) {
         await vfs.delete(file);
         logger.info(`[Boot] Deleted session artifact: ${file}`);
@@ -118,6 +133,7 @@ export async function resetSession(vfs, genesisConfig, genesisLevel, logger) {
     // Clear non-core styles
     const styleFiles = await vfs.list('/styles/');
     for (const file of styleFiles) {
+      if (seededPaths && seededPaths.has(file)) continue;
       const fileName = file.split('/').pop();
       if (!coreStyles.has(fileName)) {
         await vfs.delete(file);

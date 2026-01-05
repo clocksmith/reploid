@@ -84,6 +84,7 @@ const defaultState = {
     proxy: { detected: false, url: null, checked: false, blocked: false },
     ollama: { detected: false, models: [], checked: false },
     doppler: { supported: false, models: [], capabilities: null, checked: false },
+    preflight: { checked: false, items: [] },
     isHttps: false,
     scanSkipped: false
   },
@@ -141,6 +142,8 @@ const defaultState = {
 
   // Selected goal
   goal: null,
+  goalCriteria: '',
+  goalCriteriaSource: 'auto',
 
   // Genesis level (auto or manual)
   genesisLevel: 'full'
@@ -224,6 +227,7 @@ export function checkSavedConfig() {
   try {
     const savedModels = localStorage.getItem('SELECTED_MODELS');
     const savedGoal = localStorage.getItem('REPLOID_GOAL');
+    const savedGoalCriteria = localStorage.getItem('REPLOID_GOAL_CRITERIA');
 
     if (!savedModels) return null;
 
@@ -242,6 +246,7 @@ export function checkSavedConfig() {
       hasSavedKey: !!hasKey,
       savedKey: savedKey,
       savedGoal,
+      savedGoalCriteria,
       proxyUrl: primary.proxyUrl,
       localUrl: primary.localUrl
     };
@@ -302,6 +307,10 @@ export function hydrateSavedConfig(saved, apiKey = null) {
   if (saved.savedGoal) {
     updates.goal = saved.savedGoal;
   }
+  if (saved.savedGoalCriteria) {
+    updates.goalCriteria = saved.savedGoalCriteria;
+    updates.goalCriteriaSource = 'custom';
+  }
 
   setState(updates);
 }
@@ -310,7 +319,7 @@ export function hydrateSavedConfig(saved, apiKey = null) {
  * Save current config to localStorage
  */
 export function saveConfig() {
-  const { directConfig, proxyConfig, dopplerConfig, connectionType, goal } = state;
+  const { directConfig, proxyConfig, dopplerConfig, connectionType, goal, goalCriteria } = state;
 
   const models = [];
 
@@ -360,6 +369,11 @@ export function saveConfig() {
   if (goal) {
     localStorage.setItem('REPLOID_GOAL', goal);
   }
+  if (goalCriteria && goalCriteria.trim()) {
+    localStorage.setItem('REPLOID_GOAL_CRITERIA', goalCriteria);
+  } else {
+    localStorage.removeItem('REPLOID_GOAL_CRITERIA');
+  }
 }
 
 /**
@@ -369,6 +383,7 @@ export function forgetDevice() {
   const keysToRemove = [
     'SELECTED_MODELS',
     'REPLOID_GOAL',
+    'REPLOID_GOAL_CRITERIA',
     'REPLOID_KEY_ANTHROPIC',
     'REPLOID_KEY_OPENAI',
     'REPLOID_KEY_GEMINI',

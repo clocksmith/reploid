@@ -172,6 +172,16 @@
   margin-top: var(--space-sm);
 }
 
+/* === PREFLIGHT === */
+
+.preflight-panel {
+  margin-bottom: var(--space-md);
+}
+
+.preflight-summary {
+  margin-bottom: var(--space-sm);
+}
+
 /* === DETECTION === */
 
 .detection-list {
@@ -397,6 +407,48 @@
 .goal-input:focus {
   outline: none;
   border-width: var(--border-lg);
+}
+
+/* Goal builder layout */
+.goal-builder {
+  margin-top: var(--space-lg);
+}
+
+.goal-builder-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  gap: var(--space-md);
+}
+
+.goal-builder-main,
+.goal-builder-side {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.goal-builder-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+}
+
+.goal-builder-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+}
+
+.goal-criteria-input {
+  min-height: 140px;
+}
+
+.goal-meta-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
 }
 
 /* === ADVANCED SETTINGS === */
@@ -706,6 +758,10 @@
 
   .hide-mobile {
     display: none;
+  }
+
+  .goal-builder-grid {
+    grid-template-columns: 1fr;
   }
 }
 

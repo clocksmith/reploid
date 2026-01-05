@@ -1,6 +1,6 @@
 # Module System Migration Checklist
 
-Use this checklist when refactoring modules, blueprints, and hydration rules.
+Use this checklist when refactoring modules, blueprints, and VFS seeding rules.
 
 ---
 
@@ -28,9 +28,10 @@ Use this checklist when refactoring modules, blueprints, and hydration rules.
 
 ---
 
-## 4. Hydration
+## 4. VFS Seed
 
 - [ ] Regenerate `vfs-manifest.json` after any change to `src/`.
+- [ ] Regenerate `vfs-seed.json` after any change to `src/`.
 - [ ] Ensure `REPLOID_PRESERVE_ON_BOOT` behavior is preserved.
 
 ---

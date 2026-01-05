@@ -1,6 +1,6 @@
 # Module System Invariants
 
-Defines the non-negotiable rules for the module system, blueprint coverage, and hydration.
+Defines the non-negotiable rules for the module system, blueprint coverage, and VFS seeding.
 
 ---
 
@@ -14,7 +14,7 @@ These rules apply to runtime artifacts under `src/`, including modules, tools, U
 
 | Invariant | Rule |
 |-----------|------|
-| Hydration coverage | Every file under `src/` is hydrated into VFS on awaken. |
+| Seed coverage | Every file under `src/` is seeded into VFS before boot. |
 | Blueprint coverage | Every runtime JavaScript file under `src/` maps to a blueprint entry. |
 | Genesis levels | Each level is a strict superset of the previous level. |
 | Module identity | `metadata.id` in each module file matches the module ID in `genesis-levels.json`. |
@@ -22,11 +22,11 @@ These rules apply to runtime artifacts under `src/`, including modules, tools, U
 
 ---
 
-## Hydration Rules
+## VFS Seed Rules
 
-- Hydration uses a manifest generated from `src/` contents.
-- The manifest must include every file under `src/`, including blueprints and config.
-- When `REPLOID_PRESERVE_ON_BOOT` is true, hydration only fills missing VFS paths.
+- VFS seeding uses `config/vfs-seed.json`, generated from `src/` contents.
+- The seed bundle must include every file under `src/`, including blueprints and config.
+- When `REPLOID_PRESERVE_ON_BOOT` is true, seeding only fills missing VFS paths.
 - Do not rely on `sharedFiles` or `levelFiles` for coverage. They are categorization only.
 
 ---
@@ -60,7 +60,8 @@ These rules apply to runtime artifacts under `src/`, including modules, tools, U
 
 Automated checks must confirm:
 
-- All `src/` files are listed in the hydration manifest.
+- All `src/` files are listed in `config/vfs-manifest.json`.
+- `config/vfs-seed.json` matches the manifest and contains the full file set.
 - All runtime JavaScript files map to a blueprint entry.
 - All registry blueprint IDs exist in `src/blueprints/`.
 - All module IDs and genesis levels match `genesis-levels.json`.
