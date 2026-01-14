@@ -45,7 +45,7 @@ const NeuralCompilerLoRATest = {
       const inlineManifest = {
         name: 'css-tailwind',
         version: '1.0.0',
-        baseModel: 'functiongemma-2b',
+        baseModel: 'gemma-3-1b-it',
         lora: { rank: 8, alpha: 16, targetModules: ['q_proj', 'v_proj'] },
         shards: []
       };
