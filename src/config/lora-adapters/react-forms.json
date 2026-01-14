@@ -2,7 +2,7 @@
   "name": "react-forms",
   "version": "1.0.0",
   "description": "Specialized adapter for React form generation",
-  "baseModel": "functiongemma-2b",
+  "baseModel": "gemma-3-1b-it",
   "format": "safetensors",
   "quantization": "q4",
 
