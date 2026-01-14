@@ -31,6 +31,40 @@ Current Doppler primitives available for integration:
 
 ---
 
+## Engine vs Driver Boundary
+
+**Critical:** DOPPLER is the **Engine** (mechanism), REPLOID is the **Driver** (policy).
+
+DOPPLER provides primitives. REPLOID makes decisions. This separation is enforced:
+
+| Responsibility | DOPPLER (Engine) | REPLOID (Driver) |
+|----------------|------------------|------------------|
+| **Inference** | ✅ GPU kernels | ❌ |
+| **KV Cache** | ✅ Memory management | When to share |
+| **Logit Merge** | ✅ `mergeLogits(buffers, weights)` | Which buffers, what weights |
+| **Prompt Templates** | ❌ | ✅ "Review this code..." |
+| **Loop Logic** | ❌ | ✅ Seed/Reflect/Refine |
+| **Expert Selection** | ❌ | ✅ UCB1, bandits |
+| **Evolution** | ❌ | ✅ GA, mutation |
+| **Fitness Scoring** | ❌ | ✅ Quality heuristics |
+
+**Why this matters:** If you want to change how FunctionGemma selects experts or writes prompts, you modify REPLOID (the agent), not DOPPLER (the GPU engine).
+
+**Deprecated DOPPLER APIs:**
+- `FunctionGemma` class → Use `FunctionGemmaOrchestrator` in REPLOID
+- `MultiModelNetwork.executeTemporalRing()` → Removed; implement in REPLOID
+- `MultiModelNetwork.buildTemporalPrompt()` → Removed; implement in REPLOID
+
+**Active DOPPLER primitives:**
+- `MultiModelNetwork.executeExpert(id, prompt, opts)` → Execute single expert
+- `MultiModelNetwork.executeGenome(genome, prompt)` → Execute network topology
+- `MultiModelNetwork.setSharedPrefix(prompt)` → Set KV cache prefix
+- `mergeLogits(buffers, weights)` → GPU logit merging (new)
+
+See `doppler/docs/ARCHITECTURE.md#engine-vs-driver-boundary` for full details.
+
+---
+
 ## Module Integration
 
 | FunctionGemma Component | Reploid Module | Integration Strategy |
