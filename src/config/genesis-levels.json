@@ -83,7 +83,7 @@
     },
     "full": {
       "name": "FULL",
-      "description": "Substrate + advanced multi-agent systems - 11 additional modules",
+      "description": "Substrate + advanced multi-agent systems - 14 additional modules",
       "extends": "substrate",
       "modules": [
         "ArenaCompetitor",
