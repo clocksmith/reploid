@@ -58,11 +58,25 @@ npm start         # Proxy server at :8000
 
 ## Genesis Levels
 
-| Level              | Modules | Description                              |
-|--------------------|---------|------------------------------------------|
-| **Tabula Rasa**    | ~13     | Minimal core, fastest boot               |
-| **Reflection**     | ~19     | + Streaming, verification, HITL          |
-| **Full Substrate** | ~32     | + Arena, semantic memory, workers, swarm |
+Progressive capability loading - each level extends the previous:
+
+| Level          | Total | Added | Description                                    |
+|----------------|-------|-------|------------------------------------------------|
+| **TABULA**     | 7     | 7     | Bootstrap core (VFS, EventBus, StateManager)   |
+| **SPARK**      | 18    | +11   | Agent loop, LLM client, tool runner            |
+| **REFLECTION** | 24    | +6    | Streaming, verification, HITL                  |
+| **COGNITION**  | 35    | +11   | Memory, knowledge graph, GEPA optimizer        |
+| **SUBSTRATE**  | 47    | +12   | Audit, replay, sandbox, worker manager         |
+| **FULL**       | 61    | +14   | Arena, swarm, multi-model, federated learning  |
+
+Genesis modules by level (exact):
+
+- TABULA: DIContainer, ErrorStore, EventBus, StateHelpersPure, StateManager, Utils, VFS
+- SPARK: AgentLoop, CircuitBreaker, ContextManager, LLMClient, PersonaManager, ResponseParser, SchemaRegistry, TelemetryTimeline, ToolExecutor, ToolRunner, ToolWriter
+- REFLECTION: HITLController, RateLimiter, ReflectionAnalyzer, ReflectionStore, StreamParser, VerificationManager
+- COGNITION: CognitionAPI, EmbeddingStore, GEPAOptimizer, KnowledgeGraph, KnowledgeTree, MemoryManager, PromptMemory, RuleEngine, SemanticMemory, SymbolGrounder, TransformersClient
+- SUBSTRATE: AuditLogger, BrowserAPIs, GenesisSnapshot, Observability, PerformanceMonitor, PolicyEngine, ReplayEngine, SchemaValidator, SubstrateLoader, TraceStore, VFSSandbox, WorkerManager
+- FULL: ArenaCompetitor, ArenaHarness, ArenaMetrics, Consensus, EpisodicMemory, FederatedLearning, FunctionGemmaOrchestrator, HybridRetrieval, MultiModelCoordinator, NeuralCompiler, PromptScoreMap, SwarmSync, SwarmTransport, WebRTCSwarm
 
 ## Tools
 
