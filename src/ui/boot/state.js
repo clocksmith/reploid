@@ -53,7 +53,13 @@ export const PROVIDER_TEST_ENDPOINTS = {
 
 const getStoredAdvancedConfig = () => {
   if (typeof localStorage === 'undefined') {
-    return { preserveOnBoot: false, genesisLevel: 'full', moduleOverrides: {} };
+    return {
+      preserveOnBoot: false,
+      genesisLevel: 'full',
+      moduleOverrides: {},
+      hitlApprovalMode: 'autonomous',
+      hitlEveryNSteps: 5
+    };
   }
 
   let moduleOverrides = {};
@@ -66,10 +72,32 @@ const getStoredAdvancedConfig = () => {
     moduleOverrides = {};
   }
 
+  let hitlApprovalMode = 'autonomous';
+  let hitlEveryNSteps = 5;
+  try {
+    const raw = localStorage.getItem('REPLOID_HITL_CONFIG');
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      const mode = parsed?.approvalMode;
+      if (mode === 'autonomous' || mode === 'hitl' || mode === 'every_n') {
+        hitlApprovalMode = mode;
+      }
+      const steps = parseInt(parsed?.everyNSteps, 10);
+      if (!Number.isNaN(steps) && steps >= 1 && steps <= 100) {
+        hitlEveryNSteps = steps;
+      }
+    }
+  } catch (e) {
+    hitlApprovalMode = 'autonomous';
+    hitlEveryNSteps = 5;
+  }
+
   return {
     preserveOnBoot: localStorage.getItem('REPLOID_PRESERVE_ON_BOOT') === 'true',
     genesisLevel: localStorage.getItem('REPLOID_GENESIS_LEVEL') || 'full',
-    moduleOverrides
+    moduleOverrides,
+    hitlApprovalMode,
+    hitlEveryNSteps
   };
 };
 
@@ -391,7 +419,8 @@ export function forgetDevice() {
     'REPLOID_GENESIS_LEVEL',
     'REPLOID_PERSONA_ID',
     'REPLOID_BLUEPRINT_PATH',
-    'REPLOID_PRESERVE_ON_BOOT'
+    'REPLOID_PRESERVE_ON_BOOT',
+    'REPLOID_HITL_CONFIG'
   ];
 
   keysToRemove.forEach(key => localStorage.removeItem(key));

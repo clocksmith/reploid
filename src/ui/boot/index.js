@@ -37,6 +37,33 @@ import { renderAwakenStep } from './steps/awaken.js';
 let container = null;
 let listenersAttached = false;
 
+const updateHitlConfig = (updates) => {
+  let current = {
+    approvalMode: 'autonomous',
+    moduleOverrides: {},
+    everyNSteps: 5,
+    stepCounter: 0
+  };
+
+  try {
+    const raw = localStorage.getItem('REPLOID_HITL_CONFIG');
+    if (raw) {
+      current = { ...current, ...JSON.parse(raw) };
+    }
+  } catch (e) {
+    current = {
+      approvalMode: 'autonomous',
+      moduleOverrides: {},
+      everyNSteps: 5,
+      stepCounter: 0
+    };
+  }
+
+  const next = { ...current, ...updates };
+  localStorage.setItem('REPLOID_HITL_CONFIG', JSON.stringify(next));
+  return next;
+};
+
 async function ensureModuleConfigLoaded() {
   const current = getState().moduleConfig || {};
   if (current.loading || (current.genesis && current.registry)) return;
@@ -748,6 +775,32 @@ function handleChange(e) {
       localStorage.setItem('REPLOID_GENESIS_LEVEL', value);
       setNestedState('advancedConfig', { genesisLevel: value });
       break;
+
+    case 'advanced-hitl-mode': {
+      const mode = value;
+      const next = updateHitlConfig({
+        approvalMode: mode
+      });
+      setNestedState('advancedConfig', {
+        hitlApprovalMode: next.approvalMode,
+        hitlEveryNSteps: next.everyNSteps
+      });
+      break;
+    }
+
+    case 'advanced-hitl-steps': {
+      const steps = parseInt(value, 10);
+      if (Number.isNaN(steps)) break;
+      const clamped = Math.min(100, Math.max(1, steps));
+      const next = updateHitlConfig({
+        everyNSteps: clamped
+      });
+      setNestedState('advancedConfig', {
+        hitlApprovalMode: next.approvalMode,
+        hitlEveryNSteps: next.everyNSteps
+      });
+      break;
+    }
 
     case 'module-override-filter':
       setState({ moduleOverrideFilter: value });

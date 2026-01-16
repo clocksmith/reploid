@@ -476,6 +476,12 @@
   gap: 8px;
 }
 
+.advanced-setting-inline {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .advanced-code {
   display: flex;
   align-items: center;
