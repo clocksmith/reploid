@@ -4,7 +4,7 @@
 **Model:** Gemini 3 Flash
 **Cycles:** 98
 **VFS Files:** 161
-**Run JSON:** [reploid-export-1767320786702.json](https://github.com/clocksmith/reploid/blob/main/runs/reploid-export-1767320786702.json)
+**Run JSON:** [reploid-export-1767320786702.json](https://github.com/clocksmith/reploid/blob/main/showcase/runs/reploid-export-1767320786702.json)
 **Goal:** Optimize the REPLOID security prompt using GEPA genetic evolution
 
 ---
