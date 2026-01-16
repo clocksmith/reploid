@@ -3,7 +3,7 @@
 **Date:** November 26, 2024
 **Cycles:** 13
 **Size:** 317KB
-**Run JSON:** [reploid-export-1764172457231.json](https://github.com/clocksmith/reploid/blob/main/dreamer/reploid/runs/reploid-export-1764172457231.json)
+**Run JSON:** [reploid-export-1764172457231.json](https://github.com/clocksmith/reploid/blob/main/showcase/runs/reploid-export-1764172457231.json)
 **Goal:** Audit /core and /capabilities, refactor blockers for RSI
 
 ---

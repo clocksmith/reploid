@@ -180,7 +180,7 @@ export function setupExportFunctions(container, logger) {
         });
         if (res.ok) {
           const { filename: savedFile } = await res.json();
-          logger.info(`[Export] Saved to runs/${savedFile}`);
+          logger.info(`[Export] Saved to showcase/runs/${savedFile}`);
           return;
         }
       } catch (e) {

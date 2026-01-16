@@ -3,7 +3,7 @@
 **Date:** December 4, 2024
 **Cycles:** 50
 **Size:** 2.4MB
-**Run JSON:** [reploid-export-1764910293555.json](https://github.com/clocksmith/reploid/blob/main/dreamer/reploid/runs/reploid-export-1764910293555.json)
+**Run JSON:** [reploid-export-1764910293555.json](https://github.com/clocksmith/reploid/blob/main/showcase/runs/reploid-export-1764910293555.json)
 **Goal:** Create recursive agent instances via iframe embedding
 
 ---

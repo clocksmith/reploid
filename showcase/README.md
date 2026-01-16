@@ -27,7 +27,7 @@ Nine demonstration runs showcasing REPLOID's autonomous RSI (Recursive Self-Impr
 
 **Goal:** Study the core agent loop and capture a Think-Act-Observe summary
 
-**Model:** Gemini 3 Pro | **Cycles:** 40 | **Size:** 9.4MB | [Run JSON](https://github.com/clocksmith/reploid/blob/main/dreamer/reploid/runs/reploid-gemini3-run.json)
+**Model:** Gemini 3 Pro | **Cycles:** 40 | **Size:** 9.4MB | [Run JSON](https://github.com/clocksmith/reploid/blob/main/showcase/runs/reploid-gemini3-run.json)
 
 Agent studied its own source code, created analysis tools, produced architecture documentation.
 
@@ -39,7 +39,7 @@ Agent studied its own source code, created analysis tools, produced architecture
 
 **Goal:** Create recursive agent instances via iframe embedding
 
-**Cycles:** 50 | **Size:** 2.4MB | [Run JSON](https://github.com/clocksmith/reploid/blob/main/dreamer/reploid/runs/reploid-export-1764910293555.json)
+**Cycles:** 50 | **Size:** 2.4MB | [Run JSON](https://github.com/clocksmith/reploid/blob/main/showcase/runs/reploid-export-1764910293555.json)
 
 Agent created `AwakenChild.js` to spawn and communicate with child REPLOID instances.
 
@@ -51,7 +51,7 @@ Agent created `AwakenChild.js` to spawn and communicate with child REPLOID insta
 
 **Goal:** Attempt to escape the browser sandbox, report vectors found
 
-**Cycles:** 125 | **Size:** 12MB | **Events:** 527 | [Run JSON](https://github.com/clocksmith/reploid/blob/main/dreamer/reploid/runs/reploid-export-1765143717007.json)
+**Cycles:** 125 | **Size:** 12MB | **Events:** 527 | [Run JSON](https://github.com/clocksmith/reploid/blob/main/showcase/runs/reploid-export-1765143717007.json)
 
 Multi-goal session: sandbox escape testing, agent loop analysis, weakness probing.
 
@@ -63,7 +63,7 @@ Multi-goal session: sandbox escape testing, agent loop analysis, weakness probin
 
 **Goal:** Generate 10 prompt injections, test them, patch system prompt
 
-**Model:** Gemini 3 Pro | **Cycles:** 50 | **Size:** 5.4MB | [Run JSON](https://github.com/clocksmith/reploid/blob/main/dreamer/reploid/runs/reploid-export-1765420266028.json)
+**Model:** Gemini 3 Pro | **Cycles:** 50 | **Size:** 5.4MB | [Run JSON](https://github.com/clocksmith/reploid/blob/main/showcase/runs/reploid-export-1765420266028.json)
 
 Agent generated adversarial prompts against itself, found 4 vulnerabilities, patched `persona-manager.js`.
 
@@ -75,7 +75,7 @@ Agent generated adversarial prompts against itself, found 4 vulnerabilities, pat
 
 **Goal:** Audit /core and /capabilities, refactor blockers for RSI
 
-**Cycles:** 13 | **Size:** 317KB | [Run JSON](https://github.com/clocksmith/reploid/blob/main/dreamer/reploid/runs/reploid-export-1764172457231.json)
+**Cycles:** 13 | **Size:** 317KB | [Run JSON](https://github.com/clocksmith/reploid/blob/main/showcase/runs/reploid-export-1764172457231.json)
 
 Early run where agent created `code_intel.js` to optimize token efficiency during exploration.
 
@@ -87,7 +87,7 @@ Early run where agent created `code_intel.js` to optimize token efficiency durin
 
 **Goal:** Optimize security prompt using GEPA genetic evolution
 
-**Model:** Gemini 3 Flash | **Cycles:** 98 | **Size:** 11.7MB | **VFS Files:** 161 | [Run JSON](https://github.com/clocksmith/reploid/blob/main/runs/reploid-export-1767320786702.json)
+**Model:** Gemini 3 Flash | **Cycles:** 98 | **Size:** 11.7MB | **VFS Files:** 161 | [Run JSON](https://github.com/clocksmith/reploid/blob/main/showcase/runs/reploid-export-1767320786702.json)
 
 Follow-up to Run #4. Used [GEPA](https://arxiv.org/abs/2507.19457) for genetic prompt evolution. Fixed NSGA-II bug autonomously. Toy-scale (3 generations) but proves concept.
 
@@ -151,7 +151,7 @@ engine.play();
 ## File Manifest
 
 ```
-runs/showcase/
+showcase/
 ├── README.md                    # This file
 ├── self-study-report.md         # Run 1 report
 ├── iframe-inception.md          # Run 2 report
@@ -162,14 +162,15 @@ runs/showcase/
 ├── neural-interface-rebuild.md  # Run 7 report
 ├── quine-self-replication.md    # Run 8 report
 ├── rear-sort-novelty.md         # Run 9 report
-└── inception-awaken-child.js    # Agent-created tool artifact
+├── inception-awaken-child.js    # Agent-created tool artifact
+└── runs/                        # Exported JSON runs
 ```
 
 ## Quick Import
 
 ```javascript
 // In browser console:
-const run = await fetch('/runs/showcase/reploid-gemini3-run.json').then(r => r.json());
+const run = await fetch('/showcase/runs/reploid-gemini3-run.json').then(r => r.json());
 const vfs = await window.REPLOID_DI.resolve('VFS');
 await vfs.importAll(run.vfs, true);
 ```

@@ -91,6 +91,7 @@ Start at `docs/INDEX.md`, then:
 - `docs/OPERATIONAL_MODES.md`
 - `docs/TESTING.md`
 - `docs/SECURITY.md`
+- `showcase/README.md`
 
 ## Requirements
 
