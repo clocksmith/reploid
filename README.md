@@ -1,11 +1,11 @@
 # REPLOID
 
-**R**ecursive **E**volution **P**rotocol **L**oop **O**rchestrating **I**nference **D**oppler
+**R**ecursive **E**volution **P**rotocol **L**oop **O**rchestrating **I**nference **D**oppler ([Doppler](https://github.com/clocksmith/doppler))
 
-Browser-native recursive self-improvement—an agent that rewrites its own code and kernels in a live loop. Powered by [Doppler](https://github.com/clocksmith/doppler).
-Reploid is the driver; Doppler is the engine.
+Browser-native recursive self-improvement—an agent that rewrites its own code and kernels in a live loop.
+Reploid is the driver, refining its own loop while swapping Doppler's inference and training engines when linked.
 
-**[Try it live](https://replo.id/r)** | **[GitHub](https://github.com/clocksmith/reploid)**
+**[Try it live](https://replo.id/r)**
 
 ## Why This Works
 
@@ -15,6 +15,13 @@ Reploid is the driver; Doppler is the engine.
 | **WebGPU in-process** | 80% native performance ([WebLLM 2024](https://arxiv.org/abs/2412.15803)) |
 | **Zero-install** | URL distribution via PWA |
 | **Tight RSI loop** | Validated by [Gödel Agent](https://arxiv.org/abs/2410.04444), [RISE NeurIPS 2024](https://proceedings.neurips.cc/paper_files/paper/2024/file/639d992f819c2b40387d4d5170b8ffd7-Paper-Conference.pdf) |
+
+## Quick Start
+
+```bash
+npm install
+npm start         # Proxy server at :8000
+```
 
 ## Architecture
 
@@ -40,13 +47,6 @@ Reploid is the driver; Doppler is the engine.
 │  │  (IndexedDB) │    │    Worker    │    │  Controller  │      │
 │  └──────────────┘    └──────────────┘    └──────────────┘      │
 └─────────────────────────────────────────────────────────────────┘
-```
-
-## Quick Start
-
-```bash
-npm install
-npm start         # Proxy server at :8000
 ```
 
 ## RSI Levels
