@@ -25,7 +25,8 @@ const HITLController = {
       APPROVE_FILE_OPERATIONS: 'approve_file_operations',
       APPROVE_TOOL_EXECUTION: 'approve_tool_execution',
       APPROVE_SELF_MODIFICATION: 'approve_self_modification',
-      APPROVE_CORE_WRITES: 'approve_core_writes'
+      APPROVE_CORE_WRITES: 'approve_core_writes',
+      APPROVE_INTENT_BUNDLE: 'approve_intent_bundle'
     };
 
     /** Mode constants */

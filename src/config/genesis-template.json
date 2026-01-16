@@ -64,12 +64,13 @@
     },
     "substrate": {
       "name": "SUBSTRATE",
-      "description": "Cognition + runtime infrastructure - 12 additional modules",
+      "description": "Cognition + runtime infrastructure - 13 additional modules",
       "extends": "cognition",
       "modules": [
         "AuditLogger",
         "BrowserAPIs",
         "GenesisSnapshot",
+        "IntentBundleGate",
         "Observability",
         "PerformanceMonitor",
         "PolicyEngine",

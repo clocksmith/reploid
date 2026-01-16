@@ -185,6 +185,36 @@
       ],
       "blueprint": "blueprints/0x00002B-audit-logging-policy.md"
     },
+    "IntentBundleGate": {
+      "id": "IntentBundleGate",
+      "entry": "infrastructure/intent-bundle-gate.js",
+      "files": [
+        "infrastructure/intent-bundle-gate.js"
+      ],
+      "introduced": "substrate",
+      "dependencies": [
+        {
+          "id": "Utils",
+          "optional": false
+        },
+        {
+          "id": "VFS",
+          "optional": false
+        },
+        {
+          "id": "HITLController",
+          "optional": true
+        },
+        {
+          "id": "AuditLogger",
+          "optional": true
+        },
+        {
+          "id": "EventBus",
+          "optional": true
+        }
+      ]
+    },
     "BrowserAPIs": {
       "id": "BrowserAPIs",
       "entry": "infrastructure/browser-apis.js",
