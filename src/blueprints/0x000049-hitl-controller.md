@@ -73,7 +73,8 @@ if (HITL.requiresApproval('SentinelFSM', HITL.CAPABILITIES.APPROVE_CODE_CHANGES)
 **2. Module Registry**
 - Map: `moduleId → { id, description, capabilities, currentMode, registeredAt }`
 - **Registration**: `registerModule(moduleId, capabilities, description)`
-  - Capabilities: Array of HITL_CAPABILITIES (e.g., `APPROVE_CODE_CHANGES`, `APPROVE_TOOL_EXECUTION`)
+- Capabilities: Array of HITL_CAPABILITIES (e.g., `APPROVE_CODE_CHANGES`, `APPROVE_TOOL_EXECUTION`)
+- Intent bundle approvals use `APPROVE_INTENT_BUNDLE`
   - Emits `hitl:module-registered` event
 - **Capabilities**: Predefined constants for approval types
   - `APPROVE_CODE_CHANGES`: Code modifications

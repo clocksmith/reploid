@@ -64,12 +64,13 @@
     },
     "substrate": {
       "name": "SUBSTRATE",
-      "description": "Cognition + runtime infrastructure - 12 additional modules",
+      "description": "Cognition + runtime infrastructure - 13 additional modules",
       "extends": "cognition",
       "modules": [
         "AuditLogger",
         "BrowserAPIs",
         "GenesisSnapshot",
+        "IntentBundleGate",
         "Observability",
         "PerformanceMonitor",
         "PolicyEngine",
@@ -163,6 +164,9 @@
     ],
     "HITLController": [
       "infrastructure/hitl-controller.js"
+    ],
+    "IntentBundleGate": [
+      "infrastructure/intent-bundle-gate.js"
     ],
     "HybridRetrieval": [
       "capabilities/cognition/hybrid-retrieval.js"
