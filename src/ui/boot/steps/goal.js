@@ -26,6 +26,8 @@ export function renderGoalStep(state) {
   const advancedOpen = !!state.advancedOpen;
   const preserveOnBoot = !!state.advancedConfig?.preserveOnBoot;
   const genesisLevel = state.advancedConfig?.genesisLevel || 'full';
+  const hitlApprovalMode = state.advancedConfig?.hitlApprovalMode || 'autonomous';
+  const hitlEveryNSteps = state.advancedConfig?.hitlEveryNSteps || 5;
   const moduleOverrides = state.advancedConfig?.moduleOverrides || {};
   const moduleConfig = state.moduleConfig || {};
   const moduleSearchValue = (state.moduleOverrideSearch || '').trim();
@@ -352,6 +354,25 @@ export function renderGoalStep(state) {
             <div class="advanced-code">
               <span class="type-caption">localStorage</span>
               <code>REPLOID_PRESERVE_ON_BOOT = '${preserveOnBoot ? 'true' : 'false'}'</code>
+            </div>
+          </div>
+          <div class="advanced-setting">
+            <label class="type-label" for="advanced-hitl-mode">Approval mode</label>
+            <select id="advanced-hitl-mode">
+              <option value="autonomous" ${hitlApprovalMode === 'autonomous' ? 'selected' : ''}>Autonomous</option>
+              <option value="hitl" ${hitlApprovalMode === 'hitl' ? 'selected' : ''}>HITL</option>
+              <option value="every_n" ${hitlApprovalMode === 'every_n' ? 'selected' : ''}>Every N actions</option>
+            </select>
+            <span class="type-caption">Controls how often human approval is required.</span>
+            ${hitlApprovalMode === 'every_n' ? `
+              <div class="advanced-setting-inline">
+                <label class="type-caption" for="advanced-hitl-steps">Every N steps</label>
+                <input type="number" id="advanced-hitl-steps" min="1" max="100" value="${hitlEveryNSteps}" />
+              </div>
+            ` : ''}
+            <div class="advanced-code">
+              <span class="type-caption">localStorage</span>
+              <code>REPLOID_HITL_CONFIG = '{"approvalMode":"${hitlApprovalMode}","everyNSteps":${hitlEveryNSteps}}'</code>
             </div>
           </div>
           <div class="advanced-setting">
