@@ -3,6 +3,7 @@
 **R**ecursive **E**volution **P**rotocol **L**oop **O**rchestrating **I**nference **D**oppler
 
 Browser-native recursive self-improvement—an agent that rewrites its own code and kernels in a live loop. Powered by [Doppler](https://github.com/clocksmith/doppler).
+Reploid is the driver; Doppler is the engine.
 
 **[Try it live](https://replo.id/r)** | **[GitHub](https://github.com/clocksmith/reploid)**
 
@@ -69,14 +70,7 @@ Progressive capability loading - each level extends the previous:
 | **SUBSTRATE**  | 47    | +12   | Audit, replay, sandbox, worker manager         |
 | **FULL**       | 61    | +14   | Arena, swarm, multi-model, federated learning  |
 
-Genesis modules by level (exact):
-
-- TABULA: DIContainer, ErrorStore, EventBus, StateHelpersPure, StateManager, Utils, VFS
-- SPARK: AgentLoop, CircuitBreaker, ContextManager, LLMClient, PersonaManager, ResponseParser, SchemaRegistry, TelemetryTimeline, ToolExecutor, ToolRunner, ToolWriter
-- REFLECTION: HITLController, RateLimiter, ReflectionAnalyzer, ReflectionStore, StreamParser, VerificationManager
-- COGNITION: CognitionAPI, EmbeddingStore, GEPAOptimizer, KnowledgeGraph, KnowledgeTree, MemoryManager, PromptMemory, RuleEngine, SemanticMemory, SymbolGrounder, TransformersClient
-- SUBSTRATE: AuditLogger, BrowserAPIs, GenesisSnapshot, Observability, PerformanceMonitor, PolicyEngine, ReplayEngine, SchemaValidator, SubstrateLoader, TraceStore, VFSSandbox, WorkerManager
-- FULL: ArenaCompetitor, ArenaHarness, ArenaMetrics, Consensus, EpisodicMemory, FederatedLearning, FunctionGemmaOrchestrator, HybridRetrieval, MultiModelCoordinator, NeuralCompiler, PromptScoreMap, SwarmSync, SwarmTransport, WebRTCSwarm
+See `docs/CONFIGURATION.md` and `docs/OPERATIONAL_MODES.md` for level-specific module lists and behavior.
 
 ## Tools
 
@@ -91,7 +85,12 @@ Genesis modules by level (exact):
 
 ## Documentation
 
-See [docs/INDEX.md](docs/INDEX.md) for full documentation.
+Start at `docs/INDEX.md`, then:
+- `docs/QUICK-START.md`
+- `docs/CONFIGURATION.md`
+- `docs/OPERATIONAL_MODES.md`
+- `docs/TESTING.md`
+- `docs/SECURITY.md`
 
 ## Requirements
 

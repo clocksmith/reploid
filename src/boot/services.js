@@ -201,6 +201,50 @@ export function setupExportFunctions(container, logger) {
     logger.info(`[Export] Downloaded ${filename}`);
   };
 
+  window.downloadTraces = async (filename = 'reploid-traces.jsonl') => {
+    const vfs = await container.resolve('VFS');
+    let paths = [];
+    try {
+      paths = await vfs.list('/.memory/traces');
+    } catch (e) {
+      logger.warn('[TraceExport] Failed to list trace files', e.message);
+      return;
+    }
+
+    const traceFiles = paths
+      .filter((p) => p.endsWith('.jsonl'))
+      .filter((p) => !p.endsWith('/index.jsonl'));
+
+    if (!traceFiles.length) {
+      logger.warn('[TraceExport] No trace files found');
+      return;
+    }
+
+    let combined = '';
+    for (const path of traceFiles) {
+      try {
+        const content = await vfs.read(path);
+        if (content && content.trim()) {
+          combined += content.trimEnd() + '\n';
+        }
+      } catch (e) {
+        logger.warn('[TraceExport] Failed to read trace file', { path, error: e.message });
+      }
+    }
+
+    const blob = new Blob([combined], { type: 'application/x-ndjson' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    logger.info(`[TraceExport] Downloaded ${filename}`);
+  };
+
   window.importREPLOID = async (jsonData, options = {}) => {
     const { clearFirst = false } = options;
     const vfs = await container.resolve('VFS');
