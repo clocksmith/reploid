@@ -22,14 +22,23 @@ const IntentBundleGate = {
     const DEFAULT_BUNDLE_PATH = '/.system/intent-bundle.json';
 
     const requiredFields = [
-      'version',
       'bundleId',
       'createdAt',
       'author',
+      'foundation',
+      'constraints',
+      'payload',
       'targets',
       'proofs',
-      'signatures'
+      'signatures',
+      'state'
     ];
+
+    const getFoundationValue = (bundle, key, altKey) =>
+      bundle?.foundation?.[key] ?? bundle?.foundation?.[altKey];
+
+    const getConstraintValue = (bundle, key, altKey) =>
+      bundle?.constraints?.[key] ?? bundle?.constraints?.[altKey];
 
     const validateBundle = (bundle) => {
       if (!bundle || typeof bundle !== 'object') {
@@ -39,13 +48,41 @@ const IntentBundleGate = {
       if (missing.length > 0) {
         return { ok: false, errors: [`Missing required fields: ${missing.join(', ')}`] };
       }
+
+      const baseModelHash = getFoundationValue(bundle, 'baseModelHash', 'base_model_hash');
+      const kernelRegistryVersion = getFoundationValue(bundle, 'kernelRegistryVersion', 'kernel_registry_version');
+      const vfsGenesisId = getFoundationValue(bundle, 'vfsGenesisId', 'vfs_genesis_id');
+      const parityTolerance = getConstraintValue(bundle, 'parityTolerance', 'parity_tolerance');
+      const maxDriftThreshold = getConstraintValue(bundle, 'maxDriftThreshold', 'max_drift_threshold');
+      const enforceDeterministicOutput = getConstraintValue(bundle, 'enforceDeterministicOutput', 'enforce_deterministic_output');
+      const validStates = ['AWAKEN', 'EXECUTE', 'EVOLVE', 'REJECT'];
+
+      const errors = [];
+
+      if (!baseModelHash) errors.push('Missing foundation.baseModelHash');
+      if (!kernelRegistryVersion) errors.push('Missing foundation.kernelRegistryVersion');
+      if (!vfsGenesisId) errors.push('Missing foundation.vfsGenesisId');
+      if (parityTolerance == null) errors.push('Missing constraints.parityTolerance');
+      if (maxDriftThreshold == null) errors.push('Missing constraints.maxDriftThreshold');
+      if (enforceDeterministicOutput == null) errors.push('Missing constraints.enforceDeterministicOutput');
+      if (!validStates.includes(bundle.state)) errors.push('Invalid state');
+
+      if (enforceDeterministicOutput && !bundle?.payload?.expectedOutputHash) {
+        errors.push('Missing payload.expectedOutputHash for deterministic output');
+      }
+
+      if (errors.length > 0) {
+        return { ok: false, errors };
+      }
+
       return { ok: true, errors: [] };
     };
 
     const summarizeBundle = (bundle) => ({
       bundleId: bundle.bundleId,
-      version: bundle.version,
       createdAt: bundle.createdAt,
+      baseModelHash: getFoundationValue(bundle, 'baseModelHash', 'base_model_hash'),
+      kernelRegistryVersion: getFoundationValue(bundle, 'kernelRegistryVersion', 'kernel_registry_version'),
       modelId: bundle.targets?.model?.modelId,
       runtimeHash: bundle.targets?.runtime?.configHash,
       kernelHash: bundle.targets?.kernels?.manifestHash,
