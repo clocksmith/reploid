@@ -7,42 +7,11 @@
  */
 export function renderChooseStep(state) {
   const { detection, connectionType } = state;
-  const escapeText = (value) => String(value || '')
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
-
   const webgpuSupported = detection.webgpu.supported;
   const ollamaDetected = detection.ollama?.detected;
   const proxyDetected = detection.proxy?.detected;
   const serverDetected = proxyDetected || ollamaDetected;
   const localBlocked = detection.ollama?.blocked || detection.proxy?.blocked;
-  const preflightItems = detection.preflight?.items || [];
-  const items = preflightItems.length > 0
-    ? preflightItems
-    : [{ id: 'preflight', label: 'Preflight checks', status: 'pending', detail: 'Running checks' }];
-
-  const counts = items.reduce((acc, item) => {
-    const key = item.status || 'pending';
-    acc[key] = (acc[key] || 0) + 1;
-    return acc;
-  }, { ready: 0, pending: 0, warn: 0, error: 0 });
-
-  const summaryParts = [
-    counts.ready ? `${counts.ready} ready` : null,
-    counts.pending ? `${counts.pending} pending` : null,
-    counts.warn ? `${counts.warn} warnings` : null,
-    counts.error ? `${counts.error} needs attention` : null
-  ].filter(Boolean);
-  const summary = summaryParts.length > 0 ? summaryParts.join(' | ') : 'Preflight checks pending';
-  const statusLabel = (status) => ({
-    ready: 'Ready',
-    pending: 'Pending',
-    warn: 'Check',
-    error: 'Fix'
-  }[status] || 'Check');
-
   // Build server description
   let serverDescription = 'Connect to a local or remote server';
   if (proxyDetected && ollamaDetected) {
@@ -59,24 +28,6 @@ export function renderChooseStep(state) {
   return `
     <div class="wizard-step wizard-choose">
       <h2 class="type-h1">How do you want to connect?</h2>
-
-      <div class="panel preflight-panel">
-        <div class="panel-header">Preflight readiness</div>
-        <div class="panel-body">
-          <div class="preflight-summary type-caption">${escapeText(summary)}</div>
-          <div class="status-list">
-            ${items.map(item => `
-              <div class="status-row ${item.status}">
-                <div class="status-meta">
-                  <span class="status-label">${escapeText(item.label)}</span>
-                  <span class="status-detail">${escapeText(item.detail || '')}</span>
-                </div>
-                <span class="status-badge ${item.status}">${statusLabel(item.status)}</span>
-              </div>
-            `).join('')}
-          </div>
-        </div>
-      </div>
 
       <div class="connection-options">
         <button class="panel connection-option ${borderClass('browser')} ${!webgpuSupported ? 'disabled' : ''}"

@@ -13,7 +13,6 @@ export const STEPS = {
   DIRECT_CONFIG: 'direct_config',   // Direct cloud API (keys in browser)
   PROXY_CONFIG: 'proxy_config',     // Proxy server (keys on server or local)
   DOPPLER_CONFIG: 'doppler_config', // Browser WebGPU model
-  GOAL: 'goal',             // Goal selection
   AWAKEN: 'awaken'          // Final initialization
 };
 
@@ -112,7 +111,6 @@ const defaultState = {
     proxy: { detected: false, url: null, checked: false, blocked: false },
     ollama: { detected: false, models: [], checked: false },
     doppler: { supported: false, models: [], capabilities: null, checked: false },
-    preflight: { checked: false, items: [] },
     isHttps: false,
     scanSkipped: false
   },
@@ -167,11 +165,6 @@ const defaultState = {
   },
   moduleOverrideSearch: '',
   moduleOverrideFilter: 'all',
-
-  // Selected goal
-  goal: null,
-  goalCriteria: '',
-  goalCriteriaSource: 'auto',
 
   // Genesis level (auto or manual)
   genesisLevel: 'full'
@@ -254,8 +247,6 @@ export function goToStep(step) {
 export function checkSavedConfig() {
   try {
     const savedModels = localStorage.getItem('SELECTED_MODELS');
-    const savedGoal = localStorage.getItem('REPLOID_GOAL');
-    const savedGoalCriteria = localStorage.getItem('REPLOID_GOAL_CRITERIA');
 
     if (!savedModels) return null;
 
@@ -273,8 +264,6 @@ export function checkSavedConfig() {
       primaryHostType: primary.hostType,
       hasSavedKey: !!hasKey,
       savedKey: savedKey,
-      savedGoal,
-      savedGoalCriteria,
       proxyUrl: primary.proxyUrl,
       localUrl: primary.localUrl
     };
@@ -332,14 +321,6 @@ export function hydrateSavedConfig(saved, apiKey = null) {
     };
   }
 
-  if (saved.savedGoal) {
-    updates.goal = saved.savedGoal;
-  }
-  if (saved.savedGoalCriteria) {
-    updates.goalCriteria = saved.savedGoalCriteria;
-    updates.goalCriteriaSource = 'custom';
-  }
-
   setState(updates);
 }
 
@@ -347,7 +328,7 @@ export function hydrateSavedConfig(saved, apiKey = null) {
  * Save current config to localStorage
  */
 export function saveConfig() {
-  const { directConfig, proxyConfig, dopplerConfig, connectionType, goal, goalCriteria } = state;
+  const { directConfig, proxyConfig, dopplerConfig, connectionType } = state;
 
   const models = [];
 
@@ -394,14 +375,8 @@ export function saveConfig() {
     localStorage.setItem('SELECTED_MODELS', JSON.stringify(models));
   }
 
-  if (goal) {
-    localStorage.setItem('REPLOID_GOAL', goal);
-  }
-  if (goalCriteria && goalCriteria.trim()) {
-    localStorage.setItem('REPLOID_GOAL_CRITERIA', goalCriteria);
-  } else {
-    localStorage.removeItem('REPLOID_GOAL_CRITERIA');
-  }
+  localStorage.removeItem('REPLOID_GOAL');
+  localStorage.removeItem('REPLOID_GOAL_CRITERIA');
 }
 
 /**
@@ -410,8 +385,6 @@ export function saveConfig() {
 export function forgetDevice() {
   const keysToRemove = [
     'SELECTED_MODELS',
-    'REPLOID_GOAL',
-    'REPLOID_GOAL_CRITERIA',
     'REPLOID_KEY_ANTHROPIC',
     'REPLOID_KEY_OPENAI',
     'REPLOID_KEY_GEMINI',
@@ -491,7 +464,7 @@ export function getCapabilityLevel() {
     reasoning,
     model: hasModelAccess,
     doppler: hasDopplerAccess,
-    // For goal filtering
+    // Capability hints for UI gating
     canDoModelRSI: hasModelAccess,
     canDoDopplerEvolution: hasDopplerAccess,
     canDoBehavioralRSI: reasoning === 'high' || reasoning === 'medium',
