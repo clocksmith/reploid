@@ -163,9 +163,13 @@ export async function seedVfsFromManifest(manifest, options = {}) {
   }
 
   const shouldSkip = (path) => skip && skip.has(path);
+  if (!manifest?.files || !Array.isArray(manifest.files)) {
+    throw new Error('VFS manifest missing files list');
+  }
+
   const manifestPath = 'config/vfs-manifest.json';
   const manifestVfsPath = normalizePath(manifestPath);
-  const files = manifest?.files || [];
+  const files = manifest.files;
   const manifestInList = files.includes(manifestPath);
 
   const entries = [];
