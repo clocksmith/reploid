@@ -10,6 +10,8 @@
  * - Returns detailed results with warnings array
  */
 
+import { isSecurityEnabled } from './security-config.js';
+
 const VerificationManager = {
   metadata: {
     id: 'VerificationManager',
@@ -105,6 +107,17 @@ const VerificationManager = {
     const verifyProposal = async (changes, options = {}) => {
       // Default to quickMode=true: only verify the changed files, not entire VFS
       const { timeout = DEFAULT_TIMEOUT, quickMode = true } = options;
+
+      if (!isSecurityEnabled()) {
+        return processResult({
+          passed: true,
+          reason: 'Security disabled',
+          errors: [],
+          warnings: [],
+          skipped: true,
+          events: []
+        });
+      }
 
       logger.info('[Verifier] Starting verification...');
 

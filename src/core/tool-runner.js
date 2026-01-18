@@ -4,6 +4,7 @@
  */
 
 import { loadVfsModule } from './vfs-module-loader.js';
+import { isSecurityEnabled } from './security-config.js';
 
 const ToolRunner = {
   metadata: {
@@ -62,6 +63,20 @@ const ToolRunner = {
      */
     const _verifyCoreMutation = async (path, content) => {
       const isL3 = isSubstratePath(path);
+
+      if (!isSecurityEnabled()) {
+        if (isL3 && Observability?.recordSubstrateChange) {
+          await Observability.recordSubstrateChange({
+            path,
+            op: 'write',
+            passed: true,
+            passRate: null,
+            rolledBack: false,
+            reason: 'security_disabled'
+          });
+        }
+        return { passed: true, errors: [], skipped: true, rolledBack: false, reason: 'security_disabled' };
+      }
 
       // Skip verification if arena/verification not available or disabled
       if (!_arenaGatingEnabled || !VFSSandbox || !VerificationManager) {
@@ -264,7 +279,7 @@ const ToolRunner = {
       }
 
       // Policy Engine pre-execution check
-      if (PolicyEngine) {
+      if (PolicyEngine && isSecurityEnabled()) {
         const policyResult = await PolicyEngine.check(name, args, { workerId });
         if (!policyResult.allowed) {
           const violationMsg = policyResult.violations.length > 0
@@ -473,6 +488,7 @@ const ToolRunner = {
      * @returns {boolean}
      */
     const _requiresApproval = (toolName) => {
+      if (!isSecurityEnabled()) return false;
       if (!HITLController) return false;
       const state = HITLController.getState();
       const mode = state?.config?.approvalMode || 'autonomous';
@@ -520,7 +536,7 @@ const ToolRunner = {
       }
     };
 
-    const isArenaGatingEnabled = () => _arenaGatingEnabled;
+    const isArenaGatingEnabled = () => _arenaGatingEnabled && isSecurityEnabled();
 
     /**
      * Get tool schemas for native tool calling (OpenAI format)
