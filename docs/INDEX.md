@@ -33,7 +33,7 @@ Guide to all documentation in the REPLOID project.
 - **[docs/TROUBLESHOOTING.md](./TROUBLESHOOTING.md)** - Common issues and solutions
 - **[docs/CYCLICAL_ACRONYMS.md](./CYCLICAL_ACRONYMS.md)** - Cyclical acronyms taxonomy
 - **[docs/MEMORY_ARCHITECTURE.md](./MEMORY_ARCHITECTURE.md)** - See [Blueprint 0x000079](../blueprints/0x000079-hierarchical-memory-architecture.md)
-- **[docs/MODULE_SYSTEM_INVARIANTS.md](./MODULE_SYSTEM_INVARIANTS.md)** - Module, blueprint, and VFS seeding rules
+- **[docs/MODULE_SYSTEM_INVARIANTS.md](./MODULE_SYSTEM_INVARIANTS.md)** - Module, blueprint, and VFS hydration rules
 - **[docs/MODULE_SYSTEM_MIGRATION_CHECKLIST.md](./MODULE_SYSTEM_MIGRATION_CHECKLIST.md)** - Refactor checklist for modules and blueprints
 - **[docs/STYLE_GUIDE.md](./STYLE_GUIDE.md)** - Code and UI conventions
 - **[docs/SECURITY.md](./SECURITY.md)** - Security model and containment layers
@@ -47,7 +47,7 @@ Guide to all documentation in the REPLOID project.
 reploid/
 ├── ./            # Main application
 │   ├── index.html              # Entry point
-│   ├── bootstrap.js            # VFS seed + SW activation
+│   ├── bootstrap.js            # VFS hydration + SW activation
 │   ├── boot.js                 # Boot orchestrator
 │   ├── sw-module-loader.js     # Service worker for VFS modules
 │   │
@@ -113,7 +113,7 @@ reploid/
 
 **Key Files:**
 - `./config/genesis-levels.json` - Module registry and worker types
-- `./bootstrap.js` - VFS seed and boot loader
+- `./bootstrap.js` - VFS hydration and boot loader
 - `./boot.js` - Application bootstrap
 - `./index.html` - Entry point
 

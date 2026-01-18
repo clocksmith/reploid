@@ -15,7 +15,6 @@ test.describe('Genesis Configuration', () => {
     });
 
     expect(config.levels).toBeDefined();
-    expect(config.vfsSeed).toBeDefined();
     expect(config.blueprintPaths).toBeDefined();
   });
 
@@ -167,34 +166,34 @@ test.describe('Worker Types Configuration', () => {
   });
 });
 
-test.describe('VFS Seed Configuration', () => {
-  test('should have VFS seed paths defined', async ({ page }) => {
+test.describe('VFS Manifest Configuration', () => {
+  test('should have VFS manifest file list defined', async ({ page }) => {
     await page.goto('/');
     await page.waitForSelector('#boot-container', { timeout: 10000 });
 
-    const config = await page.evaluate(async () => {
-      const response = await fetch('/config/genesis-levels.json');
+    const manifest = await page.evaluate(async () => {
+      const response = await fetch('/config/vfs-manifest.json');
       return response.json();
     });
 
-    expect(config.vfsSeed.core).toBeDefined();
-    expect(config.vfsSeed.tools).toBeDefined();
-    expect(config.vfsSeed.infrastructure).toBeDefined();
+    expect(manifest.version).toBeDefined();
+    expect(Array.isArray(manifest.files)).toBe(true);
+    expect(manifest.files.length).toBeGreaterThan(0);
   });
 
-  test('VFS seed includes worker tools', async ({ page }) => {
+  test('VFS manifest includes worker tools', async ({ page }) => {
     await page.goto('/');
     await page.waitForSelector('#boot-container', { timeout: 10000 });
 
-    const config = await page.evaluate(async () => {
-      const response = await fetch('/config/genesis-levels.json');
+    const manifest = await page.evaluate(async () => {
+      const response = await fetch('/config/vfs-manifest.json');
       return response.json();
     });
 
-    const tools = config.vfsSeed.tools;
-    expect(tools).toContain('tools/SpawnWorker.js');
-    expect(tools).toContain('tools/ListWorkers.js');
-    expect(tools).toContain('tools/AwaitWorkers.js');
+    const files = manifest.files;
+    expect(files).toContain('tools/SpawnWorker.js');
+    expect(files).toContain('tools/ListWorkers.js');
+    expect(files).toContain('tools/AwaitWorkers.js');
   });
 });
 

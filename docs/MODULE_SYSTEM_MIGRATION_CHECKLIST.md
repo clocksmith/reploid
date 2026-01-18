@@ -1,6 +1,6 @@
 # Module System Migration Checklist
 
-Use this checklist when refactoring modules, blueprints, and VFS seeding rules.
+Use this checklist when refactoring modules, blueprints, and VFS hydration rules.
 
 ---
 

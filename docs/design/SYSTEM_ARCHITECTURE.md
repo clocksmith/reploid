@@ -372,7 +372,7 @@ export const schema = {
 ```
 reploid/
 ├── index.html              # Entry point
-├── bootstrap.js            # VFS seed + SW activation
+├── bootstrap.js            # VFS hydration + SW activation
 ├── boot.js                 # Boot orchestrator (runs from VFS)
 ├── sw-module-loader.js     # Service worker for VFS modules
 │
