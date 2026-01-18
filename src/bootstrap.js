@@ -2,7 +2,7 @@
  * @fileoverview Bootstrap entry: seed VFS, activate SW, then load boot.js from VFS.
  */
 
-import { loadSeedBundle, seedVfsBundle } from './boot/vfs-bootstrap.js';
+import { loadVfsManifest, seedVfsFromManifest } from './boot/vfs-bootstrap.js';
 
 const log = (...args) => console.log('[Bootstrap]', ...args);
 const warn = (...args) => console.warn('[Bootstrap]', ...args);
@@ -54,9 +54,9 @@ const maybeFullReset = async () => {
 
     await ensureServiceWorker();
 
-    const { bundle, text } = await loadSeedBundle();
+    const { manifest, text } = await loadVfsManifest();
     const preserveOnBoot = localStorage.getItem('REPLOID_PRESERVE_ON_BOOT') === 'true';
-    await seedVfsBundle(bundle, { preserveOnBoot, logger: console, seedText: text });
+    await seedVfsFromManifest(manifest, { preserveOnBoot, logger: console, manifestText: text });
 
     log('Loading boot.js from VFS...');
     await import('./boot.js');

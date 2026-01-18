@@ -6,6 +6,7 @@
 const DB_NAME = 'reploid-vfs-v0';
 const STORE_FILES = 'files';
 const OPEN_TIMEOUT_MS = 10000;
+const DEFAULT_FETCH_CONCURRENCY = 6;
 
 let dbPromise = null;
 
@@ -14,6 +15,14 @@ const normalizePath = (path) => {
   let clean = path.trim().replace(/\\/g, '/');
   if (!clean.startsWith('/')) clean = '/' + clean;
   return clean;
+};
+
+const toWebPath = (file) => {
+  const base = (typeof document !== 'undefined' && document.baseURI)
+    ? document.baseURI
+    : (typeof window !== 'undefined' && window.location ? window.location.href : 'http://localhost/');
+  const relative = String(file || '').replace(/^\/+/, '');
+  return new URL(relative, base).toString();
 };
 
 const openVfsDb = () => {
@@ -120,42 +129,32 @@ const writeEntries = async (entries) => {
   });
 };
 
-export async function loadSeedBundle() {
-  const response = await fetch('config/vfs-seed.json', { cache: 'no-store' });
+export async function loadVfsManifest() {
+  const response = await fetch('config/vfs-manifest.json', { cache: 'no-store' });
   if (!response.ok) {
-    throw new Error(`Failed to load VFS seed bundle (${response.status})`);
+    throw new Error(`Failed to load VFS manifest (${response.status})`);
   }
   const text = await response.text();
-  let bundle = null;
+  let manifest = null;
   try {
-    bundle = JSON.parse(text);
+    manifest = JSON.parse(text);
   } catch (err) {
-    throw new Error('Invalid VFS seed bundle JSON');
+    throw new Error('Invalid VFS manifest JSON');
   }
-  return { bundle, text };
+  if (!manifest?.files || !Array.isArray(manifest.files)) {
+    throw new Error('VFS manifest missing files list');
+  }
+  return { manifest, text };
 }
 
-export async function seedVfsBundle(bundle, options = {}) {
+export async function seedVfsFromManifest(manifest, options = {}) {
   const {
     preserveOnBoot = false,
     logger = console,
-    seedText = null,
-    chunkSize = 200
+    manifestText = null,
+    chunkSize = 200,
+    fetchConcurrency = DEFAULT_FETCH_CONCURRENCY
   } = options;
-
-  const files = bundle?.files;
-  if (!files || typeof files !== 'object') {
-    throw new Error('VFS seed bundle missing files');
-  }
-
-  const entries = [];
-  for (const [path, content] of Object.entries(files)) {
-    const cleanPath = normalizePath(path);
-    entries.push({ path: cleanPath, content: content ?? '' });
-  }
-  if (seedText) {
-    entries.push({ path: '/config/vfs-seed.json', content: seedText });
-  }
 
   let skip = null;
   if (preserveOnBoot) {
@@ -163,21 +162,64 @@ export async function seedVfsBundle(bundle, options = {}) {
     skip = new Set(keys);
   }
 
-  const writeQueue = preserveOnBoot
-    ? entries.filter((entry) => !skip.has(entry.path))
-    : entries;
+  const shouldSkip = (path) => skip && skip.has(path);
+  const manifestPath = 'config/vfs-manifest.json';
+  const manifestVfsPath = normalizePath(manifestPath);
+  const files = manifest?.files || [];
+  const manifestInList = files.includes(manifestPath);
+
+  const entries = [];
+  if (manifestText && !shouldSkip(manifestVfsPath)) {
+    entries.push({ path: manifestVfsPath, content: manifestText });
+  }
+
+  const filesToFetch = [];
+  for (const file of files) {
+    if (manifestText && file === manifestPath) continue;
+    const vfsPath = normalizePath(file);
+    if (shouldSkip(vfsPath)) continue;
+    filesToFetch.push(file);
+  }
+
+  const fetchFile = async (file) => {
+    const webPath = toWebPath(file);
+    const response = await fetch(webPath, { cache: 'no-store' });
+    if (!response.ok) {
+      throw new Error(`Failed to fetch ${webPath} (${response.status})`);
+    }
+    const content = await response.text();
+    return { path: normalizePath(file), content };
+  };
+
+  if (filesToFetch.length > 0) {
+    const fetched = [];
+    const concurrency = Math.min(fetchConcurrency, filesToFetch.length);
+    let index = 0;
+
+    const worker = async () => {
+      while (index < filesToFetch.length) {
+        const file = filesToFetch[index];
+        index += 1;
+        fetched.push(await fetchFile(file));
+      }
+    };
+
+    await Promise.all(Array.from({ length: concurrency }, () => worker()));
+    entries.push(...fetched);
+  }
 
   let written = 0;
-  for (let i = 0; i < writeQueue.length; i += chunkSize) {
-    const slice = writeQueue.slice(i, i + chunkSize);
+  for (let i = 0; i < entries.length; i += chunkSize) {
+    const slice = entries.slice(i, i + chunkSize);
     await writeEntries(slice);
     written += slice.length;
   }
 
-  logger.info(`[Bootstrap] Seeded ${written} VFS files`);
+  const total = files.length + (manifestText && !manifestInList ? 1 : 0);
+  logger.info(`[Bootstrap] Hydrated ${written} VFS files`);
   return {
-    total: entries.length,
+    total,
     written,
-    skipped: entries.length - written
+    skipped: total - written
   };
 }
