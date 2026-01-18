@@ -3,6 +3,7 @@
  */
 
 import { loadVfsModule } from '../../core/vfs-module-loader.js';
+import { isSecurityEnabled } from '../../core/security-config.js';
 
 const SubstrateLoader = {
   metadata: {
@@ -30,6 +31,7 @@ const SubstrateLoader = {
       CRITICAL_PATH_PREFIXES.some((prefix) => path.startsWith(prefix));
 
     const requiresApproval = (path) => {
+      if (!isSecurityEnabled()) return false;
       if (!HITLController) return false;
       const state = HITLController.getState();
       const mode = state?.config?.approvalMode || 'autonomous';
@@ -57,6 +59,9 @@ const SubstrateLoader = {
     };
 
     const verifyInSandbox = async (path, code) => {
+      if (!isSecurityEnabled()) {
+        return { passed: true, skipped: true, reason: 'security_disabled' };
+      }
       if (!_arenaGatingEnabled || !VFSSandbox || !VerificationManager) {
         return { passed: true, skipped: true };
       }

@@ -12,6 +12,8 @@
  * @requires KnowledgeGraph
  */
 
+import { isSecurityEnabled } from '../../../core/security-config.js';
+
 const RuleEngine = {
   metadata: {
     id: 'RuleEngine',
@@ -1199,7 +1201,7 @@ const RuleEngine = {
       }
 
       // No HITL, use VerificationManager if available
-      if (VerificationManager && action.changes) {
+      if (VerificationManager && action.changes && isSecurityEnabled()) {
         const verification = await VerificationManager.verifyProposal(action.changes);
         if (verification.passed) {
           const approved = { ...result, allowed: true, verified: true };

@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-01-18T14:35:31.028Z",
+  "generatedAt": "2026-01-18T17:15:36.380Z",
   "files": [
     "blueprints/0x000000-reploid-genesis.md",
     "blueprints/0x000001-system-prompt-architecture.md",
@@ -275,6 +275,7 @@
     "core/response-parser.js",
     "core/schema-registry.js",
     "core/schema-validator.js",
+    "core/security-config.js",
     "core/state-helpers-pure.js",
     "core/state-manager.js",
     "core/tool-runner.js",
