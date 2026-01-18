@@ -13,6 +13,7 @@ export const STEPS = {
   DIRECT_CONFIG: 'direct_config',   // Direct cloud API (keys in browser)
   PROXY_CONFIG: 'proxy_config',     // Proxy server (keys on server or local)
   DOPPLER_CONFIG: 'doppler_config', // Browser WebGPU model
+  GOAL: 'goal',             // Goal selection
   AWAKEN: 'awaken'          // Final initialization
 };
 
@@ -100,6 +101,15 @@ const getStoredAdvancedConfig = () => {
   };
 };
 
+const getStoredGoal = () => {
+  if (typeof localStorage === 'undefined') {
+    return '';
+  }
+
+  const stored = localStorage.getItem('REPLOID_GOAL');
+  return stored ? String(stored) : '';
+};
+
 // Default wizard state
 const defaultState = {
   currentStep: STEPS.START,
@@ -153,6 +163,10 @@ const defaultState = {
 
   // Whether to also use Doppler for model access (LoRA, activations, weights)
   enableModelAccess: false,
+
+  // Goal selection
+  goal: getStoredGoal(),
+  selectedGoalCategory: null,
 
   // Advanced options
   advancedOpen: false,
@@ -222,6 +236,8 @@ export function resetWizard() {
     ...defaultState,
     advancedOpen: false,
     advancedConfig: getStoredAdvancedConfig(),
+    goal: getStoredGoal(),
+    selectedGoalCategory: null,
     moduleOverrideSearch: '',
     moduleOverrideFilter: 'all',
     moduleConfig: {
@@ -375,7 +391,12 @@ export function saveConfig() {
     localStorage.setItem('SELECTED_MODELS', JSON.stringify(models));
   }
 
-  localStorage.removeItem('REPLOID_GOAL');
+  const goal = (state.goal || '').trim();
+  if (goal) {
+    localStorage.setItem('REPLOID_GOAL', goal);
+  } else {
+    localStorage.removeItem('REPLOID_GOAL');
+  }
   localStorage.removeItem('REPLOID_GOAL_CRITERIA');
 }
 
@@ -393,7 +414,9 @@ export function forgetDevice() {
     'REPLOID_PERSONA_ID',
     'REPLOID_BLUEPRINT_PATH',
     'REPLOID_PRESERVE_ON_BOOT',
-    'REPLOID_HITL_CONFIG'
+    'REPLOID_HITL_CONFIG',
+    'REPLOID_GOAL',
+    'REPLOID_GOAL_CRITERIA'
   ];
 
   keysToRemove.forEach(key => localStorage.removeItem(key));
