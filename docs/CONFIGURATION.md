@@ -146,28 +146,19 @@ Settings used by boot seeding and module registration.
 | `sharedFiles` | Always hydrated files (tools, UI, styles) |
 | `levels` | Genesis level ladder and module grouping |
 
-VFS seeding loads `config/vfs-seed.json` at bootstrap and writes all `src/` files into IndexedDB before boot. Set `REPLOID_PRESERVE_ON_BOOT` to `'true'` to keep existing VFS files and only fill missing paths.
+VFS hydration loads `config/vfs-manifest.json` at bootstrap and fetches all listed `src/` files into IndexedDB before boot. Set `REPLOID_PRESERVE_ON_BOOT` to `'true'` to keep existing VFS files and only fill missing paths.
 
 ---
 
 ## VFS Manifest (`config/vfs-manifest.json`)
 
-List of all files under `src/` used to generate the VFS seed bundle.
+List of all files under `src/` used for VFS hydration at bootstrap.
 
 | Key | Purpose |
 |-----|---------|
 | `files` | Relative paths from `src/` to hydrate |
 
 ---
-
-## VFS Seed Bundle (`config/vfs-seed.json`)
-
-Single-file bundle containing the full contents of `src/` for VFS-first boot.
-
-| Key | Purpose |
-|-----|---------|
-| `files` | Map of VFS path → file contents |
-| `generatedAt` | Bundle generation timestamp |
 
 ## Blueprint Registry (`config/blueprint-registry.json`)
 
