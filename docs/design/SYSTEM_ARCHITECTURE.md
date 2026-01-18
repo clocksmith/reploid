@@ -49,7 +49,7 @@ The boot screen allows operators to configure:
 
 On page load, the bootstrapper seeds the VFS and loads the boot UI. When "Awaken Agent" is pressed:
 
-1. **VFS Seed**: Fetch `config/vfs-seed.json` and write all `src/` files into IndexedDB
+1. **VFS Hydration**: Fetch `config/vfs-manifest.json` and write all listed `src/` files into IndexedDB
 2. **VFS Module Loader**: Ensure `sw-module-loader.js` controls the page (VFS-only module serving)
 3. **Boot from VFS**: Load `boot.js` from VFS and resolve the DI container
 4. **Genesis Snapshot**: Capture pristine state for rollback
@@ -100,7 +100,7 @@ async run(goal) {
 Virtual File System backed by IndexedDB:
 
 - **Operations**: read, write, delete, list, stat
-- **VFS Seed**: Populate from `config/vfs-seed.json` before boot
+- **VFS Hydration**: Populate from `config/vfs-manifest.json` before boot
 - **Snapshots**: GenesisSnapshot for offline rollback
 - **Watchers**: EventBus events (`vfs:write`, `vfs:delete`)
 

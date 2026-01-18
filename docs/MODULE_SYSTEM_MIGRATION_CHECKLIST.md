@@ -28,10 +28,9 @@ Use this checklist when refactoring modules, blueprints, and VFS seeding rules.
 
 ---
 
-## 4. VFS Seed
+## 4. VFS Hydration
 
 - [ ] Regenerate `vfs-manifest.json` after any change to `src/`.
-- [ ] Regenerate `vfs-seed.json` after any change to `src/`.
 - [ ] Ensure `REPLOID_PRESERVE_ON_BOOT` behavior is preserved.
 
 ---
