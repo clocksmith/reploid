@@ -4,6 +4,8 @@
  * Supports caching, verification, retry logic, and import rewriting.
  */
 
+import { isSecurityEnabled } from './security-config.js';
+
 const moduleCache = new Map();
 const loadingPromises = new Map(); // Prevent duplicate concurrent loads
 
@@ -128,7 +130,7 @@ export async function loadVfsModule(options) {
         stats.cacheMisses++;
 
         // Verification
-        if (verify && VerificationManager) {
+        if (verify && VerificationManager && isSecurityEnabled()) {
           const result = await VerificationManager.verifyProposal({ [path]: contents });
           if (!result?.passed) {
             stats.verificationFailures++;

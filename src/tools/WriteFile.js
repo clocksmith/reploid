@@ -2,6 +2,8 @@
  * @fileoverview WriteFile - Write content to VFS with audit logging and arena verification
  */
 
+import { isSecurityEnabled } from '../core/security-config.js';
+
 async function call(args = {}, deps = {}) {
   const { VFS, EventBus, AuditLogger, VFSSandbox, VerificationManager, SubstrateLoader } = deps;
   if (!VFS) throw new Error('VFS not available');
@@ -22,8 +24,9 @@ async function call(args = {}, deps = {}) {
   try {
     arenaGatingEnabled = localStorage.getItem('REPLOID_ARENA_GATING') === 'true';
   } catch (e) { /* ignore */ }
+  const securityEnabled = isSecurityEnabled();
 
-  if (isCore && arenaGatingEnabled && VFSSandbox && VerificationManager) {
+  if (isCore && arenaGatingEnabled && securityEnabled && VFSSandbox && VerificationManager) {
     try {
       const snapshot = await VFSSandbox.createSnapshot();
       try {
@@ -65,8 +68,8 @@ async function call(args = {}, deps = {}) {
         operation: 'WriteFile',
         existed,
         bytesWritten: content.length,
-        arenaVerified: arenaGatingEnabled
-      });
+    arenaVerified: arenaGatingEnabled && securityEnabled
+  });
     } else {
       await AuditLogger.logEvent('FILE_WRITE', {
         path,
