@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-01-18T13:39:22.608Z",
+  "generatedAt": "2026-01-18T14:35:31.028Z",
   "files": [
     "blueprints/0x000000-reploid-genesis.md",
     "blueprints/0x000001-system-prompt-architecture.md",
@@ -370,6 +370,7 @@
     "tools/python/pyodide-worker.js",
     "tools/python/python-tool.js",
     "ui/boot/detection.js",
+    "ui/boot/goals.js",
     "ui/boot/index.js",
     "ui/boot/state.js",
     "ui/boot/steps/awaken.js",
@@ -377,6 +378,7 @@
     "ui/boot/steps/choose.js",
     "ui/boot/steps/detect.js",
     "ui/boot/steps/direct.js",
+    "ui/boot/steps/goal.js",
     "ui/boot/steps/proxy.js",
     "ui/components/arena-results.js",
     "ui/components/confirmation-modal.js",

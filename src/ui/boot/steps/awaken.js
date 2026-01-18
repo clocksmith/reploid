@@ -56,7 +56,7 @@ export function renderAwakenStep(state) {
   }
 
   const awakenBlocked = !!blockedKey;
-  const blockedAttrs = blockedKey
+  const blockedAttrs = blockedKey === 'modules'
     ? `data-blocked="${escapeAttr(blockedKey)}" data-blocked-reason="${escapeAttr(tooltipText)}"`
     : '';
 
