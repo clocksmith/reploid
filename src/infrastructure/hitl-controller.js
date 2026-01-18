@@ -3,6 +3,8 @@
  * Autonomous by default. Opt-in HITL for users who want approval gates.
  */
 
+import { isSecurityEnabled } from '../core/security-config.js';
+
 const HITLController = {
   metadata: {
     id: 'HITLController',
@@ -226,6 +228,9 @@ const HITLController = {
      * @returns {boolean} True if approval required
      */
     const requiresApproval = (moduleId, capability) => {
+      if (!isSecurityEnabled()) {
+        return false;
+      }
       const effectiveMode = getModuleMode(moduleId);
       if (effectiveMode === MODES.AUTONOMOUS) {
         return false;
@@ -435,7 +440,7 @@ const HITLController = {
 
     const getStats = () => ({ ..._stats, history: [..._stats.history] });
 
-    const isHITLEnabled = () => _config.approvalMode === MODES.HITL;
+    const isHITLEnabled = () => isSecurityEnabled() && _config.approvalMode === MODES.HITL;
 
     const resetToDefaults = () => {
       _config.approvalMode = MODES.AUTONOMOUS;

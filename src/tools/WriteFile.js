@@ -68,8 +68,8 @@ async function call(args = {}, deps = {}) {
         operation: 'WriteFile',
         existed,
         bytesWritten: content.length,
-    arenaVerified: arenaGatingEnabled && securityEnabled
-  });
+        arenaVerified: arenaGatingEnabled && securityEnabled
+      });
     } else {
       await AuditLogger.logEvent('FILE_WRITE', {
         path,
