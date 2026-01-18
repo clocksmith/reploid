@@ -110,6 +110,16 @@ export async function listVfsKeys() {
   });
 }
 
+export async function clearVfsStore() {
+  const db = await openVfsDb();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE_FILES, 'readwrite');
+    tx.objectStore(STORE_FILES).clear();
+    tx.oncomplete = () => resolve(true);
+    tx.onerror = () => reject(tx.error || new Error('Failed to clear VFS'));
+  });
+}
+
 const writeEntries = async (entries) => {
   if (entries.length === 0) return;
   const db = await openVfsDb();
