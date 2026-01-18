@@ -258,6 +258,143 @@
   opacity: var(--opacity-secondary);
 }
 
+/* === GOAL SELECTION === */
+
+.goal-intro {
+  margin-top: var(--space-sm);
+}
+
+.goal-accordion {
+  border: var(--border-sm) solid var(--fg);
+}
+
+.accordion-item {
+  border-top: var(--border-sm) solid var(--fg);
+}
+
+.accordion-item:first-child {
+  border-top: none;
+}
+
+.accordion-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 12px 14px;
+  background: var(--bg);
+  color: var(--fg);
+  border: none;
+  text-align: left;
+  cursor: pointer;
+}
+
+.accordion-header[aria-expanded="true"] {
+  border-bottom: var(--border-sm) solid var(--fg);
+}
+
+.accordion-meta {
+  font-size: 11px;
+  opacity: var(--opacity-secondary);
+}
+
+.accordion-content {
+  padding: 12px 14px;
+}
+
+.accordion-content[aria-hidden="true"] {
+  display: none;
+}
+
+.category-goals {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+}
+
+.goal-chip {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px;
+  border: var(--border-sm) solid var(--fg);
+  background: var(--bg);
+  color: var(--fg);
+  text-align: left;
+  cursor: pointer;
+}
+
+.goal-chip:hover {
+  background: var(--fg);
+  color: var(--bg);
+}
+
+.goal-chip.selected {
+  border-width: var(--border-md);
+}
+
+.goal-chip.locked,
+.goal-chip:disabled {
+  opacity: var(--opacity-disabled);
+  cursor: not-allowed;
+}
+
+.goal-chip.locked:hover,
+.goal-chip:disabled:hover {
+  background: var(--bg);
+  color: var(--fg);
+}
+
+.goal-chip-header {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.goal-view {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.goal-flags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.goal-tag {
+  font-size: 10px;
+  text-transform: uppercase;
+  border: var(--border-sm) solid currentColor;
+  padding: 2px 6px;
+}
+
+.goal-tag.recommended {
+  border-style: dashed;
+}
+
+.goal-prompt {
+  font-size: 12px;
+  opacity: var(--opacity-secondary);
+  line-height: 1.4;
+}
+
+.goal-input {
+  width: 100%;
+  min-height: 90px;
+  padding: 10px 12px;
+  border: var(--border-sm) solid var(--fg);
+  background: var(--bg);
+  color: var(--fg);
+  font-size: 13px;
+  resize: vertical;
+}
+
+.goal-input:focus {
+  outline: none;
+  border-width: var(--border-md);
+}
+
 /* === ADVANCED SETTINGS === */
 
 .advanced-panel {
@@ -571,6 +708,10 @@
 
   .hide-mobile {
     display: none;
+  }
+
+  .category-goals {
+    grid-template-columns: 1fr;
   }
 
 }
