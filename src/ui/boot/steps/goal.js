@@ -13,15 +13,8 @@ const escapeText = (value) => String(value || '')
 const escapeAttr = (value) => escapeText(value).replace(/'/g, '&#39;');
 
 const buildGoalTags = (goal) => {
-  const tags = [];
-  if (goal.level) tags.push(goal.level);
-  if (goal.recommended) tags.push('Recommended');
-  if (goal.requires?.doppler) tags.push('Doppler');
-  if (goal.requires?.model) tags.push('Model access');
-  if (goal.requires?.reasoning) tags.push(`Reasoning ${goal.requires.reasoning}`);
-  if (Array.isArray(goal.tags)) tags.push(...goal.tags);
-  if (goal.locked) tags.push(goal.lockReason || 'Locked');
-  return Array.from(new Set(tags)).slice(0, 6);
+  const tags = Array.isArray(goal.tags) ? goal.tags : [];
+  return Array.from(new Set(tags)).slice(0, 5);
 };
 
 /**
@@ -57,7 +50,7 @@ export function renderGoalStep(state) {
                     const goalText = goal.text || goal.view || '';
                     const viewText = goal.view || goalText;
                     const tags = buildGoalTags(goal)
-                      .map(tag => `<span class=\"goal-tag${tag === 'Recommended' ? ' recommended' : ''}\">${escapeText(tag)}</span>`)
+                      .map(tag => `<span class="goal-tag">${escapeText(tag)}</span>`)
                       .join('');
                     const locked = goal.locked ? 'locked' : '';
                     const selected = goalText === goalValue ? 'selected' : '';

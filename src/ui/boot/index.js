@@ -17,7 +17,7 @@ import {
 
 import { formatGoalPacket } from './goals.js';
 import { serializeModuleOverrides } from '../../config/module-resolution.js';
-import { readVfsFile, loadVfsManifest, seedVfsFromManifest } from '../../boot/vfs-bootstrap.js';
+import { readVfsFile, loadVfsManifest, seedVfsFromManifest, clearVfsStore } from '../../boot/vfs-bootstrap.js';
 
 // Step renderers
 import { renderChooseStep } from './steps/choose.js';
@@ -918,13 +918,13 @@ async function doAwaken() {
   const goalPacket = formatGoalPacket(state.goal);
   if (!goalPacket) return;
 
-  saveConfig();
-
   // Set loading state immediately
   setState({ isAwakening: true });
 
   try {
     if (!state.advancedConfig?.preserveOnBoot) {
+      console.log('[Boot] Clearing VFS before awaken...');
+      await clearVfsStore();
       console.log('[Boot] Ensuring VFS hydration before awaken...');
       const { manifest, text } = await loadVfsManifest();
       await seedVfsFromManifest(manifest, {
@@ -934,10 +934,12 @@ async function doAwaken() {
       });
     }
   } catch (err) {
-    console.error('[Boot] VFS hydration failed:', err);
+    console.error('[Boot] VFS prep failed:', err);
     setState({ isAwakening: false });
     return;
   }
+
+  saveConfig();
 
   if (window.triggerAwaken) {
     window.triggerAwaken(goalPacket);

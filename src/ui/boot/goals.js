@@ -2,169 +2,206 @@
  * @fileoverview Goal presets for the boot wizard.
  */
 
+const TAGS = {
+  UI: 'UI',
+  VISUAL: 'Visualization',
+  ORCH: 'Orchestration',
+  BENCH: 'Benchmark',
+  GOV: 'Governance',
+  INTEGRATION: 'Integration',
+  DISTILLATION: 'Distillation',
+  DATA: 'Data',
+  AUTOMATION: 'Automation',
+  VFS: 'VFS',
+  MODEL: 'Model',
+  TOOLING: 'Tooling',
+  WEB: 'Web'
+};
+
 const GOAL_CATEGORIES = {
   'L0: Basic Functions': [
     {
-      view: 'Build a WebGL shader editor panel',
-      text: 'Create a WebGL-based tool that renders custom GLSL shaders with live editing in the existing Reploid UI.'
+      view: 'Shader playground panel',
+      text: 'Add a main area panel that renders a live GLSL shader preview with editable code and two slider inputs.',
+      tags: [TAGS.UI, TAGS.VISUAL, TAGS.WEB, TAGS.TOOLING]
     },
     {
-      view: 'Add a VFS search tool',
-      text: 'Build a tool that searches the VFS and returns match snippets with file paths.'
+      view: 'Artifact gallery panel',
+      text: 'Create a panel that previews the latest text and image artifacts from /artifacts with paging and open actions.',
+      tags: [TAGS.UI, TAGS.VISUAL, TAGS.VFS, TAGS.DATA]
     },
     {
-      view: 'Create a DOM snapshot exporter',
-      text: 'Implement a tool that captures the current DOM and writes a snapshot file to /artifacts.'
+      view: 'Live log stream panel',
+      text: 'Build a main area log stream with level filters and a pause button for slow inspection.',
+      tags: [TAGS.UI, TAGS.DATA, TAGS.GOV, TAGS.TOOLING]
     },
     {
-      view: 'Build a markdown preview panel',
-      text: 'Add a UI panel that previews markdown files from the VFS inside the existing dashboard.'
+      view: 'VFS quick search panel',
+      text: 'Add a search panel that scans VFS paths and shows inline previews with copy path actions.',
+      tags: [TAGS.UI, TAGS.VFS, TAGS.DATA, TAGS.TOOLING]
     },
     {
-      view: 'Create a CSS theme switcher',
-      text: 'Add a UI control to toggle between two CSS themes without reloading the page.'
+      view: 'Prompt ladder summarizer',
+      text: 'Create a tool that summarizes input at 256, 128, 64, and 32 words and writes all versions to /artifacts.',
+      tags: [TAGS.DATA, TAGS.AUTOMATION, TAGS.MODEL, TAGS.TOOLING]
     },
     {
-      view: 'Summarize repo structure',
-      text: 'Scan the VFS and produce a concise architecture summary with key directories and their roles.'
+      view: 'Visual diff panel',
+      text: 'Add a panel that compares two VFS files and highlights changed lines in a split view.',
+      tags: [TAGS.UI, TAGS.VISUAL, TAGS.VFS, TAGS.DATA]
     },
     {
-      view: 'Add a log filter tool',
-      text: 'Create a tool that filters /logs output by severity and time range.'
+      view: 'Snapshot capture panel',
+      text: 'Add a capture panel that stores DOM or canvas snapshots to /artifacts with a timestamped label.',
+      tags: [TAGS.UI, TAGS.VISUAL, TAGS.VFS, TAGS.TOOLING]
     }
   ],
   'L1: Meta Tooling': [
     {
-      view: 'Generate a tool template',
-      text: 'Create a helper that scaffolds new tools with input schemas and usage notes.'
+      view: 'Scenario runner with seeds',
+      text: 'Implement a scenario runner that executes a list of goals with fixed seeds and produces a score table.',
+      tags: [TAGS.AUTOMATION, TAGS.BENCH, TAGS.DATA, TAGS.TOOLING]
     },
     {
-      view: 'Audit tool inputs',
-      text: 'Scan tool schemas for missing descriptions or type mismatches and report fixes.'
+      view: 'Tool smoke test harness',
+      text: 'Build a tool smoke test runner with timeouts and a summary report saved to /artifacts.',
+      tags: [TAGS.AUTOMATION, TAGS.BENCH, TAGS.GOV, TAGS.TOOLING]
     },
     {
-      view: 'Add a tool smoke-test runner',
-      text: 'Implement a runner that executes a list of tools with sample inputs and reports failures.'
+      view: 'Persona library editor',
+      text: 'Create a persona editor panel that stores named personas in VFS and lets users set the active persona.',
+      tags: [TAGS.UI, TAGS.VFS, TAGS.ORCH, TAGS.DATA]
     },
     {
-      view: 'Build a diff report tool',
-      text: 'Create a tool that compares two VFS paths and summarizes changed sections.'
+      view: 'Panel registry manager',
+      text: 'Implement a registry that lists all panels, toggles visibility, and persists layout in VFS.',
+      tags: [TAGS.UI, TAGS.AUTOMATION, TAGS.VFS, TAGS.DATA]
     },
     {
-      view: 'Create a config validator',
-      text: 'Validate config JSON files against schema rules and report any violations.'
+      view: 'Instance connector panel',
+      text: 'Add a connector panel that tracks external endpoints, shows status, and stores configs in VFS.',
+      tags: [TAGS.UI, TAGS.INTEGRATION, TAGS.DATA, TAGS.GOV]
     },
     {
-      view: 'Add a dependency mapper',
-      text: 'Generate a dependency graph for core modules and highlight cycles.'
+      view: 'Manifest inspector panel',
+      text: 'Build a manifest inspector that validates model config against schema and reports missing fields.',
+      tags: [TAGS.UI, TAGS.MODEL, TAGS.GOV, TAGS.DATA]
     },
     {
-      view: 'Create a module hot-reload checker',
-      text: 'Verify that VFS module reloads propagate cleanly without stale caches.'
+      view: 'Replay and compare runner',
+      text: 'Create a replay runner that reuses saved prompts, compares outputs, and logs diffs.',
+      tags: [TAGS.AUTOMATION, TAGS.BENCH, TAGS.DATA, TAGS.GOV]
     }
   ],
   'L2: Substrate': [
     {
-      view: 'Audit substrate boot order',
-      text: 'Trace boot sequence and validate module ordering against genesis configuration.'
+      view: 'Three agent coordinator',
+      text: 'Implement a coordinator that spawns three personas, assigns roles, and merges output into one decision packet.',
+      tags: [TAGS.ORCH, TAGS.GOV, TAGS.AUTOMATION, TAGS.DATA]
     },
     {
-      view: 'Verify VFS integrity path',
-      text: 'Check that VFS hydration and module loading paths are consistent and logged.'
+      view: 'Arena ledger and transcripts',
+      text: 'Create an arena ledger that records debate rounds, votes, and outcomes in VFS with deterministic ordering.',
+      tags: [TAGS.ORCH, TAGS.VFS, TAGS.DATA, TAGS.GOV]
     },
     {
-      view: 'HITL gate coverage review',
-      text: 'Identify which actions are guarded by HITL and list gaps that need approval.'
+      view: 'VFS integrity audit pipeline',
+      text: 'Add a pipeline that hashes critical VFS paths on milestones and reports drift.',
+      tags: [TAGS.GOV, TAGS.VFS, TAGS.DATA, TAGS.AUTOMATION]
     },
     {
-      view: 'Policy engine enforcement map',
-      text: 'Enumerate policy rules and show where they are enforced in runtime.'
+      view: 'Module gate visualizer',
+      text: 'Build a panel that visualizes module gates, active status, and missing dependencies.',
+      tags: [TAGS.UI, TAGS.GOV, TAGS.VFS, TAGS.DATA]
     },
     {
-      view: 'Genesis snapshot flow review',
-      text: 'Validate snapshot creation and rollback flows with clear failure modes.'
+      view: 'Instance VFS sync bridge',
+      text: 'Implement push and pull sync for selected VFS paths to a remote instance with conflict notes.',
+      tags: [TAGS.INTEGRATION, TAGS.VFS, TAGS.GOV, TAGS.AUTOMATION]
     },
     {
-      view: 'Module registry integrity check',
-      text: 'Cross-check module registry entries against actual files and dependencies.'
+      view: 'Hot reload with rollback',
+      text: 'Create a hot reload flow that verifies modules, then rolls back automatically on failure.',
+      tags: [TAGS.GOV, TAGS.AUTOMATION, TAGS.VFS, TAGS.ORCH]
     },
     {
-      view: 'Substrate log consolidation',
-      text: 'Ensure substrate logs are consistent and traceable across boot and runtime.'
+      view: 'Deterministic run recorder',
+      text: 'Add a run recorder that captures inputs, tool calls, and outputs for exact replay.',
+      tags: [TAGS.BENCH, TAGS.DATA, TAGS.GOV, TAGS.AUTOMATION]
     }
   ],
   'L3: Weak RSI': [
     {
-      view: 'Iterative tool improvement loop',
-      text: 'Improve a selected tool over three iterations with measurable deltas.'
+      view: 'Arena debate convergence loop',
+      text: 'Build a three persona debate loop with a fixed turn schedule and a convergence rule for final answers.',
+      tags: [TAGS.ORCH, TAGS.GOV, TAGS.AUTOMATION, TAGS.DATA]
     },
     {
-      view: 'Automated refactor proposal',
-      text: 'Generate a refactor plan for a subsystem and validate against style guide.'
+      view: 'Persona tuner and scorer',
+      text: 'Implement a persona tuner that mutates prompt traits and scores outputs on a benchmark set.',
+      tags: [TAGS.ORCH, TAGS.BENCH, TAGS.AUTOMATION, TAGS.MODEL]
     },
     {
-      view: 'Performance profiling plan',
-      text: 'Build a profiling checklist and run targeted measurements.'
+      view: 'Solution replay regression tracker',
+      text: 'Create a regression tracker that reruns solutions, compares outputs, and flags deltas.',
+      tags: [TAGS.BENCH, TAGS.DATA, TAGS.GOV, TAGS.AUTOMATION]
     },
     {
-      view: 'Schema drift detection',
-      text: 'Detect schema drift between docs and runtime config defaults.'
+      view: 'Self critique retry pipeline',
+      text: 'Add a self critique loop that generates counterpoints and retries with a revised plan.',
+      tags: [TAGS.ORCH, TAGS.AUTOMATION, TAGS.DATA, TAGS.GOV]
     },
     {
-      view: 'Regression test authoring',
-      text: 'Add targeted tests for a recently changed module.'
+      view: 'Prototype and compare loop',
+      text: 'Implement a loop that creates three solutions, runs them, and selects the best based on rules.',
+      tags: [TAGS.ORCH, TAGS.BENCH, TAGS.DATA, TAGS.AUTOMATION]
     },
     {
-      view: 'Toolset coverage audit',
-      text: 'List missing tools for common workflows and propose additions.'
+      view: 'Toolchain evolution loop',
+      text: 'Build a loop that proposes a new tool, implements it, and validates with tests.',
+      tags: [TAGS.ORCH, TAGS.AUTOMATION, TAGS.GOV, TAGS.VFS]
     },
     {
-      view: 'Recovery plan simulation',
-      text: 'Simulate a failure and produce a recovery playbook.'
+      view: 'Conclusion memory and revisions',
+      text: 'Create a conclusion memory store with evidence links and revision history in VFS.',
+      tags: [TAGS.DATA, TAGS.VFS, TAGS.GOV, TAGS.AUTOMATION]
     }
   ],
   'L4: Theoretical RSI': [
     {
-      view: 'Self-modification safety proof',
-      text: 'Draft a proof outline for safe self-modification under bounded constraints.',
-      locked: true,
-      lockReason: 'Theoretical'
+      view: 'Distilled reflection model spec',
+      text: 'Design a distilled reflection model spec that mirrors tool use quality and reasoning paths.',
+      tags: [TAGS.DISTILLATION, TAGS.MODEL, TAGS.GOV, TAGS.DATA]
     },
     {
-      view: 'Unbounded optimization model',
-      text: 'Propose a theoretical model for unbounded optimization and its safety limits.',
-      locked: true,
-      lockReason: 'Theoretical'
+      view: 'Debate convergence protocol',
+      text: 'Specify a formal debate convergence protocol with stopping conditions and failure modes.',
+      tags: [TAGS.GOV, TAGS.ORCH, TAGS.DATA, TAGS.AUTOMATION]
     },
     {
-      view: 'Recursive alignment plan',
-      text: 'Describe a recursive alignment strategy and identify non-implementable steps.',
-      locked: true,
-      lockReason: 'Theoretical'
+      view: 'Safe self modification proof sketch',
+      text: 'Draft a proof sketch for bounded self modification under fixed tool and module constraints.',
+      tags: [TAGS.GOV, TAGS.MODEL, TAGS.DATA, TAGS.AUTOMATION]
     },
     {
-      view: 'Formal verifier design',
-      text: 'Sketch a formal verifier for tool outputs with clear limitations.',
-      locked: true,
-      lockReason: 'Theoretical'
+      view: 'Solution stability metric',
+      text: 'Define a stability metric that measures answer drift across persona and tool changes.',
+      tags: [TAGS.BENCH, TAGS.DATA, TAGS.ORCH, TAGS.MODEL]
     },
     {
-      view: 'Self-improvement theorem',
-      text: 'State a theorem about self-improvement and outline a proof attempt.',
-      locked: true,
-      lockReason: 'Theoretical'
+      view: 'Adversarial persona consensus',
+      text: 'Propose a consensus protocol that resists adversarial personas and preserves traceability.',
+      tags: [TAGS.GOV, TAGS.ORCH, TAGS.DATA, TAGS.AUTOMATION]
     },
     {
-      view: 'Infinite recursion bounds',
-      text: 'Analyze recursion bounds and identify practical stopping criteria.',
-      locked: true,
-      lockReason: 'Theoretical'
+      view: 'Verification artifact design',
+      text: 'Design a minimal verification artifact that proves key steps and can be replayed.',
+      tags: [TAGS.GOV, TAGS.DATA, TAGS.AUTOMATION, TAGS.VFS]
     },
     {
-      view: 'Alignment impossibility survey',
-      text: 'Summarize known impossibility results and their relevance to this system.',
-      locked: true,
-      lockReason: 'Theoretical'
+      view: 'Reflection memory schema',
+      text: 'Define a reflection memory schema that stores plans, critiques, and outcomes for long horizon tasks.',
+      tags: [TAGS.DISTILLATION, TAGS.DATA, TAGS.VFS, TAGS.MODEL]
     }
   ]
 };
