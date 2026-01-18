@@ -4,6 +4,7 @@
  */
 
 import { normalizeOverrides } from '../../config/module-resolution.js';
+import { getSecurityState } from '../../core/security-config.js';
 
 // Wizard steps in order
 export const STEPS = {
@@ -52,13 +53,15 @@ export const PROVIDER_TEST_ENDPOINTS = {
 };
 
 const getStoredAdvancedConfig = () => {
+  const securityState = getSecurityState();
   if (typeof localStorage === 'undefined') {
     return {
       preserveOnBoot: false,
       genesisLevel: 'full',
       moduleOverrides: {},
       hitlApprovalMode: 'autonomous',
-      hitlEveryNSteps: 5
+      hitlEveryNSteps: 5,
+      securityEnabled: securityState.enabled
     };
   }
 
@@ -97,7 +100,8 @@ const getStoredAdvancedConfig = () => {
     genesisLevel: localStorage.getItem('REPLOID_GENESIS_LEVEL') || 'full',
     moduleOverrides,
     hitlApprovalMode,
-    hitlEveryNSteps
+    hitlEveryNSteps,
+    securityEnabled: securityState.enabled
   };
 };
 
@@ -415,6 +419,7 @@ export function forgetDevice() {
     'REPLOID_BLUEPRINT_PATH',
     'REPLOID_PRESERVE_ON_BOOT',
     'REPLOID_HITL_CONFIG',
+    'REPLOID_SECURITY_MODE',
     'REPLOID_GOAL',
     'REPLOID_GOAL_CRITERIA'
   ];

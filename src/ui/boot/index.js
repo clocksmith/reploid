@@ -17,6 +17,7 @@ import {
 
 import { formatGoalPacket } from './goals.js';
 import { serializeModuleOverrides } from '../../config/module-resolution.js';
+import { setSecurityEnabled } from '../../core/security-config.js';
 import { readVfsFile, loadVfsManifest, seedVfsFromManifest, clearVfsStore } from '../../boot/vfs-bootstrap.js';
 
 // Step renderers
@@ -290,6 +291,21 @@ function updateUI() {
   const preserveCheckbox = container.querySelector('#preserve-on-boot');
   if (preserveCheckbox) {
     preserveCheckbox.checked = !!state.advancedConfig?.preserveOnBoot;
+  }
+
+  const securityCheckbox = container.querySelector('#advanced-security-enabled');
+  if (securityCheckbox) {
+    securityCheckbox.checked = state.advancedConfig?.securityEnabled !== false;
+  }
+
+  const hitlModeSelect = container.querySelector('#advanced-hitl-mode');
+  if (hitlModeSelect && state.advancedConfig?.hitlApprovalMode) {
+    hitlModeSelect.value = state.advancedConfig.hitlApprovalMode;
+  }
+
+  const hitlStepsInput = container.querySelector('#advanced-hitl-steps');
+  if (hitlStepsInput && Number.isFinite(state.advancedConfig?.hitlEveryNSteps)) {
+    hitlStepsInput.value = state.advancedConfig.hitlEveryNSteps;
   }
 
   // Update awaken button based on goal, readiness, and loading state
@@ -664,6 +680,11 @@ function handleChange(e) {
     case 'preserve-on-boot':
       localStorage.setItem('REPLOID_PRESERVE_ON_BOOT', value ? 'true' : 'false');
       setNestedState('advancedConfig', { preserveOnBoot: value });
+      break;
+
+    case 'advanced-security-enabled':
+      setSecurityEnabled(value, { persist: true });
+      setNestedState('advancedConfig', { securityEnabled: value });
       break;
 
     case 'advanced-genesis-level':

@@ -25,6 +25,13 @@ export function renderAwakenStep(state) {
   const advancedOpen = !!state.advancedOpen;
   const isAwakening = !!state.isAwakening;
   const goalMissing = !(state.goal && state.goal.trim());
+  const securityEnabled = state.advancedConfig?.securityEnabled !== false;
+  const hitlMode = state.advancedConfig?.hitlApprovalMode || 'autonomous';
+  const hitlSteps = state.advancedConfig?.hitlEveryNSteps ?? 5;
+
+  const levelEntries = moduleConfig?.genesis?.levels
+    ? Object.entries(moduleConfig.genesis.levels)
+    : [];
 
   let missingModules = [];
   let tooltipText = '';
@@ -62,6 +69,13 @@ export function renderAwakenStep(state) {
 
   const buttonText = isAwakening ? 'Awakening...' : 'Awaken Agent';
 
+  const levelOptions = levelEntries.length
+    ? levelEntries.map(([key, level]) => {
+      const label = `${level.name || key} - ${level.description || ''}`.trim();
+      return `<option value="${escapeAttr(key)}" ${key === genesisLevel ? 'selected' : ''}>${escapeAttr(label)}</option>`;
+    }).join('')
+    : `<option value="${escapeAttr(genesisLevel)}">${escapeAttr(genesisLevel)}</option>`;
+
   return `
     <div class="wizard-step wizard-awaken">
       <div class="wizard-actions-row">
@@ -77,6 +91,56 @@ export function renderAwakenStep(state) {
                 aria-busy="${isAwakening}">
           ${buttonText}
         </button>
+      </div>
+
+      <div class="advanced-panel" style="display:${advancedOpen ? '' : 'none'}">
+        <div class="advanced-setting">
+          <label class="checkbox-label">
+            <input type="checkbox"
+                   id="advanced-security-enabled"
+                   ${securityEnabled ? 'checked' : ''} />
+            <span>Security enforcement</span>
+          </label>
+          <span class="type-caption">Disable to bypass verification, policy checks, and approval gates.</span>
+        </div>
+
+        <div class="advanced-setting">
+          <label class="checkbox-label">
+            <input type="checkbox"
+                   id="preserve-on-boot"
+                   ${state.advancedConfig?.preserveOnBoot ? 'checked' : ''} />
+            <span>Preserve VFS on boot</span>
+          </label>
+          <span class="type-caption">Keep existing VFS files when starting a new session.</span>
+        </div>
+
+        <div class="advanced-setting">
+          <label class="type-label" for="advanced-genesis-level">Genesis level</label>
+          <select id="advanced-genesis-level">
+            ${levelOptions}
+          </select>
+          <span class="type-caption">Sets which modules load at boot.</span>
+        </div>
+
+        <div class="advanced-setting">
+          <label class="type-label" for="advanced-hitl-mode">HITL approval</label>
+          <select id="advanced-hitl-mode">
+            <option value="autonomous" ${hitlMode === 'autonomous' ? 'selected' : ''}>Autonomous</option>
+            <option value="hitl" ${hitlMode === 'hitl' ? 'selected' : ''}>Always ask</option>
+            <option value="every_n" ${hitlMode === 'every_n' ? 'selected' : ''}>Every N steps</option>
+          </select>
+          <span class="type-caption">Applies to critical tool and module actions.</span>
+        </div>
+
+        <div class="advanced-setting">
+          <label class="type-label" for="advanced-hitl-steps">HITL cadence</label>
+          <input type="number"
+                 id="advanced-hitl-steps"
+                 min="1"
+                 max="100"
+                 value="${escapeAttr(hitlSteps)}" />
+          <span class="type-caption">Steps between approvals when using "Every N steps".</span>
+        </div>
       </div>
     </div>
   `;
