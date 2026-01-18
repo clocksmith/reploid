@@ -3,6 +3,8 @@
  * Routes intent bundle approvals through HITL and audit logging.
  */
 
+import { isSecurityEnabled } from '../core/security-config.js';
+
 const IntentBundleGate = {
   metadata: {
     id: 'IntentBundleGate',
@@ -109,11 +111,20 @@ const IntentBundleGate = {
       const validation = validateBundle(bundle);
       if (!validation.ok) {
         await logAudit('INTENT_BUNDLE_INVALID', { summary, errors: validation.errors }, 'WARN');
+        if (!isSecurityEnabled()) {
+          return { approved: true, reason: 'Security disabled', warnings: validation.errors, bundle };
+        }
         return { approved: false, reason: validation.errors.join('; '), bundle };
       }
 
       await logAudit('INTENT_BUNDLE_REQUEST', { summary }, 'INFO');
       EventBus?.emit('intent-bundle:requested', { summary });
+
+      if (!isSecurityEnabled()) {
+        await logAudit('INTENT_BUNDLE_APPROVED', { summary, securityDisabled: true }, 'INFO');
+        EventBus?.emit('intent-bundle:approved', { summary, securityDisabled: true });
+        return { approved: true, reason: 'Security disabled', bundle };
+      }
 
       if (!HITLController?.requestApproval) {
         await logAudit('INTENT_BUNDLE_APPROVED', { summary, autoApproved: true }, 'INFO');

@@ -779,7 +779,8 @@ const RuleEngine = {
       };
 
       // Request HITL approval if available and in HITL mode
-      if (HITLController && HITLController.requiresApproval(HITL_MODULE_ID, HITL_CAPABILITIES.APPROVE_INDUCED_RULES)) {
+      if (isSecurityEnabled() && HITLController &&
+          HITLController.requiresApproval(HITL_MODULE_ID, HITL_CAPABILITIES.APPROVE_INDUCED_RULES)) {
         return new Promise((resolve, reject) => {
           HITLController.requestApproval({
             moduleId: HITL_MODULE_ID,
@@ -1173,6 +1174,12 @@ const RuleEngine = {
       if (!result.requiresApproval) {
         if (onDenied) onDenied(result.reason);
         return result;
+      }
+
+      if (!isSecurityEnabled()) {
+        const approved = { ...result, allowed: true, approved: false, securityDisabled: true };
+        if (onApproved) onApproved(approved);
+        return approved;
       }
 
       // Requires approval - use HITL if available
