@@ -36,7 +36,7 @@ const GOAL_CATEGORIES = {
     },
     {
       view: 'Prompt ladder summarizer',
-      text: 'Create a tool that summarizes input at 256, 128, 64, and 32 words and writes all versions to /artifacts for comparison.',
+      text: 'Create a tool that summarizes each cycle at 256, 128, 64, 32, 16, 8, 4, 2, and 1 words, and stores every version in /artifacts for comparison.',
       tags: [TAGS.DATA, TAGS.BENCH, TAGS.SYS]
     },
     {
@@ -62,24 +62,24 @@ const GOAL_CATEGORIES = {
       tags: [TAGS.BENCH, TAGS.GOV, TAGS.SYS]
     },
     {
+      view: 'Tool generator forge',
+      text: 'Build a tool that takes a structured prompt, outputs a new tool with schema, tests, and usage notes, then registers it.',
+      tags: [TAGS.SYS, TAGS.DATA, TAGS.GOV]
+    },
+    {
+      view: 'Tool generator generator',
+      text: 'Create a meta tool that produces tool generator templates and validates that generated tools pass a smoke test.',
+      tags: [TAGS.SYS, TAGS.BENCH, TAGS.GOV]
+    },
+    {
+      view: 'Tool schema lint grid',
+      text: 'Implement a lint grid that checks tool schemas for completeness, mismatch, and drift, then suggests fixes.',
+      tags: [TAGS.GOV, TAGS.DATA, TAGS.SYS]
+    },
+    {
       view: 'Persona library editor',
-      text: 'Create a persona editor panel that stores named personas in VFS and lets users set the active persona.',
+      text: 'Create a persona editor panel that stores named personas in local workspace storage and lets users set the active persona.',
       tags: [TAGS.UI, TAGS.ORCH, TAGS.DATA]
-    },
-    {
-      view: 'Panel registry manager',
-      text: 'Implement a registry that lists all panels, toggles visibility, and persists layout in VFS.',
-      tags: [TAGS.UI, TAGS.SYS, TAGS.DATA]
-    },
-    {
-      view: 'Instance connector panel',
-      text: 'Add a connector panel that tracks external endpoints, shows status, and stores configs in VFS for reuse.',
-      tags: [TAGS.UI, TAGS.GOV, TAGS.SYS]
-    },
-    {
-      view: 'Manifest inspector panel',
-      text: 'Build a manifest inspector that validates model config against schema and reports missing fields.',
-      tags: [TAGS.UI, TAGS.GOV, TAGS.DATA]
     },
     {
       view: 'Replay and compare runner',
@@ -95,12 +95,12 @@ const GOAL_CATEGORIES = {
     },
     {
       view: 'Arena ledger and transcripts',
-      text: 'Create an arena ledger that records debate rounds, votes, and outcomes in VFS with deterministic ordering.',
+      text: 'Create an arena ledger that records debate rounds, votes, and outcomes with deterministic ordering and clear audit notes.',
       tags: [TAGS.ORCH, TAGS.DATA, TAGS.GOV]
     },
     {
       view: 'VFS integrity audit pipeline',
-      text: 'Add a pipeline that hashes critical VFS paths on milestones and reports drift.',
+      text: 'Add a pipeline that hashes critical runtime paths on milestones and reports drift with clear remediation steps.',
       tags: [TAGS.GOV, TAGS.DATA, TAGS.SYS]
     },
     {
@@ -109,8 +109,8 @@ const GOAL_CATEGORIES = {
       tags: [TAGS.UI, TAGS.GOV, TAGS.DATA]
     },
     {
-      view: 'Instance VFS sync bridge',
-      text: 'Implement push and pull sync for selected VFS paths to a remote instance with conflict notes.',
+      view: 'Iframe clone benchmark runner',
+      text: 'Spawn a full UI clone in an iframe, run the same goal, and report latency, success, and quality deltas.',
       tags: [TAGS.GOV, TAGS.SYS, TAGS.DATA]
     },
     {
@@ -146,9 +146,9 @@ const GOAL_CATEGORIES = {
       tags: [TAGS.ORCH, TAGS.GOV, TAGS.DATA]
     },
     {
-      view: 'Prototype and compare loop',
-      text: 'Implement a loop that creates three solutions, runs them, and selects the best based on rules.',
-      tags: [TAGS.ORCH, TAGS.BENCH, TAGS.DATA]
+      view: 'Adversarial twin arena',
+      text: 'Spawn an adversarial iframe instance that tries to break or refute solutions, then score resilience.',
+      tags: [TAGS.ORCH, TAGS.BENCH, TAGS.GOV]
     },
     {
       view: 'Toolchain evolution loop',
@@ -156,9 +156,9 @@ const GOAL_CATEGORIES = {
       tags: [TAGS.ORCH, TAGS.SYS, TAGS.GOV]
     },
     {
-      view: 'Conclusion memory and revisions',
-      text: 'Create a conclusion memory store with evidence links and revision history in VFS.',
-      tags: [TAGS.DATA, TAGS.GOV, TAGS.SYS]
+      view: 'Genetic persona evolution arena',
+      text: 'Run a genetic loop over persona variants in iframes, score outcomes, and keep the top performers.',
+      tags: [TAGS.ORCH, TAGS.BENCH, TAGS.DATA]
     }
   ],
   'L4: Theoretical RSI': [
