@@ -133,6 +133,11 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  // Skip boot helpers that must load before VFS hydration.
+  if (url.pathname.startsWith('/boot/')) {
+    return;
+  }
+
   // Allow explicit bypass for VFS seeding and diagnostics.
   if (event.request.headers.get('x-reploid-vfs-bypass') === '1') {
     return;
