@@ -123,6 +123,21 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
 
+  // Skip reserved paths that should bypass the VFS loader.
+  if (url.pathname === '/dr' || url.pathname.startsWith('/dr/')) {
+    return;
+  }
+
+  // Skip bootstrap and other network-only entrypoints.
+  if (url.pathname === '/bootstrap.js' || url.pathname === '/app.js') {
+    return;
+  }
+
+  // Allow explicit bypass for VFS seeding and diagnostics.
+  if (event.request.headers.get('x-reploid-vfs-bypass') === '1') {
+    return;
+  }
+
   // Only intercept JavaScript module requests
   if (!url.pathname.endsWith('.js')) {
     return; // Let browser handle non-JS requests

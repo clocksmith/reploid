@@ -17,6 +17,8 @@ const renderBootstrapError = (err) => {
   container.appendChild(box);
 };
 
+const SW_CONTROL_RELOAD_KEY = 'REPLOID_SW_CONTROL_RELOAD';
+
 const ensureServiceWorker = async () => {
   if (!('serviceWorker' in navigator)) {
     throw new Error('Service workers are required for VFS boot');
@@ -24,14 +26,16 @@ const ensureServiceWorker = async () => {
   const reg = await navigator.serviceWorker.register('./sw-module-loader.js');
   await navigator.serviceWorker.ready;
   if (!navigator.serviceWorker.controller) {
-    await new Promise((resolve, reject) => {
-      const timeout = setTimeout(() => reject(new Error('Service worker not controlling page')), 5000);
-      navigator.serviceWorker.addEventListener('controllerchange', () => {
-        clearTimeout(timeout);
-        resolve();
-      }, { once: true });
-    });
+    const hasReloaded = sessionStorage.getItem(SW_CONTROL_RELOAD_KEY) === 'true';
+    if (!hasReloaded) {
+      sessionStorage.setItem(SW_CONTROL_RELOAD_KEY, 'true');
+      warn('Reloading to allow service worker control');
+      window.location.reload();
+      return new Promise(() => {});
+    }
+    throw new Error('Service worker not controlling page');
   }
+  sessionStorage.removeItem(SW_CONTROL_RELOAD_KEY);
   return reg;
 };
 

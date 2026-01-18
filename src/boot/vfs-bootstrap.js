@@ -7,6 +7,7 @@ const DB_NAME = 'reploid-vfs-v0';
 const STORE_FILES = 'files';
 const OPEN_TIMEOUT_MS = 10000;
 const DEFAULT_FETCH_CONCURRENCY = 6;
+const VFS_BYPASS_HEADER = 'x-reploid-vfs-bypass';
 
 let dbPromise = null;
 
@@ -130,7 +131,10 @@ const writeEntries = async (entries) => {
 };
 
 export async function loadVfsManifest() {
-  const response = await fetch('config/vfs-manifest.json', { cache: 'no-store' });
+  const response = await fetch('config/vfs-manifest.json', {
+    cache: 'no-store',
+    headers: { [VFS_BYPASS_HEADER]: '1' }
+  });
   if (!response.ok) {
     throw new Error(`Failed to load VFS manifest (${response.status})`);
   }
@@ -187,7 +191,10 @@ export async function seedVfsFromManifest(manifest, options = {}) {
 
   const fetchFile = async (file) => {
     const webPath = toWebPath(file);
-    const response = await fetch(webPath, { cache: 'no-store' });
+    const response = await fetch(webPath, {
+      cache: 'no-store',
+      headers: { [VFS_BYPASS_HEADER]: '1' }
+    });
     if (!response.ok) {
       throw new Error(`Failed to fetch ${webPath} (${response.status})`);
     }
