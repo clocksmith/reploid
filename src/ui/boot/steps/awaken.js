@@ -9,6 +9,12 @@ import {
   resolveBaseModules
 } from '../../../config/module-resolution.js';
 
+const escapeAttr = (value) => String(value || '')
+  .replace(/&/g, '&amp;')
+  .replace(/"/g, '&quot;')
+  .replace(/</g, '&lt;')
+  .replace(/>/g, '&gt;');
+
 /**
  * Render AWAKEN step
  */
@@ -18,9 +24,11 @@ export function renderAwakenStep(state) {
   const moduleConfig = state.moduleConfig || {};
   const advancedOpen = !!state.advancedOpen;
   const isAwakening = !!state.isAwakening;
+  const goalMissing = !(state.goal && state.goal.trim());
 
   let missingModules = [];
   let tooltipText = '';
+  let blockedKey = '';
   let resolvedModules = [];
 
   if (moduleConfig.genesis && moduleConfig.registry) {
@@ -31,16 +39,26 @@ export function renderAwakenStep(state) {
       missingModules = getMissingModules(AWAKEN_REQUIRED_MODULES, resolvedModules);
     } catch (err) {
       tooltipText = `Module check failed: ${err.message}`;
+      blockedKey = 'modules';
     }
   } else if (genesisLevel === 'tabula') {
     missingModules = [...AWAKEN_REQUIRED_MODULES];
   }
 
-  const awakenBlocked = missingModules.length > 0;
-
-  if (missingModules.length > 0) {
+  if (!blockedKey && missingModules.length > 0) {
     tooltipText = `Awaken requires: ${missingModules.join(', ')}`;
+    blockedKey = 'modules';
   }
+
+  if (!blockedKey && goalMissing) {
+    tooltipText = 'Set a goal to awaken';
+    blockedKey = 'goal';
+  }
+
+  const awakenBlocked = !!blockedKey;
+  const blockedAttrs = blockedKey
+    ? `data-blocked="${escapeAttr(blockedKey)}" data-blocked-reason="${escapeAttr(tooltipText)}"`
+    : '';
 
   const buttonText = isAwakening ? 'Awakening...' : 'Awaken Agent';
 
@@ -52,8 +70,10 @@ export function renderAwakenStep(state) {
         </button>
         <button class="btn btn-lg btn-prism${isAwakening ? ' loading' : ''}"
                 data-action="awaken"
+                id="awaken-btn"
+                ${blockedAttrs}
                 ${awakenBlocked || isAwakening ? 'disabled' : ''}
-                ${tooltipText ? `title="${tooltipText}"` : ''}
+                ${tooltipText ? `title="${escapeAttr(tooltipText)}"` : ''}
                 aria-busy="${isAwakening}">
           ${buttonText}
         </button>
