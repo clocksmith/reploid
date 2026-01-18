@@ -65,11 +65,11 @@ export async function resetSession(vfs, genesisConfig, genesisLevel, logger) {
   try {
     let seededPaths = null;
     try {
-      const seedText = await vfs.read('/config/vfs-seed.json');
-      const seed = JSON.parse(seedText);
-      const files = seed?.files && typeof seed.files === 'object' ? seed.files : null;
+      const manifestText = await vfs.read('/config/vfs-manifest.json');
+      const manifest = JSON.parse(manifestText);
+      const files = Array.isArray(manifest?.files) ? manifest.files : null;
       if (files) {
-        seededPaths = new Set(Object.keys(files));
+        seededPaths = new Set(files.map((file) => toVfsPath(file)));
       }
     } catch {
       seededPaths = null;

@@ -22,19 +22,19 @@ export const GOAL_CATEGORIES = {
     },
     {
       view: 'WebGL shader playground',
-      text: 'Create a WebGL-based tool that renders custom GLSL shaders. The agent can write shader code, compile it, and display visual effects. Add a panel to its own UI for live shader editing.',
+      text: 'Create a WebGL-based tool that renders custom GLSL shaders. The agent can write shader code, compile it, and display visual effects inside the existing Reploid UI. Add a panel in the current dashboard UI for live shader editing and preview; do not open a separate window or page.',
       tags: ['visual', 'tools'],
       requires: {}
     },
     {
       view: 'WebAudio tone generator',
-      text: 'Create a tool using the WebAudio API that generates tones, plays audio feedback for agent events (tool success/failure sounds), and can compose simple melodies. Add audio controls to the UI.',
+      text: 'Create a tool using the WebAudio API that generates tones, plays audio feedback for agent events (tool success/failure sounds), and can compose simple melodies. Add audio controls in the existing Reploid dashboard UI (panel); do not open a separate window or page.',
       tags: ['visual', 'tools'],
       requires: {}
     },
     {
       view: 'Attention map renderer',
-      text: 'Render attention head maps from Doppler as animated overlays and save snapshots to VFS.',
+      text: 'Render attention head maps from Doppler as animated overlays inside the existing Reploid dashboard UI, and save snapshots to VFS (no separate window or page).',
       tags: ['visual', 'doppler'],
       requires: { doppler: true },
       lockReason: 'Requires Doppler'
@@ -53,7 +53,7 @@ export const GOAL_CATEGORIES = {
     },
     {
       view: 'DOM mutation timelapse',
-      text: 'Build a MutationObserver recorder that captures DOM changes, renders a timelapse timeline (canvas or SVG), and saves the session to /.logs/dom-timelapse.json in VFS.',
+      text: 'Build a MutationObserver recorder that captures DOM changes, renders a timelapse timeline (canvas or SVG) inside the existing Reploid dashboard UI, and saves the session to /.logs/dom-timelapse.json in VFS.',
       tags: ['visual', 'systems'],
       requires: {}
     }
@@ -71,7 +71,7 @@ export const GOAL_CATEGORIES = {
     },
     {
       view: 'Activation steering workbench',
-      text: 'Create a UI workbench that sweeps activation steering vectors in Doppler and logs behavior shifts to EventBus.',
+      text: 'Create a UI workbench panel inside the existing Reploid dashboard that sweeps activation steering vectors in Doppler and logs behavior shifts to EventBus.',
       tags: ['visual', 'doppler'],
       requires: { doppler: true, reasoning: 'medium' },
       lockReason: 'Requires Doppler'
@@ -92,14 +92,14 @@ export const GOAL_CATEGORIES = {
     },
     {
       view: 'Canvas activity visualizer',
-      text: 'Create a Canvas-based panel that visualizes agent activity in real-time - tool calls as particles, errors as explosions, VFS writes as ripples. The agent builds and adds this visualization to its own UI.',
+      text: 'Create a Canvas-based panel inside the existing Reploid dashboard that visualizes agent activity in real-time - tool calls as particles, errors as explosions, VFS writes as ripples. The agent adds this visualization to the current UI, not a separate page.',
       tags: ['visual', 'systems'],
       requires: { reasoning: 'medium' },
       lockReason: 'Needs stronger model'
     },
     {
       view: 'Quantization explorer',
-      text: 'Compare model behavior at different quantization levels (FP16, INT8, INT4). Create a UI for A/B testing outputs and visualize quality degradation curves.',
+      text: 'Compare model behavior at different quantization levels (FP16, INT8, INT4). Create a UI panel inside the existing Reploid dashboard for A/B testing outputs and visualizing quality degradation curves.',
       tags: ['visual', 'doppler', 'research'],
       requires: { doppler: true, reasoning: 'medium' },
       lockReason: 'Requires Doppler'
@@ -117,7 +117,7 @@ export const GOAL_CATEGORIES = {
   'L2: Self-Modification (Substrate)': [
     {
       view: 'Substrate module wiring audit',
-      text: 'Add a runtime audit that verifies DI injection for GEPAOptimizer, PromptMemory, ArenaHarness, WorkerManager, and SubstrateLoader. Log results to VFS and surface a health summary panel.',
+      text: 'Add a runtime audit that verifies DI injection for GEPAOptimizer, PromptMemory, ArenaHarness, WorkerManager, and SubstrateLoader. Log results to VFS and surface a health summary panel inside the existing Reploid dashboard UI.',
       tags: ['systems', 'safety'],
       requires: { reasoning: 'high' },
       lockReason: 'Needs stronger model',
@@ -139,7 +139,7 @@ export const GOAL_CATEGORIES = {
     },
     {
       view: 'PolicyEngine enforcement audit',
-      text: 'Instrument PolicyEngine to record every policy decision, write a daily audit log to /.logs/policy-audit.jsonl, and add a UI panel that summarizes violations and top blocked actions.',
+      text: 'Instrument PolicyEngine to record every policy decision, write a daily audit log to /.logs/policy-audit.jsonl, and add a UI panel inside the existing Reploid dashboard that summarizes violations and top blocked actions.',
       tags: ['visual', 'safety', 'systems'],
       requires: { reasoning: 'high' },
       lockReason: 'Needs stronger model'
@@ -233,7 +233,7 @@ export const GOAL_CATEGORIES = {
     },
     {
       view: 'Implement consciousness metrics',
-      text: 'Design and implement quantitative metrics for self-awareness. Instrument the agent loop to measure them. Create a dashboard showing consciousness levels over time. Justify your metric choices philosophically.',
+      text: 'Design and implement quantitative metrics for self-awareness. Instrument the agent loop to measure them. Create a dashboard panel in the existing Reploid UI showing consciousness levels over time (no separate page). Justify your metric choices philosophically.',
       tags: ['visual', 'research'],
       requires: { reasoning: 'high' },
       lockReason: 'Needs stronger model'

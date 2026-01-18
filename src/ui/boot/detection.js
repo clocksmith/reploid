@@ -123,7 +123,7 @@ export async function runPreflight() {
     buildPreflightItem('secure-context', 'Secure context', 'pending', PREFLIGHT_PENDING),
     buildPreflightItem('service-worker', 'Service worker', 'pending', PREFLIGHT_PENDING),
     buildPreflightItem('indexeddb', 'IndexedDB', 'pending', PREFLIGHT_PENDING),
-    buildPreflightItem('vfs-seed', 'VFS seed', 'pending', PREFLIGHT_PENDING),
+    buildPreflightItem('vfs-manifest', 'VFS manifest', 'pending', PREFLIGHT_PENDING),
     buildPreflightItem('genesis-config', 'Genesis config', 'pending', PREFLIGHT_PENDING),
     buildPreflightItem('module-registry', 'Module registry', 'pending', PREFLIGHT_PENDING)
   ];
@@ -151,9 +151,9 @@ export async function runPreflight() {
 
   let idbReady = false;
   let idbError = null;
-  let seedText = null;
+  let manifestText = null;
   try {
-    seedText = await readVfsFile('/config/vfs-seed.json');
+    manifestText = await readVfsFile('/config/vfs-manifest.json');
     idbReady = true;
   } catch (err) {
     idbError = err;
@@ -173,10 +173,10 @@ export async function runPreflight() {
     ]);
 
     items.push(buildPreflightItem(
-      'vfs-seed',
-      'VFS seed',
-      seedText ? 'ready' : 'error',
-      seedText ? 'Seed bundle loaded' : 'Seed missing'
+      'vfs-manifest',
+      'VFS manifest',
+      manifestText ? 'ready' : 'error',
+      manifestText ? 'Manifest loaded' : 'Manifest missing'
     ));
     items.push(buildPreflightItem(
       'genesis-config',
@@ -191,7 +191,7 @@ export async function runPreflight() {
       registryText ? 'Registry ready' : 'Missing /config/module-registry.json'
     ));
   } else {
-    items.push(buildPreflightItem('vfs-seed', 'VFS seed', 'error', 'IndexedDB unavailable'));
+    items.push(buildPreflightItem('vfs-manifest', 'VFS manifest', 'error', 'IndexedDB unavailable'));
     items.push(buildPreflightItem('genesis-config', 'Genesis config', 'error', 'IndexedDB unavailable'));
     items.push(buildPreflightItem('module-registry', 'Module registry', 'error', 'IndexedDB unavailable'));
   }
