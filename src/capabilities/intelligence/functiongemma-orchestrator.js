@@ -131,18 +131,17 @@ const FunctionGemmaOrchestrator = {
     };
 
     const _loadManifestFromOpfs = async (modelId) => {
-      const { initOPFS, openModelDirectory } = await import('@clocksmith/doppler/storage/shard-manager.js');
-      await initOPFS();
-      await openModelDirectory(modelId);
-      const { loadManifestFromOPFS } = await import('@clocksmith/doppler/storage/shard-manager.js');
-      const manifestText = await loadManifestFromOPFS();
+      const { initStorage, openModelStore, loadManifestFromStore } = await import('@clocksmith/doppler/storage/shard-manager.js');
+      await initStorage();
+      await openModelStore(modelId);
+      const manifestText = await loadManifestFromStore();
       return JSON.parse(manifestText);
     };
 
     const _createStorageContext = async (modelId) => {
-      const { openModelDirectory, loadShard } = await import('@clocksmith/doppler/storage/shard-manager.js');
+      const { openModelStore, loadShard } = await import('@clocksmith/doppler/storage/shard-manager.js');
       if (modelId) {
-        await openModelDirectory(modelId);
+        await openModelStore(modelId);
       }
       return {
         loadShard: async (index) => {
