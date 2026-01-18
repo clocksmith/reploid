@@ -15,6 +15,7 @@ import {
   testProxyModel, testDirectModel
 } from './detection.js';
 
+import { formatGoalPacket } from './goals.js';
 import { serializeModuleOverrides } from '../../config/module-resolution.js';
 import { readVfsFile, loadVfsManifest, seedVfsFromManifest } from '../../boot/vfs-bootstrap.js';
 
@@ -23,6 +24,7 @@ import { renderChooseStep } from './steps/choose.js';
 import { renderDirectConfigStep, CLOUD_MODELS } from './steps/direct.js';
 import { renderProxyConfigStep } from './steps/proxy.js';
 import { renderBrowserConfigStep } from './steps/browser.js';
+import { renderGoalStep } from './steps/goal.js';
 import { renderAwakenStep } from './steps/awaken.js';
 
 // DOM container reference
@@ -250,20 +252,25 @@ function updateUI() {
   const directSection = container.querySelector('.wizard-direct');
   const proxySection = container.querySelector('.wizard-proxy');
   const browserSection = container.querySelector('.wizard-browser');
+  const goalSection = container.querySelector('.wizard-goal');
   const awakenSection = container.querySelector('.wizard-awaken');
 
   if (directSection) directSection.style.display = state.connectionType === 'direct' ? '' : 'none';
   if (proxySection) proxySection.style.display = state.connectionType === 'proxy' ? '' : 'none';
   if (browserSection) browserSection.style.display = state.connectionType === 'browser' ? '' : 'none';
 
-  // Show awaken when ready
+  // Show goal always, awaken when ready
   const ready = canAwaken();
+  if (goalSection) goalSection.style.display = '';
   if (awakenSection) awakenSection.style.display = ready ? '' : 'none';
 
   // Update accordion states
-  container.querySelectorAll('.accordion-header[data-category]').forEach(header => {
+  const goalHeaders = Array.from(container.querySelectorAll('.accordion-header[data-category]'));
+  const fallbackCategory = goalHeaders[0]?.dataset.category || null;
+  const selectedCategory = state.selectedGoalCategory || fallbackCategory;
+  goalHeaders.forEach(header => {
     const category = header.dataset.category;
-    const isSelected = category === state.selectedGoalCategory;
+    const isSelected = category === selectedCategory;
     header.setAttribute('aria-expanded', isSelected);
     const content = header.nextElementSibling;
     if (content) content.setAttribute('aria-hidden', !isSelected);
@@ -285,15 +292,26 @@ function updateUI() {
     preserveCheckbox.checked = !!state.advancedConfig?.preserveOnBoot;
   }
 
-  // Update awaken button based on loading state
+  // Update awaken button based on goal, readiness, and loading state
   const awakenBtn = container.querySelector('[data-action="awaken"]');
+  const hasGoal = !!(state.goal && state.goal.trim());
   const isAwakening = !!state.isAwakening;
   if (awakenBtn) {
-    awakenBtn.disabled = !ready || isAwakening;
+    const blockedByModules = awakenBtn.dataset.blocked === 'modules';
+    const disabled = !ready || !hasGoal || isAwakening || blockedByModules;
+    awakenBtn.disabled = disabled;
     awakenBtn.classList.toggle('loading', isAwakening);
     awakenBtn.setAttribute('aria-busy', isAwakening);
     awakenBtn.textContent = isAwakening ? 'Awakening...' : 'Awaken Agent';
-    awakenBtn.removeAttribute('title');
+
+    if (blockedByModules) {
+      const reason = awakenBtn.dataset.blockedReason || 'Missing required modules';
+      awakenBtn.setAttribute('title', reason);
+    } else if (!hasGoal) {
+      awakenBtn.setAttribute('title', 'Set a goal to awaken');
+    } else {
+      awakenBtn.removeAttribute('title');
+    }
   }
 
   // Update advanced settings button text
@@ -302,10 +320,26 @@ function updateUI() {
     advancedBtnInAwaken.textContent = state.advancedOpen ? 'Hide advanced' : 'Advanced settings';
   }
 
+  updateGoalSelectionUI(state);
+
   // Load module config if needed
   if (state.advancedOpen || ready) {
     ensureModuleConfigLoaded();
   }
+}
+
+function updateGoalSelectionUI(state) {
+  if (!container) return;
+  const goalInput = container.querySelector('#goal-input');
+  if (goalInput && document.activeElement !== goalInput && goalInput.value !== (state.goal || '')) {
+    goalInput.value = state.goal || '';
+  }
+
+  container.querySelectorAll('[data-action="select-goal"]').forEach((el) => {
+    const goalValue = el.dataset.goal || '';
+    const isSelected = goalValue === (state.goal || '');
+    el.classList.toggle('selected', isSelected);
+  });
 }
 
 function render() {
@@ -348,8 +382,9 @@ function render() {
   const browserDisplay = state.connectionType === 'browser' ? '' : 'none';
   html += `<div class="wizard-browser" style="display:${browserDisplay}">${renderBrowserConfigStep(state)}</div>`;
 
-  // Section 3: Awaken (hidden until ready)
+  // Section 3: Goals and awaken
   const ready = canAwaken();
+  html += renderGoalStep(state);
   const awakenDisplay = ready ? '' : 'none';
   html += `<div style="display:${awakenDisplay}">${renderAwakenStep(state)}</div>`;
 
@@ -426,6 +461,26 @@ function handleClick(e) {
     case 'skip-detection':
       // No longer needed - detection runs in background
       break;
+
+    case 'toggle-goal-category': {
+      const category = e.target.closest('[data-category]')?.dataset.category;
+      if (category) {
+        setState({ selectedGoalCategory: category });
+      }
+      break;
+    }
+
+    case 'select-goal': {
+      const button = e.target.closest('[data-goal]');
+      const goalValue = button?.dataset.goal;
+      if (!goalValue) break;
+      const category = button.closest('[data-category]')?.dataset.category;
+      setState({
+        goal: goalValue,
+        selectedGoalCategory: category || state.selectedGoalCategory
+      });
+      break;
+    }
 
     case 'choose-browser':
       setState({ connectionType: 'browser' });
@@ -697,6 +752,10 @@ function handleInput(e) {
     case 'module-override-search':
       setState({ moduleOverrideSearch: value });
       break;
+
+    case 'goal-input':
+      setState({ goal: value });
+      break;
   }
 }
 
@@ -856,6 +915,9 @@ async function handleTestDirectModel() {
 
 async function doAwaken() {
   const state = getState();
+  const goalPacket = formatGoalPacket(state.goal);
+  if (!goalPacket) return;
+
   saveConfig();
 
   // Set loading state immediately
@@ -878,7 +940,7 @@ async function doAwaken() {
   }
 
   if (window.triggerAwaken) {
-    window.triggerAwaken(null);
+    window.triggerAwaken(goalPacket);
   }
   // Note: isAwakening stays true since the page will transition to agent UI
 }
