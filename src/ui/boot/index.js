@@ -15,22 +15,14 @@ import {
   testProxyModel, testDirectModel
 } from './detection.js';
 
-import {
-  buildGoalCriteria,
-  findGoalMeta,
-  formatGoalPacket,
-  parseCriteriaText
-} from './goals.js';
-
 import { serializeModuleOverrides } from '../../config/module-resolution.js';
-import { readVfsFile } from '../../boot/vfs-bootstrap.js';
+import { readVfsFile, loadVfsManifest, seedVfsFromManifest } from '../../boot/vfs-bootstrap.js';
 
 // Step renderers
 import { renderChooseStep } from './steps/choose.js';
 import { renderDirectConfigStep, CLOUD_MODELS } from './steps/direct.js';
 import { renderProxyConfigStep } from './steps/proxy.js';
 import { renderBrowserConfigStep } from './steps/browser.js';
-import { renderGoalStep } from './steps/goal.js';
 import { renderAwakenStep } from './steps/awaken.js';
 
 // DOM container reference
@@ -258,16 +250,14 @@ function updateUI() {
   const directSection = container.querySelector('.wizard-direct');
   const proxySection = container.querySelector('.wizard-proxy');
   const browserSection = container.querySelector('.wizard-browser');
-  const goalSection = container.querySelector('.wizard-goal');
   const awakenSection = container.querySelector('.wizard-awaken');
 
   if (directSection) directSection.style.display = state.connectionType === 'direct' ? '' : 'none';
   if (proxySection) proxySection.style.display = state.connectionType === 'proxy' ? '' : 'none';
   if (browserSection) browserSection.style.display = state.connectionType === 'browser' ? '' : 'none';
 
-  // Show goal/awaken when ready
+  // Show awaken when ready
   const ready = canAwaken();
-  if (goalSection) goalSection.style.display = ready ? '' : 'none';
   if (awakenSection) awakenSection.style.display = ready ? '' : 'none';
 
   // Update accordion states
@@ -295,20 +285,15 @@ function updateUI() {
     preserveCheckbox.checked = !!state.advancedConfig?.preserveOnBoot;
   }
 
-  // Update awaken button based on goal and loading state
+  // Update awaken button based on loading state
   const awakenBtn = container.querySelector('[data-action="awaken"]');
-  const hasGoal = !!(state.goal && state.goal.trim());
   const isAwakening = !!state.isAwakening;
   if (awakenBtn) {
-    awakenBtn.disabled = !hasGoal || isAwakening;
+    awakenBtn.disabled = !ready || isAwakening;
     awakenBtn.classList.toggle('loading', isAwakening);
     awakenBtn.setAttribute('aria-busy', isAwakening);
     awakenBtn.textContent = isAwakening ? 'Awakening...' : 'Awaken Agent';
-    if (!hasGoal && !isAwakening) {
-      awakenBtn.title = 'Select or enter a goal above to awaken the agent.';
-    } else {
-      awakenBtn.removeAttribute('title');
-    }
+    awakenBtn.removeAttribute('title');
   }
 
   // Update advanced settings button text
@@ -317,100 +302,10 @@ function updateUI() {
     advancedBtnInAwaken.textContent = state.advancedOpen ? 'Hide advanced' : 'Advanced settings';
   }
 
-  updateGoalBuilderUI(state);
-
   // Load module config if needed
   if (state.advancedOpen || ready) {
     ensureModuleConfigLoaded();
   }
-}
-
-function updateGoalBuilderUI(state) {
-  const builder = container.querySelector('.goal-builder');
-  if (!builder) return;
-
-  const criteriaText = state.goalCriteria || '';
-  const criteriaList = parseCriteriaText(criteriaText);
-  const criteriaCount = criteriaList.length;
-  const countEl = builder.querySelector('[data-goal-criteria-count]');
-  if (countEl) {
-    countEl.textContent = criteriaCount ? `${criteriaCount} criteria` : 'No criteria yet';
-  }
-
-  const goalMeta = findGoalMeta(state.goal);
-  const goalTitle = goalMeta?.view || (state.goal ? 'Custom goal' : 'No goal selected');
-  const goalDescription = goalMeta?.text || state.goal || 'Pick a goal to see details.';
-  const titleEl = builder.querySelector('[data-goal-meta-title]');
-  if (titleEl) titleEl.textContent = goalTitle;
-  const textEl = builder.querySelector('[data-goal-meta-text]');
-  if (textEl) textEl.textContent = goalDescription;
-
-  const tags = [];
-  if (goalMeta?.level) tags.push(goalMeta.level);
-  if (goalMeta?.requires?.doppler) tags.push('Doppler');
-  if (goalMeta?.requires?.model) tags.push('Model access');
-  if (goalMeta?.requires?.reasoning) tags.push(`Reasoning ${goalMeta.requires.reasoning}`);
-  if (goalMeta?.recommended) tags.push('Recommended');
-  if (Array.isArray(goalMeta?.tags)) tags.push(...goalMeta.tags);
-  const uniqueTags = Array.from(new Set(tags)).slice(0, 10);
-
-  const tagsEl = builder.querySelector('[data-goal-meta-tags]');
-  if (tagsEl) {
-    tagsEl.replaceChildren();
-    if (uniqueTags.length === 0) {
-      const emptyTag = document.createElement('span');
-      emptyTag.className = 'type-caption';
-      emptyTag.textContent = 'No signals yet.';
-      tagsEl.appendChild(emptyTag);
-    } else {
-      uniqueTags.forEach(tag => {
-        const tagEl = document.createElement('span');
-        tagEl.className = 'tag';
-        tagEl.textContent = tag;
-        tagsEl.appendChild(tagEl);
-      });
-    }
-  }
-
-  const suggestions = buildGoalCriteria(state.goal, goalMeta);
-  const suggestionsEl = builder.querySelector('[data-goal-suggestions]');
-  if (suggestionsEl) {
-    suggestionsEl.replaceChildren();
-    if (suggestions.length === 0) {
-      const empty = document.createElement('li');
-      empty.className = 'criteria-item criteria-empty type-caption';
-      empty.textContent = 'No suggestions yet.';
-      suggestionsEl.appendChild(empty);
-    } else {
-      suggestions.forEach((item, index) => {
-        const li = document.createElement('li');
-        li.className = 'criteria-item';
-        const indexEl = document.createElement('span');
-        indexEl.className = 'criteria-index';
-        indexEl.textContent = String(index + 1);
-        const textEl = document.createElement('span');
-        textEl.className = 'criteria-text';
-        textEl.textContent = item;
-        li.append(indexEl, textEl);
-        suggestionsEl.appendChild(li);
-      });
-    }
-  }
-
-  const criteriaInput = builder.querySelector('#goal-criteria');
-  if (criteriaInput && document.activeElement !== criteriaInput && criteriaInput.value !== criteriaText) {
-    criteriaInput.value = criteriaText;
-  }
-
-  const customGoalInput = container.querySelector('#custom-goal');
-  if (customGoalInput && document.activeElement !== customGoalInput && customGoalInput.value !== (state.goal || '')) {
-    customGoalInput.value = state.goal || '';
-  }
-
-  const applyButton = builder.querySelector('[data-action="apply-goal-suggestions"]');
-  if (applyButton) applyButton.disabled = suggestions.length === 0;
-  const clearButton = builder.querySelector('[data-action="clear-goal-criteria"]');
-  if (clearButton) clearButton.disabled = !criteriaText.trim();
 }
 
 function render() {
@@ -453,11 +348,10 @@ function render() {
   const browserDisplay = state.connectionType === 'browser' ? '' : 'none';
   html += `<div class="wizard-browser" style="display:${browserDisplay}">${renderBrowserConfigStep(state)}</div>`;
 
-  // Section 3: Goal and awaken (hidden until ready)
+  // Section 3: Awaken (hidden until ready)
   const ready = canAwaken();
-  const goalDisplay = ready ? '' : 'none';
-  html += `<div style="display:${goalDisplay}">${renderGoalStep(state)}</div>`;
-  html += `<div style="display:${goalDisplay}">${renderAwakenStep(state)}</div>`;
+  const awakenDisplay = ready ? '' : 'none';
+  html += `<div style="display:${awakenDisplay}">${renderAwakenStep(state)}</div>`;
 
   html += '</div>';
 
@@ -521,10 +415,7 @@ function handleClick(e) {
 
     case 'reconfigure':
       setState({
-        connectionType: null,
-        goal: null,
-        goalCriteria: '',
-        goalCriteriaSource: 'auto'
+        connectionType: null
       });
       break;
 
@@ -609,62 +500,11 @@ function handleClick(e) {
       handleTestDirectModel();
       break;
 
-    case 'continue-to-goal':
-      // Goal shows automatically when config is ready
-      break;
-
     case 'select-doppler-model': {
       const modelId = e.target.closest('[data-model]')?.dataset.model;
       if (modelId) {
         setNestedState('dopplerConfig', { model: modelId });
       }
-      break;
-    }
-
-    case 'toggle-goal-category': {
-      const category = e.target.closest('[data-category]')?.dataset.category;
-      if (category) {
-        setState({ selectedGoalCategory: category });
-      }
-      break;
-    }
-
-    case 'select-goal': {
-      const goalText = e.target.closest('[data-goal]')?.dataset.goal;
-      if (goalText) {
-        const goalMeta = findGoalMeta(goalText);
-        const suggestions = buildGoalCriteria(goalText, goalMeta);
-        const criteriaText = suggestions.join('\n');
-        setState({
-          goal: goalText,
-          goalCriteria: criteriaText,
-          goalCriteriaSource: 'auto'
-        });
-        const textarea = document.getElementById('custom-goal');
-        if (textarea) textarea.value = goalText;
-        const criteriaInput = document.getElementById('goal-criteria');
-        if (criteriaInput) criteriaInput.value = criteriaText;
-      }
-      break;
-    }
-
-    case 'apply-goal-suggestions': {
-      const goalMeta = findGoalMeta(state.goal);
-      const suggestions = buildGoalCriteria(state.goal, goalMeta);
-      const criteriaText = suggestions.join('\n');
-      setState({
-        goalCriteria: criteriaText,
-        goalCriteriaSource: 'auto'
-      });
-      const criteriaInput = document.getElementById('goal-criteria');
-      if (criteriaInput) criteriaInput.value = criteriaText;
-      break;
-    }
-
-    case 'clear-goal-criteria': {
-      setState({ goalCriteria: '', goalCriteriaSource: 'custom' });
-      const criteriaInput = document.getElementById('goal-criteria');
-      if (criteriaInput) criteriaInput.value = '';
       break;
     }
 
@@ -832,23 +672,6 @@ function handleInput(e) {
   const value = e.target.value;
 
   switch (id) {
-    case 'custom-goal':
-      {
-        const current = getState();
-        const updates = { goal: value };
-        if (current.goalCriteriaSource === 'auto') {
-          const goalMeta = findGoalMeta(value);
-          const suggestions = buildGoalCriteria(value, goalMeta);
-          updates.goalCriteria = suggestions.join('\n');
-        }
-        setState(updates);
-      }
-      break;
-
-    case 'goal-criteria':
-      setState({ goalCriteria: value, goalCriteriaSource: 'custom' });
-      break;
-
     case 'direct-key':
       setNestedState('directConfig', { apiKey: value });
       break;
@@ -1033,25 +856,29 @@ async function handleTestDirectModel() {
 
 async function doAwaken() {
   const state = getState();
-  const goalPacket = formatGoalPacket(state.goal, state.goalCriteria) || state.goal;
   saveConfig();
 
   // Set loading state immediately
   setState({ isAwakening: true });
 
-  // Clear VFS before awakening to ensure fresh hydration from source files
-  if (window.clearVFS) {
-    console.log('[Boot] Clearing VFS before awaken...');
-    try {
-      const steps = await window.clearVFS();
-      console.log('[Boot] VFS cleared:', steps);
-    } catch (err) {
-      console.warn('[Boot] VFS clear failed, continuing anyway:', err);
+  try {
+    if (!state.advancedConfig?.preserveOnBoot) {
+      console.log('[Boot] Ensuring VFS hydration before awaken...');
+      const { manifest, text } = await loadVfsManifest();
+      await seedVfsFromManifest(manifest, {
+        preserveOnBoot: false,
+        logger: console,
+        manifestText: text
+      });
     }
+  } catch (err) {
+    console.error('[Boot] VFS hydration failed:', err);
+    setState({ isAwakening: false });
+    return;
   }
 
   if (window.triggerAwaken) {
-    window.triggerAwaken(goalPacket);
+    window.triggerAwaken(null);
   }
   // Note: isAwakening stays true since the page will transition to agent UI
 }
