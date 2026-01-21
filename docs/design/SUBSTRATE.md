@@ -44,30 +44,7 @@ The core provides fundamental capabilities for REPLOID's recursive self-improvem
 
 ### Capability Levels
 
-**L0: Basic Functions** (`tool-writer.js`)
-- Agent creates new tools at runtime
-- Uses Web APIs (WebGL, WebAudio, WebSocket, etc.)
-- Registers tools in runtime registry
-
-**L1: Meta Tooling** (`meta-tool-writer.js`)
-- Agent improves its own tool-creation mechanism
-- Tools that create or modify other tools
-- Hot-reloads improved versions
-
-**L2: Self-Modification (Substrate)** (`substrate-loader.js`)
-- Agent modifies core modules (agent-loop, tool-runner, etc.)
-- Creates widgets and Web Components
-- Executes arbitrary substrate code
-
-**L3: Weak RSI (Iterative)**
-- Bounded feedback loops for self-improvement
-- Proposes changes, verifies, rolls back on failure
-- Iterative but with diminishing returns
-
-**L4: True RSI (Impossible)**
-- Unbounded self-improvement (theoretical)
-- Gets better at getting better without ceiling
-- Currently impossible challenges
+> Definitions moved to [AGENTS.md](../../AGENTS.md#capability-levels) to maintain a single source of truth.
 
 ---
 
