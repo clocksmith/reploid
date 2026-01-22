@@ -204,9 +204,11 @@ Despite not achieving genuine novelty, this run is instructive because:
 
 ---
 
-## Appendix: The Steamroller (What Actually Works)
+## Phase 2: The HITL Pivot (The Steamroller)
 
-A human response to REAR Sort: **The Steamroller** - a static LSD Radix-8 sort.
+After the initial autonomous run, the human user intervened (HITL) to guide the agent. The insight was simple: the "novel" entropy adaptation was actually a performance bottleneck. The user directed the agent to strip away the adaptive logic and focus on raw engineering constraints (L1 cache size).
+
+The result was **The Steamroller** - a static LSD Radix-8 sort.
 
 ### Philosophy
 
@@ -218,7 +220,7 @@ A human response to REAR Sort: **The Steamroller** - a static LSD Radix-8 sort.
 
 ### Why It Wins
 
-| Property | REAR Sort (Agent) | Steamroller (Human) |
+| Property | REAR Sort (Autonomous) | Steamroller (HITL-Guided) |
 |----------|-------------------|---------------------|
 | Strategy | Adaptive entropy | Fixed 4-pass LSD |
 | Branches | Many (if entropy...) | Zero |
@@ -241,13 +243,11 @@ Using proper harness with `Int32Array.sort()` (V8's optimized native path):
 
 **Crossover:** ~50-100K elements. Below that, native wins (JIT overhead). Above, Steamroller's O(4N) beats native's O(N log N).
 
-**REAR Sort comparison:** REAR was 3-5x *slower* than native. Steamroller is 2x *faster*. That's a 6-10x delta between "adaptive entropy" and boring linear passes.
-
 ### The Lesson
 
-The agent spent 49 cycles building entropy calculations, adaptive radix selection, and formal proofs. A human spent 5 minutes writing four nested loops.
+The agent autonomously spent 49 cycles building theoretical novelty. With human guidance to focus on engineering constraints over novelty, it produced a utility that outperforms the browser's own native code.
 
-Predictability beats cleverness. Simplicity beats novelty.
+Predictability beats cleverness. Structure beats novelty.
 
 ### Full Implementation + Benchmark
 

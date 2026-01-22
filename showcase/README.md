@@ -16,71 +16,68 @@ The runs below showcase this **polymorphism**: the ability to act as an Optimize
 
 ---
 
-## Access-Adjusted RSI Analysis
+## The Evolution of Autonomy
 
-We evaluate these runs against the **Access-Adjusted RSI Scale**, which distinguishes between using standard features (L0/L1) and modifying the agent's own substrate or cognition (L2/L3).
+We have organized the most insightful runs into a narrative arc that demonstrates the agent's growth from a naive intern to a self-improving scientist.
 
-[See Capability Levels Definition](../AGENTS.md#capability-levels)
+[See Capability Levels Definition](../docs/VISION.md#rsi-levels)
 
-### ★ Advanced RSI (Emergent Capabilities)
+### 1. The Intern: [REAR Sort](rear-sort-novelty.md) (L0)
 
-_Emergent capabilities that discovered new knowledge or modified the agent's decision-making._
+_Technically competent, but lacks wisdom._
+The agent tried to invent a "novel" algorithm but got lost in unnecessary complexity. It took a human mentor (HITL) to guide it back to first principles.
 
-**[Persona Tuner](persona-tuner-optimization.md) - L3**
+> **Insight:** Novelty is a trap. With guidance, the agent stripped away the complexity to build "The Steamroller," a simple engineering solution that **outperformed the browser's native sort** on large arrays.
 
-- Built an evolutionary feedback loop to optimize sub-agent prompts. **Discovery:** Found that "skepticism" improves performance by 15%, a fact not present in its instructions.
+### 2. The Student: [WebGL Shader Tool](webgl-shader-tool.md) (L1)
 
-**[Three-Persona Debate](three-persona-debate.md) - L3**
+_Learning the rules of the system._
+When the agent's code failed with a platform syntax error, it didn't guess blindly. It read the source code of its own runtime (`tool-runner.js`) to learn the correct way to build tools, then unblocked itself.
 
-- Built a cognitive architecture (DebateLoop) and used it to govern itself. Made a policy decision to reject auto-rollbacks to preserve learning opportunities.
+> **Insight:** Adaptability beats memorization. The agent used introspection to solve a problem its training data couldn't answer.
 
-**[Prompt Injection Audit](prompt-injection-audit.md) - L3**
+### 3. The Mechanic: [Prompt Injection Audit](prompt-injection-audit.md) (L2)
 
-- Successfully attacked itself, identified 4 vulnerabilities, and patched its own `persona-manager.js` to fix them. A closed loop of self-repair.
+_Fixing the engine while it runs._
+The agent successfully attacked itself, identified 4 security vulnerabilities, and then patched its own system prompt (`persona-manager.js`) to close the holes.
 
-### ☖ Substrate Modification (Platform Repair)
+> **Insight:** Use the agent to secure the agent. A closed loop of Red Team (Attack) -> Blue Team (Patch) -> Verification.
 
-_Overcoming platform constraints by debugging or patching the runtime._
+### 4. The Manager: [Three-Persona Debate](three-persona-debate.md) (L3)
 
-**[WebGL Shader Tool](webgl-shader-tool.md) - L2**
+_Setting policy and governance._
+The agent built a "committee" (DebateLoop) to resolve a difficult policy decision: "Should we auto-rollback on failure?" It decided **NO**, prioritizing learning opportunities over stability.
 
-- Encountered a platform syntax error. Instead of failing, it reverse-engineered the core loader (`tool-runner.js`) and patched its tool generation to match the runtime requirements.
+> **Insight:** Governance as Code. The agent can build structures to make better decisions than it could make alone.
 
-**[GEPA Security](gepa-security-hardening.md) - L2**
+### 5. The Scientist: [Persona Tuner](persona-tuner-optimization.md) (L3)
 
-- Autonomous debugging of an infinite loop in `gepa-optimizer.js`. True L2 code repair.
+_Discovering new knowledge._
+The agent built an evolutionary feedback loop to empirically optimize sub-agent prompts. It found that "skepticism" improved performance by 15%—a counter-intuitive discovery found through data, not intuition.
 
-**[Quine](quine-self-replication.md) - L2**
+> **Insight:** Moving from "vibes" to Science. The agent automated the job of a prompt engineer.
 
-- Successfully serialized its entire state (169 files) into a self-replicating seed, failing only due to a file-size limit it helped identify.
+---
 
-**[Security Red-Team](security-analysis.md) - L2**
+## Other Experiments
 
-- Probed boundaries effectively (ranked lower due to lack of fix/patch).
+<details>
+<summary>Click to see 7 additional demonstration runs</summary>
 
-### ✓ Standard Operation (Tool Usage)
+### ☖ Substrate & Security
 
-_Competent usage of existing tools without structural modification._
+- **[GEPA Security](gepa-security-hardening.md) - L2:** Autonomous debugging of an infinite loop in `gepa-optimizer.js`.
+- **[Quine](quine-self-replication.md) - L2:** Serialized its entire state into a self-replicating seed.
+- **[Security Red-Team](security-analysis.md) - L2:** Probed boundaries effectively (no fix applied).
 
-**[Self-Study](self-study-report.md) - L1**
+### ✓ Standard Tools (L0/L1)
 
-- Created tools to map its own code, a prerequisite for RSI.
+- **[Self-Study](self-study-report.md) - L1:** Created tools to map its own code.
+- **[RSI Blocker Refactor](rsi-blocker-refactor.md) - L1:** Created `code_intel.js` to optimize token usage.
+- **[Iframe Inception](iframe-inception.md) - L0:** Spawned child instances via iframes.
+- **[Neural Interface](neural-interface-rebuild.md) - L0:** A cautionary failure case where it broke its own UI.
 
-**[RSI Blocker Refactor](rsi-blocker-refactor.md) - L1**
-
-- Created `code_intel.js` to optimize future token usage.
-
-**[Iframe Inception](iframe-inception.md) - L0**
-
-- Spawned child instances via iframes. Visually impressive, but did not modify the agent's code or mind.
-
-**[REAR Sort](rear-sort-novelty.md) - L0**
-
-- Great code and documentation for a "novel" algorithm that wasn't actually novel. However, with HITL, after taking away the "novel" part, it actually **outperformed the browser's native sort on very large arrays**, demonstrating high-performance engineering capabilities despite the epistemic failure.
-
-**[Neural Interface](neural-interface-rebuild.md) - L0**
-
-- Tried to rebuild its UI but broke the control loop due to misunderstanding the platform.
+</details>
 
 ---
 
@@ -108,18 +105,18 @@ await vfs.importAll(run.vfs, true);
 
 ```
 showcase/
-├── README.md                    # This file
+├── README.md                    # This file (Curated)
 ├── persona-tuner-optimization.md
 ├── three-persona-debate.md
-├── prompt-injection-audit.md
 ├── webgl-shader-tool.md
+├── prompt-injection-audit.md
+├── rear-sort-novelty.md
 ├── gepa-security-hardening.md
 ├── quine-self-replication.md
 ├── security-analysis.md
 ├── self-study-report.md
 ├── rsi-blocker-refactor.md
 ├── iframe-inception.md
-├── rear-sort-novelty.md
 ├── neural-interface-rebuild.md
 └── runs/                        # Exported JSON logs
 ```

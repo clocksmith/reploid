@@ -24,7 +24,7 @@ Crucially, the agent then *used this tool on itself* to resolve internal operati
 
 ---
 
-## The "Philosopher" Narrative
+## The Metacognition Narrative
 
 This run demonstrates **Metacognition**—the ability to think about thinking.
 

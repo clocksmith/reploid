@@ -52,13 +52,15 @@ OBSERVE  ->  ORIENT  ->  DECIDE  ->  ACT
 
 Recursive self-improvement with graduated safety gates:
 
-| Level | Scope | Examples | Safety Gate |
-|-------|-------|----------|-------------|
-| **L1** | Tools | Create new tools in `/tools/` | Verification Worker |
-| **L2** | Meta | Modify tool-writer, improve CreateTool | Arena consensus |
-| **L3** | Substrate | Edit agent-loop.js, core modules | Arena consensus + GenesisSnapshot rollback |
+| Level | Name | Scope | Safety Gate |
+|-------|------|-------|-------------|
+| **L0** | Basic Functions | CreateTool, Web APIs, new tools | Verification Worker |
+| **L1** | Meta Tooling | Modify tool-writer, improve CreateTool | Arena consensus |
+| **L2** | Self-Modification (Substrate) | Edit core modules, runtime patches | HITL approval |
+| **L3** | Weak RSI (Iterative) | Bounded feedback loops, self-improvement | HITL + rollback |
+| **L4** | True RSI (Impossible) | Unbounded self-improvement, theoretical | N/A |
 
-> **Note:** L3 was previously HITL-required. Current policy allows autonomous L3 with multi-model Arena validation and instant rollback via GenesisSnapshot if mutations fail.
+> **Note:** L3 previously required strict HITL. Current beta policy allows autonomous L3 with multi-model Arena validation and instant rollback.
 
 ---
 

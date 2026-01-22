@@ -25,7 +25,7 @@ It didn't rely on intuition; it used **empirical measurement**. It created a ben
 
 ---
 
-## The "Optimizer" Narrative
+## The Evolutionary Narrative
 
 The agent acted as a gradient descent algorithm, iteratively climbing the hill of performance.
 
