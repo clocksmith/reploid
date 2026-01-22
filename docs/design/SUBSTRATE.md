@@ -44,7 +44,7 @@ The core provides fundamental capabilities for REPLOID's recursive self-improvem
 
 ### Capability Levels
 
-> Definitions moved to [AGENTS.md](../../AGENTS.md#capability-levels) to maintain a single source of truth.
+> Definitions moved to [VISION.md](../../VISION.md#rsi-levels) to maintain a single source of truth.
 
 ---
 

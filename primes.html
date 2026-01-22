@@ -1,0 +1,552 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>REPLOID: Prime Visualizer (L1 Showcase)</title>
+    <style>
+      body {
+        margin: 0;
+        overflow: hidden;
+        background: #000;
+        color: #fff;
+        font-family: monospace;
+      }
+      canvas {
+        display: block;
+      }
+      #controls {
+        position: fixed;
+        bottom: 20px;
+        left: 20px;
+        background: rgba(0, 0, 0, 0.8);
+        padding: 10px;
+        border: 1px solid #333;
+        border-radius: 4px;
+        z-index: 1000;
+      }
+      button {
+        background: #333;
+        color: white;
+        border: 1px solid #555;
+        padding: 5px 10px;
+        cursor: pointer;
+        margin-right: 5px;
+      }
+      button:hover {
+        background: #444;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="controls">
+      <button id="btn-play">Pause</button>
+      <button id="btn-next">Next Prime</button>
+      <span id="status">Pass 1: Prime 2</span>
+    </div>
+    <canvas id="prime-canvas"></canvas>
+
+    <script>
+      // --- Configuration ---
+      const SEQUENCE = [
+        { pass: 1, prime: 2, name: "Duality" },
+        { pass: 2, prime: 3, name: "Ternary Structure" },
+        { pass: 3, prime: 5, name: "Quinary - {5/2} Star" },
+        { pass: 4, prime: 7, name: "Septenary - {7/3} Heptagram" },
+        { pass: 5, prime: 11, name: "Hendecagonal Interference" },
+        { pass: 6, prime: 13, name: "Triskaidecagonal Vortex" },
+        { pass: 7, prime: 17, name: "Heptadecagonal Harmony" },
+        { pass: 8, prime: 19, name: "Metonic Loom" },
+        { pass: 9, prime: 23, name: "Golay Symmetry" },
+      ];
+
+      let currentIndex = 0;
+      let isPlaying = true;
+      let lastSwitchTime = 0;
+      const DURATION_PER_PASS = 8000; // 8 seconds per pass
+
+      // --- Setup Canvas ---
+      const canvas = document.getElementById("prime-canvas");
+      const ctx = canvas.getContext("2d");
+
+      function resize() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+      }
+      window.addEventListener("resize", resize);
+      resize();
+
+      // --- Render Logic (Reconstructed from Agent Run) ---
+      let frame = 0;
+
+      function render() {
+        // Update Auto-Play
+        if (isPlaying) {
+          const now = Date.now();
+          if (now - lastSwitchTime > DURATION_PER_PASS) {
+            currentIndex = (currentIndex + 1) % SEQUENCE.length;
+            lastSwitchTime = now;
+            updateUI();
+          }
+        }
+
+        const current = SEQUENCE[currentIndex];
+        const pass = current.pass;
+        const prime = current.prime;
+        const time = frame * 0.02;
+
+        // Clear Background
+        ctx.fillStyle = "black";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        const cx = canvas.width / 2;
+        const cy = canvas.height / 2;
+
+        // --- Visualization Passes ---
+
+        // always render generic "noise" or "void" if needed?
+        // The agent's code built up cumulatively. We will simulate that stacking.
+        // Actually, the agent's code had specific `if (pass === N)` blocks that handled EVERYTHING for that pass in strict mode,
+        // but later passes often re-drew simpler versions of earlier geometry as background.
+        // I will implement the cumulative logic as the agent designed it in the final passes.
+
+        // Common Background Pulse (from Pass 3+)
+        if (pass >= 3) {
+          const pulse = Math.sin(time * 0.5) * 0.1 + 0.1;
+          ctx.fillStyle = `rgba(20, 20, 30, ${pulse})`;
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
+
+        if (pass >= 1) {
+          // Pass 1: Prime 2 - Parity/Duality
+          // In later passes, this is often subtle background
+          const size = Math.min(cx, cy) * (pass === 1 ? 0.5 : 0.8);
+          const offset = Math.sin(time) * 50;
+
+          ctx.strokeStyle = pass === 1 ? "white" : "rgba(255,255,255,0.1)";
+          ctx.lineWidth = pass === 1 ? 2 : 1;
+
+          if (pass === 1) {
+            // Active Duality
+            ctx.beginPath();
+            ctx.arc(cx - 100 + offset, cy, size, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.arc(cx + 100 - offset, cy, size, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(cx - 100 + offset + size, cy);
+            ctx.lineTo(cx + 100 - offset - size, cy);
+            ctx.stroke();
+          } else if (pass >= 4) {
+            // Harmonic Resonance Background (from Pass 4)
+            const r2 = Math.sin(time * 0.3) * 20 + 20;
+            ctx.strokeStyle = `rgba(100, 100, 255, 0.05)`;
+            ctx.beginPath();
+            ctx.arc(cx, cy, 300 + r2, 0, Math.PI * 2);
+            ctx.stroke();
+          }
+        }
+
+        if (pass >= 2) {
+          // Pass 2: Prime 3 - Ternary
+          if (pass === 2) {
+            const size = Math.min(cx, cy) * 0.6;
+            for (let i = 0; i < 3; i++) {
+              const angle = (i * Math.PI * 2) / 3 + time * 0.5;
+              const x = cx + Math.cos(angle) * 150;
+              const y = cy + Math.sin(angle) * 150;
+              ctx.strokeStyle = `hsl(${i * 120}, 70%, 60%)`;
+              ctx.beginPath();
+              ctx.arc(x, y, 80, 0, Math.PI * 2);
+              ctx.stroke();
+              ctx.beginPath();
+              ctx.moveTo(cx, cy);
+              ctx.lineTo(x, y);
+              ctx.stroke();
+            }
+          } else if (pass >= 3) {
+            // Pass 3+: Ternary as rotating guide lines
+            ctx.setLineDash([5, 15]);
+            ctx.strokeStyle = "rgba(255, 255, 255, 0.1)";
+            for (let i = 0; i < 3; i++) {
+              const angle = (i * Math.PI * 2) / 3 - time * 0.2;
+              ctx.beginPath();
+              ctx.moveTo(cx, cy);
+              ctx.lineTo(
+                cx + Math.cos(angle) * 300,
+                cy + Math.sin(angle) * 300,
+              );
+              ctx.stroke();
+            }
+            ctx.setLineDash([]);
+          }
+        }
+
+        if (pass >= 3) {
+          // Pass 3: Prime 5 - Pentagonal
+          if (pass === 3 || pass === 4) {
+            // Active Pentagram
+            const phi = (1 + Math.sqrt(5)) / 2;
+            const radius = 200;
+            const vertices = [];
+            for (let i = 0; i < 5; i++) {
+              const angle = (i * Math.PI * 2) / 5 + time * 0.8;
+              vertices.push({
+                x: cx + Math.cos(angle) * radius,
+                y: cy + Math.sin(angle) * radius,
+              });
+            }
+
+            // {5/2} Star
+            ctx.strokeStyle = pass === 3 ? "#00ffcc" : "rgba(0, 255, 200, 0.2)";
+            ctx.lineWidth = pass === 3 ? 3 : 1;
+            ctx.beginPath();
+            for (let i = 0; i < 6; i++) {
+              const idx = (i * 2) % 5;
+              ctx.lineTo(vertices[idx].x, vertices[idx].y);
+            }
+            ctx.stroke();
+
+            if (pass === 3) {
+              // Golden circles
+              vertices.forEach((v, i) => {
+                ctx.fillStyle = `hsl(${i * 72}, 80%, 50%)`;
+                ctx.beginPath();
+                ctx.arc(v.x, v.y, 10 * phi, 0, Math.PI * 2);
+                ctx.fill();
+              });
+            }
+          }
+        }
+
+        if (pass >= 4) {
+          // Pass 4: Prime 7 - Heptagonal
+          if (pass === 4) {
+            const radius = 250;
+            const vertices = [];
+            for (let i = 0; i < 7; i++) {
+              const angle = (i * Math.PI * 2) / 7 + time * 0.6;
+              vertices.push({
+                x: cx + Math.cos(angle) * radius,
+                y: cy + Math.sin(angle) * radius,
+              });
+            }
+            // {7/3} Heptagram
+            ctx.strokeStyle = "#ff00ff";
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            for (let i = 0; i < 8; i++) {
+              const idx = (i * 3) % 7;
+              ctx.lineTo(vertices[idx].x, vertices[idx].y);
+            }
+            ctx.stroke();
+            // Fano lines
+            ctx.strokeStyle = "rgba(255, 255, 255, 0.4)";
+            ctx.lineWidth = 1;
+            for (let i = 0; i < 7; i++) {
+              ctx.beginPath();
+              ctx.moveTo(vertices[i].x, vertices[i].y);
+              ctx.lineTo(vertices[(i + 1) % 7].x, vertices[(i + 1) % 7].y);
+              ctx.stroke();
+              // Cross
+              ctx.beginPath();
+              ctx.moveTo(vertices[i].x, vertices[i].y);
+              const midIdx = (i + 3) % 7;
+              ctx.lineTo(
+                (vertices[i].x + vertices[midIdx].x) / 2,
+                (vertices[i].y + vertices[midIdx].y) / 2,
+              );
+              ctx.stroke();
+            }
+          }
+        }
+
+        if (pass >= 5) {
+          // Pass 5: Prime 11 - Interference
+          if (pass === 5) {
+            const primes = [2, 3, 5, 7, 11];
+            const colors = [
+              "#ffffff",
+              "#ffcc00",
+              "#00ffcc",
+              "#ff00ff",
+              "#00ccff",
+            ];
+            primes.forEach((p, idx) => {
+              const r = (idx + 1) * 60 + Math.sin(time * (p / 11)) * 20;
+              ctx.strokeStyle = colors[idx] + "44";
+              ctx.lineWidth = 1;
+              ctx.beginPath();
+              for (let i = 0; i < p; i++) {
+                const angle = (i * Math.PI * 2) / p + time * (1 / p);
+                const x = cx + Math.cos(angle) * r;
+                const y = cy + Math.sin(angle) * r;
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+                // Star connections
+                for (let j = 1; j < p / 2; j++) {
+                  const angle2 = ((i + j) * Math.PI * 2) / p + time * (1 / p);
+                  ctx.moveTo(x, y);
+                  ctx.lineTo(
+                    cx + Math.cos(angle2) * r,
+                    cy + Math.sin(angle2) * r,
+                  );
+                }
+              }
+              ctx.closePath();
+              ctx.stroke();
+            });
+            // 11 Focus
+            const radius11 = 300;
+            ctx.strokeStyle = "#00ccff";
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            for (let i = 0; i < 12; i++) {
+              const idx = (i * 4) % 11;
+              const angle = (idx * Math.PI * 2) / 11 + time * 1.1;
+              const x = cx + Math.cos(angle) * radius11;
+              const y = cy + Math.sin(angle) * radius11;
+              if (i === 0) ctx.moveTo(x, y);
+              else ctx.lineTo(x, y);
+            }
+            ctx.stroke();
+          }
+        }
+
+        if (pass >= 6) {
+          // Pass 6: Prime 13 - Vortex
+          if (pass === 6) {
+            const primes = [2, 3, 5, 7, 11, 13];
+            const colors = [
+              "#ffffff",
+              "#ffcc00",
+              "#00ffcc",
+              "#ff00ff",
+              "#00ccff",
+              "#ff3300",
+            ];
+            // Grid Background
+            ctx.strokeStyle = "rgba(255, 255, 255, 0.1)";
+            const gridSize = 50;
+            const offset = (time * 10) % gridSize;
+            for (let x = 0; x < canvas.width; x += gridSize) {
+              ctx.beginPath();
+              ctx.moveTo(x, 0);
+              ctx.lineTo(x, canvas.height);
+              ctx.stroke();
+            }
+
+            // Spiral
+            const iterations = 13 * 3;
+            ctx.lineWidth = 1;
+            for (let i = 0; i < iterations; i++) {
+              const angle = (i * Math.PI * 2) / 13 + time * 0.5;
+              const r = 400 * (1 - i / iterations);
+              const x = cx + Math.cos(angle) * r;
+              const y = cy + Math.sin(angle) * r;
+              ctx.strokeStyle = colors[5] + "88";
+              ctx.beginPath();
+              ctx.arc(x, y, (iterations - i) * 2, 0, Math.PI * 2);
+              ctx.stroke();
+              const nextAngle = ((i + 1) * Math.PI * 2) / 13 + time * 0.5;
+              const nextR = 400 * (1 - (i + 1) / iterations);
+              ctx.beginPath();
+              ctx.moveTo(x, y);
+              ctx.lineTo(
+                cx + Math.cos(nextAngle) * nextR,
+                cy + Math.sin(nextAngle) * nextR,
+              );
+              ctx.stroke();
+            }
+            // {13/6} Star
+            const r13 = 350;
+            ctx.strokeStyle = colors[5];
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            for (let i = 0; i <= 13; i++) {
+              const idx = (i * 6) % 13;
+              const angle = (idx * Math.PI * 2) / 13 - time * 0.2;
+              const x = cx + Math.cos(angle) * r13;
+              const y = cy + Math.sin(angle) * r13;
+              if (i === 0) ctx.moveTo(x, y);
+              else ctx.lineTo(x, y);
+            }
+            ctx.stroke();
+          }
+        }
+
+        if (pass >= 7) {
+          // Pass 7: Prime 17 - Harmony
+          if (pass === 7) {
+            const radius = 380;
+            const vertices = [];
+            for (let i = 0; i < 17; i++) {
+              const angle = (i * Math.PI * 2) / 17 + time * 0.3;
+              vertices.push({
+                x: cx + Math.cos(angle) * radius,
+                y: cy + Math.sin(angle) * radius,
+              });
+            }
+            // Layer all stars {17/n}
+            for (let n = 2; n <= 8; n++) {
+              ctx.strokeStyle = `hsla(${n * 40}, 80%, 60%, ${0.1 + n / 10})`;
+              ctx.lineWidth = 1;
+              ctx.beginPath();
+              for (let i = 0; i <= 17; i++) {
+                const idx = (i * n) % 17;
+                ctx.lineTo(vertices[idx].x, vertices[idx].y);
+              }
+              ctx.stroke();
+            }
+            // {17/8} Highlight
+            ctx.strokeStyle = "#ffffff";
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            for (let i = 0; i <= 17; i++) {
+              const idx = (i * 8) % 17;
+              const angle = (idx * Math.PI * 2) / 17 + time * 0.3;
+              ctx.lineTo(
+                cx + Math.cos(angle) * radius,
+                cy + Math.sin(angle) * radius,
+              );
+            }
+            ctx.stroke();
+          }
+        }
+
+        if (pass >= 8) {
+          // Pass 8: Prime 19 - Loom
+          if (pass === 8) {
+            const radius = 350;
+            const vertices = [];
+            for (let i = 0; i < 19; i++) {
+              const angle = (i * Math.PI * 2) / 19 + time * 0.2;
+              vertices.push({
+                x: cx + Math.cos(angle) * radius,
+                y: cy + Math.sin(angle) * radius,
+              });
+            }
+            // Outer ring
+            ctx.strokeStyle = "rgba(255, 255, 255, 0.2)";
+            ctx.beginPath();
+            vertices.forEach((v) => ctx.lineTo(v.x, v.y));
+            ctx.closePath();
+            ctx.stroke();
+            // Quadratic Residues: i -> i^2 % 19
+            ctx.shadowBlur = 15;
+            ctx.shadowColor = "#ffaa00";
+            ctx.strokeStyle = "#ffaa00";
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            for (let i = 0; i < 19; i++) {
+              const target = (i * i) % 19;
+              ctx.moveTo(vertices[i].x, vertices[i].y);
+              ctx.lineTo(vertices[target].x, vertices[target].y);
+            }
+            ctx.stroke();
+            ctx.shadowBlur = 0;
+            // Cubic Residues
+            ctx.strokeStyle = "rgba(0, 255, 255, 0.5)";
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            for (let i = 0; i < 19; i++) {
+              const target = (i * i * i) % 19;
+              ctx.moveTo(vertices[i].x, vertices[i].y);
+              ctx.lineTo(vertices[target].x, vertices[target].y);
+            }
+            ctx.stroke();
+          }
+        }
+
+        if (pass >= 9) {
+          // Pass 9: Prime 23 - Lattice
+          if (pass === 9) {
+            const radius = 300;
+            const count = 23;
+            // Background Loom Ghost
+            ctx.strokeStyle = "rgba(255, 170, 0, 0.05)";
+            for (let i = 0; i < 19; i++) {
+              const a1 = (i * Math.PI * 2) / 19;
+              const a2 = (((i * i) % 19) * Math.PI * 2) / 19;
+              ctx.beginPath();
+              ctx.moveTo(cx + Math.cos(a1) * 400, cy + Math.sin(a1) * 400);
+              ctx.lineTo(cx + Math.cos(a2) * 400, cy + Math.sin(a2) * 400);
+              ctx.stroke();
+            }
+            // 23 Packing
+            for (let i = 0; i < count; i++) {
+              const angle = (i * Math.PI * 2) / count + time * 0.1;
+              const x = cx + Math.cos(angle) * radius;
+              const y = cy + Math.sin(angle) * radius;
+              ctx.strokeStyle = `hsl(${(time * 10 + i * 15) % 360}, 70%, 50%)`;
+              ctx.lineWidth = 2;
+              // Node
+              ctx.beginPath();
+              for (let j = 0; j <= 23; j++) {
+                const a = (j * Math.PI * 2) / 23;
+                const px = x + Math.cos(a) * 40;
+                const py = y + Math.sin(a) * 40;
+                if (j === 0) ctx.moveTo(px, py);
+                else ctx.lineTo(px, py);
+              }
+              ctx.stroke();
+              // Connectivity
+              ctx.strokeStyle = "rgba(255, 255, 255, 0.1)";
+              for (let j = 1; j < 12; j++) {
+                const targetIdx = (i + j) % count;
+                const tx =
+                  cx +
+                  Math.cos((targetIdx * Math.PI * 2) / count + time * 0.1) *
+                    radius;
+                const ty =
+                  cy +
+                  Math.sin((targetIdx * Math.PI * 2) / count + time * 0.1) *
+                    radius;
+                ctx.beginPath();
+                ctx.moveTo(x, y);
+                ctx.lineTo(tx, ty);
+                ctx.stroke();
+              }
+            }
+          }
+        }
+
+        // --- Overlay Text ---
+        ctx.fillStyle = "white";
+        ctx.font = "20px monospace";
+        ctx.fillText(
+          `PASS ${pass}: PRIME ${prime} (${current.name.toUpperCase()})`,
+          20,
+          40,
+        );
+
+        frame++;
+        requestAnimationFrame(render);
+      }
+
+      // --- Controls Logic ---
+      const btnPlay = document.getElementById("btn-play");
+      const btnNext = document.getElementById("btn-next");
+      const statusSpan = document.getElementById("status");
+
+      function updateUI() {
+        statusSpan.textContent = `Pass ${SEQUENCE[currentIndex].pass}: Prime ${SEQUENCE[currentIndex].prime}`;
+      }
+
+      btnPlay.addEventListener("click", () => {
+        isPlaying = !isPlaying;
+        btnPlay.textContent = isPlaying ? "Pause" : "Play";
+      });
+
+      btnNext.addEventListener("click", () => {
+        currentIndex = (currentIndex + 1) % SEQUENCE.length;
+        lastSwitchTime = Date.now(); // Reset timer
+        updateUI();
+      });
+
+      render();
+      lastSwitchTime = Date.now(); // Start timer
+    </script>
+  </body>
+</html>
