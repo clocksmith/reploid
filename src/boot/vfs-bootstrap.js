@@ -141,24 +141,41 @@ const writeEntries = async (entries) => {
 };
 
 export async function loadVfsManifest() {
-  const response = await fetch('config/vfs-manifest.json', {
-    cache: 'no-store',
-    headers: { [VFS_BYPASS_HEADER]: '1' }
-  });
-  if (!response.ok) {
-    throw new Error(`Failed to load VFS manifest (${response.status})`);
-  }
-  const text = await response.text();
-  let manifest = null;
-  try {
-    manifest = JSON.parse(text);
-  } catch (err) {
-    throw new Error('Invalid VFS manifest JSON');
-  }
-  if (!manifest?.files || !Array.isArray(manifest.files)) {
+  const fetchManifest = async (path) => {
+    const response = await fetch(path, {
+      cache: 'no-store',
+      headers: { [VFS_BYPASS_HEADER]: '1' }
+    });
+    if (!response.ok) {
+      if (path.includes('doppler')) return { files: [] }; // Doppler optional
+      throw new Error(`Failed to load VFS manifest (${response.status})`);
+    }
+    const text = await response.text();
+    try {
+      return JSON.parse(text);
+    } catch {
+      throw new Error('Invalid VFS manifest JSON');
+    }
+  };
+
+  const [reploidManifest, dopplerManifest] = await Promise.all([
+    fetchManifest('config/vfs-manifest.json'),
+    fetchManifest('reploid/doppler/config/vfs-manifest.json').catch(() => ({ files: [] }))
+  ]);
+
+  if (!reploidManifest?.files || !Array.isArray(reploidManifest.files)) {
     throw new Error('VFS manifest missing files list');
   }
-  return { manifest, text };
+
+  // Merge manifests
+  const manifest = {
+    files: [...new Set([
+      ...reploidManifest.files,
+      ...(dopplerManifest.files || []).map(f => f.startsWith('/') ? `reploid/doppler${f}` : `reploid/doppler/${f}`)
+    ])]
+  };
+
+  return { manifest, text: JSON.stringify(manifest) };
 }
 
 export async function seedVfsFromManifest(manifest, options = {}) {
