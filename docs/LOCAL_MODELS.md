@@ -195,7 +195,7 @@ For best performance with REPLOID:
 | 13B params | 16GB | 10GB | Better quality |
 | 32B+ params | 32GB | 24GB | Requires high-end GPU |
 
-For WebGPU-based local models (Doppler), see [DOPPLER_SETUP.md](./DOPPLER_SETUP.md).
+For WebGPU-based local models (Doppler), see [SETUP_INSTRUCTIONS.md](../../doppler/docs/SETUP_INSTRUCTIONS.md).
 
 ## Architecture Overview
 

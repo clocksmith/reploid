@@ -308,11 +308,9 @@
       "tools/Tail.js",
       "tools/Grep.js",
       "tools/Find.js",
-      "tools/Mkdir.js",
-      "tools/Rm.js",
-      "tools/Mv.js",
-      "tools/Cp.js",
-      "tools/Ls.js",
+      "tools/MakeDirectory.js",
+      "tools/MoveFile.js",
+      "tools/CopyFile.js",
       "tools/ListMemories.js",
       "tools/ListKnowledge.js",
       "tools/Git.js",
@@ -425,9 +423,7 @@
         "Find",
         "Cat",
         "Head",
-        "Tail",
-        "Ls",
-        "Pwd"
+        "Tail"
       ],
       "canSpawnWorkers": false,
       "defaultModelRole": "fast"
@@ -444,8 +440,6 @@
         "Cat",
         "Head",
         "Tail",
-        "Ls",
-        "Pwd",
         "Jq"
       ],
       "canSpawnWorkers": false,
