@@ -51,7 +51,7 @@ const execPromise = promisify(exec);
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const dopplerRootDir = path.join(__dirname, '..', 'doppler');
-const dopplerAppDir = path.join(dopplerRootDir, 'app');
+const dopplerDemoDir = path.join(dopplerRootDir, 'demo');
 const dopplerKernelDir = path.join(dopplerRootDir, 'src', 'gpu', 'kernels');
 
 // Load environment variables
@@ -1269,7 +1269,7 @@ app.get('/', (req, res) => {
 });
 
 app.get(['/doppler', '/doppler/'], (req, res) => {
-  res.sendFile(path.join(dopplerAppDir, 'index.html'));
+  res.sendFile(path.join(dopplerDemoDir, 'index.html'));
 });
 
 app.get('/design', (req, res) => {
