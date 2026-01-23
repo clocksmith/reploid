@@ -143,9 +143,10 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Only intercept JavaScript module requests
-  if (!url.pathname.endsWith('.js')) {
-    return; // Let browser handle non-JS requests
+  // Configurable extensions
+  const VFS_EXTENSIONS = ['.js', '.json', '.wgsl', '.md', '.css', '.html'];
+  if (!VFS_EXTENSIONS.some(ext => url.pathname.endsWith(ext))) {
+    return; // Let browser handle other requests
   }
 
   // Only intercept requests from our origin
@@ -178,10 +179,18 @@ async function handleModuleRequest(request, url) {
 
     if (content !== null) {
       if (shouldLog) console.log(`[SW] Serving from VFS: ${vfsPath}`);
+      const getMimeType = (path) => {
+        if (path.endsWith('.json')) return 'application/json; charset=utf-8';
+        if (path.endsWith('.wgsl') || path.endsWith('.md')) return 'text/plain; charset=utf-8';
+        if (path.endsWith('.css')) return 'text/css; charset=utf-8';
+        if (path.endsWith('.html')) return 'text/html; charset=utf-8';
+        return 'application/javascript; charset=utf-8';
+      };
+
       return new Response(content, {
         status: 200,
         headers: {
-          'Content-Type': 'application/javascript; charset=utf-8',
+          'Content-Type': getMimeType(vfsPath),
           'X-VFS-Source': 'true',
           'Cache-Control': 'no-cache'
         }
