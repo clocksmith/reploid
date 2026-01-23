@@ -159,8 +159,8 @@ export async function loadVfsManifest() {
   };
 
   const [reploidManifest, dopplerManifest] = await Promise.all([
-    fetchManifest('config/vfs-manifest.json'),
-    fetchManifest('reploid/doppler/config/vfs-manifest.json').catch(() => ({ files: [] }))
+    fetchManifest('/src/config/vfs-manifest.json'),
+    fetchManifest('/doppler/config/vfs-manifest.json').catch(() => ({ files: [] }))
   ]);
 
   if (!reploidManifest?.files || !Array.isArray(reploidManifest.files)) {
@@ -171,7 +171,7 @@ export async function loadVfsManifest() {
   const manifest = {
     files: [...new Set([
       ...reploidManifest.files,
-      ...(dopplerManifest.files || []).map(f => f.startsWith('/') ? `reploid/doppler${f}` : `reploid/doppler/${f}`)
+      ...(dopplerManifest.files || []).map(f => f.startsWith('/') ? `/doppler${f}` : `/doppler/${f}`)
     ])]
   };
 

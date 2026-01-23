@@ -143,8 +143,8 @@ The following were removed from DOPPLER and must be implemented here:
 
 ## 5. Cross-References
 
-- `doppler/docs/ARCHITECTURE.md#engine-vs-driver-boundary`
-- `doppler/docs/plans/FUNCTIONGEMMA_ARCHITECTURE_REFACTOR.md`
+- `reploid/doppler/docs/ARCHITECTURE.md#engine-vs-driver-boundary`
+- `reploid/doppler/docs/plans/FUNCTIONGEMMA_ARCHITECTURE_REFACTOR.md`
 - `reploid/docs/design/FUNCTIONGEMMA.md`
 - `ouroboros/ARCHITECTURE.md#engine-vs-driver-the-fundamental-split`
 

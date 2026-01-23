@@ -50,9 +50,9 @@ const execPromise = promisify(exec);
 // ESM equivalent of __dirname
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const dopplerPackageDir = path.join(__dirname, '..', 'node_modules', '@clocksmith', 'doppler');
-const dopplerDistDir = path.join(dopplerPackageDir, 'dist');
-const dopplerKernelDir = path.join(dopplerPackageDir, 'gpu', 'kernels');
+const dopplerRootDir = path.join(__dirname, '..', 'doppler');
+const dopplerAppDir = path.join(dopplerRootDir, 'app');
+const dopplerKernelDir = path.join(dopplerRootDir, 'src', 'gpu', 'kernels');
 
 // Load environment variables
 dotenv.config();
@@ -1268,8 +1268,8 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, '..', 'src', 'index.html'));
 });
 
-app.get('/doppler', (req, res) => {
-  res.sendFile(path.join(dopplerPackageDir, 'index.html'));
+app.get(['/doppler', '/doppler/'], (req, res) => {
+  res.sendFile(path.join(dopplerAppDir, 'index.html'));
 });
 
 app.get('/design', (req, res) => {
@@ -1280,8 +1280,8 @@ app.get('/reset', (req, res) => {
   res.sendFile(path.join(__dirname, '..', 'src', 'reset.html'));
 });
 
-// Serve DOPPLER client assets from the installed dependency
-app.use('/vendor/doppler', express.static(dopplerDistDir, {
+// Serve DOPPLER assets from the local runtime source of truth.
+app.use('/doppler', express.static(dopplerRootDir, {
   setHeaders: (res, filePath) => {
     if (filePath.endsWith('.wgsl')) {
       res.setHeader('Content-Type', 'text/plain; charset=utf-8');
@@ -1289,10 +1289,18 @@ app.use('/vendor/doppler', express.static(dopplerDistDir, {
   }
 }));
 
-// Serve DOPPLER WGSL kernels for WebGPU fetches
+// Back-compat for kernel fetches that still target /gpu/kernels.
 app.use('/gpu/kernels', express.static(dopplerKernelDir, {
-  setHeaders: (res, filePath) => {
+  setHeaders: (res) => {
     res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+  }
+}));
+
+app.use('/src', express.static(path.join(__dirname, '..', 'src'), {
+  setHeaders: (res, filePath) => {
+    if (filePath.endsWith('.wgsl')) {
+      res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+    }
   }
 }));
 

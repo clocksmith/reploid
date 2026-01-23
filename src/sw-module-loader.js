@@ -124,7 +124,12 @@ self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
 
   // Skip reserved paths that should bypass the VFS loader.
-  if (url.pathname === '/dr' || url.pathname.startsWith('/dr/')) {
+  if (
+    url.pathname === '/doppler'
+    || url.pathname.startsWith('/doppler/')
+    || url.pathname === '/dr'
+    || url.pathname.startsWith('/dr/')
+  ) {
     return;
   }
 
@@ -163,6 +168,9 @@ async function handleModuleRequest(request, url) {
   // Convert URL path to VFS path
   // /reploid/core/vfs.js -> /core/vfs.js
   let vfsPath = pathname;
+  if (vfsPath.startsWith('/src/')) {
+    vfsPath = vfsPath.substring(4); // Remove /src prefix
+  }
   if (vfsPath.startsWith('/reploid/')) {
     vfsPath = vfsPath.substring(8); // Remove /reploid prefix
   }
