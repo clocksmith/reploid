@@ -19,7 +19,7 @@
 ```bash
 npm install
 
-# Option A: Static server (landing + /r Reploid)
+# Option A: Static server
 npm run serve
 
 # Option B: Full dev server with API proxies (recommended for development)
@@ -30,11 +30,10 @@ npm run dev
 
 | Mode | URL | Description |
 |------|-----|-------------|
-| `npm run serve` | http://localhost:8080 | Landing page with link to /r |
-| `npm run serve` | http://localhost:8080/r | Reploid agent app |
+| `npm run serve` | http://localhost:8080 | Reploid agent app |
 | `npm run dev` | http://localhost:8000 | Full dev with API proxies |
 
-Note: The Doppler provider loads client assets from `/vendor/doppler`, which is only served by the dev server.
+Note: The Doppler provider loads client assets from `/doppler`, which is served by the dev server.
 
 ### Step 3: Configure Your Agent
 

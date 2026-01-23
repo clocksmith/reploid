@@ -61,7 +61,7 @@ DOPPLER provides primitives. REPLOID makes decisions. This separation is enforce
 - `MultiModelNetwork.setSharedPrefix(prompt)` → Set KV cache prefix
 - `mergeLogits(buffers, weights)` → GPU logit merging (new)
 
-See `doppler/docs/ARCHITECTURE.md#engine-vs-driver-boundary` for full details.
+See `reploid/doppler/docs/ARCHITECTURE.md#engine-vs-driver-boundary` for full details.
 
 ---
 
@@ -484,7 +484,7 @@ Implementation tasks are tracked in `/Users/xyz/deco/TODO_FUNCTIONGEMMA.md`.
 
 ## References
 
-- **Doppler Dependency:** [MULTI_FUNCTIONGEMMA_NETWORK.md](../../../doppler/docs/plans/MULTI_FUNCTIONGEMMA_NETWORK.md)
+- **Doppler Dependency:** [MULTI_FUNCTIONGEMMA_NETWORK.md](../../doppler/docs/plans/MULTI_FUNCTIONGEMMA_NETWORK.md)
 - **Reploid Modules:** See `core/` and `infrastructure/`
 
 ---
