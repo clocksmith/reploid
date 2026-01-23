@@ -443,9 +443,9 @@
     },
     "FederatedLearning": {
       "id": "FederatedLearning",
-      "entry": "capabilities/intelligence/federated-learning.js",
+      "entry": "experimental/intelligence/federated-learning.js",
       "files": [
-        "capabilities/intelligence/federated-learning.js"
+        "experimental/intelligence/federated-learning.js"
       ],
       "introduced": "full",
       "dependencies": [
@@ -466,9 +466,9 @@
     },
     "FunctionGemmaOrchestrator": {
       "id": "FunctionGemmaOrchestrator",
-      "entry": "capabilities/intelligence/functiongemma-orchestrator.js",
+      "entry": "experimental/intelligence/functiongemma-orchestrator.js",
       "files": [
-        "capabilities/intelligence/functiongemma-orchestrator.js"
+        "experimental/intelligence/functiongemma-orchestrator.js"
       ],
       "introduced": "full",
       "dependencies": [
@@ -741,9 +741,9 @@
     },
     "MultiModelCoordinator": {
       "id": "MultiModelCoordinator",
-      "entry": "capabilities/intelligence/multi-model-coordinator.js",
+      "entry": "experimental/intelligence/multi-model-coordinator.js",
       "files": [
-        "capabilities/intelligence/multi-model-coordinator.js"
+        "experimental/intelligence/multi-model-coordinator.js"
       ],
       "introduced": "full",
       "dependencies": [],
@@ -751,9 +751,9 @@
     },
     "NeuralCompiler": {
       "id": "NeuralCompiler",
-      "entry": "capabilities/intelligence/neural-compiler.js",
+      "entry": "experimental/intelligence/neural-compiler.js",
       "files": [
-        "capabilities/intelligence/neural-compiler.js"
+        "experimental/intelligence/neural-compiler.js"
       ],
       "introduced": "full",
       "dependencies": [

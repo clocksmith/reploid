@@ -184,7 +184,7 @@ npm run test:coverage
 |------|----------|
 | User guides | `docs/*.md` |
 | Architecture specs | `blueprints/*.md` |
-| In-substrate manual | `./docs/REPLOID.md` |
+
 | Directory context | `*/README.md` |
 
 ### Blueprint Format
