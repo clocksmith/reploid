@@ -4,7 +4,7 @@
  */
 
 const STORAGE_KEY = 'REPLOID_SECURITY_MODE';
-const DEFAULT_ENABLED = true;
+const DEFAULT_ENABLED = false;
 
 const hasLocalStorage = () => typeof localStorage !== 'undefined';
 
