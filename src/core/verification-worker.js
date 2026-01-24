@@ -73,7 +73,7 @@ const CAPABILITY_RULES = {
     canProcess: true
   },
   // Boot system - full access
-  '/boot/': {
+  '/boot-helpers/': {
     allowed: ['*'],
     forbidden: [],
     canNetwork: true,
@@ -123,7 +123,7 @@ const getCapabilities = (path) => {
   for (const [prefix, caps] of Object.entries(CAPABILITY_RULES)) {
     if (path.startsWith(prefix)) return { ...caps, prefix };
   }
-  // Root-level system files (boot.js, sw-*.js, etc.) get full access
+  // Root-level system files (entry/start-app.js, sw-*.js, etc.) get full access
   // Only VFS user files (starting with /.user/ or unknown paths) should be restricted
   if (path.match(/^\/[a-z].*\.js$/) || path.startsWith('/.')) {
     // Root-level .js files are system files

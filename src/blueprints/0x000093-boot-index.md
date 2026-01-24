@@ -1,15 +1,15 @@
 # Blueprint 0x000093: boot index
 
-**Objective:** Describe implementation for boot/index.js.
+**Objective:** Describe implementation for boot-helpers/index.js.
 
-**Target Upgrade:** boot/index.js
+**Target Upgrade:** boot-helpers/index.js
 
-**Affected Artifacts:** /boot/index.js
+**Affected Artifacts:** /boot-helpers/index.js
 
 ---
 
 ### 1. Intent
-Define the purpose and constraints for boot/index.js.
+Define the purpose and constraints for boot-helpers/index.js.
 
 ### 2. Architecture
 Outline the main responsibilities, dependencies, and data flow.

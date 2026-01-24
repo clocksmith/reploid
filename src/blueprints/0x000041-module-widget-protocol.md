@@ -6,7 +6,7 @@
 
 **Prerequisites:** 0x000049 (Dependency Injection Container), 0x000058 (Event Bus Infrastructure)
 
-**Affected Artifacts:** `/ui/module-widget-protocol.js`, `/ui/module-proto.js`, `/boot/index.html`, all module files
+**Affected Artifacts:** `/ui/module-widget-protocol.js`, `/ui/module-proto.js`, `/boot-helpers/index.html`, all module files
 
 ---
 

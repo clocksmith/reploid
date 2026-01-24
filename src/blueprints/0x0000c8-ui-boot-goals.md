@@ -1,15 +1,15 @@
 # Blueprint 0x0000c8: ui boot goals
 
-**Objective:** Describe implementation for ui/boot/goals.js.
+**Objective:** Describe implementation for ui/boot-wizard/goals.js.
 
-**Target Upgrade:** ui/boot/goals.js
+**Target Upgrade:** ui/boot-wizard/goals.js
 
-**Affected Artifacts:** /ui/boot/goals.js
+**Affected Artifacts:** /ui/boot-wizard/goals.js
 
 ---
 
 ### 1. Intent
-Define the purpose and constraints for ui/boot/goals.js.
+Define the purpose and constraints for ui/boot-wizard/goals.js.
 
 ### 2. Architecture
 Outline the main responsibilities, dependencies, and data flow.

@@ -1,15 +1,15 @@
 # Blueprint 0x0000cc: ui boot steps browser
 
-**Objective:** Describe implementation for ui/boot/steps/browser.js.
+**Objective:** Describe implementation for ui/boot-wizard/steps/browser.js.
 
-**Target Upgrade:** ui/boot/steps/browser.js
+**Target Upgrade:** ui/boot-wizard/steps/browser.js
 
-**Affected Artifacts:** /ui/boot/steps/browser.js
+**Affected Artifacts:** /ui/boot-wizard/steps/browser.js
 
 ---
 
 ### 1. Intent
-Define the purpose and constraints for ui/boot/steps/browser.js.
+Define the purpose and constraints for ui/boot-wizard/steps/browser.js.
 
 ### 2. Architecture
 Outline the main responsibilities, dependencies, and data flow.

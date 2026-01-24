@@ -1,15 +1,15 @@
 # Blueprint 0x0000cf: ui boot steps direct
 
-**Objective:** Describe implementation for ui/boot/steps/direct.js.
+**Objective:** Describe implementation for ui/boot-wizard/steps/direct.js.
 
-**Target Upgrade:** ui/boot/steps/direct.js
+**Target Upgrade:** ui/boot-wizard/steps/direct.js
 
-**Affected Artifacts:** /ui/boot/steps/direct.js
+**Affected Artifacts:** /ui/boot-wizard/steps/direct.js
 
 ---
 
 ### 1. Intent
-Define the purpose and constraints for ui/boot/steps/direct.js.
+Define the purpose and constraints for ui/boot-wizard/steps/direct.js.
 
 ### 2. Architecture
 Outline the main responsibilities, dependencies, and data flow.

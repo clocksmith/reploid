@@ -220,7 +220,7 @@ Captured at boot, before any agent action:
 ### Problem: Changes not persisting
 **Solution:** Ensure VFS writes completed. Check audit log in Debug tab.
 
-For more detailed solutions, see [TROUBLESHOOTING.md](./TROUBLESHOOTING.md).
+For more detailed solutions, see [troubleshooting.md](./troubleshooting.md).
 
 ---
 
@@ -237,10 +237,10 @@ For more detailed solutions, see [TROUBLESHOOTING.md](./TROUBLESHOOTING.md).
 ## Next Steps
 
 1. **Explore RSI**: Try creating tools and watching the agent improve itself
-2. **Read Architecture**: See [SYSTEM_ARCHITECTURE.md](./SYSTEM_ARCHITECTURE.md)
+2. **Read Architecture**: See [system-architecture.md](./system-architecture.md)
 3. **Study Blueprints**: Browse `/blueprints/` for specifications
-4. **Configure Models**: See [LOCAL_MODELS.md](./LOCAL_MODELS.md) for WebLLM/Ollama setup
-5. **API Reference**: See [API.md](./API.md) for module documentation
+4. **Configure Models**: See [local-models.md](./local-models.md) for WebLLM/Ollama setup
+5. **API Reference**: See [api.md](./api.md) for module documentation
 
 ---
 

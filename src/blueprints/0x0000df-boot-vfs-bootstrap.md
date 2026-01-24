@@ -1,15 +1,15 @@
 # Blueprint 0x0000df: boot vfs bootstrap
 
-**Objective:** Describe implementation for boot/vfs-bootstrap.js.
+**Objective:** Describe implementation for boot-helpers/vfs-bootstrap.js.
 
-**Target Upgrade:** boot/vfs-bootstrap.js
+**Target Upgrade:** boot-helpers/vfs-bootstrap.js
 
-**Affected Artifacts:** /boot/vfs-bootstrap.js
+**Affected Artifacts:** /boot-helpers/vfs-bootstrap.js
 
 ---
 
 ### 1. Intent
-Define the purpose and constraints for boot/vfs-bootstrap.js.
+Define the purpose and constraints for boot-helpers/vfs-bootstrap.js.
 
 ### 2. Architecture
 Outline the main responsibilities, dependencies, and data flow.

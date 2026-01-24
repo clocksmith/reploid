@@ -24,7 +24,7 @@ reploid/
 
 ### Before Starting
 - Read `docs/INDEX.md` for documentation overview
-- Read `docs/STYLE_GUIDE.md` for complete style guidelines
+- Read `docs/style-guide.md` for complete style guidelines
 - Read `EMOJI.md` for approved Unicode symbols
 - Review `src/blueprints/` for architectural documentation
 

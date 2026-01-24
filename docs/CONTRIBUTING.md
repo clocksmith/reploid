@@ -26,26 +26,28 @@ Guidelines for contributing code, documentation, and blueprints.
 
 ### Prerequisites
 
-- Node.js 18+
+- Node.js 16+ (18+ recommended)
 - Modern browser (Chrome 90+, Firefox 88+, Safari 14+)
 - Git
 
 ### Running Locally
 
 ```bash
-# Static server (landing + /r Reploid)
-npm run serve              # http://localhost:8080
-
-# Full dev server with API proxies
-npm run dev                # http://localhost:8000
+# Proxy server (API + app)
+npm start                  # http://localhost:8000
 
 # Run tests
-npm test                    # Quick kernel validation
-npm run test:inference      # Model inference test
-npm run test:vitest         # CPU unit tests
+npm test                    # All tests
+npm run test:unit           # Unit tests only
+npm run test:integration    # Integration tests
+npm run test:e2e            # Browser E2E tests
 
-# Run specific kernel test
+# Run specific tests
 npm test -- --filter matmul
+
+# Benchmarks and debug
+npm run bench
+npm run debug
 ```
 
 ### Project Structure
@@ -53,7 +55,7 @@ npm test -- --filter matmul
 ```
 reploid/
 ├── docs/                       # Human-facing documentation (you are here)
-├── ./            # Main application
+├── src/                        # Main application
 │   ├── core/                   # Core substrate modules
 │   ├── infrastructure/         # Support services
 │   ├── capabilities/           # Extended capabilities (swarm, etc.)
@@ -71,7 +73,7 @@ reploid/
 
 ### General Rules
 
-1. **No emoji in source code** - Use Unicode symbols from [STYLE_GUIDE.md](./STYLE_GUIDE.md)
+1. **No emoji in source code** - Use Unicode symbols from [style-guide.md](./style-guide.md)
 2. **No emoji in documentation** - Use plain text or symbols
 3. **CamelCase for tools** - `ReadFile.js`, not `read-file.js`
 4. **Module pattern** - All modules use metadata + factory pattern
@@ -282,7 +284,7 @@ docs(api): document EventBus subscription tracking
 2. Consider backward compatibility
 3. Update blueprints if architecture changes
 4. Ensure all tests pass
-5. Update SYSTEM_ARCHITECTURE.md if needed
+5. Update system-architecture.md if needed
 
 ---
 

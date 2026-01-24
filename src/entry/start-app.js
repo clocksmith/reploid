@@ -9,11 +9,11 @@
  */
 
 // === BOOT INFRASTRUCTURE ===
-import Utils from './core/utils.js';
-import DIContainer from './infrastructure/di-container.js';
+import Utils from '../core/utils.js';
+import DIContainer from '../infrastructure/di-container.js';
 
 // === MODULAR BOOT ===
-import { boot, renderErrorUI } from './boot/index.js';
+import { boot, renderErrorUI } from '../boot-helpers/index.js';
 
 /**
  * Parse models from localStorage with fallback
@@ -77,7 +77,7 @@ async function completeAwaken(bootResult, goal, wizardContainer) {
   };
 
   const buildProto = async (version) => {
-    const { default: Proto } = await import(`./ui/proto/index.js?v=${encodeURIComponent(version)}`);
+    const { default: Proto } = await import(`../ui/proto/index.js?v=${encodeURIComponent(version)}`);
     return Proto.factory({
       Utils: utils,
       EventBus: eventBus,
@@ -192,7 +192,7 @@ async function completeAwaken(bootResult, goal, wizardContainer) {
 (async () => {
   try {
     // Show wizard FIRST, before boot
-    const { initWizard: initWizardUI } = await import('./ui/boot/index.js');
+    const { initWizard: initWizardUI } = await import('../ui/boot-wizard/index.js');
     const wizardContainer = document.getElementById('wizard-container');
 
     if (wizardContainer) {

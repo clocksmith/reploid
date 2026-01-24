@@ -4,7 +4,7 @@
 
 **Target Module:** `ModelConfig`
 
-**Implementation:** `/ui/boot/model-config/`
+**Implementation:** `/ui/boot-wizard/model-config/`
 
 **Prerequisites:** `0x000089` (Proxy Server), `0x000058` (Event Bus)
 
@@ -19,7 +19,7 @@ The Model Config UI is the pre-boot configuration screen that allows users to se
 ## 2. Module Structure
 
 ```
-ui/boot/model-config/
+ui/boot-wizard/model-config/
   index.js     - Public API and initialization
   state.js     - Model selection state management
   providers.js - Provider availability checking and model catalogs
@@ -272,8 +272,8 @@ Supports auto-opening form from external tools (e.g., serve-cli):
 **Status:** Implemented
 
 **Files:**
-- `/ui/boot/model-config/index.js` - Public API
-- `/ui/boot/model-config/state.js` - State management
-- `/ui/boot/model-config/providers.js` - Provider detection
-- `/ui/boot/model-config/cards.js` - Card rendering
-- `/ui/boot/model-config/form.js` - Form handling
+- `/ui/boot-wizard/model-config/index.js` - Public API
+- `/ui/boot-wizard/model-config/state.js` - State management
+- `/ui/boot-wizard/model-config/providers.js` - Provider detection
+- `/ui/boot-wizard/model-config/cards.js` - Card rendering
+- `/ui/boot-wizard/model-config/form.js` - Form handling

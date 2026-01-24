@@ -945,7 +945,7 @@ worker.postMessage({
 - **GitHub Issues**: https://github.com/clocksmith/reploid/issues
 - **Documentation**: `docs/` directory
 - **Architecture**: `blueprints/` directory
-- **Security**: See [SECURITY.md](./SECURITY.md) for security-related issues
+- **Security**: See [security.md](./security.md) for security-related issues
 
 ---
 

@@ -1,15 +1,15 @@
 # Blueprint 0x000096: boot vfs hydrate
 
-**Objective:** Describe implementation for boot/vfs-hydrate.js.
+**Objective:** Describe implementation for boot-helpers/vfs-hydrate.js.
 
-**Target Upgrade:** boot/vfs-hydrate.js
+**Target Upgrade:** boot-helpers/vfs-hydrate.js
 
-**Affected Artifacts:** /boot/vfs-hydrate.js
+**Affected Artifacts:** /boot-helpers/vfs-hydrate.js
 
 ---
 
 ### 1. Intent
-Define the purpose and constraints for boot/vfs-hydrate.js.
+Define the purpose and constraints for boot-helpers/vfs-hydrate.js.
 
 ### 2. Architecture
 Outline the main responsibilities, dependencies, and data flow.

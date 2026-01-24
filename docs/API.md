@@ -1,7 +1,7 @@
 # REPLOID API Documentation
 
 **Version:** 1.2.0
-**Last Updated:** December 2025
+**Last Updated:** March 2026
 
 This document provides an overview of REPLOID's module API. For detailed JSDoc comments, see the source files.
 
@@ -117,6 +117,34 @@ This document provides an overview of REPLOID's module API. For detailed JSDoc c
 
 ---
 
+### MultiModelEvaluator (`core/multi-model-evaluator.js`, `capabilities/intelligence/multi-model-evaluator.js`)
+
+**Type:** Multi-model evaluation harness
+**Dependencies:** Utils, LLMClient, EventBus?, SchemaRegistry?
+**Status:** Implemented (March 2026)
+
+**API:**
+- `evaluate(tasks, modelConfigs, options)` - Evaluate task suites across models
+
+**Options:**
+- `modelConcurrency` - Max concurrent model evaluations (default: 2)
+- `matchMode` - Output match mode: `exact` or `contains`
+- `lengthTarget` - Output length target for scoring
+- `scoreOutput` - Custom scoring callback
+
+**Events:**
+- `multi-model:eval:start` - Evaluation run started
+- `multi-model:eval:progress` - Task completed for a model
+- `multi-model:eval:complete` - Run completed with summary stats
+
+**Notes:**
+- Task entries can include `messages`, `prompt`, `schema`, and `expected`
+- Timeouts are not enforced by default
+
+**See Also:** [docs/multi-model-evaluation.md](./multi-model-evaluation.md)
+
+---
+
 ## RSI Modules
 
 ### Introspector (`infrastructure/introspector.js`)
@@ -207,10 +235,26 @@ This document provides an overview of REPLOID's module API. For detailed JSDoc c
 
 ## Intelligence Modules
 
+### FunctionGemmaOrchestrator (`core/functiongemma-orchestrator.js`)
+
+**Type:** Multi-expert orchestration and topology evolution
+**Dependencies:** Utils, EventBus?, SemanticMemory?, ArenaHarness?, ContextManager?, SchemaRegistry?, ReflectionStore?, VFS
+**Status:** Implemented (March 2026)
+
+**API:**
+- `initBase(options)` - Initialize base model and pipeline
+- `registerExperts(experts)` - Register LoRA experts and routing metadata
+- `execute(task, options)` - Execute task with expert routing
+- `runArenaEvolution(tasks, options)` - Evolve and persist topologies
+- `runHeadToHead(genomeA, genomeB, tasks, options)` - Head to head evaluation
+- `executeTemporalSelfRing(task, config)` - Temporal self-ring execution
+
+---
+
 ### NeuralCompiler (`capabilities/intelligence/neural-compiler.js`)
 
 **Type:** LoRA adapter router and task scheduler
-**Dependencies:** Utils, VFS, LLMClient, SemanticMemory
+**Dependencies:** Utils, VFS, LLMClient, SemanticMemory, IntentBundleGate?, EventBus?
 **Status:** Implemented (December 2025)
 
 **API:**
@@ -218,12 +262,35 @@ This document provides an overview of REPLOID's module API. For detailed JSDoc c
 - `unregisterAdapter(name)` - Remove adapter from registry
 - `listAdapters()` - List registered adapters
 - `getActiveAdapter()` - Current active adapter name
+- `applyIntentBundle(bundleOrPath, options)` - Load adapter from intent bundle with gating
 - `executeTask(task, options)` - Route a single task and execute with LoRA swap
 - `scheduleTasks(tasks, options)` - Batch tasks by adapter and execute in swap-minimizing order
 
 **Registry:** `/.memory/neural-compiler/adapters.json`
 
 **See Also:** [Blueprint 0x000095](../blueprints/0x000095-hot-swappable-neural-compiler.md)
+
+---
+
+### IntentBundleLoRA (`capabilities/intelligence/intent-bundle-lora.js`)
+
+**Type:** Intent bundle LoRA workflow
+**Dependencies:** Utils, NeuralCompiler, EventBus?
+**Status:** Implemented (March 2026)
+
+**API:**
+- `applyIntentBundle(bundleOrPath, options)` - Approve intent bundle and apply LoRA adapter
+
+**Options:**
+- `registerAdapter` - Register adapter in NeuralCompiler registry (default: true)
+- `verifyAssets` - Verify LoRA shard paths in VFS (default: false)
+- `routingText` - Override routing text for adapter registration
+
+**Notes:**
+- Delegates to NeuralCompiler for loading and adapter routing
+- Returns `missing_assets` with `stub: true` when manifest or shards are missing
+- TODO: Provide LoRA manifest and shard assets in VFS to resolve stub responses
+- Default bundle path: `/.system/intent-bundle.json`
 
 ---
 
@@ -532,9 +599,9 @@ exportAsMarkdown('performance.md', report);
 
 - **Architecture Blueprints:** `blueprints/` directory - Design specifications
 - **Module Source Code:** `core/` and `infrastructure/` - Fully documented with JSDoc
-- **Quick Start Guide:** `docs/QUICK-START.md` - Interactive tutorial
-- **Troubleshooting:** `docs/TROUBLESHOOTING.md` - Common issues and solutions
-- **Security Model:** `docs/SECURITY.md` - Containment and safety architecture
+- **Quick Start Guide:** `docs/quick-start.md` - Interactive tutorial
+- **Troubleshooting:** `docs/troubleshooting.md` - Common issues and solutions
+- **Security Model:** `docs/security.md` - Containment and safety architecture
 
 ---
 

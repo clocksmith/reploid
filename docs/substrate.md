@@ -5,18 +5,28 @@ This document consolidates the developer documentation for the REPLOID substrate
 ## Directory Structure
 
 ```
-/
-├── core/              # Core substrate modules (cognitive kernel)
-├── capabilities/      # Extended capabilities (reflection, cognition, communication)
-├── infrastructure/    # Support services (event-bus, DI, rate-limiting)
-├── tools/             # Dynamic tools (agent-created)
-├── ui/                # User interface components
+reploid/
+├── src/               # Browser runtime (VFS root)
+│   ├── entry/         # Entry points (seed VFS, start app)
+│   ├── boot-helpers/  # Boot orchestration helpers
+│   ├── core/          # Core substrate modules (cognitive kernel)
+│   ├── capabilities/  # Extended capabilities (reflection, cognition, communication)
+│   ├── infrastructure/ # Support services (event-bus, DI, rate-limiting)
+│   ├── tools/         # Dynamic tools (agent-created)
+│   ├── ui/            # User interface components
+│   │   └── boot-wizard/  # Boot wizard UI
+│   ├── styles/        # UI styles
+│   ├── config/        # Runtime configuration + manifests
+│   ├── blueprints/    # Architectural blueprints
+│   └── testing/       # Browser-side harnesses
 ├── server/            # Server-side (proxy, signaling)
-├── blueprints/        # 102 architectural blueprints
-├── examples/          # RSI example patterns
-├── tests/             # Test suite
-└── docs/              # Documentation
+├── tests/             # Test suites (unit, integration, e2e, benchmarks)
+├── docs/              # Documentation
+└── doppler/           # Submodule (engine)
 ```
+
+Runtime note: the VFS root `/` maps to `src/` on disk. Paths like `/core/agent-loop.js`
+refer to `src/core/agent-loop.js`.
 
 ---
 
@@ -59,7 +69,7 @@ Reploid can evolve Doppler kernels by writing a replacement WGSL file to
 Doppler validates the hash and recompiles only when it changes. This path is
 gated by verification and rollback logic in Reploid.
 
-See `reploid/doppler/docs/ARCHITECTURE.md` for Doppler's engine design details.
+See `reploid/doppler/docs/architecture.md` for Doppler's engine design details.
 
 ---
 
@@ -87,7 +97,7 @@ The core provides fundamental capabilities for REPLOID's recursive self-improvem
 
 ### Capability Levels
 
-> Definitions moved to [VISION.md](../../VISION.md#rsi-levels) to maintain a single source of truth.
+Definitions maintained in internal vision materials.
 
 ---
 
@@ -163,12 +173,12 @@ Set `CORS_ORIGINS` environment variable or add to config:
 
 ## Blueprints
 
-The `/blueprints/` directory contains 102 architectural blueprints organized into 7 domains:
+The `src/blueprints/` directory (VFS path `/blueprints/`) contains 102 architectural blueprints organized into 7 domains:
 
 1. **Core Infrastructure** - Bootstrapping, DI, configuration
 2. **State & Memory** - VFS, persistence, context management
 3. **Agent Cognition** - Reasoning, planning, LLM interaction
-4. **Tooling & Runtime** - Execution engines, Python/Pyodide
+4. **Tooling & Runtime** - Execution engines, tool orchestration
 5. **User Interface** - Panels, modals, interaction components
 6. **Visualization** - Charts, graphs, introspection visuals
 7. **Recursive Self-Improvement** - Introspection, evolution
@@ -178,18 +188,6 @@ Key blueprints:
 - `0x000035` - Reflection Store Architecture
 - `0x00003E` - WebRTC Swarm Transport
 - `0x000047` - Verification Manager
-
----
-
-## Examples
-
-The `/examples/` directory contains RSI reference implementations:
-
-| Level | File | Description |
-|-------|------|-------------|
-| 1 | `code-quality-auditor.js` | Uses existing capabilities for external tasks |
-| 2 | `self-play-prompt-improver.js` | Improves own process through self-play |
-| 3 | `substrate-optimizer.js` | Modifies own runtime kernel |
 
 ---
 
@@ -205,8 +203,9 @@ Test structure:
 - `tests/unit/` - Unit tests for individual modules
 - `tests/integration/` - Integration tests for system behavior
 - `tests/e2e/` - End-to-end browser tests (Playwright)
+- `tests/benchmarks/` - Performance benchmarks
 
-Current coverage: 110+ tests, 98%+ line coverage on core modules.
+Coverage varies by module. See `tests/` for current suites.
 
 ---
 

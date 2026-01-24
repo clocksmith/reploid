@@ -1,15 +1,15 @@
 # Blueprint 0x000092: boot error ui
 
-**Objective:** Describe implementation for boot/error-ui.js.
+**Objective:** Describe implementation for boot-helpers/error-ui.js.
 
-**Target Upgrade:** boot/error-ui.js
+**Target Upgrade:** boot-helpers/error-ui.js
 
-**Affected Artifacts:** /boot/error-ui.js
+**Affected Artifacts:** /boot-helpers/error-ui.js
 
 ---
 
 ### 1. Intent
-Define the purpose and constraints for boot/error-ui.js.
+Define the purpose and constraints for boot-helpers/error-ui.js.
 
 ### 2. Architecture
 Outline the main responsibilities, dependencies, and data flow.

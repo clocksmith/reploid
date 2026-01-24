@@ -86,5 +86,5 @@ export async function boot(Utils, DIContainer) {
   };
 }
 
-// Re-export error UI for use in boot.js
+// Re-export error UI for use in entry/start-app.js
 export { renderErrorUI };

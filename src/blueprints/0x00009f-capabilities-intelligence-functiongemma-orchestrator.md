@@ -143,8 +143,8 @@ The following were removed from DOPPLER and must be implemented here:
 
 ## 5. Cross-References
 
-- `reploid/doppler/docs/ARCHITECTURE.md#engine-vs-driver-boundary`
-- `reploid/doppler/docs/design/FUNCTION_GEMMA.md`
+- `reploid/doppler/docs/architecture.md#engine-vs-driver-boundary`
+- `docs/function-gemma.md`
 
 ---
 

@@ -18,7 +18,7 @@ import {
 import { formatGoalPacket } from './goals.js';
 import { serializeModuleOverrides } from '../../config/module-resolution.js';
 import { setSecurityEnabled } from '../../core/security-config.js';
-import { readVfsFile, loadVfsManifest, seedVfsFromManifest, clearVfsStore } from '../../boot/vfs-bootstrap.js';
+import { readVfsFile, loadVfsManifest, seedVfsFromManifest, clearVfsStore } from '../../boot-helpers/vfs-bootstrap.js';
 
 // Step renderers
 import { renderChooseStep } from './steps/choose.js';

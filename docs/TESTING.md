@@ -266,6 +266,6 @@ export default defineConfig({
 
 ## Related Documentation
 
-- [Ouroboros Architecture](../../ARCHITECTURE.md)
+- Ouroboros Architecture (internal)
 - [Arena System](../testing/arena/README.md)
-- [Contributing Guide](CONTRIBUTING.md)
+- [Contributing Guide](contributing.md)

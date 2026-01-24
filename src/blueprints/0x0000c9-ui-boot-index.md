@@ -1,15 +1,15 @@
 # Blueprint 0x0000c9: ui boot index
 
-**Objective:** Describe implementation for ui/boot/index.js.
+**Objective:** Describe implementation for ui/boot-wizard/index.js.
 
-**Target Upgrade:** ui/boot/index.js
+**Target Upgrade:** ui/boot-wizard/index.js
 
-**Affected Artifacts:** /ui/boot/index.js
+**Affected Artifacts:** /ui/boot-wizard/index.js
 
 ---
 
 ### 1. Intent
-Define the purpose and constraints for ui/boot/index.js.
+Define the purpose and constraints for ui/boot-wizard/index.js.
 
 ### 2. Architecture
 Outline the main responsibilities, dependencies, and data flow.

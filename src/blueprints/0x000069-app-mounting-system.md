@@ -156,7 +156,7 @@ const discoverApps = async () => {
 
 Apps with `"autoMount": true` are mounted during boot:
 ```javascript
-// In boot.js or AppMountManager.init()
+// In entry/start-app.js or AppMountManager.init()
 const apps = await discoverApps();
 for (const { manifest } of apps) {
   if (manifest.autoMount) {
@@ -641,4 +641,4 @@ const AppBridge = {
 **See Also:**
 - [Blueprint 0x000048: Module Widget Protocol](0x000048-module-widget-protocol.md)
 - [Blueprint 0x000047: Verification Manager](0x000047-verification-manager.md)
-- [docs/SECURITY.md](../docs/SECURITY.md)
+- [docs/security.md](../docs/security.md)

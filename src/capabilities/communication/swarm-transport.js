@@ -302,7 +302,7 @@ const SwarmTransport = {
     const initWebRTC = async () => {
       _transport = 'webrtc';
 
-      // WebRTCSwarm should already be initialized by boot.js
+      // WebRTCSwarm should already be initialized by entry/start-app.js
       // We just need to wire up our handlers
       try {
         // Import dynamically to avoid circular dependency

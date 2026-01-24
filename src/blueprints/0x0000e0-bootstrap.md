@@ -1,15 +1,15 @@
 # Blueprint 0x0000e0: bootstrap
 
-**Objective:** Describe implementation for bootstrap.js.
+**Objective:** Describe implementation for entry/seed-vfs.js.
 
-**Target Upgrade:** bootstrap.js
+**Target Upgrade:** entry/seed-vfs.js
 
-**Affected Artifacts:** /bootstrap.js
+**Affected Artifacts:** /entry/seed-vfs.js
 
 ---
 
 ### 1. Intent
-Define the purpose and constraints for bootstrap.js.
+Define the purpose and constraints for entry/seed-vfs.js.
 
 ### 2. Architecture
 Outline the main responsibilities, dependencies, and data flow.

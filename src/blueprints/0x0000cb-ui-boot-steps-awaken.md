@@ -1,15 +1,15 @@
 # Blueprint 0x0000cb: ui boot steps awaken
 
-**Objective:** Describe implementation for ui/boot/steps/awaken.js.
+**Objective:** Describe implementation for ui/boot-wizard/steps/awaken.js.
 
-**Target Upgrade:** ui/boot/steps/awaken.js
+**Target Upgrade:** ui/boot-wizard/steps/awaken.js
 
-**Affected Artifacts:** /ui/boot/steps/awaken.js
+**Affected Artifacts:** /ui/boot-wizard/steps/awaken.js
 
 ---
 
 ### 1. Intent
-Define the purpose and constraints for ui/boot/steps/awaken.js.
+Define the purpose and constraints for ui/boot-wizard/steps/awaken.js.
 
 ### 2. Architecture
 Outline the main responsibilities, dependencies, and data flow.

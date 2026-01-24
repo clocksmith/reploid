@@ -8,14 +8,22 @@ All configurable settings exposed in the boot page and their corresponding local
 
 Expand "Advanced options" on the boot page to access these settings.
 
-### Agent Configuration
+### Runtime Mode
 
 | Setting | localStorage Key | Values | Default |
 |---------|------------------|--------|---------|
-| Persona | `REPLOID_PERSONA_ID` | `default`, `architect`, `explorer`, `debugger` | `default` |
 | Genesis Level | `REPLOID_GENESIS_LEVEL` | `full`, `substrate`, `cognition`, `reflection`, `spark`, `tabula` | `full` |
-| Blueprint Path | `REPLOID_BLUEPRINT_PATH` | `none`, `reflection`, `full`, `beyond` | `none` |
 | Module Overrides | `REPLOID_MODULE_OVERRIDES` | JSON map of module id to `on` or `off` | `{}` |
+
+### Safety & Approval
+
+Settings stored in `REPLOID_HITL_CONFIG` as JSON object.
+
+| Setting | localStorage Key | Values | Default |
+|---------|------------------|--------|---------|
+| Security enforcement | `REPLOID_SECURITY_MODE` | `'on'`, `'off'` | `'off'` |
+| HITL approval | `approvalMode` | `autonomous`, `hitl`, `every_n` | `autonomous` |
+| HITL cadence | `everyNSteps` | `1` - `100` | `5` |
 
 ### Execution Limits
 
@@ -30,6 +38,12 @@ Expand "Advanced options" on the boot page to access these settings.
 |---------|------------------|--------|---------|
 | Fresh Genesis | `REPLOID_RESET_ALL` | `'true'`, `'false'` | `'true'` |
 | Preserve VFS on boot | `REPLOID_PRESERVE_ON_BOOT` | `'true'`, `'false'` | `'false'` |
+
+### Goal
+
+| Setting | localStorage Key | Values | Default |
+|---------|------------------|--------|---------|
+| Goal | `REPLOID_GOAL` | Free text | `''` |
 
 ### Cognition
 
@@ -75,21 +89,17 @@ Settings managed by the model selection UI.
 |---------|------------------|-------------|
 | Selected models | `SELECTED_MODELS` | JSON array of model configs |
 | Consensus type | `CONSENSUS_TYPE` | `'arena'`, `'peer-review'` |
-| Primary model | `SELECTED_MODEL` | Model ID of first selected model |
-| Provider | `AI_PROVIDER` | Provider of primary model |
-| API keys | `{PROVIDER}_API_KEY` | e.g., `GEMINI_API_KEY`, `OPENAI_API_KEY` |
+| API keys | `REPLOID_KEY_<PROVIDER>` | e.g., `REPLOID_KEY_GEMINI`, `REPLOID_KEY_OPENAI` |
 
 ---
 
 ## Security Settings
 
-See [SECURITY.md](./SECURITY.md) for details.
+See [security.md](./security.md) for details.
 
 | Setting | localStorage Key | Values | Default |
 |---------|------------------|--------|---------|
 | Arena gating | `REPLOID_ARENA_GATING` | `'true'`, `'false'` | `'false'` |
-| HITL mode | `REPLOID_HITL_MODE` | `'AUTONOMOUS'`, `'EVERY_N'`, `'HITL'` | `'AUTONOMOUS'` |
-| HITL interval | `REPLOID_HITL_N` | Positive integer | `5` |
 
 ---
 
@@ -102,8 +112,7 @@ See [SECURITY.md](./SECURITY.md) for details.
 window.getCognitionConfig()   // → { semantic, symbolic, minSimilarity, topK }
 window.getGEPAConfig()        // → { populationSize, maxGenerations, ... }
 window.getExecutionLimits()   // → { maxIterations, approvalInterval }
-window.getGenesisLevel()      // → 'full' | 'reflection' | 'spark' | 'tabula'
-window.getBlueprintPath()     // → 'none' | 'reflection' | 'full' | 'beyond'
+window.getGenesisLevel()      // → 'full' | 'substrate' | 'cognition' | 'reflection' | 'spark' | 'tabula'
 ```
 
 ### From Modules
