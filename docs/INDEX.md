@@ -32,6 +32,7 @@ Guide to all documentation in the REPLOID project.
 ### Reference
 - **[docs/api.md](./api.md)** - Module API documentation
 - **[docs/multi-model-evaluation.md](./multi-model-evaluation.md)** - Multi-model evaluation harness
+- **[docs/intent-bundle-lora.md](./intent-bundle-lora.md)** - Intent bundle LoRA workflow
 - **[docs/configuration.md](./configuration.md)** - Boot page settings and localStorage keys
 - **[docs/local-models.md](./local-models.md)** - WebLLM and Ollama setup
 - **[docs/troubleshooting.md](./troubleshooting.md)** - Common issues and solutions

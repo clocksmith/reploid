@@ -84,7 +84,7 @@
     },
     "full": {
       "name": "FULL",
-      "description": "Substrate + advanced multi-agent systems - 14 additional modules",
+      "description": "Substrate + advanced multi-agent systems - 16 additional modules",
       "extends": "substrate",
       "modules": [
         "ArenaCompetitor",
@@ -96,7 +96,9 @@
         "FunctionGemmaOrchestrator",
         "HybridRetrieval",
         "MultiModelCoordinator",
+        "MultiModelEvaluator",
         "NeuralCompiler",
+        "IntentBundleLoRA",
         "PromptScoreMap",
         "SwarmSync",
         "SwarmTransport",
@@ -168,6 +170,9 @@
     "IntentBundleGate": [
       "infrastructure/intent-bundle-gate.js"
     ],
+    "IntentBundleLoRA": [
+      "capabilities/intelligence/intent-bundle-lora.js"
+    ],
     "HybridRetrieval": [
       "capabilities/cognition/hybrid-retrieval.js"
     ],
@@ -185,6 +190,9 @@
     ],
     "MultiModelCoordinator": [
       "capabilities/intelligence/multi-model-coordinator.js"
+    ],
+    "MultiModelEvaluator": [
+      "core/multi-model-evaluator.js"
     ],
     "NeuralCompiler": [
       "capabilities/intelligence/neural-compiler.js"

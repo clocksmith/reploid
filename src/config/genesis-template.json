@@ -84,7 +84,7 @@
     },
     "full": {
       "name": "FULL",
-      "description": "Substrate + advanced multi-agent systems - 11 additional modules",
+      "description": "Substrate + advanced multi-agent systems - 13 additional modules",
       "extends": "substrate",
       "modules": [
         "ArenaCompetitor",
@@ -94,7 +94,9 @@
         "FederatedLearning",
         "FunctionGemmaOrchestrator",
         "MultiModelCoordinator",
+        "MultiModelEvaluator",
         "NeuralCompiler",
+        "IntentBundleLoRA",
         "SwarmSync",
         "SwarmTransport",
         "WebRTCSwarm"
