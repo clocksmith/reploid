@@ -37,7 +37,7 @@ REPLOID is a browser-native research environment for studying recursive self-imp
 
 ## Boot Sequence
 
-### 1. Entry Point (`index.html` + `bootstrap.js`)
+### 1. Entry Point (`index.html` + `entry/seed-vfs.js`)
 
 The boot screen allows operators to configure:
 - **Genesis Level**: Tabula Rasa, Reflection, or Full Substrate
@@ -45,13 +45,13 @@ The boot screen allows operators to configure:
 - **Concurrency Limits**: Max workers, iteration caps
 - **Goal Chips**: Pre-defined or custom goals
 
-### 2. VFS-First Boot (`bootstrap.js` → `boot.js`)
+### 2. VFS-First Boot (`entry/seed-vfs.js` → `entry/start-app.js`)
 
 On page load, the bootstrapper seeds the VFS and loads the boot UI. When "Awaken Agent" is pressed:
 
 1. **VFS Hydration**: Fetch `config/vfs-manifest.json` and write all listed `src/` files into IndexedDB
 2. **VFS Module Loader**: Ensure `sw-module-loader.js` controls the page (VFS-only module serving)
-3. **Boot from VFS**: Load `boot.js` from VFS and resolve the DI container
+3. **Boot from VFS**: Load `entry/start-app.js` from VFS and resolve the DI container
 4. **Genesis Snapshot**: Capture pristine state for rollback
 5. **Proto UI Mount**: Initialize UI into `#app`
 6. **WorkerManager Init**: Seed worker types and model roles
@@ -274,7 +274,7 @@ Prevent runaway failures with automatic recovery.
 
 Human approval gates for sensitive operations.
 
-For full security documentation, see [SECURITY.md](./SECURITY.md).
+For full security documentation, see [security.md](./security.md).
 
 ---
 
@@ -374,8 +374,8 @@ export const schema = {
 ```
 reploid/
 ├── index.html              # Entry point
-├── bootstrap.js            # VFS hydration + SW activation
-├── boot.js                 # Boot orchestrator (runs from VFS)
+├── entry/seed-vfs.js            # VFS hydration + SW activation
+├── entry/start-app.js                 # Boot orchestrator (runs from VFS)
 ├── sw-module-loader.js     # Service worker for VFS modules
 │
 ├── core/                   # Core substrate
@@ -414,7 +414,7 @@ reploid/
 └── server/                 # Proxy server for API keys
 ```
 
-For module development guidelines, see [CONTRIBUTING.md](./CONTRIBUTING.md).
+For module development guidelines, see [contributing.md](./contributing.md).
 
 ---
 

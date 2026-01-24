@@ -127,24 +127,21 @@ self.addEventListener('fetch', (event) => {
   if (
     url.pathname === '/doppler'
     || url.pathname.startsWith('/doppler/')
+    || url.pathname === '/proto'
+    || url.pathname.startsWith('/proto/')
     || url.pathname === '/dr'
     || url.pathname.startsWith('/dr/')
   ) {
     return;
   }
 
-  // Skip bootstrap and other network-only entrypoints.
+  // Skip boot loader and other network-only entrypoints.
   if (
-    url.pathname === '/bootstrap.js'
+    url.pathname === '/entry/seed-vfs.js'
     || url.pathname === '/app.js'
-    || url.pathname === '/src/bootstrap.js'
+    || url.pathname === '/src/entry/seed-vfs.js'
     || url.pathname === '/src/app.js'
   ) {
-    return;
-  }
-
-  // Skip boot helpers that must load before VFS hydration.
-  if (url.pathname.startsWith('/boot/') || url.pathname.startsWith('/src/boot/')) {
     return;
   }
 
@@ -208,6 +205,10 @@ async function handleModuleRequest(request, url) {
           'Cache-Control': 'no-cache'
         }
       });
+    }
+
+    if (vfsPath.startsWith('/boot-helpers/')) {
+      return fetch(request);
     }
 
     console.error(`[SW] Missing module in VFS: ${vfsPath}`);

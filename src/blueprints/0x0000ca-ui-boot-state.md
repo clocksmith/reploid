@@ -1,15 +1,15 @@
 # Blueprint 0x0000ca: ui boot state
 
-**Objective:** Describe implementation for ui/boot/state.js.
+**Objective:** Describe implementation for ui/boot-wizard/state.js.
 
-**Target Upgrade:** ui/boot/state.js
+**Target Upgrade:** ui/boot-wizard/state.js
 
-**Affected Artifacts:** /ui/boot/state.js
+**Affected Artifacts:** /ui/boot-wizard/state.js
 
 ---
 
 ### 1. Intent
-Define the purpose and constraints for ui/boot/state.js.
+Define the purpose and constraints for ui/boot-wizard/state.js.
 
 ### 2. Architecture
 Outline the main responsibilities, dependencies, and data flow.

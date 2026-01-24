@@ -71,7 +71,7 @@ REPLOID uses recursive acronyms to reinforce the self-referential nature:
 ```
 
 |-- index.html              # Entry point
-|-- boot.js                 # Hydration and initialization
+|-- entry/start-app.js                 # Hydration and initialization
 |-- sw-module-loader.js     # Service worker for VFS modules
 |
 |-- core/                   # Agent substrate
@@ -296,8 +296,8 @@ Every module includes a Web Component widget for the Proto UI. Widgets provide:
 ## 8. Boot Sequence
 
 ```
-1. index.html loads boot.js
-2. boot.js initializes VFS
+1. index.html loads entry/start-app.js
+2. entry/start-app.js initializes VFS
 3. Load app-logic.js (orchestrator)
 4. Load utils.js and di-container.js (foundation)
 5. Register config and Persona

@@ -347,7 +347,7 @@ const ToolRunner = {
       const startTime = Date.now();
 
       try {
-        // Get TransformersClient from global (pre-resolved in boot.js)
+        // Get TransformersClient from global (pre-resolved in entry/start-app.js)
         const TransformersClient = window.REPLOID?.transformersClient || null;
 
         // Inject comprehensive deps for full RSI capability

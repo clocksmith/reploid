@@ -1,15 +1,15 @@
 # Blueprint 0x0000d0: ui boot steps goal
 
-**Objective:** Describe implementation for ui/boot/steps/goal.js.
+**Objective:** Describe implementation for ui/boot-wizard/steps/goal.js.
 
-**Target Upgrade:** ui/boot/steps/goal.js
+**Target Upgrade:** ui/boot-wizard/steps/goal.js
 
-**Affected Artifacts:** /ui/boot/steps/goal.js
+**Affected Artifacts:** /ui/boot-wizard/steps/goal.js
 
 ---
 
 ### 1. Intent
-Define the purpose and constraints for ui/boot/steps/goal.js.
+Define the purpose and constraints for ui/boot-wizard/steps/goal.js.
 
 ### 2. Architecture
 Outline the main responsibilities, dependencies, and data flow.

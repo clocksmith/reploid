@@ -1,15 +1,15 @@
 # Blueprint 0x0000d1: ui boot steps proxy
 
-**Objective:** Describe implementation for ui/boot/steps/proxy.js.
+**Objective:** Describe implementation for ui/boot-wizard/steps/proxy.js.
 
-**Target Upgrade:** ui/boot/steps/proxy.js
+**Target Upgrade:** ui/boot-wizard/steps/proxy.js
 
-**Affected Artifacts:** /ui/boot/steps/proxy.js
+**Affected Artifacts:** /ui/boot-wizard/steps/proxy.js
 
 ---
 
 ### 1. Intent
-Define the purpose and constraints for ui/boot/steps/proxy.js.
+Define the purpose and constraints for ui/boot-wizard/steps/proxy.js.
 
 ### 2. Architecture
 Outline the main responsibilities, dependencies, and data flow.

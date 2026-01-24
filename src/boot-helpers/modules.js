@@ -6,7 +6,7 @@
 /**
  * Resolve module file path.
  * Module paths in genesis-levels.json are relative to src/ (e.g., "core/vfs.js").
- * Since this file is in src/boot/, we need to go up one level.
+ * Since this file is in src/boot-helpers/, we need to go up one level.
  * @param {string} filePath - Relative file path from src/
  * @returns {string} Resolved path for import
  */
@@ -14,7 +14,7 @@ const resolveModulePath = (filePath) => {
   if (filePath.startsWith('./') || filePath.startsWith('../')) {
     return filePath;
   }
-  // Paths are relative to src/, but we're in src/boot/, so go up one level
+  // Paths are relative to src/, but we're in src/boot-helpers/, so go up one level
   return `../${filePath}`;
 };
 

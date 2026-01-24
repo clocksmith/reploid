@@ -195,7 +195,7 @@ export async function loadVfsManifest() {
 
   const reploidFiles = normalizeManifestFiles(reploidManifest);
   const dopplerFiles = normalizeManifestFiles(dopplerManifest)
-    .filter((file) => !file.startsWith('/src/boot/'));
+    .filter((file) => !file.startsWith('/src/boot-helpers/'));
 
   // Merge manifests
   const manifest = {

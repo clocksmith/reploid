@@ -7,15 +7,15 @@ Guide to all documentation in the REPLOID project.
 ## Getting Started
 
 1. **[/README.md](../README.md)** - Project overview, quick start, RSI concepts
-2. **[docs/QUICK-START.md](./QUICK-START.md)** - Detailed setup and first run
-3. **[docs/OPERATIONAL_MODES.md](./OPERATIONAL_MODES.md)** - Connection modes and configurations
+2. **[docs/quick-start.md](./quick-start.md)** - Detailed setup and first run
+3. **[docs/operational-modes.md](./operational-modes.md)** - Connection modes and configurations
 
 ---
 
 ## Core Documentation
 
 ### Architecture
-- **[docs/design/SYSTEM_ARCHITECTURE.md](./design/SYSTEM_ARCHITECTURE.md)** - Complete system design
+- **[docs/system-architecture.md](./system-architecture.md)** - Complete system design
 - **[./src/blueprints/](../src/blueprints/)** - Architectural specifications (100+ files)
 
 **Key Blueprints:**
@@ -27,20 +27,17 @@ Guide to all documentation in the REPLOID project.
 - [0x000034 - Swarm Orchestration](../src/blueprints/0x000034-swarm-orchestration.md) - Multi-agent
 
 ### Vision and Contracts
-- **[docs/VISION.md](./VISION.md)** - RSI thesis and system goals
-- **[docs/design/SUBSTRATE.md](./design/SUBSTRATE.md)** - Substrate + Ouroboros contract
-- **[docs/INTENT_BUNDLE.md](./INTENT_BUNDLE.md)** - Intent bundle specification
+- **[docs/substrate.md](./substrate.md)** - Substrate + Ouroboros contract
 
 ### Reference
-- **[docs/API.md](./API.md)** - Module API documentation
-- **[docs/CONFIGURATION.md](./CONFIGURATION.md)** - Boot page settings and localStorage keys
-- **[docs/LOCAL_MODELS.md](./LOCAL_MODELS.md)** - WebLLM and Ollama setup
-- **[docs/TROUBLESHOOTING.md](./TROUBLESHOOTING.md)** - Common issues and solutions
-- **[docs/CYCLICAL_ACRONYMS.md](./CYCLICAL_ACRONYMS.md)** - Cyclical acronyms taxonomy
-- **[docs/design/MEMORY_ARCHITECTURE.md](./design/MEMORY_ARCHITECTURE.md)** - See [Blueprint 0x000079](../src/blueprints/0x000079-hierarchical-memory-architecture.md)
-- **[docs/STYLE_GUIDE.md](./STYLE_GUIDE.md)** - Code and UI conventions
-- **[docs/SECURITY.md](./SECURITY.md)** - Security model and containment layers
-- **[docs/CONTRIBUTING.md](./CONTRIBUTING.md)** - Contribution guidelines
+- **[docs/api.md](./api.md)** - Module API documentation
+- **[docs/multi-model-evaluation.md](./multi-model-evaluation.md)** - Multi-model evaluation harness
+- **[docs/configuration.md](./configuration.md)** - Boot page settings and localStorage keys
+- **[docs/local-models.md](./local-models.md)** - WebLLM and Ollama setup
+- **[docs/troubleshooting.md](./troubleshooting.md)** - Common issues and solutions
+- **[docs/style-guide.md](./style-guide.md)** - Code and UI conventions
+- **[docs/security.md](./security.md)** - Security model and containment layers
+- **[docs/contributing.md](./contributing.md)** - Contribution guidelines
 
 ---
 
@@ -50,8 +47,8 @@ Guide to all documentation in the REPLOID project.
 reploid/
 ├── src/                        # Main application
 │   ├── index.html              # Entry point
-│   ├── bootstrap.js            # VFS hydration + SW activation
-│   ├── boot.js                 # Boot orchestrator
+│   ├── entry/seed-vfs.js            # VFS hydration + SW activation
+│   ├── entry/start-app.js                 # Boot orchestrator
 │   ├── sw-module-loader.js     # Service worker for VFS modules
 │   │
 │   ├── core/                   # Core substrate
@@ -90,14 +87,14 @@ reploid/
 
 ### For New Users
 1. [README.md](../README.md) - Understand REPLOID
-2. [QUICK-START.md](./QUICK-START.md) - Get running
-3. [OPERATIONAL_MODES.md](./OPERATIONAL_MODES.md) - Configure connections
+2. [quick-start.md](./quick-start.md) - Get running
+3. [operational-modes.md](./operational-modes.md) - Configure connections
 
 ### For Developers
-1. [SYSTEM_ARCHITECTURE.md](./design/SYSTEM_ARCHITECTURE.md) - Understand architecture
+1. [system-architecture.md](./system-architecture.md) - Understand architecture
 2. [blueprints/README.md](../src/blueprints/README.md) - Study specifications
-3. [API.md](./API.md) - Learn module APIs
-4. [CONTRIBUTING.md](./CONTRIBUTING.md) - Contribution guidelines
+3. [api.md](./api.md) - Learn module APIs
+4. [contributing.md](./contributing.md) - Contribution guidelines
 5. [tools/README.md](../src/tools/README.md) - Tool development
 
 ### For RSI Research
@@ -106,7 +103,7 @@ reploid/
 3. [blueprints/0x000066-recursive-goal-decomposition.md](../src/blueprints/0x000066-recursive-goal-decomposition.md) - Recursive goal decomposition
 
 ### For Security Researchers
-1. [SECURITY.md](./SECURITY.md) - Security model and containment
+1. [security.md](./security.md) - Security model and containment
 2. [blueprints/0x000047-verification-manager.md](../src/blueprints/0x000047-verification-manager.md) - Verification and sandbox design
 3. [blueprints/0x000067-circuit-breaker-pattern.md](../src/blueprints/0x000067-circuit-breaker-pattern.md) - Failure containment
 
@@ -116,8 +113,8 @@ reploid/
 
 **Key Files:**
 - `./src/config/genesis-levels.json` - Module registry and worker types
-- `./src/bootstrap.js` - VFS hydration and boot loader
-- `./src/boot.js` - Application bootstrap
+- `./src/entry/seed-vfs.js` - VFS hydration and boot loader
+- `./src/entry/start-app.js` - Application bootstrap
 - `./src/index.html` - Entry point
 
 **Key Directories:**
@@ -126,12 +123,11 @@ reploid/
 - `./src/infrastructure/` - Support services
 - `./src/ui/` - Proto UI
 - `./src/blueprints/` - Architectural specifications
-- `docs/` - Human-facing documentation
- - Internal module system invariants and migration checklist live in the private wrapper repo.
+- `docs/` - Human-facing documentation. Internal module system invariants and migration checklist live in the private wrapper repo.
 
 **External Dependencies:**
 - `@clocksmith/doppler` - WebGPU inference engine (vendored at `reploid/doppler/`)
 
 ---
 
-*Last updated: December 2025*
+*Last updated: March 2026*

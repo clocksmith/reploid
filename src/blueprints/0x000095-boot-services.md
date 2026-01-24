@@ -1,15 +1,15 @@
 # Blueprint 0x000095: boot services
 
-**Objective:** Describe implementation for boot/services.js.
+**Objective:** Describe implementation for boot-helpers/services.js.
 
-**Target Upgrade:** boot/services.js
+**Target Upgrade:** boot-helpers/services.js
 
-**Affected Artifacts:** /boot/services.js
+**Affected Artifacts:** /boot-helpers/services.js
 
 ---
 
 ### 1. Intent
-Define the purpose and constraints for boot/services.js.
+Define the purpose and constraints for boot-helpers/services.js.
 
 ### 2. Architecture
 Outline the main responsibilities, dependencies, and data flow.

@@ -33,7 +33,7 @@ Currently, goal management is embedded in UIManager (upgrades/ui-manager.js line
 ### EventBus Integration (Validated via Sync Point 1)
 
 **Primary Event (Incoming): `goal:set`**
-- **Emitted by:** `autonomous-orchestrator.js:132`, boot.js (user input)
+- **Emitted by:** `autonomous-orchestrator.js:132`, entry/start-app.js (user input)
 - **Payload:** `string` (goal text)
 - **Purpose:** External source sets new goal
 - **Triggers:** `cycle:start` after context preparation
@@ -68,7 +68,7 @@ EventBus.on('goal:set', (goalText) => {
 ### Bidirectional Data Flow
 
 ```
-User Input (boot.js)
+User Input (entry/start-app.js)
     ↓
 goal:set (EventBus)
     ↓

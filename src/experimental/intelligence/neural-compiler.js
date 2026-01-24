@@ -8,16 +8,18 @@ const NeuralCompiler = {
     id: 'NeuralCompiler',
     version: '1.0.0',
     genesis: { introduced: 'full' },
-    dependencies: ['Utils', 'EventBus?', 'VFS', 'LLMClient', 'SemanticMemory'],
+    dependencies: ['Utils', 'EventBus?', 'VFS', 'LLMClient', 'SemanticMemory', 'IntentBundleGate?'],
     async: true,
     type: 'capability'
   },
 
   factory: (deps) => {
-    const { Utils, EventBus, VFS, LLMClient, SemanticMemory } = deps;
+    const { Utils, EventBus, VFS, LLMClient, SemanticMemory, IntentBundleGate } = deps;
     const { logger, Errors, generateId } = Utils;
 
     const REGISTRY_PATH = '/.memory/neural-compiler/adapters.json';
+    const DEFAULT_BUNDLE_PATH = '/.system/intent-bundle.json';
+    const DEFAULT_MANIFEST_DIR = '/config/lora-adapters';
 
     const _registry = new Map();
     let _activeAdapter = null;
@@ -41,6 +43,86 @@ const NeuralCompiler = {
       }
       const denom = Math.sqrt(normA) * Math.sqrt(normB);
       return denom === 0 ? 0 : dot / denom;
+    };
+
+    const normalizePath = (path) => {
+      if (!path || typeof path !== 'string') return null;
+      return path.startsWith('/') ? path : `/${path}`;
+    };
+
+    const loadBundle = async (path = DEFAULT_BUNDLE_PATH) => {
+      if (IntentBundleGate?.loadBundle) {
+        return IntentBundleGate.loadBundle(path);
+      }
+
+      const raw = await VFS.read(path);
+      try {
+        return JSON.parse(raw);
+      } catch (err) {
+        throw new Errors.ValidationError(`Intent bundle parse failed: ${err?.message || 'invalid JSON'}`);
+      }
+    };
+
+    const requestApproval = async (bundle, options = {}) => {
+      if (IntentBundleGate?.requestApproval) {
+        return IntentBundleGate.requestApproval(bundle, options);
+      }
+      return { approved: true, reason: 'IntentBundleGate not available', bundle };
+    };
+
+    const resolveAdapterRef = (bundle) => {
+      const payload = bundle?.payload || {};
+      const loraTarget = bundle?.targets?.loras?.[0] || null;
+      return payload.loraAdapterManifest || payload.loraAdapter || loraTarget?.loraId || null;
+    };
+
+    const resolveManifestPath = (bundle) => {
+      const ref = resolveAdapterRef(bundle);
+      if (!ref) {
+        return { path: null, reason: 'No LoRA adapter reference found' };
+      }
+
+      if (ref.endsWith('.json')) {
+        return { path: normalizePath(ref), reason: null };
+      }
+
+      if (ref.includes('/')) {
+        return { path: null, reason: 'LoRA reference does not point to a manifest' };
+      }
+
+      return { path: `${DEFAULT_MANIFEST_DIR}/${ref}.json`, reason: null };
+    };
+
+    const loadManifest = async (manifestPath) => {
+      if (!manifestPath) return null;
+      try {
+        const raw = await VFS.read(manifestPath);
+        return JSON.parse(raw);
+      } catch (err) {
+        logger.warn('[NeuralCompiler] Intent bundle manifest load failed:', err?.message || err);
+        return null;
+      }
+    };
+
+    const verifyAssets = async (manifest, options = {}) => {
+      if (!options.verifyAssets) {
+        return { ok: true, missing: [] };
+      }
+
+      const shards = Array.isArray(manifest?.shards) ? manifest.shards : [];
+      if (shards.length === 0 || typeof VFS.exists !== 'function') {
+        return { ok: true, missing: [] };
+      }
+
+      const missing = [];
+      for (const shard of shards) {
+        const shardPath = shard?.path;
+        if (!shardPath) continue;
+        const exists = await VFS.exists(shardPath);
+        if (!exists) missing.push(shardPath);
+      }
+
+      return { ok: missing.length === 0, missing };
     };
 
     const persistRegistry = async () => {
@@ -166,6 +248,135 @@ const NeuralCompiler = {
 
     const getActiveAdapter = () => _activeAdapter;
 
+    const deriveAdapterName = (bundle, manifest) => {
+      if (manifest?.name) return manifest.name;
+      const ref = resolveAdapterRef(bundle);
+      if (!ref) return 'intent-bundle-adapter';
+      const tail = ref.split('/').pop() || ref;
+      return tail.endsWith('.json') ? tail.slice(0, -5) : tail;
+    };
+
+    const applyIntentBundle = async (bundleOrPath = DEFAULT_BUNDLE_PATH, options = {}) => {
+      const bundle = typeof bundleOrPath === 'string'
+        ? await loadBundle(bundleOrPath)
+        : bundleOrPath;
+
+      if (!bundle) {
+        throw new Errors.ValidationError('Intent bundle required');
+      }
+
+      const approval = await requestApproval(bundle, options);
+      if (!approval.approved) {
+        emit('intent-bundle:lora:rejected', {
+          bundleId: bundle.bundleId || null,
+          reason: approval.reason || 'rejected'
+        });
+        return {
+          status: 'rejected',
+          approved: false,
+          reason: approval.reason || 'rejected',
+          bundleId: bundle.bundleId || null
+        };
+      }
+
+      const { path: manifestPath, reason } = resolveManifestPath(bundle);
+      if (!manifestPath) {
+        emit('intent-bundle:lora:missing', {
+          bundleId: bundle.bundleId || null,
+          reason
+        });
+        return {
+          status: 'missing_assets',
+          approved: true,
+          stub: true,
+          reason,
+          bundleId: bundle.bundleId || null
+        };
+      }
+
+      const manifest = await loadManifest(manifestPath);
+      if (!manifest) {
+        emit('intent-bundle:lora:missing', {
+          bundleId: bundle.bundleId || null,
+          reason: 'Manifest missing',
+          manifestPath
+        });
+        return {
+          status: 'missing_assets',
+          approved: true,
+          stub: true,
+          reason: 'Manifest missing',
+          manifestPath,
+          bundleId: bundle.bundleId || null
+        };
+      }
+
+      const assetCheck = await verifyAssets(manifest, options);
+      if (!assetCheck.ok) {
+        const missing = assetCheck.missing || [];
+        emit('intent-bundle:lora:missing', {
+          bundleId: bundle.bundleId || null,
+          reason: 'LoRA shards missing',
+          missing,
+          manifestPath
+        });
+        return {
+          status: 'missing_assets',
+          approved: true,
+          stub: true,
+          reason: 'LoRA shards missing',
+          missing,
+          manifestPath,
+          bundleId: bundle.bundleId || null
+        };
+      }
+
+      const adapterName = deriveAdapterName(bundle, manifest);
+      let registered = null;
+      if (options.registerAdapter !== false) {
+        const metadata = {
+          source: 'intent-bundle',
+          bundleId: bundle.bundleId || null,
+          baseModel: manifest.baseModel || bundle?.targets?.model?.modelId || null
+        };
+        const routingText = options.routingText || bundle?.payload?.instructions || adapterName;
+        registered = await registerAdapter(adapterName, manifestPath, {
+          manifest,
+          metadata,
+          routingText
+        });
+      }
+
+      try {
+        await loadAdapter(adapterName);
+      } catch (err) {
+        logger.warn('[NeuralCompiler] Intent bundle LoRA load failed:', err?.message || err);
+        emit('intent-bundle:lora:error', {
+          bundleId: bundle.bundleId || null,
+          error: err?.message || String(err)
+        });
+        return {
+          status: 'failed',
+          approved: true,
+          error: err?.message || String(err),
+          manifestPath,
+          bundleId: bundle.bundleId || null
+        };
+      }
+
+      const result = {
+        status: 'loaded',
+        approved: true,
+        adapter: _activeAdapter,
+        manifestPath,
+        bundleId: bundle.bundleId || null,
+        registered: !!registered
+      };
+
+      emit('intent-bundle:lora:loaded', result);
+      return result;
+    };
+
     const executeTask = async (task, options = {}) => {
       if (!task) {
         throw new Errors.ValidationError('Task required');
@@ -229,6 +440,7 @@ const NeuralCompiler = {
       unregisterAdapter,
       listAdapters,
       getActiveAdapter,
+      applyIntentBundle,
       executeTask,
       scheduleTasks
     };

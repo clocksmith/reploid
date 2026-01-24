@@ -8,7 +8,7 @@
 **Prerequisites:**
 - **0x00004E** (Module Widget Protocol) - REQUIRED for widget implementation
 
-**Affected Artifacts:** `/core/app-logic.js`, `/boot.js`
+**Affected Artifacts:** `/core/app-logic.js`, `/entry/start-app.js`
 
 ---
 
@@ -18,7 +18,7 @@ A modular agent architecture requires a robust mechanism to "wire" its component
 
 ### 2. The Architectural Solution
 
-The `/core/app-logic.js` artifact serves as the central orchestrator, executed first by the `/boot.js` harness. It implements a **Dependency Injection (DI) container-based architecture** for module loading and initialization, with comprehensive boot performance tracking via a Web Component proto widget.
+The `/core/app-logic.js` artifact serves as the central orchestrator, executed first by the `/entry/start-app.js` harness. It implements a **Dependency Injection (DI) container-based architecture** for module loading and initialization, with comprehensive boot performance tracking via a Web Component proto widget.
 
 #### Module Structure
 
@@ -200,7 +200,7 @@ Set `_bootStats.startTime = Date.now()` and `_bootStats.status = 'booting'` when
 
 #### Step 2: Load Foundation Modules
 
-The `/boot.js` harness loads and executes `/core/app-logic.js`. The orchestrator manually loads the two foundation modules:
+The `/entry/start-app.js` harness loads and executes `/core/app-logic.js`. The orchestrator manually loads the two foundation modules:
 
 ```javascript
 // Load Utils (zero dependencies)

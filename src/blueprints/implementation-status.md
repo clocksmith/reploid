@@ -9,7 +9,7 @@ Generated: December 2025
 | Blueprint | Implementation File(s) |
 |-----------|------------------------|
 | `0x000001` System Prompt Architecture | `core/agent-loop.js` |
-| `0x000002` Application Orchestration | `boot.js`, `sw-module-loader.js` |
+| `0x000002` Application Orchestration | `entry/start-app.js`, `sw-module-loader.js` |
 | `0x000003` Core Utilities & Error Handling | `core/utils.js` |
 | `0x000005` State Management Architecture | `core/state-manager.js` |
 | `0x000006` Pure State Helpers | `core/state-helpers-pure.js` |
@@ -148,7 +148,7 @@ Generated: December 2025
 | `testing/arena/vfs-sandbox.js` | VFS sandbox for arena | (part of 0x000075) |
 | `testing/arena/index.js` | Arena module entry | (part of 0x000077) |
 | `tools/python/pyodide-worker.js` | Pyodide web worker | (part of 0x000030) |
-| `ui/boot/model-config/*.js` | Model configuration UI (5 files) | 0x00008B Model Config UI |
+| `ui/boot-wizard/model-config/*.js` | Model configuration UI (5 files) | 0x00008B Model Config UI |
 | `ui/components/inline-chat.js` | Inline chat component | 0x00008C Inline Chat |
 | `ui/panels/chat-panel.js` | Chat panel | 0x00008D Chat Panel |
 | `ui/panels/code-panel.js` | Code editor panel | 0x00008E Code Panel |
@@ -191,7 +191,7 @@ Generated: December 2025
 6. `0x000087` Substrate Loader - `capabilities/system/substrate-loader.js`
 7. `0x000088` Agent Bridge Server - `server/agent-bridge.js`
 8. `0x000089` Proxy Server - `server/proxy.js`
-9. `0x00008A` Model Config UI - `ui/boot/model-config/*.js`
+9. `0x00008A` Model Config UI - `ui/boot-wizard/model-config/*.js`
 10. `0x00008B` Inline Chat - `ui/components/inline-chat.js`
 11. `0x00008C` Chat Panel - `ui/panels/chat-panel.js`
 12. `0x00008D` Code Panel - `ui/panels/code-panel.js`

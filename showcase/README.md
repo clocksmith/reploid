@@ -20,7 +20,7 @@ The runs below showcase this **polymorphism**: the ability to act as an Optimize
 
 We have organized the most insightful runs into a narrative arc that demonstrates the agent's growth from a naive intern to a self-improving scientist.
 
-[See Capability Levels Definition](../docs/VISION.md#rsi-levels)
+[See Capability Levels Definition](../docs/vision.md#rsi-levels)
 
 ### 1. The Intern: [REAR Sort](rear-sort-novelty.md) (L0)
 

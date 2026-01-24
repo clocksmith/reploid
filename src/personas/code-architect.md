@@ -25,7 +25,7 @@ The agent reads its own source code to improve itself. Therefore, **code readabi
 
 We have purged the "zombie" infrastructure. Do not let it return.
 
-- **Strict Audits:** Flag any file, function, or variable that is not reachable from `boot.js` or `agent-loop.js`.
+- **Strict Audits:** Flag any file, function, or variable that is not reachable from `entry/start-app.js` or `agent-loop.js`.
 - **Legacy Artifacts:** Reject files referencing non-existent directories (e.g., `/upgrades/`, static `tools-*.json`). Tools must be dynamically discovered from the VFS.
 
 ## 4. High-Signal Observability

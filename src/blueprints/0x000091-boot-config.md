@@ -1,15 +1,15 @@
 # Blueprint 0x000091: boot config
 
-**Objective:** Describe implementation for boot/config.js.
+**Objective:** Describe implementation for boot-helpers/config.js.
 
-**Target Upgrade:** boot/config.js
+**Target Upgrade:** boot-helpers/config.js
 
-**Affected Artifacts:** /boot/config.js
+**Affected Artifacts:** /boot-helpers/config.js
 
 ---
 
 ### 1. Intent
-Define the purpose and constraints for boot/config.js.
+Define the purpose and constraints for boot-helpers/config.js.
 
 ### 2. Architecture
 Outline the main responsibilities, dependencies, and data flow.

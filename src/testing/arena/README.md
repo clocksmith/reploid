@@ -57,4 +57,4 @@ const enabled = ToolRunner.isArenaGatingEnabled();
 - [Blueprint 0x000075: Arena Competitor](../blueprints/0x000075-arena-competitor.md)
 - [Blueprint 0x000076: Arena Metrics](../blueprints/0x000076-arena-metrics.md)
 - [Blueprint 0x000077: Arena Harness](../blueprints/0x000077-arena-harness.md)
-- [docs/SECURITY.md](../../docs/SECURITY.md)
+- [docs/security.md](../../docs/security.md)

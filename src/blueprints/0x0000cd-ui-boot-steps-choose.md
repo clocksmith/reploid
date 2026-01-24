@@ -1,15 +1,15 @@
 # Blueprint 0x0000cd: ui boot steps choose
 
-**Objective:** Describe implementation for ui/boot/steps/choose.js.
+**Objective:** Describe implementation for ui/boot-wizard/steps/choose.js.
 
-**Target Upgrade:** ui/boot/steps/choose.js
+**Target Upgrade:** ui/boot-wizard/steps/choose.js
 
-**Affected Artifacts:** /ui/boot/steps/choose.js
+**Affected Artifacts:** /ui/boot-wizard/steps/choose.js
 
 ---
 
 ### 1. Intent
-Define the purpose and constraints for ui/boot/steps/choose.js.
+Define the purpose and constraints for ui/boot-wizard/steps/choose.js.
 
 ### 2. Architecture
 Outline the main responsibilities, dependencies, and data flow.

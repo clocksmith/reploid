@@ -685,7 +685,7 @@ Either modular OR monolithic implementation runs (never both)
 
 ### Configuration Example
 
-To enable modular panels in `boot.js` or `index.html`:
+To enable modular panels in `entry/start-app.js` or `index.html`:
 
 ```javascript
 window.reploidConfig = {

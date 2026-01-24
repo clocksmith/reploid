@@ -42,7 +42,7 @@ Without genesis tracking, the agent cannot:
 ```
 1. index.html loaded
    ↓
-2. boot.js: User selects persona
+2. entry/start-app.js: User selects persona
    ↓
 3. app-logic.js: Load config.json
    ↓

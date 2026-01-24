@@ -2,16 +2,16 @@
 
 **Objective:** Boot-time UI for selecting and configuring LLM providers before agent initialization.
 
-**Target Module:** Model Config UI (`ui/boot/model-config/`)
+**Target Module:** Model Config UI (`ui/boot-wizard/model-config/`)
 
 **Prerequisites:** DOM, LocalStorage
 
 **Affected Artifacts:**
-- `/ui/boot/model-config/index.js` - Entry point
-- `/ui/boot/model-config/cards.js` - Provider cards
-- `/ui/boot/model-config/form.js` - Configuration form
-- `/ui/boot/model-config/providers.js` - Provider definitions
-- `/ui/boot/model-config/state.js` - State management
+- `/ui/boot-wizard/model-config/index.js` - Entry point
+- `/ui/boot-wizard/model-config/cards.js` - Provider cards
+- `/ui/boot-wizard/model-config/form.js` - Configuration form
+- `/ui/boot-wizard/model-config/providers.js` - Provider definitions
+- `/ui/boot-wizard/model-config/state.js` - State management
 
 ---
 
@@ -29,7 +29,7 @@ Before the agent can function, users must configure their LLM provider. The Mode
 
 **Module Structure:**
 ```
-ui/boot/model-config/
+ui/boot-wizard/model-config/
   index.js      - initModelConfig() entry point
   cards.js      - Provider card rendering
   form.js       - Configuration form handling

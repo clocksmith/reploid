@@ -743,7 +743,7 @@
         }
       ],
       "files": [
-        "boot/iframe-bridge.js"
+        "boot-helpers/iframe-bridge.js"
       ]
     },
     {
@@ -895,7 +895,7 @@
         }
       ],
       "files": [
-        "boot.js"
+        "entry/start-app.js"
       ]
     },
     {
@@ -909,7 +909,7 @@
         }
       ],
       "files": [
-        "boot/config.js"
+        "boot-helpers/config.js"
       ]
     },
     {
@@ -923,7 +923,7 @@
         }
       ],
       "files": [
-        "boot/error-ui.js"
+        "boot-helpers/error-ui.js"
       ]
     },
     {
@@ -937,7 +937,7 @@
         }
       ],
       "files": [
-        "boot/index.js"
+        "boot-helpers/index.js"
       ]
     },
     {
@@ -951,7 +951,7 @@
         }
       ],
       "files": [
-        "boot/modules.js"
+        "boot-helpers/modules.js"
       ]
     },
     {
@@ -965,7 +965,7 @@
         }
       ],
       "files": [
-        "boot/services.js"
+        "boot-helpers/services.js"
       ]
     },
     {
@@ -979,7 +979,7 @@
         }
       ],
       "files": [
-        "boot/vfs-hydrate.js"
+        "boot-helpers/vfs-hydrate.js"
       ]
     },
     {
@@ -1635,7 +1635,7 @@
         }
       ],
       "files": [
-        "ui/boot/detection.js"
+        "ui/boot-wizard/detection.js"
       ]
     },
     {
@@ -1649,7 +1649,7 @@
         }
       ],
       "files": [
-        "ui/boot/goals.js"
+        "ui/boot-wizard/goals.js"
       ]
     },
     {
@@ -1663,7 +1663,7 @@
         }
       ],
       "files": [
-        "ui/boot/index.js"
+        "ui/boot-wizard/index.js"
       ]
     },
     {
@@ -1677,7 +1677,7 @@
         }
       ],
       "files": [
-        "ui/boot/state.js"
+        "ui/boot-wizard/state.js"
       ]
     },
     {
@@ -1691,7 +1691,7 @@
         }
       ],
       "files": [
-        "ui/boot/steps/awaken.js"
+        "ui/boot-wizard/steps/awaken.js"
       ]
     },
     {
@@ -1705,7 +1705,7 @@
         }
       ],
       "files": [
-        "ui/boot/steps/browser.js"
+        "ui/boot-wizard/steps/browser.js"
       ]
     },
     {
@@ -1719,7 +1719,7 @@
         }
       ],
       "files": [
-        "ui/boot/steps/choose.js"
+        "ui/boot-wizard/steps/choose.js"
       ]
     },
     {
@@ -1733,7 +1733,7 @@
         }
       ],
       "files": [
-        "ui/boot/steps/detect.js"
+        "ui/boot-wizard/steps/detect.js"
       ]
     },
     {
@@ -1747,7 +1747,7 @@
         }
       ],
       "files": [
-        "ui/boot/steps/direct.js"
+        "ui/boot-wizard/steps/direct.js"
       ]
     },
     {
@@ -1761,7 +1761,7 @@
         }
       ],
       "files": [
-        "ui/boot/steps/goal.js"
+        "ui/boot-wizard/steps/goal.js"
       ]
     },
     {
@@ -1775,7 +1775,7 @@
         }
       ],
       "files": [
-        "ui/boot/steps/proxy.js"
+        "ui/boot-wizard/steps/proxy.js"
       ]
     },
     {
@@ -1971,7 +1971,7 @@
         }
       ],
       "files": [
-        "boot/vfs-bootstrap.js"
+        "boot-helpers/vfs-bootstrap.js"
       ]
     },
     {
@@ -1985,7 +1985,7 @@
         }
       ],
       "files": [
-        "bootstrap.js"
+        "entry/seed-vfs.js"
       ]
     }
   ]

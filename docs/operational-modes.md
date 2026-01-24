@@ -322,12 +322,12 @@ You can change modes anytime:
 
 Use **Node.js Server** with cloud APIs (Claude, GPT-4) and arena gating enabled.
 
-For security considerations across modes, see [SECURITY.md](./SECURITY.md).
+For security considerations across modes, see [security.md](./security.md).
 
 ---
 
 ## Next Steps
 
-- **Client-Only**: See [Quick Start Guide](QUICK-START.md)
-- **Local WebGPU**: See [Local Models Guide](LOCAL_MODELS.md)
-- **API Reference**: See [API Documentation](API.md)
+- **Client-Only**: See [Quick Start Guide](quick-start.md)
+- **Local WebGPU**: See [Local Models Guide](local-models.md)
+- **API Reference**: See [API Documentation](api.md)

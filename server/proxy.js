@@ -51,6 +51,7 @@ const execPromise = promisify(exec);
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const dopplerRootDir = path.join(__dirname, '..', 'doppler');
+const protoRootDir = path.join(__dirname, '..', '..', 'proto');
 const dopplerDemoDir = path.join(dopplerRootDir, 'demo');
 const dopplerKernelDir = path.join(dopplerRootDir, 'src', 'gpu', 'kernels');
 
@@ -1282,6 +1283,14 @@ app.get('/reset', (req, res) => {
 
 // Serve DOPPLER assets from the local runtime source of truth.
 app.use('/doppler', express.static(dopplerRootDir, {
+  setHeaders: (res, filePath) => {
+    if (filePath.endsWith('.wgsl')) {
+      res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+    }
+  }
+}));
+
+app.use('/proto', express.static(protoRootDir, {
   setHeaders: (res, filePath) => {
     if (filePath.endsWith('.wgsl')) {
       res.setHeader('Content-Type', 'text/plain; charset=utf-8');

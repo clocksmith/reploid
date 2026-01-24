@@ -1,15 +1,15 @@
 # Blueprint 0x000094: boot modules
 
-**Objective:** Describe implementation for boot/modules.js.
+**Objective:** Describe implementation for boot-helpers/modules.js.
 
-**Target Upgrade:** boot/modules.js
+**Target Upgrade:** boot-helpers/modules.js
 
-**Affected Artifacts:** /boot/modules.js
+**Affected Artifacts:** /boot-helpers/modules.js
 
 ---
 
 ### 1. Intent
-Define the purpose and constraints for boot/modules.js.
+Define the purpose and constraints for boot-helpers/modules.js.
 
 ### 2. Architecture
 Outline the main responsibilities, dependencies, and data flow.

@@ -113,7 +113,7 @@ export async function resetSession(vfs, genesisConfig, genesisLevel, logger) {
       if (!file.includes('/ui/components/') &&
           !file.includes('/ui/dashboard/') &&
           !file.includes('/ui/panels/') &&
-          !file.includes('/ui/boot/') &&
+          !file.includes('/ui/boot-wizard/') &&
           !coreUIFiles.has(fileName)) {
         await vfs.delete(file);
         logger.info(`[Boot] Deleted session artifact: ${file}`);

@@ -1,8 +1,8 @@
 /**
- * @fileoverview Bootstrap entry: seed VFS, activate SW, then load boot.js from VFS.
+ * @fileoverview Boot loader entry: seed VFS, activate SW, then load start-app.js from VFS.
  */
 
-import { loadVfsManifest, seedVfsFromManifest, clearVfsStore } from './boot/vfs-bootstrap.js';
+import { loadVfsManifest, seedVfsFromManifest, clearVfsStore } from '../boot-helpers/vfs-bootstrap.js';
 
 const log = (...args) => console.log('[Bootstrap]', ...args);
 const warn = (...args) => console.warn('[Bootstrap]', ...args);
@@ -69,9 +69,10 @@ const maybeFullReset = async () => {
   log('Full reset requested...');
   try {
     await window.performFullReset();
-    localStorage.setItem('REPLOID_RESET_ALL', 'false');
   } catch (err) {
     warn('Full reset failed:', err?.message || err);
+  } finally {
+    localStorage.setItem('REPLOID_RESET_ALL', 'false');
   }
 };
 
@@ -86,8 +87,8 @@ const maybeFullReset = async () => {
     const preserveOnBoot = !vfsReset && localStorage.getItem('REPLOID_PRESERVE_ON_BOOT') === 'true';
     await seedVfsFromManifest(manifest, { preserveOnBoot, logger: console, manifestText: text });
 
-    log('Loading boot.js from VFS...');
-    await import('./boot.js');
+    log('Loading start-app.js from VFS...');
+    await import('./start-app.js');
   } catch (err) {
     renderBootstrapError(err);
   }

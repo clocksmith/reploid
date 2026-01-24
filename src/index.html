@@ -52,7 +52,7 @@
   <body>
     <!-- Boot Wizard -->
     <div id="wizard-container" class="wizard-container" style="display: none">
-      <!-- Wizard content rendered by ui/boot/index.js -->
+      <!-- Wizard content rendered by ui/boot-wizard/index.js -->
     </div>
 
     <!-- App container for main UI -->
@@ -157,7 +157,7 @@
         return [`Cleared ${dbs.length} VFS database(s)`];
       }
 
-      // Expose reset functions for boot.js
+      // Expose reset functions for entry/start-app.js
       window.shouldResetAll = () =>
         localStorage.getItem("REPLOID_RESET_ALL") === "true";
       window.performFullReset = performFullReset;
@@ -230,6 +230,6 @@
       })();
     </script>
 
-    <script type="module" src="bootstrap.js?v=1735500000"></script>
+    <script type="module" src="entry/seed-vfs.js?v=1735500000"></script>
   </body>
 </html>
