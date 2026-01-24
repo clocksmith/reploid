@@ -2,7 +2,29 @@
  * @fileoverview WriteFile - Write content to VFS with audit logging and arena verification
  */
 
-import { isSecurityEnabled } from '../core/security-config.js';
+let _securityModulePromise = null;
+
+const loadSecurityModule = () => {
+  if (_securityModulePromise) return _securityModulePromise;
+  const origin = (typeof window !== 'undefined' && window.location?.origin)
+    ? window.location.origin
+    : (typeof self !== 'undefined' && self.location?.origin ? self.location.origin : null);
+  if (!origin) {
+    _securityModulePromise = Promise.resolve(null);
+    return _securityModulePromise;
+  }
+  const url = new URL('/core/security-config.js', origin).toString();
+  _securityModulePromise = import(url).catch(() => null);
+  return _securityModulePromise;
+};
+
+const getSecurityEnabled = async () => {
+  const mod = await loadSecurityModule();
+  if (mod && typeof mod.isSecurityEnabled === 'function') {
+    return !!mod.isSecurityEnabled();
+  }
+  return false;
+};
 
 async function call(args = {}, deps = {}) {
   const { VFS, EventBus, AuditLogger, VFSSandbox, VerificationManager, SubstrateLoader } = deps;
@@ -24,7 +46,7 @@ async function call(args = {}, deps = {}) {
   try {
     arenaGatingEnabled = localStorage.getItem('REPLOID_ARENA_GATING') === 'true';
   } catch (e) { /* ignore */ }
-  const securityEnabled = isSecurityEnabled();
+  const securityEnabled = await getSecurityEnabled();
 
   if (isCore && arenaGatingEnabled && securityEnabled && VFSSandbox && VerificationManager) {
     try {

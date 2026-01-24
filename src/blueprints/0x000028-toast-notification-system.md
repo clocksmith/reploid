@@ -6,7 +6,7 @@
 
 **Prerequisites:** 0x000003 (Core Utilities & Error Handling), 0x00000D (UI Management), 0x000022 (Confirmation Modal & Safety Interlocks)
 
-**Affected Artifacts:** `/ui/components/toast-notifications.js`, `/styles/proto.css`, `/core/app-logic.js`
+**Affected Artifacts:** `/ui/components/toast-notifications.js`, `/styles/proto/index.css`, `/core/app-logic.js`
 
 ---
 

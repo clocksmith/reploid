@@ -1,11 +1,11 @@
 /**
- * @fileoverview Unit tests for Edit tool
+ * @fileoverview Unit tests for EditFile tool
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import call, { tool } from '../../../tools/Edit.js';
+import call, { tool } from '../../../tools/EditFile.js';
 
-describe('Edit', () => {
+describe('EditFile', () => {
   let mockVFS;
   let mockEventBus;
   let mockAuditLogger;
@@ -30,7 +30,7 @@ describe('Edit', () => {
 
   describe('tool metadata', () => {
     it('should have correct name', () => {
-      expect(tool.name).toBe('Edit');
+      expect(tool.name).toBe('EditFile');
     });
 
     it('should have description mentioning operations array', () => {

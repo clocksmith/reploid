@@ -131,7 +131,7 @@ const load = async () => {
 | Category | Tools | Read-Only |
 |----------|-------|-----------|
 | Read | ReadFile, ListFiles, Grep, Find | Yes |
-| Write | WriteFile, Edit, DeleteFile | No |
+| Write | WriteFile, EditFile, DeleteFile | No |
 | System | SpawnWorker, LoadModule | No |
 | Meta | CreateTool, DescribeTool | No |
 

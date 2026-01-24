@@ -6,7 +6,7 @@
 
 **Prerequisites:** 0x000005 (State Management Architecture), 0x000006 (Pure State Helpers), 0x00002E (Audit Logging Policy)
 
-**Affected Artifacts:** `/capabilities/communication/tab-coordinator.js`, `/ui/styles/proto.css`, `/core/state-manager.js`
+**Affected Artifacts:** `/capabilities/communication/tab-coordinator.js`, `/styles/proto/index.css`, `/core/state-manager.js`
 
 ---
 

@@ -1,5 +1,12 @@
 # System Capabilities
 
+Purpose: Substrate behavior and module-loading capabilities for full genesis.
+
+## Scope
+
+- SubstrateLoader and runtime module loading from VFS.
+- Verification-aware loading and HITL gating.
+
 Modules in this directory manage substrate behavior for full genesis.
 
 ## SubstrateLoader

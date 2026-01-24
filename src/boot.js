@@ -36,18 +36,9 @@ function parseModels() {
  */
 async function completeAwaken(bootResult, goal, wizardContainer) {
   const { agent, vfs, container, genesisConfig } = bootResult;
-  const logger = Utils.factory().logger;
-
-  // Lazy load Proto styles
-  if (!document.getElementById('proto-stylesheet')) {
-    const link = document.createElement('link');
-    link.id = 'proto-stylesheet';
-    link.rel = 'stylesheet';
-    link.href = 'styles/proto/index.css';
-    document.head.appendChild(link);
-  }
-
-  const { default: Proto } = await import('./ui/proto.js');
+  const utils = Utils.factory();
+  const logger = utils.logger;
+  const eventBus = await container.resolve('EventBus');
 
   let workerManager = null;
   try {
@@ -63,25 +54,106 @@ async function completeAwaken(bootResult, goal, wizardContainer) {
     logger.debug('[Boot] ArenaHarness not available');
   }
 
-  const proto = Proto.factory({
-    Utils: Utils.factory(),
-    EventBus: await container.resolve('EventBus'),
-    AgentLoop: agent,
-    StateManager: await container.resolve('StateManager'),
-    WorkerManager: workerManager,
-    ArenaHarness: arenaHarness
-  });
+  const stateManager = await container.resolve('StateManager');
+  const appEl = document.getElementById('app');
+
+  let proto = null;
+  let reloadTimer = null;
+  let reloadInProgress = false;
+  let reloadPending = false;
+
+  const ensureProtoStyles = (version) => {
+    const href = `styles/proto/index.css?v=${encodeURIComponent(version)}`;
+    let link = document.getElementById('proto-stylesheet');
+    if (!link) {
+      link = document.createElement('link');
+      link.id = 'proto-stylesheet';
+      link.rel = 'stylesheet';
+      document.head.appendChild(link);
+    }
+    if (link.href !== href) {
+      link.href = href;
+    }
+  };
+
+  const buildProto = async (version) => {
+    const { default: Proto } = await import(`./ui/proto/index.js?v=${encodeURIComponent(version)}`);
+    return Proto.factory({
+      Utils: utils,
+      EventBus: eventBus,
+      AgentLoop: agent,
+      StateManager: stateManager,
+      WorkerManager: workerManager,
+      ArenaHarness: arenaHarness
+    });
+  };
+
+  const mountProto = async (reason = '') => {
+    if (!appEl) throw new Error('Missing #app container');
+    if (proto?.cleanup) {
+      try { proto.cleanup(); } catch (e) { logger.debug('[Boot] Proto cleanup failed', e?.message || e); }
+    }
+    appEl.classList.add('active');
+    appEl.innerHTML = '';
+
+    const version = Date.now().toString();
+    window.REPLOID_UI_VERSION = version;
+    ensureProtoStyles(version);
+
+    proto = await buildProto(version);
+    await proto.mount(appEl);
+    proto.setVFS(vfs);
+    logger.info(`[Boot] UI Mounted${reason ? ` (${reason})` : ''}.`);
+  };
+
+  const reloadUI = async (reason = 'reload') => {
+    if (reloadInProgress) {
+      reloadPending = true;
+      return;
+    }
+    reloadInProgress = true;
+    try {
+      await mountProto(reason);
+    } catch (e) {
+      logger.error('[Boot] UI reload failed:', e?.message || e);
+    } finally {
+      reloadInProgress = false;
+      if (reloadPending) {
+        reloadPending = false;
+        reloadUI('pending');
+      }
+    }
+  };
+
+  const scheduleReload = (reason) => {
+    if (reloadTimer) clearTimeout(reloadTimer);
+    reloadTimer = setTimeout(() => {
+      reloadTimer = null;
+      reloadUI(reason);
+    }, 150);
+  };
 
   // Remove boot UI
   if (wizardContainer) wizardContainer.remove();
   document.body.classList.add('no-grid-pattern');
 
-  const appEl = document.getElementById('app');
-  appEl.classList.add('active');
-  proto.mount(appEl);
-  proto.setVFS(vfs);
+  await mountProto('initial');
 
-  logger.info('[Boot] UI Mounted.');
+  // Hot-reload UI on VFS changes
+  if (eventBus?.on) {
+    eventBus.on('vfs:file_changed', (data = {}) => {
+      const path = data?.path || data?.oldPath || '';
+      if (typeof path !== 'string') return;
+      if (path.startsWith('/ui/') || path.startsWith('/styles/')) {
+        scheduleReload('vfs');
+      }
+    });
+  }
+
+  window.REPLOID_UI = {
+    reload: reloadUI,
+    getVersion: () => window.REPLOID_UI_VERSION || 'unknown'
+  };
 
   // Start agent if goal provided
   if (goal) {

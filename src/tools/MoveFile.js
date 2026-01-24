@@ -1,5 +1,5 @@
 /**
- * @fileoverview Mv - Move or rename files
+ * @fileoverview MoveFile - Move or rename files
  */
 
 async function call(args = {}, deps = {}) {

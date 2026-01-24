@@ -47,7 +47,7 @@ const AgentLoop = {
         return SchemaRegistry.isToolReadOnly(name);
       }
       // Fallback if SchemaRegistry not available
-      const FALLBACK_READ_ONLY = ['ReadFile', 'ListFiles', 'Grep', 'Find', 'Cat', 'Head', 'Tail', 'Ls', 'Pwd', 'ListTools', 'ListMemories', 'ListKnowledge'];
+      const FALLBACK_READ_ONLY = ['ReadFile', 'ListFiles', 'Grep', 'Find', 'Head', 'Tail', 'FileOutline', 'ListTools'];
       return FALLBACK_READ_ONLY.includes(name);
     };
 
@@ -1134,7 +1134,7 @@ ARGS: { "key": "value" }
 - CreateTool: create + auto-load new tool { "name": "MyTool", "code": "..." }
 - Grep: search file contents { "pattern": "text", "path": "/dir", "recursive": true }
 - Find: find files by name { "path": "/", "name": "*.js" }
-- Edit: find/replace in file { "path": "/file", "operations": [{ "match": "old", "replacement": "new" }] }
+- EditFile: find/replace in file { "path": "/file", "operations": [{ "match": "old", "replacement": "new" }] }
 
 ## Creating Tools
 Tools live in /tools/ with this structure:
@@ -1157,6 +1157,7 @@ Available deps: VFS, EventBus, Utils, AuditLogger, ToolWriter, TransformersClien
 
 ## VFS Structure
 / ├── .system/ (state.json) ├── .memory/ (knowledge-graph.json, reflections.json) ├── core/ (agent-loop, llm-client, etc.) ├── capabilities/ ├── tools/ (your creations) ├── ui/ └── styles/
+Memory lives under /.memory (not .memories). Base styles: /styles/rd.css, /styles/boot.css, /styles/proto/index.css.
 
 ## Browser Environment
 Tools run in browser context with full DOM access. You have access to: document, window, createElement, querySelector, localStorage, fetch, WebSocket, canvas, audio, video, requestAnimationFrame, and all Web APIs. The page is your canvas - query elements, modify them, inject styles, create animations, delete elements. The main UI container is #app.

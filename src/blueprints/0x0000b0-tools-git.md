@@ -1,15 +1,15 @@
 # Blueprint 0x0000b0: tools git
 
-**Objective:** Describe implementation for tools/Git.js.
+**Objective:** Describe implementation for tools/git.js.
 
-**Target Upgrade:** tools/Git.js
+**Target Upgrade:** tools/git.js
 
-**Affected Artifacts:** /tools/Git.js
+**Affected Artifacts:** /tools/git.js
 
 ---
 
 ### 1. Intent
-Define the purpose and constraints for tools/Git.js.
+Define the purpose and constraints for tools/git.js.
 
 ### 2. Architecture
 Outline the main responsibilities, dependencies, and data flow.

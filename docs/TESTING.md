@@ -1,7 +1,5 @@
 # REPLOID Testing Guide
 
-> For cross-project test strategy and Ouroboros testing, see [TEST_PLAN.md](../../TEST_PLAN.md)
-
 ## Test Architecture
 
 ```
@@ -268,7 +266,6 @@ export default defineConfig({
 
 ## Related Documentation
 
-- [Cross-Project Test Strategy](../../TEST_PLAN.md)
 - [Ouroboros Architecture](../../ARCHITECTURE.md)
 - [Arena System](../testing/arena/README.md)
 - [Contributing Guide](CONTRIBUTING.md)

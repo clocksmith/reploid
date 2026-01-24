@@ -223,9 +223,7 @@
           "path": "blueprints/0x00002D-pyodide-runtime-orchestration.md"
         }
       ],
-      "files": [
-        "tools/python/pyodide-runtime.js"
-      ]
+      "files": []
     },
     {
       "id": "0x00002E",
@@ -237,9 +235,7 @@
           "path": "blueprints/0x00002E-python-tool-interface.md"
         }
       ],
-      "files": [
-        "tools/python/python-tool.js"
-      ]
+      "files": []
     },
     {
       "id": "0x000032",
@@ -886,9 +882,7 @@
           "path": "blueprints/0x00008F-python-repl-panel.md"
         }
       ],
-      "files": [
-        "ui/panels/python-repl-panel.js"
-      ]
+      "files": []
     },
     {
       "id": "0x000090",
@@ -1270,16 +1264,16 @@
     },
     {
       "id": "0x0000ab",
-      "name": "tools-cp",
+      "name": "tools-copyfile",
       "status": "active",
       "blueprints": [
         {
           "id": "0x0000ab",
-          "path": "blueprints/0x0000ab-tools-cp.md"
+          "path": "blueprints/0x0000ab-tools-copyfile.md"
         }
       ],
       "files": [
-        "tools/Cp.js"
+        "tools/CopyFile.js"
       ]
     },
     {
@@ -1298,16 +1292,16 @@
     },
     {
       "id": "0x0000ad",
-      "name": "tools-edit",
+      "name": "tools-edit-file",
       "status": "active",
       "blueprints": [
         {
           "id": "0x0000ad",
-          "path": "blueprints/0x0000ad-tools-edit.md"
+          "path": "blueprints/0x0000ad-tools-edit-file.md"
         }
       ],
       "files": [
-        "tools/Edit.js"
+        "tools/EditFile.js"
       ]
     },
     {
@@ -1349,7 +1343,7 @@
         }
       ],
       "files": [
-        "tools/Git.js"
+        "tools/git.js"
       ]
     },
     {
@@ -1465,45 +1459,31 @@
       ]
     },
     {
-      "id": "0x0000b9",
-      "name": "tools-ls",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x0000b9",
-          "path": "blueprints/0x0000b9-tools-ls.md"
-        }
-      ],
-      "files": [
-        "tools/Ls.js"
-      ]
-    },
-    {
       "id": "0x0000ba",
-      "name": "tools-mkdir",
+      "name": "tools-makedirectory",
       "status": "active",
       "blueprints": [
         {
           "id": "0x0000ba",
-          "path": "blueprints/0x0000ba-tools-mkdir.md"
+          "path": "blueprints/0x0000ba-tools-makedirectory.md"
         }
       ],
       "files": [
-        "tools/Mkdir.js"
+        "tools/MakeDirectory.js"
       ]
     },
     {
       "id": "0x0000bb",
-      "name": "tools-mv",
+      "name": "tools-movefile",
       "status": "active",
       "blueprints": [
         {
           "id": "0x0000bb",
-          "path": "blueprints/0x0000bb-tools-mv.md"
+          "path": "blueprints/0x0000bb-tools-movefile.md"
         }
       ],
       "files": [
-        "tools/Mv.js"
+        "tools/MoveFile.js"
       ]
     },
     {
@@ -1518,20 +1498,6 @@
       ],
       "files": [
         "tools/ReadFile.js"
-      ]
-    },
-    {
-      "id": "0x0000bd",
-      "name": "tools-rm",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x0000bd",
-          "path": "blueprints/0x0000bd-tools-rm.md"
-        }
-      ],
-      "files": [
-        "tools/Rm.js"
       ]
     },
     {
@@ -1656,9 +1622,7 @@
           "path": "blueprints/0x0000c6-tools-python-pyodide-worker.md"
         }
       ],
-      "files": [
-        "tools/python/pyodide-worker.js"
-      ]
+      "files": []
     },
     {
       "id": "0x0000c7",

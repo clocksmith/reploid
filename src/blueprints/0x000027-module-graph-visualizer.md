@@ -6,7 +6,7 @@
 
 **Prerequisites:** 0x00001B (Code Introspection & Self-Analysis), 0x00001F (Universal Module Loader), 0x000020 (Module Manifest & Dependency Governance)
 
-**Affected Artifacts:** `/ui/panels/module-graph-visualizer.js`, `/styles/proto.css`, `/capabilities/cognition/introspector.js`
+**Affected Artifacts:** `/ui/panels/module-graph-visualizer.js`, `/styles/proto/index.css`, `/capabilities/cognition/introspector.js`
 
 ---
 

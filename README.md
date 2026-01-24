@@ -55,7 +55,7 @@ npm start         # Proxy server at :8000
 |--------|-----------|------------------------------|--------------------------|
 | **L1** | Tools     | CreateTool - new agent tools | Verification Worker      |
 | **L2** | Meta      | Modify tool-writer           | Arena consensus          |
-| **L3** | Substrate | Edit agent-loop.js           | Arena + Genesis rollback |
+| **L3** | Substrate | EditFile agent-loop.js       | Arena + Genesis rollback |
 
 ## Genesis Levels
 
@@ -74,14 +74,14 @@ See `docs/CONFIGURATION.md` and `docs/OPERATIONAL_MODES.md` for level-specific m
 
 ## Tools
 
-| Category       | Tools                                              |
-|----------------|----------------------------------------------------|
-| **Core VFS**   | ReadFile, WriteFile, ListFiles, DeleteFile         |
-| **Meta (RSI)** | CreateTool, LoadModule, ListTools                  |
-| **Workers**    | SpawnWorker, ListWorkers, AwaitWorkers             |
-| **Shell-like** | Cat, Head, Tail, Ls, Pwd, Touch, Mkdir, Rm, Mv, Cp |
-| **Search**     | Grep, Find, Sed, Jq, FileOutline                   |
-| **Edit**       | Edit (literal match/replace)                       |
+| Category            | Tools                                                                 |
+|---------------------|-----------------------------------------------------------------------|
+| **Core VFS**        | ReadFile, WriteFile, EditFile, ListFiles, DeleteFile, CopyFile, MoveFile, MakeDirectory, Head, Tail |
+| **Meta (RSI)**      | CreateTool, LoadModule, ListTools                                     |
+| **Search**          | Grep, Find, FileOutline                                                |
+| **Cognition (cognition+)** | ListMemories, ListKnowledge, RunGEPA                               |
+| **Workers (substrate+)**   | SpawnWorker, ListWorkers, AwaitWorkers                             |
+| **Swarm (full)**           | SwarmShareFile, SwarmRequestFile, SwarmListPeers, SwarmGetStatus    |
 
 ## Documentation
 

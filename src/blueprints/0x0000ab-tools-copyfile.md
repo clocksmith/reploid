@@ -1,15 +1,15 @@
-# Blueprint 0x0000b9: tools ls
+# Blueprint 0x0000ab: tools copyfile
 
-**Objective:** Describe implementation for tools/Ls.js.
+**Objective:** Describe implementation for tools/CopyFile.js.
 
-**Target Upgrade:** tools/Ls.js
+**Target Upgrade:** tools/CopyFile.js
 
-**Affected Artifacts:** /tools/Ls.js
+**Affected Artifacts:** /tools/CopyFile.js
 
 ---
 
 ### 1. Intent
-Define the purpose and constraints for tools/Ls.js.
+Define the purpose and constraints for tools/CopyFile.js.
 
 ### 2. Architecture
 Outline the main responsibilities, dependencies, and data flow.

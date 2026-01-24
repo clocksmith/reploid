@@ -13,7 +13,6 @@ import { createSchemaManager } from './schemas.js';
 import { createWorkerManager } from './workers.js';
 import { createVFSManager } from './vfs.js';
 import { createReplayManager } from './replay.js';
-import { renderProtoTemplate } from './template.js';
 
 const Proto = {
   factory: (deps) => {
@@ -30,7 +29,7 @@ const Proto = {
 
     // UI state
     let _root = null;
-    let _reflectionsContainer = null;
+    let _toolActivityContainer = null;
     let _inlineChat = null;
     let _vfsPanelCollapsed = false;
     let _vfsSearchTimeout = null;
@@ -47,7 +46,7 @@ const Proto = {
 
     // Scroll throttling and sticky scroll behavior
     let _historyScrollScheduled = false;
-    let _reflectionScrollScheduled = false;
+    let _toolActivityScrollScheduled = false;
     let _historyFollowMode = true; // Auto-scroll to bottom on new content
 
     const scheduleHistoryScroll = () => {
@@ -61,17 +60,56 @@ const Proto = {
       });
     };
 
-    const scheduleReflectionScroll = () => {
-      if (_reflectionScrollScheduled) return;
-      _reflectionScrollScheduled = true;
+    const scheduleToolActivityScroll = () => {
+      if (_toolActivityScrollScheduled) return;
+      _toolActivityScrollScheduled = true;
       requestAnimationFrame(() => {
-        if (_reflectionsContainer) _reflectionsContainer.scrollTop = _reflectionsContainer.scrollHeight;
-        _reflectionScrollScheduled = false;
+        if (_toolActivityContainer) _toolActivityContainer.scrollTop = _toolActivityContainer.scrollHeight;
+        _toolActivityScrollScheduled = false;
       });
     };
 
-    const MAX_REFLECTIONS = 100;
+    const MAX_TOOL_ACTIVITY = 100;
     const MAX_HISTORY_ENTRIES = 200;
+    const MAX_INTENT_REFINEMENTS = 20;
+
+    let _templateRenderer = null;
+    let _templateVersion = null;
+    let _templateLoading = null;
+
+    const getTemplateVersion = () => {
+      if (typeof window !== 'undefined' && window.REPLOID_UI_VERSION) {
+        return String(window.REPLOID_UI_VERSION);
+      }
+      return 'static';
+    };
+
+    const loadTemplateRenderer = async () => {
+      const version = getTemplateVersion();
+      if (_templateRenderer && _templateVersion === version) {
+        return _templateRenderer;
+      }
+      if (_templateLoading && _templateVersion === version) {
+        return _templateLoading;
+      }
+      const cacheBust = version === 'static' ? '' : `?v=${encodeURIComponent(version)}`;
+      const spec = `./template.js${cacheBust}`;
+      const loader = import(spec)
+        .then((mod) => mod.renderProtoTemplate || mod.default)
+        .then((renderer) => {
+          _templateRenderer = renderer;
+          _templateVersion = version;
+          _templateLoading = null;
+          return renderer;
+        })
+        .catch((err) => {
+          _templateLoading = null;
+          throw err;
+        });
+      _templateLoading = loader;
+      _templateVersion = version;
+      return loader;
+    };
 
     const getStoredVFSWidth = () => {
       const stored = localStorage.getItem(VFS_WIDTH_KEY);
@@ -234,6 +272,7 @@ const Proto = {
       }
 
       scheduleHistoryScroll();
+      renderIntentSection();
     };
 
     const renderHistoryEntry = (div, entry) => {
@@ -273,11 +312,54 @@ const Proto = {
       }
     };
 
-    const onReflection = (entry) => {
-      if (!_reflectionsContainer) return;
+    const getGoalRefinements = () =>
+      _historyCache.filter((entry) => entry.type === 'human' && entry.messageType === 'goal');
 
-      while (_reflectionsContainer.children.length >= MAX_REFLECTIONS) {
-        _reflectionsContainer.removeChild(_reflectionsContainer.firstChild);
+    const renderIntentSection = async () => {
+      const goalEl = document.getElementById('intent-goal');
+      const listEl = document.getElementById('intent-refinement-list');
+      const countEl = document.getElementById('intent-refinement-count');
+      if (!goalEl || !listEl) return;
+
+      await loadHistory();
+
+      const refinements = getGoalRefinements();
+      const recent = refinements.slice(-MAX_INTENT_REFINEMENTS);
+      const baseGoal = localStorage.getItem('REPLOID_GOAL') || 'No goal set';
+      const latestGoal = recent.length ? recent[recent.length - 1].content : baseGoal;
+
+      goalEl.textContent = latestGoal || 'No goal set';
+      if (countEl) {
+        const count = refinements.length;
+        countEl.textContent = `${count} refinement${count === 1 ? '' : 's'}`;
+      }
+
+      if (recent.length === 0) {
+        listEl.innerHTML = '<div class="muted" style="padding: 6px 0;">No goal refinements yet</div>';
+        return;
+      }
+
+      listEl.innerHTML = recent.map((entry) => {
+        const cycle = entry.cycle ?? '-';
+        const timestamp = entry.ts ? new Date(entry.ts).toLocaleTimeString() : '';
+        const meta = timestamp ? `#${cycle} · ${timestamp}` : `#${cycle}`;
+        return `
+          <div class="intent-refinement-item">
+            <div class="intent-refinement-meta">
+              <span>${escapeHtml(meta)}</span>
+              <span class="muted">Goal refinement</span>
+            </div>
+            <div class="intent-refinement-text">${escapeHtml(entry.content || '')}</div>
+          </div>
+        `;
+      }).join('');
+    };
+
+    const onToolActivity = (entry) => {
+      if (!_toolActivityContainer) return;
+
+      while (_toolActivityContainer.children.length >= MAX_TOOL_ACTIVITY) {
+        _toolActivityContainer.removeChild(_toolActivityContainer.firstChild);
       }
 
       const div = document.createElement('div');
@@ -320,8 +402,8 @@ const Proto = {
       `;
 
       div.title = entry.content;
-      _reflectionsContainer.appendChild(div);
-      scheduleReflectionScroll();
+      _toolActivityContainer.appendChild(div);
+      scheduleToolActivityScroll();
     };
 
     const updateTokenBudget = (tokens) => {
@@ -366,10 +448,10 @@ const Proto = {
         panel.classList.toggle('hidden', panel.id !== `tab-${tabId}`);
       });
 
-      if (tabId === 'debug') {
+      if (tabId === 'status') {
         updateDebugPanel();
       }
-      if (tabId === 'telemetry' && !telemetryManager.isLoaded()) {
+      if (tabId === 'activity' && !telemetryManager.isLoaded()) {
         telemetryManager.loadTelemetryHistory();
       }
       if (tabId === 'schemas' && !schemaManager.isLoaded()) {
@@ -434,12 +516,24 @@ const Proto = {
       }
     };
 
-    const render = () => {
+    const render = async () => {
       const container = document.createElement('div');
       container.className = 'app-shell';
 
       const goalFromBoot = localStorage.getItem('REPLOID_GOAL') || 'No goal set';
-      container.innerHTML = renderProtoTemplate(escapeHtml, goalFromBoot);
+      let templateRenderer = null;
+
+      try {
+        templateRenderer = await loadTemplateRenderer();
+      } catch (e) {
+        logger.warn('[Proto] Failed to load template from VFS, falling back:', e?.message || e);
+        const fallback = await import('./template.js');
+        templateRenderer = fallback.renderProtoTemplate || fallback.default;
+        _templateRenderer = templateRenderer;
+        _templateVersion = 'static';
+      }
+
+      container.innerHTML = templateRenderer(escapeHtml, goalFromBoot);
 
       const initialVFSWidth = getStoredVFSWidth();
       const appliedVFSWidth = applyVFSWidth(container, initialVFSWidth);
@@ -769,20 +863,25 @@ const Proto = {
         };
       }
 
-      _reflectionsContainer = container.querySelector('#reflections-container');
+      _toolActivityContainer = container.querySelector('#tool-activity-container');
 
       return container;
     };
 
-    const mount = (target) => {
+    const mount = async (target) => {
       _root = target;
       _root.innerHTML = '';
-      _root.appendChild(render());
+      const container = await render();
+      _root.appendChild(container);
       workerManager.renderWorkersPanel();
 
       // Load persisted history and errors
       renderSavedHistory();
       updateStatusBadge();
+      renderIntentSection();
+      if (!telemetryManager.isLoaded()) {
+        telemetryManager.loadTelemetryHistory();
+      }
 
       // Wire up replay panel
       replayManager.wireEvents();
@@ -848,7 +947,7 @@ const Proto = {
       cleanup();
 
       // Event subscriptions
-      _subscriptionIds.push(EventBus.on('reflection:added', onReflection));
+      _subscriptionIds.push(EventBus.on('reflection:added', onToolActivity));
 
       _subscriptionIds.push(EventBus.on('agent:status', (status) => {
         const stateEl = document.getElementById('agent-state');
@@ -971,7 +1070,7 @@ const Proto = {
         scheduleHistoryScroll();
       }));
 
-      _subscriptionIds.push(EventBus.on('agent:history', (entry) => {
+      _subscriptionIds.push(EventBus.on('agent:history', async (entry) => {
         const historyContainer = document.getElementById('history-container');
         if (!historyContainer) return;
 
@@ -1030,7 +1129,10 @@ const Proto = {
         scheduleHistoryScroll();
 
         // Persist to VFS
-        saveHistoryEntry(entry);
+        await saveHistoryEntry(entry);
+        if (entry.type === 'human' && entry.messageType === 'goal') {
+          renderIntentSection();
+        }
       }));
 
       _subscriptionIds.push(EventBus.on('agent:arena-result', (result) => {
@@ -1103,7 +1205,9 @@ const Proto = {
       }));
 
       // Kick off initial data fetches
-      telemetryManager.loadTelemetryHistory();
+      if (!telemetryManager.isLoaded()) {
+        telemetryManager.loadTelemetryHistory();
+      }
       schemaManager.refreshSchemaData();
     };
 
@@ -1126,7 +1230,7 @@ const Proto = {
 
       clearTimeout(_vfsSearchTimeout);
       _historyScrollScheduled = false;
-      _reflectionScrollScheduled = false;
+      _toolActivityScrollScheduled = false;
     };
 
     const setVFS = (vfs) => {

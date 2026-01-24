@@ -565,14 +565,14 @@ This module is part of the 8-layer safety stack. For the complete security archi
 // Worker types receive filtered tool access
 const WORKER_TYPES = {
   explore: { allowedTools: ['ReadFile', 'ListFiles', 'Grep', 'Find'] },
-  analyze: { allowedTools: ['ReadFile', 'ListFiles', 'Grep', 'Jq'] },
+  analyze: { allowedTools: ['ReadFile', 'ListFiles', 'Grep', 'Find'] },
   execute: { allowedTools: '*' }  // Full access, requires verification
 };
 
 // Tool categories by risk level
 const TOOL_RISK = {
   low: ['ReadFile', 'ListFiles', 'Grep'],      // Read-only
-  medium: ['WriteFile', 'CreateTool', 'Edit'], // Write VFS
+  medium: ['WriteFile', 'CreateTool', 'EditFile'], // Write VFS
   high: ['LoadModule', 'ModifyGoal'],          // Meta/RSI
   critical: []                                  // None exposed to agent
 };

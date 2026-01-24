@@ -8,7 +8,7 @@ const UIManager = {
     description: 'Orchestrates UI panels via DI Container',
     dependencies: [
       'Utils', 'EventBus', 'StateManager',
-      'PythonReplPanel', 'LLMConfigPanel', 'VFSPanel',
+      'LLMConfigPanel', 'VFSPanel',
       'MetricsPanel', 'ChatPanel', 'CodePanel'
     ],
     async: true,
@@ -31,7 +31,6 @@ const UIManager = {
 
       // Simplified panel map (removed broken visualizers)
       const panelMap = [
-        { id: 'python-repl-panel', module: deps.PythonReplPanel },
         { id: 'local-llm-panel', module: deps.LLMConfigPanel },
         { id: 'vfs-tree', module: deps.VFSPanel },
         { id: 'performance-panel', module: deps.MetricsPanel },
@@ -73,7 +72,6 @@ const UIManager = {
         'thought-panel',
         'performance-panel',
         'introspection-panel',
-        'python-repl-panel',
         'local-llm-panel'
       ];
 

@@ -151,7 +151,7 @@ Press **Ctrl+K** (Cmd+K on Mac) for quick commands:
 
 **What happens:**
 1. Agent reads and analyzes the file
-2. Agent proposes changes via `Edit` tool
+2. Agent proposes changes via `EditFile` tool
 3. Changes go through verification pipeline
 4. If arena gating enabled, multiple models compete
 5. Only verified changes are applied

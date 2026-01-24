@@ -106,6 +106,26 @@
   color: var(--bg);
 }
 
+.inline-chat-status {
+  margin-top: var(--space-xs);
+  font-size: 11px;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  opacity: var(--opacity-muted);
+}
+
+.inline-chat-status[data-tone="pending"] {
+  opacity: var(--opacity-ghost);
+}
+
+.inline-chat-status[data-tone="queued"] {
+  opacity: var(--opacity-muted);
+}
+
+.inline-chat-status[data-tone="injected"] {
+  opacity: 1;
+}
+
 /* Human message display in history */
 .history-entry.human-message {
   border-left: var(--border-lg) solid var(--fg);

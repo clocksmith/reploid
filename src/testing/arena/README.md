@@ -1,5 +1,12 @@
 # Arena Testing Modules
 
+Purpose: Multi-model competition and consensus-based verification for high-risk changes.
+
+## Scope
+
+- Arena harness, competitors, metrics, and VFS sandboxing.
+- FULL-level safety gates for RSI-related changes.
+
 **Genesis Level:** FULL only
 
 This directory contains the Arena system for multi-model competition and consensus-based verification of high-risk self-modifications.
@@ -45,7 +52,7 @@ localStorage.setItem('REPLOID_ARENA_GATING', 'true');
 const enabled = ToolRunner.isArenaGatingEnabled();
 ```
 
-## See Also
+## Related
 
 - [Blueprint 0x000075: Arena Competitor](../blueprints/0x000075-arena-competitor.md)
 - [Blueprint 0x000076: Arena Metrics](../blueprints/0x000076-arena-metrics.md)

@@ -22,7 +22,14 @@ const toWebPath = (file) => {
   const base = (typeof document !== 'undefined' && document.baseURI)
     ? document.baseURI
     : (typeof window !== 'undefined' && window.location ? window.location.href : 'http://localhost/');
-  const relative = String(file || '').replace(/^\/+/, '');
+  const raw = String(file || '');
+  if (raw.startsWith('/')) {
+    const origin = (typeof window !== 'undefined' && window.location && window.location.origin)
+      ? window.location.origin
+      : new URL(base).origin;
+    return new URL(raw, origin).toString();
+  }
+  const relative = raw.replace(/^\/+/, '');
   return new URL(relative, base).toString();
 };
 
@@ -141,6 +148,25 @@ const writeEntries = async (entries) => {
 };
 
 export async function loadVfsManifest() {
+  const normalizeManifestFiles = (manifest) => {
+    if (!manifest?.files || !Array.isArray(manifest.files)) return [];
+    const files = [];
+    for (const entry of manifest.files) {
+      if (typeof entry === 'string') {
+        files.push(entry);
+        continue;
+      }
+      if (entry && typeof entry.path === 'string') {
+        files.push(entry.path);
+        continue;
+      }
+      if (entry && typeof entry.url === 'string') {
+        files.push(entry.url);
+      }
+    }
+    return files;
+  };
+
   const fetchManifest = async (path) => {
     const response = await fetch(path, {
       cache: 'no-store',
@@ -167,11 +193,20 @@ export async function loadVfsManifest() {
     throw new Error('VFS manifest missing files list');
   }
 
+  const reploidFiles = normalizeManifestFiles(reploidManifest);
+  const dopplerFiles = normalizeManifestFiles(dopplerManifest)
+    .filter((file) => !file.startsWith('/src/boot/'));
+
   // Merge manifests
   const manifest = {
     files: [...new Set([
-      ...reploidManifest.files,
-      ...(dopplerManifest.files || []).map(f => f.startsWith('/') ? `/doppler${f}` : `/doppler/${f}`)
+      ...reploidFiles,
+      ...dopplerFiles.map((file) => {
+        const normalized = file.startsWith('/') ? file : `/${file}`;
+        return normalized.startsWith('/doppler/')
+          ? normalized
+          : `/doppler${normalized}`;
+      })
     ])]
   };
 

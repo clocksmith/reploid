@@ -124,7 +124,7 @@ Multi-agent orchestration:
 // Worker Types (from genesis-levels.json)
 {
   "explore": { allowedTools: ["ReadFile", "ListFiles", "Grep", "Find"] },
-  "analyze": { allowedTools: ["ReadFile", "ListFiles", "Grep", "Jq"] },
+  "analyze": { allowedTools: ["ReadFile", "ListFiles", "Grep", "FileOutline"] },
   "execute": { allowedTools: "*" }
 }
 
@@ -292,7 +292,7 @@ The operator's control room:
 │  ┌─────────────┐  ┌─────────────────────┐  ┌─────────────┐ │
 │  │   Sidebar   │  │   VFS Content       │  │   Active    │ │
 │  │   (Tabs)    │  │   Panel             │  │   Tab       │ │
-│  │             │  │   - Edit            │  │   Content   │ │
+│  │             │  │   - EditFile        │  │   Content   │ │
 │  │             │  │   - Preview         │  │             │ │
 │  │             │  │   - Diff            │  │             │ │
 │  │             │  │   - Snapshots       │  │             │ │
@@ -341,10 +341,12 @@ All tools loaded from `/tools/` at boot. No hardcoded tools.
 |----------|-------|
 | **Core VFS** | ReadFile, WriteFile, ListFiles, DeleteFile |
 | **Meta (RSI)** | CreateTool, LoadModule, ListTools |
-| **Workers** | SpawnWorker, ListWorkers, AwaitWorkers |
-| **Shell-like** | Cat, Head, Tail, Ls, Pwd, Touch, Mkdir, Rm, Mv, Cp |
-| **Search** | Grep, Find, Sed, Jq |
-| **Edit** | Edit (literal match/replace) |
+| **Cognition (cognition+)** | ListMemories, ListKnowledge, RunGEPA |
+| **Workers (substrate+)** | SpawnWorker, ListWorkers, AwaitWorkers |
+| **Swarm (full)** | SwarmShareFile, SwarmRequestFile, SwarmListPeers, SwarmGetStatus |
+| **File Ops** | ReadFile, WriteFile, EditFile, ListFiles, DeleteFile, CopyFile, MoveFile, MakeDirectory, Head, Tail |
+| **Search** | Grep, Find, FileOutline |
+| **EditFile** | Edit (literal match/replace) |
 | **Version Control** | Git (VFS-scoped shim) |
 | **Analysis** | FileOutline |
 | **External** | Python (via Pyodide Web Worker) |

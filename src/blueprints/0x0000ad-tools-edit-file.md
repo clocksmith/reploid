@@ -1,15 +1,15 @@
-# Blueprint 0x0000ad: tools edit
+# Blueprint 0x0000ad: tools edit file
 
-**Objective:** Describe implementation for tools/Edit.js.
+**Objective:** Describe implementation for tools/EditFile.js.
 
-**Target Upgrade:** tools/Edit.js
+**Target Upgrade:** tools/EditFile.js
 
-**Affected Artifacts:** /tools/Edit.js
+**Affected Artifacts:** /tools/EditFile.js
 
 ---
 
 ### 1. Intent
-Define the purpose and constraints for tools/Edit.js.
+Define the purpose and constraints for tools/EditFile.js.
 
 ### 2. Architecture
 Outline the main responsibilities, dependencies, and data flow.

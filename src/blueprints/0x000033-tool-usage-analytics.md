@@ -6,7 +6,7 @@
 
 **Prerequisites:** 0x000026 (Performance Monitoring Stack), 0x00000A (Tool Runner Engine), 0x00002B (Toast Notification System)
 
-**Affected Artifacts:** `/capabilities/cognition/tool-analytics.js`, `/core/tool-runner.js`, `/ui/styles/proto.css`
+**Affected Artifacts:** `/capabilities/cognition/tool-analytics.js`, `/core/tool-runner.js`, `/styles/proto/index.css`
 
 ---
 

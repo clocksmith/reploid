@@ -6,7 +6,7 @@
 
 **Prerequisites:** 0x000005 (State Management Architecture), 0x000022 (Confirmation Modal & Safety Interlocks), 0x00002B (Toast Notification System)
 
-**Affected Artifacts:** `/capabilities/browser-apis.js`, `/styles/proto.css`, `/core/state-manager.js`, `/infrastructure/event-bus.js`
+**Affected Artifacts:** `/capabilities/browser-apis.js`, `/styles/proto/index.css`, `/core/state-manager.js`, `/infrastructure/event-bus.js`
 
 ---
 

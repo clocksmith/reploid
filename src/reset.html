@@ -5,6 +5,28 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <base href="/src/">
   <title>REPLOID - Reset Data</title>
+  <script>
+    window.REPLOID_SW_VERSION = "1735500005";
+    window.REPLOID_VFS_VERSION = "1735500005";
+    (function () {
+      const key = "REPLOID_SW_VERSION";
+      if (!("serviceWorker" in navigator)) return;
+      const expected = window.REPLOID_SW_VERSION;
+      if (!expected) return;
+      const current = localStorage.getItem(key);
+      if (current === expected) return;
+      navigator.serviceWorker.getRegistrations().then((regs) => {
+        if (!regs.length) {
+          localStorage.setItem(key, expected);
+          return;
+        }
+        return Promise.all(regs.map((reg) => reg.unregister())).then(() => {
+          localStorage.setItem(key, expected);
+          window.location.reload();
+        });
+      }).catch(() => {});
+    })();
+  </script>
   <link rel="stylesheet" href="styles/rd.css">
   <style>
     /* Reset-specific styles using RD tokens */

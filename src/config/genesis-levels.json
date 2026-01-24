@@ -311,13 +311,8 @@
       "tools/MakeDirectory.js",
       "tools/MoveFile.js",
       "tools/CopyFile.js",
-      "tools/ListMemories.js",
-      "tools/ListKnowledge.js",
-      "tools/Git.js",
-      "tools/Edit.js",
-      "tools/SpawnWorker.js",
-      "tools/ListWorkers.js",
-      "tools/AwaitWorkers.js"
+      "tools/git.js",
+      "tools/EditFile.js"
     ],
     "ui": [
       "ui/proto.js",
@@ -333,7 +328,6 @@
       "ui/panels/code-panel.js",
       "ui/panels/llm-config-panel.js",
       "ui/panels/metrics-panel.js",
-      "ui/panels/python-repl-panel.js",
       "ui/panels/vfs-panel.js",
       "ui/panels/cognition-panel.js",
       "ui/components/confirmation-modal.js",
@@ -360,6 +354,39 @@
       "styles/proto/hitl.css"
     ],
     "docs": []
+  },
+  "levelFiles": {
+    "cognition": {
+      "tools": [
+        "tools/ListMemories.js",
+        "tools/ListKnowledge.js",
+        "tools/RunGEPA.js"
+      ]
+    },
+    "substrate": {
+      "tools": [
+        "tools/ListMemories.js",
+        "tools/ListKnowledge.js",
+        "tools/RunGEPA.js",
+        "tools/SpawnWorker.js",
+        "tools/ListWorkers.js",
+        "tools/AwaitWorkers.js"
+      ]
+    },
+    "full": {
+      "tools": [
+        "tools/ListMemories.js",
+        "tools/ListKnowledge.js",
+        "tools/RunGEPA.js",
+        "tools/SpawnWorker.js",
+        "tools/ListWorkers.js",
+        "tools/AwaitWorkers.js",
+        "tools/SwarmShareFile.js",
+        "tools/SwarmRequestFile.js",
+        "tools/SwarmListPeers.js",
+        "tools/SwarmGetStatus.js"
+      ]
+    }
   },
   "blueprintPaths": {
     "none": {
@@ -421,7 +448,6 @@
         "FileOutline",
         "Grep",
         "Find",
-        "Cat",
         "Head",
         "Tail"
       ],
@@ -437,10 +463,8 @@
         "FileOutline",
         "Grep",
         "Find",
-        "Cat",
         "Head",
-        "Tail",
-        "Jq"
+        "Tail"
       ],
       "canSpawnWorkers": false,
       "defaultModelRole": "fast"

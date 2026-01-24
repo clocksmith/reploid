@@ -134,12 +134,17 @@ self.addEventListener('fetch', (event) => {
   }
 
   // Skip bootstrap and other network-only entrypoints.
-  if (url.pathname === '/bootstrap.js' || url.pathname === '/app.js') {
+  if (
+    url.pathname === '/bootstrap.js'
+    || url.pathname === '/app.js'
+    || url.pathname === '/src/bootstrap.js'
+    || url.pathname === '/src/app.js'
+  ) {
     return;
   }
 
   // Skip boot helpers that must load before VFS hydration.
-  if (url.pathname.startsWith('/boot/')) {
+  if (url.pathname.startsWith('/boot/') || url.pathname.startsWith('/src/boot/')) {
     return;
   }
 

@@ -144,6 +144,7 @@ Settings used by boot seeding and module registration.
 |-----|---------|
 | `moduleFiles` | Module entry and auxiliary files used for module registration and lazy imports |
 | `sharedFiles` | Always hydrated files (tools, UI, styles) |
+| `levelFiles` | Level-specific file lists (tools/UI/styles per genesis level) |
 | `levels` | Genesis level ladder and module grouping |
 
 VFS hydration loads `config/vfs-manifest.json` at bootstrap and fetches all listed `src/` files into IndexedDB before boot. Set `REPLOID_PRESERVE_ON_BOOT` to `'true'` to keep existing VFS files and only fill missing paths.

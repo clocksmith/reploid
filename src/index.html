@@ -10,6 +10,29 @@
     <link rel="icon" type="image/svg+xml" href="favicon.svg" />
     <title>Reploid</title>
 
+    <script>
+    window.REPLOID_SW_VERSION = "1735500005";
+    window.REPLOID_VFS_VERSION = "1735500005";
+      (function () {
+        const key = "REPLOID_SW_VERSION";
+        if (!("serviceWorker" in navigator)) return;
+        const expected = window.REPLOID_SW_VERSION;
+        if (!expected) return;
+        const current = localStorage.getItem(key);
+        if (current === expected) return;
+        navigator.serviceWorker.getRegistrations().then((regs) => {
+          if (!regs.length) {
+            localStorage.setItem(key, expected);
+            return;
+          }
+          return Promise.all(regs.map((reg) => reg.unregister())).then(() => {
+            localStorage.setItem(key, expected);
+            window.location.reload();
+          });
+        }).catch(() => {});
+      })();
+    </script>
+
     <link rel="stylesheet" href="styles/rd.css?v=1735500000" />
     <link rel="stylesheet" href="styles/boot.css?v=1735500000" />
 
@@ -178,6 +201,33 @@
           return {};
         }
       };
+
+      // One-click reset via query param (?reset=1)
+      (function () {
+        if (typeof window === "undefined") return;
+        const key = "REPLOID_RESET_ONCE";
+        const url = new URL(window.location.href);
+        const resetParam = url.searchParams.get("reset");
+
+        if (!resetParam) {
+          if (sessionStorage.getItem(key) === "true") {
+            sessionStorage.removeItem(key);
+          }
+          return;
+        }
+
+        if (sessionStorage.getItem(key) === "true") return;
+        sessionStorage.setItem(key, "true");
+
+        Promise.resolve()
+          .then(() => performFullReset())
+          .finally(() => {
+            url.searchParams.delete("reset");
+            const next =
+              url.pathname + (url.search ? url.search : "") + url.hash;
+            window.location.replace(next);
+          });
+      })();
     </script>
 
     <script type="module" src="bootstrap.js?v=1735500000"></script>

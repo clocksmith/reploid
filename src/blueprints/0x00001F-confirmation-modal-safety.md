@@ -6,7 +6,7 @@
 
 **Prerequisites:** 0x000003 (Core Utilities & Error Handling), 0x00000D (UI Management), 0x000018 (Blueprint Creation Meta)
 
-**Affected Artifacts:** `/ui/components/confirmation-modal.js`, `/ui/styles/proto.css`, `/infrastructure/event-bus.js`
+**Affected Artifacts:** `/ui/components/confirmation-modal.js`, `/styles/proto/index.css`, `/infrastructure/event-bus.js`
 
 ---
 

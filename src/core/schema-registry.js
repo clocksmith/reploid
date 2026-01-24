@@ -187,7 +187,7 @@ const SchemaRegistry = {
         return entry.schema.readOnly;
       }
       // Fallback for tools without explicit readOnly metadata
-      const FALLBACK_READ_ONLY = ['Grep', 'Find', 'Cat', 'Head', 'Tail', 'Ls', 'Pwd', 'ListMemories', 'ListKnowledge', 'Search'];
+      const FALLBACK_READ_ONLY = ['Grep', 'Find', 'FileOutline', 'Head', 'Tail'];
       return FALLBACK_READ_ONLY.includes(name);
     };
 
@@ -202,7 +202,7 @@ const SchemaRegistry = {
         }
       }
       // Add fallback tools
-      const FALLBACK_READ_ONLY = ['Grep', 'Find', 'Cat', 'Head', 'Tail', 'Ls', 'Pwd', 'ListMemories', 'ListKnowledge', 'Search'];
+      const FALLBACK_READ_ONLY = ['Grep', 'Find', 'FileOutline', 'Head', 'Tail'];
       for (const name of FALLBACK_READ_ONLY) {
         if (!readOnly.includes(name)) {
           readOnly.push(name);

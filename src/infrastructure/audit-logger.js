@@ -331,7 +331,7 @@ const AuditLogger = {
      * Emits audit:core_write event for L3 substrate changes
      * @param {Object} params - Write parameters
      * @param {string} params.path - File path
-     * @param {string} params.operation - Operation type (WriteFile, Edit, CreateTool)
+     * @param {string} params.operation - Operation type (WriteFile, EditFile, CreateTool)
      * @param {boolean} params.existed - Whether file existed before
      * @param {number} [params.bytesWritten] - Bytes written
      * @param {boolean} [params.arenaVerified] - Whether arena verification was performed
