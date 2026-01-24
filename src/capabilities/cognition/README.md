@@ -1,5 +1,12 @@
 # Cognition Modules
 
+Purpose: Semantic and symbolic reasoning modules gated to FULL genesis level.
+
+## Scope
+
+- Cognition API, GEPA optimizer, and reasoning subsystems.
+- Semantic embeddings and symbolic reasoning layers.
+
 **Genesis Level:** FULL only
 
 This directory contains semantic and symbolic reasoning capabilities. These modules require Transformers.js for embeddings and are only available at `full` substrate level.
@@ -52,7 +59,7 @@ cognition/
 3. **Startup time** - Model loading adds 5-10s to boot
 4. **Optional for basic operation** - Agent can function without cognition at tabula
 
-## See Also
+## Related
 
 - [Blueprint 0x000070: Semantic Memory](../blueprints/0x000070-semantic-memory.md)
 - [Blueprint 0x000071: Knowledge Graph](../blueprints/0x000071-knowledge-graph.md)

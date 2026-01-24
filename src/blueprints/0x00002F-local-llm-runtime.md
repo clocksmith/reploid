@@ -6,7 +6,7 @@
 
 **Prerequisites:** 0x000021 (Multi-Provider API Gateway), 0x000026 (Performance Monitoring Stack), WebLLM CDN import
 
-**Affected Artifacts:** `/capabilities/cognition/local-llm.js`, `/index.html` (WebLLM script tag), `/ui/styles/proto.css`, `/capabilities/cognition/hybrid-llm-provider.js`
+**Affected Artifacts:** `/capabilities/cognition/local-llm.js`, `/index.html` (WebLLM script tag), `/styles/proto/index.css`, `/capabilities/cognition/hybrid-llm-provider.js`
 
 ---
 

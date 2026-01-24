@@ -20,6 +20,49 @@ This document consolidates the developer documentation for the REPLOID substrate
 
 ---
 
+## Ouroboros Contract (Doppler Integration)
+
+Reploid (driver) and Doppler (engine) integrate through a minimal substrate contract:
+SharedArrayBuffer for control flags plus VFS files for payload exchange. This keeps the
+API surface tiny and auditable.
+
+### Contract Surface
+
+```
+/.system/
+├── substrate.bin      # SharedArrayBuffer pointer
+├── inference.rdrr     # Reploid -> Doppler (plan + inputs)
+├── evolution.trace    # Doppler -> Reploid (results + metrics)
+└── kernel.wgsl        # Reploid-authored kernel overrides (optional)
+```
+
+Coordination uses a single flag in the SharedArrayBuffer:
+
+```javascript
+const substrate = new SharedArrayBuffer(16);
+const flag = new Int32Array(substrate, 0, 1);
+
+// Reploid (driver) signals work, then waits.
+Atomics.store(flag, 0, 1);
+Atomics.wait(flag, 0, 1);
+
+// Doppler (engine) waits for work, then signals completion.
+Atomics.wait(flag, 0, 0);
+Atomics.store(flag, 0, 0);
+Atomics.notify(flag, 0);
+```
+
+### Kernel Evolution
+
+Reploid can evolve Doppler kernels by writing a replacement WGSL file to
+`/.system/kernel.wgsl` and updating the inference plan to reference the new hash.
+Doppler validates the hash and recompiles only when it changes. This path is
+gated by verification and rollback logic in Reploid.
+
+See `reploid/doppler/docs/ARCHITECTURE.md` for Doppler's engine design details.
+
+---
+
 ## Core Modules
 
 The core provides fundamental capabilities for REPLOID's recursive self-improvement system.

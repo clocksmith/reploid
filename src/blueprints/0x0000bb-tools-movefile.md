@@ -1,15 +1,15 @@
-# Blueprint 0x0000bd: tools rm
+# Blueprint 0x0000bb: tools movefile
 
-**Objective:** Describe implementation for tools/Rm.js.
+**Objective:** Describe implementation for tools/MoveFile.js.
 
-**Target Upgrade:** tools/Rm.js
+**Target Upgrade:** tools/MoveFile.js
 
-**Affected Artifacts:** /tools/Rm.js
+**Affected Artifacts:** /tools/MoveFile.js
 
 ---
 
 ### 1. Intent
-Define the purpose and constraints for tools/Rm.js.
+Define the purpose and constraints for tools/MoveFile.js.
 
 ### 2. Architecture
 Outline the main responsibilities, dependencies, and data flow.

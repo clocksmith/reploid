@@ -5,15 +5,11 @@
 export const renderProtoTemplate = (escapeHtml, goalFromBoot) => `
   <!-- Sidebar Navigation -->
   <nav class="sidebar">
-    <button class="sidebar-btn active" data-tab="history" title="Agent Activity (1)">&#x2261;</button>
-    <button class="sidebar-btn" data-tab="reflections" title="Reflections (2)">&#x2731;</button>
-    <button class="sidebar-btn" data-tab="status" title="Status (3)">&#x2139;</button>
-    <button class="sidebar-btn" data-tab="telemetry" title="Telemetry (4)">△</button>
-    <button class="sidebar-btn" data-tab="arena" title="Arena">A</button>
-    <button class="sidebar-btn" data-tab="schemas" title="Schemas (5)">☷</button>
+    <button class="sidebar-btn active" data-tab="activity" title="Activity (1)">&#x2261;</button>
+    <button class="sidebar-btn" data-tab="status" title="Status (2)">&#x2139;</button>
+    <button class="sidebar-btn" data-tab="schemas" title="Schemas (3)">☷</button>
     <button class="sidebar-btn" data-tab="workers" title="Workers" id="workers-tab-btn">&#x2692;</button>
-    <button class="sidebar-btn" data-tab="replay" title="Replay (R)">&#x21BA;</button>
-    <button class="sidebar-btn" data-tab="debug" title="Debug">⚙</button>
+    <button class="sidebar-btn" data-tab="analysis" title="Analysis">A</button>
     <div class="sidebar-spacer"></div>
     <button id="btn-toggle" class="sidebar-btn" title="Stop (Esc)">&#x25A0;</button>
     <button id="btn-export" class="sidebar-btn" title="Export (Ctrl+E)">&#x2913;</button>
@@ -21,9 +17,6 @@ export const renderProtoTemplate = (escapeHtml, goalFromBoot) => `
 
   <!-- VFS Browser Panel (auto-refreshes via EventBus) -->
   <aside class="vfs-browser-panel" id="vfs-browser">
-    <div class="vfs-browser-header">
-      <span>VFS</span>
-    </div>
     <div class="vfs-search-container">
       <input type="text" id="vfs-search" class="vfs-search-input" placeholder="Search files..." />
     </div>
@@ -37,7 +30,7 @@ export const renderProtoTemplate = (escapeHtml, goalFromBoot) => `
     <div class="workspace-header">
       <div class="workspace-title">
         <span class="text-secondary">Goal:</span>
-        <span id="agent-goal" class="goal-text">${escapeHtml(goalFromBoot)}</span>
+        <span class="goal-text muted">${escapeHtml(goalFromBoot || 'No goal set')}</span>
       </div>
       <div class="workspace-status">
         <div class="token-budget" title="Token Budget">
@@ -76,48 +69,37 @@ export const renderProtoTemplate = (escapeHtml, goalFromBoot) => `
     </div>
 
     <!-- Tab Panels -->
-    <div class="workspace-content" id="tab-history">
+    <div class="workspace-content" id="tab-activity">
       <div id="history-container" class="history-stream">
         <div class="muted">Thinking and actions will appear here.</div>
       </div>
       <div id="inline-chat-container"></div>
-    </div>
-
-    <div class="workspace-content hidden" id="tab-reflections">
-      <div id="reflections-container" class="reflections-stream">
-        <div class="muted">Insights and learnings will appear here.</div>
-      </div>
-    </div>
-
-    <div class="workspace-content hidden" id="tab-telemetry">
-      <div class="telemetry-panel">
-        <div class="telemetry-header">
-          <div>
-            <strong>Telemetry Timeline</strong>
-            <span id="telemetry-count">0 events</span>
+      <div class="activity-section">
+        <div class="activity-section-header">
+          <strong>Telemetry Timeline</strong>
+          <span id="telemetry-count" class="muted">0 events</span>
+        </div>
+        <div class="telemetry-panel">
+          <div class="telemetry-header">
+            <div class="telemetry-controls">
+              <label>
+                Filter
+                <select id="telemetry-filter">
+                  <option value="all">All</option>
+                  <option value="info">Info</option>
+                  <option value="warn">Warn</option>
+                  <option value="error">Error</option>
+                </select>
+              </label>
+              <button id="telemetry-refresh" class="btn btn-sm btn-secondary">Refresh</button>
+            </div>
           </div>
-          <div class="telemetry-controls">
-            <label>
-              Filter
-              <select id="telemetry-filter">
-                <option value="all">All</option>
-                <option value="info">Info</option>
-                <option value="warn">Warn</option>
-                <option value="error">Error</option>
-              </select>
-            </label>
-            <button id="telemetry-refresh" class="btn btn-sm btn-secondary">Refresh</button>
+          <div id="telemetry-status" class="telemetry-status muted">Waiting for telemetry service...</div>
+          <div id="telemetry-list" class="telemetry-list">
+            <div class="telemetry-empty muted">No telemetry events yet</div>
           </div>
         </div>
-        <div id="telemetry-status" class="telemetry-status muted">Waiting for telemetry service...</div>
-        <div id="telemetry-list" class="telemetry-list">
-          <div class="telemetry-empty muted">No telemetry events yet</div>
-        </div>
       </div>
-    </div>
-
-    <div class="workspace-content hidden" id="tab-arena">
-      <div id="arena-panel" class="arena-panel"></div>
     </div>
 
     <div class="workspace-content hidden" id="tab-schemas">
@@ -151,6 +133,37 @@ export const renderProtoTemplate = (escapeHtml, goalFromBoot) => `
     </div>
 
     <div class="workspace-content hidden" id="tab-status">
+      <div class="status-section" id="intent-section">
+        <div class="status-section-header">
+          <span>Intent</span>
+          <span id="intent-refinement-count" class="muted">0 refinements</span>
+        </div>
+        <div class="status-panel">
+          <div class="status-item">
+            <span class="status-label">Goal</span>
+            <span id="intent-goal" class="status-value">${escapeHtml(goalFromBoot)}</span>
+          </div>
+        </div>
+        <div id="intent-refinement-list" class="intent-refinement-list">
+          <div class="muted" style="padding: 6px 0;">No goal refinements yet</div>
+        </div>
+      </div>
+      <div class="status-section">
+        <div class="status-section-header">
+          <span>Tool Activity</span>
+        </div>
+        <div id="tool-activity-container" class="reflections-stream">
+          <div class="muted">Tool activity will appear here.</div>
+        </div>
+      </div>
+      <div class="status-section">
+        <div class="status-section-header">
+          <span>Insights</span>
+        </div>
+        <div id="insights-container" class="reflections-stream">
+          <div class="muted">Insights and learnings will appear here.</div>
+        </div>
+      </div>
       <div class="status-panel">
         <div class="status-item">
           <span class="status-label">State</span>
@@ -176,6 +189,25 @@ export const renderProtoTemplate = (escapeHtml, goalFromBoot) => `
         </div>
         <div id="errors-list" class="errors-list">
           <div class="muted" style="padding: 10px;">No errors or warnings</div>
+        </div>
+      </div>
+      <div class="status-section">
+        <div class="status-section-header">
+          <span>Debug</span>
+        </div>
+        <div class="debug-panel">
+          <div class="debug-section">
+            <div class="debug-section-header">System Prompt</div>
+            <pre id="debug-system-prompt" class="debug-content">Loading...</pre>
+          </div>
+          <div class="debug-section">
+            <div class="debug-section-header">Conversation Context (<span id="debug-context-count">0</span> messages)</div>
+            <pre id="debug-context" class="debug-content">Loading...</pre>
+          </div>
+          <div class="debug-section">
+            <div class="debug-section-header">Model Configuration</div>
+            <pre id="debug-model-config" class="debug-content">Loading...</pre>
+          </div>
         </div>
       </div>
     </div>
@@ -218,24 +250,9 @@ export const renderProtoTemplate = (escapeHtml, goalFromBoot) => `
       </div>
     </div>
 
-    <div class="workspace-content hidden" id="tab-debug">
-      <div class="debug-panel">
-        <div class="debug-section">
-          <div class="debug-section-header">System Prompt</div>
-          <pre id="debug-system-prompt" class="debug-content">Loading...</pre>
-        </div>
-        <div class="debug-section">
-          <div class="debug-section-header">Conversation Context (<span id="debug-context-count">0</span> messages)</div>
-          <pre id="debug-context" class="debug-content">Loading...</pre>
-        </div>
-        <div class="debug-section">
-          <div class="debug-section-header">Model Configuration</div>
-          <pre id="debug-model-config" class="debug-content">Loading...</pre>
-        </div>
-      </div>
-    </div>
+    <div class="workspace-content hidden" id="tab-analysis">
+      <div id="arena-panel" class="arena-panel"></div>
 
-    <div class="workspace-content hidden" id="tab-replay">
       <div class="replay-panel">
         <div class="replay-header">
           <strong>Run Replay</strong>

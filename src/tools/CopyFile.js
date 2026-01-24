@@ -1,5 +1,5 @@
 /**
- * @fileoverview Cp - Copy files
+ * @fileoverview CopyFile - Copy files
  */
 
 async function call(args = {}, deps = {}) {

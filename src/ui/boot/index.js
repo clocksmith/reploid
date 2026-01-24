@@ -260,10 +260,10 @@ function updateUI() {
   if (proxySection) proxySection.style.display = state.connectionType === 'proxy' ? '' : 'none';
   if (browserSection) browserSection.style.display = state.connectionType === 'browser' ? '' : 'none';
 
-  // Show goal always, awaken when ready
+  // Show goal and awaken sections
   const ready = canAwaken();
   if (goalSection) goalSection.style.display = '';
-  if (awakenSection) awakenSection.style.display = ready ? '' : 'none';
+  if (awakenSection) awakenSection.style.display = '';
 
   // Update accordion states
   const goalHeaders = Array.from(container.querySelectorAll('.accordion-header[data-category]'));
@@ -288,7 +288,7 @@ function updateUI() {
   }
 
   // Update preserve checkbox
-  const preserveCheckbox = container.querySelector('#preserve-on-boot');
+  const preserveCheckbox = container.querySelector('#advanced-preserve-vfs');
   if (preserveCheckbox) {
     preserveCheckbox.checked = !!state.advancedConfig?.preserveOnBoot;
   }
@@ -306,6 +306,27 @@ function updateUI() {
   const hitlStepsInput = container.querySelector('#advanced-hitl-steps');
   if (hitlStepsInput && Number.isFinite(state.advancedConfig?.hitlEveryNSteps)) {
     hitlStepsInput.value = state.advancedConfig.hitlEveryNSteps;
+  }
+
+  const hitlCadenceRow = container.querySelector('[data-advanced-hitl-cadence]');
+  if (hitlCadenceRow) {
+    const showCadence = state.advancedConfig?.hitlApprovalMode === 'every_n';
+    hitlCadenceRow.style.display = showCadence ? '' : 'none';
+    if (hitlStepsInput) {
+      hitlStepsInput.disabled = !showCadence;
+    }
+  }
+
+  const overrideCountEl = container.querySelector('[data-advanced-override-count]');
+  const resetOverridesBtn = container.querySelector('[data-action="reset-module-overrides"]');
+  if (overrideCountEl || resetOverridesBtn) {
+    const overrideCount = Object.keys(state.advancedConfig?.moduleOverrides || {}).length;
+    if (overrideCountEl) {
+      overrideCountEl.textContent = `${overrideCount} active`;
+    }
+    if (resetOverridesBtn) {
+      resetOverridesBtn.disabled = overrideCount === 0;
+    }
   }
 
   // Update awaken button based on goal, readiness, and loading state
@@ -376,7 +397,6 @@ function render() {
     <div class="wizard-brand">
       <div class="brand-row">
         <h1 class="type-display">REPLOID</h1>
-        <a class="link-secondary" href="/reset.html">clear saved settings</a>
       </div>
       <a class="intro-tagline" href="https://github.com/clocksmith/reploid" target="_blank" rel="noopener">self-modifying AI agent in the browser → view source code</a>
     </div>
@@ -401,8 +421,7 @@ function render() {
   // Section 3: Goals and awaken
   const ready = canAwaken();
   html += renderGoalStep(state);
-  const awakenDisplay = ready ? '' : 'none';
-  html += `<div style="display:${awakenDisplay}">${renderAwakenStep(state)}</div>`;
+  html += renderAwakenStep(state);
 
   html += '</div>';
 
@@ -442,7 +461,7 @@ function attachEventListeners() {
   container.addEventListener('input', handleInput);
 }
 
-function handleClick(e) {
+async function handleClick(e) {
   const action = e.target.closest('[data-action]')?.dataset.action;
   if (!action) return;
 
@@ -623,6 +642,22 @@ function handleClick(e) {
       break;
     }
 
+    case 'advanced-clear-vfs': {
+      if (!confirm('Clear cached VFS files and rehydrate from the manifest?')) break;
+      try {
+        await clearVfsStore();
+        const { manifest, text } = await loadVfsManifest();
+        await seedVfsFromManifest(manifest, {
+          preserveOnBoot: false,
+          logger: console,
+          manifestText: text
+        });
+      } catch (err) {
+        console.error('[Boot] Failed to clear VFS cache:', err);
+      }
+      break;
+    }
+
     case 'awaken-anyway':
       doAwaken();
       break;
@@ -677,7 +712,7 @@ function handleChange(e) {
       setNestedState('dopplerConfig', { model: value });
       break;
 
-    case 'preserve-on-boot':
+    case 'advanced-preserve-vfs':
       localStorage.setItem('REPLOID_PRESERVE_ON_BOOT', value ? 'true' : 'false');
       setNestedState('advancedConfig', { preserveOnBoot: value });
       break;

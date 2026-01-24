@@ -6,7 +6,7 @@
 
 **Prerequisites:** 0x000003 (Core Utilities & Error Handling), 0x000008 (Agent Cognitive Cycle), 0x00002E (Audit Logging Policy)
 
-**Affected Artifacts:** `/capabilities/cognition/reflection-store.js`, `/ui/styles/proto.css`, `/capabilities/cognition/reflection-analyzer.js`, `/capabilities/cognition/reflection-search.js`
+**Affected Artifacts:** `/capabilities/cognition/reflection-store.js`, `/styles/proto/index.css`, `/capabilities/cognition/reflection-analyzer.js`, `/capabilities/cognition/reflection-search.js`
 
 ---
 

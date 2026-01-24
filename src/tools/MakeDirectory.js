@@ -1,5 +1,5 @@
 /**
- * @fileoverview Mkdir - Create directories (virtual in VFS)
+ * @fileoverview MakeDirectory - Create directories (virtual in VFS)
  */
 
 async function call(args = {}, deps = {}) {

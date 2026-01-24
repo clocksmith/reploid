@@ -1,5 +1,5 @@
 /**
- * @fileoverview Edit - Targeted file modifications
+ * @fileoverview EditFile - Targeted file modifications
  * Supports literal match/replace operations with optional counts.
  * Emits audit:core_write events for L3 substrate changes (/core/, /infrastructure/)
  */
@@ -59,7 +59,7 @@ async function call(args = {}, deps = {}) {
     if (isCore && AuditLogger) {
       await AuditLogger.logCoreWrite({
         path,
-        operation: 'Edit',
+        operation: 'EditFile',
         existed: true,
         bytesWritten: content.length,
         bytesBefore: beforeLength
@@ -70,7 +70,7 @@ async function call(args = {}, deps = {}) {
     if (isCore && EventBus) {
       EventBus.emit('tool:core_write', {
         path,
-        operation: 'Edit',
+        operation: 'EditFile',
         operationCount: results.reduce((sum, r) => sum + r.replacements, 0)
       });
     }
@@ -86,7 +86,7 @@ async function call(args = {}, deps = {}) {
 }
 
 export const tool = {
-  name: "Edit",
+  name: "EditFile",
   description: "Apply literal match/replacement edits to a file (operations array with match/replacement/count).",
   call
 };

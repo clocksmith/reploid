@@ -6,7 +6,7 @@
 
 **Prerequisites:** 0x000005 (State Management Architecture), 0x000006 (Pure State Helpers), 0x000022 (Confirmation Modal & Safety Interlocks), 0x00002B (Toast Notification System)
 
-**Affected Artifacts:** `/ui/panels/vfs-explorer.js`, `/ui/styles/proto.css`, `/core/state-manager.js`, `/ui/components/toast-notifications.js`
+**Affected Artifacts:** `/ui/panels/vfs-explorer.js`, `/styles/proto/index.css`, `/core/state-manager.js`, `/ui/components/toast-notifications.js`
 
 ---
 

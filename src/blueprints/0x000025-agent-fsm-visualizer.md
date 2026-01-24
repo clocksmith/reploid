@@ -6,7 +6,7 @@
 
 **Prerequisites:** 0x00000D (UI Management), 0x000002 (Application Orchestration), 0x000026 (Performance Monitoring Stack), Sentinel FSM schema (`/core/sentinel-fsm.js`)
 
-**Affected Artifacts:** `/ui/panels/agent-visualizer.js`, `/styles/proto.css`, `/core/sentinel-fsm.js`
+**Affected Artifacts:** `/ui/panels/agent-visualizer.js`, `/styles/proto/index.css`, `/core/sentinel-fsm.js`
 
 ---
 

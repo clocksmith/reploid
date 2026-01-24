@@ -6,6 +6,28 @@
   <base href="/src/">
   <title>RD Design System</title>
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <script>
+    window.REPLOID_SW_VERSION = "1735500005";
+    window.REPLOID_VFS_VERSION = "1735500005";
+    (function () {
+      const key = "REPLOID_SW_VERSION";
+      if (!("serviceWorker" in navigator)) return;
+      const expected = window.REPLOID_SW_VERSION;
+      if (!expected) return;
+      const current = localStorage.getItem(key);
+      if (current === expected) return;
+      navigator.serviceWorker.getRegistrations().then((regs) => {
+        if (!regs.length) {
+          localStorage.setItem(key, expected);
+          return;
+        }
+        return Promise.all(regs.map((reg) => reg.unregister())).then(() => {
+          localStorage.setItem(key, expected);
+          window.location.reload();
+        });
+      }).catch(() => {});
+    })();
+  </script>
   <link rel="stylesheet" href="styles/rd.css">
   <style>
     .design-page {

@@ -480,7 +480,7 @@ const ToolRunner = {
     };
 
     // Critical tools that require HITL approval
-    const CRITICAL_TOOLS = ['WriteFile', 'DeleteFile', 'CreateTool', 'Edit', 'LoadModule'];
+    const CRITICAL_TOOLS = ['WriteFile', 'DeleteFile', 'CreateTool', 'EditFile', 'LoadModule'];
 
     /**
      * Check if tool requires HITL approval

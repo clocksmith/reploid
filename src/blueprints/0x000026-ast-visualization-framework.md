@@ -6,7 +6,7 @@
 
 **Prerequisites:** 0x000003 (Core Utilities & Error Handling), 0x000019 (Visual Self-Improvement), Acorn CDN load (`index.html`)
 
-**Affected Artifacts:** `/ui/panels/ast-visualizer.js`, `/styles/proto.css`, `/index.html` (Acorn + D3 includes)
+**Affected Artifacts:** `/ui/panels/ast-visualizer.js`, `/styles/proto/index.css`, `/index.html` (Acorn + D3 includes)
 
 ---
 

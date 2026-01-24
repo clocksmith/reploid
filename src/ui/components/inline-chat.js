@@ -18,6 +18,9 @@ const InlineChat = {
 
     let _container = null;
     let _input = null;
+    let _statusEl = null;
+    let _statusTimeout = null;
+    let _subscriptions = [];
 
     const init = (containerId) => {
       _container = typeof containerId === 'string'
@@ -51,11 +54,29 @@ const InlineChat = {
               &#x27A4;
             </button>
           </div>
+          <div class="inline-chat-status" aria-live="polite"></div>
         </div>
       `;
 
       _container.innerHTML = html;
       _input = _container.querySelector('.inline-chat-input');
+      _statusEl = _container.querySelector('.inline-chat-status');
+    };
+
+    const setStatus = (message, tone = '') => {
+      if (!_statusEl) return;
+      _statusEl.textContent = message || '';
+      _statusEl.dataset.tone = tone || '';
+      if (_statusTimeout) clearTimeout(_statusTimeout);
+      if (message) {
+        _statusTimeout = setTimeout(() => {
+          if (_statusEl) {
+            _statusEl.textContent = '';
+            _statusEl.dataset.tone = '';
+          }
+          _statusTimeout = null;
+        }, 3000);
+      }
     };
 
     const bindEvents = () => {
@@ -81,6 +102,19 @@ const InlineChat = {
             sendMessage();
           }
         });
+      }
+
+      if (EventBus?.on) {
+        _subscriptions.push(EventBus.on('human:message-queued', () => {
+          setStatus('Queued for next cycle', 'queued');
+        }, 'InlineChat'));
+
+        _subscriptions.push(EventBus.on('agent:history', (entry) => {
+          if (entry?.type !== 'human') return;
+          if (entry?.pending) return;
+          if (entry?.messageType !== 'context') return;
+          setStatus('Injected into context', 'injected');
+        }, 'InlineChat'));
       }
     };
 
@@ -114,6 +148,7 @@ const InlineChat = {
             messageType: 'context',
             pending: true
           });
+          setStatus('Sending...', 'pending');
         }
       } catch (e) {
         logger.error('[InlineChat] Error emitting events:', e);
@@ -141,8 +176,19 @@ const InlineChat = {
     };
 
     const cleanup = () => {
+      _subscriptions.forEach((unsub) => {
+        if (typeof unsub === 'function') {
+          try { unsub(); } catch (e) { /* ignore */ }
+        }
+      });
+      _subscriptions = [];
       _container = null;
       _input = null;
+      _statusEl = null;
+      if (_statusTimeout) {
+        clearTimeout(_statusTimeout);
+        _statusTimeout = null;
+      }
     };
 
     return {

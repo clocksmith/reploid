@@ -550,6 +550,47 @@
   font-weight: bold;
 }
 
+.activity-section {
+  margin-top: var(--space-md);
+  border-top: var(--border-sm) solid var(--fg);
+  padding-top: var(--space-md);
+}
+
+.activity-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-sm);
+  font-weight: bold;
+}
+
+.intent-refinement-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.intent-refinement-item {
+  border: var(--border-sm) solid var(--fg);
+  background: var(--bg);
+  padding: var(--space-sm) var(--space-md);
+  font-size: 11px;
+}
+
+.intent-refinement-meta {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  font-size: 10px;
+  opacity: var(--opacity-secondary);
+  margin-bottom: 4px;
+}
+
+.intent-refinement-text {
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
 /* Status Badge - inverted */
 .status-badge {
   position: absolute;

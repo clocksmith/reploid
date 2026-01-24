@@ -434,7 +434,7 @@ This document provides an overview of REPLOID's module API. For detailed JSDoc c
 - `DeleteFile` - Delete VFS file
 - `Grep` - Search file contents
 - `Find` - Find files by name
-- `Edit` - Find/replace in file
+- `EditFile` - Find/replace in file
 
 **RSI Tools:**
 - `CreateTool` - Meta-tool for tool creation

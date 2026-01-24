@@ -403,7 +403,7 @@
   border: var(--border-sm) solid var(--fg);
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 14px;
   background: var(--bg);
 }
 
@@ -412,6 +412,26 @@
   justify-content: space-between;
   align-items: baseline;
   gap: 12px;
+}
+
+.advanced-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-top: 12px;
+  border-top: var(--border-sm) dotted var(--fg);
+}
+
+.advanced-section:first-child {
+  border-top: none;
+  padding-top: 0;
+}
+
+.advanced-section-title {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  opacity: var(--opacity-secondary);
 }
 
 .advanced-setting {
@@ -424,6 +444,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
+  flex-wrap: wrap;
 }
 
 .advanced-code {
@@ -435,6 +456,14 @@
   font-size: 11px;
   flex-wrap: wrap;
   word-break: break-word;
+}
+
+.advanced-pill {
+  font-size: 10px;
+  text-transform: uppercase;
+  border: var(--border-sm) solid var(--fg);
+  padding: 2px 6px;
+  letter-spacing: 0.05em;
 }
 
 /* === MODULE OVERRIDES === */
@@ -630,10 +659,7 @@
 }
 
 .btn-prism.loading::after {
-  background: conic-gradient(
-    from var(--prism-angle),
-    #ff0000, #ff8000, #ffff00, #00ff00, #00ffff, #0080ff, #8000ff, #ff0080, #ff0000
-  );
+  background: var(--prism);
 }
 
 /* === PROGRESS === */

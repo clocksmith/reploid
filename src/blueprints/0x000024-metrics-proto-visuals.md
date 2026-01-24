@@ -6,7 +6,7 @@
 
 **Prerequisites:** 0x000026 (Performance Monitoring Stack), 0x000019 (Visual Self-Improvement), 0x00001F (Universal Module Loader)
 
-**Affected Artifacts:** `/ui/panels/metrics-proto.js`, `/styles/proto.css`, `/index.html` (Chart.js CDN include)
+**Affected Artifacts:** `/ui/panels/metrics-proto.js`, `/styles/proto/index.css`, `/index.html` (Chart.js CDN include)
 
 ---
 

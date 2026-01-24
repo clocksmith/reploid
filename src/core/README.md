@@ -1,5 +1,12 @@
 # Core Modules
 
+Purpose: Foundational runtime modules for bootstrap storage, agent loop, and shared utilities.
+
+## Scope
+
+- TABULA and SPARK modules used for boot and minimal agent operation.
+- Core services shared across reflection, cognition, and substrate layers.
+
 **Primary Genesis Level:** SPARK (minimal agent core)
 
 This directory contains foundational modules. Bootstrap storage and state live at `tabula`, the minimal agent core starts at `spark`, and higher levels add reflection, cognition, and substrate features.
@@ -52,7 +59,7 @@ This directory contains foundational modules. Bootstrap storage and state live a
 |--------|------|-------------|
 | (none) | - | Full-level modules live in capabilities and infrastructure |
 
-## See Also
+## Related
 
 - [Genesis Levels Config](../config/genesis-levels.json)
 - [Blueprint 0x000002: Application Orchestration](../blueprints/0x000002-application-orchestration.md)

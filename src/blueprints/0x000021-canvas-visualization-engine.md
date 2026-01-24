@@ -6,7 +6,7 @@
 
 **Prerequisites:** 0x000019 (Visual Self-Improvement), 0x00001F (Universal Module Loader), 0x000025 (Visualization Data Adapter)
 
-**Affected Artifacts:** `/ui/panels/canvas-visualizer.js`, `/ui/components/viz-data-adapter.js`, `/ui/styles/proto.css`
+**Affected Artifacts:** `/ui/panels/canvas-visualizer.js`, `/ui/components/viz-data-adapter.js`, `/styles/proto/index.css`
 
 ---
 

@@ -6,7 +6,7 @@
 
 **Prerequisites:** 0x000021 (Multi-Provider API Gateway), 0x00002C (Rate Limiting Strategies), 0x000026 (Performance Monitoring Stack)
 
-**Affected Artifacts:** `/capabilities/cognition/cost-tracker.js`, `/core/api-client-multi.js`, `/ui/styles/proto.css`
+**Affected Artifacts:** `/capabilities/cognition/cost-tracker.js`, `/core/api-client-multi.js`, `/styles/proto/index.css`
 
 ---
 

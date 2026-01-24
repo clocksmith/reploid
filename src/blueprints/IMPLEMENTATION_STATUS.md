@@ -26,7 +26,7 @@ Generated: December 2025
 | `0x000011` Advanced Storage (IndexedDB) | `core/vfs.js`, `infrastructure/indexed-db-helper.js` |
 | `0x000013` System Configuration | `config/` |
 | `0x000015` Dynamic Tool Creation | `core/tool-writer.js`, `tools/CreateTool.js` |
-| `0x00001C` Write Tools Manifest | `tools/WriteFile.js`, `tools/Edit.js`, etc. |
+| `0x00001C` Write Tools Manifest | `tools/WriteFile.js`, `tools/EditFile.js`, etc. |
 | `0x000021` Multi-Provider API Gateway | `core/llm-client.js` |
 | `0x000022` Confirmation Modal Safety | `ui/components/confirmation-modal.js` |
 | `0x000023` VFS Explorer Interaction | `ui/dashboard/vfs-explorer.js` |

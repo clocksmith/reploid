@@ -1,5 +1,12 @@
 # REPLOID Blueprint Atlas
 
+Purpose: Canonical index of Reploid blueprints with deduped IDs and domains.
+
+## Scope
+
+- Blueprint navigation across seven functional domains.
+- Canonical ID mapping for deprecated or overlapping blueprints.
+
 **[Back to Harness README](../README.md)**
 
 ---

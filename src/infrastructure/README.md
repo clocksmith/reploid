@@ -1,5 +1,12 @@
 # Infrastructure Modules
 
+Purpose: Cross-cutting services for boot, runtime coordination, and observability.
+
+## Scope
+
+- Boot infrastructure shared across all genesis levels.
+- Support services for safety, telemetry, and system governance.
+
 **Genesis Levels:** TABULA, REFLECTION, and FULL
 
 This directory contains support services and cross-cutting concerns. Modules span multiple genesis levels.
@@ -39,7 +46,7 @@ This directory contains support services and cross-cutting concerns. Modules spa
 | Observability | `observability.js` | Mutations, decisions, and dashboard aggregation |
 | TraceStore | `trace-store.js` | Persistent execution traces |
 
-## See Also
+## Related
 
 - [Genesis Levels Config](../config/genesis-levels.json)
 - [Blueprint 0x000049: Dependency Injection Container](../blueprints/0x000049-dependency-injection-container.md)

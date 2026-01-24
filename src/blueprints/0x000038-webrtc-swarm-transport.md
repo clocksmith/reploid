@@ -6,7 +6,7 @@
 
 **Prerequisites:** 0x000034 (Swarm Orchestration), 0x00003D (Browser API Integration), signalling server deployment
 
-**Affected Artifacts:** `/capabilities/communication/webrtc-swarm.js`, `/capabilities/communication/webrtc-coordinator.js`, `/styles/proto.css`
+**Affected Artifacts:** `/capabilities/communication/webrtc-swarm.js`, `/capabilities/communication/webrtc-coordinator.js`, `/styles/proto/index.css`
 
 ---
 

@@ -1,5 +1,12 @@
 # Capabilities
 
+Purpose: Higher-level agent capabilities layered on top of the core runtime.
+
+## Scope
+
+- Reflection and FULL-level feature modules organized by domain.
+- Cognition, communication, performance, system, and intelligence capabilities.
+
 **Genesis Levels:** REFLECTION and FULL
 
 This directory contains advanced capabilities organized by domain. These are NOT loaded at `tabula` level.
@@ -59,7 +66,7 @@ This directory contains advanced capabilities organized by domain. These are NOT
 | MultiModelCoordinator | `multi-model-coordinator.js` | Multi-model orchestration |
 | FunctionGemmaOrchestrator | `functiongemma-orchestrator.js` | Doppler multi-model execution and topology evolution |
 
-## See Also
+## Related
 
 - [Genesis Levels Config](../config/genesis-levels.json)
 - [Blueprint 0x000078: GEPA Prompt Evolution](../blueprints/0x000078-gepa-prompt-evolution.md)

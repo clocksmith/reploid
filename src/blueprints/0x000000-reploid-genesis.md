@@ -174,7 +174,7 @@ REPLOID categorizes self-modification by risk level:
 |-------|-------|----------|-------------|
 | **L1** | Tools | CreateTool, new tool in `/tools/` | Verification Worker |
 | **L2** | Meta | Modify tool-writer, improve CreateTool | Arena consensus |
-| **L3** | Substrate | Edit agent-loop.js, core modules | HITL approval required |
+| **L3** | Substrate | EditFile agent-loop.js, core modules | HITL approval required |
 
 Higher levels require progressively stronger safety mechanisms.
 
