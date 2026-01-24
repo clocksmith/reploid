@@ -500,6 +500,28 @@ Captured at boot, before any agent action:
 ### Problem: Changes not persisting
 **Solution:** Ensure VFS writes completed. Check audit log in Debug tab.
 
+### Client-Only: "API key invalid"
+- Check key is correct
+- Try pasting again (no extra spaces)
+- Check API provider status
+
+### Server: "Connection refused"
+- Make sure server is running (`npm start`)
+- Check port 8000 is available
+- Verify `.env` file exists
+
+### Local WebGPU: "WebGPU not available"
+- Use Chrome/Edge 113+
+- Enable chrome://flags/#enable-unsafe-webgpu
+- Check GPU drivers are up to date
+- Try Firefox Nightly with WebGPU flag
+
+### Local WebGPU: "Model loading failed"
+- Check available disk space (need 1-4GB)
+- Check available RAM (need 4-8GB)
+- Try smaller model (Qwen 1.5B or Llama 1B)
+- Clear browser cache and retry
+
 For more detailed solutions, see [troubleshooting.md](./troubleshooting.md).
 
 ---
@@ -540,4 +562,4 @@ REPLOID is your sandbox for safe RSI research.
 
 ---
 
-*Last updated: December 2025*
+*Last updated: January 2026*

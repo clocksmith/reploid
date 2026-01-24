@@ -70,7 +70,7 @@ Progressive capability loading - each level extends the previous:
 | **SUBSTRATE**  | 47    | +12   | Audit, replay, sandbox, worker manager         |
 | **FULL**       | 61    | +14   | Arena, swarm, multi-model, federated learning  |
 
-See `docs/configuration.md` and `docs/operational-modes.md` for level-specific module lists and behavior.
+See `docs/configuration.md` and `docs/quick-start.md` for level-specific module lists and behavior.
 
 ## Tools
 
@@ -88,7 +88,7 @@ See `docs/configuration.md` and `docs/operational-modes.md` for level-specific m
 Start at `docs/INDEX.md`, then:
 - `docs/quick-start.md`
 - `docs/configuration.md`
-- `docs/operational-modes.md`
+- `docs/quick-start.md`
 - `docs/testing.md`
 - `docs/security.md`
 - `showcase/README.md`
