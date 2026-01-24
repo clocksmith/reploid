@@ -8,7 +8,7 @@ Guide to all documentation in the REPLOID project.
 
 1. **[/README.md](../README.md)** - Project overview, quick start, RSI concepts
 2. **[docs/quick-start.md](./quick-start.md)** - Detailed setup and first run
-3. **[docs/operational-modes.md](./operational-modes.md)** - Connection modes and configurations
+3. **[docs/configuration.md](./configuration.md)** - Connection modes and boot configuration
 
 ---
 
@@ -89,7 +89,7 @@ reploid/
 ### For New Users
 1. [README.md](../README.md) - Understand REPLOID
 2. [quick-start.md](./quick-start.md) - Get running
-3. [operational-modes.md](./operational-modes.md) - Configure connections
+3. [configuration.md](./configuration.md) - Configure connections
 
 ### For Developers
 1. [system-architecture.md](./system-architecture.md) - Understand architecture
