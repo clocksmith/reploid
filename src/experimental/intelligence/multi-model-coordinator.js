@@ -6,11 +6,15 @@ const MultiModelCoordinator = {
     id: 'MultiModelCoordinator',
     name: 'MultiModelCoordinator',
     version: '1.0.0',
-    genesis: { introduced: 'full' }
+    genesis: { introduced: 'full' },
+    dependencies: ['LLMClient']
   },
 
   factory: (deps) => {
-    const { llmClient, toolRunner, vfs } = deps;
+    const llmClient = deps.LLMClient || deps.llmClient;
+    if (!llmClient?.chat) {
+      throw new Error('MultiModelCoordinator requires LLMClient');
+    }
 
     // Helper: Estimate token count from text
     const estimateTokens = (text) => {

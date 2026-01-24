@@ -125,12 +125,22 @@ This document provides an overview of REPLOID's module API. For detailed JSDoc c
 
 **API:**
 - `evaluate(tasks, modelConfigs, options)` - Evaluate task suites across models
+- `listRuns(limit?)` - List recent persisted runs (VFS)
+- `loadRun(runId)` - Load a persisted run by id (VFS)
+- `replayRun(runId, options)` - Re-run a persisted task suite
 
 **Options:**
 - `modelConcurrency` - Max concurrent model evaluations (default: 2)
 - `matchMode` - Output match mode: `exact` or `contains`
 - `lengthTarget` - Output length target for scoring
 - `scoreOutput` - Custom scoring callback
+- `timeoutMs` - Per-task timeout in milliseconds (0 disables)
+- `abortOnError` - Stop remaining tasks for a model after first error
+- `persist` - Persist run to VFS (boolean or config object)
+- `persist.includeInputs` - Store tasks and model configs (default: true)
+- `persist.includeOutputs` - Store per-task outputs (default: true)
+- `persist.includeOptions` - Store evaluation options (default: true)
+- `persist.path` - Override run file path (optional)
 
 **Events:**
 - `multi-model:eval:start` - Evaluation run started
@@ -139,7 +149,8 @@ This document provides an overview of REPLOID's module API. For detailed JSDoc c
 
 **Notes:**
 - Task entries can include `messages`, `prompt`, `schema`, and `expected`
-- Timeouts are not enforced by default
+- Timeouts are not enforced by default unless `timeoutMs` is set
+- Persistence writes to `/.memory/multi-model-eval/` when VFS is available
 
 **See Also:** [docs/multi-model-evaluation.md](./multi-model-evaluation.md)
 
@@ -285,10 +296,13 @@ This document provides an overview of REPLOID's module API. For detailed JSDoc c
 - `registerAdapter` - Register adapter in NeuralCompiler registry (default: true)
 - `verifyAssets` - Verify LoRA shard paths in VFS (default: false)
 - `routingText` - Override routing text for adapter registration
+- `action` - HITL approval prompt label
+- `timeout` - HITL approval timeout in ms
 
 **Notes:**
 - Delegates to NeuralCompiler for loading and adapter routing
 - Returns `missing_assets` with `stub: true` when manifest or shards are missing
+- Uses IntentBundleGate approvals when available
 - TODO: Provide LoRA manifest and shard assets in VFS to resolve stub responses
 - Default bundle path: `/.system/intent-bundle.json`
 
@@ -616,4 +630,4 @@ REPLOID follows semantic versioning:
 
 *For detailed API documentation, see JSDoc comments in source files.*
 
-*Last updated: December 2025*
+*Last updated: January 2026*

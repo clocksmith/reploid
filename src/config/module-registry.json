@@ -215,6 +215,28 @@
         }
       ]
     },
+    "IntentBundleLoRA": {
+      "id": "IntentBundleLoRA",
+      "entry": "capabilities/intelligence/intent-bundle-lora.js",
+      "files": [
+        "capabilities/intelligence/intent-bundle-lora.js"
+      ],
+      "introduced": "full",
+      "dependencies": [
+        {
+          "id": "Utils",
+          "optional": false
+        },
+        {
+          "id": "NeuralCompiler",
+          "optional": false
+        },
+        {
+          "id": "EventBus",
+          "optional": true
+        }
+      ]
+    },
     "BrowserAPIs": {
       "id": "BrowserAPIs",
       "entry": "infrastructure/browser-apis.js",
@@ -746,8 +768,43 @@
         "experimental/intelligence/multi-model-coordinator.js"
       ],
       "introduced": "full",
-      "dependencies": [],
+      "dependencies": [
+        {
+          "id": "LLMClient",
+          "optional": false
+        }
+      ],
       "blueprint": "blueprints/0x0000a0-capabilities-intelligence-multi-model-coordinator.md"
+    },
+    "MultiModelEvaluator": {
+      "id": "MultiModelEvaluator",
+      "entry": "core/multi-model-evaluator.js",
+      "files": [
+        "core/multi-model-evaluator.js"
+      ],
+      "introduced": "full",
+      "dependencies": [
+        {
+          "id": "Utils",
+          "optional": false
+        },
+        {
+          "id": "LLMClient",
+          "optional": false
+        },
+        {
+          "id": "EventBus",
+          "optional": true
+        },
+        {
+          "id": "SchemaRegistry",
+          "optional": true
+        },
+        {
+          "id": "VFS",
+          "optional": true
+        }
+      ]
     },
     "NeuralCompiler": {
       "id": "NeuralCompiler",
@@ -776,6 +833,10 @@
         {
           "id": "SemanticMemory",
           "optional": false
+        },
+        {
+          "id": "IntentBundleGate",
+          "optional": true
         }
       ],
       "blueprint": "blueprints/0x00007E-hot-swappable-neural-compiler.md"

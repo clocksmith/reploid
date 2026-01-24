@@ -35,6 +35,9 @@ Multi-model evaluation runs the same task suite across multiple model configs an
 | `matchMode` | string | `contains` | Output match mode if task does not define one |
 | `lengthTarget` | number | `400` | Target output length for scoring |
 | `scoreOutput` | function | - | Custom scoring hook |
+| `timeoutMs` | number | `0` | Per-task timeout in milliseconds (0 disables) |
+| `abortOnError` | boolean | `false` | Stop remaining tasks for a model after first error |
+| `persist` | boolean or object | `false` | Persist runs to VFS for replay |
 
 ---
 
@@ -46,6 +49,36 @@ Multi-model evaluation runs the same task suite across multiple model configs an
 - `totals` - Task and model counts
 - `summary` - Per-model aggregates
 - `models[].results` - Per-task scoring and timing data
+
+---
+
+## Persistence and Replay
+
+Persistence stores runs under `/.memory/multi-model-eval/` when VFS is available.
+
+Persist options:
+- `persist.includeInputs` - Store tasks and model configs (default: true)
+- `persist.includeOutputs` - Store per-task outputs (default: true)
+- `persist.includeOptions` - Store evaluation options (default: true)
+- `persist.path` - Override run file path
+
+Replay helpers:
+- `listRuns(limit?)` - List stored runs
+- `loadRun(runId)` - Load a stored run
+- `replayRun(runId, options)` - Re-run the stored inputs
+
+Example:
+
+```javascript
+const result = await MultiModelEvaluator.evaluate(taskSuite, modelConfigs, {
+  persist: true
+});
+
+const runs = await MultiModelEvaluator.listRuns(5);
+const replay = await MultiModelEvaluator.replayRun(runs[0].runId, {
+  modelConcurrency: 1
+});
+```
 
 ---
 
@@ -95,8 +128,8 @@ const result = await MultiModelEvaluator.evaluate(taskSuite, modelConfigs, {
 ## Notes
 
 - Schema validation uses SchemaRegistry when available.
-- Timeouts are not enforced by default. Wrap `evaluate()` if you need hard limits.
+- Timeouts are not enforced by default. Set `timeoutMs` for per-task limits.
 
 ---
 
-*Last updated: March 2026*
+*Last updated: January 2026*
