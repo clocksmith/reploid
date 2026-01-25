@@ -38,6 +38,9 @@ const normalizePath = (rawPath, backendOverride) => {
 
   const trimmed = rawPath.trim();
   let backend = backendOverride ? String(backendOverride).toLowerCase() : null;
+  if (backend && backend !== 'vfs' && backend !== 'opfs') {
+    throw new Error('Invalid backend. Use "vfs" or "opfs".');
+  }
   let path = trimmed;
 
   if (trimmed.startsWith(OPFS_PREFIX)) {
