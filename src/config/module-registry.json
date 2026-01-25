@@ -360,6 +360,10 @@
         {
           "id": "EventBus",
           "optional": false
+        },
+        {
+          "id": "DopplerToolbox",
+          "optional": true
         }
       ],
       "blueprint": "blueprints/0x00003A-context-management.md"
@@ -689,6 +693,10 @@
           "optional": false
         },
         {
+          "id": "DopplerToolbox",
+          "optional": true
+        },
+        {
           "id": "SemanticMemory",
           "optional": false
         },
@@ -709,6 +717,10 @@
       "dependencies": [
         {
           "id": "Utils",
+          "optional": false
+        },
+        {
+          "id": "ProviderRegistry",
           "optional": false
         },
         {
@@ -1733,6 +1745,42 @@
         }
       ],
       "blueprint": "blueprints/0x000047-worker-pool-parallelization.md"
+    },
+    "ProviderRegistry": {
+      "id": "ProviderRegistry",
+      "entry": "core/provider-registry.js",
+      "files": [
+        "core/provider-registry.js"
+      ],
+      "introduced": "spark",
+      "dependencies": [
+        {
+          "id": "Utils",
+          "optional": false
+        },
+        {
+          "id": "VFS",
+          "optional": true
+        }
+      ]
+    },
+    "DopplerToolbox": {
+      "id": "DopplerToolbox",
+      "entry": "capabilities/system/doppler-toolbox.js",
+      "files": [
+        "capabilities/system/doppler-toolbox.js"
+      ],
+      "introduced": "spark",
+      "dependencies": [
+        {
+          "id": "Utils",
+          "optional": false
+        },
+        {
+          "id": "ProviderRegistry",
+          "optional": false
+        }
+      ]
     }
   }
 }

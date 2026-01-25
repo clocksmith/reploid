@@ -9,13 +9,13 @@ const ContextManager = {
     id: 'ContextManager',
     version: '2.0.0',
     genesis: { introduced: 'spark' },
-    dependencies: ['Utils', 'LLMClient', 'EventBus'],
+    dependencies: ['Utils', 'LLMClient', 'EventBus', 'DopplerToolbox?'],
     type: 'service'
   },
 
   factory: (deps) => {
     const { logger } = deps.Utils;
-    const { LLMClient, EventBus } = deps;
+    const { LLMClient, EventBus, DopplerToolbox } = deps;
 
     // ─────────────────────────────────────────────────────────────────────────
     // Model Limits Configuration
@@ -474,11 +474,12 @@ const ContextManager = {
     };
 
     const createSharedPrefix = async (context, modelConfig, options = {}) => {
-      if (!LLMClient?.prefillKV) {
+      const prefill = DopplerToolbox?.prefillKV || LLMClient?.prefillKV;
+      if (!prefill) {
         return { snapshot: null, prompt: null };
       }
       const prompt = options.prompt || buildPromptFromContext(context);
-      const snapshot = await LLMClient.prefillKV(prompt, modelConfig, options);
+      const snapshot = await prefill(prompt, modelConfig, options);
 
       if (EventBus) {
         EventBus.emit('context:prefix', {

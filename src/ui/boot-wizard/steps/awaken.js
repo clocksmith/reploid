@@ -185,6 +185,7 @@ export function renderAwakenStep(state) {
             </div>
             <span class="type-caption">Clears local storage, service workers, and caches.</span>
           </div>
+
         </div>
       </div>
     </div>
