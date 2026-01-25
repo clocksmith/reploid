@@ -9,12 +9,12 @@ const LLMClient = {
     id: 'LLMClient',
     version: '1.0.0',
     genesis: { introduced: 'spark' },
-    dependencies: ['Utils', 'RateLimiter?', 'StreamParser?', 'TransformersClient?'],
+    dependencies: ['Utils', 'ProviderRegistry', 'RateLimiter?', 'StreamParser?', 'TransformersClient?'],
     type: 'service'
   },
 
   factory: (deps) => {
-    const { Utils, RateLimiter, StreamParser, TransformersClient } = deps;
+    const { Utils, ProviderRegistry, RateLimiter, StreamParser, TransformersClient } = deps;
     const { logger, Errors } = Utils;
 
     // Fallback rate limiter if not provided
@@ -572,104 +572,145 @@ const LLMClient = {
       };
     };
 
-    // --- Mode: DOPPLER (Local WebGPU) ---
-    let _dopplerProvider = null;
-    const _ensureDopplerProvider = async () => {
-      if (!_dopplerProvider) {
-        const { DopplerProvider } = await import('@clocksmith/doppler/provider');
-        _dopplerProvider = DopplerProvider;
-      }
+    const normalizeResponse = (response, providerId, modelConfig, requestId) => {
+      const base = response && typeof response === 'object' ? response : {};
+      const raw = typeof base.raw === 'string'
+        ? base.raw
+        : (typeof base.content === 'string' ? base.content : '');
+      const content = typeof base.content === 'string'
+        ? stripThoughts(base.content)
+        : stripThoughts(raw);
 
-      if (!_dopplerProvider.getCapabilities().initialized) {
-        await _dopplerProvider.init();
-      }
-
-      if (!_dopplerProvider.getCapabilities().available) {
-        throw new Errors.ConfigError('DOPPLER not available - WebGPU may not be supported');
-      }
-
-      return _dopplerProvider;
+      return {
+        ...base,
+        requestId,
+        provider: base.provider || providerId || modelConfig?.provider || null,
+        model: base.model || modelConfig?.modelId || modelConfig?.id || null,
+        timestamp: base.timestamp || Date.now(),
+        raw,
+        content
+      };
     };
 
-    const _chatDoppler = async (messages, modelConfig, onUpdate, requestId) => {
-      logger.info(`[LLM] DOPPLER Request to ${modelConfig.modelId || modelConfig.id}`);
+    const createProxyProvider = () => ({
+      chat: (messages, modelConfig, requestId) => _chatProxy(messages, modelConfig, null, requestId),
+      stream: (messages, modelConfig, onUpdate, requestId) => _chatProxy(messages, modelConfig, onUpdate, requestId),
+      status: () => ({ available: true, mode: 'proxy' })
+    });
 
-      await _ensureDopplerProvider();
+    const createWebLLMProvider = () => ({
+      chat: (messages, modelConfig, requestId) => _chatBrowser(messages, modelConfig, null, requestId),
+      stream: (messages, modelConfig, onUpdate, requestId) => _chatBrowser(messages, modelConfig, onUpdate, requestId),
+      status: () => getWebLLMStatus()
+    });
 
-      // Load model if different
-      const modelId = modelConfig.modelId || modelConfig.id;
-      const currentModel = _dopplerProvider.getCapabilities().currentModelId;
-      if (currentModel !== modelId) {
-        await _dopplerProvider.loadModel(modelId, modelConfig.modelUrl, onUpdate, modelConfig.localPath);
-      }
+    const createTransformersProvider = () => ({
+      chat: (messages, modelConfig, requestId) => _chatTransformers(messages, modelConfig, null, requestId),
+      stream: (messages, modelConfig, onUpdate, requestId) => _chatTransformers(messages, modelConfig, onUpdate, requestId),
+      status: () => getTransformersStatus()
+    });
 
-      // Stream or sync based on callback
-      if (onUpdate) {
-        let fullContent = '';
-        for await (const token of _dopplerProvider.stream(messages, modelConfig)) {
-          fullContent += token;
-          onUpdate(token);
+    const createCloudProvider = (providerId) => ({
+      chat: (messages, modelConfig, requestId) => {
+        if (modelConfig.hostType === 'browser-cloud') {
+          return _chatCloudDirect(messages, modelConfig, null, requestId);
         }
-        return {
-          requestId,
-          content: stripThoughts(fullContent),
-          raw: fullContent,
-          model: modelId,
-          timestamp: Date.now(),
-          provider: 'doppler'
-        };
-      } else {
-        const result = await _dopplerProvider.chat(messages, modelConfig);
-        return {
-          requestId,
-          content: stripThoughts(result.content),
-          raw: result.content,
-          model: modelId,
-          timestamp: Date.now(),
-          provider: 'doppler'
-        };
+        return _chatProxy(messages, modelConfig, null, requestId);
+      },
+      stream: (messages, modelConfig, onUpdate, requestId) => {
+        if (modelConfig.hostType === 'browser-cloud') {
+          return _chatCloudDirect(messages, modelConfig, onUpdate, requestId);
+        }
+        return _chatProxy(messages, modelConfig, onUpdate, requestId);
+      },
+      status: () => ({ available: true, mode: 'cloud', provider: providerId })
+    });
+
+    let _providersRegistered = false;
+    const registerBuiltInProviders = () => {
+      if (_providersRegistered || !ProviderRegistry) return;
+
+      if (!ProviderRegistry.hasProvider('proxy')) {
+        ProviderRegistry.registerProvider('proxy', createProxyProvider());
       }
+      if (!ProviderRegistry.hasProvider('webllm')) {
+        ProviderRegistry.registerProvider('webllm', createWebLLMProvider());
+      }
+      if (!ProviderRegistry.hasProvider('transformers')) {
+        ProviderRegistry.registerProvider('transformers', createTransformersProvider());
+      }
+      if (!ProviderRegistry.hasProvider('openai')) {
+        ProviderRegistry.registerProvider('openai', createCloudProvider('openai'));
+      }
+      if (!ProviderRegistry.hasProvider('gemini')) {
+        ProviderRegistry.registerProvider('gemini', createCloudProvider('gemini'));
+      }
+      if (!ProviderRegistry.hasProvider('anthropic')) {
+        ProviderRegistry.registerProvider('anthropic', createCloudProvider('anthropic'));
+      }
+
+      _providersRegistered = true;
+    };
+
+    const resolveProviderId = (modelConfig) => {
+      const provider = modelConfig?.provider?.toLowerCase();
+
+      if (provider === 'doppler') return 'doppler';
+      if (provider === 'transformers') return 'transformers';
+      if (provider === 'webllm') return 'webllm';
+      if (modelConfig?.queryMethod === 'browser') return 'webllm';
+
+      if (TransformersClient?.isTransformersModel?.(modelConfig?.id)) {
+        return 'transformers';
+      }
+
+      if (provider === 'ollama') return 'proxy';
+      if (provider && ProviderRegistry?.hasProvider(provider)) return provider;
+
+      return 'proxy';
+    };
+
+    const ensureDopplerProvider = async () => {
+      if (!ProviderRegistry) {
+        throw new Errors.ConfigError('ProviderRegistry not available');
+      }
+      return ProviderRegistry.getProvider('doppler');
     };
 
     const loadLoRAAdapter = async (adapter) => {
-      await _ensureDopplerProvider();
-      if (typeof _dopplerProvider.loadLoRAAdapter !== 'function') {
+      const provider = await ensureDopplerProvider();
+      if (typeof provider.loadLoRAAdapter !== 'function') {
         throw new Errors.ConfigError('DOPPLER provider does not support LoRA adapters');
       }
-      await _dopplerProvider.loadLoRAAdapter(adapter);
-      return _dopplerProvider.getActiveLoRA ? _dopplerProvider.getActiveLoRA() : null;
+      await provider.loadLoRAAdapter(adapter);
+      return provider.getActiveLoRA ? provider.getActiveLoRA() : null;
     };
 
     const unloadLoRAAdapter = async () => {
-      await _ensureDopplerProvider();
-      if (typeof _dopplerProvider.unloadLoRAAdapter !== 'function') {
+      const provider = await ensureDopplerProvider();
+      if (typeof provider.unloadLoRAAdapter !== 'function') {
         throw new Errors.ConfigError('DOPPLER provider does not support LoRA adapters');
       }
-      await _dopplerProvider.unloadLoRAAdapter();
+      await provider.unloadLoRAAdapter();
     };
 
     const getActiveLoRA = () => {
-      if (!_dopplerProvider || typeof _dopplerProvider.getActiveLoRA !== 'function') return null;
-      return _dopplerProvider.getActiveLoRA();
+      const provider = ProviderRegistry?.getLoadedProvider?.('doppler');
+      if (!provider || typeof provider.getActiveLoRA !== 'function') return null;
+      return provider.getActiveLoRA();
     };
 
     const prefillKV = async (prompt, modelConfig, options = {}) => {
       if (!modelConfig) {
         throw new Errors.ConfigError('Model config required for KV prefill');
       }
-      await _ensureDopplerProvider();
+      const provider = await ensureDopplerProvider();
 
-      if (typeof _dopplerProvider.prefillKV !== 'function') {
+      if (typeof provider.prefillKV !== 'function') {
         throw new Errors.ConfigError('DOPPLER provider does not support KV prefill');
       }
 
-      const modelId = modelConfig.modelId || modelConfig.id;
-      const currentModel = _dopplerProvider.getCapabilities().currentModelId;
-      if (currentModel !== modelId) {
-        await _dopplerProvider.loadModel(modelId, modelConfig.modelUrl, null, modelConfig.localPath);
-      }
-
-      return _dopplerProvider.prefillKV(prompt, options);
+      return provider.prefillKV(prompt, modelConfig, options);
     };
 
     /**
@@ -682,8 +723,13 @@ const LLMClient = {
     const chat = async (messages, modelConfig, onUpdate = null, options = {}) => {
       await _limiter.waitForToken();
 
+      if (!modelConfig) {
+        throw new Errors.ConfigError('Model config required');
+      }
+
+      registerBuiltInProviders();
+
       const requestId = Utils.generateId('req');
-      const isCloudProvider = ['gemini', 'openai', 'anthropic'].includes(modelConfig.provider);
 
       // Merge tools into modelConfig if native tools supported
       const configWithTools = { ...modelConfig };
@@ -692,22 +738,18 @@ const LLMClient = {
         logger.info(`[LLM] Native tool calling enabled with ${options.tools.length} tools`);
       }
 
-      // Route to appropriate backend
-      if (modelConfig.provider === 'doppler') {
-          // Local WebGPU inference via DOPPLER
-          return await _chatDoppler(messages, configWithTools, onUpdate, requestId);
-      } else if (modelConfig.provider === 'transformers' ||
-          (TransformersClient && TransformersClient.isTransformersModel && TransformersClient.isTransformersModel(modelConfig.id))) {
-          return await _chatTransformers(messages, configWithTools, onUpdate, requestId);
-      } else if (modelConfig.hostType === 'browser-cloud' && isCloudProvider) {
-          // Direct browser-to-cloud API call (no proxy)
-          logger.info(`[LLM] Direct API call to ${modelConfig.provider}/${modelConfig.id}`);
-          return await _chatCloudDirect(messages, configWithTools, onUpdate, requestId);
-      } else if (modelConfig.queryMethod === 'browser' || modelConfig.provider === 'webllm') {
-          return await _chatBrowser(messages, configWithTools, onUpdate, requestId);
-      } else {
-          return await _chatProxy(messages, configWithTools, onUpdate, requestId);
+      const providerId = resolveProviderId(configWithTools);
+      const provider = await ProviderRegistry.getProvider(providerId, { modelConfig: configWithTools });
+
+      if (!provider || typeof provider.chat !== 'function') {
+        throw new Errors.ConfigError(`Provider not available: ${providerId}`);
       }
+
+      const response = onUpdate && typeof provider.stream === 'function'
+        ? await provider.stream(messages, configWithTools, onUpdate, requestId)
+        : await provider.chat(messages, configWithTools, requestId);
+
+      return normalizeResponse(response, providerId, configWithTools, requestId);
     };
 
     const abortRequest = (requestId) => {
@@ -732,8 +774,11 @@ const LLMClient = {
     };
 
     const getDopplerStatus = () => {
-        if (!_dopplerProvider) return { available: false, initialized: false };
-        return _dopplerProvider.getCapabilities();
+        const provider = ProviderRegistry?.getLoadedProvider?.('doppler');
+        if (!provider || typeof provider.status !== 'function') {
+          return { available: false, initialized: false };
+        }
+        return provider.status();
     };
 
     // Release GPU memory (useful when switching providers or on error)
@@ -742,9 +787,9 @@ const LLMClient = {
       if (TransformersClient?.cleanup) {
         await TransformersClient.cleanup();
       }
-      if (_dopplerProvider?.destroy) {
-        await _dopplerProvider.destroy();
-        _dopplerProvider = null;
+      const dopplerProvider = ProviderRegistry?.getLoadedProvider?.('doppler');
+      if (dopplerProvider?.destroy) {
+        await dopplerProvider.destroy();
       }
       logger.info('[LLM] All GPU memory released');
     };

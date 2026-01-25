@@ -8,13 +8,13 @@ const NeuralCompiler = {
     id: 'NeuralCompiler',
     version: '1.0.0',
     genesis: { introduced: 'full' },
-    dependencies: ['Utils', 'EventBus?', 'VFS', 'LLMClient', 'SemanticMemory', 'IntentBundleGate?'],
+    dependencies: ['Utils', 'EventBus?', 'VFS', 'LLMClient', 'DopplerToolbox?', 'SemanticMemory', 'IntentBundleGate?'],
     async: true,
     type: 'capability'
   },
 
   factory: (deps) => {
-    const { Utils, EventBus, VFS, LLMClient, SemanticMemory, IntentBundleGate } = deps;
+    const { Utils, EventBus, VFS, LLMClient, DopplerToolbox, SemanticMemory, IntentBundleGate } = deps;
     const { logger, Errors, generateId } = Utils;
 
     const REGISTRY_PATH = '/.memory/neural-compiler/adapters.json';
@@ -217,7 +217,10 @@ const NeuralCompiler = {
 
     const loadAdapter = async (name) => {
       if (!name) {
-        await LLMClient.unloadLoRAAdapter?.();
+        const unload = DopplerToolbox?.unloadLoRAAdapter || LLMClient?.unloadLoRAAdapter;
+        if (unload) {
+          await unload();
+        }
         _activeAdapter = null;
         return null;
       }
@@ -239,7 +242,11 @@ const NeuralCompiler = {
         throw new Errors.ValidationError(`Adapter manifest missing for ${name}`);
       }
 
-      await LLMClient.loadLoRAAdapter(manifest);
+      const load = DopplerToolbox?.loadLoRAAdapter || LLMClient?.loadLoRAAdapter;
+      if (!load) {
+        throw new Errors.ConfigError('LoRA adapter loading requires DopplerToolbox or LLMClient support');
+      }
+      await load(manifest);
       _activeAdapter = name;
       _stats.swaps += 1;
       emit('neural-compiler:adapter-loaded', { name });

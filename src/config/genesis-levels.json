@@ -21,7 +21,9 @@
         "AgentLoop",
         "CircuitBreaker",
         "ContextManager",
+        "ProviderRegistry",
         "LLMClient",
+        "DopplerToolbox",
         "PersonaManager",
         "ResponseParser",
         "SchemaRegistry",
@@ -209,6 +211,9 @@
     "PolicyEngine": [
       "infrastructure/policy-engine.js"
     ],
+    "ProviderRegistry": [
+      "core/provider-registry.js"
+    ],
     "PromptMemory": [
       "capabilities/cognition/prompt-memory.js"
     ],
@@ -223,6 +228,9 @@
     ],
     "ReflectionStore": [
       "capabilities/reflection/reflection-store.js"
+    ],
+    "DopplerToolbox": [
+      "capabilities/system/doppler-toolbox.js"
     ],
     "ReplayEngine": [
       "infrastructure/replay-engine.js"
