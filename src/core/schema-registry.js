@@ -28,25 +28,81 @@ const SchemaRegistry = {
     // readOnly: false/undefined = mutating, must execute sequentially
     const DEFAULT_TOOL_SCHEMAS = {
       ReadFile: {
-        description: 'Read contents of a file from the virtual filesystem',
+        description: 'Read contents of a file from VFS or OPFS',
         readOnly: true,
         parameters: {
           type: 'object',
           required: ['path'],
           properties: {
-            path: { type: 'string', description: 'VFS path to read (e.g. /core/agent-loop.js)' }
+            path: { type: 'string', description: 'Path to read (vfs:/ or opfs:/). Default backend is VFS.' },
+            backend: { type: 'string', description: 'Optional backend override (vfs or opfs)' },
+            mode: { type: 'string', enum: ['text', 'binary'], description: 'Read mode (default: text)' },
+            maxBytes: { type: 'number', description: 'Maximum bytes to read' },
+            offset: { type: 'number', description: 'Binary read offset (bytes)' },
+            length: { type: 'number', description: 'Binary read length (bytes)' },
+            startLine: { type: 'number', description: 'First line to read (1-indexed, inclusive). VFS only.' },
+            endLine: { type: 'number', description: 'Last line to read (1-indexed, inclusive). VFS only.' }
           }
         }
       },
       WriteFile: {
-        description: 'Write content to a file in the virtual filesystem',
+        description: 'Write content to a file in VFS or OPFS',
         readOnly: false,
         parameters: {
           type: 'object',
-          required: ['path', 'content'],
+          required: ['path'],
           properties: {
-            path: { type: 'string', description: 'VFS path to write' },
-            content: { type: 'string', description: 'Content to write' }
+            path: { type: 'string', description: 'Path to write (vfs:/ or opfs:/). Default backend is VFS.' },
+            backend: { type: 'string', description: 'Optional backend override (vfs or opfs)' },
+            mode: { type: 'string', enum: ['text', 'binary'], description: 'Write mode (default: text)' },
+            content: { type: 'string', description: 'Text content to write' },
+            data: { type: 'string', description: 'Base64 data for binary writes' },
+            checksum: { type: 'string', description: 'Optional checksum for binary data' },
+            checksumAlgorithm: { type: 'string', description: 'Checksum algorithm (default: sha256)' },
+            maxBytes: { type: 'number', description: 'Maximum bytes to write' },
+            create: { type: 'boolean', description: 'Create file if missing (default true)' },
+            overwrite: { type: 'boolean', description: 'Overwrite file if it exists (default true)' },
+            autoLoad: { type: 'boolean', description: 'If true and path is .js, hot-reload the module after writing', default: false }
+          }
+        }
+      },
+      EditFile: {
+        description: 'Apply literal match/replace edits to a text file in VFS or OPFS',
+        readOnly: false,
+        parameters: {
+          type: 'object',
+          required: ['path'],
+          properties: {
+            path: { type: 'string', description: 'Path to edit (vfs:/ or opfs:/). Default backend is VFS.' },
+            backend: { type: 'string', description: 'Optional backend override (vfs or opfs)' },
+            content: { type: 'string', description: 'Full replacement content (text only)' },
+            patch: {
+              type: 'array',
+              description: 'Patch operations with find/replace',
+              items: {
+                type: 'object',
+                required: ['find'],
+                properties: {
+                  find: { type: 'string' },
+                  replace: { type: 'string' },
+                  count: { type: 'number' }
+                }
+              }
+            },
+            operations: {
+              type: 'array',
+              description: 'Legacy operations array',
+              items: {
+                type: 'object',
+                required: ['match'],
+                properties: {
+                  match: { type: 'string' },
+                  replacement: { type: 'string' },
+                  count: { type: 'number' }
+                }
+              }
+            },
+            create: { type: 'boolean', description: 'Create file if missing (default false)' }
           }
         }
       },
@@ -471,6 +527,7 @@ const SchemaRegistry = {
       // Register builtin schemas first
       registerToolSchema('ReadFile', DEFAULT_TOOL_SCHEMAS.ReadFile, { builtin: true });
       registerToolSchema('WriteFile', DEFAULT_TOOL_SCHEMAS.WriteFile, { builtin: true });
+      registerToolSchema('EditFile', DEFAULT_TOOL_SCHEMAS.EditFile, { builtin: true });
       registerToolSchema('ListFiles', DEFAULT_TOOL_SCHEMAS.ListFiles, { builtin: true });
       registerToolSchema('DeleteFile', DEFAULT_TOOL_SCHEMAS.DeleteFile, { builtin: true });
       registerToolSchema('CreateTool', DEFAULT_TOOL_SCHEMAS.CreateTool, { builtin: true });
