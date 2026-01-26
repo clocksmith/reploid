@@ -3,7 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <base href="/src/">
+  <base id="reploid-base" href="/">
+  <script>
+    (function () {
+      const base = document.getElementById("reploid-base");
+      if (!base) return;
+      base.href = window.location.pathname.startsWith("/src/") ? "/src/" : "/";
+    })();
+  </script>
   <title>REPLOID - Reset Data</title>
   <script>
     window.REPLOID_SW_VERSION = "1735500005";
