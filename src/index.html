@@ -6,7 +6,14 @@
       name="viewport"
       content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes"
     />
-    <base href="/src/" />
+    <base id="reploid-base" href="/" />
+    <script>
+      (function () {
+        const base = document.getElementById("reploid-base");
+        if (!base) return;
+        base.href = window.location.pathname.startsWith("/src/") ? "/src/" : "/";
+      })();
+    </script>
     <link rel="icon" type="image/svg+xml" href="favicon.svg" />
     <title>Reploid</title>
 
