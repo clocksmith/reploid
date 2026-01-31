@@ -29,11 +29,11 @@ const LLMConfigPanel = {
         const status = LLMClient.getWebLLMStatus ? LLMClient.getWebLLMStatus() : { loaded: false };
 
         if (status.loaded) {
-          if (statusIcon) statusIcon.textContent = '\u{1F7E2}'; // green circle
+          if (statusIcon) statusIcon.textContent = '★';
           if (statusText) statusText.textContent = 'Ready (WebGPU)';
           if (modelLabel) modelLabel.textContent = status.model || 'Loaded';
         } else {
-          if (statusIcon) statusIcon.textContent = '\u26AA'; // white circle
+          if (statusIcon) statusIcon.textContent = '☍';
           if (statusText) statusText.textContent = 'Not loaded';
         }
       };
@@ -41,11 +41,9 @@ const LLMConfigPanel = {
       // Check WebGPU support
       const gpuStatusEl = document.getElementById('llm-webgpu-status');
       if (gpuStatusEl && navigator.gpu) {
-         gpuStatusEl.innerHTML = '\u2705 WebGPU available';
-         gpuStatusEl.style.color = '#0f0';
+         gpuStatusEl.textContent = '✓ WebGPU available';
       } else if (gpuStatusEl) {
-         gpuStatusEl.textContent = '\u26A0\uFE0F WebGPU not supported in this browser';
-         gpuStatusEl.style.color = '#f90';
+         gpuStatusEl.textContent = '△ WebGPU not supported in this browser';
       }
 
       // Load Model Handler

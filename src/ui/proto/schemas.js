@@ -74,7 +74,7 @@ export const createSchemaManager = (deps) => {
                 <small>${escapeHtml(config.description || '')}</small>
               </header>
               <div class="schema-worker-meta">
-                <div><span class="schema-meta-label">Default role:</span> ${escapeHtml(config.defaultModelRole || '—')}</div>
+                <div><span class="schema-meta-label">Default role:</span> ${escapeHtml(config.defaultModelRole || '-')}</div>
                 <div><span class="schema-meta-label">Can spawn:</span> ${config.canSpawnWorkers ? 'Yes' : 'No'}</div>
               </div>
               <div class="schema-tools">${toolSummary || 'No tools configured'}</div>

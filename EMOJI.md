@@ -36,11 +36,13 @@ This codebase follows a **strict no-emoji policy**. Use Unicode symbols for visu
 | ⚲ | `&#9906;` | Search |
 | ✎ | `&#9998;` | Edit |
 | ✄ | `&#9988;` | Delete |
+| ⎘ | `&#x2398;` | Copy |
 | ☩ | `&#9769;` | Add/create |
 | ☇ | `&#9735;` | Execute |
 | ♺ | `&#9850;` | Refresh |
+| ⚑ | `&#x2691;` | HITL gate |
 | ⚿ | `&#9919;` | Lock/auth |
-| ☈ | `&#9800;` | Clear, reset |
+| ☈ | `&#9800;` | Clear, reset, dismiss |
 | ✓ | `&#10003;` | Confirm |
 
 ## Checkboxes

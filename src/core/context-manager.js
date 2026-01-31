@@ -17,9 +17,9 @@ const ContextManager = {
     const { logger } = deps.Utils;
     const { LLMClient, EventBus, DopplerToolbox } = deps;
 
-    // ─────────────────────────────────────────────────────────────────────────
+    // -------------------------------------------------------------------------
     // Model Limits Configuration
-    // ─────────────────────────────────────────────────────────────────────────
+    // -------------------------------------------------------------------------
 
     // Default limits (conservative, works with most models)
     const DEFAULT_LIMITS = {
@@ -28,7 +28,7 @@ const ContextManager = {
       hard: 120000         // Hard limit - aggressive compact then halt
     };
 
-    // Model-specific overrides (model ID pattern → limits)
+    // Model-specific overrides (model ID pattern -> limits)
     // Patterns are matched with startsWith for flexibility
     // Order matters - more specific patterns should come first
     const MODEL_LIMITS = {
@@ -69,9 +69,9 @@ const ContextManager = {
     let _kvPrefixCache = null;
     let _expertPrompts = {};
 
-    // ─────────────────────────────────────────────────────────────────────────
+    // -------------------------------------------------------------------------
     // Limit Resolution
-    // ─────────────────────────────────────────────────────────────────────────
+    // -------------------------------------------------------------------------
 
     const getLimitsForModel = (modelId) => {
       // Runtime overrides take precedence
@@ -103,9 +103,9 @@ const ContextManager = {
       logger.info('[ContextManager] Runtime limit overrides cleared');
     };
 
-    // ─────────────────────────────────────────────────────────────────────────
+    // -------------------------------------------------------------------------
     // Token Counting (with caching)
-    // ─────────────────────────────────────────────────────────────────────────
+    // -------------------------------------------------------------------------
 
     let _cachedTokenCount = null;
     let _cachedContextLength = 0;
@@ -179,9 +179,9 @@ const ContextManager = {
       _cachedLastMessageLength = 0;
     };
 
-    // ─────────────────────────────────────────────────────────────────────────
+    // -------------------------------------------------------------------------
     // Threshold Checks
-    // ─────────────────────────────────────────────────────────────────────────
+    // -------------------------------------------------------------------------
 
     const shouldCompact = (context, modelId) => {
       const limits = getLimitsForModel(modelId);
@@ -205,9 +205,9 @@ const ContextManager = {
       };
     };
 
-    // ─────────────────────────────────────────────────────────────────────────
+    // -------------------------------------------------------------------------
     // Critical Info Extraction
-    // ─────────────────────────────────────────────────────────────────────────
+    // -------------------------------------------------------------------------
 
     const extractCriticalInfo = (messages, aggressive = false) => {
       const toolCalls = [];
@@ -224,7 +224,7 @@ const ContextManager = {
           toolCalls.push({ tool: match[1], role: msg.role });
         }
 
-        const toolResultMatches = content.matchAll(/Act #(\d+) → (\w+)\s*(.*?)(?=Act #|\n\n|$)/gs);
+        const toolResultMatches = content.matchAll(/Act #(\d+) -> (\w+)\s*(.*?)(?=Act #|\n\n|$)/gs);
         for (const match of toolResultMatches) {
           // In aggressive mode, truncate results more
           const resultLen = aggressive ? 50 : 100;
@@ -256,9 +256,9 @@ const ContextManager = {
       return { toolCalls, memoryOps, errors, decisions };
     };
 
-    // ─────────────────────────────────────────────────────────────────────────
+    // -------------------------------------------------------------------------
     // Compaction
-    // ─────────────────────────────────────────────────────────────────────────
+    // -------------------------------------------------------------------------
 
     const compact = async (context, modelConfig, options = {}) => {
       const modelId = modelConfig?.id;
@@ -355,14 +355,14 @@ const ContextManager = {
         });
       }
 
-      logger.info(`[ContextManager] ${mode} compaction complete: ${tokens} → ${newTokens} tokens (${middle.length} msgs compacted)`);
+      logger.info(`[ContextManager] ${mode} compaction complete: ${tokens} -> ${newTokens} tokens (${middle.length} msgs compacted)`);
 
       return { context: compacted, compacted: true, previousTokens: tokens, newTokens };
     };
 
-    // ─────────────────────────────────────────────────────────────────────────
+    // -------------------------------------------------------------------------
     // Main Entry Point: Manage Context
-    // ─────────────────────────────────────────────────────────────────────────
+    // -------------------------------------------------------------------------
 
     /**
      * Main context management function. Call before each LLM request.
@@ -398,7 +398,7 @@ const ContextManager = {
         }
       }
 
-      // Step 3: Check if still over hard limit → aggressive compaction
+      // Step 3: Check if still over hard limit -> aggressive compaction
       let hardCheck = exceedsHardLimit(currentContext, modelId);
       if (hardCheck.exceeded) {
         logger.warn(`[ContextManager] Still over hard limit after standard compact, trying aggressive...`);
@@ -439,9 +439,9 @@ const ContextManager = {
       };
     };
 
-    // ─────────────────────────────────────────────────────────────────────────
+    // -------------------------------------------------------------------------
     // Token Emission (for UI)
-    // ─────────────────────────────────────────────────────────────────────────
+    // -------------------------------------------------------------------------
 
     const emitTokens = (context, modelId) => {
       const limits = getLimitsForModel(modelId);
@@ -491,9 +491,9 @@ const ContextManager = {
       return { snapshot, prompt };
     };
 
-    // ─────────────────────────────────────────────────────────────────────────
+    // -------------------------------------------------------------------------
     // FunctionGemma Expert Context
-    // ─────────────────────────────────────────────────────────────────────────
+    // -------------------------------------------------------------------------
 
     /**
      * Initialize shared KV prefix for FunctionGemma expert network.
@@ -551,9 +551,9 @@ const ContextManager = {
       _expertPrompts = {};
     };
 
-    // ─────────────────────────────────────────────────────────────────────────
+    // -------------------------------------------------------------------------
     // Exports
-    // ─────────────────────────────────────────────────────────────────────────
+    // -------------------------------------------------------------------------
 
     return {
       // Core functions

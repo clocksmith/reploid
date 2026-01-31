@@ -24,7 +24,7 @@ const ToastNotifications = {
     const TOAST_ICONS = {
       success: '\u2605',  // ★
       error: '\u2612',    // ☒
-      warning: '\u2621',  // △
+      warning: '△',
       info: '\u261B'      // ☛
     };
 
@@ -52,7 +52,7 @@ const ToastNotifications = {
       toast.innerHTML = `
         <span class="toast-icon">${icon}</span>
         <span class="toast-message">${message}</span>
-        <span class="toast-close">\u2A2F</span>
+        <span class="toast-close">☈</span>
       `;
 
       // Add to container

@@ -187,7 +187,7 @@ const Proto = {
 
         errorsList.innerHTML = errors.map((error) => {
           const timestamp = new Date(error.ts).toLocaleTimeString();
-          const icon = error.severity === 'warning' ? '⚠' : '✗';
+          const icon = error.severity === 'warning' ? '△' : '☒';
           const typeClass = error.severity === 'warning' ? 'warning' : 'error';
 
           return `
@@ -280,7 +280,7 @@ const Proto = {
         div.className = 'history-entry llm';
         div.innerHTML = `
           <div class="history-header">
-            <span class="entry-label">&#9670; Agent</span>
+            <span class="entry-label">★ Agent</span>
             <span class="entry-cycle">#${entry.cycle || '-'}</span>
           </div>
           <pre class="history-content">${escapeHtml(entry.content)}</pre>
@@ -294,7 +294,7 @@ const Proto = {
         div.className = `history-entry tool ${isError ? 'error' : 'success'}`;
         div.innerHTML = `
           <div class="history-header">
-            &#x25B6; Sent #${entry.cycle} &#x2192; ${entry.tool}
+            SEND #${entry.cycle} -> ${entry.tool}
             ${isError ? '<span class="error-badge">ERROR</span>' : ''}
           </div>
           <pre class="history-content">${escapeHtml(result)}</pre>
@@ -304,7 +304,7 @@ const Proto = {
         div.className = `history-entry human-message ${isGoal ? 'goal-refinement' : ''}`;
         div.innerHTML = `
           <div class="history-header">
-            <span class="entry-label">${isGoal ? '&#x2691; You (Goal)' : '&#x2709; You'}</span>
+            <span class="entry-label">${isGoal ? 'You (Goal)' : 'You'}</span>
             <span class="entry-cycle">#${entry.cycle || '-'}</span>
           </div>
           <pre class="history-content">${escapeHtml(entry.content)}</pre>
@@ -342,7 +342,7 @@ const Proto = {
       listEl.innerHTML = recent.map((entry) => {
         const cycle = entry.cycle ?? '-';
         const timestamp = entry.ts ? new Date(entry.ts).toLocaleTimeString() : '';
-        const meta = timestamp ? `#${cycle} · ${timestamp}` : `#${cycle}`;
+      const meta = timestamp ? `#${cycle} - ${timestamp}` : `#${cycle}`;
         return `
           <div class="intent-refinement-item">
             <div class="intent-refinement-meta">
@@ -381,7 +381,7 @@ const Proto = {
         }
       }
 
-      const icon = isError ? '✗' : '✓';
+      const icon = isError ? '☒' : '✓';
       const toolInfo = argsPreview ? `${tool}(${argsPreview})` : tool;
 
       let detailText = '';
@@ -573,15 +573,15 @@ const Proto = {
         schemaRefreshBtn.addEventListener('click', () => schemaManager.refreshSchemaData());
       }
 
-      btnToggle.innerHTML = '&#x25A0;';
+      btnToggle.innerHTML = 'Stop';
       btnToggle.title = 'Stop (Esc)';
 
       const updateButtonState = (running) => {
         if (running) {
-          btnToggle.innerHTML = '&#x25A0;';
+          btnToggle.innerHTML = 'Stop';
           btnToggle.title = 'Stop (Esc)';
         } else {
-          btnToggle.innerHTML = '&#x25B6;';
+          btnToggle.innerHTML = 'Run';
           btnToggle.title = 'Resume (Ctrl+Enter)';
         }
       };
@@ -591,7 +591,7 @@ const Proto = {
           AgentLoop.stop();
           isRunning = false;
           updateButtonState(false);
-          Toast.info('Agent Stopped', 'Click play or press Ctrl+Enter to resume');
+          Toast.info('Agent Stopped', 'Click Run or press Ctrl+Enter to resume');
         }
       };
 
@@ -609,13 +609,13 @@ const Proto = {
           try {
             await AgentLoop.run(goal);
             isRunning = false;
-            btnToggle.innerHTML = '&#x21BB;';
+            btnToggle.innerHTML = 'Restart';
             btnToggle.title = 'Restart';
             Toast.success('Goal Complete', 'Agent finished successfully');
           } catch (e) {
             logger.error(`Agent Error: ${e.message}`);
             isRunning = false;
-            btnToggle.innerHTML = '&#x21BB;';
+            btnToggle.innerHTML = 'Restart';
             btnToggle.title = 'Restart';
             // Log error to ErrorStore via EventBus
             EventBus.emit('agent:error', { message: 'Agent Error', error: e.message });
@@ -1062,7 +1062,7 @@ const Proto = {
 
         const statsEl = streamingEntry.querySelector('.token-stats');
         if (statsEl) {
-          statsEl.textContent = `${tokenCount} tokens • ${tokensPerSec} t/s`;
+          statsEl.textContent = `${tokenCount} tokens - ${tokensPerSec} t/s`;
         }
 
         const content = streamingEntry.querySelector('.history-content');
@@ -1093,7 +1093,7 @@ const Proto = {
         if (entry.type === 'llm_response') {
           const content = entry.content || '(No response content)';
           div.innerHTML = `
-            <div class="history-header">◀ Received #${entry.cycle}</div>
+            <div class="history-header">RECV #${entry.cycle}</div>
             <pre class="history-content">${escapeHtml(content)}</pre>
           `;
         } else if (entry.type === 'tool_result') {
@@ -1101,7 +1101,7 @@ const Proto = {
           const isError = result.startsWith('Error:');
           div.innerHTML = `
             <div class="history-header ${isError ? 'history-error' : ''}">
-              ▶ Sent #${entry.cycle} → ${entry.tool}
+              SEND #${entry.cycle} -> ${entry.tool}
               ${isError ? '<span class="error-badge">ERROR</span>' : ''}
             </div>
             <pre class="history-content">${escapeHtml(result)}</pre>
@@ -1118,7 +1118,7 @@ const Proto = {
           div.className = `history-entry human-message ${isGoal ? 'goal-refinement' : ''}`;
           div.innerHTML = `
             <div class="history-header">
-              <span class="entry-label">${isGoal ? '⚑ You (Goal)' : '✉ You'}</span>
+              <span class="entry-label">${isGoal ? 'You (Goal)' : 'You'}</span>
               <span class="entry-cycle">#${entry.cycle || '-'}</span>
             </div>
             <pre class="history-content">${escapeHtml(entry.content)}</pre>
@@ -1163,7 +1163,7 @@ const Proto = {
 
         div.innerHTML = `
           <div class="history-header arena-header">
-            🏆 Arena #${result.cycle} (${mode})
+            ★ Arena #${result.cycle} (${mode})
           </div>
           <div class="arena-solutions">
             ${solutionsHTML}

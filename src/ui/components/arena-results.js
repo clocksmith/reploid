@@ -168,7 +168,7 @@ const ArenaResults = {
           <div class="arena-entry-header">
             <div>
               <div class="arena-entry-title">Run ${entry.cycle ? `#${entry.cycle}` : 'summary'} (${escapeHtml(entry.mode)})</div>
-              <div class="arena-entry-meta">Winner: ${winnerLabel} • ${formatTime(entry.timestamp)}</div>
+              <div class="arena-entry-meta">Winner: ${winnerLabel} - ${formatTime(entry.timestamp)}</div>
             </div>
             <div class="arena-entry-actions">
               <button class="btn-small" data-action="rerun" data-entry-id="${entry.id}" ${canRerun ? '' : 'disabled'}>

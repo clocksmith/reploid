@@ -96,9 +96,9 @@ const CognitionPanel = {
           <div class="cognition-header">
             <h4>Neurosymbolic Cognition</h4>
             <div class="cognition-controls">
-              <button id="cog-refresh-btn" class="btn small" title="Refresh">Refresh</button>
-              <button id="cog-infer-btn" class="btn small" title="Run Inference">Infer</button>
-              <button id="cog-clear-btn" class="btn small danger" title="Clear All">Clear</button>
+              <button id="cog-refresh-btn" class="btn btn-small" title="Refresh">Refresh</button>
+              <button id="cog-infer-btn" class="btn btn-small" title="Run Inference">Infer</button>
+              <button id="cog-clear-btn" class="btn btn-small border-error" title="Clear All">Clear</button>
             </div>
           </div>
 

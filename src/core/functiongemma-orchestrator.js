@@ -501,9 +501,9 @@ const FunctionGemmaOrchestrator = {
       return result;
     };
 
-    // ─────────────────────────────────────────────────────────────────────────
+    // -------------------------------------------------------------------------
     // Genome Caching via ReflectionStore
-    // ─────────────────────────────────────────────────────────────────────────
+    // -------------------------------------------------------------------------
 
     /**
      * Get cached genome for a task type, or null if none.
@@ -539,9 +539,9 @@ const FunctionGemmaOrchestrator = {
       await ReflectionStore.updateAdapterStats(taskType, adapterId, success);
     };
 
-    // ─────────────────────────────────────────────────────────────────────────
+    // -------------------------------------------------------------------------
     // High-Level Execute API
-    // ─────────────────────────────────────────────────────────────────────────
+    // -------------------------------------------------------------------------
 
     /**
      * Execute a task using the best available strategy:
@@ -721,9 +721,9 @@ const FunctionGemmaOrchestrator = {
       });
     };
 
-    // ─────────────────────────────────────────────────────────────────────────
+    // -------------------------------------------------------------------------
     // Arena FunctionGemma Integration (Phase 5)
-    // ─────────────────────────────────────────────────────────────────────────
+    // -------------------------------------------------------------------------
 
     /**
      * Run arena-style competition between genomes for evolution.
@@ -933,14 +933,14 @@ const FunctionGemmaOrchestrator = {
       };
     };
 
-    // ─────────────────────────────────────────────────────────────────────────
+    // -------------------------------------------------------------------------
     // Temporal Self-Ring Execution
-    // ─────────────────────────────────────────────────────────────────────────
+    // -------------------------------------------------------------------------
 
     /**
      * Execute using Temporal Self-Ring topology.
      * Same model at N temporal states for self-reflective improvement.
-     * Based on Gödel Agent, RISE, and Reflexion research.
+     * Based on Godel Agent, RISE, and Reflexion research.
      *
      * @param {Object} task - Task with description, prompt, maxTokens, schema
      * @param {Object} config - Configuration for temporal ring execution
@@ -948,7 +948,7 @@ const FunctionGemmaOrchestrator = {
      * @param {number} config.temperatureStart - Initial temperature (default: 0.8)
      * @param {number} config.temperatureDecay - Decay per turn (default: 0.15)
      * @param {number} config.temperatureMin - Minimum temperature (default: 0.1)
-     * @param {boolean} config.enableShortcuts - Enable Möbius Ring shortcuts (default: false)
+     * @param {boolean} config.enableShortcuts - Enable Mobius Ring shortcuts (default: false)
      * @param {number} config.shortcutInterval - Turns between shortcuts (default: 2)
      * @param {number} config.convergenceThreshold - Similarity threshold for convergence
      * @param {boolean} config.persistHistory - Store history in ReflectionStore
@@ -987,7 +987,7 @@ const FunctionGemmaOrchestrator = {
         // Build temporal prompt
         let prompt = buildTemporalSelfRingPrompt(taskDescription, t, history, currentOutput, role);
 
-        // Möbius Ring: Add shortcuts to earlier temporal states
+        // Mobius Ring: Add shortcuts to earlier temporal states
         if (enableShortcuts && t >= shortcutInterval) {
           const shortcutIdx = t - shortcutInterval;
           const shortcutEntry = history[shortcutIdx];
@@ -1123,7 +1123,7 @@ const FunctionGemmaOrchestrator = {
     };
 
     /**
-     * Execute Möbius Ring variant with small-world shortcuts.
+     * Execute Mobius Ring variant with small-world shortcuts.
      * Wrapper around executeTemporalSelfRing with shortcuts enabled.
      */
     const executeMobiusRing = async (task, config = {}) => {

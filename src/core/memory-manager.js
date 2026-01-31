@@ -800,7 +800,7 @@ Summary:`;
       if (!_isInitialized) return;
 
       const { previousTokens, newTokens, compactedContext } = info;
-      logger.debug(`[MemoryManager] Context compacted: ${previousTokens} → ${newTokens} tokens`);
+      logger.debug(`[MemoryManager] Context compacted: ${previousTokens} -> ${newTokens} tokens`);
 
       try {
         // Extract any summaries from compacted context for memory indexing

@@ -1,7 +1,7 @@
 /**
  * @fileoverview PromptScoreMap
  * Simple in-memory prompt scoring for RSI proof.
- * Tracks prompt → { score, uses } for selection.
+ * Tracks prompt -> { score, uses } for selection.
  */
 
 const PromptScoreMap = {

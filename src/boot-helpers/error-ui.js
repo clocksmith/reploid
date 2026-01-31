@@ -26,15 +26,15 @@ export function renderErrorUI(error) {
 
       <div class="error-ui-actions">
         <button onclick="location.reload()" class="btn">
-          \u21BB Reload Page
+          ♺ Reload Page
         </button>
 
         <button onclick="factoryReset()" class="btn btn-primary">
-          \u2421 Factory Reset
+          ☈ Factory Reset
         </button>
 
         <button onclick="downloadLogs()" class="btn">
-          \u2193 Download Logs
+          ☙ Download Logs
         </button>
       </div>
 

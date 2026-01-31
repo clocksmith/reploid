@@ -90,22 +90,22 @@ const VFSExplorer = {
         if (isFile && !isDeleted) {
           menuItems = [
             { label: '✎ Edit', action: () => this.editFile(path) },
-            { label: '☷ Copy', action: () => this.copyFile(path) },
-            { label: '↗ Rename', action: () => this.renameFile(path) },
-            { label: '↪ Move', action: () => this.moveFile(path) },
-            { label: '☓ Delete', action: () => this.deleteFile(path), danger: true }
+            { label: '⎘ Copy', action: () => this.copyFile(path) },
+            { label: '✎ Rename', action: () => this.renameFile(path) },
+            { label: '☍ Move', action: () => this.moveFile(path) },
+            { label: '✄ Delete', action: () => this.deleteFile(path), danger: true }
           ];
         } else if (isFile && isDeleted) {
           menuItems = [
-            { label: '↶ Restore', action: () => this.restoreFile(path) }
+            { label: '♺ Restore', action: () => this.restoreFile(path) }
           ];
         } else {
           // Folder
           menuItems = [
             { label: '☐ New File', action: () => this.createNewFile(path) },
             { label: '☗ New Folder', action: () => this.createNewFolder(path) },
-            { label: '↗ Rename', action: () => this.renameFolder(path) },
-            { label: '☓ Delete', action: () => this.deleteFolder(path), danger: true }
+            { label: '✎ Rename', action: () => this.renameFolder(path) },
+            { label: '✄ Delete', action: () => this.deleteFolder(path), danger: true }
           ];
         }
 
@@ -419,9 +419,9 @@ const VFSExplorer = {
                 <option value="date" ${this.sortBy === 'date' ? 'selected' : ''}>Date</option>
                 <option value="type" ${this.sortBy === 'type' ? 'selected' : ''}>Type</option>
               </select>
-              <button class="vfs-sort-dir" title="Sort direction" aria-label="Toggle sort direction">${this.sortAsc ? '↑' : '↓'}</button>
-              <button class="vfs-collapse-all" title="Collapse All" aria-label="Collapse all folders">⊟</button>
-              <button class="vfs-expand-all" title="Expand All" aria-label="Expand all folders">⊞</button>
+              <button class="vfs-sort-dir" title="Sort direction" aria-label="Toggle sort direction">${this.sortAsc ? 'ASC' : 'DESC'}</button>
+              <button class="vfs-collapse-all" title="Collapse All" aria-label="Collapse all folders">☗-</button>
+              <button class="vfs-expand-all" title="Expand All" aria-label="Expand all folders">☗+</button>
               <button class="vfs-new-file" title="New File" aria-label="Create new file">☐+</button>
             </div>
             <div class="vfs-tree" role="tree" aria-label="File tree">${this.renderTree(tree)}</div>
@@ -534,7 +534,7 @@ const VFSExplorer = {
       renderFile(node, depth) {
         const icon = this.getFileIcon(node.path);
         const selected = node.path === this.selectedFile ? 'selected' : '';
-        const multiSelected = this.selectedFiles.has(node.path) ? 'multi-selected' : '';
+        const multiSelected = this.selectedFiles.has(node.path) ? 'multi-selected inverted' : '';
         const highlight = this.searchTerm && node.name.toLowerCase().includes(this.searchTerm.toLowerCase())
           ? 'highlight' : '';
 
@@ -551,8 +551,8 @@ const VFSExplorer = {
                aria-selected="${selected || multiSelected ? 'true' : 'false'}"
                aria-label="${escapeHtml(node.name)} (${this.formatSize(node.size)})${stateIcon ? ' - ' + node.metadata?.state : ''}"
                tabindex="${selected ? '0' : '-1'}"
-               style="padding-left:${depth * 20 + 20}px${multiSelected ? '; background: rgba(100, 149, 237, 0.2);' : ''}">
-            ${multiSelected ? '<span class="vfs-checkbox" aria-hidden="true">☑</span>' : ''}
+               style="padding-left:${depth * 20 + 20}px">
+            ${multiSelected ? '<span class="vfs-checkbox" aria-hidden="true">✓</span>' : ''}
             <span class="vfs-icon" aria-hidden="true">${icon}</span>
             <span class="vfs-name">${escapeHtml(node.name)}</span>
             ${stateIcon ? `<span class="vfs-state-icon" title="${node.metadata?.state || ''}">${stateIcon}</span>` : ''}
@@ -576,7 +576,7 @@ const VFSExplorer = {
         switch (metadata.state) {
           case 'created': return '+';
           case 'modified': return '~';
-          case 'deleted': return '×';
+          case 'deleted': return '✄';
           default: return '';
         }
       }
@@ -584,7 +584,7 @@ const VFSExplorer = {
       renderFolder(node, depth) {
         const isExpanded = this.expanded.has(node.path) || this.searchTerm !== '';
         const icon = isExpanded ? '☗' : '☗';
-        const expandIcon = isExpanded ? '▼' : '☇';
+        const expandIcon = isExpanded ? 'v' : '>';
 
         const childrenHtml = isExpanded ? this.renderTree(node, depth + 1) : '';
         const fileCount = this.countFiles(node);
@@ -874,8 +874,8 @@ const VFSExplorer = {
           // Build footer buttons based on mode
           const footerButtons = editMode
             ? `<button class="vfs-file-viewer-save btn-primary">✓ Save</button>
-               <button class="vfs-file-viewer-cancel">☓ Cancel</button>`
-            : `<button class="vfs-file-viewer-copy">☷ Copy</button>
+              <button class="vfs-file-viewer-cancel">☈ Cancel</button>`
+            : `<button class="vfs-file-viewer-copy">⎘ Copy</button>
                <button class="vfs-file-viewer-history">☐ History</button>
                <button class="vfs-file-viewer-edit">✎ Edit</button>`;
 
@@ -974,10 +974,10 @@ const VFSExplorer = {
                 const btn = e.target;
                 const originalText = btn.innerHTML;
                 btn.innerHTML = '✓ Copied!';
-                btn.style.background = 'rgba(76, 175, 80, 0.3)';
+                btn.classList.add('inverted');
                 setTimeout(() => {
                   btn.innerHTML = originalText;
-                  btn.style.background = '';
+                  btn.classList.remove('inverted');
                 }, 2000);
               } catch (err) {
                 logger.error(`[VFSExplorer] Failed to copy to clipboard:`, err);

@@ -13,10 +13,20 @@
   --font-a: 'SF Mono', 'Menlo', 'Consolas', 'DejaVu Sans Mono', monospace;
   --font-b: 'Courier New', 'Courier', 'Liberation Mono', 'Nimbus Mono L', monospace;
 
+  /* === FONT SIZES === */
+  --font-sm: 13px;
+  --font-xs: 11px;
+
+  /* === FONT SIZES === */
+  --font-sm: 13px;
+  --font-xs: 11px;
+
   /* === SPACING === */
+  --space-xs: 4px;
   --space-sm: 8px;
   --space-md: 16px;
   --space-lg: 24px;
+  --space-xl: 32px;
 
   /* === BORDER WIDTHS === */
   --border-sm: 1px;
