@@ -12,8 +12,15 @@ const renderBootstrapError = (err) => {
   error('Boot failed:', err);
   const container = document.getElementById('wizard-container') || document.body;
   const box = document.createElement('div');
-  box.style.cssText = 'padding:16px;margin:16px;border:1px solid #b00;background:#1b0b0b;color:#f6d1d1;font-family:monospace;white-space:pre-wrap;';
-  box.textContent = `Bootstrap failed:\n${err?.message || err}`;
+  box.className = 'error-ui border-error';
+  const header = document.createElement('div');
+  header.className = 'error-ui-header';
+  header.textContent = 'Bootstrap failed';
+  const message = document.createElement('div');
+  message.className = 'error-ui-message';
+  message.textContent = err?.message || err;
+  box.appendChild(header);
+  box.appendChild(message);
   container.appendChild(box);
 };
 

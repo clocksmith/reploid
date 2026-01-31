@@ -82,7 +82,7 @@ export function renderAwakenStep(state) {
   return `
     <div class="wizard-step wizard-awaken">
       <div class="wizard-actions-row">
-        <button class="btn btn-secondary" data-action="advanced-settings">
+        <button class="btn" data-action="advanced-settings">
           ${advancedOpen ? 'Hide advanced' : 'Advanced settings'}
         </button>
         <button class="btn btn-lg btn-prism${isAwakening ? ' loading' : ''}"

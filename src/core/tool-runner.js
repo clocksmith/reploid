@@ -596,9 +596,9 @@ const ToolRunner = {
       return schemas.filter(s => allowedTools.includes(s.function.name));
     };
 
-    // ─────────────────────────────────────────────────────────────────────────
+    // -------------------------------------------------------------------------
     // Output Validation Control (via SchemaValidator)
-    // ─────────────────────────────────────────────────────────────────────────
+    // -------------------------------------------------------------------------
 
     /**
      * Enable or disable output validation for tool results

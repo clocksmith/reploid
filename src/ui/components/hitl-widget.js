@@ -68,7 +68,7 @@ const HITLWidget = {
       const isEveryN = mode === 'every_n';
       const isAuto = mode === 'autonomous';
 
-      const modeIcon = isHITL ? '⚇' : (isEveryN ? '⚆' : '⚙');
+      const modeIcon = isHITL ? '⚑' : (isEveryN ? '♺' : '☇');
       const modeTitle = isHITL ? 'HITL Mode' : (isEveryN ? `Every ${config.everyNSteps}` : 'Autonomous');
       const widgetClass = isHITL ? 'hitl-active' : (isEveryN ? 'hitl-every-n' : 'hitl-auto');
 
@@ -106,7 +106,7 @@ const HITLWidget = {
                   </div>
                   <div class="hitl-item-actions">
                     <button class="hitl-approve" data-action="approve" data-id="${item.id}" title="Approve">✓</button>
-                    <button class="hitl-reject" data-action="reject" data-id="${item.id}" title="Reject">✗</button>
+                    <button class="hitl-reject" data-action="reject" data-id="${item.id}" title="Reject">✄</button>
                   </div>
                 </div>
               `).join('')}

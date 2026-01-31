@@ -23,7 +23,7 @@
         order: 3;
         flex-direction: row;
         border-right: none;
-        border-top: 1px solid var(--border-default);
+        border-top: 1px solid var(--fg);
         padding: 0 8px;
         justify-content: space-around;
     }
@@ -64,7 +64,7 @@
     .vfs-browser-panel {
         order: 2;
         border-right: none;
-        border-bottom: 1px solid var(--border-default);
+        border-bottom: 1px solid var(--fg);
         max-height: 200px;
         overflow: hidden;
         display: none;
@@ -96,7 +96,7 @@
 
     .left-panel {
         border-right: none;
-        border-bottom: 1px solid var(--border-secondary);
+        border-bottom: 1px solid var(--fg);
     }
 
     .panel {
@@ -159,7 +159,7 @@
         display: block;
         width: 40px;
         height: 4px;
-        background: var(--border-default);
+        background: var(--fg);
         border-radius: 2px;
         margin: 8px auto;
         cursor: grab;
@@ -396,7 +396,7 @@
         padding: var(--space-sm) var(--space-md);
     }
 
-    .btn, .btn-sm {
+    .btn, .btn-small {
         min-height: 44px;
     }
 

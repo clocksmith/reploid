@@ -86,7 +86,7 @@ export const createVFSManager = (deps) => {
 
       renderVFSTree(_allFiles);
     } catch (e) {
-      treeEl.innerHTML = `<div class="text-danger">Error: ${e.message}</div>`;
+      treeEl.innerHTML = `<div class="panel border-error type-caption">Error: ${e.message}</div>`;
     }
   };
 
@@ -141,7 +141,7 @@ export const createVFSManager = (deps) => {
       };
       collectStatuses(node);
       // Priority: deleted > created > modified
-      if (statuses.has('deleted')) return { type: 'deleted', indicator: ' ×', class: 'vfs-file-deleted' };
+    if (statuses.has('deleted')) return { type: 'deleted', indicator: ' ✄', class: 'vfs-file-deleted' };
       if (statuses.has('created')) return { type: 'created', indicator: ' +', class: 'vfs-file-created' };
       if (statuses.has('modified')) return { type: 'modified', indicator: ' ~', class: 'vfs-file-modified' };
       return null;
@@ -179,7 +179,7 @@ export const createVFSManager = (deps) => {
           // Folder
           const folderPath = value.__path;
           const isExpanded = _expandedFolders.has(folderPath);
-          const icon = isExpanded ? '▼' : '▶';
+          const icon = isExpanded ? 'v' : '>';
           const fileCount = countFiles(value);
 
           // Show aggregate status when collapsed
@@ -212,7 +212,7 @@ export const createVFSManager = (deps) => {
               modIndicator = ' +';
             } else if (modInfo.type === 'deleted') {
               modClass = 'vfs-file-deleted';
-              modIndicator = ' ×';
+              modIndicator = ' ✄';
             } else {
               modClass = 'vfs-file-modified';
               modIndicator = ' ~';
@@ -346,7 +346,7 @@ export const createVFSManager = (deps) => {
       contentBody.classList.remove('hidden');
       contentBody.replaceChildren();
       const error = document.createElement('div');
-      error.className = 'text-danger';
+      error.className = 'panel border-error type-caption';
       error.textContent = `Error reading ${path}: ${e.message}`;
       contentBody.appendChild(error);
     }

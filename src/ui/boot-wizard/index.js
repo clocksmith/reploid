@@ -399,7 +399,7 @@ function render() {
         <h1 class="type-display">REPLOID</h1>
         <a class="link-secondary type-caption" href="/doppler/" target="_blank" rel="noopener">Doppler</a>
       </div>
-      <a class="intro-tagline" href="https://github.com/clocksmith/reploid" target="_blank" rel="noopener">self-modifying AI agent in the browser → view source code</a>
+      <a class="intro-tagline" href="https://github.com/clocksmith/reploid" target="_blank" rel="noopener">self-modifying AI agent in the browser -> view source code</a>
     </div>
   `;
 

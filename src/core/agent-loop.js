@@ -1156,7 +1156,7 @@ export default async function(args, deps) {
 Available deps: VFS, EventBus, Utils, AuditLogger, ToolWriter, TransformersClient, WorkerManager, ToolRunner, SemanticMemory, EmbeddingStore, KnowledgeGraph
 
 ## VFS Structure
-/ ├── .system/ (state.json) ├── .memory/ (knowledge-graph.json, reflections.json) ├── core/ (agent-loop, llm-client, etc.) ├── capabilities/ ├── tools/ (your creations) ├── ui/ └── styles/
+/ .system/ (state.json) | .memory/ (knowledge-graph.json, reflections.json) | core/ (agent-loop, llm-client, etc.) | capabilities/ | tools/ (your creations) | ui/ | styles/
 Memory lives under /.memory (not .memories). Base styles: /styles/rd.css, /styles/boot.css, /styles/proto/index.css.
 
 ## Browser Environment

@@ -34,7 +34,7 @@ export function renderStartStep(state) {
           <button class="btn btn-primary" data-action="continue-saved">
             Continue with this setup
           </button>
-          <button class="btn btn-secondary" data-action="reconfigure">
+          <button class="btn" data-action="reconfigure">
             Change configuration
           </button>
         </div>
@@ -47,7 +47,7 @@ export function renderStartStep(state) {
           </button>
         </form>
         <div class="wizard-actions stacked">
-          <button class="btn btn-secondary" data-action="reconfigure">
+          <button class="btn" data-action="reconfigure">
             Change configuration
           </button>
         </div>

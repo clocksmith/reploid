@@ -49,8 +49,8 @@ const ConfirmationModal = {
               ${details ? `<div class="modal-details">${escapeHtml(details)}</div>` : ''}
             </div>
             <div class="modal-actions">
-              <button class="btn btn-secondary modal-btn-cancel">${escapeHtml(cancelText)}</button>
-              <button class="btn ${danger ? 'btn-danger' : 'btn-primary'} modal-btn-confirm">${escapeHtml(confirmText)}</button>
+              <button class="btn modal-btn-cancel">${escapeHtml(cancelText)}</button>
+              <button class="btn btn-primary${danger ? ' border-error' : ''} modal-btn-confirm">${escapeHtml(confirmText)}</button>
             </div>
           </div>
         `;

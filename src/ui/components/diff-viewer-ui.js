@@ -140,13 +140,13 @@ const DiffViewerUI = {
               ✓ Approve All
             </button>
             <button class="btn-reject-all" data-action="reject-all" aria-label="Reject all changes">
-              ✗ Reject All
+              ✄ Reject All
             </button>
             <button class="btn-edit" data-action="edit" aria-label="edit proposal">
               ✎ edit Proposal
             </button>
             <button class="btn-export" data-action="copy" title="Copy diff to clipboard">
-              ☷ Copy
+              ⎘ Copy
             </button>
             <button class="btn-export" data-action="export" title="Export as Markdown">
               ⚿ Export

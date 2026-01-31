@@ -91,7 +91,7 @@ export const renderProtoTemplate = (escapeHtml, goalFromBoot) => `
                   <option value="error">Error</option>
                 </select>
               </label>
-              <button id="telemetry-refresh" class="btn btn-sm btn-secondary">Refresh</button>
+              <button id="telemetry-refresh" class="btn btn-small">Refresh</button>
             </div>
           </div>
           <div id="telemetry-status" class="telemetry-status muted">Waiting for telemetry service...</div>
@@ -107,12 +107,12 @@ export const renderProtoTemplate = (escapeHtml, goalFromBoot) => `
         <div class="schema-header">
           <div>
             <strong>Schema Registry</strong>
-            <span id="schema-tool-count">0 tools</span> ·
+            <span id="schema-tool-count">0 tools</span> -
             <span id="schema-worker-count">0 worker types</span>
           </div>
           <div class="schema-controls">
             <input id="schema-search" class="schema-search" type="text" placeholder="Search tools or worker types..." />
-            <button id="schema-refresh" class="btn btn-sm btn-secondary">Refresh</button>
+            <button id="schema-refresh" class="btn btn-small">Refresh</button>
           </div>
         </div>
         <div class="schema-columns">
@@ -225,7 +225,7 @@ export const renderProtoTemplate = (escapeHtml, goalFromBoot) => `
           </div>
           <div class="workers-summary-item">
             <span>Last Update</span>
-            <strong id="workers-last-update">—</strong>
+            <strong id="workers-last-update">-</strong>
           </div>
         </div>
         <div class="workers-sections">
@@ -262,7 +262,7 @@ export const renderProtoTemplate = (escapeHtml, goalFromBoot) => `
         <div class="replay-loader">
           <label class="replay-file-label">
             <input type="file" id="replay-file-input" accept=".json" />
-            <span class="btn btn-secondary">Load Run File</span>
+            <span class="btn">Load Run File</span>
           </label>
           <span id="replay-filename" class="muted"></span>
         </div>
@@ -295,10 +295,10 @@ export const renderProtoTemplate = (escapeHtml, goalFromBoot) => `
           </div>
 
           <div class="replay-buttons">
-            <button id="replay-play" class="btn btn-primary" title="Play">▶</button>
-            <button id="replay-pause" class="btn btn-secondary" title="Pause" disabled>⏸</button>
-            <button id="replay-step" class="btn btn-secondary" title="Step">⏭</button>
-            <button id="replay-stop" class="btn btn-secondary" title="Reset">⏹</button>
+            <button id="replay-play" class="btn btn-primary" title="Play">Play</button>
+            <button id="replay-pause" class="btn" title="Pause" disabled>Pause</button>
+            <button id="replay-step" class="btn" title="Step">Step</button>
+            <button id="replay-stop" class="btn" title="Reset">Reset</button>
           </div>
 
           <div class="replay-speed">
@@ -324,12 +324,12 @@ export const renderProtoTemplate = (escapeHtml, goalFromBoot) => `
       <div class="vfs-content-header hidden" id="vfs-content-header">
         <span class="vfs-file-path" id="vfs-current-path"></span>
         <div class="vfs-content-actions">
-          <button id="vfs-preview-btn" class="btn btn-sm btn-secondary hidden" title="Preview">▶</button>
-          <button id="vfs-diff-btn" class="btn btn-sm btn-secondary" title="Diff">⊟</button>
-          <button id="vfs-snapshot-btn" class="btn btn-sm btn-secondary" title="Snapshots">◷</button>
-          <button id="vfs-edit-btn" class="btn btn-sm btn-secondary" title="edit">edit</button>
-          <button id="vfs-save-btn" class="btn btn-sm btn-primary hidden" title="Save">Save</button>
-          <button id="vfs-cancel-btn" class="btn btn-sm btn-secondary hidden" title="Cancel">Cancel</button>
+          <button id="vfs-preview-btn" class="btn btn-small hidden" title="Preview">Preview</button>
+          <button id="vfs-diff-btn" class="btn btn-small" title="Diff">Diff</button>
+          <button id="vfs-snapshot-btn" class="btn btn-small" title="Snapshots">Snapshots</button>
+          <button id="vfs-edit-btn" class="btn btn-small" title="edit">edit</button>
+          <button id="vfs-save-btn" class="btn btn-small btn-primary hidden" title="Save">Save</button>
+          <button id="vfs-cancel-btn" class="btn btn-small hidden" title="Cancel">Cancel</button>
         </div>
       </div>
       <div id="vfs-content-body" class="vfs-content-body">
@@ -338,21 +338,21 @@ export const renderProtoTemplate = (escapeHtml, goalFromBoot) => `
       <div id="vfs-preview-panel" class="vfs-preview-panel hidden">
         <div class="vfs-preview-header">
           <span id="vfs-preview-title">Preview</span>
-          <button id="vfs-preview-close" class="btn-link" title="Close">&times;</button>
+          <button id="vfs-preview-close" class="btn-link" title="Close">☈</button>
         </div>
         <iframe id="vfs-preview-iframe" sandbox="allow-scripts" title="File preview"></iframe>
       </div>
       <div id="vfs-diff-panel" class="vfs-diff-panel hidden">
         <div class="vfs-diff-header">
           <span>Genesis Diff</span>
-          <button id="vfs-diff-close" class="btn-link" title="Close">&times;</button>
+          <button id="vfs-diff-close" class="btn-link" title="Close">☈</button>
         </div>
         <div id="vfs-diff-content"></div>
       </div>
       <div id="vfs-snapshot-panel" class="vfs-snapshot-panel hidden">
         <div class="vfs-snapshot-header">
           <span>Snapshots</span>
-          <button id="vfs-snapshot-close" class="btn-link" title="Close">&times;</button>
+          <button id="vfs-snapshot-close" class="btn-link" title="Close">☈</button>
         </div>
         <div id="vfs-snapshot-timeline"></div>
         <div id="vfs-snapshot-viewer"></div>

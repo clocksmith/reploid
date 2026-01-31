@@ -26,7 +26,7 @@ export const formatTimestamp = (ts) => {
 };
 
 export const formatSince = (ts) => {
-  if (!ts) return '—';
+  if (!ts) return '-';
   const diffSeconds = Math.max(0, Math.floor((Date.now() - ts) / 1000));
   if (diffSeconds < 1) return 'just now';
   if (diffSeconds < 60) return `${diffSeconds}s ago`;
@@ -47,7 +47,7 @@ export const formatPayloadSummary = (payload) => {
   try {
     const json = JSON.stringify(payload, null, 2);
     const limit = 500;
-    return json.length > limit ? `${json.slice(0, limit)}…` : json;
+    return json.length > limit ? `${json.slice(0, limit)}...` : json;
   } catch {
     return String(payload);
   }

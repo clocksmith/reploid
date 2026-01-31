@@ -42,7 +42,7 @@ const Toast = {
 
     const id = `toast-${++this._idCounter}`;
     const icons = {
-      info: '○',
+      info: '☛',
       success: '✓'
     };
 
@@ -64,13 +64,13 @@ const Toast = {
     }
 
     toast.innerHTML = `
-      <span class="toast-icon">${icons[type] || '○'}</span>
+      <span class="toast-icon">${icons[type] || '☛'}</span>
       <div class="toast-content">
         ${title ? `<div class="toast-title">${this._escapeHtml(title)}</div>` : ''}
         ${message ? `<div class="toast-message">${this._escapeHtml(message)}</div>` : ''}
         ${actionsHtml}
       </div>
-      <button class="toast-close" aria-label="Dismiss">&times;</button>
+      <button class="toast-close" aria-label="Dismiss">☈</button>
     `;
 
     // Bind close button
