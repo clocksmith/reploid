@@ -12,17 +12,6 @@
   overflow: hidden;
 }
 
-.vfs-browser-header {
-  padding: var(--space-md);
-  border-bottom: var(--border-sm) solid var(--fg);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 11px;
-  opacity: var(--opacity-muted);
-  flex-shrink: 0;
-}
-
 .vfs-tree {
   flex: 1;
   min-height: 0;

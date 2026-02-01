@@ -984,6 +984,7 @@ const Proto = {
       _root.innerHTML = '';
       const container = await render();
       _root.appendChild(container);
+      applyActiveTabs();
       workerManager.renderWorkersPanel();
 
       // Load persisted history and errors
