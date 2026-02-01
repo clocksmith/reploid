@@ -8,15 +8,11 @@
   background: var(--bg);
   border: var(--border-sm) solid var(--fg);
   min-height: 0;
-  height: 100%;
-  overflow: hidden;
 }
 
 .vfs-tree {
   flex: 1;
   min-height: 0;
-  overflow-y: auto;
-  overflow-x: hidden;
   padding: var(--space-sm);
   font-size: 12px;
 }
@@ -152,14 +148,12 @@
 
 /* VFS Content (in workspace) */
 .vfs-content {
-  flex: 1;
   display: flex;
   flex-direction: column;
+  gap: var(--space-sm);
   background: var(--bg);
   font-size: 12px;
-  overflow: hidden;
   padding: var(--space-md);
-  min-height: 0;
 }
 
 .vfs-content.hidden {
@@ -189,8 +183,6 @@
 }
 
 .vfs-content-body {
-  overflow: auto;
-  flex: 1;
 }
 
 .vfs-content-body pre {

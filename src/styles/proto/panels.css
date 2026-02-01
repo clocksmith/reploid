@@ -58,7 +58,6 @@
 
 .telemetry-list {
   flex: 1;
-  overflow-y: auto;
   display: flex;
   flex-direction: column;
   gap: var(--space-sm);
@@ -109,8 +108,6 @@
   background: var(--bg);
   border: var(--border-sm) dotted var(--fg);
   padding: var(--space-sm);
-  max-height: 200px;
-  overflow: auto;
 }
 
 /* Warning = dashed border */
@@ -166,7 +163,6 @@
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: var(--space-md);
-  overflow-y: auto;
 }
 
 .schema-card {
@@ -189,8 +185,6 @@
   background: var(--bg);
   border: var(--border-sm) dotted var(--fg);
   padding: var(--space-sm);
-  max-height: 200px;
-  overflow: auto;
   font-size: 11px;
 }
 
@@ -445,8 +439,6 @@
   padding: 0;
   margin: 4px 0 0;
   border-top: var(--border-sm) solid var(--fg);
-  max-height: 140px;
-  overflow-y: auto;
 }
 
 .worker-log li {
@@ -472,8 +464,6 @@
   border: var(--border-sm) dashed var(--fg);
   background: var(--bg);
   white-space: pre-wrap;
-  max-height: 120px;
-  overflow-y: auto;
 }
 
 .worker-output-error {
@@ -521,8 +511,6 @@
   flex-direction: column;
   gap: var(--space-lg);
   padding: var(--space-lg);
-  height: 100%;
-  overflow-y: auto;
 }
 
 .debug-section {
@@ -547,8 +535,6 @@
   line-height: 1.5;
   color: var(--fg);
   background: var(--bg);
-  max-height: 400px;
-  overflow-y: auto;
   white-space: pre-wrap;
   word-wrap: break-word;
 }
@@ -828,7 +814,6 @@
 
 .replay-event-log {
   flex: 1;
-  overflow-y: auto;
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -909,7 +894,6 @@
 
 .arena-list {
   flex: 1;
-  overflow-y: auto;
   display: flex;
   flex-direction: column;
   gap: var(--space-md);
@@ -1011,7 +995,5 @@
   margin: 0;
   font-family: var(--font-a);
   font-size: 11px;
-  max-height: 240px;
-  overflow: auto;
   white-space: pre-wrap;
 }
