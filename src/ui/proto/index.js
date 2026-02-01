@@ -33,7 +33,6 @@ const Proto = {
     let _inlineChat = null;
     let _vfsSearchTimeout = null;
     const TAB_IDS = ['activity', 'vfs', 'status', 'telemetry', 'schemas', 'workers', 'analysis'];
-    const ACTIVE_TABS_KEY = 'REPLOID_ACTIVE_TABS';
     const MAX_ACTIVE_TABS = 3;
     let _activeTabs = [];
 
@@ -425,36 +424,11 @@ const Proto = {
       budgetText.textContent = `${displayTokens} / ${displayMax}`;
     };
 
-    const normalizeActiveTabs = (tabs) => {
-      const ordered = [];
-      for (const tab of tabs || []) {
-        if (!TAB_IDS.includes(tab)) continue;
-        if (ordered.includes(tab)) continue;
-        ordered.push(tab);
-      }
-      if (ordered.length === 0) {
-        ordered.push('activity');
-      }
-      if (ordered.length > MAX_ACTIVE_TABS) {
-        return ordered.slice(-MAX_ACTIVE_TABS);
-      }
-      return ordered;
-    };
+    const DEFAULT_ACTIVE_TABS = ['activity'];
 
-    const loadActiveTabs = () => {
-      try {
-        const raw = localStorage.getItem(ACTIVE_TABS_KEY);
-        if (!raw) return normalizeActiveTabs([]);
-        const parsed = JSON.parse(raw);
-        return normalizeActiveTabs(Array.isArray(parsed) ? parsed : []);
-      } catch {
-        return normalizeActiveTabs([]);
-      }
-    };
+    const loadActiveTabs = () => [...DEFAULT_ACTIVE_TABS];
 
-    const persistActiveTabs = () => {
-      localStorage.setItem(ACTIVE_TABS_KEY, JSON.stringify(_activeTabs));
-    };
+    const persistActiveTabs = () => {};
 
     const handleTabActivation = (tabId) => {
       if (tabId === 'status') {
@@ -474,9 +448,24 @@ const Proto = {
       if (!container) return;
 
       const activeSet = new Set(_activeTabs);
+      const totalActive = _activeTabs.length;
+      const positionMap = totalActive === 1
+        ? [1]
+        : totalActive === 2
+          ? [0, 2]
+          : [0, 1, 2];
+
       const tabButtons = container.querySelectorAll('.sidebar-btn[data-tab]');
       tabButtons.forEach((btn) => {
-        btn.classList.toggle('active', activeSet.has(btn.dataset.tab));
+        const tabId = btn.dataset.tab;
+        const isActive = activeSet.has(tabId);
+        btn.classList.toggle('active', isActive);
+        if (isActive) {
+          const idx = _activeTabs.indexOf(tabId);
+          btn.dataset.order = String(positionMap[idx] ?? idx);
+        } else {
+          delete btn.dataset.order;
+        }
       });
 
       const workspaceColumns = container.querySelector('#workspace-columns');

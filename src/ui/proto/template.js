@@ -5,13 +5,34 @@
 export const renderProtoTemplate = (escapeHtml, goalFromBoot) => `
   <!-- Sidebar Navigation -->
   <nav class="sidebar">
-    <button class="sidebar-btn active" data-tab="activity" title="Activity (1)">&#x2261;</button>
-    <button class="sidebar-btn" data-tab="vfs" title="VFS (2)">&#9751;</button>
-    <button class="sidebar-btn" data-tab="status" title="Status (3)">&#x2139;</button>
-    <button class="sidebar-btn" data-tab="telemetry" title="Telemetry (4)">&#9768;</button>
-    <button class="sidebar-btn" data-tab="schemas" title="Schemas (5)">☷</button>
-    <button class="sidebar-btn" data-tab="workers" title="Workers (6)" id="workers-tab-btn">&#x2692;</button>
-    <button class="sidebar-btn" data-tab="analysis" title="Analysis (7)">&#9906;</button>
+    <button class="sidebar-btn active" data-tab="activity" title="Activity (1)">
+      <span class="sidebar-icon">&#x2261;</span>
+      <span class="tab-indicator" aria-hidden="true"><span></span><span></span><span></span></span>
+    </button>
+    <button class="sidebar-btn" data-tab="vfs" title="VFS (2)">
+      <span class="sidebar-icon">&#9751;</span>
+      <span class="tab-indicator" aria-hidden="true"><span></span><span></span><span></span></span>
+    </button>
+    <button class="sidebar-btn" data-tab="status" title="Status (3)">
+      <span class="sidebar-icon">&#x2139;</span>
+      <span class="tab-indicator" aria-hidden="true"><span></span><span></span><span></span></span>
+    </button>
+    <button class="sidebar-btn" data-tab="telemetry" title="Telemetry (4)">
+      <span class="sidebar-icon">&#9768;</span>
+      <span class="tab-indicator" aria-hidden="true"><span></span><span></span><span></span></span>
+    </button>
+    <button class="sidebar-btn" data-tab="schemas" title="Schemas (5)">
+      <span class="sidebar-icon">☷</span>
+      <span class="tab-indicator" aria-hidden="true"><span></span><span></span><span></span></span>
+    </button>
+    <button class="sidebar-btn" data-tab="workers" title="Workers (6)" id="workers-tab-btn">
+      <span class="sidebar-icon">&#x2692;</span>
+      <span class="tab-indicator" aria-hidden="true"><span></span><span></span><span></span></span>
+    </button>
+    <button class="sidebar-btn" data-tab="analysis" title="Analysis (7)">
+      <span class="sidebar-icon">&#9906;</span>
+      <span class="tab-indicator" aria-hidden="true"><span></span><span></span><span></span></span>
+    </button>
     <div class="sidebar-spacer"></div>
     <button id="btn-replay" class="sidebar-btn" title="Replay">♺</button>
     <button id="btn-toggle" class="sidebar-btn" title="Stop (Esc)">&#x25A0;</button>
@@ -71,6 +92,45 @@ export const renderProtoTemplate = (escapeHtml, goalFromBoot) => `
         <div id="vfs-tree" class="vfs-tree mono">
           <div class="muted">Loading...</div>
         </div>
+      </div>
+      <div id="vfs-content" class="vfs-content hidden mono">
+        <div class="vfs-content-header hidden" id="vfs-content-header">
+          <span class="vfs-file-path" id="vfs-current-path"></span>
+          <div class="vfs-content-actions">
+            <button id="vfs-preview-btn" class="btn btn-small hidden" title="Preview">Preview</button>
+            <button id="vfs-diff-btn" class="btn btn-small" title="Diff">Diff</button>
+            <button id="vfs-snapshot-btn" class="btn btn-small" title="Snapshots">Snapshots</button>
+            <button id="vfs-edit-btn" class="btn btn-small" title="edit">edit</button>
+            <button id="vfs-save-btn" class="btn btn-small btn-primary hidden" title="Save">Save</button>
+            <button id="vfs-cancel-btn" class="btn btn-small hidden" title="Cancel">Cancel</button>
+          </div>
+        </div>
+        <div id="vfs-content-body" class="vfs-content-body">
+          <div class="muted">Select a file to view contents</div>
+        </div>
+        <div id="vfs-preview-panel" class="vfs-preview-panel hidden">
+          <div class="vfs-preview-header">
+            <span id="vfs-preview-title">Preview</span>
+            <button id="vfs-preview-close" class="btn-link" title="Close">☈</button>
+          </div>
+          <iframe id="vfs-preview-iframe" sandbox="allow-scripts" title="File preview"></iframe>
+        </div>
+        <div id="vfs-diff-panel" class="vfs-diff-panel hidden">
+          <div class="vfs-diff-header">
+            <span>Genesis Diff</span>
+            <button id="vfs-diff-close" class="btn-link" title="Close">☈</button>
+          </div>
+          <div id="vfs-diff-content"></div>
+        </div>
+        <div id="vfs-snapshot-panel" class="vfs-snapshot-panel hidden">
+          <div class="vfs-snapshot-header">
+            <span>Snapshots</span>
+            <button id="vfs-snapshot-close" class="btn-link" title="Close">☈</button>
+          </div>
+          <div id="vfs-snapshot-timeline"></div>
+          <div id="vfs-snapshot-viewer"></div>
+        </div>
+        <textarea id="vfs-editor" class="vfs-editor hidden"></textarea>
       </div>
     </div>
 
@@ -256,46 +316,7 @@ export const renderProtoTemplate = (escapeHtml, goalFromBoot) => `
     </div>
     </div>
 
-    <!-- VFS Content Area (appears in workspace when file is selected) -->
-    <div id="vfs-content" class="vfs-content workspace-content hidden mono">
-      <div class="vfs-content-header hidden" id="vfs-content-header">
-        <span class="vfs-file-path" id="vfs-current-path"></span>
-        <div class="vfs-content-actions">
-          <button id="vfs-preview-btn" class="btn btn-small hidden" title="Preview">Preview</button>
-          <button id="vfs-diff-btn" class="btn btn-small" title="Diff">Diff</button>
-          <button id="vfs-snapshot-btn" class="btn btn-small" title="Snapshots">Snapshots</button>
-          <button id="vfs-edit-btn" class="btn btn-small" title="edit">edit</button>
-          <button id="vfs-save-btn" class="btn btn-small btn-primary hidden" title="Save">Save</button>
-          <button id="vfs-cancel-btn" class="btn btn-small hidden" title="Cancel">Cancel</button>
-        </div>
-      </div>
-      <div id="vfs-content-body" class="vfs-content-body">
-        <div class="muted">Select a file to view contents</div>
-      </div>
-      <div id="vfs-preview-panel" class="vfs-preview-panel hidden">
-        <div class="vfs-preview-header">
-          <span id="vfs-preview-title">Preview</span>
-          <button id="vfs-preview-close" class="btn-link" title="Close">☈</button>
-        </div>
-        <iframe id="vfs-preview-iframe" sandbox="allow-scripts" title="File preview"></iframe>
-      </div>
-      <div id="vfs-diff-panel" class="vfs-diff-panel hidden">
-        <div class="vfs-diff-header">
-          <span>Genesis Diff</span>
-          <button id="vfs-diff-close" class="btn-link" title="Close">☈</button>
-        </div>
-        <div id="vfs-diff-content"></div>
-      </div>
-      <div id="vfs-snapshot-panel" class="vfs-snapshot-panel hidden">
-        <div class="vfs-snapshot-header">
-          <span>Snapshots</span>
-          <button id="vfs-snapshot-close" class="btn-link" title="Close">☈</button>
-        </div>
-        <div id="vfs-snapshot-timeline"></div>
-        <div id="vfs-snapshot-viewer"></div>
-      </div>
-      <textarea id="vfs-editor" class="vfs-editor hidden"></textarea>
-    </div>
+
 
     <div id="replay-modal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="replay-modal-title">
       <div class="modal-content replay-modal">

@@ -7,7 +7,6 @@
 
 .chat-messages {
   flex: 1;
-  overflow-y: auto;
 }
 
 .chat-message {
@@ -160,8 +159,6 @@
   border: var(--border-sm) dotted var(--fg);
   padding: var(--space-sm);
   font-size: 11px;
-  max-height: 150px;
-  overflow-y: auto;
   margin-bottom: var(--space-sm);
   white-space: pre-wrap;
   word-break: break-all;
@@ -241,7 +238,6 @@
   }
 
   .approval-data {
-    max-height: 100px;
     font-size: 11px;
   }
 
@@ -281,7 +277,6 @@
   }
 
   .approval-data {
-    max-height: 80px;
     padding: var(--space-sm);
   }
 }

@@ -297,14 +297,7 @@ export const createVFSManager = (deps) => {
       renderVFSTree(_allFiles);
     }
 
-    // Hide all other workspace tabs and show VFS content
-    const container = document.querySelector('.app-shell');
-    if (container) {
-      container.querySelectorAll('.workspace-content').forEach(panel => {
-        panel.classList.add('hidden');
-      });
-      vfsContent.classList.remove('hidden');
-    } else {
+    if (vfsContent) {
       vfsContent.classList.remove('hidden');
     }
 

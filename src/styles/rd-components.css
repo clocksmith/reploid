@@ -483,6 +483,10 @@ th {
   z-index: 10000;
 }
 
+.modal-overlay.hidden {
+  display: none;
+}
+
 .modal,
 .modal-content {
   background: var(--bg);
