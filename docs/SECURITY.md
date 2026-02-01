@@ -2,7 +2,7 @@
 
 > Security architecture for safe recursive self-improvement research.
 
-**Foundational thesis:** Constraints aren't limitations; they're the engine that makes browser-native RSI work. The browser sandbox, VFS containment, and graduated safety gates create stable pressure toward compact, efficient self-modifications.
+**Foundational thesis:** Constraints aren't limitations; they're the engine that makes browser-native RSI work. The browser sandbox, VFS containment, and graduated gates create stable pressure toward compact, efficient self-modifications.
 
 This document provides a high-level overview of REPLOID's security model. For detailed implementation specifications, see the referenced blueprints.
 
@@ -10,18 +10,20 @@ This document provides a high-level overview of REPLOID's security model. For de
 
 ## RSI Level Policy
 
-Fully autonomous operation with graduated automated safety gates:
+Graduated operation with automated gates:
 
-| Level | Scope | Mode | Safety Gate |
-|-------|-------|------|-------------|
-| **L1** | Tools (CreateTool, new tools in `/tools/`) | AUTONOMOUS | Verification Worker sandbox |
-| **L2** | Meta (modify tool-writer, improve CreateTool) | AUTONOMOUS | Arena consensus |
-| **L3** | Substrate (edit agent-loop.js, core modules) | AUTONOMOUS | Arena + GenesisSnapshot rollback |
+| Level | Scope | Mode | Gate |
+|-------|-------|------|------|
+| **L0** | Basic Functions (CreateTool, Web APIs, new tools) | AUTONOMOUS | Verification Worker sandbox |
+| **L1** | Meta Tooling (modify tool-writer, improve CreateTool) | AUTONOMOUS | Arena consensus |
+| **L2** | Self-Modification (Substrate) (edit core modules, runtime patches) | AUTONOMOUS | Arena + GenesisSnapshot rollback |
+| **L3** | Weak RSI (Iterative) (bounded feedback loops, self-improvement) | AUTONOMOUS | Arena + GenesisSnapshot rollback + iteration caps |
+| **L4** | True RSI (Impossible) | N/A | N/A |
 
-**No HITL gates.** Safety is enforced via automated verification:
-- All changes must pass Arena verification with passRate ≥ 80%
-- Failed changes trigger automatic rollback via GenesisSnapshot
-- All L3 changes logged to `/.logs/substrate/` for audit trail
+Gating is enforced via automated verification and rollback:
+- Arena consensus for L1 changes
+- Arena + GenesisSnapshot rollback for L2 changes
+- Arena + GenesisSnapshot rollback + iteration caps for L3 changes
 - Circuit breakers prevent runaway failures
 
 ---
@@ -32,7 +34,7 @@ REPLOID studies RSI (recursive self-improvement) without giving agents access to
 
 ---
 
-## 8-Layer Safety Stack
+## 8-Layer Containment Stack
 
 | Layer | Blueprint | Description |
 |-------|-----------|-------------|
@@ -43,7 +45,7 @@ REPLOID studies RSI (recursive self-improvement) without giving agents access to
 | 5 | [Arena Gating (0x000075-77)](../blueprints/0x000075-arena-competitor.md) | Multi-model consensus for high-risk changes |
 | 6 | [VFSSandbox](../blueprints/0x000075-arena-competitor.md) | Test changes in disposable clone |
 | 7 | [Circuit Breakers (0x000067)](../blueprints/0x000067-circuit-breaker-pattern.md) | Prevent runaway failures |
-| 8 | [HITL Controller (0x000051)](../blueprints/0x000051-hitl-controller.md) | Human approval gates |
+| 8 | [HITL Controller (0x000051)](../blueprints/0x000051-hitl-controller.md) | Optional approval gates |
 
 ---
 
@@ -52,7 +54,7 @@ REPLOID studies RSI (recursive self-improvement) without giving agents access to
 ### What Agents CAN Do
 - Read/write VFS files (IndexedDB)
 - Create and execute tools in VFS
-- Modify their own substrate (with safety gates)
+- Modify their own substrate (with gates)
 - Spawn sub-workers with restricted permissions
 - Call LLM APIs (rate-limited)
 
@@ -84,15 +86,12 @@ REPLOID studies RSI (recursive self-improvement) without giving agents access to
 
 ```javascript
 localStorage.REPLOID_ARENA_GATING = 'true';      // Require consensus
-localStorage.REPLOID_HITL_MODE = 'EVERY_N';      // Periodic checkpoints
-localStorage.REPLOID_HITL_N = '5';               // Every 5 steps
 localStorage.REPLOID_MAX_ITERATIONS = '50';      // Cap iterations
 ```
 
 ### For Production Use
 
 ```javascript
-localStorage.REPLOID_HITL_MODE = 'HITL';         // Approve everything
 localStorage.REPLOID_ARENA_GATING = 'true';      // Multi-model consensus
 localStorage.REPLOID_VERIFICATION = 'strict';    // Block all unsafe patterns
 ```

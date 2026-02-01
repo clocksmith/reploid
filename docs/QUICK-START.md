@@ -460,11 +460,13 @@ Captured at boot, before any agent action:
 
 ### RSI Levels
 
-| Level | Description | Safety Gate |
-|-------|-------------|-------------|
-| **L1: Tools** | Create new tools at runtime | Verification Worker |
-| **L2: Meta** | Improve tool-creation mechanism | Arena Mode |
-| **L3: Substrate** | Modify core agent loop | HITL Approval |
+| Level | Description | Gate |
+|-------|-------------|------|
+| **L0: Basic Functions** | CreateTool, Web APIs, new tools | Verification Worker |
+| **L1: Meta Tooling** | Modify tool-writer, improve CreateTool | Arena consensus |
+| **L2: Self-Modification (Substrate)** | Edit core modules, runtime patches | Arena + Genesis rollback |
+| **L3: Weak RSI (Iterative)** | Bounded feedback loops, self-improvement | Arena + Genesis rollback + iteration caps |
+| **L4: True RSI (Impossible)** | Unbounded self-improvement, theoretical | N/A |
 
 ### Worker Types
 

@@ -424,7 +424,7 @@ For module development guidelines, see [contributing.md](./contributing.md).
 2. **Observable**: Full audit trail, UI instrumentation
 3. **Recoverable**: Genesis snapshots, instant rollback
 4. **Multi-Model**: Provider flexibility, cost optimization
-5. **Self-Modifying**: RSI capability with safety gates
+5. **Self-Modifying**: RSI capability with gates
 6. **Decoupled**: EventBus + DI for modularity
 
 ---

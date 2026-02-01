@@ -163,7 +163,7 @@ const sequential = toolCalls.filter(c => !isToolReadOnly(c.name));
 
 ## Genesis Level
 
-**spark** - Core agent module, part of the minimal agent core. Cannot be modified without HITL approval.
+**spark** - Core agent module, part of the minimal agent core. Cannot be modified without gate approval.
 
 ---
 

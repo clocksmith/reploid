@@ -170,11 +170,13 @@ const ModuleName = {
 
 REPLOID categorizes self-modification by risk level:
 
-| Level | Scope | Examples | Safety Gate |
-|-------|-------|----------|-------------|
-| **L1** | Tools | CreateTool, new tool in `/tools/` | Verification Worker |
-| **L2** | Meta | Modify tool-writer, improve CreateTool | Arena consensus |
-| **L3** | Substrate | EditFile agent-loop.js, core modules | HITL approval required |
+| Level | Name | Scope | Gate |
+|-------|------|-------|------|
+| **L0** | Basic Functions | CreateTool, Web APIs, new tools | Verification Worker |
+| **L1** | Meta Tooling | Modify tool-writer, improve CreateTool | Arena consensus |
+| **L2** | Self-Modification (Substrate) | Edit core modules, runtime patches | Arena + Genesis rollback |
+| **L3** | Weak RSI (Iterative) | Bounded feedback loops, self-improvement | Arena + Genesis rollback + iteration caps |
+| **L4** | True RSI (Impossible) | Unbounded self-improvement, theoretical | N/A |
 
 Higher levels require progressively stronger safety mechanisms.
 
@@ -188,7 +190,7 @@ Higher levels require progressively stronger safety mechanisms.
 2. **VFS Isolation**: All files in IndexedDB, no real filesystem access
 3. **Verification Worker**: Executes code in isolated Web Worker before commit
 4. **Genesis Snapshot**: Immutable recovery point
-5. **HITL Gates**: Human approval for critical operations
+5. **Governance Gates**: Arena consensus and rollback for critical operations
 
 ### 5.2 Genesis Kernel
 

@@ -82,12 +82,12 @@ npm start                   # Start server
 - Test in browser environment; uses IndexedDB for VFS
 
 ### Capability Levels
-| Level | Name | Scope | Safety Gate |
-|-------|------|-------|-------------|
+| Level | Name | Scope | Gate |
+|-------|------|-------|------|
 | L0 | Basic Functions | CreateTool, Web APIs, new tools | Verification Worker |
 | L1 | Meta Tooling | Modify tool-writer, improve CreateTool | Arena consensus |
-| L2 | Self-Modification (Substrate) | Edit core modules, runtime patches | HITL approval |
-| L3 | Weak RSI (Iterative) | Bounded feedback loops, self-improvement | HITL + rollback |
+| L2 | Self-Modification (Substrate) | Edit core modules, runtime patches | Arena + Genesis rollback |
+| L3 | Weak RSI (Iterative) | Bounded feedback loops, self-improvement | Arena + Genesis rollback + iteration caps |
 | L4 | True RSI (Impossible) | Unbounded self-improvement, theoretical | N/A |
 
 ### Key Concepts
