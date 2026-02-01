@@ -80,7 +80,7 @@ A dynamic tool registry at `/config/tools-dynamic.json` that stores agent-create
      implementation: {
        type: "javascript",
        code: `
-         const result = await ToolRunner.runTool('read_artifact', {path: args.input});
+         const result = await ToolRunner.execute('read_artifact', {path: args.input});
          return result.content.toUpperCase();
        `
      }
@@ -118,7 +118,7 @@ A dynamic tool registry at `/config/tools-dynamic.json` that stores agent-create
        for (const step of tool.implementation.steps) {
          const stepArgs = JSON.parse(step.args_template.replace(/\$(\w+)/g, 
            (match, key) => JSON.stringify(args[key])));
-         const result = await ToolRunner.runTool(step.tool, stepArgs);
+         const result = await ToolRunner.execute(step.tool, stepArgs);
          results.push(result);
        }
        return results;

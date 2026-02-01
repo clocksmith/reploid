@@ -667,7 +667,7 @@ await MetaToolCreator.createDynamicTool(toolDef);
 **Result:**
 ```javascript
 // Future tool creation is now:
-await ToolRunner.run('create_analyze_tool', { domain: 'cpu' });
+await ToolRunner.execute('create_analyze_tool', { domain: 'cpu' });
 // Instead of manually calling create_dynamic_tool
 
 // Time saved: 5 minutes per tool

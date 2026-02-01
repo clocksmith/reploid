@@ -69,7 +69,7 @@ const ToolExecutor = {
         }, timeout);
 
         try {
-          const result = await ToolRunner.runTool(toolName, args);
+          const result = await ToolRunner.execute(toolName, args);
           clearTimeout(timeoutId);
 
           const duration = Date.now() - startTime;
@@ -451,7 +451,7 @@ const executeWithTimeout = async (toolName, args, timeout = DEFAULT_TIMEOUT) => 
 
     try {
       // Execute tool
-      const result = await ToolRunner.runTool(toolName, args);
+      const result = await ToolRunner.execute(toolName, args);
       clearTimeout(timeoutId);
 
       const duration = Date.now() - startTime;

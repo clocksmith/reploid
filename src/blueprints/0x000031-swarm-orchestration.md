@@ -334,7 +334,7 @@ The `WebRTCCoordinatorWidget` provides comprehensive swarm monitoring and contro
 **Step 12: Implement Task Execution**
 - Create `executeTask(task)` function to handle incoming delegated tasks
 - Switch on task.name to route to appropriate handler:
-  - 'python-computation': Execute via ToolRunner.runTool('execute_python')
+  - 'python-computation': Execute via ToolRunner.execute('execute_python')
   - 'code-generation': Generate via HybridLLMProvider.complete()
   - 'file-analysis': Analyze via StateManager.getArtifactContent()
   - 'git-operation': Perform git operations via gitVFS

@@ -322,7 +322,7 @@ this.worker.postMessage({ command, vfsSnapshot });
 ### 1. Safe Self-Modification
 ```javascript
 // Apply changes
-await ToolRunner.runTool('apply_dogs_bundle', {
+await ToolRunner.execute('apply_dogs_bundle', {
   dogs_path: '/changes.dogs.md',
   verify_command: 'test:/tests/unit/new-feature.test.js'
 });

@@ -198,7 +198,7 @@ if (!diff.identical) {
 **3. Tool Output**
 ```javascript
 // In tool-runner.js
-await ToolRunner.runTool('diff_artifacts', {
+await ToolRunner.execute('diff_artifacts', {
   path_a: '/modules/old.js',
   path_b: '/modules/new.js',
   format: 'sideBySide'

@@ -33,7 +33,7 @@ The `/tools/tool-runner.js` will export a primary `runTool` function. This funct
     c.  It will use a `switch (toolName)` block to handle the execution of each known static tool.
     d.  The default case for the switch will throw a `ToolError` indicating the tool was not found.
 3.  **Implement Gemini Conversion:** Include a `convertToGeminiFunctionDeclaration` function. This function will delegate directly to the `ToolRunnerPureHelpers` module to translate the agent's internal tool format into the schema required by the Google Gemini API's function-calling feature.
-4.  **Integration:** The `agent-cycle.js` module will call `ToolRunner.runTool` whenever it receives a `functionCall` response from the `ApiClient`.
+4.  **Integration:** The `agent-cycle.js` module will call `ToolRunner.execute` whenever it receives a `functionCall` response from the `ApiClient`.
 
 **Widget Interface (Web Component):**
 

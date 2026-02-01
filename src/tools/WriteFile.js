@@ -154,7 +154,7 @@ const computeSha256 = async (bytes) => {
 };
 
 async function call(args = {}, deps = {}) {
-  const { VFS, EventBus, AuditLogger, VFSSandbox, VerificationManager, SubstrateLoader } = deps;
+  const { VFS, EventBus, AuditLogger, VFSSandbox, VerificationManager, SubstrateLoader, ToolRunner } = deps;
   if (!VFS) throw new Error('VFS not available');
 
   const rawPath = args.path || args.file;
@@ -368,12 +368,23 @@ async function call(args = {}, deps = {}) {
     loadResult = ' (autoLoad skipped: SubstrateLoader not available)';
   }
 
+  let toolReload = null;
+  if (backend === 'vfs' && path.startsWith('/tools/') && path.endsWith('.js') && ToolRunner?.refresh) {
+    try {
+      await ToolRunner.refresh();
+      toolReload = 'tools reloaded';
+    } catch (err) {
+      toolReload = `tools reload failed: ${err.message}`;
+    }
+  }
+
   return {
     path,
     backend: 'vfs',
     bytesWritten,
     autoLoad: autoLoad || false,
-    loadResult: loadResult || null
+    loadResult: loadResult || null,
+    toolReload
   };
 }
 

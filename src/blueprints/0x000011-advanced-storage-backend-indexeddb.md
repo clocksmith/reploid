@@ -24,7 +24,7 @@ The core challenge of this upgrade is not the implementation of the `IndexedDB` 
 **Example Cascade:**
 1.  `Storage.getArtifactContent` becomes `async`.
 2.  `StateManager.init`, which calls it, must become `async`.
-3.  `ToolRunner.runTool('read_artifact')`, which uses `Storage`, must become `async`.
+3.  `ToolRunner.execute('read_artifact')`, which uses `Storage`, must become `async`.
 4.  `AgentCycle._handleToolExecution`, which calls `ToolRunner`, must become `async`.
 5.  `AgentCycle.executeCycle` must `await` the tool execution.
 

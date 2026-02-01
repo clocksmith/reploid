@@ -603,7 +603,7 @@ const ReplayEngine = {
             for (const call of recorded.toolCalls) {
               try {
                 report.toolCalls++;
-                const result = await ToolRunner.run(call.name, call.args);
+                const result = await ToolRunner.execute(call.name, call.args);
                 const resultStr = typeof result === 'string' ? result : JSON.stringify(result);
 
                 if (compareResults) {

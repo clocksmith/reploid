@@ -3,12 +3,7 @@
 /* Tablet breakpoint */
 @media (max-width: 1024px) {
     .app-shell {
-        --vfs-panel-width: 200px;
-        grid-template-columns: 50px var(--vfs-panel-width) 1fr;
-    }
-
-    .vfs-browser-header {
-        padding: var(--space-sm) var(--space-md);
+        grid-template-columns: 50px 1fr;
     }
 }
 
@@ -61,32 +56,11 @@
         padding: 12px;
     }
 
-    .vfs-browser-panel {
-        order: 2;
-        border-right: none;
-        border-bottom: 1px solid var(--fg);
-        max-height: 200px;
-        overflow: hidden;
-        display: none;
-    }
-
-    .vfs-browser-panel.expanded {
-        display: flex;
-        max-height: 40vh;
-    }
-
-    .vfs-browser-header {
-        padding: 8px 12px;
-        font-size: var(--font-xs);
-    }
-
     .vfs-tree {
-        max-height: 100px;
         font-size: var(--font-xs);
     }
 
     .vfs-content {
-        max-height: 80px;
         font-size: var(--font-xs);
     }
 
@@ -154,23 +128,6 @@
         width: 100%;
     }
 
-    .vfs-browser-panel::before {
-        content: '';
-        display: block;
-        width: 40px;
-        height: 4px;
-        background: var(--fg);
-        border-radius: 2px;
-        margin: 8px auto;
-        cursor: grab;
-    }
-
-    .vfs-browser-panel.collapsed .vfs-browser-header span,
-    .vfs-browser-panel.collapsed .vfs-search-container,
-    .vfs-browser-panel.collapsed .vfs-tree {
-        display: none;
-    }
-
     .workspace-content {
         scroll-snap-type: x mandatory;
         overflow-x: auto;
@@ -235,26 +192,11 @@
         padding: 8px;
     }
 
-    .vfs-browser-panel {
-        max-height: 120px;
-    }
-
-    .vfs-browser-panel.expanded {
-        max-height: 35vh;
-    }
-
-    .vfs-browser-header {
-        padding: 6px 8px;
-        font-size: var(--font-xs);
-    }
-
     .vfs-tree {
-        max-height: 60px;
         padding: 4px;
     }
 
     .vfs-content {
-        max-height: 50px;
         padding: 4px;
     }
 

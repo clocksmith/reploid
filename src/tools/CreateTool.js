@@ -3,7 +3,7 @@
  */
 
 async function call(args = {}, deps = {}) {
-  const { ToolWriter } = deps;
+  const { ToolWriter, ToolRunner } = deps;
   if (!ToolWriter) throw new Error('ToolWriter not available');
 
   const { name, code } = args;
@@ -11,7 +11,28 @@ async function call(args = {}, deps = {}) {
   if (!code) throw new Error('Missing code argument');
 
   const cleanName = typeof name === 'string' ? name.trim() : name;
-  return await ToolWriter.create(cleanName, code);
+  const normalizedCode = typeof code === 'string'
+    ? code.replace(/\bToolRunner\.run\b/g, 'ToolRunner.execute')
+    : code;
+
+  const result = await ToolWriter.create(cleanName, normalizedCode);
+
+  if (ToolRunner?.refresh) {
+    try {
+      await ToolRunner.refresh();
+      if (typeof result === 'string') {
+        return `${result} (tools reloaded)`;
+      }
+      return { ...result, toolsReloaded: true };
+    } catch (err) {
+      if (typeof result === 'string') {
+        return `${result} (tool reload failed: ${err.message})`;
+      }
+      return { ...result, toolsReloaded: false, toolReloadError: err.message };
+    }
+  }
+
+  return result;
 }
 
 export const tool = {
