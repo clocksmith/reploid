@@ -423,12 +423,12 @@ const AgentLoop = {
       if (!ToolExecutor) {
         throw new Errors.ConfigError('ToolExecutor not available');
       }
-      const { result, error } = await ToolExecutor.executeWithRetry(call, {
+      const { result, error, duration } = await ToolExecutor.executeWithRetry(call, {
         timeoutMs: TOOL_EXECUTION_TIMEOUT_MS,
         iteration,
         trace: _traceSessionId ? { sessionId: _traceSessionId, source: 'agent' } : null
       });
-      return { result, error };
+      return { result, error, duration };
     };
 
     /**
@@ -470,7 +470,7 @@ const AgentLoop = {
      * @param {number} iteration - Current iteration
      * @param {Array} context - Context array to push result to
      */
-    const _processToolResult = (call, result, iteration, context) => {
+    const _processToolResult = (call, result, iteration, context, duration) => {
       // Smart truncation
       let processedResult = result;
       if (result.length > 5000 && call.name !== 'ReadFile') {
@@ -487,7 +487,8 @@ const AgentLoop = {
         cycle: iteration,
         tool: call.name,
         args: call.args,
-        result: processedResult
+        result: processedResult,
+        durationMs: duration ?? null
       });
       _pushActivity({ kind: 'tool_result', cycle: iteration, tool: call.name, args: call.args, result: processedResult });
       _logReflection(call, processedResult, iteration);
@@ -658,6 +659,15 @@ const AgentLoop = {
                   const anticipated = relevant.filter(r => r.type === 'anticipated').length;
                   const episodic = relevant.length - anticipated;
                   logger.debug(`[Agent] Enriched with ${episodic} episodic + ${anticipated} anticipated memories`);
+
+                  EventBus.emit('memory:retrieval_block', {
+                    cycle: iteration,
+                    query: lastUserMsg.content.slice(0, 120),
+                    totalTokens: Math.ceil(memoryContext.length / 4),
+                    contextItems: relevant.length,
+                    block: memoryContext,
+                    ts: Date.now()
+                  });
                 }
               }
             } catch (e) {
@@ -990,7 +1000,7 @@ const AgentLoop = {
 
               const parallelResults = await Promise.all(readOnlyCalls.map(async (call) => {
                 if (_abortController.signal.aborted) return { call, finalResult: 'Aborted', aborted: true };
-                const { result, error } = await _executeTool(call, iteration);
+                const { result, error, duration } = await _executeTool(call, iteration);
                 let finalResult = result;
                 if (error && !result) {
                   logger.error(`[Agent] Tool Error: ${call.name}`, error);
@@ -1000,7 +1010,7 @@ const AgentLoop = {
                 } else if (!error) {
                   _toolCircuitBreaker.recordSuccess(call.name);
                 }
-                return { call, finalResult, result };
+                return { call, finalResult, result, duration };
               }));
               allResults.push(...parallelResults);
             }
@@ -1011,7 +1021,7 @@ const AgentLoop = {
               logger.info(`[Agent] Tool Call: ${call.name}`);
               EventBus.emit('agent:status', { state: 'ACTING', activity: `Executing: ${call.name}` });
 
-              const { result, error } = await _executeTool(call, iteration);
+              const { result, error, duration } = await _executeTool(call, iteration);
               let finalResult = result;
               if (error && !result) {
                 logger.error(`[Agent] Tool Error: ${call.name}`, error);
@@ -1021,7 +1031,7 @@ const AgentLoop = {
               } else if (!error) {
                 _toolCircuitBreaker.recordSuccess(call.name);
               }
-              allResults.push({ call, finalResult, result });
+              allResults.push({ call, finalResult, result, duration });
 
               // Handle recursive tool chains (sequential within)
               if (result && typeof result === 'object' && result.nextSteps && Array.isArray(result.nextSteps)) {
@@ -1029,26 +1039,49 @@ const AgentLoop = {
                 for (const step of result.nextSteps) {
                   if (step.tool && step.args) {
                     const chainedCall = { name: step.tool, args: step.args };
-                    const { result: chainedResult, error: chainedError } = await _executeTool(chainedCall, iteration);
+                    const { result: chainedResult, error: chainedError, duration: chainedDuration } = await _executeTool(chainedCall, iteration);
                     let chainedFinal = chainedResult;
                     if (chainedError && !chainedResult) {
                       chainedFinal = `Error: ${chainedError.message}`;
                       _toolCircuitBreaker.recordFailure(step.tool, chainedError);
-                      allResults.push({ call: chainedCall, finalResult: chainedFinal });
+                      allResults.push({ call: chainedCall, finalResult: chainedFinal, duration: chainedDuration });
                       break;
                     }
                     _toolCircuitBreaker.recordSuccess(step.tool);
-                    allResults.push({ call: chainedCall, finalResult: chainedFinal });
+                    allResults.push({ call: chainedCall, finalResult: chainedFinal, duration: chainedDuration });
                   }
                 }
               }
             }
 
             // Process all results into context (preserves original order for pre-results)
-            for (const { call, finalResult, aborted } of allResults) {
+            for (const { call, finalResult, aborted, duration } of allResults) {
               if (aborted) continue;
-              _processToolResult(call, finalResult, iteration, context);
+              _processToolResult(call, finalResult, iteration, context, duration);
             }
+
+            // Emit tool batch marker for timeline
+            const uniqueTools = [];
+            for (const call of callsToExecute) {
+              if (!uniqueTools.includes(call.name)) uniqueTools.push(call.name);
+            }
+            const topTools = uniqueTools.slice(0, 3);
+            const extraTools = Math.max(0, uniqueTools.length - topTools.length);
+            const errorCount = allResults.filter((entry) => (
+              callsToExecute.includes(entry.call)
+              && typeof entry.finalResult === 'string'
+              && entry.finalResult.startsWith('Error:')
+            )).length;
+            EventBus.emit('agent:history', {
+              type: 'tool_batch',
+              cycle: iteration,
+              total: callsToExecute.length,
+              errors: errorCount,
+              tools: uniqueTools,
+              topTools,
+              extraTools,
+              ts: Date.now()
+            });
 
             // Add execution telemetry feedback if batching occurred
             if (readOnlyCalls.length > 1 || (readOnlyCalls.length > 0 && mutatingCalls.length > 0)) {

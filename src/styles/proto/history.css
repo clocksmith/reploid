@@ -7,6 +7,24 @@
   line-height: 1.6;
 }
 
+/* Activity panel layout */
+#tab-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  overflow: hidden;
+}
+
+#history-container {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+#inline-chat-container {
+  flex: 0 0 auto;
+}
+
 /* History Entries */
 .history-entry {
   margin-bottom: var(--space-md);
@@ -20,6 +38,25 @@
   font-size: 12px;
   font-weight: 600;
   border-bottom: var(--border-sm) solid var(--fg);
+}
+
+.history-meta {
+  padding: var(--space-sm) var(--space-md);
+  font-size: 11px;
+  opacity: var(--opacity-secondary);
+  border-top: var(--border-sm) dotted var(--fg);
+}
+
+.history-entry.marker {
+  border-style: dotted;
+}
+
+.history-entry.tool-batch {
+  border-left: var(--border-lg) solid var(--fg);
+}
+
+.history-entry.compaction {
+  border-left: var(--border-lg) dotted var(--fg);
 }
 
 .history-content {

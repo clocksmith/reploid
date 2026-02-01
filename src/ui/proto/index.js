@@ -6,33 +6,30 @@
 
 import Toast from '../toast.js';
 import InlineChat from '../components/inline-chat.js';
-import ArenaResults from '../components/arena-results.js';
 
 import { createTelemetryManager } from './telemetry.js';
-import { createSchemaManager } from './schemas.js';
-import { createWorkerManager } from './workers.js';
-import { createVFSManager } from './vfs.js';
 import { createReplayManager } from './replay.js';
+import { formatDuration, formatSince, formatTimestamp, summarizeText } from './utils.js';
+import CognitionPanel from '../panels/cognition-panel.js';
 
 const Proto = {
   factory: (deps) => {
-    const { Utils, EventBus, AgentLoop, StateManager, WorkerManager, ErrorStore, VFS, ArenaHarness } = deps;
+    const { Utils, EventBus, AgentLoop, StateManager, ErrorStore, VFS } = deps;
     const { logger, escapeHtml } = Utils;
 
     // Initialize managers
     const telemetryManager = createTelemetryManager({ logger, escapeHtml });
-    const schemaManager = createSchemaManager({ logger, escapeHtml });
-    const workerManager = createWorkerManager({ escapeHtml, WorkerManager });
-    const vfsManager = createVFSManager({ escapeHtml, logger, Toast, EventBus });
     const replayManager = createReplayManager({ logger, escapeHtml, EventBus });
-    const arenaResults = ArenaResults.factory({ Utils, EventBus, ArenaHarness });
+    const memoryPanel = createMemoryPanel({ logger, escapeHtml, VFS });
+    const cognitionPanel = createCognitionPanel({ Utils, EventBus });
 
     // UI state
     let _root = null;
-    let _toolActivityContainer = null;
+    let _toolsList = null;
+    let _toolsCountEl = null;
     let _inlineChat = null;
-    let _vfsSearchTimeout = null;
-    const TAB_IDS = ['activity', 'vfs', 'status', 'telemetry', 'schemas', 'workers', 'analysis'];
+    const _toolEntries = [];
+    const TAB_IDS = ['timeline', 'tools', 'telemetry', 'status', 'memory', 'cognition'];
     const MAX_ACTIVE_TABS = 3;
     let _activeTabs = [];
 
@@ -45,7 +42,6 @@ const Proto = {
 
     // Scroll throttling and sticky scroll behavior
     let _historyScrollScheduled = false;
-    let _toolActivityScrollScheduled = false;
     let _historyFollowMode = true; // Auto-scroll to newest entry on new content
 
     const scheduleHistoryScroll = () => {
@@ -59,18 +55,13 @@ const Proto = {
       });
     };
 
-    const scheduleToolActivityScroll = () => {
-      if (_toolActivityScrollScheduled) return;
-      _toolActivityScrollScheduled = true;
-      requestAnimationFrame(() => {
-        if (_toolActivityContainer) _toolActivityContainer.scrollTop = _toolActivityContainer.scrollHeight;
-        _toolActivityScrollScheduled = false;
-      });
+    const clearHistoryPlaceholder = () => {
+      const placeholder = document.getElementById('history-placeholder');
+      if (placeholder) placeholder.remove();
     };
 
-    const MAX_TOOL_ACTIVITY = 100;
+    const MAX_TOOL_ENTRIES = 200;
     const MAX_HISTORY_ENTRIES = 200;
-    const MAX_INTENT_REFINEMENTS = 20;
 
     let _templateRenderer = null;
     let _templateVersion = null;
@@ -110,6 +101,204 @@ const Proto = {
       return loader;
     };
 
+    function createMemoryPanel({ logger, escapeHtml, VFS }) {
+      const SUMMARY_PATH = '/memory/episodes/summary.md';
+      const COMPACTIONS_PATH = '/.memory/compactions.jsonl';
+      const RETRIEVALS_PATH = '/.memory/retrievals.jsonl';
+      const MAX_COMP = 20;
+      const MAX_RET = 20;
+
+      let _compactions = [];
+      let _retrievals = [];
+      let _summary = '';
+
+      const parseJsonl = (content) => {
+        if (!content) return [];
+        return content.split('\n')
+          .filter(line => line.trim())
+          .map(line => {
+            try {
+              return JSON.parse(line);
+            } catch {
+              return null;
+            }
+          })
+          .filter(Boolean);
+      };
+
+      const formatTokenValue = (value) => {
+        if (!Number.isFinite(value)) return '-';
+        return value >= 1000 ? `${Math.round(value / 1000)}k` : String(value);
+      };
+
+      const loadSummary = async () => {
+        if (!VFS) return;
+        try {
+          if (await VFS.exists(SUMMARY_PATH)) {
+            _summary = await VFS.read(SUMMARY_PATH);
+          } else {
+            _summary = '';
+          }
+        } catch (e) {
+          logger.warn('[MemoryPanel] Failed to load summary', e.message);
+          _summary = '';
+        }
+      };
+
+      const loadCompactions = async () => {
+        if (!VFS) return;
+        try {
+          if (await VFS.exists(COMPACTIONS_PATH)) {
+            const content = await VFS.read(COMPACTIONS_PATH);
+            _compactions = parseJsonl(content).slice(-MAX_COMP).reverse();
+          } else {
+            _compactions = [];
+          }
+        } catch (e) {
+          logger.warn('[MemoryPanel] Failed to load compactions', e.message);
+          _compactions = [];
+        }
+      };
+
+      const loadRetrievals = async () => {
+        if (!VFS) return;
+        try {
+          if (await VFS.exists(RETRIEVALS_PATH)) {
+            const content = await VFS.read(RETRIEVALS_PATH);
+            _retrievals = parseJsonl(content).slice(-MAX_RET).reverse();
+          } else {
+            _retrievals = [];
+          }
+        } catch (e) {
+          logger.warn('[MemoryPanel] Failed to load retrievals', e.message);
+          _retrievals = [];
+        }
+      };
+
+      const renderSummary = () => {
+        const summaryEl = document.getElementById('memory-summary');
+        const metaEl = document.getElementById('memory-summary-meta');
+        if (!summaryEl) return;
+        summaryEl.textContent = _summary || 'No summary yet';
+        if (metaEl) {
+          metaEl.textContent = _summary ? `Loaded ${formatTimestamp(Date.now())}` : '-';
+        }
+      };
+
+      const renderCompactions = () => {
+        const listEl = document.getElementById('memory-compactions');
+        if (!listEl) return;
+        if (_compactions.length === 0) {
+          listEl.innerHTML = '<div class="muted">No compactions yet</div>';
+          return;
+        }
+        listEl.innerHTML = _compactions.map((entry) => {
+          const prev = formatTokenValue(entry.previousTokens);
+          const next = formatTokenValue(entry.newTokens);
+          const mode = entry.mode || 'unknown';
+          const count = entry.compactions || 0;
+          const ts = formatTimestamp(entry.ts);
+          const meta = `#${count} | ${prev} -> ${next} | ${mode} | ${ts}`;
+          const summary = entry.summary || '';
+          return `
+            <details class="memory-entry">
+              <summary>
+                <span>Compaction</span>
+                <span class="memory-entry-meta">${escapeHtml(meta)}</span>
+              </summary>
+              <pre>${escapeHtml(summary || 'No summary text')}</pre>
+            </details>
+          `;
+        }).join('');
+      };
+
+      const renderRetrievals = () => {
+        const listEl = document.getElementById('memory-retrievals');
+        if (!listEl) return;
+        if (_retrievals.length === 0) {
+          listEl.innerHTML = '<div class="muted">No retrievals yet</div>';
+          return;
+        }
+        listEl.innerHTML = _retrievals.map((entry) => {
+          const ts = formatTimestamp(entry.ts);
+          const tokens = formatTokenValue(entry.totalTokens);
+          const count = entry.contextItems || 0;
+          const query = entry.query ? summarizeText(entry.query, 60) : 'Unknown query';
+          const meta = `${tokens} tokens | ${count} items | ${ts}`;
+          const block = entry.block || '';
+          return `
+            <details class="memory-entry">
+              <summary>
+                <span>${escapeHtml(query)}</span>
+                <span class="memory-entry-meta">${escapeHtml(meta)}</span>
+              </summary>
+              <pre>${escapeHtml(block || 'No retrieval block')}</pre>
+            </details>
+          `;
+        }).join('');
+      };
+
+      const refresh = async () => {
+        if (!VFS) return;
+        await Promise.all([loadSummary(), loadCompactions(), loadRetrievals()]);
+        renderSummary();
+        renderCompactions();
+        renderRetrievals();
+      };
+
+      const appendCompaction = (entry) => {
+        if (!entry) return;
+        _compactions.unshift(entry);
+        if (_compactions.length > MAX_COMP) _compactions.pop();
+        renderCompactions();
+      };
+
+      const appendRetrieval = (entry) => {
+        if (!entry) return;
+        _retrievals.unshift(entry);
+        if (_retrievals.length > MAX_RET) _retrievals.pop();
+        renderRetrievals();
+      };
+
+      return {
+        refresh,
+        appendCompaction,
+        appendRetrieval
+      };
+    }
+
+    function createCognitionPanel({ Utils, EventBus }) {
+      let _initialized = false;
+      let _instance = null;
+
+      const init = async () => {
+        if (_initialized) return;
+        const container = document.getElementById('cognition-panel');
+        if (!container) return;
+
+        let CognitionAPI = null;
+        let KnowledgeGraph = null;
+        let SemanticMemory = null;
+        try {
+          if (window.REPLOID_DI?.resolve) {
+            CognitionAPI = await window.REPLOID_DI.resolve('CognitionAPI');
+            KnowledgeGraph = await window.REPLOID_DI.resolve('KnowledgeGraph');
+            SemanticMemory = await window.REPLOID_DI.resolve('SemanticMemory');
+          }
+        } catch (e) {
+          logger.warn('[CognitionPanel] Failed to resolve cognition services', e?.message || e);
+        }
+
+        _instance = CognitionPanel.factory({ Utils, EventBus, CognitionAPI, KnowledgeGraph, SemanticMemory });
+        if (_instance?.init) {
+          _instance.init('cognition-panel');
+          _initialized = true;
+        }
+      };
+
+      return { init };
+    }
+
     // Error handling via ErrorStore
     const updateStatusBadge = async () => {
       const statusBtn = document.querySelector('[data-tab="status"]');
@@ -119,71 +308,26 @@ const Proto = {
         const errors = await ErrorStore.getErrors();
         const errorCount = errors.filter(e => e.severity === 'error').length;
         const warningCount = errors.filter(e => e.severity === 'warning').length;
+        const totalCount = errorCount + warningCount;
 
         let existingBadge = statusBtn.querySelector('.status-badge');
 
-        if (errorCount > 0 || warningCount > 0) {
+        if (totalCount > 0) {
           if (!existingBadge) {
             existingBadge = document.createElement('span');
             existingBadge.className = 'status-badge';
             statusBtn.appendChild(existingBadge);
           }
-          existingBadge.textContent = errorCount + warningCount;
+          existingBadge.textContent = totalCount;
           existingBadge.className = errorCount > 0 ? 'status-badge error' : 'status-badge warning';
         } else if (existingBadge) {
           existingBadge.remove();
         }
 
-        // Update errors list if status tab is visible
-        if (!document.getElementById('tab-status')?.classList.contains('hidden')) {
-          renderErrorsList();
-        }
+        const errorCountEl = document.getElementById('agent-errors');
+        if (errorCountEl) errorCountEl.textContent = String(totalCount);
       } catch (e) {
         logger.warn('[Proto] Failed to update status badge:', e.message);
-      }
-    };
-
-    const renderErrorsList = async () => {
-      const errorsList = document.getElementById('errors-list');
-      const clearBtn = document.getElementById('clear-errors-btn');
-      if (!errorsList || !ErrorStore) return;
-
-      try {
-        const errors = await ErrorStore.getErrors();
-
-        if (errors.length === 0) {
-          errorsList.innerHTML = '<div class="muted p-sm">No errors or warnings</div>';
-          if (clearBtn) clearBtn.style.display = 'none';
-          return;
-        }
-
-        if (clearBtn) {
-          clearBtn.style.display = 'inline-block';
-          clearBtn.onclick = async () => {
-            await ErrorStore.clearErrors();
-          };
-        }
-
-        errorsList.innerHTML = errors.map((error) => {
-          const timestamp = new Date(error.ts).toLocaleTimeString();
-          const icon = error.severity === 'warning' ? '△' : '☒';
-          const typeClass = error.severity === 'warning' ? 'warning' : 'error';
-
-          return `
-            <details class="error-item ${typeClass}">
-              <summary class="error-summary">
-                <span class="error-icon">${icon}</span>
-                <span class="error-title">${escapeHtml(error.type || 'Error')}</span>
-                <span class="error-time">${timestamp}</span>
-              </summary>
-              <div class="error-details">
-                <pre>${escapeHtml(error.message || '')}</pre>
-              </div>
-            </details>
-          `;
-        }).join('');
-      } catch (e) {
-        logger.warn('[Proto] Failed to render errors list:', e.message);
       }
     };
 
@@ -211,13 +355,21 @@ const Proto = {
       _historyLoaded = true;
     };
 
+    const TIMELINE_TYPES = new Set(['llm_response', 'human', 'tool_batch', 'compaction', 'arena_result']);
+
+    const shouldPersistHistory = (entry) => {
+      if (!entry || entry.pending) return false;
+      return TIMELINE_TYPES.has(entry.type);
+    };
+
     const saveHistoryEntry = async (entry) => {
       if (!VFS) return;
+      if (!shouldPersistHistory(entry)) return;
       await loadHistory();
 
       _historyCache.push({
         ...entry,
-        ts: Date.now()
+        ts: entry.ts || Date.now()
       });
 
       // Archive oldest entries in batches when over limit
@@ -253,7 +405,11 @@ const Proto = {
       historyContainer.innerHTML = '';
 
       // Render last 200 entries max in DOM
-      const entriesToRender = _historyCache.slice(-MAX_HISTORY_ENTRIES).slice().reverse();
+      const entriesToRender = _historyCache
+        .filter(shouldPersistHistory)
+        .slice(-MAX_HISTORY_ENTRIES)
+        .slice()
+        .reverse();
 
       for (const entry of entriesToRender) {
         const div = document.createElement('div');
@@ -262,7 +418,11 @@ const Proto = {
       }
 
       scheduleHistoryScroll();
-      renderIntentSection();
+    };
+
+    const formatTokenValue = (value) => {
+      if (!Number.isFinite(value)) return '-';
+      return value >= 1000 ? `${Math.round(value / 1000)}k` : String(value);
     };
 
     const renderHistoryEntry = (div, entry) => {
@@ -270,26 +430,15 @@ const Proto = {
         div.className = 'history-entry llm';
         div.innerHTML = `
           <div class="history-header">
-            <span class="entry-label">★ Agent</span>
+            <span class="entry-label">Model Response</span>
             <span class="entry-cycle">#${entry.cycle || '-'}</span>
           </div>
           <pre class="history-content">${escapeHtml(entry.content)}</pre>
         `;
-      } else if (entry.type === 'tool_result') {
-        const isError = entry.status === 'error';
-        const result = typeof entry.result === 'string'
-          ? entry.result
-          : JSON.stringify(entry.result, null, 2);
+        return;
+      }
 
-        div.className = `history-entry tool ${isError ? 'error' : 'success'}`;
-        div.innerHTML = `
-          <div class="history-header">
-            SEND #${entry.cycle} -> ${entry.tool}
-            ${isError ? '<span class="error-badge">ERROR</span>' : ''}
-          </div>
-          <pre class="history-content">${escapeHtml(result)}</pre>
-        `;
-      } else if (entry.type === 'human') {
+      if (entry.type === 'human') {
         const isGoal = entry.messageType === 'goal';
         div.className = `history-entry human-message ${isGoal ? 'goal-refinement' : ''}`;
         div.innerHTML = `
@@ -299,101 +448,146 @@ const Proto = {
           </div>
           <pre class="history-content">${escapeHtml(entry.content)}</pre>
         `;
-      }
-    };
-
-    const getGoalRefinements = () =>
-      _historyCache.filter((entry) => entry.type === 'human' && entry.messageType === 'goal');
-
-    const renderIntentSection = async () => {
-      const goalEl = document.getElementById('intent-goal');
-      const listEl = document.getElementById('intent-refinement-list');
-      const countEl = document.getElementById('intent-refinement-count');
-      if (!goalEl || !listEl) return;
-
-      await loadHistory();
-
-      const refinements = getGoalRefinements();
-      const recent = refinements.slice(-MAX_INTENT_REFINEMENTS);
-      const baseGoal = localStorage.getItem('REPLOID_GOAL') || 'No goal set';
-      const latestGoal = recent.length ? recent[recent.length - 1].content : baseGoal;
-
-      goalEl.textContent = latestGoal || 'No goal set';
-      if (countEl) {
-        const count = refinements.length;
-        countEl.textContent = `${count} refinement${count === 1 ? '' : 's'}`;
-      }
-
-      if (recent.length === 0) {
-        listEl.innerHTML = '<div class="muted" style="padding: 6px 0;">No goal refinements yet</div>';
         return;
       }
 
-      listEl.innerHTML = recent.map((entry) => {
-        const cycle = entry.cycle ?? '-';
-        const timestamp = entry.ts ? new Date(entry.ts).toLocaleTimeString() : '';
-      const meta = timestamp ? `#${cycle} - ${timestamp}` : `#${cycle}`;
-        return `
-          <div class="intent-refinement-item">
-            <div class="intent-refinement-meta">
-              <span>${escapeHtml(meta)}</span>
-              <span class="muted">Goal refinement</span>
-            </div>
-            <div class="intent-refinement-text">${escapeHtml(entry.content || '')}</div>
-          </div>
+      if (entry.type === 'tool_batch') {
+        const toolNames = entry.topTools || entry.tools || [];
+        const extra = Number.isFinite(entry.extraTools) ? entry.extraTools : Math.max(0, (entry.tools || []).length - toolNames.length);
+        const toolList = toolNames.length > 0
+          ? `${toolNames.join(', ')}${extra ? ` (+${extra})` : ''}`
+          : 'No tools';
+        const detail = `Tool batch: ${entry.total || 0} calls (${entry.errors || 0} errors) - ${toolList}`;
+
+        div.className = 'history-entry marker tool-batch';
+        div.innerHTML = `
+          <div class="history-header">Tool batch</div>
+          <div class="history-meta">${escapeHtml(detail)}</div>
         `;
-      }).join('');
+        return;
+      }
+
+      if (entry.type === 'compaction') {
+        const prev = formatTokenValue(entry.previousTokens);
+        const next = formatTokenValue(entry.newTokens);
+        const mode = entry.mode || 'unknown';
+        const count = entry.compactions || 0;
+        const detail = `Context compacted: ${prev} -> ${next} (mode=${mode}, #${count})`;
+
+        div.className = 'history-entry marker compaction';
+        div.innerHTML = `
+          <div class="history-header">Context compacted</div>
+          <div class="history-meta">${escapeHtml(detail)}</div>
+        `;
+        return;
+      }
+
+      if (entry.type === 'arena_result') {
+        const winner = entry.winnerModel || 'unknown';
+        const score = Number.isFinite(entry.winnerScore) ? entry.winnerScore.toFixed(2) : '-';
+        const total = Number.isFinite(entry.total) ? entry.total : 0;
+        const mode = entry.mode || 'arena';
+        const detail = `Arena: winner ${winner} (score ${score}) | ${total} models | mode=${mode}`;
+
+        div.className = 'history-entry marker arena-result';
+        div.innerHTML = `
+          <div class="history-header">Arena result</div>
+          <div class="history-meta">${escapeHtml(detail)}</div>
+        `;
+        return;
+      }
     };
 
-    const onToolActivity = (entry) => {
-      if (!_toolActivityContainer) return;
+    const clearToolsPlaceholder = () => {
+      const placeholder = _toolsList?.querySelector('.muted');
+      if (placeholder) placeholder.remove();
+    };
 
-      while (_toolActivityContainer.children.length >= MAX_TOOL_ACTIVITY) {
-        _toolActivityContainer.removeChild(_toolActivityContainer.firstChild);
+    const updateToolsCount = () => {
+      if (_toolsCountEl) _toolsCountEl.textContent = `${_toolEntries.length} entries`;
+    };
+
+    const formatArgsPreview = (args) => {
+      if (!args) return '-';
+      if (args.path) return `path=${args.path}`;
+      if (args.name) return `name=${args.name}`;
+      const keys = Object.keys(args);
+      return keys.length ? keys.join(', ') : '-';
+    };
+
+    const buildReflectionMeta = (resultText, status) => {
+      const outcome = status === 'error' ? 'error' : 'success';
+      let indicator = '';
+      if (resultText && typeof resultText === 'string') {
+        const cleaned = resultText.replace(/^Error:\s*/i, '').trim();
+        const firstLine = cleaned.split('\n').find(line => line.trim()) || cleaned;
+        indicator = summarizeText(firstLine, 48);
       }
-
-      const div = document.createElement('div');
-      const isError = entry.type === 'error';
-      div.className = `reflection-entry ${isError ? 'reflection-error' : 'reflection-success'}`;
-
-      const tool = entry.context?.tool || 'unknown';
-      const cycle = entry.context?.cycle || '?';
-      const indicator = entry.context?.failureIndicator;
-      const args = entry.context?.args;
-
-      let argsPreview = '';
-      if (args) {
-        if (args.path) argsPreview = args.path;
-        else if (args.name) argsPreview = args.name;
-        else {
-          const keys = Object.keys(args);
-          if (keys.length > 0) argsPreview = keys.join(', ');
-        }
+      if (!indicator) {
+        indicator = outcome === 'error' ? 'failed' : 'ok';
       }
+      return { outcome, indicator };
+    };
 
-      const icon = isError ? '☒' : '✓';
-      const toolInfo = argsPreview ? `${tool}(${argsPreview})` : tool;
+    const renderToolEntry = (entry) => {
+      const details = document.createElement('details');
+      details.className = 'tool-entry';
+      if (entry.status === 'error') details.classList.add('error');
 
-      let detailText = '';
-      if (indicator) {
-        detailText = indicator;
-      } else if (entry.content) {
-        const content = entry.content.replace(`Tool ${tool}: `, '');
-        detailText = content.length > 60 ? content.substring(0, 60) + '...' : content;
-      }
+      const argsText = entry.args ? JSON.stringify(entry.args, null, 2) : '{}';
+      const resultText = typeof entry.result === 'string'
+        ? entry.result
+        : JSON.stringify(entry.result, null, 2);
+      const argsPreview = summarizeText(formatArgsPreview(entry.args), 120);
+      const resultPreview = summarizeText(resultText.replace(/\s+/g, ' '), 140);
+      const duration = formatDuration(entry.durationMs);
+      const statusLabel = entry.status === 'error' ? 'ERROR' : 'OK';
+      const reflectionText = entry.reflectionOutcome
+        ? `${entry.reflectionOutcome}${entry.reflectionIndicator ? ` | ${entry.reflectionIndicator}` : ''}`
+        : 'success';
 
-      div.innerHTML = `
-        <div class="reflection-header">
-          <span class="reflection-icon">${icon}</span>
-          <span class="reflection-tool">${toolInfo}</span>
-          <span class="reflection-cycle">#${cycle}</span>
+      details.innerHTML = `
+        <summary class="tool-summary">
+          <div class="tool-summary-main">
+            <span class="tool-name">${escapeHtml(entry.tool)}</span>
+            <span class="tool-meta">#${entry.cycle || '-'}</span>
+            <span class="tool-meta">${duration}</span>
+          </div>
+          <div class="tool-summary-sub">
+            <span class="tool-status ${entry.status === 'error' ? 'error' : ''}">${statusLabel}</span>
+            <span class="tool-reflection ${entry.reflectionOutcome === 'error' ? 'error' : ''}">Reflection: ${escapeHtml(reflectionText)}</span>
+            <span>args: ${escapeHtml(argsPreview)}</span>
+          </div>
+          <div class="tool-preview">${escapeHtml(resultPreview)}</div>
+        </summary>
+        <div class="tool-detail">
+          <div class="tool-detail-label">Reflection</div>
+          <div class="tool-detail-reflection">
+            <span class="tool-reflection ${entry.reflectionOutcome === 'error' ? 'error' : ''}">Outcome: ${escapeHtml(entry.reflectionOutcome || 'success')}</span>
+            <span class="tool-reflection-indicator">${escapeHtml(entry.reflectionIndicator || '-')}</span>
+          </div>
+          <div class="tool-detail-label">Args</div>
+          <pre>${escapeHtml(argsText)}</pre>
+          <div class="tool-detail-label">Result</div>
+          <pre>${escapeHtml(resultText)}</pre>
         </div>
-        ${detailText ? `<div class="reflection-detail">${escapeHtml(detailText)}</div>` : ''}
       `;
 
-      div.title = entry.content;
-      _toolActivityContainer.appendChild(div);
-      scheduleToolActivityScroll();
+      return details;
+    };
+
+    const addToolEntry = (entry) => {
+      if (!_toolsList) return;
+      clearToolsPlaceholder();
+
+      _toolEntries.unshift(entry);
+      if (_toolEntries.length > MAX_TOOL_ENTRIES) {
+        _toolEntries.pop();
+      }
+
+      const node = renderToolEntry(entry);
+      _toolsList.insertBefore(node, _toolsList.firstChild);
+      updateToolsCount();
     };
 
     const updateTokenBudget = (tokens) => {
@@ -424,22 +618,24 @@ const Proto = {
       budgetText.textContent = `${displayTokens} / ${displayMax}`;
     };
 
-    const DEFAULT_ACTIVE_TABS = ['activity'];
+    const DEFAULT_ACTIVE_TABS = ['timeline', 'tools'];
 
     const loadActiveTabs = () => [...DEFAULT_ACTIVE_TABS];
 
     const persistActiveTabs = () => {};
 
     const handleTabActivation = (tabId) => {
-      if (tabId === 'status') {
-        updateDebugPanel();
-        renderErrorsList();
-      }
-      if (tabId === 'schemas' && !schemaManager.isLoaded()) {
-        schemaManager.refreshSchemaData();
-      }
       if (tabId === 'telemetry' && !telemetryManager.isLoaded()) {
         telemetryManager.loadTelemetryHistory();
+      }
+      if (tabId === 'memory' && memoryPanel) {
+        memoryPanel.refresh();
+      }
+      if (tabId === 'cognition' && cognitionPanel) {
+        cognitionPanel.init();
+      }
+      if (tabId === 'status') {
+        updateStatusBadge();
       }
     };
 
@@ -490,10 +686,6 @@ const Proto = {
         });
       }
 
-      const vfsContent = container.querySelector('#vfs-content');
-      if (vfsContent) {
-        vfsContent.classList.add('hidden');
-      }
     };
 
     const toggleTab = (tabId) => {
@@ -527,60 +719,6 @@ const Proto = {
       applyActiveTabs();
     };
 
-    const updateDebugPanel = () => {
-      const container = _root?.querySelector('.app-shell');
-      if (!container) return;
-
-      const systemPromptEl = container.querySelector('#debug-system-prompt');
-      const contextEl = container.querySelector('#debug-context');
-      const contextCountEl = container.querySelector('#debug-context-count');
-      const modelConfigEl = container.querySelector('#debug-model-config');
-
-      if (systemPromptEl) {
-        try {
-          if (AgentLoop?.getSystemPrompt) {
-            const systemPrompt = AgentLoop.getSystemPrompt();
-            systemPromptEl.textContent = systemPrompt || 'System prompt not available';
-          } else {
-            systemPromptEl.textContent = 'System prompt not accessible (agent not initialized)';
-          }
-        } catch (e) {
-          systemPromptEl.textContent = `Error loading system prompt: ${e.message}`;
-        }
-      }
-
-      if (contextEl && contextCountEl) {
-        try {
-          if (AgentLoop?.getContext) {
-            const context = AgentLoop.getContext();
-            contextCountEl.textContent = context?.length || 0;
-            contextEl.textContent = JSON.stringify(context, null, 2) || 'No context available';
-          } else {
-            contextCountEl.textContent = 0;
-            contextEl.textContent = 'Context not accessible (agent not initialized)';
-          }
-        } catch (e) {
-          contextEl.textContent = `Error loading context: ${e.message}`;
-        }
-      }
-
-      if (modelConfigEl) {
-        try {
-          const savedModels = localStorage.getItem('SELECTED_MODELS');
-          const consensusType = localStorage.getItem('CONSENSUS_TYPE');
-          const modelConfig = {
-            models: savedModels ? JSON.parse(savedModels) : [],
-            consensusStrategy: consensusType || 'arena',
-            maxTokens: _maxTokens,
-            currentTokens: _tokenCount
-          };
-          modelConfigEl.textContent = JSON.stringify(modelConfig, null, 2);
-        } catch (e) {
-          modelConfigEl.textContent = `Error loading model config: ${e.message}`;
-        }
-      }
-    };
-
     const render = async () => {
       const container = document.createElement('div');
       container.className = 'app-shell';
@@ -600,8 +738,10 @@ const Proto = {
 
       container.innerHTML = templateRenderer(escapeHtml, goalFromBoot);
       _activeTabs = loadActiveTabs();
-      _activeTabs.forEach((tabId) => handleTabActivation(tabId));
       applyActiveTabs(container);
+
+      _toolsList = container.querySelector('#tools-list');
+      _toolsCountEl = container.querySelector('#tools-count');
 
       // Bind Events
       const btnToggle = container.querySelector('#btn-toggle');
@@ -623,16 +763,6 @@ const Proto = {
       const telemetryRefresh = container.querySelector('#telemetry-refresh');
       if (telemetryRefresh) {
         telemetryRefresh.addEventListener('click', () => telemetryManager.loadTelemetryHistory());
-      }
-      const schemaSearchInput = container.querySelector('#schema-search');
-      if (schemaSearchInput) {
-        schemaSearchInput.addEventListener('input', (event) => {
-          schemaManager.setSearch(event.target.value || '');
-        });
-      }
-      const schemaRefreshBtn = container.querySelector('#schema-refresh');
-      if (schemaRefreshBtn) {
-        schemaRefreshBtn.addEventListener('click', () => schemaManager.refreshSchemaData());
       }
 
       const replayBtn = container.querySelector('#btn-replay');
@@ -785,186 +915,6 @@ const Proto = {
 
       btnExport.onclick = exportState;
 
-      // VFS Browser
-      const vfsSearch = container.querySelector('#vfs-search');
-      if (vfsSearch) {
-        vfsSearch.addEventListener('input', () => {
-          clearTimeout(_vfsSearchTimeout);
-          _vfsSearchTimeout = setTimeout(() => vfsManager.filterVFSTree(vfsSearch.value), 300);
-        });
-      }
-
-      const editBtn = container.querySelector('#vfs-edit-btn');
-      const saveBtn = container.querySelector('#vfs-save-btn');
-      const cancelBtn = container.querySelector('#vfs-cancel-btn');
-      const previewBtn = container.querySelector('#vfs-preview-btn');
-
-      editBtn.onclick = () => vfsManager.startEditing();
-      saveBtn.onclick = () => vfsManager.saveFile();
-      cancelBtn.onclick = () => vfsManager.cancelEditing();
-      previewBtn.onclick = () => vfsManager.showPreview();
-
-      const workerIndicator = container.querySelector('#worker-indicator');
-      if (workerIndicator) {
-        workerIndicator.onclick = () => focusTab('workers');
-      }
-
-      const clearWorkersBtn = container.querySelector('#workers-clear-completed');
-      if (clearWorkersBtn) {
-        clearWorkersBtn.onclick = () => workerManager.clearCompletedWorkers();
-      }
-
-      container.querySelector('#vfs-preview-close').onclick = () => vfsManager.closePreview();
-      container.querySelector('#vfs-diff-close').onclick = () => vfsManager.closeDiff();
-      container.querySelector('#vfs-snapshot-close').onclick = () => vfsManager.closeSnapshots();
-
-      // VFS Toolbar buttons (refresh removed - VFS auto-refreshes via EventBus)
-      const vfsDiffBtn = container.querySelector('#vfs-diff-btn');
-      const vfsSnapshotBtn = container.querySelector('#vfs-snapshot-btn');
-
-      if (vfsDiffBtn) {
-        vfsDiffBtn.onclick = async () => {
-          const currentPath = vfsManager.getCurrentPath();
-          if (!currentPath) {
-            Toast.error('No File Selected', 'Select a file to view diff');
-            return;
-          }
-
-          try {
-            // Get VFS content
-            const vfs = await window.REPLOID_DI?.resolve('VFS');
-            if (!vfs) {
-              Toast.error('Diff', 'VFS not available');
-              return;
-            }
-
-            const vfsContent = await vfs.read(currentPath);
-
-            // Try to fetch original from network
-            const networkPath = currentPath.startsWith('/') ? currentPath.slice(1) : currentPath;
-            let originalContent = null;
-            try {
-              const response = await fetch(`/${networkPath}`);
-              if (response.ok) {
-                originalContent = await response.text();
-              }
-            } catch (e) {
-              // Original file not available for comparison
-            }
-
-            // Show diff panel
-            const diffPanel = container.querySelector('#vfs-diff-panel');
-            const diffContent = container.querySelector('#vfs-diff-content');
-            const contentBody = container.querySelector('#vfs-content-body');
-
-            if (!diffPanel || !diffContent) {
-              Toast.error('Diff', 'Diff panel not found');
-              return;
-            }
-
-            if (!originalContent) {
-              diffContent.innerHTML = `<div class="vfs-empty">
-                <p>No original source to compare against.</p>
-                <p>File: ${currentPath}</p>
-                <p>This file exists only in VFS (created by the agent).</p>
-              </div>`;
-            } else if (originalContent === vfsContent) {
-              diffContent.innerHTML = `<div class="vfs-empty">
-                <p>No changes. VFS content matches source.</p>
-                <p>File: ${currentPath}</p>
-              </div>`;
-            } else {
-              // Simple diff display
-              const vfsLines = (vfsContent || '').split('\n');
-              const origLines = (originalContent || '').split('\n');
-              let diffHtml = `<div class="diff-header">Diff: ${currentPath}</div>`;
-              diffHtml += `<div class="diff-stats">VFS: ${vfsLines.length} lines, Source: ${origLines.length} lines</div>`;
-              diffHtml += '<pre class="diff-content">';
-
-              // Very simple line-by-line diff
-              const maxLen = Math.max(vfsLines.length, origLines.length);
-              for (let i = 0; i < Math.min(maxLen, 100); i++) {
-                const vLine = vfsLines[i] || '';
-                const oLine = origLines[i] || '';
-                if (vLine === oLine) {
-                  diffHtml += `<span class="diff-same">${Utils.escapeHtml(vLine)}</span>\n`;
-                } else if (!origLines[i]) {
-                  diffHtml += `<span class="diff-add">+ ${Utils.escapeHtml(vLine)}</span>\n`;
-                } else if (!vfsLines[i]) {
-                  diffHtml += `<span class="diff-del">- ${Utils.escapeHtml(oLine)}</span>\n`;
-                } else {
-                  diffHtml += `<span class="diff-del">- ${Utils.escapeHtml(oLine)}</span>\n`;
-                  diffHtml += `<span class="diff-add">+ ${Utils.escapeHtml(vLine)}</span>\n`;
-                }
-              }
-              if (maxLen > 100) {
-                diffHtml += `\n... and ${maxLen - 100} more lines`;
-              }
-              diffHtml += '</pre>';
-              diffContent.innerHTML = diffHtml;
-            }
-
-            if (contentBody) contentBody.classList.add('hidden');
-            diffPanel.classList.remove('hidden');
-
-          } catch (e) {
-            logger.error('[Diff] Error:', e);
-            Toast.error('Diff Failed', e.message);
-          }
-        };
-      }
-
-      if (vfsSnapshotBtn) {
-        vfsSnapshotBtn.onclick = async () => {
-          try {
-            const snapshotPanel = container.querySelector('#vfs-snapshot-panel');
-            const timeline = container.querySelector('#vfs-snapshot-timeline');
-            const contentBody = container.querySelector('#vfs-content-body');
-
-            if (!snapshotPanel || !timeline) {
-              Toast.error('Snapshot Panel', 'UI elements not found');
-              return;
-            }
-
-            // Try to get GenesisSnapshot from DI
-            let snapshots = [];
-            try {
-              if (window.REPLOID_DI?.resolve) {
-                const GenesisSnapshot = await window.REPLOID_DI.resolve('GenesisSnapshot');
-                if (GenesisSnapshot?.listSnapshots) {
-                  snapshots = await GenesisSnapshot.listSnapshots();
-                }
-              }
-            } catch (e) {
-              // GenesisSnapshot not available
-            }
-
-            // Render snapshot list
-            if (snapshots.length === 0) {
-              timeline.innerHTML = '<div class="vfs-empty">No snapshots yet. Snapshots are created during genesis or via the API.</div>';
-            } else {
-              timeline.innerHTML = snapshots.map(s => `
-                <div class="snapshot-item" data-id="${s.id}">
-                  <span class="snapshot-name">${s.name}</span>
-                  <span class="snapshot-date">${new Date(s.timestamp).toLocaleString()}</span>
-                  <span class="snapshot-files">${s.fileCount || '?'} files</span>
-                </div>
-              `).join('');
-            }
-
-            // Show panel
-            if (contentBody) contentBody.classList.add('hidden');
-            snapshotPanel.classList.remove('hidden');
-
-          } catch (e) {
-            logger.error('[Proto] Snapshot error:', e);
-            Toast.error('Snapshots', e.message);
-          }
-        };
-      }
-
-      _toolActivityContainer = container.querySelector('#tool-activity-container');
-
       return container;
     };
 
@@ -974,12 +924,12 @@ const Proto = {
       const container = await render();
       _root.appendChild(container);
       applyActiveTabs();
-      workerManager.renderWorkersPanel();
+      _activeTabs.forEach((tabId) => handleTabActivation(tabId));
 
       // Load persisted history and errors
       renderSavedHistory();
       updateStatusBadge();
-      renderIntentSection();
+      memoryPanel.refresh();
       if (!telemetryManager.isLoaded()) {
         telemetryManager.loadTelemetryHistory();
       }
@@ -993,10 +943,6 @@ const Proto = {
       const chatContainer = document.getElementById('inline-chat-container');
       if (chatContainer && _inlineChat) {
         _inlineChat.init(chatContainer);
-      }
-
-      if (arenaResults?.init) {
-        arenaResults.init('arena-panel');
       }
 
       // Sticky scroll: track when user scrolls away/back to top
@@ -1023,23 +969,15 @@ const Proto = {
         if (stateEl) stateEl.textContent = state.fsmState || 'IDLE';
       } catch (e) { /* State not ready */ }
 
-      // Load model info - show all selected models
+      // Load model info
       try {
         const savedModels = localStorage.getItem('SELECTED_MODELS');
         if (savedModels) {
           const models = JSON.parse(savedModels);
-          const modelsEl = document.getElementById('agent-models');
-          if (modelsEl && models.length > 0) {
-            modelsEl.innerHTML = models.map(m => {
-              const name = m.name || m.id;
-              const provider = m.provider || 'unknown';
-              const providerBadge = provider.toLowerCase();
-              return `<div class="model-entry">
-                <span class="model-name">${escapeHtml(name)}</span>
-                <span class="model-provider model-provider-${providerBadge}">${escapeHtml(provider)}</span>
-              </div>`;
-            }).join('');
-            // Initial estimate from model config - will be updated by ContextManager via agent:tokens
+          const modelEl = document.getElementById('agent-model');
+          if (modelEl && models.length > 0) {
+            const names = models.map(m => m.name || m.id).filter(Boolean);
+            modelEl.textContent = names.join(', ') || '-';
             _maxTokens = models[0].contextSize || 32000;
           }
         }
@@ -1048,18 +986,18 @@ const Proto = {
       cleanup();
 
       // Event subscriptions
-      _subscriptionIds.push(EventBus.on('reflection:added', onToolActivity));
-
       _subscriptionIds.push(EventBus.on('agent:status', (status) => {
         const stateEl = document.getElementById('agent-state');
         const stateDetailEl = document.getElementById('agent-state-detail');
         const activityEl = document.getElementById('agent-activity');
         const cycleEl = document.getElementById('agent-cycle');
+        const cycleDetailEl = document.getElementById('agent-cycle-detail');
 
         if (stateEl && status.state) stateEl.textContent = status.state;
         if (stateDetailEl && status.state) stateDetailEl.textContent = status.state;
         if (activityEl && status.activity) activityEl.textContent = status.activity;
         if (cycleEl && status.cycle) cycleEl.textContent = status.cycle;
+        if (cycleDetailEl && status.cycle) cycleDetailEl.textContent = status.cycle;
       }));
 
       _subscriptionIds.push(EventBus.on('agent:tokens', (data) => {
@@ -1068,17 +1006,66 @@ const Proto = {
         updateTokenBudget(data.tokens);
         const tokensEl = document.getElementById('agent-tokens');
         if (tokensEl) tokensEl.textContent = `${data.tokens} / ${_maxTokens}`;
-      }));
 
-      _subscriptionIds.push(EventBus.on('worker:spawned', workerManager.handleWorkerSpawned));
-      _subscriptionIds.push(EventBus.on('worker:progress', workerManager.handleWorkerProgress));
-      _subscriptionIds.push(EventBus.on('worker:completed', workerManager.handleWorkerCompleted));
-      _subscriptionIds.push(EventBus.on('worker:error', workerManager.handleWorkerError));
-      _subscriptionIds.push(EventBus.on('worker:terminated', workerManager.handleWorkerTerminated));
+        const windowEl = document.getElementById('agent-token-window');
+        if (windowEl) {
+          const percent = _maxTokens ? Math.round((data.tokens / _maxTokens) * 100) : 0;
+          windowEl.textContent = `${Math.min(percent, 100)}%`;
+        }
+      }));
       _subscriptionIds.push(EventBus.on('telemetry:event', telemetryManager.appendTelemetryEntry));
 
-      _subscriptionIds.push(EventBus.on('context:compacted', () => {
+      _subscriptionIds.push(EventBus.on('context:compacted', (data = {}) => {
         Toast.info('Context Compacted', 'Conversation summarized to save tokens', { duration: 3000 });
+
+        const compactionsEl = document.getElementById('agent-compactions');
+        const lastCompactionEl = document.getElementById('agent-last-compaction');
+        if (compactionsEl && Number.isFinite(data.compactions)) {
+          compactionsEl.textContent = String(data.compactions);
+        }
+        if (lastCompactionEl) {
+          lastCompactionEl.textContent = formatSince(data.ts || Date.now());
+        }
+
+        const historyContainer = document.getElementById('history-container');
+        if (historyContainer) {
+          const div = document.createElement('div');
+          const entry = {
+            type: 'compaction',
+            previousTokens: data.previousTokens,
+            newTokens: data.newTokens,
+            mode: data.mode,
+            compactions: data.compactions,
+            ts: data.ts || Date.now()
+          };
+          renderHistoryEntry(div, entry);
+          historyContainer.insertBefore(div, historyContainer.firstChild);
+          scheduleHistoryScroll();
+          saveHistoryEntry(entry);
+        }
+
+        if (memoryPanel) {
+          memoryPanel.appendCompaction({
+            ts: data.ts || Date.now(),
+            mode: data.mode,
+            previousTokens: data.previousTokens,
+            newTokens: data.newTokens,
+            compactions: data.compactions,
+            summary: data.summary || ''
+          });
+        }
+      }));
+
+      _subscriptionIds.push(EventBus.on('memory:retrieval_block', (data = {}) => {
+        if (memoryPanel) {
+          memoryPanel.appendRetrieval({
+            ts: data.ts || Date.now(),
+            query: data.query || '',
+            totalTokens: data.totalTokens || 0,
+            contextItems: data.contextItems || 0,
+            block: data.block || ''
+          });
+        }
       }));
 
       // Error events are handled by ErrorStore - just update the status badge
@@ -1088,7 +1075,6 @@ const Proto = {
 
       _subscriptionIds.push(EventBus.on('error:cleared', () => {
         updateStatusBadge();
-        renderErrorsList();
       }));
 
       _subscriptionIds.push(EventBus.on('progress:update', (data) => {
@@ -1125,6 +1111,7 @@ const Proto = {
       _subscriptionIds.push(EventBus.on('agent:stream', (text) => {
         const historyContainer = document.getElementById('history-container');
         if (!historyContainer) return;
+        clearHistoryPlaceholder();
 
         if (!streamingEntry) {
           streamingEntry = document.createElement('div');
@@ -1174,6 +1161,28 @@ const Proto = {
       _subscriptionIds.push(EventBus.on('agent:history', async (entry) => {
         const historyContainer = document.getElementById('history-container');
         if (!historyContainer) return;
+        clearHistoryPlaceholder();
+
+      if (entry.type === 'tool_result') {
+        const resultText = typeof entry.result === 'string'
+          ? entry.result
+          : JSON.stringify(entry.result, null, 2);
+        const status = resultText.startsWith('Error:') ? 'error' : 'success';
+        const reflectionMeta = buildReflectionMeta(resultText, status);
+        const toolEntry = {
+          tool: entry.tool || 'unknown',
+          cycle: entry.cycle,
+          args: entry.args || {},
+          result: resultText,
+          durationMs: entry.durationMs ?? null,
+          status,
+          reflectionOutcome: reflectionMeta.outcome,
+          reflectionIndicator: reflectionMeta.indicator,
+          ts: entry.ts || Date.now()
+        };
+        addToolEntry(toolEntry);
+        return;
+      }
 
         if (streamingEntry && entry.type === 'llm_response') {
           streamingEntry.remove();
@@ -1184,132 +1193,54 @@ const Proto = {
           EventBus.emit('progress:update', { visible: false });
         }
 
+        if (!TIMELINE_TYPES.has(entry.type)) return;
+
         while (historyContainer.children.length >= MAX_HISTORY_ENTRIES) {
           historyContainer.removeChild(historyContainer.lastChild);
         }
 
         const div = document.createElement('div');
-        div.className = 'history-entry';
-
-        if (entry.type === 'llm_response') {
-          const content = entry.content || '(No response content)';
-          div.innerHTML = `
-            <div class="history-header">RECV #${entry.cycle}</div>
-            <pre class="history-content">${escapeHtml(content)}</pre>
-          `;
-        } else if (entry.type === 'tool_result') {
-          const result = entry.result || '(No result)';
-          const isError = result.startsWith('Error:');
-          div.innerHTML = `
-            <div class="history-header ${isError ? 'history-error' : ''}">
-              SEND #${entry.cycle} -> ${entry.tool}
-              ${isError ? '<span class="error-badge">ERROR</span>' : ''}
-            </div>
-            <pre class="history-content">${escapeHtml(result)}</pre>
-            ${isError ? `
-              <div class="history-actions">
-                <button class="toast-btn" onclick="navigator.clipboard.writeText('${escapeHtml(result).replace(/'/g, "\\'")}')">Copy Error</button>
-              </div>
-            ` : ''}
-          `;
-
-          // Errors are captured by tool:error event -> ErrorStore
-        } else if (entry.type === 'human') {
-          const isGoal = entry.messageType === 'goal';
-          div.className = `history-entry human-message ${isGoal ? 'goal-refinement' : ''}`;
-          div.innerHTML = `
-            <div class="history-header">
-              <span class="entry-label">${isGoal ? 'You (Goal)' : 'You'}</span>
-              <span class="entry-cycle">#${entry.cycle || '-'}</span>
-            </div>
-            <pre class="history-content">${escapeHtml(entry.content)}</pre>
-          `;
-        }
+        renderHistoryEntry(div, entry);
 
         historyContainer.insertBefore(div, historyContainer.firstChild);
         scheduleHistoryScroll();
 
         // Persist to VFS
         await saveHistoryEntry(entry);
-        if (entry.type === 'human' && entry.messageType === 'goal') {
-          renderIntentSection();
-        }
       }));
 
-      _subscriptionIds.push(EventBus.on('agent:arena-result', (result) => {
+      _subscriptionIds.push(EventBus.on('agent:arena-result', async (result = {}) => {
         const historyContainer = document.getElementById('history-container');
         if (!historyContainer) return;
-
-        const div = document.createElement('div');
-        div.className = 'history-entry arena-result';
+        clearHistoryPlaceholder();
 
         const winner = result.winner || {};
-        const solutions = result.solutions || [];
-        const mode = result.mode || 'arena';
+        const solutions = Array.isArray(result.solutions) ? result.solutions : [];
+        const entry = {
+          type: 'arena_result',
+          cycle: result.cycle,
+          mode: result.mode || 'arena',
+          winnerModel: winner.model || 'unknown',
+          winnerScore: Number.isFinite(winner.score) ? winner.score : null,
+          total: solutions.length,
+          ts: Date.now()
+        };
 
-        let solutionsHTML = '';
-        if (solutions.length > 0) {
-          solutionsHTML = solutions.map(sol => {
-            const isWinner = sol.model === winner.model;
-            const badge = isWinner ? '<span class="winner-badge">WINNER</span>' : '';
-            return `
-              <div class="arena-solution ${isWinner ? 'arena-winner' : ''}">
-                <div class="arena-solution-header">
-                  ${escapeHtml(sol.model)} - Score: ${(sol.score || 0).toFixed(2)} ${badge}
-                </div>
-              </div>
-            `;
-          }).join('');
+        while (historyContainer.children.length >= MAX_HISTORY_ENTRIES) {
+          historyContainer.removeChild(historyContainer.lastChild);
         }
 
-        div.innerHTML = `
-          <div class="history-header arena-header">
-            ★ Arena #${result.cycle} (${mode})
-          </div>
-          <div class="arena-solutions">
-            ${solutionsHTML}
-          </div>
-        `;
-
+        const div = document.createElement('div');
+        renderHistoryEntry(div, entry);
         historyContainer.insertBefore(div, historyContainer.firstChild);
         scheduleHistoryScroll();
-      }));
-
-      // VFS events
-      _subscriptionIds.push(EventBus.on('vfs:write', (data) => {
-        const path = data?.path || data;
-        if (path) vfsManager.markFileModified(path, 'modified');
-      }));
-
-      _subscriptionIds.push(EventBus.on('artifact:created', (data) => {
-        const path = data?.path || data;
-        if (path) vfsManager.markFileModified(path, 'created');
-      }));
-
-      _subscriptionIds.push(EventBus.on('artifact:updated', (data) => {
-        const path = data?.path || data;
-        if (path) vfsManager.markFileModified(path, 'modified');
-      }));
-
-      _subscriptionIds.push(EventBus.on('artifact:deleted', (data) => {
-        const path = data?.path || data;
-        if (path) {
-          vfsManager.markFileModified(path, 'deleted');
-        } else {
-          vfsManager.loadVFSTree();
-        }
-      }));
-
-      _subscriptionIds.push(EventBus.on('tool:file_written', (data) => {
-        const path = data?.path || data;
-        if (path) vfsManager.markFileModified(path, 'modified');
+        await saveHistoryEntry(entry);
       }));
 
       // Kick off initial data fetches
       if (!telemetryManager.isLoaded()) {
         telemetryManager.loadTelemetryHistory();
       }
-      schemaManager.refreshSchemaData();
     };
 
     const cleanup = () => {
@@ -1325,23 +1256,11 @@ const Proto = {
         _inlineChat = null;
       }
 
-      if (arenaResults?.cleanup) {
-        arenaResults.cleanup();
-      }
-
-      clearTimeout(_vfsSearchTimeout);
       _historyScrollScheduled = false;
-      _toolActivityScrollScheduled = false;
-    };
-
-    const setVFS = (vfs) => {
-      vfsManager.setVFS(vfs);
     };
 
     return {
       mount,
-      setVFS,
-      refreshVFS: vfsManager.loadVFSTree,
       cleanup
     };
   }

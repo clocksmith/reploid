@@ -75,37 +75,37 @@ const MetricsDashboard = {
       logger.info('[MetricsDashboard] Initializing metrics dashboard');
 
       const summaryHTML = Observability?.getDashboard ? `
-        <div class="observability-summary" id="observability-summary">
-          <div class="summary-grid">
-            <div class="summary-card">
-              <div class="summary-label">Tokens</div>
-              <div class="summary-value" id="obs-token-total">0</div>
-              <div class="summary-sub" id="obs-token-cost">$0.00</div>
+        <div id="observability-summary">
+          <div>
+            <div>
+              <div>Tokens</div>
+              <div id="obs-token-total">0</div>
+              <div id="obs-token-cost">$0.00</div>
             </div>
-            <div class="summary-card">
-              <div class="summary-label">Mutations</div>
-              <div class="summary-value" id="obs-mutation-total">0</div>
-              <div class="summary-sub">Recent changes</div>
+            <div>
+              <div>Mutations</div>
+              <div id="obs-mutation-total">0</div>
+              <div>Recent changes</div>
             </div>
-            <div class="summary-card">
-              <div class="summary-label">Decisions</div>
-              <div class="summary-value" id="obs-decision-total">0</div>
-              <div class="summary-sub">Agent choices</div>
+            <div>
+              <div>Decisions</div>
+              <div id="obs-decision-total">0</div>
+              <div>Agent choices</div>
             </div>
-            <div class="summary-card">
-              <div class="summary-label">Errors</div>
-              <div class="summary-value" id="obs-error-total">0</div>
-              <div class="summary-sub">Warnings and failures</div>
+            <div>
+              <div>Errors</div>
+              <div id="obs-error-total">0</div>
+              <div>Warnings and failures</div>
             </div>
           </div>
-          <div class="summary-lists">
-            <div class="summary-list">
-              <div class="summary-list-title">Recent Mutations</div>
-              <div id="obs-mutation-list" class="summary-list-body">No mutations yet</div>
+          <div>
+            <div>
+              <div>Recent Mutations</div>
+              <div id="obs-mutation-list">No mutations yet</div>
             </div>
-            <div class="summary-list">
-              <div class="summary-list-title">Recent Decisions</div>
-              <div id="obs-decision-list" class="summary-list-body">No decisions yet</div>
+            <div>
+              <div>Recent Decisions</div>
+              <div id="obs-decision-list">No decisions yet</div>
             </div>
           </div>
         </div>
@@ -113,16 +113,16 @@ const MetricsDashboard = {
 
       // Create chart canvases
       const chartsHTML = `
-        <div class="charts-grid">
-          <div class="chart-container">
+        <div>
+          <div>
             <h4>Memory Usage Over Time</h4>
             <canvas id="memory-chart"></canvas>
           </div>
-          <div class="chart-container">
+          <div>
             <h4>Tool Usage</h4>
             <canvas id="tools-chart"></canvas>
           </div>
-          <div class="chart-container">
+          <div>
             <h4>LLM Token Usage</h4>
             <canvas id="tokens-chart"></canvas>
           </div>
@@ -353,7 +353,7 @@ const MetricsDashboard = {
         mutationListEl.innerHTML = recentMutations.length === 0
           ? 'No mutations yet'
           : recentMutations.map((m) => (
-            `<div class="summary-list-item">${m.op || 'change'} ${m.path || ''}</div>`
+            `<div>${m.op || 'change'} ${m.path || ''}</div>`
           )).join('');
       }
 
@@ -362,7 +362,7 @@ const MetricsDashboard = {
         decisionListEl.innerHTML = recentDecisions.length === 0
           ? 'No decisions yet'
           : recentDecisions.map((d) => (
-            `<div class="summary-list-item">${d.action?.toolCallCount || 0} tool calls</div>`
+            `<div>${d.action?.toolCallCount || 0} tool calls</div>`
           )).join('');
       }
     };

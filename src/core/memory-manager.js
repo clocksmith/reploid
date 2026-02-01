@@ -34,6 +34,9 @@ const MemoryManager = {
       contiguityBoost: 0.15
     };
 
+    const COMPACTIONS_PATH = '/.memory/compactions.jsonl';
+    const RETRIEVALS_PATH = '/.memory/retrievals.jsonl';
+
     // --- State ---
     let _workingMemory = [];
     let _episodicSummary = '';
@@ -65,7 +68,68 @@ const MemoryManager = {
       logger.info('[MemoryManager] Initialized', { sessionId: _sessionId });
 
       EventBus.emit('memory:initialized', { sessionId: _sessionId });
+
+      if (EventBus?.on) {
+        EventBus.on('context:compacted', (data = {}) => {
+          const summary = data.summary || '';
+          if (!summary) return;
+          recordCompaction({
+            ts: data.ts || Date.now(),
+            mode: data.mode || 'unknown',
+            previousTokens: data.previousTokens,
+            newTokens: data.newTokens,
+            reduction: data.reduction,
+            compactions: data.compactions,
+            summary
+          }).catch((err) => {
+            logger.warn('[MemoryManager] Failed to persist compaction', err.message);
+          });
+        });
+
+        EventBus.on('memory:retrieval_block', (data = {}) => {
+          if (!data.block) return;
+          recordRetrieval({
+            ts: data.ts || Date.now(),
+            cycle: data.cycle ?? null,
+            query: data.query || '',
+            totalTokens: data.totalTokens || 0,
+            contextItems: data.contextItems || 0,
+            block: data.block
+          }).catch((err) => {
+            logger.warn('[MemoryManager] Failed to persist retrieval block', err.message);
+          });
+        });
+      }
+
       return true;
+    };
+
+    const ensureMemoryDir = async () => {
+      if (!await VFS.exists('/.memory')) {
+        await VFS.mkdir('/.memory');
+      }
+    };
+
+    const appendJsonl = async (path, entry) => {
+      await ensureMemoryDir();
+      let content = '';
+      if (await VFS.exists(path)) {
+        try {
+          content = await VFS.read(path);
+        } catch (e) {
+          logger.warn('[MemoryManager] Failed to read JSONL file', e.message);
+        }
+      }
+      const line = `${JSON.stringify(entry)}\n`;
+      await VFS.write(path, content + line);
+    };
+
+    const recordCompaction = async (entry) => {
+      await appendJsonl(COMPACTIONS_PATH, entry);
+    };
+
+    const recordRetrieval = async (entry) => {
+      await appendJsonl(RETRIEVALS_PATH, entry);
     };
 
     const ensureVfsPaths = async () => {

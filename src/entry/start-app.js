@@ -39,6 +39,12 @@ async function completeAwaken(bootResult, goal, wizardContainer) {
   const utils = Utils.factory();
   const logger = utils.logger;
   const eventBus = await container.resolve('EventBus');
+  let errorStore = null;
+  try {
+    errorStore = await container.resolve('ErrorStore');
+  } catch (e) {
+    logger.debug('[Boot] ErrorStore not available');
+  }
 
   let workerManager = null;
   try {
@@ -83,6 +89,8 @@ async function completeAwaken(bootResult, goal, wizardContainer) {
       EventBus: eventBus,
       AgentLoop: agent,
       StateManager: stateManager,
+      ErrorStore: errorStore,
+      VFS: vfs,
       WorkerManager: workerManager,
       ArenaHarness: arenaHarness
     });
@@ -102,7 +110,6 @@ async function completeAwaken(bootResult, goal, wizardContainer) {
 
     proto = await buildProto(version);
     await proto.mount(appEl);
-    proto.setVFS(vfs);
     logger.info(`[Boot] UI Mounted${reason ? ` (${reason})` : ''}.`);
   };
 
