@@ -131,7 +131,7 @@ const TOOL_CALL_PATTERN = /TOOL_CALL:\s*(\w+)\s*\nARGS:\s*(\{)/g;
 
 ## Genesis Level
 
-**spark** - Core agent module, part of the minimal agent core. Cannot be modified without HITL approval.
+**spark** - Core agent module, part of the minimal agent core. Cannot be modified without gate approval.
 
 ---
 

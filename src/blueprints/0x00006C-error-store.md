@@ -161,7 +161,7 @@ const init = () => {
 
 ## Genesis Level
 
-**tabula** - Core infrastructure module, part of the immutable genesis kernel. Cannot be modified without HITL approval.
+**tabula** - Core infrastructure module, part of the immutable genesis kernel. Cannot be modified without gate approval.
 
 ---
 

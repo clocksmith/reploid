@@ -15,38 +15,28 @@ const TAGS = {
 const GOAL_CATEGORIES = {
   'L0: Basic Functions': [
     {
-      view: 'Shader playground panel',
-      text: 'Add a main area panel that renders a live GLSL shader preview with editable code and two slider inputs.',
+      view: 'Plasma playground panel',
+      text: 'Add a main area panel that renders a live plasma field with electromagnetic effects and at least three sliders to control magnetism and plasma dynamics.',
       tags: [TAGS.UI, TAGS.VISUAL, TAGS.SYS]
     },
     {
-      view: 'Artifact gallery panel',
-      text: 'Create a panel that previews the latest text and image artifacts from /artifacts with paging and open actions.',
-      tags: [TAGS.UI, TAGS.VISUAL, TAGS.DATA]
-    },
-    {
-      view: 'Live log stream panel',
-      text: 'Build a main area log stream with level filters and a pause button for slow inspection.',
-      tags: [TAGS.UI, TAGS.DATA, TAGS.GOV]
-    },
-    {
-      view: 'VFS quick search panel',
-      text: 'Add a search panel that scans VFS paths and shows inline previews with copy path actions.',
-      tags: [TAGS.UI, TAGS.DATA, TAGS.SYS]
-    },
-    {
-      view: 'Prompt ladder summarizer',
-      text: 'Create a tool that summarizes each cycle at 256, 128, 64, 32, 16, 8, 4, 2, and 1 words, and stores every version in /artifacts for comparison.',
+      view: 'Cycle state summarizer',
+      text: 'Create a tool that summarizes the current state each cycle in 256, 64, 16, 4, and 1 words, and saves each version to /cyclesummaries/ for comparison.',
       tags: [TAGS.DATA, TAGS.BENCH, TAGS.SYS]
     },
     {
-      view: 'Visual diff panel',
-      text: 'Add a panel that compares two VFS files and highlights changed lines in a split view.',
+      view: 'Power tower overlay',
+      text: 'Create an overlay appended to the dashboard body that visualizes power towers and responds to numeric keyboard input, for example 5 maps to 5^5^5^5^5 and 7 maps to 7^7^7^7^7^7^7. Include a keyboard shortcut to toggle the overlay.',
       tags: [TAGS.UI, TAGS.VISUAL, TAGS.DATA]
     },
     {
+      view: 'Katamari DOM sweep overlay',
+      text: 'Create a katamari ball overlay that rolls across the dashboard and scoops DOM elements. Pickup rules depend on element size relative to the ball. The ball grows as it absorbs elements. End the run when the full dashboard DOM is consumed.',
+      tags: [TAGS.UI, TAGS.VISUAL, TAGS.SYS]
+    },
+    {
       view: 'Snapshot capture panel',
-      text: 'Add a capture panel that stores DOM or canvas snapshots to /artifacts with a timestamped label.',
+      text: 'Add a capture panel that saves snapshots of #workspace-columns, plus any active canvas, to /artifacts with a timestamped label.',
       tags: [TAGS.UI, TAGS.VISUAL, TAGS.SYS]
     }
   ],
@@ -57,9 +47,9 @@ const GOAL_CATEGORIES = {
       tags: [TAGS.BENCH, TAGS.DATA, TAGS.SYS]
     },
     {
-      view: 'Tool smoke test harness',
-      text: 'Build a tool smoke test runner with timeouts and a summary report saved to /artifacts.',
-      tags: [TAGS.BENCH, TAGS.GOV, TAGS.SYS]
+      view: 'Page color toolset',
+      text: 'Build a page color toolset that can apply and revert color themes across the dashboard, including palette presets, contrast checks, and a diff report of changed elements.',
+      tags: [TAGS.UI, TAGS.SYS, TAGS.DATA]
     },
     {
       view: 'Tool generator forge',
@@ -72,19 +62,10 @@ const GOAL_CATEGORIES = {
       tags: [TAGS.SYS, TAGS.BENCH, TAGS.GOV]
     },
     {
-      view: 'Tool schema lint grid',
-      text: 'Implement a lint grid that checks tool schemas for completeness, mismatch, and drift, then suggests fixes.',
-      tags: [TAGS.GOV, TAGS.DATA, TAGS.SYS]
-    },
-    {
       view: 'Persona library editor',
       text: 'Create a persona editor panel that stores named personas in local workspace storage and lets users set the active persona.',
       tags: [TAGS.UI, TAGS.ORCH, TAGS.DATA]
     },
-    {
-      view: 'Replay and compare runner',
-      text: 'Create a replay runner that reuses saved prompts, compares outputs, and logs diffs.',
-      tags: [TAGS.BENCH, TAGS.DATA, TAGS.GOV]
     }
   ],
   'L2: Substrate': [
@@ -94,71 +75,41 @@ const GOAL_CATEGORIES = {
       tags: [TAGS.ORCH, TAGS.GOV, TAGS.DATA]
     },
     {
-      view: 'Arena ledger and transcripts',
-      text: 'Create an arena ledger that records debate rounds, votes, and outcomes with deterministic ordering and clear audit notes.',
-      tags: [TAGS.ORCH, TAGS.DATA, TAGS.GOV]
-    },
-    {
       view: 'VFS integrity audit pipeline',
       text: 'Add a pipeline that hashes critical runtime paths on milestones and reports drift with clear remediation steps.',
       tags: [TAGS.GOV, TAGS.DATA, TAGS.SYS]
     },
     {
-      view: 'Module gate visualizer',
-      text: 'Build a panel that visualizes module gates, active status, and missing dependencies.',
-      tags: [TAGS.UI, TAGS.GOV, TAGS.DATA]
+      view: 'Security periscope overlay',
+      text: 'Create a live security periscope overlay that visualizes substrate risk in real time: highlight /core and /infrastructure edits, show verification outcomes as pulses, and animate a risk ring that grows or shrinks based on recent violations or rollbacks.',
+      tags: [TAGS.UI, TAGS.GOV, TAGS.SYS]
     },
     {
       view: 'Iframe clone benchmark runner',
       text: 'Spawn a full UI clone in an iframe, run the same goal, and report latency, success, and quality deltas.',
       tags: [TAGS.GOV, TAGS.SYS, TAGS.DATA]
-    },
-    {
-      view: 'Hot reload with rollback',
-      text: 'Create a hot reload flow that verifies modules, then rolls back automatically on failure.',
-      tags: [TAGS.GOV, TAGS.SYS, TAGS.ORCH]
-    },
-    {
-      view: 'Deterministic run recorder',
-      text: 'Add a run recorder that captures inputs, tool calls, and outputs for exact replay.',
-      tags: [TAGS.BENCH, TAGS.DATA, TAGS.GOV]
     }
   ],
   'L3: Weak RSI': [
     {
-      view: 'Arena debate convergence loop',
-      text: 'Build a three persona debate loop with a fixed turn schedule and a convergence rule for final answers.',
-      tags: [TAGS.ORCH, TAGS.GOV, TAGS.BENCH]
+      view: 'Core self-patch loop',
+      text: 'Implement a bounded self-patch loop that diagnoses its own failure patterns, proposes edits to /core/agent-loop.js, verifies in sandbox, and auto-rolls back on regression. Include a self-audit note that explains why the patch was applied.',
+      tags: [TAGS.ORCH, TAGS.GOV, TAGS.SYS]
     },
     {
-      view: 'Persona tuner and scorer',
-      text: 'Implement a persona tuner that mutates prompt traits and scores outputs on a benchmark set.',
-      tags: [TAGS.ORCH, TAGS.BENCH, TAGS.DATA]
+      view: 'Verification policy evolution',
+      text: 'Create a feedback loop that adjusts verification rules in /core/verification-manager.js using observed false positives and negatives, records the rationale, and requires arena consensus plus rollback.',
+      tags: [TAGS.GOV, TAGS.SYS, TAGS.DATA]
     },
     {
-      view: 'Solution replay regression tracker',
-      text: 'Create a regression tracker that reruns solutions, compares outputs, and flags deltas.',
-      tags: [TAGS.BENCH, TAGS.DATA, TAGS.GOV]
-    },
-    {
-      view: 'Self critique retry pipeline',
-      text: 'Add a self critique loop that generates counterpoints and retries with a revised plan.',
-      tags: [TAGS.ORCH, TAGS.GOV, TAGS.DATA]
-    },
-    {
-      view: 'Adversarial twin arena',
-      text: 'Spawn an adversarial iframe instance that tries to break or refute solutions, then score resilience.',
+      view: 'Prompt kernel mutation gate',
+      text: 'Enable controlled mutations of core system prompt rules in /core/persona-manager.js, score them on benchmark goals, require a self-review of failures, and revert on drops.',
       tags: [TAGS.ORCH, TAGS.BENCH, TAGS.GOV]
     },
     {
-      view: 'Toolchain evolution loop',
-      text: 'Build a loop that proposes a new tool, implements it, and validates with tests.',
-      tags: [TAGS.ORCH, TAGS.SYS, TAGS.GOV]
-    },
-    {
-      view: 'Genetic persona evolution arena',
-      text: 'Run a genetic loop over persona variants in iframes, score outcomes, and keep the top performers.',
-      tags: [TAGS.ORCH, TAGS.BENCH, TAGS.DATA]
+      view: 'Substrate regression harness',
+      text: 'Build a substrate regression harness that replays a fixed goal set against modified core modules before commit, stores diffs, emits a regression summary, and auto-reverts on failures.',
+      tags: [TAGS.BENCH, TAGS.GOV, TAGS.SYS]
     }
   ],
   'L4: Theoretical RSI': [
@@ -168,9 +119,9 @@ const GOAL_CATEGORIES = {
       tags: [TAGS.ORCH, TAGS.GOV, TAGS.SYS]
     },
     {
-      view: 'Self generated tool ecosystem',
-      text: 'Invent, implement, validate, and integrate new tools that measurably improve capability.',
-      tags: [TAGS.SYS, TAGS.BENCH, TAGS.GOV]
+      view: 'Cross-reploid federation signal',
+      text: 'Design a protocol that allows one Reploid instance to signal its presence, discover peers, and form a cooperative federation with shared goals and governance safeguards, then demonstrate a safe join and leave handshake with audit logs.',
+      tags: [TAGS.ORCH, TAGS.GOV, TAGS.SYS]
     },
     {
       view: 'Distilled reflection parity',
@@ -181,16 +132,6 @@ const GOAL_CATEGORIES = {
       view: 'Self evolving safety policy',
       text: 'Evolve its own safety policy and enforcement while preserving alignment and measurable progress.',
       tags: [TAGS.GOV, TAGS.ORCH, TAGS.DATA]
-    },
-    {
-      view: 'Cross run self improvement',
-      text: 'Persist identity, memory, and improvement across restarts without manual guidance.',
-      tags: [TAGS.ORCH, TAGS.SYS, TAGS.DATA]
-    },
-    {
-      view: 'Autonomous research integration',
-      text: 'Identify a missing capability, research it, integrate it, and show measurable gains.',
-      tags: [TAGS.SYS, TAGS.BENCH, TAGS.DATA]
     },
     {
       view: 'Self optimizing governance loop',

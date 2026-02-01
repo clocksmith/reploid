@@ -51,11 +51,13 @@ npm start         # Proxy server at :8000
 
 ## RSI Levels
 
-| Level  | Scope     | Examples                     | Safety Gate              |
-|--------|-----------|------------------------------|--------------------------|
-| **L1** | Tools     | CreateTool - new agent tools | Verification Worker      |
-| **L2** | Meta      | Modify tool-writer           | Arena consensus          |
-| **L3** | Substrate | EditFile agent-loop.js       | Arena + Genesis rollback |
+| Level | Name | Scope | Gate |
+|-------|------|-------|------|
+| **L0** | Basic Functions | CreateTool, Web APIs, new tools | Verification Worker |
+| **L1** | Meta Tooling | Modify tool-writer, improve CreateTool | Arena consensus |
+| **L2** | Self-Modification (Substrate) | Edit core modules, runtime patches | Arena + Genesis rollback |
+| **L3** | Weak RSI (Iterative) | Bounded feedback loops, self-improvement | Arena + Genesis rollback + iteration caps |
+| **L4** | True RSI (Impossible) | Unbounded self-improvement, theoretical | N/A |
 
 ## Genesis Levels
 

@@ -809,16 +809,37 @@ const Proto = {
         });
       }
 
-      btnToggle.innerHTML = 'Stop';
-      btnToggle.title = 'Stop (Esc)';
+      const setToggleState = (state) => {
+        const iconMap = {
+          stop: '■',
+          run: '▶',
+          restart: '⟲'
+        };
+        const labelMap = {
+          stop: 'Stop',
+          run: 'Run',
+          restart: 'Restart'
+        };
+        const titleMap = {
+          stop: 'Stop (Esc)',
+          run: 'Resume (Ctrl+Enter)',
+          restart: 'Restart'
+        };
+        const icon = iconMap[state] || iconMap.stop;
+        const label = labelMap[state] || labelMap.stop;
+        const title = titleMap[state] || titleMap.stop;
+        btnToggle.innerHTML = `<span class="sidebar-icon">${icon}</span>`;
+        btnToggle.title = title;
+        btnToggle.setAttribute('aria-label', label);
+      };
+
+      setToggleState('stop');
 
       const updateButtonState = (running) => {
         if (running) {
-          btnToggle.innerHTML = 'Stop';
-          btnToggle.title = 'Stop (Esc)';
+          setToggleState('stop');
         } else {
-          btnToggle.innerHTML = 'Run';
-          btnToggle.title = 'Resume (Ctrl+Enter)';
+          setToggleState('run');
         }
       };
 
@@ -845,14 +866,12 @@ const Proto = {
           try {
             await AgentLoop.run(goal);
             isRunning = false;
-            btnToggle.innerHTML = 'Restart';
-            btnToggle.title = 'Restart';
+            setToggleState('restart');
             Toast.success('Goal Complete', 'Agent finished successfully');
           } catch (e) {
             logger.error(`Agent Error: ${e.message}`);
             isRunning = false;
-            btnToggle.innerHTML = 'Restart';
-            btnToggle.title = 'Restart';
+            setToggleState('restart');
             // Log error to ErrorStore via EventBus
             EventBus.emit('agent:error', { message: 'Agent Error', error: e.message });
             Toast.info('Agent Error', 'See Status tab for details', {

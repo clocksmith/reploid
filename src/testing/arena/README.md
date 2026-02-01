@@ -5,7 +5,7 @@ Purpose: Multi-model competition and consensus-based verification for high-risk 
 ## Scope
 
 - Arena harness, competitors, metrics, and VFS sandboxing.
-- FULL-level safety gates for RSI-related changes.
+- FULL-level gates for RSI-related changes.
 
 **Genesis Level:** FULL only
 
@@ -13,7 +13,7 @@ This directory contains the Arena system for multi-model competition and consens
 
 ## Why FULL Level?
 
-Arena testing is used for **RSI (Recursive Self-Improvement) safety gates**:
+Arena testing is used for **RSI (Recursive Self-Improvement) gates**:
 - Requires multiple LLM models for consensus
 - Used to verify core/infrastructure changes before applying
 - Optional for basic agent operation

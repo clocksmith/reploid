@@ -6,33 +6,33 @@ export const renderProtoTemplate = (escapeHtml, goalFromBoot) => `
   <!-- Sidebar Navigation -->
   <nav class="sidebar">
     <button class="sidebar-btn active" data-tab="timeline" title="Timeline (1)">
-      <span class="sidebar-icon">☛</span>
+      <span class="sidebar-icon">≡</span>
       <span class="tab-indicator" aria-hidden="true"><span></span><span></span><span></span></span>
     </button>
     <button class="sidebar-btn" data-tab="tools" title="Tools (2)">
       <span class="sidebar-icon">☇</span>
       <span class="tab-indicator" aria-hidden="true"><span></span><span></span><span></span></span>
     </button>
-    <button class="sidebar-btn" data-tab="telemetry" title="Telemetry (3)">
-      <span class="sidebar-icon">☨</span>
+    <button class="sidebar-btn" data-tab="memory" title="Memory (3)">
+      <span class="sidebar-icon">◇</span>
       <span class="tab-indicator" aria-hidden="true"><span></span><span></span><span></span></span>
     </button>
-    <button class="sidebar-btn" data-tab="status" title="Status (4)">
-      <span class="sidebar-icon">⎈</span>
-      <span class="tab-indicator" aria-hidden="true"><span></span><span></span><span></span></span>
-    </button>
-    <button class="sidebar-btn" data-tab="memory" title="Memory (5)">
-      <span class="sidebar-icon">☷</span>
-      <span class="tab-indicator" aria-hidden="true"><span></span><span></span><span></span></span>
-    </button>
-    <button class="sidebar-btn" data-tab="cognition" title="Cognition (6)">
+    <button class="sidebar-btn" data-tab="cognition" title="Cognition (4)">
       <span class="sidebar-icon">☍</span>
       <span class="tab-indicator" aria-hidden="true"><span></span><span></span><span></span></span>
     </button>
+    <button class="sidebar-btn" data-tab="status" title="Status (5)">
+      <span class="sidebar-icon">◎</span>
+      <span class="tab-indicator" aria-hidden="true"><span></span><span></span><span></span></span>
+    </button>
+    <button class="sidebar-btn" data-tab="telemetry" title="Telemetry (6)">
+      <span class="sidebar-icon">∿</span>
+      <span class="tab-indicator" aria-hidden="true"><span></span><span></span><span></span></span>
+    </button>
     <div class="sidebar-spacer"></div>
-    <button id="btn-replay" class="sidebar-btn" title="Replay">♺</button>
-    <button id="btn-toggle" class="sidebar-btn" title="Stop (Esc)">Stop</button>
-    <button id="btn-export" class="sidebar-btn" title="Export (Ctrl+E)">⎘</button>
+    <button id="btn-replay" class="sidebar-btn" title="Replay"><span class="sidebar-icon">↻</span></button>
+    <button id="btn-toggle" class="sidebar-btn" title="Stop (Esc)"><span class="sidebar-icon">■</span></button>
+    <button id="btn-export" class="sidebar-btn" title="Export (Ctrl+E)"><span class="sidebar-icon">⤓</span></button>
   </nav>
 
   <!-- Main Workspace -->
