@@ -95,7 +95,7 @@ const buildOperations = (args) => {
 };
 
 async function call(args = {}, deps = {}) {
-  const { VFS, AuditLogger, EventBus } = deps;
+  const { VFS, AuditLogger, EventBus, ToolRunner } = deps;
   if (!VFS) return 'VFS unavailable';
 
   const { backend, path } = normalizePath(args.path || args.file, args.backend);
@@ -218,13 +218,24 @@ async function call(args = {}, deps = {}) {
     }
   }
 
+  let toolReload = null;
+  if (backend === 'vfs' && path.startsWith('/tools/') && path.endsWith('.js') && ToolRunner?.refresh) {
+    try {
+      await ToolRunner.refresh();
+      toolReload = 'tools reloaded';
+    } catch (err) {
+      toolReload = `tools reload failed: ${err.message}`;
+    }
+  }
+
   return {
     path,
     backend,
     bytesWritten,
     changed,
     existed,
-    operations: results
+    operations: results,
+    toolReload
   };
 }
 

@@ -6,24 +6,17 @@ export const renderProtoTemplate = (escapeHtml, goalFromBoot) => `
   <!-- Sidebar Navigation -->
   <nav class="sidebar">
     <button class="sidebar-btn active" data-tab="activity" title="Activity (1)">&#x2261;</button>
-    <button class="sidebar-btn" data-tab="status" title="Status (2)">&#x2139;</button>
-    <button class="sidebar-btn" data-tab="schemas" title="Schemas (3)">☷</button>
-    <button class="sidebar-btn" data-tab="workers" title="Workers" id="workers-tab-btn">&#x2692;</button>
-    <button class="sidebar-btn" data-tab="analysis" title="Analysis">A</button>
+    <button class="sidebar-btn" data-tab="vfs" title="VFS (2)">&#9751;</button>
+    <button class="sidebar-btn" data-tab="status" title="Status (3)">&#x2139;</button>
+    <button class="sidebar-btn" data-tab="telemetry" title="Telemetry (4)">&#9768;</button>
+    <button class="sidebar-btn" data-tab="schemas" title="Schemas (5)">☷</button>
+    <button class="sidebar-btn" data-tab="workers" title="Workers (6)" id="workers-tab-btn">&#x2692;</button>
+    <button class="sidebar-btn" data-tab="analysis" title="Analysis (7)">&#9906;</button>
     <div class="sidebar-spacer"></div>
+    <button id="btn-replay" class="sidebar-btn" title="Replay">♺</button>
     <button id="btn-toggle" class="sidebar-btn" title="Stop (Esc)">&#x25A0;</button>
     <button id="btn-export" class="sidebar-btn" title="Export (Ctrl+E)">&#x2913;</button>
   </nav>
-
-  <!-- VFS Browser Panel (auto-refreshes via EventBus) -->
-  <aside class="vfs-browser-panel" id="vfs-browser">
-    <div class="vfs-search-container">
-      <input type="text" id="vfs-search" class="vfs-search-input" placeholder="Search files..." />
-    </div>
-    <div id="vfs-tree" class="vfs-tree mono">
-      <div class="muted">Loading...</div>
-    </div>
-  </aside>
 
   <!-- Main Workspace -->
   <main class="workspace">
@@ -48,13 +41,6 @@ export const renderProtoTemplate = (escapeHtml, goalFromBoot) => `
         <span class="muted">Workers</span>
         <span id="worker-indicator-count">0</span>
         <span class="muted">|</span>
-        <label class="vfs-width-control">
-          <span class="vfs-width-label">VFS</span>
-          <select id="vfs-width-select" class="vfs-width-select" aria-label="VFS panel width">
-            <option value="25">25%</option>
-            <option value="50">50%</option>
-          </select>
-        </label>
       </div>
     </div>
 
@@ -69,35 +55,21 @@ export const renderProtoTemplate = (escapeHtml, goalFromBoot) => `
     </div>
 
     <!-- Tab Panels -->
+    <div class="workspace-content workspace-columns" id="workspace-columns">
     <div class="workspace-content" id="tab-activity">
       <div id="history-container" class="history-stream">
         <div class="muted">Thinking and actions will appear here.</div>
       </div>
       <div id="inline-chat-container"></div>
-      <div class="activity-section">
-        <div class="activity-section-header">
-          <strong>Telemetry Timeline</strong>
-          <span id="telemetry-count" class="muted">0 events</span>
+    </div>
+
+    <div class="workspace-content hidden" id="tab-vfs">
+      <div class="vfs-panel">
+        <div class="vfs-search-container">
+          <input type="text" id="vfs-search" class="vfs-search-input" placeholder="Search files..." />
         </div>
-        <div class="telemetry-panel">
-          <div class="telemetry-header">
-            <div class="telemetry-controls">
-              <label>
-                Filter
-                <select id="telemetry-filter">
-                  <option value="all">All</option>
-                  <option value="info">Info</option>
-                  <option value="warn">Warn</option>
-                  <option value="error">Error</option>
-                </select>
-              </label>
-              <button id="telemetry-refresh" class="btn btn-small">Refresh</button>
-            </div>
-          </div>
-          <div id="telemetry-status" class="telemetry-status muted">Waiting for telemetry service...</div>
-          <div id="telemetry-list" class="telemetry-list">
-            <div class="telemetry-empty muted">No telemetry events yet</div>
-          </div>
+        <div id="vfs-tree" class="vfs-tree mono">
+          <div class="muted">Loading...</div>
         </div>
       </div>
     </div>
@@ -128,6 +100,35 @@ export const renderProtoTemplate = (escapeHtml, goalFromBoot) => `
               <div class="schema-empty muted">Loading...</div>
             </div>
           </section>
+        </div>
+      </div>
+    </div>
+
+    <div class="workspace-content hidden" id="tab-telemetry">
+      <div class="telemetry-page">
+        <div class="telemetry-page-header">
+          <strong>Telemetry Timeline</strong>
+          <span id="telemetry-count" class="muted">0 events</span>
+        </div>
+        <div class="telemetry-panel">
+          <div class="telemetry-header">
+            <div class="telemetry-controls">
+              <label>
+                Filter
+                <select id="telemetry-filter">
+                  <option value="all">All</option>
+                  <option value="info">Info</option>
+                  <option value="warn">Warn</option>
+                  <option value="error">Error</option>
+                </select>
+              </label>
+              <button id="telemetry-refresh" class="btn btn-small">Refresh</button>
+            </div>
+          </div>
+          <div id="telemetry-status" class="telemetry-status muted">Waiting for telemetry service...</div>
+          <div id="telemetry-list" class="telemetry-list">
+            <div class="telemetry-empty muted">No telemetry events yet</div>
+          </div>
         </div>
       </div>
     </div>
@@ -252,71 +253,7 @@ export const renderProtoTemplate = (escapeHtml, goalFromBoot) => `
 
     <div class="workspace-content hidden" id="tab-analysis">
       <div id="arena-panel" class="arena-panel"></div>
-
-      <div class="replay-panel">
-        <div class="replay-header">
-          <strong>Run Replay</strong>
-          <span id="replay-status" class="muted">No run loaded</span>
-        </div>
-
-        <div class="replay-loader">
-          <label class="replay-file-label">
-            <input type="file" id="replay-file-input" accept=".json" />
-            <span class="btn">Load Run File</span>
-          </label>
-          <span id="replay-filename" class="muted"></span>
-        </div>
-
-        <div id="replay-metadata" class="replay-metadata hidden">
-          <div class="replay-meta-item">
-            <span class="status-label">Exported</span>
-            <span id="replay-exported"></span>
-          </div>
-          <div class="replay-meta-item">
-            <span class="status-label">Cycles</span>
-            <span id="replay-cycles"></span>
-          </div>
-          <div class="replay-meta-item">
-            <span class="status-label">Events</span>
-            <span id="replay-events"></span>
-          </div>
-          <div class="replay-meta-item">
-            <span class="status-label">Files</span>
-            <span id="replay-files"></span>
-          </div>
-        </div>
-
-        <div id="replay-controls" class="replay-controls hidden">
-          <div class="replay-progress">
-            <div class="replay-progress-bar">
-              <div class="replay-progress-fill" id="replay-progress-fill" style="width: 0%"></div>
-            </div>
-            <span id="replay-progress-text">0 / 0</span>
-          </div>
-
-          <div class="replay-buttons">
-            <button id="replay-play" class="btn btn-primary" title="Play">Play</button>
-            <button id="replay-pause" class="btn" title="Pause" disabled>Pause</button>
-            <button id="replay-step" class="btn" title="Step">Step</button>
-            <button id="replay-stop" class="btn" title="Reset">Reset</button>
-          </div>
-
-          <div class="replay-speed">
-            <span>Speed:</span>
-            <select id="replay-speed-select">
-              <option value="1">1x</option>
-              <option value="2">2x</option>
-              <option value="5" selected>5x</option>
-              <option value="10">10x</option>
-              <option value="50">50x</option>
-            </select>
-          </div>
-        </div>
-
-        <div id="replay-event-log" class="replay-event-log">
-          <div class="muted">Events will appear here during replay...</div>
-        </div>
-      </div>
+    </div>
     </div>
 
     <!-- VFS Content Area (appears in workspace when file is selected) -->
@@ -358,6 +295,81 @@ export const renderProtoTemplate = (escapeHtml, goalFromBoot) => `
         <div id="vfs-snapshot-viewer"></div>
       </div>
       <textarea id="vfs-editor" class="vfs-editor hidden"></textarea>
+    </div>
+
+    <div id="replay-modal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="replay-modal-title">
+      <div class="modal-content replay-modal">
+        <div class="modal-header">
+          <h3 class="modal-title" id="replay-modal-title">Run Replay</h3>
+          <button id="replay-modal-close" class="modal-close" aria-label="Close">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="replay-panel">
+            <div class="replay-header">
+              <span class="type-caption">Status</span>
+              <span id="replay-status" class="muted">No run loaded</span>
+            </div>
+
+            <div class="replay-loader">
+              <label class="replay-file-label">
+                <input type="file" id="replay-file-input" accept=".json" />
+                <span class="btn">Load Run File</span>
+              </label>
+              <span id="replay-filename" class="muted"></span>
+            </div>
+
+            <div id="replay-metadata" class="replay-metadata hidden">
+              <div class="replay-meta-item">
+                <span class="status-label">Exported</span>
+                <span id="replay-exported"></span>
+              </div>
+              <div class="replay-meta-item">
+                <span class="status-label">Cycles</span>
+                <span id="replay-cycles"></span>
+              </div>
+              <div class="replay-meta-item">
+                <span class="status-label">Events</span>
+                <span id="replay-events"></span>
+              </div>
+              <div class="replay-meta-item">
+                <span class="status-label">Files</span>
+                <span id="replay-files"></span>
+              </div>
+            </div>
+
+            <div id="replay-controls" class="replay-controls hidden">
+              <div class="replay-progress">
+                <div class="replay-progress-bar">
+                  <div class="replay-progress-fill" id="replay-progress-fill" style="width: 0%"></div>
+                </div>
+                <span id="replay-progress-text">0 / 0</span>
+              </div>
+
+              <div class="replay-buttons">
+                <button id="replay-play" class="btn btn-primary" title="Play">Play</button>
+                <button id="replay-pause" class="btn" title="Pause" disabled>Pause</button>
+                <button id="replay-step" class="btn" title="Step">Step</button>
+                <button id="replay-stop" class="btn" title="Reset">Reset</button>
+              </div>
+
+              <div class="replay-speed">
+                <span>Speed:</span>
+                <select id="replay-speed-select">
+                  <option value="1">1x</option>
+                  <option value="2">2x</option>
+                  <option value="5" selected>5x</option>
+                  <option value="10">10x</option>
+                  <option value="50">50x</option>
+                </select>
+              </div>
+            </div>
+
+            <div id="replay-event-log" class="replay-event-log">
+              <div class="muted">Events will appear here during replay...</div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </main>
 `;

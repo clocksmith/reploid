@@ -1,19 +1,15 @@
 /* Proto VFS - rd.css compliant
    Browser, Tree, Content, Editor */
 
-/* VFS Browser Panel (middle column) */
-.vfs-browser-panel {
+/* VFS Panel (tab view) */
+.vfs-panel {
   display: flex;
   flex-direction: column;
   background: var(--bg);
-  border-right: var(--border-sm) solid var(--fg);
+  border: var(--border-sm) solid var(--fg);
   min-height: 0;
+  height: 100%;
   overflow: hidden;
-}
-
-.vfs-browser-panel.collapsed {
-  width: 40px;
-  min-width: 40px;
 }
 
 .vfs-browser-header {
@@ -35,6 +31,7 @@
   padding: var(--space-sm);
   font-size: 12px;
 }
+
 
 .vfs-tree .vfs-dir {
   font-weight: 600;
@@ -164,32 +161,6 @@
   border-width: var(--border-md);
 }
 
-/* VFS Width Control (workspace header) */
-.vfs-width-control {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 11px;
-}
-
-.vfs-width-label {
-  opacity: var(--opacity-muted);
-}
-
-.vfs-width-select {
-  background: var(--bg);
-  color: var(--fg);
-  border: var(--border-sm) solid var(--fg);
-  padding: 2px 6px;
-  font-family: var(--font-a);
-  font-size: 11px;
-}
-
-.vfs-width-select:focus {
-  outline: none;
-  border-width: var(--border-md);
-}
-
 /* VFS Content (in workspace) */
 .vfs-content {
   flex: 1;
@@ -257,12 +228,6 @@
 .vfs-editor:focus {
   border-width: var(--border-md);
   outline: none;
-}
-
-/* VFS Browser Collapsed State (desktop) */
-.vfs-browser-panel.collapsed .vfs-browser-header {
-  justify-content: center;
-  padding: var(--space-sm);
 }
 
 /* VFS Preview, Diff, and Snapshot Panels */

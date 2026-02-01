@@ -170,11 +170,16 @@ const ToolRunner = {
 
     const loadToolModule = async (path, forcedName = null) => {
       try {
+        const contents = await VFS.read(path);
+        if (typeof contents === 'string' && contents.includes('ToolRunner.run')) {
+          throw new Errors.ToolError(`Tool uses ToolRunner.run (unsupported): ${path}`);
+        }
         const mod = await loadVfsModule({
           VFS,
           logger,
           VerificationManager,
-          path
+          path,
+          code: contents
         });
         const handler = typeof mod.default === 'function'
           ? mod.default
@@ -379,7 +384,12 @@ const ToolRunner = {
           PolicyEngine,
           SchemaValidator,
           SchemaRegistry,
-          ToolRunner: { list: () => Array.from(_tools.keys()), execute, has: (n) => _tools.has(n) }
+          ToolRunner: {
+            list: () => Array.from(_tools.keys()),
+            execute,
+            has: (n) => _tools.has(n),
+            refresh: loadDynamicTools
+          }
         };
         let result = await toolFn(args, toolDeps);
 

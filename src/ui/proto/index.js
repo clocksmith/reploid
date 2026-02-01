@@ -31,11 +31,11 @@ const Proto = {
     let _root = null;
     let _toolActivityContainer = null;
     let _inlineChat = null;
-    let _vfsPanelCollapsed = false;
     let _vfsSearchTimeout = null;
-    const VFS_WIDTH_KEY = 'REPLOID_VFS_WIDTH';
-    const VFS_WIDTH_OPTIONS = new Set(['0', '25', '50']);
-    const DEFAULT_VFS_WIDTH = '25';
+    const TAB_IDS = ['activity', 'vfs', 'status', 'telemetry', 'schemas', 'workers', 'analysis'];
+    const ACTIVE_TABS_KEY = 'REPLOID_ACTIVE_TABS';
+    const MAX_ACTIVE_TABS = 3;
+    let _activeTabs = [];
 
     // Token tracking - values come from ContextManager via EventBus
     let _tokenCount = 0;
@@ -47,7 +47,7 @@ const Proto = {
     // Scroll throttling and sticky scroll behavior
     let _historyScrollScheduled = false;
     let _toolActivityScrollScheduled = false;
-    let _historyFollowMode = true; // Auto-scroll to bottom on new content
+    let _historyFollowMode = true; // Auto-scroll to newest entry on new content
 
     const scheduleHistoryScroll = () => {
       if (_historyScrollScheduled) return;
@@ -55,7 +55,7 @@ const Proto = {
       _historyScrollScheduled = true;
       requestAnimationFrame(() => {
         const container = document.getElementById('history-container');
-        if (container) container.scrollTop = container.scrollHeight;
+        if (container) container.scrollTop = 0;
         _historyScrollScheduled = false;
       });
     };
@@ -109,26 +109,6 @@ const Proto = {
       _templateLoading = loader;
       _templateVersion = version;
       return loader;
-    };
-
-    const getStoredVFSWidth = () => {
-      const stored = localStorage.getItem(VFS_WIDTH_KEY);
-      return VFS_WIDTH_OPTIONS.has(stored) ? stored : DEFAULT_VFS_WIDTH;
-    };
-
-    const applyVFSWidth = (container, value) => {
-      if (!container) return DEFAULT_VFS_WIDTH;
-      const normalized = VFS_WIDTH_OPTIONS.has(value) ? value : DEFAULT_VFS_WIDTH;
-      container.dataset.vfsWidth = normalized;
-      const vfsPanel = container.querySelector('#vfs-browser');
-      if (vfsPanel) {
-        vfsPanel.setAttribute('aria-hidden', normalized === '0' ? 'true' : 'false');
-      }
-      const widthSelect = container.querySelector('#vfs-width-select');
-      if (widthSelect && widthSelect.value !== normalized) {
-        widthSelect.value = normalized;
-      }
-      return normalized;
     };
 
     // Error handling via ErrorStore
@@ -208,9 +188,11 @@ const Proto = {
       }
     };
 
-    // History persistence via VFS
+    // History persistence via VFS (with archival)
     const HISTORY_PATH = '/.memory/history.json';
-    const MAX_HISTORY_PERSISTED = 500;
+    const HISTORY_ARCHIVE_PREFIX = '/.memory/history-archive-';
+    const MAX_HISTORY_PERSISTED = 1024;
+    const ARCHIVE_BATCH = 128;
     let _historyCache = [];
     let _historyLoaded = false;
 
@@ -239,9 +221,18 @@ const Proto = {
         ts: Date.now()
       });
 
-      // Prune oldest if over limit
-      if (_historyCache.length > MAX_HISTORY_PERSISTED) {
+      // Archive oldest entries in batches when over limit
+      if (_historyCache.length > MAX_HISTORY_PERSISTED + ARCHIVE_BATCH) {
+        const archiveCount = _historyCache.length - MAX_HISTORY_PERSISTED;
+        const archiveSlice = _historyCache.slice(0, archiveCount);
         _historyCache = _historyCache.slice(-MAX_HISTORY_PERSISTED);
+
+        try {
+          const archivePath = `${HISTORY_ARCHIVE_PREFIX}${Date.now()}.json`;
+          await VFS.write(archivePath, JSON.stringify(archiveSlice, null, 2));
+        } catch (e) {
+          logger.warn('[Proto] Failed to archive history:', e.message);
+        }
       }
 
       try {
@@ -263,7 +254,7 @@ const Proto = {
       historyContainer.innerHTML = '';
 
       // Render last 200 entries max in DOM
-      const entriesToRender = _historyCache.slice(-MAX_HISTORY_ENTRIES);
+      const entriesToRender = _historyCache.slice(-MAX_HISTORY_ENTRIES).slice().reverse();
 
       for (const entry of entriesToRender) {
         const div = document.createElement('div');
@@ -434,32 +425,117 @@ const Proto = {
       budgetText.textContent = `${displayTokens} / ${displayMax}`;
     };
 
-    const switchTab = (tabId) => {
-      const container = _root?.querySelector('.app-shell');
-      if (!container) return;
+    const normalizeActiveTabs = (tabs) => {
+      const ordered = [];
+      for (const tab of tabs || []) {
+        if (!TAB_IDS.includes(tab)) continue;
+        if (ordered.includes(tab)) continue;
+        ordered.push(tab);
+      }
+      if (ordered.length === 0) {
+        ordered.push('activity');
+      }
+      if (ordered.length > MAX_ACTIVE_TABS) {
+        return ordered.slice(-MAX_ACTIVE_TABS);
+      }
+      return ordered;
+    };
 
-      const tabButtons = container.querySelectorAll('.sidebar-btn[data-tab]');
-      tabButtons.forEach(b => b.classList.remove('active'));
+    const loadActiveTabs = () => {
+      try {
+        const raw = localStorage.getItem(ACTIVE_TABS_KEY);
+        if (!raw) return normalizeActiveTabs([]);
+        const parsed = JSON.parse(raw);
+        return normalizeActiveTabs(Array.isArray(parsed) ? parsed : []);
+      } catch {
+        return normalizeActiveTabs([]);
+      }
+    };
 
-      const targetBtn = container.querySelector(`[data-tab="${tabId}"]`);
-      if (targetBtn) targetBtn.classList.add('active');
+    const persistActiveTabs = () => {
+      localStorage.setItem(ACTIVE_TABS_KEY, JSON.stringify(_activeTabs));
+    };
 
-      container.querySelectorAll('.workspace-content').forEach(panel => {
-        panel.classList.toggle('hidden', panel.id !== `tab-${tabId}`);
-      });
-
+    const handleTabActivation = (tabId) => {
       if (tabId === 'status') {
         updateDebugPanel();
-      }
-      if (tabId === 'activity' && !telemetryManager.isLoaded()) {
-        telemetryManager.loadTelemetryHistory();
+        renderErrorsList();
       }
       if (tabId === 'schemas' && !schemaManager.isLoaded()) {
         schemaManager.refreshSchemaData();
       }
-      if (tabId === 'status') {
-        renderErrorsList();
+      if (tabId === 'telemetry' && !telemetryManager.isLoaded()) {
+        telemetryManager.loadTelemetryHistory();
       }
+    };
+
+    const applyActiveTabs = (rootOverride) => {
+      const container = rootOverride || _root?.querySelector('.app-shell');
+      if (!container) return;
+
+      const activeSet = new Set(_activeTabs);
+      const tabButtons = container.querySelectorAll('.sidebar-btn[data-tab]');
+      tabButtons.forEach((btn) => {
+        btn.classList.toggle('active', activeSet.has(btn.dataset.tab));
+      });
+
+      const workspaceColumns = container.querySelector('#workspace-columns');
+      if (workspaceColumns) {
+        workspaceColumns.style.setProperty('--columns', `${_activeTabs.length || 1}`);
+        workspaceColumns.classList.remove('hidden');
+        const panels = Array.from(workspaceColumns.querySelectorAll('.workspace-content'))
+          .filter((panel) => panel.id && panel.id.startsWith('tab-'));
+        const panelById = new Map(panels.map((panel) => [panel.id.replace('tab-', ''), panel]));
+
+        _activeTabs.forEach((tabId) => {
+          const panel = panelById.get(tabId);
+          if (panel) workspaceColumns.appendChild(panel);
+        });
+
+        panels.forEach((panel) => {
+          const tabId = panel.id.replace('tab-', '');
+          panel.classList.toggle('hidden', !activeSet.has(tabId));
+          if (!activeSet.has(tabId)) {
+            workspaceColumns.appendChild(panel);
+          }
+        });
+      }
+
+      const vfsContent = container.querySelector('#vfs-content');
+      if (vfsContent) {
+        vfsContent.classList.add('hidden');
+      }
+    };
+
+    const toggleTab = (tabId) => {
+      if (!TAB_IDS.includes(tabId)) return;
+      const idx = _activeTabs.indexOf(tabId);
+      if (idx >= 0) {
+        if (_activeTabs.length === 1) return;
+        _activeTabs.splice(idx, 1);
+      } else {
+        if (_activeTabs.length >= MAX_ACTIVE_TABS) {
+          _activeTabs.shift();
+        }
+        _activeTabs.push(tabId);
+        handleTabActivation(tabId);
+      }
+      persistActiveTabs();
+      applyActiveTabs();
+    };
+
+    const focusTab = (tabId) => {
+      if (!TAB_IDS.includes(tabId)) return;
+      const idx = _activeTabs.indexOf(tabId);
+      if (idx >= 0) {
+        _activeTabs.splice(idx, 1);
+      } else if (_activeTabs.length >= MAX_ACTIVE_TABS) {
+        _activeTabs.shift();
+      }
+      _activeTabs.push(tabId);
+      handleTabActivation(tabId);
+      persistActiveTabs();
+      applyActiveTabs();
     };
 
     const updateDebugPanel = () => {
@@ -534,12 +610,9 @@ const Proto = {
       }
 
       container.innerHTML = templateRenderer(escapeHtml, goalFromBoot);
-
-      const initialVFSWidth = getStoredVFSWidth();
-      const appliedVFSWidth = applyVFSWidth(container, initialVFSWidth);
-      if (appliedVFSWidth !== initialVFSWidth) {
-        localStorage.setItem(VFS_WIDTH_KEY, appliedVFSWidth);
-      }
+      _activeTabs = loadActiveTabs();
+      _activeTabs.forEach((tabId) => handleTabActivation(tabId));
+      applyActiveTabs(container);
 
       // Bind Events
       const btnToggle = container.querySelector('#btn-toggle');
@@ -549,7 +622,7 @@ const Proto = {
       // Tab switching
       const tabButtons = container.querySelectorAll('.sidebar-btn[data-tab]');
       tabButtons.forEach(btn => {
-        btn.onclick = () => switchTab(btn.dataset.tab);
+        btn.onclick = () => toggleTab(btn.dataset.tab);
       });
 
       const telemetryFilter = container.querySelector('#telemetry-filter');
@@ -571,6 +644,50 @@ const Proto = {
       const schemaRefreshBtn = container.querySelector('#schema-refresh');
       if (schemaRefreshBtn) {
         schemaRefreshBtn.addEventListener('click', () => schemaManager.refreshSchemaData());
+      }
+
+      const replayBtn = container.querySelector('#btn-replay');
+      const replayModal = container.querySelector('#replay-modal');
+      const replayClose = container.querySelector('#replay-modal-close');
+
+      const closeReplayModal = () => {
+        if (!replayModal) return;
+        replayModal.classList.add('hidden');
+        document.removeEventListener('keydown', handleReplayKey);
+      };
+
+      const openReplayModal = () => {
+        if (!replayModal) return;
+        replayModal.classList.remove('hidden');
+        document.addEventListener('keydown', handleReplayKey);
+      };
+
+      const handleReplayKey = (event) => {
+        if (event.key === 'Escape') {
+          closeReplayModal();
+        }
+      };
+
+      if (replayBtn) {
+        replayBtn.addEventListener('click', (event) => {
+          event.preventDefault();
+          openReplayModal();
+        });
+      }
+
+      if (replayClose) {
+        replayClose.addEventListener('click', (event) => {
+          event.preventDefault();
+          closeReplayModal();
+        });
+      }
+
+      if (replayModal) {
+        replayModal.addEventListener('click', (event) => {
+          if (event.target === replayModal) {
+            closeReplayModal();
+          }
+        });
       }
 
       btnToggle.innerHTML = 'Stop';
@@ -622,7 +739,7 @@ const Proto = {
             Toast.info('Agent Error', 'See Status tab for details', {
               actions: [
                 { label: 'Retry', onClick: resumeAgent, primary: true },
-                { label: 'View Details', onClick: () => switchTab('status') }
+                { label: 'View Details', onClick: () => focusTab('status') }
               ]
             });
           }
@@ -680,17 +797,11 @@ const Proto = {
       btnExport.onclick = exportState;
 
       // VFS Browser
-      const vfsPanel = container.querySelector('#vfs-browser');
       const vfsSearch = container.querySelector('#vfs-search');
-      vfsSearch.addEventListener('input', () => {
-        clearTimeout(_vfsSearchTimeout);
-        _vfsSearchTimeout = setTimeout(() => vfsManager.filterVFSTree(vfsSearch.value), 300);
-      });
-      const vfsWidthSelect = container.querySelector('#vfs-width-select');
-      if (vfsWidthSelect) {
-        vfsWidthSelect.addEventListener('change', (event) => {
-          const nextWidth = applyVFSWidth(container, event.target.value);
-          localStorage.setItem(VFS_WIDTH_KEY, nextWidth);
+      if (vfsSearch) {
+        vfsSearch.addEventListener('input', () => {
+          clearTimeout(_vfsSearchTimeout);
+          _vfsSearchTimeout = setTimeout(() => vfsManager.filterVFSTree(vfsSearch.value), 300);
         });
       }
 
@@ -706,7 +817,7 @@ const Proto = {
 
       const workerIndicator = container.querySelector('#worker-indicator');
       if (workerIndicator) {
-        workerIndicator.onclick = () => switchTab('workers');
+        workerIndicator.onclick = () => focusTab('workers');
       }
 
       const clearWorkersBtn = container.querySelector('#workers-clear-completed');
@@ -898,16 +1009,16 @@ const Proto = {
         arenaResults.init('arena-panel');
       }
 
-      // Sticky scroll: track when user scrolls away/back to bottom
+      // Sticky scroll: track when user scrolls away/back to top
       const historyContainer = document.getElementById('history-container');
       if (historyContainer) {
         historyContainer.addEventListener('scroll', () => {
-          const distanceFromBottom = historyContainer.scrollHeight - historyContainer.scrollTop - historyContainer.clientHeight;
-          // If user scrolls more than 100px from bottom, disable follow mode
-          // If user scrolls back to within 50px of bottom, re-enable follow mode
-          if (distanceFromBottom > 100) {
+          const distanceFromTop = historyContainer.scrollTop;
+          // If user scrolls more than 100px from top, disable follow mode
+          // If user scrolls back to within 50px of top, re-enable follow mode
+          if (distanceFromTop > 100) {
             _historyFollowMode = false;
-          } else if (distanceFromBottom < 50) {
+          } else if (distanceFromTop < 50) {
             _historyFollowMode = true;
           }
         });
@@ -1032,7 +1143,7 @@ const Proto = {
             <div class="history-header"><span class="status-label">Thinking...</span> <span class="token-stats">0 tokens</span></div>
             <pre class="history-content"></pre>
           `;
-          historyContainer.appendChild(streamingEntry);
+          historyContainer.insertBefore(streamingEntry, historyContainer.firstChild);
           streamStartTime = Date.now();
           tokenCount = 0;
         }
@@ -1084,7 +1195,7 @@ const Proto = {
         }
 
         while (historyContainer.children.length >= MAX_HISTORY_ENTRIES) {
-          historyContainer.removeChild(historyContainer.firstChild);
+          historyContainer.removeChild(historyContainer.lastChild);
         }
 
         const div = document.createElement('div');
@@ -1125,7 +1236,7 @@ const Proto = {
           `;
         }
 
-        historyContainer.appendChild(div);
+        historyContainer.insertBefore(div, historyContainer.firstChild);
         scheduleHistoryScroll();
 
         // Persist to VFS
@@ -1170,7 +1281,7 @@ const Proto = {
           </div>
         `;
 
-        historyContainer.appendChild(div);
+        historyContainer.insertBefore(div, historyContainer.firstChild);
         scheduleHistoryScroll();
       }));
 
