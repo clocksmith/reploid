@@ -205,6 +205,210 @@ const ContextManager = {
       };
     };
 
+    const COMPACTION_MARKER = '[CONTEXT COMPACTED';
+
+    const isCompactionMessage = (msg) => {
+      const content = msg?.content || '';
+      return content.includes(COMPACTION_MARKER);
+    };
+
+    const stripCompactionMessages = (messages) => {
+      let compactionSummary = null;
+      const filtered = [];
+      for (const msg of messages) {
+        if (isCompactionMessage(msg)) {
+          compactionSummary = msg;
+          continue;
+        }
+        filtered.push(msg);
+      }
+      return { filtered, compactionSummary };
+    };
+
+    const parseCompactionSummary = (content = '') => {
+      const sections = {
+        toolCalls: [],
+        memoryOps: [],
+        errors: [],
+        decisions: [],
+        memorySignals: []
+      };
+      let compactions = 0;
+      if (!content) return { compactions, sections };
+
+      const lines = content.split('\n');
+      let current = null;
+
+      for (const line of lines) {
+        const trimmed = line.trim();
+        if (!trimmed) {
+          current = null;
+          continue;
+        }
+
+        if (trimmed.toLowerCase().startsWith('compactions:')) {
+          const match = trimmed.match(/Compactions:\s*(\d+)/i);
+          if (match) compactions = Number(match[1]) || compactions;
+          continue;
+        }
+
+        if (trimmed.startsWith('TOOL CALLS')) {
+          current = 'toolCalls';
+          continue;
+        }
+        if (trimmed.startsWith('MEMORY OPERATIONS')) {
+          current = 'memoryOps';
+          continue;
+        }
+        if (trimmed.startsWith('ERRORS TO AVOID')) {
+          current = 'errors';
+          continue;
+        }
+        if (trimmed.startsWith('KEY DECISIONS')) {
+          current = 'decisions';
+          continue;
+        }
+        if (trimmed.startsWith('MEMORY SIGNALS')) {
+          current = 'memorySignals';
+          continue;
+        }
+        if (trimmed.startsWith('[') && trimmed.endsWith('messages compacted]')) {
+          current = null;
+          continue;
+        }
+
+        if (trimmed.startsWith('- ') && current) {
+          sections[current].push(trimmed.slice(2));
+        }
+      }
+
+      return { compactions, sections };
+    };
+
+    const mergeSectionItems = (existing = [], incoming = []) => {
+      const combined = [...existing, ...incoming];
+      const seen = new Set();
+      const deduped = [];
+
+      for (const item of combined) {
+        const normalized = String(item || '').trim();
+        if (!normalized || seen.has(normalized)) continue;
+        seen.add(normalized);
+        deduped.push(normalized);
+      }
+
+      return deduped;
+    };
+
+    const trimToTokenBudget = (items, budget) => {
+      if (!budget || budget <= 0) return [];
+      let used = 0;
+      const kept = [];
+
+      for (let i = items.length - 1; i >= 0; i--) {
+        const item = items[i];
+        const itemTokens = estimateTokens(item) + 1;
+        if (used + itemTokens > budget) continue;
+        kept.push(item);
+        used += itemTokens;
+      }
+
+      return kept.reverse();
+    };
+
+    const getCompactionBudget = (tokens, limits, aggressive) => {
+      const percentOfContext = aggressive ? 0.05 : 0.08;
+      const minTokens = aggressive ? 500 : 800;
+      const maxTokens = Math.max(
+        minTokens,
+        Math.floor(limits.compact * (aggressive ? 0.08 : 0.12))
+      );
+      const target = Math.floor(tokens * percentOfContext);
+      return Math.max(minTokens, Math.min(maxTokens, target));
+    };
+
+    const allocateSectionBudgets = (totalBudget, sections) => {
+      const weights = {
+        toolCalls: 0.35,
+        memoryOps: 0.2,
+        errors: 0.18,
+        decisions: 0.18,
+        memorySignals: 0.09
+      };
+      const minimums = {
+        toolCalls: 120,
+        memoryOps: 80,
+        errors: 100,
+        decisions: 100,
+        memorySignals: 60
+      };
+
+      const budgets = {};
+      let sum = 0;
+      for (const [key, weight] of Object.entries(weights)) {
+        if (!sections[key] || sections[key].length === 0) {
+          budgets[key] = 0;
+          continue;
+        }
+        budgets[key] = Math.max(Math.floor(totalBudget * weight), minimums[key]);
+        sum += budgets[key];
+      }
+
+      if (sum <= totalBudget) return budgets;
+
+      let excess = sum - totalBudget;
+      const reducible = ['toolCalls', 'memoryOps', 'decisions', 'memorySignals'];
+
+      for (const key of reducible) {
+        if (excess <= 0) break;
+        if (!sections[key] || sections[key].length === 0) continue;
+        const min = minimums[key];
+        const available = budgets[key] - min;
+        if (available <= 0) continue;
+        const reduce = Math.min(available, excess);
+        budgets[key] -= reduce;
+        excess -= reduce;
+      }
+
+      if (excess > 0 && budgets.errors) {
+        const min = Math.min(minimums.errors, budgets.errors);
+        const available = budgets.errors - min;
+        if (available > 0) {
+          budgets.errors -= Math.min(available, excess);
+        }
+      }
+
+      return budgets;
+    };
+
+    const buildCompactionSummary = ({
+      mode,
+      compactionCount,
+      sections,
+      compactedCount
+    }) => {
+      let summary = `[CONTEXT COMPACTED - ${mode}]\n`;
+      summary += `Compactions: ${compactionCount}\n\n`;
+
+      const addSection = (title, items) => {
+        if (!items || items.length === 0) return;
+        summary += `${title} (${items.length}):\n`;
+        items.forEach(item => {
+          summary += `- ${item}\n`;
+        });
+        summary += '\n';
+      };
+
+      addSection('TOOL CALLS', sections.toolCalls);
+      addSection('MEMORY SIGNALS', sections.memorySignals);
+      addSection('MEMORY OPERATIONS', sections.memoryOps);
+      addSection('ERRORS TO AVOID', sections.errors);
+      addSection('KEY DECISIONS', sections.decisions);
+
+      summary += `[${compactedCount} messages compacted]`;
+      return summary;
+    };
+
     // -------------------------------------------------------------------------
     // Critical Info Extraction
     // -------------------------------------------------------------------------
@@ -214,33 +418,37 @@ const ContextManager = {
       const memoryOps = [];
       const errors = [];
       const decisions = [];
+      const memorySignals = [];
 
       for (const msg of messages) {
         const content = msg.content || '';
+        if (!content) continue;
+        if (content.includes(COMPACTION_MARKER)) continue;
 
         // Extract tool calls
         const toolCallMatches = content.matchAll(/TOOL_CALL:\s*(\w+)/g);
         for (const match of toolCallMatches) {
-          toolCalls.push({ tool: match[1], role: msg.role });
+          toolCalls.push(match[1]);
         }
 
         const toolResultMatches = content.matchAll(/Act #(\d+) -> (\w+)\s*(.*?)(?=Act #|\n\n|$)/gs);
         for (const match of toolResultMatches) {
           // In aggressive mode, truncate results more
           const resultLen = aggressive ? 50 : 100;
-          toolCalls.push({ cycle: match[1], tool: match[2], result: match[3].substring(0, resultLen) });
+          const result = match[3].replace(/\s+/g, ' ').trim().substring(0, resultLen);
+          toolCalls.push(result ? `${match[2]}: ${result}` : match[2]);
         }
 
         // Extract memory operations
         if (content.includes('WriteFile') || content.includes('CreateTool') || content.includes('LoadModule')) {
           const opLen = aggressive ? 80 : 150;
-          memoryOps.push({ role: msg.role, op: content.substring(0, opLen) });
+          memoryOps.push(content.replace(/\s+/g, ' ').trim().substring(0, opLen));
         }
 
         // Extract errors (always preserve these)
         if (content.includes('ERROR') || content.includes('failed') || content.includes('Error:')) {
           const errLen = aggressive ? 100 : 200;
-          errors.push(content.substring(0, errLen));
+          errors.push(content.replace(/\s+/g, ' ').trim().substring(0, errLen));
         }
 
         // Extract key decisions
@@ -248,12 +456,32 @@ const ContextManager = {
         for (const match of thinkMatches) {
           if (match[2].length > 50) {
             const thoughtLen = aggressive ? 100 : 200;
-            decisions.push({ cycle: match[1], thought: match[2].substring(0, thoughtLen) });
+            const thought = match[2].replace(/\s+/g, ' ').trim().substring(0, thoughtLen);
+            decisions.push(`Cycle ${match[1]}: ${thought}`);
+          }
+        }
+
+        if (content.includes('[MEMORY]') ||
+            content.includes('[Past Context]') ||
+            content.includes('[Anticipated:') ||
+            content.includes('[Relevant Memories]') ||
+            content.includes('[Conversation Context]')) {
+          const signalLen = aggressive ? 140 : 220;
+          const lines = content.split('\n');
+          for (const line of lines) {
+            const trimmed = line.trim();
+            if (!trimmed) continue;
+            if (/^\[(MEMORY|Past Context|Anticipated|Relevant Memories|Conversation Context)\b/.test(trimmed)) {
+              const clipped = trimmed.length > signalLen
+                ? `${trimmed.slice(0, signalLen).trim()}...`
+                : trimmed;
+              memorySignals.push(clipped);
+            }
           }
         }
       }
 
-      return { toolCalls, memoryOps, errors, decisions };
+      return { toolCalls, memoryOps, errors, decisions, memorySignals };
     };
 
     // -------------------------------------------------------------------------
@@ -290,55 +518,47 @@ const ContextManager = {
         return { context, compacted: false };
       }
 
-      // Extract critical info (with aggressive truncation if needed)
-      const critical = extractCriticalInfo(middle, aggressive);
-
-      // Build compact summary
-      let compactSummary = `[CONTEXT COMPACTED - ${mode}]\n\n`;
-
-      // In aggressive mode, keep fewer items
-      const toolLimit = aggressive ? 5 : 10;
-      const memLimit = aggressive ? 3 : 5;
-      const errLimit = aggressive ? 2 : 3;
-      const decLimit = aggressive ? 3 : 5;
-
-      if (critical.toolCalls.length > 0) {
-        compactSummary += `TOOL CALLS (${critical.toolCalls.length}):\n`;
-        critical.toolCalls.slice(-toolLimit).forEach(tc => {
-          compactSummary += `- ${tc.tool}${tc.result ? ': ' + tc.result : ''}\n`;
-        });
-        compactSummary += '\n';
+      const { filtered: middleMessages, compactionSummary } = stripCompactionMessages(middle);
+      if (middleMessages.length === 0) {
+        return { context, compacted: false };
       }
 
-      if (critical.memoryOps.length > 0) {
-        compactSummary += `MEMORY OPERATIONS:\n`;
-        critical.memoryOps.slice(-memLimit).forEach(op => {
-          compactSummary += `- ${op.op}\n`;
-        });
-        compactSummary += '\n';
-      }
+      const previous = parseCompactionSummary(compactionSummary?.content);
+      const critical = extractCriticalInfo(middleMessages, aggressive);
 
-      if (critical.errors.length > 0) {
-        compactSummary += `ERRORS TO AVOID:\n`;
-        critical.errors.slice(-errLimit).forEach(err => {
-          compactSummary += `- ${err}\n`;
-        });
-        compactSummary += '\n';
-      }
+      const combined = {
+        toolCalls: mergeSectionItems(previous.sections.toolCalls, critical.toolCalls),
+        memoryOps: mergeSectionItems(previous.sections.memoryOps, critical.memoryOps),
+        errors: mergeSectionItems(previous.sections.errors, critical.errors),
+        decisions: mergeSectionItems(previous.sections.decisions, critical.decisions),
+        memorySignals: mergeSectionItems(previous.sections.memorySignals, critical.memorySignals)
+      };
 
-      if (critical.decisions.length > 0) {
-        compactSummary += `KEY DECISIONS:\n`;
-        critical.decisions.slice(-decLimit).forEach(dec => {
-          compactSummary += `- Cycle ${dec.cycle}: ${dec.thought}\n`;
-        });
-      }
+      const summaryBudget = getCompactionBudget(tokens, limits, aggressive);
+      const budgets = allocateSectionBudgets(summaryBudget, combined);
 
-      compactSummary += `\n[${middle.length} messages compacted]`;
+      const mergedSections = {
+        toolCalls: trimToTokenBudget(combined.toolCalls, budgets.toolCalls),
+        memoryOps: trimToTokenBudget(combined.memoryOps, budgets.memoryOps),
+        errors: trimToTokenBudget(combined.errors, budgets.errors),
+        decisions: trimToTokenBudget(combined.decisions, budgets.decisions),
+        memorySignals: trimToTokenBudget(combined.memorySignals, budgets.memorySignals)
+      };
+
+      const priorCompactions = previous.compactions || (compactionSummary ? 1 : 0);
+      const compactionCount = Math.max(1, priorCompactions + 1);
+      const compactSummary = buildCompactionSummary({
+        mode,
+        compactionCount,
+        sections: mergedSections,
+        compactedCount: middleMessages.length
+      });
 
       const compacted = [...start, { role: 'user', content: compactSummary }, ...end];
-      const newTokens = countTokens(compacted);
 
       invalidateTokenCache();
+      const newTokens = countTokens(compacted);
+      const summaryTokens = estimateTokens(compactSummary);
 
       // Notify UI
       if (EventBus) {
@@ -348,14 +568,21 @@ const ContextManager = {
           newTokens,
           reduction: tokens - newTokens,
           preserved: {
-            toolCalls: Math.min(critical.toolCalls.length, toolLimit),
-            errors: Math.min(critical.errors.length, errLimit),
-            decisions: Math.min(critical.decisions.length, decLimit)
-          }
+            toolCalls: mergedSections.toolCalls.length,
+            memorySignals: mergedSections.memorySignals.length,
+            memoryOps: mergedSections.memoryOps.length,
+            errors: mergedSections.errors.length,
+            decisions: mergedSections.decisions.length
+          },
+          compactions: compactionCount,
+          summaryBudget,
+          summaryTokens,
+          summary: compactSummary,
+          ts: Date.now()
         });
       }
 
-      logger.info(`[ContextManager] ${mode} compaction complete: ${tokens} -> ${newTokens} tokens (${middle.length} msgs compacted)`);
+      logger.info(`[ContextManager] ${mode} compaction complete: ${tokens} -> ${newTokens} tokens (${middleMessages.length} msgs compacted, summary ~${summaryTokens}/${summaryBudget})`);
 
       return { context: compacted, compacted: true, previousTokens: tokens, newTokens };
     };

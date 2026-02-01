@@ -5,38 +5,34 @@
 export const renderProtoTemplate = (escapeHtml, goalFromBoot) => `
   <!-- Sidebar Navigation -->
   <nav class="sidebar">
-    <button class="sidebar-btn active" data-tab="activity" title="Activity (1)">
-      <span class="sidebar-icon">&#x2261;</span>
+    <button class="sidebar-btn active" data-tab="timeline" title="Timeline (1)">
+      <span class="sidebar-icon">☛</span>
       <span class="tab-indicator" aria-hidden="true"><span></span><span></span><span></span></span>
     </button>
-    <button class="sidebar-btn" data-tab="vfs" title="VFS (2)">
-      <span class="sidebar-icon">&#9751;</span>
+    <button class="sidebar-btn" data-tab="tools" title="Tools (2)">
+      <span class="sidebar-icon">☇</span>
       <span class="tab-indicator" aria-hidden="true"><span></span><span></span><span></span></span>
     </button>
-    <button class="sidebar-btn" data-tab="status" title="Status (3)">
-      <span class="sidebar-icon">&#x2139;</span>
+    <button class="sidebar-btn" data-tab="telemetry" title="Telemetry (3)">
+      <span class="sidebar-icon">☨</span>
       <span class="tab-indicator" aria-hidden="true"><span></span><span></span><span></span></span>
     </button>
-    <button class="sidebar-btn" data-tab="telemetry" title="Telemetry (4)">
-      <span class="sidebar-icon">&#9768;</span>
+    <button class="sidebar-btn" data-tab="status" title="Status (4)">
+      <span class="sidebar-icon">⎈</span>
       <span class="tab-indicator" aria-hidden="true"><span></span><span></span><span></span></span>
     </button>
-    <button class="sidebar-btn" data-tab="schemas" title="Schemas (5)">
+    <button class="sidebar-btn" data-tab="memory" title="Memory (5)">
       <span class="sidebar-icon">☷</span>
       <span class="tab-indicator" aria-hidden="true"><span></span><span></span><span></span></span>
     </button>
-    <button class="sidebar-btn" data-tab="workers" title="Workers (6)" id="workers-tab-btn">
-      <span class="sidebar-icon">&#x2692;</span>
-      <span class="tab-indicator" aria-hidden="true"><span></span><span></span><span></span></span>
-    </button>
-    <button class="sidebar-btn" data-tab="analysis" title="Analysis (7)">
-      <span class="sidebar-icon">&#9906;</span>
+    <button class="sidebar-btn" data-tab="cognition" title="Cognition (6)">
+      <span class="sidebar-icon">☍</span>
       <span class="tab-indicator" aria-hidden="true"><span></span><span></span><span></span></span>
     </button>
     <div class="sidebar-spacer"></div>
     <button id="btn-replay" class="sidebar-btn" title="Replay">♺</button>
-    <button id="btn-toggle" class="sidebar-btn" title="Stop (Esc)">&#x25A0;</button>
-    <button id="btn-export" class="sidebar-btn" title="Export (Ctrl+E)">&#x2913;</button>
+    <button id="btn-toggle" class="sidebar-btn" title="Stop (Esc)">Stop</button>
+    <button id="btn-export" class="sidebar-btn" title="Export (Ctrl+E)">⎘</button>
   </nav>
 
   <!-- Main Workspace -->
@@ -59,9 +55,6 @@ export const renderProtoTemplate = (escapeHtml, goalFromBoot) => `
         <span class="muted">Cycle</span>
         <span id="agent-cycle">0</span>
         <span class="muted">|</span>
-        <span class="muted">Workers</span>
-        <span id="worker-indicator-count">0</span>
-        <span class="muted">|</span>
       </div>
     </div>
 
@@ -77,243 +70,125 @@ export const renderProtoTemplate = (escapeHtml, goalFromBoot) => `
 
     <!-- Tab Panels -->
     <div class="workspace-content workspace-columns" id="workspace-columns">
-    <div class="workspace-content" id="tab-activity">
-      <div id="history-container" class="history-stream">
-        <div class="muted">Thinking and actions will appear here.</div>
+      <div class="workspace-content" id="tab-timeline">
+        <div id="history-container" class="history-stream">
+          <div id="history-placeholder" class="muted">Thinking and actions will appear here.</div>
+        </div>
+        <div id="inline-chat-container"></div>
       </div>
-      <div id="inline-chat-container"></div>
-    </div>
 
-    <div class="workspace-content hidden" id="tab-vfs">
-      <div class="vfs-panel">
-        <div class="vfs-search-container">
-          <input type="text" id="vfs-search" class="vfs-search-input" placeholder="Search files..." />
-        </div>
-        <div id="vfs-tree" class="vfs-tree mono">
-          <div class="muted">Loading...</div>
+      <div class="workspace-content hidden" id="tab-tools">
+        <div class="tools-panel">
+          <div class="tools-header">
+            <strong>Tool Executions</strong>
+            <span id="tools-count" class="muted">0 entries</span>
+          </div>
+          <div id="tools-list" class="tools-list">
+            <div class="muted">No tool executions yet</div>
+          </div>
         </div>
       </div>
-      <div id="vfs-content" class="vfs-content hidden mono">
-        <div class="vfs-content-header hidden" id="vfs-content-header">
-          <span class="vfs-file-path" id="vfs-current-path"></span>
-          <div class="vfs-content-actions">
-            <button id="vfs-preview-btn" class="btn btn-small hidden" title="Preview">Preview</button>
-            <button id="vfs-diff-btn" class="btn btn-small" title="Diff">Diff</button>
-            <button id="vfs-snapshot-btn" class="btn btn-small" title="Snapshots">Snapshots</button>
-            <button id="vfs-edit-btn" class="btn btn-small" title="edit">edit</button>
-            <button id="vfs-save-btn" class="btn btn-small btn-primary hidden" title="Save">Save</button>
-            <button id="vfs-cancel-btn" class="btn btn-small hidden" title="Cancel">Cancel</button>
-          </div>
-        </div>
-        <div id="vfs-content-body" class="vfs-content-body">
-          <div class="muted">Select a file to view contents</div>
-        </div>
-        <div id="vfs-preview-panel" class="vfs-preview-panel hidden">
-          <div class="vfs-preview-header">
-            <span id="vfs-preview-title">Preview</span>
-            <button id="vfs-preview-close" class="btn-link" title="Close">☈</button>
-          </div>
-          <iframe id="vfs-preview-iframe" sandbox="allow-scripts" title="File preview"></iframe>
-        </div>
-        <div id="vfs-diff-panel" class="vfs-diff-panel hidden">
-          <div class="vfs-diff-header">
-            <span>Genesis Diff</span>
-            <button id="vfs-diff-close" class="btn-link" title="Close">☈</button>
-          </div>
-          <div id="vfs-diff-content"></div>
-        </div>
-        <div id="vfs-snapshot-panel" class="vfs-snapshot-panel hidden">
-          <div class="vfs-snapshot-header">
-            <span>Snapshots</span>
-            <button id="vfs-snapshot-close" class="btn-link" title="Close">☈</button>
-          </div>
-          <div id="vfs-snapshot-timeline"></div>
-          <div id="vfs-snapshot-viewer"></div>
-        </div>
-        <textarea id="vfs-editor" class="vfs-editor hidden"></textarea>
-      </div>
-    </div>
 
-    <div class="workspace-content hidden" id="tab-schemas">
-      <div class="schema-panel">
-        <div class="schema-header">
-          <div>
-            <strong>Schema Registry</strong>
-            <span id="schema-tool-count">0 tools</span> -
-            <span id="schema-worker-count">0 worker types</span>
+      <div class="workspace-content hidden" id="tab-telemetry">
+        <div class="telemetry-page">
+          <div class="telemetry-page-header">
+            <strong>Telemetry Timeline</strong>
+            <span id="telemetry-count" class="muted">0 events</span>
           </div>
-          <div class="schema-controls">
-            <input id="schema-search" class="schema-search" type="text" placeholder="Search tools or worker types..." />
-            <button id="schema-refresh" class="btn btn-small">Refresh</button>
-          </div>
-        </div>
-        <div class="schema-columns">
-          <section>
-            <h4>Tool Schemas</h4>
-            <div id="schema-tool-list" class="schema-list">
-              <div class="schema-empty muted">Loading...</div>
+          <div class="telemetry-panel">
+            <div class="telemetry-header">
+              <div class="telemetry-controls">
+                <label>
+                  Filter
+                  <select id="telemetry-filter">
+                    <option value="all">All</option>
+                    <option value="info">Info</option>
+                    <option value="warn">Warn</option>
+                    <option value="error">Error</option>
+                  </select>
+                </label>
+                <button id="telemetry-refresh" class="btn btn-small">Refresh</button>
+              </div>
             </div>
-          </section>
-          <section>
-            <h4>Worker Types</h4>
-            <div id="schema-worker-list" class="schema-list">
-              <div class="schema-empty muted">Loading...</div>
-            </div>
-          </section>
-        </div>
-      </div>
-    </div>
-
-    <div class="workspace-content hidden" id="tab-telemetry">
-      <div class="telemetry-page">
-        <div class="telemetry-page-header">
-          <strong>Telemetry Timeline</strong>
-          <span id="telemetry-count" class="muted">0 events</span>
-        </div>
-        <div class="telemetry-panel">
-          <div class="telemetry-header">
-            <div class="telemetry-controls">
-              <label>
-                Filter
-                <select id="telemetry-filter">
-                  <option value="all">All</option>
-                  <option value="info">Info</option>
-                  <option value="warn">Warn</option>
-                  <option value="error">Error</option>
-                </select>
-              </label>
-              <button id="telemetry-refresh" class="btn btn-small">Refresh</button>
+            <div id="telemetry-status" class="telemetry-status muted">Waiting for telemetry service...</div>
+            <div id="telemetry-list" class="telemetry-list">
+              <div class="telemetry-empty muted">No telemetry events yet</div>
             </div>
           </div>
-          <div id="telemetry-status" class="telemetry-status muted">Waiting for telemetry service...</div>
-          <div id="telemetry-list" class="telemetry-list">
-            <div class="telemetry-empty muted">No telemetry events yet</div>
-          </div>
         </div>
       </div>
-    </div>
 
-    <div class="workspace-content hidden" id="tab-status">
-      <div class="status-section" id="intent-section">
-        <div class="status-section-header">
-          <span>Intent</span>
-          <span id="intent-refinement-count" class="muted">0 refinements</span>
-        </div>
+      <div class="workspace-content hidden" id="tab-status">
         <div class="status-panel">
           <div class="status-item">
-            <span class="status-label">Goal</span>
-            <span id="intent-goal" class="status-value">${escapeHtml(goalFromBoot)}</span>
+            <span class="status-label">State</span>
+            <span id="agent-state-detail" class="status-value">IDLE</span>
           </div>
-        </div>
-        <div id="intent-refinement-list" class="intent-refinement-list">
-          <div class="muted" style="padding: 6px 0;">No goal refinements yet</div>
-        </div>
-      </div>
-      <div class="status-section">
-        <div class="status-section-header">
-          <span>Tool Activity</span>
-        </div>
-        <div id="tool-activity-container" class="reflections-stream">
-          <div class="muted">Tool activity will appear here.</div>
-        </div>
-      </div>
-      <div class="status-section">
-        <div class="status-section-header">
-          <span>Insights</span>
-        </div>
-        <div id="insights-container" class="reflections-stream">
-          <div class="muted">Insights and learnings will appear here.</div>
-        </div>
-      </div>
-      <div class="status-panel">
-        <div class="status-item">
-          <span class="status-label">State</span>
-          <span id="agent-state-detail" class="status-value">IDLE</span>
-        </div>
-        <div class="status-item">
-          <span class="status-label">Activity</span>
-          <span id="agent-activity" class="status-value">Waiting to start</span>
-        </div>
-        <div class="status-item">
-          <span class="status-label">Token Usage</span>
-          <span id="agent-tokens" class="status-value">0 / 32000</span>
-        </div>
-        <div class="status-item status-item-models">
-          <span class="status-label">Models</span>
-          <div id="agent-models" class="status-models-list">-</div>
-        </div>
-      </div>
-      <div id="errors-warnings-section" class="status-section">
-        <div class="status-section-header">
-          <span>Errors & Warnings</span>
-          <button id="clear-errors-btn" class="btn-link" style="display: none;">Clear All</button>
-        </div>
-        <div id="errors-list" class="errors-list">
-          <div class="muted" style="padding: 10px;">No errors or warnings</div>
-        </div>
-      </div>
-      <div class="status-section">
-        <div class="status-section-header">
-          <span>Debug</span>
-        </div>
-        <div class="debug-panel">
-          <div class="debug-section">
-            <div class="debug-section-header">System Prompt</div>
-            <pre id="debug-system-prompt" class="debug-content">Loading...</pre>
+          <div class="status-item">
+            <span class="status-label">Activity</span>
+            <span id="agent-activity" class="status-value">Waiting to start</span>
           </div>
-          <div class="debug-section">
-            <div class="debug-section-header">Conversation Context (<span id="debug-context-count">0</span> messages)</div>
-            <pre id="debug-context" class="debug-content">Loading...</pre>
+          <div class="status-item">
+            <span class="status-label">Cycle</span>
+            <span id="agent-cycle-detail" class="status-value">0</span>
           </div>
-          <div class="debug-section">
-            <div class="debug-section-header">Model Configuration</div>
-            <pre id="debug-model-config" class="debug-content">Loading...</pre>
+          <div class="status-item">
+            <span class="status-label">Token Usage</span>
+            <span id="agent-tokens" class="status-value">0 / 32000</span>
+          </div>
+          <div class="status-item">
+            <span class="status-label">Token Window</span>
+            <span id="agent-token-window" class="status-value">0%</span>
+          </div>
+          <div class="status-item">
+            <span class="status-label">Model</span>
+            <span id="agent-model" class="status-value">-</span>
+          </div>
+          <div class="status-item">
+            <span class="status-label">Compactions</span>
+            <span id="agent-compactions" class="status-value">0</span>
+          </div>
+          <div class="status-item">
+            <span class="status-label">Last Compaction</span>
+            <span id="agent-last-compaction" class="status-value">-</span>
+          </div>
+          <div class="status-item">
+            <span class="status-label">Errors / Warnings</span>
+            <span id="agent-errors" class="status-value">0</span>
           </div>
         </div>
       </div>
-    </div>
 
-    <div class="workspace-content hidden" id="tab-workers">
-      <div class="workers-panel">
-        <div class="workers-summary">
-          <div class="workers-summary-item">
-            <span>Active</span>
-            <strong id="workers-active-count">0</strong>
+      <div class="workspace-content hidden" id="tab-memory">
+        <div class="memory-panel">
+          <div class="memory-header">
+            <strong>Memory</strong>
+            <span id="memory-summary-meta" class="muted">-</span>
           </div>
-          <div class="workers-summary-item">
-            <span>Completed</span>
-            <strong id="workers-completed-count">0</strong>
+          <div class="memory-summary">
+            <div class="memory-section-header">Current Summary</div>
+            <pre id="memory-summary" class="memory-block">No summary yet</pre>
           </div>
-          <div class="workers-summary-item">
-            <span>Last Update</span>
-            <strong id="workers-last-update">-</strong>
+          <div class="memory-columns">
+            <section class="memory-section">
+              <div class="memory-section-header">Compactions</div>
+              <div id="memory-compactions" class="memory-list">
+                <div class="muted">No compactions yet</div>
+              </div>
+            </section>
+            <section class="memory-section">
+              <div class="memory-section-header">Retrievals</div>
+              <div id="memory-retrievals" class="memory-list">
+                <div class="muted">No retrievals yet</div>
+              </div>
+            </section>
           </div>
-        </div>
-        <div class="workers-sections">
-          <section class="workers-section">
-            <div class="workers-section-header">
-              <span>Active Workers</span>
-            </div>
-            <div id="workers-active-list" class="workers-list">
-              <div class="empty-state">No active workers</div>
-            </div>
-          </section>
-          <section class="workers-section">
-            <div class="workers-section-header">
-              <span>Recent Results</span>
-              <button id="workers-clear-completed" class="btn-link hidden">Clear</button>
-            </div>
-            <div id="workers-completed-list" class="workers-list">
-              <div class="empty-state">No completed workers yet</div>
-            </div>
-          </section>
         </div>
       </div>
-    </div>
 
-    <div class="workspace-content hidden" id="tab-analysis">
-      <div id="arena-panel" class="arena-panel"></div>
-    </div>
+      <div class="workspace-content hidden" id="tab-cognition">
+        <div id="cognition-panel" class="cognition-panel"></div>
+      </div>
     </div>
 
 
@@ -322,7 +197,7 @@ export const renderProtoTemplate = (escapeHtml, goalFromBoot) => `
       <div class="modal-content replay-modal">
         <div class="modal-header">
           <h3 class="modal-title" id="replay-modal-title">Run Replay</h3>
-          <button id="replay-modal-close" class="modal-close" aria-label="Close">&times;</button>
+          <button id="replay-modal-close" class="modal-close" aria-label="Close">x</button>
         </div>
         <div class="modal-body">
           <div class="replay-panel">
