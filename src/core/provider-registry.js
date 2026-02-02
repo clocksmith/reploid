@@ -22,6 +22,18 @@ const ProviderRegistry = {
     let _dopplerVfsChecked = false;
 
     const normalizeId = (id) => (id || '').toLowerCase().trim();
+    const getDopplerBaseUrl = () => {
+      if (typeof window === 'undefined') return null;
+      const direct = window.DOPPLER_BASE_URL;
+      if (direct && typeof direct === 'string') return direct;
+      try {
+        const stored = window.localStorage?.getItem('DOPPLER_BASE_URL');
+        if (stored && typeof stored === 'string') return stored;
+      } catch {
+        return null;
+      }
+      return null;
+    };
 
     const registerProvider = (id, provider, options = {}) => {
       const cleanId = normalizeId(id);
@@ -131,8 +143,13 @@ const ProviderRegistry = {
       if (_dopplerVfsChecked || !VFS) return true;
       const entry = await VFS.stat('/doppler/src/client/doppler-provider.js').catch(() => null);
       if (!entry) {
+        const base = getDopplerBaseUrl();
+        const manifestUrl = base
+          ? `${base.replace(/\/$/, '')}/config/vfs-manifest.json`
+          : '/doppler/config/vfs-manifest.json';
+        const assetsHint = base || '/doppler';
         throw new Errors.ConfigError(
-          'Doppler provider not present in VFS. Seed VFS from /doppler/config/vfs-manifest.json or host /doppler assets.'
+          `Doppler provider not present in VFS. Seed VFS from ${manifestUrl} or host Doppler assets at ${assetsHint}.`
         );
       }
       _dopplerVfsChecked = true;
@@ -301,7 +318,7 @@ const ProviderRegistry = {
 
       let module;
       try {
-        module = await import('@clocksmith/doppler/provider');
+        module = await import('@doppler/core/provider');
       } catch (err) {
         throw new Errors.ConfigError(`Failed to import Doppler provider: ${err.message}`);
       }

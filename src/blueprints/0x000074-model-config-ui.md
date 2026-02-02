@@ -194,7 +194,7 @@ When DOPPLER Native Bridge extension is available, enables local filesystem brow
 ```javascript
 // form.js - Browse Modal
 async function openBrowseModal() {
-  const { createBridgeClient } = await import('@clocksmith/doppler/bridge/index.js');
+  const { createBridgeClient } = await import('@doppler/core/bridge/index.js');
   browseClient = await createBridgeClient();
   await navigateToPath('/Users');
 }

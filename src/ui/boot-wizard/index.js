@@ -32,6 +32,12 @@ import { renderAwakenStep } from './steps/awaken.js';
 let container = null;
 let listenersAttached = false;
 
+const getDopplerBaseHref = () => {
+  if (typeof window === 'undefined') return '/doppler/';
+  const base = window.DOPPLER_BASE_URL || '/doppler';
+  return base.endsWith('/') ? base : `${base}/`;
+};
+
 const updateHitlConfig = (updates) => {
   let current = {
     approvalMode: 'autonomous',
@@ -390,6 +396,7 @@ function render() {
   const scrollTop = container.scrollTop;
 
   const state = getState();
+  const dopplerHref = getDopplerBaseHref();
   let html = '<div class="wizard-sections">';
 
   // Header
@@ -397,7 +404,7 @@ function render() {
     <div class="wizard-brand">
       <div class="brand-row">
         <h1 class="type-display">REPLOID</h1>
-        <a class="link-secondary type-caption" href="/doppler/" target="_blank" rel="noopener">Doppler</a>
+        <a class="link-secondary type-caption" href="${dopplerHref}" target="_blank" rel="noopener">Doppler</a>
       </div>
       <a class="intro-tagline" href="https://github.com/clocksmith/reploid" target="_blank" rel="noopener">self-modifying AI agent in the browser -> view source code</a>
     </div>

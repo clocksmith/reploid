@@ -11,6 +11,27 @@ const VFS_BYPASS_HEADER = 'x-reploid-vfs-bypass';
 
 let dbPromise = null;
 
+const getDopplerBaseUrl = () => {
+  if (typeof window === 'undefined') return null;
+  const direct = window.DOPPLER_BASE_URL;
+  if (direct && typeof direct === 'string') return direct;
+  try {
+    const stored = window.localStorage?.getItem('DOPPLER_BASE_URL');
+    if (stored && typeof stored === 'string') return stored;
+  } catch {
+    return null;
+  }
+  return null;
+};
+
+const buildDopplerUrl = (path) => {
+  const base = getDopplerBaseUrl();
+  if (!base) return null;
+  const cleanBase = base.replace(/\/$/, '');
+  const cleanPath = String(path || '').replace(/^\/doppler/, '');
+  return `${cleanBase}${cleanPath}`;
+};
+
 const normalizePath = (path) => {
   if (!path || typeof path !== 'string') throw new Error('Invalid VFS path');
   let clean = path.trim().replace(/\\/g, '/');
@@ -23,6 +44,10 @@ const toWebPath = (file) => {
     ? document.baseURI
     : (typeof window !== 'undefined' && window.location ? window.location.href : 'http://localhost/');
   const raw = String(file || '');
+  if (raw.startsWith('/doppler')) {
+    const dopplerUrl = buildDopplerUrl(raw);
+    if (dopplerUrl) return dopplerUrl;
+  }
   if (raw.startsWith('/')) {
     const origin = (typeof window !== 'undefined' && window.location && window.location.origin)
       ? window.location.origin
@@ -186,7 +211,8 @@ export async function loadVfsManifest() {
 
   const [reploidManifest, dopplerManifest] = await Promise.all([
     fetchManifest('/src/config/vfs-manifest.json'),
-    fetchManifest('/doppler/config/vfs-manifest.json').catch(() => ({ files: [] }))
+    fetchManifest(buildDopplerUrl('/doppler/config/vfs-manifest.json') || '/doppler/config/vfs-manifest.json')
+      .catch(() => ({ files: [] }))
   ]);
 
   if (!reploidManifest?.files || !Array.isArray(reploidManifest.files)) {
