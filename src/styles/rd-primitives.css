@@ -175,8 +175,7 @@ code,
   color: var(--bg);
 }
 
-/* Flex column layout */
-.flex-col,
+/* Flex column layout (toast container) */
 .toast-container {
   display: flex;
   flex-direction: column;

@@ -199,7 +199,7 @@ export async function checkDoppler() {
   }
 
   try {
-    const { DopplerProvider } = await import('@clocksmith/doppler/provider');
+    const { DopplerProvider } = await import('@doppler/core/provider');
     const available = await DopplerProvider.init();
 
     if (available) {

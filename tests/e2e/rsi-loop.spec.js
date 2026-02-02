@@ -421,7 +421,7 @@ test.describe('RSI with Real Doppler', () => {
       }
 
       try {
-        const { DopplerProvider } = await import('@clocksmith/doppler/provider');
+        const { DopplerProvider } = await import('@doppler/core/provider');
 
         // Initialize Doppler
         const available = await DopplerProvider.init();
@@ -520,7 +520,7 @@ Decode: ${metrics.metrics.decodeTokPerSec} tok/s (decode only)
       }
 
       try {
-        const { DopplerProvider } = await import('@clocksmith/doppler/provider');
+        const { DopplerProvider } = await import('@doppler/core/provider');
 
         // Initialize and load model
         await DopplerProvider.init();
@@ -609,7 +609,7 @@ Decode: ${metrics.metrics.decodeTokPerSec} tok/s (decode only)
       }
 
       try {
-        const { DopplerProvider } = await import('@clocksmith/doppler/provider');
+        const { DopplerProvider } = await import('@doppler/core/provider');
 
         await DopplerProvider.init();
         const caps = DopplerProvider.getCapabilities();

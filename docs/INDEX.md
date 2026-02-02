@@ -119,7 +119,7 @@ reploid/
 - `./src/index.html` - Entry point
 
 **Key Directories:**
-- `./src/core/` - Agent substrate modules
+- `./src/` - Agent substrate modules
 - `./src/tools/` - Dynamic agent tools
 - `./src/infrastructure/` - Support services
 - `./src/ui/` - Proto UI
@@ -127,7 +127,7 @@ reploid/
 - `docs/` - Human-facing documentation. Internal module system invariants and migration checklist live in the private wrapper repo.
 
 **External Dependencies:**
-- `@clocksmith/doppler` - WebGPU inference engine (vendored at `reploid/doppler/`)
+- `@doppler/core` - WebGPU inference engine (vendored at `reploid/doppler/`)
 
 ---
 

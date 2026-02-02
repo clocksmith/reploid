@@ -43,16 +43,36 @@
     <link rel="stylesheet" href="styles/rd.css?v=1735500000" />
     <link rel="stylesheet" href="styles/boot.css?v=1735500000" />
 
-    <script type="importmap">
-      {
-        "imports": {
-          "@clocksmith/doppler": "/doppler/src/index.js",
-          "@clocksmith/doppler/provider": "/doppler/src/client/doppler-provider.js",
-          "@clocksmith/doppler/bridge/": "/doppler/src/bridge/",
-          "@clocksmith/doppler/browser/": "/doppler/src/browser/",
-          "@clocksmith/doppler/": "/doppler/src/"
+    <script>
+      (function () {
+        const params = new URLSearchParams(window.location.search);
+        const fromQuery = params.get('dopplerBase');
+        if (fromQuery) {
+          try {
+            localStorage.setItem('DOPPLER_BASE_URL', fromQuery);
+          } catch {}
         }
-      }
+        let stored = null;
+        try {
+          stored = localStorage.getItem('DOPPLER_BASE_URL');
+        } catch {}
+        const base = (fromQuery || stored || '/doppler').replace(/\/$/, '');
+        window.DOPPLER_BASE_URL = base;
+
+        const join = (suffix) => `${base}${suffix}`;
+        const imports = {
+          '@doppler/core': join('/src/index.js'),
+          '@doppler/core/provider': join('/src/client/doppler-provider.js'),
+          '@doppler/core/bridge/': join('/src/bridge/'),
+          '@doppler/core/browser/': join('/src/browser/'),
+          '@doppler/core/': join('/src/')
+        };
+
+        const script = document.createElement('script');
+        script.type = 'importmap';
+        script.textContent = JSON.stringify({ imports }, null, 2);
+        document.currentScript.after(script);
+      })();
     </script>
 
   </head>
