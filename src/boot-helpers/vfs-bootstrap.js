@@ -172,7 +172,8 @@ const writeEntries = async (entries) => {
   });
 };
 
-export async function loadVfsManifest() {
+export async function loadVfsManifest(options = {}) {
+  const { includeDoppler = false } = options;
   const normalizeManifestFiles = (manifest) => {
     if (!manifest?.files || !Array.isArray(manifest.files)) return [];
     const files = [];
@@ -211,8 +212,10 @@ export async function loadVfsManifest() {
 
   const [reploidManifest, dopplerManifest] = await Promise.all([
     fetchManifest('/src/config/vfs-manifest.json'),
-    fetchManifest(buildDopplerUrl('/doppler/config/vfs-manifest.json') || '/doppler/config/vfs-manifest.json')
-      .catch(() => ({ files: [] }))
+    includeDoppler
+      ? fetchManifest(buildDopplerUrl('/doppler/config/vfs-manifest.json') || '/doppler/config/vfs-manifest.json')
+          .catch(() => ({ files: [] }))
+      : Promise.resolve({ files: [] })
   ]);
 
   if (!reploidManifest?.files || !Array.isArray(reploidManifest.files)) {
@@ -245,7 +248,8 @@ export async function seedVfsFromManifest(manifest, options = {}) {
     logger = console,
     manifestText = null,
     chunkSize = 200,
-    fetchConcurrency = DEFAULT_FETCH_CONCURRENCY
+    fetchConcurrency = DEFAULT_FETCH_CONCURRENCY,
+    skipVfsPaths = null
   } = options;
 
   let skip = null;
@@ -254,7 +258,20 @@ export async function seedVfsFromManifest(manifest, options = {}) {
     skip = new Set(keys);
   }
 
-  const shouldSkip = (path) => skip && skip.has(path);
+  const normalizeSkipVfsPaths = (paths) => {
+    if (!paths) return null;
+    if (paths instanceof Set) {
+      const out = new Set();
+      for (const p of paths) out.add(normalizePath(p));
+      return out;
+    }
+    if (Array.isArray(paths)) return new Set(paths.map((p) => normalizePath(p)));
+    return null;
+  };
+  const skipExplicit = normalizeSkipVfsPaths(skipVfsPaths);
+
+  const shouldSkip = (path) =>
+    ((skip && skip.has(path)) || (skipExplicit && skipExplicit.has(path)));
   if (!manifest?.files || !Array.isArray(manifest.files)) {
     throw new Error('VFS manifest missing files list');
   }

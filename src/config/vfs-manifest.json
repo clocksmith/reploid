@@ -305,6 +305,7 @@
     "experimental/semantic-memory-neural.js",
     "favicon.svg",
     "index.html",
+    "providers/doppler-reploid.js",
     "infrastructure/README.md",
     "infrastructure/audit-logger.js",
     "infrastructure/browser-apis.js",

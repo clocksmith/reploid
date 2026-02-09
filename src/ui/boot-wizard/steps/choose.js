@@ -24,6 +24,7 @@ export function renderChooseStep(state) {
 
   // Helper for border class - dotted when unselected, solid when selected
   const borderClass = (type) => connectionType === type ? '' : 'border-ghost';
+  const pressed = (type) => connectionType === type ? 'true' : 'false';
 
   return `
     <div class="wizard-step wizard-choose">
@@ -32,6 +33,7 @@ export function renderChooseStep(state) {
       <div class="connection-options">
         <button class="panel connection-option ${borderClass('browser')} ${!webgpuSupported ? 'disabled' : ''}"
                 data-action="choose-browser"
+                aria-pressed="${pressed('browser')}"
                 ${!webgpuSupported ? 'disabled' : ''}>
           <span class="type-h2">⎈ Browser</span>
           <span class="type-caption">${webgpuSupported
@@ -44,7 +46,9 @@ export function renderChooseStep(state) {
           </div>
         </button>
 
-        <button class="panel connection-option ${borderClass('direct')}" data-action="choose-direct">
+        <button class="panel connection-option ${borderClass('direct')}"
+                data-action="choose-direct"
+                aria-pressed="${pressed('direct')}">
           <span class="type-h2">☁ Direct</span>
           <span class="type-caption">Call cloud APIs directly (Claude, GPT, Gemini)</span>
           <div class="option-capabilities">
@@ -53,7 +57,9 @@ export function renderChooseStep(state) {
           </div>
         </button>
 
-        <button class="panel connection-option ${borderClass('proxy')}" data-action="choose-proxy">
+        <button class="panel connection-option ${borderClass('proxy')}"
+                data-action="choose-proxy"
+                aria-pressed="${pressed('proxy')}">
           <span class="type-h2">☍ Proxy ${serverDetected ? '<span class="badge">Detected</span>' : ''}</span>
           <span class="type-caption">${serverDescription}</span>
           <div class="option-capabilities">

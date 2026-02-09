@@ -199,11 +199,7 @@ const toolRunner = container.resolve('ToolRunner');
 
 Human-in-the-loop oversight:
 
-| Mode | Behavior |
-|------|----------|
-| **AUTONOMOUS** | No approval required |
-| **HITL** | Queue actions for approval |
-| **EVERY_N** | Checkpoint every N steps |
+Modes and behavior table: see `substrate.md#hitl-modes`.
 
 ### `infrastructure/audit-logger.js`
 

@@ -66,7 +66,6 @@ const GOAL_CATEGORIES = {
       text: 'Create a persona editor panel that stores named personas in local workspace storage and lets users set the active persona.',
       tags: [TAGS.UI, TAGS.ORCH, TAGS.DATA]
     },
-    }
   ],
   'L2: Substrate': [
     {
