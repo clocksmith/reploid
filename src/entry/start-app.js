@@ -210,6 +210,13 @@ async function completeAwaken(bootResult, goal, wizardContainer) {
     // Expose awaken trigger - this runs boot() when user clicks Awaken
     window.triggerAwaken = async (goal) => {
       try {
+        // Ensure the full VFS hydration finished so module imports don't 404 under the SW.
+        const fullSeed = window.REPLOID_VFS_FULL_SEED_PROMISE;
+        if (fullSeed && typeof fullSeed.then === 'function') {
+          console.log('[Boot] Waiting for background VFS hydration...');
+          await fullSeed;
+        }
+
         // NOW run the boot sequence
         const bootResult = await boot(Utils, DIContainer);
         await completeAwaken(bootResult, goal, wizardContainer);

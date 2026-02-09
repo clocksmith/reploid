@@ -46,21 +46,23 @@ export function renderGoalStep(state) {
               </button>
               <div class="accordion-content" aria-hidden="${!isSelected}">
                 <div class="category-goals">
-                  ${goals.map((goal) => {
-                    const goalText = goal.text || goal.view || '';
+	                  ${goals.map((goal) => {
+	                    const goalText = goal.text || goal.view || '';
                     const viewText = goal.view || goalText;
                     const tags = buildGoalTags(goal)
                       .map(tag => `<span class="goal-tag">${escapeText(tag)}</span>`)
                       .join('');
-                    const locked = goal.locked ? 'locked' : '';
-                    const selected = goalText === goalValue ? 'selected' : '';
+	                    const locked = goal.locked ? 'locked' : '';
+	                    const isSelected = goalText === goalValue;
+	                    const selected = isSelected ? 'selected' : '';
 
-                    return `
-                      <button class="goal-chip ${locked} ${selected}"
-                              data-action="select-goal"
-                              data-goal="${escapeAttr(goalText)}"
-                              title="${escapeAttr(goalText)}"
-                              ${goal.locked ? 'disabled' : ''}>
+	                    return `
+	                      <button class="goal-chip ${locked} ${selected}"
+	                              data-action="select-goal"
+	                              data-goal="${escapeAttr(goalText)}"
+	                              title="${escapeAttr(goalText)}"
+	                              aria-pressed="${isSelected ? 'true' : 'false'}"
+	                              ${goal.locked ? 'disabled' : ''}>
                         <div class="goal-chip-header">
                           <span class="goal-view">${escapeText(viewText)}</span>
                           ${tags ? `<span class=\"goal-flags\">${tags}</span>` : ''}

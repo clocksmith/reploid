@@ -368,6 +368,7 @@ th {
   display: inline-block;
   padding: 2px var(--space-sm);
   font-weight: 500;
+  border-color: currentColor;
 }
 
 .badge-filled {
@@ -379,6 +380,7 @@ th {
 .tag {
   display: inline-block;
   padding: 2px 4px;
+  border-color: currentColor;
 }
 
 /* === DIVIDERS === */
@@ -662,4 +664,30 @@ th {
 
 .accordion-content[aria-hidden="false"] {
   display: block;
+}
+
+/* === SEGMENTED CONTROLS === */
+/*
+ * For single-select button groups (tabs/toggles).
+ * Mark the active item with `.is-active` or `aria-pressed="true"`.
+ */
+.segmented-control {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  flex-wrap: wrap;
+}
+
+.segmented-btn {
+  border-style: dotted;
+  border-radius: 0;
+}
+
+.segmented-btn.is-active,
+.segmented-btn[aria-pressed="true"],
+.segmented-control [aria-pressed="true"] {
+  border-style: solid;
+  border-color: currentColor;
+  background: var(--fg);
+  color: var(--bg);
 }

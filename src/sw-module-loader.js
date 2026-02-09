@@ -207,7 +207,20 @@ async function handleModuleRequest(request, url) {
       });
     }
 
+    // Doppler is served as its own static app under /doppler/ and is not part of the
+    // Reploid VFS hydration by default. If it's not present in VFS, fall back to network.
+    if (vfsPath.startsWith('/doppler/')) {
+      return fetch(request);
+    }
+
     if (vfsPath.startsWith('/boot-helpers/')) {
+      return fetch(request);
+    }
+
+    // First-load behavior: the SW can control the page before the VFS is hydrated.
+    // For non-JS assets (especially CSS), fall back to network instead of returning
+    // a JS "throw" payload with 404, which breaks boot styling.
+    if (!pathname.endsWith('.js')) {
       return fetch(request);
     }
 

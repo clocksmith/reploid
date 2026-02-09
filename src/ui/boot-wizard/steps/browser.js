@@ -22,16 +22,18 @@ export function renderBrowserConfigStep(state) {
       <p class="type-caption">Select a model to run locally via WebGPU</p>
 
       <div class="model-options">
-        ${downloadableModels.map(m => {
-          const cached = models.some(cm => cm.id === m.id);
-          return `
-            <button class="model-option ${dopplerConfig.model === m.id ? 'selected' : ''} ${cached ? 'cached' : ''}"
-                    data-action="select-doppler-model"
-                    data-model="${m.id}">
-              <div class="model-info">
-                <span class="model-name">${m.name}</span>
-                ${m.recommended ? '<span class="model-badge">Recommended</span>' : ''}
-              </div>
+	        ${downloadableModels.map(m => {
+	          const cached = models.some(cm => cm.id === m.id);
+	          const selected = dopplerConfig.model === m.id;
+	          return `
+	            <button class="model-option ${selected ? 'selected' : ''} ${cached ? 'cached' : ''}"
+	                    data-action="select-doppler-model"
+	                    data-model="${m.id}"
+	                    aria-pressed="${selected ? 'true' : 'false'}">
+	              <div class="model-info">
+	                <span class="model-name">${m.name}</span>
+	                ${m.recommended ? '<span class="model-badge">Recommended</span>' : ''}
+	              </div>
               <div class="model-meta">
                 <span class="model-size">${m.size}</span>
                 <span class="model-status">${cached ? '★ Cached' : 'Download required'}</span>
