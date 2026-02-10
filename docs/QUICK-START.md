@@ -526,7 +526,7 @@ Captured at boot, before any agent action:
 - Try smaller model (Qwen 1.5B or Llama 1B)
 - Clear browser cache and retry
 
-For more detailed solutions, see [troubleshooting.md](./troubleshooting.md).
+For more detailed solutions, start with [testing.md](./testing.md) (common failure modes) and the UI Status/Debug tabs.
 
 ---
 

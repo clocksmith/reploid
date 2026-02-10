@@ -268,4 +268,4 @@ export default defineConfig({
 
 - Ouroboros Architecture (internal)
 - [Arena System](../testing/arena/README.md)
-- [Contributing Guide](contributing.md)
+- [Style Guide](./style-guide.md)
