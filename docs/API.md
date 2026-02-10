@@ -614,7 +614,7 @@ exportAsMarkdown('performance.md', report);
 - **Architecture Blueprints:** `blueprints/` directory - Design specifications
 - **Module Source Code:** `core/` and `infrastructure/` - Fully documented with JSDoc
 - **Quick Start Guide:** `docs/quick-start.md` - Interactive tutorial
-- **Troubleshooting:** `docs/troubleshooting.md` - Common issues and solutions
+- **Testing:** `docs/testing.md` - Common failure modes and how to validate changes
 - **Security Model:** `docs/security.md` - Containment and safety architecture
 
 ---

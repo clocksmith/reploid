@@ -410,7 +410,7 @@ reploid/
 └── server/                 # Proxy server for API keys
 ```
 
-For module development guidelines, see [contributing.md](./contributing.md).
+For module development guidelines, see [style-guide.md](./style-guide.md) and the blueprint set in `../src/blueprints/`.
 
 ---
 

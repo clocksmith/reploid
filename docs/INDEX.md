@@ -35,10 +35,8 @@ Guide to all documentation in the REPLOID project.
 - **[docs/intent-bundle-lora.md](./intent-bundle-lora.md)** - Intent bundle LoRA workflow
 - **[docs/configuration.md](./configuration.md)** - Boot page settings and localStorage keys
 - **[docs/local-models.md](./local-models.md)** - WebLLM and Ollama setup
-- **[docs/troubleshooting.md](./troubleshooting.md)** - Common issues and solutions
 - **[docs/style-guide.md](./style-guide.md)** - Code and UI conventions
 - **[docs/security.md](./security.md)** - Security model and containment layers
-- **[docs/contributing.md](./contributing.md)** - Contribution guidelines
 
 ---
 
@@ -95,8 +93,7 @@ reploid/
 1. [system-architecture.md](./system-architecture.md) - Understand architecture
 2. [blueprints/README.md](../src/blueprints/README.md) - Study specifications
 3. [api.md](./api.md) - Learn module APIs
-4. [contributing.md](./contributing.md) - Contribution guidelines
-5. [tools/README.md](../src/tools/README.md) - Tool development
+4. [tools/README.md](../src/tools/README.md) - Tool development
 
 ### For RSI Research
 1. [README.md](../README.md) - Core RSI thesis
