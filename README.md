@@ -2,10 +2,10 @@
 
 **R**ecursive **E**volution **P**rotocol **L**oop **O**rchestrating **I**nference **D**oppler ([Doppler](https://github.com/clocksmith/doppler))
 
+**[Try it live](https://replo.id/)**
+
 Browser-native recursive self-improvement—an agent that rewrites its own code and kernels in a live loop.
 Reploid is the driver; Doppler is the inference engine (optional) and runs standalone, but can be linked for inference and training.
-
-**[Try it live](https://replo.id/r)**
 
 ## Why This Works
 
