@@ -1,0 +1,15 @@
+{
+  "projects": {
+    "default": "reploid"
+  },
+  "targets": {
+    "reploid": {
+      "hosting": {
+        "reploid": [
+          "reploid"
+        ]
+      }
+    }
+  },
+  "etags": {}
+}
