@@ -1,0 +1,84 @@
+{
+  "hosting": [
+    {
+      "target": "reploid",
+      "public": ".",
+      "ignore": [
+        "**/.*",
+        "bin/**",
+        "docs/**",
+        "doppler/**",
+        "node_modules/**",
+        "scripts/**",
+        "server/**",
+        "tests/**",
+        "package*.json",
+        "playwright.config.js",
+        "tsconfig.json",
+        "vitest.config.js",
+        "tests/**",
+        "**/*.gguf",
+        "**/*.safetensors",
+        "**/*.ts",
+        "**/*.map",
+        ".generated/**",
+        "**/.generated/**",
+        "**/tests/**",
+        "**/node_modules/**",
+        "showcase/**",
+        "proto/**"
+      ],
+      "headers": [
+        {
+          "source": "**/*.js",
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "no-cache, no-store, must-revalidate"
+            }
+          ]
+        },
+        {
+          "source": "**/*.css",
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "no-cache, no-store, must-revalidate"
+            }
+          ]
+        },
+        {
+          "source": "**/*.json",
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "no-cache, no-store, must-revalidate"
+            }
+          ]
+        }
+      ],
+      "rewrites": [
+        {
+          "source": "/sw-module-loader.js",
+          "destination": "/src/sw-module-loader.js"
+        },
+        {
+          "source": "/design",
+          "destination": "/src/design.html"
+        },
+        {
+          "source": "/reset",
+          "destination": "/src/reset.html"
+        },
+        {
+          "source": "/",
+          "destination": "/src/index.html"
+        },
+        {
+          "source": "**",
+          "destination": "/src/index.html"
+        }
+      ]
+    }
+  ]
+}
