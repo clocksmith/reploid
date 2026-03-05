@@ -69,7 +69,7 @@ Reploid can evolve Doppler kernels by writing a replacement WGSL file to
 Doppler validates the hash and recompiles only when it changes. This path is
 gated by verification and rollback logic in Reploid.
 
-See `reploid/doppler/docs/architecture.md` for Doppler's engine design details.
+See `/home/x/deco/reploid/docs/architecture.md` for Doppler's engine design details.
 
 ---
 

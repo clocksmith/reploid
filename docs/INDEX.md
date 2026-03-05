@@ -124,7 +124,7 @@ reploid/
 - `docs/` - Human-facing documentation. Internal module system invariants and migration checklist live in the private wrapper repo.
 
 **External Dependencies:**
-- `@doppler/core` - WebGPU inference engine (vendored at `reploid/doppler/`)
+- `@doppler/core` - WebGPU inference engine (vendored at `/home/x/deco/reploid/`)
 
 ---
 

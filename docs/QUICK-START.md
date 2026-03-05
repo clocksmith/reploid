@@ -448,7 +448,7 @@ Press **Ctrl+K** (Cmd+K on Mac) for quick commands:
 - Genesis snapshot enables instant rollback
 - Service worker serves modules from VFS
 
-Note: Reploid VFS is IndexedDB-only for source modules and small artifacts (see `reploid/src/boot-helpers/vfs-bootstrap.js` and `reploid/src/sw-module-loader.js`). Doppler model storage is separate: it uses OPFS by default for large model shards, with an IndexedDB fallback in `reploid/doppler/src/storage/shard-manager.js` and quota tracking in `reploid/doppler/src/storage/quota.js`. VFS does not abstract OPFS here; a unified layer would be new work.
+Note: Reploid VFS is IndexedDB-only for source modules and small artifacts (see `reploid/src/boot-helpers/vfs-bootstrap.js` and `reploid/src/sw-module-loader.js`). Doppler model storage is separate: it uses OPFS by default for large model shards, with an IndexedDB fallback in `/home/x/deco/reploid/src/storage/shard-manager.js` and quota tracking in `/home/x/deco/reploid/src/storage/quota.js`. VFS does not abstract OPFS here; a unified layer would be new work.
 
 ### Genesis Snapshots
 
