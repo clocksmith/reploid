@@ -1,14 +1,14 @@
 /**
  * Reploid-specific Doppler adapter.
  *
- * Doppler ships `@doppler/core` (engine) and `@doppler/core/provider` (generic browser facade).
+ * Doppler ships `@simulatte/doppler` (engine) and `@simulatte/doppler/provider` (generic browser facade).
  * Reploid wraps those into Reploid's provider contract (chat/stream/status + LoRA + KV prefill)
  * and exposes Reploid-only "toolbox" surfaces (bench harness).
  */
 
 async function loadBenchHarness() {
   // Keep this lazy: most sessions never touch the harness.
-  return import('@doppler/core/inference/browser-harness.js');
+  return import('@simulatte/doppler/inference/browser-harness.js');
 }
 
 export function createReploidDopplerProvider(baseProvider, { Errors }) {
