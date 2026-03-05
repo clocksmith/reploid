@@ -38,7 +38,7 @@ const DopplerArenaIntegration = {
 
       try {
         // Try dynamic import for Doppler
-        const { DopplerProvider } = await import('@doppler/core/provider');
+        const { DopplerProvider } = await import('@simulatte/doppler/provider');
         _dopplerProvider = DopplerProvider;
 
         if (!_dopplerProvider.getCapabilities().initialized) {

@@ -165,7 +165,7 @@ const ProviderRegistry = {
 
       let module;
       try {
-        module = await import('@doppler/core/provider');
+        module = await import('@simulatte/doppler/provider');
       } catch (err) {
         throw new Errors.ConfigError(`Failed to import Doppler provider: ${err.message}`);
       }

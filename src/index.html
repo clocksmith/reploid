@@ -61,11 +61,11 @@
 
         const join = (suffix) => `${base}${suffix}`;
         const imports = {
-          '@doppler/core': join('/src/index.js'),
-          '@doppler/core/provider': join('/src/client/doppler-provider.js'),
-          '@doppler/core/bridge/': join('/src/bridge/'),
-          '@doppler/core/browser/': join('/src/browser/'),
-          '@doppler/core/': join('/src/')
+          '@simulatte/doppler': join('/src/index.js'),
+          '@simulatte/doppler/provider': join('/src/client/doppler-provider.js'),
+          '@simulatte/doppler/bridge/': join('/src/bridge/'),
+          '@simulatte/doppler/browser/': join('/src/browser/'),
+          '@simulatte/doppler/': join('/src/')
         };
 
         const script = document.createElement('script');
