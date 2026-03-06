@@ -10,7 +10,7 @@
   },
   "homepage": "https://github.com/clocksmith/reploid",
   "bin": {
-    "reploid": "./bin/reploid-cli.js",
+    "reploid": "./bin/reploid-cli.ts",
     "reploid-config": "./bin/reploid-config"
   },
   "scripts": {
@@ -42,7 +42,6 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@simulatte/doppler": "file:./doppler",
     "dotenv": "^16.3.1",
     "express": "^4.18.2",
     "node-fetch": "^3.3.2",

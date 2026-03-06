@@ -9,7 +9,8 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 const mockSemanticMemory = {
   store: vi.fn().mockResolvedValue('mem_001'),
   search: vi.fn().mockResolvedValue([]),
-  embed: vi.fn().mockResolvedValue(new Array(384).fill(0))
+  embed: vi.fn().mockResolvedValue(new Array(384).fill(0)),
+  getStats: vi.fn().mockResolvedValue({ totalFacts: 0, totalMemories: 0 })
 };
 
 const mockKnowledgeTree = {
@@ -185,14 +186,11 @@ describe('PromptMemory', () => {
 
     it('detects drift when performance degrades', async () => {
       // Mock performance data with drift
+      // checkDrift reads baselineStats and recentStats directly from the JSON
       const perfData = {
         promptId: 'prompt_001',
-        executions: [
-          // Baseline (first 5): high performance
-          ...Array(5).fill({ success: true, latencyMs: 100, score: 0.95 }),
-          // Recent (last 10): degraded performance
-          ...Array(10).fill({ success: false, latencyMs: 500, score: 0.5 })
-        ]
+        baselineStats: { avgScore: 0.95, successRate: 1.0 },
+        recentStats: { avgScore: 0.5, successRate: 0.5, count: 10 }
       };
 
       mockVFS.exists.mockResolvedValue(true);

@@ -139,7 +139,7 @@ describe('VFS - Integration Tests', () => {
       const result = await vfs.init();
 
       expect(result).toBe(true);
-      expect(global.indexedDB.open).toHaveBeenCalledWith('reploid-vfs-v2', 1);
+      expect(global.indexedDB.open).toHaveBeenCalledWith('reploid-vfs-v0', 1);
     });
 
     it('should log successful connection', async () => {

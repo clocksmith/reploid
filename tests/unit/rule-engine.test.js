@@ -5,6 +5,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import UtilsModule from '../../core/utils.js';
 import EventBusModule from '../../infrastructure/event-bus.js';
+import { setSecurityEnabled } from '../../core/security-config.js';
 import RuleEngineModule from '../../capabilities/cognition/symbolic/rule-engine.js';
 
 // Mock VFS
@@ -645,24 +646,30 @@ describe('RuleEngine', () => {
 
   describe('HITL Integration', () => {
     it('should request approval for induced rules in HITL mode', async () => {
-      const mockHITL = createMockHITLController('hitl');
+      setSecurityEnabled(true, { persist: false });
 
-      const newEngine = RuleEngineModule.factory({
-        Utils: utils,
-        VFS: mockVFS,
-        EventBus: mockEventBus,
-        KnowledgeGraph: mockKnowledgeGraph,
-        HITLController: mockHITL
-      });
+      try {
+        const mockHITL = createMockHITLController('hitl');
 
-      await newEngine.init();
+        const newEngine = RuleEngineModule.factory({
+          Utils: utils,
+          VFS: mockVFS,
+          EventBus: mockEventBus,
+          KnowledgeGraph: mockKnowledgeGraph,
+          HITLController: mockHITL
+        });
 
-      await newEngine.induceRule({
-        head: { predicate: 'test', args: ['?x'] },
-        body: []
-      });
+        await newEngine.init();
 
-      expect(mockHITL.requestApproval).toHaveBeenCalled();
+        await newEngine.induceRule({
+          head: { predicate: 'test', args: ['?x'] },
+          body: []
+        });
+
+        expect(mockHITL.requestApproval).toHaveBeenCalled();
+      } finally {
+        setSecurityEnabled(false, { persist: false });
+      }
     });
   });
 

@@ -240,7 +240,7 @@ This document provides an overview of REPLOID's module API. For detailed JSDoc c
 
 **Checkpoints:** `/.memory/gepa/gen_X.json`
 
-**See Also:** [Blueprint 0x000078](../blueprints/0x000078-gepa-prompt-evolution.md)
+**See Also:** [Blueprint 0x000067](../src/blueprints/0x000067-gepa-prompt-evolution.md)
 
 ---
 
@@ -279,7 +279,7 @@ This document provides an overview of REPLOID's module API. For detailed JSDoc c
 
 **Registry:** `/.memory/neural-compiler/adapters.json`
 
-**See Also:** [Blueprint 0x000095](../blueprints/0x000095-hot-swappable-neural-compiler.md)
+**See Also:** [Blueprint 0x00007E](../src/blueprints/0x00007E-hot-swappable-neural-compiler.md)
 
 ---
 

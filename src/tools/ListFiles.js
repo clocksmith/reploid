@@ -34,7 +34,7 @@ async function call(args = {}, deps = {}) {
   const { VFS } = deps;
   if (!VFS) throw new Error('VFS not available');
 
-  const { path = '/', directory, dir, long = false, recursive = false } = args;
+  const { path, directory, dir, long = false, recursive = false } = args;
   const targetPath = normalizeTargetPath(path || directory || dir || '/');
 
   const files = await VFS.list(targetPath);
