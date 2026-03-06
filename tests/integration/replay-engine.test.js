@@ -57,7 +57,8 @@ describe('ReplayEngine - Integration Tests', () => {
     };
 
     mockToolRunner = {
-      run: vi.fn().mockResolvedValue('tool result')
+      run: vi.fn().mockResolvedValue('tool result'),
+      execute: vi.fn().mockResolvedValue('tool result')
     };
 
     mockLLMClient = {

@@ -56,9 +56,8 @@ describe('WriteFile', () => {
       expect(tool.name).toBe('WriteFile');
     });
 
-    it('should require path and content', () => {
+    it('should require path', () => {
       expect(tool.inputSchema.required).toContain('path');
-      expect(tool.inputSchema.required).toContain('content');
     });
   });
 
@@ -70,8 +69,8 @@ describe('WriteFile', () => {
       );
 
       expect(mockVFS.write).toHaveBeenCalledWith('/test.txt', 'hello world');
-      expect(result).toContain('Wrote /test.txt');
-      expect(result).toContain('11 bytes');
+      expect(result.path).toBe('/test.txt');
+      expect(result.bytesWritten).toBe(11);
     });
 
     it('should support "file" as alias for "path"', async () => {
@@ -262,7 +261,7 @@ describe('WriteFile', () => {
       );
 
       expect(mockSubstrateLoader.loadModule).toHaveBeenCalledWith('/tools/new-tool.js');
-      expect(result).toContain('hot-reloaded');
+      expect(result.loadResult).toContain('hot-reloaded');
     });
 
     it('should not autoLoad non-JS files', async () => {
@@ -272,7 +271,7 @@ describe('WriteFile', () => {
       );
 
       expect(mockSubstrateLoader.loadModule).not.toHaveBeenCalled();
-      expect(result).not.toContain('hot-reloaded');
+      expect(result.loadResult).toBeNull();
     });
 
     it('should handle autoLoad failure gracefully', async () => {
@@ -283,7 +282,7 @@ describe('WriteFile', () => {
         { VFS: mockVFS, SubstrateLoader: mockSubstrateLoader }
       );
 
-      expect(result).toContain('autoLoad failed');
+      expect(result.loadResult).toContain('autoLoad failed');
     });
 
     it('should skip autoLoad when SubstrateLoader not available', async () => {
@@ -292,7 +291,7 @@ describe('WriteFile', () => {
         { VFS: mockVFS }
       );
 
-      expect(result).toContain('SubstrateLoader not available');
+      expect(result.loadResult).toContain('SubstrateLoader not available');
     });
   });
 });

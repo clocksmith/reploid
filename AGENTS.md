@@ -8,7 +8,7 @@
 ```
 reploid/
 ├── README.md                 ← Overview and quick start
-├── AGENTS.md                 ← Agent instructions (this file)
+├── AGENTS.md                 ← Agent instructions
 ├── EMOJI.md                  ← Approved Unicode symbols
 ├── src/                      ← Browser code (served to client)
 │   ├── core/                 ← Agent loop, VFS, LLM client

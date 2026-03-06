@@ -1,4 +1,4 @@
-# Blueprint 0x00008F-LLMCFG: LLM Config Panel
+# Blueprint 0x000078-LLMCFG: LLM Config Panel
 
 **Objective:** Provide a comprehensive runtime configuration panel for LLM model selection, provider management, parameter tuning, and connection testing.
 

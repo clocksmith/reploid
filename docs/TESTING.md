@@ -49,12 +49,14 @@
 
 Isolated tests for individual modules with mocked dependencies.
 
-**16 test files covering:**
+**33 test files covering:**
 - Infrastructure: `di-container.test.js`, `event-bus.test.js`, `context-manager.test.js`
-- Core modules: `state-manager.test.js`, `utils.test.js`, `utils-core.test.js`
-- Tools & execution: `tool-runner.test.js`, `response-parser.test.js`
+- Core modules: `state-manager.test.js`, `utils.test.js`, `utils-core.test.js`, `vfs-module-loader.test.js`
+- Tools: `tools/read-file.test.js`, `tools/write-file.test.js`, `tools/edit-file.test.js`, `tools/list-files.test.js`, `tools/grep.test.js`, `tools/find.test.js`
+- Execution: `tool-runner.test.js`, `response-parser.test.js`, `schema-validator.test.js`
 - UI/UX: `confirmation-modal.test.js`, `toast.test.js`, `toast-notifications.test.js`
-- Features: `audit-logger.test.js`, `rate-limiter.test.js`, `goal-history.test.js`
+- Capabilities: `audit-logger.test.js`, `rate-limiter.test.js`, `rule-engine.test.js`, `policy-engine.test.js`, `gepa-engines.test.js`, `episodic-memory.test.js`, `hybrid-retrieval.test.js`, `knowledge-tree.test.js`, `observability.test.js`, `verification-manager.test.js`
+- Browser: `browser-apis.test.js`, `core-hardening.test.js`
 - Networking: `webrtc-swarm.test.js`, `swarm-sync.test.js`
 
 **Run:**
@@ -62,18 +64,19 @@ Isolated tests for individual modules with mocked dependencies.
 npm run test:unit
 ```
 
-**Framework:** Vitest 4.0.16 + happy-dom
+**Framework:** Vitest 4.x + happy-dom
 
 ### 2. Integration Tests (`tests/integration/`)
 
 Multi-module workflow tests with realistic state management.
 
-**12 test files covering:**
-- Core cognitive loop: `agent-loop.test.js`, `fsm.test.js`
-- LLM & inference: `llm-client.test.js`, `neural-compiler-lora.test.js`, `gepa-optimizer.test.js`
+**17 test files covering:**
+- Core cognitive loop: `agent-loop.test.js`, `fsm.test.js`, `rsi-loop.test.js`
+- LLM & inference: `llm-client.test.js`, `neural-compiler-lora.test.js`, `gepa-optimizer.test.js`, `doppler-inference.test.js`
 - Memory & state: `prompt-memory.test.js`, `reflection-system.test.js`, `replay-engine.test.js`, `vfs.test.js`
-- Persistence: `long-session.test.js`
-- Arena (safety): `arena-harness.test.js`
+- Persistence: `long-session.test.js`, `genesis-snapshot.test.js`
+- Tool execution: `tool-runner.test.js`
+- Arena (safety): `arena-harness.test.js`, `doppler-arena.test.js`
 - Networking: `webrtc-swarm.test.js`
 
 **Run:**
@@ -85,13 +88,14 @@ npm run test:integration
 
 Full browser automation with Playwright.
 
-**6 spec files:**
+**7 spec files:**
 - `boot.spec.js` - Agent boot sequence
 - `dashboard.spec.js` - Dashboard functionality
 - `workers.spec.js` - Web worker integration
 - `accessibility.spec.js` - A11y compliance
 - `agent-goals.spec.js` - Goal completion flows
 - `modules.spec.js` - Module loading
+- `rsi-loop.spec.js` - RSI loop validation
 
 **Run:**
 ```bash
@@ -136,7 +140,7 @@ Multi-model consensus for RSI safety validation.
 
 **Purpose:** Ensures risky L2/L3 operations are validated by multiple models before execution.
 
-**See:** [testing/arena/README.md](../testing/arena/README.md)
+**See:** [Arena Source](../src/testing/arena/)
 
 ---
 
@@ -225,14 +229,24 @@ GitHub Actions: `.github/workflows/test.yml`
 
 ```javascript
 import { defineConfig } from 'vitest/config';
+import { resolve } from 'path';
+
+const src = resolve('src');
 
 export default defineConfig({
+  resolve: {
+    alias: [
+      // Tests import ../../core/ etc. — rewrite to src/
+      { find: /^(\.\.\/)+(?=(core|infrastructure|capabilities|testing|tools|ui)\/)/, replacement: src + '/' },
+    ]
+  },
   test: {
-    globals: true,
-    environment: 'happy-dom',
     include: ['tests/**/*.test.js'],
+    environment: 'happy-dom',
+    globals: true,
     coverage: {
       provider: 'v8',
+      reporter: ['text', 'html'],
       thresholds: {
         lines: 60,
         functions: 60,
@@ -267,5 +281,5 @@ export default defineConfig({
 ## Related Documentation
 
 - Ouroboros Architecture (internal)
-- [Arena System](../testing/arena/README.md)
+- [Arena Source](../src/testing/arena/)
 - [Style Guide](./style-guide.md)

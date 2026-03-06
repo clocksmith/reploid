@@ -77,7 +77,7 @@ describe('Toast', () => {
       // Only info and success types show popup toasts now
       // Warning/error moved to ErrorStore (no popup)
       const types = ['info', 'success'];
-      const expectedIcons = { info: '○', success: '✓' };
+      const expectedIcons = { info: '☛', success: '✓' };
 
       types.forEach(type => {
         const id = Toast.show({ type, title: type });

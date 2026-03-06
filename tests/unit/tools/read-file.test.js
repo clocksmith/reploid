@@ -13,7 +13,8 @@ describe('ReadFile', () => {
       read: vi.fn(),
       write: vi.fn(),
       list: vi.fn(),
-      exists: vi.fn()
+      exists: vi.fn(),
+      stat: vi.fn().mockResolvedValue({ size: 100, type: 'file' })
     };
   });
 
@@ -38,7 +39,7 @@ describe('ReadFile', () => {
       const result = await call({ path: '/test.txt' }, { VFS: mockVFS });
 
       expect(mockVFS.read).toHaveBeenCalledWith('/test.txt');
-      expect(result).toBe('file content');
+      expect(result.content).toBe('file content');
     });
 
     it('should support "file" as alias for "path"', async () => {
@@ -71,7 +72,7 @@ describe('ReadFile', () => {
 
       const result = await call({ path: '/empty.txt' }, { VFS: mockVFS });
 
-      expect(result).toBe('');
+      expect(result.content).toBe('');
     });
 
     it('should handle binary-like content', async () => {
@@ -80,7 +81,7 @@ describe('ReadFile', () => {
 
       const result = await call({ path: '/binary.bin' }, { VFS: mockVFS });
 
-      expect(result).toBe(binaryContent);
+      expect(result.content).toBe(binaryContent);
     });
   });
 });

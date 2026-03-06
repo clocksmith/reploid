@@ -983,6 +983,7 @@ ${promptPreview}
 
         while (remaining.length > 0) {
           const front = remaining.filter(c => c.dominatedBy === 0);
+          if (front.length === 0) break; // safety: prevent infinite loop
           for (const c of front) c.rank = rank;
           fronts.push(front);
 
@@ -992,7 +993,7 @@ ${promptPreview}
             }
           }
 
-          remaining = remaining.filter(c => c.dominatedBy > 0);
+          remaining = remaining.filter(c => c.rank === -1);
           rank++;
         }
 

@@ -121,7 +121,7 @@ describe('ConfirmationModal', () => {
       expect(content.classList.contains('modal-danger')).toBe(true);
 
       const confirmBtn = document.querySelector('.modal-btn-confirm');
-      expect(confirmBtn.classList.contains('btn-danger')).toBe(true);
+      expect(confirmBtn.classList.contains('border-error')).toBe(true);
 
       document.querySelector('.modal-btn-cancel').click();
       await promise;

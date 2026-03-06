@@ -472,9 +472,10 @@ const AgentLoop = {
      */
     const _processToolResult = (call, result, iteration, context, duration) => {
       // Smart truncation
-      let processedResult = result;
-      if (result.length > 5000 && call.name !== 'ReadFile') {
-        processedResult = result.substring(0, 5000) + "\n... [OUTPUT TRUNCATED. USE FileOutline OR ReadFile FOR DETAILS] ...";
+      const resultStr = typeof result === 'string' ? result : JSON.stringify(result);
+      let processedResult = resultStr;
+      if (resultStr.length > 5000 && call.name !== 'ReadFile') {
+        processedResult = resultStr.substring(0, 5000) + "\n... [OUTPUT TRUNCATED. USE FileOutline OR ReadFile FOR DETAILS] ...";
       }
 
       context.push({
@@ -1134,7 +1135,8 @@ const AgentLoop = {
 
     const _logReflection = async (call, result, iteration) => {
          if (!ReflectionStore) return;
-         const isError = result.startsWith('Error:');
+         const resultStr = typeof result === 'string' ? result : JSON.stringify(result);
+         const isError = resultStr.startsWith('Error:');
          try {
             await ReflectionStore.add({
                 type: isError ? 'error' : 'success',

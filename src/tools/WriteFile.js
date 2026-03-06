@@ -2,34 +2,11 @@
  * @fileoverview WriteFile - Write content to VFS or OPFS with guardrails
  */
 
-let _securityModulePromise = null;
 const TEXT_LIMIT_BYTES = 8 * 1024 * 1024;
 const BINARY_LIMIT_BYTES = 256 * 1024 * 1024;
 const OPFS_PREFIX = 'opfs:';
 const VFS_PREFIX = 'vfs:';
 const OPFS_ALLOWLIST_PREFIXES = ['/doppler-models/adapters/'];
-
-const loadSecurityModule = () => {
-  if (_securityModulePromise) return _securityModulePromise;
-  const origin = (typeof window !== 'undefined' && window.location?.origin)
-    ? window.location.origin
-    : (typeof self !== 'undefined' && self.location?.origin ? self.location.origin : null);
-  if (!origin) {
-    _securityModulePromise = Promise.resolve(null);
-    return _securityModulePromise;
-  }
-  const url = new URL('/core/security-config.js', origin).toString();
-  _securityModulePromise = import(url).catch(() => null);
-  return _securityModulePromise;
-};
-
-const getSecurityEnabled = async () => {
-  const mod = await loadSecurityModule();
-  if (mod && typeof mod.isSecurityEnabled === 'function') {
-    return !!mod.isSecurityEnabled();
-  }
-  return false;
-};
 
 const normalizePath = (rawPath, backendOverride) => {
   if (!rawPath || typeof rawPath !== 'string') {
@@ -289,9 +266,7 @@ async function call(args = {}, deps = {}) {
   try {
     arenaGatingEnabled = localStorage.getItem('REPLOID_ARENA_GATING') === 'true';
   } catch (e) { /* ignore */ }
-  const securityEnabled = await getSecurityEnabled();
-
-  if (isCore && arenaGatingEnabled && securityEnabled && VFSSandbox && VerificationManager) {
+  if (isCore && arenaGatingEnabled && VFSSandbox && VerificationManager) {
     try {
       const snapshot = await VFSSandbox.createSnapshot();
       try {
@@ -333,7 +308,7 @@ async function call(args = {}, deps = {}) {
         operation: 'WriteFile',
         existed,
         bytesWritten,
-        arenaVerified: arenaGatingEnabled && securityEnabled
+        arenaVerified: arenaGatingEnabled
       });
     } else {
       await AuditLogger.logEvent('FILE_WRITE', {
