@@ -492,9 +492,9 @@
     },
     "FunctionGemmaOrchestrator": {
       "id": "FunctionGemmaOrchestrator",
-      "entry": "experimental/intelligence/functiongemma-orchestrator.js",
+      "entry": "core/functiongemma-orchestrator.js",
       "files": [
-        "experimental/intelligence/functiongemma-orchestrator.js"
+        "core/functiongemma-orchestrator.js"
       ],
       "introduced": "full",
       "dependencies": [

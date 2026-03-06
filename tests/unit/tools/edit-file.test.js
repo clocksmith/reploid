@@ -33,8 +33,8 @@ describe('EditFile', () => {
       expect(tool.name).toBe('EditFile');
     });
 
-    it('should have description mentioning operations array', () => {
-      expect(tool.description).toContain('operations');
+    it('should have description mentioning edits', () => {
+      expect(tool.description).toContain('edit');
     });
   });
 
@@ -51,12 +51,12 @@ describe('EditFile', () => {
 
     it('should throw error when operations empty', async () => {
       await expect(call({ path: '/test.txt', operations: [] }, { VFS: mockVFS }))
-        .rejects.toThrow('Provide at least one operation');
+        .rejects.toThrow('Provide content or at least one operation');
     });
 
     it('should throw error when operations not array', async () => {
       await expect(call({ path: '/test.txt', operations: 'invalid' }, { VFS: mockVFS }))
-        .rejects.toThrow('Provide at least one operation');
+        .rejects.toThrow('Provide content or at least one operation');
     });
 
     it('should throw error when operation missing match', async () => {
@@ -207,37 +207,37 @@ describe('EditFile', () => {
   });
 
   describe('core file detection', () => {
-    it('should detect /core/ as core path', async () => {
+    it('should trigger audit for /core/ path', async () => {
       mockVFS.read.mockResolvedValue('code');
 
-      const result = await call(
+      await call(
         { path: '/core/agent-loop.js', operations: [{ match: 'code', replacement: 'modified' }] },
-        { VFS: mockVFS }
+        { VFS: mockVFS, AuditLogger: mockAuditLogger }
       );
 
-      expect(result.isCore).toBe(true);
+      expect(mockAuditLogger.logCoreWrite).toHaveBeenCalled();
     });
 
-    it('should detect /infrastructure/ as core path', async () => {
+    it('should trigger audit for /infrastructure/ path', async () => {
       mockVFS.read.mockResolvedValue('code');
 
-      const result = await call(
+      await call(
         { path: '/infrastructure/hitl.js', operations: [{ match: 'code', replacement: 'modified' }] },
-        { VFS: mockVFS }
+        { VFS: mockVFS, AuditLogger: mockAuditLogger }
       );
 
-      expect(result.isCore).toBe(true);
+      expect(mockAuditLogger.logCoreWrite).toHaveBeenCalled();
     });
 
-    it('should not mark /tools/ as core path', async () => {
+    it('should not trigger audit for /tools/ path', async () => {
       mockVFS.read.mockResolvedValue('code');
 
-      const result = await call(
+      await call(
         { path: '/tools/my-tool.js', operations: [{ match: 'code', replacement: 'modified' }] },
-        { VFS: mockVFS }
+        { VFS: mockVFS, AuditLogger: mockAuditLogger }
       );
 
-      expect(result.isCore).toBe(false);
+      expect(mockAuditLogger.logCoreWrite).not.toHaveBeenCalled();
     });
   });
 
@@ -253,7 +253,7 @@ describe('EditFile', () => {
       expect(mockAuditLogger.logCoreWrite).toHaveBeenCalledWith(
         expect.objectContaining({
           path: '/core/test.js',
-          operation: 'Edit'
+          operation: 'EditFile'
         })
       );
     });
@@ -281,7 +281,7 @@ describe('EditFile', () => {
 
       expect(mockEventBus.emit).toHaveBeenCalledWith('tool:core_write', expect.objectContaining({
         path: '/core/test.js',
-        operation: 'Edit'
+        operation: 'EditFile'
       }));
     });
 
@@ -306,17 +306,15 @@ describe('EditFile', () => {
         { VFS: mockVFS }
       );
 
-      expect(result).toEqual({
-        success: true,
+      expect(result).toEqual(expect.objectContaining({
         path: '/test.txt',
         changed: true,
-        isCore: false,
         operations: [{
           matchPreview: 'hello',
           replacementPreview: 'hi',
           replacements: 1
         }]
-      });
+      }));
     });
 
     it('should truncate long match/replacement in preview', async () => {

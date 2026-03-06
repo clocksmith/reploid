@@ -89,7 +89,7 @@ describe('Reflection System - Integration Tests', () => {
       const existingReflections = [
         { id: 'ref_1', type: 'error', content: 'Past error' }
       ];
-      fileStorage.set('/.memory/reflections.json', JSON.stringify(existingReflections));
+      fileStorage.set('/.memory/reflections.jsonl', existingReflections.map(r => JSON.stringify(r)).join('\n'));
 
       await reflectionStore.init();
 
@@ -98,7 +98,7 @@ describe('Reflection System - Integration Tests', () => {
     });
 
     it('should handle corrupt store file', async () => {
-      fileStorage.set('/.memory/reflections.json', 'not valid json');
+      fileStorage.set('/.memory/reflections.jsonl', 'not valid json');
 
       await reflectionStore.init();
 
@@ -143,13 +143,14 @@ describe('Reflection System - Integration Tests', () => {
       });
 
       expect(mockVFS.write).toHaveBeenCalledWith(
-        '/.memory/reflections.json',
+        '/.memory/reflections.jsonl',
         expect.any(String)
       );
 
-      const savedContent = JSON.parse(fileStorage.get('/.memory/reflections.json'));
-      expect(savedContent).toHaveLength(1);
-      expect(savedContent[0].content).toBe('Persisted reflection');
+      const savedContent = fileStorage.get('/.memory/reflections.jsonl');
+      const parsed = savedContent.split('\n').filter(l => l.trim()).map(l => JSON.parse(l));
+      expect(parsed).toHaveLength(1);
+      expect(parsed[0].content).toBe('Persisted reflection');
     });
 
     it('should emit reflection:added event', async () => {
@@ -437,8 +438,8 @@ describe('Reflection System - Integration Tests', () => {
       expect(readFileErrors).toHaveLength(2);
 
       // Verify persistence
-      expect(fileStorage.has('/.memory/reflections.json')).toBe(true);
-      const persisted = JSON.parse(fileStorage.get('/.memory/reflections.json'));
+      expect(fileStorage.has('/.memory/reflections.jsonl')).toBe(true);
+      const persisted = fileStorage.get('/.memory/reflections.jsonl').split('\n').filter(l => l.trim()).map(l => JSON.parse(l));
       expect(persisted).toHaveLength(3);
     });
 

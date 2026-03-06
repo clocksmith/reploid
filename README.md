@@ -11,7 +11,7 @@ Reploid is the driver; Doppler is the inference engine (optional) and runs stand
 
 | Capability | Claim |
 |------------|-------|
-| **VFS hot-reload** | IndexedDB-backed filesystem ([BrowserFS](https://github.com/jvilk/BrowserFS)) |
+| **VFS hot-reload** | IndexedDB-backed virtual filesystem with blob URL module loading |
 | **WebGPU in-process** | 80% native performance ([WebLLM 2024](https://arxiv.org/abs/2412.15803)) |
 | **Zero-install** | URL distribution via PWA |
 | **Tight RSI loop** | Validated by [Gödel Agent](https://arxiv.org/abs/2410.04444), [RISE NeurIPS 2024](https://proceedings.neurips.cc/paper_files/paper/2024/file/639d992f819c2b40387d4d5170b8ffd7-Paper-Conference.pdf) |
@@ -64,11 +64,11 @@ Progressive capability loading - each level extends the previous:
 | Level          | Total | Added | Description                                    |
 |----------------|-------|-------|------------------------------------------------|
 | **TABULA**     | 7     | 7     | Bootstrap core (VFS, EventBus, StateManager)   |
-| **SPARK**      | 18    | +11   | Agent loop, LLM client, tool runner            |
-| **REFLECTION** | 24    | +6    | Streaming, verification, HITL                  |
-| **COGNITION**  | 35    | +11   | Memory, knowledge graph, GEPA optimizer        |
-| **SUBSTRATE**  | 47    | +12   | Audit, replay, sandbox, worker manager         |
-| **FULL**       | 61    | +14   | Arena, swarm, multi-model, federated learning  |
+| **SPARK**      | 20    | +13   | Agent loop, LLM client, tool runner            |
+| **REFLECTION** | 26    | +6    | Streaming, verification, HITL                  |
+| **COGNITION**  | 37    | +11   | Memory, knowledge graph, GEPA optimizer        |
+| **SUBSTRATE**  | 50    | +13   | Audit, replay, sandbox, worker manager         |
+| **FULL**       | 66    | +16   | Arena, swarm, multi-model, federated learning  |
 
 See `docs/configuration.md` and `docs/quick-start.md` for level-specific module lists and behavior.
 
@@ -76,7 +76,7 @@ See `docs/configuration.md` and `docs/quick-start.md` for level-specific module 
 
 | Category            | Tools                                                                 |
 |---------------------|-----------------------------------------------------------------------|
-| **Core VFS**        | ReadFile, WriteFile, EditFile, ListFiles, DeleteFile, CopyFile, MoveFile, MakeDirectory, Head, Tail |
+| **Core VFS**        | ReadFile, WriteFile, EditFile, ListFiles, DeleteFile, Head, Tail |
 | **Meta (RSI)**      | CreateTool, LoadModule, ListTools                                     |
 | **Search**          | Grep, Find, FileOutline                                                |
 | **Cognition (cognition+)** | ListMemories, ListKnowledge, RunGEPA                               |
@@ -88,7 +88,6 @@ See `docs/configuration.md` and `docs/quick-start.md` for level-specific module 
 Start at `docs/INDEX.md`, then:
 - `docs/quick-start.md`
 - `docs/configuration.md`
-- `docs/quick-start.md`
 - `docs/testing.md`
 - `docs/security.md`
 - `showcase/README.md`

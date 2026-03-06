@@ -59,6 +59,7 @@ describe('AgentLoop - Integration Tests', () => {
     mockContextManager = {
       compact: vi.fn().mockImplementation((ctx) => Promise.resolve(ctx)),
       emitTokens: vi.fn(),
+      countTokens: vi.fn().mockReturnValue(100),
       manage: vi.fn().mockImplementation((ctx) => Promise.resolve({
         context: ctx,
         halted: false,
@@ -129,7 +130,18 @@ describe('AgentLoop - Integration Tests', () => {
       PersonaManager: mockPersonaManager,
       ReflectionStore: mockReflectionStore,
       ReflectionAnalyzer: mockReflectionAnalyzer,
-      CircuitBreaker: mockCircuitBreaker
+      CircuitBreaker: mockCircuitBreaker,
+      SchemaRegistry: { getToolSchemas: vi.fn().mockReturnValue([]) },
+      ToolExecutor: {
+        executeWithRetry: vi.fn().mockImplementation(async (call) => {
+          try {
+            const result = await mockToolRunner.execute(call.name, call.args || call.arguments || {});
+            return { result, error: null, duration: 10 };
+          } catch (err) {
+            return { result: null, error: err, duration: 10 };
+          }
+        })
+      }
     });
   });
 
@@ -402,8 +414,8 @@ describe('AgentLoop - Integration Tests', () => {
 
       await agentLoop.run('Test');
 
-      // Should only execute 5 tools (MAX_TOOL_CALLS_PER_ITERATION = 5)
-      expect(mockToolRunner.execute).toHaveBeenCalledTimes(5);
+      // Should only execute 7 tools (DEFAULT_MAX_TOOL_CALLS = 8, so all 7 fit)
+      expect(mockToolRunner.execute).toHaveBeenCalledTimes(7);
     });
   });
 

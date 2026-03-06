@@ -13,7 +13,8 @@ describe('ListFiles', () => {
       read: vi.fn(),
       write: vi.fn(),
       list: vi.fn(),
-      exists: vi.fn()
+      exists: vi.fn(),
+      stat: vi.fn().mockResolvedValue({ size: 100, type: 'file' })
     };
   });
 
@@ -39,7 +40,7 @@ describe('ListFiles', () => {
       const result = await call({ path: '/dir' }, { VFS: mockVFS });
 
       expect(mockVFS.list).toHaveBeenCalledWith('/dir');
-      expect(result).toEqual(files);
+      expect(result).toBe(files.join('\n'));
     });
 
     it('should default to root when no path specified', async () => {
@@ -71,12 +72,12 @@ describe('ListFiles', () => {
         .rejects.toThrow('VFS not available');
     });
 
-    it('should return empty array for empty directory', async () => {
+    it('should return empty string for empty directory', async () => {
       mockVFS.list.mockResolvedValue([]);
 
       const result = await call({ path: '/empty' }, { VFS: mockVFS });
 
-      expect(result).toEqual([]);
+      expect(result).toBe('');
     });
 
     it('should propagate VFS list errors', async () => {
@@ -92,7 +93,7 @@ describe('ListFiles', () => {
 
       const result = await call({ path: '/deep/nested/path' }, { VFS: mockVFS });
 
-      expect(result).toEqual(files);
+      expect(result).toBe(files.join('\n'));
     });
   });
 });

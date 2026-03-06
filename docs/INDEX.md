@@ -21,10 +21,10 @@ Guide to all documentation in the REPLOID project.
 **Key Blueprints:**
 - [0x000002 - Application Orchestration](../src/blueprints/0x000002-application-orchestration.md) - Boot and DI
 - [0x000008 - Agent Cognitive Cycle](../src/blueprints/0x000008-agent-cognitive-cycle.md) - Core loop
-- [0x000047 - Verification Manager](../src/blueprints/0x000047-verification-manager.md) - Safety checks
-- [0x000051 - HITL Controller](../src/blueprints/0x000051-hitl-controller.md) - Human oversight
-- [0x000043 - Genesis Snapshot](../src/blueprints/0x000043-genesis-snapshot-system.md) - Rollback system
-- [0x000034 - Swarm Orchestration](../src/blueprints/0x000034-swarm-orchestration.md) - Multi-agent
+- [0x000040 - Verification Manager](../src/blueprints/0x000040-verification-manager.md) - Safety checks
+- [0x000049 - HITL Controller](../src/blueprints/0x000049-hitl-controller.md) - Human oversight
+- [0x00003C - Genesis Snapshot](../src/blueprints/0x00003C-genesis-snapshot-system.md) - Rollback system
+- [0x000031 - Swarm Orchestration](../src/blueprints/0x000031-swarm-orchestration.md) - Multi-agent
 
 ### Vision and Contracts
 - **[docs/substrate.md](./substrate.md)** - Substrate + Ouroboros contract
@@ -74,7 +74,8 @@ reploid/
 │   ├── blueprints/             # Architectural specifications
 │   │   └── (100+ design docs)
 │   │
-│   └── tests/                  # Test suites
+│
+├── tests/                      # Test suites
 │
 ├── docs/                       # Human-facing documentation
 └── server/                     # Proxy server
@@ -98,12 +99,12 @@ reploid/
 ### For RSI Research
 1. [README.md](../README.md) - Core RSI thesis
 2. [blueprints/0x000015-dynamic-tool-creation.md](../src/blueprints/0x000015-dynamic-tool-creation.md) - Tool creation
-3. [blueprints/0x000066-recursive-goal-decomposition.md](../src/blueprints/0x000066-recursive-goal-decomposition.md) - Recursive goal decomposition
+3. [blueprints/0x00005B-recursive-goal-decomposition.md](../src/blueprints/0x00005B-recursive-goal-decomposition.md) - Recursive goal decomposition
 
 ### For Security Researchers
 1. [security.md](./security.md) - Security model and containment
-2. [blueprints/0x000047-verification-manager.md](../src/blueprints/0x000047-verification-manager.md) - Verification and sandbox design
-3. [blueprints/0x000067-circuit-breaker-pattern.md](../src/blueprints/0x000067-circuit-breaker-pattern.md) - Failure containment
+2. [blueprints/0x000040-verification-manager.md](../src/blueprints/0x000040-verification-manager.md) - Verification and sandbox design
+3. [blueprints/0x00005C-circuit-breaker-pattern.md](../src/blueprints/0x00005C-circuit-breaker-pattern.md) - Failure containment
 
 ---
 
@@ -123,8 +124,8 @@ reploid/
 - `./src/blueprints/` - Architectural specifications
 - `docs/` - Human-facing documentation. Internal module system invariants and migration checklist live in the private wrapper repo.
 
-**External Dependencies:**
-- `@simulatte/doppler` - WebGPU inference engine (vendored at `/home/x/deco/reploid/`)
+**External Links:**
+- [DOPPLER](https://github.com/clocksmith/doppler) - WebGPU inference engine (separate repo)
 
 ---
 

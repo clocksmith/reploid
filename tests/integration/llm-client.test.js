@@ -11,7 +11,7 @@ describe('LLMClient - Integration Tests', () => {
   let mockUtils;
   let mockRateLimiter;
   let mockTransformersClient;
-
+  let mockProviderRegistry;
   let mockStreamParser;
 
   const createMocks = () => {
@@ -52,6 +52,15 @@ describe('LLMClient - Integration Tests', () => {
       withStreamTimeout: vi.fn((reader) => reader), // Pass through reader
       parseForProvider: vi.fn().mockResolvedValue('Streamed content')
     };
+
+    // ProviderRegistry mock that stores registered providers and returns them
+    const _providers = new Map();
+    mockProviderRegistry = {
+      hasProvider: vi.fn((id) => _providers.has(id)),
+      registerProvider: vi.fn((id, provider) => { _providers.set(id, provider); }),
+      getProvider: vi.fn(async (id) => _providers.get(id)),
+      getLoadedProvider: vi.fn((id) => _providers.get(id))
+    };
   };
 
   beforeEach(() => {
@@ -60,8 +69,16 @@ describe('LLMClient - Integration Tests', () => {
     // Mock fetch globally
     global.fetch = vi.fn();
 
+    // Mock localStorage for direct cloud API tests
+    global.localStorage = {
+      getItem: vi.fn().mockReturnValue(null),
+      setItem: vi.fn(),
+      removeItem: vi.fn()
+    };
+
     llmClient = LLMClientModule.factory({
       Utils: mockUtils,
+      ProviderRegistry: mockProviderRegistry,
       RateLimiter: mockRateLimiter,
       TransformersClient: mockTransformersClient,
       StreamParser: mockStreamParser
@@ -71,6 +88,7 @@ describe('LLMClient - Integration Tests', () => {
   afterEach(() => {
     vi.clearAllMocks();
     delete global.fetch;
+    delete global.localStorage;
   });
 
   describe('metadata', () => {
@@ -115,6 +133,8 @@ describe('LLMClient - Integration Tests', () => {
         { role: 'user', content: 'Hi' }
       ];
 
+      // Use endpoint to route through proxy (cloud provider falls back to _chatProxy
+      // when hostType is not 'browser-cloud')
       const result = await llmClient.chat(messages, {
         id: 'gpt-4',
         provider: 'openai',
@@ -130,7 +150,7 @@ describe('LLMClient - Integration Tests', () => {
       expect(result.model).toBe('gpt-4');
     });
 
-    it('should handle streaming responses', async () => {
+    it('should handle streaming responses via proxy', async () => {
       const mockReader = {
         read: vi.fn()
           .mockResolvedValueOnce({
@@ -153,9 +173,10 @@ describe('LLMClient - Integration Tests', () => {
       });
 
       const onUpdate = vi.fn();
+      // Use proxy route (no hostType: 'browser-cloud') with an endpoint
       const result = await llmClient.chat(
         [{ role: 'user', content: 'Hi' }],
-        { id: 'gpt-4', provider: 'openai' },
+        { id: 'gpt-4', provider: 'openai', endpoint: '/api/chat' },
         onUpdate
       );
 
@@ -170,9 +191,10 @@ describe('LLMClient - Integration Tests', () => {
         status: 500
       });
 
+      // provider: 'ollama' resolves to 'proxy' provider in resolveProviderId
       await expect(llmClient.chat(
         [{ role: 'user', content: 'Hi' }],
-        { id: 'test', provider: 'test' }
+        { id: 'test', provider: 'ollama' }
       )).rejects.toThrow('API Error 500');
     });
 
@@ -203,9 +225,10 @@ describe('LLMClient - Integration Tests', () => {
         })
       });
 
+      // Use provider: 'ollama' to route through proxy mode
       const result = await llmClient.chat(
         [{ role: 'user', content: 'Test' }],
-        { id: 'test', provider: 'test' }
+        { id: 'test-model', provider: 'ollama' }
       );
 
       expect(result.content).toBe('The actual answer');
@@ -222,7 +245,7 @@ describe('LLMClient - Integration Tests', () => {
 
       const result = await llmClient.chat(
         [{ role: 'user', content: 'Test' }],
-        { id: 'test', provider: 'test' }
+        { id: 'test-model', provider: 'ollama' }
       );
 
       expect(result.content).toBe('Here is the answer');
@@ -238,7 +261,7 @@ describe('LLMClient - Integration Tests', () => {
 
       const result = await llmClient.chat(
         [{ role: 'user', content: 'Test' }],
-        { id: 'test', provider: 'test' }
+        { id: 'test-model', provider: 'ollama' }
       );
 
       expect(result.raw).toBe('<think>Reasoning</think>Answer');
@@ -444,17 +467,22 @@ describe('LLMClient - Integration Tests', () => {
   describe('abort request', () => {
     it('should abort in-flight request', async () => {
       const abortFn = vi.fn();
-      global.AbortController = vi.fn().mockImplementation(() => ({
-        signal: { aborted: false },
-        abort: abortFn
-      }));
+      const OriginalAbortController = global.AbortController;
 
-      // Make request start but not complete
+      // Use a proper class/function constructor for AbortController mock
+      global.AbortController = function MockAbortController() {
+        this.signal = { aborted: false };
+        this.abort = abortFn;
+      };
+
+      // Make fetch hang so the request stays in-flight
       global.fetch.mockImplementation(() => new Promise(() => {}));
 
+      // Use provider: 'ollama' to route through proxy, which creates
+      // an AbortController and registers it in _activeRequests
       const chatPromise = llmClient.chat(
         [{ role: 'user', content: 'Hi' }],
-        { id: 'test', provider: 'test' }
+        { id: 'test-model', provider: 'ollama' }
       );
 
       // Give request time to start
@@ -462,6 +490,10 @@ describe('LLMClient - Integration Tests', () => {
 
       const aborted = llmClient.abortRequest('req_test123');
       expect(aborted).toBe(true);
+      expect(abortFn).toHaveBeenCalled();
+
+      // Restore original AbortController so it doesn't leak into other tests
+      global.AbortController = OriginalAbortController;
     });
 
     it('should return false for unknown request ID', () => {
@@ -515,9 +547,10 @@ describe('LLMClient - Integration Tests', () => {
       });
 
       const onUpdate = vi.fn();
+      // Use provider: 'ollama' to route through proxy mode for SSE stream parsing
       await llmClient.chat(
         [{ role: 'user', content: 'Hi' }],
-        { id: 'test', provider: 'test' },
+        { id: 'test-model', provider: 'ollama' },
         onUpdate
       );
 
@@ -545,7 +578,7 @@ describe('LLMClient - Integration Tests', () => {
       const onUpdate = vi.fn();
       await llmClient.chat(
         [{ role: 'user', content: 'Hi' }],
-        { id: 'test', provider: 'test' },
+        { id: 'test-model', provider: 'ollama' },
         onUpdate
       );
 
@@ -572,7 +605,7 @@ describe('LLMClient - Integration Tests', () => {
       const onUpdate = vi.fn();
       await llmClient.chat(
         [{ role: 'user', content: 'Hi' }],
-        { id: 'test', provider: 'test' },
+        { id: 'test-model', provider: 'ollama' },
         onUpdate
       );
 
