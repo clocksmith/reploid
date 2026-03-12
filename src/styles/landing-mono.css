@@ -83,9 +83,15 @@ body {
   opacity: 0.25;
 }
 
+/* Orbital radius tokens */
+.orbit-container {
+  --orbit-radius-inner: 75px;
+  --orbit-radius-outer: 130px;
+}
+
 /* Position letters in a circle */
-.ring.inner span { --r: 75px; }
-.ring.outer span { --r: 130px; }
+.ring.inner span { --r: var(--orbit-radius-inner); /* inner orbital ring radius */ }
+.ring.outer span { --r: var(--orbit-radius-outer); /* outer orbital ring radius */ }
 
 .ring span:nth-child(1) { transform: rotate(0deg) translateY(calc(var(--r) * -1)) rotate(0deg); }
 .ring span:nth-child(2) { transform: rotate(51.4deg) translateY(calc(var(--r) * -1)) rotate(-51.4deg); }
@@ -264,8 +270,7 @@ body {
   .orbit-container::before { width: 120px; height: 120px; }
   .orbit-container::after { width: 210px; height: 210px; }
   .ring { font-size: 22px; }
-  .ring.inner span { --r: 60px; }
-  .ring.outer span { --r: 105px; }
+  .orbit-container { --orbit-radius-inner: 60px; --orbit-radius-outer: 105px; }
 
   @keyframes ripple {
     0% { width: 0; height: 0; opacity: var(--opacity-disabled); }
