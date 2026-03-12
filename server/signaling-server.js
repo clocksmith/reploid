@@ -18,7 +18,7 @@ import { WebSocketServer, WebSocket } from 'ws';
 import { EventEmitter } from 'events';
 
 class SignalingServer extends EventEmitter {
-  constructor(server, options = {}) {
+  constructor(options = {}) {
     super();
 
     this.options = {
@@ -38,6 +38,7 @@ class SignalingServer extends EventEmitter {
     // Room management
     this.rooms = new Map(); // roomId -> Set<peerId>
     this.peers = new Map(); // peerId -> { ws, metadata, lastSeen, roomId }
+    this.heartbeatMonitor = null;
 
     // Setup WebSocket handlers
     this.wss.on('connection', (ws, req) => this.handleConnection(ws, req));
@@ -350,7 +351,8 @@ class SignalingServer extends EventEmitter {
   }
 
   startHeartbeatMonitor() {
-    setInterval(() => {
+    this.stopHeartbeatMonitor();
+    this.heartbeatMonitor = setInterval(() => {
       const now = Date.now();
       const staleThreshold = now - this.options.peerTimeout;
 
@@ -373,6 +375,12 @@ class SignalingServer extends EventEmitter {
     }, this.options.heartbeatInterval);
   }
 
+  stopHeartbeatMonitor() {
+    if (!this.heartbeatMonitor) return;
+    clearInterval(this.heartbeatMonitor);
+    this.heartbeatMonitor = null;
+  }
+
   getStats() {
     return {
       totalRooms: this.rooms.size,
@@ -387,6 +395,7 @@ class SignalingServer extends EventEmitter {
 
   close() {
     console.log('[SignalingServer] Shutting down signaling server');
+    this.stopHeartbeatMonitor();
 
     // Notify all peers
     this.peers.forEach(peer => {

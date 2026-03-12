@@ -4,31 +4,39 @@ const AUDIT_SPEC = '2026-03-12';
 const TRYSTERO_MODULE_URL = 'https://esm.run/trystero/nostr';
 const TRYSTERO_APP_ID = 'reploid-openclaw-audit';
 
+function summarizeFindings(findings = []) {
+  return findings.reduce(
+    (summary, finding) => {
+      summary.total += 1;
+      summary[finding.severity] += 1;
+      return summary;
+    },
+    { total: 0, critical: 0, warning: 0 }
+  );
+}
+
 function clampText(value, max = 160) {
   return String(value || '').slice(0, max);
 }
 
 function sanitizeSnapshot(snapshot) {
   const rawFindings = Array.isArray(snapshot?.findings) ? snapshot.findings : [];
+  const findings = rawFindings.slice(0, 20).map((finding) => ({
+    severity: finding?.severity === 'critical' ? 'critical' : 'warning',
+    code: clampText(finding?.code, 64),
+    summary: clampText(finding?.summary, 220),
+    surface: clampText(finding?.surface, 80),
+    subject: clampText(finding?.subject, 80),
+    remediation: clampText(finding?.remediation, 220)
+  }));
   return {
     actor: {
       alias: clampText(snapshot?.actor?.alias, 48),
       peerId: clampText(snapshot?.actor?.peerId, 48)
     },
     generatedAt: clampText(snapshot?.generatedAt, 48),
-    summary: {
-      total: Number(snapshot?.summary?.total) || 0,
-      critical: Number(snapshot?.summary?.critical) || 0,
-      warning: Number(snapshot?.summary?.warning) || 0
-    },
-    findings: rawFindings.slice(0, 20).map((finding) => ({
-      severity: finding?.severity === 'critical' ? 'critical' : 'warning',
-      code: clampText(finding?.code, 64),
-      summary: clampText(finding?.summary, 220),
-      surface: clampText(finding?.surface, 80),
-      subject: clampText(finding?.subject, 80),
-      remediation: clampText(finding?.remediation, 220)
-    }))
+    summary: summarizeFindings(findings),
+    findings
   };
 }
 
@@ -62,7 +70,6 @@ export class AuditMesh {
     this.sendSnapshot = null;
     this.sendChat = null;
     this.sendRequest = null;
-    this.unsubscribe = [];
   }
 
   emit(type, detail = {}) {
