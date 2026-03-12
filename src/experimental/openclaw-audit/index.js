@@ -50,7 +50,7 @@ function buildRunnerPrompt() {
   return [
     'Run the OpenClaw cooperative security self-audit now.',
     '',
-    'Follow /SECURITY_AUDIT.md and skills/security-audit/SKILL.md.',
+    'Follow /SECURITY_AUDIT.md.',
     'Rules:',
     '- Inspect only metadata and explicitly volunteered local state.',
     '- Do not read or reveal any secret values.',
@@ -387,6 +387,11 @@ async function copyShareLink() {
 }
 
 function publishRunnerSnapshot() {
+  if (!state.connected) {
+    appendLog('Connect the room before publishing a runner snapshot.', 'warning');
+    return;
+  }
+
   const raw = elements.snapshotInput.value.trim();
   if (!raw) {
     appendLog('Paste a sanitized runner snapshot JSON first.', 'warning');
@@ -406,7 +411,7 @@ function publishRunnerSnapshot() {
     peerId: mesh.peerId
   });
 
-  state.peerReports.set(`local-publish:${Date.now()}`, {
+  state.peerReports.set(`local-publish:${snapshot.actor.peerId}`, {
     peerId: snapshot.actor.peerId,
     alias: snapshot.actor.alias,
     snapshot
