@@ -31,7 +31,8 @@ class SignalingServer extends EventEmitter {
     // WebSocket server
     this.wss = new WebSocketServer({
       server,
-      path: this.options.path
+      path: this.options.path,
+      perMessageDeflate: false
     });
 
     // Room management

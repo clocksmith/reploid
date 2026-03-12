@@ -1277,6 +1277,15 @@ app.get('/design', (req, res) => {
   res.sendFile(path.join(__dirname, '..', 'src', 'design.html'));
 });
 
+app.get('/SECURITY_AUDIT.md', (req, res) => {
+  res.type('text/markdown; charset=utf-8');
+  res.sendFile(path.join(__dirname, '..', 'SECURITY_AUDIT.md'));
+});
+
+app.get(['/audit', '/audit/'], (req, res) => {
+  res.sendFile(path.join(__dirname, '..', 'src', 'audit.html'));
+});
+
 app.get('/reset', (req, res) => {
   res.sendFile(path.join(__dirname, '..', 'src', 'reset.html'));
 });
