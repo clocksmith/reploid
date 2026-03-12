@@ -169,7 +169,8 @@ export function summarizeFindings(findings = []) {
   return findings.reduce(
     (summary, finding) => {
       summary.total += 1;
-      summary[finding.severity] += 1;
+      if (finding.severity === 'critical') summary.critical += 1;
+      else summary.warning += 1;
       return summary;
     },
     { total: 0, critical: 0, warning: 0 }
