@@ -1338,6 +1338,20 @@ app.use((req, res) => {
 // Create HTTP server (needed for WebSocket)
 const server = http.createServer(app);
 
+server.on('upgrade', (req, socket, head) => {
+  if (signalingServer?.shouldHandle(req)) {
+    signalingServer.handleUpgrade(req, socket, head);
+    return;
+  }
+
+  if (agentBridge?.shouldHandle(req)) {
+    agentBridge.handleUpgrade(req, socket, head);
+    return;
+  }
+
+  socket.destroy();
+});
+
 // Initialize WebRTC Signaling Server
 try {
   signalingServer = new SignalingServer(server, {
