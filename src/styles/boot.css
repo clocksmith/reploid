@@ -124,7 +124,7 @@
 .form-row {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--space-sm);
 }
 
 .input-row {
@@ -183,7 +183,7 @@
 .detection-list {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--space-sm);
 }
 
 .detection-item {
@@ -218,7 +218,7 @@
 .model-options {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--space-sm);
 }
 
 .model-option {
@@ -287,16 +287,7 @@
 }
 
 .accordion-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
   padding: 12px 14px;
-  background: var(--bg);
-  color: var(--fg);
-  border: none;
-  text-align: left;
-  cursor: pointer;
 }
 
 .accordion-header[aria-expanded="true"] {
@@ -310,10 +301,6 @@
 
 .accordion-content {
   padding: 12px 14px;
-}
-
-.accordion-content[aria-hidden="true"] {
-  display: none;
 }
 
 .category-goals {
@@ -451,13 +438,13 @@
 .advanced-setting {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--space-sm);
 }
 
 .advanced-setting-inline {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-sm);
   flex-wrap: wrap;
 }
 
@@ -502,7 +489,7 @@
 .module-overrides-controls {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: var(--space-sm);
   align-items: center;
 }
 
@@ -522,12 +509,12 @@
   padding: 6px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--space-sm);
 }
 
 .module-override-row {
   border: var(--border-sm) solid var(--fg);
-  padding: 8px;
+  padding: var(--space-sm);
   display: flex;
   justify-content: space-between;
   gap: 12px;
@@ -550,7 +537,7 @@
 .module-override-title {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: var(--space-sm);
   align-items: baseline;
 }
 
@@ -583,7 +570,7 @@
 .module-override-warning {
   font-size: 11px;
   border-left: var(--border-md) dashed var(--fg);
-  padding-left: 8px;
+  padding-left: var(--space-sm);
 }
 
 .module-overrides-note {
@@ -624,7 +611,7 @@
   justify-content: flex-end;
   align-items: center;
   gap: 12px;
-  margin-top: 24px;
+  margin-top: var(--space-lg);
   padding-top: 20px;
 }
 
@@ -646,7 +633,7 @@
 
 /* Awaken step - compact with row layout */
 .wizard-awaken {
-  margin-top: 8px;
+  margin-top: var(--space-sm);
 }
 
 .wizard-actions-row {
@@ -654,7 +641,7 @@
   justify-content: space-between;
   align-items: center;
   gap: 12px;
-  padding-top: 8px;
+  padding-top: var(--space-sm);
 }
 
 /* Awaken step button styles */
@@ -686,8 +673,8 @@
 .progress-steps {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  margin-top: 24px;
+  gap: var(--space-sm);
+  margin-top: var(--space-lg);
   text-align: left;
   max-width: 300px;
   margin-left: auto;
@@ -697,7 +684,7 @@
 .progress-step {
   font-size: 13px;
   opacity: var(--opacity-secondary);
-  padding-left: 24px;
+  padding-left: var(--space-lg);
   position: relative;
 }
 
@@ -807,7 +794,7 @@
 
   .wizard-actions-row {
     flex-direction: column-reverse;
-    gap: 8px;
+    gap: var(--space-sm);
   }
 
   .wizard-actions-row .btn {
