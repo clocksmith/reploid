@@ -386,6 +386,7 @@ body::after {
   gap: 12px;
 }
 
+.audit-textarea,
 .audit-chat__composer input {
   width: 100%;
   padding: 13px 14px;
@@ -394,6 +395,11 @@ body::after {
   background: rgba(5, 9, 14, 0.88);
   color: var(--audit-text);
   font: inherit;
+}
+
+.audit-textarea {
+  min-height: 150px;
+  resize: vertical;
 }
 
 .feed-item {

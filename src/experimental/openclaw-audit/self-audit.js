@@ -236,3 +236,38 @@ export function buildAuditSnapshot(report, actor) {
     }))
   };
 }
+
+export function normalizeAuditSnapshot(snapshot, fallbackActor = {}) {
+  const actor = {
+    alias: String(snapshot?.actor?.alias || fallbackActor.alias || 'runner').slice(0, 48),
+    peerId: String(snapshot?.actor?.peerId || fallbackActor.peerId || 'external').slice(0, 48)
+  };
+
+  const findings = Array.isArray(snapshot?.findings)
+    ? snapshot.findings.slice(0, 20).map((finding) => ({
+        severity: finding?.severity === 'critical' ? 'critical' : 'warning',
+        code: String(finding?.code || 'external-finding').slice(0, 64),
+        summary: String(finding?.summary || 'Sanitized runner finding.').slice(0, 220),
+        surface: String(finding?.surface || 'runner-self-audit').slice(0, 80),
+        subject: String(finding?.subject || 'unspecified').slice(0, 80),
+        remediation: String(
+          finding?.remediation || getRemediation(finding?.code || '')
+        ).slice(0, 220)
+      }))
+    : [];
+
+  const summary = snapshot?.summary && typeof snapshot.summary === 'object'
+    ? {
+        total: Number(snapshot.summary.total) || findings.length,
+        critical: Number(snapshot.summary.critical) || findings.filter((finding) => finding.severity === 'critical').length,
+        warning: Number(snapshot.summary.warning) || findings.filter((finding) => finding.severity === 'warning').length
+      }
+    : summarizeFindings(findings);
+
+  return {
+    actor,
+    generatedAt: String(snapshot?.generatedAt || new Date().toISOString()).slice(0, 48),
+    summary,
+    findings
+  };
+}

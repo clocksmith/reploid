@@ -2,6 +2,7 @@ import { AuditMesh } from './audit-mesh.js';
 import {
   buildAuditSnapshot,
   collectBrowserAuditInputs,
+  normalizeAuditSnapshot,
   runLocalSelfAudit,
   slugifyRoomId
 } from './self-audit.js';
@@ -21,7 +22,10 @@ const elements = {
   alias: document.querySelector('#audit-alias'),
   connect: document.querySelector('#connect-button'),
   disconnect: document.querySelector('#disconnect-button'),
+  requestAudit: document.querySelector('#request-audit-button'),
+  copyPrompt: document.querySelector('#copy-prompt-button'),
   copyLink: document.querySelector('#copy-link-button'),
+  publishSnapshot: document.querySelector('#publish-snapshot-button'),
   runAudit: document.querySelector('#run-audit-button'),
   autoShare: document.querySelector('#auto-share-toggle'),
   signalingState: document.querySelector('#signaling-state'),
@@ -37,8 +41,28 @@ const elements = {
   manualFlags: Array.from(document.querySelectorAll('[data-manual-flag]')),
   chatInput: document.querySelector('#chat-input'),
   sendChat: document.querySelector('#send-chat-button'),
-  specLink: document.querySelector('#spec-link')
+  specLink: document.querySelector('#spec-link'),
+  runnerPrompt: document.querySelector('#runner-prompt'),
+  snapshotInput: document.querySelector('#snapshot-input')
 };
+
+function buildRunnerPrompt() {
+  return [
+    'Run the OpenClaw cooperative security self-audit now.',
+    '',
+    'Follow /SECURITY_AUDIT.md and skills/security-audit/SKILL.md.',
+    'Rules:',
+    '- Inspect only metadata and explicitly volunteered local state.',
+    '- Do not read or reveal any secret values.',
+    '- Keep all raw inspection local.',
+    '- Publish only a sanitized JSON snapshot with actor, generatedAt, summary, and findings.',
+    '',
+    `Room: ${elements.room.value || 'openclaw'}`,
+    `Requested by: ${elements.alias.value || 'runner'}`,
+    '',
+    'After the audit, paste the sanitized snapshot into the room orchestrator and publish it.'
+  ].join('\n');
+}
 
 function getManualFlags() {
   return elements.manualFlags.reduce((flags, checkbox) => {
@@ -76,7 +100,7 @@ function renderFeed() {
   if (!state.feed.length) {
     const item = document.createElement('li');
     item.className = 'feed-item feed-item--empty';
-    item.textContent = 'The room feed is quiet. Join a room or send the first warning.';
+    item.textContent = 'The room feed is quiet. Join a room or request the first audit.';
     elements.roomFeed.appendChild(item);
     return;
   }
@@ -193,19 +217,27 @@ function renderPeerFindings() {
   }
 
   elements.peerSummary.textContent = String(peerFindings.length);
-  renderFindings(elements.peerFindings, peerFindings, 'Peer warnings will appear here once connected runners publish an audit snapshot.');
+  renderFindings(
+    elements.peerFindings,
+    peerFindings,
+    'Runner warnings will appear here once connected peers publish sanitized snapshots.'
+  );
 }
 
 function updateButtons() {
   const consented = elements.consent.checked;
   elements.connect.disabled = !consented || state.connected;
   elements.disconnect.disabled = !state.connected;
+  elements.requestAudit.disabled = !consented || !state.connected;
+  elements.copyPrompt.disabled = !consented;
+  elements.copyLink.disabled = !consented;
+  elements.publishSnapshot.disabled = !consented;
   elements.runAudit.disabled = !consented;
 }
 
-async function runAudit() {
+async function runBrowserFallbackAudit() {
   if (!elements.consent.checked) {
-    appendLog('Consent is required before running the local audit.', 'warning');
+    appendLog('Consent is required before running the browser fallback audit.', 'warning');
     return;
   }
 
@@ -218,7 +250,11 @@ async function runAudit() {
   state.localReport = report;
   elements.lastAudit.textContent = new Date().toLocaleTimeString();
   elements.localSummary.textContent = `${report.summary.total} findings`;
-  renderFindings(elements.localFindings, report.findings, 'No local warnings. The current origin metadata looks clean.');
+  renderFindings(
+    elements.localFindings,
+    report.findings,
+    'No browser fallback warnings. The current origin metadata looks clean.'
+  );
 
   const actor = {
     alias: elements.alias.value.trim() || 'runner',
@@ -226,21 +262,24 @@ async function runAudit() {
   };
   const snapshot = buildAuditSnapshot(report, actor);
 
-  appendLog(`Local audit complete: ${report.summary.critical} critical, ${report.summary.warning} warning.`, report.summary.critical ? 'warning' : 'info');
+  appendLog(
+    `Browser fallback audit complete: ${report.summary.critical} critical, ${report.summary.warning} warning.`,
+    report.summary.critical ? 'warning' : 'info'
+  );
   appendFeedEntry({
     alias: 'system',
     kind: report.summary.critical ? 'warning' : 'system',
-    body: `Local audit finished with ${report.summary.critical} critical and ${report.summary.warning} warning findings.`,
+    body: `Browser fallback audit finished with ${report.summary.critical} critical and ${report.summary.warning} warning findings.`,
     sentAt: new Date().toISOString()
   });
 
   if (state.connected && elements.autoShare.checked) {
     mesh.broadcastSnapshot(snapshot);
-    appendLog('Published the latest audit snapshot to connected peers.', 'info');
+    appendLog('Published the browser fallback snapshot to connected peers.', 'info');
     appendFeedEntry({
       alias: elements.alias.value.trim() || 'runner',
       kind: report.summary.critical ? 'warning' : 'chat',
-      body: `Shared an audit snapshot: ${report.summary.critical} critical, ${report.summary.warning} warning.`,
+      body: `Shared a browser fallback snapshot: ${report.summary.critical} critical, ${report.summary.warning} warning.`,
       sentAt: new Date().toISOString()
     });
   }
@@ -271,7 +310,7 @@ async function connectMesh() {
     appendFeedEntry({
       alias: 'system',
       kind: 'system',
-      body: `Joined room ${roomId}. This feed is content-free. Never paste secrets here.`,
+      body: `Joined room ${roomId}. Request runner audits here. Browser fallback audit remains optional.`,
       sentAt: new Date().toISOString()
     });
 
@@ -298,6 +337,39 @@ function disconnectMesh() {
   });
 }
 
+function requestRunnerAudit() {
+  if (!state.connected) {
+    appendLog('Connect the room before requesting an audit.', 'warning');
+    return;
+  }
+
+  const request = {
+    requestedBy: elements.alias.value.trim() || 'runner',
+    roomId: elements.room.value.trim() || 'openclaw',
+    note: 'Run SECURITY_AUDIT.md locally and publish only a sanitized snapshot.',
+    sentAt: new Date().toISOString()
+  };
+
+  mesh.broadcastAuditRequest(request);
+  appendLog('Broadcast an audit request to the room.', 'info');
+  appendFeedEntry({
+    alias: request.requestedBy,
+    kind: 'system',
+    body: 'Requested a runner-driven self-audit. Follow SECURITY_AUDIT.md and publish only a sanitized snapshot.',
+    sentAt: request.sentAt
+  });
+}
+
+async function copyRunnerPrompt() {
+  const prompt = buildRunnerPrompt();
+  try {
+    await navigator.clipboard.writeText(prompt);
+    appendLog('Copied the runner audit prompt to the clipboard.', 'info');
+  } catch {
+    appendLog('Copy failed. Use the prompt box directly.', 'warning');
+  }
+}
+
 async function copyShareLink() {
   const roomId = slugifyRoomId(elements.room.value || 'openclaw');
   if (!roomId) return;
@@ -312,6 +384,42 @@ async function copyShareLink() {
   } catch {
     appendLog(`Copy failed. Share this URL manually: ${url.toString()}`, 'warning');
   }
+}
+
+function publishRunnerSnapshot() {
+  const raw = elements.snapshotInput.value.trim();
+  if (!raw) {
+    appendLog('Paste a sanitized runner snapshot JSON first.', 'warning');
+    return;
+  }
+
+  let parsed;
+  try {
+    parsed = JSON.parse(raw);
+  } catch {
+    appendLog('Snapshot JSON is invalid.', 'error');
+    return;
+  }
+
+  const snapshot = normalizeAuditSnapshot(parsed, {
+    alias: elements.alias.value.trim() || 'runner',
+    peerId: mesh.peerId
+  });
+
+  state.peerReports.set(`local-publish:${Date.now()}`, {
+    peerId: snapshot.actor.peerId,
+    alias: snapshot.actor.alias,
+    snapshot
+  });
+  renderPeerFindings();
+  mesh.broadcastSnapshot(snapshot);
+  appendLog('Published a sanitized runner snapshot to the room.', 'info');
+  appendFeedEntry({
+    alias: snapshot.actor.alias,
+    kind: snapshot.summary.critical ? 'warning' : 'chat',
+    body: `Published a runner snapshot: ${snapshot.summary.critical} critical, ${snapshot.summary.warning} warning.`,
+    sentAt: snapshot.generatedAt
+  });
 }
 
 function handleMeshEvent(type, detail) {
@@ -336,8 +444,19 @@ function handleMeshEvent(type, detail) {
     appendFeedEntry({
       alias: detail.alias,
       kind: detail.snapshot?.summary?.critical ? 'warning' : 'chat',
-      body: `Published an audit snapshot: ${detail.snapshot?.summary?.critical || 0} critical, ${detail.snapshot?.summary?.warning || 0} warning.`,
+      body: `Published a runner snapshot: ${detail.snapshot?.summary?.critical || 0} critical, ${detail.snapshot?.summary?.warning || 0} warning.`,
       sentAt: detail.snapshot?.generatedAt || new Date().toISOString()
+    });
+    return;
+  }
+
+  if (type === 'audit-request') {
+    appendLog(`Received an audit request from ${detail.alias}.`, 'info');
+    appendFeedEntry({
+      alias: detail.alias,
+      kind: 'system',
+      body: detail.request?.note || 'Requested a runner-driven self-audit.',
+      sentAt: detail.request?.sentAt || new Date().toISOString()
     });
     return;
   }
@@ -392,18 +511,31 @@ function bootstrap() {
   elements.peerSummary.textContent = '0';
   elements.lastAudit.textContent = 'never';
   elements.specLink.href = '/SECURITY_AUDIT.md';
+  elements.runnerPrompt.value = buildRunnerPrompt();
 
-  renderFindings(elements.localFindings, [], 'No local audit has run yet.');
-  renderFindings(elements.peerFindings, [], 'Peer warnings will appear here once connected runners publish an audit snapshot.');
+  renderFindings(elements.localFindings, [], 'No browser fallback audit has run yet.');
+  renderFindings(elements.peerFindings, [], 'Runner warnings will appear here once connected peers publish sanitized snapshots.');
   renderPeerList([]);
   renderFeed();
   updateButtons();
 
-  elements.consent.addEventListener('change', updateButtons);
+  elements.consent.addEventListener('change', () => {
+    updateButtons();
+    elements.runnerPrompt.value = buildRunnerPrompt();
+  });
+  elements.room.addEventListener('input', () => {
+    elements.runnerPrompt.value = buildRunnerPrompt();
+  });
+  elements.alias.addEventListener('input', () => {
+    elements.runnerPrompt.value = buildRunnerPrompt();
+  });
   elements.connect.addEventListener('click', connectMesh);
   elements.disconnect.addEventListener('click', disconnectMesh);
-  elements.runAudit.addEventListener('click', runAudit);
+  elements.requestAudit.addEventListener('click', requestRunnerAudit);
+  elements.copyPrompt.addEventListener('click', copyRunnerPrompt);
   elements.copyLink.addEventListener('click', copyShareLink);
+  elements.publishSnapshot.addEventListener('click', publishRunnerSnapshot);
+  elements.runAudit.addEventListener('click', runBrowserFallbackAudit);
   elements.sendChat.addEventListener('click', sendChatMessage);
   elements.chatInput.addEventListener('keydown', (event) => {
     if (event.key === 'Enter') {
@@ -412,11 +544,11 @@ function bootstrap() {
     }
   });
 
-  appendLog('Audit page ready. This page only checks local metadata and manual attestations.', 'info');
+  appendLog('Audit room ready. Runner-driven self-audit is the primary path. Browser fallback remains available.', 'info');
   appendFeedEntry({
     alias: 'system',
     kind: 'system',
-    body: 'Audit feed online. Blue messages are routine room traffic. Red messages are warnings.',
+    body: 'Audit room online. Request runner audits, publish sanitized snapshots, and use browser fallback only when needed.',
     sentAt: new Date().toISOString()
   });
 }
