@@ -30,7 +30,7 @@ class SignalingServer extends EventEmitter {
 
     // WebSocket server
     this.wss = new WebSocketServer({
-      server,
+      noServer: true,
       path: this.options.path,
       perMessageDeflate: false
     });
@@ -46,6 +46,16 @@ class SignalingServer extends EventEmitter {
     this.startHeartbeatMonitor();
 
     console.log(`[SignalingServer] WebRTC signaling server started on ${this.options.path}`);
+  }
+
+  shouldHandle(req) {
+    return this.wss.shouldHandle(req);
+  }
+
+  handleUpgrade(req, socket, head) {
+    this.wss.handleUpgrade(req, socket, head, (ws) => {
+      this.wss.emit('connection', ws, req);
+    });
   }
 
   handleConnection(ws, req) {
