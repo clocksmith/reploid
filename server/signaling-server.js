@@ -397,20 +397,21 @@ class SignalingServer extends EventEmitter {
     console.log('[SignalingServer] Shutting down signaling server');
     this.stopHeartbeatMonitor();
 
-    // Notify all peers
-    this.peers.forEach(peer => {
-      this.sendMessage(peer.ws, {
-        type: 'server-shutdown'
-      });
-      peer.ws.close();
-    });
+    // Snapshot peers before clearing so close handlers don't broadcast during teardown
+    const openPeers = Array.from(this.peers.values());
+    this.rooms.clear();
+    this.peers.clear();
+
+    // Notify and close all peer sockets
+    for (const peer of openPeers) {
+      this.sendMessage(peer.ws, { type: 'server-shutdown' });
+      try {
+        peer.ws.close();
+      } catch {}
+    }
 
     // Close WebSocket server
     this.wss.close();
-
-    // Clear data structures
-    this.rooms.clear();
-    this.peers.clear();
   }
 }
 

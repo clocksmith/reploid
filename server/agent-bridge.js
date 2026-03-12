@@ -8,7 +8,7 @@ class AgentBridge extends EventEmitter {
     super();
 
     this.options = {
-      path: options.path || '/claude-bridge',
+      path: options.path || '/agent-bridge',
       heartbeatInterval: options.heartbeatInterval || 30000,
       agentTimeout: options.agentTimeout || 120000,
       ...options
@@ -82,7 +82,7 @@ class AgentBridge extends EventEmitter {
     });
 
     ws.on('close', () => {
-      if (agentId) {
+      if (agentId && this.agents.has(agentId)) {
         console.log(`[AgentBridge] Agent ${agentId} disconnected`);
         this.agents.delete(agentId);
         this.emit('agent-left', { agentId });
@@ -464,15 +464,17 @@ class AgentBridge extends EventEmitter {
 
   close() {
     this.stopHeartbeatMonitor();
-    for (const agent of this.agents.values()) {
+    // Snapshot agents before clearing so close handlers don't fire spurious events
+    const openAgents = Array.from(this.agents.values());
+    this.agents.clear();
+    this.tasks.clear();
+    this.sharedContext.clear();
+    for (const agent of openAgents) {
       try {
         agent.ws.close();
       } catch {}
     }
     this.wss.close();
-    this.agents.clear();
-    this.tasks.clear();
-    this.sharedContext.clear();
   }
 }
 
