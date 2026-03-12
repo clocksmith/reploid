@@ -14,5 +14,6 @@ When invoked:
 3. Never read or reveal secret contents.
 4. Return or share only sanitized findings using the schema from `SECURITY_AUDIT.md`.
 5. If peer-sharing is enabled, publish only the sanitized snapshot.
+6. If an audit room requested a run, acknowledge the request and publish only the sanitized snapshot back to the room.
 
 Keep the audit content-free. If a real secret may be exposed, instruct the operator to inspect locally and rotate credentials if confirmed.

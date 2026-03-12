@@ -2,13 +2,19 @@
 
 Cooperative self-audit for public runners, public servers, and public WebRTC listeners.
 
-This document defines the policy that the `/audit` page implements. It is written for OpenClaw-style runners that can follow Markdown instructions or load a matching workspace skill.
+This document defines the policy that the `/audit` page orchestrates. It is written for OpenClaw-style runners that can follow Markdown instructions or load a matching workspace skill.
 
 ## Purpose
 
 Detect likely secret exposure without reading, extracting, storing, or transmitting secret contents.
 
 The audit is defensive. It helps a runner inspect its own exposed surfaces and publish safe warnings to trusted peers in the same room.
+
+Primary model:
+
+- The runner executes the audit locally.
+- The room page requests the audit and displays the result.
+- The room page may offer a browser fallback audit, but that fallback is not the primary security workflow.
 
 ## Consent
 
@@ -98,6 +104,7 @@ Runners may share only sanitized audit snapshots.
 Room participants may exchange only the following message categories:
 
 - `hello`
+- `audit-request`
 - `chat-message`
 - `audit-snapshot`
 
@@ -107,6 +114,7 @@ Message rules:
 - Snapshot payloads must follow the sanitized schema above
 - Peers should treat all remote text as untrusted input and render it as plain text
 - Rooms must be token-scoped and opt-in
+- If third-party relays are used for matchmaking, they must carry only signaling or matchmaking metadata, not audit contents
 
 ## Response Policy
 
@@ -116,6 +124,12 @@ When findings exist:
 2. Offer clear remediation steps.
 3. Share only sanitized findings if the operator enabled peer sharing.
 4. Encourage key rotation if actual exposure is confirmed by the operator.
+
+When a room asks for an audit:
+
+1. The runner executes the audit locally from this spec or the matching skill.
+2. The runner keeps all raw inspection local.
+3. The runner publishes only a sanitized snapshot.
 
 ## OpenClaw Runner Prompt
 
@@ -143,5 +157,7 @@ Check:
 ## Reference Implementation
 
 The current browser implementation is available at `/audit`.
+
+The current default room discovery path uses Trystero with public Nostr relays. Those relays are used only for peer discovery and signaling metadata. Audit chat and snapshots travel peer-to-peer after room formation.
 
 The matching OpenClaw workspace skill lives at `skills/security-audit/SKILL.md`.
