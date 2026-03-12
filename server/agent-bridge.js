@@ -4,7 +4,7 @@ import { WebSocketServer, WebSocket } from 'ws';
 import { EventEmitter } from 'events';
 
 class AgentBridge extends EventEmitter {
-  constructor(server, options = {}) {
+  constructor(options = {}) {
     super();
 
     this.options = {
@@ -24,6 +24,7 @@ class AgentBridge extends EventEmitter {
     this.agents = new Map(); // agentId -> { ws, metadata, lastSeen, capabilities }
     this.tasks = new Map();   // taskId -> { assignedTo, status, created, updated }
     this.sharedContext = new Map(); // contextKey -> value
+    this.heartbeatMonitor = null;
 
     // Setup WebSocket handlers
     this.wss.on('connection', (ws, req) => this.handleConnection(ws, req));
@@ -426,7 +427,8 @@ class AgentBridge extends EventEmitter {
   }
 
   startHeartbeatMonitor() {
-    setInterval(() => {
+    this.stopHeartbeatMonitor();
+    this.heartbeatMonitor = setInterval(() => {
       const now = Date.now();
       for (const [agentId, agent] of this.agents) {
         if (now - agent.lastSeen > this.options.agentTimeout) {
@@ -437,6 +439,12 @@ class AgentBridge extends EventEmitter {
         }
       }
     }, this.options.heartbeatInterval);
+  }
+
+  stopHeartbeatMonitor() {
+    if (!this.heartbeatMonitor) return;
+    clearInterval(this.heartbeatMonitor);
+    this.heartbeatMonitor = null;
   }
 
   getStats() {
@@ -455,6 +463,12 @@ class AgentBridge extends EventEmitter {
   }
 
   close() {
+    this.stopHeartbeatMonitor();
+    for (const agent of this.agents.values()) {
+      try {
+        agent.ws.close();
+      } catch {}
+    }
     this.wss.close();
     this.agents.clear();
     this.tasks.clear();

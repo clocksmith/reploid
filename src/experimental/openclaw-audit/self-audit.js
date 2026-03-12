@@ -256,13 +256,7 @@ export function normalizeAuditSnapshot(snapshot, fallbackActor = {}) {
       }))
     : [];
 
-  const summary = snapshot?.summary && typeof snapshot.summary === 'object'
-    ? {
-        total: Number(snapshot.summary.total) || findings.length,
-        critical: Number(snapshot.summary.critical) || findings.filter((finding) => finding.severity === 'critical').length,
-        warning: Number(snapshot.summary.warning) || findings.filter((finding) => finding.severity === 'warning').length
-      }
-    : summarizeFindings(findings);
+  const summary = summarizeFindings(findings);
 
   return {
     actor,

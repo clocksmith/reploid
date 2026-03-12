@@ -7,7 +7,7 @@ import {
 } from '../../src/experimental/openclaw-audit/self-audit.js';
 
 describe('OpenClaw audit helpers', () => {
-  it('slugifies room names for the signaling token', () => {
+  it('slugifies room names for room sharing', () => {
     expect(slugifyRoomId('  Public Audit Room  ')).toBe('public-audit-room');
     expect(slugifyRoomId('mesh///unsafe###name')).toBe('mesh-unsafe-name');
   });
@@ -68,5 +68,34 @@ describe('OpenClaw audit helpers', () => {
     expect(snapshot.actor.alias).toBe('runner-a');
     expect(snapshot.summary.total).toBe(1);
     expect(snapshot.findings[0].remediation).toBeTruthy();
+  });
+
+  it('recomputes snapshot summaries from sanitized findings', () => {
+    const snapshot = normalizeAuditSnapshot({
+      actor: { alias: 'runner-a', peerId: 'peer-a' },
+      summary: { total: 0, critical: 0, warning: 0 },
+      findings: [
+        {
+          severity: 'critical',
+          code: 'manual-seed-phrase-visible',
+          summary: 'Seed visible',
+          surface: 'manual-attestation',
+          subject: 'seed_phrase_visible'
+        },
+        {
+          severity: 'warning',
+          code: 'manual-debug-snapshot-shared',
+          summary: 'Debug snapshot shared',
+          surface: 'manual-attestation',
+          subject: 'debug_snapshot_shared'
+        }
+      ]
+    });
+
+    expect(snapshot.summary).toEqual({
+      total: 2,
+      critical: 1,
+      warning: 1
+    });
   });
 });

@@ -1354,7 +1354,7 @@ server.on('upgrade', (req, socket, head) => {
 
 // Initialize WebRTC Signaling Server
 try {
-  signalingServer = new SignalingServer(server, {
+  signalingServer = new SignalingServer({
     path: '/signaling',
     heartbeatInterval: 30000,
     peerTimeout: 60000
@@ -1375,7 +1375,7 @@ try {
 
 // Initialize Agent Bridge
 try {
-  agentBridge = new AgentBridge(server, {
+  agentBridge = new AgentBridge({
     path: '/agent-bridge',
     heartbeatInterval: 30000,
     agentTimeout: 120000
