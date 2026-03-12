@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  normalizeAuditSnapshot,
   runLocalSelfAudit,
   scanManualFlags,
   slugifyRoomId
@@ -48,5 +49,24 @@ describe('OpenClaw audit helpers', () => {
     expect(findings).toHaveLength(3);
     expect(findings.every((finding) => finding.surface === 'manual-attestation')).toBe(true);
     expect(findings.filter((finding) => finding.severity === 'critical')).toHaveLength(2);
+  });
+
+  it('normalizes externally produced runner snapshots', () => {
+    const snapshot = normalizeAuditSnapshot({
+      actor: { alias: 'runner-a', peerId: 'peer-a' },
+      findings: [
+        {
+          severity: 'critical',
+          code: 'manual-seed-phrase-visible',
+          summary: 'Seed visible',
+          surface: 'manual-attestation',
+          subject: 'seed_phrase_visible'
+        }
+      ]
+    });
+
+    expect(snapshot.actor.alias).toBe('runner-a');
+    expect(snapshot.summary.total).toBe(1);
+    expect(snapshot.findings[0].remediation).toBeTruthy();
   });
 });
