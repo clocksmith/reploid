@@ -16,7 +16,7 @@ class AgentBridge extends EventEmitter {
 
     // WebSocket server
     this.wss = new WebSocketServer({
-      server,
+      noServer: true,
       path: this.options.path
     });
 
@@ -32,6 +32,16 @@ class AgentBridge extends EventEmitter {
     this.startHeartbeatMonitor();
 
     console.log(`[AgentBridge] Agent coordination server started on ${this.options.path}`);
+  }
+
+  shouldHandle(req) {
+    return this.wss.shouldHandle(req);
+  }
+
+  handleUpgrade(req, socket, head) {
+    this.wss.handleUpgrade(req, socket, head, (ws) => {
+      this.wss.emit('connection', ws, req);
+    });
   }
 
   handleConnection(ws, req) {
