@@ -49,7 +49,7 @@
 
 Isolated tests for individual modules with mocked dependencies.
 
-**33 test files covering:**
+**34 test files covering:**
 - Infrastructure: `di-container.test.js`, `event-bus.test.js`, `context-manager.test.js`
 - Core modules: `state-manager.test.js`, `utils.test.js`, `utils-core.test.js`, `vfs-module-loader.test.js`
 - Tools: `tools/read-file.test.js`, `tools/write-file.test.js`, `tools/edit-file.test.js`, `tools/list-files.test.js`, `tools/grep.test.js`, `tools/find.test.js`
@@ -70,7 +70,7 @@ npm run test:unit
 
 Multi-module workflow tests with realistic state management.
 
-**17 test files covering:**
+**18 test files covering:**
 - Core cognitive loop: `agent-loop.test.js`, `fsm.test.js`, `rsi-loop.test.js`
 - LLM & inference: `llm-client.test.js`, `neural-compiler-lora.test.js`, `gepa-optimizer.test.js`, `doppler-inference.test.js`
 - Memory & state: `prompt-memory.test.js`, `reflection-system.test.js`, `replay-engine.test.js`, `vfs.test.js`
@@ -78,6 +78,7 @@ Multi-module workflow tests with realistic state management.
 - Tool execution: `tool-runner.test.js`
 - Arena (safety): `arena-harness.test.js`, `doppler-arena.test.js`
 - Networking: `webrtc-swarm.test.js`
+- Routing: `websocket-routing.test.js`
 
 **Run:**
 ```bash
@@ -110,8 +111,8 @@ npm run test:e2e
 | `TEST_AWAKEN` | Run with default goal | `false` |
 | `GOAL` | Goal preset or custom text | - |
 | `TIMEOUT` | Test timeout in ms | `60000` |
-| `GENESIS` | Genesis level to use | `L1` |
-| `BASE_URL` | Server URL | `http://localhost:3000` |
+| `GENESIS` | Genesis level to use | `full` |
+| `BASE_URL` | Server URL | `http://localhost:8000` |
 
 **Goal Presets:**
 - `hello` - Basic greeting

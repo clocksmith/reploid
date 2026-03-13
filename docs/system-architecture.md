@@ -40,8 +40,9 @@ REPLOID is a browser-native research environment for studying recursive self-imp
 ### 1. Entry Point (`index.html` + `entry/seed-vfs.js`)
 
 The boot screen allows operators to configure:
-- **Genesis Level**: Tabula Rasa, Reflection, or Full Substrate
-- **Model Providers**: Cloud APIs, Ollama, WebLLM
+- **Genesis Level**: `tabula` through `full`
+- **Connection Type**: direct cloud API, proxy server, or browser-local model
+- **Optional model access**: browser-local model access alongside direct or proxy modes
 - **Concurrency Limits**: Max workers, iteration caps
 - **Goal Chips**: Pre-defined or custom goals
 
@@ -63,12 +64,17 @@ Modules are imported from VFS based on `config/genesis-levels.json` for the sele
 
 | Level | Modules | Description |
 |-------|---------|-------------|
-| **Tabula Rasa** | ~13 | Minimal core, fastest boot |
-| **Reflection** | ~19 | + Streaming, verification, HITL |
-| **Full Substrate** | ~32 | + Arena, semantic memory, full toolset |
+| **tabula** | 7 cumulative | Bootstrap substrate core |
+| **spark** | 20 cumulative | Minimal agent core |
+| **reflection** | 26 cumulative | Streaming, verification, HITL |
+| **cognition** | 37 cumulative | Semantic and symbolic cognition |
+| **substrate** | 50 cumulative | Runtime infrastructure and workers |
+| **full** | 66 cumulative | Arena, swarm, multi-model systems |
 
 Each level defines:
-- `modules`: Files to hydrate
+- `modules`: Files to hydrate for that cumulative boot tier
+
+The same config file also defines:
 - `workerTypes`: Permission configurations
 - `modelRoles`: Model assignments (orchestrator, fast, code, local)
 
@@ -160,7 +166,7 @@ Multi-provider abstraction:
 
 System prompt customization:
 
-- Reads `/config.json` for persona configuration
+- Loads `/personas/config.json` and persists overrides in `/.memory/persona-overrides.json`
 - Injects RSI-focused identity, tool-writing instructions
 - Enforces CamelCase naming for tools
 - Includes verification loop reminders and safety rules
@@ -270,13 +276,13 @@ Prevent runaway failures with automatic recovery.
 
 Human approval gates for sensitive operations.
 
-For full security documentation, see [security.md](./security.md).
+For full security documentation, see [SECURITY.md](./SECURITY.md).
 
 ---
 
 ## UI Architecture
 
-### Proto UI (`ui/proto.js`)
+### Proto UI (`ui/proto/`)
 
 The operator's control room:
 
@@ -369,12 +375,12 @@ export const schema = {
 
 ```
 reploid/
-├── index.html              # Entry point
-├── entry/seed-vfs.js            # VFS hydration + SW activation
-├── entry/start-app.js                 # Boot orchestrator (runs from VFS)
-├── sw-module-loader.js     # Service worker for VFS modules
+├── src/index.html          # Entry point
+├── src/entry/seed-vfs.js   # VFS hydration + SW activation
+├── src/entry/start-app.js  # Boot orchestrator (runs from VFS)
+├── src/sw-module-loader.js # Service worker for VFS modules
 │
-├── core/                   # Core substrate
+├── src/core/               # Core substrate
 │   ├── agent-loop.js       # Cognitive cycle
 │   ├── vfs.js              # Virtual filesystem
 │   ├── llm-client.js       # Multi-provider LLM
@@ -384,7 +390,7 @@ reploid/
 │   ├── response-parser.js  # Tool call parsing
 │   └── verification-manager.js  # Pre-flight checks
 │
-├── infrastructure/         # Support services
+├── src/infrastructure/     # Support services
 │   ├── event-bus.js        # Pub/sub system
 │   ├── di-container.js     # Dependency injection
 │   ├── hitl-controller.js  # Human-in-the-loop
@@ -392,18 +398,21 @@ reploid/
 │   ├── circuit-breaker.js  # Failure tracking
 │   └── rate-limiter.js     # API limits
 │
-├── ui/                     # User interface
-│   └── proto.js            # Proto UI
+├── src/ui/                 # User interface
+│   ├── proto/              # Main proto UI
+│   └── dashboard/          # Dashboard helpers and explorer components
 │
-├── tools/                  # Agent tools (all CamelCase)
+├── src/tools/              # Agent tools (all CamelCase)
 │   ├── ReadFile.js, WriteFile.js, ...
 │   ├── SpawnWorker.js, ListWorkers.js, AwaitWorkers.js
 │   └── python/             # Pyodide runtime
 │
-├── config/                 # Configuration
-│   └── genesis-levels.json # Module/worker/role definitions
+├── src/config/             # Configuration
+│   ├── genesis-levels.json # Module/worker/role definitions
+│   ├── module-registry.json
+│   └── vfs-manifest.json
 │
-├── testing/                # Test infrastructure
+├── src/testing/            # Test infrastructure
 │   └── arena/              # Arena harness and sandbox
 │
 ├── docs/                   # Documentation
@@ -425,4 +434,4 @@ For module development guidelines, see [style-guide.md](./style-guide.md) and th
 
 ---
 
-*Last updated: December 2025*
+*Last updated: March 2026*

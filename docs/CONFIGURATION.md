@@ -95,7 +95,7 @@ Settings managed by the model selection UI.
 
 ## Security Settings
 
-See [security.md](./security.md) for details.
+See [SECURITY.md](./SECURITY.md) for details.
 
 | Setting | localStorage Key | Values | Default |
 |---------|------------------|--------|---------|
@@ -139,9 +139,9 @@ Some settings can be set via URL:
 
 | Parameter | Effect |
 |-----------|--------|
-| `?swarm=true` | Enable swarm mode |
-| `?genesis=spark` | Set genesis level |
-| `?debug=true` | Enable debug logging |
+| `?swarm=true` | Enable swarm mode with the default room |
+| `?swarm=<room>` | Enable swarm mode and join a specific room id |
+| `?dopplerBase=<url>` | Override the Doppler asset base URL for browser-local models |
 
 ---
 
@@ -188,4 +188,4 @@ Derived map of runtime modules, dependencies, and genesis introduction levels.
 |-----|---------|
 | `modules` | Module metadata with dependency lists |
 
-*Last updated: December 2025*
+*Last updated: March 2026*

@@ -6,6 +6,8 @@
 
 This document provides a high-level overview of REPLOID's security model. For detailed implementation specifications, see the referenced blueprints.
 
+Current defaults are intentionally permissive for experimentation: `REPLOID_SECURITY_MODE` defaults to `'off'` and `REPLOID_ARENA_GATING` defaults to `'false'`. Enable them explicitly for substrate-modification experiments.
+
 ---
 
 ## RSI Level Policy
@@ -38,14 +40,14 @@ REPLOID studies RSI (recursive self-improvement) without giving agents access to
 
 | Layer | Blueprint | Description |
 |-------|-----------|-------------|
-| 1 | [VFS (0x000011)](../blueprints/0x000011-advanced-storage-backend-indexeddb.md) | All I/O virtualized via IndexedDB |
-| 2 | [Application Orchestration (0x000002)](../blueprints/0x000002-application-orchestration.md) | ES6 imports intercepted, served from VFS |
-| 3 | [Genesis Snapshots (0x000043)](../blueprints/0x000043-genesis-snapshot-system.md) | Instant rollback to pristine state |
-| 4 | [Verification Manager (0x000047)](../blueprints/0x000047-verification-manager.md) | Pre-flight checks in isolated Web Worker |
-| 5 | [Arena Gating (0x000075-77)](../blueprints/0x000075-arena-competitor.md) | Multi-model consensus for high-risk changes |
-| 6 | [VFSSandbox](../blueprints/0x000075-arena-competitor.md) | Test changes in disposable clone |
-| 7 | [Circuit Breakers (0x000067)](../blueprints/0x000067-circuit-breaker-pattern.md) | Prevent runaway failures |
-| 8 | [HITL Controller (0x000051)](../blueprints/0x000051-hitl-controller.md) | Optional approval gates |
+| 1 | [VFS (0x000011)](../src/blueprints/0x000011-advanced-storage-backend-indexeddb.md) | All I/O virtualized via IndexedDB |
+| 2 | [Application Orchestration (0x000002)](../src/blueprints/0x000002-application-orchestration.md) | ES module boot and VFS hydration |
+| 3 | [Genesis Snapshots (0x00003C)](../src/blueprints/0x00003C-genesis-snapshot-system.md) | Instant rollback to pristine state |
+| 4 | [Verification Manager (0x000040)](../src/blueprints/0x000040-verification-manager.md) | Pre-flight checks in isolated Web Worker |
+| 5 | [Arena Harness (0x000066)](../src/blueprints/0x000066-arena-harness.md) | Multi-model consensus for high-risk changes |
+| 6 | VFSSandbox | Test changes in a disposable clone before commit |
+| 7 | [Circuit Breakers (0x00005C)](../src/blueprints/0x00005C-circuit-breaker-pattern.md) | Prevent runaway failures |
+| 8 | [HITL Controller (0x000049)](../src/blueprints/0x000049-hitl-controller.md) | Optional approval gates |
 
 ---
 
@@ -73,9 +75,9 @@ REPLOID studies RSI (recursive self-improvement) without giving agents access to
 
 | Category | Threats | Mitigation Blueprint |
 |----------|---------|----------------------|
-| Prompt Injection | Malicious user input | [0x000001](../blueprints/0x000001-system-prompt-architecture.md) |
-| Code Injection | `eval()`, dynamic imports | [0x000047](../blueprints/0x000047-verification-manager.md) |
-| Resource Exhaustion | Infinite loops, API flooding | [0x000067](../blueprints/0x000067-circuit-breaker-pattern.md), [0x00002C](../blueprints/0x00002C-rate-limiting-strategies.md) |
+| Prompt Injection | Malicious user input | [0x000001](../src/blueprints/0x000001-system-prompt-architecture.md) |
+| Code Injection | `eval()`, dynamic imports | [0x000040](../src/blueprints/0x000040-verification-manager.md) |
+| Resource Exhaustion | Infinite loops, API flooding | [0x00005C](../src/blueprints/0x00005C-circuit-breaker-pattern.md), [0x000029](../src/blueprints/0x000029-rate-limiting-strategies.md) |
 | Data Exfiltration | Arbitrary fetch | VFS containment, no network access |
 
 ---
@@ -93,7 +95,7 @@ localStorage.REPLOID_MAX_ITERATIONS = '50';      // Cap iterations
 
 ```javascript
 localStorage.REPLOID_ARENA_GATING = 'true';      // Multi-model consensus
-localStorage.REPLOID_VERIFICATION = 'strict';    // Block all unsafe patterns
+localStorage.REPLOID_SECURITY_MODE = 'on';       // Enable security enforcement
 ```
 
 ---
@@ -112,11 +114,11 @@ localStorage.REPLOID_VERIFICATION = 'strict';    // Block all unsafe patterns
 
 For implementation details, see:
 
-- **[0x000047: Verification Manager](../blueprints/0x000047-verification-manager.md)** - Complete security integration section
-- **[0x000051: HITL Controller](../blueprints/0x000051-hitl-controller.md)** - Human oversight modes
-- **[0x000067: Circuit Breaker](../blueprints/0x000067-circuit-breaker-pattern.md)** - Failure isolation
-- **[0x000043: Genesis Snapshots](../blueprints/0x000043-genesis-snapshot-system.md)** - Rollback system
+- **[0x000040: Verification Manager](../src/blueprints/0x000040-verification-manager.md)** - Complete security integration section
+- **[0x000049: HITL Controller](../src/blueprints/0x000049-hitl-controller.md)** - Human oversight modes
+- **[0x00005C: Circuit Breaker](../src/blueprints/0x00005C-circuit-breaker-pattern.md)** - Failure isolation
+- **[0x00003C: Genesis Snapshots](../src/blueprints/0x00003C-genesis-snapshot-system.md)** - Rollback system
 
 ---
 
-*Last updated: December 2025*
+*Last updated: March 2026*
