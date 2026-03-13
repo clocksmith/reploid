@@ -2,10 +2,8 @@
  * @fileoverview REPLOID Bootstrapper
  * Slim entry point that delegates to modular boot components.
  *
- * Genesis Levels:
- *   TABULA     - Minimal agent core (17 modules)
- *   REFLECTION - +self-awareness, HITL (6 modules)
- *   FULL       - +cognition, arena, swarm (28 modules)
+ * Genesis levels are defined in src/config/genesis-levels.json.
+ * Current ladder: tabula -> spark -> reflection -> cognition -> substrate -> full.
  */
 
 // === BOOT INFRASTRUCTURE ===

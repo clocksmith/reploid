@@ -3,7 +3,7 @@
  * REPLOID CLI - Unified testing, benchmarking, and debugging
  *
  * Usage:
- *   npx tsx tools/reploid-cli.ts <command> [options]
+ *   npx tsx bin/reploid-cli.ts <command> [options]
  *
  * Commands:
  *   test [suite]     Run tests (unit, integration, e2e, full)

@@ -1,262 +1,207 @@
 # Running REPLOID with Local Models
 
-This guide explains how to run REPLOID with local language models using Ollama, LM Studio, or other compatible local model servers.
+REPLOID currently supports local-model workflows in two ways:
 
-## Quick Start
+1. `Proxy-local`: the Reploid proxy talks to a local model server, typically Ollama.
+2. `Browser-local`: the browser uses WebGPU and the browser-local Doppler stack.
 
-### 1. Install a Local Model Server
+Use this document as the current source of truth for local-model setup. Older references to `ApiClient.setProvider()` or `config.json` are obsolete.
 
-Choose one of the following:
+---
 
-#### Option A: Ollama (Recommended)
+## Option 1: Proxy-Local Models with Ollama
+
+This is the most stable local-model path today.
+
+### 1. Install and start Ollama
+
 ```bash
 # Install Ollama
 curl -fsSL https://ollama.ai/install.sh | sh
 
 # Pull a model
-ollama pull qwen2.5-coder:32b
+ollama pull qwen2.5-coder:7b
 
-# Start Ollama server (runs on port 11434 by default)
+# Start the server
 ollama serve
 ```
 
-#### Option B: LM Studio
-1. Download LM Studio from [https://lmstudio.ai/](https://lmstudio.ai/)
-2. Install and launch LM Studio
-3. Download a model from the UI
-4. Start the local server (runs on port 1234 by default)
+Default endpoint: `http://localhost:11434`
 
-### 2. Configure REPLOID
+### 2. Configure the Reploid proxy
 
-1. Copy the environment template:
-```bash
-cp .env.example .env
-```
+Create `.env` in the Reploid repo:
 
-2. edit `.env` to configure your providers:
 ```env
-# Optional: Add API keys for cloud providers
-GEMINI_API_KEY=your_gemini_key_here
-OPENAI_API_KEY=your_openai_key_here
-ANTHROPIC_API_KEY=your_anthropic_key_here
-
-# Configure local model endpoint
-# For Ollama (default):
 LOCAL_MODEL_ENDPOINT=http://localhost:11434
 
-# For LM Studio:
-# LOCAL_MODEL_ENDPOINT=http://localhost:1234
+# Optional cloud providers for hybrid use
+GEMINI_API_KEY=your_key_here
+OPENAI_API_KEY=your_key_here
+ANTHROPIC_API_KEY=your_key_here
 ```
 
-### 3. Start the REPLOID Proxy Server
+### 3. Start Reploid
 
 ```bash
 npm install
 npm start
 ```
 
-The proxy server will automatically detect available providers and display them on startup:
+Open `http://localhost:8000`.
 
-```
-╔════════════════════════════════════════════════════════╗
-║                                                        ║
-║   REPLOID Multi-Provider Proxy Server                 ║
-║                                                        ║
-║   URL: http://localhost:8000                          ║
-║   Providers: Gemini, OpenAI, Local                    ║
-║   Local endpoint: http://localhost:11434              ║
-║                                                        ║
-║   Press Ctrl+C to stop                                ║
-║                                                        ║
-╚════════════════════════════════════════════════════════╝
-```
+### 4. Choose `Proxy` in the boot wizard
 
-### 4. Access REPLOID
+The boot wizard will try to detect:
+- the Reploid proxy on `localhost:8000`
+- Ollama on `localhost:11434`
 
-Open your browser and navigate to: `http://localhost:8000`
+If Ollama is selected:
+- `serverType` becomes `ollama`
+- the selected model is stored in `SELECTED_MODELS`
+- Reploid will route chat/inference through the proxy with `hostType: proxy-local`
 
-## Supported Local Model Formats
+### 5. Verify the proxy and the model
 
-The proxy server supports any Ollama-compatible API, including:
+Useful endpoints:
 
-- **Ollama**: Native support for all Ollama models
-- **LM Studio**: Compatible with the OpenAI-style API
-- **LocalAI**: Drop-in replacement for OpenAI API
-- **Text Generation WebUI**: With API extension enabled
-
-## Provider Selection
-
-REPLOID now supports multiple providers. The system will:
-
-1. **Auto-detect** available providers based on configured API keys
-2. **Auto-select** the best available provider in this order:
-   - Gemini (if API key configured)
-   - OpenAI (if API key configured)  
-   - Anthropic (if API key configured)
-   - Local (always available)
-
-## Switching Providers at Runtime
-
-To switch providers programmatically, the agent can use:
-
-```javascript
-// In the browser console or agent code
-ApiClient.setProvider('local');  // Switch to local model
-ApiClient.setProvider('gemini'); // Switch to Gemini
-ApiClient.setProvider('openai'); // Switch to OpenAI
-```
-
-## Configuring Models
-
-edit `config.json` to set default models for each provider:
-
-```json
-"providers": {
-  "default": "local",
-  "fallbackProviders": ["gemini", "openai"],
-  "localEndpoint": "http://localhost:11434",
-  "localModel": "qwen2.5-coder:32b",
-  "geminiModel": "gemini-2.0-flash",
-  "openaiModel": "gpt-4o",
-  "anthropicModel": "claude-sonnet-4-20250514"
-}
-```
-
-## Testing Your Setup
-
-### Test Ollama Connection
 ```bash
-# Check if Ollama is running
-curl http://localhost:11434/api/tags
-
-# Test generation
-curl http://localhost:11434/api/generate -d '{
-  "model": "qwen2.5-coder:32b",
-  "prompt": "Hello, world!"
-}'
-```
-
-### Test REPLOID Proxy
-```bash
-# Check proxy status
+curl http://localhost:8000/api/health
 curl http://localhost:8000/api/proxy-status
-
-# Test local model through proxy
-curl http://localhost:8000/api/local/api/generate -H "Content-Type: application/json" -d '{
-  "model": "qwen2.5-coder:32b",
-  "prompt": "Hello from REPLOID!"
-}'
+curl http://localhost:8000/api/ollama/models
+curl http://localhost:11434/api/tags
 ```
+
+---
+
+## Option 2: Browser-Local Models
+
+This path keeps inference in the browser and relies on WebGPU plus browser-local assets.
+
+### Requirements
+
+- WebGPU-capable browser
+- Reachable Doppler/browser-local asset base
+- A browser-local model exposed through the current boot-wizard detection path
+
+### 1. Start Reploid
+
+```bash
+npm install
+npm start
+```
+
+### 2. Open the app and choose `Browser`
+
+The boot wizard will probe browser-local support and any available browser-local models.
+
+If browser-local support is available:
+- choose `Browser`
+- select the detected model
+- verify and awaken
+
+### 3. Override the Doppler asset base if needed
+
+The app defaults to `/doppler` for browser-local assets. Override it with `dopplerBase`:
+
+```text
+http://localhost:8000/src/?dopplerBase=http://localhost:9000/doppler
+```
+
+The selected browser-local model is stored with `hostType: browser-local`.
+
+---
+
+## Hybrid Local Workflows
+
+Direct and Proxy sessions can also enable browser-local model access when the boot wizard detects it.
+
+Use this when you want:
+- cloud-backed orchestration with local model inspection
+- proxy-backed chat plus browser-local model access
+- future workflows involving LoRA or browser-local inference assets
+
+The important storage keys are:
+- `SELECTED_MODELS`
+- `REPLOID_KEY_<PROVIDER>`
+- `CONSENSUS_TYPE`
+
+See [CONFIGURATION.md](./CONFIGURATION.md) for the broader config surface.
+
+---
+
+## Supported Local Servers
+
+The current proxy implementation is Ollama-first.
+
+Supported today:
+- Ollama on `LOCAL_MODEL_ENDPOINT`
+- the Reploid proxy serving Ollama-backed model lists and chat
+
+Potentially compatible with adaptation:
+- other local servers that expose Ollama-style endpoints such as `/api/tags`, `/api/chat`, and `/api/generate`
+
+This document does not treat generic OpenAI-compatible local servers as first-class supported paths unless the server matches the current proxy expectations.
+
+---
 
 ## Troubleshooting
 
-### Local Model Not Responding
+### Ollama not detected
 
-1. **Check if the model server is running:**
-   ```bash
-   # For Ollama
-   ps aux | grep ollama
-   
-   # Check if port is listening
-   lsof -i :11434
-   ```
-
-2. **Verify the model is installed:**
-   ```bash
-   ollama list
-   ```
-
-3. **Check proxy server logs** for connection errors
-
-### Performance Issues
-
-- **Model Size**: Smaller models (7B parameters) work better for real-time interaction
-- **Quantization**: Use quantized models (e.g., Q4_0) for better performance
-- **Context Length**: Limit context length for faster responses
-
-### Recommended Local Models
-
-For best performance with REPLOID:
-
-| Model | Size | Best For | Command |
-|-------|------|----------|---------|
-| Qwen2.5-Coder 32B | ~18GB | Code generation, tool use | `ollama pull qwen2.5-coder:32b` |
-| Qwen2.5-Coder 7B | ~4GB | Balanced performance | `ollama pull qwen2.5-coder:7b` |
-| DeepSeek-Coder-V2 | ~16GB | Code reasoning | `ollama pull deepseek-coder-v2` |
-| Llama 3.2 3B | ~2GB | Fast responses | `ollama pull llama3.2:3b` |
-| Mistral 7B | ~4GB | General purpose | `ollama pull mistral` |
-
-### Hardware Requirements
-
-| Model Size | RAM | VRAM | Notes |
-|------------|-----|------|-------|
-| 3B params | 4GB | 4GB | Works on most systems |
-| 7B params | 8GB | 6GB | Good balance |
-| 13B params | 16GB | 10GB | Better quality |
-| 32B+ params | 32GB | 24GB | Requires high-end GPU |
-
-For WebGPU-based local models (Doppler), see [setup-instructions.md](../doppler/docs/setup-instructions.md).
-
-## Architecture Overview
-
-```
-┌─────────────┐     ┌──────────────┐     ┌─────────────┐
-│   Browser   │────☇│ Node Proxy   │────☇│ Local Model │
-│  (REPLOID)  │     │   (Port 8000)│     │  (Ollama)   │
-└─────────────┘     └──────────────┘     └─────────────┘
-                            │
-                            ▼
-                    ┌──────────────┐
-                    │ Cloud APIs   │
-                    │ (Gemini, etc)│
-                    └──────────────┘
+```bash
+curl http://localhost:11434/api/tags
 ```
 
-The proxy server acts as a unified interface, routing requests to either local models or cloud APIs based on configuration and availability.
+If that fails:
+- start `ollama serve`
+- verify `LOCAL_MODEL_ENDPOINT`
+- check that the process is listening on the expected port
+
+### Proxy is up but no local models appear
+
+- open `http://localhost:8000/api/health`
+- open `http://localhost:8000/api/ollama/models`
+- inspect the proxy logs for Ollama connection errors
+
+### Browser-local option is disabled
+
+- confirm WebGPU support
+- confirm the Doppler asset base is reachable
+- try overriding `dopplerBase`
+- test in a clean browser profile if service-worker state looks stale
+
+### Model runs but quality is poor
+
+- use a larger Ollama model
+- move from browser-local to proxy-local if you need a stronger local model
+- use a hybrid setup with cloud models for orchestration and local models for selective tasks
+
+### Storage pressure
+
+- browser-local assets and VFS state compete for browser storage
+- export important artifacts before clearing site storage
+- disable `REPLOID_PRESERVE_ON_BOOT` if you want a clean reseed
+
+---
 
 ## Security Notes
 
-- The proxy server only accepts connections from localhost by default
-- API keys are stored server-side and never exposed to the browser
-- Local models run entirely on your machine with no external data transmission
-- All VFS operations remain sandboxed in the browser
+- Proxy-local keeps API keys on the server side
+- Browser-local keeps inference inside the browser
+- VFS mutation remains sandboxed in the browser regardless of model path
+- Local models do not bypass Reploid's verification, HITL, or arena gates
 
-## Advanced Configuration
+---
 
-### Custom Model Endpoints
+## Related Docs
 
-You can configure custom endpoints for other model servers:
+- [QUICK-START.md](./QUICK-START.md)
+- [CONFIGURATION.md](./CONFIGURATION.md)
+- [SECURITY.md](./SECURITY.md)
+- [API.md](./API.md)
+- [Doppler Architecture](../../doppler/docs/architecture.md)
 
-```env
-# For a custom model server
-LOCAL_MODEL_ENDPOINT=http://192.168.1.100:5000
+---
 
-# For Text Generation WebUI
-LOCAL_MODEL_ENDPOINT=http://localhost:5000
-```
-
-### Model-Specific Settings
-
-Different models may require different prompt formats. Configure these in the agent's system prompt or via runtime configuration.
-
-## Contributing
-
-To add support for additional local model formats:
-
-1. Extend the `LocalProvider` class in `upgrades/multi-provider-api.js`
-2. Add endpoint handling in `server/proxy.js`
-3. Update this documentation
-
-## FAQ
-
-**Q: Can I run completely offline?**
-A: Yes! With a local model configured, REPLOID can operate entirely offline.
-
-**Q: Which provider is fastest?**
-A: Local models have lowest latency but may have lower capability. Cloud APIs offer better quality but add network latency.
-
-**Q: Can I use multiple providers simultaneously?**
-A: Yes, the system supports automatic fallback to alternate providers if the primary fails.
-
-**Q: How much RAM/VRAM do I need?**
-A: Depends on model size. 7B models typically need 4-8GB, 13B models need 8-16GB.
+*Last updated: March 2026*

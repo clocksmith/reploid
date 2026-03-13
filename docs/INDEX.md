@@ -7,8 +7,8 @@ Guide to all documentation in the REPLOID project.
 ## Getting Started
 
 1. **[/README.md](../README.md)** - Project overview, quick start, RSI concepts
-2. **[docs/quick-start.md](./quick-start.md)** - Detailed setup and first run
-3. **[docs/configuration.md](./configuration.md)** - Connection modes and boot configuration
+2. **[docs/QUICK-START.md](./QUICK-START.md)** - Detailed setup and first run
+3. **[docs/CONFIGURATION.md](./CONFIGURATION.md)** - Connection modes and boot configuration
 
 ---
 
@@ -16,7 +16,7 @@ Guide to all documentation in the REPLOID project.
 
 ### Architecture
 - **[docs/system-architecture.md](./system-architecture.md)** - Complete system design
-- **[./src/blueprints/](../src/blueprints/)** - Architectural specifications (100+ files)
+- **[./src/blueprints/](../src/blueprints/)** - Architectural specifications (216+ files)
 
 **Key Blueprints:**
 - [0x000002 - Application Orchestration](../src/blueprints/0x000002-application-orchestration.md) - Boot and DI
@@ -30,13 +30,13 @@ Guide to all documentation in the REPLOID project.
 - **[docs/substrate.md](./substrate.md)** - Substrate + Ouroboros contract
 
 ### Reference
-- **[docs/api.md](./api.md)** - Module API documentation
+- **[docs/API.md](./API.md)** - Module API documentation
 - **[docs/multi-model-evaluation.md](./multi-model-evaluation.md)** - Multi-model evaluation harness
 - **[docs/intent-bundle-lora.md](./intent-bundle-lora.md)** - Intent bundle LoRA workflow
-- **[docs/configuration.md](./configuration.md)** - Boot page settings and localStorage keys
+- **[docs/CONFIGURATION.md](./CONFIGURATION.md)** - Boot page settings and localStorage keys
 - **[docs/local-models.md](./local-models.md)** - WebLLM and Ollama setup
 - **[docs/style-guide.md](./style-guide.md)** - Code and UI conventions
-- **[docs/security.md](./security.md)** - Security model and containment layers
+- **[docs/SECURITY.md](./SECURITY.md)** - Security model and containment layers
 
 ---
 
@@ -72,7 +72,7 @@ reploid/
 │   │   └── genesis-levels.json # Module/worker/role definitions
 │   │
 │   ├── blueprints/             # Architectural specifications
-│   │   └── (100+ design docs)
+│   │   └── (216+ design docs)
 │   │
 │
 ├── tests/                      # Test suites
@@ -87,13 +87,13 @@ reploid/
 
 ### For New Users
 1. [README.md](../README.md) - Understand REPLOID
-2. [quick-start.md](./quick-start.md) - Get running
-3. [configuration.md](./configuration.md) - Configure connections
+2. [QUICK-START.md](./QUICK-START.md) - Get running
+3. [CONFIGURATION.md](./CONFIGURATION.md) - Configure connections
 
 ### For Developers
 1. [system-architecture.md](./system-architecture.md) - Understand architecture
 2. [blueprints/README.md](../src/blueprints/README.md) - Study specifications
-3. [api.md](./api.md) - Learn module APIs
+3. [API.md](./API.md) - Learn module APIs
 4. [tools/README.md](../src/tools/README.md) - Tool development
 
 ### For RSI Research
@@ -102,7 +102,7 @@ reploid/
 3. [blueprints/0x00005B-recursive-goal-decomposition.md](../src/blueprints/0x00005B-recursive-goal-decomposition.md) - Recursive goal decomposition
 
 ### For Security Researchers
-1. [security.md](./security.md) - Security model and containment
+1. [SECURITY.md](./SECURITY.md) - Security model and containment
 2. [blueprints/0x000040-verification-manager.md](../src/blueprints/0x000040-verification-manager.md) - Verification and sandbox design
 3. [blueprints/0x00005C-circuit-breaker-pattern.md](../src/blueprints/0x00005C-circuit-breaker-pattern.md) - Failure containment
 

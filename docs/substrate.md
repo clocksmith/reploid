@@ -22,7 +22,7 @@ reploid/
 ├── server/            # Server-side (proxy, signaling)
 ├── tests/             # Test suites (unit, integration, e2e, benchmarks)
 ├── docs/              # Documentation
-└── doppler/           # Submodule (engine)
+└── ../doppler/        # Sibling engine repo in the workspace
 ```
 
 Runtime note: the VFS root `/` maps to `src/` on disk. Paths like `/core/agent-loop.js`
@@ -32,9 +32,10 @@ refer to `src/core/agent-loop.js`.
 
 ## Ouroboros Contract (Doppler Integration)
 
-Reploid (driver) and Doppler (engine) integrate through a minimal substrate contract:
+Reploid (driver) and Doppler (engine) are documented against a minimal substrate contract:
 SharedArrayBuffer for control flags plus VFS files for payload exchange. This keeps the
-API surface tiny and auditable.
+API surface tiny and auditable. Parts of this contract remain research-facing until the
+runtime wires the full exchange end-to-end.
 
 ### Contract Surface
 
@@ -69,7 +70,7 @@ Reploid can evolve Doppler kernels by writing a replacement WGSL file to
 Doppler validates the hash and recompiles only when it changes. This path is
 gated by verification and rollback logic in Reploid.
 
-See `/home/x/deco/reploid/docs/architecture.md` for Doppler's engine design details.
+See `../../doppler/docs/architecture.md` for Doppler's engine design details.
 
 ---
 
@@ -173,7 +174,7 @@ Set `CORS_ORIGINS` environment variable or add to config:
 
 ## Blueprints
 
-The `src/blueprints/` directory (VFS path `/blueprints/`) contains 102 architectural blueprints organized into 7 domains:
+The `src/blueprints/` directory (VFS path `/blueprints/`) contains 216+ architectural blueprints organized into 7 domains:
 
 1. **Core Infrastructure** - Bootstrapping, DI, configuration
 2. **State & Memory** - VFS, persistence, context management
