@@ -3,64 +3,36 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <base id="reploid-base" href="/">
-  <script>
-    (function () {
-      const base = document.getElementById("reploid-base");
-      if (!base) return;
-      base.href = "/src/";
-    })();
-  </script>
   <title>RD Design System</title>
-  <link rel="icon" type="image/svg+xml" href="favicon.svg">
-  <script>
-    window.REPLOID_SW_VERSION = "1735500008";
-    window.REPLOID_VFS_VERSION = "1735500008";
-    (function () {
-      const key = "REPLOID_SW_VERSION";
-      if (!("serviceWorker" in navigator)) return;
-      const expected = window.REPLOID_SW_VERSION;
-      if (!expected) return;
-      const current = localStorage.getItem(key);
-      if (current === expected) return;
-      navigator.serviceWorker.getRegistrations().then((regs) => {
-        if (!regs.length) {
-          localStorage.setItem(key, expected);
-          return;
-        }
-        return Promise.all(regs.map((reg) => reg.unregister())).then(() => {
-          localStorage.setItem(key, expected);
-          window.location.reload();
-        });
-      }).catch(() => {});
-    })();
-  </script>
-  <link rel="stylesheet" href="styles/rd.css?v=1735500008">
+  <link rel="stylesheet" href="styles/rd.css">
   <style>
     .design-page {
       max-width: 1200px;
       margin: 0 auto;
-      padding: 40px 20px;
+      padding: var(--space-xl) var(--space-md);
     }
     .design-header {
-      margin-bottom: 48px;
+      margin-bottom: var(--space-xl);
     }
     .design-header h1 {
-      font: 300 2rem/1.2 var(--font-a);
-      letter-spacing: 0.2em;
+      font-size: var(--font-size-display);
+      font-weight: var(--font-weight-light);
+      line-height: var(--font-leading-tight);
+      letter-spacing: var(--font-tracking-display);
       margin: 0 0 var(--space-sm) 0;
     }
     .design-header p {
-      opacity: var(--opacity-muted);
+      opacity: var(--opacity-soft);
       margin: 0;
     }
     .design-section {
-      margin-bottom: 48px;
+      margin-bottom: var(--space-xl);
     }
     .design-section h2 {
-      font: 700 11px/1.2 var(--font-a);
+      font-size: var(--font-size-sm);
+      font-weight: var(--font-weight-bold);
       text-transform: uppercase;
-      letter-spacing: 2px;
+      letter-spacing: var(--font-tracking-label);
       border-bottom: var(--border-sm) solid var(--fg);
       padding-bottom: var(--space-sm);
       margin-bottom: var(--space-lg);
@@ -73,8 +45,8 @@
       align-items: center;
     }
     .design-label {
-      font-size: 11px;
-      opacity: var(--opacity-muted);
+      font-size: var(--font-size-sm);
+      opacity: var(--opacity-soft);
       margin-bottom: var(--space-sm);
     }
     .design-group {
@@ -85,15 +57,31 @@
       align-items: center;
       gap: var(--space-sm);
       padding: var(--space-sm) 0;
-      font-size: 13px;
+      font-size: var(--font-size-base);
     }
     .token-swatch {
-      width: 20px;
-      height: 20px;
-      border: 1px solid var(--fg);
+      width: var(--space-lg);
+      height: var(--space-lg);
+      border: var(--border-md) solid var(--fg);
     }
     .token-swatch.fg { background: var(--fg); }
     .token-swatch.bg { background: var(--bg); }
+    .token-scale {
+      display: flex;
+      align-items: flex-end;
+      gap: var(--space-xs);
+    }
+    .token-scale-step {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--space-xxs);
+      font-size: var(--font-size-xs);
+      opacity: var(--opacity-soft);
+    }
+    .token-scale-bar {
+      background: var(--fg);
+    }
   </style>
 </head>
 <body>
@@ -103,121 +91,201 @@
       <p>Black & white, with a sprinkle of prism</p>
     </header>
 
-    <!-- PRIMITIVES -->
+    <!-- ========== LAYER 1: TOKENS ========== -->
+
     <section class="design-section">
-      <h2>Primitives</h2>
+      <h2>Layer 1 &mdash; Tokens</h2>
 
       <div class="design-group">
         <div class="design-label">Colors</div>
         <div class="design-row">
-          <div class="token"><div class="token-swatch fg"></div> --fg</div>
-          <div class="token"><div class="token-swatch bg"></div> --bg</div>
+          <div class="token"><div class="token-swatch fg"></div> --fg #000000</div>
+          <div class="token"><div class="token-swatch bg"></div> --bg #FFFFFF</div>
           <div class="token"><div class="token-swatch" style="background: conic-gradient(#ff0000, #ff8000, #ffff00, #00ff00, #00ffff, #0080ff, #8000ff, #ff0080, #ff0000);"></div> --prism</div>
         </div>
       </div>
 
       <div class="design-group">
-        <div class="design-label">Fonts</div>
-        <div class="token">--font-a: <span style="font-family: var(--font-a);">SF Mono / Menlo / Consolas / DejaVu Sans Mono</span></div>
-        <div class="token">--font-b: <span style="font-family: var(--font-b);">Courier New / Courier / Liberation Mono / Nimbus Mono L</span></div>
+        <div class="design-label">Font &mdash; one typeface, two voices</div>
+        <div class="token">--font: SF Mono / Menlo / Consolas / DejaVu Sans Mono</div>
       </div>
 
       <div class="design-group">
-        <div class="design-label">Spacing</div>
+        <div class="design-label">Voice: "set" &mdash; UI chrome (tracked, tight, weighted)</div>
         <div class="design-row">
-          <div class="token">--space-sm: 8px</div>
-          <div class="token">--space-md: 16px</div>
-          <div class="token">--space-lg: 24px</div>
+          <div class="token">tracking: 0.08em</div>
+          <div class="token">leading: 1.3</div>
+          <div class="token">weight: 500</div>
+        </div>
+        <div style="font-weight: var(--font-set-weight); letter-spacing: var(--font-set-tracking); line-height: var(--font-set-leading); text-transform: uppercase; margin-top: var(--space-sm);">Set voice sample text</div>
+      </div>
+
+      <div class="design-group">
+        <div class="design-label">Voice: "read" &mdash; content (untracked, open, light)</div>
+        <div class="design-row">
+          <div class="token">tracking: 0</div>
+          <div class="token">leading: 1.6</div>
+          <div class="token">weight: 400</div>
+        </div>
+        <div style="font-weight: var(--font-read-weight); letter-spacing: var(--font-read-tracking); line-height: var(--font-read-leading); margin-top: var(--space-sm);">Read voice sample text &mdash; flowing, natural, content.</div>
+      </div>
+
+      <div class="design-group">
+        <div class="design-label">Font Sizes &mdash; 7-step ~1.2x scale</div>
+        <div class="token-scale">
+          <div class="token-scale-step"><div class="token-scale-bar" style="width: 20px; height: 10px;"></div>xs 10</div>
+          <div class="token-scale-step"><div class="token-scale-bar" style="width: 20px; height: 12px;"></div>sm 12</div>
+          <div class="token-scale-step"><div class="token-scale-bar" style="width: 20px; height: 15px;"></div>base 15</div>
+          <div class="token-scale-step"><div class="token-scale-bar" style="width: 20px; height: 18px;"></div>lg 18</div>
+          <div class="token-scale-step"><div class="token-scale-bar" style="width: 20px; height: 22px;"></div>xl 22</div>
+          <div class="token-scale-step"><div class="token-scale-bar" style="width: 20px; height: 26px;"></div>2xl 26</div>
+          <div class="token-scale-step"><div class="token-scale-bar" style="width: 20px; height: 32px;"></div>display 32</div>
+        </div>
+      </div>
+
+      <div class="design-group">
+        <div class="design-label">Spacing &mdash; base-8 scale</div>
+        <div class="token-scale">
+          <div class="token-scale-step"><div class="token-scale-bar" style="width: 2px; height: 16px;"></div>xxs 2</div>
+          <div class="token-scale-step"><div class="token-scale-bar" style="width: 4px; height: 16px;"></div>xs 4</div>
+          <div class="token-scale-step"><div class="token-scale-bar" style="width: 8px; height: 16px;"></div>sm 8</div>
+          <div class="token-scale-step"><div class="token-scale-bar" style="width: 16px; height: 16px;"></div>md 16</div>
+          <div class="token-scale-step"><div class="token-scale-bar" style="width: 24px; height: 16px;"></div>lg 24</div>
+          <div class="token-scale-step"><div class="token-scale-bar" style="width: 32px; height: 16px;"></div>xl 32</div>
         </div>
       </div>
 
       <div class="design-group">
         <div class="design-label">Border Widths</div>
         <div class="design-row">
-          <div class="token">--border-sm: 1px</div>
-          <div class="token">--border-md: 2px</div>
-          <div class="token">--border-lg: 3px</div>
+          <div class="token" style="border-bottom: 0.5px solid var(--fg); padding-bottom: var(--space-xs);">--border-sm: 0.5px</div>
+          <div class="token" style="border-bottom: 1px solid var(--fg); padding-bottom: var(--space-xs);">--border-md: 1px</div>
+          <div class="token" style="border-bottom: 2px solid var(--fg); padding-bottom: var(--space-xs);">--border-lg: 2px</div>
         </div>
       </div>
 
       <div class="design-group">
-        <div class="design-label">Opacity</div>
+        <div class="design-label">Opacity &mdash; binary: soft + disabled</div>
         <div class="design-row">
-          <div class="token" style="opacity: var(--opacity-ghost);">--opacity-ghost: 0.7</div>
-          <div class="token" style="opacity: var(--opacity-secondary);">--opacity-secondary: 0.6</div>
-          <div class="token" style="opacity: var(--opacity-muted);">--opacity-muted: 0.5</div>
-          <div class="token" style="opacity: var(--opacity-disabled);">--opacity-disabled: 0.3</div>
+          <div class="token" style="opacity: var(--opacity-soft);">--opacity-soft: 0.777</div>
+          <div class="token" style="opacity: var(--opacity-disabled);">--opacity-disabled: 0.444</div>
         </div>
       </div>
 
-    </section>
-
-    <!-- LINKS -->
-    <section class="design-section">
-      <h2>Links</h2>
-      <div class="design-row">
-        <a href="#">Default link</a>
-        <a href="#" class="link-secondary">Secondary link</a>
-      </div>
-    </section>
-
-    <!-- TYPOGRAPHY -->
-    <section class="design-section">
-      <h2>Typography</h2>
       <div class="design-group">
-        <div class="token">.type-display</div>
-        <div class="type-display">Welcome to the Future</div>
-      </div>
-      <div class="design-group">
-        <div class="token">.type-h1</div>
-        <div class="type-h1">Primary Heading</div>
-      </div>
-      <div class="design-group">
-        <div class="token">.type-h2</div>
-        <div class="type-h2">Secondary Heading</div>
-      </div>
-      <div class="design-group">
-        <div class="token">.type-body</div>
-        <div class="type-body">The quick brown fox jumps over the lazy dog. This is body text used for paragraphs and readable content.</div>
-      </div>
-      <div class="design-group">
-        <div class="token">.type-label</div>
-        <div class="type-label">Status</div>
-      </div>
-      <div class="design-group">
-        <div class="token">.type-ui</div>
-        <div class="type-ui">Submit Form</div>
-      </div>
-      <div class="design-group">
-        <div class="token">.type-caption</div>
-        <div class="type-caption">Last updated 2 hours ago</div>
+        <div class="design-label">Z-Index</div>
+        <div class="design-row">
+          <div class="token">--z-dropdown: 100</div>
+          <div class="token">--z-toast: 200</div>
+          <div class="token">--z-modal: 10000</div>
+        </div>
       </div>
     </section>
 
-    <!-- BORDERS -->
+    <!-- ========== LAYER 2: PRIMITIVES ========== -->
+
     <section class="design-section">
-      <h2>Borders</h2>
-      <div class="design-row" style="flex-wrap: wrap;">
-        <div class="border-default" style="padding: var(--space-sm) var(--space-md);">.border-default</div>
-        <div class="border-subtle" style="padding: var(--space-sm) var(--space-md);">.border-subtle</div>
-        <div class="border-elevated" style="padding: var(--space-sm) var(--space-md);">.border-elevated</div>
-        <div class="border-ghost" style="padding: var(--space-sm) var(--space-md);">.border-ghost</div>
-        <div class="border-info" style="padding: var(--space-sm) var(--space-md);">.border-info</div>
-        <div class="border-warning" style="padding: var(--space-sm) var(--space-md);">.border-warning</div>
-        <div class="border-error" style="padding: var(--space-sm) var(--space-md);">.border-error</div>
-        <div class="border-disabled" style="padding: var(--space-sm) var(--space-md);">.border-disabled</div>
-        <div class="border-prism" style="padding: var(--space-sm) var(--space-md);">.border-prism</div>
+      <h2>Layer 2 &mdash; Primitives</h2>
+
+      <!-- Links -->
+      <div class="design-group">
+        <div class="design-label">Links</div>
+        <div class="design-row">
+          <a href="#">Default link</a>
+          <a href="#" class="link-secondary">Secondary link</a>
+        </div>
       </div>
+
+      <!-- Typography -->
+      <div class="design-group">
+        <div class="design-label">Typography &mdash; type classes</div>
+        <div style="display: flex; flex-direction: column; gap: var(--space-md);">
+          <div><span class="design-label" style="display: inline;">.type-display</span><div class="type-display">Welcome to the Future</div></div>
+          <div><span class="design-label" style="display: inline;">.type-h1</span><div class="type-h1" style="margin-bottom: 0;">Primary Heading</div></div>
+          <div><span class="design-label" style="display: inline;">.type-h2</span><div class="type-h2">Secondary Heading</div></div>
+          <div><span class="design-label" style="display: inline;">.type-body</span><div class="type-body">The quick brown fox jumps over the lazy dog. Body text for paragraphs and readable content.</div></div>
+          <div><span class="design-label" style="display: inline;">.type-label</span><div class="type-label">Status</div></div>
+          <div><span class="design-label" style="display: inline;">.type-ui</span><div class="type-ui">Submit Form</div></div>
+          <div><span class="design-label" style="display: inline;">.type-caption</span><div class="type-caption">Last updated 2 hours ago</div></div>
+        </div>
+      </div>
+
+      <!-- Inline Semantics -->
+      <div class="design-group">
+        <div class="design-label">Inline semantics (restored after * { font: inherit } reset)</div>
+        <div class="type-body">
+          This is <strong>strong text</strong>, this is <em>emphasized text</em>, and this is <small>small text</small>.
+        </div>
+      </div>
+
+      <!-- Borders -->
+      <div class="design-group">
+        <div class="design-label">Border utilities &mdash; style carries meaning (solid=default, dotted=ghost/info, dashed=warning, double=error)</div>
+        <div class="design-row" style="flex-wrap: wrap;">
+          <div class="border-default" style="padding: var(--space-sm) var(--space-md);">.border-default</div>
+          <div class="border-subtle" style="padding: var(--space-sm) var(--space-md);">.border-subtle</div>
+          <div class="border-elevated" style="padding: var(--space-sm) var(--space-md);">.border-elevated</div>
+          <div class="border-ghost" style="padding: var(--space-sm) var(--space-md);">.border-ghost</div>
+          <div class="border-info" style="padding: var(--space-sm) var(--space-md);">.border-info</div>
+          <div class="border-warning" style="padding: var(--space-sm) var(--space-md);">.border-warning</div>
+          <div class="border-error" style="padding: var(--space-sm) var(--space-md);">.border-error</div>
+          <div class="border-disabled" style="padding: var(--space-sm) var(--space-md);">.border-disabled</div>
+          <div class="border-prism" style="padding: var(--space-sm) var(--space-md);">.border-prism</div>
+        </div>
+      </div>
+
+      <!-- HTML Element Defaults -->
+      <div class="design-group">
+        <div class="design-label">HTML element defaults &mdash; code</div>
+        <p class="type-body">Inline <code>code element</code> and block:</p>
+        <pre>pre {
+  border: var(--border-sm) solid var(--fg);
+  padding: var(--space-md);
+  font-size: var(--font-size-base);
+}</pre>
+      </div>
+
+      <div class="design-group">
+        <div class="design-label">HTML element defaults &mdash; table</div>
+        <table style="max-width: 400px;">
+          <thead><tr><th>Token</th><th>Value</th></tr></thead>
+          <tbody>
+            <tr><td>--space-sm</td><td>8px</td></tr>
+            <tr><td>--space-md</td><td>16px</td></tr>
+            <tr><td>--space-lg</td><td>24px</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- States & Utilities -->
+      <div class="design-group">
+        <div class="design-label">States &amp; utilities</div>
+        <div class="design-row">
+          <span class="soft">.soft (0.777)</span>
+          <span class="inverted" style="padding: var(--space-xs) var(--space-sm);">.inverted</span>
+        </div>
+        <div class="design-row" style="margin-top: var(--space-sm);">
+          <span class="cursor-pointer" style="border: var(--border-md) solid var(--fg); padding: var(--space-xs) var(--space-sm);">.cursor-pointer</span>
+          <span class="cursor-not-allowed" style="border: var(--border-md) solid var(--fg); padding: var(--space-xs) var(--space-sm);">.cursor-not-allowed</span>
+          <span class="select-none" style="border: var(--border-md) solid var(--fg); padding: var(--space-xs) var(--space-sm);">.select-none (try selecting)</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== LAYER 3: COMPONENTS ========== -->
+
+    <section class="design-section">
+      <h2>Layer 3 &mdash; Components</h2>
+      <p class="design-label" style="margin-bottom: var(--space-lg);">Each component is fully self-contained &mdash; no dependency on primitive classes.</p>
     </section>
 
     <!-- BUTTONS -->
     <section class="design-section">
       <h2>Button</h2>
       <p class="design-label">Variants: secondary (default), primary, ghost, prism | States: hover, active, disabled</p>
-
       <div class="design-row">
-        <button class="btn btn-primary">Primary</button>
         <button class="btn">Secondary</button>
+        <button class="btn btn-primary">Primary</button>
         <button class="btn btn-ghost">Ghost</button>
         <button class="btn btn-prism">Prism</button>
       </div>
@@ -226,17 +294,29 @@
       </div>
     </section>
 
+    <!-- CHIPS -->
+    <section class="design-section">
+      <h2>Chip</h2>
+      <p class="design-label">Inverted by default. Consumer overrides: --chip-bg, --chip-fg</p>
+      <div class="design-row">
+        <span class="chip">Default chip</span>
+        <span class="chip" style="--chip-bg: transparent; --chip-fg: var(--fg); border: var(--border-sm) solid var(--fg);">Custom chip</span>
+      </div>
+    </section>
+
     <!-- INPUTS -->
     <section class="design-section">
       <h2>Input</h2>
       <p class="design-label">States: empty (dotted), filled (solid), focus, disabled, error</p>
-
       <div class="design-group">
         <input type="text" placeholder="Empty (dotted border)" style="max-width: 300px;">
       </div>
       <div class="design-group">
+        <input type="text" value="Filled (solid border)" style="max-width: 300px;">
+      </div>
+      <div class="design-group">
         <div class="input-error" style="max-width: 300px;">
-          <input type="text" class="error" value="Error state">
+          <input type="text" class="error" value="Error state (double)">
         </div>
       </div>
       <div class="design-group">
@@ -244,15 +324,26 @@
       </div>
     </section>
 
-    <!-- SELECT -->
+    <!-- SELECT (native) -->
+    <section class="design-section">
+      <h2>Select (native)</h2>
+      <div class="design-group">
+        <select style="max-width: 300px;">
+          <option>Option 1</option>
+          <option>Option 2</option>
+          <option>Option 3</option>
+        </select>
+      </div>
+    </section>
+
+    <!-- CUSTOM SELECT -->
     <section class="design-section">
       <h2>Select (custom)</h2>
-      <p class="design-label">States: closed, .open, .selected | Click to toggle</p>
-
+      <p class="design-label">Theme-safe &mdash; arrow uses CSS currentColor | States: closed, .open, .selected</p>
       <div class="design-row" style="align-items: flex-start;">
         <div class="design-group">
           <div class="design-label">Closed</div>
-          <div class="select-custom" style="width: 150px;">
+          <div class="select-custom" style="width: 180px;">
             <div class="select-trigger">Choose option</div>
             <div class="select-options">
               <div class="select-option">Option 1</div>
@@ -263,7 +354,7 @@
         </div>
         <div class="design-group">
           <div class="design-label">Open (.open)</div>
-          <div class="select-custom open" style="width: 150px;">
+          <div class="select-custom open" style="width: 180px;">
             <div class="select-trigger">Option 2</div>
             <div class="select-options">
               <div class="select-option">Option 1</div>
@@ -279,138 +370,13 @@
     <section class="design-section">
       <h2>Textarea</h2>
       <div class="design-group">
-        <textarea placeholder="Enter text..." style="max-width: 300px; height: 80px;"></textarea>
-      </div>
-    </section>
-
-    <!-- PANEL -->
-    <section class="design-section">
-      <h2>Panel</h2>
-      <p class="design-label">Variants: default, muted | Border weight = elevation</p>
-
-      <div class="design-row" style="align-items: stretch;">
-        <div class="panel" style="flex: 1;">
-          <div class="panel-body">Default panel</div>
-        </div>
-        <div class="panel panel-muted" style="flex: 1;">
-          <div class="panel-body">Muted panel</div>
-        </div>
-      </div>
-    </section>
-
-    <!-- PROGRESS -->
-    <section class="design-section">
-      <h2>Progress</h2>
-      <div class="design-group">
-        <div class="progress" style="max-width: 300px;">
-          <div class="progress-fill" style="width: 60%;"></div>
-        </div>
-      </div>
-    </section>
-
-    <!-- BADGES -->
-    <section class="design-section">
-      <h2>Badge</h2>
-      <div class="design-row">
-        <span class="badge">★ Success</span>
-        <span class="badge">☛ Info</span>
-        <span class="badge">△ Warning</span>
-        <span class="badge">☒ Error</span>
-      </div>
-    </section>
-
-    <!-- TOAST -->
-    <section class="design-section">
-      <h2>Toast</h2>
-      <p class="design-label">Variants: default, success, info, warning, error | Inner: .toast-icon, .toast-message, .toast-close</p>
-      <div class="design-group toast-container" style="position: relative; top: 0; right: 0; max-width: 400px;">
-        <div class="toast visible" style="opacity: 1; transform: none;">
-          <span class="toast-icon">☛</span>
-          <span class="toast-message">Default toast message</span>
-          <span class="toast-close">☒</span>
-        </div>
-        <div class="toast toast-success visible" style="opacity: 1; transform: none;">
-          <span class="toast-icon">★</span>
-          <span class="toast-message">Success toast (solid left border)</span>
-          <span class="toast-close">☒</span>
-        </div>
-        <div class="toast toast-info visible" style="opacity: 1; transform: none;">
-          <span class="toast-icon">☛</span>
-          <span class="toast-message">Info toast (dotted)</span>
-          <span class="toast-close">☒</span>
-        </div>
-        <div class="toast toast-warning visible" style="opacity: 1; transform: none;">
-          <span class="toast-icon">△</span>
-          <span class="toast-message">Warning toast (dashed)</span>
-          <span class="toast-close">☒</span>
-        </div>
-        <div class="toast toast-error visible" style="opacity: 1; transform: none;">
-          <span class="toast-icon">☒</span>
-          <span class="toast-message">Error toast (double)</span>
-          <span class="toast-close">☒</span>
-        </div>
-      </div>
-    </section>
-
-    <!-- CARD -->
-    <section class="design-section">
-      <h2>Card</h2>
-      <div class="design-group">
-        <div class="card" style="max-width: 300px;">
-          <div class="card-header">Card Header</div>
-          <div class="card-body">Card body content goes here.</div>
-          <div class="card-footer">Card footer</div>
-        </div>
-      </div>
-    </section>
-
-    <!-- LIST -->
-    <section class="design-section">
-      <h2>List</h2>
-      <div class="design-group">
-        <ul class="list" style="max-width: 300px; border: var(--border-sm) solid var(--fg);">
-          <li class="list-item">List item one</li>
-          <li class="list-item">List item two (hover me)</li>
-          <li class="list-item">List item three</li>
-        </ul>
-      </div>
-    </section>
-
-    <!-- TAG -->
-    <section class="design-section">
-      <h2>Tag</h2>
-      <div class="design-row">
-        <span class="tag">tag-one</span>
-        <span class="tag">tag-two</span>
-        <span class="tag">tag-three</span>
-      </div>
-    </section>
-
-    <!-- BADGE VARIANTS -->
-    <section class="design-section">
-      <h2>Badge Variants</h2>
-      <div class="design-row">
-        <span class="badge">Outline</span>
-        <span class="badge badge-filled">Filled</span>
-      </div>
-    </section>
-
-    <!-- DIVIDER -->
-    <section class="design-section">
-      <h2>Divider</h2>
-      <div class="design-group" style="max-width: 300px;">
-        <p class="design-label">.divider (solid)</p>
-        <hr class="divider">
-        <p class="design-label">.divider-dashed</p>
-        <hr class="divider divider-dashed">
-        <p class="design-label">.divider-dotted</p>
-        <hr class="divider divider-dotted">
+        <textarea placeholder="Enter text..." style="max-width: 300px;"></textarea>
       </div>
     </section>
 
     <!-- CHECKBOX & RADIO -->
     <section class="design-section">
-      <h2>Checkbox & Radio</h2>
+      <h2>Checkbox &amp; Radio</h2>
       <div class="design-group">
         <label class="checkbox-label">
           <input type="checkbox" checked>
@@ -429,10 +395,148 @@
       </div>
     </section>
 
-    <!-- PROGRESS INDETERMINATE -->
+    <!-- PANELS -->
     <section class="design-section">
-      <h2>Progress Indeterminate</h2>
+      <h2>Panel</h2>
+      <p class="design-label">Variants: default, soft | With optional header</p>
+      <div class="design-row" style="align-items: stretch;">
+        <div class="panel" style="flex: 1;">
+          <div class="panel-body">Default panel</div>
+        </div>
+        <div class="panel panel-soft" style="flex: 1;">
+          <div class="panel-body">Soft panel (0.777 opacity)</div>
+        </div>
+      </div>
+      <div class="design-group" style="margin-top: var(--space-md);">
+        <div class="panel" style="max-width: 300px; padding: 0;">
+          <div class="panel-header">Panel Title</div>
+          <div class="panel-body">Panel body content.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CARDS -->
+    <section class="design-section">
+      <h2>Card</h2>
       <div class="design-group">
+        <div class="card" style="max-width: 300px;">
+          <div class="card-header">Card Header</div>
+          <div class="card-body">Card body content goes here.</div>
+          <div class="card-footer">Card footer</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- LISTS -->
+    <section class="design-section">
+      <h2>List</h2>
+      <div class="design-group">
+        <ul class="list" style="max-width: 300px; border: var(--border-sm) solid var(--fg);">
+          <li class="list-item">List item one</li>
+          <li class="list-item">List item two (hover me)</li>
+          <li class="list-item">List item three</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- STATUS LIST -->
+    <section class="design-section">
+      <h2>Status List</h2>
+      <p class="design-label">Border style encodes status: solid=ready, dotted=pending, dashed=warn, double=error</p>
+      <div class="status-list" style="max-width: 500px;">
+        <div class="status-row ready">
+          <div class="status-meta">
+            <span class="status-label">Core module</span>
+            <span class="status-detail">v2.1.0 loaded</span>
+          </div>
+          <span class="status-badge ready">Ready</span>
+        </div>
+        <div class="status-row pending">
+          <div class="status-meta">
+            <span class="status-label">Worker pool</span>
+            <span class="status-detail">Initializing 4 threads</span>
+          </div>
+          <span class="status-badge pending">Pending</span>
+        </div>
+        <div class="status-row warn">
+          <div class="status-meta">
+            <span class="status-label">Cache layer</span>
+            <span class="status-detail">Stale data detected</span>
+          </div>
+          <span class="status-badge warn">Warn</span>
+        </div>
+        <div class="status-row error">
+          <div class="status-meta">
+            <span class="status-label">Network</span>
+            <span class="status-detail">Connection refused</span>
+          </div>
+          <span class="status-badge error">Error</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- BADGES -->
+    <section class="design-section">
+      <h2>Badge</h2>
+      <div class="design-row">
+        <span class="badge">Outline</span>
+        <span class="badge badge-filled">Filled</span>
+      </div>
+    </section>
+
+    <!-- TAGS -->
+    <section class="design-section">
+      <h2>Tag</h2>
+      <div class="design-row">
+        <span class="tag">tag-one</span>
+        <span class="tag">tag-two</span>
+        <span class="tag">tag-three</span>
+      </div>
+    </section>
+
+    <!-- CRITERIA LIST -->
+    <section class="design-section">
+      <h2>Criteria List</h2>
+      <ul class="criteria-list" style="max-width: 400px;">
+        <li class="criteria-item">
+          <span class="criteria-index">C1</span>
+          <span class="criteria-text">Criterion with content (solid border)</span>
+        </li>
+        <li class="criteria-item">
+          <span class="criteria-index">C2</span>
+          <span class="criteria-text">Another filled criterion</span>
+        </li>
+        <li class="criteria-item criteria-empty">
+          <span class="criteria-index">C3</span>
+          <span class="criteria-text">Empty criterion (dotted border)</span>
+        </li>
+      </ul>
+    </section>
+
+    <!-- DIVIDERS -->
+    <section class="design-section">
+      <h2>Divider</h2>
+      <div class="design-group" style="max-width: 300px;">
+        <p class="design-label">.divider (solid)</p>
+        <hr class="divider">
+        <p class="design-label">.divider-dashed</p>
+        <hr class="divider divider-dashed">
+        <p class="design-label">.divider-dotted</p>
+        <hr class="divider divider-dotted">
+      </div>
+    </section>
+
+    <!-- PROGRESS -->
+    <section class="design-section">
+      <h2>Progress</h2>
+      <div class="design-group">
+        <div class="design-label">Determinate (60%)</div>
+        <div class="progress" style="max-width: 300px;">
+          <div class="progress-fill" style="width: 60%;"></div>
+        </div>
+      </div>
+      <div class="design-group">
+        <div class="design-label">Indeterminate</div>
         <div class="progress progress-indeterminate" style="max-width: 300px;">
           <div class="progress-fill"></div>
         </div>
@@ -442,22 +546,134 @@
     <!-- PROGRESS PHASES -->
     <section class="design-section">
       <h2>Progress Phases</h2>
-      <p class="design-label">Row variants for source type differentiation: network (dotted), disk (dashed), cache (solid)</p>
+      <p class="design-label">Border-left style differentiates source: dotted=network, dashed=disk, solid=cache</p>
       <div class="design-group" style="max-width: 400px;">
-        <div class="progress-phase-row progress-phase-network" style="display: grid; grid-template-columns: 70px 1fr 80px; gap: var(--space-sm); align-items: center; padding: var(--space-sm);">
+        <div class="progress-phase-row progress-phase-network" style="display: grid; grid-template-columns: 70px 1fr 60px; gap: var(--space-sm); align-items: center; padding: var(--space-sm);">
           <span class="type-caption">Network</span>
           <div class="progress"><div class="progress-fill" style="width: 45%;"></div></div>
-          <span class="type-caption muted">45%</span>
+          <span class="type-caption soft">45%</span>
         </div>
-        <div class="progress-phase-row progress-phase-disk" style="display: grid; grid-template-columns: 70px 1fr 80px; gap: var(--space-sm); align-items: center; padding: var(--space-sm);">
+        <div class="progress-phase-row progress-phase-disk" style="display: grid; grid-template-columns: 70px 1fr 60px; gap: var(--space-sm); align-items: center; padding: var(--space-sm);">
           <span class="type-caption">Disk</span>
           <div class="progress"><div class="progress-fill" style="width: 72%;"></div></div>
-          <span class="type-caption muted">72%</span>
+          <span class="type-caption soft">72%</span>
         </div>
-        <div class="progress-phase-row progress-phase-cache" style="display: grid; grid-template-columns: 70px 1fr 80px; gap: var(--space-sm); align-items: center; padding: var(--space-sm);">
+        <div class="progress-phase-row progress-phase-cache" style="display: grid; grid-template-columns: 70px 1fr 60px; gap: var(--space-sm); align-items: center; padding: var(--space-sm);">
           <span class="type-caption">Cache</span>
           <div class="progress"><div class="progress-fill" style="width: 100%;"></div></div>
-          <span class="type-caption muted">100%</span>
+          <span class="type-caption soft">100%</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ACCORDION -->
+    <section class="design-section">
+      <h2>Accordion</h2>
+      <p class="design-label">Variants: default (solid), ghost (dotted) | aria-expanded toggles state</p>
+      <div class="design-row" style="align-items: flex-start; gap: var(--space-lg);">
+        <div class="accordion" style="flex: 1; max-width: 300px;">
+          <div class="accordion-item">
+            <button class="accordion-header" aria-expanded="true">Section one</button>
+            <div class="accordion-content" aria-hidden="false">Content for section one. Visible when aria-expanded is true.</div>
+          </div>
+          <div class="accordion-item">
+            <button class="accordion-header" aria-expanded="false">Section two</button>
+            <div class="accordion-content" aria-hidden="true">Content for section two.</div>
+          </div>
+          <div class="accordion-item">
+            <button class="accordion-header" aria-expanded="false">Section three</button>
+            <div class="accordion-content" aria-hidden="true">Content for section three.</div>
+          </div>
+        </div>
+        <div class="accordion accordion-ghost" style="flex: 1; max-width: 300px;">
+          <div class="accordion-item">
+            <button class="accordion-header" aria-expanded="true">Ghost variant</button>
+            <div class="accordion-content" aria-hidden="false">Dotted borders throughout.</div>
+          </div>
+          <div class="accordion-item">
+            <button class="accordion-header" aria-expanded="false">Collapsed</button>
+            <div class="accordion-content" aria-hidden="true">Hidden content.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SEGMENTED CONTROLS -->
+    <section class="design-section">
+      <h2>Segmented Control</h2>
+      <p class="design-label">Single-select button group. Active: .is-active or aria-pressed="true"</p>
+      <div class="segmented-control">
+        <button class="btn segmented-btn is-active">Day</button>
+        <button class="btn segmented-btn">Week</button>
+        <button class="btn segmented-btn">Month</button>
+      </div>
+    </section>
+
+    <!-- TOAST -->
+    <section class="design-section">
+      <h2>Toast</h2>
+      <p class="design-label">Variants: default, success (solid left), info (dotted), warning (dashed), error (double)</p>
+      <div class="design-group toast-container" style="position: relative; top: 0; right: 0; max-width: 400px; z-index: auto;">
+        <div class="toast visible" style="opacity: 1; transform: none;">
+          <span class="toast-icon">&#9758;</span>
+          <span class="toast-message">Default toast message</span>
+          <span class="toast-close">&#9746;</span>
+        </div>
+        <div class="toast toast-success visible" style="opacity: 1; transform: none;">
+          <span class="toast-icon">&#9733;</span>
+          <span class="toast-message">Success toast (solid left border)</span>
+          <span class="toast-close">&#9746;</span>
+        </div>
+        <div class="toast toast-info visible" style="opacity: 1; transform: none;">
+          <span class="toast-icon">&#9758;</span>
+          <span class="toast-message">Info toast (dotted)</span>
+          <span class="toast-close">&#9746;</span>
+        </div>
+        <div class="toast toast-warning visible" style="opacity: 1; transform: none;">
+          <span class="toast-icon">&#9651;</span>
+          <span class="toast-message">Warning toast (dashed)</span>
+          <span class="toast-close">&#9746;</span>
+        </div>
+        <div class="toast toast-error visible" style="opacity: 1; transform: none;">
+          <span class="toast-icon">&#9746;</span>
+          <span class="toast-message">Error toast (double)</span>
+          <span class="toast-close">&#9746;</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- MODAL -->
+    <section class="design-section">
+      <h2>Modal</h2>
+      <p class="design-label">Variants: default, danger (double border) | Shown inline below</p>
+      <div class="design-row" style="align-items: flex-start; gap: var(--space-lg);">
+        <div class="design-group">
+          <div class="design-label">Default</div>
+          <div class="modal" style="max-width: 300px; position: relative;">
+            <div class="modal-header">
+              <span class="type-h2">Modal Title</span>
+              <button class="btn btn-ghost" style="padding: var(--space-xs) var(--space-sm);">&#9746;</button>
+            </div>
+            <div class="modal-body">Modal content goes here.</div>
+            <div class="modal-footer">
+              <button class="btn btn-ghost">Cancel</button>
+              <button class="btn btn-primary">Confirm</button>
+            </div>
+          </div>
+        </div>
+        <div class="design-group">
+          <div class="design-label">Danger</div>
+          <div class="modal modal-danger" style="max-width: 300px; position: relative;">
+            <div class="modal-header">
+              <span class="type-h2">Delete Item</span>
+              <button class="btn btn-ghost" style="padding: var(--space-xs) var(--space-sm);">&#9746;</button>
+            </div>
+            <div class="modal-body">This action cannot be undone.</div>
+            <div class="modal-footer">
+              <button class="btn btn-ghost">Cancel</button>
+              <button class="btn btn-primary">Delete</button>
+            </div>
+          </div>
         </div>
       </div>
     </section>
@@ -467,9 +683,9 @@
       <h2>Error UI</h2>
       <p class="design-label">Full-page error component for boot failures</p>
       <div class="design-group">
-        <div class="error-ui panel border-error" style="max-width: 500px;">
+        <div class="error-ui panel border-error" style="max-width: 500px; margin: 0;">
           <h1 class="error-ui-header">Boot Failure</h1>
-          <p class="error-ui-description muted">The application failed to start due to an unexpected error.</p>
+          <p class="error-ui-description">The application failed to start due to an unexpected error.</p>
           <div class="error-ui-message">TypeError: Cannot read property 'init' of undefined</div>
           <details class="error-ui-details">
             <summary>Stack trace</summary>
@@ -477,107 +693,33 @@
 at Module.load (loader.js:88:12)
 at require (runtime.js:33:8)</pre>
           </details>
-          <p class="error-ui-hint muted type-caption">Try reloading the page or clearing browser storage.</p>
+          <p class="error-ui-hint type-caption">Try reloading the page or clearing browser storage.</p>
           <div class="error-ui-actions">
-            <button class="btn">♺ Reload Page</button>
-            <button class="btn btn-primary">☈ Factory Reset</button>
+            <button class="btn">&#9850; Reload</button>
+            <button class="btn btn-primary">&#9800; Reset</button>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- PANEL WITH HEADER -->
-    <section class="design-section">
-      <h2>Panel with Header</h2>
-      <div class="design-group">
-        <div class="panel" style="max-width: 300px; padding: 0;">
-          <div class="panel-header">Panel Title</div>
-          <div class="panel-body">Panel body content.</div>
-        </div>
-      </div>
-    </section>
-
-    <!-- MODAL -->
-    <section class="design-section">
-      <h2>Modal</h2>
-      <p class="design-label">Container: .modal-overlay (fixed fullscreen) | Shown inline below</p>
-      <div class="design-group modal-overlay" style="position: relative; inset: auto; height: auto; background: var(--bg); padding: 20px;">
-        <div class="modal" style="max-width: 300px; position: relative;">
-          <div class="modal-header">
-            <span class="type-h2">Modal Title</span>
-            <button class="btn btn-ghost" style="padding: 4px 8px;">☒</button>
-          </div>
-          <div class="modal-body">Modal content goes here.</div>
-          <div class="modal-footer">
-            <button class="btn btn-ghost">Cancel</button>
-            <button class="btn btn-primary">Confirm</button>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- UTILITIES -->
-    <section class="design-section">
-      <h2>Utilities</h2>
-
-      <div class="design-group">
-        <div class="design-label">Opacity / Inverted</div>
-        <div class="design-row">
-          <span class="muted">.muted (0.5)</span>
-          <span class="inverted" style="padding: 4px 8px;">.inverted</span>
-        </div>
-      </div>
-
-      <div class="design-group">
-        <div class="design-label">Sizing</div>
-        <div class="design-row">
-          <div class="w-full" style="border: 1px solid var(--fg); padding: 4px;">.w-full</div>
-        </div>
-        <div class="design-row" style="margin-top: 8px;">
-          <div style="height: 40px; width: 100px; border: 1px dashed var(--fg);"><div class="h-full" style="background: var(--fg); color: var(--bg);">.h-full</div></div>
-          <div class="overflow-auto" style="border: 1px solid var(--fg); height: 40px; width: 100px; padding: 4px;">overflow-auto with scrollable content here...</div>
-          <div class="overflow-hidden" style="border: 1px solid var(--fg); height: 40px; width: 100px; padding: 4px;">overflow-hidden clips this long content</div>
-        </div>
-      </div>
-
-      <div class="design-group">
-        <div class="design-label">Interaction states</div>
-        <div class="design-row">
-          <span class="cursor-pointer" style="border: 1px solid var(--fg); padding: 4px 8px;">.cursor-pointer</span>
-          <span class="cursor-not-allowed" style="border: 1px solid var(--fg); padding: 4px 8px;">.cursor-not-allowed</span>
-          <span class="select-none" style="border: 1px solid var(--fg); padding: 4px 8px;">.select-none</span>
-          <span class="pointer-events-none" style="border: 1px solid var(--fg); padding: 4px 8px; opacity: 0.5;">.pointer-events-none</span>
-        </div>
-      </div>
-
-      <div class="design-group">
-        <div class="design-label">Visibility</div>
-        <div class="design-row">
-          <span style="border: 1px solid var(--fg); padding: 4px 8px;">visible</span>
-          <span class="hidden">.hidden (not visible)</span>
-          <span style="border: 1px dashed var(--fg); padding: 4px 8px; opacity: 0.5;">(hidden element here)</span>
-        </div>
-      </div>
-    </section>
-
-    <footer style="margin-top: 48px; padding-top: 16px; border-top: 1px solid var(--fg); opacity: 0.5; font-size: 11px;">
-      RD Design System for REPLOID / DOPPLER
+    <footer style="margin-top: var(--space-xl); padding-top: var(--space-md); border-top: var(--border-sm) solid var(--fg); opacity: var(--opacity-soft); font-size: var(--font-size-sm);">
+      RD Design System &mdash; Reploid
     </footer>
   </div>
 
   <script>
     // Custom select interaction
-    document.querySelectorAll('.select-custom').forEach(select => {
-      const trigger = select.querySelector('.select-trigger');
-      const options = select.querySelectorAll('.select-option');
+    document.querySelectorAll('.select-custom').forEach(function(select) {
+      var trigger = select.querySelector('.select-trigger');
+      var options = select.querySelectorAll('.select-option');
 
-      trigger.addEventListener('click', () => {
+      trigger.addEventListener('click', function() {
         select.classList.toggle('open');
       });
 
-      options.forEach(option => {
-        option.addEventListener('click', () => {
-          options.forEach(o => o.classList.remove('selected'));
+      options.forEach(function(option) {
+        option.addEventListener('click', function() {
+          options.forEach(function(o) { o.classList.remove('selected'); });
           option.classList.add('selected');
           trigger.textContent = option.textContent;
           select.classList.remove('open');
@@ -585,10 +727,36 @@ at require (runtime.js:33:8)</pre>
       });
     });
 
-    document.addEventListener('click', (e) => {
+    document.addEventListener('click', function(e) {
       if (!e.target.closest('.select-custom')) {
-        document.querySelectorAll('.select-custom.open').forEach(s => s.classList.remove('open'));
+        document.querySelectorAll('.select-custom.open').forEach(function(s) {
+          s.classList.remove('open');
+        });
       }
+    });
+
+    // Accordion interaction
+    document.querySelectorAll('.accordion-header').forEach(function(header) {
+      header.addEventListener('click', function() {
+        var expanded = header.getAttribute('aria-expanded') === 'true';
+        var content = header.nextElementSibling;
+        header.setAttribute('aria-expanded', String(!expanded));
+        content.setAttribute('aria-hidden', String(expanded));
+      });
+    });
+
+    // Segmented control interaction
+    document.querySelectorAll('.segmented-control').forEach(function(group) {
+      group.querySelectorAll('.segmented-btn').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          group.querySelectorAll('.segmented-btn').forEach(function(b) {
+            b.classList.remove('is-active');
+            b.setAttribute('aria-pressed', 'false');
+          });
+          btn.classList.add('is-active');
+          btn.setAttribute('aria-pressed', 'true');
+        });
+      });
     });
   </script>
 </body>
