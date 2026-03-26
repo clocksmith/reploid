@@ -4,6 +4,7 @@
  */
 
 import { applyModuleOverrides, normalizeOverrides, resolveBaseModules } from '../config/module-resolution.js';
+import { getDefaultGenesisLevelForMode, normalizeBootMode } from '../config/boot-modes.js';
 import { readVfsFile } from './vfs-bootstrap.js';
 
 const readJsonFromVfs = async (path) => {
@@ -56,8 +57,15 @@ export function getModuleOverrides() {
  */
 export function getGenesisLevel(genesisConfig) {
   const validLevels = Object.keys(genesisConfig.levels || {});
-  const defaultLevel = genesisConfig.defaultLevel || validLevels[0] || 'tabula';
-  let level = localStorage.getItem('REPLOID_GENESIS_LEVEL');
+  const configuredDefault = genesisConfig.defaultLevel || validLevels[0] || 'tabula';
+  const storedMode = typeof localStorage === 'undefined'
+    ? ''
+    : normalizeBootMode(localStorage.getItem('REPLOID_MODE'), '');
+  const modeDefault = storedMode ? getDefaultGenesisLevelForMode(storedMode) : configuredDefault;
+  const defaultLevel = validLevels.includes(modeDefault) ? modeDefault : configuredDefault;
+  let level = typeof localStorage === 'undefined'
+    ? null
+    : localStorage.getItem('REPLOID_GENESIS_LEVEL');
 
   if (!level || !validLevels.includes(level)) {
     if (level) {

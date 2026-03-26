@@ -369,6 +369,7 @@ const LLMClient = {
       const provider = modelConfig.provider;
       const storageKey = `${provider.toUpperCase()}_API_KEY`;
       let apiKey = modelConfig.apiKey || localStorage.getItem(storageKey);
+      const canStreamResponse = !!onUpdate && !!StreamParser;
 
       if (!apiKey) {
         throw new Errors.ConfigError(`API key required for ${provider}. Please add your API key in model settings.`);
@@ -390,8 +391,8 @@ const LLMClient = {
 
         if (provider === 'gemini') {
           // Google Gemini API (latest format with system_instruction support)
-          const action = onUpdate ? 'streamGenerateContent' : 'generateContent';
-          const queryParams = onUpdate ? `?alt=sse&key=${apiKey}` : `?key=${apiKey}`;
+          const action = canStreamResponse ? 'streamGenerateContent' : 'generateContent';
+          const queryParams = canStreamResponse ? `?alt=sse&key=${apiKey}` : `?key=${apiKey}`;
           const endpoint = `${CLOUD_API_ENDPOINTS.gemini}/${modelConfig.id}:${action}${queryParams}`;
 
           // Extract system message for system_instruction
@@ -432,7 +433,7 @@ const LLMClient = {
             throw new Errors.ApiError(`Gemini API Error: ${errData.error?.message || response.status}`, response.status);
           }
 
-          if (onUpdate && response.body && StreamParser) {
+          if (canStreamResponse && response.body) {
             fullContent = await StreamParser.parseForProvider(response, 'gemini', onUpdate, { abortController: controller });
           } else {
             const data = await response.json();
@@ -444,7 +445,7 @@ const LLMClient = {
           const requestBody = {
             model: modelConfig.id,
             messages: messages,
-            stream: !!onUpdate,
+            stream: canStreamResponse,
             temperature: 0.7
           };
 
@@ -471,7 +472,7 @@ const LLMClient = {
 
           let toolCalls = null;
 
-          if (onUpdate && response.body && StreamParser) {
+          if (canStreamResponse && response.body) {
             // Streaming mode with tool call support
             if (StreamParser.parseOpenAIStreamWithTools) {
               const streamResult = await StreamParser.parseOpenAIStreamWithTools(response, onUpdate, { abortController: controller });
@@ -522,7 +523,7 @@ const LLMClient = {
                 role: m.role,
                 content: m.content
               })),
-              stream: !!onUpdate
+              stream: canStreamResponse
             }),
             signal: controller.signal
           });
@@ -532,7 +533,7 @@ const LLMClient = {
             throw new Errors.ApiError(`Anthropic API Error: ${errData.error?.message || response.status}`, response.status);
           }
 
-          if (onUpdate && response.body && StreamParser) {
+          if (canStreamResponse && response.body) {
             fullContent = await StreamParser.parseForProvider(response, 'anthropic', onUpdate, { abortController: controller });
           } else {
             const data = await response.json();

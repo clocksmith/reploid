@@ -6,6 +6,321 @@
 import { getState, setNestedState } from './state.js';
 
 const PROBE_TIMEOUT = 3000;
+const GOAL_GENERATOR_SYSTEM_PROMPT = 'You are writing the initial goal for a browser-based autonomous coding agent pursuing recursive self-improvement. Output exactly one concrete, ambitious sentence of 16 to 24 words. No quotes, labels, numbering, or explanation.';
+const GOAL_GENERATOR_USER_PROMPT = 'Generate one recursive self-improvement goal now.';
+let goalGeneratorRuntimePromise = null;
+let goalGeneratorEngine = null;
+let goalGeneratorModelId = null;
+
+const normalizeApiKey = (apiKey) => String(apiKey || '').trim();
+
+const isLikelyInvalidApiKey = (apiKey) => {
+  const value = normalizeApiKey(apiKey);
+  if (!value) return true;
+  if (value.length < 10 || value.length > 200) return true;
+  if (/\s/.test(value)) return true;
+  if (value.includes('[INFO]') || value.includes('[Boot]')) return true;
+  if (value.includes('bench/workloads') || value.includes('.json')) return true;
+  return false;
+};
+
+const countWords = (text) => String(text || '')
+  .trim()
+  .split(/\s+/)
+  .filter(Boolean)
+  .length;
+
+const normalizeGeneratedGoal = (text) => {
+  const lines = String(text || '')
+    .split('\n')
+    .map((line) => line.trim())
+    .filter(Boolean);
+
+  let value = lines[0] || '';
+  value = value.replace(/^goal:\s*/i, '');
+  value = value.replace(/^[0-9]+[.)]\s*/, '');
+  value = value.replace(/^["'`]+|["'`]+$/g, '');
+  value = value.replace(/\s+/g, ' ').trim();
+
+  if (!value) return '';
+
+  const words = value.split(/\s+/).filter(Boolean);
+  if (words.length > 24) {
+    value = words.slice(0, 24).join(' ');
+  }
+
+  return value;
+};
+
+const getGoalGeneratorUserPrompt = (prompt = GOAL_GENERATOR_USER_PROMPT) => String(prompt || GOAL_GENERATOR_USER_PROMPT).trim();
+
+const buildGoalGeneratorMessages = (prompt = GOAL_GENERATOR_USER_PROMPT) => ([
+  { role: 'system', content: GOAL_GENERATOR_SYSTEM_PROMPT },
+  { role: 'user', content: getGoalGeneratorUserPrompt(prompt) }
+]);
+
+const buildGeminiGoalBody = (prompt = GOAL_GENERATOR_USER_PROMPT, { includeGenerationConfig = true } = {}) => {
+  const body = {
+    systemInstruction: {
+      parts: [{ text: GOAL_GENERATOR_SYSTEM_PROMPT }]
+    },
+    contents: [{
+      role: 'user',
+      parts: [{ text: getGoalGeneratorUserPrompt(prompt) }]
+    }]
+  };
+
+  if (includeGenerationConfig) {
+    body.generationConfig = {
+      maxOutputTokens: 48,
+      temperature: 0.8
+    };
+  }
+
+  return body;
+};
+
+const readResponsePayload = async (response) => {
+  let text = '';
+  try {
+    text = await response.text();
+  } catch {
+    return `HTTP ${response.status}`;
+  }
+
+  if (!text) {
+    return `HTTP ${response.status}`;
+  }
+
+  try {
+    const data = JSON.parse(text);
+    return data?.error?.message || data?.message || `HTTP ${response.status}`;
+  } catch {
+    return text.trim() || `HTTP ${response.status}`;
+  }
+};
+
+const getDopplerProviderUrl = () => {
+  const base = window.DOPPLER_BASE_URL || '/doppler';
+  return `${base.replace(/\/$/, '')}/src/client/doppler-provider.js`;
+};
+
+const ensureGoalGeneratorRuntime = async () => {
+  if (typeof window === 'undefined') {
+    throw new Error('Browser runtime required for local goal generation');
+  }
+
+  if (window.webllm) return window.webllm;
+  if (goalGeneratorRuntimePromise) return goalGeneratorRuntimePromise;
+
+  goalGeneratorRuntimePromise = import('https://esm.run/@mlc-ai/web-llm')
+    .then((mod) => {
+      window.webllm = window.webllm || mod;
+      return window.webllm;
+    })
+    .catch((err) => {
+      goalGeneratorRuntimePromise = null;
+      throw err;
+    });
+
+  return goalGeneratorRuntimePromise;
+};
+
+const generateViaBrowser = async (model, prompt = GOAL_GENERATOR_USER_PROMPT) => {
+  if (!model) {
+    throw new Error('Select a browser-local model first');
+  }
+
+  await ensureGoalGeneratorRuntime();
+
+  if (!goalGeneratorEngine || goalGeneratorModelId !== model) {
+    goalGeneratorEngine = await window.webllm.CreateMLCEngine(model, {
+      context_window_size: 32768
+    });
+    goalGeneratorModelId = model;
+  }
+
+  const reply = await goalGeneratorEngine.chat.completions.create({
+    messages: buildGoalGeneratorMessages(prompt),
+    stream: false,
+    temperature: 0.8
+  });
+
+  return reply?.choices?.[0]?.message?.content || '';
+};
+
+const generateViaProxy = async ({ url, provider, model, prompt = GOAL_GENERATOR_USER_PROMPT }) => {
+  if (!url || !model) {
+    throw new Error('Select a proxy URL and model first');
+  }
+
+  const response = await fetch(`${url.replace(/\/$/, '')}/api/chat`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      provider,
+      model,
+      messages: buildGoalGeneratorMessages(prompt),
+      stream: false,
+      max_tokens: 48
+    }),
+    signal: AbortSignal.timeout(30000)
+  });
+
+  if (!response.ok) {
+    throw new Error(await readResponsePayload(response));
+  }
+
+  const data = await response.json().catch(() => ({}));
+  return data.content || data.choices?.[0]?.message?.content || data.response || '';
+};
+
+const generateViaDirect = async ({ provider, apiKey, model, baseUrl = null, prompt = GOAL_GENERATOR_USER_PROMPT }) => {
+  const key = normalizeApiKey(apiKey);
+  if (!provider || !model) {
+    throw new Error('Select a provider and model first');
+  }
+  if (isLikelyInvalidApiKey(key)) {
+    throw new Error('Enter a valid API key first');
+  }
+
+  const messages = buildGoalGeneratorMessages(prompt);
+  const userPrompt = getGoalGeneratorUserPrompt(prompt);
+  const configs = {
+    anthropic: {
+      url: 'https://api.anthropic.com/v1/messages',
+      headers: {
+        'x-api-key': key,
+        'anthropic-version': '2023-06-01',
+        'content-type': 'application/json'
+      },
+      body: {
+        model,
+        max_tokens: 48,
+        system: GOAL_GENERATOR_SYSTEM_PROMPT,
+        messages: [{ role: 'user', content: userPrompt }]
+      },
+      parse: (data) => data.content?.[0]?.text || ''
+    },
+    openai: {
+      url: 'https://api.openai.com/v1/chat/completions',
+      headers: {
+        Authorization: `Bearer ${key}`,
+        'Content-Type': 'application/json'
+      },
+      body: {
+        model,
+        max_tokens: 48,
+        messages
+      },
+      parse: (data) => data.choices?.[0]?.message?.content || ''
+    },
+    gemini: {
+      url: `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`,
+      headers: { 'Content-Type': 'application/json' },
+      body: buildGeminiGoalBody(prompt),
+      retryBody: buildGeminiGoalBody(prompt, { includeGenerationConfig: false }),
+      parse: (data) => data.candidates?.[0]?.content?.parts?.[0]?.text || ''
+    },
+    other: baseUrl ? {
+      url: `${baseUrl.replace(/\/$/, '')}/chat/completions`,
+      headers: {
+        Authorization: `Bearer ${key}`,
+        'Content-Type': 'application/json'
+      },
+      body: {
+        model,
+        max_tokens: 48,
+        messages
+      },
+      parse: (data) => data.choices?.[0]?.message?.content || ''
+    } : null
+  };
+
+  const config = configs[provider];
+  if (!config) {
+    throw new Error(provider === 'other' ? 'Base URL required' : 'Unknown provider');
+  }
+
+  const executeRequest = async (body) => {
+    const response = await fetch(config.url, {
+      method: 'POST',
+      headers: config.headers,
+      body: JSON.stringify(body),
+      signal: AbortSignal.timeout(30000)
+    });
+
+    if (!response.ok) {
+      const error = new Error(await readResponsePayload(response));
+      error.status = response.status;
+      throw error;
+    }
+
+    const data = await response.json().catch(() => ({}));
+    return config.parse(data);
+  };
+
+  try {
+    return await executeRequest(config.body);
+  } catch (error) {
+    if (provider === 'gemini' && config.retryBody && error?.status === 400) {
+      return executeRequest(config.retryBody);
+    }
+    throw error;
+  }
+};
+
+const generateCandidateGoal = async (state, rewritePrompt = null) => {
+  const prompt = rewritePrompt || GOAL_GENERATOR_USER_PROMPT;
+
+  if (state.connectionType === 'browser') {
+    return generateViaBrowser(state.dopplerConfig?.model, prompt);
+  }
+
+  if (state.connectionType === 'proxy') {
+    if (!state.proxyConfig?.provider && state.proxyConfig?.serverType !== 'ollama') {
+      throw new Error('Select a proxy provider first');
+    }
+    return generateViaProxy({
+      url: state.proxyConfig?.url,
+      provider: state.proxyConfig?.serverType === 'ollama' ? 'ollama' : state.proxyConfig?.provider,
+      model: state.proxyConfig?.model,
+      prompt
+    });
+  }
+
+  if (state.connectionType === 'direct') {
+    return generateViaDirect({
+      provider: state.directConfig?.provider,
+      apiKey: state.directConfig?.apiKey,
+      model: state.directConfig?.model,
+      baseUrl: state.directConfig?.baseUrl,
+      prompt
+    });
+  }
+
+  throw new Error('Choose a brain first');
+};
+
+async function generateAndNormalizeGoal(state) {
+  let raw = await generateCandidateGoal(state);
+  let goal = normalizeGeneratedGoal(raw);
+
+  if (countWords(goal) >= 16 && countWords(goal) <= 24) {
+    return goal;
+  }
+
+  const rewritePrompt = `Rewrite this candidate into one recursive self-improvement goal sentence of 16 to 24 words. Return only the sentence.\n\n${goal || raw}`;
+  raw = await generateCandidateGoal(state, rewritePrompt);
+  goal = normalizeGeneratedGoal(raw);
+
+  const words = countWords(goal);
+  if (words < 16 || words > 24) {
+    throw new Error('Generated goal did not fit the 16-24 word target');
+  }
+
+  return goal;
+}
 /**
  * Check if page is served over HTTPS
  */
@@ -199,6 +514,18 @@ export async function checkDoppler() {
   }
 
   try {
+    const providerUrl = getDopplerProviderUrl();
+    const preflight = await fetch(providerUrl, {
+      method: 'GET',
+      cache: 'no-store'
+    }).catch(() => null);
+    if (!preflight?.ok) {
+      setNestedState('detection', {
+        doppler: { supported: false, checked: true, models: [] }
+      });
+      return { supported: false };
+    }
+
     const { DopplerProvider } = await import('@simulatte/doppler/provider');
     const available = await DopplerProvider.init();
 
@@ -296,12 +623,17 @@ export async function runDetection(options = {}) {
  * @param {string} [baseUrl] - Custom base URL for 'other' provider
  */
 export async function testApiKey(provider, apiKey, baseUrl = null) {
+  const key = normalizeApiKey(apiKey);
+  if (isLikelyInvalidApiKey(key)) {
+    return { success: false, error: 'Invalid API key format' };
+  }
+
   const endpoints = {
     anthropic: {
       url: 'https://api.anthropic.com/v1/messages',
       method: 'POST',
       headers: {
-        'x-api-key': apiKey,
+        'x-api-key': key,
         'anthropic-version': '2023-06-01',
         'content-type': 'application/json'
       },
@@ -315,11 +647,11 @@ export async function testApiKey(provider, apiKey, baseUrl = null) {
       url: 'https://api.openai.com/v1/models',
       method: 'GET',
       headers: {
-        'Authorization': `Bearer ${apiKey}`
+        'Authorization': `Bearer ${key}`
       }
     },
     gemini: {
-      url: `https://generativelanguage.googleapis.com/v1/models?key=${apiKey}`,
+      url: `https://generativelanguage.googleapis.com/v1/models?key=${key}`,
       method: 'GET',
       headers: {}
     },
@@ -328,7 +660,7 @@ export async function testApiKey(provider, apiKey, baseUrl = null) {
       url: `${baseUrl.replace(/\/$/, '')}/models`,
       method: 'GET',
       headers: {
-        'Authorization': `Bearer ${apiKey}`
+        'Authorization': `Bearer ${key}`
       }
     } : null
   };
@@ -374,6 +706,11 @@ export async function testApiKey(provider, apiKey, baseUrl = null) {
     }
     return { success: false, error: error.message };
   }
+}
+
+export async function generateGoalPrompt() {
+  const state = getState();
+  return generateAndNormalizeGoal(state);
 }
 
 /**

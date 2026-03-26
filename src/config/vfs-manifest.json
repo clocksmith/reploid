@@ -252,6 +252,7 @@
     "capabilities/system/doppler-toolbox.js",
     "capabilities/system/substrate-loader.js",
     "config/blueprint-registry.json",
+    "config/boot-modes.js",
     "config/genesis-levels.json",
     "config/genesis-template.json",
     "config/lora-adapters/react-forms.json",
@@ -330,6 +331,7 @@
     "styles/rd-tokens.css",
     "styles/rd.css",
     "styles/vfs-explorer.css",
+    "styles/zero.css",
     "sw-module-loader.js",
     "testing/arena/arena-harness.js",
     "testing/arena/arena-metrics.js",
@@ -394,6 +396,7 @@
     "ui/proto/utils.js",
     "ui/proto/vfs.js",
     "ui/proto/workers.js",
+    "ui/zero/index.js",
     "ui/toast.js"
   ]
 }

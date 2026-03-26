@@ -4,6 +4,12 @@
  */
 
 import { normalizeOverrides } from '../../config/module-resolution.js';
+import {
+  DEFAULT_BOOT_MODE,
+  getDefaultGenesisLevelForMode,
+  inferBootModeFromGenesis,
+  normalizeBootMode
+} from '../../config/boot-modes.js';
 import { getSecurityState } from '../../core/security-config.js';
 
 // Wizard steps in order
@@ -52,12 +58,28 @@ export const PROVIDER_TEST_ENDPOINTS = {
   }
 };
 
+const getStoredMode = () => {
+  if (typeof localStorage === 'undefined') {
+    return DEFAULT_BOOT_MODE;
+  }
+
+  const storedMode = normalizeBootMode(localStorage.getItem('REPLOID_MODE'), '');
+  if (storedMode) {
+    return storedMode;
+  }
+
+  const storedGenesis = localStorage.getItem('REPLOID_GENESIS_LEVEL');
+  return inferBootModeFromGenesis(storedGenesis, DEFAULT_BOOT_MODE);
+};
+
 const getStoredAdvancedConfig = () => {
+  const storedMode = getStoredMode();
+  const defaultGenesisLevel = getDefaultGenesisLevelForMode(storedMode);
   const securityState = getSecurityState();
   if (typeof localStorage === 'undefined') {
     return {
       preserveOnBoot: false,
-      genesisLevel: 'full',
+      genesisLevel: defaultGenesisLevel,
       moduleOverrides: {},
       hitlApprovalMode: 'autonomous',
       hitlEveryNSteps: 5,
@@ -97,7 +119,7 @@ const getStoredAdvancedConfig = () => {
 
   return {
     preserveOnBoot: localStorage.getItem('REPLOID_PRESERVE_ON_BOOT') === 'true',
-    genesisLevel: localStorage.getItem('REPLOID_GENESIS_LEVEL') || 'full',
+    genesisLevel: localStorage.getItem('REPLOID_GENESIS_LEVEL') || defaultGenesisLevel,
     moduleOverrides,
     hitlApprovalMode,
     hitlEveryNSteps,
@@ -117,6 +139,7 @@ const getStoredGoal = () => {
 // Default wizard state
 const defaultState = {
   currentStep: STEPS.START,
+  mode: getStoredMode(),
 
   // Detection results
   detection: {
@@ -171,6 +194,10 @@ const defaultState = {
   // Goal selection
   goal: getStoredGoal(),
   selectedGoalCategory: null,
+  goalGenerator: {
+    status: 'idle', // idle | generating | error | ready
+    error: null
+  },
 
   // Advanced options
   advancedOpen: false,
@@ -185,7 +212,7 @@ const defaultState = {
   moduleOverrideFilter: 'all',
 
   // Genesis level (auto or manual)
-  genesisLevel: 'full'
+  genesisLevel: getDefaultGenesisLevelForMode(getStoredMode())
 };
 
 // Current state (module-level singleton)
@@ -236,12 +263,19 @@ function notifyListeners() {
  * Reset wizard to initial state
  */
 export function resetWizard() {
+  const storedMode = getStoredMode();
   state = {
     ...defaultState,
+    mode: storedMode,
+    genesisLevel: getDefaultGenesisLevelForMode(storedMode),
     advancedOpen: false,
     advancedConfig: getStoredAdvancedConfig(),
     goal: getStoredGoal(),
     selectedGoalCategory: null,
+    goalGenerator: {
+      status: 'idle',
+      error: null
+    },
     moduleOverrideSearch: '',
     moduleOverrideFilter: 'all',
     moduleConfig: {
@@ -348,9 +382,15 @@ export function hydrateSavedConfig(saved, apiKey = null) {
  * Save current config to localStorage
  */
 export function saveConfig() {
-  const { directConfig, proxyConfig, dopplerConfig, connectionType } = state;
+  const { directConfig, proxyConfig, dopplerConfig, connectionType, mode, advancedConfig } = state;
 
   const models = [];
+
+  localStorage.setItem('REPLOID_MODE', normalizeBootMode(mode));
+  localStorage.setItem(
+    'REPLOID_GENESIS_LEVEL',
+    advancedConfig?.genesisLevel || getDefaultGenesisLevelForMode(mode)
+  );
 
   // Build model list based on connection type
   if (connectionType === 'direct' && directConfig.model) {
@@ -414,6 +454,7 @@ export function forgetDevice() {
     'REPLOID_KEY_OPENAI',
     'REPLOID_KEY_GEMINI',
     'CONSENSUS_TYPE',
+    'REPLOID_MODE',
     'REPLOID_GENESIS_LEVEL',
     'REPLOID_PERSONA_ID',
     'REPLOID_BLUEPRINT_PATH',
@@ -446,7 +487,11 @@ export function getPrimaryVerifyState() {
  * Check if current config is ready to awaken
  */
 export function canAwaken() {
-  const { connectionType, directConfig, proxyConfig, dopplerConfig } = state;
+  const { mode, connectionType, directConfig, proxyConfig, dopplerConfig } = state;
+
+  if (mode === 'awakened_zero') {
+    return connectionType === 'browser' && !!dopplerConfig.model;
+  }
 
   switch (connectionType) {
     case 'direct':

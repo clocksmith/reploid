@@ -432,6 +432,40 @@ describe('LLMClient - Integration Tests', () => {
         expect(result.content).toBe('Gemini response');
       });
 
+      it('should avoid SSE for direct Gemini when StreamParser is unavailable', async () => {
+        const llmClientNoStream = LLMClientModule.factory({
+          Utils: mockUtils,
+          ProviderRegistry: mockProviderRegistry,
+          RateLimiter: mockRateLimiter,
+          TransformersClient: mockTransformersClient
+        });
+
+        global.fetch.mockResolvedValue({
+          ok: true,
+          json: () => Promise.resolve({
+            candidates: [{ content: { parts: [{ text: 'Gemini response' }] } }]
+          })
+        });
+
+        const onUpdate = vi.fn();
+        const result = await llmClientNoStream.chat(
+          [{ role: 'user', content: 'Hello' }],
+          {
+            id: 'gemini-3.1-flash-lite-preview',
+            provider: 'gemini',
+            hostType: 'browser-cloud',
+            apiKey: 'gemini-key'
+          },
+          onUpdate
+        );
+
+        const [url] = global.fetch.mock.calls[0];
+        expect(url).toContain(':generateContent');
+        expect(url).not.toContain(':streamGenerateContent');
+        expect(url).not.toContain('alt=sse');
+        expect(result.content).toBe('Gemini response');
+      });
+
       it('should convert message roles for Gemini', async () => {
         global.fetch.mockResolvedValue({
           ok: true,

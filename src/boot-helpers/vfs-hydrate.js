@@ -80,6 +80,7 @@ export async function resetSession(vfs, genesisConfig, genesisLevel, logger) {
     const coreTools = buildCoreToolSet(genesisConfig, genesisLevel);
     const coreUIFiles = new Set(preserveConfig.ui || ['proto.js', 'toast.js']);
     const coreStyles = new Set(preserveConfig.styles || [
+      'zero.css',
       'rd.css',
       'landing-mono.css',
       'vfs-explorer.css',

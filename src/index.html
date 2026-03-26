@@ -203,9 +203,23 @@
         };
       };
 
-      // Genesis level (used by boot)
+      // Product mode and internal genesis level (used by boot)
+      window.getReploidMode = () => {
+        const storedMode = localStorage.getItem("REPLOID_MODE");
+        if (storedMode === "zero" || storedMode === "awakened_zero" || storedMode === "x") {
+          return storedMode;
+        }
+
+        const storedGenesis = localStorage.getItem("REPLOID_GENESIS_LEVEL");
+        if (storedGenesis === "spark" || storedGenesis === "tabula") return "zero";
+        if (storedGenesis === "full" || storedGenesis === "substrate" ||
+            storedGenesis === "cognition" || storedGenesis === "reflection") return "x";
+        return "zero";
+      };
+
       window.getGenesisLevel = () =>
-        localStorage.getItem("REPLOID_GENESIS_LEVEL") || "full";
+        localStorage.getItem("REPLOID_GENESIS_LEVEL") ||
+        (window.getReploidMode() === "x" ? "full" : "spark");
 
       // Cognition config (used by memory systems)
       window.getCognitionConfig = () => {
