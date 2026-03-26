@@ -24,8 +24,9 @@ const ZeroUI = {
     let _models = [];
 
     const getModeLabel = () => {
-      if (mode === 'awakened_zero') return 'Awakened Zero';
-      return 'Zero';
+      if (mode === 'absolute_zero') return 'Absolute Zero';
+      if (mode === 'zero') return 'Zero';
+      return 'X';
     };
 
     const readSelectedModels = () => {

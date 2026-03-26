@@ -206,20 +206,26 @@
       // Product mode and internal genesis level (used by boot)
       window.getReploidMode = () => {
         const storedMode = localStorage.getItem("REPLOID_MODE");
-        if (storedMode === "zero" || storedMode === "awakened_zero" || storedMode === "x") {
+        if (storedMode === "zero" || storedMode === "absolute_zero" || storedMode === "x") {
           return storedMode;
         }
 
         const storedGenesis = localStorage.getItem("REPLOID_GENESIS_LEVEL");
-        if (storedGenesis === "spark" || storedGenesis === "tabula") return "zero";
+        if (storedGenesis === "capsule" || storedGenesis === "tabula") return "absolute_zero";
+        if (storedGenesis === "spark") return "zero";
         if (storedGenesis === "full" || storedGenesis === "substrate" ||
             storedGenesis === "cognition" || storedGenesis === "reflection") return "x";
-        return "zero";
+        return "absolute_zero";
       };
 
-      window.getGenesisLevel = () =>
-        localStorage.getItem("REPLOID_GENESIS_LEVEL") ||
-        (window.getReploidMode() === "x" ? "full" : "spark");
+      window.getGenesisLevel = () => {
+        const stored = localStorage.getItem("REPLOID_GENESIS_LEVEL");
+        if (stored) return stored;
+        const mode = window.getReploidMode();
+        if (mode === "x") return "full";
+        if (mode === "zero") return "spark";
+        return "capsule";
+      };
 
       // Cognition config (used by memory systems)
       window.getCognitionConfig = () => {

@@ -3,43 +3,11 @@
  */
 
 import { loadVfsManifest, seedVfsFromManifest, clearVfsStore } from '../boot-helpers/vfs-bootstrap.js';
+import { pickBootSeedFiles } from '../config/boot-seed.js';
 
 const log = (...args) => console.log('[Bootstrap]', ...args);
 const warn = (...args) => console.warn('[Bootstrap]', ...args);
 const error = (...args) => console.error('[Bootstrap]', ...args);
-
-const BOOT_SEED_PREFIXES = [
-  'entry/',
-  'boot-helpers/',
-  'ui/boot-wizard/',
-  'config/boot-modes.js',
-  'config/module-resolution.js',
-  'config/genesis-levels.json',
-  'config/module-registry.json',
-  'config/vfs-manifest.json',
-  'core/utils.js',
-  'core/security-config.js',
-  'infrastructure/di-container.js',
-  'styles/boot.css',
-  'styles/rd.css',
-  'styles/rd-tokens.css',
-  'styles/rd-primitives.css',
-  'styles/rd-components.css'
-];
-
-const pickBootSeedFiles = (files) => {
-  const out = [];
-  const seen = new Set();
-  for (const file of files || []) {
-    if (typeof file !== 'string') continue;
-    if (!BOOT_SEED_PREFIXES.some((prefix) => file.startsWith(prefix))) continue;
-    if (seen.has(file)) continue;
-    seen.add(file);
-    out.push(file);
-  }
-  out.sort();
-  return out;
-};
 
 const scheduleIdle = (fn) => {
   if (typeof window !== 'undefined' && typeof window.requestIdleCallback === 'function') {
@@ -68,6 +36,33 @@ const renderBootstrapError = (err) => {
 
 const SW_CONTROL_RELOAD_KEY = 'REPLOID_SW_CONTROL_RELOAD';
 const VFS_VERSION_KEY = 'REPLOID_VFS_VERSION';
+const SW_CONTROL_WAIT_MS = 1500;
+
+const waitForServiceWorkerControl = async (timeoutMs = SW_CONTROL_WAIT_MS) => {
+  if (navigator.serviceWorker.controller) return true;
+
+  return new Promise((resolve) => {
+    let settled = false;
+
+    const finish = (value) => {
+      if (settled) return;
+      settled = true;
+      navigator.serviceWorker.removeEventListener('controllerchange', onControllerChange);
+      clearTimeout(timeoutId);
+      resolve(value);
+    };
+
+    const onControllerChange = () => {
+      finish(!!navigator.serviceWorker.controller);
+    };
+
+    const timeoutId = setTimeout(() => {
+      finish(!!navigator.serviceWorker.controller);
+    }, timeoutMs);
+
+    navigator.serviceWorker.addEventListener('controllerchange', onControllerChange);
+  });
+};
 
 const ensureServiceWorker = async () => {
   if (!('serviceWorker' in navigator)) {
@@ -81,7 +76,10 @@ const ensureServiceWorker = async () => {
     : '/sw-module-loader.js';
   const reg = await navigator.serviceWorker.register(swUrl, { scope: '/' });
   await navigator.serviceWorker.ready;
-  if (!navigator.serviceWorker.controller) {
+  const hasController = await waitForServiceWorkerControl();
+  window.REPLOID_SW_CONTROLLED = hasController;
+
+  if (!hasController) {
     const hasReloaded = sessionStorage.getItem(SW_CONTROL_RELOAD_KEY) === 'true';
     if (!hasReloaded) {
       sessionStorage.setItem(SW_CONTROL_RELOAD_KEY, 'true');
@@ -89,7 +87,10 @@ const ensureServiceWorker = async () => {
       window.location.reload();
       return new Promise(() => {});
     }
-    throw new Error('Service worker not controlling page');
+    sessionStorage.removeItem(SW_CONTROL_RELOAD_KEY);
+    window.REPLOID_SW_DEGRADED = true;
+    warn('Service worker is active but not controlling this page. Continuing with network-backed bootstrap; VFS hot-reload may require a later refresh.');
+    return reg;
   }
   sessionStorage.removeItem(SW_CONTROL_RELOAD_KEY);
   return reg;

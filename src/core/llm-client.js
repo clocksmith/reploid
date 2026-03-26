@@ -221,14 +221,6 @@ const LLMClient = {
                 content: m.content
             }));
 
-            if (chatMessages[0]?.role !== 'system') {
-                logger.warn('[LLM] Missing system prompt at context start. Repairing context for WebLLM.');
-                chatMessages.unshift({
-                    role: 'system',
-                    content: 'You are REPLOID, a careful browser-based AI agent.'
-                });
-            }
-
             let fullContent = "";
 
             if (onUpdate) {

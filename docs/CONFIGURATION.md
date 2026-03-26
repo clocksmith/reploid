@@ -12,8 +12,8 @@ Expand "Advanced options" on the boot page to access these settings.
 
 | Setting | localStorage Key | Values | Default |
 |---------|------------------|--------|---------|
-| Boot Mode | `REPLOID_MODE` | `zero`, `awakened_zero`, `x` | `zero` |
-| Genesis Level | `REPLOID_GENESIS_LEVEL` | `full`, `substrate`, `cognition`, `reflection`, `spark`, `tabula` | `spark` |
+| Boot Mode | `REPLOID_MODE` | `absolute_zero`, `zero`, `x` | `absolute_zero` |
+| Genesis Level | `REPLOID_GENESIS_LEVEL` | `full`, `substrate`, `cognition`, `reflection`, `spark`, `capsule`, `tabula` | `capsule` |
 | Module Overrides | `REPLOID_MODULE_OVERRIDES` | JSON map of module id to `on` or `off` | `{}` |
 
 ### Safety & Approval
@@ -113,8 +113,8 @@ See [SECURITY.md](./SECURITY.md) for details.
 window.getCognitionConfig()   // → { semantic, symbolic, minSimilarity, topK }
 window.getGEPAConfig()        // → { populationSize, maxGenerations, ... }
 window.getExecutionLimits()   // → { maxIterations, approvalInterval }
-window.getReploidMode()       // → 'zero' | 'awakened_zero' | 'x'
-window.getGenesisLevel()      // → 'spark' | 'tabula' | 'reflection' | 'cognition' | 'substrate' | 'full'
+window.getReploidMode()       // → 'absolute_zero' | 'zero' | 'x'
+window.getGenesisLevel()      // → 'capsule' | 'spark' | 'tabula' | 'reflection' | 'cognition' | 'substrate' | 'full'
 ```
 
 ### From Modules

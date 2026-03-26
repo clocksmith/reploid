@@ -3,7 +3,7 @@
 REPLOID currently supports local-model workflows in two ways:
 
 1. `Proxy-local`: the Reploid proxy talks to a local model server, typically Ollama.
-2. `Browser-local`: the browser uses WebGPU and the browser-local Doppler stack.
+2. `Doppler`: the browser uses WebGPU and the Doppler local inference stack.
 
 Use this document as the current source of truth for local-model setup. Older references to `ApiClient.setProvider()` or `config.json` are obsolete.
 
@@ -74,15 +74,15 @@ curl http://localhost:11434/api/tags
 
 ---
 
-## Option 2: Browser-Local Models
+## Option 2: Doppler Local Models
 
-This path keeps inference in the browser and relies on WebGPU plus browser-local assets.
+This path keeps inference in the browser and relies on WebGPU plus Doppler assets.
 
 ### Requirements
 
 - WebGPU-capable browser
-- Reachable Doppler/browser-local asset base
-- A browser-local model exposed through the current boot-wizard detection path
+- Reachable Doppler asset base
+- A local Doppler model exposed through the current boot-wizard detection path
 
 ### 1. Start Reploid
 
@@ -91,42 +91,26 @@ npm install
 npm start
 ```
 
-### 2. Open the app and choose `Browser`
+### 2. Open the app and choose `Doppler`
 
-The boot wizard will probe browser-local support and any available browser-local models.
+The boot wizard will probe Doppler support and any available local models.
 
-If browser-local support is available:
-- choose `Browser`
+If Doppler support is available:
+- choose `Doppler`
 - select the detected model
 - verify and awaken
 
 ### 3. Override the Doppler asset base if needed
 
-The app defaults to `/doppler` for browser-local assets. Override it with `dopplerBase`:
+The app defaults to `/doppler` for Doppler assets. Override it with `dopplerBase`:
 
 ```text
 http://localhost:8000/src/?dopplerBase=http://localhost:9000/doppler
 ```
 
-The selected browser-local model is stored with `hostType: browser-local`.
+The selected local model is stored with `hostType: browser-local` and `provider: doppler`.
 
 ---
-
-## Hybrid Local Workflows
-
-Direct and Proxy sessions can also enable browser-local model access when the boot wizard detects it.
-
-Use this when you want:
-- cloud-backed orchestration with local model inspection
-- proxy-backed chat plus browser-local model access
-- future workflows involving LoRA or browser-local inference assets
-
-The important storage keys are:
-- `SELECTED_MODELS`
-- `REPLOID_KEY_<PROVIDER>`
-- `CONSENSUS_TYPE`
-
-See [CONFIGURATION.md](./CONFIGURATION.md) for the broader config surface.
 
 ---
 
@@ -164,7 +148,7 @@ If that fails:
 - open `http://localhost:8000/api/ollama/models`
 - inspect the proxy logs for Ollama connection errors
 
-### Browser-local option is disabled
+### Doppler option is disabled
 
 - confirm WebGPU support
 - confirm the Doppler asset base is reachable
@@ -174,12 +158,12 @@ If that fails:
 ### Model runs but quality is poor
 
 - use a larger Ollama model
-- move from browser-local to proxy-local if you need a stronger local model
+- move from Doppler to proxy-local if you need a stronger local model
 - use a hybrid setup with cloud models for orchestration and local models for selective tasks
 
 ### Storage pressure
 
-- browser-local assets and VFS state compete for browser storage
+- Doppler assets and VFS state compete for browser storage
 - export important artifacts before clearing site storage
 - disable `REPLOID_PRESERVE_ON_BOOT` if you want a clean reseed
 
@@ -188,7 +172,7 @@ If that fails:
 ## Security Notes
 
 - Proxy-local keeps API keys on the server side
-- Browser-local keeps inference inside the browser
+- Doppler keeps inference inside the browser
 - VFS mutation remains sandboxed in the browser regardless of model path
 - Local models do not bypass Reploid's verification, HITL, or arena gates
 

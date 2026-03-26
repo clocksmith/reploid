@@ -141,6 +141,8 @@ self.addEventListener('fetch', (event) => {
     || url.pathname === '/app.js'
     || url.pathname === '/src/entry/seed-vfs.js'
     || url.pathname === '/src/app.js'
+    || url.pathname === '/config/boot-seed.js'
+    || url.pathname === '/src/config/boot-seed.js'
   ) {
     return;
   }

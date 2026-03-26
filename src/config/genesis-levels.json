@@ -13,9 +13,9 @@
         "VFS"
       ]
     },
-    "spark": {
-      "name": "ZERO",
-      "description": "Minimal self-building core - 11 additional modules",
+    "capsule": {
+      "name": "CAPSULE",
+      "description": "Absolute Zero core - 11 additional modules",
       "extends": "tabula",
       "modules": [
         "AgentLoop",
@@ -23,14 +23,21 @@
         "ContextManager",
         "ProviderRegistry",
         "LLMClient",
-        "DopplerToolbox",
         "PersonaManager",
         "ResponseParser",
         "SchemaRegistry",
-        "TelemetryTimeline",
         "ToolExecutor",
         "ToolRunner",
         "ToolWriter"
+      ]
+    },
+    "spark": {
+      "name": "ZERO",
+      "description": "Capsule + extended local brain/runtime support - 2 additional modules",
+      "extends": "capsule",
+      "modules": [
+        "DopplerToolbox",
+        "TelemetryTimeline"
       ]
     },
     "reflection": {
@@ -347,10 +354,12 @@
       "ui/dashboard/metrics-dashboard.js",
       "ui/dashboard/ui-manager.js",
       "ui/dashboard/vfs-explorer.js",
-      "ui/zero/index.js"
+      "ui/zero/index.js",
+      "ui/capsule/index.js"
     ],
     "styles": [
       "styles/zero.css",
+      "styles/capsule.css",
       "styles/vfs-explorer.css",
       "styles/proto/index.css",
       "styles/rd.css",

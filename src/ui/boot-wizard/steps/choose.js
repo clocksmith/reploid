@@ -9,15 +9,14 @@ import { BOOT_MODE_ORDER, getBootModeConfig } from '../../../config/boot-modes.j
  */
 export function renderChooseStep(state) {
   const { detection, connectionType } = state;
-  const selectedMode = state.mode || 'zero';
-  const activeMode = getBootModeConfig(selectedMode);
+  const selectedMode = state.mode || 'absolute_zero';
   const webgpuSupported = detection.webgpu.supported;
   const webgpuChecked = detection.webgpu.checked;
   const ollamaDetected = detection.ollama?.detected;
   const proxyDetected = detection.proxy?.detected;
   const serverDetected = proxyDetected || ollamaDetected;
   const localBlocked = detection.ollama?.blocked || detection.proxy?.blocked;
-  const browserRecommended = selectedMode === 'awakened_zero';
+  const browserRecommended = selectedMode === 'zero';
 
   let serverDescription = 'Connect to a local or remote server';
   if (proxyDetected && ollamaDetected) {
@@ -31,64 +30,47 @@ export function renderChooseStep(state) {
   const connectionBorderClass = (type) => connectionType === type ? '' : 'border-ghost';
   const connectionPressed = (type) => connectionType === type ? 'true' : 'false';
 
-  const browserCaption = browserRecommended
+  const dopplerCaption = browserRecommended
     ? (webgpuSupported
       ? 'Run a mutable local brain in-browser via WebGPU'
-      : 'Awakened Zero needs WebGPU before the local brain can come online')
+      : 'Zero needs WebGPU before the local brain can come online')
     : (webgpuSupported
-      ? 'Run models locally in your browser via WebGPU (Doppler)'
+      ? 'Run Doppler locally in-browser via WebGPU'
       : 'WebGPU not supported in this browser');
-
-  const getModeTags = (modeId) => {
-    if (modeId === 'zero') return ['Default', 'Minimal'];
-    if (modeId === 'awakened_zero') return ['Local brain', 'Mutable'];
-    return ['Prebuilt', 'Full stack'];
-  };
 
   return `
     <div class="wizard-step wizard-choose">
-      <div class="wizard-mode-shell panel">
+      <div class="wizard-mode-shell">
         <div class="wizard-mode-copy">
-          <div class="type-caption wizard-kicker">Mode</div>
-          <h1 class="type-display wizard-mode-title">${activeMode.label}</h1>
-          <p class="type-caption wizard-mode-description">${activeMode.description}. ${activeMode.detail}</p>
+          <h2 class="type-h1">Choose runtime mode</h2>
+          <p class="type-caption wizard-mode-description">Select the substrate depth and available behavior before configuring inference.</p>
         </div>
 
-        <div class="boot-mode-rail" role="tablist" aria-label="Product mode">
-          ${BOOT_MODE_ORDER.map((modeId) => {
-            const mode = getBootModeConfig(modeId);
-            const selected = selectedMode === modeId;
-            const blocked = mode.requiresBrowserBrain && webgpuChecked && !webgpuSupported;
-            const pressed = selected ? 'true' : 'false';
-            return `
-              <button class="boot-mode-btn ${selected ? 'selected' : 'border-ghost'}"
-                      data-action="choose-mode"
-                      data-mode="${modeId}"
-                      aria-pressed="${pressed}"
-                      ${blocked ? 'disabled' : ''}>
-                <span class="boot-mode-label">${mode.label}</span>
-              </button>
-            `;
-          }).join('')}
-        </div>
-      </div>
-
-      <div class="mode-focus panel">
-        <div class="option-capabilities mode-focus-tags">
-          ${getModeTags(selectedMode).map((tag) => `<span class="tag">${tag}</span>`).join('')}
-        </div>
-        <div class="type-caption mode-focus-copy">
-          ${selectedMode === 'zero'
-            ? 'Start with the smallest visible surface. Zero builds upward from files, tools, and observed results.'
-            : selectedMode === 'awakened_zero'
-              ? 'Keep the same minimal surface, but give the agent a mutable browser-local brain.'
-              : 'Boot the mature prebuilt stack with the broader capability surface already assembled.'}
+        <div class="boot-mode-row">
+          <div class="type-caption boot-mode-caption">Mode</div>
+          <div class="boot-mode-rail" role="tablist" aria-label="Product mode">
+            ${BOOT_MODE_ORDER.map((modeId) => {
+              const mode = getBootModeConfig(modeId);
+              const selected = selectedMode === modeId;
+              const blocked = mode.requiresBrowserBrain && webgpuChecked && !webgpuSupported;
+              const pressed = selected ? 'true' : 'false';
+              return `
+                <button class="boot-mode-btn ${selected ? 'selected' : 'border-ghost'}"
+                        data-action="choose-mode"
+                        data-mode="${modeId}"
+                        aria-pressed="${pressed}"
+                        ${blocked ? 'disabled' : ''}>
+                  <span class="boot-mode-label">${mode.label}</span>
+                </button>
+              `;
+            }).join('')}
+          </div>
         </div>
       </div>
 
       <div class="wizard-section-divider wizard-section-divider-tight">
-        <h2 class="type-h1">Choose a brain</h2>
-        <p class="type-caption">Pick where reasoning runs and how model access is reached.</p>
+        <h2 class="type-h1">Choose inference provider</h2>
+        <p class="type-caption">Pick where reasoning runs.</p>
       </div>
 
       <div class="connection-options connection-options-compact">
@@ -96,8 +78,8 @@ export function renderChooseStep(state) {
                 data-action="choose-browser"
                 aria-pressed="${connectionPressed('browser')}"
                 ${!webgpuSupported ? 'disabled' : ''}>
-          <span class="type-h2">⎈ Browser ${browserRecommended && webgpuSupported ? '<span class="badge">Recommended</span>' : ''}</span>
-          <span class="type-caption">${browserCaption}</span>
+          <span class="type-h2">⎈ Doppler ${browserRecommended && webgpuSupported ? '<span class="badge">Recommended</span>' : ''}</span>
+          <span class="type-caption">${dopplerCaption}</span>
           <div class="option-capabilities">
             <span class="tag">Model access</span>
             <span class="tag">Private</span>
@@ -125,7 +107,7 @@ export function renderChooseStep(state) {
             <span class="tag">Cloud or local</span>
             <span class="tag">Keys on server</span>
           </div>
-          ${localBlocked ? '<span class="type-caption">△ Browser blocked auto-detect. Enter address manually.</span>' : ''}
+          ${localBlocked ? '<span class="type-caption">△ Local auto-detect blocked. Enter address manually.</span>' : ''}
         </button>
       </div>
     </div>

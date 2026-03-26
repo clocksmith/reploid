@@ -1,5 +1,5 @@
 /**
- * @fileoverview Browser/Doppler configuration step renderer
+ * @fileoverview Doppler configuration step renderer
  */
 
 /**
@@ -18,8 +18,8 @@ export function renderBrowserConfigStep(state) {
 
   return `
     <div class="wizard-step wizard-doppler-config">
-      <h2 class="type-h1">Browser Model Setup</h2>
-      <p class="type-caption">Select a model to run locally via WebGPU</p>
+      <h2 class="type-h1">Configure Doppler</h2>
+      <p class="type-caption">Select a Doppler model to run locally via WebGPU.</p>
 
       <div class="model-options">
 	        ${downloadableModels.map(m => {

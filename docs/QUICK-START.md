@@ -7,7 +7,7 @@ This guide gets you from a clean checkout to a running Reploid session with the 
 ## Prerequisites
 
 - Modern browser with ES modules
-- WebGPU-capable browser for browser-local models
+- WebGPU-capable browser for Doppler local models
 - Node.js 16+ for the supported dev server path
 - `git` recommended
 
@@ -39,7 +39,7 @@ Go to `http://localhost:8000`.
 |-----------------|---------------|-------------|
 | `Direct` | Browser calls cloud APIs directly with keys stored in browser state | Quick experiments |
 | `Proxy` | Browser calls the Reploid proxy, which holds cloud keys or talks to Ollama | Safer local development |
-| `Browser` | Browser-local model path via WebGPU and the Doppler/browser-local stack | Offline or local-first runs |
+| `Doppler` | Local model path via WebGPU and the Doppler stack | Offline or local-first runs |
 
 ### 5. Set advanced options if needed
 
@@ -130,17 +130,17 @@ Useful proxy endpoints:
 - `GET /api/proxy-status`
 - `GET /api/ollama/models`
 
-### Browser
+### Doppler
 
-Use this when you want browser-local inference.
+Use this when you want local inference through Doppler.
 
 Requirements:
 - Browser with WebGPU enabled
-- Browser-local provider assets available through the configured Doppler base
+- Doppler assets available through the configured Doppler base
 
 Boot-wizard flow:
-1. Choose `Browser`
-2. Wait for browser-local capability detection
+1. Choose `Doppler`
+2. Wait for Doppler capability detection
 3. Pick the detected model
 4. Verify and awaken
 
@@ -150,15 +150,6 @@ If you need a non-default Doppler asset root, open the app with:
 http://localhost:8000/src/?dopplerBase=http://localhost:9000/doppler
 ```
 
-### Optional Model Access
-
-Direct and Proxy sessions can also enable browser-local model access when the boot wizard detects it.
-
-Use this when you want:
-- cloud orchestration with local model inspection
-- direct/proxy chat plus Doppler-backed model assets
-- future workflows involving LoRA, activations, or browser-local tooling
-
 ---
 
 ## Supported First-Run Paths
@@ -167,8 +158,7 @@ Use this when you want:
 |------|------------------|
 | Fastest setup | `Direct` |
 | Safer local development | `Proxy` |
-| Offline or local-first experiments | `Browser` |
-| Cloud + local hybrid workflows | `Proxy` or `Direct` plus optional model access |
+| Offline or local-first experiments | `Doppler` |
 
 ---
 

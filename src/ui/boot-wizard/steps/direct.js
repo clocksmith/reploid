@@ -28,14 +28,14 @@ export const CLOUD_MODELS = {
  * Render DIRECT_CONFIG step - Direct cloud API with keys in browser
  */
 export function renderDirectConfigStep(state) {
-  const { directConfig, detection, enableModelAccess, dopplerConfig } = state;
+  const { directConfig } = state;
   const isOther = directConfig.provider === 'other';
   const models = directConfig.provider && !isOther ? (CLOUD_MODELS[directConfig.provider] || []) : [];
 
   return `
     <div class="wizard-step wizard-direct-config">
-      <h2 class="type-h1">Direct API Configuration</h2>
-      <p class="type-caption">API keys are stored in your browser</p>
+      <h2 class="type-h1">Configure direct API</h2>
+      <p class="type-caption">API keys are stored in your browser.</p>
 
       <div class="config-form">
         <div class="form-row">
@@ -116,27 +116,6 @@ export function renderDirectConfigStep(state) {
           ` : ''}
         </div>
 
-        ${detection.webgpu.supported ? `
-          <div class="form-row model-access-option">
-            <label class="checkbox-label">
-              <input type="checkbox"
-                     id="enable-doppler"
-                     ${enableModelAccess ? 'checked' : ''} />
-              <span>Also enable Doppler for model access</span>
-            </label>
-            <span class="type-caption">Enables LoRA, activation steering, weight inspection</span>
-          </div>
-          ${enableModelAccess ? `
-            <div class="form-row doppler-model-inline">
-              <label class="type-label">Doppler Model</label>
-              <select id="doppler-model-inline">
-                <option value="smollm2-360m" ${dopplerConfig?.model === 'smollm2-360m' ? 'selected' : ''}>SmolLM2 360M (Recommended)</option>
-                <option value="gemma-2b" ${dopplerConfig?.model === 'gemma-2b' ? 'selected' : ''}>Gemma 2B</option>
-                <option value="qwen-0.5b" ${dopplerConfig?.model === 'qwen-0.5b' ? 'selected' : ''}>Qwen 0.5B</option>
-              </select>
-            </div>
-          ` : ''}
-        ` : ''}
       </div>
 
     </div>

@@ -12,6 +12,8 @@ import DIContainer from '../infrastructure/di-container.js';
 
 // === MODULAR BOOT ===
 import { boot, renderErrorUI } from '../boot-helpers/index.js';
+import { createCapsuleRuntime } from '../capsule/runtime.js';
+import CapsuleUI from '../ui/capsule/index.js';
 
 /**
  * Parse models from localStorage with fallback
@@ -77,11 +79,17 @@ async function completeAwaken(bootResult, goal, wizardContainer) {
           stylePath: 'styles/proto/index.css',
           modulePath: '../ui/proto/index.js'
         }
-      : {
-          name: 'zero',
-          stylePath: 'styles/zero.css',
-          modulePath: '../ui/zero/index.js'
-        }
+      : runtimeMode === 'absolute_zero'
+        ? {
+            name: 'capsule',
+            stylePath: 'styles/capsule.css',
+            modulePath: '../ui/capsule/index.js'
+          }
+        : {
+            name: 'zero',
+            stylePath: 'styles/zero.css',
+            modulePath: '../ui/zero/index.js'
+          }
   );
 
   const ensureRuntimeStyles = (version, spec) => {
@@ -191,7 +199,7 @@ async function completeAwaken(bootResult, goal, wizardContainer) {
       models = [{
         id: 'smollm2-360m',
         name: 'SmolLM2 360M (Auto)',
-        provider: 'transformers',
+        provider: 'doppler',
         hostType: 'browser-local'
       }];
       logger.info('[Boot] Auto-selected: ' + models[0].name);
@@ -219,6 +227,74 @@ async function completeAwaken(bootResult, goal, wizardContainer) {
   }
 }
 
+async function completeAbsoluteZeroAwaken(goal, wizardContainer) {
+  const awakenInput = (goal && typeof goal === 'object' && !Array.isArray(goal))
+    ? goal
+    : {
+        goal,
+        environment: localStorage.getItem('REPLOID_ENVIRONMENT') || '',
+        includeHostWithinSelf: localStorage.getItem('REPLOID_INCLUDE_HOST_WITHIN_SELF') === 'true'
+      };
+  const utils = Utils.factory();
+  const logger = utils.logger;
+  const appEl = document.getElementById('app');
+
+  if (!appEl) {
+    throw new Error('Missing #app container');
+  }
+
+  if (wizardContainer) wizardContainer.remove();
+  document.body.classList.add('no-grid-pattern');
+  appEl.classList.add('active');
+  appEl.innerHTML = '';
+
+  const version = Date.now().toString();
+  let link = document.getElementById('runtime-ui-stylesheet');
+  if (!link) {
+    link = document.createElement('link');
+    link.id = 'runtime-ui-stylesheet';
+    link.rel = 'stylesheet';
+    document.head.appendChild(link);
+  }
+  link.href = `styles/capsule.css?v=${encodeURIComponent(version)}`;
+
+  let models = parseModels();
+  if (models.length === 0 && navigator.gpu) {
+    models = [{
+      id: 'smollm2-360m',
+      name: 'SmolLM2 360M (Auto)',
+      provider: 'doppler',
+      hostType: 'browser-local'
+    }];
+    logger.info('[AbsoluteZero] Auto-selected: ' + models[0].name);
+  }
+
+  const capsuleRuntime = createCapsuleRuntime({
+    goal: awakenInput.goal,
+    environment: awakenInput.environment,
+    includeHostWithinSelf: awakenInput.includeHostWithinSelf,
+    modelConfig: models[0] || null
+  });
+  const runtimeUI = CapsuleUI.factory({
+    CapsuleRuntime: capsuleRuntime
+  });
+
+  await runtimeUI.mount(appEl);
+  window.REPLOID = {
+    mode: 'absolute_zero',
+    capsuleRuntime
+  };
+  window.REPLOID_UI = {
+    reload: async () => {},
+    getVersion: () => version
+  };
+
+  logger.info('[Boot] capsule UI mounted (absolute_zero).');
+  capsuleRuntime.start().catch((e) => {
+    logger.error('[AbsoluteZero] Capsule runtime error:', e?.message || e);
+  });
+}
+
 (async () => {
   try {
     // Show wizard FIRST, before boot
@@ -233,6 +309,15 @@ async function completeAwaken(bootResult, goal, wizardContainer) {
     // Expose awaken trigger - this runs boot() when user clicks Awaken
     window.triggerAwaken = async (goal) => {
       try {
+        const runtimeMode = typeof window.getReploidMode === 'function'
+          ? window.getReploidMode()
+          : 'absolute_zero';
+
+        if (runtimeMode === 'absolute_zero') {
+          await completeAbsoluteZeroAwaken(goal, wizardContainer);
+          return;
+        }
+
         // Ensure the full VFS hydration finished so module imports don't 404 under the SW.
         const fullSeed = window.REPLOID_VFS_FULL_SEED_PROMISE;
         if (fullSeed && typeof fullSeed.then === 'function') {

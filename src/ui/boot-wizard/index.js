@@ -15,13 +15,21 @@ import {
   testProxyModel, testDirectModel, generateGoalPrompt
 } from './detection.js';
 
-import { formatGoalPacket } from './goals.js';
+import { formatGoalPacket, getGoalEntries } from './goals.js';
+import {
+  findAbsoluteZeroEnvironmentTemplateId,
+  getAbsoluteZeroEnvironmentTemplate
+} from '../../config/absolute-zero-environments.js';
 import {
   getBootModeConfig,
-  getDefaultGenesisLevelForMode,
   inferBootModeFromGenesis,
   normalizeBootMode
 } from '../../config/boot-modes.js';
+import { pickBootSeedFiles } from '../../config/boot-seed.js';
+import {
+  ABSOLUTE_ZERO_HOST_SOURCE_MIRRORS,
+  ABSOLUTE_ZERO_SELF_SOURCE_MIRRORS
+} from '../../capsule/contract.js';
 import { serializeModuleOverrides } from '../../config/module-resolution.js';
 import { setSecurityEnabled } from '../../core/security-config.js';
 import { readVfsFile, loadVfsManifest, seedVfsFromManifest, clearVfsStore } from '../../boot-helpers/vfs-bootstrap.js';
@@ -37,12 +45,7 @@ import { renderAwakenStep } from './steps/awaken.js';
 // DOM container reference
 let container = null;
 let listenersAttached = false;
-
-const getDopplerBaseHref = () => {
-  if (typeof window === 'undefined') return '/doppler/';
-  const base = window.DOPPLER_BASE_URL || '/doppler';
-  return base.endsWith('/') ? base : `${base}/`;
-};
+const VFS_BYPASS_HEADER = 'x-reploid-vfs-bypass';
 
 const updateHitlConfig = (updates) => {
   let current = {
@@ -69,6 +72,84 @@ const updateHitlConfig = (updates) => {
   const next = { ...current, ...updates };
   localStorage.setItem('REPLOID_HITL_CONFIG', JSON.stringify(next));
   return next;
+};
+
+const toSortedFileList = (files) => Array.from(new Set(
+  (Array.isArray(files) ? files : []).filter((file) => typeof file === 'string' && file.trim())
+)).sort();
+
+const buildFileTree = (files) => {
+  const sortedFiles = toSortedFileList(files);
+  if (sortedFiles.length === 0) return '';
+
+  const root = {};
+  for (const file of sortedFiles) {
+    const parts = file.replace(/^\/+/, '').split('/').filter(Boolean);
+    let node = root;
+    parts.forEach((part, index) => {
+      const isLeaf = index === parts.length - 1;
+      if (isLeaf) {
+        node[part] = null;
+        return;
+      }
+      node[part] = node[part] || {};
+      node = node[part];
+    });
+  }
+
+  const lines = [];
+  const walk = (node, prefix = '') => {
+    const entries = Object.keys(node).sort((left, right) => {
+      const leftDir = node[left] && typeof node[left] === 'object';
+      const rightDir = node[right] && typeof node[right] === 'object';
+      if (leftDir !== rightDir) return leftDir ? -1 : 1;
+      return left.localeCompare(right);
+    });
+
+    entries.forEach((name, index) => {
+      const child = node[name];
+      const isLast = index === entries.length - 1;
+      const branch = isLast ? '└─ ' : '├─ ';
+      const nextPrefix = `${prefix}${isLast ? '   ' : '│  '}`;
+      const isDir = !!child && typeof child === 'object';
+      lines.push(`${prefix}${branch}${name}${isDir ? '/' : ''}`);
+      if (isDir) walk(child, nextPrefix);
+    });
+  };
+
+  walk(root);
+  return lines.join('\n');
+};
+
+const summarizeRoots = (files) => {
+  const counts = new Map();
+  for (const file of toSortedFileList(files)) {
+    const root = file.replace(/^\/+/, '').split('/').filter(Boolean)[0] || '.';
+    counts.set(root, (counts.get(root) || 0) + 1);
+  }
+  return Array.from(counts.entries())
+    .sort((left, right) => right[1] - left[1] || left[0].localeCompare(right[0]))
+    .map(([root, count]) => ({ root, count }));
+};
+
+const fetchPreviewSourceText = async (webPath) => {
+  const response = await fetch(webPath, {
+    cache: 'no-store',
+    headers: {
+      [VFS_BYPASS_HEADER]: '1'
+    }
+  });
+  if (!response.ok) {
+    throw new Error(`Failed to load preview source: ${webPath} (${response.status})`);
+  }
+  return response.text();
+};
+
+const loadMirrorContents = async (mirrors) => {
+  const entries = await Promise.all(
+    mirrors.map(async ({ webPath, vfsPath }) => [vfsPath, await fetchPreviewSourceText(webPath)])
+  );
+  return Object.fromEntries(entries);
 };
 
 async function ensureModuleConfigLoaded() {
@@ -113,6 +194,89 @@ async function ensureModuleConfigLoaded() {
   }
 }
 
+async function ensureBootPayloadLoaded() {
+  const current = getState().bootPayload || {};
+  if (current.loading || current.loaded) return;
+
+  setState({
+    bootPayload: {
+      ...current,
+      loading: true,
+      loaded: false,
+      error: null
+    }
+  });
+
+  try {
+    const { manifest } = await loadVfsManifest();
+    const manifestFiles = toSortedFileList(manifest?.files || []);
+    const bootFiles = pickBootSeedFiles(manifestFiles);
+
+    setState({
+      bootPayload: {
+        loading: false,
+        loaded: true,
+        error: null,
+        bootFiles,
+        bootTree: buildFileTree(bootFiles),
+        manifestFiles,
+        rootSummary: summarizeRoots(manifestFiles)
+      }
+    });
+  } catch (err) {
+    setState({
+      bootPayload: {
+        loading: false,
+        loaded: false,
+        error: err?.message || 'Failed to load boot manifest',
+        bootFiles: [],
+        bootTree: '',
+        manifestFiles: [],
+        rootSummary: []
+      }
+    });
+  }
+}
+
+async function ensureAbsoluteZeroPreviewLoaded(includeHostWithinSelf = false) {
+  const current = getState().absoluteZeroPreview || {};
+  const needSelf = !current.loadedSelf && !current.loadingSelf;
+  const needHost = includeHostWithinSelf && !current.loadedHost && !current.loadingHost;
+
+  if (!needSelf && !needHost) return;
+
+  setNestedState('absoluteZeroPreview', {
+    loadingSelf: current.loadingSelf || needSelf,
+    loadingHost: current.loadingHost || needHost,
+    error: null
+  });
+
+  try {
+    const nextContents = { ...(getState().absoluteZeroPreview?.contents || {}) };
+    if (needSelf) {
+      Object.assign(nextContents, await loadMirrorContents(ABSOLUTE_ZERO_SELF_SOURCE_MIRRORS));
+    }
+    if (needHost) {
+      Object.assign(nextContents, await loadMirrorContents(ABSOLUTE_ZERO_HOST_SOURCE_MIRRORS));
+    }
+
+    setNestedState('absoluteZeroPreview', {
+      contents: nextContents,
+      loadingSelf: false,
+      loadedSelf: current.loadedSelf || needSelf,
+      loadingHost: false,
+      loadedHost: current.loadedHost || needHost,
+      error: null
+    });
+  } catch (err) {
+    setNestedState('absoluteZeroPreview', {
+      loadingSelf: false,
+      loadingHost: false,
+      error: err?.message || 'Failed to load Absolute Zero file previews'
+    });
+  }
+}
+
 /**
  * Initialize wizard
  */
@@ -132,6 +296,7 @@ export function initWizard(containerEl) {
 function handleStart() {
   const saved = checkSavedConfig();
   setState({ savedConfig: saved, currentStep: STEPS.CHOOSE });
+  ensureBootPayloadLoaded();
   // Run detection in background, then auto-select if appropriate
   runDetection({
     skipLocalScan: false,
@@ -149,7 +314,7 @@ function autoSelectConnectionType() {
   if (state.connectionType) return; // Already selected
 
   const { detection, savedConfig } = state;
-  if (state.mode === 'awakened_zero' && detection.webgpu?.supported) {
+  if (state.mode === 'zero' && detection.webgpu?.supported) {
     setState({ connectionType: 'browser' });
     if (!state.dopplerConfig?.model) {
       setNestedState('dopplerConfig', { model: 'smollm2-360m' });
@@ -226,11 +391,31 @@ let lastProxyVerifyState = null;
 let lastDirectModel = null;
 let lastDirectModelVerifyState = null;
 let lastMode = null;
+let lastConnectionType = null;
+let lastCanAwaken = null;
+let lastBootPayloadState = null;
+let lastAbsoluteZeroPreviewState = null;
+let lastSelectedAbsoluteZeroPath = null;
+let lastGoal = null;
+let lastEnvironment = null;
+let lastIncludeHostWithinSelf = null;
+let lastSelectedGoalCategory = null;
+let lastGoalShuffleSeed = null;
+let lastGoalGeneratorState = null;
 
 const getDefaultCloudModelForProvider = (provider) => {
   const models = CLOUD_MODELS[provider] || [];
   return models[0]?.id || null;
 };
+
+const renderLockedSection = (title, caption) => `
+  <div class="wizard-step wizard-stage-placeholder">
+    <div class="goal-header">
+      <h2 class="type-h1">${title}</h2>
+      <p class="type-caption">${caption}</p>
+    </div>
+  </div>
+`;
 
 function scheduleUpdate() {
   if (updateScheduled) return;
@@ -248,10 +433,29 @@ function scheduleUpdate() {
     const directModelChanged = state.directConfig?.model !== lastDirectModel;
     const directModelVerifyChanged = state.directConfig?.modelVerifyState !== lastDirectModelVerifyState;
     const modeChanged = state.mode !== lastMode;
+    const connectionTypeChanged = state.connectionType !== lastConnectionType;
+    const readyToAwaken = canAwaken();
+    const canAwakenChanged = readyToAwaken !== lastCanAwaken;
+    const bootPayloadState = JSON.stringify(state.bootPayload);
+    const bootPayloadChanged = bootPayloadState !== lastBootPayloadState;
+    const absoluteZeroPreviewState = JSON.stringify(state.absoluteZeroPreview);
+    const absoluteZeroPreviewChanged = absoluteZeroPreviewState !== lastAbsoluteZeroPreviewState;
+    const selectedAbsoluteZeroPathChanged = state.selectedAbsoluteZeroPath !== lastSelectedAbsoluteZeroPath;
+    const goalChanged = state.goal !== lastGoal;
+    const environmentChanged = state.environment !== lastEnvironment;
+    const includeHostWithinSelfChanged = !!state.includeHostWithinSelf !== !!lastIncludeHostWithinSelf;
+    const selectedGoalCategoryChanged = state.selectedGoalCategory !== lastSelectedGoalCategory;
+    const goalShuffleSeedChanged = state.goalShuffleSeed !== lastGoalShuffleSeed;
+    const goalGeneratorState = JSON.stringify(state.goalGenerator);
+    const goalGeneratorChanged = goalGeneratorState !== lastGoalGeneratorState;
 
     if (isInitialRender || moduleConfigChanged || advancedOpenChanged ||
         directVerifyChanged || proxyVerifyChanged || directModelChanged || directModelVerifyChanged ||
-        modeChanged) {
+        modeChanged || connectionTypeChanged || canAwakenChanged ||
+        bootPayloadChanged || absoluteZeroPreviewChanged ||
+        selectedAbsoluteZeroPathChanged || goalChanged || environmentChanged ||
+        includeHostWithinSelfChanged || selectedGoalCategoryChanged ||
+        goalShuffleSeedChanged || goalGeneratorChanged) {
       lastModuleConfigState = moduleConfigState;
       lastAdvancedOpen = state.advancedOpen;
       lastDirectVerifyState = state.directConfig?.verifyState;
@@ -259,6 +463,17 @@ function scheduleUpdate() {
       lastDirectModel = state.directConfig?.model;
       lastDirectModelVerifyState = state.directConfig?.modelVerifyState;
       lastMode = state.mode;
+      lastConnectionType = state.connectionType;
+      lastCanAwaken = readyToAwaken;
+      lastBootPayloadState = bootPayloadState;
+      lastAbsoluteZeroPreviewState = absoluteZeroPreviewState;
+      lastSelectedAbsoluteZeroPath = state.selectedAbsoluteZeroPath;
+      lastGoal = state.goal;
+      lastEnvironment = state.environment;
+      lastIncludeHostWithinSelf = !!state.includeHostWithinSelf;
+      lastSelectedGoalCategory = state.selectedGoalCategory;
+      lastGoalShuffleSeed = state.goalShuffleSeed;
+      lastGoalGeneratorState = goalGeneratorState;
       render();
     } else {
       updateUI();
@@ -376,8 +591,8 @@ function updateUI() {
       awakenBtn.setAttribute('title', reason);
     } else if (!hasGoal) {
       awakenBtn.setAttribute('title', 'Set a goal to awaken');
-    } else if (!ready && state.mode === 'awakened_zero') {
-      awakenBtn.setAttribute('title', 'Awakened Zero needs a browser-local model');
+    } else if (!ready && state.mode === 'zero') {
+      awakenBtn.setAttribute('title', 'Zero needs a browser-local model');
     } else {
       awakenBtn.removeAttribute('title');
     }
@@ -395,6 +610,12 @@ function updateUI() {
   if (state.advancedOpen || ready) {
     ensureModuleConfigLoaded();
   }
+  if (!state.bootPayload?.loaded && !state.bootPayload?.loading && !state.bootPayload?.error) {
+    ensureBootPayloadLoaded();
+  }
+  if (state.mode === 'absolute_zero') {
+    ensureAbsoluteZeroPreviewLoaded(!!state.includeHostWithinSelf);
+  }
 }
 
 function updateGoalSelectionUI(state) {
@@ -404,10 +625,41 @@ function updateGoalSelectionUI(state) {
     goalInput.value = state.goal || '';
   }
 
+  const environmentInput = container.querySelector('#environment-input');
+  if (environmentInput && document.activeElement !== environmentInput && environmentInput.value !== (state.environment || '')) {
+    environmentInput.value = state.environment || '';
+  }
+
+  const includeHostCheckbox = container.querySelector('#include-host-within-self');
+  if (includeHostCheckbox) {
+    includeHostCheckbox.checked = !!state.includeHostWithinSelf;
+  }
+
   container.querySelectorAll('[data-action="select-goal"]').forEach((el) => {
     const goalValue = el.dataset.goal || '';
     const isSelected = goalValue === (state.goal || '');
     el.classList.toggle('selected', isSelected);
+  });
+
+  container.querySelectorAll('[data-action="apply-environment-template"]').forEach((el) => {
+    const templateId = el.dataset.template || '';
+    const isSelected = templateId === (state.selectedEnvironmentTemplate || '');
+    el.classList.toggle('selected', isSelected);
+    el.setAttribute('aria-pressed', isSelected ? 'true' : 'false');
+  });
+
+  container.querySelectorAll('[data-action="toggle-goal-category"]').forEach((el) => {
+    const category = el.dataset.category || '';
+    const isSelected = category === (state.selectedGoalCategory || '');
+    el.classList.toggle('selected', isSelected);
+    el.setAttribute('aria-pressed', isSelected ? 'true' : 'false');
+  });
+
+  container.querySelectorAll('[data-action="select-absolute-zero-path"]').forEach((el) => {
+    const path = el.dataset.path || '';
+    const isSelected = path === (state.selectedAbsoluteZeroPath || '');
+    el.classList.toggle('selected', isSelected);
+    el.setAttribute('aria-pressed', isSelected ? 'true' : 'false');
   });
 }
 
@@ -422,40 +674,70 @@ function render() {
   const scrollTop = container.scrollTop;
 
   const state = getState();
-  const dopplerHref = getDopplerBaseHref();
   let html = '<div class="wizard-sections">';
 
   // Header
   html += `
     <div class="wizard-brand">
       <div class="brand-row">
-        <span class="type-caption wizard-wordmark">REPLOID</span>
-        <a class="link-secondary type-caption" href="${dopplerHref}" target="_blank" rel="noopener">Doppler</a>
+        <h1 class="type-display wizard-wordmark">REPLOID</h1>
+        <a class="link-secondary type-caption"
+           href="https://github.com/clocksmith/reploid"
+           target="_blank"
+           rel="noopener">See source on GitHub</a>
       </div>
-      <a class="intro-tagline" href="https://github.com/clocksmith/reploid" target="_blank" rel="noopener">self-modifying AI agent in the browser</a>
+      <div class="wizard-brand-copy">
+        <p class="intro-tagline type-caption">
+          Reploid is a browser-native self-modifying agent substrate for studying bounded recursive self-improvement (RSI), not a claim that true RSI already exists.
+        </p>
+        <h2 class="type-h2 intro-explainer-title">What self-modification, RSI, and weak AGI mean</h2>
+        <p class="intro-tagline type-caption">
+          A self-modifying agent can rewrite parts of its own tools, prompts, or runtime, while a self-improving agent shows measured gains from some of those changes. Truly unbounded RSI would start implying artificial general intelligence (AGI) or artificial superintelligence (ASI), which is why it remains theoretical here.
+        </p>
+      </div>
     </div>
   `;
 
   // Section 1: Always show connection type selection
   html += renderChooseStep(state);
 
-  // Section 2: Render ALL config sections (hidden by CSS initially)
-  // Direct config
-  const directDisplay = state.connectionType === 'direct' ? '' : 'none';
-  html += `<div class="wizard-direct" style="display:${directDisplay}">${renderDirectConfigStep(state)}</div>`;
-
-  // Proxy config
-  const proxyDisplay = state.connectionType === 'proxy' ? '' : 'none';
-  html += `<div class="wizard-proxy" style="display:${proxyDisplay}">${renderProxyConfigStep(state)}</div>`;
-
-  // Browser config
-  const browserDisplay = state.connectionType === 'browser' ? '' : 'none';
-  html += `<div class="wizard-browser" style="display:${browserDisplay}">${renderBrowserConfigStep(state)}</div>`;
-
-  // Section 3: Goals and awaken
+  // Section 2: Ordered progressive reveal
+  const hasConnectionType = !!state.connectionType;
   const ready = canAwaken();
-  html += renderGoalStep(state);
-  html += renderAwakenStep(state);
+  const hasGoal = !!(state.goal && state.goal.trim());
+  const goalSectionTitle = state.mode === 'absolute_zero' ? 'Compose substrate' : 'Set a goal';
+
+  if (!hasConnectionType) {
+    html += renderLockedSection('Configure inference', 'Choose an inference provider to unlock this section.');
+  } else if (state.connectionType === 'direct') {
+    html += `<div class="wizard-direct">${renderDirectConfigStep(state)}</div>`;
+  } else if (state.connectionType === 'proxy') {
+    html += `<div class="wizard-proxy">${renderProxyConfigStep(state)}</div>`;
+  } else if (state.connectionType === 'browser') {
+    html += `<div class="wizard-browser">${renderBrowserConfigStep(state)}</div>`;
+  }
+
+  if (!ready) {
+    html += renderLockedSection(
+      goalSectionTitle,
+      hasConnectionType
+        ? 'Finish inference configuration to unlock this section.'
+        : 'Choose and configure inference before continuing.'
+    );
+  } else {
+    html += renderGoalStep(state);
+  }
+
+  if (!ready || !hasGoal) {
+    html += renderLockedSection(
+      'Awaken',
+      !ready
+        ? 'Finish inference configuration and set a goal before awakening.'
+        : 'Set a goal to unlock this section.'
+    );
+  } else {
+    html += renderAwakenStep(state);
+  }
 
   html += '</div>';
 
@@ -476,6 +758,12 @@ function render() {
 
   if (state.advancedOpen || ready) {
     ensureModuleConfigLoaded();
+  }
+  if (!state.bootPayload?.loaded && !state.bootPayload?.loading && !state.bootPayload?.error) {
+    ensureBootPayloadLoaded();
+  }
+  if (state.mode === 'absolute_zero') {
+    ensureAbsoluteZeroPreviewLoaded(!!state.includeHostWithinSelf);
   }
 
   // Only attach listeners once (use event delegation)
@@ -559,6 +847,43 @@ async function handleClick(e) {
       await handleGenerateGoal();
       break;
 
+    case 'shuffle-goals': {
+      const goalShuffleSeed = Date.now();
+      const shuffledGoal = getGoalEntries(goalShuffleSeed)
+        .flatMap(([category, goals]) => goals.map((goal) => ({ category, goal })))
+        .find((entry) => !entry.goal?.locked);
+      setState({
+        goalShuffleSeed,
+        goal: shuffledGoal?.goal?.text || state.goal,
+        selectedGoalCategory: shuffledGoal?.category || state.selectedGoalCategory,
+        goalGenerator: {
+          status: 'idle',
+          error: null
+        }
+      });
+      break;
+    }
+
+    case 'apply-environment-template': {
+      const button = e.target.closest('[data-template]');
+      const templateId = button?.dataset.template;
+      const template = getAbsoluteZeroEnvironmentTemplate(templateId);
+      if (!template) break;
+      setState({
+        environment: template.text,
+        selectedEnvironmentTemplate: template.id
+      });
+      break;
+    }
+
+    case 'select-absolute-zero-path': {
+      const button = e.target.closest('[data-path]');
+      const path = button?.dataset.path;
+      if (!path) break;
+      setState({ selectedAbsoluteZeroPath: path });
+      break;
+    }
+
     case 'choose-mode': {
       const button = e.target.closest('[data-mode]');
       const nextMode = normalizeBootMode(button?.dataset.mode, '');
@@ -573,7 +898,7 @@ async function handleClick(e) {
         }
       };
 
-      if (nextMode === 'awakened_zero' && state.detection.webgpu?.supported) {
+      if (nextMode === 'zero' && state.detection.webgpu?.supported) {
         nextState.connectionType = 'browser';
         nextState.dopplerConfig = {
           ...state.dopplerConfig,
@@ -772,20 +1097,14 @@ function handleChange(e) {
       setNestedState('directConfig', { model: value });
       break;
 
-    case 'enable-doppler':
-      setState({ enableModelAccess: value });
-      if (value && !getState().dopplerConfig.model) {
-        setNestedState('dopplerConfig', { model: 'smollm2-360m' });
-      }
-      break;
-
-    case 'doppler-model-inline':
-      setNestedState('dopplerConfig', { model: value });
-      break;
-
     case 'advanced-preserve-vfs':
       localStorage.setItem('REPLOID_PRESERVE_ON_BOOT', value ? 'true' : 'false');
       setNestedState('advancedConfig', { preserveOnBoot: value });
+      break;
+
+    case 'include-host-within-self':
+      setState({ includeHostWithinSelf: value });
+      localStorage.setItem('REPLOID_INCLUDE_HOST_WITHIN_SELF', value ? 'true' : 'false');
       break;
 
     case 'advanced-security-enabled':
@@ -798,8 +1117,8 @@ function handleChange(e) {
       setNestedState('advancedConfig', { genesisLevel: value });
       {
         const currentMode = getState().mode;
-        const inferredMode = value === getDefaultGenesisLevelForMode('awakened_zero') && currentMode === 'awakened_zero'
-          ? 'awakened_zero'
+        const inferredMode = getBootModeConfig(currentMode).genesisLevel === value
+          ? currentMode
           : inferBootModeFromGenesis(value, currentMode);
         localStorage.setItem('REPLOID_MODE', inferredMode);
         setState({ mode: inferredMode });
@@ -895,6 +1214,13 @@ function handleInput(e) {
           status: 'idle',
           error: null
         }
+      });
+      break;
+
+    case 'environment-input':
+      setState({
+        environment: value,
+        selectedEnvironmentTemplate: findAbsoluteZeroEnvironmentTemplateId(value)
       });
       break;
   }
@@ -1081,6 +1407,60 @@ async function handleTestDirectModel() {
   });
 }
 
+async function shouldResetAbsoluteZeroVfs(state) {
+  if (!state.advancedConfig?.preserveOnBoot) {
+    return true;
+  }
+
+  try {
+    const [selfText, goalText, environmentText, promptText] = await Promise.all([
+      readVfsFile('/.system/self.json'),
+      readVfsFile('/.system/goal.txt'),
+      readVfsFile('/.system/environment.txt'),
+      readVfsFile('/.system/prompt.txt')
+    ]);
+
+    if (!selfText || goalText === null || environmentText === null) {
+      return true;
+    }
+    if (promptText !== null) {
+      return true;
+    }
+
+    const manifest = JSON.parse(selfText);
+    if (manifest?.mode !== 'absolute_zero') {
+      return true;
+    }
+    if (manifest.goalPath !== '/.system/goal.txt') {
+      return true;
+    }
+    if (manifest.environmentPath !== '/.system/environment.txt') {
+      return true;
+    }
+    if (!!manifest.hostIncluded !== !!state.includeHostWithinSelf) {
+      return true;
+    }
+
+    const writableRoots = Array.isArray(manifest.writableRoots) ? manifest.writableRoots : [];
+    const requiredRoots = ['/kernel', '/tools', '/.memory', '/artifacts', 'opfs:/artifacts'];
+    if (requiredRoots.some((root) => !writableRoots.includes(root))) {
+      return true;
+    }
+
+    if (state.includeHostWithinSelf && !writableRoots.includes('/host')) {
+      return true;
+    }
+    if (!state.includeHostWithinSelf && writableRoots.includes('/host')) {
+      return true;
+    }
+
+    return false;
+  } catch (err) {
+    console.warn('[Boot] Absolute Zero VFS inspection failed:', err);
+    return true;
+  }
+}
+
 async function doAwaken() {
   const state = getState();
   const goalPacket = formatGoalPacket(state.goal);
@@ -1090,16 +1470,24 @@ async function doAwaken() {
   setState({ isAwakening: true });
 
   try {
-    if (!state.advancedConfig?.preserveOnBoot) {
+    let shouldClearVfs = !state.advancedConfig?.preserveOnBoot;
+    if (state.mode === 'absolute_zero') {
+      shouldClearVfs = await shouldResetAbsoluteZeroVfs(state);
+    }
+
+    if (shouldClearVfs) {
       console.log('[Boot] Clearing VFS before awaken...');
       await clearVfsStore();
-      console.log('[Boot] Ensuring VFS hydration before awaken...');
-      const { manifest, text } = await loadVfsManifest();
-      await seedVfsFromManifest(manifest, {
-        preserveOnBoot: false,
-        logger: console,
-        manifestText: text
-      });
+      if (state.mode !== 'absolute_zero') {
+        console.log('[Boot] Ensuring VFS hydration before awaken...');
+        const { manifest, text } = await loadVfsManifest();
+        const files = manifest?.files || [];
+        await seedVfsFromManifest({ files }, {
+          preserveOnBoot: false,
+          logger: console,
+          manifestText: text
+        });
+      }
     }
   } catch (err) {
     console.error('[Boot] VFS prep failed:', err);
@@ -1110,7 +1498,15 @@ async function doAwaken() {
   saveConfig();
 
   if (window.triggerAwaken) {
-    window.triggerAwaken(goalPacket);
+    if (state.mode === 'absolute_zero') {
+      window.triggerAwaken({
+        goal: goalPacket,
+        environment: String(state.environment || ''),
+        includeHostWithinSelf: !!state.includeHostWithinSelf
+      });
+    } else {
+      window.triggerAwaken(goalPacket);
+    }
   }
   // Note: isAwakening stays true since the page will transition to agent UI
 }

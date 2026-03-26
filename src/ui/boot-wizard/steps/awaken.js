@@ -83,6 +83,11 @@ export function renderAwakenStep(state) {
 
   return `
     <div class="wizard-step wizard-awaken">
+      <div class="goal-header">
+        <h2 class="type-h1">Awaken</h2>
+        <p class="type-caption">Launch the selected substrate with the current configuration.</p>
+      </div>
+
       <div class="wizard-actions-row">
         <button class="btn" data-action="advanced-settings">
           ${advancedOpen ? 'Hide advanced' : 'Advanced settings'}
@@ -100,22 +105,24 @@ export function renderAwakenStep(state) {
 
       <div class="advanced-panel" style="display:${advancedOpen ? '' : 'none'}">
         <div class="advanced-section">
-          <div class="advanced-section-title">Runtime mode</div>
+          <div class="advanced-section-title">Foundation mapping</div>
 
           <div class="advanced-setting">
             <div class="advanced-setting-inline">
-              <span class="type-label">Selected mode</span>
+              <span class="type-label">Product mode</span>
               <span class="advanced-pill">${mode.label}</span>
+              <span class="type-label">Internal foundation</span>
+              <span class="advanced-pill">${genesisLevel}</span>
             </div>
-            <span class="type-caption">${mode.description}</span>
+            <span class="type-caption">Absolute Zero maps to capsule, Zero maps to spark, and X maps to full. Keep overrides for compatibility tests and custom boots.</span>
           </div>
 
           <div class="advanced-setting">
-            <label class="type-label" for="advanced-genesis-level">Internal genesis level</label>
+            <label class="type-label" for="advanced-genesis-level">Internal foundation override</label>
             <select id="advanced-genesis-level">
               ${levelOptions}
             </select>
-            <span class="type-caption">Product modes choose this automatically. Override only if you want a custom internal foundation.</span>
+            <span class="type-caption">The three product modes stay user-facing. This override exists for debugging, migration, and compatibility work.</span>
           </div>
 
           <div class="advanced-setting">

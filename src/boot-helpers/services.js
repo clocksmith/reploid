@@ -73,7 +73,12 @@ export async function resolveServices(container, logger) {
   await container.resolve('ToolRunner');
 
   const schemaRegistry = await container.resolve('SchemaRegistry');
-  const telemetryTimeline = await container.resolve('TelemetryTimeline');
+  let telemetryTimeline = null;
+  try {
+    telemetryTimeline = await container.resolve('TelemetryTimeline');
+  } catch {
+    // TelemetryTimeline not available for this genesis level
+  }
   const agent = await container.resolve('AgentLoop');
   const llmClient = await container.resolve('LLMClient');
   const toolRunner = await container.resolve('ToolRunner');
