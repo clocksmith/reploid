@@ -93,23 +93,27 @@ export function buildAbsoluteZeroSelfManifest(options = {}) {
       note: 'Relative imports are not rewritten.'
     },
     toolCallProtocol: {
-      tool: {
-        format: 'Reply with exactly one JSON object.',
-        example: { tool: 'ReadFile', args: { path: '/.system/self.json' } },
-        batchExample: {
-          tools: [
-            { tool: 'ReadFile', args: { path: '/.system/self.json' } },
-            { tool: 'ReadFile', args: { path: '/.system/goal.txt' } }
-          ]
-        },
+      responseFormat: 'Reply with exactly one JSON object.',
+      singleToolCall: {
+        tool: 'ReadFile',
+        args: { path: '/.system/self.json' }
+      },
+      toolBatch: {
+        tools: [
+          { tool: 'ReadFile', args: { path: '/.system/self.json' } },
+          { tool: 'ReadFile', args: { path: '/.system/goal.txt' } }
+        ],
         batchLimit: 5,
         batchExecution: 'Batched tool calls run in order within one model cycle.'
       },
-      done: {
-        format: 'Reply with exactly one JSON object.',
-        example: { done: true, reason: '...' },
-        meaning: 'Records a milestone for the host transcript. It does not terminate the autonomous loop.'
+      milestone: {
+        done: true,
+        reason: '...'
       },
+      notes: [
+        'Milestones use the exact top-level object {"done": true, "reason": "..."}',
+        'Do not nest a milestone inside {"done": {"done": true, "reason": "..."}}'
+      ],
       stopCondition: 'The loop continues until you stop it, generation fails, or the cycle limit is reached. Plain text is recorded and ignored.'
     },
     readFirst: [

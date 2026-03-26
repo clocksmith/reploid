@@ -66,6 +66,40 @@ describe('Capsule Runtime', () => {
     ).toBe(true);
   });
 
+  it('accepts a nested done object and records it as a milestone', async () => {
+    mockHost.generate
+      .mockResolvedValueOnce({ raw: '{"done":{"done":true,"reason":"Nested milestone"}}' })
+      .mockResolvedValueOnce({ raw: '{"tool":"ReadFile","args":{"path":"/.system/self.json"}}' });
+
+    const runtime = createCapsuleRuntime({
+      goal: 'Test goal',
+      environment: 'Test environment'
+    });
+
+    let latestSnapshot = runtime.getSnapshot();
+    runtime.subscribe((snapshot) => {
+      latestSnapshot = snapshot;
+      const sawToolResult = snapshot.context.some(
+        (message) => message.origin === 'tool' && message.content.includes('[TOOL ReadFile RESULT]')
+      );
+      if (sawToolResult) {
+        runtime.stop();
+      }
+    });
+
+    await runtime.start();
+
+    expect(mockHost.generate).toHaveBeenCalledTimes(2);
+    expect(mockHost.executeTool).toHaveBeenCalledWith('ReadFile', { path: '/.system/self.json' });
+    expect(
+      latestSnapshot.context.some(
+        (message) =>
+          message.origin === 'host' &&
+          message.content.includes('Milestone recorded: Nested milestone')
+      )
+    ).toBe(true);
+  });
+
   it('ignores plain text and continues running', async () => {
     mockHost.generate
       .mockResolvedValueOnce({ raw: 'I built the first piece.' })
@@ -142,6 +176,50 @@ describe('Capsule Runtime', () => {
         (message) =>
           message.origin === 'host' &&
           message.content.includes('Tool call limit (5) reached')
+      )
+    ).toBe(true);
+  });
+
+  it('records a milestone when tools and done are sent in the same response', async () => {
+    mockHost.generate.mockResolvedValueOnce({
+      raw: JSON.stringify({
+        tools: [
+          { tool: 'ReadFile', args: { path: '/.system/goal.txt' } }
+        ],
+        done: {
+          done: true,
+          reason: 'Completed the first evaluation pass'
+        }
+      })
+    });
+
+    const runtime = createCapsuleRuntime({
+      goal: 'Test goal',
+      environment: 'Test environment'
+    });
+
+    let latestSnapshot = runtime.getSnapshot();
+    runtime.subscribe((snapshot) => {
+      latestSnapshot = snapshot;
+      const sawMilestone = snapshot.context.some(
+        (message) =>
+          message.origin === 'host' &&
+          message.content.includes('Milestone recorded: Completed the first evaluation pass')
+      );
+      if (sawMilestone) {
+        runtime.stop();
+      }
+    });
+
+    await runtime.start();
+
+    expect(mockHost.generate).toHaveBeenCalledTimes(1);
+    expect(mockHost.executeTool).toHaveBeenCalledWith('ReadFile', { path: '/.system/goal.txt' });
+    expect(
+      latestSnapshot.context.some(
+        (message) =>
+          message.origin === 'host' &&
+          message.content.includes('Milestone recorded: Completed the first evaluation pass')
       )
     ).toBe(true);
   });
