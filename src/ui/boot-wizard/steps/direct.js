@@ -17,7 +17,8 @@ export const CLOUD_MODELS = {
     { id: 'gpt-4-turbo', name: 'GPT-4 Turbo' }
   ],
   gemini: [
-    { id: 'gemini-3-flash-preview', name: 'Gemini 3 Flash (Preview)' },
+    { id: 'gemini-3.1-flash-lite-preview', name: 'Gemini 3.1 Flash Lite (Preview)' },
+    { id: 'gemini-3.1-pro-preview', name: 'Gemini 3.1 Pro (Preview)' },
     { id: 'gemini-2.0-flash', name: 'Gemini 2.0 Flash' },
     { id: 'gemini-1.5-pro', name: 'Gemini 1.5 Pro' }
   ]

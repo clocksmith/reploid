@@ -14,8 +14,8 @@
       ]
     },
     "spark": {
-      "name": "SPARK",
-      "description": "Minimal agent core - 11 additional modules",
+      "name": "ZERO",
+      "description": "Minimal self-building core - 11 additional modules",
       "extends": "tabula",
       "modules": [
         "AgentLoop",
@@ -33,7 +33,7 @@
     },
     "reflection": {
       "name": "REFLECTION",
-      "description": "Spark + self-awareness - 6 additional modules",
+      "description": "Zero + self-awareness - 6 additional modules",
       "extends": "spark",
       "modules": [
         "HITLController",
@@ -147,9 +147,11 @@
       "ui/components/inline-chat.js",
       "ui/dashboard/metrics-dashboard.js",
       "ui/dashboard/ui-manager.js",
-      "ui/dashboard/vfs-explorer.js"
+      "ui/dashboard/vfs-explorer.js",
+      "ui/zero/index.js"
     ],
     "styles": [
+      "styles/zero.css",
       "styles/vfs-explorer.css",
       "styles/proto/index.css",
       "styles/rd.css",
@@ -206,7 +208,7 @@
     },
     "reflection": {
       "name": "Path to Reflection",
-      "description": "Spark → Reflection: +6 modules for self-awareness and streaming",
+      "description": "Zero → Reflection: +6 modules for self-awareness and streaming",
       "modules": {
         "RateLimiter": "blueprints/0x00002C-rate-limiting-strategies.md",
         "StreamParser": "blueprints/0x00003F-streaming-response-handler.md",
@@ -246,7 +248,7 @@
       }
     }
   },
-  "defaultLevel": "full",
+  "defaultLevel": "spark",
   "defaultBlueprintPath": "none",
   "workerTypes": {
     "explore": {

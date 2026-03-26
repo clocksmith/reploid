@@ -12,6 +12,7 @@ const BOOT_SEED_PREFIXES = [
   'entry/',
   'boot-helpers/',
   'ui/boot-wizard/',
+  'config/boot-modes.js',
   'config/module-resolution.js',
   'config/genesis-levels.json',
   'config/module-registry.json',

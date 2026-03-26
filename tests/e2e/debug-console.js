@@ -23,6 +23,7 @@ import { chromium } from 'playwright';
 
 const BASE_URL = process.env.BASE_URL || 'http://localhost:8080';
 const KEEP_OPEN = process.env.KEEP_OPEN !== 'false';
+const APP_PATH = '/src/index.html';
 
 // Built-in goal presets (use GOAL=preset_name)
 const GOAL_PRESETS = {
@@ -135,11 +136,11 @@ async function run() {
   console.log('--- Navigating to app ---\n');
 
   try {
-    await page.goto(BASE_URL, { waitUntil: 'domcontentloaded', timeout: 30000 });
+    await page.goto(`${BASE_URL}${APP_PATH}`, { waitUntil: 'domcontentloaded', timeout: 30000 });
     console.log('\n--- Page loaded ---\n');
 
     // Wait for boot container
-    await page.waitForSelector('#boot-container', { timeout: 10000 }).catch(() => {
+    await page.waitForSelector('#wizard-container', { timeout: 10000 }).catch(() => {
       console.log('\x1b[33m[WARN]\x1b[0m Boot container not found within 10s');
     });
 
@@ -151,10 +152,10 @@ async function run() {
 
     // Check for key elements
     const checks = [
-      { selector: '#boot-container', name: 'Boot container' },
+      { selector: '#wizard-container', name: 'Wizard container' },
       { selector: '#awaken-btn', name: 'Awaken button' },
       { selector: '#goal-input', name: 'Goal input' },
-      { selector: '[data-genesis]', name: 'Genesis selector' },
+      { selector: '[data-mode]', name: 'Boot mode selector' },
     ];
 
     console.log('\nElement checks:');
@@ -173,15 +174,30 @@ async function run() {
       console.log('\n--- Testing Awaken Flow ---');
 
       // Configure model and genesis level
-      const genesisLevel = process.env.GENESIS || 'full';
+      const genesisLevel = process.env.GENESIS || 'spark';
+      const genesisToMode = {
+        spark: 'zero',
+        tabula: 'zero',
+        reflection: 'x',
+        cognition: 'x',
+        substrate: 'x',
+        full: 'x'
+      };
+      const bootMode = genesisToMode[genesisLevel] || 'zero';
       const apiKey = process.env.GEMINI_API_KEY;
       if (!apiKey) {
         console.error('ERROR: GEMINI_API_KEY environment variable is required for awaken tests');
         process.exit(1);
       }
 
-      const modelId = process.env.MODEL || 'gemini-3-pro-preview';
-      const modelName = modelId === 'gemini-3-pro-preview' ? 'Gemini 3 Pro Preview' : 'Gemini 2.5 Flash';
+      const modelId = process.env.MODEL || 'gemini-3.1-flash-lite-preview';
+      const modelNames = {
+        'gemini-3.1-flash-lite-preview': 'Gemini 3.1 Flash Lite (Preview)',
+        'gemini-3.1-pro-preview': 'Gemini 3.1 Pro (Preview)',
+        'gemini-2.0-flash': 'Gemini 2.0 Flash',
+        'gemini-1.5-pro': 'Gemini 1.5 Pro'
+      };
+      const modelName = modelNames[modelId] || modelId;
 
       await page.evaluate(({ key, genesis, model, name }) => {
         localStorage.setItem('REPLOID_GENESIS_LEVEL', genesis);
@@ -197,13 +213,13 @@ async function run() {
       }, { key: apiKey, genesis: genesisLevel, model: modelId, name: modelName });
 
       // Reload to apply config
-      console.log(`--- Reloading with genesis level: ${genesisLevel} ---`);
+      console.log(`--- Reloading with genesis level: ${genesisLevel} (mode: ${bootMode}) ---`);
       await page.reload({ waitUntil: 'domcontentloaded' });
       await page.waitForTimeout(5000);
 
-      // Select genesis mode
-      await page.click(`.boot-mode-btn[data-mode="${genesisLevel}"]`).catch(() => {
-        console.log(`\x1b[33m[WARN]\x1b[0m Mode button not found for: ${genesisLevel}`);
+      // Select boot mode
+      await page.click(`.boot-mode-btn[data-mode="${bootMode}"]`).catch(() => {
+        console.log(`\x1b[33m[WARN]\x1b[0m Mode button not found for: ${bootMode}`);
       });
 
       // Resolve and enter goal

@@ -8,6 +8,7 @@ import {
   getMissingModules,
   resolveBaseModules
 } from '../../../config/module-resolution.js';
+import { getBootModeConfig } from '../../../config/boot-modes.js';
 
 const escapeAttr = (value) => String(value || '')
   .replace(/&/g, '&amp;')
@@ -19,7 +20,8 @@ const escapeAttr = (value) => String(value || '')
  * Render AWAKEN step
  */
 export function renderAwakenStep(state) {
-  const genesisLevel = state.advancedConfig?.genesisLevel || 'full';
+  const mode = getBootModeConfig(state.mode);
+  const genesisLevel = state.advancedConfig?.genesisLevel || mode.genesisLevel;
   const overrides = state.advancedConfig?.moduleOverrides || {};
   const moduleConfig = state.moduleConfig || {};
   const advancedOpen = !!state.advancedOpen;
@@ -101,11 +103,19 @@ export function renderAwakenStep(state) {
           <div class="advanced-section-title">Runtime mode</div>
 
           <div class="advanced-setting">
-            <label class="type-label" for="advanced-genesis-level">Genesis level</label>
+            <div class="advanced-setting-inline">
+              <span class="type-label">Selected mode</span>
+              <span class="advanced-pill">${mode.label}</span>
+            </div>
+            <span class="type-caption">${mode.description}</span>
+          </div>
+
+          <div class="advanced-setting">
+            <label class="type-label" for="advanced-genesis-level">Internal genesis level</label>
             <select id="advanced-genesis-level">
               ${levelOptions}
             </select>
-            <span class="type-caption">Sets which modules load at boot.</span>
+            <span class="type-caption">Product modes choose this automatically. Override only if you want a custom internal foundation.</span>
           </div>
 
           <div class="advanced-setting">

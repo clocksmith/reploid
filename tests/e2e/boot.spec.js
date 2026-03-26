@@ -1,173 +1,126 @@
 /**
  * E2E Test: Boot Flow
- * Consolidated tests for boot screen, genesis levels, and goal input.
+ * Covers the current wizard homepage and product mode switch.
  */
 import { test, expect } from '@playwright/test';
 
+const APP_PATH = '/src/index.html';
+
 test.describe('Boot Screen', () => {
-  test('loads with REPLOID heading and boot modes', async ({ page }) => {
-    await page.goto('/');
-    await page.waitForSelector('#boot-container', { timeout: 10000 });
+  test('loads with Zero heading and product modes', async ({ page }) => {
+    await page.goto(APP_PATH);
+    await page.waitForSelector('#wizard-container', { timeout: 10000 });
 
-    // Title and heading
     await expect(page).toHaveTitle(/Reploid/i);
-    await expect(page.locator('h1')).toHaveText('REPLOID');
+    await expect(page.locator('h1')).toHaveText('Zero');
 
-    // Genesis level options present
-    const bootModes = page.locator('.boot-mode-btn[data-genesis]');
-    expect(await bootModes.count()).toBeGreaterThan(0);
+    const bootModes = page.locator('.boot-mode-btn[data-mode]');
+    await expect(bootModes).toHaveCount(3);
   });
 
-  test('has Full Substrate selected by default', async ({ page }) => {
-    await page.goto('/');
-    await page.waitForSelector('.boot-mode-btn.selected[data-genesis]', { timeout: 10000 });
+  test('has Zero selected by default', async ({ page }) => {
+    await page.goto(APP_PATH);
+    await page.waitForSelector('.boot-mode-btn.selected[data-mode="zero"]', { timeout: 10000 });
 
-    const selectedMode = page.locator('.boot-mode-btn.selected[data-genesis="full"] .boot-mode-label');
-    await expect(selectedMode).toContainText('FULL SUBSTRATE');
+    await expect(page.locator('.boot-mode-btn.selected[data-mode="zero"] .boot-mode-label')).toContainText('Zero');
   });
 
-  test('has Quick Start section', async ({ page }) => {
-    await page.goto('/');
-    await page.waitForSelector('#boot-container', { timeout: 10000 });
+  test('shows all three product modes', async ({ page }) => {
+    await page.goto(APP_PATH);
+    await page.waitForSelector('#wizard-container', { timeout: 10000 });
 
-    // Quick Start with WebLLM demo button
-    await expect(page.locator('#quick-webllm-demo-btn')).toBeVisible();
-    await expect(page.locator('.webllm-demo-card')).toBeVisible();
+    await expect(page.locator('.boot-mode-btn[data-mode="zero"]')).toBeVisible();
+    await expect(page.locator('.boot-mode-btn[data-mode="awakened_zero"]')).toBeVisible();
+    await expect(page.locator('.boot-mode-btn[data-mode="x"]')).toBeVisible();
   });
 
-  test('shows connection status section', async ({ page }) => {
-    await page.goto('/');
-    await page.waitForSelector('.provider-status-bar', { timeout: 10000 });
+  test('allows switching modes with single selection', async ({ page }) => {
+    await page.goto(APP_PATH);
+    await page.waitForSelector('#wizard-container', { timeout: 10000 });
 
-    // Check provider status items
-    await expect(page.locator('#browser-cloud-text')).toBeVisible();
-    await expect(page.locator('#proxy-cloud-text')).toBeVisible();
-  });
-});
+    const zeroMode = page.locator('.boot-mode-btn[data-mode="zero"]');
+    const xMode = page.locator('.boot-mode-btn[data-mode="x"]');
 
-test.describe('Genesis Level Selection', () => {
-  test('allows selecting different genesis levels (single selection)', async ({ page }) => {
-    await page.goto('/');
-    await page.waitForSelector('#boot-container', { timeout: 10000 });
-
-    const fullMode = page.locator('.boot-mode-btn[data-genesis="full"]');
-    const reflectionMode = page.locator('.boot-mode-btn[data-genesis="reflection"]');
-
-    // Full is selected by default
-    await expect(fullMode).toHaveClass(/selected/);
-
-    // Select Reflection
-    await reflectionMode.click();
-    await expect(reflectionMode).toHaveClass(/selected/);
-    await expect(fullMode).not.toHaveClass(/selected/);
-  });
-
-  test('displays genesis levels with label and description', async ({ page }) => {
-    await page.goto('/');
-    await page.waitForSelector('#boot-container', { timeout: 10000 });
-
-    const genesisLevels = page.locator('.boot-mode-btn[data-genesis]');
-    const count = await genesisLevels.count();
-
-    for (let i = 0; i < count; i++) {
-      const mode = genesisLevels.nth(i);
-      await expect(mode.locator('.boot-mode-label')).toBeVisible();
-      await expect(mode.locator('.boot-mode-desc')).toBeVisible();
-    }
-  });
-
-  test('has all three genesis levels available', async ({ page }) => {
-    await page.goto('/');
-    await page.waitForSelector('#boot-container', { timeout: 10000 });
-
-    await expect(page.locator('.boot-mode-btn[data-genesis="full"]')).toBeVisible();
-    await expect(page.locator('.boot-mode-btn[data-genesis="reflection"]')).toBeVisible();
-    await expect(page.locator('.boot-mode-btn[data-genesis="tabula"]')).toBeVisible();
+    await expect(zeroMode).toHaveClass(/selected/);
+    await xMode.click();
+    await expect(xMode).toHaveClass(/selected/);
+    await expect(zeroMode).not.toHaveClass(/selected/);
   });
 });
 
-test.describe('Blueprint Path Selection', () => {
-  test('has blueprint path options', async ({ page }) => {
-    await page.goto('/');
-    await page.waitForSelector('#boot-container', { timeout: 10000 });
+test.describe('Connection Selection', () => {
+  test('shows browser, direct, and proxy brain options', async ({ page }) => {
+    await page.goto(APP_PATH);
+    await page.waitForSelector('#wizard-container', { timeout: 10000 });
 
-    const blueprintPaths = page.locator('.boot-mode-btn[data-blueprint]');
-    expect(await blueprintPaths.count()).toBeGreaterThan(0);
+    await expect(page.locator('[data-action="choose-browser"]')).toBeVisible();
+    await expect(page.locator('[data-action="choose-direct"]')).toBeVisible();
+    await expect(page.locator('[data-action="choose-proxy"]')).toBeVisible();
+  });
+});
+
+test.describe('Advanced Mapping', () => {
+  test('defaults Zero to the spark genesis level', async ({ page }) => {
+    await page.goto(APP_PATH);
+    await page.waitForSelector('#wizard-container', { timeout: 10000 });
+
+    await page.click('[data-action="advanced-settings"]');
+    await expect(page.locator('#advanced-genesis-level')).toHaveValue('spark');
   });
 
-  test('has No Blueprints selected by default', async ({ page }) => {
-    await page.goto('/');
-    await page.waitForSelector('.boot-mode-btn.selected[data-blueprint]', { timeout: 10000 });
+  test('maps X to the full genesis level', async ({ page }) => {
+    await page.goto(APP_PATH);
+    await page.waitForSelector('#wizard-container', { timeout: 10000 });
 
-    const selectedPath = page.locator('.boot-mode-btn.selected[data-blueprint="none"]');
-    await expect(selectedPath).toBeVisible();
+    await page.click('.boot-mode-btn[data-mode="x"]');
+    await page.click('[data-action="advanced-settings"]');
+    await expect(page.locator('#advanced-genesis-level')).toHaveValue('full');
   });
 });
 
 test.describe('Goal Input', () => {
   test('goal input exists', async ({ page }) => {
-    await page.goto('/');
-    await page.waitForSelector('#boot-container', { timeout: 10000 });
+    await page.goto(APP_PATH);
+    await page.waitForSelector('#wizard-container', { timeout: 10000 });
 
     await expect(page.locator('#goal-input')).toBeVisible();
   });
 
+  test('preset goal library stays collapsed by default', async ({ page }) => {
+    await page.goto(APP_PATH);
+    await page.waitForSelector('#wizard-container', { timeout: 10000 });
+
+    await expect(page.locator('.goal-library')).not.toHaveAttribute('open', '');
+  });
+
+  test('shows generated-goal action', async ({ page }) => {
+    await page.goto(APP_PATH);
+    await page.waitForSelector('#wizard-container', { timeout: 10000 });
+
+    await expect(page.locator('[data-action="generate-goal"]')).toBeVisible();
+    await expect(page.locator('[data-action="generate-goal"]')).toHaveText('Have the brain generate its own RSI goal');
+  });
+
+  test('has 15 preset prompts total', async ({ page }) => {
+    await page.goto(APP_PATH);
+    await page.waitForSelector('#wizard-container', { timeout: 10000 });
+
+    await page.locator('.goal-library').evaluate((el) => { el.setAttribute('open', ''); });
+    await expect(page.locator('.goal-chip')).toHaveCount(15);
+  });
+
   test('awaken button exists', async ({ page }) => {
-    await page.goto('/');
-    await page.waitForSelector('#boot-container', { timeout: 10000 });
+    await page.goto(APP_PATH);
+    await page.waitForSelector('#wizard-container', { timeout: 10000 });
 
     await expect(page.locator('#awaken-btn')).toBeVisible();
   });
 
   test('enforces goal maxlength (500 chars)', async ({ page }) => {
-    await page.goto('/');
-    await page.waitForSelector('#boot-container', { timeout: 10000 });
+    await page.goto(APP_PATH);
+    await page.waitForSelector('#wizard-container', { timeout: 10000 });
 
     const goalInput = page.locator('#goal-input');
-
-    // Enable goal input by adding a model first or check maxlength attribute
-    const maxLength = await goalInput.getAttribute('maxlength');
-    expect(maxLength).toBe('500');
-  });
-});
-
-test.describe('Model Configuration', () => {
-  test('has Add Model card', async ({ page }) => {
-    await page.goto('/');
-    await page.waitForSelector('#boot-container', { timeout: 10000 });
-
-    await expect(page.locator('#add-model-card')).toBeVisible();
-  });
-
-  test('has model form overlay', async ({ page }) => {
-    await page.goto('/');
-    await page.waitForSelector('#boot-container', { timeout: 10000 });
-
-    // Overlay should exist but be hidden initially
-    await expect(page.locator('#model-form-overlay')).toBeAttached();
-  });
-
-  test('clicking Add Model opens form', async ({ page }) => {
-    await page.goto('/');
-    await page.waitForSelector('#boot-container', { timeout: 10000 });
-
-    await page.click('#add-model-card');
-
-    // Form should become visible
-    await expect(page.locator('#model-form-dialog')).toBeVisible();
-    await expect(page.locator('#provider-select')).toBeVisible();
-  });
-
-  test('can close model form', async ({ page }) => {
-    await page.goto('/');
-    await page.waitForSelector('#boot-container', { timeout: 10000 });
-
-    await page.click('#add-model-card');
-    await expect(page.locator('#model-form-dialog')).toBeVisible();
-
-    // Use force click since overlay may intercept
-    await page.locator('#close-model-form').click({ force: true });
-    // Form overlay should hide
-    await page.waitForTimeout(300);
+    await expect(goalInput).toHaveAttribute('maxlength', '500');
   });
 });

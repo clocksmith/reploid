@@ -4,10 +4,12 @@
  */
 import { test, expect } from '@playwright/test';
 
+const APP_PATH = '/src/index.html';
+
 test.describe('Genesis Configuration', () => {
   test('should load genesis-levels.json config', async ({ page }) => {
-    await page.goto('/');
-    await page.waitForSelector('#boot-container', { timeout: 10000 });
+    await page.goto(APP_PATH);
+    await page.waitForSelector('#wizard-container', { timeout: 10000 });
 
     const config = await page.evaluate(async () => {
       const response = await fetch('/config/genesis-levels.json');
@@ -19,8 +21,8 @@ test.describe('Genesis Configuration', () => {
   });
 
   test('should have three genesis levels defined', async ({ page }) => {
-    await page.goto('/');
-    await page.waitForSelector('#boot-container', { timeout: 10000 });
+    await page.goto(APP_PATH);
+    await page.waitForSelector('#wizard-container', { timeout: 10000 });
 
     const config = await page.evaluate(async () => {
       const response = await fetch('/config/genesis-levels.json');
@@ -32,21 +34,21 @@ test.describe('Genesis Configuration', () => {
     expect(config.levels.full).toBeDefined();
   });
 
-  test('should have full as default genesis level', async ({ page }) => {
-    await page.goto('/');
-    await page.waitForSelector('#boot-container', { timeout: 10000 });
+  test('should have spark as default genesis level', async ({ page }) => {
+    await page.goto(APP_PATH);
+    await page.waitForSelector('#wizard-container', { timeout: 10000 });
 
     const config = await page.evaluate(async () => {
       const response = await fetch('/config/genesis-levels.json');
       return response.json();
     });
 
-    expect(config.defaultLevel).toBe('full');
+    expect(config.defaultLevel).toBe('spark');
   });
 
   test('tabula level has minimal modules', async ({ page }) => {
-    await page.goto('/');
-    await page.waitForSelector('#boot-container', { timeout: 10000 });
+    await page.goto(APP_PATH);
+    await page.waitForSelector('#wizard-container', { timeout: 10000 });
 
     const config = await page.evaluate(async () => {
       const response = await fetch('/config/genesis-levels.json');
@@ -61,8 +63,8 @@ test.describe('Genesis Configuration', () => {
   });
 
   test('reflection level extends tabula', async ({ page }) => {
-    await page.goto('/');
-    await page.waitForSelector('#boot-container', { timeout: 10000 });
+    await page.goto(APP_PATH);
+    await page.waitForSelector('#wizard-container', { timeout: 10000 });
 
     const config = await page.evaluate(async () => {
       const response = await fetch('/config/genesis-levels.json');
@@ -75,8 +77,8 @@ test.describe('Genesis Configuration', () => {
   });
 
   test('full level extends reflection', async ({ page }) => {
-    await page.goto('/');
-    await page.waitForSelector('#boot-container', { timeout: 10000 });
+    await page.goto(APP_PATH);
+    await page.waitForSelector('#wizard-container', { timeout: 10000 });
 
     const config = await page.evaluate(async () => {
       const response = await fetch('/config/genesis-levels.json');
@@ -92,8 +94,8 @@ test.describe('Genesis Configuration', () => {
 
 test.describe('Blueprint Paths Configuration', () => {
   test('should have blueprint paths defined', async ({ page }) => {
-    await page.goto('/');
-    await page.waitForSelector('#boot-container', { timeout: 10000 });
+    await page.goto(APP_PATH);
+    await page.waitForSelector('#wizard-container', { timeout: 10000 });
 
     const config = await page.evaluate(async () => {
       const response = await fetch('/config/genesis-levels.json');
@@ -107,8 +109,8 @@ test.describe('Blueprint Paths Configuration', () => {
   });
 
   test('should have none as default blueprint path', async ({ page }) => {
-    await page.goto('/');
-    await page.waitForSelector('#boot-container', { timeout: 10000 });
+    await page.goto(APP_PATH);
+    await page.waitForSelector('#wizard-container', { timeout: 10000 });
 
     const config = await page.evaluate(async () => {
       const response = await fetch('/config/genesis-levels.json');
@@ -121,8 +123,8 @@ test.describe('Blueprint Paths Configuration', () => {
 
 test.describe('Worker Types Configuration', () => {
   test('should have worker types defined', async ({ page }) => {
-    await page.goto('/');
-    await page.waitForSelector('#boot-container', { timeout: 10000 });
+    await page.goto(APP_PATH);
+    await page.waitForSelector('#wizard-container', { timeout: 10000 });
 
     const config = await page.evaluate(async () => {
       const response = await fetch('/config/genesis-levels.json');
@@ -136,8 +138,8 @@ test.describe('Worker Types Configuration', () => {
   });
 
   test('explore worker has read-only tools', async ({ page }) => {
-    await page.goto('/');
-    await page.waitForSelector('#boot-container', { timeout: 10000 });
+    await page.goto(APP_PATH);
+    await page.waitForSelector('#wizard-container', { timeout: 10000 });
 
     const config = await page.evaluate(async () => {
       const response = await fetch('/config/genesis-levels.json');
@@ -152,8 +154,8 @@ test.describe('Worker Types Configuration', () => {
   });
 
   test('execute worker has full RSI capability', async ({ page }) => {
-    await page.goto('/');
-    await page.waitForSelector('#boot-container', { timeout: 10000 });
+    await page.goto(APP_PATH);
+    await page.waitForSelector('#wizard-container', { timeout: 10000 });
 
     const config = await page.evaluate(async () => {
       const response = await fetch('/config/genesis-levels.json');
@@ -168,8 +170,8 @@ test.describe('Worker Types Configuration', () => {
 
 test.describe('VFS Manifest Configuration', () => {
   test('should have VFS manifest file list defined', async ({ page }) => {
-    await page.goto('/');
-    await page.waitForSelector('#boot-container', { timeout: 10000 });
+    await page.goto(APP_PATH);
+    await page.waitForSelector('#wizard-container', { timeout: 10000 });
 
     const manifest = await page.evaluate(async () => {
       const response = await fetch('/config/vfs-manifest.json');
@@ -182,8 +184,8 @@ test.describe('VFS Manifest Configuration', () => {
   });
 
   test('VFS manifest includes worker tools', async ({ page }) => {
-    await page.goto('/');
-    await page.waitForSelector('#boot-container', { timeout: 10000 });
+    await page.goto(APP_PATH);
+    await page.waitForSelector('#wizard-container', { timeout: 10000 });
 
     const manifest = await page.evaluate(async () => {
       const response = await fetch('/config/vfs-manifest.json');
@@ -199,8 +201,8 @@ test.describe('VFS Manifest Configuration', () => {
 
 test.describe('Model Roles Configuration', () => {
   test('should have model roles defined', async ({ page }) => {
-    await page.goto('/');
-    await page.waitForSelector('#boot-container', { timeout: 10000 });
+    await page.goto(APP_PATH);
+    await page.waitForSelector('#wizard-container', { timeout: 10000 });
 
     const config = await page.evaluate(async () => {
       const response = await fetch('/config/genesis-levels.json');

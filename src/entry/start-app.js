@@ -61,17 +61,35 @@ async function completeAwaken(bootResult, goal, wizardContainer) {
   const stateManager = await container.resolve('StateManager');
   const appEl = document.getElementById('app');
 
-  let proto = null;
+  const runtimeMode = typeof window.getReploidMode === 'function'
+    ? window.getReploidMode()
+    : 'zero';
+
+  let runtimeUI = null;
   let reloadTimer = null;
   let reloadInProgress = false;
   let reloadPending = false;
 
-  const ensureProtoStyles = (version) => {
-    const href = `styles/proto/index.css?v=${encodeURIComponent(version)}`;
-    let link = document.getElementById('proto-stylesheet');
+  const getRuntimeUiSpec = () => (
+    runtimeMode === 'x'
+      ? {
+          name: 'proto',
+          stylePath: 'styles/proto/index.css',
+          modulePath: '../ui/proto/index.js'
+        }
+      : {
+          name: 'zero',
+          stylePath: 'styles/zero.css',
+          modulePath: '../ui/zero/index.js'
+        }
+  );
+
+  const ensureRuntimeStyles = (version, spec) => {
+    const href = `${spec.stylePath}?v=${encodeURIComponent(version)}`;
+    let link = document.getElementById('runtime-ui-stylesheet');
     if (!link) {
       link = document.createElement('link');
-      link.id = 'proto-stylesheet';
+      link.id = 'runtime-ui-stylesheet';
       link.rel = 'stylesheet';
       document.head.appendChild(link);
     }
@@ -80,9 +98,10 @@ async function completeAwaken(bootResult, goal, wizardContainer) {
     }
   };
 
-  const buildProto = async (version) => {
-    const { default: Proto } = await import(`../ui/proto/index.js?v=${encodeURIComponent(version)}`);
-    return Proto.factory({
+  const buildRuntimeUi = async (version, spec) => {
+    const mod = await import(`${spec.modulePath}?v=${encodeURIComponent(version)}`);
+    const runtime = mod.default || mod;
+    return runtime.factory({
       Utils: utils,
       EventBus: eventBus,
       AgentLoop: agent,
@@ -90,25 +109,28 @@ async function completeAwaken(bootResult, goal, wizardContainer) {
       ErrorStore: errorStore,
       VFS: vfs,
       WorkerManager: workerManager,
-      ArenaHarness: arenaHarness
+      ArenaHarness: arenaHarness,
+      initialGoal: goal,
+      mode: runtimeMode
     });
   };
 
-  const mountProto = async (reason = '') => {
+  const mountRuntimeUi = async (reason = '') => {
     if (!appEl) throw new Error('Missing #app container');
-    if (proto?.cleanup) {
-      try { proto.cleanup(); } catch (e) { logger.debug('[Boot] Proto cleanup failed', e?.message || e); }
+    if (runtimeUI?.cleanup) {
+      try { runtimeUI.cleanup(); } catch (e) { logger.debug('[Boot] Runtime UI cleanup failed', e?.message || e); }
     }
     appEl.classList.add('active');
     appEl.innerHTML = '';
 
     const version = Date.now().toString();
     window.REPLOID_UI_VERSION = version;
-    ensureProtoStyles(version);
+    const spec = getRuntimeUiSpec();
+    ensureRuntimeStyles(version, spec);
 
-    proto = await buildProto(version);
-    await proto.mount(appEl);
-    logger.info(`[Boot] UI Mounted${reason ? ` (${reason})` : ''}.`);
+    runtimeUI = await buildRuntimeUi(version, spec);
+    await runtimeUI.mount(appEl);
+    logger.info(`[Boot] ${spec.name} UI mounted${reason ? ` (${reason})` : ''}.`);
   };
 
   const reloadUI = async (reason = 'reload') => {
@@ -118,7 +140,7 @@ async function completeAwaken(bootResult, goal, wizardContainer) {
     }
     reloadInProgress = true;
     try {
-      await mountProto(reason);
+      await mountRuntimeUi(reason);
     } catch (e) {
       logger.error('[Boot] UI reload failed:', e?.message || e);
     } finally {
@@ -142,7 +164,7 @@ async function completeAwaken(bootResult, goal, wizardContainer) {
   if (wizardContainer) wizardContainer.remove();
   document.body.classList.add('no-grid-pattern');
 
-  await mountProto('initial');
+  await mountRuntimeUi('initial');
 
   // Hot-reload UI on VFS changes
   if (eventBus?.on) {
@@ -178,6 +200,9 @@ async function completeAwaken(bootResult, goal, wizardContainer) {
     if (models.length > 0) {
       agent.setModels(models);
       agent.setConsensusStrategy(consensusStrategy);
+      if (runtimeUI?.setModels) {
+        runtimeUI.setModels(models);
+      }
 
       if (workerManager) {
         try {

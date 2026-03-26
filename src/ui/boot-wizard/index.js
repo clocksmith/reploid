@@ -12,10 +12,16 @@ import {
 
 import {
   runDetection, testApiKey, testProxyConnection, testLocalConnection,
-  testProxyModel, testDirectModel
+  testProxyModel, testDirectModel, generateGoalPrompt
 } from './detection.js';
 
 import { formatGoalPacket } from './goals.js';
+import {
+  getBootModeConfig,
+  getDefaultGenesisLevelForMode,
+  inferBootModeFromGenesis,
+  normalizeBootMode
+} from '../../config/boot-modes.js';
 import { serializeModuleOverrides } from '../../config/module-resolution.js';
 import { setSecurityEnabled } from '../../core/security-config.js';
 import { readVfsFile, loadVfsManifest, seedVfsFromManifest, clearVfsStore } from '../../boot-helpers/vfs-bootstrap.js';
@@ -115,6 +121,7 @@ export function initWizard(containerEl) {
   listenersAttached = false;
   isInitialRender = true;
   lastModuleConfigState = null;
+  lastMode = null;
   subscribe(scheduleUpdate);
   handleStart();
 }
@@ -142,6 +149,14 @@ function autoSelectConnectionType() {
   if (state.connectionType) return; // Already selected
 
   const { detection, savedConfig } = state;
+  if (state.mode === 'awakened_zero' && detection.webgpu?.supported) {
+    setState({ connectionType: 'browser' });
+    if (!state.dopplerConfig?.model) {
+      setNestedState('dopplerConfig', { model: 'smollm2-360m' });
+    }
+    return;
+  }
+
   const proxyDetected = detection.proxy?.detected;
   const hasSavedKeys = savedConfig?.hasSavedKey;
   const webgpuSupported = detection.webgpu?.supported;
@@ -210,6 +225,12 @@ let lastDirectVerifyState = null;
 let lastProxyVerifyState = null;
 let lastDirectModel = null;
 let lastDirectModelVerifyState = null;
+let lastMode = null;
+
+const getDefaultCloudModelForProvider = (provider) => {
+  const models = CLOUD_MODELS[provider] || [];
+  return models[0]?.id || null;
+};
 
 function scheduleUpdate() {
   if (updateScheduled) return;
@@ -226,15 +247,18 @@ function scheduleUpdate() {
     const proxyVerifyChanged = state.proxyConfig?.verifyState !== lastProxyVerifyState;
     const directModelChanged = state.directConfig?.model !== lastDirectModel;
     const directModelVerifyChanged = state.directConfig?.modelVerifyState !== lastDirectModelVerifyState;
+    const modeChanged = state.mode !== lastMode;
 
     if (isInitialRender || moduleConfigChanged || advancedOpenChanged ||
-        directVerifyChanged || proxyVerifyChanged || directModelChanged || directModelVerifyChanged) {
+        directVerifyChanged || proxyVerifyChanged || directModelChanged || directModelVerifyChanged ||
+        modeChanged) {
       lastModuleConfigState = moduleConfigState;
       lastAdvancedOpen = state.advancedOpen;
       lastDirectVerifyState = state.directConfig?.verifyState;
       lastProxyVerifyState = state.proxyConfig?.verifyState;
       lastDirectModel = state.directConfig?.model;
       lastDirectModelVerifyState = state.directConfig?.modelVerifyState;
+      lastMode = state.mode;
       render();
     } else {
       updateUI();
@@ -352,6 +376,8 @@ function updateUI() {
       awakenBtn.setAttribute('title', reason);
     } else if (!hasGoal) {
       awakenBtn.setAttribute('title', 'Set a goal to awaken');
+    } else if (!ready && state.mode === 'awakened_zero') {
+      awakenBtn.setAttribute('title', 'Awakened Zero needs a browser-local model');
     } else {
       awakenBtn.removeAttribute('title');
     }
@@ -403,10 +429,10 @@ function render() {
   html += `
     <div class="wizard-brand">
       <div class="brand-row">
-        <h1 class="type-display">REPLOID</h1>
+        <span class="type-caption wizard-wordmark">REPLOID</span>
         <a class="link-secondary type-caption" href="${dopplerHref}" target="_blank" rel="noopener">Doppler</a>
       </div>
-      <a class="intro-tagline" href="https://github.com/clocksmith/reploid" target="_blank" rel="noopener">self-modifying AI agent in the browser -> view source code</a>
+      <a class="intro-tagline" href="https://github.com/clocksmith/reploid" target="_blank" rel="noopener">self-modifying AI agent in the browser</a>
     </div>
   `;
 
@@ -520,8 +546,45 @@ async function handleClick(e) {
       const category = button.closest('[data-category]')?.dataset.category;
       setState({
         goal: goalValue,
-        selectedGoalCategory: category || state.selectedGoalCategory
+        selectedGoalCategory: category || state.selectedGoalCategory,
+        goalGenerator: {
+          status: 'idle',
+          error: null
+        }
       });
+      break;
+    }
+
+    case 'generate-goal':
+      await handleGenerateGoal();
+      break;
+
+    case 'choose-mode': {
+      const button = e.target.closest('[data-mode]');
+      const nextMode = normalizeBootMode(button?.dataset.mode, '');
+      if (!nextMode) break;
+
+      const modeConfig = getBootModeConfig(nextMode);
+      const nextState = {
+        mode: nextMode,
+        advancedConfig: {
+          ...state.advancedConfig,
+          genesisLevel: modeConfig.genesisLevel
+        }
+      };
+
+      if (nextMode === 'awakened_zero' && state.detection.webgpu?.supported) {
+        nextState.connectionType = 'browser';
+        nextState.dopplerConfig = {
+          ...state.dopplerConfig,
+          model: state.dopplerConfig?.model || 'smollm2-360m'
+        };
+      }
+
+      localStorage.setItem('REPLOID_MODE', nextMode);
+      localStorage.setItem('REPLOID_GENESIS_LEVEL', modeConfig.genesisLevel);
+      localStorage.setItem('REPLOID_BLUEPRINT_PATH', 'none');
+      setState(nextState);
       break;
     }
 
@@ -684,7 +747,7 @@ function handleChange(e) {
     case 'direct-provider':
       setNestedState('directConfig', {
         provider: value,
-        model: null,
+        model: value === 'other' ? null : getDefaultCloudModelForProvider(value),
         baseUrl: null,
         verifyState: VERIFY_STATE.UNVERIFIED
       });
@@ -733,6 +796,14 @@ function handleChange(e) {
     case 'advanced-genesis-level':
       localStorage.setItem('REPLOID_GENESIS_LEVEL', value);
       setNestedState('advancedConfig', { genesisLevel: value });
+      {
+        const currentMode = getState().mode;
+        const inferredMode = value === getDefaultGenesisLevelForMode('awakened_zero') && currentMode === 'awakened_zero'
+          ? 'awakened_zero'
+          : inferBootModeFromGenesis(value, currentMode);
+        localStorage.setItem('REPLOID_MODE', inferredMode);
+        setState({ mode: inferredMode });
+      }
       break;
 
     case 'advanced-hitl-mode': {
@@ -818,7 +889,13 @@ function handleInput(e) {
       break;
 
     case 'goal-input':
-      setState({ goal: value });
+      setState({
+        goal: value,
+        goalGenerator: {
+          status: 'idle',
+          error: null
+        }
+      });
       break;
   }
 }
@@ -881,6 +958,33 @@ async function handleTestDirectKey() {
     setNestedState('directConfig', {
       verifyState: VERIFY_STATE.FAILED,
       verifyError: result.error
+    });
+  }
+}
+
+async function handleGenerateGoal() {
+  setState({
+    goalGenerator: {
+      status: 'generating',
+      error: null
+    }
+  });
+
+  try {
+    const goal = await generateGoalPrompt();
+    setState({
+      goal,
+      goalGenerator: {
+        status: 'ready',
+        error: null
+      }
+    });
+  } catch (err) {
+    setState({
+      goalGenerator: {
+        status: 'error',
+        error: err?.message || 'Failed to generate goal'
+      }
     });
   }
 }

@@ -82,7 +82,7 @@
 /* === WIZARD LAYOUT === */
 
 .wizard-container {
-  max-width: 1280px;
+  max-width: 960px;
   width: 100%;
   margin: 0 auto;
   padding: var(--space-lg) var(--space-md);
@@ -105,12 +105,67 @@
 .brand-row {
   display: flex;
   justify-content: space-between;
-  align-items: baseline;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.wizard-wordmark {
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
 }
 
 .intro-tagline {
   display: block;
   margin-top: var(--space-sm);
+  max-width: 32rem;
+}
+
+.wizard-kicker {
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.wizard-mode-shell,
+.mode-focus {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.wizard-mode-shell {
+  padding: var(--space-lg);
+}
+
+.wizard-mode-title {
+  margin: 0;
+}
+
+.wizard-mode-description {
+  max-width: 42rem;
+  margin: 0;
+}
+
+.boot-mode-rail {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+}
+
+.mode-focus {
+  padding: var(--space-md);
+}
+
+.mode-focus-tags {
+  margin-top: 0;
+}
+
+.mode-focus-copy {
+  max-width: 42rem;
+}
+
+.wizard-section-divider-tight {
+  margin-top: var(--space-md);
+  padding-top: var(--space-md);
 }
 
 /* === WIZARD FORMS === */
@@ -148,15 +203,17 @@
 
 /* === CONNECTION OPTIONS === */
 
+.mode-options,
 .connection-options {
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-md);
 }
 
+.boot-mode-btn,
 .connection-option {
   flex: 1 1 calc(33% - var(--space-md));
-  min-width: 120px;
+  min-width: 160px;
   display: flex;
   flex-direction: column;
   gap: var(--space-sm);
@@ -165,17 +222,49 @@
   color: inherit;
 }
 
+.boot-mode-btn {
+  flex: 0 0 auto;
+  min-width: 0;
+  padding: 10px 14px;
+  border: var(--border-sm) solid var(--fg);
+  background: var(--bg);
+}
+
+.boot-mode-btn.selected,
 .connection-option:not(.border-ghost):not(.disabled):not(:disabled) {
   background: var(--fg);
   color: var(--bg);
   border-color: currentColor;
 }
 
+.boot-mode-btn .option-capabilities,
 .connection-option .option-capabilities {
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-sm);
   margin-top: var(--space-sm);
+}
+
+.boot-mode-label {
+  letter-spacing: 0.04em;
+}
+
+.boot-mode-btn .boot-mode-label {
+  font-size: 13px;
+}
+
+.boot-mode-detail {
+  margin-top: auto;
+}
+
+.mode-summary {
+  margin-top: var(--space-sm);
+}
+
+.wizard-section-divider {
+  margin-top: var(--space-lg);
+  padding-top: var(--space-lg);
+  border-top: var(--border-sm) dotted var(--fg);
 }
 
 /* === DETECTION === */
@@ -272,6 +361,33 @@
 
 .goal-intro {
   margin-top: var(--space-sm);
+}
+
+.goal-header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.goal-generator-panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  padding: var(--space-md);
+}
+
+.goal-generator-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.goal-generator-error {
+  font-weight: 600;
+}
+
+.goal-generator-ready {
+  opacity: var(--opacity-secondary);
 }
 
 .goal-accordion {
@@ -396,6 +512,45 @@
   border-width: var(--border-md);
 }
 
+.goal-library {
+  border: var(--border-sm) solid var(--fg);
+  margin-top: var(--space-md);
+}
+
+.goal-library-summary {
+  cursor: pointer;
+  padding: 12px 14px;
+  font-size: 13px;
+}
+
+.goal-library[open] .goal-library-summary {
+  border-bottom: var(--border-sm) solid var(--fg);
+}
+
+.goal-library-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+  padding: 14px;
+}
+
+.goal-library-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.goal-library-group-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+}
+
+.goal-footnote {
+  margin-top: var(--space-sm);
+}
+
 /* === ADVANCED SETTINGS === */
 
 .advanced-panel {
@@ -406,6 +561,22 @@
   flex-direction: column;
   gap: 14px;
   background: var(--bg);
+}
+
+@media (max-width: 720px) {
+  .wizard-container {
+    padding: var(--space-md);
+  }
+
+  .boot-mode-rail,
+  .connection-options {
+    flex-direction: column;
+  }
+
+  .boot-mode-btn,
+  .connection-option {
+    width: 100%;
+  }
 }
 
 .advanced-header {
@@ -779,6 +950,7 @@
     font-size: 1.4rem;
   }
 
+  .boot-mode-btn,
   .connection-option {
     flex: 1 1 100%;
     padding: 12px 14px;
