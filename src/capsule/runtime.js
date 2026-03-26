@@ -28,6 +28,30 @@ const normalizeToolCall = (value) => {
   };
 };
 
+const normalizeMilestone = (value) => {
+  if (!value || typeof value !== 'object') return null;
+
+  if (value.done === true) {
+    return {
+      reason: typeof value.reason === 'string' ? value.reason : ''
+    };
+  }
+
+  if (value.done && typeof value.done === 'object' && value.done.done === true) {
+    return {
+      reason: typeof value.done.reason === 'string' ? value.done.reason : ''
+    };
+  }
+
+  if (value.milestone && typeof value.milestone === 'object') {
+    return {
+      reason: typeof value.milestone.reason === 'string' ? value.milestone.reason : ''
+    };
+  }
+
+  return null;
+};
+
 const getMessageLabel = (message = {}) => {
   const origin = String(message.origin || '').toLowerCase();
   if (origin === 'bootstrap') return 'BOOT';
@@ -61,12 +85,7 @@ const parseCapsuleDirective = (utils, text) => {
     const { json } = utils.sanitizeLlmJsonRespPure(cleaned);
     const parsed = JSON.parse(json);
     if (parsed && typeof parsed === 'object') {
-      if (parsed.done === true) {
-        return {
-          type: 'done',
-          reason: typeof parsed.reason === 'string' ? parsed.reason : ''
-        };
-      }
+      const milestone = normalizeMilestone(parsed);
 
       const batchedCalls = Array.isArray(parsed.tools)
         ? parsed.tools
@@ -78,7 +97,8 @@ const parseCapsuleDirective = (utils, text) => {
         if (calls.length > 0) {
           return {
             type: 'tools',
-            calls
+            calls,
+            milestoneReason: milestone?.reason || ''
           };
         }
       }
@@ -87,7 +107,15 @@ const parseCapsuleDirective = (utils, text) => {
       if (singleCall) {
         return {
           type: 'tools',
-          calls: [singleCall]
+          calls: [singleCall],
+          milestoneReason: milestone?.reason || ''
+        };
+      }
+
+      if (milestone) {
+        return {
+          type: 'done',
+          reason: milestone.reason
         };
       }
     }
@@ -99,6 +127,11 @@ const parseCapsuleDirective = (utils, text) => {
 };
 
 const buildHostNotice = (message) => `[HOST]\n${String(message || '').trim()}`.trim();
+const buildMilestoneNotice = (reason) => buildHostNotice(
+  reason
+    ? `Milestone recorded: ${reason}. Execution continues until you stop it or the cycle limit is reached.`
+    : 'Milestone recorded. Execution continues until you stop it or the cycle limit is reached.'
+);
 
 export function createCapsuleRuntime(options = {}) {
   const goal = String(options.goal || '').trim();
@@ -257,11 +290,7 @@ export function createCapsuleRuntime(options = {}) {
       }
 
       if (directive.type === 'done') {
-        const hostNotice = buildHostNotice(
-          directive.reason
-            ? `Milestone recorded: ${directive.reason}. Execution continues until you stop it or the cycle limit is reached.`
-            : 'Milestone recorded. Execution continues until you stop it or the cycle limit is reached.'
-        );
+        const hostNotice = buildMilestoneNotice(directive.reason);
         appendMessage('user', hostNotice, 'host');
         tokenUsage += estimateTokens(hostNotice);
         activity = 'Milestone recorded';
@@ -314,6 +343,13 @@ export function createCapsuleRuntime(options = {}) {
           tokenUsage += estimateTokens(toolError);
           activity = `${call.name} failed`;
         }
+      }
+
+      if (!stopped && directive.milestoneReason !== undefined && directive.milestoneReason !== null) {
+        const hostNotice = buildMilestoneNotice(directive.milestoneReason);
+        appendMessage('user', hostNotice, 'host');
+        tokenUsage += estimateTokens(hostNotice);
+        activity = 'Milestone recorded';
       }
 
       notify();
