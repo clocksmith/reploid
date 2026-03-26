@@ -25,6 +25,26 @@ const ToolRunner = {
     // WorkerManager initializes AFTER ToolRunner, so we need to update the reference later
     let _workerManager = deps.WorkerManager || null;
 
+    const getBootMode = () => {
+      if (typeof window !== 'undefined' && typeof window.getReploidMode === 'function') {
+        return window.getReploidMode();
+      }
+      if (typeof localStorage !== 'undefined') {
+        const stored = localStorage.getItem('REPLOID_MODE');
+        if (stored === 'absolute_zero' || stored === 'zero' || stored === 'x') {
+          return stored;
+        }
+      }
+      return 'absolute_zero';
+    };
+
+    const getInitialToolAllowlist = () => {
+      if (getBootMode() === 'absolute_zero') {
+        return new Set(['ReadFile', 'WriteFile', 'LoadModule']);
+      }
+      return null;
+    };
+
     // Arena verification for self-modification (opt-in via config)
     let _arenaGatingEnabled = false;
     try {
@@ -225,6 +245,7 @@ const ToolRunner = {
 
     const loadDynamicTools = async () => {
       unloadDynamicTools();
+      const allowlist = getInitialToolAllowlist();
 
       let files = [];
       try {
@@ -238,6 +259,8 @@ const ToolRunner = {
         if (!file.endsWith('.js')) continue;
         // Skip test files
         if (file.includes('.test.') || file.includes('.spec.') || file.includes('.integration.')) continue;
+        const toolName = file.split('/').pop().replace('.js', '');
+        if (allowlist && !allowlist.has(toolName)) continue;
         await loadToolModule(file);
       }
       return true;

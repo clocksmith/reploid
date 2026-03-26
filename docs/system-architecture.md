@@ -41,8 +41,7 @@ REPLOID is a browser-native research environment for studying recursive self-imp
 
 The boot screen allows operators to configure:
 - **Genesis Level**: `tabula` through `full`
-- **Connection Type**: direct cloud API, proxy server, or browser-local model
-- **Optional model access**: browser-local model access alongside direct or proxy modes
+- **Connection Type**: direct cloud API, proxy server, or Doppler local model
 - **Concurrency Limits**: Max workers, iteration caps
 - **Goal Chips**: Pre-defined or custom goals
 

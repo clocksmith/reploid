@@ -299,7 +299,7 @@ const generateCandidateGoal = async (state, rewritePrompt = null) => {
     });
   }
 
-  throw new Error('Choose a brain first');
+  throw new Error('Choose an inference provider first');
 };
 
 async function generateAndNormalizeGoal(state) {

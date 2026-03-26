@@ -88,7 +88,7 @@ npm start                   # Start server
 | L1 | Meta Tooling | Modify tool-writer, improve CreateTool | Arena consensus |
 | L2 | Self-Modification (Substrate) | Edit core modules, runtime patches | Arena + Genesis rollback |
 | L3 | Weak RSI (Iterative) | Bounded feedback loops, self-improvement | Arena + Genesis rollback + iteration caps |
-| L4 | True RSI (Impossible) | Unbounded self-improvement, theoretical | N/A |
+| L4 | Weak AGI | Broad autonomous planning, system-building, and self-directed experimentation | N/A |
 
 ### Key Concepts
 - **VFS:** Virtual file system in IndexedDB

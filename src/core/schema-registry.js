@@ -23,6 +23,19 @@ const SchemaRegistry = {
     const _toolSchemas = new Map();   // name -> { schema, builtin }
     const _workerSchemas = new Map(); // name -> { config, builtin }
 
+    const getBootMode = () => {
+      if (typeof window !== 'undefined' && typeof window.getReploidMode === 'function') {
+        return window.getReploidMode();
+      }
+      if (typeof localStorage !== 'undefined') {
+        const stored = localStorage.getItem('REPLOID_MODE');
+        if (stored === 'absolute_zero' || stored === 'zero' || stored === 'x') {
+          return stored;
+        }
+      }
+      return 'absolute_zero';
+    };
+
     // Tool schemas with readOnly flag for parallel execution
     // readOnly: true = safe for parallel execution (no side effects)
     // readOnly: false/undefined = mutating, must execute sequentially
@@ -524,15 +537,13 @@ const SchemaRegistry = {
     };
 
     const init = async () => {
-      // Register builtin schemas first
-      registerToolSchema('ReadFile', DEFAULT_TOOL_SCHEMAS.ReadFile, { builtin: true });
-      registerToolSchema('WriteFile', DEFAULT_TOOL_SCHEMAS.WriteFile, { builtin: true });
-      registerToolSchema('EditFile', DEFAULT_TOOL_SCHEMAS.EditFile, { builtin: true });
-      registerToolSchema('ListFiles', DEFAULT_TOOL_SCHEMAS.ListFiles, { builtin: true });
-      registerToolSchema('DeleteFile', DEFAULT_TOOL_SCHEMAS.DeleteFile, { builtin: true });
-      registerToolSchema('CreateTool', DEFAULT_TOOL_SCHEMAS.CreateTool, { builtin: true });
-      registerToolSchema('ListTools', DEFAULT_TOOL_SCHEMAS.ListTools, { builtin: true });
-      registerToolSchema('LoadModule', DEFAULT_TOOL_SCHEMAS.LoadModule, { builtin: true });
+      const builtinTools = getBootMode() === 'absolute_zero'
+        ? ['ReadFile', 'WriteFile', 'LoadModule']
+        : ['ReadFile', 'WriteFile', 'EditFile', 'ListFiles', 'DeleteFile', 'CreateTool', 'ListTools', 'LoadModule'];
+
+      for (const toolName of builtinTools) {
+        registerToolSchema(toolName, DEFAULT_TOOL_SCHEMAS[toolName], { builtin: true });
+      }
       logger.info('[SchemaRegistry] Default tool schemas registered');
       // Load persisted non-builtin schemas from VFS
       await _load();

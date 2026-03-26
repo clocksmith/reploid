@@ -2,38 +2,38 @@
  * @fileoverview Product boot mode definitions and internal genesis mapping.
  */
 
-export const DEFAULT_BOOT_MODE = 'zero';
+export const DEFAULT_BOOT_MODE = 'absolute_zero';
 
 export const BOOT_MODES = Object.freeze({
   zero: {
     id: 'zero',
     label: 'Zero',
-    description: 'Minimal self-building substrate',
-    detail: 'Defaults to the internal Zero foundation and no blueprints.',
-    genesisLevel: 'spark',
-    requiresBrowserBrain: false
-  },
-  awakened_zero: {
-    id: 'awakened_zero',
-    label: 'Awakened Zero',
-    description: 'Zero with a mutable local brain',
-    detail: 'Requires a browser-local model so kernels and weights stay in reach.',
+    description: 'Mutable local substrate.',
+    detail: 'Uses a browser-local model with an editable inference path.',
     genesisLevel: 'spark',
     requiresBrowserBrain: true
+  },
+  absolute_zero: {
+    id: 'absolute_zero',
+    label: 'Absolute Zero',
+    description: 'Minimal self-building substrate.',
+    detail: 'Starts from the smallest visible surface.',
+    genesisLevel: 'capsule',
+    requiresBrowserBrain: false
   },
   x: {
     id: 'x',
     label: 'X',
-    description: 'Prebuilt full RSI stack',
-    detail: 'Boots the mature pre-assembled system with the broader capability surface.',
+    description: 'Prebuilt full-stack substrate.',
+    detail: 'Starts with the mature RSI surface already assembled.',
     genesisLevel: 'full',
     requiresBrowserBrain: false
   }
 });
 
 export const BOOT_MODE_ORDER = Object.freeze([
+  'absolute_zero',
   'zero',
-  'awakened_zero',
   'x'
 ]);
 
@@ -50,8 +50,15 @@ export function getDefaultGenesisLevelForMode(mode) {
 }
 
 export function inferBootModeFromGenesis(genesisLevel, fallback = DEFAULT_BOOT_MODE) {
+  const normalizedFallback = normalizeBootMode(fallback);
+  if (BOOT_MODES[normalizedFallback]?.genesisLevel === genesisLevel) {
+    return normalizedFallback;
+  }
+
   switch (genesisLevel) {
+    case 'capsule':
     case 'tabula':
+      return 'absolute_zero';
     case 'spark':
       return 'zero';
     case 'reflection':
@@ -60,6 +67,6 @@ export function inferBootModeFromGenesis(genesisLevel, fallback = DEFAULT_BOOT_M
     case 'full':
       return 'x';
     default:
-      return normalizeBootMode(fallback);
+      return normalizedFallback;
   }
 }

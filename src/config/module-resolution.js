@@ -2,16 +2,16 @@
  * @fileoverview Module resolution helpers for genesis levels and overrides.
  */
 
-export const GENESIS_LEVEL_ORDER = ['tabula', 'spark', 'reflection', 'cognition', 'substrate', 'full'];
+export const GENESIS_LEVEL_ORDER = ['tabula', 'capsule', 'spark', 'reflection', 'cognition', 'substrate', 'full'];
 
 export const AWAKEN_REQUIRED_MODULES = [
   'VFS',
   'StateManager',
   'ToolRunner',
   'SchemaRegistry',
-  'TelemetryTimeline',
   'AgentLoop',
-  'LLMClient'
+  'LLMClient',
+  'ToolExecutor'
 ];
 
 export function resolveBaseModules(levelName, genesisConfig) {

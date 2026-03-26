@@ -32,7 +32,7 @@ export function renderProxyConfigStep(state) {
 
   return `
     <div class="wizard-step wizard-proxy-config">
-      <h2 class="type-h1">Proxy Configuration</h2>
+      <h2 class="type-h1">Configure proxy</h2>
       ${!detected ? '<p class="type-caption">Connect to a local or remote server</p>' : ''}
 
       <div class="config-form">

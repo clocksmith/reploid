@@ -15,86 +15,136 @@ const TAGS = {
 const GOAL_CATEGORIES = {
   'L0: Basic Functions': [
     {
-      view: 'Katamari DOM sweep overlay',
-      text: 'Create a katamari ball overlay that rolls across the live UI, absorbs smaller DOM elements, and grows until the interface is consumed.',
+      view: 'System atlas',
+      text: 'Build a renderable JSON architecture model of the current system, then turn it into a live graph view with inspectable components, links, and status.',
       tags: [TAGS.UI, TAGS.VISUAL, TAGS.SYS]
     },
     {
-      view: 'Cycle state summarizer',
-      text: 'Build a cycle summarizer that writes 256, 64, 16, 4, and 1 word reports after each loop into /cyclesummaries/.',
-      tags: [TAGS.DATA, TAGS.BENCH, TAGS.SYS]
+      view: 'VFS control room',
+      text: 'Create a dashboard that tracks VFS reads, writes, hot paths, artifact growth, and recent diffs with compact charts, counters, and drill-down panels.',
+      tags: [TAGS.DATA, TAGS.VISUAL, TAGS.SYS]
     },
     {
-      view: 'Snapshot capture tool',
-      text: 'Create a snapshot tool that captures the live workspace and active canvases into /artifacts with timestamps and readable labels.',
+      view: 'Loop replay',
+      text: 'Capture cycle events and render a replay timeline that lets the user scrub through prompts, tool calls, outputs, and state changes.',
+      tags: [TAGS.UI, TAGS.VISUAL, TAGS.DATA]
+    },
+    {
+      view: 'Artifact studio',
+      text: 'Create an artifact studio that captures screenshots, canvases, logs, and structured outputs into a gallery with labels, filters, and preview panes.',
+      tags: [TAGS.UI, TAGS.VISUAL, TAGS.DATA]
+    },
+    {
+      view: 'Workspace map',
+      text: 'Render the current workspace as a visual map showing file size, churn, read frequency, and last-touch activity.',
       tags: [TAGS.UI, TAGS.VISUAL, TAGS.SYS]
     }
   ],
   'L1: Meta Tooling': [
     {
-      view: 'Scenario runner with seeds',
-      text: 'Implement a seeded scenario runner that executes multiple goals, records outcomes, and outputs a compact score table.',
+      view: 'Tool observatory',
+      text: 'Instrument every tool invocation, then build a dashboard of reliability, latency, retry rate, and failure causes with per-tool scorecards.',
       tags: [TAGS.BENCH, TAGS.DATA, TAGS.SYS]
     },
     {
-      view: 'Tool generator forge',
-      text: 'Build a tool forge that turns a structured request into a new tool with schema, smoke test, and usage note.',
+      view: 'Tool forge',
+      text: 'Build a tool forge that turns a structured request into a new tool, schema, smoke test, and usage note, then scores the result.',
       tags: [TAGS.SYS, TAGS.DATA, TAGS.GOV]
     },
     {
-      view: 'Persona library editor',
-      text: 'Create a persona library that stores named personas, switches the active persona, and records the impact on behavior.',
+      view: 'Preset arena',
+      text: 'Implement a preset arena that runs multiple goals side by side, records outcomes, and renders a ranked comparison board.',
+      tags: [TAGS.BENCH, TAGS.DATA, TAGS.ORCH]
+    },
+    {
+      view: 'Persona lab',
+      text: 'Create a persona lab that benchmarks named personas on the same tasks and shows side-by-side outputs, diffs, and impact scores.',
+      tags: [TAGS.UI, TAGS.ORCH, TAGS.DATA]
+    },
+    {
+      view: 'Rubric studio',
+      text: 'Build a rubric editor that defines success criteria as JSON, evaluates runs against it, and visualizes strengths, failures, and regressions.',
       tags: [TAGS.UI, TAGS.ORCH, TAGS.DATA]
     }
   ],
   'L2: Substrate': [
     {
-      view: 'Three agent coordinator',
-      text: 'Implement a three-agent coordinator that assigns roles, gathers independent outputs, and merges them into one decision packet.',
-      tags: [TAGS.ORCH, TAGS.GOV, TAGS.DATA]
+      view: 'Runtime blueprint',
+      text: 'Represent the runtime, modules, and dependencies as editable JSON, render it as architecture, and apply bounded substrate changes from that model.',
+      tags: [TAGS.VISUAL, TAGS.ORCH, TAGS.SYS]
     },
     {
-      view: 'VFS integrity audit pipeline',
-      text: 'Add a VFS integrity audit that hashes critical paths, detects drift, and writes a clear remediation report.',
+      view: 'Twin capsule lab',
+      text: 'Spawn twin capsule runtimes, run the same task in each, and render diffs for context growth, tool paths, latency, and outcome quality.',
+      tags: [TAGS.BENCH, TAGS.DATA, TAGS.SYS]
+    },
+    {
+      view: 'Context inspector',
+      text: 'Visualize exactly what enters the model context, where it came from, and how large it is, then patch the substrate to improve signal density.',
+      tags: [TAGS.VISUAL, TAGS.DATA, TAGS.SYS]
+    },
+    {
+      view: 'VFS journal',
+      text: 'Add a journaled VFS layer with snapshots, rollback points, and readable diffs, then render it as a recoverable event log.',
       tags: [TAGS.GOV, TAGS.DATA, TAGS.SYS]
     },
     {
-      view: 'Iframe clone benchmark runner',
-      text: 'Spawn an isolated UI clone, run the same task in both instances, and report latency, quality, and stability deltas.',
+      view: 'Module control tower',
+      text: 'Build a live module graph with load state, integrity checks, dependencies, and safe overrides so substrate drift is visible and auditable.',
       tags: [TAGS.GOV, TAGS.SYS, TAGS.DATA]
     }
   ],
   'L3: Weak RSI': [
     {
-      view: 'Core self-patch loop',
-      text: 'Implement a bounded self-patch loop that diagnoses failures, edits /core/agent-loop.js, verifies in sandbox, and rolls back regressions.',
+      view: 'Architecture optimizer',
+      text: 'Build a JSON architecture model of the current system, propose bounded improvements, benchmark them, and keep only measured wins.',
       tags: [TAGS.ORCH, TAGS.GOV, TAGS.SYS]
     },
     {
-      view: 'Prompt kernel mutation gate',
-      text: 'Enable controlled prompt-kernel mutations in /core/persona-manager.js, benchmark them, and keep only changes that improve results.',
+      view: 'Toolchain optimizer',
+      text: 'Use tool telemetry to identify the worst bottlenecks, patch them, run fixed evaluations, and retain only changes that improve success rate or latency.',
       tags: [TAGS.ORCH, TAGS.BENCH, TAGS.GOV]
     },
     {
-      view: 'Substrate regression harness',
-      text: 'Build a substrate regression harness that replays fixed tasks against core edits, stores diffs, and auto-reverts failing changes.',
-      tags: [TAGS.BENCH, TAGS.GOV, TAGS.SYS]
-    }
-  ],
-  'L4: Theoretical RSI': [
+      view: 'Prompt ladder',
+      text: 'Run bounded prompt and policy variants against a fixed task suite, maintain a leaderboard, and promote only statistically better versions.',
+      tags: [TAGS.ORCH, TAGS.BENCH, TAGS.GOV]
+    },
     {
-      view: 'Autonomous core self rewrite',
-      text: 'Redesign, implement, test, and deploy a better agent core without human input, then safely repeat the loop.',
+      view: 'Runtime self-heal',
+      text: 'Detect repeat runtime failures, generate a candidate patch, verify it in a sandbox, and publish a pass-fail timeline with rollback on regression.',
       tags: [TAGS.ORCH, TAGS.GOV, TAGS.SYS]
     },
     {
-      view: 'Distilled reflection parity',
-      text: 'Distill current behavior into a smaller reflection model, replace the runtime path, and preserve quality, safety, and measured progress.',
+      view: 'Improvement console',
+      text: 'Use the VFS and tool observability dashboard as a control surface for a bounded self-improvement loop with explicit metrics, rollback, and stopping rules.',
+      tags: [TAGS.BENCH, TAGS.GOV, TAGS.SYS]
+    }
+  ],
+  'L4: Weak AGI': [
+    {
+      view: 'Autonomy control room',
+      text: 'Design and build a control room for yourself with architecture maps, tool telemetry, VFS health, experiment history, and capability scores, then use it to guide later runs.',
+      tags: [TAGS.VISUAL, TAGS.ORCH, TAGS.SYS]
+    },
+    {
+      view: 'Runtime world model',
+      text: 'Construct a structured world model of your own runtime, predict the effects of planned changes before applying them, and score yourself on prediction accuracy over time.',
       tags: [TAGS.BENCH, TAGS.DATA, TAGS.GOV]
     },
     {
-      view: 'Cross-reploid federation signal',
-      text: 'Design a peer federation protocol with safe join, leave, audit, and shared-goal coordination between multiple Reploid instances.',
+      view: 'Research director',
+      text: 'Take a broad objective, decompose it into milestones, experiments, rubrics, and artifacts, then reprioritize the plan as new evidence arrives.',
+      tags: [TAGS.ORCH, TAGS.DATA, TAGS.GOV]
+    },
+    {
+      view: 'Capability battery',
+      text: 'Create a mixed benchmark battery spanning UI building, data analysis, debugging, tool creation, and system planning, then map your own strengths, failures, and transfer ability.',
+      tags: [TAGS.BENCH, TAGS.DATA, TAGS.SYS]
+    },
+    {
+      view: 'Cross-domain program',
+      text: 'Use your architecture model, tool telemetry, and benchmark battery to choose what to improve next, execute a bounded upgrade, and justify the choice with evidence rather than heuristics.',
       tags: [TAGS.ORCH, TAGS.GOV, TAGS.SYS]
     }
   ]
@@ -102,8 +152,42 @@ const GOAL_CATEGORIES = {
 
 const normalizeText = (value) => String(value || '').trim();
 
+const createSeededRandom = (seed) => {
+  let state = (Number(seed) || 0) >>> 0;
+  if (state === 0) {
+    return () => 0;
+  }
+
+  return () => {
+    state = (state * 1664525 + 1013904223) >>> 0;
+    return state / 0x100000000;
+  };
+};
+
+const shuffleWithSeed = (items, seed, salt = 0) => {
+  if (!seed) {
+    return [...items];
+  }
+
+  const random = createSeededRandom(Number(seed) + salt);
+  const shuffled = [...items];
+  for (let index = shuffled.length - 1; index > 0; index -= 1) {
+    const swapIndex = Math.floor(random() * (index + 1));
+    [shuffled[index], shuffled[swapIndex]] = [shuffled[swapIndex], shuffled[index]];
+  }
+  return shuffled;
+};
+
 export function getGoalCategories() {
   return GOAL_CATEGORIES;
+}
+
+export function getGoalEntries(seed = 0) {
+  return shuffleWithSeed(Object.entries(GOAL_CATEGORIES), seed, 17)
+    .map(([category, goals], index) => [
+      category,
+      shuffleWithSeed(goals, seed, 1000 + index)
+    ]);
 }
 
 export function findGoalMeta(goalValue) {

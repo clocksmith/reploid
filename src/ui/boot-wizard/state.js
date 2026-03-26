@@ -7,9 +7,13 @@ import { normalizeOverrides } from '../../config/module-resolution.js';
 import {
   DEFAULT_BOOT_MODE,
   getDefaultGenesisLevelForMode,
-  inferBootModeFromGenesis,
   normalizeBootMode
 } from '../../config/boot-modes.js';
+import {
+  DEFAULT_ABSOLUTE_ZERO_ENVIRONMENT_TEMPLATE_ID,
+  findAbsoluteZeroEnvironmentTemplateId,
+  getDefaultAbsoluteZeroEnvironment
+} from '../../config/absolute-zero-environments.js';
 import { getSecurityState } from '../../core/security-config.js';
 
 // Wizard steps in order
@@ -59,17 +63,7 @@ export const PROVIDER_TEST_ENDPOINTS = {
 };
 
 const getStoredMode = () => {
-  if (typeof localStorage === 'undefined') {
-    return DEFAULT_BOOT_MODE;
-  }
-
-  const storedMode = normalizeBootMode(localStorage.getItem('REPLOID_MODE'), '');
-  if (storedMode) {
-    return storedMode;
-  }
-
-  const storedGenesis = localStorage.getItem('REPLOID_GENESIS_LEVEL');
-  return inferBootModeFromGenesis(storedGenesis, DEFAULT_BOOT_MODE);
+  return DEFAULT_BOOT_MODE;
 };
 
 const getStoredAdvancedConfig = () => {
@@ -119,7 +113,7 @@ const getStoredAdvancedConfig = () => {
 
   return {
     preserveOnBoot: localStorage.getItem('REPLOID_PRESERVE_ON_BOOT') === 'true',
-    genesisLevel: localStorage.getItem('REPLOID_GENESIS_LEVEL') || defaultGenesisLevel,
+    genesisLevel: defaultGenesisLevel,
     moduleOverrides,
     hitlApprovalMode,
     hitlEveryNSteps,
@@ -134,6 +128,38 @@ const getStoredGoal = () => {
 
   const stored = localStorage.getItem('REPLOID_GOAL');
   return stored ? String(stored) : '';
+};
+
+const getStoredEnvironment = () => {
+  if (typeof localStorage === 'undefined') {
+    return getDefaultAbsoluteZeroEnvironment();
+  }
+
+  const stored = localStorage.getItem('REPLOID_ENVIRONMENT');
+  return stored ? String(stored) : getDefaultAbsoluteZeroEnvironment();
+};
+
+const getStoredEnvironmentTemplateId = () => {
+  const fallback = DEFAULT_ABSOLUTE_ZERO_ENVIRONMENT_TEMPLATE_ID;
+  if (typeof localStorage === 'undefined') {
+    return fallback;
+  }
+
+  const storedText = getStoredEnvironment();
+  const storedTemplate = localStorage.getItem('REPLOID_ENVIRONMENT_TEMPLATE');
+  if (!storedTemplate) {
+    return findAbsoluteZeroEnvironmentTemplateId(storedText) || fallback;
+  }
+  return findAbsoluteZeroEnvironmentTemplateId(storedText) === storedTemplate
+    ? storedTemplate
+    : (findAbsoluteZeroEnvironmentTemplateId(storedText) || null);
+};
+
+const getStoredIncludeHostWithinSelf = () => {
+  if (typeof localStorage === 'undefined') {
+    return false;
+  }
+  return localStorage.getItem('REPLOID_INCLUDE_HOST_WITHIN_SELF') === 'true';
 };
 
 // Default wizard state
@@ -188,12 +214,13 @@ const defaultState = {
     verifyState: VERIFY_STATE.UNVERIFIED
   },
 
-  // Whether to also use Doppler for model access (LoRA, activations, weights)
-  enableModelAccess: false,
-
   // Goal selection
   goal: getStoredGoal(),
+  environment: getStoredEnvironment(),
+  selectedEnvironmentTemplate: getStoredEnvironmentTemplateId(),
+  includeHostWithinSelf: getStoredIncludeHostWithinSelf(),
   selectedGoalCategory: null,
+  goalShuffleSeed: 0,
   goalGenerator: {
     status: 'idle', // idle | generating | error | ready
     error: null
@@ -208,6 +235,24 @@ const defaultState = {
     genesis: null,
     registry: null
   },
+  bootPayload: {
+    loading: false,
+    loaded: false,
+    error: null,
+    bootFiles: [],
+    bootTree: '',
+    manifestFiles: [],
+    rootSummary: []
+  },
+  absoluteZeroPreview: {
+    loadingSelf: false,
+    loadedSelf: false,
+    loadingHost: false,
+    loadedHost: false,
+    error: null,
+    contents: {}
+  },
+  selectedAbsoluteZeroPath: '/.system/self.json',
   moduleOverrideSearch: '',
   moduleOverrideFilter: 'all',
 
@@ -271,7 +316,11 @@ export function resetWizard() {
     advancedOpen: false,
     advancedConfig: getStoredAdvancedConfig(),
     goal: getStoredGoal(),
+    environment: getStoredEnvironment(),
+    selectedEnvironmentTemplate: getStoredEnvironmentTemplateId(),
+    includeHostWithinSelf: getStoredIncludeHostWithinSelf(),
     selectedGoalCategory: null,
+    goalShuffleSeed: 0,
     goalGenerator: {
       status: 'idle',
       error: null
@@ -283,7 +332,25 @@ export function resetWizard() {
       error: null,
       genesis: null,
       registry: null
-    }
+    },
+    bootPayload: {
+      loading: false,
+      loaded: false,
+      error: null,
+      bootFiles: [],
+      bootTree: '',
+      manifestFiles: [],
+      rootSummary: []
+    },
+    absoluteZeroPreview: {
+      loadingSelf: false,
+      loadedSelf: false,
+      loadingHost: false,
+      loadedHost: false,
+      error: null,
+      contents: {}
+    },
+    selectedAbsoluteZeroPath: '/.system/self.json'
   };
   notifyListeners();
 }
@@ -421,11 +488,11 @@ export function saveConfig() {
     });
   }
 
-  if ((connectionType === 'browser' || state.enableModelAccess) && dopplerConfig.model) {
+  if (connectionType === 'browser' && dopplerConfig.model) {
     models.push({
       id: dopplerConfig.model,
       name: dopplerConfig.model,
-      provider: 'webllm',
+      provider: 'doppler',
       queryMethod: 'browser',
       hostType: 'browser-local'
     });
@@ -441,6 +508,18 @@ export function saveConfig() {
   } else {
     localStorage.removeItem('REPLOID_GOAL');
   }
+  const environment = String(state.environment || '').trim();
+  if (environment) {
+    localStorage.setItem('REPLOID_ENVIRONMENT', environment);
+  } else {
+    localStorage.removeItem('REPLOID_ENVIRONMENT');
+  }
+  if (state.selectedEnvironmentTemplate) {
+    localStorage.setItem('REPLOID_ENVIRONMENT_TEMPLATE', state.selectedEnvironmentTemplate);
+  } else {
+    localStorage.removeItem('REPLOID_ENVIRONMENT_TEMPLATE');
+  }
+  localStorage.setItem('REPLOID_INCLUDE_HOST_WITHIN_SELF', state.includeHostWithinSelf ? 'true' : 'false');
   localStorage.removeItem('REPLOID_GOAL_CRITERIA');
 }
 
@@ -462,6 +541,9 @@ export function forgetDevice() {
     'REPLOID_HITL_CONFIG',
     'REPLOID_SECURITY_MODE',
     'REPLOID_GOAL',
+    'REPLOID_ENVIRONMENT',
+    'REPLOID_ENVIRONMENT_TEMPLATE',
+    'REPLOID_INCLUDE_HOST_WITHIN_SELF',
     'REPLOID_GOAL_CRITERIA'
   ];
 
@@ -489,7 +571,7 @@ export function getPrimaryVerifyState() {
 export function canAwaken() {
   const { mode, connectionType, directConfig, proxyConfig, dopplerConfig } = state;
 
-  if (mode === 'awakened_zero') {
+  if (mode === 'zero') {
     return connectionType === 'browser' && !!dopplerConfig.model;
   }
 
@@ -509,7 +591,7 @@ export function canAwaken() {
  * Get capability level based on current config
  */
 export function getCapabilityLevel() {
-  const { connectionType, directConfig, proxyConfig, enableModelAccess, dopplerConfig } = state;
+  const { connectionType, directConfig, proxyConfig, dopplerConfig } = state;
 
   // Determine reasoning capability
   let reasoning = 'low';
@@ -529,9 +611,8 @@ export function getCapabilityLevel() {
   }
 
   const hasDopplerModel = !!dopplerConfig?.model;
-  // Determine model access (LoRA, activations, weights via Doppler)
-  const hasModelAccess = connectionType === 'browser' || enableModelAccess;
-  const hasDopplerAccess = hasDopplerModel && (connectionType === 'browser' || enableModelAccess);
+  const hasModelAccess = connectionType === 'browser';
+  const hasDopplerAccess = hasDopplerModel && connectionType === 'browser';
 
   return {
     reasoning,

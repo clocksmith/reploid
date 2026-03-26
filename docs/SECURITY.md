@@ -20,7 +20,7 @@ Graduated operation with automated gates:
 | **L1** | Meta Tooling (modify tool-writer, improve CreateTool) | AUTONOMOUS | Arena consensus |
 | **L2** | Self-Modification (Substrate) (edit core modules, runtime patches) | AUTONOMOUS | Arena + GenesisSnapshot rollback |
 | **L3** | Weak RSI (Iterative) (bounded feedback loops, self-improvement) | AUTONOMOUS | Arena + GenesisSnapshot rollback + iteration caps |
-| **L4** | True RSI (Impossible) | N/A | N/A |
+| **L4** | Weak AGI (broad autonomous planning, system-building, self-directed experimentation) | N/A | N/A |
 
 Gating is enforced via automated verification and rollback:
 - Arena consensus for L1 changes

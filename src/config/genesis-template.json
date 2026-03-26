@@ -148,10 +148,12 @@
       "ui/dashboard/metrics-dashboard.js",
       "ui/dashboard/ui-manager.js",
       "ui/dashboard/vfs-explorer.js",
-      "ui/zero/index.js"
+      "ui/zero/index.js",
+      "ui/capsule/index.js"
     ],
     "styles": [
       "styles/zero.css",
+      "styles/capsule.css",
       "styles/vfs-explorer.css",
       "styles/proto/index.css",
       "styles/rd.css",

@@ -89,6 +89,7 @@ describe('LLMClient - Integration Tests', () => {
     vi.clearAllMocks();
     delete global.fetch;
     delete global.localStorage;
+    delete global.window;
   });
 
   describe('metadata', () => {
@@ -213,6 +214,48 @@ describe('LLMClient - Integration Tests', () => {
       const body = JSON.parse(fetchCall[1].body);
 
       expect(body.options).toEqual({ temperature: 0.7 });
+    });
+  });
+
+  describe('browser-native mode', () => {
+    it('should forward the explicit context to WebLLM without injecting a hidden system prompt', async () => {
+      const mockChatCreate = vi.fn().mockResolvedValue({
+        choices: [{ message: { content: 'Browser response' } }]
+      });
+
+      global.window = {
+        webllm: {
+          CreateMLCEngine: vi.fn().mockResolvedValue({
+            chat: {
+              completions: {
+                create: mockChatCreate
+              }
+            }
+          })
+        }
+      };
+
+      const messages = [
+        { role: 'user', content: 'Goal:\nTest the autonomous loop' },
+        { role: 'assistant', content: '{"tool":"ReadFile","args":{"path":"/.system/self.json"}}' }
+      ];
+
+      const result = await llmClient.chat(messages, {
+        id: 'smollm2-360m',
+        provider: 'webllm'
+      });
+
+      expect(global.window.webllm.CreateMLCEngine).toHaveBeenCalledWith(
+        'smollm2-360m',
+        expect.objectContaining({ context_window_size: 32768 })
+      );
+      expect(mockChatCreate).toHaveBeenCalledWith(expect.objectContaining({
+        messages,
+        stream: false,
+        temperature: 0.7
+      }));
+      expect(result.content).toBe('Browser response');
+      expect(result.provider).toBe('webllm');
     });
   });
 
