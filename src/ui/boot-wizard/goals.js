@@ -35,8 +35,8 @@ const GOAL_CATEGORIES = {
       tags: [TAGS.UI, TAGS.VISUAL, TAGS.DATA]
     },
     {
-      view: 'Workspace map',
-      text: 'Render the current workspace as a visual map showing file size, churn, read frequency, and last-touch activity.',
+      view: 'Katamari DOM',
+      text: 'Build a visually impressive Katamari-style 3D DOM picker with real physics so page elements become collectible objects on a growing ball, then let the user orbit, inspect, and export robust selectors from the captured elements.',
       tags: [TAGS.UI, TAGS.VISUAL, TAGS.SYS]
     }
   ],
@@ -62,9 +62,9 @@ const GOAL_CATEGORIES = {
       tags: [TAGS.UI, TAGS.ORCH, TAGS.DATA]
     },
     {
-      view: 'Rubric studio',
-      text: 'Build a rubric editor that defines success criteria as JSON, evaluates runs against it, and visualizes strengths, failures, and regressions.',
-      tags: [TAGS.UI, TAGS.ORCH, TAGS.DATA]
+      view: 'Prompt mirror',
+      text: 'Reconstruct the exact active substrate contract, bootstrap context, and current loop state into a readable artifact, then prove the mirror matches the live runtime.',
+      tags: [TAGS.UI, TAGS.DATA, TAGS.SYS]
     }
   ],
   'L2: Substrate': [
@@ -89,9 +89,9 @@ const GOAL_CATEGORIES = {
       tags: [TAGS.GOV, TAGS.DATA, TAGS.SYS]
     },
     {
-      view: 'Module control tower',
-      text: 'Build a live module graph with load state, integrity checks, dependencies, and safe overrides so substrate drift is visible and auditable.',
-      tags: [TAGS.GOV, TAGS.SYS, TAGS.DATA]
+      view: 'Self-hosting tool',
+      text: 'Create a tool that emits its own full source, schema, and behavior contract from internal structure rather than file reads, then validate that the emitted version is identical to the running tool.',
+      tags: [TAGS.SYS, TAGS.GOV, TAGS.DATA]
     }
   ],
   'L3: Weak RSI': [

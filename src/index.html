@@ -203,8 +203,29 @@
         };
       };
 
-      // Product mode and internal genesis level (used by boot)
+      // Product mode and route lock (used by boot)
+      window.getReploidRouteMode = () => {
+        const pathname = window.location.pathname || "/";
+        if (pathname === "/") return "absolute_zero";
+        if (pathname === "/0") return "zero";
+        if (pathname === "/x") return "x";
+        return null;
+      };
+
+      window.getReploidBootProfile = () => {
+        const pathname = window.location.pathname || "/";
+        if (pathname === "/") return "absolute_zero_home";
+        if (pathname === "/0") return "zero_home";
+        if (pathname === "/x") return "x_home";
+        return "wizard";
+      };
+
+      window.isReploidAbsoluteZeroHome = () => window.location.pathname === "/";
+
       window.getReploidMode = () => {
+        const routeMode = window.getReploidRouteMode();
+        if (routeMode) return routeMode;
+
         const storedMode = localStorage.getItem("REPLOID_MODE");
         if (storedMode === "zero" || storedMode === "absolute_zero" || storedMode === "x") {
           return storedMode;

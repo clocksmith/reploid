@@ -8,6 +8,7 @@ const CapsuleUI = {
 
     let root = null;
     let unsubscribe = null;
+    let latestSnapshot = null;
 
     const escapeHtml = (value) => String(value || '')
       .replace(/&/g, '&amp;')
@@ -17,13 +18,25 @@ const CapsuleUI = {
 
     const renderSnapshot = (snapshot = {}) => {
       if (!root) return;
+      latestSnapshot = snapshot;
 
       const stopBtn = root.querySelector('#btn-toggle');
       const stream = root.querySelector('#history-container');
 
       if (stopBtn) {
-        stopBtn.textContent = snapshot.running ? 'Stop' : 'Stopped';
-        stopBtn.disabled = !snapshot.running;
+        if (snapshot.running) {
+          stopBtn.textContent = 'Stop';
+          stopBtn.dataset.capsuleAction = 'stop';
+          stopBtn.disabled = false;
+        } else if (snapshot.parked || (snapshot.cycle > 0 && snapshot.status === 'IDLE')) {
+          stopBtn.textContent = 'Resume';
+          stopBtn.dataset.capsuleAction = 'resume';
+          stopBtn.disabled = false;
+        } else {
+          stopBtn.textContent = 'Start';
+          stopBtn.dataset.capsuleAction = 'resume';
+          stopBtn.disabled = false;
+        }
       }
 
       if (stream) {
@@ -44,9 +57,14 @@ const CapsuleUI = {
 
     const handleClick = (event) => {
       const action = event.target.closest('[data-capsule-action]')?.dataset.capsuleAction;
-      if (action !== 'stop') return;
       event.preventDefault();
-      CapsuleRuntime.stop();
+      if (action === 'stop') {
+        CapsuleRuntime.stop();
+        return;
+      }
+      if (action === 'resume' && latestSnapshot?.running !== true) {
+        CapsuleRuntime.start();
+      }
     };
 
     const mount = async (container) => {

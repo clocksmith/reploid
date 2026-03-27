@@ -8,6 +8,7 @@ import { createCapsuleHost } from './host.js';
 const MAX_CYCLES = 2048;
 const MAX_BATCH_TOOLS = 5;
 const SINGLE_TOOL_NUDGE_THRESHOLD = 3;
+const MILESTONE_AUTOPARK_THRESHOLD = 3;
 
 const estimateTokens = (text) => {
   const value = String(text || '');
@@ -52,6 +53,26 @@ const normalizeMilestone = (value) => {
   return null;
 };
 
+const normalizeIdle = (value) => {
+  if (!value || typeof value !== 'object') return null;
+
+  if (value.idle === true) {
+    return {
+      reason: typeof value.reason === 'string' ? value.reason : '',
+      wakeOn: typeof value.wakeOn === 'string' ? value.wakeOn : 'manual'
+    };
+  }
+
+  if (value.idle && typeof value.idle === 'object') {
+    return {
+      reason: typeof value.idle.reason === 'string' ? value.idle.reason : '',
+      wakeOn: typeof value.idle.wakeOn === 'string' ? value.idle.wakeOn : 'manual'
+    };
+  }
+
+  return null;
+};
+
 const getMessageLabel = (message = {}) => {
   const origin = String(message.origin || '').toLowerCase();
   if (origin === 'bootstrap') return 'BOOT';
@@ -86,6 +107,7 @@ const parseCapsuleDirective = (utils, text) => {
     const parsed = JSON.parse(json);
     if (parsed && typeof parsed === 'object') {
       const milestone = normalizeMilestone(parsed);
+      const idle = normalizeIdle(parsed);
 
       const batchedCalls = Array.isArray(parsed.tools)
         ? parsed.tools
@@ -98,7 +120,9 @@ const parseCapsuleDirective = (utils, text) => {
           return {
             type: 'tools',
             calls,
-            milestoneReason: milestone?.reason || ''
+            milestoneReason: milestone ? (milestone.reason || '') : null,
+            idleReason: idle ? (idle.reason || '') : null,
+            wakeOn: idle?.wakeOn || 'manual'
           };
         }
       }
@@ -108,7 +132,17 @@ const parseCapsuleDirective = (utils, text) => {
         return {
           type: 'tools',
           calls: [singleCall],
-          milestoneReason: milestone?.reason || ''
+          milestoneReason: milestone ? (milestone.reason || '') : null,
+          idleReason: idle ? (idle.reason || '') : null,
+          wakeOn: idle?.wakeOn || 'manual'
+        };
+      }
+
+      if (idle) {
+        return {
+          type: 'idle',
+          reason: idle.reason,
+          wakeOn: idle.wakeOn
         };
       }
 
@@ -127,10 +161,25 @@ const parseCapsuleDirective = (utils, text) => {
 };
 
 const buildHostNotice = (message) => `[HOST]\n${String(message || '').trim()}`.trim();
+const withTerminalPunctuation = (value) => {
+  const text = String(value || '').trim();
+  if (!text) return '';
+  return /[.!?]$/.test(text) ? text : `${text}.`;
+};
 const buildMilestoneNotice = (reason) => buildHostNotice(
   reason
-    ? `Milestone recorded: ${reason}. Execution continues until you stop it or the cycle limit is reached.`
+    ? `Milestone recorded: ${withTerminalPunctuation(reason)} Execution continues until you stop it or the cycle limit is reached.`
     : 'Milestone recorded. Execution continues until you stop it or the cycle limit is reached.'
+);
+const buildSelfImprovementNotice = (reason) => buildHostNotice(
+  reason
+    ? `Foreground milestone reached: ${withTerminalPunctuation(reason)} Continue with safe self-improvement work. Prioritize reversible improvements to tools, runtime, memory, observability, evaluation, or the current artifact quality.`
+    : 'Foreground milestone reached. Continue with safe self-improvement work. Prioritize reversible improvements to tools, runtime, memory, observability, evaluation, or the current artifact quality.'
+);
+const buildParkNotice = (reason, wakeOn = 'manual') => buildHostNotice(
+  reason
+    ? `Parked: ${withTerminalPunctuation(reason)} Resume when new work is available. Wake condition: ${wakeOn}.`
+    : `Parked. Resume when new work is available. Wake condition: ${wakeOn}.`
 );
 
 export function createCapsuleRuntime(options = {}) {
@@ -152,7 +201,12 @@ export function createCapsuleRuntime(options = {}) {
   let tokenUsage = 0;
   let draft = '';
   let messages = [];
+  let parked = false;
+  let wakeOn = 'manual';
   let consecutiveSingleToolCycles = 0;
+  let consecutiveMilestoneOnlyCycles = 0;
+  let lastMilestoneReason = '';
+  let repeatedMilestoneCount = 0;
 
   const notify = () => {
     const snapshot = getSnapshot();
@@ -199,6 +253,8 @@ export function createCapsuleRuntime(options = {}) {
     stopped,
     status,
     activity,
+    parked,
+    wakeOn,
     cycle,
     goal,
     model: host.getModelLabel(),
@@ -221,8 +277,21 @@ export function createCapsuleRuntime(options = {}) {
   const stop = () => {
     stopped = true;
     running = false;
+    parked = false;
+    wakeOn = 'manual';
     status = 'IDLE';
     activity = 'Stopped by user';
+    draft = '';
+    notify();
+  };
+
+  const parkRuntime = (reason = '', nextWakeOn = 'manual') => {
+    parked = true;
+    wakeOn = nextWakeOn || 'manual';
+    running = false;
+    stopped = false;
+    status = 'PARKED';
+    activity = reason ? `Parked: ${reason}` : 'Parked';
     draft = '';
     notify();
   };
@@ -235,13 +304,20 @@ export function createCapsuleRuntime(options = {}) {
       return;
     }
 
-    await seedContext();
+    if (messages.length === 0) {
+      await seedContext();
+      cycle = 0;
+      tokenUsage = messages.reduce((sum, msg) => sum + estimateTokens(msg.content), 0);
+    }
 
     running = true;
     stopped = false;
-    cycle = 0;
+    parked = false;
+    wakeOn = 'manual';
     consecutiveSingleToolCycles = 0;
-    tokenUsage = messages.reduce((sum, msg) => sum + estimateTokens(msg.content), 0);
+    consecutiveMilestoneOnlyCycles = 0;
+    repeatedMilestoneCount = 0;
+    lastMilestoneReason = '';
     status = 'RUNNING';
     activity = 'Generating';
     draft = '';
@@ -280,11 +356,14 @@ export function createCapsuleRuntime(options = {}) {
       const directive = parseCapsuleDirective(capsuleUtils, assistantText);
       if (!directive) {
         const hostNotice = buildHostNotice(
-          'Ignored non-directive model response. Reply with exactly one JSON object to call tools or record a milestone.'
+          'Ignored non-directive model response. Reply with exactly one JSON object to call tools, record a milestone, or park.'
         );
         appendMessage('user', hostNotice, 'host');
         tokenUsage += estimateTokens(hostNotice);
         activity = 'Ignored non-directive response';
+        consecutiveMilestoneOnlyCycles = 0;
+        repeatedMilestoneCount = 0;
+        lastMilestoneReason = '';
         notify();
         continue;
       }
@@ -294,12 +373,50 @@ export function createCapsuleRuntime(options = {}) {
         appendMessage('user', hostNotice, 'host');
         tokenUsage += estimateTokens(hostNotice);
         activity = 'Milestone recorded';
+        consecutiveMilestoneOnlyCycles += 1;
+        if (directive.reason && directive.reason === lastMilestoneReason) {
+          repeatedMilestoneCount += 1;
+        } else {
+          lastMilestoneReason = directive.reason || '';
+          repeatedMilestoneCount = 1;
+        }
+        if (
+          consecutiveMilestoneOnlyCycles >= MILESTONE_AUTOPARK_THRESHOLD ||
+          repeatedMilestoneCount >= MILESTONE_AUTOPARK_THRESHOLD
+        ) {
+          const redirectNotice = buildSelfImprovementNotice(
+            'Repeated milestone-only cycles detected with no new tool work'
+          );
+          appendMessage('user', redirectNotice, 'host');
+          tokenUsage += estimateTokens(redirectNotice);
+          activity = 'Redirected to self-improvement';
+          consecutiveMilestoneOnlyCycles = 0;
+          repeatedMilestoneCount = 0;
+          lastMilestoneReason = '';
+          notify();
+          continue;
+        }
+        notify();
+        continue;
+      }
+
+      if (directive.type === 'idle') {
+        const redirectNotice = buildSelfImprovementNotice(directive.reason);
+        appendMessage('user', redirectNotice, 'host');
+        tokenUsage += estimateTokens(redirectNotice);
+        activity = 'Redirected to self-improvement';
+        consecutiveMilestoneOnlyCycles = 0;
+        repeatedMilestoneCount = 0;
+        lastMilestoneReason = '';
         notify();
         continue;
       }
 
       const requestedCalls = Array.isArray(directive.calls) ? directive.calls : [];
       const callsToExecute = requestedCalls.slice(0, MAX_BATCH_TOOLS);
+      consecutiveMilestoneOnlyCycles = 0;
+      repeatedMilestoneCount = 0;
+      lastMilestoneReason = '';
 
       if (requestedCalls.length > MAX_BATCH_TOOLS) {
         const hostNotice = buildHostNotice(
@@ -350,6 +467,13 @@ export function createCapsuleRuntime(options = {}) {
         appendMessage('user', hostNotice, 'host');
         tokenUsage += estimateTokens(hostNotice);
         activity = 'Milestone recorded';
+      }
+
+      if (!stopped && directive.idleReason !== undefined && directive.idleReason !== null && directive.idleReason !== '') {
+        const redirectNotice = buildSelfImprovementNotice(directive.idleReason);
+        appendMessage('user', redirectNotice, 'host');
+        tokenUsage += estimateTokens(redirectNotice);
+        activity = 'Redirected to self-improvement';
       }
 
       notify();

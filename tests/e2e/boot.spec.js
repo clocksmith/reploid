@@ -5,10 +5,16 @@
 import { test, expect } from '@playwright/test';
 
 const APP_PATH = '/src/index.html';
+const HOME_PATH = '/';
 
 async function openBoot(page) {
   await page.goto(APP_PATH);
-  await page.waitForSelector('#wizard-container', { timeout: 10000 });
+  await page.waitForSelector('.boot-mode-btn[data-mode="absolute_zero"]', { timeout: 20000 });
+}
+
+async function openHome(page) {
+  await page.goto(HOME_PATH);
+  await page.waitForSelector('.wizard-home-provider [data-action="choose-browser"]', { timeout: 20000 });
 }
 
 async function unlockGoalSection(page) {
@@ -54,6 +60,9 @@ test.describe('Boot Screen', () => {
     await page.waitForSelector('.boot-mode-btn.selected[data-mode="absolute_zero"]', { timeout: 10000 });
 
     await expect(page.locator('.boot-mode-btn.selected[data-mode="absolute_zero"] .boot-mode-label')).toContainText('Absolute Zero');
+    await page.click('[data-action="choose-browser"]');
+    await page.click('[data-model="smollm2-360m"]');
+    await page.locator('#goal-input').fill('Verify default mode mapping');
     await page.click('[data-action="advanced-settings"]');
     await expect(page.locator('#advanced-genesis-level')).toHaveValue('capsule');
   });
@@ -76,6 +85,42 @@ test.describe('Boot Screen', () => {
     await xMode.click();
     await expect(xMode).toHaveClass(/selected/);
     await expect(zeroMode).not.toHaveClass(/selected/);
+  });
+});
+
+test.describe('Route Entry Points', () => {
+  test('home route boots Absolute Zero without the mode selector or intro title stack', async ({ page }) => {
+    await openHome(page);
+
+    await expect(page.locator('.boot-mode-btn[data-mode]')).toHaveCount(0);
+    await expect(page.locator('.wizard-brand')).toHaveCount(0);
+    await expect(page.locator('.wizard-home-provider .type-h1')).toHaveText('Choose inference provider');
+    await expect(page.locator('[data-action="advanced-settings"]')).toHaveCount(0);
+    await expect(page.locator('[data-action="choose-browser"]')).toBeVisible();
+  });
+
+  test('/0 locks the boot mode to Zero', async ({ page }) => {
+    await page.goto('/0');
+    await page.waitForSelector('.wizard-home-provider [data-action="choose-browser"]', { timeout: 20000 });
+
+    await expect(page.locator('.boot-mode-btn[data-mode]')).toHaveCount(0);
+    await expect(page.locator('.wizard-brand')).toHaveCount(0);
+    await expect(page.locator('.wizard-home-provider .type-h1')).toHaveText('Choose inference provider');
+    await expect(page.locator('[data-action="choose-browser"]')).toBeVisible();
+    await expect(page.locator('[data-action="advanced-settings"]')).toHaveCount(0);
+    await expect.poll(async () => page.evaluate(() => window.getReploidMode())).toBe('zero');
+  });
+
+  test('/x locks the boot mode to X', async ({ page }) => {
+    await page.goto('/x');
+    await page.waitForSelector('.wizard-home-provider [data-action="choose-direct"]', { timeout: 20000 });
+
+    await expect(page.locator('.boot-mode-btn[data-mode]')).toHaveCount(0);
+    await expect(page.locator('.wizard-brand')).toHaveCount(0);
+    await expect(page.locator('.wizard-home-provider .type-h1')).toHaveText('Choose inference provider');
+    await expect(page.locator('[data-action="choose-direct"]')).toBeVisible();
+    await expect(page.locator('[data-action="advanced-settings"]')).toHaveCount(0);
+    await expect.poll(async () => page.evaluate(() => window.getReploidMode())).toBe('x');
   });
 });
 
@@ -212,7 +257,7 @@ test.describe('Absolute Zero Runtime', () => {
       sessionStorage.clear();
     });
 
-    await openBoot(page);
+    await openHome(page);
 
     await expect(page.locator('[data-action="choose-browser"]')).toBeEnabled();
     await page.click('[data-action="choose-browser"]');
@@ -293,7 +338,7 @@ test.describe('Absolute Zero Runtime', () => {
       sessionStorage.clear();
     });
 
-    await page.goto(APP_PATH);
+    await page.goto(HOME_PATH);
     await page.waitForSelector('#wizard-container', { timeout: 10000 });
 
     await page.click('[data-action="choose-browser"]');

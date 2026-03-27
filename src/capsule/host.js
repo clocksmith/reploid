@@ -335,7 +335,8 @@ export function createCapsuleHost(options = {}) {
       VFS: vfs,
       readFile,
       writeFile,
-      loadModule
+      loadModule,
+      callTool: executeTool
     };
     return handler(args, deps);
   };

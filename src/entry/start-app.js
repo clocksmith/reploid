@@ -8,12 +8,60 @@
 
 // === BOOT INFRASTRUCTURE ===
 import Utils from '../core/utils.js';
-import DIContainer from '../infrastructure/di-container.js';
 
-// === MODULAR BOOT ===
-import { boot, renderErrorUI } from '../boot-helpers/index.js';
-import { createCapsuleRuntime } from '../capsule/runtime.js';
-import CapsuleUI from '../ui/capsule/index.js';
+let sharedBootModulesPromise = null;
+let absoluteZeroModulesPromise = null;
+
+const loadSharedBootModules = async () => {
+  if (!sharedBootModulesPromise) {
+    sharedBootModulesPromise = Promise.all([
+      import('../boot-helpers/index.js'),
+      import('../infrastructure/di-container.js')
+    ]).then(([bootHelpers, diContainer]) => ({
+      boot: bootHelpers.boot,
+      renderErrorUI: bootHelpers.renderErrorUI,
+      DIContainer: diContainer.default || diContainer
+    }));
+  }
+  return sharedBootModulesPromise;
+};
+
+const loadAbsoluteZeroModules = async () => {
+  if (!absoluteZeroModulesPromise) {
+    absoluteZeroModulesPromise = Promise.all([
+      import('../capsule/runtime.js'),
+      import('../ui/capsule/index.js')
+    ]).then(([runtimeMod, capsuleUiMod]) => ({
+      createCapsuleRuntime: runtimeMod.createCapsuleRuntime,
+      CapsuleUI: capsuleUiMod.default || capsuleUiMod
+    }));
+  }
+  return absoluteZeroModulesPromise;
+};
+
+window.preloadAbsoluteZeroModules = loadAbsoluteZeroModules;
+
+const renderBootFailure = async (err) => {
+  console.error('[Boot] CRITICAL BOOT FAILURE', err);
+  try {
+    const { renderErrorUI } = await loadSharedBootModules();
+    renderErrorUI(err);
+    return;
+  } catch (fallbackErr) {
+    console.error('[Boot] Error UI fallback failed', fallbackErr);
+  }
+
+  const mount = document.getElementById('wizard-container') || document.body;
+  if (!mount) return;
+
+  const box = document.createElement('div');
+  box.className = 'error-ui border-error';
+  box.innerHTML = `
+    <div class="error-ui-header">Boot failed</div>
+    <div class="error-ui-message">${String(err?.message || err || 'Unknown boot failure')}</div>
+  `;
+  mount.appendChild(box);
+};
 
 /**
  * Parse models from localStorage with fallback
@@ -243,6 +291,8 @@ async function completeAbsoluteZeroAwaken(goal, wizardContainer) {
     throw new Error('Missing #app container');
   }
 
+  const { createCapsuleRuntime, CapsuleUI } = await loadAbsoluteZeroModules();
+
   if (wizardContainer) wizardContainer.remove();
   document.body.classList.add('no-grid-pattern');
   appEl.classList.add('active');
@@ -297,13 +347,35 @@ async function completeAbsoluteZeroAwaken(goal, wizardContainer) {
 
 (async () => {
   try {
-    // Show wizard FIRST, before boot
-    const { initWizard: initWizardUI } = await import('../ui/boot-wizard/index.js');
+    const runtimeMode = typeof window.getReploidMode === 'function'
+      ? window.getReploidMode()
+      : 'absolute_zero';
+    const bootProfile = typeof window.getReploidBootProfile === 'function'
+      ? window.getReploidBootProfile()
+      : 'wizard';
+    const useLockedRouteHome = bootProfile !== 'wizard';
+
+    // Show the appropriate boot UI first, before awaken.
     const wizardContainer = document.getElementById('wizard-container');
 
     if (wizardContainer) {
       wizardContainer.style.display = 'block';
-      initWizardUI(wizardContainer);
+      if (useLockedRouteHome) {
+        const { initLockedBootHome } = await import('../ui/boot-home/index.js');
+        initLockedBootHome(wizardContainer, runtimeMode);
+        if (runtimeMode === 'absolute_zero') {
+          loadAbsoluteZeroModules().catch((err) => {
+            console.warn('[Boot] Failed to prewarm Absolute Zero modules:', err?.message || err);
+          });
+        } else {
+          loadSharedBootModules().catch((err) => {
+            console.warn('[Boot] Failed to prewarm shared boot modules:', err?.message || err);
+          });
+        }
+      } else {
+        const { initWizard: initWizardUI } = await import('../ui/boot-wizard/index.js');
+        initWizardUI(wizardContainer);
+      }
     }
 
     // Expose awaken trigger - this runs boot() when user clicks Awaken
@@ -326,16 +398,20 @@ async function completeAbsoluteZeroAwaken(goal, wizardContainer) {
         }
 
         // NOW run the boot sequence
+        const { boot, renderErrorUI, DIContainer } = await loadSharedBootModules();
         const bootResult = await boot(Utils, DIContainer);
         await completeAwaken(bootResult, goal, wizardContainer);
       } catch (err) {
-        console.error('[Boot] CRITICAL BOOT FAILURE', err);
-        renderErrorUI(err);
+        const shared = await loadSharedBootModules().catch(() => null);
+        if (shared?.renderErrorUI) {
+          shared.renderErrorUI(err);
+          return;
+        }
+        await renderBootFailure(err);
       }
     };
 
   } catch (err) {
-    console.error('[Boot] CRITICAL BOOT FAILURE', err);
-    renderErrorUI(err);
+    await renderBootFailure(err);
   }
 })();

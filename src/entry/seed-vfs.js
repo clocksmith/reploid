@@ -8,6 +8,46 @@ import { pickBootSeedFiles } from '../config/boot-seed.js';
 const log = (...args) => console.log('[Bootstrap]', ...args);
 const warn = (...args) => console.warn('[Bootstrap]', ...args);
 const error = (...args) => console.error('[Bootstrap]', ...args);
+const BOOTSTRAP_STATUS_ID = 'bootstrap-status-copy';
+const BOOTSTRAP_STAGE_COPY = Object.freeze({
+  starting: 'Preparing browser substrate.',
+  service_worker: 'Preparing service worker.',
+  'service_worker:register': 'Registering service worker.',
+  'service_worker:ready': 'Waiting for service worker readiness.',
+  'service_worker:control': 'Checking service worker control.',
+  vfs_version: 'Checking VFS version.',
+  manifest: 'Loading VFS manifest.',
+  seed_boot: 'Seeding the minimal boot payload.',
+  seed_background: 'Scheduling the full VFS hydration.',
+  start_app: 'Loading the boot interface.',
+  ready: 'Boot interface ready.'
+});
+
+const renderBootstrapLoading = () => {
+  const wizardContainer = document.getElementById('wizard-container');
+  if (!wizardContainer) return;
+  wizardContainer.style.display = 'block';
+  wizardContainer.innerHTML = `
+    <div class="wizard-sections wizard-sections-home">
+      <div class="wizard-step wizard-stage-placeholder">
+        <div class="goal-header">
+          <h2 class="type-h1">Booting Reploid</h2>
+          <p class="type-caption" id="${BOOTSTRAP_STATUS_ID}">${BOOTSTRAP_STAGE_COPY.starting}</p>
+        </div>
+      </div>
+    </div>
+  `;
+};
+
+const setBootstrapStage = (stage) => {
+  if (typeof window !== 'undefined') {
+    window.REPLOID_BOOTSTRAP_STAGE = stage;
+  }
+  const statusEl = document.getElementById(BOOTSTRAP_STATUS_ID);
+  if (statusEl) {
+    statusEl.textContent = BOOTSTRAP_STAGE_COPY[stage] || stage;
+  }
+};
 
 const scheduleIdle = (fn) => {
   if (typeof window !== 'undefined' && typeof window.requestIdleCallback === 'function') {
@@ -20,7 +60,11 @@ const scheduleIdle = (fn) => {
 
 const renderBootstrapError = (err) => {
   error('Boot failed:', err);
-  const container = document.getElementById('wizard-container') || document.body;
+  const wizardContainer = document.getElementById('wizard-container');
+  if (wizardContainer) {
+    wizardContainer.style.display = 'block';
+  }
+  const container = wizardContainer || document.body;
   const box = document.createElement('div');
   box.className = 'error-ui border-error';
   const header = document.createElement('div');
@@ -34,9 +78,67 @@ const renderBootstrapError = (err) => {
   container.appendChild(box);
 };
 
+const loadStartApp = async () => {
+  const version = (typeof window !== 'undefined' && window.REPLOID_VFS_VERSION)
+    ? `?v=${encodeURIComponent(window.REPLOID_VFS_VERSION)}`
+    : '';
+  const candidates = ['/entry/start-app.js', '/src/entry/start-app.js'];
+  let lastError = null;
+
+  for (const path of candidates) {
+    try {
+      return await import(`${path}${version}`);
+    } catch (err) {
+      lastError = err;
+    }
+  }
+
+  throw lastError || new Error('Failed to load start-app.js');
+};
+
 const SW_CONTROL_RELOAD_KEY = 'REPLOID_SW_CONTROL_RELOAD';
 const VFS_VERSION_KEY = 'REPLOID_VFS_VERSION';
 const SW_CONTROL_WAIT_MS = 1500;
+const SW_READY_WAIT_MS = 3000;
+const SW_REGISTER_WAIT_MS = 3000;
+
+const waitForServiceWorkerRegister = async (url, options = {}, timeoutMs = SW_REGISTER_WAIT_MS) => new Promise((resolve) => {
+  let settled = false;
+
+  const finish = (value) => {
+    if (settled) return;
+    settled = true;
+    clearTimeout(timeoutId);
+    resolve(value);
+  };
+
+  const timeoutId = setTimeout(() => finish(null), timeoutMs);
+
+  navigator.serviceWorker.register(url, options)
+    .then((registration) => finish(registration))
+    .catch(() => finish(null));
+});
+
+const waitForServiceWorkerReady = async (timeoutMs = SW_READY_WAIT_MS) => {
+  if (!('serviceWorker' in navigator)) return false;
+
+  return new Promise((resolve) => {
+    let settled = false;
+
+    const finish = (value) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timeoutId);
+      resolve(value);
+    };
+
+    const timeoutId = setTimeout(() => finish(false), timeoutMs);
+
+    navigator.serviceWorker.ready
+      .then(() => finish(true))
+      .catch(() => finish(false));
+  });
+};
 
 const waitForServiceWorkerControl = async (timeoutMs = SW_CONTROL_WAIT_MS) => {
   if (navigator.serviceWorker.controller) return true;
@@ -66,16 +168,31 @@ const waitForServiceWorkerControl = async (timeoutMs = SW_CONTROL_WAIT_MS) => {
 
 const ensureServiceWorker = async () => {
   if (!('serviceWorker' in navigator)) {
-    throw new Error('Service workers are required for VFS boot');
+    window.REPLOID_SW_CONTROLLED = false;
+    window.REPLOID_SW_DEGRADED = true;
+    warn('Service workers are unavailable. Continuing with network-backed bootstrap.');
+    return null;
   }
+  setBootstrapStage('service_worker:register');
   const version = (typeof window !== 'undefined' && window.REPLOID_SW_VERSION)
     ? window.REPLOID_SW_VERSION
     : null;
   const swUrl = version
     ? `/sw-module-loader.js?v=${encodeURIComponent(version)}`
     : '/sw-module-loader.js';
-  const reg = await navigator.serviceWorker.register(swUrl, { scope: '/' });
-  await navigator.serviceWorker.ready;
+  const reg = await waitForServiceWorkerRegister(swUrl, { scope: '/' });
+  if (!reg) {
+    window.REPLOID_SW_CONTROLLED = false;
+    window.REPLOID_SW_DEGRADED = true;
+    warn('Service worker registration timed out. Continuing with network-backed bootstrap; VFS hot-reload may require a later refresh.');
+    return null;
+  }
+  setBootstrapStage('service_worker:ready');
+  const ready = await waitForServiceWorkerReady();
+  if (!ready) {
+    warn('Service worker readiness timed out. Continuing while checking for control.');
+  }
+  setBootstrapStage('service_worker:control');
   const hasController = await waitForServiceWorkerControl();
   window.REPLOID_SW_CONTROLLED = hasController;
 
@@ -128,11 +245,16 @@ const maybeFullReset = async () => {
 
 (async () => {
   try {
+    renderBootstrapLoading();
+    setBootstrapStage('starting');
     await maybeFullReset();
 
+    setBootstrapStage('service_worker');
     await ensureServiceWorker();
+    setBootstrapStage('vfs_version');
     const vfsReset = await ensureVfsVersion();
 
+    setBootstrapStage('manifest');
     const { manifest, text } = await loadVfsManifest();
     const preserveOnBoot = !vfsReset && localStorage.getItem('REPLOID_PRESERVE_ON_BOOT') === 'true';
     const bootFiles = pickBootSeedFiles(manifest?.files || []);
@@ -140,16 +262,8 @@ const maybeFullReset = async () => {
       throw new Error('Boot seed manifest is empty');
     }
 
-    log(`Seeding boot VFS set (${bootFiles.length} files)...`);
-    await seedVfsFromManifest(
-      { files: bootFiles },
-      { preserveOnBoot, logger: console, manifestText: text, fetchConcurrency: 6 }
-    );
-
-    // Seed the rest of Reploid in the background so Awaken won't hit SW 404s.
-    // triggerAwaken awaits this promise before running boot().
     const skipBootVfsPaths = new Set(bootFiles.map((p) => (p.startsWith('/') ? p : `/${p}`)));
-    window.REPLOID_VFS_FULL_SEED_PROMISE = scheduleIdle(async () => {
+    const scheduleFullSeed = () => scheduleIdle(async () => {
       try {
         log(`Background seeding full VFS set (${(manifest?.files || []).length} files)...`);
         return await seedVfsFromManifest(
@@ -159,7 +273,7 @@ const maybeFullReset = async () => {
             logger: console,
             manifestText: text,
             skipVfsPaths: skipBootVfsPaths,
-            fetchConcurrency: 3
+            fetchConcurrency: 6
           }
         );
       } catch (e) {
@@ -168,9 +282,24 @@ const maybeFullReset = async () => {
       }
     });
 
+    log(`Seeding boot VFS set (${bootFiles.length} files)...`);
+    setBootstrapStage('seed_boot');
+    await seedVfsFromManifest(
+      { files: bootFiles },
+      { preserveOnBoot, logger: console, manifestText: text, fetchConcurrency: 16 }
+    );
+
+    // Seed the rest of Reploid in the background so Awaken won't hit SW 404s.
+    // triggerAwaken awaits this promise before running boot().
+    setBootstrapStage('seed_background');
+    window.REPLOID_VFS_FULL_SEED_PROMISE = scheduleFullSeed();
+
     log('Loading start-app.js from VFS...');
-    await import('./start-app.js');
+    setBootstrapStage('start_app');
+    await loadStartApp();
+    setBootstrapStage('ready');
   } catch (err) {
+    setBootstrapStage(`error:${err?.message || err}`);
     renderBootstrapError(err);
   }
 })();

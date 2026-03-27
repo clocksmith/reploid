@@ -125,6 +125,10 @@
   margin-top: var(--space-md);
 }
 
+.goal-header + .connection-options {
+  margin-top: var(--space-md);
+}
+
 .wizard-brand {
   text-align: left;
   display: flex;

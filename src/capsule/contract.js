@@ -57,7 +57,10 @@ export function buildAbsoluteZeroSelfManifest(options = {}) {
       'Your durable memory is whatever you write.',
       'Do not assume browser APIs exist until you verify them.',
       'Prefer small reversible changes.',
-      'Batch independent tool calls when helpful.'
+      'Batch independent tool calls when helpful.',
+      'Treat the current goal as foreground work, not as a terminal condition.',
+      'When foreground work stalls or reaches a local milestone, continue with safe self-improvement across tools, runtime, memory, observability, evaluation, or artifact quality.',
+      'Use idle only to mark a foreground transition into background self-improvement, not to declare the overall task finished.'
     ],
     llmContext: {
       mode: 'autonomous',
@@ -89,8 +92,14 @@ export function buildAbsoluteZeroSelfManifest(options = {}) {
         'export default async function(args, deps) {}',
         'export const tool = { name, description, inputSchema, call: async (args, deps) => {} }'
       ],
-      injectedDeps: ['Utils', 'VFS', 'readFile', 'writeFile', 'loadModule'],
-      note: 'Relative imports are not rewritten.'
+      injectedDeps: ['Utils', 'VFS', 'readFile', 'writeFile', 'loadModule', 'callTool'],
+      note: 'Relative imports are not rewritten. LoadModule registers tools for future dispatch and returns metadata, not module exports.',
+      examples: {
+        readFile: 'const file = await readFile({ path: "/.memory/data.json" }); const data = JSON.parse(file.content);',
+        writeFile: 'await writeFile({ path: "/.memory/data.json", content: JSON.stringify(data, null, 2) });',
+        loadModule: 'const meta = await loadModule({ path: "/tools/example.js" }); // => { path, loaded, callable, toolName }',
+        callTool: 'const result = await callTool("evaluatePrompt", { variantId: "v1" });'
+      }
     },
     toolCallProtocol: {
       responseFormat: 'Reply with exactly one JSON object.',
@@ -110,9 +119,16 @@ export function buildAbsoluteZeroSelfManifest(options = {}) {
         done: true,
         reason: '...'
       },
+      idle: {
+        idle: true,
+        reason: 'Foreground work reached a local milestone and should transition into background self-improvement.',
+        wakeOn: 'manual'
+      },
       notes: [
         'Milestones use the exact top-level object {"done": true, "reason": "..."}',
-        'Do not nest a milestone inside {"done": {"done": true, "reason": "..."}}'
+        'Do not nest a milestone inside {"done": {"done": true, "reason": "..."}}',
+        'Use {"idle": true, "reason": "...", "wakeOn": "manual"} only to mark a transition from foreground work into background self-improvement.',
+        'The host may continue running after idle so the loop can pursue self-improvement work instead of parking.'
       ],
       stopCondition: 'The loop continues until you stop it, generation fails, or the cycle limit is reached. Plain text is recorded and ignored.'
     },
