@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-03-26T17:10:23.633Z",
+  "generatedAt": "2026-03-27T01:03:23.080Z",
   "files": [
     "audit.html",
     "blueprints/0x000000-reploid-genesis.md",
@@ -377,6 +377,7 @@
     "tools/WriteFile.js",
     "tools/git.js",
     "ui/UI.js",
+    "ui/boot-home/index.js",
     "ui/boot-wizard/detection.js",
     "ui/boot-wizard/goals.js",
     "ui/boot-wizard/index.js",

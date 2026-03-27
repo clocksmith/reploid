@@ -10,7 +10,8 @@ const TEMPLATE_DEFINITIONS = [
     text: [
       'Files persist in VFS.',
       'Visible tools: ReadFile, WriteFile, LoadModule.',
-      'Do not assume any other capability exists until you verify it.'
+      'Do not assume any other capability exists until you verify it.',
+      'When foreground work stalls or reaches a local milestone, continue with safe self-improvement instead of treating the task as finished.'
     ].join('\n')
   },
   {
@@ -21,7 +22,8 @@ const TEMPLATE_DEFINITIONS = [
       'Files persist in VFS.',
       'OPFS can store larger blobs and binary artifacts.',
       'Writable roots: /kernel, /tools, /.memory, /artifacts, and opfs:/artifacts.',
-      'Visible tools: ReadFile, WriteFile, LoadModule.'
+      'Visible tools: ReadFile, WriteFile, LoadModule.',
+      'When foreground work stalls or reaches a local milestone, continue with safe self-improvement instead of treating the task as finished.'
     ].join('\n')
   },
   {
@@ -32,7 +34,8 @@ const TEMPLATE_DEFINITIONS = [
       'Files persist in VFS.',
       'Writable roots: /kernel, /tools, /.memory, /artifacts, and opfs:/artifacts.',
       'LoadModule can load a VFS JavaScript module and register callable tool exports.',
-      'Put reusable tools under /tools and durable notes under /.memory.'
+      'Put reusable tools under /tools and durable notes under /.memory.',
+      'When foreground work stalls or reaches a local milestone, continue with safe self-improvement instead of treating the task as finished.'
     ].join('\n')
   },
   {
@@ -43,7 +46,8 @@ const TEMPLATE_DEFINITIONS = [
       'Files persist in VFS and OPFS can store larger artifacts.',
       'Writable roots: /kernel, /tools, /.memory, /artifacts, and opfs:/artifacts.',
       'LoadModule can load a VFS JavaScript module and register callable tool exports.',
-      'Browser APIs such as DOM, fetch, workers, canvas, iframes, storage, and WebGPU may exist; verify them before relying on them.'
+      'Browser APIs such as DOM, fetch, workers, canvas, iframes, storage, and WebGPU may exist; verify them before relying on them.',
+      'When foreground work stalls or reaches a local milestone, continue with safe self-improvement instead of treating the task as finished.'
     ].join('\n')
   },
   {
@@ -55,7 +59,8 @@ const TEMPLATE_DEFINITIONS = [
       'Writable roots: /kernel, /tools, /.memory, /artifacts, and opfs:/artifacts.',
       'LoadModule can load a VFS JavaScript module and register callable tool exports.',
       'Prefer small reversible changes, write narrow task-specific tools, keep notes under /.memory, and place outputs under /artifacts or opfs:/artifacts.',
-      'Browser APIs may exist, but verify them before relying on them.'
+      'Browser APIs may exist, but verify them before relying on them.',
+      'When foreground work stalls or reaches a local milestone, continue with safe self-improvement instead of treating the task as finished.'
     ].join('\n')
   }
 ];

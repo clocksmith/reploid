@@ -222,8 +222,9 @@ const buildAbsoluteZeroBrowserData = (state) => {
 /**
  * Render GOAL step
  */
-export function renderGoalStep(state) {
+export function renderGoalStep(state, options = {}) {
   const levelsDocUrl = 'https://github.com/clocksmith/reploid/blob/main/docs/RSI-LEVELS.md';
+  const hideBootInternals = options.hideBootInternals === true;
   const shuffleSeed = Number(state.goalShuffleSeed) || 0;
   const entries = sortGoalEntriesByLevel(getGoalEntries(shuffleSeed));
   const goalValue = state.goal || '';
@@ -236,10 +237,10 @@ export function renderGoalStep(state) {
   const showAbsoluteZeroEnvironment = state.mode === 'absolute_zero';
   const bootPayload = state.bootPayload || {};
   const explorer = showAbsoluteZeroEnvironment ? buildAbsoluteZeroBrowserData(state) : null;
-  const goalTitle = showAbsoluteZeroEnvironment ? 'Compose substrate' : 'Set a goal';
-  const goalCaption = showAbsoluteZeroEnvironment
+  const goalTitle = options.title || (showAbsoluteZeroEnvironment ? 'Compose substrate' : 'Set a goal');
+  const goalCaption = options.caption || (showAbsoluteZeroEnvironment
     ? 'Absolute Zero defaults to the contract-visible substrate only. Bootstrap internals stay tucked behind a debug disclosure.'
-    : 'Set the first goal the runtime should pursue.';
+    : 'Set the first goal the runtime should pursue.');
   const currentGoalMeta = findGoalMeta(goalValue);
   const fallbackCategory = entries[0]?.[0] || '';
   const selectedGoalCategory = entries.some(([category]) => category === state.selectedGoalCategory)
@@ -413,7 +414,7 @@ export function renderGoalStep(state) {
         </aside>
       ` : ''}
 
-      ${showAbsoluteZeroEnvironment ? `
+      ${showAbsoluteZeroEnvironment && !hideBootInternals ? `
         <details class="panel boot-debug-panel">
           <summary class="boot-manifest-summary">Bootstrap internals: ${bootPayload.bootFiles?.length || 0} preload / ${bootPayload.manifestFiles?.length || 0} manifest</summary>
           ${bootPayload.loading ? `

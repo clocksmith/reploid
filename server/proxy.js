@@ -1265,7 +1265,7 @@ app.use((req, res, next) => {
 });
 
 // Main routes
-app.get('/', (req, res) => {
+app.get(['/', '/0', '/x'], (req, res) => {
   res.sendFile(path.join(__dirname, '..', 'src', 'index.html'));
 });
 

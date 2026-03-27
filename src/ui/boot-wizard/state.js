@@ -63,7 +63,18 @@ export const PROVIDER_TEST_ENDPOINTS = {
 };
 
 const getStoredMode = () => {
+  if (typeof window !== 'undefined' && typeof window.getReploidRouteMode === 'function') {
+    const routeMode = normalizeBootMode(window.getReploidRouteMode(), '');
+    if (routeMode) return routeMode;
+  }
   return DEFAULT_BOOT_MODE;
+};
+
+const getRouteLockedMode = () => {
+  if (typeof window === 'undefined' || typeof window.getReploidRouteMode !== 'function') {
+    return null;
+  }
+  return normalizeBootMode(window.getReploidRouteMode(), '');
 };
 
 const getStoredAdvancedConfig = () => {
@@ -166,6 +177,7 @@ const getStoredIncludeHostWithinSelf = () => {
 const defaultState = {
   currentStep: STEPS.START,
   mode: getStoredMode(),
+  routeLockedMode: getRouteLockedMode(),
 
   // Detection results
   detection: {
@@ -312,6 +324,7 @@ export function resetWizard() {
   state = {
     ...defaultState,
     mode: storedMode,
+    routeLockedMode: getRouteLockedMode(),
     genesisLevel: getDefaultGenesisLevelForMode(storedMode),
     advancedOpen: false,
     advancedConfig: getStoredAdvancedConfig(),
