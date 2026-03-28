@@ -12,7 +12,12 @@ vi.mock('../../src/core/utils.js', () => ({
         info: vi.fn(),
         warn: vi.fn(),
         error: vi.fn()
-      }
+      },
+      generateId: (prefix = 'id') => `${prefix}_test`,
+      createSubscriptionTracker: () => ({
+        track: vi.fn(),
+        unsubscribeAll: vi.fn()
+      })
     })
   }
 }));
@@ -50,9 +55,9 @@ vi.mock('../../src/boot-helpers/vfs-bootstrap.js', () => ({
   listVfsKeys: async () => Array.from(fileStore.keys())
 }));
 
-import { createCapsuleHost } from '../../src/capsule/host.js';
+import { createSelfBridge } from '../../src/self/bridge.js';
 
-describe('Capsule Host', () => {
+describe('Self Bridge', () => {
   beforeEach(() => {
     fileStore.clear();
     mockChat.mockReset();
@@ -97,7 +102,7 @@ describe('Capsule Host', () => {
       throw new Error(`Unexpected module path: ${path}`);
     });
 
-    const host = createCapsuleHost({
+    const host = createSelfBridge({
       modelConfig: {
         id: 'test-model',
         provider: 'webllm'
@@ -124,6 +129,75 @@ describe('Capsule Host', () => {
           status: 'completed'
         }
       ])
+    );
+  });
+
+  it('routes generation through a remote swarm provider when no local model exists', async () => {
+    const transportHandlers = new Map();
+    const swarmTransport = {
+      init: vi.fn(async () => true),
+      onMessage: vi.fn((type, handler) => {
+        transportHandlers.set(type, handler);
+      }),
+      sendToPeer: vi.fn((peerId, type, payload) => {
+        if (type === 'reploid:generation-request') {
+          setTimeout(() => {
+            transportHandlers.get('reploid:generation-update')?.(peerId, {
+              requestId: payload.requestId,
+              chunk: 'remote partial'
+            });
+            transportHandlers.get('reploid:generation-result')?.(peerId, {
+              requestId: payload.requestId,
+              response: {
+                content: 'remote final',
+                raw: 'remote final',
+                model: 'gemini-3.1-flash-lite-preview',
+                provider: 'gemini'
+              }
+            });
+          }, 0);
+        }
+        return true;
+      }),
+      broadcast: vi.fn(() => 1),
+      getConnectionState: vi.fn(() => 'connected'),
+      getTransportType: vi.fn(() => 'mock')
+    };
+
+    const bridge = createSelfBridge({
+      swarmEnabled: true,
+      swarmTransport
+    });
+
+    await bridge.initialize();
+    transportHandlers.get('reploid:peer-advertisement')?.('peer-provider', {
+      peerId: 'peer-provider',
+      role: 'provider',
+      swarmEnabled: true,
+      hasInference: true,
+      capabilities: ['generation'],
+      contribution: {
+        score: 2,
+        uniquePeers: []
+      }
+    });
+
+    const updates = [];
+    const result = await bridge.generate(
+      [{ role: 'user', content: 'Say hello' }],
+      (chunk) => updates.push(chunk)
+    );
+
+    expect(bridge.hasAvailableProvider()).toBe(true);
+    expect(result.content).toBe('remote final');
+    expect(updates).toEqual(['remote partial']);
+    expect(swarmTransport.sendToPeer).toHaveBeenCalledWith(
+      'peer-provider',
+      'reploid:generation-request',
+      expect.objectContaining({
+        consumer: expect.stringMatching(/^peer:/),
+        messages: [{ role: 'user', content: 'Say hello' }]
+      })
     );
   });
 });

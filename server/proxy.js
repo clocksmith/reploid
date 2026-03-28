@@ -27,11 +27,11 @@ process.on('unhandledRejection', (reason, promise) => {
 const rateLimiter = {
   requests: new Map(),
   windowMs: 1000,  // 1 second window
-  maxRequests: 5,  // max 5 requests per second per origin
-  check(origin) {
+  maxRequests: 5,  // max 5 requests per second per client bucket
+  check(key) {
     const now = Date.now();
-    const key = origin || 'unknown';
-    const data = this.requests.get(key) || { count: 0, resetAt: now + this.windowMs };
+    const bucketKey = key || 'unknown';
+    const data = this.requests.get(bucketKey) || { count: 0, resetAt: now + this.windowMs };
 
     if (now > data.resetAt) {
       data.count = 0;
@@ -39,10 +39,32 @@ const rateLimiter = {
     }
 
     data.count++;
-    this.requests.set(key, data);
+    this.requests.set(bucketKey, data);
 
     return data.count <= this.maxRequests;
   }
+};
+
+const getRateLimitKey = (req) => {
+  const clientId = req.headers['x-reploid-client-id'];
+  if (typeof clientId === 'string' && clientId.trim()) {
+    return `client:${clientId.trim()}`;
+  }
+
+  const forwarded = req.headers['x-forwarded-for'];
+  if (typeof forwarded === 'string' && forwarded.trim()) {
+    return `ip:${forwarded.split(',')[0].trim()}`;
+  }
+
+  if (req.ip) {
+    return `ip:${req.ip}`;
+  }
+
+  if (req.headers.origin) {
+    return `origin:${req.headers.origin}`;
+  }
+
+  return 'unknown';
 };
 
 const execPromise = promisify(exec);
@@ -407,7 +429,7 @@ app.use((req, res, next) => {
       res.header('Access-Control-Allow-Origin', CORS_ORIGINS[0]);
     }
     res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Cache-Control');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Cache-Control, X-Reploid-Client-Id');
     res.header('Access-Control-Allow-Credentials', 'true');
     if (req.method === 'OPTIONS') {
       return res.sendStatus(200);
@@ -681,11 +703,11 @@ app.post('/api/huggingface/models/:model(*)', async (req, res) => {
 // Unified chat endpoint (routes to appropriate provider)
 app.post('/api/chat', async (req, res) => {
   const requestId = Math.random().toString(36).substring(7);
-  const origin = req.headers.origin || req.ip;
+  const rateLimitKey = getRateLimitKey(req);
 
   // Rate limiting check
-  if (!rateLimiter.check(origin)) {
-    console.log(`[API Chat ${requestId}] Rate limited: ${origin}`);
+  if (!rateLimiter.check(rateLimitKey)) {
+    console.log(`[API Chat ${requestId}] Rate limited: ${rateLimitKey}`);
     return res.status(429).json({
       error: 'Too many requests. Please slow down.',
       retryAfter: 1

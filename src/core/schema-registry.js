@@ -29,11 +29,11 @@ const SchemaRegistry = {
       }
       if (typeof localStorage !== 'undefined') {
         const stored = localStorage.getItem('REPLOID_MODE');
-        if (stored === 'absolute_zero' || stored === 'zero' || stored === 'x') {
+        if (stored === 'reploid' || stored === 'zero' || stored === 'x') {
           return stored;
         }
       }
-      return 'absolute_zero';
+      return 'reploid';
     };
 
     // Tool schemas with readOnly flag for parallel execution
@@ -537,7 +537,7 @@ const SchemaRegistry = {
     };
 
     const init = async () => {
-      const builtinTools = getBootMode() === 'absolute_zero'
+      const builtinTools = getBootMode() === 'reploid'
         ? ['ReadFile', 'WriteFile', 'LoadModule']
         : ['ReadFile', 'WriteFile', 'EditFile', 'ListFiles', 'DeleteFile', 'CreateTool', 'ListTools', 'LoadModule'];
 

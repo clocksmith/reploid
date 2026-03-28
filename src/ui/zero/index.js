@@ -24,7 +24,7 @@ const ZeroUI = {
     let _models = [];
 
     const getModeLabel = () => {
-      if (mode === 'absolute_zero') return 'Absolute Zero';
+      if (mode === 'reploid') return 'Reploid';
       if (mode === 'zero') return 'Zero';
       return 'X';
     };

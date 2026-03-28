@@ -12,6 +12,10 @@ const MESSAGE_TYPES = new Set([
   'sync-request', 'sync-response',
   'goal-update', 'reflection-share',
   'artifact-announce', 'artifact-request', 'artifact-chunk', 'artifact-ack',
+  'reploid:peer-advertisement',
+  'reploid:generation-request', 'reploid:generation-update',
+  'reploid:generation-result', 'reploid:generation-error',
+  'reploid:receipt',
   'ping', 'pong', 'peer-announce', 'peer-leave',
   'raft:request-vote', 'raft:request-vote-response',
   'raft:append-entries', 'raft:append-entries-response',
@@ -76,7 +80,7 @@ const SwarmTransport = {
      * Get room ID from URL param or default
      */
     const getRoomId = () => {
-      if (typeof window === 'undefined') return 'reploid-swarm-default';
+      if (typeof window === 'undefined') return 'reploid-swarm-public';
 
       const urlParams = new URLSearchParams(window.location.search);
       const swarmParam = urlParams.get('swarm');
@@ -85,8 +89,15 @@ const SwarmTransport = {
         return `reploid-swarm-${swarmParam}`;
       }
 
-      // Default room for same-browser tabs
-      return 'reploid-swarm-local';
+      const storedRoom = window.localStorage?.getItem('REPLOID_SWARM_ROOM');
+      if (storedRoom && typeof storedRoom === 'string') {
+        const normalized = storedRoom.trim();
+        if (normalized) {
+          return `reploid-swarm-${normalized}`;
+        }
+      }
+
+      return 'reploid-swarm-public';
     };
 
     /**
@@ -267,6 +278,7 @@ const SwarmTransport = {
 
       // Ignore messages for other rooms
       if (data.roomId && data.roomId !== _roomId) return;
+      if (data.targetPeer && data.targetPeer !== _peerId) return;
 
       // Update peer tracking
       _peers.set(data.peerId, { lastSeen: Date.now(), metadata: {} });
@@ -302,19 +314,27 @@ const SwarmTransport = {
     const initWebRTC = async () => {
       _transport = 'webrtc';
 
-      // WebRTCSwarm should already be initialized by entry/start-app.js
-      // We just need to wire up our handlers
       try {
-        // Import dynamically to avoid circular dependency
         const container = window.__REPLOID_CONTAINER__;
         if (container) {
           _webrtcSwarm = await container.resolve('WebRTCSwarm');
+        } else {
+          const module = await import('./webrtc-swarm.js');
+          _webrtcSwarm = module.default.factory({ Utils, EventBus });
+          const initialized = await _webrtcSwarm.init();
+          if (!initialized) {
+            _webrtcSwarm = null;
+            return false;
+          }
+        }
 
-          // Mirror state from WebRTCSwarm
+        if (_webrtcSwarm) {
           _peerId = _webrtcSwarm._getPeerId();
           _connectionState = _webrtcSwarm.getConnectionState();
-
-          logger.info(`[SwarmTransport] Using WebRTC transport via WebRTCSwarm`);
+          for (const [type, handler] of _messageHandlers.entries()) {
+            _webrtcSwarm.onMessage(type, handler);
+          }
+          logger.info('[SwarmTransport] Using WebRTC transport via WebRTCSwarm');
           return true;
         }
       } catch (e) {

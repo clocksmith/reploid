@@ -4,14 +4,19 @@
 
 import { findGoalMeta, getGoalEntries } from '../goals.js';
 import {
-  ABSOLUTE_ZERO_HOST_SOURCE_MIRRORS,
-  ABSOLUTE_ZERO_SELF_SOURCE_MIRRORS,
-  buildAbsoluteZeroSystemFiles
-} from '../../../capsule/contract.js';
-import { listAbsoluteZeroEnvironmentTemplates } from '../../../config/absolute-zero-environments.js';
+  BOOTSTRAPPER_SOURCE_MIRRORS,
+  SELF_SOURCE_MIRRORS,
+  buildSelfFiles,
+  listSelfSeedPaths
+} from '../../../self/manifest.js';
+import { listReploidEnvironmentTemplates } from '../../../config/reploid-environments.js';
+import { getReploidLaunchState } from '../reploid-inference.js';
 
-const DEFAULT_ABSOLUTE_ZERO_PATH = '/.system/self.json';
-const ABSOLUTE_ZERO_WRITABLE_ROOTS = Object.freeze([
+const DEFAULT_SELF_PATH = '/.system/self.json';
+const SELF_WRITABLE_ROOTS = Object.freeze([
+  '/.system',
+  '/self',
+  '/capsule',
   '/tools',
   '/.memory',
   '/artifacts'
@@ -123,7 +128,7 @@ const renderTreeNodes = (nodes, activePath, depth = 0) => nodes.map((node) => {
     <div class="seed-tree-node seed-tree-node-${node.type}">
       <button class="seed-tree-item${selected}"
               type="button"
-              data-action="select-absolute-zero-path"
+              data-action="select-self-path"
               data-path="${escapeAttr(node.path)}"
               data-depth="${depth}"
               aria-pressed="${selected ? 'true' : 'false'}">
@@ -145,16 +150,38 @@ const listImmediateChildren = (dirPath, allPaths) => {
     .sort();
 };
 
-const buildAbsoluteZeroBrowserData = (state) => {
-  const systemFiles = buildAbsoluteZeroSystemFiles({
+const hasConfiguredInference = (state) => {
+  if (state.mode === 'reploid' && state.routeLockedMode === 'reploid') {
+    return getReploidLaunchState(state).hasInference;
+  }
+
+  if (state.connectionType === 'proxy') {
+    return !!(state.proxyConfig?.url && state.proxyConfig?.model);
+  }
+
+  if (state.connectionType === 'direct') {
+    return !!(state.directConfig?.provider && state.directConfig?.apiKey && state.directConfig?.model);
+  }
+
+  if (state.connectionType === 'browser') {
+    return !!state.dopplerConfig?.model;
+  }
+
+  return false;
+};
+
+const buildSelfBrowserData = (state) => {
+  const systemFiles = buildSelfFiles({
     goal: state.goal || '',
     environment: state.environment || '',
-    includeHostWithinSelf: !!state.includeHostWithinSelf
+    includeBootstrapperWithinSelf: !!state.includeBootstrapperWithinSelf,
+    swarmEnabled: !!state.swarmEnabled,
+    hasInference: hasConfiguredInference(state)
   });
   const mirrorPaths = [
-    ...ABSOLUTE_ZERO_SELF_SOURCE_MIRRORS.map(({ vfsPath }) => vfsPath),
-    ...(state.includeHostWithinSelf
-      ? ABSOLUTE_ZERO_HOST_SOURCE_MIRRORS.map(({ vfsPath }) => vfsPath)
+    ...SELF_SOURCE_MIRRORS.map(({ vfsPath }) => vfsPath),
+    ...(state.includeBootstrapperWithinSelf
+      ? BOOTSTRAPPER_SOURCE_MIRRORS.map(({ vfsPath }) => vfsPath)
       : [])
   ];
   const filePaths = [
@@ -162,15 +189,15 @@ const buildAbsoluteZeroBrowserData = (state) => {
     ...mirrorPaths
   ].sort();
   const directoryPaths = [
-    ...ABSOLUTE_ZERO_WRITABLE_ROOTS,
-    ...(state.includeHostWithinSelf ? ['/host'] : [])
+    ...SELF_WRITABLE_ROOTS,
+    ...(state.includeBootstrapperWithinSelf ? ['/bootstrapper'] : [])
   ];
   const allPaths = Array.from(new Set([...filePaths, ...directoryPaths])).sort();
   const treeNodes = buildPathTree(filePaths, directoryPaths);
-  const activePath = allPaths.includes(state.selectedAbsoluteZeroPath)
-    ? state.selectedAbsoluteZeroPath
-    : DEFAULT_ABSOLUTE_ZERO_PATH;
-  const preview = state.absoluteZeroPreview || {};
+  const activePath = allPaths.includes(state.selectedSelfPath)
+    ? state.selectedSelfPath
+    : DEFAULT_SELF_PATH;
+  const preview = state.selfPreview || {};
   const fileContents = {
     ...systemFiles,
     ...(preview.contents || {})
@@ -179,21 +206,27 @@ const buildAbsoluteZeroBrowserData = (state) => {
   const isDirectory = !filePaths.includes(activePath);
 
   let summary = 'Directory';
-  let source = 'Contract-visible root';
+  let source = 'Live self root';
   let content = '';
 
   if (activePath in systemFiles) {
     summary = 'Generated file';
-    source = 'Generated at awaken from the current Goal, Environment, and contract.';
+    source = 'Generated at awaken as the live self manifest.';
     content = systemFiles[activePath];
-  } else if (activePath.startsWith('/kernel/')) {
+  } else if (activePath.startsWith('/self/') || activePath.startsWith('/capsule/')) {
     summary = 'Mirrored source';
-    source = 'Mirrored from the capsule self source.';
+    source = 'Mirrored from the Reploid self source.';
     content = fileContents[activePath] || (preview.loadingSelf ? '(Loading preview...)' : '(Preview unavailable)');
-  } else if (activePath.startsWith('/host/')) {
+  } else if (activePath.startsWith('/bootstrapper/')) {
     summary = 'Mirrored source';
-    source = 'Mirrored from host source because "Include host within self" is enabled.';
-    content = fileContents[activePath] || (preview.loadingHost ? '(Loading preview...)' : '(Preview unavailable)');
+    source = 'Mirrored from bootstrapper source because "Include bootstrapper within self" is enabled.';
+    content = fileContents[activePath] || (preview.loadingBootstrapper ? '(Loading preview...)' : '(Preview unavailable)');
+  } else if (activePath === '/.system') {
+    source = 'Writable root for the live self manifest and any future system metadata.';
+  } else if (activePath === '/self') {
+    source = 'Writable root for the awakened self runtime, bridge, tool runner, and mirrored implementation modules.';
+  } else if (activePath === '/capsule') {
+    source = 'Writable root for the Capsule shell UI.';
   } else if (activePath === '/tools') {
     source = 'Writable root for dynamically created tools.';
   } else if (activePath === '/.memory') {
@@ -215,7 +248,7 @@ const buildAbsoluteZeroBrowserData = (state) => {
     source,
     content,
     previewError: preview.error || '',
-    previewLoading: preview.loadingSelf || preview.loadingHost
+    previewLoading: preview.loadingSelf || preview.loadingBootstrapper
   };
 };
 
@@ -229,18 +262,26 @@ export function renderGoalStep(state, options = {}) {
   const entries = sortGoalEntriesByLevel(getGoalEntries(shuffleSeed));
   const goalValue = state.goal || '';
   const environmentValue = state.environment || '';
-  const environmentTemplates = listAbsoluteZeroEnvironmentTemplates();
+  const environmentTemplates = listReploidEnvironmentTemplates();
   const selectedEnvironmentTemplate = state.selectedEnvironmentTemplate || '';
   const generatorStatus = state.goalGenerator?.status || 'idle';
   const generatorError = state.goalGenerator?.error || null;
   const generating = generatorStatus === 'generating';
-  const showAbsoluteZeroEnvironment = state.mode === 'absolute_zero';
+  const showReploidEnvironment = state.mode === 'reploid';
   const bootPayload = state.bootPayload || {};
-  const explorer = showAbsoluteZeroEnvironment ? buildAbsoluteZeroBrowserData(state) : null;
-  const goalTitle = options.title || (showAbsoluteZeroEnvironment ? 'Compose substrate' : 'Set a goal');
-  const goalCaption = options.caption || (showAbsoluteZeroEnvironment
-    ? 'Absolute Zero defaults to the contract-visible substrate only. Bootstrap internals stay tucked behind a debug disclosure.'
-    : 'Set the first goal the runtime should pursue.');
+  const showExpandedReploidInternals = showReploidEnvironment && !hideBootInternals;
+  const explorer = showExpandedReploidInternals ? buildSelfBrowserData(state) : null;
+  const awakenedSeedPaths = showReploidEnvironment
+    ? listSelfSeedPaths({
+        includeBootstrapperWithinSelf: !!state.includeBootstrapperWithinSelf,
+        swarmEnabled: !!state.swarmEnabled,
+        hasInference: hasConfiguredInference(state)
+      }).filter((path) => !path.startsWith('/bootstrapper/'))
+    : [];
+  const goalTitle = options.title || (showReploidEnvironment ? 'Compose self' : 'Set the first objective');
+  const goalCaption = options.caption || (showReploidEnvironment
+    ? 'Reploid starts from a minimal live self. Access windows, identity, runtime, tool runner, bridge, and Capsule shell stay explicit and editable.'
+    : 'Set the first objective the Reploid should pursue.');
   const currentGoalMeta = findGoalMeta(goalValue);
   const fallbackCategory = entries[0]?.[0] || '';
   const selectedGoalCategory = entries.some(([category]) => category === state.selectedGoalCategory)
@@ -294,14 +335,14 @@ export function renderGoalStep(state, options = {}) {
                 </div>
               </div>
             </div>
-            <div class="goal-level-dropdown goal-level-dropdown-inline" data-category="${escapeAttr(selectedGoalCategory)}">
-              <div class="goal-level-dropdown-header">
+            <details class="goal-level-dropdown goal-level-dropdown-inline" data-category="${escapeAttr(selectedGoalCategory)}"${state.goalPresetsOpen ? ' open' : ''}>
+              <summary class="goal-level-dropdown-header">
                 <div>
                   <div class="type-label">${escapeText(selectedGoalEntry[0])}</div>
                   <div class="type-caption">${escapeText(`${selectedGoals.length} preset${selectedGoals.length === 1 ? '' : 's'} available`)}</div>
                 </div>
                 <a class="link-secondary type-caption" href="${levelsDocUrl}" target="_blank" rel="noopener">Read the L0-L4 level guide</a>
-              </div>
+              </summary>
               <div class="goal-level-dropdown-list" data-category="${escapeAttr(selectedGoalCategory)}">
                 ${selectedGoals.map((goal) => {
                   const goalText = goal.text || goal.view || '';
@@ -332,7 +373,7 @@ export function renderGoalStep(state, options = {}) {
                   `;
                 }).join('')}
               </div>
-            </div>
+            </details>
             <textarea id="goal-input"
                       class="goal-input"
                       maxlength="500"
@@ -340,16 +381,16 @@ export function renderGoalStep(state, options = {}) {
                       placeholder="Describe the first task or trajectory to pursue.">${escapeText(goalValue)}</textarea>
             ${(generatorError || generatorStatus === 'ready') ? `
               <div class="goal-toolbar-status type-caption">
-                ${generatorError ? `Error: ${escapeText(generatorError)}` : 'Goal created by reploid'}
+                ${generatorError ? `Error: ${escapeText(generatorError)}` : 'Objective drafted by Reploid'}
               </div>
             ` : ''}
           </div>
 
-          ${showAbsoluteZeroEnvironment ? `
+          ${showExpandedReploidInternals ? `
             <div class="custom-goal environment-block">
               <div class="environment-header">
                 <label class="type-label" for="environment-input">Environment</label>
-                <div class="environment-template-rail" role="list" aria-label="Absolute Zero environment templates">
+                <div class="environment-template-rail" role="list" aria-label="Reploid environment templates">
                   ${environmentTemplates.map((template) => `
                     <button class="btn btn-ghost environment-template-btn${template.id === selectedEnvironmentTemplate ? ' selected' : ''}"
                             type="button"
@@ -369,12 +410,12 @@ export function renderGoalStep(state, options = {}) {
                         placeholder="Describe the verified substrate, writable roots, and capability constraints.">${escapeText(environmentValue)}</textarea>
               <label class="checkbox-label environment-toggle">
                 <input type="checkbox"
-                       id="include-host-within-self"
-                       ${state.includeHostWithinSelf ? 'checked' : ''} />
-                <span>Include host within self</span>
+                       id="include-bootstrapper-within-self"
+                       ${state.includeBootstrapperWithinSelf ? 'checked' : ''} />
+                <span>Include bootstrapper within self</span>
               </label>
               <div class="type-caption environment-caption">
-                Mirror host source into <code>/host</code> so the agent can read and edit it as part of itself.
+                Mirror bootstrapper source into <code>/bootstrapper</code> so the Reploid can inspect and edit the code that awakens it.
               </div>
             </div>
           ` : ''}
@@ -382,12 +423,35 @@ export function renderGoalStep(state, options = {}) {
         </div>
       </div>
 
-      ${showAbsoluteZeroEnvironment ? `
+      ${showReploidEnvironment && hideBootInternals ? `
         <aside class="panel seed-browser-panel">
           <div class="seed-browser-header">
             <div>
-              <h3 class="type-h2">Capsule self</h3>
-              <p class="type-caption">Files the agent actually starts with as self and writable substrate.</p>
+              <h3 class="type-h2">Awakened files</h3>
+              <p class="type-caption">Primary Reploid seeds these files into VFS at awaken time.</p>
+            </div>
+          </div>
+          <div class="seed-browser-shell">
+            <div class="seed-viewer-panel">
+              <div class="seed-viewer-header">
+                <div>
+                  <div class="type-label">Seeded into VFS</div>
+                  <div class="type-caption">These are the initial self files. Tool execution, identity, and collaboration policy live under <code>/self</code>, and the Capsule shell lives under <code>/capsule</code>.</div>
+                </div>
+                <span class="advanced-pill">Minimal</span>
+              </div>
+              <pre class="seed-file-viewer">${escapeText(awakenedSeedPaths.join('\n'))}</pre>
+            </div>
+          </div>
+        </aside>
+      ` : ''}
+
+      ${showExpandedReploidInternals ? `
+        <aside class="panel seed-browser-panel">
+          <div class="seed-browser-header">
+            <div>
+              <h3 class="type-h2">Live self</h3>
+              <p class="type-caption">Files the awakened Reploid starts with as self and writable substrate.</p>
             </div>
           </div>
           ${explorer.previewError ? `
@@ -414,11 +478,11 @@ export function renderGoalStep(state, options = {}) {
         </aside>
       ` : ''}
 
-      ${showAbsoluteZeroEnvironment && !hideBootInternals ? `
+      ${showExpandedReploidInternals ? `
         <details class="panel boot-debug-panel">
-          <summary class="boot-manifest-summary">Bootstrap internals: ${bootPayload.bootFiles?.length || 0} preload / ${bootPayload.manifestFiles?.length || 0} manifest</summary>
+          <summary class="boot-manifest-summary">Bootstrapper internals: ${bootPayload.bootFiles?.length || 0} preload / ${bootPayload.manifestFiles?.length || 0} manifest</summary>
           ${bootPayload.loading ? `
-            <div class="type-caption">Loading bootstrap manifest...</div>
+            <div class="type-caption">Loading bootstrapper manifest...</div>
           ` : bootPayload.error ? `
             <div class="type-caption">☒ ${escapeText(bootPayload.error)}</div>
           ` : `

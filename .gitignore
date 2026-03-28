@@ -67,6 +67,7 @@ shard_*.bin
 
 # Project-specific runtime/cache
 .paws/
+.reploid-cloud/
 
 # Benchmark browser cache (large Chromium profile, not actual results)
 doppler/.benchmark-cache/

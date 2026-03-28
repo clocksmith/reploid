@@ -10,7 +10,7 @@
 import Utils from '../core/utils.js';
 
 let sharedBootModulesPromise = null;
-let absoluteZeroModulesPromise = null;
+let reploidModulesPromise = null;
 
 const loadSharedBootModules = async () => {
   if (!sharedBootModulesPromise) {
@@ -26,20 +26,20 @@ const loadSharedBootModules = async () => {
   return sharedBootModulesPromise;
 };
 
-const loadAbsoluteZeroModules = async () => {
-  if (!absoluteZeroModulesPromise) {
-    absoluteZeroModulesPromise = Promise.all([
-      import('../capsule/runtime.js'),
-      import('../ui/capsule/index.js')
+const loadReploidModules = async () => {
+  if (!reploidModulesPromise) {
+    reploidModulesPromise = Promise.all([
+      import('/src/self/runtime.js?bootstrapper=1'),
+      import('/src/ui/capsule/index.js?bootstrapper=1')
     ]).then(([runtimeMod, capsuleUiMod]) => ({
-      createCapsuleRuntime: runtimeMod.createCapsuleRuntime,
+      createSelfRuntime: runtimeMod.createSelfRuntime,
       CapsuleUI: capsuleUiMod.default || capsuleUiMod
     }));
   }
-  return absoluteZeroModulesPromise;
+  return reploidModulesPromise;
 };
 
-window.preloadAbsoluteZeroModules = loadAbsoluteZeroModules;
+window.preloadReploidModules = loadReploidModules;
 
 const renderBootFailure = async (err) => {
   console.error('[Boot] CRITICAL BOOT FAILURE', err);
@@ -127,7 +127,7 @@ async function completeAwaken(bootResult, goal, wizardContainer) {
           stylePath: 'styles/proto/index.css',
           modulePath: '../ui/proto/index.js'
         }
-      : runtimeMode === 'absolute_zero'
+      : runtimeMode === 'reploid'
         ? {
             name: 'capsule',
             stylePath: 'styles/capsule.css',
@@ -270,18 +270,20 @@ async function completeAwaken(bootResult, goal, wizardContainer) {
       }
     }
 
-    logger.info('[Boot] Starting agent with goal: ' + goal);
+    logger.info('[Boot] Awakening Reploid with goal: ' + goal);
     agent.run(goal).catch(e => logger.error('[Boot] Agent error:', e.message));
   }
 }
 
-async function completeAbsoluteZeroAwaken(goal, wizardContainer) {
+async function completeReploidAwaken(goal, wizardContainer) {
   const awakenInput = (goal && typeof goal === 'object' && !Array.isArray(goal))
     ? goal
     : {
         goal,
         environment: localStorage.getItem('REPLOID_ENVIRONMENT') || '',
-        includeHostWithinSelf: localStorage.getItem('REPLOID_INCLUDE_HOST_WITHIN_SELF') === 'true'
+        includeBootstrapperWithinSelf:
+          localStorage.getItem('REPLOID_INCLUDE_BOOTSTRAPPER_WITHIN_SELF') === 'true',
+        swarmEnabled: localStorage.getItem('REPLOID_SWARM_ENABLED') === 'true'
       };
   const utils = Utils.factory();
   const logger = utils.logger;
@@ -291,7 +293,7 @@ async function completeAbsoluteZeroAwaken(goal, wizardContainer) {
     throw new Error('Missing #app container');
   }
 
-  const { createCapsuleRuntime, CapsuleUI } = await loadAbsoluteZeroModules();
+  const { createSelfRuntime, CapsuleUI } = await loadReploidModules();
 
   if (wizardContainer) wizardContainer.remove();
   document.body.classList.add('no-grid-pattern');
@@ -309,39 +311,43 @@ async function completeAbsoluteZeroAwaken(goal, wizardContainer) {
   link.href = `styles/capsule.css?v=${encodeURIComponent(version)}`;
 
   let models = parseModels();
-  if (models.length === 0 && navigator.gpu) {
+  const hasExplicitModelConfig = Object.prototype.hasOwnProperty.call(awakenInput, 'modelConfig');
+  if (!hasExplicitModelConfig && models.length === 0 && navigator.gpu) {
     models = [{
       id: 'smollm2-360m',
       name: 'SmolLM2 360M (Auto)',
       provider: 'doppler',
       hostType: 'browser-local'
     }];
-    logger.info('[AbsoluteZero] Auto-selected: ' + models[0].name);
+    logger.info('[Reploid] Auto-selected: ' + models[0].name);
   }
 
-  const capsuleRuntime = createCapsuleRuntime({
+  const modelConfig = hasExplicitModelConfig ? awakenInput.modelConfig : (models[0] || null);
+
+  const runtime = createSelfRuntime({
     goal: awakenInput.goal,
     environment: awakenInput.environment,
-    includeHostWithinSelf: awakenInput.includeHostWithinSelf,
-    modelConfig: models[0] || null
+    includeBootstrapperWithinSelf: awakenInput.includeBootstrapperWithinSelf,
+    swarmEnabled: awakenInput.swarmEnabled,
+    modelConfig
   });
   const runtimeUI = CapsuleUI.factory({
-    CapsuleRuntime: capsuleRuntime
+    runtime
   });
 
   await runtimeUI.mount(appEl);
   window.REPLOID = {
-    mode: 'absolute_zero',
-    capsuleRuntime
+    mode: 'reploid',
+    runtime
   };
   window.REPLOID_UI = {
     reload: async () => {},
     getVersion: () => version
   };
 
-  logger.info('[Boot] capsule UI mounted (absolute_zero).');
-  capsuleRuntime.start().catch((e) => {
-    logger.error('[AbsoluteZero] Capsule runtime error:', e?.message || e);
+  logger.info('[Boot] Capsule shell mounted (reploid).');
+  runtime.start().catch((e) => {
+    logger.error('[Reploid] Runtime error:', e?.message || e);
   });
 }
 
@@ -349,7 +355,10 @@ async function completeAbsoluteZeroAwaken(goal, wizardContainer) {
   try {
     const runtimeMode = typeof window.getReploidMode === 'function'
       ? window.getReploidMode()
-      : 'absolute_zero';
+      : 'reploid';
+    const routeMode = typeof window.getReploidRouteMode === 'function'
+      ? window.getReploidRouteMode()
+      : null;
     const bootProfile = typeof window.getReploidBootProfile === 'function'
       ? window.getReploidBootProfile()
       : 'wizard';
@@ -362,10 +371,10 @@ async function completeAbsoluteZeroAwaken(goal, wizardContainer) {
       wizardContainer.style.display = 'block';
       if (useLockedRouteHome) {
         const { initLockedBootHome } = await import('../ui/boot-home/index.js');
-        initLockedBootHome(wizardContainer, runtimeMode);
-        if (runtimeMode === 'absolute_zero') {
-          loadAbsoluteZeroModules().catch((err) => {
-            console.warn('[Boot] Failed to prewarm Absolute Zero modules:', err?.message || err);
+        initLockedBootHome(wizardContainer, routeMode || runtimeMode);
+        if (runtimeMode === 'reploid') {
+          loadReploidModules().catch((err) => {
+            console.warn('[Boot] Failed to prewarm Reploid modules:', err?.message || err);
           });
         } else {
           loadSharedBootModules().catch((err) => {
@@ -383,10 +392,10 @@ async function completeAbsoluteZeroAwaken(goal, wizardContainer) {
       try {
         const runtimeMode = typeof window.getReploidMode === 'function'
           ? window.getReploidMode()
-          : 'absolute_zero';
+          : 'reploid';
 
-        if (runtimeMode === 'absolute_zero') {
-          await completeAbsoluteZeroAwaken(goal, wizardContainer);
+        if (runtimeMode === 'reploid') {
+          await completeReploidAwaken(goal, wizardContainer);
           return;
         }
 

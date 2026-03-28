@@ -63,7 +63,7 @@ export function renderAwakenStep(state) {
   }
 
   if (!blockedKey && goalMissing) {
-    tooltipText = 'Set a goal to awaken';
+    tooltipText = 'Set a first objective to awaken';
     blockedKey = 'goal';
   }
 
@@ -72,7 +72,7 @@ export function renderAwakenStep(state) {
     ? `data-blocked="${escapeAttr(blockedKey)}" data-blocked-reason="${escapeAttr(tooltipText)}"`
     : '';
 
-  const buttonText = isAwakening ? 'Awakening...' : 'Awaken Agent';
+  const buttonText = isAwakening ? 'Awakening...' : 'Awaken';
 
   const levelOptions = levelEntries.length
     ? levelEntries.map(([key, level]) => {
@@ -85,7 +85,7 @@ export function renderAwakenStep(state) {
     <div class="wizard-step wizard-awaken">
       <div class="goal-header">
         <h2 class="type-h1">Awaken</h2>
-        <p class="type-caption">Launch the selected substrate with the current configuration.</p>
+        <p class="type-caption">Awaken the selected Reploid with the current configuration.</p>
       </div>
 
       <div class="wizard-actions-row">
@@ -114,7 +114,7 @@ export function renderAwakenStep(state) {
               <span class="type-label">Internal foundation</span>
               <span class="advanced-pill">${genesisLevel}</span>
             </div>
-            <span class="type-caption">Absolute Zero maps to capsule, Zero maps to spark, and X maps to full. Keep overrides for compatibility tests and custom boots.</span>
+            <span class="type-caption">Reploid maps to the capsule-shell foundation, Zero maps to spark, and X maps to full. Keep overrides for compatibility tests and custom boots.</span>
           </div>
 
           <div class="advanced-setting">
