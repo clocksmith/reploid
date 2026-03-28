@@ -95,6 +95,8 @@ let listenersAttached = false;
 let renderScheduled = false;
 let unsubscribeState = null;
 let sponsorAccessExpanded = false;
+let isInitialRender = true;
+let lastRenderSignature = null;
 
 const renderLockedSection = (title, caption) => `
   <div class="wizard-step wizard-stage-placeholder">
@@ -267,8 +269,89 @@ const scheduleRender = () => {
   renderScheduled = true;
   requestAnimationFrame(() => {
     renderScheduled = false;
-    render();
+    const state = getState();
+    const signature = getHomeRenderSignature(state);
+    if (isInitialRender || signature !== lastRenderSignature) {
+      lastRenderSignature = signature;
+      render();
+      isInitialRender = false;
+      return;
+    }
+    updateInteractiveUi(state);
   });
+};
+
+const getHomeRenderSignature = (state) => {
+  const launch = state.mode === 'reploid' ? getReploidLaunchState(state) : null;
+  return JSON.stringify({
+    mode: state.mode,
+    routeLockedMode: state.routeLockedMode,
+    connectionType: state.connectionType,
+    isAwakening: !!state.isAwakening,
+    detection: state.detection,
+    savedConfig: state.savedConfig,
+    directConfig: state.directConfig,
+    proxyConfig: state.proxyConfig,
+    dopplerConfig: state.dopplerConfig,
+    goalGenerator: state.goalGenerator,
+    selectedGoalCategory: state.selectedGoalCategory,
+    goalShuffleSeed: state.goalShuffleSeed,
+    goalPresetsOpen: !!state.goalPresetsOpen,
+    bootPayload: state.bootPayload,
+    selfPreview: state.selfPreview,
+    selectedSelfPath: state.selectedSelfPath,
+    editingSeedPath: state.editingSeedPath,
+    seedOverrides: state.seedOverrides,
+    seedDraftPaths: Object.keys(state.seedDrafts || {}).sort(),
+    accessState: {
+      error: state.accessConfig?.error || null,
+      hasCode: !!String(state.accessConfig?.accessCode || '').trim()
+    },
+    launch: launch ? {
+      ownInference: !!launch.ownInference,
+      accessProvisioned: !!launch.accessProvisioned,
+      accessWindowLabel: launch.accessWindowLabel || '',
+      accessModel: launch.accessModel || '',
+      hasInference: !!launch.hasInference,
+      hasDirectInference: !!launch.hasDirectInference,
+      hasAccessInference: !!launch.hasAccessInference,
+      swarmEnabled: !!launch.swarmEnabled,
+      role: launch.role || '',
+      canAwaken: !!launch.canAwaken,
+      isDead: !!launch.isDead
+    } : null,
+    hasGoal: state.mode === 'reploid' ? null : !!String(state.goal || '').trim(),
+    canAwaken: state.mode === 'reploid' ? null : !!canAwaken()
+  });
+};
+
+const syncInputValue = (id, value) => {
+  const input = document.getElementById(id);
+  if (!input || document.activeElement === input) return;
+  const nextValue = String(value || '');
+  if ('value' in input && input.value !== nextValue) {
+    input.value = nextValue;
+  }
+};
+
+const updateInteractiveUi = (state) => {
+  if (!container) return;
+
+  syncInputValue('goal-input', state.goal || '');
+
+  const awakenBtn = container.querySelector('#awaken-btn');
+  if (!awakenBtn) return;
+
+  const ready = state.mode === 'reploid'
+    ? !!getReploidLaunchState(state)?.canAwaken
+    : !!canAwaken();
+  const hasGoal = !!String(state.goal || '').trim();
+  const isAwakening = !!state.isAwakening;
+
+  awakenBtn.disabled = isAwakening || !hasGoal || !ready;
+  awakenBtn.classList.toggle('loading', isAwakening);
+  awakenBtn.setAttribute('aria-busy', isAwakening ? 'true' : 'false');
+  awakenBtn.textContent = isAwakening ? 'Awakening...' : 'Awaken';
 };
 
 const autoSelectConnectionType = () => {
@@ -1063,6 +1146,8 @@ export function initLockedBootHome(containerEl, mode = 'reploid') {
   listenersAttached = false;
   renderScheduled = false;
   sponsorAccessExpanded = false;
+  isInitialRender = true;
+  lastRenderSignature = null;
 
   if (unsubscribeState) {
     unsubscribeState();
