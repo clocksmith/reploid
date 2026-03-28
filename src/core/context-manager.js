@@ -426,7 +426,7 @@ const ContextManager = {
         if (content.includes(COMPACTION_MARKER)) continue;
 
         // Extract tool calls
-        const toolCallMatches = content.matchAll(/TOOL_CALL:\s*(\w+)/g);
+        const toolCallMatches = content.matchAll(/(?:TOOL_CALL:|TOOL:)\s*([A-Za-z0-9_]+)/g);
         for (const match of toolCallMatches) {
           toolCalls.push(match[1]);
         }

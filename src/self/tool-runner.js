@@ -36,7 +36,7 @@ export function createSelfToolRunner(options = {}) {
 
     const normalized = path.startsWith('/') ? path : `/${path}`;
     if (!isLoadablePath(normalized)) {
-      throw new Error('LoadModule only supports /tools and /self paths');
+      throw new Error('LoadModule only supports /self paths');
     }
 
     const mod = await loadVfsModule({

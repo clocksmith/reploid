@@ -1,12 +1,13 @@
 /**
  * @fileoverview Response Parser
- * Extracts tool calls from LLM text using Robust Regex.
+ * Extracts tool calls from LLM text using the REPLOID/0 line protocol,
+ * with legacy TOOL_CALL/ARGS support retained during migration.
  */
 
 const ResponseParser = {
   metadata: {
     id: 'ResponseParser',
-    version: '1.0.0', // Backtick template literal support
+    version: '1.0.0',
     genesis: { introduced: 'spark' },
     dependencies: ['Utils'],
     type: 'service'
@@ -15,18 +16,139 @@ const ResponseParser = {
   factory: (deps) => {
     const { logger, sanitizeLlmJsonRespPure } = deps.Utils;
 
-    const parseToolCalls = (text) => {
+    const TOP_LEVEL_DIRECTIVE_REGEX = /^(?:REPLOID\/\d+|TOOL:\s*[a-zA-Z0-9_]+|TOOL_CALL:\s*[a-zA-Z0-9_]+|MILESTONE:|DONE:|IDLE:|PARK:)/;
+    const REPLTOOL_HEADER_REGEX = /^REPLOID\/\d+\s*$/;
+    const TOOL_DIRECTIVE_REGEX = /^TOOL:\s*([a-zA-Z0-9_]+)\s*$/;
+    const INLINE_ARG_REGEX = /^([a-zA-Z0-9_.-]+)\s*:\s*(.*)$/;
+    const BLOCK_ARG_REGEX = /^([a-zA-Z0-9_.-]+)\s*(?::\s*)?<<\s*([A-Za-z0-9_-]+)\s*$/;
+    const LEGACY_TOOL_CALL_REGEX = /TOOL_CALL:\s*([a-zA-Z0-9_]+)\s*\nARGS:\s*/g;
+
+    const parseScalarValue = (rawValue) => {
+      const value = String(rawValue ?? '').trim();
+
+      if (value === '') return '';
+      if (value === 'true') return true;
+      if (value === 'false') return false;
+      if (value === 'null') return null;
+      if (/^-?(?:0|[1-9]\d*)(?:\.\d+)?$/.test(value)) {
+        return Number(value);
+      }
+
+      if (
+        (value.startsWith('{') && value.endsWith('}')) ||
+        (value.startsWith('[') && value.endsWith(']')) ||
+        (value.startsWith('"') && value.endsWith('"'))
+      ) {
+        try {
+          return JSON.parse(value);
+        } catch (error) {
+          throw new Error(`Invalid inline JSON: ${error.message}`);
+        }
+      }
+
+      if (value.startsWith('`') && value.endsWith('`') && value.length >= 2) {
+        return value.slice(1, -1);
+      }
+
+      if (value.startsWith('\'') && value.endsWith('\'') && value.length >= 2) {
+        return value.slice(1, -1);
+      }
+
+      return value;
+    };
+
+    const parseReploidToolCalls = (text) => {
+      if (!text || typeof text !== 'string') return [];
+
+      const lines = text.split(/\r?\n/);
+      const calls = [];
+      let index = 0;
+
+      while (index < lines.length) {
+        const rawLine = lines[index];
+        const line = rawLine.trimStart();
+
+        if (!line || REPLTOOL_HEADER_REGEX.test(line) || !TOOL_DIRECTIVE_REGEX.test(line)) {
+          index++;
+          continue;
+        }
+
+        const toolMatch = line.match(TOOL_DIRECTIVE_REGEX);
+        const name = toolMatch[1];
+        const args = {};
+        let error = null;
+        index++;
+
+        while (index < lines.length) {
+          const nextRawLine = lines[index];
+          const nextLine = nextRawLine.trimStart();
+
+          if (!nextLine) {
+            index++;
+            continue;
+          }
+
+          if (TOP_LEVEL_DIRECTIVE_REGEX.test(nextLine)) {
+            break;
+          }
+
+          const blockMatch = nextLine.match(BLOCK_ARG_REGEX);
+          if (blockMatch) {
+            const [, key, marker] = blockMatch;
+            const blockLines = [];
+            index++;
+
+            while (index < lines.length && lines[index].trim() !== marker) {
+              blockLines.push(lines[index]);
+              index++;
+            }
+
+            if (index >= lines.length) {
+              error = `Unterminated block for ${key}`;
+              break;
+            }
+
+            args[key] = blockLines.join('\n');
+            index++; // consume marker
+            continue;
+          }
+
+          const argMatch = nextLine.match(INLINE_ARG_REGEX);
+          if (!argMatch) {
+            error = `Invalid argument line: ${nextLine.trim()}`;
+            while (index < lines.length && !TOP_LEVEL_DIRECTIVE_REGEX.test(lines[index].trimStart())) {
+              index++;
+            }
+            break;
+          }
+
+          const [, key, rawValue] = argMatch;
+
+          try {
+            args[key] = parseScalarValue(rawValue);
+          } catch (parseError) {
+            error = parseError.message;
+            while (index < lines.length && !TOP_LEVEL_DIRECTIVE_REGEX.test(lines[index].trimStart())) {
+              index++;
+            }
+            break;
+          }
+
+          index++;
+        }
+
+        calls.push(error ? { name, args, error } : { name, args });
+      }
+
+      return calls;
+    };
+
+    const parseLegacyToolCalls = (text) => {
       if (!text) return [];
       const calls = [];
-
-      // Standard Format:
-      // TOOL_CALL: name
-      // ARGS: { ... }
-      // find each TOOL_CALL and extract JSON with brace counting
-      const toolCallRegex = /TOOL_CALL:\s*([a-zA-Z0-9_]+)\s*\nARGS:\s*/g;
-
       let match;
-      while ((match = toolCallRegex.exec(text)) !== null) {
+
+      while ((match = LEGACY_TOOL_CALL_REGEX.exec(text)) !== null) {
         const name = match[1].trim();
         let startIdx = match.index + match[0].length;
 
@@ -101,6 +223,17 @@ const ResponseParser = {
       }
 
       return calls;
+    };
+
+    const parseToolCalls = (text) => {
+      if (!text) return [];
+
+      const reploidCalls = parseReploidToolCalls(text);
+      if (reploidCalls.length > 0) {
+        return reploidCalls;
+      }
+
+      return parseLegacyToolCalls(text);
     };
 
     // RSI MODE: Agent should NEVER stop on its own

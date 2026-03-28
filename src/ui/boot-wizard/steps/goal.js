@@ -4,7 +4,6 @@
 
 import { findGoalMeta, getGoalEntries } from '../goals.js';
 import {
-  BOOTSTRAPPER_SOURCE_MIRRORS,
   SELF_SOURCE_MIRRORS,
   buildSelfFiles,
   listSelfSeedPaths
@@ -12,14 +11,13 @@ import {
 import { listReploidEnvironmentTemplates } from '../../../config/reploid-environments.js';
 import { getReploidLaunchState } from '../reploid-inference.js';
 
-const DEFAULT_SELF_PATH = '/.system/self.json';
+const DEFAULT_SELF_PATH = '/self/self.json';
 const SELF_WRITABLE_ROOTS = Object.freeze([
-  '/.system',
   '/self',
-  '/capsule',
-  '/tools',
-  '/.memory',
   '/artifacts'
+]);
+const EDITABLE_SEED_PATH_PREFIXES = Object.freeze([
+  '/self/'
 ]);
 const GOAL_LEVEL_ORDER = Object.freeze(['L0', 'L1', 'L2', 'L3', 'L4']);
 
@@ -30,6 +28,9 @@ const escapeText = (value) => String(value || '')
   .replace(/"/g, '&quot;');
 
 const escapeAttr = (value) => escapeText(value).replace(/'/g, '&#39;');
+const hasOwn = (value, key) => Object.prototype.hasOwnProperty.call(value || {}, key);
+const isEditableSeedPath = (path) => EDITABLE_SEED_PATH_PREFIXES
+  .some((prefix) => String(path || '').startsWith(prefix));
 
 const buildGoalTags = (goal) => {
   const tags = Array.isArray(goal.tags) ? goal.tags : [];
@@ -55,6 +56,116 @@ const renderRootSummary = (entries) => {
   return entries.map(({ root, count }) => `
     <span class="boot-root-chip">${escapeText(`${root} ${count}`)}</span>
   `).join('');
+};
+
+const renderCollapsedAwakenedFilesPanel = (awakenedSeedPaths, options = {}) => `
+  <details class="panel seed-browser-panel seed-browser-panel-collapsed">
+    <summary class="seed-browser-summary disclosure-summary">
+      <span class="disclosure-summary-copy">
+        <span class="type-h2">Awakened files</span>
+        <span class="type-caption">Primary Reploid exposes these files as the awakened self at awaken time.</span>
+      </span>
+      ${options.summaryActionHtml ? `
+        <span class="disclosure-summary-actions">
+          ${options.summaryActionHtml}
+        </span>
+      ` : ''}
+    </summary>
+    <div class="seed-browser-shell">
+      <div class="seed-viewer-panel">
+        <div class="seed-viewer-header">
+          <div>
+            <div class="type-label">Awakened self surface</div>
+            <div class="type-caption">Generated self files are written into VFS. Canonical source files under <code>/self</code> are projected until you stage an override.</div>
+          </div>
+          <span class="advanced-pill">Minimal</span>
+        </div>
+        <pre class="seed-file-viewer">${escapeText(awakenedSeedPaths.join('\n'))}</pre>
+      </div>
+    </div>
+  </details>
+`;
+
+const renderSourceAwakenedFilesPanel = (state, options = {}) => {
+  const explorer = buildSelfBrowserData(state);
+  const defaultOpen = options.defaultOpen !== false;
+  return `
+    <details class="panel seed-browser-panel seed-browser-panel-collapsed"${defaultOpen ? ' open' : ''}>
+      <summary class="seed-browser-summary disclosure-summary">
+        <span class="disclosure-summary-copy">
+          <span class="type-h2">Awakened files</span>
+          <span class="type-caption">Inspect the exact files and source Reploid exposes as the awakened self at awaken time.</span>
+        </span>
+        ${options.summaryActionHtml ? `
+          <span class="disclosure-summary-actions">
+            ${options.summaryActionHtml}
+          </span>
+        ` : ''}
+      </summary>
+      ${explorer.previewError ? `
+        <div class="type-caption">☒ ${escapeText(explorer.previewError)}</div>
+      ` : ''}
+      <div class="seed-browser-shell">
+        <div class="seed-tree-panel">
+          ${renderTreeNodes(explorer.treeNodes, explorer.activePath)}
+        </div>
+        <div class="seed-viewer-panel">
+          <div class="seed-viewer-header">
+            <div>
+              <div class="type-label">${escapeText(explorer.activePath)}</div>
+              <div class="type-caption">${escapeText(explorer.source)}</div>
+            </div>
+            <div class="seed-viewer-meta">
+              <span class="advanced-pill">${escapeText(explorer.summary)}</span>
+              ${explorer.canEdit ? `
+                <div class="seed-viewer-actions">
+                  ${explorer.isEditing ? `
+                    <button class="btn btn-prism"
+                            type="button"
+                            data-action="save-seed-edit"
+                            ${explorer.hasUnsavedDraft ? '' : 'disabled'}>
+                      Save
+                    </button>
+                    <button class="btn btn-ghost"
+                            type="button"
+                            data-action="cancel-seed-edit">
+                      Cancel
+                    </button>
+                  ` : `
+                    <button class="btn btn-ghost"
+                            type="button"
+                            data-action="start-seed-edit">
+                      ${explorer.hasUnsavedDraft ? 'Resume edit' : 'Edit'}
+                    </button>
+                  `}
+                  ${(explorer.hasSavedOverride || explorer.hasUnsavedDraft) ? `
+                    <button class="btn btn-ghost"
+                            type="button"
+                            data-action="revert-seed-file">
+                      Revert
+                    </button>
+                  ` : ''}
+                </div>
+              ` : ''}
+            </div>
+          </div>
+          ${explorer.isEditing ? `
+            <textarea id="seed-editor-input"
+                      class="goal-input seed-editor-input"
+                      rows="16"
+                      spellcheck="false">${escapeText(explorer.draftContent)}</textarea>
+          ` : `
+            <pre class="seed-file-viewer">${escapeText(explorer.content)}</pre>
+          `}
+          ${explorer.statusText ? `
+            <div class="type-caption seed-viewer-status">${escapeText(explorer.statusText)}</div>
+          ` : explorer.previewLoading ? `
+            <div class="type-caption seed-viewer-status">Loading mirrored source previews...</div>
+          ` : ''}
+        </div>
+      </div>
+    </details>
+  `;
 };
 
 const buildPathTree = (filePaths, directoryPaths = []) => {
@@ -170,34 +281,44 @@ const hasConfiguredInference = (state) => {
   return false;
 };
 
+const getAwakenedSeedPaths = (state) => {
+  if (state.mode !== 'reploid') return [];
+  return listSelfSeedPaths({
+    swarmEnabled: !!state.swarmEnabled,
+    hasInference: hasConfiguredInference(state)
+  });
+};
+
+export function renderAwakenedFilesPanel(state, options = {}) {
+  const awakenedSeedPaths = getAwakenedSeedPaths(state);
+  if (awakenedSeedPaths.length === 0) return '';
+  if (options.showSourceBrowser) {
+    return renderSourceAwakenedFilesPanel(state, options);
+  }
+  return renderCollapsedAwakenedFilesPanel(awakenedSeedPaths, options);
+}
+
 const buildSelfBrowserData = (state) => {
   const systemFiles = buildSelfFiles({
     goal: state.goal || '',
     environment: state.environment || '',
-    includeBootstrapperWithinSelf: !!state.includeBootstrapperWithinSelf,
     swarmEnabled: !!state.swarmEnabled,
     hasInference: hasConfiguredInference(state)
   });
-  const mirrorPaths = [
-    ...SELF_SOURCE_MIRRORS.map(({ vfsPath }) => vfsPath),
-    ...(state.includeBootstrapperWithinSelf
-      ? BOOTSTRAPPER_SOURCE_MIRRORS.map(({ vfsPath }) => vfsPath)
-      : [])
-  ];
+  const mirrorPaths = SELF_SOURCE_MIRRORS.map(({ vfsPath }) => vfsPath);
   const filePaths = [
     ...Object.keys(systemFiles),
     ...mirrorPaths
   ].sort();
-  const directoryPaths = [
-    ...SELF_WRITABLE_ROOTS,
-    ...(state.includeBootstrapperWithinSelf ? ['/bootstrapper'] : [])
-  ];
+  const directoryPaths = [...SELF_WRITABLE_ROOTS];
   const allPaths = Array.from(new Set([...filePaths, ...directoryPaths])).sort();
   const treeNodes = buildPathTree(filePaths, directoryPaths);
   const activePath = allPaths.includes(state.selectedSelfPath)
     ? state.selectedSelfPath
     : DEFAULT_SELF_PATH;
   const preview = state.selfPreview || {};
+  const seedOverrides = state.seedOverrides || {};
+  const seedDrafts = state.seedDrafts || {};
   const fileContents = {
     ...systemFiles,
     ...(preview.contents || {})
@@ -213,24 +334,12 @@ const buildSelfBrowserData = (state) => {
     summary = 'Generated file';
     source = 'Generated at awaken as the live self manifest.';
     content = systemFiles[activePath];
-  } else if (activePath.startsWith('/self/') || activePath.startsWith('/capsule/')) {
-    summary = 'Mirrored source';
-    source = 'Mirrored from the Reploid self source.';
+  } else if (activePath.startsWith('/self/')) {
+    summary = 'Projected source';
+    source = 'Projected from the canonical Reploid self source until overridden.';
     content = fileContents[activePath] || (preview.loadingSelf ? '(Loading preview...)' : '(Preview unavailable)');
-  } else if (activePath.startsWith('/bootstrapper/')) {
-    summary = 'Mirrored source';
-    source = 'Mirrored from bootstrapper source because "Include bootstrapper within self" is enabled.';
-    content = fileContents[activePath] || (preview.loadingBootstrapper ? '(Loading preview...)' : '(Preview unavailable)');
-  } else if (activePath === '/.system') {
-    source = 'Writable root for the live self manifest and any future system metadata.';
   } else if (activePath === '/self') {
-    source = 'Writable root for the awakened self runtime, bridge, tool runner, and mirrored implementation modules.';
-  } else if (activePath === '/capsule') {
-    source = 'Writable root for the Capsule shell UI.';
-  } else if (activePath === '/tools') {
-    source = 'Writable root for dynamically created tools.';
-  } else if (activePath === '/.memory') {
-    source = 'Writable root for durable memories and lightweight state.';
+    source = 'Writable root for the awakened self runtime, bridge, tool runner, self-authored modules, identity, and capsule UI.';
   } else if (activePath === '/artifacts') {
     source = 'Writable root for generated outputs and artifacts.';
   } else if (isDirectory) {
@@ -241,12 +350,44 @@ const buildSelfBrowserData = (state) => {
     content = children.length > 0 ? children.join('\n') : '(empty by default)';
   }
 
+  const hasSavedOverride = !isDirectory && hasOwn(seedOverrides, activePath);
+  if (hasSavedOverride) {
+    content = String(seedOverrides[activePath] || '');
+    source = `${source} Saved boot override will be applied on awaken.`;
+  }
+
+  const canEdit = !isDirectory
+    && isEditableSeedPath(activePath)
+    && (hasSavedOverride || hasOwn(fileContents, activePath));
+  const isEditing = canEdit && state.editingSeedPath === activePath;
+  const draftContent = hasOwn(seedDrafts, activePath)
+    ? String(seedDrafts[activePath] || '')
+    : content;
+  const hasUnsavedDraft = canEdit && draftContent !== content;
+  let statusText = '';
+
+  if (hasUnsavedDraft) {
+    statusText = 'Unsaved draft. Save to stage this file as a boot override.';
+  } else if (hasSavedOverride) {
+    statusText = 'Edited boot source. This override will be applied when Reploid awakens.';
+  } else if (canEdit) {
+    statusText = 'Read-only source preview. Edit to stage a boot override for awaken.';
+  } else if (!isDirectory && (activePath.startsWith('/self/') || activePath === '/self/self.json')) {
+    statusText = 'Generated self file. Select a projected file under /self to edit boot source.';
+  }
+
   return {
     treeNodes,
     activePath,
     summary,
     source,
     content,
+    draftContent,
+    canEdit,
+    isEditing,
+    hasSavedOverride,
+    hasUnsavedDraft,
+    statusText,
     previewError: preview.error || '',
     previewLoading: preview.loadingSelf || preview.loadingBootstrapper
   };
@@ -258,6 +399,12 @@ const buildSelfBrowserData = (state) => {
 export function renderGoalStep(state, options = {}) {
   const levelsDocUrl = 'https://github.com/clocksmith/reploid/blob/main/docs/RSI-LEVELS.md';
   const hideBootInternals = options.hideBootInternals === true;
+  const showMinimalAwakenedFiles = options.showMinimalAwakenedFiles !== false;
+  const goalActionMode = options.goalActionMode || 'full';
+  const headingTag = options.headingTag || 'h2';
+  const headingClass = options.headingClass || 'type-h1';
+  const showPresetControls = goalActionMode !== 'generate-only';
+  const generateButtonLabel = options.generateButtonLabel || 'Generate';
   const shuffleSeed = Number(state.goalShuffleSeed) || 0;
   const entries = sortGoalEntriesByLevel(getGoalEntries(shuffleSeed));
   const goalValue = state.goal || '';
@@ -266,22 +413,18 @@ export function renderGoalStep(state, options = {}) {
   const selectedEnvironmentTemplate = state.selectedEnvironmentTemplate || '';
   const generatorStatus = state.goalGenerator?.status || 'idle';
   const generatorError = state.goalGenerator?.error || null;
+  const generatorSource = state.goalGenerator?.source || null;
   const generating = generatorStatus === 'generating';
   const showReploidEnvironment = state.mode === 'reploid';
   const bootPayload = state.bootPayload || {};
   const showExpandedReploidInternals = showReploidEnvironment && !hideBootInternals;
   const explorer = showExpandedReploidInternals ? buildSelfBrowserData(state) : null;
-  const awakenedSeedPaths = showReploidEnvironment
-    ? listSelfSeedPaths({
-        includeBootstrapperWithinSelf: !!state.includeBootstrapperWithinSelf,
-        swarmEnabled: !!state.swarmEnabled,
-        hasInference: hasConfiguredInference(state)
-      }).filter((path) => !path.startsWith('/bootstrapper/'))
-    : [];
-  const goalTitle = options.title || (showReploidEnvironment ? 'Compose self' : 'Set the first objective');
+  const awakenedSeedPaths = getAwakenedSeedPaths(state);
+  const goalTitle = options.title || 'Set the first objective';
   const goalCaption = options.caption || (showReploidEnvironment
-    ? 'Reploid starts from a minimal live self. Access windows, identity, runtime, tool runner, bridge, and Capsule shell stay explicit and editable.'
+    ? 'These starting files define the initial self. The self manifest and identity establish what Reploid is, runtime and bridge execute work, the capsule shell renders the interface, and the browser substrate can produce visual, computational, persistent, or networked effects. Your first objective tells that seed what to build, measure, and improve first.'
     : 'Set the first objective the Reploid should pursue.');
+  const goalPlaceholder = options.goalPlaceholder || 'Describe the first task or trajectory to pursue.';
   const currentGoalMeta = findGoalMeta(goalValue);
   const fallbackCategory = entries[0]?.[0] || '';
   const selectedGoalCategory = entries.some(([category]) => category === state.selectedGoalCategory)
@@ -290,11 +433,16 @@ export function renderGoalStep(state, options = {}) {
   const selectedGoalEntry = entries.find(([category]) => category === selectedGoalCategory) || entries[0] || ['', []];
   const selectedGoalLevel = getGoalLevelKey(selectedGoalEntry[0]);
   const selectedGoals = Array.isArray(selectedGoalEntry[1]) ? selectedGoalEntry[1] : [];
+  const generatedStatusText = options.generatedStatusText || (
+    generatorSource === 'seed'
+      ? 'Objective drafted from a hidden seed prompt'
+      : 'Objective drafted by Reploid'
+  );
 
   return `
     <div class="wizard-step wizard-goal">
       <div class="goal-header">
-        <h2 class="type-h1">${goalTitle}</h2>
+        <${headingTag} class="${escapeAttr(headingClass)}">${goalTitle}</${headingTag}>
         <p class="type-caption">${goalCaption}</p>
       </div>
 
@@ -304,84 +452,90 @@ export function renderGoalStep(state, options = {}) {
             <div class="goal-editor-header">
               <label class="type-label" for="goal-input">Goal</label>
               <div class="goal-editor-toolbar">
-                <div class="goal-level-rail" role="list" aria-label="Runtime preset levels">
-                  ${entries.map(([category]) => {
-                    const levelKey = getGoalLevelKey(category);
-                    const isSelected = category === selectedGoalCategory;
-                    return `
-                      <button class="btn btn-ghost goal-level-btn${isSelected ? ' selected' : ''}"
-                              type="button"
-                              data-action="toggle-goal-category"
-                              data-category="${escapeAttr(category)}"
-                              aria-pressed="${isSelected ? 'true' : 'false'}"
-                              title="${escapeAttr(category)}">
-                        ${escapeText(levelKey)}
-                      </button>
-                    `;
-                  }).join('')}
-                </div>
+                ${showPresetControls ? `
+                  <div class="goal-level-rail" role="list" aria-label="Runtime preset levels">
+                    ${entries.map(([category]) => {
+                      const levelKey = getGoalLevelKey(category);
+                      const isSelected = category === selectedGoalCategory;
+                      return `
+                        <button class="btn btn-ghost goal-level-btn${isSelected ? ' selected' : ''}"
+                                type="button"
+                                data-action="toggle-goal-category"
+                                data-category="${escapeAttr(category)}"
+                                aria-pressed="${isSelected ? 'true' : 'false'}"
+                                title="${escapeAttr(category)}">
+                          ${escapeText(levelKey)}
+                        </button>
+                      `;
+                    }).join('')}
+                  </div>
+                ` : ''}
                 <div class="goal-preset-actions">
-                  <button class="btn btn-ghost"
-                          data-action="shuffle-goals"
-                          type="button">
-                    Shuffle
-                  </button>
+                  ${showPresetControls ? `
+                    <button class="btn btn-ghost"
+                            data-action="shuffle-goals"
+                            type="button">
+                      Shuffle
+                    </button>
+                  ` : ''}
                   <button class="btn btn-prism"
                           data-action="generate-goal"
                           type="button"
                           ${generating ? 'disabled' : ''}>
-                    ${generating ? 'Creating...' : 'Generate'}
+                    ${generating ? 'Creating...' : escapeText(generateButtonLabel)}
                   </button>
                 </div>
               </div>
             </div>
-            <details class="goal-level-dropdown goal-level-dropdown-inline" data-category="${escapeAttr(selectedGoalCategory)}"${state.goalPresetsOpen ? ' open' : ''}>
-              <summary class="goal-level-dropdown-header">
-                <div>
-                  <div class="type-label">${escapeText(selectedGoalEntry[0])}</div>
-                  <div class="type-caption">${escapeText(`${selectedGoals.length} preset${selectedGoals.length === 1 ? '' : 's'} available`)}</div>
-                </div>
-                <a class="link-secondary type-caption" href="${levelsDocUrl}" target="_blank" rel="noopener">Read the L0-L4 level guide</a>
-              </summary>
-              <div class="goal-level-dropdown-list" data-category="${escapeAttr(selectedGoalCategory)}">
-                ${selectedGoals.map((goal) => {
-                  const goalText = goal.text || goal.view || '';
-                  const viewText = goal.view || goalText;
-                  const tags = buildGoalTags(goal)
-                    .map((tag) => `<span class="goal-tag">${escapeText(tag)}</span>`)
-                    .join('');
-                  const locked = goal.locked ? 'locked' : '';
-                  const isSelected = goalText === goalValue;
-                  const selected = isSelected ? 'selected' : '';
+            ${showPresetControls ? `
+              <details class="goal-level-dropdown goal-level-dropdown-inline" data-category="${escapeAttr(selectedGoalCategory)}"${state.goalPresetsOpen ? ' open' : ''}>
+                <summary class="goal-level-dropdown-header">
+                  <div>
+                    <div class="type-label">${escapeText(selectedGoalEntry[0])}</div>
+                    <div class="type-caption">${escapeText(`${selectedGoals.length} preset${selectedGoals.length === 1 ? '' : 's'} available`)}</div>
+                  </div>
+                  <a class="link-secondary type-caption" href="${levelsDocUrl}" target="_blank" rel="noopener">Read the L0-L4 level guide</a>
+                </summary>
+                <div class="goal-level-dropdown-list" data-category="${escapeAttr(selectedGoalCategory)}">
+                  ${selectedGoals.map((goal) => {
+                    const goalText = goal.text || goal.view || '';
+                    const viewText = goal.view || goalText;
+                    const tags = buildGoalTags(goal)
+                      .map((tag) => `<span class="goal-tag">${escapeText(tag)}</span>`)
+                      .join('');
+                    const locked = goal.locked ? 'locked' : '';
+                    const isSelected = goalText === goalValue;
+                    const selected = isSelected ? 'selected' : '';
 
-                  return `
-                    <button class="goal-chip ${locked} ${selected}"
-                            data-action="select-goal"
-                            data-goal="${escapeAttr(goalText)}"
-                            title="${escapeAttr(goalText)}"
-                            aria-pressed="${isSelected ? 'true' : 'false'}"
-                            ${goal.locked ? 'disabled' : ''}>
-                      <div class="goal-chip-header">
-                        <div class="goal-chip-level-row">
-                          <span class="goal-level-pill">${escapeText(selectedGoalLevel)}</span>
-                          <span class="goal-view">${escapeText(viewText)}</span>
+                    return `
+                      <button class="goal-chip ${locked} ${selected}"
+                              data-action="select-goal"
+                              data-goal="${escapeAttr(goalText)}"
+                              title="${escapeAttr(goalText)}"
+                              aria-pressed="${isSelected ? 'true' : 'false'}"
+                              ${goal.locked ? 'disabled' : ''}>
+                        <div class="goal-chip-header">
+                          <div class="goal-chip-level-row">
+                            <span class="goal-level-pill">${escapeText(selectedGoalLevel)}</span>
+                            <span class="goal-view">${escapeText(viewText)}</span>
+                          </div>
+                          ${tags ? `<span class="goal-flags">${tags}</span>` : ''}
                         </div>
-                        ${tags ? `<span class="goal-flags">${tags}</span>` : ''}
-                      </div>
-                      <div class="goal-prompt">${escapeText(goalText)}</div>
-                    </button>
-                  `;
-                }).join('')}
-              </div>
-            </details>
+                        <div class="goal-prompt">${escapeText(goalText)}</div>
+                      </button>
+                    `;
+                  }).join('')}
+                </div>
+              </details>
+            ` : ''}
             <textarea id="goal-input"
                       class="goal-input"
                       maxlength="500"
                       rows="3"
-                      placeholder="Describe the first task or trajectory to pursue.">${escapeText(goalValue)}</textarea>
+                      placeholder="${escapeAttr(goalPlaceholder)}">${escapeText(goalValue)}</textarea>
             ${(generatorError || generatorStatus === 'ready') ? `
               <div class="goal-toolbar-status type-caption">
-                ${generatorError ? `Error: ${escapeText(generatorError)}` : 'Objective drafted by Reploid'}
+                ${generatorError ? `Error: ${escapeText(generatorError)}` : escapeText(generatedStatusText)}
               </div>
             ` : ''}
           </div>
@@ -408,14 +562,8 @@ export function renderGoalStep(state, options = {}) {
                         maxlength="4000"
                         rows="8"
                         placeholder="Describe the verified substrate, writable roots, and capability constraints.">${escapeText(environmentValue)}</textarea>
-              <label class="checkbox-label environment-toggle">
-                <input type="checkbox"
-                       id="include-bootstrapper-within-self"
-                       ${state.includeBootstrapperWithinSelf ? 'checked' : ''} />
-                <span>Include bootstrapper within self</span>
-              </label>
               <div class="type-caption environment-caption">
-                Mirror bootstrapper source into <code>/bootstrapper</code> so the Reploid can inspect and edit the code that awakens it.
+                Describe what the browser can do. Keep the self contract small: Reploid reads and rewrites <code>/self</code>, loads code from <code>/self</code>, and emits observable browser-side effects.
               </div>
             </div>
           ` : ''}
@@ -423,35 +571,16 @@ export function renderGoalStep(state, options = {}) {
         </div>
       </div>
 
-      ${showReploidEnvironment && hideBootInternals ? `
-        <aside class="panel seed-browser-panel">
-          <div class="seed-browser-header">
-            <div>
-              <h3 class="type-h2">Awakened files</h3>
-              <p class="type-caption">Primary Reploid seeds these files into VFS at awaken time.</p>
-            </div>
-          </div>
-          <div class="seed-browser-shell">
-            <div class="seed-viewer-panel">
-              <div class="seed-viewer-header">
-                <div>
-                  <div class="type-label">Seeded into VFS</div>
-                  <div class="type-caption">These are the initial self files. Tool execution, identity, and collaboration policy live under <code>/self</code>, and the Capsule shell lives under <code>/capsule</code>.</div>
-                </div>
-                <span class="advanced-pill">Minimal</span>
-              </div>
-              <pre class="seed-file-viewer">${escapeText(awakenedSeedPaths.join('\n'))}</pre>
-            </div>
-          </div>
-        </aside>
-      ` : ''}
+      ${showReploidEnvironment && hideBootInternals && showMinimalAwakenedFiles
+        ? renderCollapsedAwakenedFilesPanel(awakenedSeedPaths)
+        : ''}
 
       ${showExpandedReploidInternals ? `
         <aside class="panel seed-browser-panel">
           <div class="seed-browser-header">
             <div>
-              <h3 class="type-h2">Live self</h3>
-              <p class="type-caption">Files the awakened Reploid starts with as self and writable substrate.</p>
+              <h3 class="type-h2">Self tree</h3>
+              <p class="type-caption">Files the awakened Reploid starts with as its editable self and writable substrate.</p>
             </div>
           </div>
           ${explorer.previewError ? `
@@ -480,9 +609,9 @@ export function renderGoalStep(state, options = {}) {
 
       ${showExpandedReploidInternals ? `
         <details class="panel boot-debug-panel">
-          <summary class="boot-manifest-summary">Bootstrapper internals: ${bootPayload.bootFiles?.length || 0} preload / ${bootPayload.manifestFiles?.length || 0} manifest</summary>
+          <summary class="boot-manifest-summary">Host preload: ${bootPayload.bootFiles?.length || 0} preload / ${bootPayload.manifestFiles?.length || 0} manifest</summary>
           ${bootPayload.loading ? `
-            <div class="type-caption">Loading bootstrapper manifest...</div>
+            <div class="type-caption">Loading host preload manifest...</div>
           ` : bootPayload.error ? `
             <div class="type-caption">☒ ${escapeText(bootPayload.error)}</div>
           ` : `

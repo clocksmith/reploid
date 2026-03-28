@@ -9,7 +9,8 @@ const TEMPLATE_DEFINITIONS = [
     title: 'Bare',
     text: [
       'Browser-hosted JavaScript runtime.',
-      'Writable roots: /.system, /self, /capsule, /tools, /.memory, /artifacts.',
+      'Canonical self lives under /self.',
+      'Writable roots: /self, /artifacts, and opfs:/artifacts.',
       'Visible tools: ReadFile, WriteFile, LoadModule.',
       'Assume nothing else until verified.'
     ].join('\n')
@@ -20,7 +21,8 @@ const TEMPLATE_DEFINITIONS = [
     title: 'Storage',
     text: [
       'Browser-hosted JavaScript runtime with VFS and OPFS.',
-      'Writable roots: /.system, /self, /capsule, /tools, /.memory, /artifacts, and opfs:/artifacts.',
+      'Canonical self lives under /self.',
+      'Writable roots: /self, /artifacts, and opfs:/artifacts.',
       'Visible tools: ReadFile, WriteFile, LoadModule.'
     ].join('\n')
   },
@@ -30,9 +32,10 @@ const TEMPLATE_DEFINITIONS = [
     title: 'Modules',
     text: [
       'Browser-hosted JavaScript runtime with VFS and OPFS.',
-      'Writable roots: /.system, /self, /capsule, /tools, /.memory, /artifacts, and opfs:/artifacts.',
-      'LoadModule registers JavaScript tools from /tools or /self.',
-      'Put reusable tools under /tools and durable notes under /.memory.'
+      'Canonical self lives under /self.',
+      'Writable roots: /self, /artifacts, and opfs:/artifacts.',
+      'LoadModule registers JavaScript tools from /self.',
+      'Put reusable modules under /self and durable outputs under /artifacts.'
     ].join('\n')
   },
   {
@@ -41,8 +44,9 @@ const TEMPLATE_DEFINITIONS = [
     title: 'Browser',
     text: [
       'Browser-hosted JavaScript runtime with VFS and OPFS.',
-      'Writable roots: /.system, /self, /capsule, /tools, /.memory, /artifacts, and opfs:/artifacts.',
-      'LoadModule registers JavaScript tools from /tools or /self.',
+      'Canonical self lives under /self.',
+      'Writable roots: /self, /artifacts, and opfs:/artifacts.',
+      'LoadModule registers JavaScript tools from /self.',
       'Any web API may exist; verify it before relying on it.'
     ].join('\n')
   },
@@ -52,9 +56,10 @@ const TEMPLATE_DEFINITIONS = [
     title: 'Guided',
     text: [
       'Browser-hosted JavaScript runtime with VFS and OPFS.',
-      'Writable roots: /.system, /self, /capsule, /tools, /.memory, /artifacts, and opfs:/artifacts.',
-      'LoadModule registers JavaScript tools from /tools or /self.',
-      'Prefer small reversible changes, keep durable notes under /.memory, and place outputs under /artifacts or opfs:/artifacts.',
+      'Canonical self lives under /self.',
+      'Writable roots: /self, /artifacts, and opfs:/artifacts.',
+      'LoadModule registers JavaScript tools from /self.',
+      'Prefer small reversible changes, keep durable state under /self, and place outputs under /artifacts or opfs:/artifacts.',
       'Any web API may exist; verify it before relying on it.'
     ].join('\n')
   }

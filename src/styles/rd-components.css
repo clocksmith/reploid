@@ -350,6 +350,8 @@ select {
 
 input[type="checkbox"],
 input[type="radio"] {
+  appearance: auto;
+  -webkit-appearance: auto;
   width: var(--space-md);
   height: var(--space-md);
   padding: 0;

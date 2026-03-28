@@ -68,7 +68,7 @@ Inference states on `/`:
 
 ## Awakened Self
 
-Awaken clears prior live VFS state, seeds the self graph, mounts Capsule, and starts the runtime.
+Awaken clears prior live VFS state, writes the generated self manifests, exposes the canonical self source as a copy-on-write `/self` overlay, mounts Capsule, and starts the runtime.
 
 Core system files:
 

@@ -4,6 +4,8 @@
  * session-scoped rooms, and exponential backoff reconnection.
  */
 
+import { getCurrentReploidStorage } from '../../self/instance.js';
+
 const PROTOCOL_VERSION = 1;
 const MAX_PAYLOAD_SIZE = 64 * 1024; // 64KB
 const MAX_BACKOFF_MS = 30000;
@@ -160,7 +162,7 @@ const WebRTCSwarm = {
       if (swarmParam) return true;
 
       // Fall back to localStorage
-      return localStorage.getItem('REPLOID_SWARM_ENABLED') === 'true';
+      return getCurrentReploidStorage().getItem('REPLOID_SWARM_ENABLED') === 'true';
     };
 
     /**

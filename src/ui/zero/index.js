@@ -2,6 +2,8 @@
  * @fileoverview Minimal runtime shell for Zero modes.
  */
 
+import { getCurrentReploidStorage as getReploidStorage } from '../../self/instance.js';
+
 const ZeroUI = {
   factory: (deps) => {
     const { Utils, EventBus, AgentLoop, StateManager, initialGoal, mode } = deps;
@@ -22,7 +24,6 @@ const ZeroUI = {
     };
     let _goal = initialGoal || '';
     let _models = [];
-
     const getModeLabel = () => {
       if (mode === 'reploid') return 'Reploid';
       if (mode === 'zero') return 'Zero';
@@ -30,8 +31,9 @@ const ZeroUI = {
     };
 
     const readSelectedModels = () => {
+      const storage = getReploidStorage();
       try {
-        const raw = localStorage.getItem('SELECTED_MODELS');
+        const raw = storage.getItem('SELECTED_MODELS');
         const parsed = raw ? JSON.parse(raw) : [];
         return Array.isArray(parsed) ? parsed : [];
       } catch {

@@ -8,22 +8,23 @@ import LLMClient from '../core/llm-client.js';
 import EventBus from '../infrastructure/event-bus.js';
 import StreamParser from '../infrastructure/stream-parser.js';
 import SwarmTransportModule from '../capabilities/communication/swarm-transport.js';
-import { readVfsFile, writeVfsFile, listVfsKeys } from '../boot-helpers/vfs-bootstrap.js';
+import { readVfsFile, writeVfsFile, listVfsKeys } from './host/vfs-bootstrap.js';
 import {
-  BOOTSTRAPPER_ROOT,
-  BOOTSTRAPPER_SOURCE_MIRRORS,
   SELF_OPFS_WRITABLE_ROOTS,
   SELF_PROTECTED_PATHS,
-  SELF_SOURCE_MIRRORS,
   SELF_VFS_WRITABLE_ROOTS,
-  buildSelfFiles
+  buildSelfFiles,
+  listSelfMirrorPaths,
+  resolveSelfSourceWebPath
 } from './manifest.js';
 import {
   buildIdentityDocument,
   ensureIdentityBundle,
   ensureIdentityDocument,
+  rotateIdentityBundle,
   saveIdentityBundle
 } from './identity.js';
+import { getCurrentReploidInstanceId } from './instance.js';
 import { createReceiptDraft, countersignReceipt, signReceiptDraft, verifyReceipt } from './receipt.js';
 import { applyReceiptToContribution } from './reward-policy.js';
 import { createPeerAdvertisement, createSwarmController } from './swarm.js';
@@ -141,13 +142,21 @@ const getOpfsFileHandle = async (path, options = {}) => {
   return dir.getFileHandle(parts[parts.length - 1], { create: !!options.createFile });
 };
 
-const createVfsAdapter = (canWritePath) => ({
+const createVfsAdapter = ({
+  canWritePath,
+  hasProjectedSource,
+  listProjectedPaths,
+  readProjectedSource
+}) => ({
   async read(path) {
     const result = await readVfsFile(path);
-    if (result === null || result === undefined) {
+    if (result !== null && result !== undefined) {
+      return result;
+    }
+    if (!hasProjectedSource(path)) {
       throw new Error(`File not found: ${path}`);
     }
-    return result;
+    return readProjectedSource(path);
   },
   async write(path, content) {
     if (!canWritePath(path)) {
@@ -161,7 +170,16 @@ const createVfsAdapter = (canWritePath) => ({
   },
   async stat(path) {
     const content = await readVfsFile(path);
-    if (content === null || content === undefined) return null;
+    if (content === null || content === undefined) {
+      if (!hasProjectedSource(path)) return null;
+      const projected = await readProjectedSource(path);
+      return {
+        path,
+        size: getTextBytes(projected),
+        updated: Date.now(),
+        type: 'file'
+      };
+    }
     return {
       path,
       size: getTextBytes(content),
@@ -171,13 +189,20 @@ const createVfsAdapter = (canWritePath) => ({
   },
   async exists(path) {
     const content = await readVfsFile(path);
-    return content !== null && content !== undefined;
+    return content !== null && content !== undefined
+      ? true
+      : hasProjectedSource(path);
   },
   async list(dir = '/') {
     const cleanDir = dir.startsWith('/') ? dir : `/${dir}`;
     const prefix = cleanDir.endsWith('/') ? cleanDir : `${cleanDir}/`;
     const keys = await listVfsKeys();
-    return keys.filter((key) => key.startsWith(prefix));
+    return Array.from(new Set([
+      ...keys,
+      ...listProjectedPaths()
+    ]))
+      .filter((key) => key.startsWith(prefix))
+      .sort();
   }
 });
 
@@ -227,8 +252,14 @@ const createBridgeEmitter = () => {
 
 export function createSelfBridge(options = {}) {
   const modelConfig = normalizeModelConfig(options.modelConfig);
-  const includeBootstrapperWithinSelf = !!options.includeBootstrapperWithinSelf;
+  const instanceId = String(options.instanceId || getCurrentReploidInstanceId() || 'default');
   const swarmEnabled = !!options.swarmEnabled;
+  let pendingFreshIdentity = !!options.forceFreshIdentity;
+  const seedOverrides = Object.fromEntries(
+    Object.entries(options.seedOverrides || {})
+      .filter(([path, content]) => typeof path === 'string' && typeof content === 'string')
+      .map(([path, content]) => [normalizePath(path, 'vfs').path, String(content)])
+  );
   const utils = Utils.factory();
   const providerRegistry = ProviderRegistry.factory({ Utils: utils });
   const eventBus = EventBus.factory({ Utils: utils });
@@ -239,14 +270,34 @@ export function createSelfBridge(options = {}) {
     StreamParser: streamParser
   });
 
-  const writableVfsRoots = includeBootstrapperWithinSelf
-    ? [...SELF_VFS_WRITABLE_ROOTS, BOOTSTRAPPER_ROOT]
-    : [...SELF_VFS_WRITABLE_ROOTS];
+  const writableVfsRoots = [...SELF_VFS_WRITABLE_ROOTS];
   const writableOpfsRoots = [...SELF_OPFS_WRITABLE_ROOTS];
   const isWritableVfsPath = (path) => !PROTECTED_SYSTEM_PATHS.has(path) && isWritablePath(path, writableVfsRoots);
   const isWritableOpfsPath = (path) => isWritablePath(path, writableOpfsRoots);
+  const projectedSelfPaths = listSelfMirrorPaths();
+  const projectedSelfPathSet = new Set(projectedSelfPaths);
+  const projectedSourceCache = new Map();
+  const hasProjectedSelfSource = (path) => projectedSelfPathSet.has(path);
+  const readProjectedSelfSource = async (path) => {
+    const webPath = resolveSelfSourceWebPath(path);
+    if (!webPath) {
+      throw new Error(`File not found: ${path}`);
+    }
+    if (!projectedSourceCache.has(path)) {
+      projectedSourceCache.set(path, fetchSourceText(webPath).catch((error) => {
+        projectedSourceCache.delete(path);
+        throw error;
+      }));
+    }
+    return projectedSourceCache.get(path);
+  };
 
-  const vfs = createVfsAdapter(isWritableVfsPath);
+  const vfs = createVfsAdapter({
+    canWritePath: isWritableVfsPath,
+    hasProjectedSource: hasProjectedSelfSource,
+    listProjectedPaths: () => projectedSelfPaths,
+    readProjectedSource: readProjectedSelfSource
+  });
   const bridgeEvents = createBridgeEmitter();
   const swarmController = createSwarmController();
   const receiptHistory = [];
@@ -394,7 +445,7 @@ export function createSelfBridge(options = {}) {
       ReadFile: readFile,
       WriteFile: writeFile
     },
-    isLoadablePath: (path) => isWithinRoot(path, '/tools') || isWithinRoot(path, '/self')
+    isLoadablePath: (path) => isWithinRoot(path, '/self')
   });
 
   const getTransportState = () => ({
@@ -403,6 +454,7 @@ export function createSelfBridge(options = {}) {
   });
 
   const getSwarmSnapshot = () => ({
+    instanceId,
     ...swarmController.getState({
       swarmEnabled,
       hasInference: !!modelConfig
@@ -423,10 +475,11 @@ export function createSelfBridge(options = {}) {
 
   const syncIdentityDocument = async () => {
     const document = buildIdentityDocument(identityBundle, {
+      instanceId,
       swarmEnabled,
       hasInference: !!modelConfig
     });
-    await writeVfsFile('/.system/identity.json', JSON.stringify(document, null, 2));
+    await writeVfsFile('/self/identity.json', JSON.stringify(document, null, 2));
     return document;
   };
 
@@ -453,7 +506,7 @@ export function createSelfBridge(options = {}) {
       receipt,
       priorHistory
     );
-    saveIdentityBundle(identityBundle);
+    saveIdentityBundle(identityBundle, undefined, { instanceId });
     await syncIdentityDocument();
     advertiseSelf();
     emitSwarmState();
@@ -467,7 +520,7 @@ export function createSelfBridge(options = {}) {
       receiptsConsumed: Math.max(0, Number(summary.receiptsConsumed || 0)) + 1,
       updatedAt: Date.now()
     };
-    saveIdentityBundle(identityBundle);
+    saveIdentityBundle(identityBundle, undefined, { instanceId });
     await syncIdentityDocument();
   };
 
@@ -617,9 +670,12 @@ export function createSelfBridge(options = {}) {
 
     swarmInitPromise = (async () => {
       identityBundle = await ensureIdentityBundle({
+        instanceId,
         swarmEnabled,
-        hasInference: !!modelConfig
+        hasInference: !!modelConfig,
+        forceNew: pendingFreshIdentity
       });
+      pendingFreshIdentity = false;
 
       if (!swarmEnabled) {
         return getSwarmSnapshot();
@@ -670,38 +726,58 @@ export function createSelfBridge(options = {}) {
     return swarmInitPromise;
   };
 
+  const rotateIdentity = async (input = {}) => {
+    if (!identityBundle) {
+      await initialize();
+    }
+
+    identityBundle = await rotateIdentityBundle({
+      ...input,
+      instanceId,
+      retireLegacy: input.retireLegacy !== false
+    });
+    await syncIdentityDocument();
+    if (swarmEnabled && swarmInitialized) {
+      advertiseSelf();
+    }
+    return emitSwarmState();
+  };
+
   const seedSystemFiles = async (input = {}) => {
     const hasInference = !!modelConfig;
     const files = buildSelfFiles({
+      instanceId,
       goal: input.goal,
       environment: input.environment,
-      includeBootstrapperWithinSelf,
       swarmEnabled: !!input.swarmEnabled,
       hasInference
     });
-    files['/.system/identity.json'] = JSON.stringify(
+    files['/self/identity.json'] = JSON.stringify(
       await ensureIdentityDocument({
+        instanceId,
         swarmEnabled: !!input.swarmEnabled,
         hasInference
       }),
       null,
       2
     );
-    const mirrorDefs = includeBootstrapperWithinSelf
-      ? [...SELF_SOURCE_MIRRORS, ...BOOTSTRAPPER_SOURCE_MIRRORS]
-      : SELF_SOURCE_MIRRORS;
-    const mirroredEntries = await Promise.all(
-      mirrorDefs.map(async ({ webPath, vfsPath }) => ({
-        path: vfsPath,
-        content: await fetchSourceText(webPath)
-      }))
-    );
+    Object.entries(seedOverrides).forEach(([path, content]) => {
+      if (Object.prototype.hasOwnProperty.call(files, path)) {
+        files[path] = content;
+      }
+    });
+    const projectedOverrides = Object.entries(seedOverrides).filter(([path]) => (
+      !Object.prototype.hasOwnProperty.call(files, path) && isWritableVfsPath(path)
+    ));
 
     await Promise.all([
       ...Object.entries(files).map(([path, content]) => writeVfsFile(path, content)),
-      ...mirroredEntries.map(({ path, content }) => writeVfsFile(path, content))
+      ...projectedOverrides.map(([path, content]) => writeVfsFile(path, content))
     ]);
-    return files;
+    return {
+      ...files,
+      ...Object.fromEntries(projectedOverrides)
+    };
   };
 
   const getModelLabel = () => modelConfig?.name || modelConfig?.id || '-';
@@ -758,6 +834,7 @@ export function createSelfBridge(options = {}) {
     initialize,
     seedSystemFiles,
     generate,
+    rotateIdentity,
     executeTool: toolRunner.executeTool,
     getModelConfig: () => modelConfig,
     getModelLabel,

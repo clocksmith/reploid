@@ -3,10 +3,17 @@
  */
 
 import { createContributionSummary } from './reward-policy.js';
+import { getCurrentReploidInstanceId, getScopedReploidStorageKey } from './instance.js';
 import { deriveSwarmRole } from './swarm.js';
 
 const IDENTITY_STORAGE_KEY = 'REPLOID_SELF_IDENTITY_V1';
+const LEGACY_IDENTITY_MIGRATION_KEY = 'REPLOID_SELF_IDENTITY_V1_MIGRATED_INSTANCE';
+const RETIRED_LEGACY_IDENTITY_MARKER = '__retired__';
 const encoder = new TextEncoder();
+
+export function getIdentityStorageKey(instanceId = getCurrentReploidInstanceId()) {
+  return getScopedReploidStorageKey(IDENTITY_STORAGE_KEY, instanceId);
+}
 
 const stableJson = (value) => {
   if (Array.isArray(value)) {
@@ -30,6 +37,53 @@ const getCryptoApi = (cryptoApi) => {
     throw new Error('WebCrypto unavailable');
   }
   return api;
+};
+
+const iterateStorageKeys = (storage) => {
+  if (!storage || typeof storage.length !== 'number' || typeof storage.key !== 'function') {
+    return [];
+  }
+
+  const keys = [];
+  for (let index = 0; index < storage.length; index += 1) {
+    const key = storage.key(index);
+    if (key) keys.push(key);
+  }
+  return keys;
+};
+
+const parseIdentityBundle = (raw) => {
+  if (!raw) return null;
+
+  try {
+    const parsed = JSON.parse(raw);
+    if (!parsed?.peerId || !parsed?.publicJwk || !parsed?.privateJwk) {
+      return null;
+    }
+    return {
+      ...parsed,
+      contribution: createContributionSummary(parsed.contribution)
+    };
+  } catch {
+    return null;
+  }
+};
+
+const findPeerCollisionKey = (storage, peerId, currentKey = '') => {
+  if (!peerId) return null;
+
+  for (const key of iterateStorageKeys(storage)) {
+    if (key === currentKey) continue;
+    if (key !== IDENTITY_STORAGE_KEY && !key.endsWith(`::${IDENTITY_STORAGE_KEY}`)) {
+      continue;
+    }
+    const bundle = parseIdentityBundle(storage.getItem(key));
+    if (bundle?.peerId === peerId) {
+      return key;
+    }
+  }
+
+  return null;
 };
 
 const toBase64Url = (buffer) => {
@@ -122,51 +176,112 @@ async function generateKeyBundle(options = {}) {
   };
 }
 
-export function readStoredIdentityBundle(storage) {
+export function readStoredIdentityBundle(storage, options = {}) {
   const target = getStorage(storage);
   if (!target) return null;
 
   try {
-    const raw = target.getItem(IDENTITY_STORAGE_KEY);
-    if (!raw) return null;
-    const parsed = JSON.parse(raw);
-    if (!parsed?.peerId || !parsed?.publicJwk || !parsed?.privateJwk) {
-      return null;
-    }
-    return {
-      ...parsed,
-      contribution: createContributionSummary(parsed.contribution)
-    };
+    const storageKey = getIdentityStorageKey(options.instanceId);
+    const useLegacyFallback = options.legacyFallback === true && storageKey !== IDENTITY_STORAGE_KEY;
+    const raw = target.getItem(storageKey) ?? (
+      useLegacyFallback
+        ? target.getItem(IDENTITY_STORAGE_KEY)
+        : null
+    );
+    return parseIdentityBundle(raw);
   } catch {
     return null;
   }
 }
 
-export function saveIdentityBundle(bundle, storage) {
+export function saveIdentityBundle(bundle, storage, options = {}) {
   const target = getStorage(storage);
   if (!target) return bundle;
-  target.setItem(IDENTITY_STORAGE_KEY, JSON.stringify(bundle));
+  target.setItem(getIdentityStorageKey(options.instanceId), JSON.stringify(bundle));
   return bundle;
 }
 
+const shouldRetireLegacyIdentity = (storage, instanceId) => {
+  if (!storage || !instanceId) return false;
+
+  const legacyBundle = parseIdentityBundle(storage.getItem(IDENTITY_STORAGE_KEY));
+  if (!legacyBundle) return false;
+
+  const claimedInstanceId = String(storage.getItem(LEGACY_IDENTITY_MIGRATION_KEY) || '').trim();
+  if (!claimedInstanceId) return true;
+  if (claimedInstanceId === instanceId) return true;
+
+  const currentBundle = readStoredIdentityBundle(storage, {
+    instanceId,
+    legacyFallback: false
+  });
+  return !!(currentBundle?.peerId && currentBundle.peerId === legacyBundle.peerId);
+};
+
 export async function ensureIdentityBundle(options = {}) {
   const storage = getStorage(options.storage);
-  const existing = readStoredIdentityBundle(storage);
+  const instanceId = String(options.instanceId || '').trim();
+  const existing = readStoredIdentityBundle(storage, options);
   if (existing && !options.forceNew) {
+    if (storage && instanceId) {
+      const currentKey = getIdentityStorageKey(instanceId);
+      const collidingKey = findPeerCollisionKey(storage, existing.peerId, currentKey);
+      if (collidingKey) {
+        let claimedInstanceId = String(storage.getItem(LEGACY_IDENTITY_MIGRATION_KEY) || '').trim();
+        const legacyBundle = parseIdentityBundle(storage.getItem(IDENTITY_STORAGE_KEY));
+        if (!claimedInstanceId && legacyBundle?.peerId === existing.peerId) {
+          storage.setItem(LEGACY_IDENTITY_MIGRATION_KEY, instanceId);
+          claimedInstanceId = String(storage.getItem(LEGACY_IDENTITY_MIGRATION_KEY) || '').trim();
+        }
+        const ownsLegacyIdentity = claimedInstanceId === instanceId && legacyBundle?.peerId === existing.peerId;
+        if (!ownsLegacyIdentity) {
+          const bundle = await generateKeyBundle(options);
+          return saveIdentityBundle(bundle, storage, options);
+        }
+      }
+    }
     return existing;
   }
 
+  if (!options.forceNew && storage && instanceId) {
+    const legacyBundle = parseIdentityBundle(storage.getItem(IDENTITY_STORAGE_KEY));
+    if (legacyBundle) {
+      let claimedInstanceId = String(storage.getItem(LEGACY_IDENTITY_MIGRATION_KEY) || '').trim();
+      if (!claimedInstanceId) {
+        storage.setItem(LEGACY_IDENTITY_MIGRATION_KEY, instanceId);
+        claimedInstanceId = String(storage.getItem(LEGACY_IDENTITY_MIGRATION_KEY) || '').trim();
+      }
+      if (claimedInstanceId === instanceId) {
+        return saveIdentityBundle(legacyBundle, storage, options);
+      }
+    }
+  }
+
   const bundle = await generateKeyBundle(options);
-  return saveIdentityBundle(bundle, storage);
+  return saveIdentityBundle(bundle, storage, options);
+}
+
+export async function rotateIdentityBundle(options = {}) {
+  const storage = getStorage(options.storage);
+  const instanceId = String(options.instanceId || '').trim();
+
+  if (storage && options.retireLegacy !== false && shouldRetireLegacyIdentity(storage, instanceId)) {
+    storage.setItem(LEGACY_IDENTITY_MIGRATION_KEY, RETIRED_LEGACY_IDENTITY_MARKER);
+  }
+
+  const bundle = await generateKeyBundle(options);
+  return saveIdentityBundle(bundle, storage, options);
 }
 
 export function buildIdentityDocument(bundle = null, options = {}) {
   const contribution = createContributionSummary(bundle?.contribution);
   const hasInference = !!options.hasInference;
   const swarmEnabled = !!options.swarmEnabled;
+  const instanceId = String(options.instanceId || getCurrentReploidInstanceId() || 'default');
 
   return {
     schema: 'reploid/identity/v1',
+    instanceId,
     peerId: bundle?.peerId || 'pending',
     algorithm: bundle?.algorithm || 'uninitialized',
     createdAt: bundle?.createdAt || null,
@@ -225,17 +340,21 @@ export { fromBase64Url, toBase64Url };
 
 export default {
   IDENTITY_STORAGE_KEY,
+  LEGACY_IDENTITY_MIGRATION_KEY,
+  RETIRED_LEGACY_IDENTITY_MARKER,
   buildIdentityDocument,
   createPeerIdFromPublicJwk,
   encodeBytes,
   ensureIdentityBundle,
   ensureIdentityDocument,
   fromBase64Url,
+  getIdentityStorageKey,
   getIdentityImportAlgorithm,
   getIdentitySignAlgorithm,
   importSigningKey,
   importVerificationKey,
   readStoredIdentityBundle,
+  rotateIdentityBundle,
   saveIdentityBundle,
   toBase64Url
 };

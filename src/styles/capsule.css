@@ -4,6 +4,12 @@
   font: 13px/1.45 var(--font-mono, monospace);
 }
 
+.capsule-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
 .capsule-stream {
   margin: 12px 0 0;
   display: flex;
@@ -25,7 +31,7 @@
 }
 
 @media (max-width: 640px) {
-  .capsule-shell .btn {
+  .capsule-toolbar .btn {
     width: 100%;
   }
 }

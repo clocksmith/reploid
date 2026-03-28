@@ -4,6 +4,8 @@
  * Supports Proxy (HTTP), Browser-Native (WebLLM/WebGPU), and Direct Cloud API execution.
  */
 
+import { getCurrentReploidStorage as getReploidStorage } from '../self/instance.js';
+
 const LLMClient = {
   metadata: {
     id: 'LLMClient',
@@ -22,7 +24,6 @@ const LLMClient = {
     // Streaming requires StreamParser - disable if not available
     const _canStream = !!StreamParser;
     const _activeRequests = new Map();
-
     // WebLLM State
     let _webLlmEngine = null;
     let _currentWebModelId = null;
@@ -111,16 +112,17 @@ const LLMClient = {
     };
 
     const getProxyClientId = () => {
-      if (typeof window === 'undefined' || typeof localStorage === 'undefined') {
+      const storage = getReploidStorage();
+      if (typeof window === 'undefined' || !storage.raw) {
         return 'server';
       }
 
       const key = 'REPLOID_CLIENT_ID';
-      let clientId = localStorage.getItem(key);
+      let clientId = storage.getItem(key);
       if (clientId) return clientId;
 
       clientId = Utils.generateId('client');
-      localStorage.setItem(key, clientId);
+      storage.setItem(key, clientId);
       return clientId;
     };
 
@@ -378,9 +380,10 @@ const LLMClient = {
       const provider = modelConfig.provider;
       const storageKey = `${provider.toUpperCase()}_API_KEY`;
       const reploidStorageKey = `REPLOID_KEY_${provider.toUpperCase()}`;
+      const storage = getReploidStorage();
       let apiKey = typeof modelConfig.getApiKey === 'function'
         ? await modelConfig.getApiKey()
-        : modelConfig.apiKey || localStorage.getItem(reploidStorageKey) || localStorage.getItem(storageKey);
+        : modelConfig.apiKey || storage.getItem(reploidStorageKey) || storage.getItem(storageKey);
       const canStreamResponse = !!onUpdate && !!StreamParser;
 
       if (!apiKey) {
@@ -390,8 +393,8 @@ const LLMClient = {
       // Validate API key format - detect corrupted localStorage
       if (apiKey.includes('[INFO]') || apiKey.includes('[Boot]') || apiKey.includes(' ') || apiKey.length > 200) {
         logger.error(`[LLM] Corrupted API key detected in localStorage (${storageKey}). Clearing invalid value.`);
-        localStorage.removeItem(storageKey);
-        localStorage.removeItem(reploidStorageKey);
+        storage.removeItem(storageKey, { removeLegacy: true });
+        storage.removeItem(reploidStorageKey, { removeLegacy: true });
         throw new Errors.ConfigError(`API key for ${provider} was corrupted. Please re-enter your API key in model settings.`);
       }
 

@@ -29,7 +29,7 @@ describe('build-reploid-cloud-access', () => {
       const result = await provisionReploidCloudAccess({
         env: {
           GEMINI_API_KEY: 'test-gemini-key',
-          REPLOID_ACCESS_MASTER_SECRET: 'operator-master-secret',
+          REPLOID_ROOT_ACCESS_SECRET: 'operator-master-secret',
           REPLOID_ACCESS_WINDOW_DAYS: '3',
           REPLOID_ACCESS_START_DATE: '2026-03-27'
         },

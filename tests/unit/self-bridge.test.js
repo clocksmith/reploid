@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 const fileStore = new Map();
 const mockChat = vi.fn();
 const mockLoadVfsModule = vi.fn();
+const mockFetch = vi.fn();
 
 vi.mock('../../src/core/utils.js', () => ({
   default: {
@@ -46,7 +47,7 @@ vi.mock('../../src/core/vfs-module-loader.js', () => ({
   loadVfsModule: (...args) => mockLoadVfsModule(...args)
 }));
 
-vi.mock('../../src/boot-helpers/vfs-bootstrap.js', () => ({
+vi.mock('../../src/self/host/vfs-bootstrap.js', () => ({
   readVfsFile: async (path) => fileStore.get(path) ?? null,
   writeVfsFile: async (path, content) => {
     fileStore.set(path, content);
@@ -62,12 +63,18 @@ describe('Self Bridge', () => {
     fileStore.clear();
     mockChat.mockReset();
     mockLoadVfsModule.mockReset();
-    fileStore.set('/.memory/leaderboard.json', '[]');
+    mockFetch.mockReset();
+    fileStore.set('/self/memory/leaderboard.json', '[]');
+    global.fetch = mockFetch;
+    mockFetch.mockImplementation(async (url) => ({
+      ok: true,
+      text: async () => `source:${url}`
+    }));
   });
 
   it('injects callTool so dynamic tools can invoke other loaded tools', async () => {
     mockLoadVfsModule.mockImplementation(async ({ path }) => {
-      if (path === '/tools/evaluator.js') {
+      if (path === '/self/tools/evaluator.js') {
         return {
           tool: {
             name: 'evaluatePrompt',
@@ -80,17 +87,17 @@ describe('Self Bridge', () => {
         };
       }
 
-      if (path === '/tools/orchestrator.js') {
+      if (path === '/self/tools/orchestrator.js') {
         return {
           tool: {
             name: 'orchestrator',
             call: async ({ variantId }, { callTool, readFile, writeFile }) => {
-              const file = await readFile({ path: '/.memory/leaderboard.json' });
+              const file = await readFile({ path: '/self/memory/leaderboard.json' });
               const leaderboard = JSON.parse(file.content || '[]');
               const result = await callTool('evaluatePrompt', { variantId });
               leaderboard.push(result);
               await writeFile({
-                path: '/.memory/leaderboard.json',
+                path: '/self/memory/leaderboard.json',
                 content: JSON.stringify(leaderboard)
               });
               return leaderboard;
@@ -109,8 +116,8 @@ describe('Self Bridge', () => {
       }
     });
 
-    await host.executeTool('LoadModule', { path: '/tools/evaluator.js' });
-    await host.executeTool('LoadModule', { path: '/tools/orchestrator.js' });
+    await host.executeTool('LoadModule', { path: '/self/tools/evaluator.js' });
+    await host.executeTool('LoadModule', { path: '/self/tools/orchestrator.js' });
 
     const leaderboard = await host.executeTool('orchestrator', { variantId: 'v1' });
 
@@ -121,7 +128,7 @@ describe('Self Bridge', () => {
         status: 'completed'
       }
     ]);
-    expect(fileStore.get('/.memory/leaderboard.json')).toBe(
+    expect(fileStore.get('/self/memory/leaderboard.json')).toBe(
       JSON.stringify([
         {
           variantId: 'v1',
@@ -199,5 +206,49 @@ describe('Self Bridge', () => {
         messages: [{ role: 'user', content: 'Say hello' }]
       })
     );
+  });
+
+  it('reads projected self source without eagerly materializing mirrors', async () => {
+    const host = createSelfBridge({
+      modelConfig: {
+        id: 'test-model',
+        provider: 'webllm'
+      }
+    });
+
+    await host.seedSystemFiles({
+      goal: 'Test goal',
+      environment: 'Test environment'
+    });
+
+    expect(fileStore.has('/self/runtime.js')).toBe(false);
+
+    const file = await host.executeTool('ReadFile', { path: '/self/runtime.js' });
+
+    expect(file.content).toBe('source:/src/self/runtime.js');
+    expect(fileStore.has('/self/runtime.js')).toBe(false);
+  });
+
+  it('materializes projected overrides during boot seeding', async () => {
+    const host = createSelfBridge({
+      modelConfig: {
+        id: 'test-model',
+        provider: 'webllm'
+      },
+      seedOverrides: {
+        '/self/runtime.js': 'export const overridden = true;'
+      }
+    });
+
+    await host.seedSystemFiles({
+      goal: 'Test goal',
+      environment: 'Test environment'
+    });
+
+    expect(fileStore.get('/self/runtime.js')).toBe('export const overridden = true;');
+    await expect(host.executeTool('ReadFile', { path: '/self/runtime.js' })).resolves.toEqual(
+      expect.objectContaining({ content: 'export const overridden = true;' })
+    );
+    expect(fileStore.get('/self/self.json')).toContain('"goal": "Test goal"');
   });
 });

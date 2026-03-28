@@ -1,6 +1,6 @@
 /**
  * @fileoverview Unit tests for ResponseParser module
- * Tests tool call parsing, JSON extraction, and completion detection
+ * Tests tool call parsing, literal block handling, and completion detection
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
@@ -130,6 +130,77 @@ describe('ResponseParser', () => {
 
   describe('parseToolCalls', () => {
     describe('valid tool calls', () => {
+      it('should parse a REPLOID/0 tool call with simple key/value args', () => {
+        const text = `REPLOID/0
+
+TOOL: ReadFile
+path: /test.txt`;
+
+        const calls = responseParser.parseToolCalls(text);
+
+        expect(calls).toHaveLength(1);
+        expect(calls[0].name).toBe('ReadFile');
+        expect(calls[0].args).toEqual({ path: '/test.txt' });
+        expect(calls[0].error).toBeUndefined();
+      });
+
+      it('should parse REPLOID/0 batched tool calls', () => {
+        const text = `REPLOID/0
+
+TOOL: ReadFile
+path: /first.txt
+
+TOOL: WriteFile
+path: /output.txt
+content <<EOF
+Hello
+EOF`;
+
+        const calls = responseParser.parseToolCalls(text);
+
+        expect(calls).toHaveLength(2);
+        expect(calls[0].name).toBe('ReadFile');
+        expect(calls[0].args.path).toBe('/first.txt');
+        expect(calls[1].name).toBe('WriteFile');
+        expect(calls[1].args.path).toBe('/output.txt');
+        expect(calls[1].args.content).toBe('Hello');
+      });
+
+      it('should parse REPLOID/0 literal blocks without JSON escaping', () => {
+        const text = `REPLOID/0
+
+TOOL: WriteFile
+path: /code.js
+content <<EOF
+function hello() {
+  console.log("Hello");
+}
+EOF`;
+
+        const calls = responseParser.parseToolCalls(text);
+
+        expect(calls).toHaveLength(1);
+        expect(calls[0].args.path).toBe('/code.js');
+        expect(calls[0].args.content).toContain('function hello()');
+        expect(calls[0].args.content).toContain('console.log("Hello")');
+      });
+
+      it('should parse inline booleans, numbers, and JSON objects in REPLOID/0', () => {
+        const text = `REPLOID/0
+
+TOOL: Example
+enabled: true
+retries: 3
+config: {"mode":"safe","paths":["/a","/b"]}`;
+
+        const calls = responseParser.parseToolCalls(text);
+
+        expect(calls).toHaveLength(1);
+        expect(calls[0].args.enabled).toBe(true);
+        expect(calls[0].args.retries).toBe(3);
+        expect(calls[0].args.config).toEqual({ mode: 'safe', paths: ['/a', '/b'] });
+      });
+
       it('should parse a single tool call with simple args', () => {
         const text = `I'll read the file now.
 
@@ -287,6 +358,34 @@ ARGS: not json`;
 
         expect(calls).toHaveLength(1);
         expect(calls[0].error).toBe('Invalid JSON block');
+      });
+
+      it('should report unterminated REPLOID/0 literal blocks', () => {
+        const text = `REPLOID/0
+
+TOOL: WriteFile
+path: /broken.js
+content <<EOF
+export const broken = true;`;
+
+        const calls = responseParser.parseToolCalls(text);
+
+        expect(calls).toHaveLength(1);
+        expect(calls[0].name).toBe('WriteFile');
+        expect(calls[0].error).toContain('Unterminated block');
+      });
+
+      it('should report invalid REPLOID/0 argument lines', () => {
+        const text = `REPLOID/0
+
+TOOL: ReadFile
+path /missing-colon`;
+
+        const calls = responseParser.parseToolCalls(text);
+
+        expect(calls).toHaveLength(1);
+        expect(calls[0].name).toBe('ReadFile');
+        expect(calls[0].error).toContain('Invalid argument line');
       });
 
       it('should handle incomplete JSON (unclosed brace)', () => {

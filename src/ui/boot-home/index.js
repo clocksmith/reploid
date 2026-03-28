@@ -16,7 +16,7 @@ import {
   subscribe
 } from '../boot-wizard/state.js';
 import {
-  generateGoalPrompt,
+  generateSeededGoalPrompt,
   runDetection,
   testApiKey,
   testDirectModel,
@@ -24,12 +24,21 @@ import {
   testProxyConnection,
   testProxyModel
 } from '../boot-wizard/detection.js';
-import { formatGoalPacket, getGoalEntries } from '../boot-wizard/goals.js';
+import {
+  DEFAULT_REPLOID_HOME_GOAL,
+  formatGoalPacket,
+  getGoalEntries
+} from '../boot-wizard/goals.js';
 import {
   findReploidEnvironmentTemplateId,
   getDefaultReploidEnvironment,
   getReploidEnvironmentTemplate
 } from '../../config/reploid-environments.js';
+import {
+  createReploidPeerUrl,
+  getCurrentReploidInstanceLabel,
+  getCurrentReploidStorage as getReploidStorage
+} from '../../self/instance.js';
 import { clearVfsStore, loadVfsManifest, seedVfsFromManifest } from '../../boot-helpers/vfs-bootstrap.js';
 import {
   getReploidLaunchState,
@@ -40,7 +49,8 @@ import { renderConnectionProviderOptions } from '../boot-wizard/steps/choose.js'
 import { CLOUD_MODELS, renderDirectConfigStep } from '../boot-wizard/steps/direct.js';
 import { renderProxyConfigStep } from '../boot-wizard/steps/proxy.js';
 import { renderBrowserConfigStep } from '../boot-wizard/steps/browser.js';
-import { renderGoalStep } from '../boot-wizard/steps/goal.js';
+import { renderAwakenedFilesPanel, renderGoalStep } from '../boot-wizard/steps/goal.js';
+import { ensureSelfPreviewLoaded } from '../boot-wizard/self-preview.js';
 
 const DEFAULT_DOPPLER_MODEL = 'smollm2-360m';
 const DEFAULT_GTM_PROXY_PROVIDER = 'gemini';
@@ -48,11 +58,15 @@ const DEFAULT_GTM_PROXY_MODEL = 'gemini-3.1-flash-lite-preview';
 const ROUTE_HOME_CONFIG = Object.freeze({
   reploid: {
     providerMode: 'choice',
-    providerCaption: 'Primary Reploid keeps boot minimal: access code, your own inference, or swarm consumer mode.',
-    goalTitle: 'Compose self',
-    goalCaption: 'Reploid starts from explicit self files: manifest, identity, access windows, runtime, bridge, tool runner, Capsule shell, and writable roots for memory, tools, and artifacts.',
+    providerCaption: 'Primary Reploid keeps boot minimal: attach your own inference, use swarm, or optionally unlock a sponsor window.',
+    goalTitle: 'Set the first objective',
+    goalCaption: 'These starting files define the initial self. The manifest and identity establish what Reploid is, optional sponsor windows unlock provisioned browser-cloud inference, the runtime, bridge, and tool runner execute work, the Capsule shell renders the interface, and writable roots hold memory, tools, and artifacts. Your first objective tells that seed what to build, measure, and improve first.',
     awakenCaption: 'Awaken a minimal browser-native seed Reploid with explicit self files for runtime, identity, collaboration, and self-improvement.',
-    hideBootInternals: true
+    hideBootInternals: true,
+    goalActionMode: 'generate-only',
+    generatedStatusText: 'Objective drafted from a hidden seed prompt',
+    defaultGoal: DEFAULT_REPLOID_HOME_GOAL,
+    goalPlaceholder: DEFAULT_REPLOID_HOME_GOAL
   },
   zero: {
     providerMode: 'choice',
@@ -60,7 +74,9 @@ const ROUTE_HOME_CONFIG = Object.freeze({
     goalTitle: 'Set the first objective',
     goalCaption: 'Set the first objective for the mutable local Reploid.',
     awakenCaption: 'Awaken Zero with the selected inference path and first objective.',
-    hideBootInternals: true
+    hideBootInternals: true,
+    goalActionMode: 'generate-only',
+    generatedStatusText: 'Objective drafted from a hidden seed prompt'
   },
   x: {
     providerMode: 'choice',
@@ -68,7 +84,9 @@ const ROUTE_HOME_CONFIG = Object.freeze({
     goalTitle: 'Set the first objective',
     goalCaption: 'Set the first goal the mature substrate should pursue.',
     awakenCaption: 'Awaken X with the selected inference path and first goal.',
-    hideBootInternals: true
+    hideBootInternals: true,
+    goalActionMode: 'generate-only',
+    generatedStatusText: 'Objective drafted from a hidden seed prompt'
   }
 });
 
@@ -76,11 +94,12 @@ let container = null;
 let listenersAttached = false;
 let renderScheduled = false;
 let unsubscribeState = null;
+let sponsorAccessExpanded = false;
 
 const renderLockedSection = (title, caption) => `
   <div class="wizard-step wizard-stage-placeholder">
     <div class="goal-header">
-      <h2 class="type-h1">${title}</h2>
+      <h2 class="type-h2">${title}</h2>
       <p class="type-caption">${caption}</p>
     </div>
   </div>
@@ -108,12 +127,25 @@ const getPreferredProxyModel = (provider) => {
 
 const getRouteHomeConfig = (mode) => ROUTE_HOME_CONFIG[mode] || ROUTE_HOME_CONFIG.reploid;
 const isUsingOwnInference = (state) => state.mode === 'reploid' && state.connectionType === 'direct';
+const getPeerLaunchUrl = () => createReploidPeerUrl(window.location.pathname);
+const getFreshPeerLaunchUrl = () => createReploidPeerUrl(window.location.pathname, { freshIdentity: true });
+const omitPathEntry = (entries, path) => Object.fromEntries(
+  Object.entries(entries || {}).filter(([entryPath]) => entryPath !== path)
+);
+const getSeedOverridesPayload = (state) => Object.fromEntries(
+  Object.entries(state.seedOverrides || {})
+    .filter(([path, content]) => typeof path === 'string' && typeof content === 'string')
+);
 
 const renderIntroStep = () => `
   <div class="wizard-step wizard-intro">
     <div class="goal-header">
-      <h2 class="type-h1">Reploid</h2>
-      <p class="type-caption">Self-modifying browser substrate that boots from explicit self files, then iteratively rewrites and extends its own runtime, tools, and shell. A reversible, auditable seed for bounded recursive self-improvement under staged capability gates.</p>
+      <h1 class="type-h1">Reploid</h1>
+      <p class="type-caption">Peer instance: ${getCurrentReploidInstanceLabel()} · <a class="link-secondary" href="${getPeerLaunchUrl()}" target="_blank" rel="noopener">Open new peer</a> · <a class="link-secondary" href="${getFreshPeerLaunchUrl()}" target="_blank" rel="noopener">Open fresh peer</a></p>
+      <div class="wizard-intro-copy">
+        <p class="intro-thesis">Reploid asks whether a self-modifying agent that can inspect and rewrite its own substrate can climb from local improvements into recursive self-improvement.</p>
+        <p class="intro-reality">That is the philosophy. In reality, Reploid is a browser-native runtime that awakens from explicit self files, rewrites its own runtime, tools, and shell through bounded experiments, and treats weak AGI as a measured engineering target rather than a claim.</p>
+      </div>
     </div>
   </div>
 `;
@@ -121,38 +153,61 @@ const renderIntroStep = () => `
 const renderManagedInferenceStep = (state) => {
   const launch = getReploidLaunchState(state);
   const byokEnabled = launch.ownInference;
-  const modelLabel = byokEnabled
-    ? (state.directConfig?.model || 'Configure below')
-    : launch.accessModel;
-  const statusLabel = byokEnabled ? 'Your inference' : 'Access code';
+  const accessProvisioned = !!launch.accessProvisioned;
+  const accessCode = String(state.accessConfig?.accessCode || '');
+  const accessError = state.accessConfig?.error || '';
+  const hasDirectInference = hasDirectInferenceConfig(state);
+  const showSponsorAccessDetails = !byokEnabled && accessProvisioned;
+  const sponsorAccessDetailsOpen = showSponsorAccessDetails
+    && (sponsorAccessExpanded || !!accessCode || !!accessError);
 
-  let caption = '';
-  if (byokEnabled) {
-    caption = hasDirectInferenceConfig(state)
-      ? (launch.swarmEnabled
-        ? 'Swarm on. This Reploid will provide inference to peers after awaken.'
-        : 'Solo. Inference stays private to this Reploid.')
-      : 'Finish configuring your own inference below, or turn Configure off to return to access code.';
+  let statusLabel = 'No local inference';
+  let modelLabel = '';
+  let caption = 'Use Configure to attach your own inference, or enable Swarm to awaken and borrow from peers.';
+
+  if (launch.hasDirectInference) {
+    statusLabel = 'Your inference';
+    modelLabel = state.directConfig?.model || '';
+    caption = launch.swarmEnabled
+      ? 'This browser has local inference and will also serve peers after awaken.'
+      : 'This browser has local inference. Enable Swarm if you want to serve peers too.';
   } else if (launch.hasAccessInference) {
+    statusLabel = 'Sponsor access';
+    modelLabel = launch.accessModel;
     caption = launch.swarmEnabled
-      ? `Swarm on. Access code unlocks provider mode for the ${launch.accessWindowLabel} access window.`
-      : `Solo. Access code unlocks local inference in the browser for the ${launch.accessWindowLabel} access window.`;
-  } else if (!launch.accessProvisioned) {
-    caption = launch.swarmEnabled
-      ? 'No access window is provisioned in this build. Swarm consumer mode can still awaken without local inference.'
-      : 'No access window is provisioned in this build yet. Use Configure for BYOK or enable Swarm to awaken as a consumer.';
+      ? `A sponsor access window is active for ${launch.accessWindowLabel}. This browser has local inference and will also serve peers after awaken.`
+      : `A sponsor access window is active for ${launch.accessWindowLabel}. This browser has local inference for this session.`;
   } else if (launch.swarmEnabled) {
-    caption = `Enter the ${launch.accessWindowLabel} access code to awaken as a provider, or continue without one to awaken as a swarm consumer.`;
-  } else {
-    caption = `Enter the ${launch.accessWindowLabel} access code to unlock inference, or use Configure to bring your own key.`;
+    statusLabel = 'Peer inference';
+    caption = byokEnabled
+      ? 'Swarm is on. This Reploid can awaken now and wait for a provider peer while you optionally finish configuring your own inference below.'
+      : (accessProvisioned
+        ? `Swarm is on. This Reploid can awaken now and wait for a provider peer, or expand Sponsor access to add the ${launch.accessWindowLabel} code for local inference.`
+        : 'Swarm is on. This Reploid can awaken now and wait for a provider peer.');
+  } else if (byokEnabled && !hasDirectInference) {
+    statusLabel = 'Attach your inference';
+    caption = 'Configure a provider, key, and model below to give this browser local inference.';
+  } else if (accessProvisioned) {
+    caption = `Use Configure to attach your own inference, enable Swarm to borrow from peers, or expand Sponsor access to add the ${launch.accessWindowLabel} code.`;
   }
+
+  const sponsorSummaryTitle = 'Sponsor access';
+  const sponsorSummaryCaption = accessCode
+    ? `${launch.accessWindowLabel} code added`
+    : `Optional. Expand to unlock the ${launch.accessWindowLabel} sponsor window in this browser.`;
 
   return `
     <div class="wizard-step inference-bar">
+      <div class="goal-header">
+        <h2 class="type-h2">Inference</h2>
+      </div>
       <div class="inference-bar-row">
         <div class="inference-bar-status">
-          <span class="inference-bar-label">${statusLabel}</span>
-          <span class="inference-bar-model">${modelLabel}</span>
+          <div class="inference-bar-title">
+            <span class="inference-bar-label">${statusLabel}</span>
+            ${modelLabel ? `<span class="inference-bar-model">${modelLabel}</span>` : ''}
+          </div>
+          <p class="type-caption inference-bar-note">${caption}</p>
         </div>
         <div class="inference-bar-controls">
           <button class="inference-bar-configure${byokEnabled ? ' active' : ''}"
@@ -167,22 +222,42 @@ const renderManagedInferenceStep = (state) => {
           </label>
         </div>
       </div>
-      <div class="inference-bar-row inference-bar-row-access">
-        <input type="password"
-               id="reploid-access-code"
-               class="inference-bar-input"
-               placeholder="${launch.accessProvisioned ? 'Enter access code' : 'Provision access windows to enable this path'}"
-               value="${state.accessConfig?.accessCode || ''}"
-               ${byokEnabled ? 'disabled' : ''}
-               autocomplete="off"
-               spellcheck="false" />
-        <div class="inference-bar-meta">
-          <span class="type-caption">${caption}</span>
-          ${state.accessConfig?.error ? `
-            <span class="type-caption type-caption-error">☒ ${state.accessConfig.error}</span>
-          ` : ''}
-        </div>
-      </div>
+      ${showSponsorAccessDetails ? `
+        <details class="inference-bar-shared-details"${sponsorAccessDetailsOpen ? ' open' : ''}>
+          <summary class="inference-bar-shared-summary disclosure-summary">
+            <span class="disclosure-summary-copy inference-bar-shared-copy">
+              <span class="inference-bar-shared-title">${sponsorSummaryTitle}</span>
+              <span class="type-caption">${sponsorSummaryCaption}</span>
+            </span>
+          </summary>
+          ${accessProvisioned ? `
+            <div class="inference-bar-row inference-bar-row-access">
+              <input type="password"
+                     id="reploid-access-code"
+                     class="inference-bar-input"
+                     placeholder="Enter sponsor access code"
+                     value="${accessCode}"
+                     autocomplete="off"
+                     spellcheck="false" />
+              <div class="inference-bar-meta">
+                <span class="type-caption">Enter the sponsor code to unlock local browser-cloud inference for this access window.</span>
+                ${accessError ? `
+                  <span class="type-caption type-caption-error">☒ ${accessError}</span>
+                ` : ''}
+              </div>
+            </div>
+          ` : `
+            <div class="inference-bar-row inference-bar-row-copy">
+              <div class="inference-bar-meta">
+                <span class="type-caption">${caption}</span>
+                ${accessError ? `
+                  <span class="type-caption type-caption-error">☒ ${accessError}</span>
+                ` : ''}
+              </div>
+            </div>
+          `}
+        </details>
+      ` : ''}
     </div>
   `;
 };
@@ -201,7 +276,7 @@ const autoSelectConnectionType = () => {
   if (state.connectionType) return;
 
   if (state.mode === 'reploid' && state.routeLockedMode === 'reploid') {
-    const useOwnInference = localStorage.getItem('REPLOID_USE_OWN_INFERENCE') === 'true';
+    const useOwnInference = getReploidStorage().getItem('REPLOID_USE_OWN_INFERENCE') === 'true';
     setState({ connectionType: useOwnInference ? 'direct' : 'access' });
     return;
   }
@@ -266,24 +341,29 @@ async function handleGenerateGoal() {
   setState({
     goalGenerator: {
       status: 'generating',
-      error: null
+      error: null,
+      source: null
     }
   });
 
   try {
-    const goal = await generateGoalPrompt();
+    const result = await generateSeededGoalPrompt();
+    const goal = typeof result === 'string' ? result : result?.goal;
+    const source = typeof result === 'string' ? 'model' : (result?.source || 'model');
     setState({
       goal,
       goalGenerator: {
         status: 'ready',
-        error: null
+        error: null,
+        source
       }
     });
   } catch (err) {
     setState({
       goalGenerator: {
         status: 'error',
-        error: err?.message || 'Failed to generate goal'
+        error: err?.message || 'Failed to generate goal',
+        source: null
       }
     });
   }
@@ -446,9 +526,9 @@ async function doAwaken() {
       window.triggerAwaken({
         goal: goalPacket,
         environment: String(state.environment || ''),
-        includeBootstrapperWithinSelf: false,
         swarmEnabled: !!state.swarmEnabled,
-        modelConfig
+        modelConfig,
+        seedOverrides: getSeedOverridesPayload(state)
       });
     } else {
       window.triggerAwaken(goalPacket);
@@ -501,14 +581,9 @@ function handleChange(event) {
       setNestedState('proxyConfig', { model: value });
       break;
 
-    case 'include-bootstrapper-within-self':
-      setState({ includeBootstrapperWithinSelf: value });
-      localStorage.setItem('REPLOID_INCLUDE_BOOTSTRAPPER_WITHIN_SELF', value ? 'true' : 'false');
-      break;
-
     case 'reploid-swarm-enabled':
       setState({ swarmEnabled: value });
-      localStorage.setItem('REPLOID_SWARM_ENABLED', value ? 'true' : 'false');
+      getReploidStorage().setItem('REPLOID_SWARM_ENABLED', value ? 'true' : 'false');
       break;
 
     /* own-inference toggle handled by click action 'toggle-own-inference' */
@@ -547,7 +622,8 @@ function handleInput(event) {
         goal: value,
         goalGenerator: {
           status: 'idle',
-          error: null
+          error: null,
+          source: null
         }
       });
       break;
@@ -565,14 +641,30 @@ function handleInput(event) {
         selectedEnvironmentTemplate: findReploidEnvironmentTemplateId(value)
       });
       break;
+
+    case 'seed-editor-input': {
+      const path = getState().selectedSelfPath;
+      if (!path) break;
+      setState({
+        seedDrafts: {
+          ...(getState().seedDrafts || {}),
+          [path]: value
+        }
+      });
+      break;
+    }
   }
 }
 
 async function handleClick(event) {
-  const action = event.target.closest('[data-action]')?.dataset.action;
+  const actionEl = event.target.closest('[data-action]');
+  const action = actionEl?.dataset.action;
   if (!action) return;
 
   event.preventDefault();
+  if (actionEl.closest('.disclosure-summary-actions')) {
+    event.stopPropagation();
+  }
   const state = getState();
 
   switch (action) {
@@ -622,7 +714,7 @@ async function handleClick(event) {
     case 'toggle-own-inference': {
       const currentlyByok = isUsingOwnInference(getState());
       const next = !currentlyByok;
-      localStorage.setItem('REPLOID_USE_OWN_INFERENCE', next ? 'true' : 'false');
+      getReploidStorage().setItem('REPLOID_USE_OWN_INFERENCE', next ? 'true' : 'false');
       if (next) {
         const saved = checkSavedConfig();
         if (saved?.primaryHostType === 'browser-cloud' && saved?.hasSavedKey) {
@@ -665,7 +757,8 @@ async function handleClick(event) {
         selectedGoalCategory: category || state.selectedGoalCategory,
         goalGenerator: {
           status: 'idle',
-          error: null
+          error: null,
+          source: null
         }
       });
       break;
@@ -682,7 +775,8 @@ async function handleClick(event) {
         selectedGoalCategory: shuffledGoal?.category || state.selectedGoalCategory,
         goalGenerator: {
           status: 'idle',
-          error: null
+          error: null,
+          source: null
         }
       });
       break;
@@ -708,6 +802,53 @@ async function handleClick(event) {
       const button = event.target.closest('[data-path]');
       const path = button?.dataset.path;
       if (path) setState({ selectedSelfPath: path });
+      break;
+    }
+
+    case 'start-seed-edit': {
+      if (state.selectedSelfPath) {
+        setState({ editingSeedPath: state.selectedSelfPath });
+      }
+      break;
+    }
+
+    case 'save-seed-edit': {
+      const path = state.selectedSelfPath;
+      if (!path) break;
+      const editor = document.getElementById('seed-editor-input');
+      const nextContent = typeof editor?.value === 'string'
+        ? editor.value
+        : state.seedDrafts?.[path];
+      if (typeof nextContent !== 'string') break;
+      setState({
+        seedOverrides: {
+          ...(state.seedOverrides || {}),
+          [path]: nextContent
+        },
+        seedDrafts: omitPathEntry(state.seedDrafts, path),
+        editingSeedPath: null
+      });
+      break;
+    }
+
+    case 'cancel-seed-edit': {
+      const path = state.selectedSelfPath;
+      if (!path) break;
+      setState({
+        seedDrafts: omitPathEntry(state.seedDrafts, path),
+        editingSeedPath: state.editingSeedPath === path ? null : state.editingSeedPath
+      });
+      break;
+    }
+
+    case 'revert-seed-file': {
+      const path = state.selectedSelfPath;
+      if (!path) break;
+      setState({
+        seedOverrides: omitPathEntry(state.seedOverrides, path),
+        seedDrafts: omitPathEntry(state.seedDrafts, path),
+        editingSeedPath: state.editingSeedPath === path ? null : state.editingSeedPath
+      });
       break;
     }
 
@@ -752,6 +893,8 @@ function handleToggle(event) {
   if (!(details instanceof HTMLDetailsElement)) return;
   if (details.classList.contains('goal-level-dropdown')) {
     setState({ goalPresetsOpen: details.open });
+  } else if (details.classList.contains('inference-bar-shared-details')) {
+    sponsorAccessExpanded = details.open;
   }
 }
 
@@ -797,38 +940,28 @@ function render() {
     html += renderGoalStep(state, {
       title: homeConfig.goalTitle,
       caption: homeConfig.goalCaption,
-      hideBootInternals: homeConfig.hideBootInternals
+      hideBootInternals: homeConfig.hideBootInternals,
+      goalActionMode: homeConfig.goalActionMode,
+      generatedStatusText: homeConfig.generatedStatusText,
+      goalPlaceholder: homeConfig.goalPlaceholder,
+      headingClass: 'type-h2',
+      showMinimalAwakenedFiles: false
     });
 
     const awakenDisabled = state.isAwakening || !hasGoal || !launch?.canAwaken;
-    let awakenCaption = homeConfig.awakenCaption;
-    if (!hasGoal) {
-      awakenCaption = 'Set a first objective, then awaken.';
-    } else if (launch?.isDead) {
-      awakenCaption = 'Enter an access code, configure your own inference, or enable Swarm to awaken as a consumer.';
-    } else if (launch?.role === 'consumer') {
-      awakenCaption = 'Awaken as a swarm consumer. This Reploid has no local inference and will wait for provider peers.';
-    } else if (launch?.role === 'provider') {
-      awakenCaption = 'Awaken as a swarm provider. This Reploid may serve peers while continuing its own work.';
-    }
-
-    html += `
-      <div class="wizard-step wizard-awaken wizard-awaken-simple">
-        <div class="goal-header">
-          <h2 class="type-h1">Awaken</h2>
-          <p class="type-caption">${awakenCaption}</p>
-        </div>
-        <div class="wizard-actions-row">
-          <button class="btn btn-lg btn-prism${state.isAwakening ? ' loading' : ''}"
-                  data-action="awaken"
-                  id="awaken-btn"
-                  ${awakenDisabled ? 'disabled' : ''}
-                  aria-busy="${state.isAwakening ? 'true' : 'false'}">
-            ${state.isAwakening ? 'Awakening...' : 'Awaken'}
-          </button>
-        </div>
-      </div>
-    `;
+    html += renderAwakenedFilesPanel(state, {
+      showSourceBrowser: true,
+      defaultOpen: false,
+      summaryActionHtml: `
+        <button class="btn btn-prism${state.isAwakening ? ' loading' : ''}"
+                data-action="awaken"
+                id="awaken-btn"
+                ${awakenDisabled ? 'disabled' : ''}
+                aria-busy="${state.isAwakening ? 'true' : 'false'}">
+          ${state.isAwakening ? 'Awakening...' : 'Awaken'}
+        </button>
+      `
+    });
   } else {
     const hasConnectionType = !!state.connectionType;
     html += `
@@ -857,13 +990,17 @@ function render() {
           ? 'Finish inference configuration to unlock the objective editor.'
           : 'Choose and configure inference before continuing.'
       );
-    } else {
-      html += renderGoalStep(state, {
-        title: homeConfig.goalTitle,
-        caption: homeConfig.goalCaption,
-        hideBootInternals: homeConfig.hideBootInternals
-      });
-    }
+      } else {
+        html += renderGoalStep(state, {
+          title: homeConfig.goalTitle,
+          caption: homeConfig.goalCaption,
+          hideBootInternals: homeConfig.hideBootInternals,
+          goalActionMode: homeConfig.goalActionMode,
+          generatedStatusText: homeConfig.generatedStatusText,
+          goalPlaceholder: homeConfig.goalPlaceholder,
+          headingClass: 'type-h2'
+        });
+      }
 
     if (!canAwaken() || !hasGoal) {
       html += renderLockedSection(
@@ -915,12 +1052,17 @@ function render() {
     attachEventListeners();
     listenersAttached = true;
   }
+
+  if (state.mode === 'reploid') {
+    ensureSelfPreviewLoaded();
+  }
 }
 
 export function initLockedBootHome(containerEl, mode = 'reploid') {
   container = containerEl;
   listenersAttached = false;
   renderScheduled = false;
+  sponsorAccessExpanded = false;
 
   if (unsubscribeState) {
     unsubscribeState();
@@ -928,16 +1070,21 @@ export function initLockedBootHome(containerEl, mode = 'reploid') {
   }
 
   const routeMode = ROUTE_HOME_CONFIG[mode] ? mode : 'reploid';
+  const homeConfig = getRouteHomeConfig(routeMode);
   resetWizard();
+  const defaultGoal = String(getState().goal || '').trim()
+    ? getState().goal
+    : String(homeConfig.defaultGoal || '');
 
-  const swarmEnabled = localStorage.getItem('REPLOID_SWARM_ENABLED') === 'true';
-  const useOwnInference = localStorage.getItem('REPLOID_USE_OWN_INFERENCE') === 'true';
+  const storage = getReploidStorage();
+  const swarmEnabled = storage.getItem('REPLOID_SWARM_ENABLED') === 'true';
+  const useOwnInference = storage.getItem('REPLOID_USE_OWN_INFERENCE') === 'true';
   const managedReploid = routeMode === 'reploid'
-    ? {
+      ? {
         connectionType: useOwnInference ? 'direct' : 'access',
         environment: getDefaultReploidEnvironment(),
         selectedEnvironmentTemplate: null,
-        includeBootstrapperWithinSelf: false,
+        goal: defaultGoal,
         swarmEnabled
       }
     : {};

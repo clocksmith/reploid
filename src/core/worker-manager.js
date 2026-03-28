@@ -508,8 +508,12 @@ Important:
 - When done, provide a clear summary of your results
 
 Available tool format:
-TOOL_CALL: ToolName
-ARGS: {"arg": "value"}`;
+REPLOID/0
+
+TOOL: ToolName
+arg: value
+
+Use content <<EOF blocks for multiline code or file contents.`;
 
       // Initialize messages for this worker (fresh context)
       const messages = [

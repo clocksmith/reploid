@@ -5,6 +5,7 @@
 
 import { loadVfsModule } from './vfs-module-loader.js';
 import { isSecurityEnabled } from './security-config.js';
+import { getCurrentReploidStorage as getReploidStorage } from '../self/instance.js';
 
 const ToolRunner = {
   metadata: {
@@ -19,7 +20,6 @@ const ToolRunner = {
   factory: (deps) => {
     const { Utils, VFS, ToolWriter, SubstrateLoader, EventBus, AuditLogger, HITLController, ArenaHarness, VFSSandbox, VerificationManager, Shell, gitTools, EmbeddingStore, SemanticMemory, KnowledgeGraph, GEPAOptimizer, PromptMemory, SchemaRegistry, TraceStore, PersonaManager, Observability, GenesisSnapshot, PolicyEngine, SchemaValidator } = deps;
     const { logger, Errors, trunc } = Utils;
-
     // WorkerManager is mutable because of circular dependency:
     // ToolRunner -> WorkerManager? (optional) -> ToolRunner
     // WorkerManager initializes AFTER ToolRunner, so we need to update the reference later
@@ -29,8 +29,9 @@ const ToolRunner = {
       if (typeof window !== 'undefined' && typeof window.getReploidMode === 'function') {
         return window.getReploidMode();
       }
-      if (typeof localStorage !== 'undefined') {
-        const stored = localStorage.getItem('REPLOID_MODE');
+      const storage = getReploidStorage();
+      if (storage.raw) {
+        const stored = storage.getItem('REPLOID_MODE');
         if (stored === 'reploid' || stored === 'zero' || stored === 'x') {
           return stored;
         }
@@ -48,7 +49,7 @@ const ToolRunner = {
     // Arena verification for self-modification (opt-in via config)
     let _arenaGatingEnabled = false;
     try {
-      const saved = localStorage.getItem('REPLOID_ARENA_GATING');
+      const saved = getReploidStorage().getItem('REPLOID_ARENA_GATING');
       _arenaGatingEnabled = saved === 'true';
     } catch (e) { /* ignore */ }
 
@@ -561,7 +562,7 @@ const ToolRunner = {
     const setArenaGating = (enabled) => {
       _arenaGatingEnabled = !!enabled;
       try {
-        localStorage.setItem('REPLOID_ARENA_GATING', String(_arenaGatingEnabled));
+        getReploidStorage().setItem('REPLOID_ARENA_GATING', String(_arenaGatingEnabled));
       } catch (e) { /* ignore */ }
       logger.info(`[ToolRunner] Arena gating ${_arenaGatingEnabled ? 'enabled' : 'disabled'}`);
       if (EventBus) {
