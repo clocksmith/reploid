@@ -6,7 +6,7 @@ import { BOOT_MODE_ORDER, getBootModeConfig } from '../../../config/boot-modes.j
 
 const buildProviderCopy = (state) => {
   const { detection, connectionType } = state;
-  const selectedMode = state.mode || 'absolute_zero';
+  const selectedMode = state.mode || 'reploid';
   const webgpuSupported = detection.webgpu.supported;
   const webgpuChecked = detection.webgpu.checked;
   const ollamaDetected = detection.ollama?.detected;
@@ -128,7 +128,7 @@ export function renderConnectionProviderOptions(
  * Render CHOOSE step
  */
 export function renderChooseStep(state) {
-  const selectedMode = state.mode || 'absolute_zero';
+  const selectedMode = state.mode || 'reploid';
   const routeLockedMode = state.routeLockedMode || null;
   const showModeSelector = !routeLockedMode;
 

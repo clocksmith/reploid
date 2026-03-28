@@ -26,11 +26,16 @@ import {
 } from '../boot-wizard/detection.js';
 import { formatGoalPacket, getGoalEntries } from '../boot-wizard/goals.js';
 import {
-  findAbsoluteZeroEnvironmentTemplateId,
-  getAbsoluteZeroEnvironmentTemplate
-} from '../../config/absolute-zero-environments.js';
-import { ABSOLUTE_ZERO_HOST_SOURCE_MIRRORS, ABSOLUTE_ZERO_SELF_SOURCE_MIRRORS } from '../../capsule/contract.js';
+  findReploidEnvironmentTemplateId,
+  getDefaultReploidEnvironment,
+  getReploidEnvironmentTemplate
+} from '../../config/reploid-environments.js';
 import { clearVfsStore, loadVfsManifest, seedVfsFromManifest } from '../../boot-helpers/vfs-bootstrap.js';
+import {
+  getReploidLaunchState,
+  hasDirectInferenceConfig,
+  resolveReploidModelConfig
+} from '../boot-wizard/reploid-inference.js';
 import { renderConnectionProviderOptions } from '../boot-wizard/steps/choose.js';
 import { CLOUD_MODELS, renderDirectConfigStep } from '../boot-wizard/steps/direct.js';
 import { renderProxyConfigStep } from '../boot-wizard/steps/proxy.js';
@@ -38,30 +43,31 @@ import { renderBrowserConfigStep } from '../boot-wizard/steps/browser.js';
 import { renderGoalStep } from '../boot-wizard/steps/goal.js';
 
 const DEFAULT_DOPPLER_MODEL = 'smollm2-360m';
-const VFS_BYPASS_HEADER = 'x-reploid-vfs-bypass';
+const DEFAULT_GTM_PROXY_PROVIDER = 'gemini';
+const DEFAULT_GTM_PROXY_MODEL = 'gemini-3.1-flash-lite-preview';
 const ROUTE_HOME_CONFIG = Object.freeze({
-  absolute_zero: {
+  reploid: {
     providerMode: 'choice',
-    providerCaption: 'Pick where reasoning runs before composing the initial Absolute Zero substrate.',
-    goalTitle: 'Compose substrate',
-    goalCaption: 'Absolute Zero starts from the contract-visible substrate only.',
-    awakenCaption: 'Launch Absolute Zero with the current environment and selected inference path.',
+    providerCaption: 'Primary Reploid keeps boot minimal: access code, your own inference, or swarm consumer mode.',
+    goalTitle: 'Compose self',
+    goalCaption: 'Reploid starts from explicit self files: manifest, identity, access windows, runtime, bridge, tool runner, Capsule shell, and writable roots for memory, tools, and artifacts.',
+    awakenCaption: 'Awaken a minimal browser-native seed Reploid with explicit self files for runtime, identity, collaboration, and self-improvement.',
     hideBootInternals: true
   },
   zero: {
     providerMode: 'choice',
-    providerCaption: 'Pick where reasoning runs before loading Zero.',
-    goalTitle: 'Set a goal',
-    goalCaption: 'Set the first goal the mutable local substrate should pursue.',
-    awakenCaption: 'Launch Zero with the selected inference path and first goal.',
+    providerCaption: 'Pick where reasoning runs before awakening Zero.',
+    goalTitle: 'Set the first objective',
+    goalCaption: 'Set the first objective for the mutable local Reploid.',
+    awakenCaption: 'Awaken Zero with the selected inference path and first objective.',
     hideBootInternals: true
   },
   x: {
     providerMode: 'choice',
     providerCaption: 'Pick where reasoning runs before loading the prebuilt RSI surface.',
-    goalTitle: 'Set a goal',
+    goalTitle: 'Set the first objective',
     goalCaption: 'Set the first goal the mature substrate should pursue.',
-    awakenCaption: 'Launch X with the selected inference path and first goal.',
+    awakenCaption: 'Awaken X with the selected inference path and first goal.',
     hideBootInternals: true
   }
 });
@@ -70,26 +76,6 @@ let container = null;
 let listenersAttached = false;
 let renderScheduled = false;
 let unsubscribeState = null;
-
-const fetchPreviewSourceText = async (webPath) => {
-  const response = await fetch(webPath, {
-    cache: 'no-store',
-    headers: {
-      [VFS_BYPASS_HEADER]: '1'
-    }
-  });
-  if (!response.ok) {
-    throw new Error(`Failed to load preview source: ${webPath} (${response.status})`);
-  }
-  return response.text();
-};
-
-const loadMirrorContents = async (mirrors) => {
-  const entries = await Promise.all(
-    mirrors.map(async ({ webPath, vfsPath }) => [vfsPath, await fetchPreviewSourceText(webPath)])
-  );
-  return Object.fromEntries(entries);
-};
 
 const renderLockedSection = (title, caption) => `
   <div class="wizard-step wizard-stage-placeholder">
@@ -105,7 +91,101 @@ const getDefaultCloudModelForProvider = (provider) => {
   return models[0]?.id || null;
 };
 
-const getRouteHomeConfig = (mode) => ROUTE_HOME_CONFIG[mode] || ROUTE_HOME_CONFIG.absolute_zero;
+const getPreferredProxyProvider = (detection) => {
+  const providers = detection.proxy?.configuredProviders || [];
+  if (providers.includes(DEFAULT_GTM_PROXY_PROVIDER)) {
+    return DEFAULT_GTM_PROXY_PROVIDER;
+  }
+  return providers[0] || null;
+};
+
+const getPreferredProxyModel = (provider) => {
+  if (provider === DEFAULT_GTM_PROXY_PROVIDER) {
+    return DEFAULT_GTM_PROXY_MODEL;
+  }
+  return getDefaultCloudModelForProvider(provider);
+};
+
+const getRouteHomeConfig = (mode) => ROUTE_HOME_CONFIG[mode] || ROUTE_HOME_CONFIG.reploid;
+const isUsingOwnInference = (state) => state.mode === 'reploid' && state.connectionType === 'direct';
+
+const renderIntroStep = () => `
+  <div class="wizard-step wizard-intro">
+    <div class="goal-header">
+      <h2 class="type-h1">Reploid</h2>
+      <p class="type-caption">Self-modifying browser substrate that boots from explicit self files, then iteratively rewrites and extends its own runtime, tools, and shell. A reversible, auditable seed for bounded recursive self-improvement under staged capability gates.</p>
+    </div>
+  </div>
+`;
+
+const renderManagedInferenceStep = (state) => {
+  const launch = getReploidLaunchState(state);
+  const byokEnabled = launch.ownInference;
+  const modelLabel = byokEnabled
+    ? (state.directConfig?.model || 'Configure below')
+    : launch.accessModel;
+  const statusLabel = byokEnabled ? 'Your inference' : 'Access code';
+
+  let caption = '';
+  if (byokEnabled) {
+    caption = hasDirectInferenceConfig(state)
+      ? (launch.swarmEnabled
+        ? 'Swarm on. This Reploid will provide inference to peers after awaken.'
+        : 'Solo. Inference stays private to this Reploid.')
+      : 'Finish configuring your own inference below, or turn Configure off to return to access code.';
+  } else if (launch.hasAccessInference) {
+    caption = launch.swarmEnabled
+      ? `Swarm on. Access code unlocks provider mode for the ${launch.accessWindowLabel} access window.`
+      : `Solo. Access code unlocks local inference in the browser for the ${launch.accessWindowLabel} access window.`;
+  } else if (!launch.accessProvisioned) {
+    caption = launch.swarmEnabled
+      ? 'No access window is provisioned in this build. Swarm consumer mode can still awaken without local inference.'
+      : 'No access window is provisioned in this build yet. Use Configure for BYOK or enable Swarm to awaken as a consumer.';
+  } else if (launch.swarmEnabled) {
+    caption = `Enter the ${launch.accessWindowLabel} access code to awaken as a provider, or continue without one to awaken as a swarm consumer.`;
+  } else {
+    caption = `Enter the ${launch.accessWindowLabel} access code to unlock inference, or use Configure to bring your own key.`;
+  }
+
+  return `
+    <div class="wizard-step inference-bar">
+      <div class="inference-bar-row">
+        <div class="inference-bar-status">
+          <span class="inference-bar-label">${statusLabel}</span>
+          <span class="inference-bar-model">${modelLabel}</span>
+        </div>
+        <div class="inference-bar-controls">
+          <button class="inference-bar-configure${byokEnabled ? ' active' : ''}"
+                  id="reploid-use-own-inference"
+                  data-action="toggle-own-inference"
+                  type="button">Configure</button>
+          <label class="inference-bar-toggle">
+            <input type="checkbox"
+                   id="reploid-swarm-enabled"
+                   ${state.swarmEnabled ? 'checked' : ''} />
+            <span>Swarm</span>
+          </label>
+        </div>
+      </div>
+      <div class="inference-bar-row inference-bar-row-access">
+        <input type="password"
+               id="reploid-access-code"
+               class="inference-bar-input"
+               placeholder="${launch.accessProvisioned ? 'Enter access code' : 'Provision access windows to enable this path'}"
+               value="${state.accessConfig?.accessCode || ''}"
+               ${byokEnabled ? 'disabled' : ''}
+               autocomplete="off"
+               spellcheck="false" />
+        <div class="inference-bar-meta">
+          <span class="type-caption">${caption}</span>
+          ${state.accessConfig?.error ? `
+            <span class="type-caption type-caption-error">☒ ${state.accessConfig.error}</span>
+          ` : ''}
+        </div>
+      </div>
+    </div>
+  `;
+};
 
 const scheduleRender = () => {
   if (renderScheduled) return;
@@ -116,56 +196,37 @@ const scheduleRender = () => {
   });
 };
 
-const ensureAbsoluteZeroPreviewLoaded = async (includeHostWithinSelf = false) => {
-  const current = getState().absoluteZeroPreview || {};
-  const needSelf = !current.loadedSelf && !current.loadingSelf;
-  const needHost = includeHostWithinSelf && !current.loadedHost && !current.loadingHost;
-
-  if (!needSelf && !needHost) return;
-
-  setNestedState('absoluteZeroPreview', {
-    loadingSelf: current.loadingSelf || needSelf,
-    loadingHost: current.loadingHost || needHost,
-    error: null
-  });
-
-  try {
-    const nextContents = { ...(getState().absoluteZeroPreview?.contents || {}) };
-    if (needSelf) {
-      Object.assign(nextContents, await loadMirrorContents(ABSOLUTE_ZERO_SELF_SOURCE_MIRRORS));
-    }
-    if (needHost) {
-      Object.assign(nextContents, await loadMirrorContents(ABSOLUTE_ZERO_HOST_SOURCE_MIRRORS));
-    }
-
-    setNestedState('absoluteZeroPreview', {
-      contents: nextContents,
-      loadingSelf: false,
-      loadedSelf: current.loadedSelf || needSelf,
-      loadingHost: false,
-      loadedHost: current.loadedHost || needHost,
-      error: null
-    });
-  } catch (err) {
-    setNestedState('absoluteZeroPreview', {
-      loadingSelf: false,
-      loadingHost: false,
-      error: err?.message || 'Failed to load Absolute Zero file previews'
-    });
-  }
-};
-
 const autoSelectConnectionType = () => {
   const state = getState();
   if (state.connectionType) return;
 
+  if (state.mode === 'reploid' && state.routeLockedMode === 'reploid') {
+    const useOwnInference = localStorage.getItem('REPLOID_USE_OWN_INFERENCE') === 'true';
+    setState({ connectionType: useOwnInference ? 'direct' : 'access' });
+    return;
+  }
+
   const { detection, savedConfig } = state;
+  const proxyDetected = detection.proxy?.detected;
+  const hasManagedGemini = (detection.proxy?.configuredProviders || []).includes(DEFAULT_GTM_PROXY_PROVIDER);
+
+  if (state.mode === 'reploid' && proxyDetected && hasManagedGemini) {
+    const provider = getPreferredProxyProvider(detection);
+    setNestedState('proxyConfig', {
+      url: detection.proxy.url,
+      serverType: 'reploid',
+      provider,
+      model: getPreferredProxyModel(provider)
+    });
+    setState({ connectionType: 'proxy' });
+    return;
+  }
+
   if (state.mode === 'zero' && detection.webgpu?.supported) {
     setState({ connectionType: 'browser' });
     return;
   }
 
-  const proxyDetected = detection.proxy?.detected;
   const hasSavedKeys = savedConfig?.hasSavedKey;
   const webgpuSupported = detection.webgpu?.supported;
   const options = [];
@@ -178,18 +239,13 @@ const autoSelectConnectionType = () => {
 
   const choice = options[0];
   if (choice === 'proxy') {
-    const providers = detection.proxy?.configuredProviders || [];
+    const provider = getPreferredProxyProvider(detection);
     const proxyUpdates = {
       url: detection.proxy.url,
-      serverType: 'reploid'
+      serverType: 'reploid',
+      provider,
+      model: getPreferredProxyModel(provider)
     };
-    if (providers.length > 0) {
-      proxyUpdates.provider = providers[0];
-      const providerModels = CLOUD_MODELS[providers[0]] || [];
-      if (providerModels.length > 0) {
-        proxyUpdates.model = providerModels[0].id;
-      }
-    }
     setNestedState('proxyConfig', proxyUpdates);
     setState({ connectionType: 'proxy' });
     return;
@@ -352,15 +408,20 @@ async function doAwaken() {
   const state = getState();
   const goalPacket = formatGoalPacket(state.goal);
   if (!goalPacket) return;
+  let modelConfig = null;
 
   setState({ isAwakening: true });
 
   try {
-    if (state.mode === 'absolute_zero' && typeof window.preloadAbsoluteZeroModules === 'function') {
-      await window.preloadAbsoluteZeroModules();
+    modelConfig = state.mode === 'reploid'
+      ? await resolveReploidModelConfig(state)
+      : null;
+
+    if (state.mode === 'reploid' && typeof window.preloadReploidModules === 'function') {
+      await window.preloadReploidModules();
     }
     await clearVfsStore();
-    if (state.mode !== 'absolute_zero') {
+    if (state.mode !== 'reploid') {
       const { manifest, text } = await loadVfsManifest();
       await seedVfsFromManifest(manifest, {
         preserveOnBoot: false,
@@ -370,17 +431,24 @@ async function doAwaken() {
     }
   } catch (err) {
     console.error('[BootHome] Failed to prepare awaken:', err);
+    if (state.mode === 'reploid' && state.connectionType !== 'direct') {
+      setNestedState('accessConfig', {
+        error: err?.message || 'Failed to unlock access code'
+      });
+    }
     setState({ isAwakening: false });
     return;
   }
 
   saveConfig();
   if (window.triggerAwaken) {
-    if (state.mode === 'absolute_zero') {
+    if (state.mode === 'reploid') {
       window.triggerAwaken({
         goal: goalPacket,
         environment: String(state.environment || ''),
-        includeHostWithinSelf: !!state.includeHostWithinSelf
+        includeBootstrapperWithinSelf: false,
+        swarmEnabled: !!state.swarmEnabled,
+        modelConfig
       });
     } else {
       window.triggerAwaken(goalPacket);
@@ -433,10 +501,17 @@ function handleChange(event) {
       setNestedState('proxyConfig', { model: value });
       break;
 
-    case 'include-host-within-self':
-      setState({ includeHostWithinSelf: value });
-      localStorage.setItem('REPLOID_INCLUDE_HOST_WITHIN_SELF', value ? 'true' : 'false');
+    case 'include-bootstrapper-within-self':
+      setState({ includeBootstrapperWithinSelf: value });
+      localStorage.setItem('REPLOID_INCLUDE_BOOTSTRAPPER_WITHIN_SELF', value ? 'true' : 'false');
       break;
+
+    case 'reploid-swarm-enabled':
+      setState({ swarmEnabled: value });
+      localStorage.setItem('REPLOID_SWARM_ENABLED', value ? 'true' : 'false');
+      break;
+
+    /* own-inference toggle handled by click action 'toggle-own-inference' */
   }
 }
 
@@ -477,10 +552,17 @@ function handleInput(event) {
       });
       break;
 
+    case 'reploid-access-code':
+      setNestedState('accessConfig', {
+        accessCode: value,
+        error: null
+      });
+      break;
+
     case 'environment-input':
       setState({
         environment: value,
-        selectedEnvironmentTemplate: findAbsoluteZeroEnvironmentTemplateId(value)
+        selectedEnvironmentTemplate: findReploidEnvironmentTemplateId(value)
       });
       break;
   }
@@ -508,7 +590,6 @@ async function handleClick(event) {
     case 'choose-proxy': {
       const detection = getState().detection;
       const currentProxyConfig = getState().proxyConfig;
-      const providers = detection.proxy?.configuredProviders || [];
       const proxyDetected = detection.proxy?.detected;
       const ollamaDetected = detection.ollama?.detected;
       const proxyUpdates = {};
@@ -525,17 +606,46 @@ async function handleClick(event) {
         }
       }
 
-      if (providers.length > 0 && !currentProxyConfig.provider) {
-        const firstProvider = providers[0];
-        const providerModels = CLOUD_MODELS[firstProvider] || [];
-        proxyUpdates.provider = firstProvider;
-        proxyUpdates.model = providerModels[0]?.id || null;
+      if (!currentProxyConfig.provider && proxyDetected) {
+        const provider = getPreferredProxyProvider(detection);
+        proxyUpdates.provider = provider;
+        proxyUpdates.model = getPreferredProxyModel(provider);
       }
 
       if (Object.keys(proxyUpdates).length > 0) {
         setNestedState('proxyConfig', proxyUpdates);
       }
       setState({ connectionType: 'proxy' });
+      break;
+    }
+
+    case 'toggle-own-inference': {
+      const currentlyByok = isUsingOwnInference(getState());
+      const next = !currentlyByok;
+      localStorage.setItem('REPLOID_USE_OWN_INFERENCE', next ? 'true' : 'false');
+      if (next) {
+        const saved = checkSavedConfig();
+        if (saved?.primaryHostType === 'browser-cloud' && saved?.hasSavedKey) {
+          hydrateSavedConfig(saved);
+        } else {
+          setState({ connectionType: 'direct' });
+          setNestedState('directConfig', {
+            provider: null,
+            model: null,
+            apiKey: null,
+            baseUrl: null,
+            verifyState: VERIFY_STATE.UNVERIFIED,
+            verifyError: null,
+            modelVerifyState: VERIFY_STATE.UNVERIFIED,
+            modelVerifyError: null
+          });
+        }
+      } else {
+        setNestedState('accessConfig', {
+          error: null
+        });
+        setState({ connectionType: 'access' });
+      }
       break;
     }
 
@@ -585,7 +695,7 @@ async function handleClick(event) {
     case 'apply-environment-template': {
       const button = event.target.closest('[data-template]');
       const templateId = button?.dataset.template;
-      const template = getAbsoluteZeroEnvironmentTemplate(templateId);
+      const template = getReploidEnvironmentTemplate(templateId);
       if (!template) break;
       setState({
         environment: template.text,
@@ -594,10 +704,10 @@ async function handleClick(event) {
       break;
     }
 
-    case 'select-absolute-zero-path': {
+    case 'select-self-path': {
       const button = event.target.closest('[data-path]');
       const path = button?.dataset.path;
-      if (path) setState({ selectedAbsoluteZeroPath: path });
+      if (path) setState({ selectedSelfPath: path });
       break;
     }
 
@@ -625,9 +735,23 @@ async function handleClick(event) {
       await handleTestProxyModel();
       break;
 
+    case 'switch-to-byok':
+      setState({
+        connectionType: null
+      });
+      break;
+
     case 'awaken':
       await doAwaken();
       break;
+  }
+}
+
+function handleToggle(event) {
+  const details = event.target;
+  if (!(details instanceof HTMLDetailsElement)) return;
+  if (details.classList.contains('goal-level-dropdown')) {
+    setState({ goalPresetsOpen: details.open });
   }
 }
 
@@ -636,6 +760,7 @@ function attachEventListeners() {
   container.addEventListener('click', handleClick);
   container.addEventListener('change', handleChange);
   container.addEventListener('input', handleInput);
+  container.addEventListener('toggle', handleToggle, true);
 }
 
 function render() {
@@ -649,73 +774,123 @@ function render() {
 
   const state = getState();
   const homeConfig = getRouteHomeConfig(state.mode);
-  const hasConnectionType = !!state.connectionType;
-  const ready = canAwaken();
   const hasGoal = !!(state.goal && state.goal.trim());
+  const launch = state.mode === 'reploid'
+    ? getReploidLaunchState(state)
+    : null;
   let html = '<div class="wizard-sections wizard-sections-home">';
 
-  html += `
-    <div class="wizard-step wizard-home-provider">
-      ${renderConnectionProviderOptions(state, {
-        standalone: true,
-        caption: homeConfig.providerCaption
-      })}
-    </div>
-  `;
+  if (state.mode === 'reploid') {
+    html += renderIntroStep();
+    html += renderManagedInferenceStep(state);
 
-  if (!hasConnectionType) {
-    html += renderLockedSection('Configure inference', 'Choose an inference provider to unlock this section.');
-  } else if (state.connectionType === 'direct') {
-    html += `<div class="wizard-direct">${renderDirectConfigStep(state)}</div>`;
-  } else if (state.connectionType === 'proxy') {
-    html += `<div class="wizard-proxy">${renderProxyConfigStep(state)}</div>`;
-  } else if (state.connectionType === 'browser') {
-    html += `<div class="wizard-browser">${renderBrowserConfigStep(state)}</div>`;
-  }
+    if (isUsingOwnInference(state)) {
+      if (state.connectionType === 'direct') {
+        html += `<div class="wizard-direct">${renderDirectConfigStep(state)}</div>`;
+      } else if (state.connectionType === 'proxy') {
+        html += `<div class="wizard-proxy">${renderProxyConfigStep(state)}</div>`;
+      } else if (state.connectionType === 'browser') {
+        html += `<div class="wizard-browser">${renderBrowserConfigStep(state)}</div>`;
+      }
+    }
 
-  if (!ready) {
-    html += renderLockedSection(
-      homeConfig.goalTitle,
-      hasConnectionType
-        ? (state.mode === 'absolute_zero'
-          ? 'Finish inference configuration to unlock the contract-visible substrate editor.'
-          : 'Finish inference configuration to unlock the goal editor.')
-        : 'Choose and configure inference before continuing.'
-    );
-  } else {
     html += renderGoalStep(state, {
       title: homeConfig.goalTitle,
       caption: homeConfig.goalCaption,
       hideBootInternals: homeConfig.hideBootInternals
     });
-  }
 
-  if (!ready || !hasGoal) {
-    html += renderLockedSection(
-      'Awaken',
-      !ready
-        ? 'Finish inference configuration and set a goal before awakening.'
-        : 'Set a goal to unlock this section.'
-    );
-  } else {
+    const awakenDisabled = state.isAwakening || !hasGoal || !launch?.canAwaken;
+    let awakenCaption = homeConfig.awakenCaption;
+    if (!hasGoal) {
+      awakenCaption = 'Set a first objective, then awaken.';
+    } else if (launch?.isDead) {
+      awakenCaption = 'Enter an access code, configure your own inference, or enable Swarm to awaken as a consumer.';
+    } else if (launch?.role === 'consumer') {
+      awakenCaption = 'Awaken as a swarm consumer. This Reploid has no local inference and will wait for provider peers.';
+    } else if (launch?.role === 'provider') {
+      awakenCaption = 'Awaken as a swarm provider. This Reploid may serve peers while continuing its own work.';
+    }
+
     html += `
       <div class="wizard-step wizard-awaken wizard-awaken-simple">
         <div class="goal-header">
           <h2 class="type-h1">Awaken</h2>
-          <p class="type-caption">${homeConfig.awakenCaption}</p>
+          <p class="type-caption">${awakenCaption}</p>
         </div>
-
         <div class="wizard-actions-row">
           <button class="btn btn-lg btn-prism${state.isAwakening ? ' loading' : ''}"
                   data-action="awaken"
                   id="awaken-btn"
-                  ${state.isAwakening ? 'disabled' : ''}
+                  ${awakenDisabled ? 'disabled' : ''}
                   aria-busy="${state.isAwakening ? 'true' : 'false'}">
-            ${state.isAwakening ? 'Awakening...' : 'Awaken Agent'}
+            ${state.isAwakening ? 'Awakening...' : 'Awaken'}
           </button>
         </div>
       </div>
     `;
+  } else {
+    const hasConnectionType = !!state.connectionType;
+    html += `
+      <div class="wizard-step wizard-home-provider">
+        ${renderConnectionProviderOptions(state, {
+          standalone: true,
+          caption: homeConfig.providerCaption
+        })}
+      </div>
+    `;
+
+    if (!hasConnectionType) {
+      html += renderLockedSection('Configure inference', 'Choose an inference provider to unlock this section.');
+    } else if (state.connectionType === 'direct') {
+      html += `<div class="wizard-direct">${renderDirectConfigStep(state)}</div>`;
+    } else if (state.connectionType === 'proxy') {
+      html += `<div class="wizard-proxy">${renderProxyConfigStep(state)}</div>`;
+    } else if (state.connectionType === 'browser') {
+      html += `<div class="wizard-browser">${renderBrowserConfigStep(state)}</div>`;
+    }
+
+    if (!canAwaken()) {
+      html += renderLockedSection(
+        homeConfig.goalTitle,
+        hasConnectionType
+          ? 'Finish inference configuration to unlock the objective editor.'
+          : 'Choose and configure inference before continuing.'
+      );
+    } else {
+      html += renderGoalStep(state, {
+        title: homeConfig.goalTitle,
+        caption: homeConfig.goalCaption,
+        hideBootInternals: homeConfig.hideBootInternals
+      });
+    }
+
+    if (!canAwaken() || !hasGoal) {
+      html += renderLockedSection(
+        'Awaken',
+        !canAwaken()
+          ? 'Finish inference configuration and set a first objective before awakening.'
+          : 'Set a first objective to unlock this section.'
+      );
+    } else {
+      html += `
+        <div class="wizard-step wizard-awaken wizard-awaken-simple">
+          <div class="goal-header">
+            <h2 class="type-h1">Awaken</h2>
+            <p class="type-caption">${homeConfig.awakenCaption}</p>
+          </div>
+          <div class="wizard-actions-row">
+            <button class="btn btn-lg btn-prism${state.isAwakening ? ' loading' : ''}"
+                    data-action="awaken"
+                    id="awaken-btn"
+                    ${state.isAwakening ? 'disabled' : ''}
+                    aria-busy="${state.isAwakening ? 'true' : 'false'}">
+              ${state.isAwakening ? 'Awakening...' : 'Awaken'}
+            </button>
+          </div>
+        </div>
+      `;
+    }
   }
 
   html += '</div>';
@@ -736,17 +911,13 @@ function render() {
     }
   }
 
-  if (state.mode === 'absolute_zero') {
-    ensureAbsoluteZeroPreviewLoaded(!!state.includeHostWithinSelf);
-  }
-
   if (!listenersAttached) {
     attachEventListeners();
     listenersAttached = true;
   }
 }
 
-export function initLockedBootHome(containerEl, mode = 'absolute_zero') {
+export function initLockedBootHome(containerEl, mode = 'reploid') {
   container = containerEl;
   listenersAttached = false;
   renderScheduled = false;
@@ -756,19 +927,34 @@ export function initLockedBootHome(containerEl, mode = 'absolute_zero') {
     unsubscribeState = null;
   }
 
-  const routeMode = ROUTE_HOME_CONFIG[mode] ? mode : 'absolute_zero';
+  const routeMode = ROUTE_HOME_CONFIG[mode] ? mode : 'reploid';
   resetWizard();
+
+  const swarmEnabled = localStorage.getItem('REPLOID_SWARM_ENABLED') === 'true';
+  const useOwnInference = localStorage.getItem('REPLOID_USE_OWN_INFERENCE') === 'true';
+  const managedReploid = routeMode === 'reploid'
+    ? {
+        connectionType: useOwnInference ? 'direct' : 'access',
+        environment: getDefaultReploidEnvironment(),
+        selectedEnvironmentTemplate: null,
+        includeBootstrapperWithinSelf: false,
+        swarmEnabled
+      }
+    : {};
   setState({
     currentStep: STEPS.GOAL,
     mode: routeMode,
     routeLockedMode: routeMode,
-    advancedOpen: false,
-    isAwakening: false
+    isAwakening: false,
+    ...managedReploid
   });
 
   unsubscribeState = subscribe(scheduleRender);
 
   const saved = checkSavedConfig();
+  if (useOwnInference && saved?.hasSavedKey) {
+    hydrateSavedConfig(saved);
+  }
   setState({ savedConfig: saved });
   scheduleRender();
 
@@ -782,6 +968,6 @@ export function initLockedBootHome(containerEl, mode = 'absolute_zero') {
   });
 }
 
-export function initAbsoluteZeroHome(containerEl) {
-  initLockedBootHome(containerEl, 'absolute_zero');
+export function initReploidHome(containerEl) {
+  initLockedBootHome(containerEl, 'reploid');
 }

@@ -15,7 +15,7 @@
     },
     "capsule": {
       "name": "CAPSULE",
-      "description": "Absolute Zero core - 11 additional modules",
+      "description": "Reploid core - 11 additional modules",
       "extends": "tabula",
       "modules": [
         "AgentLoop",

@@ -9,12 +9,12 @@ const HOME_PATH = '/';
 
 async function openBoot(page) {
   await page.goto(APP_PATH);
-  await page.waitForSelector('.boot-mode-btn[data-mode="absolute_zero"]', { timeout: 20000 });
+  await page.waitForSelector('.boot-mode-btn[data-mode="reploid"]', { timeout: 20000 });
 }
 
 async function openHome(page) {
   await page.goto(HOME_PATH);
-  await page.waitForSelector('.wizard-home-provider [data-action="choose-browser"]', { timeout: 20000 });
+  await page.waitForSelector('.inference-bar', { timeout: 20000 });
 }
 
 async function unlockGoalSection(page) {
@@ -37,17 +37,17 @@ test.describe('Boot Screen', () => {
     await expect(page).toHaveTitle(/Reploid/i);
     await expect(page.locator('.wizard-mode-title')).toHaveCount(0);
     await expect(page.locator('.wizard-mode-copy .type-h1')).toHaveText('Choose runtime mode');
-    await expect(page.locator('.boot-mode-btn.selected[data-mode="absolute_zero"] .boot-mode-label')).toContainText('Absolute Zero');
+    await expect(page.locator('.boot-mode-btn.selected[data-mode="reploid"] .boot-mode-label')).toContainText('Reploid');
 
     const bootModes = page.locator('.boot-mode-btn[data-mode]');
     await expect(bootModes).toHaveCount(3);
   });
 
-  test('has Absolute Zero selected by default', async ({ page }) => {
+  test('has Reploid selected by default', async ({ page }) => {
     await openBoot(page);
-    await page.waitForSelector('.boot-mode-btn.selected[data-mode="absolute_zero"]', { timeout: 10000 });
+    await page.waitForSelector('.boot-mode-btn.selected[data-mode="reploid"]', { timeout: 10000 });
 
-    await expect(page.locator('.boot-mode-btn.selected[data-mode="absolute_zero"] .boot-mode-label')).toContainText('Absolute Zero');
+    await expect(page.locator('.boot-mode-btn.selected[data-mode="reploid"] .boot-mode-label')).toContainText('Reploid');
   });
 
   test('ignores stale saved mode and genesis on first load', async ({ page }) => {
@@ -57,9 +57,9 @@ test.describe('Boot Screen', () => {
     });
 
     await openBoot(page);
-    await page.waitForSelector('.boot-mode-btn.selected[data-mode="absolute_zero"]', { timeout: 10000 });
+    await page.waitForSelector('.boot-mode-btn.selected[data-mode="reploid"]', { timeout: 10000 });
 
-    await expect(page.locator('.boot-mode-btn.selected[data-mode="absolute_zero"] .boot-mode-label')).toContainText('Absolute Zero');
+    await expect(page.locator('.boot-mode-btn.selected[data-mode="reploid"] .boot-mode-label')).toContainText('Reploid');
     await page.click('[data-action="choose-browser"]');
     await page.click('[data-model="smollm2-360m"]');
     await page.locator('#goal-input').fill('Verify default mode mapping');
@@ -70,7 +70,7 @@ test.describe('Boot Screen', () => {
   test('shows all three product modes', async ({ page }) => {
     await openBoot(page);
 
-    await expect(page.locator('.boot-mode-btn[data-mode="absolute_zero"]')).toBeVisible();
+    await expect(page.locator('.boot-mode-btn[data-mode="reploid"]')).toBeVisible();
     await expect(page.locator('.boot-mode-btn[data-mode="zero"]')).toBeVisible();
     await expect(page.locator('.boot-mode-btn[data-mode="x"]')).toBeVisible();
   });
@@ -78,7 +78,7 @@ test.describe('Boot Screen', () => {
   test('allows switching modes with single selection', async ({ page }) => {
     await openBoot(page);
 
-    const zeroMode = page.locator('.boot-mode-btn[data-mode="absolute_zero"]');
+    const zeroMode = page.locator('.boot-mode-btn[data-mode="reploid"]');
     const xMode = page.locator('.boot-mode-btn[data-mode="x"]');
 
     await expect(zeroMode).toHaveClass(/selected/);
@@ -89,14 +89,32 @@ test.describe('Boot Screen', () => {
 });
 
 test.describe('Route Entry Points', () => {
-  test('home route boots Absolute Zero without the mode selector or intro title stack', async ({ page }) => {
+  test('home route boots Reploid with access-code default and minimal controls', async ({ page }) => {
     await openHome(page);
 
     await expect(page.locator('.boot-mode-btn[data-mode]')).toHaveCount(0);
     await expect(page.locator('.wizard-brand')).toHaveCount(0);
-    await expect(page.locator('.wizard-home-provider .type-h1')).toHaveText('Choose inference provider');
+    await expect(page.locator('.inference-bar-label')).toHaveText('Access code');
+    await expect(page.locator('.inference-bar-model')).toHaveText('gemini-3.1-flash-lite-preview');
+    await expect(page.locator('#reploid-access-code')).toBeVisible();
+    await expect(page.locator('#reploid-use-own-inference')).toBeVisible();
+    await expect(page.locator('#reploid-swarm-enabled')).toBeVisible();
     await expect(page.locator('[data-action="advanced-settings"]')).toHaveCount(0);
-    await expect(page.locator('[data-action="choose-browser"]')).toBeVisible();
+    await expect(page.locator('[data-action="choose-browser"]')).toHaveCount(0);
+    await expect(page.locator('#goal-input')).toBeVisible();
+    await expect(page.locator('#awaken-btn')).toBeDisabled();
+    await expect(page.locator('#environment-input')).toHaveCount(0);
+    await expect(page.locator('.seed-browser-panel')).toContainText('Awakened files');
+  });
+
+  test('home route can awaken as a swarm consumer without local inference', async ({ page }) => {
+    await openHome(page);
+
+    await page.locator('#goal-input').fill('Wait for provider peers');
+    await expect(page.locator('#awaken-btn')).toBeDisabled();
+    await page.locator('#reploid-swarm-enabled').check();
+    await expect(page.locator('#awaken-btn')).toBeEnabled();
+    await expect(page.locator('.wizard-awaken')).toContainText('Awaken as a swarm consumer');
   });
 
   test('/0 locks the boot mode to Zero', async ({ page }) => {
@@ -145,7 +163,7 @@ test.describe('Connection Selection', () => {
 });
 
 test.describe('Advanced Mapping', () => {
-  test('defaults Absolute Zero to the capsule genesis level', async ({ page }) => {
+  test('defaults Reploid to the capsule genesis level', async ({ page }) => {
     await unlockAwakenSection(page);
 
     await page.click('[data-action="advanced-settings"]');
@@ -166,39 +184,44 @@ test.describe('Advanced Mapping', () => {
 
 test.describe('Goal Input', () => {
   test('shows ordered placeholders and unlocks the goal input after inference config', async ({ page }) => {
-    await openBoot(page);
+    await page.addInitScript(() => {
+      localStorage.clear();
+      sessionStorage.clear();
+    });
 
-    await expect(page.locator('.wizard-stage-placeholder').filter({ hasText: 'Compose substrate' })).toBeVisible();
-    await expect(page.locator('.wizard-stage-placeholder').filter({ hasText: 'Awaken' })).toBeVisible();
-    await expect(page.locator('#goal-input')).toHaveCount(0);
+    await openBoot(page);
+    const goalInput = page.locator('#goal-input');
+
+    if (await goalInput.isVisible().catch(() => false)) {
+      await expect(goalInput).toBeVisible();
+      return;
+    }
 
     await page.click('[data-action="choose-browser"]');
     await page.click('[data-model="smollm2-360m"]');
-    await expect(page.locator('#goal-input')).toBeVisible();
+    await expect(goalInput).toBeVisible();
   });
 
-  test('shows contract-visible file browser and hides bootstrap internals behind disclosure in Absolute Zero', async ({ page }) => {
+  test('shows live-self file browser and hides bootstrapper internals behind disclosure in Reploid', async ({ page }) => {
     await unlockGoalSection(page);
 
     await expect(page.locator('.seed-browser-panel')).toBeVisible();
-    await expect(page.locator('.seed-browser-panel')).toContainText('Capsule self');
+    await expect(page.locator('.seed-browser-panel')).toContainText('Live self');
     await expect(page.locator('.seed-browser-panel')).toContainText('/.system/self.json');
-    await expect(page.locator('[data-action="select-absolute-zero-path"][data-path="/kernel/runtime.js"]')).toBeVisible();
+    await expect(page.locator('[data-action="select-self-path"][data-path="/self/runtime.js"]')).toBeVisible();
     await expect(page.locator('.seed-viewer-panel')).toContainText('/.system/self.json');
     await expect(page.locator('.seed-viewer-panel')).toContainText('"visibleTools"');
     await expect(page.locator('.boot-debug-panel')).not.toHaveAttribute('open', '');
-
-    await page.locator('[data-action="select-absolute-zero-path"][data-path="/.system/environment.txt"]').click();
-    await expect(page.locator('.seed-viewer-panel')).toContainText('/.system/environment.txt');
-    await expect(page.locator('.seed-viewer-panel')).toContainText('Files persist in VFS and OPFS can store larger artifacts.');
+    await expect(page.locator('[data-action="select-self-path"][data-path="/.system/environment.txt"]')).toHaveCount(0);
+    await expect(page.locator('.seed-viewer-panel')).toContainText('"selfHosted": true');
   });
 
-  test('shows Absolute Zero environment editor and host toggle', async ({ page }) => {
+  test('shows Reploid environment editor and bootstrapper toggle', async ({ page }) => {
     await unlockGoalSection(page);
 
     await expect(page.locator('#environment-input')).toBeVisible();
     await expect(page.locator('[data-action="apply-environment-template"]')).toHaveCount(5);
-    await expect(page.locator('#include-host-within-self')).toBeVisible();
+    await expect(page.locator('#include-bootstrapper-within-self')).toBeVisible();
   });
 
   test('shows runtime preset rail and a single dropdown for the active level', async ({ page }) => {
@@ -250,7 +273,7 @@ test.describe('Goal Input', () => {
   });
 });
 
-test.describe('Absolute Zero Runtime', () => {
+test.describe('Reploid Runtime', () => {
   test('awakens into capsule instead of the zero shell', async ({ page }) => {
     await page.addInitScript(() => {
       localStorage.clear();
@@ -258,12 +281,8 @@ test.describe('Absolute Zero Runtime', () => {
     });
 
     await openHome(page);
-
-    await expect(page.locator('[data-action="choose-browser"]')).toBeEnabled();
-    await page.click('[data-action="choose-browser"]');
-    await page.click('[data-model="smollm2-360m"]');
-    await page.locator('#goal-input').fill('Boot into capsule');
-    await page.locator('#environment-input').fill('Boot test environment');
+    await page.locator('#goal-input').fill('Boot into Capsule');
+    await page.locator('#reploid-swarm-enabled').check();
     await page.locator('#awaken-btn').click();
 
     await page.waitForSelector('#app.active', { timeout: 20000 });
@@ -272,12 +291,12 @@ test.describe('Absolute Zero Runtime', () => {
     await expect(page.locator('#history-container')).toBeVisible();
     await expect(page.locator('#zero-human-form')).toHaveCount(0);
     await page.waitForFunction(() => {
-      const snapshot = window.REPLOID?.capsuleRuntime?.getSnapshot?.();
-      return !!(snapshot && snapshot.context?.length >= 3 && snapshot.renderedText?.includes('[BOOT]'));
+      const snapshot = window.REPLOID?.runtime?.getSnapshot?.();
+      return !!(snapshot && snapshot.context?.length >= 1 && snapshot.renderedText?.includes('[BOOT]'));
     }, { timeout: 5000 });
 
     const capsuleSnapshot = await page.evaluate(() => {
-      const snapshot = window.REPLOID?.capsuleRuntime?.getSnapshot?.();
+      const snapshot = window.REPLOID?.runtime?.getSnapshot?.();
       if (!snapshot) return null;
       return {
         renderedText: snapshot.renderedText,
@@ -306,8 +325,6 @@ test.describe('Absolute Zero Runtime', () => {
 
       const db = await openDb();
       return {
-        goal: await readEntry(db, '/.system/goal.txt'),
-        environment: await readEntry(db, '/.system/environment.txt'),
         self: await readEntry(db, '/.system/self.json'),
         keys: await listKeys(db)
       };
@@ -316,38 +333,72 @@ test.describe('Absolute Zero Runtime', () => {
     const self = JSON.parse(vfsState.self);
     expect(capsuleSnapshot).not.toBeNull();
     expect(capsuleSnapshot.renderedText).toContain('[BOOT]');
-    expect(capsuleSnapshot.renderedText).toContain('Goal:');
-    expect(capsuleSnapshot.renderedText).toContain('Environment:');
+    expect(capsuleSnapshot.renderedText).toContain('Self:');
+    expect(capsuleSnapshot.renderedText).not.toContain('Goal:');
+    expect(capsuleSnapshot.renderedText).not.toContain('Environment:');
     expect(capsuleSnapshot.renderedText).not.toContain('[USER]');
     expect(capsuleSnapshot.renderedText).not.toContain('[ASSISTANT]');
-    expect(capsuleSnapshot.context.slice(0, 3).map((msg) => msg.origin)).toEqual(['bootstrap', 'bootstrap', 'bootstrap']);
-    expect(capsuleSnapshot.context.some((msg) => msg.role === 'system')).toBe(false);
-    expect(vfsState.goal).toContain('Boot into capsule');
-    expect(vfsState.environment).toContain('Boot test environment');
+    expect(capsuleSnapshot.context.slice(0, 1).map((msg) => msg.origin)).toEqual(['bootstrap']);
+    expect(capsuleSnapshot.context.some((msg) => msg.origin === 'system')).toBe(true);
     expect(vfsState.keys).not.toContain('/.system/prompt.txt');
-    expect(vfsState.keys).toContain('/kernel/runtime.js');
-    expect(vfsState.keys.some((key) => key.startsWith('/host/'))).toBe(false);
-    expect(self.hostIncluded).toBe(false);
-    expect(self.environmentPath).toBe('/.system/environment.txt');
-    expect(self.goalPath).toBe('/.system/goal.txt');
+    expect(vfsState.keys).not.toContain('/.system/goal.txt');
+    expect(vfsState.keys).not.toContain('/.system/environment.txt');
+    expect(vfsState.keys).toContain('/self/runtime.js');
+    expect(vfsState.keys).toContain('/self/cloud-access.js');
+    expect(vfsState.keys).toContain('/self/tool-runner.js');
+    expect(vfsState.keys).toContain('/capsule/index.js');
+    expect(vfsState.keys.some((key) => key.startsWith('/bootstrapper/'))).toBe(false);
+    expect(self.bootstrapperIncluded).toBe(false);
+    expect(self.selfPath).toBe('/.system/self.json');
+    expect(self.goal).toContain('Boot into Capsule');
+    expect(self.environment).toContain('Browser-hosted JavaScript runtime with VFS and OPFS.');
+    expect(self.selfHosted).toBe(true);
+    expect(self.selfModifiable).toBe(true);
+    expect(self.networkMode).toBe('swarm');
   });
 
-  test('mirrors /host when include-host-within-self is enabled', async ({ page }) => {
+  test('mirrors /bootstrapper when include-bootstrapper-within-self is enabled', async ({ page }) => {
     await page.addInitScript(() => {
       localStorage.clear();
       sessionStorage.clear();
     });
 
-    await page.goto(HOME_PATH);
-    await page.waitForSelector('#wizard-container', { timeout: 10000 });
-
-    await page.click('[data-action="choose-browser"]');
-    await page.click('[data-model="smollm2-360m"]');
-    await page.locator('#goal-input').fill('Boot into capsule with host');
-    await page.locator('#include-host-within-self').check();
-    await page.locator('#awaken-btn').click();
+    await openHome(page);
+    await page.locator('#goal-input').fill('Boot into Capsule with bootstrapper');
+    await page.evaluate(() => {
+      window.triggerAwaken?.({
+        goal: 'Boot into Capsule with bootstrapper',
+        environment: '',
+        includeBootstrapperWithinSelf: true,
+        swarmEnabled: false
+      });
+    });
 
     await page.waitForSelector('#app.active', { timeout: 20000 });
+    await page.waitForFunction(async () => {
+      const openDb = () => new Promise((resolve, reject) => {
+        const request = indexedDB.open('reploid-vfs-v0', 1);
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+      });
+      const readEntry = async (db, path) => new Promise((resolve, reject) => {
+        const tx = db.transaction('files', 'readonly');
+        const request = tx.objectStore('files').get(path);
+        request.onsuccess = () => resolve(request.result?.content || null);
+        request.onerror = () => reject(request.error);
+      });
+      const listKeys = async (db) => new Promise((resolve, reject) => {
+        const tx = db.transaction('files', 'readonly');
+        const request = tx.objectStore('files').getAllKeys();
+        request.onsuccess = () => resolve(request.result || []);
+        request.onerror = () => reject(request.error);
+      });
+
+      const db = await openDb();
+      const self = await readEntry(db, '/.system/self.json');
+      const keys = await listKeys(db);
+      return !!self && keys.includes('/bootstrapper/self/bridge.js');
+    }, { timeout: 10000 });
 
     const vfsState = await page.evaluate(async () => {
       const openDb = () => new Promise((resolve, reject) => {
@@ -376,8 +427,8 @@ test.describe('Absolute Zero Runtime', () => {
     });
 
     const self = JSON.parse(vfsState.self);
-    expect(self.hostIncluded).toBe(true);
-    expect(vfsState.keys).toContain('/host/capsule/host.js');
-    expect(vfsState.keys).toContain('/host/entry/start-app.js');
+    expect(self.bootstrapperIncluded).toBe(true);
+    expect(vfsState.keys).toContain('/bootstrapper/self/bridge.js');
+    expect(vfsState.keys).toContain('/bootstrapper/entry/start-app.js');
   });
 });

@@ -39,21 +39,22 @@ REPLOID is a browser-native research environment for studying recursive self-imp
 
 ### 1. Entry Point (`index.html` + `entry/seed-vfs.js`)
 
-The boot screen allows operators to configure:
+The boot UI allows operators to configure:
 - **Genesis Level**: `tabula` through `full`
-- **Connection Type**: direct cloud API, proxy server, or Doppler local model
+- **Primary Reploid Launch**: access code, BYOK direct inference, or swarm consumer/provider mode
+- **Research Connection Type**: direct cloud API, proxy server, or Doppler local model
 - **Concurrency Limits**: Max workers, iteration caps
 - **Goal Chips**: Pre-defined or custom goals
 
 ### 2. VFS-First Boot (`entry/seed-vfs.js` → `entry/start-app.js`)
 
-On page load, the bootstrapper seeds the VFS and loads the boot UI. When "Awaken Agent" is pressed:
+On page load, the bootstrapper seeds the VFS and loads the boot UI. When "Awaken" is pressed:
 
 1. **VFS Hydration**: Fetch `config/vfs-manifest.json` and write all listed `src/` files into IndexedDB
 2. **VFS Module Loader**: Ensure `sw-module-loader.js` controls the page (VFS-only module serving)
 3. **Boot from VFS**: Load `entry/start-app.js` from VFS and resolve the DI container
 4. **Genesis Snapshot**: Capture pristine state for rollback
-5. **Proto UI Mount**: Initialize UI into `#app`
+5. **Capsule or Runtime UI Mount**: Initialize the selected shell into `#app`
 6. **WorkerManager Init**: Seed worker types and model roles
 7. **Agent Loop Start**: Begin Think → Act → Observe cycle
 
@@ -232,7 +233,7 @@ API flood prevention with configurable limits.
 
 ### 1. VFS Containment
 
-All file I/O is virtualized. No access to host filesystem.
+All file I/O is virtualized. No access to the underlying filesystem.
 
 ### 2. Service Worker Interception
 

@@ -75,7 +75,7 @@ const GOAL_CATEGORIES = {
     },
     {
       view: 'Twin capsule lab',
-      text: 'Spawn twin capsule runtimes, run the same task in each, and render diffs for context growth, tool paths, latency, and outcome quality.',
+      text: 'Spawn twin Reploid runtimes, run the same task in each, and render diffs for context growth, tool paths, latency, and outcome quality.',
       tags: [TAGS.BENCH, TAGS.DATA, TAGS.SYS]
     },
     {

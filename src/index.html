@@ -15,7 +15,7 @@
       })();
     </script>
     <link rel="icon" type="image/svg+xml" href="favicon.svg" />
-    <title>Reploid</title>
+    <title>Reploid · Browser RSI Substrate</title>
 
     <script>
     window.REPLOID_SW_VERSION = "1735500008";
@@ -206,7 +206,7 @@
       // Product mode and route lock (used by boot)
       window.getReploidRouteMode = () => {
         const pathname = window.location.pathname || "/";
-        if (pathname === "/") return "absolute_zero";
+        if (pathname === "/") return "reploid";
         if (pathname === "/0") return "zero";
         if (pathname === "/x") return "x";
         return null;
@@ -214,29 +214,29 @@
 
       window.getReploidBootProfile = () => {
         const pathname = window.location.pathname || "/";
-        if (pathname === "/") return "absolute_zero_home";
+        if (pathname === "/") return "reploid_home";
         if (pathname === "/0") return "zero_home";
         if (pathname === "/x") return "x_home";
         return "wizard";
       };
 
-      window.isReploidAbsoluteZeroHome = () => window.location.pathname === "/";
+      window.isReploidHome = () => window.location.pathname === "/";
 
       window.getReploidMode = () => {
         const routeMode = window.getReploidRouteMode();
         if (routeMode) return routeMode;
 
         const storedMode = localStorage.getItem("REPLOID_MODE");
-        if (storedMode === "zero" || storedMode === "absolute_zero" || storedMode === "x") {
+        if (storedMode === "zero" || storedMode === "reploid" || storedMode === "x") {
           return storedMode;
         }
 
         const storedGenesis = localStorage.getItem("REPLOID_GENESIS_LEVEL");
-        if (storedGenesis === "capsule" || storedGenesis === "tabula") return "absolute_zero";
+        if (storedGenesis === "capsule" || storedGenesis === "tabula") return "reploid";
         if (storedGenesis === "spark") return "zero";
         if (storedGenesis === "full" || storedGenesis === "substrate" ||
             storedGenesis === "cognition" || storedGenesis === "reflection") return "x";
-        return "absolute_zero";
+        return "reploid";
       };
 
       window.getGenesisLevel = () => {

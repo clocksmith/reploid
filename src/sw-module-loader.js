@@ -147,6 +147,14 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  if (url.pathname.startsWith('/src/')) {
+    return;
+  }
+
+  if (url.searchParams.get('bootstrapper') === '1') {
+    return;
+  }
+
   // Allow explicit bypass for VFS seeding and diagnostics.
   if (event.request.headers.get('x-reploid-vfs-bypass') === '1') {
     return;

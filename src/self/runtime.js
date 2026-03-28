@@ -1,9 +1,10 @@
 /**
- * @fileoverview Dedicated Absolute Zero capsule runtime.
+ * @fileoverview Dedicated Reploid self runtime.
  */
 
 import Utils from '../core/utils.js';
-import { createCapsuleHost } from './host.js';
+import ResponseParser from '../core/response-parser.js';
+import { createSelfBridge } from './bridge.js';
 
 const MAX_CYCLES = 2048;
 const MAX_BATCH_TOOLS = 5;
@@ -20,54 +21,19 @@ const formatToolResult = (name, result, kind = 'RESULT') => {
   return `[TOOL ${name} ${kind}]\n${payload}`.trim();
 };
 
-const normalizeToolCall = (value) => {
-  if (!value || typeof value !== 'object') return null;
-  if (typeof value.tool !== 'string' || !value.tool.trim()) return null;
-  return {
-    name: value.tool.trim(),
-    args: value.args && typeof value.args === 'object' ? value.args : {}
-  };
-};
+const extractPrefixedLine = (text, prefixes) => {
+  const lines = String(text || '')
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean);
 
-const normalizeMilestone = (value) => {
-  if (!value || typeof value !== 'object') return null;
-
-  if (value.done === true) {
-    return {
-      reason: typeof value.reason === 'string' ? value.reason : ''
-    };
-  }
-
-  if (value.done && typeof value.done === 'object' && value.done.done === true) {
-    return {
-      reason: typeof value.done.reason === 'string' ? value.done.reason : ''
-    };
-  }
-
-  if (value.milestone && typeof value.milestone === 'object') {
-    return {
-      reason: typeof value.milestone.reason === 'string' ? value.milestone.reason : ''
-    };
-  }
-
-  return null;
-};
-
-const normalizeIdle = (value) => {
-  if (!value || typeof value !== 'object') return null;
-
-  if (value.idle === true) {
-    return {
-      reason: typeof value.reason === 'string' ? value.reason : '',
-      wakeOn: typeof value.wakeOn === 'string' ? value.wakeOn : 'manual'
-    };
-  }
-
-  if (value.idle && typeof value.idle === 'object') {
-    return {
-      reason: typeof value.idle.reason === 'string' ? value.idle.reason : '',
-      wakeOn: typeof value.idle.wakeOn === 'string' ? value.idle.wakeOn : 'manual'
-    };
+  for (const line of lines) {
+    for (const prefix of prefixes) {
+      const marker = `${prefix.toUpperCase()}:`;
+      if (line.toUpperCase().startsWith(marker)) {
+        return line.slice(marker.length).trim();
+      }
+    }
   }
 
   return null;
@@ -78,7 +44,7 @@ const getMessageLabel = (message = {}) => {
   if (origin === 'bootstrap') return 'BOOT';
   if (origin === 'model') return 'MODEL';
   if (origin === 'tool') return 'TOOL';
-  if (origin === 'host') return 'HOST';
+  if (origin === 'system') return 'SYSTEM';
   return String(message.role || 'unknown').toUpperCase();
 };
 
@@ -89,108 +55,89 @@ const formatContextMessage = (message = {}) => {
     return `[${label}]`;
   }
 
-  // Tool and host observations already carry a structured prefix that is useful
+  // Tool and system observations already carry a structured prefix that is useful
   // both to the model and to the human transcript.
-  if (content.startsWith('[TOOL ') || content.startsWith('[HOST')) {
+  if (content.startsWith('[TOOL ') || content.startsWith('[SYSTEM')) {
     return content;
   }
 
   return `[${label}]\n${content}`.trim();
 };
 
-const parseCapsuleDirective = (utils, text) => {
+const parseSelfDirective = (responseParser, text) => {
   const cleaned = String(text || '').trim();
   if (!cleaned) return null;
 
-  try {
-    const { json } = utils.sanitizeLlmJsonRespPure(cleaned);
-    const parsed = JSON.parse(json);
-    if (parsed && typeof parsed === 'object') {
-      const milestone = normalizeMilestone(parsed);
-      const idle = normalizeIdle(parsed);
+  const calls = responseParser.parseToolCalls(cleaned).map((call) => ({
+    name: String(call?.name || '').trim(),
+    args: call?.args && typeof call.args === 'object' ? call.args : {},
+    error: call?.error || null
+  })).filter((call) => call.name);
 
-      const batchedCalls = Array.isArray(parsed.tools)
-        ? parsed.tools
-        : Array.isArray(parsed.toolCalls)
-          ? parsed.toolCalls
-          : null;
-      if (batchedCalls) {
-        const calls = batchedCalls.map(normalizeToolCall).filter(Boolean);
-        if (calls.length > 0) {
-          return {
-            type: 'tools',
-            calls,
-            milestoneReason: milestone ? (milestone.reason || '') : null,
-            idleReason: idle ? (idle.reason || '') : null,
-            wakeOn: idle?.wakeOn || 'manual'
-          };
-        }
-      }
+  const milestoneReason = extractPrefixedLine(cleaned, ['MILESTONE', 'DONE']);
+  const idleReason = extractPrefixedLine(cleaned, ['IDLE', 'PARK']);
 
-      const singleCall = normalizeToolCall(parsed);
-      if (singleCall) {
-        return {
-          type: 'tools',
-          calls: [singleCall],
-          milestoneReason: milestone ? (milestone.reason || '') : null,
-          idleReason: idle ? (idle.reason || '') : null,
-          wakeOn: idle?.wakeOn || 'manual'
-        };
-      }
+  if (calls.length > 0) {
+    return {
+      type: 'tools',
+      calls,
+      milestoneReason,
+      idleReason
+    };
+  }
 
-      if (idle) {
-        return {
-          type: 'idle',
-          reason: idle.reason,
-          wakeOn: idle.wakeOn
-        };
-      }
+  if (idleReason !== null) {
+    return {
+      type: 'idle',
+      reason: idleReason,
+      wakeOn: 'manual'
+    };
+  }
 
-      if (milestone) {
-        return {
-          type: 'done',
-          reason: milestone.reason
-        };
-      }
-    }
-  } catch {
-    return null;
+  if (milestoneReason !== null) {
+    return {
+      type: 'done',
+      reason: milestoneReason
+    };
   }
 
   return null;
 };
 
-const buildHostNotice = (message) => `[HOST]\n${String(message || '').trim()}`.trim();
+const buildSystemNotice = (message) => `[SYSTEM]\n${String(message || '').trim()}`.trim();
 const withTerminalPunctuation = (value) => {
   const text = String(value || '').trim();
   if (!text) return '';
   return /[.!?]$/.test(text) ? text : `${text}.`;
 };
-const buildMilestoneNotice = (reason) => buildHostNotice(
+const buildMilestoneNotice = (reason) => buildSystemNotice(
   reason
     ? `Milestone recorded: ${withTerminalPunctuation(reason)} Execution continues until you stop it or the cycle limit is reached.`
     : 'Milestone recorded. Execution continues until you stop it or the cycle limit is reached.'
 );
-const buildSelfImprovementNotice = (reason) => buildHostNotice(
+const buildSelfImprovementNotice = (reason) => buildSystemNotice(
   reason
     ? `Foreground milestone reached: ${withTerminalPunctuation(reason)} Continue with safe self-improvement work. Prioritize reversible improvements to tools, runtime, memory, observability, evaluation, or the current artifact quality.`
     : 'Foreground milestone reached. Continue with safe self-improvement work. Prioritize reversible improvements to tools, runtime, memory, observability, evaluation, or the current artifact quality.'
 );
-const buildParkNotice = (reason, wakeOn = 'manual') => buildHostNotice(
+const buildParkNotice = (reason, wakeOn = 'manual') => buildSystemNotice(
   reason
     ? `Parked: ${withTerminalPunctuation(reason)} Resume when new work is available. Wake condition: ${wakeOn}.`
     : `Parked. Resume when new work is available. Wake condition: ${wakeOn}.`
 );
 
-export function createCapsuleRuntime(options = {}) {
+export function createSelfRuntime(options = {}) {
   const goal = String(options.goal || '').trim();
   const environment = String(options.environment || '').trim();
-  const includeHostWithinSelf = !!options.includeHostWithinSelf;
-  const host = createCapsuleHost({
+  const includeBootstrapperWithinSelf = !!options.includeBootstrapperWithinSelf;
+  const swarmEnabled = !!options.swarmEnabled;
+  const bridge = createSelfBridge({
     modelConfig: options.modelConfig || null,
-    includeHostWithinSelf
+    includeBootstrapperWithinSelf,
+    swarmEnabled
   });
-  const capsuleUtils = Utils.factory();
+  const runtimeUtils = Utils.factory();
+  const responseParser = ResponseParser.factory({ Utils: runtimeUtils });
   const listeners = new Set();
 
   let running = false;
@@ -207,6 +154,28 @@ export function createCapsuleRuntime(options = {}) {
   let consecutiveMilestoneOnlyCycles = 0;
   let lastMilestoneReason = '';
   let repeatedMilestoneCount = 0;
+
+  if (typeof bridge.on === 'function') {
+    bridge.on('provider-ready', () => {
+      if (!(parked && wakeOn === 'provider-ready' && !running && !stopped)) {
+        return;
+      }
+
+      const notice = buildSystemNotice('Swarm provider discovered. Resuming remote generation.');
+      appendMessage('user', notice, 'system');
+      tokenUsage += estimateTokens(notice);
+      parked = false;
+      wakeOn = 'manual';
+      status = 'IDLE';
+      activity = 'Provider discovered';
+      notify();
+      start().catch(() => {});
+    });
+
+    bridge.on('swarm-state', () => {
+      notify();
+    });
+  }
 
   const notify = () => {
     const snapshot = getSnapshot();
@@ -228,14 +197,13 @@ export function createCapsuleRuntime(options = {}) {
   };
 
   const seedContext = async () => {
-    const files = await host.seedSystemFiles({
+    const files = await bridge.seedSystemFiles({
       goal,
       environment,
-      includeHostWithinSelf
+      includeBootstrapperWithinSelf,
+      swarmEnabled
     });
     messages = [
-      { role: 'user', origin: 'bootstrap', content: `Goal:\n${files['/.system/goal.txt']}` },
-      { role: 'user', origin: 'bootstrap', content: `Environment:\n${files['/.system/environment.txt']}` },
       { role: 'user', origin: 'bootstrap', content: `Self:\n${files['/.system/self.json']}` }
     ];
   };
@@ -257,13 +225,14 @@ export function createCapsuleRuntime(options = {}) {
     wakeOn,
     cycle,
     goal,
-    model: host.getModelLabel(),
+    model: bridge.getModelLabel(),
     tokens: {
       used: tokenUsage,
       limit: 0
     },
     context: [...messages],
     draft,
+    swarm: typeof bridge.getSwarmSnapshot === 'function' ? bridge.getSwarmSnapshot() : null,
     renderedBlocks: getRenderedBlocks(),
     renderedText: getRenderedBlocks().join('\n\n').trim()
   });
@@ -305,9 +274,22 @@ export function createCapsuleRuntime(options = {}) {
     }
 
     if (messages.length === 0) {
+      if (typeof bridge.initialize === 'function') {
+        await bridge.initialize();
+      }
       await seedContext();
       cycle = 0;
       tokenUsage = messages.reduce((sum, msg) => sum + estimateTokens(msg.content), 0);
+    }
+
+    if (!bridge.getModelConfig() && swarmEnabled && !bridge.hasAvailableProvider?.()) {
+      const notice = buildSystemNotice(
+        'No local inference is configured. Swarm consumer mode is active, so the runtime is parking until provider-side inference is available.'
+      );
+      appendMessage('user', notice, 'system');
+      tokenUsage += estimateTokens(notice);
+      parkRuntime('Waiting for swarm provider', 'provider-ready');
+      return;
     }
 
     running = true;
@@ -331,12 +313,12 @@ export function createCapsuleRuntime(options = {}) {
 
       let response;
       try {
-        response = await host.generate(messages, (chunk) => {
+        response = await bridge.generate(messages, (chunk) => {
           draft += chunk;
           notify();
         });
       } catch (error) {
-        appendMessage('user', `[HOST ERROR]\n${error.message || error}`, 'host');
+        appendMessage('user', `[SYSTEM ERROR]\n${error.message || error}`, 'system');
         tokenUsage += estimateTokens(error.message || String(error));
         running = false;
         status = 'ERROR';
@@ -353,13 +335,13 @@ export function createCapsuleRuntime(options = {}) {
         tokenUsage += estimateTokens(assistantText);
       }
 
-      const directive = parseCapsuleDirective(capsuleUtils, assistantText);
+      const directive = parseSelfDirective(responseParser, assistantText);
       if (!directive) {
-        const hostNotice = buildHostNotice(
-          'Ignored non-directive model response. Reply with exactly one JSON object to call tools, record a milestone, or park.'
+        const systemNotice = buildSystemNotice(
+          'Ignored non-directive model response. Use TOOL_CALL / ARGS blocks, MILESTONE:, or IDLE:. Do not use markdown fences.'
         );
-        appendMessage('user', hostNotice, 'host');
-        tokenUsage += estimateTokens(hostNotice);
+        appendMessage('user', systemNotice, 'system');
+        tokenUsage += estimateTokens(systemNotice);
         activity = 'Ignored non-directive response';
         consecutiveMilestoneOnlyCycles = 0;
         repeatedMilestoneCount = 0;
@@ -369,9 +351,9 @@ export function createCapsuleRuntime(options = {}) {
       }
 
       if (directive.type === 'done') {
-        const hostNotice = buildMilestoneNotice(directive.reason);
-        appendMessage('user', hostNotice, 'host');
-        tokenUsage += estimateTokens(hostNotice);
+        const systemNotice = buildMilestoneNotice(directive.reason);
+        appendMessage('user', systemNotice, 'system');
+        tokenUsage += estimateTokens(systemNotice);
         activity = 'Milestone recorded';
         consecutiveMilestoneOnlyCycles += 1;
         if (directive.reason && directive.reason === lastMilestoneReason) {
@@ -387,7 +369,7 @@ export function createCapsuleRuntime(options = {}) {
           const redirectNotice = buildSelfImprovementNotice(
             'Repeated milestone-only cycles detected with no new tool work'
           );
-          appendMessage('user', redirectNotice, 'host');
+          appendMessage('user', redirectNotice, 'system');
           tokenUsage += estimateTokens(redirectNotice);
           activity = 'Redirected to self-improvement';
           consecutiveMilestoneOnlyCycles = 0;
@@ -402,7 +384,7 @@ export function createCapsuleRuntime(options = {}) {
 
       if (directive.type === 'idle') {
         const redirectNotice = buildSelfImprovementNotice(directive.reason);
-        appendMessage('user', redirectNotice, 'host');
+        appendMessage('user', redirectNotice, 'system');
         tokenUsage += estimateTokens(redirectNotice);
         activity = 'Redirected to self-improvement';
         consecutiveMilestoneOnlyCycles = 0;
@@ -419,21 +401,21 @@ export function createCapsuleRuntime(options = {}) {
       lastMilestoneReason = '';
 
       if (requestedCalls.length > MAX_BATCH_TOOLS) {
-        const hostNotice = buildHostNotice(
+        const systemNotice = buildSystemNotice(
           `Tool call limit (${MAX_BATCH_TOOLS}) reached. Executing the first ${MAX_BATCH_TOOLS} tool calls in order.`
         );
-        appendMessage('user', hostNotice, 'host');
-        tokenUsage += estimateTokens(hostNotice);
+        appendMessage('user', systemNotice, 'system');
+        tokenUsage += estimateTokens(systemNotice);
       }
 
       if (callsToExecute.length === 1) {
         consecutiveSingleToolCycles += 1;
         if (consecutiveSingleToolCycles >= SINGLE_TOOL_NUDGE_THRESHOLD) {
-          const hostNotice = buildHostNotice(
-            `Tip: you can batch up to ${MAX_BATCH_TOOLS} tool calls in one JSON object using {"tools":[{"tool":"ReadFile","args":{"path":"/.system/self.json"}},{"tool":"ReadFile","args":{"path":"/.system/goal.txt"}}]}.`
+          const systemNotice = buildSystemNotice(
+            `Tip: you can batch up to ${MAX_BATCH_TOOLS} tool calls by emitting multiple TOOL_CALL / ARGS blocks in one response.`
           );
-          appendMessage('user', hostNotice, 'host');
-          tokenUsage += estimateTokens(hostNotice);
+          appendMessage('user', systemNotice, 'system');
+          tokenUsage += estimateTokens(systemNotice);
           consecutiveSingleToolCycles = 0;
         }
       } else {
@@ -448,8 +430,16 @@ export function createCapsuleRuntime(options = {}) {
           : `Running ${call.name} (${index + 1}/${callsToExecute.length})`;
         notify();
 
+        if (call.error) {
+          const toolError = formatToolResult(call.name, call.error, 'ERROR');
+          appendMessage('user', toolError, 'tool');
+          tokenUsage += estimateTokens(toolError);
+          activity = `${call.name} failed`;
+          continue;
+        }
+
         try {
-          const result = await host.executeTool(call.name, call.args);
+          const result = await bridge.executeTool(call.name, call.args);
           const toolMessage = formatToolResult(call.name, result, 'RESULT');
           appendMessage('user', toolMessage, 'tool');
           tokenUsage += estimateTokens(toolMessage);
@@ -463,15 +453,15 @@ export function createCapsuleRuntime(options = {}) {
       }
 
       if (!stopped && directive.milestoneReason !== undefined && directive.milestoneReason !== null) {
-        const hostNotice = buildMilestoneNotice(directive.milestoneReason);
-        appendMessage('user', hostNotice, 'host');
-        tokenUsage += estimateTokens(hostNotice);
+        const systemNotice = buildMilestoneNotice(directive.milestoneReason);
+        appendMessage('user', systemNotice, 'system');
+        tokenUsage += estimateTokens(systemNotice);
         activity = 'Milestone recorded';
       }
 
       if (!stopped && directive.idleReason !== undefined && directive.idleReason !== null && directive.idleReason !== '') {
         const redirectNotice = buildSelfImprovementNotice(directive.idleReason);
-        appendMessage('user', redirectNotice, 'host');
+        appendMessage('user', redirectNotice, 'system');
         tokenUsage += estimateTokens(redirectNotice);
         activity = 'Redirected to self-improvement';
       }

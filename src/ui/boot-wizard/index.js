@@ -17,9 +17,9 @@ import {
 
 import { formatGoalPacket, getGoalEntries } from './goals.js';
 import {
-  findAbsoluteZeroEnvironmentTemplateId,
-  getAbsoluteZeroEnvironmentTemplate
-} from '../../config/absolute-zero-environments.js';
+  findReploidEnvironmentTemplateId,
+  getReploidEnvironmentTemplate
+} from '../../config/reploid-environments.js';
 import {
   getBootModeConfig,
   inferBootModeFromGenesis,
@@ -27,9 +27,9 @@ import {
 } from '../../config/boot-modes.js';
 import { pickBootSeedFiles } from '../../config/boot-seed.js';
 import {
-  ABSOLUTE_ZERO_HOST_SOURCE_MIRRORS,
-  ABSOLUTE_ZERO_SELF_SOURCE_MIRRORS
-} from '../../capsule/contract.js';
+  BOOTSTRAPPER_SOURCE_MIRRORS,
+  SELF_SOURCE_MIRRORS
+} from '../../self/manifest.js';
 import { serializeModuleOverrides } from '../../config/module-resolution.js';
 import { setSecurityEnabled } from '../../core/security-config.js';
 import { readVfsFile, loadVfsManifest, seedVfsFromManifest, clearVfsStore } from '../../boot-helpers/vfs-bootstrap.js';
@@ -238,41 +238,43 @@ async function ensureBootPayloadLoaded() {
   }
 }
 
-async function ensureAbsoluteZeroPreviewLoaded(includeHostWithinSelf = false) {
-  const current = getState().absoluteZeroPreview || {};
+async function ensureSelfPreviewLoaded(includeBootstrapperWithinSelf = false) {
+  const current = getState().selfPreview || {};
   const needSelf = !current.loadedSelf && !current.loadingSelf;
-  const needHost = includeHostWithinSelf && !current.loadedHost && !current.loadingHost;
+  const needBootstrapper = includeBootstrapperWithinSelf
+    && !current.loadedBootstrapper
+    && !current.loadingBootstrapper;
 
-  if (!needSelf && !needHost) return;
+  if (!needSelf && !needBootstrapper) return;
 
-  setNestedState('absoluteZeroPreview', {
+  setNestedState('selfPreview', {
     loadingSelf: current.loadingSelf || needSelf,
-    loadingHost: current.loadingHost || needHost,
+    loadingBootstrapper: current.loadingBootstrapper || needBootstrapper,
     error: null
   });
 
   try {
-    const nextContents = { ...(getState().absoluteZeroPreview?.contents || {}) };
+    const nextContents = { ...(getState().selfPreview?.contents || {}) };
     if (needSelf) {
-      Object.assign(nextContents, await loadMirrorContents(ABSOLUTE_ZERO_SELF_SOURCE_MIRRORS));
+      Object.assign(nextContents, await loadMirrorContents(SELF_SOURCE_MIRRORS));
     }
-    if (needHost) {
-      Object.assign(nextContents, await loadMirrorContents(ABSOLUTE_ZERO_HOST_SOURCE_MIRRORS));
+    if (needBootstrapper) {
+      Object.assign(nextContents, await loadMirrorContents(BOOTSTRAPPER_SOURCE_MIRRORS));
     }
 
-    setNestedState('absoluteZeroPreview', {
+    setNestedState('selfPreview', {
       contents: nextContents,
       loadingSelf: false,
       loadedSelf: current.loadedSelf || needSelf,
-      loadingHost: false,
-      loadedHost: current.loadedHost || needHost,
+      loadingBootstrapper: false,
+      loadedBootstrapper: current.loadedBootstrapper || needBootstrapper,
       error: null
     });
   } catch (err) {
-    setNestedState('absoluteZeroPreview', {
+    setNestedState('selfPreview', {
       loadingSelf: false,
-      loadingHost: false,
-      error: err?.message || 'Failed to load Absolute Zero file previews'
+      loadingBootstrapper: false,
+      error: err?.message || 'Failed to load Reploid file previews'
     });
   }
 }
@@ -394,11 +396,11 @@ let lastMode = null;
 let lastConnectionType = null;
 let lastCanAwaken = null;
 let lastBootPayloadState = null;
-let lastAbsoluteZeroPreviewState = null;
-let lastSelectedAbsoluteZeroPath = null;
+let lastSelfPreviewState = null;
+let lastSelectedSelfPath = null;
 let lastGoal = null;
 let lastEnvironment = null;
-let lastIncludeHostWithinSelf = null;
+let lastIncludeBootstrapperWithinSelf = null;
 let lastSelectedGoalCategory = null;
 let lastGoalShuffleSeed = null;
 let lastGoalGeneratorState = null;
@@ -438,12 +440,13 @@ function scheduleUpdate() {
     const canAwakenChanged = readyToAwaken !== lastCanAwaken;
     const bootPayloadState = JSON.stringify(state.bootPayload);
     const bootPayloadChanged = bootPayloadState !== lastBootPayloadState;
-    const absoluteZeroPreviewState = JSON.stringify(state.absoluteZeroPreview);
-    const absoluteZeroPreviewChanged = absoluteZeroPreviewState !== lastAbsoluteZeroPreviewState;
-    const selectedAbsoluteZeroPathChanged = state.selectedAbsoluteZeroPath !== lastSelectedAbsoluteZeroPath;
+    const selfPreviewState = JSON.stringify(state.selfPreview);
+    const selfPreviewChanged = selfPreviewState !== lastSelfPreviewState;
+    const selectedSelfPathChanged = state.selectedSelfPath !== lastSelectedSelfPath;
     const goalChanged = state.goal !== lastGoal;
     const environmentChanged = state.environment !== lastEnvironment;
-    const includeHostWithinSelfChanged = !!state.includeHostWithinSelf !== !!lastIncludeHostWithinSelf;
+    const includeBootstrapperWithinSelfChanged =
+      !!state.includeBootstrapperWithinSelf !== !!lastIncludeBootstrapperWithinSelf;
     const selectedGoalCategoryChanged = state.selectedGoalCategory !== lastSelectedGoalCategory;
     const goalShuffleSeedChanged = state.goalShuffleSeed !== lastGoalShuffleSeed;
     const goalGeneratorState = JSON.stringify(state.goalGenerator);
@@ -452,9 +455,9 @@ function scheduleUpdate() {
     if (isInitialRender || moduleConfigChanged || advancedOpenChanged ||
         directVerifyChanged || proxyVerifyChanged || directModelChanged || directModelVerifyChanged ||
         modeChanged || connectionTypeChanged || canAwakenChanged ||
-        bootPayloadChanged || absoluteZeroPreviewChanged ||
-        selectedAbsoluteZeroPathChanged || goalChanged || environmentChanged ||
-        includeHostWithinSelfChanged || selectedGoalCategoryChanged ||
+        bootPayloadChanged || selfPreviewChanged ||
+        selectedSelfPathChanged || goalChanged || environmentChanged ||
+        includeBootstrapperWithinSelfChanged || selectedGoalCategoryChanged ||
         goalShuffleSeedChanged || goalGeneratorChanged) {
       lastModuleConfigState = moduleConfigState;
       lastAdvancedOpen = state.advancedOpen;
@@ -466,11 +469,11 @@ function scheduleUpdate() {
       lastConnectionType = state.connectionType;
       lastCanAwaken = readyToAwaken;
       lastBootPayloadState = bootPayloadState;
-      lastAbsoluteZeroPreviewState = absoluteZeroPreviewState;
-      lastSelectedAbsoluteZeroPath = state.selectedAbsoluteZeroPath;
+      lastSelfPreviewState = selfPreviewState;
+      lastSelectedSelfPath = state.selectedSelfPath;
       lastGoal = state.goal;
       lastEnvironment = state.environment;
-      lastIncludeHostWithinSelf = !!state.includeHostWithinSelf;
+      lastIncludeBootstrapperWithinSelf = !!state.includeBootstrapperWithinSelf;
       lastSelectedGoalCategory = state.selectedGoalCategory;
       lastGoalShuffleSeed = state.goalShuffleSeed;
       lastGoalGeneratorState = goalGeneratorState;
@@ -584,13 +587,13 @@ function updateUI() {
     awakenBtn.disabled = disabled;
     awakenBtn.classList.toggle('loading', isAwakening);
     awakenBtn.setAttribute('aria-busy', isAwakening);
-    awakenBtn.textContent = isAwakening ? 'Awakening...' : 'Awaken Agent';
+    awakenBtn.textContent = isAwakening ? 'Awakening...' : 'Awaken';
 
     if (blockedByModules) {
       const reason = awakenBtn.dataset.blockedReason || 'Missing required modules';
       awakenBtn.setAttribute('title', reason);
     } else if (!hasGoal) {
-      awakenBtn.setAttribute('title', 'Set a goal to awaken');
+      awakenBtn.setAttribute('title', 'Set a first objective to awaken');
     } else if (!ready && state.mode === 'zero') {
       awakenBtn.setAttribute('title', 'Zero needs a browser-local model');
     } else {
@@ -613,8 +616,8 @@ function updateUI() {
   if (!state.bootPayload?.loaded && !state.bootPayload?.loading && !state.bootPayload?.error) {
     ensureBootPayloadLoaded();
   }
-  if (state.mode === 'absolute_zero') {
-    ensureAbsoluteZeroPreviewLoaded(!!state.includeHostWithinSelf);
+  if (state.mode === 'reploid') {
+    ensureSelfPreviewLoaded(!!state.includeBootstrapperWithinSelf);
   }
 }
 
@@ -630,9 +633,9 @@ function updateGoalSelectionUI(state) {
     environmentInput.value = state.environment || '';
   }
 
-  const includeHostCheckbox = container.querySelector('#include-host-within-self');
-  if (includeHostCheckbox) {
-    includeHostCheckbox.checked = !!state.includeHostWithinSelf;
+  const includeBootstrapperCheckbox = container.querySelector('#include-bootstrapper-within-self');
+  if (includeBootstrapperCheckbox) {
+    includeBootstrapperCheckbox.checked = !!state.includeBootstrapperWithinSelf;
   }
 
   container.querySelectorAll('[data-action="select-goal"]').forEach((el) => {
@@ -655,9 +658,9 @@ function updateGoalSelectionUI(state) {
     el.setAttribute('aria-pressed', isSelected ? 'true' : 'false');
   });
 
-  container.querySelectorAll('[data-action="select-absolute-zero-path"]').forEach((el) => {
+  container.querySelectorAll('[data-action="select-self-path"]').forEach((el) => {
     const path = el.dataset.path || '';
-    const isSelected = path === (state.selectedAbsoluteZeroPath || '');
+    const isSelected = path === (state.selectedSelfPath || '');
     el.classList.toggle('selected', isSelected);
     el.setAttribute('aria-pressed', isSelected ? 'true' : 'false');
   });
@@ -705,7 +708,7 @@ function render() {
   const hasConnectionType = !!state.connectionType;
   const ready = canAwaken();
   const hasGoal = !!(state.goal && state.goal.trim());
-  const goalSectionTitle = state.mode === 'absolute_zero' ? 'Compose substrate' : 'Set a goal';
+  const goalSectionTitle = state.mode === 'reploid' ? 'Compose self' : 'Set the first objective';
 
   if (!hasConnectionType) {
     html += renderLockedSection('Configure inference', 'Choose an inference provider to unlock this section.');
@@ -733,7 +736,7 @@ function render() {
       'Awaken',
       !ready
         ? 'Finish inference configuration and set a goal before awakening.'
-        : 'Set a goal to unlock this section.'
+        : 'Set a first objective to unlock this section.'
     );
   } else {
     html += renderAwakenStep(state);
@@ -762,8 +765,8 @@ function render() {
   if (!state.bootPayload?.loaded && !state.bootPayload?.loading && !state.bootPayload?.error) {
     ensureBootPayloadLoaded();
   }
-  if (state.mode === 'absolute_zero') {
-    ensureAbsoluteZeroPreviewLoaded(!!state.includeHostWithinSelf);
+  if (state.mode === 'reploid') {
+    ensureSelfPreviewLoaded(!!state.includeBootstrapperWithinSelf);
   }
 
   // Only attach listeners once (use event delegation)
@@ -867,7 +870,7 @@ async function handleClick(e) {
     case 'apply-environment-template': {
       const button = e.target.closest('[data-template]');
       const templateId = button?.dataset.template;
-      const template = getAbsoluteZeroEnvironmentTemplate(templateId);
+      const template = getReploidEnvironmentTemplate(templateId);
       if (!template) break;
       setState({
         environment: template.text,
@@ -876,11 +879,11 @@ async function handleClick(e) {
       break;
     }
 
-    case 'select-absolute-zero-path': {
+    case 'select-self-path': {
       const button = e.target.closest('[data-path]');
       const path = button?.dataset.path;
       if (!path) break;
-      setState({ selectedAbsoluteZeroPath: path });
+      setState({ selectedSelfPath: path });
       break;
     }
 
@@ -1102,9 +1105,9 @@ function handleChange(e) {
       setNestedState('advancedConfig', { preserveOnBoot: value });
       break;
 
-    case 'include-host-within-self':
-      setState({ includeHostWithinSelf: value });
-      localStorage.setItem('REPLOID_INCLUDE_HOST_WITHIN_SELF', value ? 'true' : 'false');
+    case 'include-bootstrapper-within-self':
+      setState({ includeBootstrapperWithinSelf: value });
+      localStorage.setItem('REPLOID_INCLUDE_BOOTSTRAPPER_WITHIN_SELF', value ? 'true' : 'false');
       break;
 
     case 'advanced-security-enabled':
@@ -1220,7 +1223,7 @@ function handleInput(e) {
     case 'environment-input':
       setState({
         environment: value,
-        selectedEnvironmentTemplate: findAbsoluteZeroEnvironmentTemplateId(value)
+        selectedEnvironmentTemplate: findReploidEnvironmentTemplateId(value)
       });
       break;
   }
@@ -1407,20 +1410,18 @@ async function handleTestDirectModel() {
   });
 }
 
-async function shouldResetAbsoluteZeroVfs(state) {
+async function shouldResetReploidVfs(state) {
   if (!state.advancedConfig?.preserveOnBoot) {
     return true;
   }
 
   try {
-    const [selfText, goalText, environmentText, promptText] = await Promise.all([
+    const [selfText, promptText] = await Promise.all([
       readVfsFile('/.system/self.json'),
-      readVfsFile('/.system/goal.txt'),
-      readVfsFile('/.system/environment.txt'),
       readVfsFile('/.system/prompt.txt')
     ]);
 
-    if (!selfText || goalText === null || environmentText === null) {
+    if (!selfText) {
       return true;
     }
     if (promptText !== null) {
@@ -1428,35 +1429,35 @@ async function shouldResetAbsoluteZeroVfs(state) {
     }
 
     const manifest = JSON.parse(selfText);
-    if (manifest?.mode !== 'absolute_zero') {
+    if (manifest?.mode !== 'reploid') {
       return true;
     }
-    if (manifest.goalPath !== '/.system/goal.txt') {
+    if (manifest.selfPath !== '/.system/self.json') {
       return true;
     }
-    if (manifest.environmentPath !== '/.system/environment.txt') {
+    if (manifest.selfHosted !== true || manifest.selfModifiable !== true) {
       return true;
     }
-    if (!!manifest.hostIncluded !== !!state.includeHostWithinSelf) {
+    if (!!manifest.bootstrapperIncluded !== !!state.includeBootstrapperWithinSelf) {
       return true;
     }
 
     const writableRoots = Array.isArray(manifest.writableRoots) ? manifest.writableRoots : [];
-    const requiredRoots = ['/kernel', '/tools', '/.memory', '/artifacts', 'opfs:/artifacts'];
+    const requiredRoots = ['/.system', '/kernel', '/tools', '/.memory', '/artifacts', 'opfs:/artifacts'];
     if (requiredRoots.some((root) => !writableRoots.includes(root))) {
       return true;
     }
 
-    if (state.includeHostWithinSelf && !writableRoots.includes('/host')) {
+    if (state.includeBootstrapperWithinSelf && !writableRoots.includes('/bootstrapper')) {
       return true;
     }
-    if (!state.includeHostWithinSelf && writableRoots.includes('/host')) {
+    if (!state.includeBootstrapperWithinSelf && writableRoots.includes('/bootstrapper')) {
       return true;
     }
 
     return false;
   } catch (err) {
-    console.warn('[Boot] Absolute Zero VFS inspection failed:', err);
+    console.warn('[Boot] Reploid VFS inspection failed:', err);
     return true;
   }
 }
@@ -1471,14 +1472,14 @@ async function doAwaken() {
 
   try {
     let shouldClearVfs = !state.advancedConfig?.preserveOnBoot;
-    if (state.mode === 'absolute_zero') {
-      shouldClearVfs = await shouldResetAbsoluteZeroVfs(state);
+    if (state.mode === 'reploid') {
+      shouldClearVfs = await shouldResetReploidVfs(state);
     }
 
     if (shouldClearVfs) {
       console.log('[Boot] Clearing VFS before awaken...');
       await clearVfsStore();
-      if (state.mode !== 'absolute_zero') {
+      if (state.mode !== 'reploid') {
         console.log('[Boot] Ensuring VFS hydration before awaken...');
         const { manifest, text } = await loadVfsManifest();
         const files = manifest?.files || [];
@@ -1498,11 +1499,11 @@ async function doAwaken() {
   saveConfig();
 
   if (window.triggerAwaken) {
-    if (state.mode === 'absolute_zero') {
+    if (state.mode === 'reploid') {
       window.triggerAwaken({
         goal: goalPacket,
         environment: String(state.environment || ''),
-        includeHostWithinSelf: !!state.includeHostWithinSelf
+        includeBootstrapperWithinSelf: !!state.includeBootstrapperWithinSelf
       });
     } else {
       window.triggerAwaken(goalPacket);

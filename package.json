@@ -25,6 +25,7 @@
     "bench": "npx tsx bin/reploid-cli.ts bench",
     "debug": "npx tsx bin/reploid-cli.ts debug",
     "cli": "node bin/reploid-cli.js",
+    "build:cloud-access": "node scripts/build-reploid-cloud-access.js",
     "build:genesis": "node scripts/build-genesis-manifest.js",
     "build:blueprints": "node scripts/build-blueprint-registry.js",
     "build:module-registry": "node scripts/build-module-registry.js",

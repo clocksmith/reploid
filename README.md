@@ -1,116 +1,178 @@
 # REPLOID
 
-**R**ecursive **E**volution **P**rotocol **L**oop **O**rchestrating **I**nference **D**oppler ([Doppler](https://github.com/clocksmith/doppler))
+Browser-native recursive self-improvement substrate.
 
-**[Try it live](https://replo.id/)**
+Reploid boots in the browser, seeds an explicit self into a writable VFS, then runs a live loop that can read, write, and hot-load its own files. The primary path is the `/` route: a minimal boot UI, an explicit awakened self, and a small primitive tool surface.
 
-Browser-native recursive self-improvement—an agent that rewrites its own code and kernels in a live loop.
-Reploid is the driver; Doppler is the inference engine (optional) and runs standalone, but can be linked for inference and training.
+## What Ships Now
 
-## Why This Works
+| Route | Purpose |
+|-------|---------|
+| `/` | Primary Reploid boot. Minimal goal-first entry. |
+| `/0` | Zero. Richer research surface. |
+| `/x` | X. Prebuilt mature surface. |
 
-| Capability | Claim |
-|------------|-------|
-| **VFS hot-reload** | IndexedDB-backed virtual filesystem with blob URL module loading |
-| **WebGPU in-process** | 80% native performance ([WebLLM 2024](https://arxiv.org/abs/2412.15803)) |
-| **Zero-install** | URL distribution via PWA |
-| **Tight RSI loop** | Validated by [Gödel Agent](https://arxiv.org/abs/2410.04444), [RISE NeurIPS 2024](https://proceedings.neurips.cc/paper_files/paper/2024/file/639d992f819c2b40387d4d5170b8ffd7-Paper-Conference.pdf) |
+The primary Reploid path is the simplest one:
+- set the first objective
+- optionally enter an access code
+- optionally configure your own inference
+- optionally enable swarm
+- awaken
 
 ## Quick Start
 
+Install dependencies:
+
 ```bash
 npm install
-npm start         # Proxy server at :8000
 ```
 
-## Architecture
+For local development, put your Gemini key in `.env`:
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                        BROWSER ORIGIN                           │
-├─────────────────────────────────────────────────────────────────┤
-│  ┌──────────────┐    ┌──────────────┐    ┌──────────────┐       │
-│  │   Proto UI   │◄──►│  Agent Loop  │◄──►│   Workers    │       │
-│  └──────────────┘    └──────────────┘    └──────────────┘       │
-│         │                   │                   │              │
-│         ▼                   ▼                   ▼              │
-│  ┌─────────────────────────────────────────────────────────┐   │
-│  │                     Tool Runner                          │   │
-│  │         (dynamic loading, permission filtering)          │   │
-│  └─────────────────────────────────────────────────────────┘   │
-│         │                             │                        │
-│         ▼                             ▼                        │
-│  ┌──────────────┐               ┌──────────────┐                │
-│  │     VFS      │               │  Verification│                │
-│  │  (IndexedDB) │               │    Worker    │                │
-│  └──────────────┘               └──────────────┘                │
-└─────────────────────────────────────────────────────────────────┘
+```bash
+GEMINI_API_KEY=your_key_here
 ```
 
-## RSI Levels
+Start Reploid:
 
-| Level | Name | Scope | Gate |
-|-------|------|-------|------|
-| **L0** | Basic Functions | CreateTool, Web APIs, new tools | Verification Worker |
-| **L1** | Meta Tooling | Modify tool-writer, improve CreateTool | Arena consensus |
-| **L2** | Self-Modification (Substrate) | Edit core modules, runtime patches | Arena + Genesis rollback |
-| **L3** | Weak RSI (Iterative) | Bounded feedback loops, self-improvement | Arena + Genesis rollback + iteration caps |
-| **L4** | Weak AGI | Broad autonomous planning, system-building, and self-directed experimentation | N/A |
+```bash
+npm start
+```
 
-## Genesis Levels
+That command:
+- provisions sealed Reploid Cloud access windows from `.env`
+- starts the local dev server on `http://localhost:8000`
 
-Progressive capability loading - each level extends the previous:
+## Primary Boot
 
-| Level          | Total | Added | Description                                    |
-|----------------|-------|-------|------------------------------------------------|
-| **TABULA**     | 7     | 7     | Bootstrap core (VFS, EventBus, StateManager)   |
-| **SPARK**      | 20    | +13   | Agent loop, LLM client, tool runner            |
-| **REFLECTION** | 26    | +6    | Streaming, verification, HITL                  |
-| **COGNITION**  | 37    | +11   | Memory, knowledge graph, GEPA optimizer        |
-| **SUBSTRATE**  | 50    | +13   | Audit, replay, sandbox, worker manager         |
-| **FULL**       | 66    | +16   | Arena, swarm, multi-model, federated learning  |
+The `/` boot UI is intentionally small:
 
-See `docs/CONFIGURATION.md` and `docs/QUICK-START.md` for level-specific module lists and behavior.
+- `First objective`
+- `Access code`
+- `Configure`
+- `Swarm`
+- `Awaken`
 
-## Tools
+Inference states on `/`:
 
-| Category            | Tools                                                                 |
-|---------------------|-----------------------------------------------------------------------|
-| **Core VFS**        | ReadFile, WriteFile, EditFile, ListFiles, DeleteFile, Head, Tail |
-| **Meta (RSI)**      | CreateTool, LoadModule, ListTools                                     |
-| **Search**          | Grep, Find, FileOutline                                                |
-| **Cognition (cognition+)** | ListMemories, ListKnowledge, RunGEPA                               |
-| **Workers (substrate+)**   | SpawnWorker, ListWorkers, AwaitWorkers                             |
-| **Swarm (full)**           | SwarmShareFile, SwarmRequestFile, SwarmListPeers, SwarmGetStatus    |
+| State | Swarm | Result |
+|-------|-------|--------|
+| access code or BYOK | off | solo |
+| access code or BYOK | on | provider |
+| neither | on | consumer |
+| neither | off | dead |
+
+`Configure` means bring your own inference.
+
+`Swarm` means opt in to peer collaboration. It does not force local inference sharing unless this Reploid actually has inference available.
+
+## Awakened Self
+
+Awaken clears prior live VFS state, seeds the self graph, mounts Capsule, and starts the runtime.
+
+Core system files:
+
+```text
+/.system/self.json
+/.system/identity.json
+/self/runtime.js
+/self/bridge.js
+/self/tool-runner.js
+/self/manifest.js
+/self/environment.js
+/capsule/index.js
+```
+
+Collaboration and cloud access modules also live in self:
+
+```text
+/self/cloud-access.js
+/self/cloud-access-status.js
+/self/cloud-access-windows.js
+/self/identity.js
+/self/key-unsealer.js
+/self/receipt.js
+/self/reward-policy.js
+/self/swarm.js
+```
+
+Primitive visible tools:
+
+- `ReadFile`
+- `WriteFile`
+- `LoadModule`
+
+The goal is explicit self ownership. Reploid-owned logic lives in seeded self files, not in hidden product layers.
+
+## Runtime Model
+
+Reploid uses a small live loop:
+
+1. read self and context
+2. generate the next directive
+3. execute tool calls
+4. observe results
+5. continue until parked, stopped, or capped
+
+The awakened self can:
+- read and rewrite its own files
+- load new tools from `/tools` or `/self`
+- mutate Capsule UI
+- persist memory under `/.memory`
+- emit artifacts under `/artifacts`
+
+## Swarm Status
+
+Swarm is part of the seeded self and is readable and evolvable like the rest of Reploid.
+
+Current reality:
+- same-browser swarm can fall back to `BroadcastChannel`
+- cross-host swarm still uses signaling for WebRTC rendezvous
+- browser-to-browser provider and consumer roles exist in the self model
+- this is not yet a signaling-free public mesh
+
+## Reploid Cloud
+
+Local development currently supports a managed path:
+
+- `npm start` provisions sealed access windows from `GEMINI_API_KEY`
+- the generated client artifact stores sealed blobs, not the plaintext key
+- the local operator codebook is written under `.reploid-cloud/` and ignored by git
+
+Users can also bypass that path and use their own inference directly in the browser.
+
+## Repository Shape
+
+```text
+reploid/
+├── src/
+│   ├── self/            # Explicit awakened self modules
+│   ├── ui/capsule/      # Capsule shell
+│   ├── ui/boot-home/    # Primary boot UI
+│   ├── core/            # Shared runtime helpers
+│   ├── capabilities/    # Transport and other subsystems
+│   └── blueprints/      # Architectural research notes
+├── server/              # Local dev proxy and signaling
+├── scripts/             # Build helpers
+├── tests/               # Unit and E2E coverage
+└── docs/                # Human-facing documentation
+```
 
 ## Documentation
 
-Start at `docs/INDEX.md`, then:
-- `docs/QUICK-START.md`
-- `docs/CONFIGURATION.md`
-- `docs/TESTING.md`
-- `docs/SECURITY.md`
-- `showcase/README.md`
+Start here:
 
-## Requirements
-
-- Modern browser with ES modules
-- WebGPU for local inference (Chrome 113+)
-- Node.js 16+ for dev server
+- [docs/INDEX.md](docs/INDEX.md)
+- [docs/CONFIGURATION.md](docs/CONFIGURATION.md)
+- [docs/system-architecture.md](docs/system-architecture.md)
+- [docs/SECURITY.md](docs/SECURITY.md)
 
 ## Related
 
-- [DOPPLER](https://github.com/clocksmith/doppler) - WebGPU inference engine
-
-## Inspiration
-
-- [Gato](https://arxiv.org/abs/2205.06175) - A Generalist Agent (DeepMind)
-- [GEPA](https://arxiv.org/abs/2507.19457) - Reflective Prompt Evolution
-- [ReAct](https://arxiv.org/abs/2210.03629) - Synergizing Reasoning and Acting
-- [SWE-agent](https://arxiv.org/abs/2405.15793) - Agent-Computer Interfaces
-- [Tree of Thoughts](https://arxiv.org/abs/2305.10601) - Deliberate problem solving
-- [Reploid](https://megaman.fandom.com/wiki/Reploid) - Mega Man X series
+- [Doppler](https://github.com/clocksmith/doppler): WebGPU inference engine used by the broader stack
 
 ## License
 
 MIT
+
+*Last updated: March 2026*

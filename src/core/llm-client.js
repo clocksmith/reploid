@@ -110,6 +110,20 @@ const LLMClient = {
             .trim();
     };
 
+    const getProxyClientId = () => {
+      if (typeof window === 'undefined' || typeof localStorage === 'undefined') {
+        return 'server';
+      }
+
+      const key = 'REPLOID_CLIENT_ID';
+      let clientId = localStorage.getItem(key);
+      if (clientId) return clientId;
+
+      clientId = Utils.generateId('client');
+      localStorage.setItem(key, clientId);
+      return clientId;
+    };
+
     // --- Helper: Check Native Tool Support ---
     // OpenAI models support function calling (gpt-3.5-turbo, gpt-4, gpt-4o, etc.)
     const supportsNativeTools = (modelConfig) => {
@@ -288,7 +302,10 @@ const LLMClient = {
 
         const response = await fetch(endpoint, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Reploid-Client-Id': getProxyClientId()
+          },
           body: JSON.stringify(requestBody),
           signal: controller.signal
         });
@@ -360,7 +377,10 @@ const LLMClient = {
     const _chatCloudDirect = async (messages, modelConfig, onUpdate, requestId) => {
       const provider = modelConfig.provider;
       const storageKey = `${provider.toUpperCase()}_API_KEY`;
-      let apiKey = modelConfig.apiKey || localStorage.getItem(storageKey);
+      const reploidStorageKey = `REPLOID_KEY_${provider.toUpperCase()}`;
+      let apiKey = typeof modelConfig.getApiKey === 'function'
+        ? await modelConfig.getApiKey()
+        : modelConfig.apiKey || localStorage.getItem(reploidStorageKey) || localStorage.getItem(storageKey);
       const canStreamResponse = !!onUpdate && !!StreamParser;
 
       if (!apiKey) {
@@ -371,6 +391,7 @@ const LLMClient = {
       if (apiKey.includes('[INFO]') || apiKey.includes('[Boot]') || apiKey.includes(' ') || apiKey.length > 200) {
         logger.error(`[LLM] Corrupted API key detected in localStorage (${storageKey}). Clearing invalid value.`);
         localStorage.removeItem(storageKey);
+        localStorage.removeItem(reploidStorageKey);
         throw new Errors.ConfigError(`API key for ${provider} was corrupted. Please re-enter your API key in model settings.`);
       }
 
@@ -432,8 +453,15 @@ const LLMClient = {
             fullContent = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
           }
 
-        } else if (provider === 'openai') {
+        } else if (provider === 'openai' || provider === 'other') {
           // OpenAI API with native tool calling support
+          const openAiEndpoint = provider === 'other'
+            ? `${String(modelConfig.baseUrl || '').replace(/\/$/, '')}/chat/completions`
+            : CLOUD_API_ENDPOINTS.openai;
+          if (provider === 'other' && !modelConfig.baseUrl) {
+            throw new Errors.ConfigError('Custom provider requires baseUrl');
+          }
+
           const requestBody = {
             model: modelConfig.id,
             messages: messages,
@@ -447,7 +475,7 @@ const LLMClient = {
             requestBody.tool_choice = 'auto';
           }
 
-          response = await fetch(CLOUD_API_ENDPOINTS.openai, {
+          response = await fetch(openAiEndpoint, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -641,6 +669,9 @@ const LLMClient = {
       if (!ProviderRegistry.hasProvider('anthropic')) {
         ProviderRegistry.registerProvider('anthropic', createCloudProvider('anthropic'));
       }
+      if (!ProviderRegistry.hasProvider('other')) {
+        ProviderRegistry.registerProvider('other', createCloudProvider('other'));
+      }
 
       _providersRegistered = true;
     };
@@ -651,6 +682,7 @@ const LLMClient = {
       if (provider === 'doppler') return 'doppler';
       if (provider === 'transformers') return 'transformers';
       if (provider === 'webllm') return 'webllm';
+      if (provider === 'other' && modelConfig?.hostType === 'browser-cloud') return 'other';
       if (modelConfig?.queryMethod === 'browser') return 'webllm';
 
       if (TransformersClient?.isTransformersModel?.(modelConfig?.id)) {

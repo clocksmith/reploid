@@ -15,6 +15,10 @@ const MESSAGE_TYPES = new Set([
   'sync-request', 'sync-response',
   'goal-update', 'reflection-share',
   'artifact-announce', 'artifact-request', 'artifact-chunk', 'artifact-ack',
+  'reploid:peer-advertisement',
+  'reploid:generation-request', 'reploid:generation-update',
+  'reploid:generation-result', 'reploid:generation-error',
+  'reploid:receipt',
   'ping', 'pong',
   'raft:request-vote', 'raft:request-vote-response',
   'raft:append-entries', 'raft:append-entries-response',
@@ -173,8 +177,13 @@ const WebRTCSwarm = {
         return swarmParam;
       }
 
-      // Otherwise use session-based token
-      return _sessionId;
+      const storedRoom = window.localStorage?.getItem('REPLOID_SWARM_ROOM');
+      if (storedRoom && typeof storedRoom === 'string') {
+        const normalized = storedRoom.trim();
+        if (normalized) return normalized;
+      }
+
+      return 'public';
     };
 
     /**

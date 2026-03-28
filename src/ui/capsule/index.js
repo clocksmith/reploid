@@ -1,10 +1,10 @@
 /**
- * @fileoverview Text-first runtime shell for Absolute Zero.
+ * @fileoverview Capsule shell for the Reploid self.
  */
 
 const CapsuleUI = {
   factory: (deps) => {
-    const { CapsuleRuntime } = deps;
+    const { runtime } = deps;
 
     let root = null;
     let unsubscribe = null;
@@ -45,7 +45,10 @@ const CapsuleUI = {
           `cycle: ${snapshot.cycle || 0}`,
           `tokens: ${snapshot.tokens?.used || 0}`,
           `brain: ${snapshot.model || '-'}`,
-          `activity: ${snapshot.activity || 'Awaiting goal'}`
+          `activity: ${snapshot.activity || 'Awaiting goal'}`,
+          snapshot.swarm?.enabled
+            ? `swarm: ${snapshot.swarm.role || 'unknown'} · peers ${snapshot.swarm.peerCount || 0}/${snapshot.swarm.providerCount || 0} providers · ${snapshot.swarm.transport || 'none'} · ${snapshot.swarm.connectionState || 'disconnected'}`
+            : null
         ].join('\n');
         const blocks = [header, ...(Array.isArray(snapshot.renderedBlocks) ? snapshot.renderedBlocks : [])]
           .filter((block) => String(block || '').trim());
@@ -59,11 +62,11 @@ const CapsuleUI = {
       const action = event.target.closest('[data-capsule-action]')?.dataset.capsuleAction;
       event.preventDefault();
       if (action === 'stop') {
-        CapsuleRuntime.stop();
+        runtime.stop();
         return;
       }
       if (action === 'resume' && latestSnapshot?.running !== true) {
-        CapsuleRuntime.start();
+        runtime.start();
       }
     };
 
@@ -76,7 +79,7 @@ const CapsuleUI = {
       `;
 
       root.addEventListener('click', handleClick);
-      unsubscribe = CapsuleRuntime.subscribe(renderSnapshot);
+      unsubscribe = runtime.subscribe(renderSnapshot);
     };
 
     const cleanup = () => {

@@ -1,18 +1,25 @@
 # Configuration Reference
 
-All configurable settings exposed in the boot page and their corresponding localStorage keys.
+All configurable settings exposed in the boot UI and their corresponding localStorage keys.
 
 ---
 
-## Boot Page: Advanced Options
+## Boot UI: Advanced Options
 
-Expand "Advanced options" on the boot page to access these settings.
+Expand "Advanced options" in the boot UI to access these settings.
+
+Primary `/` Reploid keeps boot minimal:
+- Access code input for the provisioned browser-cloud path
+- `Configure` toggle for BYOK direct inference
+- `Swarm` toggle for provider or consumer launch
+
+Zero and X keep the broader research configuration surface.
 
 ### Runtime Mode
 
 | Setting | localStorage Key | Values | Default |
 |---------|------------------|--------|---------|
-| Boot Mode | `REPLOID_MODE` | `absolute_zero`, `zero`, `x` | `absolute_zero` |
+| Boot Mode | `REPLOID_MODE` | `reploid`, `zero`, `x` | `reploid` |
 | Genesis Level | `REPLOID_GENESIS_LEVEL` | `full`, `substrate`, `cognition`, `reflection`, `spark`, `capsule`, `tabula` | `capsule` |
 | Module Overrides | `REPLOID_MODULE_OVERRIDES` | JSON map of module id to `on` or `off` | `{}` |
 
@@ -45,6 +52,8 @@ Settings stored in `REPLOID_HITL_CONFIG` as JSON object.
 | Setting | localStorage Key | Values | Default |
 |---------|------------------|--------|---------|
 | Goal | `REPLOID_GOAL` | Free text | `''` |
+| Include bootstrapper within self | `REPLOID_INCLUDE_BOOTSTRAPPER_WITHIN_SELF` | `'true'`, `'false'` | `'false'` |
+| Use your own inference on `/` | `REPLOID_USE_OWN_INFERENCE` | `'true'`, `'false'` | `'false'` |
 
 ### Cognition
 
@@ -106,14 +115,14 @@ See [SECURITY.md](./SECURITY.md) for details.
 
 ## Programmatic Access
 
-### From Boot Page (Global)
+### From Boot UI (Global)
 
 ```javascript
 // Read configs
 window.getCognitionConfig()   // → { semantic, symbolic, minSimilarity, topK }
 window.getGEPAConfig()        // → { populationSize, maxGenerations, ... }
 window.getExecutionLimits()   // → { maxIterations, approvalInterval }
-window.getReploidMode()       // → 'absolute_zero' | 'zero' | 'x'
+window.getReploidMode()       // → 'reploid' | 'zero' | 'x'
 window.getGenesisLevel()      // → 'capsule' | 'spark' | 'tabula' | 'reflection' | 'cognition' | 'substrate' | 'full'
 ```
 

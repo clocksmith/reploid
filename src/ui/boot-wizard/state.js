@@ -10,11 +10,12 @@ import {
   normalizeBootMode
 } from '../../config/boot-modes.js';
 import {
-  DEFAULT_ABSOLUTE_ZERO_ENVIRONMENT_TEMPLATE_ID,
-  findAbsoluteZeroEnvironmentTemplateId,
-  getDefaultAbsoluteZeroEnvironment
-} from '../../config/absolute-zero-environments.js';
+  DEFAULT_REPLOID_ENVIRONMENT_TEMPLATE_ID,
+  findReploidEnvironmentTemplateId,
+  getDefaultReploidEnvironment
+} from '../../config/reploid-environments.js';
 import { getSecurityState } from '../../core/security-config.js';
+import { getReploidLaunchState } from './reploid-inference.js';
 
 // Wizard steps in order
 export const STEPS = {
@@ -143,15 +144,15 @@ const getStoredGoal = () => {
 
 const getStoredEnvironment = () => {
   if (typeof localStorage === 'undefined') {
-    return getDefaultAbsoluteZeroEnvironment();
+    return getDefaultReploidEnvironment();
   }
 
   const stored = localStorage.getItem('REPLOID_ENVIRONMENT');
-  return stored ? String(stored) : getDefaultAbsoluteZeroEnvironment();
+  return stored ? String(stored) : getDefaultReploidEnvironment();
 };
 
 const getStoredEnvironmentTemplateId = () => {
-  const fallback = DEFAULT_ABSOLUTE_ZERO_ENVIRONMENT_TEMPLATE_ID;
+  const fallback = DEFAULT_REPLOID_ENVIRONMENT_TEMPLATE_ID;
   if (typeof localStorage === 'undefined') {
     return fallback;
   }
@@ -159,18 +160,25 @@ const getStoredEnvironmentTemplateId = () => {
   const storedText = getStoredEnvironment();
   const storedTemplate = localStorage.getItem('REPLOID_ENVIRONMENT_TEMPLATE');
   if (!storedTemplate) {
-    return findAbsoluteZeroEnvironmentTemplateId(storedText) || fallback;
+    return findReploidEnvironmentTemplateId(storedText) || fallback;
   }
-  return findAbsoluteZeroEnvironmentTemplateId(storedText) === storedTemplate
+  return findReploidEnvironmentTemplateId(storedText) === storedTemplate
     ? storedTemplate
-    : (findAbsoluteZeroEnvironmentTemplateId(storedText) || null);
+    : (findReploidEnvironmentTemplateId(storedText) || null);
 };
 
-const getStoredIncludeHostWithinSelf = () => {
+const getStoredIncludeBootstrapperWithinSelf = () => {
   if (typeof localStorage === 'undefined') {
     return false;
   }
-  return localStorage.getItem('REPLOID_INCLUDE_HOST_WITHIN_SELF') === 'true';
+  return localStorage.getItem('REPLOID_INCLUDE_BOOTSTRAPPER_WITHIN_SELF') === 'true';
+};
+
+const getStoredSwarmEnabled = () => {
+  if (typeof localStorage === 'undefined') {
+    return false;
+  }
+  return localStorage.getItem('REPLOID_SWARM_ENABLED') === 'true';
 };
 
 // Default wizard state
@@ -206,6 +214,11 @@ const defaultState = {
     modelVerifyError: null
   },
 
+  accessConfig: {
+    accessCode: '',
+    error: null
+  },
+
   // Proxy server configuration (keys on server or local models)
   proxyConfig: {
     url: null,
@@ -230,7 +243,8 @@ const defaultState = {
   goal: getStoredGoal(),
   environment: getStoredEnvironment(),
   selectedEnvironmentTemplate: getStoredEnvironmentTemplateId(),
-  includeHostWithinSelf: getStoredIncludeHostWithinSelf(),
+  includeBootstrapperWithinSelf: getStoredIncludeBootstrapperWithinSelf(),
+  swarmEnabled: getStoredSwarmEnabled(),
   selectedGoalCategory: null,
   goalShuffleSeed: 0,
   goalGenerator: {
@@ -256,15 +270,15 @@ const defaultState = {
     manifestFiles: [],
     rootSummary: []
   },
-  absoluteZeroPreview: {
+  selfPreview: {
     loadingSelf: false,
     loadedSelf: false,
-    loadingHost: false,
-    loadedHost: false,
+    loadingBootstrapper: false,
+    loadedBootstrapper: false,
     error: null,
     contents: {}
   },
-  selectedAbsoluteZeroPath: '/.system/self.json',
+  selectedSelfPath: '/.system/self.json',
   moduleOverrideSearch: '',
   moduleOverrideFilter: 'all',
 
@@ -331,11 +345,16 @@ export function resetWizard() {
     goal: getStoredGoal(),
     environment: getStoredEnvironment(),
     selectedEnvironmentTemplate: getStoredEnvironmentTemplateId(),
-    includeHostWithinSelf: getStoredIncludeHostWithinSelf(),
+    includeBootstrapperWithinSelf: getStoredIncludeBootstrapperWithinSelf(),
+    swarmEnabled: getStoredSwarmEnabled(),
     selectedGoalCategory: null,
     goalShuffleSeed: 0,
     goalGenerator: {
       status: 'idle',
+      error: null
+    },
+    accessConfig: {
+      accessCode: '',
       error: null
     },
     moduleOverrideSearch: '',
@@ -355,15 +374,15 @@ export function resetWizard() {
       manifestFiles: [],
       rootSummary: []
     },
-    absoluteZeroPreview: {
+    selfPreview: {
       loadingSelf: false,
       loadedSelf: false,
-      loadingHost: false,
-      loadedHost: false,
+      loadingBootstrapper: false,
+      loadedBootstrapper: false,
       error: null,
       contents: {}
     },
-    selectedAbsoluteZeroPath: '/.system/self.json'
+    selectedSelfPath: '/.system/self.json'
   };
   notifyListeners();
 }
@@ -532,7 +551,14 @@ export function saveConfig() {
   } else {
     localStorage.removeItem('REPLOID_ENVIRONMENT_TEMPLATE');
   }
-  localStorage.setItem('REPLOID_INCLUDE_HOST_WITHIN_SELF', state.includeHostWithinSelf ? 'true' : 'false');
+  localStorage.setItem(
+    'REPLOID_INCLUDE_BOOTSTRAPPER_WITHIN_SELF',
+    state.includeBootstrapperWithinSelf ? 'true' : 'false'
+  );
+  localStorage.setItem(
+    'REPLOID_SWARM_ENABLED',
+    state.swarmEnabled ? 'true' : 'false'
+  );
   localStorage.removeItem('REPLOID_GOAL_CRITERIA');
 }
 
@@ -556,7 +582,8 @@ export function forgetDevice() {
     'REPLOID_GOAL',
     'REPLOID_ENVIRONMENT',
     'REPLOID_ENVIRONMENT_TEMPLATE',
-    'REPLOID_INCLUDE_HOST_WITHIN_SELF',
+    'REPLOID_INCLUDE_BOOTSTRAPPER_WITHIN_SELF',
+    'REPLOID_SWARM_ENABLED',
     'REPLOID_GOAL_CRITERIA'
   ];
 
@@ -582,7 +609,11 @@ export function getPrimaryVerifyState() {
  * Check if current config is ready to awaken
  */
 export function canAwaken() {
-  const { mode, connectionType, directConfig, proxyConfig, dopplerConfig } = state;
+  const { mode, routeLockedMode, connectionType, directConfig, proxyConfig, dopplerConfig } = state;
+
+  if (mode === 'reploid' && routeLockedMode === 'reploid') {
+    return getReploidLaunchState(state).canAwaken;
+  }
 
   if (mode === 'zero') {
     return connectionType === 'browser' && !!dopplerConfig.model;
@@ -590,7 +621,12 @@ export function canAwaken() {
 
   switch (connectionType) {
     case 'direct':
-      return directConfig.provider && directConfig.model;
+      return !!(
+        directConfig.provider &&
+        directConfig.model &&
+        directConfig.apiKey &&
+        (directConfig.provider !== 'other' || directConfig.baseUrl)
+      );
     case 'proxy':
       return proxyConfig.url && proxyConfig.model;
     case 'browser':

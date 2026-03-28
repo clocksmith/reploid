@@ -2,22 +2,22 @@
  * @fileoverview Product boot mode definitions and internal genesis mapping.
  */
 
-export const DEFAULT_BOOT_MODE = 'absolute_zero';
+export const DEFAULT_BOOT_MODE = 'reploid';
 
 export const BOOT_MODES = Object.freeze({
   zero: {
     id: 'zero',
     label: 'Zero',
-    description: 'Mutable local substrate.',
-    detail: 'Uses a browser-local model with an editable inference path.',
+    description: 'Mutable local Reploid.',
+    detail: 'Awakens with a browser-local model and a richer editable surface.',
     genesisLevel: 'spark',
     requiresBrowserBrain: true
   },
-  absolute_zero: {
-    id: 'absolute_zero',
-    label: 'Absolute Zero',
-    description: 'Minimal self-building substrate.',
-    detail: 'Starts from the smallest visible surface.',
+  reploid: {
+    id: 'reploid',
+    label: 'Reploid',
+    description: 'Minimal seed Reploid.',
+    detail: 'Awakens from the smallest live self for observable, bounded browser-native self-improvement.',
     genesisLevel: 'capsule',
     requiresBrowserBrain: false
   },
@@ -32,7 +32,7 @@ export const BOOT_MODES = Object.freeze({
 });
 
 export const BOOT_MODE_ORDER = Object.freeze([
-  'absolute_zero',
+  'reploid',
   'zero',
   'x'
 ]);
@@ -58,7 +58,7 @@ export function inferBootModeFromGenesis(genesisLevel, fallback = DEFAULT_BOOT_M
   switch (genesisLevel) {
     case 'capsule':
     case 'tabula':
-      return 'absolute_zero';
+      return 'reploid';
     case 'spark':
       return 'zero';
     case 'reflection':

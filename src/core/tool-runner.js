@@ -31,15 +31,15 @@ const ToolRunner = {
       }
       if (typeof localStorage !== 'undefined') {
         const stored = localStorage.getItem('REPLOID_MODE');
-        if (stored === 'absolute_zero' || stored === 'zero' || stored === 'x') {
+        if (stored === 'reploid' || stored === 'zero' || stored === 'x') {
           return stored;
         }
       }
-      return 'absolute_zero';
+      return 'reploid';
     };
 
     const getInitialToolAllowlist = () => {
-      if (getBootMode() === 'absolute_zero') {
+      if (getBootMode() === 'reploid') {
         return new Set(['ReadFile', 'WriteFile', 'LoadModule']);
       }
       return null;

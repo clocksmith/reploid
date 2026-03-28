@@ -33,7 +33,7 @@ Guide to all documentation in the REPLOID project.
 - **[docs/API.md](./API.md)** - Module API documentation
 - **[docs/multi-model-evaluation.md](./multi-model-evaluation.md)** - Multi-model evaluation harness
 - **[docs/intent-bundle-lora.md](./intent-bundle-lora.md)** - Intent bundle LoRA workflow
-- **[docs/CONFIGURATION.md](./CONFIGURATION.md)** - Boot page settings and localStorage keys
+- **[docs/CONFIGURATION.md](./CONFIGURATION.md)** - Boot UI settings and localStorage keys
 - **[docs/local-models.md](./local-models.md)** - WebLLM and Ollama setup
 - **[docs/style-guide.md](./style-guide.md)** - Code and UI conventions
 - **[docs/SECURITY.md](./SECURITY.md)** - Security model and containment layers
@@ -47,8 +47,10 @@ reploid/
 ├── src/                        # Main application
 │   ├── index.html              # Entry point
 │   ├── entry/seed-vfs.js            # VFS hydration + SW activation
-│   ├── entry/start-app.js                 # Boot orchestrator
+│   ├── entry/start-app.js           # Bootstrapper handoff
 │   ├── sw-module-loader.js     # Service worker for VFS modules
+│   │
+│   ├── self/                   # Reploid self runtime and manifest
 │   │
 │   ├── core/                   # Core substrate
 │   │   ├── agent-loop.js       # Cognitive cycle (Think -> Act -> Observe)
@@ -73,6 +75,8 @@ reploid/
 │   │
 │   ├── blueprints/             # Architectural specifications
 │   │   └── (216+ design docs)
+│   │
+│   ├── ui/capsule/             # Capsule shell for Reploid
 │   │
 │
 ├── tests/                      # Test suites
