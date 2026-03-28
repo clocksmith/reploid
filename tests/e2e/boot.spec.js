@@ -147,6 +147,23 @@ test.describe('Route Entry Points', () => {
     await expect(page.locator('.goal-toolbar-status')).toContainText('hidden seed prompt');
   });
 
+  test('home route preserves the goal input node while typing', async ({ page }) => {
+    await openHome(page);
+
+    const goalInput = page.locator('#goal-input');
+    await goalInput.click();
+    await page.evaluate(() => {
+      window.__bootGoalInput = document.getElementById('goal-input');
+    });
+
+    await goalInput.pressSequentially(' faster');
+
+    expect(await page.evaluate(() => (
+      window.__bootGoalInput === document.getElementById('goal-input')
+    ))).toBe(true);
+    await expect(goalInput).toHaveValue(/faster/);
+  });
+
   test('home route can awaken as a swarm consumer without local inference', async ({ page }) => {
     await openHome(page);
 
