@@ -4,7 +4,7 @@
  *
  * Inputs:
  * - `.env` with `GEMINI_API_KEY`
- * - optional `REPLOID_ACCESS_MASTER_SECRET`
+ * - optional `REPLOID_ROOT_ACCESS_SECRET`
  * - optional `REPLOID_ACCESS_WINDOW_DAYS`
  * - optional `REPLOID_ACCESS_START_DATE` (YYYY-MM-DD)
  * - optional `REPLOID_ACCESS_CODEBOOK_PATH`
@@ -69,8 +69,8 @@ const addUtcDays = (date, offset) => {
   return next;
 };
 
-const deriveCodeFromSecret = (masterSecret, label) => {
-  const digest = createHmac('sha256', masterSecret)
+const deriveCodeFromSecret = (rootAccessSecret, label) => {
+  const digest = createHmac('sha256', rootAccessSecret)
     .update(`reploid-access:${label}`)
     .digest('base64url')
     .toUpperCase()
@@ -104,7 +104,7 @@ const writeCodebook = (codebookPath, codebook) => {
   fs.chmodSync(codebookPath, 0o600);
 };
 
-export const buildCodeEntries = ({ startDate, days, masterSecret, existingEntries = [] }) => {
+export const buildCodeEntries = ({ startDate, days, rootAccessSecret, existingEntries = [] }) => {
   const existingMap = new Map(
     existingEntries
       .filter((entry) => entry?.label && entry?.accessCode)
@@ -115,7 +115,7 @@ export const buildCodeEntries = ({ startDate, days, masterSecret, existingEntrie
   for (let index = 0; index < days; index += 1) {
     const label = formatDateLabel(addUtcDays(startDate, index));
     const accessCode = existingMap.get(label)
-      || (masterSecret ? deriveCodeFromSecret(masterSecret, label) : createRandomCode());
+      || (rootAccessSecret ? deriveCodeFromSecret(rootAccessSecret, label) : createRandomCode());
     entries.push({ label, accessCode });
   }
   return entries;
@@ -153,7 +153,7 @@ export async function buildCloudAccessArtifacts(options = {}) {
   const codebookPath = resolveProjectPath(projectRoot, options.codebookPath)
     || toCodebookPath(projectRoot, startDate, env);
   const geminiApiKey = String(env.GEMINI_API_KEY || '').trim();
-  const masterSecret = String(env.REPLOID_ACCESS_MASTER_SECRET || '').trim() || null;
+  const rootAccessSecret = String(env.REPLOID_ROOT_ACCESS_SECRET || '').trim() || null;
 
   if (!geminiApiKey) {
     return {
@@ -183,7 +183,7 @@ export async function buildCloudAccessArtifacts(options = {}) {
   const entries = buildCodeEntries({
     startDate,
     days,
-    masterSecret,
+    rootAccessSecret,
     existingEntries: codebook?.entries || []
   });
 

@@ -4,6 +4,8 @@
  * Provides a unified interface for SwarmSync regardless of underlying transport.
  */
 
+import { getCurrentReploidStorage } from '../../self/instance.js';
+
 const PROTOCOL_VERSION = 1;
 const MAX_PAYLOAD_SIZE = 64 * 1024; // 64KB
 
@@ -100,6 +102,19 @@ const SwarmTransport = {
       return 'reploid-swarm-public';
     };
 
+    const hasExplicitRoomPreference = () => {
+      if (typeof window === 'undefined') return false;
+
+      const urlParams = new URLSearchParams(window.location.search);
+      const swarmParam = urlParams.get('swarm');
+      if (swarmParam && swarmParam !== 'true') {
+        return true;
+      }
+
+      const storedRoom = window.localStorage?.getItem('REPLOID_SWARM_ROOM');
+      return typeof storedRoom === 'string' && storedRoom.trim().length > 0;
+    };
+
     /**
      * Check if swarm is enabled
      */
@@ -110,7 +125,7 @@ const SwarmTransport = {
       const swarmParam = urlParams.get('swarm');
       if (swarmParam) return true;
 
-      return localStorage.getItem('REPLOID_SWARM_ENABLED') === 'true';
+      return getCurrentReploidStorage().getItem('REPLOID_SWARM_ENABLED') === 'true';
     };
 
     /**
@@ -361,6 +376,14 @@ const SwarmTransport = {
       _roomId = getRoomId();
 
       logger.info(`[SwarmTransport] Initializing - peerId: ${_peerId}, room: ${_roomId}`);
+
+      // Same-browser peers should use BroadcastChannel by default. Reserve WebRTC for
+      // explicit swarm rooms or environments where BroadcastChannel is unavailable.
+      if (!hasExplicitRoomPreference() && typeof BroadcastChannel !== 'undefined') {
+        initBroadcastChannel();
+        logger.info('[SwarmTransport] Using BroadcastChannel transport (default local room)');
+        return true;
+      }
 
       // Check if signaling server is available
       const hasSignaling = await checkSignalingServer();

@@ -3,6 +3,8 @@
  * dynamic system prompt construction based on config.
  */
 
+import { getCurrentReploidStorage as getReploidStorage } from '../self/instance.js';
+
 const PersonaManager = {
   metadata: {
     id: 'PersonaManager',
@@ -16,7 +18,6 @@ const PersonaManager = {
   factory: (deps) => {
     const { Utils, VFS, EventBus } = deps;
     const { logger } = Utils;
-
     // Core RSI instructions - always included
     const CORE_INSTRUCTIONS = `You are REPLOID, an autonomous AI agent in a browser-based VFS.
 Your code lives at /core/, /capabilities/, /tools/, /ui/, and /styles/. You can read, write, and modify your own source.
@@ -85,7 +86,7 @@ All tools live in /tools/. Tools receive a \`deps\` object: { VFS, EventBus, Too
     };
 
     const getActivePersonaId = (config) => {
-      return localStorage.getItem('REPLOID_PERSONA_ID')
+      return getReploidStorage().getItem('REPLOID_PERSONA_ID')
         || config.defaultPersona
         || 'default';
     };

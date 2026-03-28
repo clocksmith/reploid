@@ -12,6 +12,8 @@ const TAGS = {
   SYS: 'Systems'
 };
 
+export const DEFAULT_REPLOID_HOME_GOAL = 'Build a live self-improvement control room for this runtime: map the architecture, VFS activity, tool telemetry, and recent experiments in a visually striking dashboard; identify one concrete bottleneck; ship one bounded upgrade; benchmark before and after; and keep only the measured win.';
+
 const GOAL_CATEGORIES = {
   'L0: Basic Functions': [
     {
@@ -117,7 +119,7 @@ const GOAL_CATEGORIES = {
     },
     {
       view: 'Improvement console',
-      text: 'Use the VFS and tool observability dashboard as a control surface for a bounded self-improvement loop with explicit metrics, rollback, and stopping rules.',
+      text: DEFAULT_REPLOID_HOME_GOAL,
       tags: [TAGS.BENCH, TAGS.GOV, TAGS.SYS]
     }
   ],

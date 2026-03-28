@@ -38,8 +38,10 @@ const SHARED_BOOT_UI_PREFIXES = Object.freeze([
 ]);
 
 const REPLOID_RUNTIME_PREFIXES = Object.freeze([
+  'self/boot-spec.js',
   'self/bridge.js',
   'self/cloud-access.js',
+  'self/instance.js',
   'self/tool-runner.js',
   'self/environment.js',
   'self/identity.js',
@@ -53,8 +55,11 @@ const REPLOID_RUNTIME_PREFIXES = Object.freeze([
   'core/response-parser.js',
   'core/vfs-module-loader.js',
   'infrastructure/stream-parser.js',
+  'self/host/',
+  'self/kernel/',
+  'self/image/',
   'styles/capsule.css',
-  'ui/capsule/index.js'
+  'self/capsule/index.js'
 ]);
 
 export const WIZARD_BOOT_SEED_PREFIXES = Object.freeze([

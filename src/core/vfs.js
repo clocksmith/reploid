@@ -5,6 +5,8 @@
  * Database: 'reploid-vfs-v0'
  */
 
+import { getScopedReploidVfsDbName } from '../self/instance.js';
+
 const VFS = {
   metadata: {
     id: 'VFS',
@@ -19,7 +21,7 @@ const VFS = {
     const { Utils, EventBus } = deps;
     const { logger, Errors } = Utils;
 
-    const DB_NAME = 'reploid-vfs-v0';
+    const DB_NAME = getScopedReploidVfsDbName();
     const STORE_FILES = 'files';
     let db = null;
 

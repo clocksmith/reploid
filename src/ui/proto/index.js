@@ -11,6 +11,7 @@ import { createTelemetryManager } from './telemetry.js';
 import { createReplayManager } from './replay.js';
 import { formatDuration, formatSince, formatTimestamp, summarizeText } from './utils.js';
 import CognitionPanel from '../panels/cognition-panel.js';
+import { getCurrentReploidStorage as getReploidStorage } from '../../self/instance.js';
 
 const Proto = {
   factory: (deps) => {
@@ -66,7 +67,6 @@ const Proto = {
     let _templateRenderer = null;
     let _templateVersion = null;
     let _templateLoading = null;
-
     const getTemplateVersion = () => {
       if (typeof window !== 'undefined' && window.REPLOID_UI_VERSION) {
         return String(window.REPLOID_UI_VERSION);
@@ -723,7 +723,7 @@ const Proto = {
       const container = document.createElement('div');
       container.className = 'app-shell';
 
-      const goalFromBoot = localStorage.getItem('REPLOID_GOAL') || 'No goal set';
+      const goalFromBoot = getReploidStorage().getItem('REPLOID_GOAL') || 'No goal set';
       let templateRenderer = null;
 
       try {
@@ -854,7 +854,7 @@ const Proto = {
 
       const resumeAgent = async () => {
         if (!isRunning) {
-          const goal = localStorage.getItem('REPLOID_GOAL');
+          const goal = getReploidStorage().getItem('REPLOID_GOAL');
           if (!goal) {
             Toast.info('No Goal Set', 'Return to boot screen to set a goal');
             return;
@@ -990,7 +990,7 @@ const Proto = {
 
       // Load model info
       try {
-        const savedModels = localStorage.getItem('SELECTED_MODELS');
+        const savedModels = getReploidStorage().getItem('SELECTED_MODELS');
         if (savedModels) {
           const models = JSON.parse(savedModels);
           const modelEl = document.getElementById('agent-model');

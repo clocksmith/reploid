@@ -4,6 +4,8 @@
  * Integrates with SchemaValidator for runtime type safety.
  */
 
+import { getCurrentReploidStorage as getReploidStorage } from '../self/instance.js';
+
 const SchemaRegistry = {
   metadata: {
     id: 'SchemaRegistry',
@@ -17,7 +19,6 @@ const SchemaRegistry = {
   factory: (deps) => {
     const { Utils, VFS, SchemaValidator } = deps;
     const { logger } = Utils;
-
     const SCHEMAS_PATH = '/.system/schemas.json';
 
     const _toolSchemas = new Map();   // name -> { schema, builtin }
@@ -27,8 +28,9 @@ const SchemaRegistry = {
       if (typeof window !== 'undefined' && typeof window.getReploidMode === 'function') {
         return window.getReploidMode();
       }
-      if (typeof localStorage !== 'undefined') {
-        const stored = localStorage.getItem('REPLOID_MODE');
+      const storage = getReploidStorage();
+      if (storage.raw) {
+        const stored = storage.getItem('REPLOID_MODE');
         if (stored === 'reploid' || stored === 'zero' || stored === 'x') {
           return stored;
         }

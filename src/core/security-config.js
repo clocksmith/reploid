@@ -3,10 +3,12 @@
  * Central toggle for verification and approval gates.
  */
 
+import { getCurrentReploidStorage as getReploidStorage } from '../self/instance.js';
+
 const STORAGE_KEY = 'REPLOID_SECURITY_MODE';
 const DEFAULT_ENABLED = false;
 
-const hasLocalStorage = () => typeof localStorage !== 'undefined';
+const hasLocalStorage = () => !!getReploidStorage().raw;
 
 const parseStoredValue = (value) => {
   if (value == null) return null;
@@ -21,7 +23,7 @@ const readStoredMode = () => {
     return { enabled: DEFAULT_ENABLED, source: 'default' };
   }
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = getReploidStorage().getItem(STORAGE_KEY);
     const parsed = parseStoredValue(raw);
     if (parsed == null) {
       return { enabled: DEFAULT_ENABLED, source: 'default' };
@@ -49,7 +51,7 @@ export function setSecurityEnabled(enabled, options = {}) {
 
   if (persist && hasLocalStorage()) {
     try {
-      localStorage.setItem(STORAGE_KEY, runtimeEnabled ? 'on' : 'off');
+      getReploidStorage().setItem(STORAGE_KEY, runtimeEnabled ? 'on' : 'off');
     } catch (e) {
       runtimeSource = 'runtime';
     }

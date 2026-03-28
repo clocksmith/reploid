@@ -5,6 +5,7 @@
 import Utils from '../core/utils.js';
 import ResponseParser from '../core/response-parser.js';
 import { createSelfBridge } from './bridge.js';
+import { getCurrentReploidInstanceId } from './instance.js';
 
 const MAX_CYCLES = 2048;
 const MAX_BATCH_TOOLS = 5;
@@ -112,29 +113,26 @@ const withTerminalPunctuation = (value) => {
 };
 const buildMilestoneNotice = (reason) => buildSystemNotice(
   reason
-    ? `Milestone recorded: ${withTerminalPunctuation(reason)} Execution continues until you stop it or the cycle limit is reached.`
-    : 'Milestone recorded. Execution continues until you stop it or the cycle limit is reached.'
-);
-const buildSelfImprovementNotice = (reason) => buildSystemNotice(
-  reason
-    ? `Foreground milestone reached: ${withTerminalPunctuation(reason)} Continue with safe self-improvement work. Prioritize reversible improvements to tools, runtime, memory, observability, evaluation, or the current artifact quality.`
-    : 'Foreground milestone reached. Continue with safe self-improvement work. Prioritize reversible improvements to tools, runtime, memory, observability, evaluation, or the current artifact quality.'
+    ? `Milestone recorded: ${withTerminalPunctuation(reason)} Policy unchanged: execution remains resumable until you stop it or the cycle limit is reached.`
+    : 'Milestone recorded. Policy unchanged: execution remains resumable until you stop it or the cycle limit is reached.'
 );
 const buildParkNotice = (reason, wakeOn = 'manual') => buildSystemNotice(
   reason
-    ? `Parked: ${withTerminalPunctuation(reason)} Resume when new work is available. Wake condition: ${wakeOn}.`
-    : `Parked. Resume when new work is available. Wake condition: ${wakeOn}.`
+    ? `Waiting: ${withTerminalPunctuation(reason)} Resume when new work is available. Wake condition: ${wakeOn}.`
+    : `Waiting. Resume when new work is available. Wake condition: ${wakeOn}.`
 );
 
 export function createSelfRuntime(options = {}) {
   const goal = String(options.goal || '').trim();
   const environment = String(options.environment || '').trim();
-  const includeBootstrapperWithinSelf = !!options.includeBootstrapperWithinSelf;
   const swarmEnabled = !!options.swarmEnabled;
+  const instanceId = String(options.instanceId || getCurrentReploidInstanceId() || 'default');
   const bridge = createSelfBridge({
+    instanceId,
     modelConfig: options.modelConfig || null,
-    includeBootstrapperWithinSelf,
-    swarmEnabled
+    swarmEnabled,
+    seedOverrides: options.seedOverrides || {},
+    forceFreshIdentity: !!options.forceFreshIdentity
   });
   const runtimeUtils = Utils.factory();
   const responseParser = ResponseParser.factory({ Utils: runtimeUtils });
@@ -200,11 +198,10 @@ export function createSelfRuntime(options = {}) {
     const files = await bridge.seedSystemFiles({
       goal,
       environment,
-      includeBootstrapperWithinSelf,
       swarmEnabled
     });
     messages = [
-      { role: 'user', origin: 'bootstrap', content: `Self:\n${files['/.system/self.json']}` }
+      { role: 'user', origin: 'bootstrap', content: `Self:\n${files['/self/self.json']}` }
     ];
   };
 
@@ -216,6 +213,28 @@ export function createSelfRuntime(options = {}) {
     return blocks;
   };
 
+  // Keep the runtime state machine unchanged, but expose clearer UI semantics.
+  const getDisplayRunState = () => {
+    if (running) return 'RUNNING';
+    if (status === 'ERROR') return 'FAILED';
+    if (status === 'LIMIT') return 'HALTED_AT_CYCLE_LIMIT';
+    if (parked) {
+      return wakeOn === 'provider-ready' ? 'WAITING_ON_PROVIDER' : 'WAITING';
+    }
+    if (stopped) return 'PAUSED_BY_USER';
+    if (cycle > 0 && status === 'IDLE') return 'READY_TO_CONTINUE';
+    return 'READY';
+  };
+
+  const getDisplayPolicy = () => {
+    if (parked && wakeOn === 'provider-ready') return 'auto-resume on provider-ready';
+    if (status === 'ERROR') return 'manual restart required';
+    if (status === 'LIMIT') return 'cycle limit reached';
+    if (stopped) return 'manual resume required';
+    if (running || (cycle > 0 && status === 'IDLE')) return 'auto-continue enabled';
+    return 'manual start required';
+  };
+
   const getSnapshot = () => ({
     running,
     stopped,
@@ -224,6 +243,7 @@ export function createSelfRuntime(options = {}) {
     parked,
     wakeOn,
     cycle,
+    instanceId,
     goal,
     model: bridge.getModelLabel(),
     tokens: {
@@ -233,6 +253,10 @@ export function createSelfRuntime(options = {}) {
     context: [...messages],
     draft,
     swarm: typeof bridge.getSwarmSnapshot === 'function' ? bridge.getSwarmSnapshot() : null,
+    display: {
+      runState: getDisplayRunState(),
+      policy: getDisplayPolicy()
+    },
     renderedBlocks: getRenderedBlocks(),
     renderedText: getRenderedBlocks().join('\n\n').trim()
   });
@@ -338,7 +362,7 @@ export function createSelfRuntime(options = {}) {
       const directive = parseSelfDirective(responseParser, assistantText);
       if (!directive) {
         const systemNotice = buildSystemNotice(
-          'Ignored non-directive model response. Use TOOL_CALL / ARGS blocks, MILESTONE:, or IDLE:. Do not use markdown fences.'
+          'Ignored non-directive model response. Use REPLOID/0 with TOOL: blocks, MILESTONE:, or IDLE:. Do not use markdown fences.'
         );
         appendMessage('user', systemNotice, 'system');
         tokenUsage += estimateTokens(systemNotice);
@@ -366,32 +390,32 @@ export function createSelfRuntime(options = {}) {
           consecutiveMilestoneOnlyCycles >= MILESTONE_AUTOPARK_THRESHOLD ||
           repeatedMilestoneCount >= MILESTONE_AUTOPARK_THRESHOLD
         ) {
-          const redirectNotice = buildSelfImprovementNotice(
+          const parkNotice = buildParkNotice(
             'Repeated milestone-only cycles detected with no new tool work'
           );
-          appendMessage('user', redirectNotice, 'system');
-          tokenUsage += estimateTokens(redirectNotice);
-          activity = 'Redirected to self-improvement';
+          appendMessage('user', parkNotice, 'system');
+          tokenUsage += estimateTokens(parkNotice);
+          parkRuntime('Repeated milestone-only cycles detected with no new tool work');
           consecutiveMilestoneOnlyCycles = 0;
           repeatedMilestoneCount = 0;
           lastMilestoneReason = '';
           notify();
-          continue;
+          return;
         }
         notify();
         continue;
       }
 
       if (directive.type === 'idle') {
-        const redirectNotice = buildSelfImprovementNotice(directive.reason);
-        appendMessage('user', redirectNotice, 'system');
-        tokenUsage += estimateTokens(redirectNotice);
-        activity = 'Redirected to self-improvement';
+        const parkNotice = buildParkNotice(directive.reason);
+        appendMessage('user', parkNotice, 'system');
+        tokenUsage += estimateTokens(parkNotice);
+        parkRuntime(directive.reason);
         consecutiveMilestoneOnlyCycles = 0;
         repeatedMilestoneCount = 0;
         lastMilestoneReason = '';
         notify();
-        continue;
+        return;
       }
 
       const requestedCalls = Array.isArray(directive.calls) ? directive.calls : [];
@@ -460,10 +484,12 @@ export function createSelfRuntime(options = {}) {
       }
 
       if (!stopped && directive.idleReason !== undefined && directive.idleReason !== null && directive.idleReason !== '') {
-        const redirectNotice = buildSelfImprovementNotice(directive.idleReason);
-        appendMessage('user', redirectNotice, 'system');
-        tokenUsage += estimateTokens(redirectNotice);
-        activity = 'Redirected to self-improvement';
+        const parkNotice = buildParkNotice(directive.idleReason);
+        appendMessage('user', parkNotice, 'system');
+        tokenUsage += estimateTokens(parkNotice);
+        parkRuntime(directive.idleReason);
+        notify();
+        return;
       }
 
       notify();
@@ -480,6 +506,7 @@ export function createSelfRuntime(options = {}) {
     subscribe,
     start,
     stop,
+    rotateIdentity: bridge.rotateIdentity,
     isRunning: () => running,
     getSnapshot
   };

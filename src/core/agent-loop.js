@@ -3,6 +3,8 @@
  * The main cognitive cycle: Think -> Act -> Observe.
  */
 
+import { getCurrentReploidStorage as getReploidStorage } from '../self/instance.js';
+
 const AgentLoop = {
   metadata: {
     id: 'AgentLoop',
@@ -27,7 +29,6 @@ const AgentLoop = {
     } = deps;
 
     const { logger, Errors } = Utils;
-
     const MAX_ITERATIONS = 256;
     const DEFAULT_MAX_TOOL_CALLS = 8;
 
@@ -52,8 +53,9 @@ const AgentLoop = {
     };
 
     const readLocalStorageJson = (key) => {
+      const storage = getReploidStorage();
       try {
-        const raw = localStorage.getItem(key);
+        const raw = storage.getItem(key);
         if (!raw) return null;
         const parsed = JSON.parse(raw);
         if (parsed && typeof parsed === 'object') {
@@ -1104,7 +1106,7 @@ const AgentLoop = {
               break;
             }
             // WebLLM requires last message to be user/tool - add continuation prompt
-            let continuationMsg = 'No tool call detected. Use format:\n\nTOOL_CALL: tool_name\nARGS: { }';
+            let continuationMsg = 'No tool call detected. Use REPLOID/0 format:\n\nREPLOID/0\n\nTOOL: ToolName\nkey: value';
             if (iteration > 3) {
               continuationMsg = 'You must use a tool or say DONE.';
             }
@@ -1158,18 +1160,27 @@ You are an autonomous agent. Your self is the code in the VFS + the LLM that pro
 
 ## Tool Call Format
 \`\`\`
-TOOL_CALL: ToolName
-ARGS: { "key": "value" }
+REPLOID/0
+
+TOOL: ToolName
+key: value
+
+TOOL: WriteFile
+path: /tools/example.js
+content <<EOF
+export const tool = { name: 'Example', description: 'demo', inputSchema: { type: 'object' } };
+EOF
 \`\`\`
 
 ## Core Tools
 - ListTools: see all available tools
-- ListFiles: list directory contents { "path": "/dir/" }
-- ReadFile/WriteFile: read and write files { "path": "/file.js", "content": "..." }
-- CreateTool: create + auto-load new tool { "name": "MyTool", "code": "..." }
-- Grep: search file contents { "pattern": "text", "path": "/dir", "recursive": true }
-- Find: find files by name { "path": "/", "name": "*.js" }
-- EditFile: find/replace in file { "path": "/file", "operations": [{ "match": "old", "replacement": "new" }] }
+- ListFiles: list directory contents using path: /dir/
+- ReadFile: read files using path: /file.js
+- WriteFile: write files using path: /file.js and a content <<EOF block
+- CreateTool: create + auto-load new tools using name: MyTool and code <<EOF
+- Grep: search file contents using pattern:, path:, recursive:
+- Find: find files by name using path: / and name: *.js
+- EditFile: find/replace in file; use args-json: {...} only when a tool truly needs nested structure
 
 ## Creating Tools
 Tools live in /tools/ with this structure:
@@ -1204,6 +1215,7 @@ You can emit up to ${getMaxToolCalls()} tool calls per response. Read-only tools
 - Act autonomously - do not ask for permission
 - Use at least one tool per response (unless DONE)
 - Batch independent tool calls when possible
+- Prefer REPLOID/0 TOOL blocks over escaped JSON
 - After writing code: LOAD it, EXECUTE it, VERIFY it works
 - Use ListFiles before assuming paths exist
 - When complete, summarize what you accomplished, then say DONE

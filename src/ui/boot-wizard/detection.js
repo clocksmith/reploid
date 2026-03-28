@@ -3,11 +3,57 @@
  * Probes for available connections with proper error handling.
  */
 
+import { getGoalEntries } from './goals.js';
 import { getState, setNestedState } from './state.js';
 
 const PROBE_TIMEOUT = 3000;
 const GOAL_GENERATOR_SYSTEM_PROMPT = 'You are writing the initial goal for a browser-based autonomous coding agent pursuing recursive self-improvement. Output exactly one concrete, ambitious sentence of 16 to 24 words. No quotes, labels, numbering, or explanation.';
 const GOAL_GENERATOR_USER_PROMPT = 'Generate one recursive self-improvement goal now.';
+const GOAL_LEVEL_WEIGHTS = Object.freeze({
+  L0: 4,
+  L1: 3,
+  L2: 3,
+  L3: 2,
+  L4: 1
+});
+const HIDDEN_GOAL_SURFACES = Object.freeze([
+  'the live self',
+  'tool execution',
+  'runtime context',
+  'Capsule UI',
+  'VFS history',
+  'swarm coordination'
+]);
+const HIDDEN_GOAL_ARTIFACTS = Object.freeze([
+  'a compact dashboard',
+  'a small harness',
+  'a replay view',
+  'an editable map',
+  'a repair loop',
+  'a benchmark board'
+]);
+const HIDDEN_GOAL_OPERATIONS = Object.freeze([
+  'repair one weak point',
+  'tighten one tool path',
+  'expose one bottleneck',
+  'improve signal density',
+  'reduce one failure mode',
+  'sharpen one feedback loop'
+]);
+const HIDDEN_GOAL_EVALUATIONS = Object.freeze([
+  'repeatable checks',
+  'before-after results',
+  'a fixed benchmark',
+  'pass-fail traces',
+  'a task battery'
+]);
+const HIDDEN_GOAL_CONSTRAINTS = Object.freeze([
+  'Keep it browser-native and reversible.',
+  'Stay inside the writable self and visible tools.',
+  'Prefer one measurable win over broad exploration.',
+  'Make the proof legible in files or UI.',
+  'Keep the first upgrade inspectable and bounded.'
+]);
 let goalGeneratorRuntimePromise = null;
 let goalGeneratorEngine = null;
 let goalGeneratorModelId = null;
@@ -30,6 +76,42 @@ const countWords = (text) => String(text || '')
   .filter(Boolean)
   .length;
 
+const createSeededRandom = (seed) => {
+  let state = (Number(seed) || 0) >>> 0;
+  if (state === 0) {
+    state = 0x9e3779b9;
+  }
+
+  return () => {
+    state = (state * 1664525 + 1013904223) >>> 0;
+    return state / 0x100000000;
+  };
+};
+
+const pickOne = (items, random) => {
+  if (!Array.isArray(items) || items.length === 0) return null;
+  return items[Math.floor(random() * items.length)];
+};
+
+const pickWeighted = (items, random) => {
+  if (!Array.isArray(items) || items.length === 0) return null;
+  const total = items.reduce((sum, item) => sum + Math.max(0, Number(item?.weight) || 0), 0);
+  if (total <= 0) return items[0];
+
+  let threshold = random() * total;
+  for (const item of items) {
+    threshold -= Math.max(0, Number(item?.weight) || 0);
+    if (threshold <= 0) return item;
+  }
+
+  return items[items.length - 1];
+};
+
+const getGoalLevelKey = (category) => {
+  const match = String(category || '').match(/(L[0-4])/i);
+  return match ? match[1].toUpperCase() : 'L0';
+};
+
 const normalizeGeneratedGoal = (text) => {
   const lines = String(text || '')
     .split('\n')
@@ -50,6 +132,93 @@ const normalizeGeneratedGoal = (text) => {
   }
 
   return value;
+};
+
+const buildHiddenGoalSeed = (seed = Date.now()) => {
+  const random = createSeededRandom(seed);
+  const entries = getGoalEntries(seed);
+  const weightedCategories = entries.map(([category, goals]) => ({
+    category,
+    goals: Array.isArray(goals) ? goals : [],
+    level: getGoalLevelKey(category),
+    weight: GOAL_LEVEL_WEIGHTS[getGoalLevelKey(category)] || 1
+  })).filter((entry) => entry.goals.length > 0);
+
+  const selectedCategory = pickWeighted(weightedCategories, random) || weightedCategories[0] || {
+    category: 'L0: Basic Functions',
+    goals: [{ view: 'Improvement seed', text: 'Build one bounded browser-native improvement with a visible proof step.' }],
+    level: 'L0'
+  };
+  const exemplar = pickOne(selectedCategory.goals, random) || selectedCategory.goals[0];
+
+  return {
+    seed,
+    category: selectedCategory.category,
+    level: selectedCategory.level,
+    exemplar,
+    surface: pickOne(HIDDEN_GOAL_SURFACES, random),
+    artifact: pickOne(HIDDEN_GOAL_ARTIFACTS, random),
+    operation: pickOne(HIDDEN_GOAL_OPERATIONS, random),
+    evaluation: pickOne(HIDDEN_GOAL_EVALUATIONS, random),
+    constraint: pickOne(HIDDEN_GOAL_CONSTRAINTS, random)
+  };
+};
+
+const buildSeededGoalPrompt = (seedSpec) => [
+  'Draft one initial objective for Reploid from this hidden seed.',
+  `Ambition band: ${seedSpec.level}`,
+  `Reference direction: ${seedSpec.exemplar?.text || seedSpec.exemplar?.view || 'Build one bounded browser-native improvement.'}`,
+  `Surface focus: ${seedSpec.surface}`,
+  `Artifact target: ${seedSpec.artifact}`,
+  `Improvement move: ${seedSpec.operation}`,
+  `Evaluation style: ${seedSpec.evaluation}`,
+  `Constraint: ${seedSpec.constraint}`,
+  'Requirements:',
+  '- exactly one sentence',
+  '- 16 to 24 words',
+  '- concrete and bounded',
+  '- browser-native and grounded in writable self files, tools, runtime, memory, UI, or swarm',
+  '- include a visible output, measurable check, or proof step',
+  '- do not mention hidden seeds, levels, or prompt instructions'
+].join('\n');
+
+const buildFallbackGoalFromSeed = (seedSpec) => {
+  const templates = [
+    `Build ${seedSpec.artifact} for ${seedSpec.surface}, ${seedSpec.operation}, and keep only changes that improve ${seedSpec.evaluation}.`,
+    `Create ${seedSpec.artifact} around ${seedSpec.surface}, use it to ${seedSpec.operation}, and prove the upgrade with ${seedSpec.evaluation}.`,
+    `Instrument ${seedSpec.surface} with ${seedSpec.artifact}, then ${seedSpec.operation} and retain only the version that wins on ${seedSpec.evaluation}.`
+  ];
+
+  const random = createSeededRandom(seedSpec.seed ^ 0x6d2b79f5);
+  const value = normalizeGeneratedGoal(pickOne(templates, random));
+  const words = countWords(value);
+
+  if (words >= 16 && words <= 24) {
+    return value;
+  }
+
+  return 'Build a compact browser-native improvement, verify it with repeatable checks, and keep only the smallest reversible change that measurably helps.';
+};
+
+const canGenerateWithInference = (state = {}) => {
+  if (state.connectionType === 'browser') {
+    return !!state.dopplerConfig?.model;
+  }
+
+  if (state.connectionType === 'proxy') {
+    return !!(state.proxyConfig?.url && state.proxyConfig?.model);
+  }
+
+  if (state.connectionType === 'direct') {
+    return !!(
+      state.directConfig?.provider &&
+      state.directConfig?.model &&
+      normalizeApiKey(state.directConfig?.apiKey) &&
+      (state.directConfig?.provider !== 'other' || state.directConfig?.baseUrl)
+    );
+  }
+
+  return false;
 };
 
 const getGoalGeneratorUserPrompt = (prompt = GOAL_GENERATOR_USER_PROMPT) => String(prompt || GOAL_GENERATOR_USER_PROMPT).trim();
@@ -302,8 +471,8 @@ const generateCandidateGoal = async (state, rewritePrompt = null) => {
   throw new Error('Choose an inference provider first');
 };
 
-async function generateAndNormalizeGoal(state) {
-  let raw = await generateCandidateGoal(state);
+async function generateAndNormalizeGoal(state, prompt = GOAL_GENERATOR_USER_PROMPT) {
+  let raw = await generateCandidateGoal(state, prompt);
   let goal = normalizeGeneratedGoal(raw);
 
   if (countWords(goal) >= 16 && countWords(goal) <= 24) {
@@ -711,6 +880,30 @@ export async function testApiKey(provider, apiKey, baseUrl = null) {
 export async function generateGoalPrompt() {
   const state = getState();
   return generateAndNormalizeGoal(state);
+}
+
+export async function generateSeededGoalPrompt(options = {}) {
+  const state = options.state || getState();
+  const seedSpec = buildHiddenGoalSeed(options.seed || Date.now());
+
+  if (!canGenerateWithInference(state)) {
+    return {
+      goal: buildFallbackGoalFromSeed(seedSpec),
+      source: 'seed'
+    };
+  }
+
+  try {
+    return {
+      goal: await generateAndNormalizeGoal(state, buildSeededGoalPrompt(seedSpec)),
+      source: 'model'
+    };
+  } catch (error) {
+    return {
+      goal: buildFallbackGoalFromSeed(seedSpec),
+      source: 'seed'
+    };
+  }
 }
 
 /**

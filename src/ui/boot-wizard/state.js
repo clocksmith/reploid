@@ -15,6 +15,7 @@ import {
   getDefaultReploidEnvironment
 } from '../../config/reploid-environments.js';
 import { getSecurityState } from '../../core/security-config.js';
+import { getCurrentReploidStorage as getReploidStorage } from '../../self/instance.js';
 import { getReploidLaunchState } from './reploid-inference.js';
 
 // Wizard steps in order
@@ -82,7 +83,8 @@ const getStoredAdvancedConfig = () => {
   const storedMode = getStoredMode();
   const defaultGenesisLevel = getDefaultGenesisLevelForMode(storedMode);
   const securityState = getSecurityState();
-  if (typeof localStorage === 'undefined') {
+  const storage = getReploidStorage();
+  if (!storage.raw) {
     return {
       preserveOnBoot: false,
       genesisLevel: defaultGenesisLevel,
@@ -95,7 +97,7 @@ const getStoredAdvancedConfig = () => {
 
   let moduleOverrides = {};
   try {
-    const raw = localStorage.getItem('REPLOID_MODULE_OVERRIDES');
+    const raw = storage.getItem('REPLOID_MODULE_OVERRIDES');
     if (raw) {
       moduleOverrides = normalizeOverrides(JSON.parse(raw));
     }
@@ -106,7 +108,7 @@ const getStoredAdvancedConfig = () => {
   let hitlApprovalMode = 'autonomous';
   let hitlEveryNSteps = 5;
   try {
-    const raw = localStorage.getItem('REPLOID_HITL_CONFIG');
+    const raw = storage.getItem('REPLOID_HITL_CONFIG');
     if (raw) {
       const parsed = JSON.parse(raw);
       const mode = parsed?.approvalMode;
@@ -124,7 +126,7 @@ const getStoredAdvancedConfig = () => {
   }
 
   return {
-    preserveOnBoot: localStorage.getItem('REPLOID_PRESERVE_ON_BOOT') === 'true',
+    preserveOnBoot: storage.getItem('REPLOID_PRESERVE_ON_BOOT') === 'true',
     genesisLevel: defaultGenesisLevel,
     moduleOverrides,
     hitlApprovalMode,
@@ -134,31 +136,34 @@ const getStoredAdvancedConfig = () => {
 };
 
 const getStoredGoal = () => {
-  if (typeof localStorage === 'undefined') {
+  const storage = getReploidStorage();
+  if (!storage.raw) {
     return '';
   }
 
-  const stored = localStorage.getItem('REPLOID_GOAL');
+  const stored = storage.getItem('REPLOID_GOAL');
   return stored ? String(stored) : '';
 };
 
 const getStoredEnvironment = () => {
-  if (typeof localStorage === 'undefined') {
+  const storage = getReploidStorage();
+  if (!storage.raw) {
     return getDefaultReploidEnvironment();
   }
 
-  const stored = localStorage.getItem('REPLOID_ENVIRONMENT');
+  const stored = storage.getItem('REPLOID_ENVIRONMENT');
   return stored ? String(stored) : getDefaultReploidEnvironment();
 };
 
 const getStoredEnvironmentTemplateId = () => {
   const fallback = DEFAULT_REPLOID_ENVIRONMENT_TEMPLATE_ID;
-  if (typeof localStorage === 'undefined') {
+  const storage = getReploidStorage();
+  if (!storage.raw) {
     return fallback;
   }
 
   const storedText = getStoredEnvironment();
-  const storedTemplate = localStorage.getItem('REPLOID_ENVIRONMENT_TEMPLATE');
+  const storedTemplate = storage.getItem('REPLOID_ENVIRONMENT_TEMPLATE');
   if (!storedTemplate) {
     return findReploidEnvironmentTemplateId(storedText) || fallback;
   }
@@ -167,18 +172,12 @@ const getStoredEnvironmentTemplateId = () => {
     : (findReploidEnvironmentTemplateId(storedText) || null);
 };
 
-const getStoredIncludeBootstrapperWithinSelf = () => {
-  if (typeof localStorage === 'undefined') {
-    return false;
-  }
-  return localStorage.getItem('REPLOID_INCLUDE_BOOTSTRAPPER_WITHIN_SELF') === 'true';
-};
-
 const getStoredSwarmEnabled = () => {
-  if (typeof localStorage === 'undefined') {
+  const storage = getReploidStorage();
+  if (!storage.raw) {
     return false;
   }
-  return localStorage.getItem('REPLOID_SWARM_ENABLED') === 'true';
+  return storage.getItem('REPLOID_SWARM_ENABLED') === 'true';
 };
 
 // Default wizard state
@@ -243,7 +242,6 @@ const defaultState = {
   goal: getStoredGoal(),
   environment: getStoredEnvironment(),
   selectedEnvironmentTemplate: getStoredEnvironmentTemplateId(),
-  includeBootstrapperWithinSelf: getStoredIncludeBootstrapperWithinSelf(),
   swarmEnabled: getStoredSwarmEnabled(),
   selectedGoalCategory: null,
   goalShuffleSeed: 0,
@@ -278,7 +276,10 @@ const defaultState = {
     error: null,
     contents: {}
   },
-  selectedSelfPath: '/.system/self.json',
+  seedOverrides: {},
+  seedDrafts: {},
+  editingSeedPath: null,
+  selectedSelfPath: '/self/self.json',
   moduleOverrideSearch: '',
   moduleOverrideFilter: 'all',
 
@@ -345,7 +346,6 @@ export function resetWizard() {
     goal: getStoredGoal(),
     environment: getStoredEnvironment(),
     selectedEnvironmentTemplate: getStoredEnvironmentTemplateId(),
-    includeBootstrapperWithinSelf: getStoredIncludeBootstrapperWithinSelf(),
     swarmEnabled: getStoredSwarmEnabled(),
     selectedGoalCategory: null,
     goalShuffleSeed: 0,
@@ -382,7 +382,10 @@ export function resetWizard() {
       error: null,
       contents: {}
     },
-    selectedSelfPath: '/.system/self.json'
+    seedOverrides: {},
+    seedDrafts: {},
+    editingSeedPath: null,
+    selectedSelfPath: '/self/self.json'
   };
   notifyListeners();
 }
@@ -398,8 +401,9 @@ export function goToStep(step) {
  * Check if we have a saved config that can be resumed
  */
 export function checkSavedConfig() {
+  const storage = getReploidStorage();
   try {
-    const savedModels = localStorage.getItem('SELECTED_MODELS');
+    const savedModels = storage.getItem('SELECTED_MODELS');
 
     if (!savedModels) return null;
 
@@ -407,7 +411,7 @@ export function checkSavedConfig() {
     if (!models || models.length === 0) return null;
 
     const primary = models[0];
-    const savedKey = localStorage.getItem(`REPLOID_KEY_${primary.provider?.toUpperCase()}`);
+    const savedKey = storage.getItem(`REPLOID_KEY_${primary.provider?.toUpperCase()}`);
     const hasKey = primary.apiKey || savedKey;
 
     return {
@@ -482,11 +486,12 @@ export function hydrateSavedConfig(saved, apiKey = null) {
  */
 export function saveConfig() {
   const { directConfig, proxyConfig, dopplerConfig, connectionType, mode, advancedConfig } = state;
+  const storage = getReploidStorage();
 
   const models = [];
 
-  localStorage.setItem('REPLOID_MODE', normalizeBootMode(mode));
-  localStorage.setItem(
+  storage.setItem('REPLOID_MODE', normalizeBootMode(mode));
+  storage.setItem(
     'REPLOID_GENESIS_LEVEL',
     advancedConfig?.genesisLevel || getDefaultGenesisLevelForMode(mode)
   );
@@ -503,7 +508,7 @@ export function saveConfig() {
 
     // Always store API key in localStorage (needed for agent to work)
     if (directConfig.apiKey) {
-      localStorage.setItem(`REPLOID_KEY_${directConfig.provider.toUpperCase()}`, directConfig.apiKey);
+      storage.setItem(`REPLOID_KEY_${directConfig.provider.toUpperCase()}`, directConfig.apiKey);
     }
 
     models.push(model);
@@ -531,41 +536,38 @@ export function saveConfig() {
   }
 
   if (models.length > 0) {
-    localStorage.setItem('SELECTED_MODELS', JSON.stringify(models));
+    storage.setItem('SELECTED_MODELS', JSON.stringify(models));
   }
 
   const goal = (state.goal || '').trim();
   if (goal) {
-    localStorage.setItem('REPLOID_GOAL', goal);
+    storage.setItem('REPLOID_GOAL', goal);
   } else {
-    localStorage.removeItem('REPLOID_GOAL');
+    storage.removeItem('REPLOID_GOAL', { removeLegacy: true });
   }
   const environment = String(state.environment || '').trim();
   if (environment) {
-    localStorage.setItem('REPLOID_ENVIRONMENT', environment);
+    storage.setItem('REPLOID_ENVIRONMENT', environment);
   } else {
-    localStorage.removeItem('REPLOID_ENVIRONMENT');
+    storage.removeItem('REPLOID_ENVIRONMENT', { removeLegacy: true });
   }
   if (state.selectedEnvironmentTemplate) {
-    localStorage.setItem('REPLOID_ENVIRONMENT_TEMPLATE', state.selectedEnvironmentTemplate);
+    storage.setItem('REPLOID_ENVIRONMENT_TEMPLATE', state.selectedEnvironmentTemplate);
   } else {
-    localStorage.removeItem('REPLOID_ENVIRONMENT_TEMPLATE');
+    storage.removeItem('REPLOID_ENVIRONMENT_TEMPLATE', { removeLegacy: true });
   }
-  localStorage.setItem(
-    'REPLOID_INCLUDE_BOOTSTRAPPER_WITHIN_SELF',
-    state.includeBootstrapperWithinSelf ? 'true' : 'false'
-  );
-  localStorage.setItem(
+  storage.setItem(
     'REPLOID_SWARM_ENABLED',
     state.swarmEnabled ? 'true' : 'false'
   );
-  localStorage.removeItem('REPLOID_GOAL_CRITERIA');
+  storage.removeItem('REPLOID_GOAL_CRITERIA', { removeLegacy: true });
 }
 
 /**
  * Clear all saved config and keys
  */
 export function forgetDevice() {
+  const storage = getReploidStorage();
   const keysToRemove = [
     'SELECTED_MODELS',
     'REPLOID_KEY_ANTHROPIC',
@@ -582,12 +584,11 @@ export function forgetDevice() {
     'REPLOID_GOAL',
     'REPLOID_ENVIRONMENT',
     'REPLOID_ENVIRONMENT_TEMPLATE',
-    'REPLOID_INCLUDE_BOOTSTRAPPER_WITHIN_SELF',
     'REPLOID_SWARM_ENABLED',
     'REPLOID_GOAL_CRITERIA'
   ];
 
-  keysToRemove.forEach(key => localStorage.removeItem(key));
+  keysToRemove.forEach((key) => storage.removeItem(key, { removeLegacy: true }));
   resetWizard();
 }
 

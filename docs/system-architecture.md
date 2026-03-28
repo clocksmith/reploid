@@ -41,7 +41,7 @@ REPLOID is a browser-native research environment for studying recursive self-imp
 
 The boot UI allows operators to configure:
 - **Genesis Level**: `tabula` through `full`
-- **Primary Reploid Launch**: access code, BYOK direct inference, or swarm consumer/provider mode
+- **Primary Reploid Launch**: attach your own inference, use swarm provider/consumer mode, or optionally unlock a sponsor access window
 - **Research Connection Type**: direct cloud API, proxy server, or Doppler local model
 - **Concurrency Limits**: Max workers, iteration caps
 - **Goal Chips**: Pre-defined or custom goals

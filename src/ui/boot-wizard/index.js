@@ -4,10 +4,18 @@
  */
 
 import {
-  STEPS, VERIFY_STATE,
-  getState, setState, setNestedState, subscribe,
-  goToStep, checkSavedConfig, saveConfig, forgetDevice,
-  canAwaken, hydrateSavedConfig
+  STEPS,
+  VERIFY_STATE,
+  getState,
+  setState,
+  setNestedState,
+  subscribe,
+  goToStep,
+  checkSavedConfig,
+  saveConfig,
+  forgetDevice,
+  canAwaken,
+  hydrateSavedConfig
 } from './state.js';
 
 import {
@@ -26,13 +34,15 @@ import {
   normalizeBootMode
 } from '../../config/boot-modes.js';
 import { pickBootSeedFiles } from '../../config/boot-seed.js';
-import {
-  BOOTSTRAPPER_SOURCE_MIRRORS,
-  SELF_SOURCE_MIRRORS
-} from '../../self/manifest.js';
 import { serializeModuleOverrides } from '../../config/module-resolution.js';
 import { setSecurityEnabled } from '../../core/security-config.js';
+import {
+  createReploidPeerUrl,
+  getCurrentReploidInstanceLabel,
+  getCurrentReploidStorage as getReploidStorage
+} from '../../self/instance.js';
 import { readVfsFile, loadVfsManifest, seedVfsFromManifest, clearVfsStore } from '../../boot-helpers/vfs-bootstrap.js';
+import { ensureSelfPreviewLoaded } from './self-preview.js';
 
 // Step renderers
 import { renderChooseStep } from './steps/choose.js';
@@ -45,9 +55,12 @@ import { renderAwakenStep } from './steps/awaken.js';
 // DOM container reference
 let container = null;
 let listenersAttached = false;
-const VFS_BYPASS_HEADER = 'x-reploid-vfs-bypass';
+
+const getPeerLaunchUrl = () => createReploidPeerUrl(window.location.pathname);
+const getFreshPeerLaunchUrl = () => createReploidPeerUrl(window.location.pathname, { freshIdentity: true });
 
 const updateHitlConfig = (updates) => {
+  const storage = getReploidStorage();
   let current = {
     approvalMode: 'autonomous',
     moduleOverrides: {},
@@ -56,7 +69,7 @@ const updateHitlConfig = (updates) => {
   };
 
   try {
-    const raw = localStorage.getItem('REPLOID_HITL_CONFIG');
+    const raw = storage.getItem('REPLOID_HITL_CONFIG');
     if (raw) {
       current = { ...current, ...JSON.parse(raw) };
     }
@@ -70,7 +83,7 @@ const updateHitlConfig = (updates) => {
   }
 
   const next = { ...current, ...updates };
-  localStorage.setItem('REPLOID_HITL_CONFIG', JSON.stringify(next));
+  storage.setItem('REPLOID_HITL_CONFIG', JSON.stringify(next));
   return next;
 };
 
@@ -130,26 +143,6 @@ const summarizeRoots = (files) => {
   return Array.from(counts.entries())
     .sort((left, right) => right[1] - left[1] || left[0].localeCompare(right[0]))
     .map(([root, count]) => ({ root, count }));
-};
-
-const fetchPreviewSourceText = async (webPath) => {
-  const response = await fetch(webPath, {
-    cache: 'no-store',
-    headers: {
-      [VFS_BYPASS_HEADER]: '1'
-    }
-  });
-  if (!response.ok) {
-    throw new Error(`Failed to load preview source: ${webPath} (${response.status})`);
-  }
-  return response.text();
-};
-
-const loadMirrorContents = async (mirrors) => {
-  const entries = await Promise.all(
-    mirrors.map(async ({ webPath, vfsPath }) => [vfsPath, await fetchPreviewSourceText(webPath)])
-  );
-  return Object.fromEntries(entries);
 };
 
 async function ensureModuleConfigLoaded() {
@@ -234,47 +227,6 @@ async function ensureBootPayloadLoaded() {
         manifestFiles: [],
         rootSummary: []
       }
-    });
-  }
-}
-
-async function ensureSelfPreviewLoaded(includeBootstrapperWithinSelf = false) {
-  const current = getState().selfPreview || {};
-  const needSelf = !current.loadedSelf && !current.loadingSelf;
-  const needBootstrapper = includeBootstrapperWithinSelf
-    && !current.loadedBootstrapper
-    && !current.loadingBootstrapper;
-
-  if (!needSelf && !needBootstrapper) return;
-
-  setNestedState('selfPreview', {
-    loadingSelf: current.loadingSelf || needSelf,
-    loadingBootstrapper: current.loadingBootstrapper || needBootstrapper,
-    error: null
-  });
-
-  try {
-    const nextContents = { ...(getState().selfPreview?.contents || {}) };
-    if (needSelf) {
-      Object.assign(nextContents, await loadMirrorContents(SELF_SOURCE_MIRRORS));
-    }
-    if (needBootstrapper) {
-      Object.assign(nextContents, await loadMirrorContents(BOOTSTRAPPER_SOURCE_MIRRORS));
-    }
-
-    setNestedState('selfPreview', {
-      contents: nextContents,
-      loadingSelf: false,
-      loadedSelf: current.loadedSelf || needSelf,
-      loadingBootstrapper: false,
-      loadedBootstrapper: current.loadedBootstrapper || needBootstrapper,
-      error: null
-    });
-  } catch (err) {
-    setNestedState('selfPreview', {
-      loadingSelf: false,
-      loadingBootstrapper: false,
-      error: err?.message || 'Failed to load Reploid file previews'
     });
   }
 }
@@ -400,7 +352,6 @@ let lastSelfPreviewState = null;
 let lastSelectedSelfPath = null;
 let lastGoal = null;
 let lastEnvironment = null;
-let lastIncludeBootstrapperWithinSelf = null;
 let lastSelectedGoalCategory = null;
 let lastGoalShuffleSeed = null;
 let lastGoalGeneratorState = null;
@@ -445,8 +396,6 @@ function scheduleUpdate() {
     const selectedSelfPathChanged = state.selectedSelfPath !== lastSelectedSelfPath;
     const goalChanged = state.goal !== lastGoal;
     const environmentChanged = state.environment !== lastEnvironment;
-    const includeBootstrapperWithinSelfChanged =
-      !!state.includeBootstrapperWithinSelf !== !!lastIncludeBootstrapperWithinSelf;
     const selectedGoalCategoryChanged = state.selectedGoalCategory !== lastSelectedGoalCategory;
     const goalShuffleSeedChanged = state.goalShuffleSeed !== lastGoalShuffleSeed;
     const goalGeneratorState = JSON.stringify(state.goalGenerator);
@@ -457,7 +406,7 @@ function scheduleUpdate() {
         modeChanged || connectionTypeChanged || canAwakenChanged ||
         bootPayloadChanged || selfPreviewChanged ||
         selectedSelfPathChanged || goalChanged || environmentChanged ||
-        includeBootstrapperWithinSelfChanged || selectedGoalCategoryChanged ||
+        selectedGoalCategoryChanged ||
         goalShuffleSeedChanged || goalGeneratorChanged) {
       lastModuleConfigState = moduleConfigState;
       lastAdvancedOpen = state.advancedOpen;
@@ -473,7 +422,6 @@ function scheduleUpdate() {
       lastSelectedSelfPath = state.selectedSelfPath;
       lastGoal = state.goal;
       lastEnvironment = state.environment;
-      lastIncludeBootstrapperWithinSelf = !!state.includeBootstrapperWithinSelf;
       lastSelectedGoalCategory = state.selectedGoalCategory;
       lastGoalShuffleSeed = state.goalShuffleSeed;
       lastGoalGeneratorState = goalGeneratorState;
@@ -617,7 +565,7 @@ function updateUI() {
     ensureBootPayloadLoaded();
   }
   if (state.mode === 'reploid') {
-    ensureSelfPreviewLoaded(!!state.includeBootstrapperWithinSelf);
+    ensureSelfPreviewLoaded();
   }
 }
 
@@ -631,11 +579,6 @@ function updateGoalSelectionUI(state) {
   const environmentInput = container.querySelector('#environment-input');
   if (environmentInput && document.activeElement !== environmentInput && environmentInput.value !== (state.environment || '')) {
     environmentInput.value = state.environment || '';
-  }
-
-  const includeBootstrapperCheckbox = container.querySelector('#include-bootstrapper-within-self');
-  if (includeBootstrapperCheckbox) {
-    includeBootstrapperCheckbox.checked = !!state.includeBootstrapperWithinSelf;
   }
 
   container.querySelectorAll('[data-action="select-goal"]').forEach((el) => {
@@ -693,6 +636,9 @@ function render() {
         <p class="intro-tagline type-caption">
           Reploid is a browser-native self-modifying agent substrate for studying bounded recursive self-improvement (RSI), not a claim that true RSI already exists.
         </p>
+        <p class="intro-tagline type-caption">
+          Peer instance: ${getCurrentReploidInstanceLabel()} · <a class="link-secondary" href="${getPeerLaunchUrl()}" target="_blank" rel="noopener">Open new peer</a> · <a class="link-secondary" href="${getFreshPeerLaunchUrl()}" target="_blank" rel="noopener">Open fresh peer</a>
+        </p>
         <h2 class="type-h2 intro-explainer-title">What self-modification, RSI, and weak AGI mean</h2>
         <p class="intro-tagline type-caption">
           A self-modifying agent can rewrite parts of its own tools, prompts, or runtime, while a self-improving agent shows measured gains from some of those changes. Truly unbounded RSI would start implying artificial general intelligence (AGI) or artificial superintelligence (ASI), which is why it remains theoretical here.
@@ -708,7 +654,7 @@ function render() {
   const hasConnectionType = !!state.connectionType;
   const ready = canAwaken();
   const hasGoal = !!(state.goal && state.goal.trim());
-  const goalSectionTitle = state.mode === 'reploid' ? 'Compose self' : 'Set the first objective';
+  const goalSectionTitle = 'Set the first objective';
 
   if (!hasConnectionType) {
     html += renderLockedSection('Configure inference', 'Choose an inference provider to unlock this section.');
@@ -766,7 +712,7 @@ function render() {
     ensureBootPayloadLoaded();
   }
   if (state.mode === 'reploid') {
-    ensureSelfPreviewLoaded(!!state.includeBootstrapperWithinSelf);
+    ensureSelfPreviewLoaded();
   }
 
   // Only attach listeners once (use event delegation)
@@ -888,6 +834,7 @@ async function handleClick(e) {
     }
 
     case 'choose-mode': {
+      const storage = getReploidStorage();
       const button = e.target.closest('[data-mode]');
       const nextMode = normalizeBootMode(button?.dataset.mode, '');
       if (!nextMode) break;
@@ -909,9 +856,9 @@ async function handleClick(e) {
         };
       }
 
-      localStorage.setItem('REPLOID_MODE', nextMode);
-      localStorage.setItem('REPLOID_GENESIS_LEVEL', modeConfig.genesisLevel);
-      localStorage.setItem('REPLOID_BLUEPRINT_PATH', 'none');
+      storage.setItem('REPLOID_MODE', nextMode);
+      storage.setItem('REPLOID_GENESIS_LEVEL', modeConfig.genesisLevel);
+      storage.setItem('REPLOID_BLUEPRINT_PATH', 'none');
       setState(nextState);
       break;
     }
@@ -1014,6 +961,7 @@ async function handleClick(e) {
       break;
 
     case 'module-override': {
+      const storage = getReploidStorage();
       const button = e.target.closest('[data-module][data-value]');
       if (!button) break;
       const moduleName = button.dataset.module;
@@ -1028,14 +976,15 @@ async function handleClick(e) {
       }
 
       const serialized = serializeModuleOverrides(overrides);
-      localStorage.setItem('REPLOID_MODULE_OVERRIDES', serialized);
+      storage.setItem('REPLOID_MODULE_OVERRIDES', serialized);
       setNestedState('advancedConfig', { moduleOverrides: overrides });
       break;
     }
 
     case 'reset-module-overrides': {
+      const storage = getReploidStorage();
       if (confirm('Reset all module overrides?')) {
-        localStorage.removeItem('REPLOID_MODULE_OVERRIDES');
+        storage.removeItem('REPLOID_MODULE_OVERRIDES', { removeLegacy: true });
         setNestedState('advancedConfig', { moduleOverrides: {} });
       }
       break;
@@ -1101,13 +1050,8 @@ function handleChange(e) {
       break;
 
     case 'advanced-preserve-vfs':
-      localStorage.setItem('REPLOID_PRESERVE_ON_BOOT', value ? 'true' : 'false');
+      getReploidStorage().setItem('REPLOID_PRESERVE_ON_BOOT', value ? 'true' : 'false');
       setNestedState('advancedConfig', { preserveOnBoot: value });
-      break;
-
-    case 'include-bootstrapper-within-self':
-      setState({ includeBootstrapperWithinSelf: value });
-      localStorage.setItem('REPLOID_INCLUDE_BOOTSTRAPPER_WITHIN_SELF', value ? 'true' : 'false');
       break;
 
     case 'advanced-security-enabled':
@@ -1116,14 +1060,14 @@ function handleChange(e) {
       break;
 
     case 'advanced-genesis-level':
-      localStorage.setItem('REPLOID_GENESIS_LEVEL', value);
+      getReploidStorage().setItem('REPLOID_GENESIS_LEVEL', value);
       setNestedState('advancedConfig', { genesisLevel: value });
       {
         const currentMode = getState().mode;
         const inferredMode = getBootModeConfig(currentMode).genesisLevel === value
           ? currentMode
           : inferBootModeFromGenesis(value, currentMode);
-        localStorage.setItem('REPLOID_MODE', inferredMode);
+        getReploidStorage().setItem('REPLOID_MODE', inferredMode);
         setState({ mode: inferredMode });
       }
       break;
@@ -1417,7 +1361,7 @@ async function shouldResetReploidVfs(state) {
 
   try {
     const [selfText, promptText] = await Promise.all([
-      readVfsFile('/.system/self.json'),
+      readVfsFile('/self/self.json'),
       readVfsFile('/.system/prompt.txt')
     ]);
 
@@ -1432,26 +1376,16 @@ async function shouldResetReploidVfs(state) {
     if (manifest?.mode !== 'reploid') {
       return true;
     }
-    if (manifest.selfPath !== '/.system/self.json') {
+    if (manifest.selfPath !== '/self/self.json') {
       return true;
     }
     if (manifest.selfHosted !== true || manifest.selfModifiable !== true) {
       return true;
     }
-    if (!!manifest.bootstrapperIncluded !== !!state.includeBootstrapperWithinSelf) {
-      return true;
-    }
 
     const writableRoots = Array.isArray(manifest.writableRoots) ? manifest.writableRoots : [];
-    const requiredRoots = ['/.system', '/kernel', '/tools', '/.memory', '/artifacts', 'opfs:/artifacts'];
+    const requiredRoots = ['/self', '/artifacts', 'opfs:/artifacts'];
     if (requiredRoots.some((root) => !writableRoots.includes(root))) {
-      return true;
-    }
-
-    if (state.includeBootstrapperWithinSelf && !writableRoots.includes('/bootstrapper')) {
-      return true;
-    }
-    if (!state.includeBootstrapperWithinSelf && writableRoots.includes('/bootstrapper')) {
       return true;
     }
 
@@ -1503,7 +1437,7 @@ async function doAwaken() {
       window.triggerAwaken({
         goal: goalPacket,
         environment: String(state.environment || ''),
-        includeBootstrapperWithinSelf: !!state.includeBootstrapperWithinSelf
+        seedOverrides: { ...(state.seedOverrides || {}) }
       });
     } else {
       window.triggerAwaken(goalPacket);

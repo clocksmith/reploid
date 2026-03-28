@@ -9,9 +9,9 @@ All configurable settings exposed in the boot UI and their corresponding localSt
 Expand "Advanced options" in the boot UI to access these settings.
 
 Primary `/` Reploid keeps boot minimal:
-- Access code input for the provisioned browser-cloud path
-- `Configure` toggle for BYOK direct inference
-- `Swarm` toggle for provider or consumer launch
+- `Configure` attaches your own inference to this browser
+- `Swarm` toggles provider or consumer launch
+- Expandable `Sponsor access` details appear only when a provisioned browser-cloud window exists
 
 Zero and X keep the broader research configuration surface.
 

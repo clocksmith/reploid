@@ -35,7 +35,7 @@ describe('Self Runtime', () => {
 
     mockHost.initialize.mockResolvedValue(null);
     mockHost.seedSystemFiles.mockResolvedValue({
-      '/.system/self.json': '{"mode":"reploid","selfPath":"/.system/self.json","goal":"Test goal","environment":"Test environment"}'
+      '/self/self.json': '{"mode":"reploid","selfPath":"/self/self.json","goal":"Test goal","environment":"Test environment"}'
     });
     mockHost.executeTool.mockResolvedValue({ ok: true });
     mockHost.getModelConfig.mockReturnValue({ id: 'test-model' });
@@ -91,7 +91,7 @@ describe('Self Runtime', () => {
       .mockReturnValueOnce(false)
       .mockReturnValue(true);
     mockHost.generate.mockResolvedValueOnce({
-      raw: 'TOOL_CALL: ReadFile\nARGS: { "path": "/.system/self.json" }'
+      raw: 'REPLOID/0\n\nTOOL: ReadFile\npath: /self/self.json'
     });
 
     const runtime = createSelfRuntime({
@@ -118,7 +118,7 @@ describe('Self Runtime', () => {
     await new Promise((resolve) => setTimeout(resolve, 0));
 
     expect(mockHost.generate).toHaveBeenCalledTimes(1);
-    expect(mockHost.executeTool).toHaveBeenCalledWith('ReadFile', { path: '/.system/self.json' });
+    expect(mockHost.executeTool).toHaveBeenCalledWith('ReadFile', { path: '/self/self.json' });
     expect(
       latestSnapshot.context.some(
         (message) =>
@@ -131,7 +131,7 @@ describe('Self Runtime', () => {
   it('records done as a milestone and continues running', async () => {
     mockHost.generate
       .mockResolvedValueOnce({ raw: 'MILESTONE: First milestone' })
-      .mockResolvedValueOnce({ raw: 'TOOL_CALL: ReadFile\nARGS: { "path": "/.system/self.json" }' });
+      .mockResolvedValueOnce({ raw: 'REPLOID/0\n\nTOOL: ReadFile\npath: /self/self.json' });
 
     const runtime = createSelfRuntime({
       goal: 'Test goal',
@@ -152,7 +152,7 @@ describe('Self Runtime', () => {
     await runtime.start();
 
     expect(mockHost.generate).toHaveBeenCalledTimes(2);
-    expect(mockHost.executeTool).toHaveBeenCalledWith('ReadFile', { path: '/.system/self.json' });
+    expect(mockHost.executeTool).toHaveBeenCalledWith('ReadFile', { path: '/self/self.json' });
     expect(latestSnapshot.cycle).toBe(2);
     expect(latestSnapshot.status).toBe('IDLE');
     expect(latestSnapshot.activity).toBe('Stopped by user');
@@ -168,7 +168,7 @@ describe('Self Runtime', () => {
   it('accepts DONE as a milestone alias and records it', async () => {
     mockHost.generate
       .mockResolvedValueOnce({ raw: 'DONE: Nested milestone' })
-      .mockResolvedValueOnce({ raw: 'TOOL_CALL: ReadFile\nARGS: { "path": "/.system/self.json" }' });
+      .mockResolvedValueOnce({ raw: 'REPLOID/0\n\nTOOL: ReadFile\npath: /self/self.json' });
 
     const runtime = createSelfRuntime({
       goal: 'Test goal',
@@ -189,7 +189,7 @@ describe('Self Runtime', () => {
     await runtime.start();
 
     expect(mockHost.generate).toHaveBeenCalledTimes(2);
-    expect(mockHost.executeTool).toHaveBeenCalledWith('ReadFile', { path: '/.system/self.json' });
+    expect(mockHost.executeTool).toHaveBeenCalledWith('ReadFile', { path: '/self/self.json' });
     expect(
       latestSnapshot.context.some(
         (message) =>
@@ -199,10 +199,8 @@ describe('Self Runtime', () => {
     ).toBe(true);
   });
 
-  it('redirects an explicit idle directive into self-improvement work', async () => {
-    mockHost.generate
-      .mockResolvedValueOnce({ raw: 'IDLE: Waiting for a new task suite' })
-      .mockResolvedValueOnce({ raw: 'TOOL_CALL: ReadFile\nARGS: { "path": "/.system/self.json" }' });
+  it('parks on an explicit idle directive', async () => {
+    mockHost.generate.mockResolvedValueOnce({ raw: 'IDLE: Waiting for a new task suite' });
 
     const runtime = createSelfRuntime({
       goal: 'Test goal',
@@ -212,28 +210,22 @@ describe('Self Runtime', () => {
     let latestSnapshot = runtime.getSnapshot();
     runtime.subscribe((snapshot) => {
       latestSnapshot = snapshot;
-      const sawToolResult = snapshot.context.some(
-        (message) => message.origin === 'tool' && message.content.includes('[TOOL ReadFile RESULT]')
-      );
-      if (sawToolResult && snapshot.running) {
-        runtime.stop();
-      }
     });
 
     await runtime.start();
 
     const snapshot = latestSnapshot;
     expect(mockHost.seedSystemFiles).toHaveBeenCalledTimes(1);
-    expect(mockHost.generate).toHaveBeenCalledTimes(2);
-    expect(mockHost.executeTool).toHaveBeenCalledWith('ReadFile', { path: '/.system/self.json' });
-    expect(snapshot.cycle).toBe(2);
-    expect(snapshot.status).toBe('IDLE');
-    expect(snapshot.parked).toBe(false);
+    expect(mockHost.generate).toHaveBeenCalledTimes(1);
+    expect(mockHost.executeTool).not.toHaveBeenCalled();
+    expect(snapshot.cycle).toBe(1);
+    expect(snapshot.status).toBe('PARKED');
+    expect(snapshot.parked).toBe(true);
     expect(
       snapshot.context.some(
         (message) =>
           message.origin === 'system' &&
-          message.content.includes('Continue with safe self-improvement work')
+          message.content.includes('Wake condition: manual')
       )
     ).toBe(true);
   });
@@ -241,7 +233,7 @@ describe('Self Runtime', () => {
   it('ignores plain text and continues running', async () => {
     mockHost.generate
       .mockResolvedValueOnce({ raw: 'I built the first piece.' })
-      .mockResolvedValueOnce({ raw: 'TOOL_CALL: ReadFile\nARGS: { "path": "/self/runtime.js" }' });
+      .mockResolvedValueOnce({ raw: 'REPLOID/0\n\nTOOL: ReadFile\npath: /self/runtime.js' });
 
     const runtime = createSelfRuntime({
       goal: 'Test goal',
@@ -278,23 +270,25 @@ describe('Self Runtime', () => {
   it('executes batched tool calls and caps the batch at five', async () => {
     mockHost.generate.mockResolvedValueOnce({
       raw: [
-        'TOOL_CALL: ReadFile',
-        'ARGS: { "path": "/.system/self.json" }',
+        'REPLOID/0',
         '',
-        'TOOL_CALL: ReadFile',
-        'ARGS: { "path": "/self/runtime.js" }',
+        'TOOL: ReadFile',
+        'path: /self/self.json',
         '',
-        'TOOL_CALL: ReadFile',
-        'ARGS: { "path": "/self/manifest.js" }',
+        'TOOL: ReadFile',
+        'path: /self/runtime.js',
         '',
-        'TOOL_CALL: ReadFile',
-        'ARGS: { "path": "/tools/example.js" }',
+        'TOOL: ReadFile',
+        'path: /self/manifest.js',
         '',
-        'TOOL_CALL: ReadFile',
-        'ARGS: { "path": "/bootstrapper/self/bridge.js" }',
+        'TOOL: ReadFile',
+        'path: /self/tools/example.js',
         '',
-        'TOOL_CALL: ReadFile',
-        'ARGS: { "path": "/bootstrapper/core/llm-client.js" }'
+        'TOOL: ReadFile',
+        'path: /self/capsule/index.js',
+        '',
+        'TOOL: ReadFile',
+        'path: /self/bridge.js'
       ].join('\n')
     });
 
@@ -316,8 +310,8 @@ describe('Self Runtime', () => {
 
     expect(mockHost.generate).toHaveBeenCalledTimes(1);
     expect(mockHost.executeTool).toHaveBeenCalledTimes(5);
-    expect(mockHost.executeTool).toHaveBeenNthCalledWith(1, 'ReadFile', { path: '/.system/self.json' });
-    expect(mockHost.executeTool).toHaveBeenNthCalledWith(5, 'ReadFile', { path: '/bootstrapper/self/bridge.js' });
+    expect(mockHost.executeTool).toHaveBeenNthCalledWith(1, 'ReadFile', { path: '/self/self.json' });
+    expect(mockHost.executeTool).toHaveBeenNthCalledWith(5, 'ReadFile', { path: '/self/capsule/index.js' });
     expect(
       latestSnapshot.context.some(
         (message) =>
@@ -327,12 +321,11 @@ describe('Self Runtime', () => {
     ).toBe(true);
   });
 
-  it('redirects repeated milestone-only cycles into self-improvement work', async () => {
+  it('parks repeated milestone-only cycles with no new tool work', async () => {
     mockHost.generate
       .mockResolvedValueOnce({ raw: 'MILESTONE: Standing by.' })
       .mockResolvedValueOnce({ raw: 'MILESTONE: Standing by.' })
-      .mockResolvedValueOnce({ raw: 'MILESTONE: Standing by.' })
-      .mockResolvedValueOnce({ raw: 'TOOL_CALL: ReadFile\nARGS: { "path": "/self/runtime.js" }' });
+      .mockResolvedValueOnce({ raw: 'MILESTONE: Standing by.' });
 
     const runtime = createSelfRuntime({
       goal: 'Test goal',
@@ -352,9 +345,9 @@ describe('Self Runtime', () => {
 
     await runtime.start();
 
-    expect(mockHost.generate).toHaveBeenCalledTimes(4);
-    expect(latestSnapshot.status).toBe('IDLE');
-    expect(latestSnapshot.parked).toBe(false);
+    expect(mockHost.generate).toHaveBeenCalledTimes(3);
+    expect(latestSnapshot.status).toBe('PARKED');
+    expect(latestSnapshot.parked).toBe(true);
     expect(
       latestSnapshot.context.some(
         (message) =>
@@ -367,8 +360,10 @@ describe('Self Runtime', () => {
   it('records a milestone when tools and done are sent in the same response', async () => {
     mockHost.generate.mockResolvedValueOnce({
       raw: [
-        'TOOL_CALL: ReadFile',
-        'ARGS: { "path": "/.system/self.json" }',
+        'REPLOID/0',
+        '',
+        'TOOL: ReadFile',
+        'path: /self/self.json',
         '',
         'MILESTONE: Completed the first evaluation pass'
       ].join('\n')
@@ -395,7 +390,7 @@ describe('Self Runtime', () => {
     await runtime.start();
 
     expect(mockHost.generate).toHaveBeenCalledTimes(1);
-    expect(mockHost.executeTool).toHaveBeenCalledWith('ReadFile', { path: '/.system/self.json' });
+    expect(mockHost.executeTool).toHaveBeenCalledWith('ReadFile', { path: '/self/self.json' });
     expect(
       latestSnapshot.context.some(
         (message) =>
@@ -408,11 +403,13 @@ describe('Self Runtime', () => {
   it('does not record a milestone for a plain tool batch with no done directive', async () => {
     mockHost.generate.mockResolvedValueOnce({
       raw: [
-        'TOOL_CALL: ReadFile',
-        'ARGS: { "path": "/.system/self.json" }',
+        'REPLOID/0',
         '',
-        'TOOL_CALL: ReadFile',
-        'ARGS: { "path": "/self/runtime.js" }'
+        'TOOL: ReadFile',
+        'path: /self/self.json',
+        '',
+        'TOOL: ReadFile',
+        'path: /self/runtime.js'
       ].join('\n')
     });
 

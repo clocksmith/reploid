@@ -20,7 +20,7 @@ const SymbolGrounder = {
 
     // Patterns for extracting structured information
     const PATTERNS = {
-      toolCall: /TOOL_CALL:\s*(\w+)/g,
+      toolCall: /(?:TOOL_CALL:|TOOL:)\s*([A-Za-z0-9_]+)/g,
       filePath: /(?:\/[\w\-./]+\.\w+)/g,
       codeRef: /`([^`]+)`/g,
       error: /(?:Error|Exception|Failed):\s*([^\n.]+)/gi,
@@ -333,9 +333,9 @@ const SymbolGrounder = {
       const facts = [];
 
       // Extract tool execution facts
-      const toolCalls = text.match(/TOOL_CALL:\s*(\w+)/g) || [];
+      const toolCalls = text.match(/(?:TOOL_CALL:|TOOL:)\s*(\w+)/g) || [];
       for (const call of toolCalls) {
-        const toolName = call.replace('TOOL_CALL:', '').trim();
+        const toolName = call.split(':')[1]?.trim() || '';
         facts.push({
           predicate: 'toolExecuted',
           args: [toolName, context.cycle || 'unknown'],
@@ -346,7 +346,7 @@ const SymbolGrounder = {
 
       // Extract success/failure facts
       if (text.includes('Error:') || text.includes('Failed')) {
-        const toolMatch = text.match(/TOOL_CALL:\s*(\w+)/);
+        const toolMatch = text.match(/(?:TOOL_CALL:|TOOL:)\s*(\w+)/);
         if (toolMatch) {
           facts.push({
             predicate: 'failedExecution',
