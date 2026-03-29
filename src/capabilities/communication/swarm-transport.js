@@ -5,6 +5,7 @@
  */
 
 import { getCurrentReploidStorage } from '../../self/instance.js';
+import { getResolvedSignalingConfig } from './signaling-config.js';
 
 const PROTOCOL_VERSION = 1;
 const MAX_PAYLOAD_SIZE = 64 * 1024; // 64KB
@@ -135,15 +136,17 @@ const SwarmTransport = {
       if (typeof window === 'undefined') return false;
 
       try {
-        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-        const url = `${protocol}//${window.location.host}/signaling`;
+        const signaling = getResolvedSignalingConfig();
+        if (!signaling.url) {
+          return false;
+        }
 
         // Quick WebSocket probe with timeout
         return new Promise((resolve) => {
           const timeout = setTimeout(() => resolve(false), 2000);
 
           try {
-            const ws = new WebSocket(url);
+            const ws = new WebSocket(signaling.url);
             ws.onopen = () => {
               clearTimeout(timeout);
               ws.close();
@@ -376,10 +379,11 @@ const SwarmTransport = {
       _roomId = getRoomId();
 
       logger.info(`[SwarmTransport] Initializing - peerId: ${_peerId}, room: ${_roomId}`);
+      const signaling = getResolvedSignalingConfig();
 
       // Same-browser peers should use BroadcastChannel by default. Reserve WebRTC for
       // explicit swarm rooms or environments where BroadcastChannel is unavailable.
-      if (!hasExplicitRoomPreference() && typeof BroadcastChannel !== 'undefined') {
+      if (!hasExplicitRoomPreference() && !signaling.explicit && typeof BroadcastChannel !== 'undefined') {
         initBroadcastChannel();
         logger.info('[SwarmTransport] Using BroadcastChannel transport (default local room)');
         return true;

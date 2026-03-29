@@ -88,6 +88,7 @@ Settings stored in `REPLOID_GEPA_CONFIG` as JSON object.
 | Setting | localStorage Key | Values | Default |
 |---------|------------------|--------|---------|
 | Enable P2P Swarm | `REPLOID_SWARM_ENABLED` | `'true'`, `'false'` | `'false'` |
+| Signaling URL override | `REPLOID_SIGNALING_URL` | WebSocket or HTTP URL | Same-origin `/signaling` |
 
 ---
 
@@ -152,7 +153,46 @@ Some settings can be set via URL:
 |-----------|--------|
 | `?swarm=true` | Enable swarm mode with the default room |
 | `?swarm=<room>` | Enable swarm mode and join a specific room id |
+| `?signaling=<url>` | Override the WebRTC signaling endpoint for the current tab |
 | `?dopplerBase=<url>` | Override the Doppler asset base URL for browser-local models |
+
+### Standalone Local Signaling Server
+
+Use the standalone signaling server when you want Reploid WebRTC rooms without the full proxy server.
+
+```bash
+npm run start:signaling
+# or
+node server/reploid-signaling.js
+# or
+bun server/reploid-signaling.js
+```
+
+Default behavior:
+
+- Binds to `127.0.0.1:8787`
+- Serves WebSocket signaling at `/signaling`
+- Rejects non-loopback browser origins in local-only mode
+- Exposes health at `http://127.0.0.1:8787/healthz`
+- Exposes stats at `http://127.0.0.1:8787/api/signaling/stats`
+
+Configure the browser client:
+
+```javascript
+localStorage.setItem('REPLOID_SIGNALING_URL', 'ws://127.0.0.1:8787/signaling');
+```
+
+Optional environment variables:
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `REPLOID_SIGNALING_HOST` | `127.0.0.1` | Bind host |
+| `REPLOID_SIGNALING_PORT` | `8787` | Bind port |
+| `REPLOID_SIGNALING_PATH` | `/signaling` | WebSocket path |
+| `REPLOID_SIGNALING_LOCAL_ONLY` | `true` | Restrict to loopback connections and origins |
+| `REPLOID_SIGNALING_MAX_PEERS_PER_ROOM` | `256` | Per-room peer cap |
+| `REPLOID_SIGNALING_MAX_PEERS_TOTAL` | `8192` | Global peer cap |
+| `REPLOID_SIGNALING_MAX_ROOMS` | `4096` | Total room cap |
 
 ---
 
