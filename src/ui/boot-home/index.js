@@ -97,6 +97,7 @@ let unsubscribeState = null;
 let sponsorAccessExpanded = false;
 let isInitialRender = true;
 let lastRenderSignature = null;
+let pendingDeferredRender = false;
 
 const renderLockedSection = (title, caption) => `
   <div class="wizard-step wizard-stage-placeholder">
@@ -271,8 +272,15 @@ const scheduleRender = () => {
     renderScheduled = false;
     const state = getState();
     const signature = getHomeRenderSignature(state);
+    const isTypingGoal = document.activeElement?.id === 'goal-input';
+    if (!isInitialRender && isTypingGoal) {
+      pendingDeferredRender = pendingDeferredRender || signature !== lastRenderSignature;
+      updateInteractiveUi(state);
+      return;
+    }
     if (isInitialRender || signature !== lastRenderSignature) {
       lastRenderSignature = signature;
+      pendingDeferredRender = false;
       render();
       isInitialRender = false;
       return;
@@ -981,12 +989,19 @@ function handleToggle(event) {
   }
 }
 
+function handleFocusOut(event) {
+  if (event.target?.id === 'goal-input' && pendingDeferredRender) {
+    scheduleRender();
+  }
+}
+
 function attachEventListeners() {
   if (!container) return;
   container.addEventListener('click', handleClick);
   container.addEventListener('change', handleChange);
   container.addEventListener('input', handleInput);
   container.addEventListener('toggle', handleToggle, true);
+  container.addEventListener('focusout', handleFocusOut, true);
 }
 
 function render() {
@@ -1148,6 +1163,7 @@ export function initLockedBootHome(containerEl, mode = 'reploid') {
   sponsorAccessExpanded = false;
   isInitialRender = true;
   lastRenderSignature = null;
+  pendingDeferredRender = false;
 
   if (unsubscribeState) {
     unsubscribeState();

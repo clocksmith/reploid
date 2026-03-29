@@ -5,6 +5,7 @@
  */
 
 import { getCurrentReploidStorage } from '../../self/instance.js';
+import { getResolvedSignalingConfig } from './signaling-config.js';
 
 const PROTOCOL_VERSION = 1;
 const MAX_PAYLOAD_SIZE = 64 * 1024; // 64KB
@@ -74,15 +75,6 @@ const WebRTCSwarm = {
       bytesReceived: 0,
       startTime: Date.now(),
       rejected: 0
-    };
-
-    /**
-     * Generate signaling server URL from current location
-     */
-    const getSignalingUrl = () => {
-      if (typeof window === 'undefined') return null;
-      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-      return `${protocol}//${window.location.host}/signaling`;
     };
 
     /**
@@ -214,7 +206,7 @@ const WebRTCSwarm = {
       const roomToken = getRoomToken();
       _roomId = getRoomId(roomToken);
 
-      CONFIG.signalingServer = getSignalingUrl();
+      CONFIG.signalingServer = getResolvedSignalingConfig().url;
 
       logger.info(`[WebRTCSwarm] Initializing - peerId: ${_peerId}, room: ${_roomId}`);
 
@@ -369,6 +361,9 @@ const WebRTCSwarm = {
 
         case 'peer-joined':
           logger.info(`[WebRTCSwarm] Peer joined: ${message.peerId}`);
+          if (message.metadata?.transport === 'signaling-relay') {
+            registerRelayPeer(message.peerId, message.metadata);
+          }
           EventBus.emit('swarm:peer-joined', { peerId: message.peerId });
           break;
 
@@ -388,6 +383,13 @@ const WebRTCSwarm = {
 
         case 'ice-candidate':
           await handleIceCandidate(message.peerId, message.candidate);
+          break;
+
+        case 'relay-message':
+          if (!_peers.has(message.peerId)) {
+            registerRelayPeer(message.peerId, { transport: 'signaling-relay' });
+          }
+          handlePeerEnvelope(message.peerId, message.envelope);
           break;
 
         case 'error':
@@ -568,6 +570,32 @@ const WebRTCSwarm = {
     };
 
     /**
+     * Register a relay-backed peer that communicates through the signaling socket.
+     */
+    const registerRelayPeer = (remotePeerId, metadata = {}) => {
+      const existingPeer = _peers.get(remotePeerId);
+      if (existingPeer && existingPeer.transport === 'signaling-relay') {
+        existingPeer.metadata = { ...existingPeer.metadata, ...metadata };
+        existingPeer.lastSeen = Date.now();
+        existingPeer.status = 'connected';
+        return existingPeer;
+      }
+
+      const peer = {
+        id: remotePeerId,
+        connection: null,
+        dataChannel: null,
+        metadata: { ...metadata },
+        status: 'connected',
+        lastSeen: Date.now(),
+        transport: 'signaling-relay'
+      };
+
+      _peers.set(remotePeerId, peer);
+      return peer;
+    };
+
+    /**
      * Remove peer and cleanup
      */
     const removePeer = (remotePeerId) => {
@@ -612,6 +640,15 @@ const WebRTCSwarm = {
         return;
       }
 
+      handlePeerEnvelope(remotePeerId, envelope, data.length);
+    };
+
+    /**
+     * Handle a parsed envelope from either WebRTC or signaling relay transport.
+     */
+    const handlePeerEnvelope = (remotePeerId, envelope, sizeHint = null) => {
+      const serializedLength = Number.isFinite(sizeHint) ? sizeHint : JSON.stringify(envelope || {}).length;
+
       // Validate envelope
       const validation = validateEnvelope(envelope);
       if (!validation.valid) {
@@ -631,7 +668,7 @@ const WebRTCSwarm = {
 
       // Track stats
       _stats.messagesReceived++;
-      _stats.bytesReceived += data.length;
+      _stats.bytesReceived += serializedLength;
 
       // Route to handler
       const handler = _messageHandlers.get(envelope.type);
@@ -656,7 +693,7 @@ const WebRTCSwarm = {
      */
     const sendToPeer = (remotePeerId, type, payload) => {
       const peer = _peers.get(remotePeerId);
-      if (!peer || !peer.dataChannel || peer.dataChannel.readyState !== 'open') {
+      if (!peer) {
         logger.warn(`[WebRTCSwarm] Cannot send to ${remotePeerId}: not connected`);
         return false;
       }
@@ -664,6 +701,21 @@ const WebRTCSwarm = {
       try {
         const envelope = wrapMessage(type, payload);
         const data = JSON.stringify(envelope);
+
+        if (peer.transport === 'signaling-relay') {
+          return sendSignaling({
+            type: 'relay-message',
+            peerId: _peerId,
+            roomId: _roomId,
+            targetPeer: remotePeerId,
+            envelope
+          });
+        }
+
+        if (!peer.dataChannel || peer.dataChannel.readyState !== 'open') {
+          logger.warn(`[WebRTCSwarm] Cannot send to ${remotePeerId}: not connected`);
+          return false;
+        }
 
         peer.dataChannel.send(data);
 

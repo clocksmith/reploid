@@ -15,6 +15,7 @@
   },
   "scripts": {
     "start": "npx tsx bin/reploid-cli.ts start",
+    "start:signaling": "node server/reploid-signaling.js",
     "test": "npx tsx bin/reploid-cli.ts test",
     "test:unit": "npx tsx bin/reploid-cli.ts test --unit",
     "test:integration": "npx tsx bin/reploid-cli.ts test --integration",

@@ -10,6 +10,7 @@
  *   bench            Run benchmarks
  *   debug [options]  Interactive debug mode
  *   start            Start dev server
+ *   signal           Start standalone signaling server
  *
  * Examples:
  *   reploid test                    # Run all tests
@@ -49,7 +50,7 @@ function header(title: string) {
   log(`${line}\n`, colors.cyan);
 }
 
-type Command = 'test' | 'bench' | 'debug' | 'start';
+type Command = 'test' | 'bench' | 'debug' | 'start' | 'signal';
 
 interface CLIOptions {
   command: Command;
@@ -126,7 +127,7 @@ function parseArgs(argv: string[]): CLIOptions {
       default:
         if (!arg.startsWith('-')) {
           if (positionalIndex === 0) {
-            if (['test', 'bench', 'debug', 'start'].includes(arg)) {
+            if (['test', 'bench', 'debug', 'start', 'signal'].includes(arg)) {
               opts.command = arg as Command;
             } else {
               opts.suite = arg as CLIOptions['suite'];
@@ -173,6 +174,9 @@ ${colors.cyan}DEBUG - Interactive Debugging${colors.reset}
 
 ${colors.cyan}START - Development Server${colors.reset}
   reploid start                 Start dev server
+
+${colors.cyan}SIGNAL - Local WebRTC Signaling${colors.reset}
+  reploid signal                Start standalone signaling server
 
 ${colors.cyan}Common Options:${colors.reset}
   --verbose, -v    Verbose output
@@ -320,6 +324,12 @@ async function runStart(opts: CLIOptions): Promise<number> {
   return runCommand('node', ['server/proxy.js']);
 }
 
+async function runSignal(): Promise<number> {
+  header('REPLOID SIGNALING');
+  log('Starting standalone signaling server...', colors.cyan);
+  return runCommand('node', ['server/reploid-signaling.js']);
+}
+
 async function main(): Promise<void> {
   const opts = parseArgs(process.argv.slice(2));
 
@@ -342,6 +352,9 @@ async function main(): Promise<void> {
       break;
     case 'start':
       exitCode = await runStart(opts);
+      break;
+    case 'signal':
+      exitCode = await runSignal();
       break;
     default:
       log(`Unknown command: ${opts.command}`, colors.red);
