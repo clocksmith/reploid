@@ -2,7 +2,7 @@
  * @fileoverview Self-owned kernel boot for the browser shell.
  */
 
-import { SELF_BOOT_SPEC, cloneSelfBootSpec, getRouteBootSpec, toSourceWebPath } from '../boot-spec.js';
+import { SELF_BOOT_SPEC, cloneSelfBootSpec, getRouteBootSpec } from '../boot-spec.js';
 import {
   createReploidPeerUrl,
   ensureReploidWindowInstance,
@@ -218,6 +218,13 @@ const prepareShell = () => {
   ensureStylesheet(BOOT_STYLE_ID, `styles/boot.css?v=${version}`);
 };
 
+const buildBootstrapUrl = (path) => {
+  const url = new URL(path, window.location.origin);
+  url.searchParams.set('bootstrapper', '1');
+  url.searchParams.set('v', getBuildVersion());
+  return url.toString();
+};
+
 const main = async () => {
   ensureReploidWindowInstance();
   prepareShell();
@@ -230,7 +237,7 @@ const main = async () => {
     return;
   }
 
-  const seedEntry = `${toSourceWebPath(SELF_BOOT_SPEC.host.seedEntry)}?v=${encodeURIComponent(getBuildVersion())}`;
+  const seedEntry = buildBootstrapUrl(SELF_BOOT_SPEC.host.seedEntry);
   await import(seedEntry);
 };
 

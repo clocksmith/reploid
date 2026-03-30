@@ -1286,9 +1286,18 @@ app.use((req, res, next) => {
   next();
 });
 
+const setStaticHeaders = (res, filePath) => {
+  if (filePath.endsWith('.wgsl')) {
+    res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+  }
+  if (filePath.endsWith(path.join('src', 'self', 'host', 'sw-module-loader.js'))) {
+    res.setHeader('Service-Worker-Allowed', '/');
+  }
+};
+
 // Main routes
 app.get(['/', '/0', '/x'], (req, res) => {
-  res.sendFile(path.join(__dirname, '..', 'src', 'index.html'));
+  res.sendFile(path.join(__dirname, '..', 'src', 'self', 'kernel', 'index.html'));
 });
 
 app.get(['/doppler', '/doppler/'], (req, res) => {
@@ -1338,17 +1347,13 @@ app.use('/gpu/kernels', express.static(dopplerKernelDir, {
 
 app.use('/src', express.static(path.join(__dirname, '..', 'src'), {
   setHeaders: (res, filePath) => {
-    if (filePath.endsWith('.wgsl')) {
-      res.setHeader('Content-Type', 'text/plain; charset=utf-8');
-    }
+    setStaticHeaders(res, filePath);
   }
 }));
 
 app.use(express.static(path.join(__dirname, '..', 'src'), {
   setHeaders: (res, filePath) => {
-    if (filePath.endsWith('.wgsl')) {
-      res.setHeader('Content-Type', 'text/plain; charset=utf-8');
-    }
+    setStaticHeaders(res, filePath);
   }
 }));
 

@@ -230,7 +230,7 @@ export async function loadVfsManifest(options = {}) {
   };
 
   const [reploidManifest, dopplerManifest] = await Promise.all([
-    fetchManifest('/src/config/vfs-manifest.json'),
+    fetchManifest('/config/vfs-manifest.json'),
     includeDoppler
       ? fetchManifest(buildDopplerUrl('/doppler/config/vfs-manifest.json') || '/doppler/config/vfs-manifest.json')
           .catch(() => ({ files: [] }))

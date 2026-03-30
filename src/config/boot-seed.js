@@ -96,6 +96,10 @@ export function getBootSeedProfile() {
   return 'wizard';
 }
 
+export function shouldHydrateFullManifest(profile = getBootSeedProfile()) {
+  return profile !== 'reploid_home';
+}
+
 export function pickBootSeedFiles(files, profile = getBootSeedProfile()) {
   const prefixes = BOOT_SEED_PROFILES[profile] || WIZARD_BOOT_SEED_PREFIXES;
   const out = [];

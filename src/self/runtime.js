@@ -504,6 +504,7 @@ export function createSelfRuntime(options = {}) {
 
   return {
     subscribe,
+    on: bridge.on,
     start,
     stop,
     rotateIdentity: bridge.rotateIdentity,
