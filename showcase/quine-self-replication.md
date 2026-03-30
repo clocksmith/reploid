@@ -231,7 +231,7 @@ async function call(args = {}, deps = {}) {
 ReadFile({ path: "/.system/replication-seed.js", startLine: 1, endLine: 100 })
 ```
 
-**Commit:** `src/tools/ReadFile.js` - 1MB limit + line range support
+**Commit:** `self/tools/ReadFile.js` - 1MB limit + line range support
 
 ---
 

@@ -4,7 +4,7 @@
  */
 import { test, expect } from '@playwright/test';
 
-const APP_PATH = '/src/index.html';
+const APP_PATH = '/index.html';
 
 test.describe('Genesis Configuration', () => {
   test('should load genesis-levels.json config', async ({ page }) => {

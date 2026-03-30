@@ -207,17 +207,17 @@ Settings used by boot seeding and module registration.
 | `levelFiles` | Level-specific file lists (tools/UI/styles per genesis level) |
 | `levels` | Genesis level ladder and module grouping |
 
-VFS hydration loads `config/vfs-manifest.json` at bootstrap and fetches all listed `src/` files into IndexedDB before boot. Set `REPLOID_PRESERVE_ON_BOOT` to `'true'` to keep existing VFS files and only fill missing paths.
+VFS hydration loads `config/vfs-manifest.json` at bootstrap and fetches all listed `self/` files into IndexedDB before boot. Set `REPLOID_PRESERVE_ON_BOOT` to `'true'` to keep existing VFS files and only fill missing paths.
 
 ---
 
 ## VFS Manifest (`config/vfs-manifest.json`)
 
-List of all files under `src/` used for VFS hydration at bootstrap.
+List of all files under `self/` used for VFS hydration at bootstrap.
 
 | Key | Purpose |
 |-----|---------|
-| `files` | Relative paths from `src/` to hydrate |
+| `files` | Relative paths from `self/` to hydrate |
 
 ---
 

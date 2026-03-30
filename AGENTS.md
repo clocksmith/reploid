@@ -10,7 +10,7 @@ reploid/
 ├── README.md                 ← Overview and quick start
 ├── AGENTS.md                 ← Agent instructions
 ├── EMOJI.md                  ← Approved Unicode symbols
-├── src/                      ← Browser code (served to client)
+├── self/                     ← Browser code and public web root
 │   ├── core/                 ← Agent loop, VFS, LLM client
 │   ├── tools/                ← Dynamic agent tools
 │   ├── infrastructure/       ← EventBus, DI, HITL
@@ -26,14 +26,14 @@ reploid/
 - Read `docs/INDEX.md` for documentation overview
 - Read `docs/style-guide.md` for complete style guidelines
 - Read `EMOJI.md` for approved Unicode symbols
-- Review `src/blueprints/` for architectural documentation
+- Review `self/blueprints/` for architectural documentation
 
 ### Key Paths
-- `src/core/` - Agent loop, VFS, LLM client, tool runner
-- `src/infrastructure/` - EventBus, DI container, HITL controller
-- `src/tools/` - Agent tools (CamelCase naming)
-- `src/ui/` - Proto UI components
-- `src/config/` - Genesis levels, module registry
+- `self/core/` - Agent loop, VFS, LLM client, tool runner
+- `self/infrastructure/` - EventBus, DI container, HITL controller
+- `self/tools/` - Agent tools (CamelCase naming)
+- `self/ui/` - Proto UI components
+- `self/config/` - Genesis levels, module registry
 - `server/` - Proxy server
 - `tests/` - Test suites
 

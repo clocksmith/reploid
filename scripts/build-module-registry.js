@@ -1,24 +1,22 @@
 #!/usr/bin/env node
 /**
- * Generates src/config/module-registry.json from module metadata.
+ * Generates self/config/module-registry.json from module metadata.
  */
 
 import { promises as fs } from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { toBrowserSourcePath, toCanonicalBrowserPath, toPosix } from './browser-tree-paths.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const ROOT = path.resolve(__dirname, '..');
-const SRC_DIR = path.join(ROOT, 'src');
-const GENESIS_PATH = path.join(SRC_DIR, 'config', 'genesis-levels.json');
-const BLUEPRINT_REGISTRY_PATH = path.join(SRC_DIR, 'config', 'blueprint-registry.json');
-const OUTPUT_PATH = path.join(SRC_DIR, 'config', 'module-registry.json');
+const SELF_DIR = path.join(ROOT, 'self');
+const GENESIS_PATH = path.join(SELF_DIR, 'config', 'genesis-levels.json');
+const BLUEPRINT_REGISTRY_PATH = path.join(SELF_DIR, 'config', 'blueprint-registry.json');
+const OUTPUT_PATH = path.join(SELF_DIR, 'config', 'module-registry.json');
 
-const toPosix = (p) => p.split(path.sep).join('/');
-
-// Normalize path: strip leading 'src/' if present
-const stripSrcPrefix = (p) => p.replace(/^src\//, '');
+const stripLegacyBrowserPrefix = (value) => String(value || '').replace(/^src\//, '').replace(/^self\//, '');
 
 function extractMetadataBlock(content) {
   const match = content.match(/\bmetadata\b\s*:\s*\{/);
@@ -113,9 +111,8 @@ async function main() {
   for (const [moduleName, files] of Object.entries(moduleFiles)) {
     if (!files || files.length === 0) continue;
     const entryFile = files[0];
-    // Handle paths that may or may not have src/ prefix
-    const normalizedEntry = stripSrcPrefix(entryFile);
-    const entryPath = path.join(SRC_DIR, normalizedEntry);
+    const normalizedEntry = toCanonicalBrowserPath(stripLegacyBrowserPrefix(entryFile));
+    const entryPath = path.join(SELF_DIR, toBrowserSourcePath(normalizedEntry));
 
     let metadataId = null;
     let introduced = null;
@@ -131,13 +128,12 @@ async function main() {
       // Skip parse errors, fall back to config data
     }
 
-    // Blueprint lookup uses paths without src/ prefix
     const blueprint = blueprintMap.get(normalizedEntry) || null;
 
     modules[moduleName] = {
       id: metadataId || moduleName,
       entry: toPosix(normalizedEntry),
-      files: files.map(file => toPosix(stripSrcPrefix(file))),
+      files: files.map((file) => toPosix(toCanonicalBrowserPath(stripLegacyBrowserPrefix(file)))),
       introduced: introduced || moduleToLevel.get(moduleName) || 'unknown',
       dependencies,
       blueprint

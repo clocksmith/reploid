@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { renderAwakenedFilesPanel } from '../../src/ui/boot-wizard/steps/goal.js';
+import { renderAwakenedFilesPanel } from '../../self/ui/boot-wizard/steps/goal.js';
 
 const createReploidState = (overrides = {}) => ({
   mode: 'reploid',

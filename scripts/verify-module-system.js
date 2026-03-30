@@ -6,18 +6,17 @@
 import { promises as fs } from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { toBrowserSourcePath, toCanonicalBrowserPath, toPosix } from './browser-tree-paths.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const ROOT = path.resolve(__dirname, '..');
-const SRC_DIR = path.join(ROOT, 'src');
+const SELF_DIR = path.join(ROOT, 'self');
 
-const GENESIS_PATH = path.join(SRC_DIR, 'config', 'genesis-levels.json');
-const MANIFEST_PATH = path.join(SRC_DIR, 'config', 'vfs-manifest.json');
-const BLUEPRINT_REGISTRY_PATH = path.join(SRC_DIR, 'config', 'blueprint-registry.json');
-const BLUEPRINT_DIR = path.join(SRC_DIR, 'blueprints');
-
-const toPosix = (p) => p.split(path.sep).join('/');
+const GENESIS_PATH = path.join(SELF_DIR, 'config', 'genesis-levels.json');
+const MANIFEST_PATH = path.join(SELF_DIR, 'config', 'vfs-manifest.json');
+const BLUEPRINT_REGISTRY_PATH = path.join(SELF_DIR, 'config', 'blueprint-registry.json');
+const BLUEPRINT_DIR = path.join(SELF_DIR, 'blueprints');
 
 async function walkFiles(dir) {
   const entries = await fs.readdir(dir, { withFileTypes: true });
@@ -63,8 +62,8 @@ function parseBlueprintId(filename) {
 async function main() {
   const errors = [];
 
-  const allFiles = await walkFiles(SRC_DIR);
-  const allRelFiles = allFiles.map((file) => toPosix(path.relative(SRC_DIR, file)));
+  const allFiles = await walkFiles(SELF_DIR);
+  const allRelFiles = allFiles.map((file) => toCanonicalBrowserPath(path.relative(SELF_DIR, file)));
   const allRelSet = new Set(allRelFiles);
 
   const manifest = JSON.parse(await fs.readFile(MANIFEST_PATH, 'utf8'));
@@ -157,7 +156,7 @@ async function main() {
       errors.push(`Module entry file missing: ${moduleName} -> ${entryFile}`);
       continue;
     }
-    const content = await fs.readFile(path.join(SRC_DIR, entryFile), 'utf8');
+    const content = await fs.readFile(path.join(SELF_DIR, toBrowserSourcePath(entryFile)), 'utf8');
     const metadataId = extractMetadataId(content);
     if (!metadataId) {
       errors.push(`Module entry missing metadata.id: ${entryFile}`);

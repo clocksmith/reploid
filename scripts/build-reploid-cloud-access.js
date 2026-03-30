@@ -10,7 +10,7 @@
  * - optional `REPLOID_ACCESS_CODEBOOK_PATH`
  *
  * Outputs:
- * - `src/self/cloud-access-windows.js` with sealed blobs only
+ * - `self/cloud-access-windows.js` with sealed blobs only
  * - `.reploid-cloud/codebook-<year>.json` with operator-only access codes
  */
 
@@ -140,9 +140,9 @@ export async function buildCloudAccessArtifacts(options = {}) {
   const projectRoot = options.projectRoot || PROJECT_ROOT;
   const env = options.env || process.env;
   const outputPath = resolveProjectPath(projectRoot, options.outputPath)
-    || path.join(projectRoot, 'src', 'self', 'cloud-access-windows.js');
+    || path.join(projectRoot, 'self', 'cloud-access-windows.js');
   const statusOutputPath = resolveProjectPath(projectRoot, options.statusOutputPath)
-    || path.join(projectRoot, 'src', 'self', 'cloud-access-status.js');
+    || path.join(projectRoot, 'self', 'cloud-access-status.js');
   const provider = String(env.REPLOID_CLOUD_PROVIDER || DEFAULT_PROVIDER).trim() || DEFAULT_PROVIDER;
   const model = String(env.REPLOID_CLOUD_MODEL || DEFAULT_MODEL).trim() || DEFAULT_MODEL;
   const days = Math.max(
@@ -179,7 +179,7 @@ export async function buildCloudAccessArtifacts(options = {}) {
   }
 
   const codebook = readCodebook(codebookPath);
-  const { sealString } = await import('../src/self/key-unsealer.js');
+  const { sealString } = await import('../self/key-unsealer.js');
   const entries = buildCodeEntries({
     startDate,
     days,

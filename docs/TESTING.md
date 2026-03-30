@@ -141,7 +141,7 @@ Multi-model consensus for RSI safety validation.
 
 **Purpose:** Ensures risky L2/L3 operations are validated by multiple models before execution.
 
-**See:** [Arena Source](../src/testing/arena/)
+**See:** [Arena Source](../self/testing/arena/)
 
 ---
 
@@ -237,7 +237,7 @@ const src = resolve('src');
 export default defineConfig({
   resolve: {
     alias: [
-      // Tests import ../../core/ etc. — rewrite to src/
+      // Tests import ../../core/ etc. — rewrite to self/
       { find: /^(\.\.\/)+(?=(core|infrastructure|capabilities|testing|tools|ui)\/)/, replacement: src + '/' },
     ]
   },
@@ -282,5 +282,5 @@ export default defineConfig({
 ## Related Documentation
 
 - Ouroboros Architecture (internal)
-- [Arena Source](../src/testing/arena/)
+- [Arena Source](../self/testing/arena/)
 - [Style Guide](./style-guide.md)

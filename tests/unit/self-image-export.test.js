@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { exportSelfImage } from '../../src/self/image/export.js';
+import { exportSelfImage } from '../../self/image/export.js';
 
 describe('Self Image Export', () => {
   it('exports the canonical /self image and boot contract', async () => {

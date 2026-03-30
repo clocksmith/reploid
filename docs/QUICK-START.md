@@ -72,7 +72,7 @@ Inspect /tools and summarize the available capabilities
 
 ## Genesis Levels
 
-`src/config/genesis-levels.json` is the source of truth.
+`self/config/genesis-levels.json` is the source of truth.
 
 | Level | Cumulative Modules | Best For |
 |-------|--------------------|----------|
@@ -147,7 +147,7 @@ Boot-wizard flow:
 If you need a non-default Doppler asset root, open the app with:
 
 ```text
-http://localhost:8000/src/?dopplerBase=http://localhost:9000/doppler
+http://localhost:8000/?dopplerBase=http://localhost:9000/doppler
 ```
 
 ---

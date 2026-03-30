@@ -4,7 +4,7 @@ import {
   runLocalSelfAudit,
   scanManualFlags,
   slugifyRoomId
-} from '../../src/experimental/openclaw-audit/self-audit.js';
+} from '../../self/experimental/openclaw-audit/self-audit.js';
 
 describe('OpenClaw audit helpers', () => {
   it('slugifies room names for room sharing', () => {

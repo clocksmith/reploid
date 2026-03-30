@@ -1290,14 +1290,11 @@ const setStaticHeaders = (res, filePath) => {
   if (filePath.endsWith('.wgsl')) {
     res.setHeader('Content-Type', 'text/plain; charset=utf-8');
   }
-  if (filePath.endsWith(path.join('src', 'self', 'host', 'sw-module-loader.js'))) {
-    res.setHeader('Service-Worker-Allowed', '/');
-  }
 };
 
 // Main routes
 app.get(['/', '/0', '/x'], (req, res) => {
-  res.sendFile(path.join(__dirname, '..', 'src', 'self', 'kernel', 'index.html'));
+  res.sendFile(path.join(__dirname, '..', 'self', 'index.html'));
 });
 
 app.get(['/doppler', '/doppler/'], (req, res) => {
@@ -1305,7 +1302,7 @@ app.get(['/doppler', '/doppler/'], (req, res) => {
 });
 
 app.get('/design', (req, res) => {
-  res.sendFile(path.join(__dirname, '..', 'src', 'design.html'));
+  res.sendFile(path.join(__dirname, '..', 'self', 'design.html'));
 });
 
 app.get('/SECURITY_AUDIT.md', (req, res) => {
@@ -1314,11 +1311,11 @@ app.get('/SECURITY_AUDIT.md', (req, res) => {
 });
 
 app.get(['/audit', '/audit/'], (req, res) => {
-  res.sendFile(path.join(__dirname, '..', 'src', 'audit.html'));
+  res.sendFile(path.join(__dirname, '..', 'self', 'audit.html'));
 });
 
 app.get('/reset', (req, res) => {
-  res.sendFile(path.join(__dirname, '..', 'src', 'reset.html'));
+  res.sendFile(path.join(__dirname, '..', 'self', 'reset.html'));
 });
 
 // Serve DOPPLER assets from the local runtime source of truth.
@@ -1345,13 +1342,7 @@ app.use('/gpu/kernels', express.static(dopplerKernelDir, {
   }
 }));
 
-app.use('/src', express.static(path.join(__dirname, '..', 'src'), {
-  setHeaders: (res, filePath) => {
-    setStaticHeaders(res, filePath);
-  }
-}));
-
-app.use(express.static(path.join(__dirname, '..', 'src'), {
+app.use(express.static(path.join(__dirname, '..', 'self'), {
   setHeaders: (res, filePath) => {
     setStaticHeaders(res, filePath);
   }
