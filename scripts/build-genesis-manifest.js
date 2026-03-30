@@ -7,19 +7,18 @@
 import { promises as fs } from 'fs';
 import path from 'path';
 import { fileURLToPath, pathToFileURL } from 'url';
+import { toCanonicalBrowserPath, toPosix } from './browser-tree-paths.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const ROOT = path.resolve(__dirname, '..');
-const SRC_ROOT = path.join(ROOT, 'src');
+const SELF_ROOT = path.join(ROOT, 'self');
 
-const TEMPLATE_PATH = path.join(SRC_ROOT, 'config', 'genesis-template.json');
-const OUTPUT_PATH = path.join(SRC_ROOT, 'config', 'genesis-levels.json');
-const SEARCH_ROOTS = ['core', 'infrastructure', 'capabilities', 'testing'].map((dir) =>
-  path.join(SRC_ROOT, dir)
+const TEMPLATE_PATH = path.join(SELF_ROOT, 'config', 'genesis-template.json');
+const OUTPUT_PATH = path.join(SELF_ROOT, 'config', 'genesis-levels.json');
+const SEARCH_ROOTS = ['core', 'infrastructure', 'capabilities', 'experimental', 'testing'].map((dir) =>
+  path.join(SELF_ROOT, dir)
 );
-
-const toPosix = (p) => p.split(path.sep).join('/');
 
 async function walkFiles(dir) {
   const entries = await fs.readdir(dir, { withFileTypes: true });
@@ -51,7 +50,7 @@ async function loadModuleMetadata(filePath) {
       return null;
     }
 
-    const relativePath = toPosix(path.relative(SRC_ROOT, filePath));
+    const relativePath = toCanonicalBrowserPath(path.relative(SELF_ROOT, filePath));
     const files = Array.isArray(metadata.files) && metadata.files.length > 0
       ? metadata.files.map(toPosix)
       : [relativePath];

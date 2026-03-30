@@ -4,10 +4,10 @@ import { fileURLToPath } from 'node:url';
 
 import { describe, expect, it } from 'vitest';
 
-import { pickBootSeedFiles, shouldHydrateFullManifest } from '../../src/config/boot-seed.js';
+import { pickBootSeedFiles, shouldHydrateFullManifest } from '../../self/config/boot-seed.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const manifestPath = path.resolve(__dirname, '../../src/config/vfs-manifest.json');
+const manifestPath = path.resolve(__dirname, '../../self/config/vfs-manifest.json');
 const manifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
 
 describe('boot seed manifest', () => {

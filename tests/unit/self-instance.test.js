@@ -8,14 +8,14 @@ import {
   hasRequestedFreshIdentity,
   getScopedReploidStorageKey,
   getScopedReploidVfsDbName
-} from '../../src/self/instance.js';
+} from '../../self/instance.js';
 import {
   ensureIdentityBundle,
   getIdentityStorageKey,
   readStoredIdentityBundle,
   rotateIdentityBundle,
   saveIdentityBundle
-} from '../../src/self/identity.js';
+} from '../../self/identity.js';
 
 const createMockStorage = () => {
   const values = new Map();

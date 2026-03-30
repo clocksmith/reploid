@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 /**
- * Generates src/config/blueprint-registry.json by scanning:
+ * Generates self/config/blueprint-registry.json by scanning:
  * 1. Existing blueprint-registry.json (preserves known mappings)
  * 2. Blueprint .md files (parses "Affected Artifacts" references)
- * 3. All .js files in src/
+ * 3. All .js files in self/
  *
  * No longer depends on MODULE_SYSTEM_AUDIT.md
  */
@@ -11,15 +11,14 @@
 import { promises as fs } from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { toCanonicalBrowserPath, toPosix } from './browser-tree-paths.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const ROOT = path.resolve(__dirname, '..');
-const SRC_DIR = path.join(ROOT, 'src');
-const BLUEPRINT_DIR = path.join(SRC_DIR, 'blueprints');
-const REGISTRY_PATH = path.join(SRC_DIR, 'config', 'blueprint-registry.json');
-
-const toPosix = (p) => p.split(path.sep).join('/');
+const SELF_DIR = path.join(ROOT, 'self');
+const BLUEPRINT_DIR = path.join(SELF_DIR, 'blueprints');
+const REGISTRY_PATH = path.join(SELF_DIR, 'config', 'blueprint-registry.json');
 
 async function walkFiles(dir) {
   const entries = await fs.readdir(dir, { withFileTypes: true });
@@ -175,8 +174,8 @@ async function main() {
   }
 
   // Walk all JS files
-  const jsFiles = await walkFiles(SRC_DIR);
-  const relFiles = jsFiles.map((file) => toPosix(path.relative(SRC_DIR, file))).sort();
+  const jsFiles = await walkFiles(SELF_DIR);
+  const relFiles = jsFiles.map((file) => toCanonicalBrowserPath(path.relative(SELF_DIR, file))).sort();
 
   // Find max existing blueprint ID
   let maxId = 0;

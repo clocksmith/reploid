@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <base id="reploid-base" href="/">
+  <script>
+    (function () {
+      const base = document.getElementById("reploid-base");
+      if (!base) return;
+      base.href = "/";
+    })();
+  </script>
+  <title>REPLOID - Reset Data</title>
+  <script>
+    window.REPLOID_SW_VERSION = "1735500008";
+    window.REPLOID_VFS_VERSION = "1735500008";
+    (function () {
+      const key = "REPLOID_SW_VERSION";
+      if (!("serviceWorker" in navigator)) return;
+      const expected = window.REPLOID_SW_VERSION;
+      if (!expected) return;
+      const current = localStorage.getItem(key);
+      if (current === expected) return;
+      navigator.serviceWorker.getRegistrations().then((regs) => {
+        if (!regs.length) {
+          localStorage.setItem(key, expected);
+          return;
+        }
+        return Promise.all(regs.map((reg) => reg.unregister())).then(() => {
+          localStorage.setItem(key, expected);
+          window.location.reload();
+        });
+      }).catch(() => {});
+    })();
+  </script>
+  <link rel="stylesheet" href="styles/rd.css?v=1735500008">
+  <style>
+    /* Reset-specific styles using RD tokens */
+    .reset-container {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 40px 20px;
+    }
+    .reset-title {
+      font-size: 24px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .reset-subtitle {
+      opacity: 0.6;
+      margin-bottom: 30px;
+    }
+    .reset-card {
+      border: 1px solid var(--fg);
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+    .reset-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+    .reset-card-title {
+      font-size: 16px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .reset-card-title .icon {
+      font-size: 20px;
+    }
+    .reset-card-desc {
+      opacity: 0.6;
+      font-size: 13px;
+      line-height: 1.5;
+      margin-bottom: 12px;
+    }
+    .stats {
+      border: 1px dashed var(--fg);
+      padding: 12px;
+      font-size: 12px;
+    }
+    .stats-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 4px 0;
+      border-bottom: 1px dotted var(--fg);
+      opacity: 0.8;
+    }
+    .stats-row:last-child {
+      border-bottom: none;
+    }
+    .stats-label {
+      opacity: 0.6;
+    }
+    .stats-value {
+      font-weight: 500;
+    }
+    .stats-value.warning {
+      font-weight: 700;
+    }
+    .stats-value.empty {
+      opacity: 0.4;
+    }
+    /* Toggle switch - MONO style */
+    .toggle {
+      position: relative;
+      width: 50px;
+      height: 26px;
+    }
+    .toggle input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    .toggle-slider {
+      position: absolute;
+      cursor: pointer;
+      inset: 0;
+      background: var(--bg);
+      border: 1px solid var(--fg);
+      transition: 0.2s;
+    }
+    .toggle-slider:before {
+      position: absolute;
+      content: "";
+      height: 18px;
+      width: 18px;
+      left: 3px;
+      bottom: 3px;
+      background: var(--fg);
+      opacity: 0.3;
+      transition: 0.2s;
+    }
+    .toggle input:checked + .toggle-slider {
+      background: var(--fg);
+    }
+    .toggle input:checked + .toggle-slider:before {
+      transform: translateX(24px);
+      background: var(--bg);
+      opacity: 1;
+    }
+    .reset-actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 24px;
+    }
+    .reset-actions .btn {
+      flex: 1;
+      padding: 14px 24px;
+      font-size: 15px;
+      font-weight: 600;
+    }
+    .reset-status {
+      margin-top: 20px;
+      padding: 16px;
+      border: 1px solid var(--fg);
+      display: none;
+    }
+    .reset-status.success {
+      display: block;
+      border-width: 2px;
+    }
+    .reset-status.error {
+      display: block;
+      border-style: dashed;
+    }
+    .reset-status.progress {
+      display: block;
+      border-style: dotted;
+    }
+    .progress-item {
+      padding: 4px 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .progress-item .check {
+      font-weight: bold;
+    }
+    .loading {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border: 2px solid var(--fg);
+      border-top-color: transparent;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    .back-link {
+      display: inline-block;
+      margin-top: 24px;
+      text-decoration: none;
+      font-size: 14px;
+      border-bottom: 1px dotted var(--fg);
+    }
+    .back-link:hover {
+      border-bottom-style: solid;
+    }
+  </style>
+</head>
+<body>
+  <div class="reset-container">
+    <h1 class="reset-title">REPLOID Reset</h1>
+    <p class="reset-subtitle">Selectively clear cached data to fix issues or start fresh</p>
+
+    <!-- Service Workers -->
+    <div class="reset-card">
+      <div class="reset-card-header">
+        <div class="reset-card-title">
+          <span class="icon">&#9032;</span>
+          Service Workers
+        </div>
+        <label class="toggle">
+          <input type="checkbox" id="reset-sw" checked>
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+      <p class="reset-card-desc">
+        Service workers intercept network requests and can serve cached JavaScript modules.
+        Unregistering them forces fresh code to load from the server.
+      </p>
+      <div class="stats" id="stats-sw">
+        <div class="stats-row">
+          <span class="stats-label">Registered</span>
+          <span class="stats-value" id="sw-count">Scanning...</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Browser Caches -->
+    <div class="reset-card">
+      <div class="reset-card-header">
+        <div class="reset-card-title">
+          <span class="icon">&#9850;</span>
+          Browser Caches
+        </div>
+        <label class="toggle">
+          <input type="checkbox" id="reset-cache" checked>
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+      <p class="reset-card-desc">
+        Browser caches store responses for offline use and faster loading.
+        Clearing them ensures you get the latest versions of all files.
+      </p>
+      <div class="stats" id="stats-cache">
+        <div class="stats-row">
+          <span class="stats-label">Cache buckets</span>
+          <span class="stats-value" id="cache-count">Scanning...</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- LocalStorage -->
+    <div class="reset-card">
+      <div class="reset-card-header">
+        <div class="reset-card-title">
+          <span class="icon">&#9719;</span>
+          LocalStorage
+        </div>
+        <label class="toggle">
+          <input type="checkbox" id="reset-localstorage" checked>
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+      <p class="reset-card-desc">
+        Stores user preferences like selected models, genesis level, and UI settings.
+        Clearing this resets all configuration to defaults.
+      </p>
+      <div class="stats" id="stats-ls">
+        <div class="stats-row">
+          <span class="stats-label">Keys stored</span>
+          <span class="stats-value" id="ls-count">Scanning...</span>
+        </div>
+        <div class="stats-row">
+          <span class="stats-label">Total size</span>
+          <span class="stats-value" id="ls-size">Scanning...</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- IndexedDB -->
+    <div class="reset-card">
+      <div class="reset-card-header">
+        <div class="reset-card-title">
+          <span class="icon">&#9751;</span>
+          IndexedDB (VFS)
+        </div>
+        <label class="toggle">
+          <input type="checkbox" id="reset-idb" checked>
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+      <p class="reset-card-desc">
+        The Virtual File System stores all agent code, reflections, knowledge graph,
+        embeddings, and state. This is the main data store for REPLOID.
+      </p>
+      <div class="stats" id="stats-idb">
+        <div class="stats-row">
+          <span class="stats-label">Databases</span>
+          <span class="stats-value" id="idb-count">Scanning...</span>
+        </div>
+        <div class="stats-row" id="idb-list"></div>
+      </div>
+    </div>
+
+    <div class="reset-actions">
+      <button class="btn" onclick="window.location.href='/'">Cancel</button>
+      <button class="btn btn-primary" id="reset-btn" onclick="performReset()">Reset Selected</button>
+    </div>
+
+    <div class="reset-status" id="status"></div>
+
+    <a href="/" class="back-link">&larr; Back to REPLOID</a>
+  </div>
+
+  <script>
+    // Scan and display current stats
+    async function scanData() {
+      // Service Workers
+      if ('serviceWorker' in navigator) {
+        const regs = await navigator.serviceWorker.getRegistrations();
+        document.getElementById('sw-count').textContent = regs.length || 'None';
+        document.getElementById('sw-count').className = 'stats-value' + (regs.length ? ' warning' : ' empty');
+      } else {
+        document.getElementById('sw-count').textContent = 'Not supported';
+        document.getElementById('sw-count').className = 'stats-value empty';
+      }
+
+      // Browser Caches
+      if ('caches' in window) {
+        const cacheNames = await caches.keys();
+        document.getElementById('cache-count').textContent = cacheNames.length || 'None';
+        document.getElementById('cache-count').className = 'stats-value' + (cacheNames.length ? ' warning' : ' empty');
+      } else {
+        document.getElementById('cache-count').textContent = 'Not supported';
+        document.getElementById('cache-count').className = 'stats-value empty';
+      }
+
+      // LocalStorage
+      const lsKeys = Object.keys(localStorage);
+      document.getElementById('ls-count').textContent = lsKeys.length || 'None';
+      document.getElementById('ls-count').className = 'stats-value' + (lsKeys.length ? '' : ' empty');
+
+      let lsSize = 0;
+      for (const key of lsKeys) {
+        lsSize += localStorage.getItem(key).length * 2; // UTF-16
+      }
+      document.getElementById('ls-size').textContent = formatBytes(lsSize);
+      document.getElementById('ls-size').className = 'stats-value' + (lsSize ? '' : ' empty');
+
+      // IndexedDB
+      if ('databases' in indexedDB) {
+        const dbs = await indexedDB.databases();
+        document.getElementById('idb-count').textContent = dbs.length || 'None';
+        document.getElementById('idb-count').className = 'stats-value' + (dbs.length ? ' warning' : ' empty');
+
+        if (dbs.length > 0) {
+          const listEl = document.getElementById('idb-list');
+          listEl.innerHTML = '<span class="stats-label">Names</span><span class="stats-value">' +
+            dbs.map(db => db.name).join(', ') + '</span>';
+        }
+      } else {
+        document.getElementById('idb-count').textContent = 'Cannot enumerate';
+        document.getElementById('idb-count').className = 'stats-value empty';
+      }
+    }
+
+    function formatBytes(bytes) {
+      if (bytes === 0) return '0 B';
+      const k = 1024;
+      const sizes = ['B', 'KB', 'MB', 'GB'];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+    }
+
+    async function performReset() {
+      const btn = document.getElementById('reset-btn');
+      const status = document.getElementById('status');
+
+      btn.disabled = true;
+      btn.textContent = 'Resetting...';
+
+      status.className = 'reset-status progress';
+      status.innerHTML = '<div class="progress-item"><span class="loading"></span> Starting reset...</div>';
+
+      const steps = [];
+
+      try {
+        // Service Workers
+        if (document.getElementById('reset-sw').checked && 'serviceWorker' in navigator) {
+          status.innerHTML += '<div class="progress-item"><span class="loading"></span> Unregistering service workers...</div>';
+          const regs = await navigator.serviceWorker.getRegistrations();
+          await Promise.all(regs.map(reg => reg.unregister()));
+          steps.push(`Unregistered ${regs.length} service worker(s)`);
+          updateProgress(status, 'Unregistered service workers');
+        }
+
+        // Browser Caches
+        if (document.getElementById('reset-cache').checked && 'caches' in window) {
+          status.innerHTML += '<div class="progress-item"><span class="loading"></span> Clearing browser caches...</div>';
+          const cacheNames = await caches.keys();
+          await Promise.all(cacheNames.map(name => caches.delete(name)));
+          steps.push(`Cleared ${cacheNames.length} cache(s)`);
+          updateProgress(status, 'Cleared browser caches');
+        }
+
+        // LocalStorage
+        if (document.getElementById('reset-localstorage').checked) {
+          status.innerHTML += '<div class="progress-item"><span class="loading"></span> Clearing localStorage...</div>';
+          const count = localStorage.length;
+          localStorage.clear();
+          steps.push(`Cleared ${count} localStorage keys`);
+          updateProgress(status, 'Cleared localStorage');
+        }
+
+        // IndexedDB
+        if (document.getElementById('reset-idb').checked) {
+          // First, tell service worker to close its VFS connection
+          status.innerHTML += '<div class="progress-item"><span class="loading"></span> Closing service worker VFS connection...</div>';
+          try {
+            const regs = await navigator.serviceWorker.getRegistrations();
+            for (const reg of regs) {
+              if (reg.active) {
+                // Send CLOSE_VFS message to service worker
+                const channel = new MessageChannel();
+                reg.active.postMessage({ type: 'CLOSE_VFS' }, [channel.port2]);
+                // Wait a bit for SW to close its connection
+                await new Promise(resolve => setTimeout(resolve, 100));
+              }
+            }
+          } catch (e) {
+            console.warn('Could not notify service worker:', e);
+          }
+          updateProgress(status, 'Notified service worker to close VFS');
+
+          status.innerHTML += '<div class="progress-item"><span class="loading"></span> Deleting IndexedDB databases...</div>';
+          const dbs = await indexedDB.databases();
+          const deleteResults = await Promise.all(dbs.map(db => new Promise((resolve) => {
+            const timeoutId = setTimeout(() => {
+              resolve({ name: db.name, status: 'timeout' });
+            }, 5000);
+            const req = indexedDB.deleteDatabase(db.name);
+            req.onsuccess = () => {
+              clearTimeout(timeoutId);
+              resolve({ name: db.name, status: 'deleted' });
+            };
+            req.onerror = () => {
+              clearTimeout(timeoutId);
+              resolve({ name: db.name, status: 'error' });
+            };
+            req.onblocked = () => {
+              // Wait longer for blocked databases
+              console.warn(`Database ${db.name} blocked, waiting...`);
+              // Don't resolve immediately - let the timeout handle it or onsuccess
+            };
+          })));
+          const deleted = deleteResults.filter(r => r.status === 'deleted').length;
+          const blocked = deleteResults.filter(r => r.status === 'blocked' || r.status === 'timeout').length;
+          if (blocked > 0) {
+            steps.push(`Deleted ${deleted}/${dbs.length} database(s), ${blocked} blocked (reload page to retry)`);
+          } else {
+            steps.push(`Deleted ${dbs.length} database(s)`);
+          }
+          updateProgress(status, 'Deleted IndexedDB databases');
+        }
+
+        status.className = 'reset-status success';
+        status.innerHTML = '<strong>Reset complete!</strong><br><br>' +
+          steps.map(s => '&#10003; ' + s).join('<br>') +
+          '<br><br><button class="btn btn-primary" onclick="window.location.href=\'/\'" style="margin-top: 12px;">Launch REPLOID</button>' +
+          '<button class="btn" onclick="location.reload()" style="margin-top: 12px; margin-left: 8px;">Refresh Status</button>';
+
+        // Re-scan to show updated stats (don't redirect)
+        await scanData();
+
+        btn.disabled = false;
+        btn.textContent = 'Reset Again';
+
+      } catch (e) {
+        status.className = 'reset-status error';
+        status.innerHTML = '<strong>Reset failed:</strong><br>' + e.message;
+        btn.disabled = false;
+        btn.textContent = 'Retry Reset';
+      }
+    }
+
+    function updateProgress(status, message) {
+      const items = status.querySelectorAll('.progress-item');
+      if (items.length > 0) {
+        const last = items[items.length - 1];
+        last.innerHTML = '<span class="check">&#10003;</span> ' + message;
+      }
+    }
+
+    // Initialize
+    scanData();
+  </script>
+</body>
+</html>

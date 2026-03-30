@@ -2,7 +2,7 @@
   "name": "reploid",
   "version": "0.1.0",
   "description": "Browser-Native AI Agent with Recursive Self-Improvement",
-  "main": "src/bootstrap.js",
+  "main": "server/proxy.js",
   "type": "module",
   "repository": {
     "type": "git",

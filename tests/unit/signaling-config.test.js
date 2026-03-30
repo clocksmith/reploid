@@ -7,7 +7,7 @@ import {
   getDefaultSignalingUrl,
   getResolvedSignalingConfig,
   normalizeSignalingUrl
-} from '../../src/capabilities/communication/signaling-config.js';
+} from '../../self/capabilities/communication/signaling-config.js';
 
 describe('signaling-config', () => {
   const location = {

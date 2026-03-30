@@ -145,9 +145,10 @@ Users can also bypass that path and use their own inference directly in the brow
 
 ```text
 reploid/
-├── src/
-│   ├── self/            # Explicit awakened self modules
-│   ├── ui/capsule/      # Capsule shell
+├── self/
+│   ├── kernel/          # Boot shell and bootstrap entry
+│   ├── host/            # VFS seeding and runtime handoff
+│   ├── capsule/         # Capsule shell
 │   ├── ui/boot-home/    # Primary boot UI
 │   ├── core/            # Shared runtime helpers
 │   ├── capabilities/    # Transport and other subsystems

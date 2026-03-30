@@ -6,7 +6,7 @@ This document consolidates the developer documentation for the REPLOID substrate
 
 ```
 reploid/
-├── src/               # Browser runtime (VFS root)
+├── self/               # Browser runtime (VFS root)
 │   ├── entry/         # Entry points (seed VFS, start app)
 │   ├── boot-helpers/  # Boot orchestration helpers
 │   ├── core/          # Core substrate modules (cognitive kernel)
@@ -25,8 +25,8 @@ reploid/
 └── ../doppler/        # Sibling engine repo in the workspace
 ```
 
-Runtime note: the VFS root `/` maps to `src/` on disk. Paths like `/core/agent-loop.js`
-refer to `src/core/agent-loop.js`.
+Runtime note: the VFS root `/` maps to `self/` on disk. Paths like `/core/agent-loop.js`
+refer to `self/core/agent-loop.js`.
 
 ---
 
@@ -174,7 +174,7 @@ Set `CORS_ORIGINS` environment variable or add to config:
 
 ## Blueprints
 
-The `src/blueprints/` directory (VFS path `/blueprints/`) contains 216+ architectural blueprints organized into 7 domains:
+The `self/blueprints/` directory (VFS path `/blueprints/`) contains 216+ architectural blueprints organized into 7 domains:
 
 1. **Core Infrastructure** - Bootstrapping, DI, configuration
 2. **State & Memory** - VFS, persistence, context management

@@ -105,7 +105,7 @@ If Doppler support is available:
 The app defaults to `/doppler` for Doppler assets. Override it with `dopplerBase`:
 
 ```text
-http://localhost:8000/src/?dopplerBase=http://localhost:9000/doppler
+http://localhost:8000/?dopplerBase=http://localhost:9000/doppler
 ```
 
 The selected local model is stored with `hostType: browser-local` and `provider: doppler`.

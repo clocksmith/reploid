@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { generateGoalPrompt } from '../../src/ui/boot-wizard/detection.js';
-import { resetWizard, setNestedState, setState } from '../../src/ui/boot-wizard/state.js';
+import { generateGoalPrompt } from '../../self/ui/boot-wizard/detection.js';
+import { resetWizard, setNestedState, setState } from '../../self/ui/boot-wizard/state.js';
 
 const VALID_GOAL = 'Measure, rewrite, validate, and redeploy your own core iteratively, preserving reversibility while increasing capability, efficiency, and autonomy.';
 

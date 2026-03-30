@@ -23,7 +23,7 @@ import { chromium } from 'playwright';
 
 const BASE_URL = process.env.BASE_URL || 'http://localhost:8080';
 const KEEP_OPEN = process.env.KEEP_OPEN !== 'false';
-const APP_PATH = '/src/index.html';
+const APP_PATH = '/index.html';
 
 // Built-in goal presets (use GOAL=preset_name)
 const GOAL_PRESETS = {

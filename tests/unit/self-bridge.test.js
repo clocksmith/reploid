@@ -5,7 +5,7 @@ const mockChat = vi.fn();
 const mockLoadVfsModule = vi.fn();
 const mockFetch = vi.fn();
 
-vi.mock('../../src/core/utils.js', () => ({
+vi.mock('../../self/core/utils.js', () => ({
   default: {
     factory: () => ({
       logger: {
@@ -23,13 +23,13 @@ vi.mock('../../src/core/utils.js', () => ({
   }
 }));
 
-vi.mock('../../src/core/provider-registry.js', () => ({
+vi.mock('../../self/core/provider-registry.js', () => ({
   default: {
     factory: () => ({})
   }
 }));
 
-vi.mock('../../src/core/llm-client.js', () => ({
+vi.mock('../../self/core/llm-client.js', () => ({
   default: {
     factory: () => ({
       chat: mockChat
@@ -37,17 +37,17 @@ vi.mock('../../src/core/llm-client.js', () => ({
   }
 }));
 
-vi.mock('../../src/infrastructure/stream-parser.js', () => ({
+vi.mock('../../self/infrastructure/stream-parser.js', () => ({
   default: {
     factory: () => ({})
   }
 }));
 
-vi.mock('../../src/core/vfs-module-loader.js', () => ({
+vi.mock('../../self/core/vfs-module-loader.js', () => ({
   loadVfsModule: (...args) => mockLoadVfsModule(...args)
 }));
 
-vi.mock('../../src/self/host/vfs-bootstrap.js', () => ({
+vi.mock('../../self/host/vfs-bootstrap.js', () => ({
   readVfsFile: async (path) => fileStore.get(path) ?? null,
   writeVfsFile: async (path, content) => {
     fileStore.set(path, content);
@@ -56,7 +56,7 @@ vi.mock('../../src/self/host/vfs-bootstrap.js', () => ({
   listVfsKeys: async () => Array.from(fileStore.keys())
 }));
 
-import { createSelfBridge } from '../../src/self/bridge.js';
+import { createSelfBridge } from '../../self/bridge.js';
 
 describe('Self Bridge', () => {
   beforeEach(() => {
@@ -225,7 +225,7 @@ describe('Self Bridge', () => {
 
     const file = await host.executeTool('ReadFile', { path: '/self/runtime.js' });
 
-    expect(file.content).toBe('source:/src/self/runtime.js');
+    expect(file.content).toBe('source:/runtime.js');
     expect(fileStore.has('/self/runtime.js')).toBe(false);
   });
 

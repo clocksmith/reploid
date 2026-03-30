@@ -11,7 +11,7 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const ROOT = path.resolve(__dirname, '..');
-const CONFIG_DIR = path.join(ROOT, 'src', 'config');
+const CONFIG_DIR = path.join(ROOT, 'self', 'config');
 
 const SEVERITY = { high: 0, medium: 1, low: 2 };
 
@@ -184,12 +184,12 @@ function findMissingBlueprints(modules) {
  */
 async function findStaleBlueprints(blueprintRegistry) {
   const issues = [];
-  const srcDir = path.join(ROOT, 'src');
+  const selfDir = path.join(ROOT, 'self');
 
   for (const feature of blueprintRegistry.features || []) {
     for (const file of feature.files || []) {
       try {
-        await fs.access(path.join(srcDir, file));
+        await fs.access(path.join(selfDir, file.replace(/^self\//, '')));
       } catch {
         issues.push({
           type: 'stale_blueprint',

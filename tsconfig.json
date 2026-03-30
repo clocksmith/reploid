@@ -27,12 +27,7 @@
     "isolatedModules": true
   },
   "include": [
-    "src/core/**/*.js",
-    "src/infrastructure/**/*.js",
-    "src/tools/**/*.js",
-    "src/ui/**/*.js",
-    "src/config/**/*.js",
-    "src/capabilities/**/*.js"
+    "self/**/*.js"
   ],
   "exclude": [
     "node_modules",

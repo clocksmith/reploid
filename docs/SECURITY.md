@@ -40,14 +40,14 @@ REPLOID studies RSI (recursive self-improvement) without giving agents access to
 
 | Layer | Blueprint | Description |
 |-------|-----------|-------------|
-| 1 | [VFS (0x000011)](../src/blueprints/0x000011-advanced-storage-backend-indexeddb.md) | All I/O virtualized via IndexedDB |
-| 2 | [Application Orchestration (0x000002)](../src/blueprints/0x000002-application-orchestration.md) | ES module boot and VFS hydration |
-| 3 | [Genesis Snapshots (0x00003C)](../src/blueprints/0x00003C-genesis-snapshot-system.md) | Instant rollback to pristine state |
-| 4 | [Verification Manager (0x000040)](../src/blueprints/0x000040-verification-manager.md) | Pre-flight checks in isolated Web Worker |
-| 5 | [Arena Harness (0x000066)](../src/blueprints/0x000066-arena-harness.md) | Multi-model consensus for high-risk changes |
+| 1 | [VFS (0x000011)](../self/blueprints/0x000011-advanced-storage-backend-indexeddb.md) | All I/O virtualized via IndexedDB |
+| 2 | [Application Orchestration (0x000002)](../self/blueprints/0x000002-application-orchestration.md) | ES module boot and VFS hydration |
+| 3 | [Genesis Snapshots (0x00003C)](../self/blueprints/0x00003C-genesis-snapshot-system.md) | Instant rollback to pristine state |
+| 4 | [Verification Manager (0x000040)](../self/blueprints/0x000040-verification-manager.md) | Pre-flight checks in isolated Web Worker |
+| 5 | [Arena Harness (0x000066)](../self/blueprints/0x000066-arena-harness.md) | Multi-model consensus for high-risk changes |
 | 6 | VFSSandbox | Test changes in a disposable clone before commit |
-| 7 | [Circuit Breakers (0x00005C)](../src/blueprints/0x00005C-circuit-breaker-pattern.md) | Prevent runaway failures |
-| 8 | [HITL Controller (0x000049)](../src/blueprints/0x000049-hitl-controller.md) | Optional approval gates |
+| 7 | [Circuit Breakers (0x00005C)](../self/blueprints/0x00005C-circuit-breaker-pattern.md) | Prevent runaway failures |
+| 8 | [HITL Controller (0x000049)](../self/blueprints/0x000049-hitl-controller.md) | Optional approval gates |
 
 ---
 
@@ -76,7 +76,7 @@ REPLOID studies RSI (recursive self-improvement) without giving agents access to
 
 Reploid supports a pure P2P free tier where opted-in peers form small custody committees for one or more shared demo Gemini keys. This enables zero-install, zero-config demo usage without backend key custody.
 
-See [Blueprint 0x0000e1: Sponsor-Peer Protocol](../src/blueprints/0x0000e1-sponsor-peer-protocol.md) for the canonical specification. The blueprint is the source of truth for topology, routing, quotas, and scaling. This section summarizes policy only.
+See [Blueprint 0x0000e1: Sponsor-Peer Protocol](../self/blueprints/0x0000e1-sponsor-peer-protocol.md) for the canonical specification. The blueprint is the source of truth for topology, routing, quotas, and scaling. This section summarizes policy only.
 
 ### Trust Model
 
@@ -167,11 +167,11 @@ The right product framing is sponsored serverless demo capacity, not a secure sh
 
 | Category | Threats | Mitigation Blueprint |
 |----------|---------|----------------------|
-| Prompt Injection | Malicious user input | [0x000001](../src/blueprints/0x000001-system-prompt-architecture.md) |
-| Code Injection | `eval()`, dynamic imports | [0x000040](../src/blueprints/0x000040-verification-manager.md) |
-| Resource Exhaustion | Infinite loops, API flooding | [0x00005C](../src/blueprints/0x00005C-circuit-breaker-pattern.md), [0x000029](../src/blueprints/0x000029-rate-limiting-strategies.md) |
+| Prompt Injection | Malicious user input | [0x000001](../self/blueprints/0x000001-system-prompt-architecture.md) |
+| Code Injection | `eval()`, dynamic imports | [0x000040](../self/blueprints/0x000040-verification-manager.md) |
+| Resource Exhaustion | Infinite loops, API flooding | [0x00005C](../self/blueprints/0x00005C-circuit-breaker-pattern.md), [0x000029](../self/blueprints/0x000029-rate-limiting-strategies.md) |
 | Data Exfiltration | Arbitrary fetch | VFS containment, no network access |
-| Sponsor Key Abuse | Sybil peers, quota bypass | [0x0000e1](../src/blueprints/0x0000e1-sponsor-peer-protocol.md) - signed leases, per-key quotas, sharded key buckets |
+| Sponsor Key Abuse | Sybil peers, quota bypass | [0x0000e1](../self/blueprints/0x0000e1-sponsor-peer-protocol.md) - signed leases, per-key quotas, sharded key buckets |
 | Sponsor Compromise | Malicious executor/custodian | Short-lived leases, committee quorum, key rotation, monitoring |
 
 ---
@@ -208,11 +208,11 @@ localStorage.REPLOID_SECURITY_MODE = 'on';       // Enable security enforcement
 
 For implementation details, see:
 
-- **[0x000040: Verification Manager](../src/blueprints/0x000040-verification-manager.md)** - Complete security integration section
-- **[0x000049: HITL Controller](../src/blueprints/0x000049-hitl-controller.md)** - Human oversight modes
-- **[0x00005C: Circuit Breaker](../src/blueprints/0x00005C-circuit-breaker-pattern.md)** - Failure isolation
-- **[0x00003C: Genesis Snapshots](../src/blueprints/0x00003C-genesis-snapshot-system.md)** - Rollback system
-- **[0x0000e1: Sponsor-Peer Protocol](../src/blueprints/0x0000e1-sponsor-peer-protocol.md)** - P2P free tier inference
+- **[0x000040: Verification Manager](../self/blueprints/0x000040-verification-manager.md)** - Complete security integration section
+- **[0x000049: HITL Controller](../self/blueprints/0x000049-hitl-controller.md)** - Human oversight modes
+- **[0x00005C: Circuit Breaker](../self/blueprints/0x00005C-circuit-breaker-pattern.md)** - Failure isolation
+- **[0x00003C: Genesis Snapshots](../self/blueprints/0x00003C-genesis-snapshot-system.md)** - Rollback system
+- **[0x0000e1: Sponsor-Peer Protocol](../self/blueprints/0x0000e1-sponsor-peer-protocol.md)** - P2P free tier inference
 
 ---
 

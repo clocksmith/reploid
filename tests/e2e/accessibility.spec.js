@@ -4,7 +4,7 @@
  */
 import { test, expect } from '@playwright/test';
 
-const APP_PATH = '/src/index.html';
+const APP_PATH = '/index.html';
 
 test.describe('Accessibility - Boot Screen', () => {
   test('should have REPLOID heading', async ({ page }) => {

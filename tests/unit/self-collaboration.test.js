@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
-import { buildReploidCloudModelConfig } from '../../src/self/cloud-access.js';
-import { ensureIdentityBundle, buildIdentityDocument } from '../../src/self/identity.js';
-import { sealString, unsealString } from '../../src/self/key-unsealer.js';
-import { createReceiptDraft, signReceiptDraft, countersignReceipt, verifyReceipt } from '../../src/self/receipt.js';
-import { applyReceiptToContribution, createContributionSummary } from '../../src/self/reward-policy.js';
-import { deriveSwarmRole } from '../../src/self/swarm.js';
+import { buildReploidCloudModelConfig } from '../../self/cloud-access.js';
+import { ensureIdentityBundle, buildIdentityDocument } from '../../self/identity.js';
+import { sealString, unsealString } from '../../self/key-unsealer.js';
+import { createReceiptDraft, signReceiptDraft, countersignReceipt, verifyReceipt } from '../../self/receipt.js';
+import { applyReceiptToContribution, createContributionSummary } from '../../self/reward-policy.js';
+import { deriveSwarmRole } from '../../self/swarm.js';
 
 const createMemoryStorage = () => {
   const data = new Map();

@@ -12,11 +12,11 @@ const mockHost = {
   getSwarmSnapshot: vi.fn()
 };
 
-vi.mock('../../src/self/bridge.js', () => ({
+vi.mock('../../self/bridge.js', () => ({
   createSelfBridge: vi.fn(() => mockHost)
 }));
 
-import { createSelfRuntime } from '../../src/self/runtime.js';
+import { createSelfRuntime } from '../../self/runtime.js';
 
 describe('Self Runtime', () => {
   const bridgeEventHandlers = new Map();

@@ -2,31 +2,10 @@
   "hosting": [
     {
       "target": "reploid",
-      "public": ".",
+      "public": "self",
       "ignore": [
         "**/.*",
-        "bin/**",
-        "docs/**",
-        "doppler/**",
-        "node_modules/**",
-        "scripts/**",
-        "server/**",
-        "tests/**",
-        "package*.json",
-        "playwright.config.js",
-        "tsconfig.json",
-        "vitest.config.js",
-        "tests/**",
-        "**/*.gguf",
-        "**/*.safetensors",
-        "**/*.ts",
-        "**/*.map",
-        ".generated/**",
-        "**/.generated/**",
-        "**/tests/**",
-        "**/node_modules/**",
-        "showcase/**",
-        "proto/**"
+        "**/node_modules/**"
       ],
       "headers": [
         {
@@ -59,24 +38,28 @@
       ],
       "rewrites": [
         {
-          "source": "/sw-module-loader.js",
-          "destination": "/src/sw-module-loader.js"
+          "source": "/design",
+          "destination": "/design.html"
         },
         {
-          "source": "/design",
-          "destination": "/src/design.html"
+          "source": "/audit",
+          "destination": "/audit.html"
         },
         {
           "source": "/reset",
-          "destination": "/src/reset.html"
+          "destination": "/reset.html"
         },
         {
           "source": "/",
-          "destination": "/src/index.html"
+          "destination": "/index.html"
         },
         {
-          "source": "**",
-          "destination": "/src/index.html"
+          "source": "/0",
+          "destination": "/index.html"
+        },
+        {
+          "source": "/x",
+          "destination": "/index.html"
         }
       ]
     }

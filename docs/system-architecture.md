@@ -50,7 +50,7 @@ The boot UI allows operators to configure:
 
 On page load, the bootstrapper seeds the VFS and loads the boot UI. When "Awaken" is pressed:
 
-1. **VFS Hydration**: Fetch `config/vfs-manifest.json` and write all listed `src/` files into IndexedDB
+1. **VFS Hydration**: Fetch `config/vfs-manifest.json` and write all listed `self/` files into IndexedDB
 2. **VFS Module Loader**: Ensure `sw-module-loader.js` controls the page (VFS-only module serving)
 3. **Boot from VFS**: Load `entry/start-app.js` from VFS and resolve the DI container
 4. **Genesis Snapshot**: Capture pristine state for rollback
@@ -375,12 +375,12 @@ export const schema = {
 
 ```
 reploid/
-├── src/index.html          # Entry point
-├── src/entry/seed-vfs.js   # VFS hydration + SW activation
-├── src/entry/start-app.js  # Boot orchestrator (runs from VFS)
-├── src/sw-module-loader.js # Service worker for VFS modules
+├── self/index.html          # Entry point
+├── self/entry/seed-vfs.js   # VFS hydration + SW activation
+├── self/entry/start-app.js  # Boot orchestrator (runs from VFS)
+├── self/sw-module-loader.js # Service worker for VFS modules
 │
-├── src/core/               # Core substrate
+├── self/core/               # Core substrate
 │   ├── agent-loop.js       # Cognitive cycle
 │   ├── vfs.js              # Virtual filesystem
 │   ├── llm-client.js       # Multi-provider LLM
@@ -390,7 +390,7 @@ reploid/
 │   ├── response-parser.js  # Tool call parsing
 │   └── verification-manager.js  # Pre-flight checks
 │
-├── src/infrastructure/     # Support services
+├── self/infrastructure/     # Support services
 │   ├── event-bus.js        # Pub/sub system
 │   ├── di-container.js     # Dependency injection
 │   ├── hitl-controller.js  # Human-in-the-loop
@@ -398,28 +398,28 @@ reploid/
 │   ├── circuit-breaker.js  # Failure tracking
 │   └── rate-limiter.js     # API limits
 │
-├── src/ui/                 # User interface
+├── self/ui/                 # User interface
 │   ├── proto/              # Main proto UI
 │   └── dashboard/          # Dashboard helpers and explorer components
 │
-├── src/tools/              # Agent tools (all CamelCase)
+├── self/tools/              # Agent tools (all CamelCase)
 │   ├── ReadFile.js, WriteFile.js, ...
 │   ├── SpawnWorker.js, ListWorkers.js, AwaitWorkers.js
 │   └── python/             # Pyodide runtime
 │
-├── src/config/             # Configuration
+├── self/config/             # Configuration
 │   ├── genesis-levels.json # Module/worker/role definitions
 │   ├── module-registry.json
 │   └── vfs-manifest.json
 │
-├── src/testing/            # Test infrastructure
+├── self/testing/            # Test infrastructure
 │   └── arena/              # Arena harness and sandbox
 │
 ├── docs/                   # Documentation
 └── server/                 # Proxy server for API keys
 ```
 
-For module development guidelines, see [style-guide.md](./style-guide.md) and the blueprint set in `../src/blueprints/`.
+For module development guidelines, see [style-guide.md](./style-guide.md) and the blueprint set in `../self/blueprints/`.
 
 ---
 

@@ -4,7 +4,7 @@
  */
 import { test, expect } from '@playwright/test';
 
-const APP_PATH = '/src/index.html';
+const APP_PATH = '/index.html';
 const HOME_PATH = '/';
 const DEFAULT_HOME_GOAL_SNIPPET = 'Build a live self-improvement control room for this runtime';
 
