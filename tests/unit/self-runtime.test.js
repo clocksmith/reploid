@@ -85,6 +85,19 @@ describe('Self Runtime', () => {
     ).toBe(true);
   });
 
+  it('exposes bridge events to the host shell', () => {
+    const runtime = createSelfRuntime({
+      goal: 'Test goal',
+      environment: 'Test environment'
+    });
+
+    const handler = vi.fn();
+    const unsubscribe = runtime.on('file-changed', handler);
+
+    expect(mockHost.on).toHaveBeenCalledWith('file-changed', handler);
+    expect(typeof unsubscribe).toBe('function');
+  });
+
   it('auto-resumes a parked swarm consumer when a provider appears', async () => {
     mockHost.getModelConfig.mockReturnValue(null);
     mockHost.hasAvailableProvider

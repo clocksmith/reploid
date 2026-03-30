@@ -251,4 +251,79 @@ describe('Self Bridge', () => {
     );
     expect(fileStore.get('/self/self.json')).toContain('"goal": "Test goal"');
   });
+
+  it('creates and auto-loads self tools under /self/tools', async () => {
+    mockLoadVfsModule.mockImplementation(async ({ path }) => {
+      if (path === '/self/tools/ShowBanner.js') {
+        return {
+          tool: {
+            name: 'ShowBanner',
+            description: 'Render a test banner',
+            call: async ({ text = 'hello' }) => ({ rendered: true, text })
+          }
+        };
+      }
+
+      throw new Error(`Unexpected module path: ${path}`);
+    });
+
+    const host = createSelfBridge({
+      modelConfig: {
+        id: 'test-model',
+        provider: 'webllm'
+      }
+    });
+
+    const result = await host.executeTool('CreateTool', {
+      name: 'ShowBanner',
+      code: `
+export const tool = {
+  name: 'ShowBanner',
+  description: 'Render a test banner',
+  call: async ({ text = "hello" }) => ({ rendered: true, text })
+};
+`
+    });
+
+    expect(result).toEqual(expect.objectContaining({
+      name: 'ShowBanner',
+      path: '/self/tools/ShowBanner.js',
+      created: true,
+      loaded: true,
+      callable: true,
+      toolName: 'ShowBanner'
+    }));
+    expect(fileStore.get('/self/tools/ShowBanner.js')).toContain('ShowBanner');
+    await expect(host.executeTool('ShowBanner', { text: 'hi' })).resolves.toEqual({
+      rendered: true,
+      text: 'hi'
+    });
+  });
+
+  it('emits file-changed events for self writes', async () => {
+    const events = [];
+    const host = createSelfBridge({
+      modelConfig: {
+        id: 'test-model',
+        provider: 'webllm'
+      }
+    });
+
+    host.on('file-changed', (detail) => {
+      events.push(detail);
+    });
+
+    await host.executeTool('WriteFile', {
+      path: '/self/tools/EmitEvent.js',
+      content: 'export default async function () { return true; }'
+    });
+
+    expect(events).toEqual([
+      expect.objectContaining({
+        path: '/self/tools/EmitEvent.js',
+        backend: 'vfs',
+        operation: 'write'
+      })
+    ]);
+  });
 });

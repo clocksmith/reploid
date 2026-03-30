@@ -110,7 +110,7 @@ export function buildSelfManifest(options = {}) {
     },
     selfHosted: true,
     selfModifiable: true,
-    visibleTools: ['ReadFile', 'WriteFile', 'LoadModule'],
+    visibleTools: ['ReadFile', 'WriteFile', 'CreateTool', 'LoadModule'],
     rules: [
       'You are a self-hosted, self-modifying Reploid running your own source code in the browser.',
       'Your canonical self is the /self tree. Read, write, and hot-load files there to modify your own behavior.',
@@ -147,6 +147,16 @@ export function buildSelfManifest(options = {}) {
         callTool: 'const result = await callTool("exampleTool", { value: 1 });'
       }
     },
+    createTool: {
+      path: 'Defaults to /self/tools/<Name>.js unless you pass an explicit /self path.',
+      effect: 'Writes a new self tool module and auto-loads it into the running tool runner.',
+      requiredArgs: ['name', 'code'],
+      supportedExports: [
+        'export default async function(args, deps) {}',
+        'export const tool = { name, description, inputSchema, call: async (args, deps) => {} }'
+      ],
+      note: 'Use CreateTool when you want a new callable capability. Use WriteFile when you are editing non-tool self files.'
+    },
     toolCallProtocol: {
       format: 'Use REPLOID/0 plain text blocks. Prefer key/value lines and literal blocks over escaped JSON.',
       singleToolCall: 'REPLOID/0\n\nTOOL: ReadFile\npath: /self/self.json',
@@ -168,6 +178,7 @@ export function buildSelfManifest(options = {}) {
         'Use key: value lines for simple args.',
         'Use key <<MARKER blocks for code or multiline content.',
         'Use plain text, not markdown fences.',
+        'CreateTool writes /self/tools/*.js and auto-loads the new tool.',
         'IDLE parks the loop until manual resume or a wake condition fires.',
         'MILESTONE records a checkpoint, not final completion.',
         'Write and load code under /self when you need new capabilities.'

@@ -8,7 +8,7 @@ import {
   getCurrentReploidStorage as getScopedLocalStorage
 } from '../instance.js';
 import { loadVfsManifest, seedVfsFromManifest, clearVfsStore } from './vfs-bootstrap.js';
-import { pickBootSeedFiles } from '../../config/boot-seed.js';
+import { getBootSeedProfile, pickBootSeedFiles, shouldHydrateFullManifest } from '../../config/boot-seed.js';
 
 const log = (...args) => console.log('[Bootstrap]', ...args);
 const warn = (...args) => console.warn('[Bootstrap]', ...args);
@@ -89,8 +89,8 @@ const loadStartApp = async () => {
     : '';
   const candidates = [
     SELF_BOOT_SPEC.host.startEntry,
-    toSourceWebPath(SELF_BOOT_SPEC.host.startEntry),
     '/entry/start-app.js',
+    toSourceWebPath(SELF_BOOT_SPEC.host.startEntry),
     '/src/entry/start-app.js'
   ];
   let lastError = null;
@@ -188,8 +188,8 @@ const ensureServiceWorker = async () => {
     ? window.REPLOID_SW_VERSION
     : null;
   const swUrl = version
-    ? `/sw-module-loader.js?v=${encodeURIComponent(version)}`
-    : '/sw-module-loader.js';
+    ? `${SELF_BOOT_SPEC.host.serviceWorkerEntry}?v=${encodeURIComponent(version)}`
+    : SELF_BOOT_SPEC.host.serviceWorkerEntry;
   const reg = await waitForServiceWorkerRegister(swUrl, { scope: '/' });
   if (!reg) {
     window.REPLOID_SW_CONTROLLED = false;
@@ -269,7 +269,8 @@ const maybeFullReset = async () => {
     setBootstrapStage('manifest');
     const { manifest, text } = await loadVfsManifest();
     const preserveOnBoot = !vfsReset && getScopedLocalStorage().getItem('REPLOID_PRESERVE_ON_BOOT') === 'true';
-    const bootFiles = pickBootSeedFiles(manifest?.files || []);
+    const bootProfile = getBootSeedProfile();
+    const bootFiles = pickBootSeedFiles(manifest?.files || [], bootProfile);
     if (bootFiles.length === 0) {
       throw new Error('Boot seed manifest is empty');
     }
@@ -301,10 +302,15 @@ const maybeFullReset = async () => {
       { preserveOnBoot, logger: console, manifestText: text, fetchConcurrency: 16 }
     );
 
-    // Seed the rest of Reploid in the background so Awaken won't hit SW 404s.
-    // triggerAwaken awaits this promise before running boot().
-    setBootstrapStage('seed_background');
-    window.REPLOID_VFS_FULL_SEED_PROMISE = scheduleFullSeed();
+    if (shouldHydrateFullManifest(bootProfile)) {
+      // Seed the rest of the manifest in the background for broader boot modes.
+      // Non-Reploid modes await this promise before running boot().
+      setBootstrapStage('seed_background');
+      window.REPLOID_VFS_FULL_SEED_PROMISE = scheduleFullSeed();
+    } else {
+      window.REPLOID_VFS_FULL_SEED_PROMISE = null;
+      log(`Skipping full VFS hydration for minimal boot profile "${bootProfile}".`);
+    }
 
     log('Loading start-app.js from VFS...');
     setBootstrapStage('start_app');

@@ -16,7 +16,7 @@ export const SELF_BOOT_SPEC = Object.freeze({
   schema: 'reploid/self-boot/v1',
   version: 1,
   title: 'Reploid · Browser RSI Substrate',
-  baseHref: '/src/',
+  baseHref: '/',
   bootSpecPath: '/self/boot.json',
   selfPath: '/self/self.json',
   identityPath: '/self/identity.json',
@@ -106,4 +106,3 @@ export function toSourceWebPath(path) {
 export function toVfsPath(path) {
   return normalizePath(path);
 }
-

@@ -9,6 +9,15 @@ const VFS_DB_NAME = 'reploid-vfs-v0';
 const VFS_STORE_NAME = 'files';
 const INSTANCE_QUERY_PARAM = 'instance';
 const INSTANCE_ID_MAX_LENGTH = 64;
+const SELF_BOOTSTRAP_PATHS = new Set([
+  '/self/kernel/index.html',
+  '/self/kernel/boot.js',
+  '/self/boot-spec.js',
+  '/self/instance.js',
+  '/self/host/seed-vfs.js',
+  '/self/host/vfs-bootstrap.js',
+  '/self/host/sw-module-loader.js'
+]);
 
 // Open IndexedDB connections to VFS databases keyed by instance.
 const vfsDBMap = new Map();
@@ -186,6 +195,12 @@ self.addEventListener('fetch', (event) => {
     || url.pathname === '/config/boot-seed.js'
     || url.pathname === '/src/config/boot-seed.js'
   ) {
+    return;
+  }
+
+  // Keep the cold-boot nucleus on an immutable network path so an empty VFS
+  // can still hydrate itself from the canonical /self namespace.
+  if (SELF_BOOTSTRAP_PATHS.has(url.pathname)) {
     return;
   }
 

@@ -72,6 +72,34 @@ const getTextBytes = (content) => {
   return String(content || '').length;
 };
 
+const SELF_TOOL_NAME_PATTERN = /^[A-Z][A-Za-z0-9]*$/;
+const validateSelfToolName = (name) => {
+  if (typeof name !== 'string') {
+    throw new Error('Tool name must be a string');
+  }
+  const trimmed = name.trim();
+  if (!SELF_TOOL_NAME_PATTERN.test(trimmed)) {
+    throw new Error('Invalid tool name. Use CamelCase and start with an uppercase letter.');
+  }
+  return trimmed;
+};
+
+const validateSelfToolCode = (code) => {
+  if (!code || typeof code !== 'string') {
+    throw new Error('Missing or invalid code parameter');
+  }
+  if (!code.includes('export default') && !code.includes('export const tool')) {
+    throw new Error('Tool must export default or export const tool');
+  }
+  const hasAsync = code.includes('async function')
+    || code.includes('async (')
+    || code.includes('call: async');
+  if (!hasAsync) {
+    throw new Error('Tool call function must be async');
+  }
+  return code;
+};
+
 const isWithinRoot = (path, root) => {
   const normalizedRoot = root.endsWith('/') ? root.slice(0, -1) : root;
   return path === normalizedRoot || path.startsWith(`${normalizedRoot}/`);
@@ -146,7 +174,8 @@ const createVfsAdapter = ({
   canWritePath,
   hasProjectedSource,
   listProjectedPaths,
-  readProjectedSource
+  readProjectedSource,
+  onWrite
 }) => ({
   async read(path) {
     const result = await readVfsFile(path);
@@ -165,7 +194,11 @@ const createVfsAdapter = ({
     if (getTextBytes(content) > TEXT_LIMIT_BYTES) {
       throw new Error(`Content exceeds limit (${TEXT_LIMIT_BYTES} bytes)`);
     }
-    await writeVfsFile(path, String(content));
+    const nextContent = String(content);
+    await writeVfsFile(path, nextContent);
+    if (typeof onWrite === 'function') {
+      await onWrite(path, nextContent);
+    }
     return true;
   },
   async stat(path) {
@@ -274,6 +307,7 @@ export function createSelfBridge(options = {}) {
   const writableOpfsRoots = [...SELF_OPFS_WRITABLE_ROOTS];
   const isWritableVfsPath = (path) => !PROTECTED_SYSTEM_PATHS.has(path) && isWritablePath(path, writableVfsRoots);
   const isWritableOpfsPath = (path) => isWritablePath(path, writableOpfsRoots);
+  const bridgeEvents = createBridgeEmitter();
   const projectedSelfPaths = listSelfMirrorPaths();
   const projectedSelfPathSet = new Set(projectedSelfPaths);
   const projectedSourceCache = new Map();
@@ -296,9 +330,16 @@ export function createSelfBridge(options = {}) {
     canWritePath: isWritableVfsPath,
     hasProjectedSource: hasProjectedSelfSource,
     listProjectedPaths: () => projectedSelfPaths,
-    readProjectedSource: readProjectedSelfSource
+    readProjectedSource: readProjectedSelfSource,
+    onWrite: async (path, content) => {
+      bridgeEvents.emit('file-changed', {
+        path,
+        backend: 'vfs',
+        operation: 'write',
+        bytesWritten: getTextBytes(content)
+      });
+    }
   });
-  const bridgeEvents = createBridgeEmitter();
   const swarmController = createSwarmController();
   const receiptHistory = [];
   const pendingRemoteRequests = new Map();
@@ -435,6 +476,44 @@ export function createSelfBridge(options = {}) {
     };
   };
 
+  const createTool = async (args = {}) => {
+    const name = validateSelfToolName(args.name);
+    const code = validateSelfToolCode(args.code);
+    const requestedPath = args.path
+      ? normalizePath(args.path, 'vfs').path
+      : `/self/tools/${name}.js`;
+
+    if (!isWithinRoot(requestedPath, '/self')) {
+      throw new Error('CreateTool only supports /self paths');
+    }
+    if (!requestedPath.endsWith('.js') && !requestedPath.endsWith('.mjs')) {
+      throw new Error('CreateTool target must end with .js or .mjs');
+    }
+
+    await writeFile({
+      path: requestedPath,
+      content: code
+    });
+
+    const loadResult = await toolRunner.loadModule({
+      path: requestedPath,
+      force: true
+    });
+
+    bridgeEvents.emit('tool-created', {
+      name,
+      path: requestedPath,
+      callable: loadResult.callable !== false
+    });
+
+    return {
+      name,
+      path: requestedPath,
+      created: true,
+      ...loadResult
+    };
+  };
+
   toolRunner = createSelfToolRunner({
     Utils: utils,
     logger: utils.logger,
@@ -443,7 +522,8 @@ export function createSelfBridge(options = {}) {
     writeFile,
     builtInTools: {
       ReadFile: readFile,
-      WriteFile: writeFile
+      WriteFile: writeFile,
+      CreateTool: createTool
     },
     isLoadablePath: (path) => isWithinRoot(path, '/self')
   });

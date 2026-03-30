@@ -31,6 +31,21 @@ const withQuery = (path, query = {}) => {
   return url.toString();
 };
 
+const withSelfQuery = (path, query = {}) => {
+  const url = new URL(path, window.location.origin);
+  Object.entries(query).forEach(([key, value]) => {
+    if (value !== undefined && value !== null) {
+      url.searchParams.set(key, String(value));
+    }
+  });
+  return url.toString();
+};
+
+const withBootstrapQuery = (path, query = {}) => withSelfQuery(path, {
+  bootstrapper: 1,
+  ...query
+});
+
 const loadSharedBootModules = async () => {
   if (!sharedBootModulesPromise) {
     sharedBootModulesPromise = Promise.all([
@@ -48,8 +63,8 @@ const loadSharedBootModules = async () => {
 const loadReploidModules = async () => {
   if (!reploidModulesPromise) {
     reploidModulesPromise = Promise.all([
-      import(withQuery(SELF_BOOT_SPEC.runtime.runtimeEntry, { bootstrapper: 1, ...getCurrentReploidPeerQuery() })),
-      import(withQuery(SELF_BOOT_SPEC.runtime.uiEntry, { bootstrapper: 1, ...getCurrentReploidPeerQuery() }))
+      import(withBootstrapQuery(SELF_BOOT_SPEC.runtime.runtimeEntry, getCurrentReploidPeerQuery())),
+      import(withBootstrapQuery(SELF_BOOT_SPEC.runtime.uiEntry, getCurrentReploidPeerQuery()))
     ]).then(([runtimeMod, capsuleUiMod]) => ({
       createSelfRuntime: runtimeMod.createSelfRuntime,
       CapsuleUI: capsuleUiMod.default || capsuleUiMod
@@ -59,6 +74,27 @@ const loadReploidModules = async () => {
 };
 
 window.preloadReploidModules = loadReploidModules;
+
+const loadReploidCapsuleUi = async ({ version = Date.now().toString(), preferVfs = false } = {}) => {
+  const query = { v: version, ...getCurrentReploidPeerQuery() };
+  let sourceError = null;
+
+  if (preferVfs) {
+    try {
+      const vfsModule = await import(withSelfQuery(SELF_BOOT_SPEC.runtime.uiEntry, query));
+      return vfsModule.default || vfsModule;
+    } catch (error) {
+      sourceError = error;
+    }
+  }
+
+  try {
+    const sourceModule = await import(withBootstrapQuery(SELF_BOOT_SPEC.runtime.uiEntry, query));
+    return sourceModule.default || sourceModule;
+  } catch (error) {
+    throw sourceError || error;
+  }
+};
 
 const renderBootFailure = async (err) => {
   console.error('[Boot] CRITICAL BOOT FAILURE', err);
@@ -142,12 +178,12 @@ async function completeAwaken(bootResult, goal, wizardContainer) {
 
   const getRuntimeUiSpec = () => (
     runtimeMode === 'x'
-      ? {
-          name: 'proto',
-          stylePath: 'styles/proto/index.css',
-          vfsModulePath: '/ui/proto/index.js',
-          sourceModulePath: '/src/ui/proto/index.js'
-        }
+        ? {
+            name: 'proto',
+            stylePath: 'styles/proto/index.css',
+            vfsModulePath: '/ui/proto/index.js',
+            sourceModulePath: '/ui/proto/index.js'
+          }
       : runtimeMode === 'reploid'
         ? {
             name: 'capsule',
@@ -159,7 +195,7 @@ async function completeAwaken(bootResult, goal, wizardContainer) {
             name: 'zero',
             stylePath: 'styles/zero.css',
             vfsModulePath: '/ui/zero/index.js',
-            sourceModulePath: '/src/ui/zero/index.js'
+            sourceModulePath: '/ui/zero/index.js'
           }
   );
 
@@ -326,7 +362,7 @@ async function completeReploidAwaken(goal, wizardContainer) {
     throw new Error('Missing #app container');
   }
 
-  const { createSelfRuntime, CapsuleUI } = await loadReploidModules();
+  const { createSelfRuntime } = await loadReploidModules();
 
   if (wizardContainer) wizardContainer.remove();
   document.body.classList.add('no-grid-pattern');
@@ -334,15 +370,6 @@ async function completeReploidAwaken(goal, wizardContainer) {
   appEl.innerHTML = '';
 
   const version = Date.now().toString();
-  let link = document.getElementById('runtime-ui-stylesheet');
-  if (!link) {
-    link = document.createElement('link');
-    link.id = 'runtime-ui-stylesheet';
-    link.rel = 'stylesheet';
-    document.head.appendChild(link);
-  }
-  link.href = `${SELF_BOOT_SPEC.runtime.uiStylePath}?v=${encodeURIComponent(version)}`;
-  link.href = withQuery(SELF_BOOT_SPEC.runtime.uiStylePath, { v: version, ...getCurrentReploidPeerQuery() });
 
   let models = parseModels();
   const hasExplicitModelConfig = Object.prototype.hasOwnProperty.call(awakenInput, 'modelConfig');
@@ -368,22 +395,103 @@ async function completeReploidAwaken(goal, wizardContainer) {
     forceFreshIdentity: consumeFreshIdentityOnNextAwaken
   });
   consumeFreshIdentityOnNextAwaken = false;
-  const runtimeUI = CapsuleUI.factory({
-    runtime
-  });
+  let runtimeUI = null;
+  let reloadTimer = null;
+  let reloadInProgress = false;
+  let reloadPending = false;
+  let pendingPreferVfsReload = false;
 
-  await runtimeUI.mount(appEl);
+  const ensureCapsuleStyles = (nextVersion) => {
+    let link = document.getElementById('runtime-ui-stylesheet');
+    if (!link) {
+      link = document.createElement('link');
+      link.id = 'runtime-ui-stylesheet';
+      link.rel = 'stylesheet';
+      document.head.appendChild(link);
+    }
+    link.href = withQuery(SELF_BOOT_SPEC.runtime.uiStylePath, { v: nextVersion, ...getCurrentReploidPeerQuery() });
+  };
+
+  const mountCapsuleUi = async (reason = '', { preferVfs = false } = {}) => {
+    if (runtimeUI?.cleanup) {
+      try {
+        runtimeUI.cleanup();
+      } catch (error) {
+        logger.debug('[Boot] Capsule cleanup failed', error?.message || error);
+      }
+    }
+
+    appEl.classList.add('active');
+    appEl.innerHTML = '';
+
+    const nextVersion = Date.now().toString();
+    window.REPLOID_UI_VERSION = nextVersion;
+    ensureCapsuleStyles(nextVersion);
+
+    const CapsuleUI = await loadReploidCapsuleUi({
+      version: nextVersion,
+      preferVfs
+    });
+    runtimeUI = CapsuleUI.factory({ runtime });
+    await runtimeUI.mount(appEl);
+    logger.info(`[Boot] Capsule shell mounted (reploid${reason ? `: ${reason}` : ''}).`);
+  };
+
+  const reloadCapsuleUi = async (reason = 'manual', { preferVfs = false } = {}) => {
+    if (reloadInProgress) {
+      reloadPending = true;
+      pendingPreferVfsReload = pendingPreferVfsReload || preferVfs;
+      return;
+    }
+
+    reloadInProgress = true;
+    try {
+      await mountCapsuleUi(reason, { preferVfs });
+    } catch (error) {
+      logger.error('[Boot] Capsule reload failed:', error?.message || error);
+    } finally {
+      reloadInProgress = false;
+      if (reloadPending) {
+        const nextPreferVfs = pendingPreferVfsReload;
+        reloadPending = false;
+        pendingPreferVfsReload = false;
+        void reloadCapsuleUi('pending', { preferVfs: nextPreferVfs });
+      }
+    }
+  };
+
+  const scheduleCapsuleReload = (reason = 'vfs', { preferVfs = false } = {}) => {
+    pendingPreferVfsReload = pendingPreferVfsReload || preferVfs;
+    if (reloadTimer) clearTimeout(reloadTimer);
+    reloadTimer = setTimeout(() => {
+      reloadTimer = null;
+      const nextPreferVfs = pendingPreferVfsReload;
+      pendingPreferVfsReload = false;
+      void reloadCapsuleUi(reason, { preferVfs: nextPreferVfs });
+    }, 150);
+  };
+
+  await mountCapsuleUi('initial');
+
+  if (typeof runtime.on === 'function') {
+    runtime.on('file-changed', (data = {}) => {
+      const path = data?.path || '';
+      if (typeof path !== 'string') return;
+      if (path === SELF_BOOT_SPEC.runtime.uiEntry || path.startsWith('/self/capsule/')) {
+        scheduleCapsuleReload('self-vfs', { preferVfs: true });
+      }
+    });
+  }
+
   window.REPLOID = {
     mode: 'reploid',
     instanceId: getCurrentReploidInstanceLabel(),
     runtime
   };
   window.REPLOID_UI = {
-    reload: async () => {},
-    getVersion: () => version
+    reload: async (reason = 'manual') => reloadCapsuleUi(reason, { preferVfs: true }),
+    getVersion: () => window.REPLOID_UI_VERSION || version
   };
-
-  logger.info('[Boot] Capsule shell mounted (reploid).');
   runtime.start().catch((e) => {
     logger.error('[Reploid] Runtime error:', e?.message || e);
   });
@@ -408,7 +516,7 @@ async function completeReploidAwaken(goal, wizardContainer) {
     if (wizardContainer) {
       wizardContainer.style.display = 'block';
       if (useLockedRouteHome) {
-        const { initLockedBootHome } = await import('/src/ui/boot-home/index.js');
+        const { initLockedBootHome } = await import('/ui/boot-home/index.js');
         initLockedBootHome(wizardContainer, routeMode || runtimeMode);
         if (runtimeMode === 'reploid') {
           loadReploidModules().catch((err) => {
@@ -420,7 +528,7 @@ async function completeReploidAwaken(goal, wizardContainer) {
           });
         }
       } else {
-        const { initWizard: initWizardUI } = await import('/src/ui/boot-wizard/index.js');
+        const { initWizard: initWizardUI } = await import('/ui/boot-wizard/index.js');
         initWizardUI(wizardContainer);
       }
     }
