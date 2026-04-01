@@ -1,0 +1,11 @@
+{
+  "extends": "modes/debug",
+  "model": "google-gemma-3-1b-it-wq4k-ef16",
+  "runtime": {
+    "shared": {
+      "tooling": {
+        "intent": "verify"
+      }
+    }
+  }
+}

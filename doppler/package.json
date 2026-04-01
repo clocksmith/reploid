@@ -1,0 +1,58 @@
+{
+  "name": "@simulatte/doppler",
+  "version": "0.1.0",
+  "description": "WebGPU-based local inference engine for quantized LLMs",
+  "main": "src/index.js",
+  "types": "src/index.d.ts",
+  "type": "module",
+  "bin": {
+    "doppler": "./tools/doppler-cli.mjs"
+  },
+  "scripts": {
+    "cli": "node tools/doppler-cli.mjs",
+    "convert": "node tools/doppler-cli.mjs convert",
+    "debug": "node tools/doppler-cli.mjs debug",
+    "bench": "node tools/doppler-cli.mjs bench",
+    "test:model": "node tools/doppler-cli.mjs test-model"
+  },
+  "exports": {
+    ".": {
+      "types": "./src/index.d.ts",
+      "import": "./src/index.js"
+    },
+    "./provider": {
+      "types": "./src/client/doppler-provider.d.ts",
+      "import": "./src/client/doppler-provider.js"
+    },
+    "./*": "./src/*"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/clocksmith/doppler.git"
+  },
+  "homepage": "https://github.com/clocksmith/doppler",
+  "keywords": [
+    "doppler",
+    "webgpu",
+    "inference",
+    "llm",
+    "quantized",
+    "browser",
+    "local"
+  ],
+  "optionalDependencies": {
+    "webgpu": "^0.3.8"
+  },
+  "author": "",
+  "license": "MIT",
+  "files": [
+    "src",
+    "src/gpu/kernels/*.wgsl",
+    "README.md",
+    "tools/doppler-cli.mjs",
+    "tools/convert-safetensors-node.mjs"
+  ],
+  "devDependencies": {
+    "playwright": "^1.58.2"
+  }
+}
