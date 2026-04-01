@@ -1,0 +1,63 @@
+{
+  "id": "gemma3",
+  "name": "Gemma 3",
+  "extends": "transformer",
+
+  "architecture": {
+    "headDim": 256,
+    "ropeTheta": 1000000
+  },
+
+  "inference": {
+    "attention": {
+      "attnLogitSoftcapping": null,
+      "queryKeyNorm": true
+    },
+    "normalization": {
+      "rmsNormWeightOffset": true,
+      "rmsNormEps": 1e-6,
+      "postAttentionNorm": true,
+      "preFeedforwardNorm": true,
+      "postFeedforwardNorm": true
+    },
+    "ffn": {
+      "activation": "gelu"
+    },
+    "output": {
+      "finalLogitSoftcapping": null,
+      "scaleEmbeddings": true
+    },
+    "layerPattern": {
+      "type": "every_n",
+      "period": 6
+    },
+    "rope": {
+      "ropeTheta": 1000000,
+      "ropeLocalTheta": 10000
+    },
+    "chatTemplate": {
+      "type": "gemma",
+      "enabled": true
+    },
+    "kernelPaths": {
+      "f16": {
+        "f16": "gemma3-f16-f16a",
+        "f32": "gemma3-f16-f32a"
+      },
+      "q4k": {
+        "f16": "gemma3-q4k-dequant-f16a"
+      }
+    }
+  },
+
+  "tokenizer": {
+    "bosToken": "<bos>",
+    "eosTokens": ["<eos>", "<end_of_turn>"],
+    "addBosToken": true
+  },
+
+  "detection": {
+    "architecturePatterns": ["gemma3", "Gemma3ForCausalLM", "gemma-3"],
+    "modelTypePatterns": ["gemma3_text", "gemma3"]
+  }
+}
