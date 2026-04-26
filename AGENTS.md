@@ -95,3 +95,10 @@ npm start                   # Start server
 - **Genesis:** Immutable snapshot for rollback
 - **HITL:** Human-in-the-loop approval gates
 - **Arena:** Multi-model consensus for risky changes
+
+## No time estimates
+
+- never estimate work in hours, days, weeks, or any other time unit, in code, comments, commit messages, status updates, receipts, or chat replies
+- do not say "~30 min", "~2 hr", "multi-day", "quick", "long-running" as size proxies for engineering work
+- describe what the work IS — the file to change, the function to add, the schema field to extend, the named blocker to fix — not how long it should take
+- if scope must be conveyed, list the concrete deltas (lines/files/symbols touched) instead of a duration
