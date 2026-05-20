@@ -181,3 +181,4 @@ Some blueprints overlap. Use the canonical IDs below; older IDs are deprecated.
 | `0x000076` | [Arena Metrics](0x000076-arena-metrics.md) | Scoring and comparisons for arena runs. |
 | `0x000077` | [Arena Harness](0x000077-arena-harness.md) | Orchestrates arena battles and runs. |
 | `0x000078` | [GEPA Prompt Evolution](0x000078-gepa-prompt-evolution.md) | Genetic-Pareto multi-objective prompt optimization. |
+| `0x000112` | [Recursive Ring-GEPA](0x000112-recursive-ring-gepa.md) | Whole-system mutant rings with Pareto archive and validation-gated promotion. |
