@@ -25,6 +25,7 @@ Guide to all documentation in the REPLOID project.
 - [0x000049 - HITL Controller](../self/blueprints/0x000049-hitl-controller.md) - Human oversight
 - [0x00003C - Genesis Snapshot](../self/blueprints/0x00003C-genesis-snapshot-system.md) - Rollback system
 - [0x000031 - Swarm Orchestration](../self/blueprints/0x000031-swarm-orchestration.md) - Multi-agent
+- [0x000112 - Recursive Ring-GEPA](../self/blueprints/0x000112-recursive-ring-gepa.md) - Whole-system mutant rings, Pareto archive, and validation-gated self-improvement
 
 ### Vision and Contracts
 - **[docs/substrate.md](./substrate.md)** - Substrate + Ouroboros contract
@@ -103,6 +104,7 @@ reploid/
 1. [README.md](../README.md) - Core RSI thesis
 2. [blueprints/0x000015-dynamic-tool-creation.md](../self/blueprints/0x000015-dynamic-tool-creation.md) - Tool creation
 3. [blueprints/0x00005B-recursive-goal-decomposition.md](../self/blueprints/0x00005B-recursive-goal-decomposition.md) - Recursive goal decomposition
+4. [blueprints/0x000112-recursive-ring-gepa.md](../self/blueprints/0x000112-recursive-ring-gepa.md) - Whole-system recursive improvement blueprint
 
 ### For Security Researchers
 1. [SECURITY.md](./SECURITY.md) - Security model and containment
