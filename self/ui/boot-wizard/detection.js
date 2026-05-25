@@ -22,7 +22,13 @@ const HIDDEN_GOAL_SURFACES = Object.freeze([
   'runtime context',
   'Capsule UI',
   'VFS history',
-  'swarm coordination'
+  'swarm coordination',
+  'IndexedDB and OPFS storage',
+  'service-worker module loading',
+  'Web Worker replay lanes',
+  'WebGPU or WASM local compute',
+  'permission-mediated browser APIs',
+  'DOM and canvas observability'
 ]);
 const HIDDEN_GOAL_ARTIFACTS = Object.freeze([
   'a compact dashboard',
@@ -30,7 +36,13 @@ const HIDDEN_GOAL_ARTIFACTS = Object.freeze([
   'a replay view',
   'an editable map',
   'a repair loop',
-  'a benchmark board'
+  'a benchmark board',
+  'a capability probe',
+  'a Shadow receipt',
+  'a Pareto frontier map',
+  'a permission gate widget',
+  'a storage atlas',
+  'a peer witness receipt'
 ]);
 const HIDDEN_GOAL_OPERATIONS = Object.freeze([
   'repair one weak point',
@@ -38,21 +50,37 @@ const HIDDEN_GOAL_OPERATIONS = Object.freeze([
   'expose one bottleneck',
   'improve signal density',
   'reduce one failure mode',
-  'sharpen one feedback loop'
+  'sharpen one feedback loop',
+  'hot-load one better tool',
+  'split one check into an isolated lane',
+  'archive one browser capability check',
+  'add one witness without granting approval',
+  'prove one fallback path',
+  'harden one permission boundary'
 ]);
 const HIDDEN_GOAL_EVALUATIONS = Object.freeze([
   'repeatable checks',
   'before-after results',
   'a fixed benchmark',
   'pass-fail traces',
-  'a task battery'
+  'a task battery',
+  'readback proof',
+  'capability detection',
+  'receipt verification',
+  'Pareto score evidence',
+  'main-thread versus worker comparison',
+  'anchor gate reasons'
 ]);
 const HIDDEN_GOAL_CONSTRAINTS = Object.freeze([
   'Keep it browser-native and reversible.',
   'Stay inside the writable self and visible tools.',
   'Prefer one measurable win over broad exploration.',
   'Make the proof legible in files or UI.',
-  'Keep the first upgrade inspectable and bounded.'
+  'Keep the first upgrade inspectable and bounded.',
+  'Name baseline, candidate, score, rollback, and gate result.',
+  'Use Shadow evidence before any promotion.',
+  'Verify browser capability presence before relying on it.',
+  'Do not claim host shell or raw filesystem access.'
 ]);
 let goalGeneratorRuntimePromise = null;
 let goalGeneratorEngine = null;
@@ -878,8 +906,8 @@ export async function testApiKey(provider, apiKey, baseUrl = null) {
 }
 
 export async function generateGoalPrompt() {
-  const state = getState();
-  return generateAndNormalizeGoal(state);
+  const result = await generateSeededGoalPrompt();
+  return typeof result === 'string' ? result : result?.goal;
 }
 
 export async function generateSeededGoalPrompt(options = {}) {
