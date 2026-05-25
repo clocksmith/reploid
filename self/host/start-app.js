@@ -111,10 +111,13 @@ const renderBootFailure = async (err) => {
 
   const box = document.createElement('div');
   box.className = 'error-ui border-error';
-  box.innerHTML = `
-    <div class="error-ui-header">Boot failed</div>
-    <div class="error-ui-message">${String(err?.message || err || 'Unknown boot failure')}</div>
-  `;
+  const header = document.createElement('div');
+  header.className = 'error-ui-header';
+  header.textContent = 'Boot failed';
+  const message = document.createElement('div');
+  message.className = 'error-ui-message';
+  message.textContent = String(err?.message || err || 'Unknown boot failure');
+  box.append(header, message);
   mount.appendChild(box);
 };
 

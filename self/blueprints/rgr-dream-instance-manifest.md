@@ -56,6 +56,7 @@ When working on Dream orchestration, read these first:
 /self/self.json
 /self/instances/dream/default.instance.json
 /self/blueprints/rgr-dream-instance-manifest.md
+/self/blueprints/rgr-runtime-contract.md
 /self/blueprints/0x000112-recursive-gepa-ring.md
 /self/blueprints/rgr-slot-topology.md
 ```

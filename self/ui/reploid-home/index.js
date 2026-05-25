@@ -4,10 +4,6 @@
 
 import { getDefaultReploidEnvironment } from '../../config/reploid-environments.js';
 import {
-  DREAM_INSTANCE_MANIFEST_PATH,
-  getDreamInstanceSeedSummary
-} from '../../dream-instance.js';
-import {
   createReploidPeerUrl,
   getCurrentReploidInstanceLabel,
   getCurrentReploidStorage
@@ -53,7 +49,28 @@ const RING_SLOTS = Object.freeze([
   'safety',
   'fallback'
 ]);
-const DREAM_INSTANCE = Object.freeze(getDreamInstanceSeedSummary());
+
+const SELF_FILE_PATHS = Object.freeze([
+  '/self/self.json',
+  '/self/boot.json',
+  '/self/prompts/kernel.md',
+  '/self/blueprints/rgr-runtime-contract.md',
+  '/self/blueprints/rgr-slot-topology.md',
+  '/self/runtime.js',
+  '/self/bridge.js',
+  '/self/capsule/index.js',
+  '/self/host/start-reploid.js'
+]);
+
+const SELF_SOURCE_PATHS = Object.freeze({
+  '/self/prompts/kernel.md': '/prompts/kernel.md',
+  '/self/blueprints/rgr-runtime-contract.md': '/blueprints/rgr-runtime-contract.md',
+  '/self/blueprints/rgr-slot-topology.md': '/blueprints/rgr-slot-topology.md',
+  '/self/runtime.js': '/runtime.js',
+  '/self/bridge.js': '/bridge.js',
+  '/self/capsule/index.js': '/capsule/index.js',
+  '/self/host/start-reploid.js': '/host/start-reploid.js'
+});
 
 const DIRECT_MODELS = Object.freeze({
   gemini: [
@@ -103,6 +120,32 @@ const pickRandomGoal = (currentGoal = '') => {
   return pool[Math.floor(Math.random() * pool.length)] || pool[0];
 };
 
+const buildSelfPreview = () => JSON.stringify({
+  selfHosted: true,
+  productModel: 'Reploid',
+  coreInvariant: 'Self-improvement runs in Shadow before promotion.',
+  visibleTools: ['ReadFile', 'WriteFile', 'CreateTool', 'LoadModule']
+}, null, 2);
+
+const buildBootPreview = () => JSON.stringify({
+  schema: 'reploid/self-boot/v1',
+  title: 'Reploid',
+  kernel: {
+    htmlEntry: '/self/kernel/index.html',
+    bootEntry: '/self/kernel/boot.js'
+  },
+  runtime: {
+    runtimeEntry: '/self/runtime.js',
+    uiEntry: '/self/capsule/index.js'
+  }
+}, null, 2);
+
+const getGeneratedSelfFilePreview = (path) => {
+  if (path === '/self/self.json') return buildSelfPreview();
+  if (path === '/self/boot.json') return buildBootPreview();
+  return '';
+};
+
 const createInitialState = () => {
   const storage = getCurrentReploidStorage();
   const storedSwarm = storage.getItem('REPLOID_SWARM_ENABLED');
@@ -113,6 +156,11 @@ const createInitialState = () => {
     savedModel = Array.isArray(models) ? models[0] : null;
   } catch {
     savedModel = null;
+    storage.removeItem('SELECTED_MODELS', { removeLegacy: true });
+  }
+  if (!storedOwnInference) {
+    savedModel = null;
+    storage.removeItem('SELECTED_MODELS', { removeLegacy: true });
   }
 
   return {
@@ -122,6 +170,10 @@ const createInitialState = () => {
     directProvider: savedModel?.provider || DEFAULT_DIRECT_PROVIDER,
     directModel: normalizeDirectModel(savedModel?.provider || DEFAULT_DIRECT_PROVIDER, savedModel?.id),
     directKey: savedModel?.apiKey || '',
+    selectedSelfPath: '/self/self.json',
+    selectedSelfContent: null,
+    selectedSelfStatus: 'generated preview',
+    selfBrowserOpen: false,
     isAwakening: false,
     goalStatus: ''
   };
@@ -187,6 +239,8 @@ const persistState = (state) => {
       hostType: 'browser-cloud',
       apiKey: state.directKey
     }]));
+  } else {
+    storage.removeItem('SELECTED_MODELS', { removeLegacy: true });
   }
 };
 
@@ -196,6 +250,16 @@ const renderMetric = (label, value) => `
     <span class="rgr-status-value">${escapeHtml(value || '-')}</span>
   </span>
 `;
+
+const renderMetricStrip = (metrics, options = {}) => {
+  const className = ['boot-status-strip', options.className].filter(Boolean).join(' ');
+  const label = options.label ? ` aria-label="${escapeHtml(options.label)}"` : '';
+  return `
+    <div class="${className}"${label}>
+      ${metrics.map(([metricLabel, metricValue]) => renderMetric(metricLabel, metricValue)).join('')}
+    </div>
+  `;
+};
 
 const renderDirectConfig = (state) => {
   if (!state.ownInference) return '';
@@ -234,19 +298,10 @@ const renderHome = (state) => {
   const peerUrl = createReploidPeerUrl(window.location.pathname || '/');
   const freshPeerUrl = createReploidPeerUrl(window.location.pathname || '/', { freshIdentity: true });
   const slotSummary = `${RING_SLOTS.length} ${launch.slots}`;
-  const selfFiles = [
-    '/self/self.json',
-    DREAM_INSTANCE_MANIFEST_PATH,
-    '/self/prompts/kernel.md',
-    '/self/blueprints/0x000112-recursive-gepa-ring.md',
-    '/self/blueprints/rgr-slot-topology.md',
-    '/self/blueprints/rgr-dream-instance-manifest.md',
-    '/self/dream-instance.js',
-    '/self/runtime.js',
-    '/self/bridge.js',
-    '/self/capsule/index.js',
-    '/self/host/start-reploid.js'
-  ];
+  const selectedSelfPath = SELF_FILE_PATHS.includes(state.selectedSelfPath)
+    ? state.selectedSelfPath
+    : SELF_FILE_PATHS[0];
+  const selectedSelfContent = state.selectedSelfContent ?? getGeneratedSelfFilePreview(selectedSelfPath);
 
   return `
     <div class="wizard-sections wizard-sections-home">
@@ -281,28 +336,17 @@ const renderHome = (state) => {
           </div>
         </div>
         ${renderDirectConfig(state)}
-        <div class="rgr-status-strip" aria-label="System and peer status">
-          ${renderMetric('Mode', 'Seed')}
-          ${renderMetric('Role', launch.role)}
-          ${renderMetric('Slots', slotSummary)}
-          ${renderMetric('Transport', state.swarmEnabled ? 'local room' : 'disabled')}
-          ${renderMetric('Host', launch.executor)}
-          ${renderMetric('Gate', 'anchor')}
-          ${renderMetric('Dream', DREAM_INSTANCE.state)}
-        </div>
-      </div>
-
-      <div class="wizard-step dream-instance-panel" aria-label="Dream instance manifest">
-        <div class="goal-header">
-          <h2 class="type-h2">Dream instance</h2>
-          <p class="type-caption">manifested in the awakened self at ${escapeHtml(DREAM_INSTANCE.manifestPath)}</p>
-        </div>
-        <div class="dream-instance-status-strip">
-          ${renderMetric('State', DREAM_INSTANCE.state)}
-          ${renderMetric('Mode', DREAM_INSTANCE.mode)}
-          ${renderMetric('Stages', `${DREAM_INSTANCE.stageCount} gates`)}
-          ${renderMetric('Gate', DREAM_INSTANCE.gate)}
-        </div>
+        ${renderMetricStrip([
+          ['Mode', 'Seed'],
+          ['Role', launch.role],
+          ['Slots', slotSummary],
+          ['Transport', state.swarmEnabled ? 'local room' : 'disabled'],
+          ['Host', launch.executor],
+          ['Gate', 'anchor']
+        ], {
+          className: 'rgr-status-strip',
+          label: 'System and peer status'
+        })}
       </div>
 
       <div class="wizard-step goal-step">
@@ -320,26 +364,28 @@ const renderHome = (state) => {
         <button class="btn" id="awaken-btn" type="button"${state.isAwakening || !launch.canAwaken || !normalize(state.goal) ? ' disabled' : ''}>${state.isAwakening ? 'Awakening...' : 'Awaken'}</button>
       </div>
 
-      <details class="seed-browser-panel">
+      <details class="seed-browser-panel"${state.selfBrowserOpen ? ' open' : ''}>
         <summary class="seed-browser-summary">
           <span>Awakened files</span>
         </summary>
         <div class="seed-browser-grid">
           <div class="seed-tree-panel">
             <h3 class="type-h3">Self tree</h3>
-            ${selfFiles.map((path) => `
-              <button class="seed-path-row" type="button" data-action="select-self-path" data-path="${escapeHtml(path)}">${escapeHtml(path)}</button>
+            ${SELF_FILE_PATHS.map((path) => `
+              <button class="seed-path-row${path === selectedSelfPath ? ' selected' : ''}"
+                      type="button"
+                      data-action="select-self-path"
+                      data-path="${escapeHtml(path)}"
+                      aria-pressed="${path === selectedSelfPath ? 'true' : 'false'}">${escapeHtml(path)}</button>
             `).join('')}
           </div>
-          <pre class="seed-viewer-panel">{
-  "selfHosted": true,
-  "productModel": "Reploid",
-  "coreInvariant": "Self-improvement runs in Shadow before promotion.",
-  "instances": {
-    "dream": "${escapeHtml(DREAM_INSTANCE.manifestPath)}"
-  },
-  "visibleTools": ["ReadFile", "WriteFile", "CreateTool", "LoadModule"]
-}</pre>
+          <div class="seed-viewer-panel">
+            <div class="seed-viewer-header">
+              <h3 class="type-h3">${escapeHtml(selectedSelfPath)}</h3>
+              <span class="seed-viewer-status type-caption">${escapeHtml(state.selectedSelfStatus || '')}</span>
+            </div>
+            <pre class="seed-file-viewer">${escapeHtml(selectedSelfContent || '')}</pre>
+          </div>
         </div>
       </details>
     </div>
@@ -418,17 +464,75 @@ export function initReploidHome(mount, options = {}) {
     };
   };
 
+  const readSelfFilePreview = async (path) => {
+    const generatedPreview = getGeneratedSelfFilePreview(path);
+    if (generatedPreview) {
+      return {
+        content: generatedPreview,
+        status: 'generated preview'
+      };
+    }
+
+    const sourcePath = SELF_SOURCE_PATHS[path];
+    if (!sourcePath) {
+      throw new Error(`No preview source for ${path}`);
+    }
+    const response = await fetch(sourcePath, { cache: 'no-store' });
+    if (!response.ok) {
+      throw new Error(`Failed to load ${sourcePath} (${response.status})`);
+    }
+    return {
+      content: await response.text(),
+      status: 'source preview'
+    };
+  };
+
+  const selectSelfPath = async (path) => {
+    if (!SELF_FILE_PATHS.includes(path)) return;
+    setState({
+      selectedSelfPath: path,
+      selectedSelfContent: 'Loading...',
+      selectedSelfStatus: 'loading',
+      selfBrowserOpen: true
+    });
+
+    try {
+      const preview = await readSelfFilePreview(path);
+      if (state.selectedSelfPath !== path) return;
+      setState({
+        selectedSelfContent: preview.content,
+        selectedSelfStatus: preview.status,
+        selfBrowserOpen: true
+      });
+    } catch (error) {
+      if (state.selectedSelfPath !== path) return;
+      setState({
+        selectedSelfContent: `[unavailable] ${error?.message || error}`,
+        selectedSelfStatus: 'unavailable',
+        selfBrowserOpen: true
+      });
+    }
+  };
+
   const handleAwaken = async () => {
     if (state.isAwakening) return;
     setState({ isAwakening: true }, { rerender: false });
     updateAwakenButton();
-    await onAwaken({
-      goal: state.goal,
-      environment: getDefaultReploidEnvironment(),
-      swarmEnabled: state.swarmEnabled,
-      modelConfig: buildModelConfig(),
-      seedOverrides: {}
-    });
+    try {
+      await onAwaken({
+        goal: state.goal,
+        environment: getDefaultReploidEnvironment(),
+        swarmEnabled: state.swarmEnabled,
+        modelConfig: buildModelConfig(),
+        seedOverrides: {}
+      });
+    } catch (error) {
+      console.error('[Reploid] Awaken failed', error);
+      setState({
+        isAwakening: false,
+        goalStatus: `Awaken failed: ${error?.message || error || 'unknown error'}`
+      });
+    }
   };
 
   const handleClick = async (event) => {
@@ -440,7 +544,11 @@ export function initReploidHome(mount, options = {}) {
     }
     if (action === 'toggle-own-inference') {
       event.preventDefault();
-      setState({ ownInference: !state.ownInference });
+      const ownInference = !state.ownInference;
+      setState({
+        ownInference,
+        directKey: ownInference ? state.directKey : ''
+      });
       return;
     }
     if (action === 'generate-goal') {
@@ -449,6 +557,11 @@ export function initReploidHome(mount, options = {}) {
         goal: pickRandomGoal(state.goal),
         goalStatus: ''
       });
+      return;
+    }
+    if (action === 'select-self-path') {
+      event.preventDefault();
+      await selectSelfPath(event.target.closest('[data-path]')?.dataset?.path || '');
     }
   };
 

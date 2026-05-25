@@ -23,6 +23,7 @@ const ResponseParser = {
     const INLINE_ARG_REGEX = /^([a-zA-Z0-9_.-]+)\s*:\s*(.*)$/;
     const BLOCK_ARG_REGEX = /^([a-zA-Z0-9_.-]+)\s*(?::\s*)?<<\s*([A-Za-z0-9_-]+)\s*$/;
     const LEGACY_TOOL_CALL_REGEX = /TOOL_CALL:\s*([a-zA-Z0-9_]+)\s*\nARGS:\s*/g;
+    const CONTINUATION_ARG_KEYS = new Set(['code', 'content']);
 
     const parseScalarValue = (rawValue) => {
       const value = String(rawValue ?? '').trim();
@@ -67,6 +68,23 @@ const ResponseParser = {
         .split(',')
         .map((item) => item.trim())
         .filter(Boolean);
+    };
+
+    const getContinuationArgKey = (args) => {
+      for (const key of CONTINUATION_ARG_KEYS) {
+        if (Object.prototype.hasOwnProperty.call(args, key) && typeof args[key] === 'string') {
+          return key;
+        }
+      }
+      return null;
+    };
+
+    const appendContinuationArg = (args, key, linesToAppend) => {
+      const current = String(args[key] || '');
+      const continuation = linesToAppend.join('\n');
+      args[key] = current
+        ? `${current}\n${continuation}`
+        : continuation;
     };
 
     const readPlanJson = (lines, startIndex, initialText = '') => {
@@ -229,6 +247,17 @@ const ResponseParser = {
 
           const argMatch = nextLine.match(INLINE_ARG_REGEX);
           if (!argMatch) {
+            const continuationKey = getContinuationArgKey(args);
+            if (continuationKey) {
+              const continuationLines = [];
+              while (index < lines.length && !TOP_LEVEL_DIRECTIVE_REGEX.test(lines[index].trimStart())) {
+                continuationLines.push(lines[index]);
+                index++;
+              }
+              appendContinuationArg(args, continuationKey, continuationLines);
+              continue;
+            }
+
             error = `Invalid argument line: ${nextLine.trim()}`;
             while (index < lines.length && !TOP_LEVEL_DIRECTIVE_REGEX.test(lines[index].trimStart())) {
               index++;

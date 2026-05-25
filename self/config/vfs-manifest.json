@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-05-24T20:09:51.305Z",
+  "generatedAt": "2026-05-25T16:30:05.089Z",
   "files": [
     "audit.html",
     "blueprints/0x000000-reploid-genesis.md",
@@ -270,6 +270,7 @@
     "blueprints/README.md",
     "blueprints/implementation-status.md",
     "blueprints/rgr-dream-instance-manifest.md",
+    "blueprints/rgr-runtime-contract.md",
     "blueprints/rgr-slot-topology.md",
     "boot-helpers/config.js",
     "boot-helpers/error-ui.js",

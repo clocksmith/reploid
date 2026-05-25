@@ -322,6 +322,12 @@ const ensureVfsVersion = async () => {
   return true;
 };
 
+const shouldPreserveBootVfs = ({ bootProfile, vfsReset }) => {
+  if (vfsReset) return false;
+  if (bootProfile === 'reploid_home') return true;
+  return getScopedLocalStorage().getItem('REPLOID_PRESERVE_ON_BOOT') === 'true';
+};
+
 const maybeFullReset = async () => {
   if (typeof window.shouldResetAll !== 'function') return;
   if (!window.shouldResetAll()) return;
@@ -349,8 +355,8 @@ const maybeFullReset = async () => {
 
     setBootstrapStage('manifest');
     const { manifest, text } = await loadVfsManifest();
-    const preserveOnBoot = !vfsReset && getScopedLocalStorage().getItem('REPLOID_PRESERVE_ON_BOOT') === 'true';
     const bootProfile = getBootSeedProfile();
+    const preserveOnBoot = shouldPreserveBootVfs({ bootProfile, vfsReset });
     const bootFiles = pickBootSeedFiles(manifest?.files || [], bootProfile);
     if (bootFiles.length === 0) {
       throw new Error('Boot seed manifest is empty');

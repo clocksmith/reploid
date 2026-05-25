@@ -253,15 +253,13 @@ describe('Self Bridge', () => {
 
     const context = await host.readBootstrapFiles([
       '/self/prompts/kernel.md',
-      '/self/blueprints/0x000112-recursive-gepa-ring.md',
-      '/self/blueprints/rgr-slot-topology.md',
-      '/self/blueprints/rgr-dream-instance-manifest.md'
+      '/self/blueprints/rgr-runtime-contract.md',
+      '/self/blueprints/rgr-slot-topology.md'
     ]);
 
     expect(context['/self/prompts/kernel.md']).toBe('source:/prompts/kernel.md');
-    expect(context['/self/blueprints/0x000112-recursive-gepa-ring.md']).toBe('source:/blueprints/0x000112-recursive-gepa-ring.md');
+    expect(context['/self/blueprints/rgr-runtime-contract.md']).toBe('source:/blueprints/rgr-runtime-contract.md');
     expect(context['/self/blueprints/rgr-slot-topology.md']).toBe('source:/blueprints/rgr-slot-topology.md');
-    expect(context['/self/blueprints/rgr-dream-instance-manifest.md']).toBe('source:/blueprints/rgr-dream-instance-manifest.md');
   });
 
   it('writes runtime receipts only under artifacts', async () => {
@@ -284,7 +282,7 @@ describe('Self Bridge', () => {
     ).rejects.toThrow('Runtime artifacts must be written under /artifacts');
   });
 
-  it('seeds a Dream instance manifest into the live self tree', async () => {
+  it('seeds the live Reploid self without external instance manifests', async () => {
     const host = createSelfBridge({
       modelConfig: {
         id: 'test-model',
@@ -293,28 +291,18 @@ describe('Self Bridge', () => {
     });
 
     await host.seedSystemFiles({
-      goal: 'Train Dream in Shadow',
+      goal: 'Run RGR in Shadow',
       environment: 'Test environment',
       swarmEnabled: true
     });
 
     const self = JSON.parse(fileStore.get('/self/self.json'));
-    const dream = JSON.parse(fileStore.get('/self/instances/dream/default.instance.json'));
 
-    expect(self.instances.dream).toEqual(expect.objectContaining({
-      id: 'dream-default',
-      kind: 'dream',
-      state: 'manifested',
-      manifestPath: '/self/instances/dream/default.instance.json'
-    }));
-    expect(dream).toEqual(expect.objectContaining({
-      schema: 'reploid/dream-instance/v1',
-      kind: 'dream',
-      mode: 'shadow',
-      reploidInstanceId: 'default'
-    }));
-    expect(dream.trainingContract.completionGates).toContain('stage gate or benchmark passes');
-    expect(dream.promotionGate.state).toBe('blocked');
+    expect(self.mode).toBe('reploid');
+    expect(self.productModel).toBe('Recursive GEPA Ring');
+    expect(self.instances).toBeUndefined();
+    expect(self.dream).toBeUndefined();
+    expect(fileStore.has('/self/instances/dream/default.instance.json')).toBe(false);
   });
 
   it('materializes projected overrides during boot seeding', async () => {
