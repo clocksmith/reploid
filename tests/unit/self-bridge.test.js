@@ -139,7 +139,7 @@ describe('Self Bridge', () => {
     );
   });
 
-  it('routes generation through a remote swarm provider when no local model exists', async () => {
+  it('routes generation through a remote executor slot when no local model exists', async () => {
     const transportHandlers = new Map();
     const swarmTransport = {
       init: vi.fn(async () => true),
@@ -158,7 +158,7 @@ describe('Self Bridge', () => {
               response: {
                 content: 'remote final',
                 raw: 'remote final',
-                model: 'gemini-3.1-flash-lite-preview',
+                model: 'gemini-3.5-flash',
                 provider: 'gemini'
               }
             });
@@ -227,6 +227,94 @@ describe('Self Bridge', () => {
 
     expect(file.content).toBe('source:/runtime.js');
     expect(fileStore.has('/self/runtime.js')).toBe(false);
+  });
+
+  it('reads canonical core self paths as projected source aliases', async () => {
+    const host = createSelfBridge({
+      modelConfig: {
+        id: 'test-model',
+        provider: 'webllm'
+      }
+    });
+
+    const file = await host.executeTool('ReadFile', { path: '/self/core/response-parser.js' });
+
+    expect(file.content).toBe('source:/core/response-parser.js');
+    expect(fileStore.has('/self/core/response-parser.js')).toBe(false);
+  });
+
+  it('reads served prompt and blueprint mirrors for bootstrap context', async () => {
+    const host = createSelfBridge({
+      modelConfig: {
+        id: 'test-model',
+        provider: 'webllm'
+      }
+    });
+
+    const context = await host.readBootstrapFiles([
+      '/self/prompts/kernel.md',
+      '/self/blueprints/0x000112-recursive-gepa-ring.md',
+      '/self/blueprints/rgr-slot-topology.md',
+      '/self/blueprints/rgr-dream-instance-manifest.md'
+    ]);
+
+    expect(context['/self/prompts/kernel.md']).toBe('source:/prompts/kernel.md');
+    expect(context['/self/blueprints/0x000112-recursive-gepa-ring.md']).toBe('source:/blueprints/0x000112-recursive-gepa-ring.md');
+    expect(context['/self/blueprints/rgr-slot-topology.md']).toBe('source:/blueprints/rgr-slot-topology.md');
+    expect(context['/self/blueprints/rgr-dream-instance-manifest.md']).toBe('source:/blueprints/rgr-dream-instance-manifest.md');
+  });
+
+  it('writes runtime receipts only under artifacts', async () => {
+    const host = createSelfBridge({
+      modelConfig: {
+        id: 'test-model',
+        provider: 'webllm'
+      }
+    });
+
+    await expect(
+      host.writeRuntimeArtifact('/artifacts/rgr/receipt.json', '{"ok":true}')
+    ).resolves.toEqual({
+      path: '/artifacts/rgr/receipt.json',
+      written: true
+    });
+    expect(fileStore.get('/artifacts/rgr/receipt.json')).toBe('{"ok":true}');
+    await expect(
+      host.writeRuntimeArtifact('/self/runtime.js', 'bad')
+    ).rejects.toThrow('Runtime artifacts must be written under /artifacts');
+  });
+
+  it('seeds a Dream instance manifest into the live self tree', async () => {
+    const host = createSelfBridge({
+      modelConfig: {
+        id: 'test-model',
+        provider: 'webllm'
+      }
+    });
+
+    await host.seedSystemFiles({
+      goal: 'Train Dream in Shadow',
+      environment: 'Test environment',
+      swarmEnabled: true
+    });
+
+    const self = JSON.parse(fileStore.get('/self/self.json'));
+    const dream = JSON.parse(fileStore.get('/self/instances/dream/default.instance.json'));
+
+    expect(self.instances.dream).toEqual(expect.objectContaining({
+      id: 'dream-default',
+      kind: 'dream',
+      state: 'manifested',
+      manifestPath: '/self/instances/dream/default.instance.json'
+    }));
+    expect(dream).toEqual(expect.objectContaining({
+      schema: 'reploid/dream-instance/v1',
+      kind: 'dream',
+      mode: 'shadow',
+      reploidInstanceId: 'default'
+    }));
+    expect(dream.trainingContract.completionGates).toContain('stage gate or benchmark passes');
+    expect(dream.promotionGate.state).toBe('blocked');
   });
 
   it('materializes projected overrides during boot seeding', async () => {

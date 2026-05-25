@@ -12,7 +12,7 @@ const TAGS = {
   SYS: 'Systems'
 };
 
-export const DEFAULT_REPLOID_HOME_GOAL = 'Build a live self-improvement control room for this runtime: map the architecture, VFS activity, tool telemetry, and recent experiments in a visually striking dashboard; identify one concrete bottleneck; ship one bounded upgrade; benchmark before and after; and keep only the measured win.';
+export const DEFAULT_REPLOID_HOME_GOAL = 'Run one Shadow RGR self-improvement cycle: read the kernel prompt, RGR blueprints, runtime, and capsule; identify one measurable weakness; produce one reversible candidate plus a receipt/archive entry with baseline, score vector, rollback path, and gate reasons. Do not promote.';
 
 const GOAL_CATEGORIES = {
   'L0: Basic Functions': [
@@ -30,6 +30,16 @@ const GOAL_CATEGORIES = {
       view: 'Loop replay',
       text: 'Capture cycle events and render a replay timeline that lets the user scrub through prompts, tool calls, outputs, and state changes.',
       tags: [TAGS.UI, TAGS.VISUAL, TAGS.DATA]
+    },
+    {
+      view: 'Capability probe',
+      text: 'Create a browser capability probe for IndexedDB, OPFS, Workers, WebGPU, WebRTC, clipboard, and wake locks, then render the result as a substrate card.',
+      tags: [TAGS.UI, TAGS.DATA, TAGS.SYS]
+    },
+    {
+      view: 'Storage atlas',
+      text: 'Map VFS and OPFS storage into a live atlas with quota estimates, artifact sizes, readback checks, and rollback markers.',
+      tags: [TAGS.DATA, TAGS.VISUAL, TAGS.SYS]
     },
     {
       view: 'Artifact studio',
@@ -67,6 +77,16 @@ const GOAL_CATEGORIES = {
       view: 'Prompt mirror',
       text: 'Reconstruct the exact active substrate contract, bootstrap context, and current loop state into a readable artifact, then prove the mirror matches the live runtime.',
       tags: [TAGS.UI, TAGS.DATA, TAGS.SYS]
+    },
+    {
+      view: 'Hot-load lab',
+      text: 'Create a hot-load lab that writes a tiny tool, loads it from VFS as a blob module, runs it, and records the baseline versus loaded behavior.',
+      tags: [TAGS.SYS, TAGS.BENCH, TAGS.DATA]
+    },
+    {
+      view: 'Permission wrapper',
+      text: 'Wrap one permission-mediated browser API with a gate, audit note, denied-path behavior, and a visible status widget.',
+      tags: [TAGS.GOV, TAGS.UI, TAGS.SYS]
     }
   ],
   'L2: Substrate': [
@@ -84,6 +104,16 @@ const GOAL_CATEGORIES = {
       view: 'Context inspector',
       text: 'Visualize exactly what enters the model context, where it came from, and how large it is, then patch the substrate to improve signal density.',
       tags: [TAGS.VISUAL, TAGS.DATA, TAGS.SYS]
+    },
+    {
+      view: 'Worker replay lane',
+      text: 'Move one replay or verification check into a Web Worker lane, compare it with main-thread output, and archive the isolation boundary.',
+      tags: [TAGS.BENCH, TAGS.GOV, TAGS.SYS]
+    },
+    {
+      view: 'Service worker mirror',
+      text: 'Trace how VFS files become executable modules through the service-worker and blob-loading path, then write one repair candidate for the weakest edge.',
+      tags: [TAGS.DATA, TAGS.GOV, TAGS.SYS]
     },
     {
       view: 'VFS journal',
@@ -118,6 +148,31 @@ const GOAL_CATEGORIES = {
       tags: [TAGS.ORCH, TAGS.GOV, TAGS.SYS]
     },
     {
+      view: 'Browser RGR frontier',
+      text: 'Render the Shadow archive as a DOM or canvas Pareto frontier, identify one dominated candidate, and write the score evidence.',
+      tags: [TAGS.VISUAL, TAGS.BENCH, TAGS.GOV]
+    },
+    {
+      view: 'Peer witness gate',
+      text: 'Design a WebRTC witness flow where browser peers add anchor observations but cannot mutate validators or approve promotion.',
+      tags: [TAGS.ORCH, TAGS.GOV, TAGS.SYS]
+    },
+    {
+      view: 'OPFS trace trial',
+      text: 'Persist one large trace or eval payload in OPFS, read it back through the visible tool path, and score storage reliability.',
+      tags: [TAGS.DATA, TAGS.BENCH, TAGS.GOV]
+    },
+    {
+      view: 'Compute probe cycle',
+      text: 'Detect WebGPU or WASM support, run one bounded local-compute proof, and archive the fallback path when unavailable.',
+      tags: [TAGS.BENCH, TAGS.DATA, TAGS.SYS]
+    },
+    {
+      view: 'Prompt gate hardening',
+      text: 'Patch the active prompt so self-edits must cite browser capability checks before using storage, workers, WebGPU, DOM, or peers.',
+      tags: [TAGS.GOV, TAGS.SYS, TAGS.DATA]
+    },
+    {
       view: 'Improvement console',
       text: DEFAULT_REPLOID_HOME_GOAL,
       tags: [TAGS.BENCH, TAGS.GOV, TAGS.SYS]
@@ -133,6 +188,11 @@ const GOAL_CATEGORIES = {
       view: 'Runtime world model',
       text: 'Construct a structured world model of your own runtime, predict the effects of planned changes before applying them, and score yourself on prediction accuracy over time.',
       tags: [TAGS.BENCH, TAGS.DATA, TAGS.GOV]
+    },
+    {
+      view: 'Browser organism map',
+      text: 'Build a living map of VFS, workers, peers, storage, UI, and inference lanes, then choose the next self-improvement from measured weakness.',
+      tags: [TAGS.VISUAL, TAGS.ORCH, TAGS.SYS]
     },
     {
       view: 'Research director',
@@ -190,6 +250,27 @@ export function getGoalEntries(seed = 0) {
       category,
       shuffleWithSeed(goals, seed, 1000 + index)
     ]);
+}
+
+export function getRandomGoalEntry(seed = Date.now(), currentGoal = '') {
+  const normalizedCurrent = normalizeText(currentGoal);
+  const candidates = getGoalEntries(seed)
+    .flatMap(([category, goals]) => (
+      goals.map((goal) => ({ category, goal }))
+    ))
+    .filter((entry) => !entry.goal?.locked)
+    .filter((entry) => normalizeText(entry.goal?.text || entry.goal?.view) !== normalizedCurrent);
+
+  const fallbackCandidates = getGoalEntries(seed)
+    .flatMap(([category, goals]) => (
+      goals.map((goal) => ({ category, goal }))
+    ))
+    .filter((entry) => !entry.goal?.locked);
+  const pool = candidates.length > 0 ? candidates : fallbackCandidates;
+  if (pool.length === 0) return null;
+
+  const random = createSeededRandom(Number(seed) ^ 0x85ebca6b);
+  return pool[Math.floor(random() * pool.length)] || pool[0];
 }
 
 export function findGoalMeta(goalValue) {

@@ -6,6 +6,7 @@ import nodeFetch from 'node-fetch';
 
 const DEFAULT_LOCAL_MODEL_ENDPOINT = 'http://localhost:11434';
 const DEFAULT_VLLM_ENDPOINT = 'http://localhost:8000';
+const DEFAULT_GEMINI_MODEL = 'gemini-3.5-flash';
 const PROVIDER_PRIORITY = Object.freeze([
   'gemini',
   'openai',
@@ -80,7 +81,7 @@ export function resolveInferenceServiceConfig(options = {}) {
     gemini: {
       available: !!firstDefined(options.geminiApiKey, env.GEMINI_API_KEY),
       apiKey: firstDefined(options.geminiApiKey, env.GEMINI_API_KEY),
-      defaultModel: resolveProviderDefaultModel('gemini', env)
+      defaultModel: resolveProviderDefaultModel('gemini', env) || DEFAULT_GEMINI_MODEL
     },
     openai: {
       available: !!firstDefined(options.openaiApiKey, env.OPENAI_API_KEY),

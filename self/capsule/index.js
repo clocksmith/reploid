@@ -38,6 +38,25 @@ const CapsuleUI = {
       return 'manual start required';
     };
 
+    const renderMetric = (label, value) => `
+      <span class="capsule-metric">
+        <span class="capsule-metric-label">${escapeHtml(label)}</span>
+        <span class="capsule-metric-value">${escapeHtml(value === 0 ? '0' : (value || '-'))}</span>
+      </span>
+    `;
+
+    const getGateLabel = (state) => {
+      if (state === 'pending-anchors') return 'pending';
+      if (state === 'passed') return 'passed';
+      if (state === 'rejected') return 'rejected';
+      if (state === 'blocked') return 'blocked';
+      return state || 'anchor';
+    };
+
+    const getVisibleBlocks = (snapshot = {}) => (
+      Array.isArray(snapshot.renderedBlocks) ? snapshot.renderedBlocks : []
+    ).filter((block) => !String(block || '').startsWith('[BOOT]'));
+
     const renderSnapshot = (snapshot = {}) => {
       if (!root) return;
       latestSnapshot = snapshot;
@@ -77,6 +96,100 @@ const CapsuleUI = {
       }
 
       if (stream) {
+        const rgr = snapshot.rgr || {};
+        const swarm = snapshot.swarm || {};
+        const gate = rgr.gate || {};
+        const counters = rgr.counters || {};
+        const archive = rgr.archive || {};
+        const latestArchive = archive.latest || null;
+        const peersEnabled = !!(swarm.enabled || rgr.topology === 'peer-assisted');
+        const peerSummary = peersEnabled
+          ? `${swarm.peerCount || 0} peers · ${swarm.providerCount || 0} hosts · ${swarm.consumerCount || 0} consumers`
+          : 'off';
+        const gateSummary = gate.state
+          ? `${getGateLabel(gate.state)} ${Number(gate.anchors || 0)}/${Number(gate.required || 0)}`
+          : 'anchor';
+        const ecosystem = [
+          'browser',
+          'VFS',
+          'OPFS',
+          peersEnabled ? 'peer ring' : null
+        ].filter(Boolean).join(' + ');
+        const slots = Array.isArray(rgr.slots) ? rgr.slots : [];
+        const instances = Array.isArray(rgr.instances) ? rgr.instances : [];
+        const slotRows = slots.map((slot) => `
+          <span class="capsule-slot-row">
+            <span class="capsule-slot-id">${escapeHtml(slot.id)}</span>
+            <span class="capsule-slot-placement">${escapeHtml(slot.placement)}</span>
+            <span class="capsule-slot-state">${escapeHtml(slot.state)}</span>
+          </span>
+        `).join('');
+        const instanceRows = instances.map((instance) => `
+          <span class="capsule-instance-row">
+            <span class="capsule-slot-id">${escapeHtml(instance.kind || instance.id)}</span>
+            <span class="capsule-slot-placement">${escapeHtml(instance.mode || 'shadow')}</span>
+            <span class="capsule-slot-state">${escapeHtml(instance.state || 'manifested')}</span>
+          </span>
+        `).join('');
+        const counterSummary = [
+          `tokens ${Number(counters.tokens || snapshot.tokens?.used || 0).toLocaleString()}`,
+          `tools ${Number(counters.toolCalls || 0).toLocaleString()}`,
+          `candidates ${Number(counters.candidates || 0).toLocaleString()}`,
+          `archive ${Number(counters.archive || 0).toLocaleString()}`,
+          `receipts ${Number(counters.receipts || 0).toLocaleString()}`,
+          `errors ${Number(counters.errors || 0).toLocaleString()}`
+        ].join(' | ');
+        const latestScore = latestArchive?.score || {};
+        const latestReceiptHtml = latestArchive ? `
+          <div class="capsule-rgr-receipt" aria-label="Latest Shadow receipt">
+            <div class="capsule-receipt-title">
+              <span>Shadow receipt</span>
+              <span>${escapeHtml(latestArchive.kind || 'shadow-candidate')}</span>
+            </div>
+            <div class="capsule-receipt-score">
+              ${renderMetric('Use', latestScore.usefulness)}
+              ${renderMetric('Safe', latestScore.safety)}
+              ${renderMetric('Rev', latestScore.reversibility)}
+              ${renderMetric('Evidence', latestScore.evidence)}
+              ${renderMetric('Anchor', latestScore.qAnchor)}
+              ${renderMetric('Eff', latestScore.efficiency)}
+            </div>
+            <div class="capsule-receipt-note">
+              ${escapeHtml((latestArchive.gate?.reasons || []).join(' | ') || 'anchor gate passed')}
+            </div>
+            ${latestArchive.receiptPath ? `
+              <div class="capsule-receipt-note">receipt stored</div>
+            ` : ''}
+          </div>
+        ` : '';
+        const statusHtml = `
+          <section class="capsule-rgr-panel" aria-label="Ecosystem status">
+            <div class="capsule-status-grid">
+              ${renderMetric('Mode', rgr.mode || 'seed')}
+              ${renderMetric('Topology', rgr.topology || 'local')}
+              ${renderMetric('Cycle', String(snapshot.cycle || 0))}
+              ${renderMetric('Gate', gateSummary)}
+              ${renderMetric('Role', rgr.role || swarm.role || 'unknown')}
+              ${renderMetric('Host', rgr.hostStatus || 'none')}
+              ${renderMetric('Peers', peerSummary)}
+              ${renderMetric('Transport', swarm.transport || rgr.transport || 'none')}
+              ${renderMetric('Ecosystem', ecosystem)}
+              ${renderMetric('Instances', instances.length ? instances.map((instance) => instance.kind || instance.id).join(', ') : 'none')}
+              ${renderMetric('Archive', `${Number(archive.count || 0).toLocaleString()}/${Number(archive.limit || 0).toLocaleString()}`)}
+              ${renderMetric('Anchors', latestScore.qAnchor ?? 0)}
+            </div>
+            <div class="capsule-slot-table" aria-label="Ring slots">
+              ${slotRows}
+            </div>
+            ${instanceRows ? `
+              <div class="capsule-slot-table capsule-instance-table" aria-label="Manifested browser instances">
+                ${instanceRows}
+              </div>
+            ` : ''}
+            ${latestReceiptHtml}
+            <div class="capsule-counter-row">${escapeHtml(counterSummary)}</div>
+          </section>
+        `;
         const header = [
           `instance: ${snapshot.instanceId || snapshot.swarm?.instanceId || 'default'}`,
           `run: ${runState}`,
@@ -92,9 +205,9 @@ const CapsuleUI = {
             ? `swarm: ${snapshot.swarm.role || 'unknown'} · peers ${snapshot.swarm.peerCount || 0}/${snapshot.swarm.providerCount || 0} providers · ${snapshot.swarm.transport || 'none'} · ${snapshot.swarm.connectionState || 'disconnected'}`
             : null
         ].join('\n');
-        const blocks = [header, ...(Array.isArray(snapshot.renderedBlocks) ? snapshot.renderedBlocks : [])]
+        const blocks = [header, ...getVisibleBlocks(snapshot)]
           .filter((block) => String(block || '').trim());
-        stream.innerHTML = blocks.map((block, index) => `
+        stream.innerHTML = statusHtml + blocks.map((block, index) => `
           <pre class="capsule-block${index === 0 ? ' capsule-block-header' : ''}">${escapeHtml(block)}</pre>
         `).join('');
       }

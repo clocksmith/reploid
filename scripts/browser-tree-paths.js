@@ -6,6 +6,7 @@ const SELF_ROOT_FILES = new Set([
   'cloud-access-status.js',
   'cloud-access-windows.js',
   'cloud-access.js',
+  'dream-instance.js',
   'environment.js',
   'identity.js',
   'instance.js',

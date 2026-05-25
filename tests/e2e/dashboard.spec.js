@@ -13,7 +13,7 @@ async function bootToDashboard(page, goal = 'Test dashboard') {
   // Configure a model via localStorage (simulates having selected a model)
   await page.evaluate(() => {
     localStorage.setItem('SELECTED_MODELS', JSON.stringify([{
-      id: 'gemini-2.5-flash',
+      id: 'gemini-3.5-flash',
       name: 'Gemini 2.5 Flash',
       provider: 'gemini',
       hostType: 'browser-cloud'

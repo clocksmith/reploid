@@ -64,7 +64,7 @@ async function runBrowserArena(objective, config) {
 
   // 2. Run multiple models in parallel (via HybridLLMProvider)
   const solutions = await Promise.all([
-    generateSolution(objective, 'gemini-2.5-flash'),
+    generateSolution(objective, 'gemini-3.5-flash'),
     generateSolution(objective, 'claude-haiku-4-5'),
     generateSolution(objective, 'gpt-5-mini')
   ]);
@@ -159,7 +159,7 @@ const MultiModelArena = {
     // Core competition
     runCompetition: async (objective, config) => {
       // config:
-      // - models: ['gemini-2.5-flash', 'claude-haiku-4-5', ...]
+      // - models: ['gemini-3.5-flash', 'claude-haiku-4-5', ...]
       // - verificationFn: (solution) => { /* test code */ }
       // - timeout: 60000
       // - useSwarm: false
@@ -167,7 +167,7 @@ const MultiModelArena = {
 
       return {
         solutions: [...],
-        winner: { model: 'gemini-2.5-flash', score: 0.95, ... },
+        winner: { model: 'gemini-3.5-flash', score: 0.95, ... },
         telemetry: { ... }
       };
     },
@@ -336,7 +336,7 @@ const runCompetition = async (objective, config = {}) => {
 
   try {
     // 1. Validate configuration
-    const models = config.models || ['gemini-2.5-flash', 'claude-haiku-4-5', 'gpt-5-mini'];
+    const models = config.models || ['gemini-3.5-flash', 'claude-haiku-4-5', 'gpt-5-mini'];
     const verifyFn = config.verificationFn || defaultVerification;
     const timeout = config.timeout || 60000;
 
@@ -757,7 +757,7 @@ class MultiModelArenaWidget extends HTMLElement {
     if (demoBtn && !active) {
       demoBtn.addEventListener('click', () => {
         runCompetition('Optimize the StateManager module for performance', {
-          models: ['gemini-2.5-flash', 'claude-haiku-4-5'],
+          models: ['gemini-3.5-flash', 'claude-haiku-4-5'],
           timeout: 30000
         });
       });

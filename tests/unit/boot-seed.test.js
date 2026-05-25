@@ -18,11 +18,18 @@ describe('boot seed manifest', () => {
   it('hydrates self/instance.js in the reploid home boot seed', () => {
     const bootFiles = pickBootSeedFiles(manifest.files, 'reploid_home');
 
-    expect(bootFiles).toContain('self/host/start-app.js');
+    expect(bootFiles).toContain('self/host/start-reploid.js');
     expect(bootFiles).toContain('self/kernel/boot.js');
     expect(bootFiles).toContain('self/boot-spec.js');
+    expect(bootFiles).toContain('self/dream-instance.js');
     expect(bootFiles).toContain('self/instance.js');
+    expect(bootFiles).toContain('blueprints/rgr-dream-instance-manifest.md');
+    expect(bootFiles).toContain('ui/reploid-home/index.js');
+    expect(bootFiles).toContain('capabilities/communication/swarm-transport.js');
     expect(bootFiles).toContain('core/utils.js');
+    expect(bootFiles).toContain('infrastructure/event-bus.js');
+    expect(bootFiles).not.toContain('ui/boot-home/index.js');
+    expect(bootFiles.some((file) => file.startsWith('ui/boot-wizard/'))).toBe(false);
   });
 
   it('skips full manifest hydration for reploid_home only', () => {

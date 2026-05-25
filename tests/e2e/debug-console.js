@@ -190,8 +190,9 @@ async function run() {
         process.exit(1);
       }
 
-      const modelId = process.env.MODEL || 'gemini-3.1-flash-lite-preview';
+      const modelId = process.env.MODEL || 'gemini-3.5-flash';
       const modelNames = {
+        'gemini-3.5-flash': 'Gemini 3.5 Flash',
         'gemini-3.1-flash-lite-preview': 'Gemini 3.1 Flash Lite (Preview)',
         'gemini-3.1-pro-preview': 'Gemini 3.1 Pro (Preview)',
         'gemini-2.0-flash': 'Gemini 2.0 Flash',

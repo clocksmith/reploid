@@ -516,7 +516,7 @@ async function completeReploidAwaken(goal, wizardContainer) {
     if (wizardContainer) {
       wizardContainer.style.display = 'block';
       if (useLockedRouteHome) {
-        const { initLockedBootHome } = await import('/ui/boot-home/index.js');
+        const { initLockedBootHome } = await import(withQuery('/ui/boot-home/index.js', getCurrentReploidPeerQuery()));
         initLockedBootHome(wizardContainer, routeMode || runtimeMode);
         if (runtimeMode === 'reploid') {
           loadReploidModules().catch((err) => {
@@ -528,7 +528,7 @@ async function completeReploidAwaken(goal, wizardContainer) {
           });
         }
       } else {
-        const { initWizard: initWizardUI } = await import('/ui/boot-wizard/index.js');
+        const { initWizard: initWizardUI } = await import(withQuery('/ui/boot-wizard/index.js', getCurrentReploidPeerQuery()));
         initWizardUI(wizardContainer);
       }
     }

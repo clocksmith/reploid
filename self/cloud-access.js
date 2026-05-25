@@ -8,7 +8,7 @@ import { createAccessWindowLabel, unsealString } from './key-unsealer.js';
 import GENERATED_REPLOID_CLOUD_ACCESS_STATUS from './cloud-access-status.js';
 
 export const DEFAULT_REPLOID_CLOUD_PROVIDER = 'gemini';
-export const DEFAULT_REPLOID_CLOUD_MODEL = 'gemini-3.1-flash-lite-preview';
+export const DEFAULT_REPLOID_CLOUD_MODEL = 'gemini-3.5-flash';
 
 export const REPLOID_CLOUD_ACCESS = Object.freeze({
   version: 1,

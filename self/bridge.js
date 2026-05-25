@@ -36,6 +36,7 @@ const REMOTE_GENERATION_TIMEOUT_MS = 45000;
 const OPFS_PREFIX = 'opfs:';
 const VFS_PREFIX = 'vfs:';
 const VFS_BYPASS_HEADER = 'x-reploid-vfs-bypass';
+const RGR_ANCHOR_RECEIPT_ROOT = '/artifacts/rgr/anchor-receipts/';
 const PROTECTED_SYSTEM_PATHS = new Set(SELF_PROTECTED_PATHS);
 const normalizePath = (rawPath, backendOverride) => {
   if (!rawPath || typeof rawPath !== 'string') {
@@ -860,6 +861,89 @@ export function createSelfBridge(options = {}) {
     };
   };
 
+  const readBootstrapFiles = async (paths = []) => {
+    const entries = await Promise.all(
+      Array.from(new Set(Array.isArray(paths) ? paths : []))
+        .filter((path) => typeof path === 'string' && path.trim())
+        .map(async (rawPath) => {
+          const { path } = normalizePath(rawPath, 'vfs');
+          try {
+            const file = await readFile({ path });
+            return [path, file.content];
+          } catch (error) {
+            return [path, `[unavailable] ${error?.message || String(error)}`];
+          }
+        })
+    );
+    return Object.fromEntries(entries);
+  };
+
+  const writeRuntimeArtifact = async (rawPath, content) => {
+    const { path } = normalizePath(rawPath, 'vfs');
+    if (!isWithinRoot(path, '/artifacts')) {
+      throw new Error('Runtime artifacts must be written under /artifacts');
+    }
+    await writeFile({ path, content: String(content || '') });
+    return { path, written: true };
+  };
+
+  const getAnchorObservations = async (input = {}) => {
+    const candidateIds = new Set([
+      input.candidateId,
+      input.digest,
+      ...(Array.isArray(input.lineage) ? input.lineage : [])
+    ].map((value) => String(value || '').trim()).filter(Boolean));
+    if (candidateIds.size === 0) return [];
+
+    const expectedJobHashes = new Set();
+    candidateIds.forEach((id) => {
+      expectedJobHashes.add(id);
+      expectedJobHashes.add(`rgr-anchor:${id}`);
+    });
+
+    const keys = (await listVfsKeys())
+      .filter((path) => path.startsWith(RGR_ANCHOR_RECEIPT_ROOT) && path.endsWith('.json'))
+      .sort();
+    const observations = [];
+    const seen = new Set();
+
+    for (const path of keys) {
+      try {
+        const raw = await readVfsFile(path);
+        if (!raw) continue;
+        const parsed = JSON.parse(raw);
+        const receipt = parsed?.receipt || parsed;
+        if (!receipt || typeof receipt !== 'object') continue;
+        if (!expectedJobHashes.has(String(receipt.jobHash || ''))) continue;
+
+        const verification = await verifyReceipt(receipt);
+        if (!verification.valid) continue;
+
+        const receiptId = String(receipt.receiptId || `${receipt.provider}:${receipt.jobHash}:${path}`);
+        const key = `${receiptId}:${receipt.provider}`;
+        if (seen.has(key)) continue;
+        seen.add(key);
+
+        observations.push({
+          id: key,
+          receiptId,
+          provider: receipt.provider || null,
+          consumer: receipt.consumer || null,
+          jobHash: receipt.jobHash || null,
+          model: receipt.model || null,
+          timestamp: receipt.timestamp || null,
+          path,
+          verified: true
+        });
+      } catch {
+        // Invalid or unverifiable anchor files are ignored; candidates cannot
+        // increase anchor score by writing arbitrary JSON under artifacts.
+      }
+    }
+
+    return observations;
+  };
+
   const getModelLabel = () => modelConfig?.name || modelConfig?.id || '-';
 
   const generate = async (messages, onUpdate) => {
@@ -874,14 +958,14 @@ export function createSelfBridge(options = {}) {
     await initialize();
     const provider = await chooseProvider();
     if (!provider?.peerId || !swarmTransport || !identityBundle) {
-      throw new Error('No swarm provider available');
+      throw new Error('No remote host slot available');
     }
 
     const requestId = utils.generateId('swarmreq');
     return new Promise((resolve, reject) => {
       const timeoutId = setTimeout(() => {
         pendingRemoteRequests.delete(requestId);
-        reject(new Error('Timed out waiting for swarm provider response'));
+        reject(new Error('Timed out waiting for remote host slot response'));
       }, REMOTE_GENERATION_TIMEOUT_MS);
 
       pendingRemoteRequests.set(requestId, {
@@ -913,6 +997,9 @@ export function createSelfBridge(options = {}) {
   return {
     initialize,
     seedSystemFiles,
+    readBootstrapFiles,
+    writeRuntimeArtifact,
+    getAnchorObservations,
     generate,
     rotateIdentity,
     executeTool: toolRunner.executeTool,

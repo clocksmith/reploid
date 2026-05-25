@@ -144,7 +144,11 @@ describe('LLMClient - Integration Tests', () => {
 
       expect(global.fetch).toHaveBeenCalledWith('/api/chat', expect.objectContaining({
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
+        headers: expect.objectContaining({
+          'Content-Type': 'application/json',
+          'X-Reploid-Client-Id': 'server'
+        }),
+        signal: expect.any(AbortSignal)
       }));
 
       expect(result.content).toBe('Hello from LLM');
@@ -494,7 +498,7 @@ describe('LLMClient - Integration Tests', () => {
         const result = await llmClientNoStream.chat(
           [{ role: 'user', content: 'Hello' }],
           {
-            id: 'gemini-3.1-flash-lite-preview',
+            id: 'gemini-3.5-flash',
             provider: 'gemini',
             hostType: 'browser-cloud',
             apiKey: 'gemini-key'

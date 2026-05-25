@@ -59,7 +59,7 @@ describe('DIContainer', () => {
         .toThrow('Invalid module registration');
     });
 
-    it('should allow overwriting a registered module', () => {
+    it('should allow overwriting a registered module', async () => {
       const moduleV1 = {
         metadata: { id: 'TestModule', dependencies: [] },
         factory: () => ({ version: 1 })
@@ -74,7 +74,7 @@ describe('DIContainer', () => {
       container.register(moduleV2);
 
       // Should not throw, v2 overwrites v1
-      expect(container.resolve('TestModule')).resolves.toHaveProperty('version', 2);
+      await expect(container.resolve('TestModule')).resolves.toHaveProperty('version', 2);
     });
   });
 

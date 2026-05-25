@@ -272,7 +272,7 @@ const callApiWithRetry = async (history, apiKey, funcDecls = []) => {
   }
   currentAbortController = new AbortController();
 
-  const modelName = "gemini-2.5-flash";
+  const modelName = "gemini-3.5-flash";
 
   // Build endpoint and fetch options
   let apiEndpoint, fetchOptions;

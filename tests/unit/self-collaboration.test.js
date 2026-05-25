@@ -50,7 +50,7 @@ describe('Self Collaboration Modules', () => {
       plaintext: JSON.stringify({
         apiKey: 'secret-gemini-key',
         provider: 'gemini',
-        model: 'gemini-3.1-flash-lite-preview'
+        model: 'gemini-3.5-flash'
       })
     });
 
@@ -58,7 +58,7 @@ describe('Self Collaboration Modules', () => {
     globalThis.window = globalThis.window || {};
     globalThis.window.__REPLOID_CLOUD_ACCESS__ = {
       provider: 'gemini',
-      model: 'gemini-3.1-flash-lite-preview',
+      model: 'gemini-3.5-flash',
       windows: [
         {
           label: '2026-03-27',
@@ -74,7 +74,7 @@ describe('Self Collaboration Modules', () => {
       });
 
       expect(config.provider).toBe('gemini');
-      expect(config.id).toBe('gemini-3.1-flash-lite-preview');
+      expect(config.id).toBe('gemini-3.5-flash');
       expect(config.keySource).toBe('access-code');
       await expect(config.getApiKey()).resolves.toBe('secret-gemini-key');
     } finally {
@@ -100,7 +100,7 @@ describe('Self Collaboration Modules', () => {
       provider: providerBundle.peerId,
       consumer: consumerBundle.peerId,
       jobHash: 'sha256:test-job',
-      model: 'gemini-3.1-flash-lite-preview',
+      model: 'gemini-3.5-flash',
       inputTokens: 1600,
       outputTokens: 800
     });

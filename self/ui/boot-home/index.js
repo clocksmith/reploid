@@ -7,6 +7,7 @@ import {
   VERIFY_STATE,
   canAwaken,
   checkSavedConfig,
+  getStoredSwarmEnabled,
   getState,
   hydrateSavedConfig,
   resetWizard,
@@ -27,7 +28,8 @@ import {
 import {
   DEFAULT_REPLOID_HOME_GOAL,
   formatGoalPacket,
-  getGoalEntries
+  getGoalEntries,
+  getRandomGoalEntry
 } from '../boot-wizard/goals.js';
 import {
   findReploidEnvironmentTemplateId,
@@ -50,21 +52,29 @@ import { CLOUD_MODELS, renderDirectConfigStep } from '../boot-wizard/steps/direc
 import { renderProxyConfigStep } from '../boot-wizard/steps/proxy.js';
 import { renderBrowserConfigStep } from '../boot-wizard/steps/browser.js';
 import { renderAwakenedFilesPanel, renderGoalStep } from '../boot-wizard/steps/goal.js';
-import { ensureSelfPreviewLoaded } from '../boot-wizard/self-preview.js';
 
 const DEFAULT_DOPPLER_MODEL = 'smollm2-360m';
 const DEFAULT_GTM_PROXY_PROVIDER = 'gemini';
-const DEFAULT_GTM_PROXY_MODEL = 'gemini-3.1-flash-lite-preview';
+const DEFAULT_GTM_PROXY_MODEL = 'gemini-3.5-flash';
+const RGR_SLOT_ROLES = Object.freeze([
+  'elite',
+  'performance',
+  'robustness',
+  'repair',
+  'low-cost',
+  'safety',
+  'fallback'
+]);
 const ROUTE_HOME_CONFIG = Object.freeze({
   reploid: {
     providerMode: 'choice',
-    providerCaption: 'Primary Reploid keeps boot minimal: attach your own inference, use swarm, or optionally unlock a sponsor window.',
-    goalTitle: 'Set the first objective',
-    goalCaption: 'These starting files define the initial self. The manifest and identity establish what Reploid is, optional sponsor windows unlock provisioned browser-cloud inference, the runtime, bridge, and tool runner execute work, the Capsule shell renders the interface, and writable roots hold memory, tools, and artifacts. Your first objective tells that seed what to build, measure, and improve first.',
-    awakenCaption: 'Awaken a minimal browser-native seed Reploid with explicit self files for runtime, identity, collaboration, and self-improvement.',
+    providerCaption: '',
+    goalTitle: 'Objective',
+    goalCaption: '',
+    awakenCaption: '',
     hideBootInternals: true,
     goalActionMode: 'generate-only',
-    generatedStatusText: 'Objective drafted from a hidden seed prompt',
+    generatedStatusText: '',
     defaultGoal: DEFAULT_REPLOID_HOME_GOAL,
     goalPlaceholder: DEFAULT_REPLOID_HOME_GOAL
   },
@@ -76,7 +86,7 @@ const ROUTE_HOME_CONFIG = Object.freeze({
     awakenCaption: 'Awaken Zero with the selected inference path and first objective.',
     hideBootInternals: true,
     goalActionMode: 'generate-only',
-    generatedStatusText: 'Objective drafted from a hidden seed prompt'
+    generatedStatusText: ''
   },
   x: {
     providerMode: 'choice',
@@ -86,7 +96,7 @@ const ROUTE_HOME_CONFIG = Object.freeze({
     awakenCaption: 'Awaken X with the selected inference path and first goal.',
     hideBootInternals: true,
     goalActionMode: 'generate-only',
-    generatedStatusText: 'Objective drafted from a hidden seed prompt'
+    generatedStatusText: ''
   }
 });
 
@@ -132,6 +142,45 @@ const getRouteHomeConfig = (mode) => ROUTE_HOME_CONFIG[mode] || ROUTE_HOME_CONFI
 const isUsingOwnInference = (state) => state.mode === 'reploid' && state.connectionType === 'direct';
 const getPeerLaunchUrl = () => createReploidPeerUrl(window.location.pathname);
 const getFreshPeerLaunchUrl = () => createReploidPeerUrl(window.location.pathname, { freshIdentity: true });
+const getRingTopologyLabel = (launch) => launch?.swarmEnabled ? 'peer-assisted' : 'local';
+const getSlotPlacementLabel = (launch) => {
+  if (launch?.hasInference && launch?.swarmEnabled) return 'local/remote';
+  if (launch?.hasInference) return 'local';
+  if (launch?.swarmEnabled) return 'remote';
+  return 'empty';
+};
+const getPeerRoleLabel = (launch) => {
+  if (!launch?.swarmEnabled) {
+    return launch?.hasInference ? 'solo host' : 'offline';
+  }
+  if (launch?.role === 'provider') return 'host';
+  if (launch?.role === 'consumer') return 'consumer';
+  if (launch?.role === 'solo') return 'solo host';
+  return 'waiting';
+};
+const getExecutorLabel = (launch) => {
+  if (launch?.hasInference && launch?.swarmEnabled) return 'local host + remote slots';
+  if (launch?.hasInference) return 'local host';
+  if (launch?.swarmEnabled) return 'waiting for host';
+  return 'none';
+};
+const getTransportPlanLabel = (launch) => {
+  if (!launch?.swarmEnabled) return 'disabled';
+  if (typeof window === 'undefined') return 'swarm';
+  const params = new URLSearchParams(window.location.search);
+  const explicitSwarm = params.get('swarm');
+  const explicitSignaling = params.get('signaling')
+    || getReploidStorage().getItem('REPLOID_SIGNALING_URL');
+  if (explicitSwarm && explicitSwarm !== 'true') return 'WebRTC room';
+  if (explicitSignaling) return 'WebRTC signaling';
+  return 'local room';
+};
+const renderStatusMetric = (label, value) => `
+  <span class="rgr-status-metric">
+    <span class="rgr-status-label">${label}</span>
+    <span class="rgr-status-value">${value}</span>
+  </span>
+`;
 const omitPathEntry = (entries, path) => Object.fromEntries(
   Object.entries(entries || {}).filter(([entryPath]) => entryPath !== path)
 );
@@ -144,11 +193,7 @@ const renderIntroStep = () => `
   <div class="wizard-step wizard-intro">
     <div class="goal-header">
       <h1 class="type-h1">Reploid</h1>
-      <p class="type-caption">Peer instance: ${getCurrentReploidInstanceLabel()} · <a class="link-secondary" href="${getPeerLaunchUrl()}" target="_blank" rel="noopener">Open new peer</a> · <a class="link-secondary" href="${getFreshPeerLaunchUrl()}" target="_blank" rel="noopener">Open fresh peer</a></p>
-      <div class="wizard-intro-copy">
-        <p class="intro-thesis">Reploid asks whether a self-modifying agent that can inspect and rewrite its own substrate can climb from local improvements into recursive self-improvement.</p>
-        <p class="intro-reality">That is the philosophy. In reality, Reploid is a browser-native runtime that awakens from explicit self files, rewrites its own runtime, tools, and shell through bounded experiments, and treats weak AGI as a measured engineering target rather than a claim.</p>
-      </div>
+      <p class="type-caption">ring slots can be local or remote · peer ${getCurrentReploidInstanceLabel()} · <a class="link-secondary" href="${getPeerLaunchUrl()}" target="_blank" rel="noopener">new peer</a> · <a class="link-secondary" href="${getFreshPeerLaunchUrl()}" target="_blank" rel="noopener">fresh peer</a></p>
     </div>
   </div>
 `;
@@ -160,38 +205,35 @@ const renderManagedInferenceStep = (state) => {
   const accessCode = String(state.accessConfig?.accessCode || '');
   const accessError = state.accessConfig?.error || '';
   const hasDirectInference = hasDirectInferenceConfig(state);
-  const showSponsorAccessDetails = !byokEnabled && accessProvisioned;
+  const showSponsorAccessDetails = false;
   const sponsorAccessDetailsOpen = showSponsorAccessDetails
     && (sponsorAccessExpanded || !!accessCode || !!accessError);
 
-  let statusLabel = 'No local inference';
-  let modelLabel = '';
-  let caption = 'Use Configure to attach your own inference, or enable Swarm to awaken and borrow from peers.';
+  const topologyLabel = getRingTopologyLabel(launch);
+  const slotPlacement = getSlotPlacementLabel(launch);
+  const roleLabel = getPeerRoleLabel(launch);
+  const executorLabel = getExecutorLabel(launch);
+  const transportLabel = getTransportPlanLabel(launch);
+  const slotSummary = `${RGR_SLOT_ROLES.length} ${slotPlacement}`;
+
+  let statusLabel = 'Seed';
+  let modelLabel = topologyLabel;
+  let caption = 'No host attached';
 
   if (launch.hasDirectInference) {
-    statusLabel = 'Your inference';
     modelLabel = state.directConfig?.model || '';
     caption = launch.swarmEnabled
-      ? 'This browser has local inference and will also serve peers after awaken.'
-      : 'This browser has local inference. Enable Swarm if you want to serve peers too.';
+      ? 'Local slots execute here and remote slots may join'
+      : 'All runnable slots execute locally';
   } else if (launch.hasAccessInference) {
-    statusLabel = 'Sponsor access';
     modelLabel = launch.accessModel;
     caption = launch.swarmEnabled
-      ? `A sponsor access window is active for ${launch.accessWindowLabel}. This browser has local inference and will also serve peers after awaken.`
-      : `A sponsor access window is active for ${launch.accessWindowLabel}. This browser has local inference for this session.`;
+      ? 'Managed host can serve local and remote slots'
+      : 'Managed host fills local slots';
   } else if (launch.swarmEnabled) {
-    statusLabel = 'Peer inference';
-    caption = byokEnabled
-      ? 'Swarm is on. This Reploid can awaken now and wait for a provider peer while you optionally finish configuring your own inference below.'
-      : (accessProvisioned
-        ? `Swarm is on. This Reploid can awaken now and wait for a provider peer, or expand Sponsor access to add the ${launch.accessWindowLabel} code for local inference.`
-        : 'Swarm is on. This Reploid can awaken now and wait for a provider peer.');
+    caption = 'Waiting for remote host slots';
   } else if (byokEnabled && !hasDirectInference) {
-    statusLabel = 'Attach your inference';
-    caption = 'Configure a provider, key, and model below to give this browser local inference.';
-  } else if (accessProvisioned) {
-    caption = `Use Configure to attach your own inference, enable Swarm to borrow from peers, or expand Sponsor access to add the ${launch.accessWindowLabel} code.`;
+    caption = 'No provider selected';
   }
 
   const sponsorSummaryTitle = 'Sponsor access';
@@ -202,7 +244,7 @@ const renderManagedInferenceStep = (state) => {
   return `
     <div class="wizard-step inference-bar">
       <div class="goal-header">
-        <h2 class="type-h2">Inference</h2>
+        <h2 class="type-h2">Ring</h2>
       </div>
       <div class="inference-bar-row">
         <div class="inference-bar-status">
@@ -221,9 +263,17 @@ const renderManagedInferenceStep = (state) => {
             <input type="checkbox"
                    id="reploid-swarm-enabled"
                    ${state.swarmEnabled ? 'checked' : ''} />
-            <span>Swarm</span>
+            <span>Peer slots</span>
           </label>
         </div>
+      </div>
+      <div class="rgr-status-strip" aria-label="System and peer status">
+        ${renderStatusMetric('Mode', 'Seed')}
+        ${renderStatusMetric('Role', roleLabel)}
+        ${renderStatusMetric('Slots', slotSummary)}
+        ${renderStatusMetric('Transport', transportLabel)}
+        ${renderStatusMetric('Host', executorLabel)}
+        ${renderStatusMetric('Gate', 'anchor')}
       </div>
       ${showSponsorAccessDetails ? `
         <details class="inference-bar-shared-details"${sponsorAccessDetailsOpen ? ' open' : ''}>
@@ -243,7 +293,7 @@ const renderManagedInferenceStep = (state) => {
                      autocomplete="off"
                      spellcheck="false" />
               <div class="inference-bar-meta">
-                <span class="type-caption">Enter the sponsor code to unlock local browser-cloud inference for this access window.</span>
+                <span class="type-caption">${launch.accessWindowLabel} code</span>
                 ${accessError ? `
                   <span class="type-caption type-caption-error">☒ ${accessError}</span>
                 ` : ''}
@@ -857,9 +907,7 @@ async function handleClick(event) {
 
     case 'shuffle-goals': {
       const goalShuffleSeed = Date.now();
-      const shuffledGoal = getGoalEntries(goalShuffleSeed)
-        .flatMap(([category, goals]) => goals.map((goal) => ({ category, goal })))
-        .find((entry) => !entry.goal?.locked);
+      const shuffledGoal = getRandomGoalEntry(goalShuffleSeed, state.goal);
       setState({
         goalShuffleSeed,
         goal: shuffledGoal?.goal?.text || state.goal,
@@ -1048,7 +1096,7 @@ function render() {
 
     const awakenDisabled = state.isAwakening || !hasGoal || !launch?.canAwaken;
     html += renderAwakenedFilesPanel(state, {
-      showSourceBrowser: true,
+      showSourceBrowser: false,
       defaultOpen: false,
       summaryActionHtml: `
         <button class="btn btn-prism${state.isAwakening ? ' loading' : ''}"
@@ -1151,9 +1199,6 @@ function render() {
     listenersAttached = true;
   }
 
-  if (state.mode === 'reploid') {
-    ensureSelfPreviewLoaded();
-  }
 }
 
 export function initLockedBootHome(containerEl, mode = 'reploid') {
@@ -1178,7 +1223,10 @@ export function initLockedBootHome(containerEl, mode = 'reploid') {
     : String(homeConfig.defaultGoal || '');
 
   const storage = getReploidStorage();
-  const swarmEnabled = storage.getItem('REPLOID_SWARM_ENABLED') === 'true';
+  const swarmEnabled = getStoredSwarmEnabled();
+  if (storage.getItem('REPLOID_SWARM_ENABLED') === null) {
+    storage.setItem('REPLOID_SWARM_ENABLED', swarmEnabled ? 'true' : 'false');
+  }
   const useOwnInference = storage.getItem('REPLOID_USE_OWN_INFERENCE') === 'true';
   const managedReploid = routeMode === 'reploid'
       ? {

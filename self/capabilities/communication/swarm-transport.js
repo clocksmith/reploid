@@ -126,7 +126,7 @@ const SwarmTransport = {
       const swarmParam = urlParams.get('swarm');
       if (swarmParam) return true;
 
-      return getCurrentReploidStorage().getItem('REPLOID_SWARM_ENABLED') === 'true';
+      return getCurrentReploidStorage().getItem('REPLOID_SWARM_ENABLED') !== 'false';
     };
 
     /**

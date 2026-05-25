@@ -87,7 +87,7 @@ Settings stored in `REPLOID_GEPA_CONFIG` as JSON object.
 
 | Setting | localStorage Key | Values | Default |
 |---------|------------------|--------|---------|
-| Enable P2P Swarm | `REPLOID_SWARM_ENABLED` | `'true'`, `'false'` | `'false'` |
+| Enable P2P Swarm | `REPLOID_SWARM_ENABLED` | `'true'`, `'false'` | `'true'` |
 | Signaling URL override | `REPLOID_SIGNALING_URL` | WebSocket or HTTP URL | Same-origin `/signaling` |
 
 ---

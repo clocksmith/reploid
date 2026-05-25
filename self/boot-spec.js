@@ -15,7 +15,7 @@ const normalizePath = (path) => {
 export const SELF_BOOT_SPEC = Object.freeze({
   schema: 'reploid/self-boot/v1',
   version: 1,
-  title: 'Reploid · Browser RSI Substrate',
+  title: 'Reploid',
   baseHref: '/',
   bootSpecPath: '/self/boot.json',
   selfPath: '/self/self.json',
@@ -29,6 +29,7 @@ export const SELF_BOOT_SPEC = Object.freeze({
   host: {
     seedEntry: '/self/host/seed-vfs.js',
     startEntry: '/self/host/start-app.js',
+    reploidStartEntry: '/self/host/start-reploid.js',
     vfsBootstrapEntry: '/self/host/vfs-bootstrap.js',
     serviceWorkerEntry: '/self/host/sw-module-loader.js',
     serviceWorkerBootstrapEntry: '/sw.js'
@@ -37,6 +38,15 @@ export const SELF_BOOT_SPEC = Object.freeze({
     runtimeEntry: '/self/runtime.js',
     uiEntry: '/self/capsule/index.js',
     uiStylePath: 'styles/capsule.css'
+  },
+  instances: {
+    root: '/self/instances',
+    defaultManifests: [
+      '/self/instances/dream/default.instance.json'
+    ],
+    sources: [
+      '/self/dream-instance.js'
+    ]
   },
   image: {
     manifestEntry: '/self/image/manifest.js',

@@ -201,6 +201,50 @@ config: {"mode":"safe","paths":["/a","/b"]}`;
         expect(calls[0].args.config).toEqual({ mode: 'safe', paths: ['/a', '/b'] });
       });
 
+      it('should parse REPLOID/0 PLAN steps with ids and dependencies', () => {
+        const text = `REPLOID/0
+
+PLAN:
+[
+  {
+    "id": "a",
+    "tool": "ReadFile",
+    "args": { "path": "/self/a.js" }
+  },
+  {
+    "id": "b",
+    "tool": "ReadFile",
+    "args": { "path": "/self/b.js" }
+  },
+  {
+    "id": "c",
+    "after": ["a", "b"],
+    "tool": "WriteFile",
+    "args": { "path": "/artifacts/out.txt", "content": "ok" }
+  }
+]`;
+
+        const calls = responseParser.parseToolCalls(text);
+
+        expect(calls).toHaveLength(3);
+        expect(calls[0]).toMatchObject({
+          id: 'a',
+          name: 'ReadFile',
+          args: { path: '/self/a.js' }
+        });
+        expect(calls[1]).toMatchObject({
+          id: 'b',
+          name: 'ReadFile',
+          args: { path: '/self/b.js' }
+        });
+        expect(calls[2]).toMatchObject({
+          id: 'c',
+          after: ['a', 'b'],
+          name: 'WriteFile',
+          args: { path: '/artifacts/out.txt', content: 'ok' }
+        });
+      });
+
       it('should parse a single tool call with simple args', () => {
         const text = `I'll read the file now.
 

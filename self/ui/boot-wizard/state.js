@@ -172,12 +172,18 @@ const getStoredEnvironmentTemplateId = () => {
     : (findReploidEnvironmentTemplateId(storedText) || null);
 };
 
-const getStoredSwarmEnabled = () => {
+export const DEFAULT_SWARM_ENABLED = true;
+
+export const getStoredSwarmEnabled = () => {
   const storage = getReploidStorage();
   if (!storage.raw) {
-    return false;
+    return DEFAULT_SWARM_ENABLED;
   }
-  return storage.getItem('REPLOID_SWARM_ENABLED') === 'true';
+  const stored = storage.getItem('REPLOID_SWARM_ENABLED');
+  if (stored === null) {
+    return DEFAULT_SWARM_ENABLED;
+  }
+  return stored !== 'false';
 };
 
 // Default wizard state
