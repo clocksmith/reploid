@@ -125,8 +125,9 @@ test.describe('Route Entry Points', () => {
     await expect(page.locator('.rgr-status-strip')).toContainText('7 remote');
     await expect(page.locator('.rgr-status-strip')).toContainText('consumer');
     await expect(page.locator('.rgr-status-strip')).toContainText('waiting for host');
-    await expect(page.locator('.rgr-status-strip')).toContainText('Dream');
-    await expect(page.locator('.dream-instance-panel')).toContainText('/self/instances/dream/default.instance.json');
+    await expect(page.locator('.rgr-status-strip')).not.toContainText('Dream');
+    await expect(page.locator('.dream-instance-panel')).toHaveCount(0);
+    await expect(page.getByText('Dream instance')).toHaveCount(0);
     await expect(page.locator('.inference-bar-shared-details')).toHaveCount(0);
     await expect(page.locator('#reploid-use-own-inference')).toBeVisible();
     await expect(page.locator('#reploid-swarm-enabled')).toBeVisible();
@@ -145,6 +146,53 @@ test.describe('Route Entry Points', () => {
     await expect(page.locator('#environment-input')).toHaveCount(0);
     await expect(page.locator('.seed-browser-panel')).toContainText('Awakened files');
     await expect(page.getByRole('link', { name: 'fresh peer' })).toBeVisible();
+  });
+
+  test('home route clears direct inference keys when disabled', async ({ page }) => {
+    await openHome(page);
+
+    await page.locator('#reploid-use-own-inference').click();
+    await page.locator('#direct-key').fill('test-secret-key');
+    await expect.poll(async () => page.evaluate(() => (
+      Object.keys(localStorage)
+        .filter((key) => key.endsWith('SELECTED_MODELS'))
+        .map((key) => localStorage.getItem(key))
+    ))).toEqual([expect.stringContaining('test-secret-key')]);
+
+    await page.locator('#reploid-use-own-inference').click();
+    await expect(page.locator('#direct-key')).toHaveCount(0);
+    await expect.poll(async () => page.evaluate(() => (
+      Object.keys(localStorage).filter((key) => key.endsWith('SELECTED_MODELS'))
+    ))).toEqual([]);
+  });
+
+  test('home route self browser previews selected files', async ({ page }) => {
+    await openHome(page);
+
+    await page.locator('.seed-browser-panel summary').click();
+    await expect(page.locator('.seed-viewer-panel')).toContainText('/self/self.json');
+    await expect(page.locator('.seed-file-viewer')).toContainText('"visibleTools"');
+
+    await page.locator('[data-action="select-self-path"][data-path="/self/runtime.js"]').click();
+    await expect(page.locator('.seed-viewer-panel')).toContainText('/self/runtime.js');
+    await expect(page.locator('.seed-viewer-panel')).toContainText('source preview');
+    await expect(page.locator('.seed-file-viewer')).toContainText('Dedicated Reploid self runtime');
+  });
+
+  test('home route recovers from awaken failure', async ({ page }) => {
+    await openHome(page);
+    await page.evaluate(() => {
+      window.triggerAwaken = async () => {
+        throw new Error('<img src=x onerror=alert(1)> bad awaken');
+      };
+    });
+
+    await page.locator('#goal-input').fill('Force awaken failure');
+    await page.locator('#awaken-btn').click();
+    await expect(page.locator('#awaken-btn')).toHaveText('Awaken');
+    await expect(page.locator('#awaken-btn')).toBeEnabled();
+    await expect(page.locator('.goal-toolbar-status')).toContainText('Awaken failed: <img src=x onerror=alert(1)> bad awaken');
+    await expect(page.locator('.goal-toolbar-status img')).toHaveCount(0);
   });
 
   test('home route can draft a seeded goal before inference is configured', async ({ page }) => {
@@ -574,6 +622,12 @@ test.describe('Reploid Runtime', () => {
 
     await page.waitForSelector('#app.active', { timeout: 20000 });
     await expect(page.locator('.capsule-shell')).toBeVisible();
+    await expect(page.locator('.capsule-rsi-panel')).toBeVisible();
+    await expect(page.locator('.capsule-rsi-panel')).toContainText('RSI Progress');
+    await expect(page.locator('.capsule-rsi-panel')).toContainText('Objective');
+    await expect(page.locator('.capsule-rsi-panel')).toContainText('Boot into Capsule');
+    await expect(page.locator('.capsule-rsi-panel')).toContainText('Evidence');
+    await expect(page.locator('.capsule-rsi-panel')).toContainText('Next');
     await expect(page.locator('.capsule-rgr-panel')).toBeVisible();
     await expect(page.locator('.capsule-rgr-panel')).toContainText('Mode');
     await expect(page.locator('.capsule-rgr-panel')).toContainText('Topology');
@@ -633,9 +687,9 @@ test.describe('Reploid Runtime', () => {
     expect(capsuleSnapshot.renderedText).toContain('Self:');
     expect(capsuleSnapshot.renderedText).toContain('Bootstrap context:');
     expect(capsuleSnapshot.renderedText).toContain('/self/prompts/kernel.md');
-    expect(capsuleSnapshot.renderedText).toContain('/self/blueprints/0x000112-recursive-gepa-ring.md');
+    expect(capsuleSnapshot.renderedText).toContain('/self/blueprints/rgr-runtime-contract.md');
     expect(capsuleSnapshot.renderedText).toContain('/self/blueprints/rgr-slot-topology.md');
-    expect(capsuleSnapshot.renderedText).toContain('/self/blueprints/rgr-dream-instance-manifest.md');
+    expect(capsuleSnapshot.renderedText).not.toContain('/self/blueprints/rgr-dream-instance-manifest.md');
     expect(capsuleSnapshot.renderedText).not.toContain('Goal:');
     expect(capsuleSnapshot.renderedText).not.toContain('Environment:');
     expect(capsuleSnapshot.renderedText).not.toContain('[USER]');
@@ -646,7 +700,7 @@ test.describe('Reploid Runtime', () => {
     expect(vfsState.keys).not.toContain('/.system/goal.txt');
     expect(vfsState.keys).not.toContain('/.system/environment.txt');
     expect(vfsState.keys).toContain('/self/self.json');
-    expect(vfsState.keys).toContain('/self/instances/dream/default.instance.json');
+    expect(vfsState.keys).not.toContain('/self/instances/dream/default.instance.json');
     expect(vfsState.keys).toContain('/self/boot.json');
     expect(vfsState.keys).toContain('/self/identity.json');
     expect(vfsState.keys.some((key) => key.startsWith('/bootstrapper/'))).toBe(false);
@@ -655,8 +709,8 @@ test.describe('Reploid Runtime', () => {
     expect(self.productModel).toBe('Recursive GEPA Ring');
     expect(self.coreInvariant).toBe('Ring slots can be local or remote.');
     expect(self.rgr?.blueprintPath).toBe('/self/blueprints/0x000112-recursive-gepa-ring.md');
-    expect(self.instances?.dream?.manifestPath).toBe('/self/instances/dream/default.instance.json');
-    expect(self.dream?.state).toBe('manifested');
+    expect(self.instances).toBeUndefined();
+    expect(self.dream).toBeUndefined();
     expect(self.bootPath).toBe('/self/boot.json');
     expect(self.boot.host.startEntry).toBe('/self/host/start-app.js');
     expect(self.boot.kernel.bootEntry).toBe('/self/kernel/boot.js');

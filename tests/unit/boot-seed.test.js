@@ -21,9 +21,11 @@ describe('boot seed manifest', () => {
     expect(bootFiles).toContain('self/host/start-reploid.js');
     expect(bootFiles).toContain('self/kernel/boot.js');
     expect(bootFiles).toContain('self/boot-spec.js');
-    expect(bootFiles).toContain('self/dream-instance.js');
+    expect(bootFiles).not.toContain('self/dream-instance.js');
     expect(bootFiles).toContain('self/instance.js');
-    expect(bootFiles).toContain('blueprints/rgr-dream-instance-manifest.md');
+    expect(bootFiles).toContain('blueprints/rgr-runtime-contract.md');
+    expect(bootFiles).not.toContain('blueprints/0x000112-recursive-gepa-ring.md');
+    expect(bootFiles).not.toContain('blueprints/rgr-dream-instance-manifest.md');
     expect(bootFiles).toContain('ui/reploid-home/index.js');
     expect(bootFiles).toContain('capabilities/communication/swarm-transport.js');
     expect(bootFiles).toContain('core/utils.js');

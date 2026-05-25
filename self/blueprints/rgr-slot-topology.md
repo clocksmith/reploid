@@ -54,7 +54,7 @@ The archive format, score vector, lineage, validator quarantine, and merge rule 
 
 1. Read `/self/self.json`.
 2. Read `/self/prompts/kernel.md`.
-3. Read `/self/blueprints/0x000112-recursive-gepa-ring.md`.
+3. Read `/self/blueprints/rgr-runtime-contract.md` for boot rules, then `/self/blueprints/0x000112-recursive-gepa-ring.md` only for formal promotion or archive changes.
 4. Read this support blueprint.
 5. Enter Shadow unless the user explicitly asks for promotion.
 6. Choose the smallest reversible prompt, blueprint, trace, receipt, artifact, or self edit that advances the objective.
@@ -84,6 +84,7 @@ The root title must identify the served experience as `Reploid`.
 The root self manifest must expose:
 
 /self/prompts/kernel.md
+/self/blueprints/rgr-runtime-contract.md
 /self/blueprints/0x000112-recursive-gepa-ring.md
 /self/blueprints/rgr-slot-topology.md
 

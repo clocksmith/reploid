@@ -11,7 +11,7 @@ import {
   getCurrentReploidStorage as getScopedLocalStorage
 } from '../instance.js';
 
-const BUILD_VERSION = '2026052403';
+const BUILD_VERSION = '2026052508';
 const IMPORTMAP_ID = 'reploid-doppler-importmap';
 const BASE_ID = 'reploid-base';
 const CORE_STYLE_ID = 'reploid-core-style';
@@ -121,6 +121,19 @@ const installResetHelpers = () => {
   window.shouldResetAll = () => getScopedLocalStorage().getItem('REPLOID_RESET_ALL') === 'true';
   window.performFullReset = performFullReset;
   window.clearVFS = clearVFS;
+};
+
+const renderInlineBootError = (mount, title, message) => {
+  const box = document.createElement('div');
+  box.className = 'error-ui border-error';
+  const header = document.createElement('div');
+  header.className = 'error-ui-header';
+  header.textContent = title;
+  const body = document.createElement('div');
+  body.className = 'error-ui-message';
+  body.textContent = message;
+  box.append(header, body);
+  mount.replaceChildren(box);
 };
 
 const installRuntimeGlobals = () => {
@@ -246,11 +259,10 @@ main().catch((error) => {
   const mount = document.getElementById('wizard-container') || document.body;
   if (mount) {
     mount.style.display = 'block';
-    mount.innerHTML = `
-      <div class="error-ui border-error">
-        <div class="error-ui-header">Kernel boot failed</div>
-        <div class="error-ui-message">${String(error?.message || error || 'Unknown kernel error')}</div>
-      </div>
-    `;
+    renderInlineBootError(
+      mount,
+      'Kernel boot failed',
+      String(error?.message || error || 'Unknown kernel error')
+    );
   }
 });

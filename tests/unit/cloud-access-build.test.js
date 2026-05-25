@@ -23,6 +23,7 @@ describe('build-reploid-cloud-access', () => {
   it('writes sealed windows and a private operator codebook without leaking the api key', async () => {
     const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'reploid-cloud-access-'));
     const outputPath = path.join(tempDir, 'cloud-access-windows.js');
+    const statusOutputPath = path.join(tempDir, 'cloud-access-status.js');
     const codebookPath = path.join(tempDir, 'codebook.json');
 
     try {
@@ -34,6 +35,7 @@ describe('build-reploid-cloud-access', () => {
           REPLOID_ACCESS_START_DATE: '2026-03-27'
         },
         outputPath,
+        statusOutputPath,
         codebookPath
       });
 
@@ -59,6 +61,7 @@ describe('build-reploid-cloud-access', () => {
   it('writes an empty generated module when GEMINI_API_KEY is missing', async () => {
     const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'reploid-cloud-access-empty-'));
     const outputPath = path.join(tempDir, 'cloud-access-windows.js');
+    const statusOutputPath = path.join(tempDir, 'cloud-access-status.js');
     const codebookPath = path.join(tempDir, 'codebook.json');
 
     try {
@@ -68,6 +71,7 @@ describe('build-reploid-cloud-access', () => {
           REPLOID_ACCESS_START_DATE: '2026-03-27'
         },
         outputPath,
+        statusOutputPath,
         codebookPath
       });
 

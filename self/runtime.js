@@ -5,7 +5,6 @@
 import Utils from './core/utils.js';
 import ResponseParser from './core/response-parser.js';
 import { createSelfBridge } from './bridge.js';
-import { DREAM_INSTANCE_MANIFEST_PATH, getDreamInstanceSeedSummary } from './dream-instance.js';
 import { getCurrentReploidInstanceId } from './instance.js';
 import { SELF_BLUEPRINT_PATHS, SELF_PROMPT_PATHS } from './manifest.js';
 
@@ -69,15 +68,116 @@ const RGR_SCORE_KEYS = Object.freeze([
   'qAnchor',
   'efficiency'
 ]);
+const TOOL_STRING_PREVIEW_CHARS = 2048;
+const TOOL_RESULT_PAYLOAD_CHARS = 4096;
+const TOOL_BATCH_BODY_CHARS = 12288;
+const TOOL_SANITIZE_MAX_DEPTH = 4;
+const TOOL_SANITIZE_ARRAY_LIMIT = 25;
+const DEFAULT_GENERATION_RETRY_DELAY_MS = 30000;
+const MAX_GENERATION_RETRY_DELAY_MS = 300000;
 
 const estimateTokens = (text) => {
   const value = String(text || '');
   return Math.max(0, Math.ceil(value.length / 4));
 };
 
+const truncateString = (value, limit) => {
+  const text = String(value || '');
+  if (text.length <= limit) return text;
+  const omitted = text.length - limit;
+  return `${text.slice(0, limit)}\n[truncated ${omitted} chars; use targeted reads or smaller ranges for full content]`;
+};
+
+const getErrorMessage = (error) => String(error?.message || error || '').trim();
+
+const parseRetryDelayMs = (message) => {
+  const match = String(message || '').match(/retry in\s+([0-9]+(?:\.[0-9]+)?)\s*(ms|milliseconds?|s|secs?|seconds?|m|mins?|minutes?)?/i);
+  if (!match) return null;
+
+  const value = Number(match[1]);
+  if (!Number.isFinite(value) || value < 0) return null;
+
+  const unit = String(match[2] || 's').toLowerCase();
+  const multiplier = unit.startsWith('ms')
+    ? 1
+    : unit.startsWith('m') && unit !== 'ms'
+      ? 60000
+      : 1000;
+  return Math.min(Math.ceil(value * multiplier), MAX_GENERATION_RETRY_DELAY_MS);
+};
+
+const getRetryableGenerationError = (error) => {
+  const message = getErrorMessage(error);
+  if (!message) return null;
+  const retryable = /quota|rate[-\s]?limit|too many requests|resource exhausted|retry in|429/i.test(message);
+  if (!retryable) return null;
+  return {
+    message,
+    retryDelayMs: parseRetryDelayMs(message) ?? DEFAULT_GENERATION_RETRY_DELAY_MS
+  };
+};
+
+const sanitizeToolValue = (value, depth = 0, seen = new WeakSet()) => {
+  if (typeof value === 'string') {
+    return truncateString(value, TOOL_STRING_PREVIEW_CHARS);
+  }
+  if (
+    value === null ||
+    typeof value === 'number' ||
+    typeof value === 'boolean' ||
+    typeof value === 'undefined'
+  ) {
+    return value;
+  }
+  if (typeof value === 'bigint') return String(value);
+  if (typeof value === 'symbol') return String(value);
+  if (typeof value === 'function') return `[function ${value.name || 'anonymous'}]`;
+  if (typeof value !== 'object') return String(value);
+  if (seen.has(value)) return '[circular]';
+  if (depth >= TOOL_SANITIZE_MAX_DEPTH) {
+    return Array.isArray(value)
+      ? `[truncated nested array: ${value.length} items]`
+      : '[truncated nested object]';
+  }
+
+  seen.add(value);
+  if (Array.isArray(value)) {
+    const next = value
+      .slice(0, TOOL_SANITIZE_ARRAY_LIMIT)
+      .map((item) => sanitizeToolValue(item, depth + 1, seen));
+    if (value.length > TOOL_SANITIZE_ARRAY_LIMIT) {
+      next.push(`[truncated ${value.length - TOOL_SANITIZE_ARRAY_LIMIT} array items]`);
+    }
+    seen.delete(value);
+    return next;
+  }
+
+  const next = {};
+  Object.entries(value).forEach(([key, item]) => {
+    next[key] = sanitizeToolValue(item, depth + 1, seen);
+  });
+  seen.delete(value);
+  return next;
+};
+
 const formatToolResult = (name, result, kind = 'RESULT') => {
-  const payload = typeof result === 'string' ? result : JSON.stringify(result, null, 2);
+  const sanitized = sanitizeToolValue(result);
+  const rawPayload = typeof sanitized === 'string'
+    ? sanitized
+    : JSON.stringify(sanitized, null, 2);
+  const payload = truncateString(rawPayload, TOOL_RESULT_PAYLOAD_CHARS);
   return `[TOOL ${name} ${kind}]\n${payload}`.trim();
+};
+
+const formatToolCallParseError = (call = {}) => {
+  const hint = normalizeToolName(call.name) === 'CreateTool'
+    ? 'Use a literal block for tool source: code <<JS, then close with JS on its own line.'
+    : 'Use key: value lines or key <<MARKER literal blocks.';
+  return formatToolResult(call.name || 'Tool', {
+    error: call.error || 'Invalid tool call',
+    parsedArgs: call.args || {},
+    hint
+  }, 'ERROR');
 };
 
 const normalizeToolName = (name) => String(name || '').trim();
@@ -233,10 +333,13 @@ const formatToolBatchResult = (entries = [], groups = []) => {
     })
     .join(', ');
   const parallelGroups = groups.filter((group) => group.mode === 'parallel').length;
-  const body = entries
-    .map((entry) => entry.message)
-    .filter(Boolean)
-    .join('\n\n');
+  const body = truncateString(
+    entries
+      .map((entry) => entry.message)
+      .filter(Boolean)
+      .join('\n\n'),
+    TOOL_BATCH_BODY_CHARS
+  );
 
   return [
     '[TOOL BATCH RESULT]',
@@ -284,7 +387,6 @@ const getCandidateKind = (entries = []) => {
     .map((entry) => getToolPath(entry.call))
     .filter(Boolean);
   if (mutationPaths.some((path) => path.startsWith('/artifacts/rgr/') || path.startsWith('opfs:/artifacts/rgr/'))) return 'rgr-artifact';
-  if (mutationPaths.some((path) => path.startsWith('/artifacts/dream/') || path.startsWith('opfs:/artifacts/dream/'))) return 'dream-artifact';
   if (mutationPaths.some((path) => path.startsWith('/self/prompts/'))) return 'prompt-candidate';
   if (mutationPaths.some((path) => path.startsWith('/self/blueprints/'))) return 'blueprint-candidate';
   if (mutationPaths.some((path) => path.startsWith('/self/tools/'))) return 'tool-candidate';
@@ -621,7 +723,6 @@ export function createSelfRuntime(options = {}) {
   const runtimeUtils = Utils.factory();
   const responseParser = ResponseParser.factory({ Utils: runtimeUtils });
   const listeners = new Set();
-  const dreamInstance = getDreamInstanceSeedSummary();
 
   let running = false;
   let stopped = false;
@@ -642,6 +743,33 @@ export function createSelfRuntime(options = {}) {
   let errorCount = 0;
   let rgrArchive = [];
   let latestRgrReceiptPath = '';
+  let generationRetryTimerId = null;
+
+  const clearGenerationRetryTimer = () => {
+    if (generationRetryTimerId === null) return;
+    clearTimeout(generationRetryTimerId);
+    generationRetryTimerId = null;
+  };
+
+  const scheduleGenerationRetry = (delayMs) => {
+    clearGenerationRetryTimer();
+    generationRetryTimerId = setTimeout(() => {
+      generationRetryTimerId = null;
+      if (!(parked && wakeOn === 'generation-retry' && !running && !stopped)) {
+        return;
+      }
+
+      const notice = buildSystemNotice('Provider retry window opened. Resuming generation.');
+      appendMessage('user', notice, 'system');
+      tokenUsage += estimateTokens(notice);
+      parked = false;
+      wakeOn = 'manual';
+      status = 'IDLE';
+      activity = 'Provider retry';
+      notify();
+      start().catch(() => {});
+    }, Math.max(0, Number(delayMs) || 0));
+  };
 
   if (typeof bridge.on === 'function') {
     bridge.on('provider-ready', () => {
@@ -863,6 +991,8 @@ export function createSelfRuntime(options = {}) {
 
   const getDisplayPolicy = () => {
     if (parked && wakeOn === 'provider-ready') return 'auto-resume on provider-ready';
+    if (parked && wakeOn === 'generation-retry') return 'auto-resume after provider retry';
+    if (parked) return 'manual resume required';
     if (status === 'ERROR') return 'manual restart required';
     if (status === 'LIMIT') return 'cycle limit reached';
     if (stopped) return 'manual resume required';
@@ -997,16 +1127,7 @@ export function createSelfRuntime(options = {}) {
       promotionGate: 'anchor',
       validator: 'quarantined',
       anchor: 'version-frozen',
-      instances: [
-        {
-          id: dreamInstance.id,
-          kind: dreamInstance.kind,
-          state: dreamInstance.state,
-          mode: dreamInstance.mode,
-          manifestPath: DREAM_INSTANCE_MANIFEST_PATH,
-          gate: dreamInstance.gate
-        }
-      ],
+      instances: [],
       peerCount: swarm?.peerCount || 0,
       providerCount: swarm?.providerCount || 0,
       consumerCount: swarm?.consumerCount || 0,
@@ -1037,12 +1158,7 @@ export function createSelfRuntime(options = {}) {
       swarm,
       rgr: getRgrSnapshot(swarm),
       ecosystem: {
-        instances: [
-          {
-            ...dreamInstance,
-            manifestPath: DREAM_INSTANCE_MANIFEST_PATH
-          }
-        ]
+        instances: []
       },
       display: {
         runState: getDisplayRunState(),
@@ -1060,6 +1176,7 @@ export function createSelfRuntime(options = {}) {
   };
 
   const stop = () => {
+    clearGenerationRetryTimer();
     stopped = true;
     running = false;
     parked = false;
@@ -1083,6 +1200,7 @@ export function createSelfRuntime(options = {}) {
 
   const start = async () => {
     if (running) return;
+    clearGenerationRetryTimer();
     if (!goal) {
       activity = 'Missing goal';
       notify();
@@ -1138,9 +1256,26 @@ export function createSelfRuntime(options = {}) {
           notify();
         });
       } catch (error) {
+        const retryableGenerationError = getRetryableGenerationError(error);
+        if (retryableGenerationError) {
+          errorCount += 1;
+          const systemNotice = buildSystemNotice([
+            'Generation paused by provider quota or rate limit.',
+            retryableGenerationError.message,
+            'The runtime will resume when the provider retry window opens.'
+          ].join('\n'));
+          appendMessage('user', systemNotice, 'system');
+          tokenUsage += estimateTokens(systemNotice);
+          running = false;
+          scheduleGenerationRetry(retryableGenerationError.retryDelayMs);
+          parkRuntime('Provider quota or rate limit', 'generation-retry');
+          return;
+        }
+
         errorCount += 1;
-        appendMessage('user', `[SYSTEM ERROR]\n${error.message || error}`, 'system');
-        tokenUsage += estimateTokens(error.message || String(error));
+        const errorMessage = getErrorMessage(error);
+        appendMessage('user', `[SYSTEM ERROR]\n${errorMessage}`, 'system');
+        tokenUsage += estimateTokens(errorMessage);
         running = false;
         status = 'ERROR';
         activity = 'Generation failed';
@@ -1251,7 +1386,7 @@ export function createSelfRuntime(options = {}) {
           return {
             call,
             kind: 'ERROR',
-            message: formatToolResult(call.name, call.error, 'ERROR')
+            message: formatToolCallParseError(call)
           };
         }
 

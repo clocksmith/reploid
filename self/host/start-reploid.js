@@ -90,6 +90,19 @@ const ensureCapsuleStyles = (version) => {
   });
 };
 
+const renderInlineBootError = (mount, title, message) => {
+  const box = document.createElement('div');
+  box.className = 'error-ui border-error';
+  const header = document.createElement('div');
+  header.className = 'error-ui-header';
+  header.textContent = title;
+  const body = document.createElement('div');
+  body.className = 'error-ui-message';
+  body.textContent = message;
+  box.append(header, body);
+  mount.replaceChildren(box);
+};
+
 const completeReploidAwaken = async (input, wizardContainer) => {
   const awakenInput = (input && typeof input === 'object' && !Array.isArray(input))
     ? input
@@ -214,12 +227,11 @@ const renderBootFailure = (error) => {
   const mount = document.getElementById('wizard-container') || document.body;
   if (!mount) return;
   mount.style.display = 'block';
-  mount.innerHTML = `
-    <div class="error-ui border-error">
-      <div class="error-ui-header">Reploid boot failed</div>
-      <div class="error-ui-message">${String(error?.message || error || 'Unknown boot failure')}</div>
-    </div>
-  `;
+  renderInlineBootError(
+    mount,
+    'Reploid boot failed',
+    String(error?.message || error || 'Unknown boot failure')
+  );
 };
 
 (async () => {
@@ -240,7 +252,7 @@ const renderBootFailure = (error) => {
     };
 
     initReploidHome(wizardContainer, {
-      onAwaken: window.triggerAwaken
+      onAwaken: (payload) => window.triggerAwaken(payload)
     });
   } catch (error) {
     renderBootFailure(error);

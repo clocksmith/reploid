@@ -45,9 +45,8 @@ describe('Self Runtime', () => {
     });
     mockHost.readBootstrapFiles.mockResolvedValue({
       '/self/prompts/kernel.md': 'Kernel prompt',
-      '/self/blueprints/0x000112-recursive-gepa-ring.md': 'RGR blueprint',
-      '/self/blueprints/rgr-slot-topology.md': 'Slot topology blueprint',
-      '/self/blueprints/rgr-dream-instance-manifest.md': 'Dream instance blueprint'
+      '/self/blueprints/rgr-runtime-contract.md': 'RGR runtime contract',
+      '/self/blueprints/rgr-slot-topology.md': 'Slot topology blueprint'
     });
     mockHost.executeTool.mockResolvedValue({ ok: true });
     mockHost.writeRuntimeArtifact.mockResolvedValue({ path: '/artifacts/rgr/test.json', written: true });
@@ -138,26 +137,42 @@ describe('Self Runtime', () => {
     const snapshot = runtime.getSnapshot();
     expect(mockHost.readBootstrapFiles).toHaveBeenCalledWith([
       '/self/prompts/kernel.md',
-      '/self/blueprints/0x000112-recursive-gepa-ring.md',
-      '/self/blueprints/rgr-slot-topology.md',
-      '/self/blueprints/rgr-dream-instance-manifest.md'
+      '/self/blueprints/rgr-runtime-contract.md',
+      '/self/blueprints/rgr-slot-topology.md'
     ]);
     expect(snapshot.renderedText).toContain('/self/prompts/kernel.md');
     expect(snapshot.renderedText).toContain('Kernel prompt');
-    expect(snapshot.renderedText).toContain('/self/blueprints/0x000112-recursive-gepa-ring.md');
-    expect(snapshot.renderedText).toContain('RGR blueprint');
+    expect(snapshot.renderedText).toContain('/self/blueprints/rgr-runtime-contract.md');
+    expect(snapshot.renderedText).toContain('RGR runtime contract');
     expect(snapshot.renderedText).toContain('/self/blueprints/rgr-slot-topology.md');
     expect(snapshot.renderedText).toContain('Slot topology blueprint');
-    expect(snapshot.renderedText).toContain('/self/blueprints/rgr-dream-instance-manifest.md');
-    expect(snapshot.renderedText).toContain('Dream instance blueprint');
-    expect(snapshot.rgr.instances).toEqual([
-      expect.objectContaining({
-        id: 'dream-default',
-        kind: 'dream',
-        state: 'manifested',
-        manifestPath: '/self/instances/dream/default.instance.json'
-      })
-    ]);
+    expect(snapshot.renderedText).not.toContain('Dream');
+    expect(snapshot.rgr.instances).toEqual([]);
+  });
+
+  it('parks retryable provider quota errors instead of failing the run', async () => {
+    mockHost.generate.mockRejectedValueOnce(new Error(
+      'Gemini API Error: quota exceeded for generate_content_free_tier_requests. Please retry in 29.326s.'
+    ));
+
+    const runtime = createSelfRuntime({
+      goal: 'Test goal',
+      environment: 'Test environment'
+    });
+
+    await runtime.start();
+
+    const snapshot = runtime.getSnapshot();
+    expect(snapshot.status).toBe('PARKED');
+    expect(snapshot.parked).toBe(true);
+    expect(snapshot.wakeOn).toBe('generation-retry');
+    expect(snapshot.display.runState).toBe('WAITING');
+    expect(snapshot.display.policy).toBe('auto-resume after provider retry');
+    expect(snapshot.activity).toContain('Provider quota or rate limit');
+    expect(snapshot.renderedText).toContain('Generation paused by provider quota or rate limit.');
+    expect(snapshot.renderedText).not.toContain('[SYSTEM ERROR]');
+
+    runtime.stop();
   });
 
   it('auto-resumes a parked remote slot when a peer host appears', async () => {
@@ -340,6 +355,45 @@ describe('Self Runtime', () => {
           message.content.includes('Ignored non-directive model response')
       )
     ).toBe(true);
+  });
+
+  it('caps large tool observations before feeding them back into context', async () => {
+    const largeContent = `${'x'.repeat(5000)}TAIL`;
+    mockHost.generate.mockResolvedValueOnce({
+      raw: 'REPLOID/0\n\nTOOL: ReadFile\npath: /self/runtime.js'
+    });
+    mockHost.executeTool.mockResolvedValueOnce({
+      path: '/self/runtime.js',
+      backend: 'vfs',
+      encoding: 'utf-8',
+      content: largeContent,
+      bytes: largeContent.length
+    });
+
+    const runtime = createSelfRuntime({
+      goal: 'Test goal',
+      environment: 'Test environment'
+    });
+
+    let latestSnapshot = runtime.getSnapshot();
+    runtime.subscribe((snapshot) => {
+      latestSnapshot = snapshot;
+      const sawToolResult = snapshot.context.some(
+        (message) => message.origin === 'tool' && message.content.includes('[TOOL ReadFile RESULT]')
+      );
+      if (sawToolResult) {
+        runtime.stop();
+      }
+    });
+
+    await runtime.start();
+
+    const toolMessage = latestSnapshot.context.find((message) => message.origin === 'tool');
+    expect(toolMessage.content).toContain('"path": "/self/runtime.js"');
+    expect(toolMessage.content).toContain('"bytes": 5004');
+    expect(toolMessage.content).toContain('[truncated ');
+    expect(toolMessage.content).not.toContain('TAIL');
+    expect(toolMessage.content.length).toBeLessThan(4300);
   });
 
   it('executes batched tool calls and caps the batch at five', async () => {

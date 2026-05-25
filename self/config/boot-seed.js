@@ -7,7 +7,6 @@ const SHARED_BOOT_UI_PREFIXES = Object.freeze([
   'boot-helpers/vfs-bootstrap.js',
   'self/cloud-access.js',
   'self/cloud-access-status.js',
-  'self/dream-instance.js',
   'self/manifest.js',
   'self/environment.js',
   'self/identity.js',
@@ -39,8 +38,7 @@ const SHARED_BOOT_UI_PREFIXES = Object.freeze([
 ]);
 
 const REPLOID_MINIMAL_HOME_BOOT_SEED_PREFIXES = Object.freeze([
-  'blueprints/0x000112-recursive-gepa-ring.md',
-  'blueprints/rgr-dream-instance-manifest.md',
+  'blueprints/rgr-runtime-contract.md',
   'blueprints/rgr-slot-topology.md',
   'capabilities/communication/signaling-config.js',
   'capabilities/communication/swarm-transport.js',
@@ -60,7 +58,6 @@ const REPLOID_MINIMAL_HOME_BOOT_SEED_PREFIXES = Object.freeze([
   'self/boot-spec.js',
   'self/bridge.js',
   'self/capsule/index.js',
-  'self/dream-instance.js',
   'self/environment.js',
   'self/host/seed-vfs.js',
   'self/host/start-reploid.js',

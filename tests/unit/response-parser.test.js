@@ -432,6 +432,31 @@ path /missing-colon`;
         expect(calls[0].error).toContain('Invalid argument line');
       });
 
+      it('should recover multiline CreateTool code after inline code prefix', () => {
+        const text = `REPLOID/0
+
+TOOL: CreateTool
+name: RangeRead
+code: /**
+ * @fileoverview Tool to read smaller file ranges.
+ */
+export const tool = {
+  name: 'RangeRead',
+  description: 'Read a range.',
+  inputSchema: { type: 'object', properties: {} },
+  call: async () => ({ ok: true })
+};`;
+
+        const calls = responseParser.parseToolCalls(text);
+
+        expect(calls).toHaveLength(1);
+        expect(calls[0].name).toBe('CreateTool');
+        expect(calls[0].error).toBeUndefined();
+        expect(calls[0].args.name).toBe('RangeRead');
+        expect(calls[0].args.code).toContain('@fileoverview');
+        expect(calls[0].args.code).toContain('export const tool');
+      });
+
       it('should handle incomplete JSON (unclosed brace)', () => {
         const text = `TOOL_CALL: ReadFile
 ARGS: { "path": "/test.txt"`;
