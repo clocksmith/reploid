@@ -22,6 +22,15 @@ const GENERATED_GOALS = Object.freeze([
   'Read the kernel prompt and RGR blueprints, propose one wording change that reduces self-approval risk, and archive the candidate without promoting it.',
   'Inspect the tool scheduler, compare current batching against the RGR rules, and write one reversible prompt or blueprint candidate with score evidence.',
   'Create a Shadow receipt proving the live self can read, write an artifact, hot-load only when needed, recover from blocked inference, and explain the gate result.',
+  'Hot-load a browser capability probe tool from /self, detect IndexedDB, OPFS, Worker, WebGPU, WebRTC, clipboard, and wake-lock support, then archive the score.',
+  'Build a compact DOM or canvas observability panel for RGR slots, VFS writes, and tool results, then use it to find one measurable weakness.',
+  'Move one replay or verification check into a Web Worker lane, compare it with main-thread output, and archive the isolation boundary.',
+  'Persist one larger trace artifact in OPFS, read it back through the visible tool path, and score storage reliability with rollback notes.',
+  'Design a WebRTC peer-witness receipt flow where remote browsers add anchor observations but cannot mutate validators or approve promotion.',
+  'Detect WebGPU or WASM support, run one bounded local-compute proof when available, and archive the fallback path when unavailable.',
+  'Wrap one permission-mediated browser API with a gate, audit note, denied-path behavior, and visible status before any self edit.',
+  'Render the Shadow archive as a Pareto frontier map, identify one dominated candidate, and write the score evidence to /artifacts/rgr.',
+  'Patch the active prompt so every self-edit must cite browser capability checks before using storage, workers, WebGPU, DOM, or peers.',
   'Find one brittle boot or service-worker path, propose the smallest reversible candidate, and archive replay evidence before any self patch.',
   'Generate two self-repair candidates for one repeated runtime failure, score both against safety and reversibility, and keep only the Pareto survivor in the archive.',
   'Design a peer-assisted witness flow where remote browsers add anchor observations but cannot approve promotion, then write the blueprint candidate and receipt.',
@@ -85,6 +94,14 @@ const escapeHtml = (value) => String(value || '')
   .replace(/"/g, '&quot;');
 
 const normalize = (value) => String(value || '').trim();
+
+const pickRandomGoal = (currentGoal = '') => {
+  const current = normalize(currentGoal);
+  const candidates = GENERATED_GOALS.filter((goal) => normalize(goal) !== current);
+  const pool = candidates.length > 0 ? candidates : GENERATED_GOALS;
+  if (pool.length === 0) return current;
+  return pool[Math.floor(Math.random() * pool.length)] || pool[0];
+};
 
 const createInitialState = () => {
   const storage = getCurrentReploidStorage();
@@ -428,11 +445,8 @@ export function initReploidHome(mount, options = {}) {
     }
     if (action === 'generate-goal') {
       event.preventDefault();
-      const availableGoals = GENERATED_GOALS.filter((goal) => goal !== state.goal);
-      const pool = availableGoals.length > 0 ? availableGoals : GENERATED_GOALS;
-      const next = pool[Math.floor(Math.random() * pool.length)];
       setState({
-        goal: next,
+        goal: pickRandomGoal(state.goal),
         goalStatus: ''
       });
     }

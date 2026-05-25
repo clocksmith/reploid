@@ -23,7 +23,7 @@ import {
   testProxyModel, testDirectModel, generateGoalPrompt
 } from './detection.js';
 
-import { formatGoalPacket, getGoalEntries } from './goals.js';
+import { formatGoalPacket, getGoalEntries, getRandomGoalEntry } from './goals.js';
 import {
   findReploidEnvironmentTemplateId,
   getReploidEnvironmentTemplate
@@ -798,9 +798,7 @@ async function handleClick(e) {
 
     case 'shuffle-goals': {
       const goalShuffleSeed = Date.now();
-      const shuffledGoal = getGoalEntries(goalShuffleSeed)
-        .flatMap(([category, goals]) => goals.map((goal) => ({ category, goal })))
-        .find((entry) => !entry.goal?.locked);
+      const shuffledGoal = getRandomGoalEntry(goalShuffleSeed, state.goal);
       setState({
         goalShuffleSeed,
         goal: shuffledGoal?.goal?.text || state.goal,
