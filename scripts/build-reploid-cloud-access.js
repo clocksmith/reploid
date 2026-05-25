@@ -25,7 +25,7 @@ const __dirname = path.dirname(__filename);
 const PROJECT_ROOT = path.join(__dirname, '..');
 
 const DEFAULT_PROVIDER = 'gemini';
-const DEFAULT_MODEL = 'gemini-3.1-flash-lite-preview';
+const DEFAULT_MODEL = 'gemini-3.5-flash';
 const DEFAULT_WINDOW_DAYS = 365;
 const DEFAULT_PAYLOAD_VERSION = 1;
 

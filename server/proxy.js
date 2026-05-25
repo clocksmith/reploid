@@ -1294,6 +1294,7 @@ const setStaticHeaders = (res, filePath) => {
 
 // Main routes
 app.get(['/', '/0', '/x'], (req, res) => {
+  res.setHeader('X-Reploid-Experience', req.path === '/' ? 'recursive-gepa-ring' : 'lab');
   res.sendFile(path.join(__dirname, '..', 'self', 'index.html'));
 });
 

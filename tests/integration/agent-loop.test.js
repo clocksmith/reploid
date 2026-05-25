@@ -215,6 +215,21 @@ describe('AgentLoop - Integration Tests', () => {
         expect.any(Function),
         expect.any(Object)  // options object with tools
       );
+
+      const prompt = agentLoop.getSystemPrompt();
+      expect(prompt).toContain('same-origin browser substrate');
+      expect(prompt).toContain('/self/ (canonical awakened self)');
+      expect(prompt).toContain('A terminal exposes host shell power');
+      expect(prompt).toContain('IndexedDB stores live self, memory, traces, and code');
+      expect(prompt).toContain('OPFS stores larger artifacts');
+      expect(prompt).toContain('Service Worker and blob module loading');
+      expect(prompt).toContain('Web Workers isolate verification');
+      expect(prompt).toContain('WebGPU, WASM, canvas, and media APIs');
+      expect(prompt).toContain('WebRTC, BroadcastChannel, and WebSocket paths');
+      expect(prompt).toContain('permission-mediated browser APIs');
+      expect(prompt).toContain('Default to Shadow for self changes');
+      expect(prompt).not.toContain('full DOM access');
+      expect(prompt).not.toContain('all Web APIs');
     });
 
     it('should throw if already running', async () => {

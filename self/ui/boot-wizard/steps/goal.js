@@ -404,7 +404,7 @@ export function renderGoalStep(state, options = {}) {
   const headingTag = options.headingTag || 'h2';
   const headingClass = options.headingClass || 'type-h1';
   const showPresetControls = goalActionMode !== 'generate-only';
-  const generateButtonLabel = options.generateButtonLabel || 'Generate';
+  const generateButtonLabel = options.generateButtonLabel || 'SHUFFLE';
   const shuffleSeed = Number(state.goalShuffleSeed) || 0;
   const entries = sortGoalEntriesByLevel(getGoalEntries(shuffleSeed));
   const goalValue = state.goal || '';
@@ -421,7 +421,7 @@ export function renderGoalStep(state, options = {}) {
   const explorer = showExpandedReploidInternals ? buildSelfBrowserData(state) : null;
   const awakenedSeedPaths = getAwakenedSeedPaths(state);
   const goalTitle = options.title || 'Set the first objective';
-  const goalCaption = options.caption || (showReploidEnvironment
+  const goalCaption = options.caption !== undefined ? options.caption : (showReploidEnvironment
     ? 'These starting files define the initial self. The self manifest and identity establish what Reploid is, runtime and bridge execute work, the capsule shell renders the interface, and the browser substrate can produce visual, computational, persistent, or networked effects. Your first objective tells that seed what to build, measure, and improve first.'
     : 'Set the first objective the Reploid should pursue.');
   const goalPlaceholder = options.goalPlaceholder || 'Describe the first task or trajectory to pursue.';
@@ -433,17 +433,15 @@ export function renderGoalStep(state, options = {}) {
   const selectedGoalEntry = entries.find(([category]) => category === selectedGoalCategory) || entries[0] || ['', []];
   const selectedGoalLevel = getGoalLevelKey(selectedGoalEntry[0]);
   const selectedGoals = Array.isArray(selectedGoalEntry[1]) ? selectedGoalEntry[1] : [];
-  const generatedStatusText = options.generatedStatusText || (
-    generatorSource === 'seed'
-      ? 'Objective drafted from a hidden seed prompt'
-      : 'Objective drafted by Reploid'
-  );
+  const generatedStatusText = Object.prototype.hasOwnProperty.call(options, 'generatedStatusText')
+    ? String(options.generatedStatusText || '')
+    : (generatorSource === 'seed' ? '' : 'Objective drafted by Reploid');
 
   return `
     <div class="wizard-step wizard-goal">
       <div class="goal-header">
         <${headingTag} class="${escapeAttr(headingClass)}">${goalTitle}</${headingTag}>
-        <p class="type-caption">${goalCaption}</p>
+        ${goalCaption ? `<p class="type-caption">${goalCaption}</p>` : ''}
       </div>
 
       <div class="goal-compose-grid">
@@ -533,7 +531,7 @@ export function renderGoalStep(state, options = {}) {
                       maxlength="500"
                       rows="3"
                       placeholder="${escapeAttr(goalPlaceholder)}">${escapeText(goalValue)}</textarea>
-            ${(generatorError || generatorStatus === 'ready') ? `
+            ${(generatorError || (generatorStatus === 'ready' && generatedStatusText)) ? `
               <div class="goal-toolbar-status type-caption">
                 ${generatorError ? `Error: ${escapeText(generatorError)}` : escapeText(generatedStatusText)}
               </div>

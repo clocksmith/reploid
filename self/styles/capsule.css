@@ -17,6 +17,105 @@
   gap: 12px;
 }
 
+.capsule-rgr-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 10px 0 12px;
+  border-bottom: var(--border-sm) dotted currentColor;
+}
+
+.capsule-status-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(132px, 1fr));
+  gap: 8px;
+}
+
+.capsule-metric {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.capsule-metric-label {
+  opacity: var(--opacity-tertiary, 0.55);
+  font-size: 11px;
+  text-transform: uppercase;
+}
+
+.capsule-metric-value {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.capsule-slot-table {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2px;
+}
+
+.capsule-instance-table {
+  padding-top: 6px;
+  border-top: var(--border-sm) dotted currentColor;
+}
+
+.capsule-rgr-receipt {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-top: 8px;
+  border-top: var(--border-sm) dotted currentColor;
+}
+
+.capsule-receipt-title {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: space-between;
+}
+
+.capsule-receipt-score {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(86px, 1fr));
+  gap: 6px;
+}
+
+.capsule-receipt-note {
+  overflow-wrap: anywhere;
+  opacity: var(--opacity-secondary, 0.7);
+}
+
+.capsule-slot-row {
+  display: grid;
+  grid-template-columns: minmax(96px, 1fr) minmax(72px, 0.75fr) minmax(96px, 1fr);
+  gap: 8px;
+  min-width: 0;
+}
+
+.capsule-slot-id,
+.capsule-slot-placement,
+.capsule-slot-state {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.capsule-instance-row {
+  display: grid;
+  grid-template-columns: minmax(96px, 1fr) minmax(72px, 0.75fr) minmax(96px, 1fr);
+  gap: 8px;
+  min-width: 0;
+  opacity: var(--opacity-secondary, 0.7);
+}
+
+.capsule-slot-placement,
+.capsule-slot-state,
+.capsule-counter-row {
+  opacity: var(--opacity-secondary, 0.7);
+}
+
 .capsule-block {
   margin: 0;
   white-space: pre-wrap;

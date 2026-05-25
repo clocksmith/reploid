@@ -154,7 +154,7 @@ const WebRTCSwarm = {
       if (swarmParam) return true;
 
       // Fall back to localStorage
-      return getCurrentReploidStorage().getItem('REPLOID_SWARM_ENABLED') === 'true';
+      return getCurrentReploidStorage().getItem('REPLOID_SWARM_ENABLED') !== 'false';
     };
 
     /**

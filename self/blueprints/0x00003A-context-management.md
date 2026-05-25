@@ -70,7 +70,7 @@ Replaces old messages with a compact summary: "Previous 50 turns: 25 user messag
 
 | Model | Token Limit | Target (80%) |
 |-------|-------------|--------------|
-| Gemini 2.5 Flash | 1M | 800K |
+| Gemini 3.5 Flash | 1M | 800K |
 | Claude 4.5 | 200K | 160K |
 | GPT-5 | 128K | 102K |
 | Default | 100K | 80K |
@@ -83,7 +83,7 @@ Replaces old messages with a compact summary: "Previous 50 turns: 25 user messag
 const ContextManager = await container.resolve('ContextManager');
 
 // Before API call, auto-manage context
-const { pruned } = ContextManager.autoManageContext(history, 'gemini-2.5-flash');
+const { pruned } = ContextManager.autoManageContext(history, 'gemini-3.5-flash');
 
 // Use pruned history for API call
 const response = await ApiClient.callApiWithRetry(pruned, apiKey, funcDecls);
@@ -305,7 +305,7 @@ class ContextManagerWidget extends HTMLElement {
   }
 
   getStatus() {
-    const stats = getContextStats(StateManager.getHistory(), 'gemini-2.5-flash');
+    const stats = getContextStats(StateManager.getHistory(), 'gemini-3.5-flash');
     return {
       state: stats.needsPruning ? 'warning' : (stats.tokens > 0 ? 'active' : 'idle'),
       primaryMetric: `${stats.tokens.toLocaleString()} tokens`,
@@ -317,7 +317,7 @@ class ContextManagerWidget extends HTMLElement {
 
   render() {
     const history = StateManager.getHistory();
-    const stats = getContextStats(history, 'gemini-2.5-flash');
+    const stats = getContextStats(history, 'gemini-3.5-flash');
 
     this.shadowRoot.innerHTML = `
       <style>/* Shadow DOM styling */</style>

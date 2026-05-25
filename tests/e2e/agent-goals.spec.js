@@ -47,7 +47,7 @@ async function runAgentWithGoal(page, goal, waitTime = 360000) {
   const apiKey = GEMINI_API_KEY;
   await page.evaluate((key) => {
     localStorage.setItem('SELECTED_MODELS', JSON.stringify([{
-      id: 'gemini-2.5-flash',
+      id: 'gemini-3.5-flash',
       name: 'Gemini 2.5 Flash',
       provider: 'gemini',
       hostType: 'browser-cloud'

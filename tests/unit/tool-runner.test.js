@@ -3,7 +3,7 @@
  * Tests dynamic tool loading and execution (no built-in tools in RSI mode)
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 // Mock dependencies
 const createMockUtils = () => {
@@ -78,6 +78,10 @@ describe('ToolRunner', () => {
     });
   });
 
+  afterEach(() => {
+    delete global.window;
+  });
+
   // NOTE: In RSI mode, there are NO built-in tools
   // All tools are dynamically loaded from /tools/ directory
   // This enables full self-modification capability
@@ -131,6 +135,7 @@ describe('ToolRunner', () => {
       });
 
       it('should skip test files when loading tools', async () => {
+        global.window = { getReploidMode: () => 'x' };
         mockVFS.list.mockResolvedValue([
           '/tools/MyTool.js',
           '/tools/MyTool.test.js',

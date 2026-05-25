@@ -224,7 +224,7 @@ Leases grant a **batch** of requests to amortize quorum cost. One quorum ceremon
   payload: {
     bucketId: '<target bucket>',
     requesterPubKey: '<base64>',
-    model: 'gemini-3.1-flash-lite-preview',
+    model: 'gemini-3.5-flash',
     requestedBatch: 10,         // requests in this lease
     maxOutputTokens: 2048,
     nonce: '<random>',
@@ -244,7 +244,7 @@ Leases grant a **batch** of requests to amortize quorum cost. One quorum ceremon
     leaseId: '<uuid>',
     requesterPubKey: '<base64>',
     executorPubKey: '<base64>',
-    model: 'gemini-3.1-flash-lite-preview',
+    model: 'gemini-3.5-flash',
     batchSize: 10,
     maxOutputTokens: 2048,
     receiptHead: '<hash>',
@@ -285,7 +285,7 @@ If all checks pass:
   payload: {
     leaseId: '<uuid>',
     requesterId: '<peer fingerprint>',
-    model: 'gemini-3.1-flash-lite-preview',
+    model: 'gemini-3.5-flash',
     maxRequests: 10,
     maxOutputTokens: 2048,
     expiresAt: '<now + 5 minutes>',
@@ -383,7 +383,7 @@ Each receipt:
   bucketId: '<bucket>',
   requesterId: '<peer fingerprint>',
   executorId: '<executor fingerprint>',
-  model: 'gemini-3.1-flash-lite-preview',
+  model: 'gemini-3.5-flash',
   inputTokens: 320,
   outputTokens: 890,
   timestamp: 1711580400000,
@@ -430,7 +430,7 @@ One new egress permission, not a general network hole:
 | Allowed endpoint | `generativelanguage.googleapis.com` only |
 | Allowed protocol | HTTPS only |
 | Trigger | Valid quorum-signed lease only |
-| Model restriction | `gemini-3.1-flash-lite-preview` only |
+| Model restriction | `gemini-3.5-flash` only |
 | Referrer | `replo.id/*` (API-side restriction) |
 
 The Gemini API key itself is also cloud-side restricted:
@@ -447,7 +447,7 @@ So even if an executor reconstructs and caches the key, damage is bounded by the
 
 | Constraint | Value | Reason |
 |------------|-------|--------|
-| Model | `gemini-3.1-flash-lite-preview` only | Cheapest tier |
+| Model | `gemini-3.5-flash` only | Stable Flash tier |
 | Max output tokens | 2048 per request | Bound cost |
 | Max input tokens | 8192 per request | Prevent long-context abuse |
 | Batch lease size | 10 requests / 5 minutes | Amortize quorum, limit exposure |
@@ -523,7 +523,7 @@ setState({
   connectionType: 'community',
   mode: 'zero',
   communityConfig: {
-    model: 'gemini-3.1-flash-lite-preview',
+    model: 'gemini-3.5-flash',
     maxOutputTokens: 2048
   }
 });
@@ -585,7 +585,7 @@ Do not start with a public mesh. Start with your own devices.
 | Transport | BroadcastChannel (same browser) first |
 | Key deal | Manual via `?deal=true` URL param |
 | Receipt log | In-memory G-Counter per bucket, no persistence |
-| Model | gemini-3.1-flash-lite-preview |
+| Model | gemini-3.5-flash |
 | Streaming | 16KB chunks over data channel |
 | Boot route | `/community` |
 

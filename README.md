@@ -1,8 +1,8 @@
 # REPLOID
 
-Browser-native recursive self-improvement substrate.
+Dead simple browser Recursive GEPA Ring seed.
 
-Reploid boots in the browser, seeds an explicit self into a writable VFS, then runs a live loop that can read, write, and hot-load its own files. The primary path is the `/` route: a minimal boot UI, an explicit awakened self, and a small primitive tool surface.
+Reploid boots in the browser, seeds an explicit self into a writable VFS, then runs a live loop that can read, write, hot-load its own files, and run a Recursive GEPA Ring in Shadow before any promotion. Peer transport is optional slot placement: ring slots can be local or remote.
 
 ## What Ships Now
 
@@ -13,10 +13,8 @@ Reploid boots in the browser, seeds an explicit self into a writable VFS, then r
 | `/x` | X. Prebuilt mature surface. |
 
 The primary Reploid path is the simplest one:
-- set the first objective
-- optionally enter an access code
-- optionally configure your own inference
-- optionally enable swarm
+- set the objective
+- attach a local executor or enable remote slots
 - awaken
 
 ## Quick Start
@@ -47,24 +45,31 @@ That command:
 
 The `/` boot UI is intentionally small:
 
-- `First objective`
-- `Access code`
-- `Configure`
-- `Swarm`
+- peer identity
+- ring topology
+- objective
+- peer slots
 - `Awaken`
 
-Inference states on `/`:
+Root operating states:
 
-| State | Swarm | Result |
-|-------|-------|--------|
-| access code or BYOK | off | solo |
-| access code or BYOK | on | provider |
-| neither | on | consumer |
-| neither | off | dead |
+| State | Meaning |
+|-------|---------|
+| Seed | Boot identity, prompt, tools, VFS, objective, and Blueprint `0x000112`. |
+| Shadow | Execute, trace, reflect, mutate, score, and archive provisional candidates. |
+| Promote | Change the active self only after the anchored gate passes. |
 
-`Configure` means bring your own inference.
+Ring topology:
 
-`Swarm` means opt in to peer collaboration. It does not force local inference sharing unless this Reploid actually has inference available.
+| Topology | Meaning |
+|----------|---------|
+| local | Ring slots run in this browser when local inference is available. |
+| peer-assisted | Some slots may run on remote peers or contribute anchor observations. |
+| remote-wait | The browser parks until a remote host appears. |
+
+`Configure` means bring your own local executor.
+
+`Peer slots` means opt in to remote slot placement. It does not force local inference sharing unless this Reploid actually has inference available.
 
 ## Awakened Self
 
@@ -73,8 +78,11 @@ Awaken clears prior live VFS state, writes the generated self manifests, exposes
 Core system files:
 
 ```text
-/.system/self.json
-/.system/identity.json
+/self/self.json
+/self/identity.json
+/self/prompts/kernel.md
+/self/blueprints/0x000112-recursive-gepa-ring.md
+/self/blueprints/rgr-slot-topology.md
 /self/runtime.js
 /self/bridge.js
 /self/tool-runner.js
@@ -100,19 +108,20 @@ Primitive visible tools:
 
 - `ReadFile`
 - `WriteFile`
+- `CreateTool`
 - `LoadModule`
 
-The goal is explicit self ownership. Reploid-owned logic lives in seeded self files, not in hidden product layers.
+The goal is explicit self ownership. Reploid-owned logic lives in seeded self files, prompts, blueprints, traces, and receipts, not in hidden product layers.
 
 ## Runtime Model
 
-Reploid uses a small live loop:
+Reploid uses a small live loop oriented around Blueprint `0x000112`:
 
 1. read self and context
-2. generate the next directive
-3. execute tool calls
-4. observe results
-5. continue until parked, stopped, or capped
+2. enter Shadow
+3. execute, trace, reflect, mutate, score, and archive
+4. use peers only as local or remote ring slots
+5. promote only after anchored evidence passes
 
 The awakened self can:
 - read and rewrite its own files
@@ -120,12 +129,14 @@ The awakened self can:
 - mutate Capsule UI
 - persist memory under `/.memory`
 - emit artifacts under `/artifacts`
+- write RGR traces and receipts under `/artifacts/rgr`
 
 ## Swarm Status
 
-Swarm is part of the seeded self and is readable and evolvable like the rest of Reploid.
+Swarm is part of the seeded self and is readable and evolvable like the rest of Reploid. In the product model, swarm only supplies remote ring slots and witness capacity.
 
 Current reality:
+- peer slots are enabled by default on the primary route
 - same-browser swarm can fall back to `BroadcastChannel`
 - cross-host swarm still uses signaling for WebRTC rendezvous
 - browser-to-browser provider and consumer roles exist in the self model

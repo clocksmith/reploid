@@ -19,7 +19,7 @@ describe('Boot Goal Generator - Integration Tests', () => {
     setNestedState('directConfig', {
       provider: 'gemini',
       apiKey: 'gemini-key',
-      model: 'gemini-3.1-flash-lite-preview'
+      model: 'gemini-3.5-flash'
     });
   });
 
@@ -43,7 +43,7 @@ describe('Boot Goal Generator - Integration Tests', () => {
     expect(global.fetch).toHaveBeenCalledTimes(1);
 
     const [url, request] = global.fetch.mock.calls[0];
-    expect(url).toContain('https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite-preview:generateContent?key=gemini-key');
+    expect(url).toContain('https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=gemini-key');
 
     const body = JSON.parse(request.body);
     expect(body.systemInstruction.parts[0].text).toContain('browser-based autonomous coding agent');

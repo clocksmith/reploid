@@ -4,6 +4,7 @@
 
 import { SELF_BOOT_SPEC, toSourceWebPath } from '../boot-spec.js';
 import {
+  getCurrentReploidInstanceId,
   getCurrentReploidSessionStorage as getScopedSessionStorage,
   getCurrentReploidStorage as getScopedLocalStorage
 } from '../instance.js';
@@ -84,19 +85,33 @@ const renderBootstrapError = (err) => {
 };
 
 const loadStartApp = async () => {
-  const version = (typeof window !== 'undefined' && window.REPLOID_VFS_VERSION)
-    ? `?v=${encodeURIComponent(window.REPLOID_VFS_VERSION)}`
-    : '';
+  const bootProfile = getBootSeedProfile();
+  const primaryStartEntry = bootProfile === 'reploid_home'
+    ? SELF_BOOT_SPEC.host.reploidStartEntry || SELF_BOOT_SPEC.host.startEntry
+    : SELF_BOOT_SPEC.host.startEntry;
+  const buildCandidateUrl = (path) => {
+    const url = new URL(path, window.location.origin);
+    const currentParams = new URLSearchParams(window.location.search);
+    currentParams.forEach((value, key) => {
+      if (!url.searchParams.has(key)) {
+        url.searchParams.set(key, value);
+      }
+    });
+    if (typeof window !== 'undefined' && window.REPLOID_VFS_VERSION) {
+      url.searchParams.set('v', window.REPLOID_VFS_VERSION);
+    }
+    url.searchParams.set('bootstrapper', '1');
+    return url.toString();
+  };
   const candidates = [
-    SELF_BOOT_SPEC.host.startEntry,
-    toSourceWebPath(SELF_BOOT_SPEC.host.startEntry),
+    toSourceWebPath(primaryStartEntry),
     '/entry/start-app.js'
   ];
   let lastError = null;
 
   for (const path of candidates) {
     try {
-      return await import(`${path}${version}`);
+      return await import(buildCandidateUrl(path));
     } catch (err) {
       lastError = err;
     }
@@ -110,6 +125,7 @@ const VFS_VERSION_KEY = 'REPLOID_VFS_VERSION';
 const SW_CONTROL_WAIT_MS = 1500;
 const SW_READY_WAIT_MS = 3000;
 const SW_REGISTER_WAIT_MS = 3000;
+const SW_INSTANCE_REGISTER_ACK_MS = 1000;
 
 const waitForServiceWorkerRegister = async (url, options = {}, timeoutMs = SW_REGISTER_WAIT_MS) => new Promise((resolve) => {
   let settled = false;
@@ -175,6 +191,67 @@ const waitForServiceWorkerControl = async (timeoutMs = SW_CONTROL_WAIT_MS) => {
   });
 };
 
+const postServiceWorkerMessageWithAck = (target, message, timeoutMs = SW_INSTANCE_REGISTER_ACK_MS) => new Promise((resolve) => {
+  if (!target || typeof MessageChannel === 'undefined') {
+    resolve(false);
+    return;
+  }
+
+  const channel = new MessageChannel();
+  let settled = false;
+  const finish = (value) => {
+    if (settled) return;
+    settled = true;
+    clearTimeout(timeoutId);
+    channel.port1.onmessage = null;
+    channel.port1.close();
+    try {
+      channel.port2.close();
+    } catch {
+      // The worker owns port2 after transfer in browsers that detach it.
+    }
+    resolve(value);
+  };
+
+  const timeoutId = setTimeout(() => finish(false), timeoutMs);
+  channel.port1.onmessage = (event) => {
+    finish(event.data?.success === true);
+  };
+
+  try {
+    target.postMessage(message, [channel.port2]);
+  } catch {
+    finish(false);
+  }
+});
+
+const registerServiceWorkerInstance = async () => {
+  if (!('serviceWorker' in navigator)) return false;
+  const instanceId = getCurrentReploidInstanceId();
+  if (!instanceId) return false;
+
+  const message = {
+    type: 'REGISTER_INSTANCE',
+    data: { instanceId }
+  };
+  const controller = navigator.serviceWorker.controller;
+  if (controller) {
+    const controllerAcked = await postServiceWorkerMessageWithAck(controller, message);
+    if (controllerAcked) return true;
+  }
+
+  try {
+    const registration = await navigator.serviceWorker.ready;
+    if (registration?.active && registration.active !== controller) {
+      return await postServiceWorkerMessageWithAck(registration.active, message);
+    }
+  } catch {
+    // Service worker readiness is already handled by ensureServiceWorker.
+  }
+
+  return false;
+};
+
 const ensureServiceWorker = async () => {
   if (!('serviceWorker' in navigator)) {
     window.REPLOID_SW_CONTROLLED = false;
@@ -221,6 +298,10 @@ const ensureServiceWorker = async () => {
     return reg;
   }
   scopedSessionStorage.removeItem(SW_CONTROL_RELOAD_KEY);
+  const registeredInstance = await registerServiceWorkerInstance();
+  if (!registeredInstance) {
+    warn('Service worker instance registration was not acknowledged. Continuing with query/referrer instance resolution.');
+  }
   return reg;
 };
 

@@ -16,8 +16,9 @@ const ResponseParser = {
   factory: (deps) => {
     const { logger, sanitizeLlmJsonRespPure } = deps.Utils;
 
-    const TOP_LEVEL_DIRECTIVE_REGEX = /^(?:REPLOID\/\d+|TOOL:\s*[a-zA-Z0-9_]+|TOOL_CALL:\s*[a-zA-Z0-9_]+|MILESTONE:|DONE:|IDLE:|PARK:)/;
+    const TOP_LEVEL_DIRECTIVE_REGEX = /^(?:REPLOID\/\d+|PLAN:|TOOL:\s*[a-zA-Z0-9_]+|TOOL_CALL:\s*[a-zA-Z0-9_]+|MILESTONE:|DONE:|IDLE:|PARK:)/;
     const REPLTOOL_HEADER_REGEX = /^REPLOID\/\d+\s*$/;
+    const PLAN_DIRECTIVE_REGEX = /^PLAN:\s*(.*)$/;
     const TOOL_DIRECTIVE_REGEX = /^TOOL:\s*([a-zA-Z0-9_]+)\s*$/;
     const INLINE_ARG_REGEX = /^([a-zA-Z0-9_.-]+)\s*:\s*(.*)$/;
     const BLOCK_ARG_REGEX = /^([a-zA-Z0-9_.-]+)\s*(?::\s*)?<<\s*([A-Za-z0-9_-]+)\s*$/;
@@ -57,6 +58,102 @@ const ResponseParser = {
       return value;
     };
 
+    const normalizePlanDeps = (value) => {
+      if (value === undefined || value === null || value === '') return [];
+      if (Array.isArray(value)) {
+        return value.map((item) => String(item || '').trim()).filter(Boolean);
+      }
+      return String(value)
+        .split(',')
+        .map((item) => item.trim())
+        .filter(Boolean);
+    };
+
+    const readPlanJson = (lines, startIndex, initialText = '') => {
+      let index = startIndex;
+      let rawJson = String(initialText || '').trim();
+      let lastError = null;
+
+      while (!rawJson && index < lines.length && !lines[index].trim()) {
+        index++;
+      }
+
+      while (index <= lines.length) {
+        if (rawJson) {
+          try {
+            return {
+              value: JSON.parse(rawJson),
+              nextIndex: index
+            };
+          } catch (error) {
+            lastError = error;
+          }
+        }
+
+        if (index >= lines.length) break;
+
+        const nextLine = lines[index].trimStart();
+        if (rawJson && TOP_LEVEL_DIRECTIVE_REGEX.test(nextLine)) {
+          break;
+        }
+
+        rawJson = rawJson ? `${rawJson}\n${lines[index]}` : lines[index];
+        index++;
+      }
+
+      throw new Error(`Invalid PLAN JSON: ${lastError?.message || 'missing JSON value'}`);
+    };
+
+    const parsePlanCalls = (planValue) => {
+      const steps = Array.isArray(planValue)
+        ? planValue
+        : Array.isArray(planValue?.steps)
+          ? planValue.steps
+          : null;
+
+      if (!steps) {
+        return [{
+          name: 'Plan',
+          args: {},
+          error: 'PLAN must be a JSON array or an object with a steps array'
+        }];
+      }
+
+      return steps.map((step, stepIndex) => {
+        if (!step || typeof step !== 'object' || Array.isArray(step)) {
+          return {
+            name: 'Plan',
+            args: { step: stepIndex + 1 },
+            error: `PLAN step ${stepIndex + 1} must be an object`
+          };
+        }
+
+        const name = String(step.tool || step.name || '').trim();
+        const args = step.args && typeof step.args === 'object' && !Array.isArray(step.args)
+          ? step.args
+          : {};
+        const call = {
+          name: name || 'Plan',
+          args
+        };
+        const id = String(step.id || '').trim();
+        const after = normalizePlanDeps(step.after ?? step.dependsOn ?? step.needs);
+
+        if (id) call.id = id;
+        if (after.length > 0) call.after = after;
+        if (!name) {
+          call.error = `PLAN step ${stepIndex + 1} is missing tool`;
+        } else if (
+          step.args !== undefined &&
+          (!step.args || typeof step.args !== 'object' || Array.isArray(step.args))
+        ) {
+          call.error = `PLAN step ${stepIndex + 1} args must be an object`;
+        }
+
+        return call;
+      });
+    };
+
     const parseReploidToolCalls = (text) => {
       if (!text || typeof text !== 'string') return [];
 
@@ -67,6 +164,23 @@ const ResponseParser = {
       while (index < lines.length) {
         const rawLine = lines[index];
         const line = rawLine.trimStart();
+
+        const planMatch = line.match(PLAN_DIRECTIVE_REGEX);
+        if (planMatch) {
+          index++;
+          try {
+            const parsed = readPlanJson(lines, index, planMatch[1]);
+            calls.push(...parsePlanCalls(parsed.value));
+            index = parsed.nextIndex;
+          } catch (error) {
+            calls.push({
+              name: 'Plan',
+              args: {},
+              error: error.message
+            });
+          }
+          continue;
+        }
 
         if (!line || REPLTOOL_HEADER_REGEX.test(line) || !TOOL_DIRECTIVE_REGEX.test(line)) {
           index++;

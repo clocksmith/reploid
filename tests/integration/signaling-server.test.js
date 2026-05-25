@@ -2,6 +2,7 @@ import http from 'http';
 import { afterEach, describe, expect, it } from 'vitest';
 import WebSocket from 'ws';
 import SignalingServer from '../../server/signaling-server.js';
+import { resolveInferenceServiceConfig } from '../../server/inference-service.js';
 import { createStandaloneSignalingServer } from '../../server/reploid-signaling.js';
 
 const waitForMessage = (socket, predicate, timeoutMs = 3000) =>
@@ -282,6 +283,18 @@ describe('SignalingServer', () => {
     expect(result.envelope.payload.response.content).toBe('server inference response');
 
     socket.close();
+  });
+
+  it('defaults env-backed Gemini inference to Gemini 3.5 Flash', () => {
+    const config = resolveInferenceServiceConfig({
+      env: {
+        GEMINI_API_KEY: 'gemini-key'
+      }
+    });
+
+    expect(config.provider).toBe('gemini');
+    expect(config.model).toBe('gemini-3.5-flash');
+    expect(config.peerAvailable).toBe(true);
   });
 
   it('serves env-backed chat and proxy status from the standalone server', async () => {

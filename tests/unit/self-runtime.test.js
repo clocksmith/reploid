@@ -3,6 +3,9 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 const mockHost = {
   initialize: vi.fn(),
   seedSystemFiles: vi.fn(),
+  readBootstrapFiles: vi.fn(),
+  writeRuntimeArtifact: vi.fn(),
+  getAnchorObservations: vi.fn(),
   generate: vi.fn(),
   executeTool: vi.fn(),
   getModelConfig: vi.fn(),
@@ -25,6 +28,9 @@ describe('Self Runtime', () => {
     bridgeEventHandlers.clear();
     mockHost.initialize.mockReset();
     mockHost.seedSystemFiles.mockReset();
+    mockHost.readBootstrapFiles.mockReset();
+    mockHost.writeRuntimeArtifact.mockReset();
+    mockHost.getAnchorObservations.mockReset();
     mockHost.generate.mockReset();
     mockHost.executeTool.mockReset();
     mockHost.getModelConfig.mockReset();
@@ -37,7 +43,15 @@ describe('Self Runtime', () => {
     mockHost.seedSystemFiles.mockResolvedValue({
       '/self/self.json': '{"mode":"reploid","selfPath":"/self/self.json","goal":"Test goal","environment":"Test environment"}'
     });
+    mockHost.readBootstrapFiles.mockResolvedValue({
+      '/self/prompts/kernel.md': 'Kernel prompt',
+      '/self/blueprints/0x000112-recursive-gepa-ring.md': 'RGR blueprint',
+      '/self/blueprints/rgr-slot-topology.md': 'Slot topology blueprint',
+      '/self/blueprints/rgr-dream-instance-manifest.md': 'Dream instance blueprint'
+    });
     mockHost.executeTool.mockResolvedValue({ ok: true });
+    mockHost.writeRuntimeArtifact.mockResolvedValue({ path: '/artifacts/rgr/test.json', written: true });
+    mockHost.getAnchorObservations.mockResolvedValue([]);
     mockHost.getModelConfig.mockReturnValue({ id: 'test-model' });
     mockHost.getModelLabel.mockReturnValue('test-model');
     mockHost.hasAvailableProvider.mockReturnValue(false);
@@ -55,7 +69,7 @@ describe('Self Runtime', () => {
     });
   });
 
-  it('parks immediately in swarm consumer mode when no local inference exists', async () => {
+  it('parks immediately in remote-slot mode when no local executor exists', async () => {
     mockHost.getModelConfig.mockReturnValue(null);
 
     const runtime = createSelfRuntime({
@@ -75,12 +89,25 @@ describe('Self Runtime', () => {
     expect(mockHost.generate).not.toHaveBeenCalled();
     expect(latestSnapshot.parked).toBe(true);
     expect(latestSnapshot.status).toBe('PARKED');
-    expect(latestSnapshot.activity).toContain('Waiting for swarm provider');
+    expect(latestSnapshot.activity).toContain('Waiting for remote host slot');
+    expect(latestSnapshot.rgr).toMatchObject({
+      mode: 'shadow',
+      topology: 'peer-assisted',
+      role: 'consumer',
+      gate: { state: 'blocked', anchors: 0, required: 3 },
+      counters: { candidates: 0, toolCalls: 0, errors: 0, archive: 0 }
+    });
+    expect(latestSnapshot.rgr.slots).toHaveLength(7);
+    expect(latestSnapshot.rgr.slots[0]).toMatchObject({
+      id: 'elite',
+      placement: 'remote',
+      state: 'blocked'
+    });
     expect(
       latestSnapshot.context.some(
         (message) =>
           message.origin === 'system' &&
-          message.content.includes('No local inference is configured')
+          message.content.includes('No local host is configured')
       )
     ).toBe(true);
   });
@@ -98,7 +125,42 @@ describe('Self Runtime', () => {
     expect(typeof unsubscribe).toBe('function');
   });
 
-  it('auto-resumes a parked swarm consumer when a provider appears', async () => {
+  it('seeds kernel prompt and RGR blueprints into bootstrap context', async () => {
+    mockHost.generate.mockResolvedValueOnce({ raw: 'IDLE: context seeded' });
+
+    const runtime = createSelfRuntime({
+      goal: 'Test goal',
+      environment: 'Test environment'
+    });
+
+    await runtime.start();
+
+    const snapshot = runtime.getSnapshot();
+    expect(mockHost.readBootstrapFiles).toHaveBeenCalledWith([
+      '/self/prompts/kernel.md',
+      '/self/blueprints/0x000112-recursive-gepa-ring.md',
+      '/self/blueprints/rgr-slot-topology.md',
+      '/self/blueprints/rgr-dream-instance-manifest.md'
+    ]);
+    expect(snapshot.renderedText).toContain('/self/prompts/kernel.md');
+    expect(snapshot.renderedText).toContain('Kernel prompt');
+    expect(snapshot.renderedText).toContain('/self/blueprints/0x000112-recursive-gepa-ring.md');
+    expect(snapshot.renderedText).toContain('RGR blueprint');
+    expect(snapshot.renderedText).toContain('/self/blueprints/rgr-slot-topology.md');
+    expect(snapshot.renderedText).toContain('Slot topology blueprint');
+    expect(snapshot.renderedText).toContain('/self/blueprints/rgr-dream-instance-manifest.md');
+    expect(snapshot.renderedText).toContain('Dream instance blueprint');
+    expect(snapshot.rgr.instances).toEqual([
+      expect.objectContaining({
+        id: 'dream-default',
+        kind: 'dream',
+        state: 'manifested',
+        manifestPath: '/self/instances/dream/default.instance.json'
+      })
+    ]);
+  });
+
+  it('auto-resumes a parked remote slot when a peer host appears', async () => {
     mockHost.getModelConfig.mockReturnValue(null);
     mockHost.hasAvailableProvider
       .mockReturnValueOnce(false)
@@ -136,7 +198,7 @@ describe('Self Runtime', () => {
       latestSnapshot.context.some(
         (message) =>
           message.origin === 'system' &&
-          message.content.includes('Swarm provider discovered. Resuming remote generation')
+          message.content.includes('Remote host slot discovered. Resuming generation')
       )
     ).toBe(true);
   });
@@ -313,8 +375,10 @@ describe('Self Runtime', () => {
     let latestSnapshot = runtime.getSnapshot();
     runtime.subscribe((snapshot) => {
       latestSnapshot = snapshot;
-      const toolMessages = snapshot.context.filter((message) => message.origin === 'tool');
-      if (toolMessages.length >= 5) {
+      const sawToolBatch = snapshot.context.some(
+        (message) => message.origin === 'tool' && message.content.includes('[TOOL BATCH RESULT]')
+      );
+      if (sawToolBatch) {
         runtime.stop();
       }
     });
@@ -325,6 +389,29 @@ describe('Self Runtime', () => {
     expect(mockHost.executeTool).toHaveBeenCalledTimes(5);
     expect(mockHost.executeTool).toHaveBeenNthCalledWith(1, 'ReadFile', { path: '/self/self.json' });
     expect(mockHost.executeTool).toHaveBeenNthCalledWith(5, 'ReadFile', { path: '/self/capsule/index.js' });
+    expect(mockHost.writeRuntimeArtifact).toHaveBeenCalledWith(
+      expect.stringMatching(/^\/artifacts\/rgr\/rgr-shadow-1-[a-f0-9]+\.json$/),
+      expect.stringContaining('"state": "shadow"')
+    );
+    const toolMessages = latestSnapshot.context.filter((message) => message.origin === 'tool');
+    expect(toolMessages).toHaveLength(1);
+    expect(toolMessages[0].content).toContain('[TOOL BATCH RESULT]');
+    expect(toolMessages[0].content).toContain('mode: parallel-read');
+    expect(toolMessages[0].content).toContain('count: 5');
+    expect(toolMessages[0].content.match(/\[TOOL ReadFile RESULT\]/g)).toHaveLength(5);
+    expect(latestSnapshot.rgr.archive.count).toBe(1);
+    expect(latestSnapshot.rgr.archive.latest).toMatchObject({
+      state: 'shadow',
+      kind: 'read-evidence',
+      scheduler: { mode: 'parallel-read', parallelGroups: 1 },
+      gate: { state: 'pending-anchors' },
+      anchor: { required: 3, qAnchor: 0 },
+      validator: { state: 'quarantined', selfApprovalAllowed: false }
+    });
+    expect(latestSnapshot.rgr.archive.latest.score).toMatchObject({
+      qAnchor: 0
+    });
+    expect(latestSnapshot.rgr.receipts.latestPath).toMatch(/^\/artifacts\/rgr\/rgr-shadow-1-[a-f0-9]+\.json$/);
     expect(
       latestSnapshot.context.some(
         (message) =>
@@ -332,6 +419,319 @@ describe('Self Runtime', () => {
           message.content.includes('Tool call limit (5) reached')
       )
     ).toBe(true);
+  });
+
+  it('counts only bridge-verified anchor observations toward qAnchor', async () => {
+    mockHost.generate.mockResolvedValueOnce({
+      raw: [
+        'REPLOID/0',
+        '',
+        'TOOL: ReadFile',
+        'path: /self/self.json'
+      ].join('\n')
+    });
+    mockHost.getAnchorObservations.mockResolvedValue([
+      {
+        id: 'anchor-a',
+        receiptId: 'receipt-a',
+        provider: 'peer:anchor-a',
+        jobHash: 'rgr-anchor:test',
+        verified: true
+      },
+      {
+        id: 'anchor-b',
+        receiptId: 'receipt-b',
+        provider: 'peer:anchor-b',
+        jobHash: 'rgr-anchor:test',
+        verified: true
+      },
+      {
+        id: 'candidate-written',
+        receiptId: 'fake',
+        provider: 'self',
+        verified: false
+      }
+    ]);
+
+    const runtime = createSelfRuntime({
+      goal: 'Test goal',
+      environment: 'Test environment'
+    });
+
+    let latestSnapshot = runtime.getSnapshot();
+    runtime.subscribe((snapshot) => {
+      latestSnapshot = snapshot;
+      const sawToolResult = snapshot.context.some(
+        (message) => message.origin === 'tool' && message.content.includes('[TOOL ReadFile RESULT]')
+      );
+      if (sawToolResult) {
+        runtime.stop();
+      }
+    });
+
+    await runtime.start();
+
+    expect(mockHost.getAnchorObservations).toHaveBeenCalledWith(expect.objectContaining({
+      candidateId: expect.stringMatching(/^rgr-shadow-1-[a-f0-9]+$/),
+      digest: expect.stringMatching(/^[a-f0-9]+$/)
+    }));
+    expect(latestSnapshot.rgr.archive.latest.anchor.observations).toHaveLength(2);
+    expect(latestSnapshot.rgr.archive.latest.score.qAnchor).toBe(0.667);
+    expect(latestSnapshot.rgr.gate).toMatchObject({
+      state: 'pending-anchors',
+      anchors: 2,
+      required: 3
+    });
+  });
+
+  it('replay-scores archived candidates when anchor observations arrive later', async () => {
+    mockHost.generate
+      .mockResolvedValueOnce({
+        raw: [
+          'REPLOID/0',
+          '',
+          'TOOL: ReadFile',
+          'path: /self/self.json'
+        ].join('\n')
+      })
+      .mockResolvedValueOnce({ raw: 'IDLE: anchor replay checked' });
+    mockHost.getAnchorObservations
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([
+        { id: 'anchor-a', receiptId: 'receipt-a', provider: 'peer:a', verified: true },
+        { id: 'anchor-b', receiptId: 'receipt-b', provider: 'peer:b', verified: true },
+        { id: 'anchor-c', receiptId: 'receipt-c', provider: 'peer:c', verified: true }
+      ]);
+
+    const runtime = createSelfRuntime({
+      goal: 'Test goal',
+      environment: 'Test environment'
+    });
+
+    let latestSnapshot = runtime.getSnapshot();
+    runtime.subscribe((snapshot) => {
+      latestSnapshot = snapshot;
+    });
+
+    await runtime.start();
+
+    expect(latestSnapshot.rgr.archive.latest.score.qAnchor).toBe(1);
+    expect(latestSnapshot.rgr.archive.latest.gate.state).toBe('passed');
+    expect(latestSnapshot.rgr.archive.latest.promotion.allowed).toBe(true);
+    expect(latestSnapshot.rgr.gate).toMatchObject({
+      state: 'passed',
+      anchors: 3,
+      required: 3
+    });
+  });
+
+  it('starts adjacent read-only tools through one scheduler group', async () => {
+    mockHost.generate.mockResolvedValueOnce({
+      raw: [
+        'REPLOID/0',
+        '',
+        'TOOL: ReadFile',
+        'path: /self/a.js',
+        '',
+        'TOOL: ReadFile',
+        'path: /self/b.js'
+      ].join('\n')
+    });
+
+    const startedPaths = [];
+    const pendingResolvers = [];
+    let releaseImmediately = false;
+    mockHost.executeTool.mockImplementation((name, args) => new Promise((resolve) => {
+      startedPaths.push(args.path);
+      const finish = () => resolve({ path: args.path, ok: true });
+      if (releaseImmediately) {
+        finish();
+      } else {
+        pendingResolvers.push(finish);
+      }
+    }));
+
+    const runtime = createSelfRuntime({
+      goal: 'Test goal',
+      environment: 'Test environment'
+    });
+
+    let latestSnapshot = runtime.getSnapshot();
+    runtime.subscribe((snapshot) => {
+      latestSnapshot = snapshot;
+      const sawToolBatch = snapshot.context.some(
+        (message) => message.origin === 'tool' && message.content.includes('[TOOL BATCH RESULT]')
+      );
+      if (sawToolBatch) {
+        runtime.stop();
+      }
+    });
+
+    const startPromise = runtime.start();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    const sawBothReadCallsBeforeRelease = startedPaths.join('|') === '/self/a.js|/self/b.js';
+    releaseImmediately = true;
+    pendingResolvers.splice(0).forEach((resolve) => resolve());
+    await startPromise;
+
+    expect(sawBothReadCallsBeforeRelease).toBe(true);
+    expect(mockHost.executeTool).toHaveBeenNthCalledWith(1, 'ReadFile', { path: '/self/a.js' });
+    expect(mockHost.executeTool).toHaveBeenNthCalledWith(2, 'ReadFile', { path: '/self/b.js' });
+    expect(
+      latestSnapshot.context.some(
+        (message) =>
+          message.origin === 'tool' &&
+          message.content.includes('[TOOL BATCH RESULT]') &&
+          message.content.includes('mode: parallel-read')
+      )
+    ).toBe(true);
+  });
+
+  it('keeps mutation tools as barriers between read groups', async () => {
+    mockHost.generate.mockResolvedValueOnce({
+      raw: [
+        'REPLOID/0',
+        '',
+        'TOOL: ReadFile',
+        'path: /self/a.js',
+        '',
+        'TOOL: WriteFile',
+        'path: /self/b.js',
+        'content: updated',
+        '',
+        'TOOL: ReadFile',
+        'path: /self/c.js'
+      ].join('\n')
+    });
+    mockHost.executeTool.mockImplementation((name, args) => Promise.resolve({
+      name,
+      path: args.path,
+      ok: true
+    }));
+
+    const runtime = createSelfRuntime({
+      goal: 'Test goal',
+      environment: 'Test environment'
+    });
+
+    let latestSnapshot = runtime.getSnapshot();
+    runtime.subscribe((snapshot) => {
+      latestSnapshot = snapshot;
+      const sawToolBatch = snapshot.context.some(
+        (message) => message.origin === 'tool' && message.content.includes('[TOOL BATCH RESULT]')
+      );
+      if (sawToolBatch) {
+        runtime.stop();
+      }
+    });
+
+    await runtime.start();
+
+    expect(mockHost.executeTool).toHaveBeenCalledTimes(3);
+    expect(mockHost.executeTool).toHaveBeenNthCalledWith(1, 'ReadFile', { path: '/self/a.js' });
+    expect(mockHost.executeTool).toHaveBeenNthCalledWith(2, 'WriteFile', {
+      path: '/self/b.js',
+      content: 'updated'
+    });
+    expect(mockHost.executeTool).toHaveBeenNthCalledWith(3, 'ReadFile', { path: '/self/c.js' });
+    const toolMessages = latestSnapshot.context.filter((message) => message.origin === 'tool');
+    expect(toolMessages).toHaveLength(1);
+    const receipt = toolMessages[0].content;
+    expect(receipt).toContain('[TOOL BATCH RESULT]');
+    expect(receipt).toContain('mode: scheduled');
+    expect(receipt.indexOf('/self/a.js')).toBeLessThan(receipt.indexOf('/self/b.js'));
+    expect(receipt.indexOf('/self/b.js')).toBeLessThan(receipt.indexOf('/self/c.js'));
+    expect(latestSnapshot.rgr.archive.latest).toMatchObject({
+      kind: 'self-candidate',
+      scheduler: { mode: 'scheduled' },
+      gate: { state: 'pending-anchors' }
+    });
+  });
+
+  it('honors PLAN after dependencies before running dependent tools', async () => {
+    mockHost.generate.mockResolvedValueOnce({
+      raw: [
+        'REPLOID/0',
+        '',
+        'PLAN:',
+        '[',
+        '  {',
+        '    "id": "a",',
+        '    "tool": "ReadFile",',
+        '    "args": { "path": "/self/a.js" }',
+        '  },',
+        '  {',
+        '    "id": "b",',
+        '    "tool": "ReadFile",',
+        '    "args": { "path": "/self/b.js" }',
+        '  },',
+        '  {',
+        '    "id": "c",',
+        '    "after": ["a", "b"],',
+        '    "tool": "WriteFile",',
+        '    "args": { "path": "/artifacts/out.txt", "content": "ok" }',
+        '  }',
+        ']'
+      ].join('\n')
+    });
+
+    const events = [];
+    const pendingResolvers = [];
+    mockHost.executeTool.mockImplementation((name, args) => {
+      events.push(`start:${name}:${args.path}`);
+      if (name === 'ReadFile') {
+        return new Promise((resolve) => {
+          pendingResolvers.push(() => {
+            events.push(`finish:${name}:${args.path}`);
+            resolve({ path: args.path, ok: true });
+          });
+        });
+      }
+
+      events.push(`finish:${name}:${args.path}`);
+      return Promise.resolve({ path: args.path, ok: true });
+    });
+
+    const runtime = createSelfRuntime({
+      goal: 'Test goal',
+      environment: 'Test environment'
+    });
+
+    let latestSnapshot = runtime.getSnapshot();
+    runtime.subscribe((snapshot) => {
+      latestSnapshot = snapshot;
+      const sawToolBatch = snapshot.context.some(
+        (message) => message.origin === 'tool' && message.content.includes('[TOOL BATCH RESULT]')
+      );
+      if (sawToolBatch) {
+        runtime.stop();
+      }
+    });
+
+    const startPromise = runtime.start();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(events).toEqual([
+      'start:ReadFile:/self/a.js',
+      'start:ReadFile:/self/b.js'
+    ]);
+
+    pendingResolvers.splice(0).forEach((resolve) => resolve());
+    await startPromise;
+
+    expect(events).toEqual([
+      'start:ReadFile:/self/a.js',
+      'start:ReadFile:/self/b.js',
+      'finish:ReadFile:/self/a.js',
+      'finish:ReadFile:/self/b.js',
+      'start:WriteFile:/artifacts/out.txt',
+      'finish:WriteFile:/artifacts/out.txt'
+    ]);
+    const toolMessages = latestSnapshot.context.filter((message) => message.origin === 'tool');
+    expect(toolMessages).toHaveLength(1);
+    expect(toolMessages[0].content).toContain('[TOOL BATCH RESULT]');
+    expect(toolMessages[0].content).toContain('mode: scheduled');
+    expect(toolMessages[0].content).toContain('a:ReadFile, b:ReadFile, c:WriteFile');
   });
 
   it('parks repeated milestone-only cycles with no new tool work', async () => {
@@ -434,8 +834,10 @@ describe('Self Runtime', () => {
     let latestSnapshot = runtime.getSnapshot();
     runtime.subscribe((snapshot) => {
       latestSnapshot = snapshot;
-      const toolMessages = snapshot.context.filter((message) => message.origin === 'tool');
-      if (toolMessages.length >= 2) {
+      const sawToolBatch = snapshot.context.some(
+        (message) => message.origin === 'tool' && message.content.includes('[TOOL BATCH RESULT]')
+      );
+      if (sawToolBatch) {
         runtime.stop();
       }
     });
@@ -443,6 +845,9 @@ describe('Self Runtime', () => {
     await runtime.start();
 
     expect(mockHost.executeTool).toHaveBeenCalledTimes(2);
+    const toolMessages = latestSnapshot.context.filter((message) => message.origin === 'tool');
+    expect(toolMessages).toHaveLength(1);
+    expect(toolMessages[0].content).toContain('[TOOL BATCH RESULT]');
     expect(
       latestSnapshot.context.some(
         (message) =>

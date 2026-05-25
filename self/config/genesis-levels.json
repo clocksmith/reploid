@@ -13,6 +13,20 @@
         "VFS"
       ]
     },
+    "capsule": {
+      "name": "CAPSULE",
+      "description": "Reploid RGR capsule foundation - minimal live self runtime",
+      "extends": "tabula",
+      "modules": [
+        "AgentLoop",
+        "LLMClient",
+        "ProviderRegistry",
+        "ResponseParser",
+        "SchemaRegistry",
+        "ToolExecutor",
+        "ToolRunner"
+      ]
+    },
     "spark": {
       "name": "ZERO",
       "description": "Minimal self-building core - 11 additional modules",

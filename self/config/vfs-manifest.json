@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-03-30T13:53:19.433Z",
+  "generatedAt": "2026-05-24T20:09:51.305Z",
   "files": [
     "audit.html",
     "blueprints/0x000000-reploid-genesis.md",
@@ -266,8 +266,11 @@
     "blueprints/0x00010f-ui-boot-wizard-self-preview.md",
     "blueprints/0x000110-ui-capsule-index.md",
     "blueprints/0x000111-ui-zero-index.md",
+    "blueprints/0x000112-recursive-gepa-ring.md",
     "blueprints/README.md",
     "blueprints/implementation-status.md",
+    "blueprints/rgr-dream-instance-manifest.md",
+    "blueprints/rgr-slot-topology.md",
     "boot-helpers/config.js",
     "boot-helpers/error-ui.js",
     "boot-helpers/iframe-bridge.js",
@@ -369,6 +372,7 @@
     "infrastructure/trace-store.js",
     "personas/code-architect.md",
     "personas/config.json",
+    "prompts/kernel.md",
     "providers/doppler-reploid.js",
     "reset.html",
     "self/boot-spec.js",
@@ -377,9 +381,11 @@
     "self/cloud-access-status.js",
     "self/cloud-access-windows.js",
     "self/cloud-access.js",
+    "self/dream-instance.js",
     "self/environment.js",
     "self/host/seed-vfs.js",
     "self/host/start-app.js",
+    "self/host/start-reploid.js",
     "self/host/sw-module-loader.js",
     "self/host/vfs-bootstrap.js",
     "self/identity.js",
@@ -484,6 +490,7 @@
     "ui/proto/utils.js",
     "ui/proto/vfs.js",
     "ui/proto/workers.js",
+    "ui/reploid-home/index.js",
     "ui/toast.js",
     "ui/zero/index.js"
   ]

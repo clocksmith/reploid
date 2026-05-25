@@ -7,6 +7,7 @@ const SHARED_BOOT_UI_PREFIXES = Object.freeze([
   'boot-helpers/vfs-bootstrap.js',
   'self/cloud-access.js',
   'self/cloud-access-status.js',
+  'self/dream-instance.js',
   'self/manifest.js',
   'self/environment.js',
   'self/identity.js',
@@ -37,29 +38,51 @@ const SHARED_BOOT_UI_PREFIXES = Object.freeze([
   'styles/rd-components.css'
 ]);
 
-const REPLOID_RUNTIME_PREFIXES = Object.freeze([
+const REPLOID_MINIMAL_HOME_BOOT_SEED_PREFIXES = Object.freeze([
+  'blueprints/0x000112-recursive-gepa-ring.md',
+  'blueprints/rgr-dream-instance-manifest.md',
+  'blueprints/rgr-slot-topology.md',
+  'capabilities/communication/signaling-config.js',
+  'capabilities/communication/swarm-transport.js',
+  'capabilities/communication/webrtc-swarm.js',
+  'config/boot-seed.js',
+  'config/module-resolution.js',
+  'config/reploid-environments.js',
+  'core/llm-client.js',
+  'core/provider-registry.js',
+  'core/response-parser.js',
+  'core/security-config.js',
+  'core/utils.js',
+  'core/vfs-module-loader.js',
+  'infrastructure/event-bus.js',
+  'infrastructure/stream-parser.js',
+  'prompts/kernel.md',
   'self/boot-spec.js',
   'self/bridge.js',
-  'self/cloud-access.js',
-  'self/instance.js',
-  'self/tool-runner.js',
+  'self/capsule/index.js',
+  'self/dream-instance.js',
   'self/environment.js',
+  'self/host/seed-vfs.js',
+  'self/host/start-reploid.js',
+  'self/host/sw-module-loader.js',
+  'self/host/vfs-bootstrap.js',
   'self/identity.js',
-  'self/key-unsealer.js',
+  'self/instance.js',
+  'self/kernel/boot.js',
+  'self/kernel/index.html',
+  'self/manifest.js',
   'self/receipt.js',
   'self/reward-policy.js',
   'self/runtime.js',
   'self/swarm.js',
-  'core/llm-client.js',
-  'core/provider-registry.js',
-  'core/response-parser.js',
-  'core/vfs-module-loader.js',
-  'infrastructure/stream-parser.js',
-  'self/host/',
-  'self/kernel/',
-  'self/image/',
+  'self/tool-runner.js',
+  'styles/boot.css',
   'styles/capsule.css',
-  'self/capsule/index.js'
+  'styles/rd-components.css',
+  'styles/rd-primitives.css',
+  'styles/rd-tokens.css',
+  'styles/rd.css',
+  'ui/reploid-home/'
 ]);
 
 export const WIZARD_BOOT_SEED_PREFIXES = Object.freeze([
@@ -73,8 +96,7 @@ export const LOCKED_HOME_BOOT_SEED_PREFIXES = Object.freeze([
 ]);
 
 export const REPLOID_HOME_BOOT_SEED_PREFIXES = Object.freeze([
-  ...LOCKED_HOME_BOOT_SEED_PREFIXES,
-  ...REPLOID_RUNTIME_PREFIXES
+  ...REPLOID_MINIMAL_HOME_BOOT_SEED_PREFIXES
 ]);
 
 export const BOOT_SEED_PREFIXES = WIZARD_BOOT_SEED_PREFIXES;

@@ -15,15 +15,50 @@ const SELF_BOOTSTRAP_PATHS = new Set([
   '/kernel/boot.js',
   '/boot-spec.js',
   '/instance.js',
+  '/identity.js',
+  '/reward-policy.js',
+  '/swarm.js',
+  '/core/utils.js',
+  '/entry/start-app.js',
   '/host/seed-vfs.js',
+  '/host/start-app.js',
+  '/host/start-reploid.js',
   '/host/vfs-bootstrap.js',
   '/host/sw-module-loader.js',
   '/sw.js'
 ]);
+const NETWORK_FALLBACK_PATHS = new Set([
+  '/capsule/index.js',
+  '/cloud-access.js',
+  '/cloud-access-status.js',
+  '/cloud-access-windows.js',
+  '/bridge.js',
+  '/dream-instance.js',
+  '/environment.js',
+  '/identity.js',
+  '/key-unsealer.js',
+  '/manifest.js',
+  '/receipt.js',
+  '/reward-policy.js',
+  '/runtime.js',
+  '/swarm.js',
+  '/tool-runner.js'
+]);
+const NETWORK_FALLBACK_PREFIXES = [
+  '/capabilities/communication/',
+  '/config/',
+  '/core/',
+  '/infrastructure/',
+  '/capsule/',
+  '/ui/reploid-home/',
+  '/ui/boot-home/',
+  '/ui/boot-wizard/'
+];
 
 // Open IndexedDB connections to VFS databases keyed by instance.
 const vfsDBMap = new Map();
 const vfsDBOpening = new Map();
+const clientInstanceMap = new Map();
 
 function sanitizeInstanceId(value) {
   const sanitized = String(value || '')
@@ -58,14 +93,39 @@ async function resolveRequestInstanceId(event, request, url) {
   if (referrerId) return referrerId;
 
   const clientId = event.clientId || event.resultingClientId;
+  const mapped = clientId ? sanitizeInstanceId(clientInstanceMap.get(clientId)) : null;
+  if (mapped) return mapped;
+
   if (!clientId) return null;
 
   try {
     const client = await self.clients.get(clientId);
-    return getInstanceIdFromUrl(client?.url);
+    const clientInstanceId = getInstanceIdFromUrl(client?.url);
+    if (clientInstanceId) return clientInstanceId;
+  } catch {
+    // Fall through to same-origin window discovery.
+  }
+
+  try {
+    const clients = await self.clients.matchAll({
+      type: 'window',
+      includeUncontrolled: true
+    });
+    const instanceIds = new Set();
+    for (const client of clients) {
+      const clientInstanceId = getInstanceIdFromUrl(client?.url);
+      if (clientInstanceId) {
+        instanceIds.add(clientInstanceId);
+      }
+    }
+    if (instanceIds.size === 1) {
+      return Array.from(instanceIds)[0];
+    }
   } catch {
     return null;
   }
+
+  return null;
 }
 
 async function openVFS(dbName) {
@@ -137,6 +197,11 @@ function closeVFS(dbName = null) {
     db.close();
     vfsDBMap.delete(name);
   }
+}
+
+function shouldFallbackToNetwork(path) {
+  return NETWORK_FALLBACK_PATHS.has(path)
+    || NETWORK_FALLBACK_PREFIXES.some((prefix) => path.startsWith(prefix));
 }
 
 // Read file from VFS
@@ -277,6 +342,10 @@ async function handleModuleRequest(request, url, event) {
       return fetch(request);
     }
 
+    if (shouldFallbackToNetwork(vfsPath)) {
+      return fetch(request);
+    }
+
     // First-load behavior: the SW can control the page before the VFS is hydrated.
     // For non-JS assets (especially CSS), fall back to network instead of returning
     // a JS "throw" payload with 404, which breaks boot styling.
@@ -303,9 +372,20 @@ async function handleModuleRequest(request, url, event) {
 
 // Handle messages from main thread
 self.addEventListener('message', (event) => {
-  const { type, data } = event.data;
+  const { type, data } = event.data || {};
 
   switch (type) {
+    case 'REGISTER_INSTANCE': {
+      const instanceId = sanitizeInstanceId(data?.instanceId);
+      const clientId = event.source?.id;
+      const registered = !!(instanceId && clientId);
+      if (instanceId && clientId) {
+        clientInstanceMap.set(clientId, instanceId);
+      }
+      if (event.ports[0]) event.ports[0].postMessage({ success: registered });
+      break;
+    }
+
     case 'INVALIDATE_MODULE':
       // Clear cache for specific module to force reload
       console.log(`[SW] Invalidating module cache: ${data.path}`);
