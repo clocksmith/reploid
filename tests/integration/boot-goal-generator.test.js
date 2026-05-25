@@ -29,7 +29,7 @@ describe('Boot Goal Generator - Integration Tests', () => {
     delete global.localStorage;
   });
 
-  it('uses a hidden system prompt with the selected Gemini model', async () => {
+  it('uses a hidden browser-RSI seed prompt with the selected Gemini model', async () => {
     global.fetch.mockResolvedValue({
       ok: true,
       json: () => Promise.resolve({
@@ -49,7 +49,9 @@ describe('Boot Goal Generator - Integration Tests', () => {
     expect(body.systemInstruction.parts[0].text).toContain('browser-based autonomous coding agent');
     expect(body.systemInstruction.parts[0].text).toContain('16 to 24 words');
     expect(body.contents[0].role).toBe('user');
-    expect(body.contents[0].parts[0].text).toBe('Generate one recursive self-improvement goal now.');
+    expect(body.contents[0].parts[0].text).toContain('Draft one initial objective for Reploid from this hidden seed.');
+    expect(body.contents[0].parts[0].text).toContain('browser-native and grounded in writable self files');
+    expect(body.contents[0].parts[0].text).toContain('include a visible output, measurable check, or proof step');
     expect(body.generationConfig.maxOutputTokens).toBe(48);
   });
 
