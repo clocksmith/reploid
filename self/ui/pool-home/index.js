@@ -2,6 +2,9 @@
  * @fileoverview Public product home for the verified browser inference pool.
  */
 
+import { createPoolSdk } from '../../pool/sdk.js';
+import { createProviderClient } from '../../pool/provider-client.js';
+
 const PRODUCT_ROUTES = Object.freeze({
   '/': 'home',
   '/run': 'run',
@@ -83,6 +86,29 @@ const escapeHtml = (value) => String(value || '')
 
 const getRouteId = () => PRODUCT_ROUTES[window.location.pathname] || 'home';
 
+const getBrowserIdentity = (kind) => {
+  const key = `REPLOID_POOL_${kind.toUpperCase()}_ID`;
+  try {
+    const existing = localStorage.getItem(key);
+    if (existing) return existing;
+    const id = `${kind}_${crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2)}`;
+    localStorage.setItem(key, id);
+    return id;
+  } catch {
+    return `${kind}_${Math.random().toString(36).slice(2)}`;
+  }
+};
+
+const renderResultBox = (id) => `
+  <pre class="pool-result" id="${id}" aria-live="polite">{}</pre>
+`;
+
+const setResult = (id, value) => {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.textContent = JSON.stringify(value, null, 2);
+};
+
 const renderNav = (activeRoute) => {
   const items = [
     ['/', 'Home'],
@@ -160,6 +186,14 @@ const renderRouteDetail = (routeId) => {
       <section class="pool-panel">
         <h2 class="type-h2">Requester journey</h2>
         <p class="type-caption">Prompt submission, fastest_receipt display, assignment tracking, receipt verification, requester acceptance, and point spend belong here.</p>
+        <div class="pool-form" data-pool-run>
+          <label class="pool-field">
+            <span>Prompt</span>
+            <textarea id="pool-run-prompt" rows="5">Summarize the launch policy in one paragraph.</textarea>
+          </label>
+          <button class="button-primary" id="pool-run-submit" type="button">Submit fastest_receipt job</button>
+          ${renderResultBox('pool-run-result')}
+        </div>
       </section>
     `;
   }
@@ -168,6 +202,15 @@ const renderRouteDetail = (routeId) => {
       <section class="pool-panel">
         <h2 class="type-h2">Provider journey</h2>
         <p class="type-caption">WebGPU capability check, Doppler model load, provider registration, assignment listener, signed receipt submission, points, reputation, and audit status belong here.</p>
+        <div class="pool-form" data-pool-provider>
+          <label class="pool-field">
+            <span>Model id</span>
+            <input id="pool-provider-model" value="v0_default" />
+          </label>
+          <button class="button-primary" id="pool-provider-register" type="button">Register browser provider</button>
+          <button class="button-secondary" id="pool-provider-next" type="button">Poll assignment</button>
+          ${renderResultBox('pool-provider-result')}
+        </div>
       </section>
     `;
   }
@@ -176,6 +219,12 @@ const renderRouteDetail = (routeId) => {
       <section class="pool-panel">
         <h2 class="type-h2">Agent journey</h2>
         <p class="type-caption">Agent API keys, point budgets, fastest_receipt defaults, outstanding jobs, receipt verification logs, and spend summaries belong here.</p>
+        <div class="pool-form">
+          <code>submitJob(request)</code>
+          <code>pollJob(jobId)</code>
+          <code>verifyReceipt(receipt)</code>
+          <code>acceptReceipt(receiptHash)</code>
+        </div>
       </section>
     `;
   }
@@ -205,6 +254,87 @@ const renderTrustNote = () => `
   </section>
 `;
 
+const bindRunControls = (sdk) => {
+  const button = document.getElementById('pool-run-submit');
+  const prompt = document.getElementById('pool-run-prompt');
+  if (!button || !prompt) return;
+  button.addEventListener('click', async () => {
+    button.disabled = true;
+    setResult('pool-run-result', { status: 'submitting' });
+    try {
+      const result = await sdk.submitJob({
+        requesterId: getBrowserIdentity('requester'),
+        prompt: prompt.value,
+        policyId: 'fastest_receipt',
+        modelRequirements: { modelId: 'v0_default' },
+        generationConfig: {
+          mode: 'greedy',
+          temperature: 0,
+          topK: 1,
+          topP: 1,
+          maxOutputTokens: 128,
+          seed: '0000000000000000'
+        },
+        verificationLevel: 'signed_receipt'
+      });
+      setResult('pool-run-result', result);
+    } catch (error) {
+      setResult('pool-run-result', { error: error.message, payload: error.payload || null });
+    } finally {
+      button.disabled = false;
+    }
+  });
+};
+
+const bindProviderControls = (sdk) => {
+  const registerButton = document.getElementById('pool-provider-register');
+  const nextButton = document.getElementById('pool-provider-next');
+  const modelInput = document.getElementById('pool-provider-model');
+  if (!registerButton || !nextButton || !modelInput) return;
+  const providerId = getBrowserIdentity('provider');
+  const providerClient = createProviderClient({ providerId, sdk });
+  registerButton.addEventListener('click', async () => {
+    registerButton.disabled = true;
+    setResult('pool-provider-result', { status: 'registering', providerId });
+    try {
+      const result = await providerClient.register({
+        models: [{
+          modelId: modelInput.value || 'v0_default',
+          modelHash: 'sha256:unknown',
+          manifestHash: 'sha256:unknown',
+          contextLength: 4096,
+          quantization: 'unknown',
+          runtime: 'doppler',
+          backend: 'browser-webgpu'
+        }],
+        device: {
+          hasWebGPU: !!navigator.gpu
+        },
+        availability: {
+          maxConcurrentJobs: 1,
+          maxTokensPerJob: 128,
+          acceptedPolicies: ['fastest_receipt']
+        },
+      });
+      setResult('pool-provider-result', result);
+    } catch (error) {
+      setResult('pool-provider-result', { error: error.message, payload: error.payload || null });
+    } finally {
+      registerButton.disabled = false;
+    }
+  });
+  nextButton.addEventListener('click', async () => {
+    nextButton.disabled = true;
+    try {
+      setResult('pool-provider-result', await sdk.nextAssignment(providerId));
+    } catch (error) {
+      setResult('pool-provider-result', { error: error.message, payload: error.payload || null });
+    } finally {
+      nextButton.disabled = false;
+    }
+  });
+};
+
 export function initPoolHome(mount) {
   if (!mount) return;
   const routeId = getRouteId();
@@ -221,6 +351,10 @@ export function initPoolHome(mount) {
       ${renderTrustNote()}
     </main>
   `;
+  const sdk = createPoolSdk();
+  window.REPLOID_POOL_SDK = sdk;
+  bindRunControls(sdk);
+  bindProviderControls(sdk);
 }
 
 export default {

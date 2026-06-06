@@ -30,7 +30,6 @@
     "build:genesis": "node scripts/build-genesis-manifest.js",
     "build:blueprints": "node scripts/build-blueprint-registry.js",
     "build:module-registry": "node scripts/build-module-registry.js",
-    "build:pool-visuals": "node scripts/generate-pool-evidence-visuals.js",
     "build:vfs-manifest": "node scripts/build-vfs-manifest.js",
     "verify:module-system": "node scripts/verify-module-system.js"
   },

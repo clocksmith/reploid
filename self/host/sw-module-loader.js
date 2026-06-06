@@ -50,6 +50,7 @@ const NETWORK_FALLBACK_PREFIXES = [
   '/core/',
   '/infrastructure/',
   '/capsule/',
+  '/pool/',
   '/ui/pool-home/',
   '/ui/reploid-home/',
   '/ui/boot-home/',
