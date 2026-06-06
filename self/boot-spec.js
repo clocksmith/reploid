@@ -19,9 +19,10 @@ export const SELF_BOOT_SPEC = Object.freeze({
   baseHref: '/',
   bootSpecPath: '/self/boot.json',
   selfPath: '/self/self.json',
+  blueprintIndexPath: '/self/blueprint-index.json',
   identityPath: '/self/identity.json',
   canonicalRoots: ['/self'],
-  writableRoots: ['/self', '/artifacts', 'opfs:/artifacts'],
+  writableRoots: ['/shadow', '/artifacts', 'opfs:/artifacts'],
   kernel: {
     htmlEntry: '/self/kernel/index.html',
     bootEntry: '/self/kernel/boot.js'
@@ -82,18 +83,53 @@ export const SELF_BOOT_SPEC = Object.freeze({
   routes: {
     '/': {
       mode: 'reploid',
-      bootProfile: 'reploid_home',
-      genesisLevel: 'capsule'
+      bootProfile: 'pool_home',
+      genesisLevel: 'capsule',
+      surface: 'pool_home'
+    },
+    '/run': {
+      mode: 'reploid',
+      bootProfile: 'pool_home',
+      genesisLevel: 'capsule',
+      surface: 'requester'
+    },
+    '/contribute': {
+      mode: 'reploid',
+      bootProfile: 'pool_home',
+      genesisLevel: 'capsule',
+      surface: 'provider'
+    },
+    '/agents': {
+      mode: 'reploid',
+      bootProfile: 'pool_home',
+      genesisLevel: 'capsule',
+      surface: 'agents'
+    },
+    '/receipts': {
+      mode: 'reploid',
+      bootProfile: 'pool_home',
+      genesisLevel: 'capsule',
+      surface: 'receipts'
+    },
+    '/reputation': {
+      mode: 'reploid',
+      bootProfile: 'pool_home',
+      genesisLevel: 'capsule',
+      surface: 'reputation'
     },
     '/0': {
-      mode: 'zero',
-      bootProfile: 'zero_home',
-      genesisLevel: 'spark'
+      mode: 'reploid',
+      bootProfile: 'substrate_console',
+      genesisLevel: 'capsule',
+      surface: 'substrate_console',
+      productFacing: false
     },
     '/x': {
       mode: 'x',
       bootProfile: 'x_home',
-      genesisLevel: 'full'
+      genesisLevel: 'full',
+      surface: 'lab',
+      productFacing: false
     }
   }
 });

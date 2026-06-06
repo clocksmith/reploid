@@ -6,7 +6,8 @@ const TEXT_LIMIT_BYTES = 8 * 1024 * 1024;
 const BINARY_LIMIT_BYTES = 256 * 1024 * 1024;
 const OPFS_PREFIX = 'opfs:';
 const VFS_PREFIX = 'vfs:';
-const OPFS_ALLOWLIST_PREFIXES = ['/doppler-models/adapters/'];
+const OPFS_ALLOWLIST_PREFIXES = ['/artifacts/'];
+const VFS_WRITABLE_ROOTS = ['/shadow', '/artifacts'];
 
 const normalizePath = (rawPath, backendOverride) => {
   if (!rawPath || typeof rawPath !== 'string') {
@@ -35,6 +36,17 @@ const normalizePath = (rawPath, backendOverride) => {
 const assertSafePath = (path) => {
   if (path.split('/').includes('..')) {
     throw new Error('Path traversal is not allowed');
+  }
+};
+
+const isWithinRoot = (path, root) => {
+  const normalizedRoot = root.endsWith('/') ? root.slice(0, -1) : root;
+  return path === normalizedRoot || path.startsWith(`${normalizedRoot}/`);
+};
+
+const assertVfsWritable = (path) => {
+  if (!VFS_WRITABLE_ROOTS.some((root) => isWithinRoot(path, root))) {
+    throw new Error(`VFS path not writable by WriteFile: ${path}. Write candidates under /shadow or evidence under /artifacts, then use Promote for /self.`);
   }
 };
 
@@ -143,6 +155,9 @@ async function call(args = {}, deps = {}) {
   const create = args.create !== false;
   const overwrite = args.overwrite !== false;
   const autoLoad = args.autoLoad === true;
+  if (autoLoad) {
+    throw new Error('autoLoad is only available after Promote places a module under /self');
+  }
 
   if (backend === 'opfs') {
     assertOpfsAllowed(path);
@@ -238,6 +253,8 @@ async function call(args = {}, deps = {}) {
     return { path, backend: 'opfs', bytesWritten: bytes.byteLength };
   }
 
+  assertVfsWritable(path);
+
   if (mode !== 'text') {
     throw new Error('VFS supports text mode only');
   }
@@ -330,18 +347,8 @@ async function call(args = {}, deps = {}) {
     });
   }
 
-  // Auto-load module if requested and file is .js
-  let loadResult = '';
-  if (autoLoad && path.endsWith('.js') && SubstrateLoader) {
-    try {
-      await SubstrateLoader.loadModule(path);
-      loadResult = ' + hot-reloaded';
-    } catch (err) {
-      loadResult = ` (autoLoad failed: ${err.message})`;
-    }
-  } else if (autoLoad && !SubstrateLoader) {
-    loadResult = ' (autoLoad skipped: SubstrateLoader not available)';
-  }
+  // Modules become loadable only after Promote places them under /self.
+  const loadResult = null;
 
   let toolReload = null;
   if (backend === 'vfs' && path.startsWith('/tools/') && path.endsWith('.js') && ToolRunner?.refresh) {

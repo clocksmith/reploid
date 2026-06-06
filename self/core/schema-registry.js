@@ -81,6 +81,19 @@ const SchemaRegistry = {
           }
         }
       },
+      Promote: {
+        description: 'Promote a /shadow candidate into an allowlisted /self target when replay evidence passes',
+        readOnly: false,
+        parameters: {
+          type: 'object',
+          required: ['candidatePath', 'targetPath', 'evidencePath'],
+          properties: {
+            candidatePath: { type: 'string', description: 'Candidate file path under /shadow' },
+            targetPath: { type: 'string', description: 'Promotion target path under an allowlisted /self root' },
+            evidencePath: { type: 'string', description: 'Evidence JSON path under /artifacts with replayPassed: true' }
+          }
+        }
+      },
       EditFile: {
         description: 'Apply literal match/replace edits to a text file in VFS or OPFS',
         readOnly: false,
@@ -540,7 +553,7 @@ const SchemaRegistry = {
 
     const init = async () => {
       const builtinTools = getBootMode() === 'reploid'
-        ? ['ReadFile', 'WriteFile', 'LoadModule']
+        ? ['ReadFile', 'WriteFile', 'LoadModule', 'Promote']
         : ['ReadFile', 'WriteFile', 'EditFile', 'ListFiles', 'DeleteFile', 'CreateTool', 'ListTools', 'LoadModule'];
 
       for (const toolName of builtinTools) {

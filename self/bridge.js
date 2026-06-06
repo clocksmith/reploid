@@ -29,6 +29,7 @@ import { createReceiptDraft, countersignReceipt, signReceiptDraft, verifyReceipt
 import { applyReceiptToContribution } from './reward-policy.js';
 import { createPeerAdvertisement, createSwarmController } from './swarm.js';
 import { createSelfToolRunner } from './tool-runner.js';
+import { promoteShadowCandidate } from './tools/Promote.js';
 
 const TEXT_LIMIT_BYTES = 8 * 1024 * 1024;
 const BINARY_LIMIT_BYTES = 256 * 1024 * 1024;
@@ -71,34 +72,6 @@ const getTextBytes = (content) => {
     return new TextEncoder().encode(String(content || '')).length;
   }
   return String(content || '').length;
-};
-
-const SELF_TOOL_NAME_PATTERN = /^[A-Z][A-Za-z0-9]*$/;
-const validateSelfToolName = (name) => {
-  if (typeof name !== 'string') {
-    throw new Error('Tool name must be a string');
-  }
-  const trimmed = name.trim();
-  if (!SELF_TOOL_NAME_PATTERN.test(trimmed)) {
-    throw new Error('Invalid tool name. Use CamelCase and start with an uppercase letter.');
-  }
-  return trimmed;
-};
-
-const validateSelfToolCode = (code) => {
-  if (!code || typeof code !== 'string') {
-    throw new Error('Missing or invalid code parameter');
-  }
-  if (!code.includes('export default') && !code.includes('export const tool')) {
-    throw new Error('Tool must export default or export const tool');
-  }
-  const hasAsync = code.includes('async function')
-    || code.includes('async (')
-    || code.includes('call: async');
-  if (!hasAsync) {
-    throw new Error('Tool call function must be async');
-  }
-  return code;
 };
 
 const isWithinRoot = (path, root) => {
@@ -307,6 +280,7 @@ export function createSelfBridge(options = {}) {
   const writableVfsRoots = [...SELF_VFS_WRITABLE_ROOTS];
   const writableOpfsRoots = [...SELF_OPFS_WRITABLE_ROOTS];
   const isWritableVfsPath = (path) => !PROTECTED_SYSTEM_PATHS.has(path) && isWritablePath(path, writableVfsRoots);
+  const isModelWritableVfsPath = (path) => !isWithinRoot(path, '/self') && isWritableVfsPath(path);
   const isWritableOpfsPath = (path) => isWritablePath(path, writableOpfsRoots);
   const bridgeEvents = createBridgeEmitter();
   const projectedSelfPaths = listSelfMirrorPaths();
@@ -418,20 +392,20 @@ export function createSelfBridge(options = {}) {
       if (mode !== 'text') {
         throw new Error('VFS supports text mode only');
       }
-      if (!isWritableVfsPath(path)) {
+      if (!isModelWritableVfsPath(path)) {
         throw new Error(`Path is not writable: ${path}`);
       }
       if (args.content === undefined) {
         throw new Error('Missing content argument');
+      }
+      if (args.autoLoad === true) {
+        throw new Error('autoLoad is only available after Promote places a module under /self');
       }
       const content = String(args.content);
       if (getTextBytes(content) > TEXT_LIMIT_BYTES) {
         throw new Error(`Content exceeds limit (${TEXT_LIMIT_BYTES} bytes)`);
       }
       await vfs.write(path, content);
-      if (args.autoLoad === true && path.endsWith('.js')) {
-        await toolRunner.loadModule({ path, force: true });
-      }
       return {
         path,
         backend,
@@ -477,43 +451,11 @@ export function createSelfBridge(options = {}) {
     };
   };
 
-  const createTool = async (args = {}) => {
-    const name = validateSelfToolName(args.name);
-    const code = validateSelfToolCode(args.code);
-    const requestedPath = args.path
-      ? normalizePath(args.path, 'vfs').path
-      : `/self/tools/${name}.js`;
-
-    if (!isWithinRoot(requestedPath, '/self')) {
-      throw new Error('CreateTool only supports /self paths');
-    }
-    if (!requestedPath.endsWith('.js') && !requestedPath.endsWith('.mjs')) {
-      throw new Error('CreateTool target must end with .js or .mjs');
-    }
-
-    await writeFile({
-      path: requestedPath,
-      content: code
-    });
-
-    const loadResult = await toolRunner.loadModule({
-      path: requestedPath,
-      force: true
-    });
-
-    bridgeEvents.emit('tool-created', {
-      name,
-      path: requestedPath,
-      callable: loadResult.callable !== false
-    });
-
-    return {
-      name,
-      path: requestedPath,
-      created: true,
-      ...loadResult
-    };
-  };
+  const promote = async (args = {}) => promoteShadowCandidate(args, {
+    VFS: vfs,
+    EventBus: bridgeEvents,
+    logger: utils.logger
+  });
 
   toolRunner = createSelfToolRunner({
     Utils: utils,
@@ -524,7 +466,7 @@ export function createSelfBridge(options = {}) {
     builtInTools: {
       ReadFile: readFile,
       WriteFile: writeFile,
-      CreateTool: createTool
+      Promote: promote
     },
     isLoadablePath: (path) => isWithinRoot(path, '/self')
   });

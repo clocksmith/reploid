@@ -10,6 +10,7 @@ import { deriveSwarmRole } from './swarm.js';
 
 export const SELF_VFS_WRITABLE_ROOTS = Object.freeze([
   '/self',
+  '/shadow',
   '/artifacts'
 ]);
 
@@ -21,13 +22,19 @@ export const SELF_PROTECTED_PATHS = Object.freeze([]);
 
 export const SELF_SOURCE_MIRRORS = Object.freeze([
   { webPath: '/boot-spec.js', vfsPath: '/self/boot-spec.js' },
+  { webPath: '/blueprint-index.json', vfsPath: '/self/blueprint-index.json' },
   { webPath: '/prompts/kernel.md', vfsPath: '/self/prompts/kernel.md' },
+  { webPath: '/blueprints/tabula-rasa-runtime.md', vfsPath: '/self/blueprints/tabula-rasa-runtime.md' },
+  { webPath: '/blueprints/blueprint-index-contract.md', vfsPath: '/self/blueprints/blueprint-index-contract.md' },
+  { webPath: '/blueprints/tool-contract.md', vfsPath: '/self/blueprints/tool-contract.md' },
+  { webPath: '/blueprints/promotion-contract.md', vfsPath: '/self/blueprints/promotion-contract.md' },
   { webPath: '/blueprints/rgr-runtime-contract.md', vfsPath: '/self/blueprints/rgr-runtime-contract.md' },
   { webPath: '/blueprints/0x000112-recursive-gepa-ring.md', vfsPath: '/self/blueprints/0x000112-recursive-gepa-ring.md' },
   { webPath: '/blueprints/rgr-slot-topology.md', vfsPath: '/self/blueprints/rgr-slot-topology.md' },
   { webPath: '/runtime.js', vfsPath: '/self/runtime.js' },
   { webPath: '/bridge.js', vfsPath: '/self/bridge.js' },
   { webPath: '/tool-runner.js', vfsPath: '/self/tool-runner.js' },
+  { webPath: '/tools/Promote.js', vfsPath: '/self/tools/Promote.js' },
   { webPath: '/manifest.js', vfsPath: '/self/manifest.js' },
   { webPath: '/environment.js', vfsPath: '/self/environment.js' },
   { webPath: '/instance.js', vfsPath: '/self/instance.js' },
@@ -53,6 +60,7 @@ export const SELF_SOURCE_MIRRORS = Object.freeze([
   { webPath: '/capsule/index.js', vfsPath: '/self/capsule/index.js' },
   { webPath: '/host/start-app.js', vfsPath: '/self/host/start-app.js' },
   { webPath: '/host/start-reploid.js', vfsPath: '/self/host/start-reploid.js' },
+  { webPath: '/ui/pool-home/index.js', vfsPath: '/self/ui/pool-home/index.js' },
   { webPath: '/host/seed-vfs.js', vfsPath: '/self/host/seed-vfs.js' },
   { webPath: '/host/vfs-bootstrap.js', vfsPath: '/self/host/vfs-bootstrap.js' },
   { webPath: '/host/sw-module-loader.js', vfsPath: '/self/host/sw-module-loader.js' },
@@ -71,8 +79,10 @@ export const SELF_PROMPT_PATHS = Object.freeze([
 ]);
 
 export const SELF_BLUEPRINT_PATHS = Object.freeze([
-  '/self/blueprints/rgr-runtime-contract.md',
-  '/self/blueprints/rgr-slot-topology.md'
+  '/self/blueprints/tabula-rasa-runtime.md',
+  '/self/blueprints/blueprint-index-contract.md',
+  '/self/blueprints/tool-contract.md',
+  '/self/blueprints/promotion-contract.md'
 ]);
 
 export function getSelfSourceMirror(vfsPath) {
@@ -103,9 +113,10 @@ export function buildSelfManifest(options = {}) {
     selfPath: '/self/self.json',
     bootPath: '/self/boot.json',
     identityPath: '/self/identity.json',
-    productModel: 'Recursive GEPA Ring',
-    coreInvariant: 'Ring slots can be local or remote.',
-    orchestratorBoundary: 'Browser RGR orchestrator. See kernel prompt and runtime contract for operating rules.',
+    productModel: 'Reploid',
+    operatingState: 'tabula-rasa',
+    coreInvariant: 'Start small, read blueprints on demand, stage candidates under /shadow.',
+    orchestratorBoundary: 'Browser-hosted runtime. See kernel prompt and blueprint index for operating rules.',
     boot: {
       kernel: {
         htmlEntry: boot.kernel.htmlEntry,
@@ -129,24 +140,21 @@ export function buildSelfManifest(options = {}) {
     inferenceAvailable: hasInference,
     networkMode: swarmEnabled ? 'swarm' : 'solo',
     operatingState: 'seed',
-    ringTopology: swarmEnabled ? 'peer-assisted' : 'local',
-    rgr: {
-      blueprintPath: '/self/blueprints/0x000112-recursive-gepa-ring.md',
-      runtimeContractPath: '/self/blueprints/rgr-runtime-contract.md',
-      supportBlueprintPath: '/self/blueprints/rgr-slot-topology.md',
-      operatingStates: ['seed', 'shadow', 'promote'],
-      slots: [
-        'elite',
-        'performance',
-        'robustness',
-        'repair',
-        'low-cost',
-        'safety',
-        'fallback'
+    topology: swarmEnabled ? 'peer-assisted' : 'local',
+    blueprints: {
+      indexPath: '/self/blueprint-index.json',
+      activePaths: [...SELF_BLUEPRINT_PATHS],
+      lazyReferencePaths: [
+        '/self/blueprints/0x000112-recursive-gepa-ring.md',
+        '/self/blueprints/rgr-runtime-contract.md',
+        '/self/blueprints/rgr-slot-topology.md'
       ],
-      slotPlacement: 'Each slot may be local, remote, empty, or pending anchor.',
-      promotionBoundary: 'Only Promote changes the active self. Shadow outputs are provisional.',
-      anchorPolicy: 'V_ext, R_anchor, and U_meta are quarantined from ordinary candidate mutation.'
+      selectionRule: 'Read the smallest blueprint set that matches the objective.'
+    },
+    shadow: {
+      candidateRoot: '/shadow',
+      evidenceRoot: '/artifacts',
+      promotionBoundary: 'Only Promote requests durable changes from /shadow into /self.'
     },
     swarm: {
       enabled: swarmEnabled,
@@ -169,22 +177,28 @@ export function buildSelfManifest(options = {}) {
     },
     selfHosted: true,
     selfModifiable: true,
+    blueprintIndexPath: '/self/blueprint-index.json',
     promptPaths: [...SELF_PROMPT_PATHS],
     blueprintPaths: [...SELF_BLUEPRINT_PATHS],
-    visibleTools: ['ReadFile', 'WriteFile', 'CreateTool', 'LoadModule'],
+    visibleTools: ['ReadFile', 'WriteFile', 'LoadModule', 'Promote'],
     sourceRoots: [
       '/self',
+      '/shadow',
       '/artifacts'
     ],
     writableRoots: [
-      ...SELF_VFS_WRITABLE_ROOTS,
+      '/shadow',
+      '/artifacts',
       'opfs:/artifacts'
     ],
     readFirst: [
       '/self/self.json',
+      '/self/blueprint-index.json',
       '/self/prompts/kernel.md',
-      '/self/blueprints/rgr-runtime-contract.md',
-      '/self/blueprints/rgr-slot-topology.md',
+      '/self/blueprints/tabula-rasa-runtime.md',
+      '/self/blueprints/blueprint-index-contract.md',
+      '/self/blueprints/tool-contract.md',
+      '/self/blueprints/promotion-contract.md',
       '/self/boot.json',
       '/self/identity.json',
       '/self/runtime.js',

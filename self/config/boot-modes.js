@@ -2,14 +2,22 @@
  * @fileoverview Product boot mode definitions and internal genesis mapping.
  */
 
-export const DEFAULT_BOOT_MODE = 'reploid';
+export const DEFAULT_BOOT_MODE = 'pool';
 
 export const BOOT_MODES = Object.freeze({
+  pool: {
+    id: 'pool',
+    label: 'Pool',
+    description: 'Receipt-backed browser inference pool.',
+    detail: 'Public product route for running prompts, contributing browser compute, inspecting receipts, and managing agents.',
+    genesisLevel: 'capsule',
+    requiresBrowserBrain: false
+  },
   zero: {
     id: 'zero',
     label: 'Zero',
-    description: 'Mutable local Reploid.',
-    detail: 'Awakens with a browser-local model and a richer editable surface.',
+    description: 'Deprecated low-level boot profile.',
+    detail: 'Kept for compatibility with older boot experiments.',
     genesisLevel: 'spark',
     requiresBrowserBrain: true
   },
@@ -32,6 +40,7 @@ export const BOOT_MODES = Object.freeze({
 });
 
 export const BOOT_MODE_ORDER = Object.freeze([
+  'pool',
   'reploid',
   'zero',
   'x'
@@ -58,7 +67,7 @@ export function inferBootModeFromGenesis(genesisLevel, fallback = DEFAULT_BOOT_M
   switch (genesisLevel) {
     case 'capsule':
     case 'tabula':
-      return 'reploid';
+      return 'pool';
     case 'spark':
       return 'zero';
     case 'reflection':

@@ -86,7 +86,10 @@ const renderBootstrapError = (err) => {
 
 const loadStartApp = async () => {
   const bootProfile = getBootSeedProfile();
-  const primaryStartEntry = bootProfile === 'reploid_home'
+  const useSelfOwnedLauncher = bootProfile === 'pool_home'
+    || bootProfile === 'reploid_home'
+    || bootProfile === 'substrate_console';
+  const primaryStartEntry = useSelfOwnedLauncher
     ? SELF_BOOT_SPEC.host.reploidStartEntry || SELF_BOOT_SPEC.host.startEntry
     : SELF_BOOT_SPEC.host.startEntry;
   const buildCandidateUrl = (path) => {
@@ -324,7 +327,7 @@ const ensureVfsVersion = async () => {
 
 const shouldPreserveBootVfs = ({ bootProfile, vfsReset }) => {
   if (vfsReset) return false;
-  if (bootProfile === 'reploid_home') return true;
+  if (bootProfile === 'reploid_home' || bootProfile === 'substrate_console') return true;
   return getScopedLocalStorage().getItem('REPLOID_PRESERVE_ON_BOOT') === 'true';
 };
 

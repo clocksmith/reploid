@@ -510,7 +510,7 @@ async function completeReploidAwaken(goal, wizardContainer) {
       : null;
     const bootProfile = typeof window.getReploidBootProfile === 'function'
       ? window.getReploidBootProfile()
-      : 'wizard';
+      : 'reploid_home';
     const useLockedRouteHome = bootProfile !== 'wizard';
 
     // Show the appropriate boot UI first, before awaken.
@@ -519,13 +519,20 @@ async function completeReploidAwaken(goal, wizardContainer) {
     if (wizardContainer) {
       wizardContainer.style.display = 'block';
       if (useLockedRouteHome) {
-        const { initLockedBootHome } = await import(withQuery('/ui/boot-home/index.js', getCurrentReploidPeerQuery()));
-        initLockedBootHome(wizardContainer, routeMode || runtimeMode);
-        if (runtimeMode === 'reploid') {
+        if (runtimeMode === 'pool') {
+          const { initPoolHome } = await import(withQuery('/ui/pool-home/index.js', getCurrentReploidPeerQuery()));
+          initPoolHome(wizardContainer);
+        } else if (runtimeMode === 'reploid') {
+          const { initReploidHome } = await import(withQuery('/ui/reploid-home/index.js', getCurrentReploidPeerQuery()));
+          initReploidHome(wizardContainer, {
+            onAwaken: async (payload) => window.triggerAwaken?.(payload)
+          });
           loadReploidModules().catch((err) => {
             console.warn('[Boot] Failed to prewarm Reploid modules:', err?.message || err);
           });
         } else {
+          const { initLockedBootHome } = await import(withQuery('/ui/boot-home/index.js', getCurrentReploidPeerQuery()));
+          initLockedBootHome(wizardContainer, routeMode || runtimeMode);
           loadSharedBootModules().catch((err) => {
             console.warn('[Boot] Failed to prewarm shared boot modules:', err?.message || err);
           });
@@ -556,6 +563,14 @@ async function completeReploidAwaken(goal, wizardContainer) {
         const runtimeMode = typeof window.getReploidMode === 'function'
           ? window.getReploidMode()
           : 'reploid';
+
+        if (runtimeMode === 'pool') {
+          return;
+        }
+
+        if (runtimeMode === 'pool') {
+          return;
+        }
 
         if (runtimeMode === 'reploid') {
           await completeReploidAwaken(goal, wizardContainer);

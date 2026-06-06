@@ -2,7 +2,7 @@
  * @fileoverview Minimal launcher for the primary Reploid route.
  */
 
-import { SELF_BOOT_SPEC, toSourceWebPath } from '../boot-spec.js';
+import { SELF_BOOT_SPEC, getRouteBootSpec, toSourceWebPath } from '../boot-spec.js';
 import { rotateIdentityBundle } from '../identity.js';
 import {
   clearRequestedFreshIdentity,
@@ -10,7 +10,6 @@ import {
   getCurrentReploidPeerQuery,
   hasRequestedFreshIdentity
 } from '../instance.js';
-import { initReploidHome } from '../ui/reploid-home/index.js';
 
 let consumeFreshIdentityOnNextAwaken = hasRequestedFreshIdentity();
 let reploidModulesPromise = null;
@@ -234,6 +233,37 @@ const renderBootFailure = (error) => {
   );
 };
 
+const getRouteSurface = () => {
+  const route = getRouteBootSpec(window.location.pathname || '/');
+  return route?.surface || null;
+};
+
+const isProductSurface = () => {
+  const profile = typeof window.getReploidBootProfile === 'function'
+    ? window.getReploidBootProfile()
+    : null;
+  const surface = getRouteSurface();
+  return profile === 'pool_home' || (
+    surface
+      && surface !== 'substrate_console'
+      && surface !== 'lab'
+  );
+};
+
+const loadPoolHome = async () => {
+  const module = await import(withSourceQuery('/ui/pool-home/index.js', {
+    ...getCurrentReploidPeerQuery()
+  }));
+  return module.initPoolHome;
+};
+
+const loadReploidHome = async () => {
+  const module = await import(withSourceQuery('/ui/reploid-home/index.js', {
+    ...getCurrentReploidPeerQuery()
+  }));
+  return module.initReploidHome;
+};
+
 (async () => {
   try {
     const wizardContainer = document.getElementById('wizard-container');
@@ -251,6 +281,13 @@ const renderBootFailure = (error) => {
       });
     };
 
+    if (isProductSurface()) {
+      const initPoolHome = await loadPoolHome();
+      initPoolHome(wizardContainer);
+      return;
+    }
+
+    const initReploidHome = await loadReploidHome();
     initReploidHome(wizardContainer, {
       onAwaken: (payload) => window.triggerAwaken(payload)
     });

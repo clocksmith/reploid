@@ -41,7 +41,7 @@ const ToolRunner = {
 
     const getInitialToolAllowlist = () => {
       if (getBootMode() === 'reploid') {
-        return new Set(['ReadFile', 'WriteFile', 'LoadModule']);
+        return new Set(['ReadFile', 'WriteFile', 'LoadModule', 'Promote']);
       }
       return null;
     };
@@ -514,7 +514,7 @@ const ToolRunner = {
     };
 
     // Critical tools that require HITL approval
-    const CRITICAL_TOOLS = ['WriteFile', 'DeleteFile', 'CreateTool', 'EditFile', 'LoadModule'];
+    const CRITICAL_TOOLS = ['WriteFile', 'DeleteFile', 'CreateTool', 'EditFile', 'LoadModule', 'Promote'];
 
     /**
      * Check if tool requires HITL approval
