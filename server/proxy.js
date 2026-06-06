@@ -1293,8 +1293,8 @@ const setStaticHeaders = (res, filePath) => {
 };
 
 // Main routes
-app.get(['/', '/0', '/x'], (req, res) => {
-  res.setHeader('X-Reploid-Experience', req.path === '/' ? 'recursive-gepa-ring' : 'lab');
+app.get(['/', '/run', '/contribute', '/agents', '/receipts', '/reputation', '/0', '/x'], (req, res) => {
+  res.setHeader('X-Reploid-Experience', req.path === '/0' ? 'substrate-console' : req.path === '/x' ? 'lab' : 'browser-inference-pool');
   res.sendFile(path.join(__dirname, '..', 'self', 'index.html'));
 });
 

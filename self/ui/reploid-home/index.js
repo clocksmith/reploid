@@ -8,69 +8,23 @@ import {
   getCurrentReploidInstanceLabel,
   getCurrentReploidStorage
 } from '../../instance.js';
-
-const DEFAULT_GOAL = [
-  'Run one Shadow RGR self-improvement cycle: read the kernel prompt, RGR blueprints, runtime, and capsule; identify one measurable weakness; produce one reversible candidate plus a receipt/archive entry with baseline, score vector, rollback path, and gate reasons. Do not promote.'
-].join(' ');
+import {
+  DEFAULT_REPLOID_HOME_GOAL,
+  RING_SLOTS,
+  SELF_FILE_PATHS,
+  SELF_SOURCE_PATHS,
+  getGeneratedSelfFilePreview,
+  getReploidLaunchLabels
+} from '../shared/reploid-contract.js';
 
 const GENERATED_GOALS = Object.freeze([
-  'Read the runtime and capsule, find one status metric that lacks evidence, and write a Shadow receipt with candidate, score vector, rollback path, and gate reasons.',
-  'Read the kernel prompt and RGR blueprints, propose one wording change that reduces self-approval risk, and archive the candidate without promoting it.',
-  'Inspect the tool scheduler, compare current batching against the RGR rules, and write one reversible prompt or blueprint candidate with score evidence.',
-  'Create a Shadow receipt proving the live self can read, write an artifact, hot-load only when needed, recover from blocked inference, and explain the gate result.',
-  'Hot-load a browser capability probe tool from /self, detect IndexedDB, OPFS, Worker, WebGPU, WebRTC, clipboard, and wake-lock support, then archive the score.',
-  'Build a compact DOM or canvas observability panel for RGR slots, VFS writes, and tool results, then use it to find one measurable weakness.',
-  'Move one replay or verification check into a Web Worker lane, compare it with main-thread output, and archive the isolation boundary.',
-  'Persist one larger trace artifact in OPFS, read it back through the visible tool path, and score storage reliability with rollback notes.',
-  'Design a WebRTC peer-witness receipt flow where remote browsers add anchor observations but cannot mutate validators or approve promotion.',
-  'Detect WebGPU or WASM support, run one bounded local-compute proof when available, and archive the fallback path when unavailable.',
-  'Wrap one permission-mediated browser API with a gate, audit note, denied-path behavior, and visible status before any self edit.',
-  'Render the Shadow archive as a Pareto frontier map, identify one dominated candidate, and write the score evidence to /artifacts/rgr.',
-  'Patch the active prompt so every self-edit must cite browser capability checks before using storage, workers, WebGPU, DOM, or peers.',
-  'Find one brittle boot or service-worker path, propose the smallest reversible candidate, and archive replay evidence before any self patch.',
-  'Generate two self-repair candidates for one repeated runtime failure, score both against safety and reversibility, and keep only the Pareto survivor in the archive.',
-  'Design a peer-assisted witness flow where remote browsers add anchor observations but cannot approve promotion, then write the blueprint candidate and receipt.',
-  'Find one place the system could accidentally let a candidate judge its own validator, then write a quarantine candidate with explicit gate reasons.',
-  'Turn the boot path into a measurable Shadow benchmark with baseline, expected replay, failure signal, and a no-promotion receipt.',
-  'Create a mutation budget candidate that limits self-edits, tracks rollback, and rejects promotion when Q_anchor is below threshold.',
-  'Improve the agent prompt so every proposed self-change names baseline, candidate, score vector, receipt path, and why Promote is still blocked.',
-  'Build a local archive artifact schema for failed candidates, recovered states, rejected mutations, and lessons for later Shadow cycles.',
-  'Stress-test the browser self by planning missing inference, stale service worker, broken VFS file, and peer-loss cases as replayable Shadow checks.',
-  'Propose a minimal comparison artifact for two self-versions using evidence, Pareto keys, and anchor status rather than confidence.',
-  'Make the next cycle produce one useful Shadow artifact before any code edit is allowed, then score whether that constraint improved safety.'
+  DEFAULT_REPLOID_HOME_GOAL,
+  'Read /self/blueprint-index.json, choose one lazy blueprint needed for this objective, and summarize the contract before changing anything.',
+  'Inspect the tabula-rasa boot contract, then write one /shadow candidate that removes inherited context from the first prompt.',
+  'Read the tool and promotion contracts, then draft one /shadow tool candidate plus /artifacts evidence without touching /self.',
+  'Read the blueprint index contract and propose the smallest index entry that makes one architecture task easier to discover.',
+  'Trace the / boot route, identify one remaining wizard fallback, and write the smallest reversible /shadow fix.'
 ]);
-
-const RING_SLOTS = Object.freeze([
-  'elite',
-  'performance',
-  'robustness',
-  'repair',
-  'low-cost',
-  'safety',
-  'fallback'
-]);
-
-const SELF_FILE_PATHS = Object.freeze([
-  '/self/self.json',
-  '/self/boot.json',
-  '/self/prompts/kernel.md',
-  '/self/blueprints/rgr-runtime-contract.md',
-  '/self/blueprints/rgr-slot-topology.md',
-  '/self/runtime.js',
-  '/self/bridge.js',
-  '/self/capsule/index.js',
-  '/self/host/start-reploid.js'
-]);
-
-const SELF_SOURCE_PATHS = Object.freeze({
-  '/self/prompts/kernel.md': '/prompts/kernel.md',
-  '/self/blueprints/rgr-runtime-contract.md': '/blueprints/rgr-runtime-contract.md',
-  '/self/blueprints/rgr-slot-topology.md': '/blueprints/rgr-slot-topology.md',
-  '/self/runtime.js': '/runtime.js',
-  '/self/bridge.js': '/bridge.js',
-  '/self/capsule/index.js': '/capsule/index.js',
-  '/self/host/start-reploid.js': '/host/start-reploid.js'
-});
 
 const DIRECT_MODELS = Object.freeze({
   gemini: [
@@ -100,7 +54,7 @@ const migrateStoredGoal = (goal) => {
     && normalized.includes('cycle over the boot path')
   );
   return isLegacyDefault
-    ? DEFAULT_GOAL
+    ? DEFAULT_REPLOID_HOME_GOAL
     : normalized;
 };
 
@@ -118,32 +72,6 @@ const pickRandomGoal = (currentGoal = '') => {
   const pool = candidates.length > 0 ? candidates : GENERATED_GOALS;
   if (pool.length === 0) return current;
   return pool[Math.floor(Math.random() * pool.length)] || pool[0];
-};
-
-const buildSelfPreview = () => JSON.stringify({
-  selfHosted: true,
-  productModel: 'Reploid',
-  coreInvariant: 'Self-improvement runs in Shadow before promotion.',
-  visibleTools: ['ReadFile', 'WriteFile', 'CreateTool', 'LoadModule']
-}, null, 2);
-
-const buildBootPreview = () => JSON.stringify({
-  schema: 'reploid/self-boot/v1',
-  title: 'Reploid',
-  kernel: {
-    htmlEntry: '/self/kernel/index.html',
-    bootEntry: '/self/kernel/boot.js'
-  },
-  runtime: {
-    runtimeEntry: '/self/runtime.js',
-    uiEntry: '/self/capsule/index.js'
-  }
-}, null, 2);
-
-const getGeneratedSelfFilePreview = (path) => {
-  if (path === '/self/self.json') return buildSelfPreview();
-  if (path === '/self/boot.json') return buildBootPreview();
-  return '';
 };
 
 const createInitialState = () => {
@@ -164,7 +92,7 @@ const createInitialState = () => {
   }
 
   return {
-    goal: migrateStoredGoal(storage.getItem('REPLOID_HOME_GOAL')) || DEFAULT_GOAL,
+    goal: migrateStoredGoal(storage.getItem('REPLOID_HOME_GOAL')) || DEFAULT_REPLOID_HOME_GOAL,
     swarmEnabled: storedSwarm === null ? true : storedSwarm === 'true',
     ownInference: storedOwnInference,
     directProvider: savedModel?.provider || DEFAULT_DIRECT_PROVIDER,
@@ -186,44 +114,7 @@ const getHasDirectInference = (state) => !!(
   && normalize(state.directKey)
 );
 
-const getLaunch = (state) => {
-  const hasInference = getHasDirectInference(state);
-  const topology = state.swarmEnabled ? 'peer-assisted' : 'local';
-  const slots = hasInference && state.swarmEnabled
-    ? 'local/remote'
-    : hasInference
-      ? 'local'
-      : state.swarmEnabled
-        ? 'remote'
-        : 'empty';
-  const role = state.swarmEnabled
-    ? hasInference ? 'provider' : 'consumer'
-    : hasInference ? 'solo host' : 'offline';
-  const executor = hasInference && state.swarmEnabled
-    ? 'local host + remote slots'
-    : hasInference
-      ? 'local host'
-      : state.swarmEnabled
-        ? 'waiting for host'
-        : 'none';
-  const note = hasInference
-    ? state.swarmEnabled
-      ? 'Local slots execute here and remote slots may join'
-      : 'All runnable slots execute locally'
-    : state.swarmEnabled
-      ? 'Waiting for remote host slots'
-      : 'No executor attached';
-
-  return {
-    hasInference,
-    topology,
-    slots,
-    role,
-    executor,
-    note,
-    canAwaken: hasInference || state.swarmEnabled
-  };
-};
+const getLaunch = (state) => getReploidLaunchLabels(state);
 
 const persistState = (state) => {
   const storage = getCurrentReploidStorage();
@@ -308,13 +199,13 @@ const renderHome = (state) => {
       <div class="wizard-step wizard-intro">
         <div class="goal-header">
           <h1 class="type-h1">Reploid</h1>
-          <p class="type-caption">ring slots can be local or remote · peer ${escapeHtml(getCurrentReploidInstanceLabel())} · <a class="link-secondary" href="${escapeHtml(peerUrl)}" target="_blank" rel="noopener">new peer</a> · <a class="link-secondary" href="${escapeHtml(freshPeerUrl)}" target="_blank" rel="noopener">fresh peer</a></p>
+          <p class="type-caption">blueprint-first runtime · peer ${escapeHtml(getCurrentReploidInstanceLabel())} · <a class="link-secondary" href="${escapeHtml(peerUrl)}" target="_blank" rel="noopener">new peer</a> · <a class="link-secondary" href="${escapeHtml(freshPeerUrl)}" target="_blank" rel="noopener">fresh peer</a></p>
         </div>
       </div>
 
       <div class="wizard-step inference-bar">
         <div class="goal-header">
-          <h2 class="type-h2">Ring</h2>
+          <h2 class="type-h2">Runtime</h2>
         </div>
         <div class="inference-bar-row">
           <div class="inference-bar-status">
@@ -342,7 +233,7 @@ const renderHome = (state) => {
           ['Slots', slotSummary],
           ['Transport', state.swarmEnabled ? 'local room' : 'disabled'],
           ['Host', launch.executor],
-          ['Gate', 'anchor']
+          ['Gate', 'Promote']
         ], {
           className: 'rgr-status-strip',
           label: 'System and peer status'
@@ -366,7 +257,7 @@ const renderHome = (state) => {
 
       <details class="seed-browser-panel"${state.selfBrowserOpen ? ' open' : ''}>
         <summary class="seed-browser-summary">
-          <span>Awakened files</span>
+          <span>Seed files</span>
         </summary>
         <div class="seed-browser-grid">
           <div class="seed-tree-panel">

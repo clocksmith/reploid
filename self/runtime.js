@@ -14,39 +14,17 @@ const SINGLE_TOOL_NUDGE_THRESHOLD = 3;
 const MILESTONE_AUTOPARK_THRESHOLD = 3;
 const RGR_ARCHIVE_LIMIT = 24;
 const PARALLEL_SAFE_TOOLS = new Set([
-  'ReadFile',
-  'ListFiles',
-  'Search',
-  'Grep',
-  'Find',
-  'Head',
-  'Tail',
-  'FileOutline',
-  'ListTools',
-  'ListWorkers',
-  'SwarmGetStatus',
-  'InspectStatus'
+  'ReadFile'
 ]);
 const ORDERED_TOOLS = new Set([
   'WriteFile',
-  'CreateTool',
-  'LoadModule',
-  'EditFile',
-  'DeleteFile',
-  'RunGEPA',
-  'SwarmShareFile',
-  'SwarmRequestFile',
-  'SpawnWorker',
-  'AwaitWorkers'
+  'LoadModule'
 ]);
 const EXCLUSIVE_TOOLS = new Set([
-  'Promote',
-  'PromoteCandidate',
-  'UpdateValidator',
-  'WriteLedger',
-  'AnchorGate'
+  'Promote'
 ]);
 const BOOTSTRAP_CONTEXT_PATHS = Object.freeze([
+  '/self/blueprint-index.json',
   ...SELF_PROMPT_PATHS,
   ...SELF_BLUEPRINT_PATHS
 ]);
@@ -170,13 +148,10 @@ const formatToolResult = (name, result, kind = 'RESULT') => {
 };
 
 const formatToolCallParseError = (call = {}) => {
-  const hint = normalizeToolName(call.name) === 'CreateTool'
-    ? 'Use a literal block for tool source: code <<JS, then close with JS on its own line.'
-    : 'Use key: value lines or key <<MARKER literal blocks.';
   return formatToolResult(call.name || 'Tool', {
     error: call.error || 'Invalid tool call',
     parsedArgs: call.args || {},
-    hint
+    hint: 'Use key: value lines or key <<MARKER literal blocks.'
   }, 'ERROR');
 };
 
@@ -424,12 +399,12 @@ const scoreRgrCandidate = ({ entries = [], groups = [], anchorObservations = 0 }
   const selfPathWrites = entries.filter((entry) => {
     const name = normalizeToolName(entry.call?.name);
     const path = getToolPath(entry.call);
-    return ['WriteFile', 'EditFile', 'CreateTool', 'LoadModule'].includes(name) && path.startsWith('/self/');
+    return ['WriteFile', 'LoadModule'].includes(name) && path.startsWith('/self/');
   }).length;
   const artifactWrites = entries.filter((entry) => {
     const name = normalizeToolName(entry.call?.name);
     const path = getToolPath(entry.call);
-    return ['WriteFile', 'EditFile'].includes(name) && (
+    return name === 'WriteFile' && (
       path.startsWith('/artifacts/') ||
       path.startsWith('opfs:/artifacts/')
     );

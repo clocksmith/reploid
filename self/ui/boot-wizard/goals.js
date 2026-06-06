@@ -2,6 +2,8 @@
  * @fileoverview Goal presets for the boot wizard.
  */
 
+import { DEFAULT_REPLOID_HOME_GOAL } from '../shared/reploid-contract.js';
+
 const TAGS = {
   UI: 'UI',
   VISUAL: 'Visualization',
@@ -11,8 +13,6 @@ const TAGS = {
   DATA: 'Data',
   SYS: 'Systems'
 };
-
-export const DEFAULT_REPLOID_HOME_GOAL = 'Run one Shadow RGR self-improvement cycle: read the kernel prompt, RGR blueprints, runtime, and capsule; identify one measurable weakness; produce one reversible candidate plus a receipt/archive entry with baseline, score vector, rollback path, and gate reasons. Do not promote.';
 
 const GOAL_CATEGORIES = {
   'L0: Basic Functions': [

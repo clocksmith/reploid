@@ -162,17 +162,18 @@ const installRuntimeGlobals = () => {
 
   window.getReploidBootProfile = () => {
     const route = getRouteBootSpec(window.location.pathname || '/');
-    return route?.bootProfile || 'wizard';
+    return route?.bootProfile || 'reploid_home';
   };
 
-  window.isReploidHome = () => window.location.pathname === '/';
+  window.isReploidHome = () => window.location.pathname === '/0';
+  window.isReploidProductHome = () => window.location.pathname === '/';
 
   window.getReploidMode = () => {
     const routeMode = window.getReploidRouteMode();
     if (routeMode) return routeMode;
 
     const storedMode = scopedLocalStorage.getItem('REPLOID_MODE');
-    if (storedMode === 'zero' || storedMode === 'reploid' || storedMode === 'x') {
+    if (storedMode === 'pool' || storedMode === 'zero' || storedMode === 'reploid' || storedMode === 'x') {
       return storedMode;
     }
 

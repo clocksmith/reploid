@@ -30,6 +30,7 @@ const SHARED_BOOT_UI_PREFIXES = Object.freeze([
   'ui/boot-wizard/steps/direct.js',
   'ui/boot-wizard/steps/goal.js',
   'ui/boot-wizard/steps/proxy.js',
+  'ui/shared/',
   'styles/boot.css',
   'styles/rd.css',
   'styles/rd-tokens.css',
@@ -38,8 +39,11 @@ const SHARED_BOOT_UI_PREFIXES = Object.freeze([
 ]);
 
 const REPLOID_MINIMAL_HOME_BOOT_SEED_PREFIXES = Object.freeze([
-  'blueprints/rgr-runtime-contract.md',
-  'blueprints/rgr-slot-topology.md',
+  'blueprint-index.json',
+  'blueprints/blueprint-index-contract.md',
+  'blueprints/promotion-contract.md',
+  'blueprints/tabula-rasa-runtime.md',
+  'blueprints/tool-contract.md',
   'capabilities/communication/signaling-config.js',
   'capabilities/communication/swarm-transport.js',
   'capabilities/communication/webrtc-swarm.js',
@@ -72,6 +76,7 @@ const REPLOID_MINIMAL_HOME_BOOT_SEED_PREFIXES = Object.freeze([
   'self/reward-policy.js',
   'self/runtime.js',
   'self/swarm.js',
+  'ui/shared/',
   'self/tool-runner.js',
   'styles/boot.css',
   'styles/capsule.css',
@@ -79,7 +84,15 @@ const REPLOID_MINIMAL_HOME_BOOT_SEED_PREFIXES = Object.freeze([
   'styles/rd-primitives.css',
   'styles/rd-tokens.css',
   'styles/rd.css',
+  'tools/Promote.js',
+  'self/tools/Promote.js',
+  'ui/pool-home/',
   'ui/reploid-home/'
+]);
+
+const POOL_HOME_BOOT_SEED_PREFIXES = Object.freeze([
+  ...SHARED_BOOT_UI_PREFIXES,
+  'ui/pool-home/'
 ]);
 
 export const WIZARD_BOOT_SEED_PREFIXES = Object.freeze([
@@ -100,7 +113,9 @@ export const BOOT_SEED_PREFIXES = WIZARD_BOOT_SEED_PREFIXES;
 
 export const BOOT_SEED_PROFILES = Object.freeze({
   wizard: WIZARD_BOOT_SEED_PREFIXES,
+  pool_home: POOL_HOME_BOOT_SEED_PREFIXES,
   reploid_home: REPLOID_HOME_BOOT_SEED_PREFIXES,
+  substrate_console: REPLOID_HOME_BOOT_SEED_PREFIXES,
   zero_home: LOCKED_HOME_BOOT_SEED_PREFIXES,
   x_home: LOCKED_HOME_BOOT_SEED_PREFIXES
 });
@@ -112,11 +127,11 @@ export function getBootSeedProfile() {
       return profile;
     }
   }
-  return 'wizard';
+  return 'pool_home';
 }
 
 export function shouldHydrateFullManifest(profile = getBootSeedProfile()) {
-  return profile !== 'reploid_home';
+  return profile !== 'reploid_home' && profile !== 'pool_home' && profile !== 'substrate_console';
 }
 
 export function pickBootSeedFiles(files, profile = getBootSeedProfile()) {

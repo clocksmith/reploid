@@ -1,0 +1,60 @@
+{
+  "schemaVersion": 1,
+  "active": [
+    "tabula-rasa-runtime",
+    "blueprint-index-contract",
+    "tool-contract",
+    "promotion-contract"
+  ],
+  "entries": [
+    {
+      "id": "tabula-rasa-runtime",
+      "path": "/self/blueprints/tabula-rasa-runtime.md",
+      "status": "active",
+      "tags": ["runtime", "boot", "minimal"],
+      "summary": "Defines the small live runtime and how it asks for blueprint context."
+    },
+    {
+      "id": "blueprint-index-contract",
+      "path": "/self/blueprints/blueprint-index-contract.md",
+      "status": "active",
+      "tags": ["blueprints", "context", "discovery"],
+      "summary": "Defines how the runtime discovers and loads blueprint knowledge."
+    },
+    {
+      "id": "tool-contract",
+      "path": "/self/blueprints/tool-contract.md",
+      "status": "active",
+      "tags": ["tools", "shadow", "kernel"],
+      "summary": "Defines the primitive tool surface for the tabula-rasa runtime."
+    },
+    {
+      "id": "promotion-contract",
+      "path": "/self/blueprints/promotion-contract.md",
+      "status": "active",
+      "tags": ["promotion", "shadow", "self"],
+      "summary": "Defines the gated path from /shadow candidates into active /self."
+    },
+    {
+      "id": "recursive-gepa-ring",
+      "path": "/self/blueprints/0x000112-recursive-gepa-ring.md",
+      "status": "lazy",
+      "tags": ["rgr", "policy", "optimization"],
+      "summary": "Full RGR reference. Read only when the current objective needs the full policy."
+    },
+    {
+      "id": "rgr-runtime-contract",
+      "path": "/self/blueprints/rgr-runtime-contract.md",
+      "status": "lazy",
+      "tags": ["rgr", "runtime"],
+      "summary": "Legacy compact RGR runtime contract."
+    },
+    {
+      "id": "rgr-slot-topology",
+      "path": "/self/blueprints/rgr-slot-topology.md",
+      "status": "lazy",
+      "tags": ["rgr", "slots"],
+      "summary": "Legacy compact RGR slot topology."
+    }
+  ]
+}
