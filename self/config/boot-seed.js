@@ -92,6 +92,7 @@ const REPLOID_MINIMAL_HOME_BOOT_SEED_PREFIXES = Object.freeze([
 
 const POOL_HOME_BOOT_SEED_PREFIXES = Object.freeze([
   ...SHARED_BOOT_UI_PREFIXES,
+  'pool/',
   'ui/pool-home/'
 ]);
 

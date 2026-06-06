@@ -1,0 +1,170 @@
+/**
+ * @fileoverview Canonical receipt helpers for Reploid browser inference pool.
+ */
+
+const textEncoder = new TextEncoder();
+
+export const RECEIPT_VERSION = 'reploid_browser_inference/v1';
+export const TRUST_TIER_SIGNED_RECEIPT = 'T1_signed_receipt';
+export const TRUST_TIER_ACCEPTED_RECEIPT = 'T2_requester_accepted';
+
+export function canonicalize(value) {
+  if (value === null || typeof value !== 'object') {
+    return JSON.stringify(value);
+  }
+  if (Array.isArray(value)) {
+    return `[${value.map((item) => canonicalize(item)).join(',')}]`;
+  }
+  const keys = Object.keys(value).sort();
+  return `{${keys.map((key) => `${JSON.stringify(key)}:${canonicalize(value[key])}`).join(',')}}`;
+}
+
+const bytesToHex = (bytes) => Array.from(bytes)
+  .map((byte) => byte.toString(16).padStart(2, '0'))
+  .join('');
+
+const bytesToBase64 = (bytes) => {
+  if (typeof Buffer !== 'undefined') {
+    return Buffer.from(bytes).toString('base64');
+  }
+  let binary = '';
+  const chunk = 0x8000;
+  for (let i = 0; i < bytes.length; i += chunk) {
+    binary += String.fromCharCode(...bytes.subarray(i, i + chunk));
+  }
+  return btoa(binary);
+};
+
+const base64ToBytes = (value) => {
+  if (typeof Buffer !== 'undefined') {
+    return new Uint8Array(Buffer.from(String(value || ''), 'base64'));
+  }
+  const binary = atob(String(value || ''));
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i += 1) {
+    bytes[i] = binary.charCodeAt(i);
+  }
+  return bytes;
+};
+
+export async function sha256Hex(value) {
+  const input = value instanceof Uint8Array ? value : textEncoder.encode(String(value));
+  const digest = await crypto.subtle.digest('SHA-256', input);
+  return `sha256:${bytesToHex(new Uint8Array(digest))}`;
+}
+
+export async function hashJson(value) {
+  return sha256Hex(canonicalize(value));
+}
+
+export async function createSigningKeyPair() {
+  return crypto.subtle.generateKey(
+    { name: 'ECDSA', namedCurve: 'P-256' },
+    true,
+    ['sign', 'verify']
+  );
+}
+
+export async function exportPublicKey(publicKey) {
+  const spki = await crypto.subtle.exportKey('spki', publicKey);
+  return bytesToBase64(new Uint8Array(spki));
+}
+
+export async function importPublicKey(publicKeyBase64) {
+  const bytes = base64ToBytes(publicKeyBase64);
+  return crypto.subtle.importKey(
+    'spki',
+    bytes,
+    { name: 'ECDSA', namedCurve: 'P-256' },
+    false,
+    ['verify']
+  );
+}
+
+export async function signCanonical(value, privateKey) {
+  const payload = textEncoder.encode(canonicalize(value));
+  const signature = await crypto.subtle.sign(
+    { name: 'ECDSA', hash: 'SHA-256' },
+    privateKey,
+    payload
+  );
+  return bytesToBase64(new Uint8Array(signature));
+}
+
+export async function verifyCanonicalSignature(value, publicKeyBase64, signatureBase64) {
+  const publicKey = await importPublicKey(publicKeyBase64);
+  const payload = textEncoder.encode(canonicalize(value));
+  return crypto.subtle.verify(
+    { name: 'ECDSA', hash: 'SHA-256' },
+    publicKey,
+    base64ToBytes(signatureBase64),
+    payload
+  );
+}
+
+export function receiptSigningPayload(receipt) {
+  const { providerSignature, requesterAcceptance, verifierDecision, ledgerEffects, ...payload } = receipt || {};
+  return payload;
+}
+
+export function acceptanceSigningPayload(acceptance) {
+  const { requesterSignature, ...payload } = acceptance || {};
+  return payload;
+}
+
+export async function buildPoolReceipt({ assignment, provider, model, runtime, execution }) {
+  const outputText = execution?.outputText || '';
+  const tokenIds = Array.isArray(execution?.tokenIds) ? execution.tokenIds : [];
+  const transcript = execution?.transcript || { outputText, tokenIds };
+  return {
+    receiptVersion: RECEIPT_VERSION,
+    trustTier: TRUST_TIER_SIGNED_RECEIPT,
+    assignmentId: assignment.assignmentId,
+    jobId: assignment.jobId,
+    requesterId: assignment.requesterId,
+    providerId: assignment.providerId,
+    policyId: assignment.policyId,
+    model,
+    runtime,
+    inputHash: assignment.inputHash,
+    generationConfigHash: assignment.generationConfigHash,
+    outputHash: await sha256Hex(outputText),
+    tokenIdsHash: await hashJson(tokenIds),
+    transcriptHash: await hashJson(transcript),
+    tokenCounts: execution?.tokenCounts || { input: 0, output: tokenIds.length },
+    device: provider?.device || {},
+    timing: execution?.timing || {},
+    verification: {
+      level: assignment.verificationLevel || 'signed_receipt',
+      canaryId: null,
+      sampledProofHashes: [],
+      programBundleHash: null
+    },
+    dopplerProviderReceipt: execution?.dopplerProviderReceipt || null,
+    status: execution?.status || 'completed',
+    providerSignature: null,
+    requesterAcceptance: null,
+    verifierDecision: null,
+    ledgerEffects: []
+  };
+}
+
+export async function signProviderReceipt(receipt, privateKey) {
+  return {
+    ...receipt,
+    providerSignature: await signCanonical(receiptSigningPayload(receipt), privateKey)
+  };
+}
+
+export async function countersignReceipt({ receiptHash, accepted }, privateKey) {
+  const acceptance = {
+    receiptHash,
+    accepted: accepted === true,
+    acceptedAt: new Date().toISOString(),
+    requesterSignature: null
+  };
+  return {
+    ...acceptance,
+    requesterSignature: await signCanonical(acceptanceSigningPayload(acceptance), privateKey)
+  };
+}

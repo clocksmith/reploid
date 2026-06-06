@@ -11,6 +11,7 @@ import { promisify } from 'util';
 import SignalingServer from './signaling-server.js';
 import AgentBridge from './agent-bridge.js';
 import fetch from 'node-fetch';
+import createPoolRouter from './pool/routes.js';
 
 // Crash protection - keep server alive on uncaught errors
 process.on('uncaughtException', (err) => {
@@ -421,7 +422,7 @@ app.use(express.json({ limit: '10mb' }));
 
 // CORS headers for API endpoints
 app.use((req, res, next) => {
-  if (req.path.startsWith('/api/')) {
+  if (req.path.startsWith('/api/') || req.path.startsWith('/pool/')) {
     const origin = req.headers.origin;
     if (CORS_ORIGINS.includes('*') || CORS_ORIGINS.includes(origin)) {
       res.header('Access-Control-Allow-Origin', origin || '*');
@@ -437,6 +438,8 @@ app.use((req, res, next) => {
   }
   next();
 });
+
+app.use('/pool', createPoolRouter());
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
