@@ -1790,6 +1790,7 @@ details[open] > .disclosure-summary::before {
   gap: var(--space-lg);
 }
 
+.pool-topbar,
 .pool-nav,
 .pool-actions {
   display: flex;
@@ -1798,25 +1799,33 @@ details[open] > .disclosure-summary::before {
   gap: var(--space-sm);
 }
 
-.pool-nav-link {
+.pool-topbar {
+  justify-content: space-between;
+}
+
+.pool-nav-toggle {
   border-style: dotted;
 }
 
-.pool-nav-link.active {
+.pool-nav-toggle.is-active {
   border-style: solid;
   background: var(--fg);
   color: var(--bg);
 }
 
+.pool-zero-link {
+  font-size: var(--font-size-sm);
+  margin-left: auto;
+  opacity: var(--opacity-soft);
+  letter-spacing: var(--font-set-tracking);
+  text-transform: uppercase;
+}
+
 .pool-hero {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(240px, 360px);
-  gap: var(--space-lg);
-  align-items: stretch;
+  display: block;
 }
 
 .pool-hero-copy,
-.pool-proof-card,
 .pool-panel,
 .pool-card,
 .pool-form,
@@ -1826,7 +1835,6 @@ details[open] > .disclosure-summary::before {
 }
 
 .pool-hero-copy,
-.pool-proof-card,
 .pool-panel,
 .pool-card-grid,
 .pool-form {
@@ -1846,11 +1854,6 @@ details[open] > .disclosure-summary::before {
   max-width: 54rem;
 }
 
-.pool-proof-card {
-  padding: var(--space-md);
-}
-
-.pool-proof-card code,
 .pool-form code {
   width: fit-content;
   max-width: 100%;
@@ -1871,6 +1874,21 @@ details[open] > .disclosure-summary::before {
 .pool-card:hover {
   background: var(--fg);
   color: var(--bg);
+}
+
+.pool-route-link::after {
+  content: 'Open';
+  display: inline-block;
+  width: fit-content;
+  margin-top: var(--space-xs);
+  border-bottom: var(--border-sm) dotted currentColor;
+  font-size: var(--font-size-sm);
+  letter-spacing: var(--font-set-tracking);
+  text-transform: uppercase;
+}
+
+.pool-actions .pool-route-link::after {
+  content: none;
 }
 
 .pool-card strong {
@@ -1909,17 +1927,46 @@ details[open] > .disclosure-summary::before {
   word-break: break-word;
 }
 
+.pool-fact-list {
+  margin: 0;
+  padding-left: var(--space-lg);
+}
+
+.pool-fact-list li + li {
+  margin-top: var(--space-xs);
+}
+
+.pool-control-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+}
+
+.pool-advanced {
+  border-top: var(--border-sm) dotted var(--fg);
+  padding-top: var(--space-sm);
+}
+
+.pool-advanced summary {
+  cursor: pointer;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--font-tracking-label);
+  text-transform: uppercase;
+}
+
+.pool-advanced .pool-control-row {
+  margin-top: var(--space-sm);
+}
+
 .pool-trust-note {
   border-style: dashed;
 }
 
 @media (max-width: 720px) {
-  .pool-hero {
-    grid-template-columns: 1fr;
-  }
-
   .pool-actions .btn,
-  .pool-nav .btn {
+  .pool-nav .btn,
+  .pool-zero-link {
     width: 100%;
   }
 }

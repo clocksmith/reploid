@@ -9,7 +9,7 @@ if (!baseUrl) {
 
 const routes = ['/', '/run', '/contribute', '/agents', '/receipts', '/reputation', '/0'];
 const requiredText = {
-  '/': 'Browser-local inference',
+  '/': 'A browser tab runs the model and signs the result.',
   '/run': 'Requester',
   '/contribute': 'Provider',
   '/agents': 'Agent',
@@ -35,6 +35,23 @@ for (const route of routes) {
   } catch (error) {
     failures.push(`${route} failed: ${error.message}`);
   }
+}
+
+try {
+  await page.goto(`${baseUrl}/`, { waitUntil: 'networkidle' });
+  await page.evaluate(() => {
+    window.__REPLOID_POOL_SMOKE_MARKER = 'same-document-route';
+  });
+  await page.click('[data-pool-route="/run"]');
+  await page.waitForFunction(() => window.location.pathname === '/run');
+  const runMarker = await page.evaluate(() => window.__REPLOID_POOL_SMOKE_MARKER);
+  if (runMarker !== 'same-document-route') failures.push('route toggle to /run reloaded the boot document');
+  await page.click('[data-pool-route="/contribute"]');
+  await page.waitForFunction(() => window.location.pathname === '/contribute');
+  const contributeMarker = await page.evaluate(() => window.__REPLOID_POOL_SMOKE_MARKER);
+  if (contributeMarker !== 'same-document-route') failures.push('route toggle to /contribute reloaded the boot document');
+} catch (error) {
+  failures.push(`same-document route smoke failed: ${error.message}`);
 }
 
 try {

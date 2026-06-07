@@ -22,67 +22,36 @@ const PRODUCT_ROUTES = Object.freeze({
 
 const PROVIDER_WORKER_INTERVAL_MS = 3000;
 
-const FLOW_CARDS = Object.freeze([
-  {
-    id: 'run',
-    href: '/run',
-    title: 'Run inference',
-    label: 'Requester',
-    body: 'Submit a prompt with a trust policy, then receive output plus verifier-readable signed execution receipts.'
-  },
-  {
-    id: 'contribute',
-    href: '/contribute',
-    title: 'Contribute compute',
-    label: 'Provider',
-    body: 'Keep a browser tab open, load a Doppler model, accept bounded jobs, sign receipts, and earn points from accepted work.'
-  },
-  {
-    id: 'agents',
-    href: '/agents',
-    title: 'Budget agents',
-    label: 'Agent',
-    body: 'Give agents point budgets, policy defaults, model requirements, receipt verification, and spend records.'
-  },
-  {
-    id: 'receipts',
-    href: '/receipts',
-    title: 'Inspect receipts',
-    label: 'Evidence',
-    body: 'Review assignment, policy, model/runtime identity, prompt hash, output hash, verifier decision, and ledger effects.'
-  }
-]);
-
 const ROUTE_COPY = Object.freeze({
   home: {
-    eyebrow: 'Receipt-backed browser inference',
-    title: 'Browser-local inference with signed receipts.',
-    body: 'Requesters submit prompts through explicit trust policies. Providers keep a browser tab open, run Doppler locally, return signed assignment-bound receipts, and earn points when verification accepts the work.'
+    eyebrow: 'Reploid pool',
+    title: 'A browser tab runs the model and signs the result.',
+    body: 'The coordinator assigns a provider, verifies hashes and signatures, and records points after acceptance.'
   },
   run: {
     eyebrow: 'Requester mode',
-    title: 'Submit jobs with explicit trust policies.',
-    body: 'The requester flow collects prompt, model requirement, deterministic generation config, and policy. The coordinator assigns eligible providers and returns output plus receipt status.'
+    title: 'Submit a prompt to a specific model.',
+    body: 'The coordinator matches model id, manifest hash, runtime, backend, and policy before assigning a provider.'
   },
   contribute: {
     eyebrow: 'Provider mode',
-    title: 'Turn an idle browser tab into verified supply.',
-    body: 'The provider flow checks WebGPU, loads a Doppler model, registers capabilities, listens for assignments, signs receipts, and tracks points, reputation, and failures.'
+    title: 'Run the launch model in this tab.',
+    body: 'The tab loads Doppler, registers its runtime profile, executes assignments, and signs receipts.'
   },
   agents: {
     eyebrow: 'Agent mode',
-    title: 'Give agents a budgeted inference API.',
-    body: 'Agents submit jobs, poll status, verify receipts, accept valid results, reject invalid receipts, and track spend through the pool SDK.'
+    title: 'Call the same job flow from code.',
+    body: 'The SDK submits the job, polls status, verifies the receipt, and signs acceptance.'
   },
   receipts: {
     eyebrow: 'Receipt explorer',
-    title: 'Make every result inspectable.',
-    body: 'Receipt pages explain exactly what is proven, what is not proven, why the verifier accepted or rejected the result, and how points or reputation changed.'
+    title: 'Inspect one receipt.',
+    body: 'The receipt shows assignment id, policy id, model hash, input hash, output hash, token hash, signatures, and verifier decision.'
   },
   reputation: {
     eyebrow: 'Provider reputation',
-    title: 'Route work toward reliable browser providers.',
-    body: 'Reputation summarizes accepted work, rejected receipts, timeouts, canary outcomes, model availability, and provider history.'
+    title: 'Inspect one provider.',
+    body: 'The page shows accepted receipts, rejected receipts, timeouts, audit events, and point ledger entries.'
   }
 });
 
@@ -93,6 +62,7 @@ const escapeHtml = (value) => String(value || '')
   .replace(/"/g, '&quot;');
 
 const getRouteId = () => PRODUCT_ROUTES[window.location.pathname] || 'home';
+const isProductPath = (path) => Object.prototype.hasOwnProperty.call(PRODUCT_ROUTES, path);
 
 const firstPresent = (...values) => values.find((value) => value !== undefined && value !== null && value !== '');
 
@@ -154,24 +124,25 @@ const renderNav = (activeRoute) => {
     ['/contribute', 'Contribute'],
     ['/agents', 'Agents'],
     ['/receipts', 'Receipts'],
-    ['/reputation', 'Reputation'],
-    ['/0', 'Substrate']
+    ['/reputation', 'Reputation']
   ];
   return `
-    <nav class="pool-nav" aria-label="Product navigation">
-      ${items.map(([href, label]) => {
-        const isActive = href === window.location.pathname || (href === '/' && activeRoute === 'home');
-        return `<a class="btn btn-ghost pool-nav-link${isActive ? ' active' : ''}" href="${href}">${escapeHtml(label)}</a>`;
-      }).join('')}
-    </nav>
+    <div class="pool-topbar">
+      <nav class="segmented-control pool-nav" aria-label="Pool route toggles">
+        ${items.map(([href, label]) => {
+          const isActive = activeRoute === PRODUCT_ROUTES[href];
+          return `<button class="btn segmented-btn pool-nav-toggle${isActive ? ' is-active' : ''}" type="button" data-pool-route="${href}" aria-pressed="${isActive ? 'true' : 'false'}">${escapeHtml(label)}</button>`;
+        }).join('')}
+      </nav>
+      <a class="pool-zero-link link-secondary" href="/0" title="Open Reploid zero boot console and substrate diagnostics route safely.">Zero</a>
+    </div>
   `;
 };
 
 const renderPolicyStrip = () => `
   <div class="boot-status-strip pool-policy-strip" aria-label="Launch policy">
-    <span class="rgr-status-metric"><span class="rgr-status-label">Policies</span><span class="rgr-status-value">fastest + canary + redundant + ring</span></span>
-    <span class="rgr-status-metric"><span class="rgr-status-label">Launch model</span><span class="rgr-status-value">${escapeHtml(LAUNCH_MODEL.modelId)}</span></span>
-    <span class="rgr-status-metric"><span class="rgr-status-label">Claim</span><span class="rgr-status-value">receipt-backed</span></span>
+    <span class="rgr-status-metric"><span class="rgr-status-label">Model</span><span class="rgr-status-value">${escapeHtml(LAUNCH_MODEL.modelId)}</span></span>
+    <span class="rgr-status-metric"><span class="rgr-status-label">Trust</span><span class="rgr-status-value">receipt-backed</span></span>
   </div>
 `;
 
@@ -183,44 +154,26 @@ const renderPolicyOptions = () => listPolicies().map((policy) => `
   <option value="${escapeHtml(policy.policyId)}">${escapeHtml(policy.policyId)} - ${escapeHtml(renderPolicyTrustLabel(policy))}</option>
 `).join('');
 
-const renderFlowCards = () => `
-  <section class="pool-card-grid" aria-label="Critical journeys">
-    ${FLOW_CARDS.map((card) => `
-      <a class="card pool-card" href="${card.href}">
-        <span class="badge pool-card-label">${escapeHtml(card.label)}</span>
-        <strong>${escapeHtml(card.title)}</strong>
-        <span>${escapeHtml(card.body)}</span>
-      </a>
-    `).join('')}
+const renderHomeFacts = () => `
+  <section class="panel pool-panel" aria-label="Pool job flow">
+    <h2 class="type-h2">How a job moves</h2>
+    <ol class="pool-fact-list">
+      <li>The requester submits prompt, model requirement, policy, and generation config.</li>
+      <li>The coordinator assigns a provider that registered the exact model contract.</li>
+      <li>The provider tab runs Doppler, hashes the output, and signs the receipt.</li>
+      <li>The verifier checks assignment fields, hashes, signatures, and acceptance before points change.</li>
+    </ol>
   </section>
 `;
 
 const renderRoutePanel = (routeId) => {
   const copy = ROUTE_COPY[routeId] || ROUTE_COPY.home;
-  const primaryHref = routeId === 'contribute' ? '/contribute' : '/run';
-  const primaryLabel = routeId === 'contribute' ? 'Start contributing' : 'Run inference';
   return `
-    <section class="pool-hero">
+    <section class="pool-hero${routeId === 'home' ? ' pool-hero-home' : ''}">
       <div class="pool-hero-copy">
         <p class="pool-eyebrow">${escapeHtml(copy.eyebrow)}</p>
         <h1 class="type-h1">${escapeHtml(copy.title)}</h1>
         <p class="type-caption pool-hero-body">${escapeHtml(copy.body)}</p>
-        <div class="pool-actions">
-          <a class="btn btn-primary" href="${primaryHref}">${primaryLabel}</a>
-          <a class="btn btn-ghost" href="/contribute">Contribute compute</a>
-          <a class="btn btn-ghost" href="/receipts">Inspect receipts</a>
-        </div>
-      </div>
-      <div class="card pool-proof-card" aria-label="Receipt fields">
-        <span class="badge pool-card-label">Pool receipt</span>
-        <code>assignmentId</code>
-        <code>policyId</code>
-        <code>modelHash</code>
-        <code>runtimeIdentity</code>
-        <code>inputHash</code>
-        <code>outputHash</code>
-        <code>providerSignature</code>
-        <code>verifierDecision</code>
       </div>
     </section>
   `;
@@ -230,8 +183,8 @@ const renderRouteDetail = (routeId) => {
   if (routeId === 'run') {
     return `
       <section class="panel pool-panel">
-        <h2 class="type-h2">Requester journey</h2>
-        <p class="type-caption">Prompt submission, fastest_receipt display, assignment tracking, receipt verification, requester acceptance, and point spend belong here.</p>
+        <h2 class="type-h2">Requester</h2>
+        <p class="type-caption">Submit a prompt, poll the assigned job, then sign the acceptance decision.</p>
         <div class="pool-form" data-pool-run>
           <label class="pool-field">
             <span>Prompt</span>
@@ -245,7 +198,7 @@ const renderRouteDetail = (routeId) => {
             <span>Max point spend</span>
             <input id="pool-run-max-spend" type="number" min="0" step="1" placeholder="optional" />
           </label>
-          <button class="btn btn-primary" id="pool-run-submit" type="button">Submit policy-routed job</button>
+          <button class="btn btn-primary" id="pool-run-submit" type="button">Submit job</button>
           <button class="btn btn-ghost" id="pool-run-poll" type="button">Poll job</button>
           <button class="btn btn-ghost" id="pool-run-accept" type="button">Accept receipt</button>
           <button class="btn btn-ghost" id="pool-run-reject" type="button">Reject receipt</button>
@@ -257,23 +210,30 @@ const renderRouteDetail = (routeId) => {
   if (routeId === 'contribute') {
     return `
       <section class="panel pool-panel">
-        <h2 class="type-h2">Provider journey</h2>
-        <p class="type-caption">WebGPU capability check, Doppler model load, provider registration, assignment listener, signed receipt submission, points, reputation, and audit status belong here.</p>
+        <h2 class="type-h2">Provider</h2>
+        <p class="type-caption">This tab loads the launch model, executes assigned prompts, and submits receipts.</p>
         <div class="pool-form" data-pool-provider>
           <label class="pool-field">
             <span>Model id</span>
             <input id="pool-provider-model" value="${escapeHtml(LAUNCH_MODEL.modelId)}" />
           </label>
-          <button class="btn btn-ghost" id="pool-provider-load" type="button">Load Doppler model</button>
-          <button class="btn btn-ghost" id="pool-provider-profile" type="button">Runtime profile</button>
-          <button class="btn btn-primary" id="pool-provider-register" type="button">Register browser provider</button>
-          <button class="btn btn-ghost" id="pool-provider-next" type="button">Poll assignment</button>
-          <button class="btn btn-ghost" id="pool-provider-execute" type="button">Execute assignment</button>
-          <button class="btn btn-ghost" id="pool-provider-step" type="button">Run provider step</button>
-          <button class="btn btn-primary" id="pool-provider-worker-start" type="button">Start provider worker</button>
-          <button class="btn btn-ghost" id="pool-provider-worker-stop" type="button" disabled>Stop provider worker</button>
-          <button class="btn btn-ghost" id="pool-provider-points" type="button">Provider points</button>
-          <button class="btn btn-ghost" id="pool-provider-reputation" type="button">Provider reputation</button>
+          <div class="pool-control-row" aria-label="Provider worker controls">
+            <button class="btn btn-primary" id="pool-provider-worker-start" type="button">Start provider tab</button>
+            <button class="btn btn-ghost" id="pool-provider-worker-stop" type="button" disabled>Stop</button>
+          </div>
+          <details class="pool-advanced">
+            <summary>Advanced provider controls</summary>
+            <div class="pool-control-row" aria-label="Manual provider controls">
+              <button class="btn btn-ghost" id="pool-provider-load" type="button">Load Doppler model</button>
+              <button class="btn btn-ghost" id="pool-provider-profile" type="button">Runtime profile</button>
+              <button class="btn btn-ghost" id="pool-provider-register" type="button">Register browser provider</button>
+              <button class="btn btn-ghost" id="pool-provider-next" type="button">Poll assignment</button>
+              <button class="btn btn-ghost" id="pool-provider-execute" type="button">Execute assignment</button>
+              <button class="btn btn-ghost" id="pool-provider-step" type="button">Run one provider step</button>
+              <button class="btn btn-ghost" id="pool-provider-points" type="button">Provider points</button>
+              <button class="btn btn-ghost" id="pool-provider-reputation" type="button">Provider reputation</button>
+            </div>
+          </details>
           ${renderResultBox('pool-provider-result')}
         </div>
       </section>
@@ -282,8 +242,8 @@ const renderRouteDetail = (routeId) => {
   if (routeId === 'agents') {
     return `
       <section class="panel pool-panel">
-        <h2 class="type-h2">Agent journey</h2>
-        <p class="type-caption">Agent point budgets, policy defaults, outstanding jobs, receipt verification logs, and spend summaries belong here.</p>
+        <h2 class="type-h2">Agent</h2>
+        <p class="type-caption">The agent client submits jobs, polls status, verifies receipts, and signs acceptance.</p>
         <div class="pool-form" data-pool-agent>
           <label class="pool-field">
             <span>Agent prompt</span>
@@ -313,8 +273,8 @@ const renderRouteDetail = (routeId) => {
   if (routeId === 'receipts') {
     return `
       <section class="panel pool-panel">
-        <h2 class="type-h2">Receipt journey</h2>
-        <p class="type-caption">Receipt lookup, trust tier, hashes, assignment, policy, provider, requester acceptance, verifier result, and ledger effects belong here.</p>
+        <h2 class="type-h2">Receipt</h2>
+        <p class="type-caption">Look up a receipt and verify what the coordinator accepted.</p>
         <div class="pool-form" data-pool-receipts>
           <label class="pool-field">
             <span>Receipt hash</span>
@@ -329,8 +289,8 @@ const renderRouteDetail = (routeId) => {
   if (routeId === 'reputation') {
     return `
       <section class="panel pool-panel">
-        <h2 class="type-h2">Reputation journey</h2>
-        <p class="type-caption">Provider score, accepted receipts, rejected work, timeouts, audit pass rate, scarce model availability, and routing eligibility belong here.</p>
+        <h2 class="type-h2">Reputation</h2>
+        <p class="type-caption">Look up provider history and deployment status.</p>
         <div class="pool-form" data-pool-reputation>
           <label class="pool-field">
             <span>Provider id</span>
@@ -345,13 +305,13 @@ const renderRouteDetail = (routeId) => {
       </section>
     `;
   }
-  return renderFlowCards();
+  return renderHomeFacts();
 };
 
 const renderTrustNote = () => `
   <section class="panel pool-panel pool-trust-note">
     <h2 class="type-h2">Trust boundary</h2>
-    <p class="type-caption">The launch product is receipt-backed and policy-controlled browser inference. Audit-backed and reputation-backed routing are next trust layers. It is not hardware-attested inference, trustless compute, or proof of honest browser execution.</p>
+    <p class="type-caption">The receipt proves that a provider identity signed specific hashes for a specific assignment. Browser execution still requires audits, redundancy, and reputation checks.</p>
   </section>
 `;
 
@@ -787,32 +747,58 @@ const bindReputationControls = (sdk) => {
   });
 };
 
+const bindPoolRouteControls = (mount, render) => {
+  mount.querySelectorAll('[data-pool-route], [data-pool-route-link]').forEach((control) => {
+    control.addEventListener('click', (event) => {
+      const path = control.dataset.poolRoute || control.dataset.poolRouteLink || control.getAttribute('href');
+      if (!isProductPath(path)) return;
+      event.preventDefault();
+      if (window.location.pathname !== path) {
+        window.history.pushState({ reploidPoolRoute: path }, '', path);
+      }
+      render();
+    });
+  });
+};
+
 export function initPoolHome(mount) {
   if (!mount) return;
-  const routeId = getRouteId();
-  document.title = routeId === 'home'
-    ? 'Reploid - Browser Inference Pool'
-    : `Reploid - ${ROUTE_COPY[routeId]?.eyebrow || 'Browser Inference Pool'}`;
-  mount.style.display = 'block';
-  mount.innerHTML = `
-    <main class="pool-home">
-      ${renderNav(routeId)}
-      ${renderRoutePanel(routeId)}
-      ${renderPolicyStrip()}
-      ${renderRouteDetail(routeId)}
-      ${renderTrustNote()}
-    </main>
-  `;
   const sdk = createPoolSdk();
   const runtime = window.REPLOID_DOPPLER_RUNTIME || createDopplerRuntime();
   window.REPLOID_DOPPLER_RUNTIME = runtime;
   window.REPLOID_POOL_ATTACH_DOPPLER_HANDLE = (handle, model = null, runtimeInfo = null) => runtime.attachHandle(handle, model, runtimeInfo);
   window.REPLOID_POOL_SDK = sdk;
-  bindRunControls(sdk);
-  bindAgentControls(sdk);
-  bindProviderControls(sdk);
-  bindReceiptControls(sdk);
-  bindReputationControls(sdk);
+  mount.style.display = 'block';
+
+  const render = () => {
+    const routeId = getRouteId();
+    const secondaryContent = routeId === 'home'
+      ? renderRouteDetail(routeId)
+      : `${renderPolicyStrip()}${renderRouteDetail(routeId)}${renderTrustNote()}`;
+    document.title = routeId === 'home'
+      ? 'Reploid - Browser Inference Pool'
+      : `Reploid - ${ROUTE_COPY[routeId]?.eyebrow || 'Browser Inference Pool'}`;
+    mount.innerHTML = `
+      <main class="pool-home" data-pool-route-id="${routeId}">
+        ${renderNav(routeId)}
+        ${renderRoutePanel(routeId)}
+        ${secondaryContent}
+      </main>
+    `;
+    bindPoolRouteControls(mount, render);
+    bindRunControls(sdk);
+    bindAgentControls(sdk);
+    bindProviderControls(sdk);
+    bindReceiptControls(sdk);
+    bindReputationControls(sdk);
+  };
+
+  if (window.REPLOID_POOL_POPSTATE_HANDLER) {
+    window.removeEventListener('popstate', window.REPLOID_POOL_POPSTATE_HANDLER);
+  }
+  window.REPLOID_POOL_POPSTATE_HANDLER = render;
+  window.addEventListener('popstate', render);
+  render();
 }
 
 export default {
