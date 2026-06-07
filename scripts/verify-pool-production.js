@@ -32,7 +32,6 @@ const readText = (filePath) => fs.readFileSync(filePath, 'utf8');
 
 const requiredRuntimeEnv = [
   'NODE_ENV',
-  'PORT',
   'POOL_BACKEND_ONLY',
   'POOL_STORE',
   'POOL_VERIFY_FIREBASE_AUTH',

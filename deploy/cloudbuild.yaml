@@ -3,14 +3,22 @@ substitutions:
   _SERVICE: reploid-pool
   _REPOSITORY: reploid
   _IMAGE: reploid-pool
+  _TAG: latest
 
 steps:
+  - id: render-env
+    name: node:22-slim
+    entrypoint: bash
+    args:
+      - -lc
+      - node scripts/print-pool-env.js deploy/env.production.json > /workspace/.pool-env
+
   - id: build
     name: gcr.io/cloud-builders/docker
     args:
       - build
       - -t
-      - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/${_IMAGE}:$SHORT_SHA
+      - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/${_IMAGE}:${_TAG}
       - -t
       - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/${_IMAGE}:latest
       - .
@@ -19,7 +27,7 @@ steps:
     name: gcr.io/cloud-builders/docker
     args:
       - push
-      - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/${_IMAGE}:$SHORT_SHA
+      - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/${_IMAGE}:${_TAG}
 
   - id: push-latest
     name: gcr.io/cloud-builders/docker
@@ -34,7 +42,7 @@ steps:
       - -lc
       - |
         gcloud run deploy ${_SERVICE} \
-          --image ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/${_IMAGE}:$SHORT_SHA \
+          --image ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/${_IMAGE}:${_TAG} \
           --region ${_REGION} \
           --platform managed \
           --allow-unauthenticated \
@@ -42,8 +50,8 @@ steps:
           --max-instances 20 \
           --concurrency 80 \
           --timeout 300 \
-          --set-env-vars "$(node scripts/print-pool-env.js deploy/env.production.json)"
+          --set-env-vars "$(cat /workspace/.pool-env)"
 
 images:
-  - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/${_IMAGE}:$SHORT_SHA
+  - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/${_IMAGE}:${_TAG}
   - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/${_IMAGE}:latest

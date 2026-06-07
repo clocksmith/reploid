@@ -26,8 +26,6 @@ spec:
           env:
             - name: NODE_ENV
               value: production
-            - name: PORT
-              value: "8080"
             - name: POOL_BACKEND_ONLY
               value: "true"
             - name: POOL_STORE
@@ -45,9 +43,9 @@ spec:
             - name: POOL_MAX_SIGNAL_MESSAGES_PER_POLL
               value: "100"
             - name: REPLOID_POOL_MODEL_BASE_URL
-              value: "<required-offloaded-model-artifact-base-url>"
+              value: "https://reploid.web.app/models"
             - name: REPLOID_DOPPLER_MODULE_URL
-              value: "<required-reviewed-doppler-browser-module-url>"
+              value: "https://esm.sh/doppler-gpu@0.4.3/generation?bundle"
           resources:
             limits:
               cpu: "1"
