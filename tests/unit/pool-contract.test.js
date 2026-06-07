@@ -99,7 +99,7 @@ describe('pool launch contract', () => {
 
   it('keeps browser runtime deployment config aligned across server and browser', () => {
     expect(BROWSER_BROWSER_RUNTIME_CONFIG).toEqual(SERVER_BROWSER_RUNTIME_CONFIG);
-    expect(BROWSER_BROWSER_RUNTIME_CONFIG.dopplerModuleUrl).toBe('https://esm.sh/doppler-gpu@0.4.3?bundle');
+    expect(BROWSER_BROWSER_RUNTIME_CONFIG.dopplerModuleUrl).toBe('https://esm.sh/doppler-gpu@0.4.3/src/client/doppler-api.browser.js?bundle');
     expect(BROWSER_BROWSER_RUNTIME_CONFIG.modelBaseUrl).toBe('https://reploid.web.app/models');
   });
 
