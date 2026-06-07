@@ -3,6 +3,8 @@
   "generatedAt": "2026-05-25T16:30:05.089Z",
   "files": [
     "audit.html",
+    "pool/p2p-signaling.js",
+    "pool/p2p-transport.js",
     "blueprint-index.json",
     "blueprints/0x000000-reploid-genesis.md",
     "blueprints/0x000001-system-prompt-architecture.md",

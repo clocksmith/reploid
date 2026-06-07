@@ -4,7 +4,7 @@
 
 import { createPoolSdk, verifyReceipt } from './sdk.js';
 import { buildLaunchModelRequirements } from './model-contract.js';
-import { countersignReceipt, createSigningKeyPair, exportPublicKey } from './inference-receipt.js';
+import { buildAcceptanceSummary, countersignReceipt, createSigningKeyPair, exportPublicKey } from './inference-receipt.js';
 import { DETERMINISTIC_GENERATION_CONFIG, FASTEST_RECEIPT_POLICY_ID, getPolicy } from './policy-router.js';
 import { createPoolIdentity } from './identity.js';
 
@@ -53,7 +53,23 @@ export function createAgentClient({ agentId, pointBudget = 0, sdk = createPoolSd
     async acceptReceipt(receiptHash, accepted = true) {
       const keys = await ensureKeys();
       const resolvedAgentId = await ensureAgentId();
-      const acceptance = await countersignReceipt({ receiptHash, requesterId: resolvedAgentId, accepted }, keys.privateKey);
+      let acceptanceSummary = null;
+      if (accepted === true) {
+        const receiptRecord = await sdk.getReceipt(receiptHash);
+        const jobResponse = await sdk.pollJob(receiptRecord.jobId);
+        const job = jobResponse.job || jobResponse;
+        const receiptHashes = Array.isArray(job?.agreement?.receiptHashes) && job.agreement.status === 'accepted'
+          ? job.agreement.receiptHashes
+          : [receiptHash];
+        const receiptRecords = await Promise.all(receiptHashes.map((currentReceiptHash) => sdk.getReceipt(currentReceiptHash)));
+        acceptanceSummary = await buildAcceptanceSummary({ job, receiptHash, receiptRecords });
+      }
+      const acceptance = await countersignReceipt({
+        receiptHash,
+        requesterId: resolvedAgentId,
+        accepted,
+        ...(acceptanceSummary || {})
+      }, keys.privateKey);
       return sdk.acceptReceipt(receiptHash, {
         ...acceptance
       });

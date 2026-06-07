@@ -196,7 +196,70 @@ export async function signProviderReceipt(receipt, privateKey) {
   };
 }
 
-export async function countersignReceipt({ receiptHash, requesterId, accepted }, privateKey) {
+export function calculateReceiptPoints(receiptRecord, { multiplier = 1 } = {}) {
+  const receipt = receiptRecord?.receipt || {};
+  const outputTokens = Number(receipt?.tokenCounts?.output || 0);
+  const inputTokens = Number(receipt?.tokenCounts?.input || 0);
+  const basePoints = Math.max(1, outputTokens + Math.floor(inputTokens / 4));
+  return Math.max(1, Math.floor(basePoints * multiplier));
+}
+
+export function compactAgreementForAcceptance(agreement = null) {
+  if (!agreement) return null;
+  return {
+    mode: agreement.mode || null,
+    status: agreement.status || null,
+    requiredAgreement: Number(agreement.requiredAgreement || agreement.requiredProviders || 1),
+    providerCount: Number(agreement.providerCount || 1),
+    agreementField: agreement.agreementField || 'tokenIdsHash',
+    outputHash: agreement.outputHash || null,
+    tokenIdsHash: agreement.tokenIdsHash || null,
+    effectiveTrustTier: agreement.effectiveTrustTier || null
+  };
+}
+
+export async function buildAcceptanceSummary({ job, receiptHash, receiptRecords = [] } = {}) {
+  const receiptHashes = Array.isArray(job?.agreement?.receiptHashes) && job.agreement.status === 'accepted'
+    ? job.agreement.receiptHashes
+    : [receiptHash];
+  const recordByHash = new Map(receiptRecords.map((record) => [record.receiptHash, record]));
+  const agreedRecords = receiptHashes
+    .map((currentReceiptHash) => recordByHash.get(currentReceiptHash))
+    .filter((record) => record?.verifierDecision?.accepted);
+  const multiplier = 1 / Math.max(1, receiptHashes.length);
+  const providerPoints = agreedRecords.map((record) => ({
+    receiptHash: record.receiptHash,
+    providerId: record.providerId,
+    points: calculateReceiptPoints(record, { multiplier })
+  }));
+  const pointSpend = providerPoints.reduce((sum, entry) => sum + entry.points, 0);
+  const payload = {
+    jobId: job?.jobId || null,
+    requesterId: job?.requesterId || null,
+    policyId: job?.policyId || null,
+    receiptHash,
+    receiptHashes,
+    agreement: compactAgreementForAcceptance(job?.agreement || null),
+    pointSpend,
+    providerPoints
+  };
+  return {
+    ...payload,
+    agreementHash: await hashJson(payload)
+  };
+}
+
+export async function countersignReceipt({
+  receiptHash,
+  requesterId,
+  accepted,
+  jobId = null,
+  policyId = null,
+  receiptHashes = null,
+  agreementHash = null,
+  pointSpend = null,
+  providerPoints = null
+} = {}, privateKey) {
   const acceptance = {
     receiptHash,
     requesterId,
@@ -204,6 +267,12 @@ export async function countersignReceipt({ receiptHash, requesterId, accepted },
     acceptedAt: new Date().toISOString(),
     requesterSignature: null
   };
+  if (jobId) acceptance.jobId = jobId;
+  if (policyId) acceptance.policyId = policyId;
+  if (Array.isArray(receiptHashes)) acceptance.receiptHashes = receiptHashes;
+  if (agreementHash) acceptance.agreementHash = agreementHash;
+  if (pointSpend !== null && pointSpend !== undefined) acceptance.pointSpend = Number(pointSpend);
+  if (Array.isArray(providerPoints)) acceptance.providerPoints = providerPoints;
   return {
     ...acceptance,
     requesterSignature: await signCanonical(acceptanceSigningPayload(acceptance), privateKey)

@@ -8,7 +8,12 @@ export const LAUNCH_MODEL = Object.freeze({
   manifestHash: 'sha256:abac153d8cee1b6cc4fd2743defa84b91f67b3d030af028bbd5ed8ba8cabee6b',
   runtime: 'doppler',
   backend: 'browser-webgpu',
-  dopplerLoadRef: 'gemma3-270m'
+  dopplerLoadRef: 'gemma3-270m',
+  artifactPolicy: {
+    transport: 'offloaded_content_addressed',
+    cache: 'browser_opfs',
+    identityFields: ['modelId', 'modelHash', 'manifestHash', 'runtime', 'backend']
+  }
 });
 
 export function isLaunchModelRequirement(requirements = {}) {

@@ -82,6 +82,27 @@ export function createPoolSdk({ baseUrl = DEFAULT_BASE_URL, authTokenProvider = 
         authTokenProvider
       });
     },
+    createSignalingSession(payload = {}) {
+      return requestJson('/signaling/sessions', { baseUrl, method: 'POST', body: payload, authTokenProvider });
+    },
+    getSignalingSession(sessionId) {
+      return requestJson(`/signaling/sessions/${encodeURIComponent(sessionId)}`, { baseUrl, authTokenProvider });
+    },
+    publishSignal(sessionId, message = {}) {
+      return requestJson(`/signaling/sessions/${encodeURIComponent(sessionId)}/messages`, {
+        baseUrl,
+        method: 'POST',
+        body: message,
+        authTokenProvider
+      });
+    },
+    listSignals(sessionId, { after = 0, peerId = null } = {}) {
+      const query = new URLSearchParams();
+      if (after) query.set('after', String(after));
+      if (peerId) query.set('peerId', String(peerId));
+      const suffix = query.toString() ? `?${query.toString()}` : '';
+      return requestJson(`/signaling/sessions/${encodeURIComponent(sessionId)}/messages${suffix}`, { baseUrl, authTokenProvider });
+    },
     createCanaryAudit(payload) {
       return requestJson('/audits/canary', { baseUrl, method: 'POST', body: payload, authTokenProvider });
     },

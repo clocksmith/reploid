@@ -13,6 +13,24 @@ export const LAUNCH_MODEL = Object.freeze({
   dopplerLoadRef: 'gemma3-270m'
 });
 
+export const LAUNCH_MODEL_ARTIFACT_PATHS = Object.freeze({
+  manifest: `${LAUNCH_MODEL.modelId}/${LAUNCH_MODEL.manifestHash}/manifest.json`,
+  tokenizer: `${LAUNCH_MODEL.modelId}/${LAUNCH_MODEL.manifestHash}/tokenizer.json`,
+  shards: `${LAUNCH_MODEL.modelId}/${LAUNCH_MODEL.manifestHash}/shards/`
+});
+
+export function buildLaunchModelArtifactUrls({ baseUrl = globalThis.REPLOID_POOL_MODEL_BASE_URL || '', paths = LAUNCH_MODEL_ARTIFACT_PATHS } = {}) {
+  const normalizedBase = String(baseUrl || '').replace(/\/+$/, '');
+  const join = (path) => normalizedBase ? `${normalizedBase}/${path}` : path;
+  return {
+    transport: 'offloaded_content_addressed',
+    cache: 'browser_opfs',
+    manifestUrl: join(paths.manifest),
+    tokenizerUrl: join(paths.tokenizer),
+    shardBaseUrl: join(paths.shards)
+  };
+}
+
 export function buildLaunchModelRequirements(overrides = {}) {
   return {
     modelId: LAUNCH_MODEL.modelId,
@@ -41,6 +59,8 @@ export function isLaunchModelRequirement(requirements = {}) {
 
 export default {
   LAUNCH_MODEL,
+  LAUNCH_MODEL_ARTIFACT_PATHS,
+  buildLaunchModelArtifactUrls,
   buildLaunchModelRequirements,
   buildLaunchProviderModel,
   isLaunchModelRequirement
