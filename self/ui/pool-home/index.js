@@ -7,7 +7,7 @@ import { createDopplerRuntime } from '../../pool/doppler-runtime.js';
 import { createAgentClient } from '../../pool/agent-client.js';
 import { createProviderClient } from '../../pool/provider-client.js';
 import { createRequesterClient } from '../../pool/requester-client.js';
-import { LAUNCH_MODEL, buildLaunchProviderModel } from '../../pool/model-contract.js';
+import { LAUNCH_MODEL, buildLaunchProviderModel, getEnabledPoolModelContract, listPoolModels } from '../../pool/model-contract.js';
 import { createPoolIdentity } from '../../pool/identity.js';
 import { FASTEST_RECEIPT_POLICY_ID, listPolicies } from '../../pool/policy-router.js';
 
@@ -152,15 +152,22 @@ const renderPolicyOptions = () => listPolicies().map((policy) => `
   <option value="${escapeHtml(policy.policyId)}">${escapeHtml(policy.policyId)} - ${escapeHtml(renderPolicyTrustLabel(policy))}</option>
 `).join('');
 
+const renderModelOptions = () => listPoolModels().map((model) => {
+  const enabled = model.enabled !== false && model.modelHash && model.manifestHash;
+  const label = model.label || model.modelId;
+  const suffix = enabled ? '' : ` - ${model.unavailableReason || 'not enabled'}`;
+  return `<option value="${escapeHtml(model.modelId)}"${enabled ? '' : ' disabled'}>${escapeHtml(`${label}${suffix}`)}</option>`;
+}).join('');
+
 const renderHomeSimulation = () => `
   <section class="pool-simulation-shell" aria-label="Browser inference pool simulation">
     <canvas class="pool-simulation-canvas" data-pool-simulation width="1200" height="680"></canvas>
     <div class="pool-simulation-labels" aria-hidden="true">
-      <span style="--x: 9%; --y: 46%;">requester</span>
-      <span style="--x: 31%; --y: 34%;">coordinator</span>
-      <span style="--x: 52%; --y: 18%;">verifier</span>
-      <span style="--x: 68%; --y: 58%;">ledger</span>
-      <span style="--x: 84%; --y: 34%;">provider tabs</span>
+      <span style="--x: 9%; --y: 46%;" title="The requester sends a text job to the pool.">requester</span>
+      <span style="--x: 31%; --y: 34%;" title="The coordinator assigns jobs to matching provider tabs.">coordinator</span>
+      <span style="--x: 52%; --y: 18%;" title="The verifier checks receipt hashes and signatures.">verifier</span>
+      <span style="--x: 68%; --y: 58%;" title="The ledger records accepted work and points.">ledger</span>
+      <span style="--x: 84%; --y: 34%;" title="Provider tabs run local models and return receipts.">provider tabs</span>
     </div>
     <div class="pool-simulation-readout" aria-label="Simulation state">
       <span>tokens</span>
@@ -200,6 +207,10 @@ const renderRouteDetail = (routeId) => {
             <select id="pool-run-policy">${renderPolicyOptions()}</select>
           </label>
           <label class="pool-field">
+            <span>Model</span>
+            <select id="pool-run-model">${renderModelOptions()}</select>
+          </label>
+          <label class="pool-field">
             <span>Max point spend</span>
             <input id="pool-run-max-spend" type="number" min="0" step="1" placeholder="optional" />
           </label>
@@ -219,8 +230,8 @@ const renderRouteDetail = (routeId) => {
         <p class="type-caption">Register this browser for the launch model.</p>
         <div class="pool-form" data-pool-provider>
           <label class="pool-field">
-            <span>Model id</span>
-            <input id="pool-provider-model" value="${escapeHtml(LAUNCH_MODEL.modelId)}" />
+            <span>Model</span>
+            <select id="pool-provider-model">${renderModelOptions()}</select>
           </label>
           <div class="pool-control-row" aria-label="Provider worker controls">
             <button class="btn btn-primary" id="pool-provider-worker-start" type="button">Start provider tab</button>
@@ -231,7 +242,7 @@ const renderRouteDetail = (routeId) => {
             <div class="pool-control-row" aria-label="Manual provider controls">
               <button class="btn btn-ghost" id="pool-provider-load" type="button">Load Doppler model</button>
               <button class="btn btn-ghost" id="pool-provider-profile" type="button">Runtime profile</button>
-              <button class="btn btn-ghost" id="pool-provider-register" type="button">Register browser provider</button>
+              <button class="btn btn-ghost" id="pool-provider-register" type="button">Register provider</button>
               <button class="btn btn-ghost" id="pool-provider-next" type="button">Poll assignment</button>
               <button class="btn btn-ghost" id="pool-provider-execute" type="button">Execute assignment</button>
               <button class="btn btn-ghost" id="pool-provider-step" type="button">Run one provider step</button>
@@ -320,6 +331,7 @@ const bindRunControls = (sdk) => {
   const rejectButton = document.getElementById('pool-run-reject');
   const prompt = document.getElementById('pool-run-prompt');
   const policySelect = document.getElementById('pool-run-policy');
+  const modelSelect = document.getElementById('pool-run-model');
   const maxSpendInput = document.getElementById('pool-run-max-spend');
   if (!button || !prompt) return;
   const requesterIdentity = createPoolIdentity('requester');
@@ -336,6 +348,7 @@ const bindRunControls = (sdk) => {
       const result = await requesterClient.submitJob({
         prompt: prompt.value,
         policyId: policySelect?.value || FASTEST_RECEIPT_POLICY_ID,
+        modelRequirements: getEnabledPoolModelContract(modelSelect?.value || LAUNCH_MODEL.modelId) || LAUNCH_MODEL,
         maxPointSpend: maxSpendInput?.value ? Number(maxSpendInput.value) : null,
         generationConfig: {
           mode: 'greedy',
@@ -505,9 +518,41 @@ const bindProviderControls = (sdk) => {
     identity: providerIdentity
   });
   const getProviderModel = () => ({
-    ...buildLaunchProviderModel(),
-    modelId: modelInput.value || LAUNCH_MODEL.modelId
+    ...buildLaunchProviderModel({ modelId: modelInput.value || LAUNCH_MODEL.modelId })
   });
+  const modelMatchesLoadedRuntime = (model = {}) => {
+    const loaded = typeof runtime?.getModelInfo === 'function' ? runtime.getModelInfo() : null;
+    return !!loaded
+      && loaded.modelId === model.modelId
+      && loaded.modelHash === model.modelHash
+      && loaded.manifestHash === model.manifestHash
+      && loaded.runtime === model.runtime
+      && loaded.backend === model.backend;
+  };
+  const ensureProviderReady = async () => {
+    const model = getEnabledPoolModelContract(modelInput.value || LAUNCH_MODEL.modelId);
+    if (!model) throw new Error('Selected model is not enabled for provider registration');
+    if (!modelMatchesLoadedRuntime(model)) {
+      await runtime.loadModel(model);
+    }
+    const providerIdentityState = await providerIdentity.resolve();
+    const result = await providerClient.register({
+      models: [model],
+      device: {
+        hasWebGPU: !!navigator.gpu,
+        browserSurface: 'pool_provider_ui'
+      },
+      availability: {
+        maxConcurrentJobs: 1,
+        maxTokensPerJob: 128,
+        acceptedPolicies: listPolicies().map((policy) => policy.policyId)
+      },
+    });
+    return {
+      identity: providerIdentityState,
+      registration: result
+    };
+  };
   let lastAssignment = null;
   let workerRunning = false;
   let workerTimer = null;
@@ -565,21 +610,8 @@ const bindProviderControls = (sdk) => {
   registerButton.addEventListener('click', async () => {
     registerButton.disabled = true;
     try {
-      const providerIdentityState = await providerIdentity.resolve();
-      setResult('pool-provider-result', { status: 'registering', providerId: providerIdentityState.roleId, identity: providerIdentityState });
-      const result = await providerClient.register({
-        models: [getProviderModel()],
-        device: {
-          hasWebGPU: !!navigator.gpu,
-          browserSurface: 'pool_provider_ui'
-        },
-        availability: {
-          maxConcurrentJobs: 1,
-          maxTokensPerJob: 128,
-          acceptedPolicies: listPolicies().map((policy) => policy.policyId)
-        },
-      });
-      setResult('pool-provider-result', result);
+      setResult('pool-provider-result', { status: 'registering', model: getProviderModel() });
+      setResult('pool-provider-result', await ensureProviderReady());
     } catch (error) {
       setResult('pool-provider-result', { error: error.message, payload: error.payload || null });
     } finally {
@@ -629,10 +661,20 @@ const bindProviderControls = (sdk) => {
   });
   workerStartButton?.addEventListener('click', async () => {
     if (workerRunning) return;
-    workerRunning = true;
-    syncWorkerButtons();
-    setResult('pool-provider-result', { worker: 'starting' });
-    await runWorkerLoop();
+    workerStartButton.disabled = true;
+    setResult('pool-provider-result', { worker: 'registering', model: getProviderModel() });
+    try {
+      const ready = await ensureProviderReady();
+      workerRunning = true;
+      syncWorkerButtons();
+      setResult('pool-provider-result', { worker: 'running', ...ready });
+      await runWorkerLoop();
+    } catch (error) {
+      stopWorker();
+      setResult('pool-provider-result', { worker: 'stopped', error: error.message, payload: error.payload || null });
+    } finally {
+      syncWorkerButtons();
+    }
   });
   workerStopButton?.addEventListener('click', () => {
     stopWorker();
@@ -780,7 +822,11 @@ const createPoolSimulationState = () => {
     x: 0.78 + (index % 3) * 0.075,
     y: 0.18 + index * 0.105,
     phase: index * 1.7,
-    size: 9 + (index % 3) * 2
+    size: 9 + (index % 3) * 2,
+    presence: 1,
+    targetOnline: true,
+    lineDraw: 1,
+    pulse: 0
   }));
   const particles = Array.from({ length: 72 }, (_, index) => ({
     index,
@@ -822,6 +868,19 @@ const resolvePathPoint = (path, amount) => {
   return interpolatePoint(path[index], path[index + 1], scaled - index);
 };
 
+const easeOutCubic = (value) => {
+  const bounded = Math.max(0, Math.min(1, value));
+  return 1 - Math.pow(1 - bounded, 3);
+};
+
+const makeSimulationLine = (from, to, alpha, draw = 1, pulse = 0) => [
+  from,
+  to,
+  alpha,
+  easeOutCubic(draw),
+  pulse
+];
+
 const buildPoolSimulationFrame = (state, width, height, timestamp) => {
   const time = (timestamp - state.startedAt) / 1000;
   state.pointer.force *= 0.94;
@@ -835,7 +894,14 @@ const buildPoolSimulationFrame = (state, width, height, timestamp) => {
   const pointerY = state.pointer.y * height;
   const peers = state.peers.map((peer) => {
     const onlineWave = Math.sin(time * 0.55 + peer.phase);
-    const online = onlineWave > -0.62;
+    const targetOnline = onlineWave > -0.62;
+    if (targetOnline !== peer.targetOnline) {
+      peer.targetOnline = targetOnline;
+      peer.pulse = 1;
+    }
+    peer.presence += ((targetOnline ? 1 : 0) - peer.presence) * 0.035;
+    peer.lineDraw += ((peer.presence > 0.16 ? 1 : 0) - peer.lineDraw) * 0.045;
+    peer.pulse *= 0.925;
     const baseX = width * peer.x;
     const baseY = height * peer.y;
     const dx = baseX - pointerX;
@@ -846,26 +912,43 @@ const buildPoolSimulationFrame = (state, width, height, timestamp) => {
       : 0;
     return {
       ...peer,
-      online,
+      online: peer.presence > 0.22,
       x: baseX + Math.cos(time * 0.7 + peer.phase) * 8 + (dx / distance) * pointerLift,
       y: baseY + Math.sin(time * 0.6 + peer.phase) * 8 + (dy / distance) * pointerLift,
-      alpha: online ? 0.92 : 0.16,
-      size: online ? peer.size + Math.max(0, onlineWave) * 3 : 5
+      alpha: 0.08 + peer.presence * 0.84,
+      size: 5 + peer.presence * peer.size + Math.max(0, onlineWave) * 3 + peer.pulse * 8,
+      presence: peer.presence,
+      lineDraw: peer.lineDraw,
+      pulse: peer.pulse
     };
   });
   const onlinePeers = peers.filter((peer) => peer.online);
   const peerFor = (index) => onlinePeers[index % Math.max(1, onlinePeers.length)] || peers[index % peers.length];
+  const corePulse = (phase) => 0.14 + 0.18 * (Math.sin(time * 2.4 + phase) * 0.5 + 0.5);
   const lines = [
-    [roles.requester, roles.coordinator, 0.28],
-    [roles.coordinator, roles.verifier, 0.18],
-    [roles.verifier, roles.ledger, 0.35],
-    [roles.verifier, roles.requester, 0.12],
-    ...peers.map((peer) => [roles.coordinator, peer, peer.online ? 0.22 : 0.07]),
-    ...peers.map((peer) => [peer, roles.verifier, peer.online ? 0.16 : 0.04])
+    makeSimulationLine(roles.requester, roles.coordinator, 0.28, 1, corePulse(0)),
+    makeSimulationLine(roles.coordinator, roles.verifier, 0.18, 1, corePulse(1)),
+    makeSimulationLine(roles.verifier, roles.ledger, 0.35, 1, corePulse(2)),
+    makeSimulationLine(roles.verifier, roles.requester, 0.12, 1, corePulse(3)),
+    ...peers.map((peer) => makeSimulationLine(
+      roles.coordinator,
+      peer,
+      0.05 + peer.presence * 0.18,
+      peer.lineDraw,
+      peer.pulse
+    )),
+    ...peers.map((peer) => makeSimulationLine(
+      peer,
+      roles.verifier,
+      0.04 + peer.presence * 0.14,
+      peer.lineDraw,
+      peer.pulse * 0.8
+    ))
   ];
   const particles = state.particles.map((particle) => {
     const peer = peerFor(particle.peerIndex);
-    const progress = (particle.offset + time * particle.speed + state.pointer.force * 0.06) % 1;
+    const flowPulse = Math.sin(time * 7 + particle.index * 0.9) * 0.5 + 0.5;
+    const progress = (particle.offset + time * particle.speed * (1 + peer.presence * 0.35) + state.pointer.force * 0.06) % 1;
     const path = particle.route === 0
       ? [roles.requester, roles.coordinator, peer]
       : particle.route === 1
@@ -875,8 +958,8 @@ const buildPoolSimulationFrame = (state, width, height, timestamp) => {
     return {
       x: point.x,
       y: point.y,
-      size: particle.size + (particle.route === 2 ? 2 : 0),
-      alpha: peer.online ? 0.75 : 0.08
+      size: particle.size + (particle.route === 2 ? 2 : 0) + flowPulse * 2 + peer.pulse * 3,
+      alpha: 0.05 + peer.presence * (0.42 + flowPulse * 0.36)
     };
   });
   return {
@@ -892,12 +975,20 @@ const drawPoolSimulation2D = (ctx, frame, width, height) => {
   ctx.fillStyle = '#fff';
   ctx.fillRect(0, 0, width, height);
   ctx.lineWidth = 1;
-  for (const [a, b, alpha] of frame.lines) {
+  for (const [a, b, alpha, draw = 1, pulse = 0] of frame.lines) {
+    const end = interpolatePoint(a, b, draw);
     ctx.strokeStyle = `rgba(0, 0, 0, ${alpha})`;
     ctx.beginPath();
     ctx.moveTo(a.x, a.y);
-    ctx.lineTo(b.x, b.y);
+    ctx.lineTo(end.x, end.y);
     ctx.stroke();
+    if (pulse > 0.02) {
+      const pulsePoint = interpolatePoint(a, end, 0.5 + Math.sin(pulse * Math.PI) * 0.34);
+      ctx.fillStyle = `rgba(0, 0, 0, ${Math.min(0.65, alpha + pulse * 0.32)})`;
+      ctx.beginPath();
+      ctx.arc(pulsePoint.x, pulsePoint.y, 3 + pulse * 9, 0, Math.PI * 2);
+      ctx.fill();
+    }
   }
   for (const particle of frame.particles) {
     ctx.fillStyle = `rgba(0, 0, 0, ${particle.alpha})`;
@@ -973,8 +1064,14 @@ const createPoolWebGLRenderer = (canvas) => {
     gl.clearColor(1, 1, 1, 1);
     gl.clear(gl.COLOR_BUFFER_BIT);
     const lineData = [];
-    for (const [a, b, alpha] of frame.lines) {
-      lineData.push(a.x, a.y, alpha, b.x, b.y, alpha);
+    const linePulseData = [];
+    for (const [a, b, alpha, draw = 1, pulse = 0] of frame.lines) {
+      const end = interpolatePoint(a, b, draw);
+      lineData.push(a.x, a.y, alpha, end.x, end.y, alpha);
+      if (pulse > 0.02) {
+        const pulsePoint = interpolatePoint(a, end, 0.5 + Math.sin(pulse * Math.PI) * 0.34);
+        linePulseData.push(pulsePoint.x, pulsePoint.y, Math.min(0.65, alpha + pulse * 0.32), 8 + pulse * 18);
+      }
     }
     gl.useProgram(lineProgram);
     gl.bindBuffer(gl.ARRAY_BUFFER, lineBuffer);
@@ -990,6 +1087,7 @@ const createPoolWebGLRenderer = (canvas) => {
 
     const pointData = [];
     for (const particle of frame.particles) pointData.push(particle.x, particle.y, particle.alpha, particle.size);
+    pointData.push(...linePulseData);
     for (const node of frame.nodes) pointData.push(node.x, node.y, node.alpha, node.size * 2);
     gl.useProgram(pointProgram);
     gl.bindBuffer(gl.ARRAY_BUFFER, pointBuffer);

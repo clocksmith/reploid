@@ -1990,6 +1990,15 @@ details[open] > .disclosure-summary::before {
   line-height: var(--font-leading-tight);
   text-transform: uppercase;
   transform: translate(-50%, -50%);
+  pointer-events: auto;
+  transition: background 160ms ease, color 160ms ease, transform 160ms ease;
+  cursor: help;
+}
+
+.pool-simulation-labels span:hover {
+  background: var(--fg);
+  color: var(--bg);
+  transform: translate(-50%, -50%) scale(1.03);
 }
 
 .pool-simulation-readout {

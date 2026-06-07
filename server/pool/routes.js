@@ -5,7 +5,7 @@
 import express from 'express';
 import poolStore from './store.js';
 import { DETERMINISTIC_GENERATION_CONFIG, getPolicy, listPolicies, validateJobRequest } from './policy-router.js';
-import { LAUNCH_MODEL } from './model-contract.js';
+import { LAUNCH_MODEL, isLaunchModelRequirement } from './model-contract.js';
 import { assignJob } from './scheduler.js';
 import { verifyReceipt, verifyRequesterAcceptance } from './verifier.js';
 import { awardAcceptedReceipt, calculateReceiptPoints, chargeRequester, penalizeProvider } from './points.js';
@@ -139,13 +139,7 @@ const requireSignalFromPeer = (req, res, session, fromPeerId) => {
   return false;
 };
 
-const providerHasLaunchModel = (provider) => (provider?.models || []).find((model) => (
-  model.modelId === LAUNCH_MODEL.modelId
-  && model.modelHash === LAUNCH_MODEL.modelHash
-  && model.manifestHash === LAUNCH_MODEL.manifestHash
-  && model.runtime === LAUNCH_MODEL.runtime
-  && model.backend === LAUNCH_MODEL.backend
-));
+const providerHasLaunchModel = (provider) => (provider?.models || []).find((model) => isLaunchModelRequirement(model));
 
 const activeAssignmentStatuses = new Set(['assigned', 'running', 'commit_submitted', 'reveal_open', 'reveal_submitted']);
 const finalizedJobStatuses = new Set(['accepted', 'acceptance_processing', 'rejected_by_requester']);

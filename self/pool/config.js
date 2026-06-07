@@ -21,6 +21,7 @@ export const POLICY_IDS = Object.freeze({
 });
 export const FASTEST_RECEIPT_POLICY_ID = POLICY_IDS.fastestReceipt;
 export const LAUNCH_MODEL = Object.freeze({ ...POOL_CONFIG.launchModel });
+export const MODEL_CATALOG = deepFreeze([...(POOL_CONFIG.modelCatalog || [POOL_CONFIG.launchModel])]);
 export const DETERMINISTIC_GENERATION_CONFIG = Object.freeze({ ...POOL_CONFIG.generationConfig });
 export const LAUNCH_POLICIES = deepFreeze({ ...POOL_CONFIG.policies });
 export const DETERMINISM_PROFILES = deepFreeze({ ...POOL_CONFIG.determinismProfiles?.profiles });
@@ -156,6 +157,7 @@ export default {
   POLICY_IDS,
   FASTEST_RECEIPT_POLICY_ID,
   LAUNCH_MODEL,
+  MODEL_CATALOG,
   DETERMINISTIC_GENERATION_CONFIG,
   LAUNCH_POLICIES,
   DETERMINISM_PROFILES,
