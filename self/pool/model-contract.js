@@ -2,9 +2,25 @@
  * @fileoverview Launch model identity contract from canonical pool config.
  */
 
-import { LAUNCH_MODEL } from './config.js';
+import { LAUNCH_MODEL, MODEL_CATALOG } from './config.js';
 
-export { LAUNCH_MODEL };
+export { LAUNCH_MODEL, MODEL_CATALOG };
+
+export const ENABLED_MODEL_CATALOG = Object.freeze(
+  MODEL_CATALOG.filter((model) => model.enabled !== false && model.modelHash && model.manifestHash)
+);
+
+export function listPoolModels({ enabledOnly = false } = {}) {
+  return enabledOnly ? ENABLED_MODEL_CATALOG : MODEL_CATALOG;
+}
+
+export function getPoolModelContract(modelId = LAUNCH_MODEL.modelId) {
+  return MODEL_CATALOG.find((model) => model.modelId === modelId) || null;
+}
+
+export function getEnabledPoolModelContract(modelId = LAUNCH_MODEL.modelId) {
+  return ENABLED_MODEL_CATALOG.find((model) => model.modelId === modelId) || null;
+}
 
 const replaceModelPathTokens = (template, model = LAUNCH_MODEL) => String(template || '')
   .replace(/<modelId>/g, model.modelId)
@@ -30,34 +46,42 @@ export function buildLaunchModelArtifactUrls({ baseUrl = globalThis.REPLOID_POOL
 }
 
 export function buildLaunchModelRequirements(overrides = {}) {
+  const base = getEnabledPoolModelContract(overrides.modelId) || LAUNCH_MODEL;
   return {
-    modelId: LAUNCH_MODEL.modelId,
-    modelHash: LAUNCH_MODEL.modelHash,
-    manifestHash: LAUNCH_MODEL.manifestHash,
-    runtime: LAUNCH_MODEL.runtime,
-    backend: LAUNCH_MODEL.backend,
+    modelId: base.modelId,
+    modelHash: base.modelHash,
+    manifestHash: base.manifestHash,
+    runtime: base.runtime,
+    backend: base.backend,
     ...overrides
   };
 }
 
 export function buildLaunchProviderModel(overrides = {}) {
+  const base = getEnabledPoolModelContract(overrides.modelId) || LAUNCH_MODEL;
   return {
-    ...LAUNCH_MODEL,
+    ...base,
     ...overrides
   };
 }
 
 export function isLaunchModelRequirement(requirements = {}) {
-  return requirements.modelId === LAUNCH_MODEL.modelId
-    && requirements.modelHash === LAUNCH_MODEL.modelHash
-    && requirements.manifestHash === LAUNCH_MODEL.manifestHash
-    && requirements.runtime === LAUNCH_MODEL.runtime
-    && requirements.backend === LAUNCH_MODEL.backend;
+  const model = getEnabledPoolModelContract(requirements.modelId);
+  return !!model
+    && requirements.modelHash === model.modelHash
+    && requirements.manifestHash === model.manifestHash
+    && requirements.runtime === model.runtime
+    && requirements.backend === model.backend;
 }
 
 export default {
   LAUNCH_MODEL,
+  MODEL_CATALOG,
+  ENABLED_MODEL_CATALOG,
   LAUNCH_MODEL_ARTIFACT_PATHS,
+  listPoolModels,
+  getPoolModelContract,
+  getEnabledPoolModelContract,
   buildLaunchModelArtifactUrls,
   buildLaunchModelRequirements,
   buildLaunchProviderModel,

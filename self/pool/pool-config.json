@@ -621,5 +621,58 @@
         "reducerRequired": true
       }
     }
-  }
+  },
+  "modelCatalog": [
+    {
+      "modelId": "gemma-3-270m-it-q4k-ehf16-af32",
+      "modelHash": "sha256:b55fde5809dbc198f880b08af21e40e3175a6d2f9f88a9fad59fa0afd7190dc9",
+      "manifestHash": "sha256:abac153d8cee1b6cc4fd2743defa84b91f67b3d030af028bbd5ed8ba8cabee6b",
+      "contextLength": 32768,
+      "quantization": "q4k",
+      "runtime": "doppler",
+      "backend": "browser-webgpu",
+      "dopplerLoadRef": "gemma3-270m",
+      "artifactPolicy": {
+        "transport": "offloaded_content_addressed",
+        "cache": "browser_opfs",
+        "identityFields": [
+          "modelId",
+          "modelHash",
+          "manifestHash",
+          "runtime",
+          "backend"
+        ],
+        "pathTemplate": "<modelId>/<manifestHash>",
+        "paths": {
+          "manifest": "<modelId>/<manifestHash>/manifest.json",
+          "tokenizer": "<modelId>/<manifestHash>/tokenizer.json",
+          "shards": "<modelId>/<manifestHash>/shards/"
+        }
+      },
+      "label": "Gemma 3 270M",
+      "enabled": true
+    },
+    {
+      "modelId": "gemma-3-1b-it-q4k-ehf16-af32",
+      "label": "Gemma 3 1B",
+      "contextLength": 32768,
+      "quantization": "q4k",
+      "runtime": "doppler",
+      "backend": "browser-webgpu",
+      "dopplerLoadRef": "gemma3-1b",
+      "enabled": false,
+      "unavailableReason": "Hash contract pending promotion into Reploid config"
+    },
+    {
+      "modelId": "gemma-4-e2b-it-q4k-ehf16-af32",
+      "label": "Gemma 4 E2B",
+      "contextLength": 32768,
+      "quantization": "q4k",
+      "runtime": "doppler",
+      "backend": "browser-webgpu",
+      "dopplerLoadRef": "gemma4-e2b",
+      "enabled": false,
+      "unavailableReason": "Large browser model; hash contract pending promotion into Reploid config"
+    }
+  ]
 }

@@ -29,6 +29,7 @@ export const POLICY_IDS = Object.freeze({
   ringQuorumReceipt: 'ring_quorum_receipt'
 });
 export const LAUNCH_MODEL = Object.freeze({ ...POOL_CONFIG.launchModel });
+export const MODEL_CATALOG = deepFreeze([...(POOL_CONFIG.modelCatalog || [POOL_CONFIG.launchModel])]);
 export const DETERMINISTIC_GENERATION_CONFIG = Object.freeze({ ...POOL_CONFIG.generationConfig });
 export const POLICIES = deepFreeze({ ...POOL_CONFIG.policies });
 export const DETERMINISM_PROFILES = deepFreeze({ ...POOL_CONFIG.determinismProfiles?.profiles });
@@ -182,6 +183,7 @@ export default {
   POOL_CONFIG_HASH,
   POLICY_IDS,
   LAUNCH_MODEL,
+  MODEL_CATALOG,
   DETERMINISTIC_GENERATION_CONFIG,
   POLICIES,
   DETERMINISM_PROFILES,

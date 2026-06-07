@@ -52,7 +52,7 @@ describe('pool launch contract', () => {
     }));
     expect(missingRuntime.ok).toBe(false);
     expect(missingRuntime.reasons).toContain('modelRequirements.runtime is required');
-    expect(missingRuntime.reasons).toContain('model requirements do not match the launch model identity');
+    expect(missingRuntime.reasons).toContain('model requirements do not match an enabled model contract');
 
     const extraConfig = validateJobRequest(makeJob({
       generationConfig: {

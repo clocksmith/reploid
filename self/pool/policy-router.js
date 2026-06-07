@@ -50,7 +50,7 @@ export function validatePolicyRequest(request = {}) {
   if (!request.modelRequirements?.backend) reasons.push('modelRequirements.backend is required');
   if (policy) reasons.push(...validateDeterministicGenerationConfig(request.generationConfig || {}));
   if (policy && !isLaunchModelRequirement(request.modelRequirements || {})) {
-    reasons.push('model requirements do not match the launch model identity');
+    reasons.push('model requirements do not match an enabled model contract');
   }
   return {
     ok: reasons.length === 0,
