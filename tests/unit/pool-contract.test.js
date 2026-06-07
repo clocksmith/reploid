@@ -2,9 +2,12 @@ import { describe, expect, it } from 'vitest';
 
 import {
   DETERMINISTIC_GENERATION_CONFIG as SERVER_GENERATION_CONFIG,
+  getPolicy,
   validateJobRequest
 } from '../../server/pool/policy-router.js';
 import { LAUNCH_MODEL as SERVER_LAUNCH_MODEL } from '../../server/pool/model-contract.js';
+import { assignJob } from '../../server/pool/scheduler.js';
+import { createPoolStore } from '../../server/pool/store.js';
 import {
   DETERMINISTIC_GENERATION_CONFIG as BROWSER_GENERATION_CONFIG,
   validatePolicyRequest
@@ -95,5 +98,43 @@ describe('pool launch contract', () => {
     );
     expect(result.ok).toBe(false);
     expect(result.reasons.some((reason) => reason.startsWith('provider signature verification failed:'))).toBe(true);
+  });
+
+  it('builds a capped majority ring for ring quorum jobs', async () => {
+    const store = createPoolStore();
+    for (let index = 0; index < 5; index += 1) {
+      store.registerProvider({
+        providerId: `provider_${index}`,
+        publicKey: `public_key_${index}`,
+        models: [{
+          modelId: SERVER_LAUNCH_MODEL.modelId,
+          modelHash: SERVER_LAUNCH_MODEL.modelHash,
+          manifestHash: SERVER_LAUNCH_MODEL.manifestHash,
+          runtime: SERVER_LAUNCH_MODEL.runtime,
+          backend: SERVER_LAUNCH_MODEL.backend
+        }],
+        availability: {
+          acceptedPolicies: ['ring_quorum_receipt']
+        }
+      });
+    }
+    const job = store.createJob({
+      ...makeJob({ policyId: 'ring_quorum_receipt' }),
+      trustTier: 'T4_ring_quorum_receipt'
+    });
+    const result = await assignJob({ store, job, policy: getPolicy('ring_quorum_receipt') });
+    expect(result.ok).toBe(true);
+    expect(result.assignments).toHaveLength(4);
+    expect(result.ring.ringSize).toBe(4);
+    expect(result.ring.requiredAgreement).toBe(3);
+    expect(result.ring.effectiveTrustTier).toBe('T4_max_ring_quorum_receipt');
+    expect(result.ring.ringId).toBe(`ring_${result.ring.layoutHash.replace(/^sha256:/, '').slice(0, 16)}`);
+    expect(new Set(result.ring.providerIds).size).toBe(4);
+    expect(result.assignments.every((assignment) => assignment.ring.layoutHash === result.ring.layoutHash)).toBe(true);
+    expect(result.assignments.every((assignment) => assignment.trustTier === result.ring.effectiveTrustTier)).toBe(true);
+    expect(result.assignments.every((assignment) => assignment.ring.ringAttemptId === result.ring.ringAttemptId)).toBe(true);
+    const assignedJob = store.getJob(job.jobId);
+    expect(assignedJob.trustTier).toBe(result.ring.effectiveTrustTier);
+    expect(assignedJob.policyTrustTier).toBe('T4_ring_quorum_receipt');
   });
 });

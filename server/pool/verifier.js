@@ -79,7 +79,7 @@ export async function verifyReceipt({ store, assignment, receipt, outputText = '
   }
   if (assignment?.ring) {
     const receiptRing = receipt?.verification?.ring || {};
-    for (const field of ['ringId', 'ringSeed', 'ringSize', 'requiredAgreement', 'effectiveTrustTier', 'agreementField', 'layoutHash', 'providerIndex', 'predecessorId', 'successorId']) {
+    for (const field of ['ringId', 'ringSeed', 'ringAttemptId', 'ringSize', 'requiredAgreement', 'effectiveTrustTier', 'agreementField', 'layoutHash', 'providerIndex', 'predecessorId', 'successorId']) {
       if (assignment.ring[field] !== receiptRing[field]) reasons.push(`ring ${field} mismatch`);
     }
     if (hashJson(assignment.ring.providerIds || []) !== hashJson(receiptRing.providerIds || [])) {

@@ -87,9 +87,11 @@ The coordinator selects up to four fresh, available, exact-model providers, deri
 Ring agreement checks:
 
 - same assignment, prompt hash, model identity, runtime identity, and generation config;
+- current assignment attempt only, including `assignmentAttemptId` and `ringAttemptId`, so receipts from failed prior attempts do not count toward a retry;
 - provider signature on every receipt;
-- ring id, seed, layout hash, provider index, predecessor, successor, and provider set;
+- ring id, seed, attempt id, layout hash, provider index, predecessor, successor, and provider set;
 - quorum over matching `tokenIdsHash` plus `outputHash`;
+- per-provider invalid receipt or execution failure accounting while the remaining current assignments can still reach quorum;
 - requester acceptance before points and reputation mutation.
 
 Honest claim:
@@ -214,7 +216,7 @@ Provider flow:
 4. The step sends a heartbeat, claims one assigned job as `running`, verifies the assignment model identity against the loaded Doppler runtime, executes it if present, signs the receipt, submits it, and records local history.
 5. Providers can inspect points and reputation from the same page.
 
-The provider client exposes `runWorkerStep()` for this explicit tab loop. `/contribute` includes start/stop worker controls that repeatedly call this method; the loop is UI scheduling, not a separate execution protocol. Heartbeat returns `busy` while a provider has an `assigned` or `running` assignment. Scheduler eligibility requires a fresh heartbeat. Provider registration and assignment polling drain queued and retryable jobs, so requesters do not need to resubmit when the first eligible browser provider appears. Retryable states include assignment expiration, provider execution failure, rejected receipts, and redundant-agreement disagreement. Retries exclude providers that already failed, timed out, returned an invalid receipt, or caused agreement failure for that job. Stale `assigned` and `running` assignments expire through the timeout penalty path.
+The provider client exposes `runWorkerStep()` for this explicit tab loop. `/contribute` includes start/stop worker controls that repeatedly call this method; the loop is UI scheduling, not a separate execution protocol. Heartbeat returns `busy` while a provider has an `assigned` or `running` assignment. Scheduler eligibility requires a fresh heartbeat. Provider registration and assignment polling drain queued and retryable jobs, so requesters do not need to resubmit when the first eligible browser provider appears. Retryable states include assignment expiration, provider execution failure, rejected receipts, redundant-agreement disagreement, and ring-quorum disagreement. Retries exclude providers that already failed, timed out, returned an invalid receipt, or caused agreement failure for that job. Stale `assigned` and `running` assignments expire through the timeout penalty path.
 
 ## Provider device evidence
 
@@ -250,6 +252,7 @@ The server verifier checks:
 - One final requester decision per job before ledger or reputation mutation
 - Canary id when an assignment is an audit
 - Redundancy group size when a policy requires agreement
+- Ring attempt id when a policy uses a ring commitment
 
 The browser SDK can also verify fetched receipt records locally using the provider public key and submitted output/token/transcript artifact.
 
@@ -264,7 +267,7 @@ Points are awarded only after:
 - The selected policy has reached its final state
 - The accepted result does not exceed the job's optional `maxPointSpend`
 
-Accepted work creates provider `points_awarded` events and a requester or agent `points_spent` event. For redundant agreement, acceptance is blocked until the coordinator has a final matching receipt set. Accepted providers split the point event across that set, and the requester or agent is charged the resulting total.
+Accepted work creates provider `points_awarded` events and a requester or agent `points_spent` event. For redundant agreement and ring quorum, acceptance is blocked until the coordinator has a final matching receipt set. Accepted providers split the point event across that set, and the requester or agent is charged the resulting total. Ring quorum uses `ring_quorum_receipt_accepted` and `ring_quorum_receipt_spend` ledger reasons instead of redundant-agreement reasons.
 
 Reputation records:
 
@@ -283,6 +286,7 @@ Penalty ledger events are recorded with `eventType: "points_penalized"` for:
 - `assignment_timeout`
 - `canary_failed`
 - `redundant_agreement_mismatch`
+- `ring_quorum_mismatch`
 
 Repeated invalid receipts or attributable assignment timeouts set `routingBlocked` in reputation state. Model, manifest, runtime, or backend identity violations block routing immediately. Canary failure blocks routing with `quarantineReason: "canary_failed"` and can be cleared only by a later passing coordinator-issued canary.
 
