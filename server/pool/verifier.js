@@ -4,10 +4,9 @@
 
 import { webcrypto } from 'crypto';
 import { canonicalize, hashJson, sha256Hex } from './hash.js';
+import { PROVIDER_RECEIPT_TRUST_TIER, RECEIPT_VERSION } from './receipt-contract.js';
 
 const textEncoder = new TextEncoder();
-const RECEIPT_VERSION = 'reploid_browser_inference/v1';
-const TRUST_TIER_SIGNED_RECEIPT = 'T1_signed_receipt';
 
 const base64ToBuffer = (value) => Buffer.from(String(value || ''), 'base64');
 
@@ -43,13 +42,20 @@ const compareModel = (assignment, receipt, reasons) => {
   if (expected.backend && actual.backend !== expected.backend) reasons.push('backend mismatch');
 };
 
+const compareRuntime = (assignment, receipt, reasons) => {
+  const expected = assignment?.model || {};
+  const actual = receipt?.runtime || {};
+  if (expected.runtime && actual.runtime !== expected.runtime) reasons.push('receipt runtime identity mismatch');
+  if (expected.backend && actual.backend !== expected.backend) reasons.push('receipt backend identity mismatch');
+};
+
 export async function verifyReceipt({ store, assignment, receipt, outputText = '', tokenIds = [], transcript = null }) {
   const reasons = [];
-  const provider = assignment ? store.getProvider(assignment.providerId) : null;
+  const provider = assignment ? await store.getProvider(assignment.providerId) : null;
   if (!assignment) reasons.push('assignment not found');
   if (!receipt) reasons.push('receipt missing');
   if (receipt?.receiptVersion !== RECEIPT_VERSION) reasons.push('receipt version mismatch');
-  if (receipt?.trustTier !== TRUST_TIER_SIGNED_RECEIPT) reasons.push('trust tier mismatch');
+  if (receipt?.trustTier !== PROVIDER_RECEIPT_TRUST_TIER) reasons.push('trust tier mismatch');
   if (assignment?.expiresAt && Date.parse(assignment.expiresAt) < Date.now()) reasons.push('assignment expired');
   if (assignment?.prompt && assignment.inputHash !== sha256Hex(assignment.prompt)) {
     reasons.push('assignment inputHash does not match stored prompt');
@@ -64,6 +70,22 @@ export async function verifyReceipt({ store, assignment, receipt, outputText = '
   if (assignment && receipt?.policyId !== assignment.policyId) reasons.push('policy id mismatch');
   if (assignment && receipt?.inputHash !== assignment.inputHash) reasons.push('input hash mismatch');
   if (assignment && receipt?.generationConfigHash !== assignment.generationConfigHash) reasons.push('generation config hash mismatch');
+  if (assignment?.auditId && receipt?.verification?.canaryId !== assignment.auditId) reasons.push('canary id mismatch');
+  if (assignment?.redundancyGroupSize && Number(receipt?.verification?.redundancyGroupSize || 1) !== Number(assignment.redundancyGroupSize)) {
+    reasons.push('redundancy group size mismatch');
+  }
+  if (assignment?.requiredAgreement && Number(receipt?.verification?.requiredAgreement || 1) !== Number(assignment.requiredAgreement)) {
+    reasons.push('required agreement mismatch');
+  }
+  if (assignment?.ring) {
+    const receiptRing = receipt?.verification?.ring || {};
+    for (const field of ['ringId', 'ringSeed', 'ringSize', 'requiredAgreement', 'effectiveTrustTier', 'agreementField', 'layoutHash', 'providerIndex', 'predecessorId', 'successorId']) {
+      if (assignment.ring[field] !== receiptRing[field]) reasons.push(`ring ${field} mismatch`);
+    }
+    if (hashJson(assignment.ring.providerIds || []) !== hashJson(receiptRing.providerIds || [])) {
+      reasons.push('ring provider ids mismatch');
+    }
+  }
   if (!receipt?.outputHash) reasons.push('output hash missing');
   if (!receipt?.tokenIdsHash) reasons.push('token ids hash missing');
   if (!receipt?.transcriptHash) reasons.push('transcript hash missing');
@@ -71,6 +93,7 @@ export async function verifyReceipt({ store, assignment, receipt, outputText = '
   if (!provider?.publicKey) reasons.push('provider public key missing');
   if (!Array.isArray(tokenIds)) reasons.push('submitted tokenIds must be an array');
   compareModel(assignment, receipt, reasons);
+  compareRuntime(assignment, receipt, reasons);
 
   if (receipt?.outputHash && receipt.outputHash !== sha256Hex(outputText)) {
     reasons.push('output hash does not match submitted outputText');
@@ -114,7 +137,17 @@ export async function verifyRequesterAcceptance({ job, acceptance }) {
   if (!acceptance?.receiptHash) reasons.push('acceptance receiptHash is required');
   if (!acceptance?.requesterSignature) reasons.push('requester signature missing');
   if (!job?.requesterPublicKey) reasons.push('requester public key missing');
-  if (job?.receiptHash && acceptance?.receiptHash !== job.receiptHash) reasons.push('acceptance receiptHash mismatch');
+  if (job?.requesterId && acceptance?.requesterId !== job.requesterId) {
+    reasons.push('acceptance requester id mismatch');
+  }
+  const allowedReceiptHashes = new Set([
+    job?.receiptHash,
+    ...(Array.isArray(job?.receiptHashes) ? job.receiptHashes : []),
+    ...(Array.isArray(job?.acceptedReceiptHashes) ? job.acceptedReceiptHashes : [])
+  ].filter(Boolean));
+  if (allowedReceiptHashes.size > 0 && !allowedReceiptHashes.has(acceptance?.receiptHash)) {
+    reasons.push('acceptance receiptHash mismatch');
+  }
 
   if (reasons.length === 0) {
     try {

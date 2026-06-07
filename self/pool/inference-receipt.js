@@ -6,7 +6,9 @@ const textEncoder = new TextEncoder();
 
 export const RECEIPT_VERSION = 'reploid_browser_inference/v1';
 export const TRUST_TIER_SIGNED_RECEIPT = 'T1_signed_receipt';
-export const TRUST_TIER_ACCEPTED_RECEIPT = 'T2_requester_accepted';
+export const TRUST_TIER_CANARY_AUDITED = 'T2_canary_audited';
+export const TRUST_TIER_REDUNDANT_AGREEMENT = 'T3_redundant_agreement';
+export const TRUST_TIER_ACCEPTED_RECEIPT = 'T4_requester_accepted';
 
 export function canonicalize(value) {
   if (value === null || typeof value !== 'object') {
@@ -70,6 +72,11 @@ export async function exportPublicKey(publicKey) {
   return bytesToBase64(new Uint8Array(spki));
 }
 
+export async function exportPrivateKey(privateKey) {
+  const pkcs8 = await crypto.subtle.exportKey('pkcs8', privateKey);
+  return bytesToBase64(new Uint8Array(pkcs8));
+}
+
 export async function importPublicKey(publicKeyBase64) {
   const bytes = base64ToBytes(publicKeyBase64);
   return crypto.subtle.importKey(
@@ -79,6 +86,25 @@ export async function importPublicKey(publicKeyBase64) {
     false,
     ['verify']
   );
+}
+
+export async function importPrivateKey(privateKeyBase64) {
+  const bytes = base64ToBytes(privateKeyBase64);
+  return crypto.subtle.importKey(
+    'pkcs8',
+    bytes,
+    { name: 'ECDSA', namedCurve: 'P-256' },
+    true,
+    ['sign']
+  );
+}
+
+export async function importSigningKeyPair({ privateKey, publicKey } = {}) {
+  if (!privateKey || !publicKey) throw new Error('privateKey and publicKey are required');
+  return {
+    privateKey: await importPrivateKey(privateKey),
+    publicKey: await importPublicKey(publicKey)
+  };
 }
 
 export async function signCanonical(value, privateKey) {
@@ -112,6 +138,17 @@ export function acceptanceSigningPayload(acceptance) {
   return payload;
 }
 
+const normalizeReceiptModel = (model = {}) => ({
+  id: model.id || model.modelId || null,
+  hash: model.hash || model.modelHash || null,
+  manifestHash: model.manifestHash || null,
+  runtime: model.runtime || 'doppler',
+  backend: model.backend || 'browser-webgpu',
+  contextLength: Number(model.contextLength || 0),
+  quantization: model.quantization || null,
+  requirements: model.requirements || null
+});
+
 export async function buildPoolReceipt({ assignment, provider, model, runtime, execution }) {
   const outputText = execution?.outputText || '';
   const tokenIds = Array.isArray(execution?.tokenIds) ? execution.tokenIds : [];
@@ -124,7 +161,7 @@ export async function buildPoolReceipt({ assignment, provider, model, runtime, e
     requesterId: assignment.requesterId,
     providerId: assignment.providerId,
     policyId: assignment.policyId,
-    model,
+    model: normalizeReceiptModel(model),
     runtime,
     inputHash: assignment.inputHash,
     generationConfigHash: assignment.generationConfigHash,
@@ -136,7 +173,10 @@ export async function buildPoolReceipt({ assignment, provider, model, runtime, e
     timing: execution?.timing || {},
     verification: {
       level: assignment.verificationLevel || 'signed_receipt',
-      canaryId: null,
+      canaryId: assignment.auditId || null,
+      redundancyGroupSize: assignment.redundancyGroupSize || 1,
+      requiredAgreement: assignment.requiredAgreement || assignment.redundancyGroupSize || 1,
+      ring: assignment.ring || null,
       sampledProofHashes: [],
       programBundleHash: null
     },

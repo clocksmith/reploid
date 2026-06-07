@@ -12,6 +12,7 @@ import SignalingServer from './signaling-server.js';
 import AgentBridge from './agent-bridge.js';
 import fetch from 'node-fetch';
 import createPoolRouter from './pool/routes.js';
+import { createFirebaseStore } from './pool/firebase-store.js';
 
 // Crash protection - keep server alive on uncaught errors
 process.on('uncaughtException', (err) => {
@@ -109,6 +110,48 @@ const ENV_CORS_ORIGINS = process.env.CORS_ORIGINS
 const CORS_ORIGINS = appConfig?.server?.corsOrigins || ENV_CORS_ORIGINS || DEFAULT_CORS_ORIGINS;
 const AUTO_START_OLLAMA = appConfig?.ollama?.autoStart || process.env.AUTO_START_OLLAMA === 'true';
 const SSE_DONE = 'data: [DONE]';
+const POOL_BACKEND_ONLY = process.env.POOL_BACKEND_ONLY === 'true';
+
+const createConfiguredPoolStore = async () => {
+  if (process.env.POOL_STORE !== 'firestore') return null;
+  try {
+    const appModule = await import('firebase-admin/app');
+    const firestoreModule = await import('firebase-admin/firestore');
+    if (appModule.getApps().length === 0) {
+      appModule.initializeApp();
+    }
+    return createFirebaseStore({
+      firestore: firestoreModule.getFirestore(),
+      collectionPrefix: process.env.POOL_FIRESTORE_PREFIX || ''
+    });
+  } catch (error) {
+    throw new Error(`[Pool] Firestore store requested but unavailable: ${error.message}`);
+  }
+};
+
+const createConfiguredPoolAuth = async () => {
+  const requireAuth = process.env.POOL_REQUIRE_FIREBASE_AUTH === 'true';
+  const verifyAuth = requireAuth || process.env.POOL_VERIFY_FIREBASE_AUTH === 'true';
+  if (!verifyAuth) return { requireAuth: false, verifyAuthToken: null };
+  try {
+    const appModule = await import('firebase-admin/app');
+    const authModule = await import('firebase-admin/auth');
+    if (appModule.getApps().length === 0) {
+      appModule.initializeApp();
+    }
+    const auth = authModule.getAuth();
+    return {
+      requireAuth,
+      verifyAuthToken: (token) => auth.verifyIdToken(token)
+    };
+  } catch (error) {
+    console.warn('[Pool] Firebase auth verifier unavailable:', error.message);
+    return { requireAuth, verifyAuthToken: null };
+  }
+};
+
+const configuredPoolStore = await createConfiguredPoolStore();
+const configuredPoolAuth = await createConfiguredPoolAuth();
 
 if (!GEMINI_API_KEY) {
   console.error('☡  WARNING: GEMINI_API_KEY not found in .env file');
@@ -410,12 +453,14 @@ function stopGPUMonitoring() {
   }
 }
 
-// Initialize Ollama and check status periodically
-initializeOllama();
-setInterval(updateOllamaStatus, 10000); // Check every 10 seconds
+if (!POOL_BACKEND_ONLY) {
+  // Initialize Ollama and check status periodically
+  initializeOllama();
+  setInterval(updateOllamaStatus, 10000); // Check every 10 seconds
 
-// Start GPU monitoring
-startGPUMonitoring();
+  // Start GPU monitoring
+  startGPUMonitoring();
+}
 
 // Middleware to parse JSON bodies
 app.use(express.json({ limit: '10mb' }));
@@ -439,7 +484,11 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use('/pool', createPoolRouter());
+app.use('/pool', createPoolRouter({
+  ...(configuredPoolStore ? { store: configuredPoolStore } : {}),
+  ...configuredPoolAuth,
+  allowCanaryCreation: process.env.POOL_ALLOW_BROWSER_CANARY_CREATE === 'true'
+}));
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
@@ -1360,46 +1409,48 @@ app.use((req, res) => {
 // Create HTTP server (needed for WebSocket)
 const server = http.createServer(app);
 
-// Initialize WebRTC Signaling Server
-try {
-  signalingServer = new SignalingServer({
-    path: '/signaling',
-    heartbeatInterval: 30000,
-    peerTimeout: 60000
-  });
+if (!POOL_BACKEND_ONLY) {
+  // Initialize WebRTC Signaling Server
+  try {
+    signalingServer = new SignalingServer({
+      path: '/signaling',
+      heartbeatInterval: 30000,
+      peerTimeout: 60000
+    });
 
-  signalingServer.on('peer-joined', ({ peerId, roomId }) => {
-    console.log(`[Proxy] Peer ${peerId} joined room ${roomId}`);
-  });
+    signalingServer.on('peer-joined', ({ peerId, roomId }) => {
+      console.log(`[Proxy] Peer ${peerId} joined room ${roomId}`);
+    });
 
-  signalingServer.on('peer-left', ({ peerId, roomId }) => {
-    console.log(`[Proxy] Peer ${peerId} left room ${roomId}`);
-  });
+    signalingServer.on('peer-left', ({ peerId, roomId }) => {
+      console.log(`[Proxy] Peer ${peerId} left room ${roomId}`);
+    });
 
-  console.log('★ WebRTC signaling server initialized');
-} catch (error) {
-  console.error('☡  Failed to initialize signaling server:', error.message);
-}
+    console.log('★ WebRTC signaling server initialized');
+  } catch (error) {
+    console.error('☡  Failed to initialize signaling server:', error.message);
+  }
 
-// Initialize Agent Bridge
-try {
-  agentBridge = new AgentBridge({
-    path: '/agent-bridge',
-    heartbeatInterval: 30000,
-    agentTimeout: 120000
-  });
+  // Initialize Agent Bridge
+  try {
+    agentBridge = new AgentBridge({
+      path: '/agent-bridge',
+      heartbeatInterval: 30000,
+      agentTimeout: 120000
+    });
 
-  agentBridge.on('agent-joined', ({ agentId, name }) => {
-    console.log(`[Proxy] Agent joined: ${name} (${agentId})`);
-  });
+    agentBridge.on('agent-joined', ({ agentId, name }) => {
+      console.log(`[Proxy] Agent joined: ${name} (${agentId})`);
+    });
 
-  agentBridge.on('agent-left', ({ agentId }) => {
-    console.log(`[Proxy] Agent left: ${agentId}`);
-  });
+    agentBridge.on('agent-left', ({ agentId }) => {
+      console.log(`[Proxy] Agent left: ${agentId}`);
+    });
 
-  console.log('★ Agent Bridge initialized');
-} catch (error) {
-  console.error('☡  Failed to initialize Agent Bridge:', error.message);
+    console.log('★ Agent Bridge initialized');
+  } catch (error) {
+    console.error('☡  Failed to initialize Agent Bridge:', error.message);
+  }
 }
 
 // Register upgrade handler after both servers are initialized

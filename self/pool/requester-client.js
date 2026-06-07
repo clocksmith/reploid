@@ -5,33 +5,40 @@
 import { createPoolSdk } from './sdk.js';
 import { countersignReceipt, createSigningKeyPair, exportPublicKey } from './inference-receipt.js';
 import { buildLaunchModelRequirements } from './model-contract.js';
+import { DETERMINISTIC_GENERATION_CONFIG, FASTEST_RECEIPT_POLICY_ID, getPolicy } from './policy-router.js';
+import { createPoolIdentity } from './identity.js';
 
-export function createRequesterClient({ requesterId, sdk = createPoolSdk(), keyPair = null } = {}) {
+export function createRequesterClient({ requesterId, sdk = createPoolSdk(), keyPair = null, identity = createPoolIdentity('requester') } = {}) {
   let activeKeyPair = keyPair;
   let requesterPublicKey = null;
+  let activeRequesterId = requesterId;
   const ensureKeys = async () => {
-    if (!activeKeyPair) activeKeyPair = await createSigningKeyPair();
+    if (!activeKeyPair) activeKeyPair = identity ? await identity.getSigningKeyPair() : await createSigningKeyPair();
     if (!requesterPublicKey) requesterPublicKey = await exportPublicKey(activeKeyPair.publicKey);
     return activeKeyPair;
   };
+  const ensureRequesterId = async () => {
+    if (!activeRequesterId) activeRequesterId = identity ? await identity.getRoleId() : null;
+    if (!activeRequesterId) throw new Error('requesterId is required');
+    return activeRequesterId;
+  };
   return {
-    async submitJob({ prompt, modelRequirements = {}, generationConfig = {} }) {
+    async submitJob({ prompt, policyId = FASTEST_RECEIPT_POLICY_ID, modelRequirements = {}, generationConfig = {}, maxPointSpend = null }) {
       await ensureKeys();
+      const resolvedRequesterId = await ensureRequesterId();
+      const policy = getPolicy(policyId);
       return sdk.submitJob({
-        requesterId,
+        requesterId: resolvedRequesterId,
         requesterPublicKey,
         prompt,
-        policyId: 'fastest_receipt',
+        policyId,
         modelRequirements: buildLaunchModelRequirements(modelRequirements),
         generationConfig: {
-          mode: 'greedy',
-          temperature: 0,
-          topK: 1,
-          topP: 1,
-          maxOutputTokens: 128,
+          ...DETERMINISTIC_GENERATION_CONFIG,
           ...generationConfig
         },
-        verificationLevel: 'signed_receipt'
+        maxPointSpend,
+        verificationLevel: policy?.verificationLevel || 'signed_receipt'
       });
     },
     pollJob(jobId) {
@@ -39,7 +46,8 @@ export function createRequesterClient({ requesterId, sdk = createPoolSdk(), keyP
     },
     async acceptReceipt(receiptHash, accepted = true) {
       const keys = await ensureKeys();
-      const acceptance = await countersignReceipt({ receiptHash, requesterId, accepted }, keys.privateKey);
+      const resolvedRequesterId = await ensureRequesterId();
+      const acceptance = await countersignReceipt({ receiptHash, requesterId: resolvedRequesterId, accepted }, keys.privateKey);
       return sdk.acceptReceipt(receiptHash, {
         ...acceptance
       });

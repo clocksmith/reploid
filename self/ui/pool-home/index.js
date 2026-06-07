@@ -2,10 +2,14 @@
  * @fileoverview Public product home for the verified browser inference pool.
  */
 
-import { createPoolSdk } from '../../pool/sdk.js';
+import { createPoolSdk, verifyReceiptRecord } from '../../pool/sdk.js';
+import { createDopplerRuntime } from '../../pool/doppler-runtime.js';
+import { createAgentClient } from '../../pool/agent-client.js';
 import { createProviderClient } from '../../pool/provider-client.js';
 import { createRequesterClient } from '../../pool/requester-client.js';
 import { LAUNCH_MODEL, buildLaunchProviderModel } from '../../pool/model-contract.js';
+import { createPoolIdentity } from '../../pool/identity.js';
+import { FASTEST_RECEIPT_POLICY_ID, listPolicies } from '../../pool/policy-router.js';
 
 const PRODUCT_ROUTES = Object.freeze({
   '/': 'home',
@@ -16,13 +20,15 @@ const PRODUCT_ROUTES = Object.freeze({
   '/reputation': 'reputation'
 });
 
+const PROVIDER_WORKER_INTERVAL_MS = 3000;
+
 const FLOW_CARDS = Object.freeze([
   {
     id: 'run',
     href: '/run',
     title: 'Run inference',
     label: 'Requester',
-    body: 'Submit a prompt with fastest_receipt, then receive output plus a verifier-readable signed execution receipt.'
+    body: 'Submit a prompt with a trust policy, then receive output plus verifier-readable signed execution receipts.'
   },
   {
     id: 'contribute',
@@ -36,7 +42,7 @@ const FLOW_CARDS = Object.freeze([
     href: '/agents',
     title: 'Budget agents',
     label: 'Agent',
-    body: 'Give agents point budgets, fastest_receipt defaults, model requirements, receipt verification, and spend records.'
+    body: 'Give agents point budgets, policy defaults, model requirements, receipt verification, and spend records.'
   },
   {
     id: 'receipts',
@@ -51,12 +57,12 @@ const ROUTE_COPY = Object.freeze({
   home: {
     eyebrow: 'Receipt-backed browser inference',
     title: 'Browser-local inference with signed receipts.',
-    body: 'Requesters submit prompts through fastest_receipt. Providers keep a browser tab open, run Doppler locally, return signed assignment-bound receipts, and earn points when verification accepts the work.'
+    body: 'Requesters submit prompts through explicit trust policies. Providers keep a browser tab open, run Doppler locally, return signed assignment-bound receipts, and earn points when verification accepts the work.'
   },
   run: {
     eyebrow: 'Requester mode',
-    title: 'Submit jobs with fastest_receipt.',
-    body: 'The requester flow collects prompt, model requirement, and deterministic generation config. The coordinator assigns one eligible provider and returns output plus receipt status.'
+    title: 'Submit jobs with explicit trust policies.',
+    body: 'The requester flow collects prompt, model requirement, deterministic generation config, and policy. The coordinator assigns eligible providers and returns output plus receipt status.'
   },
   contribute: {
     eyebrow: 'Provider mode',
@@ -66,7 +72,7 @@ const ROUTE_COPY = Object.freeze({
   agents: {
     eyebrow: 'Agent mode',
     title: 'Give agents a budgeted inference API.',
-    body: 'Agents submit jobs, poll status, verify receipts, accept valid results, reject invalid receipts, and track spend through the launch SDK.'
+    body: 'Agents submit jobs, poll status, verify receipts, accept valid results, reject invalid receipts, and track spend through the pool SDK.'
   },
   receipts: {
     eyebrow: 'Receipt explorer',
@@ -87,19 +93,6 @@ const escapeHtml = (value) => String(value || '')
   .replace(/"/g, '&quot;');
 
 const getRouteId = () => PRODUCT_ROUTES[window.location.pathname] || 'home';
-
-const getBrowserIdentity = (kind) => {
-  const key = `REPLOID_POOL_${kind.toUpperCase()}_ID`;
-  try {
-    const existing = localStorage.getItem(key);
-    if (existing) return existing;
-    const id = `${kind}_${crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2)}`;
-    localStorage.setItem(key, id);
-    return id;
-  } catch {
-    return `${kind}_${Math.random().toString(36).slice(2)}`;
-  }
-};
 
 const renderResultBox = (id) => `
   <pre class="pool-result" id="${id}" aria-live="polite">{}</pre>
@@ -133,11 +126,15 @@ const renderNav = (activeRoute) => {
 
 const renderPolicyStrip = () => `
   <div class="boot-status-strip pool-policy-strip" aria-label="Launch policy">
-    <span class="rgr-status-metric"><span class="rgr-status-label">Launch policy</span><span class="rgr-status-value">fastest_receipt</span></span>
-    <span class="rgr-status-metric"><span class="rgr-status-label">Next policies</span><span class="rgr-status-value">canary + redundancy later</span></span>
+    <span class="rgr-status-metric"><span class="rgr-status-label">Policies</span><span class="rgr-status-value">fastest + canary + redundant + ring</span></span>
+    <span class="rgr-status-metric"><span class="rgr-status-label">Launch model</span><span class="rgr-status-value">${escapeHtml(LAUNCH_MODEL.modelId)}</span></span>
     <span class="rgr-status-metric"><span class="rgr-status-label">Claim</span><span class="rgr-status-value">receipt-backed</span></span>
   </div>
 `;
+
+const renderPolicyOptions = () => listPolicies().map((policy) => `
+  <option value="${escapeHtml(policy.policyId)}">${escapeHtml(policy.policyId)} - ${escapeHtml(policy.trustTier)}</option>
+`).join('');
 
 const renderFlowCards = () => `
   <section class="pool-card-grid" aria-label="Critical journeys">
@@ -193,9 +190,18 @@ const renderRouteDetail = (routeId) => {
             <span>Prompt</span>
             <textarea id="pool-run-prompt" rows="5">Summarize the launch policy in one paragraph.</textarea>
           </label>
-          <button class="button-primary" id="pool-run-submit" type="button">Submit fastest_receipt job</button>
+          <label class="pool-field">
+            <span>Policy</span>
+            <select id="pool-run-policy">${renderPolicyOptions()}</select>
+          </label>
+          <label class="pool-field">
+            <span>Max point spend</span>
+            <input id="pool-run-max-spend" type="number" min="0" step="1" placeholder="optional" />
+          </label>
+          <button class="button-primary" id="pool-run-submit" type="button">Submit policy-routed job</button>
           <button class="button-secondary" id="pool-run-poll" type="button">Poll job</button>
           <button class="button-secondary" id="pool-run-accept" type="button">Accept receipt</button>
+          <button class="button-secondary" id="pool-run-reject" type="button">Reject receipt</button>
           ${renderResultBox('pool-run-result')}
         </div>
       </section>
@@ -211,9 +217,15 @@ const renderRouteDetail = (routeId) => {
             <span>Model id</span>
             <input id="pool-provider-model" value="${escapeHtml(LAUNCH_MODEL.modelId)}" />
           </label>
+          <button class="button-secondary" id="pool-provider-load" type="button">Load Doppler model</button>
           <button class="button-primary" id="pool-provider-register" type="button">Register browser provider</button>
           <button class="button-secondary" id="pool-provider-next" type="button">Poll assignment</button>
           <button class="button-secondary" id="pool-provider-execute" type="button">Execute assignment</button>
+          <button class="button-secondary" id="pool-provider-step" type="button">Run provider step</button>
+          <button class="button-primary" id="pool-provider-worker-start" type="button">Start provider worker</button>
+          <button class="button-secondary" id="pool-provider-worker-stop" type="button" disabled>Stop provider worker</button>
+          <button class="button-secondary" id="pool-provider-points" type="button">Provider points</button>
+          <button class="button-secondary" id="pool-provider-reputation" type="button">Provider reputation</button>
           ${renderResultBox('pool-provider-result')}
         </div>
       </section>
@@ -223,12 +235,29 @@ const renderRouteDetail = (routeId) => {
     return `
       <section class="pool-panel">
         <h2 class="type-h2">Agent journey</h2>
-        <p class="type-caption">Agent API keys, point budgets, fastest_receipt defaults, outstanding jobs, receipt verification logs, and spend summaries belong here.</p>
-        <div class="pool-form">
-          <code>submitJob(request)</code>
+        <p class="type-caption">Agent point budgets, policy defaults, outstanding jobs, receipt verification logs, and spend summaries belong here.</p>
+        <div class="pool-form" data-pool-agent>
+          <label class="pool-field">
+            <span>Agent prompt</span>
+            <textarea id="pool-agent-prompt" rows="5">Return one concise sentence about receipt-backed browser inference.</textarea>
+          </label>
+          <label class="pool-field">
+            <span>Policy</span>
+            <select id="pool-agent-policy">${renderPolicyOptions()}</select>
+          </label>
+          <label class="pool-field">
+            <span>Agent max point spend</span>
+            <input id="pool-agent-max-spend" type="number" min="0" step="1" placeholder="optional" />
+          </label>
+          <button class="button-primary" id="pool-agent-submit" type="button">Submit agent job</button>
+          <button class="button-secondary" id="pool-agent-poll" type="button">Poll agent job</button>
+          <button class="button-secondary" id="pool-agent-accept" type="button">Accept receipt</button>
+          <button class="button-secondary" id="pool-agent-reject" type="button">Reject receipt</button>
+          <code>submitJob({ policyId, prompt, modelRequirements })</code>
           <code>pollJob(jobId)</code>
-          <code>verifyReceipt(receipt)</code>
+          <code>verifyReceiptRecord(record)</code>
           <code>acceptReceipt(receiptHash)</code>
+          ${renderResultBox('pool-agent-result')}
         </div>
       </section>
     `;
@@ -260,6 +289,9 @@ const renderRouteDetail = (routeId) => {
             <input id="pool-reputation-provider" placeholder="provider_..." />
           </label>
           <button class="button-primary" id="pool-reputation-lookup" type="button">Lookup reputation</button>
+          <button class="button-secondary" id="pool-status-lookup" type="button">Pool status</button>
+          <button class="button-secondary" id="pool-metrics-lookup" type="button">Pool metrics</button>
+          <button class="button-secondary" id="pool-deployment-check" type="button">Deployment check</button>
           ${renderResultBox('pool-reputation-result')}
         </div>
       </section>
@@ -279,11 +311,15 @@ const bindRunControls = (sdk) => {
   const button = document.getElementById('pool-run-submit');
   const pollButton = document.getElementById('pool-run-poll');
   const acceptButton = document.getElementById('pool-run-accept');
+  const rejectButton = document.getElementById('pool-run-reject');
   const prompt = document.getElementById('pool-run-prompt');
+  const policySelect = document.getElementById('pool-run-policy');
+  const maxSpendInput = document.getElementById('pool-run-max-spend');
   if (!button || !prompt) return;
+  const requesterIdentity = createPoolIdentity('requester');
   const requesterClient = createRequesterClient({
-    requesterId: getBrowserIdentity('requester'),
-    sdk
+    sdk,
+    identity: requesterIdentity
   });
   let lastJobId = null;
   let lastReceiptHash = null;
@@ -293,6 +329,8 @@ const bindRunControls = (sdk) => {
     try {
       const result = await requesterClient.submitJob({
         prompt: prompt.value,
+        policyId: policySelect?.value || FASTEST_RECEIPT_POLICY_ID,
+        maxPointSpend: maxSpendInput?.value ? Number(maxSpendInput.value) : null,
         generationConfig: {
           mode: 'greedy',
           temperature: 0,
@@ -341,37 +379,183 @@ const bindRunControls = (sdk) => {
       acceptButton.disabled = false;
     }
   });
+  rejectButton?.addEventListener('click', async () => {
+    if (!lastReceiptHash) {
+      setResult('pool-run-result', { error: 'No verifier-accepted receipt to reject' });
+      return;
+    }
+    rejectButton.disabled = true;
+    try {
+      setResult('pool-run-result', await requesterClient.acceptReceipt(lastReceiptHash, false));
+    } catch (error) {
+      setResult('pool-run-result', { error: error.message, payload: error.payload || null });
+    } finally {
+      rejectButton.disabled = false;
+    }
+  });
+};
+
+const bindAgentControls = (sdk) => {
+  const submitButton = document.getElementById('pool-agent-submit');
+  const pollButton = document.getElementById('pool-agent-poll');
+  const acceptButton = document.getElementById('pool-agent-accept');
+  const rejectButton = document.getElementById('pool-agent-reject');
+  const prompt = document.getElementById('pool-agent-prompt');
+  const policySelect = document.getElementById('pool-agent-policy');
+  const maxSpendInput = document.getElementById('pool-agent-max-spend');
+  if (!submitButton || !prompt) return;
+  const agentIdentity = createPoolIdentity('agent');
+  const agentClient = createAgentClient({
+    sdk,
+    identity: agentIdentity,
+    pointBudget: 0
+  });
+  let lastJobId = null;
+  let lastReceiptHash = null;
+  submitButton.addEventListener('click', async () => {
+    submitButton.disabled = true;
+    setResult('pool-agent-result', { status: 'submitting_agent_job' });
+    try {
+      const identity = await agentIdentity.resolve();
+      const result = await agentClient.submitJob({
+        prompt: prompt.value,
+        policyId: policySelect?.value || FASTEST_RECEIPT_POLICY_ID,
+        maxPointSpend: maxSpendInput?.value ? Number(maxSpendInput.value) : null
+      });
+      lastJobId = result?.job?.jobId || null;
+      lastReceiptHash = result?.job?.receiptHash || null;
+      setResult('pool-agent-result', { identity, ...result });
+    } catch (error) {
+      setResult('pool-agent-result', { error: error.message, payload: error.payload || null });
+    } finally {
+      submitButton.disabled = false;
+    }
+  });
+  pollButton?.addEventListener('click', async () => {
+    if (!lastJobId) {
+      setResult('pool-agent-result', { error: 'No submitted agent job to poll' });
+      return;
+    }
+    pollButton.disabled = true;
+    try {
+      const result = await agentClient.pollJob(lastJobId);
+      lastReceiptHash = result?.job?.receiptHash || lastReceiptHash;
+      setResult('pool-agent-result', result);
+    } catch (error) {
+      setResult('pool-agent-result', { error: error.message, payload: error.payload || null });
+    } finally {
+      pollButton.disabled = false;
+    }
+  });
+  acceptButton?.addEventListener('click', async () => {
+    if (!lastReceiptHash) {
+      setResult('pool-agent-result', { error: 'No verifier-accepted receipt to accept' });
+      return;
+    }
+    acceptButton.disabled = true;
+    try {
+      setResult('pool-agent-result', await agentClient.acceptReceipt(lastReceiptHash, true));
+    } catch (error) {
+      setResult('pool-agent-result', { error: error.message, payload: error.payload || null });
+    } finally {
+      acceptButton.disabled = false;
+    }
+  });
+  rejectButton?.addEventListener('click', async () => {
+    if (!lastReceiptHash) {
+      setResult('pool-agent-result', { error: 'No verifier-accepted receipt to reject' });
+      return;
+    }
+    rejectButton.disabled = true;
+    try {
+      setResult('pool-agent-result', await agentClient.acceptReceipt(lastReceiptHash, false));
+    } catch (error) {
+      setResult('pool-agent-result', { error: error.message, payload: error.payload || null });
+    } finally {
+      rejectButton.disabled = false;
+    }
+  });
 };
 
 const bindProviderControls = (sdk) => {
+  const loadButton = document.getElementById('pool-provider-load');
   const registerButton = document.getElementById('pool-provider-register');
   const nextButton = document.getElementById('pool-provider-next');
   const executeButton = document.getElementById('pool-provider-execute');
+  const stepButton = document.getElementById('pool-provider-step');
+  const workerStartButton = document.getElementById('pool-provider-worker-start');
+  const workerStopButton = document.getElementById('pool-provider-worker-stop');
+  const pointsButton = document.getElementById('pool-provider-points');
+  const reputationButton = document.getElementById('pool-provider-reputation');
   const modelInput = document.getElementById('pool-provider-model');
   if (!registerButton || !nextButton || !modelInput) return;
-  const providerId = getBrowserIdentity('provider');
+  const providerIdentity = createPoolIdentity('provider');
+  const runtime = window.REPLOID_DOPPLER_RUNTIME || createDopplerRuntime();
+  window.REPLOID_DOPPLER_RUNTIME = runtime;
   const providerClient = createProviderClient({
-    providerId,
     sdk,
-    runtime: window.REPLOID_DOPPLER_RUNTIME || undefined
+    runtime,
+    identity: providerIdentity
+  });
+  const getProviderModel = () => ({
+    ...buildLaunchProviderModel(),
+    modelId: modelInput.value || LAUNCH_MODEL.modelId
   });
   let lastAssignment = null;
+  let workerRunning = false;
+  let workerTimer = null;
+  const syncWorkerButtons = () => {
+    if (workerStartButton) workerStartButton.disabled = workerRunning;
+    if (workerStopButton) workerStopButton.disabled = !workerRunning;
+  };
+  const stopWorker = () => {
+    workerRunning = false;
+    if (workerTimer) window.clearTimeout(workerTimer);
+    workerTimer = null;
+    syncWorkerButtons();
+  };
+  const runWorkerLoop = async () => {
+    if (!workerRunning) return;
+    try {
+      const result = await providerClient.runWorkerStep();
+      lastAssignment = result?.status === 'executed_assignment' ? null : result?.assignment || lastAssignment;
+      setResult('pool-provider-result', {
+        worker: 'running',
+        ...result
+      });
+      if (workerRunning) {
+        workerTimer = window.setTimeout(runWorkerLoop, PROVIDER_WORKER_INTERVAL_MS);
+      }
+    } catch (error) {
+      stopWorker();
+      setResult('pool-provider-result', { worker: 'stopped', error: error.message, payload: error.payload || null });
+    }
+  };
+  loadButton?.addEventListener('click', async () => {
+    loadButton.disabled = true;
+    setResult('pool-provider-result', { status: 'loading_model', model: getProviderModel() });
+    try {
+      setResult('pool-provider-result', await runtime.loadModel(getProviderModel()));
+    } catch (error) {
+      setResult('pool-provider-result', { error: error.message, payload: error.payload || null });
+    } finally {
+      loadButton.disabled = false;
+    }
+  });
   registerButton.addEventListener('click', async () => {
     registerButton.disabled = true;
-    setResult('pool-provider-result', { status: 'registering', providerId });
     try {
+      const providerIdentityState = await providerIdentity.resolve();
+      setResult('pool-provider-result', { status: 'registering', providerId: providerIdentityState.roleId, identity: providerIdentityState });
       const result = await providerClient.register({
-        models: [{
-          ...buildLaunchProviderModel(),
-          modelId: modelInput.value || LAUNCH_MODEL.modelId
-        }],
+        models: [getProviderModel()],
         device: {
           hasWebGPU: !!navigator.gpu
         },
         availability: {
           maxConcurrentJobs: 1,
           maxTokensPerJob: 128,
-          acceptedPolicies: ['fastest_receipt']
+          acceptedPolicies: listPolicies().map((policy) => policy.policyId)
         },
       });
       setResult('pool-provider-result', result);
@@ -408,6 +592,51 @@ const bindProviderControls = (sdk) => {
       executeButton.disabled = false;
     }
   });
+  stepButton?.addEventListener('click', async () => {
+    stepButton.disabled = true;
+    try {
+      const result = await providerClient.runWorkerStep();
+      lastAssignment = result?.status === 'executed_assignment' ? null : result?.assignment || lastAssignment;
+      setResult('pool-provider-result', result);
+    } catch (error) {
+      setResult('pool-provider-result', { error: error.message, payload: error.payload || null });
+    } finally {
+      stepButton.disabled = false;
+    }
+  });
+  workerStartButton?.addEventListener('click', async () => {
+    if (workerRunning) return;
+    workerRunning = true;
+    syncWorkerButtons();
+    setResult('pool-provider-result', { worker: 'starting' });
+    await runWorkerLoop();
+  });
+  workerStopButton?.addEventListener('click', () => {
+    stopWorker();
+    setResult('pool-provider-result', { worker: 'stopped' });
+  });
+  pointsButton?.addEventListener('click', async () => {
+    pointsButton.disabled = true;
+    try {
+      const identity = await providerIdentity.resolve();
+      setResult('pool-provider-result', await sdk.points(identity.roleId));
+    } catch (error) {
+      setResult('pool-provider-result', { error: error.message, payload: error.payload || null });
+    } finally {
+      pointsButton.disabled = false;
+    }
+  });
+  reputationButton?.addEventListener('click', async () => {
+    reputationButton.disabled = true;
+    try {
+      const identity = await providerIdentity.resolve();
+      setResult('pool-provider-result', await sdk.reputation(identity.roleId));
+    } catch (error) {
+      setResult('pool-provider-result', { error: error.message, payload: error.payload || null });
+    } finally {
+      reputationButton.disabled = false;
+    }
+  });
 };
 
 const bindReceiptControls = (sdk) => {
@@ -422,7 +651,11 @@ const bindReceiptControls = (sdk) => {
     }
     button.disabled = true;
     try {
-      setResult('pool-receipt-result', await sdk.getReceipt(receiptHash));
+      const record = await sdk.getReceipt(receiptHash);
+      setResult('pool-receipt-result', {
+        ...record,
+        localVerification: await verifyReceiptRecord(record)
+      });
     } catch (error) {
       setResult('pool-receipt-result', { error: error.message, payload: error.payload || null });
     } finally {
@@ -433,9 +666,15 @@ const bindReceiptControls = (sdk) => {
 
 const bindReputationControls = (sdk) => {
   const button = document.getElementById('pool-reputation-lookup');
+  const statusButton = document.getElementById('pool-status-lookup');
+  const metricsButton = document.getElementById('pool-metrics-lookup');
+  const deploymentButton = document.getElementById('pool-deployment-check');
   const input = document.getElementById('pool-reputation-provider');
   if (!button || !input) return;
-  input.value = getBrowserIdentity('provider');
+  const providerIdentity = createPoolIdentity('provider');
+  providerIdentity.resolve().then((identity) => {
+    input.value = identity.roleId;
+  }).catch(() => {});
   button.addEventListener('click', async () => {
     const providerId = input.value.trim();
     if (!providerId) {
@@ -449,6 +688,36 @@ const bindReputationControls = (sdk) => {
       setResult('pool-reputation-result', { error: error.message, payload: error.payload || null });
     } finally {
       button.disabled = false;
+    }
+  });
+  metricsButton?.addEventListener('click', async () => {
+    metricsButton.disabled = true;
+    try {
+      setResult('pool-reputation-result', await sdk.metrics());
+    } catch (error) {
+      setResult('pool-reputation-result', { error: error.message, payload: error.payload || null });
+    } finally {
+      metricsButton.disabled = false;
+    }
+  });
+  statusButton?.addEventListener('click', async () => {
+    statusButton.disabled = true;
+    try {
+      setResult('pool-reputation-result', await sdk.status());
+    } catch (error) {
+      setResult('pool-reputation-result', { error: error.message, payload: error.payload || null });
+    } finally {
+      statusButton.disabled = false;
+    }
+  });
+  deploymentButton?.addEventListener('click', async () => {
+    deploymentButton.disabled = true;
+    try {
+      setResult('pool-reputation-result', await sdk.deploymentCheck());
+    } catch (error) {
+      setResult('pool-reputation-result', { error: error.message, payload: error.payload || null });
+    } finally {
+      deploymentButton.disabled = false;
     }
   });
 };
@@ -470,8 +739,12 @@ export function initPoolHome(mount) {
     </main>
   `;
   const sdk = createPoolSdk();
+  const runtime = window.REPLOID_DOPPLER_RUNTIME || createDopplerRuntime();
+  window.REPLOID_DOPPLER_RUNTIME = runtime;
+  window.REPLOID_POOL_ATTACH_DOPPLER_HANDLE = (handle, model = null, runtimeInfo = null) => runtime.attachHandle(handle, model, runtimeInfo);
   window.REPLOID_POOL_SDK = sdk;
   bindRunControls(sdk);
+  bindAgentControls(sdk);
   bindProviderControls(sdk);
   bindReceiptControls(sdk);
   bindReputationControls(sdk);

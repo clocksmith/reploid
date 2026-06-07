@@ -6,6 +6,8 @@ import crypto from 'crypto';
 
 const makeId = (prefix) => `${prefix}_${crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2)}`;
 const nowIso = () => new Date().toISOString();
+const canClaimJobForAssignment = (job = {}) => job.status === 'queued'
+  || (job.retryable === true && ['failed', 'receipt_rejected', 'redundant_disagreement', 'ring_quorum_disagreement'].includes(job.status));
 
 export function createPoolStore() {
   const providers = new Map();
@@ -16,8 +18,10 @@ export function createPoolStore() {
   const receiptAcceptances = new Map();
   const pointsLedger = [];
   const reputationState = new Map();
+  const auditChallenges = new Map();
 
   return {
+    kind: 'memory',
     registerProvider(input = {}) {
       const providerId = input.providerId || makeId('provider');
       const sessionId = input.sessionId || makeId('session');
@@ -52,11 +56,16 @@ export function createPoolStore() {
       const provider = providers.get(providerId);
       const session = providerSessions.get(sessionId);
       if (!provider || !session) return null;
+      const hasActiveAssignment = Array.from(assignments.values()).some((assignment) => (
+        assignment.providerId === providerId
+        && (assignment.status === 'assigned' || assignment.status === 'running')
+      ));
+      const status = hasActiveAssignment ? 'busy' : 'available';
       provider.heartbeatAt = timestamp;
-      provider.status = 'available';
+      provider.status = status;
       session.heartbeatAt = timestamp;
-      session.status = 'available';
-      return { providerId, sessionId, heartbeatAt: timestamp, status: 'available' };
+      session.status = status;
+      return { providerId, sessionId, heartbeatAt: timestamp, status };
     },
     listProviders() {
       return Array.from(providers.values());
@@ -80,6 +89,27 @@ export function createPoolStore() {
       const job = jobs.get(jobId);
       if (!job) return null;
       Object.assign(job, patch, { updatedAt: nowIso() });
+      return job;
+    },
+    listJobs() {
+      return Array.from(jobs.values());
+    },
+    claimJobForAssignment(jobId) {
+      const job = jobs.get(jobId);
+      if (!job || !canClaimJobForAssignment(job)) return null;
+      job.status = 'assignment_processing';
+      job.assignmentAttempts = Number(job.assignmentAttempts || 0) + 1;
+      job.updatedAt = nowIso();
+      return job;
+    },
+    claimJobForAcceptance(jobId) {
+      const job = jobs.get(jobId);
+      if (!job) return null;
+      if (job.status === 'accepted' || job.status === 'acceptance_processing' || job.status === 'rejected_by_requester') {
+        return null;
+      }
+      job.status = 'acceptance_processing';
+      job.updatedAt = nowIso();
       return job;
     },
     getJob(jobId) {
@@ -110,6 +140,16 @@ export function createPoolStore() {
       return assignments.get(assignmentId) || null;
     },
     nextAssignmentForProvider(providerId) {
+      const assignment = Array.from(assignments.values()).find((entry) => (
+        entry.providerId === providerId && entry.status === 'assigned'
+      )) || null;
+      if (!assignment) return null;
+      assignment.status = 'running';
+      assignment.startedAt = assignment.startedAt || nowIso();
+      assignment.updatedAt = nowIso();
+      return assignment;
+    },
+    nextPendingAssignmentForProvider(providerId) {
       return Array.from(assignments.values()).find((assignment) => (
         assignment.providerId === providerId && assignment.status === 'assigned'
       )) || null;
@@ -125,7 +165,7 @@ export function createPoolStore() {
       const expired = [];
       const now = Date.now();
       for (const assignment of assignments.values()) {
-        if (assignment.status !== 'assigned') continue;
+        if (assignment.status !== 'assigned' && assignment.status !== 'running') continue;
         if (!assignment.expiresAt || Date.parse(assignment.expiresAt) >= now) continue;
         assignment.status = 'expired';
         assignment.updatedAt = nowIso();
@@ -136,15 +176,31 @@ export function createPoolStore() {
             status: 'failed',
             reason: 'assignment_expired',
             retryable: true,
+            timedOutProviderIds: Array.from(new Set([
+              ...(Array.isArray(job.timedOutProviderIds) ? job.timedOutProviderIds : []),
+              assignment.providerId
+            ].filter(Boolean))),
             updatedAt: nowIso()
           });
         }
         if (assignment.providerId && providers.has(assignment.providerId)) {
           providers.get(assignment.providerId).status = 'available';
           const current = this.getReputation(assignment.providerId);
+          const timeouts = Number(current.timeouts || 0) + 1;
           this.updateReputation(assignment.providerId, {
-            timeouts: Number(current.timeouts || 0) + 1,
-            lastTimeoutAt: nowIso()
+            timeouts,
+            lastTimeoutAt: nowIso(),
+            routingBlocked: current.routingBlocked || timeouts >= 3,
+            quarantineReason: timeouts >= 3 ? 'repeated_assignment_timeouts' : current.quarantineReason
+          });
+          this.appendLedger({
+            eventType: 'points_penalized',
+            reason: 'assignment_timeout',
+            assignmentId: assignment.assignmentId,
+            providerId: assignment.providerId,
+            requesterId: assignment.requesterId,
+            userId: assignment.providerId,
+            points: -1
           });
         }
       }
@@ -162,6 +218,9 @@ export function createPoolStore() {
     },
     getReceipt(receiptHash) {
       return receipts.get(receiptHash) || null;
+    },
+    listReceiptsForJob(jobId) {
+      return Array.from(receipts.values()).filter((receipt) => receipt.jobId === jobId);
     },
     saveAcceptance(receiptHash, acceptance = {}) {
       const saved = {
@@ -203,6 +262,58 @@ export function createPoolStore() {
       };
       reputationState.set(providerId, next);
       return next;
+    },
+    createAuditChallenge(input = {}) {
+      const auditId = input.auditId || makeId('audit');
+      const record = {
+        ...input,
+        auditId,
+        status: input.status || 'pending',
+        createdAt: nowIso(),
+        updatedAt: nowIso()
+      };
+      auditChallenges.set(auditId, record);
+      return record;
+    },
+    getAuditChallenge(auditId) {
+      return auditChallenges.get(auditId) || null;
+    },
+    updateAuditChallenge(auditId, patch = {}) {
+      const audit = auditChallenges.get(auditId);
+      if (!audit) return null;
+      Object.assign(audit, patch, { updatedAt: nowIso() });
+      return audit;
+    },
+    listAuditChallenges(providerId = null) {
+      return Array.from(auditChallenges.values()).filter((audit) => (
+        !providerId || audit.providerId === providerId
+      ));
+    },
+    getMetrics() {
+      const countBy = (values, field) => values.reduce((acc, item) => {
+        const key = item[field] || 'unknown';
+        acc[key] = Number(acc[key] || 0) + 1;
+        return acc;
+      }, {});
+      const providerValues = Array.from(providers.values());
+      const jobValues = Array.from(jobs.values());
+      const assignmentValues = Array.from(assignments.values());
+      const receiptValues = Array.from(receipts.values());
+      const reputationValues = Array.from(reputationState.values());
+      return {
+        providers: providerValues.length,
+        providerStatus: countBy(providerValues, 'status'),
+        jobs: jobValues.length,
+        jobStatus: countBy(jobValues, 'status'),
+        assignments: assignmentValues.length,
+        assignmentStatus: countBy(assignmentValues, 'status'),
+        receipts: receiptValues.length,
+        verifierAcceptedReceipts: receiptValues.filter((receipt) => receipt.verifierDecision?.accepted).length,
+        pointsEvents: pointsLedger.length,
+        auditChallenges: auditChallenges.size,
+        routingBlockedProviders: reputationValues.filter((reputation) => reputation.routingBlocked).length,
+        generatedAt: nowIso()
+      };
     }
   };
 }

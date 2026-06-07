@@ -63,6 +63,8 @@ export const SELF_SOURCE_MIRRORS = Object.freeze([
   { webPath: '/ui/pool-home/index.js', vfsPath: '/self/ui/pool-home/index.js' },
   { webPath: '/pool/agent-client.js', vfsPath: '/self/pool/agent-client.js' },
   { webPath: '/pool/doppler-runtime.js', vfsPath: '/self/pool/doppler-runtime.js' },
+  { webPath: '/pool/firebase-auth.js', vfsPath: '/self/pool/firebase-auth.js' },
+  { webPath: '/pool/identity.js', vfsPath: '/self/pool/identity.js' },
   { webPath: '/pool/inference-receipt.js', vfsPath: '/self/pool/inference-receipt.js' },
   { webPath: '/pool/model-contract.js', vfsPath: '/self/pool/model-contract.js' },
   { webPath: '/pool/points-ledger.js', vfsPath: '/self/pool/points-ledger.js' },
