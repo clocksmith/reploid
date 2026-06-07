@@ -87,6 +87,12 @@ const effectiveRingTrustTier = (ringSize) => {
   return 'T4_max_ring_quorum_receipt';
 };
 
+const assignmentAttemptIdForJob = (job = {}) => Math.max(1, Number(job.assignmentAttempts || 0) || 1);
+
+const ringAttemptIdForJob = (job = {}, assignmentAttemptId) => (
+  `ring_attempt_${job.jobId}_${assignmentAttemptId}`
+);
+
 const deriveRingSeed = ({ job, policy, inputHash, generationConfigHash, providerIds }) => hashJson({
   schema: 'reploid.ring-seed/v1',
   jobId: job.jobId,
@@ -102,37 +108,42 @@ const orderRingCandidates = ({ candidates, ringSeed }) => [...candidates].sort((
   return leftKey.localeCompare(rightKey);
 });
 
-const buildRingPlan = ({ job, policy, candidates, inputHash, generationConfigHash }) => {
+const buildRingPlan = ({ job, policy, candidates, inputHash, generationConfigHash, assignmentAttemptId }) => {
   const providerIds = candidates.map((candidate) => candidate.provider.providerId);
   const ringSeed = deriveRingSeed({ job, policy, inputHash, generationConfigHash, providerIds });
   const ordered = orderRingCandidates({ candidates, ringSeed });
   const orderedProviderIds = ordered.map((candidate) => candidate.provider.providerId);
   const ringSize = orderedProviderIds.length;
   const requiredAgreement = quorumForRingSize(ringSize, policy);
+  const ringAttemptId = ringAttemptIdForJob(job, assignmentAttemptId);
   const layout = {
     schema: 'reploid.ring-layout/v1',
     policyId: policy.policyId,
+    assignmentAttemptId,
+    ringAttemptId,
     ringSize,
     requiredAgreement,
     agreementField: policy.agreementField || 'tokenIdsHash',
     providerIds: orderedProviderIds,
     ringSeed
   };
+  const layoutHash = hashJson(layout);
   return {
-    ringId: `ring_${sha256Hex(JSON.stringify(layout)).replace(/^sha256:/, '').slice(0, 16)}`,
+    ringId: `ring_${layoutHash.replace(/^sha256:/, '').slice(0, 16)}`,
     ringSeed,
+    ringAttemptId,
     ringSize,
     requiredAgreement,
     effectiveTrustTier: effectiveRingTrustTier(ringSize),
     agreementField: layout.agreementField,
     providerIds: orderedProviderIds,
     layout,
-    layoutHash: hashJson(layout),
+    layoutHash,
     candidates: ordered
   };
 };
 
-const buildAssignmentInput = ({ job, provider, model, policy, inputHash, generationConfigHash, groupSize, requiredAgreement = groupSize, ring = null }) => ({
+const buildAssignmentInput = ({ job, provider, model, policy, inputHash, generationConfigHash, groupSize, requiredAgreement = groupSize, assignmentAttemptId, ring = null }) => ({
   jobId: job.jobId,
   requesterId: job.requesterId,
   providerId: provider.providerId,
@@ -141,7 +152,10 @@ const buildAssignmentInput = ({ job, provider, model, policy, inputHash, generat
   inputHash,
   generationConfigHash,
   verificationLevel: policy.verificationLevel,
-  trustTier: policy.trustTier,
+  trustTier: ring?.effectiveTrustTier || policy.trustTier,
+  policyTrustTier: policy.trustTier,
+  assignmentAttemptId,
+  ringAttemptId: ring?.ringAttemptId || null,
   redundancyGroupSize: groupSize,
   requiredAgreement,
   expiresAt: new Date(Date.now() + ASSIGNMENT_EXPIRY_MS).toISOString(),
@@ -159,7 +173,22 @@ const buildAssignmentInput = ({ job, provider, model, policy, inputHash, generat
   }
 });
 
+const cancelPreviousActiveAssignments = async ({ store, job }) => {
+  const previousAssignmentIds = Array.isArray(job.assignmentIds) ? job.assignmentIds : [];
+  for (const assignmentId of previousAssignmentIds) {
+    const assignment = await store.getAssignment?.(assignmentId);
+    if (!assignment || (assignment.status !== 'assigned' && assignment.status !== 'running')) continue;
+    await store.updateAssignment(assignment.assignmentId, {
+      status: 'canceled',
+      canceledReason: 'job_reassigned',
+      canceledAt: new Date().toISOString()
+    });
+    if (assignment.providerId) await store.setProviderStatus?.(assignment.providerId, 'available');
+  }
+};
+
 export async function assignJob({ store, job, policy }) {
+  await cancelPreviousActiveAssignments({ store, job });
   const providers = await eligibleProviders(await store.listProviders(), job, policy, store);
   const adaptiveRing = policy.adaptiveRing === true;
   const minProviders = adaptiveRing ? clampRingSize(policy.minRingSize || 1) : Number(policy.redundancy || 1);
@@ -175,9 +204,10 @@ export async function assignJob({ store, job, policy }) {
 
   const inputHash = sha256Hex(job.prompt);
   const generationConfigHash = hashJson(job.generationConfig || {});
+  const assignmentAttemptId = assignmentAttemptIdForJob(job);
   const selected = providers.slice(0, Math.min(maxProviders, providers.length));
   const ringPlan = adaptiveRing
-    ? buildRingPlan({ job, policy, candidates: selected, inputHash, generationConfigHash })
+    ? buildRingPlan({ job, policy, candidates: selected, inputHash, generationConfigHash, assignmentAttemptId })
     : null;
   const selectedCandidates = ringPlan?.candidates || selected;
   const providerCount = selectedCandidates.length;
@@ -187,6 +217,7 @@ export async function assignJob({ store, job, policy }) {
     const ring = ringPlan ? {
       ringId: ringPlan.ringId,
       ringSeed: ringPlan.ringSeed,
+      ringAttemptId: ringPlan.ringAttemptId,
       ringSize: ringPlan.ringSize,
       requiredAgreement: ringPlan.requiredAgreement,
       effectiveTrustTier: ringPlan.effectiveTrustTier,
@@ -206,6 +237,7 @@ export async function assignJob({ store, job, policy }) {
       generationConfigHash,
       groupSize: providerCount,
       requiredAgreement,
+      assignmentAttemptId,
       ring
     })));
   }
@@ -220,13 +252,18 @@ export async function assignJob({ store, job, policy }) {
     providerIds,
     inputHash,
     generationConfigHash,
+    assignmentAttempts: assignmentAttemptId,
+    assignmentAttemptId,
+    ringAttemptId: ringPlan?.ringAttemptId || null,
     redundancyRequired: requiredAgreement,
     providerCount,
-    trustTier: policy.trustTier,
+    trustTier: ringPlan?.effectiveTrustTier || policy.trustTier,
+    policyTrustTier: policy.trustTier,
     effectiveTrustTier: ringPlan?.effectiveTrustTier || policy.trustTier,
     ring: ringPlan ? {
       ringId: ringPlan.ringId,
       ringSeed: ringPlan.ringSeed,
+      ringAttemptId: ringPlan.ringAttemptId,
       ringSize: ringPlan.ringSize,
       requiredAgreement: ringPlan.requiredAgreement,
       effectiveTrustTier: ringPlan.effectiveTrustTier,
@@ -250,6 +287,7 @@ export async function assignJob({ store, job, policy }) {
     providers: selectedCandidates.map((candidate) => candidate.provider),
     ring: ringPlan ? {
       ringId: ringPlan.ringId,
+      ringAttemptId: ringPlan.ringAttemptId,
       ringSize: ringPlan.ringSize,
       requiredAgreement: ringPlan.requiredAgreement,
       effectiveTrustTier: ringPlan.effectiveTrustTier,

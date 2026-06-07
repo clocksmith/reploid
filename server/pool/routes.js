@@ -110,28 +110,86 @@ const providerHasLaunchModel = (provider) => (provider?.models || []).find((mode
   && model.backend === LAUNCH_MODEL.backend
 ));
 
+const activeAssignmentStatuses = new Set(['assigned', 'running']);
+const finalizedJobStatuses = new Set(['accepted', 'acceptance_processing', 'rejected_by_requester']);
+
+const assignmentMatchesCurrentJobAttempt = (assignment = {}, job = {}) => {
+  const currentAssignmentIds = new Set(Array.isArray(job.assignmentIds) ? job.assignmentIds : []);
+  if (currentAssignmentIds.size > 0 && !currentAssignmentIds.has(assignment.assignmentId)) return false;
+  if (job.assignmentAttemptId !== undefined
+    && assignment.assignmentAttemptId !== undefined
+    && Number(job.assignmentAttemptId) !== Number(assignment.assignmentAttemptId)) {
+    return false;
+  }
+  if (job.ringAttemptId
+    && assignment.ringAttemptId
+    && job.ringAttemptId !== assignment.ringAttemptId) {
+    return false;
+  }
+  return true;
+};
+
+const currentReceiptsForJob = async (store, job = {}) => {
+  const currentAssignmentIds = new Set(Array.isArray(job.assignmentIds) ? job.assignmentIds : []);
+  return (await store.listReceiptsForJob(job.jobId)).filter((record) => {
+    if (currentAssignmentIds.size > 0 && !currentAssignmentIds.has(record.assignmentId)) return false;
+    if (job.assignmentAttemptId !== undefined
+      && record.assignmentAttemptId !== undefined
+      && Number(job.assignmentAttemptId) !== Number(record.assignmentAttemptId)) {
+      return false;
+    }
+    if (job.ringAttemptId && record.ringAttemptId && job.ringAttemptId !== record.ringAttemptId) return false;
+    return true;
+  });
+};
+
+const currentFailedAssignmentIds = (job = {}) => {
+  const currentAssignmentIds = new Set(Array.isArray(job.assignmentIds) ? job.assignmentIds : []);
+  return new Set((Array.isArray(job.failedAssignmentIds) ? job.failedAssignmentIds : []).filter((assignmentId) => (
+    currentAssignmentIds.size === 0 || currentAssignmentIds.has(assignmentId)
+  )));
+};
+
+const statusForPendingAgreement = (agreement = {}) => (
+  agreement.mode === 'ring_quorum' ? 'awaiting_ring_quorum_receipts' : 'awaiting_redundant_receipts'
+);
+
+const statusForRejectedAgreement = (agreement = {}) => (
+  agreement.mode === 'ring_quorum' ? 'ring_quorum_disagreement' : 'redundant_disagreement'
+);
+
+const mismatchReasonForAgreement = (agreement = {}) => (
+  agreement.mode === 'ring_quorum' ? 'ring quorum mismatch' : 'redundant agreement mismatch'
+);
+
+const penaltyReasonForAgreement = (agreement = {}) => (
+  agreement.mode === 'ring_quorum' ? 'ring_quorum_mismatch' : 'redundant_agreement_mismatch'
+);
+
+const acceptedLedgerReasonForJob = (job = {}, receiptCount = 1) => {
+  if (receiptCount <= 1) return 'accepted_receipt';
+  return job?.agreement?.mode === 'ring_quorum' ? 'ring_quorum_receipt_accepted' : 'redundant_agreement_accepted';
+};
+
+const spendLedgerReasonForJob = (job = {}, receiptCount = 1) => {
+  if (receiptCount <= 1) return 'accepted_receipt_spend';
+  return job?.agreement?.mode === 'ring_quorum' ? 'ring_quorum_receipt_spend' : 'redundant_agreement_spend';
+};
+
 const evaluateAgreement = async ({ store, job, policy }) => {
   const currentAssignmentIds = new Set(Array.isArray(job?.assignmentIds) ? job.assignmentIds : []);
-  const receiptRecords = (await store.listReceiptsForJob(job.jobId)).filter((record) => (
-    currentAssignmentIds.size === 0 || currentAssignmentIds.has(record.assignmentId)
-  ));
+  const receiptRecords = await currentReceiptsForJob(store, job);
   const acceptedRecords = receiptRecords.filter((record) => record.verifierDecision?.accepted);
+  const rejectedRecords = receiptRecords.filter((record) => record.verifierDecision && !record.verifierDecision.accepted);
+  const failedAssignmentIds = currentFailedAssignmentIds(job);
+  const blockedAssignmentIds = new Set([
+    ...receiptRecords.map((record) => record.assignmentId).filter(Boolean),
+    ...failedAssignmentIds
+  ]);
   const required = Number(job?.agreement?.requiredAgreement || job?.agreement?.requiredProviders || policy.redundancy || 1);
   const providerCount = Number(job?.providerCount || job?.providerIds?.length || required);
   const agreementField = job?.agreement?.agreementField || policy.agreementField || 'tokenIdsHash';
   const mode = job?.agreement?.mode || (policy.adaptiveRing ? 'ring_quorum' : 'redundant');
-  if (acceptedRecords.length < required) {
-    return {
-      status: 'pending',
-      mode,
-      requiredProviders: required,
-      requiredAgreement: required,
-      providerCount,
-      agreementField,
-      acceptedReceipts: acceptedRecords.length,
-      receiptHashes: acceptedRecords.map((record) => record.receiptHash)
-    };
-  }
   const groups = new Map();
   for (const record of acceptedRecords) {
     const primary = record.receipt?.[agreementField] || record.receipt?.tokenIdsHash || '';
@@ -141,46 +199,48 @@ const evaluateAgreement = async ({ store, job, policy }) => {
     groups.set(key, group);
   }
   const matchingGroup = Array.from(groups.values()).find((group) => group.length >= required);
-  if (!matchingGroup) {
-    const remaining = Math.max(0, providerCount - acceptedRecords.length);
-    const largestGroupSize = Math.max(0, ...Array.from(groups.values()).map((group) => group.length));
-    if (largestGroupSize + remaining >= required) {
-      return {
-        status: 'pending',
-        mode,
-        reason: 'waiting for possible quorum',
-        requiredProviders: required,
-        requiredAgreement: required,
-        providerCount,
-        agreementField,
-        acceptedReceipts: acceptedRecords.length,
-        receiptHashes: acceptedRecords.map((record) => record.receiptHash)
-      };
-    }
-    return {
-      status: 'rejected',
-      mode,
-      reason: mode === 'ring_quorum' ? 'ring quorum receipts did not agree' : 'redundant receipts did not agree',
-      requiredProviders: required,
-      requiredAgreement: required,
-      providerCount,
-      agreementField,
-      acceptedReceipts: acceptedRecords.length,
-      receiptHashes: acceptedRecords.map((record) => record.receiptHash)
-    };
-  }
-  return {
-    status: 'accepted',
+  const receiptHashes = acceptedRecords.map((record) => record.receiptHash);
+  const rejectedReceiptHashes = rejectedRecords.map((record) => record.receiptHash);
+  const failedAssignments = Array.from(failedAssignmentIds);
+  const largestGroupSize = Math.max(0, ...Array.from(groups.values()).map((group) => group.length));
+  const remainingProviders = Math.max(0, providerCount - blockedAssignmentIds.size);
+  const base = {
     mode,
     requiredProviders: required,
     requiredAgreement: required,
     providerCount,
     agreementField,
-    acceptedReceipts: matchingGroup.length,
-    receiptHash: matchingGroup[0].receiptHash,
-    receiptHashes: matchingGroup.slice(0, required).map((record) => record.receiptHash),
-    outputHash: matchingGroup[0].receipt?.outputHash,
-    tokenIdsHash: matchingGroup[0].receipt?.tokenIdsHash
+    acceptedReceipts: acceptedRecords.length,
+    rejectedReceipts: rejectedRecords.length,
+    failedAssignments: failedAssignments.length,
+    remainingProviders,
+    receiptHashes,
+    rejectedReceiptHashes,
+    failedAssignmentIds: failedAssignments,
+    effectiveTrustTier: job?.effectiveTrustTier || job?.trustTier || policy.trustTier
+  };
+  if (matchingGroup) {
+    return {
+      ...base,
+      status: 'accepted',
+      acceptedReceipts: matchingGroup.length,
+      receiptHash: matchingGroup[0].receiptHash,
+      receiptHashes: matchingGroup.slice(0, required).map((record) => record.receiptHash),
+      outputHash: matchingGroup[0].receipt?.outputHash,
+      tokenIdsHash: matchingGroup[0].receipt?.tokenIdsHash
+    };
+  }
+  if (largestGroupSize + remainingProviders >= required) {
+    return {
+      ...base,
+      status: 'pending',
+      reason: mode === 'ring_quorum' ? 'waiting for possible ring quorum' : 'waiting for possible redundant agreement'
+    };
+  }
+  return {
+    ...base,
+    status: 'rejected',
+    reason: mode === 'ring_quorum' ? 'ring quorum receipts cannot reach quorum' : 'redundant receipts cannot reach agreement'
   };
 };
 
@@ -240,11 +300,13 @@ const updateJobAfterVerifiedReceipt = async ({ store, assignment, receiptRecord,
         receiptHash: agreement.receiptHash,
         receiptHashes: agreement.receiptHashes,
         outputText: representative?.outputText || receiptRecord.outputText,
+        trustTier: agreement.effectiveTrustTier,
+        effectiveTrustTier: agreement.effectiveTrustTier,
         agreement,
         verifierDecision: { accepted: true, reasons: [], verifiedAt: new Date().toISOString(), agreement }
       });
     } else if (agreement.status === 'rejected') {
-      const disagreeingReceipts = await store.listReceiptsForJob(assignment.jobId);
+      const disagreeingReceipts = await currentReceiptsForJob(store, job);
       const rejectedProviderIds = Array.from(new Set(disagreeingReceipts
         .filter((entry) => entry.verifierDecision?.accepted)
         .map((entry) => entry.providerId)
@@ -254,7 +316,7 @@ const updateJobAfterVerifiedReceipt = async ({ store, assignment, receiptRecord,
         await recordRejectedReceipt({
           store,
           providerId: record.providerId,
-          reasons: [agreement.mode === 'ring_quorum' ? 'ring quorum mismatch' : 'redundant agreement mismatch']
+          reasons: [mismatchReasonForAgreement(agreement)]
         });
         await penalizeProvider({
           store,
@@ -262,24 +324,28 @@ const updateJobAfterVerifiedReceipt = async ({ store, assignment, receiptRecord,
           requesterId: record.requesterId,
           receiptHash: record.receiptHash,
           assignmentId: record.assignmentId,
-          reason: agreement.mode === 'ring_quorum' ? 'ring_quorum_mismatch' : 'redundant_agreement_mismatch',
+          reason: penaltyReasonForAgreement(agreement),
           points: -2,
           evidence: { agreement }
         });
       }
       await store.updateJob(assignment.jobId, {
-        status: agreement.mode === 'ring_quorum' ? 'ring_quorum_disagreement' : 'redundant_disagreement',
+        status: statusForRejectedAgreement(agreement),
         reason: agreement.reason,
         retryable: true,
         receiptHashes: agreement.receiptHashes,
+        rejectedReceiptHashes: agreement.rejectedReceiptHashes,
+        failedAssignmentIds: agreement.failedAssignmentIds,
         rejectedProviderIds,
         agreement,
         verifierDecision: { accepted: false, reasons: [agreement.reason], verifiedAt: new Date().toISOString(), agreement }
       });
     } else {
       await store.updateJob(assignment.jobId, {
-        status: 'awaiting_redundant_receipts',
+        status: statusForPendingAgreement(agreement),
         receiptHashes: agreement.receiptHashes,
+        rejectedReceiptHashes: agreement.rejectedReceiptHashes,
+        failedAssignmentIds: agreement.failedAssignmentIds,
         agreement
       });
     }
@@ -532,7 +598,7 @@ export function createPoolRouter({ store = poolStore, verifyAuthToken = null, re
     if (!requireBoundRole(req, res, 'provider', assignment.providerId)) return null;
     const policy = getPolicy(assignment.policyId);
     if (!policy) return res.status(400).json({ error: 'assignment policy is no longer supported' });
-    if (assignment.status !== 'assigned' && assignment.status !== 'running') {
+    if (!activeAssignmentStatuses.has(assignment.status)) {
       return res.status(409).json({
         error: 'assignment is not active',
         assignmentStatus: assignment.status,
@@ -540,7 +606,24 @@ export function createPoolRouter({ store = poolStore, verifyAuthToken = null, re
       });
     }
     const assignmentJob = await store.getJob(assignment.jobId);
-    if (assignmentJob?.status === 'accepted' || assignmentJob?.status === 'acceptance_processing' || assignmentJob?.status === 'rejected_by_requester') {
+    if (!assignmentJob) return res.status(404).json({ error: 'job not found', jobId: assignment.jobId });
+    if (!assignmentMatchesCurrentJobAttempt(assignment, assignmentJob)) {
+      await store.updateAssignment(assignment.assignmentId, {
+        status: 'stale',
+        staleReason: 'assignment_attempt_mismatch',
+        staleAt: new Date().toISOString()
+      });
+      await store.setProviderStatus(assignment.providerId, 'available');
+      return res.status(409).json({
+        error: 'assignment does not match current job attempt',
+        assignmentId: assignment.assignmentId,
+        assignmentAttemptId: assignment.assignmentAttemptId || null,
+        currentAssignmentAttemptId: assignmentJob.assignmentAttemptId || null,
+        ringAttemptId: assignment.ringAttemptId || null,
+        currentRingAttemptId: assignmentJob.ringAttemptId || null
+      });
+    }
+    if (finalizedJobStatuses.has(assignmentJob.status)) {
       return res.status(409).json({
         error: 'job is already finalized',
         jobId: assignment.jobId,
@@ -565,6 +648,9 @@ export function createPoolRouter({ store = poolStore, verifyAuthToken = null, re
       jobId: assignment.jobId,
       providerId: assignment.providerId,
       requesterId: assignment.requesterId,
+      assignmentAttemptId: assignment.assignmentAttemptId || null,
+      ringAttemptId: assignment.ringAttemptId || null,
+      effectiveTrustTier: assignment.ring?.effectiveTrustTier || assignment.trustTier || assignmentJob.effectiveTrustTier || assignmentJob.trustTier || null,
       outputText,
       tokenIds,
       transcript,
@@ -579,18 +665,40 @@ export function createPoolRouter({ store = poolStore, verifyAuthToken = null, re
     await store.setProviderStatus(assignment.providerId, 'available');
 
     let routeDecision = null;
+    if (assignmentJob.agreement?.status === 'accepted') {
+      if (!decision.accepted) {
+        await recordRejectedReceipt({
+          store,
+          providerId: assignment.providerId,
+          reasons: decision.reasons
+        });
+        await penalizeProvider({
+          store,
+          providerId: assignment.providerId,
+          requesterId: assignment.requesterId,
+          receiptHash: decision.receiptHash,
+          assignmentId: assignment.assignmentId,
+          reason: 'late_non_quorum_receipt_rejected',
+          points: -1,
+          evidence: { reasons: decision.reasons, agreement: assignmentJob.agreement }
+        });
+      }
+      routeDecision = {
+        mode: decision.accepted ? 'late_non_quorum_receipt_ignored' : 'late_non_quorum_receipt_rejected',
+        agreement: assignmentJob.agreement
+      };
+      return res.status(decision.accepted ? 409 : 400).json({ receipt: receiptRecord, verifierDecision: decision, routeDecision });
+    }
+
     if (!decision.accepted) {
       const currentJob = await store.getJob(assignment.jobId);
+      const rejectedProviderIds = Array.from(new Set([
+        ...(Array.isArray(currentJob?.rejectedProviderIds) ? currentJob.rejectedProviderIds : []),
+        assignment.providerId
+      ].filter(Boolean)));
       await store.updateJob(assignment.jobId, {
-        status: 'receipt_rejected',
         receiptHash: decision.receiptHash,
-        outputText,
-        verifierDecision: decision,
-        retryable: true,
-        rejectedProviderIds: Array.from(new Set([
-          ...(Array.isArray(currentJob?.rejectedProviderIds) ? currentJob.rejectedProviderIds : []),
-          assignment.providerId
-        ].filter(Boolean)))
+        rejectedProviderIds
       });
       await recordRejectedReceipt({
         store,
@@ -607,10 +715,53 @@ export function createPoolRouter({ store = poolStore, verifyAuthToken = null, re
         points: -1,
         evidence: { reasons: decision.reasons }
       });
-      routeDecision = {
-        mode: 'receipt_rejected',
-        reassignment: { drained: (await assignQueuedJobs({ store })).length }
-      };
+      const refreshedJob = await store.getJob(assignment.jobId);
+      if (Number(refreshedJob?.agreement?.requiredAgreement || policy.redundancy || 1) > 1) {
+        const agreement = await evaluateAgreement({ store, job: refreshedJob, policy });
+        if (agreement.status === 'rejected') {
+          await store.updateJob(assignment.jobId, {
+            status: statusForRejectedAgreement(agreement),
+            reason: agreement.reason,
+            retryable: true,
+            receiptHashes: agreement.receiptHashes,
+            rejectedReceiptHashes: agreement.rejectedReceiptHashes,
+            failedAssignmentIds: agreement.failedAssignmentIds,
+            agreement,
+            verifierDecision: { accepted: false, reasons: [agreement.reason], verifiedAt: new Date().toISOString(), agreement }
+          });
+          routeDecision = {
+            mode: agreement.mode,
+            agreement,
+            reassignment: { drained: (await assignQueuedJobs({ store })).length }
+          };
+        } else {
+          await store.updateJob(assignment.jobId, {
+            status: statusForPendingAgreement(agreement),
+            retryable: false,
+            receiptHashes: agreement.receiptHashes,
+            rejectedReceiptHashes: agreement.rejectedReceiptHashes,
+            failedAssignmentIds: agreement.failedAssignmentIds,
+            agreement
+          });
+          routeDecision = {
+            mode: agreement.mode,
+            agreement,
+            reassignment: { drained: 0 }
+          };
+        }
+      } else {
+        await store.updateJob(assignment.jobId, {
+          status: 'receipt_rejected',
+          outputText,
+          verifierDecision: decision,
+          retryable: true,
+          rejectedProviderIds
+        });
+        routeDecision = {
+          mode: 'receipt_rejected',
+          reassignment: { drained: (await assignQueuedJobs({ store })).length }
+        };
+      }
     } else {
       routeDecision = await updateJobAfterVerifiedReceipt({ store, assignment, receiptRecord, policy });
     }
@@ -621,22 +772,43 @@ export function createPoolRouter({ store = poolStore, verifyAuthToken = null, re
     const assignment = await store.getAssignment(req.params.assignmentId);
     if (!assignment) return res.status(404).json({ error: 'assignment not found' });
     if (!requireBoundRole(req, res, 'provider', assignment.providerId)) return null;
-    if (assignment.status !== 'assigned' && assignment.status !== 'running') {
+    if (!activeAssignmentStatuses.has(assignment.status)) {
       return res.status(409).json({
         error: 'assignment is not active',
         assignmentStatus: assignment.status,
         assignmentId: assignment.assignmentId
       });
     }
+    const currentJob = await store.getJob(assignment.jobId);
+    if (!currentJob) return res.status(404).json({ error: 'job not found', jobId: assignment.jobId });
+    if (!assignmentMatchesCurrentJobAttempt(assignment, currentJob)) {
+      await store.updateAssignment(assignment.assignmentId, {
+        status: 'stale',
+        staleReason: 'assignment_attempt_mismatch',
+        staleAt: new Date().toISOString()
+      });
+      await store.setProviderStatus(assignment.providerId, 'available');
+      return res.status(409).json({
+        error: 'assignment does not match current job attempt',
+        assignmentId: assignment.assignmentId,
+        assignmentAttemptId: assignment.assignmentAttemptId || null,
+        currentAssignmentAttemptId: currentJob.assignmentAttemptId || null,
+        ringAttemptId: assignment.ringAttemptId || null,
+        currentRingAttemptId: currentJob.ringAttemptId || null
+      });
+    }
     const reason = String(req.body?.reason || 'provider_execution_failed').slice(0, 300);
     const providerFault = req.body?.providerFault !== false;
-    const currentJob = await store.getJob(assignment.jobId);
     const rejectedProviderIds = providerFault
       ? Array.from(new Set([
         ...(Array.isArray(currentJob?.rejectedProviderIds) ? currentJob.rejectedProviderIds : []),
         assignment.providerId
       ].filter(Boolean)))
       : (Array.isArray(currentJob?.rejectedProviderIds) ? currentJob.rejectedProviderIds : []);
+    const failedAssignmentIds = Array.from(new Set([
+      ...(Array.isArray(currentJob?.failedAssignmentIds) ? currentJob.failedAssignmentIds : []),
+      assignment.assignmentId
+    ].filter(Boolean)));
     await store.updateAssignment(assignment.assignmentId, {
       status: 'failed',
       failureReason: reason,
@@ -644,10 +816,8 @@ export function createPoolRouter({ store = poolStore, verifyAuthToken = null, re
       failedAt: new Date().toISOString()
     });
     await store.updateJob(assignment.jobId, {
-      status: 'failed',
-      reason,
-      retryable: true,
       rejectedProviderIds,
+      failedAssignmentIds,
       providerFailure: {
         providerId: assignment.providerId,
         assignmentId: assignment.assignmentId,
@@ -674,12 +844,53 @@ export function createPoolRouter({ store = poolStore, verifyAuthToken = null, re
         evidence: { reason }
       });
     }
-    const reassignment = await assignQueuedJobs({ store });
+    const refreshedJob = await store.getJob(assignment.jobId);
+    let routeDecision = null;
+    let reassignment = [];
+    const policy = getPolicy(assignment.policyId);
+    if (policy && Number(refreshedJob?.agreement?.requiredAgreement || policy.redundancy || 1) > 1) {
+      const agreement = await evaluateAgreement({ store, job: refreshedJob, policy });
+      if (agreement.status === 'rejected') {
+        await store.updateJob(assignment.jobId, {
+          status: statusForRejectedAgreement(agreement),
+          reason: agreement.reason,
+          retryable: true,
+          receiptHashes: agreement.receiptHashes,
+          rejectedReceiptHashes: agreement.rejectedReceiptHashes,
+          failedAssignmentIds: agreement.failedAssignmentIds,
+          agreement,
+          verifierDecision: { accepted: false, reasons: [agreement.reason], verifiedAt: new Date().toISOString(), agreement }
+        });
+        reassignment = await assignQueuedJobs({ store });
+      } else {
+        await store.updateJob(assignment.jobId, {
+          status: statusForPendingAgreement(agreement),
+          reason,
+          retryable: false,
+          receiptHashes: agreement.receiptHashes,
+          rejectedReceiptHashes: agreement.rejectedReceiptHashes,
+          failedAssignmentIds: agreement.failedAssignmentIds,
+          agreement
+        });
+      }
+      routeDecision = { mode: agreement.mode, agreement };
+    } else {
+      await store.updateJob(assignment.jobId, {
+        status: 'failed',
+        reason,
+        retryable: true,
+        rejectedProviderIds,
+        failedAssignmentIds
+      });
+      reassignment = await assignQueuedJobs({ store });
+      routeDecision = { mode: 'provider_execution_failed' };
+    }
     return res.json({
       assignment: await store.getAssignment(assignment.assignmentId),
       job: await store.getJob(assignment.jobId),
       reputation,
       penalty,
+      routeDecision,
       reassignment: { drained: reassignment.length }
     });
   }));
@@ -767,14 +978,14 @@ export function createPoolRouter({ store = poolStore, verifyAuthToken = null, re
         receiptRecord: agreedRecord,
         acceptance,
         multiplier,
-        reason: receiptHashes.length > 1 ? 'redundant_agreement_accepted' : 'accepted_receipt'
+        reason: acceptedLedgerReasonForJob(job, receiptHashes.length)
       });
       const reputation = await recordAcceptedReceipt({
         store,
         providerId: agreedRecord.providerId,
         points: ledgerEvent.points
       });
-      await store.saveReceipt(receiptHash, {
+      await store.saveReceipt(agreedRecord.receiptHash, {
         ...agreedRecord,
         requesterAcceptance: acceptance,
         ledgerEvent,
@@ -790,7 +1001,7 @@ export function createPoolRouter({ store = poolStore, verifyAuthToken = null, re
       receiptHashes,
       points: totalProviderPoints,
       acceptance,
-      reason: receiptHashes.length > 1 ? 'redundant_agreement_spend' : 'accepted_receipt_spend'
+      reason: spendLedgerReasonForJob(job, receiptHashes.length)
     });
     await store.updateJob(receiptRecord.jobId, {
       status: 'accepted',
