@@ -2,7 +2,7 @@
  * @fileoverview Launch model identity contract from canonical pool config.
  */
 
-import { LAUNCH_MODEL, MODEL_CATALOG } from './config.js';
+import { BROWSER_RUNTIME_CONFIG, LAUNCH_MODEL, MODEL_CATALOG } from './config.js';
 
 export { LAUNCH_MODEL, MODEL_CATALOG };
 
@@ -33,7 +33,10 @@ export const LAUNCH_MODEL_ARTIFACT_PATHS = Object.freeze({
   shards: replaceModelPathTokens(LAUNCH_MODEL.artifactPolicy?.paths?.shards)
 });
 
-export function buildLaunchModelArtifactUrls({ baseUrl = globalThis.REPLOID_POOL_MODEL_BASE_URL || '', paths = LAUNCH_MODEL_ARTIFACT_PATHS } = {}) {
+export function buildLaunchModelArtifactUrls({
+  baseUrl = globalThis.REPLOID_POOL_MODEL_BASE_URL || BROWSER_RUNTIME_CONFIG.modelBaseUrl || '',
+  paths = LAUNCH_MODEL_ARTIFACT_PATHS
+} = {}) {
   const normalizedBase = String(baseUrl || '').replace(/\/+$/, '');
   const join = (path) => normalizedBase ? `${normalizedBase}/${path}` : path;
   return {

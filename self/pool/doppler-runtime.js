@@ -8,6 +8,7 @@
 
 import { hashJson } from './inference-receipt.js';
 import { collectRuntimeProfile } from './runtime-profile.js';
+import { BROWSER_RUNTIME_CONFIG } from './config.js';
 
 const DOPPLER_IMPORTS = Object.freeze([
   '@simulatte/doppler',
@@ -37,6 +38,7 @@ const configuredDopplerModuleCandidates = () => {
   const configured = globalThis.REPLOID_DOPPLER_MODULE_URLS || globalThis.REPLOID_DOPPLER_MODULE_URL;
   if (Array.isArray(configured)) candidates.push(...configured);
   else if (configured) candidates.push(configured);
+  if (BROWSER_RUNTIME_CONFIG.dopplerModuleUrl) candidates.push(BROWSER_RUNTIME_CONFIG.dopplerModuleUrl);
   candidates.push(...DOPPLER_IMPORTS);
   return candidates;
 };
@@ -303,6 +305,15 @@ const getDopplerLoadInput = (model = {}) => {
   return model.modelId || model.id || model;
 };
 
+const getConfiguredLoadOptions = (model = {}) => ({
+  ...(BROWSER_RUNTIME_CONFIG.loadOptions || {}),
+  ...(globalThis.REPLOID_POOL_MODEL_BASE_URL || BROWSER_RUNTIME_CONFIG.modelBaseUrl
+    ? { modelBaseUrl: globalThis.REPLOID_POOL_MODEL_BASE_URL || BROWSER_RUNTIME_CONFIG.modelBaseUrl }
+    : {}),
+  ...(globalThis.REPLOID_DOPPLER_LOAD_OPTIONS || {}),
+  ...(model.loadOptions || {})
+});
+
 const positiveIntegerOrUndefined = (value) => {
   const number = Number(value);
   return Number.isInteger(number) && number > 0 ? number : undefined;
@@ -440,10 +451,7 @@ export function createDopplerRuntime({ modelSession = null, model = null, runtim
             reason: 'Public Doppler module does not expose load or loadModel'
           };
         }
-        const loadOptions = {
-          ...(globalThis.REPLOID_DOPPLER_LOAD_OPTIONS || {}),
-          ...(nextModel.loadOptions || {})
-        };
+        const loadOptions = getConfiguredLoadOptions(nextModel);
         const result = await loader(getDopplerLoadInput(nextModel), loadOptions);
         const handle = pickHandle(result);
         return await attachHandle(handle, nextModel, runtimeInfo);

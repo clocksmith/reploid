@@ -375,6 +375,7 @@ async function handleModuleRequest(request, url, event) {
 // Handle messages from main thread
 self.addEventListener('message', (event) => {
   const { type, data } = event.data || {};
+  if (!type) return;
 
   switch (type) {
     case 'REGISTER_INSTANCE': {
