@@ -47,8 +47,26 @@ const importDopplerCandidate = async (candidate) => {
   if (candidate && typeof candidate === 'object') return candidate;
   const specifier = String(candidate || '').trim();
   if (!specifier) throw new Error('empty Doppler module specifier');
+  disableNodeQuickstartCacheForBrowser();
   if (isBrowserResolvableSpecifier(specifier)) return import(specifier);
   return import(specifier);
+};
+
+const disableNodeQuickstartCacheForBrowser = () => {
+  if (typeof window === 'undefined' || typeof document === 'undefined') return;
+  const current = globalThis.process;
+  if (current && typeof current === 'object') {
+    current.env = {
+      ...(current.env || {}),
+      DOPPLER_QUICKSTART_CACHE: 'false'
+    };
+    return;
+  }
+  globalThis.process = {
+    env: {
+      DOPPLER_QUICKSTART_CACHE: 'false'
+    }
+  };
 };
 
 const hasWebGpu = () => !!globalThis.navigator?.gpu;

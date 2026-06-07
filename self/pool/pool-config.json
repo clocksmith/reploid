@@ -125,7 +125,7 @@
     "seed": "0000000000000000"
   },
   "browserRuntime": {
-    "dopplerModuleUrl": "https://esm.sh/doppler-gpu@0.4.3?bundle",
+    "dopplerModuleUrl": "https://esm.sh/doppler-gpu@0.4.3/src/client/doppler-api.browser.js?bundle",
     "modelBaseUrl": "https://reploid.web.app/models",
     "loadOptions": {
       "cache": "opfs"
