@@ -1,30 +1,28 @@
 /**
- * @fileoverview Launch model identity contract for the fastest-receipt pool.
+ * @fileoverview Launch model identity contract from canonical pool config.
  */
 
-export const LAUNCH_MODEL = Object.freeze({
-  modelId: 'gemma-3-270m-it-q4k-ehf16-af32',
-  modelHash: 'sha256:b55fde5809dbc198f880b08af21e40e3175a6d2f9f88a9fad59fa0afd7190dc9',
-  manifestHash: 'sha256:abac153d8cee1b6cc4fd2743defa84b91f67b3d030af028bbd5ed8ba8cabee6b',
-  contextLength: 32768,
-  quantization: 'q4k',
-  runtime: 'doppler',
-  backend: 'browser-webgpu',
-  dopplerLoadRef: 'gemma3-270m'
-});
+import { LAUNCH_MODEL } from './config.js';
+
+export { LAUNCH_MODEL };
+
+const replaceModelPathTokens = (template, model = LAUNCH_MODEL) => String(template || '')
+  .replace(/<modelId>/g, model.modelId)
+  .replace(/<manifestHash>/g, model.manifestHash)
+  .replace(/<modelHash>/g, model.modelHash);
 
 export const LAUNCH_MODEL_ARTIFACT_PATHS = Object.freeze({
-  manifest: `${LAUNCH_MODEL.modelId}/${LAUNCH_MODEL.manifestHash}/manifest.json`,
-  tokenizer: `${LAUNCH_MODEL.modelId}/${LAUNCH_MODEL.manifestHash}/tokenizer.json`,
-  shards: `${LAUNCH_MODEL.modelId}/${LAUNCH_MODEL.manifestHash}/shards/`
+  manifest: replaceModelPathTokens(LAUNCH_MODEL.artifactPolicy?.paths?.manifest),
+  tokenizer: replaceModelPathTokens(LAUNCH_MODEL.artifactPolicy?.paths?.tokenizer),
+  shards: replaceModelPathTokens(LAUNCH_MODEL.artifactPolicy?.paths?.shards)
 });
 
 export function buildLaunchModelArtifactUrls({ baseUrl = globalThis.REPLOID_POOL_MODEL_BASE_URL || '', paths = LAUNCH_MODEL_ARTIFACT_PATHS } = {}) {
   const normalizedBase = String(baseUrl || '').replace(/\/+$/, '');
   const join = (path) => normalizedBase ? `${normalizedBase}/${path}` : path;
   return {
-    transport: 'offloaded_content_addressed',
-    cache: 'browser_opfs',
+    transport: LAUNCH_MODEL.artifactPolicy?.transport || 'offloaded_content_addressed',
+    cache: LAUNCH_MODEL.artifactPolicy?.cache || 'browser_opfs',
     manifestUrl: join(paths.manifest),
     tokenizerUrl: join(paths.tokenizer),
     shardBaseUrl: join(paths.shards)

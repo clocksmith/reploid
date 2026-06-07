@@ -1,105 +1,30 @@
 /**
- * @fileoverview Fixed policy contracts for the Reploid browser inference pool.
+ * @fileoverview Browser policy contract from canonical pool config.
  */
 
-import { LAUNCH_MODEL, isLaunchModelRequirement } from './model-contract.js';
+import {
+  DETERMINISTIC_GENERATION_CONFIG,
+  FASTEST_RECEIPT_POLICY_ID,
+  LAUNCH_POLICIES,
+  POLICY_IDS,
+  getPolicy,
+  listPolicies
+} from './config.js';
+import { isLaunchModelRequirement } from './model-contract.js';
 
-export const POLICY_IDS = Object.freeze({
-  fastestReceipt: 'fastest_receipt',
-  canaryAudited: 'canary_audited',
-  redundantAgreement: 'redundant_agreement',
-  ringQuorumReceipt: 'ring_quorum_receipt'
-});
+export {
+  DETERMINISTIC_GENERATION_CONFIG,
+  FASTEST_RECEIPT_POLICY_ID,
+  LAUNCH_POLICIES,
+  POLICY_IDS,
+  getPolicy,
+  listPolicies
+};
 
-export const FASTEST_RECEIPT_POLICY_ID = POLICY_IDS.fastestReceipt;
-
-export const DETERMINISTIC_GENERATION_CONFIG = Object.freeze({
-  mode: 'greedy',
-  temperature: 0,
-  topK: 1,
-  topP: 1,
-  maxOutputTokens: 128,
-  seed: '0000000000000000'
-});
-
-const BASE_POLICY = Object.freeze({
-  allowedModels: [LAUNCH_MODEL.modelId],
-  minProviderReputation: 0,
-  maxQueueDepth: 100,
-  maxInputTokens: 1024,
-  maxOutputTokens: 128,
-  requireProgramBundle: false,
-  allowFallbackModel: false,
-  allowServerProvider: false,
-  allowBrowserProvider: true,
-  pointCostMultiplier: 1,
-  deterministicGenerationConfig: DETERMINISTIC_GENERATION_CONFIG
-});
-
-export const FASTEST_RECEIPT_POLICY = Object.freeze({
-  ...BASE_POLICY,
-  policyId: POLICY_IDS.fastestReceipt,
-  trustTier: 'T1_signed_receipt',
-  verificationLevel: 'signed_receipt',
-  redundancy: 1,
-  requireCanaryEligibleProvider: false
-});
-
-export const CANARY_AUDITED_POLICY = Object.freeze({
-  ...BASE_POLICY,
-  policyId: POLICY_IDS.canaryAudited,
-  trustTier: 'T2_canary_audited',
-  verificationLevel: 'canary_audited',
-  redundancy: 1,
-  requireCanaryEligibleProvider: true,
-  minPassedCanaries: 1
-});
-
-export const REDUNDANT_AGREEMENT_POLICY = Object.freeze({
-  ...BASE_POLICY,
-  policyId: POLICY_IDS.redundantAgreement,
-  trustTier: 'T3_redundant_agreement',
-  verificationLevel: 'redundant_agreement',
-  redundancy: 2,
-  requireCanaryEligibleProvider: false,
-  requireMatchingOutputHash: true,
-  requireMatchingTokenIdsHash: true
-});
-
-export const RING_QUORUM_RECEIPT_POLICY = Object.freeze({
-  ...BASE_POLICY,
-  policyId: POLICY_IDS.ringQuorumReceipt,
-  trustTier: 'T4_ring_quorum_receipt',
-  verificationLevel: 'ring_quorum_receipt',
-  redundancy: 1,
-  adaptiveRing: true,
-  minRingSize: 1,
-  maxRingSize: 4,
-  quorum: 'majority',
-  agreementField: 'tokenIdsHash',
-  requireCanaryEligibleProvider: false,
-  requireMatchingOutputHash: true,
-  requireMatchingTokenIdsHash: true,
-  requireProviderSignatures: true,
-  requireRingCommitment: true,
-  requireDeterministicGeneration: true,
-  requireExactModelIdentity: true
-});
-
-export const LAUNCH_POLICIES = Object.freeze({
-  [POLICY_IDS.fastestReceipt]: FASTEST_RECEIPT_POLICY,
-  [POLICY_IDS.canaryAudited]: CANARY_AUDITED_POLICY,
-  [POLICY_IDS.redundantAgreement]: REDUNDANT_AGREEMENT_POLICY,
-  [POLICY_IDS.ringQuorumReceipt]: RING_QUORUM_RECEIPT_POLICY
-});
-
-export function getPolicy(policyId = FASTEST_RECEIPT_POLICY_ID) {
-  return LAUNCH_POLICIES[policyId] || null;
-}
-
-export function listPolicies() {
-  return Object.values(LAUNCH_POLICIES);
-}
+export const FASTEST_RECEIPT_POLICY = LAUNCH_POLICIES[POLICY_IDS.fastestReceipt];
+export const CANARY_AUDITED_POLICY = LAUNCH_POLICIES[POLICY_IDS.canaryAudited];
+export const REDUNDANT_AGREEMENT_POLICY = LAUNCH_POLICIES[POLICY_IDS.redundantAgreement];
+export const RING_QUORUM_RECEIPT_POLICY = LAUNCH_POLICIES[POLICY_IDS.ringQuorumReceipt];
 
 export function validateDeterministicGenerationConfig(config = {}) {
   const reasons = [];
@@ -141,9 +66,10 @@ export function describePolicy(policyId = FASTEST_RECEIPT_POLICY_ID) {
   return {
     policyId: policy.policyId,
     trustTier: policy.trustTier,
+    policyTrustTier: policy.policyTrustTier || policy.trustTier,
     launch: true,
     allowedModels: policy.allowedModels,
-    deterministicGenerationConfig: policy.deterministicGenerationConfig,
+    deterministicGenerationConfig: DETERMINISTIC_GENERATION_CONFIG,
     redundancy: policy.redundancy,
     summary: policy.adaptiveRing
       ? 'One to four eligible browser providers run the same deterministic assignment in a coordinator-ordered ring; majority matching token/output hashes form the accepted ring receipt.'

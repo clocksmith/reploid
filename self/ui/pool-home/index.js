@@ -94,14 +94,57 @@ const escapeHtml = (value) => String(value || '')
 
 const getRouteId = () => PRODUCT_ROUTES[window.location.pathname] || 'home';
 
+const firstPresent = (...values) => values.find((value) => value !== undefined && value !== null && value !== '');
+
+const compactHash = (value) => {
+  const normalized = String(value || '');
+  if (normalized.length <= 24) return normalized;
+  return `${normalized.slice(0, 16)}...${normalized.slice(-8)}`;
+};
+
+const extractResultSummary = (value = {}) => {
+  const job = value.job || value;
+  const record = value.receipt || value.record || value;
+  const receipt = record.receipt || value.receipt?.receipt || value.receipt || {};
+  const verifier = record.verifierDecision || value.verifierDecision || value.localVerification || null;
+  const acceptance = record.requesterAcceptance || value.requesterAcceptance || value.acceptance || null;
+  const agreement = job.agreement || acceptance?.agreement || value.agreement || null;
+  const ring = receipt?.verification?.ring || job.ring || agreement?.ring || null;
+  const fields = [
+    ['Job', firstPresent(job.jobId, record.jobId, receipt.jobId)],
+    ['Receipt', firstPresent(job.receiptHash, record.receiptHash, verifier?.receiptHash, acceptance?.receiptHash)],
+    ['Status', firstPresent(job.status, agreement?.status, verifier?.accepted === true ? 'accepted' : verifier?.accepted === false ? 'rejected' : null)],
+    ['Trust', firstPresent(job.trustTier, job.effectiveTrustTier, agreement?.effectiveTrustTier, ring?.effectiveTrustTier, receipt?.trustTier)],
+    ['Agreement', agreement ? `${agreement.status || 'pending'} ${Number(agreement.requiredAgreement || agreement.requiredProviders || 1)}-of-${Number(agreement.providerCount || agreement.providerIds?.length || 1)}` : null],
+    ['Spend', firstPresent(acceptance?.pointSpend, value.pointSpend)],
+    ['Runtime', firstPresent(receipt?.verification?.runtimeProfileHash, job.runtimeProfileHash, record.runtimeProfileHash)],
+    ['Output', firstPresent(receipt?.outputHash, record.outputHash, job.outputHash)],
+    ['Tokens', firstPresent(receipt?.tokenIdsHash, record.tokenIdsHash, job.tokenIdsHash)],
+    ['Verifier', verifier ? (verifier.ok === true || verifier.accepted === true ? 'accepted' : verifier.reasons?.length ? verifier.reasons.join('; ') : 'rejected') : null]
+  ].filter(([, fieldValue]) => fieldValue !== undefined && fieldValue !== null && fieldValue !== '');
+  return fields.slice(0, 10);
+};
+
+const renderSummaryRows = (summary) => summary.map(([label, value]) => `
+  <span class="pool-summary-item">
+    <span class="rgr-status-label">${escapeHtml(label)}</span>
+    <span class="rgr-status-value">${escapeHtml(compactHash(value))}</span>
+  </span>
+`).join('');
+
 const renderResultBox = (id) => `
+  <div class="boot-status-strip pool-summary" id="${id}-summary" aria-live="polite"></div>
   <pre class="pool-result" id="${id}" aria-live="polite">{}</pre>
 `;
 
 const setResult = (id, value) => {
   const el = document.getElementById(id);
-  if (!el) return;
-  el.textContent = JSON.stringify(value, null, 2);
+  const summaryEl = document.getElementById(`${id}-summary`);
+  if (summaryEl) {
+    const summary = value && typeof value === 'object' ? extractResultSummary(value) : [];
+    summaryEl.innerHTML = summary.length > 0 ? renderSummaryRows(summary) : '';
+  }
+  if (el) el.textContent = JSON.stringify(value, null, 2);
 };
 
 const renderNav = (activeRoute) => {
@@ -118,7 +161,7 @@ const renderNav = (activeRoute) => {
     <nav class="pool-nav" aria-label="Product navigation">
       ${items.map(([href, label]) => {
         const isActive = href === window.location.pathname || (href === '/' && activeRoute === 'home');
-        return `<a class="pool-nav-link${isActive ? ' active' : ''}" href="${href}">${escapeHtml(label)}</a>`;
+        return `<a class="btn btn-ghost pool-nav-link${isActive ? ' active' : ''}" href="${href}">${escapeHtml(label)}</a>`;
       }).join('')}
     </nav>
   `;
@@ -143,8 +186,8 @@ const renderPolicyOptions = () => listPolicies().map((policy) => `
 const renderFlowCards = () => `
   <section class="pool-card-grid" aria-label="Critical journeys">
     ${FLOW_CARDS.map((card) => `
-      <a class="pool-card" href="${card.href}">
-        <span class="pool-card-label">${escapeHtml(card.label)}</span>
+      <a class="card pool-card" href="${card.href}">
+        <span class="badge pool-card-label">${escapeHtml(card.label)}</span>
         <strong>${escapeHtml(card.title)}</strong>
         <span>${escapeHtml(card.body)}</span>
       </a>
@@ -163,13 +206,13 @@ const renderRoutePanel = (routeId) => {
         <h1 class="type-h1">${escapeHtml(copy.title)}</h1>
         <p class="type-caption pool-hero-body">${escapeHtml(copy.body)}</p>
         <div class="pool-actions">
-          <a class="button-primary" href="${primaryHref}">${primaryLabel}</a>
-          <a class="button-secondary" href="/contribute">Contribute compute</a>
-          <a class="button-secondary" href="/receipts">Inspect receipts</a>
+          <a class="btn btn-primary" href="${primaryHref}">${primaryLabel}</a>
+          <a class="btn btn-ghost" href="/contribute">Contribute compute</a>
+          <a class="btn btn-ghost" href="/receipts">Inspect receipts</a>
         </div>
       </div>
-      <div class="pool-proof-card" aria-label="Receipt fields">
-        <span class="pool-card-label">Pool receipt</span>
+      <div class="card pool-proof-card" aria-label="Receipt fields">
+        <span class="badge pool-card-label">Pool receipt</span>
         <code>assignmentId</code>
         <code>policyId</code>
         <code>modelHash</code>
@@ -186,7 +229,7 @@ const renderRoutePanel = (routeId) => {
 const renderRouteDetail = (routeId) => {
   if (routeId === 'run') {
     return `
-      <section class="pool-panel">
+      <section class="panel pool-panel">
         <h2 class="type-h2">Requester journey</h2>
         <p class="type-caption">Prompt submission, fastest_receipt display, assignment tracking, receipt verification, requester acceptance, and point spend belong here.</p>
         <div class="pool-form" data-pool-run>
@@ -202,10 +245,10 @@ const renderRouteDetail = (routeId) => {
             <span>Max point spend</span>
             <input id="pool-run-max-spend" type="number" min="0" step="1" placeholder="optional" />
           </label>
-          <button class="button-primary" id="pool-run-submit" type="button">Submit policy-routed job</button>
-          <button class="button-secondary" id="pool-run-poll" type="button">Poll job</button>
-          <button class="button-secondary" id="pool-run-accept" type="button">Accept receipt</button>
-          <button class="button-secondary" id="pool-run-reject" type="button">Reject receipt</button>
+          <button class="btn btn-primary" id="pool-run-submit" type="button">Submit policy-routed job</button>
+          <button class="btn btn-ghost" id="pool-run-poll" type="button">Poll job</button>
+          <button class="btn btn-ghost" id="pool-run-accept" type="button">Accept receipt</button>
+          <button class="btn btn-ghost" id="pool-run-reject" type="button">Reject receipt</button>
           ${renderResultBox('pool-run-result')}
         </div>
       </section>
@@ -213,7 +256,7 @@ const renderRouteDetail = (routeId) => {
   }
   if (routeId === 'contribute') {
     return `
-      <section class="pool-panel">
+      <section class="panel pool-panel">
         <h2 class="type-h2">Provider journey</h2>
         <p class="type-caption">WebGPU capability check, Doppler model load, provider registration, assignment listener, signed receipt submission, points, reputation, and audit status belong here.</p>
         <div class="pool-form" data-pool-provider>
@@ -221,15 +264,16 @@ const renderRouteDetail = (routeId) => {
             <span>Model id</span>
             <input id="pool-provider-model" value="${escapeHtml(LAUNCH_MODEL.modelId)}" />
           </label>
-          <button class="button-secondary" id="pool-provider-load" type="button">Load Doppler model</button>
-          <button class="button-primary" id="pool-provider-register" type="button">Register browser provider</button>
-          <button class="button-secondary" id="pool-provider-next" type="button">Poll assignment</button>
-          <button class="button-secondary" id="pool-provider-execute" type="button">Execute assignment</button>
-          <button class="button-secondary" id="pool-provider-step" type="button">Run provider step</button>
-          <button class="button-primary" id="pool-provider-worker-start" type="button">Start provider worker</button>
-          <button class="button-secondary" id="pool-provider-worker-stop" type="button" disabled>Stop provider worker</button>
-          <button class="button-secondary" id="pool-provider-points" type="button">Provider points</button>
-          <button class="button-secondary" id="pool-provider-reputation" type="button">Provider reputation</button>
+          <button class="btn btn-ghost" id="pool-provider-load" type="button">Load Doppler model</button>
+          <button class="btn btn-ghost" id="pool-provider-profile" type="button">Runtime profile</button>
+          <button class="btn btn-primary" id="pool-provider-register" type="button">Register browser provider</button>
+          <button class="btn btn-ghost" id="pool-provider-next" type="button">Poll assignment</button>
+          <button class="btn btn-ghost" id="pool-provider-execute" type="button">Execute assignment</button>
+          <button class="btn btn-ghost" id="pool-provider-step" type="button">Run provider step</button>
+          <button class="btn btn-primary" id="pool-provider-worker-start" type="button">Start provider worker</button>
+          <button class="btn btn-ghost" id="pool-provider-worker-stop" type="button" disabled>Stop provider worker</button>
+          <button class="btn btn-ghost" id="pool-provider-points" type="button">Provider points</button>
+          <button class="btn btn-ghost" id="pool-provider-reputation" type="button">Provider reputation</button>
           ${renderResultBox('pool-provider-result')}
         </div>
       </section>
@@ -237,7 +281,7 @@ const renderRouteDetail = (routeId) => {
   }
   if (routeId === 'agents') {
     return `
-      <section class="pool-panel">
+      <section class="panel pool-panel">
         <h2 class="type-h2">Agent journey</h2>
         <p class="type-caption">Agent point budgets, policy defaults, outstanding jobs, receipt verification logs, and spend summaries belong here.</p>
         <div class="pool-form" data-pool-agent>
@@ -253,10 +297,10 @@ const renderRouteDetail = (routeId) => {
             <span>Agent max point spend</span>
             <input id="pool-agent-max-spend" type="number" min="0" step="1" placeholder="optional" />
           </label>
-          <button class="button-primary" id="pool-agent-submit" type="button">Submit agent job</button>
-          <button class="button-secondary" id="pool-agent-poll" type="button">Poll agent job</button>
-          <button class="button-secondary" id="pool-agent-accept" type="button">Accept receipt</button>
-          <button class="button-secondary" id="pool-agent-reject" type="button">Reject receipt</button>
+          <button class="btn btn-primary" id="pool-agent-submit" type="button">Submit agent job</button>
+          <button class="btn btn-ghost" id="pool-agent-poll" type="button">Poll agent job</button>
+          <button class="btn btn-ghost" id="pool-agent-accept" type="button">Accept receipt</button>
+          <button class="btn btn-ghost" id="pool-agent-reject" type="button">Reject receipt</button>
           <code>submitJob({ policyId, prompt, modelRequirements })</code>
           <code>pollJob(jobId)</code>
           <code>verifyReceiptRecord(record)</code>
@@ -268,7 +312,7 @@ const renderRouteDetail = (routeId) => {
   }
   if (routeId === 'receipts') {
     return `
-      <section class="pool-panel">
+      <section class="panel pool-panel">
         <h2 class="type-h2">Receipt journey</h2>
         <p class="type-caption">Receipt lookup, trust tier, hashes, assignment, policy, provider, requester acceptance, verifier result, and ledger effects belong here.</p>
         <div class="pool-form" data-pool-receipts>
@@ -276,7 +320,7 @@ const renderRouteDetail = (routeId) => {
             <span>Receipt hash</span>
             <input id="pool-receipt-hash" placeholder="sha256:..." />
           </label>
-          <button class="button-primary" id="pool-receipt-lookup" type="button">Lookup receipt</button>
+          <button class="btn btn-primary" id="pool-receipt-lookup" type="button">Lookup receipt</button>
           ${renderResultBox('pool-receipt-result')}
         </div>
       </section>
@@ -284,7 +328,7 @@ const renderRouteDetail = (routeId) => {
   }
   if (routeId === 'reputation') {
     return `
-      <section class="pool-panel">
+      <section class="panel pool-panel">
         <h2 class="type-h2">Reputation journey</h2>
         <p class="type-caption">Provider score, accepted receipts, rejected work, timeouts, audit pass rate, scarce model availability, and routing eligibility belong here.</p>
         <div class="pool-form" data-pool-reputation>
@@ -292,10 +336,10 @@ const renderRouteDetail = (routeId) => {
             <span>Provider id</span>
             <input id="pool-reputation-provider" placeholder="provider_..." />
           </label>
-          <button class="button-primary" id="pool-reputation-lookup" type="button">Lookup reputation</button>
-          <button class="button-secondary" id="pool-status-lookup" type="button">Pool status</button>
-          <button class="button-secondary" id="pool-metrics-lookup" type="button">Pool metrics</button>
-          <button class="button-secondary" id="pool-deployment-check" type="button">Deployment check</button>
+          <button class="btn btn-primary" id="pool-reputation-lookup" type="button">Lookup reputation</button>
+          <button class="btn btn-ghost" id="pool-status-lookup" type="button">Pool status</button>
+          <button class="btn btn-ghost" id="pool-metrics-lookup" type="button">Pool metrics</button>
+          <button class="btn btn-ghost" id="pool-deployment-check" type="button">Deployment check</button>
           ${renderResultBox('pool-reputation-result')}
         </div>
       </section>
@@ -305,7 +349,7 @@ const renderRouteDetail = (routeId) => {
 };
 
 const renderTrustNote = () => `
-  <section class="pool-panel pool-trust-note">
+  <section class="panel pool-panel pool-trust-note">
     <h2 class="type-h2">Trust boundary</h2>
     <p class="type-caption">The launch product is receipt-backed and policy-controlled browser inference. Audit-backed and reputation-backed routing are next trust layers. It is not hardware-attested inference, trustless compute, or proof of honest browser execution.</p>
   </section>
@@ -483,6 +527,7 @@ const bindAgentControls = (sdk) => {
 
 const bindProviderControls = (sdk) => {
   const loadButton = document.getElementById('pool-provider-load');
+  const profileButton = document.getElementById('pool-provider-profile');
   const registerButton = document.getElementById('pool-provider-register');
   const nextButton = document.getElementById('pool-provider-next');
   const executeButton = document.getElementById('pool-provider-execute');
@@ -546,6 +591,19 @@ const bindProviderControls = (sdk) => {
       loadButton.disabled = false;
     }
   });
+  profileButton?.addEventListener('click', async () => {
+    profileButton.disabled = true;
+    try {
+      const runtimeProfile = typeof runtime.getRuntimeProfile === 'function'
+        ? await runtime.getRuntimeProfile()
+        : { error: 'runtime profile unavailable' };
+      setResult('pool-provider-result', runtimeProfile);
+    } catch (error) {
+      setResult('pool-provider-result', { error: error.message, payload: error.payload || null });
+    } finally {
+      profileButton.disabled = false;
+    }
+  });
   registerButton.addEventListener('click', async () => {
     registerButton.disabled = true;
     try {
@@ -554,7 +612,8 @@ const bindProviderControls = (sdk) => {
       const result = await providerClient.register({
         models: [getProviderModel()],
         device: {
-          hasWebGPU: !!navigator.gpu
+          hasWebGPU: !!navigator.gpu,
+          browserSurface: 'pool_provider_ui'
         },
         availability: {
           maxConcurrentJobs: 1,
@@ -588,7 +647,9 @@ const bindProviderControls = (sdk) => {
     }
     executeButton.disabled = true;
     try {
-      setResult('pool-provider-result', await providerClient.executeAssignment(lastAssignment));
+      setResult('pool-provider-result', await providerClient.executeAssignment(lastAssignment, {
+        commitReveal: 'auto'
+      }));
       lastAssignment = null;
     } catch (error) {
       setResult('pool-provider-result', { error: error.message, payload: error.payload || null });

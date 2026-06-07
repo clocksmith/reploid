@@ -1,103 +1,22 @@
 /**
- * @fileoverview Server-side pool policy contract.
+ * @fileoverview Server-side pool policy contract from canonical config.
  */
 
-import { LAUNCH_MODEL, isLaunchModelRequirement } from './model-contract.js';
+import {
+  DETERMINISTIC_GENERATION_CONFIG,
+  POLICIES,
+  POLICY_IDS,
+  getPolicy,
+  listPolicies
+} from './config.js';
+import { isLaunchModelRequirement } from './model-contract.js';
 
-export const POLICY_IDS = Object.freeze({
-  fastestReceipt: 'fastest_receipt',
-  canaryAudited: 'canary_audited',
-  redundantAgreement: 'redundant_agreement',
-  ringQuorumReceipt: 'ring_quorum_receipt'
-});
+export { DETERMINISTIC_GENERATION_CONFIG, POLICIES, POLICY_IDS, getPolicy, listPolicies };
 
-export const DETERMINISTIC_GENERATION_CONFIG = Object.freeze({
-  mode: 'greedy',
-  temperature: 0,
-  topK: 1,
-  topP: 1,
-  maxOutputTokens: 128,
-  seed: '0000000000000000'
-});
-
-const BASE_POLICY = Object.freeze({
-  allowedModels: [LAUNCH_MODEL.modelId],
-  minProviderReputation: 0,
-  maxQueueDepth: 100,
-  maxInputTokens: 1024,
-  maxOutputTokens: 128,
-  requireProgramBundle: false,
-  allowFallbackModel: false,
-  allowServerProvider: false,
-  allowBrowserProvider: true,
-  pointCostMultiplier: 1,
-  deterministicGenerationConfig: DETERMINISTIC_GENERATION_CONFIG
-});
-
-export const FASTEST_RECEIPT_POLICY = Object.freeze({
-  ...BASE_POLICY,
-  policyId: POLICY_IDS.fastestReceipt,
-  verificationLevel: 'signed_receipt',
-  trustTier: 'T1_signed_receipt',
-  redundancy: 1,
-  requireCanaryEligibleProvider: false
-});
-
-export const CANARY_AUDITED_POLICY = Object.freeze({
-  ...BASE_POLICY,
-  policyId: POLICY_IDS.canaryAudited,
-  verificationLevel: 'canary_audited',
-  trustTier: 'T2_canary_audited',
-  redundancy: 1,
-  requireCanaryEligibleProvider: true,
-  minPassedCanaries: 1
-});
-
-export const REDUNDANT_AGREEMENT_POLICY = Object.freeze({
-  ...BASE_POLICY,
-  policyId: POLICY_IDS.redundantAgreement,
-  verificationLevel: 'redundant_agreement',
-  trustTier: 'T3_redundant_agreement',
-  redundancy: 2,
-  requireCanaryEligibleProvider: false,
-  requireMatchingOutputHash: true,
-  requireMatchingTokenIdsHash: true
-});
-
-export const RING_QUORUM_RECEIPT_POLICY = Object.freeze({
-  ...BASE_POLICY,
-  policyId: POLICY_IDS.ringQuorumReceipt,
-  verificationLevel: 'ring_quorum_receipt',
-  trustTier: 'T4_ring_quorum_receipt',
-  redundancy: 1,
-  adaptiveRing: true,
-  minRingSize: 1,
-  maxRingSize: 4,
-  quorum: 'majority',
-  agreementField: 'tokenIdsHash',
-  requireMatchingOutputHash: true,
-  requireMatchingTokenIdsHash: true,
-  requireProviderSignatures: true,
-  requireRingCommitment: true,
-  requireDeterministicGeneration: true,
-  requireExactModelIdentity: true,
-  requireCanaryEligibleProvider: false
-});
-
-export const POLICIES = Object.freeze({
-  [POLICY_IDS.fastestReceipt]: FASTEST_RECEIPT_POLICY,
-  [POLICY_IDS.canaryAudited]: CANARY_AUDITED_POLICY,
-  [POLICY_IDS.redundantAgreement]: REDUNDANT_AGREEMENT_POLICY,
-  [POLICY_IDS.ringQuorumReceipt]: RING_QUORUM_RECEIPT_POLICY
-});
-
-export function getPolicy(policyId = POLICY_IDS.fastestReceipt) {
-  return POLICIES[policyId] || null;
-}
-
-export function listPolicies() {
-  return Object.values(POLICIES);
-}
+export const FASTEST_RECEIPT_POLICY = POLICIES[POLICY_IDS.fastestReceipt];
+export const CANARY_AUDITED_POLICY = POLICIES[POLICY_IDS.canaryAudited];
+export const REDUNDANT_AGREEMENT_POLICY = POLICIES[POLICY_IDS.redundantAgreement];
+export const RING_QUORUM_RECEIPT_POLICY = POLICIES[POLICY_IDS.ringQuorumReceipt];
 
 export function validateDeterministicGenerationConfig(config = {}) {
   const reasons = [];

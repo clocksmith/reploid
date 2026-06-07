@@ -7,6 +7,11 @@ import poolStore from './store.js';
 
 const makeId = (prefix) => `${prefix}_${crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2)}`;
 const nowIso = () => new Date().toISOString();
+const toEpochMs = (value) => {
+  if (typeof value === 'number') return value;
+  const parsed = Date.parse(value);
+  return Number.isFinite(parsed) ? parsed : null;
+};
 
 const COLLECTIONS = Object.freeze({
   providers: 'providers',
@@ -15,6 +20,9 @@ const COLLECTIONS = Object.freeze({
   assignments: 'assignments',
   receipts: 'receipts',
   receiptAcceptances: 'receipt_acceptances',
+  commitmentEvents: 'commitment_events',
+  revealEvents: 'reveal_events',
+  poolEvents: 'pool_events',
   signalingSessions: 'signaling_sessions',
   signalingMessages: 'signaling_messages',
   pointsLedger: 'points_ledger',
@@ -43,6 +51,7 @@ const defaultReputation = (providerId) => ({
 const canClaimJobForAssignment = (job = {}) => job.status === 'queued'
   || (job.retryable === true && ['failed', 'receipt_rejected', 'redundant_disagreement', 'ring_quorum_disagreement'].includes(job.status));
 const finalReceiptStatuses = new Set(['receipt_verified', 'accepted', 'acceptance_processing', 'rejected_by_requester']);
+const expirableAssignmentStatuses = ['assigned', 'running', 'commit_submitted', 'reveal_open', 'reveal_submitted'];
 
 const agreementModeForJob = (job = {}) => (
   job?.agreement?.mode || (job?.policyId === 'ring_quorum_receipt' ? 'ring_quorum' : 'redundant')
@@ -229,7 +238,7 @@ export function createFirestorePoolStore({ firestore, collectionPrefix = '' } = 
   };
   const hasActiveAssignment = async (providerId) => {
     if (!providerId) return false;
-    const snapshots = await Promise.all(['assigned', 'running'].map((status) => (
+    const snapshots = await Promise.all(expirableAssignmentStatuses.map((status) => (
       collection(COLLECTIONS.assignments)
         .where('providerId', '==', providerId)
         .where('status', '==', status)
@@ -424,7 +433,7 @@ export function createFirestorePoolStore({ firestore, collectionPrefix = '' } = 
       return writeDoc(COLLECTIONS.providers, providerId, next, { merge: true });
     },
     async expireStaleAssignments() {
-      const snapshots = await Promise.all(['assigned', 'running'].map((status) => (
+      const snapshots = await Promise.all(expirableAssignmentStatuses.map((status) => (
         collection(COLLECTIONS.assignments)
           .where('status', '==', status)
           .get()
@@ -495,6 +504,59 @@ export function createFirestorePoolStore({ firestore, collectionPrefix = '' } = 
       };
       return writeDoc(COLLECTIONS.receiptAcceptances, receiptHash, saved, { merge: true });
     },
+    async saveAssignmentCommitment(assignmentId, commitment = {}) {
+      const saved = {
+        ...commitment,
+        assignmentId,
+        commitmentId: commitment.commitmentId || makeId('commitment'),
+        createdAt: commitment.createdAt || nowIso(),
+        updatedAt: nowIso()
+      };
+      return writeDoc(COLLECTIONS.commitmentEvents, assignmentId, saved, { merge: true });
+    },
+    async getAssignmentCommitment(assignmentId) {
+      return readDoc(COLLECTIONS.commitmentEvents, assignmentId);
+    },
+    async listCommitmentsForJob(jobId) {
+      const snapshot = await collection(COLLECTIONS.commitmentEvents)
+        .where('jobId', '==', jobId)
+        .get();
+      return snapshot.docs.map((entry) => entry.data());
+    },
+    async saveAssignmentReveal(assignmentId, reveal = {}) {
+      const saved = {
+        ...reveal,
+        assignmentId,
+        revealId: reveal.revealId || makeId('reveal'),
+        createdAt: reveal.createdAt || nowIso(),
+        updatedAt: nowIso()
+      };
+      return writeDoc(COLLECTIONS.revealEvents, assignmentId, saved, { merge: true });
+    },
+    async getAssignmentReveal(assignmentId) {
+      return readDoc(COLLECTIONS.revealEvents, assignmentId);
+    },
+    async listRevealsForJob(jobId) {
+      const snapshot = await collection(COLLECTIONS.revealEvents)
+        .where('jobId', '==', jobId)
+        .get();
+      return snapshot.docs.map((entry) => entry.data());
+    },
+    async appendPoolEvent(event = {}) {
+      const eventId = event.eventId || makeId('pool_event');
+      const saved = {
+        eventId,
+        ...event,
+        createdAt: event.createdAt || nowIso()
+      };
+      return writeDoc(COLLECTIONS.poolEvents, eventId, saved);
+    },
+    async listPoolEventsForJob(jobId) {
+      const snapshot = await collection(COLLECTIONS.poolEvents)
+        .where('jobId', '==', jobId)
+        .get();
+      return snapshot.docs.map((entry) => entry.data());
+    },
     async createSignalingSession(input = {}) {
       const sessionId = input.sessionId || makeId('signal_session');
       const saved = {
@@ -527,20 +589,22 @@ export function createFirestorePoolStore({ firestore, collectionPrefix = '' } = 
       ]);
       return saved;
     },
-    async listSignalMessages(sessionId, { after = 0, peerId = null } = {}) {
+    async listSignalMessages(sessionId, { after = 0, peerId = null, limit = 100 } = {}) {
+      const minCreatedAt = Number(after || 0);
       const snapshot = await collection(COLLECTIONS.signalingMessages)
         .where('sessionId', '==', sessionId)
+        .where('createdAt', '>', minCreatedAt)
+        .orderBy('createdAt', 'asc')
+        .limit(Number(limit || 100))
         .get();
-      const minCreatedAt = Number(after || 0);
       return snapshot.docs
         .map((entry) => entry.data())
         .filter((message) => {
-          if (Number(message.createdAt || 0) <= minCreatedAt) return false;
+          if (message.expiresAt && toEpochMs(message.expiresAt) < Date.now()) return false;
           if (peerId && message.fromPeerId === peerId) return false;
           if (peerId && message.toPeerId && message.toPeerId !== peerId) return false;
           return true;
-        })
-        .sort((left, right) => Number(left.createdAt || 0) - Number(right.createdAt || 0));
+        });
     },
     async appendLedger(event = {}) {
       const ledgerId = event.ledgerId || makeId('ledger');
@@ -615,6 +679,9 @@ export function createFirestorePoolStore({ firestore, collectionPrefix = '' } = 
         jobs,
         assignments,
         receipts,
+        commitments,
+        reveals,
+        poolEvents,
         ledger,
         audits,
         reputations
@@ -623,6 +690,9 @@ export function createFirestorePoolStore({ firestore, collectionPrefix = '' } = 
         listDocs(COLLECTIONS.jobs),
         listDocs(COLLECTIONS.assignments),
         listDocs(COLLECTIONS.receipts),
+        listDocs(COLLECTIONS.commitmentEvents),
+        listDocs(COLLECTIONS.revealEvents),
+        listDocs(COLLECTIONS.poolEvents),
         listDocs(COLLECTIONS.pointsLedger),
         listDocs(COLLECTIONS.auditChallenges),
         listDocs(COLLECTIONS.reputationState)
@@ -640,6 +710,9 @@ export function createFirestorePoolStore({ firestore, collectionPrefix = '' } = 
         assignments: assignments.length,
         assignmentStatus: countBy(assignments, 'status'),
         receipts: receipts.length,
+        commitments: commitments.length,
+        reveals: reveals.length,
+        poolEvents: poolEvents.length,
         verifierAcceptedReceipts: receipts.filter((receipt) => receipt.verifierDecision?.accepted).length,
         pointsEvents: ledger.length,
         auditChallenges: audits.length,

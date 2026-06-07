@@ -10,9 +10,11 @@ export function calculateReceiptPoints(receiptRecord, { multiplier = 1 } = {}) {
   return Math.max(1, Math.floor(basePoints * multiplier));
 }
 
-export async function awardAcceptedReceipt({ store, receiptRecord, acceptance, multiplier = 1, reason = 'accepted_receipt' }) {
+export async function awardAcceptedReceipt({ store, receiptRecord, acceptance, multiplier = 1, reason = 'accepted_receipt', points = null }) {
   const receipt = receiptRecord.receipt;
-  const points = calculateReceiptPoints(receiptRecord, { multiplier });
+  const awardedPoints = points === null || points === undefined
+    ? calculateReceiptPoints(receiptRecord, { multiplier })
+    : Math.max(0, Math.floor(Number(points || 0)));
   const event = await store.appendLedger({
     eventType: 'points_awarded',
     reason,
@@ -20,7 +22,7 @@ export async function awardAcceptedReceipt({ store, receiptRecord, acceptance, m
     providerId: receipt.providerId,
     requesterId: receipt.requesterId,
     userId: receipt.providerId,
-    points,
+    points: awardedPoints,
     acceptance
   });
   return event;

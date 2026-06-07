@@ -6,9 +6,15 @@ import crypto from 'crypto';
 
 const makeId = (prefix) => `${prefix}_${crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2)}`;
 const nowIso = () => new Date().toISOString();
+const toEpochMs = (value) => {
+  if (typeof value === 'number') return value;
+  const parsed = Date.parse(value);
+  return Number.isFinite(parsed) ? parsed : null;
+};
 const canClaimJobForAssignment = (job = {}) => job.status === 'queued'
   || (job.retryable === true && ['failed', 'receipt_rejected', 'redundant_disagreement', 'ring_quorum_disagreement'].includes(job.status));
 const finalReceiptStatuses = new Set(['receipt_verified', 'accepted', 'acceptance_processing', 'rejected_by_requester']);
+const expirableAssignmentStatuses = new Set(['assigned', 'running', 'commit_submitted', 'reveal_open', 'reveal_submitted']);
 
 const agreementModeForJob = (job = {}) => (
   job?.agreement?.mode || (job?.policyId === 'ring_quorum_receipt' ? 'ring_quorum' : 'redundant')
@@ -179,6 +185,9 @@ export function createPoolStore() {
   const assignments = new Map();
   const receipts = new Map();
   const receiptAcceptances = new Map();
+  const commitmentEvents = new Map();
+  const revealEvents = new Map();
+  const poolEvents = [];
   const pointsLedger = [];
   const reputationState = new Map();
   const auditChallenges = new Map();
@@ -223,7 +232,7 @@ export function createPoolStore() {
       if (!provider || !session) return null;
       const hasActiveAssignment = Array.from(assignments.values()).some((assignment) => (
         assignment.providerId === providerId
-        && (assignment.status === 'assigned' || assignment.status === 'running')
+        && expirableAssignmentStatuses.has(assignment.status)
       ));
       const status = hasActiveAssignment ? 'busy' : 'available';
       provider.heartbeatAt = timestamp;
@@ -330,7 +339,7 @@ export function createPoolStore() {
       const expired = [];
       const now = Date.now();
       for (const assignment of assignments.values()) {
-        if (assignment.status !== 'assigned' && assignment.status !== 'running') continue;
+        if (!expirableAssignmentStatuses.has(assignment.status)) continue;
         if (!assignment.expiresAt || Date.parse(assignment.expiresAt) >= now) continue;
         assignment.status = 'expired';
         assignment.updatedAt = nowIso();
@@ -392,6 +401,52 @@ export function createPoolStore() {
       receiptAcceptances.set(receiptHash, saved);
       return saved;
     },
+    saveAssignmentCommitment(assignmentId, commitment = {}) {
+      const saved = {
+        ...commitment,
+        assignmentId,
+        commitmentId: commitment.commitmentId || makeId('commitment'),
+        createdAt: commitment.createdAt || nowIso(),
+        updatedAt: nowIso()
+      };
+      commitmentEvents.set(assignmentId, saved);
+      return saved;
+    },
+    getAssignmentCommitment(assignmentId) {
+      return commitmentEvents.get(assignmentId) || null;
+    },
+    listCommitmentsForJob(jobId) {
+      return Array.from(commitmentEvents.values()).filter((commitment) => commitment.jobId === jobId);
+    },
+    saveAssignmentReveal(assignmentId, reveal = {}) {
+      const saved = {
+        ...reveal,
+        assignmentId,
+        revealId: reveal.revealId || makeId('reveal'),
+        createdAt: reveal.createdAt || nowIso(),
+        updatedAt: nowIso()
+      };
+      revealEvents.set(assignmentId, saved);
+      return saved;
+    },
+    getAssignmentReveal(assignmentId) {
+      return revealEvents.get(assignmentId) || null;
+    },
+    listRevealsForJob(jobId) {
+      return Array.from(revealEvents.values()).filter((reveal) => reveal.jobId === jobId);
+    },
+    appendPoolEvent(event = {}) {
+      const saved = {
+        eventId: event.eventId || makeId('pool_event'),
+        ...event,
+        createdAt: event.createdAt || nowIso()
+      };
+      poolEvents.push(saved);
+      return saved;
+    },
+    listPoolEventsForJob(jobId) {
+      return poolEvents.filter((event) => event.jobId === jobId);
+    },
     createSignalingSession(input = {}) {
       const sessionId = input.sessionId || makeId('signal_session');
       const saved = {
@@ -425,14 +480,15 @@ export function createPoolStore() {
       signalingSessions.set(sessionId, { ...session, updatedAt: nowIso() });
       return saved;
     },
-    listSignalMessages(sessionId, { after = 0, peerId = null } = {}) {
+    listSignalMessages(sessionId, { after = 0, peerId = null, limit = 100 } = {}) {
       const minCreatedAt = Number(after || 0);
       return (signalingMessages.get(sessionId) || []).filter((message) => {
         if (Number(message.createdAt || 0) <= minCreatedAt) return false;
+        if (message.expiresAt && toEpochMs(message.expiresAt) < Date.now()) return false;
         if (peerId && message.fromPeerId === peerId) return false;
         if (peerId && message.toPeerId && message.toPeerId !== peerId) return false;
         return true;
-      });
+      }).slice(0, Number(limit || 100));
     },
     appendLedger(event = {}) {
       const saved = {
@@ -511,6 +567,9 @@ export function createPoolStore() {
         assignments: assignmentValues.length,
         assignmentStatus: countBy(assignmentValues, 'status'),
         receipts: receiptValues.length,
+        commitments: commitmentEvents.size,
+        reveals: revealEvents.size,
+        poolEvents: poolEvents.length,
         verifierAcceptedReceipts: receiptValues.filter((receipt) => receipt.verifierDecision?.accepted).length,
         pointsEvents: pointsLedger.length,
         auditChallenges: auditChallenges.size,

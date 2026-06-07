@@ -7,6 +7,7 @@
  */
 
 import { hashJson } from './inference-receipt.js';
+import { collectRuntimeProfile } from './runtime-profile.js';
 
 const DOPPLER_IMPORTS = Object.freeze([
   '@simulatte/doppler',
@@ -469,6 +470,14 @@ export function createDopplerRuntime({ modelSession = null, model = null, runtim
     async getDeviceInfo() {
       if (!deviceInfo) deviceInfo = await collectBrowserDeviceInfo();
       return deviceInfo;
+    },
+    async getRuntimeProfile() {
+      return collectRuntimeProfile({
+        runtime: api,
+        modelInfo,
+        runtimeInfo,
+        deviceInfo: await api.getDeviceInfo()
+      });
     },
     async generate({ prompt, generationConfig, assignment }) {
       if (!session || !generateMethodName(session)) {

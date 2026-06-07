@@ -64,7 +64,7 @@ describe('Self Bridge', () => {
     mockChat.mockReset();
     mockLoadVfsModule.mockReset();
     mockFetch.mockReset();
-    fileStore.set('/self/memory/leaderboard.json', '[]');
+    fileStore.set('/artifacts/memory/leaderboard.json', '[]');
     global.fetch = mockFetch;
     mockFetch.mockImplementation(async (url) => ({
       ok: true,
@@ -92,12 +92,12 @@ describe('Self Bridge', () => {
           tool: {
             name: 'orchestrator',
             call: async ({ variantId }, { callTool, readFile, writeFile }) => {
-              const file = await readFile({ path: '/self/memory/leaderboard.json' });
+              const file = await readFile({ path: '/artifacts/memory/leaderboard.json' });
               const leaderboard = JSON.parse(file.content || '[]');
               const result = await callTool('evaluatePrompt', { variantId });
               leaderboard.push(result);
               await writeFile({
-                path: '/self/memory/leaderboard.json',
+                path: '/artifacts/memory/leaderboard.json',
                 content: JSON.stringify(leaderboard)
               });
               return leaderboard;
@@ -128,7 +128,7 @@ describe('Self Bridge', () => {
         status: 'completed'
       }
     ]);
-    expect(fileStore.get('/self/memory/leaderboard.json')).toBe(
+    expect(fileStore.get('/artifacts/memory/leaderboard.json')).toBe(
       JSON.stringify([
         {
           variantId: 'v1',
@@ -299,7 +299,7 @@ describe('Self Bridge', () => {
     const self = JSON.parse(fileStore.get('/self/self.json'));
 
     expect(self.mode).toBe('reploid');
-    expect(self.productModel).toBe('Recursive GEPA Ring');
+    expect(self.productModel).toBe('Reploid');
     expect(self.instances).toBeUndefined();
     expect(self.dream).toBeUndefined();
     expect(fileStore.has('/self/instances/dream/default.instance.json')).toBe(false);
@@ -328,21 +328,7 @@ describe('Self Bridge', () => {
     expect(fileStore.get('/self/self.json')).toContain('"goal": "Test goal"');
   });
 
-  it('creates and auto-loads self tools under /self/tools', async () => {
-    mockLoadVfsModule.mockImplementation(async ({ path }) => {
-      if (path === '/self/tools/ShowBanner.js') {
-        return {
-          tool: {
-            name: 'ShowBanner',
-            description: 'Render a test banner',
-            call: async ({ text = 'hello' }) => ({ rendered: true, text })
-          }
-        };
-      }
-
-      throw new Error(`Unexpected module path: ${path}`);
-    });
-
+  it('rejects direct self tool creation before Promote', async () => {
     const host = createSelfBridge({
       modelConfig: {
         id: 'test-model',
@@ -350,7 +336,7 @@ describe('Self Bridge', () => {
       }
     });
 
-    const result = await host.executeTool('CreateTool', {
+    await expect(host.executeTool('CreateTool', {
       name: 'ShowBanner',
       code: `
 export const tool = {
@@ -359,24 +345,17 @@ export const tool = {
   call: async ({ text = "hello" }) => ({ rendered: true, text })
 };
 `
-    });
+    })).rejects.toThrow('Unknown tool: CreateTool');
 
-    expect(result).toEqual(expect.objectContaining({
-      name: 'ShowBanner',
+    await expect(host.executeTool('WriteFile', {
       path: '/self/tools/ShowBanner.js',
-      created: true,
-      loaded: true,
-      callable: true,
-      toolName: 'ShowBanner'
-    }));
-    expect(fileStore.get('/self/tools/ShowBanner.js')).toContain('ShowBanner');
-    await expect(host.executeTool('ShowBanner', { text: 'hi' })).resolves.toEqual({
-      rendered: true,
-      text: 'hi'
-    });
+      content: 'export default async () => ({ ok: true });'
+    })).rejects.toThrow('Path is not writable');
+
+    expect(fileStore.has('/self/tools/ShowBanner.js')).toBe(false);
   });
 
-  it('emits file-changed events for self writes', async () => {
+  it('emits file-changed events for shadow candidate writes', async () => {
     const events = [];
     const host = createSelfBridge({
       modelConfig: {
@@ -390,13 +369,13 @@ export const tool = {
     });
 
     await host.executeTool('WriteFile', {
-      path: '/self/tools/EmitEvent.js',
+      path: '/shadow/tools/EmitEvent.js',
       content: 'export default async function () { return true; }'
     });
 
     expect(events).toEqual([
       expect.objectContaining({
-        path: '/self/tools/EmitEvent.js',
+        path: '/shadow/tools/EmitEvent.js',
         backend: 'vfs',
         operation: 'write'
       })

@@ -2,19 +2,17 @@
  * @fileoverview Unit tests for WriteFile tool
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import call, { tool } from '../../../tools/WriteFile.js';
 
 describe('WriteFile', () => {
   let mockVFS;
   let mockEventBus;
   let mockAuditLogger;
-  let mockVFSSandbox;
   let mockVerificationManager;
   let mockSubstrateLoader;
 
   beforeEach(() => {
-    // Reset localStorage mock
     global.localStorage = {
       getItem: vi.fn().mockReturnValue(null),
       setItem: vi.fn()
@@ -36,12 +34,6 @@ describe('WriteFile', () => {
       logCoreWrite: vi.fn().mockResolvedValue(undefined)
     };
 
-    mockVFSSandbox = {
-      createSnapshot: vi.fn().mockResolvedValue('snapshot-id'),
-      restoreSnapshot: vi.fn().mockResolvedValue(undefined),
-      applyChanges: vi.fn().mockResolvedValue(undefined)
-    };
-
     mockVerificationManager = {
       verifyProposal: vi.fn().mockResolvedValue({ passed: true })
     };
@@ -49,6 +41,14 @@ describe('WriteFile', () => {
     mockSubstrateLoader = {
       loadModule: vi.fn().mockResolvedValue(undefined)
     };
+  });
+
+  const context = () => ({
+    VFS: mockVFS,
+    EventBus: mockEventBus,
+    AuditLogger: mockAuditLogger,
+    VerificationManager: mockVerificationManager,
+    SubstrateLoader: mockSubstrateLoader
   });
 
   describe('tool metadata', () => {
@@ -61,29 +61,65 @@ describe('WriteFile', () => {
     });
   });
 
-  describe('basic write operations', () => {
-    it('should write content to VFS', async () => {
+  describe('allowed VFS roots', () => {
+    it('should write shadow candidates', async () => {
       const result = await call(
-        { path: '/test.txt', content: 'hello world' },
-        { VFS: mockVFS }
+        { path: '/shadow/test.txt', content: 'hello world' },
+        context()
       );
 
-      expect(mockVFS.write).toHaveBeenCalledWith('/test.txt', 'hello world');
-      expect(result.path).toBe('/test.txt');
+      expect(mockVFS.write).toHaveBeenCalledWith('/shadow/test.txt', 'hello world');
+      expect(result.path).toBe('/shadow/test.txt');
       expect(result.bytesWritten).toBe(11);
     });
 
-    it('should support "file" as alias for "path"', async () => {
+    it('should support "file" as alias for "path" under writable roots', async () => {
       await call(
-        { file: '/other.txt', content: 'test' },
-        { VFS: mockVFS }
+        { file: '/shadow/other.txt', content: 'test' },
+        context()
       );
 
-      expect(mockVFS.write).toHaveBeenCalledWith('/other.txt', 'test');
+      expect(mockVFS.write).toHaveBeenCalledWith('/shadow/other.txt', 'test');
     });
 
+    it('should write artifact evidence', async () => {
+      await call(
+        { path: '/artifacts/evidence.json', content: '{"replayPassed":true}' },
+        context()
+      );
+
+      expect(mockVFS.write).toHaveBeenCalledWith('/artifacts/evidence.json', '{"replayPassed":true}');
+    });
+
+    it('should allow empty string content', async () => {
+      await call({ path: '/shadow/empty.txt', content: '' }, context());
+
+      expect(mockVFS.write).toHaveBeenCalledWith('/shadow/empty.txt', '');
+    });
+
+    it('should reject direct self writes', async () => {
+      await expect(call(
+        { path: '/self/tools/Test.js', content: 'export default {};' },
+        context()
+      )).rejects.toThrow('VFS path not writable by WriteFile');
+
+      expect(mockVFS.write).not.toHaveBeenCalled();
+    });
+
+    it('should reject direct core writes before verification or audit handling', async () => {
+      await expect(call(
+        { path: '/core/test.js', content: 'code' },
+        context()
+      )).rejects.toThrow('VFS path not writable by WriteFile');
+
+      expect(mockVerificationManager.verifyProposal).not.toHaveBeenCalled();
+      expect(mockAuditLogger.logCoreWrite).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('validation', () => {
     it('should throw error when VFS not available', async () => {
-      await expect(call({ path: '/test.txt', content: 'x' }, {}))
+      await expect(call({ path: '/shadow/test.txt', content: 'x' }, {}))
         .rejects.toThrow('VFS not available');
     });
 
@@ -92,15 +128,9 @@ describe('WriteFile', () => {
         .rejects.toThrow('Missing path argument');
     });
 
-    it('should throw error when content missing', async () => {
-      await expect(call({ path: '/test.txt' }, { VFS: mockVFS }))
+    it('should throw error when content missing for writable paths', async () => {
+      await expect(call({ path: '/shadow/test.txt' }, { VFS: mockVFS }))
         .rejects.toThrow('Missing content argument');
-    });
-
-    it('should allow empty string content', async () => {
-      await call({ path: '/empty.txt', content: '' }, { VFS: mockVFS });
-
-      expect(mockVFS.write).toHaveBeenCalledWith('/empty.txt', '');
     });
   });
 
@@ -109,11 +139,13 @@ describe('WriteFile', () => {
       mockVFS.exists.mockResolvedValue(false);
 
       await call(
-        { path: '/new.txt', content: 'new' },
-        { VFS: mockVFS, EventBus: mockEventBus }
+        { path: '/artifacts/new.txt', content: 'new' },
+        context()
       );
 
-      expect(mockEventBus.emit).toHaveBeenCalledWith('artifact:created', { path: '/new.txt' });
+      expect(mockEventBus.emit).toHaveBeenCalledWith('artifact:created', expect.objectContaining({
+        path: '/artifacts/new.txt'
+      }));
     });
 
     it('should emit vfs:write for existing files', async () => {
@@ -121,177 +153,56 @@ describe('WriteFile', () => {
       mockVFS.read.mockResolvedValue('old content');
 
       await call(
-        { path: '/existing.txt', content: 'updated' },
-        { VFS: mockVFS, EventBus: mockEventBus }
+        { path: '/shadow/existing.txt', content: 'updated' },
+        context()
       );
 
-      expect(mockEventBus.emit).toHaveBeenCalledWith('vfs:write', { path: '/existing.txt' });
-    });
-
-    it('should emit tool:core_write for core paths', async () => {
-      await call(
-        { path: '/core/test.js', content: 'code' },
-        { VFS: mockVFS, EventBus: mockEventBus }
-      );
-
-      expect(mockEventBus.emit).toHaveBeenCalledWith('tool:core_write', expect.objectContaining({
-        path: '/core/test.js',
-        operation: 'WriteFile'
+      expect(mockEventBus.emit).toHaveBeenCalledWith('vfs:write', expect.objectContaining({
+        path: '/shadow/existing.txt'
       }));
     });
   });
 
   describe('audit logging', () => {
-    it('should log FILE_WRITE for non-core files', async () => {
+    it('should log FILE_WRITE for writable non-core files', async () => {
       await call(
-        { path: '/tools/test.js', content: 'code' },
-        { VFS: mockVFS, AuditLogger: mockAuditLogger }
+        { path: '/shadow/tools/test.js', content: 'export default {};' },
+        context()
       );
 
       expect(mockAuditLogger.logEvent).toHaveBeenCalledWith(
         'FILE_WRITE',
-        expect.objectContaining({ path: '/tools/test.js' }),
+        expect.objectContaining({
+          path: '/shadow/tools/test.js'
+        }),
         'INFO'
       );
+      expect(mockAuditLogger.logCoreWrite).not.toHaveBeenCalled();
     });
 
-    it('should use logCoreWrite for core files', async () => {
+    it('should not treat shadow candidate paths as core writes', async () => {
       await call(
-        { path: '/core/agent-loop.js', content: 'code' },
-        { VFS: mockVFS, AuditLogger: mockAuditLogger }
+        { path: '/shadow/core/test.js', content: 'candidate' },
+        context()
       );
 
-      expect(mockAuditLogger.logCoreWrite).toHaveBeenCalledWith(
-        expect.objectContaining({
-          path: '/core/agent-loop.js',
-          operation: 'WriteFile'
-        })
-      );
-    });
-
-    it('should detect infrastructure as core path', async () => {
-      await call(
-        { path: '/infrastructure/hitl.js', content: 'code' },
-        { VFS: mockVFS, AuditLogger: mockAuditLogger }
-      );
-
-      expect(mockAuditLogger.logCoreWrite).toHaveBeenCalled();
-    });
-  });
-
-  describe('arena verification', () => {
-    beforeEach(() => {
-      global.localStorage.getItem.mockReturnValue('true');
-    });
-
-    it('should verify core file changes when arena gating enabled', async () => {
-      await call(
-        { path: '/core/test.js', content: 'code' },
-        {
-          VFS: mockVFS,
-          VFSSandbox: mockVFSSandbox,
-          VerificationManager: mockVerificationManager
-        }
-      );
-
-      expect(mockVFSSandbox.createSnapshot).toHaveBeenCalled();
-      expect(mockVerificationManager.verifyProposal).toHaveBeenCalled();
-      expect(mockVFSSandbox.restoreSnapshot).toHaveBeenCalled();
-    });
-
-    it('should block write when verification fails', async () => {
-      mockVerificationManager.verifyProposal.mockResolvedValue({
-        passed: false,
-        errors: ['Unsafe modification']
-      });
-
-      await expect(call(
-        { path: '/core/test.js', content: 'bad code' },
-        {
-          VFS: mockVFS,
-          VFSSandbox: mockVFSSandbox,
-          VerificationManager: mockVerificationManager,
-          AuditLogger: mockAuditLogger,
-          EventBus: mockEventBus
-        }
-      )).rejects.toThrow('Core modification blocked');
-
-      expect(mockVFS.write).not.toHaveBeenCalled();
-      expect(mockAuditLogger.logEvent).toHaveBeenCalledWith(
-        'CORE_WRITE_BLOCKED',
-        expect.any(Object),
-        'WARN'
-      );
-    });
-
-    it('should not verify non-core files', async () => {
-      await call(
-        { path: '/tools/test.js', content: 'code' },
-        {
-          VFS: mockVFS,
-          VFSSandbox: mockVFSSandbox,
-          VerificationManager: mockVerificationManager
-        }
-      );
-
-      expect(mockVFSSandbox.createSnapshot).not.toHaveBeenCalled();
-    });
-
-    it('should skip verification when arena gating disabled', async () => {
-      global.localStorage.getItem.mockReturnValue(null);
-
-      await call(
-        { path: '/core/test.js', content: 'code' },
-        {
-          VFS: mockVFS,
-          VFSSandbox: mockVFSSandbox,
-          VerificationManager: mockVerificationManager
-        }
-      );
-
-      expect(mockVFSSandbox.createSnapshot).not.toHaveBeenCalled();
+      expect(mockVerificationManager.verifyProposal).not.toHaveBeenCalled();
+      expect(mockAuditLogger.logCoreWrite).not.toHaveBeenCalled();
     });
   });
 
   describe('autoLoad', () => {
-    it('should hot-reload JS modules when autoLoad is true', async () => {
-      const result = await call(
-        { path: '/tools/new-tool.js', content: 'export default {}', autoLoad: true },
-        { VFS: mockVFS, SubstrateLoader: mockSubstrateLoader }
-      );
-
-      expect(mockSubstrateLoader.loadModule).toHaveBeenCalledWith('/tools/new-tool.js');
-      expect(result.loadResult).toContain('hot-reloaded');
-    });
-
-    it('should not autoLoad non-JS files', async () => {
-      const result = await call(
-        { path: '/data/config.json', content: '{}', autoLoad: true },
-        { VFS: mockVFS, SubstrateLoader: mockSubstrateLoader }
-      );
+    it('should reject autoLoad before Promote places a module under /self', async () => {
+      await expect(call(
+        {
+          path: '/shadow/tools/Auto.js',
+          content: 'export default async () => ({ ok: true });',
+          autoLoad: true
+        },
+        context()
+      )).rejects.toThrow('autoLoad is only available after Promote places a module under /self');
 
       expect(mockSubstrateLoader.loadModule).not.toHaveBeenCalled();
-      expect(result.loadResult).toBeNull();
-    });
-
-    it('should handle autoLoad failure gracefully', async () => {
-      mockSubstrateLoader.loadModule.mockRejectedValue(new Error('Load failed'));
-
-      const result = await call(
-        { path: '/tools/bad.js', content: 'bad', autoLoad: true },
-        { VFS: mockVFS, SubstrateLoader: mockSubstrateLoader }
-      );
-
-      expect(result.loadResult).toContain('autoLoad failed');
-    });
-
-    it('should skip autoLoad when SubstrateLoader not available', async () => {
-      const result = await call(
-        { path: '/tools/test.js', content: 'code', autoLoad: true },
-        { VFS: mockVFS }
-      );
-
-      expect(result.loadResult).toContain('SubstrateLoader not available');
     });
   });
 });

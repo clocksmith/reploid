@@ -12,6 +12,9 @@ import { awardAcceptedReceipt, calculateReceiptPoints, chargeRequester, penalize
 import { recordAcceptedReceipt, recordRejectedReceipt } from './reputation.js';
 import { attachAuditAssignment, createCanaryChallenge, verifyCanaryResult, applyCanaryReputation } from './audits.js';
 import { hashJson, sha256Hex } from './hash.js';
+import { POOL_CONFIG, POOL_CONFIG_HASH, POOL_CONFIG_VERSION, getLedgerReasons, getRingPhaseProtocol, validatePoolConfig } from './config.js';
+import { buildCommitmentHash, revealMatchesCommitment, validateCommitmentInput, validateRevealInput } from './commit-reveal.js';
+import { deriveProviderAdmission, runtimeProfileHash, validateRuntimeProfileForPolicy } from './runtime-profile.js';
 
 const asyncRoute = (handler) => (req, res, next) => {
   Promise.resolve(handler(req, res, next)).catch(next);
@@ -38,8 +41,8 @@ const createPoolRateLimiter = ({ maxRequests = 30, bucketMs = 1000 } = {}) => {
 
 const publicPolicy = (policy) => ({
   policyId: policy.policyId,
-  trustTier: policy.adaptiveRing ? 'adaptive_T1_to_T4_ring_quorum_receipt' : policy.trustTier,
-  policyTrustTier: policy.trustTier,
+  trustTier: policy.trustTier,
+  policyTrustTier: policy.policyTrustTier || policy.trustTier,
   allowedModels: policy.allowedModels,
   verificationLevel: policy.verificationLevel,
   redundancy: policy.redundancy,
@@ -48,6 +51,13 @@ const publicPolicy = (policy) => ({
   maxRingSize: policy.maxRingSize || null,
   quorum: policy.quorum || null,
   agreementField: policy.agreementField || null,
+  agreementMode: policy.agreementMode || null,
+  determinismProfileId: policy.determinismProfileId || null,
+  ringPhaseProtocolId: policy.ringPhaseProtocolId || null,
+  providerAdmissionPolicyId: policy.providerAdmissionPolicyId || null,
+  stateModeId: policy.stateModeId || null,
+  evidence: policy.evidence || null,
+  effectiveTrustByRingSize: policy.effectiveTrustByRingSize || null,
   requireCanaryEligibleProvider: policy.requireCanaryEligibleProvider,
   allowFallbackModel: policy.allowFallbackModel,
   allowServerProvider: policy.allowServerProvider,
@@ -63,7 +73,7 @@ const extractBearerToken = (req) => {
 };
 
 const isPublicDiscoveryRoute = (req) => req.method === 'GET'
-  && (req.path === '/deployment/check' || req.path === '/status' || req.path === '/policies');
+  && (req.path === '/deployment/check' || req.path === '/status' || req.path === '/policies' || req.path === '/config');
 
 const normalizeUid = (uid) => String(uid || '').replace(/[^a-z0-9_-]/gi, '_');
 const roleIdForUid = (role, uid) => `${role}_${normalizeUid(uid)}`;
@@ -137,8 +147,43 @@ const providerHasLaunchModel = (provider) => (provider?.models || []).find((mode
   && model.backend === LAUNCH_MODEL.backend
 ));
 
-const activeAssignmentStatuses = new Set(['assigned', 'running']);
+const activeAssignmentStatuses = new Set(['assigned', 'running', 'commit_submitted', 'reveal_open', 'reveal_submitted']);
 const finalizedJobStatuses = new Set(['accepted', 'acceptance_processing', 'rejected_by_requester']);
+const activeTransportConfig = POOL_CONFIG.transportModes?.[POOL_CONFIG.activeTransportMode] || {};
+const deploymentSignalingConfig = POOL_CONFIG.deployment?.signaling || {};
+const SIGNAL_TYPES = new Set(activeTransportConfig.signalingAllowedTypes || []);
+const MAX_SIGNAL_PAYLOAD_BYTES = Number(process.env.POOL_MAX_SIGNAL_PAYLOAD_BYTES || deploymentSignalingConfig.maxPayloadBytes || 64 * 1024);
+const MAX_SIGNAL_MESSAGES_PER_POLL = Number(process.env.POOL_MAX_SIGNAL_MESSAGES_PER_POLL || deploymentSignalingConfig.maxMessagesPerPoll || 100);
+const MAX_SIGNAL_SESSION_TTL_MS = Number(process.env.POOL_SIGNAL_SESSION_TTL_MS || deploymentSignalingConfig.sessionTtlMs || 10 * 60 * 1000);
+
+const jsonByteLength = (value) => Buffer.byteLength(JSON.stringify(value ?? null), 'utf8');
+
+const toEpochMs = (value) => {
+  if (typeof value === 'number') return value;
+  const parsed = Date.parse(value);
+  return Number.isFinite(parsed) ? parsed : null;
+};
+
+const configuredEnvValue = (...names) => names
+  .map((name) => process.env[name])
+  .find((value) => {
+    const normalized = String(value || '').trim();
+    return normalized && !normalized.startsWith('<required-');
+  }) || null;
+
+const signalingSessionExpired = (session = {}) => (
+  session?.expiresAt && toEpochMs(session.expiresAt) < Date.now()
+);
+
+const boundedSignalSessionExpiry = ({ assignment, requestedExpiresAt = null } = {}) => {
+  const now = Date.now();
+  const candidates = [
+    now + MAX_SIGNAL_SESSION_TTL_MS,
+    requestedExpiresAt ? toEpochMs(requestedExpiresAt) : null,
+    assignment?.expiresAt ? toEpochMs(assignment.expiresAt) : null
+  ].filter((value) => Number.isFinite(value) && value > now);
+  return new Date(Math.min(...candidates)).toISOString();
+};
 
 const assignmentMatchesCurrentJobAttempt = (assignment = {}, job = {}) => {
   const currentAssignmentIds = new Set(Array.isArray(job.assignmentIds) ? job.assignmentIds : []);
@@ -177,6 +222,72 @@ const currentFailedAssignmentIds = (job = {}) => {
   )));
 };
 
+const currentCommitmentsForJob = async (store, job = {}) => {
+  if (typeof store.listCommitmentsForJob !== 'function') return [];
+  const currentAssignmentIds = new Set(Array.isArray(job.assignmentIds) ? job.assignmentIds : []);
+  return (await store.listCommitmentsForJob(job.jobId)).filter((record) => {
+    if (currentAssignmentIds.size > 0 && !currentAssignmentIds.has(record.assignmentId)) return false;
+    if (job.assignmentAttemptId !== undefined
+      && record.assignmentAttemptId !== undefined
+      && Number(job.assignmentAttemptId) !== Number(record.assignmentAttemptId)) {
+      return false;
+    }
+    if (job.ringAttemptId && record.ringAttemptId && job.ringAttemptId !== record.ringAttemptId) return false;
+    return true;
+  });
+};
+
+const currentRevealsForJob = async (store, job = {}) => {
+  if (typeof store.listRevealsForJob !== 'function') return [];
+  const currentAssignmentIds = new Set(Array.isArray(job.assignmentIds) ? job.assignmentIds : []);
+  return (await store.listRevealsForJob(job.jobId)).filter((record) => {
+    if (currentAssignmentIds.size > 0 && !currentAssignmentIds.has(record.assignmentId)) return false;
+    if (job.assignmentAttemptId !== undefined
+      && record.assignmentAttemptId !== undefined
+      && Number(job.assignmentAttemptId) !== Number(record.assignmentAttemptId)) {
+      return false;
+    }
+    if (job.ringAttemptId && record.ringAttemptId && job.ringAttemptId !== record.ringAttemptId) return false;
+    return true;
+  });
+};
+
+const phaseProtocolForAssignment = (assignment = {}) => (
+  assignment?.ring?.ringPhaseProtocolId ? getRingPhaseProtocol(assignment.ring.ringPhaseProtocolId) : null
+);
+
+const commitmentBarrierReached = async ({ store, job, assignment } = {}) => {
+  const protocol = phaseProtocolForAssignment(assignment);
+  if (!protocol) return { reached: true, commitments: [], required: 0 };
+  const commitments = await currentCommitmentsForJob(store, job);
+  const required = protocol.minCommitments === 'requiredAgreement'
+    ? Number(job?.agreement?.requiredAgreement || assignment?.requiredAgreement || 1)
+    : Number(protocol.minCommitments || job?.agreement?.requiredAgreement || assignment?.requiredAgreement || 1);
+  return {
+    reached: commitments.length >= required,
+    commitments,
+    required
+  };
+};
+
+const ensureAgreementCommitRevealReady = async ({ store, job, agreedRecords = [] } = {}) => {
+  const reasons = [];
+  if (job?.agreement?.mode !== 'ring_quorum') return reasons;
+  const protocol = job?.ring?.ringPhaseProtocolId ? getRingPhaseProtocol(job.ring.ringPhaseProtocolId) : null;
+  if (!protocol?.requireCommitmentForLedgerAward) return reasons;
+  for (const record of agreedRecords) {
+    const commitment = await store.getAssignmentCommitment?.(record.assignmentId);
+    const reveal = await store.getAssignmentReveal?.(record.assignmentId);
+    if (!commitment) reasons.push(`commitment missing for ${record.assignmentId}`);
+    if (!reveal) reasons.push(`reveal missing for ${record.assignmentId}`);
+    if (commitment && reveal) {
+      const match = revealMatchesCommitment({ commitment, reveal });
+      if (!match.ok) reasons.push(`reveal commitment mismatch for ${record.assignmentId}`);
+    }
+  }
+  return reasons;
+};
+
 const statusForPendingAgreement = (agreement = {}) => (
   agreement.mode === 'ring_quorum' ? 'awaiting_ring_quorum_receipts' : 'awaiting_redundant_receipts'
 );
@@ -190,17 +301,17 @@ const mismatchReasonForAgreement = (agreement = {}) => (
 );
 
 const penaltyReasonForAgreement = (agreement = {}) => (
-  agreement.mode === 'ring_quorum' ? 'ring_quorum_mismatch' : 'redundant_agreement_mismatch'
+  getLedgerReasons(agreement.mode || 'redundant').mismatchPenalty || 'receipt_rejected'
 );
 
 const acceptedLedgerReasonForJob = (job = {}, receiptCount = 1) => {
-  if (receiptCount <= 1) return 'accepted_receipt';
-  return job?.agreement?.mode === 'ring_quorum' ? 'ring_quorum_receipt_accepted' : 'redundant_agreement_accepted';
+  if (receiptCount <= 1) return getLedgerReasons('single').award || 'accepted_receipt';
+  return getLedgerReasons(job?.agreement?.mode || 'redundant').award || 'accepted_receipt';
 };
 
 const spendLedgerReasonForJob = (job = {}, receiptCount = 1) => {
-  if (receiptCount <= 1) return 'accepted_receipt_spend';
-  return job?.agreement?.mode === 'ring_quorum' ? 'ring_quorum_receipt_spend' : 'redundant_agreement_spend';
+  if (receiptCount <= 1) return getLedgerReasons('single').spend || 'accepted_receipt_spend';
+  return getLedgerReasons(job?.agreement?.mode || 'redundant').spend || 'accepted_receipt_spend';
 };
 
 const compactAgreementForAcceptance = (agreement = null) => {
@@ -227,16 +338,30 @@ const buildAcceptanceSummary = async ({ store, job, receiptHash } = {}) => {
     if (agreedRecord?.verifierDecision?.accepted) agreedRecords.push(agreedRecord);
   }
   const multiplier = 1 / Math.max(1, receiptHashes.length);
-  const providerPoints = agreedRecords.map((record) => ({
-    receiptHash: record.receiptHash,
-    providerId: record.providerId,
-    points: calculateReceiptPoints(record, { multiplier })
-  }));
+  const providerPoints = [];
+  for (const record of agreedRecords) {
+    const provider = await store.getProvider?.(record.providerId);
+    const reputation = await store.getReputation?.(record.providerId);
+    const admission = deriveProviderAdmission({
+      provider: provider || {},
+      reputation: reputation || {},
+      policy: getPolicy(job?.policyId) || {}
+    });
+    const uncappedPoints = calculateReceiptPoints(record, { multiplier });
+    const cap = record.providerAdmission?.earningsCapPerAcceptance ?? admission?.lane?.earningsCapPerAcceptance;
+    providerPoints.push({
+      receiptHash: record.receiptHash,
+      providerId: record.providerId,
+      points: Number.isFinite(Number(cap)) ? Math.min(uncappedPoints, Number(cap)) : uncappedPoints
+    });
+  }
   const pointSpend = providerPoints.reduce((sum, entry) => sum + entry.points, 0);
   const payload = {
     jobId: job?.jobId || null,
     requesterId: job?.requesterId || null,
     policyId: job?.policyId || null,
+    policyConfigVersion: job?.policyConfigVersion || POOL_CONFIG_VERSION,
+    policyConfigHash: job?.policyConfigHash || POOL_CONFIG_HASH,
     receiptHash,
     receiptHashes,
     agreement: compactAgreementForAcceptance(job?.agreement || null),
@@ -280,6 +405,8 @@ const retireSupersededAssignments = async ({ store, job, agreement } = {}) => {
 const evaluateAgreement = async ({ store, job, policy }) => {
   const currentAssignmentIds = new Set(Array.isArray(job?.assignmentIds) ? job.assignmentIds : []);
   const receiptRecords = await currentReceiptsForJob(store, job);
+  const commitmentRecords = await currentCommitmentsForJob(store, job);
+  const revealRecords = await currentRevealsForJob(store, job);
   const acceptedRecords = receiptRecords.filter((record) => record.verifierDecision?.accepted);
   const rejectedRecords = receiptRecords.filter((record) => record.verifierDecision && !record.verifierDecision.accepted);
   const failedAssignmentIds = currentFailedAssignmentIds(job);
@@ -313,6 +440,9 @@ const evaluateAgreement = async ({ store, job, policy }) => {
     agreementField,
     acceptedReceipts: acceptedRecords.length,
     rejectedReceipts: rejectedRecords.length,
+    commitments: commitmentRecords.length,
+    reveals: revealRecords.length,
+    commitmentHashes: commitmentRecords.map((record) => record.commitmentHash),
     failedAssignments: failedAssignments.length,
     remainingProviders,
     receiptHashes,
@@ -530,7 +660,20 @@ export function createPoolRouter({ store = poolStore, verifyAuthToken = null, re
   }));
 
   router.get('/policies', asyncRoute(async (req, res) => {
-    return res.json({ policies: listPolicies().map(publicPolicy), launchModel: LAUNCH_MODEL });
+    return res.json({
+      configVersion: POOL_CONFIG_VERSION,
+      configHash: POOL_CONFIG_HASH,
+      policies: listPolicies().map(publicPolicy),
+      launchModel: LAUNCH_MODEL
+    });
+  }));
+
+  router.get('/config', asyncRoute(async (req, res) => {
+    return res.json({
+      configVersion: POOL_CONFIG_VERSION,
+      configHash: POOL_CONFIG_HASH,
+      config: POOL_CONFIG
+    });
   }));
 
   router.get('/status', asyncRoute(async (req, res) => {
@@ -539,7 +682,16 @@ export function createPoolRouter({ store = poolStore, verifyAuthToken = null, re
     return res.json({
       product: 'reploid_browser_inference_pool',
       claim: 'receipt-backed, audit-backed, reputation-backed, policy-controlled browser inference',
+      configVersion: POOL_CONFIG_VERSION,
+      configHash: POOL_CONFIG_HASH,
       storageMode,
+      transport: {
+        controlPlane: 'cloud_run_firestore',
+        payloadMode: 'hybrid_p2p_anchor',
+        signaling: 'assignment_bound_metadata_only',
+        offloadedModelArtifacts: true,
+        modelArtifactBaseConfigured: Boolean(process.env.REPLOID_POOL_MODEL_BASE_URL || process.env.POOL_MODEL_BASE_URL)
+      },
       auth: {
         required: requireAuth || storageMode === 'firestore',
         verifierConfigured: authVerifierConfigured,
@@ -562,6 +714,9 @@ export function createPoolRouter({ store = poolStore, verifyAuthToken = null, re
     if (!body.assignmentId) return res.status(400).json({ error: 'assignmentId is required' });
     const assignment = await store.getAssignment(body.assignmentId);
     if (!assignment) return res.status(404).json({ error: 'assignment not found' });
+    if (assignment.expiresAt && toEpochMs(assignment.expiresAt) < Date.now()) {
+      return res.status(410).json({ error: 'assignment expired' });
+    }
     const job = await store.getJob(assignment.jobId);
     const participantIds = Array.from(new Set([
       assignment.requesterId,
@@ -570,6 +725,16 @@ export function createPoolRouter({ store = poolStore, verifyAuthToken = null, re
     ].filter(Boolean)));
     if (!signalingParticipantAllowed(req.poolAuth, participantIds)) {
       return res.status(403).json({ error: 'authenticated identity is not a signaling session participant' });
+    }
+    const phaseProtocol = phaseProtocolForAssignment(assignment);
+    if (assignment.ring
+      && phaseProtocol?.p2pPayloadsAllowedAfterPhase === 'reveal_open'
+      && job?.ringPhase !== 'reveal_open'
+      && job?.ringPhase !== 'reveal_submitted') {
+      return res.status(409).json({
+        error: 'ring p2p payload transport is locked until reveal_open',
+        ringPhase: job?.ringPhase || null
+      });
     }
     const session = await store.createSignalingSession({
       assignmentId: assignment.assignmentId,
@@ -581,7 +746,7 @@ export function createPoolRouter({ store = poolStore, verifyAuthToken = null, re
       mode: assignment.ring ? 'ring_webrtc_datachannel' : 'requester_provider_webrtc_datachannel',
       transport: 'webrtc_datachannel',
       p2pClaim: 'prompt/output/full receipt payloads should travel over WebRTC; cloud stores only signaling metadata and later receipt anchors',
-      expiresAt: body.expiresAt || assignment.expiresAt || new Date(Date.now() + 10 * 60 * 1000).toISOString(),
+      expiresAt: boundedSignalSessionExpiry({ assignment, requestedExpiresAt: body.expiresAt || null }),
       createdBy: req.body?.createdBy || assignment.requesterId,
       jobStatusAtCreate: job?.status || null
     });
@@ -595,6 +760,7 @@ export function createPoolRouter({ store = poolStore, verifyAuthToken = null, re
     const session = await store.getSignalingSession(req.params.sessionId);
     if (!session) return res.status(404).json({ error: 'signaling session not found' });
     if (!requireSignalingParticipant(req, res, session)) return null;
+    if (signalingSessionExpired(session)) return res.status(410).json({ error: 'signaling session expired' });
     return res.json({ session });
   }));
 
@@ -605,12 +771,17 @@ export function createPoolRouter({ store = poolStore, verifyAuthToken = null, re
     const session = await store.getSignalingSession(req.params.sessionId);
     if (!session) return res.status(404).json({ error: 'signaling session not found' });
     if (!requireSignalingParticipant(req, res, session)) return null;
+    if (signalingSessionExpired(session)) return res.status(410).json({ error: 'signaling session expired' });
     const body = req.body || {};
     if (!body.type) return res.status(400).json({ error: 'signal type is required' });
+    if (!SIGNAL_TYPES.has(body.type)) return res.status(400).json({ error: 'signal type is not allowed' });
     if (!body.fromPeerId) return res.status(400).json({ error: 'signal fromPeerId is required' });
     if (!requireSignalFromPeer(req, res, session, body.fromPeerId)) return null;
     if (body.toPeerId && !session.participantIds.includes(body.toPeerId)) {
       return res.status(400).json({ error: 'signal toPeerId is not a session participant' });
+    }
+    if (jsonByteLength(body.payload) > MAX_SIGNAL_PAYLOAD_BYTES) {
+      return res.status(413).json({ error: 'signal payload exceeds metadata size limit' });
     }
     const message = await store.appendSignalMessage(session.sessionId, {
       id: body.id || null,
@@ -632,13 +803,15 @@ export function createPoolRouter({ store = poolStore, verifyAuthToken = null, re
     const session = await store.getSignalingSession(req.params.sessionId);
     if (!session) return res.status(404).json({ error: 'signaling session not found' });
     if (!requireSignalingParticipant(req, res, session)) return null;
+    if (signalingSessionExpired(session)) return res.status(410).json({ error: 'signaling session expired' });
     const peerId = req.query.peerId || null;
     if (peerId && !session.participantIds.includes(peerId)) {
       return res.status(400).json({ error: 'peerId is not a session participant' });
     }
     const messages = await store.listSignalMessages(session.sessionId, {
       after: Number(req.query.after || 0),
-      peerId
+      peerId,
+      limit: MAX_SIGNAL_MESSAGES_PER_POLL
     });
     return res.json({ messages });
   }));
@@ -654,9 +827,29 @@ export function createPoolRouter({ store = poolStore, verifyAuthToken = null, re
     const metrics = await store.getMetrics();
     const storageMode = store.kind || 'unknown';
     const authVerifierConfigured = typeof verifyAuthToken === 'function';
-    const productionReady = storageMode === 'firestore' && authVerifierConfigured;
+    const authRequired = requireAuth || storageMode === 'firestore';
+    const modelArtifactBaseConfigured = Boolean(configuredEnvValue('REPLOID_POOL_MODEL_BASE_URL', 'POOL_MODEL_BASE_URL'));
+    const dopplerModuleConfigured = Boolean(configuredEnvValue('REPLOID_DOPPLER_MODULE_URL', 'POOL_DOPPLER_MODULE_URL'));
+    const configValidation = validatePoolConfig();
+    const readinessConfig = POOL_CONFIG.deployment || {};
+    const commitRevealSupported = typeof store.saveAssignmentCommitment === 'function'
+      && typeof store.getAssignmentCommitment === 'function'
+      && typeof store.saveAssignmentReveal === 'function'
+      && typeof store.getAssignmentReveal === 'function';
+    const poolEventsSupported = typeof store.appendPoolEvent === 'function'
+      && typeof store.listPoolEventsForJob === 'function';
+    const productionReady = configValidation.ok
+      && (!readinessConfig.requiresFirestore || storageMode === 'firestore')
+      && (!readinessConfig.requiresFirebaseAuthVerifier || authVerifierConfigured)
+      && (!readinessConfig.requiresAuthForNonDiscoveryRoutes || authRequired)
+      && (!readinessConfig.requiresOffloadedModelArtifactBase || modelArtifactBaseConfigured)
+      && (!readinessConfig.requiresDopplerModuleConfiguration || dopplerModuleConfigured)
+      && (!readinessConfig.requiresCommitRevealStore || commitRevealSupported);
     return res.json({
       ok: productionReady,
+      configVersion: POOL_CONFIG_VERSION,
+      configHash: POOL_CONFIG_HASH,
+      configValidation,
       claim: 'receipt-backed, audit-backed, reputation-backed, policy-controlled browser inference',
       forbiddenClaims: ['trustless', 'hardware-attested', 'guaranteed honest GPU execution'],
       policies: listPolicies().map((policy) => policy.policyId),
@@ -667,6 +860,29 @@ export function createPoolRouter({ store = poolStore, verifyAuthToken = null, re
         mode: storageMode,
         productionReady,
         productionRequirement: 'Use POOL_STORE=firestore with Firebase Admin credentials for hosted production.',
+        authRequired,
+        modelArtifactBaseConfigured,
+        modelArtifactBaseEnv: modelArtifactBaseConfigured ? 'configured' : 'missing',
+        dopplerModuleConfigured,
+        dopplerModuleEnv: dopplerModuleConfigured ? 'configured' : 'missing',
+        hybridP2PAnchor: true,
+        signaling: {
+          supported: typeof store.createSignalingSession === 'function'
+            && typeof store.appendSignalMessage === 'function'
+            && typeof store.listSignalMessages === 'function',
+          maxPayloadBytes: MAX_SIGNAL_PAYLOAD_BYTES,
+          maxMessagesPerPoll: MAX_SIGNAL_MESSAGES_PER_POLL,
+          sessionTtlMs: MAX_SIGNAL_SESSION_TTL_MS
+        },
+        commitReveal: {
+          supported: commitRevealSupported,
+          activeProtocolId: POOL_CONFIG.ringPhaseProtocols?.activeProtocolId || null
+        },
+        eventSourcing: {
+          supported: poolEventsSupported,
+          activeStateModeId: POOL_CONFIG.stateModes?.activeModeId || null,
+          appendOnlyEventSourcedModeEnabled: POOL_CONFIG.stateModes?.modes?.append_only_event_sourced_v1?.enabled === true
+        },
         metricsAvailable: !!metrics
       },
       identity: {
@@ -717,7 +933,35 @@ export function createPoolRouter({ store = poolStore, verifyAuthToken = null, re
     if (!body.publicKey) {
       return res.status(400).json({ error: 'publicKey is required' });
     }
-    const provider = await store.registerProvider(body);
+    const ringPolicy = getPolicy('ring_quorum_receipt');
+    const acceptsRing = (body.availability?.acceptedPolicies || []).length === 0
+      || (body.availability?.acceptedPolicies || []).includes('ring_quorum_receipt');
+    if (body.runtimeProfile && body.runtimeProfileHash && runtimeProfileHash(body.runtimeProfile) !== body.runtimeProfileHash) {
+      return res.status(400).json({ error: 'runtimeProfileHash does not match runtimeProfile' });
+    }
+    const providerInput = {
+      ...body,
+      authUid: body.authUid || req.poolAuth?.uid || null,
+      identityClusterId: body.identityClusterId || (req.poolAuth?.uid ? `auth:${req.poolAuth.uid}` : body.providerId || null),
+      runtimeProfileHash: body.runtimeProfile ? runtimeProfileHash(body.runtimeProfile) : body.runtimeProfileHash || null,
+      admissionPolicyId: null,
+      admissionLane: null,
+      ringEligible: false
+    };
+    if (acceptsRing && ringPolicy) {
+      const runtimeProfileReasons = validateRuntimeProfileForPolicy(providerInput, ringPolicy);
+      if (runtimeProfileReasons.length > 0) {
+        return res.status(400).json({
+          error: 'runtime profile is required for ring_quorum_receipt providers',
+          reasons: runtimeProfileReasons
+        });
+      }
+      const admission = deriveProviderAdmission({ provider: providerInput, reputation: {}, policy: ringPolicy });
+      providerInput.admissionPolicyId = admission.policyId;
+      providerInput.admissionLane = admission.laneId;
+      providerInput.ringEligible = admission.ringEligible;
+    }
+    const provider = await store.registerProvider(providerInput);
     const queuedAssignments = await assignQueuedJobs({ store });
     if (queuedAssignments.length > 0 && provider?.providerId) {
       const refreshedProvider = await store.getProvider(provider.providerId) || provider;
@@ -758,6 +1002,8 @@ export function createPoolRouter({ store = poolStore, verifyAuthToken = null, re
       requesterId: req.body.requesterId,
       prompt: req.body.prompt,
       policyId: validation.policyId,
+      policyConfigVersion: POOL_CONFIG_VERSION,
+      policyConfigHash: POOL_CONFIG_HASH,
       requesterPublicKey: req.body.requesterPublicKey,
       modelRequirements: req.body.modelRequirements || {},
       generationConfig: req.body.generationConfig || {},
@@ -782,6 +1028,212 @@ export function createPoolRouter({ store = poolStore, verifyAuthToken = null, re
     if (!job) return res.status(404).json({ error: 'job not found' });
     if (!requireBoundAnyRole(req, res, ['requester', 'agent'], job.requesterId)) return null;
     return res.json({ job });
+  }));
+
+  router.post('/assignments/:assignmentId/commit', asyncRoute(async (req, res) => {
+    const assignment = await store.getAssignment(req.params.assignmentId);
+    if (!assignment) return res.status(404).json({ error: 'assignment not found' });
+    if (!requireBoundRole(req, res, 'provider', assignment.providerId)) return null;
+    if (!assignment.ring) return res.status(400).json({ error: 'assignment does not use ring commit-reveal' });
+    if (!['assigned', 'running'].includes(assignment.status)) {
+      return res.status(409).json({
+        error: 'assignment is not in private compute phase',
+        assignmentStatus: assignment.status
+      });
+    }
+    const job = await store.getJob(assignment.jobId);
+    if (!job) return res.status(404).json({ error: 'job not found', jobId: assignment.jobId });
+    if (!assignmentMatchesCurrentJobAttempt(assignment, job)) {
+      return res.status(409).json({ error: 'assignment does not match current job attempt' });
+    }
+    const protocol = phaseProtocolForAssignment(assignment);
+    if (!protocol) return res.status(400).json({ error: 'assignment has no configured ring phase protocol' });
+    const existingReveals = await currentRevealsForJob(store, job);
+    if (protocol.rejectLateCommitmentsAfterRevealOpen && job.ringPhase === 'reveal_open' && existingReveals.length > 0) {
+      return res.status(409).json({ error: 'late commitments are rejected after reveal payloads exist' });
+    }
+    if (await store.getAssignmentCommitment?.(assignment.assignmentId)) {
+      return res.status(409).json({ error: 'assignment commitment already submitted' });
+    }
+    const input = {
+      jobId: assignment.jobId,
+      assignmentId: assignment.assignmentId,
+      ringAttemptId: assignment.ringAttemptId,
+      providerId: assignment.providerId,
+      commitmentHash: req.body?.commitmentHash || null
+    };
+    const reasons = validateCommitmentInput(input);
+    if (reasons.length > 0) return res.status(400).json({ error: 'invalid commitment', reasons });
+    const commitment = await store.saveAssignmentCommitment(assignment.assignmentId, {
+      ...input,
+      requesterId: assignment.requesterId,
+      policyId: assignment.policyId,
+      policyConfigVersion: job.policyConfigVersion || POOL_CONFIG_VERSION,
+      policyConfigHash: job.policyConfigHash || POOL_CONFIG_HASH,
+      assignmentAttemptId: assignment.assignmentAttemptId || null,
+      phaseProtocolId: assignment.ring.ringPhaseProtocolId,
+      status: 'commit_submitted'
+    });
+    await store.updateAssignment(assignment.assignmentId, {
+      status: 'commit_submitted',
+      commitmentHash: commitment.commitmentHash,
+      committedAt: new Date().toISOString()
+    });
+    const barrier = await commitmentBarrierReached({ store, job, assignment });
+    const jobPatch = {
+      ringPhase: barrier.reached ? 'reveal_open' : 'commit_submitted',
+      commitmentHashes: barrier.commitments.map((entry) => entry.commitmentHash),
+      agreement: {
+        ...(job.agreement || {}),
+        commitments: barrier.commitments.length,
+        requiredCommitments: barrier.required,
+        phase: barrier.reached ? 'reveal_open' : 'commit_submitted'
+      }
+    };
+    if (barrier.reached) {
+      for (const entry of barrier.commitments) {
+        const committedAssignment = await store.getAssignment(entry.assignmentId);
+        if (committedAssignment && committedAssignment.status === 'commit_submitted') {
+          await store.updateAssignment(entry.assignmentId, {
+            status: 'reveal_open',
+            revealOpenedAt: new Date().toISOString()
+          });
+        }
+      }
+    }
+    await store.updateJob(job.jobId, jobPatch);
+    return res.status(201).json({
+      commitment,
+      ringPhase: jobPatch.ringPhase,
+      commitments: barrier.commitments.length,
+      requiredCommitments: barrier.required
+    });
+  }));
+
+  router.post('/assignments/:assignmentId/reveal', asyncRoute(async (req, res) => {
+    const assignment = await store.getAssignment(req.params.assignmentId);
+    if (!assignment) return res.status(404).json({ error: 'assignment not found' });
+    if (!requireBoundRole(req, res, 'provider', assignment.providerId)) return null;
+    if (!assignment.ring) return res.status(400).json({ error: 'assignment does not use ring commit-reveal' });
+    const job = await store.getJob(assignment.jobId);
+    if (!job) return res.status(404).json({ error: 'job not found', jobId: assignment.jobId });
+    if (!assignmentMatchesCurrentJobAttempt(assignment, job)) {
+      return res.status(409).json({ error: 'assignment does not match current job attempt' });
+    }
+    if (job.ringPhase !== 'reveal_open' && assignment.status !== 'reveal_open') {
+      return res.status(409).json({
+        error: 'ring reveal phase is not open',
+        ringPhase: job.ringPhase || null,
+        assignmentStatus: assignment.status
+      });
+    }
+    const commitment = await store.getAssignmentCommitment?.(assignment.assignmentId);
+    if (!commitment) return res.status(409).json({ error: 'assignment commitment missing' });
+    if (await store.getAssignmentReveal?.(assignment.assignmentId)) {
+      return res.status(409).json({ error: 'assignment reveal already submitted' });
+    }
+    const revealInput = {
+      jobId: assignment.jobId,
+      assignmentId: assignment.assignmentId,
+      ringAttemptId: assignment.ringAttemptId,
+      providerId: assignment.providerId,
+      outputHash: req.body?.outputHash || null,
+      tokenIdsHash: req.body?.tokenIdsHash || null,
+      transcriptHash: req.body?.transcriptHash || null,
+      salt: req.body?.salt || null
+    };
+    const reasons = validateRevealInput(revealInput);
+    const match = revealMatchesCommitment({ commitment, reveal: revealInput });
+    if (!match.ok) reasons.push('reveal does not match prior commitment');
+    if (reasons.length > 0) {
+      if (!match.ok) {
+        const rejectedProviderIds = Array.from(new Set([
+          ...(Array.isArray(job?.rejectedProviderIds) ? job.rejectedProviderIds : []),
+          assignment.providerId
+        ].filter(Boolean)));
+        const failedAssignmentIds = Array.from(new Set([
+          ...(Array.isArray(job?.failedAssignmentIds) ? job.failedAssignmentIds : []),
+          assignment.assignmentId
+        ].filter(Boolean)));
+        await store.updateAssignment(assignment.assignmentId, {
+          status: 'reveal_rejected',
+          failureReason: 'ring_commit_reveal_mismatch',
+          revealRejectedAt: new Date().toISOString()
+        });
+        await store.setProviderStatus(assignment.providerId, 'available');
+        await recordRejectedReceipt({
+          store,
+          providerId: assignment.providerId,
+          reasons
+        });
+        await penalizeProvider({
+          store,
+          providerId: assignment.providerId,
+          requesterId: assignment.requesterId,
+          assignmentId: assignment.assignmentId,
+          reason: 'ring_commit_reveal_mismatch',
+          points: -2,
+          evidence: { reasons, commitmentCheck: match }
+        });
+        await store.updateJob(job.jobId, {
+          rejectedProviderIds,
+          failedAssignmentIds
+        });
+        const policy = getPolicy(assignment.policyId);
+        if (policy) {
+          const refreshedJob = await store.getJob(job.jobId);
+          const agreement = await evaluateAgreement({ store, job: refreshedJob, policy });
+          await store.updateJob(job.jobId, {
+            status: agreement.status === 'rejected' ? statusForRejectedAgreement(agreement) : statusForPendingAgreement(agreement),
+            reason: agreement.status === 'rejected' ? agreement.reason : 'ring commit-reveal mismatch',
+            retryable: agreement.status === 'rejected',
+            receiptHashes: agreement.receiptHashes,
+            rejectedReceiptHashes: agreement.rejectedReceiptHashes,
+            failedAssignmentIds: agreement.failedAssignmentIds,
+            agreement,
+            verifierDecision: agreement.status === 'rejected'
+              ? { accepted: false, reasons: [agreement.reason], verifiedAt: new Date().toISOString(), agreement }
+              : undefined
+          });
+        }
+      }
+      return res.status(400).json({
+        error: 'invalid reveal',
+        reasons,
+        commitmentCheck: match
+      });
+    }
+    const reveal = await store.saveAssignmentReveal(assignment.assignmentId, {
+      ...revealInput,
+      requesterId: assignment.requesterId,
+      policyId: assignment.policyId,
+      policyConfigVersion: job.policyConfigVersion || POOL_CONFIG_VERSION,
+      policyConfigHash: job.policyConfigHash || POOL_CONFIG_HASH,
+      assignmentAttemptId: assignment.assignmentAttemptId || null,
+      phaseProtocolId: assignment.ring.ringPhaseProtocolId,
+      commitmentHash: commitment.commitmentHash,
+      status: 'reveal_submitted'
+    });
+    await store.updateAssignment(assignment.assignmentId, {
+      status: 'reveal_submitted',
+      revealHash: buildCommitmentHash(revealInput),
+      revealedAt: new Date().toISOString()
+    });
+    const reveals = await currentRevealsForJob(store, job);
+    await store.updateJob(job.jobId, {
+      ringPhase: reveals.length >= Number(job?.agreement?.requiredAgreement || assignment.requiredAgreement || 1)
+        ? 'reveal_submitted'
+        : 'reveal_open',
+      revealHashes: reveals.map((entry) => buildCommitmentHash(entry)),
+      agreement: {
+        ...(job.agreement || {}),
+        reveals: reveals.length,
+        phase: reveals.length >= Number(job?.agreement?.requiredAgreement || assignment.requiredAgreement || 1)
+          ? 'reveal_submitted'
+          : 'reveal_open'
+      }
+    });
+    return res.status(201).json({ reveal });
   }));
 
   router.post('/assignments/:assignmentId/receipt', asyncRoute(async (req, res) => {
@@ -822,6 +1274,14 @@ export function createPoolRouter({ store = poolStore, verifyAuthToken = null, re
         jobStatus: assignmentJob.status
       });
     }
+    const phaseProtocol = phaseProtocolForAssignment(assignment);
+    if (phaseProtocol?.requireRevealBeforeReceipt && assignment.status !== 'reveal_submitted') {
+      return res.status(409).json({
+        error: 'ring reveal must be submitted before receipt',
+        assignmentStatus: assignment.status,
+        ringPhase: assignmentJob.ringPhase || null
+      });
+    }
     const receipt = req.body?.receipt;
     const outputText = req.body?.outputText || '';
     const tokenIds = Array.isArray(req.body?.tokenIds) ? req.body.tokenIds : [];
@@ -842,7 +1302,10 @@ export function createPoolRouter({ store = poolStore, verifyAuthToken = null, re
       requesterId: assignment.requesterId,
       assignmentAttemptId: assignment.assignmentAttemptId || null,
       ringAttemptId: assignment.ringAttemptId || null,
+      policyConfigVersion: assignmentJob.policyConfigVersion || POOL_CONFIG_VERSION,
+      policyConfigHash: assignmentJob.policyConfigHash || POOL_CONFIG_HASH,
       effectiveTrustTier: assignment.ring?.effectiveTrustTier || assignment.trustTier || assignmentJob.effectiveTrustTier || assignmentJob.trustTier || null,
+      providerAdmission: assignment.providerAdmission || null,
       outputText,
       tokenIds,
       transcript,
@@ -1125,6 +1588,17 @@ export function createPoolRouter({ store = poolStore, verifyAuthToken = null, re
           receiptHashes: acceptanceSummary.receiptHashes
         });
       }
+      const commitRevealReasons = await ensureAgreementCommitRevealReady({
+        store,
+        job,
+        agreedRecords: acceptanceSummary.agreedRecords
+      });
+      if (commitRevealReasons.length > 0) {
+        return res.status(409).json({
+          error: 'accepted agreement set is missing required commit-reveal evidence',
+          reasons: commitRevealReasons
+        });
+      }
     }
     const acceptanceDecision = await verifyRequesterAcceptance({
       job,
@@ -1179,6 +1653,7 @@ export function createPoolRouter({ store = poolStore, verifyAuthToken = null, re
         receiptRecord: agreedRecord,
         acceptance,
         multiplier,
+        points: acceptanceSummary.providerPoints.find((entry) => entry.receiptHash === agreedRecord.receiptHash)?.points,
         reason: acceptedLedgerReasonForJob(job, receiptHashes.length)
       });
       const reputation = await recordAcceptedReceipt({

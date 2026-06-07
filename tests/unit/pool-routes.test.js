@@ -5,6 +5,7 @@ import { createPoolStore } from '../../server/pool/store.js';
 import { LAUNCH_MODEL } from '../../server/pool/model-contract.js';
 import { DETERMINISTIC_GENERATION_CONFIG, getPolicy } from '../../server/pool/policy-router.js';
 import { assignJob } from '../../server/pool/scheduler.js';
+import { runtimeProfileHash as serverRuntimeProfileHash } from '../../server/pool/runtime-profile.js';
 import {
   buildAcceptanceSummary,
   buildPoolReceipt,
@@ -13,6 +14,13 @@ import {
   exportPublicKey,
   signProviderReceipt
 } from '../../self/pool/inference-receipt.js';
+import {
+  buildRuntimeProfile
+} from '../../self/pool/runtime-profile.js';
+import {
+  buildAssignmentCommitmentPayload,
+  buildAssignmentRevealPayload
+} from '../../self/pool/p2p-payload.js';
 
 const dispatchJson = async (router, path, { method = 'GET', body = null, headers = {} } = {}) => {
   const url = new URL(path, 'http://reploid.test');
@@ -66,16 +74,57 @@ const launchModel = () => ({
 
 const registerRingProviders = async (store, count) => {
   const providers = new Map();
+  const runtimeProfile = buildRuntimeProfile({
+    modelInfo: launchModel(),
+    runtimeInfo: {
+      runtime: LAUNCH_MODEL.runtime,
+      backend: LAUNCH_MODEL.backend,
+      publicApi: 'generate',
+      profile: { implementation: 'route-test-runtime' },
+      kernelProfileHash: 'sha256:route-test-kernel'
+    },
+    deviceInfo: {
+      hasWebGPU: true,
+      probeStatus: 'ok',
+      adapterInfo: {
+        vendor: 'route-test-vendor',
+        architecture: 'route-test-arch',
+        device: 'route-test-device',
+        description: 'route test adapter'
+      },
+      features: ['shader-f16'],
+      limits: { maxBufferSize: 1024 },
+      shaderProfile: 'route-test-shader'
+    },
+    browserProfile: {
+      userAgent: 'route-test-browser',
+      family: 'route-test-browser',
+      majorVersion: '1',
+      platform: 'route-test-platform',
+      brands: ['RouteTest:1'],
+      mobile: false
+    }
+  });
+  const runtimeProfileHash = serverRuntimeProfileHash(runtimeProfile);
   for (let index = 0; index < count; index += 1) {
     const keyPair = await createSigningKeyPair();
     const providerId = `provider_${index}`;
     const provider = store.registerProvider({
       providerId,
       publicKey: await exportPublicKey(keyPair.publicKey),
+      runtimeProfile,
+      runtimeProfileHash,
       models: [launchModel()],
       availability: {
         acceptedPolicies: ['ring_quorum_receipt']
       }
+    });
+    store.updateReputation(providerId, {
+      acceptedReceipts: 3,
+      rejectedReceipts: 0,
+      timeouts: 0,
+      admissionLane: 'trusted_browser_provider',
+      ringEligible: true
     });
     providers.set(providerId, { provider, keyPair });
   }
@@ -121,6 +170,7 @@ const signedReceiptFor = async ({ assignment, providerKeys, outputText = 'same o
       timing: {}
     }
   });
+  receipt.verification.runtimeProfileHash = assignment.runtimeProfileHash;
   return {
     outputText,
     tokenIds,
@@ -133,6 +183,62 @@ const submitReceipt = async (router, assignment, payload) => dispatchJson(router
   method: 'POST',
   body: payload
 });
+
+const unlockRingP2pTransport = async (store, assignment) => {
+  await store.updateJob(assignment.jobId, { ringPhase: 'reveal_open' });
+  await store.updateAssignment(assignment.assignmentId, { status: 'reveal_open' });
+};
+
+const openRingReveal = async ({ router, assignments, providers, outputText = 'same output', tokenIds = [1, 2, 3] }) => {
+  const payloads = new Map();
+  const commitments = new Map();
+  for (const assignment of assignments) {
+    const payload = await signedReceiptFor({
+      assignment,
+      providerKeys: providers.get(assignment.providerId),
+      outputText,
+      tokenIds
+    });
+    payloads.set(assignment.assignmentId, payload);
+    const execution = {
+      outputText: payload.outputText,
+      tokenIds: payload.tokenIds,
+      transcript: payload.transcript
+    };
+    const commitment = await buildAssignmentCommitmentPayload({
+      assignment,
+      providerId: assignment.providerId,
+      execution,
+      receipt: payload.receipt,
+      salt: `salt_${assignment.assignmentId}`
+    });
+    commitments.set(assignment.assignmentId, commitment);
+    await dispatchJson(router, `/assignments/${assignment.assignmentId}/commit`, {
+      method: 'POST',
+      body: commitment
+    });
+  }
+  for (const assignment of assignments) {
+    const payload = payloads.get(assignment.assignmentId);
+    const reveal = await buildAssignmentRevealPayload({
+      assignment,
+      providerId: assignment.providerId,
+      execution: {
+        outputText: payload.outputText,
+        tokenIds: payload.tokenIds,
+        transcript: payload.transcript
+      },
+      receipt: payload.receipt,
+      salt: `salt_${assignment.assignmentId}`,
+      commitmentHash: commitments.get(assignment.assignmentId).commitmentHash
+    });
+    await dispatchJson(router, `/assignments/${assignment.assignmentId}/reveal`, {
+      method: 'POST',
+      body: reveal
+    });
+  }
+  return payloads;
+};
 
 describe('pool coordinator routes', () => {
   let store;
@@ -189,11 +295,9 @@ describe('pool coordinator routes', () => {
   it('absorbs one invalid ring receipt while quorum remains possible', async () => {
     store.kind = 'memory';
     const { providers, assignments, job } = await createRingJob({ store, providerCount: 4 });
+    const payloads = await openRingReveal({ router, assignments, providers });
     const [badAssignment, ...quorumAssignments] = assignments;
-    const badPayload = await signedReceiptFor({
-      assignment: badAssignment,
-      providerKeys: providers.get(badAssignment.providerId)
-    });
+    const badPayload = payloads.get(badAssignment.assignmentId);
     const rejected = await submitReceipt(router, badAssignment, {
       ...badPayload,
       outputText: 'tampered output',
@@ -209,10 +313,7 @@ describe('pool coordinator routes', () => {
     expect((await store.getJob(job.jobId)).status).toBe('awaiting_ring_quorum_receipts');
 
     for (const assignment of quorumAssignments) {
-      const validPayload = await signedReceiptFor({
-        assignment,
-        providerKeys: providers.get(assignment.providerId)
-      });
+      const validPayload = payloads.get(assignment.assignmentId);
       await submitReceipt(router, assignment, validPayload);
     }
 
@@ -224,14 +325,25 @@ describe('pool coordinator routes', () => {
     expect(acceptedJob.receiptHashes).toHaveLength(3);
   });
 
+  it('rejects ring receipts before the assignment reveal is submitted', async () => {
+    store.kind = 'memory';
+    const { providers, assignments } = await createRingJob({ store, providerCount: 4 });
+    const assignment = assignments[0];
+    const payload = await signedReceiptFor({
+      assignment,
+      providerKeys: providers.get(assignment.providerId)
+    });
+    const rejected = await submitReceipt(router, assignment, payload);
+    expect(rejected.status).toBe(409);
+    expect(rejected.body.error).toBe('ring reveal must be submitted before receipt');
+  });
+
   it('does not downgrade an accepted ring agreement from a late invalid receipt', async () => {
     store.kind = 'memory';
     const { providers, assignments, job } = await createRingJob({ store, providerCount: 4 });
+    const payloads = await openRingReveal({ router, assignments, providers });
     for (const assignment of assignments.slice(0, 3)) {
-      const validPayload = await signedReceiptFor({
-        assignment,
-        providerKeys: providers.get(assignment.providerId)
-      });
+      const validPayload = payloads.get(assignment.assignmentId);
       await submitReceipt(router, assignment, validPayload);
     }
     const verifiedJob = await store.getJob(job.jobId);
@@ -240,10 +352,7 @@ describe('pool coordinator routes', () => {
 
     const lateAssignment = assignments[3];
     expect((await store.getAssignment(lateAssignment.assignmentId)).status).toBe('superseded');
-    const latePayload = await signedReceiptFor({
-      assignment: lateAssignment,
-      providerKeys: providers.get(lateAssignment.providerId)
-    });
+    const latePayload = payloads.get(lateAssignment.assignmentId);
     const lateRejected = await submitReceipt(router, lateAssignment, {
       ...latePayload,
       outputText: 'late tampered output',
@@ -265,11 +374,9 @@ describe('pool coordinator routes', () => {
   it('rejects active-looking receipts from stale ring attempts after reassignment', async () => {
     store.kind = 'memory';
     const { providers, assignments, job } = await createRingJob({ store, providerCount: 4 });
+    const payloads = await openRingReveal({ router, assignments, providers });
     for (const assignment of assignments.slice(0, 2)) {
-      const badPayload = await signedReceiptFor({
-        assignment,
-        providerKeys: providers.get(assignment.providerId)
-      });
+      const badPayload = payloads.get(assignment.assignmentId);
       await submitReceipt(router, assignment, {
         ...badPayload,
         outputText: `tampered ${assignment.assignmentId}`,
@@ -284,10 +391,7 @@ describe('pool coordinator routes', () => {
     expect(retriedJob.assignmentIds).not.toContain(assignments[2].assignmentId);
 
     await store.updateAssignment(assignments[2].assignmentId, { status: 'running' });
-    const stalePayload = await signedReceiptFor({
-      assignment: assignments[2],
-      providerKeys: providers.get(assignments[2].providerId)
-    });
+    const stalePayload = payloads.get(assignments[2].assignmentId);
     const stale = await submitReceipt(router, assignments[2], stalePayload);
     expect(stale.status).toBe(409);
     expect(stale.body.error).toBe('assignment does not match current job attempt');
@@ -297,11 +401,9 @@ describe('pool coordinator routes', () => {
   it('uses ring-specific ledger reasons for accepted ring quorum receipts', async () => {
     store.kind = 'memory';
     const { providers, requesterKeys, assignments, job } = await createRingJob({ store, providerCount: 4 });
+    const payloads = await openRingReveal({ router, assignments, providers });
     for (const assignment of assignments.slice(0, 3)) {
-      const validPayload = await signedReceiptFor({
-        assignment,
-        providerKeys: providers.get(assignment.providerId)
-      });
+      const validPayload = payloads.get(assignment.assignmentId);
       await submitReceipt(router, assignment, validPayload);
     }
     const verifiedJob = await store.getJob(job.jobId);
@@ -357,11 +459,9 @@ describe('pool ring quorum timeout and acceptance binding', () => {
 
   it('retires non-quorum assignments and does not let expiration downgrade an accepted ring quorum', async () => {
     const { providers, assignments, job } = await createRingJob({ store, providerCount: 4 });
+    const payloads = await openRingReveal({ router, assignments, providers });
     for (const assignment of assignments.slice(0, 3)) {
-      const validPayload = await signedReceiptFor({
-        assignment,
-        providerKeys: providers.get(assignment.providerId)
-      });
+      const validPayload = payloads.get(assignment.assignmentId);
       await submitReceipt(router, assignment, validPayload);
     }
 
@@ -385,11 +485,9 @@ describe('pool ring quorum timeout and acceptance binding', () => {
 
   it('rejects requester acceptance that does not bind the accepted receipt set and spend', async () => {
     const { providers, assignments, job, requesterKeys } = await createRingJob({ store, providerCount: 4 });
+    const payloads = await openRingReveal({ router, assignments, providers });
     for (const assignment of assignments.slice(0, 3)) {
-      const validPayload = await signedReceiptFor({
-        assignment,
-        providerKeys: providers.get(assignment.providerId)
-      });
+      const validPayload = payloads.get(assignment.assignmentId);
       await submitReceipt(router, assignment, validPayload);
     }
 
@@ -441,6 +539,7 @@ describe('pool hybrid p2p signaling routes', () => {
   it('creates assignment-bound signaling sessions and exchanges metadata messages', async () => {
     const { assignments } = await createRingJob({ store, providerCount: 1 });
     const assignment = assignments[0];
+    await unlockRingP2pTransport(store, assignment);
     const created = await dispatchJson(router, '/signaling/sessions', {
       method: 'POST',
       body: { assignmentId: assignment.assignmentId }
@@ -477,6 +576,7 @@ describe('pool hybrid p2p signaling routes', () => {
     });
     const { assignments } = await createRingJob({ store, providerCount: 1 });
     const assignment = assignments[0];
+    await unlockRingP2pTransport(store, assignment);
     const created = await dispatchJson(router, '/signaling/sessions', {
       method: 'POST',
       headers: { authorization: 'Bearer ring' },
@@ -510,5 +610,66 @@ describe('pool hybrid p2p signaling routes', () => {
     });
     expect(providerPublisher.status).toBe(201);
     expect(providerPublisher.body.message.fromPeerId).toBe(assignment.providerId);
+  });
+});
+
+describe('pool signaling production guards', () => {
+  let store;
+  let router;
+
+  beforeEach(() => {
+    store = createPoolStore();
+    store.kind = 'memory';
+    router = createPoolRouter({ store });
+  });
+
+  it('rejects signaling sessions for expired assignments', async () => {
+    const { assignments } = await createRingJob({ store, providerCount: 1 });
+    store.updateAssignment(assignments[0].assignmentId, {
+      expiresAt: new Date(Date.now() - 1000).toISOString()
+    });
+
+    const response = await dispatchJson(router, '/signaling/sessions', {
+      method: 'POST',
+      body: { assignmentId: assignments[0].assignmentId }
+    });
+
+    expect(response.status).toBe(410);
+    expect(response.body.error).toBe('assignment expired');
+  });
+
+  it('rejects non-WebRTC signaling types and oversized metadata payloads', async () => {
+    const { assignments } = await createRingJob({ store, providerCount: 1 });
+    const assignment = assignments[0];
+    await unlockRingP2pTransport(store, assignment);
+    const created = await dispatchJson(router, '/signaling/sessions', {
+      method: 'POST',
+      body: { assignmentId: assignment.assignmentId }
+    });
+    const sessionId = created.body.session.sessionId;
+
+    const invalidType = await dispatchJson(router, `/signaling/sessions/${sessionId}/messages`, {
+      method: 'POST',
+      body: {
+        type: 'prompt-payload',
+        fromPeerId: assignment.requesterId,
+        toPeerId: assignment.providerId,
+        payload: { prompt: 'should not ride signaling' }
+      }
+    });
+    expect(invalidType.status).toBe(400);
+    expect(invalidType.body.error).toBe('signal type is not allowed');
+
+    const oversized = await dispatchJson(router, `/signaling/sessions/${sessionId}/messages`, {
+      method: 'POST',
+      body: {
+        type: 'offer',
+        fromPeerId: assignment.requesterId,
+        toPeerId: assignment.providerId,
+        payload: { sdp: 'x'.repeat(70 * 1024) }
+      }
+    });
+    expect(oversized.status).toBe(413);
+    expect(oversized.body.error).toBe('signal payload exceeds metadata size limit');
   });
 });

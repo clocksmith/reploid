@@ -88,7 +88,7 @@ The signed receipt binds this exact object. At execution time only, `self/pool/d
 | `fastest_receipt` | `T1_signed_receipt` | One eligible browser provider returns a signed assignment-bound receipt |
 | `canary_audited` | `T2_canary_audited` | One eligible browser provider with passing canary history returns a signed receipt |
 | `redundant_agreement` | `T3_redundant_agreement` | Multiple independent browser providers must return matching output and token hashes |
-| `ring_quorum_receipt` | `T4_ring_quorum_receipt` | One to four exact-model browser providers run the same deterministic assignment in a coordinator-ordered ring; majority matching token/output hashes form the accepted result |
+| `ring_quorum_receipt` | `adaptive_T1_to_T4_ring_quorum_receipt` | One to four exact-model browser providers run the same deterministic assignment in a coordinator-ordered ring; majority matching token/output hashes form the accepted result |
 
 ## Ring quorum policy
 
@@ -105,15 +105,17 @@ The coordinator selects up to four fresh, available, exact-model providers, deri
 
 Ring agreement checks:
 
-- same assignment, prompt hash, model identity, runtime identity, and generation config;
+- same assignment, prompt hash, model identity, runtime identity, runtime profile bucket, and generation config;
 - current assignment attempt only, including `assignmentAttemptId` and `ringAttemptId`, so receipts from failed prior attempts do not count toward a retry;
 - provider signature on every receipt;
 - ring id, seed, attempt id, layout hash, provider index, predecessor, successor, and provider set;
+- commit-reveal evidence before receipt submission, so providers must anchor private output commitments before reveal payloads can be copied;
 - quorum over matching `tokenIdsHash` plus `outputHash`;
 - per-provider invalid receipt or execution failure accounting while the remaining current assignments can still reach quorum;
 - requester acceptance before points and reputation mutation.
 - accepted quorum retires non-quorum sibling assignments so leftover providers are released and later timeouts cannot downgrade the verified job.
 - assignment expiration is evaluated as a failed member of the current agreement attempt. The job fails only when the remaining current assignments cannot still satisfy quorum.
+- impossible quorum advances the assignment attempt and ring attempt when eligible providers remain. Late receipts from the previous attempt are stale and cannot count.
 
 Requester acceptance must bind the economic and agreement object:
 
@@ -138,6 +140,47 @@ No policy allows fallback models or server providers.
 
 ---
 
+## Determinism, admission, and commit-reveal
+
+The ring policy is governed by explicit config lanes:
+
+| Lane | Active id | Purpose |
+|------|-----------|---------|
+| Determinism | `strict_hash_same_runtime_profile` | Strict token/output hash quorum is valid only inside the same model/runtime/browser/WebGPU/kernel profile bucket. |
+| Ring phase | `commit_reveal_v1` | Providers submit `commitmentHash` before reveal. Receipts are rejected until matching reveal evidence exists. |
+| Provider admission | `tiered_browser_provider_v1` | New providers are capped, trusted providers earn higher trust, quarantined providers cannot route. |
+| State mode | `direct_firestore_projection_v1` | Current production mode stores direct job projections plus isolated receipts, commitments, reveals, ledger, and reputation records. |
+
+Provider registration for ring-capable providers must include `runtimeProfile` and `runtimeProfileHash`. The coordinator recomputes the hash and rejects mismatches. Ring scheduling groups compatible runtime profiles and applies diversity rules so one identity/device/network/runtime cluster cannot satisfy quorum alone.
+
+Commitment hash input:
+
+```json
+{
+  "schema": "reploid.pool.commitment/v1",
+  "jobId": "...",
+  "assignmentId": "...",
+  "ringAttemptId": "...",
+  "providerId": "...",
+  "outputHash": "sha256:...",
+  "tokenIdsHash": "sha256:...",
+  "transcriptHash": "sha256:...",
+  "salt": "..."
+}
+```
+
+The provider submits only `commitmentHash` during the commit phase. After the coordinator opens reveal, the provider submits output/token/transcript hashes plus salt. The server recomputes the commitment and rejects mismatches. A reveal mismatch records a provider penalty, marks the assignment failed for the current attempt, and re-evaluates quorum.
+
+Receipts for ring assignments are accepted only after:
+
+- assignment is current;
+- reveal exists;
+- reveal matches commitment;
+- receipt hashes match reveal hashes;
+- `receipt.verification.runtimeProfileHash` matches the assigned provider runtime profile hash.
+
+---
+
 ## Coordinator endpoints
 
 | Method | Path | Purpose |
@@ -151,6 +194,8 @@ No policy allows fallback models or server providers.
 | `GET` | `/pool/providers/assignments/next` | Poll next assignment for a provider |
 | `POST` | `/pool/jobs` | Submit requester or agent job |
 | `GET` | `/pool/jobs/:jobId` | Poll job state |
+| `POST` | `/pool/assignments/:assignmentId/commit` | Submit ring assignment commitment hash |
+| `POST` | `/pool/assignments/:assignmentId/reveal` | Reveal ring assignment hashes and salt after the commit barrier opens |
 | `POST` | `/pool/assignments/:assignmentId/receipt` | Submit provider output plus signed receipt |
 | `POST` | `/pool/assignments/:assignmentId/failure` | Report provider execution failure and make the job retryable |
 | `POST` | `/pool/receipts/:receiptHash/accept` | Submit requester countersignature and accept or reject result |
@@ -186,8 +231,11 @@ Browser modules:
 
 ```javascript
 import { createPoolSdkSignalingAdapter, createSignalingChannel } from './pool/p2p-signaling.js';
-import { createP2PRequesterTransport, createP2PProviderTransport } from './pool/p2p-transport.js';
+import { createAssignmentP2PPayloadChannel, createP2PRequesterTransport, createP2PProviderTransport } from './pool/p2p-transport.js';
+import { createPromptPayload, createExecutionResultPayload, createReceiptPayload } from './pool/p2p-payload.js';
 ```
+
+`createAssignmentP2PPayloadChannel()` creates or attaches to the cloud signaling session, builds the WebRTC signaling channel, and sends versioned prompt/output/receipt envelopes only through the DataChannel transport. The SDK signaling routes carry only offer, answer, ICE candidate, close, and ping messages. Ring payload sessions can be rejected until the coordinator opens the configured reveal gate; this keeps pre-reveal provider outputs from becoming copyable P2P data.
 
 The cloud remains authoritative for abuse, receipt anchoring, requester acceptance, points, reputation, and canary policy. P2P transport reduces cloud bandwidth and prompt/output exposure; it does not replace the ledger trust boundary.
 
@@ -275,16 +323,27 @@ The provider tab does not need Node or Bun. Browser providers use `/contribute`.
 Provider flow:
 
 1. Load the Doppler model through the browser WebGPU runtime.
-2. Register exact model identity, device evidence, availability, public key, and accepted policies.
-3. Run a provider step.
-4. The step sends a heartbeat, claims one assigned job as `running`, verifies the assignment model identity against the loaded Doppler runtime, executes it if present, signs the receipt, submits it, and records local history.
-5. Providers can inspect points and reputation from the same page.
+2. Build a browser runtime profile from WebGPU adapter data, browser hints, Doppler runtime/backend, model identity, and shader/kernel profile hints.
+3. Register exact model identity, runtime profile, runtime profile hash, device evidence, availability, public key, and accepted policies.
+4. Run a provider step.
+5. The step sends a heartbeat, claims one assigned job as `running`, verifies the assignment model identity against the loaded Doppler runtime, executes it if present, builds a signed receipt, submits an assignment commitment when the coordinator exposes commit/reveal, submits reveal after the reveal gate opens, submits the signed receipt, and records local history.
+6. Providers can inspect runtime profile, points, reputation, assignment phase results, verifier results, and commit/reveal state from the same page.
 
 The provider client exposes `runWorkerStep()` for this explicit tab loop. `/contribute` includes start/stop worker controls that repeatedly call this method; the loop is UI scheduling, not a separate execution protocol. Heartbeat returns `busy` while a provider has an `assigned` or `running` assignment. Scheduler eligibility requires a fresh heartbeat. Provider registration and assignment polling drain queued and retryable jobs, so requesters do not need to resubmit when the first eligible browser provider appears. Retryable states include assignment expiration, provider execution failure, rejected receipts, redundant-agreement disagreement, and ring-quorum disagreement. Retries exclude providers that already failed, timed out, returned an invalid receipt, or caused agreement failure for that job. Stale `assigned` and `running` assignments expire through the timeout penalty path.
 
 ## Provider device evidence
 
-Provider registration includes WebGPU runtime evidence when the browser exposes it:
+Provider registration includes a `runtimeProfile` and `runtimeProfileHash`. The hash is the scheduler-facing grouping key for deterministic/homogeneous routing; the profile remains browser-provided evidence and is not hardware attestation.
+
+Runtime profile fields include:
+
+- `profileVersion`
+- browser user agent, platform, brand hints, language, and configured browser hint
+- WebGPU adapter vendor, architecture, device, description, features, and selected limits
+- Doppler runtime, backend, public API surface, shader profile, kernel profile, and determinism profile hint
+- launch model id, model hash, manifest hash, context length, and quantization
+
+Provider registration also includes WebGPU device evidence when the browser exposes it:
 
 - `hasWebGPU`
 - `adapterInfo`
@@ -295,7 +354,19 @@ Provider registration includes WebGPU runtime evidence when the browser exposes 
 - `maxBufferSize`
 - `probeStatus`
 
-This evidence is included in pool receipts through the registered provider record. It describes the claimed browser runtime environment. It is not hardware attestation.
+This evidence is stored in provider registration and the assigned `runtimeProfileHash` is copied into `receipt.verification.runtimeProfileHash`. It describes the claimed browser runtime environment. It is not hardware attestation.
+
+## Browser commit/reveal consumption
+
+Lane B does not define commit/reveal authority. It consumes coordinator routes:
+
+```text
+POST /pool/assignments/:assignmentId/commit
+POST /pool/assignments/:assignmentId/reveal
+POST /pool/assignments/:assignmentId/receipt
+```
+
+Provider execution computes the output privately, signs the receipt payload, builds the server-compatible commitment hash over assignment id, job id, ring attempt id, provider id, output hash, token ids hash, transcript hash, and salt, then submits that commitment. The browser commitment envelope also carries policy id, assignment attempt id, and receipt hash metadata for inspection, but those fields are not part of the canonical commitment hash. If the coordinator opens reveal, the browser submits the reveal payload containing the salt, raw output artifact, token ids, transcript, and signed receipt. Receipt submission follows reveal. If a coordinator has not yet implemented commit/reveal and the assignment does not mark it required, the browser records the unsupported phase and continues through the current receipt route for backwards compatibility.
 
 ## Receipt verification
 
@@ -317,6 +388,8 @@ The server verifier checks:
 - Canary id when an assignment is an audit
 - Redundancy group size when a policy requires agreement
 - Ring attempt id when a policy uses a ring commitment
+- Runtime profile hash when a policy requires homogeneous runtime buckets
+- Commitment and reveal evidence when a policy uses commit-reveal
 
 The browser SDK can also verify fetched receipt records locally using the provider public key and submitted output/token/transcript artifact.
 
@@ -409,6 +482,11 @@ When `POOL_STORE=firestore` is set, the server must initialize Firebase Admin an
 - `assignments`
 - `receipts`
 - `receipt_acceptances`
+- `commitment_events`
+- `reveal_events`
+- `pool_events`
+- `signaling_sessions`
+- `signaling_messages`
 - `points_ledger`
 - `reputation_state`
 - `audit_challenges`
@@ -427,6 +505,109 @@ If the public Doppler handle does not expose token ids, Reploid records the miss
 
 ---
 
-*Last updated: June 2026*
-
 Coordinator claims bypass role-bound record reads for audits, metrics, and operational inspection. Supported claims are `poolCoordinator: true`, `coordinator: true`, or `admin: true`.
+
+---
+
+## Production readiness contract
+
+Cloud Run environment:
+
+```bash
+POOL_STORE=firestore
+POOL_VERIFY_FIREBASE_AUTH=true
+POOL_REQUIRE_FIREBASE_AUTH=true
+POOL_BACKEND_ONLY=true
+POOL_JSON_LIMIT=512kb
+POOL_SIGNAL_SESSION_TTL_MS=600000
+POOL_MAX_SIGNAL_PAYLOAD_BYTES=65536
+POOL_MAX_SIGNAL_MESSAGES_PER_POLL=100
+```
+
+Hosted production requires:
+
+- Cloud Run backend with `POOL_BACKEND_ONLY=true`.
+- Firestore store with Firebase Admin credentials.
+- Firebase Auth token verification configured.
+- Auth required for all non-discovery pool routes.
+- Firestore rules denying direct client access to pool collections.
+- Firebase Hosting rewrites for every `/pool/*` API route, including `/pool/signaling/**`.
+- Commit-reveal store methods for `commitment_events` and `reveal_events`.
+- Signaling sessions capped by assignment expiry and `POOL_SIGNAL_SESSION_TTL_MS`.
+- Signaling messages restricted to WebRTC metadata types: `offer`, `answer`, `ice-candidate`, `close`, and `ping`.
+- Signaling payloads bounded by `POOL_MAX_SIGNAL_PAYLOAD_BYTES`.
+- Offloaded model artifact base configured in the browser as `window.REPLOID_POOL_MODEL_BASE_URL`.
+- Model artifact URLs content-addressed by model id and manifest hash.
+
+`/pool/deployment/check` must return `ok: true` before public traffic. The readiness check requires Firestore storage, Firebase Auth verification, auth-required pool routes, offloaded model artifact base, Doppler module URL, hybrid P2P signaling, and commit-reveal store support. It also reports the append-only `pool_events` seam for the future event-sourced reducer.
+
+Local production verification:
+
+```bash
+npm run verify:pool
+```
+
+The verifier checks config validity, Firebase rewrites, Firestore indexes, Cloud Run env, required deployment values, forbidden trust language, and optional deployed readiness when `REPLOID_POOL_DEPLOYMENT_URL` or `--url` is supplied. Use `--allow-placeholders` only for local dry runs before replacing deployment values.
+
+Browser smoke after deployment:
+
+```bash
+REPLOID_POOL_SMOKE_URL=https://<hosting-domain> npm run smoke:pool
+```
+
+The smoke script opens `/`, `/run`, `/contribute`, `/agents`, `/receipts`, `/reputation`, and `/0`, then checks `/pool/deployment/check` from the browser context.
+
+---
+
+## Config as code invariant
+
+The pool must not claim behavior that is not declared in config.
+
+Canonical config lives in:
+
+| File | Role |
+|------|------|
+| `self/pool/pool-config.json` | Product-owned source of truth for model identity, policies, trust tiers, transport modes, evidence requirements, ledger reasons, forbidden claims, and deployment readiness requirements. |
+| `self/pool/config.js` | Browser helper module that consumes the canonical JSON contract. |
+| `server/pool/config.js` | Server helper module that consumes the canonical JSON contract and exposes the config hash. |
+| `deploy/env.production.json` | Deployment-owned source of truth for Cloud Run env and browser artifact base requirements. |
+
+Rules:
+
+- If a trust tier is not declared in `pool-config.json`, the UI, verifier, scheduler, and docs must not claim it.
+- If a policy is not declared in `pool-config.json`, the coordinator must not route it.
+- If a ledger reason is not declared in `pool-config.json`, points and reputation code must not emit it.
+- If a transport mode is not declared in `pool-config.json`, the product must not advertise it.
+- If a signal type is not declared in the active transport config, the signaling endpoint must reject it.
+- If model identity is not declared in `pool-config.json`, providers must not register it as the launch model.
+- Receipts and requester acceptances bind `policyConfigVersion` and `policyConfigHash` so disputes can inspect the active policy/evidence contract.
+
+`/pool/config`, `/pool/policies`, `/pool/status`, and `/pool/deployment/check` expose the active config version/hash. Tests assert browser/server config alignment, trust tier declarations, transport limits, ledger reasons, commit-reveal enforcement, runtime profile binding, stale attempt isolation, and launch model identity.
+
+---
+
+## Production retrospective
+
+Lane B now has a browser product shape instead of only protocol notes. The provider tab can load a Doppler runtime through hosted-browser-safe module paths, extract runtime evidence, register model identity and runtime profile hash, claim assignments, run generation locally, submit commit/reveal payloads, then submit signed receipts.
+
+The design rule is that browser product code stays subordinate to Lane A. The browser does not invent trust rules. It consumes `/pool/config`, `/pool/policies`, assignment contracts, commit/reveal routes, receipt routes, and signaling routes. Authority stays in the coordinator and canonical config while browser providers do useful work.
+
+Runtime profile binding is required correctness. The verifier expects `receipt.verification.runtimeProfileHash`, and browser receipts carry it. Without that field, a provider could register one runtime profile but submit receipts that do not bind to it.
+
+Requester and agent acceptance bind the same agreement summary shape as the server: accepted receipt set, policy config version/hash, provider point split, point spend, and agreement hash. That makes requester countersignatures bind the economic effect, not merely one receipt hash.
+
+P2P stays narrowly framed. Cloud signaling carries only WebRTC metadata. Prompt, output, token, and full receipt envelopes can move through DataChannel after the configured gates. For ring jobs, reveal-gated payload sessions protect against copycat peers seeing outputs before they have anchored commitments.
+
+The UI now surfaces product evidence summaries: status, trust tier, agreement state, spend, runtime hash, output hash, token hash, verifier result, and raw JSON for diagnostics.
+
+The production line is now:
+
+1. Keep config as code in `self/pool/pool-config.json`.
+2. Keep cloud authority for identity, policy, assignments, receipts, acceptance, points, and reputation.
+3. Keep model artifacts offloaded and content-addressed.
+4. Keep P2P transport as bandwidth/privacy optimization, not trust authority.
+5. Keep browser providers exact-model, runtime-profile-bound, commit-reveal-gated, and reputation-governed.
+
+---
+
+*Last updated: June 2026*
