@@ -3,21 +3,26 @@
  */
 
 import { createPoolSdk } from './sdk.js';
-import { countersignReceipt, createSigningKeyPair } from './inference-receipt.js';
+import { countersignReceipt, createSigningKeyPair, exportPublicKey } from './inference-receipt.js';
+import { buildLaunchModelRequirements } from './model-contract.js';
 
 export function createRequesterClient({ requesterId, sdk = createPoolSdk(), keyPair = null } = {}) {
   let activeKeyPair = keyPair;
+  let requesterPublicKey = null;
   const ensureKeys = async () => {
     if (!activeKeyPair) activeKeyPair = await createSigningKeyPair();
+    if (!requesterPublicKey) requesterPublicKey = await exportPublicKey(activeKeyPair.publicKey);
     return activeKeyPair;
   };
   return {
-    submitJob({ prompt, modelRequirements = {}, generationConfig = {} }) {
+    async submitJob({ prompt, modelRequirements = {}, generationConfig = {} }) {
+      await ensureKeys();
       return sdk.submitJob({
         requesterId,
+        requesterPublicKey,
         prompt,
         policyId: 'fastest_receipt',
-        modelRequirements,
+        modelRequirements: buildLaunchModelRequirements(modelRequirements),
         generationConfig: {
           mode: 'greedy',
           temperature: 0,
@@ -34,9 +39,8 @@ export function createRequesterClient({ requesterId, sdk = createPoolSdk(), keyP
     },
     async acceptReceipt(receiptHash, accepted = true) {
       const keys = await ensureKeys();
-      const acceptance = await countersignReceipt({ receiptHash, accepted }, keys.privateKey);
+      const acceptance = await countersignReceipt({ receiptHash, requesterId, accepted }, keys.privateKey);
       return sdk.acceptReceipt(receiptHash, {
-        requesterId,
         ...acceptance
       });
     }

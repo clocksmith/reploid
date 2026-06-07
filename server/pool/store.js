@@ -95,6 +95,9 @@ export function createPoolStore() {
         updatedAt: nowIso()
       };
       assignments.set(assignmentId, record);
+      if (record.providerId && providers.has(record.providerId)) {
+        providers.get(record.providerId).status = 'busy';
+      }
       return record;
     },
     updateAssignment(assignmentId, patch = {}) {
@@ -110,6 +113,42 @@ export function createPoolStore() {
       return Array.from(assignments.values()).find((assignment) => (
         assignment.providerId === providerId && assignment.status === 'assigned'
       )) || null;
+    },
+    setProviderStatus(providerId, status) {
+      const provider = providers.get(providerId);
+      if (!provider) return null;
+      provider.status = status;
+      provider.updatedAt = nowIso();
+      return provider;
+    },
+    expireStaleAssignments() {
+      const expired = [];
+      const now = Date.now();
+      for (const assignment of assignments.values()) {
+        if (assignment.status !== 'assigned') continue;
+        if (!assignment.expiresAt || Date.parse(assignment.expiresAt) >= now) continue;
+        assignment.status = 'expired';
+        assignment.updatedAt = nowIso();
+        expired.push(assignment);
+        const job = jobs.get(assignment.jobId);
+        if (job) {
+          Object.assign(job, {
+            status: 'failed',
+            reason: 'assignment_expired',
+            retryable: true,
+            updatedAt: nowIso()
+          });
+        }
+        if (assignment.providerId && providers.has(assignment.providerId)) {
+          providers.get(assignment.providerId).status = 'available';
+          const current = this.getReputation(assignment.providerId);
+          this.updateReputation(assignment.providerId, {
+            timeouts: Number(current.timeouts || 0) + 1,
+            lastTimeoutAt: nowIso()
+          });
+        }
+      }
+      return expired;
     },
     saveReceipt(receiptHash, record = {}) {
       const saved = {

@@ -4,6 +4,8 @@
 
 import { createPoolSdk } from '../../pool/sdk.js';
 import { createProviderClient } from '../../pool/provider-client.js';
+import { createRequesterClient } from '../../pool/requester-client.js';
+import { LAUNCH_MODEL, buildLaunchProviderModel } from '../../pool/model-contract.js';
 
 const PRODUCT_ROUTES = Object.freeze({
   '/': 'home',
@@ -192,6 +194,8 @@ const renderRouteDetail = (routeId) => {
             <textarea id="pool-run-prompt" rows="5">Summarize the launch policy in one paragraph.</textarea>
           </label>
           <button class="button-primary" id="pool-run-submit" type="button">Submit fastest_receipt job</button>
+          <button class="button-secondary" id="pool-run-poll" type="button">Poll job</button>
+          <button class="button-secondary" id="pool-run-accept" type="button">Accept receipt</button>
           ${renderResultBox('pool-run-result')}
         </div>
       </section>
@@ -205,10 +209,11 @@ const renderRouteDetail = (routeId) => {
         <div class="pool-form" data-pool-provider>
           <label class="pool-field">
             <span>Model id</span>
-            <input id="pool-provider-model" value="v0_default" />
+            <input id="pool-provider-model" value="${escapeHtml(LAUNCH_MODEL.modelId)}" />
           </label>
           <button class="button-primary" id="pool-provider-register" type="button">Register browser provider</button>
           <button class="button-secondary" id="pool-provider-next" type="button">Poll assignment</button>
+          <button class="button-secondary" id="pool-provider-execute" type="button">Execute assignment</button>
           ${renderResultBox('pool-provider-result')}
         </div>
       </section>
@@ -233,6 +238,14 @@ const renderRouteDetail = (routeId) => {
       <section class="pool-panel">
         <h2 class="type-h2">Receipt journey</h2>
         <p class="type-caption">Receipt lookup, trust tier, hashes, assignment, policy, provider, requester acceptance, verifier result, and ledger effects belong here.</p>
+        <div class="pool-form" data-pool-receipts>
+          <label class="pool-field">
+            <span>Receipt hash</span>
+            <input id="pool-receipt-hash" placeholder="sha256:..." />
+          </label>
+          <button class="button-primary" id="pool-receipt-lookup" type="button">Lookup receipt</button>
+          ${renderResultBox('pool-receipt-result')}
+        </div>
       </section>
     `;
   }
@@ -241,6 +254,14 @@ const renderRouteDetail = (routeId) => {
       <section class="pool-panel">
         <h2 class="type-h2">Reputation journey</h2>
         <p class="type-caption">Provider score, accepted receipts, rejected work, timeouts, audit pass rate, scarce model availability, and routing eligibility belong here.</p>
+        <div class="pool-form" data-pool-reputation>
+          <label class="pool-field">
+            <span>Provider id</span>
+            <input id="pool-reputation-provider" placeholder="provider_..." />
+          </label>
+          <button class="button-primary" id="pool-reputation-lookup" type="button">Lookup reputation</button>
+          ${renderResultBox('pool-reputation-result')}
+        </div>
       </section>
     `;
   }
@@ -256,17 +277,22 @@ const renderTrustNote = () => `
 
 const bindRunControls = (sdk) => {
   const button = document.getElementById('pool-run-submit');
+  const pollButton = document.getElementById('pool-run-poll');
+  const acceptButton = document.getElementById('pool-run-accept');
   const prompt = document.getElementById('pool-run-prompt');
   if (!button || !prompt) return;
+  const requesterClient = createRequesterClient({
+    requesterId: getBrowserIdentity('requester'),
+    sdk
+  });
+  let lastJobId = null;
+  let lastReceiptHash = null;
   button.addEventListener('click', async () => {
     button.disabled = true;
     setResult('pool-run-result', { status: 'submitting' });
     try {
-      const result = await sdk.submitJob({
-        requesterId: getBrowserIdentity('requester'),
+      const result = await requesterClient.submitJob({
         prompt: prompt.value,
-        policyId: 'fastest_receipt',
-        modelRequirements: { modelId: 'v0_default' },
         generationConfig: {
           mode: 'greedy',
           temperature: 0,
@@ -274,9 +300,10 @@ const bindRunControls = (sdk) => {
           topP: 1,
           maxOutputTokens: 128,
           seed: '0000000000000000'
-        },
-        verificationLevel: 'signed_receipt'
+        }
       });
+      lastJobId = result?.job?.jobId || null;
+      lastReceiptHash = result?.job?.receiptHash || null;
       setResult('pool-run-result', result);
     } catch (error) {
       setResult('pool-run-result', { error: error.message, payload: error.payload || null });
@@ -284,28 +311,59 @@ const bindRunControls = (sdk) => {
       button.disabled = false;
     }
   });
+  pollButton?.addEventListener('click', async () => {
+    if (!lastJobId) {
+      setResult('pool-run-result', { error: 'No submitted job to poll' });
+      return;
+    }
+    pollButton.disabled = true;
+    try {
+      const result = await requesterClient.pollJob(lastJobId);
+      lastReceiptHash = result?.job?.receiptHash || lastReceiptHash;
+      setResult('pool-run-result', result);
+    } catch (error) {
+      setResult('pool-run-result', { error: error.message, payload: error.payload || null });
+    } finally {
+      pollButton.disabled = false;
+    }
+  });
+  acceptButton?.addEventListener('click', async () => {
+    if (!lastReceiptHash) {
+      setResult('pool-run-result', { error: 'No verifier-accepted receipt to accept' });
+      return;
+    }
+    acceptButton.disabled = true;
+    try {
+      setResult('pool-run-result', await requesterClient.acceptReceipt(lastReceiptHash, true));
+    } catch (error) {
+      setResult('pool-run-result', { error: error.message, payload: error.payload || null });
+    } finally {
+      acceptButton.disabled = false;
+    }
+  });
 };
 
 const bindProviderControls = (sdk) => {
   const registerButton = document.getElementById('pool-provider-register');
   const nextButton = document.getElementById('pool-provider-next');
+  const executeButton = document.getElementById('pool-provider-execute');
   const modelInput = document.getElementById('pool-provider-model');
   if (!registerButton || !nextButton || !modelInput) return;
   const providerId = getBrowserIdentity('provider');
-  const providerClient = createProviderClient({ providerId, sdk });
+  const providerClient = createProviderClient({
+    providerId,
+    sdk,
+    runtime: window.REPLOID_DOPPLER_RUNTIME || undefined
+  });
+  let lastAssignment = null;
   registerButton.addEventListener('click', async () => {
     registerButton.disabled = true;
     setResult('pool-provider-result', { status: 'registering', providerId });
     try {
       const result = await providerClient.register({
         models: [{
-          modelId: modelInput.value || 'v0_default',
-          modelHash: 'sha256:unknown',
-          manifestHash: 'sha256:unknown',
-          contextLength: 4096,
-          quantization: 'unknown',
-          runtime: 'doppler',
-          backend: 'browser-webgpu'
+          ...buildLaunchProviderModel(),
+          modelId: modelInput.value || LAUNCH_MODEL.modelId
         }],
         device: {
           hasWebGPU: !!navigator.gpu
@@ -326,11 +384,71 @@ const bindProviderControls = (sdk) => {
   nextButton.addEventListener('click', async () => {
     nextButton.disabled = true;
     try {
-      setResult('pool-provider-result', await sdk.nextAssignment(providerId));
+      const result = await providerClient.nextAssignment();
+      lastAssignment = result?.assignment || null;
+      setResult('pool-provider-result', result);
     } catch (error) {
       setResult('pool-provider-result', { error: error.message, payload: error.payload || null });
     } finally {
       nextButton.disabled = false;
+    }
+  });
+  executeButton?.addEventListener('click', async () => {
+    if (!lastAssignment) {
+      setResult('pool-provider-result', { error: 'No assignment to execute' });
+      return;
+    }
+    executeButton.disabled = true;
+    try {
+      setResult('pool-provider-result', await providerClient.executeAssignment(lastAssignment));
+      lastAssignment = null;
+    } catch (error) {
+      setResult('pool-provider-result', { error: error.message, payload: error.payload || null });
+    } finally {
+      executeButton.disabled = false;
+    }
+  });
+};
+
+const bindReceiptControls = (sdk) => {
+  const button = document.getElementById('pool-receipt-lookup');
+  const input = document.getElementById('pool-receipt-hash');
+  if (!button || !input) return;
+  button.addEventListener('click', async () => {
+    const receiptHash = input.value.trim();
+    if (!receiptHash) {
+      setResult('pool-receipt-result', { error: 'Receipt hash is required' });
+      return;
+    }
+    button.disabled = true;
+    try {
+      setResult('pool-receipt-result', await sdk.getReceipt(receiptHash));
+    } catch (error) {
+      setResult('pool-receipt-result', { error: error.message, payload: error.payload || null });
+    } finally {
+      button.disabled = false;
+    }
+  });
+};
+
+const bindReputationControls = (sdk) => {
+  const button = document.getElementById('pool-reputation-lookup');
+  const input = document.getElementById('pool-reputation-provider');
+  if (!button || !input) return;
+  input.value = getBrowserIdentity('provider');
+  button.addEventListener('click', async () => {
+    const providerId = input.value.trim();
+    if (!providerId) {
+      setResult('pool-reputation-result', { error: 'Provider id is required' });
+      return;
+    }
+    button.disabled = true;
+    try {
+      setResult('pool-reputation-result', await sdk.reputation(providerId));
+    } catch (error) {
+      setResult('pool-reputation-result', { error: error.message, payload: error.payload || null });
+    } finally {
+      button.disabled = false;
     }
   });
 };
@@ -355,6 +473,8 @@ export function initPoolHome(mount) {
   window.REPLOID_POOL_SDK = sdk;
   bindRunControls(sdk);
   bindProviderControls(sdk);
+  bindReceiptControls(sdk);
+  bindReputationControls(sdk);
 }
 
 export default {

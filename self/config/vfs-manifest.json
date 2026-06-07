@@ -381,6 +381,7 @@
     "pool/agent-client.js",
     "pool/doppler-runtime.js",
     "pool/inference-receipt.js",
+    "pool/model-contract.js",
     "pool/points-ledger.js",
     "pool/policy-router.js",
     "pool/provider-client.js",
