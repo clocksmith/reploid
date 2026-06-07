@@ -25,33 +25,33 @@ const PROVIDER_WORKER_INTERVAL_MS = 3000;
 const ROUTE_COPY = Object.freeze({
   home: {
     eyebrow: 'Reploid pool',
-    title: 'A browser tab runs the model and signs the result.',
-    body: 'The coordinator assigns a provider, verifies hashes and signatures, and records points after acceptance.'
+    title: 'Pool',
+    body: ''
   },
   run: {
-    eyebrow: 'Requester mode',
-    title: 'Submit a prompt to a specific model.',
-    body: 'The coordinator matches model id, manifest hash, runtime, backend, and policy before assigning a provider.'
+    eyebrow: 'Submit',
+    title: 'Text job',
+    body: 'Send text to a browser provider and review the result.'
   },
   contribute: {
-    eyebrow: 'Provider mode',
-    title: 'Run the launch model in this tab.',
-    body: 'The tab loads Doppler, registers its runtime profile, executes assignments, and signs receipts.'
+    eyebrow: 'Provider',
+    title: 'Register a model',
+    body: 'Load the launch model in this browser and accept jobs.'
   },
   agents: {
-    eyebrow: 'Agent mode',
-    title: 'Call the same job flow from code.',
-    body: 'The SDK submits the job, polls status, verifies the receipt, and signs acceptance.'
+    eyebrow: 'API',
+    title: 'SDK calls',
+    body: 'Submit jobs, poll status, and accept results from code.'
   },
   receipts: {
-    eyebrow: 'Receipt explorer',
-    title: 'Inspect one receipt.',
-    body: 'The receipt shows assignment id, policy id, model hash, input hash, output hash, token hash, signatures, and verifier decision.'
+    eyebrow: 'Receipt',
+    title: 'Receipt lookup',
+    body: 'Look up one receipt hash.'
   },
   reputation: {
-    eyebrow: 'Provider reputation',
-    title: 'Inspect one provider.',
-    body: 'The page shows accepted receipts, rejected receipts, timeouts, audit events, and point ledger entries.'
+    eyebrow: 'History',
+    title: 'Provider history',
+    body: 'Look up points, receipts, failures, and deployment status.'
   }
 });
 
@@ -120,11 +120,9 @@ const setResult = (id, value) => {
 const renderNav = (activeRoute) => {
   const items = [
     ['/', 'Home'],
-    ['/run', 'Run'],
-    ['/contribute', 'Contribute'],
-    ['/agents', 'Agents'],
-    ['/receipts', 'Receipts'],
-    ['/reputation', 'Reputation']
+    ['/run', 'Submit'],
+    ['/contribute', 'Provider'],
+    ['/reputation', 'History']
   ];
   return `
     <div class="pool-topbar">
@@ -154,19 +152,26 @@ const renderPolicyOptions = () => listPolicies().map((policy) => `
   <option value="${escapeHtml(policy.policyId)}">${escapeHtml(policy.policyId)} - ${escapeHtml(renderPolicyTrustLabel(policy))}</option>
 `).join('');
 
-const renderHomeFacts = () => `
-  <section class="panel pool-panel" aria-label="Pool job flow">
-    <h2 class="type-h2">How a job moves</h2>
-    <ol class="pool-fact-list">
-      <li>The requester submits prompt, model requirement, policy, and generation config.</li>
-      <li>The coordinator assigns a provider that registered the exact model contract.</li>
-      <li>The provider tab runs Doppler, hashes the output, and signs the receipt.</li>
-      <li>The verifier checks assignment fields, hashes, signatures, and acceptance before points change.</li>
-    </ol>
+const renderHomeSimulation = () => `
+  <section class="pool-simulation-shell" aria-label="Browser inference pool simulation">
+    <canvas class="pool-simulation-canvas" data-pool-simulation width="1200" height="680"></canvas>
+    <div class="pool-simulation-labels" aria-hidden="true">
+      <span style="--x: 9%; --y: 46%;">requester</span>
+      <span style="--x: 31%; --y: 34%;">coordinator</span>
+      <span style="--x: 52%; --y: 18%;">verifier</span>
+      <span style="--x: 68%; --y: 58%;">ledger</span>
+      <span style="--x: 84%; --y: 34%;">provider tabs</span>
+    </div>
+    <div class="pool-simulation-readout" aria-label="Simulation state">
+      <span>tokens</span>
+      <span>receipts</span>
+      <span><b data-pool-peer-count>0</b> peers online</span>
+    </div>
   </section>
 `;
 
 const renderRoutePanel = (routeId) => {
+  if (routeId === 'home') return renderHomeSimulation();
   const copy = ROUTE_COPY[routeId] || ROUTE_COPY.home;
   return `
     <section class="pool-hero${routeId === 'home' ? ' pool-hero-home' : ''}">
@@ -183,8 +188,8 @@ const renderRouteDetail = (routeId) => {
   if (routeId === 'run') {
     return `
       <section class="panel pool-panel">
-        <h2 class="type-h2">Requester</h2>
-        <p class="type-caption">Submit a prompt, poll the assigned job, then sign the acceptance decision.</p>
+        <h2 class="type-h2">Submit text</h2>
+        <p class="type-caption">Enter text. The pool assigns a matching provider.</p>
         <div class="pool-form" data-pool-run>
           <label class="pool-field">
             <span>Prompt</span>
@@ -211,7 +216,7 @@ const renderRouteDetail = (routeId) => {
     return `
       <section class="panel pool-panel">
         <h2 class="type-h2">Provider</h2>
-        <p class="type-caption">This tab loads the launch model, executes assigned prompts, and submits receipts.</p>
+        <p class="type-caption">Register this browser for the launch model.</p>
         <div class="pool-form" data-pool-provider>
           <label class="pool-field">
             <span>Model id</span>
@@ -289,14 +294,14 @@ const renderRouteDetail = (routeId) => {
   if (routeId === 'reputation') {
     return `
       <section class="panel pool-panel">
-        <h2 class="type-h2">Reputation</h2>
-        <p class="type-caption">Look up provider history and deployment status.</p>
+        <h2 class="type-h2">History</h2>
+        <p class="type-caption">Look up provider points, failures, status, and deployment checks.</p>
         <div class="pool-form" data-pool-reputation>
           <label class="pool-field">
             <span>Provider id</span>
             <input id="pool-reputation-provider" placeholder="provider_..." />
           </label>
-          <button class="btn btn-primary" id="pool-reputation-lookup" type="button">Lookup reputation</button>
+          <button class="btn btn-primary" id="pool-reputation-lookup" type="button">Lookup provider history</button>
           <button class="btn btn-ghost" id="pool-status-lookup" type="button">Pool status</button>
           <button class="btn btn-ghost" id="pool-metrics-lookup" type="button">Pool metrics</button>
           <button class="btn btn-ghost" id="pool-deployment-check" type="button">Deployment check</button>
@@ -305,15 +310,8 @@ const renderRouteDetail = (routeId) => {
       </section>
     `;
   }
-  return renderHomeFacts();
+  return '';
 };
-
-const renderTrustNote = () => `
-  <section class="panel pool-panel pool-trust-note">
-    <h2 class="type-h2">Trust boundary</h2>
-    <p class="type-caption">The receipt proves that a provider identity signed specific hashes for a specific assignment. Browser execution still requires audits, redundancy, and reputation checks.</p>
-  </section>
-`;
 
 const bindRunControls = (sdk) => {
   const button = document.getElementById('pool-run-submit');
@@ -747,6 +745,330 @@ const bindReputationControls = (sdk) => {
   });
 };
 
+const compilePoolShader = (gl, type, source) => {
+  const shader = gl.createShader(type);
+  gl.shaderSource(shader, source);
+  gl.compileShader(shader);
+  if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+    const message = gl.getShaderInfoLog(shader) || 'unknown shader error';
+    gl.deleteShader(shader);
+    throw new Error(message);
+  }
+  return shader;
+};
+
+const createPoolProgram = (gl, vertexSource, fragmentSource) => {
+  const vertex = compilePoolShader(gl, gl.VERTEX_SHADER, vertexSource);
+  const fragment = compilePoolShader(gl, gl.FRAGMENT_SHADER, fragmentSource);
+  const program = gl.createProgram();
+  gl.attachShader(program, vertex);
+  gl.attachShader(program, fragment);
+  gl.linkProgram(program);
+  gl.deleteShader(vertex);
+  gl.deleteShader(fragment);
+  if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+    const message = gl.getProgramInfoLog(program) || 'unknown program error';
+    gl.deleteProgram(program);
+    throw new Error(message);
+  }
+  return program;
+};
+
+const createPoolSimulationState = () => {
+  const peers = Array.from({ length: 7 }, (_, index) => ({
+    index,
+    x: 0.78 + (index % 3) * 0.075,
+    y: 0.18 + index * 0.105,
+    phase: index * 1.7,
+    size: 9 + (index % 3) * 2
+  }));
+  const particles = Array.from({ length: 72 }, (_, index) => ({
+    index,
+    offset: (index * 0.137) % 1,
+    speed: 0.055 + (index % 5) * 0.012,
+    route: index % 3,
+    peerIndex: index % peers.length,
+    size: 3 + (index % 4)
+  }));
+  return {
+    peers,
+    particles,
+    pointer: { x: 0.5, y: 0.5, active: false, force: 0 },
+    startedAt: performance.now()
+  };
+};
+
+const resizePoolCanvas = (canvas) => {
+  const box = canvas.getBoundingClientRect();
+  const ratio = Math.min(window.devicePixelRatio || 1, 2);
+  const width = Math.max(1, Math.floor(box.width * ratio));
+  const height = Math.max(1, Math.floor(box.height * ratio));
+  if (canvas.width !== width || canvas.height !== height) {
+    canvas.width = width;
+    canvas.height = height;
+  }
+  return { width, height, ratio };
+};
+
+const interpolatePoint = (a, b, amount) => ({
+  x: a.x + (b.x - a.x) * amount,
+  y: a.y + (b.y - a.y) * amount
+});
+
+const resolvePathPoint = (path, amount) => {
+  if (path.length === 1) return path[0];
+  const scaled = Math.max(0, Math.min(0.999, amount)) * (path.length - 1);
+  const index = Math.floor(scaled);
+  return interpolatePoint(path[index], path[index + 1], scaled - index);
+};
+
+const buildPoolSimulationFrame = (state, width, height, timestamp) => {
+  const time = (timestamp - state.startedAt) / 1000;
+  state.pointer.force *= 0.94;
+  const roles = {
+    requester: { x: width * 0.12, y: height * 0.51, size: 16, alpha: 1 },
+    coordinator: { x: width * 0.34, y: height * 0.42, size: 18, alpha: 1 },
+    verifier: { x: width * 0.55, y: height * 0.30, size: 15, alpha: 1 },
+    ledger: { x: width * 0.70, y: height * 0.60, size: 14, alpha: 1 }
+  };
+  const pointerX = state.pointer.x * width;
+  const pointerY = state.pointer.y * height;
+  const peers = state.peers.map((peer) => {
+    const onlineWave = Math.sin(time * 0.55 + peer.phase);
+    const online = onlineWave > -0.62;
+    const baseX = width * peer.x;
+    const baseY = height * peer.y;
+    const dx = baseX - pointerX;
+    const dy = baseY - pointerY;
+    const distance = Math.max(1, Math.hypot(dx, dy));
+    const pointerLift = state.pointer.active || state.pointer.force > 0.02
+      ? Math.max(0, 1 - distance / (width * 0.34)) * (18 + state.pointer.force * 30)
+      : 0;
+    return {
+      ...peer,
+      online,
+      x: baseX + Math.cos(time * 0.7 + peer.phase) * 8 + (dx / distance) * pointerLift,
+      y: baseY + Math.sin(time * 0.6 + peer.phase) * 8 + (dy / distance) * pointerLift,
+      alpha: online ? 0.92 : 0.16,
+      size: online ? peer.size + Math.max(0, onlineWave) * 3 : 5
+    };
+  });
+  const onlinePeers = peers.filter((peer) => peer.online);
+  const peerFor = (index) => onlinePeers[index % Math.max(1, onlinePeers.length)] || peers[index % peers.length];
+  const lines = [
+    [roles.requester, roles.coordinator, 0.28],
+    [roles.coordinator, roles.verifier, 0.18],
+    [roles.verifier, roles.ledger, 0.35],
+    [roles.verifier, roles.requester, 0.12],
+    ...peers.map((peer) => [roles.coordinator, peer, peer.online ? 0.22 : 0.07]),
+    ...peers.map((peer) => [peer, roles.verifier, peer.online ? 0.16 : 0.04])
+  ];
+  const particles = state.particles.map((particle) => {
+    const peer = peerFor(particle.peerIndex);
+    const progress = (particle.offset + time * particle.speed + state.pointer.force * 0.06) % 1;
+    const path = particle.route === 0
+      ? [roles.requester, roles.coordinator, peer]
+      : particle.route === 1
+        ? [peer, roles.coordinator, roles.requester]
+        : [peer, roles.verifier, roles.ledger];
+    const point = resolvePathPoint(path, progress);
+    return {
+      x: point.x,
+      y: point.y,
+      size: particle.size + (particle.route === 2 ? 2 : 0),
+      alpha: peer.online ? 0.75 : 0.08
+    };
+  });
+  return {
+    lines,
+    nodes: [roles.requester, roles.coordinator, roles.verifier, roles.ledger, ...peers],
+    particles,
+    peerCount: onlinePeers.length
+  };
+};
+
+const drawPoolSimulation2D = (ctx, frame, width, height) => {
+  ctx.clearRect(0, 0, width, height);
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(0, 0, width, height);
+  ctx.lineWidth = 1;
+  for (const [a, b, alpha] of frame.lines) {
+    ctx.strokeStyle = `rgba(0, 0, 0, ${alpha})`;
+    ctx.beginPath();
+    ctx.moveTo(a.x, a.y);
+    ctx.lineTo(b.x, b.y);
+    ctx.stroke();
+  }
+  for (const particle of frame.particles) {
+    ctx.fillStyle = `rgba(0, 0, 0, ${particle.alpha})`;
+    ctx.beginPath();
+    ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  for (const node of frame.nodes) {
+    ctx.strokeStyle = `rgba(0, 0, 0, ${node.alpha})`;
+    ctx.fillStyle = `rgba(0, 0, 0, ${node.alpha * 0.88})`;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(node.x, node.y, node.size, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(node.x, node.y, Math.max(2, node.size * 0.28), 0, Math.PI * 2);
+    ctx.fill();
+  }
+};
+
+const createPoolWebGLRenderer = (canvas) => {
+  const gl = canvas.getContext('webgl', { antialias: true, alpha: false })
+    || canvas.getContext('experimental-webgl', { antialias: true, alpha: false });
+  if (!gl) return null;
+  const lineProgram = createPoolProgram(gl, `
+    attribute vec2 a_position;
+    attribute float a_alpha;
+    uniform vec2 u_resolution;
+    varying float v_alpha;
+    void main() {
+      vec2 zeroToOne = a_position / u_resolution;
+      vec2 clipSpace = zeroToOne * 2.0 - 1.0;
+      gl_Position = vec4(clipSpace * vec2(1.0, -1.0), 0.0, 1.0);
+      v_alpha = a_alpha;
+    }
+  `, `
+    precision mediump float;
+    varying float v_alpha;
+    void main() {
+      gl_FragColor = vec4(0.0, 0.0, 0.0, v_alpha);
+    }
+  `);
+  const pointProgram = createPoolProgram(gl, `
+    attribute vec2 a_position;
+    attribute float a_alpha;
+    attribute float a_size;
+    uniform vec2 u_resolution;
+    varying float v_alpha;
+    void main() {
+      vec2 zeroToOne = a_position / u_resolution;
+      vec2 clipSpace = zeroToOne * 2.0 - 1.0;
+      gl_Position = vec4(clipSpace * vec2(1.0, -1.0), 0.0, 1.0);
+      gl_PointSize = a_size;
+      v_alpha = a_alpha;
+    }
+  `, `
+    precision mediump float;
+    varying float v_alpha;
+    void main() {
+      vec2 coord = gl_PointCoord - vec2(0.5);
+      float dist = length(coord);
+      if (dist > 0.5) discard;
+      float edge = smoothstep(0.5, 0.22, dist);
+      gl_FragColor = vec4(0.0, 0.0, 0.0, v_alpha * edge);
+    }
+  `);
+  const lineBuffer = gl.createBuffer();
+  const pointBuffer = gl.createBuffer();
+  gl.enable(gl.BLEND);
+  gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+  return (frame, width, height) => {
+    gl.viewport(0, 0, width, height);
+    gl.clearColor(1, 1, 1, 1);
+    gl.clear(gl.COLOR_BUFFER_BIT);
+    const lineData = [];
+    for (const [a, b, alpha] of frame.lines) {
+      lineData.push(a.x, a.y, alpha, b.x, b.y, alpha);
+    }
+    gl.useProgram(lineProgram);
+    gl.bindBuffer(gl.ARRAY_BUFFER, lineBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(lineData), gl.DYNAMIC_DRAW);
+    let location = gl.getAttribLocation(lineProgram, 'a_position');
+    gl.enableVertexAttribArray(location);
+    gl.vertexAttribPointer(location, 2, gl.FLOAT, false, 12, 0);
+    location = gl.getAttribLocation(lineProgram, 'a_alpha');
+    gl.enableVertexAttribArray(location);
+    gl.vertexAttribPointer(location, 1, gl.FLOAT, false, 12, 8);
+    gl.uniform2f(gl.getUniformLocation(lineProgram, 'u_resolution'), width, height);
+    gl.drawArrays(gl.LINES, 0, lineData.length / 3);
+
+    const pointData = [];
+    for (const particle of frame.particles) pointData.push(particle.x, particle.y, particle.alpha, particle.size);
+    for (const node of frame.nodes) pointData.push(node.x, node.y, node.alpha, node.size * 2);
+    gl.useProgram(pointProgram);
+    gl.bindBuffer(gl.ARRAY_BUFFER, pointBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(pointData), gl.DYNAMIC_DRAW);
+    location = gl.getAttribLocation(pointProgram, 'a_position');
+    gl.enableVertexAttribArray(location);
+    gl.vertexAttribPointer(location, 2, gl.FLOAT, false, 16, 0);
+    location = gl.getAttribLocation(pointProgram, 'a_alpha');
+    gl.enableVertexAttribArray(location);
+    gl.vertexAttribPointer(location, 1, gl.FLOAT, false, 16, 8);
+    location = gl.getAttribLocation(pointProgram, 'a_size');
+    gl.enableVertexAttribArray(location);
+    gl.vertexAttribPointer(location, 1, gl.FLOAT, false, 16, 12);
+    gl.uniform2f(gl.getUniformLocation(pointProgram, 'u_resolution'), width, height);
+    gl.drawArrays(gl.POINTS, 0, pointData.length / 4);
+  };
+};
+
+const bindHomeSimulation = (mount) => {
+  const canvas = mount.querySelector('[data-pool-simulation]');
+  if (!canvas) return;
+  if (window.REPLOID_POOL_SIMULATION_STOP) {
+    window.REPLOID_POOL_SIMULATION_STOP();
+    window.REPLOID_POOL_SIMULATION_STOP = null;
+  }
+  const state = createPoolSimulationState();
+  const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches === true;
+  let active = true;
+  let frameId = null;
+  let renderer = null;
+  let ctx = null;
+  try {
+    renderer = createPoolWebGLRenderer(canvas);
+  } catch {
+    renderer = null;
+  }
+  if (!renderer) ctx = canvas.getContext('2d');
+  const readout = mount.querySelector('.pool-simulation-readout');
+  const draw = (timestamp = performance.now()) => {
+    if (!active) return;
+    const { width, height } = resizePoolCanvas(canvas);
+    const frame = buildPoolSimulationFrame(state, width, height, timestamp);
+    if (renderer) renderer(frame, width, height);
+    else if (ctx) drawPoolSimulation2D(ctx, frame, width, height);
+    if (readout) {
+      readout.dataset.peers = String(frame.peerCount);
+      readout.setAttribute('aria-label', `tokens, receipts, ${frame.peerCount} peers online`);
+      const peerCount = readout.querySelector('[data-pool-peer-count]');
+      if (peerCount) peerCount.textContent = String(frame.peerCount);
+    }
+    if (!reducedMotion) frameId = window.requestAnimationFrame(draw);
+  };
+  const movePointer = (event) => {
+    const box = canvas.getBoundingClientRect();
+    state.pointer.x = (event.clientX - box.left) / Math.max(1, box.width);
+    state.pointer.y = (event.clientY - box.top) / Math.max(1, box.height);
+    state.pointer.active = true;
+    state.pointer.force = Math.min(1, state.pointer.force + 0.04);
+  };
+  const leavePointer = () => {
+    state.pointer.active = false;
+  };
+  const pulsePointer = (event) => {
+    movePointer(event);
+    state.pointer.force = 1;
+  };
+  canvas.addEventListener('pointermove', movePointer);
+  canvas.addEventListener('pointerdown', pulsePointer);
+  canvas.addEventListener('pointerleave', leavePointer);
+  window.REPLOID_POOL_SIMULATION_STOP = () => {
+    active = false;
+    if (frameId) window.cancelAnimationFrame(frameId);
+    canvas.removeEventListener('pointermove', movePointer);
+    canvas.removeEventListener('pointerdown', pulsePointer);
+    canvas.removeEventListener('pointerleave', leavePointer);
+  };
+  draw();
+};
+
 const bindPoolRouteControls = (mount, render) => {
   mount.querySelectorAll('[data-pool-route], [data-pool-route-link]').forEach((control) => {
     control.addEventListener('click', (event) => {
@@ -772,9 +1094,13 @@ export function initPoolHome(mount) {
 
   const render = () => {
     const routeId = getRouteId();
+    if (routeId !== 'home' && window.REPLOID_POOL_SIMULATION_STOP) {
+      window.REPLOID_POOL_SIMULATION_STOP();
+      window.REPLOID_POOL_SIMULATION_STOP = null;
+    }
     const secondaryContent = routeId === 'home'
       ? renderRouteDetail(routeId)
-      : `${renderPolicyStrip()}${renderRouteDetail(routeId)}${renderTrustNote()}`;
+      : renderRouteDetail(routeId);
     document.title = routeId === 'home'
       ? 'Reploid - Browser Inference Pool'
       : `Reploid - ${ROUTE_COPY[routeId]?.eyebrow || 'Browser Inference Pool'}`;
@@ -786,6 +1112,7 @@ export function initPoolHome(mount) {
       </main>
     `;
     bindPoolRouteControls(mount, render);
+    bindHomeSimulation(mount);
     bindRunControls(sdk);
     bindAgentControls(sdk);
     bindProviderControls(sdk);

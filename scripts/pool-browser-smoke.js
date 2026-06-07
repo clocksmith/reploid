@@ -7,14 +7,12 @@ if (!baseUrl) {
   process.exit(1);
 }
 
-const routes = ['/', '/run', '/contribute', '/agents', '/receipts', '/reputation', '/0'];
+const routes = ['/', '/run', '/contribute', '/reputation', '/0'];
 const requiredText = {
-  '/': 'A browser tab runs the model and signs the result.',
-  '/run': 'Requester',
+  '/': 'provider tabs',
+  '/run': 'Submit text',
   '/contribute': 'Provider',
-  '/agents': 'Agent',
-  '/receipts': 'Receipt',
-  '/reputation': 'Reputation',
+  '/reputation': 'History',
   '/0': 'Reploid'
 };
 

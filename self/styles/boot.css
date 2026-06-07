@@ -1927,15 +1927,6 @@ details[open] > .disclosure-summary::before {
   word-break: break-word;
 }
 
-.pool-fact-list {
-  margin: 0;
-  padding-left: var(--space-lg);
-}
-
-.pool-fact-list li + li {
-  margin-top: var(--space-xs);
-}
-
 .pool-control-row {
   display: flex;
   flex-wrap: wrap;
@@ -1963,10 +1954,81 @@ details[open] > .disclosure-summary::before {
   border-style: dashed;
 }
 
+.pool-simulation-shell {
+  position: relative;
+  min-height: clamp(420px, 68vh, 760px);
+  overflow: hidden;
+  border: var(--border-sm) solid var(--fg);
+  background: var(--bg);
+}
+
+.pool-simulation-canvas {
+  display: block;
+  width: 100%;
+  height: clamp(420px, 68vh, 760px);
+  background: var(--bg);
+  cursor: crosshair;
+  touch-action: manipulation;
+}
+
+.pool-simulation-labels {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.pool-simulation-labels span {
+  position: absolute;
+  left: var(--x);
+  top: var(--y);
+  padding: 0 var(--space-xs);
+  background: var(--bg);
+  border: var(--border-sm) solid var(--fg);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--font-tracking-label);
+  line-height: var(--font-leading-tight);
+  text-transform: uppercase;
+  transform: translate(-50%, -50%);
+}
+
+.pool-simulation-readout {
+  position: absolute;
+  left: var(--space-md);
+  bottom: var(--space-md);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  pointer-events: none;
+}
+
+.pool-simulation-readout span {
+  padding: var(--space-xs) var(--space-sm);
+  background: var(--bg);
+  border: var(--border-sm) dotted var(--fg);
+  font-size: var(--font-size-sm);
+  letter-spacing: var(--font-set-tracking);
+  text-transform: uppercase;
+}
+
+.pool-simulation-readout b {
+  font-weight: var(--font-weight-bold);
+}
+
 @media (max-width: 720px) {
   .pool-actions .btn,
   .pool-nav .btn,
   .pool-zero-link {
     width: 100%;
+  }
+
+  .pool-simulation-shell,
+  .pool-simulation-canvas {
+    min-height: 480px;
+    height: 480px;
+  }
+
+  .pool-simulation-labels span {
+    font-size: 10px;
   }
 }
