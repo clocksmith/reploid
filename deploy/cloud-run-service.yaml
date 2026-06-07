@@ -1,0 +1,54 @@
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: reploid-pool
+  labels:
+    app: reploid-pool
+    product: browser-inference-pool
+  annotations:
+    run.googleapis.com/ingress: all
+spec:
+  template:
+    metadata:
+      annotations:
+        autoscaling.knative.dev/minScale: "0"
+        autoscaling.knative.dev/maxScale: "20"
+        run.googleapis.com/cpu-throttling: "true"
+        run.googleapis.com/execution-environment: gen2
+    spec:
+      containerConcurrency: 80
+      timeoutSeconds: 300
+      containers:
+        - image: us-central1-docker.pkg.dev/reploid/reploid/reploid-pool:latest
+          ports:
+            - name: http1
+              containerPort: 8080
+          env:
+            - name: NODE_ENV
+              value: production
+            - name: PORT
+              value: "8080"
+            - name: POOL_BACKEND_ONLY
+              value: "true"
+            - name: POOL_STORE
+              value: firestore
+            - name: POOL_VERIFY_FIREBASE_AUTH
+              value: "true"
+            - name: POOL_REQUIRE_FIREBASE_AUTH
+              value: "true"
+            - name: POOL_JSON_LIMIT
+              value: 512kb
+            - name: POOL_SIGNAL_SESSION_TTL_MS
+              value: "600000"
+            - name: POOL_MAX_SIGNAL_PAYLOAD_BYTES
+              value: "65536"
+            - name: POOL_MAX_SIGNAL_MESSAGES_PER_POLL
+              value: "100"
+            - name: REPLOID_POOL_MODEL_BASE_URL
+              value: "<required-offloaded-model-artifact-base-url>"
+            - name: REPLOID_DOPPLER_MODULE_URL
+              value: "<required-reviewed-doppler-browser-module-url>"
+          resources:
+            limits:
+              cpu: "1"
+              memory: 512Mi

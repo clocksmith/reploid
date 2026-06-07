@@ -2,11 +2,16 @@ import { describe, expect, it } from 'vitest';
 
 import {
   candidateToPayload,
+  createAssignmentP2PPayloadChannel,
   createP2PTransport,
   defaultDeserialize,
   defaultSerialize,
   descriptionToPayload
 } from '../../self/pool/p2p-transport.js';
+import {
+  P2P_PAYLOAD_TYPES,
+  createP2PPayload
+} from '../../self/pool/p2p-payload.js';
 
 describe('pool p2p transport helpers', () => {
   it('serializes JSON values while preserving binary and plain string payloads', () => {
@@ -63,5 +68,70 @@ describe('pool p2p transport helpers', () => {
       initiator: true,
       RTCPeerConnectionImpl: null
     })).toThrow('RTCPeerConnection is not available in this browser context');
+  });
+
+  it('creates an assignment payload channel with cloud metadata signaling and DataChannel payload sends', async () => {
+    const sentPayloads = [];
+    let createdSessionRequest = null;
+    let transportOptions = null;
+    const sdk = {
+      createSignalingSession(payload) {
+        createdSessionRequest = payload;
+        return {
+          session: {
+            sessionId: 'session_1',
+            assignmentId: payload.assignmentId
+          }
+        };
+      },
+      publishSignal() {
+        throw new Error('payloads must not be published through signaling');
+      },
+      listSignals() {
+        return { messages: [] };
+      }
+    };
+    const channel = await createAssignmentP2PPayloadChannel({
+      sdk,
+      assignment: {
+        assignmentId: 'assignment_1',
+        jobId: 'job_1'
+      },
+      localPeerId: 'requester_1',
+      remotePeerId: 'provider_1',
+      role: 'requester',
+      transportFactory(options) {
+        transportOptions = options;
+        return {
+          connect: () => Promise.resolve(),
+          ready: () => Promise.resolve(),
+          send: (payload) => sentPayloads.push(payload),
+          close: () => {}
+        };
+      }
+    });
+    const payload = createP2PPayload({
+      type: P2P_PAYLOAD_TYPES.PROMPT,
+      assignmentId: 'assignment_1',
+      jobId: 'job_1',
+      fromPeerId: 'requester_1',
+      toPeerId: 'provider_1',
+      body: {
+        inputHash: 'sha256:input'
+      }
+    });
+
+    await channel.sendPayload(payload);
+
+    expect(createdSessionRequest).toEqual({
+      assignmentId: 'assignment_1',
+      createdBy: 'requester_1'
+    });
+    expect(transportOptions.initiator).toBe(true);
+    expect(transportOptions.signaling.sessionId).toBe('session_1');
+    expect(sentPayloads).toEqual([payload]);
+    await expect(channel.sendPayload({
+      type: P2P_PAYLOAD_TYPES.PROMPT
+    })).rejects.toThrow('payload version mismatch');
   });
 });

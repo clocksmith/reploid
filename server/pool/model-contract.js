@@ -1,20 +1,10 @@
 /**
- * @fileoverview Launch model identity contract for server-side policy enforcement.
+ * @fileoverview Launch model identity contract from canonical pool config.
  */
 
-export const LAUNCH_MODEL = Object.freeze({
-  modelId: 'gemma-3-270m-it-q4k-ehf16-af32',
-  modelHash: 'sha256:b55fde5809dbc198f880b08af21e40e3175a6d2f9f88a9fad59fa0afd7190dc9',
-  manifestHash: 'sha256:abac153d8cee1b6cc4fd2743defa84b91f67b3d030af028bbd5ed8ba8cabee6b',
-  runtime: 'doppler',
-  backend: 'browser-webgpu',
-  dopplerLoadRef: 'gemma3-270m',
-  artifactPolicy: {
-    transport: 'offloaded_content_addressed',
-    cache: 'browser_opfs',
-    identityFields: ['modelId', 'modelHash', 'manifestHash', 'runtime', 'backend']
-  }
-});
+import { LAUNCH_MODEL } from './config.js';
+
+export { LAUNCH_MODEL };
 
 export function isLaunchModelRequirement(requirements = {}) {
   return requirements.modelId === LAUNCH_MODEL.modelId

@@ -44,9 +44,12 @@ describe('Self Runtime', () => {
       '/self/self.json': '{"mode":"reploid","selfPath":"/self/self.json","goal":"Test goal","environment":"Test environment"}'
     });
     mockHost.readBootstrapFiles.mockResolvedValue({
+      '/self/blueprint-index.json': '{"activeBlueprints":["tabula-rasa-runtime"]}',
       '/self/prompts/kernel.md': 'Kernel prompt',
-      '/self/blueprints/rgr-runtime-contract.md': 'RGR runtime contract',
-      '/self/blueprints/rgr-slot-topology.md': 'Slot topology blueprint'
+      '/self/blueprints/tabula-rasa-runtime.md': 'Tabula rasa runtime contract',
+      '/self/blueprints/blueprint-index-contract.md': 'Blueprint index contract',
+      '/self/blueprints/tool-contract.md': 'Tool contract',
+      '/self/blueprints/promotion-contract.md': 'Promotion contract'
     });
     mockHost.executeTool.mockResolvedValue({ ok: true });
     mockHost.writeRuntimeArtifact.mockResolvedValue({ path: '/artifacts/rgr/test.json', written: true });
@@ -124,7 +127,7 @@ describe('Self Runtime', () => {
     expect(typeof unsubscribe).toBe('function');
   });
 
-  it('seeds kernel prompt and RGR blueprints into bootstrap context', async () => {
+  it('seeds kernel prompt and tabula-rasa blueprints into bootstrap context', async () => {
     mockHost.generate.mockResolvedValueOnce({ raw: 'IDLE: context seeded' });
 
     const runtime = createSelfRuntime({
@@ -136,16 +139,22 @@ describe('Self Runtime', () => {
 
     const snapshot = runtime.getSnapshot();
     expect(mockHost.readBootstrapFiles).toHaveBeenCalledWith([
+      '/self/blueprint-index.json',
       '/self/prompts/kernel.md',
-      '/self/blueprints/rgr-runtime-contract.md',
-      '/self/blueprints/rgr-slot-topology.md'
+      '/self/blueprints/tabula-rasa-runtime.md',
+      '/self/blueprints/blueprint-index-contract.md',
+      '/self/blueprints/tool-contract.md',
+      '/self/blueprints/promotion-contract.md'
     ]);
+    expect(snapshot.renderedText).toContain('/self/blueprint-index.json');
     expect(snapshot.renderedText).toContain('/self/prompts/kernel.md');
     expect(snapshot.renderedText).toContain('Kernel prompt');
-    expect(snapshot.renderedText).toContain('/self/blueprints/rgr-runtime-contract.md');
-    expect(snapshot.renderedText).toContain('RGR runtime contract');
-    expect(snapshot.renderedText).toContain('/self/blueprints/rgr-slot-topology.md');
-    expect(snapshot.renderedText).toContain('Slot topology blueprint');
+    expect(snapshot.renderedText).toContain('/self/blueprints/tabula-rasa-runtime.md');
+    expect(snapshot.renderedText).toContain('Tabula rasa runtime contract');
+    expect(snapshot.renderedText).toContain('/self/blueprints/blueprint-index-contract.md');
+    expect(snapshot.renderedText).toContain('Blueprint index contract');
+    expect(snapshot.renderedText).toContain('/self/blueprints/tool-contract.md');
+    expect(snapshot.renderedText).toContain('/self/blueprints/promotion-contract.md');
     expect(snapshot.renderedText).not.toContain('Dream');
     expect(snapshot.rgr.instances).toEqual([]);
   });

@@ -8,6 +8,11 @@ import { createDopplerRuntime } from './doppler-runtime.js';
 import { buildLaunchProviderModel } from './model-contract.js';
 import { createPoolIdentity } from './identity.js';
 import { listPolicies } from './policy-router.js';
+import { collectRuntimeProfile } from './runtime-profile.js';
+import {
+  buildAssignmentCommitmentPayload,
+  buildAssignmentRevealPayload
+} from './p2p-payload.js';
 
 export function createProviderClient({ providerId, sdk = createPoolSdk(), runtime = createDopplerRuntime(), keyPair = null, identity = createPoolIdentity('provider') } = {}) {
   let activeKeyPair = keyPair;
@@ -54,6 +59,124 @@ export function createProviderClient({ providerId, sdk = createPoolSdk(), runtim
     && (assignmentModel.backend || 'browser-webgpu') === (runtimeModel.backend || 'browser-webgpu')
   );
 
+  const resolveRuntimeProfile = async () => {
+    if (typeof runtime?.getRuntimeProfile === 'function') {
+      return runtime.getRuntimeProfile();
+    }
+    return collectRuntimeProfile({ runtime });
+  };
+
+  const commitRevealModeFor = (assignment = {}, mode = 'auto') => {
+    if (mode === false || mode === 'disabled') return { enabled: false, required: false };
+    const coordinatorRequired = assignment.commitRevealRequired === true
+      || assignment.phaseProtocol === 'commit_reveal_v1'
+      || assignment.ring?.commitRevealRequired === true
+      || assignment.ring?.phaseProtocol === 'commit_reveal_v1';
+    const ringPolicy = assignment.policyId === 'ring_quorum_receipt' || !!assignment.ring;
+    return {
+      enabled: mode === 'required' || coordinatorRequired || ringPolicy,
+      required: mode === 'required' || coordinatorRequired
+    };
+  };
+
+  const waitForRevealGate = async ({ assignment, commitmentResult, maxPolls = 5 }) => {
+    if (commitmentResult?.revealOpen === true
+      || commitmentResult?.phase === 'reveal_open'
+      || commitmentResult?.ringPhase === 'reveal_open') {
+      return {
+        revealOpen: true,
+        source: 'commitment_response',
+        commitmentResult
+      };
+    }
+    for (let poll = 0; poll < maxPolls; poll += 1) {
+      const jobResponse = await sdk.pollJob(assignment.jobId);
+      const job = jobResponse?.job || jobResponse;
+      if (job?.ringPhase === 'reveal_open' || job?.ringPhase === 'reveal_submitted') {
+        return {
+          revealOpen: true,
+          source: 'job_ring_phase',
+          job
+        };
+      }
+      const phase = job?.assignmentPhases?.[assignment.assignmentId]
+        || job?.commitReveal?.assignments?.[assignment.assignmentId]
+        || null;
+      if (phase?.revealOpen === true || phase?.phase === 'reveal_open') {
+        return {
+          revealOpen: true,
+          source: 'job_phase',
+          phase,
+          job
+        };
+      }
+    }
+    return {
+      revealOpen: false,
+      source: 'poll_limit',
+      commitmentResult
+    };
+  };
+
+  const runCommitReveal = async ({ assignment, execution, receipt, mode = 'auto' }) => {
+    const commitReveal = commitRevealModeFor(assignment, mode);
+    if (!commitReveal.enabled) {
+      return {
+        enabled: false,
+        required: false
+      };
+    }
+    const providerId = registration?.providerId || assignment.providerId;
+    const salt = globalThis.crypto?.randomUUID
+      ? `salt_${globalThis.crypto.randomUUID()}`
+      : `salt_${Date.now().toString(36)}_${Math.random().toString(36).slice(2)}`;
+    const commitment = await buildAssignmentCommitmentPayload({
+      assignment,
+      providerId,
+      execution,
+      receipt,
+      salt
+    });
+    let commitmentResult = null;
+    try {
+      commitmentResult = await sdk.submitAssignmentCommitment(assignment.assignmentId, commitment);
+    } catch (error) {
+      if (!commitReveal.required && (error.status === 404 || error.status === 501)) {
+        return {
+          enabled: true,
+          required: false,
+          unsupported: true,
+          commitment,
+          error: error.message,
+          payload: error.payload || null
+        };
+      }
+      throw error;
+    }
+    const revealGate = await waitForRevealGate({ assignment, commitmentResult });
+    if (!revealGate.revealOpen && commitReveal.required) {
+      throw new Error('Coordinator did not open reveal phase for required commit-reveal assignment');
+    }
+    const reveal = await buildAssignmentRevealPayload({
+      assignment,
+      providerId,
+      execution,
+      receipt,
+      salt,
+      commitmentHash: commitment.commitmentHash
+    });
+    const revealResult = await sdk.submitAssignmentReveal(assignment.assignmentId, reveal);
+    return {
+      enabled: true,
+      required: commitReveal.required,
+      commitment,
+      commitmentResult,
+      revealGate,
+      reveal,
+      revealResult
+    };
+  };
+
   return {
     async register({ models, device = {}, availability = {} }) {
       await ensureKeys();
@@ -77,12 +200,16 @@ export function createProviderClient({ providerId, sdk = createPoolSdk(), runtim
       const runtimeDevice = typeof runtime?.getDeviceInfo === 'function'
         ? await runtime.getDeviceInfo()
         : {};
+      const { runtimeProfile, runtimeProfileHash } = await resolveRuntimeProfile();
       registration = await sdk.registerProvider({
         providerId: resolvedProviderId,
         models: advertisedModels,
+        runtimeProfile,
+        runtimeProfileHash,
         device: {
           ...runtimeDevice,
-          ...device
+          ...device,
+          runtimeProfileHash
         },
         availability: {
           maxConcurrentJobs: 1,
@@ -109,7 +236,7 @@ export function createProviderClient({ providerId, sdk = createPoolSdk(), runtim
       if (!registration?.providerId) throw new Error('Provider is not registered');
       return sdk.nextAssignment(registration.providerId);
     },
-    async executeAssignment(assignment) {
+    async executeAssignment(assignment, { commitReveal = 'auto' } = {}) {
       await ensureKeys();
       recordHistory({
         eventType: 'assignment_execution_started',
@@ -135,6 +262,12 @@ export function createProviderClient({ providerId, sdk = createPoolSdk(), runtim
           execution
         });
         const signedReceipt = await signProviderReceipt(receipt, activeKeyPair.privateKey);
+        const commitRevealResult = await runCommitReveal({
+          assignment,
+          execution,
+          receipt: signedReceipt,
+          mode: commitReveal
+        });
         const result = await sdk.submitReceipt(assignment.assignmentId, {
           outputText: execution.outputText,
           tokenIds: execution.tokenIds || [],
@@ -144,12 +277,14 @@ export function createProviderClient({ providerId, sdk = createPoolSdk(), runtim
           },
           receipt: signedReceipt
         });
+        result.commitReveal = commitRevealResult;
         recordHistory({
           eventType: result?.verifierDecision?.accepted ? 'receipt_verified' : 'receipt_rejected',
           assignmentId: assignment.assignmentId,
           jobId: assignment.jobId,
           policyId: assignment.policyId,
           receiptHash: result?.verifierDecision?.receiptHash || result?.receipt?.receiptHash || null,
+          commitReveal: commitRevealResult,
           verifierDecision: result?.verifierDecision || null
         });
         return result;

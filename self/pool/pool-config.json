@@ -1,0 +1,625 @@
+{
+  "schema": "reploid.pool.config/v1",
+  "configVersion": "2026-06-07.lane-a-protocol.v1",
+  "claim": "receipt-backed, audit-backed, reputation-backed, policy-controlled browser inference",
+  "forbiddenClaims": [
+    "trustless",
+    "hardware-attested",
+    "guaranteed honest GPU execution",
+    "proof of honest browser execution",
+    "decentralized AI compute marketplace at launch"
+  ],
+  "trustTiers": {
+    "T1_signed_receipt": {
+      "label": "Signed receipt",
+      "evidenceRequirements": [
+        "assignment",
+        "providerSignature",
+        "inputHash",
+        "generationConfigHash",
+        "outputHash",
+        "tokenIdsHash"
+      ],
+      "claim": "One provider identity signed an assignment-bound receipt."
+    },
+    "T2_canary_audited": {
+      "label": "Canary audited",
+      "evidenceRequirements": [
+        "T1_signed_receipt",
+        "recentPassedCanary"
+      ],
+      "claim": "Provider has recent hidden deterministic audit evidence."
+    },
+    "T3_redundant_agreement": {
+      "label": "Redundant agreement",
+      "evidenceRequirements": [
+        "T1_signed_receipt",
+        "matchingOutputHash",
+        "matchingTokenIdsHash",
+        "multipleProviders"
+      ],
+      "claim": "Independent browser providers produced matching deterministic receipt hashes."
+    },
+    "T1_ring_baseline": {
+      "label": "Ring baseline",
+      "evidenceRequirements": [
+        "T1_signed_receipt",
+        "ringCommitment"
+      ],
+      "claim": "One ring member produced a signed receipt with ring metadata."
+    },
+    "T2_paired_ring_receipt": {
+      "label": "Paired ring receipt",
+      "evidenceRequirements": [
+        "ringCommitment",
+        "twoProviders",
+        "matchingOutputHash",
+        "matchingTokenIdsHash"
+      ],
+      "claim": "Two browser ring members agreed on deterministic output and token hashes."
+    },
+    "T3_majority_ring_receipt": {
+      "label": "Majority ring receipt",
+      "evidenceRequirements": [
+        "ringCommitment",
+        "majorityProviders",
+        "matchingOutputHash",
+        "matchingTokenIdsHash"
+      ],
+      "claim": "A majority browser ring agreed on deterministic output and token hashes."
+    },
+    "T4_max_ring_quorum_receipt": {
+      "label": "Max ring quorum receipt",
+      "evidenceRequirements": [
+        "ringCommitment",
+        "threeOfFourProviders",
+        "matchingOutputHash",
+        "matchingTokenIdsHash"
+      ],
+      "claim": "Three of four browser ring members agreed on deterministic output and token hashes."
+    },
+    "T4_requester_accepted": {
+      "label": "Requester accepted",
+      "evidenceRequirements": [
+        "verifierAccepted",
+        "requesterSignature",
+        "agreementHash",
+        "ledgerEffect"
+      ],
+      "claim": "Requester countersigned the verifier-accepted agreement and spend."
+    }
+  },
+  "launchModel": {
+    "modelId": "gemma-3-270m-it-q4k-ehf16-af32",
+    "modelHash": "sha256:b55fde5809dbc198f880b08af21e40e3175a6d2f9f88a9fad59fa0afd7190dc9",
+    "manifestHash": "sha256:abac153d8cee1b6cc4fd2743defa84b91f67b3d030af028bbd5ed8ba8cabee6b",
+    "contextLength": 32768,
+    "quantization": "q4k",
+    "runtime": "doppler",
+    "backend": "browser-webgpu",
+    "dopplerLoadRef": "gemma3-270m",
+    "artifactPolicy": {
+      "transport": "offloaded_content_addressed",
+      "cache": "browser_opfs",
+      "identityFields": [
+        "modelId",
+        "modelHash",
+        "manifestHash",
+        "runtime",
+        "backend"
+      ],
+      "pathTemplate": "<modelId>/<manifestHash>",
+      "paths": {
+        "manifest": "<modelId>/<manifestHash>/manifest.json",
+        "tokenizer": "<modelId>/<manifestHash>/tokenizer.json",
+        "shards": "<modelId>/<manifestHash>/shards/"
+      }
+    }
+  },
+  "generationConfig": {
+    "mode": "greedy",
+    "temperature": 0,
+    "topK": 1,
+    "topP": 1,
+    "maxOutputTokens": 128,
+    "seed": "0000000000000000"
+  },
+  "ledgerReasons": {
+    "single": {
+      "award": "accepted_receipt",
+      "spend": "accepted_receipt_spend",
+      "mismatchPenalty": "receipt_rejected",
+      "timeoutPenalty": "assignment_timeout"
+    },
+    "redundant": {
+      "award": "redundant_agreement_accepted",
+      "spend": "redundant_agreement_spend",
+      "mismatchPenalty": "redundant_agreement_mismatch",
+      "timeoutPenalty": "assignment_timeout"
+    },
+    "ring_quorum": {
+      "award": "ring_quorum_receipt_accepted",
+      "spend": "ring_quorum_receipt_spend",
+      "mismatchPenalty": "ring_quorum_mismatch",
+      "timeoutPenalty": "assignment_timeout"
+    }
+  },
+  "transportModes": {
+    "cloud_heavy": {
+      "claim": "Cloud coordinator carries assignment, prompt, output, receipts, and ledger.",
+      "cloudAuthoritative": [
+        "assignment",
+        "receiptHash",
+        "verifierDecision",
+        "points",
+        "reputation"
+      ],
+      "p2pAllowed": [],
+      "signalingAllowedTypes": [],
+      "forbiddenSignalPayloads": [
+        "prompt",
+        "output",
+        "tokenIds",
+        "modelShard",
+        "receipt"
+      ]
+    },
+    "hybrid_p2p_anchor": {
+      "claim": "Cloud anchors assignment, signaling metadata, receipt hash, agreement hash, points, and reputation while prompt/output/full receipts may travel P2P.",
+      "cloudAuthoritative": [
+        "jobId",
+        "assignmentHash",
+        "policyId",
+        "modelIdentity",
+        "receiptHash",
+        "agreementHash",
+        "requesterAcceptance",
+        "ledgerMutation",
+        "reputationEvent",
+        "canaryPolicy"
+      ],
+      "p2pAllowed": [
+        "prompt",
+        "output",
+        "tokenIds",
+        "fullReceipt",
+        "receiptAcceptancePayload"
+      ],
+      "signalingAllowedTypes": [
+        "offer",
+        "answer",
+        "ice-candidate",
+        "close",
+        "ping"
+      ],
+      "forbiddenSignalPayloads": [
+        "prompt",
+        "output",
+        "tokenIds",
+        "modelShard",
+        "receipt"
+      ]
+    },
+    "p2p_ring_traffic": {
+      "claim": "Ring provider transport may move over WebRTC while cloud remains the agreement and ledger anchor.",
+      "cloudAuthoritative": [
+        "ringLayout",
+        "agreementHash",
+        "receiptHashSet",
+        "ledgerMutation"
+      ],
+      "p2pAllowed": [
+        "ringPayload",
+        "providerToProviderReceiptPayload"
+      ],
+      "signalingAllowedTypes": [
+        "offer",
+        "answer",
+        "ice-candidate",
+        "close",
+        "ping"
+      ],
+      "forbiddenSignalPayloads": [
+        "modelShard"
+      ]
+    }
+  },
+  "activeTransportMode": "hybrid_p2p_anchor",
+  "policies": {
+    "fastest_receipt": {
+      "policyId": "fastest_receipt",
+      "verificationLevel": "signed_receipt",
+      "trustTier": "T1_signed_receipt",
+      "agreementMode": "single",
+      "allowedModels": [
+        "gemma-3-270m-it-q4k-ehf16-af32"
+      ],
+      "minProviderReputation": 0,
+      "maxQueueDepth": 100,
+      "maxInputTokens": 1024,
+      "maxOutputTokens": 128,
+      "redundancy": 1,
+      "requireCanaryEligibleProvider": false,
+      "requireProgramBundle": false,
+      "allowFallbackModel": false,
+      "allowServerProvider": false,
+      "allowBrowserProvider": true,
+      "pointCostMultiplier": 1,
+      "evidence": {
+        "requireProviderSignature": true,
+        "requireOutputHash": true,
+        "requireTokenIdsHash": true,
+        "requireTranscriptHash": true,
+        "requireRequesterAcceptanceSignature": true,
+        "requireAgreementHash": false
+      }
+    },
+    "canary_audited": {
+      "policyId": "canary_audited",
+      "verificationLevel": "canary_audited",
+      "trustTier": "T2_canary_audited",
+      "agreementMode": "single",
+      "allowedModels": [
+        "gemma-3-270m-it-q4k-ehf16-af32"
+      ],
+      "minProviderReputation": 0,
+      "maxQueueDepth": 100,
+      "maxInputTokens": 1024,
+      "maxOutputTokens": 128,
+      "redundancy": 1,
+      "requireCanaryEligibleProvider": true,
+      "minPassedCanaries": 1,
+      "requireProgramBundle": false,
+      "allowFallbackModel": false,
+      "allowServerProvider": false,
+      "allowBrowserProvider": true,
+      "pointCostMultiplier": 1,
+      "evidence": {
+        "requireProviderSignature": true,
+        "requireOutputHash": true,
+        "requireTokenIdsHash": true,
+        "requireTranscriptHash": true,
+        "requireRequesterAcceptanceSignature": true,
+        "requireAgreementHash": false,
+        "requireRecentPassedCanary": true
+      }
+    },
+    "redundant_agreement": {
+      "policyId": "redundant_agreement",
+      "verificationLevel": "redundant_agreement",
+      "trustTier": "T3_redundant_agreement",
+      "agreementMode": "redundant",
+      "allowedModels": [
+        "gemma-3-270m-it-q4k-ehf16-af32"
+      ],
+      "minProviderReputation": 0,
+      "maxQueueDepth": 100,
+      "maxInputTokens": 1024,
+      "maxOutputTokens": 128,
+      "redundancy": 2,
+      "requireCanaryEligibleProvider": false,
+      "requireProgramBundle": false,
+      "allowFallbackModel": false,
+      "allowServerProvider": false,
+      "allowBrowserProvider": true,
+      "pointCostMultiplier": 1,
+      "requireMatchingOutputHash": true,
+      "requireMatchingTokenIdsHash": true,
+      "agreementField": "tokenIdsHash",
+      "evidence": {
+        "requireProviderSignature": true,
+        "requireOutputHash": true,
+        "requireTokenIdsHash": true,
+        "requireTranscriptHash": true,
+        "requireRequesterAcceptanceSignature": true,
+        "requireAgreementHash": true
+      }
+    },
+    "ring_quorum_receipt": {
+      "policyId": "ring_quorum_receipt",
+      "verificationLevel": "ring_quorum_receipt",
+      "trustTier": "adaptive_T1_to_T4_ring_quorum_receipt",
+      "policyTrustTier": "T4_ring_quorum_receipt",
+      "agreementMode": "ring_quorum",
+      "allowedModels": [
+        "gemma-3-270m-it-q4k-ehf16-af32"
+      ],
+      "minProviderReputation": 0,
+      "maxQueueDepth": 100,
+      "maxInputTokens": 1024,
+      "maxOutputTokens": 128,
+      "redundancy": 1,
+      "adaptiveRing": true,
+      "minRingSize": 1,
+      "maxRingSize": 4,
+      "quorum": "majority",
+      "agreementField": "tokenIdsHash",
+      "effectiveTrustByRingSize": {
+        "1": "T1_ring_baseline",
+        "2": "T2_paired_ring_receipt",
+        "3": "T3_majority_ring_receipt",
+        "4": "T4_max_ring_quorum_receipt"
+      },
+      "requireCanaryEligibleProvider": false,
+      "requireProgramBundle": false,
+      "allowFallbackModel": false,
+      "allowServerProvider": false,
+      "allowBrowserProvider": true,
+      "pointCostMultiplier": 1,
+      "requireMatchingOutputHash": true,
+      "requireMatchingTokenIdsHash": true,
+      "requireProviderSignatures": true,
+      "requireRingCommitment": true,
+      "requireDeterministicGeneration": true,
+      "requireExactModelIdentity": true,
+      "evidence": {
+        "requireProviderSignature": true,
+        "requireOutputHash": true,
+        "requireTokenIdsHash": true,
+        "requireTranscriptHash": true,
+        "requireRequesterAcceptanceSignature": true,
+        "requireAgreementHash": true,
+        "requireRingCommitment": true,
+        "requireLayoutHash": true,
+        "requireRuntimeProfileHash": true,
+        "requireCommitReveal": true,
+        "requireRevealBeforeReceipt": true,
+        "requireProviderAdmission": true,
+        "requireDiversity": true
+      },
+      "determinismProfileId": "strict_hash_same_runtime_profile",
+      "ringPhaseProtocolId": "commit_reveal_v1",
+      "providerAdmissionPolicyId": "tiered_browser_provider_v1",
+      "stateModeId": "direct_firestore_projection_v1",
+      "requireRuntimeProfile": true,
+      "requireRuntimeProfileHash": true,
+      "requireHomogeneousRuntimeProfile": true,
+      "requireCommitReveal": true,
+      "requireRevealBeforeReceipt": true,
+      "requireProviderAdmission": true,
+      "requireDiversity": true
+    }
+  },
+  "deployment": {
+    "requiresFirestore": true,
+    "requiresFirebaseAuthVerifier": true,
+    "requiresAuthForNonDiscoveryRoutes": true,
+    "requiresOffloadedModelArtifactBase": true,
+    "requiresDopplerModuleConfiguration": true,
+    "discoveryRoutes": [
+      "/deployment/check",
+      "/status",
+      "/policies",
+      "/config"
+    ],
+    "signaling": {
+      "enabled": true,
+      "metadataOnly": true,
+      "maxPayloadBytes": 65536,
+      "maxMessagesPerPoll": 100,
+      "sessionTtlMs": 600000
+    },
+    "requiresCommitRevealStore": true
+  },
+  "determinismProfiles": {
+    "activeProfileId": "strict_hash_same_runtime_profile",
+    "profiles": {
+      "strict_hash_same_runtime_profile": {
+        "profileId": "strict_hash_same_runtime_profile",
+        "claim": "Bitwise token/output agreement is valid only inside the same declared browser runtime profile bucket.",
+        "agreementField": "tokenIdsHash",
+        "requireExactModelIdentity": true,
+        "requireDeterministicGeneration": true,
+        "requireRuntimeProfile": true,
+        "requireRuntimeProfileHash": true,
+        "requireHomogeneousRing": true,
+        "bucketFields": [
+          "model.modelId",
+          "model.modelHash",
+          "model.manifestHash",
+          "model.runtime",
+          "model.backend",
+          "browser.family",
+          "browser.majorVersion",
+          "webgpu.adapterVendor",
+          "webgpu.adapterArchitecture",
+          "webgpu.adapterClass",
+          "webgpu.backend",
+          "webgpu.shaderProfile",
+          "doppler.runtimeProfile",
+          "doppler.kernelProfileHash"
+        ],
+        "driftHandling": "reject_or_downgrade",
+        "allowToleranceAcceptance": false
+      },
+      "hardware_homogeneous": {
+        "profileId": "hardware_homogeneous",
+        "claim": "Providers are grouped by coarse WebGPU hardware and browser buckets before strict hash quorum is evaluated.",
+        "agreementField": "tokenIdsHash",
+        "requireExactModelIdentity": true,
+        "requireDeterministicGeneration": true,
+        "requireRuntimeProfile": true,
+        "requireRuntimeProfileHash": true,
+        "requireHomogeneousRing": true,
+        "bucketFields": [
+          "model.modelId",
+          "model.modelHash",
+          "model.manifestHash",
+          "model.runtime",
+          "model.backend",
+          "browser.family",
+          "webgpu.adapterVendor",
+          "webgpu.adapterArchitecture",
+          "webgpu.backend",
+          "doppler.kernelProfileHash"
+        ],
+        "driftHandling": "record_divergence_and_downgrade",
+        "allowToleranceAcceptance": false
+      },
+      "drift_observed": {
+        "profileId": "drift_observed",
+        "claim": "Divergence is recorded with token/logit evidence and cannot produce strict quorum trust.",
+        "agreementField": "divergenceIndex",
+        "requireExactModelIdentity": true,
+        "requireDeterministicGeneration": true,
+        "requireRuntimeProfile": true,
+        "requireRuntimeProfileHash": true,
+        "requireHomogeneousRing": false,
+        "bucketFields": [
+          "model.modelId",
+          "model.modelHash",
+          "model.manifestHash",
+          "model.runtime",
+          "model.backend"
+        ],
+        "driftHandling": "downgrade_only",
+        "allowToleranceAcceptance": false
+      },
+      "tolerance_verified": {
+        "profileId": "tolerance_verified",
+        "claim": "Reserved for future Doppler top-k/logprob evidence; disabled until evidence bounds exist.",
+        "enabled": false,
+        "agreementField": "topKLogitEvidenceHash",
+        "requireExactModelIdentity": true,
+        "requireDeterministicGeneration": true,
+        "requireRuntimeProfile": true,
+        "requireRuntimeProfileHash": true,
+        "requireTopKLogprobEvidence": true,
+        "requireMarginEvidence": true,
+        "allowToleranceAcceptance": false
+      }
+    }
+  },
+  "ringPhaseProtocols": {
+    "activeProtocolId": "commit_reveal_v1",
+    "protocols": {
+      "commit_reveal_v1": {
+        "protocolId": "commit_reveal_v1",
+        "claim": "Providers must anchor private output commitments before any reveal or P2P payload exchange can influence quorum or rewards.",
+        "phases": [
+          "assigned",
+          "private_compute",
+          "commit_submitted",
+          "reveal_open",
+          "reveal_submitted",
+          "quorum_verified",
+          "requester_acceptance"
+        ],
+        "commitmentHashFields": [
+          "jobId",
+          "assignmentId",
+          "ringAttemptId",
+          "providerId",
+          "outputHash",
+          "tokenIdsHash",
+          "transcriptHash",
+          "salt"
+        ],
+        "revealFields": [
+          "outputHash",
+          "tokenIdsHash",
+          "transcriptHash",
+          "salt"
+        ],
+        "minCommitments": "requiredAgreement",
+        "rejectLateCommitmentsAfterRevealOpen": true,
+        "requireRevealBeforeReceipt": true,
+        "requireCommitmentForLedgerAward": true,
+        "p2pPayloadsAllowedAfterPhase": "reveal_open"
+      }
+    }
+  },
+  "providerAdmissionPolicies": {
+    "activePolicyId": "tiered_browser_provider_v1",
+    "policies": {
+      "tiered_browser_provider_v1": {
+        "policyId": "tiered_browser_provider_v1",
+        "defaultLane": "new_provider_quarantine",
+        "lanes": {
+          "new_provider_quarantine": {
+            "laneId": "new_provider_quarantine",
+            "claim": "New or weakly proven browser providers may run low-value work but cannot alone create high-trust outcomes.",
+            "allowAssignments": true,
+            "allowRingParticipation": true,
+            "allowMajorityCluster": false,
+            "maxProvidersPerRingCluster": 1,
+            "maxEffectiveTrustTier": "T2_paired_ring_receipt",
+            "earningsCapPerAcceptance": 2,
+            "requireCanaryHeavyRouting": true
+          },
+          "trusted_browser_provider": {
+            "laneId": "trusted_browser_provider",
+            "claim": "Providers with accepted receipts and clean audit history may participate in higher-trust rings.",
+            "allowAssignments": true,
+            "allowRingParticipation": true,
+            "allowMajorityCluster": false,
+            "maxProvidersPerRingCluster": 1,
+            "maxEffectiveTrustTier": "T4_max_ring_quorum_receipt",
+            "minAcceptedReceipts": 3,
+            "maxRejectedReceipts": 1,
+            "maxTimeouts": 1
+          },
+          "quarantined_provider": {
+            "laneId": "quarantined_provider",
+            "claim": "Providers with model/runtime violations, repeated failures, or failed canaries are excluded from routing.",
+            "allowAssignments": false,
+            "allowRingParticipation": false,
+            "allowMajorityCluster": false,
+            "maxProvidersPerRingCluster": 0,
+            "maxEffectiveTrustTier": "T1_signed_receipt"
+          }
+        },
+        "diversity": {
+          "clusterFields": [
+            "authUid",
+            "identityClusterId",
+            "deviceClusterId",
+            "networkClusterId",
+            "runtimeProfileBucket"
+          ],
+          "maxProvidersPerCluster": 1,
+          "requireDistinctProviderIds": true,
+          "preventSingleClusterQuorum": true
+        }
+      }
+    }
+  },
+  "stateModes": {
+    "activeModeId": "direct_firestore_projection_v1",
+    "modes": {
+      "direct_firestore_projection_v1": {
+        "modeId": "direct_firestore_projection_v1",
+        "claim": "Current production mode mutates assignment/job projections directly while storing receipts, commitments, reveals, ledger, and reputation as separate records.",
+        "authoritativeProjection": true,
+        "appendOnlyCollections": [
+          "receipts",
+          "receipt_acceptances",
+          "points_ledger",
+          "signaling_messages",
+          "commitment_events",
+          "reveal_events",
+          "pool_events"
+        ],
+        "reducerRequired": false
+      },
+      "append_only_event_sourced_v1": {
+        "modeId": "append_only_event_sourced_v1",
+        "claim": "Scale mode: providers write isolated events and a coordinator reducer materializes job state outside hot document contention.",
+        "enabled": false,
+        "authoritativeProjection": false,
+        "appendOnlyCollections": [
+          "job_events",
+          "assignment_events",
+          "commitment_events",
+          "reveal_events",
+          "receipt_events",
+          "acceptance_events",
+          "ledger_events",
+          "reputation_events",
+          "pool_events"
+        ],
+        "reducerRequired": true
+      }
+    }
+  }
+}

@@ -463,7 +463,7 @@ if (!POOL_BACKEND_ONLY) {
 }
 
 // Middleware to parse JSON bodies
-app.use(express.json({ limit: '10mb' }));
+app.use(express.json({ limit: POOL_BACKEND_ONLY ? (process.env.POOL_JSON_LIMIT || '512kb') : '10mb' }));
 
 // CORS headers for API endpoints
 app.use((req, res, next) => {

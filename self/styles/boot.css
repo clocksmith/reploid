@@ -1779,3 +1779,147 @@ details[open] > .disclosure-summary::before {
   }
 
 }
+
+/* === POOL PRODUCT ROUTES ===
+   Layout-only extensions over rd.css primitives.
+   Buttons, cards, panels, inputs, code, badges, and borders stay owned by rd.css. */
+
+.pool-home {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+}
+
+.pool-nav,
+.pool-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+}
+
+.pool-nav-link {
+  border-style: dotted;
+}
+
+.pool-nav-link.active {
+  border-style: solid;
+  background: var(--fg);
+  color: var(--bg);
+}
+
+.pool-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(240px, 360px);
+  gap: var(--space-lg);
+  align-items: stretch;
+}
+
+.pool-hero-copy,
+.pool-proof-card,
+.pool-panel,
+.pool-card,
+.pool-form,
+.pool-field {
+  display: flex;
+  flex-direction: column;
+}
+
+.pool-hero-copy,
+.pool-proof-card,
+.pool-panel,
+.pool-card-grid,
+.pool-form {
+  gap: var(--space-md);
+}
+
+.pool-eyebrow,
+.pool-field > span {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--font-leading-tight);
+  letter-spacing: var(--font-tracking-label);
+  text-transform: uppercase;
+}
+
+.pool-hero-body {
+  max-width: 54rem;
+}
+
+.pool-proof-card {
+  padding: var(--space-md);
+}
+
+.pool-proof-card code,
+.pool-form code {
+  width: fit-content;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+.pool-card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.pool-card {
+  gap: var(--space-sm);
+  padding: var(--space-md);
+  border-bottom: var(--border-sm) solid var(--fg);
+}
+
+.pool-card:hover {
+  background: var(--fg);
+  color: var(--bg);
+}
+
+.pool-card strong {
+  font-size: var(--font-size-lg);
+  line-height: var(--font-leading-snug);
+}
+
+.pool-card span:last-child {
+  font-size: var(--font-size-sm);
+  line-height: var(--font-read-leading);
+}
+
+.pool-card-label {
+  align-self: flex-start;
+}
+
+.pool-field {
+  gap: var(--space-xs);
+}
+
+.pool-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+}
+
+.pool-summary-item {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--space-xs);
+}
+
+.pool-result {
+  max-height: 360px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.pool-trust-note {
+  border-style: dashed;
+}
+
+@media (max-width: 720px) {
+  .pool-hero {
+    grid-template-columns: 1fr;
+  }
+
+  .pool-actions .btn,
+  .pool-nav .btn {
+    width: 100%;
+  }
+}

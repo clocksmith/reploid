@@ -2,12 +2,14 @@
  * @fileoverview Canonical receipt helpers for Reploid browser inference pool.
  */
 
+import { POOL_CONFIG, POOL_CONFIG_VERSION } from './config.js';
+
 const textEncoder = new TextEncoder();
 
 export const RECEIPT_VERSION = 'reploid_browser_inference/v1';
-export const TRUST_TIER_SIGNED_RECEIPT = 'T1_signed_receipt';
-export const TRUST_TIER_CANARY_AUDITED = 'T2_canary_audited';
-export const TRUST_TIER_REDUNDANT_AGREEMENT = 'T3_redundant_agreement';
+export const TRUST_TIER_SIGNED_RECEIPT = POOL_CONFIG.policies.fastest_receipt.trustTier;
+export const TRUST_TIER_CANARY_AUDITED = POOL_CONFIG.policies.canary_audited.trustTier;
+export const TRUST_TIER_REDUNDANT_AGREEMENT = POOL_CONFIG.policies.redundant_agreement.trustTier;
 export const TRUST_TIER_ACCEPTED_RECEIPT = 'T4_requester_accepted';
 
 export function canonicalize(value) {
@@ -153,6 +155,11 @@ export async function buildPoolReceipt({ assignment, provider, model, runtime, e
   const outputText = execution?.outputText || '';
   const tokenIds = Array.isArray(execution?.tokenIds) ? execution.tokenIds : [];
   const transcript = execution?.transcript || { outputText, tokenIds };
+  const runtimeProfileHash = assignment.runtimeProfileHash
+    || provider?.runtimeProfileHash
+    || provider?.device?.runtimeProfileHash
+    || runtime?.runtimeProfileHash
+    || null;
   return {
     receiptVersion: RECEIPT_VERSION,
     trustTier: TRUST_TIER_SIGNED_RECEIPT,
@@ -161,6 +168,8 @@ export async function buildPoolReceipt({ assignment, provider, model, runtime, e
     requesterId: assignment.requesterId,
     providerId: assignment.providerId,
     policyId: assignment.policyId,
+    policyConfigVersion: assignment.policyConfigVersion || null,
+    policyConfigHash: assignment.policyConfigHash || null,
     model: normalizeReceiptModel(model),
     runtime,
     inputHash: assignment.inputHash,
@@ -176,6 +185,7 @@ export async function buildPoolReceipt({ assignment, provider, model, runtime, e
       canaryId: assignment.auditId || null,
       redundancyGroupSize: assignment.redundancyGroupSize || 1,
       requiredAgreement: assignment.requiredAgreement || assignment.redundancyGroupSize || 1,
+      runtimeProfileHash,
       ring: assignment.ring || null,
       sampledProofHashes: [],
       programBundleHash: null
@@ -227,16 +237,25 @@ export async function buildAcceptanceSummary({ job, receiptHash, receiptRecords 
     .map((currentReceiptHash) => recordByHash.get(currentReceiptHash))
     .filter((record) => record?.verifierDecision?.accepted);
   const multiplier = 1 / Math.max(1, receiptHashes.length);
-  const providerPoints = agreedRecords.map((record) => ({
-    receiptHash: record.receiptHash,
-    providerId: record.providerId,
-    points: calculateReceiptPoints(record, { multiplier })
-  }));
+  const providerPoints = agreedRecords.map((record) => {
+    const uncappedPoints = calculateReceiptPoints(record, { multiplier });
+    const cap = record.providerAdmission?.earningsCapPerAcceptance
+      ?? record.providerAdmission?.lane?.earningsCapPerAcceptance;
+    return {
+      receiptHash: record.receiptHash,
+      providerId: record.providerId,
+      points: Number.isFinite(Number(cap)) ? Math.min(uncappedPoints, Number(cap)) : uncappedPoints
+    };
+  });
   const pointSpend = providerPoints.reduce((sum, entry) => sum + entry.points, 0);
+  const policyConfigVersion = job?.policyConfigVersion || POOL_CONFIG_VERSION;
+  const policyConfigHash = job?.policyConfigHash || await hashJson(POOL_CONFIG);
   const payload = {
     jobId: job?.jobId || null,
     requesterId: job?.requesterId || null,
     policyId: job?.policyId || null,
+    policyConfigVersion,
+    policyConfigHash,
     receiptHash,
     receiptHashes,
     agreement: compactAgreementForAcceptance(job?.agreement || null),
@@ -245,7 +264,10 @@ export async function buildAcceptanceSummary({ job, receiptHash, receiptRecords 
   };
   return {
     ...payload,
-    agreementHash: await hashJson(payload)
+    agreementHash: await hashJson(payload),
+    agreedRecords,
+    multiplier,
+    totalProviderPoints: pointSpend
   };
 }
 
@@ -255,6 +277,8 @@ export async function countersignReceipt({
   accepted,
   jobId = null,
   policyId = null,
+  policyConfigVersion = null,
+  policyConfigHash = null,
   receiptHashes = null,
   agreementHash = null,
   pointSpend = null,
@@ -269,6 +293,8 @@ export async function countersignReceipt({
   };
   if (jobId) acceptance.jobId = jobId;
   if (policyId) acceptance.policyId = policyId;
+  if (policyConfigVersion) acceptance.policyConfigVersion = policyConfigVersion;
+  if (policyConfigHash) acceptance.policyConfigHash = policyConfigHash;
   if (Array.isArray(receiptHashes)) acceptance.receiptHashes = receiptHashes;
   if (agreementHash) acceptance.agreementHash = agreementHash;
   if (pointSpend !== null && pointSpend !== undefined) acceptance.pointSpend = Number(pointSpend);

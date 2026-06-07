@@ -3,10 +3,26 @@
  */
 
 import { hashJson, sha256Hex } from './hash.js';
+import { quorumForRingSize as configuredQuorumForRingSize } from './config.js';
+import {
+  deriveProviderAdmission,
+  effectiveTrustTierForRingAdmissions,
+  findHomogeneousProviderGroup,
+  runtimeProfileBucketKey,
+  selectDiverseProviderGroup,
+  validateRuntimeProfileForPolicy
+} from './runtime-profile.js';
 
 const ASSIGNMENT_EXPIRY_MS = 120000;
 const PROVIDER_HEARTBEAT_STALE_MS = 45000;
 const MAX_RING_SIZE = 4;
+const REASSIGNABLE_ACTIVE_ASSIGNMENT_STATUSES = new Set([
+  'assigned',
+  'running',
+  'commit_submitted',
+  'reveal_open',
+  'reveal_submitted'
+]);
 
 const selectModel = (provider, job = {}) => {
   const models = provider.models || [];
@@ -64,7 +80,18 @@ const eligibleProviders = async (providers = [], job = {}, policy = {}, store) =
     if (!providerAcceptsPolicy(provider, job.policyId)) continue;
     if (!model) continue;
     if (!reputationAllowsPolicy(reputation, policy)) continue;
-    eligible.push({ provider, model, reputation });
+    const runtimeProfileReasons = validateRuntimeProfileForPolicy(provider, policy);
+    if (runtimeProfileReasons.length > 0) continue;
+    const admission = deriveProviderAdmission({ provider, reputation, policy });
+    if (!admission.allowed) continue;
+    if (policy.agreementMode === 'ring_quorum' && !admission.ringEligible) continue;
+    eligible.push({
+      provider,
+      model,
+      reputation,
+      admission,
+      runtimeProfileBucket: runtimeProfileBucketKey({ provider, model, profile: undefined })
+    });
   }
   eligible.sort((left, right) => Number(right.reputation?.points || 0) - Number(left.reputation?.points || 0));
   return eligible;
@@ -73,18 +100,7 @@ const eligibleProviders = async (providers = [], job = {}, policy = {}, store) =
 const clampRingSize = (value) => Math.max(1, Math.min(MAX_RING_SIZE, Number(value || 1)));
 
 const quorumForRingSize = (ringSize, policy = {}) => {
-  if (Number.isInteger(policy.requiredAgreeingProviders)) {
-    return Math.max(1, Math.min(ringSize, Number(policy.requiredAgreeingProviders)));
-  }
-  if (policy.quorum === 'all') return ringSize;
-  return Math.floor(ringSize / 2) + 1;
-};
-
-const effectiveRingTrustTier = (ringSize) => {
-  if (ringSize <= 1) return 'T1_ring_baseline';
-  if (ringSize === 2) return 'T2_paired_ring_receipt';
-  if (ringSize === 3) return 'T3_majority_ring_receipt';
-  return 'T4_max_ring_quorum_receipt';
+  return configuredQuorumForRingSize(ringSize, policy);
 };
 
 const assignmentAttemptIdForJob = (job = {}) => Math.max(1, Number(job.assignmentAttempts || 0) || 1);
@@ -116,15 +132,27 @@ const buildRingPlan = ({ job, policy, candidates, inputHash, generationConfigHas
   const ringSize = orderedProviderIds.length;
   const requiredAgreement = quorumForRingSize(ringSize, policy);
   const ringAttemptId = ringAttemptIdForJob(job, assignmentAttemptId);
+  const effectiveTrustTier = effectiveTrustTierForRingAdmissions({
+    ringSize,
+    policy,
+    admissions: ordered.map((candidate) => candidate.admission)
+  });
+  const runtimeProfileBuckets = Array.from(new Set(ordered.map((candidate) => candidate.runtimeProfileBucket).filter(Boolean)));
+  const admissionLanes = ordered.map((candidate) => candidate.admission?.laneId || null);
   const layout = {
     schema: 'reploid.ring-layout/v1',
     policyId: policy.policyId,
+    determinismProfileId: policy.determinismProfileId || null,
+    ringPhaseProtocolId: policy.ringPhaseProtocolId || null,
+    providerAdmissionPolicyId: policy.providerAdmissionPolicyId || null,
     assignmentAttemptId,
     ringAttemptId,
     ringSize,
     requiredAgreement,
     agreementField: policy.agreementField || 'tokenIdsHash',
     providerIds: orderedProviderIds,
+    runtimeProfileBuckets,
+    admissionLanes,
     ringSeed
   };
   const layoutHash = hashJson(layout);
@@ -134,8 +162,13 @@ const buildRingPlan = ({ job, policy, candidates, inputHash, generationConfigHas
     ringAttemptId,
     ringSize,
     requiredAgreement,
-    effectiveTrustTier: effectiveRingTrustTier(ringSize),
+    effectiveTrustTier,
     agreementField: layout.agreementField,
+    determinismProfileId: layout.determinismProfileId,
+    ringPhaseProtocolId: layout.ringPhaseProtocolId,
+    providerAdmissionPolicyId: layout.providerAdmissionPolicyId,
+    runtimeProfileBuckets,
+    admissionLanes,
     providerIds: orderedProviderIds,
     layout,
     layoutHash,
@@ -143,19 +176,29 @@ const buildRingPlan = ({ job, policy, candidates, inputHash, generationConfigHas
   };
 };
 
-const buildAssignmentInput = ({ job, provider, model, policy, inputHash, generationConfigHash, groupSize, requiredAgreement = groupSize, assignmentAttemptId, ring = null }) => ({
+const buildAssignmentInput = ({ job, provider, model, policy, inputHash, generationConfigHash, groupSize, requiredAgreement = groupSize, assignmentAttemptId, ring = null, admission = null }) => ({
   jobId: job.jobId,
   requesterId: job.requesterId,
   providerId: provider.providerId,
   modelId: model.modelId,
   policyId: policy.policyId,
+  policyConfigVersion: job.policyConfigVersion || null,
+  policyConfigHash: job.policyConfigHash || null,
   inputHash,
   generationConfigHash,
   verificationLevel: policy.verificationLevel,
   trustTier: ring?.effectiveTrustTier || policy.trustTier,
-  policyTrustTier: policy.trustTier,
+  policyTrustTier: policy.policyTrustTier || policy.trustTier,
   assignmentAttemptId,
   ringAttemptId: ring?.ringAttemptId || null,
+  runtimeProfileHash: provider.runtimeProfileHash || null,
+  runtimeProfileBucket: ring?.runtimeProfileBuckets?.[0] || null,
+  providerAdmission: ring ? {
+    policyId: ring.providerAdmissionPolicyId || null,
+    laneId: admission?.laneId || provider.admissionLane || null,
+    earningsCapPerAcceptance: admission?.lane?.earningsCapPerAcceptance ?? null,
+    maxEffectiveTrustTier: admission?.lane?.maxEffectiveTrustTier || null
+  } : null,
   redundancyGroupSize: groupSize,
   requiredAgreement,
   expiresAt: new Date(Date.now() + ASSIGNMENT_EXPIRY_MS).toISOString(),
@@ -177,7 +220,7 @@ const cancelPreviousActiveAssignments = async ({ store, job }) => {
   const previousAssignmentIds = Array.isArray(job.assignmentIds) ? job.assignmentIds : [];
   for (const assignmentId of previousAssignmentIds) {
     const assignment = await store.getAssignment?.(assignmentId);
-    if (!assignment || (assignment.status !== 'assigned' && assignment.status !== 'running')) continue;
+    if (!assignment || !REASSIGNABLE_ACTIVE_ASSIGNMENT_STATUSES.has(assignment.status)) continue;
     await store.updateAssignment(assignment.assignmentId, {
       status: 'canceled',
       canceledReason: 'job_reassigned',
@@ -192,7 +235,7 @@ export async function assignJob({ store, job, policy }) {
   const providers = await eligibleProviders(await store.listProviders(), job, policy, store);
   const adaptiveRing = policy.adaptiveRing === true;
   const minProviders = adaptiveRing ? clampRingSize(policy.minRingSize || 1) : Number(policy.redundancy || 1);
-  const maxProviders = adaptiveRing ? clampRingSize(policy.maxRingSize || MAX_RING_SIZE) : minProviders;
+  const maxProviders = adaptiveRing ? Math.min(MAX_RING_SIZE, clampRingSize(policy.maxRingSize || MAX_RING_SIZE)) : minProviders;
   if (providers.length < minProviders) {
     return {
       ok: false,
@@ -205,7 +248,24 @@ export async function assignJob({ store, job, policy }) {
   const inputHash = sha256Hex(job.prompt);
   const generationConfigHash = hashJson(job.generationConfig || {});
   const assignmentAttemptId = assignmentAttemptIdForJob(job);
-  const selected = providers.slice(0, Math.min(maxProviders, providers.length));
+  const candidatePool = adaptiveRing
+    ? selectDiverseProviderGroup({
+      candidates: findHomogeneousProviderGroup({ candidates: providers, policy }),
+      policy,
+      maxProviders
+    })
+    : providers;
+  if (candidatePool.length < minProviders) {
+    return {
+      ok: false,
+      reason: adaptiveRing
+        ? 'not_enough_hardware_homogeneous_admitted_browser_providers'
+        : 'not_enough_eligible_browser_providers',
+      requiredProviders: minProviders,
+      eligibleProviders: candidatePool.length
+    };
+  }
+  const selected = candidatePool.slice(0, Math.min(maxProviders, candidatePool.length));
   const ringPlan = adaptiveRing
     ? buildRingPlan({ job, policy, candidates: selected, inputHash, generationConfigHash, assignmentAttemptId })
     : null;
@@ -222,6 +282,12 @@ export async function assignJob({ store, job, policy }) {
       requiredAgreement: ringPlan.requiredAgreement,
       effectiveTrustTier: ringPlan.effectiveTrustTier,
       agreementField: ringPlan.agreementField,
+      determinismProfileId: ringPlan.determinismProfileId,
+      ringPhaseProtocolId: ringPlan.ringPhaseProtocolId,
+      providerAdmissionPolicyId: ringPlan.providerAdmissionPolicyId,
+      runtimeProfileBucket: ringPlan.runtimeProfileBuckets[0] || null,
+      runtimeProfileBuckets: ringPlan.runtimeProfileBuckets,
+      admissionLane: candidate.admission?.laneId || null,
       layoutHash: ringPlan.layoutHash,
       providerIds: ringPlan.providerIds,
       providerIndex: index,
@@ -238,7 +304,8 @@ export async function assignJob({ store, job, policy }) {
       groupSize: providerCount,
       requiredAgreement,
       assignmentAttemptId,
-      ring
+      ring,
+      admission: candidate.admission || null
     })));
   }
 
@@ -258,7 +325,7 @@ export async function assignJob({ store, job, policy }) {
     redundancyRequired: requiredAgreement,
     providerCount,
     trustTier: ringPlan?.effectiveTrustTier || policy.trustTier,
-    policyTrustTier: policy.trustTier,
+    policyTrustTier: policy.policyTrustTier || policy.trustTier,
     effectiveTrustTier: ringPlan?.effectiveTrustTier || policy.trustTier,
     ring: ringPlan ? {
       ringId: ringPlan.ringId,
@@ -268,6 +335,12 @@ export async function assignJob({ store, job, policy }) {
       requiredAgreement: ringPlan.requiredAgreement,
       effectiveTrustTier: ringPlan.effectiveTrustTier,
       agreementField: ringPlan.agreementField,
+      determinismProfileId: ringPlan.determinismProfileId,
+      ringPhaseProtocolId: ringPlan.ringPhaseProtocolId,
+      providerAdmissionPolicyId: ringPlan.providerAdmissionPolicyId,
+      runtimeProfileBucket: ringPlan.runtimeProfileBuckets[0] || null,
+      runtimeProfileBuckets: ringPlan.runtimeProfileBuckets,
+      admissionLanes: ringPlan.admissionLanes,
       layoutHash: ringPlan.layoutHash,
       providerIds: ringPlan.providerIds
     } : null,

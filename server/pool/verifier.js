@@ -5,6 +5,8 @@
 import { webcrypto } from 'crypto';
 import { canonicalize, hashJson, sha256Hex } from './hash.js';
 import { PROVIDER_RECEIPT_TRUST_TIER, RECEIPT_VERSION } from './receipt-contract.js';
+import { getRingPhaseProtocol } from './config.js';
+import { revealMatchesCommitment } from './commit-reveal.js';
 
 const textEncoder = new TextEncoder();
 
@@ -68,6 +70,8 @@ export async function verifyReceipt({ store, assignment, receipt, outputText = '
   if (assignment && receipt?.providerId !== assignment.providerId) reasons.push('provider id mismatch');
   if (assignment && receipt?.requesterId !== assignment.requesterId) reasons.push('requester id mismatch');
   if (assignment && receipt?.policyId !== assignment.policyId) reasons.push('policy id mismatch');
+  if (assignment?.policyConfigVersion && receipt?.policyConfigVersion !== assignment.policyConfigVersion) reasons.push('policy config version mismatch');
+  if (assignment?.policyConfigHash && receipt?.policyConfigHash !== assignment.policyConfigHash) reasons.push('policy config hash mismatch');
   if (assignment && receipt?.inputHash !== assignment.inputHash) reasons.push('input hash mismatch');
   if (assignment && receipt?.generationConfigHash !== assignment.generationConfigHash) reasons.push('generation config hash mismatch');
   if (assignment?.auditId && receipt?.verification?.canaryId !== assignment.auditId) reasons.push('canary id mismatch');
@@ -79,11 +83,32 @@ export async function verifyReceipt({ store, assignment, receipt, outputText = '
   }
   if (assignment?.ring) {
     const receiptRing = receipt?.verification?.ring || {};
-    for (const field of ['ringId', 'ringSeed', 'ringAttemptId', 'ringSize', 'requiredAgreement', 'effectiveTrustTier', 'agreementField', 'layoutHash', 'providerIndex', 'predecessorId', 'successorId']) {
+    for (const field of ['ringId', 'ringSeed', 'ringAttemptId', 'ringSize', 'requiredAgreement', 'effectiveTrustTier', 'agreementField', 'layoutHash', 'providerIndex', 'predecessorId', 'successorId', 'determinismProfileId', 'ringPhaseProtocolId', 'providerAdmissionPolicyId', 'runtimeProfileBucket', 'admissionLane']) {
       if (assignment.ring[field] !== receiptRing[field]) reasons.push(`ring ${field} mismatch`);
     }
     if (hashJson(assignment.ring.providerIds || []) !== hashJson(receiptRing.providerIds || [])) {
       reasons.push('ring provider ids mismatch');
+    }
+    if (assignment.runtimeProfileHash && receipt?.verification?.runtimeProfileHash !== assignment.runtimeProfileHash) {
+      reasons.push('runtime profile hash mismatch');
+    }
+    const phaseProtocol = getRingPhaseProtocol(assignment.ring.ringPhaseProtocolId);
+    if (phaseProtocol?.requireRevealBeforeReceipt) {
+      if (typeof store.getAssignmentCommitment !== 'function' || typeof store.getAssignmentReveal !== 'function') {
+        reasons.push('commit-reveal store support missing');
+      } else {
+        const commitment = await store.getAssignmentCommitment(assignment.assignmentId);
+        const reveal = await store.getAssignmentReveal(assignment.assignmentId);
+        if (!commitment) reasons.push('ring commitment missing');
+        if (!reveal) reasons.push('ring reveal missing');
+        if (commitment && reveal) {
+          const commitmentCheck = revealMatchesCommitment({ commitment, reveal });
+          if (!commitmentCheck.ok) reasons.push('ring reveal does not match commitment');
+          if (receipt?.outputHash !== reveal.outputHash) reasons.push('receipt outputHash does not match reveal');
+          if (receipt?.tokenIdsHash !== reveal.tokenIdsHash) reasons.push('receipt tokenIdsHash does not match reveal');
+          if (receipt?.transcriptHash !== reveal.transcriptHash) reasons.push('receipt transcriptHash does not match reveal');
+        }
+      }
     }
   }
   if (!receipt?.outputHash) reasons.push('output hash missing');
@@ -158,6 +183,8 @@ export async function verifyRequesterAcceptance({ job, acceptance, expectedAccep
   if (acceptance?.accepted === true && expectedAcceptance) {
     if (acceptance.jobId !== expectedAcceptance.jobId) reasons.push('acceptance jobId mismatch');
     if (acceptance.policyId !== expectedAcceptance.policyId) reasons.push('acceptance policyId mismatch');
+    if (acceptance.policyConfigVersion !== expectedAcceptance.policyConfigVersion) reasons.push('acceptance policyConfigVersion mismatch');
+    if (acceptance.policyConfigHash !== expectedAcceptance.policyConfigHash) reasons.push('acceptance policyConfigHash mismatch');
     if (acceptance.agreementHash !== expectedAcceptance.agreementHash) reasons.push('acceptance agreementHash mismatch');
     if (!sameStringArray(acceptance.receiptHashes, expectedAcceptance.receiptHashes)) {
       reasons.push('acceptance receiptHashes mismatch');

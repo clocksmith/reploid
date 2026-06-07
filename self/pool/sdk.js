@@ -31,6 +31,9 @@ export function createPoolSdk({ baseUrl = DEFAULT_BASE_URL, authTokenProvider = 
     policies() {
       return requestJson('/policies', { baseUrl, authTokenProvider });
     },
+    config() {
+      return requestJson('/config', { baseUrl, authTokenProvider });
+    },
     status() {
       return requestJson('/status', { baseUrl, authTokenProvider });
     },
@@ -76,6 +79,22 @@ export function createPoolSdk({ baseUrl = DEFAULT_BASE_URL, authTokenProvider = 
     },
     reportAssignmentFailure(assignmentId, payload = {}) {
       return requestJson(`/assignments/${encodeURIComponent(assignmentId)}/failure`, {
+        baseUrl,
+        method: 'POST',
+        body: payload,
+        authTokenProvider
+      });
+    },
+    submitAssignmentCommitment(assignmentId, payload = {}) {
+      return requestJson(`/assignments/${encodeURIComponent(assignmentId)}/commit`, {
+        baseUrl,
+        method: 'POST',
+        body: payload,
+        authTokenProvider
+      });
+    },
+    submitAssignmentReveal(assignmentId, payload = {}) {
+      return requestJson(`/assignments/${encodeURIComponent(assignmentId)}/reveal`, {
         baseUrl,
         method: 'POST',
         body: payload,
