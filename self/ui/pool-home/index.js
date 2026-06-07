@@ -529,12 +529,35 @@ const bindProviderControls = (sdk) => {
       && loaded.runtime === model.runtime
       && loaded.backend === model.backend;
   };
-  const ensureProviderReady = async () => {
+  const loadSelectedProviderModel = async () => {
     const model = getEnabledPoolModelContract(modelInput.value || LAUNCH_MODEL.modelId);
     if (!model) throw new Error('Selected model is not enabled for provider registration');
-    if (!modelMatchesLoadedRuntime(model)) {
-      await runtime.loadModel(model);
+    if (modelMatchesLoadedRuntime(model) && runtime.isReady?.()) {
+      return {
+        ok: true,
+        status: 'model_loaded',
+        model: runtime.getModelInfo()
+      };
     }
+    const loadResult = await runtime.loadModel(model);
+    if (!loadResult?.ok || !runtime.isReady?.() || !modelMatchesLoadedRuntime(model)) {
+      const reason = loadResult?.reason || 'Doppler runtime did not expose the selected model after load';
+      const error = new Error(`Doppler model load failed: ${reason}`);
+      error.payload = {
+        model,
+        loadResult,
+        loadState: runtime.getLoadState?.() || null
+      };
+      throw error;
+    }
+    return {
+      ...loadResult,
+      status: 'model_loaded'
+    };
+  };
+  const ensureProviderReady = async () => {
+    const loaded = await loadSelectedProviderModel();
+    const model = loaded.model || runtime.getModelInfo();
     const providerIdentityState = await providerIdentity.resolve();
     const result = await providerClient.register({
       models: [model],
@@ -587,7 +610,7 @@ const bindProviderControls = (sdk) => {
     loadButton.disabled = true;
     setResult('pool-provider-result', { status: 'loading_model', model: getProviderModel() });
     try {
-      setResult('pool-provider-result', await runtime.loadModel(getProviderModel()));
+      setResult('pool-provider-result', await loadSelectedProviderModel());
     } catch (error) {
       setResult('pool-provider-result', { error: error.message, payload: error.payload || null });
     } finally {

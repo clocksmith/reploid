@@ -23,6 +23,7 @@ export const FASTEST_RECEIPT_POLICY_ID = POLICY_IDS.fastestReceipt;
 export const LAUNCH_MODEL = Object.freeze({ ...POOL_CONFIG.launchModel });
 export const MODEL_CATALOG = deepFreeze([...(POOL_CONFIG.modelCatalog || [POOL_CONFIG.launchModel])]);
 export const DETERMINISTIC_GENERATION_CONFIG = Object.freeze({ ...POOL_CONFIG.generationConfig });
+export const BROWSER_RUNTIME_CONFIG = deepFreeze({ ...(POOL_CONFIG.browserRuntime || {}) });
 export const LAUNCH_POLICIES = deepFreeze({ ...POOL_CONFIG.policies });
 export const DETERMINISM_PROFILES = deepFreeze({ ...POOL_CONFIG.determinismProfiles?.profiles });
 export const RING_PHASE_PROTOCOLS = deepFreeze({ ...POOL_CONFIG.ringPhaseProtocols?.protocols });
@@ -94,6 +95,8 @@ export function validatePoolConfig(config = POOL_CONFIG) {
   for (const field of ['modelId', 'modelHash', 'manifestHash', 'runtime', 'backend', 'dopplerLoadRef']) {
     requireField(config.launchModel?.[field], `launchModel.${field}`, reasons);
   }
+  requireField(config.browserRuntime?.dopplerModuleUrl, 'browserRuntime.dopplerModuleUrl', reasons);
+  requireField(config.browserRuntime?.modelBaseUrl, 'browserRuntime.modelBaseUrl', reasons);
   for (const [policyId, policy] of Object.entries(config.policies || {})) {
     if (policy.policyId !== policyId) reasons.push(`policies.${policyId}.policyId must match key`);
     if (!policy.allowedModels?.includes(config.launchModel?.modelId)) reasons.push(`policies.${policyId}.allowedModels must include launch model`);

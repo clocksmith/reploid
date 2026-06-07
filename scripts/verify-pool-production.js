@@ -85,6 +85,18 @@ const checkLocalFiles = () => {
   if (envConfig.runtimeEnv?.POOL_STORE !== 'firestore') reasons.push('POOL_STORE must be firestore for production');
   if (envConfig.runtimeEnv?.POOL_VERIFY_FIREBASE_AUTH !== 'true') reasons.push('POOL_VERIFY_FIREBASE_AUTH must be true');
   if (envConfig.runtimeEnv?.POOL_REQUIRE_FIREBASE_AUTH !== 'true') reasons.push('POOL_REQUIRE_FIREBASE_AUTH must be true');
+  if (envConfig.browserEnv?.REPLOID_DOPPLER_MODULE_URL !== POOL_CONFIG.browserRuntime?.dopplerModuleUrl) {
+    reasons.push('browserEnv REPLOID_DOPPLER_MODULE_URL must match pool config browserRuntime.dopplerModuleUrl');
+  }
+  if (envConfig.browserEnv?.REPLOID_POOL_MODEL_BASE_URL !== POOL_CONFIG.browserRuntime?.modelBaseUrl) {
+    reasons.push('browserEnv REPLOID_POOL_MODEL_BASE_URL must match pool config browserRuntime.modelBaseUrl');
+  }
+  if (envConfig.runtimeEnv?.REPLOID_DOPPLER_MODULE_URL !== POOL_CONFIG.browserRuntime?.dopplerModuleUrl) {
+    reasons.push('runtime env REPLOID_DOPPLER_MODULE_URL must match pool config browserRuntime.dopplerModuleUrl');
+  }
+  if (envConfig.runtimeEnv?.REPLOID_POOL_MODEL_BASE_URL !== POOL_CONFIG.browserRuntime?.modelBaseUrl) {
+    reasons.push('runtime env REPLOID_POOL_MODEL_BASE_URL must match pool config browserRuntime.modelBaseUrl');
+  }
 
   const firebaseConfig = readJson(path.join(repoRoot, 'firebase.json'));
   const hosting = Array.isArray(firebaseConfig.hosting) ? firebaseConfig.hosting[0] : firebaseConfig.hosting;
@@ -110,6 +122,12 @@ const checkLocalFiles = () => {
   const cloudRunYaml = readText(path.join(repoRoot, 'deploy', 'cloud-run-service.yaml'));
   for (const key of requiredRuntimeEnv) {
     if (!cloudRunYaml.includes(`name: ${key}`)) reasons.push(`Cloud Run YAML missing env: ${key}`);
+  }
+  if (!cloudRunYaml.includes(`value: "${POOL_CONFIG.browserRuntime?.dopplerModuleUrl}"`)) {
+    reasons.push('Cloud Run YAML Doppler module URL differs from pool config');
+  }
+  if (!cloudRunYaml.includes(`value: "${POOL_CONFIG.browserRuntime?.modelBaseUrl}"`)) {
+    reasons.push('Cloud Run YAML model base URL differs from pool config');
   }
   if (!cloudRunYaml.includes('containerConcurrency: 80')) reasons.push('Cloud Run containerConcurrency not set to 80');
 

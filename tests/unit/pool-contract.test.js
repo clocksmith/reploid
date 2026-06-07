@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
+import { BROWSER_RUNTIME_CONFIG as SERVER_BROWSER_RUNTIME_CONFIG } from '../../server/pool/config.js';
 import {
   DETERMINISTIC_GENERATION_CONFIG as SERVER_GENERATION_CONFIG,
   getPolicy,
@@ -10,9 +11,10 @@ import { assignJob } from '../../server/pool/scheduler.js';
 import { createPoolStore } from '../../server/pool/store.js';
 import { runtimeProfileHash as serverRuntimeProfileHash } from '../../server/pool/runtime-profile.js';
 import {
-  DETERMINISTIC_GENERATION_CONFIG as BROWSER_GENERATION_CONFIG,
-  validatePolicyRequest
-} from '../../self/pool/policy-router.js';
+  BROWSER_RUNTIME_CONFIG as BROWSER_BROWSER_RUNTIME_CONFIG,
+  DETERMINISTIC_GENERATION_CONFIG as BROWSER_GENERATION_CONFIG
+} from '../../self/pool/config.js';
+import { validatePolicyRequest } from '../../self/pool/policy-router.js';
 import {
   LAUNCH_MODEL as BROWSER_LAUNCH_MODEL,
   buildLaunchModelArtifactUrls
@@ -93,6 +95,12 @@ describe('pool launch contract', () => {
     });
     expect(missingBackend.ok).toBe(false);
     expect(missingBackend.reasons).toContain('modelRequirements.backend is required');
+  });
+
+  it('keeps browser runtime deployment config aligned across server and browser', () => {
+    expect(BROWSER_BROWSER_RUNTIME_CONFIG).toEqual(SERVER_BROWSER_RUNTIME_CONFIG);
+    expect(BROWSER_BROWSER_RUNTIME_CONFIG.dopplerModuleUrl).toBe('https://esm.sh/doppler-gpu@0.4.3?bundle');
+    expect(BROWSER_BROWSER_RUNTIME_CONFIG.modelBaseUrl).toBe('https://reploid.web.app/models');
   });
 
   it('keeps offloaded artifact URLs separate from receipt identity fields', () => {
