@@ -47,7 +47,7 @@ steps:
           --platform managed \
           --allow-unauthenticated \
           --min-instances 0 \
-          --max-instances 20 \
+          --max-instances 1 \
           --concurrency 80 \
           --timeout 300 \
           --set-env-vars "$(cat /workspace/.pool-env)"
