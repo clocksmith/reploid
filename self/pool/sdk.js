@@ -37,6 +37,9 @@ export function createPoolSdk({ baseUrl = DEFAULT_BASE_URL } = {}) {
         body: acceptance
       });
     },
+    getReceipt(receiptHash) {
+      return requestJson(`/receipts/${encodeURIComponent(receiptHash)}`, { baseUrl });
+    },
     registerProvider(registration) {
       return requestJson('/providers/register', { baseUrl, method: 'POST', body: registration });
     },

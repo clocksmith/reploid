@@ -10,10 +10,13 @@ export function recordAcceptedReceipt({ store, providerId, points = 0 }) {
   });
 }
 
-export function recordRejectedReceipt({ store, providerId }) {
+export function recordRejectedReceipt({ store, providerId, reasons = [] }) {
   const current = store.getReputation(providerId);
+  const rejectedReceipts = Number(current.rejectedReceipts || 0) + 1;
   return store.updateReputation(providerId, {
-    rejectedReceipts: Number(current.rejectedReceipts || 0) + 1
+    rejectedReceipts,
+    lastRejectionReasons: reasons,
+    routingBlocked: rejectedReceipts >= 3
   });
 }
 

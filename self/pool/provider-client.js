@@ -5,6 +5,7 @@
 import { createPoolSdk } from './sdk.js';
 import { buildPoolReceipt, createSigningKeyPair, exportPublicKey, signProviderReceipt } from './inference-receipt.js';
 import { createDopplerRuntime } from './doppler-runtime.js';
+import { buildLaunchProviderModel } from './model-contract.js';
 
 export function createProviderClient({ providerId, sdk = createPoolSdk(), runtime = createDopplerRuntime(), keyPair = null } = {}) {
   let activeKeyPair = keyPair;
@@ -22,7 +23,9 @@ export function createProviderClient({ providerId, sdk = createPoolSdk(), runtim
       await ensureKeys();
       registration = await sdk.registerProvider({
         providerId,
-        models,
+        models: Array.isArray(models) && models.length > 0
+          ? models
+          : [buildLaunchProviderModel()],
         device,
         availability: {
           maxConcurrentJobs: 1,
@@ -66,6 +69,11 @@ export function createProviderClient({ providerId, sdk = createPoolSdk(), runtim
       const signedReceipt = await signProviderReceipt(receipt, activeKeyPair.privateKey);
       return sdk.submitReceipt(assignment.assignmentId, {
         outputText: execution.outputText,
+        tokenIds: execution.tokenIds || [],
+        transcript: execution.transcript || {
+          outputText: execution.outputText,
+          tokenIds: execution.tokenIds || []
+        },
         receipt: signedReceipt
       });
     },

@@ -2,9 +2,11 @@
  * @fileoverview Server-side launch policy contract.
  */
 
+import { LAUNCH_MODEL, isLaunchModelRequirement } from './model-contract.js';
+
 export const FASTEST_RECEIPT_POLICY = Object.freeze({
   policyId: 'fastest_receipt',
-  allowedModels: ['v0_default'],
+  allowedModels: [LAUNCH_MODEL.modelId],
   minProviderReputation: 0,
   maxQueueDepth: 100,
   maxInputTokens: 1024,
@@ -30,8 +32,15 @@ export function validateJobRequest(request = {}) {
   if (!policy) reasons.push(`Unsupported launch policy: ${policyId}`);
   if (!request.requesterId) reasons.push('requesterId is required');
   if (!request.prompt) reasons.push('prompt is required');
+  if (!request.requesterPublicKey) reasons.push('requesterPublicKey is required');
+  if (!request.modelRequirements?.modelId) reasons.push('modelRequirements.modelId is required');
+  if (!request.modelRequirements?.modelHash) reasons.push('modelRequirements.modelHash is required');
+  if (!request.modelRequirements?.manifestHash) reasons.push('modelRequirements.manifestHash is required');
   if (policy && Number(request.generationConfig?.maxOutputTokens || 0) > policy.maxOutputTokens) {
     reasons.push(`maxOutputTokens exceeds policy limit: ${policy.maxOutputTokens}`);
+  }
+  if (policy && !isLaunchModelRequirement(request.modelRequirements || {})) {
+    reasons.push('model requirements do not match the launch model identity');
   }
   return {
     ok: reasons.length === 0,

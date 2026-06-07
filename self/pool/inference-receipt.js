@@ -156,9 +156,10 @@ export async function signProviderReceipt(receipt, privateKey) {
   };
 }
 
-export async function countersignReceipt({ receiptHash, accepted }, privateKey) {
+export async function countersignReceipt({ receiptHash, requesterId, accepted }, privateKey) {
   const acceptance = {
     receiptHash,
+    requesterId,
     accepted: accepted === true,
     acceptedAt: new Date().toISOString(),
     requesterSignature: null
