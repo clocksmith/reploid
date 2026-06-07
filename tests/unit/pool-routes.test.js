@@ -6,6 +6,7 @@ import { LAUNCH_MODEL } from '../../server/pool/model-contract.js';
 import { DETERMINISTIC_GENERATION_CONFIG, getPolicy } from '../../server/pool/policy-router.js';
 import { assignJob } from '../../server/pool/scheduler.js';
 import {
+  buildAcceptanceSummary,
   buildPoolReceipt,
   countersignReceipt,
   createSigningKeyPair,
@@ -154,6 +155,8 @@ describe('pool coordinator routes', () => {
     const ringPolicy = policies.body.policies.find((policy) => policy.policyId === 'ring_quorum_receipt');
     expect(ringPolicy.adaptiveRing).toBe(true);
     expect(ringPolicy.maxRingSize).toBe(4);
+    expect(ringPolicy.trustTier).toBe('adaptive_T1_to_T4_ring_quorum_receipt');
+    expect(ringPolicy.policyTrustTier).toBe('T4_ring_quorum_receipt');
 
     const jobs = await dispatchJson(router, '/jobs', {
       method: 'POST',
@@ -236,6 +239,7 @@ describe('pool coordinator routes', () => {
     expect(verifiedJob.agreement.status).toBe('accepted');
 
     const lateAssignment = assignments[3];
+    expect((await store.getAssignment(lateAssignment.assignmentId)).status).toBe('superseded');
     const latePayload = await signedReceiptFor({
       assignment: lateAssignment,
       providerKeys: providers.get(lateAssignment.providerId)
@@ -248,8 +252,8 @@ describe('pool coordinator routes', () => {
         tokenIds: latePayload.tokenIds
       }
     });
-    expect(lateRejected.status).toBe(400);
-    expect(lateRejected.body.routeDecision.mode).toBe('late_non_quorum_receipt_rejected');
+    expect(lateRejected.status).toBe(409);
+    expect(lateRejected.body.error).toBe('assignment is not active');
 
     const stillVerifiedJob = await store.getJob(job.jobId);
     expect(stillVerifiedJob.status).toBe('receipt_verified');
@@ -301,10 +305,17 @@ describe('pool coordinator routes', () => {
       await submitReceipt(router, assignment, validPayload);
     }
     const verifiedJob = await store.getJob(job.jobId);
+    const receiptRecords = verifiedJob.receiptHashes.map((currentReceiptHash) => store.getReceipt(currentReceiptHash));
+    const acceptanceSummary = await buildAcceptanceSummary({
+      job: verifiedJob,
+      receiptHash: verifiedJob.receiptHash,
+      receiptRecords
+    });
     const acceptance = await countersignReceipt({
       receiptHash: verifiedJob.receiptHash,
       requesterId: verifiedJob.requesterId,
-      accepted: true
+      accepted: true,
+      ...acceptanceSummary
     }, requesterKeys.privateKey);
     const accepted = await dispatchJson(router, `/receipts/${encodeURIComponent(verifiedJob.receiptHash)}/accept`, {
       method: 'POST',
@@ -314,5 +325,190 @@ describe('pool coordinator routes', () => {
     expect(accepted.body.ledgerEvents).toHaveLength(3);
     expect(accepted.body.ledgerEvents.every((event) => event.reason === 'ring_quorum_receipt_accepted')).toBe(true);
     expect(accepted.body.requesterSpendEvent.reason).toBe('ring_quorum_receipt_spend');
+  });
+});
+
+describe('pool ring quorum timeout and acceptance binding', () => {
+  let store;
+  let router;
+
+  beforeEach(() => {
+    store = createPoolStore();
+    store.kind = 'memory';
+    router = createPoolRouter({ store });
+  });
+
+  it('keeps ring quorum pending when one current assignment expires and quorum is still reachable', async () => {
+    const { assignments, job } = await createRingJob({ store, providerCount: 4 });
+    store.updateAssignment(assignments[0].assignmentId, {
+      expiresAt: new Date(Date.now() - 1000).toISOString()
+    });
+
+    const expired = store.expireStaleAssignments();
+    expect(expired).toHaveLength(1);
+
+    const refreshedJob = store.getJob(job.jobId);
+    expect(refreshedJob.status).toBe('awaiting_ring_quorum_receipts');
+    expect(refreshedJob.retryable).toBe(false);
+    expect(refreshedJob.failedAssignmentIds).toContain(assignments[0].assignmentId);
+    expect(refreshedJob.agreement.status).toBe('pending');
+    expect(refreshedJob.agreement.remainingProviders).toBe(3);
+  });
+
+  it('retires non-quorum assignments and does not let expiration downgrade an accepted ring quorum', async () => {
+    const { providers, assignments, job } = await createRingJob({ store, providerCount: 4 });
+    for (const assignment of assignments.slice(0, 3)) {
+      const validPayload = await signedReceiptFor({
+        assignment,
+        providerKeys: providers.get(assignment.providerId)
+      });
+      await submitReceipt(router, assignment, validPayload);
+    }
+
+    const verifiedJob = store.getJob(job.jobId);
+    expect(verifiedJob.status).toBe('receipt_verified');
+    expect(verifiedJob.agreement.status).toBe('accepted');
+    expect(verifiedJob.supersededAssignmentIds).toContain(assignments[3].assignmentId);
+    expect(store.getAssignment(assignments[3].assignmentId).status).toBe('superseded');
+
+    store.updateAssignment(assignments[3].assignmentId, {
+      status: 'running',
+      expiresAt: new Date(Date.now() - 1000).toISOString()
+    });
+    store.expireStaleAssignments();
+
+    const stillVerifiedJob = store.getJob(job.jobId);
+    expect(stillVerifiedJob.status).toBe('receipt_verified');
+    expect(stillVerifiedJob.agreement.status).toBe('accepted');
+    expect(stillVerifiedJob.receiptHashes).toEqual(verifiedJob.receiptHashes);
+  });
+
+  it('rejects requester acceptance that does not bind the accepted receipt set and spend', async () => {
+    const { providers, assignments, job, requesterKeys } = await createRingJob({ store, providerCount: 4 });
+    for (const assignment of assignments.slice(0, 3)) {
+      const validPayload = await signedReceiptFor({
+        assignment,
+        providerKeys: providers.get(assignment.providerId)
+      });
+      await submitReceipt(router, assignment, validPayload);
+    }
+
+    const verifiedJob = store.getJob(job.jobId);
+    const receiptHash = verifiedJob.receiptHash;
+    const weakAcceptance = await countersignReceipt({
+      receiptHash,
+      requesterId: verifiedJob.requesterId,
+      accepted: true
+    }, requesterKeys.privateKey);
+    const weakResponse = await dispatchJson(router, `/receipts/${receiptHash}/accept`, {
+      method: 'POST',
+      body: weakAcceptance
+    });
+    expect(weakResponse.status).toBe(400);
+    expect(weakResponse.body.verifierDecision.reasons).toContain('acceptance agreementHash mismatch');
+
+    const receiptRecords = verifiedJob.receiptHashes.map((currentReceiptHash) => store.getReceipt(currentReceiptHash));
+    const acceptanceSummary = await buildAcceptanceSummary({
+      job: verifiedJob,
+      receiptHash,
+      receiptRecords
+    });
+    const strongAcceptance = await countersignReceipt({
+      receiptHash,
+      requesterId: verifiedJob.requesterId,
+      accepted: true,
+      ...acceptanceSummary
+    }, requesterKeys.privateKey);
+    const acceptedResponse = await dispatchJson(router, `/receipts/${receiptHash}/accept`, {
+      method: 'POST',
+      body: strongAcceptance
+    });
+    expect(acceptedResponse.status).toBe(200);
+    expect(store.getJob(job.jobId).status).toBe('accepted');
+  });
+});
+
+describe('pool hybrid p2p signaling routes', () => {
+  let store;
+  let router;
+
+  beforeEach(() => {
+    store = createPoolStore();
+    store.kind = 'memory';
+    router = createPoolRouter({ store });
+  });
+
+  it('creates assignment-bound signaling sessions and exchanges metadata messages', async () => {
+    const { assignments } = await createRingJob({ store, providerCount: 1 });
+    const assignment = assignments[0];
+    const created = await dispatchJson(router, '/signaling/sessions', {
+      method: 'POST',
+      body: { assignmentId: assignment.assignmentId }
+    });
+    expect(created.status).toBe(201);
+    expect(created.body.session.assignmentId).toBe(assignment.assignmentId);
+    expect(created.body.session.participantIds).toContain(assignment.requesterId);
+    expect(created.body.session.participantIds).toContain(assignment.providerId);
+
+    const sessionId = created.body.session.sessionId;
+    const published = await dispatchJson(router, `/signaling/sessions/${sessionId}/messages`, {
+      method: 'POST',
+      body: {
+        type: 'offer',
+        fromPeerId: assignment.requesterId,
+        toPeerId: assignment.providerId,
+        payload: { type: 'offer', sdp: 'v=0' },
+        createdAt: 100
+      }
+    });
+    expect(published.status).toBe(201);
+
+    const listed = await dispatchJson(router, `/signaling/sessions/${sessionId}/messages?peerId=${encodeURIComponent(assignment.providerId)}`);
+    expect(listed.status).toBe(200);
+    expect(listed.body.messages).toHaveLength(1);
+    expect(listed.body.messages[0].type).toBe('offer');
+  });
+
+  it('binds signaling message publishers to authenticated participants', async () => {
+    router = createPoolRouter({
+      store,
+      requireAuth: true,
+      verifyAuthToken: async (token) => ({ uid: token })
+    });
+    const { assignments } = await createRingJob({ store, providerCount: 1 });
+    const assignment = assignments[0];
+    const created = await dispatchJson(router, '/signaling/sessions', {
+      method: 'POST',
+      headers: { authorization: 'Bearer ring' },
+      body: { assignmentId: assignment.assignmentId }
+    });
+    expect(created.status).toBe(201);
+
+    const sessionId = created.body.session.sessionId;
+    const wrongPublisher = await dispatchJson(router, `/signaling/sessions/${sessionId}/messages`, {
+      method: 'POST',
+      headers: { authorization: 'Bearer ring' },
+      body: {
+        type: 'offer',
+        fromPeerId: assignment.providerId,
+        toPeerId: assignment.requesterId,
+        payload: { type: 'offer', sdp: 'v=0' }
+      }
+    });
+    expect(wrongPublisher.status).toBe(403);
+    expect(wrongPublisher.body.error).toBe('authenticated identity does not match signal fromPeerId');
+
+    const providerPublisher = await dispatchJson(router, `/signaling/sessions/${sessionId}/messages`, {
+      method: 'POST',
+      headers: { authorization: 'Bearer 0' },
+      body: {
+        type: 'answer',
+        fromPeerId: assignment.providerId,
+        toPeerId: assignment.requesterId,
+        payload: { type: 'answer', sdp: 'v=0' }
+      }
+    });
+    expect(providerPublisher.status).toBe(201);
+    expect(providerPublisher.body.message.fromPeerId).toBe(assignment.providerId);
   });
 });

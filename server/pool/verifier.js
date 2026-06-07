@@ -129,7 +129,14 @@ const acceptanceSigningPayload = (acceptance = {}) => {
   return payload;
 };
 
-export async function verifyRequesterAcceptance({ job, acceptance }) {
+const sameStringArray = (left = [], right = []) => (
+  Array.isArray(left)
+  && Array.isArray(right)
+  && left.length === right.length
+  && left.every((value, index) => value === right[index])
+);
+
+export async function verifyRequesterAcceptance({ job, acceptance, expectedAcceptance = null }) {
   const reasons = [];
   if (!job) reasons.push('job not found');
   if (!acceptance) reasons.push('acceptance missing');
@@ -147,6 +154,20 @@ export async function verifyRequesterAcceptance({ job, acceptance }) {
   ].filter(Boolean));
   if (allowedReceiptHashes.size > 0 && !allowedReceiptHashes.has(acceptance?.receiptHash)) {
     reasons.push('acceptance receiptHash mismatch');
+  }
+  if (acceptance?.accepted === true && expectedAcceptance) {
+    if (acceptance.jobId !== expectedAcceptance.jobId) reasons.push('acceptance jobId mismatch');
+    if (acceptance.policyId !== expectedAcceptance.policyId) reasons.push('acceptance policyId mismatch');
+    if (acceptance.agreementHash !== expectedAcceptance.agreementHash) reasons.push('acceptance agreementHash mismatch');
+    if (!sameStringArray(acceptance.receiptHashes, expectedAcceptance.receiptHashes)) {
+      reasons.push('acceptance receiptHashes mismatch');
+    }
+    if (Number(acceptance.pointSpend) !== Number(expectedAcceptance.pointSpend)) {
+      reasons.push('acceptance pointSpend mismatch');
+    }
+    if (hashJson(acceptance.providerPoints || []) !== hashJson(expectedAcceptance.providerPoints || [])) {
+      reasons.push('acceptance providerPoints mismatch');
+    }
   }
 
   if (reasons.length === 0) {

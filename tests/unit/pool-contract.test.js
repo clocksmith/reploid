@@ -12,7 +12,10 @@ import {
   DETERMINISTIC_GENERATION_CONFIG as BROWSER_GENERATION_CONFIG,
   validatePolicyRequest
 } from '../../self/pool/policy-router.js';
-import { LAUNCH_MODEL as BROWSER_LAUNCH_MODEL } from '../../self/pool/model-contract.js';
+import {
+  LAUNCH_MODEL as BROWSER_LAUNCH_MODEL,
+  buildLaunchModelArtifactUrls
+} from '../../self/pool/model-contract.js';
 import { verifyReceipt as verifyBrowserReceipt } from '../../self/pool/sdk.js';
 
 const makeJob = (overrides = {}) => ({
@@ -86,6 +89,27 @@ describe('pool launch contract', () => {
     });
     expect(missingBackend.ok).toBe(false);
     expect(missingBackend.reasons).toContain('modelRequirements.backend is required');
+  });
+
+  it('keeps offloaded artifact URLs separate from receipt identity fields', () => {
+    const artifactUrls = buildLaunchModelArtifactUrls({
+      baseUrl: 'https://models.example/reploid/'
+    });
+
+    expect(artifactUrls).toEqual({
+      transport: 'offloaded_content_addressed',
+      cache: 'browser_opfs',
+      manifestUrl: `https://models.example/reploid/${BROWSER_LAUNCH_MODEL.modelId}/${BROWSER_LAUNCH_MODEL.manifestHash}/manifest.json`,
+      tokenizerUrl: `https://models.example/reploid/${BROWSER_LAUNCH_MODEL.modelId}/${BROWSER_LAUNCH_MODEL.manifestHash}/tokenizer.json`,
+      shardBaseUrl: `https://models.example/reploid/${BROWSER_LAUNCH_MODEL.modelId}/${BROWSER_LAUNCH_MODEL.manifestHash}/shards/`
+    });
+    expect(SERVER_LAUNCH_MODEL.artifactPolicy.identityFields).toEqual([
+      'modelId',
+      'modelHash',
+      'manifestHash',
+      'runtime',
+      'backend'
+    ]);
   });
 
   it('returns machine-readable local verifier errors for malformed keys', async () => {

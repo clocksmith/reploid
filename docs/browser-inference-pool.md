@@ -42,6 +42,25 @@ Do not describe this as trustless compute, hardware-attested inference, or guara
 
 `dopplerLoadRef` is the public Doppler registry alias used by the browser runtime. It is not the receipt identity. Receipts bind the full model id, model hash, manifest hash, runtime, and backend.
 
+## Offloaded model artifacts
+
+Model bytes should not be served from Firebase Hosting or the Cloud Run coordinator. The launch path is offloaded, content-addressed artifact hosting:
+
+| Artifact | Path shape |
+|----------|------------|
+| Manifest | `<modelId>/<manifestHash>/manifest.json` |
+| Tokenizer | `<modelId>/<manifestHash>/tokenizer.json` |
+| Shards | `<modelId>/<manifestHash>/shards/*` |
+
+Browser providers derive artifact URLs from `window.REPLOID_POOL_MODEL_BASE_URL` through `self/pool/model-contract.js`. The storage backend can be Cloudflare R2, Hugging Face, IPFS, or another CDN. The receipt identity does not include the storage URL; it includes the exact model id, model hash, manifest hash, runtime, and backend. Providers cache fetched model artifacts in OPFS after first load.
+
+Recommended implementation order:
+
+1. Cloud control plane for assignment, verification, points, and reputation.
+2. Offloaded model artifacts with manifest hash checks.
+3. P2P prompt, output, and full receipt payloads.
+4. P2P ring traffic for quorum policies.
+
 ---
 
 ## Deterministic generation contract
@@ -93,6 +112,19 @@ Ring agreement checks:
 - quorum over matching `tokenIdsHash` plus `outputHash`;
 - per-provider invalid receipt or execution failure accounting while the remaining current assignments can still reach quorum;
 - requester acceptance before points and reputation mutation.
+- accepted quorum retires non-quorum sibling assignments so leftover providers are released and later timeouts cannot downgrade the verified job.
+- assignment expiration is evaluated as a failed member of the current agreement attempt. The job fails only when the remaining current assignments cannot still satisfy quorum.
+
+Requester acceptance must bind the economic and agreement object:
+
+- `jobId`
+- `policyId`
+- primary `receiptHash`
+- accepted `receiptHashes`
+- compact agreement fields
+- `agreementHash`
+- provider point split
+- total point spend
 
 Honest claim:
 
@@ -123,12 +155,41 @@ No policy allows fallback models or server providers.
 | `POST` | `/pool/assignments/:assignmentId/failure` | Report provider execution failure and make the job retryable |
 | `POST` | `/pool/receipts/:receiptHash/accept` | Submit requester countersignature and accept or reject result |
 | `GET` | `/pool/receipts/:receiptHash` | Fetch receipt artifact for inspection |
+| `POST` | `/pool/signaling/sessions` | Create assignment-bound WebRTC signaling session |
+| `GET` | `/pool/signaling/sessions/:sessionId` | Fetch signaling session metadata |
+| `POST` | `/pool/signaling/sessions/:sessionId/messages` | Publish SDP/ICE signaling metadata |
+| `GET` | `/pool/signaling/sessions/:sessionId/messages` | Poll SDP/ICE signaling metadata |
 | `POST` | `/pool/audits/canary` | Create hidden deterministic canary assignment for a provider |
 | `GET` | `/pool/audits/:auditId` | Inspect canary audit state |
 | `GET` | `/pool/points/:userId` | Fetch points ledger events |
 | `GET` | `/pool/reputation/:providerId` | Fetch provider reputation state |
 
 ---
+
+## Hybrid P2P anchor mode
+
+The recommended hosted mode is `hybrid_p2p_anchor`:
+
+| Layer | Owner |
+|-------|-------|
+| Job id, assignment hash, policy, model identity | Cloud coordinator |
+| SDP/ICE rendezvous metadata | Cloud signaling session |
+| Prompt payload | WebRTC DataChannel |
+| Output payload | WebRTC DataChannel |
+| Full receipt payload | WebRTC DataChannel or content-addressed off-cloud storage |
+| Receipt hash, agreement hash, requester acceptance, ledger mutation | Cloud coordinator |
+| Points and reputation | Cloud coordinator |
+
+Cloud signaling messages are metadata only: offer, answer, ICE candidate, close, and ping. Prompts, outputs, token streams, model shards, and ring payloads should not be sent through the signaling endpoint. Direct peer connection uses STUN where possible. TURN is a fallback for restrictive NATs and should be treated as paid bandwidth risk.
+
+Browser modules:
+
+```javascript
+import { createPoolSdkSignalingAdapter, createSignalingChannel } from './pool/p2p-signaling.js';
+import { createP2PRequesterTransport, createP2PProviderTransport } from './pool/p2p-transport.js';
+```
+
+The cloud remains authoritative for abuse, receipt anchoring, requester acceptance, points, reputation, and canary policy. P2P transport reduces cloud bandwidth and prompt/output exposure; it does not replace the ledger trust boundary.
 
 ## SDK calls
 
@@ -143,6 +204,9 @@ await sdk.submitJob(request);
 await sdk.pollJob(jobId);
 await sdk.getReceipt(receiptHash);
 await sdk.acceptReceipt(receiptHash, acceptance);
+await sdk.createSignalingSession({ assignmentId });
+await sdk.publishSignal(sessionId, signal);
+await sdk.listSignals(sessionId, { peerId });
 await sdk.createCanaryAudit(payload);
 await sdk.reputation(providerId);
 

@@ -132,8 +132,12 @@ const renderPolicyStrip = () => `
   </div>
 `;
 
+const renderPolicyTrustLabel = (policy) => (
+  policy.adaptiveRing ? 'adaptive T1-T4 ring quorum' : policy.trustTier
+);
+
 const renderPolicyOptions = () => listPolicies().map((policy) => `
-  <option value="${escapeHtml(policy.policyId)}">${escapeHtml(policy.policyId)} - ${escapeHtml(policy.trustTier)}</option>
+  <option value="${escapeHtml(policy.policyId)}">${escapeHtml(policy.policyId)} - ${escapeHtml(renderPolicyTrustLabel(policy))}</option>
 `).join('');
 
 const renderFlowCards = () => `

@@ -38,7 +38,8 @@ const createPoolRateLimiter = ({ maxRequests = 30, bucketMs = 1000 } = {}) => {
 
 const publicPolicy = (policy) => ({
   policyId: policy.policyId,
-  trustTier: policy.trustTier,
+  trustTier: policy.adaptiveRing ? 'adaptive_T1_to_T4_ring_quorum_receipt' : policy.trustTier,
+  policyTrustTier: policy.trustTier,
   allowedModels: policy.allowedModels,
   verificationLevel: policy.verificationLevel,
   redundancy: policy.redundancy,
@@ -101,6 +102,32 @@ const requireBoundAnyRole = (req, res, roles, roleId) => {
 const hasCoordinatorClaim = (auth) => auth?.decoded?.admin === true
   || auth?.decoded?.poolCoordinator === true
   || auth?.decoded?.coordinator === true;
+
+const signalingRoles = Object.freeze(['requester', 'agent', 'provider']);
+
+const signalingParticipantAllowed = (auth, participantIds = []) => {
+  if (!auth?.verified || !auth.uid) return true;
+  if (hasCoordinatorClaim(auth)) return true;
+  return participantIds.some((participantId) => authMatchesAnyRoleId(auth, signalingRoles, participantId));
+};
+
+const requireSignalingParticipant = (req, res, session) => {
+  if (signalingParticipantAllowed(req.poolAuth, session?.participantIds || [])) return true;
+  res.status(403).json({ error: 'authenticated identity is not a signaling session participant' });
+  return false;
+};
+
+const requireSignalFromPeer = (req, res, session, fromPeerId) => {
+  const participantIds = session?.participantIds || [];
+  if (!participantIds.includes(fromPeerId)) {
+    res.status(400).json({ error: 'signal fromPeerId is not a session participant' });
+    return false;
+  }
+  if (!req.poolAuth?.verified || !req.poolAuth.uid || hasCoordinatorClaim(req.poolAuth)) return true;
+  if (authMatchesAnyRoleId(req.poolAuth, signalingRoles, fromPeerId)) return true;
+  res.status(403).json({ error: 'authenticated identity does not match signal fromPeerId' });
+  return false;
+};
 
 const providerHasLaunchModel = (provider) => (provider?.models || []).find((model) => (
   model.modelId === LAUNCH_MODEL.modelId
@@ -174,6 +201,80 @@ const acceptedLedgerReasonForJob = (job = {}, receiptCount = 1) => {
 const spendLedgerReasonForJob = (job = {}, receiptCount = 1) => {
   if (receiptCount <= 1) return 'accepted_receipt_spend';
   return job?.agreement?.mode === 'ring_quorum' ? 'ring_quorum_receipt_spend' : 'redundant_agreement_spend';
+};
+
+const compactAgreementForAcceptance = (agreement = null) => {
+  if (!agreement) return null;
+  return {
+    mode: agreement.mode || null,
+    status: agreement.status || null,
+    requiredAgreement: Number(agreement.requiredAgreement || agreement.requiredProviders || 1),
+    providerCount: Number(agreement.providerCount || 1),
+    agreementField: agreement.agreementField || 'tokenIdsHash',
+    outputHash: agreement.outputHash || null,
+    tokenIdsHash: agreement.tokenIdsHash || null,
+    effectiveTrustTier: agreement.effectiveTrustTier || null
+  };
+};
+
+const buildAcceptanceSummary = async ({ store, job, receiptHash } = {}) => {
+  const receiptHashes = Array.isArray(job?.agreement?.receiptHashes) && job.agreement.status === 'accepted'
+    ? job.agreement.receiptHashes
+    : [receiptHash];
+  const agreedRecords = [];
+  for (const currentReceiptHash of receiptHashes) {
+    const agreedRecord = await store.getReceipt(currentReceiptHash);
+    if (agreedRecord?.verifierDecision?.accepted) agreedRecords.push(agreedRecord);
+  }
+  const multiplier = 1 / Math.max(1, receiptHashes.length);
+  const providerPoints = agreedRecords.map((record) => ({
+    receiptHash: record.receiptHash,
+    providerId: record.providerId,
+    points: calculateReceiptPoints(record, { multiplier })
+  }));
+  const pointSpend = providerPoints.reduce((sum, entry) => sum + entry.points, 0);
+  const payload = {
+    jobId: job?.jobId || null,
+    requesterId: job?.requesterId || null,
+    policyId: job?.policyId || null,
+    receiptHash,
+    receiptHashes,
+    agreement: compactAgreementForAcceptance(job?.agreement || null),
+    pointSpend,
+    providerPoints
+  };
+  return {
+    ...payload,
+    agreementHash: hashJson(payload),
+    agreedRecords,
+    multiplier,
+    totalProviderPoints: pointSpend
+  };
+};
+
+const retireSupersededAssignments = async ({ store, job, agreement } = {}) => {
+  const currentAssignmentIds = Array.isArray(job?.assignmentIds) ? job.assignmentIds : [];
+  if (currentAssignmentIds.length === 0 || agreement?.status !== 'accepted') return [];
+  const acceptedReceiptHashes = new Set(Array.isArray(agreement.receiptHashes) ? agreement.receiptHashes : []);
+  const receiptRecords = await currentReceiptsForJob(store, job);
+  const acceptedAssignmentIds = new Set(receiptRecords
+    .filter((record) => acceptedReceiptHashes.has(record.receiptHash))
+    .map((record) => record.assignmentId)
+    .filter(Boolean));
+  const supersededAssignmentIds = [];
+  for (const assignmentId of currentAssignmentIds) {
+    if (acceptedAssignmentIds.has(assignmentId)) continue;
+    const sibling = await store.getAssignment(assignmentId);
+    if (!sibling || !activeAssignmentStatuses.has(sibling.status)) continue;
+    await store.updateAssignment(assignmentId, {
+      status: 'superseded',
+      supersededByReceiptHashes: Array.from(acceptedReceiptHashes),
+      supersededAt: new Date().toISOString()
+    });
+    if (sibling.providerId) await store.setProviderStatus(sibling.providerId, 'available');
+    supersededAssignmentIds.push(assignmentId);
+  }
+  return supersededAssignmentIds;
 };
 
 const evaluateAgreement = async ({ store, job, policy }) => {
@@ -295,6 +396,7 @@ const updateJobAfterVerifiedReceipt = async ({ store, assignment, receiptRecord,
     const agreement = await evaluateAgreement({ store, job, policy });
     if (agreement.status === 'accepted') {
       const representative = await store.getReceipt(agreement.receiptHash);
+      const supersededAssignmentIds = await retireSupersededAssignments({ store, job, agreement });
       await store.updateJob(assignment.jobId, {
         status: 'receipt_verified',
         receiptHash: agreement.receiptHash,
@@ -303,6 +405,7 @@ const updateJobAfterVerifiedReceipt = async ({ store, assignment, receiptRecord,
         trustTier: agreement.effectiveTrustTier,
         effectiveTrustTier: agreement.effectiveTrustTier,
         agreement,
+        supersededAssignmentIds,
         verifierDecision: { accepted: true, reasons: [], verifiedAt: new Date().toISOString(), agreement }
       });
     } else if (agreement.status === 'rejected') {
@@ -449,6 +552,95 @@ export function createPoolRouter({ store = poolStore, verifyAuthToken = null, re
         coordinatorClaimRequired: !allowCanaryCreation
       }
     });
+  }));
+
+  router.post('/signaling/sessions', asyncRoute(async (req, res) => {
+    if (typeof store.createSignalingSession !== 'function') {
+      return res.status(501).json({ error: 'signaling sessions are not supported by this store' });
+    }
+    const body = req.body || {};
+    if (!body.assignmentId) return res.status(400).json({ error: 'assignmentId is required' });
+    const assignment = await store.getAssignment(body.assignmentId);
+    if (!assignment) return res.status(404).json({ error: 'assignment not found' });
+    const job = await store.getJob(assignment.jobId);
+    const participantIds = Array.from(new Set([
+      assignment.requesterId,
+      assignment.providerId,
+      ...(Array.isArray(assignment.ring?.providerIds) ? assignment.ring.providerIds : [])
+    ].filter(Boolean)));
+    if (!signalingParticipantAllowed(req.poolAuth, participantIds)) {
+      return res.status(403).json({ error: 'authenticated identity is not a signaling session participant' });
+    }
+    const session = await store.createSignalingSession({
+      assignmentId: assignment.assignmentId,
+      jobId: assignment.jobId,
+      policyId: assignment.policyId,
+      requesterId: assignment.requesterId,
+      providerId: assignment.providerId,
+      participantIds,
+      mode: assignment.ring ? 'ring_webrtc_datachannel' : 'requester_provider_webrtc_datachannel',
+      transport: 'webrtc_datachannel',
+      p2pClaim: 'prompt/output/full receipt payloads should travel over WebRTC; cloud stores only signaling metadata and later receipt anchors',
+      expiresAt: body.expiresAt || assignment.expiresAt || new Date(Date.now() + 10 * 60 * 1000).toISOString(),
+      createdBy: req.body?.createdBy || assignment.requesterId,
+      jobStatusAtCreate: job?.status || null
+    });
+    return res.status(201).json({ session });
+  }));
+
+  router.get('/signaling/sessions/:sessionId', asyncRoute(async (req, res) => {
+    if (typeof store.getSignalingSession !== 'function') {
+      return res.status(501).json({ error: 'signaling sessions are not supported by this store' });
+    }
+    const session = await store.getSignalingSession(req.params.sessionId);
+    if (!session) return res.status(404).json({ error: 'signaling session not found' });
+    if (!requireSignalingParticipant(req, res, session)) return null;
+    return res.json({ session });
+  }));
+
+  router.post('/signaling/sessions/:sessionId/messages', asyncRoute(async (req, res) => {
+    if (typeof store.appendSignalMessage !== 'function') {
+      return res.status(501).json({ error: 'signaling messages are not supported by this store' });
+    }
+    const session = await store.getSignalingSession(req.params.sessionId);
+    if (!session) return res.status(404).json({ error: 'signaling session not found' });
+    if (!requireSignalingParticipant(req, res, session)) return null;
+    const body = req.body || {};
+    if (!body.type) return res.status(400).json({ error: 'signal type is required' });
+    if (!body.fromPeerId) return res.status(400).json({ error: 'signal fromPeerId is required' });
+    if (!requireSignalFromPeer(req, res, session, body.fromPeerId)) return null;
+    if (body.toPeerId && !session.participantIds.includes(body.toPeerId)) {
+      return res.status(400).json({ error: 'signal toPeerId is not a session participant' });
+    }
+    const message = await store.appendSignalMessage(session.sessionId, {
+      id: body.id || null,
+      assignmentId: session.assignmentId,
+      type: body.type,
+      fromPeerId: body.fromPeerId,
+      toPeerId: body.toPeerId || null,
+      payload: body.payload ?? null,
+      createdAt: Number(body.createdAt || Date.now()),
+      expiresAt: body.expiresAt || null
+    });
+    return res.status(201).json({ message });
+  }));
+
+  router.get('/signaling/sessions/:sessionId/messages', asyncRoute(async (req, res) => {
+    if (typeof store.listSignalMessages !== 'function') {
+      return res.status(501).json({ error: 'signaling messages are not supported by this store' });
+    }
+    const session = await store.getSignalingSession(req.params.sessionId);
+    if (!session) return res.status(404).json({ error: 'signaling session not found' });
+    if (!requireSignalingParticipant(req, res, session)) return null;
+    const peerId = req.query.peerId || null;
+    if (peerId && !session.participantIds.includes(peerId)) {
+      return res.status(400).json({ error: 'peerId is not a session participant' });
+    }
+    const messages = await store.listSignalMessages(session.sessionId, {
+      after: Number(req.query.after || 0),
+      peerId
+    });
+    return res.json({ messages });
   }));
 
   router.get('/metrics', asyncRoute(async (req, res) => {
@@ -911,9 +1103,33 @@ export function createPoolRouter({ store = poolStore, verifyAuthToken = null, re
       accepted: req.body?.accepted === true,
       requesterId: req.body?.requesterId || receiptRecord.requesterId
     };
+    let acceptanceSummary = null;
+    if (acceptancePayload.accepted === true) {
+      if (job?.agreement && job.agreement.status !== 'accepted') {
+        return res.status(409).json({
+          error: 'selected policy has not reached an accepted final state',
+          agreement: job.agreement
+        });
+      }
+      acceptanceSummary = await buildAcceptanceSummary({
+        store,
+        job,
+        receiptHash: req.params.receiptHash
+      });
+      if (!acceptanceSummary.receiptHashes.includes(req.params.receiptHash)) {
+        return res.status(400).json({ error: 'receipt is not part of the accepted agreement set' });
+      }
+      if (acceptanceSummary.agreedRecords.length !== acceptanceSummary.receiptHashes.length) {
+        return res.status(409).json({
+          error: 'accepted agreement set is missing verifier-accepted receipts',
+          receiptHashes: acceptanceSummary.receiptHashes
+        });
+      }
+    }
     const acceptanceDecision = await verifyRequesterAcceptance({
       job,
-      acceptance: acceptancePayload
+      acceptance: acceptancePayload,
+      expectedAcceptance: acceptanceSummary
     });
     if (!acceptanceDecision.accepted) {
       return res.status(400).json({
@@ -935,27 +1151,12 @@ export function createPoolRouter({ store = poolStore, verifyAuthToken = null, re
       return res.json({ acceptance, ledgerEvent: null, reputation: await store.getReputation(receiptRecord.providerId) });
     }
 
-    if (job?.agreement && job.agreement.status !== 'accepted') {
-      return res.status(409).json({
-        error: 'selected policy has not reached an accepted final state',
-        agreement: job.agreement
-      });
-    }
-    const receiptHashes = Array.isArray(job?.agreement?.receiptHashes) && job.agreement.status === 'accepted'
-      ? job.agreement.receiptHashes
-      : [req.params.receiptHash];
-    if (!receiptHashes.includes(req.params.receiptHash)) {
-      return res.status(400).json({ error: 'receipt is not part of the accepted agreement set' });
-    }
-    const multiplier = 1 / receiptHashes.length;
-    const agreedRecords = [];
-    for (const receiptHash of receiptHashes) {
-      const agreedRecord = await store.getReceipt(receiptHash);
-      if (agreedRecord?.verifierDecision?.accepted) agreedRecords.push(agreedRecord);
-    }
-    const totalProviderPoints = agreedRecords.reduce((sum, record) => (
-      sum + calculateReceiptPoints(record, { multiplier })
-    ), 0);
+    const {
+      receiptHashes,
+      agreedRecords,
+      multiplier,
+      totalProviderPoints
+    } = acceptanceSummary;
     if (job?.maxPointSpend !== null && job?.maxPointSpend !== undefined && totalProviderPoints > Number(job.maxPointSpend)) {
       return res.status(402).json({
         error: 'accepted result exceeds requester maxPointSpend',
