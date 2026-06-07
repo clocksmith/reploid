@@ -380,6 +380,8 @@
     "personas/config.json",
     "pool/agent-client.js",
     "pool/doppler-runtime.js",
+    "pool/firebase-auth.js",
+    "pool/identity.js",
     "pool/inference-receipt.js",
     "pool/model-contract.js",
     "pool/points-ledger.js",

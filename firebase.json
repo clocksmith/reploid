@@ -1,4 +1,8 @@
 {
+  "firestore": {
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  },
   "hosting": [
     {
       "target": "reploid",
@@ -50,7 +54,111 @@
           "destination": "/reset.html"
         },
         {
+          "source": "/pool/policies",
+          "run": {
+            "serviceId": "reploid-pool",
+            "region": "us-central1"
+          }
+        },
+        {
+          "source": "/pool/metrics",
+          "run": {
+            "serviceId": "reploid-pool",
+            "region": "us-central1"
+          }
+        },
+        {
+          "source": "/pool/deployment/check",
+          "run": {
+            "serviceId": "reploid-pool",
+            "region": "us-central1"
+          }
+        },
+        {
+          "source": "/pool/providers/**",
+          "run": {
+            "serviceId": "reploid-pool",
+            "region": "us-central1"
+          }
+        },
+        {
+          "source": "/pool/jobs",
+          "run": {
+            "serviceId": "reploid-pool",
+            "region": "us-central1"
+          }
+        },
+        {
+          "source": "/pool/jobs/**",
+          "run": {
+            "serviceId": "reploid-pool",
+            "region": "us-central1"
+          }
+        },
+        {
+          "source": "/pool/assignments/**",
+          "run": {
+            "serviceId": "reploid-pool",
+            "region": "us-central1"
+          }
+        },
+        {
+          "source": "/pool/receipts/**",
+          "run": {
+            "serviceId": "reploid-pool",
+            "region": "us-central1"
+          }
+        },
+        {
+          "source": "/pool/audits/**",
+          "run": {
+            "serviceId": "reploid-pool",
+            "region": "us-central1"
+          }
+        },
+        {
+          "source": "/pool/points/**",
+          "run": {
+            "serviceId": "reploid-pool",
+            "region": "us-central1"
+          }
+        },
+        {
+          "source": "/pool/reputation/**",
+          "run": {
+            "serviceId": "reploid-pool",
+            "region": "us-central1"
+          }
+        },
+        {
+          "source": "/pool/status",
+          "run": {
+            "serviceId": "reploid-pool",
+            "region": "us-central1"
+          }
+        },
+        {
           "source": "/",
+          "destination": "/index.html"
+        },
+        {
+          "source": "/run",
+          "destination": "/index.html"
+        },
+        {
+          "source": "/contribute",
+          "destination": "/index.html"
+        },
+        {
+          "source": "/agents",
+          "destination": "/index.html"
+        },
+        {
+          "source": "/receipts",
+          "destination": "/index.html"
+        },
+        {
+          "source": "/reputation",
           "destination": "/index.html"
         },
         {
