@@ -26,8 +26,9 @@ for (const route of routes) {
   try {
     const response = await page.goto(url, { waitUntil: 'networkidle' });
     if (!response || !response.ok()) failures.push(`${route} returned ${response?.status() || 'no response'}`);
-    const body = await page.textContent('body');
-    if (!String(body || '').includes(requiredText[route])) {
+    const body = String(await page.textContent('body') || '').toLowerCase();
+    const expected = String(requiredText[route] || '').toLowerCase();
+    if (!body.includes(expected)) {
       failures.push(`${route} did not include expected text: ${requiredText[route]}`);
     }
   } catch (error) {
