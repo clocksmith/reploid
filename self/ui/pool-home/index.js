@@ -20,40 +20,245 @@ const PRODUCT_ROUTES = Object.freeze({
   '/reputation': 'reputation'
 });
 
+const POOLDAY_NAME = 'Poolday';
+const POOLDAY_PROTOCOL = 'Verified Browser Inference';
+const POOLDAY_VERSION_TAG = 'vBI-1.6';
 const PROVIDER_WORKER_INTERVAL_MS = 3000;
+const SIMULATION_TARGET_STEP_MS = 1000 / 60;
+const SIMULATION_MAX_STEP_MS = 1000 / 16;
+const SIMULATION_MIN_STEP_MS = 1000 / 120;
+const SIMULATION_GENTLE_SPEED = 0.72;
+const SIMULATION_POINTER_LERP = 0.12;
+const SIMULATION_FORCE_LERP = 0.08;
+const SIMULATION_MIN_FORCE = 0.002;
+const POOLDAY_RECEIPT_LEDGER_LIMIT = 10;
+const POOLDAY_NODE_GRID_SQUARES = 20;
+const POOLDAY_STREAM_CHUNK_SIZE = 18;
+const POOLDAY_STREAM_TICK_MS = 14;
+const POOLDAY_STREAM_STATE = new Map();
+const POOLDAY_RECEIPT_LEDGER = [];
 
 const ROUTE_COPY = Object.freeze({
   home: {
-    eyebrow: 'Reploid pool',
-    title: 'Pool',
-    body: ''
+    eyebrow: POOLDAY_PROTOCOL,
+    title: POOLDAY_NAME,
+    body: 'Browser inference with receipts.'
   },
   run: {
-    eyebrow: 'Submit',
-    title: 'Text job',
-    body: 'Send text to a browser provider and review the result.'
+    eyebrow: 'Run',
+    title: 'Run a Job',
+    body: 'Send a prompt and stream the result.'
   },
   contribute: {
-    eyebrow: 'Provider',
-    title: 'Register a model',
-    body: 'Load the launch model in this browser and accept jobs.'
+    eyebrow: 'Provide',
+    title: 'Provide Compute',
+    body: 'Share this browser for work.'
   },
   agents: {
     eyebrow: 'API',
-    title: 'SDK calls',
-    body: 'Submit jobs, poll status, and accept results from code.'
+    title: 'API',
+    body: 'Submit, poll, verify, accept.'
   },
   receipts: {
-    eyebrow: 'Receipt',
-    title: 'Receipt lookup',
-    body: 'Look up one receipt hash.'
+    eyebrow: 'Receipts',
+    title: 'Receipts',
+    body: 'Check work and results.'
   },
   reputation: {
-    eyebrow: 'History',
-    title: 'Provider history',
-    body: 'Look up points, receipts, failures, and deployment status.'
+    eyebrow: 'Reputation',
+    title: 'Reputation',
+    body: 'Review provider history.'
   }
 });
+const NODE_GRID_SQUARES = POOLDAY_NODE_GRID_SQUARES;
+
+const renderNodeGrid = () => `
+  <div class="pool-node-grid" data-pool-node-grid aria-label="Node status tiles">
+    ${Array.from({ length: NODE_GRID_SQUARES }).map(() => '<span class="pool-node-square" aria-hidden="true"></span>').join('')}
+  </div>
+`;
+
+const setNodeGridProgress = (nodeGrid, value) => {
+  if (!nodeGrid) return;
+  const squares = nodeGrid.querySelectorAll('.pool-node-square');
+  const ratio = Math.max(0, Math.min(1, value));
+  const limit = Math.round(squares.length * ratio);
+  squares.forEach((square, index) => {
+    square.classList.toggle('is-active', index < limit);
+  });
+};
+
+const getProviderStatusEl = (mount) => mount?.querySelector('[data-pool-provider-status]');
+const getNodeGrid = (mount) => mount?.querySelector('[data-pool-node-grid]');
+
+const updateProviderStatus = (mount, status = 'NODE // OFFLINE') => {
+  const statusEl = getProviderStatusEl(mount);
+  if (!statusEl) return;
+  statusEl.textContent = status;
+  statusEl.dataset.providerState = status.includes('SPAWNED') ? 'spawned' : status.includes('SPAWNING') ? 'spawning' : 'offline';
+};
+
+const streamOutputText = (elementId, text) => {
+  const outputEl = document.getElementById(elementId);
+  if (!outputEl) return;
+  const value = String(text || '');
+  const previous = POOLDAY_STREAM_STATE.get(elementId);
+  if (previous?.timer) window.clearTimeout(previous.timer);
+  outputEl.textContent = '';
+  if (!value.length) {
+    const cursorEl = document.getElementById(`${elementId}-cursor`);
+    if (cursorEl) cursorEl.classList.remove('is-visible', 'is-active');
+    POOLDAY_STREAM_STATE.delete(elementId);
+    return;
+  }
+  POOLDAY_STREAM_STATE.set(elementId, {
+    text: value,
+    timer: null,
+    index: 0
+  });
+  const cursorEl = document.getElementById(`${elementId}-cursor`);
+  const tick = () => {
+    const state = POOLDAY_STREAM_STATE.get(elementId);
+    if (!state) return;
+    state.index += POOLDAY_STREAM_CHUNK_SIZE;
+    outputEl.textContent = value.slice(0, state.index);
+    if (state.index < value.length) {
+      state.timer = window.setTimeout(tick, POOLDAY_STREAM_TICK_MS);
+    } else {
+      POOLDAY_STREAM_STATE.delete(elementId);
+      if (cursorEl) cursorEl.classList.remove('is-active');
+    }
+  };
+  if (cursorEl) cursorEl.classList.add('is-visible', 'is-active');
+  tick();
+};
+
+const normalizeReceiptFidelity = (value) => {
+  if (typeof value === 'number' && !Number.isFinite(value)) return '—';
+  if (typeof value === 'string' && value.length > 0) return value;
+  if (value && typeof value === 'object') {
+    if (value.accepted === true) return 'accepted';
+    if (value.accepted === false) return 'rejected';
+    if (value.status) return String(value.status);
+  }
+  return 'pending';
+};
+
+const normalizeReceiptSpeed = (value) => {
+  const candidate = firstPresent(
+    value?.tokensPerSecond,
+    value?.throughput,
+    value?.runtime?.tokensPerSecond,
+    value?.stats?.throughput,
+    value?.performance?.tokensPerSecond
+  );
+  if (candidate === undefined || candidate === null || candidate === '') return '—';
+  const parsed = Number(candidate);
+  return Number.isFinite(parsed) ? `${parsed.toFixed(2)} t/s` : String(candidate);
+};
+
+const clamp01 = (value) => Math.max(0, Math.min(1, value));
+const clampRange = (value, min, max) => Math.max(min, Math.min(max, value));
+const clampCanvasPoint = (point, width, height, margin = 6) => {
+  if (!point) return point;
+  return {
+    ...point,
+    x: clampRange(point.x, margin, Math.max(margin, width - margin)),
+    y: clampRange(point.y, margin, Math.max(margin, height - margin)),
+    alpha: clamp01(point.alpha ?? 1),
+    size: Math.max(0, Number(point.size) || 0)
+  };
+};
+
+const addReceiptLedgerRow = (record = {}, receiptHash = '') => {
+  const jobId = firstPresent(
+    record?.job?.jobId,
+    record?.jobId,
+    record?.receipt?.jobId,
+    receiptHash
+  );
+  const provider = firstPresent(
+    record?.providerId,
+    record?.provider?.id,
+    record?.providerIdHash,
+    record?.provider,
+    record?.assignment?.providerId
+  );
+  const fidelity = normalizeReceiptFidelity(record?.verifierDecision || record?.verification || record?.requesterAcceptance);
+  const speed = normalizeReceiptSpeed(record);
+  POOLDAY_RECEIPT_LEDGER.unshift({
+    jobId: String(jobId || '—'),
+    provider: String(provider || '—'),
+    fidelity,
+    speed,
+    receiptHash: String(receiptHash || record?.receiptHash || '—')
+  });
+  while (POOLDAY_RECEIPT_LEDGER.length > POOLDAY_RECEIPT_LEDGER_LIMIT) {
+    POOLDAY_RECEIPT_LEDGER.pop();
+  }
+};
+
+const renderReceiptLedger = (rows = POOLDAY_RECEIPT_LEDGER) => {
+  if (!rows.length) {
+    return '<p class="type-caption pool-receipt-empty">No rounds logged yet.</p>';
+  }
+  return `
+    <div class="pool-ledger" role="table" aria-label="Execution receipt scoreboard">
+      <table>
+        <thead>
+          <tr>
+            <th>Job ID</th>
+            <th>Provider</th>
+            <th>Fidelity</th>
+            <th>Speed (t/s)</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rows.map((row) => `
+            <tr>
+              <td title="${escapeHtml(row.jobId)}">${escapeHtml(compactHex(row.jobId))}</td>
+              <td title="${escapeHtml(row.provider)}">${escapeHtml(row.provider)}</td>
+              <td>${escapeHtml(row.fidelity)}</td>
+              <td>${escapeHtml(row.speed)}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    </div>
+  `;
+};
+
+const extractOutputText = (value = {}) => {
+  const receipt = value.receipt || value.record || null;
+  const candidates = [
+    value.outputText,
+    value.output,
+    value.responseText,
+    value.text,
+    value.content,
+    value.completion,
+    value?.job?.outputText,
+    value?.job?.output,
+    receipt?.outputText,
+    receipt?.output,
+    receipt?.transcript?.outputText
+  ];
+  return String(candidates.find((entry) => typeof entry === 'string' && entry.length > 0) || '');
+};
+
+const formatLedgerValue = (value, fallback = '—') => {
+  if (value === undefined || value === null || value === '') return fallback;
+  if (typeof value === 'number' && !Number.isFinite(value)) return fallback;
+  if (typeof value === 'boolean') return value ? 'true' : 'false';
+  return String(value);
+};
+
+const renderReceiptSummaryCell = (value, fallback = '—') => `<td>${escapeHtml(formatLedgerValue(value, fallback))}</td>`;
+
+const compactHex = (value) => {
+  const normalized = formatLedgerValue(value, '—');
+  return normalized === '—' ? '—' : compactHash(normalized);
+};
 
 const escapeHtml = (value) => String(value || '')
   .replace(/&/g, '&amp;')
@@ -61,8 +266,12 @@ const escapeHtml = (value) => String(value || '')
   .replace(/>/g, '&gt;')
   .replace(/"/g, '&quot;');
 
-const getRouteId = () => PRODUCT_ROUTES[window.location.pathname] || 'home';
-const isProductPath = (path) => Object.prototype.hasOwnProperty.call(PRODUCT_ROUTES, path);
+const normalizeProductPath = (path = window.location.pathname) => {
+  if (!path || path === '/') return '/';
+  return path.replace(/\/+$/, '');
+};
+const getRouteId = () => PRODUCT_ROUTES[normalizeProductPath()] || 'home';
+const isProductPath = (path) => Object.prototype.hasOwnProperty.call(PRODUCT_ROUTES, normalizeProductPath(path));
 
 const firstPresent = (...values) => values.find((value) => value !== undefined && value !== null && value !== '');
 
@@ -102,27 +311,67 @@ const renderSummaryRows = (summary) => summary.map(([label, value]) => `
   </span>
 `).join('');
 
-const renderResultBox = (id) => `
+const renderResultBox = (id, options = {}) => {
+  if (options?.stream) {
+    return `
+      <div class="boot-status-strip pool-summary" id="${id}-summary" aria-live="polite"></div>
+      <div class="pool-stream-box">
+        <label class="pool-result-label" for="${id}-stream">${escapeHtml(options.streamLabel || 'Output stream')}</label>
+        <div class="pool-stream-shell">
+          <pre class="pool-stream-output" id="${id}-stream" aria-live="polite"></pre>
+          <span class="pool-stream-cursor" id="${id}-stream-cursor" aria-hidden="true">▍</span>
+        </div>
+      </div>
+    `;
+  }
+  return `
   <div class="boot-status-strip pool-summary" id="${id}-summary" aria-live="polite"></div>
   <pre class="pool-result" id="${id}" aria-live="polite">{}</pre>
-`;
+  `;
+};
 
-const setResult = (id, value) => {
-  const el = document.getElementById(id);
+const setResult = (id, value, options = {}) => {
   const summaryEl = document.getElementById(`${id}-summary`);
+  const streamMode = !!options.stream;
+  const outputText = streamMode ? extractOutputText(value) : null;
+  const summary = value && typeof value === 'object' ? extractResultSummary(value) : [];
+  const raw = value === undefined || value === null
+    ? ''
+    : typeof value === 'string'
+      ? value
+      : JSON.stringify(value, null, 2) || String(value);
+  const streamEl = streamMode ? document.getElementById(`${id}-stream`) : document.getElementById(id);
+  const streamCursor = streamMode ? document.getElementById(`${id}-stream-cursor`) : null;
   if (summaryEl) {
-    const summary = value && typeof value === 'object' ? extractResultSummary(value) : [];
     summaryEl.innerHTML = summary.length > 0 ? renderSummaryRows(summary) : '';
   }
-  if (el) el.textContent = JSON.stringify(value, null, 2);
+  if (streamMode && streamEl) {
+    if (outputText && outputText.length > 0) {
+      if (streamCursor) streamCursor.classList.add('is-visible', 'is-active');
+      streamOutputText(`${id}-stream`, outputText);
+    } else {
+      const previous = POOLDAY_STREAM_STATE.get(`${id}-stream`);
+      if (previous?.timer) window.clearTimeout(previous.timer);
+      POOLDAY_STREAM_STATE.delete(`${id}-stream`);
+      streamEl.textContent = raw;
+      if (streamCursor) streamCursor.classList.remove('is-visible', 'is-active');
+    }
+    return;
+  }
+  if (streamMode) return;
+  const outputEl = document.getElementById(id);
+  if (outputEl) {
+    outputEl.textContent = raw;
+  }
 };
 
 const renderNav = (activeRoute) => {
   const items = [
-    ['/', 'Home'],
-    ['/run', 'Submit'],
-    ['/contribute', 'Provider'],
-    ['/reputation', 'History']
+    ['/', 'Poolday'],
+    ['/run', 'Run'],
+    ['/contribute', 'Provide'],
+    ['/receipts', 'Receipts'],
+    ['/reputation', 'Reputation']
   ];
   return `
     <div class="pool-topbar">
@@ -132,7 +381,7 @@ const renderNav = (activeRoute) => {
           return `<button class="btn segmented-btn pool-nav-toggle${isActive ? ' is-active' : ''}" type="button" data-pool-route="${href}" aria-pressed="${isActive ? 'true' : 'false'}">${escapeHtml(label)}</button>`;
         }).join('')}
       </nav>
-      <a class="pool-zero-link link-secondary" href="/0" title="Open Reploid zero boot console and substrate diagnostics route safely.">Zero</a>
+      <a class="pool-zero-link link-secondary" href="/0" title="Open Zero.">Zero</a>
     </div>
   `;
 };
@@ -145,7 +394,7 @@ const renderPolicyStrip = () => `
 `;
 
 const renderPolicyTrustLabel = (policy) => (
-  policy.adaptiveRing ? 'adaptive T1-T4 ring quorum' : policy.trustTier
+  policy.adaptiveRing ? 'adaptive quorum' : policy.trustTier
 );
 
 const renderPolicyOptions = () => listPolicies().map((policy) => `
@@ -161,18 +410,22 @@ const renderModelOptions = () => listPoolModels().map((model) => {
 
 const renderHomeSimulation = () => `
   <section class="pool-simulation-shell" aria-label="Browser inference pool simulation">
+    <div class="pool-simulation-intro">
+      <h1 class="type-h1">Poolday</h1>
+      <p class="type-caption">Run AI jobs in browsers. Verify work with receipts.</p>
+    </div>
     <canvas class="pool-simulation-canvas" data-pool-simulation width="1200" height="680"></canvas>
     <div class="pool-simulation-labels" aria-hidden="true">
-      <span style="--x: 9%; --y: 46%;" title="The requester sends a text job to the pool.">requester</span>
-      <span style="--x: 31%; --y: 34%;" title="The coordinator assigns jobs to matching provider tabs.">coordinator</span>
-      <span style="--x: 52%; --y: 18%;" title="The verifier checks receipt hashes and signatures.">verifier</span>
-      <span style="--x: 68%; --y: 58%;" title="The ledger records accepted work and points.">ledger</span>
-      <span style="--x: 84%; --y: 34%;" title="Provider tabs run local models and return receipts.">provider tabs</span>
+      <span style="--x: 9%; --y: 46%;" title="A prompt enters the pool.">job</span>
+      <span style="--x: 31%; --y: 34%;" title="The job is routed to a browser.">route</span>
+      <span style="--x: 52%; --y: 18%;" title="The result is checked.">verify</span>
+      <span style="--x: 68%; --y: 58%;" title="The receipt is recorded.">receipt</span>
+      <span style="--x: 84%; --y: 34%;" title="Browsers run the model.">browsers</span>
     </div>
     <div class="pool-simulation-readout" aria-label="Simulation state">
       <span>tokens</span>
       <span>receipts</span>
-      <span><b data-pool-peer-count>0</b> peers online</span>
+      <span><b data-pool-peer-count>0</b> browsers</span>
     </div>
   </section>
 `;
@@ -195,12 +448,12 @@ const renderRouteDetail = (routeId) => {
   if (routeId === 'run') {
     return `
       <section class="panel pool-panel">
-        <h2 class="type-h2">Submit text</h2>
-        <p class="type-caption">Enter text. The pool assigns a matching provider.</p>
+        <h2 class="type-h2">Run</h2>
+        <p class="type-caption">Send a prompt. Watch the result stream in.</p>
         <div class="pool-form" data-pool-run>
           <label class="pool-field">
             <span>Prompt</span>
-            <textarea id="pool-run-prompt" rows="5">Summarize the launch policy in one paragraph.</textarea>
+            <textarea id="pool-run-prompt" rows="10">Summarize the launch policy in one paragraph.</textarea>
           </label>
           <label class="pool-field">
             <span>Policy</span>
@@ -214,11 +467,11 @@ const renderRouteDetail = (routeId) => {
             <span>Max point spend</span>
             <input id="pool-run-max-spend" type="number" min="0" step="1" placeholder="optional" />
           </label>
-          <button class="btn btn-primary" id="pool-run-submit" type="button">Submit job</button>
-          <button class="btn btn-ghost" id="pool-run-poll" type="button">Poll job</button>
-          <button class="btn btn-ghost" id="pool-run-accept" type="button">Accept receipt</button>
-          <button class="btn btn-ghost" id="pool-run-reject" type="button">Reject receipt</button>
-          ${renderResultBox('pool-run-result')}
+          <button class="btn btn-primary" id="pool-run-submit" type="button">Run</button>
+          <button class="btn btn-ghost" id="pool-run-poll" type="button">Refresh</button>
+          <button class="btn btn-ghost" id="pool-run-accept" type="button">Accept</button>
+          <button class="btn btn-ghost" id="pool-run-reject" type="button">Reject</button>
+          ${renderResultBox('pool-run-result', { stream: true, streamLabel: 'Output' })}
         </div>
       </section>
     `;
@@ -226,28 +479,32 @@ const renderRouteDetail = (routeId) => {
   if (routeId === 'contribute') {
     return `
       <section class="panel pool-panel">
-        <h2 class="type-h2">Provider</h2>
-        <p class="type-caption">Register this browser for the launch model.</p>
+        <h2 class="type-h2">Provide</h2>
+        <p class="type-caption">Let this browser run jobs.</p>
         <div class="pool-form" data-pool-provider>
+          <div class="pool-provider-status-row">
+            <p class="pool-provider-status" data-pool-provider-status>NODE // OFFLINE</p>
+            ${renderNodeGrid()}
+          </div>
           <label class="pool-field">
             <span>Model</span>
             <select id="pool-provider-model">${renderModelOptions()}</select>
           </label>
           <div class="pool-control-row" aria-label="Provider worker controls">
-            <button class="btn btn-primary" id="pool-provider-worker-start" type="button">Start provider tab</button>
+            <button class="btn btn-primary" id="pool-provider-worker-start" type="button">Start</button>
             <button class="btn btn-ghost" id="pool-provider-worker-stop" type="button" disabled>Stop</button>
           </div>
           <details class="pool-advanced">
-            <summary>Advanced provider controls</summary>
+            <summary>Manual controls</summary>
             <div class="pool-control-row" aria-label="Manual provider controls">
-              <button class="btn btn-ghost" id="pool-provider-load" type="button">Load Doppler model</button>
-              <button class="btn btn-ghost" id="pool-provider-profile" type="button">Runtime profile</button>
-              <button class="btn btn-ghost" id="pool-provider-register" type="button">Register provider</button>
-              <button class="btn btn-ghost" id="pool-provider-next" type="button">Poll assignment</button>
-              <button class="btn btn-ghost" id="pool-provider-execute" type="button">Execute assignment</button>
-              <button class="btn btn-ghost" id="pool-provider-step" type="button">Run one provider step</button>
-              <button class="btn btn-ghost" id="pool-provider-points" type="button">Provider points</button>
-              <button class="btn btn-ghost" id="pool-provider-reputation" type="button">Provider reputation</button>
+              <button class="btn btn-ghost" id="pool-provider-load" type="button">Load</button>
+              <button class="btn btn-ghost" id="pool-provider-profile" type="button">Profile</button>
+              <button class="btn btn-ghost" id="pool-provider-register" type="button">Register</button>
+              <button class="btn btn-ghost" id="pool-provider-next" type="button">Next Job</button>
+              <button class="btn btn-ghost" id="pool-provider-execute" type="button">Execute</button>
+              <button class="btn btn-ghost" id="pool-provider-step" type="button">Step</button>
+              <button class="btn btn-ghost" id="pool-provider-points" type="button">Points</button>
+              <button class="btn btn-ghost" id="pool-provider-reputation" type="button">Reputation</button>
             </div>
           </details>
           ${renderResultBox('pool-provider-result')}
@@ -258,11 +515,11 @@ const renderRouteDetail = (routeId) => {
   if (routeId === 'agents') {
     return `
       <section class="panel pool-panel">
-        <h2 class="type-h2">Agent</h2>
-        <p class="type-caption">The agent client submits jobs, polls status, verifies receipts, and signs acceptance.</p>
+        <h2 class="type-h2">API</h2>
+        <p class="type-caption">Submit, poll, verify, accept.</p>
         <div class="pool-form" data-pool-agent>
           <label class="pool-field">
-            <span>Agent prompt</span>
+            <span>Prompt</span>
             <textarea id="pool-agent-prompt" rows="5">Return one concise sentence about receipt-backed browser inference.</textarea>
           </label>
           <label class="pool-field">
@@ -270,13 +527,13 @@ const renderRouteDetail = (routeId) => {
             <select id="pool-agent-policy">${renderPolicyOptions()}</select>
           </label>
           <label class="pool-field">
-            <span>Agent max point spend</span>
+            <span>Max point spend</span>
             <input id="pool-agent-max-spend" type="number" min="0" step="1" placeholder="optional" />
           </label>
-          <button class="btn btn-primary" id="pool-agent-submit" type="button">Submit agent job</button>
-          <button class="btn btn-ghost" id="pool-agent-poll" type="button">Poll agent job</button>
-          <button class="btn btn-ghost" id="pool-agent-accept" type="button">Accept receipt</button>
-          <button class="btn btn-ghost" id="pool-agent-reject" type="button">Reject receipt</button>
+          <button class="btn btn-primary" id="pool-agent-submit" type="button">Submit</button>
+          <button class="btn btn-ghost" id="pool-agent-poll" type="button">Refresh</button>
+          <button class="btn btn-ghost" id="pool-agent-accept" type="button">Accept</button>
+          <button class="btn btn-ghost" id="pool-agent-reject" type="button">Reject</button>
           <code>submitJob({ policyId, prompt, modelRequirements })</code>
           <code>pollJob(jobId)</code>
           <code>verifyReceiptRecord(record)</code>
@@ -289,14 +546,15 @@ const renderRouteDetail = (routeId) => {
   if (routeId === 'receipts') {
     return `
       <section class="panel pool-panel">
-        <h2 class="type-h2">Receipt</h2>
-        <p class="type-caption">Look up a receipt and verify what the coordinator accepted.</p>
+        <h2 class="type-h2">Receipts</h2>
+        <p class="type-caption">Check completed work.</p>
         <div class="pool-form" data-pool-receipts>
           <label class="pool-field">
             <span>Receipt hash</span>
             <input id="pool-receipt-hash" placeholder="sha256:..." />
           </label>
-          <button class="btn btn-primary" id="pool-receipt-lookup" type="button">Lookup receipt</button>
+          <button class="btn btn-primary" id="pool-receipt-lookup" type="button">Lookup</button>
+          <div id="pool-receipt-ledger" class="pool-ledger-shell" aria-live="polite">${renderReceiptLedger()}</div>
           ${renderResultBox('pool-receipt-result')}
         </div>
       </section>
@@ -305,18 +563,19 @@ const renderRouteDetail = (routeId) => {
   if (routeId === 'reputation') {
     return `
       <section class="panel pool-panel">
-        <h2 class="type-h2">History</h2>
-        <p class="type-caption">Look up provider points, failures, status, and deployment checks.</p>
+        <h2 class="type-h2">Reputation</h2>
+        <p class="type-caption">Review provider history.</p>
         <div class="pool-form" data-pool-reputation>
           <label class="pool-field">
             <span>Provider id</span>
             <input id="pool-reputation-provider" placeholder="provider_..." />
           </label>
-          <button class="btn btn-primary" id="pool-reputation-lookup" type="button">Lookup provider history</button>
-          <button class="btn btn-ghost" id="pool-status-lookup" type="button">Pool status</button>
-          <button class="btn btn-ghost" id="pool-metrics-lookup" type="button">Pool metrics</button>
-          <button class="btn btn-ghost" id="pool-deployment-check" type="button">Deployment check</button>
+          <button class="btn btn-primary" id="pool-reputation-lookup" type="button">Lookup</button>
+          <button class="btn btn-ghost" id="pool-status-lookup" type="button">Status</button>
+          <button class="btn btn-ghost" id="pool-metrics-lookup" type="button">Metrics</button>
+          <button class="btn btn-ghost" id="pool-deployment-check" type="button">Deploy Check</button>
           ${renderResultBox('pool-reputation-result')}
+          <p class="pool-meta-tag" aria-label="protocol identifier">Protocol ${POOLDAY_VERSION_TAG}</p>
         </div>
       </section>
     `;
@@ -343,7 +602,7 @@ const bindRunControls = (sdk) => {
   let lastReceiptHash = null;
   button.addEventListener('click', async () => {
     button.disabled = true;
-    setResult('pool-run-result', { status: 'submitting' });
+    setResult('pool-run-result', { status: 'submitting' }, { stream: true });
     try {
       const result = await requesterClient.submitJob({
         prompt: prompt.value,
@@ -361,9 +620,9 @@ const bindRunControls = (sdk) => {
       });
       lastJobId = result?.job?.jobId || null;
       lastReceiptHash = result?.job?.receiptHash || null;
-      setResult('pool-run-result', result);
+      setResult('pool-run-result', result, { stream: true });
     } catch (error) {
-      setResult('pool-run-result', { error: error.message, payload: error.payload || null });
+      setResult('pool-run-result', { error: error.message, payload: error.payload || null }, { stream: true });
     } finally {
       button.disabled = false;
     }
@@ -377,37 +636,37 @@ const bindRunControls = (sdk) => {
     try {
       const result = await requesterClient.pollJob(lastJobId);
       lastReceiptHash = result?.job?.receiptHash || lastReceiptHash;
-      setResult('pool-run-result', result);
+      setResult('pool-run-result', result, { stream: true });
     } catch (error) {
-      setResult('pool-run-result', { error: error.message, payload: error.payload || null });
+      setResult('pool-run-result', { error: error.message, payload: error.payload || null }, { stream: true });
     } finally {
       pollButton.disabled = false;
     }
   });
   acceptButton?.addEventListener('click', async () => {
     if (!lastReceiptHash) {
-      setResult('pool-run-result', { error: 'No verifier-accepted receipt to accept' });
+      setResult('pool-run-result', { error: 'No verifier-accepted receipt to accept' }, { stream: true });
       return;
     }
     acceptButton.disabled = true;
     try {
       setResult('pool-run-result', await requesterClient.acceptReceipt(lastReceiptHash, true));
     } catch (error) {
-      setResult('pool-run-result', { error: error.message, payload: error.payload || null });
+      setResult('pool-run-result', { error: error.message, payload: error.payload || null }, { stream: true });
     } finally {
       acceptButton.disabled = false;
     }
   });
   rejectButton?.addEventListener('click', async () => {
     if (!lastReceiptHash) {
-      setResult('pool-run-result', { error: 'No verifier-accepted receipt to reject' });
+      setResult('pool-run-result', { error: 'No verifier-accepted receipt to reject' }, { stream: true });
       return;
     }
     rejectButton.disabled = true;
     try {
       setResult('pool-run-result', await requesterClient.acceptReceipt(lastReceiptHash, false));
     } catch (error) {
-      setResult('pool-run-result', { error: error.message, payload: error.payload || null });
+      setResult('pool-run-result', { error: error.message, payload: error.payload || null }, { stream: true });
     } finally {
       rejectButton.disabled = false;
     }
@@ -512,6 +771,10 @@ const bindProviderControls = (sdk) => {
   const providerIdentity = createPoolIdentity('provider');
   const runtime = window.REPLOID_DOPPLER_RUNTIME || createDopplerRuntime();
   window.REPLOID_DOPPLER_RUNTIME = runtime;
+  const mount = document.getElementById('app');
+  const nodeGrid = getNodeGrid(mount);
+  updateProviderStatus(mount, 'NODE // OFFLINE');
+  setNodeGridProgress(nodeGrid, 0);
   const providerClient = createProviderClient({
     sdk,
     runtime,
@@ -530,9 +793,12 @@ const bindProviderControls = (sdk) => {
       && loaded.backend === model.backend;
   };
   const loadSelectedProviderModel = async () => {
+    updateProviderStatus(mount, 'NODE // SPAWNING');
+    setNodeGridProgress(nodeGrid, 0.2);
     const model = getEnabledPoolModelContract(modelInput.value || LAUNCH_MODEL.modelId);
     if (!model) throw new Error('Selected model is not enabled for provider registration');
     if (modelMatchesLoadedRuntime(model) && runtime.isReady?.()) {
+      setNodeGridProgress(nodeGrid, 0.7);
       return {
         ok: true,
         status: 'model_loaded',
@@ -547,9 +813,10 @@ const bindProviderControls = (sdk) => {
         model,
         loadResult,
         loadState: runtime.getLoadState?.() || null
-      };
+      }; 
       throw error;
     }
+    setNodeGridProgress(nodeGrid, 0.7);
     return {
       ...loadResult,
       status: 'model_loaded'
@@ -588,6 +855,8 @@ const bindProviderControls = (sdk) => {
     if (workerTimer) window.clearTimeout(workerTimer);
     workerTimer = null;
     syncWorkerButtons();
+    updateProviderStatus(mount, 'NODE // OFFLINE');
+    setNodeGridProgress(nodeGrid, 0);
   };
   const runWorkerLoop = async () => {
     if (!workerRunning) return;
@@ -611,8 +880,11 @@ const bindProviderControls = (sdk) => {
     setResult('pool-provider-result', { status: 'loading_model', model: getProviderModel() });
     try {
       setResult('pool-provider-result', await loadSelectedProviderModel());
+      setNodeGridProgress(nodeGrid, 0.8);
     } catch (error) {
       setResult('pool-provider-result', { error: error.message, payload: error.payload || null });
+      updateProviderStatus(mount, 'NODE // OFFLINE');
+      setNodeGridProgress(nodeGrid, 0);
     } finally {
       loadButton.disabled = false;
     }
@@ -635,8 +907,12 @@ const bindProviderControls = (sdk) => {
     try {
       setResult('pool-provider-result', { status: 'registering', model: getProviderModel() });
       setResult('pool-provider-result', await ensureProviderReady());
+      setNodeGridProgress(nodeGrid, 1);
+      updateProviderStatus(mount, 'NODE // SPAWNED');
     } catch (error) {
       setResult('pool-provider-result', { error: error.message, payload: error.payload || null });
+      updateProviderStatus(mount, 'NODE // OFFLINE');
+      setNodeGridProgress(nodeGrid, 0);
     } finally {
       registerButton.disabled = false;
     }
@@ -686,10 +962,14 @@ const bindProviderControls = (sdk) => {
     if (workerRunning) return;
     workerStartButton.disabled = true;
     setResult('pool-provider-result', { worker: 'registering', model: getProviderModel() });
+    updateProviderStatus(mount, 'NODE // SPAWNING');
+    setNodeGridProgress(nodeGrid, 0.9);
     try {
       const ready = await ensureProviderReady();
       workerRunning = true;
       syncWorkerButtons();
+      updateProviderStatus(mount, 'NODE // SPAWNED');
+      setNodeGridProgress(nodeGrid, 1);
       setResult('pool-provider-result', { worker: 'running', ...ready });
       await runWorkerLoop();
     } catch (error) {
@@ -731,6 +1011,10 @@ const bindReceiptControls = (sdk) => {
   const button = document.getElementById('pool-receipt-lookup');
   const input = document.getElementById('pool-receipt-hash');
   if (!button || !input) return;
+  const ledgerContainer = document.getElementById('pool-receipt-ledger');
+  if (ledgerContainer) {
+    ledgerContainer.innerHTML = renderReceiptLedger();
+  }
   button.addEventListener('click', async () => {
     const receiptHash = input.value.trim();
     if (!receiptHash) {
@@ -740,6 +1024,10 @@ const bindReceiptControls = (sdk) => {
     button.disabled = true;
     try {
       const record = await sdk.getReceipt(receiptHash);
+      addReceiptLedgerRow(record, receiptHash);
+      if (ledgerContainer) {
+        ledgerContainer.innerHTML = renderReceiptLedger();
+      }
       setResult('pool-receipt-result', {
         ...record,
         localVerification: await verifyReceiptRecord(record)
@@ -840,30 +1128,52 @@ const createPoolProgram = (gl, vertexSource, fragmentSource) => {
 };
 
 const createPoolSimulationState = () => {
-  const peers = Array.from({ length: 7 }, (_, index) => ({
+  const peerLayout = [
+    [0.66, 0.15],
+    [0.82, 0.14],
+    [0.93, 0.28],
+    [0.74, 0.34],
+    [0.59, 0.51],
+    [0.88, 0.52],
+    [0.70, 0.70],
+    [0.93, 0.72],
+    [0.55, 0.82],
+    [0.80, 0.86]
+  ];
+  const peers = peerLayout.map(([x, y], index) => ({
     index,
-    x: 0.78 + (index % 3) * 0.075,
-    y: 0.18 + index * 0.105,
+    x,
+    y,
     phase: index * 1.7,
-    size: 9 + (index % 3) * 2,
+    driftX: 10 + (index % 4) * 4,
+    driftY: 12 + (index % 3) * 5,
+    size: 8 + (index % 5) * 1.4,
     presence: 1,
-    targetOnline: true,
     lineDraw: 1,
     pulse: 0
   }));
-  const particles = Array.from({ length: 72 }, (_, index) => ({
+  const particles = Array.from({ length: 118 }, (_, index) => ({
     index,
-    offset: (index * 0.137) % 1,
-    speed: 0.055 + (index % 5) * 0.012,
-    route: index % 3,
+    offset: (index * 0.089) % 1,
+    speed: 0.12 + (index % 8) * 0.018,
+    route: index % 5,
     peerIndex: index % peers.length,
-    size: 3 + (index % 4)
+    phase: index * 0.47,
+    size: 2.5 + (index % 5) * 0.8
   }));
   return {
     peers,
     particles,
-    pointer: { x: 0.5, y: 0.5, active: false, force: 0 },
-    startedAt: performance.now()
+    pointer: {
+      x: 0.5,
+      y: 0.5,
+      targetX: 0.5,
+      targetY: 0.5,
+      active: false,
+      force: 0
+    },
+    time: 0,
+    lastFrameMs: performance.now() - SIMULATION_TARGET_STEP_MS
   };
 };
 
@@ -896,6 +1206,37 @@ const easeOutCubic = (value) => {
   return 1 - Math.pow(1 - bounded, 3);
 };
 
+const easeInOutCubic = (value) => {
+  const bounded = Math.max(0, Math.min(1, value));
+  return bounded < 0.5
+    ? 4 * bounded * bounded * bounded
+    : 1 - Math.pow(-2 * bounded + 2, 3) / 2;
+};
+
+const easeInOutSine = (value) => {
+  const bounded = Math.max(0, Math.min(1, value));
+  return -(Math.cos(Math.PI * bounded) - 1) / 2;
+};
+
+const easeOutQuart = (value) => {
+  const bounded = Math.max(0, Math.min(1, value));
+  return 1 - Math.pow(1 - bounded, 4);
+};
+
+const routeEase = (value, route) => {
+  if (route % 5 === 1) return easeOutQuart(value);
+  if (route % 5 === 2) return easeInOutCubic(value);
+  if (route % 5 === 3) return easeInOutSine(value);
+  return easeOutCubic(value);
+};
+
+const lerpToward = (current, target, rate, deltaSeconds) => {
+  const deltaMs = Math.max(SIMULATION_MIN_STEP_MS, Math.min(SIMULATION_MAX_STEP_MS, deltaSeconds * 1000));
+  const deltaScale = deltaMs / SIMULATION_MIN_STEP_MS;
+  const blend = 1 - Math.pow(1 - rate, deltaScale);
+  return current + (target - current) * blend;
+};
+
 const makeSimulationLine = (from, to, alpha, draw = 1, pulse = 0) => [
   from,
   to,
@@ -904,49 +1245,86 @@ const makeSimulationLine = (from, to, alpha, draw = 1, pulse = 0) => [
   pulse
 ];
 
-const buildPoolSimulationFrame = (state, width, height, timestamp) => {
-  const time = (timestamp - state.startedAt) / 1000;
-  state.pointer.force *= 0.94;
+const resolveCurvedPathPoint = (path, amount, route = 0, phase = 0, width = 1, height = 1) => {
+  if (path.length === 1) return path[0];
+  const bounded = Math.max(0, Math.min(0.999, amount));
+  const scaled = bounded * (path.length - 1);
+  const index = Math.floor(scaled);
+  const local = scaled - index;
+  const curvedLocal = routeEase(local, route);
+  const from = path[index];
+  const to = path[index + 1];
+  const base = interpolatePoint(from, to, curvedLocal);
+  const dx = to.x - from.x;
+  const dy = to.y - from.y;
+  const distance = Math.max(1, Math.hypot(dx, dy));
+  const direction = route % 2 === 0 ? 1 : -1;
+  const curve = Math.min(width, height) * (0.035 + (route % 3) * 0.012);
+  const wave = Math.sin(local * Math.PI) * Math.sin(phase + route * 1.3);
+  return {
+    x: base.x + (-dy / distance) * curve * wave * direction,
+    y: base.y + (dx / distance) * curve * wave * direction
+  };
+};
+
+const buildPoolSimulationFrame = (state, width, height, deltaSeconds = SIMULATION_MIN_STEP_MS / 1000) => {
+  const safeDelta = Math.max(SIMULATION_MIN_STEP_MS / 1000, Math.min(SIMULATION_MAX_STEP_MS / 1000, deltaSeconds));
+  state.time += safeDelta * SIMULATION_GENTLE_SPEED;
+  state.pointer.x = lerpToward(state.pointer.x, state.pointer.targetX, SIMULATION_POINTER_LERP, safeDelta);
+  state.pointer.y = lerpToward(state.pointer.y, state.pointer.targetY, SIMULATION_POINTER_LERP, safeDelta);
+  state.pointer.force = lerpToward(state.pointer.force, state.pointer.active ? 1 : 0, SIMULATION_FORCE_LERP, safeDelta);
+  if (state.pointer.force < SIMULATION_MIN_FORCE) state.pointer.force = 0;
+
+  const time = state.time;
+  const makeRole = (x, y, size, phase, orbit = 9) => {
+    const breathe = 0.5 + 0.5 * Math.sin(time * 1.4 + phase);
+    return {
+      x: width * x + Math.cos(time * 0.52 + phase) * orbit,
+      y: height * y + Math.sin(time * 0.46 + phase * 1.3) * orbit,
+      size: size * (0.9 + breathe * 0.2),
+      alpha: 1,
+      pulse: breathe
+    };
+  };
   const roles = {
-    requester: { x: width * 0.12, y: height * 0.51, size: 16, alpha: 1 },
-    coordinator: { x: width * 0.34, y: height * 0.42, size: 18, alpha: 1 },
-    verifier: { x: width * 0.55, y: height * 0.30, size: 15, alpha: 1 },
-    ledger: { x: width * 0.70, y: height * 0.60, size: 14, alpha: 1 }
+    requester: makeRole(0.10, 0.58, 16, 0.2, 8),
+    coordinator: makeRole(0.31, 0.34, 19, 1.8, 10),
+    verifier: makeRole(0.51, 0.48, 16, 3.3, 9),
+    ledger: makeRole(0.67, 0.73, 14, 4.8, 8)
   };
   const pointerX = state.pointer.x * width;
   const pointerY = state.pointer.y * height;
   const peers = state.peers.map((peer) => {
-    const onlineWave = Math.sin(time * 0.55 + peer.phase);
-    const targetOnline = onlineWave > -0.62;
-    if (targetOnline !== peer.targetOnline) {
-      peer.targetOnline = targetOnline;
-      peer.pulse = 1;
-    }
-    peer.presence += ((targetOnline ? 1 : 0) - peer.presence) * 0.035;
-    peer.lineDraw += ((peer.presence > 0.16 ? 1 : 0) - peer.lineDraw) * 0.045;
-    peer.pulse *= 0.925;
+    peer.presence = 1;
+    peer.lineDraw = 1;
+    peer.pulse = 0.5 + 0.5 * Math.sin(time * 1.55 + peer.phase);
     const baseX = width * peer.x;
     const baseY = height * peer.y;
     const dx = baseX - pointerX;
     const dy = baseY - pointerY;
     const distance = Math.max(1, Math.hypot(dx, dy));
     const pointerLift = state.pointer.active || state.pointer.force > 0.02
-      ? Math.max(0, 1 - distance / (width * 0.34)) * (18 + state.pointer.force * 30)
+      ? Math.max(0, 1 - distance / (width * 0.34)) * (14 + state.pointer.force * 22)
       : 0;
     return {
       ...peer,
-      online: peer.presence > 0.22,
-      x: baseX + Math.cos(time * 0.7 + peer.phase) * 8 + (dx / distance) * pointerLift,
-      y: baseY + Math.sin(time * 0.6 + peer.phase) * 8 + (dy / distance) * pointerLift,
-      alpha: 0.08 + peer.presence * 0.84,
-      size: 5 + peer.presence * peer.size + Math.max(0, onlineWave) * 3 + peer.pulse * 8,
+      online: true,
+      x: baseX
+        + Math.cos(time * 0.78 + peer.phase) * peer.driftX
+        + Math.sin(time * 0.33 + peer.phase * 1.4) * peer.driftX * 0.55
+        + (dx / distance) * pointerLift,
+      y: baseY
+        + Math.sin(time * 0.72 + peer.phase) * peer.driftY
+        + Math.cos(time * 0.41 + peer.phase * 1.2) * peer.driftY * 0.42
+        + (dy / distance) * pointerLift,
+      alpha: 0.78 + peer.pulse * 0.18,
+      size: peer.size * (0.78 + peer.pulse * 0.5) + state.pointer.force * 2,
       presence: peer.presence,
       lineDraw: peer.lineDraw,
       pulse: peer.pulse
     };
   });
-  const onlinePeers = peers.filter((peer) => peer.online);
-  const peerFor = (index) => onlinePeers[index % Math.max(1, onlinePeers.length)] || peers[index % peers.length];
+  const peerFor = (index) => peers[index % peers.length];
   const corePulse = (phase) => 0.14 + 0.18 * (Math.sin(time * 2.4 + phase) * 0.5 + 0.5);
   const lines = [
     makeSimulationLine(roles.requester, roles.coordinator, 0.28, 1, corePulse(0)),
@@ -956,40 +1334,44 @@ const buildPoolSimulationFrame = (state, width, height, timestamp) => {
     ...peers.map((peer) => makeSimulationLine(
       roles.coordinator,
       peer,
-      0.05 + peer.presence * 0.18,
+      0.08 + peer.pulse * 0.14,
       peer.lineDraw,
-      peer.pulse
+      peer.pulse * 0.8
     )),
     ...peers.map((peer) => makeSimulationLine(
       peer,
       roles.verifier,
-      0.04 + peer.presence * 0.14,
+      0.06 + peer.pulse * 0.12,
       peer.lineDraw,
-      peer.pulse * 0.8
+      (1 - peer.pulse) * 0.7
     ))
   ];
   const particles = state.particles.map((particle) => {
     const peer = peerFor(particle.peerIndex);
-    const flowPulse = Math.sin(time * 7 + particle.index * 0.9) * 0.5 + 0.5;
-    const progress = (particle.offset + time * particle.speed * (1 + peer.presence * 0.35) + state.pointer.force * 0.06) % 1;
+    const flowPulse = Math.sin(time * 8.5 + particle.phase) * 0.5 + 0.5;
+    const progress = (particle.offset + time * particle.speed * (1.2 + peer.pulse * 0.35) + state.pointer.force * 0.06) % 1;
     const path = particle.route === 0
       ? [roles.requester, roles.coordinator, peer]
       : particle.route === 1
-        ? [peer, roles.coordinator, roles.requester]
-        : [peer, roles.verifier, roles.ledger];
-    const point = resolvePathPoint(path, progress);
+        ? [peer, roles.verifier, roles.ledger]
+        : particle.route === 2
+          ? [roles.requester, roles.verifier, peer, roles.ledger]
+          : particle.route === 3
+            ? [roles.ledger, roles.verifier, roles.coordinator, roles.requester]
+            : [roles.coordinator, peer, roles.verifier];
+    const point = resolveCurvedPathPoint(path, progress, particle.route, particle.phase + time, width, height);
     return {
       x: point.x,
       y: point.y,
-      size: particle.size + (particle.route === 2 ? 2 : 0) + flowPulse * 2 + peer.pulse * 3,
-      alpha: 0.05 + peer.presence * (0.42 + flowPulse * 0.36)
+      size: particle.size + (particle.route === 2 ? 1.5 : 0) + flowPulse * 2.6 + peer.pulse * 1.2,
+      alpha: 0.18 + flowPulse * 0.55
     };
   });
   return {
     lines,
-    nodes: [roles.requester, roles.coordinator, roles.verifier, roles.ledger, ...peers],
-    particles,
-    peerCount: onlinePeers.length
+    nodes: [roles.requester, roles.coordinator, roles.verifier, roles.ledger, ...peers].map((node) => clampCanvasPoint(node, width, height, 8)),
+    particles: particles.map((particle) => clampCanvasPoint(particle, width, height, 5)),
+    peerCount: peers.length
   };
 };
 
@@ -1137,7 +1519,6 @@ const bindHomeSimulation = (mount) => {
     window.REPLOID_POOL_SIMULATION_STOP = null;
   }
   const state = createPoolSimulationState();
-  const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches === true;
   let active = true;
   let frameId = null;
   let renderer = null;
@@ -1151,22 +1532,25 @@ const bindHomeSimulation = (mount) => {
   const readout = mount.querySelector('.pool-simulation-readout');
   const draw = (timestamp = performance.now()) => {
     if (!active) return;
+    const rawDeltaMs = Math.max(0, timestamp - state.lastFrameMs);
+    state.lastFrameMs = timestamp;
+    const deltaMs = Math.max(SIMULATION_MIN_STEP_MS, Math.min(SIMULATION_MAX_STEP_MS, rawDeltaMs || SIMULATION_TARGET_STEP_MS));
     const { width, height } = resizePoolCanvas(canvas);
-    const frame = buildPoolSimulationFrame(state, width, height, timestamp);
+    const frame = buildPoolSimulationFrame(state, width, height, deltaMs / 1000);
     if (renderer) renderer(frame, width, height);
     else if (ctx) drawPoolSimulation2D(ctx, frame, width, height);
     if (readout) {
       readout.dataset.peers = String(frame.peerCount);
-      readout.setAttribute('aria-label', `tokens, receipts, ${frame.peerCount} peers online`);
+      readout.setAttribute('aria-label', `tokens, receipts, ${frame.peerCount} browsers`);
       const peerCount = readout.querySelector('[data-pool-peer-count]');
       if (peerCount) peerCount.textContent = String(frame.peerCount);
     }
-    if (!reducedMotion) frameId = window.requestAnimationFrame(draw);
+    frameId = window.requestAnimationFrame(draw);
   };
   const movePointer = (event) => {
     const box = canvas.getBoundingClientRect();
-    state.pointer.x = (event.clientX - box.left) / Math.max(1, box.width);
-    state.pointer.y = (event.clientY - box.top) / Math.max(1, box.height);
+    state.pointer.targetX = (event.clientX - box.left) / Math.max(1, box.width);
+    state.pointer.targetY = (event.clientY - box.top) / Math.max(1, box.height);
     state.pointer.active = true;
     state.pointer.force = Math.min(1, state.pointer.force + 0.04);
   };
@@ -1219,12 +1603,10 @@ export function initPoolHome(mount) {
       window.REPLOID_POOL_SIMULATION_STOP();
       window.REPLOID_POOL_SIMULATION_STOP = null;
     }
-    const secondaryContent = routeId === 'home'
-      ? renderRouteDetail(routeId)
-      : renderRouteDetail(routeId);
+    const secondaryContent = renderRouteDetail(routeId);
     document.title = routeId === 'home'
-      ? 'Reploid - Browser Inference Pool'
-      : `Reploid - ${ROUTE_COPY[routeId]?.eyebrow || 'Browser Inference Pool'}`;
+      ? POOLDAY_NAME
+      : `${POOLDAY_NAME} - ${ROUTE_COPY[routeId]?.eyebrow || 'Verified Browser Inference'}`;
     mount.innerHTML = `
       <main class="pool-home" data-pool-route-id="${routeId}">
         ${renderNav(routeId)}

@@ -8,17 +8,43 @@
     />
     <base id="reploid-base" href="/" />
     <link rel="icon" type="image/svg+xml" href="favicon.svg" />
-    <title>Reploid</title>
+    <title>Poolday</title>
     <script>
       window.REPLOID_BUILD_VERSION = '2026060701';
     </script>
+    <link rel="stylesheet" href="/styles/rd.css" />
+    <link rel="stylesheet" href="/styles/boot.css" />
   </head>
   <body>
     <div id="wizard-container" class="wizard-container" style="display: none"></div>
     <div id="app"></div>
     <script
       type="module"
-      src="/kernel/boot.js?v=2026060701"
-    ></script>
+    >
+      const pathname = (window.location.pathname || '/').replace(/\/+$/, '') || '/';
+      const productPaths = new Set(['/','/run','/contribute','/agents','/receipts','/reputation']);
+      const productRoute = productPaths.has(pathname);
+      if (productRoute) {
+        document.title = 'Poolday';
+      } else if (pathname === '/0' || pathname === '/x') {
+        document.title = 'Zero';
+      } else {
+        document.title = 'Reploid';
+      }
+      if (productRoute) {
+        const appRoot = document.getElementById('app');
+        if (!appRoot) {
+          throw new Error('Missing app root');
+        }
+        import('/ui/pool-home/index.js').then(({ initPoolHome }) => {
+          initPoolHome(appRoot);
+        }).catch((error) => {
+          throw error;
+        });
+      } else {
+        const bootPath = `/kernel/boot.js?v=${window.REPLOID_BUILD_VERSION}`;
+        await import(bootPath);
+      }
+    </script>
   </body>
 </html>
