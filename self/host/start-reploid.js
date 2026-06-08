@@ -246,7 +246,7 @@ const isProductSurface = () => {
   return profile === 'pool_home' || (
     surface
       && surface !== 'substrate_console'
-      && surface !== 'lab'
+      && surface !== 'x'
   );
 };
 

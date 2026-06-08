@@ -1785,9 +1785,22 @@ details[open] > .disclosure-summary::before {
    Buttons, cards, panels, inputs, code, badges, and borders stay owned by rd.css. */
 
 .pool-home {
+  --pool-cyan: #00f0ff;
+  --pool-gold: #f2b95f;
+  --pool-cyan-soft: rgba(0, 240, 255, 0.12);
+  --pool-gold-soft: rgba(242, 185, 95, 0.12);
+  min-height: min(100vh, 100dvh);
+  padding: var(--space-lg);
+  overflow-x: hidden;
+  background: var(--bg);
   display: flex;
   flex-direction: column;
   gap: var(--space-lg);
+}
+
+.pool-home .panel {
+  padding: var(--space-lg);
+  border: var(--border-sm) solid color-mix(in srgb, var(--fg) 68%, transparent 32%);
 }
 
 .pool-topbar,
@@ -1804,13 +1817,43 @@ details[open] > .disclosure-summary::before {
 }
 
 .pool-nav-toggle {
+  position: relative;
   border-style: dotted;
+  border-color: color-mix(in srgb, var(--pool-cyan), var(--fg) 72%);
+  color: inherit;
 }
 
 .pool-nav-toggle.is-active {
   border-style: solid;
-  background: var(--fg);
+  background: transparent;
   color: var(--bg);
+  border-color: color-mix(in srgb, var(--pool-cyan), transparent 72%);
+  background: color-mix(in srgb, var(--pool-cyan), transparent 98%);
+  color: inherit;
+}
+
+.pool-nav-toggle:hover,
+.pool-nav-toggle:focus-visible {
+  border-color: color-mix(in srgb, var(--pool-cyan), transparent 82%);
+}
+
+.pool-nav-toggle.is-active::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border: var(--border-sm) solid color-mix(in srgb, var(--pool-cyan), transparent 85%);
+  pointer-events: none;
+}
+
+.pool-zero-link {
+  text-transform: uppercase;
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--font-set-tracking);
+}
+
+.pool-zero-link:hover,
+.pool-zero-link:focus-visible {
+  color: var(--pool-cyan);
 }
 
 .pool-zero-link {
@@ -1872,8 +1915,8 @@ details[open] > .disclosure-summary::before {
 }
 
 .pool-card:hover {
-  background: var(--fg);
-  color: var(--bg);
+  border-color: color-mix(in srgb, var(--pool-cyan), transparent 76%);
+  background: color-mix(in srgb, var(--pool-cyan), transparent 96%);
 }
 
 .pool-route-link::after {
@@ -1910,6 +1953,8 @@ details[open] > .disclosure-summary::before {
 }
 
 .pool-summary {
+  align-items: center;
+  row-gap: var(--space-xs);
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-sm);
@@ -1922,9 +1967,162 @@ details[open] > .disclosure-summary::before {
 }
 
 .pool-result {
+  position: relative;
   max-height: 360px;
+  min-height: 180px;
+  border: var(--border-sm) dotted color-mix(in srgb, var(--fg), transparent 72%);
+  background: color-mix(in srgb, var(--bg), transparent 2%);
   white-space: pre-wrap;
   word-break: break-word;
+}
+
+.pool-stream-shell {
+  position: relative;
+  padding: var(--space-sm);
+  border: var(--border-sm) dotted color-mix(in srgb, var(--fg), transparent 76%);
+  background: color-mix(in srgb, var(--bg), transparent 2%);
+}
+
+.pool-stream-output {
+  margin: 0;
+  min-height: 180px;
+  max-height: 360px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.pool-stream-cursor {
+  position: absolute;
+  right: 14px;
+  top: calc(50% + 12px);
+  color: var(--pool-cyan);
+  font-size: 1.05rem;
+  line-height: 1;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-50%);
+}
+
+.pool-stream-cursor.is-visible {
+  visibility: visible;
+}
+
+.pool-stream-cursor.is-active {
+  animation: pool-cursor-blink 1.1s steps(2, end) infinite;
+}
+
+@keyframes pool-cursor-blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+
+.pool-provider-status-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+}
+
+.pool-provider-status {
+  margin: 0;
+  padding: var(--space-xs) var(--space-sm);
+  border: var(--border-sm) dotted color-mix(in srgb, var(--fg), transparent 72%);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--font-tracking-label);
+  text-transform: uppercase;
+  color: var(--fg);
+}
+
+.pool-provider-status[data-provider-state='spawning'] {
+  color: color-mix(in srgb, var(--pool-gold), var(--fg) 20%);
+  border-color: color-mix(in srgb, var(--pool-gold), transparent 30%);
+}
+
+.pool-provider-status[data-provider-state='spawned'] {
+  color: var(--pool-cyan);
+  border-color: color-mix(in srgb, var(--pool-cyan), transparent 52%);
+  background: color-mix(in srgb, var(--pool-cyan), transparent 98%);
+}
+
+.pool-node-grid {
+  display: grid;
+  grid-template-columns: repeat(10, minmax(12px, 1fr));
+  gap: 6px;
+  width: min(18rem, 100%);
+  padding: var(--space-xs);
+  border: var(--border-sm) dashed color-mix(in srgb, var(--fg), transparent 76%);
+}
+
+.pool-node-square {
+  height: 12px;
+  border: 1px solid color-mix(in srgb, var(--fg), transparent 72%);
+  background: transparent;
+  transition: background-color 220ms ease, border-color 220ms ease;
+}
+
+.pool-node-square.is-active {
+  border-color: var(--pool-cyan);
+  background: color-mix(in srgb, var(--pool-cyan), var(--bg) 92%);
+}
+
+.pool-ledger-shell {
+  border: var(--border-sm) dotted color-mix(in srgb, var(--fg), transparent 76%);
+  padding: var(--space-md);
+}
+
+.pool-ledger table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--font-size-sm);
+}
+
+.pool-ledger th,
+.pool-ledger td {
+  padding: 8px var(--space-sm);
+  border-bottom: 1px solid color-mix(in srgb, var(--fg), transparent 85%);
+  text-align: left;
+  vertical-align: top;
+}
+
+.pool-ledger th {
+  text-transform: uppercase;
+  letter-spacing: var(--font-tracking-label);
+  font-weight: var(--font-weight-bold);
+}
+
+.pool-meta-tag {
+  margin: 0;
+  font-size: 11px;
+  letter-spacing: 0.15em;
+  opacity: 0.58;
+  text-transform: uppercase;
+}
+
+.pool-receipt-empty {
+  margin: var(--space-sm) 0;
+}
+
+.pool-policy-strip {
+  border: var(--border-sm) dashed color-mix(in srgb, var(--pool-cyan), transparent 74%);
+  background: color-mix(in srgb, var(--pool-cyan), transparent 98%);
+  padding: var(--space-sm);
+}
+
+.pool-policy-strip .rgr-status-metric {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-right: var(--space-md);
 }
 
 .pool-control-row {
@@ -1969,6 +2167,24 @@ details[open] > .disclosure-summary::before {
   background: var(--bg);
   cursor: crosshair;
   touch-action: manipulation;
+}
+
+.pool-simulation-intro {
+  position: absolute;
+  top: var(--space-md);
+  left: var(--space-md);
+  z-index: 1;
+  max-width: min(22rem, calc(100% - var(--space-lg)));
+  pointer-events: none;
+}
+
+.pool-simulation-intro .type-h1 {
+  margin: 0;
+}
+
+.pool-simulation-intro .type-caption {
+  margin-top: var(--space-xs);
+  max-width: 18rem;
 }
 
 .pool-simulation-labels {

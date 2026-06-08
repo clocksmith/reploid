@@ -1344,9 +1344,17 @@ const setStaticHeaders = (res, filePath) => {
   }
 };
 
+const PRODUCT_ROUTES = ['/', '/run', '/contribute', '/agents', '/receipts', '/reputation'];
+const SUBSTRATE_ROUTES = ['/0', '/x'];
+
 // Main routes
-app.get(['/', '/run', '/contribute', '/agents', '/receipts', '/reputation', '/0', '/x'], (req, res) => {
-  res.setHeader('X-Reploid-Experience', req.path === '/0' ? 'substrate-console' : req.path === '/x' ? 'lab' : 'browser-inference-pool');
+app.get(PRODUCT_ROUTES, (req, res) => {
+  res.setHeader('X-Reploid-Experience', 'browser-inference-pool');
+  res.sendFile(path.join(__dirname, '..', 'self', 'pool-entry.html'));
+});
+
+app.get(SUBSTRATE_ROUTES, (req, res) => {
+  res.setHeader('X-Reploid-Experience', req.path === '/0' ? 'zero' : 'x');
   res.sendFile(path.join(__dirname, '..', 'self', 'index.html'));
 });
 

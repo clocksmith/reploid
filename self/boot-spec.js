@@ -81,42 +81,6 @@ export const SELF_BOOT_SPEC = Object.freeze({
     }
   ],
   routes: {
-    '/': {
-      mode: 'reploid',
-      bootProfile: 'pool_home',
-      genesisLevel: 'capsule',
-      surface: 'pool_home'
-    },
-    '/run': {
-      mode: 'reploid',
-      bootProfile: 'pool_home',
-      genesisLevel: 'capsule',
-      surface: 'requester'
-    },
-    '/contribute': {
-      mode: 'reploid',
-      bootProfile: 'pool_home',
-      genesisLevel: 'capsule',
-      surface: 'provider'
-    },
-    '/agents': {
-      mode: 'reploid',
-      bootProfile: 'pool_home',
-      genesisLevel: 'capsule',
-      surface: 'agents'
-    },
-    '/receipts': {
-      mode: 'reploid',
-      bootProfile: 'pool_home',
-      genesisLevel: 'capsule',
-      surface: 'receipts'
-    },
-    '/reputation': {
-      mode: 'reploid',
-      bootProfile: 'pool_home',
-      genesisLevel: 'capsule',
-      surface: 'reputation'
-    },
     '/0': {
       mode: 'reploid',
       bootProfile: 'substrate_console',
@@ -128,7 +92,7 @@ export const SELF_BOOT_SPEC = Object.freeze({
       mode: 'x',
       bootProfile: 'x_home',
       genesisLevel: 'full',
-      surface: 'lab',
+      surface: 'x',
       productFacing: false
     }
   }

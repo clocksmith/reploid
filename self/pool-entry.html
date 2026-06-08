@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes"
+    />
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+    <title>Poolday</title>
+    <script>
+      window.REPLOID_BUILD_VERSION = '2026060701';
+    </script>
+    <link rel="stylesheet" href="/styles/rd.css" />
+    <link rel="stylesheet" href="/styles/boot.css" />
+  </head>
+  <body>
+    <div id="app"></div>
+    <script type="module">
+      import { initPoolHome } from '/ui/pool-home/index.js';
+
+      const appRoot = document.getElementById('app');
+      if (appRoot) {
+        initPoolHome(appRoot);
+      } else {
+        throw new Error('Missing pool mount root');
+      }
+    </script>
+  </body>
+</html>
