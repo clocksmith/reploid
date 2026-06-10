@@ -50,9 +50,9 @@ const ROUTE_COPY = Object.freeze({
     body: 'Send a prompt and stream the result.'
   },
   contribute: {
-    eyebrow: 'Provide',
-    title: 'Provide Compute',
-    body: 'Share this browser for work.'
+    eyebrow: 'Share',
+    title: 'Share Browser',
+    body: 'Let this tab pick up jobs.'
   },
   agents: {
     eyebrow: 'API',
@@ -324,9 +324,10 @@ const renderResultBox = (id, options = {}) => {
       </div>
     `;
   }
+  const placeholder = options.placeholder || '{}';
   return `
   <div class="boot-status-strip pool-summary" id="${id}-summary" aria-live="polite"></div>
-  <pre class="pool-result" id="${id}" aria-live="polite">{}</pre>
+  <pre class="pool-result" id="${id}" aria-live="polite">${escapeHtml(placeholder)}</pre>
   `;
 };
 
@@ -366,22 +367,28 @@ const setResult = (id, value, options = {}) => {
 };
 
 const renderNav = (activeRoute) => {
-  const items = [
+  const primaryItems = [
     ['/', 'Poolday'],
     ['/run', 'Run'],
-    ['/contribute', 'Provide'],
+    ['/contribute', 'Share']
+  ];
+  const utilityItems = [
     ['/receipts', 'Receipts'],
     ['/reputation', 'Reputation']
   ];
+  const renderItem = ([href, label]) => {
+    const isActive = activeRoute === PRODUCT_ROUTES[href];
+    return `<button class="btn segmented-btn pool-nav-toggle${isActive ? ' is-active' : ''}" type="button" data-pool-route="${href}" aria-pressed="${isActive ? 'true' : 'false'}">${escapeHtml(label)}</button>`;
+  };
   return `
     <div class="pool-topbar">
       <nav class="segmented-control pool-nav" aria-label="Pool route toggles">
-        ${items.map(([href, label]) => {
-          const isActive = activeRoute === PRODUCT_ROUTES[href];
-          return `<button class="btn segmented-btn pool-nav-toggle${isActive ? ' is-active' : ''}" type="button" data-pool-route="${href}" aria-pressed="${isActive ? 'true' : 'false'}">${escapeHtml(label)}</button>`;
-        }).join('')}
+        ${primaryItems.map(renderItem).join('')}
       </nav>
-      <a class="pool-zero-link link-secondary" href="/0" title="Open Zero.">Zero</a>
+      <div class="pool-utility-nav" aria-label="Pool inspection routes">
+        ${utilityItems.map(renderItem).join('')}
+        <a class="pool-zero-link link-secondary" href="/0" title="Open Zero.">Zero</a>
+      </div>
     </div>
   `;
 };
@@ -397,8 +404,18 @@ const renderPolicyTrustLabel = (policy) => (
   policy.adaptiveRing ? 'adaptive quorum' : policy.trustTier
 );
 
+const renderPolicyProductLabel = (policy) => {
+  const labels = {
+    fastest_receipt: 'Fastest receipt',
+    canary_audited: 'Canary audited',
+    redundant_agreement: 'Redundant agreement',
+    ring_quorum_receipt: 'Ring quorum'
+  };
+  return labels[policy.policyId] || policy.policyId.replace(/_/g, ' ');
+};
+
 const renderPolicyOptions = () => listPolicies().map((policy) => `
-  <option value="${escapeHtml(policy.policyId)}">${escapeHtml(policy.policyId)} - ${escapeHtml(renderPolicyTrustLabel(policy))}</option>
+  <option value="${escapeHtml(policy.policyId)}">${escapeHtml(renderPolicyProductLabel(policy))} - ${escapeHtml(renderPolicyTrustLabel(policy))}</option>
 `).join('');
 
 const renderModelOptions = () => listPoolModels().map((model) => {
@@ -412,20 +429,28 @@ const renderHomeSimulation = () => `
   <section class="pool-simulation-shell" aria-label="Browser inference pool simulation">
     <div class="pool-simulation-intro">
       <h1 class="type-h1">Poolday</h1>
-      <p class="type-caption">Run AI jobs in browsers. Verify work with receipts.</p>
+      <p class="type-caption">Browser compute with receipts.</p>
+      <div class="pool-home-actions">
+        <button class="btn btn-primary pool-role-action" type="button" data-pool-route="/run">
+          <span>Run a Job</span>
+          <small>Prompt in. Receipt out.</small>
+        </button>
+        <button class="btn btn-ghost pool-role-action" type="button" data-pool-route="/contribute">
+          <span>Share Browser</span>
+          <small>This tab earns reputation.</small>
+        </button>
+      </div>
     </div>
     <canvas class="pool-simulation-canvas" data-pool-simulation width="1200" height="680"></canvas>
     <div class="pool-simulation-labels" aria-hidden="true">
-      <span style="--x: 9%; --y: 46%;" title="A prompt enters the pool.">job</span>
-      <span style="--x: 31%; --y: 34%;" title="The job is routed to a browser.">route</span>
-      <span style="--x: 52%; --y: 18%;" title="The result is checked.">verify</span>
-      <span style="--x: 68%; --y: 58%;" title="The receipt is recorded.">receipt</span>
-      <span style="--x: 84%; --y: 34%;" title="Browsers run the model.">browsers</span>
+      <span style="--x: 18%; --y: 58%;" title="A prompt enters the pool.">job</span>
+      <span style="--x: 50%; --y: 40%;" title="Browsers run and verify.">pool</span>
+      <span style="--x: 78%; --y: 58%;" title="The result has a receipt.">receipt</span>
     </div>
     <div class="pool-simulation-readout" aria-label="Simulation state">
-      <span>tokens</span>
+      <span>jobs</span>
       <span>receipts</span>
-      <span><b data-pool-peer-count>0</b> browsers</span>
+      <span><b data-pool-peer-count>0</b> tabs</span>
     </div>
   </section>
 `;
@@ -449,29 +474,45 @@ const renderRouteDetail = (routeId) => {
     return `
       <section class="panel pool-panel">
         <h2 class="type-h2">Run</h2>
-        <p class="type-caption">Send a prompt. Watch the result stream in.</p>
-        <div class="pool-form" data-pool-run>
-          <label class="pool-field">
-            <span>Prompt</span>
-            <textarea id="pool-run-prompt" rows="10">Summarize the launch policy in one paragraph.</textarea>
-          </label>
-          <label class="pool-field">
-            <span>Policy</span>
-            <select id="pool-run-policy">${renderPolicyOptions()}</select>
-          </label>
-          <label class="pool-field">
-            <span>Model</span>
-            <select id="pool-run-model">${renderModelOptions()}</select>
-          </label>
-          <label class="pool-field">
-            <span>Max point spend</span>
-            <input id="pool-run-max-spend" type="number" min="0" step="1" placeholder="optional" />
-          </label>
-          <button class="btn btn-primary" id="pool-run-submit" type="button">Run</button>
-          <button class="btn btn-ghost" id="pool-run-poll" type="button">Refresh</button>
-          <button class="btn btn-ghost" id="pool-run-accept" type="button">Accept</button>
-          <button class="btn btn-ghost" id="pool-run-reject" type="button">Reject</button>
-          ${renderResultBox('pool-run-result', { stream: true, streamLabel: 'Output' })}
+        <div class="pool-form pool-run-layout" data-pool-run>
+          <div class="pool-run-compose">
+            <label class="pool-field">
+              <span>Prompt</span>
+              <textarea id="pool-run-prompt" rows="6">Summarize Poolday in one sentence.</textarea>
+            </label>
+            <details class="pool-advanced">
+              <summary>Advanced</summary>
+              <div class="pool-advanced-grid">
+                <label class="pool-field">
+                  <span>Policy</span>
+                  <select id="pool-run-policy">${renderPolicyOptions()}</select>
+                </label>
+                <label class="pool-field">
+                  <span>Model</span>
+                  <select id="pool-run-model">${renderModelOptions()}</select>
+                </label>
+                <label class="pool-field">
+                  <span>Max point spend</span>
+                  <input id="pool-run-max-spend" type="number" min="0" step="1" placeholder="optional" />
+                </label>
+              </div>
+            </details>
+            <div class="pool-control-row pool-primary-actions" aria-label="Run controls">
+              <button class="btn btn-primary" id="pool-run-submit" type="button">Run</button>
+              <button class="btn btn-ghost" id="pool-run-poll" type="button">Refresh</button>
+            </div>
+          </div>
+          <div class="pool-run-output">
+            <div class="pool-result-heading">
+              <h3 class="type-h2">Result</h3>
+              <span class="pool-meta-tag">Verified when receipt appears</span>
+            </div>
+            ${renderResultBox('pool-run-result', { stream: true, streamLabel: 'Output' })}
+            <div class="pool-control-row pool-post-run-actions" aria-label="Receipt decision controls">
+              <button class="btn btn-ghost" id="pool-run-accept" type="button" disabled>Accept</button>
+              <button class="btn btn-ghost" id="pool-run-reject" type="button" disabled>Reject</button>
+            </div>
+          </div>
         </div>
       </section>
     `;
@@ -479,20 +520,31 @@ const renderRouteDetail = (routeId) => {
   if (routeId === 'contribute') {
     return `
       <section class="panel pool-panel">
-        <h2 class="type-h2">Provide</h2>
-        <p class="type-caption">Let this browser run jobs.</p>
-        <div class="pool-form" data-pool-provider>
-          <div class="pool-provider-status-row">
-            <p class="pool-provider-status" data-pool-provider-status>NODE // OFFLINE</p>
-            ${renderNodeGrid()}
+        <div class="pool-provider-heading">
+          <div>
+            <h2 class="type-h2">Share Browser</h2>
+            <p class="type-caption">Start this tab. It waits for work.</p>
           </div>
-          <label class="pool-field">
-            <span>Model</span>
-            <select id="pool-provider-model">${renderModelOptions()}</select>
-          </label>
-          <div class="pool-control-row" aria-label="Provider worker controls">
-            <button class="btn btn-primary" id="pool-provider-worker-start" type="button">Start</button>
-            <button class="btn btn-ghost" id="pool-provider-worker-stop" type="button" disabled>Stop</button>
+          <p class="pool-provider-status" data-pool-provider-status>NODE // OFFLINE</p>
+        </div>
+        <div class="pool-form pool-provider-layout" data-pool-provider>
+          <div class="pool-provider-main">
+            <label class="pool-field">
+              <span>Model</span>
+              <select id="pool-provider-model">${renderModelOptions()}</select>
+            </label>
+            <div class="pool-control-row pool-primary-actions" aria-label="Provider worker controls">
+              <button class="btn btn-primary" id="pool-provider-worker-start" type="button">Start</button>
+              <button class="btn btn-ghost" id="pool-provider-worker-stop" type="button" disabled>Stop</button>
+            </div>
+          </div>
+          <div class="pool-provider-live" aria-label="Provider live state">
+            ${renderNodeGrid()}
+            <div class="pool-provider-stats">
+              <span><b>0</b> active</span>
+              <span><b>0</b> queued</span>
+              <span><b>0</b> receipts</span>
+            </div>
           </div>
           <details class="pool-advanced">
             <summary>Manual controls</summary>
@@ -507,7 +559,13 @@ const renderRouteDetail = (routeId) => {
               <button class="btn btn-ghost" id="pool-provider-reputation" type="button">Reputation</button>
             </div>
           </details>
-          ${renderResultBox('pool-provider-result')}
+          <div class="pool-inspector-shell">
+            <div class="pool-result-heading">
+              <h3 class="type-h2">Activity</h3>
+              <span class="pool-meta-tag">Inspector</span>
+            </div>
+            ${renderResultBox('pool-provider-result', { placeholder: 'No activity yet.' })}
+          </div>
         </div>
       </section>
     `;
@@ -600,6 +658,12 @@ const bindRunControls = (sdk) => {
   });
   let lastJobId = null;
   let lastReceiptHash = null;
+  const syncReceiptActions = () => {
+    const canDecide = !!lastReceiptHash;
+    if (acceptButton) acceptButton.disabled = !canDecide;
+    if (rejectButton) rejectButton.disabled = !canDecide;
+  };
+  syncReceiptActions();
   button.addEventListener('click', async () => {
     button.disabled = true;
     setResult('pool-run-result', { status: 'submitting' }, { stream: true });
@@ -620,6 +684,7 @@ const bindRunControls = (sdk) => {
       });
       lastJobId = result?.job?.jobId || null;
       lastReceiptHash = result?.job?.receiptHash || null;
+      syncReceiptActions();
       setResult('pool-run-result', result, { stream: true });
     } catch (error) {
       setResult('pool-run-result', { error: error.message, payload: error.payload || null }, { stream: true });
@@ -636,6 +701,7 @@ const bindRunControls = (sdk) => {
     try {
       const result = await requesterClient.pollJob(lastJobId);
       lastReceiptHash = result?.job?.receiptHash || lastReceiptHash;
+      syncReceiptActions();
       setResult('pool-run-result', result, { stream: true });
     } catch (error) {
       setResult('pool-run-result', { error: error.message, payload: error.payload || null }, { stream: true });
@@ -1129,37 +1195,33 @@ const createPoolProgram = (gl, vertexSource, fragmentSource) => {
 
 const createPoolSimulationState = () => {
   const peerLayout = [
-    [0.66, 0.15],
-    [0.82, 0.14],
-    [0.93, 0.28],
-    [0.74, 0.34],
-    [0.59, 0.51],
-    [0.88, 0.52],
-    [0.70, 0.70],
-    [0.93, 0.72],
-    [0.55, 0.82],
-    [0.80, 0.86]
+    [0.58, 0.22],
+    [0.74, 0.27],
+    [0.86, 0.45],
+    [0.76, 0.68],
+    [0.58, 0.72],
+    [0.91, 0.65]
   ];
   const peers = peerLayout.map(([x, y], index) => ({
     index,
     x,
     y,
     phase: index * 1.7,
-    driftX: 10 + (index % 4) * 4,
-    driftY: 12 + (index % 3) * 5,
-    size: 8 + (index % 5) * 1.4,
+    driftX: 8 + (index % 3) * 3,
+    driftY: 9 + (index % 2) * 4,
+    size: 10 + (index % 3) * 1.5,
     presence: 1,
     lineDraw: 1,
     pulse: 0
   }));
-  const particles = Array.from({ length: 118 }, (_, index) => ({
+  const particles = Array.from({ length: 54 }, (_, index) => ({
     index,
-    offset: (index * 0.089) % 1,
-    speed: 0.12 + (index % 8) * 0.018,
-    route: index % 5,
+    offset: (index * 0.137) % 1,
+    speed: 0.10 + (index % 5) * 0.018,
+    route: index % 3,
     peerIndex: index % peers.length,
     phase: index * 0.47,
-    size: 2.5 + (index % 5) * 0.8
+    size: 2.4 + (index % 4) * 0.7
   }));
   return {
     peers,
@@ -1287,10 +1349,10 @@ const buildPoolSimulationFrame = (state, width, height, deltaSeconds = SIMULATIO
     };
   };
   const roles = {
-    requester: makeRole(0.10, 0.58, 16, 0.2, 8),
-    coordinator: makeRole(0.31, 0.34, 19, 1.8, 10),
-    verifier: makeRole(0.51, 0.48, 16, 3.3, 9),
-    ledger: makeRole(0.67, 0.73, 14, 4.8, 8)
+    requester: makeRole(0.16, 0.58, 17, 0.2, 7),
+    coordinator: makeRole(0.44, 0.42, 21, 1.8, 8),
+    verifier: makeRole(0.62, 0.43, 16, 3.3, 7),
+    ledger: makeRole(0.80, 0.58, 17, 4.8, 7)
   };
   const pointerX = state.pointer.x * width;
   const pointerY = state.pointer.y * height;
@@ -1327,44 +1389,40 @@ const buildPoolSimulationFrame = (state, width, height, deltaSeconds = SIMULATIO
   const peerFor = (index) => peers[index % peers.length];
   const corePulse = (phase) => 0.14 + 0.18 * (Math.sin(time * 2.4 + phase) * 0.5 + 0.5);
   const lines = [
-    makeSimulationLine(roles.requester, roles.coordinator, 0.28, 1, corePulse(0)),
-    makeSimulationLine(roles.coordinator, roles.verifier, 0.18, 1, corePulse(1)),
-    makeSimulationLine(roles.verifier, roles.ledger, 0.35, 1, corePulse(2)),
-    makeSimulationLine(roles.verifier, roles.requester, 0.12, 1, corePulse(3)),
+    makeSimulationLine(roles.requester, roles.coordinator, 0.38, 1, corePulse(0)),
+    makeSimulationLine(roles.coordinator, roles.verifier, 0.30, 1, corePulse(1)),
+    makeSimulationLine(roles.verifier, roles.ledger, 0.40, 1, corePulse(2)),
     ...peers.map((peer) => makeSimulationLine(
       roles.coordinator,
       peer,
-      0.08 + peer.pulse * 0.14,
+      0.06 + peer.pulse * 0.08,
       peer.lineDraw,
-      peer.pulse * 0.8
+      peer.pulse * 0.45
     )),
     ...peers.map((peer) => makeSimulationLine(
       peer,
       roles.verifier,
-      0.06 + peer.pulse * 0.12,
+      0.04 + peer.pulse * 0.07,
       peer.lineDraw,
-      (1 - peer.pulse) * 0.7
+      (1 - peer.pulse) * 0.35
     ))
   ];
   const particles = state.particles.map((particle) => {
     const peer = peerFor(particle.peerIndex);
-    const flowPulse = Math.sin(time * 8.5 + particle.phase) * 0.5 + 0.5;
-    const progress = (particle.offset + time * particle.speed * (1.2 + peer.pulse * 0.35) + state.pointer.force * 0.06) % 1;
+    const flowPulse = Math.sin(time * 6.2 + particle.phase) * 0.5 + 0.5;
+    const progress = (particle.offset + time * particle.speed * (1.1 + peer.pulse * 0.28) + state.pointer.force * 0.05) % 1;
     const path = particle.route === 0
-      ? [roles.requester, roles.coordinator, peer]
+      ? [roles.requester, roles.coordinator, roles.verifier, roles.ledger]
       : particle.route === 1
-        ? [peer, roles.verifier, roles.ledger]
-        : particle.route === 2
-          ? [roles.requester, roles.verifier, peer, roles.ledger]
-          : particle.route === 3
-            ? [roles.ledger, roles.verifier, roles.coordinator, roles.requester]
-            : [roles.coordinator, peer, roles.verifier];
+        ? [roles.coordinator, peer, roles.verifier]
+        : [peer, roles.verifier, roles.ledger];
     const point = resolveCurvedPathPoint(path, progress, particle.route, particle.phase + time, width, height);
     return {
       x: point.x,
       y: point.y,
-      size: particle.size + (particle.route === 2 ? 1.5 : 0) + flowPulse * 2.6 + peer.pulse * 1.2,
-      alpha: 0.18 + flowPulse * 0.55
+      size: particle.size + flowPulse * 2.1 + peer.pulse * 0.8,
+      alpha: 0.18 + flowPulse * 0.46,
+      route: particle.route
     };
   });
   return {
@@ -1379,39 +1437,60 @@ const drawPoolSimulation2D = (ctx, frame, width, height) => {
   ctx.clearRect(0, 0, width, height);
   ctx.fillStyle = '#fff';
   ctx.fillRect(0, 0, width, height);
+  const softCyan = (alpha) => `rgba(0, 172, 190, ${alpha})`;
+  const softGold = (alpha) => `rgba(177, 115, 38, ${alpha})`;
+  ctx.save();
+  ctx.globalAlpha = 0.18;
+  ctx.strokeStyle = 'rgba(0, 0, 0, 0.18)';
   ctx.lineWidth = 1;
-  for (const [a, b, alpha, draw = 1, pulse = 0] of frame.lines) {
+  for (let index = 0; index < 6; index += 1) {
+    const y = height * (0.18 + index * 0.12);
+    ctx.beginPath();
+    ctx.moveTo(width * 0.10, y);
+    ctx.bezierCurveTo(width * 0.34, y - 22, width * 0.62, y + 22, width * 0.92, y);
+    ctx.stroke();
+  }
+  ctx.restore();
+  ctx.lineWidth = 1.35;
+  frame.lines.forEach(([a, b, alpha, draw = 1, pulse = 0], index) => {
     const end = interpolatePoint(a, b, draw);
-    ctx.strokeStyle = `rgba(0, 0, 0, ${alpha})`;
+    ctx.strokeStyle = index < 3 ? softCyan(alpha * 0.9) : `rgba(0, 0, 0, ${alpha})`;
     ctx.beginPath();
     ctx.moveTo(a.x, a.y);
     ctx.lineTo(end.x, end.y);
     ctx.stroke();
     if (pulse > 0.02) {
       const pulsePoint = interpolatePoint(a, end, 0.5 + Math.sin(pulse * Math.PI) * 0.34);
-      ctx.fillStyle = `rgba(0, 0, 0, ${Math.min(0.65, alpha + pulse * 0.32)})`;
+      ctx.fillStyle = index < 3
+        ? softGold(Math.min(0.54, alpha + pulse * 0.26))
+        : `rgba(0, 0, 0, ${Math.min(0.50, alpha + pulse * 0.22)})`;
       ctx.beginPath();
-      ctx.arc(pulsePoint.x, pulsePoint.y, 3 + pulse * 9, 0, Math.PI * 2);
+      ctx.arc(pulsePoint.x, pulsePoint.y, 3 + pulse * 7, 0, Math.PI * 2);
       ctx.fill();
     }
-  }
+  });
   for (const particle of frame.particles) {
-    ctx.fillStyle = `rgba(0, 0, 0, ${particle.alpha})`;
+    ctx.fillStyle = particle.route === 0
+      ? softCyan(particle.alpha)
+      : particle.route === 1
+        ? `rgba(0, 0, 0, ${particle.alpha * 0.72})`
+        : softGold(particle.alpha * 0.88);
     ctx.beginPath();
     ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
     ctx.fill();
   }
-  for (const node of frame.nodes) {
-    ctx.strokeStyle = `rgba(0, 0, 0, ${node.alpha})`;
-    ctx.fillStyle = `rgba(0, 0, 0, ${node.alpha * 0.88})`;
-    ctx.lineWidth = 2;
+  frame.nodes.forEach((node, index) => {
+    const core = index < 4;
+    ctx.strokeStyle = core ? softCyan(0.74) : `rgba(0, 0, 0, ${node.alpha * 0.62})`;
+    ctx.fillStyle = core ? `rgba(0, 0, 0, ${node.alpha * 0.82})` : `rgba(0, 0, 0, ${node.alpha * 0.54})`;
+    ctx.lineWidth = core ? 2 : 1.25;
     ctx.beginPath();
     ctx.arc(node.x, node.y, node.size, 0, Math.PI * 2);
     ctx.stroke();
     ctx.beginPath();
     ctx.arc(node.x, node.y, Math.max(2, node.size * 0.28), 0, Math.PI * 2);
     ctx.fill();
-  }
+  });
 };
 
 const createPoolWebGLRenderer = (canvas) => {
@@ -1521,14 +1600,8 @@ const bindHomeSimulation = (mount) => {
   const state = createPoolSimulationState();
   let active = true;
   let frameId = null;
-  let renderer = null;
-  let ctx = null;
-  try {
-    renderer = createPoolWebGLRenderer(canvas);
-  } catch {
-    renderer = null;
-  }
-  if (!renderer) ctx = canvas.getContext('2d');
+  const renderer = null;
+  const ctx = canvas.getContext('2d');
   const readout = mount.querySelector('.pool-simulation-readout');
   const draw = (timestamp = performance.now()) => {
     if (!active) return;
