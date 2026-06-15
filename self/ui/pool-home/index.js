@@ -6,10 +6,17 @@ import { createPoolSdk, verifyReceiptRecord } from '../../pool/sdk.js';
 import { createDopplerRuntime } from '../../pool/doppler-runtime.js';
 import { createAgentClient } from '../../pool/agent-client.js';
 import { createProviderClient } from '../../pool/provider-client.js';
+import { verifyModelArtifactManifest } from '../../pool/model-artifacts.js';
 import { createRequesterClient } from '../../pool/requester-client.js';
 import { LAUNCH_MODEL, buildLaunchProviderModel, getEnabledPoolModelContract, listPoolModels } from '../../pool/model-contract.js';
 import { createPoolIdentity } from '../../pool/identity.js';
-import { FASTEST_RECEIPT_POLICY_ID, listPolicies } from '../../pool/policy-router.js';
+import { FASTEST_RECEIPT_POLICY_ID, getPolicy, listPolicies } from '../../pool/policy-router.js';
+import { DEFAULT_PEER_ROOM_ID, createPeerProviderNode, runPeerJob } from '../../pool/peer-room.js';
+import { createPeerEventReducer } from '../../pool/peer-control-plane.js';
+import {
+  createPeerRoomBusFactory,
+  createPeerRoomInviteUrl
+} from '../../pool/peer-rendezvous.js';
 
 const PRODUCT_ROUTES = Object.freeze({
   '/': 'home',
@@ -37,6 +44,60 @@ const POOLDAY_STREAM_CHUNK_SIZE = 18;
 const POOLDAY_STREAM_TICK_MS = 14;
 const POOLDAY_STREAM_STATE = new Map();
 const POOLDAY_RECEIPT_LEDGER = [];
+const POOLDAY_PEER_LEDGER_STORAGE_KEY = 'reploid.peerLedgerEvents.v1';
+const loadPeerLedgerEvents = () => {
+  try {
+    const value = globalThis.localStorage?.getItem(POOLDAY_PEER_LEDGER_STORAGE_KEY);
+    const parsed = value ? JSON.parse(value) : [];
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+};
+const persistPeerLedgerEvents = (events) => {
+  try {
+    globalThis.localStorage?.setItem(POOLDAY_PEER_LEDGER_STORAGE_KEY, JSON.stringify(events.slice(-100)));
+  } catch {
+    // Local storage can be unavailable in hardened browser contexts.
+  }
+};
+const POOLDAY_PEER_EVENTS = loadPeerLedgerEvents();
+const POOLDAY_PEER_EVENT_HASHES = new Set();
+for (const event of POOLDAY_PEER_EVENTS) {
+  const eventHash = event?.messageHash || `${event?.type || 'event'}:${event?.body?.agreementHash || ''}:${event?.body?.receiptHash || ''}:${event?.body?.userId || event?.body?.providerId || ''}`;
+  if (eventHash) POOLDAY_PEER_EVENT_HASHES.add(eventHash);
+}
+const POOLDAY_PROVIDER_HEALTH = {
+  webgpu: 'unknown',
+  model: 'not_loaded',
+  artifact: 'not_checked',
+  storage: 'unknown',
+  queue: 'idle',
+  lastReceipt: 'none',
+  trust: 'receipt-backed',
+  reputation: 'not_loaded'
+};
+
+const getPeerRoomId = () => {
+  const params = new URLSearchParams(window.location.search || '');
+  return params.get('room') || window.REPLOID_POOL_ROOM_ID || DEFAULT_PEER_ROOM_ID;
+};
+
+const getPeerRelayMode = () => {
+  const params = new URLSearchParams(window.location.search || '');
+  return params.get('relay') || window.REPLOID_POOL_RELAY || 'local';
+};
+
+const getPeerRoomBusFactory = (sdk) => createPeerRoomBusFactory({
+  sdk,
+  relay: getPeerRelayMode()
+});
+
+const getPeerInviteUrl = () => createPeerRoomInviteUrl({
+  roomId: getPeerRoomId(),
+  relay: getPeerRelayMode(),
+  baseUrl: window.location.href
+});
 
 const ROUTE_COPY = Object.freeze({
   home: {
@@ -228,6 +289,112 @@ const renderReceiptLedger = (rows = POOLDAY_RECEIPT_LEDGER) => {
   `;
 };
 
+const recordPeerLedgerEvents = (events = []) => {
+  if (!Array.isArray(events) || events.length === 0) return;
+  let changed = false;
+  for (const event of events) {
+    const eventHash = event?.messageHash || `${event?.type || 'event'}:${event?.body?.agreementHash || ''}:${event?.body?.receiptHash || ''}:${event?.body?.userId || event?.body?.providerId || ''}`;
+    if (POOLDAY_PEER_EVENT_HASHES.has(eventHash)) continue;
+    POOLDAY_PEER_EVENT_HASHES.add(eventHash);
+    POOLDAY_PEER_EVENTS.push(event);
+    changed = true;
+  }
+  if (changed) persistPeerLedgerEvents(POOLDAY_PEER_EVENTS);
+};
+
+const renderPeerLedgerState = () => {
+  const reduced = createPeerEventReducer().reduce(POOLDAY_PEER_EVENTS);
+  const pointRows = Object.entries(reduced.points || {}).sort(([left], [right]) => left.localeCompare(right));
+  const reputationRows = Object.values(reduced.reputation || {}).sort((left, right) => String(left.providerId).localeCompare(String(right.providerId)));
+  if (pointRows.length === 0 && reputationRows.length === 0) {
+    return '<p class="type-caption pool-receipt-empty">No local peer ledger events yet.</p>';
+  }
+  return `
+    <div class="pool-ledger" role="table" aria-label="Local peer ledger">
+      <table>
+        <thead>
+          <tr>
+            <th>Peer</th>
+            <th>Points</th>
+            <th>Accepted</th>
+            <th>Rejected</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${pointRows.map(([peerId, points]) => {
+            const reputation = reduced.reputation?.[peerId] || {};
+            return `
+              <tr>
+                <td title="${escapeHtml(peerId)}">${escapeHtml(compactHash(peerId))}</td>
+                <td>${escapeHtml(points)}</td>
+                <td>${escapeHtml(reputation.acceptedReceipts || 0)}</td>
+                <td>${escapeHtml(reputation.rejectedReceipts || 0)}</td>
+              </tr>
+            `;
+          }).join('')}
+          ${reputationRows.filter((row) => !Object.prototype.hasOwnProperty.call(reduced.points || {}, row.providerId)).map((row) => `
+            <tr>
+              <td title="${escapeHtml(row.providerId)}">${escapeHtml(compactHash(row.providerId))}</td>
+              <td>${escapeHtml(row.points || 0)}</td>
+              <td>${escapeHtml(row.acceptedReceipts || 0)}</td>
+              <td>${escapeHtml(row.rejectedReceipts || 0)}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    </div>
+  `;
+};
+
+const refreshPeerLedgerState = () => {
+  const ledger = document.getElementById('pool-peer-ledger');
+  if (ledger) ledger.innerHTML = renderPeerLedgerState();
+};
+
+const renderProviderHealth = (state = POOLDAY_PROVIDER_HEALTH) => {
+  const rows = [
+    ['WebGPU', state.webgpu],
+    ['Model', state.model],
+    ['Artifact', state.artifact],
+    ['Storage', state.storage],
+    ['Queue', state.queue],
+    ['Last Receipt', state.lastReceipt],
+    ['Trust', state.trust],
+    ['Reputation', state.reputation]
+  ];
+  return `
+    <div class="boot-status-strip pool-summary" aria-label="Provider health">
+      ${rows.map(([label, value]) => `
+        <span class="pool-summary-item">
+          <span class="rgr-status-label">${escapeHtml(label)}</span>
+          <span class="rgr-status-value">${escapeHtml(compactHash(value))}</span>
+        </span>
+      `).join('')}
+    </div>
+  `;
+};
+
+const updateProviderHealth = (partial = {}) => {
+  Object.assign(POOLDAY_PROVIDER_HEALTH, partial);
+  const health = document.getElementById('pool-provider-health');
+  if (health) health.innerHTML = renderProviderHealth();
+};
+
+const refreshProviderStorageHealth = async () => {
+  if (!navigator.storage?.estimate) {
+    updateProviderHealth({ storage: navigator.storage ? 'available' : 'unknown' });
+    return;
+  }
+  try {
+    const estimate = await navigator.storage.estimate();
+    const usedMb = Math.round(Number(estimate.usage || 0) / (1024 * 1024));
+    const quotaMb = Math.round(Number(estimate.quota || 0) / (1024 * 1024));
+    updateProviderHealth({ storage: quotaMb > 0 ? `${usedMb}/${quotaMb} MB` : 'available' });
+  } catch {
+    updateProviderHealth({ storage: 'unavailable' });
+  }
+};
+
 const extractOutputText = (value = {}) => {
   const receipt = value.receipt || value.record || null;
   const candidates = [
@@ -295,6 +462,8 @@ const extractResultSummary = (value = {}) => {
     ['Status', firstPresent(job.status, agreement?.status, verifier?.accepted === true ? 'accepted' : verifier?.accepted === false ? 'rejected' : null)],
     ['Trust', firstPresent(job.trustTier, job.effectiveTrustTier, agreement?.effectiveTrustTier, ring?.effectiveTrustTier, receipt?.trustTier)],
     ['Agreement', agreement ? `${agreement.status || 'pending'} ${Number(agreement.requiredAgreement || agreement.requiredProviders || 1)}-of-${Number(agreement.providerCount || agreement.providerIds?.length || 1)}` : null],
+    ['Transport', firstPresent(job.transport, value.transport, receipt?.promptTransport)],
+    ['Model', firstPresent(job.model?.id, job.modelRequirements?.modelId, receipt?.model?.id, value.model?.modelId)],
     ['Spend', firstPresent(acceptance?.pointSpend, value.pointSpend)],
     ['Runtime', firstPresent(receipt?.verification?.runtimeProfileHash, job.runtimeProfileHash, record.runtimeProfileHash)],
     ['Output', firstPresent(receipt?.outputHash, record.outputHash, job.outputHash)],
@@ -332,6 +501,10 @@ const renderResultBox = (id, options = {}) => {
 };
 
 const setResult = (id, value, options = {}) => {
+  if (value && typeof value === 'object') {
+    recordPeerLedgerEvents(value.ledgerEvents || value.body?.ledgerEvents || []);
+    refreshPeerLedgerState();
+  }
   const summaryEl = document.getElementById(`${id}-summary`);
   const streamMode = !!options.stream;
   const outputText = streamMode ? extractOutputText(value) : null;
@@ -414,6 +587,29 @@ const renderPolicyProductLabel = (policy) => {
   return labels[policy.policyId] || policy.policyId.replace(/_/g, ' ');
 };
 
+const describeSelectedRun = ({ policyId, modelId, status = 'finding_peer_provider' } = {}) => {
+  const policy = getPolicy(policyId || FASTEST_RECEIPT_POLICY_ID);
+  const model = getEnabledPoolModelContract(modelId || LAUNCH_MODEL.modelId) || LAUNCH_MODEL;
+  return {
+    status,
+    transport: getPeerRelayMode() === 'local' ? 'webrtc_peer_room_local' : 'webrtc_peer_room_relay_bootstrap',
+    roomId: getPeerRoomId(),
+    relay: getPeerRelayMode(),
+    policyId: policy?.policyId || policyId || FASTEST_RECEIPT_POLICY_ID,
+    trustTier: policy?.adaptiveRing ? 'adaptive quorum receipt' : (policy?.trustTier || 'signed receipt'),
+    requiredAgreement: policy?.adaptiveRing
+      ? `${policy.minRingSize || 1}-${policy.maxRingSize || 1} providers, quorum by matching receipt`
+      : `${policy?.redundancy || 1} provider receipt${Number(policy?.redundancy || 1) === 1 ? '' : 's'}`,
+    model: {
+      modelId: model.modelId,
+      modelHash: model.modelHash,
+      manifestHash: model.manifestHash,
+      runtime: model.runtime,
+      backend: model.backend
+    }
+  };
+};
+
 const renderPolicyOptions = () => listPolicies().map((policy) => `
   <option value="${escapeHtml(policy.policyId)}">${escapeHtml(renderPolicyProductLabel(policy))} - ${escapeHtml(renderPolicyTrustLabel(policy))}</option>
 `).join('');
@@ -425,11 +621,31 @@ const renderModelOptions = () => listPoolModels().map((model) => {
   return `<option value="${escapeHtml(model.modelId)}"${enabled ? '' : ' disabled'}>${escapeHtml(`${label}${suffix}`)}</option>`;
 }).join('');
 
+const renderHostedAgentExamples = () => {
+  const model = LAUNCH_MODEL;
+  const example = `const job = await poolday.submitJob({
+  policyId: '${FASTEST_RECEIPT_POLICY_ID}',
+  prompt,
+  modelRequirements: {
+    modelId: '${model.modelId}',
+    modelHash: '${model.modelHash}',
+    manifestHash: '${model.manifestHash}',
+    runtime: '${model.runtime}',
+    backend: '${model.backend}'
+  }
+});
+const current = await poolday.pollJob(job.jobId);
+const receipt = await poolday.getReceipt(current.job.receiptHash);
+const verified = await poolday.verifyReceiptRecord(receipt);
+await poolday.acceptReceipt(current.job.receiptHash, verified.ok);`;
+  return `<pre class="pool-result" aria-label="Hosted agent compatibility example">${escapeHtml(example)}</pre>`;
+};
+
 const renderHomeSimulation = () => `
   <section class="pool-simulation-shell" aria-label="Browser inference pool simulation">
     <div class="pool-simulation-intro">
       <h1 class="type-h1">Poolday</h1>
-      <p class="type-caption">Browser compute with receipts.</p>
+      <p class="type-caption">Browser compute with receipts on the Reploid substrate.</p>
       <div class="pool-home-actions">
         <button class="btn btn-primary pool-role-action" type="button" data-pool-route="/run">
           <span>Run a Job</span>
@@ -546,12 +762,14 @@ const renderRouteDetail = (routeId) => {
               <span><b>0</b> receipts</span>
             </div>
           </div>
+          <div id="pool-provider-health" class="pool-ledger-shell" aria-live="polite">${renderProviderHealth()}</div>
           <details class="pool-advanced">
             <summary>Manual controls</summary>
             <div class="pool-control-row" aria-label="Manual provider controls">
               <button class="btn btn-ghost" id="pool-provider-load" type="button">Load</button>
               <button class="btn btn-ghost" id="pool-provider-profile" type="button">Profile</button>
               <button class="btn btn-ghost" id="pool-provider-register" type="button">Register</button>
+              <button class="btn btn-ghost" id="pool-provider-heartbeat" type="button">Heartbeat</button>
               <button class="btn btn-ghost" id="pool-provider-next" type="button">Next Job</button>
               <button class="btn btn-ghost" id="pool-provider-execute" type="button">Execute</button>
               <button class="btn btn-ghost" id="pool-provider-step" type="button">Step</button>
@@ -592,10 +810,10 @@ const renderRouteDetail = (routeId) => {
           <button class="btn btn-ghost" id="pool-agent-poll" type="button">Refresh</button>
           <button class="btn btn-ghost" id="pool-agent-accept" type="button">Accept</button>
           <button class="btn btn-ghost" id="pool-agent-reject" type="button">Reject</button>
-          <code>submitJob({ policyId, prompt, modelRequirements })</code>
-          <code>pollJob(jobId)</code>
-          <code>verifyReceiptRecord(record)</code>
-          <code>acceptReceipt(receiptHash)</code>
+          <details class="pool-advanced" open>
+            <summary>Hosted compatibility</summary>
+            ${renderHostedAgentExamples()}
+          </details>
           ${renderResultBox('pool-agent-result')}
         </div>
       </section>
@@ -632,6 +850,8 @@ const renderRouteDetail = (routeId) => {
           <button class="btn btn-ghost" id="pool-status-lookup" type="button">Status</button>
           <button class="btn btn-ghost" id="pool-metrics-lookup" type="button">Metrics</button>
           <button class="btn btn-ghost" id="pool-deployment-check" type="button">Deploy Check</button>
+          <h3 class="type-h2">Local peer ledger</h3>
+          <div id="pool-peer-ledger" class="pool-ledger-shell" aria-live="polite">${renderPeerLedgerState()}</div>
           ${renderResultBox('pool-reputation-result')}
           <p class="pool-meta-tag" aria-label="protocol identifier">Protocol ${POOLDAY_VERSION_TAG}</p>
         </div>
@@ -651,28 +871,40 @@ const bindRunControls = (sdk) => {
   const modelSelect = document.getElementById('pool-run-model');
   const maxSpendInput = document.getElementById('pool-run-max-spend');
   if (!button || !prompt) return;
-  const requesterIdentity = createPoolIdentity('requester');
+  const requesterIdentity = createPoolIdentity('requester', { localOnly: true });
   const requesterClient = createRequesterClient({
     sdk,
     identity: requesterIdentity
   });
   let lastJobId = null;
   let lastReceiptHash = null;
+  let lastPeerResult = null;
   const syncReceiptActions = () => {
-    const canDecide = !!lastReceiptHash;
+    const canDecide = !!lastReceiptHash && !lastPeerResult;
     if (acceptButton) acceptButton.disabled = !canDecide;
     if (rejectButton) rejectButton.disabled = !canDecide;
   };
   syncReceiptActions();
   button.addEventListener('click', async () => {
     button.disabled = true;
-    setResult('pool-run-result', { status: 'submitting' }, { stream: true });
+    lastJobId = null;
+    lastReceiptHash = null;
+    lastPeerResult = null;
+    syncReceiptActions();
+    setResult('pool-run-result', describeSelectedRun({
+      status: 'finding_peer_provider',
+      policyId: policySelect?.value || FASTEST_RECEIPT_POLICY_ID,
+      modelId: modelSelect?.value || LAUNCH_MODEL.modelId
+    }), { stream: true });
     try {
-      const result = await requesterClient.submitJob({
+      const result = await runPeerJob({
+        roomId: getPeerRoomId(),
+        requesterClient,
         prompt: prompt.value,
         policyId: policySelect?.value || FASTEST_RECEIPT_POLICY_ID,
         modelRequirements: getEnabledPoolModelContract(modelSelect?.value || LAUNCH_MODEL.modelId) || LAUNCH_MODEL,
         maxPointSpend: maxSpendInput?.value ? Number(maxSpendInput.value) : null,
+        roomBusFactory: getPeerRoomBusFactory(sdk),
         generationConfig: {
           mode: 'greedy',
           temperature: 0,
@@ -682,8 +914,11 @@ const bindRunControls = (sdk) => {
           seed: '0000000000000000'
         }
       });
-      lastJobId = result?.job?.jobId || null;
-      lastReceiptHash = result?.job?.receiptHash || null;
+      result.inviteUrl = getPeerInviteUrl();
+      result.relay = getPeerRelayMode();
+      lastPeerResult = result;
+      lastJobId = result?.assignment?.jobId || null;
+      lastReceiptHash = result?.receiptHash || null;
       syncReceiptActions();
       setResult('pool-run-result', result, { stream: true });
     } catch (error) {
@@ -693,6 +928,10 @@ const bindRunControls = (sdk) => {
     }
   });
   pollButton?.addEventListener('click', async () => {
+    if (lastPeerResult) {
+      setResult('pool-run-result', lastPeerResult, { stream: true });
+      return;
+    }
     if (!lastJobId) {
       setResult('pool-run-result', { error: 'No submitted job to poll' });
       return;
@@ -710,6 +949,10 @@ const bindRunControls = (sdk) => {
     }
   });
   acceptButton?.addEventListener('click', async () => {
+    if (lastPeerResult) {
+      setResult('pool-run-result', lastPeerResult, { stream: true });
+      return;
+    }
     if (!lastReceiptHash) {
       setResult('pool-run-result', { error: 'No verifier-accepted receipt to accept' }, { stream: true });
       return;
@@ -724,6 +967,10 @@ const bindRunControls = (sdk) => {
     }
   });
   rejectButton?.addEventListener('click', async () => {
+    if (lastPeerResult) {
+      setResult('pool-run-result', { error: 'Peer receipt already has a local requester decision', result: lastPeerResult }, { stream: true });
+      return;
+    }
     if (!lastReceiptHash) {
       setResult('pool-run-result', { error: 'No verifier-accepted receipt to reject' }, { stream: true });
       return;
@@ -748,7 +995,7 @@ const bindAgentControls = (sdk) => {
   const policySelect = document.getElementById('pool-agent-policy');
   const maxSpendInput = document.getElementById('pool-agent-max-spend');
   if (!submitButton || !prompt) return;
-  const agentIdentity = createPoolIdentity('agent');
+  const agentIdentity = createPoolIdentity('agent', { localOnly: true });
   const agentClient = createAgentClient({
     sdk,
     identity: agentIdentity,
@@ -756,19 +1003,43 @@ const bindAgentControls = (sdk) => {
   });
   let lastJobId = null;
   let lastReceiptHash = null;
+  let lastPeerResult = null;
   submitButton.addEventListener('click', async () => {
     submitButton.disabled = true;
-    setResult('pool-agent-result', { status: 'submitting_agent_job' });
+    lastJobId = null;
+    lastReceiptHash = null;
+    lastPeerResult = null;
+    setResult('pool-agent-result', describeSelectedRun({
+      status: 'finding_peer_provider',
+      policyId: policySelect?.value || FASTEST_RECEIPT_POLICY_ID,
+      modelId: LAUNCH_MODEL.modelId
+    }));
     try {
       const identity = await agentIdentity.resolve();
-      const result = await agentClient.submitJob({
+      const result = await runPeerJob({
+        roomId: getPeerRoomId(),
+        requesterClient: agentClient,
         prompt: prompt.value,
         policyId: policySelect?.value || FASTEST_RECEIPT_POLICY_ID,
-        maxPointSpend: maxSpendInput?.value ? Number(maxSpendInput.value) : null
+        modelRequirements: LAUNCH_MODEL,
+        maxPointSpend: maxSpendInput?.value ? Number(maxSpendInput.value) : null,
+        roomBusFactory: getPeerRoomBusFactory(sdk),
+        generationConfig: {
+          mode: 'greedy',
+          temperature: 0,
+          topK: 1,
+          topP: 1,
+          maxOutputTokens: 128,
+          seed: '0000000000000000'
+        }
       });
-      lastJobId = result?.job?.jobId || null;
-      lastReceiptHash = result?.job?.receiptHash || null;
-      setResult('pool-agent-result', { identity, ...result });
+      result.identity = identity;
+      result.inviteUrl = getPeerInviteUrl();
+      result.relay = getPeerRelayMode();
+      lastPeerResult = result;
+      lastJobId = result?.assignment?.jobId || null;
+      lastReceiptHash = result?.receiptHash || null;
+      setResult('pool-agent-result', result);
     } catch (error) {
       setResult('pool-agent-result', { error: error.message, payload: error.payload || null });
     } finally {
@@ -776,6 +1047,10 @@ const bindAgentControls = (sdk) => {
     }
   });
   pollButton?.addEventListener('click', async () => {
+    if (lastPeerResult) {
+      setResult('pool-agent-result', lastPeerResult);
+      return;
+    }
     if (!lastJobId) {
       setResult('pool-agent-result', { error: 'No submitted agent job to poll' });
       return;
@@ -792,6 +1067,10 @@ const bindAgentControls = (sdk) => {
     }
   });
   acceptButton?.addEventListener('click', async () => {
+    if (lastPeerResult) {
+      setResult('pool-agent-result', lastPeerResult);
+      return;
+    }
     if (!lastReceiptHash) {
       setResult('pool-agent-result', { error: 'No verifier-accepted receipt to accept' });
       return;
@@ -806,6 +1085,10 @@ const bindAgentControls = (sdk) => {
     }
   });
   rejectButton?.addEventListener('click', async () => {
+    if (lastPeerResult) {
+      setResult('pool-agent-result', { error: 'Peer receipt already has a local agent decision', result: lastPeerResult });
+      return;
+    }
     if (!lastReceiptHash) {
       setResult('pool-agent-result', { error: 'No verifier-accepted receipt to reject' });
       return;
@@ -825,6 +1108,7 @@ const bindProviderControls = (sdk) => {
   const loadButton = document.getElementById('pool-provider-load');
   const profileButton = document.getElementById('pool-provider-profile');
   const registerButton = document.getElementById('pool-provider-register');
+  const heartbeatButton = document.getElementById('pool-provider-heartbeat');
   const nextButton = document.getElementById('pool-provider-next');
   const executeButton = document.getElementById('pool-provider-execute');
   const stepButton = document.getElementById('pool-provider-step');
@@ -835,16 +1119,27 @@ const bindProviderControls = (sdk) => {
   const modelInput = document.getElementById('pool-provider-model');
   if (!registerButton || !nextButton || !modelInput) return;
   const providerIdentity = createPoolIdentity('provider');
+  const peerProviderIdentity = createPoolIdentity('provider', { localOnly: true });
   const runtime = window.REPLOID_DOPPLER_RUNTIME || createDopplerRuntime();
   window.REPLOID_DOPPLER_RUNTIME = runtime;
   const mount = document.getElementById('app');
   const nodeGrid = getNodeGrid(mount);
   updateProviderStatus(mount, 'NODE // OFFLINE');
   setNodeGridProgress(nodeGrid, 0);
+  updateProviderHealth({
+    webgpu: navigator.gpu ? 'available' : 'unavailable',
+    storage: navigator.storage ? 'available' : 'unknown'
+  });
+  void refreshProviderStorageHealth();
   const providerClient = createProviderClient({
     sdk,
     runtime,
     identity: providerIdentity
+  });
+  const peerProviderClient = createProviderClient({
+    sdk,
+    runtime,
+    identity: peerProviderIdentity
   });
   const getProviderModel = () => ({
     ...buildLaunchProviderModel({ modelId: modelInput.value || LAUNCH_MODEL.modelId })
@@ -861,15 +1156,31 @@ const bindProviderControls = (sdk) => {
   const loadSelectedProviderModel = async () => {
     updateProviderStatus(mount, 'NODE // SPAWNING');
     setNodeGridProgress(nodeGrid, 0.2);
+    await refreshProviderStorageHealth();
+    updateProviderHealth({
+      webgpu: navigator.gpu ? 'available' : 'unavailable',
+      model: 'loading',
+      artifact: window.REPLOID_POOL_STRICT_ARTIFACT_PREFLIGHT === true ? 'checking' : 'strict_preflight_off',
+      queue: 'starting'
+    });
     const model = getEnabledPoolModelContract(modelInput.value || LAUNCH_MODEL.modelId);
     if (!model) throw new Error('Selected model is not enabled for provider registration');
     if (modelMatchesLoadedRuntime(model) && runtime.isReady?.()) {
       setNodeGridProgress(nodeGrid, 0.7);
+      updateProviderHealth({
+        model: model.modelId,
+        artifact: 'ready',
+        trust: 'receipt-backed'
+      });
       return {
         ok: true,
         status: 'model_loaded',
         model: runtime.getModelInfo()
       };
+    }
+    let artifactPreflight = null;
+    if (window.REPLOID_POOL_STRICT_ARTIFACT_PREFLIGHT === true) {
+      artifactPreflight = await verifyModelArtifactManifest({ model });
     }
     const loadResult = await runtime.loadModel(model);
     if (!loadResult?.ok || !runtime.isReady?.() || !modelMatchesLoadedRuntime(model)) {
@@ -883,8 +1194,14 @@ const bindProviderControls = (sdk) => {
       throw error;
     }
     setNodeGridProgress(nodeGrid, 0.7);
+    updateProviderHealth({
+      model: model.modelId,
+      artifact: artifactPreflight ? 'verified_manifest' : 'ready',
+      trust: 'receipt-backed'
+    });
     return {
       ...loadResult,
+      artifactPreflight,
       status: 'model_loaded'
     };
   };
@@ -907,6 +1224,81 @@ const bindProviderControls = (sdk) => {
     return {
       identity: providerIdentityState,
       registration: result
+    };
+  };
+  let peerProviderNode = null;
+  const stopPeerProvider = async () => {
+    if (!peerProviderNode) return null;
+    const node = peerProviderNode;
+    peerProviderNode = null;
+    return node.stop();
+  };
+  const ensurePeerProviderReady = async () => {
+    const loaded = await loadSelectedProviderModel();
+    const model = loaded.model || runtime.getModelInfo();
+    const providerIdentityState = await peerProviderIdentity.resolve();
+    await stopPeerProvider();
+    const node = createPeerProviderNode({
+      roomId: getPeerRoomId(),
+      providerClient: peerProviderClient,
+      roomBusFactory: getPeerRoomBusFactory(sdk),
+      onActivity(event) {
+        if (event?.status === 'provider_advertised') {
+          updateProviderStatus(mount, 'NODE // SPAWNED');
+          updateProviderHealth({ queue: 'listening' });
+          return;
+        }
+        if (event?.status === 'peer_session_opening') {
+          updateProviderStatus(mount, 'NODE // SPAWNING');
+          setNodeGridProgress(nodeGrid, 0.9);
+          updateProviderHealth({ queue: 'opening_session' });
+        }
+        if (event?.status === 'peer_session_open') {
+          updateProviderStatus(mount, 'NODE // SPAWNED');
+          setNodeGridProgress(nodeGrid, 1);
+          updateProviderHealth({ queue: 'running_peer_job' });
+        }
+        if (event?.status === 'peer_receipt_sent') {
+          updateProviderStatus(mount, 'NODE // SPAWNED');
+          setNodeGridProgress(nodeGrid, 1);
+          updateProviderHealth({
+            queue: 'receipt_sent',
+            lastReceipt: event.receiptRecord?.receiptHash || 'signed'
+          });
+        }
+        if (event?.status === 'peer_acceptance_received') {
+          updateProviderHealth({
+            queue: 'accepted',
+            reputation: 'local_event_received'
+          });
+        }
+        if (event?.status === 'peer_session_failed') {
+          updateProviderStatus(mount, 'NODE // OFFLINE');
+          setNodeGridProgress(nodeGrid, 0);
+          updateProviderHealth({ queue: 'session_failed' });
+        }
+        setResult('pool-provider-result', {
+          worker: 'peer_room',
+          roomId: getPeerRoomId(),
+          relay: getPeerRelayMode(),
+          inviteUrl: getPeerInviteUrl(),
+          ...event
+        });
+      }
+    });
+    peerProviderNode = node;
+    const result = await node.start({
+      models: [model],
+      availability: {
+        maxConcurrentJobs: 1,
+        maxTokensPerJob: 128,
+        acceptedPolicies: listPolicies().map((policy) => policy.policyId)
+      }
+    });
+    return {
+      identity: providerIdentityState,
+      transport: 'webrtc_peer_room',
+      ...result
     };
   };
   let lastAssignment = null;
@@ -949,6 +1341,7 @@ const bindProviderControls = (sdk) => {
       setNodeGridProgress(nodeGrid, 0.8);
     } catch (error) {
       setResult('pool-provider-result', { error: error.message, payload: error.payload || null });
+      updateProviderHealth({ model: 'load_failed', artifact: error.payload?.artifactPreflight?.status || 'failed', queue: 'error' });
       updateProviderStatus(mount, 'NODE // OFFLINE');
       setNodeGridProgress(nodeGrid, 0);
     } finally {
@@ -975,8 +1368,10 @@ const bindProviderControls = (sdk) => {
       setResult('pool-provider-result', await ensureProviderReady());
       setNodeGridProgress(nodeGrid, 1);
       updateProviderStatus(mount, 'NODE // SPAWNED');
+      updateProviderHealth({ queue: 'hosted_registered' });
     } catch (error) {
       setResult('pool-provider-result', { error: error.message, payload: error.payload || null });
+      updateProviderHealth({ queue: 'hosted_register_failed' });
       updateProviderStatus(mount, 'NODE // OFFLINE');
       setNodeGridProgress(nodeGrid, 0);
     } finally {
@@ -988,11 +1383,25 @@ const bindProviderControls = (sdk) => {
     try {
       const result = await providerClient.nextAssignment();
       lastAssignment = result?.assignment || null;
+      updateProviderHealth({ queue: lastAssignment ? 'hosted_assignment_ready' : 'hosted_queue_empty' });
       setResult('pool-provider-result', result);
     } catch (error) {
       setResult('pool-provider-result', { error: error.message, payload: error.payload || null });
     } finally {
       nextButton.disabled = false;
+    }
+  });
+  heartbeatButton?.addEventListener('click', async () => {
+    heartbeatButton.disabled = true;
+    try {
+      const result = await providerClient.heartbeat();
+      updateProviderHealth({ queue: result?.status || 'hosted_heartbeat_sent' });
+      setResult('pool-provider-result', result);
+    } catch (error) {
+      updateProviderHealth({ queue: 'hosted_heartbeat_failed' });
+      setResult('pool-provider-result', { error: error.message, payload: error.payload || null });
+    } finally {
+      heartbeatButton.disabled = false;
     }
   });
   executeButton?.addEventListener('click', async () => {
@@ -1005,6 +1414,7 @@ const bindProviderControls = (sdk) => {
       setResult('pool-provider-result', await providerClient.executeAssignment(lastAssignment, {
         commitReveal: 'auto'
       }));
+      updateProviderHealth({ queue: 'hosted_assignment_executed' });
       lastAssignment = null;
     } catch (error) {
       setResult('pool-provider-result', { error: error.message, payload: error.payload || null });
@@ -1017,6 +1427,7 @@ const bindProviderControls = (sdk) => {
     try {
       const result = await providerClient.runWorkerStep();
       lastAssignment = result?.status === 'executed_assignment' ? null : result?.assignment || lastAssignment;
+      updateProviderHealth({ queue: result?.status || 'hosted_step_complete' });
       setResult('pool-provider-result', result);
     } catch (error) {
       setResult('pool-provider-result', { error: error.message, payload: error.payload || null });
@@ -1027,27 +1438,32 @@ const bindProviderControls = (sdk) => {
   workerStartButton?.addEventListener('click', async () => {
     if (workerRunning) return;
     workerStartButton.disabled = true;
-    setResult('pool-provider-result', { worker: 'registering', model: getProviderModel() });
+    setResult('pool-provider-result', { worker: 'peer_room_starting', roomId: getPeerRoomId(), model: getProviderModel() });
     updateProviderStatus(mount, 'NODE // SPAWNING');
     setNodeGridProgress(nodeGrid, 0.9);
     try {
-      const ready = await ensureProviderReady();
+      const ready = await ensurePeerProviderReady();
       workerRunning = true;
       syncWorkerButtons();
       updateProviderStatus(mount, 'NODE // SPAWNED');
       setNodeGridProgress(nodeGrid, 1);
-      setResult('pool-provider-result', { worker: 'running', ...ready });
-      await runWorkerLoop();
+      updateProviderHealth({ queue: 'listening' });
+      setResult('pool-provider-result', { worker: 'peer_room_listening', relay: getPeerRelayMode(), inviteUrl: getPeerInviteUrl(), ...ready });
     } catch (error) {
+      await stopPeerProvider().catch(() => null);
       stopWorker();
+      updateProviderHealth({ queue: 'stopped', model: 'load_failed' });
       setResult('pool-provider-result', { worker: 'stopped', error: error.message, payload: error.payload || null });
     } finally {
       syncWorkerButtons();
     }
   });
-  workerStopButton?.addEventListener('click', () => {
+  workerStopButton?.addEventListener('click', async () => {
+    workerStopButton.disabled = true;
+    const stopped = await stopPeerProvider().catch((error) => ({ error: error.message, payload: error.payload || null }));
     stopWorker();
-    setResult('pool-provider-result', { worker: 'stopped' });
+    updateProviderHealth({ queue: 'stopped' });
+    setResult('pool-provider-result', { worker: 'stopped', peer: stopped });
   });
   pointsButton?.addEventListener('click', async () => {
     pointsButton.disabled = true;
@@ -1064,7 +1480,9 @@ const bindProviderControls = (sdk) => {
     reputationButton.disabled = true;
     try {
       const identity = await providerIdentity.resolve();
-      setResult('pool-provider-result', await sdk.reputation(identity.roleId));
+      const reputation = await sdk.reputation(identity.roleId);
+      updateProviderHealth({ reputation: reputation?.providerId || reputation?.record?.providerId || 'loaded' });
+      setResult('pool-provider-result', reputation);
     } catch (error) {
       setResult('pool-provider-result', { error: error.message, payload: error.payload || null });
     } finally {
@@ -1668,6 +2086,7 @@ export function initPoolHome(mount) {
   window.REPLOID_DOPPLER_RUNTIME = runtime;
   window.REPLOID_POOL_ATTACH_DOPPLER_HANDLE = (handle, model = null, runtimeInfo = null) => runtime.attachHandle(handle, model, runtimeInfo);
   window.REPLOID_POOL_SDK = sdk;
+  window.poolday = sdk;
   mount.style.display = 'block';
 
   const render = () => {

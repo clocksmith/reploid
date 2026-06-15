@@ -172,7 +172,7 @@
       ]
     },
     "hybrid_p2p_anchor": {
-      "claim": "Cloud anchors assignment, signaling metadata, receipt hash, agreement hash, points, and reputation while prompt/output/full receipts may travel P2P.",
+      "claim": "WebRTC DataChannel is primary prompt/output/full-receipt transit while cloud anchors assignment, signaling metadata, receipt hash, agreement hash, points, and reputation.",
       "cloudAuthoritative": [
         "jobId",
         "assignmentHash",
@@ -208,7 +208,7 @@
       ]
     },
     "p2p_ring_traffic": {
-      "claim": "Ring provider transport may move over WebRTC while cloud remains the agreement and ledger anchor.",
+      "claim": "Ring provider consensus moves over WebRTC while cloud remains the agreement and ledger anchor.",
       "cloudAuthoritative": [
         "ringLayout",
         "agreementHash",
@@ -232,6 +232,68 @@
     }
   },
   "activeTransportMode": "hybrid_p2p_anchor",
+  "peerControlPlane": {
+    "status": "browser_room_quorum_lane",
+    "messageVersion": "reploid_peer_control/v1",
+    "busVersion": "reploid_peer_control_bus/v1",
+    "requiredServerControlPlane": false,
+    "serverAuthority": "transitional_bootstrap_anchor_only",
+    "transport": "webrtc_datachannel",
+    "browserBootstrap": "same_origin_broadcast_channel_room",
+    "remoteBootstrap": "optional_metadata_peer_room_relay",
+    "relayModes": [
+      "local_broadcast_channel",
+      "server_metadata_relay"
+    ],
+    "browserRoomCapabilities": [
+      "signed_job_intents",
+      "signed_provider_adverts",
+      "deterministic_peer_assignment",
+      "multi_provider_webrtc_sessions",
+      "remote_rendezvous_metadata_relay",
+      "receipt_hash_agreement",
+      "ring_quorum_receipt_agreement",
+      "requester_signed_acceptance",
+      "signed_points_events",
+      "signed_reputation_events",
+      "deterministic_event_reducers"
+    ],
+    "primaryRoutes": [
+      "/run",
+      "/contribute"
+    ],
+    "messageTypes": [
+      "job_intent",
+      "provider_advert",
+      "assignment_claim",
+      "commitment",
+      "reveal",
+      "execution_result",
+      "receipt",
+      "acceptance",
+      "points_event",
+      "reputation_event",
+      "heartbeat"
+    ],
+    "deterministicReducers": [
+      "assignment_selection",
+      "ring_quorum",
+      "points",
+      "reputation"
+    ]
+  },
+  "artifactPreflight": {
+    "status": "available_strict_mode",
+    "strictFlag": "window.REPLOID_POOL_STRICT_ARTIFACT_PREFLIGHT",
+    "manifestPath": "<modelId>/<manifestHash>/manifest.json",
+    "checks": [
+      "cors_fetch",
+      "manifest_json",
+      "manifest_hash",
+      "model_id",
+      "model_hash"
+    ]
+  },
   "policies": {
     "fastest_receipt": {
       "policyId": "fastest_receipt",

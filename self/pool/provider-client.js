@@ -3,12 +3,16 @@
  */
 
 import { createPoolSdk } from './sdk.js';
-import { buildPoolReceipt, createSigningKeyPair, exportPublicKey, signProviderReceipt } from './inference-receipt.js';
+import { buildPoolReceipt, createSigningKeyPair, exportPublicKey, hashJson, sha256Hex, signProviderReceipt } from './inference-receipt.js';
 import { createDopplerRuntime } from './doppler-runtime.js';
 import { buildLaunchProviderModel } from './model-contract.js';
 import { createPoolIdentity } from './identity.js';
 import { listPolicies } from './policy-router.js';
 import { collectRuntimeProfile } from './runtime-profile.js';
+import {
+  createSignedProviderAdvert,
+  validatePromptPayloadForAssignment
+} from './peer-control-plane.js';
 import {
   buildAssignmentCommitmentPayload,
   buildAssignmentRevealPayload
@@ -64,6 +68,59 @@ export function createProviderClient({ providerId, sdk = createPoolSdk(), runtim
       return runtime.getRuntimeProfile();
     }
     return collectRuntimeProfile({ runtime });
+  };
+
+  const resolveAssignmentPrompt = async (assignment = {}, { promptPayload = null, prompt = null } = {}) => {
+    if (promptPayload) {
+      const validation = await validatePromptPayloadForAssignment(promptPayload, assignment);
+      if (!validation.ok) throw new Error(`invalid WebRTC prompt payload: ${validation.reasons.join('; ')}`);
+      return validation.prompt;
+    }
+    if (prompt !== null && prompt !== undefined) {
+      const promptText = String(prompt);
+      if (assignment.inputHash && await sha256Hex(promptText) !== assignment.inputHash) {
+        throw new Error('assignment inputHash mismatch');
+      }
+      return promptText;
+    }
+    if (assignment.prompt) return assignment.prompt;
+    throw new Error('assignment prompt must be supplied over WebRTC prompt payload');
+  };
+
+  const runLocalAssignment = async (assignment, { promptPayload = null, prompt = null } = {}) => {
+    await ensureKeys();
+    recordHistory({
+      eventType: 'assignment_execution_started',
+      assignmentId: assignment.assignmentId,
+      jobId: assignment.jobId,
+      policyId: assignment.policyId
+    });
+    const runtimeModel = typeof runtime?.getModelInfo === 'function' ? runtime.getModelInfo() : null;
+    if (!assignmentMatchesRuntime(assignment.model || {}, runtimeModel || {})) {
+      throw new Error('Assignment model identity does not match the loaded Doppler runtime');
+    }
+    const promptText = await resolveAssignmentPrompt(assignment, { promptPayload, prompt });
+    const execution = await runtime.generate({
+      prompt: promptText,
+      generationConfig: assignment.generationConfig,
+      assignment
+    });
+    const receipt = await buildPoolReceipt({
+      assignment,
+      provider: registration || {
+        providerId: assignment.providerId,
+        publicKey,
+        runtimeProfileHash: assignment.runtimeProfileHash || null
+      },
+      model: assignment.model || runtime.getModelInfo(),
+      runtime: runtime.getRuntimeInfo(),
+      execution
+    });
+    return {
+      prompt: promptText,
+      execution,
+      receipt: await signProviderReceipt(receipt, activeKeyPair.privateKey)
+    };
   };
 
   const commitRevealModeFor = (assignment = {}, mode = 'auto') => {
@@ -222,6 +279,42 @@ export function createProviderClient({ providerId, sdk = createPoolSdk(), runtim
       });
       return registration;
     },
+    async createPeerProviderAdvert({ models, availability = {}, reputationEvidence = {} } = {}) {
+      await ensureKeys();
+      const resolvedProviderId = await ensureProviderId();
+      if (typeof runtime?.isReady === 'function' && !runtime.isReady()) {
+        throw new Error('Doppler browser model must be loaded before provider advert');
+      }
+      const runtimeModel = typeof runtime?.getModelInfo === 'function' ? runtime.getModelInfo() : null;
+      const advertisedModels = Array.isArray(models) && models.length > 0
+        ? models
+        : [runtimeModel || buildLaunchProviderModel()];
+      const advertisedModel = advertisedModels[0] || {};
+      if (!runtimeModel?.modelId || !runtimeModel?.modelHash || !runtimeModel?.manifestHash) {
+        throw new Error('Loaded Doppler runtime must expose modelId, modelHash, and manifestHash before provider advert');
+      }
+      if (!advertisedModel.modelId || !modelMatchesRuntime(advertisedModel, runtimeModel)) {
+        throw new Error('Loaded Doppler model identity does not match advertised provider model');
+      }
+      const mismatchedModel = advertisedModels.find((model) => !modelMatchesRuntime(model, runtimeModel));
+      if (mismatchedModel) throw new Error('Provider advert cannot advertise models that differ from the loaded Doppler runtime');
+      const { runtimeProfile, runtimeProfileHash } = await resolveRuntimeProfile();
+      return createSignedProviderAdvert({
+        providerId: resolvedProviderId,
+        providerPublicKey: publicKey,
+        privateKey: activeKeyPair.privateKey,
+        models: advertisedModels,
+        runtimeProfile,
+        runtimeProfileHash,
+        availability: {
+          maxConcurrentJobs: 1,
+          maxTokensPerJob: 128,
+          acceptedPolicies: listPolicies().map((policy) => policy.policyId),
+          ...availability
+        },
+        reputationEvidence
+      });
+    },
     heartbeat() {
       if (!registration?.providerId || !registration?.sessionId) {
         throw new Error('Provider is not registered');
@@ -236,32 +329,25 @@ export function createProviderClient({ providerId, sdk = createPoolSdk(), runtim
       if (!registration?.providerId) throw new Error('Provider is not registered');
       return sdk.nextAssignment(registration.providerId);
     },
-    async executeAssignment(assignment, { commitReveal = 'auto' } = {}) {
-      await ensureKeys();
+    async executePeerAssignment(assignment, { promptPayload = null, prompt = null } = {}) {
+      const result = await runLocalAssignment(assignment, { promptPayload, prompt });
+      const receiptHash = await hashJson(result.receipt);
       recordHistory({
-        eventType: 'assignment_execution_started',
+        eventType: 'peer_receipt_created',
         assignmentId: assignment.assignmentId,
         jobId: assignment.jobId,
-        policyId: assignment.policyId
+        policyId: assignment.policyId,
+        receiptHash
       });
+      return {
+        ...result,
+        receiptHash,
+        transport: 'webrtc_peer_control'
+      };
+    },
+    async executeAssignment(assignment, { commitReveal = 'auto', promptPayload = null, prompt = null } = {}) {
       try {
-        const runtimeModel = typeof runtime?.getModelInfo === 'function' ? runtime.getModelInfo() : null;
-        if (!assignmentMatchesRuntime(assignment.model || {}, runtimeModel || {})) {
-          throw new Error('Assignment model identity does not match the loaded Doppler runtime');
-        }
-        const execution = await runtime.generate({
-          prompt: assignment.prompt,
-          generationConfig: assignment.generationConfig,
-          assignment
-        });
-        const receipt = await buildPoolReceipt({
-          assignment,
-          provider: registration,
-          model: assignment.model || runtime.getModelInfo(),
-          runtime: runtime.getRuntimeInfo(),
-          execution
-        });
-        const signedReceipt = await signProviderReceipt(receipt, activeKeyPair.privateKey);
+        const { execution, receipt: signedReceipt } = await runLocalAssignment(assignment, { promptPayload, prompt });
         const commitRevealResult = await runCommitReveal({
           assignment,
           execution,

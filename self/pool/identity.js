@@ -154,7 +154,41 @@ export async function getPoolSigningKeyPair(kind = 'user') {
   return keyPair;
 }
 
-export function createPoolIdentity(kind = 'user') {
+export function createLocalPoolIdentity(kind = 'user') {
+  const role = safeKind(kind);
+  let cachedIdentity = null;
+  let cachedKeyPair = null;
+  return {
+    kind: role,
+    async resolve() {
+      if (!cachedIdentity) {
+        const roleId = getLocalRoleId(role);
+        cachedIdentity = {
+          kind: role,
+          source: 'local_anonymous',
+          authUid: null,
+          userId: roleId,
+          roleId,
+          isAuthenticated: false
+        };
+      }
+      return cachedIdentity;
+    },
+    async getRoleId() {
+      return (await this.resolve()).roleId;
+    },
+    async getSigningKeyPair() {
+      if (!cachedKeyPair) cachedKeyPair = await getPoolSigningKeyPair(role);
+      return cachedKeyPair;
+    },
+    async getAuthToken() {
+      return null;
+    }
+  };
+}
+
+export function createPoolIdentity(kind = 'user', { localOnly = false } = {}) {
+  if (localOnly) return createLocalPoolIdentity(kind);
   const role = safeKind(kind);
   let cachedIdentity = null;
   let cachedKeyPair = null;
@@ -178,6 +212,7 @@ export function createPoolIdentity(kind = 'user') {
 }
 
 export default {
+  createLocalPoolIdentity,
   createPoolIdentity,
   getPoolAuthToken,
   getLocalRoleId,

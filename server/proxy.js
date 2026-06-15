@@ -484,6 +484,11 @@ app.use((req, res, next) => {
   next();
 });
 
+app.use('/pool', express.static(path.join(__dirname, '..', 'self', 'pool'), {
+  index: false,
+  fallthrough: true
+}));
+
 app.use('/pool', createPoolRouter({
   ...(configuredPoolStore ? { store: configuredPoolStore } : {}),
   ...configuredPoolAuth,

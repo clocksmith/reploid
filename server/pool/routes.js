@@ -72,8 +72,11 @@ const extractBearerToken = (req) => {
   return match ? match[1].trim() : null;
 };
 
-const isPublicDiscoveryRoute = (req) => req.method === 'GET'
-  && (req.path === '/deployment/check' || req.path === '/status' || req.path === '/policies' || req.path === '/config');
+const isPublicDiscoveryRoute = (req) => (
+  req.path.startsWith('/peer/rooms/')
+  || (req.method === 'GET'
+    && (req.path === '/deployment/check' || req.path === '/status' || req.path === '/policies' || req.path === '/config'))
+);
 
 const normalizeUid = (uid) => String(uid || '').replace(/[^a-z0-9_-]/gi, '_');
 const roleIdForUid = (role, uid) => `${role}_${normalizeUid(uid)}`;
@@ -149,8 +152,38 @@ const SIGNAL_TYPES = new Set(activeTransportConfig.signalingAllowedTypes || []);
 const MAX_SIGNAL_PAYLOAD_BYTES = Number(process.env.POOL_MAX_SIGNAL_PAYLOAD_BYTES || deploymentSignalingConfig.maxPayloadBytes || 64 * 1024);
 const MAX_SIGNAL_MESSAGES_PER_POLL = Number(process.env.POOL_MAX_SIGNAL_MESSAGES_PER_POLL || deploymentSignalingConfig.maxMessagesPerPoll || 100);
 const MAX_SIGNAL_SESSION_TTL_MS = Number(process.env.POOL_SIGNAL_SESSION_TTL_MS || deploymentSignalingConfig.sessionTtlMs || 10 * 60 * 1000);
+const MAX_PEER_ROOM_PAYLOAD_BYTES = Number(process.env.POOL_MAX_PEER_ROOM_PAYLOAD_BYTES || deploymentSignalingConfig.maxPeerRoomPayloadBytes || 64 * 1024);
+const MAX_PEER_ROOM_MESSAGES_PER_POLL = Number(process.env.POOL_MAX_PEER_ROOM_MESSAGES_PER_POLL || deploymentSignalingConfig.maxPeerRoomMessagesPerPoll || 100);
+const MAX_PEER_ROOM_MESSAGE_TTL_MS = Number(process.env.POOL_PEER_ROOM_MESSAGE_TTL_MS || deploymentSignalingConfig.peerRoomMessageTtlMs || 2 * 60 * 1000);
+const PEER_ROOM_MESSAGE_TYPES = new Set([
+  'provider-advert-request',
+  'provider-advert',
+  'peer-run-request',
+  'peer-run-accepted',
+  'webrtc-signal'
+]);
 
 const jsonByteLength = (value) => Buffer.byteLength(JSON.stringify(value ?? null), 'utf8');
+
+const peerRoomMessageFromPeerId = (message = {}) => {
+  const body = message.body || {};
+  return body.fromPeerId
+    || body.providerId
+    || body.requesterId
+    || body.advert?.fromPeerId
+    || body.advert?.body?.providerId
+    || body.intent?.fromPeerId
+    || body.intent?.body?.requesterId
+    || body.assignment?.requesterId
+    || body.assignment?.providerId
+    || body.signal?.fromPeerId
+    || null;
+};
+
+const peerRoomPayloadLooksForbidden = (message = {}) => {
+  const text = JSON.stringify(message || {});
+  return /"prompt"\s*:|"outputText"\s*:|"tokenIds"\s*:|"receipt"\s*:|"modelShard"\s*:/i.test(text);
+};
 
 const toEpochMs = (value) => {
   if (typeof value === 'number') return value;
@@ -806,6 +839,66 @@ export function createPoolRouter({ store = poolStore, verifyAuthToken = null, re
       after: Number(req.query.after || 0),
       peerId,
       limit: MAX_SIGNAL_MESSAGES_PER_POLL
+    });
+    return res.json({ messages });
+  }));
+
+  router.post('/peer/rooms/:roomId/messages', asyncRoute(async (req, res) => {
+    if (typeof store.appendPeerRoomMessage !== 'function') {
+      return res.status(501).json({ error: 'peer room relay is not supported by this store' });
+    }
+    const roomId = String(req.params.roomId || '').trim();
+    if (!roomId) return res.status(400).json({ error: 'roomId is required' });
+    const body = req.body || {};
+    if (body.peerRoomVersion !== 'reploid_peer_room/v1') {
+      return res.status(400).json({ error: 'peerRoomVersion mismatch' });
+    }
+    if (body.roomId && body.roomId !== roomId) {
+      return res.status(400).json({ error: 'roomId mismatch' });
+    }
+    if (!PEER_ROOM_MESSAGE_TYPES.has(body.type)) {
+      return res.status(400).json({ error: 'peer room message type is not allowed' });
+    }
+    if (jsonByteLength(body) > MAX_PEER_ROOM_PAYLOAD_BYTES) {
+      return res.status(413).json({ error: 'peer room message exceeds metadata size limit' });
+    }
+    if (peerRoomPayloadLooksForbidden(body)) {
+      return res.status(400).json({ error: 'peer room relay must not carry prompt, output, receipt, token, or model payloads' });
+    }
+    const now = Date.now();
+    const requestedExpiresAt = Number(body.relay?.expiresAt || body.expiresAt || 0);
+    const maxExpiresAt = now + MAX_PEER_ROOM_MESSAGE_TTL_MS;
+    const expiresAt = Number.isFinite(requestedExpiresAt) && requestedExpiresAt > now
+      ? Math.min(requestedExpiresAt, maxExpiresAt)
+      : maxExpiresAt;
+    const message = await store.appendPeerRoomMessage(roomId, {
+      relayId: body.relay?.relayId || body.relayId || null,
+      fromPeerId: body.relay?.fromPeerId || body.fromPeerId || peerRoomMessageFromPeerId(body),
+      message: {
+        ...body,
+        roomId,
+        relay: {
+          ...(body.relay || {}),
+          expiresAt
+        }
+      },
+      type: body.type,
+      createdAt: Number(body.relay?.createdAt || body.createdAt || now),
+      expiresAt
+    });
+    return res.status(201).json({ message });
+  }));
+
+  router.get('/peer/rooms/:roomId/messages', asyncRoute(async (req, res) => {
+    if (typeof store.listPeerRoomMessages !== 'function') {
+      return res.status(501).json({ error: 'peer room relay is not supported by this store' });
+    }
+    const roomId = String(req.params.roomId || '').trim();
+    if (!roomId) return res.status(400).json({ error: 'roomId is required' });
+    const messages = await store.listPeerRoomMessages(roomId, {
+      after: Number(req.query.after || 0),
+      peerId: req.query.peerId || null,
+      limit: Math.min(Number(req.query.limit || MAX_PEER_ROOM_MESSAGES_PER_POLL), MAX_PEER_ROOM_MESSAGES_PER_POLL)
     });
     return res.json({ messages });
   }));

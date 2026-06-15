@@ -1,6 +1,7 @@
-# Browser Inference Pool
+# Poolday Browser Inference
 
-Reploid now owns the product layer for receipt-backed browser-local inference.
+Poolday is the product layer for receipt-backed browser-local inference.
+Reploid supplies the governed browser substrate underneath it.
 
 The product claim is narrow:
 
@@ -17,8 +18,8 @@ Do not describe this as trustless compute, hardware-attested inference, or guara
 | Route | Purpose |
 |-------|---------|
 | `/` | Public product home |
-| `/run` | Requester prompt submission and receipt acceptance |
-| `/contribute` | Browser provider registration and assignment execution |
+| `/run` | Requester peer run, receipt display, and local acceptance |
+| `/contribute` | Browser provider peer listener with manual hosted diagnostics |
 | `/agents` | Agent SDK, policy-routed job submission, polling, and receipt acceptance surface |
 | `/receipts` | Receipt lookup and local artifact verification |
 | `/reputation` | Provider reputation, pool metrics, deployment check |
@@ -52,14 +53,22 @@ Model bytes should not be served from Firebase Hosting or the Cloud Run coordina
 | Tokenizer | `<modelId>/<manifestHash>/tokenizer.json` |
 | Shards | `<modelId>/<manifestHash>/shards/*` |
 
-Browser providers derive artifact URLs from `window.REPLOID_POOL_MODEL_BASE_URL` through `self/pool/model-contract.js`. The storage backend can be Cloudflare R2, Hugging Face, IPFS, or another CDN. The receipt identity does not include the storage URL; it includes the exact model id, model hash, manifest hash, runtime, and backend. Providers cache fetched model artifacts in OPFS after first load.
+Browser providers derive artifact URLs from `window.REPLOID_POOL_MODEL_BASE_URL` through `self/pool/model-contract.js`. The storage backend can be object storage, a model hub, IPFS, or another CDN. The receipt identity does not include the storage URL; it includes the exact model id, model hash, manifest hash, runtime, and backend. Providers cache fetched model artifacts in OPFS after first load.
 
-Recommended implementation order:
+Current hosted implementation order:
 
 1. Cloud control plane for assignment, verification, points, and reputation.
 2. Offloaded model artifacts with manifest hash checks.
 3. P2P prompt, output, and full receipt payloads.
 4. P2P ring traffic for quorum policies.
+
+Target migration order:
+
+1. Signed peer-message envelopes.
+2. WebRTC peer discovery and job-intent gossip.
+3. Deterministic peer-side assignment and ring formation.
+4. WebRTC commit/reveal, receipt, and acceptance exchange.
+5. Replicated receipt, points, and reputation event log.
 
 ---
 
@@ -88,7 +97,7 @@ The signed receipt binds this exact object. At execution time only, `self/pool/d
 | `fastest_receipt` | `T1_signed_receipt` | One eligible browser provider returns a signed assignment-bound receipt |
 | `canary_audited` | `T2_canary_audited` | One eligible browser provider with passing canary history returns a signed receipt |
 | `redundant_agreement` | `T3_redundant_agreement` | Multiple independent browser providers must return matching output and token hashes |
-| `ring_quorum_receipt` | `adaptive_T1_to_T4_ring_quorum_receipt` | One to four exact-model browser providers run the same deterministic assignment in a coordinator-ordered ring; majority matching token/output hashes form the accepted result |
+| `ring_quorum_receipt` | `adaptive_T1_to_T4_ring_quorum_receipt` | One to four exact-model browser providers run the same deterministic assignment in a deterministic ring; majority matching token/output hashes form the accepted result |
 
 ## Ring quorum policy
 
@@ -101,7 +110,7 @@ Ring behavior:
 - `N = 3`: `T3_majority_ring_receipt`; any two matching receipts form quorum. This is the best default trust/latency balance.
 - `N = 4`: `T4_max_ring_quorum_receipt`; any three matching receipts form quorum. This is the maximum launch ring size before coordination overhead dominates.
 
-The coordinator selects up to four fresh, available, exact-model providers, derives a deterministic ring order from the job and provider set, and writes the same ring commitment into each assignment. Each provider still runs full-model Doppler inference locally through the public browser runtime. Reploid does not claim distributed KV sharding or ring-reduced attention until Doppler exposes those public execution surfaces.
+In hosted compatibility mode, the coordinator selects up to four fresh, available, exact-model providers, derives a deterministic ring order from the job and provider set, and writes the same ring commitment into each assignment. In the browser-room peer path, the requester collects signed provider adverts, derives the same deterministic assignment plan locally, opens one WebRTC session per selected provider, and accepts only a receipt set that reaches the configured hash quorum. Each provider still runs full-model Doppler inference locally through the public browser runtime. Reploid does not claim distributed KV sharding or ring-reduced attention until Doppler exposes those public execution surfaces.
 
 Ring agreement checks:
 
@@ -211,21 +220,25 @@ Receipts for ring assignments are accepted only after:
 
 ---
 
-## Hybrid P2P anchor mode
+## Current hosted and peer-room modes
 
-The recommended hosted mode is `hybrid_p2p_anchor`:
+The current hosted mode is `hybrid_p2p_anchor`. In this mode, WebRTC is the primary transit for inference payloads and the browser-ring agreement path. The cloud coordinator is still the bootstrap, policy, receipt, and ledger anchor for hosted diagnostic and API flows. Treat this as a transitional deployment shape, not the final Reploid control plane.
+
+The primary browser-room path used by `/run`, `/contribute`, and `/agents` does not create hosted jobs or poll hosted assignments. It uses signed peer intents, signed provider adverts, deterministic local assignment, WebRTC DataChannel prompt delivery, provider receipts, local receipt agreement, requester or agent countersignature, and signed points/reputation events. Local rooms use same-origin `BroadcastChannel`. Remote rooms can use the optional `/pool/peer/rooms/:roomId/messages` metadata relay for signed room envelopes and WebRTC signaling. The relay does not create jobs, assign providers, decide quorum, mutate reputation, or carry prompt/output/full receipt/model payloads.
 
 | Layer | Owner |
 |-------|-------|
-| Job id, assignment hash, policy, model identity | Cloud coordinator |
-| SDP/ICE rendezvous metadata | Cloud signaling session |
+| Job id, assignment hash, policy, model identity | Browser-room requester locally, cloud coordinator for hosted compatibility |
+| SDP/ICE rendezvous metadata | BroadcastChannel locally, optional peer-room metadata relay remotely |
 | Prompt payload | WebRTC DataChannel |
 | Output payload | WebRTC DataChannel |
 | Full receipt payload | WebRTC DataChannel or content-addressed off-cloud storage |
-| Receipt hash, agreement hash, requester acceptance, ledger mutation | Cloud coordinator |
-| Points and reputation | Cloud coordinator |
+| Provider-to-provider ring payloads | WebRTC DataChannel |
+| Quorum agreement transcript | Browser ring over WebRTC; hosted flow can anchor hashes in cloud |
+| Receipt hash, agreement hash, requester acceptance, ledger mutation | Browser-room signed events; cloud coordinator for hosted compatibility |
+| Points and reputation | Deterministic browser-room reducer; cloud coordinator for hosted compatibility |
 
-Cloud signaling messages are metadata only: offer, answer, ICE candidate, close, and ping. Prompts, outputs, token streams, model shards, and ring payloads should not be sent through the signaling endpoint. Direct peer connection uses STUN where possible. TURN is a fallback for restrictive NATs and should be treated as paid bandwidth risk.
+Cloud signaling and peer-room relay messages are metadata only. Prompts, outputs, token streams, full receipts, model shards, and ring payloads should not be sent through signaling or relay endpoints. Direct peer connection uses STUN where possible. TURN is a fallback for restrictive NATs and should be treated as paid bandwidth risk.
 
 Browser modules:
 
@@ -233,11 +246,56 @@ Browser modules:
 import { createPoolSdkSignalingAdapter, createSignalingChannel } from './pool/p2p-signaling.js';
 import { createAssignmentP2PPayloadChannel, createP2PRequesterTransport, createP2PProviderTransport } from './pool/p2p-transport.js';
 import { createPromptPayload, createExecutionResultPayload, createReceiptPayload } from './pool/p2p-payload.js';
+import { createPeerControlPlane, buildPeerAssignmentPlan } from './pool/peer-control-plane.js';
+import { createPeerProviderNode, runPeerJob } from './pool/peer-room.js';
+import { createPeerRoomBusFactory } from './pool/peer-rendezvous.js';
 ```
 
 `createAssignmentP2PPayloadChannel()` creates or attaches to the cloud signaling session, builds the WebRTC signaling channel, and sends versioned prompt/output/receipt envelopes only through the DataChannel transport. The SDK signaling routes carry only offer, answer, ICE candidate, close, and ping messages. Ring payload sessions can be rejected until the coordinator opens the configured reveal gate; this keeps pre-reveal provider outputs from becoming copyable P2P data.
 
-The cloud remains authoritative for abuse, receipt anchoring, requester acceptance, points, reputation, and canary policy. P2P transport reduces cloud bandwidth and prompt/output exposure; it does not replace the ledger trust boundary.
+In the current hosted mode, the cloud remains authoritative for abuse gates, policy admission, receipt anchoring, requester acceptance, points, reputation, and canary policy. It should not carry the main inference payload or decide model-result agreement by itself. WebRTC DataChannel is the main transit. For ring policies, browser providers exchange commit/reveal and receipt payloads over WebRTC, reach agreement on matching output and token hashes, then anchor the resulting receipt and agreement hashes through the coordinator.
+
+## Target decentralized control plane
+
+The target Reploid control plane is also peer-to-peer. The coordinator should disappear from the normal path. Any server should be optional bootstrap, public anchor, or compatibility bridge.
+
+The browser implementation starts in `self/pool/peer-control-plane.js`, `self/pool/peer-room.js`, and `self/pool/peer-rendezvous.js`. The control-plane module defines signed peer messages, prompt payload validation, deterministic peer assignment planning, receipt agreement, signed ledger events, DataChannel-compatible peer buses, and deterministic points/reputation reducers. The peer room module wires the visible `/run`, `/contribute`, and `/agents` path through signed peer intents, provider adverts, WebRTC signaling, DataChannel prompt delivery, multi-provider receipt return, quorum agreement, requester/agent countersignature, and ledger-event gossip without hosted job creation or hosted assignment polling. The rendezvous module supplies local BroadcastChannel rooms, in-memory test rooms, shareable invite URLs, and optional metadata relay buses.
+
+| Layer | Target owner |
+|-------|--------------|
+| Peer identity | Local signing keys plus optional external identity attestations |
+| Peer discovery | WebRTC peer graph with optional bootstrap rendezvous |
+| Provider capability advertisement | Signed peer messages over WebRTC |
+| Job intent | Signed requester or agent intent gossiped over WebRTC |
+| Assignment selection | Deterministic local protocol from intent hash, provider adverts, policy, model identity, runtime profile, and reputation evidence |
+| Prompt payload | WebRTC DataChannel |
+| Output payload | WebRTC DataChannel |
+| Commit/reveal payloads | WebRTC DataChannel |
+| Quorum agreement | Browser ring consensus over WebRTC |
+| Receipt acceptance | Requester or agent countersignature over WebRTC |
+| Points and reputation | Replicated receipt/event log with deterministic reducers |
+| Public anchoring | Optional hash publication, not control-plane authority |
+
+The destination flow is: requester signs an intent, peers route it, eligible providers self-select through the policy protocol, providers exchange commits and reveals, the ring reaches agreement, the requester countersigns the accepted receipt set, and peers gossip the resulting receipt and reputation events. Servers can help peers find each other, but they should not be required to create jobs, assign providers, decide consensus, or mutate reputation.
+
+Requester and provider clients expose the peer lane directly:
+
+```javascript
+const intent = await requester.createPeerJobIntent({ prompt, policyId, modelRequirements });
+const advert = await provider.createPeerProviderAdvert();
+const plan = await buildPeerAssignmentPlan({ jobIntent: intent.intent, providerAdverts: [advert] });
+const promptPayload = await requester.createPeerPromptPayload({ assignment: plan.assignment, prompt: intent.prompt });
+const result = await provider.executePeerAssignment(plan.assignment, { promptPayload });
+```
+
+The visible browser routes use the room wrapper:
+
+```javascript
+const providerNode = createPeerProviderNode({ roomId, providerClient });
+await providerNode.start({ models });
+
+const result = await runPeerJob({ roomId, requesterClient, prompt, modelRequirements });
+```
 
 ## SDK calls
 
@@ -320,16 +378,16 @@ Production canary creation should use a Firebase custom claim such as `poolCoord
 
 The provider tab does not need Node or Bun. Browser providers use `/contribute`.
 
-Provider flow:
+Primary peer provider flow:
 
 1. Load the Doppler model through the browser WebGPU runtime.
 2. Build a browser runtime profile from WebGPU adapter data, browser hints, Doppler runtime/backend, model identity, and shader/kernel profile hints.
-3. Register exact model identity, runtime profile, runtime profile hash, device evidence, availability, public key, and accepted policies.
-4. Run a provider step.
-5. The step sends a heartbeat, claims one assigned job as `running`, verifies the assignment model identity against the loaded Doppler runtime, executes it if present, builds a signed receipt, submits an assignment commitment when the coordinator exposes commit/reveal, submits reveal after the reveal gate opens, submits the signed receipt, and records local history.
-6. Providers can inspect runtime profile, points, reputation, assignment phase results, verifier results, and commit/reveal state from the same page.
+3. Create a signed provider advert that binds model identity, runtime profile hash, availability, public key, and accepted policies.
+4. Listen in a peer room for signed requester intents.
+5. Accept a matching session, connect over WebRTC, receive the prompt over DataChannel, verify prompt hash and model identity, execute locally, return a signed receipt over DataChannel, and record local activity.
+6. Receive requester acceptance over DataChannel.
 
-The provider client exposes `runWorkerStep()` for this explicit tab loop. `/contribute` includes start/stop worker controls that repeatedly call this method; the loop is UI scheduling, not a separate execution protocol. Heartbeat returns `busy` while a provider has an `assigned` or `running` assignment. Scheduler eligibility requires a fresh heartbeat. Provider registration and assignment polling drain queued and retryable jobs, so requesters do not need to resubmit when the first eligible browser provider appears. Retryable states include assignment expiration, provider execution failure, rejected receipts, redundant-agreement disagreement, and ring-quorum disagreement. Retries exclude providers that already failed, timed out, returned an invalid receipt, or caused agreement failure for that job. Stale `assigned` and `running` assignments expire through the timeout penalty path.
+The provider client still exposes `runWorkerStep()` for the hosted diagnostic loop. Manual controls under `/contribute` can register, heartbeat, poll, execute, inspect points, and inspect reputation against the coordinator. Those controls are compatibility and operations tools, not the primary user path.
 
 ## Provider device evidence
 
@@ -404,7 +462,7 @@ Points are awarded only after:
 - The selected policy has reached its final state
 - The accepted result does not exceed the job's optional `maxPointSpend`
 
-Accepted work creates provider `points_awarded` events and a requester or agent `points_spent` event. For redundant agreement and ring quorum, acceptance is blocked until the coordinator has a final matching receipt set. Accepted providers split the point event across that set, and the requester or agent is charged the resulting total. Ring quorum uses `ring_quorum_receipt_accepted` and `ring_quorum_receipt_spend` ledger reasons instead of redundant-agreement reasons.
+Accepted work creates provider `points_awarded` events and a requester or agent `points_spent` event. For redundant agreement and ring quorum, acceptance is blocked until there is a final matching receipt set. In the browser-room path, `buildPeerReceiptAgreement()` forms the accepted set and `createPeerLedgerEvents()` signs provider credit, requester debit, and reputation events that peers can reduce deterministically. In hosted compatibility mode, the coordinator performs the same acceptance gate and ledger projection. Ring quorum uses `ring_quorum_receipt_accepted` and `ring_quorum_receipt_spend` ledger reasons instead of redundant-agreement reasons.
 
 Reputation records:
 
@@ -495,13 +553,13 @@ When `POOL_STORE=firestore` is set, the server must initialize Firebase Admin an
 
 ## Doppler boundary
 
-Reploid must not deep-import Doppler internals for the pool product. The browser runtime adapter loads through the public Doppler facade and calls public generation methods on the loaded handle.
+Poolday must not deep-import Doppler internals for the pool product. The browser runtime adapter loads through the public Doppler facade and calls public generation methods on the loaded handle.
 
 Firebase Hosting serves the app as browser ES modules. A hosted deployment must provide Doppler through a browser-resolvable public module URL or an attached public module/handle. Supported globals are `window.REPLOID_DOPPLER_MODULE_URL`, `window.REPLOID_DOPPLER_MODULE_URLS`, `window.REPLOID_DOPPLER_MODULE`, `window.REPLOID_DOPPLER_LOAD_OPTIONS`, and `window.REPLOID_POOL_ATTACH_DOPPLER_HANDLE(handle, model, runtimeInfo)`. Bare package imports are only a fallback for bundled or import-map deployments.
 
 The adapter supports both public Doppler call shapes: `generate(prompt, options)` / `generateText(prompt, options)` and object-style provider calls using `{ prompt, samplingOptions }`. Pool policy names stay product-owned; only the adapter maps them to Doppler `GenerateOptions`.
 
-If the public Doppler handle does not expose token ids, Reploid records the missing evidence as a warning and still binds the available output artifact. Stronger token-level verification needs a narrow public Doppler export.
+If the public Doppler handle does not expose token ids, Poolday records the missing evidence as a warning and still binds the available output artifact. Stronger token-level verification needs a narrow public Doppler export.
 
 ---
 
@@ -555,7 +613,13 @@ Browser smoke after deployment:
 REPLOID_POOL_SMOKE_URL=https://<hosting-domain> npm run smoke:pool
 ```
 
-The smoke script opens `/`, `/run`, `/contribute`, `/agents`, `/receipts`, `/reputation`, and `/0`, then checks `/pool/deployment/check` from the browser context.
+Local route and peer-flow smoke:
+
+```bash
+REPLOID_POOL_SMOKE_ALLOW_LOCAL=1 npm run smoke:pool -- http://127.0.0.1:8000
+```
+
+The smoke script opens `/`, `/run`, `/contribute`, `/agents`, `/receipts`, `/reputation`, and `/0`, proves a provider/requester browser-room receipt flow, then checks `/pool/deployment/check` from the browser context. Local mode requires the deployment check route to respond with config identity. Deployed mode requires production readiness.
 
 ---
 
@@ -588,25 +652,33 @@ Rules:
 
 ## Production retrospective
 
-Lane B now has a browser product shape instead of only protocol notes. The provider tab can load a Doppler runtime through hosted-browser-safe module paths, extract runtime evidence, register model identity and runtime profile hash, claim assignments, run generation locally, submit commit/reveal payloads, then submit signed receipts.
+Lane B now has a browser product shape instead of only protocol notes. The provider tab can load a Doppler runtime through hosted-browser-safe module paths, extract runtime evidence, create signed provider adverts, accept peer-room work, run generation locally, return signed receipts over WebRTC, and consume requester/agent acceptance plus signed ledger events. The hosted diagnostic lane can still register model identity and runtime profile hash, claim coordinator assignments, submit commit/reveal payloads, then submit signed receipts.
 
-The design rule is that browser product code stays subordinate to Lane A. The browser does not invent trust rules. It consumes `/pool/config`, `/pool/policies`, assignment contracts, commit/reveal routes, receipt routes, and signaling routes. Authority stays in the coordinator and canonical config while browser providers do useful work.
+The design rule is that browser product code stays subordinate to canonical config, not to coordinator-owned jobs. The browser does not invent trust rules. Peer-first routes consume `pool-config.json`, signed peer messages, deterministic assignment planning, receipt agreement, and deterministic reducers. Hosted compatibility routes consume `/pool/config`, `/pool/policies`, assignment contracts, commit/reveal routes, receipt routes, and signaling routes.
 
 Runtime profile binding is required correctness. The verifier expects `receipt.verification.runtimeProfileHash`, and browser receipts carry it. Without that field, a provider could register one runtime profile but submit receipts that do not bind to it.
 
 Requester and agent acceptance bind the same agreement summary shape as the server: accepted receipt set, policy config version/hash, provider point split, point spend, and agreement hash. That makes requester countersignatures bind the economic effect, not merely one receipt hash.
 
-P2P stays narrowly framed. Cloud signaling carries only WebRTC metadata. Prompt, output, token, and full receipt envelopes can move through DataChannel after the configured gates. For ring jobs, reveal-gated payload sessions protect against copycat peers seeing outputs before they have anchored commitments.
+WebRTC is the intended main transit and browser-ring consensus path. In the current hosted mode, cloud signaling carries only WebRTC metadata. Prompt, output, token, and full receipt envelopes move through DataChannel after the configured gates. For ring jobs, reveal-gated payload sessions protect against copycat peers seeing outputs before they have anchored commitments.
 
-The UI now surfaces product evidence summaries: status, trust tier, agreement state, spend, runtime hash, output hash, token hash, verifier result, and raw JSON for diagnostics.
+The UI now surfaces product evidence summaries: status, trust tier, agreement state, spend, runtime hash, output hash, token hash, verifier result, local peer ledger projection, and raw JSON for diagnostics.
 
-The production line is now:
+The current hosted production line is:
 
 1. Keep config as code in `self/pool/pool-config.json`.
-2. Keep cloud authority for identity, policy, assignments, receipts, acceptance, points, and reputation.
+2. Keep cloud authority for hosted diagnostic identity, policy, assignments, receipt anchoring, acceptance, points, and reputation.
 3. Keep model artifacts offloaded and content-addressed.
-4. Keep P2P transport as bandwidth/privacy optimization, not trust authority.
+4. Keep WebRTC as the primary prompt/output/receipt transit and ring consensus path.
 5. Keep browser providers exact-model, runtime-profile-bound, commit-reveal-gated, and reputation-governed.
+
+The target production line is:
+
+1. Keep signed peer messages as the control-plane primitive.
+2. Keep WebRTC as both control-plane gossip and data-plane transit.
+3. Keep assignment selection deterministic and locally verifiable.
+4. Keep receipt, agreement, points, and reputation reducers deterministic across peers.
+5. Keep servers optional: metadata relay, bridge, archive, or public anchor only.
 
 ---
 

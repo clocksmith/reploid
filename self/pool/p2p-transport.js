@@ -264,7 +264,7 @@ export function createP2PTransport({
         return;
       }
 
-      void signaling.sendIceCandidate(candidateToPayload(event.candidate)).catch((error) => {
+      void Promise.resolve(signaling.sendIceCandidate(candidateToPayload(event.candidate))).catch((error) => {
         fail(error);
       });
     };

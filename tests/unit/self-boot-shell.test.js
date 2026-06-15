@@ -19,14 +19,16 @@ describe('self-first boot shell', () => {
     expect(SELF_BOOT_SPEC.baseHref).toBe('/');
   });
 
-  it('boots both HTML entry shells from /kernel/boot.js', () => {
+  it('boots the kernel shell directly and routes the public shell at runtime', () => {
     const selfKernelHtml = readRepoFile('self/kernel/index.html');
     const sourceIndexHtml = readRepoFile('self/index.html');
 
     expect(selfKernelHtml).toContain('href="/"');
     expect(selfKernelHtml).toMatch(/src="\/kernel\/boot\.js\?v=\d+"/);
     expect(sourceIndexHtml).toContain('href="/"');
-    expect(sourceIndexHtml).toMatch(/src="\/kernel\/boot\.js\?v=\d+"/);
+    expect(sourceIndexHtml).toContain("import('/ui/pool-home/index.js')");
+    expect(sourceIndexHtml).toContain('const bootPath = `/kernel/boot.js?v=${window.REPLOID_BUILD_VERSION}`;');
+    expect(sourceIndexHtml).toContain('await import(bootPath);');
   });
 
   it('maps canonical /self files to the public browser tree', () => {
