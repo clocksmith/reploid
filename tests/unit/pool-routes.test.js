@@ -672,4 +672,59 @@ describe('pool signaling production guards', () => {
     expect(oversized.status).toBe(413);
     expect(oversized.body.error).toBe('signal payload exceeds metadata size limit');
   });
+
+  it('relays peer-room rendezvous envelopes without accepting inference payloads', async () => {
+    const roomId = 'peer_room_route_test';
+    const published = await dispatchJson(router, `/peer/rooms/${roomId}/messages`, {
+      method: 'POST',
+      body: {
+        peerRoomVersion: 'reploid_peer_room/v1',
+        roomId,
+        type: 'provider-advert',
+        body: {
+          advert: {
+            fromPeerId: 'provider_route',
+            body: {
+              providerId: 'provider_route'
+            }
+          }
+        },
+        relay: {
+          relayId: 'relay_route_1',
+          fromPeerId: 'provider_route',
+          createdAt: 1000,
+          expiresAt: Date.now() + 10000
+        }
+      }
+    });
+
+    expect(published.status).toBe(201);
+    expect(published.body.message).toMatchObject({
+      roomId,
+      fromPeerId: 'provider_route',
+      type: 'provider-advert'
+    });
+
+    const listed = await dispatchJson(router, `/peer/rooms/${roomId}/messages?peerId=provider_route`);
+    expect(listed.status).toBe(200);
+    expect(listed.body.messages).toHaveLength(0);
+
+    const listedForRequester = await dispatchJson(router, `/peer/rooms/${roomId}/messages?peerId=requester_route`);
+    expect(listedForRequester.status).toBe(200);
+    expect(listedForRequester.body.messages[0].message.type).toBe('provider-advert');
+
+    const forbidden = await dispatchJson(router, `/peer/rooms/${roomId}/messages`, {
+      method: 'POST',
+      body: {
+        peerRoomVersion: 'reploid_peer_room/v1',
+        roomId,
+        type: 'peer-run-request',
+        body: {
+          prompt: 'must not be relayed'
+        }
+      }
+    });
+    expect(forbidden.status).toBe(400);
+    expect(forbidden.body.error).toContain('must not carry');
+  });
 });

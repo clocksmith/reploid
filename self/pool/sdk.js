@@ -122,6 +122,22 @@ export function createPoolSdk({ baseUrl = DEFAULT_BASE_URL, authTokenProvider = 
       const suffix = query.toString() ? `?${query.toString()}` : '';
       return requestJson(`/signaling/sessions/${encodeURIComponent(sessionId)}/messages${suffix}`, { baseUrl, authTokenProvider });
     },
+    publishPeerRoomMessage(roomId, message = {}) {
+      return requestJson(`/peer/rooms/${encodeURIComponent(roomId)}/messages`, {
+        baseUrl,
+        method: 'POST',
+        body: message,
+        authTokenProvider
+      });
+    },
+    listPeerRoomMessages(roomId, { after = 0, peerId = null, limit = null } = {}) {
+      const query = new URLSearchParams();
+      if (after) query.set('after', String(after));
+      if (peerId) query.set('peerId', String(peerId));
+      if (limit) query.set('limit', String(limit));
+      const suffix = query.toString() ? `?${query.toString()}` : '';
+      return requestJson(`/peer/rooms/${encodeURIComponent(roomId)}/messages${suffix}`, { baseUrl, authTokenProvider });
+    },
     createCanaryAudit(payload) {
       return requestJson('/audits/canary', { baseUrl, method: 'POST', body: payload, authTokenProvider });
     },

@@ -193,6 +193,7 @@ export function createPoolStore() {
   const auditChallenges = new Map();
   const signalingSessions = new Map();
   const signalingMessages = new Map();
+  const peerRoomMessages = new Map();
 
   return {
     kind: 'memory',
@@ -487,6 +488,32 @@ export function createPoolStore() {
         if (message.expiresAt && toEpochMs(message.expiresAt) < Date.now()) return false;
         if (peerId && message.fromPeerId === peerId) return false;
         if (peerId && message.toPeerId && message.toPeerId !== peerId) return false;
+        return true;
+      }).slice(0, Number(limit || 100));
+    },
+    appendPeerRoomMessage(roomId, message = {}) {
+      const resolvedRoomId = String(roomId || '').trim();
+      if (!resolvedRoomId) return null;
+      const saved = {
+        ...message,
+        roomId: resolvedRoomId,
+        relayId: message.relayId || makeId('peer_room'),
+        fromPeerId: message.fromPeerId || null,
+        createdAt: Number(message.createdAt || Date.now()),
+        expiresAt: message.expiresAt || null,
+        receivedAt: nowIso()
+      };
+      const messages = peerRoomMessages.get(resolvedRoomId) || [];
+      messages.push(saved);
+      peerRoomMessages.set(resolvedRoomId, messages);
+      return saved;
+    },
+    listPeerRoomMessages(roomId, { after = 0, peerId = null, limit = 100 } = {}) {
+      const minCreatedAt = Number(after || 0);
+      return (peerRoomMessages.get(String(roomId || '').trim()) || []).filter((message) => {
+        if (Number(message.createdAt || 0) <= minCreatedAt) return false;
+        if (message.expiresAt && toEpochMs(message.expiresAt) < Date.now()) return false;
+        if (peerId && message.fromPeerId === peerId) return false;
         return true;
       }).slice(0, Number(limit || 100));
     },

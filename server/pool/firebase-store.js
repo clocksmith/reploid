@@ -25,6 +25,7 @@ const COLLECTIONS = Object.freeze({
   poolEvents: 'pool_events',
   signalingSessions: 'signaling_sessions',
   signalingMessages: 'signaling_messages',
+  peerRoomMessages: 'peer_room_messages',
   pointsLedger: 'points_ledger',
   reputationState: 'reputation_state',
   auditChallenges: 'audit_challenges'
@@ -603,6 +604,38 @@ export function createFirestorePoolStore({ firestore, collectionPrefix = '' } = 
           if (message.expiresAt && toEpochMs(message.expiresAt) < Date.now()) return false;
           if (peerId && message.fromPeerId === peerId) return false;
           if (peerId && message.toPeerId && message.toPeerId !== peerId) return false;
+          return true;
+        });
+    },
+    async appendPeerRoomMessage(roomId, message = {}) {
+      const resolvedRoomId = String(roomId || '').trim();
+      if (!resolvedRoomId) return null;
+      const relayId = message.relayId || makeId('peer_room');
+      const saved = {
+        ...message,
+        roomId: resolvedRoomId,
+        relayId,
+        fromPeerId: message.fromPeerId || null,
+        createdAt: Number(message.createdAt || Date.now()),
+        expiresAt: message.expiresAt || null,
+        receivedAt: nowIso()
+      };
+      return writeDoc(COLLECTIONS.peerRoomMessages, `${resolvedRoomId}_${relayId}`, saved, { merge: true });
+    },
+    async listPeerRoomMessages(roomId, { after = 0, peerId = null, limit = 100 } = {}) {
+      const resolvedRoomId = String(roomId || '').trim();
+      const minCreatedAt = Number(after || 0);
+      const snapshot = await collection(COLLECTIONS.peerRoomMessages)
+        .where('roomId', '==', resolvedRoomId)
+        .where('createdAt', '>', minCreatedAt)
+        .orderBy('createdAt', 'asc')
+        .limit(Number(limit || 100))
+        .get();
+      return snapshot.docs
+        .map((entry) => entry.data())
+        .filter((message) => {
+          if (message.expiresAt && toEpochMs(message.expiresAt) < Date.now()) return false;
+          if (peerId && message.fromPeerId === peerId) return false;
           return true;
         });
     },
