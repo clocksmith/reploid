@@ -1,6 +1,6 @@
-# Poolday TODO
+# Reploid Pool TODO
 
-Poolday is the market-facing browser inference network built on the Reploid substrate. Browser providers serve model runs through signed peer intents, WebRTC payload transit, receipts, verification, reputation, and requester acceptance. Public-facing product copy should use Poolday. Reploid should appear as the substrate, protocol, route, repo, or API namespace where that distinction matters.
+Reploid is the market-facing browser inference network and governed browser substrate. Browser providers serve model runs through signed peer intents, WebRTC payload transit, receipts, verification, reputation, and requester acceptance. Public-facing product copy should use Reploid.
 
 Canonical claim and deployment truth stay in [`pool-config.json`](./pool-config.json). Architecture and production contracts stay in [`../../docs/browser-inference-pool.md`](../../docs/browser-inference-pool.md).
 
@@ -32,7 +32,7 @@ The current Cloud Run and Firestore path is transitional. The target Reploid con
 
 ## Launch Proof
 
-- [ ] Deploy Poolday public hosting plus the Reploid Cloud Run coordinator with `POOL_BACKEND_ONLY=true`, `POOL_STORE=firestore`, Firebase Auth verification, required rewrites, commit-reveal support, and metadata-only signaling.
+- [ ] Deploy Reploid public hosting plus the Reploid Cloud Run coordinator with `POOL_BACKEND_ONLY=true`, `POOL_STORE=firestore`, Firebase Auth verification, required rewrites, commit-reveal support, and metadata-only signaling.
 - [ ] Run `npm run verify:pool -- --url <hosting-domain>` and record `/pool/deployment/check` with `ok: true`, config version, config hash, store mode, auth requirement, artifact base, and commit-reveal status.
 - [ ] Run `REPLOID_POOL_SMOKE_URL=<hosting-domain> npm run smoke:pool` and record route coverage for the public product surface.
 - [ ] Prove one full loop with WebRTC as the main transit: requester submit, provider load, provider register, assignment claim, Doppler generation, commit, reveal, receipt submit, verifier decision, requester acceptance, points update, and reputation update.
@@ -69,8 +69,8 @@ The current Cloud Run and Firestore path is transitional. The target Reploid con
 
 - [ ] Confirm the configured `doppler-gpu@0.4.3` browser module loads from the public module URL without import-map or bundler assumptions.
 - [ ] Add or consume a narrow public Doppler evidence export for token ids, transcript hashes, generation config, runtime profile hash, and backend identity.
-- [ ] Keep Poolday from deep-importing Doppler internals.
-- [ ] Show a visible comparison receipt for Doppler output fields versus Poolday receipt fields.
+- [ ] Keep Reploid from deep-importing Doppler internals.
+- [ ] Show a visible comparison receipt for Doppler output fields versus Reploid receipt fields.
 - [ ] Remove token-level evidence warning only after the configured public Doppler evidence export exists and tests assert it.
 
 ---
@@ -112,9 +112,9 @@ The current Cloud Run and Firestore path is transitional. The target Reploid con
 
 ## Strategic Wedge
 
-- [x] Keep the public front-door sentence: `Poolday is receipt-backed browser inference on WebRTC browser runtimes, quorum consensus, and receipts.`
-- [x] Treat external artifact storage as interchangeable byte delivery. Poolday owns the product execution, receipts, verification, reputation, and requester acceptance; Reploid supplies the substrate.
-- [x] Position Doppler as the browser inference engine. Poolday is the decentralized serving product; Reploid is the governed browser substrate underneath it.
+- [x] Keep the public front-door sentence: `Reploid is receipt-backed browser inference on WebRTC browser runtimes, quorum consensus, and receipts.`
+- [x] Treat external artifact storage as interchangeable byte delivery. Reploid owns product execution, receipts, verification, reputation, requester acceptance, and the browser substrate.
+- [x] Position Doppler as the browser inference engine. Reploid is the decentralized serving product and governed browser substrate.
 - [x] Treat WebRTC as both the target control plane and the default prompt/output/receipt transit.
 - [x] Avoid forbidden claims: `trustless`, `hardware-attested`, `guaranteed honest GPU execution`, and `decentralized AI compute marketplace at launch`.
 - [ ] Optimize for one public proof that a browser can do useful model work, produce an inspectable receipt, earn reputation, and serve an agent or requester.
@@ -128,7 +128,7 @@ The current Cloud Run and Firestore path is transitional. The target Reploid con
 - [ ] Do not make broad `/pool/**` Firebase backend rewrites.
 - [ ] Do not deep-import Doppler internals.
 - [ ] Do not let UI copy exceed `pool-config.json` claims.
-- [x] Present Poolday as the public product brand while keeping Reploid as the substrate identity.
+- [x] Present Reploid as the public product brand and substrate identity.
 - [ ] Do not treat Cloud Run or Firestore as the permanent Reploid authority.
 
 ---

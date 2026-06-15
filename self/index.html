@@ -8,7 +8,7 @@
     />
     <base id="reploid-base" href="/" />
     <link rel="icon" type="image/svg+xml" href="favicon.svg" />
-    <title>Poolday</title>
+    <title>Reploid</title>
     <script>
       window.REPLOID_BUILD_VERSION = '2026060701';
     </script>
@@ -25,7 +25,7 @@
       const productPaths = new Set(['/','/run','/contribute','/agents','/receipts','/reputation']);
       const productRoute = productPaths.has(pathname);
       if (productRoute) {
-        document.title = 'Poolday';
+        document.title = 'Reploid';
       } else if (pathname === '/0' || pathname === '/x') {
         document.title = 'Zero';
       } else {

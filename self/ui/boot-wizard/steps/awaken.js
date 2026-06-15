@@ -92,7 +92,8 @@ export function renderAwakenStep(state) {
         <button class="btn" data-action="advanced-settings">
           ${advancedOpen ? 'Hide advanced' : 'Advanced settings'}
         </button>
-        <button class="btn btn-lg btn-prism${isAwakening ? ' loading' : ''}"
+        <button class="btn btn-lg btn-primary btn-op${isAwakening ? ' loading' : ''}"
+                data-op="☇"
                 data-action="awaken"
                 id="awaken-btn"
                 ${blockedAttrs}

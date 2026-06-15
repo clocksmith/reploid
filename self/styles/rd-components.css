@@ -43,13 +43,25 @@
  */
 
 .btn {
+  --btn-air-bg: linear-gradient(
+    122deg,
+    color-mix(in srgb, #00ffff 5%, var(--bg)) 0%,
+    color-mix(in srgb, #ff0080 3%, var(--bg)) 42%,
+    color-mix(in srgb, #ffff00 4%, var(--bg)) 100%
+  );
+  --btn-air-bg-hover: linear-gradient(
+    122deg,
+    color-mix(in srgb, #00ffff 12%, var(--bg)) 0%,
+    color-mix(in srgb, #ff0080 7%, var(--bg)) 42%,
+    color-mix(in srgb, #ffff00 9%, var(--bg)) 100%
+  );
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: var(--space-sm);
   padding: var(--space-sm) var(--space-md);
-  border: var(--border-md) solid var(--fg);
-  background: var(--bg);
+  border: var(--border-md) solid color-mix(in srgb, var(--fg) 82%, #00ffff 18%);
+  background: var(--btn-air-bg);
   color: var(--fg);
   font-size: var(--font-size-base);
   font-weight: var(--font-set-weight);
@@ -57,16 +69,35 @@
   letter-spacing: var(--font-set-tracking);
   text-decoration: none;
   cursor: pointer;
+  box-shadow:
+    0 0 16px color-mix(in srgb, #00ffff 6%, transparent),
+    0 0 28px color-mix(in srgb, #ff0080 4%, transparent);
+  transition:
+    background var(--transition-fast),
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast),
+    color var(--transition-fast),
+    transform var(--transition-fast);
 }
 
 .btn:hover,
 .btn:active {
-  background: var(--fg);
-  color: var(--bg);
+  background: var(--btn-air-bg-hover);
+  border-color: color-mix(in srgb, var(--fg) 70%, #00ffff 30%);
+  color: var(--fg);
+  box-shadow:
+    inset 0 calc(-1 * var(--border-lg)) 0 color-mix(in srgb, #00ffff 54%, transparent),
+    0 0 20px color-mix(in srgb, #00ffff 10%, transparent),
+    0 0 30px color-mix(in srgb, #ff0080 6%, transparent);
 }
 
 .btn:active {
-  box-shadow: inset 0 0 0 var(--border-md) var(--bg);
+  transform: translateY(1px);
+  box-shadow:
+    inset 0 0 0 var(--border-sm) color-mix(in srgb, var(--fg) 62%, #00ffff 38%),
+    inset 0 calc(-1 * var(--border-lg)) 0 color-mix(in srgb, #ff0080 42%, transparent),
+    0 0 18px color-mix(in srgb, #ffff00 10%, transparent),
+    0 0 24px color-mix(in srgb, #00ffff 8%, transparent);
 }
 
 .btn:focus-visible {
@@ -74,18 +105,198 @@
   outline-offset: var(--border-sm);
 }
 
-/* Primary variant — starts inverted */
+/* Primary variant */
 .btn-primary {
-  background: var(--fg);
-  color: var(--bg);
+  background: linear-gradient(
+    122deg,
+    color-mix(in srgb, #00ffff 9%, var(--bg)) 0%,
+    color-mix(in srgb, #ff0080 5%, var(--bg)) 48%,
+    color-mix(in srgb, #ffff00 8%, var(--bg)) 100%
+  );
+  color: var(--fg);
+  border-color: var(--fg);
+  box-shadow:
+    inset 0 0 0 var(--border-md) color-mix(in srgb, var(--fg) 76%, transparent),
+    0 0 18px color-mix(in srgb, #00ffff 8%, transparent),
+    0 0 26px color-mix(in srgb, #ff0080 5%, transparent);
 }
 
 .btn-primary:hover {
-  box-shadow: inset 0 0 0 var(--border-md) var(--bg);
+  background: var(--btn-air-bg-hover);
+  box-shadow:
+    inset 0 0 0 var(--border-md) var(--fg),
+    inset 0 calc(-1 * var(--border-lg)) 0 color-mix(in srgb, #00ffff 58%, transparent),
+    0 0 22px color-mix(in srgb, #00ffff 12%, transparent),
+    0 0 32px color-mix(in srgb, #ff0080 7%, transparent);
 }
 
 .btn-primary:active {
-  box-shadow: inset 0 0 0 var(--border-lg) var(--bg);
+  box-shadow:
+    inset 0 0 0 var(--border-sm) color-mix(in srgb, var(--fg) 68%, #00ffff 32%),
+    inset 0 calc(-1 * var(--border-lg)) 0 color-mix(in srgb, #ff0080 48%, transparent),
+    0 0 18px color-mix(in srgb, #ffff00 12%, transparent),
+    0 0 24px color-mix(in srgb, #00ffff 8%, transparent);
+}
+
+/* Operation button.
+   For commands that cross a runtime or trust boundary. */
+.btn-op {
+  --op-cell: 2.05em;
+  --op-progress: 0;
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  min-height: 40px;
+  padding-left: calc(var(--op-cell) + var(--space-sm));
+  transition:
+    background var(--transition-fast),
+    color var(--transition-fast),
+    box-shadow var(--transition-fast),
+    transform var(--transition-fast);
+}
+
+.btn-op::before {
+  content: attr(data-op);
+  position: absolute;
+  inset-block: 0;
+  left: 0;
+  display: grid;
+  place-items: center;
+  width: var(--op-cell);
+  border-right: var(--border-md) solid currentColor;
+  background: linear-gradient(
+    145deg,
+    color-mix(in srgb, #00ffff 10%, var(--bg)) 0%,
+    color-mix(in srgb, #ff0080 5%, var(--bg)) 100%
+  );
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0;
+}
+
+.btn-op::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: var(--border-md);
+  background: currentColor;
+  opacity: 0.72;
+  transform: scaleX(var(--op-progress));
+  transform-origin: left center;
+  transition: transform var(--transition-normal);
+}
+
+.btn-op:hover {
+  --op-progress: 1;
+  transform: translateY(-1px);
+}
+
+.btn-op:hover::after {
+  transform: scaleX(1);
+}
+
+.btn-op:active {
+  transform: translateY(0);
+  box-shadow:
+    inset 0 0 0 var(--border-sm) color-mix(in srgb, var(--fg) 64%, #00ffff 36%),
+    inset 0 calc(-1 * var(--border-lg)) 0 color-mix(in srgb, #facc15 28%, #ff0080 24%),
+    0 0 14px color-mix(in srgb, #ffff00 10%, transparent),
+    0 0 20px color-mix(in srgb, #00ffff 7%, transparent);
+}
+
+.btn-primary.btn-op {
+  background: var(--btn-air-bg);
+  color: var(--fg);
+  box-shadow:
+    inset 0 0 0 var(--border-md) color-mix(in srgb, var(--fg) 78%, transparent),
+    0 0 18px color-mix(in srgb, #00ffff 8%, transparent),
+    0 0 28px color-mix(in srgb, #ff0080 5%, transparent);
+}
+
+.btn-primary.btn-op:hover,
+.btn-primary.btn-op:active {
+  background: var(--btn-air-bg-hover);
+  color: var(--fg);
+}
+
+.btn-primary.btn-op:active {
+  background: linear-gradient(
+    122deg,
+    color-mix(in srgb, #ff0080 8%, var(--bg)) 0%,
+    color-mix(in srgb, #ffff00 7%, var(--bg)) 50%,
+    color-mix(in srgb, #00ffff 9%, var(--bg)) 100%
+  );
+  box-shadow:
+    inset 0 0 0 var(--border-sm) color-mix(in srgb, var(--fg) 66%, #00ffff 34%),
+    inset 0 calc(-1 * var(--border-lg)) 0 color-mix(in srgb, #facc15 30%, #ff0080 24%),
+    0 0 14px color-mix(in srgb, #ffff00 11%, transparent),
+    0 0 22px color-mix(in srgb, #00ffff 8%, transparent);
+}
+
+.btn-primary.btn-op::before {
+  border-right-color: color-mix(in srgb, var(--fg) 60%, #00ffff 40%);
+  background: linear-gradient(
+    145deg,
+    color-mix(in srgb, #00ffff 16%, var(--bg)) 0%,
+    color-mix(in srgb, #ff0080 8%, var(--bg)) 100%
+  );
+  color: var(--fg);
+}
+
+.btn-primary.btn-op:hover::before,
+.btn-primary.btn-op:active::before {
+  border-right-color: color-mix(in srgb, var(--fg) 72%, #00ffff 28%);
+  background: linear-gradient(
+    145deg,
+    color-mix(in srgb, #00ffff 22%, var(--bg)) 0%,
+    color-mix(in srgb, #ff0080 12%, var(--bg)) 100%
+  );
+  color: var(--fg);
+}
+
+.btn-primary.btn-op:active::before {
+  border-right-color: color-mix(in srgb, var(--fg) 64%, #facc15 36%);
+  background: linear-gradient(
+    145deg,
+    color-mix(in srgb, #00ffff 14%, var(--bg)) 0%,
+    color-mix(in srgb, #facc15 12%, var(--bg)) 100%
+  );
+}
+
+.btn-op.loading,
+.btn-op[aria-busy="true"] {
+  --op-progress: 1;
+  pointer-events: none;
+}
+
+.btn-op.loading::after,
+.btn-op[aria-busy="true"]::after {
+  background: repeating-linear-gradient(
+    90deg,
+    currentColor 0,
+    currentColor 18%,
+    transparent 18%,
+    transparent 36%
+  );
+  background-size: var(--op-cell) 100%;
+  animation: op-rail 0.9s linear infinite;
+}
+
+.btn-op:disabled::after {
+  transform: scaleX(0);
+}
+
+@keyframes op-rail {
+  to { background-position: var(--op-cell) 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn-op,
+  .btn-op::after {
+    transition: none;
+    animation: none;
+  }
 }
 
 /* Rainbow button (special — max 1 per page).
@@ -167,6 +378,7 @@
   background: var(--bg);
   color: var(--fg);
   box-shadow: none;
+  transform: none;
 }
 
 /* === CHIPS === */

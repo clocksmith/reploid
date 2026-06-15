@@ -1099,7 +1099,8 @@ function render() {
       showSourceBrowser: false,
       defaultOpen: false,
       summaryActionHtml: `
-        <button class="btn btn-prism${state.isAwakening ? ' loading' : ''}"
+        <button class="btn btn-primary btn-op${state.isAwakening ? ' loading' : ''}"
+                data-op="☇"
                 data-action="awaken"
                 id="awaken-btn"
                 ${awakenDisabled ? 'disabled' : ''}
@@ -1163,7 +1164,8 @@ function render() {
             <p class="type-caption">${homeConfig.awakenCaption}</p>
           </div>
           <div class="wizard-actions-row">
-            <button class="btn btn-lg btn-prism${state.isAwakening ? ' loading' : ''}"
+            <button class="btn btn-lg btn-primary btn-op${state.isAwakening ? ' loading' : ''}"
+                    data-op="☇"
                     data-action="awaken"
                     id="awaken-btn"
                     ${state.isAwakening ? 'disabled' : ''}

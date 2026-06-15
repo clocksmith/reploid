@@ -252,7 +252,7 @@ const renderHome = (state) => {
       </div>
 
       <div class="seed-browser-actions">
-        <button class="btn" id="awaken-btn" type="button"${state.isAwakening || !launch.canAwaken || !normalize(state.goal) ? ' disabled' : ''}>${state.isAwakening ? 'Awakening...' : 'Awaken'}</button>
+        <button class="btn btn-primary btn-op${state.isAwakening ? ' loading' : ''}" data-op="☇" id="awaken-btn" type="button" aria-busy="${state.isAwakening ? 'true' : 'false'}"${state.isAwakening || !launch.canAwaken || !normalize(state.goal) ? ' disabled' : ''}>${state.isAwakening ? 'Awakening...' : 'Awaken'}</button>
       </div>
 
       <details class="seed-browser-panel"${state.selfBrowserOpen ? ' open' : ''}>
