@@ -12,9 +12,9 @@ if (!baseUrl) {
 
 const routes = ['/', '/run', '/contribute', '/agents', '/receipts', '/reputation', '/0'];
 const requiredText = {
-  '/': 'Poolday',
+  '/': 'Reploid',
   '/run': 'Prompt',
-  '/contribute': 'Share Browser',
+  '/contribute': 'Contribute',
   '/agents': 'Submit',
   '/receipts': 'Receipt hash',
   '/reputation': 'Local peer ledger',
