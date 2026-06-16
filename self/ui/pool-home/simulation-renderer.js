@@ -1,0 +1,407 @@
+/**
+ * @fileoverview Renderer selection and GPU backends for the Reploid landing graph.
+ */
+
+const compileShader = (gl, type, source) => {
+  const shader = gl.createShader(type);
+  gl.shaderSource(shader, source);
+  gl.compileShader(shader);
+  if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+    const message = gl.getShaderInfoLog(shader) || 'unknown shader error';
+    gl.deleteShader(shader);
+    throw new Error(message);
+  }
+  return shader;
+};
+
+const createProgram = (gl, vertexSource, fragmentSource) => {
+  const vertex = compileShader(gl, gl.VERTEX_SHADER, vertexSource);
+  const fragment = compileShader(gl, gl.FRAGMENT_SHADER, fragmentSource);
+  const program = gl.createProgram();
+  gl.attachShader(program, vertex);
+  gl.attachShader(program, fragment);
+  gl.linkProgram(program);
+  gl.deleteShader(vertex);
+  gl.deleteShader(fragment);
+  if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+    const message = gl.getProgramInfoLog(program) || 'unknown program error';
+    gl.deleteProgram(program);
+    throw new Error(message);
+  }
+  return program;
+};
+
+const cloneCanvasForFallback = (canvas) => {
+  const next = canvas.cloneNode(false);
+  next.width = canvas.width;
+  next.height = canvas.height;
+  canvas.replaceWith(next);
+  return next;
+};
+
+const createCanvas2DRenderer = (canvas, draw2D) => {
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return null;
+  return {
+    backend: '2d',
+    canvas,
+    render: (frame, width, height) => draw2D(ctx, frame, width, height),
+    dispose: () => {}
+  };
+};
+
+const createWebGPURenderer = async (canvas, buildBatches) => {
+  const gpu = globalThis.navigator?.gpu;
+  if (!gpu) return null;
+  const adapter = await gpu.requestAdapter({ powerPreference: 'high-performance' });
+  if (!adapter) return null;
+  const device = await adapter.requestDevice();
+  const context = canvas.getContext('webgpu');
+  if (!context) return null;
+  const format = gpu.getPreferredCanvasFormat();
+  context.configure({
+    device,
+    format,
+    alphaMode: 'opaque'
+  });
+
+  const bindGroupLayout = device.createBindGroupLayout({
+    entries: [{
+      binding: 0,
+      visibility: GPUShaderStage.VERTEX,
+      buffer: { type: 'uniform' }
+    }]
+  });
+  const pipelineLayout = device.createPipelineLayout({ bindGroupLayouts: [bindGroupLayout] });
+  const uniformBuffer = device.createBuffer({
+    size: 16,
+    usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST
+  });
+  const bindGroup = device.createBindGroup({
+    layout: bindGroupLayout,
+    entries: [{ binding: 0, resource: { buffer: uniformBuffer } }]
+  });
+
+  const fillShader = device.createShaderModule({ code: `
+    struct Uniforms {
+      resolution: vec2<f32>,
+      pad: vec2<f32>
+    };
+    @group(0) @binding(0) var<uniform> uniforms: Uniforms;
+    struct VertexOut {
+      @builtin(position) position: vec4<f32>,
+      @location(0) color: vec4<f32>
+    };
+    @vertex
+    fn vertexMain(@location(0) position: vec2<f32>, @location(1) color: vec4<f32>) -> VertexOut {
+      var out: VertexOut;
+      let zeroToOne = position / uniforms.resolution;
+      let clip = zeroToOne * vec2<f32>(2.0, -2.0) + vec2<f32>(-1.0, 1.0);
+      out.position = vec4<f32>(clip, 0.0, 1.0);
+      out.color = color;
+      return out;
+    }
+    @fragment
+    fn fragmentMain(@location(0) color: vec4<f32>) -> @location(0) vec4<f32> {
+      return color;
+    }
+  ` });
+
+  const circleShader = device.createShaderModule({ code: `
+    struct Uniforms {
+      resolution: vec2<f32>,
+      pad: vec2<f32>
+    };
+    @group(0) @binding(0) var<uniform> uniforms: Uniforms;
+    struct VertexOut {
+      @builtin(position) position: vec4<f32>,
+      @location(0) uv: vec2<f32>,
+      @location(1) inner: f32,
+      @location(2) color: vec4<f32>
+    };
+    @vertex
+    fn vertexMain(
+      @location(0) position: vec2<f32>,
+      @location(1) uv: vec2<f32>,
+      @location(2) inner: f32,
+      @location(3) color: vec4<f32>
+    ) -> VertexOut {
+      var out: VertexOut;
+      let zeroToOne = position / uniforms.resolution;
+      let clip = zeroToOne * vec2<f32>(2.0, -2.0) + vec2<f32>(-1.0, 1.0);
+      out.position = vec4<f32>(clip, 0.0, 1.0);
+      out.uv = uv;
+      out.inner = inner;
+      out.color = color;
+      return out;
+    }
+    @fragment
+    fn fragmentMain(@location(0) uv: vec2<f32>, @location(1) inner: f32, @location(2) color: vec4<f32>) -> @location(0) vec4<f32> {
+      let distance = length(uv);
+      if (distance > 1.0) {
+        discard;
+      }
+      var alpha = color.a * (1.0 - smoothstep(0.82, 1.0, distance));
+      if (inner > 0.0) {
+        alpha = alpha * smoothstep(inner - 0.035, inner + 0.035, distance);
+      }
+      return vec4<f32>(color.rgb, alpha);
+    }
+  ` });
+
+  const blend = {
+    color: { srcFactor: 'src-alpha', dstFactor: 'one-minus-src-alpha', operation: 'add' },
+    alpha: { srcFactor: 'one', dstFactor: 'one-minus-src-alpha', operation: 'add' }
+  };
+  const fillPipeline = device.createRenderPipeline({
+    layout: pipelineLayout,
+    vertex: {
+      module: fillShader,
+      entryPoint: 'vertexMain',
+      buffers: [{
+        arrayStride: 24,
+        attributes: [
+          { shaderLocation: 0, offset: 0, format: 'float32x2' },
+          { shaderLocation: 1, offset: 8, format: 'float32x4' }
+        ]
+      }]
+    },
+    fragment: {
+      module: fillShader,
+      entryPoint: 'fragmentMain',
+      targets: [{ format, blend }]
+    },
+    primitive: { topology: 'triangle-list' }
+  });
+  const circlePipeline = device.createRenderPipeline({
+    layout: pipelineLayout,
+    vertex: {
+      module: circleShader,
+      entryPoint: 'vertexMain',
+      buffers: [{
+        arrayStride: 36,
+        attributes: [
+          { shaderLocation: 0, offset: 0, format: 'float32x2' },
+          { shaderLocation: 1, offset: 8, format: 'float32x2' },
+          { shaderLocation: 2, offset: 16, format: 'float32' },
+          { shaderLocation: 3, offset: 20, format: 'float32x4' }
+        ]
+      }]
+    },
+    fragment: {
+      module: circleShader,
+      entryPoint: 'fragmentMain',
+      targets: [{ format, blend }]
+    },
+    primitive: { topology: 'triangle-list' }
+  });
+
+  const batchBuffers = [];
+  const ensureBatchBuffer = (index, byteLength) => {
+    const nextSize = Math.max(4, Math.ceil(byteLength / 4) * 4);
+    const existing = batchBuffers[index];
+    if (existing?.size >= nextSize) return existing.buffer;
+    existing?.buffer.destroy();
+    const buffer = device.createBuffer({
+      size: nextSize,
+      usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST
+    });
+    batchBuffers[index] = { buffer, size: nextSize };
+    return buffer;
+  };
+
+  return {
+    backend: 'webgpu',
+    canvas,
+    render: (frame, width, height) => {
+      const batches = buildBatches(frame, width, height);
+      device.queue.writeBuffer(uniformBuffer, 0, new Float32Array([width, height, 0, 0]));
+      const preparedBatches = [];
+      for (let index = 0; index < batches.length; index += 1) {
+        const batch = batches[index];
+        const vertexCount = batch.kind === 'circle'
+          ? batch.data.length / 9
+          : batch.data.length / 6;
+        if (vertexCount <= 0) continue;
+        const buffer = ensureBatchBuffer(index, batch.data.byteLength);
+        device.queue.writeBuffer(buffer, 0, batch.data.buffer, batch.data.byteOffset, batch.data.byteLength);
+        preparedBatches.push({ ...batch, buffer, vertexCount });
+      }
+      const encoder = device.createCommandEncoder();
+      const pass = encoder.beginRenderPass({
+        colorAttachments: [{
+          view: context.getCurrentTexture().createView(),
+          clearValue: { r: 1, g: 1, b: 1, a: 1 },
+          loadOp: 'clear',
+          storeOp: 'store'
+        }]
+      });
+      for (const batch of preparedBatches) {
+        pass.setPipeline(batch.kind === 'circle' ? circlePipeline : fillPipeline);
+        pass.setBindGroup(0, bindGroup);
+        pass.setVertexBuffer(0, batch.buffer);
+        pass.draw(batch.vertexCount);
+      }
+      pass.end();
+      device.queue.submit([encoder.finish()]);
+    },
+    dispose: () => {
+      uniformBuffer.destroy();
+      for (const entry of batchBuffers) entry?.buffer.destroy();
+    }
+  };
+};
+
+const createWebGLRenderer = (canvas, buildBatches) => {
+  const gl = canvas.getContext('webgl', { antialias: true, alpha: false })
+    || canvas.getContext('experimental-webgl', { antialias: true, alpha: false });
+  if (!gl) return null;
+  const fillProgram = createProgram(gl, `
+    attribute vec2 a_position;
+    attribute vec4 a_color;
+    uniform vec2 u_resolution;
+    varying vec4 v_color;
+    void main() {
+      vec2 zeroToOne = a_position / u_resolution;
+      vec2 clipSpace = zeroToOne * vec2(2.0, -2.0) + vec2(-1.0, 1.0);
+      gl_Position = vec4(clipSpace, 0.0, 1.0);
+      v_color = a_color;
+    }
+  `, `
+    precision mediump float;
+    varying vec4 v_color;
+    void main() {
+      gl_FragColor = v_color;
+    }
+  `);
+  const circleProgram = createProgram(gl, `
+    attribute vec2 a_position;
+    attribute vec2 a_uv;
+    attribute float a_inner;
+    attribute vec4 a_color;
+    uniform vec2 u_resolution;
+    varying vec2 v_uv;
+    varying float v_inner;
+    varying vec4 v_color;
+    void main() {
+      vec2 zeroToOne = a_position / u_resolution;
+      vec2 clipSpace = zeroToOne * vec2(2.0, -2.0) + vec2(-1.0, 1.0);
+      gl_Position = vec4(clipSpace, 0.0, 1.0);
+      v_uv = a_uv;
+      v_inner = a_inner;
+      v_color = a_color;
+    }
+  `, `
+    precision mediump float;
+    varying vec2 v_uv;
+    varying float v_inner;
+    varying vec4 v_color;
+    void main() {
+      float dist = length(v_uv);
+      if (dist > 1.0) discard;
+      float alpha = v_color.a * (1.0 - smoothstep(0.82, 1.0, dist));
+      if (v_inner > 0.0) {
+        alpha *= smoothstep(v_inner - 0.035, v_inner + 0.035, dist);
+      }
+      gl_FragColor = vec4(v_color.rgb, alpha);
+    }
+  `);
+  const fillBuffer = gl.createBuffer();
+  const circleBuffer = gl.createBuffer();
+  const fillLocations = {
+    position: gl.getAttribLocation(fillProgram, 'a_position'),
+    color: gl.getAttribLocation(fillProgram, 'a_color'),
+    resolution: gl.getUniformLocation(fillProgram, 'u_resolution')
+  };
+  const circleLocations = {
+    position: gl.getAttribLocation(circleProgram, 'a_position'),
+    uv: gl.getAttribLocation(circleProgram, 'a_uv'),
+    inner: gl.getAttribLocation(circleProgram, 'a_inner'),
+    color: gl.getAttribLocation(circleProgram, 'a_color'),
+    resolution: gl.getUniformLocation(circleProgram, 'u_resolution')
+  };
+  let fillBufferSize = 0;
+  let circleBufferSize = 0;
+  gl.enable(gl.BLEND);
+  gl.disable(gl.DEPTH_TEST);
+  gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+
+  const uploadDynamicData = (buffer, data, currentSize, setSize) => {
+    const nextSize = Math.max(4, Math.ceil(data.byteLength / 4) * 4);
+    if (currentSize < nextSize) {
+      const reservedSize = Math.ceil(nextSize * 1.35 / 4) * 4;
+      gl.bufferData(gl.ARRAY_BUFFER, reservedSize, gl.DYNAMIC_DRAW);
+      setSize(reservedSize);
+    }
+    gl.bufferSubData(gl.ARRAY_BUFFER, 0, data);
+  };
+
+  const drawFillBatch = (data, width, height) => {
+    gl.useProgram(fillProgram);
+    gl.bindBuffer(gl.ARRAY_BUFFER, fillBuffer);
+    uploadDynamicData(fillBuffer, data, fillBufferSize, (size) => { fillBufferSize = size; });
+    gl.enableVertexAttribArray(fillLocations.position);
+    gl.vertexAttribPointer(fillLocations.position, 2, gl.FLOAT, false, 24, 0);
+    gl.enableVertexAttribArray(fillLocations.color);
+    gl.vertexAttribPointer(fillLocations.color, 4, gl.FLOAT, false, 24, 8);
+    gl.uniform2f(fillLocations.resolution, width, height);
+    gl.drawArrays(gl.TRIANGLES, 0, data.length / 6);
+  };
+
+  const drawCircleBatch = (data, width, height) => {
+    gl.useProgram(circleProgram);
+    gl.bindBuffer(gl.ARRAY_BUFFER, circleBuffer);
+    uploadDynamicData(circleBuffer, data, circleBufferSize, (size) => { circleBufferSize = size; });
+    gl.enableVertexAttribArray(circleLocations.position);
+    gl.vertexAttribPointer(circleLocations.position, 2, gl.FLOAT, false, 36, 0);
+    gl.enableVertexAttribArray(circleLocations.uv);
+    gl.vertexAttribPointer(circleLocations.uv, 2, gl.FLOAT, false, 36, 8);
+    gl.enableVertexAttribArray(circleLocations.inner);
+    gl.vertexAttribPointer(circleLocations.inner, 1, gl.FLOAT, false, 36, 16);
+    gl.enableVertexAttribArray(circleLocations.color);
+    gl.vertexAttribPointer(circleLocations.color, 4, gl.FLOAT, false, 36, 20);
+    gl.uniform2f(circleLocations.resolution, width, height);
+    gl.drawArrays(gl.TRIANGLES, 0, data.length / 9);
+  };
+
+  return {
+    backend: 'webgl',
+    canvas,
+    render: (frame, width, height) => {
+      gl.viewport(0, 0, width, height);
+      gl.clearColor(1, 1, 1, 1);
+      gl.clear(gl.COLOR_BUFFER_BIT);
+      for (const batch of buildBatches(frame, width, height)) {
+        if (batch.kind === 'circle') drawCircleBatch(batch.data, width, height);
+        else drawFillBatch(batch.data, width, height);
+      }
+    },
+    dispose: () => {
+      gl.deleteBuffer(fillBuffer);
+      gl.deleteBuffer(circleBuffer);
+      gl.deleteProgram(fillProgram);
+      gl.deleteProgram(circleProgram);
+    }
+  };
+};
+
+export const createPoolSimulationRenderer = async (initialCanvas, { buildBatches, draw2D }) => {
+  let canvas = initialCanvas;
+  try {
+    const renderer = await createWebGPURenderer(canvas, buildBatches);
+    if (renderer) return renderer;
+  } catch (error) {
+    console.warn('Reploid graph WebGPU renderer failed; falling back to WebGL.', error);
+    canvas = cloneCanvasForFallback(canvas);
+  }
+  try {
+    const renderer = createWebGLRenderer(canvas, buildBatches);
+    if (renderer) return renderer;
+  } catch (error) {
+    console.warn('Reploid graph WebGL renderer failed; falling back to Canvas 2D.', error);
+    canvas = cloneCanvasForFallback(canvas);
+  }
+  const renderer = createCanvas2DRenderer(canvas, draw2D);
+  if (renderer) return renderer;
+  throw new Error('No supported Reploid graph renderer is available.');
+};
