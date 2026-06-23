@@ -2,7 +2,7 @@
  * @fileoverview Goal selection step renderer
  */
 
-import { findGoalMeta, getGoalEntries } from '../goals.js';
+import { DEFAULT_ZERO_GOAL, findGoalMeta, getGoalEntries } from '../goals.js';
 import {
   SELF_SOURCE_MIRRORS,
   buildSelfFiles,
@@ -400,7 +400,8 @@ export function renderGoalStep(state, options = {}) {
   const levelsDocUrl = 'https://github.com/clocksmith/reploid/blob/main/docs/RSI-LEVELS.md';
   const hideBootInternals = options.hideBootInternals === true;
   const showMinimalAwakenedFiles = options.showMinimalAwakenedFiles !== false;
-  const goalActionMode = options.goalActionMode || 'full';
+  const isZero = state.mode === 'zero';
+  const goalActionMode = options.goalActionMode || (isZero ? 'generate-only' : 'full');
   const headingTag = options.headingTag || 'h2';
   const headingClass = options.headingClass || 'type-h1';
   const showPresetControls = goalActionMode !== 'generate-only';
@@ -423,8 +424,12 @@ export function renderGoalStep(state, options = {}) {
   const goalTitle = options.title || 'Set the first objective';
   const goalCaption = options.caption !== undefined ? options.caption : (showReploidEnvironment
     ? 'These starting files define the initial self. The self manifest and identity establish what Reploid is, runtime and bridge execute work, the capsule shell renders the interface, and the browser substrate can produce visual, computational, persistent, or networked effects. Your first objective tells that seed what to build, measure, and improve first.'
-    : 'Set the first objective the Reploid should pursue.');
-  const goalPlaceholder = options.goalPlaceholder || 'Describe the first task or trajectory to pursue.';
+    : (isZero
+      ? 'Give Zero one concrete local objective. It can inspect files, stage shadow changes, record artifacts, and promote verified edits.'
+      : 'Set the first objective the Reploid should pursue.'));
+  const goalPlaceholder = options.goalPlaceholder || (isZero
+    ? DEFAULT_ZERO_GOAL
+    : 'Describe the first task or trajectory to pursue.');
   const currentGoalMeta = findGoalMeta(goalValue);
   const fallbackCategory = entries[0]?.[0] || '';
   const selectedGoalCategory = entries.some(([category]) => category === state.selectedGoalCategory)
@@ -435,7 +440,7 @@ export function renderGoalStep(state, options = {}) {
   const selectedGoals = Array.isArray(selectedGoalEntry[1]) ? selectedGoalEntry[1] : [];
   const generatedStatusText = Object.prototype.hasOwnProperty.call(options, 'generatedStatusText')
     ? String(options.generatedStatusText || '')
-    : (generatorSource === 'seed' ? '' : 'Objective drafted by Reploid');
+    : (generatorSource === 'seed' ? '' : `Objective drafted by ${isZero ? 'Zero' : 'Reploid'}`);
 
   return `
     <div class="wizard-step wizard-goal">

@@ -27,9 +27,10 @@ import {
 } from '../boot-wizard/detection.js';
 import {
   DEFAULT_REPLOID_HOME_GOAL,
+  DEFAULT_ZERO_GOAL,
   formatGoalPacket,
-  getGoalEntries,
-  getRandomGoalEntry
+  getRandomGoalEntry,
+  getRandomZeroGoal
 } from '../boot-wizard/goals.js';
 import {
   findReploidEnvironmentTemplateId,
@@ -52,10 +53,16 @@ import { CLOUD_MODELS, renderDirectConfigStep } from '../boot-wizard/steps/direc
 import { renderProxyConfigStep } from '../boot-wizard/steps/proxy.js';
 import { renderBrowserConfigStep } from '../boot-wizard/steps/browser.js';
 import { renderAwakenedFilesPanel, renderGoalStep } from '../boot-wizard/steps/goal.js';
+import {
+  ZERO_GEMINI_MODEL,
+  ZERO_GEMINI_PROVIDER,
+  buildZeroGeminiProxyConfig,
+  isZeroGeminiFunctionServer
+} from '../boot-wizard/zero-function.js';
 
 const DEFAULT_DOPPLER_MODEL = 'smollm2-360m';
-const DEFAULT_GTM_PROXY_PROVIDER = 'gemini';
-const DEFAULT_GTM_PROXY_MODEL = 'gemini-3.5-flash';
+const DEFAULT_GTM_PROXY_PROVIDER = ZERO_GEMINI_PROVIDER;
+const DEFAULT_GTM_PROXY_MODEL = ZERO_GEMINI_MODEL;
 const RGR_SLOT_ROLES = Object.freeze([
   'elite',
   'performance',
@@ -79,14 +86,18 @@ const ROUTE_HOME_CONFIG = Object.freeze({
     goalPlaceholder: DEFAULT_REPLOID_HOME_GOAL
   },
   zero: {
-    providerMode: 'choice',
-    providerCaption: 'Pick where reasoning runs before awakening Zero.',
+    providerMode: 'local-or-proxy',
+    providerTitle: 'Choose inference',
+    providerCaption: 'Default: server proxy. Local Doppler is optional.',
     goalTitle: 'Set the first objective',
-    goalCaption: 'Set the first objective for the mutable local Reploid.',
-    awakenCaption: 'Awaken Zero with the selected inference path and first objective.',
+    goalCaption: '',
+    awakenCaption: 'Awaken Zero with this inference path and objective.',
     hideBootInternals: true,
     goalActionMode: 'generate-only',
-    generatedStatusText: ''
+    generatedStatusText: '',
+    defaultGoal: DEFAULT_ZERO_GOAL,
+    goalPlaceholder: DEFAULT_ZERO_GOAL,
+    allowedConnectionTypes: ['browser', 'proxy']
   },
   x: {
     providerMode: 'choice',
@@ -137,9 +148,13 @@ const getPreferredProxyModel = (provider) => {
   }
   return getDefaultCloudModelForProvider(provider);
 };
+const getPreferredZeroProxyConfig = (state) => {
+  return buildZeroGeminiProxyConfig(state.proxyConfig || {});
+};
 
 const getRouteHomeConfig = (mode) => ROUTE_HOME_CONFIG[mode] || ROUTE_HOME_CONFIG.reploid;
 const isUsingOwnInference = (state) => state.mode === 'reploid' && state.connectionType === 'direct';
+const shouldSeedDopplerVfs = (state) => state.connectionType === 'browser';
 const getPeerLaunchUrl = () => createReploidPeerUrl(window.location.pathname);
 const getFreshPeerLaunchUrl = () => createReploidPeerUrl(window.location.pathname, { freshIdentity: true });
 const getRingTopologyLabel = (launch) => launch?.swarmEnabled ? 'peer-assisted' : 'local';
@@ -438,8 +453,9 @@ const autoSelectConnectionType = () => {
     return;
   }
 
-  if (state.mode === 'zero' && detection.webgpu?.supported) {
-    setState({ connectionType: 'browser' });
+  if (state.mode === 'zero') {
+    setNestedState('proxyConfig', getPreferredZeroProxyConfig(state));
+    setState({ connectionType: 'proxy' });
     return;
   }
 
@@ -479,6 +495,20 @@ const autoSelectConnectionType = () => {
 };
 
 async function handleGenerateGoal() {
+  const state = getState();
+  if (state.mode === 'zero') {
+    const goal = getRandomZeroGoal(Date.now(), state.goal);
+    setState({
+      goal: goal?.text || state.goal,
+      goalGenerator: {
+        status: 'ready',
+        error: null,
+        source: 'seed'
+      }
+    });
+    return;
+  }
+
   setState({
     goalGenerator: {
       status: 'generating',
@@ -568,13 +598,13 @@ async function handleTestDirectKey() {
 
 async function handleTestProxy() {
   const state = getState();
-  const { url } = state.proxyConfig;
+  const { url, serverType } = state.proxyConfig;
   if (!url) return;
 
   setNestedState('proxyConfig', { verifyState: VERIFY_STATE.TESTING });
-  let result = await testProxyConnection(url);
+  let result = await testProxyConnection(url, serverType);
 
-  if (!result.success) {
+  if (!result.success && !isZeroGeminiFunctionServer(serverType)) {
     result = await testLocalConnection(url);
     if (result.success) {
       setNestedState('proxyConfig', {
@@ -582,9 +612,9 @@ async function handleTestProxy() {
         availableModels: result.models || []
       });
     }
-  } else {
+  } else if (result.success) {
     setNestedState('proxyConfig', {
-      serverType: 'reploid',
+      serverType: serverType || 'reploid',
       availableProviders: result.providers || []
     });
   }
@@ -604,7 +634,7 @@ async function handleTestProxyModel() {
 
   const result = serverType === 'ollama'
     ? await testProxyModel(url, 'ollama', model)
-    : await testProxyModel(url, provider, model);
+    : await testProxyModel(url, provider, model, serverType);
 
   setNestedState('proxyConfig', {
     modelVerifyState: result.success ? VERIFY_STATE.VERIFIED : VERIFY_STATE.FAILED,
@@ -643,7 +673,7 @@ async function doAwaken() {
     }
     await clearVfsStore();
     if (state.mode !== 'reploid') {
-      const { manifest, text } = await loadVfsManifest();
+      const { manifest, text } = await loadVfsManifest({ includeDoppler: shouldSeedDopplerVfs(state) });
       await seedVfsFromManifest(manifest, {
         preserveOnBoot: false,
         logger: console,
@@ -825,7 +855,7 @@ async function handleClick(event) {
       const currentProxyConfig = getState().proxyConfig;
       const proxyDetected = detection.proxy?.detected;
       const ollamaDetected = detection.ollama?.detected;
-      const proxyUpdates = {};
+      let proxyUpdates = {};
 
       if (!currentProxyConfig.url) {
         if (proxyDetected) {
@@ -843,6 +873,20 @@ async function handleClick(event) {
         const provider = getPreferredProxyProvider(detection);
         proxyUpdates.provider = provider;
         proxyUpdates.model = getPreferredProxyModel(provider);
+      }
+
+      if (state.mode === 'zero') {
+        proxyUpdates = {
+          ...proxyUpdates,
+          ...getPreferredZeroProxyConfig({
+            ...state,
+            proxyConfig: {
+              ...currentProxyConfig,
+              ...proxyUpdates
+            },
+            detection
+          })
+        };
       }
 
       if (Object.keys(proxyUpdates).length > 0) {
@@ -1115,7 +1159,9 @@ function render() {
       <div class="wizard-step wizard-home-provider">
         ${renderConnectionProviderOptions(state, {
           standalone: true,
-          caption: homeConfig.providerCaption
+          title: homeConfig.providerTitle || 'Choose inference provider',
+          caption: homeConfig.providerCaption,
+          allowedConnectionTypes: homeConfig.allowedConnectionTypes
         })}
       </div>
     `;
@@ -1239,12 +1285,20 @@ export function initLockedBootHome(containerEl, mode = 'reploid') {
         swarmEnabled
       }
     : {};
+  const managedZero = routeMode === 'zero'
+    ? {
+      connectionType: 'proxy',
+      proxyConfig: getPreferredZeroProxyConfig(getState()),
+      goal: defaultGoal
+    }
+    : {};
   setState({
     currentStep: STEPS.GOAL,
     mode: routeMode,
     routeLockedMode: routeMode,
     isAwakening: false,
-    ...managedReploid
+    ...managedReploid,
+    ...managedZero
   });
 
   unsubscribeState = subscribe(scheduleRender);
@@ -1256,8 +1310,10 @@ export function initLockedBootHome(containerEl, mode = 'reploid') {
   setState({ savedConfig: saved });
   scheduleRender();
 
+  const skipStartupDiscovery = routeMode === 'zero';
   runDetection({
-    skipLocalScan: false,
+    skipLocalScan: skipStartupDiscovery,
+    skipDoppler: skipStartupDiscovery,
     onProgress: scheduleRender
   }).then(() => {
     autoSelectConnectionType();

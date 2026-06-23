@@ -34,13 +34,28 @@ export async function verifyModelArtifactManifest({
 } = {}) {
   if (typeof fetchImpl !== 'function') throw new Error('fetch is required for model artifact manifest verification');
   const urls = buildModelArtifactUrls(model, { baseUrl });
-  const response = await fetchImpl(urls.manifest, {
-    method: 'GET',
-    mode: 'cors',
-    cache: 'no-store'
-  });
+  let response = null;
+  try {
+    response = await fetchImpl(urls.manifest, {
+      method: 'GET',
+      mode: 'cors',
+      cache: 'no-store'
+    });
+  } catch (cause) {
+    const error = new Error(`model manifest fetch failed: ${cause?.message || 'network or CORS error'}`);
+    error.cause = cause;
+    error.urls = urls;
+    error.retryable = true;
+    throw error;
+  }
   if (!response?.ok) {
-    throw new Error(`model manifest fetch failed: ${response?.status || 'unknown'}`);
+    const status = response?.status || 'unknown';
+    const statusText = response?.statusText ? ` ${response.statusText}` : '';
+    const error = new Error(`model manifest fetch failed: ${status}${statusText}`);
+    error.status = response?.status || null;
+    error.urls = urls;
+    error.retryable = status === 408 || status === 429 || status >= 500;
+    throw error;
   }
   const text = await response.text();
   let manifest = null;

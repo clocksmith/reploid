@@ -17,6 +17,7 @@ import {
 import { getSecurityState } from '../../core/security-config.js';
 import { getCurrentReploidStorage as getReploidStorage } from '../../instance.js';
 import { getReploidLaunchState } from './reploid-inference.js';
+import { ZERO_GEMINI_SERVER_TYPE } from './zero-function.js';
 
 // Wizard steps in order
 export const STEPS = {
@@ -470,7 +471,8 @@ export function hydrateSavedConfig(saved, apiKey = null) {
     const isOllama = hostType === 'proxy-local' || primary.provider === 'ollama';
     updates.proxyConfig = {
       url: primary.proxyUrl || primary.localUrl || saved.proxyUrl || saved.localUrl || 'http://localhost:8000',
-      serverType: isOllama ? 'ollama' : 'reploid',
+      endpoint: primary.endpoint || null,
+      serverType: primary.serverType || (isOllama ? 'ollama' : 'reploid'),
       provider: primary.provider,
       model: primary.id || primary.name,
       verifyState: VERIFY_STATE.UNVERIFIED,
@@ -522,13 +524,19 @@ export function saveConfig() {
 
   if (connectionType === 'proxy' && proxyConfig.model) {
     const isOllama = proxyConfig.serverType === 'ollama';
-    models.push({
+    const isZeroFunction = proxyConfig.serverType === ZERO_GEMINI_SERVER_TYPE;
+    const model = {
       id: proxyConfig.model,
       name: proxyConfig.model,
       provider: isOllama ? 'ollama' : (proxyConfig.provider || 'proxy'),
       hostType: isOllama ? 'proxy-local' : 'proxy-cloud',
-      proxyUrl: proxyConfig.url
-    });
+      proxyUrl: proxyConfig.url,
+      serverType: proxyConfig.serverType || (isOllama ? 'ollama' : 'reploid')
+    };
+    if (isZeroFunction) {
+      model.endpoint = proxyConfig.endpoint || proxyConfig.url;
+    }
+    models.push(model);
   }
 
   if (connectionType === 'browser' && dopplerConfig.model) {
@@ -623,7 +631,8 @@ export function canAwaken() {
   }
 
   if (mode === 'zero') {
-    return connectionType === 'browser' && !!dopplerConfig.model;
+    return (connectionType === 'proxy' && !!(proxyConfig.url && proxyConfig.model))
+      || (connectionType === 'browser' && !!dopplerConfig.model);
   }
 
   switch (connectionType) {

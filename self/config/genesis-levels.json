@@ -43,8 +43,7 @@
         "SchemaRegistry",
         "TelemetryTimeline",
         "ToolExecutor",
-        "ToolRunner",
-        "ToolWriter"
+        "ToolRunner"
       ]
     },
     "reflection": {

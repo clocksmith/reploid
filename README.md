@@ -1,21 +1,22 @@
 # REPLOID
 
-Dead simple browser Recursive GEPA Ring seed.
+Browser-native runtime family for peer model serving, governed agents, and recursive research surfaces.
 
-Reploid boots in the browser, seeds an explicit self into a writable VFS, then runs a live loop that can read, write, hot-load its own files, and run a Recursive GEPA Ring in Shadow before any promotion. Peer transport is optional slot placement: ring slots can be local or remote.
+Reploid is the public family name and shared browser substrate. The root UI keeps the Reploid name; Poolday is the docs/internal name for the model-serving pool layer under `/`, not a public UI label.
 
 ## What Ships Now
 
 | Route | Purpose |
 |-------|---------|
-| `/` | Primary Reploid boot. Minimal goal-first entry. |
-| `/0` | Zero. Richer research surface. |
-| `/x` | X. Prebuilt mature surface. |
+| `/` | Reploid model-serving network surface. Docs/internal name: Poolday. |
+| `/0` | Zero. Browser-local tabula-rasa RSI agent with no peer or pool dependency. |
+| `/x` | X. Mature Reploid agent surface for the editable browser self, tools, traces, and promotion gates. |
 
-The primary Reploid path is the simplest one:
-- set the objective
-- attach a local executor or enable remote slots
-- awaken
+The three public surfaces share the Reploid substrate:
+
+- `/` runs receipt-backed browser inference with requester, contributor, receipt, and reputation flows.
+- `/x` runs the mature self-modifying browser agent workspace.
+- `/0` runs a local-only tabula-rasa RSI loop with a minimal tool and blueprint surface.
 
 ## Quick Start
 
@@ -41,9 +42,17 @@ That command:
 - provisions sealed Reploid Cloud access windows from `.env`
 - starts the local dev server on `http://localhost:8000`
 
-## Primary Boot
+## Agent Runtime Surfaces
 
-The `/` boot UI is intentionally small:
+Zero is intentionally small:
+
+- local browser model
+- objective
+- `Awaken`
+- `ReadFile`, `WriteFile`, `LoadModule`, and `Promote`
+- `/shadow` candidates and `/artifacts` evidence
+
+X is the mature agent surface:
 
 - peer identity
 - ring topology
@@ -69,7 +78,7 @@ Ring topology:
 
 `Configure` means bring your own local executor.
 
-`Peer slots` means opt in to remote slot placement. It does not force local inference sharing unless this Reploid actually has inference available.
+`Peer slots` means opt in to remote slot placement. It does not force local inference sharing unless this Reploid instance actually has inference available.
 
 ## Awakened Self
 

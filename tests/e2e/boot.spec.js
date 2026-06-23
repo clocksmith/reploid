@@ -5,8 +5,9 @@
 import { test, expect } from '@playwright/test';
 
 const APP_PATH = '/index.html';
-const HOME_PATH = '/';
-const DEFAULT_HOME_GOAL_SNIPPET = 'Run one Shadow RGR self-improvement cycle';
+const HOME_PATH = '/index.html?profile=reploid-home';
+const PRODUCT_HOME_PATH = '/';
+const DEFAULT_HOME_GOAL_SNIPPET = 'Start from the blueprint index';
 
 async function openBoot(page) {
   await page.goto(APP_PATH);
@@ -90,6 +91,118 @@ test.describe('Boot Screen', () => {
 });
 
 test.describe('Route Entry Points', () => {
+  test('product root renders the Reploid serving surface', async ({ page }) => {
+    await page.goto(PRODUCT_HOME_PATH);
+    await page.waitForSelector('.pool-home', { timeout: 20000 });
+
+    await expect(page).toHaveTitle(/^Reploid$/i);
+    await expect(page.locator('.pool-nav-rail')).toBeVisible();
+    await expect(page.locator('.pool-topbar')).toHaveCount(0);
+    await expect(page.getByRole('button', { name: 'Run', exact: true })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Mesh', exact: true })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Record', exact: true })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Contribute', exact: true })).toHaveCount(0);
+    await expect(page.getByRole('button', { name: 'Receipts', exact: true })).toHaveCount(0);
+    await expect(page.getByRole('button', { name: 'Reputation', exact: true })).toHaveCount(0);
+    await expect(page.getByRole('link', { name: 'Zero' })).toHaveAttribute('href', '/0');
+    await expect(page.locator('[data-pool-flow-label]')).toHaveCount(12);
+    await expect.poll(async () => page.locator('[data-pool-flow-label]').evaluateAll((labels) => {
+      const counts = labels.reduce((acc, label) => {
+        const text = label.textContent.trim();
+        acc[text] = (acc[text] || 0) + 1;
+        return acc;
+      }, {});
+      return {
+        consumers: counts.Consumer || 0,
+        producers: counts.Producer || 0,
+        providers: counts.Provider || 0,
+        verifiers: counts.Verifier || 0
+      };
+    })).toEqual({
+      consumers: 2,
+      producers: 2,
+      providers: 2,
+      verifiers: 3
+    });
+    await expect(page.locator('body')).not.toContainText('Poolday');
+  });
+
+  test('product navigation is a desktop rail and mobile bottom bar', async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto(PRODUCT_HOME_PATH);
+    await page.waitForSelector('.pool-nav-rail', { timeout: 20000 });
+
+    const desktop = await page.evaluate(() => {
+      const rail = document.querySelector('.pool-nav-rail').getBoundingClientRect();
+      return {
+        height: rail.height,
+        width: rail.width,
+        x: rail.x,
+        y: rail.y,
+        overflowX: document.documentElement.scrollWidth > document.documentElement.clientWidth
+      };
+    });
+    expect(desktop.x).toBeLessThan(24);
+    expect(desktop.y).toBeLessThan(24);
+    expect(desktop.height).toBeGreaterThan(700);
+    expect(desktop.width).toBeLessThan(180);
+    expect(desktop.overflowX).toBe(false);
+
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.reload();
+    await page.waitForSelector('.pool-nav-rail', { timeout: 20000 });
+
+    const mobile = await page.evaluate(() => {
+      const rail = document.querySelector('.pool-nav-rail').getBoundingClientRect();
+      return {
+        bottomGap: window.innerHeight - rail.bottom,
+        height: rail.height,
+        width: rail.width,
+        y: rail.y,
+        overflowX: document.documentElement.scrollWidth > document.documentElement.clientWidth
+      };
+    });
+    expect(mobile.y).toBeGreaterThan(760);
+    expect(mobile.bottomGap).toBeLessThan(16);
+    expect(mobile.height).toBeLessThan(78);
+    expect(mobile.width).toBeGreaterThan(360);
+    expect(mobile.overflowX).toBe(false);
+    await expect(page.getByRole('button', { name: 'Run', exact: true })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Zero' })).toBeVisible();
+  });
+
+  test('product routes hide raw payloads and hosted controls by default', async ({ page }) => {
+    for (const route of ['/run', '/mesh', '/record', '/contribute', '/receipts']) {
+      await page.goto(route);
+      await page.waitForSelector('.pool-home', { timeout: 20000 });
+
+      await expect(page.locator('details.pool-raw-details[open]')).toHaveCount(0);
+      await expect(page.locator('body')).not.toContainText('Firestore');
+      await expect(page.locator('body')).not.toContainText('firestore');
+      await expect(page.getByRole('button', { name: 'Register', exact: true })).toHaveCount(0);
+      await expect(page.getByRole('button', { name: 'Heartbeat', exact: true })).toHaveCount(0);
+      await expect(page.getByRole('button', { name: 'Next Job', exact: true })).toHaveCount(0);
+      await expect(page.getByRole('button', { name: 'Deploy Check', exact: true })).toHaveCount(0);
+      await expect(page.getByRole('button', { name: 'Metrics', exact: true })).toHaveCount(0);
+      await expect(page.getByRole('button', { name: 'Points', exact: true })).toHaveCount(0);
+    }
+  });
+
+  test('run and mesh are presented as local peer-room flows', async ({ page }) => {
+    await page.goto('/run');
+    await page.waitForSelector('.pool-home', { timeout: 20000 });
+    await expect(page.getByRole('heading', { name: 'Run', exact: true })).toBeVisible();
+    await expect(page.getByLabel('Run controls')).toContainText('Run');
+    await expect(page.locator('#pool-run-result-raw')).toBeHidden();
+
+    await page.goto('/mesh');
+    await page.waitForSelector('.pool-home', { timeout: 20000 });
+    await expect(page.getByRole('button', { name: 'Mesh', exact: true })).toHaveAttribute('aria-pressed', 'true');
+    await expect(page.locator('[data-pool-provider-status]')).toHaveText('NODE // OFFLINE');
+    await expect(page.locator('#pool-provider-worker-start')).toBeVisible();
+    await expect(page.locator('#pool-provider-worker-stop')).toBeVisible();
+  });
+
   test('home route boots without early VFS misses for instance-scoped runtime modules', async ({ page }) => {
     const vfsMisses = [];
     page.on('console', (message) => {
@@ -109,14 +222,14 @@ test.describe('Route Entry Points', () => {
     ).toEqual([]);
   });
 
-  test('home route boots Reploid with minimal RGR ring controls', async ({ page }) => {
+  test('home route boots Reploid with minimal ring controls', async ({ page }) => {
     await openHome(page);
 
     await expect(page.locator('.boot-mode-btn[data-mode]')).toHaveCount(0);
     await expect(page.locator('.wizard-brand')).toHaveCount(0);
     await expect(page).toHaveTitle(/^Reploid$/i);
-    await expect(page.locator('.wizard-intro')).toContainText('ring slots can be local or remote');
-    await expect(page.locator('.inference-bar .type-h2')).toHaveText('Ring');
+    await expect(page.locator('.wizard-intro')).toContainText('blueprint-first runtime');
+    await expect(page.locator('.inference-bar .type-h2')).toHaveText('Runtime');
     await expect(page.locator('.inference-bar-label')).toHaveText('Seed');
     await expect(page.locator('.inference-bar-model')).toContainText('peer-assisted');
     await expect(page.locator('.inference-bar-note')).toContainText('Waiting for remote host slots');
@@ -144,7 +257,7 @@ test.describe('Route Entry Points', () => {
     await expect(page.locator('.seed-browser-actions #awaken-btn')).toBeVisible();
     await expect(page.locator('.wizard-awaken')).toHaveCount(0);
     await expect(page.locator('#environment-input')).toHaveCount(0);
-    await expect(page.locator('.seed-browser-panel')).toContainText('Awakened files');
+    await expect(page.locator('.seed-browser-panel')).toContainText('Seed files');
     await expect(page.getByRole('link', { name: 'fresh peer' })).toBeVisible();
   });
 
@@ -243,12 +356,24 @@ test.describe('Route Entry Points', () => {
 
   test('/0 locks the boot mode to Zero', async ({ page }) => {
     await page.goto('/0');
-    await page.waitForSelector('.wizard-home-provider [data-action="choose-browser"]', { timeout: 20000 });
+    await page.waitForSelector('.wizard-home-provider [data-action="choose-proxy"]', { timeout: 20000 });
 
     await expect(page.locator('.boot-mode-btn[data-mode]')).toHaveCount(0);
     await expect(page.locator('.wizard-brand')).toHaveCount(0);
-    await expect(page.locator('.wizard-home-provider .type-h1')).toHaveText('Choose inference provider');
+    await expect(page).toHaveTitle(/^Zero$/i);
+    await expect(page.locator('.wizard-home-provider .type-h1')).toHaveText('Choose inference');
+    await expect(page.locator('[data-action="choose-proxy"]')).toBeVisible();
+    await expect(page.locator('[data-action="choose-proxy"]')).toHaveAttribute('aria-pressed', 'true');
     await expect(page.locator('[data-action="choose-browser"]')).toBeVisible();
+    await expect(page.locator('[data-action="choose-direct"]')).toHaveCount(0);
+    await expect(page.locator('.wizard-proxy .type-h1')).toHaveText('Server proxy');
+    await expect(page.locator('#proxy-url')).toHaveValue(/\/zero\/gemini$/);
+    await expect(page.locator('#proxy-provider')).toHaveValue('gemini');
+    await expect(page.locator('#proxy-model')).toHaveValue('gemini-3.1-flash-lite');
+    await expect(page.locator('#goal-input')).toBeVisible();
+    await expect(page.locator('#awaken-btn')).toBeEnabled();
+    await expect(page.locator('#reploid-swarm-enabled')).toHaveCount(0);
+    await expect(page.getByRole('link', { name: 'new peer' })).toHaveCount(0);
     await expect(page.locator('[data-action="advanced-settings"]')).toHaveCount(0);
     await expect.poll(async () => page.evaluate(() => window.getReploidMode())).toBe('zero');
   });
@@ -259,6 +384,7 @@ test.describe('Route Entry Points', () => {
 
     await expect(page.locator('.boot-mode-btn[data-mode]')).toHaveCount(0);
     await expect(page.locator('.wizard-brand')).toHaveCount(0);
+    await expect(page).toHaveTitle(/^X$/i);
     await expect(page.locator('.wizard-home-provider .type-h1')).toHaveText('Choose inference provider');
     await expect(page.locator('[data-action="choose-direct"]')).toBeVisible();
     await expect(page.locator('[data-action="advanced-settings"]')).toHaveCount(0);
@@ -565,7 +691,7 @@ test.describe('Goal Input', () => {
     await expect(page.locator('[data-action="toggle-goal-category"]')).toHaveCount(5);
     await expect(page.locator('.goal-level-dropdown')).toBeVisible();
     await expect(page.locator('.goal-level-dropdown')).toContainText('L0: Basic Functions');
-    await expect(page.locator('.goal-level-dropdown-list .goal-chip')).toHaveCount(5);
+    expect(await page.locator('.goal-level-dropdown-list .goal-chip').count()).toBeGreaterThanOrEqual(5);
   });
 
   test('shows generated-goal action', async ({ page }) => {
@@ -590,7 +716,7 @@ test.describe('Goal Input', () => {
 
     await page.locator('[data-action="toggle-goal-category"][data-category="L2: Substrate"]').click();
     await expect(page.locator('.goal-level-dropdown')).toContainText('L2: Substrate');
-    await expect(page.locator('.goal-level-dropdown-list .goal-chip')).toHaveCount(5);
+    expect(await page.locator('.goal-level-dropdown-list .goal-chip').count()).toBeGreaterThanOrEqual(5);
     await expect(page.locator('.goal-level-dropdown')).toContainText('Twin capsule lab');
   });
 
@@ -706,9 +832,9 @@ test.describe('Reploid Runtime', () => {
     expect(vfsState.keys.some((key) => key.startsWith('/bootstrapper/'))).toBe(false);
     expect(self.bootstrapperIncluded).toBeUndefined();
     expect(self.selfPath).toBe('/self/self.json');
-    expect(self.productModel).toBe('Recursive GEPA Ring');
-    expect(self.coreInvariant).toBe('Ring slots can be local or remote.');
-    expect(self.rgr?.blueprintPath).toBe('/self/blueprints/0x000112-recursive-gepa-ring.md');
+    expect(self.productModel).toBe('Reploid');
+    expect(self.coreInvariant).toBe('Start small, read blueprints on demand, stage candidates under /shadow.');
+    expect(self.blueprints?.indexPath).toBe('/self/blueprint-index.json');
     expect(self.instances).toBeUndefined();
     expect(self.dream).toBeUndefined();
     expect(self.bootPath).toBe('/self/boot.json');

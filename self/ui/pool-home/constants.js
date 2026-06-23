@@ -1,20 +1,25 @@
 /**
  * @fileoverview Constants for the Reploid product home.
+ *
+ * The root pool implementation namespace is internal.
+ * Public UI copy intentionally keeps the Reploid name.
  */
 
 export const PRODUCT_ROUTES = Object.freeze({
-  '/': 'home',
+  '/': 'mesh',
   '/run': 'run',
-  '/contribute': 'contribute',
-  '/agents': 'agents',
-  '/receipts': 'receipts',
-  '/reputation': 'reputation'
+  '/mesh': 'mesh',
+  '/record': 'record',
+  '/contribute': 'mesh',
+  '/agents': 'mesh',
+  '/receipts': 'record',
+  '/reputation': 'record'
 });
 
-export const POOLDAY_NAME = 'Reploid';
+export const PUBLIC_PRODUCT_NAME = 'Reploid';
+export const POOLDAY_NAME = PUBLIC_PRODUCT_NAME;
 export const POOLDAY_PROTOCOL = 'Verified Browser Inference';
 export const POOLDAY_VERSION_TAG = 'vBI-1.6';
-export const PROVIDER_WORKER_INTERVAL_MS = 3000;
 export const SIMULATION_TARGET_STEP_MS = 1000 / 60;
 export const SIMULATION_MAX_STEP_MS = 1000 / 16;
 export const SIMULATION_GENTLE_SPEED = 0.72;
@@ -346,7 +351,83 @@ export const POOLDAY_FLOW_CORE_NODES = Object.freeze([
     y: '58%'
   }
 ]);
-export const POOLDAY_FLOW_LABELS = Object.freeze([...POOLDAY_FLOW_CORE_NODES]);
+export const POOLDAY_GRAPH_LABEL_ROLE_META = Object.freeze({
+  consumer: {
+    label: 'Consumer',
+    body: 'Requests work, accepts a receipt, and compares the delivered result against the declared intent.'
+  },
+  producer: {
+    label: 'Producer',
+    body: 'Publishes work intent or model capability into the browser network for another peer to consume.'
+  },
+  coordinator: {
+    label: 'Coordinator',
+    body: 'Matches capability, policy, and receipt requirements before peers exchange work.'
+  },
+  provider: {
+    label: 'Provider',
+    body: 'Runs the selected model or runtime lane and signs the execution receipt.'
+  },
+  verifier: {
+    label: 'Verifier',
+    body: 'Checks receipt fields, model compatibility, output policy, and agreement before acceptance.'
+  },
+  settlement: {
+    label: 'Settlement',
+    body: 'Applies acceptance, reputation, and point evidence after verification reaches agreement.'
+  },
+  ledger: {
+    label: 'Ledger',
+    body: 'Stores accepted receipts, peer history, and local routing evidence.'
+  }
+});
+export const POOLDAY_GRAPH_LABEL_STAGES = Object.freeze([
+  {
+    id: 'intent',
+    label: 'Intent',
+    ids: ['requester', 'policy'],
+    roles: ['consumer', 'consumer']
+  },
+  {
+    id: 'match',
+    label: 'Match',
+    ids: ['assignment', 'runner0'],
+    roles: ['coordinator', 'provider']
+  },
+  {
+    id: 'execute',
+    label: 'Execute',
+    ids: ['runner1', 'runner2', 'runner3'],
+    roles: ['provider', 'producer', 'producer']
+  },
+  {
+    id: 'verify',
+    label: 'Verify',
+    ids: ['verifier0', 'verifier1', 'agreement'],
+    roles: ['verifier', 'verifier', 'verifier']
+  },
+  {
+    id: 'record',
+    label: 'Record',
+    ids: ['settlement', 'ledger'],
+    roles: ['settlement', 'ledger']
+  }
+]);
+const DEFAULT_GRAPH_ROLE_BY_ID = Object.freeze(Object.fromEntries(
+  POOLDAY_GRAPH_LABEL_STAGES.flatMap((stage) => stage.ids.map((id, index) => [id, stage.roles[index]]))
+));
+export const POOLDAY_FLOW_LABELS = Object.freeze(POOLDAY_GRAPH_NODE_IDS.map((id) => {
+  const point = POOLDAY_GRAPH_TOPOLOGIES[0].points[id] || [0.5, 0.5];
+  const role = DEFAULT_GRAPH_ROLE_BY_ID[id] || 'provider';
+  const meta = POOLDAY_GRAPH_LABEL_ROLE_META[role] || POOLDAY_GRAPH_LABEL_ROLE_META.provider;
+  return {
+    id,
+    label: meta.label,
+    body: meta.body,
+    x: `${Math.round(point[0] * 100)}%`,
+    y: `${Math.round(point[1] * 100)}%`
+  };
+}));
 export const POOLDAY_FLOW_NODE_COUNT = POOLDAY_GRAPH_NODE_IDS.length;
 
 export const POOLDAY_PEER_LEDGER_STORAGE_KEY = 'reploid.peerLedgerEvents.v1';
@@ -361,24 +442,14 @@ export const ROUTE_COPY = Object.freeze({
     title: 'Run',
     body: 'Send a prompt and stream the result.'
   },
-  contribute: {
-    eyebrow: 'Contribute',
-    title: 'Contribute',
-    body: 'Let this tab pick up jobs.'
+  mesh: {
+    eyebrow: 'Mesh',
+    title: 'Mesh',
+    body: 'Watch and run peer nodes.'
   },
-  agents: {
-    eyebrow: 'API',
-    title: 'API',
-    body: 'Submit, poll, verify, accept.'
-  },
-  receipts: {
-    eyebrow: 'Receipts',
-    title: 'Receipts',
-    body: 'Check work and results.'
-  },
-  reputation: {
-    eyebrow: 'Reputation',
-    title: 'Reputation',
-    body: 'Review peer history.'
+  record: {
+    eyebrow: 'Record',
+    title: 'Record',
+    body: 'Review completed work.'
   }
 });

@@ -13,9 +13,12 @@ const buildProviderCopy = (state) => {
   const proxyDetected = detection.proxy?.detected;
   const serverDetected = proxyDetected || ollamaDetected;
   const localBlocked = detection.ollama?.blocked || detection.proxy?.blocked;
-  const browserRecommended = selectedMode === 'zero';
+  const browserRecommended = false;
+  const proxyRecommended = selectedMode === 'zero';
 
-  let serverDescription = 'Connect to a local or remote server';
+  let serverDescription = proxyRecommended
+    ? 'Use the managed server proxy'
+    : 'Connect to a local or remote server';
   if (proxyDetected && ollamaDetected) {
     serverDescription = `Reploid proxy at ${detection.proxy.url}, Ollama with ${detection.ollama.models?.length || 0} models`;
   } else if (proxyDetected) {
@@ -27,11 +30,11 @@ const buildProviderCopy = (state) => {
   const connectionBorderClass = (type) => connectionType === type ? '' : 'border-ghost';
   const connectionPressed = (type) => connectionType === type ? 'true' : 'false';
 
-  const dopplerCaption = browserRecommended
-    ? (webgpuSupported
-      ? 'Run a mutable local brain in-browser via WebGPU'
-      : 'Zero needs WebGPU before the local brain can come online')
-    : (webgpuSupported
+  const dopplerCaption = selectedMode === 'zero'
+      ? (webgpuSupported
+        ? 'Optional local Doppler model via WebGPU'
+        : 'Optional local model unavailable without WebGPU')
+      : (webgpuSupported
       ? 'Run Doppler locally in-browser via WebGPU'
       : 'WebGPU not supported in this browser');
 
@@ -41,6 +44,7 @@ const buildProviderCopy = (state) => {
     connectionPressed,
     dopplerCaption,
     localBlocked,
+    proxyRecommended,
     serverDescription,
     serverDetected,
     webgpuSupported,
@@ -53,7 +57,8 @@ export function renderConnectionProviderOptions(
   {
     standalone = false,
     title = 'Choose inference provider',
-    caption = 'Pick where reasoning runs.'
+    caption = 'Pick where reasoning runs.',
+    allowedConnectionTypes = ['browser', 'direct', 'proxy']
   } = {}
 ) {
   const {
@@ -62,6 +67,7 @@ export function renderConnectionProviderOptions(
     connectionPressed,
     dopplerCaption,
     localBlocked,
+    proxyRecommended,
     serverDescription,
     serverDetected,
     webgpuSupported
@@ -81,10 +87,7 @@ export function renderConnectionProviderOptions(
       </div>
     `;
 
-  return `
-    ${header}
-
-    <div class="connection-options connection-options-compact">
+  const browserOption = `
       <button class="panel connection-option ${connectionBorderClass('browser')} ${!webgpuSupported ? 'disabled' : ''}"
               data-action="choose-browser"
               aria-pressed="${connectionPressed('browser')}"
@@ -97,7 +100,9 @@ export function renderConnectionProviderOptions(
           <span class="tag">${browserRecommended ? 'Brain-mutable' : 'WebGPU local'}</span>
         </div>
       </button>
+  `;
 
+  const directOption = `
       <button class="panel connection-option ${connectionBorderClass('direct')}"
               data-action="choose-direct"
               aria-pressed="${connectionPressed('direct')}">
@@ -108,18 +113,39 @@ export function renderConnectionProviderOptions(
           <span class="tag">Key in browser</span>
         </div>
       </button>
+  `;
 
+  const proxyOption = `
       <button class="panel connection-option ${connectionBorderClass('proxy')}"
               data-action="choose-proxy"
               aria-pressed="${connectionPressed('proxy')}">
-        <span class="type-h2">☍ Proxy ${serverDetected ? '<span class="badge">Detected</span>' : ''}</span>
+        <span class="type-h2">☍ ${proxyRecommended ? 'Server proxy' : 'Proxy'} ${proxyRecommended ? '<span class="badge">Recommended</span>' : serverDetected ? '<span class="badge">Detected</span>' : ''}</span>
         <span class="type-caption">${serverDescription}</span>
         <div class="option-capabilities">
-          <span class="tag">Cloud or local</span>
-          <span class="tag">Keys on server</span>
+          ${proxyRecommended
+            ? '<span class="tag">Server proxy</span>'
+            : '<span class="tag">Cloud or local</span><span class="tag">Server-side access</span>'}
         </div>
         ${localBlocked ? '<span class="type-caption">△ Local auto-detect blocked. Enter address manually.</span>' : ''}
       </button>
+  `;
+  const optionsByType = {
+    browser: browserOption,
+    direct: directOption,
+    proxy: proxyOption
+  };
+  const orderedTypes = proxyRecommended
+    ? ['proxy', 'browser', 'direct']
+    : ['browser', 'direct', 'proxy'];
+
+  return `
+    ${header}
+
+    <div class="connection-options connection-options-compact">
+      ${orderedTypes
+        .filter((type) => allowedConnectionTypes.includes(type))
+        .map((type) => optionsByType[type])
+        .join('')}
     </div>
   `;
 }
@@ -131,6 +157,7 @@ export function renderChooseStep(state) {
   const selectedMode = state.mode || 'reploid';
   const routeLockedMode = state.routeLockedMode || null;
   const showModeSelector = !routeLockedMode;
+  const isZero = selectedMode === 'zero';
 
   return `
     <div class="wizard-step wizard-choose">
@@ -165,7 +192,10 @@ export function renderChooseStep(state) {
       ` : ''}
 
       ${renderConnectionProviderOptions(state, {
-        standalone: !showModeSelector
+        standalone: !showModeSelector,
+        title: isZero ? 'Choose inference' : 'Choose inference provider',
+        caption: isZero ? 'Server proxy is the default. Local Doppler is optional.' : 'Pick where reasoning runs.',
+        allowedConnectionTypes: isZero ? ['browser', 'proxy'] : ['browser', 'direct', 'proxy']
       })}
     </div>
   `;

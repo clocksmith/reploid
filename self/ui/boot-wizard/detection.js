@@ -5,6 +5,7 @@
 
 import { getGoalEntries } from './goals.js';
 import { getState, setNestedState } from './state.js';
+import { getProxyChatEndpoint, getProxyHealthEndpoint } from './zero-function.js';
 
 const PROBE_TIMEOUT = 3000;
 const GOAL_GENERATOR_SYSTEM_PROMPT = 'You are writing the initial goal for a browser-based autonomous coding agent pursuing recursive self-improvement. Output exactly one concrete, ambitious sentence of 16 to 24 words. No quotes, labels, numbering, or explanation.';
@@ -346,12 +347,12 @@ const generateViaBrowser = async (model, prompt = GOAL_GENERATOR_USER_PROMPT) =>
   return reply?.choices?.[0]?.message?.content || '';
 };
 
-const generateViaProxy = async ({ url, provider, model, prompt = GOAL_GENERATOR_USER_PROMPT }) => {
+const generateViaProxy = async ({ url, provider, model, serverType = null, prompt = GOAL_GENERATOR_USER_PROMPT }) => {
   if (!url || !model) {
     throw new Error('Select a proxy URL and model first');
   }
 
-  const response = await fetch(`${url.replace(/\/$/, '')}/api/chat`, {
+  const response = await fetch(getProxyChatEndpoint(url, serverType), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -482,6 +483,7 @@ const generateCandidateGoal = async (state, rewritePrompt = null) => {
       url: state.proxyConfig?.url,
       provider: state.proxyConfig?.serverType === 'ollama' ? 'ollama' : state.proxyConfig?.provider,
       model: state.proxyConfig?.model,
+      serverType: state.proxyConfig?.serverType,
       prompt
     });
   }
@@ -616,6 +618,33 @@ async function probeLocalhost(port, path, name) {
   }
 }
 
+async function probeSameOriginProxy() {
+  if (typeof window === 'undefined' || !window.location?.origin) {
+    return { detected: false, url: null, blocked: false };
+  }
+  if (!/^https?:$/.test(window.location.protocol)) {
+    return { detected: false, url: null, blocked: false };
+  }
+
+  const url = `${window.location.origin}/api/health`;
+  try {
+    const response = await fetch(url, {
+      method: 'GET',
+      signal: AbortSignal.timeout(PROBE_TIMEOUT)
+    });
+
+    if (response.ok) {
+      return { detected: true, url: window.location.origin, blocked: false };
+    }
+    return { detected: false, url: null, blocked: false, error: `HTTP ${response.status}` };
+  } catch (error) {
+    if (error.name === 'AbortError') {
+      return { detected: false, url: null, blocked: false, error: 'timeout' };
+    }
+    return { detected: false, url: null, blocked: false, error: error.message };
+  }
+}
+
 /**
  * Probe for Ollama on localhost:11434
  */
@@ -656,11 +685,14 @@ export async function probeOllama() {
 }
 
 /**
- * Probe for proxy server on localhost:8000 or 8080
+ * Probe for proxy server on same origin, then localhost:8000 or 8080
  */
 export async function probeProxy() {
-  // Try 8000 first (default dev port), then 8080
-  let result = await probeLocalhost(8000, '/api/health', 'Proxy');
+  let result = await probeSameOriginProxy();
+
+  if (!result.detected) {
+    result = await probeLocalhost(8000, '/api/health', 'Proxy');
+  }
 
   if (!result.detected) {
     result = await probeLocalhost(8080, '/api/health', 'Proxy');
@@ -761,10 +793,11 @@ export async function checkDoppler() {
  * Run all detections
  * @param {Object} options
  * @param {boolean} options.skipLocalScan - Skip localhost probing
+ * @param {boolean} options.skipDoppler - Skip Doppler runtime probing
  * @param {Function} options.onProgress - Progress callback
  */
 export async function runDetection(options = {}) {
-  const { skipLocalScan = false, onProgress } = options;
+  const { skipLocalScan = false, skipDoppler = false, onProgress } = options;
 
   // Set HTTPS status
   const isHttps = checkHttps();
@@ -777,13 +810,17 @@ export async function runDetection(options = {}) {
   // Run other checks in parallel
   const checks = [];
   // Doppler check (depends on WebGPU)
-  if (webgpuSupported) {
+  if (webgpuSupported && !skipDoppler) {
     checks.push(
       checkDoppler().then(r => {
         onProgress?.({ step: 'doppler', done: true, result: r.supported });
         return r;
       })
     );
+  } else if (skipDoppler) {
+    setNestedState('detection', {
+      doppler: { supported: false, checked: false, models: [] }
+    });
   }
 
   // Local scans (if not skipped)
@@ -937,9 +974,9 @@ export async function generateSeededGoalPrompt(options = {}) {
 /**
  * Test proxy connection
  */
-export async function testProxyConnection(url) {
+export async function testProxyConnection(url, serverType = null) {
   try {
-    const response = await fetch(`${url}/api/health`, {
+    const response = await fetch(getProxyHealthEndpoint(url, serverType), {
       signal: AbortSignal.timeout(5000)
     });
 
@@ -990,9 +1027,9 @@ export async function testLocalConnection(url) {
 /**
  * Test model via proxy - sends a minimal completion request
  */
-export async function testProxyModel(url, provider, model) {
+export async function testProxyModel(url, provider, model, serverType = null) {
   try {
-    const response = await fetch(`${url}/api/chat`, {
+    const response = await fetch(getProxyChatEndpoint(url, serverType), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

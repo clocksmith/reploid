@@ -197,6 +197,9 @@ const createWebGPURenderer = async (canvas, buildBatches) => {
   });
 
   const batchBuffers = [];
+  const uniformData = new Float32Array(4);
+  const preparedBatches = [];
+  const preparedBatchPool = [];
   const ensureBatchBuffer = (index, byteLength) => {
     const nextSize = Math.max(4, Math.ceil(byteLength / 4) * 4);
     const existing = batchBuffers[index];
@@ -215,8 +218,12 @@ const createWebGPURenderer = async (canvas, buildBatches) => {
     canvas,
     render: (frame, width, height) => {
       const batches = buildBatches(frame, width, height);
-      device.queue.writeBuffer(uniformBuffer, 0, new Float32Array([width, height, 0, 0]));
-      const preparedBatches = [];
+      uniformData[0] = width;
+      uniformData[1] = height;
+      uniformData[2] = 0;
+      uniformData[3] = 0;
+      device.queue.writeBuffer(uniformBuffer, 0, uniformData);
+      preparedBatches.length = 0;
       for (let index = 0; index < batches.length; index += 1) {
         const batch = batches[index];
         const vertexCount = batch.kind === 'circle'
@@ -225,7 +232,16 @@ const createWebGPURenderer = async (canvas, buildBatches) => {
         if (vertexCount <= 0) continue;
         const buffer = ensureBatchBuffer(index, batch.data.byteLength);
         device.queue.writeBuffer(buffer, 0, batch.data.buffer, batch.data.byteOffset, batch.data.byteLength);
-        preparedBatches.push({ ...batch, buffer, vertexCount });
+        const prepared = preparedBatchPool[preparedBatches.length] || {
+          kind: batch.kind,
+          buffer,
+          vertexCount
+        };
+        prepared.kind = batch.kind;
+        prepared.buffer = buffer;
+        prepared.vertexCount = vertexCount;
+        preparedBatches.push(prepared);
+        preparedBatchPool[preparedBatches.length - 1] = prepared;
       }
       const encoder = device.createCommandEncoder();
       const pass = encoder.beginRenderPass({

@@ -18,13 +18,18 @@ export function renderBrowserConfigStep(state) {
 
   return `
     <div class="wizard-step wizard-doppler-config">
-      <h2 class="type-h1">Configure Doppler</h2>
-      <p class="type-caption">Select a Doppler model to run locally via WebGPU.</p>
+      <h2 class="type-h1">Optional local Doppler</h2>
+      <p class="type-caption">Select a browser-local model only when you want Zero to run without the server proxy.</p>
 
       <div class="model-options">
 	        ${downloadableModels.map(m => {
 	          const cached = models.some(cm => cm.id === m.id);
 	          const selected = dopplerConfig.model === m.id;
+            const status = cached
+              ? '★ Cached'
+              : selected
+                ? 'Downloads on awaken'
+                : 'Select for first run';
 	          return `
 	            <button class="model-option ${selected ? 'selected' : ''} ${cached ? 'cached' : ''}"
 	                    data-action="select-doppler-model"
@@ -36,7 +41,7 @@ export function renderBrowserConfigStep(state) {
 	              </div>
               <div class="model-meta">
                 <span class="model-size">${m.size}</span>
-                <span class="model-status">${cached ? '★ Cached' : 'Download required'}</span>
+                <span class="model-status">${status}</span>
               </div>
             </button>
           `;

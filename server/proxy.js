@@ -97,6 +97,7 @@ try {
 const app = express();
 const PORT = appConfig?.server?.port || process.env.PORT || 8000;
 const GEMINI_API_KEY = appConfig?.api?.geminiKey || process.env.GEMINI_API_KEY;
+const GEMINI_REFERER = appConfig?.api?.geminiReferer || process.env.GEMINI_REFERER || 'https://replo.id';
 const LOCAL_MODEL_ENDPOINT = appConfig?.api?.localEndpoint || process.env.LOCAL_MODEL_ENDPOINT || 'http://localhost:11434';
 const OPENAI_API_KEY = appConfig?.api?.openaiKey || process.env.OPENAI_API_KEY;
 const ANTHROPIC_API_KEY = appConfig?.api?.anthropicKey || process.env.ANTHROPIC_API_KEY;
@@ -111,6 +112,10 @@ const CORS_ORIGINS = appConfig?.server?.corsOrigins || ENV_CORS_ORIGINS || DEFAU
 const AUTO_START_OLLAMA = appConfig?.ollama?.autoStart || process.env.AUTO_START_OLLAMA === 'true';
 const SSE_DONE = 'data: [DONE]';
 const POOL_BACKEND_ONLY = process.env.POOL_BACKEND_ONLY === 'true';
+const getGeminiHeaders = () => ({
+  'Content-Type': 'application/json',
+  Referer: GEMINI_REFERER
+});
 
 const createConfiguredPoolStore = async () => {
   if (process.env.POOL_STORE !== 'firestore') return null;
@@ -534,9 +539,7 @@ app.post('/api/gemini/*', async (req, res) => {
   try {
     const response = await fetch(geminiUrl, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: getGeminiHeaders(),
       body: JSON.stringify(req.body)
     });
 
@@ -799,7 +802,7 @@ app.post('/api/chat', async (req, res) => {
         console.log(`[API Chat ${requestId}] Calling Gemini API: ${geminiUrl.split('?')[0]}`);
         response = await fetch(geminiUrl, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: getGeminiHeaders(),
           body: JSON.stringify({
             contents: messages.map(m => ({
               role: m.role === 'assistant' ? 'model' : 'user',
@@ -1349,7 +1352,7 @@ const setStaticHeaders = (res, filePath) => {
   }
 };
 
-const PRODUCT_ROUTES = ['/', '/run', '/contribute', '/agents', '/receipts', '/reputation'];
+const PRODUCT_ROUTES = ['/', '/run', '/mesh', '/record', '/contribute', '/agents', '/receipts', '/reputation'];
 const SUBSTRATE_ROUTES = ['/0', '/x'];
 
 // Main routes

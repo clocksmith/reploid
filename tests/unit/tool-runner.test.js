@@ -244,7 +244,7 @@ describe('ToolRunner', () => {
       expect(ToolRunnerModule.metadata.type).toBe('service');
       expect(ToolRunnerModule.metadata.async).toBe(true);
       expect(ToolRunnerModule.metadata.dependencies).toContain('VFS');
-      expect(ToolRunnerModule.metadata.dependencies).toContain('ToolWriter');
+      expect(ToolRunnerModule.metadata.dependencies).toContain('ToolWriter?');
       expect(ToolRunnerModule.metadata.dependencies).toContain('SchemaRegistry');
     });
   });

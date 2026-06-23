@@ -220,7 +220,8 @@ const normalizeModelConfig = (modelConfig = null) => {
     next.provider = 'webllm';
     next.queryMethod = 'browser';
   } else if ((next.hostType === 'proxy-cloud' || next.hostType === 'proxy-local') && next.proxyUrl && !next.endpoint) {
-    next.endpoint = `${String(next.proxyUrl).replace(/\/$/, '')}/api/chat`;
+    const base = String(next.proxyUrl).replace(/\/$/, '');
+    next.endpoint = next.serverType === 'firebase-function' ? base : `${base}/api/chat`;
   }
   return next;
 };

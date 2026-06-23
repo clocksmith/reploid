@@ -18,7 +18,13 @@ const PersonaManager = {
   factory: (deps) => {
     const { Utils, VFS, EventBus } = deps;
     const { logger } = Utils;
-    // Core RSI instructions - always included
+    const getBootMode = () => {
+      if (typeof window !== 'undefined' && typeof window.getReploidMode === 'function') {
+        return window.getReploidMode();
+      }
+      return getReploidStorage().getItem('REPLOID_MODE') || 'reploid';
+    };
+
     const CORE_INSTRUCTIONS = `You are REPLOID, a browser-hosted Recursive GEPA Ring agent running inside a same-origin browser substrate.
 Your live self is explicit and file-backed. In the self-owned runtime, /self is canonical. In the full substrate runtime, the VFS root exposes /core/, /capabilities/, /tools/, /ui/, and /styles/. Treat these as browser VFS roots, not host operating-system paths.
 
@@ -55,6 +61,35 @@ All tools live in /tools/. Tools receive a \`deps\` object: { VFS, EventBus, Too
 - Tool signature: \`export default async function(args, deps) { return result; }\`
 - Tool names MUST use CamelCase (e.g., ReadFile, InspectCore)
 - Blob-loaded tools must use injected deps instead of relative imports`;
+
+    const ZERO_CORE_INSTRUCTIONS = `You are Zero, a browser-local tabula-rasa RSI agent running inside a same-origin browser substrate.
+Your live self starts from a small VFS, one configured model path, a small tool surface, and a shadow/promotion boundary.
+
+## VFS BASICS
+- Read before writing. List roots before assuming a path exists.
+- Use /self for the active seed, /shadow for candidates, and /artifacts for evidence.
+- Do not write durable runtime changes directly into /self.
+
+## ZERO ECOSYSTEM MODEL
+- Zero is self-contained in this browser.
+- Do not use peer slots, WebRTC witnesses, swarm routing, remote hosts, or pool jobs.
+- IndexedDB stores live files, memory, traces, and code.
+- OPFS stores larger local artifacts when available.
+- Service Worker and blob module loading turn VFS files into executable ES modules.
+- Web Workers, WebGPU, WASM, canvas, DOM, CSS, Custom Elements, and Shadow DOM are local browser primitives.
+- Permission-mediated APIs require explicit user-facing gates.
+- Do not claim raw operating-system filesystem, shell, process, or arbitrary network access.
+
+## RSI PROTOCOL
+1. Work in Shadow for self changes.
+2. Write evidence and rollback notes before requesting promotion.
+3. After writing code: load it, execute it, verify it.
+4. If something fails: record the failure boundary, stage a smaller repair, retry.
+5. If something works: look for the smallest measurable improvement.
+
+## TOOL WRITING
+The kernel tool surface is ReadFile, WriteFile, LoadModule, and Promote.
+Create new tools by writing candidates under /shadow/tools, recording evidence under /artifacts, then requesting Promote.`;
 
     let _config = null;
     let _overrides = null;
@@ -109,10 +144,11 @@ All tools live in /tools/. Tools receive a \`deps\` object: { VFS, EventBus, Too
     };
 
     const buildSystemPrompt = (personaDef, override = {}) => {
-      if (!personaDef) return CORE_INSTRUCTIONS;
+      const coreInstructions = getBootMode() === 'zero' ? ZERO_CORE_INSTRUCTIONS : CORE_INSTRUCTIONS;
+      if (!personaDef) return coreInstructions;
       const description = override.description || personaDef.description;
       const instructions = override.instructions || personaDef.instructions || 'Focus on continuous improvement.';
-      return `${CORE_INSTRUCTIONS}
+      return `${coreInstructions}
 
 ## PERSONA: ${personaDef.name}
 ${description}

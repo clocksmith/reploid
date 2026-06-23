@@ -82,13 +82,15 @@ export const SELF_BOOT_SPEC = Object.freeze({
   ],
   routes: {
     '/0': {
-      mode: 'reploid',
-      bootProfile: 'substrate_console',
-      genesisLevel: 'capsule',
-      surface: 'substrate_console',
+      title: 'Zero',
+      mode: 'zero',
+      bootProfile: 'zero_home',
+      genesisLevel: 'spark',
+      surface: 'zero',
       productFacing: false
     },
     '/x': {
+      title: 'X',
       mode: 'x',
       bootProfile: 'x_home',
       genesisLevel: 'full',

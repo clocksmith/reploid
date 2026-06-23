@@ -6,7 +6,8 @@ import nodeFetch from 'node-fetch';
 
 const DEFAULT_LOCAL_MODEL_ENDPOINT = 'http://localhost:11434';
 const DEFAULT_VLLM_ENDPOINT = 'http://localhost:8000';
-const DEFAULT_GEMINI_MODEL = 'gemini-3.5-flash';
+const DEFAULT_GEMINI_MODEL = 'gemini-3.1-flash-lite';
+const DEFAULT_GEMINI_REFERER = 'https://replo.id';
 const PROVIDER_PRIORITY = Object.freeze([
   'gemini',
   'openai',
@@ -81,7 +82,8 @@ export function resolveInferenceServiceConfig(options = {}) {
     gemini: {
       available: !!firstDefined(options.geminiApiKey, env.GEMINI_API_KEY),
       apiKey: firstDefined(options.geminiApiKey, env.GEMINI_API_KEY),
-      defaultModel: resolveProviderDefaultModel('gemini', env) || DEFAULT_GEMINI_MODEL
+      defaultModel: resolveProviderDefaultModel('gemini', env) || DEFAULT_GEMINI_MODEL,
+      referer: firstDefined(options.geminiReferer, env.GEMINI_REFERER) || DEFAULT_GEMINI_REFERER
     },
     openai: {
       available: !!firstDefined(options.openaiApiKey, env.OPENAI_API_KEY),
@@ -183,7 +185,8 @@ export function createInferenceService(options = {}) {
       {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          Referer: providerConfig.referer || DEFAULT_GEMINI_REFERER
         },
         body: JSON.stringify({
           contents: messages.map((message) => ({
