@@ -6,6 +6,10 @@ import { describe, expect, it } from 'vitest';
 
 import { getRouteBootSpec } from '../../self/boot-spec.js';
 import { pickBootSeedFiles, shouldHydrateFullManifest } from '../../self/config/boot-seed.js';
+import {
+  buildZeroGeminiProxyConfig,
+  ZERO_MANAGED_MAX_ITERATIONS
+} from '../../self/ui/boot-wizard/zero-function.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const manifestPath = path.resolve(__dirname, '../../self/config/vfs-manifest.json');
@@ -79,5 +83,12 @@ describe('boot seed manifest', () => {
         region: 'us-central1'
       }
     });
+  });
+
+  it('caps the managed Zero server proxy model loop', () => {
+    expect(buildZeroGeminiProxyConfig()).toMatchObject({
+      maxIterations: ZERO_MANAGED_MAX_ITERATIONS
+    });
+    expect(ZERO_MANAGED_MAX_ITERATIONS).toBe(99);
   });
 });

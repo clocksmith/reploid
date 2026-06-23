@@ -30,6 +30,8 @@ const AgentLoop = {
 
     const { logger, Errors } = Utils;
     const MAX_ITERATIONS = 256;
+    const MANAGED_SERVER_PROXY_TYPE = 'firebase-function';
+    const MANAGED_SERVER_PROXY_MAX_ITERATIONS = 99;
     const DEFAULT_MAX_TOOL_CALLS = 8;
 
     // Configurable limits - can be overridden via StateManager config
@@ -41,6 +43,30 @@ const AgentLoop = {
         return DEFAULT_MAX_TOOL_CALLS;
       }
     };
+
+    const normalizeIterationLimit = (value, fallback = MAX_ITERATIONS) => {
+      const parsed = Number(value);
+      if (!Number.isFinite(parsed)) return fallback;
+      const limit = Math.floor(parsed);
+      if (limit < 1) return fallback;
+      return Math.min(limit, MAX_ITERATIONS);
+    };
+
+    const getModelIterationLimit = (model) => {
+      if (model?.managedServerProxy || model?.serverType === MANAGED_SERVER_PROXY_TYPE) {
+        return Math.min(
+          normalizeIterationLimit(
+            model?.maxIterations ?? model?.iterationLimit,
+            MANAGED_SERVER_PROXY_MAX_ITERATIONS
+          ),
+          MANAGED_SERVER_PROXY_MAX_ITERATIONS
+        );
+      }
+      return normalizeIterationLimit(model?.maxIterations ?? model?.iterationLimit);
+    };
+
+    const getConfiguredMaxIterations = () =>
+      getModelIterationLimit(_modelConfig || _modelConfigs[0]);
 
     // Use SchemaRegistry for read-only tool detection (no longer hardcoded)
     const isReadOnlyTool = (name) => {
@@ -533,6 +559,7 @@ const AgentLoop = {
 
       let context = await _buildInitialContext(goal);
       let iteration = 0;
+      const maxIterations = getConfiguredMaxIterations();
       const functionGemmaConfig = resolveFunctionGemmaConfig();
       let functionGemmaEnabled = !!functionGemmaConfig;
       if (functionGemmaEnabled) {
@@ -543,7 +570,7 @@ const AgentLoop = {
       _currentContext = [...context];
 
       try {
-        while (_isRunning && iteration < MAX_ITERATIONS) {
+        while (_isRunning && iteration < maxIterations) {
           if (_abortController.signal.aborted) break;
 
           iteration++;

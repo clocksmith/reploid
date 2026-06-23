@@ -264,6 +264,41 @@ describe('AgentLoop - Integration Tests', () => {
       expect(mockStateManager.incrementCycle).toHaveBeenCalledTimes(2);
     });
 
+    it('should stop at the configured model iteration limit', async () => {
+      agentLoop.setModel({ id: 'test-model', provider: 'test', maxIterations: 3 });
+      mockResponseParser.parseToolCalls.mockReturnValue([{ name: 'ReadFile', args: { path: '/self/self.json' } }]);
+      mockResponseParser.isDone.mockReturnValue(false);
+      mockLLMClient.chat.mockResolvedValue({
+        content: 'Continue by reading the current seed and recording a bounded observation.'
+      });
+      mockToolRunner.execute.mockResolvedValue('seed');
+
+      await agentLoop.run('Test capped loop');
+
+      expect(mockStateManager.incrementCycle).toHaveBeenCalledTimes(3);
+      expect(mockLLMClient.chat).toHaveBeenCalledTimes(3);
+    });
+
+    it('should cap managed server proxy loops at 99 iterations', async () => {
+      agentLoop.setModel({
+        id: 'gemini-3.1-flash-lite',
+        provider: 'gemini',
+        serverType: 'firebase-function',
+        maxIterations: 120
+      });
+      mockResponseParser.parseToolCalls.mockReturnValue([{ name: 'ReadFile', args: { path: '/self/self.json' } }]);
+      mockResponseParser.isDone.mockReturnValue(false);
+      mockLLMClient.chat.mockResolvedValue({
+        content: 'Continue by reading the current seed and recording a bounded observation.'
+      });
+      mockToolRunner.execute.mockResolvedValue('seed');
+
+      await agentLoop.run('Test managed cap');
+
+      expect(mockStateManager.incrementCycle).toHaveBeenCalledTimes(99);
+      expect(mockLLMClient.chat).toHaveBeenCalledTimes(99);
+    });
+
     it('should manage context before LLM call', async () => {
       mockLLMClient.chat.mockResolvedValue({ content: 'DONE' });
       mockResponseParser.isDone.mockReturnValue(true);
