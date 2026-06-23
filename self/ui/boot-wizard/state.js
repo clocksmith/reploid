@@ -17,7 +17,10 @@ import {
 import { getSecurityState } from '../../core/security-config.js';
 import { getCurrentReploidStorage as getReploidStorage } from '../../instance.js';
 import { getReploidLaunchState } from './reploid-inference.js';
-import { ZERO_GEMINI_SERVER_TYPE } from './zero-function.js';
+import {
+  ZERO_GEMINI_SERVER_TYPE,
+  ZERO_MANAGED_MAX_ITERATIONS
+} from './zero-function.js';
 
 // Wizard steps in order
 export const STEPS = {
@@ -535,6 +538,8 @@ export function saveConfig() {
     };
     if (isZeroFunction) {
       model.endpoint = proxyConfig.endpoint || proxyConfig.url;
+      model.maxIterations = ZERO_MANAGED_MAX_ITERATIONS;
+      model.managedServerProxy = true;
     }
     models.push(model);
   }

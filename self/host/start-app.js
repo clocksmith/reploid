@@ -16,6 +16,16 @@ import {
 let sharedBootModulesPromise = null;
 let reploidModulesPromise = null;
 let consumeFreshIdentityOnNextAwaken = hasRequestedFreshIdentity();
+const MANAGED_SERVER_PROXY_TYPE = 'firebase-function';
+const MANAGED_SERVER_PROXY_MAX_ITERATIONS = 99;
+
+const normalizeManagedServerProxyMaxIterations = (value) => {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) return MANAGED_SERVER_PROXY_MAX_ITERATIONS;
+  const limit = Math.floor(parsed);
+  if (limit < 1) return MANAGED_SERVER_PROXY_MAX_ITERATIONS;
+  return Math.min(limit, MANAGED_SERVER_PROXY_MAX_ITERATIONS);
+};
 
 if (consumeFreshIdentityOnNextAwaken) {
   clearRequestedFreshIdentity();
@@ -130,7 +140,15 @@ function parseModels() {
     const saved = storage.getItem('SELECTED_MODELS');
     if (!saved) return [];
     const parsed = JSON.parse(saved);
-    return Array.isArray(parsed) ? parsed : [];
+    if (!Array.isArray(parsed)) return [];
+    return parsed.map((model) => {
+      if (model?.serverType !== MANAGED_SERVER_PROXY_TYPE) return model;
+      return {
+        ...model,
+        maxIterations: normalizeManagedServerProxyMaxIterations(model.maxIterations ?? model.iterationLimit),
+        managedServerProxy: true
+      };
+    });
   } catch (e) {
     console.warn('[Boot] Failed to parse SELECTED_MODELS, resetting');
     storage.removeItem('SELECTED_MODELS', { removeLegacy: true });

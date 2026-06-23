@@ -37,8 +37,17 @@ const REMOTE_GENERATION_TIMEOUT_MS = 45000;
 const OPFS_PREFIX = 'opfs:';
 const VFS_PREFIX = 'vfs:';
 const VFS_BYPASS_HEADER = 'x-reploid-vfs-bypass';
+const MANAGED_SERVER_PROXY_TYPE = 'firebase-function';
+const MANAGED_SERVER_PROXY_MAX_ITERATIONS = 99;
 const RGR_ANCHOR_RECEIPT_ROOT = '/artifacts/rgr/anchor-receipts/';
 const PROTECTED_SYSTEM_PATHS = new Set(SELF_PROTECTED_PATHS);
+const normalizeManagedServerProxyMaxIterations = (value) => {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) return MANAGED_SERVER_PROXY_MAX_ITERATIONS;
+  const limit = Math.floor(parsed);
+  if (limit < 1) return MANAGED_SERVER_PROXY_MAX_ITERATIONS;
+  return Math.min(limit, MANAGED_SERVER_PROXY_MAX_ITERATIONS);
+};
 const normalizePath = (rawPath, backendOverride) => {
   if (!rawPath || typeof rawPath !== 'string') {
     throw new Error('Missing path argument');
@@ -222,6 +231,10 @@ const normalizeModelConfig = (modelConfig = null) => {
   } else if ((next.hostType === 'proxy-cloud' || next.hostType === 'proxy-local') && next.proxyUrl && !next.endpoint) {
     const base = String(next.proxyUrl).replace(/\/$/, '');
     next.endpoint = next.serverType === 'firebase-function' ? base : `${base}/api/chat`;
+  }
+  if (next.serverType === MANAGED_SERVER_PROXY_TYPE) {
+    next.maxIterations = normalizeManagedServerProxyMaxIterations(next.maxIterations ?? next.iterationLimit);
+    next.managedServerProxy = true;
   }
   return next;
 };

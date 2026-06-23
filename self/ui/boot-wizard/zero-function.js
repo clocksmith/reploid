@@ -2,6 +2,7 @@ export const ZERO_GEMINI_FUNCTION_PATH = '/zero/gemini';
 export const ZERO_GEMINI_PROVIDER = 'gemini';
 export const ZERO_GEMINI_MODEL = 'gemini-3.1-flash-lite';
 export const ZERO_GEMINI_SERVER_TYPE = 'firebase-function';
+export const ZERO_MANAGED_MAX_ITERATIONS = 99;
 
 const trimTrailingSlash = (value) => String(value || '').replace(/\/$/, '');
 
@@ -21,7 +22,8 @@ export const buildZeroGeminiProxyConfig = (current = {}) => ({
     : getZeroGeminiFunctionUrl(),
   serverType: ZERO_GEMINI_SERVER_TYPE,
   provider: ZERO_GEMINI_PROVIDER,
-  model: current.model || ZERO_GEMINI_MODEL
+  model: current.model || ZERO_GEMINI_MODEL,
+  maxIterations: ZERO_MANAGED_MAX_ITERATIONS
 });
 
 export const isZeroGeminiFunctionServer = (serverType) =>
