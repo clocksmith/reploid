@@ -554,7 +554,7 @@ export const setResult = (id, value, options = {}) => {
 export const renderNav = (activeRoute) => {
   const routeItems = [
     ['/run', 'Run'],
-    ['/mesh', 'Mesh'],
+    ['/', 'Mesh'],
     ['/record', 'Record']
   ];
   const renderItem = ([href, label]) => {
@@ -567,7 +567,10 @@ export const renderNav = (activeRoute) => {
       <nav class="pool-nav" aria-label="Reploid routes">
         ${routeItems.map(renderItem).join('')}
       </nav>
-      <a class="pool-zero-link pool-nav-zero link-secondary" href="/0" title="Open Zero.">Zero</a>
+      <div class="pool-nav-substrate" aria-label="Substrate routes">
+        <a class="pool-zero-link pool-nav-zero link-secondary" href="/0" title="Open Zero.">Zero</a>
+        <a class="pool-zero-link pool-nav-zero link-secondary" href="/x" title="Open X.">X</a>
+      </div>
     </aside>
   `;
 };
@@ -733,10 +736,11 @@ export const renderRouteDetail = (routeId) => {
   if (routeId === 'mesh') {
     return `
       <section class="panel pool-panel">
-        <div class="pool-provider-heading">
+        <div class="pool-page-heading pool-page-heading-split">
           <div>
             <p class="pool-eyebrow">${escapeHtml(copy.eyebrow)}</p>
             <h1 class="type-h1">${escapeHtml(copy.title)}</h1>
+            <p class="type-caption pool-hero-body">${escapeHtml(copy.body)}</p>
           </div>
           <p class="pool-provider-status" data-pool-provider-status>NODE // OFFLINE</p>
         </div>
@@ -804,6 +808,7 @@ export const renderRouteDetail = (routeId) => {
         <div class="pool-page-heading">
           <p class="pool-eyebrow">${escapeHtml(copy.eyebrow)}</p>
           <h1 class="type-h1">${escapeHtml(copy.title)}</h1>
+          <p class="type-caption pool-hero-body">${escapeHtml(copy.body)}</p>
         </div>
         <div class="pool-form" data-pool-receipts>
           <label class="pool-field">

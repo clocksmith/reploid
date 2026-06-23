@@ -60,6 +60,17 @@ describe('boot seed manifest', () => {
     });
   });
 
+  it('normalizes substrate route trailing slashes', () => {
+    expect(getRouteBootSpec('/0/')).toMatchObject({
+      mode: 'zero',
+      bootProfile: 'zero_home'
+    });
+    expect(getRouteBootSpec('/x/')).toMatchObject({
+      mode: 'x',
+      bootProfile: 'x_home'
+    });
+  });
+
   it('rewrites the deployed API proxy to Cloud Run', () => {
     const hosting = firebaseConfig.hosting.find((entry) => entry.target === 'reploid');
     expect(hosting?.rewrites).toContainEqual({

@@ -1310,7 +1310,7 @@ export function initLockedBootHome(containerEl, mode = 'reploid') {
   setState({ savedConfig: saved });
   scheduleRender();
 
-  const skipStartupDiscovery = routeMode === 'zero';
+  const skipStartupDiscovery = routeMode === 'zero' || routeMode === 'x';
   runDetection({
     skipLocalScan: skipStartupDiscovery,
     skipDoppler: skipStartupDiscovery,

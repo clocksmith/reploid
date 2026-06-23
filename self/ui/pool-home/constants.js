@@ -445,7 +445,7 @@ export const ROUTE_COPY = Object.freeze({
   mesh: {
     eyebrow: 'Mesh',
     title: 'Mesh',
-    body: 'Watch and run peer nodes.'
+    body: 'View the browser mesh and start this tab as a node.'
   },
   record: {
     eyebrow: 'Record',
