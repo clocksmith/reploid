@@ -105,7 +105,9 @@ export function cloneSelfBootSpec() {
 }
 
 export function getRouteBootSpec(pathname = '/') {
-  return SELF_BOOT_SPEC.routes[String(pathname || '/').trim() || '/'] || null;
+  const path = String(pathname || '/').trim() || '/';
+  const normalized = path === '/' ? '/' : path.replace(/\/+$/, '');
+  return SELF_BOOT_SPEC.routes[normalized] || null;
 }
 
 export function toSourceWebPath(path) {

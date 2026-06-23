@@ -2048,6 +2048,11 @@ details[open] > .disclosure-summary::before {
     0 0 26px rgb(174 122 238 / 6%);
 }
 
+.pool-nav-substrate {
+  display: grid;
+  gap: 6px;
+}
+
 .pool-nav-zero:hover,
 .pool-nav-zero:focus-visible {
   opacity: 1;
@@ -2732,6 +2737,11 @@ details[open] > .disclosure-summary::before {
     min-height: 32px;
     padding: 7px 9px;
     font-size: 10px;
+  }
+
+  .pool-nav-substrate {
+    display: flex;
+    gap: 6px;
   }
 
   .pool-simulation-shell,

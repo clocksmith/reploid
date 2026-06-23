@@ -105,6 +105,7 @@ test.describe('Route Entry Points', () => {
     await expect(page.getByRole('button', { name: 'Receipts', exact: true })).toHaveCount(0);
     await expect(page.getByRole('button', { name: 'Reputation', exact: true })).toHaveCount(0);
     await expect(page.getByRole('link', { name: 'Zero' })).toHaveAttribute('href', '/0');
+    await expect(page.getByRole('link', { name: 'X', exact: true })).toHaveAttribute('href', '/x');
     await expect(page.locator('[data-pool-flow-label]')).toHaveCount(12);
     await expect.poll(async () => page.locator('[data-pool-flow-label]').evaluateAll((labels) => {
       const counts = labels.reduce((acc, label) => {
@@ -169,6 +170,7 @@ test.describe('Route Entry Points', () => {
     expect(mobile.overflowX).toBe(false);
     await expect(page.getByRole('button', { name: 'Run', exact: true })).toBeVisible();
     await expect(page.getByRole('link', { name: 'Zero' })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'X', exact: true })).toBeVisible();
   });
 
   test('product routes hide raw payloads and hosted controls by default', async ({ page }) => {
@@ -391,17 +393,37 @@ test.describe('Route Entry Points', () => {
     expect(startupDiscoveryRequests).toEqual([]);
   });
 
-  test('/x locks the boot mode to X', async ({ page }) => {
-    await page.goto('/x');
-    await page.waitForSelector('.wizard-home-provider [data-action="choose-direct"]', { timeout: 20000 });
+  test('/x locks the boot mode to X without boot failures', async ({ page }) => {
+    const pageErrors = [];
+    const startupDiscoveryRequests = [];
+    page.on('pageerror', (error) => pageErrors.push(error.message));
+    page.on('request', (request) => {
+      const url = request.url();
+      if (
+        url.includes('localhost:11434/api/tags')
+        || url.includes('localhost:8000/api/health')
+        || url.includes('localhost:8080/api/health')
+        || url.includes('/doppler/src/client/doppler-provider.js')
+      ) {
+        startupDiscoveryRequests.push(url);
+      }
+    });
+    for (const route of ['/x', '/x/']) {
+      await page.goto(route);
+      await page.waitForSelector('.wizard-home-provider [data-action="choose-direct"]', { timeout: 20000 });
 
-    await expect(page.locator('.boot-mode-btn[data-mode]')).toHaveCount(0);
-    await expect(page.locator('.wizard-brand')).toHaveCount(0);
-    await expect(page).toHaveTitle(/^X$/i);
-    await expect(page.locator('.wizard-home-provider .type-h1')).toHaveText('Choose inference provider');
-    await expect(page.locator('[data-action="choose-direct"]')).toBeVisible();
-    await expect(page.locator('[data-action="advanced-settings"]')).toHaveCount(0);
-    await expect.poll(async () => page.evaluate(() => window.getReploidMode())).toBe('x');
+      await expect(page.locator('.boot-mode-btn[data-mode]')).toHaveCount(0);
+      await expect(page.locator('.wizard-brand')).toHaveCount(0);
+      await expect(page).toHaveTitle(/^X$/i);
+      await expect(page.locator('.wizard-home-provider .type-h1')).toHaveText('Choose inference provider');
+      await expect(page.locator('[data-action="choose-direct"]')).toBeVisible();
+      await expect(page.locator('[data-action="advanced-settings"]')).toHaveCount(0);
+      await expect(page.locator('body')).not.toContainText(/Boot Failure|Boot failed|Module not found/i);
+      await expect.poll(async () => page.evaluate(() => window.getReploidMode())).toBe('x');
+      await expect.poll(async () => page.evaluate(() => window.getReploidRouteMode())).toBe('x');
+    }
+    expect(pageErrors).toEqual([]);
+    expect(startupDiscoveryRequests).toEqual([]);
   });
 });
 
