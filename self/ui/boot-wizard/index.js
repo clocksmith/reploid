@@ -356,8 +356,11 @@ async function startDetection() {
   setNestedState('detection', { scanning: true });
   render();
 
+  const state = getState();
+  const skipStartupDiscovery = state.mode === 'zero' || state.routeLockedMode === 'zero';
   await runDetection({
-    skipLocalScan: false,
+    skipLocalScan: skipStartupDiscovery,
+    skipDoppler: skipStartupDiscovery,
     onProgress: () => render()
   });
 
