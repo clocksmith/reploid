@@ -355,6 +355,18 @@ test.describe('Route Entry Points', () => {
   });
 
   test('/0 locks the boot mode to Zero', async ({ page }) => {
+    const startupDiscoveryRequests = [];
+    page.on('request', (request) => {
+      const url = request.url();
+      if (
+        url.includes('localhost:11434/api/tags')
+        || url.includes('localhost:8000/api/health')
+        || url.includes('localhost:8080/api/health')
+        || url.includes('/doppler/src/client/doppler-provider.js')
+      ) {
+        startupDiscoveryRequests.push(url);
+      }
+    });
     await page.goto('/0');
     await page.waitForSelector('.wizard-home-provider [data-action="choose-proxy"]', { timeout: 20000 });
 
@@ -376,6 +388,7 @@ test.describe('Route Entry Points', () => {
     await expect(page.getByRole('link', { name: 'new peer' })).toHaveCount(0);
     await expect(page.locator('[data-action="advanced-settings"]')).toHaveCount(0);
     await expect.poll(async () => page.evaluate(() => window.getReploidMode())).toBe('zero');
+    expect(startupDiscoveryRequests).toEqual([]);
   });
 
   test('/x locks the boot mode to X', async ({ page }) => {
