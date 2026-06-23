@@ -22,12 +22,23 @@
       type="module"
     >
       const pathname = (window.location.pathname || '/').replace(/\/+$/, '') || '/';
-      const productPaths = new Set(['/','/run','/contribute','/agents','/receipts','/reputation']);
+      const productPaths = new Set([
+        '/',
+        '/run',
+        '/mesh',
+        '/record',
+        '/contribute',
+        '/agents',
+        '/receipts',
+        '/reputation'
+      ]);
       const productRoute = productPaths.has(pathname);
       if (productRoute) {
         document.title = 'Reploid';
-      } else if (pathname === '/0' || pathname === '/x') {
+      } else if (pathname === '/0') {
         document.title = 'Zero';
+      } else if (pathname === '/x') {
+        document.title = 'X';
       } else {
         document.title = 'Reploid';
       }

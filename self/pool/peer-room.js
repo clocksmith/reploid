@@ -142,15 +142,49 @@ function createRoomSignaling({
   });
 }
 
-const waitForProviderAdverts = ({ channel, roomId, predicate, discoveryWindowMs, maxAdverts = null, settleOnFirst = false }) => new Promise((resolve, reject) => {
+const summarizeAdvert = (advert = {}) => ({
+  providerId: advert.body?.providerId || advert.fromPeerId || null,
+  modelIds: (advert.body?.models || []).map((model) => model.modelId || model.id || 'unknown'),
+  runtime: advert.body?.models?.[0]?.runtime || null,
+  backend: advert.body?.models?.[0]?.backend || null
+});
+
+const createPeerDiscoveryError = ({ roomId, requiredModel, discoveryWindowMs, observedAdverts = [] } = {}) => {
+  const mismatch = observedAdverts.length > 0;
+  const modelLabel = requiredModel?.modelId || requiredModel?.id || 'selected model';
+  const error = new Error(mismatch
+    ? `Peer providers were found in this room, but none advertised ${modelLabel}`
+    : `No peer providers advertised in room "${roomId}"`);
+  error.code = mismatch ? 'peer_provider_model_mismatch' : 'peer_provider_not_found';
+  error.retryable = true;
+  error.payload = {
+    roomId,
+    requiredModel,
+    discoveryWindowMs,
+    observedProviderCount: observedAdverts.length,
+    observedProviders: observedAdverts,
+    action: mismatch
+      ? 'Start a contributor with the same selected model, or switch the request model to one the contributor advertises.'
+      : 'Open Mesh in another tab with the same room, click Start, then run the request again.'
+  };
+  return error;
+};
+
+const waitForProviderAdverts = ({ channel, roomId, predicate, requiredModel = null, discoveryWindowMs, maxAdverts = null, settleOnFirst = false }) => new Promise((resolve, reject) => {
   const adverts = [];
+  const observedAdverts = [];
   let settled = false;
   const timer = globalThis.setTimeout(() => {
     if (settled) return;
     settled = true;
     channel.removeEventListener('message', handler);
     if (adverts.length > 0) resolve(adverts);
-    else reject(new Error('No peer providers advertised in this room'));
+    else reject(createPeerDiscoveryError({
+      roomId,
+      requiredModel,
+      discoveryWindowMs,
+      observedAdverts
+    }));
   }, discoveryWindowMs);
   const finish = () => {
     if (settled) return;
@@ -164,7 +198,12 @@ const waitForProviderAdverts = ({ channel, roomId, predicate, discoveryWindowMs,
     if (message?.peerRoomVersion !== PEER_ROOM_VERSION) return;
     if (message.roomId !== roomId || message.type !== 'provider-advert') return;
     const advert = message.body?.advert;
-    if (!advert || predicate && !predicate(advert)) return;
+    if (!advert) return;
+    const summary = summarizeAdvert(advert);
+    if (!observedAdverts.some((entry) => entry.providerId === summary.providerId)) {
+      observedAdverts.push(summary);
+    }
+    if (predicate && !predicate(advert)) return;
     if (adverts.some((entry) => entry.messageHash === advert.messageHash)) return;
     adverts.push(advert);
     if (settleOnFirst || maxAdverts && adverts.length >= maxAdverts) finish();
@@ -239,6 +278,7 @@ export async function runPeerJob({
       discoveryWindowMs,
       maxAdverts,
       settleOnFirst: !policy?.adaptiveRing && maxAdverts <= 1,
+      requiredModel,
       predicate: (advert) => advert?.body?.models?.some((model) => (
         model.modelId === requiredModel.modelId
         && model.modelHash === requiredModel.modelHash

@@ -2,7 +2,7 @@
  * @fileoverview Product boot mode definitions and internal genesis mapping.
  */
 
-export const DEFAULT_BOOT_MODE = 'pool';
+export const DEFAULT_BOOT_MODE = 'reploid';
 
 export const BOOT_MODES = Object.freeze({
   pool: {
@@ -16,10 +16,10 @@ export const BOOT_MODES = Object.freeze({
   zero: {
     id: 'zero',
     label: 'Zero',
-    description: 'Deprecated low-level boot profile.',
-    detail: 'Kept for compatibility with older boot experiments.',
+    description: 'Tabula-rasa browser RSI agent.',
+    detail: 'Self-contained RSI agent with server proxy inference by default and optional local Doppler execution.',
     genesisLevel: 'spark',
-    requiresBrowserBrain: true
+    requiresBrowserBrain: false
   },
   reploid: {
     id: 'reploid',
@@ -40,7 +40,6 @@ export const BOOT_MODES = Object.freeze({
 });
 
 export const BOOT_MODE_ORDER = Object.freeze([
-  'pool',
   'reploid',
   'zero',
   'x'
@@ -67,7 +66,7 @@ export function inferBootModeFromGenesis(genesisLevel, fallback = DEFAULT_BOOT_M
   switch (genesisLevel) {
     case 'capsule':
     case 'tabula':
-      return 'pool';
+      return 'reploid';
     case 'spark':
       return 'zero';
     case 'reflection':

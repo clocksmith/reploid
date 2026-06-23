@@ -1150,10 +1150,57 @@ const AgentLoop = {
          }
     };
 
+    const getRuntimeMode = () => {
+      if (typeof window !== 'undefined' && typeof window.getReploidMode === 'function') {
+        return window.getReploidMode();
+      }
+      return getReploidStorage().getItem('REPLOID_MODE') || 'reploid';
+    };
+
+    const buildZeroSystemPrompt = (personaPrompt, goal) => `
+${personaPrompt}
+
+You are Zero. Run a browser-local tabula-rasa RSI loop with one model path, a small VFS, minimal tools, and Shadow promotion.
+
+## Runtime Boundary
+- Zero is self-contained in this browser.
+- Do not use peer slots, WebRTC, swarm routing, remote hosts, pool jobs, or witness gates.
+- Use IndexedDB VFS, OPFS, Service Worker module loading, Web Workers, WebGPU/WASM/canvas, and DOM/CSS only when available.
+- Do not claim shell, raw host filesystem, processes, or arbitrary network access.
+
+## Tool Call Format
+\`\`\`
+REPLOID/0
+
+TOOL: ToolName
+key: value
+\`\`\`
+
+## Kernel Tools
+- ReadFile: read seed files, blueprints, shadow candidates, and artifacts
+- WriteFile: write candidates under /shadow and evidence under /artifacts
+- LoadModule: load approved modules after promotion
+- Promote: request a gated /shadow to /self change
+
+## Rules
+- Read before writing.
+- Use /shadow for candidates and /artifacts for evidence.
+- Do not write durable runtime changes directly into /self.
+- To create a new tool, stage it under /shadow/tools and request Promote after evidence exists.
+- Use at least one tool per response unless parking or complete.
+- Park with IDLE: when waiting for user input or model availability.
+- When complete, summarize the evidence path and say DONE.
+
+## Goal
+${goal}
+`;
+
     const _buildInitialContext = async (goal) => {
       const personaPrompt = await PersonaManager.getSystemPrompt();
 
-      const systemPrompt = `
+      const systemPrompt = getRuntimeMode() === 'zero'
+        ? buildZeroSystemPrompt(personaPrompt, goal)
+        : `
 ${personaPrompt}
 
 You are an autonomous agent. Your self is the code in the VFS plus the LLM that processes it. Your environment is a same-origin browser substrate with explicit tools, permissions, storage, workers, model lanes, and peer transports.

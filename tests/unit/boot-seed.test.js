@@ -4,11 +4,14 @@ import { fileURLToPath } from 'node:url';
 
 import { describe, expect, it } from 'vitest';
 
+import { getRouteBootSpec } from '../../self/boot-spec.js';
 import { pickBootSeedFiles, shouldHydrateFullManifest } from '../../self/config/boot-seed.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const manifestPath = path.resolve(__dirname, '../../self/config/vfs-manifest.json');
 const manifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
+const firebaseConfigPath = path.resolve(__dirname, '../../firebase.json');
+const firebaseConfig = JSON.parse(readFileSync(firebaseConfigPath, 'utf8'));
 
 describe('boot seed manifest', () => {
   it('includes the shared instance helper in the checked-in VFS manifest', () => {
@@ -42,5 +45,39 @@ describe('boot seed manifest', () => {
     expect(shouldHydrateFullManifest('zero_home')).toBe(true);
     expect(shouldHydrateFullManifest('x_home')).toBe(true);
     expect(shouldHydrateFullManifest('wizard')).toBe(true);
+  });
+
+  it('routes /0 to the Zero tabula-rasa profile', () => {
+    expect(getRouteBootSpec('/0')).toMatchObject({
+      mode: 'zero',
+      bootProfile: 'zero_home',
+      genesisLevel: 'spark',
+      surface: 'zero'
+    });
+  });
+
+  it('rewrites the deployed API proxy to Cloud Run', () => {
+    const hosting = firebaseConfig.hosting.find((entry) => entry.target === 'reploid');
+    expect(hosting?.rewrites).toContainEqual({
+      source: '/api/**',
+      run: {
+        serviceId: 'reploid-pool',
+        region: 'us-central1'
+      }
+    });
+  });
+
+  it('rewrites the Zero model proxy to a Firebase function', () => {
+    const hosting = firebaseConfig.hosting.find((entry) => entry.target === 'reploid');
+    expect(firebaseConfig.functions).toMatchObject({
+      source: 'functions'
+    });
+    expect(hosting?.rewrites).toContainEqual({
+      source: '/zero/gemini',
+      function: {
+        functionId: 'zeroGemini',
+        region: 'us-central1'
+      }
+    });
   });
 });

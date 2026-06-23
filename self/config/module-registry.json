@@ -1487,7 +1487,7 @@
         },
         {
           "id": "ToolWriter",
-          "optional": false
+          "optional": true
         },
         {
           "id": "SubstrateLoader",

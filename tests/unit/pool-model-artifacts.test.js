@@ -62,4 +62,47 @@ describe('pool model artifact helpers', () => {
       })
     })).rejects.toThrow('model manifest modelId mismatch');
   });
+
+  it('attaches manifest URL and status to fetch failures', async () => {
+    await expect(verifyModelArtifactManifest({
+      model: {
+        modelId: 'model-d',
+        modelHash: 'sha256:model-d',
+        manifestHash: 'sha256:missing'
+      },
+      baseUrl: 'https://models.example',
+      fetchImpl: async () => ({
+        ok: false,
+        status: 404,
+        statusText: 'Not Found'
+      })
+    })).rejects.toMatchObject({
+      message: 'model manifest fetch failed: 404 Not Found',
+      status: 404,
+      urls: {
+        manifest: 'https://models.example/model-d/sha256%3Amissing/manifest.json'
+      },
+      retryable: false
+    });
+  });
+
+  it('attaches manifest URL when fetch rejects before a response', async () => {
+    await expect(verifyModelArtifactManifest({
+      model: {
+        modelId: 'model-e',
+        modelHash: 'sha256:model-e',
+        manifestHash: 'sha256:missing'
+      },
+      baseUrl: 'https://models.example',
+      fetchImpl: async () => {
+        throw new TypeError('Failed to fetch');
+      }
+    })).rejects.toMatchObject({
+      message: 'model manifest fetch failed: Failed to fetch',
+      urls: {
+        manifest: 'https://models.example/model-e/sha256%3Amissing/manifest.json'
+      },
+      retryable: true
+    });
+  });
 });

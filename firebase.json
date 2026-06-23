@@ -1,4 +1,7 @@
 {
+  "functions": {
+    "source": "functions"
+  },
   "firestore": {
     "rules": "firestore.rules",
     "indexes": "firestore.indexes.json"
@@ -152,11 +155,40 @@
           }
         },
         {
+          "source": "/zero/gemini",
+          "function": {
+            "functionId": "zeroGemini",
+            "region": "us-central1"
+          }
+        },
+        {
+          "source": "/zero/gemini/**",
+          "function": {
+            "functionId": "zeroGemini",
+            "region": "us-central1"
+          }
+        },
+        {
+          "source": "/api/**",
+          "run": {
+            "serviceId": "reploid-pool",
+            "region": "us-central1"
+          }
+        },
+        {
           "source": "/",
           "destination": "/index.html"
         },
         {
           "source": "/run",
+          "destination": "/index.html"
+        },
+        {
+          "source": "/mesh",
+          "destination": "/index.html"
+        },
+        {
+          "source": "/record",
           "destination": "/index.html"
         },
         {

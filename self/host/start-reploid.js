@@ -242,12 +242,7 @@ const isProductSurface = () => {
   const profile = typeof window.getReploidBootProfile === 'function'
     ? window.getReploidBootProfile()
     : null;
-  const surface = getRouteSurface();
-  return profile === 'pool_home' || (
-    surface
-      && surface !== 'substrate_console'
-      && surface !== 'x'
-  );
+  return profile === 'pool_home' || getRouteSurface() === 'pool';
 };
 
 const loadPoolHome = async () => {

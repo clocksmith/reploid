@@ -552,7 +552,7 @@ const SchemaRegistry = {
     };
 
     const init = async () => {
-      const builtinTools = getBootMode() === 'reploid'
+      const builtinTools = ['reploid', 'zero'].includes(getBootMode())
         ? ['ReadFile', 'WriteFile', 'LoadModule', 'Promote']
         : ['ReadFile', 'WriteFile', 'EditFile', 'ListFiles', 'DeleteFile', 'CreateTool', 'ListTools', 'LoadModule'];
 

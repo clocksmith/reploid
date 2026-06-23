@@ -177,6 +177,118 @@ afterEach(() => {
 });
 
 describe('pool peer room', () => {
+  it('reports a clear submit error when no contributor advertises in the room', async () => {
+    installFakeBroadcastChannel();
+    const requesterKeys = await createSigningKeyPair();
+    const requesterClient = createRequesterClient({
+      requesterId: 'requester_empty_room',
+      keyPair: requesterKeys,
+      identity: null,
+      sdk: {
+        submitJob() {
+          throw new Error('coordinator submitJob should not run');
+        }
+      }
+    });
+
+    await expect(runPeerJob({
+      roomId: 'empty-room-test',
+      requesterClient,
+      requesterTransportFactory: createFakeTransportFactories().requesterTransportFactory,
+      prompt: 'hello',
+      modelRequirements: runtimeModel(),
+      discoveryWindowMs: 1,
+      receiptWindowMs: 100
+    })).rejects.toMatchObject({
+      code: 'peer_provider_not_found',
+      retryable: true,
+      payload: {
+        roomId: 'empty-room-test',
+        observedProviderCount: 0,
+        action: 'Open Mesh in another tab with the same room, click Start, then run the request again.'
+      }
+    });
+  });
+
+  it('reports observed contributors when none match the requested model', async () => {
+    installFakeBroadcastChannel();
+    const requesterKeys = await createSigningKeyPair();
+    const requesterClient = createRequesterClient({
+      requesterId: 'requester_mismatch_room',
+      keyPair: requesterKeys,
+      identity: null,
+      sdk: {
+        submitJob() {
+          throw new Error('coordinator submitJob should not run');
+        }
+      }
+    });
+    const providerClient = {
+      async createPeerProviderAdvert() {
+        return {
+          messageHash: 'mismatch_advert_hash',
+          fromPeerId: 'provider_mismatch_room',
+          publicKey: 'test_public_key',
+          body: {
+            providerId: 'provider_mismatch_room',
+            models: [
+              {
+                ...runtimeModel(),
+                modelId: 'different-model'
+              }
+            ],
+            availability: {
+              acceptedPolicies: ['fastest_receipt']
+            }
+          }
+        };
+      }
+    };
+    const {
+      requesterTransportFactory,
+      providerTransportFactory
+    } = createFakeTransportFactories();
+    const providerNode = createPeerProviderNode({
+      roomId: 'mismatch-room-test',
+      providerClient,
+      providerTransportFactory,
+      advertIntervalMs: 100000
+    });
+
+    await providerNode.start({
+      models: [runtimeModel()],
+      availability: {
+        acceptedPolicies: ['fastest_receipt']
+      }
+    });
+
+    try {
+      await expect(runPeerJob({
+        roomId: 'mismatch-room-test',
+        requesterClient,
+        requesterTransportFactory,
+        prompt: 'hello',
+        modelRequirements: runtimeModel(),
+        discoveryWindowMs: 10,
+        receiptWindowMs: 100
+      })).rejects.toMatchObject({
+        code: 'peer_provider_model_mismatch',
+        payload: {
+          roomId: 'mismatch-room-test',
+          observedProviderCount: 1,
+          observedProviders: [
+            {
+              providerId: 'provider_mismatch_room',
+              modelIds: ['different-model']
+            }
+          ]
+        }
+      });
+    } finally {
+      await providerNode.stop();
+    }
+  });
+
   it('runs a browser room job over peer discovery and DataChannel payloads without coordinator calls', async () => {
     installFakeBroadcastChannel();
     const requesterKeys = await createSigningKeyPair();

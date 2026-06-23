@@ -2,7 +2,6 @@
  * @fileoverview Public product home for Reploid.
  */
 
-import { createPoolSdk } from '../../pool/sdk.js';
 import { createDopplerRuntime } from '../../pool/doppler-runtime.js';
 import { POOLDAY_NAME, ROUTE_COPY } from './constants.js';
 import {
@@ -37,12 +36,9 @@ const bindPoolRouteControls = (mount, render) => {
 
 export function initPoolHome(mount) {
   if (!mount) return;
-  const sdk = createPoolSdk();
   const runtime = window.REPLOID_DOPPLER_RUNTIME || createDopplerRuntime();
   window.REPLOID_DOPPLER_RUNTIME = runtime;
   window.REPLOID_POOL_ATTACH_DOPPLER_HANDLE = (handle, model = null, runtimeInfo = null) => runtime.attachHandle(handle, model, runtimeInfo);
-  window.REPLOID_POOL_SDK = sdk;
-  window.reploid = sdk;
   mount.style.display = 'block';
 
   const render = () => {
@@ -52,7 +48,8 @@ export function initPoolHome(mount) {
       window.REPLOID_POOL_SIMULATION_STOP = null;
     }
     const secondaryContent = renderRouteDetail(routeId);
-    document.title = routeId === 'home'
+    const rootPath = (window.location.pathname || '/').replace(/\/+$/, '') || '/';
+    document.title = rootPath === '/'
       ? POOLDAY_NAME
       : `${POOLDAY_NAME} - ${ROUTE_COPY[routeId]?.eyebrow || 'Verified Browser Inference'}`;
     mount.innerHTML = `
@@ -64,11 +61,11 @@ export function initPoolHome(mount) {
     `;
     bindPoolRouteControls(mount, render);
     bindHomeSimulation(mount);
-    bindRunControls(sdk);
-    bindAgentControls(sdk);
-    bindProviderControls(sdk);
-    bindReceiptControls(sdk);
-    bindReputationControls(sdk);
+    bindRunControls();
+    bindAgentControls();
+    bindProviderControls();
+    bindReceiptControls();
+    bindReputationControls();
   };
 
   if (window.REPLOID_POOL_POPSTATE_HANDLER) {

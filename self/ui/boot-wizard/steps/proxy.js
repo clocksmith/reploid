@@ -10,6 +10,7 @@ import { CLOUD_MODELS } from './direct.js';
  */
 export function renderProxyConfigStep(state) {
   const { proxyConfig, detection } = state;
+  const isZero = state.mode === 'zero';
 
   // Determine best default URL based on detection
   const proxyDetected = detection.proxy?.detected;
@@ -23,17 +24,28 @@ export function renderProxyConfigStep(state) {
 
   // Get available models from detection
   const ollamaModels = detection.ollama?.models || [];
-  const proxyProviders = detection.proxy?.configuredProviders || [];
+  const detectedProxyProviders = detection.proxy?.configuredProviders || [];
+  const proxyProviders = detectedProxyProviders.length > 0
+    ? detectedProxyProviders
+    : (proxyConfig.provider ? [proxyConfig.provider] : []);
 
   // Determine server type for display
   const serverType = proxyConfig.serverType || (proxyDetected ? 'reploid' : ollamaDetected ? 'ollama' : null);
-  const serverTypeLabel = serverType === 'reploid' ? 'Reploid Proxy' : serverType === 'ollama' ? 'Ollama' : 'Server';
+  const serverTypeLabel = serverType === 'firebase-function'
+    ? 'Server proxy'
+    : serverType === 'reploid'
+      ? 'Reploid Proxy'
+      : serverType === 'ollama' ? 'Ollama' : 'Server';
   const detected = proxyDetected || ollamaDetected;
 
   return `
     <div class="wizard-step wizard-proxy-config">
-      <h2 class="type-h1">Configure proxy</h2>
-      ${!detected ? '<p class="type-caption">Connect to a local or remote server</p>' : ''}
+      <h2 class="type-h1">${isZero ? 'Server proxy' : 'Configure proxy'}</h2>
+      <p class="type-caption">${isZero
+        ? 'Default inference path.'
+        : detected
+          ? ''
+          : 'Connect to a local or remote server'}</p>
 
       <div class="config-form">
         <div class="form-row">
@@ -53,7 +65,7 @@ export function renderProxyConfigStep(state) {
           ${proxyConfig.verifyState === VERIFY_STATE.FAILED ? `
             <span class="type-caption">☒ ${proxyConfig.verifyError || 'Connection failed'}</span>
           ` : ''}
-          ${!detected ? '<span class="type-caption">Default ports: 8000 (Reploid proxy), 11434 (Ollama)</span>' : ''}
+          ${!detected && !isZero ? '<span class="type-caption">Default ports: 8000 (Reploid proxy), 11434 (Ollama)</span>' : ''}
         </div>
 
         ${proxyProviders.length > 0 ? `
@@ -78,7 +90,7 @@ export function renderProxyConfigStep(state) {
                   <option value="${m.id}" ${proxyConfig.model === m.id ? 'selected' : ''}>${m.name}</option>
                 `).join('')}
               </select>
-            ` : serverType === 'reploid' && proxyConfig.provider && CLOUD_MODELS[proxyConfig.provider] ? `
+            ` : (serverType === 'reploid' || serverType === 'firebase-function') && proxyConfig.provider && CLOUD_MODELS[proxyConfig.provider] ? `
               <select id="proxy-model">
                 ${CLOUD_MODELS[proxyConfig.provider].map((m, i) => `
                   <option value="${m.id}" ${proxyConfig.model === m.id || (!proxyConfig.model && i === 0) ? 'selected' : ''}>${m.name}</option>

@@ -32,7 +32,7 @@ Guide to all documentation in the REPLOID project.
 
 ### Reference
 - **[docs/API.md](./API.md)** - Module API documentation
-- **[docs/browser-inference-pool.md](./browser-inference-pool.md)** - Receipt-backed browser inference pool product and API contract
+- **[docs/browser-inference-pool.md](./browser-inference-pool.md)** - Poolday docs/internal contract for the public Reploid browser inference surface
 - **[docs/multi-model-evaluation.md](./multi-model-evaluation.md)** - Multi-model evaluation harness
 - **[docs/intent-bundle-lora.md](./intent-bundle-lora.md)** - Intent bundle LoRA workflow
 - **[docs/CONFIGURATION.md](./CONFIGURATION.md)** - Boot UI settings and localStorage keys

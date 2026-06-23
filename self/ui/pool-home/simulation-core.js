@@ -4,15 +4,14 @@
 
 import {
   POOLDAY_FLOW_TUNING,
+  POOLDAY_GRAPH_LABEL_ROLE_META,
+  POOLDAY_GRAPH_LABEL_STAGES,
   POOLDAY_GRAPH_NODE_IDS,
   POOLDAY_GRAPH_PALETTES,
   POOLDAY_GRAPH_TOPOLOGIES,
   POOLDAY_MORPH_TUNING,
   POOLDAY_PARTICIPANT_LAYOUT,
   POOLDAY_PARTICIPANT_NODE_IDS,
-  POOLDAY_RUNNER_NODE_IDS,
-  POOLDAY_VERIFIER_NODE_IDS,
-  POOLDAY_RAINBOW_COLORS,
   SIMULATION_FORCE_LERP,
   SIMULATION_MAX_CANVAS_PIXELS,
   SIMULATION_GENTLE_SPEED,
@@ -28,20 +27,20 @@ import {
   buildSimulationLineSpecs,
   createSimulationLineProjector
 } from './simulation-flow-specs.js';
+import {
+  POOLDAY_CORE_NODE_CONFIG,
+  copyCanvasPointInto,
+  copyParticleInto,
+  createFrameNode,
+  createFrameParticle,
+  createPoolGraphPaletteFrame,
+  resolvePoolGraphPalette,
+  writeParticipantAnchor,
+  writeRoleAnchor
+} from './simulation-frame-state.js';
 
 export const clamp01 = (value) => Math.max(0, Math.min(1, value));
 export const clampRange = (value, min, max) => Math.max(min, Math.min(max, value));
-const clampCanvasPoint = (point, width, height, margin = 6) => {
-  if (!point) return point;
-  return {
-    ...point,
-    x: clampRange(point.x, margin, Math.max(margin, width - margin)),
-    y: clampRange(point.y, margin, Math.max(margin, height - margin)),
-    alpha: clamp01(point.alpha ?? 1),
-    size: Math.max(0, Number(point.size) || 0)
-  };
-};
-
 
 const cloneTopologyPoints = (topology) => Object.fromEntries(
   POOLDAY_GRAPH_NODE_IDS.map((id) => {
@@ -90,6 +89,54 @@ const shuffleValues = (values, random) => {
     [shuffled[index], shuffled[swapIndex]] = [shuffled[swapIndex], shuffled[index]];
   }
   return shuffled;
+};
+
+const createPoolGraphLabelPlan = (random) => {
+  const plan = {};
+  for (let stageIndex = 0; stageIndex < POOLDAY_GRAPH_LABEL_STAGES.length; stageIndex += 1) {
+    const stage = POOLDAY_GRAPH_LABEL_STAGES[stageIndex];
+    const ids = shuffleValues(stage.ids, random);
+    const roles = shuffleValues(stage.roles, random);
+    for (let index = 0; index < ids.length; index += 1) {
+      const id = ids[index];
+      const role = roles[index % roles.length];
+      const meta = POOLDAY_GRAPH_LABEL_ROLE_META[role] || POOLDAY_GRAPH_LABEL_ROLE_META.provider;
+      const stagger = index - (ids.length - 1) / 2;
+      plan[id] = {
+        id,
+        role,
+        label: meta.label,
+        stage: stage.id,
+        stageLabel: stage.label,
+        body: `${stage.label} step: ${meta.body}`,
+        offsetX: stagger * 12,
+        offsetY: -20 - stageIndex * 2 - Math.abs(stagger) * 3
+      };
+    }
+  }
+  return plan;
+};
+
+const applyNodeLabelPlan = (node, labelPlan = {}) => {
+  const label = labelPlan[node.id];
+  if (!label) return node;
+  node.label = label.label;
+  node.labelKind = label.role;
+  node.labelStage = label.stage;
+  node.labelBody = label.body;
+  return node;
+};
+
+const copyNodeLabelAnchorInto = (target, node, labelPlan, width, height) => {
+  copyCanvasPointInto(target, node, width, height, 0);
+  const label = labelPlan[node.id] || {};
+  target.x = clampRange(target.x + (label.offsetX || 0), 8, Math.max(8, width - 8));
+  target.y = clampRange(target.y + (label.offsetY || 0), 8, Math.max(8, height - 8));
+  target.label = label.label || node.label || node.id;
+  target.labelKind = label.role || node.labelKind || node.role || node.id;
+  target.labelStage = label.stage || node.labelStage || '';
+  target.labelBody = label.body || node.labelBody || '';
+  return target;
 };
 
 const createTopologyOrder = (currentIndex, random) => [
@@ -418,24 +465,6 @@ const shiftPoolGraphTarget = (layout, time, random) => {
   layout.paletteBlend = 0;
 };
 
-const mixColor = (from, to, amount) => from.map((value, index) => (
-  Math.round(value + (to[index] - value) * amount)
-));
-
-const resolvePoolGraphPalette = (layout) => {
-  const from = POOLDAY_GRAPH_PALETTES[layout.paletteFromIndex] || POOLDAY_GRAPH_PALETTES[0];
-  const to = POOLDAY_GRAPH_PALETTES[layout.paletteToIndex] || from;
-  const blend = clamp01(layout.paletteBlend);
-  return {
-    primary: mixColor(from.primary, to.primary, blend),
-    evidence: mixColor(from.evidence, to.evidence, blend),
-    peer: mixColor(from.peer, to.peer, blend),
-    pipe: mixColor(from.pipe, to.pipe, blend),
-    accent: mixColor(from.accent, to.accent, blend),
-    rainbow: POOLDAY_RAINBOW_COLORS
-  };
-};
-
 const updatePoolGraphLayout = (state, safeDelta) => {
   const layout = state.layout;
   if (state.time >= layout.nextShiftAt) {
@@ -493,12 +522,12 @@ const updatePoolGraphLayout = (state, safeDelta) => {
 export const createPoolSimulationState = () => {
   const seed = createSimulationSeed();
   const random = createSeededRandom(seed);
-  const participants = POOLDAY_PARTICIPANT_LAYOUT.map(({ id, role, point: [x, y] }, index) => ({
+  const participantSpecs = POOLDAY_PARTICIPANT_LAYOUT.map(({ id, role, point: [x, y] }, index) => ({
     id,
     role,
     index,
-    x,
-    y,
+    homeX: x,
+    homeY: y,
     phase: index * 1.7,
     driftX: 8 + (index % 3) * 3,
     driftY: 9 + (index % 2) * 4,
@@ -507,6 +536,25 @@ export const createPoolSimulationState = () => {
     lineDraw: 1,
     pulse: 0
   }));
+  const roles = {};
+  for (const [id] of POOLDAY_CORE_NODE_CONFIG) {
+    const node = createFrameNode(id);
+    node.core = true;
+    roles[id] = node;
+  }
+  const participants = participantSpecs.map(({ id, role }) => {
+    const node = createFrameNode(id);
+    node.role = role;
+    return node;
+  });
+  const nodeLookup = {};
+  for (const [id] of POOLDAY_CORE_NODE_CONFIG) nodeLookup[id] = roles[id];
+  for (const node of participants) nodeLookup[node.id] = node;
+  const frameNodes = POOLDAY_GRAPH_NODE_IDS.map((id) => createFrameNode(id));
+  const labelPlan = createPoolGraphLabelPlan(random);
+  const labelAnchors = Object.fromEntries(
+    POOLDAY_GRAPH_NODE_IDS.map((id) => [id, createFrameNode(id)])
+  );
   const particles = Array.from({ length: POOLDAY_FLOW_TUNING.particleCount }, (_, index) => ({
     index,
     offset: (index * 0.113) % 1,
@@ -516,12 +564,39 @@ export const createPoolSimulationState = () => {
     edgeIndex: index,
     laneBias: (index % 5) - 2,
     tone: index % 4,
-    participantIndex: index % participants.length,
+    participantIndex: index % participantSpecs.length,
     phase: index * 0.47,
     size: (2.7 + (index % 4) * 0.74) * POOLDAY_FLOW_TUNING.particleScale
   }));
+  const frameParticles = particles.map((particle) => createFrameParticle(particle.index));
+  const frame = {
+    lines: [],
+    nodes: frameNodes,
+    particles: frameParticles,
+    peerCount: participants.length,
+    participantCount: participants.length,
+    topologyLabel: '',
+    time: 0,
+    flowEnergy: 1,
+    anticipation: 0,
+    transitionActive: false,
+    transitionProgress: 0,
+    topologyCue: 0,
+    topologyProgress: 0,
+    countdownProgress: 0,
+    palette: createPoolGraphPaletteFrame(),
+    labelAnchors
+  };
   return {
+    participantSpecs,
     participants,
+    roles,
+    nodeLookup,
+    nodeLabelPlan: labelPlan,
+    frameNodes,
+    frameParticles,
+    labelAnchors,
+    frame,
     particles,
     pointer: {
       x: 0.5,
@@ -535,23 +610,26 @@ export const createPoolSimulationState = () => {
     random,
     layout: createPoolGraphLayout(random),
     lineProjector: createSimulationLineProjector(),
+    particlePoint: { x: 0, y: 0 },
     time: 0,
     lastFrameMs: performance.now() - SIMULATION_TARGET_STEP_MS
   };
 };
 
-export const resizePoolCanvas = (canvas) => {
-  const box = canvas.getBoundingClientRect();
-  const cssWidth = Math.max(1, box.width);
-  const cssHeight = Math.max(1, box.height);
+export const resizePoolCanvas = (canvas, cssSize = null) => {
+  const measured = cssSize?.width > 0 && cssSize?.height > 0
+    ? cssSize
+    : canvas.getBoundingClientRect();
+  const cssWidth = Math.max(1, measured.width);
+  const cssHeight = Math.max(1, measured.height);
   const pixelBudgetRatio = Math.sqrt(SIMULATION_MAX_CANVAS_PIXELS / Math.max(1, cssWidth * cssHeight));
   const ratio = clampRange(
     Math.min(window.devicePixelRatio || 1, SIMULATION_MAX_PIXEL_RATIO, pixelBudgetRatio),
     SIMULATION_MIN_PIXEL_RATIO,
     SIMULATION_MAX_PIXEL_RATIO
   );
-  const width = Math.max(1, Math.floor(box.width * ratio));
-  const height = Math.max(1, Math.floor(box.height * ratio));
+  const width = Math.max(1, Math.floor(cssWidth * ratio));
+  const height = Math.max(1, Math.floor(cssHeight * ratio));
   if (canvas.width !== width || canvas.height !== height) {
     canvas.width = width;
     canvas.height = height;
@@ -695,7 +773,33 @@ export const resolveLineGeometry = (line, width, height) => {
 };
 
 export const resolveLinePoint = (line, amount, width, height) => {
-  const { start, end, control } = resolveLineGeometry(line, width, height);
+  return resolveLinePointInto({ x: 0, y: 0 }, line, amount, width, height);
+};
+
+export const resolveLinePointInto = (target, line, amount, width, height) => {
+  const from = line.from;
+  const to = line.to;
+  const dx = to.x - from.x;
+  const dy = to.y - from.y;
+  const distance = Math.max(1, Math.hypot(dx, dy));
+  const normalX = -dy / distance;
+  const normalY = dx / distance;
+  const laneIndex = Number(line.laneIndex || 0);
+  const laneCount = Math.max(1, Number(line.laneCount || 1));
+  const laneOffsetUnits = Number.isFinite(Number(line.laneOffset))
+    ? Number(line.laneOffset)
+    : laneIndex - (laneCount - 1) / 2;
+  const laneOffset = laneOffsetUnits * POOLDAY_FLOW_TUNING.laneGap;
+  const signedCurve = Number.isFinite(Number(line.signedCurve))
+    ? Number(line.signedCurve)
+    : Number(line.curve || 0) * (Number.isFinite(Number(line.curveSign)) ? Number(line.curveSign) : 1);
+  const curveOffset = Math.min(width, height) * signedCurve;
+  const startX = from.x + normalX * laneOffset;
+  const startY = from.y + normalY * laneOffset;
+  const endX = to.x + normalX * laneOffset;
+  const endY = to.y + normalY * laneOffset;
+  const controlX = (from.x + to.x) * 0.5 + normalX * (laneOffset + curveOffset);
+  const controlY = (from.y + to.y) * 0.5 + normalY * (laneOffset + curveOffset);
   const ease = line.flowEase || 'sine';
   const t = ease === 'out'
     ? easeOutCubic(amount)
@@ -705,10 +809,9 @@ export const resolveLinePoint = (line, amount, width, height) => {
         ? easeInOutCubic(amount)
         : easeInOutSine(amount);
   const inv = 1 - t;
-  return {
-    x: inv * inv * start.x + 2 * inv * t * control.x + t * t * end.x,
-    y: inv * inv * start.y + 2 * inv * t * control.y + t * t * end.y
-  };
+  target.x = inv * inv * startX + 2 * inv * t * controlX + t * t * endX;
+  target.y = inv * inv * startY + 2 * inv * t * controlY + t * t * endY;
+  return target;
 };
 
 export const resolveFrameBounds = (nodes = [], width = 1, height = 1) => {
@@ -735,7 +838,6 @@ export const resolveFrameBounds = (nodes = [], width = 1, height = 1) => {
   return { x, y, radius };
 };
 
-
 export const buildPoolSimulationFrame = (state, width, height, deltaSeconds = SIMULATION_TARGET_STEP_MS / 1000) => {
   const safeDelta = Math.max(0, Math.min(SIMULATION_MAX_STEP_MS / 1000, deltaSeconds));
   state.time += safeDelta * SIMULATION_GENTLE_SPEED;
@@ -754,80 +856,43 @@ export const buildPoolSimulationFrame = (state, width, height, deltaSeconds = SI
   const topologyCue = Math.max(state.layout.anticipation || 0, carriedCue, transitionSignal * 0.58);
   const countdownProgress = Math.max(state.layout.anticipation || 0, transitionSignal);
   const orbitCue = easeInOutCubic(topologyCue);
-  const makeRoleAnchor = (id, size, phase, orbit = 7) => {
-    const base = graphPositions[id] || { x: 0.5, y: 0.5 };
-    const breathe = 0.5 + 0.5 * Math.sin(time * 1.4 + phase);
-    const baseX = width * base.x;
-    const baseY = height * base.y;
-    const cuePhase = phase + orbitCue * (1.2 + phase * 0.08);
-    const cueOrbit = orbit * (1 + orbitCue * 0.52);
-    const offsetX = Math.cos(time * 0.52 + cuePhase) * cueOrbit;
-    const offsetY = Math.sin(time * 0.46 + cuePhase * 1.3) * cueOrbit;
-    return {
+  const roles = state.roles;
+  for (const [id, size, phase, orbit] of POOLDAY_CORE_NODE_CONFIG) {
+    writeRoleAnchor(
+      roles[id],
       id,
-      role: id,
-      core: true,
-      baseX,
-      baseY,
-      offsetX,
-      offsetY,
-      x: baseX + offsetX,
-      y: baseY + offsetY,
-      size: size * (0.9 + breathe * 0.2),
-      alpha: 1,
-      pulse: breathe,
-      halo: 0.55 + breathe * 0.45,
-      ringProgress: countdownProgress,
-      topologyProgress: transitionProgress
-    };
-  };
-  const roles = {
-    requester: makeRoleAnchor('requester', 17, 0.2, 7),
-    policy: makeRoleAnchor('policy', 15, 0.9, 7),
-    assignment: makeRoleAnchor('assignment', 21, 1.8, 8),
-    agreement: makeRoleAnchor('agreement', 16, 3.3, 7),
-    settlement: makeRoleAnchor('settlement', 15, 4.1, 7),
-    ledger: makeRoleAnchor('ledger', 17, 4.8, 7)
-  };
+      size,
+      phase,
+      orbit,
+      graphPositions,
+      width,
+      height,
+      time,
+      orbitCue,
+      countdownProgress,
+      transitionProgress
+    );
+  }
   const pointerX = state.pointer.x * width;
   const pointerY = state.pointer.y * height;
-  const participants = state.participants.map((participant) => {
-    const base = graphPositions[participant.id] || { x: participant.x, y: participant.y };
-    const pulse = 0.5 + 0.5 * Math.sin(time * 1.55 + participant.phase);
-    const baseX = width * base.x;
-    const baseY = height * base.y;
-    const dx = baseX - pointerX;
-    const dy = baseY - pointerY;
-    const distance = Math.max(1, Math.hypot(dx, dy));
-    const pointerLift = state.pointer.active || state.pointer.force > 0.02
-      ? Math.max(0, 1 - distance / (width * 0.34)) * (10 + state.pointer.force * 16)
-      : 0;
-    const driftX = Math.cos(time * (0.78 + orbitCue * 0.10) + participant.phase + orbitCue * 1.6) * participant.driftX * (0.44 + orbitCue * 0.22)
-      + Math.sin(time * 0.33 + participant.phase * 1.4 + orbitCue) * participant.driftX * (0.22 + orbitCue * 0.10)
-      + (dx / distance) * pointerLift;
-    const driftY = Math.sin(time * (0.72 + orbitCue * 0.10) + participant.phase + orbitCue * 1.4) * participant.driftY * (0.44 + orbitCue * 0.22)
-      + Math.cos(time * 0.41 + participant.phase * 1.2 + orbitCue) * participant.driftY * (0.18 + orbitCue * 0.10)
-      + (dy / distance) * pointerLift;
-    return {
-      ...participant,
-      online: true,
-      core: false,
-      baseX,
-      baseY,
-      offsetX: driftX,
-      offsetY: driftY,
-      x: baseX + driftX,
-      y: baseY + driftY,
-      alpha: 0.78 + pulse * 0.18,
-      size: participant.size * (0.78 + pulse * 0.5) + state.pointer.force * 1.2,
-      presence: 1,
-      lineDraw: 1,
-      pulse,
-      halo: 0.48 + pulse * 0.52,
-      ringProgress: countdownProgress,
-      topologyProgress: transitionProgress
-    };
-  });
+  const participants = state.participants;
+  for (let index = 0; index < state.participantSpecs.length; index += 1) {
+    writeParticipantAnchor(
+      participants[index],
+      state.participantSpecs[index],
+      graphPositions,
+      width,
+      height,
+      pointerX,
+      pointerY,
+      state.pointer.force,
+      state.pointer.active,
+      time,
+      orbitCue,
+      countdownProgress,
+      transitionProgress
+    );
+  }
   const flowScale = 0.72 + state.layout.flowEnergy * 0.42;
   const lines = buildTransitionSimulationLines({
     roles,
@@ -845,80 +910,67 @@ export const buildPoolSimulationFrame = (state, width, height, deltaSeconds = SI
     line.phaseShift = topologyCue;
     line.topologyProgress = transitionProgress;
   }
-  const particles = state.particles.map((particle) => {
+  const renderParticleScratch = state.frameParticles;
+  for (let index = 0; index < state.particles.length; index += 1) {
+    const particle = state.particles[index];
     const line = lines[particle.edgeIndex % Math.max(1, lines.length)];
     const participant = participants[particle.participantIndex % participants.length];
     const flowPulse = Math.sin(time * 6.2 + particle.phase) * 0.5 + 0.5;
     const progress = resolveParticleProgress(particle, line, participant, time, flowScale, state.pointer.force);
-    const point = line
-      ? resolveLinePoint(line, progress, width, height)
-      : { x: roles.assignment.x, y: roles.assignment.y };
+    const point = state.particlePoint;
+    if (line) {
+      resolveLinePointInto(point, line, progress, width, height);
+    } else {
+      point.x = roles.assignment.x;
+      point.y = roles.assignment.y;
+    }
     const flowAlpha = line?.flowAlpha ?? 1;
     const visibility = resolveFlowVisibility(progress);
     const particleScale = line?.particleScale ?? 1;
     const sizeWidth = line?.width ?? 1;
     const sizeScale = particleScale * (0.88 + Math.min(3, sizeWidth) * 0.075);
-    return {
-      index: particle.index,
-      x: point.x,
-      y: point.y,
-      size: (particle.size + flowPulse * 2.45 + participant.pulse * 0.9) * sizeScale,
-      alpha: clamp01((0.34 + flowPulse * 0.60) * (0.84 + state.layout.flowEnergy * 0.22) * flowAlpha * visibility),
-      tone: line?.tone || 'rainbow',
-      toneIndex: line?.toneIndex ?? particle.tone,
-      toneTo: line?.toneTo || null,
-      toneToIndex: line?.toneToIndex ?? particle.tone,
-      toneBlend: line?.toneBlend ?? 0,
-      speed: line?.speed ?? 1
-    };
-  });
-  const activeEdgePreset = state.layout.transition?.toEdgePreset || state.layout.edgePreset;
-  const averageAnchor = (ids, offsetX = 0, offsetY = 0) => {
-    const selected = ids
-      .map((id) => roles[id] || participants.find((participant) => participant.id === id))
-      .filter(Boolean);
-    const divisor = Math.max(1, selected.length);
-    return selected.reduce((acc, node) => ({
-      x: acc.x + node.x / divisor,
-      y: acc.y + node.y / divisor
-    }), { x: offsetX, y: offsetY });
-  };
-  const runnerOffset = activeEdgePreset === 'bowtie_exchange' || activeEdgePreset === 'star_rendezvous'
-    ? -height * 0.11
-    : -height * 0.06;
-  const verifierOffset = activeEdgePreset === 'honeycomb' || activeEdgePreset === 'triangulation'
-    ? -height * 0.03
-    : -height * 0.05;
-  const nodeLookup = new Map([
-    ...Object.values(roles).map((node) => [node.id, node]),
-    ...participants.map((node) => [node.id, node])
-  ]);
-  const nodes = POOLDAY_GRAPH_NODE_IDS
-    .map((id) => nodeLookup.get(id))
-    .filter(Boolean);
-  return {
-    lines,
-    nodes: nodes.map((node) => clampCanvasPoint(node, width, height, 8)),
-    particles: particles.map((particle) => clampCanvasPoint(particle, width, height, 5)),
-    peerCount: participants.length,
-    participantCount: participants.length,
-    topologyLabel: state.layout.label,
-    time,
-    flowEnergy: state.layout.flowEnergy,
-    anticipation: state.layout.anticipation,
-    transitionActive: Boolean(state.layout.transition),
-    transitionProgress,
-    topologyCue,
-    topologyProgress: transitionProgress,
-    countdownProgress,
-    palette: resolvePoolGraphPalette(state.layout),
-    labelAnchors: {
-      requester: roles.requester,
-      policy: roles.policy,
-      runners: averageAnchor(POOLDAY_RUNNER_NODE_IDS, 0, runnerOffset),
-      verifiers: averageAnchor(POOLDAY_VERIFIER_NODE_IDS, 0, verifierOffset),
-      settlement: roles.settlement,
-      ledger: roles.ledger,
-    }
-  };
+    const target = renderParticleScratch[index];
+    target.index = particle.index;
+    target.x = point.x;
+    target.y = point.y;
+    target.size = (particle.size + flowPulse * 2.45 + participant.pulse * 0.9) * sizeScale;
+    target.alpha = clamp01((0.34 + flowPulse * 0.60) * (0.84 + state.layout.flowEnergy * 0.22) * flowAlpha * visibility);
+    target.tone = line?.tone || 'rainbow';
+    target.toneIndex = line?.toneIndex ?? particle.tone;
+    target.toneTo = line?.toneTo || null;
+    target.toneToIndex = line?.toneToIndex ?? particle.tone;
+    target.toneBlend = line?.toneBlend ?? 0;
+    target.speed = line?.speed ?? 1;
+  }
+  const nodeLookup = state.nodeLookup;
+  for (let index = 0; index < POOLDAY_GRAPH_NODE_IDS.length; index += 1) {
+    const id = POOLDAY_GRAPH_NODE_IDS[index];
+    applyNodeLabelPlan(nodeLookup[id], state.nodeLabelPlan);
+    copyCanvasPointInto(state.frameNodes[index], nodeLookup[id], width, height, 8);
+  }
+  for (let index = 0; index < renderParticleScratch.length; index += 1) {
+    copyParticleInto(state.frameParticles[index], renderParticleScratch[index], width, height, 5);
+  }
+  const labelAnchors = state.labelAnchors;
+  for (const id of POOLDAY_GRAPH_NODE_IDS) {
+    copyNodeLabelAnchorInto(labelAnchors[id], nodeLookup[id], state.nodeLabelPlan, width, height);
+  }
+  const frame = state.frame;
+  frame.lines = lines;
+  frame.nodes = state.frameNodes;
+  frame.particles = state.frameParticles;
+  frame.peerCount = participants.length;
+  frame.participantCount = participants.length;
+  frame.topologyLabel = state.layout.label;
+  frame.time = time;
+  frame.flowEnergy = state.layout.flowEnergy;
+  frame.anticipation = state.layout.anticipation;
+  frame.transitionActive = Boolean(state.layout.transition);
+  frame.transitionProgress = transitionProgress;
+  frame.topologyCue = topologyCue;
+  frame.topologyProgress = transitionProgress;
+  frame.countdownProgress = countdownProgress;
+  frame.palette = resolvePoolGraphPalette(state.layout, frame.palette);
+  frame.labelAnchors = labelAnchors;
+  return frame;
 };

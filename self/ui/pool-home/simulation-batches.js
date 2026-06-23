@@ -14,7 +14,7 @@ import {
   easeInOutCubic,
   resolveFrameBounds,
   resolveLineGeometry,
-  resolveLinePoint
+  resolveLinePointInto
 } from './simulation-core.js';
 
 const normalizePoolGpuColor = (color, alpha = 1) => [
@@ -28,6 +28,14 @@ const mixPoolColor = (from, to, amount) => from.map((value, index) => value + (t
 
 const WHITE_FILL_COLOR = Object.freeze([1, 1, 1, 1]);
 const BACKGROUND_BAND_COLOR = Object.freeze([0, 0, 0, 0.018]);
+const POOL_CIRCLE_CORNERS = Object.freeze([
+  [-1, -1],
+  [1, -1],
+  [-1, 1],
+  [-1, 1],
+  [1, -1],
+  [1, 1]
+]);
 
 const resolvePoolRawToneColor = (frame, tone, toneIndex = 0) => {
   const palette = frame.palette || POOLDAY_GRAPH_PALETTES[0];
@@ -58,7 +66,7 @@ const resolvePoolRenderToneColor = (frame, tone, alpha, toneIndex = 0, mix = nul
 };
 
 const pushPoolFillVertex = (vertices, x, y, color) => {
-  vertices.push(x, y, color[0], color[1], color[2], color[3]);
+  vertices.push6(x, y, color[0], color[1], color[2], color[3]);
 };
 
 const pushPoolFillTriangleCoords = (
@@ -83,7 +91,7 @@ const pushPoolFillTriangle = (vertices, a, b, c, colorA, colorB = colorA, colorC
 };
 
 const pushPoolCircleVertex = (vertices, x, y, radius, uvX, uvY, inner, color) => {
-  vertices.push(
+  vertices.push9(
     x + uvX * radius,
     y + uvY * radius,
     uvX,
@@ -98,15 +106,65 @@ const pushPoolCircleVertex = (vertices, x, y, radius, uvX, uvY, inner, color) =>
 
 const pushPoolCircle = (vertices, x, y, radius, color, inner = 0) => {
   if (!Number.isFinite(x) || !Number.isFinite(y) || !Number.isFinite(radius) || radius <= 0 || color[3] <= 0) return;
-  const corners = [
-    [-1, -1],
-    [1, -1],
-    [-1, 1],
-    [-1, 1],
-    [1, -1],
-    [1, 1]
-  ];
-  for (const [uvX, uvY] of corners) pushPoolCircleVertex(vertices, x, y, radius, uvX, uvY, inner, color);
+  for (const [uvX, uvY] of POOL_CIRCLE_CORNERS) {
+    pushPoolCircleVertex(vertices, x, y, radius, uvX, uvY, inner, color);
+  }
+};
+
+const createFloatList = (initialCapacity = 1024) => {
+  let data = new Float32Array(initialCapacity);
+  let view = data.subarray(0, 0);
+  let viewLength = 0;
+  const list = {
+    get data() {
+      return data;
+    },
+    length: 0,
+    reset() {
+      this.length = 0;
+    },
+    ensure(nextLength) {
+      if (data.length >= nextLength) return;
+      let nextCapacity = data.length || 1024;
+      while (nextCapacity < nextLength) nextCapacity = Math.ceil(nextCapacity * 1.6);
+      data = new Float32Array(nextCapacity);
+      view = data.subarray(0, 0);
+      viewLength = 0;
+    },
+    push6(a, b, c, d, e, f) {
+      const start = this.length;
+      this.ensure(start + 6);
+      data[start] = a;
+      data[start + 1] = b;
+      data[start + 2] = c;
+      data[start + 3] = d;
+      data[start + 4] = e;
+      data[start + 5] = f;
+      this.length = start + 6;
+    },
+    push9(a, b, c, d, e, f, g, h, i) {
+      const start = this.length;
+      this.ensure(start + 9);
+      data[start] = a;
+      data[start + 1] = b;
+      data[start + 2] = c;
+      data[start + 3] = d;
+      data[start + 4] = e;
+      data[start + 5] = f;
+      data[start + 6] = g;
+      data[start + 7] = h;
+      data[start + 8] = i;
+      this.length = start + 9;
+    },
+    view() {
+      if (view.buffer !== data.buffer || viewLength !== this.length) {
+        view = data.subarray(0, this.length);
+        viewLength = this.length;
+      }
+      return view;
+    }
+  };
+  return list;
 };
 
 const samplePoolQuadraticInto = (out, start, control, end, amount) => {
@@ -189,79 +247,43 @@ const pushPoolBezierBand = (vertices, width, y, color) => {
 };
 
 export const createPoolRenderBatchBuilder = () => {
-  const batchPool = [];
-  const batches = [];
   const outputPool = [];
   const outputs = [];
   const scratch = {
-    whiteField: [],
-    backgroundLines: [],
-    prismCircles: [],
-    facetFill: [],
-    haloCircles: [],
-    edgeGlowFill: [],
-    cueCircles: [],
-    lineFill: [],
-    linePulseCircles: [],
-    particleCircles: [],
-    nodeCircles: []
+    whiteField: createFloatList(64),
+    backgroundLines: createFloatList(4096),
+    prismCircles: createFloatList(512),
+    facetFill: createFloatList(512),
+    haloCircles: createFloatList(1024),
+    edgeGlowFill: createFloatList(4096),
+    cueCircles: createFloatList(2048),
+    lineFill: createFloatList(8192),
+    linePulseCircles: createFloatList(1024),
+    particleCircles: createFloatList(8192),
+    nodeCircles: createFloatList(1024)
   };
   const scratchArrays = Object.values(scratch);
+  const tempPoint = { x: 0, y: 0 };
   const resetScratch = () => {
-    for (const vertices of scratchArrays) vertices.length = 0;
-    batches.length = 0;
+    for (const vertices of scratchArrays) vertices.reset();
     outputs.length = 0;
-  };
-  const ensureBatch = (kind) => {
-    const previous = batches[batches.length - 1];
-    if (previous?.kind === kind) return previous;
-    const index = batches.length;
-    const batch = batchPool[index] || {
-      kind,
-      vertices: [],
-      data: new Float32Array(0),
-      view: new Float32Array(0),
-      viewLength: 0
-    };
-    batch.kind = kind;
-    batch.vertices.length = 0;
-    batches.push(batch);
-    batchPool[index] = batch;
-    return batch;
   };
   const pushBatch = (kind, vertices) => {
     if (vertices.length <= 0) return;
-    const batch = ensureBatch(kind);
-    for (let index = 0; index < vertices.length; index += 1) batch.vertices.push(vertices[index]);
-  };
-  const finishBatches = () => {
-    for (let index = 0; index < batches.length; index += 1) {
-      const batch = batches[index];
-      const length = batch.vertices.length;
-      if (batch.data.length < length) {
-        batch.data = new Float32Array(Math.ceil(length * 1.25));
-        batch.view = new Float32Array(0);
-        batch.viewLength = 0;
-      }
-      batch.data.set(batch.vertices, 0);
-      if (batch.view.buffer !== batch.data.buffer || batch.viewLength !== length) {
-        batch.view = batch.data.subarray(0, length);
-        batch.viewLength = length;
-      }
-      const output = outputPool[index] || {
-        kind: batch.kind,
-        data: batch.view,
-        length,
-        byteLength: length * 4
-      };
-      output.kind = batch.kind;
-      output.data = batch.view;
-      output.length = length;
-      output.byteLength = length * 4;
-      outputs.push(output);
-      outputPool[index] = output;
-    }
-    return outputs;
+    const outputIndex = outputs.length;
+    const view = vertices.view();
+    const output = outputPool[outputIndex] || {
+      kind,
+      data: view,
+      length: vertices.length,
+      byteLength: vertices.length * 4
+    };
+    output.kind = kind;
+    output.data = view;
+    output.length = vertices.length;
+    output.byteLength = vertices.length * 4;
+    outputs.push(output);
+    outputPool[outputIndex] = output;
   };
 
   return (frame, width, height) => {
@@ -359,7 +381,7 @@ export const createPoolRenderBatchBuilder = () => {
             + cue / cueCount
             + index * 0.017
           ) % 1;
-          const point = resolveLinePoint(line, progress, width, height);
+          const point = resolveLinePointInto(tempPoint, line, progress, width, height);
           const ringRadius = 3.6 + edgeCue * 9.5 + Math.sin(time * 2.2 + route) * 1.8;
           pushPoolCircle(
             scratch.cueCircles,
@@ -395,7 +417,7 @@ export const createPoolRenderBatchBuilder = () => {
       const activeAlpha = line.alpha * (1.05 + flowEnergy * 0.50);
       pushPoolPrismLine(scratch.lineFill, frame, line, width, height, activeAlpha, line.width);
       if (line.pulse > 0.02) {
-        const pulsePoint = resolveLinePoint(line, clamp01(0.5 + Math.sin(line.pulse * Math.PI) * 0.34), width, height);
+        const pulsePoint = resolveLinePointInto(tempPoint, line, clamp01(0.5 + Math.sin(line.pulse * Math.PI) * 0.34), width, height);
         pushPoolCircle(
           scratch.linePulseCircles,
           pulsePoint.x,
@@ -481,7 +503,7 @@ export const createPoolRenderBatchBuilder = () => {
       );
     }
     pushBatch('circle', scratch.nodeCircles);
-    return finishBatches();
+    return outputs;
   };
 };
 

@@ -1,7 +1,9 @@
 # Poolday Browser Inference
 
-Poolday is the product layer for receipt-backed browser-local inference.
-Reploid supplies the governed browser substrate underneath it.
+Poolday is the docs/internal name for the receipt-backed browser inference pool.
+The public UI for this surface uses the Reploid name. Do not expose Poolday as user-facing product copy unless that naming decision changes.
+
+Reploid supplies the governed browser substrate underneath the pool surface.
 
 The product claim is narrow:
 
@@ -17,14 +19,14 @@ Do not describe this as trustless compute, hardware-attested inference, or guara
 
 | Route | Purpose |
 |-------|---------|
-| `/` | Public product home |
+| `/` | Public Reploid model-serving home. Docs/internal surface name: Poolday |
 | `/run` | Requester peer run, receipt display, and local acceptance |
 | `/contribute` | Browser provider peer listener with manual hosted diagnostics |
 | `/agents` | Agent SDK, policy-routed job submission, polling, and receipt acceptance surface |
 | `/receipts` | Receipt lookup and local artifact verification |
 | `/reputation` | Provider reputation, pool metrics, deployment check |
-| `/0` | Reploid substrate diagnostics |
-| `/x` | Reploid lab route |
+| `/0` | Zero research Reploid surface |
+| `/x` | X mature Reploid agent surface |
 
 ---
 

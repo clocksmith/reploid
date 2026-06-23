@@ -4,6 +4,8 @@
 
 import { DEFAULT_REPLOID_HOME_GOAL } from '../shared/reploid-contract.js';
 
+export { DEFAULT_REPLOID_HOME_GOAL };
+
 const TAGS = {
   UI: 'UI',
   VISUAL: 'Visualization',
@@ -214,6 +216,31 @@ const GOAL_CATEGORIES = {
 
 const normalizeText = (value) => String(value || '').trim();
 
+export const ZERO_GOAL_CHOICES = Object.freeze([
+  {
+    view: 'Seed audit',
+    text: 'Read the seed files, find the smallest weak instruction, stage a clearer replacement under /shadow, and write evidence under /artifacts.'
+  },
+  {
+    view: 'Tool seed',
+    text: 'Draft one minimal tool under /shadow/tools, write a smoke-test artifact, and request Promote only if the evidence is complete.'
+  },
+  {
+    view: 'Loop trace',
+    text: 'Trace one loop from goal to model response to tool result, record the failure boundary, and stage one reversible repair.'
+  },
+  {
+    view: 'Prompt trim',
+    text: 'Find duplicated prompt or blueprint instructions, stage a smaller equivalent contract under /shadow, and record the behavior that must not change.'
+  },
+  {
+    view: 'Boot simplifier',
+    text: 'Inspect the Zero boot path, stage one simplification that preserves local model execution, and write a rollback note.'
+  }
+]);
+
+export const DEFAULT_ZERO_GOAL = ZERO_GOAL_CHOICES[0].text;
+
 const createSeededRandom = (seed) => {
   let state = (Number(seed) || 0) >>> 0;
   if (state === 0) {
@@ -270,6 +297,17 @@ export function getRandomGoalEntry(seed = Date.now(), currentGoal = '') {
   if (pool.length === 0) return null;
 
   const random = createSeededRandom(Number(seed) ^ 0x85ebca6b);
+  return pool[Math.floor(random() * pool.length)] || pool[0];
+}
+
+export function getRandomZeroGoal(seed = Date.now(), currentGoal = '') {
+  const normalizedCurrent = normalizeText(currentGoal);
+  const candidates = ZERO_GOAL_CHOICES
+    .filter((goal) => normalizeText(goal.text) !== normalizedCurrent);
+  const pool = candidates.length > 0 ? candidates : ZERO_GOAL_CHOICES;
+  if (pool.length === 0) return null;
+
+  const random = createSeededRandom(Number(seed) ^ 0xc2b2ae35);
   return pool[Math.floor(random() * pool.length)] || pool[0];
 }
 

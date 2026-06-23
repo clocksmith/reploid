@@ -29,7 +29,7 @@ const GENERATED_GOALS = Object.freeze([
 const DIRECT_MODELS = Object.freeze({
   gemini: [
     { id: 'gemini-3.5-flash', name: 'Gemini 3.5 Flash' },
-    { id: 'gemini-3.1-flash-lite-preview', name: 'Gemini 3.1 Flash Lite Preview' }
+    { id: 'gemini-3.1-flash-lite', name: 'Gemini 3.1 Flash-Lite' }
   ]
 });
 
@@ -116,6 +116,18 @@ const getHasDirectInference = (state) => !!(
 
 const getLaunch = (state) => getReploidLaunchLabels(state);
 
+const getPeerBasePath = () => {
+  const pathname = window.location.pathname || '/';
+  const params = new URLSearchParams();
+  const currentParams = new URLSearchParams(window.location.search || '');
+  const profile = currentParams.get('profile');
+  if (profile) {
+    params.set('profile', profile);
+  }
+  const query = params.toString();
+  return query ? `${pathname}?${query}` : pathname;
+};
+
 const persistState = (state) => {
   const storage = getCurrentReploidStorage();
   storage.setItem('REPLOID_HOME_GOAL', state.goal || '');
@@ -186,8 +198,9 @@ const renderDirectConfig = (state) => {
 
 const renderHome = (state) => {
   const launch = getLaunch(state);
-  const peerUrl = createReploidPeerUrl(window.location.pathname || '/');
-  const freshPeerUrl = createReploidPeerUrl(window.location.pathname || '/', { freshIdentity: true });
+  const peerBasePath = getPeerBasePath();
+  const peerUrl = createReploidPeerUrl(peerBasePath);
+  const freshPeerUrl = createReploidPeerUrl(peerBasePath, { freshIdentity: true });
   const slotSummary = `${RING_SLOTS.length} ${launch.slots}`;
   const selectedSelfPath = SELF_FILE_PATHS.includes(state.selectedSelfPath)
     ? state.selectedSelfPath

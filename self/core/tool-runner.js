@@ -12,7 +12,7 @@ const ToolRunner = {
     id: 'ToolRunner',
     version: '1.2.0',
     genesis: { introduced: 'spark' },
-    dependencies: ['Utils', 'VFS', 'ToolWriter', 'SubstrateLoader?', 'EventBus', 'AuditLogger?', 'HITLController?', 'ArenaHarness?', 'VFSSandbox?', 'VerificationManager?', 'Shell?', 'gitTools?', 'WorkerManager?', 'EmbeddingStore?', 'SemanticMemory?', 'KnowledgeGraph?', 'GEPAOptimizer?', 'PromptMemory?', 'SchemaRegistry', 'TraceStore?', 'PersonaManager?', 'Observability?', 'GenesisSnapshot?', 'PolicyEngine?', 'SchemaValidator?'],
+    dependencies: ['Utils', 'VFS', 'ToolWriter?', 'SubstrateLoader?', 'EventBus', 'AuditLogger?', 'HITLController?', 'ArenaHarness?', 'VFSSandbox?', 'VerificationManager?', 'Shell?', 'gitTools?', 'WorkerManager?', 'EmbeddingStore?', 'SemanticMemory?', 'KnowledgeGraph?', 'GEPAOptimizer?', 'PromptMemory?', 'SchemaRegistry', 'TraceStore?', 'PersonaManager?', 'Observability?', 'GenesisSnapshot?', 'PolicyEngine?', 'SchemaValidator?'],
     async: true,
     type: 'service'
   },
@@ -39,8 +39,10 @@ const ToolRunner = {
       return 'reploid';
     };
 
+    const usesMinimalToolSurface = () => ['reploid', 'zero'].includes(getBootMode());
+
     const getInitialToolAllowlist = () => {
-      if (getBootMode() === 'reploid') {
+      if (usesMinimalToolSurface()) {
         return new Set(['ReadFile', 'WriteFile', 'LoadModule', 'Promote']);
       }
       return null;

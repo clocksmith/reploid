@@ -161,7 +161,17 @@ const installRuntimeGlobals = () => {
   };
 
   window.getReploidBootProfile = () => {
-    const route = getRouteBootSpec(window.location.pathname || '/');
+    const pathname = window.location.pathname || '/';
+    const route = getRouteBootSpec(pathname);
+    if (!route) {
+      const requestedProfile = new URLSearchParams(window.location.search || '').get('profile');
+      if (requestedProfile === 'wizard' || requestedProfile === 'reploid-home') {
+        return requestedProfile === 'reploid-home' ? 'reploid_home' : 'wizard';
+      }
+    }
+    if (pathname === '/index.html') {
+      return 'wizard';
+    }
     return route?.bootProfile || 'reploid_home';
   };
 
@@ -226,7 +236,8 @@ const ensureServiceWorkerVersion = async () => {
 
 const prepareShell = () => {
   ensureBaseHref();
-  document.title = SELF_BOOT_SPEC.title;
+  const routeTitle = getRouteBootSpec(window.location.pathname || '/')?.title;
+  document.title = routeTitle || SELF_BOOT_SPEC.title;
   const version = encodeURIComponent(getBuildVersion());
   ensureStylesheet(CORE_STYLE_ID, `styles/rd.css?v=${version}`);
   ensureStylesheet(BOOT_STYLE_ID, `styles/boot.css?v=${version}`);

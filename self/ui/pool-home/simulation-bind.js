@@ -13,6 +13,8 @@ import {
 } from './simulation-core.js';
 import { SIMULATION_MAX_STEP_MS, SIMULATION_TARGET_STEP_MS } from './constants.js';
 
+const LABEL_STYLE_EPSILON_PERCENT = 0.025;
+
 export const bindHomeSimulation = async (mount) => {
   let canvas = mount.querySelector('[data-pool-simulation]');
   if (!canvas) return;
@@ -27,6 +29,9 @@ export const bindHomeSimulation = async (mount) => {
   let renderer = null;
   let removeCanvasListeners = () => {};
   let canvasRect = null;
+  let canvasCssSize = { width: 0, height: 0 };
+  let layoutFrameId = null;
+  let resizeObserver = null;
   const flowLabels = [...mount.querySelectorAll('[data-pool-flow-label]')];
   const simulationShell = mount.querySelector('.pool-simulation-shell') || mount;
   const tooltip = mount.querySelector('[data-pool-tooltip]');
@@ -93,12 +98,26 @@ export const bindHomeSimulation = async (mount) => {
   };
   const refreshCanvasRect = () => {
     canvasRect = canvas.getBoundingClientRect();
+    canvasCssSize = {
+      width: Math.max(1, canvasRect.width),
+      height: Math.max(1, canvasRect.height)
+    };
     return canvasRect;
   };
+  const getCanvasCssSize = () => {
+    if (canvasCssSize.width > 0 && canvasCssSize.height > 0) return canvasCssSize;
+    refreshCanvasRect();
+    return canvasCssSize;
+  };
   const handleLayoutChange = () => {
-    canvasRect = null;
-    tooltipMetrics = null;
-    updateTooltipPosition(true);
+    if (layoutFrameId) return;
+    layoutFrameId = window.requestAnimationFrame(() => {
+      layoutFrameId = null;
+      canvasRect = null;
+      tooltipMetrics = null;
+      refreshCanvasRect();
+      if (activeTooltipLabel) updateTooltipPosition(true);
+    });
   };
   window.addEventListener('resize', handleLayoutChange);
   window.addEventListener('scroll', handleLayoutChange, true);
@@ -123,25 +142,55 @@ export const bindHomeSimulation = async (mount) => {
       const anchor = anchors[label.dataset.poolFlowLabel];
       if (!anchor) continue;
       const key = label.dataset.poolFlowLabel;
-      const target = {
-        x: (anchor.x / Math.max(1, width)) * 100,
-        y: (anchor.y / Math.max(1, height)) * 100
-      };
-      const current = labelPositions.get(key) || target;
-      const next = {
-        x: current.x + (target.x - current.x) * labelBlend,
-        y: current.y + (target.y - current.y) * labelBlend
-      };
-      labelPositions.set(key, next);
-      label.style.setProperty('--x', `${next.x}%`);
-      label.style.setProperty('--y', `${next.y}%`);
+      const targetX = (anchor.x / Math.max(1, width)) * 100;
+      const targetY = (anchor.y / Math.max(1, height)) * 100;
+      const labelText = anchor.label || key;
+      const labelBody = anchor.labelBody || '';
+      if (label.dataset.currentLabel !== labelText || label.dataset.currentBody !== labelBody) {
+        label.dataset.currentLabel = labelText;
+        label.dataset.currentBody = labelBody;
+        label.dataset.tooltipTitle = labelText;
+        label.dataset.tooltipBody = labelBody;
+        label.setAttribute('aria-label', labelBody ? `${labelText}: ${labelBody}` : labelText);
+        const labelTextEl = label.querySelector('b');
+        if (labelTextEl) labelTextEl.textContent = labelText;
+        if (activeTooltipLabel === label && tooltipTitle && tooltipBody) {
+          tooltipTitle.textContent = labelText;
+          tooltipBody.textContent = labelBody;
+        }
+      }
+      let current = labelPositions.get(key);
+      if (!current) {
+        current = {
+          x: targetX,
+          y: targetY,
+          styleX: NaN,
+          styleY: NaN
+        };
+        labelPositions.set(key, current);
+      } else {
+        current.x += (targetX - current.x) * labelBlend;
+        current.y += (targetY - current.y) * labelBlend;
+      }
+      if (
+        !Number.isFinite(current.styleX)
+        || Math.abs(current.styleX - current.x) >= LABEL_STYLE_EPSILON_PERCENT
+        || Math.abs(current.styleY - current.y) >= LABEL_STYLE_EPSILON_PERCENT
+      ) {
+        current.styleX = current.x;
+        current.styleY = current.y;
+        label.style.setProperty('--x', `${current.x}%`);
+        label.style.setProperty('--y', `${current.y}%`);
+      }
     }
   };
   window.REPLOID_POOL_SIMULATION_STOP = () => {
     active = false;
     if (frameId) window.cancelAnimationFrame(frameId);
+    if (layoutFrameId) window.cancelAnimationFrame(layoutFrameId);
     hideTooltip();
     removeCanvasListeners();
+    resizeObserver?.disconnect();
     window.removeEventListener('resize', handleLayoutChange);
     window.removeEventListener('scroll', handleLayoutChange, true);
     renderer?.dispose();
@@ -162,6 +211,11 @@ export const bindHomeSimulation = async (mount) => {
   }
   canvas = renderer.canvas;
   refreshCanvasRect();
+  if (typeof ResizeObserver === 'function') {
+    resizeObserver = new ResizeObserver(handleLayoutChange);
+    resizeObserver.observe(canvas);
+    if (simulationShell !== canvas) resizeObserver.observe(simulationShell);
+  }
   canvas.dataset.poolRenderer = renderer.backend;
   window.REPLOID_POOL_RENDERER_BACKEND = renderer.backend;
   const draw = (timestamp = performance.now()) => {
@@ -169,11 +223,11 @@ export const bindHomeSimulation = async (mount) => {
     const rawDeltaMs = Math.max(0, timestamp - state.lastFrameMs);
     state.lastFrameMs = timestamp;
     const deltaMs = Math.min(SIMULATION_MAX_STEP_MS, rawDeltaMs || SIMULATION_TARGET_STEP_MS);
-    const { width, height } = resizePoolCanvas(canvas);
+    const { width, height } = resizePoolCanvas(canvas, getCanvasCssSize());
     const frame = buildPoolSimulationFrame(state, width, height, deltaMs / 1000);
     renderer.render(frame, width, height);
     syncFlowLabels(frame.labelAnchors, width, height, deltaMs / 1000);
-    updateTooltipPosition(false);
+    if (activeTooltipLabel) updateTooltipPosition(false);
     frameId = window.requestAnimationFrame(draw);
   };
   const movePointer = (event) => {
