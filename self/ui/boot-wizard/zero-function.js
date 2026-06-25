@@ -1,6 +1,6 @@
 export const ZERO_GEMINI_FUNCTION_PATH = '/zero/gemini';
 export const ZERO_GEMINI_PROVIDER = 'gemini';
-export const ZERO_GEMINI_MODEL = 'gemini-3.1-flash-lite';
+export const ZERO_GEMINI_MODEL = 'gemini-3.5-flash';
 export const ZERO_GEMINI_SERVER_TYPE = 'firebase-function';
 export const ZERO_MANAGED_MAX_ITERATIONS = 99;
 

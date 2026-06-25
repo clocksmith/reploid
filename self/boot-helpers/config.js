@@ -91,7 +91,7 @@ export function getGenesisLevel(genesisConfig) {
 export function resolveModules(levelName, genesisConfig, moduleRegistry = null, overrides = null) {
   const baseModules = resolveBaseModules(levelName, genesisConfig);
   const normalized = normalizeOverrides(overrides);
-  if (!moduleRegistry || Object.keys(normalized).length === 0) {
+  if (!moduleRegistry) {
     return baseModules;
   }
 

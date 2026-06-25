@@ -8,9 +8,8 @@ export const GENERATED_REPLOID_CLOUD_ACCESS_STATUS = Object.freeze({
   "version": 1,
   "provider": "gemini",
   "model": "gemini-3.5-flash",
-  "generatedAt": "2026-06-23T15:37:48.394Z",
+  "generatedAt": "2026-06-24T13:08:59.122Z",
   "availableLabels": [
-    "2026-06-23",
     "2026-06-24",
     "2026-06-25",
     "2026-06-26",
@@ -374,7 +373,8 @@ export const GENERATED_REPLOID_CLOUD_ACCESS_STATUS = Object.freeze({
     "2027-06-19",
     "2027-06-20",
     "2027-06-21",
-    "2027-06-22"
+    "2027-06-22",
+    "2027-06-23"
   ]
 });
 

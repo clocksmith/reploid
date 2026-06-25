@@ -6,7 +6,7 @@
  */
 
 export const PRODUCT_ROUTES = Object.freeze({
-  '/': 'mesh',
+  '/': 'home',
   '/run': 'run',
   '/mesh': 'mesh',
   '/record': 'record',
@@ -142,7 +142,7 @@ export const POOLDAY_GRAPH_PALETTES = Object.freeze([
 export const POOLDAY_GRAPH_TOPOLOGIES = Object.freeze([
   {
     id: 'receipt_tree',
-    label: 'receipt tree',
+    label: 'record tree',
     edgePreset: 'receipt_tree',
     morph: 'root',
     points: {
@@ -306,7 +306,7 @@ export const POOLDAY_FLOW_CORE_NODES = Object.freeze([
     id: 'requester',
     label: 'Request',
     caption: 'ask',
-    body: 'The user or app asking Reploid to run a job with a declared model, policy, and receipt requirement.',
+    body: 'A user or app sends a prompt with a model requirement and acceptance rule.',
     x: '16%',
     y: '58%'
   },
@@ -314,103 +314,105 @@ export const POOLDAY_FLOW_CORE_NODES = Object.freeze([
     id: 'policy',
     label: 'Policy',
     caption: 'gate',
-    body: 'The rule gate that checks model requirements, trust level, point spend, and what proof is needed.',
+    body: 'The rule gate checks model fit, spend, trust, and verification requirements.',
     x: '28%',
     y: '39%'
   },
   {
     id: 'runners',
-    label: 'Runners',
+    label: 'Run',
     caption: 'run',
-    body: 'Browser nodes that do the model work and return signed execution receipts.',
+    body: 'Browser nodes execute the selected model and sign the result.',
     x: '48%',
     y: '32%'
   },
   {
     id: 'verifiers',
-    label: 'Verifiers',
+    label: 'Verify',
     caption: 'check',
-    body: 'Independent checks that compare receipts, outputs, and policy requirements before acceptance.',
+    body: 'Independent checks compare output, model identity, and policy requirements.',
     x: '66%',
     y: '44%'
   },
   {
     id: 'settlement',
-    label: 'Settle',
+    label: 'Record',
     caption: 'accept',
-    body: 'The acceptance step that finalizes the checked result and applies points or reputation effects.',
+    body: 'The accepted result becomes durable history for points and routing.',
     x: '78%',
     y: '56%'
   },
   {
     id: 'ledger',
-    label: 'Ledger',
+    label: 'Record',
     caption: 'record',
-    body: 'The record of accepted receipts, decisions, and local reputation evidence.',
+    body: 'Completed work, decisions, and local routing evidence are stored.',
     x: '80%',
     y: '58%'
   }
 ]);
 export const POOLDAY_GRAPH_LABEL_ROLE_META = Object.freeze({
-  consumer: {
-    label: 'Consumer',
-    body: 'Requests work, accepts a receipt, and compares the delivered result against the declared intent.'
+  request: {
+    label: 'Request',
+    body: 'Send a prompt with a declared model, policy, and acceptance rule.'
   },
-  producer: {
-    label: 'Producer',
-    body: 'Publishes work intent or model capability into the browser network for another peer to consume.'
+  policy: {
+    label: 'Policy',
+    body: 'Check whether the request can route and what verification is required.'
   },
-  coordinator: {
-    label: 'Coordinator',
-    body: 'Matches capability, policy, and receipt requirements before peers exchange work.'
+  match: {
+    label: 'Match',
+    body: 'Pair the request with compatible browser nodes in the current room.'
   },
-  provider: {
-    label: 'Provider',
-    body: 'Runs the selected model or runtime lane and signs the execution receipt.'
+  run: {
+    label: 'Run',
+    body: 'Run the selected model in a browser node and sign the result.'
   },
-  verifier: {
-    label: 'Verifier',
-    body: 'Checks receipt fields, model compatibility, output policy, and agreement before acceptance.'
+  verify: {
+    label: 'Verify',
+    body: 'Check output, model identity, policy, and agreement before acceptance.'
   },
-  settlement: {
-    label: 'Settlement',
-    body: 'Applies acceptance, reputation, and point evidence after verification reaches agreement.'
-  },
-  ledger: {
-    label: 'Ledger',
-    body: 'Stores accepted receipts, peer history, and local routing evidence.'
+  record: {
+    label: 'Record',
+    body: 'Store accepted work, decisions, points, and local routing evidence.'
   }
 });
 export const POOLDAY_GRAPH_LABEL_STAGES = Object.freeze([
   {
-    id: 'intent',
-    label: 'Intent',
-    ids: ['requester', 'policy'],
-    roles: ['consumer', 'consumer']
+    id: 'request',
+    label: 'Request',
+    ids: ['requester'],
+    roles: ['request']
+  },
+  {
+    id: 'policy',
+    label: 'Policy',
+    ids: ['policy'],
+    roles: ['policy']
   },
   {
     id: 'match',
     label: 'Match',
-    ids: ['assignment', 'runner0'],
-    roles: ['coordinator', 'provider']
+    ids: ['assignment'],
+    roles: ['match']
   },
   {
-    id: 'execute',
-    label: 'Execute',
-    ids: ['runner1', 'runner2', 'runner3'],
-    roles: ['provider', 'producer', 'producer']
+    id: 'run',
+    label: 'Run',
+    ids: ['runner0', 'runner1', 'runner2', 'runner3'],
+    roles: ['run', 'run', 'run', 'run']
   },
   {
     id: 'verify',
     label: 'Verify',
     ids: ['verifier0', 'verifier1', 'agreement'],
-    roles: ['verifier', 'verifier', 'verifier']
+    roles: ['verify', 'verify', 'verify']
   },
   {
     id: 'record',
     label: 'Record',
     ids: ['settlement', 'ledger'],
-    roles: ['settlement', 'ledger']
+    roles: ['record', 'record']
   }
 ]);
 const DEFAULT_GRAPH_ROLE_BY_ID = Object.freeze(Object.fromEntries(
@@ -418,8 +420,8 @@ const DEFAULT_GRAPH_ROLE_BY_ID = Object.freeze(Object.fromEntries(
 ));
 export const POOLDAY_FLOW_LABELS = Object.freeze(POOLDAY_GRAPH_NODE_IDS.map((id) => {
   const point = POOLDAY_GRAPH_TOPOLOGIES[0].points[id] || [0.5, 0.5];
-  const role = DEFAULT_GRAPH_ROLE_BY_ID[id] || 'provider';
-  const meta = POOLDAY_GRAPH_LABEL_ROLE_META[role] || POOLDAY_GRAPH_LABEL_ROLE_META.provider;
+  const role = DEFAULT_GRAPH_ROLE_BY_ID[id] || 'run';
+  const meta = POOLDAY_GRAPH_LABEL_ROLE_META[role] || POOLDAY_GRAPH_LABEL_ROLE_META.run;
   return {
     id,
     label: meta.label,
@@ -435,7 +437,7 @@ export const ROUTE_COPY = Object.freeze({
   home: {
     eyebrow: POOLDAY_PROTOCOL,
     title: POOLDAY_NAME,
-    body: 'Browser inference with receipts.'
+    body: 'Browser inference with verifiable records.'
   },
   run: {
     eyebrow: 'Run',

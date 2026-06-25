@@ -11,7 +11,10 @@ export const AWAKEN_REQUIRED_MODULES = [
   'SchemaRegistry',
   'AgentLoop',
   'LLMClient',
-  'ToolExecutor'
+  'ToolExecutor',
+  'ContextManager',
+  'PersonaManager',
+  'CircuitBreaker'
 ];
 
 export function resolveBaseModules(levelName, genesisConfig) {

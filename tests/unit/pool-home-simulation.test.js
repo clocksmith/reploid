@@ -41,7 +41,7 @@ describe('pool home simulation performance contracts', () => {
     expect(second.lines.length).toBeGreaterThan(0);
   });
 
-  it('labels a 12 node staged graph with duplicated peer roles', () => {
+  it('labels a 12 node staged graph with duplicated flow roles', () => {
     const state = createPoolSimulationState();
     const frame = buildPoolSimulationFrame(state, 960, 640, 1 / 60);
     const nodeIds = frame.nodes.map((node) => node.id).sort();
@@ -57,10 +57,12 @@ describe('pool home simulation performance contracts', () => {
     expect(frame.nodes).toHaveLength(12);
     expect(anchorIds).toEqual(nodeIds);
     expect(labels.every(Boolean)).toBe(true);
-    expect(labelCounts.Consumer).toBeGreaterThanOrEqual(2);
-    expect(labelCounts.Producer).toBeGreaterThanOrEqual(2);
-    expect(labelCounts.Provider).toBeGreaterThanOrEqual(2);
-    expect(labelCounts.Verifier).toBeGreaterThanOrEqual(2);
-    expect(stages.size).toBeGreaterThanOrEqual(4);
+    expect(labelCounts.Request).toBe(1);
+    expect(labelCounts.Policy).toBe(1);
+    expect(labelCounts.Match).toBe(1);
+    expect(labelCounts.Run).toBeGreaterThanOrEqual(4);
+    expect(labelCounts.Verify).toBeGreaterThanOrEqual(3);
+    expect(labelCounts.Record).toBeGreaterThanOrEqual(2);
+    expect(stages.size).toBe(6);
   });
 });

@@ -285,7 +285,7 @@ describe('SignalingServer', () => {
     socket.close();
   });
 
-  it('defaults env-backed Gemini inference to Gemini 3.1 Flash-Lite', () => {
+  it('defaults env-backed Gemini inference to Gemini 3.5 Flash', () => {
     const config = resolveInferenceServiceConfig({
       env: {
         GEMINI_API_KEY: 'gemini-key'
@@ -293,7 +293,7 @@ describe('SignalingServer', () => {
     });
 
     expect(config.provider).toBe('gemini');
-    expect(config.model).toBe('gemini-3.1-flash-lite');
+    expect(config.model).toBe('gemini-3.5-flash');
     expect(config.peerAvailable).toBe(true);
   });
 

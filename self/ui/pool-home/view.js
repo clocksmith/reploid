@@ -553,8 +553,9 @@ export const setResult = (id, value, options = {}) => {
 
 export const renderNav = (activeRoute) => {
   const routeItems = [
+    ['/', 'Home'],
     ['/run', 'Run'],
-    ['/', 'Mesh'],
+    ['/mesh', 'Mesh'],
     ['/record', 'Record']
   ];
   const renderItem = ([href, label]) => {
@@ -680,7 +681,7 @@ const renderHomeSimulation = () => `
 `;
 
 export const renderRoutePanel = (routeId) => {
-  if (routeId === 'mesh') return renderHomeSimulation();
+  if (routeId === 'home') return renderHomeSimulation();
   return '';
 };
 
@@ -690,7 +691,6 @@ export const renderRouteDetail = (routeId) => {
     return `
       <section class="panel pool-panel">
         <div class="pool-page-heading">
-          <p class="pool-eyebrow">${escapeHtml(copy.eyebrow)}</p>
           <h1 class="type-h1">${escapeHtml(copy.title)}</h1>
           <p class="type-caption pool-hero-body">${escapeHtml(copy.body)}</p>
         </div>
@@ -738,7 +738,6 @@ export const renderRouteDetail = (routeId) => {
       <section class="panel pool-panel">
         <div class="pool-page-heading pool-page-heading-split">
           <div>
-            <p class="pool-eyebrow">${escapeHtml(copy.eyebrow)}</p>
             <h1 class="type-h1">${escapeHtml(copy.title)}</h1>
             <p class="type-caption pool-hero-body">${escapeHtml(copy.body)}</p>
           </div>
@@ -806,7 +805,6 @@ export const renderRouteDetail = (routeId) => {
     return `
       <section class="panel pool-panel">
         <div class="pool-page-heading">
-          <p class="pool-eyebrow">${escapeHtml(copy.eyebrow)}</p>
           <h1 class="type-h1">${escapeHtml(copy.title)}</h1>
           <p class="type-caption pool-hero-body">${escapeHtml(copy.body)}</p>
         </div>

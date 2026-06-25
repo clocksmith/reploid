@@ -281,7 +281,7 @@ describe('AgentLoop - Integration Tests', () => {
 
     it('should cap managed server proxy loops at 99 iterations', async () => {
       agentLoop.setModel({
-        id: 'gemini-3.1-flash-lite',
+        id: 'gemini-3.5-flash',
         provider: 'gemini',
         serverType: 'firebase-function',
         maxIterations: 120
@@ -499,6 +499,34 @@ describe('AgentLoop - Integration Tests', () => {
         tool: 'failing_tool'
       }));
     });
+
+    it('should not trip circuit for recoverable tool input errors', async () => {
+      const readMissing = { name: 'ReadFile', args: { path: '/missing.txt' } };
+      let iteration = 0;
+
+      mockLLMClient.chat.mockImplementation(() => {
+        iteration++;
+        if (iteration <= 3) {
+          mockResponseParser.parseToolCalls.mockReturnValue([readMissing]);
+          mockResponseParser.isDone.mockReturnValue(false);
+          return Promise.resolve({ content: 'Attempting to inspect the missing VFS path before choosing the next action.' });
+        }
+        mockResponseParser.parseToolCalls.mockReturnValue([]);
+        mockResponseParser.isDone.mockReturnValue(true);
+        return Promise.resolve({ content: 'DONE' });
+      });
+
+      mockToolRunner.execute.mockRejectedValue(new Error('File not found: /missing.txt'));
+
+      await agentLoop.run('Test recoverable input error');
+
+      const breaker = mockCircuitBreaker.create.mock.results[0].value;
+      expect(breaker.recordFailure).not.toHaveBeenCalled();
+      expect(mockEventBus.emit).toHaveBeenCalledWith('tool:input_error', expect.objectContaining({
+        tool: 'ReadFile',
+        error: 'File not found: /missing.txt'
+      }));
+    });
   });
 
   describe('stuck loop detection', () => {
@@ -520,6 +548,34 @@ describe('AgentLoop - Integration Tests', () => {
 
       expect(mockEventBus.emit).toHaveBeenCalledWith('agent:warning', expect.objectContaining({
         type: 'stuck_loop'
+      }));
+    });
+
+    it('should treat parse-error tool calls as no executable progress', async () => {
+      let iteration = 0;
+
+      mockLLMClient.chat.mockImplementation(() => {
+        iteration++;
+        if (iteration <= 5) {
+          mockResponseParser.parseToolCalls.mockReturnValue([{
+            name: 'ReadFile',
+            args: {},
+            error: 'Invalid argument line: *Attempting to find entry point in current directory.*'
+          }]);
+          mockResponseParser.isDone.mockReturnValue(false);
+          return Promise.resolve({
+            content: 'REPLOID/0\n\nTOOL: ReadFile\n*Attempting to find entry point in current directory.*'
+          });
+        }
+        return Promise.resolve({ content: 'Summary after malformed tool syntax.' });
+      });
+
+      await agentLoop.run('Test malformed tool syntax');
+
+      expect(mockToolRunner.execute).not.toHaveBeenCalled();
+      expect(mockEventBus.emit).toHaveBeenCalledWith('agent:warning', expect.objectContaining({
+        type: 'stuck_loop',
+        reason: expect.stringContaining('No tool calls')
       }));
     });
 

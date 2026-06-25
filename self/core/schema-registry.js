@@ -43,13 +43,13 @@ const SchemaRegistry = {
     // readOnly: false/undefined = mutating, must execute sequentially
     const DEFAULT_TOOL_SCHEMAS = {
       ReadFile: {
-        description: 'Read contents of a file from VFS or OPFS',
+        description: 'Read contents of a file from VFS or OPFS. VFS directory paths return a listing.',
         readOnly: true,
         parameters: {
           type: 'object',
           required: ['path'],
           properties: {
-            path: { type: 'string', description: 'Path to read (vfs:/ or opfs:/). Default backend is VFS.' },
+            path: { type: 'string', description: 'Path to read (vfs:/ or opfs:/). VFS directory paths return a listing. Default backend is VFS.' },
             backend: { type: 'string', description: 'Optional backend override (vfs or opfs)' },
             mode: { type: 'string', enum: ['text', 'binary'], description: 'Read mode (default: text)' },
             maxBytes: { type: 'number', description: 'Maximum bytes to read' },

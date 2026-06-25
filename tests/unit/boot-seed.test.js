@@ -6,6 +6,8 @@ import { describe, expect, it } from 'vitest';
 
 import { getRouteBootSpec } from '../../self/boot-spec.js';
 import { pickBootSeedFiles, shouldHydrateFullManifest } from '../../self/config/boot-seed.js';
+import { AWAKEN_REQUIRED_MODULES } from '../../self/config/module-resolution.js';
+import { resolveModules } from '../../self/boot-helpers/config.js';
 import {
   buildZeroGeminiProxyConfig,
   ZERO_MANAGED_MAX_ITERATIONS
@@ -16,6 +18,10 @@ const manifestPath = path.resolve(__dirname, '../../self/config/vfs-manifest.jso
 const manifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
 const firebaseConfigPath = path.resolve(__dirname, '../../firebase.json');
 const firebaseConfig = JSON.parse(readFileSync(firebaseConfigPath, 'utf8'));
+const genesisConfigPath = path.resolve(__dirname, '../../self/config/genesis-levels.json');
+const genesisConfig = JSON.parse(readFileSync(genesisConfigPath, 'utf8'));
+const moduleRegistryPath = path.resolve(__dirname, '../../self/config/module-registry.json');
+const moduleRegistry = JSON.parse(readFileSync(moduleRegistryPath, 'utf8'));
 
 describe('boot seed manifest', () => {
   it('includes the shared instance helper in the checked-in VFS manifest', () => {
@@ -101,5 +107,17 @@ describe('boot seed manifest', () => {
       maxIterations: ZERO_MANAGED_MAX_ITERATIONS
     });
     expect(ZERO_MANAGED_MAX_ITERATIONS).toBe(99);
+  });
+
+  it('expands capsule genesis into a complete awaken runtime', () => {
+    const resolved = resolveModules('capsule', genesisConfig, moduleRegistry, {});
+
+    expect(resolved).toEqual(expect.arrayContaining(AWAKEN_REQUIRED_MODULES));
+    expect(resolved).toEqual(expect.arrayContaining([
+      'ContextManager',
+      'PersonaManager',
+      'CircuitBreaker',
+      'ProviderRegistry'
+    ]));
   });
 });
