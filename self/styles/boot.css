@@ -1822,7 +1822,7 @@ details[open] > .disclosure-summary::before {
   font-family: var(--font-mono);
 }
 
-.pool-home[data-pool-route-id='mesh'] {
+.pool-home[data-pool-route-id='home'] {
   min-height: 100vh;
   min-height: 100dvh;
   padding: 0;
@@ -2490,7 +2490,7 @@ details[open] > .disclosure-summary::before {
   box-shadow: none;
 }
 
-.pool-home[data-pool-route-id='mesh'] .pool-simulation-shell {
+.pool-home[data-pool-route-id='home'] .pool-simulation-shell {
   min-height: 100vh;
   min-height: 100dvh;
 }
@@ -2504,7 +2504,7 @@ details[open] > .disclosure-summary::before {
   touch-action: manipulation;
 }
 
-.pool-home[data-pool-route-id='mesh'] .pool-simulation-canvas {
+.pool-home[data-pool-route-id='home'] .pool-simulation-canvas {
   height: 100vh;
   height: 100dvh;
 }
@@ -2680,7 +2680,7 @@ details[open] > .disclosure-summary::before {
     gap: var(--space-md);
   }
 
-  .pool-home[data-pool-route-id='mesh'] {
+  .pool-home[data-pool-route-id='home'] {
     padding: 0;
   }
 
@@ -2750,8 +2750,8 @@ details[open] > .disclosure-summary::before {
     height: 560px;
   }
 
-  .pool-home[data-pool-route-id='mesh'] .pool-simulation-shell,
-  .pool-home[data-pool-route-id='mesh'] .pool-simulation-canvas {
+  .pool-home[data-pool-route-id='home'] .pool-simulation-shell,
+  .pool-home[data-pool-route-id='home'] .pool-simulation-canvas {
     min-height: 100vh;
     min-height: 100dvh;
     height: 100vh;

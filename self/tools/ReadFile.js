@@ -7,6 +7,19 @@ const BINARY_LIMIT_BYTES = 256 * 1024 * 1024;
 const OPFS_PREFIX = 'opfs:';
 const VFS_PREFIX = 'vfs:';
 const OPFS_ALLOWLIST_PREFIXES = ['/doppler-models/adapters/'];
+const VFS_KNOWN_DIRECTORIES = new Set([
+  '/',
+  '/.memory',
+  '/.system',
+  '/artifacts',
+  '/capabilities',
+  '/core',
+  '/self',
+  '/shadow',
+  '/styles',
+  '/tools',
+  '/ui'
+]);
 
 const normalizePath = (rawPath, backendOverride) => {
   if (!rawPath || typeof rawPath !== 'string') {
@@ -116,10 +129,61 @@ const getTextBytes = (content) => {
   return content.length;
 };
 
+const normalizeDirectoryPath = (path) => {
+  if (path === '/') return '/';
+  return path.replace(/\/+$/, '') || '/';
+};
+
+const formatDirectoryListing = (path, entries) => {
+  const lines = [`Directory: ${path}`];
+  if (entries.length === 0) {
+    lines.push('(no entries)');
+    if (path === '/artifacts') {
+      lines.push('Hint: write evidence with WriteFile path: /artifacts/<name>.');
+    } else if (path === '/shadow') {
+      lines.push('Hint: write candidates with WriteFile path: /shadow/<name>.');
+    }
+  } else {
+    lines.push(...entries);
+  }
+  return lines.join('\n');
+};
+
+async function readVfsDirectory(path, VFS) {
+  if (typeof VFS.list !== 'function') return null;
+
+  const directoryPath = normalizeDirectoryPath(path);
+  const entries = await VFS.list(directoryPath);
+  const explicitDirectory = path.endsWith('/') || VFS_KNOWN_DIRECTORIES.has(directoryPath);
+
+  if (!explicitDirectory && entries.length === 0) {
+    return null;
+  }
+
+  const content = formatDirectoryListing(directoryPath, entries);
+  return {
+    path: directoryPath,
+    backend: 'vfs',
+    type: 'directory',
+    encoding: 'utf-8',
+    content,
+    entries,
+    bytes: getTextBytes(content)
+  };
+}
+
 async function readFromVfs(path, args, maxBytes) {
   const { VFS } = args.deps;
   const stats = await VFS.stat(path);
-  if (!stats) throw new Error(`File not found: ${path}`);
+  if (!stats || stats.type === 'directory') {
+    const directory = await readVfsDirectory(path, VFS);
+    if (directory) return directory;
+    if (!stats) throw new Error(`File not found: ${path}`);
+  }
+
+  if (stats.type && stats.type !== 'file') {
+    throw new Error(`Unsupported VFS entry type for ${path}: ${stats.type}`);
+  }
 
   const { startLine, endLine } = args;
   const hasRange = startLine !== undefined || endLine !== undefined;
@@ -234,7 +298,7 @@ async function call(args = {}, deps = {}) {
 
 export const tool = {
   name: "ReadFile",
-  description: "Read contents of a file from VFS or OPFS. Use opfs:/ for binary assets and mode: \"binary\" for tensor data.",
+  description: "Read contents of a file from VFS or OPFS. VFS directory paths return a listing. Use opfs:/ for binary assets and mode: \"binary\" for tensor data.",
   readOnly: true,
   inputSchema: {
     type: 'object',

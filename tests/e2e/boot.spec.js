@@ -98,8 +98,12 @@ test.describe('Route Entry Points', () => {
     await expect(page).toHaveTitle(/^Reploid$/i);
     await expect(page.locator('.pool-nav-rail')).toBeVisible();
     await expect(page.locator('.pool-topbar')).toHaveCount(0);
+    await expect(page.locator('.pool-home')).toHaveAttribute('data-pool-route-id', 'home');
+    await expect(page.getByRole('button', { name: 'Home', exact: true })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Home', exact: true })).toHaveAttribute('aria-pressed', 'true');
     await expect(page.getByRole('button', { name: 'Run', exact: true })).toBeVisible();
     await expect(page.getByRole('button', { name: 'Mesh', exact: true })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Mesh', exact: true })).toHaveAttribute('aria-pressed', 'false');
     await expect(page.getByRole('button', { name: 'Record', exact: true })).toBeVisible();
     await expect(page.getByRole('button', { name: 'Contribute', exact: true })).toHaveCount(0);
     await expect(page.getByRole('button', { name: 'Receipts', exact: true })).toHaveCount(0);
@@ -114,16 +118,30 @@ test.describe('Route Entry Points', () => {
         return acc;
       }, {});
       return {
-        consumers: counts.Consumer || 0,
-        producers: counts.Producer || 0,
-        providers: counts.Provider || 0,
-        verifiers: counts.Verifier || 0
+        request: counts.Request || 0,
+        policy: counts.Policy || 0,
+        match: counts.Match || 0,
+        run: counts.Run || 0,
+        verify: counts.Verify || 0,
+        record: counts.Record || 0,
+        consumer: counts.Consumer || 0,
+        producer: counts.Producer || 0,
+        provider: counts.Provider || 0,
+        settlement: counts.Settlement || 0,
+        ledger: counts.Ledger || 0
       };
     })).toEqual({
-      consumers: 2,
-      producers: 2,
-      providers: 2,
-      verifiers: 3
+      request: 1,
+      policy: 1,
+      match: 1,
+      run: 4,
+      verify: 3,
+      record: 2,
+      consumer: 0,
+      producer: 0,
+      provider: 0,
+      settlement: 0,
+      ledger: 0
     });
     await expect(page.locator('body')).not.toContainText('Poolday');
   });
@@ -168,6 +186,7 @@ test.describe('Route Entry Points', () => {
     expect(mobile.height).toBeLessThan(78);
     expect(mobile.width).toBeGreaterThan(360);
     expect(mobile.overflowX).toBe(false);
+    await expect(page.getByRole('button', { name: 'Home', exact: true })).toBeVisible();
     await expect(page.getByRole('button', { name: 'Run', exact: true })).toBeVisible();
     await expect(page.getByRole('link', { name: 'Zero' })).toBeVisible();
     await expect(page.getByRole('link', { name: 'X', exact: true })).toBeVisible();
@@ -194,15 +213,25 @@ test.describe('Route Entry Points', () => {
     await page.goto('/run');
     await page.waitForSelector('.pool-home', { timeout: 20000 });
     await expect(page.getByRole('heading', { name: 'Run', exact: true })).toBeVisible();
+    await expect(page.locator('.pool-page-heading .pool-eyebrow')).toHaveCount(0);
     await expect(page.getByLabel('Run controls')).toContainText('Run');
     await expect(page.locator('#pool-run-result-raw')).toBeHidden();
 
     await page.goto('/mesh');
     await page.waitForSelector('.pool-home', { timeout: 20000 });
+    await expect(page.locator('.pool-home')).toHaveAttribute('data-pool-route-id', 'mesh');
     await expect(page.getByRole('button', { name: 'Mesh', exact: true })).toHaveAttribute('aria-pressed', 'true');
+    await expect(page.getByRole('heading', { name: 'Mesh', exact: true })).toBeVisible();
+    await expect(page.locator('.pool-page-heading .pool-eyebrow')).toHaveCount(0);
+    await expect(page.locator('[data-pool-simulation]')).toHaveCount(0);
     await expect(page.locator('[data-pool-provider-status]')).toHaveText('NODE // OFFLINE');
     await expect(page.locator('#pool-provider-worker-start')).toBeVisible();
     await expect(page.locator('#pool-provider-worker-stop')).toBeVisible();
+
+    await page.goto('/record');
+    await page.waitForSelector('.pool-home', { timeout: 20000 });
+    await expect(page.getByRole('heading', { name: 'Record', exact: true })).toBeVisible();
+    await expect(page.locator('.pool-page-heading .pool-eyebrow')).toHaveCount(0);
   });
 
   test('home route boots without early VFS misses for instance-scoped runtime modules', async ({ page }) => {
@@ -383,7 +412,7 @@ test.describe('Route Entry Points', () => {
     await expect(page.locator('.wizard-proxy .type-h1')).toHaveText('Server proxy');
     await expect(page.locator('#proxy-url')).toHaveValue(/\/zero\/gemini$/);
     await expect(page.locator('#proxy-provider')).toHaveValue('gemini');
-    await expect(page.locator('#proxy-model')).toHaveValue('gemini-3.1-flash-lite');
+    await expect(page.locator('#proxy-model')).toHaveValue('gemini-3.5-flash');
     await expect(page.locator('#goal-input')).toBeVisible();
     await expect(page.locator('#awaken-btn')).toBeEnabled();
     await expect(page.locator('#reploid-swarm-enabled')).toHaveCount(0);
@@ -391,6 +420,40 @@ test.describe('Route Entry Points', () => {
     await expect(page.locator('[data-action="advanced-settings"]')).toHaveCount(0);
     await expect.poll(async () => page.evaluate(() => window.getReploidMode())).toBe('zero');
     expect(startupDiscoveryRequests).toEqual([]);
+  });
+
+  test('/0 awakens with the complete DI dependency closure', async ({ page }) => {
+    const pageErrors = [];
+    page.on('pageerror', (error) => pageErrors.push(error.message));
+
+    await page.goto('/0');
+    await page.waitForSelector('.wizard-home-provider [data-action="choose-proxy"]', { timeout: 20000 });
+    await page.locator('#goal-input').fill('Inspect the live seed and stop after the first observation.');
+    await page.locator('#awaken-btn').click();
+
+    await page.waitForFunction(() => !!window.REPLOID?.container, { timeout: 30000 });
+    await expect(page.locator('body')).not.toContainText(/Boot Failure|Module not found/i);
+
+    const resolvedServices = await page.evaluate(async () => {
+      const container = window.REPLOID?.container;
+      const names = ['ContextManager', 'PersonaManager', 'CircuitBreaker'];
+      const results = {};
+      for (const name of names) {
+        try {
+          results[name] = !!(await container.resolve(name));
+        } catch (error) {
+          results[name] = error?.message || String(error);
+        }
+      }
+      return results;
+    });
+
+    expect(resolvedServices).toEqual({
+      ContextManager: true,
+      PersonaManager: true,
+      CircuitBreaker: true
+    });
+    expect(pageErrors).toEqual([]);
   });
 
   test('/x locks the boot mode to X without boot failures', async ({ page }) => {

@@ -6,7 +6,7 @@ import nodeFetch from 'node-fetch';
 
 const DEFAULT_LOCAL_MODEL_ENDPOINT = 'http://localhost:11434';
 const DEFAULT_VLLM_ENDPOINT = 'http://localhost:8000';
-const DEFAULT_GEMINI_MODEL = 'gemini-3.1-flash-lite';
+const DEFAULT_GEMINI_MODEL = 'gemini-3.5-flash';
 const DEFAULT_GEMINI_REFERER = 'https://replo.id';
 const PROVIDER_PRIORITY = Object.freeze([
   'gemini',

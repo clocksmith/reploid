@@ -100,7 +100,7 @@ const createPoolGraphLabelPlan = (random) => {
     for (let index = 0; index < ids.length; index += 1) {
       const id = ids[index];
       const role = roles[index % roles.length];
-      const meta = POOLDAY_GRAPH_LABEL_ROLE_META[role] || POOLDAY_GRAPH_LABEL_ROLE_META.provider;
+      const meta = POOLDAY_GRAPH_LABEL_ROLE_META[role] || POOLDAY_GRAPH_LABEL_ROLE_META.run;
       const stagger = index - (ids.length - 1) / 2;
       plan[id] = {
         id,

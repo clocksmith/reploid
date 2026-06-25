@@ -21,6 +21,31 @@ const ToolExecutor = {
     const DEFAULT_TIMEOUT_MS = 30000;  // 30s per tool
     const DEFAULT_MAX_RETRIES = 2;
     const DEFAULT_RETRY_DELAY_MS = 100;
+    const NON_RETRYABLE_ERROR_PATTERNS = [
+      /^File not found:/i,
+      /^Missing .+ argument/i,
+      /^Invalid (backend|mode|offset|length)/i,
+      /^Path traversal is not allowed/i,
+      /^OPFS path not allowed:/i,
+      /^VFS supports text mode only/i,
+      /^offset\/length are only supported/i,
+      /^Read range exceeds file size/i,
+      /^Read length exceeds maxBytes/i,
+      /^maxBytes /i,
+      /^File too large/i,
+      /^Unsupported VFS entry type/i,
+      /^Tool not found:/i,
+      /^Tool '.+' not permitted/i,
+      /^Policy violation:/i,
+      /^Operation rejected by user/i
+    ];
+
+    const isRetryableError = (error) => {
+      const message = String(error?.message || '');
+      if (!message) return true;
+      if (message.includes('timeout')) return false;
+      return !NON_RETRYABLE_ERROR_PATTERNS.some((pattern) => pattern.test(message));
+    };
 
     /**
      * Execute a single tool with timeout
@@ -151,9 +176,12 @@ const ToolExecutor = {
             break;
           }
 
-          if (attempt < maxRetries) {
+          if (attempt < maxRetries && isRetryableError(err)) {
             logger.warn(`[ToolExecutor] Tool ${call.name} failed (attempt ${attempt + 1}/${maxRetries + 1}), retrying...`);
             await new Promise(r => setTimeout(r, retryDelayMs * (attempt + 1)));
+          } else if (attempt < maxRetries) {
+            logger.warn(`[ToolExecutor] Tool ${call.name} failed with non-retryable error: ${err.message}`);
+            break;
           }
         }
       }

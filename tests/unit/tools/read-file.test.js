@@ -12,7 +12,7 @@ describe('ReadFile', () => {
     mockVFS = {
       read: vi.fn(),
       write: vi.fn(),
-      list: vi.fn(),
+      list: vi.fn().mockResolvedValue([]),
       exists: vi.fn(),
       stat: vi.fn().mockResolvedValue({ size: 100, type: 'file' })
     };
@@ -82,6 +82,38 @@ describe('ReadFile', () => {
       const result = await call({ path: '/binary.bin' }, { VFS: mockVFS });
 
       expect(result.content).toBe(binaryContent);
+    });
+
+    it('should return a VFS directory listing when path has descendants', async () => {
+      mockVFS.stat.mockResolvedValue(null);
+      mockVFS.list.mockResolvedValue(['/artifacts/evidence.json']);
+
+      const result = await call({ path: '/artifacts' }, { VFS: mockVFS });
+
+      expect(mockVFS.list).toHaveBeenCalledWith('/artifacts');
+      expect(mockVFS.read).not.toHaveBeenCalled();
+      expect(result.type).toBe('directory');
+      expect(result.content).toContain('Directory: /artifacts');
+      expect(result.content).toContain('/artifacts/evidence.json');
+    });
+
+    it('should return an empty known VFS directory listing', async () => {
+      mockVFS.stat.mockResolvedValue(null);
+      mockVFS.list.mockResolvedValue([]);
+
+      const result = await call({ path: '/artifacts' }, { VFS: mockVFS });
+
+      expect(result.type).toBe('directory');
+      expect(result.content).toContain('(no entries)');
+      expect(result.content).toContain('WriteFile path: /artifacts/<name>');
+    });
+
+    it('should still throw for unknown missing files', async () => {
+      mockVFS.stat.mockResolvedValue(null);
+      mockVFS.list.mockResolvedValue([]);
+
+      await expect(call({ path: '/missing.txt' }, { VFS: mockVFS }))
+        .rejects.toThrow('File not found: /missing.txt');
     });
   });
 });

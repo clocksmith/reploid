@@ -407,6 +407,41 @@ const AgentLoop = {
       emitEvents: true
     });
 
+    const RECOVERABLE_TOOL_INPUT_ERROR_PATTERNS = [
+      /^File not found:/i,
+      /^Missing .+ argument/i,
+      /^Invalid argument line:/i,
+      /^Invalid (backend|mode|offset|length)/i,
+      /^Path traversal is not allowed/i,
+      /^OPFS path not allowed:/i,
+      /^VFS supports text mode only/i,
+      /^offset\/length are only supported/i,
+      /^Read range exceeds file size/i,
+      /^Read length exceeds maxBytes/i,
+      /^maxBytes /i,
+      /^File too large/i,
+      /^Unsupported VFS entry type/i,
+      /^Tool not found:/i,
+      /^Tool '.+' not permitted/i,
+      /^Policy violation:/i,
+      /^Operation rejected by user/i
+    ];
+
+    const isRecoverableToolInputError = (error) => {
+      const message = String(error?.message || error || '');
+      return RECOVERABLE_TOOL_INPUT_ERROR_PATTERNS.some((pattern) => pattern.test(message));
+    };
+
+    const _recordToolExecutionError = (call, error, iteration) => {
+      const message = error?.message || String(error);
+      EventBus.emit('tool:error', { tool: call.name, error: message, cycle: iteration });
+      if (isRecoverableToolInputError(error)) {
+        EventBus.emit('tool:input_error', { tool: call.name, error: message, cycle: iteration });
+        return;
+      }
+      _toolCircuitBreaker.recordFailure(call.name, error);
+    };
+
     const _checkLoopHealth = (iteration, toolCallCount, responseLength) => {
       // Check 1: No tool calls for too many iterations
       if (toolCallCount === 0) {
@@ -966,7 +1001,8 @@ const AgentLoop = {
           }
 
           // Check for stuck loop
-          const healthCheck = _checkLoopHealth(iteration, toolCalls.length, responseContent.length);
+          const executableToolCallCount = toolCalls.filter((call) => !call.error).length;
+          const healthCheck = _checkLoopHealth(iteration, executableToolCallCount, responseContent.length);
           if (healthCheck.stuck) {
             const shouldBreak = await _handleStuckLoop(healthCheck, context, iteration);
             if (shouldBreak) break;
@@ -1035,8 +1071,7 @@ const AgentLoop = {
                 if (error && !result) {
                   logger.error(`[Agent] Tool Error: ${call.name}`, error);
                   finalResult = `Error: ${error.message}`;
-                  EventBus.emit('tool:error', { tool: call.name, error: error.message, cycle: iteration });
-                  _toolCircuitBreaker.recordFailure(call.name, error);
+                  _recordToolExecutionError(call, error, iteration);
                 } else if (!error) {
                   _toolCircuitBreaker.recordSuccess(call.name);
                 }
@@ -1056,8 +1091,7 @@ const AgentLoop = {
               if (error && !result) {
                 logger.error(`[Agent] Tool Error: ${call.name}`, error);
                 finalResult = `Error: ${error.message}`;
-                EventBus.emit('tool:error', { tool: call.name, error: error.message, cycle: iteration });
-                _toolCircuitBreaker.recordFailure(call.name, error);
+                _recordToolExecutionError(call, error, iteration);
               } else if (!error) {
                 _toolCircuitBreaker.recordSuccess(call.name);
               }
@@ -1073,7 +1107,7 @@ const AgentLoop = {
                     let chainedFinal = chainedResult;
                     if (chainedError && !chainedResult) {
                       chainedFinal = `Error: ${chainedError.message}`;
-                      _toolCircuitBreaker.recordFailure(step.tool, chainedError);
+                      _recordToolExecutionError(chainedCall, chainedError, iteration);
                       allResults.push({ call: chainedCall, finalResult: chainedFinal, duration: chainedDuration });
                       break;
                     }
@@ -1133,9 +1167,9 @@ const AgentLoop = {
               break;
             }
             // WebLLM requires last message to be user/tool - add continuation prompt
-            let continuationMsg = 'No tool call detected. Use REPLOID/0 format:\n\nREPLOID/0\n\nTOOL: ToolName\nkey: value';
+            let continuationMsg = 'No executable tool call detected. Use REPLOID/0 format with only key: value argument lines after TOOL:\n\nREPLOID/0\n\nTOOL: ToolName\nkey: value';
             if (iteration > 3) {
-              continuationMsg = 'You must use a tool or say DONE.';
+              continuationMsg = 'You must use a valid tool block or say DONE. Do not put commentary inside argument lines.';
             }
             context.push({ role: 'user', content: continuationMsg });
           }
