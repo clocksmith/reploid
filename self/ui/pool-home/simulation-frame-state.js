@@ -128,13 +128,28 @@ export const resolvePoolGraphPalette = (layout, target = createPoolGraphPaletteF
   return target;
 };
 
-export const writeRoleAnchor = (target, id, size, phase, orbit, graphPositions, width, height, time, orbitCue, countdownProgress, transitionProgress) => {
+export const writeRoleAnchor = (
+  target,
+  id,
+  size,
+  phase,
+  orbit,
+  graphPositions,
+  width,
+  height,
+  time,
+  orbitCue,
+  countdownProgress,
+  transitionProgress,
+  motionScale = 1
+) => {
   const base = graphPositions[id] || { x: 0.5, y: 0.5 };
+  const motionCue = clamp01(motionScale);
   const breathe = 0.5 + 0.5 * Math.sin(time * 1.4 + phase);
   const baseX = width * base.x;
   const baseY = height * base.y;
   const cuePhase = phase + orbitCue * (1.2 + phase * 0.08);
-  const cueOrbit = orbit * (1 + orbitCue * 0.52);
+  const cueOrbit = orbit * motionCue * (1 + orbitCue * 0.52);
   const offsetX = Math.cos(time * 0.52 + cuePhase) * cueOrbit;
   const offsetY = Math.sin(time * 0.46 + cuePhase * 1.3) * cueOrbit;
   target.id = id;
@@ -171,9 +186,11 @@ export const writeParticipantAnchor = (
   time,
   orbitCue,
   countdownProgress,
-  transitionProgress
+  transitionProgress,
+  motionScale = 1
 ) => {
   const base = graphPositions[spec.id] || { x: spec.homeX, y: spec.homeY };
+  const motionCue = clamp01(motionScale);
   const pulse = 0.5 + 0.5 * Math.sin(time * 1.55 + spec.phase);
   const baseX = width * base.x;
   const baseY = height * base.y;
@@ -183,11 +200,11 @@ export const writeParticipantAnchor = (
   const pointerLift = pointerActive || pointerForce > 0.02
     ? Math.max(0, 1 - distance / (width * 0.34)) * (10 + pointerForce * 16)
     : 0;
-  const driftX = Math.cos(time * (0.78 + orbitCue * 0.10) + spec.phase + orbitCue * 1.6) * spec.driftX * (0.44 + orbitCue * 0.22)
-    + Math.sin(time * 0.33 + spec.phase * 1.4 + orbitCue) * spec.driftX * (0.22 + orbitCue * 0.10)
+  const driftX = Math.cos(time * (0.78 + orbitCue * 0.10) + spec.phase + orbitCue * 1.6) * spec.driftX * (0.44 + orbitCue * 0.22) * motionCue
+    + Math.sin(time * 0.33 + spec.phase * 1.4 + orbitCue) * spec.driftX * (0.22 + orbitCue * 0.10) * motionCue
     + (dx / distance) * pointerLift;
-  const driftY = Math.sin(time * (0.72 + orbitCue * 0.10) + spec.phase + orbitCue * 1.4) * spec.driftY * (0.44 + orbitCue * 0.22)
-    + Math.cos(time * 0.41 + spec.phase * 1.2 + orbitCue) * spec.driftY * (0.18 + orbitCue * 0.10)
+  const driftY = Math.sin(time * (0.72 + orbitCue * 0.10) + spec.phase + orbitCue * 1.4) * spec.driftY * (0.44 + orbitCue * 0.22) * motionCue
+    + Math.cos(time * 0.41 + spec.phase * 1.2 + orbitCue) * spec.driftY * (0.18 + orbitCue * 0.10) * motionCue
     + (dy / distance) * pointerLift;
   target.id = spec.id;
   target.role = spec.role;

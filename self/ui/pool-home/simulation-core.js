@@ -17,6 +17,7 @@ import {
   SIMULATION_GENTLE_SPEED,
   SIMULATION_MAX_PIXEL_RATIO,
   SIMULATION_MAX_STEP_MS,
+  SIMULATION_MOTION_CLOCK_WRAP_SECONDS,
   SIMULATION_MIN_PIXEL_RATIO,
   SIMULATION_MIN_FORCE,
   SIMULATION_POINTER_LERP,
@@ -414,6 +415,8 @@ const createPoolGraphLayout = (random) => {
     nextShiftAt: POOLDAY_MORPH_TUNING.shapeHold + random() * POOLDAY_MORPH_TUNING.holdJitter,
     transition: null,
     anticipation: 0,
+    stableHoldProgress: 0,
+    stableRelease: 0,
     flowEnergy: 1,
     flowEnergyTarget: 1,
     paletteFromIndex: 0,
@@ -459,6 +462,8 @@ const shiftPoolGraphTarget = (layout, time, random) => {
   );
   layout.nextPlan = null;
   layout.nextShiftAt = time + plan.span + plan.hold + random() * POOLDAY_MORPH_TUNING.holdJitter;
+  layout.stableHoldProgress = 1;
+  layout.stableRelease = 1;
   layout.flowEnergyTarget = 0.62 + random() * 0.92;
   layout.paletteFromIndex = layout.paletteToIndex;
   layout.paletteToIndex = pickPoolPaletteIndex(layout.paletteToIndex, random);
@@ -487,17 +492,26 @@ const updatePoolGraphLayout = (state, safeDelta) => {
       layout.edgeSpecs = layout.transition.settledLineSpecs || buildSimulationLineSpecs(layout.edgePreset);
       layout.transition = null;
       layout.planStartedAt = state.time;
+      layout.stableHoldProgress = 0;
+      layout.stableRelease = 0;
       layout.nextPlan = createNextPoolGraphPlan(layout, state.random);
     }
   } else {
-    layout.anticipation = clamp01(
+    const holdElapsed = Math.max(0, state.time - layout.planStartedAt);
+    const stableHoldSpan = Math.max(0.001, POOLDAY_MORPH_TUNING.stableHoldSpan);
+    const stableReleaseSpan = Math.max(0.001, POOLDAY_MORPH_TUNING.stableReleaseSpan);
+    const stableReleaseRaw = clamp01((holdElapsed - stableHoldSpan) / stableReleaseSpan);
+    layout.stableHoldProgress = clamp01(holdElapsed / stableHoldSpan);
+    layout.stableRelease = easeInOutCubic(stableReleaseRaw);
+    const rawAnticipation = clamp01(
       1 - Math.max(0, layout.nextShiftAt - state.time) / POOLDAY_MORPH_TUNING.anticipationSpan
     );
+    layout.anticipation = rawAnticipation * layout.stableRelease;
     if (!layout.nextPlan) layout.nextPlan = createNextPoolGraphPlan(layout, state.random);
     const cycleSpan = Math.max(0.001, layout.nextShiftAt - layout.planStartedAt);
     const cycleProgress = clamp01((state.time - layout.planStartedAt) / cycleSpan);
     const preludeBlend = clamp01(
-      POOLDAY_MORPH_TUNING.preludeDrift * easeInOutSine(cycleProgress)
+      POOLDAY_MORPH_TUNING.preludeDrift * layout.stableRelease * easeInOutSine(cycleProgress)
       + POOLDAY_MORPH_TUNING.preludeSurge * Math.pow(layout.anticipation, 2.25)
     );
     const preludeRate = POOLDAY_MORPH_TUNING.preludeRate + layout.anticipation * 0.030;
@@ -612,6 +626,7 @@ export const createPoolSimulationState = () => {
     lineProjector: createSimulationLineProjector(),
     particlePoint: { x: 0, y: 0 },
     time: 0,
+    motionTime: 0,
     lastFrameMs: performance.now() - SIMULATION_TARGET_STEP_MS
   };
 };
@@ -840,13 +855,15 @@ export const resolveFrameBounds = (nodes = [], width = 1, height = 1) => {
 
 export const buildPoolSimulationFrame = (state, width, height, deltaSeconds = SIMULATION_TARGET_STEP_MS / 1000) => {
   const safeDelta = Math.max(0, Math.min(SIMULATION_MAX_STEP_MS / 1000, deltaSeconds));
-  state.time += safeDelta * SIMULATION_GENTLE_SPEED;
+  const clockDelta = safeDelta * SIMULATION_GENTLE_SPEED;
+  state.time += clockDelta;
+  state.motionTime = (Number(state.motionTime || 0) + clockDelta) % SIMULATION_MOTION_CLOCK_WRAP_SECONDS;
   state.pointer.x = lerpToward(state.pointer.x, state.pointer.targetX, SIMULATION_POINTER_LERP, safeDelta);
   state.pointer.y = lerpToward(state.pointer.y, state.pointer.targetY, SIMULATION_POINTER_LERP, safeDelta);
   state.pointer.force = lerpToward(state.pointer.force, state.pointer.active ? 1 : 0, SIMULATION_FORCE_LERP, safeDelta);
   if (state.pointer.force < SIMULATION_MIN_FORCE) state.pointer.force = 0;
 
-  const time = state.time;
+  const time = state.motionTime;
   const graphPositions = updatePoolGraphLayout(state, safeDelta);
   const transitionProgress = clamp01(state.layout.transition?.progress || 0);
   const transitionSignal = state.layout.transition ? Math.sin(transitionProgress * Math.PI) : 0;
@@ -856,6 +873,9 @@ export const buildPoolSimulationFrame = (state, width, height, deltaSeconds = SI
   const topologyCue = Math.max(state.layout.anticipation || 0, carriedCue, transitionSignal * 0.58);
   const countdownProgress = Math.max(state.layout.anticipation || 0, transitionSignal);
   const orbitCue = easeInOutCubic(topologyCue);
+  const anchorMotionScale = state.layout.transition
+    ? 1
+    : clamp01(Math.max(state.layout.stableRelease || 0, topologyCue));
   const roles = state.roles;
   for (const [id, size, phase, orbit] of POOLDAY_CORE_NODE_CONFIG) {
     writeRoleAnchor(
@@ -870,7 +890,8 @@ export const buildPoolSimulationFrame = (state, width, height, deltaSeconds = SI
       time,
       orbitCue,
       countdownProgress,
-      transitionProgress
+      transitionProgress,
+      anchorMotionScale
     );
   }
   const pointerX = state.pointer.x * width;
@@ -890,7 +911,8 @@ export const buildPoolSimulationFrame = (state, width, height, deltaSeconds = SI
       time,
       orbitCue,
       countdownProgress,
-      transitionProgress
+      transitionProgress,
+      anchorMotionScale
     );
   }
   const flowScale = 0.72 + state.layout.flowEnergy * 0.42;
@@ -903,9 +925,12 @@ export const buildPoolSimulationFrame = (state, width, height, deltaSeconds = SI
   });
   for (let index = 0; index < lines.length; index += 1) {
     const line = lines[index];
-    line.pulse += orbitCue * (0.08 + (index % 5) * 0.018);
-    line.speed *= 1 + orbitCue * 0.16;
-    line.width *= 1 + orbitCue * 0.08;
+    const basePulse = Number.isFinite(line.basePulse) ? line.basePulse : line.pulse;
+    const baseSpeed = Number.isFinite(line.baseSpeed) ? line.baseSpeed : line.speed;
+    const baseWidth = Number.isFinite(line.baseWidth) ? line.baseWidth : line.width;
+    line.pulse = basePulse + orbitCue * (0.08 + (index % 5) * 0.018);
+    line.speed = baseSpeed * (1 + orbitCue * 0.16);
+    line.width = baseWidth * (1 + orbitCue * 0.08);
     line.flowCountdown = countdownProgress;
     line.phaseShift = topologyCue;
     line.topologyProgress = transitionProgress;
@@ -965,6 +990,9 @@ export const buildPoolSimulationFrame = (state, width, height, deltaSeconds = SI
   frame.time = time;
   frame.flowEnergy = state.layout.flowEnergy;
   frame.anticipation = state.layout.anticipation;
+  frame.stableHoldProgress = state.layout.stableHoldProgress;
+  frame.stableRelease = state.layout.stableRelease;
+  frame.anchorMotionScale = anchorMotionScale;
   frame.transitionActive = Boolean(state.layout.transition);
   frame.transitionProgress = transitionProgress;
   frame.topologyCue = topologyCue;

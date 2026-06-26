@@ -1875,138 +1875,49 @@ details[open] > .disclosure-summary::before {
   width: 100%;
 }
 
-.pool-nav-rail .btn {
+.pool-nav-link {
+  display: flex;
+  align-items: center;
   justify-content: flex-start;
-  min-height: 38px;
-  width: 100%;
-  padding: 9px 12px 9px 16px;
-  border-color: transparent;
-  background:
-    var(--pool-prism-idle-fill) padding-box,
-    var(--pool-prism-border-soft) border-box;
-  font-size: var(--font-size-sm);
-  box-shadow:
-    0 0 16px rgb(68 199 217 / 7%),
-    0 0 24px rgb(174 122 238 / 5%);
-}
-
-.pool-nav-rail .btn:hover,
-.pool-nav-rail .btn:active {
-  background:
-    linear-gradient(rgb(255 255 255 / 98%), rgb(255 255 255 / 98%)) padding-box,
-    linear-gradient(122deg, rgb(246 82 118 / 34%), rgb(247 139 83 / 24%) 22%, rgb(238 197 82 / 18%) 40%, rgb(105 210 153 / 24%) 58%, rgb(68 199 217 / 46%) 74%, rgb(174 122 238 / 32%)) border-box;
-  color: var(--fg);
-  transform: translateY(-1px);
-  box-shadow:
-    inset 0 calc(-1 * var(--border-sm)) 0 rgb(68 199 217 / 20%),
-    0 0 18px rgb(68 199 217 / 12%),
-    0 0 26px rgb(174 122 238 / 8%);
-}
-
-.pool-nav-rail .btn[aria-pressed="true"] {
-  background:
-    linear-gradient(122deg, rgb(246 82 118 / 7%), rgb(247 139 83 / 5%) 20%, rgb(238 197 82 / 6%) 38%, rgb(105 210 153 / 7%) 56%, rgb(68 199 217 / 11%) 76%, rgb(174 122 238 / 9%)) padding-box,
-    linear-gradient(122deg, rgb(246 82 118 / 70%), rgb(247 139 83 / 54%) 20%, rgb(238 197 82 / 52%) 38%, rgb(105 210 153 / 56%) 56%, rgb(68 199 217 / 74%) 76%, rgb(174 122 238 / 68%)) border-box;
-  color: var(--fg);
-  border-style: solid;
-  border-color: transparent;
-  transform: none;
-  box-shadow:
-    inset 0 0 0 var(--border-sm) rgb(255 255 255 / 92%),
-    inset 0 calc(-1 * var(--border-lg)) 0 rgb(68 199 217 / 38%),
-    inset 0 calc(-1 * var(--border-sm)) 0 rgb(255 79 216 / 54%),
-    0 0 24px rgb(68 199 217 / 18%),
-    0 0 36px rgb(238 197 82 / 12%);
-}
-
-.pool-nav-rail .btn[aria-pressed="true"]:hover {
-  background:
-    linear-gradient(122deg, rgb(246 82 118 / 10%), rgb(247 139 83 / 7%) 20%, rgb(238 197 82 / 8%) 38%, rgb(105 210 153 / 10%) 56%, rgb(68 199 217 / 15%) 76%, rgb(174 122 238 / 12%)) padding-box,
-    linear-gradient(122deg, rgb(246 82 118 / 76%), rgb(247 139 83 / 60%) 20%, rgb(238 197 82 / 58%) 38%, rgb(105 210 153 / 62%) 56%, rgb(68 199 217 / 80%) 76%, rgb(174 122 238 / 74%)) border-box;
-  transform: none;
-  box-shadow:
-    inset 0 0 0 var(--border-sm) rgb(255 255 255 / 94%),
-    inset 0 calc(-1 * var(--border-lg)) 0 rgb(68 199 217 / 44%),
-    inset 0 calc(-1 * var(--border-sm)) 0 rgb(255 79 216 / 62%),
-    0 0 28px rgb(68 199 217 / 20%),
-    0 0 40px rgb(238 197 82 / 14%);
-}
-
-.pool-nav-toggle {
   position: relative;
-  border-style: dotted;
-  border-color: transparent;
-  background:
-    var(--pool-prism-idle-fill) padding-box,
-    var(--pool-prism-border-soft) border-box;
+  min-height: 40px;
+  width: 100%;
+  padding: 0 12px 0 18px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
   color: inherit;
-  box-shadow:
-    0 0 14px rgb(68 199 217 / 6%),
-    0 0 22px rgb(174 122 238 / 4%);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  text-decoration: none;
+  box-shadow: none;
 }
 
-.pool-nav-toggle:hover,
-.pool-nav-toggle:focus-visible {
-  background:
-    linear-gradient(rgb(255 255 255 / 98%), rgb(255 255 255 / 98%)) padding-box,
-    linear-gradient(122deg, rgb(246 82 118 / 34%), rgb(247 139 83 / 24%) 22%, rgb(238 197 82 / 18%) 40%, rgb(105 210 153 / 24%) 58%, rgb(68 199 217 / 46%) 74%, rgb(174 122 238 / 32%)) border-box;
+.pool-nav-link:hover,
+.pool-nav-link:focus-visible {
+  background: linear-gradient(90deg, rgb(68 199 217 / 9%), rgb(174 122 238 / 6%));
   color: inherit;
-  transform: translateY(-1px);
-  box-shadow:
-    inset 0 calc(-1 * var(--border-sm)) 0 rgb(68 199 217 / 20%),
-    0 0 18px rgb(68 199 217 / 12%),
-    0 0 26px rgb(174 122 238 / 8%);
+  outline: 0;
 }
 
-.pool-nav-toggle.is-active,
-.pool-nav-toggle[aria-pressed="true"] {
-  border-style: solid;
-  border-color: transparent;
-  background:
-    linear-gradient(122deg, rgb(246 82 118 / 7%), rgb(247 139 83 / 5%) 20%, rgb(238 197 82 / 6%) 38%, rgb(105 210 153 / 7%) 56%, rgb(68 199 217 / 11%) 76%, rgb(174 122 238 / 9%)) padding-box,
-    linear-gradient(122deg, rgb(246 82 118 / 70%), rgb(247 139 83 / 54%) 20%, rgb(238 197 82 / 52%) 38%, rgb(105 210 153 / 56%) 56%, rgb(68 199 217 / 74%) 76%, rgb(174 122 238 / 68%)) border-box;
+.pool-nav-link:focus-visible {
+  box-shadow: inset 0 0 0 2px rgb(68 199 217 / 42%);
+}
+
+.pool-nav-link.is-active,
+.pool-nav-link[aria-current="page"] {
+  background: linear-gradient(90deg, rgb(68 199 217 / 11%), rgb(105 210 153 / 6%), transparent 74%);
   color: inherit;
-  transform: none;
-  box-shadow:
-    inset 0 0 0 var(--border-sm) rgb(255 255 255 / 92%),
-    inset 0 calc(-1 * var(--border-lg)) 0 rgb(68 199 217 / 38%),
-    inset 0 calc(-1 * var(--border-sm)) 0 rgb(255 79 216 / 54%),
-    0 0 24px rgb(68 199 217 / 18%),
-    0 0 36px rgb(238 197 82 / 12%);
+  font-weight: var(--font-weight-bold);
+  box-shadow: none;
 }
 
-.pool-nav-toggle.is-active:hover,
-.pool-nav-toggle[aria-pressed="true"]:hover,
-.pool-nav-toggle.is-active:focus-visible,
-.pool-nav-toggle[aria-pressed="true"]:focus-visible {
-  background:
-    linear-gradient(122deg, rgb(246 82 118 / 10%), rgb(247 139 83 / 7%) 20%, rgb(238 197 82 / 8%) 38%, rgb(105 210 153 / 10%) 56%, rgb(68 199 217 / 15%) 76%, rgb(174 122 238 / 12%)) padding-box,
-    linear-gradient(122deg, rgb(246 82 118 / 76%), rgb(247 139 83 / 60%) 20%, rgb(238 197 82 / 58%) 38%, rgb(105 210 153 / 62%) 56%, rgb(68 199 217 / 80%) 76%, rgb(174 122 238 / 74%)) border-box;
-  transform: none;
-  box-shadow:
-    inset 0 0 0 var(--border-sm) rgb(255 255 255 / 94%),
-    inset 0 calc(-1 * var(--border-lg)) 0 rgb(68 199 217 / 44%),
-    inset 0 calc(-1 * var(--border-sm)) 0 rgb(255 79 216 / 62%),
-    0 0 28px rgb(68 199 217 / 20%),
-    0 0 40px rgb(238 197 82 / 14%);
+.pool-nav-link:active {
+  background: linear-gradient(90deg, rgb(68 199 217 / 13%), rgb(174 122 238 / 8%));
 }
 
-.pool-nav-toggle:active,
-.pool-nav-toggle.is-active:active,
-.pool-nav-toggle[aria-pressed="true"]:active {
-  transform: translateY(1px);
-  background:
-    linear-gradient(122deg, rgb(255 79 216 / 8%), rgb(242 185 95 / 8%), rgb(68 199 217 / 8%)) padding-box,
-    var(--pool-prism-border-selected) border-box;
-  color: inherit;
-  box-shadow:
-    inset 0 0 0 var(--border-sm) color-mix(in srgb, var(--fg) 42%, transparent),
-    inset 0 calc(-1 * var(--border-md)) 0 rgb(242 185 95 / 34%),
-    0 0 16px rgb(242 185 95 / 10%),
-    0 0 22px rgb(68 199 217 / 8%);
-}
-
-.pool-nav-toggle.is-active::after {
+.pool-nav-link.is-active::after,
+.pool-nav-link[aria-current="page"]::after {
   content: '';
   position: absolute;
   top: 8px;
@@ -2036,16 +1947,9 @@ details[open] > .disclosure-summary::before {
   text-transform: uppercase;
 }
 
-.pool-nav-zero {
-  align-self: stretch;
-  padding: 8px 10px;
-  border: var(--border-sm) solid transparent;
-  background:
-    linear-gradient(rgb(255 255 255 / 96%), rgb(255 255 255 / 96%)) padding-box,
-    var(--pool-prism-border-soft) border-box;
-  box-shadow:
-    0 0 16px rgb(68 199 217 / 8%),
-    0 0 26px rgb(174 122 238 / 6%);
+.pool-nav-substrate-link {
+  min-height: 34px;
+  padding: 0 12px 0 18px;
 }
 
 .pool-nav-substrate {
@@ -2053,13 +1957,10 @@ details[open] > .disclosure-summary::before {
   gap: 6px;
 }
 
-.pool-nav-zero:hover,
-.pool-nav-zero:focus-visible {
+.pool-nav-substrate-link:hover,
+.pool-nav-substrate-link:focus-visible {
   opacity: 1;
   color: var(--fg);
-  background:
-    linear-gradient(rgb(255 255 255 / 98%), rgb(255 255 255 / 98%)) padding-box,
-    var(--pool-prism-border-hover) border-box;
 }
 
 .pool-hero {
@@ -2706,21 +2607,33 @@ details[open] > .disclosure-summary::before {
     padding-bottom: 0;
   }
 
-  .pool-actions .btn,
-  .pool-nav .btn,
-  .pool-zero-link {
+  .pool-actions .btn {
     flex: 0 0 auto;
     width: auto;
   }
 
-  .pool-nav-rail .btn {
+  .pool-nav-link {
     justify-content: center;
-    min-height: 32px;
-    padding: 7px 9px;
+    min-height: 48px;
+    width: auto;
+    padding: 5px 8px 8px;
     font-size: 10px;
   }
 
-  .pool-nav-toggle.is-active::after {
+  .pool-nav {
+    flex: 1 1 auto;
+    justify-content: space-around;
+    gap: 2px;
+    overflow-x: visible;
+  }
+
+  .pool-nav .pool-nav-link {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+
+  .pool-nav-link.is-active::after,
+  .pool-nav-link[aria-current="page"]::after {
     top: auto;
     right: 10px;
     bottom: 4px;
@@ -2730,18 +2643,16 @@ details[open] > .disclosure-summary::before {
     background: linear-gradient(90deg, rgb(246 82 118 / 82%), rgb(238 197 82 / 78%), rgb(68 199 217 / 86%), rgb(174 122 238 / 78%));
   }
 
-  .pool-nav-zero {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
+  .pool-nav-substrate-link {
     min-height: 32px;
-    padding: 7px 9px;
-    font-size: 10px;
+    padding: 0 6px;
+    font-size: 9px;
   }
 
   .pool-nav-substrate {
     display: flex;
-    gap: 6px;
+    flex: 0 0 auto;
+    gap: 2px;
   }
 
   .pool-simulation-shell,

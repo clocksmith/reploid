@@ -5,23 +5,78 @@
  * Public UI copy intentionally keeps the Reploid name.
  */
 
-export const PRODUCT_ROUTES = Object.freeze({
-  '/': 'home',
-  '/run': 'run',
-  '/mesh': 'mesh',
-  '/record': 'record',
-  '/contribute': 'mesh',
-  '/agents': 'mesh',
-  '/receipts': 'record',
-  '/reputation': 'record'
-});
-
 export const PUBLIC_PRODUCT_NAME = 'Reploid';
 export const POOLDAY_NAME = PUBLIC_PRODUCT_NAME;
 export const POOLDAY_PROTOCOL = 'Verified Browser Inference';
 export const POOLDAY_VERSION_TAG = 'vBI-1.6';
+
+const createPooldayRoute = (route) => Object.freeze({
+  ...route,
+  aliases: Object.freeze(route.aliases || [])
+});
+
+export const POOLDAY_ROUTE_DEFINITIONS = Object.freeze([
+  createPooldayRoute({
+    id: 'home',
+    path: '/',
+    label: 'Home',
+    eyebrow: POOLDAY_PROTOCOL,
+    title: POOLDAY_NAME,
+    body: 'Browser inference with verifiable records.'
+  }),
+  createPooldayRoute({
+    id: 'run',
+    path: '/run',
+    label: 'Run',
+    eyebrow: 'Run',
+    title: 'Run',
+    body: 'Send a prompt and stream the result.'
+  }),
+  createPooldayRoute({
+    id: 'mesh',
+    path: '/mesh',
+    aliases: ['/contribute', '/agents'],
+    label: 'Mesh',
+    eyebrow: 'Mesh',
+    title: 'Mesh',
+    body: 'View the browser mesh and start this tab as a node.'
+  }),
+  createPooldayRoute({
+    id: 'record',
+    path: '/record',
+    aliases: ['/receipts', '/reputation'],
+    label: 'Record',
+    eyebrow: 'Record',
+    title: 'Record',
+    body: 'Review completed work.'
+  })
+]);
+
+export const PRODUCT_ROUTES = Object.freeze(Object.fromEntries(
+  POOLDAY_ROUTE_DEFINITIONS.flatMap((route) => [
+    [route.path, route.id],
+    ...route.aliases.map((alias) => [alias, route.id])
+  ])
+));
+
+export const POOLDAY_NAV_ROUTES = Object.freeze(POOLDAY_ROUTE_DEFINITIONS.map((route) => Object.freeze({
+  id: route.id,
+  path: route.path,
+  label: route.label
+})));
+
+export const ROUTE_COPY = Object.freeze(Object.fromEntries(
+  POOLDAY_ROUTE_DEFINITIONS.map((route) => [route.id, Object.freeze({
+    eyebrow: route.eyebrow,
+    title: route.title,
+    body: route.body
+  })])
+));
+
 export const SIMULATION_TARGET_STEP_MS = 1000 / 60;
 export const SIMULATION_MAX_STEP_MS = 1000 / 16;
+export const SIMULATION_RESUME_GAP_MS = SIMULATION_MAX_STEP_MS * 4;
+export const SIMULATION_MOTION_CLOCK_WRAP_SECONDS = 3600;
 export const SIMULATION_GENTLE_SPEED = 0.72;
 export const SIMULATION_POINTER_LERP = 0.12;
 export const SIMULATION_FORCE_LERP = 0.08;
@@ -64,6 +119,8 @@ export const POOLDAY_MORPH_TUNING = Object.freeze({
   shapeSpan: 4.35,
   floatSpan: 3.15,
   anticipationSpan: 2.35,
+  stableHoldSpan: 3.6,
+  stableReleaseSpan: 0.92,
   arcLift: 0.105,
   swirlLift: 0.078,
   foldLift: 0.064,
@@ -433,25 +490,3 @@ export const POOLDAY_FLOW_LABELS = Object.freeze(POOLDAY_GRAPH_NODE_IDS.map((id)
 export const POOLDAY_FLOW_NODE_COUNT = POOLDAY_GRAPH_NODE_IDS.length;
 
 export const POOLDAY_PEER_LEDGER_STORAGE_KEY = 'reploid.peerLedgerEvents.v1';
-export const ROUTE_COPY = Object.freeze({
-  home: {
-    eyebrow: POOLDAY_PROTOCOL,
-    title: POOLDAY_NAME,
-    body: 'Browser inference with verifiable records.'
-  },
-  run: {
-    eyebrow: 'Run',
-    title: 'Run',
-    body: 'Send a prompt and stream the result.'
-  },
-  mesh: {
-    eyebrow: 'Mesh',
-    title: 'Mesh',
-    body: 'View the browser mesh and start this tab as a node.'
-  },
-  record: {
-    eyebrow: 'Record',
-    title: 'Record',
-    body: 'Review completed work.'
-  }
-});

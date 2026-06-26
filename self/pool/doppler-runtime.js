@@ -43,6 +43,20 @@ const configuredDopplerModuleCandidates = () => {
   return candidates;
 };
 
+const configuredDopplerKernelBaseUrl = () => (
+  globalThis.REPLOID_DOPPLER_KERNEL_BASE_URL
+  || BROWSER_RUNTIME_CONFIG.dopplerKernelBaseUrl
+  || ''
+);
+
+const ensureDopplerKernelBasePath = () => {
+  const kernelBaseUrl = String(configuredDopplerKernelBaseUrl() || '').trim();
+  if (!kernelBaseUrl) {
+    throw new Error('Doppler kernel base URL is required for browser module loading');
+  }
+  globalThis.__DOPPLER_KERNEL_BASE_PATH__ = kernelBaseUrl.replace(/\/+$/, '');
+};
+
 const importDopplerCandidate = async (candidate) => {
   if (candidate && typeof candidate === 'object') return candidate;
   const specifier = String(candidate || '').trim();
@@ -289,6 +303,7 @@ const assertHandleMatchesDescriptor = async (handle, descriptor = {}) => {
 const loadDopplerModule = async () => {
   if (!dopplerModulePromise) {
     dopplerModulePromise = (async () => {
+      ensureDopplerKernelBasePath();
       const errors = [];
       for (const candidate of configuredDopplerModuleCandidates()) {
         const label = typeof candidate === 'string' ? candidate : 'globalThis.REPLOID_DOPPLER_MODULE';

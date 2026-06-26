@@ -121,7 +121,10 @@ export const morphFlowLinePair = (pair, amount, index, target = {}) => {
   target.signedCurve = mixNumber(lineValue(fromLine, 'signedCurve', fromLine.curve || 0), lineValue(toLine, 'signedCurve', toLine.curve || 0), blend);
   target.curve = Math.abs(target.signedCurve);
   target.speed = mixNumber(fromLine.speed, toLine.speed, blend);
+  target.baseSpeed = target.speed;
   target.width = mixNumber(fromLine.width, toLine.width, blend);
+  target.baseWidth = target.width;
+  target.basePulse = target.pulse;
   target.particleScale = mixNumber(lineValue(fromLine, 'particleScale', 1), lineValue(toLine, 'particleScale', 1), blend);
   target.flowAlpha = mixNumber(lineValue(fromLine, 'flowAlpha', 1), lineValue(toLine, 'flowAlpha', 1), blend);
   target.flowPhase = mixNumber(lineValue(fromLine, 'flowPhase', 0), lineValue(toLine, 'flowPhase', 0), blend);

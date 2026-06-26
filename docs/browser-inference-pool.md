@@ -557,7 +557,7 @@ When `POOL_STORE=firestore` is set, the server must initialize Firebase Admin an
 
 Poolday must not deep-import Doppler internals for the pool product. The browser runtime adapter loads through the public Doppler facade and calls public generation methods on the loaded handle.
 
-Firebase Hosting serves the app as browser ES modules. A hosted deployment must provide Doppler through a browser-resolvable public module URL or an attached public module/handle. Supported globals are `window.REPLOID_DOPPLER_MODULE_URL`, `window.REPLOID_DOPPLER_MODULE_URLS`, `window.REPLOID_DOPPLER_MODULE`, `window.REPLOID_DOPPLER_LOAD_OPTIONS`, and `window.REPLOID_POOL_ATTACH_DOPPLER_HANDLE(handle, model, runtimeInfo)`. Bare package imports are only a fallback for bundled or import-map deployments.
+Firebase Hosting serves the app as browser ES modules. A hosted deployment must provide Doppler through a browser-resolvable public module URL or an attached public module/handle, and must provide a browser-resolvable Doppler WGSL kernel base URL for runtime shader fetches. Supported globals are `window.REPLOID_DOPPLER_MODULE_URL`, `window.REPLOID_DOPPLER_MODULE_URLS`, `window.REPLOID_DOPPLER_MODULE`, `window.REPLOID_DOPPLER_KERNEL_BASE_URL`, `window.REPLOID_DOPPLER_LOAD_OPTIONS`, and `window.REPLOID_POOL_ATTACH_DOPPLER_HANDLE(handle, model, runtimeInfo)`. Bare package imports are only a fallback for bundled or import-map deployments.
 
 The adapter supports both public Doppler call shapes: `generate(prompt, options)` / `generateText(prompt, options)` and object-style provider calls using `{ prompt, samplingOptions }`. Pool policy names stay product-owned; only the adapter maps them to Doppler `GenerateOptions`.
 
@@ -597,9 +597,10 @@ Hosted production requires:
 - Signaling messages restricted to WebRTC metadata types: `offer`, `answer`, `ice-candidate`, `close`, and `ping`.
 - Signaling payloads bounded by `POOL_MAX_SIGNAL_PAYLOAD_BYTES`.
 - Offloaded model artifact base configured in the browser as `window.REPLOID_POOL_MODEL_BASE_URL`.
+- Doppler module and WGSL kernel base configured in the browser as `window.REPLOID_DOPPLER_MODULE_URL` and `window.REPLOID_DOPPLER_KERNEL_BASE_URL`.
 - Model artifact URLs content-addressed by model id and manifest hash.
 
-`/pool/deployment/check` must return `ok: true` before public traffic. The readiness check requires Firestore storage, Firebase Auth verification, auth-required pool routes, offloaded model artifact base, Doppler module URL, hybrid P2P signaling, and commit-reveal store support. It also reports the append-only `pool_events` seam for the future event-sourced reducer.
+`/pool/deployment/check` must return `ok: true` before public traffic. The readiness check requires Firestore storage, Firebase Auth verification, auth-required pool routes, offloaded model artifact base, Doppler module URL, Doppler WGSL kernel base URL, hybrid P2P signaling, and commit-reveal store support. It also reports the append-only `pool_events` seam for the future event-sourced reducer.
 
 Local production verification:
 

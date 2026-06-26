@@ -3,8 +3,34 @@ import { describe, expect, it } from 'vitest';
 import {
   buildPoolSimulationFrame,
   createPoolSimulationState,
+  easeInOutCubic,
   resizePoolCanvas
 } from '../../self/ui/pool-home/simulation-core.js';
+import { resolvePoolFrameDeltaMs } from '../../self/ui/pool-home/simulation-bind.js';
+import {
+  SIMULATION_MAX_STEP_MS,
+  SIMULATION_GENTLE_SPEED,
+  SIMULATION_MOTION_CLOCK_WRAP_SECONDS,
+  POOLDAY_MORPH_TUNING,
+  SIMULATION_TARGET_STEP_MS
+} from '../../self/ui/pool-home/constants.js';
+
+const withSimulationSearch = (search, callback) => {
+  const descriptor = Object.getOwnPropertyDescriptor(globalThis, 'location');
+  Object.defineProperty(globalThis, 'location', {
+    value: { search },
+    configurable: true
+  });
+  try {
+    return callback();
+  } finally {
+    if (descriptor) {
+      Object.defineProperty(globalThis, 'location', descriptor);
+    } else {
+      delete globalThis.location;
+    }
+  }
+};
 
 describe('pool home simulation performance contracts', () => {
   it('resizes from cached CSS dimensions without reading layout', () => {
@@ -64,5 +90,97 @@ describe('pool home simulation performance contracts', () => {
     expect(labelCounts.Verify).toBeGreaterThanOrEqual(3);
     expect(labelCounts.Record).toBeGreaterThanOrEqual(2);
     expect(stages.size).toBe(6);
+  });
+
+  it('resets frame delta after resume gaps', () => {
+    expect(resolvePoolFrameDeltaMs(SIMULATION_TARGET_STEP_MS, false)).toBe(SIMULATION_TARGET_STEP_MS);
+    expect(resolvePoolFrameDeltaMs(SIMULATION_MAX_STEP_MS * 2, false)).toBe(SIMULATION_MAX_STEP_MS);
+    expect(resolvePoolFrameDeltaMs(SIMULATION_MAX_STEP_MS * 8, false)).toBe(SIMULATION_TARGET_STEP_MS);
+    expect(resolvePoolFrameDeltaMs(SIMULATION_TARGET_STEP_MS, true)).toBe(SIMULATION_TARGET_STEP_MS);
+  });
+
+  it('clamps large simulation steps instead of catching up elapsed wall time', () => {
+    const state = createPoolSimulationState();
+
+    buildPoolSimulationFrame(state, 960, 640, 60 * 60);
+
+    expect(state.time).toBeLessThan(0.1);
+  });
+
+  it('keeps flow speed and width bounded across repeated frames', () => {
+    const state = createPoolSimulationState();
+    let maxSpeed = 0;
+    let maxWidth = 0;
+    let maxExpectedSpeed = 0;
+    let maxExpectedWidth = 0;
+
+    for (let index = 0; index < 2400; index += 1) {
+      const frame = buildPoolSimulationFrame(state, 960, 640, 1 / 60);
+      const orbitCue = easeInOutCubic(frame.topologyCue);
+      for (const line of frame.lines) {
+        const expectedSpeed = (line.baseSpeed || line.speed) * (1 + orbitCue * 0.16);
+        const expectedWidth = (line.baseWidth || line.width) * (1 + orbitCue * 0.08);
+        maxSpeed = Math.max(maxSpeed, line.speed || 0);
+        maxWidth = Math.max(maxWidth, line.width || 0);
+        maxExpectedSpeed = Math.max(maxExpectedSpeed, expectedSpeed);
+        maxExpectedWidth = Math.max(maxExpectedWidth, expectedWidth);
+        expect(line.speed).toBeCloseTo(expectedSpeed, 8);
+        expect(line.width).toBeCloseTo(expectedWidth, 8);
+      }
+    }
+
+    expect(maxSpeed).toBeCloseTo(maxExpectedSpeed, 8);
+    expect(maxWidth).toBeCloseTo(maxExpectedWidth, 8);
+  });
+
+  it('keeps topology node centers still through the opening hold plateau', () => {
+    withSimulationSearch('?seed=layout-check&shape=receipt_tree', () => {
+      const state = createPoolSimulationState();
+      const width = 1200;
+      const height = 680;
+      const step = 1 / 60;
+      const sampleFrames = Math.floor((POOLDAY_MORPH_TUNING.stableHoldSpan / SIMULATION_GENTLE_SPEED) / step);
+      const firstFrame = buildPoolSimulationFrame(state, width, height, step);
+      const initialNodes = new Map(firstFrame.nodes.map((node) => [node.id, { x: node.x, y: node.y }]));
+      let frame = firstFrame;
+      let maxHoldDelta = 0;
+
+      for (let index = 1; index < sampleFrames; index += 1) {
+        frame = buildPoolSimulationFrame(state, width, height, step);
+        for (const node of frame.nodes) {
+          const initial = initialNodes.get(node.id);
+          maxHoldDelta = Math.max(maxHoldDelta, Math.hypot(node.x - initial.x, node.y - initial.y));
+        }
+      }
+
+      expect(frame.transitionActive).toBe(false);
+      expect(frame.anticipation).toBeLessThanOrEqual(0.001);
+      expect(frame.anchorMotionScale).toBeLessThanOrEqual(0.001);
+      expect(maxHoldDelta).toBeLessThanOrEqual(1);
+
+      let maxReleasedDelta = maxHoldDelta;
+      for (let index = 0; index < 90; index += 1) {
+        frame = buildPoolSimulationFrame(state, width, height, step);
+        for (const node of frame.nodes) {
+          const initial = initialNodes.get(node.id);
+          maxReleasedDelta = Math.max(maxReleasedDelta, Math.hypot(node.x - initial.x, node.y - initial.y));
+        }
+      }
+
+      expect(frame.anchorMotionScale).toBeGreaterThan(0);
+      expect(maxReleasedDelta).toBeGreaterThan(2);
+    });
+  });
+
+  it('wraps visual motion time while preserving topology schedule time', () => {
+    const state = createPoolSimulationState();
+    state.motionTime = SIMULATION_MOTION_CLOCK_WRAP_SECONDS - 0.01;
+    state.time = 120;
+
+    buildPoolSimulationFrame(state, 960, 640, 1);
+
+    expect(state.motionTime).toBeGreaterThanOrEqual(0);
+    expect(state.motionTime).toBeLessThan(SIMULATION_MOTION_CLOCK_WRAP_SECONDS);
+    expect(state.time).toBeGreaterThan(120);
   });
 });

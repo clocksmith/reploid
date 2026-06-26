@@ -25,22 +25,7 @@ function getKernelBasePath() {
     return override.replace(/\/+$/, '');
   }
 
-  // Check if we're running from /doppler/ path (replo.id deployment)
-  if (typeof location !== 'undefined') {
-    const path = location.pathname || '';
-    if (
-      path === '/d' ||
-      path.startsWith('/d/') ||
-      path === '/doppler' ||
-      path.startsWith('/doppler/') ||
-      path === '/dr' ||
-      path.startsWith('/dr/') ||
-      location.host.includes('replo')
-    ) {
-      return '/doppler/src/gpu/kernels';
-    }
-  }
-  return '/src/gpu/kernels';
+  return new URL('.', import.meta.url).toString().replace(/\/$/, '');
 }
 
 const KERNEL_BASE_PATH = getKernelBasePath();

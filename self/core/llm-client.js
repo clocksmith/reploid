@@ -127,14 +127,16 @@ const LLMClient = {
     };
 
     // --- Helper: Check Native Tool Support ---
-    // OpenAI models support function calling (gpt-3.5-turbo, gpt-4, gpt-4o, etc.)
     const supportsNativeTools = (modelConfig) => {
       if (!modelConfig?.id) return false;
       const model = modelConfig.id.toLowerCase();
       const provider = modelConfig.provider?.toLowerCase();
 
-      // OpenAI models - all gpt-3.5-turbo and gpt-4 variants support tools
       if (provider === 'openai' || model.startsWith('gpt-')) {
+        return true;
+      }
+
+      if (provider === 'gemini' || model.startsWith('gemini-')) {
         return true;
       }
 
@@ -156,6 +158,143 @@ const LLMClient = {
           }
         })()
       }));
+    };
+
+    const sanitizeGeminiSchema = (value) => {
+      if (Array.isArray(value)) {
+        return value.map(sanitizeGeminiSchema);
+      }
+
+      if (!value || typeof value !== 'object') {
+        return value;
+      }
+
+      const sanitized = {};
+      for (const [key, nestedValue] of Object.entries(value)) {
+        if (key === '$schema' || key === 'additionalProperties') continue;
+        sanitized[key] = sanitizeGeminiSchema(nestedValue);
+      }
+      return sanitized;
+    };
+
+    const toGeminiFunctionDeclaration = (tool) => {
+      const declaration = tool?.function || tool;
+      const name = String(declaration?.name || '').trim();
+
+      if (!name) return null;
+
+      return {
+        name,
+        description: declaration.description || '',
+        parameters: sanitizeGeminiSchema(declaration.parameters || {
+          type: 'object',
+          properties: {}
+        })
+      };
+    };
+
+    const buildGeminiTools = (tools = []) => {
+      const functionDeclarations = tools
+        .map(toGeminiFunctionDeclaration)
+        .filter(Boolean);
+
+      return functionDeclarations.length > 0
+        ? [{ functionDeclarations }]
+        : null;
+    };
+
+    const parseGeminiToolCalls = (parts = []) => {
+      const toolCalls = [];
+
+      for (const [index, part] of parts.entries()) {
+        const functionCall = part?.functionCall;
+        if (!functionCall?.name) continue;
+
+        toolCalls.push({
+          id: functionCall.id || `gemini_${Date.now()}_${index}`,
+          name: functionCall.name,
+          args: functionCall.args || {}
+        });
+      }
+
+      return toolCalls.length > 0 ? toolCalls : null;
+    };
+
+    const parseGeminiContent = (data) => {
+      const parts = data?.candidates?.[0]?.content?.parts || [];
+      const fullContent = parts
+        .map(part => part?.text || '')
+        .join('');
+
+      return {
+        content: fullContent,
+        toolCalls: parseGeminiToolCalls(parts)
+      };
+    };
+
+    const TRANSIENT_API_STATUSES = new Set([408, 429, 500, 502, 503, 504]);
+    const DIRECT_CLOUD_RETRY_DELAYS_MS = [750, 2000];
+
+    const sleepWithAbort = (delayMs, signal) => new Promise((resolve, reject) => {
+      if (signal?.aborted) {
+        reject(signal.reason || new Error('Request aborted'));
+        return;
+      }
+
+      const timeoutId = setTimeout(() => {
+        signal?.removeEventListener?.('abort', onAbort);
+        resolve();
+      }, delayMs);
+
+      const onAbort = () => {
+        clearTimeout(timeoutId);
+        reject(signal.reason || new Error('Request aborted'));
+      };
+
+      signal?.addEventListener?.('abort', onAbort, { once: true });
+    });
+
+    const parseRetryAfterMs = (value) => {
+      if (!value) return null;
+
+      const seconds = Number(value);
+      if (Number.isFinite(seconds) && seconds >= 0) {
+        return seconds * 1000;
+      }
+
+      const retryAt = Date.parse(value);
+      if (Number.isFinite(retryAt)) {
+        return Math.max(0, retryAt - Date.now());
+      }
+
+      return null;
+    };
+
+    const fetchWithTransientRetry = async (url, init, label) => {
+      let response = null;
+
+      for (let attempt = 0; attempt <= DIRECT_CLOUD_RETRY_DELAYS_MS.length; attempt++) {
+        response = await fetch(url, init);
+        const canRetry = TRANSIENT_API_STATUSES.has(response.status)
+          && attempt < DIRECT_CLOUD_RETRY_DELAYS_MS.length
+          && !init.signal?.aborted;
+
+        if (!canRetry) {
+          return response;
+        }
+
+        const retryAfterMs = parseRetryAfterMs(response.headers?.get?.('retry-after'));
+        const delayMs = retryAfterMs ?? DIRECT_CLOUD_RETRY_DELAYS_MS[attempt];
+        logger.warn(`[LLM] ${label} returned ${response.status}; retrying request`);
+        try {
+          await response.body?.cancel?.();
+        } catch {
+          // Ignore cleanup failures between retry attempts.
+        }
+        await sleepWithAbort(delayMs, init.signal);
+      }
+
+      return response;
     };
 
     // --- Mode: Browser-Native (WebLLM) ---
@@ -416,10 +555,12 @@ const LLMClient = {
           const nonSystemMsgs = messages.filter(m => m.role !== 'system');
 
           // Convert to Gemini format (user/model roles)
-          const geminiMessages = nonSystemMsgs.map(m => ({
-            role: m.role === 'assistant' ? 'model' : 'user',
-            parts: [{ text: m.content }]
-          }));
+          const geminiMessages = nonSystemMsgs
+            .filter(m => String(m.content || '').trim())
+            .map(m => ({
+              role: m.role === 'assistant' ? 'model' : 'user',
+              parts: [{ text: m.content }]
+            }));
 
           const requestBody = {
             contents: geminiMessages,
@@ -437,23 +578,50 @@ const LLMClient = {
             };
           }
 
-          response = await fetch(endpoint, {
+          const geminiTools = buildGeminiTools(modelConfig.tools || []);
+          if (geminiTools) {
+            requestBody.tools = geminiTools;
+          }
+
+          response = await fetchWithTransientRetry(endpoint, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(requestBody),
             signal: controller.signal
-          });
+          }, 'Gemini API');
 
           if (!response.ok) {
             const errData = await response.json().catch(() => ({}));
             throw new Errors.ApiError(`Gemini API Error: ${errData.error?.message || response.status}`, response.status);
           }
 
+          let toolCalls = null;
+
           if (canStreamResponse && response.body) {
-            fullContent = await StreamParser.parseForProvider(response, 'gemini', onUpdate, { abortController: controller });
+            if (geminiTools && StreamParser.parseGeminiStreamWithTools) {
+              const streamResult = await StreamParser.parseGeminiStreamWithTools(response, onUpdate, { abortController: controller });
+              fullContent = streamResult.content;
+              toolCalls = streamResult.toolCalls;
+            } else {
+              fullContent = await StreamParser.parseForProvider(response, 'gemini', onUpdate, { abortController: controller });
+            }
           } else {
             const data = await response.json();
-            fullContent = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+            const parsed = parseGeminiContent(data);
+            fullContent = parsed.content;
+            toolCalls = parsed.toolCalls;
+          }
+
+          if (toolCalls?.length > 0) {
+            return {
+              requestId,
+              content: fullContent,
+              raw: fullContent,
+              model: modelConfig.id,
+              timestamp: Date.now(),
+              provider: provider,
+              toolCalls
+            };
           }
 
         } else if (provider === 'openai' || provider === 'other') {
@@ -478,7 +646,7 @@ const LLMClient = {
             requestBody.tool_choice = 'auto';
           }
 
-          response = await fetch(openAiEndpoint, {
+          response = await fetchWithTransientRetry(openAiEndpoint, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -486,7 +654,7 @@ const LLMClient = {
             },
             body: JSON.stringify(requestBody),
             signal: controller.signal
-          });
+          }, 'OpenAI API');
 
           if (!response.ok) {
             const errData = await response.json().catch(() => ({}));
@@ -530,7 +698,7 @@ const LLMClient = {
           const systemMsg = messages.find(m => m.role === 'system');
           const nonSystemMsgs = messages.filter(m => m.role !== 'system');
 
-          response = await fetch(CLOUD_API_ENDPOINTS.anthropic, {
+          response = await fetchWithTransientRetry(CLOUD_API_ENDPOINTS.anthropic, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -549,7 +717,7 @@ const LLMClient = {
               stream: canStreamResponse
             }),
             signal: controller.signal
-          });
+          }, 'Anthropic API');
 
           if (!response.ok) {
             const errData = await response.json().catch(() => ({}));

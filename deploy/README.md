@@ -31,7 +31,7 @@ gcloud builds submit --config deploy/cloudbuild.yaml
 firebase deploy --only firestore:indexes,firestore:rules,hosting:reploid
 ```
 
-Replace required placeholder values in `deploy/env.production.json` before Cloud Build. `scripts/print-pool-env.js` fails when a runtime env value still starts with `<required-`, so placeholder model artifact or Doppler module URLs cannot deploy silently.
+Replace required placeholder values in `deploy/env.production.json` before Cloud Build. `scripts/print-pool-env.js` fails when a runtime env value still starts with `<required-`, so placeholder model artifact, Doppler module, or Doppler kernel base URLs cannot deploy silently.
 
 Then check:
 
