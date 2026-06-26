@@ -917,6 +917,7 @@ export function createPoolRouter({ store = poolStore, verifyAuthToken = null, re
     const authRequired = requireAuth || storageMode === 'firestore';
     const modelArtifactBaseConfigured = Boolean(configuredEnvValue('REPLOID_POOL_MODEL_BASE_URL', 'POOL_MODEL_BASE_URL'));
     const dopplerModuleConfigured = Boolean(configuredEnvValue('REPLOID_DOPPLER_MODULE_URL', 'POOL_DOPPLER_MODULE_URL'));
+    const dopplerKernelBaseConfigured = Boolean(configuredEnvValue('REPLOID_DOPPLER_KERNEL_BASE_URL', 'POOL_DOPPLER_KERNEL_BASE_URL'));
     const configValidation = validatePoolConfig();
     const readinessConfig = POOL_CONFIG.deployment || {};
     const commitRevealSupported = typeof store.saveAssignmentCommitment === 'function'
@@ -931,6 +932,7 @@ export function createPoolRouter({ store = poolStore, verifyAuthToken = null, re
       && (!readinessConfig.requiresAuthForNonDiscoveryRoutes || authRequired)
       && (!readinessConfig.requiresOffloadedModelArtifactBase || modelArtifactBaseConfigured)
       && (!readinessConfig.requiresDopplerModuleConfiguration || dopplerModuleConfigured)
+      && (!readinessConfig.requiresDopplerKernelBaseConfiguration || dopplerKernelBaseConfigured)
       && (!readinessConfig.requiresCommitRevealStore || commitRevealSupported);
     return res.json({
       ok: productionReady,
@@ -952,6 +954,8 @@ export function createPoolRouter({ store = poolStore, verifyAuthToken = null, re
         modelArtifactBaseEnv: modelArtifactBaseConfigured ? 'configured' : 'missing',
         dopplerModuleConfigured,
         dopplerModuleEnv: dopplerModuleConfigured ? 'configured' : 'missing',
+        dopplerKernelBaseConfigured,
+        dopplerKernelBaseEnv: dopplerKernelBaseConfigured ? 'configured' : 'missing',
         hybridP2PAnchor: true,
         signaling: {
           supported: typeof store.createSignalingSession === 'function'

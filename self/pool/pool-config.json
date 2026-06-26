@@ -126,6 +126,7 @@
   },
   "browserRuntime": {
     "dopplerModuleUrl": "https://esm.sh/doppler-gpu@0.4.3/src/client/doppler-api.browser.js?bundle",
+    "dopplerKernelBaseUrl": "https://esm.sh/doppler-gpu@0.4.3/src/gpu/kernels",
     "modelBaseUrl": "https://reploid.web.app/models",
     "loadOptions": {
       "cache": "opfs"
@@ -455,6 +456,7 @@
     "requiresAuthForNonDiscoveryRoutes": true,
     "requiresOffloadedModelArtifactBase": true,
     "requiresDopplerModuleConfiguration": true,
+    "requiresDopplerKernelBaseConfiguration": true,
     "discoveryRoutes": [
       "/deployment/check",
       "/status",

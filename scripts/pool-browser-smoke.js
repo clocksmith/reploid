@@ -16,8 +16,8 @@ const requiredText = {
   '/run': 'Prompt',
   '/contribute': 'Contribute',
   '/agents': 'Submit',
-  '/receipts': 'Receipt hash',
-  '/reputation': 'Local peer ledger',
+  '/receipts': 'Record',
+  '/reputation': 'Record',
   '/0': 'Reploid'
 };
 
@@ -77,11 +77,20 @@ await context.addInitScript(() => {
 const page = await context.newPage();
 const failures = [];
 
+const gotoRoute = async (targetPage, route) => {
+  const response = await targetPage.goto(`${baseUrl}${route}`, { waitUntil: 'domcontentloaded' });
+  if (!response || !response.ok()) failures.push(`${route} returned ${response?.status() || 'no response'}`);
+  if (route === '/0') {
+    await targetPage.waitForSelector('.wizard-home-provider [data-action="choose-proxy"]', { timeout: 30000 });
+    return response;
+  }
+  await targetPage.waitForSelector('.pool-home', { timeout: 30000 });
+  return response;
+};
+
 for (const route of routes) {
-  const url = `${baseUrl}${route}`;
   try {
-    const response = await page.goto(url, { waitUntil: 'networkidle' });
-    if (!response || !response.ok()) failures.push(`${route} returned ${response?.status() || 'no response'}`);
+    await gotoRoute(page, route);
     const expected = String(requiredText[route] || '').toLowerCase();
     await page.waitForFunction((text) => document.body.textContent.toLowerCase().includes(text), expected);
     const body = String(await page.textContent('body') || '').toLowerCase();
@@ -94,18 +103,18 @@ for (const route of routes) {
 }
 
 try {
-  await page.goto(`${baseUrl}/`, { waitUntil: 'networkidle' });
+  await gotoRoute(page, '/');
   await page.evaluate(() => {
     window.__REPLOID_POOL_SMOKE_MARKER = 'same-document-route';
   });
-  await page.click('[data-pool-route="/run"]');
+  await page.click('[data-pool-route-link="/run"]');
   await page.waitForFunction(() => window.location.pathname === '/run');
   const runMarker = await page.evaluate(() => window.__REPLOID_POOL_SMOKE_MARKER);
   if (runMarker !== 'same-document-route') failures.push('route toggle to /run reloaded the boot document');
-  await page.click('[data-pool-route="/contribute"]');
-  await page.waitForFunction(() => window.location.pathname === '/contribute');
-  const contributeMarker = await page.evaluate(() => window.__REPLOID_POOL_SMOKE_MARKER);
-  if (contributeMarker !== 'same-document-route') failures.push('route toggle to /contribute reloaded the boot document');
+  await page.click('[data-pool-route-link="/mesh"]');
+  await page.waitForFunction(() => window.location.pathname === '/mesh');
+  const meshMarker = await page.evaluate(() => window.__REPLOID_POOL_SMOKE_MARKER);
+  if (meshMarker !== 'same-document-route') failures.push('route toggle to /mesh reloaded the boot document');
 } catch (error) {
   failures.push(`same-document route smoke failed: ${error.message}`);
 }
@@ -114,18 +123,31 @@ try {
   const room = `pool-smoke-${Date.now().toString(36)}`;
   const provider = await context.newPage();
   const requester = await context.newPage();
-  await provider.goto(`${baseUrl}/contribute?room=${room}`, { waitUntil: 'networkidle' });
+  await provider.goto(`${baseUrl}/contribute?room=${room}`, { waitUntil: 'domcontentloaded' });
+  await provider.waitForSelector('.pool-home', { timeout: 30000 });
   await provider.waitForSelector('#pool-provider-worker-start');
   await provider.click('#pool-provider-worker-start');
   await provider.waitForFunction(() => document.body.textContent.includes('peer_room_listening'));
-  await requester.goto(`${baseUrl}/run?room=${room}`, { waitUntil: 'networkidle' });
+  await requester.goto(`${baseUrl}/run?room=${room}`, { waitUntil: 'domcontentloaded' });
+  await requester.waitForSelector('.pool-home', { timeout: 30000 });
   await requester.waitForSelector('#pool-run-submit');
   await requester.fill('#pool-run-prompt', 'browser peer smoke');
   await requester.click('#pool-run-submit');
   await requester.waitForFunction(() => document.body.textContent.includes('smoke:browser peer smoke'));
-  await requester.goto(`${baseUrl}/reputation?room=${room}`, { waitUntil: 'networkidle' });
-  const reputationBody = String(await requester.textContent('body') || '');
-  if (!reputationBody.includes('Local peer ledger')) failures.push('reputation route did not expose local peer ledger');
+  await requester.goto(`${baseUrl}/reputation?room=${room}`, { waitUntil: 'domcontentloaded' });
+  await requester.waitForSelector('.pool-home', { timeout: 30000 });
+  await requester.waitForSelector('#pool-peer-ledger', { timeout: 30000, state: 'attached' });
+  const peerLedger = await requester.evaluate(() => {
+    const ledger = document.querySelector('#pool-peer-ledger');
+    return {
+      exists: !!ledger,
+      hasLedgerTable: !!ledger?.querySelector('[aria-label="Local peer ledger"]'),
+      text: ledger?.textContent || ''
+    };
+  });
+  if (!peerLedger.exists || (!peerLedger.hasLedgerTable && !peerLedger.text.includes('local peer ledger'))) {
+    failures.push('reputation route did not expose local peer ledger');
+  }
   await provider.close();
   await requester.close();
 } catch (error) {

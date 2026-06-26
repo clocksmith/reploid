@@ -11,9 +11,21 @@ import {
   createPoolSimulationState,
   resizePoolCanvas
 } from './simulation-core.js';
-import { SIMULATION_MAX_STEP_MS, SIMULATION_TARGET_STEP_MS } from './constants.js';
+import { SIMULATION_MAX_STEP_MS, SIMULATION_RESUME_GAP_MS, SIMULATION_TARGET_STEP_MS } from './constants.js';
 
 const LABEL_STYLE_EPSILON_PERCENT = 0.025;
+
+export const resolvePoolFrameDeltaMs = (rawDeltaMs, forceReset = false) => {
+  if (
+    forceReset
+    || !Number.isFinite(rawDeltaMs)
+    || rawDeltaMs <= 0
+    || rawDeltaMs > SIMULATION_RESUME_GAP_MS
+  ) {
+    return SIMULATION_TARGET_STEP_MS;
+  }
+  return Math.min(SIMULATION_MAX_STEP_MS, rawDeltaMs);
+};
 
 export const bindHomeSimulation = async (mount) => {
   let canvas = mount.querySelector('[data-pool-simulation]');
@@ -32,6 +44,7 @@ export const bindHomeSimulation = async (mount) => {
   let canvasCssSize = { width: 0, height: 0 };
   let layoutFrameId = null;
   let resizeObserver = null;
+  let resetFrameClock = true;
   const flowLabels = [...mount.querySelectorAll('[data-pool-flow-label]')];
   const simulationShell = mount.querySelector('.pool-simulation-shell') || mount;
   const tooltip = mount.querySelector('[data-pool-tooltip]');
@@ -119,8 +132,13 @@ export const bindHomeSimulation = async (mount) => {
       if (activeTooltipLabel) updateTooltipPosition(true);
     });
   };
+  const handleVisibilityChange = () => {
+    resetFrameClock = true;
+    state.lastFrameMs = performance.now();
+  };
   window.addEventListener('resize', handleLayoutChange);
   window.addEventListener('scroll', handleLayoutChange, true);
+  document.addEventListener('visibilitychange', handleVisibilityChange);
   for (const label of flowLabels) {
     label.addEventListener('pointerenter', () => showTooltip(label));
     label.addEventListener('pointermove', () => {
@@ -186,13 +204,16 @@ export const bindHomeSimulation = async (mount) => {
   };
   window.REPLOID_POOL_SIMULATION_STOP = () => {
     active = false;
-    if (frameId) window.cancelAnimationFrame(frameId);
-    if (layoutFrameId) window.cancelAnimationFrame(layoutFrameId);
+    if (frameId !== null) window.cancelAnimationFrame(frameId);
+    if (layoutFrameId !== null) window.cancelAnimationFrame(layoutFrameId);
+    frameId = null;
+    layoutFrameId = null;
     hideTooltip();
     removeCanvasListeners();
     resizeObserver?.disconnect();
     window.removeEventListener('resize', handleLayoutChange);
     window.removeEventListener('scroll', handleLayoutChange, true);
+    document.removeEventListener('visibilitychange', handleVisibilityChange);
     renderer?.dispose();
   };
   try {
@@ -220,9 +241,16 @@ export const bindHomeSimulation = async (mount) => {
   window.REPLOID_POOL_RENDERER_BACKEND = renderer.backend;
   const draw = (timestamp = performance.now()) => {
     if (!active) return;
+    frameId = null;
     const rawDeltaMs = Math.max(0, timestamp - state.lastFrameMs);
     state.lastFrameMs = timestamp;
-    const deltaMs = Math.min(SIMULATION_MAX_STEP_MS, rawDeltaMs || SIMULATION_TARGET_STEP_MS);
+    if (document.visibilityState === 'hidden') {
+      resetFrameClock = true;
+      frameId = window.requestAnimationFrame(draw);
+      return;
+    }
+    const deltaMs = resolvePoolFrameDeltaMs(rawDeltaMs, resetFrameClock);
+    resetFrameClock = false;
     const { width, height } = resizePoolCanvas(canvas, getCanvasCssSize());
     const frame = buildPoolSimulationFrame(state, width, height, deltaMs / 1000);
     renderer.render(frame, width, height);
@@ -252,5 +280,6 @@ export const bindHomeSimulation = async (mount) => {
     canvas.removeEventListener('pointerdown', pulsePointer);
     canvas.removeEventListener('pointerleave', leavePointer);
   };
-  draw();
+  state.lastFrameMs = performance.now();
+  frameId = window.requestAnimationFrame(draw);
 };

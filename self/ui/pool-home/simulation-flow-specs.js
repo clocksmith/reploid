@@ -356,7 +356,9 @@ const assignLineSpec = (target, spec, nodes, time) => {
   target.curveSign = spec.curveSign;
   target.signedCurve = spec.signedCurve;
   target.speed = spec.speed;
+  target.baseSpeed = spec.speed;
   target.width = spec.width;
+  target.baseWidth = spec.width;
   target.particleScale = spec.particleScale;
   target.flowAlpha = spec.flowAlpha;
   target.flowPhase = spec.flowPhase;
@@ -367,6 +369,7 @@ const assignLineSpec = (target, spec, nodes, time) => {
   target.toLine = null;
   target.transitionId = null;
   target.pulse = resolvePulse(spec, time);
+  target.basePulse = target.pulse;
   return target;
 };
 

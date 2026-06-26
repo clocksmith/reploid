@@ -14,6 +14,7 @@ import {
   PRODUCT_ROUTES,
   POOLDAY_FLOW_LABELS,
   POOLDAY_NAME,
+  POOLDAY_NAV_ROUTES,
   POOLDAY_NODE_GRID_SQUARES,
   POOLDAY_PEER_LEDGER_STORAGE_KEY,
   POOLDAY_PROTOCOL,
@@ -552,25 +553,19 @@ export const setResult = (id, value, options = {}) => {
 };
 
 export const renderNav = (activeRoute) => {
-  const routeItems = [
-    ['/', 'Home'],
-    ['/run', 'Run'],
-    ['/mesh', 'Mesh'],
-    ['/record', 'Record']
-  ];
-  const renderItem = ([href, label]) => {
-    const isActive = activeRoute === PRODUCT_ROUTES[href];
+  const renderItem = ({ id, path, label }) => {
+    const isActive = activeRoute === id;
     const currentAttr = isActive ? ' aria-current="page"' : '';
-    return `<button class="btn pool-nav-toggle${isActive ? ' is-active' : ''}" type="button" data-pool-route="${href}" aria-pressed="${isActive ? 'true' : 'false'}"${currentAttr}>${escapeHtml(label)}</button>`;
+    return `<a class="pool-nav-link${isActive ? ' is-active' : ''}" href="${path}" data-pool-route-link="${path}"${currentAttr}>${escapeHtml(label)}</a>`;
   };
   return `
     <aside class="pool-nav-rail" aria-label="Reploid navigation">
       <nav class="pool-nav" aria-label="Reploid routes">
-        ${routeItems.map(renderItem).join('')}
+        ${POOLDAY_NAV_ROUTES.map(renderItem).join('')}
       </nav>
       <div class="pool-nav-substrate" aria-label="Substrate routes">
-        <a class="pool-zero-link pool-nav-zero link-secondary" href="/0" title="Open Zero.">Zero</a>
-        <a class="pool-zero-link pool-nav-zero link-secondary" href="/x" title="Open X.">X</a>
+        <a class="pool-nav-link pool-nav-substrate-link pool-zero-link link-secondary" href="/0" title="Open Zero.">Zero</a>
+        <a class="pool-nav-link pool-nav-substrate-link pool-zero-link link-secondary" href="/x" title="Open X.">X</a>
       </div>
     </aside>
   `;

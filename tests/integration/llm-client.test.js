@@ -50,7 +50,8 @@ describe('LLMClient - Integration Tests', () => {
     mockStreamParser = {
       DEFAULT_STREAM_TIMEOUT_MS: 60000,
       withStreamTimeout: vi.fn((reader) => reader), // Pass through reader
-      parseForProvider: vi.fn().mockResolvedValue('Streamed content')
+      parseForProvider: vi.fn().mockResolvedValue('Streamed content'),
+      parseGeminiStreamWithTools: vi.fn().mockResolvedValue({ content: 'Streamed content', toolCalls: null })
     };
 
     // ProviderRegistry mock that stores registered providers and returns them
@@ -453,6 +454,30 @@ describe('LLMClient - Integration Tests', () => {
     });
 
     describe('Gemini', () => {
+      const createTestToolSchema = () => ({
+        type: 'function',
+        function: {
+          name: 'InspectDom',
+          description: 'Inspect a DOM node',
+          parameters: {
+            type: 'object',
+            $schema: 'https://json-schema.org/draft/2020-12/schema',
+            additionalProperties: false,
+            properties: {
+              selector: { type: 'string' }
+            },
+            required: ['selector']
+          }
+        }
+      });
+
+      it('should report native tool support for Gemini models', () => {
+        expect(llmClient.supportsNativeTools({
+          id: 'gemini-3.1-flash-lite',
+          provider: 'gemini'
+        })).toBe(true);
+      });
+
       it('should make direct API call to Gemini', async () => {
         global.fetch.mockResolvedValue({
           ok: true,
@@ -477,6 +502,141 @@ describe('LLMClient - Integration Tests', () => {
         );
 
         expect(result.content).toBe('Gemini response');
+      });
+
+      it('should send Gemini function declarations for native tool calls', async () => {
+        global.fetch.mockResolvedValue({
+          ok: true,
+          json: () => Promise.resolve({
+            candidates: [{ content: { parts: [{ text: 'Gemini response' }] } }]
+          })
+        });
+
+        await llmClient.chat(
+          [{ role: 'user', content: 'Inspect #app' }],
+          {
+            id: 'gemini-3.1-flash-lite',
+            provider: 'gemini',
+            hostType: 'browser-cloud',
+            apiKey: 'gemini-key'
+          },
+          null,
+          { tools: [createTestToolSchema()] }
+        );
+
+        const fetchCall = global.fetch.mock.calls[0];
+        const body = JSON.parse(fetchCall[1].body);
+        const declaration = body.tools[0].functionDeclarations[0];
+
+        expect(declaration.name).toBe('InspectDom');
+        expect(declaration.description).toBe('Inspect a DOM node');
+        expect(declaration.parameters.properties.selector.type).toBe('string');
+        expect(declaration.parameters).not.toHaveProperty('$schema');
+        expect(declaration.parameters).not.toHaveProperty('additionalProperties');
+      });
+
+      it('should parse Gemini function calls from direct responses', async () => {
+        global.fetch.mockResolvedValue({
+          ok: true,
+          json: () => Promise.resolve({
+            candidates: [{
+              content: {
+                parts: [{
+                  functionCall: {
+                    id: 'call_dom',
+                    name: 'InspectDom',
+                    args: { selector: '#app' }
+                  }
+                }]
+              }
+            }]
+          })
+        });
+
+        const result = await llmClient.chat(
+          [{ role: 'user', content: 'Inspect #app' }],
+          {
+            id: 'gemini-3.1-flash-lite',
+            provider: 'gemini',
+            hostType: 'browser-cloud',
+            apiKey: 'gemini-key'
+          },
+          null,
+          { tools: [createTestToolSchema()] }
+        );
+
+        expect(result.toolCalls).toHaveLength(1);
+        expect(result.toolCalls[0]).toEqual({
+          id: 'call_dom',
+          name: 'InspectDom',
+          args: { selector: '#app' }
+        });
+      });
+
+      it('should parse Gemini function calls from streamed responses', async () => {
+        mockStreamParser.parseGeminiStreamWithTools.mockResolvedValue({
+          content: '',
+          toolCalls: [{
+            id: 'gemini_stream_0',
+            name: 'InspectDom',
+            args: { selector: '#app' }
+          }]
+        });
+
+        global.fetch.mockResolvedValue({
+          ok: true,
+          body: { getReader: vi.fn() }
+        });
+
+        const onUpdate = vi.fn();
+        const result = await llmClient.chat(
+          [{ role: 'user', content: 'Inspect #app' }],
+          {
+            id: 'gemini-3.1-flash-lite',
+            provider: 'gemini',
+            hostType: 'browser-cloud',
+            apiKey: 'gemini-key'
+          },
+          onUpdate,
+          { tools: [createTestToolSchema()] }
+        );
+
+        const [url] = global.fetch.mock.calls[0];
+        expect(url).toContain(':streamGenerateContent');
+        expect(mockStreamParser.parseGeminiStreamWithTools).toHaveBeenCalled();
+        expect(result.toolCalls).toHaveLength(1);
+        expect(result.toolCalls[0].name).toBe('InspectDom');
+      });
+
+      it('should retry transient Gemini direct API failures', async () => {
+        global.fetch
+          .mockResolvedValueOnce({
+            ok: false,
+            status: 503,
+            headers: { get: () => '0' },
+            json: () => Promise.resolve({
+              error: { message: 'This model is currently experiencing high demand.' }
+            })
+          })
+          .mockResolvedValueOnce({
+            ok: true,
+            json: () => Promise.resolve({
+              candidates: [{ content: { parts: [{ text: 'Recovered' }] } }]
+            })
+          });
+
+        const result = await llmClient.chat(
+          [{ role: 'user', content: 'Hello' }],
+          {
+            id: 'gemini-3.5-flash',
+            provider: 'gemini',
+            hostType: 'browser-cloud',
+            apiKey: 'gemini-key'
+          }
+        );
+
+        expect(global.fetch).toHaveBeenCalledTimes(2);
+        expect(result.content).toBe('Recovered');
       });
 
       it('should avoid SSE for direct Gemini when StreamParser is unavailable', async () => {
@@ -541,6 +701,35 @@ describe('LLMClient - Integration Tests', () => {
         // Gemini uses 'model' instead of 'assistant'
         const hasModelRole = body.contents.some(m => m.role === 'model');
         expect(hasModelRole).toBe(true);
+      });
+
+      it('should omit empty text turns from Gemini requests', async () => {
+        global.fetch.mockResolvedValue({
+          ok: true,
+          json: () => Promise.resolve({
+            candidates: [{ content: { parts: [{ text: 'Response' }] } }]
+          })
+        });
+
+        await llmClient.chat(
+          [
+            { role: 'user', content: 'User message' },
+            { role: 'assistant', content: '' },
+            { role: 'user', content: 'TOOL_RESULT (InspectDom):\n{}' }
+          ],
+          {
+            id: 'gemini-pro',
+            provider: 'gemini',
+            hostType: 'browser-cloud',
+            apiKey: 'key'
+          }
+        );
+
+        const fetchCall = global.fetch.mock.calls[0];
+        const body = JSON.parse(fetchCall[1].body);
+
+        expect(body.contents).toHaveLength(2);
+        expect(body.contents.some(m => m.parts[0].text === '')).toBe(false);
       });
     });
   });

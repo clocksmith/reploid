@@ -96,6 +96,7 @@ export function validatePoolConfig(config = POOL_CONFIG) {
     requireField(config.launchModel?.[field], `launchModel.${field}`, reasons);
   }
   requireField(config.browserRuntime?.dopplerModuleUrl, 'browserRuntime.dopplerModuleUrl', reasons);
+  requireField(config.browserRuntime?.dopplerKernelBaseUrl, 'browserRuntime.dopplerKernelBaseUrl', reasons);
   requireField(config.browserRuntime?.modelBaseUrl, 'browserRuntime.modelBaseUrl', reasons);
   for (const [policyId, policy] of Object.entries(config.policies || {})) {
     if (policy.policyId !== policyId) reasons.push(`policies.${policyId}.policyId must match key`);

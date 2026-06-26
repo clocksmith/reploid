@@ -38,7 +38,8 @@ const requiredRuntimeEnv = [
   'POOL_REQUIRE_FIREBASE_AUTH',
   'POOL_JSON_LIMIT',
   'REPLOID_POOL_MODEL_BASE_URL',
-  'REPLOID_DOPPLER_MODULE_URL'
+  'REPLOID_DOPPLER_MODULE_URL',
+  'REPLOID_DOPPLER_KERNEL_BASE_URL'
 ];
 
 const requiredRewrites = [
@@ -88,11 +89,17 @@ const checkLocalFiles = () => {
   if (envConfig.browserEnv?.REPLOID_DOPPLER_MODULE_URL !== POOL_CONFIG.browserRuntime?.dopplerModuleUrl) {
     reasons.push('browserEnv REPLOID_DOPPLER_MODULE_URL must match pool config browserRuntime.dopplerModuleUrl');
   }
+  if (envConfig.browserEnv?.REPLOID_DOPPLER_KERNEL_BASE_URL !== POOL_CONFIG.browserRuntime?.dopplerKernelBaseUrl) {
+    reasons.push('browserEnv REPLOID_DOPPLER_KERNEL_BASE_URL must match pool config browserRuntime.dopplerKernelBaseUrl');
+  }
   if (envConfig.browserEnv?.REPLOID_POOL_MODEL_BASE_URL !== POOL_CONFIG.browserRuntime?.modelBaseUrl) {
     reasons.push('browserEnv REPLOID_POOL_MODEL_BASE_URL must match pool config browserRuntime.modelBaseUrl');
   }
   if (envConfig.runtimeEnv?.REPLOID_DOPPLER_MODULE_URL !== POOL_CONFIG.browserRuntime?.dopplerModuleUrl) {
     reasons.push('runtime env REPLOID_DOPPLER_MODULE_URL must match pool config browserRuntime.dopplerModuleUrl');
+  }
+  if (envConfig.runtimeEnv?.REPLOID_DOPPLER_KERNEL_BASE_URL !== POOL_CONFIG.browserRuntime?.dopplerKernelBaseUrl) {
+    reasons.push('runtime env REPLOID_DOPPLER_KERNEL_BASE_URL must match pool config browserRuntime.dopplerKernelBaseUrl');
   }
   if (envConfig.runtimeEnv?.REPLOID_POOL_MODEL_BASE_URL !== POOL_CONFIG.browserRuntime?.modelBaseUrl) {
     reasons.push('runtime env REPLOID_POOL_MODEL_BASE_URL must match pool config browserRuntime.modelBaseUrl');
@@ -125,6 +132,9 @@ const checkLocalFiles = () => {
   }
   if (!cloudRunYaml.includes(`value: "${POOL_CONFIG.browserRuntime?.dopplerModuleUrl}"`)) {
     reasons.push('Cloud Run YAML Doppler module URL differs from pool config');
+  }
+  if (!cloudRunYaml.includes(`value: "${POOL_CONFIG.browserRuntime?.dopplerKernelBaseUrl}"`)) {
+    reasons.push('Cloud Run YAML Doppler kernel base URL differs from pool config');
   }
   if (!cloudRunYaml.includes(`value: "${POOL_CONFIG.browserRuntime?.modelBaseUrl}"`)) {
     reasons.push('Cloud Run YAML model base URL differs from pool config');
