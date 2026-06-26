@@ -173,12 +173,25 @@ test.describe('Route Entry Points', () => {
 
     const mobile = await page.evaluate(() => {
       const rail = document.querySelector('.pool-nav-rail').getBoundingClientRect();
+      const canvas = document.querySelector('.pool-simulation-canvas').getBoundingClientRect();
+      const shell = document.querySelector('.pool-simulation-shell').getBoundingClientRect();
+      const scrollHeight = Math.max(
+        document.documentElement.scrollHeight,
+        document.body?.scrollHeight || 0
+      );
       return {
         bottomGap: window.innerHeight - rail.bottom,
+        canvasHeight: canvas.height,
+        canvasTop: canvas.top,
         height: rail.height,
+        scrollHeight,
+        shellHeight: shell.height,
+        shellTop: shell.top,
+        viewportHeight: window.innerHeight,
         width: rail.width,
         y: rail.y,
-        overflowX: document.documentElement.scrollWidth > document.documentElement.clientWidth
+        overflowX: document.documentElement.scrollWidth > document.documentElement.clientWidth,
+        overflowY: scrollHeight > window.innerHeight + 1
       };
     });
     expect(mobile.y).toBeGreaterThan(760);
@@ -186,6 +199,12 @@ test.describe('Route Entry Points', () => {
     expect(mobile.height).toBeLessThan(78);
     expect(mobile.width).toBeGreaterThan(360);
     expect(mobile.overflowX).toBe(false);
+    expect(mobile.overflowY).toBe(false);
+    expect(Math.abs(mobile.canvasTop)).toBeLessThanOrEqual(1);
+    expect(Math.abs(mobile.shellTop)).toBeLessThanOrEqual(1);
+    expect(Math.abs(mobile.canvasHeight - mobile.viewportHeight)).toBeLessThanOrEqual(1);
+    expect(Math.abs(mobile.shellHeight - mobile.viewportHeight)).toBeLessThanOrEqual(1);
+    expect(mobile.scrollHeight).toBeLessThanOrEqual(mobile.viewportHeight + 1);
     await expect(page.getByRole('link', { name: 'Home', exact: true })).toBeVisible();
     await expect(page.getByRole('link', { name: 'Run', exact: true })).toBeVisible();
     await expect(page.getByRole('link', { name: 'Zero' })).toBeVisible();
