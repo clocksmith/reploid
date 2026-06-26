@@ -43,6 +43,8 @@ export function initPoolHome(mount) {
 
   const render = () => {
     const routeId = getRouteId();
+    document.documentElement.dataset.poolRouteId = routeId;
+    document.body.dataset.poolRouteId = routeId;
     if (routeId !== 'home' && window.REPLOID_POOL_SIMULATION_STOP) {
       window.REPLOID_POOL_SIMULATION_STOP();
       window.REPLOID_POOL_SIMULATION_STOP = null;

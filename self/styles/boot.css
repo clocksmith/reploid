@@ -1825,8 +1825,25 @@ details[open] > .disclosure-summary::before {
 .pool-home[data-pool-route-id='home'] {
   min-height: 100vh;
   min-height: 100dvh;
+  height: 100vh;
+  height: 100dvh;
   padding: 0;
   gap: 0;
+  overflow: hidden;
+}
+
+html[data-pool-route-id='home'],
+body[data-pool-route-id='home'] {
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+}
+
+body[data-pool-route-id='home'] #app {
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
 }
 
 .pool-home .panel {
@@ -2392,8 +2409,9 @@ details[open] > .disclosure-summary::before {
 }
 
 .pool-home[data-pool-route-id='home'] .pool-simulation-shell {
-  min-height: 100vh;
-  min-height: 100dvh;
+  flex: 1 1 auto;
+  min-height: 0;
+  height: 100%;
 }
 
 .pool-simulation-canvas {
@@ -2406,8 +2424,8 @@ details[open] > .disclosure-summary::before {
 }
 
 .pool-home[data-pool-route-id='home'] .pool-simulation-canvas {
-  height: 100vh;
-  height: 100dvh;
+  min-height: 0;
+  height: 100%;
 }
 
 .pool-simulation-labels {
@@ -2663,10 +2681,8 @@ details[open] > .disclosure-summary::before {
 
   .pool-home[data-pool-route-id='home'] .pool-simulation-shell,
   .pool-home[data-pool-route-id='home'] .pool-simulation-canvas {
-    min-height: 100vh;
-    min-height: 100dvh;
-    height: 100vh;
-    height: 100dvh;
+    min-height: 0;
+    height: 100%;
   }
 
   .pool-simulation-labels span {
