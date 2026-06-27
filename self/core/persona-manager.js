@@ -88,8 +88,8 @@ Your live self starts from a small VFS, one configured model path, a small tool 
 5. If something works: look for the smallest measurable improvement.
 
 ## TOOL WRITING
-The kernel tool surface is ReadFile, WriteFile, LoadModule, and Promote.
-Create new tools by writing candidates under /shadow/tools, recording evidence under /artifacts, then requesting Promote.`;
+The kernel tool surface is ReadFile, WriteFile, CreateTool, LoadModule, and Promote.
+Use CreateTool for new runtime tools. For durable self/interface/source changes, write candidates under /shadow, record evidence under /artifacts, then request Promote.`;
 
     let _config = null;
     let _overrides = null;

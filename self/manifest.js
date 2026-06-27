@@ -61,6 +61,8 @@ export const SELF_SOURCE_MIRRORS = Object.freeze([
   { webPath: '/host/start-app.js', vfsPath: '/self/host/start-app.js' },
   { webPath: '/host/start-reploid.js', vfsPath: '/self/host/start-reploid.js' },
   { webPath: '/ui/pool-home/index.js', vfsPath: '/self/ui/pool-home/index.js' },
+  { webPath: '/ui/zero/index.js', vfsPath: '/self/ui/zero/index.js' },
+  { webPath: '/styles/zero.css', vfsPath: '/self/styles/zero.css' },
   { webPath: '/pool/agent-client.js', vfsPath: '/self/pool/agent-client.js' },
   { webPath: '/pool/config.js', vfsPath: '/self/pool/config.js' },
   { webPath: '/pool/doppler-runtime.js', vfsPath: '/self/pool/doppler-runtime.js' },
@@ -198,7 +200,7 @@ export function buildSelfManifest(options = {}) {
     blueprintIndexPath: '/self/blueprint-index.json',
     promptPaths: [...SELF_PROMPT_PATHS],
     blueprintPaths: [...SELF_BLUEPRINT_PATHS],
-    visibleTools: ['ReadFile', 'WriteFile', 'LoadModule', 'Promote'],
+    visibleTools: ['ReadFile', 'WriteFile', 'CreateTool', 'LoadModule', 'Promote'],
     sourceRoots: [
       '/self',
       '/shadow',

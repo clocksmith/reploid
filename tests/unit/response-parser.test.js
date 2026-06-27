@@ -591,20 +591,23 @@ line3\` }`;
     });
   });
 
-  // NOTE: In RSI mode, isDone() ALWAYS returns false
-  // The agent should never self-terminate - only circuit breaker or user stops it
-  // This enables continuous self-improvement behavior
-  describe('isDone (RSI mode)', () => {
-    it('should return false for GOAL_ACHIEVED (RSI mode ignores completion markers)', () => {
-      expect(responseParser.isDone('Task complete. GOAL_ACHIEVED')).toBe(false);
+  describe('isDone', () => {
+    it('should return true for GOAL_ACHIEVED', () => {
+      expect(responseParser.isDone('Task complete. GOAL_ACHIEVED')).toBe(true);
     });
 
-    it('should return false for GOAL_COMPLETE (RSI mode ignores completion markers)', () => {
-      expect(responseParser.isDone('All tasks done. GOAL_COMPLETE')).toBe(false);
+    it('should return true for GOAL_COMPLETE', () => {
+      expect(responseParser.isDone('All tasks done. GOAL_COMPLETE')).toBe(true);
     });
 
-    it('should return false for DONE (RSI mode ignores completion markers)', () => {
-      expect(responseParser.isDone('Everything is finished. DONE')).toBe(false);
+    it('should return true for DONE', () => {
+      expect(responseParser.isDone('Everything is finished. DONE')).toBe(true);
+    });
+
+    it('should return true for directive completion markers', () => {
+      expect(responseParser.isDone('DONE: Read the file and recorded evidence.')).toBe(true);
+      expect(responseParser.isDone('IDLE: waiting for user input')).toBe(true);
+      expect(responseParser.isDone('PARK: model unavailable')).toBe(true);
     });
 
     it('should return false for text without completion markers', () => {
@@ -627,8 +630,8 @@ line3\` }`;
       expect(responseParser.isDone('done')).toBe(false);
     });
 
-    it('should return false even with DONE in text (RSI mode)', () => {
-      expect(responseParser.isDone('prefix DONE suffix')).toBe(false);
+    it('should return true with DONE in text', () => {
+      expect(responseParser.isDone('prefix DONE suffix')).toBe(true);
     });
   });
 

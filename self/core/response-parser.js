@@ -379,16 +379,21 @@ const ResponseParser = {
       return parseLegacyToolCalls(text);
     };
 
-    // RSI MODE: Agent should NEVER stop on its own
-    // Only the circuit breaker (iteration limit) or user intervention stops it
-    // This enforces continuous improvement behavior
     const isDone = (text) => {
-        // In RSI mode, we don't accept self-declared completion
-        // The agent should always look for improvements
-        // To restore non-RSI mode, uncomment below:
-        // if (!text) return false;
-        // return text.includes('GOAL_ACHIEVED') || text.includes('GOAL_COMPLETE');
-        return false;
+      if (!text || typeof text !== 'string') return false;
+      const trimmed = text.trim();
+      if (!trimmed) return false;
+
+      const lines = trimmed
+        .split(/\r?\n/)
+        .map((line) => line.trim())
+        .filter(Boolean);
+
+      if (lines.some((line) => /^(DONE|IDLE|PARK):(?:\s|$)/i.test(line))) {
+        return true;
+      }
+
+      return /(?:^|\s)(DONE|GOAL_ACHIEVED|GOAL_COMPLETE)(?:[.!?]|\s|$)/.test(trimmed);
     };
 
     return { parseToolCalls, isDone };

@@ -214,8 +214,9 @@ async function completeAwaken(bootResult, goal, wizardContainer) {
           }
         : {
             name: 'zero',
-            stylePath: 'styles/zero.css',
-            vfsModulePath: '/ui/zero/index.js',
+            stylePath: '/self/styles/zero.css',
+            sourceStylePath: 'styles/zero.css',
+            vfsModulePath: '/self/ui/zero/index.js',
             sourceModulePath: '/ui/zero/index.js'
           }
   );
@@ -225,15 +226,26 @@ async function completeAwaken(bootResult, goal, wizardContainer) {
       v: encodeURIComponent(version),
       ...getCurrentReploidPeerQuery()
     });
-    const href = `${spec.stylePath}?${params.toString()}`;
+    const buildStyleHref = (path) => (
+      String(path || '').startsWith('/self/')
+        ? withSelfQuery(path, Object.fromEntries(params.entries()))
+        : `${path}?${params.toString()}`
+    );
+    const href = buildStyleHref(spec.stylePath);
     let link = document.getElementById('runtime-ui-stylesheet');
     if (!link) {
       link = document.createElement('link');
       link.id = 'runtime-ui-stylesheet';
       link.rel = 'stylesheet';
+      link.addEventListener('error', () => {
+        if (!spec.sourceStylePath || link.dataset.fallbackApplied === 'true') return;
+        link.dataset.fallbackApplied = 'true';
+        link.href = buildStyleHref(spec.sourceStylePath);
+      });
       document.head.appendChild(link);
     }
     if (link.href !== href) {
+      link.dataset.fallbackApplied = 'false';
       link.href = href;
     }
   };
@@ -242,7 +254,10 @@ async function completeAwaken(bootResult, goal, wizardContainer) {
     const peerQuery = getCurrentReploidPeerQuery();
     let mod = null;
     try {
-      mod = await import(withQuery(spec.vfsModulePath, { v: version, ...peerQuery }));
+      const vfsUrl = String(spec.vfsModulePath || '').startsWith('/self/')
+        ? withSelfQuery(spec.vfsModulePath, { v: version, ...peerQuery })
+        : withQuery(spec.vfsModulePath, { v: version, ...peerQuery });
+      mod = await import(vfsUrl);
     } catch (error) {
       mod = await import(withQuery(spec.sourceModulePath, { v: version, ...peerQuery }));
     }
@@ -317,8 +332,23 @@ async function completeAwaken(bootResult, goal, wizardContainer) {
     eventBus.on('vfs:file_changed', (data = {}) => {
       const path = data?.path || data?.oldPath || '';
       if (typeof path !== 'string') return;
-      if (path.startsWith('/ui/') || path.startsWith('/styles/') || path.startsWith('/self/capsule/')) {
+      if (
+        path.startsWith('/ui/')
+        || path.startsWith('/styles/')
+        || path.startsWith('/self/capsule/')
+        || path.startsWith('/self/ui/zero/')
+        || path === '/self/styles/zero.css'
+      ) {
         scheduleReload('vfs');
+      }
+    });
+    eventBus.on('promotion:accepted', (data = {}) => {
+      const path = data?.targetPath || '';
+      if (
+        typeof path === 'string'
+        && (path.startsWith('/self/ui/zero/') || path === '/self/styles/zero.css')
+      ) {
+        scheduleReload('promotion');
       }
     });
   }

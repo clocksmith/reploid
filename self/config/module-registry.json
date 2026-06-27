@@ -1317,7 +1317,7 @@
         "capabilities/system/substrate-loader.js",
         "core/vfs-module-loader.js"
       ],
-      "introduced": "substrate",
+      "introduced": "spark",
       "dependencies": [
         {
           "id": "Utils",

@@ -41,9 +41,17 @@ const ToolRunner = {
 
     const usesMinimalToolSurface = () => ['reploid', 'zero'].includes(getBootMode());
 
+    const getKernelToolNames = () => {
+      const names = ['ReadFile', 'WriteFile'];
+      if (ToolWriter) names.push('CreateTool');
+      if (SubstrateLoader) names.push('LoadModule');
+      names.push('Promote');
+      return names;
+    };
+
     const getInitialToolAllowlist = () => {
       if (usesMinimalToolSurface()) {
-        return new Set(['ReadFile', 'WriteFile', 'LoadModule', 'Promote']);
+        return new Set([...getKernelToolNames(), ..._runtimeAllowedTools]);
       }
       return null;
     };
@@ -57,6 +65,7 @@ const ToolRunner = {
 
     const _tools = new Map();
     const _dynamicTools = new Set();
+    const _runtimeAllowedTools = new Set();
 
     // Schema cache for performance (#3)
     let _schemaCache = null;
@@ -191,6 +200,13 @@ const ToolRunner = {
     // All tools are now dynamic (loaded from /tools/)
     // No hardcoded built-ins - full RSI capability
 
+    const allowTool = (name) => {
+      const cleanName = String(name || '').trim();
+      if (!cleanName) return false;
+      _runtimeAllowedTools.add(cleanName);
+      return true;
+    };
+
     const loadToolModule = async (path, forcedName = null) => {
       try {
         const contents = await VFS.read(path);
@@ -236,6 +252,14 @@ const ToolRunner = {
       }
     };
 
+    const loadToolPath = async (path, forcedName = null, options = {}) => {
+      const name = forcedName || String(path || '').split('/').pop()?.replace('.js', '');
+      if (options.allow && name) {
+        allowTool(name);
+      }
+      return loadToolModule(path, forcedName);
+    };
+
     const unloadDynamicTools = () => {
       for (const name of _dynamicTools) {
         _tools.delete(name);
@@ -272,10 +296,28 @@ const ToolRunner = {
     const ensureToolLoaded = async (name) => {
       if (_tools.has(name)) return true;
       const path = `/tools/${name}.js`;
+      const allowlist = getInitialToolAllowlist();
+      if (allowlist && !allowlist.has(name)) {
+        if (await VFS.exists(path).catch(() => false)) {
+          throw new Errors.ToolError(`Tool not available in ${getBootMode()} surface: ${name}`);
+        }
+        return false;
+      }
       if (await VFS.exists(path)) {
         return await loadToolModule(path, name);
       }
       return false;
+    };
+
+    const loadToolByName = async (name, options = {}) => {
+      const cleanName = String(name || '').trim();
+      if (!cleanName) return false;
+      if (options.allow) {
+        allowTool(cleanName);
+      }
+      const path = `/tools/${cleanName}.js`;
+      if (!(await VFS.exists(path))) return false;
+      return loadToolModule(path, cleanName);
     };
 
     // --- Public API ---
@@ -414,7 +456,10 @@ const ToolRunner = {
             list: () => Array.from(_tools.keys()),
             execute,
             has: (n) => _tools.has(n),
-            refresh: loadDynamicTools
+            refresh: loadDynamicTools,
+            allow: allowTool,
+            load: loadToolByName,
+            loadPath: loadToolPath
           }
         };
         let result = await toolFn(args, toolDeps);
@@ -672,6 +717,9 @@ const ToolRunner = {
       init: loadDynamicTools,
       execute,
       refresh: loadDynamicTools,
+      allow: allowTool,
+      load: loadToolByName,
+      loadPath: loadToolPath,
       list: () => Array.from(_tools.keys()),
       listFiltered,
       has: (name) => _tools.has(name),

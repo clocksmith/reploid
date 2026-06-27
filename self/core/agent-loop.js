@@ -1240,6 +1240,7 @@ key: value
 ## Kernel Tools
 - ReadFile: read seed files, blueprints, shadow candidates, and artifacts
 - WriteFile: write candidates under /shadow and evidence under /artifacts
+- CreateTool: create and load new runtime tools under /tools
 - LoadModule: load approved modules after promotion
 - Promote: request a gated /shadow to /self change
 
@@ -1247,7 +1248,8 @@ key: value
 - Read before writing.
 - Use /shadow for candidates and /artifacts for evidence.
 - Do not write durable runtime changes directly into /self.
-- To create a new tool, stage it under /shadow/tools and request Promote after evidence exists.
+- To create a new runtime tool, use CreateTool with a CamelCase name and ES module code.
+- To modify the self, interface, or source surface, stage under /shadow and Promote after evidence exists.
 - Use at least one tool per response unless parking or complete.
 - Park with IDLE: when waiting for user input or model availability.
 - When complete, summarize the evidence path and say DONE.

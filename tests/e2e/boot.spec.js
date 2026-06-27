@@ -455,7 +455,7 @@ test.describe('Route Entry Points', () => {
 
     const resolvedServices = await page.evaluate(async () => {
       const container = window.REPLOID?.container;
-      const names = ['ContextManager', 'PersonaManager', 'CircuitBreaker'];
+      const names = ['ContextManager', 'PersonaManager', 'CircuitBreaker', 'ToolWriter', 'SubstrateLoader'];
       const results = {};
       for (const name of names) {
         try {
@@ -464,14 +464,79 @@ test.describe('Route Entry Points', () => {
           results[name] = error?.message || String(error);
         }
       }
+      try {
+        const toolRunner = await container.resolve('ToolRunner');
+        results.tools = toolRunner.list();
+      } catch (error) {
+        results.tools = error?.message || String(error);
+      }
       return results;
     });
 
-    expect(resolvedServices).toEqual({
-      ContextManager: true,
-      PersonaManager: true,
-      CircuitBreaker: true
+    expect(resolvedServices.ContextManager).toBe(true);
+    expect(resolvedServices.PersonaManager).toBe(true);
+    expect(resolvedServices.CircuitBreaker).toBe(true);
+    expect(resolvedServices.ToolWriter).toBe(true);
+    expect(resolvedServices.SubstrateLoader).toBe(true);
+    expect(resolvedServices.tools).toEqual(expect.arrayContaining([
+      'ReadFile',
+      'WriteFile',
+      'CreateTool',
+      'LoadModule',
+      'Promote'
+    ]));
+    expect(resolvedServices.tools).not.toContain('DeleteFile');
+
+    const liveToolResult = await page.evaluate(async () => {
+      const container = window.REPLOID?.container;
+      const toolRunner = await container.resolve('ToolRunner');
+      const vfs = window.REPLOID?.vfs;
+      const createCode = `
+export const tool = {
+  name: 'EchoProbe',
+  description: 'E2E probe tool',
+  inputSchema: { type: 'object', properties: { value: { type: 'string' } } }
+};
+
+export default async function(args) {
+  return { echo: args.value || '' };
+}
+`;
+      const loadCode = `
+export const tool = {
+  name: 'LoadedProbe',
+  description: 'E2E loaded self tool',
+  inputSchema: { type: 'object', properties: { value: { type: 'string' } } }
+};
+
+export default async function(args) {
+  return { loaded: args.value || '' };
+}
+`;
+      const created = await toolRunner.execute('CreateTool', {
+        name: 'EchoProbe',
+        code: createCode
+      });
+      const echo = await toolRunner.execute('EchoProbe', { value: 'ok' });
+      await vfs.write('/self/tools/LoadedProbe.js', loadCode);
+      const loaded = await toolRunner.execute('LoadModule', { path: '/self/tools/LoadedProbe.js' });
+      const loadedResult = await toolRunner.execute('LoadedProbe', { value: 'self' });
+      return {
+        created,
+        echo,
+        loaded,
+        loadedResult,
+        tools: toolRunner.list(),
+        hasZeroSelfUi: await vfs.exists('/self/ui/zero/index.js'),
+        hasZeroSelfStyles: await vfs.exists('/self/styles/zero.css')
+      };
     });
+
+    expect(liveToolResult.echo).toEqual({ echo: 'ok' });
+    expect(liveToolResult.loadedResult).toEqual({ loaded: 'self' });
+    expect(liveToolResult.tools).toEqual(expect.arrayContaining(['EchoProbe', 'LoadedProbe']));
+    expect(liveToolResult.hasZeroSelfUi).toBe(true);
+    expect(liveToolResult.hasZeroSelfStyles).toBe(true);
     expect(pageErrors).toEqual([]);
   });
 
