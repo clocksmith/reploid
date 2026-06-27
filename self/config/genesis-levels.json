@@ -29,7 +29,7 @@
     },
     "spark": {
       "name": "ZERO",
-      "description": "Minimal self-building core - 11 additional modules",
+      "description": "Minimal self-building core with tool creation and VFS module loading",
       "extends": "tabula",
       "modules": [
         "AgentLoop",
@@ -41,9 +41,11 @@
         "ProviderRegistry",
         "ResponseParser",
         "SchemaRegistry",
+        "SubstrateLoader",
         "TelemetryTimeline",
         "ToolExecutor",
-        "ToolRunner"
+        "ToolRunner",
+        "ToolWriter"
       ]
     },
     "reflection": {
@@ -79,7 +81,7 @@
     },
     "substrate": {
       "name": "SUBSTRATE",
-      "description": "Cognition + runtime infrastructure - 13 additional modules",
+      "description": "Cognition + runtime infrastructure",
       "extends": "cognition",
       "modules": [
         "AuditLogger",
@@ -91,7 +93,6 @@
         "PolicyEngine",
         "ReplayEngine",
         "SchemaValidator",
-        "SubstrateLoader",
         "TraceStore",
         "VFSSandbox",
         "WorkerManager"

@@ -35,8 +35,7 @@ async function withTimeoutAndRetry(fn, options = {}) {
 }
 
 async function call(args = {}, deps = {}) {
-  const { SubstrateLoader, EventBus } = deps;
-  if (!SubstrateLoader) throw new Error('SubstrateLoader not available (requires reflection+ genesis level)');
+  const { SubstrateLoader, EventBus, ToolRunner } = deps;
 
   const {
     path,
@@ -46,14 +45,26 @@ async function call(args = {}, deps = {}) {
   } = args;
 
   if (!path) throw new Error('Missing path argument');
+  const cleanPath = String(path || '').trim();
+
+  if (cleanPath.startsWith('/self/tools/') && cleanPath.endsWith('.js') && ToolRunner?.loadPath) {
+    const loaded = await ToolRunner.loadPath(cleanPath, null, { allow: true });
+    if (!loaded) {
+      throw new Error(`Tool module load failed: ${cleanPath}`);
+    }
+    EventBus?.emit('module:reloaded', { path: cleanPath, kind: 'tool' });
+    return `Loaded tool module from ${cleanPath}`;
+  }
+
+  if (!SubstrateLoader) throw new Error('SubstrateLoader not available');
 
   try {
     await withTimeoutAndRetry(
-      async () => SubstrateLoader.loadModule(path, { force }),
+      async () => SubstrateLoader.loadModule(cleanPath, { force }),
       {
         timeoutMs,
         maxAttempts: maxRetries + 1,
-        operationName: `LoadModule(${path})`,
+        operationName: `LoadModule(${cleanPath})`,
         initialDelayMs: 500,
         shouldRetry: (error) => {
           // Don't retry syntax errors or module not found
@@ -62,18 +73,18 @@ async function call(args = {}, deps = {}) {
           return true;
         },
         onRetry: (error, attempt, delay) => {
-          console.warn(`[LoadModule] Retry ${attempt} for ${path}: ${error.message}`);
-          EventBus?.emit('module:reload-retry', { path, attempt, error: error.message });
+          console.warn(`[LoadModule] Retry ${attempt} for ${cleanPath}: ${error.message}`);
+          EventBus?.emit('module:reload-retry', { path: cleanPath, attempt, error: error.message });
         }
       }
     );
 
-    EventBus?.emit('module:reloaded', { path });
-    return `Hot-reloaded module from ${path}`;
+    EventBus?.emit('module:reloaded', { path: cleanPath });
+    return `Hot-reloaded module from ${cleanPath}`;
 
   } catch (error) {
     if (error instanceof TimeoutError) {
-      throw new Error(`Module load timed out after ${timeoutMs}ms: ${path}. The module may have circular dependencies or be too large.`);
+      throw new Error(`Module load timed out after ${timeoutMs}ms: ${cleanPath}. The module may have circular dependencies or be too large.`);
     }
     if (error instanceof RetryExhaustedError) {
       throw new Error(`Module load failed after ${maxRetries + 1} attempts: ${error.lastError?.message || 'Unknown error'}`);

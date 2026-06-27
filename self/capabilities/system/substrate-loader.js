@@ -9,7 +9,7 @@ const SubstrateLoader = {
   metadata: {
     id: 'SubstrateLoader',
     version: '1.0.0',
-    genesis: { introduced: 'substrate' },
+    genesis: { introduced: 'spark' },
     files: ['capabilities/system/substrate-loader.js', 'core/vfs-module-loader.js'],
     dependencies: ['Utils', 'VFS', 'VerificationManager?', 'VFSSandbox?', 'HITLController?'],
     type: 'capability'

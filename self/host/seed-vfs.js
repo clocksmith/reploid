@@ -8,13 +8,20 @@ import {
   getCurrentReploidSessionStorage as getScopedSessionStorage,
   getCurrentReploidStorage as getScopedLocalStorage
 } from '../instance.js';
-import { loadVfsManifest, seedVfsFromManifest, clearVfsStore } from './vfs-bootstrap.js';
+import {
+  loadVfsManifest,
+  seedVfsFromManifest,
+  clearVfsStore,
+  ensureVfsFileMirrors
+} from './vfs-bootstrap.js';
 import { getBootSeedProfile, pickBootSeedFiles, shouldHydrateFullManifest } from '../config/boot-seed.js';
 
 const log = (...args) => console.log('[Bootstrap]', ...args);
 const warn = (...args) => console.warn('[Bootstrap]', ...args);
 const error = (...args) => console.error('[Bootstrap]', ...args);
 const BOOTSTRAP_STATUS_ID = 'bootstrap-status-copy';
+const BOOTSTRAP_PROGRESS_ID = 'bootstrap-progress-copy';
+const BOOTSTRAP_PROGRESS_BAR_ID = 'bootstrap-progress-bar';
 const BOOTSTRAP_STAGE_COPY = Object.freeze({
   starting: 'Preparing browser substrate.',
   service_worker: 'Preparing service worker.',
@@ -29,6 +36,11 @@ const BOOTSTRAP_STAGE_COPY = Object.freeze({
   ready: 'Boot interface ready.'
 });
 
+export const ZERO_RUNTIME_SELF_MIRRORS = Object.freeze([
+  { sourcePath: '/ui/zero/index.js', targetPath: '/self/ui/zero/index.js' },
+  { sourcePath: '/styles/zero.css', targetPath: '/self/styles/zero.css' }
+]);
+
 const renderBootstrapLoading = () => {
   const wizardContainer = document.getElementById('wizard-container');
   if (!wizardContainer) return;
@@ -39,6 +51,12 @@ const renderBootstrapLoading = () => {
         <div class="goal-header">
           <h2 class="type-h1">Booting Reploid</h2>
           <p class="type-caption" id="${BOOTSTRAP_STATUS_ID}">${BOOTSTRAP_STAGE_COPY.starting}</p>
+          <div class="bootstrap-progress" aria-live="polite">
+            <div class="bootstrap-progress-track">
+              <div class="bootstrap-progress-bar" id="${BOOTSTRAP_PROGRESS_BAR_ID}" style="width: 0%"></div>
+            </div>
+            <p class="type-caption" id="${BOOTSTRAP_PROGRESS_ID}"></p>
+          </div>
         </div>
       </div>
     </div>
@@ -52,6 +70,24 @@ const setBootstrapStage = (stage) => {
   const statusEl = document.getElementById(BOOTSTRAP_STATUS_ID);
   if (statusEl) {
     statusEl.textContent = BOOTSTRAP_STAGE_COPY[stage] || stage;
+  }
+};
+
+const setBootstrapProgress = (progress = {}) => {
+  if (typeof window !== 'undefined') {
+    window.REPLOID_BOOTSTRAP_PROGRESS = progress;
+  }
+  const total = Number(progress.total || 0);
+  const current = Number(progress.current ?? progress.written ?? progress.fetched ?? 0);
+  const percent = total > 0 ? Math.max(0, Math.min(100, Math.round((current / total) * 100))) : 0;
+  const label = progress.label || '';
+  const progressEl = document.getElementById(BOOTSTRAP_PROGRESS_ID);
+  const barEl = document.getElementById(BOOTSTRAP_PROGRESS_BAR_ID);
+  if (progressEl) {
+    progressEl.textContent = label;
+  }
+  if (barEl) {
+    barEl.style.width = `${percent}%`;
   }
 };
 
@@ -369,16 +405,28 @@ const maybeFullReset = async () => {
     const scheduleFullSeed = () => scheduleIdle(async () => {
       try {
         log(`Background seeding full VFS set (${(manifest?.files || []).length} files)...`);
-        return await seedVfsFromManifest(
+        const result = await seedVfsFromManifest(
           manifest,
           {
             preserveOnBoot,
             logger: console,
             manifestText: text,
             skipVfsPaths: skipBootVfsPaths,
-            fetchConcurrency: 6
+            fetchConcurrency: 6,
+            progressScope: 'full',
+            progressLabel: 'Full VFS hydration',
+            onProgress: setBootstrapProgress
           }
         );
+        if (bootProfile === 'zero_home') {
+          await ensureVfsFileMirrors(ZERO_RUNTIME_SELF_MIRRORS, {
+            overwrite: false,
+            logger: console,
+            progressScope: 'full',
+            onProgress: setBootstrapProgress
+          });
+        }
+        return result;
       } catch (e) {
         warn('Background VFS seed failed:', e?.message || e);
         throw e;
@@ -389,7 +437,15 @@ const maybeFullReset = async () => {
     setBootstrapStage('seed_boot');
     await seedVfsFromManifest(
       { files: bootFiles },
-      { preserveOnBoot, logger: console, manifestText: text, fetchConcurrency: 16 }
+      {
+        preserveOnBoot,
+        logger: console,
+        manifestText: text,
+        fetchConcurrency: 16,
+        progressScope: 'boot',
+        progressLabel: 'Boot VFS seed',
+        onProgress: setBootstrapProgress
+      }
     );
 
     if (shouldHydrateFullManifest(bootProfile)) {

@@ -58,6 +58,48 @@
   background: var(--fg);
 }
 
+.bootstrap-progress,
+.vfs-hydration-status {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  width: 100%;
+}
+
+.bootstrap-progress-track,
+.vfs-hydration-track {
+  width: 100%;
+  height: 8px;
+  border: var(--border-sm) solid var(--fg);
+  background: var(--bg);
+  overflow: hidden;
+}
+
+.bootstrap-progress-bar,
+.vfs-hydration-bar {
+  height: 100%;
+  width: 0;
+  background: var(--fg);
+  transition: width 120ms linear;
+}
+
+.vfs-hydration-status {
+  margin-top: var(--space-sm);
+  padding: 12px;
+  border: var(--border-sm) solid var(--fg);
+}
+
+.vfs-hydration-copy {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-sm);
+}
+
+.vfs-hydration-count {
+  text-align: right;
+}
+
 /* === ANIMATIONS === */
 
 @keyframes blink {

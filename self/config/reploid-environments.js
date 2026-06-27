@@ -11,7 +11,7 @@ const TEMPLATE_DEFINITIONS = [
       'Browser-hosted JavaScript runtime.',
       'Canonical self lives under /self.',
       'Model writes go under /shadow and /artifacts.',
-      'Visible tools: ReadFile, WriteFile, LoadModule, Promote.',
+      'Visible tools: ReadFile, WriteFile, CreateTool, LoadModule, Promote.',
       'Assume nothing else until verified.'
     ].join('\n')
   },
@@ -23,7 +23,7 @@ const TEMPLATE_DEFINITIONS = [
       'Browser-hosted JavaScript runtime with VFS and OPFS.',
       'Canonical self lives under /self.',
       'Model writes go under /shadow and /artifacts.',
-      'Visible tools: ReadFile, WriteFile, LoadModule, Promote.'
+      'Visible tools: ReadFile, WriteFile, CreateTool, LoadModule, Promote.'
     ].join('\n')
   },
   {
@@ -34,7 +34,7 @@ const TEMPLATE_DEFINITIONS = [
       'Browser-hosted JavaScript runtime with VFS and OPFS.',
       'Canonical self lives under /self.',
       'Model writes go under /shadow and /artifacts.',
-      'LoadModule registers JavaScript tools from /self after promotion.',
+      'CreateTool writes runtime tools under /tools. LoadModule registers promoted JavaScript tools from /self/tools.',
       'Put reusable candidates under /shadow and durable outputs under /artifacts.'
     ].join('\n')
   },
@@ -46,7 +46,7 @@ const TEMPLATE_DEFINITIONS = [
       'Browser-hosted JavaScript runtime with VFS and OPFS.',
       'Canonical self lives under /self.',
       'Model writes go under /shadow and /artifacts.',
-      'LoadModule registers JavaScript tools from /self after promotion.',
+      'CreateTool writes runtime tools under /tools. LoadModule registers promoted JavaScript tools from /self/tools.',
       'Any web API may exist; verify it before relying on it.'
     ].join('\n')
   },
@@ -58,7 +58,7 @@ const TEMPLATE_DEFINITIONS = [
       'Browser-hosted JavaScript runtime with VFS and OPFS.',
       'Canonical self lives under /self.',
       'Model writes go under /shadow and /artifacts.',
-      'LoadModule registers JavaScript tools from /self after promotion.',
+      'CreateTool writes runtime tools under /tools. LoadModule registers promoted JavaScript tools from /self/tools.',
       'Prefer small reversible changes, keep candidates under /shadow, and place evidence under /artifacts or opfs:/artifacts.',
       'Any web API may exist; verify it before relying on it.'
     ].join('\n')

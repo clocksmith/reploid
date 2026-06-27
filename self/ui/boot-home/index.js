@@ -42,7 +42,12 @@ import {
   getCurrentReploidInstanceLabel,
   getCurrentReploidStorage as getReploidStorage
 } from '../../instance.js';
-import { clearVfsStore, loadVfsManifest, seedVfsFromManifest } from '../../boot-helpers/vfs-bootstrap.js';
+import {
+  clearVfsStore,
+  ensureVfsFileMirrors,
+  loadVfsManifest,
+  seedVfsFromManifest
+} from '../../boot-helpers/vfs-bootstrap.js';
 import {
   getReploidLaunchState,
   hasDirectInferenceConfig,
@@ -71,6 +76,10 @@ const RGR_SLOT_ROLES = Object.freeze([
   'low-cost',
   'safety',
   'fallback'
+]);
+const ZERO_RUNTIME_SELF_MIRRORS = Object.freeze([
+  { sourcePath: '/ui/zero/index.js', targetPath: '/self/ui/zero/index.js' },
+  { sourcePath: '/styles/zero.css', targetPath: '/self/styles/zero.css' }
 ]);
 const ROUTE_HOME_CONFIG = Object.freeze({
   reploid: {
@@ -119,6 +128,81 @@ let sponsorAccessExpanded = false;
 let isInitialRender = true;
 let lastRenderSignature = null;
 let pendingDeferredRender = false;
+let vfsProgressListenerAttached = false;
+
+const escapeHtml = (value) => String(value || '')
+  .replace(/&/g, '&amp;')
+  .replace(/</g, '&lt;')
+  .replace(/>/g, '&gt;')
+  .replace(/"/g, '&quot;')
+  .replace(/'/g, '&#39;');
+
+const normalizeVfsProgress = (progress = {}) => {
+  if (!progress || typeof progress !== 'object') return null;
+  const total = Number(progress.total || 0);
+  const current = Number(progress.current ?? progress.written ?? progress.fetched ?? 0);
+  const percent = total > 0
+    ? Math.max(0, Math.min(100, Math.round((current / total) * 100)))
+    : 0;
+  return {
+    scope: String(progress.scope || 'vfs'),
+    phase: String(progress.phase || ''),
+    label: String(progress.label || ''),
+    total,
+    current,
+    percent,
+    written: Number(progress.written || 0),
+    fetched: Number(progress.fetched || 0),
+    skipped: Number(progress.skipped || 0),
+    timestamp: Number(progress.timestamp || Date.now())
+  };
+};
+
+const getCurrentFullSeedProgress = () => {
+  if (typeof window === 'undefined') return null;
+  return normalizeVfsProgress(window.REPLOID_VFS_FULL_SEED_PROGRESS || window.REPLOID_VFS_SEED_PROGRESS);
+};
+
+const setVfsProgress = (progress) => {
+  const normalized = normalizeVfsProgress(progress);
+  if (!normalized) return;
+  setState({ vfsProgress: normalized });
+};
+
+const attachVfsProgressListener = () => {
+  if (vfsProgressListenerAttached || typeof window === 'undefined') return;
+  vfsProgressListenerAttached = true;
+  window.addEventListener('reploid:vfs-seed-progress', (event) => {
+    setVfsProgress(event.detail);
+  });
+};
+
+const renderVfsProgress = (state) => {
+  const progress = normalizeVfsProgress(state.vfsProgress || getCurrentFullSeedProgress());
+  if (!progress) return '';
+  const shouldShow = state.isAwakening
+    || (state.mode !== 'reploid' && progress.scope === 'full' && progress.phase !== 'done');
+  if (!shouldShow) return '';
+  const label = progress.label || 'Preparing VFS.';
+  const detail = progress.total > 0
+    ? `${progress.current}/${progress.total} files`
+    : 'Preparing files';
+  return `
+    <div class="vfs-hydration-status" aria-live="polite">
+      <div class="vfs-hydration-copy">
+        <span class="type-label">VFS</span>
+        <span class="type-caption">${escapeHtml(label)}</span>
+      </div>
+      <div class="vfs-hydration-track" role="progressbar"
+           aria-valuemin="0"
+           aria-valuemax="100"
+           aria-valuenow="${progress.percent}">
+        <div class="vfs-hydration-bar" style="width: ${progress.percent}%"></div>
+      </div>
+      <span class="type-caption vfs-hydration-count">${escapeHtml(detail)}</span>
+    </div>
+  `;
+};
 
 const renderLockedSection = (title, caption) => `
   <div class="wizard-step wizard-stage-placeholder">
@@ -376,6 +460,14 @@ const getHomeRenderSignature = (state) => {
     editingSeedPath: state.editingSeedPath,
     seedOverrides: state.seedOverrides,
     seedDraftPaths: Object.keys(state.seedDrafts || {}).sort(),
+    vfsProgress: state.vfsProgress ? {
+      scope: state.vfsProgress.scope,
+      phase: state.vfsProgress.phase,
+      current: state.vfsProgress.current,
+      total: state.vfsProgress.total,
+      percent: state.vfsProgress.percent,
+      label: state.vfsProgress.label
+    } : null,
     accessState: {
       error: state.accessConfig?.error || null,
       hasCode: !!String(state.accessConfig?.accessCode || '').trim()
@@ -661,7 +753,17 @@ async function doAwaken() {
   if (!goalPacket) return;
   let modelConfig = null;
 
-  setState({ isAwakening: true });
+  setState({
+    isAwakening: true,
+    vfsProgress: getCurrentFullSeedProgress() || {
+      scope: 'full',
+      phase: 'prepare',
+      label: 'Preparing VFS hydration.',
+      total: 0,
+      current: 0,
+      percent: 0
+    }
+  });
 
   try {
     modelConfig = state.mode === 'reploid'
@@ -671,13 +773,37 @@ async function doAwaken() {
     if (state.mode === 'reploid' && typeof window.preloadReploidModules === 'function') {
       await window.preloadReploidModules();
     }
-    await clearVfsStore();
-    if (state.mode !== 'reploid') {
-      const { manifest, text } = await loadVfsManifest({ includeDoppler: shouldSeedDopplerVfs(state) });
-      await seedVfsFromManifest(manifest, {
-        preserveOnBoot: false,
+    if (state.mode === 'reploid') {
+      await clearVfsStore();
+    } else {
+      const fullSeed = window.REPLOID_VFS_FULL_SEED_PROMISE;
+      if (fullSeed && typeof fullSeed.then === 'function') {
+        setVfsProgress({
+          ...(getCurrentFullSeedProgress() || {}),
+          scope: 'full',
+          phase: 'await',
+          label: 'Waiting for first-load VFS hydration.'
+        });
+        await fullSeed;
+      }
+
+      const includeDoppler = shouldSeedDopplerVfs(state);
+      const { manifest, text } = await loadVfsManifest({ includeDoppler });
+      if (includeDoppler || !fullSeed) {
+        await seedVfsFromManifest(manifest, {
+          preserveOnBoot: true,
+          logger: console,
+          manifestText: text,
+          progressScope: 'full',
+          progressLabel: includeDoppler ? 'VFS hydration with Doppler files' : 'Full VFS hydration',
+          onProgress: setVfsProgress
+        });
+      }
+      await ensureVfsFileMirrors(ZERO_RUNTIME_SELF_MIRRORS, {
+        overwrite: false,
         logger: console,
-        manifestText: text
+        progressScope: 'full',
+        onProgress: setVfsProgress
       });
     }
   } catch (err) {
@@ -1195,6 +1321,8 @@ function render() {
         });
       }
 
+    html += renderVfsProgress(state);
+
     if (!canAwaken() || !hasGoal) {
       html += renderLockedSection(
         'Awaken',
@@ -1257,6 +1385,7 @@ export function initLockedBootHome(containerEl, mode = 'reploid') {
   isInitialRender = true;
   lastRenderSignature = null;
   pendingDeferredRender = false;
+  attachVfsProgressListener();
 
   if (unsubscribeState) {
     unsubscribeState();
@@ -1297,6 +1426,7 @@ export function initLockedBootHome(containerEl, mode = 'reploid') {
     mode: routeMode,
     routeLockedMode: routeMode,
     isAwakening: false,
+    vfsProgress: getCurrentFullSeedProgress(),
     ...managedReploid,
     ...managedZero
   });

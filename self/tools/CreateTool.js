@@ -17,6 +17,25 @@ async function call(args = {}, deps = {}) {
 
   const result = await ToolWriter.create(cleanName, normalizedCode);
 
+  if (ToolRunner?.allow) {
+    ToolRunner.allow(cleanName);
+  }
+
+  if (ToolRunner?.load) {
+    try {
+      const loaded = await ToolRunner.load(cleanName, { allow: true });
+      if (typeof result === 'string') {
+        return `${result} (${loaded ? 'tool loaded' : 'tool load skipped'})`;
+      }
+      return { ...result, toolLoaded: !!loaded };
+    } catch (err) {
+      if (typeof result === 'string') {
+        return `${result} (tool load failed: ${err.message})`;
+      }
+      return { ...result, toolLoaded: false, toolLoadError: err.message };
+    }
+  }
+
   if (ToolRunner?.refresh) {
     try {
       await ToolRunner.refresh();

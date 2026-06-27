@@ -152,6 +152,106 @@ export async function writeVfsFile(path, content) {
   });
 }
 
+const emitSeedProgress = (onProgress, payload) => {
+  const progress = {
+    timestamp: Date.now(),
+    ...payload
+  };
+  if (typeof onProgress === 'function') {
+    try {
+      onProgress(progress);
+    } catch {
+      // Progress hooks must never break boot hydration.
+    }
+  }
+  if (typeof window !== 'undefined') {
+    window.REPLOID_VFS_SEED_PROGRESS = progress;
+    if (progress.scope === 'full') {
+      window.REPLOID_VFS_FULL_SEED_PROGRESS = progress;
+    }
+    if (typeof window.dispatchEvent === 'function' && typeof CustomEvent !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('reploid:vfs-seed-progress', { detail: progress }));
+    }
+  }
+  return progress;
+};
+
+export async function ensureVfsFileMirrors(mirrors = [], options = {}) {
+  const {
+    overwrite = false,
+    onProgress = null,
+    progressScope = 'mirrors',
+    logger = console
+  } = options;
+  const entries = Array.isArray(mirrors) ? mirrors : [];
+  let written = 0;
+  let skipped = 0;
+  let missing = 0;
+
+  emitSeedProgress(onProgress, {
+    scope: progressScope,
+    phase: 'mirror:start',
+    label: 'Preparing self-owned runtime mirrors.',
+    total: entries.length,
+    current: 0
+  });
+
+  for (const mirror of entries) {
+    const sourcePath = normalizePath(mirror?.sourcePath || mirror?.source);
+    const targetPath = normalizePath(mirror?.targetPath || mirror?.target);
+    const existingTarget = await readVfsFile(targetPath);
+    if (existingTarget !== null && !overwrite) {
+      skipped += 1;
+      emitSeedProgress(onProgress, {
+        scope: progressScope,
+        phase: 'mirror:skip',
+        label: `Preserved ${targetPath}`,
+        total: entries.length,
+        current: written + skipped + missing,
+        path: targetPath
+      });
+      continue;
+    }
+
+    const sourceContent = await readVfsFile(sourcePath);
+    if (sourceContent === null) {
+      missing += 1;
+      logger.warn?.(`[Bootstrap] Mirror source missing: ${sourcePath}`);
+      emitSeedProgress(onProgress, {
+        scope: progressScope,
+        phase: 'mirror:missing',
+        label: `Missing source ${sourcePath}`,
+        total: entries.length,
+        current: written + skipped + missing,
+        path: sourcePath
+      });
+      continue;
+    }
+
+    await writeVfsFile(targetPath, sourceContent);
+    written += 1;
+    emitSeedProgress(onProgress, {
+      scope: progressScope,
+      phase: 'mirror:write',
+      label: `Mirrored ${targetPath}`,
+      total: entries.length,
+      current: written + skipped + missing,
+      path: targetPath
+    });
+  }
+
+  const result = { total: entries.length, written, skipped, missing };
+  emitSeedProgress(onProgress, {
+    scope: progressScope,
+    phase: 'mirror:done',
+    label: 'Self-owned runtime mirrors ready.',
+    total: entries.length,
+    current: entries.length,
+    ...result
+  });
+  return result;
+}
+
 export async function listVfsKeys() {
   const db = await openVfsDb();
   return new Promise((resolve, reject) => {
@@ -270,7 +370,10 @@ export async function seedVfsFromManifest(manifest, options = {}) {
     manifestText = null,
     chunkSize = 200,
     fetchConcurrency = DEFAULT_FETCH_CONCURRENCY,
-    skipVfsPaths = null
+    skipVfsPaths = null,
+    onProgress = null,
+    progressScope = 'seed',
+    progressLabel = 'VFS hydration'
   } = options;
 
   let skip = null;
@@ -301,6 +404,18 @@ export async function seedVfsFromManifest(manifest, options = {}) {
   const manifestVfsPath = normalizePath(manifestPath);
   const files = manifest.files;
   const manifestInList = files.includes(manifestPath);
+  const total = files.length + (manifestText && !manifestInList ? 1 : 0);
+
+  emitSeedProgress(onProgress, {
+    scope: progressScope,
+    phase: 'start',
+    label: `${progressLabel}: preparing ${total} file(s).`,
+    total,
+    current: 0,
+    fetched: 0,
+    written: 0,
+    skipped: 0
+  });
 
   const entries = [];
   if (manifestText && !shouldSkip(manifestVfsPath)) {
@@ -332,12 +447,26 @@ export async function seedVfsFromManifest(manifest, options = {}) {
     const fetched = [];
     const concurrency = Math.min(fetchConcurrency, filesToFetch.length);
     let index = 0;
+    let fetchedCount = 0;
 
     const worker = async () => {
       while (index < filesToFetch.length) {
         const file = filesToFetch[index];
         index += 1;
-        fetched.push(await fetchFile(file));
+        const entry = await fetchFile(file);
+        fetched.push(entry);
+        fetchedCount += 1;
+        emitSeedProgress(onProgress, {
+          scope: progressScope,
+          phase: 'fetch',
+          label: `${progressLabel}: fetched ${fetchedCount}/${filesToFetch.length}.`,
+          total,
+          current: entries.length + fetchedCount,
+          fetched: fetchedCount,
+          written: 0,
+          skipped: total - entries.length - filesToFetch.length,
+          path: entry.path
+        });
       }
     };
 
@@ -350,10 +479,29 @@ export async function seedVfsFromManifest(manifest, options = {}) {
     const slice = entries.slice(i, i + chunkSize);
     await writeEntries(slice);
     written += slice.length;
+    emitSeedProgress(onProgress, {
+      scope: progressScope,
+      phase: 'write',
+      label: `${progressLabel}: wrote ${written}/${entries.length}.`,
+      total,
+      current: written,
+      fetched: filesToFetch.length,
+      written,
+      skipped: total - entries.length
+    });
   }
 
-  const total = files.length + (manifestText && !manifestInList ? 1 : 0);
   logger.info(`[Bootstrap] Hydrated ${written} VFS files`);
+  emitSeedProgress(onProgress, {
+    scope: progressScope,
+    phase: 'done',
+    label: `${progressLabel}: hydrated ${written} file(s).`,
+    total,
+    current: total,
+    fetched: filesToFetch.length,
+    written,
+    skipped: total - written
+  });
   return {
     total,
     written,

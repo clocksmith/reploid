@@ -171,6 +171,59 @@ describe('ToolRunner', () => {
         expect(result).toBe(true);
         expect(mockUtils.logger.warn).toHaveBeenCalled();
       });
+
+      it('should load the Zero kernel tools that have runtime dependencies', async () => {
+        mockVFS.list.mockResolvedValue([
+          '/tools/ReadFile.js',
+          '/tools/WriteFile.js',
+          '/tools/CreateTool.js',
+          '/tools/LoadModule.js',
+          '/tools/Promote.js',
+          '/tools/DeleteFile.js'
+        ]);
+        mockVFS.read.mockResolvedValue('export default async () => "ok";');
+        global.URL.createObjectURL = vi.fn(() => 'blob:mock-url');
+        global.URL.revokeObjectURL = vi.fn();
+
+        await toolRunner.init();
+
+        expect(mockVFS.read.mock.calls.map(([path]) => path)).toEqual([
+          '/tools/ReadFile.js',
+          '/tools/WriteFile.js',
+          '/tools/CreateTool.js',
+          '/tools/Promote.js'
+        ]);
+      });
+
+      it('should include LoadModule in the Zero kernel when SubstrateLoader is available', async () => {
+        const runnerWithLoader = ToolRunnerModule.factory({
+          Utils: mockUtils,
+          VFS: mockVFS,
+          ToolWriter: mockToolWriter,
+          SchemaRegistry: mockSchemaRegistry,
+          SubstrateLoader: { loadModule: vi.fn() }
+        });
+        mockVFS.list.mockResolvedValue([
+          '/tools/ReadFile.js',
+          '/tools/WriteFile.js',
+          '/tools/CreateTool.js',
+          '/tools/LoadModule.js',
+          '/tools/Promote.js'
+        ]);
+        mockVFS.read.mockResolvedValue('export default async () => "ok";');
+        global.URL.createObjectURL = vi.fn(() => 'blob:mock-url');
+        global.URL.revokeObjectURL = vi.fn();
+
+        await runnerWithLoader.init();
+
+        expect(mockVFS.read.mock.calls.map(([path]) => path)).toEqual([
+          '/tools/ReadFile.js',
+          '/tools/WriteFile.js',
+          '/tools/CreateTool.js',
+          '/tools/LoadModule.js',
+          '/tools/Promote.js'
+        ]);
+      });
     });
 
     describe('execute with lazy loading', () => {
