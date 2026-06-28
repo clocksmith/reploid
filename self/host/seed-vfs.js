@@ -68,6 +68,18 @@ const renderBootstrapLoading = () => {
   `;
 };
 
+const prepareBootstrapVisibility = (bootProfile) => {
+  const wizardContainer = document.getElementById('wizard-container');
+  if (!wizardContainer) return;
+  if (!shouldAwaitFullManifestBeforeStart(bootProfile)) {
+    renderBootstrapLoading();
+    return;
+  }
+
+  wizardContainer.style.display = 'none';
+  wizardContainer.replaceChildren();
+};
+
 const setBootstrapStage = (stage) => {
   if (typeof window !== 'undefined') {
     window.REPLOID_BOOTSTRAP_STAGE = stage;
@@ -388,7 +400,8 @@ const maybeFullReset = async () => {
 
 (async () => {
   try {
-    renderBootstrapLoading();
+    const bootProfile = getBootSeedProfile();
+    prepareBootstrapVisibility(bootProfile);
     setBootstrapStage('starting');
     await maybeFullReset();
 
@@ -399,7 +412,6 @@ const maybeFullReset = async () => {
 
     setBootstrapStage('manifest');
     const { manifest, text } = await loadVfsManifest();
-    const bootProfile = getBootSeedProfile();
     const preserveOnBoot = shouldPreserveBootVfs({ bootProfile, vfsReset });
     const bootFiles = pickBootSeedFiles(manifest?.files || [], bootProfile);
     if (bootFiles.length === 0) {

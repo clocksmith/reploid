@@ -132,7 +132,11 @@ export const bindRunControls = () => {
       });
       result.inviteUrl = getPeerInviteUrl();
       result.relay = getPeerRelayMode();
-      addReceiptLedgerRow(result.receiptRecord || result, result.receiptHash);
+      addReceiptLedgerRow({
+        ...(result.receiptRecord || result),
+        requesterAcceptance: result.requesterAcceptance || null,
+        agreement: result.agreement || null
+      }, result.receiptHash);
       setResult('pool-run-result', result, { stream: true });
     } catch (error) {
       setResult('pool-run-result', displayPoolError(error, {

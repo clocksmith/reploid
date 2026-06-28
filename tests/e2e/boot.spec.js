@@ -413,6 +413,29 @@ test.describe('Route Entry Points', () => {
 
   test('/0 locks the boot mode to Zero', async ({ page }) => {
     const startupDiscoveryRequests = [];
+    await page.addInitScript(() => {
+      window.__zeroPreHydrationBootVisible = false;
+      const hydrationDone = () => window.REPLOID_VFS_FULL_SEED_PROGRESS?.phase === 'mirror:done';
+      const inspectBootContainer = () => {
+        if (hydrationDone()) return;
+        const el = document.getElementById('wizard-container');
+        if (!el) return;
+        const hasRenderedBoot = el.children.length > 0 || String(el.textContent || '').trim().length > 0;
+        if (!hasRenderedBoot) return;
+        const visible = window.getComputedStyle(el).display !== 'none';
+        if (visible) {
+          window.__zeroPreHydrationBootVisible = true;
+        }
+      };
+      const observer = new MutationObserver(inspectBootContainer);
+      observer.observe(document.documentElement, {
+        childList: true,
+        subtree: true,
+        attributes: true,
+        attributeFilter: ['style', 'class']
+      });
+      document.addEventListener('DOMContentLoaded', inspectBootContainer);
+    });
     page.on('request', (request) => {
       const url = request.url();
       if (
@@ -425,8 +448,9 @@ test.describe('Route Entry Points', () => {
       }
     });
     await page.goto('/0');
-    await page.waitForSelector('.wizard-home-provider [data-action="choose-proxy"]', { timeout: 20000 });
     await expect.poll(async () => page.evaluate(() => window.REPLOID_VFS_FULL_SEED_PROGRESS?.phase || null)).toBe('mirror:done');
+    expect(await page.evaluate(() => window.__zeroPreHydrationBootVisible)).toBe(false);
+    await page.waitForSelector('.wizard-home-provider [data-action="choose-proxy"]', { timeout: 20000 });
 
     await expect(page.locator('.boot-mode-btn[data-mode]')).toHaveCount(0);
     await expect(page.locator('.wizard-brand')).toHaveCount(0);
@@ -441,6 +465,10 @@ test.describe('Route Entry Points', () => {
     await expect(page.locator('#proxy-provider')).toHaveValue('gemini');
     await expect(page.locator('#proxy-model')).toHaveValue('gemini-3.5-flash');
     await expect(page.locator('#goal-input')).toBeVisible();
+    await page.locator('#goal-input').fill('');
+    await page.locator('[data-action="generate-goal"]').click();
+    await expect(page.locator('#goal-input')).not.toHaveValue('');
+    await expect(page.locator('#goal-input')).not.toHaveValue('[object Object]');
     await expect(page.locator('#awaken-btn')).toBeEnabled();
     await expect(page.locator('#reploid-swarm-enabled')).toHaveCount(0);
     await expect(page.getByRole('link', { name: 'new peer' })).toHaveCount(0);

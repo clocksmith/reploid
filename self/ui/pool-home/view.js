@@ -187,7 +187,7 @@ export const addReceiptLedgerRow = (record = {}, receiptHash = '') => {
     record?.provider,
     record?.assignment?.providerId
   );
-  const fidelity = normalizeReceiptFidelity(record?.verifierDecision || record?.verification || record?.requesterAcceptance);
+  const fidelity = normalizeReceiptFidelity(record?.verifierDecision || record?.verification || record?.requesterAcceptance || record?.peerDecision || record?.agreement);
   const speed = normalizeReceiptSpeed(record);
   POOLDAY_RECEIPT_LEDGER.unshift({
     jobId: String(jobId || '—'),

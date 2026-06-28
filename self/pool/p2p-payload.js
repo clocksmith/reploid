@@ -129,7 +129,9 @@ export async function createReceiptPayload({ assignment, receiptRecord, fromPeer
       outputText: receiptRecord?.outputText || '',
       tokenIds: Array.isArray(receiptRecord?.tokenIds) ? receiptRecord.tokenIds : [],
       transcript: receiptRecord?.transcript || null,
-      verifierDecision: receiptRecord?.verifierDecision || null
+      verifierDecision: receiptRecord?.verifierDecision || null,
+      providerPublicKey: receiptRecord?.providerPublicKey || null,
+      peerDecision: receiptRecord?.peerDecision || null
     }
   });
   return {
