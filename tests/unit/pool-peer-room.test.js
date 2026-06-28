@@ -356,6 +356,244 @@ describe('pool peer room', () => {
     }
   });
 
+  it('accepts a provider that joins after requester discovery starts', async () => {
+    installFakeBroadcastChannel();
+    const requesterClient = await createRoomRequesterClient('requester_late_provider');
+    const providerClient = await createRoomProviderClient({
+      providerId: 'provider_late_join'
+    });
+    const {
+      requesterTransportFactory,
+      providerTransportFactory
+    } = createFakeTransportFactories();
+    const providerNode = createPeerProviderNode({
+      roomId: 'late-provider-room',
+      providerClient,
+      providerTransportFactory,
+      advertIntervalMs: 100000
+    });
+
+    const pending = runPeerJob({
+      roomId: 'late-provider-room',
+      requesterClient,
+      requesterTransportFactory,
+      prompt: 'late provider prompt',
+      policyId: 'fastest_receipt',
+      modelRequirements: runtimeModel(),
+      discoveryWindowMs: 1000,
+      receiptWindowMs: 1000
+    });
+    await expect.poll(() => FakeBroadcastChannel.channels.get('reploid-peer-room:late-provider-room')?.size || 0).toBeGreaterThan(0);
+    await providerNode.start({
+      models: [runtimeModel()],
+      availability: {
+        acceptedPolicies: ['fastest_receipt']
+      }
+    });
+
+    try {
+      const result = await pending;
+      expect(result.outputText).toBe('room:late provider prompt');
+      expect(result.assignment.providerId).toBe('provider_late_join');
+    } finally {
+      await providerNode.stop();
+    }
+  });
+
+  it('ignores providers advertising in a different room', async () => {
+    installFakeBroadcastChannel();
+    const requesterClient = await createRoomRequesterClient('requester_wrong_room');
+    const providerClient = await createRoomProviderClient({
+      providerId: 'provider_wrong_room'
+    });
+    const {
+      requesterTransportFactory,
+      providerTransportFactory
+    } = createFakeTransportFactories();
+    const providerNode = createPeerProviderNode({
+      roomId: 'provider-only-room',
+      providerClient,
+      providerTransportFactory,
+      advertIntervalMs: 100000
+    });
+    await providerNode.start({
+      models: [runtimeModel()],
+      availability: {
+        acceptedPolicies: ['fastest_receipt']
+      }
+    });
+
+    try {
+      await expect(runPeerJob({
+        roomId: 'requester-only-room',
+        requesterClient,
+        requesterTransportFactory,
+        prompt: 'wrong room prompt',
+        policyId: 'fastest_receipt',
+        modelRequirements: runtimeModel(),
+        discoveryWindowMs: 5,
+        receiptWindowMs: 100
+      })).rejects.toMatchObject({
+        code: 'peer_provider_not_found',
+        payload: {
+          roomId: 'requester-only-room',
+          observedProviderCount: 0
+        }
+      });
+    } finally {
+      await providerNode.stop();
+    }
+  });
+
+  it('does not accept a job when the provider leaves before receipt', async () => {
+    installFakeBroadcastChannel();
+    const requesterClient = await createRoomRequesterClient('requester_provider_leaves');
+    const blocking = createBlockingRuntime();
+    const providerClient = await createRoomProviderClient({
+      providerId: 'provider_leaves_mid_job',
+      runtime: blocking.runtime
+    });
+    const {
+      requesterTransportFactory,
+      providerTransportFactory
+    } = createFakeTransportFactories();
+    const providerNode = createPeerProviderNode({
+      roomId: 'provider-leaves-room',
+      providerClient,
+      providerTransportFactory,
+      advertIntervalMs: 100000,
+      maxActiveSessions: 1
+    });
+    await providerNode.start({
+      models: [runtimeModel()],
+      availability: {
+        maxConcurrentJobs: 1,
+        acceptedPolicies: ['fastest_receipt']
+      }
+    });
+
+    const pending = runPeerJob({
+      roomId: 'provider-leaves-room',
+      requesterClient,
+      requesterTransportFactory,
+      prompt: 'provider leaves prompt',
+      policyId: 'fastest_receipt',
+      modelRequirements: runtimeModel(),
+      discoveryWindowMs: 1000,
+      receiptWindowMs: 25
+    });
+    await expect.poll(() => blocking.prompts.length).toBe(1);
+    await providerNode.stop();
+    blocking.releaseNext();
+
+    await expect(pending).rejects.toThrow(/No peer receipt returned/);
+  });
+
+  it('returns provider runtime failures to the requester', async () => {
+    installFakeBroadcastChannel();
+    const requesterClient = await createRoomRequesterClient('requester_runtime_failure');
+    const providerClient = await createRoomProviderClient({
+      providerId: 'provider_runtime_failure',
+      runtime: fakeRuntime({
+        generate: async () => {
+          throw new Error('synthetic generate failure');
+        }
+      })
+    });
+    const {
+      requesterTransportFactory,
+      providerTransportFactory
+    } = createFakeTransportFactories();
+    const providerNode = createPeerProviderNode({
+      roomId: 'runtime-failure-room',
+      providerClient,
+      providerTransportFactory,
+      advertIntervalMs: 100000
+    });
+    await providerNode.start({
+      models: [runtimeModel()],
+      availability: {
+        acceptedPolicies: ['fastest_receipt']
+      }
+    });
+
+    try {
+      await expect(runPeerJob({
+        roomId: 'runtime-failure-room',
+        requesterClient,
+        requesterTransportFactory,
+        prompt: 'runtime failure prompt',
+        policyId: 'fastest_receipt',
+        modelRequirements: runtimeModel(),
+        discoveryWindowMs: 1000,
+        receiptWindowMs: 1000
+      })).rejects.toThrow(/synthetic generate failure/);
+    } finally {
+      await providerNode.stop();
+    }
+  });
+
+  it('rejects ring quorum when provider receipts do not agree', async () => {
+    installFakeBroadcastChannel();
+    const requesterClient = await createRoomRequesterClient('requester_no_quorum');
+    const {
+      requesterTransportFactory,
+      providerTransportFactory
+    } = createFakeTransportFactories();
+    const providerNodes = await Promise.all([0, 1, 2].map(async (index) => {
+      const providerClient = await createRoomProviderClient({
+        providerId: `provider_no_quorum_${index}`,
+        runtime: fakeRuntime({
+          generate: async ({ prompt }) => ({
+            outputText: `provider-${index}:${prompt}`,
+            tokenIds: [index, index + 100],
+            transcript: {
+              outputText: `provider-${index}:${prompt}`,
+              tokenIds: [index, index + 100]
+            },
+            tokenCounts: {
+              input: 2,
+              output: 2
+            },
+            timing: {
+              startedAt: '2026-06-14T00:00:00.000Z',
+              completedAt: '2026-06-14T00:00:01.000Z'
+            },
+            status: 'completed'
+          })
+        })
+      });
+      const providerNode = createPeerProviderNode({
+        roomId: 'no-quorum-room',
+        providerClient,
+        providerTransportFactory,
+        advertIntervalMs: 100000
+      });
+      await providerNode.start({
+        models: [runtimeModel()],
+        availability: {
+          acceptedPolicies: ['ring_quorum_receipt']
+        }
+      });
+      return providerNode;
+    }));
+
+    try {
+      await expect(runPeerJob({
+        roomId: 'no-quorum-room',
+        requesterClient,
+        requesterTransportFactory,
+        prompt: 'no quorum prompt',
+        policyId: 'ring_quorum_receipt',
+        modelRequirements: runtimeModel(),
+        discoveryWindowMs: 20,
+        receiptWindowMs: 1000
+      })).rejects.toThrow(/Peer receipt agreement failed/);
+    } finally {
+      await Promise.all(providerNodes.map((providerNode) => providerNode.stop()));
+    }
+  });
+
   it('runs a browser room job over peer discovery and DataChannel payloads without coordinator calls', async () => {
     installFakeBroadcastChannel();
     const requesterKeys = await createSigningKeyPair();
@@ -424,6 +662,29 @@ describe('pool peer room', () => {
     expect(result.assignment.requesterId).toBe('requester_room');
     expect(result.promptPayload.body.prompt).toBe('peer room prompt');
     expect(result.receiptHash).toMatch(/^sha256:/);
+    expect(result.receiptRecord).toMatchObject({
+      assignmentId: result.assignment.assignmentId,
+      jobId: result.assignment.jobId,
+      providerId: 'provider_room',
+      requesterId: 'requester_room'
+    });
+    expect(result.receiptRecord.receipt).toMatchObject({
+      assignmentId: result.assignment.assignmentId,
+      jobId: result.assignment.jobId,
+      providerId: 'provider_room',
+      requesterId: 'requester_room',
+      policyId: result.assignment.policyId,
+      inputHash: result.assignment.inputHash,
+      generationConfigHash: result.assignment.generationConfigHash,
+      model: {
+        id: LAUNCH_MODEL.modelId,
+        hash: LAUNCH_MODEL.modelHash,
+        manifestHash: LAUNCH_MODEL.manifestHash
+      }
+    });
+    expect(result.receiptRecord.receipt.outputHash).toMatch(/^sha256:/);
+    expect(result.receiptRecord.receipt.tokenIdsHash).toMatch(/^sha256:/);
+    expect(result.ledgerEvents.every((event) => event.body?.receiptHash || event.body?.agreementHash)).toBe(true);
     expect(result.requesterAcceptance).toMatchObject({
       receiptHash: result.receiptHash,
       requesterId: 'requester_room',

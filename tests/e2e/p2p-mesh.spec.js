@@ -31,18 +31,36 @@ const routeUrl = (baseURL, route, roomId) => {
   return url.toString();
 };
 
-const installDeterministicRuntime = async (context, { runtimeLabel, generationDelayMs = 0 }) => {
-  await context.addInitScript(({ launchModel, label, delayMs }) => {
+const installDeterministicRuntime = async (context, {
+  runtimeLabel,
+  generationDelayMs = 0,
+  startReady = true,
+  loadModelResult = null
+}) => {
+  await context.addInitScript(({ launchModel, label, delayMs, initialReady, loadResult }) => {
     const runtimeModel = { ...launchModel };
+    const runtimeState = {
+      ready: initialReady,
+      model: initialReady ? runtimeModel : null
+    };
     window.REPLOID_POOL_RELAY_MODE = 'local';
     window.REPLOID_POOL_DISCOVERY_WINDOW_MS = 30000;
     window.REPLOID_POOL_RECEIPT_WINDOW_MS = 30000;
     window.REPLOID_POOL_STRICT_ARTIFACT_PREFLIGHT = false;
     window.REPLOID_DOPPLER_RUNTIME = {
-      isReady: () => true,
-      loadModel: async () => ({ ok: true, model: runtimeModel, status: 'model_loaded' }),
-      getLoadState: () => ({ status: 'ready', model: runtimeModel }),
-      getModelInfo: () => runtimeModel,
+      isReady: () => runtimeState.ready,
+      loadModel: async () => {
+        if (loadResult) {
+          runtimeState.ready = loadResult.ok === true;
+          runtimeState.model = loadResult.ok === true ? runtimeModel : null;
+          return { ...loadResult, model: runtimeState.model || runtimeModel };
+        }
+        runtimeState.ready = true;
+        runtimeState.model = runtimeModel;
+        return { ok: true, model: runtimeModel, status: 'model_loaded' };
+      },
+      getLoadState: () => ({ status: runtimeState.ready ? 'ready' : 'not_loaded', model: runtimeState.model }),
+      getModelInfo: () => runtimeState.model,
       getRuntimeInfo: () => ({
         runtime: runtimeModel.runtime,
         backend: runtimeModel.backend,
@@ -98,7 +116,13 @@ const installDeterministicRuntime = async (context, { runtimeLabel, generationDe
         };
       }
     };
-  }, { launchModel: model, label: runtimeLabel, delayMs: generationDelayMs });
+  }, {
+    launchModel: model,
+    label: runtimeLabel,
+    delayMs: generationDelayMs,
+    initialReady: startReady,
+    loadResult: loadModelResult
+  });
 };
 
 const createPoolContext = async (browser, runtimeLabel, options = {}) => {
@@ -208,6 +232,32 @@ test.describe('Run, Mesh, Record peer room', () => {
       const otherStart = await readProviderResult(secondProviderPage);
       expect(otherStart.identity?.roleId).toMatch(/^provider_/);
       expect(otherStart.identity?.roleId).not.toBe(firstRoleId);
+    } finally {
+      await closeContexts(contexts);
+    }
+  });
+
+  test('fails provider start closed when runtime model load fails', async ({ browser, baseURL }, testInfo) => {
+    const roomId = roomIdFor(testInfo, 'load-fail');
+    const contexts = [];
+    try {
+      const context = await createPoolContext(browser, 'provider_load_failure', {
+        startReady: false,
+        loadModelResult: {
+          ok: false,
+          reason: 'synthetic load failure',
+          status: 'load_failed'
+        }
+      });
+      contexts.push(context);
+      const providerPage = await openPoolPage(context, baseURL, '/mesh', roomId);
+
+      await providerPage.locator('#pool-provider-worker-start').click();
+      await expect(providerPage.locator('[data-pool-provider-status]')).toHaveText('NODE // OFFLINE');
+      await expect(providerPage.locator('#pool-provider-result')).toContainText('Contributor could not start');
+      await expect(providerPage.locator('#pool-provider-result-raw')).toContainText('synthetic load failure');
+      await expect(providerPage.locator('#pool-provider-worker-start')).toBeEnabled();
+      await expect(providerPage.locator('#pool-provider-worker-stop')).toBeDisabled();
     } finally {
       await closeContexts(contexts);
     }
