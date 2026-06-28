@@ -1299,8 +1299,11 @@ async function handleGenerateGoal() {
 
   try {
     const state = getState();
-    const goal = state.mode === 'zero'
+    const zeroGoal = state.mode === 'zero'
       ? getRandomZeroGoal(Date.now(), state.goal)
+      : null;
+    const goal = state.mode === 'zero'
+      ? (zeroGoal?.text || state.goal)
       : await generateGoalPrompt();
     setState({
       goal,

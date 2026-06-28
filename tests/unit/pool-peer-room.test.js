@@ -664,6 +664,11 @@ describe('pool peer room', () => {
     expect(result.assignment.requesterId).toBe('requester_room');
     expect(result.promptPayload.body.prompt).toBe('peer room prompt');
     expect(result.receiptHash).toMatch(/^sha256:/);
+    expect(result.receiptRecord.providerPublicKey).toMatch(/^[A-Za-z0-9+/=]+$/);
+    expect(result.receiptRecord.peerDecision).toMatchObject({
+      accepted: true,
+      source: 'provider_signed_peer_execution'
+    });
     expect(result.receiptRecord.receipt).toMatchObject({
       assignmentId: result.assignment.assignmentId,
       jobId: result.assignment.jobId,

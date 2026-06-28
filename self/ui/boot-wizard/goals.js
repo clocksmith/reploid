@@ -219,23 +219,323 @@ const normalizeText = (value) => String(value || '').trim();
 export const ZERO_GOAL_CHOICES = Object.freeze([
   {
     view: 'Seed audit',
+    level: 1,
     text: 'Read the seed files, find the smallest weak instruction, stage a clearer replacement under /shadow, and write evidence under /artifacts.'
   },
   {
     view: 'Tool seed',
+    level: 1,
     text: 'Draft one minimal tool under /shadow/tools, write a smoke-test artifact, and request Promote only if the evidence is complete.'
   },
   {
     view: 'Loop trace',
+    level: 1,
     text: 'Trace one loop from goal to model response to tool result, record the failure boundary, and stage one reversible repair.'
   },
   {
     view: 'Prompt trim',
+    level: 1,
     text: 'Find duplicated prompt or blueprint instructions, stage a smaller equivalent contract under /shadow, and record the behavior that must not change.'
   },
   {
     view: 'Boot simplifier',
+    level: 1,
     text: 'Inspect the Zero boot path, stage one simplification that preserves local model execution, and write a rollback note.'
+  },
+  {
+    view: 'DOM Katamari Lab',
+    level: 1,
+    text: 'Build a 3D DOM collector that turns page elements into selectable physics objects, then export stable selectors and a replay artifact.'
+  },
+  {
+    view: 'Browser Circuit Board',
+    level: 1,
+    text: 'Draw the live Zero runtime as a circuit board of VFS, model, tools, workers, storage, and promotion gates.'
+  },
+  {
+    view: 'Replay Telescope',
+    level: 1,
+    text: 'Build a zoomable timeline of one Zero loop from goal to prompt to tool call to artifact to promotion decision.'
+  },
+  {
+    view: 'DOM Skyline',
+    level: 1,
+    text: 'Render the current page as a layered skyline of semantic regions, event handlers, storage calls, and selector candidates.'
+  },
+  {
+    view: 'Canvas Trace Prism',
+    level: 1,
+    text: 'Capture a visual trace of one browser action, split it into DOM, canvas, network, and storage lanes, and save the trace artifact.'
+  },
+  {
+    view: 'Selector Gravity Well',
+    level: 1,
+    text: 'Create a visual selector picker where stronger selectors pull matching nodes closer, then export the smallest robust selector set.'
+  },
+  {
+    view: 'State Snapshot Deck',
+    level: 1,
+    text: 'Turn state snapshots into a swipeable deck with diffs, timestamps, and one-click rollback evidence for each mutation.'
+  },
+  {
+    view: 'Capability Light Table',
+    level: 1,
+    text: 'Build a light-table view of browser capabilities, permission states, fallbacks, and the files that depend on each capability.'
+  },
+  {
+    view: 'Context X-Ray',
+    level: 2,
+    text: 'Visualize the exact model context as colored layers, identify low-signal sections, and stage one measurable compression.'
+  },
+  {
+    view: 'OPFS Time Capsule',
+    level: 2,
+    text: 'Build a visual artifact vault for snapshots, traces, receipts, and rollbacks with integrity checks.'
+  },
+  {
+    view: 'WebGPU Pulse Map',
+    level: 2,
+    text: 'Probe browser compute capability and render a live heatmap of model/runtime readiness, fallback paths, and inference status.'
+  },
+  {
+    view: 'Shadow Diff Theater',
+    level: 2,
+    text: 'Render staged /shadow edits as an interactive before/after scene with risk markers and rollback buttons.'
+  },
+  {
+    view: 'Tool Forge Diorama',
+    level: 2,
+    text: 'Generate one tiny browser tool, test it, then show its source, schema, execution trace, and promotion readiness in one view.'
+  },
+  {
+    view: 'Prompt Contract Inspector',
+    level: 2,
+    text: 'Inspect the active Zero system prompt, extract its enforceable rules, and stage one clearer contract with matching test evidence.'
+  },
+  {
+    view: 'VFS Transit Map',
+    level: 2,
+    text: 'Map every seed, shadow, artifact, and generated module path as a transit system with read/write edges and stale-file markers.'
+  },
+  {
+    view: 'Worker Split Lab',
+    level: 2,
+    text: 'Move one expensive verification into a Worker, compare output with the main thread, and archive the isolation boundary.'
+  },
+  {
+    view: 'Receipt Inspector',
+    level: 2,
+    text: 'Build a receipt inspector that verifies hash fields, signer identity, model path, prompt hash, output hash, and room metadata.'
+  },
+  {
+    view: 'Failure Heatmap',
+    level: 2,
+    text: 'Cluster recent runtime errors by source file, action type, and repeated stack shape, then stage one narrow repair candidate.'
+  },
+  {
+    view: 'Artifact Indexer',
+    level: 2,
+    text: 'Create a searchable artifact index for screenshots, logs, diffs, traces, receipts, and benchmark outputs with provenance filters.'
+  },
+  {
+    view: 'Model Path Auditor',
+    level: 2,
+    text: 'Audit local and proxy inference paths, show model identity and fallback behavior, and record the exact path used for one task.'
+  },
+  {
+    view: 'Permission Flight Check',
+    level: 2,
+    text: 'Wrap one permission-mediated browser API with denied-path UI, audit notes, and a visible fallback proof.'
+  },
+  {
+    view: 'Prompt Arcade',
+    level: 3,
+    text: 'Create a visual arena where prompt variants compete on fixed tasks, with score trails, diffs, and promotion evidence.'
+  },
+  {
+    view: 'Self-Heal Pinball',
+    level: 3,
+    text: 'Turn runtime failures into a physics board where repeated failures cluster, then patch the highest-impact failure lane.'
+  },
+  {
+    view: 'RSI Scoreboard',
+    level: 3,
+    text: 'Run bounded self-improvement candidates, display measured wins and losses, and promote only evidence-backed changes.'
+  },
+  {
+    view: 'Patch Tournament',
+    level: 3,
+    text: 'Generate three reversible patch candidates for one weakness, run the same checks on each, and keep only the measured winner.'
+  },
+  {
+    view: 'Prompt Ladder',
+    level: 3,
+    text: 'Evolve one prompt through bounded variants, score each against a fixed rubric, and preserve the full ancestry chain.'
+  },
+  {
+    view: 'Tool Reliability Loop',
+    level: 3,
+    text: 'Measure tool failures across recent runs, patch the noisiest tool contract, and prove the fix with a replayed failing case.'
+  },
+  {
+    view: 'Verifier Duel',
+    level: 3,
+    text: 'Run two independent verification strategies against the same staged edit and render where their evidence agrees or conflicts.'
+  },
+  {
+    view: 'Telemetry Governor',
+    level: 3,
+    text: 'Build a telemetry loop that chooses the next improvement target from measured failure rate, artifact gaps, and rollback risk.'
+  },
+  {
+    view: 'Regression Maze',
+    level: 3,
+    text: 'Turn test and replay failures into a visual maze, then stage one patch that closes a path without opening a new failure route.'
+  },
+  {
+    view: 'Policy Patch Lab',
+    level: 3,
+    text: 'Stage a policy change for self-edits, simulate allowed and denied actions, and promote only if the boundary gets clearer.'
+  },
+  {
+    view: 'Memory Compression Trial',
+    level: 3,
+    text: 'Compress one memory or artifact set, compare retrieval quality before and after, and keep the smaller representation only if it passes.'
+  },
+  {
+    view: 'Promotion Gate Drill',
+    level: 3,
+    text: 'Exercise the full shadow-to-promote gate with a harmless edit, receipt, rollback note, and visible pass/fail ledger.'
+  },
+  {
+    view: 'Benchmark Remix Board',
+    level: 3,
+    text: 'Build a board that reruns fixed tasks under prompt, tool, and model-path variants, then ranks only reproducible improvements.'
+  },
+  {
+    view: 'Peer Signal Room',
+    level: 4,
+    text: 'Visualize WebRTC peers, requests, receipts, and trust boundaries while proving no peer can mutate validators.'
+  },
+  {
+    view: 'Autonomy Control Room',
+    level: 4,
+    text: 'Build a control room that combines tool telemetry, VFS health, model status, artifact coverage, and promotion risk into one decision surface.'
+  },
+  {
+    view: 'World Model Sketchpad',
+    level: 4,
+    text: 'Construct a structured model of Zero runtime components, predict the effect of one planned edit, and score the prediction after verification.'
+  },
+  {
+    view: 'Research Director Board',
+    level: 4,
+    text: 'Break one broad objective into experiments, rubrics, artifacts, and gates, then reprioritize from fresh evidence.'
+  },
+  {
+    view: 'Capability Frontier Map',
+    level: 4,
+    text: 'Map current capabilities against browser APIs, model paths, tools, and tests, then choose the next upgrade from the weakest proven edge.'
+  },
+  {
+    view: 'Cross-Task Transfer Trial',
+    level: 4,
+    text: 'Apply one verified improvement from a UI task to a tooling task, measure transfer, and archive the conditions where it fails.'
+  },
+  {
+    view: 'Substrate Twin Run',
+    level: 4,
+    text: 'Run the same objective through two isolated runtime snapshots, compare artifacts and decisions, and keep the more verifiable path.'
+  },
+  {
+    view: 'Risk Budget Console',
+    level: 4,
+    text: 'Assign explicit risk budgets to storage, tools, model calls, and promotions, then block actions that exceed the current budget.'
+  },
+  {
+    view: 'Distributed Receipt Mesh',
+    level: 4,
+    text: 'Coordinate multiple browser peers for one inference receipt flow, then prove queue fairness, dedupe, and room isolation in artifacts.'
+  },
+  {
+    view: 'Self-Model Critic',
+    level: 4,
+    text: 'Have Zero describe its own current architecture, compare the description to live files, and patch the largest factual mismatch.'
+  },
+  {
+    view: 'Open-Loop Sandbox',
+    level: 4,
+    text: 'Let Zero plan several candidate edits without applying them, score predicted impact, and apply only the safest verified candidate.'
+  },
+  {
+    view: 'Goal Decomposer',
+    level: 4,
+    text: 'Turn one ambiguous user goal into a dependency graph, runnable checks, and artifact targets before any file mutation is allowed.'
+  },
+  {
+    view: 'Toolchain Market',
+    level: 4,
+    text: 'Rank tools by observed usefulness, reliability, and artifact value, then retire or rewrite the lowest-ranked tool contract.'
+  },
+  {
+    view: 'Recursive Lab Notebook',
+    level: 5,
+    text: 'Create a lab notebook where every self-improvement hypothesis, patch, check, result, and rollback is linked into one evidence graph.'
+  },
+  {
+    view: 'ASI Boundary Map',
+    level: 5,
+    text: 'Map which requested behaviors remain bounded weak RSI, which imply stronger autonomy, and which must stay outside promotion gates.'
+  },
+  {
+    view: 'Evaluator Council',
+    level: 5,
+    text: 'Run several evaluator rubrics over the same staged change, compare disagreements, and require explicit evidence before promotion.'
+  },
+  {
+    view: 'Long-Horizon Planner',
+    level: 5,
+    text: 'Plan a chained improvement program with measurable checkpoints, hard stop conditions, and artifacts that survive page reload.'
+  },
+  {
+    view: 'Capability Escalation Drill',
+    level: 5,
+    text: 'Simulate a request for broader autonomy, show which gates stop it, and patch any missing warning, receipt, or rollback path.'
+  },
+  {
+    view: 'Self-Revision Constitution',
+    level: 5,
+    text: 'Draft a compact self-revision constitution for Zero, then test it against allowed repairs, risky rewrites, and unsupported requests.'
+  },
+  {
+    view: 'Meta-Benchmark Forge',
+    level: 5,
+    text: 'Generate a benchmark that tests whether future improvements actually improve task success rather than only optimizing the visible score.'
+  },
+  {
+    view: 'Recursive Prompt Genome',
+    level: 5,
+    text: 'Represent prompt variants as a genome with traits, parents, scores, and failure modes, then evolve one bounded generation.'
+  },
+  {
+    view: 'Architecture Constitution Check',
+    level: 5,
+    text: 'Compare a proposed architecture change against immutable recovery rules, measured benefit, and rollback readiness before staging it.'
+  },
+  {
+    view: 'Autonomy Kill Switch Drill',
+    level: 5,
+    text: 'Build and test a visible halt control that stops local loops, workers, model calls, and pending promotions without corrupting artifacts.'
+  },
+  {
+    view: 'Reflective Compression Engine',
+    level: 5,
+    text: 'Compress Zero history into a durable self-model, test recall against source artifacts, and preserve links back to original evidence.'
+  },
+  {
+    view: 'Frontier Evidence Wall',
+    level: 5,
+    text: 'Render all claims of improvement as an evidence wall, separate measured wins from speculation, and remove unsupported claims from the active plan.'
   }
 ]);
 
