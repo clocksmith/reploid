@@ -110,7 +110,7 @@ function createFakeTransportFactories() {
 
 const runtimeModel = () => buildLaunchProviderModel({ modelId: LAUNCH_MODEL.modelId });
 
-const fakeRuntime = () => ({
+const fakeRuntime = ({ generate = null } = {}) => ({
   isReady: () => true,
   getModelInfo: () => runtimeModel(),
   getRuntimeInfo: () => ({
@@ -151,7 +151,7 @@ const fakeRuntime = () => ({
     hasWebGPU: true,
     probeStatus: 'ok'
   }),
-  generate: async ({ prompt }) => ({
+  generate: generate || (async ({ prompt }) => ({
     outputText: `room:${prompt}`,
     tokenIds: [11, 12, 13],
     transcript: {
@@ -167,7 +167,74 @@ const fakeRuntime = () => ({
       completedAt: '2026-06-14T00:00:01.000Z'
     },
     status: 'completed'
-  })
+  }))
+});
+
+const createBlockingRuntime = () => {
+  const releases = [];
+  const prompts = [];
+  return {
+    runtime: fakeRuntime({
+      generate: ({ prompt }) => new Promise((resolve) => {
+        prompts.push(prompt);
+        releases.push(() => resolve({
+          outputText: `queued:${prompt}`,
+          tokenIds: [21, 22, prompts.length],
+          transcript: {
+            outputText: `queued:${prompt}`,
+            tokenIds: [21, 22, prompts.length]
+          },
+          tokenCounts: {
+            input: 2,
+            output: 3
+          },
+          timing: {
+            startedAt: '2026-06-14T00:00:00.000Z',
+            completedAt: '2026-06-14T00:00:01.000Z'
+          },
+          status: 'completed'
+        }));
+      })
+    }),
+    prompts,
+    releaseNext() {
+      const release = releases.shift();
+      if (release) release();
+    }
+  };
+};
+
+const noCoordinatorRequesterSdk = () => ({
+  submitJob() {
+    throw new Error('coordinator submitJob should not run');
+  },
+  acceptReceipt() {
+    throw new Error('coordinator acceptReceipt should not run');
+  }
+});
+
+const noCoordinatorProviderSdk = () => ({
+  submitReceipt() {
+    throw new Error('coordinator submitReceipt should not run');
+  },
+  reportAssignmentFailure() {
+    throw new Error('coordinator reportAssignmentFailure should not run');
+  }
+});
+
+const createRoomRequesterClient = async (requesterId) => createRequesterClient({
+  requesterId,
+  keyPair: await createSigningKeyPair(),
+  identity: null,
+  sdk: noCoordinatorRequesterSdk()
+});
+
+const createRoomProviderClient = async ({ providerId, runtime = fakeRuntime() }) => createProviderClient({
+  providerId,
+  keyPair: await createSigningKeyPair(),
+  identity: null,
+  runtime,
+  sdk: noCoordinatorProviderSdk()
 });
 
 afterEach(() => {
@@ -463,5 +530,137 @@ describe('pool peer room', () => {
     } finally {
       await Promise.all(providerNodes.map((providerNode) => providerNode.stop()));
     }
+  });
+
+  it('queues concurrent peer sessions when provider concurrency is saturated', async () => {
+    installFakeBroadcastChannel();
+    const requesterKeys = await createSigningKeyPair();
+    const providerKeys = await createSigningKeyPair();
+    const requesterClient = createRequesterClient({
+      requesterId: 'requester_room_queue',
+      keyPair: requesterKeys,
+      identity: null,
+      sdk: {
+        submitJob() {
+          throw new Error('coordinator submitJob should not run');
+        },
+        acceptReceipt() {
+          throw new Error('coordinator acceptReceipt should not run');
+        }
+      }
+    });
+    const blocking = createBlockingRuntime();
+    const providerClient = createProviderClient({
+      providerId: 'provider_room_queue',
+      keyPair: providerKeys,
+      identity: null,
+      runtime: blocking.runtime,
+      sdk: {
+        submitReceipt() {
+          throw new Error('coordinator submitReceipt should not run');
+        },
+        reportAssignmentFailure() {
+          throw new Error('coordinator reportAssignmentFailure should not run');
+        }
+      }
+    });
+    const {
+      requesterTransportFactory,
+      providerTransportFactory,
+      sessions
+    } = createFakeTransportFactories();
+    const activity = [];
+    const providerNode = createPeerProviderNode({
+      roomId: 'room-queue-test',
+      providerClient,
+      providerTransportFactory,
+      advertIntervalMs: 100000,
+      maxActiveSessions: 1,
+      onActivity: (event) => activity.push(event)
+    });
+
+    await providerNode.start({
+      models: [runtimeModel()],
+      availability: {
+        maxConcurrentJobs: 1,
+        acceptedPolicies: ['fastest_receipt']
+      }
+    });
+
+    try {
+      const first = runPeerJob({
+        roomId: 'room-queue-test',
+        requesterClient,
+        requesterTransportFactory,
+        prompt: 'first queued prompt',
+        policyId: 'fastest_receipt',
+        modelRequirements: runtimeModel(),
+        discoveryWindowMs: 1000,
+        receiptWindowMs: 1000
+      });
+      await expect.poll(() => blocking.prompts.length).toBe(1);
+
+      const second = runPeerJob({
+        roomId: 'room-queue-test',
+        requesterClient,
+        requesterTransportFactory,
+        prompt: 'second queued prompt',
+        policyId: 'fastest_receipt',
+        modelRequirements: runtimeModel(),
+        discoveryWindowMs: 1000,
+        receiptWindowMs: 1000
+      });
+      await expect.poll(() => activity.some((event) => event.status === 'peer_session_queued')).toBe(true);
+      expect(blocking.prompts).toEqual(['first queued prompt']);
+
+      blocking.releaseNext();
+      const firstResult = await first;
+      await expect.poll(() => blocking.prompts.length).toBe(2);
+      blocking.releaseNext();
+      const secondResult = await second;
+
+      expect(firstResult.outputText).toBe('queued:first queued prompt');
+      expect(secondResult.outputText).toBe('queued:second queued prompt');
+      expect(firstResult.assignment.providerId).toBe('provider_room_queue');
+      expect(secondResult.assignment.providerId).toBe('provider_room_queue');
+      expect(activity.map((event) => event.status)).toContain('peer_session_dequeued');
+      expect(activity.filter((event) => event.status === 'peer_receipt_sent')).toHaveLength(2);
+      expect(sessions.size).toBe(2);
+    } finally {
+      await providerNode.stop();
+    }
+  });
+
+  it('rejects unsupported split-model peer requirements before routing', async () => {
+    installFakeBroadcastChannel();
+    const requesterKeys = await createSigningKeyPair();
+    const requesterClient = createRequesterClient({
+      requesterId: 'requester_room_split',
+      keyPair: requesterKeys,
+      identity: null,
+      sdk: {
+        submitJob() {
+          throw new Error('coordinator submitJob should not run');
+        }
+      }
+    });
+
+    await expect(runPeerJob({
+      roomId: 'room-split-test',
+      requesterClient,
+      requesterTransportFactory: createFakeTransportFactories().requesterTransportFactory,
+      prompt: 'split this model',
+      policyId: 'fastest_receipt',
+      modelRequirements: {
+        ...runtimeModel(),
+        executionMode: 'model_split',
+        splitPlan: {
+          kind: 'tensor_parallel',
+          partitions: 2
+        }
+      },
+      discoveryWindowMs: 1000,
+      receiptWindowMs: 1000
+    })).rejects.toThrow(/not supported/);
   });
 });

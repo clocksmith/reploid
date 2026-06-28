@@ -5,12 +5,14 @@ import {
   resetDopplerModuleCacheForTests
 } from '../../self/pool/doppler-runtime.js';
 import { BROWSER_RUNTIME_CONFIG } from '../../self/pool/config.js';
+import { hashJson } from '../../self/pool/inference-receipt.js';
 import { LAUNCH_MODEL } from '../../self/pool/model-contract.js';
 
 const launchHandle = () => ({
   modelId: LAUNCH_MODEL.modelId,
   modelHash: LAUNCH_MODEL.modelHash,
   manifestHash: LAUNCH_MODEL.manifestHash,
+  artifactIdentity: LAUNCH_MODEL.artifactIdentity,
   generate(request) {
     return {
       outputText: `answered:${request.prompt}`,
@@ -102,6 +104,83 @@ describe('Doppler browser runtime adapter', () => {
     const loaded = await runtime.loadModel(LAUNCH_MODEL);
     expect(loaded.ok).toBe(false);
     expect(loaded.reason).toContain('Loaded Doppler handle must expose modelId');
+  });
+
+  it('derives public handle identity from manifest artifact identity', async () => {
+    const artifactIdentity = {
+      sourceCheckpointId: 'google/gemma-test',
+      weightPackId: 'gemma-test-wp-catalog-v1',
+      manifestVariantId: 'gemma-test-mv-exec-v1',
+      artifactCompleteness: 'complete'
+    };
+    const manifest = {
+      modelId: 'gemma-test-q4k',
+      artifactIdentity,
+      shards: [{ filename: 'shard_00000.bin', size: 16, hash: 'abc123' }]
+    };
+    const descriptor = {
+      modelId: manifest.modelId,
+      modelHash: await hashJson(artifactIdentity),
+      manifestHash: await hashJson(manifest),
+      runtime: 'doppler',
+      backend: 'browser-webgpu',
+      artifactIdentity
+    };
+    globalThis.REPLOID_DOPPLER_MODULE = {
+      load() {
+        return {
+          modelId: manifest.modelId,
+          manifest,
+          generate() {
+            return { outputText: 'manifest evidence', tokenIds: [303] };
+          }
+        };
+      }
+    };
+
+    const runtime = createDopplerRuntime();
+    const loaded = await runtime.loadModel(descriptor);
+
+    expect(loaded.ok).toBe(true);
+    expect(runtime.getModelInfo()).toMatchObject({
+      modelId: descriptor.modelId,
+      modelHash: descriptor.modelHash,
+      manifestHash: descriptor.manifestHash,
+      artifactIdentity,
+      identityEvidence: {
+        modelId: true,
+        modelHash: true,
+        manifestHash: true,
+        artifactIdentity: true
+      }
+    });
+  });
+
+  it('prefers generateText over streaming generate handles', async () => {
+    const runtime = createDopplerRuntime({
+      model: LAUNCH_MODEL,
+      modelSession: {
+        modelId: LAUNCH_MODEL.modelId,
+        modelHash: LAUNCH_MODEL.modelHash,
+        manifestHash: LAUNCH_MODEL.manifestHash,
+        generate() {
+          return (async function* streamObjects() {
+            yield { text: 'stream-object' };
+          })();
+        },
+        generateText(prompt) {
+          return `text:${prompt}`;
+        }
+      }
+    });
+
+    const result = await runtime.generate({
+      prompt: 'hello',
+      generationConfig: { maxOutputTokens: 4 },
+      assignment: { assignmentId: 'assignment_text' }
+    });
+
+    expect(result.outputText).toBe('text:hello');
   });
 
   it('installs the hosted handle attachment hook for provider pages', async () => {

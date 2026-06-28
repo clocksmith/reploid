@@ -103,7 +103,9 @@ export const WIZARD_BOOT_SEED_PREFIXES = Object.freeze([
 ]);
 
 export const LOCKED_HOME_BOOT_SEED_PREFIXES = Object.freeze([
-  ...SHARED_BOOT_UI_PREFIXES
+  ...SHARED_BOOT_UI_PREFIXES,
+  'ui/zero/',
+  'styles/zero.css'
 ]);
 
 export const REPLOID_HOME_BOOT_SEED_PREFIXES = Object.freeze([
@@ -133,6 +135,10 @@ export function getBootSeedProfile() {
 
 export function shouldHydrateFullManifest(profile = getBootSeedProfile()) {
   return profile !== 'reploid_home' && profile !== 'pool_home' && profile !== 'substrate_console';
+}
+
+export function shouldAwaitFullManifestBeforeStart(profile = getBootSeedProfile()) {
+  return profile === 'zero_home' || profile === 'x_home';
 }
 
 export function pickBootSeedFiles(files, profile = getBootSeedProfile()) {

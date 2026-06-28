@@ -235,6 +235,8 @@ test.describe('Route Entry Points', () => {
     await expect(page.locator('.pool-page-heading .pool-eyebrow')).toHaveCount(0);
     await expect(page.getByLabel('Run controls')).toContainText('Run');
     await expect(page.locator('#pool-run-result-raw')).toBeHidden();
+    await expect(page.locator('#pool-run-poll')).toHaveCount(0);
+    await expect(page.locator('#pool-run-max-spend')).toHaveCount(0);
 
     await page.goto('/mesh');
     await page.waitForSelector('.pool-home', { timeout: 20000 });
@@ -246,11 +248,16 @@ test.describe('Route Entry Points', () => {
     await expect(page.locator('[data-pool-provider-status]')).toHaveText('NODE // OFFLINE');
     await expect(page.locator('#pool-provider-worker-start')).toBeVisible();
     await expect(page.locator('#pool-provider-worker-stop')).toBeVisible();
+    await expect(page.locator('#pool-provider-load')).toHaveCount(0);
+    await expect(page.locator('#pool-provider-profile')).toHaveCount(0);
+    await expect(page.locator('#pool-agent-submit')).toHaveCount(0);
+    await expect(page.locator('[data-pool-node-grid]')).toHaveCount(0);
 
     await page.goto('/record');
     await page.waitForSelector('.pool-home', { timeout: 20000 });
     await expect(page.getByRole('heading', { name: 'Record', exact: true })).toBeVisible();
     await expect(page.locator('.pool-page-heading .pool-eyebrow')).toHaveCount(0);
+    await expect(page.locator('#pool-reputation-refresh')).toHaveCount(0);
   });
 
   test('home route boots without early VFS misses for instance-scoped runtime modules', async ({ page }) => {
@@ -419,6 +426,7 @@ test.describe('Route Entry Points', () => {
     });
     await page.goto('/0');
     await page.waitForSelector('.wizard-home-provider [data-action="choose-proxy"]', { timeout: 20000 });
+    await expect.poll(async () => page.evaluate(() => window.REPLOID_VFS_FULL_SEED_PROGRESS?.phase || null)).toBe('mirror:done');
 
     await expect(page.locator('.boot-mode-btn[data-mode]')).toHaveCount(0);
     await expect(page.locator('.wizard-brand')).toHaveCount(0);
@@ -443,7 +451,14 @@ test.describe('Route Entry Points', () => {
 
   test('/0 awakens with the complete DI dependency closure', async ({ page }) => {
     const pageErrors = [];
+    const selfVfsMisses = [];
     page.on('pageerror', (error) => pageErrors.push(error.message));
+    page.on('console', (message) => {
+      const text = message.text();
+      if (text.includes('[SW] Missing module in VFS: /self/')) {
+        selfVfsMisses.push(text);
+      }
+    });
 
     await page.goto('/0');
     await page.waitForSelector('.wizard-home-provider [data-action="choose-proxy"]', { timeout: 20000 });
@@ -537,6 +552,7 @@ export default async function(args) {
     expect(liveToolResult.tools).toEqual(expect.arrayContaining(['EchoProbe', 'LoadedProbe']));
     expect(liveToolResult.hasZeroSelfUi).toBe(true);
     expect(liveToolResult.hasZeroSelfStyles).toBe(true);
+    expect(selfVfsMisses).toEqual([]);
     expect(pageErrors).toEqual([]);
   });
 

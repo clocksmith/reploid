@@ -258,27 +258,75 @@ export const bindHomeSimulation = async (mount) => {
     if (activeTooltipLabel) updateTooltipPosition(false);
     frameId = window.requestAnimationFrame(draw);
   };
-  const movePointer = (event) => {
+  const syncPointerPosition = (event) => {
     const box = canvasRect || refreshCanvasRect();
-    state.pointer.targetX = (event.clientX - box.left) / Math.max(1, box.width);
-    state.pointer.targetY = (event.clientY - box.top) / Math.max(1, box.height);
-    state.pointer.active = true;
-    state.pointer.force = Math.min(1, state.pointer.force + 0.04);
+    const nextX = clampRange((event.clientX - box.left) / Math.max(1, box.width), 0, 1);
+    const nextY = clampRange((event.clientY - box.top) / Math.max(1, box.height), 0, 1);
+    const deltaPixels = Math.hypot(
+      (nextX - state.pointer.targetX) * box.width,
+      (nextY - state.pointer.targetY) * box.height
+    );
+    state.pointer.targetX = nextX;
+    state.pointer.targetY = nextY;
+    state.pointer.inside = event.clientX >= box.left
+      && event.clientX <= box.right
+      && event.clientY >= box.top
+      && event.clientY <= box.bottom;
+    if (state.pointer.holding) {
+      state.pointer.moveEnergy = Math.min(1.8, (state.pointer.moveEnergy || 0) + deltaPixels / 76);
+    }
   };
   const leavePointer = () => {
-    state.pointer.active = false;
+    state.pointer.inside = false;
   };
-  const pulsePointer = (event) => {
-    movePointer(event);
-    state.pointer.force = 1;
+  const holdPointer = (event) => {
+    if (event.button !== undefined && event.button !== 0) return;
+    syncPointerPosition(event);
+    state.pointer.holding = true;
+    state.pointer.pointerId = event.pointerId;
+    state.pointer.shotBurst = Math.max(state.pointer.shotBurst || 0, 6);
+    state.pointer.moveEnergy = Math.max(state.pointer.moveEnergy || 0, 0.45);
+    try {
+      canvas.setPointerCapture?.(event.pointerId);
+    } catch {
+      state.pointer.pointerId = event.pointerId;
+    }
+    event.preventDefault();
+  };
+  const movePointer = (event) => {
+    syncPointerPosition(event);
+    if (state.pointer.holding) event.preventDefault();
+  };
+  const releasePointer = (event) => {
+    if (state.pointer.pointerId !== null && event?.pointerId !== state.pointer.pointerId) return;
+    try {
+      if (event?.pointerId !== undefined && canvas.hasPointerCapture?.(event.pointerId)) {
+        canvas.releasePointerCapture(event.pointerId);
+      }
+    } catch {
+      // Ignore stale capture handles from browser-level pointer cancellation.
+    }
+    state.pointer.holding = false;
+    state.pointer.pointerId = null;
+  };
+  const losePointerCapture = (event) => {
+    if (state.pointer.pointerId !== null && event.pointerId !== state.pointer.pointerId) return;
+    state.pointer.holding = false;
+    state.pointer.pointerId = null;
   };
   canvas.addEventListener('pointermove', movePointer);
-  canvas.addEventListener('pointerdown', pulsePointer);
+  canvas.addEventListener('pointerdown', holdPointer);
+  canvas.addEventListener('pointerup', releasePointer);
+  canvas.addEventListener('pointercancel', releasePointer);
   canvas.addEventListener('pointerleave', leavePointer);
+  canvas.addEventListener('lostpointercapture', losePointerCapture);
   removeCanvasListeners = () => {
     canvas.removeEventListener('pointermove', movePointer);
-    canvas.removeEventListener('pointerdown', pulsePointer);
+    canvas.removeEventListener('pointerdown', holdPointer);
+    canvas.removeEventListener('pointerup', releasePointer);
+    canvas.removeEventListener('pointercancel', releasePointer);
     canvas.removeEventListener('pointerleave', leavePointer);
+    canvas.removeEventListener('lostpointercapture', losePointerCapture);
   };
   state.lastFrameMs = performance.now();
   frameId = window.requestAnimationFrame(draw);

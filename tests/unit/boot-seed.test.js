@@ -5,7 +5,11 @@ import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 
 import { getRouteBootSpec } from '../../self/boot-spec.js';
-import { pickBootSeedFiles, shouldHydrateFullManifest } from '../../self/config/boot-seed.js';
+import {
+  pickBootSeedFiles,
+  shouldAwaitFullManifestBeforeStart,
+  shouldHydrateFullManifest
+} from '../../self/config/boot-seed.js';
 import { AWAKEN_REQUIRED_MODULES } from '../../self/config/module-resolution.js';
 import { resolveModules } from '../../self/boot-helpers/config.js';
 import {
@@ -55,6 +59,21 @@ describe('boot seed manifest', () => {
     expect(shouldHydrateFullManifest('zero_home')).toBe(true);
     expect(shouldHydrateFullManifest('x_home')).toBe(true);
     expect(shouldHydrateFullManifest('wizard')).toBe(true);
+  });
+
+  it('keeps locked route homes on bootstrap until full VFS hydration is ready', () => {
+    expect(shouldAwaitFullManifestBeforeStart('zero_home')).toBe(true);
+    expect(shouldAwaitFullManifestBeforeStart('x_home')).toBe(true);
+    expect(shouldAwaitFullManifestBeforeStart('reploid_home')).toBe(false);
+    expect(shouldAwaitFullManifestBeforeStart('pool_home')).toBe(false);
+  });
+
+  it('hydrates the Zero runtime UI files in the locked boot seed', () => {
+    const bootFiles = pickBootSeedFiles(manifest.files, 'zero_home');
+
+    expect(bootFiles).toContain('ui/zero/index.js');
+    expect(bootFiles).toContain('styles/zero.css');
+    expect(bootFiles).toContain('ui/boot-home/index.js');
   });
 
   it('routes /0 to the Zero tabula-rasa profile', () => {

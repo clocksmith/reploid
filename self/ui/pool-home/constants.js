@@ -30,7 +30,7 @@ export const POOLDAY_ROUTE_DEFINITIONS = Object.freeze([
     label: 'Run',
     eyebrow: 'Run',
     title: 'Run',
-    body: 'Send a prompt and stream the result.'
+    body: 'Send a prompt to the room and accept a receipt-backed result.'
   }),
   createPooldayRoute({
     id: 'mesh',
@@ -39,7 +39,7 @@ export const POOLDAY_ROUTE_DEFINITIONS = Object.freeze([
     label: 'Mesh',
     eyebrow: 'Mesh',
     title: 'Mesh',
-    body: 'View the browser mesh and start this tab as a node.'
+    body: 'Start this browser as a provider for the current room.'
   }),
   createPooldayRoute({
     id: 'record',
@@ -48,7 +48,7 @@ export const POOLDAY_ROUTE_DEFINITIONS = Object.freeze([
     label: 'Record',
     eyebrow: 'Record',
     title: 'Record',
-    body: 'Review completed work.'
+    body: 'Inspect receipts and the local peer ledger for this browser.'
   })
 ]);
 

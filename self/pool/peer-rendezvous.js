@@ -189,7 +189,11 @@ export function createPeerRoomInviteUrl({
 } = {}) {
   const url = new URL(baseUrl, globalThis.location?.origin || 'https://reploid.local');
   url.searchParams.set('room', requireString(roomId, 'roomId'));
-  if (relay && relay !== 'local') url.searchParams.set('relay', relay);
+  if (relay && relay !== 'local') {
+    url.searchParams.set('relay', relay);
+  } else {
+    url.searchParams.delete('relay');
+  }
   return url.toString();
 }
 

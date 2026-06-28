@@ -14,7 +14,12 @@ import {
   clearVfsStore,
   ensureVfsFileMirrors
 } from './vfs-bootstrap.js';
-import { getBootSeedProfile, pickBootSeedFiles, shouldHydrateFullManifest } from '../config/boot-seed.js';
+import {
+  getBootSeedProfile,
+  pickBootSeedFiles,
+  shouldAwaitFullManifestBeforeStart,
+  shouldHydrateFullManifest
+} from '../config/boot-seed.js';
 
 const log = (...args) => console.log('[Bootstrap]', ...args);
 const warn = (...args) => console.warn('[Bootstrap]', ...args);
@@ -449,10 +454,13 @@ const maybeFullReset = async () => {
     );
 
     if (shouldHydrateFullManifest(bootProfile)) {
-      // Seed the rest of the manifest in the background for broader boot modes.
-      // Non-Reploid modes await this promise before running boot().
+      // Locked route homes wait here so no runtime sees a partial VFS.
+      // Other broad modes keep the promise for awaken-time gating.
       setBootstrapStage('seed_background');
       window.REPLOID_VFS_FULL_SEED_PROMISE = scheduleFullSeed();
+      if (shouldAwaitFullManifestBeforeStart(bootProfile)) {
+        await window.REPLOID_VFS_FULL_SEED_PROMISE;
+      }
     } else {
       window.REPLOID_VFS_FULL_SEED_PROMISE = null;
       log(`Skipping full VFS hydration for minimal boot profile "${bootProfile}".`);
