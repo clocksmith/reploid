@@ -657,6 +657,8 @@ export function createPeerProviderNode({
                   error: error.message
                 }
               }));
+            } catch {
+              // Requester may already have closed after timing out or aborting.
             } finally {
               void removeActiveEntry(activeEntry, transport, signaling, 'provider_error');
             }
