@@ -97,6 +97,33 @@ describe('pool launch contract', () => {
     expect(missingBackend.reasons).toContain('modelRequirements.backend is required');
   });
 
+  it('rejects split-model requirements until the runtime exposes model partition execution', () => {
+    const modelRequirements = {
+      modelId: BROWSER_LAUNCH_MODEL.modelId,
+      modelHash: BROWSER_LAUNCH_MODEL.modelHash,
+      manifestHash: BROWSER_LAUNCH_MODEL.manifestHash,
+      runtime: BROWSER_LAUNCH_MODEL.runtime,
+      backend: BROWSER_LAUNCH_MODEL.backend,
+      executionMode: 'model_split',
+      splitPlan: {
+        kind: 'tensor_parallel',
+        partitions: 2
+      }
+    };
+    const browserResult = validatePolicyRequest({
+      modelRequirements,
+      generationConfig: { ...BROWSER_GENERATION_CONFIG }
+    });
+    const serverResult = validateJobRequest(makeJob({ modelRequirements }));
+
+    expect(browserResult.ok).toBe(false);
+    expect(serverResult.ok).toBe(false);
+    expect(browserResult.reasons).toContain('modelRequirements.executionMode model_split is not supported; only full_model_browser_local is supported');
+    expect(browserResult.reasons).toContain('modelRequirements.splitPlan is not supported by browser peer-room execution');
+    expect(serverResult.reasons).toContain('modelRequirements.executionMode model_split is not supported; only full_model_browser_local is supported');
+    expect(serverResult.reasons).toContain('modelRequirements.splitPlan is not supported by browser peer-room execution');
+  });
+
   it('keeps browser runtime deployment config aligned across server and browser', () => {
     expect(BROWSER_BROWSER_RUNTIME_CONFIG).toEqual(SERVER_BROWSER_RUNTIME_CONFIG);
     expect(BROWSER_BROWSER_RUNTIME_CONFIG.dopplerModuleUrl).toBe('https://esm.sh/doppler-gpu@0.4.3/src/client/doppler-api.browser.js?bundle');

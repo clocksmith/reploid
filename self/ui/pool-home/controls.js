@@ -3,7 +3,6 @@
  */
 
 import { createDopplerRuntime } from '../../pool/doppler-runtime.js';
-import { createAgentClient } from '../../pool/agent-client.js';
 import { createProviderClient } from '../../pool/provider-client.js';
 import { buildModelArtifactUrls, verifyModelArtifactManifest } from '../../pool/model-artifacts.js';
 import { createRequesterClient } from '../../pool/requester-client.js';
@@ -16,15 +15,15 @@ import {
   addReceiptLedgerRow,
   describeSelectedRun,
   findReceiptLedgerRecord,
-  getNodeGrid,
+  getPeerDiscoveryWindowMs,
+  getPeerGenerationConfig,
   getPeerInviteUrl,
+  getPeerReceiptWindowMs,
   getPeerRelayMode,
   getPeerRoomBusFactory,
   getPeerRoomId,
   refreshProviderStorageHealth,
-  refreshPeerLedgerState,
   renderReceiptLedger,
-  setNodeGridProgress,
   setResult,
   updateProviderHealth,
   updateProviderStatus
@@ -50,6 +49,18 @@ const displayPoolError = (error, {
 const artifactPreflightFailureAction = (model) => (
   `Deploy ${model?.modelId || 'the selected model'} artifacts at the configured model base, or attach a compatible Doppler runtime handle before starting a contributor.`
 );
+
+const getPageIdentityNamespace = (globalKey) => {
+  if (window[globalKey]) return window[globalKey];
+  const id = window.crypto?.randomUUID
+    ? window.crypto.randomUUID()
+    : `${Date.now().toString(36)}_${Math.random().toString(36).slice(2)}`;
+  window[globalKey] = `page_${id}`;
+  return window[globalKey];
+};
+
+const getProviderIdentityNamespace = () => getPageIdentityNamespace('REPLOID_POOL_PROVIDER_NAMESPACE');
+const getRequesterIdentityNamespace = () => getPageIdentityNamespace('REPLOID_POOL_REQUESTER_NAMESPACE');
 
 const probeModelArtifacts = async (model) => {
   try {
@@ -78,18 +89,18 @@ const probeModelArtifacts = async (model) => {
 
 export const bindRunControls = () => {
   const button = document.getElementById('pool-run-submit');
-  const pollButton = document.getElementById('pool-run-poll');
   const prompt = document.getElementById('pool-run-prompt');
   const policySelect = document.getElementById('pool-run-policy');
   const modelSelect = document.getElementById('pool-run-model');
-  const maxSpendInput = document.getElementById('pool-run-max-spend');
   if (!button || !prompt) return;
-  const requesterIdentity = createPoolIdentity('requester', { localOnly: true });
+  const requesterIdentity = createPoolIdentity('requester', {
+    localOnly: true,
+    namespace: getRequesterIdentityNamespace()
+  });
   const requesterClient = createRequesterClient({
     sdk: null,
     identity: requesterIdentity
   });
-  let lastPeerResult = null;
   button.addEventListener('click', async () => {
     const promptText = prompt.value.trim();
     if (!promptText) {
@@ -102,7 +113,6 @@ export const bindRunControls = () => {
       return;
     }
     button.disabled = true;
-    lastPeerResult = null;
     setResult('pool-run-result', describeSelectedRun({
       status: 'finding_peer_provider',
       policyId: policySelect?.value || FASTEST_RECEIPT_POLICY_ID,
@@ -115,20 +125,13 @@ export const bindRunControls = () => {
         prompt: promptText,
         policyId: policySelect?.value || FASTEST_RECEIPT_POLICY_ID,
         modelRequirements: getEnabledPoolModelContract(modelSelect?.value || LAUNCH_MODEL.modelId) || LAUNCH_MODEL,
-        maxPointSpend: maxSpendInput?.value ? Number(maxSpendInput.value) : null,
+        discoveryWindowMs: getPeerDiscoveryWindowMs(),
+        receiptWindowMs: getPeerReceiptWindowMs(),
         roomBusFactory: getPeerRoomBusFactory(),
-        generationConfig: {
-          mode: 'greedy',
-          temperature: 0,
-          topK: 1,
-          topP: 1,
-          maxOutputTokens: 128,
-          seed: '0000000000000000'
-        }
+        generationConfig: getPeerGenerationConfig()
       });
       result.inviteUrl = getPeerInviteUrl();
       result.relay = getPeerRelayMode();
-      lastPeerResult = result;
       addReceiptLedgerRow(result.receiptRecord || result, result.receiptHash);
       setResult('pool-run-result', result, { stream: true });
     } catch (error) {
@@ -145,86 +148,21 @@ export const bindRunControls = () => {
       button.disabled = false;
     }
   });
-  pollButton?.addEventListener('click', async () => {
-    if (lastPeerResult) {
-      setResult('pool-run-result', lastPeerResult, { stream: true });
-      return;
-    }
-    setResult('pool-run-result', {
-      status: 'no_local_peer_result',
-      action: 'Run a local peer-room request first.'
-    }, { stream: true });
-  });
-};
-
-export const bindAgentControls = () => {
-  const submitButton = document.getElementById('pool-agent-submit');
-  const prompt = document.getElementById('pool-agent-prompt');
-  const policySelect = document.getElementById('pool-agent-policy');
-  const maxSpendInput = document.getElementById('pool-agent-max-spend');
-  if (!submitButton || !prompt) return;
-  const agentIdentity = createPoolIdentity('agent', { localOnly: true });
-  const agentClient = createAgentClient({
-    sdk: null,
-    identity: agentIdentity,
-    pointBudget: 0
-  });
-  let lastPeerResult = null;
-  submitButton.addEventListener('click', async () => {
-    submitButton.disabled = true;
-    lastPeerResult = null;
-    setResult('pool-agent-result', describeSelectedRun({
-      status: 'finding_peer_provider',
-      policyId: policySelect?.value || FASTEST_RECEIPT_POLICY_ID,
-      modelId: LAUNCH_MODEL.modelId
-    }));
-    try {
-      const identity = await agentIdentity.resolve();
-      const result = await runPeerJob({
-        roomId: getPeerRoomId(),
-        requesterClient: agentClient,
-        prompt: prompt.value,
-        policyId: policySelect?.value || FASTEST_RECEIPT_POLICY_ID,
-        modelRequirements: LAUNCH_MODEL,
-        maxPointSpend: maxSpendInput?.value ? Number(maxSpendInput.value) : null,
-        roomBusFactory: getPeerRoomBusFactory(),
-        generationConfig: {
-          mode: 'greedy',
-          temperature: 0,
-          topK: 1,
-          topP: 1,
-          maxOutputTokens: 128,
-          seed: '0000000000000000'
-        }
-      });
-      result.identity = identity;
-      result.inviteUrl = getPeerInviteUrl();
-      result.relay = getPeerRelayMode();
-      lastPeerResult = result;
-      addReceiptLedgerRow(result.receiptRecord || result, result.receiptHash);
-      setResult('pool-agent-result', result);
-    } catch (error) {
-      setResult('pool-agent-result', { error: error.message, payload: error.payload || null });
-    } finally {
-      submitButton.disabled = false;
-    }
-  });
 };
 
 export const bindProviderControls = () => {
-  const loadButton = document.getElementById('pool-provider-load');
-  const profileButton = document.getElementById('pool-provider-profile');
   const workerStartButton = document.getElementById('pool-provider-worker-start');
   const workerStopButton = document.getElementById('pool-provider-worker-stop');
   const modelInput = document.getElementById('pool-provider-model');
   if (!modelInput || !workerStartButton) return;
-  const peerProviderIdentity = createPoolIdentity('provider', { localOnly: true });
+  const peerProviderIdentity = createPoolIdentity('provider', {
+    localOnly: true,
+    namespace: getProviderIdentityNamespace()
+  });
   const runtime = window.REPLOID_DOPPLER_RUNTIME || createDopplerRuntime();
   window.REPLOID_DOPPLER_RUNTIME = runtime;
   const mount = document.getElementById('app');
-  const nodeGrid = getNodeGrid(mount);
   updateProviderStatus(mount, 'NODE // OFFLINE');
-  setNodeGridProgress(nodeGrid, 0);
   updateProviderHealth({
     webgpu: navigator.gpu ? 'available' : 'unavailable',
     storage: navigator.storage ? 'available' : 'unknown'
@@ -249,7 +187,6 @@ export const bindProviderControls = () => {
   };
   const loadSelectedProviderModel = async () => {
     updateProviderStatus(mount, 'NODE // SPAWNING');
-    setNodeGridProgress(nodeGrid, 0.2);
     await refreshProviderStorageHealth();
     updateProviderHealth({
       webgpu: navigator.gpu ? 'available' : 'unavailable',
@@ -260,7 +197,6 @@ export const bindProviderControls = () => {
     const model = getEnabledPoolModelContract(modelInput.value || LAUNCH_MODEL.modelId);
     if (!model) throw new Error('Selected model is not enabled for peer contribution');
     if (modelMatchesLoadedRuntime(model) && runtime.isReady?.()) {
-      setNodeGridProgress(nodeGrid, 0.7);
       updateProviderHealth({
         model: model.modelId,
         artifact: 'ready',
@@ -303,7 +239,6 @@ export const bindProviderControls = () => {
       };
       throw error;
     }
-    setNodeGridProgress(nodeGrid, 0.7);
     updateProviderHealth({
       model: model.modelId,
       artifact: artifactPreflight ? 'verified_manifest' : 'ready',
@@ -339,17 +274,14 @@ export const bindProviderControls = () => {
         }
         if (event?.status === 'peer_session_opening') {
           updateProviderStatus(mount, 'NODE // SPAWNING');
-          setNodeGridProgress(nodeGrid, 0.9);
           updateProviderHealth({ queue: 'opening_session' });
         }
         if (event?.status === 'peer_session_open') {
           updateProviderStatus(mount, 'NODE // SPAWNED');
-          setNodeGridProgress(nodeGrid, 1);
           updateProviderHealth({ queue: 'running_peer_job' });
         }
         if (event?.status === 'peer_receipt_sent') {
           updateProviderStatus(mount, 'NODE // SPAWNED');
-          setNodeGridProgress(nodeGrid, 1);
           updateProviderHealth({
             queue: 'receipt_sent',
             lastReceipt: event.receiptRecord?.receiptHash || 'signed'
@@ -363,7 +295,6 @@ export const bindProviderControls = () => {
         }
         if (event?.status === 'peer_session_failed') {
           updateProviderStatus(mount, 'NODE // OFFLINE');
-          setNodeGridProgress(nodeGrid, 0);
           updateProviderHealth({ queue: 'session_failed' });
         }
         setResult('pool-provider-result', {
@@ -399,54 +330,17 @@ export const bindProviderControls = () => {
     workerRunning = false;
     syncWorkerButtons();
     updateProviderStatus(mount, 'NODE // OFFLINE');
-    setNodeGridProgress(nodeGrid, 0);
   };
-  loadButton?.addEventListener('click', async () => {
-    loadButton.disabled = true;
-    setResult('pool-provider-result', { status: 'loading_model', model: getProviderModel() });
-    try {
-      setResult('pool-provider-result', await loadSelectedProviderModel());
-      setNodeGridProgress(nodeGrid, 0.8);
-    } catch (error) {
-      setResult('pool-provider-result', displayPoolError(error, {
-        title: 'Model download failed',
-        action: 'Deploy the configured model artifacts or attach a compatible Doppler runtime handle, then try Load again.',
-        context: {
-          model: getProviderModel()
-        }
-      }));
-      updateProviderHealth({ model: 'load_failed', artifact: error.payload?.artifactPreflight?.status || 'failed', queue: 'error' });
-      updateProviderStatus(mount, 'NODE // OFFLINE');
-      setNodeGridProgress(nodeGrid, 0);
-    } finally {
-      loadButton.disabled = false;
-    }
-  });
-  profileButton?.addEventListener('click', async () => {
-    profileButton.disabled = true;
-    try {
-      const runtimeProfile = typeof runtime.getRuntimeProfile === 'function'
-        ? await runtime.getRuntimeProfile()
-        : { error: 'runtime profile unavailable' };
-      setResult('pool-provider-result', runtimeProfile);
-    } catch (error) {
-      setResult('pool-provider-result', displayPoolError(error, { title: 'Profile failed' }));
-    } finally {
-      profileButton.disabled = false;
-    }
-  });
   workerStartButton?.addEventListener('click', async () => {
     if (workerRunning) return;
     workerStartButton.disabled = true;
     setResult('pool-provider-result', { runner: 'peer_room_starting', roomId: getPeerRoomId(), model: getProviderModel() });
     updateProviderStatus(mount, 'NODE // SPAWNING');
-    setNodeGridProgress(nodeGrid, 0.9);
     try {
       const ready = await ensurePeerProviderReady();
       workerRunning = true;
       syncWorkerButtons();
       updateProviderStatus(mount, 'NODE // SPAWNED');
-      setNodeGridProgress(nodeGrid, 1);
       updateProviderHealth({ queue: 'listening' });
       setResult('pool-provider-result', { runner: 'peer_room_listening', relay: getPeerRelayMode(), inviteUrl: getPeerInviteUrl(), ...ready });
     } catch (error) {
@@ -507,25 +401,6 @@ export const bindReceiptControls = () => {
       });
     } catch (error) {
       setResult('pool-receipt-result', { error: error.message, payload: error.payload || null });
-    } finally {
-      button.disabled = false;
-    }
-  });
-};
-
-export const bindReputationControls = () => {
-  const button = document.getElementById('pool-reputation-refresh');
-  if (!button) return;
-  button.addEventListener('click', async () => {
-    button.disabled = true;
-    try {
-      refreshPeerLedgerState();
-      setResult('pool-reputation-result', {
-        status: 'local_peer_ledger_refreshed',
-        transport: 'webrtc_peer_room_local'
-      });
-    } catch (error) {
-      setResult('pool-reputation-result', { error: error.message, payload: error.payload || null });
     } finally {
       button.disabled = false;
     }

@@ -12,10 +12,8 @@ import {
   renderRoutePanel
 } from './view.js';
 import {
-  bindAgentControls,
   bindProviderControls,
   bindReceiptControls,
-  bindReputationControls,
   bindRunControls
 } from './controls.js';
 import { bindHomeSimulation } from './simulation-bind.js';
@@ -26,8 +24,16 @@ const bindPoolRouteControls = (mount, render) => {
       const path = control.dataset.poolRoute || control.dataset.poolRouteLink || control.getAttribute('href');
       if (!isProductPath(path)) return;
       event.preventDefault();
-      if (window.location.pathname !== path) {
-        window.history.pushState({ reploidPoolRoute: path }, '', path);
+      const nextUrl = new URL(path, window.location.origin);
+      const currentUrl = new URL(window.location.href);
+      for (const key of ['room']) {
+        if (!nextUrl.searchParams.has(key) && currentUrl.searchParams.has(key)) {
+          nextUrl.searchParams.set(key, currentUrl.searchParams.get(key));
+        }
+      }
+      const nextPath = `${nextUrl.pathname}${nextUrl.search}`;
+      if (`${window.location.pathname}${window.location.search}` !== nextPath) {
+        window.history.pushState({ reploidPoolRoute: nextPath }, '', nextPath);
       }
       render();
     });
@@ -64,10 +70,8 @@ export function initPoolHome(mount) {
     bindPoolRouteControls(mount, render);
     bindHomeSimulation(mount);
     bindRunControls();
-    bindAgentControls();
     bindProviderControls();
     bindReceiptControls();
-    bindReputationControls();
   };
 
   if (window.REPLOID_POOL_POPSTATE_HANDLER) {

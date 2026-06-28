@@ -22,6 +22,11 @@ const hasStorage = () => {
 };
 
 const safeKind = (kind) => String(kind || 'user').replace(/[^a-z0-9_-]/gi, '_').toLowerCase();
+const scopedKind = (kind, namespace = null) => {
+  const role = safeKind(kind);
+  const scope = namespace ? safeKind(namespace) : '';
+  return scope ? `${role}_${scope}` : role;
+};
 
 const makeLocalId = (kind) => `${kind}_${globalThis.crypto?.randomUUID ? globalThis.crypto.randomUUID() : Math.random().toString(36).slice(2)}`;
 
@@ -154,15 +159,16 @@ export async function getPoolSigningKeyPair(kind = 'user') {
   return keyPair;
 }
 
-export function createLocalPoolIdentity(kind = 'user') {
+export function createLocalPoolIdentity(kind = 'user', { namespace = null } = {}) {
   const role = safeKind(kind);
+  const storageRole = scopedKind(role, namespace);
   let cachedIdentity = null;
   let cachedKeyPair = null;
   return {
     kind: role,
     async resolve() {
       if (!cachedIdentity) {
-        const roleId = getLocalRoleId(role);
+        const roleId = getLocalRoleId(storageRole);
         cachedIdentity = {
           kind: role,
           source: 'local_anonymous',
@@ -178,7 +184,7 @@ export function createLocalPoolIdentity(kind = 'user') {
       return (await this.resolve()).roleId;
     },
     async getSigningKeyPair() {
-      if (!cachedKeyPair) cachedKeyPair = await getPoolSigningKeyPair(role);
+      if (!cachedKeyPair) cachedKeyPair = await getPoolSigningKeyPair(storageRole);
       return cachedKeyPair;
     },
     async getAuthToken() {
@@ -187,8 +193,8 @@ export function createLocalPoolIdentity(kind = 'user') {
   };
 }
 
-export function createPoolIdentity(kind = 'user', { localOnly = false } = {}) {
-  if (localOnly) return createLocalPoolIdentity(kind);
+export function createPoolIdentity(kind = 'user', { localOnly = false, namespace = null } = {}) {
+  if (localOnly) return createLocalPoolIdentity(kind, { namespace });
   const role = safeKind(kind);
   let cachedIdentity = null;
   let cachedKeyPair = null;

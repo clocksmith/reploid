@@ -29,6 +29,7 @@ export const DEFAULT_PEER_ROOM_ID = 'reploid-default';
 const DEFAULT_DISCOVERY_WINDOW_MS = 1200;
 const DEFAULT_RECEIPT_WINDOW_MS = 60000;
 const DEFAULT_PROVIDER_ADVERT_INTERVAL_MS = 2500;
+const DEFAULT_PROVIDER_SESSION_SETTLE_MS = 5000;
 
 const requireString = (value, label) => {
   const normalized = String(value || '').trim();
@@ -445,6 +446,7 @@ export function createPeerProviderNode({
   roomBusFactory = createBroadcastPeerRoomBus,
   advertIntervalMs = DEFAULT_PROVIDER_ADVERT_INTERVAL_MS,
   maxActiveSessions = 4,
+  maxQueuedSessions = 16,
   onActivity = null
 } = {}) {
   if (!providerClient?.createPeerProviderAdvert) {
@@ -456,6 +458,79 @@ export function createPeerProviderNode({
   let advert = null;
   let interval = null;
   let stopped = false;
+  let drainingQueue = false;
+  const pendingRunRequests = [];
+  const activeExecutionSessions = new Set();
+
+  const maxActiveSessionCount = () => Math.max(
+    1,
+    Number(advert?.body?.availability?.maxConcurrentJobs || maxActiveSessions || 1)
+  );
+
+  const releaseExecutionSlot = (sessionId) => {
+    if (!sessionId || !activeExecutionSessions.has(sessionId)) return;
+    activeExecutionSessions.delete(sessionId);
+    drainQueuedRunRequests();
+  };
+
+  const removeActiveEntry = async (activeEntry, transport, signaling, reason = 'session_done') => {
+    if (!activeEntry) return;
+    activeTransports.delete(activeEntry);
+    if (activeEntry.settleTimer) {
+      globalThis.clearTimeout(activeEntry.settleTimer);
+      activeEntry.settleTimer = null;
+    }
+    releaseExecutionSlot(activeEntry.sessionId);
+    await Promise.resolve(transport?.close?.(reason)).catch(() => {});
+    signaling?.close?.();
+  };
+
+  const queueRunRequest = (message) => {
+    const sessionId = message?.body?.sessionId;
+    if (!sessionId) return false;
+    if (pendingRunRequests.some((entry) => entry.body?.sessionId === sessionId)) return true;
+    if (pendingRunRequests.length >= Math.max(0, Number(maxQueuedSessions || 0))) {
+      if (typeof onActivity === 'function') {
+        onActivity({ status: 'peer_session_rejected', reason: 'provider_queue_full', sessionId });
+      }
+      return false;
+    }
+    pendingRunRequests.push(message);
+    if (typeof onActivity === 'function') {
+      onActivity({
+        status: 'peer_session_queued',
+        sessionId,
+        queueDepth: pendingRunRequests.length,
+        maxActiveSessions: maxActiveSessionCount()
+      });
+    }
+    return true;
+  };
+
+  const drainQueuedRunRequests = () => {
+    if (drainingQueue || stopped || pendingRunRequests.length === 0) return;
+    drainingQueue = true;
+    queueMicrotask(async () => {
+      try {
+        while (!stopped && pendingRunRequests.length > 0 && activeExecutionSessions.size < maxActiveSessionCount()) {
+          const message = pendingRunRequests.shift();
+          if (typeof onActivity === 'function') {
+            onActivity({
+              status: 'peer_session_dequeued',
+              sessionId: message?.body?.sessionId || null,
+              queueDepth: pendingRunRequests.length
+            });
+          }
+          await handleRunRequest(message, { allowQueue: false });
+        }
+      } finally {
+        drainingQueue = false;
+        if (!stopped && pendingRunRequests.length > 0 && activeExecutionSessions.size < maxActiveSessionCount()) {
+          drainQueuedRunRequests();
+        }
+      }
+    });
+  };
 
   const publishAdvert = () => {
     if (!advert || stopped) return;
@@ -463,7 +538,7 @@ export function createPeerProviderNode({
     if (typeof onActivity === 'function') onActivity({ status: 'provider_advertised', advert });
   };
 
-  const handlePromptPayload = async ({ assignment, transport, payload }) => {
+  const handlePromptPayload = async ({ assignment, activeEntry, transport, signaling, payload }) => {
     const validation = await validatePromptPayloadForAssignment(payload, assignment);
     if (!validation.ok) {
       transport.send(createP2PPayload({
@@ -476,6 +551,7 @@ export function createPeerProviderNode({
           error: validation.reasons.join('; ')
         }
       }));
+      void removeActiveEntry(activeEntry, transport, signaling, 'prompt_rejected');
       return;
     }
     const result = await providerClient.executePeerAssignment(assignment, { promptPayload: payload });
@@ -510,15 +586,29 @@ export function createPeerProviderNode({
         receiptRecord
       });
     }
+    releaseExecutionSlot(activeEntry?.sessionId);
+    if (activeEntry && !activeEntry.settleTimer) {
+      activeEntry.settleTimer = globalThis.setTimeout(() => {
+        void removeActiveEntry(activeEntry, transport, signaling, 'receipt_sent');
+      }, DEFAULT_PROVIDER_SESSION_SETTLE_MS);
+    }
   };
 
-  const handleRunRequest = async (message) => {
+  const handleRunRequest = async (message, { allowQueue = true } = {}) => {
     if (stopped) return;
     const body = message.body || {};
     if (!body.intent || !body.sessionId) return;
     if ([...activeTransports].some((entry) => entry.sessionId === body.sessionId)) return;
-    if (activeTransports.size >= Math.max(1, Number(maxActiveSessions || 1))) {
-      if (typeof onActivity === 'function') onActivity({ status: 'peer_session_rejected', reason: 'provider_busy', sessionId: body.sessionId });
+    const advertisedProviderId = advert?.body?.providerId || advert?.fromPeerId || null;
+    if (advertisedProviderId) {
+      if (body.providerId && body.providerId !== advertisedProviderId) return;
+      if (body.assignment?.providerId && body.assignment.providerId !== advertisedProviderId) return;
+    }
+    if (activeExecutionSessions.size >= maxActiveSessionCount()) {
+      if (allowQueue && queueRunRequest(message)) return;
+      if (typeof onActivity === 'function') {
+        onActivity({ status: 'peer_session_rejected', reason: 'provider_busy', sessionId: body.sessionId });
+      }
       return;
     }
     let assignment = body.assignment || null;
@@ -555,17 +645,21 @@ export function createPeerProviderNode({
       initiator: false,
       onMessage(payload) {
         if (payload?.type === P2P_PAYLOAD_TYPES.PROMPT) {
-          void handlePromptPayload({ assignment, transport, payload }).catch((error) => {
-            transport.send(createP2PPayload({
-              type: P2P_PAYLOAD_TYPES.ERROR,
-              assignmentId: assignment.assignmentId,
-              jobId: assignment.jobId,
-              fromPeerId: assignment.providerId,
-              toPeerId: assignment.requesterId,
-              body: {
-                error: error.message
-              }
-            }));
+          void handlePromptPayload({ assignment, activeEntry, transport, signaling, payload }).catch((error) => {
+            try {
+              transport.send(createP2PPayload({
+                type: P2P_PAYLOAD_TYPES.ERROR,
+                assignmentId: assignment.assignmentId,
+                jobId: assignment.jobId,
+                fromPeerId: assignment.providerId,
+                toPeerId: assignment.requesterId,
+                body: {
+                  error: error.message
+                }
+              }));
+            } finally {
+              void removeActiveEntry(activeEntry, transport, signaling, 'provider_error');
+            }
           });
         }
         if (payload?.type === P2P_PAYLOAD_TYPES.ACCEPTANCE) {
@@ -578,16 +672,18 @@ export function createPeerProviderNode({
               ledgerEvents: payload.body?.ledgerEvents || []
             });
           }
-          if (activeEntry) {
-            activeTransports.delete(activeEntry);
-            void Promise.resolve(transport.close?.('acceptance_received')).catch(() => {});
-            signaling.close?.();
-          }
+          void removeActiveEntry(activeEntry, transport, signaling, 'acceptance_received');
         }
       }
     });
-    activeEntry = { sessionId: body.sessionId, transport, signaling };
+    activeEntry = {
+      sessionId: body.sessionId,
+      transport,
+      signaling,
+      settleTimer: null
+    };
     activeTransports.add(activeEntry);
+    activeExecutionSessions.add(body.sessionId);
     if (typeof onActivity === 'function') onActivity({ status: 'peer_session_opening', assignment });
     const ready = transport.connect();
     postRoomMessage(channel, resolvedRoomId, 'peer-run-accepted', {
@@ -596,8 +692,13 @@ export function createPeerProviderNode({
       providerId: assignment.providerId,
       requesterId: assignment.requesterId
     });
-    await ready;
-    if (typeof onActivity === 'function') onActivity({ status: 'peer_session_open', assignment });
+    try {
+      await ready;
+      if (typeof onActivity === 'function') onActivity({ status: 'peer_session_open', assignment });
+    } catch (error) {
+      await removeActiveEntry(activeEntry, transport, signaling, 'session_failed');
+      throw error;
+    }
   };
 
   const handler = (event) => {
@@ -637,12 +738,16 @@ export function createPeerProviderNode({
       stopped = true;
       if (interval) globalThis.clearInterval(interval);
       interval = null;
+      pendingRunRequests.length = 0;
       channel?.removeEventListener('message', handler);
       for (const entry of activeTransports) {
+        releaseExecutionSlot(entry.sessionId);
+        if (entry.settleTimer) globalThis.clearTimeout(entry.settleTimer);
         if (entry.transport?.close) await Promise.resolve(entry.transport.close('provider_stop')).catch(() => {});
         entry.signaling.close?.();
       }
       activeTransports.clear();
+      activeExecutionSessions.clear();
       channel?.close();
       channel = null;
       return {

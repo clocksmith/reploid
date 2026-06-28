@@ -241,10 +241,12 @@ const normalizeModelInfo = async (model, handle) => {
     quantization: model?.quantization || handle?.quantization || handle?.model?.quantization || null,
     runtime: 'doppler',
     backend: 'browser-webgpu',
+    artifactIdentity: model?.artifactIdentity || evidence.artifactIdentity || null,
     identityEvidence: {
       modelId: hasIdentityValue(evidence.modelId),
       modelHash: hasIdentityValue(evidence.modelHash),
-      manifestHash: hasIdentityValue(evidence.manifestHash)
+      manifestHash: hasIdentityValue(evidence.manifestHash),
+      artifactIdentity: !!evidence.artifactIdentity
     }
   };
 };
@@ -260,6 +262,21 @@ const normalizeRuntimeInfo = (runtime, handle) => ({
 
 const getHandleModelEvidence = async (handle) => {
   const manifest = handle?.manifest || handle?.model?.manifest || null;
+  const artifactIdentity = handle?.artifactIdentity || handle?.model?.artifactIdentity || manifest?.artifactIdentity || null;
+  const modelHash = handle?.modelHash
+    || handle?.hash
+    || handle?.model?.modelHash
+    || handle?.model?.hash
+    || manifest?.modelHash
+    || manifest?.artifactIdentity?.weightPackHash
+    || manifest?.artifactIdentity?.shardSetHash
+    || (artifactIdentity ? await hashJson(artifactIdentity) : null);
+  const manifestHash = handle?.manifestHash
+    || handle?.model?.manifestHash
+    || handle?.model?.manifest?.hash
+    || manifest?.manifestHash
+    || manifest?.hash
+    || (manifest ? await hashJson(manifest) : null);
   return {
     modelId: handle?.modelId
       || handle?.id
@@ -268,21 +285,15 @@ const getHandleModelEvidence = async (handle) => {
       || manifest?.modelId
       || manifest?.id
       || null,
-    modelHash: handle?.modelHash
-      || handle?.hash
-      || handle?.model?.modelHash
-      || handle?.model?.hash
-      || manifest?.modelHash
-      || manifest?.hash
-      || null,
-    manifestHash: handle?.manifestHash
-      || handle?.model?.manifestHash
-      || handle?.model?.manifest?.hash
-      || manifest?.manifestHash
-      || manifest?.hash
-      || (manifest ? await hashJson(manifest) : null)
+    modelHash,
+    manifestHash,
+    artifactIdentity
   };
 };
+
+const artifactIdentityMatches = (expected = {}, actual = {}) => (
+  Object.entries(expected || {}).every(([key, value]) => value === undefined || value === actual?.[key])
+);
 
 const assertHandleMatchesDescriptor = async (handle, descriptor = {}) => {
   const evidence = await getHandleModelEvidence(handle);
@@ -298,6 +309,9 @@ const assertHandleMatchesDescriptor = async (handle, descriptor = {}) => {
   assertField('modelId', descriptor?.modelId || descriptor?.id, evidence.modelId);
   assertField('modelHash', descriptor?.modelHash || descriptor?.hash, evidence.modelHash);
   assertField('manifestHash', descriptor?.manifestHash, evidence.manifestHash);
+  if (descriptor?.artifactIdentity && !artifactIdentityMatches(descriptor.artifactIdentity, evidence.artifactIdentity)) {
+    throw new Error('Loaded Doppler handle artifactIdentity does not match requested model identity');
+  }
 };
 
 const loadDopplerModule = async () => {
@@ -421,18 +435,15 @@ const runGenerationAttempts = async (attempts) => {
 const callGenerate = async (session, prompt, generationConfig, assignment) => {
   const dopplerOptions = toDopplerGenerationOptions(generationConfig);
   const request = toDopplerGenerationRequest(prompt, generationConfig, assignment);
+  if (typeof session.generateText === 'function') {
+    const promptAttempt = () => session.generateText(prompt, dopplerOptions);
+    const requestAttempt = () => session.generateText(request);
+    return runGenerationAttempts([promptAttempt, requestAttempt]);
+  }
   if (typeof session.generate === 'function') {
     const objectFirst = session.generate.length <= 1;
     const promptAttempt = () => session.generate(prompt, dopplerOptions);
     const requestAttempt = () => session.generate(request);
-    return runGenerationAttempts(objectFirst
-      ? [requestAttempt, promptAttempt]
-      : [promptAttempt, requestAttempt]);
-  }
-  if (typeof session.generateText === 'function') {
-    const objectFirst = session.generateText.length <= 1;
-    const promptAttempt = () => session.generateText(prompt, dopplerOptions);
-    const requestAttempt = () => session.generateText(request);
     return runGenerationAttempts(objectFirst
       ? [requestAttempt, promptAttempt]
       : [promptAttempt, requestAttempt]);

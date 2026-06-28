@@ -9,7 +9,7 @@ import {
   getPolicy,
   listPolicies
 } from './config.js';
-import { isLaunchModelRequirement } from './model-contract.js';
+import { validateLaunchModelRequirement } from './model-contract.js';
 
 export { DETERMINISTIC_GENERATION_CONFIG, POLICIES, POLICY_IDS, getPolicy, listPolicies };
 
@@ -44,9 +44,7 @@ export function validateJobRequest(request = {}) {
   if (!request.modelRequirements?.runtime) reasons.push('modelRequirements.runtime is required');
   if (!request.modelRequirements?.backend) reasons.push('modelRequirements.backend is required');
   if (policy) reasons.push(...validateDeterministicGenerationConfig(request.generationConfig || {}));
-  if (policy && !isLaunchModelRequirement(request.modelRequirements || {})) {
-    reasons.push('model requirements do not match an enabled model contract');
-  }
+  if (policy) reasons.push(...validateLaunchModelRequirement(request.modelRequirements || {}).reasons);
   return {
     ok: reasons.length === 0,
     policy,

@@ -148,6 +148,7 @@ const normalizeReceiptModel = (model = {}) => ({
   backend: model.backend || 'browser-webgpu',
   contextLength: Number(model.contextLength || 0),
   quantization: model.quantization || null,
+  artifactIdentity: model.artifactIdentity || model.requirements?.artifactIdentity || null,
   requirements: model.requirements || null
 });
 

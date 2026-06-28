@@ -15,7 +15,6 @@ import {
   POOLDAY_FLOW_LABELS,
   POOLDAY_NAME,
   POOLDAY_NAV_ROUTES,
-  POOLDAY_NODE_GRID_SQUARES,
   POOLDAY_PEER_LEDGER_STORAGE_KEY,
   POOLDAY_PROTOCOL,
   POOLDAY_RECEIPT_LEDGER_LIMIT,
@@ -72,32 +71,41 @@ export const getPeerRoomBusFactory = () => createPeerRoomBusFactory({
   relay: 'local'
 });
 
+export const getPeerDiscoveryWindowMs = () => {
+  const explicit = Number(window.REPLOID_POOL_DISCOVERY_WINDOW_MS || 0);
+  if (Number.isFinite(explicit) && explicit > 0) return explicit;
+  return 1200;
+};
+
+export const getPeerReceiptWindowMs = () => {
+  const explicit = Number(window.REPLOID_POOL_RECEIPT_WINDOW_MS || 0);
+  if (Number.isFinite(explicit) && explicit > 0) return explicit;
+  return 60000;
+};
+
+export const getPeerGenerationConfig = () => {
+  const override = window.REPLOID_POOL_GENERATION_CONFIG && typeof window.REPLOID_POOL_GENERATION_CONFIG === 'object'
+    ? window.REPLOID_POOL_GENERATION_CONFIG
+    : {};
+  const maxOutputTokens = Number(window.REPLOID_POOL_MAX_OUTPUT_TOKENS || override.maxOutputTokens || 128);
+  return {
+    mode: 'greedy',
+    temperature: 0,
+    topK: 1,
+    topP: 1,
+    seed: '0000000000000000',
+    ...override,
+    maxOutputTokens: Number.isFinite(maxOutputTokens) && maxOutputTokens > 0 ? Math.floor(maxOutputTokens) : 128
+  };
+};
+
 export const getPeerInviteUrl = () => createPeerRoomInviteUrl({
   roomId: getPeerRoomId(),
-  relay: 'local',
+  relay: getPeerRelayMode(),
   baseUrl: window.location.href
 });
 
-const NODE_GRID_SQUARES = POOLDAY_NODE_GRID_SQUARES;
-
-const renderNodeGrid = () => `
-  <div class="pool-node-grid" data-pool-node-grid aria-label="Node status tiles">
-    ${Array.from({ length: NODE_GRID_SQUARES }).map(() => '<span class="pool-node-square" aria-hidden="true"></span>').join('')}
-  </div>
-`;
-
-export const setNodeGridProgress = (nodeGrid, value) => {
-  if (!nodeGrid) return;
-  const squares = nodeGrid.querySelectorAll('.pool-node-square');
-  const ratio = Math.max(0, Math.min(1, value));
-  const limit = Math.round(squares.length * ratio);
-  squares.forEach((square, index) => {
-    square.classList.toggle('is-active', index < limit);
-  });
-};
-
 const getProviderStatusEl = (mount) => mount?.querySelector('[data-pool-provider-status]');
-export const getNodeGrid = (mount) => mount?.querySelector('[data-pool-node-grid]');
 
 export const updateProviderStatus = (mount, status = 'NODE // OFFLINE') => {
   const statusEl = getProviderStatusEl(mount);
@@ -578,6 +586,35 @@ const renderPolicyStrip = () => `
   </div>
 `;
 
+const renderRoomStrip = () => `
+  <div class="pool-room-strip" aria-label="Peer room">
+    <span class="pool-room-item">
+      <span class="rgr-status-label">Room</span>
+      <code data-pool-room-id>${escapeHtml(getPeerRoomId())}</code>
+    </span>
+    <span class="pool-room-item">
+      <span class="rgr-status-label">Relay</span>
+      <code data-pool-relay-mode>${escapeHtml(getPeerRelayMode())}</code>
+    </span>
+    <span class="pool-room-item">
+      <span class="rgr-status-label">Protocol</span>
+      <code>${escapeHtml(POOLDAY_VERSION_TAG)}</code>
+    </span>
+    <a class="link-secondary pool-room-link" href="${escapeHtml(getPeerInviteUrl())}" data-pool-invite-link>Invite</a>
+  </div>
+`;
+
+const renderRouteShell = (copy, content) => `
+  <section class="panel pool-panel pool-route-shell">
+    <div class="pool-page-heading">
+      <h1 class="type-h1">${escapeHtml(copy.title)}</h1>
+      <p class="type-caption pool-hero-body">${escapeHtml(copy.body)}</p>
+    </div>
+    ${renderRoomStrip()}
+    ${content}
+  </section>
+`;
+
 const renderPolicyTrustLabel = (policy) => (
   policy.adaptiveRing ? 'adaptive quorum' : policy.trustTier
 );
@@ -626,28 +663,6 @@ const renderModelOptions = () => listPoolModels().map((model) => {
   return `<option value="${escapeHtml(model.modelId)}"${enabled ? '' : ' disabled'}>${escapeHtml(`${label}${suffix}`)}</option>`;
 }).join('');
 
-const renderHostedAgentExamples = () => {
-  const model = LAUNCH_MODEL;
-  const example = `import { runPeerJob } from './pool/peer-room.js';
-import { createRequesterClient } from './pool/requester-client.js';
-
-const result = await runPeerJob({
-  roomId: '${DEFAULT_PEER_ROOM_ID}',
-  requesterClient: createRequesterClient({ sdk: null }),
-  policyId: '${FASTEST_RECEIPT_POLICY_ID}',
-  prompt,
-  modelRequirements: {
-    modelId: '${model.modelId}',
-    modelHash: '${model.modelHash}',
-    manifestHash: '${model.manifestHash}',
-    runtime: '${model.runtime}',
-    backend: '${model.backend}'
-  }
-});
-console.log(result.receiptHash, result.outputText);`;
-  return `<pre class="pool-result pool-result-raw" aria-label="P2P agent compatibility example">${escapeHtml(example)}</pre>`;
-};
-
 const renderFlowLabels = () => POOLDAY_FLOW_LABELS.map((item) => `
   <span
     class="pool-flow-label pool-flow-label-${escapeHtml(item.id)}"
@@ -683,14 +698,13 @@ export const renderRoutePanel = (routeId) => {
 export const renderRouteDetail = (routeId) => {
   const copy = ROUTE_COPY[routeId] || ROUTE_COPY.home;
   if (routeId === 'run') {
-    return `
-      <section class="panel pool-panel">
-        <div class="pool-page-heading">
-          <h1 class="type-h1">${escapeHtml(copy.title)}</h1>
-          <p class="type-caption pool-hero-body">${escapeHtml(copy.body)}</p>
-        </div>
-        <div class="pool-form pool-run-layout" data-pool-run>
+    return renderRouteShell(copy, `
+        <div class="pool-form pool-route-grid pool-run-layout" data-pool-run>
           <div class="pool-run-compose">
+            <div class="pool-section-heading">
+              <h2 class="type-h2">Request</h2>
+              <span class="pool-meta-tag">DataChannel prompt</span>
+            </div>
             <label class="pool-field">
               <span>Prompt</span>
               <textarea id="pool-run-prompt" rows="6">Summarize Reploid in one sentence.</textarea>
@@ -706,40 +720,30 @@ export const renderRouteDetail = (routeId) => {
                   <span>Model</span>
                   <select id="pool-run-model">${renderModelOptions()}</select>
                 </label>
-                <label class="pool-field">
-                  <span>Budget</span>
-                  <input id="pool-run-max-spend" type="number" min="0" step="1" placeholder="optional" />
-                </label>
               </div>
             </details>
             <div class="pool-control-row pool-primary-actions" aria-label="Run controls">
               <button class="btn btn-primary btn-op" data-op="▶" id="pool-run-submit" type="button">Run</button>
-              <button class="btn btn-ghost btn-op" data-op="♺" id="pool-run-poll" type="button">Refresh</button>
             </div>
           </div>
           <div class="pool-run-output">
-            <div class="pool-result-heading">
+            <div class="pool-section-heading pool-result-heading">
               <h3 class="type-h2">Result</h3>
               <span class="pool-meta-tag">Verified when receipt appears</span>
             </div>
             ${renderResultBox('pool-run-result', { stream: true, streamLabel: 'Output' })}
           </div>
         </div>
-      </section>
-    `;
+    `);
   }
   if (routeId === 'mesh') {
-    return `
-      <section class="panel pool-panel">
-        <div class="pool-page-heading pool-page-heading-split">
-          <div>
-            <h1 class="type-h1">${escapeHtml(copy.title)}</h1>
-            <p class="type-caption pool-hero-body">${escapeHtml(copy.body)}</p>
-          </div>
-          <p class="pool-provider-status" data-pool-provider-status>NODE // OFFLINE</p>
-        </div>
-        <div class="pool-form pool-provider-layout" data-pool-provider>
+    return renderRouteShell(copy, `
+        <div class="pool-form pool-route-grid pool-provider-layout" data-pool-provider>
           <div class="pool-provider-main">
+            <div class="pool-section-heading pool-provider-heading">
+              <h2 class="type-h2">Node</h2>
+              <p class="pool-provider-status" data-pool-provider-status>NODE // OFFLINE</p>
+            </div>
             <label class="pool-field">
               <span>Model</span>
               <select id="pool-provider-model">${renderModelOptions()}</select>
@@ -750,79 +754,55 @@ export const renderRouteDetail = (routeId) => {
             </div>
           </div>
           <div class="pool-provider-live" aria-label="Node live state">
-            ${renderNodeGrid()}
-            <div class="pool-provider-stats">
-              <span><b>0</b> active</span>
-              <span><b>0</b> waiting</span>
-              <span><b>0</b> receipts</span>
+            <div class="pool-section-heading">
+              <h3 class="type-h2">Live</h3>
+              <span class="pool-meta-tag">Provider room</span>
             </div>
+            <div id="pool-provider-health" class="pool-ledger-shell" aria-live="polite">${renderProviderHealth()}</div>
           </div>
-          <div id="pool-provider-health" class="pool-ledger-shell" aria-live="polite">${renderProviderHealth()}</div>
-          <details class="pool-advanced">
-            <summary>Advanced</summary>
-            <div class="pool-control-row" aria-label="Manual node controls">
-              <button class="btn btn-ghost btn-op" data-op="☁" id="pool-provider-load" type="button">Load</button>
-              <button class="btn btn-ghost btn-op" data-op="☨" id="pool-provider-profile" type="button">Profile</button>
-            </div>
-            <div class="pool-form" data-pool-agent>
-              <label class="pool-field">
-                <span>Agent prompt</span>
-                <textarea id="pool-agent-prompt" rows="4">Return one concise sentence about verified browser inference.</textarea>
-              </label>
-              <label class="pool-field">
-                <span>Policy</span>
-                <select id="pool-agent-policy">${renderPolicyOptions()}</select>
-              </label>
-              <label class="pool-field">
-                <span>Budget</span>
-                <input id="pool-agent-max-spend" type="number" min="0" step="1" placeholder="optional" />
-              </label>
-              <button class="btn btn-ghost btn-op" data-op="⏎" id="pool-agent-submit" type="button">Submit</button>
-              <details class="pool-advanced">
-                <summary>API example</summary>
-                ${renderHostedAgentExamples()}
-              </details>
-              ${renderResultBox('pool-agent-result')}
-            </div>
-          </details>
           <div class="pool-inspector-shell">
-            <div class="pool-result-heading">
+            <div class="pool-section-heading pool-result-heading">
               <h3 class="type-h2">Activity</h3>
               <span class="pool-meta-tag">Inspector</span>
             </div>
             ${renderResultBox('pool-provider-result', { placeholder: 'No activity yet.' })}
           </div>
         </div>
-      </section>
-    `;
+    `);
   }
   if (routeId === 'record') {
-    return `
-      <section class="panel pool-panel">
-        <div class="pool-page-heading">
-          <h1 class="type-h1">${escapeHtml(copy.title)}</h1>
-          <p class="type-caption pool-hero-body">${escapeHtml(copy.body)}</p>
-        </div>
-        <div class="pool-form" data-pool-receipts>
-          <label class="pool-field">
-            <span>Hash</span>
-            <input id="pool-receipt-hash" placeholder="sha256:..." />
-          </label>
-          <button class="btn btn-primary btn-op" data-op="⚲" id="pool-receipt-lookup" type="button">Lookup</button>
-          <div id="pool-receipt-ledger" class="pool-ledger-shell" aria-live="polite">${renderReceiptLedger()}</div>
-          ${renderResultBox('pool-receipt-result')}
-          <details class="pool-advanced">
-            <summary>Local peer record</summary>
+    return renderRouteShell(copy, `
+        <div class="pool-form pool-route-grid pool-record-layout" data-pool-receipts>
+          <div class="pool-record-query">
+            <div class="pool-section-heading">
+              <h2 class="type-h2">Lookup</h2>
+              <span class="pool-meta-tag">Receipt hash</span>
+            </div>
+            <label class="pool-field">
+              <span>Hash</span>
+              <input id="pool-receipt-hash" placeholder="sha256:..." />
+            </label>
+            <div class="pool-control-row pool-primary-actions">
+              <button class="btn btn-primary btn-op" data-op="⚲" id="pool-receipt-lookup" type="button">Lookup</button>
+            </div>
+            ${renderResultBox('pool-receipt-result')}
+          </div>
+          <div class="pool-record-ledgers">
+            <div class="pool-section-heading">
+              <h3 class="type-h2">Receipts</h3>
+              <span class="pool-meta-tag">This browser</span>
+            </div>
+            <div id="pool-receipt-ledger" class="pool-ledger-shell" aria-live="polite">${renderReceiptLedger()}</div>
             <div class="pool-form" data-pool-reputation>
-              <button class="btn btn-ghost btn-op" data-op="♺" id="pool-reputation-refresh" type="button">Refresh</button>
+              <div class="pool-section-heading">
+                <h3 class="type-h2">Peer Ledger</h3>
+              </div>
               <div id="pool-peer-ledger" class="pool-ledger-shell" aria-live="polite">${renderPeerLedgerState()}</div>
-              ${renderResultBox('pool-reputation-result')}
               <p class="pool-meta-tag" aria-label="protocol identifier">Protocol ${POOLDAY_VERSION_TAG}</p>
             </div>
-          </details>
+          </div>
         </div>
-      </section>
-    `;
+    `);
   }
   return '';
 };

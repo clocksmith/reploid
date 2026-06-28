@@ -179,10 +179,6 @@ export const writeParticipantAnchor = (
   graphPositions,
   width,
   height,
-  pointerX,
-  pointerY,
-  pointerForce,
-  pointerActive,
   time,
   orbitCue,
   countdownProgress,
@@ -194,18 +190,10 @@ export const writeParticipantAnchor = (
   const pulse = 0.5 + 0.5 * Math.sin(time * 1.55 + spec.phase);
   const baseX = width * base.x;
   const baseY = height * base.y;
-  const dx = baseX - pointerX;
-  const dy = baseY - pointerY;
-  const distance = Math.max(1, Math.hypot(dx, dy));
-  const pointerLift = pointerActive || pointerForce > 0.02
-    ? Math.max(0, 1 - distance / (width * 0.34)) * (10 + pointerForce * 16)
-    : 0;
   const driftX = Math.cos(time * (0.78 + orbitCue * 0.10) + spec.phase + orbitCue * 1.6) * spec.driftX * (0.44 + orbitCue * 0.22) * motionCue
-    + Math.sin(time * 0.33 + spec.phase * 1.4 + orbitCue) * spec.driftX * (0.22 + orbitCue * 0.10) * motionCue
-    + (dx / distance) * pointerLift;
+    + Math.sin(time * 0.33 + spec.phase * 1.4 + orbitCue) * spec.driftX * (0.22 + orbitCue * 0.10) * motionCue;
   const driftY = Math.sin(time * (0.72 + orbitCue * 0.10) + spec.phase + orbitCue * 1.4) * spec.driftY * (0.44 + orbitCue * 0.22) * motionCue
-    + Math.cos(time * 0.41 + spec.phase * 1.2 + orbitCue) * spec.driftY * (0.18 + orbitCue * 0.10) * motionCue
-    + (dy / distance) * pointerLift;
+    + Math.cos(time * 0.41 + spec.phase * 1.2 + orbitCue) * spec.driftY * (0.18 + orbitCue * 0.10) * motionCue;
   target.id = spec.id;
   target.role = spec.role;
   target.index = spec.index;
@@ -217,7 +205,7 @@ export const writeParticipantAnchor = (
   target.x = baseX + driftX;
   target.y = baseY + driftY;
   target.alpha = 0.78 + pulse * 0.18;
-  target.size = spec.size * (0.78 + pulse * 0.5) + pointerForce * 1.2;
+  target.size = spec.size * (0.78 + pulse * 0.5);
   target.presence = 1;
   target.lineDraw = 1;
   target.pulse = pulse;

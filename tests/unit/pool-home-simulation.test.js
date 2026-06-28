@@ -2,8 +2,10 @@ import { describe, expect, it } from 'vitest';
 
 import {
   buildPoolSimulationFrame,
+  clamp01,
   createPoolSimulationState,
   easeInOutCubic,
+  resolveLinePoint,
   resizePoolCanvas
 } from '../../self/ui/pool-home/simulation-core.js';
 import { resolvePoolFrameDeltaMs } from '../../self/ui/pool-home/simulation-bind.js';
@@ -12,6 +14,7 @@ import {
   SIMULATION_GENTLE_SPEED,
   SIMULATION_MOTION_CLOCK_WRAP_SECONDS,
   POOLDAY_MORPH_TUNING,
+  POOLDAY_FLOW_TUNING,
   SIMULATION_TARGET_STEP_MS
 } from '../../self/ui/pool-home/constants.js';
 
@@ -90,6 +93,69 @@ describe('pool home simulation performance contracts', () => {
     expect(labelCounts.Verify).toBeGreaterThanOrEqual(3);
     expect(labelCounts.Record).toBeGreaterThanOrEqual(2);
     expect(stages.size).toBe(6);
+  });
+
+  it('keeps pointer shooter particles inactive until the canvas is held', () => {
+    const state = createPoolSimulationState();
+    const frame = buildPoolSimulationFrame(state, 960, 640, 1 / 60);
+    const shooterParticles = frame.particles.slice(POOLDAY_FLOW_TUNING.particleCount);
+
+    expect(shooterParticles.length).toBeGreaterThan(0);
+    expect(shooterParticles.every((particle) => particle.alpha === 0 && particle.size === 0)).toBe(true);
+    expect(state.pointerShots.every((shot) => shot.active === false)).toBe(true);
+  });
+
+  it('does not use pointer input to move or resize graph nodes', () => {
+    withSimulationSearch('?seed=pointer-static&shape=runner_reduce', () => {
+      const idleState = createPoolSimulationState();
+      const heldState = createPoolSimulationState();
+      heldState.pointer.targetX = 0.08;
+      heldState.pointer.targetY = 0.90;
+      heldState.pointer.holding = true;
+      heldState.pointer.shotBurst = 6;
+      heldState.pointer.moveEnergy = 1;
+
+      const idleFrame = buildPoolSimulationFrame(idleState, 960, 640, 1 / 60);
+      const heldFrame = buildPoolSimulationFrame(heldState, 960, 640, 1 / 60);
+
+      for (let index = 0; index < idleFrame.nodes.length; index += 1) {
+        expect(heldFrame.nodes[index].x).toBeCloseTo(idleFrame.nodes[index].x, 8);
+        expect(heldFrame.nodes[index].y).toBeCloseTo(idleFrame.nodes[index].y, 8);
+        expect(heldFrame.nodes[index].size).toBeCloseTo(idleFrame.nodes[index].size, 8);
+      }
+    });
+  });
+
+  it('shoots held pointer particles onto existing rendered edges', () => {
+    withSimulationSearch('?seed=pointer-shooter&shape=runner_reduce', () => {
+      const state = createPoolSimulationState();
+      state.pointer.targetX = 0.18;
+      state.pointer.targetY = 0.52;
+      state.pointer.holding = true;
+      state.pointer.shotBurst = 6;
+      state.pointer.moveEnergy = 0.75;
+      const width = 960;
+      const height = 640;
+      const step = 1 / 60;
+      let frame = null;
+
+      for (let index = 0; index < 18; index += 1) {
+        frame = buildPoolSimulationFrame(state, width, height, step);
+      }
+
+      const shot = state.pointerShots.find((candidate) => candidate.active && candidate.age > 0.20);
+      expect(shot).toBeTruthy();
+      const particle = frame.particles[POOLDAY_FLOW_TUNING.particleCount + shot.index];
+      const line = frame.lines[shot.lineIndex % frame.lines.length];
+      const flowScale = 0.72 + frame.flowEnergy * 0.42;
+      const edgeProgress = clamp01(
+        shot.start + shot.direction * shot.age * shot.speed * (line.speed || 1) * flowScale * 0.38
+      );
+      const edgePoint = resolveLinePoint(line, edgeProgress, width, height);
+
+      expect(particle.alpha).toBeGreaterThan(0);
+      expect(Math.hypot(particle.x - edgePoint.x, particle.y - edgePoint.y)).toBeLessThan(4);
+    });
   });
 
   it('resets frame delta after resume gaps', () => {

@@ -23,7 +23,7 @@ import {
   LAUNCH_MODEL,
   buildLaunchModelRequirements,
   buildLaunchProviderModel,
-  isLaunchModelRequirement
+  validateLaunchModelRequirement
 } from './model-contract.js';
 import {
   P2P_PAYLOAD_TYPES,
@@ -192,8 +192,9 @@ export async function createSignedJobIntent({
   };
   const policy = getPolicy(policyId);
   if (!policy) throw new Error(`Unsupported pool policy: ${policyId}`);
-  if (!isLaunchModelRequirement(resolvedModelRequirements)) {
-    throw new Error('model requirements do not match an enabled model contract');
+  const modelValidation = validateLaunchModelRequirement(resolvedModelRequirements);
+  if (!modelValidation.ok) {
+    throw new Error(modelValidation.reasons.join('; '));
   }
   const inputHash = await sha256Hex(resolvedPrompt);
   const generationConfigHash = await hashJson(resolvedGenerationConfig);
@@ -244,7 +245,7 @@ export async function createSignedProviderAdvert({
   const resolvedModels = Array.isArray(models) && models.length > 0
     ? models
     : [buildLaunchProviderModel()];
-  if (!resolvedModels.some((model) => isLaunchModelRequirement(model))) {
+  if (!resolvedModels.some((model) => validateLaunchModelRequirement(model).ok)) {
     throw new Error('provider advert must include an enabled launch model contract');
   }
   return createSignedPeerMessage({

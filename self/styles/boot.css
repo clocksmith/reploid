@@ -2110,6 +2110,58 @@ body[data-pool-route-id='home'] #app {
   gap: var(--space-xs);
 }
 
+.pool-route-shell {
+  width: min(1180px, 100%);
+}
+
+.pool-route-grid {
+  margin-top: var(--space-sm);
+}
+
+.pool-room-strip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm);
+  border-top: var(--border-sm) dotted color-mix(in srgb, var(--fg), transparent 76%);
+  border-bottom: var(--border-sm) dotted color-mix(in srgb, var(--fg), transparent 76%);
+}
+
+.pool-room-item {
+  display: inline-flex;
+  min-width: 0;
+  align-items: baseline;
+  gap: var(--space-xs);
+}
+
+.pool-room-item code {
+  max-width: min(36ch, 54vw);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pool-room-link {
+  margin-left: auto;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--font-tracking-label);
+  text-transform: uppercase;
+}
+
+.pool-section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+}
+
+.pool-section-heading .type-h2,
+.pool-section-heading .pool-provider-status {
+  margin: 0;
+}
+
 .pool-run-layout {
   display: grid;
   grid-template-columns: minmax(280px, 0.9fr) minmax(360px, 1.1fr);
@@ -2182,6 +2234,20 @@ body[data-pool-route-id='home'] #app {
 .pool-provider-layout .pool-advanced,
 .pool-provider-layout .pool-inspector-shell {
   grid-column: 1 / -1;
+}
+
+.pool-record-layout {
+  display: grid;
+  grid-template-columns: minmax(280px, 0.72fr) minmax(380px, 1.28fr);
+  align-items: start;
+  gap: var(--space-lg);
+}
+
+.pool-record-query,
+.pool-record-ledgers {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
 }
 
 .pool-provider-live {
@@ -2462,7 +2528,7 @@ body[data-pool-route-id='home'] #app {
   height: clamp(430px, 62vh, 700px);
   background: var(--bg);
   cursor: default;
-  touch-action: manipulation;
+  touch-action: none;
 }
 
 .pool-home[data-pool-route-id='home'] .pool-simulation-canvas {
@@ -2735,6 +2801,7 @@ body[data-pool-route-id='home'] #app {
 
   .pool-run-layout,
   .pool-provider-layout,
+  .pool-record-layout,
   .pool-advanced-grid {
     grid-template-columns: 1fr;
   }
@@ -2745,6 +2812,10 @@ body[data-pool-route-id='home'] #app {
     border-top: var(--border-sm) dotted color-mix(in srgb, var(--fg), transparent 72%);
     padding-left: 0;
     padding-top: var(--space-md);
+  }
+
+  .pool-room-link {
+    margin-left: 0;
   }
 
   .pool-result-heading,

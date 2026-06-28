@@ -35,7 +35,7 @@ describe('poolday home navigation', () => {
     expect(ROUTE_COPY.mesh).toEqual({
       eyebrow: 'Mesh',
       title: 'Mesh',
-      body: 'View the browser mesh and start this tab as a node.'
+      body: 'Start this browser as a provider for the current room.'
     });
   });
 

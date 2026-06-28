@@ -27,8 +27,8 @@ const context = await browser.newContext();
 await context.addInitScript(() => {
   const model = {
     modelId: 'gemma-3-270m-it-q4k-ehf16-af32',
-    modelHash: 'sha256:b55fde5809dbc198f880b08af21e40e3175a6d2f9f88a9fad59fa0afd7190dc9',
-    manifestHash: 'sha256:abac153d8cee1b6cc4fd2743defa84b91f67b3d030af028bbd5ed8ba8cabee6b',
+    modelHash: 'sha256:6e9c0037ca1508855c441a4da1a0916a347f0901779549d6a70381bc5089a4b9',
+    manifestHash: 'sha256:cdc1d7a596fd2314c32da553c908a1aa6183abe056bc272c249b0a084c127a16',
     contextLength: 32768,
     quantization: 'q4k',
     runtime: 'doppler',
