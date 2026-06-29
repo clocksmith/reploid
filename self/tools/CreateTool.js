@@ -1,9 +1,9 @@
 /**
- * @fileoverview CreateTool - Create a new tool at runtime (Level 1 RSI)
+ * @fileoverview CreateTool - Stage a new tool candidate for gated promotion.
  */
 
 async function call(args = {}, deps = {}) {
-  const { ToolWriter, ToolRunner } = deps;
+  const { ToolWriter, EventBus, AuditLogger } = deps;
   if (!ToolWriter) throw new Error('ToolWriter not available');
 
   const { name, code } = args;
@@ -15,40 +15,18 @@ async function call(args = {}, deps = {}) {
     ? code.replace(/\bToolRunner\.run\b/g, 'ToolRunner.execute')
     : code;
 
-  const result = await ToolWriter.create(cleanName, normalizedCode);
+  const result = await ToolWriter.create(cleanName, normalizedCode, {
+    root: args.root || '/shadow/tools',
+    load: false
+  });
 
-  if (ToolRunner?.allow) {
-    ToolRunner.allow(cleanName);
-  }
-
-  if (ToolRunner?.load) {
-    try {
-      const loaded = await ToolRunner.load(cleanName, { allow: true });
-      if (typeof result === 'string') {
-        return `${result} (${loaded ? 'tool loaded' : 'tool load skipped'})`;
-      }
-      return { ...result, toolLoaded: !!loaded };
-    } catch (err) {
-      if (typeof result === 'string') {
-        return `${result} (tool load failed: ${err.message})`;
-      }
-      return { ...result, toolLoaded: false, toolLoadError: err.message };
-    }
-  }
-
-  if (ToolRunner?.refresh) {
-    try {
-      await ToolRunner.refresh();
-      if (typeof result === 'string') {
-        return `${result} (tools reloaded)`;
-      }
-      return { ...result, toolsReloaded: true };
-    } catch (err) {
-      if (typeof result === 'string') {
-        return `${result} (tool reload failed: ${err.message})`;
-      }
-      return { ...result, toolsReloaded: false, toolReloadError: err.message };
-    }
+  EventBus?.emit?.('tool:candidate_created', result);
+  if (AuditLogger?.logEvent) {
+    await AuditLogger.logEvent('TOOL_CANDIDATE_CREATED', {
+      name: result.name,
+      path: result.path,
+      staged: true
+    }, 'INFO');
   }
 
   return result;
@@ -56,13 +34,14 @@ async function call(args = {}, deps = {}) {
 
 export const tool = {
   name: "CreateTool",
-  description: "Create a new tool at runtime (Level 1 RSI). The tool will be written to /tools/ and loaded.",
+  description: "Stage a new tool candidate under /shadow/tools for later evidence-gated Promote and LoadModule.",
   inputSchema: {
     type: 'object',
     required: ['name', 'code'],
     properties: {
       name: { type: 'string', description: 'Tool name (CamelCase, start with uppercase letter)' },
-      code: { type: 'string', description: 'JavaScript code with export default async function(args, deps)' }
+      code: { type: 'string', description: 'JavaScript code with export default async function(args, deps)' },
+      root: { type: 'string', description: 'Optional staging root. Must be /shadow/tools or a child path.' }
     }
   },
   call

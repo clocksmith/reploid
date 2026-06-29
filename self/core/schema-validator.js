@@ -707,6 +707,9 @@ const CreateToolResultSchema = z.object({
   success: z.boolean(),
   name: z.string(),
   path: z.string().optional(),
+  staged: z.boolean().optional(),
+  toolLoaded: z.boolean().optional(),
+  toolLoadError: z.string().nullable().optional(),
   message: z.string().optional()
 });
 

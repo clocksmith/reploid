@@ -156,14 +156,15 @@ const SchemaRegistry = {
         }
       },
       CreateTool: {
-        description: 'Create a new tool at runtime (Level 1 RSI)',
+        description: 'Stage a new tool candidate under /shadow/tools for gated promotion',
         readOnly: false,
         parameters: {
           type: 'object',
           required: ['name', 'code'],
           properties: {
             name: { type: 'string', description: 'Tool name (CamelCase, e.g., ReadFile, AnalyzeLogs)' },
-            code: { type: 'string', description: 'JavaScript code with export default { metadata: { readOnly: true/false }, call: async (args, deps) => {...} }. Set readOnly: true for tools that only read data (enables parallel execution).' }
+            code: { type: 'string', description: 'JavaScript code with export default async function(args, deps). The candidate is staged, not auto-loaded.' },
+            root: { type: 'string', description: 'Optional staging root. Must be under /shadow/tools.' }
           }
         }
       },
@@ -173,7 +174,7 @@ const SchemaRegistry = {
         parameters: { type: 'object', properties: {} }
       },
       LoadModule: {
-        description: 'Hot-reload a module from the VFS',
+        description: 'Hot-reload a promoted /self module from the VFS',
         readOnly: false,
         parameters: {
           type: 'object',

@@ -45,7 +45,13 @@ async function call(args = {}, deps = {}) {
   } = args;
 
   if (!path) throw new Error('Missing path argument');
-  const cleanPath = String(path || '').trim();
+  const cleanPath = '/' + String(path || '').trim().replace(/^\/+/, '');
+  if (cleanPath.split('/').includes('..')) {
+    throw new Error('Path traversal is not allowed');
+  }
+  if (!cleanPath.startsWith('/self/')) {
+    throw new Error('LoadModule only supports promoted /self paths');
+  }
 
   if (cleanPath.startsWith('/self/tools/') && cleanPath.endsWith('.js') && ToolRunner?.loadPath) {
     const loaded = await ToolRunner.loadPath(cleanPath, null, { allow: true });
@@ -95,14 +101,14 @@ async function call(args = {}, deps = {}) {
 
 export const tool = {
   name: "LoadModule",
-  description: "Hot-reload a module from the VFS into the running system. Includes timeout protection to prevent hangs from circular dependencies.",
+  description: "Hot-reload a promoted /self module from the VFS into the running system. Includes timeout protection to prevent hangs from circular dependencies.",
   inputSchema: {
     type: 'object',
     required: ['path'],
     properties: {
       path: {
         type: 'string',
-        description: 'VFS path to module (e.g. /core/utils.js)'
+        description: 'Promoted VFS path to module (e.g. /self/tools/MyTool.js)'
       },
       timeoutMs: {
         type: 'number',

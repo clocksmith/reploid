@@ -246,6 +246,7 @@ export async function runPeerJob({
   generationConfig,
   maxPointSpend = null,
   discoveryWindowMs = DEFAULT_DISCOVERY_WINDOW_MS,
+  sessionAcceptWindowMs = DEFAULT_PROVIDER_SESSION_SETTLE_MS,
   receiptWindowMs = DEFAULT_RECEIPT_WINDOW_MS,
   requesterTransportFactory = createP2PRequesterTransport,
   roomBusFactory = createBroadcastPeerRoomBus
@@ -353,7 +354,7 @@ export async function runPeerJob({
       sessionId: session.signaling.sessionId,
       providerId: session.assignment.providerId,
       requesterId: session.assignment.requesterId,
-      discoveryWindowMs
+      discoveryWindowMs: sessionAcceptWindowMs
     })));
     const promptPayloads = [];
     await Promise.all(sessions.map(async (session) => {

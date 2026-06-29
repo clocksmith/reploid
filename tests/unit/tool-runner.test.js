@@ -176,10 +176,21 @@ describe('ToolRunner', () => {
         mockVFS.list.mockResolvedValue([
           '/tools/ReadFile.js',
           '/tools/WriteFile.js',
+          '/tools/EditFile.js',
+          '/tools/ListFiles.js',
+          '/tools/DeleteFile.js',
+          '/tools/MakeDirectory.js',
+          '/tools/CopyFile.js',
+          '/tools/MoveFile.js',
+          '/tools/Head.js',
+          '/tools/Tail.js',
+          '/tools/Grep.js',
+          '/tools/Find.js',
+          '/tools/git.js',
+          '/tools/ListTools.js',
           '/tools/CreateTool.js',
           '/tools/LoadModule.js',
-          '/tools/Promote.js',
-          '/tools/DeleteFile.js'
+          '/tools/Promote.js'
         ]);
         mockVFS.read.mockResolvedValue('export default async () => "ok";');
         global.URL.createObjectURL = vi.fn(() => 'blob:mock-url');
@@ -190,6 +201,18 @@ describe('ToolRunner', () => {
         expect(mockVFS.read.mock.calls.map(([path]) => path)).toEqual([
           '/tools/ReadFile.js',
           '/tools/WriteFile.js',
+          '/tools/EditFile.js',
+          '/tools/ListFiles.js',
+          '/tools/DeleteFile.js',
+          '/tools/MakeDirectory.js',
+          '/tools/CopyFile.js',
+          '/tools/MoveFile.js',
+          '/tools/Head.js',
+          '/tools/Tail.js',
+          '/tools/Grep.js',
+          '/tools/Find.js',
+          '/tools/git.js',
+          '/tools/ListTools.js',
           '/tools/CreateTool.js',
           '/tools/Promote.js'
         ]);
@@ -206,6 +229,18 @@ describe('ToolRunner', () => {
         mockVFS.list.mockResolvedValue([
           '/tools/ReadFile.js',
           '/tools/WriteFile.js',
+          '/tools/EditFile.js',
+          '/tools/ListFiles.js',
+          '/tools/DeleteFile.js',
+          '/tools/MakeDirectory.js',
+          '/tools/CopyFile.js',
+          '/tools/MoveFile.js',
+          '/tools/Head.js',
+          '/tools/Tail.js',
+          '/tools/Grep.js',
+          '/tools/Find.js',
+          '/tools/git.js',
+          '/tools/ListTools.js',
           '/tools/CreateTool.js',
           '/tools/LoadModule.js',
           '/tools/Promote.js'
@@ -219,6 +254,18 @@ describe('ToolRunner', () => {
         expect(mockVFS.read.mock.calls.map(([path]) => path)).toEqual([
           '/tools/ReadFile.js',
           '/tools/WriteFile.js',
+          '/tools/EditFile.js',
+          '/tools/ListFiles.js',
+          '/tools/DeleteFile.js',
+          '/tools/MakeDirectory.js',
+          '/tools/CopyFile.js',
+          '/tools/MoveFile.js',
+          '/tools/Head.js',
+          '/tools/Tail.js',
+          '/tools/Grep.js',
+          '/tools/Find.js',
+          '/tools/git.js',
+          '/tools/ListTools.js',
           '/tools/CreateTool.js',
           '/tools/LoadModule.js',
           '/tools/Promote.js'

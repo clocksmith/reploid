@@ -197,10 +197,11 @@ const installRuntimeGlobals = () => {
   };
 
   window.getGenesisLevel = () => {
+    const route = getRouteBootSpec(window.location.pathname || '/');
+    if (route?.genesisLevel) return route.genesisLevel;
     const stored = scopedLocalStorage.getItem('REPLOID_GENESIS_LEVEL');
     if (stored) return stored;
-    const route = getRouteBootSpec(window.location.pathname || '/');
-    return route?.genesisLevel || 'capsule';
+    return 'capsule';
   };
 
   window.getCognitionConfig = () => {

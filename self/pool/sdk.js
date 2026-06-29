@@ -2,7 +2,13 @@
  * @fileoverview Browser SDK for the Reploid fastest-receipt pool.
  */
 
-import { verifyCanonicalSignature, receiptSigningPayload, hashJson, sha256Hex } from './inference-receipt.js';
+import {
+  SIGNATURE_DOMAINS,
+  verifyCanonicalSignature,
+  receiptSigningPayload,
+  hashJson,
+  sha256Hex
+} from './inference-receipt.js';
 import { getPoolAuthToken } from './identity.js';
 
 const DEFAULT_BASE_URL = '/pool';
@@ -157,13 +163,15 @@ export async function verifyReceipt(receipt, providerPublicKey, artifact = {}) {
   const reasons = [];
   const receiptHash = await hashJson(receipt);
   if (!receipt?.providerSignature) reasons.push('provider signature missing');
+  if (receipt?.signatureDomain !== SIGNATURE_DOMAINS.providerReceipt) reasons.push('provider receipt signature domain mismatch');
   if (!providerPublicKey) reasons.push('provider public key missing');
   if (providerPublicKey && receipt?.providerSignature) {
     try {
       const signatureOk = await verifyCanonicalSignature(
         receiptSigningPayload(receipt),
         providerPublicKey,
-        receipt.providerSignature
+        receipt.providerSignature,
+        { domain: SIGNATURE_DOMAINS.providerReceipt }
       );
       if (!signatureOk) reasons.push('provider signature invalid');
     } catch (error) {

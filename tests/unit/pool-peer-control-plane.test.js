@@ -4,6 +4,7 @@ import {
   createSigningKeyPair,
   exportPublicKey,
   hashJson,
+  SIGNATURE_DOMAINS,
   sha256Hex
 } from '../../self/pool/inference-receipt.js';
 import { createProviderClient } from '../../self/pool/provider-client.js';
@@ -211,6 +212,7 @@ describe('pool peer control plane', () => {
     const receiptPayloads = await Promise.all(plan.assignments.map(async (assignment) => {
       const receipt = {
         receiptVersion: 'reploid_browser_inference/v1',
+        signatureDomain: SIGNATURE_DOMAINS.providerReceipt,
         assignmentId: assignment.assignmentId,
         jobId: assignment.jobId,
         requesterId: assignment.requesterId,
@@ -301,6 +303,7 @@ describe('pool peer control plane', () => {
     const assignment = plan.assignment;
     const receipt = {
       receiptVersion: 'reploid_browser_inference/v1',
+      signatureDomain: SIGNATURE_DOMAINS.providerReceipt,
       assignmentId: assignment.assignmentId,
       jobId: assignment.jobId,
       requesterId: assignment.requesterId,

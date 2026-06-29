@@ -36,7 +36,19 @@ const ToolWriter = {
       // Actual syntax validation happens when ToolRunner does import(blobUrl)
     };
 
-    const create = async (name, code) => {
+    const normalizeRoot = (root) => {
+      const value = String(root || '/shadow/tools').trim();
+      const path = value.startsWith('/') ? value : `/${value}`;
+      if (path.split('/').includes('..')) {
+        throw new Errors.ValidationError('Path traversal is not allowed');
+      }
+      if (path !== '/shadow/tools' && !path.startsWith('/shadow/tools/')) {
+        throw new Errors.ValidationError('Tool candidates must be staged under /shadow/tools');
+      }
+      return path.replace(/\/+$/, '');
+    };
+
+    const create = async (name, code, options = {}) => {
       if (typeof name !== 'string') {
         throw new Errors.ValidationError('Tool name must be a string');
       }
@@ -48,24 +60,32 @@ const ToolWriter = {
 
       validateCode(code);
 
-      const path = `/tools/${trimmedName}.js`;
+      const root = normalizeRoot(options.root);
+      const path = `${root}/${trimmedName}.js`;
 
-      // Persist
       await VFS.write(path, code);
 
-      // Auto-load the tool if SubstrateLoader is available
-      let loadStatus = '';
-      if (SubstrateLoader) {
+      let toolLoaded = false;
+      let toolLoadError = null;
+      if (options.load === true && SubstrateLoader) {
         try {
           await SubstrateLoader.loadModule(path);
-          loadStatus = ' and loaded';
+          toolLoaded = true;
         } catch (err) {
-          loadStatus = ` (load failed: ${err.message})`;
+          toolLoadError = err.message;
         }
       }
 
-      logger.info(`[ToolWriter] Created tool: ${trimmedName}${loadStatus}`);
-      return `Tool ${trimmedName} created at ${path}${loadStatus}`;
+      logger.info(`[ToolWriter] Staged tool candidate: ${trimmedName} at ${path}`);
+      return {
+        success: true,
+        name: trimmedName,
+        path,
+        staged: true,
+        toolLoaded,
+        toolLoadError,
+        message: `Tool candidate ${trimmedName} staged at ${path}`
+      };
     };
 
     return { create };

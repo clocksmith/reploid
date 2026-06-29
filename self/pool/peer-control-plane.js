@@ -7,6 +7,7 @@ import {
   exportPublicKey,
   hashJson,
   sha256Hex,
+  SIGNATURE_DOMAINS,
   signCanonical,
   verifyCanonicalSignature
 } from './inference-receipt.js';
@@ -19,6 +20,7 @@ import {
   getPolicy,
   quorumForRingSize
 } from './config.js';
+import { validatePooldayPolicyClasses } from './policy-router.js';
 import {
   LAUNCH_MODEL,
   buildLaunchModelRequirements,
@@ -34,6 +36,7 @@ import {
 
 export const PEER_CONTROL_VERSION = 'reploid_peer_control/v1';
 export const PEER_CONTROL_BUS_VERSION = 'reploid_peer_control_bus/v1';
+export const PEER_CONTROL_NETWORK = 'poolday';
 
 export const PEER_MESSAGE_TYPES = Object.freeze({
   JOB_INTENT: 'job_intent',
@@ -97,6 +100,7 @@ export function createPeerMessage({
   if (!MESSAGE_TYPES.has(type)) throw new TypeError('peer message type is not allowed');
   return stripUndefined({
     peerControlVersion: PEER_CONTROL_VERSION,
+    network: PEER_CONTROL_NETWORK,
     type,
     fromPeerId: requireString(fromPeerId, 'fromPeerId'),
     toPeerId: optionalString(toPeerId),
@@ -112,6 +116,7 @@ export function createPeerMessage({
 export function validatePeerMessage(message = {}) {
   const reasons = [];
   if (message.peerControlVersion !== PEER_CONTROL_VERSION) reasons.push('peerControlVersion mismatch');
+  if (message.network !== PEER_CONTROL_NETWORK) reasons.push('peer control network mismatch');
   if (!MESSAGE_TYPES.has(message.type)) reasons.push('peer message type is not allowed');
   for (const field of ['fromPeerId', 'publicKey', 'createdAt', 'nonce']) {
     if (!String(message[field] || '').trim()) reasons.push(`${field} is required`);
@@ -140,7 +145,7 @@ export async function signPeerMessage(message = {}, privateKey) {
   return {
     ...unsigned,
     messageHash: await hashJson(unsigned),
-    signature: await signCanonical(unsigned, privateKey)
+    signature: await signCanonical(unsigned, privateKey, { domain: SIGNATURE_DOMAINS.peerMessage })
   };
 }
 
@@ -158,7 +163,12 @@ export async function verifyPeerMessage(message = {}) {
     reasons.push('signature is required');
   } else if (message.publicKey) {
     try {
-      const ok = await verifyCanonicalSignature(peerMessageSigningPayload(message), message.publicKey, message.signature);
+      const ok = await verifyCanonicalSignature(
+        peerMessageSigningPayload(message),
+        message.publicKey,
+        message.signature,
+        { domain: SIGNATURE_DOMAINS.peerMessage }
+      );
       if (!ok) reasons.push('signature invalid');
     } catch (error) {
       reasons.push(`signature verification failed: ${error.message}`);
@@ -179,6 +189,7 @@ export async function createSignedJobIntent({
   policyId = FASTEST_RECEIPT_POLICY_ID,
   modelRequirements = {},
   generationConfig = {},
+  policyTags = [],
   maxPointSpend = null,
   createdAt,
   expiresAt = null
@@ -192,6 +203,8 @@ export async function createSignedJobIntent({
   };
   const policy = getPolicy(policyId);
   if (!policy) throw new Error(`Unsupported pool policy: ${policyId}`);
+  const policyClassValidation = validatePooldayPolicyClasses({ prompt: resolvedPrompt, policyTags });
+  if (!policyClassValidation.ok) throw new Error(policyClassValidation.reasons.join('; '));
   const modelValidation = validateLaunchModelRequirement(resolvedModelRequirements);
   if (!modelValidation.ok) {
     throw new Error(modelValidation.reasons.join('; '));
@@ -209,6 +222,8 @@ export async function createSignedJobIntent({
     modelRequirements: resolvedModelRequirements,
     generationConfig: resolvedGenerationConfig,
     generationConfigHash,
+    policyClasses: policyClassValidation.classification.classes,
+    policyTags,
     maxPointSpend
   };
   const message = await createSignedPeerMessage({
@@ -263,6 +278,7 @@ export async function createSignedProviderAdvert({
         maxConcurrentJobs: 1,
         maxTokensPerJob: 128,
         acceptedPolicies: [FASTEST_RECEIPT_POLICY_ID],
+        acceptedPolicyClasses: ['public_text', 'code_help', 'benchmark_eval'],
         ...availability
       },
       reputationEvidence
@@ -591,6 +607,7 @@ const receiptMatchesAssignment = (receipt = {}, assignment = {}) => {
   if ((receipt.model?.runtime || LAUNCH_MODEL.runtime) !== (assignment.model?.runtime || LAUNCH_MODEL.runtime)) reasons.push('receipt runtime mismatch');
   if ((receipt.model?.backend || LAUNCH_MODEL.backend) !== (assignment.model?.backend || LAUNCH_MODEL.backend)) reasons.push('receipt backend mismatch');
   if (!receipt.providerSignature) reasons.push('receipt providerSignature is required');
+  if (receipt.signatureDomain !== SIGNATURE_DOMAINS.providerReceipt) reasons.push('receipt signature domain mismatch');
   if (!receipt.outputHash) reasons.push('receipt outputHash is required');
   if (!receipt.tokenIdsHash) reasons.push('receipt tokenIdsHash is required');
   return reasons;
@@ -879,6 +896,7 @@ export function createPeerControlPlane({
   const localPeerId = requireString(peerId, 'peerId');
   const messages = new Map();
   const byType = new Map();
+  const nonceIndex = new Map();
   let unsubscribe = null;
 
   const indexMessage = (message) => {
@@ -895,6 +913,27 @@ export function createPeerControlPlane({
         ok: false,
         reason: 'invalid_peer_message',
         verification
+      };
+    }
+    const nonceKey = `${message.fromPeerId}:${message.nonce}`;
+    const priorHash = nonceIndex.get(nonceKey);
+    if (priorHash && priorHash !== verification.messageHash) {
+      return {
+        ok: false,
+        reason: 'peer_message_nonce_reuse',
+        verification: {
+          ...verification,
+          reasons: ['peer message nonce already used by different payload']
+        }
+      };
+    }
+    nonceIndex.set(nonceKey, verification.messageHash);
+    if (messages.has(verification.messageHash)) {
+      return {
+        ok: true,
+        duplicate: true,
+        messageHash: verification.messageHash,
+        message: messages.get(verification.messageHash)
       };
     }
     indexMessage({ ...message, messageHash: verification.messageHash });
@@ -981,6 +1020,7 @@ export async function exportPeerPublicKey(keyPair) {
 export default {
   PEER_CONTROL_VERSION,
   PEER_CONTROL_BUS_VERSION,
+  PEER_CONTROL_NETWORK,
   PEER_MESSAGE_TYPES,
   peerMessageSigningPayload,
   createPeerMessage,

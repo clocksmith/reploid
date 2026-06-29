@@ -11,7 +11,8 @@ import { deriveSwarmRole } from './swarm.js';
 export const SELF_VFS_WRITABLE_ROOTS = Object.freeze([
   '/self',
   '/shadow',
-  '/artifacts'
+  '/artifacts',
+  '/cycles'
 ]);
 
 export const SELF_OPFS_WRITABLE_ROOTS = Object.freeze([
@@ -204,11 +205,13 @@ export function buildSelfManifest(options = {}) {
     sourceRoots: [
       '/self',
       '/shadow',
-      '/artifacts'
+      '/artifacts',
+      '/cycles'
     ],
     writableRoots: [
       '/shadow',
       '/artifacts',
+      '/cycles',
       'opfs:/artifacts'
     ],
     readFirst: [
