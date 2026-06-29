@@ -261,6 +261,7 @@ async function completeAwaken(bootResult, goal, wizardContainer) {
   let reloadInProgress = false;
   let reloadPending = false;
   let documentReloadRequested = false;
+  const handledVfsChangeDetails = new WeakSet();
 
   const getRuntimeUiSpec = () => (
     runtimeMode === 'x'
@@ -399,6 +400,11 @@ async function completeAwaken(bootResult, goal, wizardContainer) {
   };
 
   const handleVfsChange = (data = {}) => {
+    if (data && typeof data === 'object') {
+      if (handledVfsChangeDetails.has(data)) return;
+      handledVfsChangeDetails.add(data);
+    }
+
     const path = getChangedPath(data);
     if (!path) return;
 
