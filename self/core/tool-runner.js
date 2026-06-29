@@ -42,7 +42,22 @@ const ToolRunner = {
     const usesMinimalToolSurface = () => ['reploid', 'zero'].includes(getBootMode());
 
     const getKernelToolNames = () => {
-      const names = ['ReadFile', 'WriteFile'];
+      const names = [
+        'ReadFile',
+        'WriteFile',
+        'EditFile',
+        'ListFiles',
+        'DeleteFile',
+        'MakeDirectory',
+        'CopyFile',
+        'MoveFile',
+        'Head',
+        'Tail',
+        'Grep',
+        'Find',
+        'git',
+        'ListTools'
+      ];
       if (ToolWriter) names.push('CreateTool');
       if (SubstrateLoader) names.push('LoadModule');
       names.push('Promote');
@@ -80,7 +95,7 @@ const ToolRunner = {
     // --- Arena Verification for Core Changes ---
 
     // L3 substrate paths that require arena verification
-    const SUBSTRATE_PREFIXES = ['/core/', '/infrastructure/'];
+    const SUBSTRATE_PREFIXES = ['/self/core/', '/self/infrastructure/'];
 
     const isSubstratePath = (path) => {
       if (!path) return false;
@@ -561,7 +576,7 @@ const ToolRunner = {
     };
 
     // Critical tools that require HITL approval
-    const CRITICAL_TOOLS = ['WriteFile', 'DeleteFile', 'CreateTool', 'EditFile', 'LoadModule', 'Promote'];
+    const CRITICAL_TOOLS = ['WriteFile', 'DeleteFile', 'CreateTool', 'EditFile', 'CopyFile', 'MoveFile', 'MakeDirectory', 'LoadModule', 'Promote'];
 
     /**
      * Check if tool requires HITL approval

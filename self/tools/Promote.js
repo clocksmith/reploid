@@ -45,6 +45,22 @@ const ALLOWED_TARGET_EXTENSIONS = Object.freeze([
   '.html'
 ]);
 
+const VALIDATOR_QUARANTINE_TARGETS = Object.freeze([
+  '/self/core/verification-manager.js',
+  '/self/testing/arena/arena-harness.js',
+  '/self/capabilities/communication/consensus.js',
+  '/self/infrastructure/audit-logger.js',
+  '/self/config/genesis-levels.json',
+  '/self/core/tool-runner.js',
+  '/self/tools/Promote.js'
+]);
+
+const VALIDATOR_QUARANTINE_PREFIXES = Object.freeze([
+  '/self/testing/arena/',
+  '/self/core/verification-',
+  '/self/infrastructure/policy-'
+]);
+
 const normalizePath = (rawPath) => {
   if (!rawPath || typeof rawPath !== 'string') {
     throw new Error('Missing path argument');
@@ -72,6 +88,11 @@ const hasAllowedExtension = (path) => ALLOWED_TARGET_EXTENSIONS.some((extension)
 const defaultAllowTargetPath = (path) => (
   (ALLOWED_TARGET_PATHS.includes(path) || ALLOWED_TARGET_ROOTS.some((root) => isWithinRoot(path, root)))
     && hasAllowedExtension(path)
+);
+
+const isValidatorMutationTarget = (path) => (
+  VALIDATOR_QUARANTINE_TARGETS.includes(path)
+  || VALIDATOR_QUARANTINE_PREFIXES.some((prefix) => path.startsWith(prefix))
 );
 
 const textBytes = (content) => {
@@ -212,6 +233,35 @@ export async function promoteShadowCandidate(args = {}, deps = {}) {
 
   if (reasons.length > 0) {
     return { ok: false, promoted: false, candidatePath, targetPath, evidencePath, reasons };
+  }
+
+  if (isValidatorMutationTarget(targetPath)) {
+    const quarantineId = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+    const quarantinePath = `/artifacts/quarantine/${quarantineId}.json`;
+    const result = {
+      ok: false,
+      promoted: false,
+      quarantined: true,
+      candidatePath,
+      targetPath,
+      evidencePath,
+      quarantinePath,
+      reasons: ['validator mutation requires external review and cannot be self-approved']
+    };
+
+    await VFS.write(quarantinePath, JSON.stringify({
+      schema: 'reploid/validator-quarantine/v1',
+      timestamp: Date.now(),
+      ...result,
+      candidateHash: nextHash,
+      evidence
+    }, null, 2));
+    EventBus?.emit?.('promotion:quarantined', result);
+    if (AuditLogger?.logEvent) {
+      await AuditLogger.logEvent('PROMOTE_QUARANTINED', result, 'WARN');
+    }
+    logger?.warn?.(`[Promote] Quarantined validator mutation ${candidatePath} -> ${targetPath}`);
+    return result;
   }
 
   let previousHash = null;

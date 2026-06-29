@@ -802,6 +802,27 @@ const LLMClient = {
       status: () => getTransformersStatus()
     });
 
+    const createMockProvider = () => ({
+      chat: async (messages, modelConfig, requestId) => {
+        const provider = globalThis.window?.MockLLMProvider || globalThis.MockLLMProvider;
+        if (!provider || typeof provider.chat !== 'function') {
+          throw new Errors.ConfigError('MockLLMProvider not installed');
+        }
+        return provider.chat(messages, modelConfig, requestId);
+      },
+      stream: async (messages, modelConfig, onUpdate, requestId) => {
+        const provider = globalThis.window?.MockLLMProvider || globalThis.MockLLMProvider;
+        if (!provider || typeof provider.chat !== 'function') {
+          throw new Errors.ConfigError('MockLLMProvider not installed');
+        }
+        const response = await provider.chat(messages, modelConfig, requestId);
+        const text = response?.raw || response?.content || '';
+        if (text && typeof onUpdate === 'function') onUpdate(text);
+        return response;
+      },
+      status: () => ({ available: true, mode: 'mock' })
+    });
+
     const createCloudProvider = (providerId) => ({
       chat: (messages, modelConfig, requestId) => {
         if (modelConfig.hostType === 'browser-cloud') {
@@ -830,6 +851,9 @@ const LLMClient = {
       }
       if (!ProviderRegistry.hasProvider('transformers')) {
         ProviderRegistry.registerProvider('transformers', createTransformersProvider());
+      }
+      if (!ProviderRegistry.hasProvider('mock')) {
+        ProviderRegistry.registerProvider('mock', createMockProvider());
       }
       if (!ProviderRegistry.hasProvider('openai')) {
         ProviderRegistry.registerProvider('openai', createCloudProvider('openai'));

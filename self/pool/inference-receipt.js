@@ -11,6 +11,11 @@ export const TRUST_TIER_SIGNED_RECEIPT = POOL_CONFIG.policies.fastest_receipt.tr
 export const TRUST_TIER_CANARY_AUDITED = POOL_CONFIG.policies.canary_audited.trustTier;
 export const TRUST_TIER_REDUNDANT_AGREEMENT = POOL_CONFIG.policies.redundant_agreement.trustTier;
 export const TRUST_TIER_ACCEPTED_RECEIPT = 'T4_requester_accepted';
+export const SIGNATURE_DOMAINS = Object.freeze({
+  providerReceipt: 'poolday.provider_receipt.v1',
+  requesterAcceptance: 'poolday.requester_acceptance.v1',
+  peerMessage: 'poolday.peer_message.v1'
+});
 
 export function canonicalize(value) {
   if (value === null || typeof value !== 'object') {
@@ -109,8 +114,18 @@ export async function importSigningKeyPair({ privateKey, publicKey } = {}) {
   };
 }
 
-export async function signCanonical(value, privateKey) {
-  const payload = textEncoder.encode(canonicalize(value));
+export function domainSeparatedPayload(domain, payload) {
+  const normalized = String(domain || '').trim();
+  if (!normalized) throw new Error('signature domain is required');
+  return {
+    signatureDomain: normalized,
+    payload
+  };
+}
+
+export async function signCanonical(value, privateKey, { domain = null } = {}) {
+  const signingValue = domain ? domainSeparatedPayload(domain, value) : value;
+  const payload = textEncoder.encode(canonicalize(signingValue));
   const signature = await crypto.subtle.sign(
     { name: 'ECDSA', hash: 'SHA-256' },
     privateKey,
@@ -119,15 +134,18 @@ export async function signCanonical(value, privateKey) {
   return bytesToBase64(new Uint8Array(signature));
 }
 
-export async function verifyCanonicalSignature(value, publicKeyBase64, signatureBase64) {
+export async function verifyCanonicalSignature(value, publicKeyBase64, signatureBase64, { domain = null, allowLegacy = false } = {}) {
   const publicKey = await importPublicKey(publicKeyBase64);
-  const payload = textEncoder.encode(canonicalize(value));
-  return crypto.subtle.verify(
+  const verifyValue = async (candidate) => crypto.subtle.verify(
     { name: 'ECDSA', hash: 'SHA-256' },
     publicKey,
     base64ToBytes(signatureBase64),
-    payload
+    textEncoder.encode(canonicalize(candidate))
   );
+  if (!domain) return verifyValue(value);
+  const domainOk = await verifyValue(domainSeparatedPayload(domain, value));
+  if (domainOk || !allowLegacy) return domainOk;
+  return verifyValue(value);
 }
 
 export function receiptSigningPayload(receipt) {
@@ -163,6 +181,7 @@ export async function buildPoolReceipt({ assignment, provider, model, runtime, e
     || null;
   return {
     receiptVersion: RECEIPT_VERSION,
+    signatureDomain: SIGNATURE_DOMAINS.providerReceipt,
     trustTier: TRUST_TIER_SIGNED_RECEIPT,
     assignmentId: assignment.assignmentId,
     jobId: assignment.jobId,
@@ -201,9 +220,17 @@ export async function buildPoolReceipt({ assignment, provider, model, runtime, e
 }
 
 export async function signProviderReceipt(receipt, privateKey) {
-  return {
+  const domainReceipt = {
     ...receipt,
-    providerSignature: await signCanonical(receiptSigningPayload(receipt), privateKey)
+    signatureDomain: receipt?.signatureDomain || SIGNATURE_DOMAINS.providerReceipt
+  };
+  return {
+    ...domainReceipt,
+    providerSignature: await signCanonical(
+      receiptSigningPayload(domainReceipt),
+      privateKey,
+      { domain: SIGNATURE_DOMAINS.providerReceipt }
+    )
   };
 }
 
@@ -286,6 +313,7 @@ export async function countersignReceipt({
   providerPoints = null
 } = {}, privateKey) {
   const acceptance = {
+    signatureDomain: SIGNATURE_DOMAINS.requesterAcceptance,
     receiptHash,
     requesterId,
     accepted: accepted === true,
@@ -302,6 +330,10 @@ export async function countersignReceipt({
   if (Array.isArray(providerPoints)) acceptance.providerPoints = providerPoints;
   return {
     ...acceptance,
-    requesterSignature: await signCanonical(acceptanceSigningPayload(acceptance), privateKey)
+    requesterSignature: await signCanonical(
+      acceptanceSigningPayload(acceptance),
+      privateKey,
+      { domain: SIGNATURE_DOMAINS.requesterAcceptance }
+    )
   };
 }

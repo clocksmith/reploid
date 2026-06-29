@@ -11,7 +11,7 @@ const AgentLoop = {
     version: '1.2.0', // MemoryManager integration
     genesis: { introduced: 'spark' },
     dependencies: [
-      'Utils', 'EventBus', 'LLMClient', 'ToolRunner', 'ContextManager',
+      'Utils', 'EventBus', 'VFS?', 'LLMClient', 'ToolRunner', 'ContextManager',
       'ResponseParser', 'StateManager', 'PersonaManager', 'CircuitBreaker', 'SchemaRegistry',
       'ToolExecutor',
       'ReflectionStore?', 'ReflectionAnalyzer?', 'CognitionAPI?', 'MultiModelCoordinator?', 'FunctionGemmaOrchestrator?', 'TraceStore?',
@@ -22,7 +22,7 @@ const AgentLoop = {
 
   factory: (deps) => {
     const {
-      Utils, EventBus, LLMClient, ToolRunner, ContextManager,
+      Utils, EventBus, VFS, LLMClient, ToolRunner, ContextManager,
       ResponseParser, StateManager, PersonaManager, CircuitBreaker, SchemaRegistry, ToolExecutor,
       ReflectionStore, ReflectionAnalyzer, CognitionAPI, MultiModelCoordinator, FunctionGemmaOrchestrator, TraceStore,
       MemoryManager
@@ -343,6 +343,7 @@ const AgentLoop = {
 
     const MAX_NO_PROGRESS_ITERATIONS = 5; // Max consecutive iterations without tool calls
     const TOOL_EXECUTION_TIMEOUT_MS = 30000; // 30 second timeout per tool
+    const CYCLE_ARTIFACT_ROOT = '/cycles';
 
     // Track single-tool usage for batching nudges
     let _consecutiveSingleToolCalls = 0;
@@ -482,6 +483,114 @@ const AgentLoop = {
       }
     };
 
+    const _getCycleId = (iteration) => `cycle-${String(iteration).padStart(6, '0')}`;
+
+    const _writeCycleArtifact = async (iteration, name, payload = {}) => {
+      if (!VFS?.write) return null;
+      const cycleId = _getCycleId(iteration);
+      const path = `${CYCLE_ARTIFACT_ROOT}/${cycleId}/${name}`;
+      try {
+        await VFS.write(path, JSON.stringify({
+          schema: 'reploid/cycle-artifact/v1',
+          cycleId,
+          cycle: iteration,
+          artifact: name,
+          timestamp: Date.now(),
+          ...payload
+        }, null, 2));
+        EventBus.emit('cycle:artifact', { cycle: iteration, cycleId, path, artifact: name });
+        return path;
+      } catch (error) {
+        logger.warn(`[Agent] Failed to write cycle artifact ${path}: ${error?.message || error}`);
+        return null;
+      }
+    };
+
+    const _buildCycleToolSummary = (results = []) => results.map((entry) => ({
+      tool: entry.call?.name || 'unknown',
+      args: entry.call?.args || {},
+      path: entry.call?.args?.path || entry.call?.args?.file || entry.call?.args?.target || null,
+      skipped: entry.skipped === true,
+      aborted: entry.aborted === true,
+      error: typeof entry.finalResult === 'string' && entry.finalResult.startsWith('Error:')
+        ? entry.finalResult
+        : null,
+      resultPreview: typeof entry.finalResult === 'string'
+        ? entry.finalResult.slice(0, 1000)
+        : JSON.stringify(entry.finalResult ?? entry.result ?? null).slice(0, 1000),
+      durationMs: entry.duration ?? null
+    }));
+
+    const _writeCycleOutcomeArtifacts = async ({
+      iteration,
+      stateBefore,
+      responseContent,
+      toolCalls,
+      callsToExecute = [],
+      allResults = [],
+      reason = '',
+      done = false
+    }) => {
+      const toolSummary = _buildCycleToolSummary(allResults);
+      const errors = toolSummary.filter((entry) => entry.error).length;
+      const mutationPaths = toolSummary
+        .filter((entry) => entry.path && ['WriteFile', 'EditFile', 'DeleteFile', 'CreateTool', 'Promote'].includes(entry.tool))
+        .map((entry) => entry.path);
+      const promoteResult = allResults.find((entry) => entry.call?.name === 'Promote')?.result || null;
+      const promotionDecision = promoteResult && typeof promoteResult === 'object'
+        ? promoteResult
+        : { promoted: false, reason: promoteResult ? String(promoteResult) : 'not requested' };
+      const score = {
+        passed: errors === 0,
+        toolCallCount: callsToExecute.length,
+        executedCount: toolSummary.length,
+        errorCount: errors,
+        mutationCount: mutationPaths.length,
+        evidenceCount: mutationPaths.filter((path) => String(path).startsWith('/artifacts/') || String(path).startsWith('/cycles/')).length
+      };
+
+      const paths = {};
+      paths.toolcalls = await _writeCycleArtifact(iteration, 'toolcalls.json', {
+        stateBefore,
+        event: 'toolcalls',
+        calls: callsToExecute.map((call) => ({
+          name: call.name,
+          args: call.args || {},
+          error: call.error || null
+        })),
+        results: toolSummary
+      });
+      paths.score = await _writeCycleArtifact(iteration, 'score.json', {
+        stateBefore,
+        event: 'score',
+        score
+      });
+      paths.mutation = await _writeCycleArtifact(iteration, 'mutation.json', {
+        stateBefore,
+        event: 'mutation',
+        paths: mutationPaths,
+        mutationCount: mutationPaths.length,
+        toolCalls: toolSummary.filter((entry) => mutationPaths.includes(entry.path))
+      });
+      paths.decision = await _writeCycleArtifact(iteration, 'decision.json', {
+        stateBefore,
+        event: 'decision',
+        stateAfter: done ? 'Promote' : 'Shadow',
+        promotionDecision,
+        done,
+        reason
+      });
+      paths.audit = await _writeCycleArtifact(iteration, 'audit.json', {
+        stateBefore,
+        event: 'audit',
+        stateAfter: done ? 'Promote' : 'Shadow',
+        responsePreview: String(responseContent || '').slice(0, 2000),
+        score,
+        artifactPaths: paths
+      });
+      return paths;
+    };
+
     const _executeTool = async (call, iteration) => {
       if (!ToolExecutor) {
         throw new Errors.ConfigError('ToolExecutor not available');
@@ -611,6 +720,16 @@ const AgentLoop = {
           iteration++;
           await StateManager.incrementCycle();
           logger.info(`[Agent] Iteration ${iteration}`);
+          const stateBefore = iteration === 1 ? 'Seed' : 'Shadow';
+          await _writeCycleArtifact(iteration, 'input.json', {
+            stateBefore,
+            event: 'cycle:start',
+            goal,
+            model: _modelConfig?.id || null,
+            provider: _modelConfig?.provider || null,
+            contextLength: context.length,
+            contextPreview: context.slice(-5)
+          });
 
           // 2. Insights / Reflection Injection
           let insights = null;
@@ -972,6 +1091,15 @@ const AgentLoop = {
           if (response.toolCalls?.length > 0) {
             logger.info(`[Agent] Using ${response.toolCalls.length} native tool call(s)`);
           }
+          await _writeCycleArtifact(iteration, 'trace.json', {
+            stateBefore,
+            event: 'llm:response',
+            stateAfter: toolCalls.length > 0 ? 'Shadow' : (ResponseParser.isDone(response.content) ? 'Promote' : 'Shadow'),
+            model: responseModel,
+            provider: responseProvider,
+            response: responseContent,
+            toolCallCount: toolCalls.length
+          });
 
           EventBus.emit('agent:decision', {
             cycle: iteration,
@@ -1147,6 +1275,17 @@ const AgentLoop = {
               ts: Date.now()
             });
 
+            await _writeCycleOutcomeArtifacts({
+              iteration,
+              stateBefore,
+              responseContent,
+              toolCalls,
+              callsToExecute,
+              allResults,
+              reason: errorCount > 0 ? 'tool errors present' : 'tool batch complete',
+              done: false
+            });
+
             // Add execution telemetry feedback if batching occurred
             if (readOnlyCalls.length > 1 || (readOnlyCalls.length > 0 && mutatingCalls.length > 0)) {
               const telemetry = [];
@@ -1163,9 +1302,29 @@ const AgentLoop = {
             }
           } else {
             if (ResponseParser.isDone(response.content)) {
+              await _writeCycleOutcomeArtifacts({
+                iteration,
+                stateBefore,
+                responseContent,
+                toolCalls,
+                callsToExecute: [],
+                allResults: [],
+                reason: 'done',
+                done: true
+              });
               logger.info('[Agent] Goal achieved.');
               break;
             }
+            await _writeCycleOutcomeArtifacts({
+              iteration,
+              stateBefore,
+              responseContent,
+              toolCalls,
+              callsToExecute: [],
+              allResults: [],
+              reason: 'no executable tool call',
+              done: false
+            });
             // WebLLM requires last message to be user/tool - add continuation prompt
             let continuationMsg = 'No executable tool call detected. Use REPLOID/0 format with only key: value argument lines after TOOL:\n\nREPLOID/0\n\nTOOL: ToolName\nkey: value';
             if (iteration > 3) {
@@ -1240,15 +1399,15 @@ key: value
 ## Kernel Tools
 - ReadFile: read seed files, blueprints, shadow candidates, and artifacts
 - WriteFile: write candidates under /shadow and evidence under /artifacts
-- CreateTool: create and load new runtime tools under /tools
-- LoadModule: load approved modules after promotion
+- CreateTool: stage new tool candidates under /shadow/tools
+- LoadModule: load approved modules after promotion into /self
 - Promote: request a gated /shadow to /self change
 
 ## Rules
 - Read before writing.
 - Use /shadow for candidates and /artifacts for evidence.
 - Do not write durable runtime changes directly into /self.
-- To create a new runtime tool, use CreateTool with a CamelCase name and ES module code.
+- To create a new runtime tool, use CreateTool with a CamelCase name and ES module code, then produce evidence and Promote it into /self/tools before LoadModule.
 - To modify the self, interface, or source surface, stage under /shadow and Promote after evidence exists.
 - Use at least one tool per response unless parking or complete.
 - Park with IDLE: when waiting for user input or model availability.
@@ -1276,7 +1435,7 @@ TOOL: ToolName
 key: value
 
 TOOL: WriteFile
-path: /tools/example.js
+path: /shadow/tools/example.js
 content <<EOF
 export const tool = { name: 'Example', description: 'demo', inputSchema: { type: 'object' } };
 EOF
@@ -1286,14 +1445,14 @@ EOF
 - ListTools: see all available tools
 - ListFiles: list directory contents using path: /dir/
 - ReadFile: read files using path: /file.js
-- WriteFile: write files using path: /file.js and a content <<EOF block
-- CreateTool: create + auto-load new tools using name: MyTool and code <<EOF
+- WriteFile: write candidates/evidence under /shadow, /artifacts, or /cycles using content <<EOF
+- CreateTool: stage new tool candidates under /shadow/tools using name: MyTool and code <<EOF
 - Grep: search file contents using pattern:, path:, recursive:
 - Find: find files by name using path: / and name: *.js
 - EditFile: find/replace in file; use args-json: {...} only when a tool truly needs nested structure
 
 ## Creating Tools
-Tools live in /tools/ with this structure:
+Tool candidates start under /shadow/tools and become loadable only after Promote places them under /self/tools:
 \`\`\`javascript
 export const tool = {
   name: 'MyTool',
@@ -1312,7 +1471,7 @@ export default async function(args, deps) {
 Available deps: VFS, EventBus, Utils, AuditLogger, ToolWriter, TransformersClient, WorkerManager, ToolRunner, SemanticMemory, EmbeddingStore, KnowledgeGraph
 
 ## VFS Structure
-/self/ (canonical awakened self) | /.system/ (state.json) | /.memory/ (knowledge-graph.json, reflections.json) | /core/ (agent-loop, llm-client, etc.) | /capabilities/ | /tools/ (your creations) | /ui/ | /styles/
+/self/ (canonical awakened self) | /.system/ (state.json) | /.memory/ (knowledge-graph.json, reflections.json) | /core/ (agent-loop, llm-client, etc.) | /capabilities/ | /tools/ (seed tools) | /shadow/tools/ (candidate tools) | /ui/ | /styles/
 Memory lives under /.memory (not .memories). Artifacts and receipts live under /artifacts or opfs:/artifacts. Base styles: /styles/rd.css, /styles/boot.css, /styles/proto/index.css.
 
 ## Browser Environment

@@ -7,7 +7,7 @@ const BINARY_LIMIT_BYTES = 256 * 1024 * 1024;
 const OPFS_PREFIX = 'opfs:';
 const VFS_PREFIX = 'vfs:';
 const OPFS_ALLOWLIST_PREFIXES = ['/artifacts/'];
-const VFS_WRITABLE_ROOTS = ['/shadow', '/artifacts'];
+const VFS_WRITABLE_ROOTS = ['/shadow', '/artifacts', '/cycles'];
 
 const normalizePath = (rawPath, backendOverride) => {
   if (!rawPath || typeof rawPath !== 'string') {

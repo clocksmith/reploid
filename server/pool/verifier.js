@@ -9,6 +9,10 @@ import { getRingPhaseProtocol } from './config.js';
 import { revealMatchesCommitment } from './commit-reveal.js';
 
 const textEncoder = new TextEncoder();
+const SIGNATURE_DOMAINS = Object.freeze({
+  providerReceipt: 'poolday.provider_receipt.v1',
+  requesterAcceptance: 'poolday.requester_acceptance.v1'
+});
 
 const base64ToBuffer = (value) => Buffer.from(String(value || ''), 'base64');
 
@@ -16,6 +20,11 @@ const receiptSigningPayload = (receipt = {}) => {
   const { providerSignature, requesterAcceptance, verifierDecision, ledgerEffects, ...payload } = receipt;
   return payload;
 };
+
+const domainSeparatedPayload = (domain, payload) => ({
+  signatureDomain: domain,
+  payload
+});
 
 async function verifyProviderSignature(receipt, publicKeyBase64) {
   if (!publicKeyBase64 || !receipt.providerSignature) return false;
@@ -30,7 +39,10 @@ async function verifyProviderSignature(receipt, publicKeyBase64) {
     { name: 'ECDSA', hash: 'SHA-256' },
     publicKey,
     base64ToBuffer(receipt.providerSignature),
-    textEncoder.encode(canonicalize(receiptSigningPayload(receipt)))
+    textEncoder.encode(canonicalize(domainSeparatedPayload(
+      SIGNATURE_DOMAINS.providerReceipt,
+      receiptSigningPayload(receipt)
+    )))
   );
 }
 
@@ -57,6 +69,7 @@ export async function verifyReceipt({ store, assignment, receipt, outputText = '
   if (!assignment) reasons.push('assignment not found');
   if (!receipt) reasons.push('receipt missing');
   if (receipt?.receiptVersion !== RECEIPT_VERSION) reasons.push('receipt version mismatch');
+  if (receipt?.signatureDomain !== SIGNATURE_DOMAINS.providerReceipt) reasons.push('receipt signature domain mismatch');
   if (receipt?.trustTier !== PROVIDER_RECEIPT_TRUST_TIER) reasons.push('trust tier mismatch');
   if (assignment?.expiresAt && Date.parse(assignment.expiresAt) < Date.now()) reasons.push('assignment expired');
   if (assignment?.prompt && assignment.inputHash !== sha256Hex(assignment.prompt)) {
@@ -165,6 +178,7 @@ export async function verifyRequesterAcceptance({ job, acceptance, expectedAccep
   const reasons = [];
   if (!job) reasons.push('job not found');
   if (!acceptance) reasons.push('acceptance missing');
+  if (acceptance?.signatureDomain !== SIGNATURE_DOMAINS.requesterAcceptance) reasons.push('acceptance signature domain mismatch');
   if (typeof acceptance?.accepted !== 'boolean') reasons.push('acceptance accepted flag must be boolean');
   if (!acceptance?.receiptHash) reasons.push('acceptance receiptHash is required');
   if (!acceptance?.requesterSignature) reasons.push('requester signature missing');
@@ -210,7 +224,10 @@ export async function verifyRequesterAcceptance({ job, acceptance, expectedAccep
         { name: 'ECDSA', hash: 'SHA-256' },
         publicKey,
         base64ToBuffer(acceptance.requesterSignature),
-        textEncoder.encode(canonicalize(acceptanceSigningPayload(acceptance)))
+        textEncoder.encode(canonicalize(domainSeparatedPayload(
+          SIGNATURE_DOMAINS.requesterAcceptance,
+          acceptanceSigningPayload(acceptance)
+        )))
       );
       if (!signatureOk) reasons.push('requester signature invalid');
     } catch (error) {

@@ -125,15 +125,30 @@ export function validatePoolConfig(config = POOL_CONFIG) {
   const activeDeterminism = config.determinismProfiles?.profiles?.[config.determinismProfiles?.activeProfileId];
   if (!activeDeterminism) reasons.push('determinismProfiles.activeProfileId must reference determinismProfiles.profiles');
   if (activeDeterminism?.allowToleranceAcceptance) reasons.push('active determinism profile must not allow tolerance acceptance');
+  if (activeDeterminism?.requireRuntimeProfile && !activeDeterminism?.requireRuntimeProfileHash) {
+    reasons.push('active determinism profile requiring runtimeProfile must also require runtimeProfileHash');
+  }
   const activeRingProtocol = config.ringPhaseProtocols?.protocols?.[config.ringPhaseProtocols?.activeProtocolId];
   if (!activeRingProtocol) reasons.push('ringPhaseProtocols.activeProtocolId must reference ringPhaseProtocols.protocols');
   if (activeRingProtocol && activeRingProtocol.requireRevealBeforeReceipt !== true) {
     reasons.push('active ring phase protocol must require reveal before receipt');
   }
+  if (activeRingProtocol && activeRingProtocol.requireCommitmentForLedgerAward !== true) {
+    reasons.push('active ring phase protocol must require commitment for ledger award');
+  }
   const activeAdmissionPolicy = config.providerAdmissionPolicies?.policies?.[config.providerAdmissionPolicies?.activePolicyId];
   if (!activeAdmissionPolicy) reasons.push('providerAdmissionPolicies.activePolicyId must reference providerAdmissionPolicies.policies');
+  if (!activeAdmissionPolicy?.lanes?.[activeAdmissionPolicy?.defaultLane]) {
+    reasons.push('active provider admission policy defaultLane must reference lanes');
+  }
   const activeStateMode = config.stateModes?.modes?.[config.stateModes?.activeModeId];
   if (!activeStateMode) reasons.push('stateModes.activeModeId must reference stateModes.modes');
+  if (!activeStateMode?.appendOnlyCollections?.includes('commitment_events')) {
+    reasons.push('active state mode must declare commitment_events collection');
+  }
+  if (!activeStateMode?.appendOnlyCollections?.includes('reveal_events')) {
+    reasons.push('active state mode must declare reveal_events collection');
+  }
   for (const [policyId, policy] of Object.entries(config.policies || {})) {
     if (policy.agreementMode !== 'ring_quorum') continue;
     if (!config.determinismProfiles?.profiles?.[policy.determinismProfileId]) {
@@ -148,6 +163,9 @@ export function validatePoolConfig(config = POOL_CONFIG) {
     if (!config.stateModes?.modes?.[policy.stateModeId]) {
       reasons.push(`policies.${policyId}.stateModeId must reference stateModes`);
     }
+    if (policy.requireCommitReveal !== true) reasons.push(`policies.${policyId}.requireCommitReveal must be true`);
+    if (policy.requireRuntimeProfile !== true) reasons.push(`policies.${policyId}.requireRuntimeProfile must be true`);
+    if (policy.requireProviderAdmission !== true) reasons.push(`policies.${policyId}.requireProviderAdmission must be true`);
   }
   return {
     ok: reasons.length === 0,

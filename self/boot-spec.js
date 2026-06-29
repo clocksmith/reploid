@@ -22,7 +22,7 @@ export const SELF_BOOT_SPEC = Object.freeze({
   blueprintIndexPath: '/self/blueprint-index.json',
   identityPath: '/self/identity.json',
   canonicalRoots: ['/self'],
-  writableRoots: ['/shadow', '/artifacts', 'opfs:/artifacts'],
+  writableRoots: ['/shadow', '/artifacts', '/cycles', 'opfs:/artifacts'],
   kernel: {
     htmlEntry: '/self/kernel/index.html',
     bootEntry: '/self/kernel/boot.js'

@@ -524,11 +524,22 @@ test.describe('Route Entry Points', () => {
     expect(resolvedServices.tools).toEqual(expect.arrayContaining([
       'ReadFile',
       'WriteFile',
+      'EditFile',
+      'ListFiles',
+      'DeleteFile',
+      'MakeDirectory',
+      'CopyFile',
+      'MoveFile',
+      'Head',
+      'Tail',
+      'Grep',
+      'Find',
+      'git',
+      'ListTools',
       'CreateTool',
       'LoadModule',
       'Promote'
     ]));
-    expect(resolvedServices.tools).not.toContain('DeleteFile');
 
     const liveToolResult = await page.evaluate(async () => {
       const container = window.REPLOID?.container;
@@ -560,13 +571,25 @@ export default async function(args) {
         name: 'EchoProbe',
         code: createCode
       });
-      const echo = await toolRunner.execute('EchoProbe', { value: 'ok' });
-      await vfs.write('/self/tools/LoadedProbe.js', loadCode);
+      const hasEchoBeforePromote = toolRunner.list().includes('EchoProbe');
+      await vfs.write('/shadow/tools/LoadedProbe.js', loadCode);
+      await vfs.write('/artifacts/LoadedProbe-evidence.json', JSON.stringify({
+        candidatePath: '/shadow/tools/LoadedProbe.js',
+        targetPath: '/self/tools/LoadedProbe.js',
+        evidencePath: '/artifacts/LoadedProbe-evidence.json',
+        replayPassed: true
+      }));
+      const promoted = await toolRunner.execute('Promote', {
+        candidatePath: '/shadow/tools/LoadedProbe.js',
+        targetPath: '/self/tools/LoadedProbe.js',
+        evidencePath: '/artifacts/LoadedProbe-evidence.json'
+      });
       const loaded = await toolRunner.execute('LoadModule', { path: '/self/tools/LoadedProbe.js' });
       const loadedResult = await toolRunner.execute('LoadedProbe', { value: 'self' });
       return {
         created,
-        echo,
+        hasEchoBeforePromote,
+        promoted,
         loaded,
         loadedResult,
         tools: toolRunner.list(),
@@ -575,9 +598,18 @@ export default async function(args) {
       };
     });
 
-    expect(liveToolResult.echo).toEqual({ echo: 'ok' });
+    expect(liveToolResult.created).toMatchObject({
+      success: true,
+      name: 'EchoProbe',
+      path: '/shadow/tools/EchoProbe.js',
+      staged: true,
+      toolLoaded: false
+    });
+    expect(liveToolResult.hasEchoBeforePromote).toBe(false);
+    expect(liveToolResult.promoted).toMatchObject({ ok: true, promoted: true });
     expect(liveToolResult.loadedResult).toEqual({ loaded: 'self' });
-    expect(liveToolResult.tools).toEqual(expect.arrayContaining(['EchoProbe', 'LoadedProbe']));
+    expect(liveToolResult.tools).toContain('LoadedProbe');
+    expect(liveToolResult.tools).not.toContain('EchoProbe');
     expect(liveToolResult.hasZeroSelfUi).toBe(true);
     expect(liveToolResult.hasZeroSelfStyles).toBe(true);
     expect(selfVfsMisses).toEqual([]);
