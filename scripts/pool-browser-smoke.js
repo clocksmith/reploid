@@ -12,13 +12,13 @@ if (!baseUrl) {
 
 const routes = ['/', '/run', '/contribute', '/agents', '/receipts', '/reputation', '/0'];
 const requiredText = {
-  '/': 'Reploid',
+  '/': 'home',
   '/run': 'Prompt',
-  '/contribute': 'Contribute',
-  '/agents': 'Submit',
+  '/contribute': 'Mesh',
+  '/agents': 'Mesh',
   '/receipts': 'Record',
   '/reputation': 'Record',
-  '/0': 'Reploid'
+  '/0': 'Zero'
 };
 
 const { chromium } = await import('@playwright/test');

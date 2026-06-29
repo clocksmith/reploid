@@ -76,8 +76,26 @@ const prepareBootstrapVisibility = (bootProfile) => {
     return;
   }
 
+  // Locked routes (/0, /x): keep wizard-container empty/hidden (boot contract: no
+  // wizard content before mirror:done). Show a minimal progress indicator in #app
+  // instead so the viewport is never blank during VFS hydration.
   wizardContainer.style.display = 'none';
   wizardContainer.replaceChildren();
+
+  const appEl = document.getElementById('app');
+  if (appEl) {
+    appEl.innerHTML = `
+      <div id="boot-vfs-progress" class="boot-vfs-loader">
+        <p class="type-caption" id="${BOOTSTRAP_STATUS_ID}">${BOOTSTRAP_STAGE_COPY.starting}</p>
+        <div class="bootstrap-progress" aria-live="polite">
+          <div class="bootstrap-progress-track">
+            <div class="bootstrap-progress-bar" id="${BOOTSTRAP_PROGRESS_BAR_ID}" style="width: 0%"></div>
+          </div>
+          <p class="type-caption" id="${BOOTSTRAP_PROGRESS_ID}"></p>
+        </div>
+      </div>
+    `;
+  }
 };
 
 const setBootstrapStage = (stage) => {

@@ -113,7 +113,7 @@ describe('ReadFile', () => {
       mockVFS.list.mockResolvedValue([]);
 
       await expect(call({ path: '/missing.txt' }, { VFS: mockVFS }))
-        .rejects.toThrow('File not found: /missing.txt');
+        .rejects.toThrow('File not found in VFS: /missing.txt');
     });
   });
 });

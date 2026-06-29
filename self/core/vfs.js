@@ -7,6 +7,11 @@
 
 import { getScopedReploidVfsDbName } from '../instance.js';
 
+const VFS_FILE_CHANGED_EVENTS = Object.freeze([
+  'vfs:file_changed',
+  'vfs:file-changed'
+]);
+
 const VFS = {
   metadata: {
     id: 'VFS',
@@ -74,6 +79,13 @@ const VFS = {
       return clean.startsWith('/') ? clean : '/' + clean;
     };
 
+    const emitFileChanged = (detail) => {
+      if (!EventBus) return;
+      for (const eventName of VFS_FILE_CHANGED_EVENTS) {
+        EventBus.emit(eventName, detail);
+      }
+    };
+
     // --- API ---
 
     const init = async () => { await openDB(); return true; };
@@ -99,17 +111,14 @@ const VFS = {
           type: 'file'
         };
         store.put(entry).onsuccess = () => {
-          // Emit event for HMR
-          if (EventBus) {
-            EventBus.emit('vfs:file_changed', {
-              path: cleanPath,
-              operation,
-              size: content.length,
-              beforeSize,
-              afterSize: content.length,
-              timestamp: Date.now()
-            });
-          }
+          emitFileChanged({
+            path: cleanPath,
+            operation,
+            size: content.length,
+            beforeSize,
+            afterSize: content.length,
+            timestamp: Date.now()
+          });
           resolve(true);
         };
         tx.onerror = () => reject(new Errors.ArtifactError(`Write failed: ${cleanPath}`));
@@ -140,16 +149,13 @@ const VFS = {
         req.onsuccess = () => {
           logger.info(`[VFS] Deleted ${cleanPath}`);
 
-          // Emit event for HMR
-          if (EventBus) {
-            EventBus.emit('vfs:file_changed', {
-              path: cleanPath,
-              operation: 'delete',
-              beforeSize,
-              afterSize: 0,
-              timestamp: Date.now()
-            });
-          }
+          emitFileChanged({
+            path: cleanPath,
+            operation: 'delete',
+            beforeSize,
+            afterSize: 0,
+            timestamp: Date.now()
+          });
 
           resolve(true);
         };

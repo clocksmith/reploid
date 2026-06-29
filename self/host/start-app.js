@@ -18,6 +18,29 @@ let reploidModulesPromise = null;
 let consumeFreshIdentityOnNextAwaken = hasRequestedFreshIdentity();
 const MANAGED_SERVER_PROXY_TYPE = 'firebase-function';
 const MANAGED_SERVER_PROXY_MAX_ITERATIONS = 99;
+const VFS_FILE_CHANGED_EVENTS = Object.freeze([
+  'vfs:file_changed',
+  'vfs:file-changed'
+]);
+const ACTIVE_SUBSTRATE_PREFIXES = Object.freeze([
+  '/core/',
+  '/self/core/',
+  '/infrastructure/',
+  '/self/infrastructure/',
+  '/capabilities/',
+  '/self/capabilities/',
+  '/boot-helpers/',
+  '/self/boot-helpers/',
+  '/config/',
+  '/self/config/'
+]);
+const ACTIVE_UI_PREFIXES = Object.freeze([
+  '/ui/',
+  '/self/ui/',
+  '/styles/',
+  '/self/styles/',
+  '/self/capsule/'
+]);
 
 const normalizeManagedServerProxyMaxIterations = (value) => {
   const parsed = Number(value);
@@ -55,6 +78,47 @@ const withBootstrapQuery = (path, query = {}) => withQuery(path, {
   bootstrapper: 1,
   ...query
 });
+
+const postServiceWorkerMessage = (type, data = {}) => new Promise((resolve) => {
+  const controller = navigator.serviceWorker?.controller;
+  if (!controller || typeof MessageChannel === 'undefined') {
+    resolve(false);
+    return;
+  }
+
+  const channel = new MessageChannel();
+  let settled = false;
+  const timeout = setTimeout(() => {
+    if (settled) return;
+    settled = true;
+    channel.port1.onmessage = null;
+    resolve(false);
+  }, 1000);
+
+  channel.port1.onmessage = (event) => {
+    if (settled) return;
+    settled = true;
+    clearTimeout(timeout);
+    resolve(event.data || true);
+  };
+
+  controller.postMessage({ type, data }, [channel.port2]);
+});
+
+const isActiveSubstratePath = (path) => (
+  typeof path === 'string'
+  && ACTIVE_SUBSTRATE_PREFIXES.some((prefix) => path.startsWith(prefix))
+);
+
+const isRuntimeUiPath = (path) => (
+  typeof path === 'string'
+  && ACTIVE_UI_PREFIXES.some((prefix) => path.startsWith(prefix))
+);
+
+const getChangedPath = (data = {}) => {
+  const path = data?.path || data?.targetPath || data?.newPath || data?.oldPath || '';
+  return typeof path === 'string' ? path : '';
+};
 
 const loadSharedBootModules = async () => {
   if (!sharedBootModulesPromise) {
@@ -196,6 +260,7 @@ async function completeAwaken(bootResult, goal, wizardContainer) {
   let reloadTimer = null;
   let reloadInProgress = false;
   let reloadPending = false;
+  let documentReloadRequested = false;
 
   const getRuntimeUiSpec = () => (
     runtimeMode === 'x'
@@ -321,6 +386,37 @@ async function completeAwaken(bootResult, goal, wizardContainer) {
     }, 150);
   };
 
+  const scheduleDocumentReload = (reason, path) => {
+    if (documentReloadRequested) return;
+    documentReloadRequested = true;
+    postServiceWorkerMessage('INVALIDATE_ALL', {
+      instanceId: getCurrentReploidInstanceLabel(),
+      reason,
+      path
+    }).finally(() => {
+      setTimeout(() => window.location.reload(), 50);
+    });
+  };
+
+  const handleVfsChange = (data = {}) => {
+    const path = getChangedPath(data);
+    if (!path) return;
+
+    void postServiceWorkerMessage('INVALIDATE_MODULE', {
+      instanceId: getCurrentReploidInstanceLabel(),
+      path
+    });
+
+    if (isActiveSubstratePath(path)) {
+      scheduleDocumentReload('substrate-vfs', path);
+      return;
+    }
+
+    if (isRuntimeUiPath(path)) {
+      scheduleReload('vfs');
+    }
+  };
+
   // Remove boot UI
   if (wizardContainer) wizardContainer.remove();
   document.body.classList.add('no-grid-pattern');
@@ -329,25 +425,16 @@ async function completeAwaken(bootResult, goal, wizardContainer) {
 
   // Hot-reload UI on VFS changes
   if (eventBus?.on) {
-    eventBus.on('vfs:file_changed', (data = {}) => {
-      const path = data?.path || data?.oldPath || '';
-      if (typeof path !== 'string') return;
-      if (
-        path.startsWith('/ui/')
-        || path.startsWith('/styles/')
-        || path.startsWith('/self/capsule/')
-        || path.startsWith('/self/ui/zero/')
-        || path === '/self/styles/zero.css'
-      ) {
-        scheduleReload('vfs');
-      }
+    VFS_FILE_CHANGED_EVENTS.forEach((eventName) => {
+      eventBus.on(eventName, handleVfsChange);
     });
     eventBus.on('promotion:accepted', (data = {}) => {
-      const path = data?.targetPath || '';
-      if (
-        typeof path === 'string'
-        && (path.startsWith('/self/ui/zero/') || path === '/self/styles/zero.css')
-      ) {
+      const path = getChangedPath(data);
+      if (isActiveSubstratePath(path)) {
+        scheduleDocumentReload('promotion-substrate', path);
+        return;
+      }
+      if (isRuntimeUiPath(path)) {
         scheduleReload('promotion');
       }
     });
@@ -550,6 +637,11 @@ async function completeReploidAwaken(goal, wizardContainer) {
 
 (async () => {
   try {
+    // Remove seed-phase progress loader now that start-app has control.
+    document.getElementById('boot-vfs-progress')?.remove();
+
+    let stopParticleBg = null;
+
     const runtimeMode = typeof window.getReploidMode === 'function'
       ? window.getReploidMode()
       : 'reploid';
@@ -584,6 +676,11 @@ async function completeReploidAwaken(goal, wizardContainer) {
           loadSharedBootModules().catch((err) => {
             console.warn('[Boot] Failed to prewarm shared boot modules:', err?.message || err);
           });
+          if ((routeMode || runtimeMode) === 'zero') {
+            import(withQuery('/ui/zero/particle-bg.js', getCurrentReploidPeerQuery()))
+              .then(({ startParticleBg }) => { stopParticleBg = startParticleBg(); })
+              .catch(() => {});
+          }
         }
       } else {
         const { initWizard: initWizardUI } = await import(withQuery('/ui/boot-wizard/index.js', getCurrentReploidPeerQuery()));
@@ -616,10 +713,6 @@ async function completeReploidAwaken(goal, wizardContainer) {
           return;
         }
 
-        if (runtimeMode === 'pool') {
-          return;
-        }
-
         if (runtimeMode === 'reploid') {
           await completeReploidAwaken(goal, wizardContainer);
           return;
@@ -631,6 +724,8 @@ async function completeReploidAwaken(goal, wizardContainer) {
           console.log('[Boot] Waiting for background VFS hydration...');
           await fullSeed;
         }
+
+        if (stopParticleBg) { stopParticleBg(); stopParticleBg = null; }
 
         // NOW run the boot sequence
         const { boot, renderErrorUI, DIContainer } = await loadSharedBootModules();
