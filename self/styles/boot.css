@@ -121,6 +121,46 @@
   vertical-align: text-bottom;
 }
 
+/* === PARTICLE BACKGROUND === */
+/* particle-bg.js appends a fixed canvas at z-index:1.
+   Wizard container must sit above it while the effect is active. */
+body.particle-active .wizard-container {
+  position: relative;
+  z-index: 2;
+}
+
+/* === RUNTIME SHELL VIEWPORT LOCK === */
+/* Applied once the agent runtime mounts; prevents document-level scroll on all screen sizes. */
+
+body.no-grid-pattern {
+  height: 100dvh;
+  overflow: hidden;
+}
+
+#app.active {
+  height: 100%;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Minimal loader shown during VFS hydration on locked routes (/0, /x).
+   Replaces blank viewport; removed when initLockedBootHome takes over. */
+.boot-vfs-loader {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100dvh;
+  gap: var(--space-md);
+  padding: var(--space-lg);
+}
+
+.boot-vfs-loader .type-caption {
+  opacity: var(--opacity-secondary);
+  text-align: center;
+}
+
 /* === WIZARD LAYOUT === */
 
 .wizard-container {

@@ -315,7 +315,6 @@ const ZeroUI = {
         <div class="zero-shell">
           <div class="zero-shell-header">
             <div class="zero-shell-title">
-              <div class="zero-shell-kicker">${escapeHtml(getModeLabel())}</div>
               <h1 class="zero-shell-heading">${escapeHtml(getModeLabel())}</h1>
             </div>
             <div class="zero-shell-actions">
@@ -349,7 +348,7 @@ const ZeroUI = {
 
           <div class="panel zero-goal-panel">
             <div class="zero-panel-label">Goal</div>
-            <pre class="zero-goal-text" id="agent-goal"></pre>
+            <div class="zero-goal-text" id="agent-goal"></div>
           </div>
 
           <div class="zero-main-grid">

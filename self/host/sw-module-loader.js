@@ -61,6 +61,20 @@ const NETWORK_FALLBACK_PREFIXES = [
 const vfsDBMap = new Map();
 const vfsDBOpening = new Map();
 const clientInstanceMap = new Map();
+const invalidationTokens = new Map();
+const REWRITEABLE_IMPORT_ROOTS = [
+  '/self/',
+  '/tools/',
+  '/core/',
+  '/infrastructure/',
+  '/capabilities/',
+  '/ui/',
+  '/styles/',
+  '/config/',
+  '/capsule/',
+  '/shadow/',
+  '/artifacts/'
+];
 
 function sanitizeInstanceId(value) {
   const sanitized = String(value || '')
@@ -85,6 +99,22 @@ function getInstanceIdFromUrl(urlString) {
 function getVfsDbName(instanceId) {
   const id = sanitizeInstanceId(instanceId);
   return id ? `${VFS_DB_NAME}--${id}` : VFS_DB_NAME;
+}
+
+function getInvalidationKey(dbName, path) {
+  return `${dbName}:${path || '*'}`;
+}
+
+function getInvalidationToken(dbName, path) {
+  return invalidationTokens.get(getInvalidationKey(dbName, path))
+    || invalidationTokens.get(getInvalidationKey(dbName, '*'))
+    || null;
+}
+
+function markInvalidated(dbName, path = null) {
+  const token = Date.now().toString(36);
+  invalidationTokens.set(getInvalidationKey(dbName, path || '*'), token);
+  return token;
 }
 
 async function resolveRequestInstanceId(event, request, url) {
@@ -206,6 +236,47 @@ function shouldFallbackToNetwork(path) {
     || NETWORK_FALLBACK_PREFIXES.some((prefix) => path.startsWith(prefix));
 }
 
+function isRewriteableSpecifier(specifier) {
+  if (!specifier || typeof specifier !== 'string') return false;
+  if (specifier.startsWith('#')) return false;
+  if (/^[a-zA-Z][a-zA-Z\d+.-]*:/.test(specifier)) return false;
+  if (specifier.startsWith('.')) return true;
+  return REWRITEABLE_IMPORT_ROOTS.some((root) => specifier.startsWith(root));
+}
+
+function rewriteModuleImports(content, requestUrl, instanceId, dbName, vfsPath) {
+  if (!requestUrl.pathname.endsWith('.js') && !requestUrl.pathname.endsWith('.mjs')) {
+    return content;
+  }
+
+  const version = requestUrl.searchParams.get('v')
+    || getInvalidationToken(dbName, vfsPath)
+    || getInvalidationToken(dbName, '*');
+  if (!version) return content;
+
+  const rewriteSpecifier = (specifier) => {
+    if (!isRewriteableSpecifier(specifier)) return specifier;
+    const url = new URL(specifier, requestUrl);
+    if (url.origin !== self.location.origin) return specifier;
+    url.searchParams.set('v', version);
+    if (instanceId && !url.searchParams.has(INSTANCE_QUERY_PARAM)) {
+      url.searchParams.set(INSTANCE_QUERY_PARAM, instanceId);
+    }
+    return `${url.pathname}${url.search}${url.hash}`;
+  };
+
+  return content
+    .replace(/\b((?:import|export)\s+[^'";]*?\s+from\s*)(['"])([^'"]+)\2/g, (match, prefix, quote, specifier) => (
+      `${prefix}${quote}${rewriteSpecifier(specifier)}${quote}`
+    ))
+    .replace(/\b(import\s*)(['"])([^'"]+)\2/g, (match, prefix, quote, specifier) => (
+      `${prefix}${quote}${rewriteSpecifier(specifier)}${quote}`
+    ))
+    .replace(/\b(import\s*\(\s*)(['"])([^'"]+)\2/g, (match, prefix, quote, specifier) => (
+      `${prefix}${quote}${rewriteSpecifier(specifier)}${quote}`
+    ));
+}
+
 // Read file from VFS
 async function readFromVFS(path, dbName) {
   const db = await openVFS(dbName);
@@ -324,7 +395,8 @@ async function handleModuleRequest(request, url, event) {
         return 'application/javascript; charset=utf-8';
       };
 
-      return new Response(content, {
+      const responseContent = rewriteModuleImports(content, url, instanceId, dbName, vfsPath);
+      return new Response(responseContent, {
         status: 200,
         headers: {
           'Content-Type': getMimeType(vfsPath),
@@ -389,18 +461,28 @@ self.addEventListener('message', (event) => {
       break;
     }
 
-    case 'INVALIDATE_MODULE':
+    case 'INVALIDATE_MODULE': {
       // Clear cache for specific module to force reload
-      console.log(`[SW] Invalidating module cache: ${data.path}`);
-      // Service worker will automatically serve fresh version from VFS on next request
-      if (event.ports[0]) event.ports[0].postMessage({ success: true });
+      const instanceId = sanitizeInstanceId(data?.instanceId);
+      const dbName = getVfsDbName(instanceId);
+      const path = typeof data?.path === 'string' ? data.path : null;
+      const token = markInvalidated(dbName, path);
+      console.log(`[SW] Invalidating module cache: ${path || '*'} (${dbName})`);
+      caches.delete(CACHE_NAME).catch(() => {});
+      if (event.ports[0]) event.ports[0].postMessage({ success: true, token });
       break;
+    }
 
-    case 'INVALIDATE_ALL':
+    case 'INVALIDATE_ALL': {
       // Clear all module caches
+      const instanceId = sanitizeInstanceId(data?.instanceId);
+      const dbName = getVfsDbName(instanceId);
+      const token = markInvalidated(dbName, null);
       console.log('[SW] Invalidating all module caches');
-      if (event.ports[0]) event.ports[0].postMessage({ success: true });
+      caches.delete(CACHE_NAME).catch(() => {});
+      if (event.ports[0]) event.ports[0].postMessage({ success: true, token });
       break;
+    }
 
     case 'CLOSE_VFS':
       // Close VFS connection before database deletion

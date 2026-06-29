@@ -178,7 +178,7 @@ async function readFromVfs(path, args, maxBytes) {
   if (!stats || stats.type === 'directory') {
     const directory = await readVfsDirectory(path, VFS);
     if (directory) return directory;
-    if (!stats) throw new Error(`File not found: ${path}`);
+    if (!stats) throw new Error(`File not found in VFS: ${path}. VFS paths do not carry a /self/ prefix (use /core/..., /ui/..., /tools/... etc). Run ReadFile with path: / to list top-level directories.`);
   }
 
   if (stats.type && stats.type !== 'file') {

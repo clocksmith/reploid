@@ -8,6 +8,19 @@ import { isSecurityEnabled } from './security-config.js';
 
 const moduleCache = new Map();
 const loadingPromises = new Map(); // Prevent duplicate concurrent loads
+const REWRITEABLE_IMPORT_ROOTS = Object.freeze([
+  '/self/',
+  '/tools/',
+  '/core/',
+  '/infrastructure/',
+  '/capabilities/',
+  '/ui/',
+  '/styles/',
+  '/config/',
+  '/capsule/',
+  '/shadow/',
+  '/artifacts/'
+]);
 
 // Statistics for monitoring
 const stats = {
@@ -42,22 +55,69 @@ const setCached = (path, code, mod) => {
   });
 };
 
+const hashString = (value) => {
+  let hash = 2166136261;
+  const text = String(value || '');
+  for (let i = 0; i < text.length; i++) {
+    hash ^= text.charCodeAt(i);
+    hash = Math.imul(hash, 16777619);
+  }
+  return (hash >>> 0).toString(36);
+};
+
+const getCurrentInstanceId = () => {
+  try {
+    const url = new URL(globalThis.location?.href || 'http://reploid.local/');
+    return url.searchParams.get('instance') || null;
+  } catch {
+    return null;
+  }
+};
+
+const isRewriteableSpecifier = (specifier) => {
+  if (!specifier || typeof specifier !== 'string') return false;
+  if (specifier.startsWith('#')) return false;
+  if (/^[a-zA-Z][a-zA-Z\d+.-]*:/.test(specifier)) return false;
+  if (specifier.startsWith('.')) return true;
+  return REWRITEABLE_IMPORT_ROOTS.some((root) => specifier.startsWith(root));
+};
+
+const buildVersionedSpecifier = (specifier, basePath, options = {}) => {
+  if (!isRewriteableSpecifier(specifier)) return specifier;
+
+  const baseUrl = new URL(basePath, 'http://reploid.local');
+  const url = new URL(specifier, baseUrl);
+  const version = options.version || hashString(`${basePath}:${specifier}`);
+  const instanceId = options.instanceId || getCurrentInstanceId();
+
+  url.searchParams.set('v', version);
+  if (instanceId && !url.searchParams.has('instance')) {
+    url.searchParams.set('instance', instanceId);
+  }
+
+  return `${url.pathname}${url.search}${url.hash}`;
+};
+
 /**
- * Rewrite VFS imports to use blob URLs
- * Converts: import { foo } from '/tools/bar.js'
- * To inline blob URL that can be resolved
+ * Rewrite local VFS imports to service-worker-addressable absolute URLs.
+ * Blob module URLs cannot resolve relative imports on their own.
  */
 const rewriteImports = (code, basePath, vfsResolver) => {
   if (!vfsResolver) return code;
+  const resolve = typeof vfsResolver === 'function'
+    ? vfsResolver
+    : (specifier) => buildVersionedSpecifier(specifier, basePath, vfsResolver);
 
-  // Match import statements with VFS paths
-  const importRegex = /import\s+(?:(?:\{[^}]*\}|\*\s+as\s+\w+|\w+)\s+from\s+)?['"](\/(tools|core|infrastructure|capabilities|ui)\/[^'"]+)['"]/g;
-
-  return code.replace(importRegex, (match, importPath) => {
-    // For now, keep original - full resolution requires async which complicates things
-    // This is a placeholder for future enhancement
-    return match;
-  });
+  return code
+    .replace(/\b((?:import|export)\s+[^'";]*?\s+from\s*)(['"])([^'"]+)\2/g, (match, prefix, quote, importPath) => (
+      `${prefix}${quote}${resolve(importPath)}${quote}`
+    ))
+    .replace(/\b(import\s*)(['"])([^'"]+)\2/g, (match, prefix, quote, importPath) => (
+      `${prefix}${quote}${resolve(importPath)}${quote}`
+    ))
+    .replace(/\b(import\s*\(\s*)(['"])([^'"]+)\2/g, (match, prefix, quote, importPath) => (
+      `${prefix}${quote}${resolve(importPath)}${quote}`
+    ));
 };
 
 /**
@@ -145,8 +205,12 @@ export async function loadVfsModule(options) {
           }
         }
 
+        const rewrittenContents = rewriteImports(contents, path, {
+          version: hashString(`${path}:${contents}`)
+        });
+
         // Create blob URL and import
-        const blob = new Blob([contents], { type: 'text/javascript' });
+        const blob = new Blob([rewrittenContents], { type: 'text/javascript' });
         const url = URL.createObjectURL(blob);
 
         try {

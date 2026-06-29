@@ -18,8 +18,41 @@ const DIContainer = {
     const _instances = new Map();
     const _stack = new Set(); // For circular dependency checks
 
+    const disposeInstance = (id, instance) => {
+      const dispose = instance?.dispose || instance?.cleanup || instance?.destroy;
+      if (typeof dispose !== 'function') return;
+      try {
+        const result = dispose.call(instance);
+        if (result && typeof result.catch === 'function') {
+          result.catch((error) => {
+            logger.warn(`[DI] Async dispose failed for ${id}: ${error?.message || error}`);
+          });
+        }
+      } catch (error) {
+        logger.warn(`[DI] Dispose failed for ${id}: ${error?.message || error}`);
+      }
+    };
+
+    const invalidate = (id) => {
+      if (!_instances.has(id)) return false;
+      const instance = _instances.get(id);
+      _instances.delete(id);
+      disposeInstance(id, instance);
+      return true;
+    };
+
+    const clearInstances = () => {
+      const entries = Array.from(_instances.entries());
+      _instances.clear();
+      for (const [id, instance] of entries) {
+        disposeInstance(id, instance);
+      }
+      return entries.length;
+    };
+
     const register = (mod) => {
       if (!mod.metadata?.id) throw new Error('Invalid module registration');
+      invalidate(mod.metadata.id);
       _modules.set(mod.metadata.id, mod);
     };
 
@@ -62,7 +95,15 @@ const DIContainer = {
       }
     };
 
-    return { register, resolve };
+    return {
+      register,
+      resolve,
+      invalidate,
+      clear: clearInstances,
+      clearInstances,
+      hasModule: (id) => _modules.has(id),
+      hasInstance: (id) => _instances.has(id)
+    };
   }
 };
 
