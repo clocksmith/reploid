@@ -5,6 +5,24 @@
 import { test, expect } from '@playwright/test';
 
 const DB_PREFIX = 'reploid-vfs-v0';
+const ROUTE_CASES = Object.freeze([
+  {
+    route: '/0',
+    label: 'zero',
+    title: 'Zero',
+    mode: 'zero',
+    bootProfile: 'zero_home',
+    genesisLevel: 'spark'
+  },
+  {
+    route: '/x',
+    label: 'x',
+    title: 'X',
+    mode: 'x',
+    bootProfile: 'x_home',
+    genesisLevel: 'full'
+  }
+]);
 
 const sanitizeInstanceId = (value) => String(value || '')
   .trim()
@@ -87,13 +105,33 @@ async function runTransitiveImportSmoke(page, instanceId, prefix) {
   }, { instanceId, prefix, dbPrefix: DB_PREFIX });
 }
 
+async function assertRouteContract(page, expected) {
+  await expect(page).toHaveTitle(expected.title);
+
+  const actual = await page.evaluate(() => ({
+    mode: typeof window.getReploidMode === 'function' ? window.getReploidMode() : null,
+    routeMode: typeof window.getReploidRouteMode === 'function' ? window.getReploidRouteMode() : null,
+    bootProfile: typeof window.getReploidBootProfile === 'function' ? window.getReploidBootProfile() : null,
+    genesisLevel: typeof window.getGenesisLevel === 'function' ? window.getGenesisLevel() : null
+  }));
+
+  expect(actual).toEqual({
+    mode: expected.mode,
+    routeMode: expected.mode,
+    bootProfile: expected.bootProfile,
+    genesisLevel: expected.genesisLevel
+  });
+}
+
 test.describe('VFS HMR routes', () => {
-  for (const [route, label] of [['/0', 'zero'], ['/x', 'x']]) {
-    test(`${route} service worker cache-busts transitive VFS imports`, async ({ page }, testInfo) => {
+  for (const routeCase of ROUTE_CASES) {
+    test(`${routeCase.route} uses its lab contract and cache-busts transitive VFS imports`, async ({ page }, testInfo) => {
+      const { route, label } = routeCase;
       const instanceId = sanitizeInstanceId(`e2e-${label}-${testInfo.project.name}-${Date.now()}`);
       const prefix = `/shadow/e2e-${label}-${testInfo.project.name.replace(/[^a-zA-Z0-9_-]+/g, '-')}`;
 
       await bootRouteWithServiceWorker(page, route, instanceId);
+      await assertRouteContract(page, routeCase);
       const result = await runTransitiveImportSmoke(page, instanceId, prefix);
 
       expect(result).toEqual({
