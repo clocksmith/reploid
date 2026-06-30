@@ -7,8 +7,8 @@ import {
 } from '../../self/ui/boot-wizard/goals.js';
 
 describe('Zero goal presets', () => {
-  it('keeps a 64-prompt RSI shuffle pool across levels 1 through 5', () => {
-    expect(ZERO_GOAL_CHOICES).toHaveLength(64);
+  it('keeps a 512-prompt RSI shuffle pool across levels 1 through 8', () => {
+    expect(ZERO_GOAL_CHOICES).toHaveLength(512);
     expect(DEFAULT_ZERO_GOAL).toBe(ZERO_GOAL_CHOICES[0].text);
 
     const levelCounts = ZERO_GOAL_CHOICES.reduce((counts, goal) => {
@@ -16,13 +16,16 @@ describe('Zero goal presets', () => {
       return counts;
     }, new Map());
 
-    expect([...levelCounts.keys()].sort()).toEqual([1, 2, 3, 4, 5]);
+    expect([...levelCounts.keys()].sort()).toEqual([1, 2, 3, 4, 5, 6, 7, 8]);
     expect(Object.fromEntries(levelCounts)).toEqual({
-      1: 13,
-      2: 13,
-      3: 13,
-      4: 13,
-      5: 12
+      1: 64,
+      2: 64,
+      3: 64,
+      4: 64,
+      5: 64,
+      6: 64,
+      7: 64,
+      8: 64
     });
   });
 
