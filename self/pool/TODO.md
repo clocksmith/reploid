@@ -67,7 +67,7 @@ The current Cloud Run and Firestore path is transitional. The target Reploid con
 
 ## Doppler Evidence Contract
 
-- [ ] Confirm the configured `doppler-gpu@0.4.4` browser module loads from the public module URL without import-map or bundler assumptions.
+- [ ] Confirm the configured `doppler-gpu@0.4.5` browser module loads from the public module URL without import-map or bundler assumptions.
 - [ ] Add or consume a narrow public Doppler evidence export for token ids, transcript hashes, generation config, runtime profile hash, and backend identity.
 - [ ] Keep Reploid from deep-importing Doppler internals.
 - [ ] Show a visible comparison receipt for Doppler output fields versus Reploid receipt fields.
