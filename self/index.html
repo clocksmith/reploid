@@ -10,7 +10,7 @@
     <link rel="icon" type="image/svg+xml" href="favicon.svg" />
     <title>Reploid</title>
     <script>
-    window.REPLOID_BUILD_VERSION = '2026063009';
+    window.REPLOID_BUILD_VERSION = '2026063011';
       window.REPLOID_SW_VERSION = window.REPLOID_BUILD_VERSION;
       window.REPLOID_VFS_VERSION = window.REPLOID_BUILD_VERSION;
     </script>
@@ -35,16 +35,31 @@
         '/reputation'
       ]);
       const productRoute = productPaths.has(pathname);
-      const releaseGlobalReploidServiceWorker = () => {
-        if (!('serviceWorker' in navigator)) return;
-        navigator.serviceWorker.getRegistrations?.().then((registrations) => {
-          for (const registration of registrations || []) {
+      const ROOT_SW_RELEASE_RELOAD_KEY = 'REPLOID_ROOT_SW_RELEASE_RELOAD';
+      const releaseGlobalReploidServiceWorker = async () => {
+        if (!('serviceWorker' in navigator)) return false;
+        try {
+          const registrations = await navigator.serviceWorker.getRegistrations?.();
+          const rootRegistrations = (registrations || []).filter((registration) => {
             const scopeUrl = new URL(registration.scope);
-            if (scopeUrl.origin === window.location.origin && scopeUrl.pathname === '/') {
-              registration.unregister();
-            }
+            return scopeUrl.origin === window.location.origin && scopeUrl.pathname === '/';
+          });
+          if (rootRegistrations.length === 0) {
+            sessionStorage.removeItem(ROOT_SW_RELEASE_RELOAD_KEY);
+            return false;
           }
-        }).catch(() => {});
+          const controlsCurrentPage = !!navigator.serviceWorker.controller;
+          await Promise.all(rootRegistrations.map((registration) => registration.unregister()));
+          if (controlsCurrentPage && sessionStorage.getItem(ROOT_SW_RELEASE_RELOAD_KEY) !== 'true') {
+            sessionStorage.setItem(ROOT_SW_RELEASE_RELOAD_KEY, 'true');
+            window.location.reload();
+            return new Promise(() => {});
+          }
+          sessionStorage.removeItem(ROOT_SW_RELEASE_RELOAD_KEY);
+          return true;
+        } catch {
+          return false;
+        }
       };
       if (productRoute) {
         document.title = 'Reploid';
@@ -56,7 +71,7 @@
         document.title = 'Reploid';
       }
       if (productRoute) {
-        releaseGlobalReploidServiceWorker();
+        await releaseGlobalReploidServiceWorker();
         const appRoot = document.getElementById('app');
         if (!appRoot) {
           throw new Error('Missing app root');
