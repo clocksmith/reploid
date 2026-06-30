@@ -1,8 +1,9 @@
 /**
  * @fileoverview Route/tool surface composition.
  *
- * /0 uses the shared file substrate only. /x is a strict superset with
- * cognition, worker, and swarm tools enabled by default.
+ * /0 uses the minimal shared file substrate. Reploid uses the complete
+ * file substrate. /x is a strict superset with cognition, worker, and
+ * swarm tools enabled by default.
  */
 
 export const TOOL_SURFACES = Object.freeze({
@@ -47,9 +48,12 @@ export const TOOL_SURFACES = Object.freeze({
 });
 
 export const ZERO_TOOL_SURFACE_IDS = Object.freeze(['sharedFile']);
-export const X_TOOL_SURFACE_IDS = Object.freeze([
+export const REPLOID_TOOL_SURFACE_IDS = Object.freeze([
   ...ZERO_TOOL_SURFACE_IDS,
-  'extendedFile',
+  'extendedFile'
+]);
+export const X_TOOL_SURFACE_IDS = Object.freeze([
+  ...REPLOID_TOOL_SURFACE_IDS,
   'cognition',
   'workers',
   'swarm'
@@ -57,7 +61,7 @@ export const X_TOOL_SURFACE_IDS = Object.freeze([
 
 export const TOOL_SURFACE_IDS_BY_MODE = Object.freeze({
   zero: ZERO_TOOL_SURFACE_IDS,
-  reploid: ZERO_TOOL_SURFACE_IDS,
+  reploid: REPLOID_TOOL_SURFACE_IDS,
   x: X_TOOL_SURFACE_IDS
 });
 

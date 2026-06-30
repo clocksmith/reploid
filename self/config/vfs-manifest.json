@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-06-30T11:43:26.770Z",
+  "generatedAt": "2026-06-30T15:04:59.946Z",
   "files": [
     "audit.html",
     "blueprint-index.json",
@@ -552,7 +552,6 @@
     "ui/reploid-home/index.js",
     "ui/shared/reploid-contract.js",
     "ui/toast.js",
-    "ui/zero/index.js",
-    "ui/zero/particle-bg.js"
+    "ui/zero/index.js"
   ]
 }

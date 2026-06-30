@@ -53,20 +53,11 @@ const ZERO_FORBIDDEN_MODULES = Object.freeze([
   'HITLController'
 ]);
 
-const ZERO_FORBIDDEN_TOOLS = Object.freeze([
-  'CopyFile',
-  'DeleteFile',
-  'FileOutline',
-  'Find',
-  'Head',
-  'MakeDirectory',
-  'MoveFile',
-  'SpawnWorker',
-  'SwarmGetStatus',
-  'Tail',
-  'git',
-  'RunGEPA'
-]);
+const ZERO_TOOL_NAMES = Object.freeze(getToolNamesForSurfaceIds(ZERO_TOOL_SURFACE_IDS));
+const X_TOOL_NAMES = Object.freeze(getToolNamesForSurfaceIds(X_TOOL_SURFACE_IDS));
+const ZERO_FORBIDDEN_TOOLS = Object.freeze(
+  X_TOOL_NAMES.filter((toolName) => !ZERO_TOOL_NAMES.includes(toolName))
+);
 
 const makeBootSpec = (profile) => Object.freeze({
   title: profile.title,
