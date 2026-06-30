@@ -19,6 +19,8 @@ const selectedBrowserChannel = channelArg
   : String(process.env.REPLOID_POOL_ACTUAL_BROWSER_CHANNEL || '').trim();
 const baseUrl = (positionalUrl || process.env.REPLOID_POOL_ACTUAL_SMOKE_URL || '').replace(/\/+$/, '');
 const ACTUAL_SMOKE_WINDOW_MS = Number(process.env.REPLOID_POOL_ACTUAL_SMOKE_WINDOW_MS || 300000);
+const dopplerModuleUrl = String(process.env.REPLOID_DOPPLER_MODULE_URL || '').trim();
+const dopplerKernelBaseUrl = String(process.env.REPLOID_DOPPLER_KERNEL_BASE_URL || '').trim();
 
 if (!baseUrl) {
   console.error('REPLOID_POOL_ACTUAL_SMOKE_URL or first argument is required');
@@ -102,12 +104,18 @@ const waitFor = async (probe, expected, label) => {
 };
 
 const installActualRuntimeConfig = async (context) => {
-  await context.addInitScript(({ windowMs }) => {
+  await context.addInitScript(({ windowMs, moduleUrl, kernelBaseUrl }) => {
     window.REPLOID_POOL_DISCOVERY_WINDOW_MS = windowMs;
     window.REPLOID_POOL_RECEIPT_WINDOW_MS = windowMs;
     window.REPLOID_POOL_MAX_OUTPUT_TOKENS = 1;
     window.REPLOID_POOL_STRICT_ARTIFACT_PREFLIGHT = false;
-  }, { windowMs: ACTUAL_SMOKE_WINDOW_MS });
+    if (moduleUrl) window.REPLOID_DOPPLER_MODULE_URL = moduleUrl;
+    if (kernelBaseUrl) window.REPLOID_DOPPLER_KERNEL_BASE_URL = kernelBaseUrl;
+  }, {
+    windowMs: ACTUAL_SMOKE_WINDOW_MS,
+    moduleUrl: dopplerModuleUrl,
+    kernelBaseUrl: dopplerKernelBaseUrl,
+  });
 };
 
 const wireDiagnostics = (page, label) => {
