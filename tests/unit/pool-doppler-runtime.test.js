@@ -394,6 +394,66 @@ describe('Doppler browser runtime adapter', () => {
     });
   });
 
+  it('resets and serializes public Doppler generation for independent Poolday assignments', async () => {
+    const events = [];
+    let releaseFirst = null;
+    let markFirstStarted = null;
+    const firstStarted = new Promise((resolve) => {
+      releaseFirst = () => {};
+      markFirstStarted = resolve;
+    });
+    const runtime = createDopplerRuntime({
+      model: LAUNCH_MODEL,
+      modelSession: {
+        modelId: LAUNCH_MODEL.modelId,
+        modelHash: LAUNCH_MODEL.modelHash,
+        manifestHash: LAUNCH_MODEL.manifestHash,
+        resetGenerationState() {
+          events.push('reset');
+        },
+        async generate(prompt) {
+          events.push(`generate:${prompt}`);
+          if (prompt === 'first') {
+            markFirstStarted();
+            await new Promise((resolve) => {
+              releaseFirst = resolve;
+            });
+          }
+          return {
+            outputText: `ok:${prompt}`,
+            tokenIds: [prompt === 'first' ? 1 : 2],
+            tokenCounts: { input: 1, output: 1 }
+          };
+        }
+      }
+    });
+
+    const first = runtime.generate({
+      prompt: 'first',
+      generationConfig: { maxOutputTokens: 1 },
+      assignment: { assignmentId: 'assignment_first' }
+    });
+    const second = runtime.generate({
+      prompt: 'second',
+      generationConfig: { maxOutputTokens: 1 },
+      assignment: { assignmentId: 'assignment_second' }
+    });
+
+    await firstStarted;
+    expect(events).toEqual(['reset', 'generate:first']);
+    releaseFirst();
+    const [firstResult, secondResult] = await Promise.all([first, second]);
+
+    expect(firstResult.outputText).toBe('ok:first');
+    expect(secondResult.outputText).toBe('ok:second');
+    expect(events).toEqual([
+      'reset',
+      'generate:first',
+      'reset',
+      'generate:second'
+    ]);
+  });
+
   it('installs the hosted handle attachment hook for provider pages', async () => {
     const runtime = createDopplerRuntime();
     expect(typeof globalThis.REPLOID_POOL_ATTACH_DOPPLER_HANDLE).toBe('function');

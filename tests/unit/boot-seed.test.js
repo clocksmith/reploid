@@ -77,6 +77,27 @@ describe('boot seed manifest', () => {
     expect(bootFiles).toContain('ui/zero/index.js');
     expect(bootFiles).toContain('styles/zero.css');
     expect(bootFiles).toContain('ui/boot-home/index.js');
+    expect(bootFiles).toContain('ui/boot-wizard/zero-function.js');
+    expect(bootFiles).toContain('ui/boot-wizard/steps/goal.js');
+    expect(bootFiles).not.toContain('ui/pool-home/index.js');
+    expect(bootFiles).not.toContain('ui/reploid-home/index.js');
+  });
+
+  it('keeps Zero lightweight while X absorbs the Zero boot surface', () => {
+    const zeroBootFiles = pickBootSeedFiles(manifest.files, 'zero_home');
+    const xBootFiles = pickBootSeedFiles(manifest.files, 'x_home');
+    const xBootSet = new Set(xBootFiles);
+
+    expect(zeroBootFiles.length).toBeLessThanOrEqual(120);
+    expect(zeroBootFiles).not.toContain('tools/DeleteFile.js');
+    expect(zeroBootFiles).not.toContain('tools/CopyFile.js');
+    expect(zeroBootFiles).not.toContain('tools/git.js');
+    expect(zeroBootFiles).not.toContain('capabilities/system/README.md');
+    expect(zeroBootFiles).not.toContain('core/README.md');
+    expect(zeroBootFiles).not.toContain('infrastructure/README.md');
+    expect(zeroBootFiles.every((file) => xBootSet.has(file))).toBe(true);
+    expect(xBootFiles).toContain('ui/proto/index.js');
+    expect(xBootFiles).toContain('styles/proto/index.css');
   });
 
   it('routes /0 to the Zero tabula-rasa profile', () => {

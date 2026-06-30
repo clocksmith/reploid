@@ -54,8 +54,17 @@ const ZERO_FORBIDDEN_MODULES = Object.freeze([
 ]);
 
 const ZERO_FORBIDDEN_TOOLS = Object.freeze([
+  'CopyFile',
+  'DeleteFile',
+  'FileOutline',
+  'Find',
+  'Head',
+  'MakeDirectory',
+  'MoveFile',
   'SpawnWorker',
   'SwarmGetStatus',
+  'Tail',
+  'git',
   'RunGEPA'
 ]);
 

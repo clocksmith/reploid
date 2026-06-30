@@ -213,6 +213,23 @@ const installRuntimeGlobals = () => {
   };
 };
 
+const REPLOID_SERVICE_WORKER_SCOPE_PATHS = new Set(['/', '/0', '/x']);
+
+const normalizeServiceWorkerScopePath = (value = '/') => {
+  const normalized = String(value || '/').replace(/\/+$/, '') || '/';
+  return normalized;
+};
+
+const isReploidServiceWorkerRegistration = (registration) => {
+  try {
+    const scopeUrl = new URL(registration.scope);
+    return scopeUrl.origin === window.location.origin
+      && REPLOID_SERVICE_WORKER_SCOPE_PATHS.has(normalizeServiceWorkerScopePath(scopeUrl.pathname));
+  } catch {
+    return false;
+  }
+};
+
 const ensureServiceWorkerVersion = async () => {
   if (!('serviceWorker' in navigator)) return false;
 
@@ -222,11 +239,12 @@ const ensureServiceWorkerVersion = async () => {
 
   try {
     const registrations = await navigator.serviceWorker.getRegistrations();
-    if (!registrations.length) {
+    const reploidRegistrations = registrations.filter(isReploidServiceWorkerRegistration);
+    if (!reploidRegistrations.length) {
       localStorage.setItem(SW_VERSION_KEY, expected);
       return false;
     }
-    await Promise.all(registrations.map((registration) => registration.unregister()));
+    await Promise.all(reploidRegistrations.map((registration) => registration.unregister()));
     localStorage.setItem(SW_VERSION_KEY, expected);
     window.location.reload();
     return true;

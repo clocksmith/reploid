@@ -498,12 +498,23 @@ const callGenerate = async (session, prompt, generationConfig, assignment) => {
   throw new Error('Doppler public handle does not expose generate, generateText, or run');
 };
 
+const resetSessionGenerationState = async (session) => {
+  if (typeof session?.resetGenerationState === 'function') {
+    await session.resetGenerationState();
+    return;
+  }
+  if (typeof session?.resetToSeqLen === 'function') {
+    await session.resetToSeqLen(0);
+  }
+};
+
 export function createDopplerRuntime({ modelSession = null, model = null, runtime = null } = {}) {
   let session = modelSession;
   let modelInfo = model;
   let runtimeInfo = normalizeRuntimeInfo(runtime, modelSession);
   let loadState = session ? 'loaded' : 'empty';
   let deviceInfo = null;
+  let generationQueue = Promise.resolve();
 
   const attachHandle = async (handle, nextModel = null, nextRuntime = null) => {
     const method = generateMethodName(handle);
@@ -580,32 +591,38 @@ export function createDopplerRuntime({ modelSession = null, model = null, runtim
       if (!session || !generateMethodName(session)) {
         throw new Error('Doppler browser model session is not connected');
       }
-      const startedAt = new Date().toISOString();
-      const result = await callGenerate(session, prompt, generationConfig, assignment);
-      const completedAt = new Date().toISOString();
-      const outputText = normalizeOutputText(result);
-      const tokenIds = normalizeTokenIds(result);
-      const evidenceWarnings = [];
-      if (tokenIds.length === 0) evidenceWarnings.push('doppler_token_ids_unavailable_from_public_handle');
-      const transcript = isObject(result?.transcript)
-        ? result.transcript
-        : {
+      const runGeneration = async () => {
+        await resetSessionGenerationState(session);
+        const startedAt = new Date().toISOString();
+        const result = await callGenerate(session, prompt, generationConfig, assignment);
+        const completedAt = new Date().toISOString();
+        const outputText = normalizeOutputText(result);
+        const tokenIds = normalizeTokenIds(result);
+        const evidenceWarnings = [];
+        if (tokenIds.length === 0) evidenceWarnings.push('doppler_token_ids_unavailable_from_public_handle');
+        const transcript = isObject(result?.transcript)
+          ? result.transcript
+          : {
+            outputText,
+            tokenIds,
+            evidenceWarnings
+          };
+        return {
           outputText,
           tokenIds,
-          evidenceWarnings
+          transcript,
+          tokenCounts: normalizeTokenCounts(result, tokenIds),
+          timing: result?.timing || { startedAt, completedAt },
+          dopplerProviderReceipt: result?.receipt || result?.dopplerProviderReceipt || null,
+          model: modelInfo,
+          runtime: runtimeInfo,
+          evidenceWarnings,
+          status: 'completed'
         };
-      return {
-        outputText,
-        tokenIds,
-        transcript,
-        tokenCounts: normalizeTokenCounts(result, tokenIds),
-        timing: result?.timing || { startedAt, completedAt },
-        dopplerProviderReceipt: result?.receipt || result?.dopplerProviderReceipt || null,
-        model: modelInfo,
-        runtime: runtimeInfo,
-        evidenceWarnings,
-        status: 'completed'
       };
+      const task = generationQueue.then(runGeneration, runGeneration);
+      generationQueue = task.catch(() => null);
+      return task;
     }
   };
   globalThis.REPLOID_POOL_ATTACH_DOPPLER_HANDLE = (handle, nextModel = null, nextRuntime = null) => (

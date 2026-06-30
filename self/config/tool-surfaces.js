@@ -11,20 +11,22 @@ export const TOOL_SURFACES = Object.freeze({
     'WriteFile',
     'EditFile',
     'ListFiles',
+    'Grep',
+    'ListTools',
+    'CreateTool',
+    'LoadModule',
+    'Promote'
+  ]),
+  extendedFile: Object.freeze([
     'DeleteFile',
     'MakeDirectory',
     'CopyFile',
     'MoveFile',
     'Head',
     'Tail',
-    'Grep',
     'Find',
     'FileOutline',
-    'git',
-    'ListTools',
-    'CreateTool',
-    'LoadModule',
-    'Promote'
+    'git'
   ]),
   cognition: Object.freeze([
     'ListMemories',
@@ -47,6 +49,7 @@ export const TOOL_SURFACES = Object.freeze({
 export const ZERO_TOOL_SURFACE_IDS = Object.freeze(['sharedFile']);
 export const X_TOOL_SURFACE_IDS = Object.freeze([
   ...ZERO_TOOL_SURFACE_IDS,
+  'extendedFile',
   'cognition',
   'workers',
   'swarm'
@@ -82,4 +85,3 @@ export function getToolSurfaceIdsForMode(mode = 'reploid') {
 export function getToolNamesForMode(mode = 'reploid', options = {}) {
   return getToolNamesForSurfaceIds(getToolSurfaceIdsForMode(mode), options);
 }
-

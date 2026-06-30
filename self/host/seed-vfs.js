@@ -204,6 +204,12 @@ const SW_READY_WAIT_MS = 3000;
 const SW_REGISTER_WAIT_MS = 3000;
 const SW_INSTANCE_REGISTER_ACK_MS = 1000;
 const SERVICE_WORKER_BOOT_PROFILES = new Set(['zero_home', 'x_home']);
+const SERVICE_WORKER_SCOPE_BY_BOOT_PROFILE = Object.freeze({
+  zero_home: '/0',
+  x_home: '/x'
+});
+const LEGACY_ROOT_SERVICE_WORKER_SCOPE = '/';
+const SW_LEGACY_ROOT_RELEASE_RELOAD_KEY = 'REPLOID_SW_LEGACY_ROOT_RELEASE_RELOAD';
 const BOOT_SEED_READY_PREFIX = 'REPLOID_BOOT_SEED_READY';
 const FULL_SEED_READY_PREFIX = 'REPLOID_FULL_SEED_READY';
 const WARM_BOOT_PROBE_PATHS = Object.freeze([
@@ -216,6 +222,40 @@ const WARM_BOOT_PROBE_PATHS = Object.freeze([
 ]);
 
 const shouldUseServiceWorkerForBoot = (bootProfile) => SERVICE_WORKER_BOOT_PROFILES.has(bootProfile);
+
+const normalizeServiceWorkerScopePath = (value = '/') => {
+  const normalized = String(value || '/').replace(/\/+$/, '') || '/';
+  return normalized;
+};
+
+const getServiceWorkerScopeForBoot = (bootProfile) => SERVICE_WORKER_SCOPE_BY_BOOT_PROFILE[bootProfile] || null;
+
+const getRegistrationScopePath = (registration) => {
+  try {
+    const scopeUrl = new URL(registration.scope);
+    if (scopeUrl.origin !== window.location.origin) return null;
+    return normalizeServiceWorkerScopePath(scopeUrl.pathname);
+  } catch {
+    return null;
+  }
+};
+
+const isRegistrationActiveController = (registration) => {
+  const controller = navigator.serviceWorker?.controller;
+  return !!controller && registration?.active === controller;
+};
+
+const releaseLegacyRootServiceWorkers = async () => {
+  if (!('serviceWorker' in navigator)) return false;
+  const registrations = await navigator.serviceWorker.getRegistrations();
+  const rootRegistrations = registrations.filter(
+    (registration) => getRegistrationScopePath(registration) === LEGACY_ROOT_SERVICE_WORKER_SCOPE
+  );
+  if (rootRegistrations.length === 0) return false;
+  const controlsCurrentPage = rootRegistrations.some(isRegistrationActiveController);
+  await Promise.all(rootRegistrations.map((registration) => registration.unregister()));
+  return controlsCurrentPage;
+};
 
 const getExpectedVfsVersion = () => (
   (typeof window !== 'undefined' && window.REPLOID_VFS_VERSION)
@@ -387,6 +427,20 @@ const ensureServiceWorker = async () => {
     warn('Service workers are unavailable. Continuing with network-backed bootstrap.');
     return null;
   }
+  const bootProfile = getBootSeedProfile();
+  const serviceWorkerScope = getServiceWorkerScopeForBoot(bootProfile);
+  const scopedSessionStorage = getScopedSessionStorage();
+  const legacyRootControlled = await releaseLegacyRootServiceWorkers();
+  if (legacyRootControlled) {
+    const hasReloaded = scopedSessionStorage.getItem(SW_LEGACY_ROOT_RELEASE_RELOAD_KEY, { legacyFallback: false }) === 'true';
+    if (!hasReloaded) {
+      scopedSessionStorage.setItem(SW_LEGACY_ROOT_RELEASE_RELOAD_KEY, 'true');
+      warn('Reloading to release legacy root service worker control');
+      window.location.reload();
+      return new Promise(() => {});
+    }
+  }
+  scopedSessionStorage.removeItem(SW_LEGACY_ROOT_RELEASE_RELOAD_KEY);
   setBootstrapStage('service_worker:register');
   const version = (typeof window !== 'undefined' && window.REPLOID_SW_VERSION)
     ? window.REPLOID_SW_VERSION
@@ -395,7 +449,7 @@ const ensureServiceWorker = async () => {
   const swUrl = version
     ? `${serviceWorkerEntry}?v=${encodeURIComponent(version)}`
     : serviceWorkerEntry;
-  const reg = await waitForServiceWorkerRegister(swUrl, { scope: '/' });
+  const reg = await waitForServiceWorkerRegister(swUrl, { scope: serviceWorkerScope });
   if (!reg) {
     window.REPLOID_SW_CONTROLLED = false;
     window.REPLOID_SW_DEGRADED = true;
@@ -410,7 +464,6 @@ const ensureServiceWorker = async () => {
   setBootstrapStage('service_worker:control');
   const hasController = await waitForServiceWorkerControl();
   window.REPLOID_SW_CONTROLLED = hasController;
-  const scopedSessionStorage = getScopedSessionStorage();
 
   if (!hasController) {
     const hasReloaded = scopedSessionStorage.getItem(SW_CONTROL_RELOAD_KEY, { legacyFallback: false }) === 'true';
