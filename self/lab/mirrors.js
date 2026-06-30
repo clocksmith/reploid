@@ -6,7 +6,7 @@ export const ZERO_RUNTIME_SELF_MIRROR_RULES = Object.freeze([
   { sourcePath: '/config/lab-route-profiles.js', targetPath: '/self/config/lab-route-profiles.js' },
   { sourcePath: '/config/tool-surfaces.js', targetPath: '/self/config/tool-surfaces.js' },
   { sourcePrefix: '/lab/', targetPrefix: '/self/lab/' },
-  { sourcePrefix: '/ui/zero/', targetPrefix: '/self/ui/zero/' },
+  { sourcePath: '/ui/zero/index.js', targetPath: '/self/ui/zero/index.js' },
   { sourcePath: '/styles/zero.css', targetPath: '/self/styles/zero.css' }
 ]);
 

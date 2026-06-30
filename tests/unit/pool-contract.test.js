@@ -135,11 +135,11 @@ describe('pool launch contract', () => {
     });
     expect(serverModel.runtimeCompatibility).toMatchObject({
       requiredWebGpuFeatures: [],
-      fallbackStatus: 'doppler_0_4_5_manifest_capability_remap',
+      fallbackStatus: 'doppler_0_4_6_manifest_capability_remap',
       capabilityFallbacks: [
         expect.objectContaining({
           whenMissingWebGpuFeatures: ['shader-f16'],
-          runtime: 'doppler-gpu@0.4.5',
+          runtime: 'doppler-gpu@0.4.6',
           transform: 'widenToF32Activations',
           prefillProjectionKernel: 'fused_matmul_q4_batched_multicol_shared.wgsl',
           kvDtype: 'f32',
@@ -174,7 +174,7 @@ describe('pool launch contract', () => {
     });
     expect(noF16.ok).toBe(true);
     expect(noF16.missingFeatures).toEqual([]);
-    expect(noF16.fallbackStatus).toBe('doppler_0_4_5_manifest_capability_remap');
+    expect(noF16.fallbackStatus).toBe('doppler_0_4_6_manifest_capability_remap');
 
     expect(buildModelArtifactUrls(browserModel)).toEqual({
       root: 'https://huggingface.co/Clocksmith/rdrr/resolve/a6118fb24a8e6c4fe7527f1a3dc7b406e0a3ef10/models/qwen-3-5-0-8b-q4k-ehaf16',
@@ -213,8 +213,8 @@ describe('pool launch contract', () => {
 
   it('keeps browser runtime deployment config aligned across server and browser', () => {
     expect(BROWSER_BROWSER_RUNTIME_CONFIG).toEqual(SERVER_BROWSER_RUNTIME_CONFIG);
-    expect(BROWSER_BROWSER_RUNTIME_CONFIG.dopplerModuleUrl).toBe('https://esm.sh/doppler-gpu@0.4.5/src/client/doppler-api.browser.js?bundle');
-    expect(BROWSER_BROWSER_RUNTIME_CONFIG.dopplerKernelBaseUrl).toBe('https://esm.sh/doppler-gpu@0.4.5/src/gpu/kernels');
+    expect(BROWSER_BROWSER_RUNTIME_CONFIG.dopplerModuleUrl).toBe('https://esm.sh/doppler-gpu@0.4.6/src/client/doppler-api.browser.js?bundle');
+    expect(BROWSER_BROWSER_RUNTIME_CONFIG.dopplerKernelBaseUrl).toBe('https://esm.sh/doppler-gpu@0.4.6/src/gpu/kernels');
     expect(BROWSER_BROWSER_RUNTIME_CONFIG.modelBaseUrl).toBe('https://reploid.web.app/models');
   });
 

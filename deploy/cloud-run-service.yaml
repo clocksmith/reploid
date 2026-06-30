@@ -45,9 +45,9 @@ spec:
             - name: REPLOID_POOL_MODEL_BASE_URL
               value: "https://reploid.web.app/models"
             - name: REPLOID_DOPPLER_MODULE_URL
-              value: "https://esm.sh/doppler-gpu@0.4.5/src/client/doppler-api.browser.js?bundle"
+              value: "https://esm.sh/doppler-gpu@0.4.6/src/client/doppler-api.browser.js?bundle"
             - name: REPLOID_DOPPLER_KERNEL_BASE_URL
-              value: "https://esm.sh/doppler-gpu@0.4.5/src/gpu/kernels"
+              value: "https://esm.sh/doppler-gpu@0.4.6/src/gpu/kernels"
           resources:
             limits:
               cpu: "1"
