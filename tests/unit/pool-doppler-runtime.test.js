@@ -13,9 +13,9 @@ const launchHandle = () => ({
   modelHash: LAUNCH_MODEL.modelHash,
   manifestHash: LAUNCH_MODEL.manifestHash,
   artifactIdentity: LAUNCH_MODEL.artifactIdentity,
-  generate(request) {
+  generate(prompt) {
     return {
-      outputText: `answered:${request.prompt}`,
+      outputText: `answered:${prompt}`,
       tokenIds: [101, 202],
       tokenCounts: { input: 1, output: 2 }
     };
@@ -348,6 +348,50 @@ describe('Doppler browser runtime adapter', () => {
     });
 
     expect(result.outputText).toBe('text:hello');
+  });
+
+  it('calls single-arity Doppler generate handles with prompt and options before request-object fallback', async () => {
+    const calls = [];
+    const runtime = createDopplerRuntime({
+      model: LAUNCH_MODEL,
+      modelSession: {
+        modelId: LAUNCH_MODEL.modelId,
+        modelHash: LAUNCH_MODEL.modelHash,
+        manifestHash: LAUNCH_MODEL.manifestHash,
+        generate(prompt, options = {}) {
+          calls.push({ prompt, options });
+          return {
+            outputText: `prompt:${prompt}`,
+            tokenIds: [707],
+            tokenCounts: { input: 1, output: 1 }
+          };
+        }
+      }
+    });
+
+    const result = await runtime.generate({
+      prompt: 'hello',
+      generationConfig: {
+        mode: 'greedy',
+        maxOutputTokens: 4,
+        temperature: 0.2,
+        topK: 7,
+        topP: 0.8
+      },
+      assignment: { assignmentId: 'assignment_prompt_first' }
+    });
+
+    expect(result.outputText).toBe('prompt:hello');
+    expect(calls).toHaveLength(1);
+    expect(calls[0]).toMatchObject({
+      prompt: 'hello',
+      options: {
+        maxTokens: 4,
+        temperature: 0,
+        topK: 1,
+        topP: 1
+      }
+    });
   });
 
   it('installs the hosted handle attachment hook for provider pages', async () => {

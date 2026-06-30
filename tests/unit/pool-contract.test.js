@@ -85,6 +85,14 @@ describe('pool launch contract', () => {
     expect(ringPolicy.ok).toBe(true);
     expect(ringPolicy.policy.adaptiveRing).toBe(true);
     expect(ringPolicy.policy.maxRingSize).toBe(12);
+    expect(SERVER_GENERATION_CONFIG).toMatchObject({
+      mode: 'greedy',
+      temperature: 0,
+      topK: 1,
+      topP: 1,
+      seed: '0000000000000000',
+      useChatTemplate: false
+    });
   });
 
   it('keeps browser policy validation aligned with the server launch contract', () => {
