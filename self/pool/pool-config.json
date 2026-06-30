@@ -128,7 +128,8 @@
     "topK": 1,
     "topP": 1,
     "maxOutputTokens": 128,
-    "seed": "0000000000000000"
+    "seed": "0000000000000000",
+    "useChatTemplate": false
   },
   "browserRuntime": {
     "dopplerModuleUrl": "https://esm.sh/doppler-gpu@0.4.5/src/client/doppler-api.browser.js?bundle",

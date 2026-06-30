@@ -19,8 +19,10 @@ const selectedBrowserChannel = channelArg
   : String(process.env.REPLOID_POOL_ACTUAL_BROWSER_CHANNEL || '').trim();
 const baseUrl = (positionalUrl || process.env.REPLOID_POOL_ACTUAL_SMOKE_URL || '').replace(/\/+$/, '');
 const ACTUAL_SMOKE_WINDOW_MS = Number(process.env.REPLOID_POOL_ACTUAL_SMOKE_WINDOW_MS || 300000);
+const ACTUAL_DISCOVERY_WINDOW_MS = Number(process.env.REPLOID_POOL_ACTUAL_DISCOVERY_WINDOW_MS || ACTUAL_SMOKE_WINDOW_MS);
 const dopplerModuleUrl = String(process.env.REPLOID_DOPPLER_MODULE_URL || '').trim();
 const dopplerKernelBaseUrl = String(process.env.REPLOID_DOPPLER_KERNEL_BASE_URL || '').trim();
+const dopplerLoadOptionsJson = String(process.env.REPLOID_DOPPLER_LOAD_OPTIONS_JSON || '').trim();
 
 if (!baseUrl) {
   console.error('REPLOID_POOL_ACTUAL_SMOKE_URL or first argument is required');
@@ -59,6 +61,18 @@ const parseJson = (text) => {
     }
   }
 };
+
+const parseEnvJson = (text, label) => {
+  if (!text) return null;
+  try {
+    return JSON.parse(text);
+  } catch (error) {
+    console.error(`${label} must be valid JSON: ${error.message}`);
+    process.exit(1);
+  }
+};
+
+const dopplerLoadOptions = parseEnvJson(dopplerLoadOptionsJson, 'REPLOID_DOPPLER_LOAD_OPTIONS_JSON');
 
 const readSnapshot = async (page, resultId) => page.evaluate((id) => {
   const raw = document.getElementById(`${id}-raw`)?.textContent || '';
@@ -103,25 +117,37 @@ const waitFor = async (probe, expected, label) => {
   fail(`${label}: expected ${expected}, last state ${last}`);
 };
 
+const summarizeProviderAdvert = (advert = {}) => ({
+  providerId: advert.body?.providerId || advert.fromPeerId || null,
+  runtimeProfileHash: advert.body?.runtimeProfileHash || null,
+  modelIds: (advert.body?.models || []).map((model) => model.modelId || model.id || null),
+  modelHashes: (advert.body?.models || []).map((model) => model.modelHash || null),
+  manifestHashes: (advert.body?.models || []).map((model) => model.manifestHash || null),
+  acceptedPolicies: advert.body?.availability?.acceptedPolicies || []
+});
+
 const installActualRuntimeConfig = async (context) => {
-  await context.addInitScript(({ windowMs, moduleUrl, kernelBaseUrl }) => {
-    window.REPLOID_POOL_DISCOVERY_WINDOW_MS = windowMs;
+  await context.addInitScript(({ windowMs, discoveryWindowMs, moduleUrl, kernelBaseUrl, loadOptions }) => {
+    window.REPLOID_POOL_DISCOVERY_WINDOW_MS = discoveryWindowMs;
     window.REPLOID_POOL_RECEIPT_WINDOW_MS = windowMs;
     window.REPLOID_POOL_MAX_OUTPUT_TOKENS = 1;
     window.REPLOID_POOL_STRICT_ARTIFACT_PREFLIGHT = false;
     if (moduleUrl) window.REPLOID_DOPPLER_MODULE_URL = moduleUrl;
     if (kernelBaseUrl) window.REPLOID_DOPPLER_KERNEL_BASE_URL = kernelBaseUrl;
+    if (loadOptions) window.REPLOID_DOPPLER_LOAD_OPTIONS = loadOptions;
   }, {
     windowMs: ACTUAL_SMOKE_WINDOW_MS,
+    discoveryWindowMs: ACTUAL_DISCOVERY_WINDOW_MS,
     moduleUrl: dopplerModuleUrl,
     kernelBaseUrl: dopplerKernelBaseUrl,
+    loadOptions: dopplerLoadOptions,
   });
 };
 
 const wireDiagnostics = (page, label) => {
   page.on('console', (message) => {
     const text = message.text();
-    if (/doppler|webgpu|model|manifest|pool|peer|error|failed/i.test(text)) {
+    if (/doppler|webgpu|model|manifest|pool|peer|error|failed|probe|logits|embed|attn|ffn/i.test(text)) {
       console.log(`[${label}:console:${message.type()}] ${text}`);
     }
   });
@@ -179,7 +205,10 @@ const waitForProviderListening = async (page) => {
     if (snapshot.providerStatus === 'NODE // OFFLINE' && (snapshot.raw || snapshot.message)) {
       fail('Actual provider went offline before listening', snapshot);
     }
-    if (snapshot.providerStatus === 'NODE // SPAWNED' && parsed.runner === 'peer_room_listening') return 'ready';
+    if (snapshot.providerStatus === 'NODE // SPAWNED' && parsed.runner === 'peer_room_listening') {
+      console.log(`[actual-smoke] provider advert ${JSON.stringify(summarizeProviderAdvert(parsed.advert))}`);
+      return 'ready';
+    }
     return parsed.runner || parsed.status || snapshot.providerStatus || 'waiting';
   }, 'ready', 'provider readiness');
 };

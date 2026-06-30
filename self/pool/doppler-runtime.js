@@ -488,12 +488,9 @@ const callGenerate = async (session, prompt, generationConfig, assignment) => {
     return runGenerationAttempts([promptAttempt, requestAttempt]);
   }
   if (typeof session.generate === 'function') {
-    const objectFirst = session.generate.length <= 1;
     const promptAttempt = () => session.generate(prompt, dopplerOptions);
     const requestAttempt = () => session.generate(request);
-    return runGenerationAttempts(objectFirst
-      ? [requestAttempt, promptAttempt]
-      : [promptAttempt, requestAttempt]);
+    return runGenerationAttempts([promptAttempt, requestAttempt]);
   }
   if (typeof session.run === 'function') {
     return collectGenerationResult(await session.run(request));

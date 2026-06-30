@@ -3,7 +3,7 @@
  */
 
 import { LAUNCH_MODEL, getEnabledPoolModelContract, listPoolModels } from '../../pool/model-contract.js';
-import { FASTEST_RECEIPT_POLICY_ID, getPolicy, listPolicies } from '../../pool/policy-router.js';
+import { DETERMINISTIC_GENERATION_CONFIG, FASTEST_RECEIPT_POLICY_ID, getPolicy, listPolicies } from '../../pool/policy-router.js';
 import { DEFAULT_PEER_ROOM_ID } from '../../pool/peer-room.js';
 import { createPeerEventReducer } from '../../pool/peer-control-plane.js';
 import {
@@ -87,15 +87,17 @@ export const getPeerGenerationConfig = () => {
   const override = window.REPLOID_POOL_GENERATION_CONFIG && typeof window.REPLOID_POOL_GENERATION_CONFIG === 'object'
     ? window.REPLOID_POOL_GENERATION_CONFIG
     : {};
-  const maxOutputTokens = Number(window.REPLOID_POOL_MAX_OUTPUT_TOKENS || override.maxOutputTokens || 128);
+  const maxOutputTokens = Number(
+    window.REPLOID_POOL_MAX_OUTPUT_TOKENS
+    || override.maxOutputTokens
+    || DETERMINISTIC_GENERATION_CONFIG.maxOutputTokens
+  );
   return {
-    mode: 'greedy',
-    temperature: 0,
-    topK: 1,
-    topP: 1,
-    seed: '0000000000000000',
+    ...DETERMINISTIC_GENERATION_CONFIG,
     ...override,
-    maxOutputTokens: Number.isFinite(maxOutputTokens) && maxOutputTokens > 0 ? Math.floor(maxOutputTokens) : 128
+    maxOutputTokens: Number.isFinite(maxOutputTokens) && maxOutputTokens > 0
+      ? Math.floor(maxOutputTokens)
+      : DETERMINISTIC_GENERATION_CONFIG.maxOutputTokens
   };
 };
 
