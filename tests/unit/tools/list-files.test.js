@@ -3,7 +3,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import call, { tool } from '../../../tools/ListFiles.js';
+import call from '../../../tools/ListFiles.js';
 
 describe('ListFiles', () => {
   let mockVFS;
@@ -16,20 +16,6 @@ describe('ListFiles', () => {
       exists: vi.fn(),
       stat: vi.fn().mockResolvedValue({ size: 100, type: 'file' })
     };
-  });
-
-  describe('tool metadata', () => {
-    it('should have correct name', () => {
-      expect(tool.name).toBe('ListFiles');
-    });
-
-    it('should be marked as readOnly', () => {
-      expect(tool.readOnly).toBe(true);
-    });
-
-    it('should have path as optional property', () => {
-      expect(tool.inputSchema.required).toBeUndefined();
-    });
   });
 
   describe('call function', () => {

@@ -2,6 +2,9 @@
  * @fileoverview Strict boot contract for the self-owned runtime, host, and kernel.
  */
 
+import { LAB_ROUTE_BOOT_SPECS } from './config/lab-route-profiles.js';
+import { OPFS_ARTIFACT_ROOTS, WRITABLE_VFS_ROOTS } from './config/vfs-policy.js';
+
 const clone = (value) => JSON.parse(JSON.stringify(value));
 
 const normalizePath = (path) => {
@@ -22,7 +25,10 @@ export const SELF_BOOT_SPEC = Object.freeze({
   blueprintIndexPath: '/self/blueprint-index.json',
   identityPath: '/self/identity.json',
   canonicalRoots: ['/self'],
-  writableRoots: ['/shadow', '/artifacts', '/cycles', 'opfs:/artifacts'],
+  writableRoots: Object.freeze([
+    ...WRITABLE_VFS_ROOTS,
+    ...OPFS_ARTIFACT_ROOTS.map((root) => `opfs:${root}`)
+  ]),
   kernel: {
     htmlEntry: '/self/kernel/index.html',
     bootEntry: '/self/kernel/boot.js'
@@ -80,24 +86,7 @@ export const SELF_BOOT_SPEC = Object.freeze({
       mode: 'wrapper'
     }
   ],
-  routes: {
-    '/0': {
-      title: 'Zero',
-      mode: 'zero',
-      bootProfile: 'zero_home',
-      genesisLevel: 'spark',
-      surface: 'zero',
-      productFacing: false
-    },
-    '/x': {
-      title: 'X',
-      mode: 'x',
-      bootProfile: 'x_home',
-      genesisLevel: 'full',
-      surface: 'x',
-      productFacing: false
-    }
-  }
+  routes: LAB_ROUTE_BOOT_SPECS
 });
 
 export function cloneSelfBootSpec() {

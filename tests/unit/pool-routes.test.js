@@ -260,7 +260,7 @@ describe('pool coordinator routes', () => {
     expect(policies.body.policies.map((policy) => policy.policyId)).toContain('fastest_receipt');
     const ringPolicy = policies.body.policies.find((policy) => policy.policyId === 'ring_quorum_receipt');
     expect(ringPolicy.adaptiveRing).toBe(true);
-    expect(ringPolicy.maxRingSize).toBe(4);
+    expect(ringPolicy.maxRingSize).toBe(12);
     expect(ringPolicy.trustTier).toBe('adaptive_T1_to_T4_ring_quorum_receipt');
     expect(ringPolicy.policyTrustTier).toBe('T4_ring_quorum_receipt');
 

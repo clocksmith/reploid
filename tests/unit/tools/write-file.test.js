@@ -3,7 +3,7 @@
  */
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import call, { tool } from '../../../tools/WriteFile.js';
+import call from '../../../tools/WriteFile.js';
 
 describe('WriteFile', () => {
   let mockVFS;
@@ -49,16 +49,6 @@ describe('WriteFile', () => {
     AuditLogger: mockAuditLogger,
     VerificationManager: mockVerificationManager,
     SubstrateLoader: mockSubstrateLoader
-  });
-
-  describe('tool metadata', () => {
-    it('should have correct name', () => {
-      expect(tool.name).toBe('WriteFile');
-    });
-
-    it('should require path', () => {
-      expect(tool.inputSchema.required).toContain('path');
-    });
   });
 
   describe('allowed VFS roots', () => {

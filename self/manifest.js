@@ -3,6 +3,7 @@
  */
 
 import { cloneSelfBootSpec } from './boot-spec.js';
+import { OPFS_ARTIFACT_ROOTS, WRITABLE_VFS_ROOTS } from './config/vfs-policy.js';
 import { getDefaultReploidEnvironment } from './environment.js';
 import { buildIdentityDocument } from './identity.js';
 import { getCurrentReploidInstanceId } from './instance.js';
@@ -10,14 +11,10 @@ import { deriveSwarmRole } from './swarm.js';
 
 export const SELF_VFS_WRITABLE_ROOTS = Object.freeze([
   '/self',
-  '/shadow',
-  '/artifacts',
-  '/cycles'
+  ...WRITABLE_VFS_ROOTS
 ]);
 
-export const SELF_OPFS_WRITABLE_ROOTS = Object.freeze([
-  '/artifacts'
-]);
+export const SELF_OPFS_WRITABLE_ROOTS = OPFS_ARTIFACT_ROOTS;
 
 export const SELF_PROTECTED_PATHS = Object.freeze([]);
 
@@ -35,6 +32,16 @@ export const SELF_SOURCE_MIRRORS = Object.freeze([
   { webPath: '/runtime.js', vfsPath: '/self/runtime.js' },
   { webPath: '/bridge.js', vfsPath: '/self/bridge.js' },
   { webPath: '/tool-runner.js', vfsPath: '/self/tool-runner.js' },
+  { webPath: '/config/lab-route-profiles.js', vfsPath: '/self/config/lab-route-profiles.js' },
+  { webPath: '/config/tool-surfaces.js', vfsPath: '/self/config/tool-surfaces.js' },
+  { webPath: '/config/vfs-policy.js', vfsPath: '/self/config/vfs-policy.js' },
+  { webPath: '/lab/mirrors.js', vfsPath: '/self/lab/mirrors.js' },
+  { webPath: '/lab/profiles.js', vfsPath: '/self/lab/profiles.js' },
+  { webPath: '/lab/runtime-ui.js', vfsPath: '/self/lab/runtime-ui.js' },
+  { webPath: '/lab/surface.js', vfsPath: '/self/lab/surface.js' },
+  { webPath: '/core/cycle-artifacts.js', vfsPath: '/self/core/cycle-artifacts.js' },
+  { webPath: '/core/import-rewrite.js', vfsPath: '/self/core/import-rewrite.js' },
+  { webPath: '/core/promotion-policy.js', vfsPath: '/self/core/promotion-policy.js' },
   { webPath: '/tools/Promote.js', vfsPath: '/self/tools/Promote.js' },
   { webPath: '/manifest.js', vfsPath: '/self/manifest.js' },
   { webPath: '/environment.js', vfsPath: '/self/environment.js' },

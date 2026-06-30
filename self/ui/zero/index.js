@@ -56,6 +56,11 @@ const ZeroUI = {
       }
     };
 
+    const formatModelMeta = (entry = {}) => {
+      const label = entry.modelLabel || entry.modelUsed?.label;
+      return label ? `Model ${label}` : '';
+    };
+
     const pushHistory = (entry) => {
       _history.unshift({
         ts: Date.now(),
@@ -74,14 +79,14 @@ const ZeroUI = {
             kind: 'tool',
             title: entry.tool || 'Tool',
             body: summarize(entry.result, 320),
-            meta: entry.cycle ? `Cycle ${entry.cycle}` : ''
+            meta: [entry.cycle ? `Cycle ${entry.cycle}` : '', formatModelMeta(entry)].filter(Boolean).join(' | ')
           };
         case 'llm_response':
           return {
             kind: 'llm',
             title: entry.cycle ? `Cycle ${entry.cycle}` : 'LLM',
             body: summarize(entry.content, 360),
-            meta: 'Response'
+            meta: ['Response', formatModelMeta(entry)].filter(Boolean).join(' | ')
           };
         case 'human_message':
           return {
@@ -102,21 +107,26 @@ const ZeroUI = {
             kind: 'llm',
             title: entry.cycle ? `Cycle ${entry.cycle}` : 'LLM',
             body: summarize(entry.content, 360),
-            meta: 'Response'
+            meta: ['Response', formatModelMeta(entry)].filter(Boolean).join(' | ')
           };
         case 'tool_result':
           return {
             kind: 'tool',
             title: entry.tool || 'Tool',
             body: summarize(entry.result, 320),
-            meta: entry.durationMs ? `${entry.durationMs}ms` : (entry.cycle ? `Cycle ${entry.cycle}` : '')
+            meta: [
+              entry.durationMs ? `${entry.durationMs}ms` : (entry.cycle ? `Cycle ${entry.cycle}` : ''),
+              formatModelMeta(entry)
+            ].filter(Boolean).join(' | ')
           };
         case 'tool_batch':
           return {
             kind: 'tool',
             title: `Batch ${entry.total || 0}`,
-            body: Array.isArray(entry.tools) ? entry.tools.join(', ') : '',
-            meta: entry.errors ? `${entry.errors} error(s)` : 'ok'
+            body: Array.isArray(entry.calls)
+              ? entry.calls.map((call) => `${call.name}(${summarize(call.args, 80)})`).join(', ')
+              : (Array.isArray(entry.tools) ? entry.tools.join(', ') : ''),
+            meta: [entry.errors ? `${entry.errors} error(s)` : 'ok', formatModelMeta(entry)].filter(Boolean).join(' | ')
           };
         case 'human':
           return {
@@ -173,19 +183,19 @@ const ZeroUI = {
       if (!container) return;
 
       if (_history.length === 0) {
-        container.innerHTML = '<div class="zero-history-empty">No activity yet</div>';
+        container.innerHTML = '<div class="zero-trace-empty">No trace yet</div>';
         return;
       }
 
       container.innerHTML = _history.map((entry) => `
-        <div class="zero-history-entry zero-history-${escapeHtml(entry.kind || 'event')}">
-          <div class="zero-history-header">
-            <span class="zero-history-title">${escapeHtml(entry.title || 'Event')}</span>
-            <span class="zero-history-time">${escapeHtml(formatTime(entry.ts))}</span>
-          </div>
-          ${entry.meta ? `<div class="zero-history-meta">${escapeHtml(entry.meta)}</div>` : ''}
-          <div class="zero-history-body">${escapeHtml(entry.body || '')}</div>
-        </div>
+        <article class="zero-trace-entry zero-trace-${escapeHtml(entry.kind || 'event')}">
+          <header class="zero-trace-entry-header">
+            <span class="zero-trace-title">${escapeHtml(entry.title || 'Event')}</span>
+            <span class="zero-trace-time">${escapeHtml(formatTime(entry.ts))}</span>
+          </header>
+          ${entry.meta ? `<div class="zero-trace-meta">${escapeHtml(entry.meta)}</div>` : ''}
+          <div class="zero-trace-body">${escapeHtml(entry.body || '')}</div>
+        </article>
       `).join('');
     };
 
@@ -206,9 +216,8 @@ const ZeroUI = {
 
     const sendHumanNote = () => {
       const input = _root?.querySelector('#zero-human-input');
-      const typeInput = _root?.querySelector('#zero-human-type');
       const content = input?.value?.trim();
-      const messageType = typeInput?.value === 'goal' ? 'goal' : 'context';
+      const messageType = 'context';
       if (!content) return;
 
       EventBus.emit('human:message', { content, type: messageType });
@@ -313,63 +322,61 @@ const ZeroUI = {
 
       _root.innerHTML = `
         <div class="zero-shell">
-          <div class="zero-shell-header">
-            <div class="zero-shell-title">
+          <header class="zero-header">
+            <div class="zero-title">
+              <div class="zero-kicker">tabula rasa runtime</div>
               <h1 class="zero-shell-heading">${escapeHtml(getModeLabel())}</h1>
             </div>
-            <div class="zero-shell-actions">
+            <div class="zero-actions">
               <button class="btn" id="btn-toggle" data-zero-action="stop">Stop</button>
-              <button class="btn" data-zero-action="reload-ui">Reload UI</button>
+              <details class="zero-more">
+                <summary class="btn">More</summary>
+                <div class="zero-more-menu">
+                  <button class="btn" data-zero-action="reload-ui">Reload UI</button>
+                  <div class="zero-more-line">Activity: <span id="agent-activity">Awaiting goal</span></div>
+                </div>
+              </details>
             </div>
-          </div>
+          </header>
 
-          <div class="zero-metrics">
-            <div class="panel zero-metric-card">
-              <div class="zero-metric-label">State</div>
-              <div class="zero-metric-value" id="agent-state">IDLE</div>
-              <div class="zero-metric-detail" id="agent-activity">Awaiting goal</div>
+          <section class="zero-runtime-strip" aria-label="Runtime status">
+            <div class="zero-runtime-item">
+              <span>State</span>
+              <strong id="agent-state">IDLE</strong>
             </div>
-            <div class="panel zero-metric-card">
-              <div class="zero-metric-label">Cycle</div>
-              <div class="zero-metric-value" id="agent-cycle">0</div>
-              <div class="zero-metric-detail">Current loop</div>
+            <div class="zero-runtime-item">
+              <span>Cycle</span>
+              <strong id="agent-cycle">0</strong>
             </div>
-            <div class="panel zero-metric-card">
-              <div class="zero-metric-label">Tokens</div>
-              <div class="zero-metric-value" id="agent-tokens">0</div>
-              <div class="zero-metric-detail">Live budget</div>
+            <div class="zero-runtime-item">
+              <span>Model</span>
+              <strong id="agent-model">-</strong>
             </div>
-            <div class="panel zero-metric-card">
-              <div class="zero-metric-label">Brain</div>
-              <div class="zero-metric-value zero-metric-model" id="agent-model">-</div>
-              <div class="zero-metric-detail">Selected models</div>
+            <div class="zero-runtime-item">
+              <span>Tokens</span>
+              <strong id="agent-tokens">0</strong>
             </div>
-          </div>
+          </section>
 
-          <div class="panel zero-goal-panel">
-            <div class="zero-panel-label">Goal</div>
-            <div class="zero-goal-text" id="agent-goal"></div>
-          </div>
+          <main class="zero-main">
+            <section class="zero-goal">
+              <div class="zero-label">Goal</div>
+              <p class="zero-goal-text" id="agent-goal"></p>
+            </section>
 
-          <div class="zero-main-grid">
-            <div class="panel zero-history-panel">
-              <div class="zero-panel-label">Activity</div>
-              <div id="history-container" class="zero-history-list"></div>
-            </div>
+            <section class="zero-trace">
+              <div class="zero-label">Trace</div>
+              <div id="history-container" class="zero-trace-list"></div>
+            </section>
+          </main>
 
-            <div class="panel zero-input-panel">
-              <div class="zero-panel-label">Inject Note</div>
-              <p class="type-caption">Send a short context note or goal refinement into the running agent.</p>
-              <form id="zero-human-form" class="zero-human-form">
-                <select id="zero-human-type">
-                  <option value="context">Context note</option>
-                  <option value="goal">Goal refinement</option>
-                </select>
-                <textarea id="zero-human-input" class="goal-input zero-human-input" rows="6" placeholder="Keep it short and concrete."></textarea>
-                <button class="btn btn-prism" data-zero-action="send-note" type="submit">Send</button>
-              </form>
+          <form id="zero-human-form" class="zero-input">
+            <label class="zero-label" for="zero-human-input">Add context or correction</label>
+            <div class="zero-input-row">
+              <textarea id="zero-human-input" class="zero-human-input" rows="2" placeholder="Add one concrete note for the next cycle."></textarea>
+              <button class="btn btn-prism" data-zero-action="send-note" type="submit">Send</button>
             </div>
-          </div>
+          </form>
         </div>
       `;
 

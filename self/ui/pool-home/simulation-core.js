@@ -10,7 +10,6 @@ import {
   POOLDAY_GRAPH_PALETTES,
   POOLDAY_GRAPH_TOPOLOGIES,
   POOLDAY_MORPH_TUNING,
-  POOLDAY_PARTICIPANT_LAYOUT,
   POOLDAY_PARTICIPANT_NODE_IDS,
   SIMULATION_MAX_CANVAS_PIXELS,
   SIMULATION_GENTLE_SPEED,
@@ -342,10 +341,6 @@ const resolveMorphLift = (transition, id, eased, raw) => {
     x: point.x * profile.liftScale + profileX,
     y: point.y * profile.liftScale + profileY
   });
-  if (mode === 'orbit') return {
-    x: Math.cos(raw * Math.PI * control.spin) * POOLDAY_MORPH_TUNING.swirlLift * lift,
-    y: Math.sin(raw * Math.PI * control.spin) * POOLDAY_MORPH_TUNING.swirlLift * lift
-  };
   if (mode === 'fan') return scaled({
     x: (control.normalX || 0) * POOLDAY_MORPH_TUNING.arcLift * lift,
     y: ((control.normalY || 0) + (control.lanePhase || 0) * 0.32) * POOLDAY_MORPH_TUNING.arcLift * lift
@@ -357,10 +352,6 @@ const resolveMorphLift = (transition, id, eased, raw) => {
   if (mode === 'braid') return scaled({
     x: Math.sin(raw * Math.PI * 2 + (control.lanePhase || 0)) * POOLDAY_MORPH_TUNING.swirlLift * 0.62 * lift,
     y: Math.cos(raw * Math.PI * 2 + (control.lanePhase || 0)) * POOLDAY_MORPH_TUNING.swirlLift * 0.42 * lift
-  });
-  if (mode === 'slide') return scaled({
-    x: 0,
-    y: (control.lanePhase || 0) * POOLDAY_MORPH_TUNING.foldLift * lift
   });
   if (mode === 'root') return scaled({
     x: (control.normalX || 0) * POOLDAY_MORPH_TUNING.arcLift * 0.42 * lift,
@@ -541,12 +532,10 @@ const updatePoolGraphLayout = (state, safeDelta) => {
 export const createPoolSimulationState = () => {
   const seed = createSimulationSeed();
   const random = createSeededRandom(seed);
-  const participantSpecs = POOLDAY_PARTICIPANT_LAYOUT.map(({ id, role, point: [x, y] }, index) => ({
+  const participantSpecs = POOLDAY_PARTICIPANT_NODE_IDS.map((id, index) => ({
     id,
-    role,
+    role: id.startsWith('verifier') ? 'verifier' : 'runner',
     index,
-    homeX: x,
-    homeY: y,
     phase: index * 1.7,
     driftX: 8 + (index % 3) * 3,
     driftY: 9 + (index % 2) * 4,
@@ -948,7 +937,7 @@ const writePointerShooterParticles = (state, lines, width, height, safeDelta, ti
   }
 };
 
-export const resolveLineGeometry = (line, width, height) => {
+const resolveLineGeometryScalarsInto = (target, line, width, height) => {
   const from = line.from;
   const to = line.to;
   const dx = to.x - from.x;
@@ -966,18 +955,29 @@ export const resolveLineGeometry = (line, width, height) => {
     ? Number(line.signedCurve)
     : Number(line.curve || 0) * (Number.isFinite(Number(line.curveSign)) ? Number(line.curveSign) : 1);
   const curveOffset = Math.min(width, height) * signedCurve;
+  target.startX = from.x + normalX * laneOffset;
+  target.startY = from.y + normalY * laneOffset;
+  target.endX = to.x + normalX * laneOffset;
+  target.endY = to.y + normalY * laneOffset;
+  target.controlX = (from.x + to.x) * 0.5 + normalX * (laneOffset + curveOffset);
+  target.controlY = (from.y + to.y) * 0.5 + normalY * (laneOffset + curveOffset);
+  return target;
+};
+
+export const resolveLineGeometry = (line, width, height) => {
+  const geometry = resolveLineGeometryScalarsInto({}, line, width, height);
   return {
     start: {
-      x: from.x + normalX * laneOffset,
-      y: from.y + normalY * laneOffset
+      x: geometry.startX,
+      y: geometry.startY
     },
     end: {
-      x: to.x + normalX * laneOffset,
-      y: to.y + normalY * laneOffset
+      x: geometry.endX,
+      y: geometry.endY
     },
     control: {
-      x: (from.x + to.x) * 0.5 + normalX * (laneOffset + curveOffset),
-      y: (from.y + to.y) * 0.5 + normalY * (laneOffset + curveOffset)
+      x: geometry.controlX,
+      y: geometry.controlY
     }
   };
 };
@@ -986,30 +986,10 @@ export const resolveLinePoint = (line, amount, width, height) => {
   return resolveLinePointInto({ x: 0, y: 0 }, line, amount, width, height);
 };
 
+const LINE_POINT_GEOMETRY = {};
+
 export const resolveLinePointInto = (target, line, amount, width, height) => {
-  const from = line.from;
-  const to = line.to;
-  const dx = to.x - from.x;
-  const dy = to.y - from.y;
-  const distance = Math.max(1, Math.hypot(dx, dy));
-  const normalX = -dy / distance;
-  const normalY = dx / distance;
-  const laneIndex = Number(line.laneIndex || 0);
-  const laneCount = Math.max(1, Number(line.laneCount || 1));
-  const laneOffsetUnits = Number.isFinite(Number(line.laneOffset))
-    ? Number(line.laneOffset)
-    : laneIndex - (laneCount - 1) / 2;
-  const laneOffset = laneOffsetUnits * POOLDAY_FLOW_TUNING.laneGap;
-  const signedCurve = Number.isFinite(Number(line.signedCurve))
-    ? Number(line.signedCurve)
-    : Number(line.curve || 0) * (Number.isFinite(Number(line.curveSign)) ? Number(line.curveSign) : 1);
-  const curveOffset = Math.min(width, height) * signedCurve;
-  const startX = from.x + normalX * laneOffset;
-  const startY = from.y + normalY * laneOffset;
-  const endX = to.x + normalX * laneOffset;
-  const endY = to.y + normalY * laneOffset;
-  const controlX = (from.x + to.x) * 0.5 + normalX * (laneOffset + curveOffset);
-  const controlY = (from.y + to.y) * 0.5 + normalY * (laneOffset + curveOffset);
+  const geometry = resolveLineGeometryScalarsInto(LINE_POINT_GEOMETRY, line, width, height);
   const ease = line.flowEase || 'sine';
   const t = ease === 'out'
     ? easeOutCubic(amount)
@@ -1019,8 +999,8 @@ export const resolveLinePointInto = (target, line, amount, width, height) => {
         ? easeInOutCubic(amount)
         : easeInOutSine(amount);
   const inv = 1 - t;
-  target.x = inv * inv * startX + 2 * inv * t * controlX + t * t * endX;
-  target.y = inv * inv * startY + 2 * inv * t * controlY + t * t * endY;
+  target.x = inv * inv * geometry.startX + 2 * inv * t * geometry.controlX + t * t * geometry.endX;
+  target.y = inv * inv * geometry.startY + 2 * inv * t * geometry.controlY + t * t * geometry.endY;
   return target;
 };
 

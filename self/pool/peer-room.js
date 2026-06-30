@@ -30,6 +30,7 @@ const DEFAULT_DISCOVERY_WINDOW_MS = 1200;
 const DEFAULT_RECEIPT_WINDOW_MS = 60000;
 const DEFAULT_PROVIDER_ADVERT_INTERVAL_MS = 2500;
 const DEFAULT_PROVIDER_SESSION_SETTLE_MS = 5000;
+const DEFAULT_PROVIDER_ADVERT_SETTLE_MS = 250;
 
 const requireString = (value, label) => {
   const normalized = String(value || '').trim();
@@ -40,6 +41,16 @@ const requireString = (value, label) => {
 const makeId = (prefix) => (
   `${prefix}_${globalThis.crypto?.randomUUID ? globalThis.crypto.randomUUID() : `${Date.now().toString(36)}_${Math.random().toString(36).slice(2)}`}`
 );
+
+const positiveInteger = (value, fallback = 1) => {
+  const number = Number(value);
+  return Number.isInteger(number) && number > 0 ? number : fallback;
+};
+
+const resolvePromptDispatchConcurrency = (value, sessionCount) => {
+  const configured = value ?? globalThis.REPLOID_POOL_PROMPT_DISPATCH_CONCURRENCY ?? 1;
+  return Math.max(1, Math.min(Math.max(1, Number(sessionCount || 1)), positiveInteger(configured, 1)));
+};
 
 const openPeerRoomBus = ({
   roomId,
@@ -171,13 +182,30 @@ const createPeerDiscoveryError = ({ roomId, requiredModel, discoveryWindowMs, ob
   return error;
 };
 
-const waitForProviderAdverts = ({ channel, roomId, predicate, requiredModel = null, discoveryWindowMs, maxAdverts = null, settleOnFirst = false }) => new Promise((resolve, reject) => {
+const waitForProviderAdverts = ({
+  channel,
+  roomId,
+  predicate,
+  requiredModel = null,
+  discoveryWindowMs,
+  maxAdverts = null,
+  minAdverts = 1,
+  settleOnFirst = false,
+  settleWindowMs = DEFAULT_PROVIDER_ADVERT_SETTLE_MS
+}) => new Promise((resolve, reject) => {
   const adverts = [];
   const observedAdverts = [];
   let settled = false;
+  let settleTimer = null;
+  const clearSettleTimer = () => {
+    if (!settleTimer) return;
+    globalThis.clearTimeout(settleTimer);
+    settleTimer = null;
+  };
   const timer = globalThis.setTimeout(() => {
     if (settled) return;
     settled = true;
+    clearSettleTimer();
     channel.removeEventListener('message', handler);
     if (adverts.length > 0) resolve(adverts);
     else reject(createPeerDiscoveryError({
@@ -191,8 +219,19 @@ const waitForProviderAdverts = ({ channel, roomId, predicate, requiredModel = nu
     if (settled) return;
     settled = true;
     globalThis.clearTimeout(timer);
+    clearSettleTimer();
     channel.removeEventListener('message', handler);
     resolve(adverts);
+  };
+  const armSettleTimer = () => {
+    clearSettleTimer();
+    if (settleOnFirst || adverts.length < Math.max(1, Number(minAdverts || 1))) return;
+    const settleMs = Math.max(0, Number(settleWindowMs || 0));
+    if (settleMs === 0) {
+      finish();
+      return;
+    }
+    settleTimer = globalThis.setTimeout(finish, settleMs);
   };
   const handler = (event) => {
     const message = event?.data;
@@ -208,6 +247,7 @@ const waitForProviderAdverts = ({ channel, roomId, predicate, requiredModel = nu
     if (adverts.some((entry) => entry.messageHash === advert.messageHash)) return;
     adverts.push(advert);
     if (settleOnFirst || maxAdverts && adverts.length >= maxAdverts) finish();
+    else armSettleTimer();
   };
   channel.addEventListener('message', handler);
   postRoomMessage(channel, roomId, 'provider-advert-request', {});
@@ -248,6 +288,7 @@ export async function runPeerJob({
   discoveryWindowMs = DEFAULT_DISCOVERY_WINDOW_MS,
   sessionAcceptWindowMs = DEFAULT_PROVIDER_SESSION_SETTLE_MS,
   receiptWindowMs = DEFAULT_RECEIPT_WINDOW_MS,
+  promptDispatchConcurrency = null,
   requesterTransportFactory = createP2PRequesterTransport,
   roomBusFactory = createBroadcastPeerRoomBus
 } = {}) {
@@ -274,11 +315,15 @@ export async function runPeerJob({
     const maxAdverts = policy?.adaptiveRing
       ? Math.max(1, Number(policy.maxRingSize || 1))
       : Math.max(1, Number(policy?.redundancy || 1));
+    const minAdverts = policy?.adaptiveRing
+      ? Math.max(1, Number(policy.minRingSize || 1))
+      : Math.max(1, Number(policy?.redundancy || 1));
     const providerAdverts = await waitForProviderAdverts({
       channel,
       roomId: resolvedRoomId,
       discoveryWindowMs,
       maxAdverts,
+      minAdverts,
       settleOnFirst: !policy?.adaptiveRing && maxAdverts <= 1,
       requiredModel,
       predicate: (advert) => advert?.body?.models?.some((model) => (
@@ -307,23 +352,32 @@ export async function runPeerJob({
       });
       let receiptTimer = null;
       let transport = null;
-      const receiptPromise = new Promise((resolve, reject) => {
+      let resolveReceipt = null;
+      let rejectReceipt = null;
+      const clearReceiptTimer = () => {
+        if (receiptTimer) globalThis.clearTimeout(receiptTimer);
+        receiptTimer = null;
+      };
+      const startReceiptTimer = () => {
+        if (receiptTimer) return;
         receiptTimer = globalThis.setTimeout(() => {
-          reject(new Error('No peer receipt returned in this room'));
+          rejectReceipt?.(new Error('No peer receipt returned in this room'));
         }, receiptWindowMs);
+      };
+      const receiptPromise = new Promise((resolve, reject) => {
+        resolveReceipt = resolve;
+        rejectReceipt = reject;
         transport = requesterTransportFactory({
           signaling,
           initiator: true,
           onMessage(payload) {
             if (payload?.type === P2P_PAYLOAD_TYPES.RECEIPT) {
-              globalThis.clearTimeout(receiptTimer);
-              receiptTimer = null;
-              resolve(payload);
+              clearReceiptTimer();
+              resolveReceipt(payload);
             }
             if (payload?.type === P2P_PAYLOAD_TYPES.ERROR) {
-              globalThis.clearTimeout(receiptTimer);
-              receiptTimer = null;
-              reject(new Error(payload.body?.error || 'peer error'));
+              clearReceiptTimer();
+              rejectReceipt(new Error(payload.body?.error || 'peer error'));
             }
           }
         });
@@ -334,10 +388,8 @@ export async function runPeerJob({
         signaling,
         transport,
         receiptPromise,
-        clearReceiptTimer: () => {
-          if (receiptTimer) globalThis.clearTimeout(receiptTimer);
-          receiptTimer = null;
-        }
+        startReceiptTimer,
+        clearReceiptTimer
       });
       postRoomMessage(channel, resolvedRoomId, 'peer-run-request', {
         sessionId,
@@ -356,18 +408,31 @@ export async function runPeerJob({
       requesterId: session.assignment.requesterId,
       discoveryWindowMs: sessionAcceptWindowMs
     })));
-    const promptPayloads = [];
-    await Promise.all(sessions.map(async (session) => {
+    const promptPayloads = new Array(sessions.length);
+    const receiptResults = new Array(sessions.length);
+    let nextDispatchIndex = 0;
+    const dispatchConcurrency = resolvePromptDispatchConcurrency(promptDispatchConcurrency, sessions.length);
+    const dispatchNextPrompt = async () => {
+      const index = nextDispatchIndex;
+      nextDispatchIndex += 1;
+      if (index >= sessions.length) return;
+      const session = sessions[index];
       await session.transport.connect();
       const promptPayload = await requesterClient.createPeerPromptPayload({
         assignment: session.assignment,
         prompt: intent.prompt,
         toPeerId: session.assignment.providerId
       });
-      promptPayloads.push(promptPayload);
+      promptPayloads[index] = promptPayload;
+      session.startReceiptTimer();
       session.transport.send(promptPayload);
-    }));
-    const receiptResults = await Promise.allSettled(sessions.map((session) => session.receiptPromise));
+      receiptResults[index] = await Promise.allSettled([session.receiptPromise]).then((results) => results[0]);
+      await dispatchNextPrompt();
+    };
+    await Promise.all(Array.from(
+      { length: Math.min(dispatchConcurrency, sessions.length) },
+      () => dispatchNextPrompt()
+    ));
     const receiptPayloads = receiptResults
       .filter((result) => result.status === 'fulfilled')
       .map((result) => result.value);
@@ -391,20 +456,25 @@ export async function runPeerJob({
       : [];
     if (acceptance) {
       for (const session of sessions) {
-        session.transport.send(createP2PPayload({
-          type: P2P_PAYLOAD_TYPES.ACCEPTANCE,
-          assignmentId: session.assignment.assignmentId,
-          jobId: session.assignment.jobId,
-          fromPeerId: session.assignment.requesterId,
-          toPeerId: session.assignment.providerId,
-          body: {
-            receiptHash: agreement.receiptHash,
-            receiptHashes: agreement.receiptHashes,
-            agreement,
-            acceptance,
-            ledgerEvents
-          }
-        }));
+        try {
+          session.transport.send(createP2PPayload({
+            type: P2P_PAYLOAD_TYPES.ACCEPTANCE,
+            assignmentId: session.assignment.assignmentId,
+            jobId: session.assignment.jobId,
+            fromPeerId: session.assignment.requesterId,
+            toPeerId: session.assignment.providerId,
+            body: {
+              receiptHash: agreement.receiptHash,
+              receiptHashes: agreement.receiptHashes,
+              agreement,
+              acceptance,
+              ledgerEvents
+            }
+          }));
+        } catch {
+          // Receipt acceptance is recorded by the requester even if a provider
+          // has already closed after sending its signed receipt.
+        }
       }
     }
     const primaryRecord = agreement.acceptedRecords[0] || agreement.validRecords[0] || null;
@@ -416,8 +486,8 @@ export async function runPeerJob({
       plan,
       assignment: primaryRecord?.assignment || plan.assignment,
       assignments: plan.assignments,
-      promptPayload: promptPayloads[0] || null,
-      promptPayloads,
+      promptPayload: promptPayloads.find(Boolean) || null,
+      promptPayloads: promptPayloads.filter(Boolean),
       receiptPayload,
       receiptPayloads,
       receiptRecord: receiptPayload?.body || null,
@@ -460,7 +530,7 @@ export function createPeerProviderNode({
   let interval = null;
   let stopped = false;
   let drainingQueue = false;
-  const pendingRunRequests = [];
+  const pendingPromptExecutions = [];
   const activeExecutionSessions = new Set();
 
   const maxActiveSessionCount = () => Math.max(
@@ -468,15 +538,24 @@ export function createPeerProviderNode({
     Number(advert?.body?.availability?.maxConcurrentJobs || maxActiveSessions || 1)
   );
 
+  const maxOpenSessionCount = () => (
+    maxActiveSessionCount() + Math.max(0, Number(maxQueuedSessions || 0))
+  );
+
   const releaseExecutionSlot = (sessionId) => {
     if (!sessionId || !activeExecutionSessions.has(sessionId)) return;
     activeExecutionSessions.delete(sessionId);
-    drainQueuedRunRequests();
+    drainQueuedPromptExecutions();
   };
 
   const removeActiveEntry = async (activeEntry, transport, signaling, reason = 'session_done') => {
     if (!activeEntry) return;
     activeTransports.delete(activeEntry);
+    for (let index = pendingPromptExecutions.length - 1; index >= 0; index -= 1) {
+      if (pendingPromptExecutions[index]?.activeEntry === activeEntry) {
+        pendingPromptExecutions.splice(index, 1);
+      }
+    }
     if (activeEntry.settleTimer) {
       globalThis.clearTimeout(activeEntry.settleTimer);
       activeEntry.settleTimer = null;
@@ -486,48 +565,114 @@ export function createPeerProviderNode({
     signaling?.close?.();
   };
 
-  const queueRunRequest = (message) => {
-    const sessionId = message?.body?.sessionId;
+  const queuePromptExecution = (entry) => {
+    const sessionId = entry?.activeEntry?.sessionId;
     if (!sessionId) return false;
-    if (pendingRunRequests.some((entry) => entry.body?.sessionId === sessionId)) return true;
-    if (pendingRunRequests.length >= Math.max(0, Number(maxQueuedSessions || 0))) {
+    if (pendingPromptExecutions.some((queued) => queued.activeEntry?.sessionId === sessionId)) return true;
+    if (pendingPromptExecutions.length >= Math.max(0, Number(maxQueuedSessions || 0))) {
       if (typeof onActivity === 'function') {
         onActivity({ status: 'peer_session_rejected', reason: 'provider_queue_full', sessionId });
       }
       return false;
     }
-    pendingRunRequests.push(message);
+    pendingPromptExecutions.push(entry);
     if (typeof onActivity === 'function') {
       onActivity({
         status: 'peer_session_queued',
         sessionId,
-        queueDepth: pendingRunRequests.length,
+        queueDepth: pendingPromptExecutions.length,
         maxActiveSessions: maxActiveSessionCount()
       });
     }
     return true;
   };
 
-  const drainQueuedRunRequests = () => {
-    if (drainingQueue || stopped || pendingRunRequests.length === 0) return;
+  const sendProviderError = ({ assignment, activeEntry, transport, signaling, error }) => {
+    try {
+      transport.send(createP2PPayload({
+        type: P2P_PAYLOAD_TYPES.ERROR,
+        assignmentId: assignment.assignmentId,
+        jobId: assignment.jobId,
+        fromPeerId: assignment.providerId,
+        toPeerId: assignment.requesterId,
+        body: {
+          error: error.message
+        }
+      }));
+    } catch {
+      // Requester may already have closed after timing out or aborting.
+    } finally {
+      void removeActiveEntry(activeEntry, transport, signaling, 'provider_error');
+    }
+  };
+
+  const executePromptPayload = async ({ assignment, activeEntry, transport, signaling, payload }) => {
+    activeExecutionSessions.add(activeEntry.sessionId);
+    try {
+      const result = await providerClient.executePeerAssignment(assignment, { promptPayload: payload });
+      const receiptRecord = {
+        receiptHash: result.receiptHash,
+        assignmentId: assignment.assignmentId,
+        jobId: assignment.jobId,
+        providerId: assignment.providerId,
+        requesterId: assignment.requesterId,
+        outputText: result.execution.outputText,
+        tokenIds: result.execution.tokenIds || [],
+        transcript: result.execution.transcript || null,
+        receipt: result.receipt,
+        providerPublicKey: advert.publicKey,
+        peerDecision: {
+          accepted: true,
+          source: 'provider_signed_peer_execution',
+          decidedAt: new Date().toISOString()
+        }
+      };
+      const receiptPayload = await createReceiptPayload({
+        assignment,
+        receiptRecord,
+        fromPeerId: assignment.providerId,
+        toPeerId: assignment.requesterId
+      });
+      transport.send(receiptPayload);
+      if (typeof onActivity === 'function') {
+        onActivity({
+          status: 'peer_receipt_sent',
+          assignment,
+          receiptRecord
+        });
+      }
+      releaseExecutionSlot(activeEntry?.sessionId);
+      if (activeEntry && !activeEntry.settleTimer) {
+        activeEntry.settleTimer = globalThis.setTimeout(() => {
+          void removeActiveEntry(activeEntry, transport, signaling, 'receipt_sent');
+        }, DEFAULT_PROVIDER_SESSION_SETTLE_MS);
+      }
+    } catch (error) {
+      releaseExecutionSlot(activeEntry?.sessionId);
+      sendProviderError({ assignment, activeEntry, transport, signaling, error });
+    }
+  };
+
+  const drainQueuedPromptExecutions = () => {
+    if (drainingQueue || stopped || pendingPromptExecutions.length === 0) return;
     drainingQueue = true;
     queueMicrotask(async () => {
       try {
-        while (!stopped && pendingRunRequests.length > 0 && activeExecutionSessions.size < maxActiveSessionCount()) {
-          const message = pendingRunRequests.shift();
+        while (!stopped && pendingPromptExecutions.length > 0 && activeExecutionSessions.size < maxActiveSessionCount()) {
+          const entry = pendingPromptExecutions.shift();
           if (typeof onActivity === 'function') {
             onActivity({
               status: 'peer_session_dequeued',
-              sessionId: message?.body?.sessionId || null,
-              queueDepth: pendingRunRequests.length
+              sessionId: entry?.activeEntry?.sessionId || null,
+              queueDepth: pendingPromptExecutions.length
             });
           }
-          await handleRunRequest(message, { allowQueue: false });
+          void executePromptPayload(entry);
         }
       } finally {
         drainingQueue = false;
-        if (!stopped && pendingRunRequests.length > 0 && activeExecutionSessions.size < maxActiveSessionCount()) {
-          drainQueuedRunRequests();
+        if (!stopped && pendingPromptExecutions.length > 0 && activeExecutionSessions.size < maxActiveSessionCount()) {
+          drainQueuedPromptExecutions();
         }
       }
     });
@@ -555,62 +700,46 @@ export function createPeerProviderNode({
       void removeActiveEntry(activeEntry, transport, signaling, 'prompt_rejected');
       return;
     }
-    const result = await providerClient.executePeerAssignment(assignment, { promptPayload: payload });
-    const receiptRecord = {
-      receiptHash: result.receiptHash,
-      assignmentId: assignment.assignmentId,
-      jobId: assignment.jobId,
-      providerId: assignment.providerId,
-      requesterId: assignment.requesterId,
-      outputText: result.execution.outputText,
-      tokenIds: result.execution.tokenIds || [],
-      transcript: result.execution.transcript || null,
-      receipt: result.receipt,
-      providerPublicKey: advert.publicKey,
-      peerDecision: {
-        accepted: true,
-        source: 'provider_signed_peer_execution',
-        decidedAt: new Date().toISOString()
-      }
-    };
-    const receiptPayload = await createReceiptPayload({
+    const executionEntry = {
       assignment,
-      receiptRecord,
-      fromPeerId: assignment.providerId,
-      toPeerId: assignment.requesterId
-    });
-    transport.send(receiptPayload);
-    if (typeof onActivity === 'function') {
-      onActivity({
-        status: 'peer_receipt_sent',
-        assignment,
-        receiptRecord
-      });
+      activeEntry,
+      transport,
+      signaling,
+      payload
+    };
+    if (activeExecutionSessions.size >= maxActiveSessionCount()) {
+      if (queuePromptExecution(executionEntry)) return;
+      transport.send(createP2PPayload({
+        type: P2P_PAYLOAD_TYPES.ERROR,
+        assignmentId: assignment.assignmentId,
+        jobId: assignment.jobId,
+        fromPeerId: assignment.providerId,
+        toPeerId: assignment.requesterId,
+        body: {
+          error: 'provider queue is full'
+        }
+      }));
+      void removeActiveEntry(activeEntry, transport, signaling, 'queue_full');
+      return;
     }
-    releaseExecutionSlot(activeEntry?.sessionId);
-    if (activeEntry && !activeEntry.settleTimer) {
-      activeEntry.settleTimer = globalThis.setTimeout(() => {
-        void removeActiveEntry(activeEntry, transport, signaling, 'receipt_sent');
-      }, DEFAULT_PROVIDER_SESSION_SETTLE_MS);
-    }
+    await executePromptPayload(executionEntry);
   };
 
-  const handleRunRequest = async (message, { allowQueue = true } = {}) => {
+  const handleRunRequest = async (message) => {
     if (stopped) return;
     const body = message.body || {};
     if (!body.intent || !body.sessionId) return;
     if ([...activeTransports].some((entry) => entry.sessionId === body.sessionId)) return;
+    if (activeTransports.size >= maxOpenSessionCount()) {
+      if (typeof onActivity === 'function') {
+        onActivity({ status: 'peer_session_rejected', reason: 'provider_queue_full', sessionId: body.sessionId });
+      }
+      return;
+    }
     const advertisedProviderId = advert?.body?.providerId || advert?.fromPeerId || null;
     if (advertisedProviderId) {
       if (body.providerId && body.providerId !== advertisedProviderId) return;
       if (body.assignment?.providerId && body.assignment.providerId !== advertisedProviderId) return;
-    }
-    if (activeExecutionSessions.size >= maxActiveSessionCount()) {
-      if (allowQueue && queueRunRequest(message)) return;
-      if (typeof onActivity === 'function') {
-        onActivity({ status: 'peer_session_rejected', reason: 'provider_busy', sessionId: body.sessionId });
-      }
-      return;
     }
     let assignment = body.assignment || null;
     if (assignment) {
@@ -686,7 +815,6 @@ export function createPeerProviderNode({
       settleTimer: null
     };
     activeTransports.add(activeEntry);
-    activeExecutionSessions.add(body.sessionId);
     if (typeof onActivity === 'function') onActivity({ status: 'peer_session_opening', assignment });
     const ready = transport.connect();
     postRoomMessage(channel, resolvedRoomId, 'peer-run-accepted', {
@@ -741,7 +869,7 @@ export function createPeerProviderNode({
       stopped = true;
       if (interval) globalThis.clearInterval(interval);
       interval = null;
-      pendingRunRequests.length = 0;
+      pendingPromptExecutions.length = 0;
       channel?.removeEventListener('message', handler);
       for (const entry of activeTransports) {
         releaseExecutionSlot(entry.sessionId);

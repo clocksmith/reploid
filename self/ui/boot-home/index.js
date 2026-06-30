@@ -48,6 +48,7 @@ import {
   loadVfsManifest,
   seedVfsFromManifest
 } from '../../boot-helpers/vfs-bootstrap.js';
+import { getRuntimeSelfMirrorsByBootProfile } from '../../lab/profiles.js';
 import {
   getReploidLaunchState,
   hasDirectInferenceConfig,
@@ -64,6 +65,10 @@ import {
   buildZeroGeminiProxyConfig,
   isZeroGeminiFunctionServer
 } from '../boot-wizard/zero-function.js';
+import {
+  getBootSeedProfile,
+  shouldHydrateFullManifest
+} from '../../config/boot-seed.js';
 
 const DEFAULT_DOPPLER_MODEL = 'smollm2-360m';
 const DEFAULT_GTM_PROXY_PROVIDER = ZERO_GEMINI_PROVIDER;
@@ -76,10 +81,6 @@ const RGR_SLOT_ROLES = Object.freeze([
   'low-cost',
   'safety',
   'fallback'
-]);
-const ZERO_RUNTIME_SELF_MIRRORS = Object.freeze([
-  { sourcePath: '/ui/zero/index.js', targetPath: '/self/ui/zero/index.js' },
-  { sourcePath: '/styles/zero.css', targetPath: '/self/styles/zero.css' }
 ]);
 const ROUTE_HOME_CONFIG = Object.freeze({
   reploid: {
@@ -787,9 +788,11 @@ async function doAwaken() {
         await fullSeed;
       }
 
+      const bootProfile = getBootSeedProfile();
+      const shouldHydrateRouteFully = shouldHydrateFullManifest(bootProfile);
       const includeDoppler = shouldSeedDopplerVfs(state);
       const { manifest, text } = await loadVfsManifest({ includeDoppler });
-      if (includeDoppler || !fullSeed) {
+      if (includeDoppler || (shouldHydrateRouteFully && !fullSeed)) {
         await seedVfsFromManifest(manifest, {
           preserveOnBoot: true,
           logger: console,
@@ -799,7 +802,7 @@ async function doAwaken() {
           onProgress: setVfsProgress
         });
       }
-      await ensureVfsFileMirrors(ZERO_RUNTIME_SELF_MIRRORS, {
+      await ensureVfsFileMirrors(getRuntimeSelfMirrorsByBootProfile('zero_home', manifest?.files || []), {
         overwrite: false,
         logger: console,
         progressScope: 'full',

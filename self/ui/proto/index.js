@@ -426,6 +426,7 @@ const Proto = {
     };
 
     const renderHistoryEntry = (div, entry) => {
+      const modelMeta = entry.modelLabel || entry.modelUsed?.label || '';
       if (entry.type === 'llm_response') {
         div.className = 'history-entry llm';
         div.innerHTML = `
@@ -433,6 +434,7 @@ const Proto = {
             <span class="entry-label">Model Response</span>
             <span class="entry-cycle">#${entry.cycle || '-'}</span>
           </div>
+          ${modelMeta ? `<div class="history-meta">Model: ${escapeHtml(modelMeta)}</div>` : ''}
           <pre class="history-content">${escapeHtml(entry.content)}</pre>
         `;
         return;
@@ -457,7 +459,10 @@ const Proto = {
         const toolList = toolNames.length > 0
           ? `${toolNames.join(', ')}${extra ? ` (+${extra})` : ''}`
           : 'No tools';
-        const detail = `Tool batch: ${entry.total || 0} calls (${entry.errors || 0} errors) - ${toolList}`;
+        const exactCalls = Array.isArray(entry.calls) && entry.calls.length > 0
+          ? entry.calls.map((call) => `${call.name}(${formatArgsPreview(call.args || {})})`).join(', ')
+          : toolList;
+        const detail = `Tool batch: ${entry.total || 0} calls (${entry.errors || 0} errors) - ${exactCalls}${modelMeta ? ` | Model: ${modelMeta}` : ''}`;
 
         div.className = 'history-entry marker tool-batch';
         div.innerHTML = `
@@ -542,6 +547,7 @@ const Proto = {
       const resultPreview = summarizeText(resultText.replace(/\s+/g, ' '), 140);
       const duration = formatDuration(entry.durationMs);
       const statusLabel = entry.status === 'error' ? 'ERROR' : 'OK';
+      const modelMeta = entry.modelLabel || entry.modelUsed?.label || '';
       const reflectionText = entry.reflectionOutcome
         ? `${entry.reflectionOutcome}${entry.reflectionIndicator ? ` | ${entry.reflectionIndicator}` : ''}`
         : 'success';
@@ -552,6 +558,7 @@ const Proto = {
             <span class="tool-name">${escapeHtml(entry.tool)}</span>
             <span class="tool-meta">#${entry.cycle || '-'}</span>
             <span class="tool-meta">${duration}</span>
+            ${modelMeta ? `<span class="tool-meta">${escapeHtml(modelMeta)}</span>` : ''}
           </div>
           <div class="tool-summary-sub">
             <span class="tool-status ${entry.status === 'error' ? 'error' : ''}">${statusLabel}</span>
@@ -1188,9 +1195,13 @@ const Proto = {
           : JSON.stringify(entry.result, null, 2);
         const status = resultText.startsWith('Error:') ? 'error' : 'success';
         const reflectionMeta = buildReflectionMeta(resultText, status);
-        const toolEntry = {
+          const toolEntry = {
           tool: entry.tool || 'unknown',
           cycle: entry.cycle,
+          model: entry.model || null,
+          provider: entry.provider || null,
+          modelLabel: entry.modelLabel || null,
+          modelUsed: entry.modelUsed || null,
           args: entry.args || {},
           result: resultText,
           durationMs: entry.durationMs ?? null,

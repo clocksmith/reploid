@@ -14,6 +14,53 @@ const pathJoin = (...parts) => parts
   })
   .filter(Boolean)
   .join('/');
+const isAbsoluteUrl = (value) => /^https?:\/\//i.test(String(value || ''));
+const ensureTrailingSlash = (value) => `${String(value || '').replace(/\/+$/g, '')}/`;
+const normalizeSha256Hash = (value) => {
+  const text = String(value || '').trim();
+  if (!text) return '';
+  return text.startsWith('sha256:') ? text : `sha256:${text}`;
+};
+const hashesMatch = (left, right) => (
+  !!left && !!right && normalizeSha256Hash(left) === normalizeSha256Hash(right)
+);
+
+const replaceModelPathTokens = (template, model = {}) => String(template || '')
+  .replace(/<modelId>/g, model.modelId || model.id || '')
+  .replace(/<manifestHash>/g, model.manifestHash || '')
+  .replace(/<modelHash>/g, model.modelHash || model.hash || '');
+
+const resolveArtifactChildUrl = (base, childPath) => {
+  const path = String(childPath || '').trim();
+  if (!path) return ensureTrailingSlash(base);
+  if (isAbsoluteUrl(path)) return path;
+  return pathJoin(base, path);
+};
+
+const getManifestModelHash = (manifest = {}) => (
+  manifest.modelHash
+  || manifest.model?.modelHash
+  || manifest.artifactIdentity?.weightPackHash
+  || manifest.artifactIdentity?.shardSetHash
+  || null
+);
+
+const getTokenizerHash = (manifest = {}, model = {}) => (
+  manifest.tokenizerHash
+  || manifest.tokenizer?.hash
+  || manifest.tokenizer?.sha256
+  || model.tokenizerHash
+  || model.tokenizer?.hash
+  || null
+);
+
+const getTokenizerPath = (manifest = {}) => (
+  manifest.tokenizer?.path
+  || manifest.tokenizer?.file
+  || manifest.tokenizer?.name
+  || manifest.tokenizer?.filename
+  || null
+);
 
 const readResponseBytes = async (response) => {
   if (typeof response.arrayBuffer === 'function') {
@@ -58,7 +105,7 @@ const normalizeShardEntry = (entry, index) => {
     };
   }
   return {
-    path: entry?.path || entry?.file || entry?.name || null,
+    path: entry?.path || entry?.file || entry?.name || entry?.filename || null,
     hash: entry?.hash || entry?.sha256 || entry?.shardHash || null,
     bytes: entry?.bytes || entry?.size || null,
     index
@@ -76,12 +123,31 @@ export function buildModelArtifactUrls(model = {}, { baseUrl } = {}) {
   const manifestHash = String(model.manifestHash || '').trim();
   if (!modelId) throw new Error('modelId is required for artifact URL construction');
   if (!manifestHash) throw new Error('manifestHash is required for artifact URL construction');
-  const root = `${resolveModelArtifactBaseUrl(baseUrl)}/${encodeURIComponent(trimSlashes(modelId))}/${encodeURIComponent(trimSlashes(manifestHash))}`;
+  const artifactPolicy = model.artifactPolicy || {};
+  const resolvedBaseUrl = resolveModelArtifactBaseUrl(
+    artifactPolicy.baseUrl || model.modelBaseUrl || baseUrl
+  );
+  const pathTemplate = artifactPolicy.pathTemplate;
+  const root = typeof pathTemplate === 'string'
+    ? (
+        pathTemplate.trim()
+          ? pathJoin(resolvedBaseUrl, replaceModelPathTokens(pathTemplate, model))
+          : resolvedBaseUrl
+      )
+    : `${resolvedBaseUrl}/${encodeURIComponent(trimSlashes(modelId))}/${encodeURIComponent(trimSlashes(manifestHash))}`;
+  const resolveArtifactPath = (pathTemplateValue, fallback) => {
+    const rawPath = pathTemplateValue ?? fallback;
+    const artifactPath = replaceModelPathTokens(rawPath, model);
+    if (isAbsoluteUrl(artifactPath)) return artifactPath;
+    const anchor = String(rawPath || '').includes('<') ? resolvedBaseUrl : root;
+    return pathJoin(anchor, artifactPath);
+  };
+  const paths = artifactPolicy.paths || {};
   return {
     root,
-    manifest: `${root}/manifest.json`,
-    tokenizer: `${root}/tokenizer.json`,
-    shards: `${root}/shards/`
+    manifest: resolveArtifactPath(paths.manifest, 'manifest.json'),
+    tokenizer: resolveArtifactPath(paths.tokenizer, 'tokenizer.json'),
+    shards: ensureTrailingSlash(resolveArtifactPath(paths.shards, 'shards'))
   };
 }
 
@@ -125,14 +191,19 @@ export async function verifyModelArtifactManifest({
   const textHash = await sha256Hex(text);
   const jsonHash = await hashJson(manifest);
   const expectedManifestHash = String(model?.manifestHash || '').trim();
-  const hashMatches = expectedManifestHash === textHash || expectedManifestHash === jsonHash || expectedManifestHash === manifest.manifestHash || expectedManifestHash === manifest.hash;
+  const hashMatches = hashesMatch(expectedManifestHash, textHash)
+    || hashesMatch(expectedManifestHash, jsonHash)
+    || hashesMatch(expectedManifestHash, manifest.manifestHash)
+    || hashesMatch(expectedManifestHash, manifest.hash);
   if (expectedManifestHash && !hashMatches) {
     throw new Error('model manifest hash does not match configured manifestHash');
   }
   const modelId = manifest.modelId || manifest.id || model?.modelId || model?.id || null;
-  const modelHash = manifest.modelHash || manifest.hash || model?.modelHash || model?.hash || null;
+  const manifestModelHash = getManifestModelHash(manifest);
   if (model?.modelId && modelId && modelId !== model.modelId) throw new Error('model manifest modelId mismatch');
-  if (model?.modelHash && modelHash && modelHash !== model.modelHash) throw new Error('model manifest modelHash mismatch');
+  if (model?.modelHash && manifestModelHash && !hashesMatch(model.modelHash, manifestModelHash)) {
+    throw new Error('model manifest modelHash mismatch');
+  }
   return {
     ok: true,
     urls,
@@ -145,12 +216,12 @@ export async function verifyModelArtifactManifest({
   };
 }
 
-export function validateModelArtifactManifestShape(manifest = {}) {
+export function validateModelArtifactManifestShape(manifest = {}, model = {}) {
   const reasons = [];
   if (!manifest || typeof manifest !== 'object' || Array.isArray(manifest)) reasons.push('manifest must be an object');
   if (!manifest.modelId && !manifest.id) reasons.push('manifest.modelId is required');
-  if (!manifest.modelHash && !manifest.hash) reasons.push('manifest.modelHash is required');
-  if (!manifest.tokenizerHash && !manifest.tokenizer?.hash) reasons.push('manifest tokenizer hash is required');
+  if (!getManifestModelHash(manifest) && !model.modelHash) reasons.push('manifest.modelHash is required');
+  if (!getTokenizerHash(manifest, model)) reasons.push('manifest tokenizer hash is required');
   const shards = Array.isArray(manifest.shards) ? manifest.shards : [];
   if (shards.length === 0) reasons.push('manifest.shards must contain at least one shard');
   shards.map(normalizeShardEntry).forEach((shard) => {
@@ -170,7 +241,7 @@ export async function verifyModelArtifactPackage({
   fetchImpl = globalThis.fetch
 } = {}) {
   const manifestResult = await verifyModelArtifactManifest({ model, baseUrl, fetchImpl });
-  const shape = validateModelArtifactManifestShape(manifestResult.manifest);
+  const shape = validateModelArtifactManifestShape(manifestResult.manifest, model);
   if (!shape.ok) {
     const error = new Error(shape.reasons.join('; '));
     error.reasons = shape.reasons;
@@ -178,20 +249,22 @@ export async function verifyModelArtifactPackage({
   }
   const urls = manifestResult.urls;
   const manifest = manifestResult.manifest;
-  const tokenizerHash = manifest.tokenizerHash || manifest.tokenizer?.hash;
-  const tokenizerPath = manifest.tokenizer?.path || 'tokenizer.json';
-  const tokenizerUrl = pathJoin(urls.root, tokenizerPath);
+  const tokenizerHash = getTokenizerHash(manifest, model);
+  const tokenizerPath = getTokenizerPath(manifest);
+  const tokenizerUrl = tokenizerPath
+    ? resolveArtifactChildUrl(urls.root, tokenizerPath)
+    : urls.tokenizer;
   const tokenizerBytes = await readResponseBytes(await fetchOk(fetchImpl, tokenizerUrl, 'tokenizer artifact'));
   const observedTokenizerHash = await sha256Hex(tokenizerBytes);
-  if (observedTokenizerHash !== tokenizerHash) {
+  if (!hashesMatch(observedTokenizerHash, tokenizerHash)) {
     throw new Error('tokenizer artifact hash mismatch');
   }
   const shardResults = [];
   for (const shard of manifest.shards.map(normalizeShardEntry)) {
-    const shardUrl = pathJoin(urls.root, 'shards', shard.path);
+    const shardUrl = resolveArtifactChildUrl(urls.shards, shard.path);
     const shardBytes = await readResponseBytes(await fetchOk(fetchImpl, shardUrl, `model shard ${shard.index}`));
     const observedHash = await sha256Hex(shardBytes);
-    if (observedHash !== shard.hash) {
+    if (!hashesMatch(observedHash, shard.hash)) {
       throw new Error(`model shard ${shard.index} hash mismatch`);
     }
     shardResults.push({
@@ -203,7 +276,7 @@ export async function verifyModelArtifactPackage({
   }
   const packageIdentity = {
     modelId: manifest.modelId || manifest.id,
-    modelHash: manifest.modelHash || manifest.hash,
+    modelHash: getManifestModelHash(manifest) || model?.modelHash || null,
     manifestHash: manifestResult.manifestHash,
     tokenizerHash: observedTokenizerHash,
     shardHashes: shardResults.map((shard) => shard.hash)

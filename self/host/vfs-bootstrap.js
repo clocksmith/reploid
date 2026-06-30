@@ -263,6 +263,48 @@ export async function listVfsKeys() {
   });
 }
 
+export async function deleteVfsFile(path) {
+  const db = await openVfsDb();
+  const cleanPath = normalizePath(path);
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE_FILES, 'readwrite');
+    tx.objectStore(STORE_FILES).delete(cleanPath);
+    tx.oncomplete = () => resolve(true);
+    tx.onerror = () => reject(tx.error || new Error(`Failed to delete ${cleanPath}`));
+  });
+}
+
+export async function pruneVfsStoreToPaths(allowedPaths = [], options = {}) {
+  const {
+    logger = console,
+    preservePrefixes = [
+      '/.logs/',
+      '/.memory/',
+      '/.system/',
+      '/artifacts/',
+      '/cycles/',
+      '/shadow/'
+    ]
+  } = options;
+  const allowed = new Set((allowedPaths || []).map((path) => normalizePath(path)));
+  const keys = await listVfsKeys();
+  let deleted = 0;
+  let preserved = 0;
+
+  for (const key of keys) {
+    const path = normalizePath(String(key || ''));
+    if (allowed.has(path) || preservePrefixes.some((prefix) => path.startsWith(prefix))) {
+      preserved += 1;
+      continue;
+    }
+    await deleteVfsFile(path);
+    deleted += 1;
+  }
+
+  logger.info?.(`[Bootstrap] Pruned VFS store to minimal boot profile (${deleted} deleted, ${preserved} preserved).`);
+  return { deleted, preserved, allowed: allowed.size };
+}
+
 export async function clearVfsStore() {
   const db = await openVfsDb();
   return new Promise((resolve, reject) => {

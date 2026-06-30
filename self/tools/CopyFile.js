@@ -2,30 +2,10 @@
  * @fileoverview CopyFile - Copy readable VFS content into a writable root.
  */
 
-const VFS_WRITABLE_ROOTS = ['/shadow', '/artifacts', '/cycles'];
+import { assertNoPathTraversal, assertWritableVfsPath, normalizeVfsPath } from '../config/vfs-policy.js';
 
 const normalizePath = (rawPath, label) => {
-  const value = String(rawPath || '').trim();
-  if (!value) throw new Error(`Missing ${label} argument`);
-  return value.startsWith('/') ? value : `/${value}`;
-};
-
-const isWithinRoot = (path, root) => {
-  const normalizedRoot = root.endsWith('/') ? root.slice(0, -1) : root;
-  return path === normalizedRoot || path.startsWith(`${normalizedRoot}/`);
-};
-
-const assertSafePath = (path) => {
-  if (path.split('/').includes('..')) {
-    throw new Error('Path traversal is not allowed');
-  }
-};
-
-const assertWritablePath = (path) => {
-  assertSafePath(path);
-  if (!VFS_WRITABLE_ROOTS.some((root) => isWithinRoot(path, root))) {
-    throw new Error(`VFS destination not writable by CopyFile: ${path}. Copy into /shadow, /artifacts, or /cycles.`);
-  }
+  return normalizeVfsPath(rawPath, label);
 };
 
 async function call(args = {}, deps = {}) {
@@ -34,8 +14,8 @@ async function call(args = {}, deps = {}) {
 
   const sourcePath = normalizePath(args.source || args.from || args.src, 'source');
   const targetPath = normalizePath(args.target || args.to || args.dest || args.path, 'target');
-  assertSafePath(sourcePath);
-  assertWritablePath(targetPath);
+  assertNoPathTraversal(sourcePath);
+  assertWritableVfsPath(targetPath, 'CopyFile');
 
   const overwrite = args.overwrite !== false;
   const targetExists = await VFS.exists(targetPath).catch(() => false);

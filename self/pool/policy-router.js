@@ -125,7 +125,7 @@ export function describePolicy(policyId = FASTEST_RECEIPT_POLICY_ID) {
     deterministicGenerationConfig: DETERMINISTIC_GENERATION_CONFIG,
     redundancy: policy.redundancy,
     summary: policy.adaptiveRing
-      ? 'One to four eligible browser providers run the same deterministic assignment in a coordinator-ordered ring; majority matching token/output hashes form the accepted ring receipt.'
+      ? 'One to twelve eligible browser providers run the same deterministic assignment in a coordinator-ordered ring; majority matching token/output hashes form the accepted ring receipt.'
       : policy.redundancy > 1
       ? 'Multiple independent browser providers must return matching signed receipts before requester acceptance and split point awards.'
       : 'Single eligible browser provider, exact model identity, deterministic generation, signed assignment-bound receipt, verifier decision, requester acceptance before points.'

@@ -3,6 +3,8 @@
  */
 
 import { SELF_BOOT_SPEC, toSourceWebPath } from '../boot-spec.js';
+import { getRuntimeSelfMirrorsByBootProfile } from '../lab/profiles.js';
+import { normalizeVfsPath } from '../lab/mirrors.js';
 import {
   getCurrentReploidInstanceId,
   getCurrentReploidSessionStorage as getScopedSessionStorage,
@@ -12,10 +14,13 @@ import {
   loadVfsManifest,
   seedVfsFromManifest,
   clearVfsStore,
-  ensureVfsFileMirrors
+  readVfsFile,
+  ensureVfsFileMirrors,
+  pruneVfsStoreToPaths
 } from './vfs-bootstrap.js';
 import {
   getBootSeedProfile,
+  isLockedHomeBootProfile,
   pickBootSeedFiles,
   shouldAwaitFullManifestBeforeStart,
   shouldHydrateFullManifest
@@ -41,11 +46,6 @@ const BOOTSTRAP_STAGE_COPY = Object.freeze({
   ready: 'Boot interface ready.'
 });
 
-export const ZERO_RUNTIME_SELF_MIRRORS = Object.freeze([
-  { sourcePath: '/ui/zero/index.js', targetPath: '/self/ui/zero/index.js' },
-  { sourcePath: '/styles/zero.css', targetPath: '/self/styles/zero.css' }
-]);
-
 const renderBootstrapLoading = () => {
   const wizardContainer = document.getElementById('wizard-container');
   if (!wizardContainer) return;
@@ -68,13 +68,16 @@ const renderBootstrapLoading = () => {
   `;
 };
 
-const prepareBootstrapVisibility = (bootProfile) => {
+const prepareBootstrapVisibility = (bootProfile, options = {}) => {
+  const { quiet = false } = options;
   const wizardContainer = document.getElementById('wizard-container');
   if (!wizardContainer) return;
-  if (!shouldAwaitFullManifestBeforeStart(bootProfile)) {
+  if (!isLockedHomeBootProfile(bootProfile)) {
     renderBootstrapLoading();
     return;
   }
+
+  if (quiet) return;
 
   // Locked routes (/0, /x): keep wizard-container empty/hidden (boot contract: no
   // wizard content before mirror:done). Show a minimal progress indicator in #app
@@ -200,6 +203,57 @@ const SW_CONTROL_WAIT_MS = 1500;
 const SW_READY_WAIT_MS = 3000;
 const SW_REGISTER_WAIT_MS = 3000;
 const SW_INSTANCE_REGISTER_ACK_MS = 1000;
+const SERVICE_WORKER_BOOT_PROFILES = new Set(['zero_home', 'x_home']);
+const BOOT_SEED_READY_PREFIX = 'REPLOID_BOOT_SEED_READY';
+const FULL_SEED_READY_PREFIX = 'REPLOID_FULL_SEED_READY';
+const WARM_BOOT_PROBE_PATHS = Object.freeze([
+  '/boot-spec.js',
+  '/host/start-app.js',
+  '/lab/profiles.js',
+  '/lab/mirrors.js',
+  '/config/boot-seed.js',
+  '/config/lab-route-profiles.js'
+]);
+
+const shouldUseServiceWorkerForBoot = (bootProfile) => SERVICE_WORKER_BOOT_PROFILES.has(bootProfile);
+
+const getExpectedVfsVersion = () => (
+  (typeof window !== 'undefined' && window.REPLOID_VFS_VERSION)
+    ? String(window.REPLOID_VFS_VERSION)
+    : 'unversioned'
+);
+
+const getSeedReadyKey = (prefix, bootProfile) => `${prefix}:${bootProfile}:${getExpectedVfsVersion()}`;
+
+const isSeedReady = (prefix, bootProfile) => (
+  getScopedLocalStorage().getItem(getSeedReadyKey(prefix, bootProfile)) === 'true'
+);
+
+const markSeedReady = (prefix, bootProfile) => {
+  getScopedLocalStorage().setItem(getSeedReadyKey(prefix, bootProfile), 'true');
+};
+
+const isLikelyWarmBoot = (bootProfile) => {
+  if (!isLockedHomeBootProfile(bootProfile)) return false;
+  const expected = getExpectedVfsVersion();
+  const storage = getScopedLocalStorage();
+  if (expected !== 'unversioned' && storage.getItem(VFS_VERSION_KEY) !== expected) return false;
+  return isSeedReady(BOOT_SEED_READY_PREFIX, bootProfile);
+};
+
+const hasWarmBootProbeFiles = async (bootProfile, runtimeSelfMirrors = []) => {
+  if (!isLikelyWarmBoot(bootProfile)) return false;
+  const probePaths = [
+    ...WARM_BOOT_PROBE_PATHS,
+    ...runtimeSelfMirrors.map((mirror) => mirror.targetPath)
+  ].filter(Boolean);
+  const uniquePaths = [...new Set(probePaths)];
+  for (const path of uniquePaths) {
+    const content = await readVfsFile(path);
+    if (content === null) return false;
+  }
+  return true;
+};
 
 const waitForServiceWorkerRegister = async (url, options = {}, timeoutMs = SW_REGISTER_WAIT_MS) => new Promise((resolve) => {
   let settled = false;
@@ -419,12 +473,18 @@ const maybeFullReset = async () => {
 (async () => {
   try {
     const bootProfile = getBootSeedProfile();
-    prepareBootstrapVisibility(bootProfile);
+    prepareBootstrapVisibility(bootProfile, { quiet: isLikelyWarmBoot(bootProfile) });
     setBootstrapStage('starting');
     await maybeFullReset();
 
     setBootstrapStage('service_worker');
-    await ensureServiceWorker();
+    if (shouldUseServiceWorkerForBoot(bootProfile)) {
+      await ensureServiceWorker();
+    } else {
+      window.REPLOID_SW_CONTROLLED = false;
+      window.REPLOID_SW_DEGRADED = false;
+      log(`Skipping service worker for boot profile "${bootProfile}".`);
+    }
     setBootstrapStage('vfs_version');
     const vfsReset = await ensureVfsVersion();
 
@@ -435,6 +495,23 @@ const maybeFullReset = async () => {
     if (bootFiles.length === 0) {
       throw new Error('Boot seed manifest is empty');
     }
+    const runtimeSelfMirrors = getRuntimeSelfMirrorsByBootProfile(bootProfile, manifest?.files || []);
+    const bootVfsPaths = new Set(bootFiles.map((path) => normalizeVfsPath(path)));
+    const bootRuntimeSelfMirrors = runtimeSelfMirrors.filter((mirror) => bootVfsPaths.has(mirror.sourcePath));
+    const warmBootReady = !vfsReset && await hasWarmBootProbeFiles(bootProfile, runtimeSelfMirrors);
+    const fullHydrationReady = warmBootReady && isSeedReady(FULL_SEED_READY_PREFIX, bootProfile);
+    if (!warmBootReady) {
+      prepareBootstrapVisibility(bootProfile);
+    }
+    const mirrorRuntimeSelf = (progressScope) => {
+      if (runtimeSelfMirrors.length === 0) return null;
+      return ensureVfsFileMirrors(runtimeSelfMirrors, {
+        overwrite: !preserveOnBoot,
+        logger: console,
+        progressScope,
+        onProgress: setBootstrapProgress
+      });
+    };
 
     const skipBootVfsPaths = new Set(bootFiles.map((p) => (p.startsWith('/') ? p : `/${p}`)));
     const scheduleFullSeed = () => scheduleIdle(async () => {
@@ -453,14 +530,8 @@ const maybeFullReset = async () => {
             onProgress: setBootstrapProgress
           }
         );
-        if (bootProfile === 'zero_home') {
-          await ensureVfsFileMirrors(ZERO_RUNTIME_SELF_MIRRORS, {
-            overwrite: false,
-            logger: console,
-            progressScope: 'full',
-            onProgress: setBootstrapProgress
-          });
-        }
+        await mirrorRuntimeSelf('full');
+        markSeedReady(FULL_SEED_READY_PREFIX, bootProfile);
         return result;
       } catch (e) {
         warn('Background VFS seed failed:', e?.message || e);
@@ -468,28 +539,63 @@ const maybeFullReset = async () => {
       }
     });
 
-    log(`Seeding boot VFS set (${bootFiles.length} files)...`);
-    setBootstrapStage('seed_boot');
-    await seedVfsFromManifest(
-      { files: bootFiles },
-      {
-        preserveOnBoot,
-        logger: console,
-        manifestText: text,
-        fetchConcurrency: 16,
-        progressScope: 'boot',
-        progressLabel: 'Boot VFS seed',
-        onProgress: setBootstrapProgress
+    if (warmBootReady) {
+      log(`Using warm VFS boot profile "${bootProfile}" (${bootFiles.length} boot files already seeded).`);
+      setBootstrapProgress({
+        scope: 'boot',
+        phase: 'warm',
+        label: 'Warm VFS boot: boot payload already seeded.',
+        total: bootFiles.length,
+        current: bootFiles.length,
+        written: 0,
+        skipped: bootFiles.length
+      });
+    } else {
+      log(`Seeding boot VFS set (${bootFiles.length} files)...`);
+      setBootstrapStage('seed_boot');
+      await seedVfsFromManifest(
+        { files: bootFiles },
+        {
+          preserveOnBoot,
+          logger: console,
+          manifestText: text,
+          fetchConcurrency: 16,
+          progressScope: 'boot',
+          progressLabel: 'Boot VFS seed',
+          onProgress: setBootstrapProgress
+        }
+      );
+      if (bootRuntimeSelfMirrors.length > 0) {
+        await ensureVfsFileMirrors(bootRuntimeSelfMirrors, {
+          overwrite: !preserveOnBoot,
+          logger: console,
+          progressScope: 'boot',
+          onProgress: setBootstrapProgress
+        });
+        if (!preserveOnBoot) {
+          await pruneVfsStoreToPaths([
+            ...bootFiles.map((path) => (path.startsWith('/') ? path : `/${path}`)),
+            ...bootRuntimeSelfMirrors.flatMap((mirror) => [mirror.sourcePath, mirror.targetPath])
+          ], {
+            logger: console
+          });
+        }
       }
-    );
+      markSeedReady(BOOT_SEED_READY_PREFIX, bootProfile);
+    }
 
     if (shouldHydrateFullManifest(bootProfile)) {
-      // Locked route homes wait here so no runtime sees a partial VFS.
-      // Other broad modes keep the promise for awaken-time gating.
-      setBootstrapStage('seed_background');
-      window.REPLOID_VFS_FULL_SEED_PROMISE = scheduleFullSeed();
-      if (shouldAwaitFullManifestBeforeStart(bootProfile)) {
-        await window.REPLOID_VFS_FULL_SEED_PROMISE;
+      if (fullHydrationReady) {
+        window.REPLOID_VFS_FULL_SEED_PROMISE = null;
+        log(`Using warm full VFS profile "${bootProfile}"; full hydration already seeded.`);
+      } else {
+        // Locked route homes wait here so no runtime sees a partial VFS.
+        // Other broad modes keep the promise for awaken-time gating.
+        setBootstrapStage('seed_background');
+        window.REPLOID_VFS_FULL_SEED_PROMISE = scheduleFullSeed();
+        if (shouldAwaitFullManifestBeforeStart(bootProfile)) {
+          await window.REPLOID_VFS_FULL_SEED_PROMISE;
+        }
       }
     } else {
       window.REPLOID_VFS_FULL_SEED_PROMISE = null;

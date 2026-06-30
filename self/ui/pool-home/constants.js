@@ -79,13 +79,10 @@ export const SIMULATION_RESUME_GAP_MS = SIMULATION_MAX_STEP_MS * 4;
 export const SIMULATION_MOTION_CLOCK_WRAP_SECONDS = 3600;
 export const SIMULATION_GENTLE_SPEED = 0.72;
 export const SIMULATION_POINTER_LERP = 0.12;
-export const SIMULATION_FORCE_LERP = 0.08;
-export const SIMULATION_MIN_FORCE = 0.002;
 export const SIMULATION_MAX_PIXEL_RATIO = 1.35;
 export const SIMULATION_MIN_PIXEL_RATIO = 0.72;
 export const SIMULATION_MAX_CANVAS_PIXELS = 1_250_000;
 export const POOLDAY_RECEIPT_LEDGER_LIMIT = 10;
-export const POOLDAY_NODE_GRID_SQUARES = 20;
 export const POOLDAY_STREAM_CHUNK_SIZE = 18;
 export const POOLDAY_STREAM_TICK_MS = 14;
 export const POOLDAY_FLOW_TUNING = Object.freeze({
@@ -141,17 +138,10 @@ export const POOLDAY_RAINBOW_COLORS = Object.freeze([
 ]);
 export const POOLDAY_RUNNER_NODE_IDS = Object.freeze(['runner0', 'runner1', 'runner2', 'runner3']);
 export const POOLDAY_VERIFIER_NODE_IDS = Object.freeze(['verifier0', 'verifier1']);
-export const POOLDAY_PARTICIPANT_LAYOUT = Object.freeze([
-  { id: 'runner0', role: 'runner', point: [0.44, 0.30] },
-  { id: 'runner1', role: 'runner', point: [0.44, 0.43] },
-  { id: 'runner2', role: 'runner', point: [0.44, 0.57] },
-  { id: 'runner3', role: 'runner', point: [0.44, 0.70] },
-  { id: 'verifier0', role: 'verifier', point: [0.64, 0.42] },
-  { id: 'verifier1', role: 'verifier', point: [0.64, 0.58] }
+export const POOLDAY_PARTICIPANT_NODE_IDS = Object.freeze([
+  ...POOLDAY_RUNNER_NODE_IDS,
+  ...POOLDAY_VERIFIER_NODE_IDS
 ]);
-export const POOLDAY_PARTICIPANT_NODE_IDS = Object.freeze(
-  POOLDAY_PARTICIPANT_LAYOUT.map((item) => item.id)
-);
 export const POOLDAY_GRAPH_NODE_IDS = Object.freeze([
   'requester',
   'policy',
@@ -203,18 +193,18 @@ export const POOLDAY_GRAPH_TOPOLOGIES = Object.freeze([
     edgePreset: 'receipt_tree',
     morph: 'root',
     points: {
-      requester: [0.50, 0.15],
-      policy: [0.50, 0.28],
-      assignment: [0.50, 0.40],
-      runner0: [0.25, 0.56],
-      runner1: [0.38, 0.60],
-      runner2: [0.62, 0.60],
-      runner3: [0.75, 0.56],
-      verifier0: [0.42, 0.72],
-      verifier1: [0.58, 0.72],
+      requester: [0.50, 0.09],
+      policy: [0.50, 0.20],
+      assignment: [0.50, 0.33],
+      runner0: [0.20, 0.50],
+      runner1: [0.40, 0.50],
+      runner2: [0.60, 0.50],
+      runner3: [0.80, 0.50],
+      verifier0: [0.38, 0.68],
+      verifier1: [0.62, 0.68],
       agreement: [0.50, 0.80],
-      settlement: [0.50, 0.88],
-      ledger: [0.50, 0.94]
+      settlement: [0.50, 0.90],
+      ledger: [0.50, 0.97]
     }
   },
   {
@@ -223,18 +213,18 @@ export const POOLDAY_GRAPH_TOPOLOGIES = Object.freeze([
     edgePreset: 'runner_reduce',
     morph: 'pipe',
     points: {
-      requester: [0.12, 0.50],
-      policy: [0.22, 0.50],
-      assignment: [0.34, 0.50],
-      runner0: [0.48, 0.28],
-      runner1: [0.48, 0.42],
-      runner2: [0.48, 0.58],
-      runner3: [0.48, 0.72],
-      verifier0: [0.64, 0.42],
-      verifier1: [0.64, 0.58],
-      agreement: [0.75, 0.50],
-      settlement: [0.84, 0.50],
-      ledger: [0.94, 0.50]
+      requester: [0.08, 0.50],
+      policy: [0.20, 0.50],
+      assignment: [0.32, 0.50],
+      runner0: [0.46, 0.22],
+      runner1: [0.46, 0.40],
+      runner2: [0.46, 0.60],
+      runner3: [0.46, 0.78],
+      verifier0: [0.64, 0.40],
+      verifier1: [0.64, 0.60],
+      agreement: [0.78, 0.50],
+      settlement: [0.88, 0.50],
+      ledger: [0.96, 0.50]
     }
   },
   {
@@ -244,17 +234,17 @@ export const POOLDAY_GRAPH_TOPOLOGIES = Object.freeze([
     morph: 'fan',
     points: {
       assignment: [0.50, 0.50],
-      requester: [0.18, 0.50],
-      policy: [0.32, 0.30],
-      runner0: [0.36, 0.22],
-      runner1: [0.55, 0.18],
-      runner2: [0.36, 0.78],
-      runner3: [0.55, 0.82],
-      verifier0: [0.72, 0.36],
-      verifier1: [0.72, 0.64],
-      agreement: [0.80, 0.50],
-      settlement: [0.87, 0.50],
-      ledger: [0.94, 0.50]
+      requester: [0.12, 0.50],
+      policy: [0.28, 0.50],
+      runner0: [0.42, 0.24],
+      runner1: [0.30, 0.42],
+      runner2: [0.30, 0.58],
+      runner3: [0.42, 0.76],
+      verifier0: [0.70, 0.38],
+      verifier1: [0.70, 0.62],
+      agreement: [0.82, 0.50],
+      settlement: [0.90, 0.50],
+      ledger: [0.96, 0.50]
     }
   },
   {
@@ -263,17 +253,17 @@ export const POOLDAY_GRAPH_TOPOLOGIES = Object.freeze([
     edgePreset: 'hourglass',
     morph: 'fold',
     points: {
-      requester: [0.08, 0.16],
-      policy: [0.18, 0.32],
-      runner0: [0.16, 0.50],
-      runner1: [0.20, 0.68],
-      assignment: [0.42, 0.46],
-      agreement: [0.55, 0.54],
-      runner2: [0.78, 0.26],
-      runner3: [0.82, 0.74],
-      verifier0: [0.88, 0.40],
-      verifier1: [0.88, 0.60],
-      settlement: [0.80, 0.82],
+      requester: [0.10, 0.16],
+      policy: [0.25, 0.30],
+      runner0: [0.20, 0.22],
+      runner1: [0.20, 0.78],
+      assignment: [0.44, 0.50],
+      agreement: [0.56, 0.50],
+      runner2: [0.80, 0.22],
+      runner3: [0.80, 0.78],
+      verifier0: [0.72, 0.42],
+      verifier1: [0.72, 0.58],
+      settlement: [0.82, 0.72],
       ledger: [0.92, 0.86]
     }
   },
@@ -283,18 +273,18 @@ export const POOLDAY_GRAPH_TOPOLOGIES = Object.freeze([
     edgePreset: 'bowtie_exchange',
     morph: 'fold',
     points: {
-      requester: [0.10, 0.50],
-      policy: [0.22, 0.50],
-      runner0: [0.26, 0.22],
-      runner1: [0.26, 0.78],
-      runner2: [0.38, 0.36],
-      assignment: [0.41, 0.50],
-      agreement: [0.62, 0.50],
-      runner3: [0.70, 0.64],
-      verifier0: [0.82, 0.22],
-      verifier1: [0.82, 0.78],
-      settlement: [0.76, 0.50],
-      ledger: [0.92, 0.50]
+      requester: [0.08, 0.50],
+      policy: [0.20, 0.50],
+      runner0: [0.32, 0.22],
+      runner1: [0.32, 0.78],
+      runner2: [0.42, 0.36],
+      assignment: [0.45, 0.50],
+      agreement: [0.58, 0.50],
+      runner3: [0.68, 0.64],
+      verifier0: [0.74, 0.22],
+      verifier1: [0.74, 0.78],
+      settlement: [0.86, 0.50],
+      ledger: [0.96, 0.50]
     }
   },
   {
@@ -303,18 +293,18 @@ export const POOLDAY_GRAPH_TOPOLOGIES = Object.freeze([
     edgePreset: 'braided_lanes',
     morph: 'braid',
     points: {
-      requester: [0.11, 0.50],
-      policy: [0.24, 0.24],
-      assignment: [0.34, 0.38],
-      runner0: [0.43, 0.72],
-      runner1: [0.50, 0.25],
-      runner2: [0.58, 0.70],
-      runner3: [0.66, 0.30],
-      verifier0: [0.72, 0.62],
-      verifier1: [0.78, 0.36],
-      agreement: [0.82, 0.50],
-      settlement: [0.88, 0.50],
-      ledger: [0.94, 0.50]
+      requester: [0.08, 0.50],
+      policy: [0.20, 0.50],
+      runner0: [0.32, 0.24],
+      runner1: [0.32, 0.76],
+      assignment: [0.44, 0.50],
+      runner2: [0.56, 0.76],
+      runner3: [0.56, 0.24],
+      verifier0: [0.68, 0.24],
+      verifier1: [0.68, 0.76],
+      agreement: [0.80, 0.50],
+      settlement: [0.90, 0.50],
+      ledger: [0.96, 0.50]
     }
   },
   {
@@ -323,18 +313,18 @@ export const POOLDAY_GRAPH_TOPOLOGIES = Object.freeze([
     edgePreset: 'triangulation',
     morph: 'fan',
     points: {
-      requester: [0.18, 0.35],
-      policy: [0.50, 0.16],
-      assignment: [0.39, 0.35],
-      agreement: [0.61, 0.35],
-      runner0: [0.28, 0.56],
-      runner1: [0.42, 0.61],
-      runner2: [0.58, 0.61],
-      runner3: [0.72, 0.56],
-      verifier0: [0.46, 0.72],
-      verifier1: [0.60, 0.72],
-      settlement: [0.54, 0.84],
-      ledger: [0.54, 0.94]
+      requester: [0.18, 0.32],
+      policy: [0.50, 0.12],
+      assignment: [0.38, 0.40],
+      agreement: [0.62, 0.40],
+      runner0: [0.24, 0.65],
+      runner1: [0.42, 0.72],
+      runner2: [0.58, 0.72],
+      runner3: [0.76, 0.65],
+      verifier0: [0.46, 0.84],
+      verifier1: [0.60, 0.84],
+      settlement: [0.53, 0.92],
+      ledger: [0.53, 0.98]
     }
   },
   {
@@ -343,69 +333,19 @@ export const POOLDAY_GRAPH_TOPOLOGIES = Object.freeze([
     edgePreset: 'honeycomb',
     morph: 'orthogonal',
     points: {
-      requester: [0.18, 0.42],
-      policy: [0.34, 0.26],
-      assignment: [0.55, 0.26],
-      runner0: [0.43, 0.42],
-      runner1: [0.72, 0.42],
+      policy: [0.38, 0.22],
+      assignment: [0.56, 0.22],
+      requester: [0.24, 0.40],
+      runner0: [0.42, 0.40],
+      runner1: [0.60, 0.40],
       runner2: [0.34, 0.58],
-      verifier0: [0.56, 0.58],
-      runner3: [0.78, 0.58],
-      verifier1: [0.47, 0.74],
-      agreement: [0.65, 0.74],
+      verifier0: [0.52, 0.58],
+      runner3: [0.70, 0.58],
+      verifier1: [0.44, 0.76],
+      agreement: [0.62, 0.76],
       settlement: [0.78, 0.76],
-      ledger: [0.78, 0.90]
+      ledger: [0.86, 0.90]
     }
-  }
-]);
-export const POOLDAY_FLOW_CORE_NODES = Object.freeze([
-  {
-    id: 'requester',
-    label: 'Request',
-    caption: 'ask',
-    body: 'A user or app sends a prompt with a model requirement and acceptance rule.',
-    x: '16%',
-    y: '58%'
-  },
-  {
-    id: 'policy',
-    label: 'Policy',
-    caption: 'gate',
-    body: 'The rule gate checks model fit, spend, trust, and verification requirements.',
-    x: '28%',
-    y: '39%'
-  },
-  {
-    id: 'runners',
-    label: 'Run',
-    caption: 'run',
-    body: 'Browser nodes execute the selected model and sign the result.',
-    x: '48%',
-    y: '32%'
-  },
-  {
-    id: 'verifiers',
-    label: 'Verify',
-    caption: 'check',
-    body: 'Independent checks compare output, model identity, and policy requirements.',
-    x: '66%',
-    y: '44%'
-  },
-  {
-    id: 'settlement',
-    label: 'Record',
-    caption: 'accept',
-    body: 'The accepted result becomes durable history for points and routing.',
-    x: '78%',
-    y: '56%'
-  },
-  {
-    id: 'ledger',
-    label: 'Record',
-    caption: 'record',
-    body: 'Completed work, decisions, and local routing evidence are stored.',
-    x: '80%',
-    y: '58%'
   }
 ]);
 export const POOLDAY_GRAPH_LABEL_ROLE_META = Object.freeze({
@@ -487,6 +427,5 @@ export const POOLDAY_FLOW_LABELS = Object.freeze(POOLDAY_GRAPH_NODE_IDS.map((id)
     y: `${Math.round(point[1] * 100)}%`
   };
 }));
-export const POOLDAY_FLOW_NODE_COUNT = POOLDAY_GRAPH_NODE_IDS.length;
 
 export const POOLDAY_PEER_LEDGER_STORAGE_KEY = 'reploid.peerLedgerEvents.v1';

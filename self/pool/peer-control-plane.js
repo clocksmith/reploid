@@ -308,6 +308,47 @@ const advertSupportsIntent = (advert = {}, intent = {}, policy = {}) => {
     && (!policy.requireRuntimeProfileHash || !!body.runtimeProfileHash);
 };
 
+const advertRuntimeProfileHashValid = async (advert = {}) => {
+  const body = advert.body || {};
+  if (!body.runtimeProfile || !body.runtimeProfileHash) return true;
+  return await hashJson(body.runtimeProfile) === body.runtimeProfileHash;
+};
+
+const selectRuntimeCompatibleAdverts = ({ verifiedAdverts = [], policy = {}, minProviders = 1, maxProviders = verifiedAdverts.length } = {}) => {
+  if (!policy.requireHomogeneousRuntimeProfile) {
+    return {
+      ok: true,
+      selected: verifiedAdverts.slice(0, Math.min(maxProviders, verifiedAdverts.length))
+    };
+  }
+  const groups = new Map();
+  for (const candidate of verifiedAdverts) {
+    const runtimeProfileHash = candidate.advert.body?.runtimeProfileHash || 'runtime_profile_hash_missing';
+    const group = groups.get(runtimeProfileHash) || [];
+    group.push(candidate);
+    groups.set(runtimeProfileHash, group);
+  }
+  const rankedGroups = [...groups.entries()]
+    .map(([runtimeProfileHash, candidates]) => ({
+      runtimeProfileHash,
+      candidates,
+      firstSortKey: candidates[0]?.sortKey || ''
+    }))
+    .sort((left, right) => {
+      if (right.candidates.length !== left.candidates.length) return right.candidates.length - left.candidates.length;
+      const sortCompare = left.firstSortKey.localeCompare(right.firstSortKey);
+      return sortCompare || left.runtimeProfileHash.localeCompare(right.runtimeProfileHash);
+    });
+  const selectedGroup = rankedGroups[0] || null;
+  const selected = selectedGroup?.candidates.slice(0, Math.min(maxProviders, selectedGroup.candidates.length)) || [];
+  return {
+    ok: selected.length >= minProviders,
+    selected,
+    runtimeProfileHash: selectedGroup?.runtimeProfileHash || null,
+    compatibleProviders: selected.length
+  };
+};
+
 const candidateSortKey = async ({ intentHash, advert }) => hashJson({
   intentHash,
   providerId: peerIdForMessage(advert),
@@ -385,7 +426,10 @@ export async function buildPeerAssignmentPlan({
   const verifiedAdverts = [];
   for (const advert of providerAdverts) {
     const verification = await verifyPeerMessage(advert);
-    if (verification.ok && advert.type === PEER_MESSAGE_TYPES.PROVIDER_ADVERT && advertSupportsIntent(advert, intent, policy)) {
+    if (verification.ok
+      && advert.type === PEER_MESSAGE_TYPES.PROVIDER_ADVERT
+      && advertSupportsIntent(advert, intent, policy)
+      && await advertRuntimeProfileHashValid(advert)) {
       verifiedAdverts.push({ advert, verification, sortKey: await candidateSortKey({ intentHash: intentVerification.messageHash, advert }) });
     }
   }
@@ -402,7 +446,23 @@ export async function buildPeerAssignmentPlan({
       assignments: []
     };
   }
-  const selected = verifiedAdverts.slice(0, Math.min(maxProviders, verifiedAdverts.length));
+  const compatibleSelection = selectRuntimeCompatibleAdverts({
+    verifiedAdverts,
+    policy,
+    minProviders,
+    maxProviders
+  });
+  if (!compatibleSelection.ok) {
+    return {
+      ok: false,
+      reason: 'not_enough_runtime_compatible_peer_providers',
+      requiredProviders: minProviders,
+      eligibleProviders: verifiedAdverts.length,
+      compatibleProviders: compatibleSelection.compatibleProviders || 0,
+      assignments: []
+    };
+  }
+  const selected = compatibleSelection.selected;
   const ringPlan = adaptiveRing
     ? await buildPeerRingPlan({
       intent,

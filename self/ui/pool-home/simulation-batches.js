@@ -506,7 +506,3 @@ export const createPoolRenderBatchBuilder = () => {
     return outputs;
   };
 };
-
-const defaultBatchBuilder = createPoolRenderBatchBuilder();
-
-export const buildPoolRenderBatches = (frame, width, height) => defaultBatchBuilder(frame, width, height);

@@ -8,7 +8,8 @@
 .app-shell {
   display: grid;
   grid-template-columns: 48px 240px 1fr;
-  height: 100vh;
+  height: 100dvh;
+  min-width: 0;
   overflow: hidden;
 }
 
@@ -139,6 +140,7 @@ body.no-grid-pattern {
 
 #app.active {
   height: 100%;
+  min-width: 0;
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -1827,6 +1829,7 @@ details[open] > .disclosure-summary::before {
 
   .wizard-container {
     padding: 20px 12px;
+    padding-bottom: calc(72px + env(safe-area-inset-bottom));
   }
 
   .wizard-step h2 {
@@ -2449,27 +2452,6 @@ body[data-pool-route-id='home'] #app {
   background: color-mix(in srgb, var(--pool-cyan), transparent 98%);
 }
 
-.pool-node-grid {
-  display: grid;
-  grid-template-columns: repeat(10, minmax(12px, 1fr));
-  gap: 6px;
-  width: min(18rem, 100%);
-  padding: var(--space-xs);
-  border: var(--border-sm) dashed color-mix(in srgb, var(--fg), transparent 76%);
-}
-
-.pool-node-square {
-  height: 12px;
-  border: 1px solid color-mix(in srgb, var(--fg), transparent 72%);
-  background: transparent;
-  transition: background-color 220ms ease, border-color 220ms ease;
-}
-
-.pool-node-square.is-active {
-  border-color: var(--pool-cyan);
-  background: color-mix(in srgb, var(--pool-cyan), var(--bg) 92%);
-}
-
 .pool-ledger-shell {
   border: var(--border-sm) dotted color-mix(in srgb, var(--fg), transparent 76%);
   padding: var(--space-md);
@@ -2621,9 +2603,6 @@ body[data-pool-route-id='home'] #app {
 
 .pool-simulation-labels b {
   display: block;
-}
-
-.pool-simulation-labels b {
   font: inherit;
 }
 

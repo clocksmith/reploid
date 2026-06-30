@@ -28,7 +28,7 @@ gcloud artifacts repositories create reploid \
 ```bash
 npm run verify:pool -- --allow-placeholders
 gcloud builds submit --config deploy/cloudbuild.yaml
-firebase deploy --only firestore:indexes,firestore:rules,hosting:reploid
+firebase deploy --only functions,firestore:indexes,firestore:rules,hosting:reploid
 ```
 
 Replace required placeholder values in `deploy/env.production.json` before Cloud Build. `scripts/print-pool-env.js` fails when a runtime env value still starts with `<required-`, so placeholder model artifact, Doppler module, or Doppler kernel base URLs cannot deploy silently.

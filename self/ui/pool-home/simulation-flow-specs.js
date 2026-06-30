@@ -400,13 +400,6 @@ export const createSimulationLineProjector = () => {
     return projected;
   };
 
-  const materializeLines = ({ roles, participants, preset, time }) => materializeLineSpecs({
-    roles,
-    participants,
-    specs: buildSimulationLineSpecs(preset),
-    time
-  });
-
   const materializeLinePairs = ({ roles, participants, linePairs, time, blend }) => {
     resetNodes(roles, participants);
     projected.length = 0;
@@ -422,7 +415,6 @@ export const createSimulationLineProjector = () => {
 
   return {
     materializeLineSpecs,
-    materializeLines,
     materializeLinePairs
   };
 };

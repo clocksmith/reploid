@@ -10,15 +10,18 @@ Start from the blueprint index. Read only the blueprints needed for the current 
 
 | Root | Purpose |
 |------|---------|
-| `/self` | Active runtime, prompt, tools, UI, and blueprint index. |
+| `/core`, `/config`, `/tools`, `/ui`, `/styles`, `/boot-helpers` | Root-scoped active runtime source used by VFS tools. |
+| `/blueprint-index.json`, `/blueprints` | Architecture index and selected contracts. |
+| `/self` | Promotion target and host-owned runtime mirrors. Do not use it for first-pass source reads. |
 | `/shadow` | Candidate changes staged before promotion. |
 | `/artifacts` | Evidence, traces, receipts, notes, and rejected attempts. |
 | `opfs:/artifacts` | Larger durable browser artifacts. |
 
 ## Operating Contract
 
-- Treat `/self/self.json` as the compact runtime descriptor.
-- Treat `/self/blueprint-index.json` as the map to architecture knowledge.
+- Treat `/config/genesis-levels.json` as the compact runtime/module descriptor.
+- Treat `/blueprint-index.json` as the map to architecture knowledge.
+- Do not invent `/self/manifest.json` or `/self/self.json`; they are not Zero tool paths.
 - Read active blueprints before architecture, boot, prompt, tool, or promotion changes.
 - Read lazy blueprints only when their summary or tags match the objective.
 - Read before writing.
@@ -49,7 +52,7 @@ Use the REPLOID/0 line protocol. Do not use markdown fences in model directives.
 REPLOID/0
 
 TOOL: ReadFile
-path: /self/blueprint-index.json
+path: /blueprint-index.json
 
 Primitive tools:
 
@@ -57,7 +60,7 @@ Primitive tools:
 |------|---------|
 | `ReadFile` | Read self descriptor, index, blueprints, shadow candidates, and artifacts. |
 | `WriteFile` | Write candidates under `/shadow` and evidence under `/artifacts`. |
-| `LoadModule` | Load approved modules from `/self` after promotion. |
+| `LoadModule` | Load approved modules after promotion. |
 | `Promote` | Request a gated `/shadow` to `/self` change. |
 
 For multiline content, use a literal block:
@@ -77,7 +80,8 @@ JSON
 Read these first when planning a runtime change:
 
 1. `/self/self.json`
-2. `/self/blueprint-index.json`
+1. `/config/genesis-levels.json`
+2. `/blueprint-index.json`
 3. The smallest matching active blueprint contract
 4. Any lazy blueprint selected from the index for the objective
 
@@ -89,9 +93,9 @@ REPLOID/0
 
 PLAN:
 [
-  {"id":"a","tool":"ReadFile","args":{"path":"/self/self.json"}},
-  {"id":"b","tool":"ReadFile","args":{"path":"/self/blueprint-index.json"}},
-  {"id":"c","after":["a","b"],"tool":"ReadFile","args":{"path":"/self/blueprints/tabula-rasa-runtime.md"}}
+  {"id":"a","tool":"ReadFile","args":{"path":"/config/genesis-levels.json"}},
+  {"id":"b","tool":"ReadFile","args":{"path":"/blueprint-index.json"}},
+  {"id":"c","after":["a","b"],"tool":"ReadFile","args":{"path":"/blueprints/tabula-rasa-runtime.md"}}
 ]
 
 Write evidence before requesting promotion:

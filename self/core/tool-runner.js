@@ -6,6 +6,7 @@
 import { loadVfsModule } from './vfs-module-loader.js';
 import { isSecurityEnabled } from './security-config.js';
 import { getCurrentReploidStorage as getReploidStorage } from '../instance.js';
+import { getToolNamesForMode } from '../config/tool-surfaces.js';
 
 const ToolRunner = {
   metadata: {
@@ -39,36 +40,13 @@ const ToolRunner = {
       return 'reploid';
     };
 
-    const usesMinimalToolSurface = () => ['reploid', 'zero'].includes(getBootMode());
-
-    const getKernelToolNames = () => {
-      const names = [
-        'ReadFile',
-        'WriteFile',
-        'EditFile',
-        'ListFiles',
-        'DeleteFile',
-        'MakeDirectory',
-        'CopyFile',
-        'MoveFile',
-        'Head',
-        'Tail',
-        'Grep',
-        'Find',
-        'git',
-        'ListTools'
-      ];
-      if (ToolWriter) names.push('CreateTool');
-      if (SubstrateLoader) names.push('LoadModule');
-      names.push('Promote');
-      return names;
-    };
+    const getKernelToolNames = () => getToolNamesForMode(getBootMode(), {
+      hasToolWriter: !!ToolWriter,
+      hasSubstrateLoader: !!SubstrateLoader
+    });
 
     const getInitialToolAllowlist = () => {
-      if (usesMinimalToolSurface()) {
-        return new Set([...getKernelToolNames(), ..._runtimeAllowedTools]);
-      }
-      return null;
+      return new Set([...getKernelToolNames(), ..._runtimeAllowedTools]);
     };
 
     // Arena verification for self-modification (opt-in via config)

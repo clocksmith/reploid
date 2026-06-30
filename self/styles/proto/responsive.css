@@ -11,7 +11,8 @@
 @media (max-width: 768px) {
     .app-shell {
         grid-template-columns: 1fr;
-        grid-template-rows: auto 1fr auto;
+        grid-template-rows: minmax(0, 1fr) auto;
+        height: 100dvh;
     }
 
     .sidebar {
@@ -19,11 +20,16 @@
         flex-direction: row;
         border-right: none;
         border-top: 1px solid var(--fg);
-        padding: 0 8px;
-        justify-content: space-around;
+        padding: 0 8px calc(env(safe-area-inset-bottom) + 2px);
+        justify-content: flex-start;
+        overflow-x: auto;
+        overflow-y: hidden;
+        overscroll-behavior-x: contain;
+        -webkit-overflow-scrolling: touch;
     }
 
     .sidebar-btn {
+        flex: 0 0 auto;
         width: auto;
         height: 48px;
         padding: 0 12px;
@@ -36,24 +42,48 @@
 
     .workspace {
         order: 1;
+        min-height: 0;
+        overflow: hidden;
     }
 
     .workspace-header {
         padding: 10px 12px;
-        flex-wrap: wrap;
+        flex-direction: column;
+        align-items: stretch;
         gap: 8px;
     }
 
     .workspace-title {
         font-size: var(--font-sm);
+        width: 100%;
     }
 
     .workspace-status {
         font-size: var(--font-sm);
+        justify-content: flex-start;
+        width: 100%;
     }
 
     .workspace-content {
         padding: 12px;
+    }
+
+    .workspace-columns,
+    .workspace-columns.workspace-content {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-md);
+        height: 100%;
+        overflow-y: auto;
+        overflow-x: hidden;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .workspace-columns .workspace-content:not(.hidden) {
+        flex: 0 0 auto;
+        height: auto;
+        min-height: min(72dvh, 640px);
+        overflow: visible;
     }
 
     .vfs-tree {
@@ -128,11 +158,6 @@
         width: 100%;
     }
 
-    .workspace-content {
-        scroll-snap-type: x mandatory;
-        overflow-x: auto;
-    }
-
     .token-budget-text {
         display: none;
     }
@@ -154,7 +179,7 @@
 /* Small mobile */
 @media (max-width: 480px) {
     .app-shell {
-        grid-template-rows: auto 1fr 52px;
+        grid-template-rows: minmax(0, 1fr) auto;
     }
 
     .sidebar {
@@ -170,7 +195,7 @@
 
     .workspace-header {
         padding: 6px 8px;
-        min-height: 40px;
+        min-height: 0;
     }
 
     .workspace-title {
@@ -178,10 +203,10 @@
     }
 
     .workspace-title span:last-child {
-        max-width: 120px;
+        max-width: none;
         overflow: hidden;
         text-overflow: ellipsis;
-        white-space: nowrap;
+        white-space: normal;
     }
 
     .workspace-status {
@@ -190,6 +215,10 @@
 
     .workspace-content {
         padding: 8px;
+    }
+
+    .workspace-columns .workspace-content:not(.hidden) {
+        min-height: min(70dvh, 560px);
     }
 
     .vfs-tree {
@@ -296,6 +325,45 @@
         flex-direction: column;
         align-items: flex-start;
         gap: 6px;
+    }
+
+    .telemetry-controls,
+    .replay-loader,
+    .replay-header,
+    .replay-progress,
+    .replay-speed,
+    .tools-header,
+    .memory-header {
+        align-items: stretch;
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .replay-buttons {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .replay-buttons .btn,
+    .replay-buttons button {
+        width: 100%;
+        min-width: 0;
+    }
+
+    .modal-content,
+    .replay-modal {
+        width: calc(100vw - 16px);
+        max-width: calc(100vw - 16px);
+        max-height: calc(100dvh - 16px);
+        overflow-y: auto;
+    }
+
+    .tool-summary-main,
+    .memory-entry summary,
+    .arena-entry-header,
+    .arena-entry-actions {
+        align-items: flex-start;
+        flex-direction: column;
     }
 
     /* Workers panel */

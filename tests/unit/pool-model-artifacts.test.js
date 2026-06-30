@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   buildModelArtifactUrls,
+  validateModelArtifactManifestShape,
   verifyModelArtifactManifest
 } from '../../self/pool/model-artifacts.js';
 import { hashJson } from '../../self/pool/inference-receipt.js';
@@ -17,6 +18,50 @@ describe('pool model artifact helpers', () => {
       tokenizer: 'https://models.example/root/model-a/sha256%3Amanifest/tokenizer.json',
       shards: 'https://models.example/root/model-a/sha256%3Amanifest/shards/'
     });
+  });
+
+  it('builds hosted model artifact URLs from a model-specific base policy', () => {
+    expect(buildModelArtifactUrls({
+      modelId: 'qwen-3-5-0-8b-q4k-ehaf16',
+      manifestHash: 'sha256:manifest',
+      artifactPolicy: {
+        baseUrl: 'https://huggingface.co/Clocksmith/rdrr/resolve/pinned/models/qwen-3-5-0-8b-q4k-ehaf16',
+        pathTemplate: '',
+        paths: {
+          manifest: 'manifest.json',
+          tokenizer: 'tokenizer.json',
+          shards: ''
+        }
+      }
+    })).toEqual({
+      root: 'https://huggingface.co/Clocksmith/rdrr/resolve/pinned/models/qwen-3-5-0-8b-q4k-ehaf16',
+      manifest: 'https://huggingface.co/Clocksmith/rdrr/resolve/pinned/models/qwen-3-5-0-8b-q4k-ehaf16/manifest.json',
+      tokenizer: 'https://huggingface.co/Clocksmith/rdrr/resolve/pinned/models/qwen-3-5-0-8b-q4k-ehaf16/tokenizer.json',
+      shards: 'https://huggingface.co/Clocksmith/rdrr/resolve/pinned/models/qwen-3-5-0-8b-q4k-ehaf16/'
+    });
+  });
+
+  it('accepts Doppler manifest shape with artifact identity and filename shards', () => {
+    const result = validateModelArtifactManifestShape({
+      modelId: 'qwen-3-5-0-8b-q4k-ehaf16',
+      artifactIdentity: {
+        weightPackHash: 'sha256:weight-pack'
+      },
+      tokenizer: {
+        file: 'tokenizer.json'
+      },
+      shards: [
+        {
+          filename: 'shard_00000.bin',
+          hash: '4dd461bea0d6cc891f78a7fe4dc744c0d269ea685b5a5a5de74c07d5422e4a3e'
+        }
+      ]
+    }, {
+      tokenizerHash: 'sha256:tokenizer'
+    });
+
+    expect(result.ok).toBe(true);
+    expect(result.reasons).toEqual([]);
   });
 
   it('verifies manifest JSON hash and model identity', async () => {
@@ -42,6 +87,32 @@ describe('pool model artifact helpers', () => {
     expect(result.ok).toBe(true);
     expect(result.manifestHash).toBe(manifestHash);
     expect(result.urls.manifest).toContain('/model-b/');
+  });
+
+  it('verifies manifest identity through artifactIdentity weightPackHash', async () => {
+    const manifest = {
+      modelId: 'model-identity',
+      artifactIdentity: {
+        weightPackHash: 'fab133e49d6dc67912fc3a087222ec44ca1941d9b7bc36c60cb1379863a6dd4f'
+      },
+      shards: [{ filename: 'shard_00000.bin', hash: 'abc123' }]
+    };
+    const manifestHash = await hashJson(manifest);
+    const result = await verifyModelArtifactManifest({
+      model: {
+        modelId: 'model-identity',
+        modelHash: 'sha256:fab133e49d6dc67912fc3a087222ec44ca1941d9b7bc36c60cb1379863a6dd4f',
+        manifestHash
+      },
+      baseUrl: 'https://models.example',
+      fetchImpl: async () => ({
+        ok: true,
+        text: async () => JSON.stringify(manifest)
+      })
+    });
+
+    expect(result.ok).toBe(true);
+    expect(result.manifestHash).toBe(manifestHash);
   });
 
   it('rejects mismatched manifest identity', async () => {

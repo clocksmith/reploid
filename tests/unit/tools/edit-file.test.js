@@ -3,12 +3,13 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import call, { tool } from '../../../tools/EditFile.js';
+import call from '../../../tools/EditFile.js';
 
 describe('EditFile', () => {
   let mockVFS;
   let mockEventBus;
   let mockAuditLogger;
+  const writablePath = '/shadow/test.txt';
 
   beforeEach(() => {
     mockVFS = {
@@ -28,19 +29,9 @@ describe('EditFile', () => {
     };
   });
 
-  describe('tool metadata', () => {
-    it('should have correct name', () => {
-      expect(tool.name).toBe('EditFile');
-    });
-
-    it('should have description mentioning edits', () => {
-      expect(tool.description).toContain('edit');
-    });
-  });
-
   describe('validation', () => {
     it('should throw error when VFS not available', async () => {
-      const result = await call({ path: '/test.txt', operations: [] }, {});
+      const result = await call({ path: writablePath, operations: [] }, {});
       expect(result).toBe('VFS unavailable');
     });
 
@@ -50,12 +41,12 @@ describe('EditFile', () => {
     });
 
     it('should throw error when operations empty', async () => {
-      await expect(call({ path: '/test.txt', operations: [] }, { VFS: mockVFS }))
+      await expect(call({ path: writablePath, operations: [] }, { VFS: mockVFS }))
         .rejects.toThrow('Provide content or at least one operation');
     });
 
     it('should throw error when operations not array', async () => {
-      await expect(call({ path: '/test.txt', operations: 'invalid' }, { VFS: mockVFS }))
+      await expect(call({ path: writablePath, operations: 'invalid' }, { VFS: mockVFS }))
         .rejects.toThrow('Provide content or at least one operation');
     });
 
@@ -63,7 +54,7 @@ describe('EditFile', () => {
       mockVFS.read.mockResolvedValue('content');
 
       await expect(call(
-        { path: '/test.txt', operations: [{ replacement: 'y' }] },
+        { path: writablePath, operations: [{ replacement: 'y' }] },
         { VFS: mockVFS }
       )).rejects.toThrow('Operation #1 missing "match"');
     });
@@ -73,9 +64,21 @@ describe('EditFile', () => {
 
       // Empty string is falsy, so it triggers "missing match" error first
       await expect(call(
-        { path: '/test.txt', operations: [{ match: '', replacement: 'y' }] },
+        { path: writablePath, operations: [{ match: '', replacement: 'y' }] },
         { VFS: mockVFS }
       )).rejects.toThrow('Operation #1 missing "match"');
+    });
+
+    it('should reject direct edits outside writable candidate and evidence roots', async () => {
+      await expect(call(
+        { path: '/core/agent-loop.js', operations: [{ match: 'code', replacement: 'modified' }] },
+        { VFS: mockVFS }
+      )).rejects.toThrow('VFS path not editable by EditFile');
+
+      await expect(call(
+        { path: '/test.txt', operations: [{ match: 'code', replacement: 'modified' }] },
+        { VFS: mockVFS }
+      )).rejects.toThrow('VFS path not editable by EditFile');
     });
   });
 
@@ -84,11 +87,11 @@ describe('EditFile', () => {
       mockVFS.read.mockResolvedValue('hello world hello');
 
       const result = await call(
-        { path: '/test.txt', operations: [{ match: 'hello', replacement: 'hi' }] },
+        { path: writablePath, operations: [{ match: 'hello', replacement: 'hi' }] },
         { VFS: mockVFS }
       );
 
-      expect(mockVFS.write).toHaveBeenCalledWith('/test.txt', 'hi world hello');
+      expect(mockVFS.write).toHaveBeenCalledWith(writablePath, 'hi world hello');
       expect(result.changed).toBe(true);
       expect(result.operations[0].replacements).toBe(1);
     });
@@ -97,22 +100,22 @@ describe('EditFile', () => {
       mockVFS.read.mockResolvedValue('remove this word');
 
       await call(
-        { path: '/test.txt', operations: [{ match: 'this ', replacement: '' }] },
+        { path: writablePath, operations: [{ match: 'this ', replacement: '' }] },
         { VFS: mockVFS }
       );
 
-      expect(mockVFS.write).toHaveBeenCalledWith('/test.txt', 'remove word');
+      expect(mockVFS.write).toHaveBeenCalledWith(writablePath, 'remove word');
     });
 
     it('should default replacement to empty string when not provided', async () => {
       mockVFS.read.mockResolvedValue('delete me');
 
       await call(
-        { path: '/test.txt', operations: [{ match: ' me' }] },
+        { path: writablePath, operations: [{ match: ' me' }] },
         { VFS: mockVFS }
       );
 
-      expect(mockVFS.write).toHaveBeenCalledWith('/test.txt', 'delete');
+      expect(mockVFS.write).toHaveBeenCalledWith(writablePath, 'delete');
     });
   });
 
@@ -121,11 +124,11 @@ describe('EditFile', () => {
       mockVFS.read.mockResolvedValue('a a a a a');
 
       const result = await call(
-        { path: '/test.txt', operations: [{ match: 'a', replacement: 'b', count: 3 }] },
+        { path: writablePath, operations: [{ match: 'a', replacement: 'b', count: 3 }] },
         { VFS: mockVFS }
       );
 
-      expect(mockVFS.write).toHaveBeenCalledWith('/test.txt', 'b b b a a');
+      expect(mockVFS.write).toHaveBeenCalledWith(writablePath, 'b b b a a');
       expect(result.operations[0].replacements).toBe(3);
     });
 
@@ -133,11 +136,11 @@ describe('EditFile', () => {
       mockVFS.read.mockResolvedValue('x x x x');
 
       const result = await call(
-        { path: '/test.txt', operations: [{ match: 'x', replacement: 'y', count: 0 }] },
+        { path: writablePath, operations: [{ match: 'x', replacement: 'y', count: 0 }] },
         { VFS: mockVFS }
       );
 
-      expect(mockVFS.write).toHaveBeenCalledWith('/test.txt', 'y y y y');
+      expect(mockVFS.write).toHaveBeenCalledWith(writablePath, 'y y y y');
       expect(result.operations[0].replacements).toBe(4);
     });
 
@@ -145,11 +148,11 @@ describe('EditFile', () => {
       mockVFS.read.mockResolvedValue('a a a');
 
       await call(
-        { path: '/test.txt', operations: [{ match: 'a', replacement: 'z', count: -1 }] },
+        { path: writablePath, operations: [{ match: 'a', replacement: 'z', count: -1 }] },
         { VFS: mockVFS }
       );
 
-      expect(mockVFS.write).toHaveBeenCalledWith('/test.txt', 'z z z');
+      expect(mockVFS.write).toHaveBeenCalledWith(writablePath, 'z z z');
     });
   });
 
@@ -159,7 +162,7 @@ describe('EditFile', () => {
 
       const result = await call(
         {
-          path: '/test.txt',
+          path: writablePath,
           operations: [
             { match: 'foo', replacement: 'FOO' },
             { match: 'bar', replacement: 'BAR' },
@@ -169,7 +172,7 @@ describe('EditFile', () => {
         { VFS: mockVFS }
       );
 
-      expect(mockVFS.write).toHaveBeenCalledWith('/test.txt', 'FOO BAR BAZ');
+      expect(mockVFS.write).toHaveBeenCalledWith(writablePath, 'FOO BAR BAZ');
       expect(result.operations).toHaveLength(3);
     });
 
@@ -178,7 +181,7 @@ describe('EditFile', () => {
 
       await call(
         {
-          path: '/test.txt',
+          path: writablePath,
           operations: [
             { match: 'hello', replacement: 'world' },
             { match: 'world', replacement: 'universe' }
@@ -187,7 +190,7 @@ describe('EditFile', () => {
         { VFS: mockVFS }
       );
 
-      expect(mockVFS.write).toHaveBeenCalledWith('/test.txt', 'universe');
+      expect(mockVFS.write).toHaveBeenCalledWith(writablePath, 'universe');
     });
   });
 
@@ -196,7 +199,7 @@ describe('EditFile', () => {
       mockVFS.read.mockResolvedValue('no match here');
 
       const result = await call(
-        { path: '/test.txt', operations: [{ match: 'xyz', replacement: 'abc' }] },
+        { path: writablePath, operations: [{ match: 'xyz', replacement: 'abc' }] },
         { VFS: mockVFS }
       );
 
@@ -206,94 +209,33 @@ describe('EditFile', () => {
     });
   });
 
-  describe('core file detection', () => {
-    it('should trigger audit for /core/ path', async () => {
-      mockVFS.read.mockResolvedValue('code');
-
-      await call(
-        { path: '/core/agent-loop.js', operations: [{ match: 'code', replacement: 'modified' }] },
-        { VFS: mockVFS, AuditLogger: mockAuditLogger }
-      );
-
-      expect(mockAuditLogger.logCoreWrite).toHaveBeenCalled();
-    });
-
-    it('should trigger audit for /infrastructure/ path', async () => {
-      mockVFS.read.mockResolvedValue('code');
-
-      await call(
-        { path: '/infrastructure/hitl.js', operations: [{ match: 'code', replacement: 'modified' }] },
-        { VFS: mockVFS, AuditLogger: mockAuditLogger }
-      );
-
-      expect(mockAuditLogger.logCoreWrite).toHaveBeenCalled();
-    });
-
-    it('should not trigger audit for /tools/ path', async () => {
-      mockVFS.read.mockResolvedValue('code');
-
-      await call(
-        { path: '/tools/my-tool.js', operations: [{ match: 'code', replacement: 'modified' }] },
-        { VFS: mockVFS, AuditLogger: mockAuditLogger }
-      );
-
-      expect(mockAuditLogger.logCoreWrite).not.toHaveBeenCalled();
-    });
-  });
-
-  describe('audit logging', () => {
-    it('should log core writes with logCoreWrite', async () => {
+  describe('candidate and evidence writes', () => {
+    it('should not emit core-write audit for writable candidate paths', async () => {
       mockVFS.read.mockResolvedValue('original');
 
       await call(
-        { path: '/core/test.js', operations: [{ match: 'original', replacement: 'modified' }] },
-        { VFS: mockVFS, AuditLogger: mockAuditLogger }
-      );
-
-      expect(mockAuditLogger.logCoreWrite).toHaveBeenCalledWith(
-        expect.objectContaining({
-          path: '/core/test.js',
-          operation: 'EditFile'
-        })
-      );
-    });
-
-    it('should not log when no changes made', async () => {
-      mockVFS.read.mockResolvedValue('no match');
-
-      await call(
-        { path: '/core/test.js', operations: [{ match: 'xyz', replacement: 'abc' }] },
-        { VFS: mockVFS, AuditLogger: mockAuditLogger }
+        { path: writablePath, operations: [{ match: 'original', replacement: 'modified' }] },
+        { VFS: mockVFS, AuditLogger: mockAuditLogger, EventBus: mockEventBus }
       );
 
       expect(mockAuditLogger.logCoreWrite).not.toHaveBeenCalled();
-    });
-  });
-
-  describe('event emission', () => {
-    it('should emit tool:core_write for core file changes', async () => {
-      mockVFS.read.mockResolvedValue('code');
-
-      await call(
-        { path: '/core/test.js', operations: [{ match: 'code', replacement: 'modified' }] },
-        { VFS: mockVFS, EventBus: mockEventBus }
-      );
-
-      expect(mockEventBus.emit).toHaveBeenCalledWith('tool:core_write', expect.objectContaining({
-        path: '/core/test.js',
-        operation: 'EditFile'
-      }));
-    });
-
-    it('should not emit event for non-core files', async () => {
-      mockVFS.read.mockResolvedValue('code');
-
-      await call(
-        { path: '/tools/test.js', operations: [{ match: 'code', replacement: 'modified' }] },
-        { VFS: mockVFS, EventBus: mockEventBus }
-      );
-
       expect(mockEventBus.emit).not.toHaveBeenCalled();
+    });
+
+    it('should write full replacement content to evidence paths', async () => {
+      mockVFS.read.mockResolvedValue('old evidence');
+
+      const result = await call(
+        { path: '/artifacts/result.txt', content: 'new evidence' },
+        { VFS: mockVFS }
+      );
+
+      expect(mockVFS.write).toHaveBeenCalledWith('/artifacts/result.txt', 'new evidence');
+      expect(result).toMatchObject({
+        path: '/artifacts/result.txt',
+        backend: 'vfs',
+        changed: true
+      });
     });
   });
 
@@ -302,12 +244,12 @@ describe('EditFile', () => {
       mockVFS.read.mockResolvedValue('hello world');
 
       const result = await call(
-        { path: '/test.txt', operations: [{ match: 'hello', replacement: 'hi' }] },
+        { path: writablePath, operations: [{ match: 'hello', replacement: 'hi' }] },
         { VFS: mockVFS }
       );
 
       expect(result).toEqual(expect.objectContaining({
-        path: '/test.txt',
+        path: writablePath,
         changed: true,
         operations: [{
           matchPreview: 'hello',
@@ -322,7 +264,7 @@ describe('EditFile', () => {
       mockVFS.read.mockResolvedValue(longString);
 
       const result = await call(
-        { path: '/test.txt', operations: [{ match: longString, replacement: longString }] },
+        { path: writablePath, operations: [{ match: longString, replacement: longString }] },
         { VFS: mockVFS }
       );
 

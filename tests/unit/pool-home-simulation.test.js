@@ -15,6 +15,8 @@ import {
   SIMULATION_MOTION_CLOCK_WRAP_SECONDS,
   POOLDAY_MORPH_TUNING,
   POOLDAY_FLOW_TUNING,
+  POOLDAY_GRAPH_NODE_IDS,
+  POOLDAY_GRAPH_TOPOLOGIES,
   SIMULATION_TARGET_STEP_MS
 } from '../../self/ui/pool-home/constants.js';
 
@@ -32,6 +34,27 @@ const withSimulationSearch = (search, callback) => {
     } else {
       delete globalThis.location;
     }
+  }
+};
+
+const topologyById = (id) => POOLDAY_GRAPH_TOPOLOGIES.find((topology) => topology.id === id);
+const pointOf = (topology, id) => topology.points[id];
+const xOf = (topology, id) => pointOf(topology, id)[0];
+const yOf = (topology, id) => pointOf(topology, id)[1];
+const expectSameX = (topology, ids, value = xOf(topology, ids[0])) => {
+  for (const id of ids) expect(xOf(topology, id)).toBeCloseTo(value, 8);
+};
+const expectSameY = (topology, ids, value = yOf(topology, ids[0])) => {
+  for (const id of ids) expect(yOf(topology, id)).toBeCloseTo(value, 8);
+};
+const expectIncreasingX = (topology, ids) => {
+  for (let index = 1; index < ids.length; index += 1) {
+    expect(xOf(topology, ids[index])).toBeGreaterThan(xOf(topology, ids[index - 1]));
+  }
+};
+const expectIncreasingY = (topology, ids) => {
+  for (let index = 1; index < ids.length; index += 1) {
+    expect(yOf(topology, ids[index])).toBeGreaterThan(yOf(topology, ids[index - 1]));
   }
 };
 
@@ -93,6 +116,106 @@ describe('pool home simulation performance contracts', () => {
     expect(labelCounts.Verify).toBeGreaterThanOrEqual(3);
     expect(labelCounts.Record).toBeGreaterThanOrEqual(2);
     expect(stages.size).toBe(6);
+  });
+
+  it('defines complete normalized topology points for every graph node', () => {
+    for (const topology of POOLDAY_GRAPH_TOPOLOGIES) {
+      expect(Object.keys(topology.points).sort()).toEqual([...POOLDAY_GRAPH_NODE_IDS].sort());
+      for (const id of POOLDAY_GRAPH_NODE_IDS) {
+        const point = topology.points[id];
+        expect(point).toHaveLength(2);
+        expect(point[0]).toBeGreaterThanOrEqual(0);
+        expect(point[0]).toBeLessThanOrEqual(1);
+        expect(point[1]).toBeGreaterThanOrEqual(0);
+        expect(point[1]).toBeLessThanOrEqual(1);
+      }
+    }
+  });
+
+  it('keeps topology coordinates aligned to their named shapes', () => {
+    const receiptTree = topologyById('receipt_tree');
+    expectSameX(receiptTree, ['requester', 'policy', 'assignment', 'agreement', 'settlement', 'ledger'], 0.5);
+    expectIncreasingY(receiptTree, ['requester', 'policy', 'assignment', 'runner0', 'verifier0', 'agreement', 'settlement', 'ledger']);
+    expectSameY(receiptTree, ['runner0', 'runner1', 'runner2', 'runner3']);
+    expectSameY(receiptTree, ['verifier0', 'verifier1']);
+
+    const runnerReduce = topologyById('runner_reduce');
+    expectIncreasingX(runnerReduce, ['requester', 'policy', 'assignment', 'runner0', 'verifier0', 'agreement', 'settlement', 'ledger']);
+    expectSameX(runnerReduce, ['runner0', 'runner1', 'runner2', 'runner3']);
+    expectSameX(runnerReduce, ['verifier0', 'verifier1']);
+    expectSameY(runnerReduce, ['requester', 'policy', 'assignment', 'agreement', 'settlement', 'ledger'], 0.5);
+
+    const star = topologyById('star_rendezvous');
+    expect(pointOf(star, 'assignment')).toEqual([0.5, 0.5]);
+    expect(['runner0', 'runner1', 'runner2', 'runner3'].every((id) => xOf(star, id) < xOf(star, 'assignment'))).toBe(true);
+    expect(yOf(star, 'runner0')).toBeLessThan(yOf(star, 'assignment'));
+    expect(yOf(star, 'runner3')).toBeGreaterThan(yOf(star, 'assignment'));
+    expectIncreasingX(star, ['assignment', 'verifier0', 'agreement', 'settlement', 'ledger']);
+
+    const hourglass = topologyById('hourglass');
+    expectSameX(hourglass, ['runner0', 'runner1']);
+    expectSameX(hourglass, ['runner2', 'runner3']);
+    expectSameY(hourglass, ['assignment', 'agreement'], 0.5);
+    expect(xOf(hourglass, 'assignment')).toBeLessThan(xOf(hourglass, 'agreement'));
+    expect(xOf(hourglass, 'assignment')).toBeGreaterThan(xOf(hourglass, 'runner1'));
+    expect(xOf(hourglass, 'agreement')).toBeLessThan(xOf(hourglass, 'runner2'));
+
+    const bowtie = topologyById('bowtie_exchange');
+    expectSameY(bowtie, ['requester', 'policy', 'assignment', 'agreement', 'settlement', 'ledger'], 0.5);
+    expectSameX(bowtie, ['runner0', 'runner1']);
+    expectSameX(bowtie, ['verifier0', 'verifier1']);
+    expect(yOf(bowtie, 'runner0')).toBeLessThan(yOf(bowtie, 'policy'));
+    expect(yOf(bowtie, 'runner1')).toBeGreaterThan(yOf(bowtie, 'policy'));
+    expect(yOf(bowtie, 'verifier0')).toBeLessThan(yOf(bowtie, 'settlement'));
+    expect(yOf(bowtie, 'verifier1')).toBeGreaterThan(yOf(bowtie, 'settlement'));
+    expectIncreasingX(bowtie, ['requester', 'policy', 'assignment', 'agreement', 'settlement', 'ledger']);
+
+    const braid = topologyById('braided_lanes');
+    expectIncreasingX(braid, ['requester', 'policy', 'runner0', 'assignment', 'runner2', 'verifier0', 'agreement', 'settlement', 'ledger']);
+    expectSameX(braid, ['runner0', 'runner1']);
+    expectSameX(braid, ['runner2', 'runner3']);
+    expectSameX(braid, ['verifier0', 'verifier1']);
+    expect(yOf(braid, 'runner0')).toBeLessThan(yOf(braid, 'runner1'));
+    expect(yOf(braid, 'runner2')).toBeGreaterThan(yOf(braid, 'runner3'));
+    expect(yOf(braid, 'verifier0')).toBeLessThan(yOf(braid, 'verifier1'));
+
+    const triangulation = topologyById('triangulation');
+    expect(yOf(triangulation, 'policy')).toBeLessThan(yOf(triangulation, 'requester'));
+    expect(xOf(triangulation, 'assignment')).toBeLessThan(xOf(triangulation, 'policy'));
+    expect(xOf(triangulation, 'agreement')).toBeGreaterThan(xOf(triangulation, 'policy'));
+    expect(['runner0', 'runner1', 'runner2', 'runner3'].every((id) => yOf(triangulation, id) > yOf(triangulation, 'assignment'))).toBe(true);
+    expect(['verifier0', 'verifier1'].every((id) => yOf(triangulation, id) > yOf(triangulation, 'runner1'))).toBe(true);
+    expectIncreasingY(triangulation, ['policy', 'assignment', 'runner1', 'verifier0', 'settlement', 'ledger']);
+
+    const honeycomb = topologyById('honeycomb');
+    expectSameY(honeycomb, ['policy', 'assignment']);
+    expectSameY(honeycomb, ['requester', 'runner0', 'runner1']);
+    expectSameY(honeycomb, ['runner2', 'verifier0', 'runner3']);
+    expectSameY(honeycomb, ['verifier1', 'agreement', 'settlement']);
+    expectIncreasingX(honeycomb, ['policy', 'assignment']);
+    expectIncreasingX(honeycomb, ['requester', 'runner0', 'runner1']);
+    expectIncreasingX(honeycomb, ['runner2', 'verifier0', 'runner3']);
+    expectIncreasingX(honeycomb, ['verifier1', 'agreement', 'settlement']);
+    expect(yOf(honeycomb, 'ledger')).toBeGreaterThan(yOf(honeycomb, 'settlement'));
+  });
+
+  it('renders initial node centers from active topology coordinates without hidden remapping', () => {
+    withSimulationSearch('?seed=layout-check&shape=runner_reduce', () => {
+      const state = createPoolSimulationState();
+      const width = 1200;
+      const height = 680;
+      const frame = buildPoolSimulationFrame(state, width, height, 1 / 60);
+      const topology = topologyById('runner_reduce');
+
+      for (const id of POOLDAY_GRAPH_NODE_IDS) {
+        const node = frame.nodes.find((item) => item.id === id);
+        const [x, y] = topology.points[id];
+        expect(node.baseX).toBeCloseTo(x * width, 8);
+        expect(node.baseY).toBeCloseTo(y * height, 8);
+        expect(node.x).toBeCloseTo(x * width, 8);
+        expect(node.y).toBeCloseTo(y * height, 8);
+      }
+    });
   });
 
   it('keeps pointer shooter particles inactive until the canvas is held', () => {

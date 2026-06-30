@@ -61,6 +61,8 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-sm);
+  min-height: 0;
+  overflow-y: auto;
 }
 
 .telemetry-entry {
@@ -68,6 +70,8 @@
   background: var(--bg);
   padding: var(--space-md);
   font-size: 11px;
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .telemetry-entry header {
@@ -108,6 +112,8 @@
   background: var(--bg);
   border: var(--border-sm) dotted var(--fg);
   padding: var(--space-sm);
+  white-space: pre-wrap;
+  word-break: break-word;
 }
 
 /* Warning = dashed border */
@@ -226,14 +232,17 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-md);
+  min-width: 0;
 }
 
 .status-item {
   display: flex;
   justify-content: space-between;
+  gap: var(--space-md);
   padding: var(--space-sm) var(--space-md);
   background: var(--bg);
   border: var(--border-sm) solid var(--fg);
+  min-width: 0;
 }
 
 .status-label {
@@ -244,6 +253,9 @@
 .status-value {
   font-size: 11px;
   font-weight: 600;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  text-align: right;
 }
 
 /* Models list in Status panel */
@@ -734,6 +746,7 @@
   display: flex;
   align-items: center;
   gap: var(--space-md);
+  min-width: 0;
 }
 
 .replay-file-label {
@@ -822,12 +835,15 @@
   border: var(--border-sm) solid var(--fg);
   font-family: var(--font-a);
   font-size: 11px;
+  min-height: 0;
+  overflow-y: auto;
 }
 
 .replay-event {
   padding: 4px var(--space-sm);
   display: flex;
   gap: var(--space-sm);
+  min-width: 0;
 }
 
 /* Event types - border left styles */
@@ -857,7 +873,8 @@
 .replay-event-content {
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
+  white-space: normal;
+  word-break: break-word;
 }
 
 /* Arena Results Panel */
@@ -1017,6 +1034,8 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-sm);
+  min-height: 0;
+  overflow-y: auto;
 }
 
 .tool-entry {
@@ -1047,6 +1066,7 @@
   justify-content: space-between;
   align-items: baseline;
   gap: var(--space-sm);
+  min-width: 0;
 }
 
 .tool-name {
@@ -1093,7 +1113,8 @@
   opacity: var(--opacity-secondary);
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
+  white-space: normal;
+  word-break: break-word;
 }
 
 .tool-detail {
@@ -1139,6 +1160,7 @@
   flex-direction: column;
   gap: var(--space-md);
   height: 100%;
+  min-width: 0;
 }
 
 .memory-header {
@@ -1177,6 +1199,8 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-sm);
+  min-height: 0;
+  overflow-y: auto;
 }
 
 .memory-entry {

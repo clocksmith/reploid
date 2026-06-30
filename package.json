@@ -36,6 +36,7 @@
     "deploy:pool-env": "node scripts/print-pool-env.js",
     "verify:pool": "node scripts/verify-pool-production.js",
     "smoke:pool": "node scripts/pool-browser-smoke.js",
+    "smoke:pool:actual": "node scripts/pool-actual-browser-smoke.js",
     "verify:module-system": "node scripts/verify-module-system.js"
   },
   "keywords": [

@@ -6,7 +6,12 @@ import { createDopplerRuntime } from '../../pool/doppler-runtime.js';
 import { createProviderClient } from '../../pool/provider-client.js';
 import { buildModelArtifactUrls, verifyModelArtifactManifest } from '../../pool/model-artifacts.js';
 import { createRequesterClient } from '../../pool/requester-client.js';
-import { LAUNCH_MODEL, buildLaunchProviderModel, getEnabledPoolModelContract } from '../../pool/model-contract.js';
+import {
+  LAUNCH_MODEL,
+  buildLaunchProviderModel,
+  getEnabledPoolModelContract,
+  validateModelRuntimeCapabilities
+} from '../../pool/model-contract.js';
 import { createPoolIdentity } from '../../pool/identity.js';
 import { FASTEST_RECEIPT_POLICY_ID, listPolicies } from '../../pool/policy-router.js';
 import { createPeerProviderNode, runPeerJob } from '../../pool/peer-room.js';
@@ -200,6 +205,26 @@ export const bindProviderControls = () => {
     });
     const model = getEnabledPoolModelContract(modelInput.value || LAUNCH_MODEL.modelId);
     if (!model) throw new Error('Selected model is not enabled for peer contribution');
+    const deviceInfo = typeof runtime?.getDeviceInfo === 'function'
+      ? await runtime.getDeviceInfo()
+      : { hasWebGPU: !!navigator.gpu, features: [] };
+    const capabilityCheck = validateModelRuntimeCapabilities(model, deviceInfo);
+    if (!capabilityCheck.ok) {
+      updateProviderHealth({
+        webgpu: 'unsupported_model_capability',
+        model: 'capability_blocked',
+        queue: 'stopped'
+      });
+      const error = new Error(capabilityCheck.reasons.join('; '));
+      error.code = 'model_runtime_capability_unsupported';
+      error.payload = {
+        model,
+        deviceInfo,
+        capabilityCheck,
+        action: capabilityCheck.action
+      };
+      throw error;
+    }
     if (modelMatchesLoadedRuntime(model) && runtime.isReady?.()) {
       updateProviderHealth({
         model: model.modelId,
@@ -245,7 +270,7 @@ export const bindProviderControls = () => {
     }
     updateProviderHealth({
       model: model.modelId,
-      artifact: artifactPreflight ? 'verified_manifest' : 'ready',
+      artifact: artifactPreflight.ok ? 'verified_manifest' : 'manifest_unavailable',
       trust: 'receipt-backed'
     });
     return {
