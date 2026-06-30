@@ -38,6 +38,22 @@ const installDeterministicRuntime = async (context, {
   loadModelResult = null
 }) => {
   await context.addInitScript(({ launchModel, label, delayMs, initialReady, loadResult }) => {
+    const textEncoder = new TextEncoder();
+    const bytesToHex = (bytes) => Array.from(bytes)
+      .map((byte) => byte.toString(16).padStart(2, '0'))
+      .join('');
+    const canonicalize = (value) => {
+      if (value === null || typeof value !== 'object') return JSON.stringify(value);
+      if (Array.isArray(value)) return `[${value.map((item) => canonicalize(item)).join(',')}]`;
+      const keys = Object.keys(value).sort();
+      return `{${keys.map((key) => `${JSON.stringify(key)}:${canonicalize(value[key])}`).join(',')}}`;
+    };
+    const sha256Hex = async (value) => {
+      const input = value instanceof Uint8Array ? value : textEncoder.encode(String(value));
+      const digest = await crypto.subtle.digest('SHA-256', input);
+      return `sha256:${bytesToHex(new Uint8Array(digest))}`;
+    };
+    const hashJson = async (value) => sha256Hex(canonicalize(value));
     const runtimeModel = { ...launchModel };
     const runtimeState = {
       ready: initialReady,
@@ -67,8 +83,8 @@ const installDeterministicRuntime = async (context, {
         publicApi: 'generate',
         profile: { implementation: 'playwright-p2p', label }
       }),
-      getRuntimeProfile: async () => ({
-        runtimeProfile: {
+      getRuntimeProfile: async () => {
+        const runtimeProfile = {
           profileVersion: 'playwright-p2p/v1',
           model: runtimeModel,
           runtime: {
@@ -85,9 +101,12 @@ const installDeterministicRuntime = async (context, {
             platform: navigator.platform,
             label
           }
-        },
-        runtimeProfileHash: `sha256:playwright_p2p_${label}`
-      }),
+        };
+        return {
+          runtimeProfile,
+          runtimeProfileHash: await hashJson(runtimeProfile)
+        };
+      },
       getDeviceInfo: async () => ({
         hasWebGPU: true,
         probeStatus: 'playwright',
@@ -299,14 +318,14 @@ test.describe('Run, Mesh, Record peer room', () => {
     }
   });
 
-  test('keeps a twelve-page mesh usable and records the accepted ledger locally', async ({ browser, baseURL }, testInfo) => {
+  test('runs a twelve-provider mesh and records the accepted ledger locally', async ({ browser, baseURL }, testInfo) => {
     const roomId = roomIdFor(testInfo, 'twelve');
     const contexts = [];
     try {
       const context = await createPoolContext(browser, 'twelve_page_mesh');
       contexts.push(context);
       const providerPages = [];
-      for (let index = 0; index < 10; index += 1) {
+      for (let index = 0; index < 12; index += 1) {
         providerPages.push(await openPoolPage(context, baseURL, '/mesh', roomId));
       }
       await Promise.all(providerPages.map(startProviderPage));
@@ -317,11 +336,17 @@ test.describe('Run, Mesh, Record peer room', () => {
       await runPeerPrompt(runPage, 'twelve page browser quorum');
       const result = await readRunResult(runPage);
 
-      expect(providerPages.length + 2).toBe(12);
+      expect(providerPages).toHaveLength(12);
       expect(result.transport).toBe('webrtc_peer_room');
-      expect(result.assignments).toHaveLength(4);
-      expect(result.receiptPayloads).toHaveLength(4);
-      expect(result.agreement.accepted).toBe(true);
+      expect(result.assignments).toHaveLength(12);
+      expect(result.receiptPayloads).toHaveLength(12);
+      expect(result.agreement).toMatchObject({
+        accepted: true,
+        mode: 'ring_quorum',
+        requiredAgreement: 7,
+        acceptedProviderCount: 12
+      });
+      expect(new Set(result.assignments.map((assignment) => assignment.providerId)).size).toBe(12);
 
       await recordPage.reload({ waitUntil: 'domcontentloaded' });
       await recordPage.waitForSelector('.pool-home');

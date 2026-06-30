@@ -6,7 +6,10 @@ import {
   getPolicy,
   validateJobRequest
 } from '../../server/pool/policy-router.js';
-import { LAUNCH_MODEL as SERVER_LAUNCH_MODEL } from '../../server/pool/model-contract.js';
+import {
+  LAUNCH_MODEL as SERVER_LAUNCH_MODEL,
+  getEnabledPoolModelContract as getServerEnabledPoolModelContract
+} from '../../server/pool/model-contract.js';
 import { assignJob } from '../../server/pool/scheduler.js';
 import { createPoolStore } from '../../server/pool/store.js';
 import { runtimeProfileHash as serverRuntimeProfileHash } from '../../server/pool/runtime-profile.js';
@@ -17,8 +20,11 @@ import {
 import { validatePolicyRequest } from '../../self/pool/policy-router.js';
 import {
   LAUNCH_MODEL as BROWSER_LAUNCH_MODEL,
-  buildLaunchModelArtifactUrls
+  buildLaunchModelArtifactUrls,
+  getEnabledPoolModelContract as getBrowserEnabledPoolModelContract,
+  validateModelRuntimeCapabilities
 } from '../../self/pool/model-contract.js';
+import { buildModelArtifactUrls } from '../../self/pool/model-artifacts.js';
 import {
   buildRuntimeProfile
 } from '../../self/pool/runtime-profile.js';
@@ -38,6 +44,16 @@ const makeJob = (overrides = {}) => ({
   },
   generationConfig: { ...SERVER_GENERATION_CONFIG },
   ...overrides
+});
+
+const QWEN_MODEL_ID = 'qwen-3-5-0-8b-q4k-ehaf16';
+
+const modelRequirementsFor = (model) => ({
+  modelId: model.modelId,
+  modelHash: model.modelHash,
+  manifestHash: model.manifestHash,
+  runtime: model.runtime,
+  backend: model.backend
 });
 
 describe('pool launch contract', () => {
@@ -68,7 +84,7 @@ describe('pool launch contract', () => {
     const ringPolicy = validateJobRequest(makeJob({ policyId: 'ring_quorum_receipt' }));
     expect(ringPolicy.ok).toBe(true);
     expect(ringPolicy.policy.adaptiveRing).toBe(true);
-    expect(ringPolicy.policy.maxRingSize).toBe(4);
+    expect(ringPolicy.policy.maxRingSize).toBe(12);
   });
 
   it('keeps browser policy validation aligned with the server launch contract', () => {
@@ -95,6 +111,69 @@ describe('pool launch contract', () => {
     });
     expect(missingBackend.ok).toBe(false);
     expect(missingBackend.reasons).toContain('modelRequirements.backend is required');
+  });
+
+  it('accepts Qwen 0.8B as an enabled Poolday model contract', () => {
+    const serverModel = getServerEnabledPoolModelContract(QWEN_MODEL_ID);
+    const browserModel = getBrowserEnabledPoolModelContract(QWEN_MODEL_ID);
+    expect(serverModel).toMatchObject({
+      modelId: QWEN_MODEL_ID,
+      modelHash: 'sha256:fab133e49d6dc67912fc3a087222ec44ca1941d9b7bc36c60cb1379863a6dd4f',
+      manifestHash: 'sha256:0b81efea7c6ccde9a79d6788083a28ab39b3cae6e21b1a08075b14194bcbe34e',
+      tokenizerHash: 'sha256:8fc3b6de02de5a8e21d3867aba335e2d9a3c2263201f55daaed1feab3541bea4',
+      runtime: 'doppler',
+      backend: 'browser-webgpu',
+      enabled: true
+    });
+    expect(serverModel.runtimeCompatibility).toMatchObject({
+      requiredWebGpuFeatures: [],
+      fallbackStatus: 'doppler_0_4_4_manifest_capability_remap',
+      capabilityFallbacks: [
+        expect.objectContaining({
+          whenMissingWebGpuFeatures: ['shader-f16'],
+          runtime: 'doppler-gpu@0.4.4',
+          transform: 'widenToF32Activations',
+          prefillProjectionKernel: 'fused_matmul_q4_batched_multicol_shared.wgsl',
+          kvDtype: 'f32',
+          status: 'supported'
+        })
+      ]
+    });
+    expect(browserModel).toEqual(serverModel);
+
+    for (const policyId of ['fastest_receipt', 'canary_audited', 'redundant_agreement', 'ring_quorum_receipt']) {
+      expect(getPolicy(policyId).allowedModels).toContain(QWEN_MODEL_ID);
+    }
+
+    const serverResult = validateJobRequest(makeJob({
+      modelRequirements: modelRequirementsFor(serverModel)
+    }));
+    expect(serverResult.ok).toBe(true);
+
+    const browserResult = validatePolicyRequest({
+      modelRequirements: modelRequirementsFor(browserModel),
+      generationConfig: { ...BROWSER_GENERATION_CONFIG }
+    });
+    expect(browserResult.ok).toBe(true);
+
+    expect(validateModelRuntimeCapabilities(browserModel, {
+      hasWebGPU: true,
+      features: ['shader-f16']
+    }).ok).toBe(true);
+    const noF16 = validateModelRuntimeCapabilities(browserModel, {
+      hasWebGPU: true,
+      features: []
+    });
+    expect(noF16.ok).toBe(true);
+    expect(noF16.missingFeatures).toEqual([]);
+    expect(noF16.fallbackStatus).toBe('doppler_0_4_4_manifest_capability_remap');
+
+    expect(buildModelArtifactUrls(browserModel)).toEqual({
+      root: 'https://huggingface.co/Clocksmith/rdrr/resolve/a6118fb24a8e6c4fe7527f1a3dc7b406e0a3ef10/models/qwen-3-5-0-8b-q4k-ehaf16',
+      manifest: 'https://huggingface.co/Clocksmith/rdrr/resolve/a6118fb24a8e6c4fe7527f1a3dc7b406e0a3ef10/models/qwen-3-5-0-8b-q4k-ehaf16/manifest.json',
+      tokenizer: 'https://huggingface.co/Clocksmith/rdrr/resolve/a6118fb24a8e6c4fe7527f1a3dc7b406e0a3ef10/models/qwen-3-5-0-8b-q4k-ehaf16/tokenizer.json',
+      shards: 'https://huggingface.co/Clocksmith/rdrr/resolve/a6118fb24a8e6c4fe7527f1a3dc7b406e0a3ef10/models/qwen-3-5-0-8b-q4k-ehaf16/'
+    });
   });
 
   it('rejects split-model requirements until the runtime exposes model partition execution', () => {
@@ -126,7 +205,8 @@ describe('pool launch contract', () => {
 
   it('keeps browser runtime deployment config aligned across server and browser', () => {
     expect(BROWSER_BROWSER_RUNTIME_CONFIG).toEqual(SERVER_BROWSER_RUNTIME_CONFIG);
-    expect(BROWSER_BROWSER_RUNTIME_CONFIG.dopplerModuleUrl).toBe('https://esm.sh/doppler-gpu@0.4.3/src/client/doppler-api.browser.js?bundle');
+    expect(BROWSER_BROWSER_RUNTIME_CONFIG.dopplerModuleUrl).toBe('https://esm.sh/doppler-gpu@0.4.4/src/client/doppler-api.browser.js?bundle');
+    expect(BROWSER_BROWSER_RUNTIME_CONFIG.dopplerKernelBaseUrl).toBe('https://esm.sh/doppler-gpu@0.4.4/src/gpu/kernels');
     expect(BROWSER_BROWSER_RUNTIME_CONFIG.modelBaseUrl).toBe('https://reploid.web.app/models');
   });
 
@@ -163,7 +243,7 @@ describe('pool launch contract', () => {
     expect(result.reasons.some((reason) => reason.startsWith('provider signature verification failed:'))).toBe(true);
   });
 
-  it('builds a capped majority ring for ring quorum jobs', async () => {
+  it('builds a capped twelve-provider majority ring for ring quorum jobs', async () => {
     const store = createPoolStore();
     const runtimeProfile = buildRuntimeProfile({
       modelInfo: {
@@ -203,7 +283,7 @@ describe('pool launch contract', () => {
       }
     });
     const runtimeProfileHash = serverRuntimeProfileHash(runtimeProfile);
-    for (let index = 0; index < 5; index += 1) {
+    for (let index = 0; index < 14; index += 1) {
       store.registerProvider({
         providerId: `provider_${index}`,
         publicKey: `public_key_${index}`,
@@ -234,12 +314,12 @@ describe('pool launch contract', () => {
     });
     const result = await assignJob({ store, job, policy: getPolicy('ring_quorum_receipt') });
     expect(result.ok).toBe(true);
-    expect(result.assignments).toHaveLength(4);
-    expect(result.ring.ringSize).toBe(4);
-    expect(result.ring.requiredAgreement).toBe(3);
+    expect(result.assignments).toHaveLength(12);
+    expect(result.ring.ringSize).toBe(12);
+    expect(result.ring.requiredAgreement).toBe(7);
     expect(result.ring.effectiveTrustTier).toBe('T4_max_ring_quorum_receipt');
     expect(result.ring.ringId).toBe(`ring_${result.ring.layoutHash.replace(/^sha256:/, '').slice(0, 16)}`);
-    expect(new Set(result.ring.providerIds).size).toBe(4);
+    expect(new Set(result.ring.providerIds).size).toBe(12);
     expect(result.assignments.every((assignment) => assignment.ring.layoutHash === result.ring.layoutHash)).toBe(true);
     expect(result.assignments.every((assignment) => assignment.trustTier === result.ring.effectiveTrustTier)).toBe(true);
     expect(result.assignments.every((assignment) => assignment.ring.ringAttemptId === result.ring.ringAttemptId)).toBe(true);
@@ -312,5 +392,6 @@ describe('pool config as code contract', () => {
     expect(ringPolicy.providerAdmissionPolicyId).toBe('tiered_browser_provider_v1');
     expect(effectiveTrustTierForRingSize(1, ringPolicy)).toBe('T1_ring_baseline');
     expect(effectiveTrustTierForRingSize(4, ringPolicy)).toBe('T4_max_ring_quorum_receipt');
+    expect(effectiveTrustTierForRingSize(12, ringPolicy)).toBe('T4_max_ring_quorum_receipt');
   });
 });

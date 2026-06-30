@@ -54,6 +54,13 @@ test('a claimed iteration produces input, trace, toolcall, score, mutation, deci
   expect(toolcalls.calls).toEqual(expect.arrayContaining([
     expect.objectContaining({ name: 'WriteFile' })
   ]));
+  expect(toolcalls.modelUsed).toMatchObject({
+    id: 'mock-model',
+    provider: 'mock'
+  });
+  expect(toolcalls.results).toEqual(expect.arrayContaining([
+    expect.objectContaining({ tool: 'WriteFile' })
+  ]));
   expect(score.score).toMatchObject({
     passed: true,
     toolCallCount: 1,

@@ -4,6 +4,7 @@
 
 import Utils from '../core/utils.js';
 import { SELF_BOOT_SPEC, toSourceWebPath } from '../boot-spec.js';
+import { getRuntimeUiSpecByMode } from '../lab/profiles.js';
 import { rotateIdentityBundle } from '../identity.js';
 import {
   clearRequestedFreshIdentity,
@@ -264,27 +265,15 @@ async function completeAwaken(bootResult, goal, wizardContainer) {
   const handledVfsChangeDetails = new WeakSet();
 
   const getRuntimeUiSpec = () => (
-    runtimeMode === 'x'
-        ? {
-            name: 'proto',
-            stylePath: 'styles/proto/index.css',
-            vfsModulePath: '/ui/proto/index.js',
-            sourceModulePath: '/ui/proto/index.js'
-          }
-      : runtimeMode === 'reploid'
+    getRuntimeUiSpecByMode(runtimeMode)
+      || (runtimeMode === 'reploid'
         ? {
             name: 'capsule',
             stylePath: SELF_BOOT_SPEC.runtime.uiStylePath,
             vfsModulePath: SELF_BOOT_SPEC.runtime.uiEntry,
             sourceModulePath: toSourceWebPath(SELF_BOOT_SPEC.runtime.uiEntry)
           }
-        : {
-            name: 'zero',
-            stylePath: '/self/styles/zero.css',
-            sourceStylePath: 'styles/zero.css',
-            vfsModulePath: '/self/ui/zero/index.js',
-            sourceModulePath: '/ui/zero/index.js'
-          }
+        : getRuntimeUiSpecByMode('zero'))
   );
 
   const ensureRuntimeStyles = (version, spec) => {
@@ -325,6 +314,9 @@ async function completeAwaken(bootResult, goal, wizardContainer) {
         : withQuery(spec.vfsModulePath, { v: version, ...peerQuery });
       mod = await import(vfsUrl);
     } catch (error) {
+      if (spec.allowSourceFallback === false) {
+        throw error;
+      }
       mod = await import(withQuery(spec.sourceModulePath, { v: version, ...peerQuery }));
     }
     const runtime = mod.default || mod;
@@ -646,8 +638,6 @@ async function completeReploidAwaken(goal, wizardContainer) {
     // Remove seed-phase progress loader now that start-app has control.
     document.getElementById('boot-vfs-progress')?.remove();
 
-    let stopParticleBg = null;
-
     const runtimeMode = typeof window.getReploidMode === 'function'
       ? window.getReploidMode()
       : 'reploid';
@@ -682,11 +672,6 @@ async function completeReploidAwaken(goal, wizardContainer) {
           loadSharedBootModules().catch((err) => {
             console.warn('[Boot] Failed to prewarm shared boot modules:', err?.message || err);
           });
-          if ((routeMode || runtimeMode) === 'zero') {
-            import(withQuery('/ui/zero/particle-bg.js', getCurrentReploidPeerQuery()))
-              .then(({ startParticleBg }) => { stopParticleBg = startParticleBg(); })
-              .catch(() => {});
-          }
         }
       } else {
         const { initWizard: initWizardUI } = await import(withQuery('/ui/boot-wizard/index.js', getCurrentReploidPeerQuery()));

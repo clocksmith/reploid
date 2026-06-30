@@ -23,6 +23,7 @@ const ToolExecutor = {
     const DEFAULT_RETRY_DELAY_MS = 100;
     const NON_RETRYABLE_ERROR_PATTERNS = [
       /^File not found:/i,
+      /^File not found in VFS:/i,
       /^Missing .+ argument/i,
       /^Invalid (backend|mode|offset|length)/i,
       /^Path traversal is not allowed/i,

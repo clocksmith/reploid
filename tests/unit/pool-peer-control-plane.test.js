@@ -147,7 +147,7 @@ describe('pool peer control plane', () => {
       modelRequirements: launchModelAdvert()
     });
     const adverts = [];
-    for (let index = 0; index < 4; index += 1) {
+    for (let index = 0; index < 14; index += 1) {
       const providerKeys = await createSigningKeyPair();
       const providerPublicKey = await exportPublicKey(providerKeys.publicKey);
       adverts.push(await createSignedProviderAdvert({
@@ -155,7 +155,7 @@ describe('pool peer control plane', () => {
         providerPublicKey,
         privateKey: providerKeys.privateKey,
         models: [launchModelAdvert()],
-        runtimeProfileHash: `sha256:runtime_${index}`,
+        runtimeProfileHash: 'sha256:runtime_shared',
         availability: {
           acceptedPolicies: ['ring_quorum_receipt']
         }
@@ -166,9 +166,9 @@ describe('pool peer control plane', () => {
     const second = await buildPeerAssignmentPlan({ jobIntent: intent.intent, providerAdverts: [...adverts].reverse() });
 
     expect(first.ok).toBe(true);
-    expect(first.assignments).toHaveLength(4);
-    expect(first.ring.ringSize).toBe(4);
-    expect(first.ring.requiredAgreement).toBe(3);
+    expect(first.assignments).toHaveLength(12);
+    expect(first.ring.ringSize).toBe(12);
+    expect(first.ring.requiredAgreement).toBe(7);
     expect(first.assignments.map((assignment) => assignment.providerId)).toEqual(
       second.assignments.map((assignment) => assignment.providerId)
     );
@@ -177,6 +177,45 @@ describe('pool peer control plane', () => {
     );
     expect(first.assignments.every((assignment) => assignment.requiresPromptPayload === true)).toBe(true);
     expect(first.assignments.every((assignment) => assignment.prompt === undefined)).toBe(true);
+  });
+
+  it('selects a homogeneous runtime-profile group for strict ring quorum', async () => {
+    const requesterKeys = await createSigningKeyPair();
+    const requesterPublicKey = await exportPublicKey(requesterKeys.publicKey);
+    const intent = await createSignedJobIntent({
+      requesterId: 'requester_runtime_group',
+      requesterPublicKey,
+      privateKey: requesterKeys.privateKey,
+      prompt: 'runtime compatible ring prompt',
+      policyId: 'ring_quorum_receipt',
+      modelRequirements: launchModelAdvert()
+    });
+    const adverts = [];
+    for (let index = 0; index < 5; index += 1) {
+      const providerKeys = await createSigningKeyPair();
+      const providerPublicKey = await exportPublicKey(providerKeys.publicKey);
+      adverts.push(await createSignedProviderAdvert({
+        providerId: `provider_runtime_group_${index}`,
+        providerPublicKey,
+        privateKey: providerKeys.privateKey,
+        models: [launchModelAdvert()],
+        runtimeProfileHash: index < 3 ? 'sha256:runtime_group_a' : 'sha256:runtime_group_b',
+        availability: {
+          acceptedPolicies: ['ring_quorum_receipt']
+        }
+      }));
+    }
+
+    const plan = await buildPeerAssignmentPlan({
+      jobIntent: intent.intent,
+      providerAdverts: adverts
+    });
+
+    expect(plan.ok).toBe(true);
+    expect(plan.assignments).toHaveLength(3);
+    expect(plan.ring.ringSize).toBe(3);
+    expect(plan.ring.requiredAgreement).toBe(2);
+    expect(plan.assignments.every((assignment) => assignment.runtimeProfileHash === 'sha256:runtime_group_a')).toBe(true);
   });
 
   it('forms receipt agreement and signed ledger events from matching peer receipts', async () => {
@@ -199,7 +238,7 @@ describe('pool peer control plane', () => {
         providerPublicKey,
         privateKey: providerKeys.privateKey,
         models: [launchModelAdvert()],
-        runtimeProfileHash: `sha256:runtime_agreement_${index}`,
+        runtimeProfileHash: 'sha256:runtime_agreement_shared',
         availability: {
           acceptedPolicies: ['ring_quorum_receipt']
         }

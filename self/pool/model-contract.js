@@ -34,6 +34,53 @@ export function getEnabledPoolModelContract(modelId = LAUNCH_MODEL.modelId) {
   return ENABLED_MODEL_CATALOG.find((model) => model.modelId === modelId) || null;
 }
 
+const sortedFeatureList = (features) => (
+  Array.isArray(features)
+    ? [...new Set(features.map((feature) => String(feature || '').trim()).filter(Boolean))].sort()
+    : []
+);
+
+const deviceFeatureSet = (deviceInfo = {}) => {
+  const features = new Set(sortedFeatureList(deviceInfo.features));
+  if (deviceInfo.hasF16 === true) features.add('shader-f16');
+  if (deviceInfo.hasSubgroups === true) features.add('subgroups');
+  return features;
+};
+
+export function getModelRequiredWebGpuFeatures(model = {}) {
+  return sortedFeatureList(
+    model.runtimeCompatibility?.requiredWebGpuFeatures
+    || model.runtimeCompatibility?.requiredFeatures
+    || model.requiredWebGpuFeatures
+    || []
+  );
+}
+
+export function validateModelRuntimeCapabilities(model = {}, deviceInfo = {}) {
+  const requiredFeatures = getModelRequiredWebGpuFeatures(model);
+  const reasons = [];
+  if (model.backend === 'browser-webgpu' && deviceInfo.hasWebGPU === false) {
+    reasons.push('WebGPU is required for browser provider execution');
+  }
+  const features = deviceFeatureSet(deviceInfo);
+  const missingFeatures = requiredFeatures.filter((feature) => !features.has(feature));
+  if (missingFeatures.length > 0) {
+    reasons.push(
+      `${model.modelId || 'selected model'} requires WebGPU feature(s): ${missingFeatures.join(', ')}`
+    );
+  }
+  return {
+    ok: reasons.length === 0,
+    reasons,
+    requiredFeatures,
+    missingFeatures,
+    observedFeatures: [...features].sort(),
+    fallbackStatus: model.runtimeCompatibility?.fallbackStatus || null,
+    action: model.runtimeCompatibility?.capabilityAction
+      || 'Use a browser/GPU runtime with the required WebGPU features, or choose another enabled Poolday model.'
+  };
+}
+
 const replaceModelPathTokens = (template, model = LAUNCH_MODEL) => String(template || '')
   .replace(/<modelId>/g, model.modelId)
   .replace(/<manifestHash>/g, model.manifestHash)
@@ -122,6 +169,8 @@ export default {
   buildLaunchModelArtifactUrls,
   buildLaunchModelRequirements,
   buildLaunchProviderModel,
+  getModelRequiredWebGpuFeatures,
   isLaunchModelRequirement,
+  validateModelRuntimeCapabilities,
   validateLaunchModelRequirement
 };

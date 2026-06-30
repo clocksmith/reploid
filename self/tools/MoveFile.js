@@ -2,26 +2,10 @@
  * @fileoverview MoveFile - Move files within writable VFS roots.
  */
 
-const VFS_WRITABLE_ROOTS = ['/shadow', '/artifacts', '/cycles'];
+import { assertWritableVfsPath, normalizeVfsPath } from '../config/vfs-policy.js';
 
 const normalizePath = (rawPath, label) => {
-  const value = String(rawPath || '').trim();
-  if (!value) throw new Error(`Missing ${label} argument`);
-  return value.startsWith('/') ? value : `/${value}`;
-};
-
-const isWithinRoot = (path, root) => {
-  const normalizedRoot = root.endsWith('/') ? root.slice(0, -1) : root;
-  return path === normalizedRoot || path.startsWith(`${normalizedRoot}/`);
-};
-
-const assertWritablePath = (path, operation) => {
-  if (path.split('/').includes('..')) {
-    throw new Error('Path traversal is not allowed');
-  }
-  if (!VFS_WRITABLE_ROOTS.some((root) => isWithinRoot(path, root))) {
-    throw new Error(`VFS path not ${operation} by MoveFile: ${path}. Move files within /shadow, /artifacts, or /cycles.`);
-  }
+  return normalizeVfsPath(rawPath, label);
 };
 
 async function call(args = {}, deps = {}) {
@@ -30,8 +14,8 @@ async function call(args = {}, deps = {}) {
 
   const sourcePath = normalizePath(args.source || args.from || args.src, 'source');
   const targetPath = normalizePath(args.target || args.to || args.dest || args.path, 'target');
-  assertWritablePath(sourcePath, 'movable');
-  assertWritablePath(targetPath, 'writable');
+  assertWritableVfsPath(sourcePath, 'MoveFile');
+  assertWritableVfsPath(targetPath, 'MoveFile');
 
   const overwrite = args.overwrite !== false;
   const targetExists = await VFS.exists(targetPath).catch(() => false);

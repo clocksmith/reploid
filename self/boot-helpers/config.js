@@ -5,7 +5,7 @@
 
 import { applyModuleOverrides, normalizeOverrides, resolveBaseModules } from '../config/module-resolution.js';
 import { getDefaultGenesisLevelForMode, normalizeBootMode } from '../config/boot-modes.js';
-import { getRouteBootSpec } from '../boot-spec.js';
+import { getLabRouteProfileByPath } from '../config/lab-route-profiles.js';
 import { readVfsFile } from './vfs-bootstrap.js';
 
 const readJsonFromVfs = async (path) => {
@@ -61,7 +61,7 @@ export function getGenesisLevel(genesisConfig) {
   const configuredDefault = genesisConfig.defaultLevel || validLevels[0] || 'tabula';
   const routeGenesisLevel = typeof window === 'undefined'
     ? ''
-    : getRouteBootSpec(window.location.pathname || '/')?.genesisLevel || '';
+    : getLabRouteProfileByPath(window.location.pathname || '/')?.genesisLevel || '';
 
   if (routeGenesisLevel && validLevels.includes(routeGenesisLevel)) {
     if (localStorage.getItem('REPLOID_GENESIS_LEVEL') !== routeGenesisLevel) {

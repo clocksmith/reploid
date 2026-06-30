@@ -5,6 +5,7 @@
 
 import { buildCoreToolSet } from './config.js';
 import { toSourceWebPath } from '../boot-spec.js';
+import { getBootSeedProfile } from '../config/boot-seed.js';
 
 /**
  * Convert file path to VFS path.
@@ -187,6 +188,12 @@ export async function seedCodeIntel(vfs, logger) {
  */
 export async function hydrateVFS(vfs, genesisConfig, resolvedModules, genesisLevel, logger) {
   try {
+    const bootProfile = getBootSeedProfile();
+    if (bootProfile === 'zero_home') {
+      logger.info('[Boot] Skipping boot-helper VFS hydration for minimal boot profile "zero_home".');
+      return;
+    }
+
     const preserveOnBoot = typeof localStorage !== 'undefined' &&
       localStorage.getItem('REPLOID_PRESERVE_ON_BOOT') === 'true';
 

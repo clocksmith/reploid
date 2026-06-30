@@ -9,6 +9,41 @@ const VFS_DB_NAME = 'reploid-vfs-v0';
 const VFS_STORE_NAME = 'files';
 const INSTANCE_QUERY_PARAM = 'instance';
 const INSTANCE_ID_MAX_LENGTH = 64;
+const LAB_RUNTIME_ROUTES = new Set(['/0', '/x']);
+const LAB_RUNTIME_ASSET_PATHS = new Set([
+  '/blueprint-index.json',
+  '/index.html',
+  '/kernel/boot.js',
+  '/styles/boot.css',
+  '/styles/rd.css',
+  '/styles/rd-components.css',
+  '/styles/rd-primitives.css',
+  '/styles/rd-tokens.css',
+  '/styles/zero.css',
+  '/ui/toast.js'
+]);
+const LAB_RUNTIME_ASSET_PREFIXES = [
+  '/boot-helpers/',
+  '/blueprints/',
+  '/capabilities/',
+  '/config/',
+  '/core/',
+  '/entry/',
+  '/host/',
+  '/infrastructure/',
+  '/lab/',
+  '/personas/',
+  '/prompts/',
+  '/self/',
+  '/styles/proto/',
+  '/tools/',
+  '/ui/components/',
+  '/ui/dashboard/',
+  '/ui/panels/',
+  '/ui/proto/',
+  '/ui/shared/',
+  '/ui/zero/'
+];
 const SELF_BOOTSTRAP_PATHS = new Set([
   '/index.html',
   '/kernel/index.html',
@@ -49,6 +84,7 @@ const NETWORK_FALLBACK_PREFIXES = [
   '/config/',
   '/core/',
   '/infrastructure/',
+  '/lab/',
   '/capsule/',
   '/pool/',
   '/ui/pool-home/',
@@ -57,24 +93,56 @@ const NETWORK_FALLBACK_PREFIXES = [
   '/ui/boot-wizard/'
 ];
 
+try {
+  importScripts('/core/import-rewrite.js');
+} catch (error) {
+  console.warn('[SW] Shared import rewrite helper unavailable:', error?.message || error);
+}
+
 // Open IndexedDB connections to VFS databases keyed by instance.
 const vfsDBMap = new Map();
 const vfsDBOpening = new Map();
 const clientInstanceMap = new Map();
 const invalidationTokens = new Map();
-const REWRITEABLE_IMPORT_ROOTS = [
-  '/self/',
-  '/tools/',
-  '/core/',
-  '/infrastructure/',
-  '/capabilities/',
-  '/ui/',
-  '/styles/',
-  '/config/',
-  '/capsule/',
-  '/shadow/',
-  '/artifacts/'
-];
+
+function normalizeRoutePath(pathname = '/') {
+  const normalized = String(pathname || '/').replace(/\/+$/, '') || '/';
+  return normalized;
+}
+
+function isLabRuntimeRoutePath(pathname = '/') {
+  return LAB_RUNTIME_ROUTES.has(normalizeRoutePath(pathname));
+}
+
+function isLabRuntimeAssetPath(pathname = '/') {
+  return LAB_RUNTIME_ASSET_PATHS.has(pathname)
+    || LAB_RUNTIME_ASSET_PREFIXES.some((prefix) => pathname.startsWith(prefix));
+}
+
+function getUrlPath(value) {
+  if (!value) return null;
+  try {
+    const url = new URL(value, self.location.origin);
+    if (url.origin !== self.location.origin) return null;
+    return url.pathname;
+  } catch {
+    return null;
+  }
+}
+
+function isLabRuntimeUrl(value) {
+  const pathname = getUrlPath(value);
+  return !!pathname && (isLabRuntimeRoutePath(pathname) || isLabRuntimeAssetPath(pathname));
+}
+
+function shouldHandleLabRuntimeFetch(request, url) {
+  if (url.origin !== self.location.origin) return false;
+  if (isLabRuntimeRoutePath(url.pathname)) return true;
+  if (!isLabRuntimeAssetPath(url.pathname)) return false;
+  if (isLabRuntimeUrl(request.referrer)) return true;
+  return url.searchParams.has(INSTANCE_QUERY_PARAM)
+    || url.searchParams.get('bootstrapper') === '1';
+}
 
 function sanitizeInstanceId(value) {
   const sanitized = String(value || '')
@@ -236,14 +304,6 @@ function shouldFallbackToNetwork(path) {
     || NETWORK_FALLBACK_PREFIXES.some((prefix) => path.startsWith(prefix));
 }
 
-function isRewriteableSpecifier(specifier) {
-  if (!specifier || typeof specifier !== 'string') return false;
-  if (specifier.startsWith('#')) return false;
-  if (/^[a-zA-Z][a-zA-Z\d+.-]*:/.test(specifier)) return false;
-  if (specifier.startsWith('.')) return true;
-  return REWRITEABLE_IMPORT_ROOTS.some((root) => specifier.startsWith(root));
-}
-
 function rewriteModuleImports(content, requestUrl, instanceId, dbName, vfsPath) {
   if (!requestUrl.pathname.endsWith('.js') && !requestUrl.pathname.endsWith('.mjs')) {
     return content;
@@ -254,27 +314,16 @@ function rewriteModuleImports(content, requestUrl, instanceId, dbName, vfsPath) 
     || getInvalidationToken(dbName, '*');
   if (!version) return content;
 
-  const rewriteSpecifier = (specifier) => {
-    if (!isRewriteableSpecifier(specifier)) return specifier;
-    const url = new URL(specifier, requestUrl);
-    if (url.origin !== self.location.origin) return specifier;
-    url.searchParams.set('v', version);
-    if (instanceId && !url.searchParams.has(INSTANCE_QUERY_PARAM)) {
-      url.searchParams.set(INSTANCE_QUERY_PARAM, instanceId);
-    }
-    return `${url.pathname}${url.search}${url.hash}`;
-  };
+  const rewriter = self.REPLOID_IMPORT_REWRITE;
+  if (!rewriter?.rewriteModuleImports) return content;
 
-  return content
-    .replace(/\b((?:import|export)\s+[^'";]*?\s+from\s*)(['"])([^'"]+)\2/g, (match, prefix, quote, specifier) => (
-      `${prefix}${quote}${rewriteSpecifier(specifier)}${quote}`
-    ))
-    .replace(/\b(import\s*)(['"])([^'"]+)\2/g, (match, prefix, quote, specifier) => (
-      `${prefix}${quote}${rewriteSpecifier(specifier)}${quote}`
-    ))
-    .replace(/\b(import\s*\(\s*)(['"])([^'"]+)\2/g, (match, prefix, quote, specifier) => (
-      `${prefix}${quote}${rewriteSpecifier(specifier)}${quote}`
-    ));
+  return rewriter.rewriteModuleImports(content, {
+    baseUrl: requestUrl,
+    origin: self.location.origin,
+    version,
+    instanceId,
+    instanceParam: INSTANCE_QUERY_PARAM
+  });
 }
 
 // Read file from VFS
@@ -313,6 +362,10 @@ self.addEventListener('activate', (event) => {
 // Intercept fetch requests
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
+
+  if (!shouldHandleLabRuntimeFetch(event.request, url)) {
+    return;
+  }
 
   // Skip reserved paths that should bypass the VFS loader.
   if (

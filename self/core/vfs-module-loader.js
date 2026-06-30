@@ -5,22 +5,10 @@
  */
 
 import { isSecurityEnabled } from './security-config.js';
+import './import-rewrite.js';
 
 const moduleCache = new Map();
 const loadingPromises = new Map(); // Prevent duplicate concurrent loads
-const REWRITEABLE_IMPORT_ROOTS = Object.freeze([
-  '/self/',
-  '/tools/',
-  '/core/',
-  '/infrastructure/',
-  '/capabilities/',
-  '/ui/',
-  '/styles/',
-  '/config/',
-  '/capsule/',
-  '/shadow/',
-  '/artifacts/'
-]);
 
 // Statistics for monitoring
 const stats = {
@@ -74,50 +62,28 @@ const getCurrentInstanceId = () => {
   }
 };
 
-const isRewriteableSpecifier = (specifier) => {
-  if (!specifier || typeof specifier !== 'string') return false;
-  if (specifier.startsWith('#')) return false;
-  if (/^[a-zA-Z][a-zA-Z\d+.-]*:/.test(specifier)) return false;
-  if (specifier.startsWith('.')) return true;
-  return REWRITEABLE_IMPORT_ROOTS.some((root) => specifier.startsWith(root));
-};
-
-const buildVersionedSpecifier = (specifier, basePath, options = {}) => {
-  if (!isRewriteableSpecifier(specifier)) return specifier;
-
-  const baseUrl = new URL(basePath, 'http://reploid.local');
-  const url = new URL(specifier, baseUrl);
-  const version = options.version || hashString(`${basePath}:${specifier}`);
-  const instanceId = options.instanceId || getCurrentInstanceId();
-
-  url.searchParams.set('v', version);
-  if (instanceId && !url.searchParams.has('instance')) {
-    url.searchParams.set('instance', instanceId);
-  }
-
-  return `${url.pathname}${url.search}${url.hash}`;
-};
-
 /**
  * Rewrite local VFS imports to service-worker-addressable absolute URLs.
  * Blob module URLs cannot resolve relative imports on their own.
  */
 const rewriteImports = (code, basePath, vfsResolver) => {
   if (!vfsResolver) return code;
-  const resolve = typeof vfsResolver === 'function'
-    ? vfsResolver
-    : (specifier) => buildVersionedSpecifier(specifier, basePath, vfsResolver);
+  const rewriter = globalThis.REPLOID_IMPORT_REWRITE;
+  if (!rewriter?.rewriteModuleImports) return code;
 
-  return code
-    .replace(/\b((?:import|export)\s+[^'";]*?\s+from\s*)(['"])([^'"]+)\2/g, (match, prefix, quote, importPath) => (
-      `${prefix}${quote}${resolve(importPath)}${quote}`
-    ))
-    .replace(/\b(import\s*)(['"])([^'"]+)\2/g, (match, prefix, quote, importPath) => (
-      `${prefix}${quote}${resolve(importPath)}${quote}`
-    ))
-    .replace(/\b(import\s*\(\s*)(['"])([^'"]+)\2/g, (match, prefix, quote, importPath) => (
-      `${prefix}${quote}${resolve(importPath)}${quote}`
-    ));
+  const resolve = typeof vfsResolver === 'function' ? vfsResolver : null;
+  return rewriter.rewriteModuleImports(code, {
+    basePath,
+    version: typeof vfsResolver === 'object'
+      ? vfsResolver.version || hashString(`${basePath}:${code}`)
+      : hashString(`${basePath}:${code}`),
+    instanceId: typeof vfsResolver === 'object'
+      ? vfsResolver.instanceId || getCurrentInstanceId()
+      : getCurrentInstanceId(),
+    origin: globalThis.location?.origin || 'http://reploid.local',
+    absolute: true,
+    rewriteSpecifier: resolve || undefined
+  });
 };
 
 /**

@@ -3,7 +3,6 @@
  */
 
 import { createPoolSimulationRenderer } from './simulation-renderer.js';
-import { drawPoolSimulation2D } from './simulation-2d.js';
 import { createPoolRenderBatchBuilder } from './simulation-batches.js';
 import {
   buildPoolSimulationFrame,
@@ -40,6 +39,7 @@ export const bindHomeSimulation = async (mount) => {
   let frameId = null;
   let renderer = null;
   let removeCanvasListeners = () => {};
+  const removeLabelListeners = [];
   let canvasRect = null;
   let canvasCssSize = { width: 0, height: 0 };
   let layoutFrameId = null;
@@ -140,13 +140,25 @@ export const bindHomeSimulation = async (mount) => {
   window.addEventListener('scroll', handleLayoutChange, true);
   document.addEventListener('visibilitychange', handleVisibilityChange);
   for (const label of flowLabels) {
-    label.addEventListener('pointerenter', () => showTooltip(label));
-    label.addEventListener('pointermove', () => {
+    const pointerEnter = () => showTooltip(label);
+    const pointerMove = () => {
       if (activeTooltipLabel === label) updateTooltipPosition();
+    };
+    const pointerLeave = () => hideTooltip(label);
+    const focus = () => showTooltip(label);
+    const blur = () => hideTooltip(label);
+    label.addEventListener('pointerenter', pointerEnter);
+    label.addEventListener('pointermove', pointerMove);
+    label.addEventListener('pointerleave', pointerLeave);
+    label.addEventListener('focus', focus);
+    label.addEventListener('blur', blur);
+    removeLabelListeners.push(() => {
+      label.removeEventListener('pointerenter', pointerEnter);
+      label.removeEventListener('pointermove', pointerMove);
+      label.removeEventListener('pointerleave', pointerLeave);
+      label.removeEventListener('focus', focus);
+      label.removeEventListener('blur', blur);
     });
-    label.addEventListener('pointerleave', () => hideTooltip(label));
-    label.addEventListener('focus', () => showTooltip(label));
-    label.addEventListener('blur', () => hideTooltip(label));
   }
   const syncFlowLabels = (anchors = {}, width = 1, height = 1, deltaSeconds = SIMULATION_TARGET_STEP_MS / 1000) => {
     if (!labelCanvasSize || Math.abs(labelCanvasSize.width - width) > 1 || Math.abs(labelCanvasSize.height - height) > 1) {
@@ -209,6 +221,9 @@ export const bindHomeSimulation = async (mount) => {
     frameId = null;
     layoutFrameId = null;
     hideTooltip();
+    while (removeLabelListeners.length > 0) {
+      removeLabelListeners.pop()?.();
+    }
     removeCanvasListeners();
     resizeObserver?.disconnect();
     window.removeEventListener('resize', handleLayoutChange);
@@ -218,12 +233,12 @@ export const bindHomeSimulation = async (mount) => {
   };
   try {
     renderer = await createPoolSimulationRenderer(canvas, {
-      buildBatches: buildPoolRenderBatches,
-      draw2D: drawPoolSimulation2D
+      buildBatches: buildPoolRenderBatches
     });
   } catch (error) {
     console.error('Reploid graph renderer failed to initialize.', error);
-    active = false;
+    window.REPLOID_POOL_SIMULATION_STOP?.();
+    window.REPLOID_POOL_SIMULATION_STOP = null;
     return;
   }
   if (!active) {

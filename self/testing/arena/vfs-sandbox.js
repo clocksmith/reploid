@@ -44,6 +44,7 @@ const VFSSandbox = {
     const restoreSnapshot = async (snapshot) => {
       // Get current files to determine what to delete
       const currentFiles = await VFS.list('/');
+      const currentSet = new Set(currentFiles);
 
       // Delete files not in snapshot
       for (const path of currentFiles) {
@@ -59,6 +60,16 @@ const VFSSandbox = {
       // Restore snapshot files
       for (const [path, content] of Object.entries(snapshot.files)) {
         try {
+          if (currentSet.has(path)) {
+            try {
+              const currentContent = await VFS.read(path);
+              if (currentContent === content) {
+                continue;
+              }
+            } catch {
+              // Missing or unreadable files are restored below.
+            }
+          }
           await VFS.write(path, content);
         } catch (e) {
           logger.warn(`[VFSSandbox] Failed to restore: ${path}`);

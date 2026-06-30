@@ -794,6 +794,148 @@ describe('pool peer room', () => {
     }
   });
 
+  it('executes a twelve-provider browser-room ring quorum end to end', async () => {
+    installFakeBroadcastChannel();
+    const requesterClient = await createRoomRequesterClient('requester_room_ring_12');
+    const {
+      requesterTransportFactory,
+      providerTransportFactory,
+      sessions
+    } = createFakeTransportFactories();
+    const activity = [];
+    const providerNodes = await Promise.all(Array.from({ length: 12 }, async (_, index) => {
+      const providerClient = await createRoomProviderClient({
+        providerId: `provider_room_ring_12_${index}`,
+        runtime: fakeRuntime()
+      });
+      const providerNode = createPeerProviderNode({
+        roomId: 'room-ring-12-test',
+        providerClient,
+        providerTransportFactory,
+        advertIntervalMs: 100000,
+        onActivity: (event) => activity.push({
+          ...event,
+          providerId: `provider_room_ring_12_${index}`
+        })
+      });
+      await providerNode.start({
+        models: [runtimeModel()],
+        availability: {
+          acceptedPolicies: ['ring_quorum_receipt']
+        }
+      });
+      return providerNode;
+    }));
+
+    try {
+      const result = await runPeerJob({
+        roomId: 'room-ring-12-test',
+        requesterClient,
+        requesterTransportFactory,
+        prompt: 'peer room twelve provider prompt',
+        policyId: 'ring_quorum_receipt',
+        modelRequirements: runtimeModel(),
+        discoveryWindowMs: 1000,
+        receiptWindowMs: 2000
+      });
+
+      expect(result.transport).toBe('webrtc_peer_room');
+      expect(result.plan.ring).toMatchObject({
+        ringSize: 12,
+        requiredAgreement: 7
+      });
+      expect(result.assignments).toHaveLength(12);
+      expect(result.promptPayloads).toHaveLength(12);
+      expect(result.receiptPayloads).toHaveLength(12);
+      expect(result.receiptHashes).toHaveLength(12);
+      expect(result.agreement).toMatchObject({
+        accepted: true,
+        mode: 'ring_quorum',
+        requiredAgreement: 7,
+        acceptedProviderCount: 12,
+        agreementField: 'tokenIdsHash'
+      });
+      expect(new Set(result.assignments.map((assignment) => assignment.providerId)).size).toBe(12);
+      expect(new Set(result.receiptPayloads.map((payload) => payload.assignmentId)).size).toBe(12);
+      expect(activity.filter((event) => event.status === 'peer_receipt_sent')).toHaveLength(12);
+      expect(activity.filter((event) => event.status === 'peer_acceptance_received')).toHaveLength(12);
+      expect(sessions.size).toBe(12);
+    } finally {
+      await Promise.all(providerNodes.map((providerNode) => providerNode.stop()));
+    }
+  });
+
+  it('limits ring prompt dispatch until each active provider returns a receipt', async () => {
+    installFakeBroadcastChannel();
+    const requesterClient = await createRoomRequesterClient('requester_room_dispatch_limit');
+    const {
+      requesterTransportFactory,
+      providerTransportFactory,
+      sessions
+    } = createFakeTransportFactories();
+    const blockings = Array.from({ length: 3 }, () => createBlockingRuntime());
+    const providerNodes = await Promise.all(blockings.map(async (blocking, index) => {
+      const providerClient = await createRoomProviderClient({
+        providerId: `provider_room_dispatch_limit_${index}`,
+        runtime: blocking.runtime
+      });
+      const providerNode = createPeerProviderNode({
+        roomId: 'room-dispatch-limit-test',
+        providerClient,
+        providerTransportFactory,
+        advertIntervalMs: 100000
+      });
+      await providerNode.start({
+        models: [runtimeModel()],
+        availability: {
+          acceptedPolicies: ['ring_quorum_receipt']
+        }
+      });
+      return providerNode;
+    }));
+    const totalPrompts = () => blockings.reduce((sum, blocking) => sum + blocking.prompts.length, 0);
+    const releaseStartedProvider = () => {
+      for (const blocking of blockings) blocking.releaseNext();
+    };
+
+    try {
+      const pending = runPeerJob({
+        roomId: 'room-dispatch-limit-test',
+        requesterClient,
+        requesterTransportFactory,
+        prompt: 'dispatch limited ring prompt',
+        policyId: 'ring_quorum_receipt',
+        modelRequirements: runtimeModel(),
+        discoveryWindowMs: 1000,
+        receiptWindowMs: 1000,
+        promptDispatchConcurrency: 1
+      });
+
+      await expect.poll(totalPrompts).toBe(1);
+      expect(totalPrompts()).toBe(1);
+      releaseStartedProvider();
+      await expect.poll(totalPrompts).toBe(2);
+      expect(totalPrompts()).toBe(2);
+      releaseStartedProvider();
+      await expect.poll(totalPrompts).toBe(3);
+      releaseStartedProvider();
+
+      const result = await pending;
+      expect(result.transport).toBe('webrtc_peer_room');
+      expect(result.receiptPayloads).toHaveLength(3);
+      expect(result.agreement).toMatchObject({
+        accepted: true,
+        mode: 'ring_quorum',
+        requiredAgreement: 2,
+        acceptedProviderCount: 3
+      });
+      expect(sessions.size).toBe(3);
+    } finally {
+      releaseStartedProvider();
+      await Promise.all(providerNodes.map((providerNode) => providerNode.stop()));
+    }
+  });
+
   it('queues concurrent peer sessions when provider concurrency is saturated', async () => {
     installFakeBroadcastChannel();
     const requesterKeys = await createSigningKeyPair();
@@ -870,9 +1012,11 @@ describe('pool peer room', () => {
         policyId: 'fastest_receipt',
         modelRequirements: runtimeModel(),
         discoveryWindowMs: 1000,
+        sessionAcceptWindowMs: 25,
         receiptWindowMs: 1000
       });
       await expect.poll(() => activity.some((event) => event.status === 'peer_session_queued')).toBe(true);
+      await expect.poll(() => sessions.size).toBe(2);
       expect(blocking.prompts).toEqual(['first queued prompt']);
 
       blocking.releaseNext();

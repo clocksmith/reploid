@@ -10,6 +10,8 @@ import {
 const clamp01 = (value) => Math.max(0, Math.min(1, value));
 const clampRange = (value, min, max) => Math.max(min, Math.min(max, value));
 
+const resolveCanvasCoordinate = (value = 0.5, size = 1) => size * value;
+
 export const POOLDAY_CORE_NODE_CONFIG = Object.freeze([
   ['requester', 17, 0.2, 7],
   ['policy', 15, 0.9, 7],
@@ -146,8 +148,8 @@ export const writeRoleAnchor = (
   const base = graphPositions[id] || { x: 0.5, y: 0.5 };
   const motionCue = clamp01(motionScale);
   const breathe = 0.5 + 0.5 * Math.sin(time * 1.4 + phase);
-  const baseX = width * base.x;
-  const baseY = height * base.y;
+  const baseX = resolveCanvasCoordinate(base.x, width);
+  const baseY = resolveCanvasCoordinate(base.y, height);
   const cuePhase = phase + orbitCue * (1.2 + phase * 0.08);
   const cueOrbit = orbit * motionCue * (1 + orbitCue * 0.52);
   const offsetX = Math.cos(time * 0.52 + cuePhase) * cueOrbit;
@@ -185,11 +187,11 @@ export const writeParticipantAnchor = (
   transitionProgress,
   motionScale = 1
 ) => {
-  const base = graphPositions[spec.id] || { x: spec.homeX, y: spec.homeY };
+  const base = graphPositions[spec.id] || { x: 0.5, y: 0.5 };
   const motionCue = clamp01(motionScale);
   const pulse = 0.5 + 0.5 * Math.sin(time * 1.55 + spec.phase);
-  const baseX = width * base.x;
-  const baseY = height * base.y;
+  const baseX = resolveCanvasCoordinate(base.x, width);
+  const baseY = resolveCanvasCoordinate(base.y, height);
   const driftX = Math.cos(time * (0.78 + orbitCue * 0.10) + spec.phase + orbitCue * 1.6) * spec.driftX * (0.44 + orbitCue * 0.22) * motionCue
     + Math.sin(time * 0.33 + spec.phase * 1.4 + orbitCue) * spec.driftX * (0.22 + orbitCue * 0.10) * motionCue;
   const driftY = Math.sin(time * (0.72 + orbitCue * 0.10) + spec.phase + orbitCue * 1.4) * spec.driftY * (0.44 + orbitCue * 0.22) * motionCue
@@ -213,22 +215,5 @@ export const writeParticipantAnchor = (
   target.ringProgress = countdownProgress;
   target.topologyProgress = transitionProgress;
   target.online = true;
-  return target;
-};
-
-export const writeAverageAnchor = (target, ids, offsetX, offsetY, nodeLookup) => {
-  let x = 0;
-  let y = 0;
-  let count = 0;
-  for (const id of ids) {
-    const node = nodeLookup[id];
-    if (!node) continue;
-    x += node.x;
-    y += node.y;
-    count += 1;
-  }
-  const divisor = Math.max(1, count);
-  target.x = offsetX + x / divisor;
-  target.y = offsetY + y / divisor;
   return target;
 };

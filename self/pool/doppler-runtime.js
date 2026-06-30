@@ -9,6 +9,7 @@
 import { hashJson } from './inference-receipt.js';
 import { collectRuntimeProfile } from './runtime-profile.js';
 import { BROWSER_RUNTIME_CONFIG } from './config.js';
+import { validateModelRuntimeCapabilities } from './model-contract.js';
 
 const DOPPLER_IMPORTS = Object.freeze([
   '@simulatte/doppler',
@@ -18,6 +19,18 @@ const DOPPLER_IMPORTS = Object.freeze([
 let dopplerModulePromise = null;
 
 const hasIdentityValue = (value) => value !== undefined && value !== null && String(value).trim() !== '';
+const normalizeHashIdentity = (value) => {
+  const text = String(value || '').trim();
+  if (!text) return '';
+  return text.startsWith('sha256:') ? text : `sha256:${text}`;
+};
+
+const identityValuesMatch = (field, expected, actual) => {
+  if (field === 'modelHash' || field === 'manifestHash') {
+    return normalizeHashIdentity(expected) === normalizeHashIdentity(actual);
+  }
+  return expected === actual;
+};
 
 const isBrowserResolvableSpecifier = (specifier) => (
   typeof specifier === 'string'
@@ -262,37 +275,54 @@ const normalizeRuntimeInfo = (runtime, handle) => ({
 
 const getHandleModelEvidence = async (handle) => {
   const manifest = handle?.manifest || handle?.model?.manifest || null;
-  const artifactIdentity = handle?.artifactIdentity || handle?.model?.artifactIdentity || manifest?.artifactIdentity || null;
-  const modelHash = handle?.modelHash
+  const artifactIdentity = manifest?.artifactIdentity || handle?.artifactIdentity || handle?.model?.artifactIdentity || null;
+  const modelHash = manifest?.modelHash
+    || manifest?.artifactIdentity?.weightPackHash
+    || manifest?.artifactIdentity?.shardSetHash
+    || handle?.modelHash
     || handle?.hash
     || handle?.model?.modelHash
     || handle?.model?.hash
-    || manifest?.modelHash
-    || manifest?.artifactIdentity?.weightPackHash
-    || manifest?.artifactIdentity?.shardSetHash
     || (artifactIdentity ? await hashJson(artifactIdentity) : null);
-  const manifestHash = handle?.manifestHash
+  const manifestHash = manifest?.manifestHash
+    || manifest?.hash
+    || handle?.manifestHash
     || handle?.model?.manifestHash
     || handle?.model?.manifest?.hash
-    || manifest?.manifestHash
-    || manifest?.hash
-    || (manifest ? await hashJson(manifest) : null);
+    || null;
+  const runtimeManifestHash = manifest ? await hashJson(manifest) : null;
   return {
-    modelId: handle?.modelId
+    modelId: manifest?.modelId
+      || manifest?.id
+      || handle?.modelId
       || handle?.id
       || handle?.model?.modelId
       || handle?.model?.id
-      || manifest?.modelId
-      || manifest?.id
       || null,
     modelHash,
     manifestHash,
+    runtimeManifestHash,
     artifactIdentity
   };
 };
 
+const artifactIdentityValueMatches = (expected, actual) => {
+  if (expected === undefined) return true;
+  if (Array.isArray(expected)) {
+    return Array.isArray(actual)
+      && expected.length === actual.length
+      && expected.every((value, index) => artifactIdentityValueMatches(value, actual[index]));
+  }
+  if (isObject(expected)) {
+    return isObject(actual)
+      && Object.entries(expected).every(([key, value]) => artifactIdentityValueMatches(value, actual[key]));
+  }
+  return expected === actual;
+};
+
 const artifactIdentityMatches = (expected = {}, actual = {}) => (
-  Object.entries(expected || {}).every(([key, value]) => value === undefined || value === actual?.[key])
+  isObject(actual)
+  && Object.entries(expected || {}).every(([key, value]) => artifactIdentityValueMatches(value, actual[key]))
 );
 
 const assertHandleMatchesDescriptor = async (handle, descriptor = {}) => {
@@ -302,13 +332,17 @@ const assertHandleMatchesDescriptor = async (handle, descriptor = {}) => {
     if (!hasIdentityValue(actual)) {
       throw new Error(`Loaded Doppler handle must expose ${field} before provider registration`);
     }
-    if (expected !== actual) {
+    if (!identityValuesMatch(field, expected, actual)) {
       throw new Error(`Loaded Doppler handle ${field} does not match requested model identity`);
     }
   };
   assertField('modelId', descriptor?.modelId || descriptor?.id, evidence.modelId);
   assertField('modelHash', descriptor?.modelHash || descriptor?.hash, evidence.modelHash);
-  assertField('manifestHash', descriptor?.manifestHash, evidence.manifestHash);
+  if (hasIdentityValue(evidence.manifestHash)) {
+    assertField('manifestHash', descriptor?.manifestHash, evidence.manifestHash);
+  } else if (hasIdentityValue(descriptor?.manifestHash) && !evidence.artifactIdentity) {
+    throw new Error('Loaded Doppler handle must expose manifestHash or artifactIdentity before provider registration');
+  }
   if (descriptor?.artifactIdentity && !artifactIdentityMatches(descriptor.artifactIdentity, evidence.artifactIdentity)) {
     throw new Error('Loaded Doppler handle artifactIdentity does not match requested model identity');
   }
@@ -360,6 +394,19 @@ const getConfiguredLoadOptions = (model = {}) => ({
   ...(globalThis.REPLOID_DOPPLER_LOAD_OPTIONS || {}),
   ...(model.loadOptions || {})
 });
+
+const assertModelRuntimeCapabilities = async (model = {}) => {
+  const validation = validateModelRuntimeCapabilities(model, await collectBrowserDeviceInfo());
+  if (validation.ok) return validation;
+  if (validation.missingFeatures.length === 0) return validation;
+  const error = new Error(`Selected model is not compatible with this browser runtime: ${validation.reasons.join('; ')}`);
+  error.code = 'model_runtime_capability_unsupported';
+  error.payload = {
+    modelId: model.modelId || model.id || null,
+    ...validation
+  };
+  throw error;
+};
 
 const positiveIntegerOrUndefined = (value) => {
   const number = Number(value);
@@ -486,6 +533,7 @@ export function createDopplerRuntime({ modelSession = null, model = null, runtim
         if (nextModel?.handle || nextModel?.session || nextModel?.modelSession) {
           return await attachHandle(nextModel.handle || nextModel.session || nextModel.modelSession, nextModel, runtimeInfo);
         }
+        await assertModelRuntimeCapabilities(nextModel);
         const module = await loadDopplerModule();
         const loader = module?.load || module?.loadModel || module?.doppler?.load || module?.default?.load;
         if (typeof loader !== 'function') {

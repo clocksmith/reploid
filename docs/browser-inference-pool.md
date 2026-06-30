@@ -99,20 +99,21 @@ The signed receipt binds this exact object. At execution time only, `self/pool/d
 | `fastest_receipt` | `T1_signed_receipt` | One eligible browser provider returns a signed assignment-bound receipt |
 | `canary_audited` | `T2_canary_audited` | One eligible browser provider with passing canary history returns a signed receipt |
 | `redundant_agreement` | `T3_redundant_agreement` | Multiple independent browser providers must return matching output and token hashes |
-| `ring_quorum_receipt` | `adaptive_T1_to_T4_ring_quorum_receipt` | One to four exact-model browser providers run the same deterministic assignment in a deterministic ring; majority matching token/output hashes form the accepted result |
+| `ring_quorum_receipt` | `adaptive_T1_to_T4_ring_quorum_receipt` | One to twelve exact-model browser providers run the same deterministic assignment in a deterministic ring; majority matching token/output hashes form the accepted result |
 
 ## Ring quorum policy
 
-`ring_quorum_receipt` is the scalable trust policy. It uses a Paxos-like quorum rule over a deterministic provider ring, capped at four providers.
+`ring_quorum_receipt` is the scalable trust policy. It uses a Paxos-like quorum rule over a deterministic provider ring, capped at twelve providers.
 
 Ring behavior:
 
 - `N = 1`: `T1_ring_baseline`; one provider returns a normal signed receipt with ring metadata. This is a baseline receipt, not distributed trust.
 - `N = 2`: `T2_paired_ring_receipt`; two providers must agree. This improves tamper detection but remains weak against collusion.
 - `N = 3`: `T3_majority_ring_receipt`; any two matching receipts form quorum. This is the best default trust/latency balance.
-- `N = 4`: `T4_max_ring_quorum_receipt`; any three matching receipts form quorum. This is the maximum launch ring size before coordination overhead dominates.
+- `N = 4`: `T4_max_ring_quorum_receipt`; any three matching receipts form quorum.
+- `N = 12`: `T4_max_ring_quorum_receipt`; any seven matching receipts form quorum. This is the maximum launch browser-room ring size.
 
-In hosted compatibility mode, the coordinator selects up to four fresh, available, exact-model providers, derives a deterministic ring order from the job and provider set, and writes the same ring commitment into each assignment. In the browser-room peer path, the requester collects signed provider adverts, derives the same deterministic assignment plan locally, opens one WebRTC session per selected provider, and accepts only a receipt set that reaches the configured hash quorum. Each provider still runs full-model Doppler inference locally through the public browser runtime. Reploid does not claim distributed KV sharding or ring-reduced attention until Doppler exposes those public execution surfaces.
+In hosted compatibility mode, the coordinator selects up to twelve fresh, available, exact-model providers from a compatible runtime profile bucket, derives a deterministic ring order from the job and provider set, and writes the same ring commitment into each assignment. In the browser-room peer path, the requester collects signed provider adverts, derives the same deterministic assignment plan locally, opens one WebRTC session per selected provider, and accepts only a receipt set that reaches the configured hash quorum. Each provider still runs full-model Doppler inference locally through the public browser runtime. Reploid does not claim distributed KV sharding or ring-reduced attention until Doppler exposes those public execution surfaces.
 
 Ring agreement checks:
 

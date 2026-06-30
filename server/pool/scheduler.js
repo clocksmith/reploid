@@ -15,7 +15,7 @@ import {
 
 const ASSIGNMENT_EXPIRY_MS = 120000;
 const PROVIDER_HEARTBEAT_STALE_MS = 45000;
-const MAX_RING_SIZE = 4;
+const MAX_RING_SIZE = 12;
 const REASSIGNABLE_ACTIVE_ASSIGNMENT_STATUSES = new Set([
   'assigned',
   'running',

@@ -720,6 +720,12 @@ test.describe('Same-Origin Multi-Peer', () => {
 
       await page.waitForSelector('#app.active', { timeout: 20000 });
       await peerPage.waitForSelector('#app.active', { timeout: 20000 });
+      await expect.poll(async () => page.evaluate(() => (
+        window.REPLOID?.runtime?.getSnapshot?.()?.instanceId || null
+      )), { timeout: 20000 }).toBe(firstInstanceId);
+      await expect.poll(async () => peerPage.evaluate(() => (
+        window.REPLOID?.runtime?.getSnapshot?.()?.instanceId || null
+      )), { timeout: 20000 }).toBe(secondInstanceId);
 
       const firstPeer = await getPeerState(page);
       const secondPeer = await getPeerState(peerPage);

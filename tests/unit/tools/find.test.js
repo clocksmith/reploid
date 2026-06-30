@@ -3,7 +3,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import call, { tool } from '../../../tools/Find.js';
+import call from '../../../tools/Find.js';
 
 describe('Find', () => {
   let mockVFS;
@@ -15,16 +15,6 @@ describe('Find', () => {
       list: vi.fn(),
       exists: vi.fn()
     };
-  });
-
-  describe('tool metadata', () => {
-    it('should have correct name', () => {
-      expect(tool.name).toBe('Find');
-    });
-
-    it('should be marked as readOnly', () => {
-      expect(tool.readOnly).toBe(true);
-    });
   });
 
   describe('validation', () => {

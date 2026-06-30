@@ -4,41 +4,17 @@
 import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { resolveBaseModules } from '../../self/config/module-resolution.js';
+import { SHARED_FILE_TOOLS } from '../../self/config/tool-surfaces.js';
+import { LAB_ROUTE_PROFILES } from '../../self/config/lab-route-profiles.js';
 
 const genesisConfig = JSON.parse(readFileSync('self/config/genesis-levels.json', 'utf8'));
-
-const SHARED_FILE_TOOLS = [
-  'ReadFile',
-  'WriteFile',
-  'EditFile',
-  'ListFiles',
-  'DeleteFile',
-  'MakeDirectory',
-  'CopyFile',
-  'MoveFile',
-  'Head',
-  'Tail',
-  'Grep',
-  'Find',
-  'git',
-  'ListTools',
-  'CreateTool',
-  'LoadModule'
-];
 
 describe('genesis integrity', () => {
   it('/0 spark resolves the minimal bootstrapping module tier', () => {
     const modules = resolveBaseModules('spark', genesisConfig);
 
     expect(modules).toEqual(expect.arrayContaining([
-      'AgentLoop',
-      'LLMClient',
-      'ContextManager',
-      'ToolRunner',
-      'ToolWriter',
-      'SubstrateLoader',
-      'DopplerToolbox',
-      'CircuitBreaker'
+      ...LAB_ROUTE_PROFILES.zero.requiredModules
     ]));
     expect(modules).not.toEqual(expect.arrayContaining([
       'ArenaHarness',
@@ -53,16 +29,8 @@ describe('genesis integrity', () => {
     const modules = resolveBaseModules('full', genesisConfig);
 
     expect(modules).toEqual(expect.arrayContaining([
-      'VerificationManager',
-      'MemoryManager',
-      'SemanticMemory',
-      'KnowledgeGraph',
-      'WorkerManager',
-      'VFSSandbox',
-      'ArenaHarness',
-      'WebRTCSwarm',
-      'SwarmSync',
-      'SwarmTransport'
+      ...LAB_ROUTE_PROFILES.x.requiredModules,
+      'SwarmSync'
     ]));
   });
 

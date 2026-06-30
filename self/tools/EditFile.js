@@ -4,11 +4,12 @@
  * Emits audit:core_write events for L3 substrate changes (/core/, /infrastructure/)
  */
 
+import { assertNoPathTraversal, assertWritableVfsPath } from '../config/vfs-policy.js';
+
 const TEXT_LIMIT_BYTES = 8 * 1024 * 1024;
 const OPFS_PREFIX = 'opfs:';
 const VFS_PREFIX = 'vfs:';
 const OPFS_ALLOWLIST_PREFIXES = ['/doppler-models/adapters/'];
-const VFS_WRITABLE_ROOTS = ['/shadow', '/artifacts', '/cycles'];
 
 const normalizePath = (rawPath, backendOverride) => {
   if (!rawPath || typeof rawPath !== 'string') {
@@ -32,23 +33,6 @@ const normalizePath = (rawPath, backendOverride) => {
 
   path = '/' + path.replace(/^\/+/, '');
   return { backend: backend || 'vfs', path };
-};
-
-const assertSafePath = (path) => {
-  if (path.split('/').includes('..')) {
-    throw new Error('Path traversal is not allowed');
-  }
-};
-
-const isWithinRoot = (path, root) => {
-  const normalizedRoot = root.endsWith('/') ? root.slice(0, -1) : root;
-  return path === normalizedRoot || path.startsWith(`${normalizedRoot}/`);
-};
-
-const assertVfsWritable = (path) => {
-  if (!VFS_WRITABLE_ROOTS.some((root) => isWithinRoot(path, root))) {
-    throw new Error(`VFS path not editable by EditFile: ${path}. Edit candidates under /shadow or evidence under /artifacts, then use Promote for /self.`);
-  }
 };
 
 const assertOpfsAllowed = (path) => {
@@ -111,12 +95,12 @@ async function call(args = {}, deps = {}) {
   if (!VFS) return 'VFS unavailable';
 
   const { backend, path } = normalizePath(args.path || args.file, args.backend);
-  assertSafePath(path);
+  assertNoPathTraversal(path);
 
   if (backend === 'opfs') {
     assertOpfsAllowed(path);
   } else {
-    assertVfsWritable(path);
+    assertWritableVfsPath(path, 'EditFile');
   }
 
   const operations = buildOperations(args);

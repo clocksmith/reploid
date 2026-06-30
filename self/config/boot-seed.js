@@ -104,8 +104,55 @@ export const WIZARD_BOOT_SEED_PREFIXES = Object.freeze([
 
 export const LOCKED_HOME_BOOT_SEED_PREFIXES = Object.freeze([
   ...SHARED_BOOT_UI_PREFIXES,
-  'ui/zero/',
+  'ui/zero/index.js',
   'styles/zero.css'
+]);
+
+const ZERO_SHARED_TOOL_FILES = Object.freeze([
+  'tools/ReadFile.js',
+  'tools/WriteFile.js',
+  'tools/EditFile.js',
+  'tools/ListFiles.js',
+  'tools/DeleteFile.js',
+  'tools/MakeDirectory.js',
+  'tools/CopyFile.js',
+  'tools/MoveFile.js',
+  'tools/Head.js',
+  'tools/Tail.js',
+  'tools/Grep.js',
+  'tools/Find.js',
+  'tools/FileOutline.js',
+  'tools/git.js',
+  'tools/ListTools.js',
+  'tools/CreateTool.js',
+  'tools/LoadModule.js',
+  'tools/Promote.js'
+]);
+
+export const ZERO_HOME_BOOT_SEED_PREFIXES = Object.freeze([
+  ...LOCKED_HOME_BOOT_SEED_PREFIXES,
+  'blueprint-index.json',
+  'blueprints/0x000112-recursive-gepa-ring.md',
+  'blueprints/blueprint-index-contract.md',
+  'blueprints/promotion-contract.md',
+  'blueprints/rgr-runtime-contract.md',
+  'blueprints/tabula-rasa-runtime.md',
+  'blueprints/tool-contract.md',
+  'self/boot-spec.js',
+  'self/bridge.js',
+  'self/host/',
+  'self/instance.js',
+  'self/runtime.js',
+  'self/tool-runner.js',
+  'boot-helpers/',
+  'config/',
+  'lab/',
+  'core/',
+  'infrastructure/',
+  'capabilities/system/',
+  'personas/',
+  'prompts/',
+  ...ZERO_SHARED_TOOL_FILES
 ]);
 
 export const REPLOID_HOME_BOOT_SEED_PREFIXES = Object.freeze([
@@ -119,7 +166,7 @@ export const BOOT_SEED_PROFILES = Object.freeze({
   pool_home: POOL_HOME_BOOT_SEED_PREFIXES,
   reploid_home: REPLOID_HOME_BOOT_SEED_PREFIXES,
   substrate_console: REPLOID_HOME_BOOT_SEED_PREFIXES,
-  zero_home: LOCKED_HOME_BOOT_SEED_PREFIXES,
+  zero_home: ZERO_HOME_BOOT_SEED_PREFIXES,
   x_home: LOCKED_HOME_BOOT_SEED_PREFIXES
 });
 
@@ -134,10 +181,17 @@ export function getBootSeedProfile() {
 }
 
 export function shouldHydrateFullManifest(profile = getBootSeedProfile()) {
-  return profile !== 'reploid_home' && profile !== 'pool_home' && profile !== 'substrate_console';
+  return profile !== 'zero_home'
+    && profile !== 'reploid_home'
+    && profile !== 'pool_home'
+    && profile !== 'substrate_console';
 }
 
 export function shouldAwaitFullManifestBeforeStart(profile = getBootSeedProfile()) {
+  return profile === 'x_home';
+}
+
+export function isLockedHomeBootProfile(profile = getBootSeedProfile()) {
   return profile === 'zero_home' || profile === 'x_home';
 }
 

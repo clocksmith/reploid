@@ -2,150 +2,20 @@
  * @fileoverview Promote - Evidence-gated shadow candidate promotion.
  */
 
-const TEXT_LIMIT_BYTES = 8 * 1024 * 1024;
-const VFS_PREFIX = 'vfs:';
-
-const ALLOWED_TARGET_ROOTS = Object.freeze([
-  '/self/capabilities',
-  '/self/capsule',
-  '/self/config',
-  '/self/core',
-  '/self/host',
-  '/self/infrastructure',
-  '/self/kernel',
-  '/self/tools',
-  '/self/prompts',
-  '/self/blueprints',
-  '/self/pool',
-  '/self/styles',
-  '/self/ui'
-]);
-
-const ALLOWED_TARGET_PATHS = Object.freeze([
-  '/self/blueprint-index.json',
-  '/self/boot-spec.js',
-  '/self/bridge.js',
-  '/self/environment.js',
-  '/self/identity.js',
-  '/self/instance.js',
-  '/self/manifest.js',
-  '/self/receipt.js',
-  '/self/reward-policy.js',
-  '/self/runtime.js',
-  '/self/self.json',
-  '/self/swarm.js',
-  '/self/tool-runner.js'
-]);
-
-const ALLOWED_TARGET_EXTENSIONS = Object.freeze([
-  '.js',
-  '.json',
-  '.md',
-  '.css',
-  '.html'
-]);
-
-const VALIDATOR_QUARANTINE_TARGETS = Object.freeze([
-  '/self/core/verification-manager.js',
-  '/self/testing/arena/arena-harness.js',
-  '/self/capabilities/communication/consensus.js',
-  '/self/infrastructure/audit-logger.js',
-  '/self/config/genesis-levels.json',
-  '/self/core/tool-runner.js',
-  '/self/tools/Promote.js'
-]);
-
-const VALIDATOR_QUARANTINE_PREFIXES = Object.freeze([
-  '/self/testing/arena/',
-  '/self/core/verification-',
-  '/self/infrastructure/policy-'
-]);
-
-const normalizePath = (rawPath) => {
-  if (!rawPath || typeof rawPath !== 'string') {
-    throw new Error('Missing path argument');
-  }
-
-  let path = rawPath.trim();
-  if (path.startsWith(VFS_PREFIX)) {
-    path = path.slice(VFS_PREFIX.length);
-  }
-
-  path = '/' + path.replace(/^\/+/, '');
-  if (path.split('/').includes('..')) {
-    throw new Error('Path traversal is not allowed');
-  }
-  return path;
-};
-
-const isWithinRoot = (path, root) => {
-  const normalizedRoot = root.endsWith('/') ? root.slice(0, -1) : root;
-  return path === normalizedRoot || path.startsWith(`${normalizedRoot}/`);
-};
-
-const hasAllowedExtension = (path) => ALLOWED_TARGET_EXTENSIONS.some((extension) => path.endsWith(extension));
-
-const defaultAllowTargetPath = (path) => (
-  (ALLOWED_TARGET_PATHS.includes(path) || ALLOWED_TARGET_ROOTS.some((root) => isWithinRoot(path, root)))
-    && hasAllowedExtension(path)
-);
-
-const isValidatorMutationTarget = (path) => (
-  VALIDATOR_QUARANTINE_TARGETS.includes(path)
-  || VALIDATOR_QUARANTINE_PREFIXES.some((prefix) => path.startsWith(prefix))
-);
-
-const textBytes = (content) => {
-  if (typeof TextEncoder !== 'undefined') {
-    return new TextEncoder().encode(String(content)).length;
-  }
-  return String(content).length;
-};
-
-const sha256 = async (content) => {
-  if (!globalThis.crypto?.subtle) {
-    throw new Error('SHA-256 not available in this environment');
-  }
-  const bytes = typeof TextEncoder !== 'undefined'
-    ? new TextEncoder().encode(String(content))
-    : Uint8Array.from(String(content), (char) => char.charCodeAt(0));
-  const digest = await globalThis.crypto.subtle.digest('SHA-256', bytes);
-  return Array.from(new Uint8Array(digest))
-    .map((byte) => byte.toString(16).padStart(2, '0'))
-    .join('');
-};
-
-const parseEvidence = (content, evidencePath) => {
-  try {
-    return JSON.parse(content);
-  } catch (error) {
-    throw new Error(`Evidence is not valid JSON: ${evidencePath}`);
-  }
-};
-
-const readRequired = async (VFS, path, label) => {
-  const exists = await VFS.exists(path);
-  if (!exists) {
-    throw new Error(`${label} not found: ${path}`);
-  }
-  return VFS.read(path);
-};
-
-const getEvidencePath = (evidence, key) => {
-  const value = evidence?.[key] || evidence?.promotion?.[key];
-  return typeof value === 'string' && value.trim() ? normalizePath(value) : '';
-};
-
-const getEvidenceBoolean = (evidence, key) => {
-  if (typeof evidence?.[key] === 'boolean') return evidence[key];
-  if (typeof evidence?.promotion?.[key] === 'boolean') return evidence.promotion[key];
-  return false;
-};
-
-const getEvidenceHash = (evidence, key) => {
-  const value = evidence?.[key] || evidence?.promotion?.[key];
-  return typeof value === 'string' && value.trim() ? value.trim().toLowerCase() : '';
-};
+import {
+  TEXT_LIMIT_BYTES,
+  defaultAllowTargetPath,
+  getEvidenceBoolean,
+  getEvidenceHash,
+  getEvidencePath,
+  isValidatorMutationTarget,
+  isWithinRoot,
+  normalizePromotionPath as normalizePath,
+  parseEvidence,
+  readRequired,
+  sha256,
+  textBytes
+} from '../core/promotion-policy.js';
 
 export async function promoteShadowCandidate(args = {}, deps = {}) {
   const { VFS, EventBus, AuditLogger, logger } = deps;

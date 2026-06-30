@@ -499,6 +499,33 @@ const formatResultMessage = (value = {}) => {
   return 'Local peer state updated.';
 };
 
+const safeJsonStringify = (value) => {
+  const seen = new WeakSet();
+  try {
+    return JSON.stringify(value, (_key, entry) => {
+      if (typeof entry === 'function') return `[Function ${entry.name || 'anonymous'}]`;
+      if (entry instanceof Error) {
+        return {
+          name: entry.name,
+          message: entry.message,
+          code: entry.code || null,
+          payload: entry.payload || null
+        };
+      }
+      if (entry && typeof entry === 'object') {
+        if (seen.has(entry)) return '[Circular]';
+        seen.add(entry);
+      }
+      return entry;
+    }, 2);
+  } catch (error) {
+    return JSON.stringify({
+      status: 'serialization_error',
+      reason: error.message
+    }, null, 2);
+  }
+};
+
 const formatErrorResultText = (value = {}) => {
   const payload = value.payload || {};
   const model = value.model || payload.model || payload.requiredModel || null;
@@ -513,7 +540,7 @@ const formatErrorResultText = (value = {}) => {
     artifact?.status ? `Artifact: ${artifact.status}` : null,
     artifact?.urls?.manifest || payload.urls?.manifest ? `Manifest: ${artifact?.urls?.manifest || payload.urls?.manifest}` : null
   ].filter(Boolean);
-  const detail = JSON.stringify(value, null, 2);
+  const detail = safeJsonStringify(value);
   return `${lines.join('\n')}${lines.length ? '\n\n' : ''}${detail}`;
 };
 
@@ -532,7 +559,7 @@ export const setResult = (id, value, options = {}) => {
       ? value
       : isErrorResult(value)
         ? formatErrorResultText(value)
-      : JSON.stringify(value, null, 2) || String(value);
+      : safeJsonStringify(value) || String(value);
   const streamEl = streamMode ? document.getElementById(`${id}-stream`) : document.getElementById(id);
   const streamCursor = streamMode ? document.getElementById(`${id}-stream-cursor`) : null;
   const rawEl = document.getElementById(`${id}-raw`);
@@ -572,7 +599,7 @@ export const renderNav = (activeRoute) => {
         ${POOLDAY_NAV_ROUTES.map(renderItem).join('')}
       </nav>
       <div class="pool-nav-substrate" aria-label="Substrate routes">
-        <a class="pool-nav-link pool-nav-substrate-link pool-zero-link link-secondary" href="/0" title="Open Zero.">Zero</a>
+        <a class="pool-nav-link pool-nav-substrate-link pool-zero-link link-secondary" href="/0" title="Open Zero.">0</a>
         <a class="pool-nav-link pool-nav-substrate-link pool-zero-link link-secondary" href="/x" title="Open X.">X</a>
       </div>
     </aside>

@@ -54,18 +54,21 @@ describe('boot seed manifest', () => {
     expect(bootFiles.some((file) => file.startsWith('ui/boot-wizard/'))).toBe(false);
   });
 
-  it('skips full manifest hydration for reploid_home only', () => {
+  it('skips full manifest hydration for locked and minimal home profiles', () => {
     expect(shouldHydrateFullManifest('reploid_home')).toBe(false);
-    expect(shouldHydrateFullManifest('zero_home')).toBe(true);
+    expect(shouldHydrateFullManifest('zero_home')).toBe(false);
+    expect(shouldHydrateFullManifest('pool_home')).toBe(false);
+    expect(shouldHydrateFullManifest('substrate_console')).toBe(false);
     expect(shouldHydrateFullManifest('x_home')).toBe(true);
     expect(shouldHydrateFullManifest('wizard')).toBe(true);
   });
 
-  it('keeps locked route homes on bootstrap until full VFS hydration is ready', () => {
-    expect(shouldAwaitFullManifestBeforeStart('zero_home')).toBe(true);
+  it('awaits full VFS hydration before start only for the mature workspace', () => {
     expect(shouldAwaitFullManifestBeforeStart('x_home')).toBe(true);
+    expect(shouldAwaitFullManifestBeforeStart('zero_home')).toBe(false);
     expect(shouldAwaitFullManifestBeforeStart('reploid_home')).toBe(false);
     expect(shouldAwaitFullManifestBeforeStart('pool_home')).toBe(false);
+    expect(shouldAwaitFullManifestBeforeStart('wizard')).toBe(false);
   });
 
   it('hydrates the Zero runtime UI files in the locked boot seed', () => {

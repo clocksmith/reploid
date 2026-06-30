@@ -2,12 +2,12 @@
  * @fileoverview WriteFile - Write content to VFS or OPFS with guardrails
  */
 
+import { assertNoPathTraversal, assertOpfsArtifactPath, assertWritableVfsPath } from '../config/vfs-policy.js';
+
 const TEXT_LIMIT_BYTES = 8 * 1024 * 1024;
 const BINARY_LIMIT_BYTES = 256 * 1024 * 1024;
 const OPFS_PREFIX = 'opfs:';
 const VFS_PREFIX = 'vfs:';
-const OPFS_ALLOWLIST_PREFIXES = ['/artifacts/'];
-const VFS_WRITABLE_ROOTS = ['/shadow', '/artifacts', '/cycles'];
 
 const normalizePath = (rawPath, backendOverride) => {
   if (!rawPath || typeof rawPath !== 'string') {
@@ -31,33 +31,6 @@ const normalizePath = (rawPath, backendOverride) => {
 
   path = '/' + path.replace(/^\/+/, '');
   return { backend: backend || 'vfs', path };
-};
-
-const assertSafePath = (path) => {
-  if (path.split('/').includes('..')) {
-    throw new Error('Path traversal is not allowed');
-  }
-};
-
-const isWithinRoot = (path, root) => {
-  const normalizedRoot = root.endsWith('/') ? root.slice(0, -1) : root;
-  return path === normalizedRoot || path.startsWith(`${normalizedRoot}/`);
-};
-
-const assertVfsWritable = (path) => {
-  if (!VFS_WRITABLE_ROOTS.some((root) => isWithinRoot(path, root))) {
-    throw new Error(`VFS path not writable by WriteFile: ${path}. Write candidates under /shadow or evidence under /artifacts, then use Promote for /self.`);
-  }
-};
-
-const assertOpfsAllowed = (path) => {
-  const allowed = OPFS_ALLOWLIST_PREFIXES.some((prefix) => {
-    const cleanPrefix = prefix.endsWith('/') ? prefix : `${prefix}/`;
-    return path === cleanPrefix.slice(0, -1) || path.startsWith(cleanPrefix);
-  });
-  if (!allowed) {
-    throw new Error(`OPFS path not allowed: ${path}`);
-  }
 };
 
 const resolveMode = (mode) => {
@@ -148,7 +121,7 @@ async function call(args = {}, deps = {}) {
 
   const rawPath = args.path || args.file;
   const { backend, path } = normalizePath(rawPath, args.backend);
-  assertSafePath(path);
+  assertNoPathTraversal(path);
 
   const mode = resolveMode(args.mode);
   const maxBytes = resolveMaxBytes(mode, args.maxBytes);
@@ -160,7 +133,7 @@ async function call(args = {}, deps = {}) {
   }
 
   if (backend === 'opfs') {
-    assertOpfsAllowed(path);
+    assertOpfsArtifactPath(path);
     if (mode === 'text') {
       if (args.data !== undefined) {
         throw new Error('Binary data not allowed in text mode');
@@ -253,7 +226,7 @@ async function call(args = {}, deps = {}) {
     return { path, backend: 'opfs', bytesWritten: bytes.byteLength };
   }
 
-  assertVfsWritable(path);
+  assertWritableVfsPath(path, 'WriteFile');
 
   if (mode !== 'text') {
     throw new Error('VFS supports text mode only');

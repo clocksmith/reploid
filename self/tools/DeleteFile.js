@@ -2,25 +2,10 @@
  * @fileoverview DeleteFile - Delete file from VFS with audit logging
  */
 
-const VFS_WRITABLE_ROOTS = ['/shadow', '/artifacts', '/cycles'];
+import { assertWritableVfsPath, normalizeVfsPath } from '../config/vfs-policy.js';
 
 const normalizePath = (rawPath) => {
-  const value = String(rawPath || '').trim();
-  return value.startsWith('/') ? value : `/${value}`;
-};
-
-const isWithinRoot = (path, root) => {
-  const normalizedRoot = root.endsWith('/') ? root.slice(0, -1) : root;
-  return path === normalizedRoot || path.startsWith(`${normalizedRoot}/`);
-};
-
-const assertSafeWritablePath = (path) => {
-  if (path.split('/').includes('..')) {
-    throw new Error('Path traversal is not allowed');
-  }
-  if (!VFS_WRITABLE_ROOTS.some((root) => isWithinRoot(path, root))) {
-    throw new Error(`VFS path not deletable by DeleteFile: ${path}. Delete candidates under /shadow or evidence under /artifacts, then use Promote for /self.`);
-  }
+  return normalizeVfsPath(rawPath);
 };
 
 async function call(args = {}, deps = {}) {
@@ -30,7 +15,7 @@ async function call(args = {}, deps = {}) {
   const { path, file, recursive = false } = args;
   const targetPath = normalizePath(path || file);
   if (!targetPath || targetPath === '/') throw new Error('Missing path argument');
-  assertSafeWritablePath(targetPath);
+  assertWritableVfsPath(targetPath, 'DeleteFile');
 
   if (recursive) {
     const files = await VFS.list(targetPath);

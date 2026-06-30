@@ -1,6 +1,6 @@
 {
   "schema": "reploid.pool.config/v1",
-  "configVersion": "2026-06-07.lane-a-protocol.v1",
+  "configVersion": "2026-06-28.lane-a-protocol.v2",
   "claim": "receipt-backed, audit-backed, reputation-backed, policy-controlled browser inference",
   "forbiddenClaims": [
     "trustless",
@@ -72,11 +72,11 @@
       "label": "Max ring quorum receipt",
       "evidenceRequirements": [
         "ringCommitment",
-        "threeOfFourProviders",
+        "majorityOfUpToTwelveProviders",
         "matchingOutputHash",
         "matchingTokenIdsHash"
       ],
-      "claim": "Three of four browser ring members agreed on deterministic output and token hashes."
+      "claim": "A majority of up to twelve browser ring members agreed on deterministic output and token hashes."
     },
     "T4_requester_accepted": {
       "label": "Requester accepted",
@@ -131,11 +131,29 @@
     "seed": "0000000000000000"
   },
   "browserRuntime": {
-    "dopplerModuleUrl": "https://esm.sh/doppler-gpu@0.4.3/src/client/doppler-api.browser.js?bundle",
-    "dopplerKernelBaseUrl": "https://esm.sh/doppler-gpu@0.4.3/src/gpu/kernels",
+    "dopplerModuleUrl": "https://esm.sh/doppler-gpu@0.4.4/src/client/doppler-api.browser.js?bundle",
+    "dopplerKernelBaseUrl": "https://esm.sh/doppler-gpu@0.4.4/src/gpu/kernels",
     "modelBaseUrl": "https://reploid.web.app/models",
     "loadOptions": {
-      "cache": "opfs"
+      "cache": "opfs",
+      "runtimeConfig": {
+        "inference": {
+          "kernelPathPolicy": {
+            "mode": "capability-aware",
+            "sourceScope": [
+              "model",
+              "manifest",
+              "config"
+            ],
+            "allowSources": [
+              "model",
+              "manifest",
+              "config"
+            ],
+            "onIncompatible": "remap"
+          }
+        }
+      }
     }
   },
   "ledgerReasons": {
@@ -308,7 +326,8 @@
       "trustTier": "T1_signed_receipt",
       "agreementMode": "single",
       "allowedModels": [
-        "gemma-3-270m-it-q4k-ehf16-af32"
+        "gemma-3-270m-it-q4k-ehf16-af32",
+        "qwen-3-5-0-8b-q4k-ehaf16"
       ],
       "minProviderReputation": 0,
       "maxQueueDepth": 100,
@@ -336,7 +355,8 @@
       "trustTier": "T2_canary_audited",
       "agreementMode": "single",
       "allowedModels": [
-        "gemma-3-270m-it-q4k-ehf16-af32"
+        "gemma-3-270m-it-q4k-ehf16-af32",
+        "qwen-3-5-0-8b-q4k-ehaf16"
       ],
       "minProviderReputation": 0,
       "maxQueueDepth": 100,
@@ -366,7 +386,8 @@
       "trustTier": "T3_redundant_agreement",
       "agreementMode": "redundant",
       "allowedModels": [
-        "gemma-3-270m-it-q4k-ehf16-af32"
+        "gemma-3-270m-it-q4k-ehf16-af32",
+        "qwen-3-5-0-8b-q4k-ehaf16"
       ],
       "minProviderReputation": 0,
       "maxQueueDepth": 100,
@@ -398,7 +419,8 @@
       "policyTrustTier": "T4_ring_quorum_receipt",
       "agreementMode": "ring_quorum",
       "allowedModels": [
-        "gemma-3-270m-it-q4k-ehf16-af32"
+        "gemma-3-270m-it-q4k-ehf16-af32",
+        "qwen-3-5-0-8b-q4k-ehaf16"
       ],
       "minProviderReputation": 0,
       "maxQueueDepth": 100,
@@ -407,14 +429,22 @@
       "redundancy": 1,
       "adaptiveRing": true,
       "minRingSize": 1,
-      "maxRingSize": 4,
+      "maxRingSize": 12,
       "quorum": "majority",
       "agreementField": "tokenIdsHash",
       "effectiveTrustByRingSize": {
         "1": "T1_ring_baseline",
         "2": "T2_paired_ring_receipt",
         "3": "T3_majority_ring_receipt",
-        "4": "T4_max_ring_quorum_receipt"
+        "4": "T4_max_ring_quorum_receipt",
+        "5": "T4_max_ring_quorum_receipt",
+        "6": "T4_max_ring_quorum_receipt",
+        "7": "T4_max_ring_quorum_receipt",
+        "8": "T4_max_ring_quorum_receipt",
+        "9": "T4_max_ring_quorum_receipt",
+        "10": "T4_max_ring_quorum_receipt",
+        "11": "T4_max_ring_quorum_receipt",
+        "12": "T4_max_ring_quorum_receipt"
       },
       "requireCanaryEligibleProvider": false,
       "requireProgramBundle": false,
@@ -733,6 +763,74 @@
         }
       },
       "label": "Gemma 3 270M",
+      "enabled": true
+    },
+    {
+      "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+      "modelHash": "sha256:fab133e49d6dc67912fc3a087222ec44ca1941d9b7bc36c60cb1379863a6dd4f",
+      "manifestHash": "sha256:0b81efea7c6ccde9a79d6788083a28ab39b3cae6e21b1a08075b14194bcbe34e",
+      "tokenizerHash": "sha256:8fc3b6de02de5a8e21d3867aba335e2d9a3c2263201f55daaed1feab3541bea4",
+      "contextLength": 262144,
+      "quantization": "q4k",
+      "artifactIdentity": {
+        "sourceCheckpointId": "Qwen/Qwen3.5-0.8B",
+        "sourceRepo": "Qwen/Qwen3.5-0.8B",
+        "sourceRevision": "2fc06364715b967f1860aea9cf38778875588b17",
+        "weightPackId": "qwen-3-5-0-8b-q4k-ehaf16-wp-catalog-v1",
+        "weightPackHash": "sha256:fab133e49d6dc67912fc3a087222ec44ca1941d9b7bc36c60cb1379863a6dd4f",
+        "manifestVariantId": "qwen-3-5-0-8b-q4k-ehaf16-mv-exec-v1",
+        "conversionConfigDigest": "sha256:01083d6518cee0445c7114402dade2b2ea0cd39acac0b61cad7dc2dece958f85",
+        "conversionConfigPath": "src/config/conversion/qwen3/qwen-3-5-0-8b-q4k-ehaf16.json",
+        "materializationProfile": "auto",
+        "modalitySet": [
+          "text",
+          "vision"
+        ],
+        "sourceFormat": "safetensors",
+        "artifactCompleteness": "complete"
+      },
+      "runtime": "doppler",
+      "backend": "browser-webgpu",
+      "dopplerLoadRef": "qwen-3-5-0-8b-q4k-ehaf16",
+      "loadInput": {
+        "url": "https://huggingface.co/Clocksmith/rdrr/resolve/a6118fb24a8e6c4fe7527f1a3dc7b406e0a3ef10/models/qwen-3-5-0-8b-q4k-ehaf16"
+      },
+      "artifactPolicy": {
+        "transport": "offloaded_content_addressed",
+        "cache": "browser_opfs",
+        "baseUrl": "https://huggingface.co/Clocksmith/rdrr/resolve/a6118fb24a8e6c4fe7527f1a3dc7b406e0a3ef10/models/qwen-3-5-0-8b-q4k-ehaf16",
+        "identityFields": [
+          "modelId",
+          "modelHash",
+          "manifestHash",
+          "runtime",
+          "backend"
+        ],
+        "pathTemplate": "",
+        "paths": {
+          "manifest": "manifest.json",
+          "tokenizer": "tokenizer.json",
+          "shards": ""
+        }
+      },
+      "runtimeCompatibility": {
+        "requiredWebGpuFeatures": [],
+        "capabilityFallbacks": [
+          {
+            "whenMissingWebGpuFeatures": [
+              "shader-f16"
+            ],
+            "runtime": "doppler-gpu@0.4.4",
+            "transform": "widenToF32Activations",
+            "prefillProjectionKernel": "fused_matmul_q4_batched_multicol_shared.wgsl",
+            "kvDtype": "f32",
+            "status": "supported"
+          }
+        ],
+        "fallbackStatus": "doppler_0_4_4_manifest_capability_remap",
+        "capabilityAction": "Use doppler-gpu@0.4.4 or newer with capability-aware kernelPathPolicy; browsers without shader-f16 run the declared f32 fallback lane."
+      },
+      "label": "Qwen 3.5 0.8B",
       "enabled": true
     },
     {

@@ -44,6 +44,10 @@ test('/0 completes one safe artifact-producing iteration', async ({ page }, test
   expect(toolcalls.calls).toEqual(expect.arrayContaining([
     expect.objectContaining({ name: 'WriteFile' })
   ]));
+  expect(toolcalls.modelUsed).toMatchObject({
+    id: 'mock-model',
+    provider: 'mock'
+  });
   expect(audit.score).toMatchObject({
     passed: true,
     toolCallCount: 1,

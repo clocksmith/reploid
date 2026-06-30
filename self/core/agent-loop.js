@@ -4,6 +4,7 @@
  */
 
 import { getCurrentReploidStorage as getReploidStorage } from '../instance.js';
+import { createCycleArtifactWriter } from './cycle-artifacts.js';
 
 const AgentLoop = {
   metadata: {
@@ -343,7 +344,6 @@ const AgentLoop = {
 
     const MAX_NO_PROGRESS_ITERATIONS = 5; // Max consecutive iterations without tool calls
     const TOOL_EXECUTION_TIMEOUT_MS = 30000; // 30 second timeout per tool
-    const CYCLE_ARTIFACT_ROOT = '/cycles';
 
     // Track single-tool usage for batching nudges
     let _consecutiveSingleToolCalls = 0;
@@ -483,113 +483,43 @@ const AgentLoop = {
       }
     };
 
-    const _getCycleId = (iteration) => `cycle-${String(iteration).padStart(6, '0')}`;
-
-    const _writeCycleArtifact = async (iteration, name, payload = {}) => {
-      if (!VFS?.write) return null;
-      const cycleId = _getCycleId(iteration);
-      const path = `${CYCLE_ARTIFACT_ROOT}/${cycleId}/${name}`;
-      try {
-        await VFS.write(path, JSON.stringify({
-          schema: 'reploid/cycle-artifact/v1',
-          cycleId,
-          cycle: iteration,
-          artifact: name,
-          timestamp: Date.now(),
-          ...payload
-        }, null, 2));
-        EventBus.emit('cycle:artifact', { cycle: iteration, cycleId, path, artifact: name });
-        return path;
-      } catch (error) {
-        logger.warn(`[Agent] Failed to write cycle artifact ${path}: ${error?.message || error}`);
-        return null;
-      }
+    const findConfiguredModel = (modelId) => {
+      const id = String(modelId || '');
+      const all = [_modelConfig, ..._modelConfigs].filter(Boolean);
+      return all.find((model) => (
+        String(model.id || model.model || model.modelId || '') === id
+      )) || _modelConfig || all[0] || null;
     };
 
-    const _buildCycleToolSummary = (results = []) => results.map((entry) => ({
-      tool: entry.call?.name || 'unknown',
-      args: entry.call?.args || {},
-      path: entry.call?.args?.path || entry.call?.args?.file || entry.call?.args?.target || null,
-      skipped: entry.skipped === true,
-      aborted: entry.aborted === true,
-      error: typeof entry.finalResult === 'string' && entry.finalResult.startsWith('Error:')
-        ? entry.finalResult
-        : null,
-      resultPreview: typeof entry.finalResult === 'string'
-        ? entry.finalResult.slice(0, 1000)
-        : JSON.stringify(entry.finalResult ?? entry.result ?? null).slice(0, 1000),
-      durationMs: entry.duration ?? null
-    }));
-
-    const _writeCycleOutcomeArtifacts = async ({
-      iteration,
-      stateBefore,
-      responseContent,
-      toolCalls,
-      callsToExecute = [],
-      allResults = [],
-      reason = '',
-      done = false
-    }) => {
-      const toolSummary = _buildCycleToolSummary(allResults);
-      const errors = toolSummary.filter((entry) => entry.error).length;
-      const mutationPaths = toolSummary
-        .filter((entry) => entry.path && ['WriteFile', 'EditFile', 'DeleteFile', 'CreateTool', 'Promote'].includes(entry.tool))
-        .map((entry) => entry.path);
-      const promoteResult = allResults.find((entry) => entry.call?.name === 'Promote')?.result || null;
-      const promotionDecision = promoteResult && typeof promoteResult === 'object'
-        ? promoteResult
-        : { promoted: false, reason: promoteResult ? String(promoteResult) : 'not requested' };
-      const score = {
-        passed: errors === 0,
-        toolCallCount: callsToExecute.length,
-        executedCount: toolSummary.length,
-        errorCount: errors,
-        mutationCount: mutationPaths.length,
-        evidenceCount: mutationPaths.filter((path) => String(path).startsWith('/artifacts/') || String(path).startsWith('/cycles/')).length
+    const buildModelUsed = ({ response = {}, modelId = null, provider = null, latencyMs = null } = {}) => {
+      const id = response.model || modelId || null;
+      const configured = findConfiguredModel(id);
+      const resolvedId = id || configured?.id || configured?.model || configured?.modelId || null;
+      const resolvedProvider = response.provider || provider || configured?.provider || null;
+      const name = configured?.name || configured?.label || resolvedId || 'unknown';
+      const label = resolvedProvider
+        ? `${resolvedProvider}/${name}`
+        : name;
+      return {
+        id: resolvedId,
+        name,
+        label,
+        provider: resolvedProvider,
+        serverType: configured?.serverType || null,
+        connectionType: configured?.connectionType || configured?.mode || null,
+        endpoint: configured?.endpoint || null,
+        usage: response.usage || null,
+        latencyMs
       };
-
-      const paths = {};
-      paths.toolcalls = await _writeCycleArtifact(iteration, 'toolcalls.json', {
-        stateBefore,
-        event: 'toolcalls',
-        calls: callsToExecute.map((call) => ({
-          name: call.name,
-          args: call.args || {},
-          error: call.error || null
-        })),
-        results: toolSummary
-      });
-      paths.score = await _writeCycleArtifact(iteration, 'score.json', {
-        stateBefore,
-        event: 'score',
-        score
-      });
-      paths.mutation = await _writeCycleArtifact(iteration, 'mutation.json', {
-        stateBefore,
-        event: 'mutation',
-        paths: mutationPaths,
-        mutationCount: mutationPaths.length,
-        toolCalls: toolSummary.filter((entry) => mutationPaths.includes(entry.path))
-      });
-      paths.decision = await _writeCycleArtifact(iteration, 'decision.json', {
-        stateBefore,
-        event: 'decision',
-        stateAfter: done ? 'Promote' : 'Shadow',
-        promotionDecision,
-        done,
-        reason
-      });
-      paths.audit = await _writeCycleArtifact(iteration, 'audit.json', {
-        stateBefore,
-        event: 'audit',
-        stateAfter: done ? 'Promote' : 'Shadow',
-        responsePreview: String(responseContent || '').slice(0, 2000),
-        score,
-        artifactPaths: paths
-      });
-      return paths;
     };
+
+    const cycleArtifacts = createCycleArtifactWriter({ VFS, EventBus, logger });
+    const _writeCycleArtifact = (iteration, name, payload = {}) => (
+      cycleArtifacts.writeCycleArtifact(iteration, name, payload)
+    );
+    const _writeCycleOutcomeArtifacts = (payload) => (
+      cycleArtifacts.writeCycleOutcomeArtifacts(payload)
+    );
 
     const _executeTool = async (call, iteration) => {
       if (!ToolExecutor) {
@@ -642,7 +572,7 @@ const AgentLoop = {
      * @param {number} iteration - Current iteration
      * @param {Array} context - Context array to push result to
      */
-    const _processToolResult = (call, result, iteration, context, duration) => {
+    const _processToolResult = (call, result, iteration, context, duration, modelUsed = null) => {
       // Smart truncation
       const resultStr = typeof result === 'string' ? result : JSON.stringify(result);
       let processedResult = resultStr;
@@ -658,12 +588,16 @@ const AgentLoop = {
       EventBus.emit('agent:history', {
         type: 'tool_result',
         cycle: iteration,
+        model: modelUsed?.id || null,
+        provider: modelUsed?.provider || null,
+        modelLabel: modelUsed?.label || null,
+        modelUsed,
         tool: call.name,
         args: call.args,
         result: processedResult,
         durationMs: duration ?? null
       });
-      _pushActivity({ kind: 'tool_result', cycle: iteration, tool: call.name, args: call.args, result: processedResult });
+      _pushActivity({ kind: 'tool_result', cycle: iteration, modelUsed, tool: call.name, args: call.args, result: processedResult });
       _logReflection(call, processedResult, iteration);
     };
 
@@ -1036,14 +970,6 @@ const AgentLoop = {
             }
           }
 
-          const llmEvent = {
-            type: 'llm_response',
-            cycle: iteration,
-            content: response.content
-          };
-          EventBus.emit('agent:history', llmEvent);
-          _pushActivity({ kind: 'llm_response', cycle: iteration, content: response.content });
-
           const responseContent = response?.content || '';
           const usage = response?.usage || {};
           const lastUserMessage = [...context].reverse().find(m => m.role === 'user');
@@ -1056,11 +982,37 @@ const AgentLoop = {
           const effectiveOutputTokens = outputTokens ?? null;
           const totalTokens = (Number.isFinite(effectiveInputTokens) ? effectiveInputTokens : 0)
             + (Number.isFinite(effectiveOutputTokens) ? effectiveOutputTokens : 0);
+          const responseLatencyMs = Date.now() - llmStart;
+          const modelUsed = buildModelUsed({
+            response,
+            modelId: responseModel,
+            provider: responseProvider,
+            latencyMs: responseLatencyMs
+          });
+
+          const llmEvent = {
+            type: 'llm_response',
+            cycle: iteration,
+            content: response.content,
+            model: modelUsed.id,
+            provider: modelUsed.provider,
+            modelLabel: modelUsed.label,
+            modelUsed,
+            latencyMs: responseLatencyMs,
+            inputTokens: effectiveInputTokens,
+            outputTokens: effectiveOutputTokens,
+            tokens: totalTokens
+          };
+          EventBus.emit('agent:history', llmEvent);
+          _pushActivity({ kind: 'llm_response', cycle: iteration, modelUsed, content: response.content });
 
           EventBus.emit('llm:complete', {
-            model: responseModel,
-            provider: responseProvider,
-            latency: Date.now() - llmStart,
+            model: modelUsed.id,
+            modelName: modelUsed.name,
+            modelLabel: modelUsed.label,
+            provider: modelUsed.provider,
+            modelUsed,
+            latency: responseLatencyMs,
             inputTokens: effectiveInputTokens,
             outputTokens: effectiveOutputTokens,
             tokens: totalTokens,
@@ -1095,8 +1047,12 @@ const AgentLoop = {
             stateBefore,
             event: 'llm:response',
             stateAfter: toolCalls.length > 0 ? 'Shadow' : (ResponseParser.isDone(response.content) ? 'Promote' : 'Shadow'),
-            model: responseModel,
-            provider: responseProvider,
+            model: modelUsed.id,
+            provider: modelUsed.provider,
+            modelName: modelUsed.name,
+            modelLabel: modelUsed.label,
+            modelUsed,
+            usage,
             response: responseContent,
             toolCallCount: toolCalls.length
           });
@@ -1114,8 +1070,10 @@ const AgentLoop = {
               })),
               toolCallCount: toolCalls.length
             },
-            model: responseModel,
-            provider: responseProvider
+            model: modelUsed.id,
+            provider: modelUsed.provider,
+            modelLabel: modelUsed.label,
+            modelUsed
           });
 
           context.push({ role: 'assistant', content: responseContent });
@@ -1249,7 +1207,7 @@ const AgentLoop = {
             // Process all results into context (preserves original order for pre-results)
             for (const { call, finalResult, aborted, duration } of allResults) {
               if (aborted) continue;
-              _processToolResult(call, finalResult, iteration, context, duration);
+              _processToolResult(call, finalResult, iteration, context, duration, modelUsed);
             }
 
             // Emit tool batch marker for timeline
@@ -1267,9 +1225,26 @@ const AgentLoop = {
             EventBus.emit('agent:history', {
               type: 'tool_batch',
               cycle: iteration,
+              model: modelUsed.id,
+              provider: modelUsed.provider,
+              modelLabel: modelUsed.label,
+              modelUsed,
               total: callsToExecute.length,
               errors: errorCount,
               tools: uniqueTools,
+              calls: callsToExecute.map((call) => ({
+                name: call.name,
+                args: call.args || {},
+                error: call.error || null
+              })),
+              results: allResults.map((entry) => ({
+                name: entry.call?.name || 'unknown',
+                args: entry.call?.args || {},
+                error: typeof entry.finalResult === 'string' && entry.finalResult.startsWith('Error:')
+                  ? entry.finalResult
+                  : null,
+                durationMs: entry.duration ?? null
+              })),
               topTools,
               extraTools,
               ts: Date.now()
@@ -1278,6 +1253,7 @@ const AgentLoop = {
             await _writeCycleOutcomeArtifacts({
               iteration,
               stateBefore,
+              modelUsed,
               responseContent,
               toolCalls,
               callsToExecute,
@@ -1305,6 +1281,7 @@ const AgentLoop = {
               await _writeCycleOutcomeArtifacts({
                 iteration,
                 stateBefore,
+                modelUsed,
                 responseContent,
                 toolCalls,
                 callsToExecute: [],
@@ -1318,6 +1295,7 @@ const AgentLoop = {
             await _writeCycleOutcomeArtifacts({
               iteration,
               stateBefore,
+              modelUsed,
               responseContent,
               toolCalls,
               callsToExecute: [],
@@ -1388,6 +1366,12 @@ You are Zero. Run a browser-local tabula-rasa RSI loop with one model path, a sm
 - Use IndexedDB VFS, OPFS, Service Worker module loading, Web Workers, WebGPU/WASM/canvas, and DOM/CSS only when available.
 - Do not claim shell, raw host filesystem, processes, or arbitrary network access.
 
+## VFS Path Map
+- Use root-scoped VFS source paths for reads: /core, /config, /tools, /ui, /styles, /boot-helpers, /blueprint-index.json, and /blueprints.
+- Do not read /self/manifest.json or /self/self.json; those are not Zero tool paths.
+- /self is for promotion targets and host-owned runtime mirrors. Use it only when a tool explicitly requires a /self target path.
+- Start unknown path discovery with ReadFile path: / or ListFiles path: /.
+
 ## Tool Call Format
 \`\`\`
 REPLOID/0
@@ -1400,7 +1384,7 @@ key: value
 - ReadFile: read seed files, blueprints, shadow candidates, and artifacts
 - WriteFile: write candidates under /shadow and evidence under /artifacts
 - CreateTool: stage new tool candidates under /shadow/tools
-- LoadModule: load approved modules after promotion into /self
+- LoadModule: load approved modules after promotion
 - Promote: request a gated /shadow to /self change
 
 ## Rules

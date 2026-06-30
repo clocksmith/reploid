@@ -137,10 +137,10 @@ describe('ToolRunner', () => {
       it('should skip test files when loading tools', async () => {
         global.window = { getReploidMode: () => 'x' };
         mockVFS.list.mockResolvedValue([
-          '/tools/MyTool.js',
-          '/tools/MyTool.test.js',
-          '/tools/MyTool.spec.js',
-          '/tools/MyTool.integration.js'
+          '/tools/ReadFile.js',
+          '/tools/ReadFile.test.js',
+          '/tools/ReadFile.spec.js',
+          '/tools/ReadFile.integration.js'
         ]);
         mockVFS.read.mockResolvedValue('export default () => {};');
 
@@ -149,10 +149,10 @@ describe('ToolRunner', () => {
 
         await toolRunner.init();
 
-        // Should only attempt to load MyTool.js
+        // Should only attempt to load ReadFile.js
         // Test files should be skipped
         expect(mockVFS.read).toHaveBeenCalledTimes(1);
-        expect(mockVFS.read).toHaveBeenCalledWith('/tools/MyTool.js');
+        expect(mockVFS.read).toHaveBeenCalledWith('/tools/ReadFile.js');
       });
 
       it('should handle empty tools directory gracefully', async () => {

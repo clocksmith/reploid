@@ -10,6 +10,7 @@ if (!baseUrl) {
   process.exit(1);
 }
 
+const { LAUNCH_MODEL } = await import('../self/pool/model-contract.js');
 const routes = ['/', '/run', '/contribute', '/agents', '/receipts', '/reputation', '/0'];
 const requiredText = {
   '/': 'home',
@@ -24,16 +25,41 @@ const requiredText = {
 const { chromium } = await import('@playwright/test');
 const browser = await chromium.launch();
 const context = await browser.newContext();
-await context.addInitScript(() => {
-  const model = {
-    modelId: 'gemma-3-270m-it-q4k-ehf16-af32',
-    modelHash: 'sha256:6e9c0037ca1508855c441a4da1a0916a347f0901779549d6a70381bc5089a4b9',
-    manifestHash: 'sha256:cdc1d7a596fd2314c32da553c908a1aa6183abe056bc272c249b0a084c127a16',
-    contextLength: 32768,
-    quantization: 'q4k',
-    runtime: 'doppler',
-    backend: 'browser-webgpu'
+await context.addInitScript((launchModel) => {
+  const model = { ...launchModel };
+  const textEncoder = new TextEncoder();
+  const bytesToHex = (bytes) => Array.from(bytes)
+    .map((byte) => byte.toString(16).padStart(2, '0'))
+    .join('');
+  const canonicalize = (value) => {
+    if (value === null || typeof value !== 'object') return JSON.stringify(value);
+    if (Array.isArray(value)) return `[${value.map((item) => canonicalize(item)).join(',')}]`;
+    return `{${Object.keys(value)
+      .sort()
+      .map((key) => `${JSON.stringify(key)}:${canonicalize(value[key])}`)
+      .join(',')}}`;
   };
+  const sha256Hex = async (value) => {
+    const input = value instanceof Uint8Array ? value : textEncoder.encode(String(value));
+    const digest = await crypto.subtle.digest('SHA-256', input);
+    return `sha256:${bytesToHex(new Uint8Array(digest))}`;
+  };
+  const hashJson = async (value) => sha256Hex(canonicalize(value));
+  const buildRuntimeProfile = () => ({
+    profileVersion: 'pool-smoke',
+    model,
+    runtime: {
+      runtime: model.runtime,
+      backend: model.backend,
+      publicApi: 'generate'
+    },
+    device: { hasWebGPU: true, probeStatus: 'smoke' },
+    browser: { userAgent: 'pool-smoke' }
+  });
+  window.REPLOID_POOL_RELAY_MODE = 'local';
+  window.REPLOID_POOL_DISCOVERY_WINDOW_MS = 30000;
+  window.REPLOID_POOL_RECEIPT_WINDOW_MS = 30000;
+  window.REPLOID_POOL_STRICT_ARTIFACT_PREFLIGHT = false;
   window.REPLOID_DOPPLER_RUNTIME = {
     isReady: () => true,
     loadModel: async () => ({ ok: true, model }),
@@ -44,16 +70,13 @@ await context.addInitScript(() => {
       publicApi: 'generate',
       profile: { smoke: true }
     }),
-    getRuntimeProfile: async () => ({
-      runtimeProfile: {
-        profileVersion: 'pool-smoke',
-        model,
-        runtime: { runtime: 'doppler', backend: 'browser-webgpu' },
-        device: { hasWebGPU: true, probeStatus: 'smoke' },
-        browser: { userAgent: 'pool-smoke' }
-      },
-      runtimeProfileHash: 'sha256:pool_smoke_runtime'
-    }),
+    getRuntimeProfile: async () => {
+      const runtimeProfile = buildRuntimeProfile();
+      return {
+        runtimeProfile,
+        runtimeProfileHash: await hashJson(runtimeProfile)
+      };
+    },
     getDeviceInfo: async () => ({ hasWebGPU: true, probeStatus: 'smoke' }),
     generate: async ({ prompt }) => ({
       outputText: `smoke:${prompt}`,
@@ -73,7 +96,7 @@ await context.addInitScript(() => {
       status: 'completed'
     })
   };
-});
+}, LAUNCH_MODEL);
 const page = await context.newPage();
 const failures = [];
 
@@ -81,7 +104,7 @@ const gotoRoute = async (targetPage, route) => {
   const response = await targetPage.goto(`${baseUrl}${route}`, { waitUntil: 'domcontentloaded' });
   if (!response || !response.ok()) failures.push(`${route} returned ${response?.status() || 'no response'}`);
   if (route === '/0') {
-    await targetPage.waitForSelector('.wizard-home-provider [data-action="choose-proxy"]', { timeout: 30000 });
+    await targetPage.waitForFunction(() => document.title === 'Zero' || document.body.textContent.includes('Zero'));
     return response;
   }
   await targetPage.waitForSelector('.pool-home', { timeout: 30000 });

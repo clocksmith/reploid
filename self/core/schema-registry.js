@@ -5,6 +5,7 @@
  */
 
 import { getCurrentReploidStorage as getReploidStorage } from '../instance.js';
+import { getToolNamesForMode } from '../config/tool-surfaces.js';
 
 const SchemaRegistry = {
   metadata: {
@@ -553,12 +554,13 @@ const SchemaRegistry = {
     };
 
     const init = async () => {
-      const builtinTools = ['reploid', 'zero'].includes(getBootMode())
-        ? ['ReadFile', 'WriteFile', 'CreateTool', 'LoadModule', 'Promote']
-        : ['ReadFile', 'WriteFile', 'EditFile', 'ListFiles', 'DeleteFile', 'CreateTool', 'ListTools', 'LoadModule'];
+      const builtinTools = getToolNamesForMode(getBootMode());
 
       for (const toolName of builtinTools) {
-        registerToolSchema(toolName, DEFAULT_TOOL_SCHEMAS[toolName], { builtin: true });
+        const schema = DEFAULT_TOOL_SCHEMAS[toolName];
+        if (schema) {
+          registerToolSchema(toolName, schema, { builtin: true });
+        }
       }
       logger.info('[SchemaRegistry] Default tool schemas registered');
       // Load persisted non-builtin schemas from VFS
