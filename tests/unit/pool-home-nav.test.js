@@ -46,6 +46,8 @@ describe('poolday home navigation', () => {
     expect(html).toContain('href="/run" data-pool-route-link="/run"');
     expect(html).toContain('href="/mesh" data-pool-route-link="/mesh" aria-current="page"');
     expect(html).toContain('href="/record" data-pool-route-link="/record"');
+    expect(html).toContain('href="/0" data-pool-substrate-route="/0"');
+    expect(html).toContain('href="/x" data-pool-substrate-route="/x"');
     expect(html).not.toContain('aria-pressed');
     expect(html).not.toContain('Contribute');
     expect(html).not.toContain('Receipts');

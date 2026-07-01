@@ -42,4 +42,14 @@ describe('self-first boot shell', () => {
     const wrapper = readRepoFile('self/sw.js');
     expect(wrapper).toContain("importScripts(`/host/sw-module-loader.js${suffix}`);");
   });
+
+  it('stops boot backgrounds through declared browser globals only', () => {
+    const startApp = readRepoFile('self/host/start-app.js');
+
+    expect(startApp).toContain('const stopBootBackgrounds = () =>');
+    expect(startApp).toContain('window.REPLOID_POOL_SIMULATION_STOP');
+    expect(startApp).toContain('window.stopParticleBg');
+    expect(startApp).not.toContain('if (stopParticleBg)');
+    expect(startApp.replaceAll('window.stopParticleBg', '')).not.toContain('stopParticleBg = null');
+  });
 });

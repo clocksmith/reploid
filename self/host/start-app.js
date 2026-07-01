@@ -43,6 +43,29 @@ const ACTIVE_UI_PREFIXES = Object.freeze([
   '/self/capsule/'
 ]);
 
+const stopBootBackgrounds = () => {
+  const stopPoolSimulation = window.REPLOID_POOL_SIMULATION_STOP;
+  if (typeof stopPoolSimulation === 'function') {
+    try {
+      stopPoolSimulation();
+    } finally {
+      window.REPLOID_POOL_SIMULATION_STOP = null;
+    }
+  }
+
+  const stopLegacyParticleBg = window.stopParticleBg;
+  if (typeof stopLegacyParticleBg === 'function') {
+    try {
+      stopLegacyParticleBg();
+    } finally {
+      window.stopParticleBg = null;
+    }
+  }
+
+  document.getElementById('particle-bg-canvas')?.remove();
+  document.body?.classList?.remove('particle-active');
+};
+
 const normalizeManagedServerProxyMaxIterations = (value) => {
   const parsed = Number(value);
   if (!Number.isFinite(parsed)) return MANAGED_SERVER_PROXY_MAX_ITERATIONS;
@@ -709,14 +732,14 @@ async function completeReploidAwaken(goal, wizardContainer) {
           return;
         }
 
+        stopBootBackgrounds();
+
         // Ensure the full VFS hydration finished so module imports don't 404 under the SW.
         const fullSeed = window.REPLOID_VFS_FULL_SEED_PROMISE;
         if (fullSeed && typeof fullSeed.then === 'function') {
           console.log('[Boot] Waiting for background VFS hydration...');
           await fullSeed;
         }
-
-        if (stopParticleBg) { stopParticleBg(); stopParticleBg = null; }
 
         // NOW run the boot sequence
         const { boot, renderErrorUI, DIContainer } = await loadSharedBootModules();
