@@ -101,5 +101,18 @@ describe('ReadFile', () => {
       await expect(call({ path: '/missing.txt' }, { VFS: mockVFS }))
         .rejects.toThrow('File not found in VFS: /missing.txt');
     });
+
+    it('should suggest existing VFS files for near-miss paths', async () => {
+      mockVFS.stat.mockResolvedValue(null);
+      mockVFS.list.mockImplementation(async (path) => {
+        if (path === '/config') {
+          return ['/config/genesis-levels.json'];
+        }
+        return [];
+      });
+
+      await expect(call({ path: '/config/genesis-levels.json_' }, { VFS: mockVFS }))
+        .rejects.toThrow('Retry with ReadFile path: /config/genesis-levels.json.');
+    });
   });
 });

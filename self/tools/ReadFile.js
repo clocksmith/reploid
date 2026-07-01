@@ -149,6 +149,73 @@ const formatDirectoryListing = (path, entries) => {
   return lines.join('\n');
 };
 
+const getParentPath = (path) => {
+  const clean = normalizeDirectoryPath(path);
+  if (clean === '/') return '/';
+  const index = clean.lastIndexOf('/');
+  return index <= 0 ? '/' : clean.slice(0, index);
+};
+
+const getBaseName = (path) => normalizeDirectoryPath(path).split('/').filter(Boolean).pop() || '';
+
+const editDistance = (left, right) => {
+  const a = String(left || '');
+  const b = String(right || '');
+  if (a === b) return 0;
+  if (!a) return b.length;
+  if (!b) return a.length;
+  let previous = Array.from({ length: b.length + 1 }, (_, index) => index);
+  for (let i = 1; i <= a.length; i++) {
+    const current = [i];
+    for (let j = 1; j <= b.length; j++) {
+      const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+      current[j] = Math.min(
+        current[j - 1] + 1,
+        previous[j] + 1,
+        previous[j - 1] + cost
+      );
+    }
+    previous = current;
+  }
+  return previous[b.length];
+};
+
+const getMissingVfsPathHint = async (path, VFS) => {
+  if (typeof VFS.list !== 'function') return '';
+  const parent = getParentPath(path);
+  const requestedName = getBaseName(path);
+  let entries = [];
+  try {
+    entries = await VFS.list(parent);
+  } catch {
+    entries = [];
+  }
+  if (!Array.isArray(entries) || entries.length === 0) return '';
+
+  const entryPaths = entries
+    .filter((entry) => typeof entry === 'string' && entry.startsWith('/'))
+    .map((entry) => entry.replace(/\/+$/, ''));
+  const strippedPath = path.replace(/[._,;:!?-]+$/, '');
+  if (strippedPath !== path && entryPaths.includes(strippedPath)) {
+    return ` Retry with ReadFile path: ${strippedPath}.`;
+  }
+
+  const normalizedRequested = requestedName.toLowerCase();
+  let best = null;
+  for (const entry of entryPaths) {
+    const candidateName = getBaseName(entry).toLowerCase();
+    const score = editDistance(normalizedRequested, candidateName);
+    if (!best || score < best.score) {
+      best = { path: entry, score };
+    }
+  }
+
+  const threshold = Math.max(2, Math.ceil(normalizedRequested.length * 0.2));
+  return best && best.score <= threshold
+    ? ` Retry with ReadFile path: ${best.path}.`
+    : '';
+};
+
 async function readVfsDirectory(path, VFS) {
   if (typeof VFS.list !== 'function') return null;
 
@@ -178,7 +245,10 @@ async function readFromVfs(path, args, maxBytes) {
   if (!stats || stats.type === 'directory') {
     const directory = await readVfsDirectory(path, VFS);
     if (directory) return directory;
-    if (!stats) throw new Error(`File not found in VFS: ${path}. VFS paths do not carry a /self/ prefix (use /core/..., /ui/..., /tools/... etc). Run ReadFile with path: / to list top-level directories.`);
+    if (!stats) {
+      const hint = await getMissingVfsPathHint(path, VFS);
+      throw new Error(`File not found in VFS: ${path}.${hint} VFS paths do not carry a /self/ prefix (use /core/..., /ui/..., /tools/... etc). Run ReadFile with path: / to list top-level directories.`);
+    }
   }
 
   if (stats.type && stats.type !== 'file') {

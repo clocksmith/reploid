@@ -86,7 +86,7 @@
 
 .zero-runtime-strip {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: var(--space-sm);
   border-block: var(--border-md) solid var(--fg);
   padding-block: var(--space-sm);
@@ -105,6 +105,18 @@
   font-size: clamp(1rem, 2.2vw, 1.35rem);
   line-height: 1.1;
   overflow-wrap: anywhere;
+}
+
+.zero-runtime-item small {
+  min-width: 0;
+  font-size: 11px;
+  line-height: 1.15;
+  opacity: var(--opacity-secondary);
+  overflow-wrap: anywhere;
+}
+
+.zero-runtime-item strong.zero-runtime-alert {
+  color: color-mix(in srgb, var(--fg) 72%, #ff4d4d 28%);
 }
 
 .zero-main {
