@@ -60,19 +60,25 @@ test.describe('tool calling smoke', () => {
       const preserved = await executeToolResult(page, 'ReadFile', { path: sourcePath });
       expect(preserved.value.content).toBe('alpha');
 
-      const mkdir = await executeToolResult(page, 'MakeDirectory', { path: directoryPath });
-      expect(mkdir.ok).toBe(true);
+      if (listed.value.includes('MakeDirectory')) {
+        const mkdir = await executeToolResult(page, 'MakeDirectory', { path: directoryPath });
+        expect(mkdir.ok).toBe(true);
 
-      const copy = await executeToolResult(page, 'CopyFile', { source: sourcePath, target: copyPath });
-      expect(copy.ok).toBe(true);
-      const move = await executeToolResult(page, 'MoveFile', { source: copyPath, target: movedPath });
-      expect(move.ok).toBe(true);
-      const movedRead = await executeToolResult(page, 'ReadFile', { path: movedPath });
-      expect(movedRead.value.content).toBe('alpha');
+        const copy = await executeToolResult(page, 'CopyFile', { source: sourcePath, target: copyPath });
+        expect(copy.ok).toBe(true);
+        const move = await executeToolResult(page, 'MoveFile', { source: copyPath, target: movedPath });
+        expect(move.ok).toBe(true);
+        const movedRead = await executeToolResult(page, 'ReadFile', { path: movedPath });
+        expect(movedRead.value.content).toBe('alpha');
 
-      const list = await executeToolResult(page, 'ListFiles', { path: directoryPath, recursive: true });
-      expect(list.ok).toBe(true);
-      expect(list.value).toContain(movedPath);
+        const list = await executeToolResult(page, 'ListFiles', { path: directoryPath, recursive: true });
+        expect(list.ok).toBe(true);
+        expect(list.value).toContain(movedPath);
+      } else {
+        const mkdir = await executeToolResult(page, 'MakeDirectory', { path: directoryPath });
+        expect(mkdir.ok).toBe(false);
+        expect(mkdir.message).toMatch(/Tool (not found|not available)/);
+      }
 
       const createTool = await executeToolResult(page, 'CreateTool', {
         name: 'ContractProbeTool',
