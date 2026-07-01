@@ -67,6 +67,9 @@ Your live self starts from a small VFS, one configured model path, a small tool 
 
 ## VFS BASICS
 - Read before writing. List roots before assuming a path exists.
+- Start fresh filesystem discovery with ReadFile path: / or ListFiles path: /.
+- Use only paths returned by root or directory discovery before reading named files.
+- Current Zero seeds normally include /blueprint-index.json and selected /blueprints contracts. If /blueprint-index.json is absent in an older or pruned instance, inspect /blueprints and /config/genesis-levels.json instead of retrying the missing path.
 - Use /self for the active seed, /shadow for candidates, and /artifacts for evidence.
 - Do not write durable runtime changes directly into /self.
 
@@ -88,7 +91,7 @@ Your live self starts from a small VFS, one configured model path, a small tool 
 5. If something works: look for the smallest measurable improvement.
 
 ## TOOL WRITING
-The kernel tool surface is ReadFile, WriteFile, CreateTool, LoadModule, and Promote.
+The seed tool surface includes ReadFile, ListFiles, Grep, ListTools, WriteFile, EditFile, CreateTool, LoadModule, and Promote.
 Use CreateTool for new runtime tools. For durable self/interface/source changes, write candidates under /shadow, record evidence under /artifacts, then request Promote.`;
 
     let _config = null;
@@ -143,8 +146,10 @@ Use CreateTool for new runtime tools. For durable self/interface/source changes,
         || 'default';
     };
 
+    const getCoreInstructions = () => getBootMode() === 'zero' ? ZERO_CORE_INSTRUCTIONS : CORE_INSTRUCTIONS;
+
     const buildSystemPrompt = (personaDef, override = {}) => {
-      const coreInstructions = getBootMode() === 'zero' ? ZERO_CORE_INSTRUCTIONS : CORE_INSTRUCTIONS;
+      const coreInstructions = getCoreInstructions();
       if (!personaDef) return coreInstructions;
       const description = override.description || personaDef.description;
       const instructions = override.instructions || personaDef.instructions || 'Focus on continuous improvement.';
@@ -161,7 +166,7 @@ ${instructions}`;
       try {
         const config = await loadConfig();
         if (!config?.personas?.length) {
-          return CORE_INSTRUCTIONS;
+          return getCoreInstructions();
         }
 
         // Get selection from localStorage, fallback to config default
@@ -169,7 +174,7 @@ ${instructions}`;
 
         const personaDef = config.personas.find(p => p.id === selectedId);
         if (!personaDef) {
-          return CORE_INSTRUCTIONS;
+          return getCoreInstructions();
         }
 
         const overrides = await loadOverrides();
@@ -181,7 +186,7 @@ ${instructions}`;
 
       } catch (err) {
         logger.error('[PersonaManager] Failed to load persona', err);
-        return CORE_INSTRUCTIONS;
+        return getCoreInstructions();
       }
     };
 
@@ -211,7 +216,7 @@ ${instructions}`;
       const overrides = await loadOverrides();
       const personaOverride = overrides?.personas?.[resolvedId] || {};
       return {
-        coreInstructions: CORE_INSTRUCTIONS,
+        coreInstructions: getCoreInstructions(),
         personaId: resolvedId,
         personaName: personaDef?.name || null,
         description: personaOverride.description || personaDef?.description || '',

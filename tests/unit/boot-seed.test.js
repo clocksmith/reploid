@@ -74,6 +74,8 @@ describe('boot seed manifest', () => {
   it('hydrates the Zero runtime UI files in the locked boot seed', () => {
     const bootFiles = pickBootSeedFiles(manifest.files, 'zero_home');
 
+    expect(bootFiles).toContain('blueprint-index.json');
+    expect(bootFiles).toContain('blueprints/blueprint-index-contract.md');
     expect(bootFiles).toContain('ui/zero/index.js');
     expect(bootFiles).toContain('styles/zero.css');
     expect(bootFiles).toContain('ui/boot-home/index.js');
