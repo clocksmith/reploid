@@ -29,6 +29,10 @@ const ZeroUI = {
       used: 0,
       limit: 0
     };
+    let _toolStats = {
+      success: 0,
+      error: 0
+    };
     let _goal = initialGoal || '';
     let _models = [];
     const getModeLabel = () => {
@@ -77,6 +81,51 @@ const ZeroUI = {
     const formatModelMeta = (entry = {}) => {
       const label = entry.modelLabel || entry.modelUsed?.label;
       return label ? `Model ${label}` : '';
+    };
+
+    const isErrorToolResult = (value) => (
+      typeof value === 'string' && value.trim().startsWith('Error:')
+    );
+
+    const getToolStatsTotal = () => _toolStats.success + _toolStats.error;
+
+    const formatToolStats = () => `${_toolStats.success} ok / ${_toolStats.error} err`;
+
+    const formatToolErrorRate = () => {
+      const total = getToolStatsTotal();
+      if (!total) return '0% fail';
+      return `${Math.round((_toolStats.error / total) * 100)}% fail`;
+    };
+
+    const applyToolBatchStats = (entry = {}) => {
+      const callCount = Number.isFinite(entry.total)
+        ? entry.total
+        : (Array.isArray(entry.calls) ? entry.calls.length : 0);
+      const resultErrors = Array.isArray(entry.results)
+        ? entry.results.filter((result) => result?.error).length
+        : null;
+      const errorCount = Number.isFinite(entry.errors)
+        ? entry.errors
+        : (Number.isFinite(resultErrors) ? resultErrors : 0);
+      const safeTotal = Math.max(0, callCount);
+      const safeErrors = Math.min(safeTotal, Math.max(0, errorCount));
+      _toolStats = {
+        success: _toolStats.success + Math.max(0, safeTotal - safeErrors),
+        error: _toolStats.error + safeErrors
+      };
+    };
+
+    const deriveToolStatsFromActivities = (activities = []) => {
+      const stats = { success: 0, error: 0 };
+      for (const entry of activities) {
+        if (entry?.kind !== 'tool_result') continue;
+        if (isErrorToolResult(entry.result)) {
+          stats.error++;
+        } else {
+          stats.success++;
+        }
+      }
+      return stats;
     };
 
     const pushHistory = (entry) => {
@@ -244,6 +293,8 @@ const ZeroUI = {
       const cycleEl = _root.querySelector('#agent-cycle');
       const tokenEl = _root.querySelector('#agent-tokens');
       const modelEl = _root.querySelector('#agent-model');
+      const toolEl = _root.querySelector('#agent-tools');
+      const toolRateEl = _root.querySelector('#agent-tool-rate');
       const goalEl = _root.querySelector('#agent-goal');
       const stopBtn = _root.querySelector('#btn-toggle');
 
@@ -258,6 +309,13 @@ const ZeroUI = {
       if (modelEl) {
         const names = _models.map((item) => item.name || item.id).filter(Boolean);
         modelEl.textContent = names.join(', ') || '-';
+      }
+      if (toolEl) {
+        toolEl.textContent = formatToolStats();
+        toolEl.classList.toggle('zero-runtime-alert', _toolStats.error > 0);
+      }
+      if (toolRateEl) {
+        toolRateEl.textContent = formatToolErrorRate();
       }
       if (goalEl) {
         goalEl.textContent = _goal || 'No goal captured yet';
@@ -379,6 +437,9 @@ const ZeroUI = {
 
       _subscriptions.push(EventBus.on('agent:history', (entry = {}) => {
         pushHistory(mapHistoryEntry(entry));
+        if (entry.type === 'tool_batch') {
+          applyToolBatchStats(entry);
+        }
         if (entry.type === 'llm_response') {
           _streamTrace = { cycle: null, key: null, content: '' };
         }
@@ -416,6 +477,7 @@ const ZeroUI = {
 
     const seedRecentActivity = () => {
       const recent = AgentLoop.getRecentActivities?.() || [];
+      _toolStats = deriveToolStatsFromActivities(recent);
       _history = recent
         .slice(-20)
         .reverse()
@@ -468,6 +530,11 @@ const ZeroUI = {
             <div class="zero-runtime-item">
               <span>Tokens</span>
               <strong id="agent-tokens">0</strong>
+            </div>
+            <div class="zero-runtime-item">
+              <span>Tools</span>
+              <strong id="agent-tools">0 ok / 0 err</strong>
+              <small id="agent-tool-rate">0% fail</small>
             </div>
           </section>
 

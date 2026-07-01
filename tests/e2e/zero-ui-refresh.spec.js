@@ -3,6 +3,7 @@
  */
 import { test, expect } from '@playwright/test';
 import {
+  awakenWithMockGoal,
   awakenWithoutGoal,
   bootRouteWithServiceWorker,
   sanitizeInstanceId
@@ -32,5 +33,36 @@ test.describe('Zero runtime UI refresh', () => {
     await expect(page.locator('.zero-trace')).toBeVisible();
     await expect(page.locator('body')).not.toContainText(/Boot Failure|UI reload failed/i);
     expect(pageErrors).toEqual([]);
+  });
+
+  test('shows successful and errored tool call counters', async ({ page }, testInfo) => {
+    const instanceId = sanitizeInstanceId(`zero-tool-stats-${testInfo.project.name}-${Date.now()}`);
+    const toolBatchResponse = `REPLOID/0
+
+TOOL: ReadFile
+path: /self/boot-spec.js
+
+TOOL: ReadFile
+path: /missing-tool-stats.txt`;
+
+    await awakenWithMockGoal(page, '/0', instanceId, 'Exercise tool metrics.', [
+      toolBatchResponse,
+      'DONE: tool metrics observed'
+    ], { maxIterations: 2 });
+
+    await expect(page.locator('.zero-runtime-strip')).toBeVisible();
+    await expect.poll(async () => page.locator('#agent-tools').textContent(), {
+      timeout: 30000
+    }).toBe('1 ok / 1 err');
+    await expect(page.locator('#agent-tool-rate')).toHaveText('50% fail');
+
+    const beforeVersion = await page.evaluate(() => window.REPLOID_UI?.getVersion?.() || null);
+    await page.locator('.zero-more summary').click();
+    await page.locator('[data-zero-action="reload-ui"]').click();
+    await expect.poll(async () => page.evaluate(() => window.REPLOID_UI?.getVersion?.() || null), {
+      timeout: 30000
+    }).not.toBe(beforeVersion);
+    await expect(page.locator('#agent-tools')).toHaveText('1 ok / 1 err');
+    await expect(page.locator('#agent-tool-rate')).toHaveText('50% fail');
   });
 });
