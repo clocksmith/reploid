@@ -122,6 +122,8 @@ const ZERO_SHARED_TOOL_FILES = Object.freeze([
 
 export const ZERO_HOME_BOOT_SEED_PREFIXES = Object.freeze([
   'entry/',
+  'blueprint-index.json',
+  'blueprints/blueprint-index-contract.md',
   'blueprints/rgr-runtime-contract.md',
   'blueprints/promotion-contract.md',
   'blueprints/tabula-rasa-runtime.md',

@@ -148,6 +148,7 @@ describe('AgentLoop - Integration Tests', () => {
   afterEach(() => {
     vi.clearAllMocks();
     vi.clearAllTimers();
+    vi.unstubAllGlobals();
   });
 
   describe('initialization', () => {
@@ -230,6 +231,24 @@ describe('AgentLoop - Integration Tests', () => {
       expect(prompt).toContain('Default to Shadow for self changes');
       expect(prompt).not.toContain('full DOM access');
       expect(prompt).not.toContain('all Web APIs');
+    });
+
+    it('builds Zero context with discovery-first VFS rules', async () => {
+      vi.stubGlobal('window', {
+        getReploidMode: () => 'zero'
+      });
+      mockPersonaManager.getSystemPrompt.mockResolvedValue('You are Zero, a browser-local tabula-rasa RSI agent.');
+      mockLLMClient.chat.mockResolvedValue({ content: 'DONE' });
+      mockResponseParser.isDone.mockReturnValue(true);
+
+      await agentLoop.run('Inspect the Zero VFS');
+
+      const prompt = agentLoop.getSystemPrompt();
+      expect(prompt).toContain('Start every fresh Zero filesystem pass with ReadFile path: / or ListFiles path: /');
+      expect(prompt).toContain('If /blueprint-index.json is absent in an older or pruned instance');
+      expect(prompt).toContain('ListFiles: enumerate roots and directories before relying on named paths');
+      expect(prompt).toContain('Do not read /self/manifest.json or /self/self.json; those are not Zero tool paths.');
+      expect(prompt).not.toContain('Use root-scoped VFS source paths for reads: /core, /config, /tools, /ui, /styles, /boot-helpers, /blueprint-index.json, and /blueprints.');
     });
 
     it('should throw if already running', async () => {

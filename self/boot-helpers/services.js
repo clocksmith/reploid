@@ -9,6 +9,11 @@
  * @param {Object} logger - Logger instance
  */
 export async function createGenesisSnapshot(container, logger) {
+  if (typeof container?.hasModule === 'function' && !container.hasModule('GenesisSnapshot')) {
+    logger.debug('[Boot] Genesis snapshot skipped: GenesisSnapshot not registered for this genesis level');
+    return;
+  }
+
   logger.info('[Boot] Creating genesis snapshot...');
   try {
     const GenesisSnapshot = await container.resolve('GenesisSnapshot');

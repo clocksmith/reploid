@@ -43,4 +43,25 @@ describe('PersonaManager', () => {
     expect(prompt).not.toContain('full DOM access');
     expect(prompt).not.toContain('all Web APIs');
   });
+
+  it('uses Zero filesystem discovery rules when booted in /0 mode', async () => {
+    vi.stubGlobal('window', {
+      getReploidMode: () => 'zero'
+    });
+
+    const manager = PersonaManager.factory({
+      Utils: { logger },
+      VFS: null,
+      EventBus: null
+    });
+
+    const prompt = await manager.getSystemPrompt();
+
+    expect(prompt).toContain('You are Zero');
+    expect(prompt).toContain('Start fresh filesystem discovery with ReadFile path: / or ListFiles path: /');
+    expect(prompt).toContain('If /blueprint-index.json is absent');
+    expect(prompt).toContain('ListFiles');
+    expect(prompt).not.toContain('/self/manifest.json');
+    expect(prompt).not.toContain('/self/self.json');
+  });
 });
