@@ -7,7 +7,9 @@ import {
   ensureReploidWindowInstance,
   hasRequestedFreshIdentity,
   getScopedReploidStorageKey,
-  getScopedReploidVfsDbName
+  getScopedReploidVfsDbName,
+  REPLOID_TAB_INSTANCE_STORAGE_KEY,
+  shouldHideAutoReploidInstanceInUrl
 } from '../../self/instance.js';
 import {
   ensureIdentityBundle,
@@ -197,6 +199,90 @@ describe('self instance helpers', () => {
     expect(instanceId).toBe('peer_a');
     expect(win.REPLOID_INSTANCE_ID).toBe('peer_a');
     expect(replaceState).toHaveBeenCalledWith(null, '', '/?instance=peer_a');
+  });
+
+  it('keeps auto-generated Zero route instance ids out of the URL', () => {
+    const replaceState = vi.fn();
+    const sessionStorage = createMockStorage();
+    const win = {
+      REPLOID_INSTANCE_ID: null,
+      crypto: { randomUUID: () => 'Peer_A' },
+      history: {
+        state: null,
+        replaceState
+      },
+      location: {
+        href: 'http://localhost:3000/0',
+        pathname: '/0'
+      },
+      sessionStorage
+    };
+
+    const instanceId = ensureReploidWindowInstance(win);
+
+    expect(instanceId).toBe('peer_a');
+    expect(win.REPLOID_INSTANCE_ID).toBe('peer_a');
+    expect(replaceState).not.toHaveBeenCalled();
+    expect(sessionStorage.getItem(`${REPLOID_TAB_INSTANCE_STORAGE_KEY}:/0`)).toBe('peer_a');
+  });
+
+  it('reuses the tab-local Zero route instance id without mutating the URL', () => {
+    const replaceState = vi.fn();
+    const sessionStorage = createMockStorage();
+    sessionStorage.setItem(`${REPLOID_TAB_INSTANCE_STORAGE_KEY}:/0`, 'zero_a');
+    const win = {
+      REPLOID_INSTANCE_ID: null,
+      crypto: { randomUUID: () => 'Peer_B' },
+      history: {
+        state: null,
+        replaceState
+      },
+      location: {
+        href: 'http://localhost:3000/0',
+        pathname: '/0'
+      },
+      sessionStorage
+    };
+
+    const instanceId = ensureReploidWindowInstance(win);
+
+    expect(instanceId).toBe('zero_a');
+    expect(win.REPLOID_INSTANCE_ID).toBe('zero_a');
+    expect(replaceState).not.toHaveBeenCalled();
+    expect(sessionStorage.getItem(`${REPLOID_TAB_INSTANCE_STORAGE_KEY}:/0`)).toBe('zero_a');
+  });
+
+  it('honors explicit Zero route instance ids as continuable URLs', () => {
+    const replaceState = vi.fn();
+    const sessionStorage = createMockStorage();
+    const win = {
+      REPLOID_INSTANCE_ID: null,
+      crypto: { randomUUID: () => 'Peer_C' },
+      history: {
+        state: null,
+        replaceState
+      },
+      location: {
+        href: 'http://localhost:3000/0?instance=peer-a',
+        pathname: '/0'
+      },
+      sessionStorage
+    };
+
+    const instanceId = ensureReploidWindowInstance(win);
+
+    expect(instanceId).toBe('peer-a');
+    expect(win.REPLOID_INSTANCE_ID).toBe('peer-a');
+    expect(replaceState).not.toHaveBeenCalled();
+    expect(sessionStorage.getItem(`${REPLOID_TAB_INSTANCE_STORAGE_KEY}:/0`)).toBe('peer-a');
+  });
+
+  it('only hides auto-generated instance ids for local RSI routes', () => {
+    expect(shouldHideAutoReploidInstanceInUrl('http://localhost:3000/0')).toBe(true);
+    expect(shouldHideAutoReploidInstanceInUrl('http://localhost:3000/0/')).toBe(true);
+    expect(shouldHideAutoReploidInstanceInUrl('http://localhost:3000/x')).toBe(true);
+    expect(shouldHideAutoReploidInstanceInUrl('http://localhost:3000/')).toBe(false);
+    expect(shouldHideAutoReploidInstanceInUrl('http://localhost:3000/run')).toBe(false);
   });
 
   it('builds peer URLs that can request a fresh identity once', () => {

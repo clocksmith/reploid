@@ -15,6 +15,7 @@ import {
   SIMULATION_MOTION_CLOCK_WRAP_SECONDS,
   POOLDAY_MORPH_TUNING,
   POOLDAY_FLOW_TUNING,
+  POOLDAY_GRAPH_VIEW_CENTER_PULL,
   POOLDAY_GRAPH_NODE_IDS,
   POOLDAY_GRAPH_TOPOLOGIES,
   SIMULATION_TARGET_STEP_MS
@@ -57,6 +58,9 @@ const expectIncreasingY = (topology, ids) => {
     expect(yOf(topology, ids[index])).toBeGreaterThan(yOf(topology, ids[index - 1]));
   }
 };
+const expectedCenteredCoordinate = (value, size) => (
+  (0.5 + (value - 0.5) * (1 - POOLDAY_GRAPH_VIEW_CENTER_PULL)) * size
+);
 
 describe('pool home simulation performance contracts', () => {
   it('resizes from cached CSS dimensions without reading layout', () => {
@@ -199,7 +203,7 @@ describe('pool home simulation performance contracts', () => {
     expect(yOf(honeycomb, 'ledger')).toBeGreaterThan(yOf(honeycomb, 'settlement'));
   });
 
-  it('renders initial node centers from active topology coordinates without hidden remapping', () => {
+  it('renders initial node centers from active topology coordinates with a centered view transform', () => {
     withSimulationSearch('?seed=layout-check&shape=runner_reduce', () => {
       const state = createPoolSimulationState();
       const width = 1200;
@@ -210,11 +214,28 @@ describe('pool home simulation performance contracts', () => {
       for (const id of POOLDAY_GRAPH_NODE_IDS) {
         const node = frame.nodes.find((item) => item.id === id);
         const [x, y] = topology.points[id];
-        expect(node.baseX).toBeCloseTo(x * width, 8);
-        expect(node.baseY).toBeCloseTo(y * height, 8);
-        expect(node.x).toBeCloseTo(x * width, 8);
-        expect(node.y).toBeCloseTo(y * height, 8);
+        expect(node.baseX).toBeCloseTo(expectedCenteredCoordinate(x, width), 8);
+        expect(node.baseY).toBeCloseTo(expectedCenteredCoordinate(y, height), 8);
+        expect(node.x).toBeCloseTo(expectedCenteredCoordinate(x, width), 8);
+        expect(node.y).toBeCloseTo(expectedCenteredCoordinate(y, height), 8);
       }
+    });
+  });
+
+  it('keeps the rendered graph content 25 percent closer to canvas center', () => {
+    withSimulationSearch('?seed=centered-view&shape=runner_reduce', () => {
+      const state = createPoolSimulationState();
+      const width = 1200;
+      const height = 680;
+      const frame = buildPoolSimulationFrame(state, width, height, 1 / 60);
+      const topology = topologyById('runner_reduce');
+      const sourceXs = POOLDAY_GRAPH_NODE_IDS.map((id) => xOf(topology, id) * width);
+      const renderedXs = frame.nodes.map((node) => node.baseX);
+      const sourceWidth = Math.max(...sourceXs) - Math.min(...sourceXs);
+      const renderedWidth = Math.max(...renderedXs) - Math.min(...renderedXs);
+
+      expect(POOLDAY_GRAPH_VIEW_CENTER_PULL).toBe(0.25);
+      expect(renderedWidth).toBeCloseTo(sourceWidth * 0.75, 8);
     });
   });
 

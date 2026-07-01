@@ -10,9 +10,16 @@ const ZeroUI = {
     const { escapeHtml, trunc, logger } = Utils;
 
     const MAX_HISTORY_ENTRIES = 80;
+    const MAX_TRACE_TEXT_LENGTH = 12000;
+    const MAX_TRACE_PREVIEW_LENGTH = 220;
     let _root = null;
     let _history = [];
     let _subscriptions = [];
+    let _streamTrace = {
+      cycle: null,
+      key: null,
+      content: ''
+    };
     let _status = {
       state: 'IDLE',
       activity: 'Awaiting goal',
@@ -47,6 +54,17 @@ const ZeroUI = {
       return trunc(text.replace(/\s+/g, ' ').trim(), max);
     };
 
+    const traceText = (value, max = MAX_TRACE_TEXT_LENGTH) => {
+      if (value === null || value === undefined) return '';
+      const text = typeof value === 'string' ? value : JSON.stringify(value, null, 2);
+      const normalized = text.replace(/\r\n/g, '\n').trim();
+      return normalized.length > max
+        ? `${normalized.slice(0, max)}\n... [trace truncated]`
+        : normalized;
+    };
+
+    const tracePreview = (value, max = MAX_TRACE_PREVIEW_LENGTH) => summarize(value, max);
+
     const formatTime = (ts) => {
       if (!ts) return '--:--:--';
       try {
@@ -62,10 +80,34 @@ const ZeroUI = {
     };
 
     const pushHistory = (entry) => {
+      if (!entry) return;
       _history.unshift({
         ts: Date.now(),
         ...entry
       });
+      if (_history.length > MAX_HISTORY_ENTRIES) {
+        _history = _history.slice(0, MAX_HISTORY_ENTRIES);
+      }
+      renderHistory();
+    };
+
+    const upsertHistory = (key, entry) => {
+      if (!key || !entry) return;
+      const index = _history.findIndex((item) => item.key === key);
+      if (index >= 0) {
+        _history[index] = {
+          ..._history[index],
+          ...entry,
+          key,
+          ts: Date.now()
+        };
+      } else {
+        _history.unshift({
+          key,
+          ts: Date.now(),
+          ...entry
+        });
+      }
       if (_history.length > MAX_HISTORY_ENTRIES) {
         _history = _history.slice(0, MAX_HISTORY_ENTRIES);
       }
@@ -85,8 +127,19 @@ const ZeroUI = {
           return {
             kind: 'llm',
             title: entry.cycle ? `Cycle ${entry.cycle}` : 'LLM',
-            body: summarize(entry.content, 360),
+            body: traceText(entry.content),
+            summary: tracePreview(entry.content),
+            collapsed: true,
             meta: ['Response', formatModelMeta(entry)].filter(Boolean).join(' | ')
+          };
+        case 'system_prompt':
+          return {
+            kind: 'system',
+            title: 'Initial system prompt',
+            body: traceText(entry.content),
+            summary: tracePreview(entry.content),
+            collapsed: true,
+            meta: 'System'
           };
         case 'human_message':
           return {
@@ -106,8 +159,19 @@ const ZeroUI = {
           return {
             kind: 'llm',
             title: entry.cycle ? `Cycle ${entry.cycle}` : 'LLM',
-            body: summarize(entry.content, 360),
+            body: traceText(entry.content),
+            summary: tracePreview(entry.content),
+            collapsed: true,
             meta: ['Response', formatModelMeta(entry)].filter(Boolean).join(' | ')
+          };
+        case 'system_prompt':
+          return {
+            kind: 'system',
+            title: 'Initial system prompt',
+            body: traceText(entry.content),
+            summary: tracePreview(entry.content),
+            collapsed: true,
+            meta: 'System'
           };
         case 'tool_result':
           return {
@@ -143,6 +207,33 @@ const ZeroUI = {
             meta: entry.cycle ? `Cycle ${entry.cycle}` : ''
           };
       }
+    };
+
+    const mapStreamEntry = (entry = '') => {
+      const chunk = typeof entry === 'string'
+        ? entry
+        : (entry.content || entry.text || entry.delta || '');
+      if (!chunk) return null;
+      const cycle = Number.isFinite(entry?.cycle) ? entry.cycle : (_status.cycle || 0);
+      if (_streamTrace.cycle !== cycle) {
+        _streamTrace = {
+          cycle,
+          key: `stream:${cycle || 'current'}`,
+          content: ''
+        };
+      }
+      _streamTrace.content += chunk;
+      return {
+        key: _streamTrace.key,
+        entry: {
+          kind: 'stream',
+          title: cycle ? `Cycle ${cycle} stream` : 'Model stream',
+          body: traceText(_streamTrace.content),
+          summary: tracePreview(_streamTrace.content),
+          collapsed: true,
+          meta: 'Streaming'
+        }
+      };
     };
 
     const renderSummary = () => {
@@ -194,7 +285,12 @@ const ZeroUI = {
             <span class="zero-trace-time">${escapeHtml(formatTime(entry.ts))}</span>
           </header>
           ${entry.meta ? `<div class="zero-trace-meta">${escapeHtml(entry.meta)}</div>` : ''}
-          <div class="zero-trace-body">${escapeHtml(entry.body || '')}</div>
+          ${entry.collapsed
+            ? `<details class="zero-trace-details">
+                <summary>${escapeHtml(entry.summary || tracePreview(entry.body || ''))}</summary>
+                <div class="zero-trace-body">${escapeHtml(entry.body || '')}</div>
+              </details>`
+            : `<div class="zero-trace-body">${escapeHtml(entry.body || '')}</div>`}
         </article>
       `).join('');
     };
@@ -283,10 +379,20 @@ const ZeroUI = {
 
       _subscriptions.push(EventBus.on('agent:history', (entry = {}) => {
         pushHistory(mapHistoryEntry(entry));
+        if (entry.type === 'llm_response') {
+          _streamTrace = { cycle: null, key: null, content: '' };
+        }
         if (entry.type === 'human' && entry.content) {
           _goal = entry.messageType === 'goal' ? entry.content : _goal;
         }
         renderSummary();
+      }));
+
+      _subscriptions.push(EventBus.on('agent:stream', (entry = '') => {
+        const stream = mapStreamEntry(entry);
+        if (stream) {
+          upsertHistory(stream.key, stream.entry);
+        }
       }));
 
       _subscriptions.push(EventBus.on('agent:error', (entry = {}) => {
@@ -334,6 +440,13 @@ const ZeroUI = {
                 <div class="zero-more-menu">
                   <button class="btn" data-zero-action="reload-ui">Reload UI</button>
                   <div class="zero-more-line">Activity: <span id="agent-activity">Awaiting goal</span></div>
+                  <form id="zero-human-form" class="zero-input">
+                    <label class="zero-label" for="zero-human-input">Add context or correction</label>
+                    <div class="zero-input-row">
+                      <textarea id="zero-human-input" class="zero-human-input" rows="3" placeholder="Add one concrete note for the next cycle."></textarea>
+                      <button class="btn btn-prism" data-zero-action="send-note" type="submit">Send</button>
+                    </div>
+                  </form>
                 </div>
               </details>
             </div>
@@ -369,14 +482,6 @@ const ZeroUI = {
               <div id="history-container" class="zero-trace-list"></div>
             </section>
           </main>
-
-          <form id="zero-human-form" class="zero-input">
-            <label class="zero-label" for="zero-human-input">Add context or correction</label>
-            <div class="zero-input-row">
-              <textarea id="zero-human-input" class="zero-human-input" rows="2" placeholder="Add one concrete note for the next cycle."></textarea>
-              <button class="btn btn-prism" data-zero-action="send-note" type="submit">Send</button>
-            </div>
-          </form>
         </div>
       `;
 

@@ -338,6 +338,19 @@ describe('AgentLoop - Integration Tests', () => {
       }));
     });
 
+    it('should emit the initial system prompt as a history event', async () => {
+      mockLLMClient.chat.mockResolvedValue({ content: 'DONE' });
+      mockResponseParser.isDone.mockReturnValue(true);
+
+      await agentLoop.run('Trace system prompt');
+
+      expect(mockEventBus.emit).toHaveBeenCalledWith('agent:history', expect.objectContaining({
+        type: 'system_prompt',
+        cycle: 0,
+        content: expect.stringContaining('Trace system prompt')
+      }));
+    });
+
     it('should emit stream updates via callback', async () => {
       mockLLMClient.chat.mockImplementation((ctx, config, callback) => {
         callback('Streaming ');

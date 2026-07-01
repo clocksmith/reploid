@@ -201,6 +201,33 @@ config: {"mode":"safe","paths":["/a","/b"]}`;
         expect(calls[0].args.config).toEqual({ mode: 'safe', paths: ['/a', '/b'] });
       });
 
+      it('should parse REPLOID/0 no-arg tools with empty JSON args', () => {
+        const text = `REPLOID/0
+
+TOOL: ListTools
+{}`;
+
+        const calls = responseParser.parseToolCalls(text);
+
+        expect(calls).toHaveLength(1);
+        expect(calls[0].name).toBe('ListTools');
+        expect(calls[0].args).toEqual({});
+        expect(calls[0].error).toBeUndefined();
+      });
+
+      it('should parse REPLOID/0 same-line JSON object args', () => {
+        const text = `REPLOID/0
+
+TOOL: ReadFile {"path":"/self/runtime.js"}`;
+
+        const calls = responseParser.parseToolCalls(text);
+
+        expect(calls).toHaveLength(1);
+        expect(calls[0].name).toBe('ReadFile');
+        expect(calls[0].args).toEqual({ path: '/self/runtime.js' });
+        expect(calls[0].error).toBeUndefined();
+      });
+
       it('should parse REPLOID/0 PLAN steps with ids and dependencies', () => {
         const text = `REPLOID/0
 

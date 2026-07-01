@@ -4,6 +4,7 @@
 
 import {
   POOLDAY_FLOW_TUNING,
+  POOLDAY_GRAPH_VIEW_CENTER_PULL,
   POOLDAY_GRAPH_LABEL_ROLE_META,
   POOLDAY_GRAPH_LABEL_STAGES,
   POOLDAY_GRAPH_NODE_IDS,
@@ -57,6 +58,19 @@ const cloneTopologyPoints = (topology) => Object.fromEntries(
 const copyGraphPoints = (points) => Object.fromEntries(
   POOLDAY_GRAPH_NODE_IDS.map((id) => [id, { ...(points[id] || { x: 0.5, y: 0.5 }) }])
 );
+
+const resolveCenteredGraphValue = (value) => 0.5 + (value - 0.5) * (1 - POOLDAY_GRAPH_VIEW_CENTER_PULL);
+
+const copyCenteredGraphPointsInto = (target, points) => {
+  for (const id of POOLDAY_GRAPH_NODE_IDS) {
+    const point = points[id] || { x: 0.5, y: 0.5 };
+    const next = target[id] || { x: 0.5, y: 0.5 };
+    next.x = clamp01(resolveCenteredGraphValue(point.x));
+    next.y = clamp01(resolveCenteredGraphValue(point.y));
+    target[id] = next;
+  }
+  return target;
+};
 
 const createSimulationSeed = () => {
   try {
@@ -640,6 +654,7 @@ export const createPoolSimulationState = () => {
     seed,
     random,
     layout: createPoolGraphLayout(random),
+    graphViewPositions: copyGraphPoints({}),
     lineProjector: createSimulationLineProjector(),
     particlePoint: { x: 0, y: 0 },
     pointerEdgeSearch: {
@@ -1037,7 +1052,8 @@ export const buildPoolSimulationFrame = (state, width, height, deltaSeconds = SI
   state.pointer.y = lerpToward(state.pointer.y, state.pointer.targetY, SIMULATION_POINTER_LERP, safeDelta);
 
   const time = state.motionTime;
-  const graphPositions = updatePoolGraphLayout(state, safeDelta);
+  const layoutPositions = updatePoolGraphLayout(state, safeDelta);
+  const graphPositions = copyCenteredGraphPointsInto(state.graphViewPositions, layoutPositions);
   const transitionProgress = clamp01(state.layout.transition?.progress || 0);
   const transitionSignal = state.layout.transition ? Math.sin(transitionProgress * Math.PI) : 0;
   const carriedCue = state.layout.transition
