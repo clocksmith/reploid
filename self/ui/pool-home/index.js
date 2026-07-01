@@ -18,6 +18,17 @@ import {
 } from './controls.js';
 import { bindHomeSimulation } from './simulation-bind.js';
 
+const stopPoolHomeBackground = () => {
+  const stopSimulation = window.REPLOID_POOL_SIMULATION_STOP;
+  if (typeof stopSimulation === 'function') {
+    try {
+      stopSimulation();
+    } finally {
+      window.REPLOID_POOL_SIMULATION_STOP = null;
+    }
+  }
+};
+
 const bindPoolRouteControls = (mount, render) => {
   mount.querySelectorAll('[data-pool-route], [data-pool-route-link]').forEach((control) => {
     control.addEventListener('click', (event) => {
@@ -38,6 +49,12 @@ const bindPoolRouteControls = (mount, render) => {
       render();
     });
   });
+
+  mount.querySelectorAll('[data-pool-substrate-route]').forEach((control) => {
+    control.addEventListener('click', () => {
+      stopPoolHomeBackground();
+    });
+  });
 };
 
 export function initPoolHome(mount) {
@@ -51,10 +68,7 @@ export function initPoolHome(mount) {
     const routeId = getRouteId();
     document.documentElement.dataset.poolRouteId = routeId;
     document.body.dataset.poolRouteId = routeId;
-    if (routeId !== 'home' && window.REPLOID_POOL_SIMULATION_STOP) {
-      window.REPLOID_POOL_SIMULATION_STOP();
-      window.REPLOID_POOL_SIMULATION_STOP = null;
-    }
+    if (routeId !== 'home') stopPoolHomeBackground();
     const secondaryContent = renderRouteDetail(routeId);
     const rootPath = (window.location.pathname || '/').replace(/\/+$/, '') || '/';
     document.title = rootPath === '/'

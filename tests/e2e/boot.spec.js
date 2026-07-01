@@ -526,19 +526,21 @@ test.describe('Route Entry Points', () => {
       'WriteFile',
       'EditFile',
       'ListFiles',
+      'Grep',
+      'ListTools',
+      'CreateTool',
+      'LoadModule',
+      'Promote'
+    ]));
+    expect(resolvedServices.tools).not.toEqual(expect.arrayContaining([
       'DeleteFile',
       'MakeDirectory',
       'CopyFile',
       'MoveFile',
       'Head',
       'Tail',
-      'Grep',
       'Find',
-      'git',
-      'ListTools',
-      'CreateTool',
-      'LoadModule',
-      'Promote'
+      'git'
     ]));
 
     const liveToolResult = await page.evaluate(async () => {

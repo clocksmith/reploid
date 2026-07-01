@@ -601,8 +601,8 @@ export const renderNav = (activeRoute) => {
         ${POOLDAY_NAV_ROUTES.map(renderItem).join('')}
       </nav>
       <div class="pool-nav-substrate" aria-label="Substrate routes">
-        <a class="pool-nav-link pool-nav-substrate-link pool-zero-link link-secondary" href="/0" title="Open Zero.">0</a>
-        <a class="pool-nav-link pool-nav-substrate-link pool-zero-link link-secondary" href="/x" title="Open X.">X</a>
+        <a class="pool-nav-link pool-nav-substrate-link pool-zero-link link-secondary" href="/0" data-pool-substrate-route="/0" title="Open Zero.">0</a>
+        <a class="pool-nav-link pool-nav-substrate-link pool-zero-link link-secondary" href="/x" data-pool-substrate-route="/x" title="Open X.">X</a>
       </div>
     </aside>
   `;
