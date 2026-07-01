@@ -636,6 +636,12 @@ const AgentLoop = {
       }
 
       let context = await _buildInitialContext(goal);
+      EventBus.emit('agent:history', {
+        type: 'system_prompt',
+        cycle: 0,
+        content: _currentSystemPrompt
+      });
+      _pushActivity({ kind: 'system_prompt', cycle: 0, content: _currentSystemPrompt });
       let iteration = 0;
       const maxIterations = getConfiguredMaxIterations();
       const functionGemmaConfig = resolveFunctionGemmaConfig();

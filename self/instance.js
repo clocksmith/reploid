@@ -7,8 +7,10 @@ export const REPLOID_FRESH_IDENTITY_QUERY_PARAM = 'freshIdentity';
 export const REPLOID_INSTANCE_STORAGE_PREFIX = 'REPLOID_INSTANCE';
 export const REPLOID_INSTANCE_SEPARATOR = '::';
 export const REPLOID_DEFAULT_VFS_DB_NAME = 'reploid-vfs-v0';
+export const REPLOID_TAB_INSTANCE_STORAGE_KEY = 'REPLOID_TAB_INSTANCE_ID';
 
 const INSTANCE_ID_MAX_LENGTH = 64;
+const HIDDEN_AUTO_INSTANCE_PATHS = new Set(['/0', '/x']);
 
 const getStorageTarget = (storage) => (
   storage && typeof storage.getItem === 'function' && typeof storage.setItem === 'function'
@@ -55,6 +57,43 @@ export function getReploidInstanceIdFromUrl(input = globalThis.location?.href ||
   }
 }
 
+const normalizeInstancePath = (pathname = '/') => String(pathname || '/').replace(/\/+$/, '') || '/';
+
+export function shouldHideAutoReploidInstanceInUrl(input = globalThis.location?.href || '') {
+  try {
+    const base = globalThis.location?.origin || 'http://localhost';
+    const url = input instanceof URL ? input : new URL(String(input), base);
+    return HIDDEN_AUTO_INSTANCE_PATHS.has(normalizeInstancePath(url.pathname));
+  } catch {
+    return false;
+  }
+}
+
+const getTabInstanceStorageKey = (pathname = globalThis.location?.pathname || '/') => (
+  `${REPLOID_TAB_INSTANCE_STORAGE_KEY}:${normalizeInstancePath(pathname)}`
+);
+
+function readTabInstanceId(win = globalThis.window) {
+  try {
+    return sanitizeReploidInstanceId(
+      win?.sessionStorage?.getItem?.(getTabInstanceStorageKey(win.location?.pathname || '/'))
+    );
+  } catch {
+    return null;
+  }
+}
+
+function writeTabInstanceId(instanceId, win = globalThis.window) {
+  const id = sanitizeReploidInstanceId(instanceId);
+  if (!id) return false;
+  try {
+    win?.sessionStorage?.setItem?.(getTabInstanceStorageKey(win.location?.pathname || '/'), id);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 export function hasRequestedFreshIdentity(input = globalThis.location?.href || '') {
   if (!input) return false;
 
@@ -90,14 +129,19 @@ export function ensureReploidWindowInstance(win = globalThis.window) {
   const existing = sanitizeReploidInstanceId(win.REPLOID_INSTANCE_ID);
   if (existing) return existing;
 
-  let instanceId = getReploidInstanceIdFromUrl(win.location.href);
+  const explicitInstanceId = getReploidInstanceIdFromUrl(win.location.href);
+  const hideAutoInstance = shouldHideAutoReploidInstanceInUrl(win.location.href);
+  let instanceId = explicitInstanceId || (hideAutoInstance ? readTabInstanceId(win) : null);
   if (!instanceId) {
     instanceId = createReploidInstanceId(win.crypto || globalThis.crypto);
+  }
+  if (hideAutoInstance) {
+    writeTabInstanceId(instanceId, win);
   }
 
   try {
     const url = new URL(win.location.href);
-    if (url.searchParams.get(REPLOID_INSTANCE_QUERY_PARAM) !== instanceId) {
+    if (!hideAutoInstance && url.searchParams.get(REPLOID_INSTANCE_QUERY_PARAM) !== instanceId) {
       url.searchParams.set(REPLOID_INSTANCE_QUERY_PARAM, instanceId);
       win.history?.replaceState?.(win.history.state, '', `${url.pathname}${url.search}${url.hash}`);
     }
@@ -255,5 +299,6 @@ export default {
   getScopedReploidStorageKey,
   getScopedReploidVfsDbName,
   hasRequestedFreshIdentity,
+  shouldHideAutoReploidInstanceInUrl,
   sanitizeReploidInstanceId
 };

@@ -19,7 +19,7 @@ const ResponseParser = {
     const TOP_LEVEL_DIRECTIVE_REGEX = /^(?:REPLOID\/\d+|PLAN:|TOOL:\s*[a-zA-Z0-9_]+|TOOL_CALL:\s*[a-zA-Z0-9_]+|MILESTONE:|DONE:|IDLE:|PARK:)/;
     const REPLTOOL_HEADER_REGEX = /^REPLOID\/\d+\s*$/;
     const PLAN_DIRECTIVE_REGEX = /^PLAN:\s*(.*)$/;
-    const TOOL_DIRECTIVE_REGEX = /^TOOL:\s*([a-zA-Z0-9_]+)\s*$/;
+    const TOOL_DIRECTIVE_REGEX = /^TOOL:\s*([a-zA-Z0-9_]+)(?:\s+(\{.*\}))?\s*$/;
     const INLINE_ARG_REGEX = /^([a-zA-Z0-9_.-]+)\s*:\s*(.*)$/;
     const BLOCK_ARG_REGEX = /^([a-zA-Z0-9_.-]+)\s*(?::\s*)?<<\s*([A-Za-z0-9_-]+)\s*$/;
     const LEGACY_TOOL_CALL_REGEX = /TOOL_CALL:\s*([a-zA-Z0-9_]+)\s*\nARGS:\s*/g;
@@ -57,6 +57,23 @@ const ResponseParser = {
       }
 
       return value;
+    };
+
+    const parseObjectArgsLine = (rawLine) => {
+      const value = String(rawLine || '').trim();
+      if (!value.startsWith('{')) return { matched: false, value: null, error: null };
+      if (!value.endsWith('}')) {
+        return { matched: true, value: null, error: 'Invalid JSON argument object' };
+      }
+      try {
+        const parsed = JSON.parse(value);
+        if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+          return { matched: true, value: null, error: 'Argument JSON must be an object' };
+        }
+        return { matched: true, value: parsed, error: null };
+      } catch (error) {
+        return { matched: true, value: null, error: `Invalid JSON argument object: ${error.message}` };
+      }
     };
 
     const normalizePlanDeps = (value) => {
@@ -209,6 +226,14 @@ const ResponseParser = {
         const name = toolMatch[1];
         const args = {};
         let error = null;
+        const inlineObjectArgs = parseObjectArgsLine(toolMatch[2] || '');
+        if (inlineObjectArgs.matched) {
+          if (inlineObjectArgs.error) {
+            error = inlineObjectArgs.error;
+          } else {
+            Object.assign(args, inlineObjectArgs.value);
+          }
+        }
         index++;
 
         while (index < lines.length) {
@@ -255,6 +280,20 @@ const ResponseParser = {
                 index++;
               }
               appendContinuationArg(args, continuationKey, continuationLines);
+              continue;
+            }
+
+            const objectArgs = parseObjectArgsLine(nextLine);
+            if (objectArgs.matched) {
+              if (objectArgs.error) {
+                error = objectArgs.error;
+                while (index < lines.length && !TOP_LEVEL_DIRECTIVE_REGEX.test(lines[index].trimStart())) {
+                  index++;
+                }
+                break;
+              }
+              Object.assign(args, objectArgs.value);
+              index++;
               continue;
             }
 

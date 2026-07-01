@@ -6,7 +6,7 @@
 .zero-shell {
   min-height: 100%;
   display: grid;
-  grid-template-rows: auto auto minmax(0, 1fr) auto;
+  grid-template-rows: auto auto minmax(0, 1fr);
   gap: var(--space-md);
   padding: var(--space-lg);
   overflow: hidden;
@@ -27,7 +27,7 @@
 .zero-title {
   display: flex;
   flex-direction: column;
-  gap: var(--space-xs);
+  gap: 2px;
   min-width: 0;
 }
 
@@ -35,7 +35,7 @@
 .zero-label,
 .zero-runtime-item span,
 .zero-more-line {
-  font-size: 11px;
+  font-size: 10px;
   text-transform: uppercase;
   letter-spacing: 0.08em;
   opacity: var(--opacity-secondary);
@@ -43,9 +43,10 @@
 
 .zero-shell-heading {
   margin: 0;
-  font-size: clamp(2.25rem, 8vw, 6.5rem);
-  line-height: 0.88;
-  letter-spacing: -0.06em;
+  font-size: clamp(0.9rem, 1.6vw, 1.15rem);
+  line-height: 1;
+  letter-spacing: 0;
+  font-weight: 700;
 }
 
 .zero-actions {
@@ -73,7 +74,7 @@
   top: calc(100% + var(--space-xs));
   right: 0;
   z-index: var(--z-dropdown);
-  min-width: min(320px, calc(100vw - var(--space-lg) * 2));
+  min-width: min(420px, calc(100vw - var(--space-lg) * 2));
   display: flex;
   flex-direction: column;
   gap: var(--space-sm);
@@ -87,8 +88,9 @@
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: var(--space-sm);
-  border-block: var(--border-sm) solid var(--fg);
+  border-block: var(--border-md) solid var(--fg);
   padding-block: var(--space-sm);
+  background: linear-gradient(90deg, color-mix(in srgb, var(--fg) 5%, transparent), transparent 70%);
 }
 
 .zero-runtime-item {
@@ -100,14 +102,14 @@
 
 .zero-runtime-item strong {
   min-width: 0;
-  font-size: clamp(0.92rem, 2vw, 1.2rem);
+  font-size: clamp(1rem, 2.2vw, 1.35rem);
   line-height: 1.1;
   overflow-wrap: anywhere;
 }
 
 .zero-main {
   display: grid;
-  grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.35fr);
+  grid-template-columns: minmax(160px, 0.36fr) minmax(0, 2fr);
   gap: var(--space-md);
   min-height: 0;
   overflow: hidden;
@@ -123,19 +125,20 @@
 }
 
 .zero-goal {
-  justify-content: center;
-  border: var(--border-md) solid var(--fg);
-  padding: clamp(var(--space-md), 4vw, var(--space-xl));
-  background: color-mix(in srgb, var(--bg) 92%, #00ffff 8%);
+  justify-content: flex-start;
+  border: var(--border-sm) dashed color-mix(in srgb, var(--fg) 42%, transparent);
+  padding: var(--space-sm);
+  background: color-mix(in srgb, var(--bg) 98%, #00ffff 2%);
 }
 
 .zero-goal-text {
   margin: 0;
   white-space: pre-wrap;
   word-break: break-word;
-  font-size: clamp(1.45rem, 4vw, 3.35rem);
-  line-height: 1.02;
-  letter-spacing: -0.035em;
+  font-size: clamp(0.78rem, 1.1vw, 0.95rem);
+  line-height: 1.34;
+  letter-spacing: 0;
+  opacity: 0.82;
 }
 
 .zero-trace {
@@ -215,12 +218,31 @@
   word-break: break-word;
 }
 
+.zero-trace-details {
+  min-width: 0;
+}
+
+.zero-trace-details summary {
+  cursor: pointer;
+  font-size: 13px;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.zero-trace-details .zero-trace-body {
+  margin-top: var(--space-xs);
+  padding: var(--space-sm);
+  border: var(--border-sm) solid color-mix(in srgb, var(--fg) 28%, transparent);
+  background: color-mix(in srgb, var(--fg) 3%, transparent);
+}
+
 .zero-input {
   display: flex;
   flex-direction: column;
   gap: var(--space-xs);
   border-top: var(--border-sm) solid var(--fg);
   padding-top: var(--space-sm);
+  min-width: 0;
 }
 
 .zero-input-row {
@@ -232,7 +254,7 @@
 
 .zero-human-input {
   min-height: 44px;
-  max-height: 22dvh;
+  max-height: 28dvh;
   resize: vertical;
 }
 
@@ -254,7 +276,7 @@
   }
 
   .zero-goal {
-    min-height: 32dvh;
+    min-height: auto;
   }
 
   .zero-trace {
@@ -304,7 +326,7 @@
   }
 
   .zero-goal-text {
-    font-size: clamp(1.35rem, 9vw, 2.35rem);
+    font-size: clamp(0.8rem, 3.2vw, 0.95rem);
   }
 
   .zero-input-row {
