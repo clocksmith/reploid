@@ -191,6 +191,13 @@
           }
         },
         {
+          "source": "/pool/peer/**",
+          "run": {
+            "serviceId": "reploid-pool",
+            "region": "us-central1"
+          }
+        },
+        {
           "source": "/zero/gemini",
           "function": {
             "functionId": "zeroGemini",

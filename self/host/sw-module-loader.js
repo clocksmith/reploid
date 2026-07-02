@@ -35,6 +35,7 @@ const LAB_RUNTIME_ASSET_PREFIXES = [
   '/personas/',
   '/prompts/',
   '/self/',
+  '/shadow/',
   '/styles/proto/',
   '/tools/',
   '/ui/components/',
@@ -91,6 +92,17 @@ const NETWORK_FALLBACK_PREFIXES = [
   '/ui/reploid-home/',
   '/ui/boot-home/',
   '/ui/boot-wizard/'
+];
+const SELF_MIRROR_SOURCE_PREFIXES = [
+  { targetPrefix: '/self/config/', sourcePrefix: '/config/' },
+  { targetPrefix: '/self/lab/', sourcePrefix: '/lab/' },
+  { targetPrefix: '/self/styles/proto/', sourcePrefix: '/styles/proto/' },
+  { targetPrefix: '/self/styles/', sourcePrefix: '/styles/' },
+  { targetPrefix: '/self/ui/components/', sourcePrefix: '/ui/components/' },
+  { targetPrefix: '/self/ui/panels/', sourcePrefix: '/ui/panels/' },
+  { targetPrefix: '/self/ui/proto/', sourcePrefix: '/ui/proto/' },
+  { targetPrefix: '/self/ui/', sourcePrefix: '/ui/' },
+  { targetPrefix: '/self/ui/zero/', sourcePrefix: '/ui/zero/' }
 ];
 
 try {
@@ -304,6 +316,30 @@ function shouldFallbackToNetwork(path) {
     || NETWORK_FALLBACK_PREFIXES.some((prefix) => path.startsWith(prefix));
 }
 
+function getSelfMirrorSourcePath(path) {
+  const match = SELF_MIRROR_SOURCE_PREFIXES.find((entry) => path.startsWith(entry.targetPrefix));
+  if (!match) return null;
+  return `${match.sourcePrefix}${path.slice(match.targetPrefix.length)}`;
+}
+
+async function readFromVFSWithMirrorFallback(path, dbName) {
+  const content = await readFromVFS(path, dbName);
+  if (content !== null) {
+    return { content, path, mirrorFallback: false };
+  }
+
+  const sourcePath = getSelfMirrorSourcePath(path);
+  if (!sourcePath || sourcePath === path) return null;
+  const sourceContent = await readFromVFS(sourcePath, dbName);
+  if (sourceContent === null) return null;
+  return {
+    content: sourceContent,
+    path,
+    sourcePath,
+    mirrorFallback: true
+  };
+}
+
 function rewriteModuleImports(content, requestUrl, instanceId, dbName, vfsPath) {
   if (!requestUrl.pathname.endsWith('.js') && !requestUrl.pathname.endsWith('.mjs')) {
     return content;
@@ -436,7 +472,8 @@ async function handleModuleRequest(request, url, event) {
   if (shouldLog) console.log(`[SW] Module request: ${pathname} -> VFS: ${vfsPath}`);
 
   try {
-    const content = await readFromVFS(vfsPath, dbName);
+    const vfsResult = await readFromVFSWithMirrorFallback(vfsPath, dbName);
+    const content = vfsResult?.content ?? null;
 
     if (content !== null) {
       if (shouldLog) console.log(`[SW] Serving from VFS: ${vfsPath}`);
@@ -454,6 +491,7 @@ async function handleModuleRequest(request, url, event) {
         headers: {
           'Content-Type': getMimeType(vfsPath),
           'X-VFS-Source': 'true',
+          ...(vfsResult.mirrorFallback ? { 'X-VFS-Mirror-Fallback': vfsResult.sourcePath } : {}),
           'Cache-Control': 'no-cache'
         }
       });

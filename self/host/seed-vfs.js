@@ -38,6 +38,7 @@ const BOOTSTRAP_STAGE_COPY = Object.freeze({
   'service_worker:register': 'Registering service worker.',
   'service_worker:ready': 'Waiting for service worker readiness.',
   'service_worker:control': 'Checking service worker control.',
+  version_recovery: 'Refreshing stale boot substrate.',
   vfs_version: 'Checking VFS version.',
   manifest: 'Loading VFS manifest.',
   seed_boot: 'Seeding the minimal boot payload.',
@@ -198,7 +199,9 @@ const loadStartApp = async () => {
 };
 
 const SW_CONTROL_RELOAD_KEY = 'REPLOID_SW_CONTROL_RELOAD';
+const NETWORK_VERSION_RELOAD_KEY = 'REPLOID_NETWORK_VERSION_RELOAD';
 const VFS_VERSION_KEY = 'REPLOID_VFS_VERSION';
+const VFS_BYPASS_HEADER = 'x-reploid-vfs-bypass';
 const SW_CONTROL_WAIT_MS = 1500;
 const SW_READY_WAIT_MS = 3000;
 const SW_REGISTER_WAIT_MS = 3000;
@@ -230,6 +233,12 @@ const normalizeServiceWorkerScopePath = (value = '/') => {
 
 const getServiceWorkerScopeForBoot = (bootProfile) => SERVICE_WORKER_SCOPE_BY_BOOT_PROFILE[bootProfile] || null;
 
+const getExpectedBuildVersion = () => (
+  (typeof window !== 'undefined' && window.REPLOID_BUILD_VERSION)
+    ? String(window.REPLOID_BUILD_VERSION)
+    : null
+);
+
 const getRegistrationScopePath = (registration) => {
   try {
     const scopeUrl = new URL(registration.scope);
@@ -254,6 +263,26 @@ const releaseLegacyRootServiceWorkers = async () => {
   if (rootRegistrations.length === 0) return false;
   const controlsCurrentPage = rootRegistrations.some(isRegistrationActiveController);
   await Promise.all(rootRegistrations.map((registration) => registration.unregister()));
+  return controlsCurrentPage;
+};
+
+const releaseBootServiceWorkers = async (bootProfile) => {
+  if (!('serviceWorker' in navigator)) return false;
+  const targetScopes = [
+    LEGACY_ROOT_SERVICE_WORKER_SCOPE,
+    getServiceWorkerScopeForBoot(bootProfile)
+  ]
+    .filter(Boolean)
+    .map(normalizeServiceWorkerScopePath);
+  const scopeSet = new Set(targetScopes);
+  const registrations = await navigator.serviceWorker.getRegistrations();
+  const bootRegistrations = registrations.filter((registration) => {
+    const scopePath = getRegistrationScopePath(registration);
+    return scopePath && scopeSet.has(scopePath);
+  });
+  if (bootRegistrations.length === 0) return false;
+  const controlsCurrentPage = bootRegistrations.some(isRegistrationActiveController);
+  await Promise.all(bootRegistrations.map((registration) => registration.unregister()));
   return controlsCurrentPage;
 };
 
@@ -523,12 +552,79 @@ const maybeFullReset = async () => {
   }
 };
 
+const extractBuildVersionFromHtml = (html) => {
+  const match = String(html || '').match(/REPLOID_BUILD_VERSION\s*=\s*['"]([^'"]+)['"]/);
+  return match ? match[1] : null;
+};
+
+const fetchNetworkBuildVersion = async () => {
+  if (typeof window === 'undefined' || typeof fetch !== 'function') return null;
+  const url = new URL('/index.html', window.location.origin);
+  url.searchParams.set('reploid-version-probe', Date.now().toString(36));
+  const response = await fetch(url.toString(), {
+    cache: 'no-store',
+    headers: { [VFS_BYPASS_HEADER]: '1' }
+  });
+  if (!response.ok) return null;
+  const html = await response.text();
+  return extractBuildVersionFromHtml(html);
+};
+
+const recoverFromStaleNetworkVersion = async (bootProfile) => {
+  const expected = getExpectedBuildVersion();
+  if (!expected) return false;
+
+  let networkVersion = null;
+  try {
+    networkVersion = await fetchNetworkBuildVersion();
+  } catch (err) {
+    warn('Build version preflight skipped:', err?.message || err);
+    return false;
+  }
+
+  const scopedSessionStorage = getScopedSessionStorage();
+  if (!networkVersion || networkVersion === expected) {
+    scopedSessionStorage.removeItem(NETWORK_VERSION_RELOAD_KEY);
+    return false;
+  }
+
+  const marker = `${expected}->${networkVersion}`;
+  if (scopedSessionStorage.getItem(NETWORK_VERSION_RELOAD_KEY, { legacyFallback: false }) === marker) {
+    warn(`Build version preflight still sees stale shell ${expected}; continuing after one recovery reload.`);
+    return false;
+  }
+
+  setBootstrapStage('version_recovery');
+  warn(`Refreshing stale boot substrate: loaded ${expected}, network has ${networkVersion}.`);
+  scopedSessionStorage.setItem(NETWORK_VERSION_RELOAD_KEY, marker);
+  try {
+    await clearVfsStore();
+  } catch (err) {
+    warn('Failed to clear stale VFS during version recovery:', err?.message || err);
+  }
+  try {
+    getScopedLocalStorage().removeItem(VFS_VERSION_KEY);
+  } catch {
+    // Storage wrappers may be unavailable in partially loaded shells.
+  }
+  try {
+    await releaseBootServiceWorkers(bootProfile);
+  } catch (err) {
+    warn('Failed to release stale service worker during version recovery:', err?.message || err);
+  }
+  window.location.reload();
+  return true;
+};
+
 (async () => {
   try {
     const bootProfile = getBootSeedProfile();
     prepareBootstrapVisibility(bootProfile, { quiet: isLikelyWarmBoot(bootProfile) });
     setBootstrapStage('starting');
     await maybeFullReset();
+    if (await recoverFromStaleNetworkVersion(bootProfile)) {
+      return new Promise(() => {});
+    }
 
     setBootstrapStage('service_worker');
     if (shouldUseServiceWorkerForBoot(bootProfile)) {

@@ -14,6 +14,7 @@ import {
   buildRuntimeProfile,
   hashRuntimeProfile
 } from '../../self/pool/runtime-profile.js';
+import { createPeerRoomBusFactory } from '../../self/pool/peer-rendezvous.js';
 
 const originalBroadcastChannel = globalThis.BroadcastChannel;
 
@@ -236,6 +237,32 @@ const createRoomProviderClient = async ({ providerId, runtime = fakeRuntime() })
   runtime,
   sdk: noCoordinatorProviderSdk()
 });
+
+const createMemoryRelaySdk = () => {
+  const messages = [];
+  return {
+    publishPeerRoomMessage(roomId, message) {
+      const saved = {
+        roomId,
+        message,
+        createdAt: Number(message.relay?.createdAt || Date.now()),
+        relayId: message.relay?.relayId || `relay_${messages.length}`
+      };
+      messages.push(saved);
+      return Promise.resolve({ message: saved });
+    },
+    listPeerRoomMessages(roomId, { after = 0, peerId = null } = {}) {
+      return Promise.resolve({
+        messages: messages.filter((entry) => (
+          entry.roomId === roomId
+          && Number(entry.createdAt || 0) > Number(after || 0)
+          && (!peerId || entry.message?.relay?.fromPeerId !== peerId)
+        ))
+      });
+    },
+    messages
+  };
+};
 
 afterEach(() => {
   globalThis.BroadcastChannel = originalBroadcastChannel;
@@ -695,6 +722,61 @@ describe('pool peer room', () => {
     expect(activity.map((event) => event.status)).toContain('peer_acceptance_received');
     expect(sessions.size).toBe(1);
     expect(stopped.status).toBe('peer_provider_stopped');
+  });
+
+  it('runs a browser room job through the SDK relay bus', async () => {
+    const requesterClient = await createRoomRequesterClient('requester_relay_room');
+    const providerClient = await createRoomProviderClient({ providerId: 'provider_relay_room' });
+    const relaySdk = createMemoryRelaySdk();
+    const roomBusFactory = createPeerRoomBusFactory({
+      sdk: relaySdk,
+      relay: 'server',
+      pollIntervalMs: 1,
+      relayTtlMs: 10000
+    });
+    const {
+      requesterTransportFactory,
+      providerTransportFactory
+    } = createFakeTransportFactories();
+    const providerNode = createPeerProviderNode({
+      roomId: 'relay-room-test',
+      providerClient,
+      providerTransportFactory,
+      roomBusFactory,
+      advertIntervalMs: 100000
+    });
+
+    await providerNode.start({
+      models: [runtimeModel()],
+      availability: {
+        acceptedPolicies: ['fastest_receipt']
+      }
+    });
+    try {
+      const result = await runPeerJob({
+        roomId: 'relay-room-test',
+        requesterClient,
+        requesterTransportFactory,
+        roomBusFactory,
+        prompt: 'relay room prompt',
+        modelRequirements: runtimeModel(),
+        discoveryWindowMs: 1000,
+        receiptWindowMs: 1000
+      });
+
+      expect(result.outputText).toBe('room:relay room prompt');
+      expect(result.assignment.providerId).toBe('provider_relay_room');
+      expect(result.assignment.requesterId).toBe('requester_relay_room');
+      expect(result.receiptHash).toMatch(/^sha256:/);
+      expect(relaySdk.messages.some((entry) => entry.message.type === 'provider-advert')).toBe(true);
+      expect(relaySdk.messages.some((entry) => entry.message.type === 'peer-run-request')).toBe(true);
+      expect(relaySdk.messages.some((entry) => entry.message.type === 'peer-run-accepted')).toBe(true);
+      expect(JSON.stringify(relaySdk.messages)).not.toContain('relay room prompt');
+      expect(JSON.stringify(relaySdk.messages)).not.toContain('outputText');
+      expect(JSON.stringify(relaySdk.messages)).not.toContain('tokenIds');
+    } finally {
+      await providerNode.stop();
+    }
   });
 
   it('forms a browser-room ring quorum from multiple WebRTC providers', async () => {

@@ -441,7 +441,7 @@ const LLMClient = {
             requestBody.options = { temperature: 0.7 };
         }
 
-        const response = await fetch(endpoint, {
+        const response = await fetchWithTransientRetry(endpoint, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -449,7 +449,7 @@ const LLMClient = {
           },
           body: JSON.stringify(requestBody),
           signal: controller.signal
-        });
+        }, 'Proxy API');
 
         if (!response.ok) {
           throw new Errors.ApiError(`API Error ${response.status}`, response.status);

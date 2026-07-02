@@ -517,6 +517,23 @@ export function createPoolStore() {
         return true;
       }).slice(0, Number(limit || 100));
     },
+    listPeerRooms({ limit = 50 } = {}) {
+      const rooms = [];
+      for (const [roomId, messages] of peerRoomMessages.entries()) {
+        const liveMessages = messages.filter((message) => !message.expiresAt || toEpochMs(message.expiresAt) >= Date.now());
+        if (liveMessages.length === 0) continue;
+        const peers = new Set(liveMessages.map((message) => message.fromPeerId).filter(Boolean));
+        rooms.push({
+          roomId,
+          messageCount: liveMessages.length,
+          peerCount: peers.size,
+          lastMessageAt: Math.max(...liveMessages.map((message) => Number(message.createdAt || 0)))
+        });
+      }
+      return rooms
+        .sort((left, right) => Number(right.lastMessageAt || 0) - Number(left.lastMessageAt || 0))
+        .slice(0, Number(limit || 50));
+    },
     appendLedger(event = {}) {
       const saved = {
         ledgerId: event.ledgerId || makeId('ledger'),

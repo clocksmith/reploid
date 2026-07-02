@@ -441,6 +441,7 @@ export function renderGoalStep(state, options = {}) {
   const generatedStatusText = Object.prototype.hasOwnProperty.call(options, 'generatedStatusText')
     ? String(options.generatedStatusText || '')
     : (generatorSource === 'seed' ? '' : `Objective drafted by ${isZero ? 'Zero' : 'Reploid'}`);
+  const primaryActionHtml = options.primaryActionHtml || '';
 
   return `
     <div class="wizard-step wizard-goal">
@@ -539,6 +540,11 @@ export function renderGoalStep(state, options = {}) {
             ${(generatorError || (generatorStatus === 'ready' && generatedStatusText)) ? `
               <div class="goal-toolbar-status type-caption">
                 ${generatorError ? `Error: ${escapeText(generatorError)}` : escapeText(generatedStatusText)}
+              </div>
+            ` : ''}
+            ${primaryActionHtml ? `
+              <div class="goal-primary-action">
+                ${primaryActionHtml}
               </div>
             ` : ''}
           </div>

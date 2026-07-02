@@ -692,6 +692,17 @@ body.no-grid-pattern {
   border-width: var(--border-md);
 }
 
+.goal-primary-action {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  margin-top: var(--space-sm);
+}
+
+.goal-primary-action .btn {
+  min-width: 180px;
+}
+
 .goal-editor-block {
   display: flex;
   flex-direction: column;
@@ -1856,6 +1867,14 @@ details[open] > .disclosure-summary::before {
   }
 
   .wizard-actions-row .btn {
+    width: 100%;
+  }
+
+  .goal-primary-action {
+    justify-content: stretch;
+  }
+
+  .goal-primary-action .btn {
     width: 100%;
   }
 

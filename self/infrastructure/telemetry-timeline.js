@@ -20,25 +20,69 @@ const TelemetryTimeline = {
     const LOG_DIR = '/.logs/timeline';
     const MAX_RECENT = 500;
     const _recent = [];
+    const _pendingEntries = [];
+    let _flushScheduled = false;
+    let _flushPromise = Promise.resolve();
 
-    const _appendEntry = async (entry) => {
-      const date = new Date(entry.ts).toISOString().split('T')[0];
-      const path = `${LOG_DIR}/${date}.jsonl`;
-      let content = '';
+    const scheduleMicrotask = (callback) => {
+      if (typeof queueMicrotask === 'function') {
+        queueMicrotask(callback);
+        return;
+      }
+      Promise.resolve().then(callback);
+    };
 
-      try {
-        if (await VFS.exists(path)) {
-          content = await VFS.read(path);
+    const _appendEntries = async (entries) => {
+      const entriesByPath = new Map();
+      entries.forEach((entry) => {
+        const date = new Date(entry.ts).toISOString().split('T')[0];
+        const path = `${LOG_DIR}/${date}.jsonl`;
+        if (!entriesByPath.has(path)) entriesByPath.set(path, []);
+        entriesByPath.get(path).push(entry);
+      });
+
+      for (const [path, pathEntries] of entriesByPath.entries()) {
+        let content = '';
+
+        try {
+          if (await VFS.exists(path)) {
+            content = await VFS.read(path);
+          }
+        } catch (err) {
+          logger.warn('[Telemetry] Failed to read timeline file', { path, error: err.message });
         }
-      } catch (err) {
-        logger.warn('[Telemetry] Failed to read timeline file', { path, error: err.message });
-      }
 
-      try {
-        await VFS.write(path, content + JSON.stringify(entry) + '\n');
-      } catch (err) {
-        logger.error('[Telemetry] Failed to write timeline entry', { error: err.message });
+        try {
+          const lines = pathEntries.map((entry) => JSON.stringify(entry)).join('\n');
+          const prefix = content && !content.endsWith('\n') ? `${content}\n` : content;
+          await VFS.write(path, `${prefix}${lines}\n`);
+        } catch (err) {
+          logger.error('[Telemetry] Failed to write timeline entry', { error: err.message });
+        }
       }
+    };
+
+    const _flushPending = async () => {
+      _flushScheduled = false;
+      const batch = _pendingEntries.splice(0);
+      if (batch.length === 0) return;
+      await _appendEntries(batch);
+      if (_pendingEntries.length > 0) {
+        _scheduleFlush();
+      }
+    };
+
+    const _scheduleFlush = () => {
+      if (_flushScheduled) return _flushPromise;
+      _flushScheduled = true;
+      _flushPromise = _flushPromise
+        .catch(() => {})
+        .then(() => new Promise((resolve) => scheduleMicrotask(resolve)))
+        .then(_flushPending);
+      _flushPromise.catch((err) => {
+        logger.error('[Telemetry] Failed to flush timeline batch', { error: err?.message || err });
+      });
+      return _flushPromise;
     };
 
     const _loadRecent = async () => {
@@ -75,11 +119,20 @@ const TelemetryTimeline = {
       _recent.push(entry);
       if (_recent.length > MAX_RECENT) _recent.shift();
 
-      await _appendEntry(entry);
+      _pendingEntries.push(entry);
+      _scheduleFlush();
       if (EventBus) {
         EventBus.emit('telemetry:event', entry);
       }
       return entry.id;
+    };
+
+    const flush = async () => {
+      if (_pendingEntries.length > 0) _scheduleFlush();
+      do {
+        await _flushPromise;
+        if (_pendingEntries.length > 0) _scheduleFlush();
+      } while (_flushScheduled || _pendingEntries.length > 0);
     };
 
     const getRecent = (limit = 100) => {
@@ -90,6 +143,7 @@ const TelemetryTimeline = {
 
     const getEntries = async (startDate, endDate = startDate) => {
       if (!startDate) throw new Error('startDate required');
+      await flush();
       let start = new Date(startDate);
       let end = new Date(endDate || startDate);
       const entries = [];
@@ -145,6 +199,7 @@ const TelemetryTimeline = {
         return true;
       },
       record,
+      flush,
       getRecent,
       getEntries
     };

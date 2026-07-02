@@ -713,6 +713,63 @@ describe('pool signaling production guards', () => {
     expect(listedForRequester.status).toBe(200);
     expect(listedForRequester.body.messages[0].message.type).toBe('provider-advert');
 
+    const runRequest = await dispatchJson(router, `/peer/rooms/${roomId}/messages`, {
+      method: 'POST',
+      body: {
+        peerRoomVersion: 'reploid_peer_room/v1',
+        roomId,
+        type: 'peer-run-request',
+        body: {
+          fromPeerId: 'stale_provider_field',
+          requesterId: 'requester_route',
+          providerId: 'provider_route',
+          sessionId: 'session_route',
+          assignmentId: 'assignment_route'
+        },
+        relay: {
+          relayId: 'relay_route_2',
+          fromPeerId: 'stale_provider_field',
+          createdAt: 1001,
+          expiresAt: Date.now() + 10000
+        }
+      }
+    });
+    expect(runRequest.status).toBe(201);
+    expect(runRequest.body.message).toMatchObject({
+      roomId,
+      fromPeerId: 'requester_route',
+      type: 'peer-run-request'
+    });
+
+    const listedForProvider = await dispatchJson(router, `/peer/rooms/${roomId}/messages?peerId=provider_route`);
+    expect(listedForProvider.status).toBe(200);
+    expect(listedForProvider.body.messages.some((message) => message.type === 'peer-run-request')).toBe(true);
+
+    const summary = await dispatchJson(router, `/peer/rooms/${roomId}/summary`);
+    expect(summary.status).toBe(200);
+    expect(summary.body).toMatchObject({
+      roomId,
+      relay: 'server',
+      messageCount: 2,
+      peerCount: 2,
+      providerCount: 1,
+      typeCounts: {
+        'provider-advert': 1,
+        'peer-run-request': 1
+      }
+    });
+    expect(summary.body.providers[0]).toMatchObject({
+      providerId: 'provider_route'
+    });
+
+    const rooms = await dispatchJson(router, '/peer/rooms');
+    expect(rooms.status).toBe(200);
+    expect(rooms.body.rooms[0]).toMatchObject({
+      roomId,
+      messageCount: 2,
+      peerCount: 2
+    });
+
     const forbidden = await dispatchJson(router, `/peer/rooms/${roomId}/messages`, {
       method: 'POST',
       body: {

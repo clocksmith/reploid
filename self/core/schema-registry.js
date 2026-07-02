@@ -53,9 +53,10 @@ const SchemaRegistry = {
             path: { type: 'string', description: 'Path to read (vfs:/ or opfs:/). VFS directory paths return a listing. Default backend is VFS.' },
             backend: { type: 'string', description: 'Optional backend override (vfs or opfs)' },
             mode: { type: 'string', enum: ['text', 'binary'], description: 'Read mode (default: text)' },
+            binary: { type: 'boolean', description: 'Alias for mode: binary on OPFS. Ignored for VFS text reads.' },
             maxBytes: { type: 'number', description: 'Maximum bytes to read' },
-            offset: { type: 'number', description: 'Binary read offset (bytes)' },
-            length: { type: 'number', description: 'Binary read length (bytes)' },
+            offset: { type: 'number', description: 'Byte offset for VFS text windows or OPFS binary reads' },
+            length: { type: 'number', description: 'Byte length for VFS text windows or OPFS binary reads' },
             startLine: { type: 'number', description: 'First line to read (1-indexed, inclusive). VFS only.' },
             endLine: { type: 'number', description: 'Last line to read (1-indexed, inclusive). VFS only.' }
           }

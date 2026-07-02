@@ -5,8 +5,10 @@
 import { createDopplerRuntime } from '../../pool/doppler-runtime.js';
 import { POOLDAY_NAME, ROUTE_COPY } from './constants.js';
 import {
+  bindRecordStorageSync,
   getRouteId,
   isProductPath,
+  refreshRecordLedgerState,
   renderNav,
   renderRouteDetail,
   renderRoutePanel
@@ -63,6 +65,7 @@ export function initPoolHome(mount) {
   window.REPLOID_DOPPLER_RUNTIME = runtime;
   window.REPLOID_POOL_ATTACH_DOPPLER_HANDLE = (handle, model = null, runtimeInfo = null) => runtime.attachHandle(handle, model, runtimeInfo);
   mount.style.display = 'block';
+  bindRecordStorageSync();
 
   const render = () => {
     const routeId = getRouteId();
@@ -86,6 +89,7 @@ export function initPoolHome(mount) {
     bindRunControls();
     bindProviderControls();
     bindReceiptControls();
+    refreshRecordLedgerState();
   };
 
   if (window.REPLOID_POOL_POPSTATE_HANDLER) {

@@ -16,6 +16,10 @@ export function getCycleId(iteration) {
   return `cycle-${String(iteration).padStart(6, '0')}`;
 }
 
+export function getCycleArtifactPath(iteration, name) {
+  return `${CYCLE_ARTIFACT_ROOT}/${getCycleId(iteration)}/${name}`;
+}
+
 const buildCycleToolSummary = (results = []) => results.map((entry) => ({
   tool: entry.call?.name || 'unknown',
   args: entry.call?.args || {},
@@ -35,7 +39,7 @@ export function createCycleArtifactWriter({ VFS, EventBus, logger } = {}) {
   const writeCycleArtifact = async (iteration, name, payload = {}) => {
     if (!VFS?.write) return null;
     const cycleId = getCycleId(iteration);
-    const path = `${CYCLE_ARTIFACT_ROOT}/${cycleId}/${name}`;
+    const path = getCycleArtifactPath(iteration, name);
     try {
       await VFS.write(path, JSON.stringify({
         schema: 'reploid/cycle-artifact/v1',
@@ -81,40 +85,47 @@ export function createCycleArtifactWriter({ VFS, EventBus, logger } = {}) {
       evidenceCount: mutationPaths.filter((path) => String(path).startsWith('/artifacts/') || String(path).startsWith('/cycles/')).length
     };
 
-    const paths = {};
-    paths.toolcalls = await writeCycleArtifact(iteration, 'toolcalls.json', {
-      stateBefore,
-      event: 'toolcalls',
-      modelUsed,
-      calls: callsToExecute.map((call) => ({
-        name: call.name,
-        args: call.args || {},
-        error: call.error || null
-      })),
-      results: toolSummary
-    });
-    paths.score = await writeCycleArtifact(iteration, 'score.json', {
-      stateBefore,
-      event: 'score',
-      modelUsed,
-      score
-    });
-    paths.mutation = await writeCycleArtifact(iteration, 'mutation.json', {
-      stateBefore,
-      event: 'mutation',
-      paths: mutationPaths,
-      mutationCount: mutationPaths.length,
-      toolCalls: toolSummary.filter((entry) => mutationPaths.includes(entry.path))
-    });
-    paths.decision = await writeCycleArtifact(iteration, 'decision.json', {
-      stateBefore,
-      event: 'decision',
-      modelUsed,
-      stateAfter: done ? 'Promote' : 'Shadow',
-      promotionDecision,
-      done,
-      reason
-    });
+    const firstPassArtifacts = {
+      toolcalls: ['toolcalls.json', {
+        stateBefore,
+        event: 'toolcalls',
+        modelUsed,
+        calls: callsToExecute.map((call) => ({
+          name: call.name,
+          args: call.args || {},
+          error: call.error || null
+        })),
+        results: toolSummary
+      }],
+      score: ['score.json', {
+        stateBefore,
+        event: 'score',
+        modelUsed,
+        score
+      }],
+      mutation: ['mutation.json', {
+        stateBefore,
+        event: 'mutation',
+        paths: mutationPaths,
+        mutationCount: mutationPaths.length,
+        toolCalls: toolSummary.filter((entry) => mutationPaths.includes(entry.path))
+      }],
+      decision: ['decision.json', {
+        stateBefore,
+        event: 'decision',
+        modelUsed,
+        stateAfter: done ? 'Promote' : 'Shadow',
+        promotionDecision,
+        done,
+        reason
+      }]
+    };
+    const paths = Object.fromEntries(await Promise.all(
+      Object.entries(firstPassArtifacts).map(async ([key, [name, payload]]) => [
+        key,
+        await writeCycleArtifact(iteration, name, payload)
+      ])
+    ));
     paths.audit = await writeCycleArtifact(iteration, 'audit.json', {
       stateBefore,
       event: 'audit',
@@ -129,6 +140,7 @@ export function createCycleArtifactWriter({ VFS, EventBus, logger } = {}) {
 
   return {
     getCycleId,
+    getCycleArtifactPath,
     writeCycleArtifact,
     writeCycleOutcomeArtifacts
   };

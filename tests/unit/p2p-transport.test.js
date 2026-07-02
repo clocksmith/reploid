@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import {
   candidateToPayload,
@@ -12,6 +12,7 @@ import {
   P2P_PAYLOAD_TYPES,
   createP2PPayload
 } from '../../self/pool/p2p-payload.js';
+import { SIGNAL_TYPES } from '../../self/pool/p2p-signaling.js';
 
 describe('pool p2p transport helpers', () => {
   it('serializes JSON values while preserving binary and plain string payloads', () => {
@@ -68,6 +69,102 @@ describe('pool p2p transport helpers', () => {
       initiator: true,
       RTCPeerConnectionImpl: null
     })).toThrow('RTCPeerConnection is not available in this browser context');
+  });
+
+  it('queues remote ICE candidates until the remote description is installed', async () => {
+    let signalHandler = null;
+    class FakeDataChannel {
+      constructor() {
+        this.readyState = 'connecting';
+      }
+
+      send() {}
+
+      close() {
+        this.readyState = 'closed';
+      }
+    }
+
+    class FakePeerConnection {
+      static instances = [];
+
+      constructor() {
+        this.localDescription = null;
+        this.remoteDescription = null;
+        this.connectionState = 'new';
+        this.addedIceCandidates = [];
+        FakePeerConnection.instances.push(this);
+      }
+
+      createDataChannel() {
+        this.channel = new FakeDataChannel();
+        return this.channel;
+      }
+
+      async createOffer() {
+        return { type: 'offer', sdp: 'offer-sdp' };
+      }
+
+      async setLocalDescription(description) {
+        this.localDescription = description;
+      }
+
+      async setRemoteDescription(description) {
+        this.remoteDescription = description;
+        if (this.channel) {
+          this.channel.readyState = 'open';
+          this.channel.onopen?.();
+        }
+      }
+
+      async addIceCandidate(candidate) {
+        if (!this.remoteDescription) throw new Error('remote description missing');
+        this.addedIceCandidates.push(candidate);
+      }
+
+      close() {
+        this.connectionState = 'closed';
+      }
+    }
+
+    const signaling = {
+      subscribe(callback) {
+        signalHandler = callback;
+        return () => {};
+      },
+      sendOffer: vi.fn(),
+      sendAnswer: vi.fn(),
+      sendIceCandidate: vi.fn()
+    };
+
+    const transport = createP2PTransport({
+      signaling,
+      initiator: true,
+      RTCPeerConnectionImpl: FakePeerConnection,
+      RTCSessionDescriptionImpl: null,
+      RTCIceCandidateImpl: null
+    });
+
+    const ready = transport.connect();
+    await Promise.resolve();
+    await Promise.resolve();
+
+    const pc = FakePeerConnection.instances[0];
+    signalHandler({
+      type: SIGNAL_TYPES.ICE_CANDIDATE,
+      payload: { candidate: 'candidate:early', sdpMid: '0' }
+    });
+    await Promise.resolve();
+    expect(pc.addedIceCandidates).toEqual([]);
+
+    signalHandler({
+      type: SIGNAL_TYPES.ANSWER,
+      payload: { type: 'answer', sdp: 'answer-sdp' }
+    });
+    await ready;
+
+    expect(pc.remoteDescription).toEqual({ type: 'answer', sdp: 'answer-sdp' });
+    expect(pc.addedIceCandidates).toEqual([{ candidate: 'candidate:early', sdpMid: '0' }]);
   });
 
   it('creates an assignment payload channel with cloud metadata signaling and DataChannel payload sends', async () => {

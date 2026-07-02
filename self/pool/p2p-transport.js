@@ -136,6 +136,7 @@ export function createP2PTransport({
   let openPromise = null;
   let resolveOpen = null;
   let rejectOpen = null;
+  let pendingRemoteIceCandidates = [];
 
   function setState(nextState) {
     if (state === nextState) {
@@ -237,6 +238,7 @@ export function createP2PTransport({
 
     dataChannel = null;
     peerConnection = null;
+    pendingRemoteIceCandidates = [];
 
     if (state !== P2P_TRANSPORT_STATES.FAILED) {
       setState(P2P_TRANSPORT_STATES.CLOSED);
@@ -332,6 +334,7 @@ export function createP2PTransport({
       }
 
       await peerConnection.setRemoteDescription(makeSessionDescription(message.payload));
+      await flushRemoteIceCandidates();
       const answer = await peerConnection.createAnswer();
       await peerConnection.setLocalDescription(answer);
       await signaling.sendAnswer(descriptionToPayload(peerConnection.localDescription));
@@ -344,10 +347,15 @@ export function createP2PTransport({
       }
 
       await peerConnection.setRemoteDescription(makeSessionDescription(message.payload));
+      await flushRemoteIceCandidates();
       return;
     }
 
     if (message.type === SIGNAL_TYPES.ICE_CANDIDATE) {
+      if (!hasRemoteDescription(peerConnection)) {
+        pendingRemoteIceCandidates.push(message.payload);
+        return;
+      }
       await peerConnection.addIceCandidate(makeIceCandidate(message.payload));
       return;
     }
@@ -355,6 +363,22 @@ export function createP2PTransport({
     if (message.type === SIGNAL_TYPES.CLOSE) {
       closeLocal();
     }
+  }
+
+  async function flushRemoteIceCandidates() {
+    if (!peerConnection || !hasRemoteDescription(peerConnection) || pendingRemoteIceCandidates.length === 0) {
+      return;
+    }
+
+    const candidates = pendingRemoteIceCandidates;
+    pendingRemoteIceCandidates = [];
+    for (const candidate of candidates) {
+      await peerConnection.addIceCandidate(makeIceCandidate(candidate));
+    }
+  }
+
+  function hasRemoteDescription(pc) {
+    return Boolean(pc?.remoteDescription || pc?.currentRemoteDescription);
   }
 
   function makeSessionDescription(payload) {

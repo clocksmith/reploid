@@ -36,6 +36,64 @@ describe('ReadFile', () => {
       expect(mockVFS.read).toHaveBeenCalledWith('/other.txt');
     });
 
+    it('should read a VFS text byte window with offset and length', async () => {
+      mockVFS.stat.mockResolvedValue({ size: 16, type: 'file' });
+      mockVFS.read.mockResolvedValue('0123456789abcdef');
+
+      const result = await call({ path: '/blueprint-index.json', offset: 2, length: 4 }, { VFS: mockVFS });
+
+      expect(result.backend).toBe('vfs');
+      expect(result.encoding).toBe('utf-8');
+      expect(result.content).toBe('2345');
+      expect(result.range).toEqual({
+        offset: 2,
+        length: 4,
+        requestedLength: 4,
+        totalBytes: 16
+      });
+    });
+
+    it('should tolerate binary alias for VFS text byte windows', async () => {
+      mockVFS.stat.mockResolvedValue({ size: 16, type: 'file' });
+      mockVFS.read.mockResolvedValue('0123456789abcdef');
+
+      const result = await call({
+        path: '/blueprint-index.json',
+        binary: true,
+        offset: 0,
+        length: 5
+      }, { VFS: mockVFS });
+
+      expect(result.content).toBe('01234');
+      expect(result.range.length).toBe(5);
+    });
+
+    it('should treat null VFS byte length as omitted', async () => {
+      mockVFS.stat.mockResolvedValue({ size: 6, type: 'file' });
+      mockVFS.read.mockResolvedValue('abcdef');
+
+      const result = await call({ path: '/blueprint-index.json', length: null }, { VFS: mockVFS });
+
+      expect(result.content).toBe('abcdef');
+      expect(result.range).toBeUndefined();
+    });
+
+    it('should clamp excessive VFS byte length to maxBytes', async () => {
+      mockVFS.stat.mockResolvedValue({ size: 16, type: 'file' });
+      mockVFS.read.mockResolvedValue('0123456789abcdef');
+
+      const result = await call({
+        path: '/blueprint-index.json',
+        offset: 0,
+        length: 1e100,
+        maxBytes: 5
+      }, { VFS: mockVFS });
+
+      expect(result.content).toBe('01234');
+      expect(result.bytes).toBe(5);
+      expect(result.range.requestedLength).toBe(1e100);
+    });
+
     it('should throw error when VFS not available', async () => {
       await expect(call({ path: '/test.txt' }, {}))
         .rejects.toThrow('VFS not available');

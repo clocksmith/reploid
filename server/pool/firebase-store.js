@@ -625,19 +625,56 @@ export function createFirestorePoolStore({ firestore, collectionPrefix = '' } = 
     async listPeerRoomMessages(roomId, { after = 0, peerId = null, limit = 100 } = {}) {
       const resolvedRoomId = String(roomId || '').trim();
       const minCreatedAt = Number(after || 0);
-      const snapshot = await collection(COLLECTIONS.peerRoomMessages)
-        .where('roomId', '==', resolvedRoomId)
-        .where('createdAt', '>', minCreatedAt)
-        .orderBy('createdAt', 'asc')
-        .limit(Number(limit || 100))
-        .get();
-      return snapshot.docs
-        .map((entry) => entry.data())
+      const maxResults = Number(limit || 100);
+      const filterMessages = (messages) => messages
         .filter((message) => {
+          if (message.roomId !== resolvedRoomId) return false;
+          if (Number(message.createdAt || 0) <= minCreatedAt) return false;
           if (message.expiresAt && toEpochMs(message.expiresAt) < Date.now()) return false;
           if (peerId && message.fromPeerId === peerId) return false;
           return true;
-        });
+        })
+        .sort((left, right) => Number(left.createdAt || 0) - Number(right.createdAt || 0))
+        .slice(0, maxResults);
+      try {
+        const snapshot = await collection(COLLECTIONS.peerRoomMessages)
+          .where('roomId', '==', resolvedRoomId)
+          .where('createdAt', '>', minCreatedAt)
+          .orderBy('createdAt', 'asc')
+          .limit(maxResults)
+          .get();
+        return filterMessages(snapshot.docs.map((entry) => entry.data()));
+      } catch {
+        return filterMessages(await listDocs(COLLECTIONS.peerRoomMessages));
+      }
+    },
+    async listPeerRooms({ limit = 50 } = {}) {
+      const messages = await listDocs(COLLECTIONS.peerRoomMessages);
+      const rooms = new Map();
+      for (const message of messages) {
+        if (message.expiresAt && toEpochMs(message.expiresAt) < Date.now()) continue;
+        const roomId = String(message.roomId || '').trim();
+        if (!roomId) continue;
+        const current = rooms.get(roomId) || {
+          roomId,
+          messageCount: 0,
+          peerIds: new Set(),
+          lastMessageAt: 0
+        };
+        current.messageCount += 1;
+        if (message.fromPeerId) current.peerIds.add(message.fromPeerId);
+        current.lastMessageAt = Math.max(current.lastMessageAt, Number(message.createdAt || 0));
+        rooms.set(roomId, current);
+      }
+      return Array.from(rooms.values())
+        .map((room) => ({
+          roomId: room.roomId,
+          messageCount: room.messageCount,
+          peerCount: room.peerIds.size,
+          lastMessageAt: room.lastMessageAt
+        }))
+        .sort((left, right) => Number(right.lastMessageAt || 0) - Number(left.lastMessageAt || 0))
+        .slice(0, Number(limit || 50));
     },
     async appendLedger(event = {}) {
       const ledgerId = event.ledgerId || makeId('ledger');
