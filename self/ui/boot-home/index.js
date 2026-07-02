@@ -214,6 +214,21 @@ const renderLockedSection = (title, caption) => `
   </div>
 `;
 
+const renderAwakenButton = (state, options = {}) => {
+  const disabled = options.disabled === true;
+  const sizeClass = options.large ? ' btn-lg' : '';
+  return `
+    <button class="btn${sizeClass} btn-primary btn-op${state.isAwakening ? ' loading' : ''}"
+            data-op="☇"
+            data-action="awaken"
+            id="awaken-btn"
+            ${disabled ? 'disabled' : ''}
+            aria-busy="${state.isAwakening ? 'true' : 'false'}">
+      ${state.isAwakening ? 'Awakening...' : 'Awaken'}
+    </button>
+  `;
+};
+
 const getDefaultCloudModelForProvider = (provider) => {
   const models = CLOUD_MODELS[provider] || [];
   return models[0]?.id || null;
@@ -802,7 +817,7 @@ async function doAwaken() {
           onProgress: setVfsProgress
         });
       }
-      await ensureVfsFileMirrors(getRuntimeSelfMirrorsByBootProfile('zero_home', manifest?.files || []), {
+      await ensureVfsFileMirrors(getRuntimeSelfMirrorsByBootProfile(bootProfile, manifest?.files || []), {
         overwrite: false,
         logger: console,
         progressScope: 'full',
@@ -1264,23 +1279,15 @@ function render() {
       generatedStatusText: homeConfig.generatedStatusText,
       goalPlaceholder: homeConfig.goalPlaceholder,
       headingClass: 'type-h2',
-      showMinimalAwakenedFiles: false
+      showMinimalAwakenedFiles: false,
+      primaryActionHtml: renderAwakenButton(state, {
+        disabled: state.isAwakening || !hasGoal || !launch?.canAwaken
+      })
     });
 
-    const awakenDisabled = state.isAwakening || !hasGoal || !launch?.canAwaken;
     html += renderAwakenedFilesPanel(state, {
       showSourceBrowser: false,
-      defaultOpen: false,
-      summaryActionHtml: `
-        <button class="btn btn-primary btn-op${state.isAwakening ? ' loading' : ''}"
-                data-op="☇"
-                data-action="awaken"
-                id="awaken-btn"
-                ${awakenDisabled ? 'disabled' : ''}
-                aria-busy="${state.isAwakening ? 'true' : 'false'}">
-          ${state.isAwakening ? 'Awakening...' : 'Awaken'}
-        </button>
-      `
+      defaultOpen: false
     });
   } else {
     const hasConnectionType = !!state.connectionType;
@@ -1320,39 +1327,15 @@ function render() {
           goalActionMode: homeConfig.goalActionMode,
           generatedStatusText: homeConfig.generatedStatusText,
           goalPlaceholder: homeConfig.goalPlaceholder,
-          headingClass: 'type-h2'
+          headingClass: 'type-h2',
+          primaryActionHtml: renderAwakenButton(state, {
+            large: true,
+            disabled: state.isAwakening || !hasGoal || !canAwaken()
+          })
         });
       }
 
     html += renderVfsProgress(state);
-
-    if (!canAwaken() || !hasGoal) {
-      html += renderLockedSection(
-        'Awaken',
-        !canAwaken()
-          ? 'Finish inference configuration and set a first objective before awakening.'
-          : 'Set a first objective to unlock this section.'
-      );
-    } else {
-      html += `
-        <div class="wizard-step wizard-awaken wizard-awaken-simple">
-          <div class="goal-header">
-            <h2 class="type-h1">Awaken</h2>
-            <p class="type-caption">${homeConfig.awakenCaption}</p>
-          </div>
-          <div class="wizard-actions-row">
-            <button class="btn btn-lg btn-primary btn-op${state.isAwakening ? ' loading' : ''}"
-                    data-op="☇"
-                    data-action="awaken"
-                    id="awaken-btn"
-                    ${state.isAwakening ? 'disabled' : ''}
-                    aria-busy="${state.isAwakening ? 'true' : 'false'}">
-              ${state.isAwakening ? 'Awakening...' : 'Awaken'}
-            </button>
-          </div>
-        </div>
-      `;
-    }
   }
 
   html += '</div>';

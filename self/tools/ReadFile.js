@@ -69,6 +69,16 @@ const resolveMode = (mode) => {
   return value;
 };
 
+const resolveRequestedMode = (args, backend) => {
+  if (args.mode !== undefined && args.mode !== null) {
+    return resolveMode(args.mode);
+  }
+  if (backend === 'opfs' && args.binary === true) {
+    return 'binary';
+  }
+  return 'text';
+};
+
 const resolveMaxBytes = (mode, maxBytes) => {
   const limit = mode === 'binary' ? BINARY_LIMIT_BYTES : TEXT_LIMIT_BYTES;
   if (maxBytes === undefined || maxBytes === null) return limit;
@@ -127,6 +137,63 @@ const getTextBytes = (content) => {
     return new TextEncoder().encode(content).length;
   }
   return content.length;
+};
+
+const encodeText = (content) => {
+  if (typeof TextEncoder !== 'undefined') {
+    return new TextEncoder().encode(content);
+  }
+  return Uint8Array.from(String(content), (char) => char.charCodeAt(0) & 0xff);
+};
+
+const decodeText = (bytes) => {
+  if (typeof TextDecoder !== 'undefined') {
+    return new TextDecoder().decode(bytes);
+  }
+  return Array.from(bytes, (byte) => String.fromCharCode(byte)).join('');
+};
+
+const hasByteRange = (args) => (
+  (args.offset !== undefined && args.offset !== null) ||
+  (args.length !== undefined && args.length !== null)
+);
+
+const resolveVfsByteRange = (args, totalBytes, maxBytes) => {
+  const rawOffset = args.offset === undefined || args.offset === null ? 0 : Number(args.offset);
+  if (!Number.isFinite(rawOffset) || rawOffset < 0) {
+    throw new Error('Invalid offset');
+  }
+
+  const offset = Math.floor(rawOffset);
+  if (offset >= totalBytes) {
+    return {
+      offset,
+      length: 0,
+      requestedLength: 0
+    };
+  }
+
+  let requestedLength;
+  if (args.length === undefined || args.length === null) {
+    requestedLength = totalBytes - offset;
+  } else {
+    const rawLength = Number(args.length);
+    if (!Number.isFinite(rawLength)) {
+      requestedLength = maxBytes;
+    } else if (rawLength <= 0) {
+      throw new Error('Invalid length');
+    } else {
+      requestedLength = Math.floor(rawLength);
+    }
+  }
+
+  const available = Math.max(0, totalBytes - offset);
+  const length = Math.min(requestedLength, available, maxBytes);
+  return {
+    offset,
+    length,
+    requestedLength
+  };
 };
 
 const normalizeDirectoryPath = (path) => {
@@ -256,15 +323,40 @@ async function readFromVfs(path, args, maxBytes) {
   }
 
   const { startLine, endLine } = args;
-  const hasRange = startLine !== undefined || endLine !== undefined;
+  const hasLineRange = startLine !== undefined || endLine !== undefined;
+  const hasByteWindow = hasByteRange(args);
 
-  if (!hasRange && stats.size > maxBytes) {
+  if (!hasLineRange && !hasByteWindow && stats.size > maxBytes) {
     const sizeMB = (stats.size / 1024 / 1024).toFixed(1);
-    throw new Error(`File too large (${sizeMB} MB). Use startLine/endLine to read a range.`);
+    throw new Error(`File too large (${sizeMB} MB). Use startLine/endLine or offset/length to read a range.`);
   }
 
   const content = await VFS.read(path);
-  if (!hasRange) {
+  if (hasByteWindow && hasLineRange) {
+    throw new Error('Use either startLine/endLine or offset/length, not both');
+  }
+
+  if (hasByteWindow) {
+    const encoded = encodeText(content);
+    const range = resolveVfsByteRange(args, encoded.byteLength, maxBytes);
+    const slice = encoded.slice(range.offset, range.offset + range.length);
+    const decoded = decodeText(slice);
+    return {
+      path,
+      backend: 'vfs',
+      encoding: 'utf-8',
+      content: decoded,
+      bytes: slice.byteLength,
+      range: {
+        offset: range.offset,
+        length: range.length,
+        requestedLength: range.requestedLength,
+        totalBytes: encoded.byteLength
+      }
+    };
+  }
+
+  if (!hasLineRange) {
     return {
       path,
       backend: 'vfs',
@@ -345,15 +437,12 @@ async function call(args = {}, deps = {}) {
   const { backend, path } = normalizePath(rawPath, args.backend);
   assertSafePath(path);
 
-  const mode = resolveMode(args.mode);
+  const mode = resolveRequestedMode(args, backend);
   const maxBytes = resolveMaxBytes(mode, args.maxBytes);
 
   if (backend === 'vfs') {
     if (mode !== 'text') {
       throw new Error('VFS supports text mode only');
-    }
-    if (args.offset !== undefined || args.length !== undefined) {
-      throw new Error('offset/length are only supported in binary mode');
     }
     return readFromVfs(path, { ...args, deps }, maxBytes);
   }
@@ -377,9 +466,10 @@ export const tool = {
       path: { type: 'string', description: 'Path to read (vfs:/ or opfs:/). Default backend is VFS.' },
       backend: { type: 'string', description: 'Optional backend override (vfs or opfs)' },
       mode: { type: 'string', enum: ['text', 'binary'], description: 'Read mode (default: text)' },
+      binary: { type: 'boolean', description: 'Alias for mode: binary on OPFS. Ignored for VFS text reads.' },
       maxBytes: { type: 'number', description: 'Maximum bytes to read' },
-      offset: { type: 'number', description: 'Binary read offset (bytes)' },
-      length: { type: 'number', description: 'Binary read length (bytes)' },
+      offset: { type: 'number', description: 'Byte offset for VFS text windows or OPFS binary reads' },
+      length: { type: 'number', description: 'Byte length for VFS text windows or OPFS binary reads' },
       startLine: { type: 'number', description: 'First line to read (1-indexed, inclusive). VFS only.' },
       endLine: { type: 'number', description: 'Last line to read (1-indexed, inclusive). VFS only.' }
     }

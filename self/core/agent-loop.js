@@ -34,6 +34,7 @@ const AgentLoop = {
     const MANAGED_SERVER_PROXY_TYPE = 'firebase-function';
     const MANAGED_SERVER_PROXY_MAX_ITERATIONS = 99;
     const DEFAULT_MAX_TOOL_CALLS = 8;
+    const TRANSIENT_PROVIDER_STATUSES = new Set([408, 429, 500, 502, 503, 504]);
 
     // Configurable limits - can be overridden via StateManager config
     const getMaxToolCalls = () => {
@@ -433,6 +434,34 @@ const AgentLoop = {
       return RECOVERABLE_TOOL_INPUT_ERROR_PATTERNS.some((pattern) => pattern.test(message));
     };
 
+    const sanitizeRecoveredVfsPath = (value) => {
+      const path = String(value || '').trim();
+      if (!path.startsWith('/')) return null;
+      if (path.split('/').includes('..')) return null;
+      if (/[\s"'`<>]/.test(path)) return null;
+      return path.replace(/\/+$/, '') || '/';
+    };
+
+    const getRecoveryCallFromToolError = (call, error) => {
+      if (!call || !isReadOnlyTool(call.name)) return null;
+      const message = String(error?.message || error || '');
+      if (call.name === 'ReadFile') {
+        const match = message.match(/Retry with ReadFile path:\s+(\S+)\./);
+        const suggestedPath = sanitizeRecoveredVfsPath(match?.[1]);
+        const currentPath = sanitizeRecoveredVfsPath(call.args?.path || call.args?.file);
+        if (!suggestedPath || suggestedPath === currentPath) return null;
+        return {
+          name: 'ReadFile',
+          args: {
+            ...(call.args || {}),
+            path: suggestedPath
+          },
+          reason: 'near_miss_path'
+        };
+      }
+      return null;
+    };
+
     const _recordToolExecutionError = (call, error, iteration) => {
       const message = error?.message || String(error);
       EventBus.emit('tool:error', { tool: call.name, error: message, cycle: iteration });
@@ -491,6 +520,106 @@ const AgentLoop = {
       )) || _modelConfig || all[0] || null;
     };
 
+    const getModelIdentity = (model = {}) => (
+      String(model.id || model.model || model.modelId || model.name || '')
+    );
+
+    const getProviderErrorStatus = (error) => {
+      const direct = Number(error?.status ?? error?.details?.status ?? error?.details?.statusCode);
+      if (Number.isFinite(direct)) return direct;
+      const match = String(error?.message || error || '').match(/\b([45]\d\d)\b/);
+      return match ? Number(match[1]) : null;
+    };
+
+    const isTransientProviderError = (error) => {
+      const status = getProviderErrorStatus(error);
+      return TRANSIENT_PROVIDER_STATUSES.has(status);
+    };
+
+    const getProviderRecoveryCandidates = (primaryModel) => {
+      const candidates = [];
+      const add = (model) => {
+        if (!model) return;
+        const key = `${model.provider || ''}:${getModelIdentity(model)}`;
+        if (!key || candidates.some((entry) => entry.key === key)) return;
+        candidates.push({ key, model });
+      };
+      add(primaryModel || _modelConfig || _modelConfigs[0]);
+      _modelConfigs.forEach(add);
+      if (_modelConfig) add(_modelConfig);
+      return candidates.map((entry) => entry.model);
+    };
+
+    const chatWithProviderRecovery = async ({
+      context,
+      primaryModel,
+      streamCallback = null,
+      toolSchemas = [],
+      iteration = 0
+    }) => {
+      const candidates = getProviderRecoveryCandidates(primaryModel);
+      let lastError = null;
+      const failedModels = [];
+      for (let index = 0; index < candidates.length; index++) {
+        const model = candidates[index];
+        try {
+          const response = await LLMClient.chat(context, model, streamCallback, { tools: toolSchemas });
+          if (index > 0) {
+            const recoveredModel = getModelIdentity(model) || 'unknown';
+            EventBus.emit('llm:provider_recovered', {
+              cycle: iteration,
+              model: recoveredModel,
+              provider: model.provider || null,
+              failedModels
+            });
+            EventBus.emit('agent:warning', {
+              type: 'provider_recovered',
+              cycle: iteration,
+              model: recoveredModel,
+              provider: model.provider || null
+            });
+            _pushActivity({
+              kind: 'provider_recovered',
+              cycle: iteration,
+              model: recoveredModel,
+              provider: model.provider || null
+            });
+            _modelConfig = model;
+          }
+          return { response, modelConfig: model };
+        } catch (error) {
+          lastError = error;
+          const status = getProviderErrorStatus(error);
+          const modelId = getModelIdentity(model) || 'unknown';
+          failedModels.push({
+            model: modelId,
+            provider: model.provider || null,
+            status,
+            error: error?.message || String(error)
+          });
+          if (!isTransientProviderError(error) || index === candidates.length - 1) {
+            throw error;
+          }
+          logger.warn(`[Agent] Provider ${modelId} returned transient status ${status}; trying alternate model.`);
+          EventBus.emit('agent:warning', {
+            type: 'provider_retry',
+            cycle: iteration,
+            model: modelId,
+            provider: model.provider || null,
+            status,
+            error: error?.message || String(error)
+          });
+          EventBus.emit('llm:provider_retry', {
+            cycle: iteration,
+            model: modelId,
+            provider: model.provider || null,
+            status
+          });
+        }
+      }
+      throw lastError || new Error('No provider candidates available');
+    };
+
     const buildModelUsed = ({ response = {}, modelId = null, provider = null, latencyMs = null } = {}) => {
       const id = response.model || modelId || null;
       const configured = findConfiguredModel(id);
@@ -531,6 +660,81 @@ const AgentLoop = {
         trace: _traceSessionId ? { sessionId: _traceSessionId, source: 'agent' } : null
       });
       return { result, error, duration };
+    };
+
+    const _executeToolWithRecovery = async (call, iteration) => {
+      const first = await _executeTool(call, iteration);
+      if (!first.error || first.result) {
+        if (!first.error) {
+          _toolCircuitBreaker.recordSuccess(call.name);
+        }
+        return {
+          call,
+          finalResult: first.result,
+          result: first.result,
+          duration: first.duration
+        };
+      }
+
+      const recoveryCall = getRecoveryCallFromToolError(call, first.error);
+      if (recoveryCall) {
+        const message = first.error?.message || String(first.error);
+        logger.warn(`[Agent] Recovering ${call.name} from tool hint: ${message}`);
+        EventBus.emit('tool:recovery', {
+          tool: call.name,
+          args: call.args || {},
+          recoveryTool: recoveryCall.name,
+          recoveryArgs: recoveryCall.args || {},
+          reason: recoveryCall.reason,
+          error: message,
+          cycle: iteration
+        });
+        _pushActivity({
+          kind: 'tool_recovery',
+          cycle: iteration,
+          tool: call.name,
+          args: call.args || {},
+          recoveryTool: recoveryCall.name,
+          recoveryArgs: recoveryCall.args || {},
+          reason: recoveryCall.reason,
+          error: message
+        });
+
+        const recovered = await _executeTool(recoveryCall, iteration);
+        if (!recovered.error || recovered.result) {
+          if (!recovered.error) {
+            _toolCircuitBreaker.recordSuccess(recoveryCall.name);
+          }
+          return {
+            call: recoveryCall,
+            finalResult: recovered.result,
+            result: recovered.result,
+            duration: recovered.duration,
+            recoveredFrom: call,
+            recovery: recoveryCall
+          };
+        }
+
+        logger.error(`[Agent] Tool Recovery Error: ${recoveryCall.name}`, recovered.error);
+        _recordToolExecutionError(recoveryCall, recovered.error, iteration);
+        return {
+          call: recoveryCall,
+          finalResult: `Error: ${recovered.error.message}`,
+          result: recovered.result,
+          duration: recovered.duration,
+          recoveredFrom: call,
+          recovery: recoveryCall
+        };
+      }
+
+      logger.error(`[Agent] Tool Error: ${call.name}`, first.error);
+      _recordToolExecutionError(call, first.error, iteration);
+      return {
+        call,
+        finalResult: `Error: ${first.error.message}`,
+        result: first.result,
+        duration: first.duration
+      };
     };
 
     /**
@@ -646,6 +850,8 @@ const AgentLoop = {
       const maxIterations = getConfiguredMaxIterations();
       const functionGemmaConfig = resolveFunctionGemmaConfig();
       let functionGemmaEnabled = !!functionGemmaConfig;
+      let providerParked = false;
+      let providerParkReason = null;
       if (functionGemmaEnabled) {
         functionGemmaEnabled = await ensureFunctionGemmaReady(context, functionGemmaConfig);
       }
@@ -813,6 +1019,7 @@ const AgentLoop = {
           let arenaResult = null;
           let functionGemmaResult = null;
           let functionGemmaInfo = null;
+          let activeLlmModel = _modelConfig || _modelConfigs[0] || null;
 
           const llmStart = Date.now();
           const multiModelActive = _modelConfigs.length >= 2 && MultiModelCoordinator;
@@ -947,12 +1154,20 @@ const AgentLoop = {
               logger.info(`[Agent] Arena winner: ${arenaResult.winner?.model || 'unknown'}`);
             } catch (error) {
               logger.error('[Agent] Multi-model execution failed, falling back to single model:', error);
-              response = await LLMClient.chat(context, _modelConfig || _modelConfigs[0], streamCallback, { tools: toolSchemas });
+              const recoveryResult = await chatWithProviderRecovery({
+                context,
+                primaryModel: _modelConfig || _modelConfigs[0],
+                streamCallback,
+                toolSchemas,
+                iteration
+              });
+              response = recoveryResult.response;
+              activeLlmModel = recoveryResult.modelConfig;
               if (TraceStore && _traceSessionId) {
                 await TraceStore.record(_traceSessionId, 'llm:response', {
                   source: 'agent',
                   iteration,
-                  modelId: (_modelConfig || _modelConfigs[0])?.id || null,
+                  modelId: activeLlmModel?.id || null,
                   latencyMs: Date.now() - llmStart,
                   contentPreview: response?.content || '',
                   toolCallCount: response?.toolCalls?.length || 0,
@@ -962,12 +1177,20 @@ const AgentLoop = {
             }
           } else if (!response) {
             // Single model execution (with native tools if supported)
-            response = await LLMClient.chat(context, _modelConfig, streamCallback, { tools: toolSchemas });
+            const recoveryResult = await chatWithProviderRecovery({
+              context,
+              primaryModel: _modelConfig,
+              streamCallback,
+              toolSchemas,
+              iteration
+            });
+            response = recoveryResult.response;
+            activeLlmModel = recoveryResult.modelConfig;
             if (TraceStore && _traceSessionId) {
               await TraceStore.record(_traceSessionId, 'llm:response', {
                 source: 'agent',
                 iteration,
-                modelId: _modelConfig?.id || null,
+                modelId: activeLlmModel?.id || null,
                 latencyMs: Date.now() - llmStart,
                 contentPreview: response?.content || '',
                 toolCallCount: response?.toolCalls?.length || 0,
@@ -979,8 +1202,8 @@ const AgentLoop = {
           const responseContent = response?.content || '';
           const usage = response?.usage || {};
           const lastUserMessage = [...context].reverse().find(m => m.role === 'user');
-          const responseModel = functionGemmaInfo?.modelId || arenaResult?.winner?.model || _modelConfig?.id || null;
-          const responseProvider = functionGemmaInfo?.provider || arenaResult?.winner?.provider || _modelConfig?.provider || null;
+          const responseModel = functionGemmaInfo?.modelId || arenaResult?.winner?.model || activeLlmModel?.id || _modelConfig?.id || null;
+          const responseProvider = functionGemmaInfo?.provider || arenaResult?.winner?.provider || activeLlmModel?.provider || _modelConfig?.provider || null;
           const inputTokens = usage.prompt_tokens ?? usage.input_tokens ?? usage.inputTokens ?? null;
           const outputTokens = usage.completion_tokens ?? usage.output_tokens ?? usage.outputTokens ?? usage.tokens ?? null;
           const contextTokenEstimate = ContextManager.countTokens(context);
@@ -1158,16 +1381,7 @@ const AgentLoop = {
 
               const parallelResults = await Promise.all(readOnlyCalls.map(async (call) => {
                 if (_abortController.signal.aborted) return { call, finalResult: 'Aborted', aborted: true };
-                const { result, error, duration } = await _executeTool(call, iteration);
-                let finalResult = result;
-                if (error && !result) {
-                  logger.error(`[Agent] Tool Error: ${call.name}`, error);
-                  finalResult = `Error: ${error.message}`;
-                  _recordToolExecutionError(call, error, iteration);
-                } else if (!error) {
-                  _toolCircuitBreaker.recordSuccess(call.name);
-                }
-                return { call, finalResult, result, duration };
+                return _executeToolWithRecovery(call, iteration);
               }));
               allResults.push(...parallelResults);
             }
@@ -1178,16 +1392,9 @@ const AgentLoop = {
               logger.info(`[Agent] Tool Call: ${call.name}`);
               EventBus.emit('agent:status', { state: 'ACTING', activity: `Executing: ${call.name}` });
 
-              const { result, error, duration } = await _executeTool(call, iteration);
-              let finalResult = result;
-              if (error && !result) {
-                logger.error(`[Agent] Tool Error: ${call.name}`, error);
-                finalResult = `Error: ${error.message}`;
-                _recordToolExecutionError(call, error, iteration);
-              } else if (!error) {
-                _toolCircuitBreaker.recordSuccess(call.name);
-              }
-              allResults.push({ call, finalResult, result, duration });
+              const execution = await _executeToolWithRecovery(call, iteration);
+              const { result } = execution;
+              allResults.push(execution);
 
               // Handle recursive tool chains (sequential within)
               if (result && typeof result === 'object' && result.nextSteps && Array.isArray(result.nextSteps)) {
@@ -1195,16 +1402,11 @@ const AgentLoop = {
                 for (const step of result.nextSteps) {
                   if (step.tool && step.args) {
                     const chainedCall = { name: step.tool, args: step.args };
-                    const { result: chainedResult, error: chainedError, duration: chainedDuration } = await _executeTool(chainedCall, iteration);
-                    let chainedFinal = chainedResult;
-                    if (chainedError && !chainedResult) {
-                      chainedFinal = `Error: ${chainedError.message}`;
-                      _recordToolExecutionError(chainedCall, chainedError, iteration);
-                      allResults.push({ call: chainedCall, finalResult: chainedFinal, duration: chainedDuration });
+                    const chainedExecution = await _executeToolWithRecovery(chainedCall, iteration);
+                    allResults.push(chainedExecution);
+                    if (typeof chainedExecution.finalResult === 'string' && chainedExecution.finalResult.startsWith('Error:')) {
                       break;
                     }
-                    _toolCircuitBreaker.recordSuccess(step.tool);
-                    allResults.push({ call: chainedCall, finalResult: chainedFinal, duration: chainedDuration });
                   }
                 }
               }
@@ -1223,8 +1425,10 @@ const AgentLoop = {
             }
             const topTools = uniqueTools.slice(0, 3);
             const extraTools = Math.max(0, uniqueTools.length - topTools.length);
+            const isBatchEntry = (entry) => callsToExecute.includes(entry.call)
+              || callsToExecute.includes(entry.recoveredFrom);
             const errorCount = allResults.filter((entry) => (
-              callsToExecute.includes(entry.call)
+              isBatchEntry(entry)
               && typeof entry.finalResult === 'string'
               && entry.finalResult.startsWith('Error:')
             )).length;
@@ -1248,6 +1452,9 @@ const AgentLoop = {
                 args: entry.call?.args || {},
                 error: typeof entry.finalResult === 'string' && entry.finalResult.startsWith('Error:')
                   ? entry.finalResult
+                  : null,
+                recoveredFrom: entry.recoveredFrom
+                  ? { name: entry.recoveredFrom.name, args: entry.recoveredFrom.args || {} }
                   : null,
                 durationMs: entry.duration ?? null
               })),
@@ -1320,6 +1527,41 @@ const AgentLoop = {
       } catch (err) {
         if (err instanceof Errors.AbortError) {
           logger.info('[Agent] Cycle aborted.');
+        } else if (isTransientProviderError(err)) {
+          const status = getProviderErrorStatus(err);
+          providerParked = true;
+          providerParkReason = `Provider unavailable${status ? ` (${status})` : ''}`;
+          logger.warn(`[Agent] ${providerParkReason}; parking run.`);
+          EventBus.emit('agent:warning', {
+            type: 'provider_unavailable',
+            cycle: iteration,
+            status,
+            error: err?.message || String(err)
+          });
+          EventBus.emit('agent:history', {
+            type: 'provider_unavailable',
+            cycle: iteration,
+            content: providerParkReason,
+            status,
+            error: err?.message || String(err),
+            ts: Date.now()
+          });
+          _pushActivity({
+            kind: 'provider_unavailable',
+            cycle: iteration,
+            status,
+            error: err?.message || String(err)
+          });
+          try {
+            await _writeCycleArtifact(iteration || 0, 'provider-recovery.json', {
+              event: 'provider:parked',
+              cycle: iteration,
+              status,
+              error: err?.message || String(err)
+            });
+          } catch (artifactError) {
+            logger.debug('[Agent] Failed to write provider recovery artifact:', artifactError?.message || artifactError);
+          }
         } else {
           logger.error('[Agent] Critical Error', err);
           throw err;
@@ -1330,12 +1572,14 @@ const AgentLoop = {
         if (TraceStore && _traceSessionId) {
           await TraceStore.endSession(_traceSessionId, {
             goal,
-            status: 'completed',
+            status: providerParked ? 'parked' : 'completed',
             iterations: iteration
           });
           _traceSessionId = null;
         }
-        EventBus.emit('agent:status', { state: 'IDLE', activity: 'Stopped' });
+        EventBus.emit('agent:status', providerParked
+          ? { state: 'PARKED', activity: providerParkReason || 'Provider unavailable' }
+          : { state: 'IDLE', activity: 'Stopped' });
       }
     };
 

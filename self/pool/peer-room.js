@@ -47,6 +47,22 @@ const positiveInteger = (value, fallback = 1) => {
   return Number.isInteger(number) && number > 0 ? number : fallback;
 };
 
+const withTimeout = (promise, timeoutMs, message) => new Promise((resolve, reject) => {
+  const timer = globalThis.setTimeout(() => {
+    reject(new Error(message));
+  }, Math.max(1, Number(timeoutMs || 1)));
+  Promise.resolve(promise).then(
+    (value) => {
+      globalThis.clearTimeout(timer);
+      resolve(value);
+    },
+    (error) => {
+      globalThis.clearTimeout(timer);
+      reject(error);
+    }
+  );
+});
+
 const resolvePromptDispatchConcurrency = (value, sessionCount) => {
   const configured = value ?? globalThis.REPLOID_POOL_PROMPT_DISPATCH_CONCURRENCY ?? 1;
   return Math.max(1, Math.min(Math.max(1, Number(sessionCount || 1)), positiveInteger(configured, 1)));
@@ -71,7 +87,7 @@ const openPeerRoomBus = ({
 };
 
 function postRoomMessage(channel, roomId, type, body = {}) {
-  channel.postMessage({
+  return channel.postMessage({
     peerRoomVersion: PEER_ROOM_VERSION,
     roomId,
     type,
@@ -121,7 +137,7 @@ function createRoomSignaling({
   };
   channel.addEventListener('message', handler);
 
-  const sendSignal = (signalType, payload = null) => {
+  const sendSignal = (signalType, payload = null) => (
     postRoomMessage(channel, resolvedRoomId, 'webrtc-signal', {
       sessionId: resolvedSessionId,
       signalType,
@@ -129,8 +145,8 @@ function createRoomSignaling({
       toPeerId: resolvedRemotePeerId,
       payload,
       createdAt: Date.now()
-    });
-  };
+    })
+  );
 
   return Object.freeze({
     roomId: resolvedRoomId,
@@ -250,7 +266,14 @@ const waitForProviderAdverts = ({
     else armSettleTimer();
   };
   channel.addEventListener('message', handler);
-  postRoomMessage(channel, roomId, 'provider-advert-request', {});
+  Promise.resolve(postRoomMessage(channel, roomId, 'provider-advert-request', {})).catch((error) => {
+    if (settled) return;
+    settled = true;
+    globalThis.clearTimeout(timer);
+    clearSettleTimer();
+    channel.removeEventListener('message', handler);
+    reject(error);
+  });
 });
 
 const waitForRunAccepted = ({ channel, roomId, sessionId, providerId, requesterId, discoveryWindowMs }) => new Promise((resolve, reject) => {
@@ -288,6 +311,7 @@ export async function runPeerJob({
   discoveryWindowMs = DEFAULT_DISCOVERY_WINDOW_MS,
   sessionAcceptWindowMs = DEFAULT_PROVIDER_SESSION_SETTLE_MS,
   receiptWindowMs = DEFAULT_RECEIPT_WINDOW_MS,
+  transportConnectWindowMs = DEFAULT_PROVIDER_SESSION_SETTLE_MS,
   promptDispatchConcurrency = null,
   requesterTransportFactory = createP2PRequesterTransport,
   roomBusFactory = createBroadcastPeerRoomBus
@@ -383,54 +407,83 @@ export async function runPeerJob({
         });
       });
       if (!transport) throw new Error('peer requester transport was not created');
+      const acceptPromise = waitForRunAccepted({
+        channel,
+        roomId: resolvedRoomId,
+        sessionId: signaling.sessionId,
+        providerId: assignment.providerId,
+        requesterId: assignment.requesterId,
+        discoveryWindowMs: sessionAcceptWindowMs
+      });
       sessions.push({
         assignment,
         signaling,
         transport,
+        acceptPromise,
         receiptPromise,
         startReceiptTimer,
         clearReceiptTimer
       });
-      postRoomMessage(channel, resolvedRoomId, 'peer-run-request', {
+      await Promise.resolve(postRoomMessage(channel, resolvedRoomId, 'peer-run-request', {
         sessionId,
         intent: intent.intent,
         assignment,
         assignmentId: assignment.assignmentId,
         providerId: assignment.providerId,
         requesterId: assignment.requesterId
-      });
+      }));
     }
-    await Promise.all(sessions.map((session) => waitForRunAccepted({
-      channel,
-      roomId: resolvedRoomId,
-      sessionId: session.signaling.sessionId,
-      providerId: session.assignment.providerId,
-      requesterId: session.assignment.requesterId,
-      discoveryWindowMs: sessionAcceptWindowMs
+    const acceptResults = await Promise.allSettled(sessions.map(async (session) => ({
+      session,
+      accepted: await session.acceptPromise
     })));
-    const promptPayloads = new Array(sessions.length);
-    const receiptResults = new Array(sessions.length);
+    const acceptedSessions = acceptResults
+      .filter((result) => result.status === 'fulfilled')
+      .map((result) => result.value.session);
+    const acceptErrors = acceptResults
+      .filter((result) => result.status === 'rejected')
+      .map((result) => result.reason?.message || String(result.reason));
+    const requiredAcceptedSessions = policy?.adaptiveRing
+      ? Math.max(1, Number(plan.ring?.requiredAgreement || policy.quorum || minAdverts || 1))
+      : sessions.length;
+    if (acceptedSessions.length < requiredAcceptedSessions) {
+      throw new Error(`Peer provider acceptance failed: ${acceptedSessions.length}/${requiredAcceptedSessions} accepted${acceptErrors.length ? `; ${acceptErrors.join('; ')}` : ''}`);
+    }
+    const promptPayloads = new Array(acceptedSessions.length);
+    const receiptResults = new Array(acceptedSessions.length);
     let nextDispatchIndex = 0;
-    const dispatchConcurrency = resolvePromptDispatchConcurrency(promptDispatchConcurrency, sessions.length);
+    const dispatchConcurrency = resolvePromptDispatchConcurrency(promptDispatchConcurrency, acceptedSessions.length);
     const dispatchNextPrompt = async () => {
       const index = nextDispatchIndex;
       nextDispatchIndex += 1;
-      if (index >= sessions.length) return;
-      const session = sessions[index];
-      await session.transport.connect();
-      const promptPayload = await requesterClient.createPeerPromptPayload({
-        assignment: session.assignment,
-        prompt: intent.prompt,
-        toPeerId: session.assignment.providerId
-      });
-      promptPayloads[index] = promptPayload;
-      session.startReceiptTimer();
-      session.transport.send(promptPayload);
-      receiptResults[index] = await Promise.allSettled([session.receiptPromise]).then((results) => results[0]);
+      if (index >= acceptedSessions.length) return;
+      const session = acceptedSessions[index];
+      try {
+        await withTimeout(
+          session.transport.connect(),
+          transportConnectWindowMs,
+          `Peer transport did not connect for provider ${session.assignment.providerId}`
+        );
+        const promptPayload = await requesterClient.createPeerPromptPayload({
+          assignment: session.assignment,
+          prompt: intent.prompt,
+          toPeerId: session.assignment.providerId
+        });
+        promptPayloads[index] = promptPayload;
+        session.startReceiptTimer();
+        session.transport.send(promptPayload);
+        receiptResults[index] = await Promise.allSettled([session.receiptPromise]).then((results) => results[0]);
+      } catch (error) {
+        session.clearReceiptTimer?.();
+        receiptResults[index] = {
+          status: 'rejected',
+          reason: error
+        };
+      }
       await dispatchNextPrompt();
     };
     await Promise.all(Array.from(
-      { length: Math.min(dispatchConcurrency, sessions.length) },
+      { length: Math.min(dispatchConcurrency, acceptedSessions.length) },
       () => dispatchNextPrompt()
     ));
     const receiptPayloads = receiptResults
@@ -498,7 +551,9 @@ export async function runPeerJob({
       agreement,
       ledgerEvents,
       requesterAcceptance: acceptance,
-      receiptErrors
+      receiptErrors,
+      acceptedSessionCount: acceptedSessions.length,
+      acceptErrors
     };
   } finally {
     channel?.close();
@@ -678,10 +733,17 @@ export function createPeerProviderNode({
     });
   };
 
-  const publishAdvert = () => {
+  const publishAdvert = async () => {
     if (!advert || stopped) return;
-    postRoomMessage(channel, resolvedRoomId, 'provider-advert', { advert });
-    if (typeof onActivity === 'function') onActivity({ status: 'provider_advertised', advert });
+    try {
+      await Promise.resolve(postRoomMessage(channel, resolvedRoomId, 'provider-advert', { advert }));
+      if (typeof onActivity === 'function') onActivity({ status: 'provider_advertised', advert });
+    } catch (error) {
+      if (typeof onActivity === 'function') {
+        onActivity({ status: 'provider_advert_failed', error: error.message || String(error) });
+      }
+      throw error;
+    }
   };
 
   const handlePromptPayload = async ({ assignment, activeEntry, transport, signaling, payload }) => {
@@ -817,12 +879,12 @@ export function createPeerProviderNode({
     activeTransports.add(activeEntry);
     if (typeof onActivity === 'function') onActivity({ status: 'peer_session_opening', assignment });
     const ready = transport.connect();
-    postRoomMessage(channel, resolvedRoomId, 'peer-run-accepted', {
+    await Promise.resolve(postRoomMessage(channel, resolvedRoomId, 'peer-run-accepted', {
       sessionId: body.sessionId,
       assignmentId: assignment.assignmentId,
       providerId: assignment.providerId,
       requesterId: assignment.requesterId
-    });
+    }));
     try {
       await ready;
       if (typeof onActivity === 'function') onActivity({ status: 'peer_session_open', assignment });
@@ -836,7 +898,7 @@ export function createPeerProviderNode({
     const message = event?.data;
     if (message?.peerRoomVersion !== PEER_ROOM_VERSION || message.roomId !== resolvedRoomId) return;
     if (message.type === 'provider-advert-request') {
-      publishAdvert();
+      void publishAdvert().catch(() => null);
       return;
     }
     if (message.type === 'peer-run-request') {
@@ -857,8 +919,10 @@ export function createPeerProviderNode({
         role: 'provider'
       });
       channel.addEventListener('message', handler);
-      publishAdvert();
-      interval = globalThis.setInterval(publishAdvert, advertIntervalMs);
+      await publishAdvert();
+      interval = globalThis.setInterval(() => {
+        void publishAdvert().catch(() => null);
+      }, advertIntervalMs);
       return {
         roomId: resolvedRoomId,
         advert,

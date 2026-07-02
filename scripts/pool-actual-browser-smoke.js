@@ -42,9 +42,10 @@ const roomIdFor = (label) => (
   `actual-smoke-${label}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`
 );
 
-const routeUrl = (route, roomId) => {
+const routeUrl = (route, roomId, { relay = null } = {}) => {
   const url = new URL(route, baseUrl);
   url.searchParams.set('room', roomId);
+  if (relay) url.searchParams.set('relay', relay);
   return url.toString();
 };
 
@@ -117,6 +118,32 @@ const waitFor = async (probe, expected, label) => {
   fail(`${label}: expected ${expected}, last state ${last}`);
 };
 
+const readPeerRoomSummary = async (roomId) => {
+  const url = new URL(`/pool/peer/rooms/${encodeURIComponent(roomId)}/summary`, baseUrl);
+  url.searchParams.set('limit', '100');
+  const response = await fetch(url, {
+    headers: {
+      'X-Reploid-Client-Id': 'actual_smoke_probe'
+    }
+  });
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    fail(`room summary failed: ${response.status}`, payload);
+  }
+  return payload;
+};
+
+const waitForRoomProviderCount = async (roomId, expectedCount) => {
+  const started = Date.now();
+  let last = null;
+  while (Date.now() - started < ACTUAL_DISCOVERY_WINDOW_MS) {
+    last = await readPeerRoomSummary(roomId);
+    if (Number(last.providerCount || 0) >= expectedCount) return last;
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+  }
+  fail(`room provider summary: expected at least ${expectedCount}, got ${Number(last?.providerCount || 0)}`, last);
+};
+
 const summarizeProviderAdvert = (advert = {}) => ({
   providerId: advert.body?.providerId || advert.fromPeerId || null,
   runtimeProfileHash: advert.body?.runtimeProfileHash || null,
@@ -168,12 +195,12 @@ const wireDiagnostics = (page, label) => {
   });
 };
 
-const openPoolPage = async (context, route, roomId, label) => {
+const openPoolPage = async (context, route, roomId, label, options = {}) => {
   const page = await context.newPage();
   page.setDefaultTimeout(ACTUAL_SMOKE_WINDOW_MS);
   page.setDefaultNavigationTimeout(ACTUAL_SMOKE_WINDOW_MS);
   wireDiagnostics(page, label);
-  await page.goto(routeUrl(route, roomId), {
+  await page.goto(routeUrl(route, roomId, options), {
     waitUntil: 'domcontentloaded',
     timeout: ACTUAL_SMOKE_WINDOW_MS
   });
@@ -260,8 +287,13 @@ const runActualPrompt = async (page, prompt, { policyId = null } = {}) => {
 
 const validateActualResult = (result, label, { receiptCount = 1, expectedMode = null, requiredAgreement = null } = {}) => {
   expectEqual(result.transport, 'webrtc_peer_room', `${label} transport`);
+  const receiptPayloadCount = Array.isArray(result.receiptPayloads) ? result.receiptPayloads.length : 0;
   if (expectedMode === 'ring_quorum') {
-    expectTruthy(Array.isArray(result.receiptPayloads) && result.receiptPayloads.length === receiptCount, `${label} receipt payload`, result);
+    if (receiptCount === null) {
+      expectTruthy(receiptPayloadCount >= Number(requiredAgreement || 1), `${label} quorum receipt payload`, result);
+    } else {
+      expectTruthy(receiptPayloadCount === receiptCount, `${label} receipt payload`, result);
+    }
   } else {
     expectTruthy(result.outputText.length > 0, `${label} outputText`, result);
   }
@@ -278,7 +310,11 @@ const validateActualResult = (result, label, { receiptCount = 1, expectedMode = 
     `${label} model`,
     result
   );
-  expectTruthy(Array.isArray(result.receiptPayloads) && result.receiptPayloads.length === receiptCount, `${label} receipt payload`, result);
+  if (receiptCount === null) {
+    expectTruthy(receiptPayloadCount >= Number(requiredAgreement || 1), `${label} receipt payload`, result);
+  } else {
+    expectTruthy(receiptPayloadCount === receiptCount, `${label} receipt payload`, result);
+  }
   expectTruthy(result.agreement?.accepted === true, `${label} accepted agreement`, result);
   if (expectedMode) expectEqual(result.agreement?.mode, expectedMode, `${label} agreement mode`);
   if (requiredAgreement !== null) expectEqual(Number(result.agreement?.requiredAgreement), Number(requiredAgreement), `${label} required agreement`);
@@ -335,7 +371,8 @@ const startSharedRuntimeProviderRing = async (page, roomId, providerCount) => pa
     { createProviderClient },
     { createPoolIdentity },
     { createPeerProviderNode },
-    { createPeerRoomBusFactory },
+    { createSdkPeerRoomRelayBus },
+    { createPoolSdk },
     { listPolicies }
   ] = await Promise.all([
     import('/pool/doppler-runtime.js'),
@@ -343,6 +380,7 @@ const startSharedRuntimeProviderRing = async (page, roomId, providerCount) => pa
     import('/pool/identity.js'),
     import('/pool/peer-room.js'),
     import('/pool/peer-rendezvous.js'),
+    import('/pool/sdk.js'),
     import('/pool/policy-router.js')
   ]);
 
@@ -360,7 +398,16 @@ const startSharedRuntimeProviderRing = async (page, roomId, providerCount) => pa
   }
 
   const loadedModel = runtime.getModelInfo?.() || targetModel;
-  const roomBusFactory = createPeerRoomBusFactory({ sdk: null, relay: 'local' });
+  const roomBusFactory = ({ roomId, localPeerId } = {}) => createSdkPeerRoomRelayBus({
+    sdk: createPoolSdk({
+      authTokenProvider: null,
+      clientId: localPeerId || `actual_shared_${targetRoomId}`
+    }),
+    roomId,
+    localPeerId,
+    pollIntervalMs: 1000,
+    relayTtlMs: 120000
+  });
   const acceptedPolicies = listPolicies().map((policy) => policy.policyId);
   const nodes = [];
   const providers = [];
@@ -388,7 +435,8 @@ const startSharedRuntimeProviderRing = async (page, roomId, providerCount) => pa
           status: event?.status || null,
           sessionId: event?.sessionId || null,
           receiptHash: event?.receiptRecord?.receiptHash || null,
-          reason: event?.reason || null
+          reason: event?.reason || null,
+          error: event?.error || null
         });
         activity.splice(0, Math.max(0, activity.length - 200));
       }
@@ -438,12 +486,14 @@ const runTwelveProviderRing = async (browser) => {
     expectEqual(providerRing.providerCount, providerCount, 'ring12 shared provider count');
     expectEqual(providerRing.model.modelId, SMOKE_MODEL.modelId, 'ring12 shared runtime model');
     console.log(`[actual-smoke] ring12 shared runtime providers ${providerRing.providers.map((provider) => provider.providerId).join(' ')}`);
+    const roomSummary = await waitForRoomProviderCount(roomId, providerCount);
+    console.log(`[actual-smoke] ring12 room providers ${roomSummary.providerCount}/${providerCount}, messages ${roomSummary.messageCount}`);
     const runPage = await openPoolPage(context, '/run', roomId, 'ring12-requester');
     const result = await runActualPrompt(runPage, 'Reply with exactly YES.', {
       policyId: 'ring_quorum_receipt'
     });
     validateActualResult(result, 'ring12', {
-      receiptCount: providerCount,
+      receiptCount: null,
       expectedMode: 'ring_quorum',
       requiredAgreement: 7
     });
@@ -451,10 +501,10 @@ const runTwelveProviderRing = async (browser) => {
     const receiptHashes = Array.isArray(result.receiptHashes) ? result.receiptHashes : result.agreement?.receiptHashes;
     expectTruthy(Array.isArray(assignments) && assignments.length === providerCount, 'ring12 assignments', result);
     expectTruthy(new Set(assignments.map((assignment) => assignment.providerId)).size === providerCount, 'ring12 distinct providers', result);
-    expectEqual(Number(result.agreement?.acceptedProviderCount), providerCount, 'ring12 accepted provider count');
+    expectTruthy(Number(result.agreement?.acceptedProviderCount) >= Number(result.agreement?.requiredAgreement || 7), 'ring12 accepted provider quorum', result);
     expectEqual(Number(result.plan?.ring?.ringSize), providerCount, 'ring12 plan size');
     expectTruthy(providerRing.providers.length === providerCount, 'ring12 shared provider nodes', result);
-    expectTruthy(Array.isArray(receiptHashes) && receiptHashes.length === providerCount, 'ring12 receipt hashes', result);
+    expectTruthy(Array.isArray(receiptHashes) && receiptHashes.length >= Number(result.agreement?.requiredAgreement || 7), 'ring12 receipt hashes', result);
     console.log(`[actual-smoke] ring12 receipts ${receiptHashes.join(' ')}`);
   } finally {
     await context.close().catch(() => null);

@@ -42,6 +42,24 @@ const ACTIVE_UI_PREFIXES = Object.freeze([
   '/self/styles/',
   '/self/capsule/'
 ]);
+const MODULE_INVALIDATION_PREFIXES = Object.freeze([
+  ...ACTIVE_SUBSTRATE_PREFIXES,
+  ...ACTIVE_UI_PREFIXES,
+  '/tools/',
+  '/self/tools/',
+  '/shadow/',
+  '/personas/',
+  '/prompts/'
+]);
+const MODULE_INVALIDATION_EXTENSIONS = Object.freeze([
+  '.js',
+  '.mjs',
+  '.json',
+  '.css',
+  '.wgsl',
+  '.md',
+  '.html'
+]);
 
 const stopBootBackgrounds = () => {
   const stopPoolSimulation = window.REPLOID_POOL_SIMULATION_STOP;
@@ -137,6 +155,12 @@ const isActiveSubstratePath = (path) => (
 const isRuntimeUiPath = (path) => (
   typeof path === 'string'
   && ACTIVE_UI_PREFIXES.some((prefix) => path.startsWith(prefix))
+);
+
+const isModuleInvalidationPath = (path) => (
+  typeof path === 'string'
+  && MODULE_INVALIDATION_PREFIXES.some((prefix) => path.startsWith(prefix))
+  && MODULE_INVALIDATION_EXTENSIONS.some((extension) => path.endsWith(extension))
 );
 
 const getChangedPath = (data = {}) => {
@@ -423,10 +447,12 @@ async function completeAwaken(bootResult, goal, wizardContainer) {
     const path = getChangedPath(data);
     if (!path) return;
 
-    void postServiceWorkerMessage('INVALIDATE_MODULE', {
-      instanceId: getCurrentReploidInstanceLabel(),
-      path
-    });
+    if (isModuleInvalidationPath(path)) {
+      void postServiceWorkerMessage('INVALIDATE_MODULE', {
+        instanceId: getCurrentReploidInstanceLabel(),
+        path
+      });
+    }
 
     if (isActiveSubstratePath(path)) {
       scheduleDocumentReload('substrate-vfs', path);

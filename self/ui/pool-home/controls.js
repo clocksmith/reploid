@@ -15,7 +15,7 @@ import {
 import { createPoolIdentity } from '../../pool/identity.js';
 import { FASTEST_RECEIPT_POLICY_ID, listPolicies } from '../../pool/policy-router.js';
 import { createPeerProviderNode, runPeerJob } from '../../pool/peer-room.js';
-import { verifyReceiptRecord } from '../../pool/sdk.js';
+import { createPoolSdk, verifyReceiptRecord } from '../../pool/sdk.js';
 import {
   addReceiptLedgerRow,
   describeSelectedRun,
@@ -28,6 +28,7 @@ import {
   getPeerRoomBusFactory,
   getPeerRoomId,
   refreshProviderStorageHealth,
+  refreshRoomActivityState,
   renderReceiptLedger,
   setResult,
   updateProviderHealth,
@@ -55,6 +56,12 @@ const artifactPreflightFailureAction = (model) => (
   `Deploy ${model?.modelId || 'the selected model'} artifacts at the configured model base, or attach a compatible Doppler runtime handle before starting a contributor.`
 );
 
+const usesRegistryBackedDopplerLoad = (model = {}) => (
+  Boolean(model.dopplerLoadRef || model.registryId || model.loadRef)
+  && !model.modelBaseUrl
+  && !model.artifactPolicy?.baseUrl
+);
+
 const getPageIdentityNamespace = (globalKey) => {
   if (window[globalKey]) return window[globalKey];
   const id = window.crypto?.randomUUID
@@ -67,7 +74,33 @@ const getPageIdentityNamespace = (globalKey) => {
 const getProviderIdentityNamespace = () => getPageIdentityNamespace('REPLOID_POOL_PROVIDER_NAMESPACE');
 const getRequesterIdentityNamespace = () => getPageIdentityNamespace('REPLOID_POOL_REQUESTER_NAMESPACE');
 
+const refreshServerRoomActivity = async () => {
+  const activity = document.getElementById('pool-room-activity');
+  if (!activity) return null;
+  if (getPeerRelayMode() === 'local') {
+    refreshRoomActivityState();
+    return null;
+  }
+  try {
+    const summary = await createPoolSdk({ authTokenProvider: null }).peerRoomSummary(getPeerRoomId(), { limit: 100 });
+    refreshRoomActivityState(summary);
+    return summary;
+  } catch (error) {
+    refreshRoomActivityState({ error: errorString(error) });
+    return null;
+  }
+};
+
 const probeModelArtifacts = async (model) => {
+  if (window.REPLOID_POOL_STRICT_ARTIFACT_PREFLIGHT !== true && usesRegistryBackedDopplerLoad(model)) {
+    return {
+      ok: true,
+      status: 'doppler_registry',
+      runtime: model.runtime || 'doppler',
+      loadRef: model.dopplerLoadRef || model.registryId || model.loadRef,
+      action: 'Doppler runtime identity is checked after model load.'
+    };
+  }
   try {
     return {
       status: 'verified_manifest',
@@ -142,6 +175,7 @@ export const bindRunControls = () => {
         requesterAcceptance: result.requesterAcceptance || null,
         agreement: result.agreement || null
       }, result.receiptHash);
+      void refreshServerRoomActivity();
       setResult('pool-run-result', result, { stream: true });
     } catch (error) {
       setResult('pool-run-result', displayPoolError(error, {
@@ -239,7 +273,7 @@ export const bindProviderControls = () => {
     }
     const artifactPreflight = await probeModelArtifacts(model);
     updateProviderHealth({
-      artifact: artifactPreflight.ok ? 'verified_manifest' : 'manifest_unavailable'
+      artifact: artifactPreflight.ok ? artifactPreflight.status : 'manifest_unavailable'
     });
     if (window.REPLOID_POOL_STRICT_ARTIFACT_PREFLIGHT === true && !artifactPreflight.ok) {
       const error = new Error(artifactPreflight.error || 'model artifact preflight failed');
@@ -270,7 +304,7 @@ export const bindProviderControls = () => {
     }
     updateProviderHealth({
       model: model.modelId,
-      artifact: artifactPreflight.ok ? 'verified_manifest' : 'manifest_unavailable',
+      artifact: artifactPreflight.ok ? artifactPreflight.status : 'manifest_unavailable',
       trust: 'receipt-backed'
     });
     return {
@@ -315,6 +349,9 @@ export const bindProviderControls = () => {
             queue: 'receipt_sent',
             lastReceipt: event.receiptRecord?.receiptHash || 'signed'
           });
+          if (event.receiptRecord) {
+            addReceiptLedgerRow(event.receiptRecord, event.receiptRecord.receiptHash);
+          }
         }
         if (event?.status === 'peer_acceptance_received') {
           updateProviderHealth({
@@ -333,6 +370,7 @@ export const bindProviderControls = () => {
           inviteUrl: getPeerInviteUrl(),
           ...event
         });
+        void refreshServerRoomActivity();
       }
     });
     peerProviderNode = node;
@@ -407,6 +445,7 @@ export const bindReceiptControls = () => {
   if (ledgerContainer) {
     ledgerContainer.innerHTML = renderReceiptLedger();
   }
+  void refreshServerRoomActivity();
   button.addEventListener('click', async () => {
     const receiptHash = input.value.trim();
     if (!receiptHash) {

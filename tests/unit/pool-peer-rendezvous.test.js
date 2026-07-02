@@ -28,6 +28,21 @@ describe('pool peer rendezvous', () => {
         }
       }
     })).toBe('requester_1');
+    expect(peerRoomMessageFromPeerId({
+      type: 'peer-run-request',
+      body: {
+        fromPeerId: 'stale_provider_field',
+        requesterId: 'requester_run',
+        providerId: 'provider_run'
+      }
+    })).toBe('requester_run');
+    expect(peerRoomMessageFromPeerId({
+      type: 'peer-run-accepted',
+      body: {
+        requesterId: 'requester_run',
+        providerId: 'provider_run'
+      }
+    })).toBe('provider_run');
   });
 
   it('creates a memory room bus that does not echo to the sender', async () => {

@@ -48,7 +48,7 @@ export const POOLDAY_ROUTE_DEFINITIONS = Object.freeze([
     label: 'Record',
     eyebrow: 'Record',
     title: 'Record',
-    body: 'Inspect receipts and the local peer ledger for this browser.'
+    body: 'Inspect receipts, room activity, and the peer ledger for this room.'
   })
 ]);
 
@@ -429,4 +429,5 @@ export const POOLDAY_FLOW_LABELS = Object.freeze(POOLDAY_GRAPH_NODE_IDS.map((id)
   };
 }));
 
+export const POOLDAY_RECEIPT_LEDGER_STORAGE_KEY = 'reploid.receiptLedgerRows.v1';
 export const POOLDAY_PEER_LEDGER_STORAGE_KEY = 'reploid.peerLedgerEvents.v1';

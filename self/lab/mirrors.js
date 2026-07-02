@@ -11,6 +11,9 @@ export const ZERO_RUNTIME_SELF_MIRROR_RULES = Object.freeze([
 ]);
 
 export const PROTO_RUNTIME_SELF_MIRROR_RULES = Object.freeze([
+  { sourcePath: '/ui/toast.js', targetPath: '/self/ui/toast.js' },
+  { sourcePrefix: '/ui/components/', targetPrefix: '/self/ui/components/' },
+  { sourcePrefix: '/ui/panels/', targetPrefix: '/self/ui/panels/' },
   { sourcePrefix: '/ui/proto/', targetPrefix: '/self/ui/proto/' },
   { sourcePrefix: '/styles/proto/', targetPrefix: '/self/styles/proto/' }
 ]);

@@ -53,6 +53,7 @@ const requiredRewrites = [
   '/pool/assignments/**',
   '/pool/receipts/**',
   '/pool/signaling/**',
+  '/pool/peer/**',
   '/',
   '/run',
   '/contribute',
@@ -123,8 +124,14 @@ const checkLocalFiles = () => {
     && index.fields?.some((field) => field.fieldPath === 'sessionId')
     && index.fields?.some((field) => field.fieldPath === 'createdAt')
   ));
+  const hasPeerRoomIndex = indexes.indexes?.some((index) => (
+    index.collectionGroup === 'peer_room_messages'
+    && index.fields?.some((field) => field.fieldPath === 'roomId')
+    && index.fields?.some((field) => field.fieldPath === 'createdAt')
+  ));
   if (!hasAssignmentIndex) reasons.push('Firestore assignments providerId/status index missing');
   if (!hasSignalIndex) reasons.push('Firestore signaling_messages sessionId/createdAt index missing');
+  if (!hasPeerRoomIndex) reasons.push('Firestore peer_room_messages roomId/createdAt index missing');
 
   const cloudRunYaml = readText(path.join(repoRoot, 'deploy', 'cloud-run-service.yaml'));
   for (const key of requiredRuntimeEnv) {

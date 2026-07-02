@@ -12,6 +12,7 @@ export const createTelemetryManager = (deps) => {
   let _telemetryTimelineSvc = null;
   let _telemetryLoaded = false;
   let _telemetryFilter = 'all';
+  let _telemetryRenderScheduled = false;
   const _telemetryEntries = [];
 
   const resolveTelemetryTimeline = async () => {
@@ -26,6 +27,7 @@ export const createTelemetryManager = (deps) => {
   };
 
   const renderTelemetryPanel = () => {
+    _telemetryRenderScheduled = false;
     const listEl = document.getElementById('telemetry-list');
     const countEl = document.getElementById('telemetry-count');
     const statusEl = document.getElementById('telemetry-status');
@@ -72,13 +74,22 @@ export const createTelemetryManager = (deps) => {
     }
   };
 
+  const scheduleTelemetryRender = () => {
+    if (_telemetryRenderScheduled) return;
+    _telemetryRenderScheduled = true;
+    const frame = typeof window !== 'undefined' && typeof window.requestAnimationFrame === 'function'
+      ? window.requestAnimationFrame
+      : (callback) => setTimeout(callback, 0);
+    frame(renderTelemetryPanel);
+  };
+
   const appendTelemetryEntry = (entry) => {
     if (!entry) return;
     _telemetryEntries.push(entry);
     if (_telemetryEntries.length > TELEMETRY_LIMIT) {
       _telemetryEntries.splice(0, _telemetryEntries.length - TELEMETRY_LIMIT);
     }
-    renderTelemetryPanel();
+    scheduleTelemetryRender();
   };
 
   const loadTelemetryHistory = async () => {

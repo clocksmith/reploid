@@ -12,9 +12,50 @@ import {
 import { getPoolAuthToken } from './identity.js';
 
 const DEFAULT_BASE_URL = '/pool';
+const POOL_CLIENT_ID_STORAGE_KEY = 'reploid.pool.clientId.v1';
+let fallbackClientId = null;
 
-async function requestJson(path, { baseUrl = DEFAULT_BASE_URL, method = 'GET', body = null, authTokenProvider = null } = {}) {
+const makePoolClientId = () => {
+  const randomId = globalThis.crypto?.randomUUID
+    ? globalThis.crypto.randomUUID()
+    : `${Date.now().toString(36)}_${Math.random().toString(36).slice(2)}`;
+  return `pool_client_${randomId}`;
+};
+
+const normalizeClientId = (value) => {
+  const normalized = String(value || '').trim().replace(/[^a-z0-9_.:-]/gi, '_').slice(0, 160);
+  return normalized || null;
+};
+
+export function getDefaultPoolClientId() {
+  try {
+    const storage = globalThis.sessionStorage;
+    if (storage) {
+      const existing = normalizeClientId(storage.getItem(POOL_CLIENT_ID_STORAGE_KEY));
+      if (existing) return existing;
+      const created = normalizeClientId(makePoolClientId());
+      storage.setItem(POOL_CLIENT_ID_STORAGE_KEY, created);
+      return created;
+    }
+  } catch {
+    // Some embedded contexts block sessionStorage; fall through to process-local identity.
+  }
+  if (!fallbackClientId) fallbackClientId = normalizeClientId(makePoolClientId());
+  return fallbackClientId;
+}
+
+async function requestJson(path, {
+  baseUrl = DEFAULT_BASE_URL,
+  method = 'GET',
+  body = null,
+  authTokenProvider = null,
+  clientId = null
+} = {}) {
   const headers = body ? { 'Content-Type': 'application/json' } : {};
+  const effectiveClientId = normalizeClientId(
+    typeof clientId === 'function' ? clientId() : clientId
+  ) || getDefaultPoolClientId();
+  if (effectiveClientId) headers['X-Reploid-Client-Id'] = effectiveClientId;
   const token = typeof authTokenProvider === 'function' ? await authTokenProvider() : null;
   if (token) headers.Authorization = `Bearer ${token}`;
   const response = await fetch(`${baseUrl}${path}`, {
@@ -32,93 +73,87 @@ async function requestJson(path, { baseUrl = DEFAULT_BASE_URL, method = 'GET', b
   return payload;
 }
 
-export function createPoolSdk({ baseUrl = DEFAULT_BASE_URL, authTokenProvider = getPoolAuthToken } = {}) {
+export function createPoolSdk({ baseUrl = DEFAULT_BASE_URL, authTokenProvider = getPoolAuthToken, clientId = null } = {}) {
+  const request = (path, options = {}) => requestJson(path, {
+    baseUrl,
+    authTokenProvider,
+    clientId,
+    ...options
+  });
   return {
     policies() {
-      return requestJson('/policies', { baseUrl, authTokenProvider });
+      return request('/policies');
     },
     config() {
-      return requestJson('/config', { baseUrl, authTokenProvider });
+      return request('/config');
     },
     status() {
-      return requestJson('/status', { baseUrl, authTokenProvider });
+      return request('/status');
     },
     metrics() {
-      return requestJson('/metrics', { baseUrl, authTokenProvider });
+      return request('/metrics');
     },
     deploymentCheck() {
-      return requestJson('/deployment/check', { baseUrl, authTokenProvider });
+      return request('/deployment/check');
     },
-    submitJob(request) {
-      return requestJson('/jobs', { baseUrl, method: 'POST', body: request, authTokenProvider });
+    submitJob(jobRequest) {
+      return request('/jobs', { method: 'POST', body: jobRequest });
     },
     pollJob(jobId) {
-      return requestJson(`/jobs/${encodeURIComponent(jobId)}`, { baseUrl, authTokenProvider });
+      return request(`/jobs/${encodeURIComponent(jobId)}`);
     },
     acceptReceipt(receiptHash, acceptance = {}) {
-      return requestJson(`/receipts/${encodeURIComponent(receiptHash)}/accept`, {
-        baseUrl,
+      return request(`/receipts/${encodeURIComponent(receiptHash)}/accept`, {
         method: 'POST',
-        body: acceptance,
-        authTokenProvider
+        body: acceptance
       });
     },
     getReceipt(receiptHash) {
-      return requestJson(`/receipts/${encodeURIComponent(receiptHash)}`, { baseUrl, authTokenProvider });
+      return request(`/receipts/${encodeURIComponent(receiptHash)}`);
     },
     registerProvider(registration) {
-      return requestJson('/providers/register', { baseUrl, method: 'POST', body: registration, authTokenProvider });
+      return request('/providers/register', { method: 'POST', body: registration });
     },
     heartbeatProvider(heartbeat) {
-      return requestJson('/providers/heartbeat', { baseUrl, method: 'POST', body: heartbeat, authTokenProvider });
+      return request('/providers/heartbeat', { method: 'POST', body: heartbeat });
     },
     nextAssignment(providerId) {
-      return requestJson(`/providers/assignments/next?providerId=${encodeURIComponent(providerId)}`, { baseUrl, authTokenProvider });
+      return request(`/providers/assignments/next?providerId=${encodeURIComponent(providerId)}`);
     },
     submitReceipt(assignmentId, payload) {
-      return requestJson(`/assignments/${encodeURIComponent(assignmentId)}/receipt`, {
-        baseUrl,
+      return request(`/assignments/${encodeURIComponent(assignmentId)}/receipt`, {
         method: 'POST',
-        body: payload,
-        authTokenProvider
+        body: payload
       });
     },
     reportAssignmentFailure(assignmentId, payload = {}) {
-      return requestJson(`/assignments/${encodeURIComponent(assignmentId)}/failure`, {
-        baseUrl,
+      return request(`/assignments/${encodeURIComponent(assignmentId)}/failure`, {
         method: 'POST',
-        body: payload,
-        authTokenProvider
+        body: payload
       });
     },
     submitAssignmentCommitment(assignmentId, payload = {}) {
-      return requestJson(`/assignments/${encodeURIComponent(assignmentId)}/commit`, {
-        baseUrl,
+      return request(`/assignments/${encodeURIComponent(assignmentId)}/commit`, {
         method: 'POST',
-        body: payload,
-        authTokenProvider
+        body: payload
       });
     },
     submitAssignmentReveal(assignmentId, payload = {}) {
-      return requestJson(`/assignments/${encodeURIComponent(assignmentId)}/reveal`, {
-        baseUrl,
+      return request(`/assignments/${encodeURIComponent(assignmentId)}/reveal`, {
         method: 'POST',
-        body: payload,
-        authTokenProvider
+        body: payload
       });
     },
     createSignalingSession(payload = {}) {
-      return requestJson('/signaling/sessions', { baseUrl, method: 'POST', body: payload, authTokenProvider });
+      return request('/signaling/sessions', { method: 'POST', body: payload });
     },
     getSignalingSession(sessionId) {
-      return requestJson(`/signaling/sessions/${encodeURIComponent(sessionId)}`, { baseUrl, authTokenProvider });
+      return request(`/signaling/sessions/${encodeURIComponent(sessionId)}`);
     },
     publishSignal(sessionId, message = {}) {
-      return requestJson(`/signaling/sessions/${encodeURIComponent(sessionId)}/messages`, {
-        baseUrl,
+      return request(`/signaling/sessions/${encodeURIComponent(sessionId)}/messages`, {
         method: 'POST',
-        body: message,
-        authTokenProvider
+        body: message
       });
     },
     listSignals(sessionId, { after = 0, peerId = null } = {}) {
@@ -126,14 +161,12 @@ export function createPoolSdk({ baseUrl = DEFAULT_BASE_URL, authTokenProvider = 
       if (after) query.set('after', String(after));
       if (peerId) query.set('peerId', String(peerId));
       const suffix = query.toString() ? `?${query.toString()}` : '';
-      return requestJson(`/signaling/sessions/${encodeURIComponent(sessionId)}/messages${suffix}`, { baseUrl, authTokenProvider });
+      return request(`/signaling/sessions/${encodeURIComponent(sessionId)}/messages${suffix}`);
     },
     publishPeerRoomMessage(roomId, message = {}) {
-      return requestJson(`/peer/rooms/${encodeURIComponent(roomId)}/messages`, {
-        baseUrl,
+      return request(`/peer/rooms/${encodeURIComponent(roomId)}/messages`, {
         method: 'POST',
-        body: message,
-        authTokenProvider
+        body: message
       });
     },
     listPeerRoomMessages(roomId, { after = 0, peerId = null, limit = null } = {}) {
@@ -142,19 +175,31 @@ export function createPoolSdk({ baseUrl = DEFAULT_BASE_URL, authTokenProvider = 
       if (peerId) query.set('peerId', String(peerId));
       if (limit) query.set('limit', String(limit));
       const suffix = query.toString() ? `?${query.toString()}` : '';
-      return requestJson(`/peer/rooms/${encodeURIComponent(roomId)}/messages${suffix}`, { baseUrl, authTokenProvider });
+      return request(`/peer/rooms/${encodeURIComponent(roomId)}/messages${suffix}`);
+    },
+    listPeerRooms({ limit = null } = {}) {
+      const query = new URLSearchParams();
+      if (limit) query.set('limit', String(limit));
+      const suffix = query.toString() ? `?${query.toString()}` : '';
+      return request(`/peer/rooms${suffix}`);
+    },
+    peerRoomSummary(roomId, { limit = null } = {}) {
+      const query = new URLSearchParams();
+      if (limit) query.set('limit', String(limit));
+      const suffix = query.toString() ? `?${query.toString()}` : '';
+      return request(`/peer/rooms/${encodeURIComponent(roomId)}/summary${suffix}`);
     },
     createCanaryAudit(payload) {
-      return requestJson('/audits/canary', { baseUrl, method: 'POST', body: payload, authTokenProvider });
+      return request('/audits/canary', { method: 'POST', body: payload });
     },
     getCanaryAudit(auditId) {
-      return requestJson(`/audits/${encodeURIComponent(auditId)}`, { baseUrl, authTokenProvider });
+      return request(`/audits/${encodeURIComponent(auditId)}`);
     },
     points(userId) {
-      return requestJson(`/points/${encodeURIComponent(userId)}`, { baseUrl, authTokenProvider });
+      return request(`/points/${encodeURIComponent(userId)}`);
     },
     reputation(providerId) {
-      return requestJson(`/reputation/${encodeURIComponent(providerId)}`, { baseUrl, authTokenProvider });
+      return request(`/reputation/${encodeURIComponent(providerId)}`);
     }
   };
 }
@@ -210,6 +255,7 @@ export async function verifyReceiptRecord(record = {}) {
 
 export default {
   createPoolSdk,
+  getDefaultPoolClientId,
   verifyReceipt,
   verifyReceiptRecord
 };

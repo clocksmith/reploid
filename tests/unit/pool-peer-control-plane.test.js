@@ -276,6 +276,8 @@ describe('pool peer control plane', () => {
         assignment,
         receiptRecord: {
           receiptHash: await hashJson(receipt),
+          providerId: assignment.providerId,
+          requesterId: assignment.requesterId,
           receipt,
           outputText: 'matching output',
           tokenIds: [1, 2, 3]
@@ -284,6 +286,11 @@ describe('pool peer control plane', () => {
         toPeerId: assignment.requesterId
       });
     }));
+
+    expect(receiptPayloads[0].body).toMatchObject({
+      providerId: plan.assignments[0].providerId,
+      requesterId: plan.assignments[0].requesterId
+    });
 
     const agreement = await buildPeerReceiptAgreement({ plan, receiptPayloads });
     const ledgerEvents = await createPeerLedgerEvents({

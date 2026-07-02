@@ -194,7 +194,8 @@ describe('LLMClient - Integration Tests', () => {
     it('should throw ApiError on non-OK response', async () => {
       global.fetch.mockResolvedValue({
         ok: false,
-        status: 500
+        status: 500,
+        headers: { get: () => '0' }
       });
 
       // provider: 'ollama' resolves to 'proxy' provider in resolveProviderId
@@ -202,6 +203,29 @@ describe('LLMClient - Integration Tests', () => {
         [{ role: 'user', content: 'Hi' }],
         { id: 'test', provider: 'ollama' }
       )).rejects.toThrow('API Error 500');
+    });
+
+    it('should retry transient proxy failures', async () => {
+      global.fetch
+        .mockResolvedValueOnce({
+          ok: false,
+          status: 503,
+          headers: { get: () => '0' }
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          json: () => Promise.resolve({
+            content: 'Recovered through proxy'
+          })
+        });
+
+      const result = await llmClient.chat(
+        [{ role: 'user', content: 'Hi' }],
+        { id: 'test', provider: 'ollama' }
+      );
+
+      expect(global.fetch).toHaveBeenCalledTimes(2);
+      expect(result.content).toBe('Recovered through proxy');
     });
 
     it('should handle Ollama-specific request options', async () => {

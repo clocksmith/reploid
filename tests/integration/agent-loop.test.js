@@ -469,6 +469,44 @@ describe('AgentLoop - Integration Tests', () => {
       }));
     });
 
+    it('should retry ReadFile when the tool returns a safe near-miss path hint', async () => {
+      let iteration = 0;
+      mockLLMClient.chat.mockImplementation(() => {
+        iteration++;
+        if (iteration === 1) {
+          mockResponseParser.parseToolCalls.mockReturnValue([
+            { name: 'ReadFile', args: { path: '/config/genesis-levels.json_' } }
+          ]);
+          mockResponseParser.isDone.mockReturnValue(false);
+          return Promise.resolve({ content: 'Reading config' });
+        }
+        mockResponseParser.parseToolCalls.mockReturnValue([]);
+        mockResponseParser.isDone.mockReturnValue(true);
+        return Promise.resolve({ content: 'DONE' });
+      });
+
+      mockToolRunner.execute.mockImplementation(async (name, args) => {
+        if (args.path === '/config/genesis-levels.json_') {
+          throw new Error('File not found in VFS: /config/genesis-levels.json_. Retry with ReadFile path: /config/genesis-levels.json. VFS paths do not carry a /self/ prefix.');
+        }
+        return '{"levels":["zero"]}';
+      });
+
+      await agentLoop.run('Read genesis levels');
+
+      expect(mockToolRunner.execute).toHaveBeenCalledWith('ReadFile', { path: '/config/genesis-levels.json_' });
+      expect(mockToolRunner.execute).toHaveBeenCalledWith('ReadFile', { path: '/config/genesis-levels.json' });
+      expect(mockEventBus.emit).toHaveBeenCalledWith('tool:recovery', expect.objectContaining({
+        tool: 'ReadFile',
+        recoveryTool: 'ReadFile',
+        recoveryArgs: expect.objectContaining({ path: '/config/genesis-levels.json' })
+      }));
+      expect(mockEventBus.emit).toHaveBeenCalledWith('agent:history', expect.objectContaining({
+        type: 'tool_batch',
+        errors: 0
+      }));
+    });
+
     it('should limit tool calls per iteration', async () => {
       // Request 7 tools but MAX_TOOL_CALLS_PER_ITERATION is 5
       mockResponseParser.parseToolCalls.mockReturnValue([
@@ -632,6 +670,47 @@ describe('AgentLoop - Integration Tests', () => {
         c => c[0] === 'agent:warning'
       );
       // May or may not trigger depending on timing, but shouldn't crash
+    });
+  });
+
+  describe('provider recovery', () => {
+    it('should try an alternate configured model after a transient provider error', async () => {
+      agentLoop.setModels([
+        { id: 'primary-model', provider: 'gemini' },
+        { id: 'fallback-model', provider: 'openai' }
+      ]);
+      const providerError = Object.assign(new Error('API Error 503'), { status: 503 });
+      mockLLMClient.chat
+        .mockRejectedValueOnce(providerError)
+        .mockResolvedValueOnce({ content: 'DONE', model: 'fallback-model', provider: 'openai' });
+      mockResponseParser.isDone.mockReturnValue(true);
+
+      await agentLoop.run('Recover provider');
+
+      expect(mockLLMClient.chat).toHaveBeenCalledTimes(2);
+      expect(mockLLMClient.chat.mock.calls[1][1]).toEqual(expect.objectContaining({
+        id: 'fallback-model',
+        provider: 'openai'
+      }));
+      expect(mockEventBus.emit).toHaveBeenCalledWith('llm:provider_recovered', expect.objectContaining({
+        model: 'fallback-model',
+        provider: 'openai'
+      }));
+    });
+
+    it('should park instead of throwing when every provider candidate is unavailable', async () => {
+      agentLoop.setModel({ id: 'primary-model', provider: 'gemini' });
+      mockLLMClient.chat.mockRejectedValue(Object.assign(new Error('API Error 503'), { status: 503 }));
+
+      await expect(agentLoop.run('Park provider')).resolves.toBeUndefined();
+
+      expect(mockEventBus.emit).toHaveBeenCalledWith('agent:warning', expect.objectContaining({
+        type: 'provider_unavailable',
+        status: 503
+      }));
+      expect(mockEventBus.emit).toHaveBeenCalledWith('agent:status', expect.objectContaining({
+        state: 'PARKED'
+      }));
     });
   });
 

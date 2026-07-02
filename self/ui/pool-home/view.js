@@ -6,6 +6,7 @@ import { LAUNCH_MODEL, getEnabledPoolModelContract, listPoolModels } from '../..
 import { DETERMINISTIC_GENERATION_CONFIG, FASTEST_RECEIPT_POLICY_ID, getPolicy, listPolicies } from '../../pool/policy-router.js';
 import { DEFAULT_PEER_ROOM_ID } from '../../pool/peer-room.js';
 import { createPeerEventReducer } from '../../pool/peer-control-plane.js';
+import { createPoolSdk } from '../../pool/sdk.js';
 import {
   createPeerRoomBusFactory,
   createPeerRoomInviteUrl
@@ -17,6 +18,7 @@ import {
   POOLDAY_NAV_ROUTES,
   POOLDAY_PEER_LEDGER_STORAGE_KEY,
   POOLDAY_PROTOCOL,
+  POOLDAY_RECEIPT_LEDGER_STORAGE_KEY,
   POOLDAY_RECEIPT_LEDGER_LIMIT,
   POOLDAY_STREAM_CHUNK_SIZE,
   POOLDAY_STREAM_TICK_MS,
@@ -26,28 +28,102 @@ import {
 
 const POOLDAY_STREAM_STATE = new Map();
 const POOLDAY_RECEIPT_LEDGER = [];
-const loadPeerLedgerEvents = () => {
+const POOLDAY_PEER_EVENTS = [];
+const POOLDAY_PEER_EVENT_HASHES = new Set();
+let POOLDAY_RECEIPT_LEDGER_ROOM = null;
+let POOLDAY_PEER_EVENTS_ROOM = null;
+
+const getPooldayStorage = () => {
   try {
-    const value = globalThis.localStorage?.getItem(POOLDAY_PEER_LEDGER_STORAGE_KEY);
+    return globalThis.localStorage || null;
+  } catch {
+    return null;
+  }
+};
+
+const encodeStorageRoom = (roomId) => encodeURIComponent(String(roomId || DEFAULT_PEER_ROOM_ID));
+
+export const getPooldayRecordStorageKeys = (roomId = getPeerRoomId()) => ({
+  receipts: `${POOLDAY_RECEIPT_LEDGER_STORAGE_KEY}::${encodeStorageRoom(roomId)}`,
+  peerLedger: `${POOLDAY_PEER_LEDGER_STORAGE_KEY}::${encodeStorageRoom(roomId)}`
+});
+
+const readStorageArray = (key) => {
+  try {
+    const value = getPooldayStorage()?.getItem(key);
     const parsed = value ? JSON.parse(value) : [];
     return Array.isArray(parsed) ? parsed : [];
   } catch {
     return [];
   }
 };
-const persistPeerLedgerEvents = (events) => {
+
+const writeStorageArray = (key, value) => {
   try {
-    globalThis.localStorage?.setItem(POOLDAY_PEER_LEDGER_STORAGE_KEY, JSON.stringify(events.slice(-100)));
+    getPooldayStorage()?.setItem(key, JSON.stringify(value));
   } catch {
     // Local storage can be unavailable in hardened browser contexts.
   }
 };
-const POOLDAY_PEER_EVENTS = loadPeerLedgerEvents();
-const POOLDAY_PEER_EVENT_HASHES = new Set();
-for (const event of POOLDAY_PEER_EVENTS) {
-  const eventHash = event?.messageHash || `${event?.type || 'event'}:${event?.body?.agreementHash || ''}:${event?.body?.receiptHash || ''}:${event?.body?.userId || event?.body?.providerId || ''}`;
-  if (eventHash) POOLDAY_PEER_EVENT_HASHES.add(eventHash);
-}
+
+const replaceArrayContents = (target, values = []) => {
+  target.splice(0, target.length, ...values);
+};
+
+const getPeerEventHash = (event = {}) => (
+  event?.messageHash || `${event?.type || 'event'}:${event?.body?.agreementHash || ''}:${event?.body?.receiptHash || ''}:${event?.body?.userId || event?.body?.providerId || ''}`
+);
+
+const reloadPeerEventHashes = () => {
+  POOLDAY_PEER_EVENT_HASHES.clear();
+  for (const event of POOLDAY_PEER_EVENTS) {
+    const eventHash = getPeerEventHash(event);
+    if (eventHash) POOLDAY_PEER_EVENT_HASHES.add(eventHash);
+  }
+};
+
+const loadReceiptLedgerRows = (roomId = getPeerRoomId()) => {
+  const keys = getPooldayRecordStorageKeys(roomId);
+  return readStorageArray(keys.receipts).slice(0, POOLDAY_RECEIPT_LEDGER_LIMIT);
+};
+
+const persistReceiptLedgerRows = (roomId = getPeerRoomId()) => {
+  const keys = getPooldayRecordStorageKeys(roomId);
+  writeStorageArray(keys.receipts, POOLDAY_RECEIPT_LEDGER.slice(0, POOLDAY_RECEIPT_LEDGER_LIMIT));
+};
+
+const loadPeerLedgerEvents = (roomId = getPeerRoomId()) => {
+  const keys = getPooldayRecordStorageKeys(roomId);
+  const scopedEvents = readStorageArray(keys.peerLedger);
+  if (scopedEvents.length > 0 || roomId !== DEFAULT_PEER_ROOM_ID) return scopedEvents;
+  const legacyEvents = readStorageArray(POOLDAY_PEER_LEDGER_STORAGE_KEY);
+  if (legacyEvents.length > 0) writeStorageArray(keys.peerLedger, legacyEvents.slice(-100));
+  return legacyEvents;
+};
+
+const persistPeerLedgerEvents = (roomId = getPeerRoomId()) => {
+  const keys = getPooldayRecordStorageKeys(roomId);
+  writeStorageArray(keys.peerLedger, POOLDAY_PEER_EVENTS.slice(-100));
+};
+
+const ensureReceiptLedgerLoaded = (roomId = getPeerRoomId()) => {
+  if (POOLDAY_RECEIPT_LEDGER_ROOM === roomId) return;
+  POOLDAY_RECEIPT_LEDGER_ROOM = roomId;
+  replaceArrayContents(POOLDAY_RECEIPT_LEDGER, loadReceiptLedgerRows(roomId));
+};
+
+const ensurePeerLedgerLoaded = (roomId = getPeerRoomId()) => {
+  if (POOLDAY_PEER_EVENTS_ROOM === roomId) return;
+  POOLDAY_PEER_EVENTS_ROOM = roomId;
+  replaceArrayContents(POOLDAY_PEER_EVENTS, loadPeerLedgerEvents(roomId));
+  reloadPeerEventHashes();
+};
+
+const ensureRecordLedgersLoaded = (roomId = getPeerRoomId()) => {
+  ensureReceiptLedgerLoaded(roomId);
+  ensurePeerLedgerLoaded(roomId);
+};
+
 const POOLDAY_PROVIDER_HEALTH = {
   webgpu: 'unknown',
   model: 'not_loaded',
@@ -64,16 +140,25 @@ export const getPeerRoomId = () => {
   return params.get('room') || window.REPLOID_POOL_ROOM_ID || DEFAULT_PEER_ROOM_ID;
 };
 
-export const getPeerRelayMode = () => 'local';
+export const getPeerRelayMode = () => {
+  const params = new URLSearchParams(window.location.search || '');
+  const configured = params.get('relay') || window.REPLOID_POOL_RELAY || 'server';
+  return configured === 'local' ? 'local' : 'server';
+};
+
+export const getPeerRelayLabel = () => (
+  getPeerRelayMode() === 'local' ? 'local tab' : 'server relay'
+);
 
 export const getPeerRoomBusFactory = () => createPeerRoomBusFactory({
-  sdk: null,
-  relay: 'local'
+  sdk: getPeerRelayMode() === 'local' ? null : createPoolSdk({ authTokenProvider: null }),
+  relay: getPeerRelayMode()
 });
 
 export const getPeerDiscoveryWindowMs = () => {
   const explicit = Number(window.REPLOID_POOL_DISCOVERY_WINDOW_MS || 0);
   if (Number.isFinite(explicit) && explicit > 0) return explicit;
+  if (getPeerRelayMode() === 'server') return 8000;
   return 1200;
 };
 
@@ -176,6 +261,7 @@ const normalizeReceiptSpeed = (value) => {
 };
 
 export const addReceiptLedgerRow = (record = {}, receiptHash = '') => {
+  ensureReceiptLedgerLoaded();
   const jobId = firstPresent(
     record?.job?.jobId,
     record?.jobId,
@@ -184,33 +270,41 @@ export const addReceiptLedgerRow = (record = {}, receiptHash = '') => {
   );
   const provider = firstPresent(
     record?.providerId,
-    record?.provider?.id,
     record?.providerIdHash,
-    record?.provider,
-    record?.assignment?.providerId
+    record?.assignment?.providerId,
+    record?.receipt?.providerId,
+    record?.receipt?.provider?.id,
+    record?.provider?.id,
+    typeof record?.provider === 'string' ? record.provider : null
   );
   const fidelity = normalizeReceiptFidelity(record?.verifierDecision || record?.verification || record?.requesterAcceptance || record?.peerDecision || record?.agreement);
   const speed = normalizeReceiptSpeed(record);
+  const rowReceiptHash = String(receiptHash || record?.receiptHash || record?.receipt?.receiptHash || '—');
+  const existingIndex = POOLDAY_RECEIPT_LEDGER.findIndex((row) => row.receiptHash === rowReceiptHash);
+  if (existingIndex >= 0) POOLDAY_RECEIPT_LEDGER.splice(existingIndex, 1);
   POOLDAY_RECEIPT_LEDGER.unshift({
     jobId: String(jobId || '—'),
     provider: String(provider || '—'),
     fidelity,
     speed,
-    receiptHash: String(receiptHash || record?.receiptHash || '—'),
+    receiptHash: rowReceiptHash,
     record
   });
   while (POOLDAY_RECEIPT_LEDGER.length > POOLDAY_RECEIPT_LEDGER_LIMIT) {
     POOLDAY_RECEIPT_LEDGER.pop();
   }
+  persistReceiptLedgerRows();
 };
 
 export const findReceiptLedgerRecord = (receiptHash = '') => {
+  ensureReceiptLedgerLoaded();
   const normalized = String(receiptHash || '').trim();
   if (!normalized) return null;
   return POOLDAY_RECEIPT_LEDGER.find((row) => row.receiptHash === normalized)?.record || null;
 };
 
 export const renderReceiptLedger = (rows = POOLDAY_RECEIPT_LEDGER) => {
+  if (rows === POOLDAY_RECEIPT_LEDGER) ensureReceiptLedgerLoaded();
   if (!rows.length) {
     return '<p class="type-caption pool-receipt-empty">No rounds logged yet.</p>';
   }
@@ -240,20 +334,27 @@ export const renderReceiptLedger = (rows = POOLDAY_RECEIPT_LEDGER) => {
   `;
 };
 
+export const refreshReceiptLedgerState = () => {
+  const ledger = document.getElementById('pool-receipt-ledger');
+  if (ledger) ledger.innerHTML = renderReceiptLedger();
+};
+
 const recordPeerLedgerEvents = (events = []) => {
   if (!Array.isArray(events) || events.length === 0) return;
+  ensurePeerLedgerLoaded();
   let changed = false;
   for (const event of events) {
-    const eventHash = event?.messageHash || `${event?.type || 'event'}:${event?.body?.agreementHash || ''}:${event?.body?.receiptHash || ''}:${event?.body?.userId || event?.body?.providerId || ''}`;
+    const eventHash = getPeerEventHash(event);
     if (POOLDAY_PEER_EVENT_HASHES.has(eventHash)) continue;
     POOLDAY_PEER_EVENT_HASHES.add(eventHash);
     POOLDAY_PEER_EVENTS.push(event);
     changed = true;
   }
-  if (changed) persistPeerLedgerEvents(POOLDAY_PEER_EVENTS);
+  if (changed) persistPeerLedgerEvents();
 };
 
 export const renderPeerLedgerState = () => {
+  ensurePeerLedgerLoaded();
   const reduced = createPeerEventReducer().reduce(POOLDAY_PEER_EVENTS);
   const pointRows = Object.entries(reduced.points || {}).sort(([left], [right]) => left.localeCompare(right));
   const reputationRows = Object.values(reduced.reputation || {}).sort((left, right) => String(left.providerId).localeCompare(String(right.providerId)));
@@ -278,17 +379,17 @@ export const renderPeerLedgerState = () => {
               <tr>
                 <td title="${escapeHtml(peerId)}">${escapeHtml(compactHash(peerId))}</td>
                 <td>${escapeHtml(points)}</td>
-                <td>${escapeHtml(reputation.acceptedReceipts || 0)}</td>
-                <td>${escapeHtml(reputation.rejectedReceipts || 0)}</td>
+                <td>${escapeHtml(reputation.acceptedReceipts ?? 0)}</td>
+                <td>${escapeHtml(reputation.rejectedReceipts ?? 0)}</td>
               </tr>
             `;
           }).join('')}
           ${reputationRows.filter((row) => !Object.prototype.hasOwnProperty.call(reduced.points || {}, row.providerId)).map((row) => `
             <tr>
               <td title="${escapeHtml(row.providerId)}">${escapeHtml(compactHash(row.providerId))}</td>
-              <td>${escapeHtml(row.points || 0)}</td>
-              <td>${escapeHtml(row.acceptedReceipts || 0)}</td>
-              <td>${escapeHtml(row.rejectedReceipts || 0)}</td>
+              <td>${escapeHtml(row.points ?? 0)}</td>
+              <td>${escapeHtml(row.acceptedReceipts ?? 0)}</td>
+              <td>${escapeHtml(row.rejectedReceipts ?? 0)}</td>
             </tr>
           `).join('')}
         </tbody>
@@ -300,6 +401,80 @@ export const renderPeerLedgerState = () => {
 export const refreshPeerLedgerState = () => {
   const ledger = document.getElementById('pool-peer-ledger');
   if (ledger) ledger.innerHTML = renderPeerLedgerState();
+};
+
+export const renderRoomActivity = (summary = null) => {
+  if (getPeerRelayMode() === 'local') {
+    return '<p class="type-caption pool-receipt-empty">Local relay only. Add <code>?relay=server</code> to use shared room discovery.</p>';
+  }
+  if (!summary) {
+    return '<p class="type-caption pool-receipt-empty">Loading room activity...</p>';
+  }
+  if (summary.error) {
+    return `<p class="type-caption pool-receipt-empty">Room activity unavailable: ${escapeHtml(summary.error)}</p>`;
+  }
+  const recent = Array.isArray(summary.recent) ? summary.recent : [];
+  return `
+    <div class="pool-ledger" role="table" aria-label="Server relay room activity">
+      <table>
+        <thead>
+          <tr>
+            <th>Relay</th>
+            <th>Messages</th>
+            <th>Peers</th>
+            <th>Providers</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>${escapeHtml(summary.relay || getPeerRelayMode())}</td>
+            <td>${escapeHtml(summary.messageCount ?? 0)}</td>
+            <td>${escapeHtml(summary.peerCount ?? 0)}</td>
+            <td>${escapeHtml(summary.providerCount ?? 0)}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="type-caption pool-room-recent">
+      ${recent.length
+        ? escapeHtml(recent.map((entry) => `${entry.type}:${compactHash(entry.fromPeerId || 'unknown')}`).join(' / '))
+        : 'No relay messages in this room yet.'}
+    </p>
+  `;
+};
+
+export const refreshRoomActivityState = (summary = null) => {
+  const activity = document.getElementById('pool-room-activity');
+  if (activity) activity.innerHTML = renderRoomActivity(summary);
+};
+
+export const refreshRecordLedgerState = (options = {}) => {
+  const roomId = getPeerRoomId();
+  if (options.reload === true) {
+    POOLDAY_RECEIPT_LEDGER_ROOM = null;
+    POOLDAY_PEER_EVENTS_ROOM = null;
+  }
+  ensureRecordLedgersLoaded(roomId);
+  refreshReceiptLedgerState();
+  refreshPeerLedgerState();
+};
+
+let recordStorageSyncBound = false;
+
+export const bindRecordStorageSync = () => {
+  if (recordStorageSyncBound || typeof window === 'undefined') return;
+  recordStorageSyncBound = true;
+  window.addEventListener('storage', (event) => {
+    const keys = getPooldayRecordStorageKeys();
+    if (
+      event.key !== keys.receipts &&
+      event.key !== keys.peerLedger &&
+      event.key !== POOLDAY_PEER_LEDGER_STORAGE_KEY
+    ) {
+      return;
+    }
+    refreshRecordLedgerState({ reload: true });
+  });
 };
 
 const renderProviderHealth = (state = POOLDAY_PROVIDER_HEALTH) => {
@@ -378,7 +553,7 @@ const compactHex = (value) => {
   return normalized === '—' ? '—' : compactHash(normalized);
 };
 
-const escapeHtml = (value) => String(value || '')
+const escapeHtml = (value) => String(value ?? '')
   .replace(/&/g, '&amp;')
   .replace(/</g, '&lt;')
   .replace(/>/g, '&gt;')
@@ -394,7 +569,7 @@ export const isProductPath = (path) => Object.prototype.hasOwnProperty.call(PROD
 const firstPresent = (...values) => values.find((value) => value !== undefined && value !== null && value !== '');
 
 const compactHash = (value) => {
-  const normalized = String(value || '');
+  const normalized = String(value ?? '');
   if (normalized.length <= 24) return normalized;
   return `${normalized.slice(0, 16)}...${normalized.slice(-8)}`;
 };
@@ -623,7 +798,11 @@ const renderRoomStrip = () => `
     </span>
     <span class="pool-room-item">
       <span class="rgr-status-label">Relay</span>
-      <code data-pool-relay-mode>${escapeHtml(getPeerRelayMode())}</code>
+      <code data-pool-relay-mode>${escapeHtml(getPeerRelayLabel())}</code>
+    </span>
+    <span class="pool-room-item">
+      <span class="rgr-status-label">Work</span>
+      <code>whole job</code>
     </span>
     <span class="pool-room-item">
       <span class="rgr-status-label">Protocol</span>
@@ -663,9 +842,10 @@ export const describeSelectedRun = ({ policyId, modelId, status = 'finding_peer_
   const model = getEnabledPoolModelContract(modelId || LAUNCH_MODEL.modelId) || LAUNCH_MODEL;
   return {
     status,
-    transport: 'webrtc_peer_room_local',
+    transport: `webrtc_peer_room_${getPeerRelayMode()}`,
     roomId: getPeerRoomId(),
-    relay: 'local',
+    relay: getPeerRelayMode(),
+    workMode: 'whole_job_redundant_receipts',
     policyId: policy?.policyId || policyId || FASTEST_RECEIPT_POLICY_ID,
     trustTier: policy?.adaptiveRing ? 'adaptive quorum receipt' : (policy?.trustTier || 'signed receipt'),
     requiredAgreement: policy?.adaptiveRing
@@ -814,14 +994,21 @@ export const renderRouteDetail = (routeId) => {
             <div class="pool-control-row pool-primary-actions">
               <button class="btn btn-primary btn-op" data-op="⚲" id="pool-receipt-lookup" type="button">Lookup</button>
             </div>
-            ${renderResultBox('pool-receipt-result')}
+            ${renderResultBox('pool-receipt-result', { placeholder: 'No receipt lookup yet.' })}
           </div>
           <div class="pool-record-ledgers">
             <div class="pool-section-heading">
               <h3 class="type-h2">Receipts</h3>
-              <span class="pool-meta-tag">This browser</span>
+              <span class="pool-meta-tag">This room</span>
             </div>
             <div id="pool-receipt-ledger" class="pool-ledger-shell" aria-live="polite">${renderReceiptLedger()}</div>
+            <div class="pool-form" data-pool-room-activity>
+              <div class="pool-section-heading">
+                <h3 class="type-h2">Room Activity</h3>
+                <span class="pool-meta-tag">Relay metadata</span>
+              </div>
+              <div id="pool-room-activity" class="pool-ledger-shell" aria-live="polite">${renderRoomActivity()}</div>
+            </div>
             <div class="pool-form" data-pool-reputation>
               <div class="pool-section-heading">
                 <h3 class="type-h2">Peer Ledger</h3>

@@ -73,7 +73,8 @@ const extractBearerToken = (req) => {
 };
 
 const isPublicDiscoveryRoute = (req) => (
-  req.path.startsWith('/peer/rooms/')
+  req.path === '/peer/rooms'
+  || req.path.startsWith('/peer/rooms/')
   || (req.method === 'GET'
     && (req.path === '/deployment/check' || req.path === '/status' || req.path === '/policies' || req.path === '/config'))
 );
@@ -167,9 +168,13 @@ const jsonByteLength = (value) => Buffer.byteLength(JSON.stringify(value ?? null
 
 const peerRoomMessageFromPeerId = (message = {}) => {
   const body = message.body || {};
+  if (message.type === 'webrtc-signal') return body.fromPeerId || body.signal?.fromPeerId || null;
+  if (message.type === 'peer-run-request') return body.requesterId || body.intent?.body?.requesterId || body.assignment?.requesterId || null;
+  if (message.type === 'peer-run-accepted') return body.providerId || body.assignment?.providerId || null;
+  if (message.type === 'provider-advert') return body.advert?.fromPeerId || body.advert?.body?.providerId || body.providerId || null;
   return body.fromPeerId
-    || body.providerId
     || body.requesterId
+    || body.providerId
     || body.advert?.fromPeerId
     || body.advert?.body?.providerId
     || body.intent?.fromPeerId
@@ -843,6 +848,16 @@ export function createPoolRouter({ store = poolStore, verifyAuthToken = null, re
     return res.json({ messages });
   }));
 
+  router.get('/peer/rooms', asyncRoute(async (req, res) => {
+    if (typeof store.listPeerRooms !== 'function') {
+      return res.status(501).json({ error: 'peer room index is not supported by this store' });
+    }
+    const limit = Math.min(Number(req.query.limit || 50), 100);
+    return res.json({
+      rooms: await store.listPeerRooms({ limit })
+    });
+  }));
+
   router.post('/peer/rooms/:roomId/messages', asyncRoute(async (req, res) => {
     if (typeof store.appendPeerRoomMessage !== 'function') {
       return res.status(501).json({ error: 'peer room relay is not supported by this store' });
@@ -873,7 +888,7 @@ export function createPoolRouter({ store = poolStore, verifyAuthToken = null, re
       : maxExpiresAt;
     const message = await store.appendPeerRoomMessage(roomId, {
       relayId: body.relay?.relayId || body.relayId || null,
-      fromPeerId: body.relay?.fromPeerId || body.fromPeerId || peerRoomMessageFromPeerId(body),
+      fromPeerId: peerRoomMessageFromPeerId(body) || body.relay?.fromPeerId || body.fromPeerId || null,
       message: {
         ...body,
         roomId,
@@ -901,6 +916,63 @@ export function createPoolRouter({ store = poolStore, verifyAuthToken = null, re
       limit: Math.min(Number(req.query.limit || MAX_PEER_ROOM_MESSAGES_PER_POLL), MAX_PEER_ROOM_MESSAGES_PER_POLL)
     });
     return res.json({ messages });
+  }));
+
+  router.get('/peer/rooms/:roomId/summary', asyncRoute(async (req, res) => {
+    if (typeof store.listPeerRoomMessages !== 'function') {
+      return res.status(501).json({ error: 'peer room relay is not supported by this store' });
+    }
+    const roomId = String(req.params.roomId || '').trim();
+    if (!roomId) return res.status(400).json({ error: 'roomId is required' });
+    const limit = Math.min(Number(req.query.limit || MAX_PEER_ROOM_MESSAGES_PER_POLL), MAX_PEER_ROOM_MESSAGES_PER_POLL);
+    const messages = await store.listPeerRoomMessages(roomId, {
+      after: 0,
+      peerId: null,
+      limit
+    });
+    const peers = new Set();
+    const providers = new Map();
+    const typeCounts = {};
+    const recent = [];
+    for (const record of messages) {
+      const message = record.message || record;
+      const type = record.type || message.type || 'unknown';
+      const fromPeerId = record.fromPeerId || message.relay?.fromPeerId || peerRoomMessageFromPeerId(message);
+      if (fromPeerId) peers.add(fromPeerId);
+      typeCounts[type] = Number(typeCounts[type] || 0) + 1;
+      const advert = message.body?.advert || null;
+      const providerId = advert?.body?.providerId || advert?.fromPeerId || null;
+      if (type === 'provider-advert' && providerId) {
+        providers.set(providerId, {
+          providerId,
+          models: (advert.body?.models || []).map((model) => ({
+            modelId: model.modelId || model.id || 'unknown',
+            modelHash: model.modelHash || model.hash || null,
+            manifestHash: model.manifestHash || null,
+            runtime: model.runtime || null,
+            backend: model.backend || null
+          })),
+          runtimeProfileHash: advert.body?.runtimeProfileHash || null,
+          availability: advert.body?.availability || null
+        });
+      }
+      recent.push({
+        type,
+        fromPeerId,
+        createdAt: record.createdAt || message.createdAt || null
+      });
+    }
+    return res.json({
+      roomId,
+      relay: 'server',
+      messageCount: messages.length,
+      peerCount: peers.size,
+      providerCount: providers.size,
+      peers: Array.from(peers).sort(),
+      providers: Array.from(providers.values()).sort((left, right) => left.providerId.localeCompare(right.providerId)),
+      typeCounts,
+      recent: recent.slice(-10).reverse()
+    });
   }));
 
   router.get('/metrics', asyncRoute(async (req, res) => {

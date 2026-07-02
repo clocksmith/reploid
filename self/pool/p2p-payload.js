@@ -125,6 +125,8 @@ export async function createReceiptPayload({ assignment, receiptRecord, fromPeer
     toPeerId,
     body: {
       receiptHash: receiptRecord?.receiptHash || null,
+      providerId: receiptRecord?.providerId || receiptRecord?.receipt?.providerId || assignment?.providerId || null,
+      requesterId: receiptRecord?.requesterId || receiptRecord?.receipt?.requesterId || assignment?.requesterId || null,
       receipt: receiptRecord?.receipt || null,
       outputText: receiptRecord?.outputText || '',
       tokenIds: Array.isArray(receiptRecord?.tokenIds) ? receiptRecord.tokenIds : [],

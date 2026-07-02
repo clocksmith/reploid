@@ -20,9 +20,13 @@ const makeRelayId = (prefix = 'peer_room_msg') => (
 
 export function peerRoomMessageFromPeerId(message = {}, fallbackPeerId = null) {
   const body = message.body || {};
+  if (message.type === 'webrtc-signal') return body.fromPeerId || body.signal?.fromPeerId || fallbackPeerId || null;
+  if (message.type === 'peer-run-request') return body.requesterId || body.intent?.body?.requesterId || body.assignment?.requesterId || fallbackPeerId || null;
+  if (message.type === 'peer-run-accepted') return body.providerId || body.assignment?.providerId || fallbackPeerId || null;
+  if (message.type === 'provider-advert') return body.advert?.fromPeerId || body.advert?.body?.providerId || body.providerId || fallbackPeerId || null;
   return body.fromPeerId
-    || body.providerId
     || body.requesterId
+    || body.providerId
     || body.advert?.fromPeerId
     || body.advert?.body?.providerId
     || body.intent?.fromPeerId
@@ -119,7 +123,7 @@ export function createSdkPeerRoomRelayBus({
     if (closed) return;
     try {
       const result = await sdk.listPeerRoomMessages(resolvedRoomId, {
-        after: cursor,
+        after: Math.max(0, cursor - 1),
         peerId: localPeerId || null
       });
       const messages = Array.isArray(result?.messages) ? result.messages : Array.isArray(result) ? result : [];
@@ -128,6 +132,8 @@ export function createSdkPeerRoomRelayBus({
         cursor = Math.max(cursor, Number(record.createdAt || message.createdAt || 0));
         if (message?.peerRoomVersion) deliver(message);
       }
+    } catch {
+      // Relay failure should not break an already-open room loop.
     } finally {
       if (!closed) timer = globalThis.setTimeout(poll, pollIntervalMs);
     }
