@@ -15,7 +15,7 @@ const routes = ['/', '/ask', '/compute', '/history', '/network', '/zero'];
 const requiredText = {
   '/': 'Run browser models together',
   '/ask': 'Prompt',
-  '/compute': 'Worker',
+  '/compute': 'This tab',
   '/history': 'History',
   '/network': 'Network',
   '/zero': 'Zero'
@@ -173,12 +173,12 @@ try {
     const ledger = document.querySelector('#pool-peer-ledger');
     return {
       exists: !!ledger,
-      hasLedgerTable: !!ledger?.querySelector('[aria-label="Local peer ledger"]'),
+      hasScoreTable: !!ledger?.querySelector('[aria-label="Local peer scores"]'),
       text: ledger?.textContent || ''
     };
   });
-  if (!peerLedger.exists || (!peerLedger.hasLedgerTable && !peerLedger.text.includes('local peer ledger'))) {
-    failures.push('network route did not expose local peer ledger');
+  if (!peerLedger.exists || (!peerLedger.hasScoreTable && !peerLedger.text.toLowerCase().includes('local scores'))) {
+    failures.push('network route did not expose local peer scores');
   }
   await provider.close();
   await requester.close();

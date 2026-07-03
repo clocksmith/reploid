@@ -269,8 +269,9 @@ test.describe('Route Entry Points', () => {
     await expect(page.getByRole('heading', { name: 'Compute', exact: true })).toBeVisible();
     await expect(page.locator('.pool-page-heading .pool-eyebrow')).toHaveCount(0);
     await expect(page.locator('[data-pool-simulation]')).toHaveCount(0);
-    await expect(page.locator('[data-pool-provider-status]')).toHaveText('WORKER // OFFLINE');
+    await expect(page.locator('[data-pool-provider-status]')).toHaveText('Idle');
     await expect(page.locator('#pool-provider-worker-start')).toBeVisible();
+    await expect(page.locator('#pool-provider-worker-start')).toHaveText('Start helping');
     await expect(page.locator('#pool-provider-worker-stop')).toBeVisible();
     await expect(page.locator('#pool-provider-load')).toHaveCount(0);
     await expect(page.locator('#pool-provider-profile')).toHaveCount(0);

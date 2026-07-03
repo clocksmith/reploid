@@ -1919,6 +1919,25 @@ details[open] > .disclosure-summary::before {
   font-family: var(--pool-font);
 }
 
+.pool-home input,
+.pool-home select,
+.pool-home textarea {
+  border-color: color-mix(in srgb, var(--pool-cyan), var(--fg) 34%);
+  border-radius: 4px;
+  background:
+    linear-gradient(rgb(255 255 255 / 96%), rgb(255 255 255 / 88%)) padding-box,
+    linear-gradient(126deg, rgb(68 199 217 / 18%), rgb(174 122 238 / 12%)) border-box;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 74%);
+}
+
+.pool-home input:focus,
+.pool-home select:focus,
+.pool-home textarea:focus {
+  border-color: color-mix(in srgb, var(--pool-cyan), var(--fg) 18%);
+  outline: 2px solid color-mix(in srgb, var(--pool-cyan), transparent 72%);
+  outline-offset: 2px;
+}
+
 .pool-home pre,
 .pool-home code,
 .pool-home .pool-result,
@@ -1952,7 +1971,15 @@ body[data-pool-route-id='home'] #app {
 
 .pool-home .panel {
   padding: var(--space-lg);
-  border: var(--border-sm) solid color-mix(in srgb, var(--fg) 68%, transparent 32%);
+  border: var(--border-sm) solid transparent;
+  background:
+    linear-gradient(rgb(255 255 255 / 96%), rgb(255 255 255 / 91%)) padding-box,
+    var(--pool-prism-border-soft) border-box;
+  border-radius: 8px;
+  box-shadow:
+    0 18px 56px rgb(68 199 217 / 8%),
+    0 12px 42px rgb(174 122 238 / 7%),
+    inset 0 1px 0 rgb(255 255 255 / 72%);
 }
 
 .pool-actions {
@@ -2242,9 +2269,15 @@ body[data-pool-route-id='home'] #app {
   flex-wrap: wrap;
   align-items: center;
   gap: var(--space-sm);
-  padding: var(--space-sm);
-  border-top: var(--border-sm) dotted color-mix(in srgb, var(--fg), transparent 76%);
-  border-bottom: var(--border-sm) dotted color-mix(in srgb, var(--fg), transparent 76%);
+  padding: 10px 12px;
+  border: var(--border-sm) solid transparent;
+  border-radius: 8px;
+  background:
+    linear-gradient(122deg, rgb(255 255 255 / 90%), rgb(246 253 255 / 78%)) padding-box,
+    var(--pool-prism-border-soft) border-box;
+  box-shadow:
+    0 8px 28px rgb(68 199 217 / 7%),
+    inset 0 1px 0 rgb(255 255 255 / 64%);
 }
 
 .pool-room-item {
@@ -2257,6 +2290,10 @@ body[data-pool-route-id='home'] #app {
 .pool-room-item code {
   max-width: min(36ch, 54vw);
   overflow: hidden;
+  padding: 3px 6px;
+  border: 1px solid color-mix(in srgb, var(--pool-cyan), transparent 72%);
+  border-radius: 4px;
+  background: rgb(255 255 255 / 62%);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -2267,6 +2304,34 @@ body[data-pool-route-id='home'] #app {
   font-weight: var(--font-weight-bold);
   letter-spacing: var(--font-tracking-label);
   text-transform: uppercase;
+}
+
+.pool-room-details {
+  display: inline-flex;
+  min-width: 0;
+  flex: 1 1 100%;
+  gap: var(--space-sm);
+}
+
+.pool-room-details:not([open]) {
+  flex: 0 0 auto;
+}
+
+.pool-room-details summary {
+  cursor: pointer;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--font-tracking-label);
+  text-transform: uppercase;
+}
+
+.pool-room-details[open] {
+  padding-top: 8px;
+  border-top: 1px solid color-mix(in srgb, var(--fg), transparent 88%);
+}
+
+.pool-room-details[open] summary {
+  margin-right: var(--space-sm);
 }
 
 .pool-section-heading {
@@ -2362,6 +2427,10 @@ body[data-pool-route-id='home'] #app {
   gap: var(--space-lg);
 }
 
+.pool-history-layout {
+  grid-template-columns: minmax(360px, 1.15fr) minmax(280px, 0.85fr);
+}
+
 .pool-record-query,
 .pool-record-ledgers {
   display: flex;
@@ -2418,14 +2487,21 @@ body[data-pool-route-id='home'] #app {
   min-height: 4.5rem;
   margin: 0;
   padding: var(--space-md);
-  border: var(--border-sm) dotted color-mix(in srgb, var(--fg), transparent 76%);
-  background: color-mix(in srgb, var(--bg), transparent 2%);
+  border: var(--border-sm) solid transparent;
+  border-radius: 8px;
+  background:
+    linear-gradient(rgb(255 255 255 / 89%), rgb(255 255 255 / 78%)) padding-box,
+    linear-gradient(126deg, rgb(105 210 153 / 20%), rgb(68 199 217 / 24%), rgb(174 122 238 / 18%)) border-box;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 66%);
   white-space: pre-wrap;
 }
 
 .pool-raw-details {
-  border: var(--border-sm) dotted color-mix(in srgb, var(--fg), transparent 82%);
-  background: color-mix(in srgb, var(--bg), transparent 1%);
+  border: var(--border-sm) solid transparent;
+  border-radius: 8px;
+  background:
+    linear-gradient(rgb(255 255 255 / 86%), rgb(255 255 255 / 72%)) padding-box,
+    linear-gradient(126deg, rgb(68 199 217 / 18%), rgb(174 122 238 / 16%)) border-box;
 }
 
 .pool-raw-details summary {
@@ -2444,8 +2520,8 @@ body[data-pool-route-id='home'] #app {
   min-height: 8rem;
   margin: 0;
   border: 0;
-  border-top: var(--border-sm) dotted color-mix(in srgb, var(--fg), transparent 82%);
-  background: color-mix(in srgb, var(--bg), transparent 2%);
+  border-top: var(--border-sm) solid color-mix(in srgb, var(--fg), transparent 88%);
+  background: color-mix(in srgb, #fff, transparent 14%);
   white-space: pre-wrap;
   word-break: break-word;
 }
@@ -2453,8 +2529,14 @@ body[data-pool-route-id='home'] #app {
 .pool-stream-shell {
   position: relative;
   padding: var(--space-sm);
-  border: var(--border-sm) dotted color-mix(in srgb, var(--fg), transparent 76%);
-  background: color-mix(in srgb, var(--bg), transparent 2%);
+  border: var(--border-sm) solid transparent;
+  border-radius: 8px;
+  background:
+    linear-gradient(rgb(255 255 255 / 91%), rgb(251 253 255 / 82%)) padding-box,
+    var(--pool-prism-border-soft) border-box;
+  box-shadow:
+    0 10px 30px rgb(68 199 217 / 7%),
+    inset 0 1px 0 rgb(255 255 255 / 68%);
 }
 
 .pool-stream-output {
@@ -2509,7 +2591,11 @@ body[data-pool-route-id='home'] #app {
 .pool-provider-status {
   margin: 0;
   padding: var(--space-xs) var(--space-sm);
-  border: var(--border-sm) dotted color-mix(in srgb, var(--fg), transparent 72%);
+  border: var(--border-sm) solid transparent;
+  border-radius: 999px;
+  background:
+    linear-gradient(rgb(255 255 255 / 88%), rgb(255 255 255 / 76%)) padding-box,
+    linear-gradient(126deg, rgb(238 197 82 / 38%), rgb(68 199 217 / 24%), rgb(174 122 238 / 20%)) border-box;
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-bold);
   letter-spacing: var(--font-tracking-label);
@@ -2529,8 +2615,24 @@ body[data-pool-route-id='home'] #app {
 }
 
 .pool-ledger-shell {
-  border: var(--border-sm) dotted color-mix(in srgb, var(--fg), transparent 76%);
+  border: var(--border-sm) solid transparent;
+  border-radius: 8px;
+  background:
+    linear-gradient(rgb(255 255 255 / 88%), rgb(255 255 255 / 76%)) padding-box,
+    linear-gradient(126deg, rgb(238 197 82 / 16%), rgb(105 210 153 / 18%), rgb(68 199 217 / 22%), rgb(174 122 238 / 16%)) border-box;
   padding: var(--space-md);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 66%);
+}
+
+.pool-ledger-shell .boot-status-strip {
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  padding: 0;
+}
+
+.pool-ledger-shell .pool-summary-item {
+  padding: 2px 0;
 }
 
 .pool-ledger table {
@@ -2542,7 +2644,7 @@ body[data-pool-route-id='home'] #app {
 .pool-ledger th,
 .pool-ledger td {
   padding: 8px var(--space-sm);
-  border-bottom: 1px solid color-mix(in srgb, var(--fg), transparent 85%);
+  border-bottom: 1px solid color-mix(in srgb, var(--fg), transparent 89%);
   text-align: left;
   vertical-align: top;
 }
@@ -2585,8 +2687,12 @@ body[data-pool-route-id='home'] #app {
 }
 
 .pool-advanced {
-  border-top: var(--border-sm) dotted var(--fg);
-  padding-top: var(--space-sm);
+  border: var(--border-sm) solid transparent;
+  border-radius: 8px;
+  background:
+    linear-gradient(rgb(255 255 255 / 84%), rgb(255 255 255 / 70%)) padding-box,
+    linear-gradient(126deg, rgb(68 199 217 / 16%), rgb(174 122 238 / 14%)) border-box;
+  padding: var(--space-sm);
 }
 
 .pool-advanced summary {
