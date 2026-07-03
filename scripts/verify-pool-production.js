@@ -56,9 +56,9 @@ const requiredRewrites = [
   '/pool/peer/**',
   '/',
   '/ask',
-  '/contribute',
-  '/receipts',
-  '/reputation',
+  '/compute',
+  '/history',
+  '/network',
   '/zero',
   '/x'
 ];

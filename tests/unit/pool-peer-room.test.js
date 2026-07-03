@@ -299,7 +299,7 @@ describe('pool peer room', () => {
       payload: {
         roomId: 'empty-room-test',
         observedProviderCount: 0,
-        action: 'Open Contribute in another tab with the same room, click Start, then ask again.'
+        action: 'Open Compute in another tab with the same room, click Start, then ask again.'
       }
     });
   });

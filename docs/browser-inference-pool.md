@@ -20,10 +20,10 @@ Do not describe this as trustless compute, hardware-attested inference, or guara
 | Route | Purpose |
 |-------|---------|
 | `/` | Public Reploid model-serving home. Docs/internal surface name: Poolday |
-| `/ask` | Requester prompt flow, receipt display, and local acceptance |
-| `/contribute` | Browser provider peer listener with manual hosted diagnostics |
-| `/receipts` | Receipt lookup and local artifact verification |
-| `/reputation` | Provider reputation, pool metrics, deployment check |
+| `/ask` | Requester prompt flow and local acceptance |
+| `/compute` | Browser worker peer listener with manual hosted diagnostics |
+| `/history` | Job history, hash lookup, and local artifact verification |
+| `/network` | Peers, scores, room state, pool metrics, and deployment check |
 | `/zero` | Zero research Reploid surface |
 | `/x` | X mature Reploid agent surface |
 
@@ -226,7 +226,7 @@ Receipts for ring assignments are accepted only after:
 
 The current hosted mode is `hybrid_p2p_anchor`. In this mode, WebRTC is the primary transit for inference payloads and the browser-ring agreement path. The cloud coordinator is still the bootstrap, policy, receipt, and ledger anchor for hosted diagnostic and API flows. Treat this as a transitional deployment shape, not the final Reploid control plane.
 
-The primary browser-room path used by `/ask` and `/contribute` does not create hosted jobs or poll hosted assignments. It uses signed peer intents, signed provider adverts, deterministic local assignment, WebRTC DataChannel prompt delivery, provider receipts, local receipt agreement, requester countersignature, and signed points/reputation events. Local rooms use same-origin `BroadcastChannel`. Remote rooms can use the optional `/pool/peer/rooms/:roomId/messages` metadata relay for signed room envelopes and WebRTC signaling. The relay does not create jobs, assign providers, decide quorum, mutate reputation, or carry prompt/output/full receipt/model payloads.
+The primary browser-room path used by `/ask` and `/compute` does not create hosted jobs or poll hosted assignments. It uses signed peer intents, signed provider adverts, deterministic local assignment, WebRTC DataChannel prompt delivery, provider receipts, local receipt agreement, requester countersignature, and signed points/network events. Local rooms use same-origin `BroadcastChannel`. Remote rooms can use the optional `/pool/peer/rooms/:roomId/messages` metadata relay for signed room envelopes and WebRTC signaling. The relay does not create jobs, assign providers, decide quorum, mutate reputation, or carry prompt/output/full receipt/model payloads.
 
 | Layer | Owner |
 |-------|-------|
@@ -261,7 +261,7 @@ In the current hosted mode, the cloud remains authoritative for abuse gates, pol
 
 The target Reploid control plane is also peer-to-peer. The coordinator should disappear from the normal path. Any server should be optional bootstrap, public anchor, or compatibility bridge.
 
-The browser implementation starts in `self/pool/peer-control-plane.js`, `self/pool/peer-room.js`, and `self/pool/peer-rendezvous.js`. The control-plane module defines signed peer messages, prompt payload validation, deterministic peer assignment planning, receipt agreement, signed ledger events, DataChannel-compatible peer buses, and deterministic points/reputation reducers. The peer room module wires the visible `/ask` and `/contribute` paths through signed peer intents, provider adverts, WebRTC signaling, DataChannel prompt delivery, multi-provider receipt return, quorum agreement, requester countersignature, and ledger-event gossip without hosted job creation or hosted assignment polling. The rendezvous module supplies local BroadcastChannel rooms, in-memory test rooms, shareable invite URLs, and optional metadata relay buses.
+The browser implementation starts in `self/pool/peer-control-plane.js`, `self/pool/peer-room.js`, and `self/pool/peer-rendezvous.js`. The control-plane module defines signed peer messages, prompt payload validation, deterministic peer assignment planning, receipt agreement, signed ledger events, DataChannel-compatible peer buses, and deterministic points/network reducers. The peer room module wires the visible `/ask` and `/compute` paths through signed peer intents, provider adverts, WebRTC signaling, DataChannel prompt delivery, multi-provider receipt return, quorum agreement, requester countersignature, and ledger-event gossip without hosted job creation or hosted assignment polling. The rendezvous module supplies local BroadcastChannel rooms, in-memory test rooms, shareable invite URLs, and optional metadata relay buses.
 
 | Layer | Target owner |
 |-------|--------------|
@@ -378,7 +378,7 @@ Production canary creation should use a Firebase custom claim such as `poolCoord
 
 ## Provider tab lifecycle
 
-The provider tab does not need Node or Bun. Browser providers use `/contribute`.
+The provider tab does not need Node or Bun. Browser providers use `/compute`.
 
 Primary peer provider flow:
 
@@ -389,7 +389,7 @@ Primary peer provider flow:
 5. Accept a matching session, connect over WebRTC, receive the prompt over DataChannel, verify prompt hash and model identity, execute locally, return a signed receipt over DataChannel, and record local activity.
 6. Receive requester acceptance over DataChannel.
 
-The provider client still exposes `runWorkerStep()` for the hosted diagnostic loop. Manual controls under `/contribute` can register, heartbeat, poll, execute, inspect points, and inspect reputation against the coordinator. Those controls are compatibility and operations tools, not the primary user path.
+The provider client still exposes `runWorkerStep()` for the hosted diagnostic loop. Manual controls under `/compute` can register, heartbeat, poll, execute, inspect points, and inspect reputation against the coordinator. Those controls are compatibility and operations tools, not the primary user path.
 
 ## Provider device evidence
 
@@ -498,9 +498,9 @@ Product routes rewrite to `/index.html`:
 
 - `/`
 - `/ask`
-- `/contribute`
-- `/receipts`
-- `/reputation`
+- `/compute`
+- `/history`
+- `/network`
 - `/zero`
 - `/x`
 
@@ -621,7 +621,7 @@ Local route and peer-flow smoke:
 REPLOID_POOL_SMOKE_ALLOW_LOCAL=1 npm run smoke:pool -- http://127.0.0.1:8000
 ```
 
-The smoke script opens `/`, `/ask`, `/contribute`, `/receipts`, `/reputation`, and `/zero`, proves a provider/requester browser-room receipt flow, then checks `/pool/deployment/check` from the browser context. Local mode requires the deployment check route to respond with config identity. Deployed mode requires production readiness.
+The smoke script opens `/`, `/ask`, `/compute`, `/history`, `/network`, and `/zero`, proves a browser-room worker/requester flow, then checks `/pool/deployment/check` from the browser context. Local mode requires the deployment check route to respond with config identity. Deployed mode requires production readiness.
 
 ---
 

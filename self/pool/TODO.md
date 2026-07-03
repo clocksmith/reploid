@@ -22,9 +22,9 @@ The current Cloud Run and Firestore path is transitional. The target Reploid con
 |---------|------|---------|
 | Product config | [`pool-config.json`](./pool-config.json) | Product-owned claim, launch model, trust tiers, policies, routes, transport, and deployment requirements. |
 | Product doc | [`../../docs/browser-inference-pool.md`](../../docs/browser-inference-pool.md) | Public architecture, API contract, production readiness, and forbidden claims. |
-| Product UI | [`../ui/pool-home/index.js`](../ui/pool-home/index.js) | `/`, `/ask`, `/contribute`, `/receipts`, `/reputation`, and `/zero` browser surface. |
+| Product UI | [`../ui/pool-home/index.js`](../ui/pool-home/index.js) | `/`, `/ask`, `/compute`, `/history`, `/network`, and `/zero` browser surface. |
 | Peer control plane | [`peer-control-plane.js`](./peer-control-plane.js) | Signed peer messages, deterministic assignment planning, DataChannel bus helpers, and peer reducers. |
-| Peer room | [`peer-room.js`](./peer-room.js) | Browser room bootstrap for primary `/ask` and `/contribute` flows without hosted job or provider assignment calls. |
+| Peer room | [`peer-room.js`](./peer-room.js) | Browser room bootstrap for primary `/ask` and `/compute` flows without hosted job or provider assignment calls. |
 | Coordinator | [`../../server/pool/routes.js`](../../server/pool/routes.js) | Cloud Run routes for config, jobs, providers, receipts, reputation, signaling, and deployment check. |
 | Verification script | [`../../scripts/verify-pool-production.js`](../../scripts/verify-pool-production.js) | Static, route, config, and hosted readiness verification. |
 
@@ -44,10 +44,10 @@ The current Cloud Run and Firestore path is transitional. The target Reploid con
 - [x] Define signed peer-message envelopes for job intent, provider advert, assignment claim, commit, reveal, execution result, receipt, acceptance, points event, reputation event, and peer heartbeat.
 - [x] Add signed provider capability adverts that bind identity, model, manifest, runtime profile, accepted policies, availability, and reputation evidence.
 - [x] Add deterministic local assignment selection from intent hash, provider adverts, policy, runtime profile, model identity, and reputation evidence.
-- [x] Add a browser peer room that replaces server-created jobs and hosted provider assignment polling for the primary `/ask` and `/contribute` flow.
+- [x] Add a browser peer room that replaces server-created jobs and hosted provider assignment polling for the primary `/ask` and `/compute` flow.
 - [x] Add browser-room ring quorum agreement from matching receipt hashes over WebRTC provider sessions.
 - [x] Add signed peer ledger events for accepted receipt sets plus deterministic points and reputation reducers.
-- [x] Replace server-created jobs with requester signed intents across `/ask`, `/contribute`, and quorum policies.
+- [x] Replace server-created jobs with requester signed intents across `/ask`, `/compute`, and quorum policies.
 - [x] Replace coordinator signaling dependency for primary routes with peer-discovered WebRTC sessions; optional server relay is bootstrap only, not control-plane authority.
 - [x] Gossip accepted receipt sets, points events, and reputation events inside local and relayed peer rooms.
 - [ ] Gossip accepted receipt sets, points events, and reputation events across a true serverless wide-area WebRTC peer graph beyond room relay.
@@ -60,7 +60,7 @@ The current Cloud Run and Firestore path is transitional. The target Reploid con
 - [ ] Publish launch model artifacts under `REPLOID_POOL_MODEL_BASE_URL` with the configured `<modelId>/<manifestHash>/manifest.json` path shape.
 - [x] Add strict artifact manifest preflight for CORS fetch, manifest JSON, manifest hash, model id, and model hash.
 - [ ] Verify tokenizer, shard hashes, range or resume behavior, and OPFS cache reuse against the published artifact host.
-- [x] Make strict-preflight artifact failures legible in `/contribute`: missing manifest, hash mismatch, CORS denial, and unsupported browser runtime.
+- [x] Make strict-preflight artifact failures legible in `/compute`: missing manifest, hash mismatch, CORS denial, and unsupported browser runtime.
 - [ ] Keep model bytes out of Firebase Hosting and Cloud Run.
 
 ---
@@ -77,7 +77,7 @@ The current Cloud Run and Firestore path is transitional. The target Reploid con
 
 ## Provider Supply
 
-- [x] Make `/contribute` primary Start load the model, create a signed provider advert, and listen for peer-room WebRTC jobs.
+- [x] Make `/compute` primary Start load the model, create a signed provider advert, and listen for peer-room WebRTC jobs.
 - [x] Keep the hosted manual provider controls coherent: register, heartbeat, poll, execute, commit, reveal, and submit receipt.
 - [x] Surface provider health states: WebGPU unavailable, model loading, artifact failure, storage quota, queue state, last receipt, trust tier, and reputation.
 - [x] Test multiple same-origin browser-room providers on the same launch model and runtime profile through a ring quorum policy.
@@ -110,7 +110,7 @@ The current Cloud Run and Firestore path is transitional. The target Reploid con
 
 ## Strategic Wedge
 
-- [x] Keep the public front-door sentence: `Reploid is receipt-backed browser inference on WebRTC browser runtimes, quorum consensus, and receipts.`
+- [x] Keep the public front-door sentence: `Run browser models together.`
 - [x] Treat external artifact storage as interchangeable byte delivery. Reploid owns product execution, receipts, verification, reputation, requester acceptance, and the browser substrate.
 - [x] Position Doppler as the browser inference engine. Reploid is the decentralized serving product and governed browser substrate.
 - [x] Treat WebRTC as both the target control plane and the default prompt/output/receipt transit.
@@ -135,8 +135,8 @@ The current Cloud Run and Firestore path is transitional. The target Reploid con
 
 - [ ] Deployed `/pool/deployment/check` returns `ok: true`.
 - [ ] Public smoke passes against the hosted surface.
-- [x] The browser-room code path can run `/contribute` providers and `/ask` requester logic without coordinator job creation, collect accepted receipts, and reduce signed points plus reputation events locally.
-- [x] A browser smoke can open `/contribute` and `/ask`, receive an accepted receipt, and expose local points plus reputation projection in the visible UI.
+- [x] The browser-room code path can run `/compute` providers and `/ask` requester logic without coordinator job creation, collect accepted receipts, and reduce signed points plus reputation events locally.
+- [x] A browser smoke can open `/compute` and `/ask`, receive an accepted receipt, and expose local points plus reputation projection in the visible UI.
 - [ ] A user can do the same against published model artifacts on the hosted surface.
 - [ ] Prompt, output, and full receipt payloads move over WebRTC DataChannel by default, with coordinator signaling restricted to WebRTC metadata.
 - [x] Browser-room ring policy agreement happens through WebRTC provider sessions and produces accepted receipt sets plus agreement hashes.

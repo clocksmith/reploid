@@ -1901,9 +1901,9 @@ details[open] > .disclosure-summary::before {
   --pool-prism-hover-fill: linear-gradient(122deg, rgb(68 199 217 / 7%), rgb(174 122 238 / 5%), rgb(247 139 83 / 5%));
   --pool-prism-selected-fill: linear-gradient(122deg, rgb(68 199 217 / 9%), rgb(105 210 153 / 6%), rgb(174 122 238 / 8%));
   --pool-font: Inter, 'Avenir Next', 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-  --pool-nav-width: 150px;
+  --pool-nav-width: 210px;
   min-height: min(100vh, 100dvh);
-  padding: var(--space-lg) var(--space-lg) var(--space-lg) calc(var(--pool-nav-width) + var(--space-xl));
+  padding: calc(var(--space-lg) + 44px) var(--space-lg) var(--space-lg);
   overflow-x: hidden;
   background: var(--bg);
   display: flex;
@@ -1955,7 +1955,6 @@ body[data-pool-route-id='home'] #app {
   border: var(--border-sm) solid color-mix(in srgb, var(--fg) 68%, transparent 32%);
 }
 
-.pool-nav-rail,
 .pool-nav,
 .pool-actions {
   display: flex;
@@ -1969,15 +1968,16 @@ body[data-pool-route-id='home'] #app {
 
 .pool-nav-rail {
   position: fixed;
-  z-index: 5;
+  z-index: 10;
   top: var(--space-md);
-  bottom: var(--space-md);
-  left: var(--space-md);
+  right: var(--space-md);
   width: var(--pool-nav-width);
-  flex-direction: column;
-  align-items: stretch;
-  justify-content: space-between;
-  padding: 10px;
+  max-width: calc(100vw - (var(--space-md) * 2));
+  color: var(--fg);
+}
+
+.pool-nav-rail[open] {
+  padding: 7px;
   border: var(--border-sm) solid transparent;
   background:
     linear-gradient(rgb(255 255 255 / 94%), rgb(255 255 255 / 94%)) padding-box,
@@ -1988,12 +1988,59 @@ body[data-pool-route-id='home'] #app {
   backdrop-filter: blur(16px);
 }
 
+.pool-nav-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 40px;
+  gap: 10px;
+  padding: 0 12px;
+  border: var(--border-sm) solid transparent;
+  background:
+    linear-gradient(rgb(255 255 255 / 94%), rgb(255 255 255 / 94%)) padding-box,
+    var(--pool-prism-border-soft) border-box;
+  color: inherit;
+  cursor: pointer;
+  box-shadow:
+    0 0 20px rgb(68 199 217 / 8%),
+    0 0 28px rgb(174 122 238 / 6%);
+  list-style: none;
+  user-select: none;
+}
+
+.pool-nav-trigger::-webkit-details-marker {
+  display: none;
+}
+
+.pool-nav-trigger span {
+  font-size: 10px;
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--font-tracking-label);
+  text-transform: uppercase;
+  opacity: var(--opacity-soft);
+}
+
+.pool-nav-trigger strong {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+}
+
+.pool-nav-rail[open] .pool-nav-trigger {
+  box-shadow: none;
+}
+
 .pool-nav {
+  display: none;
   flex: 1 1 auto;
   flex-direction: column;
   align-items: stretch;
   flex-wrap: nowrap;
   width: 100%;
+}
+
+.pool-nav-rail[open] .pool-nav {
+  display: flex;
+  margin-top: 7px;
 }
 
 .pool-nav-link {
@@ -2012,6 +2059,13 @@ body[data-pool-route-id='home'] #app {
   font-weight: var(--font-weight-semibold);
   text-decoration: none;
   box-shadow: none;
+}
+
+.pool-nav-divider {
+  display: block;
+  height: 1px;
+  margin: 3px 0;
+  background: linear-gradient(90deg, transparent, rgb(68 199 217 / 20%), rgb(174 122 238 / 16%), transparent);
 }
 
 .pool-nav-link:hover,
@@ -2066,16 +2120,6 @@ body[data-pool-route-id='home'] #app {
   opacity: var(--opacity-soft);
   letter-spacing: var(--font-set-tracking);
   text-transform: uppercase;
-}
-
-.pool-nav-substrate-link {
-  min-height: 34px;
-  padding: 0 12px 0 18px;
-}
-
-.pool-nav-substrate {
-  display: grid;
-  gap: 6px;
 }
 
 .pool-nav-substrate-link:hover,
@@ -2580,67 +2624,28 @@ body[data-pool-route-id='home'] #app {
 .pool-home-overlay {
   position: absolute;
   z-index: 3;
-  top: clamp(5rem, 14vh, 9rem);
+  top: clamp(5rem, 16vh, 10rem);
   left: clamp(1rem, 5vw, 5rem);
   display: flex;
-  width: min(520px, calc(100vw - 2rem));
+  width: min(420px, calc(100vw - 2rem));
   flex-direction: column;
-  gap: var(--space-md);
+  gap: var(--space-sm);
   color: var(--fg);
-  pointer-events: auto;
+  pointer-events: none;
 }
 
 .pool-home-overlay .type-h1 {
-  max-width: 12ch;
+  max-width: 8ch;
   margin: 0;
-  font-size: clamp(2rem, 4vw, 4.8rem);
+  font-size: clamp(2rem, 4vw, 4.5rem);
   line-height: 0.98;
 }
 
 .pool-home-overlay .pool-hero-body {
-  max-width: 34rem;
+  max-width: 18rem;
   margin: 0;
   font-size: var(--font-size-md);
   line-height: var(--font-read-leading);
-}
-
-.pool-home-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-sm);
-}
-
-.pool-home-action {
-  width: auto;
-  min-width: 7rem;
-  justify-content: center;
-}
-
-.pool-home-proof-strip {
-  display: flex;
-  max-width: 34rem;
-  flex-wrap: wrap;
-  gap: var(--space-sm);
-}
-
-.pool-home-proof-strip span {
-  display: flex;
-  min-width: 8rem;
-  flex: 1 1 8rem;
-  flex-direction: column;
-  gap: 2px;
-  padding: 8px 10px;
-  border-top: var(--border-sm) dotted color-mix(in srgb, var(--fg), transparent 64%);
-  background: color-mix(in srgb, var(--bg), transparent 14%);
-  font-size: var(--font-size-sm);
-  line-height: var(--font-leading-snug);
-  backdrop-filter: blur(10px);
-}
-
-.pool-home-proof-strip b {
-  font-size: 10px;
-  letter-spacing: var(--font-tracking-label);
-  text-transform: uppercase;
 }
 
 .pool-simulation-labels {
@@ -2807,7 +2812,7 @@ body[data-pool-route-id='home'] #app {
 
 @media (max-width: 720px) {
   .pool-home {
-    padding: var(--space-md) var(--space-md) calc(74px + var(--space-md));
+    padding: calc(var(--space-md) + 44px) var(--space-md) var(--space-md);
     gap: var(--space-md);
   }
 
@@ -2816,25 +2821,26 @@ body[data-pool-route-id='home'] #app {
   }
 
   .pool-nav-rail {
-    top: auto;
-    right: var(--space-sm);
-    bottom: var(--space-sm);
-    left: var(--space-sm);
+    top: 8px;
+    right: 8px;
+    left: 8px;
     width: auto;
-    min-height: 58px;
-    flex-direction: row;
-    align-items: center;
+    max-width: none;
+  }
+
+  .pool-nav-rail[open] {
     padding: 7px;
+  }
+
+  .pool-nav-trigger {
+    min-height: 42px;
   }
 
   .pool-nav {
     min-width: 0;
-    flex-direction: row;
-    flex-wrap: nowrap;
-    align-items: center;
+    flex-direction: column;
+    align-items: stretch;
     max-width: 100%;
-    overflow-x: auto;
-    padding-bottom: 0;
   }
 
   .pool-actions .btn {
@@ -2843,46 +2849,22 @@ body[data-pool-route-id='home'] #app {
   }
 
   .pool-nav-link {
-    justify-content: center;
-    min-height: 48px;
-    width: auto;
-    padding: 5px 8px 8px;
-    font-size: 10px;
-  }
-
-  .pool-nav {
-    flex: 1 1 auto;
-    justify-content: space-around;
-    gap: 2px;
-    overflow-x: visible;
-  }
-
-  .pool-nav .pool-nav-link {
-    flex: 1 1 0;
-    min-width: 0;
+    justify-content: flex-start;
+    min-height: 42px;
+    width: 100%;
+    padding: 0 12px 0 18px;
+    font-size: var(--font-size-sm);
   }
 
   .pool-nav-link.is-active::after,
   .pool-nav-link[aria-current="page"]::after {
-    top: auto;
-    right: 10px;
-    bottom: 4px;
-    left: 10px;
-    width: auto;
-    height: 2px;
-    background: linear-gradient(90deg, rgb(246 82 118 / 82%), rgb(238 197 82 / 78%), rgb(68 199 217 / 86%), rgb(174 122 238 / 78%));
-  }
-
-  .pool-nav-substrate-link {
-    min-height: 32px;
-    padding: 0 6px;
-    font-size: 9px;
-  }
-
-  .pool-nav-substrate {
-    display: flex;
-    flex: 0 0 auto;
-    gap: 2px;
+    top: 8px;
+    right: auto;
+    bottom: 8px;
+    left: 5px;
+    width: 2px;
+    height: auto;
+    background: linear-gradient(180deg, rgb(246 82 118 / 82%), rgb(238 197 82 / 78%), rgb(68 199 217 / 86%), rgb(174 122 238 / 78%));
   }
 
   .pool-simulation-shell,
@@ -2898,7 +2880,7 @@ body[data-pool-route-id='home'] #app {
   }
 
   .pool-home-overlay {
-    top: clamp(4rem, 11vh, 6rem);
+    top: clamp(5rem, 13vh, 7rem);
     right: var(--space-md);
     left: var(--space-md);
     width: auto;
@@ -2913,26 +2895,6 @@ body[data-pool-route-id='home'] #app {
   .pool-home-overlay .pool-hero-body {
     max-width: 28rem;
     font-size: var(--font-size-sm);
-  }
-
-  .pool-home-actions {
-    gap: 6px;
-  }
-
-  .pool-home-action {
-    min-width: 0;
-    flex: 1 1 auto;
-  }
-
-  .pool-home-proof-strip {
-    gap: 6px;
-  }
-
-  .pool-home-proof-strip span {
-    min-width: 0;
-    flex: 1 1 30%;
-    padding: 7px 8px;
-    font-size: 11px;
   }
 
   .pool-simulation-labels span {

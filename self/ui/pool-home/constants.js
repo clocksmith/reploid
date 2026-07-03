@@ -21,39 +21,39 @@ export const POOLDAY_ROUTE_DEFINITIONS = Object.freeze([
     label: 'Reploid',
     eyebrow: POOLDAY_PROTOCOL,
     title: POOLDAY_NAME,
-    body: 'Ask a model, receive signed receipts, and inspect the evidence.'
+    body: 'Run browser models together.'
   }),
   createPooldayRoute({
     id: 'ask',
     path: '/ask',
     label: 'Ask',
     eyebrow: 'Ask',
-    title: 'Ask the pool',
-    body: 'Send a prompt to compatible browser providers and accept a receipt-backed answer.'
+    title: 'Ask',
+    body: 'Send a prompt to compatible browser tabs in the room.'
   }),
   createPooldayRoute({
-    id: 'contribute',
-    path: '/contribute',
-    label: 'Contribute',
-    eyebrow: 'Contribute',
-    title: 'Contribute compute',
-    body: 'Load a model in this browser and answer pool requests for signed receipt credit.'
+    id: 'compute',
+    path: '/compute',
+    label: 'Compute',
+    eyebrow: 'Compute',
+    title: 'Compute',
+    body: 'Use this browser as a worker for the current room.'
   }),
   createPooldayRoute({
-    id: 'receipts',
-    path: '/receipts',
-    label: 'Receipts',
-    eyebrow: 'Receipts',
-    title: 'Inspect receipts',
-    body: 'Verify what happened, which model ran, who signed, and whether quorum matched.'
+    id: 'history',
+    path: '/history',
+    label: 'History',
+    eyebrow: 'History',
+    title: 'History',
+    body: 'Review local jobs, outputs, hashes, and room activity.'
   }),
   createPooldayRoute({
-    id: 'reputation',
-    path: '/reputation',
-    label: 'Reputation',
-    eyebrow: 'Reputation',
-    title: 'Reputation',
-    body: 'Review local provider, requester, and room evidence for this browser.'
+    id: 'network',
+    path: '/network',
+    label: 'Network',
+    eyebrow: 'Network',
+    title: 'Network',
+    body: 'Inspect peers, local scores, room state, and worker history.'
   })
 ]);
 
@@ -192,7 +192,7 @@ export const POOLDAY_GRAPH_PALETTES = Object.freeze([
 export const POOLDAY_GRAPH_TOPOLOGIES = Object.freeze([
   {
     id: 'receipt_tree',
-    label: 'record tree',
+    label: 'history tree',
     edgePreset: 'receipt_tree',
     morph: 'root',
     points: {
@@ -373,8 +373,8 @@ export const POOLDAY_GRAPH_LABEL_ROLE_META = Object.freeze({
     body: 'Check output, model identity, policy, and agreement before acceptance.'
   },
   record: {
-    label: 'Receipt',
-    body: 'Store accepted work, decisions, points, and local routing evidence.'
+    label: 'History',
+    body: 'Store accepted work, decisions, scores, and local routing evidence.'
   }
 });
 export const POOLDAY_GRAPH_LABEL_STAGES = Object.freeze([
@@ -410,7 +410,7 @@ export const POOLDAY_GRAPH_LABEL_STAGES = Object.freeze([
   },
   {
     id: 'record',
-    label: 'Receipt',
+    label: 'History',
     ids: ['settlement', 'ledger'],
     roles: ['record', 'record']
   }

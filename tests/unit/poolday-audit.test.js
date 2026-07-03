@@ -69,13 +69,16 @@ describe('Poolday audit boundaries', () => {
   it('keeps Poolday, Zero, and X route profiles separate', () => {
     expect(PRODUCT_ROUTES['/']).toBe('home');
     expect(PRODUCT_ROUTES['/ask']).toBe('ask');
-    expect(PRODUCT_ROUTES['/contribute']).toBe('contribute');
-    expect(PRODUCT_ROUTES['/receipts']).toBe('receipts');
-    expect(PRODUCT_ROUTES['/reputation']).toBe('reputation');
+    expect(PRODUCT_ROUTES['/compute']).toBe('compute');
+    expect(PRODUCT_ROUTES['/history']).toBe('history');
+    expect(PRODUCT_ROUTES['/network']).toBe('network');
     expect(PRODUCT_ROUTES['/run']).toBeUndefined();
     expect(PRODUCT_ROUTES['/mesh']).toBeUndefined();
     expect(PRODUCT_ROUTES['/record']).toBeUndefined();
     expect(PRODUCT_ROUTES['/agents']).toBeUndefined();
+    expect(PRODUCT_ROUTES['/contribute']).toBeUndefined();
+    expect(PRODUCT_ROUTES['/receipts']).toBeUndefined();
+    expect(PRODUCT_ROUTES['/reputation']).toBeUndefined();
     expect(SELF_BOOT_SPEC.routes['/zero']).toMatchObject({
       mode: 'zero',
       genesisLevel: 'spark',

@@ -192,8 +192,8 @@ const createPeerDiscoveryError = ({ roomId, requiredModel, discoveryWindowMs, ob
     observedProviderCount: observedAdverts.length,
     observedProviders: observedAdverts,
     action: mismatch
-      ? 'Start a contributor with the same selected model, or switch the request model to one the contributor advertises.'
-      : 'Open Contribute in another tab with the same room, click Start, then ask again.'
+      ? 'Start a worker with the same selected model, or switch the request model to one the worker advertises.'
+      : 'Open Compute in another tab with the same room, click Start, then ask again.'
   };
   return error;
 };

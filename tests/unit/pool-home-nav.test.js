@@ -13,43 +13,45 @@ describe('poolday home navigation', () => {
     expect(POOLDAY_ROUTE_DEFINITIONS.map((route) => route.id)).toEqual([
       'home',
       'ask',
-      'contribute',
-      'receipts',
-      'reputation'
+      'compute',
+      'history',
+      'network'
     ]);
     expect(POOLDAY_NAV_ROUTES).toEqual([
       { id: 'home', path: '/', label: 'Reploid' },
       { id: 'ask', path: '/ask', label: 'Ask' },
-      { id: 'contribute', path: '/contribute', label: 'Contribute' },
-      { id: 'receipts', path: '/receipts', label: 'Receipts' },
-      { id: 'reputation', path: '/reputation', label: 'Reputation' }
+      { id: 'compute', path: '/compute', label: 'Compute' },
+      { id: 'history', path: '/history', label: 'History' },
+      { id: 'network', path: '/network', label: 'Network' }
     ]);
     expect(PRODUCT_ROUTES).toEqual({
       '/': 'home',
       '/ask': 'ask',
-      '/contribute': 'contribute',
-      '/receipts': 'receipts',
-      '/reputation': 'reputation'
+      '/compute': 'compute',
+      '/history': 'history',
+      '/network': 'network'
     });
     expect(PRODUCT_ROUTES['/run']).toBeUndefined();
     expect(PRODUCT_ROUTES['/mesh']).toBeUndefined();
     expect(PRODUCT_ROUTES['/record']).toBeUndefined();
     expect(PRODUCT_ROUTES['/agents']).toBeUndefined();
-    expect(ROUTE_COPY.contribute).toEqual({
-      eyebrow: 'Contribute',
-      title: 'Contribute compute',
-      body: 'Load a model in this browser and answer pool requests for signed receipt credit.'
+    expect(ROUTE_COPY.compute).toEqual({
+      eyebrow: 'Compute',
+      title: 'Compute',
+      body: 'Use this browser as a worker for the current room.'
     });
   });
 
-  it('renders active poolday route links from the shared nav route list', () => {
-    const html = renderNav('contribute');
+  it('renders collapsed active route links from the shared nav route list', () => {
+    const html = renderNav('compute');
 
+    expect(html).toContain('<details class="pool-nav-rail"');
+    expect(html).toContain('<summary class="pool-nav-trigger"');
     expect(html).toContain('href="/" data-pool-route-link="/"');
     expect(html).toContain('href="/ask" data-pool-route-link="/ask"');
-    expect(html).toContain('href="/contribute" data-pool-route-link="/contribute" aria-current="page"');
-    expect(html).toContain('href="/receipts" data-pool-route-link="/receipts"');
-    expect(html).toContain('href="/reputation" data-pool-route-link="/reputation"');
+    expect(html).toContain('href="/compute" data-pool-route-link="/compute" aria-current="page"');
+    expect(html).toContain('href="/history" data-pool-route-link="/history"');
+    expect(html).toContain('href="/network" data-pool-route-link="/network"');
     expect(html).toContain('href="/zero" data-pool-substrate-route="/zero"');
     expect(html).toContain('href="/x" data-pool-substrate-route="/x"');
     expect(html).not.toContain('aria-pressed');

@@ -229,10 +229,10 @@ const waitForProviderListening = async (page) => {
       lastObserved = observed;
     }
     if (parsed.status === 'error' || parsed.error) fail('Actual provider did not start', snapshot);
-    if (snapshot.providerStatus === 'CONTRIBUTOR // OFFLINE' && (snapshot.raw || snapshot.message)) {
+    if (snapshot.providerStatus === 'WORKER // OFFLINE' && (snapshot.raw || snapshot.message)) {
       fail('Actual provider went offline before listening', snapshot);
     }
-    if (snapshot.providerStatus === 'CONTRIBUTOR // ONLINE' && parsed.runner === 'peer_room_listening') {
+    if (snapshot.providerStatus === 'WORKER // ONLINE' && parsed.runner === 'peer_room_listening') {
       console.log(`[actual-smoke] provider advert ${JSON.stringify(summarizeProviderAdvert(parsed.advert))}`);
       return 'ready';
     }
@@ -325,7 +325,7 @@ const runSingleReceipt = async (browser) => {
   const context = await browser.newContext();
   await installActualRuntimeConfig(context);
   try {
-    const providerPage = await openPoolPage(context, '/contribute', roomId, 'single-provider');
+    const providerPage = await openPoolPage(context, '/compute', roomId, 'single-provider');
     await selectProviderModel(providerPage, SMOKE_MODEL.modelId);
     await expectEqual(await providerPage.locator('#pool-provider-model').inputValue(), SMOKE_MODEL.modelId, 'single provider model');
     await waitForProviderListening(providerPage);
@@ -344,7 +344,7 @@ const runQueuedReceipts = async (browser) => {
   const context = await browser.newContext();
   await installActualRuntimeConfig(context);
   try {
-    const providerPage = await openPoolPage(context, '/contribute', roomId, 'queue-provider');
+    const providerPage = await openPoolPage(context, '/compute', roomId, 'queue-provider');
     await selectProviderModel(providerPage, SMOKE_MODEL.modelId);
     await expectEqual(await providerPage.locator('#pool-provider-model').inputValue(), SMOKE_MODEL.modelId, 'queue provider model');
     await waitForProviderListening(providerPage);
@@ -481,7 +481,7 @@ const runTwelveProviderRing = async (browser) => {
   const context = await browser.newContext();
   await installActualRuntimeConfig(context);
   try {
-    const providerHubPage = await openPoolPage(context, '/contribute', roomId, 'ring12-provider-hub');
+    const providerHubPage = await openPoolPage(context, '/compute', roomId, 'ring12-provider-hub');
     const providerRing = await startSharedRuntimeProviderRing(providerHubPage, roomId, providerCount);
     expectEqual(providerRing.providerCount, providerCount, 'ring12 shared provider count');
     expectEqual(providerRing.model.modelId, SMOKE_MODEL.modelId, 'ring12 shared runtime model');

@@ -227,15 +227,15 @@
           "destination": "/index.html"
         },
         {
-          "source": "/contribute",
+          "source": "/compute",
           "destination": "/index.html"
         },
         {
-          "source": "/receipts",
+          "source": "/history",
           "destination": "/index.html"
         },
         {
-          "source": "/reputation",
+          "source": "/network",
           "destination": "/index.html"
         },
         {
