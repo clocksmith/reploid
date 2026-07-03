@@ -170,7 +170,7 @@ test.describe('Route Entry Points', () => {
       };
     });
     expect(desktop.open).toBe(false);
-    expect(desktop.x).toBeGreaterThan(1200);
+    expect(desktop.x).toBeLessThan(24);
     expect(desktop.y).toBeLessThan(24);
     expect(desktop.height).toBeLessThan(48);
     expect(desktop.width).toBeLessThan(56);
@@ -212,8 +212,8 @@ test.describe('Route Entry Points', () => {
     });
     expect(mobile.open).toBe(false);
     expect(mobile.y).toBeLessThan(16);
-    expect(mobile.left).toBeGreaterThan(330);
-    expect(mobile.right).toBeLessThan(16);
+    expect(mobile.left).toBeLessThan(16);
+    expect(mobile.right).toBeGreaterThan(330);
     expect(mobile.height).toBeLessThan(54);
     expect(mobile.width).toBeLessThan(56);
     expect(mobile.overflowX).toBe(false);

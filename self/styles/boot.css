@@ -1969,7 +1969,7 @@ body[data-pool-route-id='home'] #app {
   position: fixed;
   z-index: 10;
   top: var(--space-md);
-  right: var(--space-md);
+  left: var(--space-md);
   width: auto;
   max-width: calc(100vw - (var(--space-md) * 2));
   color: var(--fg);
@@ -2835,8 +2835,8 @@ body[data-pool-route-id='home'] #app {
 
   .pool-nav-rail {
     top: 8px;
-    right: 8px;
-    left: auto;
+    right: auto;
+    left: 8px;
     width: auto;
     max-width: none;
   }
