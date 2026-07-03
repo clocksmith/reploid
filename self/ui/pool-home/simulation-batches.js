@@ -26,6 +26,18 @@ const normalizePoolGpuColor = (color, alpha = 1) => [
 
 const mixPoolColor = (from, to, amount) => from.map((value, index) => value + (to[index] - value) * amount);
 
+const wrapPoolIndex = (index, length) => ((index % length) + length) % length;
+
+const resolveRainbowColor = (rainbow, toneIndex = 0) => {
+  const length = Math.max(1, rainbow.length);
+  const baseIndex = Math.floor(toneIndex);
+  return mixPoolColor(
+    rainbow[wrapPoolIndex(baseIndex, length)] || [255, 255, 255],
+    rainbow[wrapPoolIndex(baseIndex + 1, length)] || [255, 255, 255],
+    toneIndex - baseIndex
+  );
+};
+
 const WHITE_FILL_COLOR = Object.freeze([1, 1, 1, 1]);
 const BACKGROUND_BAND_COLOR = Object.freeze([0, 0, 0, 0.018]);
 const POOL_CIRCLE_CORNERS = Object.freeze([
@@ -40,10 +52,10 @@ const POOL_CIRCLE_CORNERS = Object.freeze([
 const resolvePoolRawToneColor = (frame, tone, toneIndex = 0) => {
   const palette = frame.palette || POOLDAY_GRAPH_PALETTES[0];
   const rainbow = palette.rainbow || POOLDAY_RAINBOW_COLORS;
-  const index = ((Math.round(toneIndex) % rainbow.length) + rainbow.length) % rainbow.length;
+  const fallback = resolveRainbowColor(rainbow, toneIndex);
   return tone === 'rainbow'
-    ? rainbow[index]
-    : (palette[tone] || rainbow[index]);
+    ? fallback
+    : (palette[tone] || fallback);
 };
 
 const flowToneMix = (item, toneIndexOffset = 0) => (
@@ -354,31 +366,33 @@ export const createPoolRenderBatchBuilder = () => {
     }
     pushBatch('circle', scratch.haloCircles);
 
-    const edgeStride = Math.max(1, Math.ceil((frame.lines || []).length / POOLDAY_FLOW_TUNING.maxGlowLines));
-    for (let index = 0; index < (frame.lines || []).length; index += edgeStride) {
-      const line = frame.lines[index];
-      const alpha = Math.min(0.32, (line.alpha || 0.1) * POOLDAY_FLOW_TUNING.edgeGlowAlpha * 2.6);
+    const glowLines = frame.lines || [];
+    const glowBudget = Math.min(1, POOLDAY_FLOW_TUNING.maxGlowLines / Math.max(1, glowLines.length));
+    for (let index = 0; index < glowLines.length; index += 1) {
+      const line = glowLines[index];
+      const alpha = Math.min(0.32, (line.alpha || 0.1) * POOLDAY_FLOW_TUNING.edgeGlowAlpha * 2.6 * glowBudget);
       pushPoolPrismLine(scratch.edgeGlowFill, frame, line, width, height, alpha, Math.max(3, line.width * POOLDAY_FLOW_TUNING.edgeGlowWidth));
     }
     pushBatch('fill', scratch.edgeGlowFill);
 
     const cueAmount = clamp01(frame.countdownProgress ?? frame.anticipation ?? 0);
-    if (cueAmount > 0.01) {
+    if (cueAmount > 0.0001) {
       const eased = easeInOutCubic(cueAmount);
       const time = Number(frame.time || 0);
       const cueLines = frame.lines || [];
-      const cueStride = Math.max(1, Math.ceil(cueLines.length / 12));
-      const cueCount = 2 + Math.floor(eased * 3);
-      for (let index = 0; index < cueLines.length; index += cueStride) {
+      const cueSlots = 5;
+      const cueBudget = Math.min(1, 12 / Math.max(1, cueLines.length));
+      for (let index = 0; index < cueLines.length; index += 1) {
         const line = cueLines[index];
         const edgeCue = clamp01(line.flowCountdown ?? cueAmount);
-        for (let cue = 0; cue < cueCount; cue += 1) {
+        for (let cue = 0; cue < cueSlots; cue += 1) {
+          const cueReveal = easeInOutCubic(clamp01(eased * 4.2 - cue * 0.62));
           const route = index + cue * 3;
           const progress = (
             time * (0.055 + edgeCue * 0.035)
             + edgeCue * 0.28
             + (line.phaseShift || 0) * 0.05
-            + cue / cueCount
+            + cue / cueSlots
             + index * 0.017
           ) % 1;
           const point = resolveLinePointInto(tempPoint, line, progress, width, height);
@@ -388,7 +402,7 @@ export const createPoolRenderBatchBuilder = () => {
             point.x,
             point.y,
             ringRadius,
-            resolvePoolRenderToneColor(frame, 'rainbow', 0.09 + edgeCue * 0.27, route),
+            resolvePoolRenderToneColor(frame, 'rainbow', (0.09 + edgeCue * 0.27) * cueReveal * cueBudget, route + eased * 3),
             0.62
           );
         }
@@ -405,7 +419,7 @@ export const createPoolRenderBatchBuilder = () => {
           node.x,
           node.y,
           radius,
-          resolvePoolRenderToneColor(frame, 'rainbow', 0.11 + local * (core ? 0.30 : 0.20), index + Math.round(eased * 6)),
+          resolvePoolRenderToneColor(frame, 'rainbow', 0.11 + local * (core ? 0.30 : 0.20), index + eased * 6),
           0.70
         );
       }
