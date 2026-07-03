@@ -283,6 +283,28 @@ const getMissingVfsPathHint = async (path, VFS) => {
     : '';
 };
 
+const getExactTrailingTypoPath = async (path, VFS) => {
+  if (typeof VFS.list !== 'function') return null;
+  const strippedPath = path.replace(/[._,;:!?-]+$/, '');
+  if (strippedPath === path || getParentPath(strippedPath) !== getParentPath(path)) {
+    return null;
+  }
+
+  let entries = [];
+  try {
+    entries = await VFS.list(getParentPath(path));
+  } catch {
+    entries = [];
+  }
+
+  return entries
+    .filter((entry) => typeof entry === 'string')
+    .map((entry) => entry.replace(/\/+$/, ''))
+    .includes(strippedPath)
+    ? strippedPath
+    : null;
+};
+
 async function readVfsDirectory(path, VFS) {
   if (typeof VFS.list !== 'function') return null;
 
@@ -313,6 +335,15 @@ async function readFromVfs(path, args, maxBytes) {
     const directory = await readVfsDirectory(path, VFS);
     if (directory) return directory;
     if (!stats) {
+      const correctedPath = await getExactTrailingTypoPath(path, VFS);
+      if (correctedPath) {
+        const corrected = await readFromVfs(correctedPath, { ...args, resolvedFrom: path }, maxBytes);
+        return {
+          ...corrected,
+          requestedPath: path,
+          resolvedFrom: path
+        };
+      }
       const hint = await getMissingVfsPathHint(path, VFS);
       throw new Error(`File not found in VFS: ${path}.${hint} VFS paths do not carry a /self/ prefix (use /core/..., /ui/..., /tools/... etc). Run ReadFile with path: / to list top-level directories.`);
     }
