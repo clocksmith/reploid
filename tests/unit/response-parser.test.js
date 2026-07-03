@@ -166,6 +166,26 @@ EOF`;
         expect(calls[1].args.content).toBe('Hello');
       });
 
+      it('should parse REPLOID/0 batched tool calls separated by markdown rules', () => {
+        const text = `REPLOID/0
+
+TOOL: ListTools
+{}
+---
+TOOL: ReadFile
+path: /blueprint-index.json
+---
+TOOL: ListFiles
+path: /ui/boot-home/`;
+
+        const calls = responseParser.parseToolCalls(text);
+
+        expect(calls).toHaveLength(3);
+        expect(calls[0]).toEqual({ name: 'ListTools', args: {} });
+        expect(calls[1]).toEqual({ name: 'ReadFile', args: { path: '/blueprint-index.json' } });
+        expect(calls[2]).toEqual({ name: 'ListFiles', args: { path: '/ui/boot-home/' } });
+      });
+
       it('should parse REPLOID/0 literal blocks without JSON escaping', () => {
         const text = `REPLOID/0
 

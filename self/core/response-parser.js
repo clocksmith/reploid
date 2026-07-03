@@ -23,6 +23,7 @@ const ResponseParser = {
     const INLINE_ARG_REGEX = /^([a-zA-Z0-9_.-]+)\s*:\s*(.*)$/;
     const BLOCK_ARG_REGEX = /^([a-zA-Z0-9_.-]+)\s*(?::\s*)?<<\s*([A-Za-z0-9_-]+)\s*$/;
     const LEGACY_TOOL_CALL_REGEX = /TOOL_CALL:\s*([a-zA-Z0-9_]+)\s*\nARGS:\s*/g;
+    const TOOL_BATCH_SEPARATOR_REGEX = /^-{3,}$/;
     const CONTINUATION_ARG_KEYS = new Set(['code', 'content']);
 
     const parseScalarValue = (rawValue) => {
@@ -102,6 +103,13 @@ const ResponseParser = {
       args[key] = current
         ? `${current}\n${continuation}`
         : continuation;
+    };
+
+    const isToolBatchSeparator = (line) => TOOL_BATCH_SEPARATOR_REGEX.test(String(line || '').trim());
+
+    const isDirectiveBoundary = (line) => {
+      const normalized = String(line || '').trimStart();
+      return TOP_LEVEL_DIRECTIVE_REGEX.test(normalized) || isToolBatchSeparator(normalized);
     };
 
     const readPlanJson = (lines, startIndex, initialText = '') => {
@@ -217,7 +225,7 @@ const ResponseParser = {
           continue;
         }
 
-        if (!line || REPLTOOL_HEADER_REGEX.test(line) || !TOOL_DIRECTIVE_REGEX.test(line)) {
+        if (!line || isToolBatchSeparator(line) || REPLTOOL_HEADER_REGEX.test(line) || !TOOL_DIRECTIVE_REGEX.test(line)) {
           index++;
           continue;
         }
@@ -243,6 +251,11 @@ const ResponseParser = {
           if (!nextLine) {
             index++;
             continue;
+          }
+
+          if (isToolBatchSeparator(nextLine)) {
+            index++;
+            break;
           }
 
           if (TOP_LEVEL_DIRECTIVE_REGEX.test(nextLine)) {
@@ -275,7 +288,7 @@ const ResponseParser = {
             const continuationKey = getContinuationArgKey(args);
             if (continuationKey) {
               const continuationLines = [];
-              while (index < lines.length && !TOP_LEVEL_DIRECTIVE_REGEX.test(lines[index].trimStart())) {
+              while (index < lines.length && !isDirectiveBoundary(lines[index])) {
                 continuationLines.push(lines[index]);
                 index++;
               }
@@ -287,7 +300,7 @@ const ResponseParser = {
             if (objectArgs.matched) {
               if (objectArgs.error) {
                 error = objectArgs.error;
-                while (index < lines.length && !TOP_LEVEL_DIRECTIVE_REGEX.test(lines[index].trimStart())) {
+                while (index < lines.length && !isDirectiveBoundary(lines[index])) {
                   index++;
                 }
                 break;
@@ -298,7 +311,7 @@ const ResponseParser = {
             }
 
             error = `Invalid argument line: ${nextLine.trim()}`;
-            while (index < lines.length && !TOP_LEVEL_DIRECTIVE_REGEX.test(lines[index].trimStart())) {
+            while (index < lines.length && !isDirectiveBoundary(lines[index])) {
               index++;
             }
             break;
@@ -310,7 +323,7 @@ const ResponseParser = {
             args[key] = parseScalarValue(rawValue);
           } catch (parseError) {
             error = parseError.message;
-            while (index < lines.length && !TOP_LEVEL_DIRECTIVE_REGEX.test(lines[index].trimStart())) {
+            while (index < lines.length && !isDirectiveBoundary(lines[index])) {
               index++;
             }
             break;
