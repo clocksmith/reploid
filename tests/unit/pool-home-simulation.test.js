@@ -382,6 +382,48 @@ describe('pool home simulation performance contracts', () => {
     });
   });
 
+  it('does not snap node centers when a topology transition settles', () => {
+    withSimulationSearch('?seed=snap-check&shape=runner_reduce', () => {
+      const state = createPoolSimulationState();
+      const width = 1200;
+      const height = 680;
+      const step = 1 / 60;
+      let previousNodes = null;
+      let previousTransitionActive = false;
+      let handoffFrame = null;
+      let handoffMaxDelta = 0;
+
+      for (let frameIndex = 0; frameIndex < 1800; frameIndex += 1) {
+        const frame = buildPoolSimulationFrame(state, width, height, step);
+        if (previousNodes && previousTransitionActive && !frame.transitionActive) {
+          handoffFrame = frame;
+          for (const node of frame.nodes) {
+            const previous = previousNodes.get(node.id);
+            handoffMaxDelta = Math.max(
+              handoffMaxDelta,
+              Math.hypot(node.x - previous.x, node.y - previous.y)
+            );
+          }
+          break;
+        }
+        previousNodes = new Map(frame.nodes.map((node) => [node.id, { x: node.x, y: node.y }]));
+        previousTransitionActive = frame.transitionActive;
+      }
+
+      expect(handoffFrame).toBeTruthy();
+      expect(handoffFrame.transitionActive).toBe(false);
+      expect(handoffFrame.transitionRelease).toBeCloseTo(1, 8);
+      expect(handoffFrame.anchorMotionScale).toBeGreaterThan(0.95);
+      expect(handoffMaxDelta).toBeLessThan(2.5);
+
+      for (let frameIndex = 0; frameIndex < 120; frameIndex += 1) {
+        handoffFrame = buildPoolSimulationFrame(state, width, height, step);
+      }
+
+      expect(handoffFrame.transitionRelease).toBeLessThan(0.05);
+    });
+  });
+
   it('wraps visual motion time while preserving topology schedule time', () => {
     const state = createPoolSimulationState();
     state.motionTime = SIMULATION_MOTION_CLOCK_WRAP_SECONDS - 0.01;
