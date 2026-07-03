@@ -1,7 +1,7 @@
 # Poolday Threat Model
 
 Poolday is audited as a browser inference marketplace and control plane.
-It is not `/0` and it is not `/x`.
+It is not `/zero` and it is not `/x`.
 
 ## Protected Assets
 

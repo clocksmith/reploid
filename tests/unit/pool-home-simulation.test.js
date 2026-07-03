@@ -116,9 +116,9 @@ describe('pool home simulation performance contracts', () => {
     expect(labelCounts.Request).toBe(1);
     expect(labelCounts.Policy).toBe(1);
     expect(labelCounts.Match).toBe(1);
-    expect(labelCounts.Run).toBeGreaterThanOrEqual(4);
+    expect(labelCounts.Infer).toBeGreaterThanOrEqual(4);
     expect(labelCounts.Verify).toBeGreaterThanOrEqual(3);
-    expect(labelCounts.Record).toBeGreaterThanOrEqual(2);
+    expect(labelCounts.Receipt).toBeGreaterThanOrEqual(2);
     expect(stages.size).toBe(6);
   });
 

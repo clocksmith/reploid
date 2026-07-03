@@ -96,20 +96,19 @@ test.describe('Route Entry Points', () => {
     await page.waitForSelector('.pool-home', { timeout: 20000 });
 
     await expect(page).toHaveTitle(/^Reploid$/i);
-    await expect(page.locator('.pool-nav-rail')).toBeVisible();
+    const nav = page.locator('.pool-nav-rail');
+    await expect(nav).toBeVisible();
     await expect(page.locator('.pool-topbar')).toHaveCount(0);
     await expect(page.locator('.pool-home')).toHaveAttribute('data-pool-route-id', 'home');
-    await expect(page.getByRole('link', { name: 'Home', exact: true })).toBeVisible();
-    await expect(page.getByRole('link', { name: 'Home', exact: true })).toHaveAttribute('aria-current', 'page');
-    await expect(page.getByRole('link', { name: 'Run', exact: true })).toBeVisible();
-    await expect(page.getByRole('link', { name: 'Mesh', exact: true })).toBeVisible();
-    await expect(page.getByRole('link', { name: 'Mesh', exact: true })).not.toHaveAttribute('aria-current', 'page');
-    await expect(page.getByRole('link', { name: 'Record', exact: true })).toBeVisible();
-    await expect(page.getByRole('link', { name: 'Contribute', exact: true })).toHaveCount(0);
-    await expect(page.getByRole('link', { name: 'Receipts', exact: true })).toHaveCount(0);
-    await expect(page.getByRole('link', { name: 'Reputation', exact: true })).toHaveCount(0);
-    await expect(page.getByRole('link', { name: 'Zero' })).toHaveAttribute('href', '/0');
-    await expect(page.getByRole('link', { name: 'X', exact: true })).toHaveAttribute('href', '/x');
+    await expect(nav.getByRole('link', { name: 'Reploid', exact: true })).toBeVisible();
+    await expect(nav.getByRole('link', { name: 'Reploid', exact: true })).toHaveAttribute('aria-current', 'page');
+    await expect(nav.getByRole('link', { name: 'Ask', exact: true })).toBeVisible();
+    await expect(nav.getByRole('link', { name: 'Contribute', exact: true })).toBeVisible();
+    await expect(nav.getByRole('link', { name: 'Receipts', exact: true })).toBeVisible();
+    await expect(nav.getByRole('link', { name: 'Reputation', exact: true })).toBeVisible();
+    await expect(nav.getByRole('link', { name: 'Zero' })).toHaveAttribute('href', '/zero');
+    await expect(nav.getByRole('link', { name: 'X', exact: true })).toHaveAttribute('href', '/x');
+    await expect(page.locator('.pool-home-overlay')).toContainText('Ask a model. Get a signed receipt.');
     await expect(page.locator('[data-pool-flow-label]')).toHaveCount(12);
     await expect.poll(async () => page.locator('[data-pool-flow-label]').evaluateAll((labels) => {
       const counts = labels.reduce((acc, label) => {
@@ -121,9 +120,9 @@ test.describe('Route Entry Points', () => {
         request: counts.Request || 0,
         policy: counts.Policy || 0,
         match: counts.Match || 0,
-        run: counts.Run || 0,
+        infer: counts.Infer || 0,
         verify: counts.Verify || 0,
-        record: counts.Record || 0,
+        receipt: counts.Receipt || 0,
         consumer: counts.Consumer || 0,
         producer: counts.Producer || 0,
         provider: counts.Provider || 0,
@@ -134,9 +133,9 @@ test.describe('Route Entry Points', () => {
       request: 1,
       policy: 1,
       match: 1,
-      run: 4,
+      infer: 4,
       verify: 3,
-      record: 2,
+      receipt: 2,
       consumer: 0,
       producer: 0,
       provider: 0,
@@ -205,14 +204,15 @@ test.describe('Route Entry Points', () => {
     expect(Math.abs(mobile.canvasHeight - mobile.viewportHeight)).toBeLessThanOrEqual(1);
     expect(Math.abs(mobile.shellHeight - mobile.viewportHeight)).toBeLessThanOrEqual(1);
     expect(mobile.scrollHeight).toBeLessThanOrEqual(mobile.viewportHeight + 1);
-    await expect(page.getByRole('link', { name: 'Home', exact: true })).toBeVisible();
-    await expect(page.getByRole('link', { name: 'Run', exact: true })).toBeVisible();
-    await expect(page.getByRole('link', { name: 'Zero' })).toBeVisible();
-    await expect(page.getByRole('link', { name: 'X', exact: true })).toBeVisible();
+    const mobileNav = page.locator('.pool-nav-rail');
+    await expect(mobileNav.getByRole('link', { name: 'Reploid', exact: true })).toBeVisible();
+    await expect(mobileNav.getByRole('link', { name: 'Ask', exact: true })).toBeVisible();
+    await expect(mobileNav.getByRole('link', { name: 'Zero' })).toBeVisible();
+    await expect(mobileNav.getByRole('link', { name: 'X', exact: true })).toBeVisible();
   });
 
   test('product routes hide raw payloads and hosted controls by default', async ({ page }) => {
-    for (const route of ['/run', '/mesh', '/record', '/contribute', '/receipts']) {
+    for (const route of ['/ask', '/contribute', '/receipts', '/reputation']) {
       await page.goto(route);
       await page.waitForSelector('.pool-home', { timeout: 20000 });
 
@@ -228,24 +228,24 @@ test.describe('Route Entry Points', () => {
     }
   });
 
-  test('run and mesh are presented as local peer-room flows', async ({ page }) => {
-    await page.goto('/run');
+  test('ask and contribute are presented as local peer-room flows', async ({ page }) => {
+    await page.goto('/ask');
     await page.waitForSelector('.pool-home', { timeout: 20000 });
-    await expect(page.getByRole('heading', { name: 'Run', exact: true })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Ask the pool', exact: true })).toBeVisible();
     await expect(page.locator('.pool-page-heading .pool-eyebrow')).toHaveCount(0);
-    await expect(page.getByLabel('Run controls')).toContainText('Run');
+    await expect(page.getByLabel('Ask controls')).toContainText('Ask');
     await expect(page.locator('#pool-run-result-raw')).toBeHidden();
     await expect(page.locator('#pool-run-poll')).toHaveCount(0);
     await expect(page.locator('#pool-run-max-spend')).toHaveCount(0);
 
-    await page.goto('/mesh');
+    await page.goto('/contribute');
     await page.waitForSelector('.pool-home', { timeout: 20000 });
-    await expect(page.locator('.pool-home')).toHaveAttribute('data-pool-route-id', 'mesh');
-    await expect(page.getByRole('link', { name: 'Mesh', exact: true })).toHaveAttribute('aria-current', 'page');
-    await expect(page.getByRole('heading', { name: 'Mesh', exact: true })).toBeVisible();
+    await expect(page.locator('.pool-home')).toHaveAttribute('data-pool-route-id', 'contribute');
+    await expect(page.getByRole('link', { name: 'Contribute', exact: true })).toHaveAttribute('aria-current', 'page');
+    await expect(page.getByRole('heading', { name: 'Contribute compute', exact: true })).toBeVisible();
     await expect(page.locator('.pool-page-heading .pool-eyebrow')).toHaveCount(0);
     await expect(page.locator('[data-pool-simulation]')).toHaveCount(0);
-    await expect(page.locator('[data-pool-provider-status]')).toHaveText('NODE // OFFLINE');
+    await expect(page.locator('[data-pool-provider-status]')).toHaveText('CONTRIBUTOR // OFFLINE');
     await expect(page.locator('#pool-provider-worker-start')).toBeVisible();
     await expect(page.locator('#pool-provider-worker-stop')).toBeVisible();
     await expect(page.locator('#pool-provider-load')).toHaveCount(0);
@@ -253,11 +253,16 @@ test.describe('Route Entry Points', () => {
     await expect(page.locator('#pool-agent-submit')).toHaveCount(0);
     await expect(page.locator('[data-pool-node-grid]')).toHaveCount(0);
 
-    await page.goto('/record');
+    await page.goto('/receipts');
     await page.waitForSelector('.pool-home', { timeout: 20000 });
-    await expect(page.getByRole('heading', { name: 'Record', exact: true })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Inspect receipts', exact: true })).toBeVisible();
     await expect(page.locator('.pool-page-heading .pool-eyebrow')).toHaveCount(0);
-    await expect(page.locator('#pool-reputation-refresh')).toHaveCount(0);
+    await expect(page.locator('#pool-peer-ledger')).toHaveCount(0);
+
+    await page.goto('/reputation');
+    await page.waitForSelector('.pool-home', { timeout: 20000 });
+    await expect(page.getByRole('heading', { name: 'Reputation', exact: true })).toBeVisible();
+    await expect(page.locator('#pool-peer-ledger')).toBeVisible();
   });
 
   test('home route boots without early VFS misses for instance-scoped runtime modules', async ({ page }) => {
@@ -411,7 +416,7 @@ test.describe('Route Entry Points', () => {
     await expect(page.locator('.wizard-awaken')).toHaveCount(0);
   });
 
-  test('/0 locks the boot mode to Zero', async ({ page }) => {
+  test('/zero locks the boot mode to Zero', async ({ page }) => {
     const startupDiscoveryRequests = [];
     await page.addInitScript(() => {
       window.__zeroPreHydrationBootVisible = false;
@@ -447,10 +452,9 @@ test.describe('Route Entry Points', () => {
         startupDiscoveryRequests.push(url);
       }
     });
-    await page.goto('/0');
-    await expect.poll(async () => page.evaluate(() => window.REPLOID_VFS_FULL_SEED_PROGRESS?.phase || null)).toBe('mirror:done');
-    expect(await page.evaluate(() => window.__zeroPreHydrationBootVisible)).toBe(false);
+    await page.goto('/zero');
     await page.waitForSelector('.wizard-home-provider [data-action="choose-proxy"]', { timeout: 20000 });
+    expect(await page.evaluate(() => window.__zeroPreHydrationBootVisible)).toBe(false);
 
     await expect(page.locator('.boot-mode-btn[data-mode]')).toHaveCount(0);
     await expect(page.locator('.wizard-brand')).toHaveCount(0);
@@ -477,7 +481,7 @@ test.describe('Route Entry Points', () => {
     expect(startupDiscoveryRequests).toEqual([]);
   });
 
-  test('/0 awakens with the complete DI dependency closure', async ({ page }) => {
+  test('/zero awakens with the complete DI dependency closure', async ({ page }) => {
     const pageErrors = [];
     const selfVfsMisses = [];
     page.on('pageerror', (error) => pageErrors.push(error.message));
@@ -488,7 +492,7 @@ test.describe('Route Entry Points', () => {
       }
     });
 
-    await page.goto('/0');
+    await page.goto('/zero');
     await page.waitForSelector('.wizard-home-provider [data-action="choose-proxy"]', { timeout: 20000 });
     await page.locator('#goal-input').fill('Inspect the live seed and stop after the first observation.');
     await page.locator('#awaken-btn').click();

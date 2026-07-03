@@ -1352,8 +1352,8 @@ const setStaticHeaders = (res, filePath) => {
   }
 };
 
-const PRODUCT_ROUTES = ['/', '/run', '/mesh', '/record', '/contribute', '/agents', '/receipts', '/reputation'];
-const SUBSTRATE_ROUTES = ['/0', '/x'];
+const PRODUCT_ROUTES = ['/', '/ask', '/contribute', '/receipts', '/reputation'];
+const SUBSTRATE_ROUTES = ['/zero', '/x'];
 
 // Main routes
 app.get(PRODUCT_ROUTES, (req, res) => {
@@ -1362,7 +1362,7 @@ app.get(PRODUCT_ROUTES, (req, res) => {
 });
 
 app.get(SUBSTRATE_ROUTES, (req, res) => {
-  res.setHeader('X-Reploid-Experience', req.path === '/0' ? 'zero' : 'x');
+  res.setHeader('X-Reploid-Experience', req.path === '/zero' ? 'zero' : 'x');
   res.sendFile(path.join(__dirname, '..', 'self', 'index.html'));
 });
 

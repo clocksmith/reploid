@@ -15,7 +15,7 @@ test.describe('Zero runtime UI refresh', () => {
     const pageErrors = [];
     page.on('pageerror', (error) => pageErrors.push(error.message));
 
-    await bootRouteWithServiceWorker(page, '/0', instanceId);
+    await bootRouteWithServiceWorker(page, '/zero', instanceId);
     await awakenWithoutGoal(page);
 
     await expect(page.locator('.zero-runtime-strip')).toBeVisible();
@@ -45,7 +45,7 @@ path: /self/boot-spec.js
 TOOL: ReadFile
 path: /missing-tool-stats.txt`;
 
-    await awakenWithMockGoal(page, '/0', instanceId, 'Exercise tool metrics.', [
+    await awakenWithMockGoal(page, '/zero', instanceId, 'Exercise tool metrics.', [
       toolBatchResponse,
       'DONE: tool metrics observed'
     ], { maxIterations: 2 });

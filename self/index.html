@@ -10,7 +10,7 @@
     <link rel="icon" type="image/svg+xml" href="favicon.svg" />
     <title>Reploid</title>
     <script>
-    window.REPLOID_BUILD_VERSION = '2026070208';
+    window.REPLOID_BUILD_VERSION = '2026070301';
       window.REPLOID_SW_VERSION = window.REPLOID_BUILD_VERSION;
       window.REPLOID_VFS_VERSION = window.REPLOID_BUILD_VERSION;
     </script>
@@ -26,11 +26,8 @@
       const pathname = (window.location.pathname || '/').replace(/\/+$/, '') || '/';
       const productPaths = new Set([
         '/',
-        '/run',
-        '/mesh',
-        '/record',
         '/contribute',
-        '/agents',
+        '/ask',
         '/receipts',
         '/reputation'
       ]);
@@ -63,7 +60,7 @@
       };
       if (productRoute) {
         document.title = 'Reploid';
-      } else if (pathname === '/0') {
+      } else if (pathname === '/zero') {
         document.title = 'Zero';
       } else if (pathname === '/x') {
         document.title = 'X';

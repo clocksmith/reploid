@@ -194,11 +194,15 @@ export const getPeerInviteUrl = () => createPeerRoomInviteUrl({
 
 const getProviderStatusEl = (mount) => mount?.querySelector('[data-pool-provider-status]');
 
-export const updateProviderStatus = (mount, status = 'NODE // OFFLINE') => {
+export const updateProviderStatus = (mount, status = 'CONTRIBUTOR // OFFLINE') => {
   const statusEl = getProviderStatusEl(mount);
   if (!statusEl) return;
   statusEl.textContent = status;
-  statusEl.dataset.providerState = status.includes('SPAWNED') ? 'spawned' : status.includes('SPAWNING') ? 'spawning' : 'offline';
+  statusEl.dataset.providerState = status.includes('ONLINE') || status.includes('RUNNING')
+    ? 'online'
+    : status.includes('STARTING') || status.includes('OPENING')
+      ? 'starting'
+      : 'offline';
 };
 
 const streamOutputText = (elementId, text) => {
@@ -776,8 +780,8 @@ export const renderNav = (activeRoute) => {
         ${POOLDAY_NAV_ROUTES.map(renderItem).join('')}
       </nav>
       <div class="pool-nav-substrate" aria-label="Substrate routes">
-        <a class="pool-nav-link pool-nav-substrate-link pool-zero-link link-secondary" href="/0" data-pool-substrate-route="/0" title="Open Zero.">0</a>
-        <a class="pool-nav-link pool-nav-substrate-link pool-zero-link link-secondary" href="/x" data-pool-substrate-route="/x" title="Open X.">X</a>
+        <a class="pool-nav-link pool-nav-substrate-link pool-zero-link link-secondary" href="/zero" data-pool-substrate-route="/zero" title="Open Zero Runtime.">Zero</a>
+        <a class="pool-nav-link pool-nav-substrate-link pool-zero-link link-secondary" href="/x" data-pool-substrate-route="/x" title="Open X Runtime.">X</a>
       </div>
     </aside>
   `;
@@ -889,6 +893,21 @@ const renderFlowLabels = () => POOLDAY_FLOW_LABELS.map((item) => `
 const renderHomeSimulation = () => `
   <section class="pool-simulation-shell" aria-label="Reploid network graph">
     <canvas class="pool-simulation-canvas" data-pool-simulation width="1200" height="680"></canvas>
+    <div class="pool-home-overlay" aria-label="Reploid overview">
+      <p class="pool-eyebrow">${escapeHtml(POOLDAY_PROTOCOL)}</p>
+      <h1 class="type-h1">Ask a model. Get a signed receipt.</h1>
+      <p class="pool-hero-body">Reploid routes deterministic browser inference through contributor tabs, compares receipt evidence, and keeps model identity visible.</p>
+      <div class="pool-home-actions" aria-label="Primary actions">
+        <a class="btn btn-primary pool-home-action" href="/ask" data-pool-route-link="/ask">Ask</a>
+        <a class="btn btn-ghost pool-home-action" href="/contribute" data-pool-route-link="/contribute">Contribute</a>
+        <a class="btn btn-ghost pool-home-action" href="/receipts" data-pool-route-link="/receipts">Receipts</a>
+      </div>
+      <div class="pool-home-proof-strip" aria-label="Pool evidence summary">
+        <span><b>Model</b>${escapeHtml(LAUNCH_MODEL.label || LAUNCH_MODEL.modelId)}</span>
+        <span><b>Trust</b>receipt-backed</span>
+        <span><b>Work</b>whole job quorum</span>
+      </div>
+    </div>
     <div class="pool-simulation-labels">
       ${renderFlowLabels()}
     </div>
@@ -906,12 +925,12 @@ export const renderRoutePanel = (routeId) => {
 
 export const renderRouteDetail = (routeId) => {
   const copy = ROUTE_COPY[routeId] || ROUTE_COPY.home;
-  if (routeId === 'run') {
+  if (routeId === 'ask') {
     return renderRouteShell(copy, `
         <div class="pool-form pool-route-grid pool-run-layout" data-pool-run>
           <div class="pool-run-compose">
             <div class="pool-section-heading">
-              <h2 class="type-h2">Request</h2>
+              <h2 class="type-h2">Prompt</h2>
               <span class="pool-meta-tag">DataChannel prompt</span>
             </div>
             <label class="pool-field">
@@ -931,8 +950,8 @@ export const renderRouteDetail = (routeId) => {
                 </label>
               </div>
             </details>
-            <div class="pool-control-row pool-primary-actions" aria-label="Run controls">
-              <button class="btn btn-primary btn-op" data-op="▶" id="pool-run-submit" type="button">Run</button>
+            <div class="pool-control-row pool-primary-actions" aria-label="Ask controls">
+              <button class="btn btn-primary btn-op" data-op="▶" id="pool-run-submit" type="button">Ask</button>
             </div>
           </div>
           <div class="pool-run-output">
@@ -945,24 +964,24 @@ export const renderRouteDetail = (routeId) => {
         </div>
     `);
   }
-  if (routeId === 'mesh') {
+  if (routeId === 'contribute') {
     return renderRouteShell(copy, `
         <div class="pool-form pool-route-grid pool-provider-layout" data-pool-provider>
           <div class="pool-provider-main">
             <div class="pool-section-heading pool-provider-heading">
-              <h2 class="type-h2">Node</h2>
-              <p class="pool-provider-status" data-pool-provider-status>NODE // OFFLINE</p>
+              <h2 class="type-h2">Provider</h2>
+              <p class="pool-provider-status" data-pool-provider-status>CONTRIBUTOR // OFFLINE</p>
             </div>
             <label class="pool-field">
               <span>Model</span>
               <select id="pool-provider-model">${renderModelOptions()}</select>
             </label>
-            <div class="pool-control-row pool-primary-actions" aria-label="Mesh controls">
-              <button class="btn btn-primary btn-op" data-op="▶" id="pool-provider-worker-start" type="button">Start</button>
+            <div class="pool-control-row pool-primary-actions" aria-label="Contributor controls">
+              <button class="btn btn-primary btn-op" data-op="▶" id="pool-provider-worker-start" type="button">Start contributing</button>
               <button class="btn btn-ghost btn-op" data-op="■" id="pool-provider-worker-stop" type="button" disabled>Stop</button>
             </div>
           </div>
-          <div class="pool-provider-live" aria-label="Node live state">
+          <div class="pool-provider-live" aria-label="Contributor live state">
             <div class="pool-section-heading">
               <h3 class="type-h2">Live</h3>
               <span class="pool-meta-tag">Provider room</span>
@@ -979,7 +998,7 @@ export const renderRouteDetail = (routeId) => {
         </div>
     `);
   }
-  if (routeId === 'record') {
+  if (routeId === 'receipts') {
     return renderRouteShell(copy, `
         <div class="pool-form pool-route-grid pool-record-layout" data-pool-receipts>
           <div class="pool-record-query">
@@ -1009,13 +1028,27 @@ export const renderRouteDetail = (routeId) => {
               </div>
               <div id="pool-room-activity" class="pool-ledger-shell" aria-live="polite">${renderRoomActivity()}</div>
             </div>
-            <div class="pool-form" data-pool-reputation>
-              <div class="pool-section-heading">
-                <h3 class="type-h2">Peer Ledger</h3>
-              </div>
-              <div id="pool-peer-ledger" class="pool-ledger-shell" aria-live="polite">${renderPeerLedgerState()}</div>
-              <p class="pool-meta-tag" aria-label="protocol identifier">Protocol ${POOLDAY_VERSION_TAG}</p>
+          </div>
+        </div>
+    `);
+  }
+  if (routeId === 'reputation') {
+    return renderRouteShell(copy, `
+        <div class="pool-form pool-route-grid pool-record-layout" data-pool-reputation>
+          <div class="pool-record-query">
+            <div class="pool-section-heading">
+              <h2 class="type-h2">Room Evidence</h2>
+              <span class="pool-meta-tag">Relay metadata</span>
             </div>
+            <div id="pool-room-activity" class="pool-ledger-shell" aria-live="polite">${renderRoomActivity()}</div>
+          </div>
+          <div class="pool-record-ledgers">
+            <div class="pool-section-heading">
+              <h3 class="type-h2">Peer Ledger</h3>
+              <span class="pool-meta-tag">This browser</span>
+            </div>
+            <div id="pool-peer-ledger" class="pool-ledger-shell" aria-live="polite">${renderPeerLedgerState()}</div>
+            <p class="pool-meta-tag" aria-label="protocol identifier">Protocol ${POOLDAY_VERSION_TAG}</p>
           </div>
         </div>
     `);

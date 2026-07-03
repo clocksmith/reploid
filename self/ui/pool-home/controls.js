@@ -146,7 +146,7 @@ export const bindRunControls = () => {
         status: 'error',
         error: 'Prompt is required',
         reason: 'The request body is empty.',
-        action: 'Enter a prompt, then run the request again.'
+        action: 'Enter a prompt, then ask again.'
       }, { stream: true });
       return;
     }
@@ -180,7 +180,7 @@ export const bindRunControls = () => {
     } catch (error) {
       setResult('pool-run-result', displayPoolError(error, {
         title: 'Request could not complete',
-        action: 'Open Mesh in another tab with the same room, click Start, wait for the node to listen, then run this request again.',
+        action: 'Open Contribute in another tab with the same room, start contributing, wait for the provider to listen, then ask again.',
         context: {
           roomId: getPeerRoomId(),
           relay: getPeerRelayMode(),
@@ -205,7 +205,7 @@ export const bindProviderControls = () => {
   const runtime = window.REPLOID_DOPPLER_RUNTIME || createDopplerRuntime();
   window.REPLOID_DOPPLER_RUNTIME = runtime;
   const mount = document.getElementById('app');
-  updateProviderStatus(mount, 'NODE // OFFLINE');
+  updateProviderStatus(mount, 'CONTRIBUTOR // OFFLINE');
   updateProviderHealth({
     webgpu: navigator.gpu ? 'available' : 'unavailable',
     storage: navigator.storage ? 'available' : 'unknown'
@@ -229,7 +229,7 @@ export const bindProviderControls = () => {
       && loaded.backend === model.backend;
   };
   const loadSelectedProviderModel = async () => {
-    updateProviderStatus(mount, 'NODE // SPAWNING');
+    updateProviderStatus(mount, 'CONTRIBUTOR // STARTING');
     await refreshProviderStorageHealth();
     updateProviderHealth({
       webgpu: navigator.gpu ? 'available' : 'unavailable',
@@ -331,20 +331,20 @@ export const bindProviderControls = () => {
       roomBusFactory: getPeerRoomBusFactory(),
       onActivity(event) {
         if (event?.status === 'provider_advertised') {
-          updateProviderStatus(mount, 'NODE // SPAWNED');
+          updateProviderStatus(mount, 'CONTRIBUTOR // ONLINE');
           updateProviderHealth({ queue: 'listening' });
           return;
         }
         if (event?.status === 'peer_session_opening') {
-          updateProviderStatus(mount, 'NODE // SPAWNING');
+          updateProviderStatus(mount, 'CONTRIBUTOR // OPENING');
           updateProviderHealth({ queue: 'opening_session' });
         }
         if (event?.status === 'peer_session_open') {
-          updateProviderStatus(mount, 'NODE // SPAWNED');
+          updateProviderStatus(mount, 'CONTRIBUTOR // RUNNING');
           updateProviderHealth({ queue: 'running_peer_job' });
         }
         if (event?.status === 'peer_receipt_sent') {
-          updateProviderStatus(mount, 'NODE // SPAWNED');
+          updateProviderStatus(mount, 'CONTRIBUTOR // ONLINE');
           updateProviderHealth({
             queue: 'receipt_sent',
             lastReceipt: event.receiptRecord?.receiptHash || 'signed'
@@ -360,7 +360,7 @@ export const bindProviderControls = () => {
           });
         }
         if (event?.status === 'peer_session_failed') {
-          updateProviderStatus(mount, 'NODE // OFFLINE');
+          updateProviderStatus(mount, 'CONTRIBUTOR // OFFLINE');
           updateProviderHealth({ queue: 'session_failed' });
         }
         setResult('pool-provider-result', {
@@ -396,18 +396,18 @@ export const bindProviderControls = () => {
   const stopWorker = () => {
     workerRunning = false;
     syncWorkerButtons();
-    updateProviderStatus(mount, 'NODE // OFFLINE');
+    updateProviderStatus(mount, 'CONTRIBUTOR // OFFLINE');
   };
   workerStartButton?.addEventListener('click', async () => {
     if (workerRunning) return;
     workerStartButton.disabled = true;
     setResult('pool-provider-result', { runner: 'peer_room_starting', roomId: getPeerRoomId(), model: getProviderModel() });
-    updateProviderStatus(mount, 'NODE // SPAWNING');
+    updateProviderStatus(mount, 'CONTRIBUTOR // STARTING');
     try {
       const ready = await ensurePeerProviderReady();
       workerRunning = true;
       syncWorkerButtons();
-      updateProviderStatus(mount, 'NODE // SPAWNED');
+      updateProviderStatus(mount, 'CONTRIBUTOR // ONLINE');
       updateProviderHealth({ queue: 'listening' });
       setResult('pool-provider-result', { runner: 'peer_room_listening', relay: getPeerRelayMode(), inviteUrl: getPeerInviteUrl(), ...ready });
     } catch (error) {
@@ -459,7 +459,7 @@ export const bindReceiptControls = () => {
         setResult('pool-receipt-result', {
           status: 'not_found',
           receiptHash,
-          action: 'Run a local peer-room job first, then inspect the receipt from this browser.'
+          action: 'Submit a local peer-room job first, then inspect the receipt from this browser.'
         });
         return;
       }

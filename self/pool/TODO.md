@@ -22,9 +22,9 @@ The current Cloud Run and Firestore path is transitional. The target Reploid con
 |---------|------|---------|
 | Product config | [`pool-config.json`](./pool-config.json) | Product-owned claim, launch model, trust tiers, policies, routes, transport, and deployment requirements. |
 | Product doc | [`../../docs/browser-inference-pool.md`](../../docs/browser-inference-pool.md) | Public architecture, API contract, production readiness, and forbidden claims. |
-| Product UI | [`../ui/pool-home/index.js`](../ui/pool-home/index.js) | `/`, `/run`, `/contribute`, `/agents`, `/receipts`, `/reputation`, and `/0` browser surface. |
+| Product UI | [`../ui/pool-home/index.js`](../ui/pool-home/index.js) | `/`, `/ask`, `/contribute`, `/receipts`, `/reputation`, and `/zero` browser surface. |
 | Peer control plane | [`peer-control-plane.js`](./peer-control-plane.js) | Signed peer messages, deterministic assignment planning, DataChannel bus helpers, and peer reducers. |
-| Peer room | [`peer-room.js`](./peer-room.js) | Browser room bootstrap for primary `/run`, `/contribute`, and `/agents` flows without hosted job or provider assignment calls. |
+| Peer room | [`peer-room.js`](./peer-room.js) | Browser room bootstrap for primary `/ask` and `/contribute` flows without hosted job or provider assignment calls. |
 | Coordinator | [`../../server/pool/routes.js`](../../server/pool/routes.js) | Cloud Run routes for config, jobs, providers, receipts, reputation, signaling, and deployment check. |
 | Verification script | [`../../scripts/verify-pool-production.js`](../../scripts/verify-pool-production.js) | Static, route, config, and hosted readiness verification. |
 
@@ -44,10 +44,10 @@ The current Cloud Run and Firestore path is transitional. The target Reploid con
 - [x] Define signed peer-message envelopes for job intent, provider advert, assignment claim, commit, reveal, execution result, receipt, acceptance, points event, reputation event, and peer heartbeat.
 - [x] Add signed provider capability adverts that bind identity, model, manifest, runtime profile, accepted policies, availability, and reputation evidence.
 - [x] Add deterministic local assignment selection from intent hash, provider adverts, policy, runtime profile, model identity, and reputation evidence.
-- [x] Add a browser peer room that replaces server-created jobs and hosted provider assignment polling for the primary `/run` and `/contribute` flow.
+- [x] Add a browser peer room that replaces server-created jobs and hosted provider assignment polling for the primary `/ask` and `/contribute` flow.
 - [x] Add browser-room ring quorum agreement from matching receipt hashes over WebRTC provider sessions.
 - [x] Add signed peer ledger events for accepted receipt sets plus deterministic points and reputation reducers.
-- [x] Replace server-created jobs with requester or agent signed intents across `/run`, `/contribute`, `/agents`, and quorum policies.
+- [x] Replace server-created jobs with requester signed intents across `/ask`, `/contribute`, and quorum policies.
 - [x] Replace coordinator signaling dependency for primary routes with peer-discovered WebRTC sessions; optional server relay is bootstrap only, not control-plane authority.
 - [x] Gossip accepted receipt sets, points events, and reputation events inside local and relayed peer rooms.
 - [ ] Gossip accepted receipt sets, points events, and reputation events across a true serverless wide-area WebRTC peer graph beyond room relay.
@@ -90,10 +90,8 @@ The current Cloud Run and Firestore path is transitional. The target Reploid con
 
 ## Requester And Agent Demand
 
-- [x] Make `/run` primary Run create a signed peer intent, discover multiple provider adverts for ring policies, send prompts over DataChannel, receive receipts, form quorum, countersign acceptance locally, and gossip signed ledger events to providers.
-- [x] Make `/run` state the exact trust tier and receipt status in user language without forbidden claims.
-- [x] Make `/agents` primary Submit use signed peer intents, DataChannel prompt delivery, receipt agreement, countersignature, and ledger-event gossip.
-- [x] Make `/agents` copy-pasteable for hosted submit, poll, verify, accept, and reject compatibility flows.
+- [x] Make `/ask` create a signed peer intent, discover multiple provider adverts for ring policies, send prompts over DataChannel, receive receipts, form quorum, countersign acceptance locally, and gossip signed ledger events to providers.
+- [x] Make `/ask` state the exact trust tier and receipt status in user language without forbidden claims.
 - [ ] Capture reject reasons and expose them in receipt history.
 - [x] Show requester-visible spend, agreement threshold, verifier decision, model identity, runtime identity, output hash, token hash status, and provider signature.
 
@@ -137,8 +135,8 @@ The current Cloud Run and Firestore path is transitional. The target Reploid con
 
 - [ ] Deployed `/pool/deployment/check` returns `ok: true`.
 - [ ] Public smoke passes against the hosted surface.
-- [x] The browser-room code path can run `/contribute` providers and `/run` requester logic without coordinator job creation, collect accepted receipts, and reduce signed points plus reputation events locally.
-- [x] A browser smoke can open `/contribute` and `/run`, receive an accepted receipt, and expose local points plus reputation projection in the visible UI.
+- [x] The browser-room code path can run `/contribute` providers and `/ask` requester logic without coordinator job creation, collect accepted receipts, and reduce signed points plus reputation events locally.
+- [x] A browser smoke can open `/contribute` and `/ask`, receive an accepted receipt, and expose local points plus reputation projection in the visible UI.
 - [ ] A user can do the same against published model artifacts on the hosted surface.
 - [ ] Prompt, output, and full receipt payloads move over WebRTC DataChannel by default, with coordinator signaling restricted to WebRTC metadata.
 - [x] Browser-room ring policy agreement happens through WebRTC provider sessions and produces accepted receipt sets plus agreement hashes.

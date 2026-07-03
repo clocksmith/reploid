@@ -11,52 +11,54 @@ export const POOLDAY_PROTOCOL = 'Verified Browser Inference';
 export const POOLDAY_VERSION_TAG = 'vBI-1.6';
 
 const createPooldayRoute = (route) => Object.freeze({
-  ...route,
-  aliases: Object.freeze(route.aliases || [])
+  ...route
 });
 
 export const POOLDAY_ROUTE_DEFINITIONS = Object.freeze([
   createPooldayRoute({
     id: 'home',
     path: '/',
-    label: 'Home',
+    label: 'Reploid',
     eyebrow: POOLDAY_PROTOCOL,
     title: POOLDAY_NAME,
-    body: 'Browser inference with verifiable records.'
+    body: 'Ask a model, receive signed receipts, and inspect the evidence.'
   }),
   createPooldayRoute({
-    id: 'run',
-    path: '/run',
-    label: 'Run',
-    eyebrow: 'Run',
-    title: 'Run',
-    body: 'Send a prompt to the room and accept a receipt-backed result.'
+    id: 'ask',
+    path: '/ask',
+    label: 'Ask',
+    eyebrow: 'Ask',
+    title: 'Ask the pool',
+    body: 'Send a prompt to compatible browser providers and accept a receipt-backed answer.'
   }),
   createPooldayRoute({
-    id: 'mesh',
-    path: '/mesh',
-    aliases: ['/contribute', '/agents'],
-    label: 'Mesh',
-    eyebrow: 'Mesh',
-    title: 'Mesh',
-    body: 'Start this browser as a provider for the current room.'
+    id: 'contribute',
+    path: '/contribute',
+    label: 'Contribute',
+    eyebrow: 'Contribute',
+    title: 'Contribute compute',
+    body: 'Load a model in this browser and answer pool requests for signed receipt credit.'
   }),
   createPooldayRoute({
-    id: 'record',
-    path: '/record',
-    aliases: ['/receipts', '/reputation'],
-    label: 'Record',
-    eyebrow: 'Record',
-    title: 'Record',
-    body: 'Inspect receipts, room activity, and the peer ledger for this room.'
+    id: 'receipts',
+    path: '/receipts',
+    label: 'Receipts',
+    eyebrow: 'Receipts',
+    title: 'Inspect receipts',
+    body: 'Verify what happened, which model ran, who signed, and whether quorum matched.'
+  }),
+  createPooldayRoute({
+    id: 'reputation',
+    path: '/reputation',
+    label: 'Reputation',
+    eyebrow: 'Reputation',
+    title: 'Reputation',
+    body: 'Review local provider, requester, and room evidence for this browser.'
   })
 ]);
 
 export const PRODUCT_ROUTES = Object.freeze(Object.fromEntries(
-  POOLDAY_ROUTE_DEFINITIONS.flatMap((route) => [
-    [route.path, route.id],
-    ...route.aliases.map((alias) => [alias, route.id])
-  ])
+  POOLDAY_ROUTE_DEFINITIONS.map((route) => [route.path, route.id])
 ));
 
 export const POOLDAY_NAV_ROUTES = Object.freeze(POOLDAY_ROUTE_DEFINITIONS.map((route) => Object.freeze({
@@ -363,15 +365,15 @@ export const POOLDAY_GRAPH_LABEL_ROLE_META = Object.freeze({
     body: 'Pair the request with compatible browser nodes in the current room.'
   },
   run: {
-    label: 'Run',
-    body: 'Run the selected model in a browser node and sign the result.'
+    label: 'Infer',
+    body: 'Run the selected model in a contributor tab and sign the result.'
   },
   verify: {
     label: 'Verify',
     body: 'Check output, model identity, policy, and agreement before acceptance.'
   },
   record: {
-    label: 'Record',
+    label: 'Receipt',
     body: 'Store accepted work, decisions, points, and local routing evidence.'
   }
 });
@@ -396,7 +398,7 @@ export const POOLDAY_GRAPH_LABEL_STAGES = Object.freeze([
   },
   {
     id: 'run',
-    label: 'Run',
+    label: 'Infer',
     ids: ['runner0', 'runner1', 'runner2', 'runner3'],
     roles: ['run', 'run', 'run', 'run']
   },
@@ -408,7 +410,7 @@ export const POOLDAY_GRAPH_LABEL_STAGES = Object.freeze([
   },
   {
     id: 'record',
-    label: 'Record',
+    label: 'Receipt',
     ids: ['settlement', 'ledger'],
     roles: ['record', 'record']
   }

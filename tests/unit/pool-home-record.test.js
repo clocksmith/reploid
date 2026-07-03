@@ -105,15 +105,20 @@ describe('Poolday record ledgers', () => {
     expect(html).toContain('<td>0</td>');
   });
 
-  it('uses a lookup-specific empty state on the record route', () => {
+  it('uses split empty states on the receipts and reputation routes', () => {
     setRoom(`record-copy-${crypto.randomUUID()}`);
 
-    const html = renderRouteDetail('record');
+    const receiptsHtml = renderRouteDetail('receipts');
+    const reputationHtml = renderRouteDetail('reputation');
 
-    expect(html).toContain('No receipt lookup yet.');
-    expect(html).toContain('No rounds logged yet.');
-    expect(html).toContain('Room Activity');
-    expect(html).toContain('Loading room activity...');
+    expect(receiptsHtml).toContain('No receipt lookup yet.');
+    expect(receiptsHtml).toContain('No rounds logged yet.');
+    expect(receiptsHtml).toContain('Room Activity');
+    expect(receiptsHtml).toContain('Loading room activity...');
+    expect(receiptsHtml).not.toContain('Peer Ledger');
+    expect(reputationHtml).toContain('Room Evidence');
+    expect(reputationHtml).toContain('Peer Ledger');
+    expect(reputationHtml).toContain('No local peer ledger events yet.');
   });
 
   it('renders compact server relay room activity summaries', () => {
