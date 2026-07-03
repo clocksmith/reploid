@@ -100,15 +100,19 @@ test.describe('Route Entry Points', () => {
     await expect(nav).toBeVisible();
     await expect(page.locator('.pool-topbar')).toHaveCount(0);
     await expect(page.locator('.pool-home')).toHaveAttribute('data-pool-route-id', 'home');
+    await expect(nav).not.toHaveAttribute('open', '');
+    await expect(nav.locator('.pool-nav-trigger')).toContainText('Reploid');
+    await nav.locator('.pool-nav-trigger').click();
     await expect(nav.getByRole('link', { name: 'Reploid', exact: true })).toBeVisible();
     await expect(nav.getByRole('link', { name: 'Reploid', exact: true })).toHaveAttribute('aria-current', 'page');
     await expect(nav.getByRole('link', { name: 'Ask', exact: true })).toBeVisible();
-    await expect(nav.getByRole('link', { name: 'Contribute', exact: true })).toBeVisible();
-    await expect(nav.getByRole('link', { name: 'Receipts', exact: true })).toBeVisible();
-    await expect(nav.getByRole('link', { name: 'Reputation', exact: true })).toBeVisible();
+    await expect(nav.getByRole('link', { name: 'Compute', exact: true })).toBeVisible();
+    await expect(nav.getByRole('link', { name: 'History', exact: true })).toBeVisible();
+    await expect(nav.getByRole('link', { name: 'Network', exact: true })).toBeVisible();
     await expect(nav.getByRole('link', { name: 'Zero' })).toHaveAttribute('href', '/zero');
     await expect(nav.getByRole('link', { name: 'X', exact: true })).toHaveAttribute('href', '/x');
-    await expect(page.locator('.pool-home-overlay')).toContainText('Ask a model. Get a signed receipt.');
+    await expect(page.locator('.pool-home-overlay')).toContainText('Reploid');
+    await expect(page.locator('.pool-home-overlay')).toContainText('Run browser models together.');
     await expect(page.locator('[data-pool-flow-label]')).toHaveCount(12);
     await expect.poll(async () => page.locator('[data-pool-flow-label]').evaluateAll((labels) => {
       const counts = labels.reduce((acc, label) => {
@@ -122,7 +126,7 @@ test.describe('Route Entry Points', () => {
         match: counts.Match || 0,
         infer: counts.Infer || 0,
         verify: counts.Verify || 0,
-        receipt: counts.Receipt || 0,
+        history: counts.History || 0,
         consumer: counts.Consumer || 0,
         producer: counts.Producer || 0,
         provider: counts.Provider || 0,
@@ -135,7 +139,7 @@ test.describe('Route Entry Points', () => {
       match: 1,
       infer: 4,
       verify: 3,
-      receipt: 2,
+      history: 2,
       consumer: 0,
       producer: 0,
       provider: 0,
@@ -145,26 +149,33 @@ test.describe('Route Entry Points', () => {
     await expect(page.locator('body')).not.toContainText('Poolday');
   });
 
-  test('product navigation is a desktop rail and mobile bottom bar', async ({ page }) => {
+  test('product navigation is collapsed and opens without covering the canvas controls', async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto(PRODUCT_HOME_PATH);
     await page.waitForSelector('.pool-nav-rail', { timeout: 20000 });
 
     const desktop = await page.evaluate(() => {
       const rail = document.querySelector('.pool-nav-rail').getBoundingClientRect();
+      const open = document.querySelector('.pool-nav-rail').open;
       return {
         height: rail.height,
+        open,
         width: rail.width,
         x: rail.x,
         y: rail.y,
         overflowX: document.documentElement.scrollWidth > document.documentElement.clientWidth
       };
     });
-    expect(desktop.x).toBeLessThan(24);
+    expect(desktop.open).toBe(false);
+    expect(desktop.x).toBeGreaterThan(1200);
     expect(desktop.y).toBeLessThan(24);
-    expect(desktop.height).toBeGreaterThan(700);
-    expect(desktop.width).toBeLessThan(180);
+    expect(desktop.height).toBeLessThan(48);
+    expect(desktop.width).toBeGreaterThan(180);
     expect(desktop.overflowX).toBe(false);
+
+    await page.locator('.pool-nav-trigger').click();
+    await expect(page.locator('.pool-nav-rail')).toHaveAttribute('open', '');
+    await expect(page.getByRole('link', { name: 'Network', exact: true })).toBeVisible();
 
     await page.setViewportSize({ width: 390, height: 844 });
     await page.reload();
@@ -179,10 +190,12 @@ test.describe('Route Entry Points', () => {
         document.body?.scrollHeight || 0
       );
       return {
-        bottomGap: window.innerHeight - rail.bottom,
         canvasHeight: canvas.height,
         canvasTop: canvas.top,
         height: rail.height,
+        left: rail.left,
+        open: document.querySelector('.pool-nav-rail').open,
+        right: window.innerWidth - rail.right,
         scrollHeight,
         shellHeight: shell.height,
         shellTop: shell.top,
@@ -193,9 +206,11 @@ test.describe('Route Entry Points', () => {
         overflowY: scrollHeight > window.innerHeight + 1
       };
     });
-    expect(mobile.y).toBeGreaterThan(760);
-    expect(mobile.bottomGap).toBeLessThan(16);
-    expect(mobile.height).toBeLessThan(78);
+    expect(mobile.open).toBe(false);
+    expect(mobile.y).toBeLessThan(16);
+    expect(mobile.left).toBeLessThan(16);
+    expect(mobile.right).toBeLessThan(16);
+    expect(mobile.height).toBeLessThan(54);
     expect(mobile.width).toBeGreaterThan(360);
     expect(mobile.overflowX).toBe(false);
     expect(mobile.overflowY).toBe(false);
@@ -205,14 +220,18 @@ test.describe('Route Entry Points', () => {
     expect(Math.abs(mobile.shellHeight - mobile.viewportHeight)).toBeLessThanOrEqual(1);
     expect(mobile.scrollHeight).toBeLessThanOrEqual(mobile.viewportHeight + 1);
     const mobileNav = page.locator('.pool-nav-rail');
+    await mobileNav.locator('.pool-nav-trigger').click();
     await expect(mobileNav.getByRole('link', { name: 'Reploid', exact: true })).toBeVisible();
     await expect(mobileNav.getByRole('link', { name: 'Ask', exact: true })).toBeVisible();
+    await expect(mobileNav.getByRole('link', { name: 'Compute', exact: true })).toBeVisible();
+    await expect(mobileNav.getByRole('link', { name: 'History', exact: true })).toBeVisible();
+    await expect(mobileNav.getByRole('link', { name: 'Network', exact: true })).toBeVisible();
     await expect(mobileNav.getByRole('link', { name: 'Zero' })).toBeVisible();
     await expect(mobileNav.getByRole('link', { name: 'X', exact: true })).toBeVisible();
   });
 
   test('product routes hide raw payloads and hosted controls by default', async ({ page }) => {
-    for (const route of ['/ask', '/contribute', '/receipts', '/reputation']) {
+    for (const route of ['/ask', '/compute', '/history', '/network']) {
       await page.goto(route);
       await page.waitForSelector('.pool-home', { timeout: 20000 });
 
@@ -228,24 +247,25 @@ test.describe('Route Entry Points', () => {
     }
   });
 
-  test('ask and contribute are presented as local peer-room flows', async ({ page }) => {
+  test('ask and compute are presented as local peer-room flows', async ({ page }) => {
     await page.goto('/ask');
     await page.waitForSelector('.pool-home', { timeout: 20000 });
-    await expect(page.getByRole('heading', { name: 'Ask the pool', exact: true })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Ask', exact: true })).toBeVisible();
     await expect(page.locator('.pool-page-heading .pool-eyebrow')).toHaveCount(0);
     await expect(page.getByLabel('Ask controls')).toContainText('Ask');
     await expect(page.locator('#pool-run-result-raw')).toBeHidden();
     await expect(page.locator('#pool-run-poll')).toHaveCount(0);
     await expect(page.locator('#pool-run-max-spend')).toHaveCount(0);
 
-    await page.goto('/contribute');
+    await page.goto('/compute');
     await page.waitForSelector('.pool-home', { timeout: 20000 });
-    await expect(page.locator('.pool-home')).toHaveAttribute('data-pool-route-id', 'contribute');
-    await expect(page.getByRole('link', { name: 'Contribute', exact: true })).toHaveAttribute('aria-current', 'page');
-    await expect(page.getByRole('heading', { name: 'Contribute compute', exact: true })).toBeVisible();
+    await expect(page.locator('.pool-home')).toHaveAttribute('data-pool-route-id', 'compute');
+    await page.locator('.pool-nav-trigger').click();
+    await expect(page.getByRole('link', { name: 'Compute', exact: true })).toHaveAttribute('aria-current', 'page');
+    await expect(page.getByRole('heading', { name: 'Compute', exact: true })).toBeVisible();
     await expect(page.locator('.pool-page-heading .pool-eyebrow')).toHaveCount(0);
     await expect(page.locator('[data-pool-simulation]')).toHaveCount(0);
-    await expect(page.locator('[data-pool-provider-status]')).toHaveText('CONTRIBUTOR // OFFLINE');
+    await expect(page.locator('[data-pool-provider-status]')).toHaveText('WORKER // OFFLINE');
     await expect(page.locator('#pool-provider-worker-start')).toBeVisible();
     await expect(page.locator('#pool-provider-worker-stop')).toBeVisible();
     await expect(page.locator('#pool-provider-load')).toHaveCount(0);
@@ -253,15 +273,15 @@ test.describe('Route Entry Points', () => {
     await expect(page.locator('#pool-agent-submit')).toHaveCount(0);
     await expect(page.locator('[data-pool-node-grid]')).toHaveCount(0);
 
-    await page.goto('/receipts');
+    await page.goto('/history');
     await page.waitForSelector('.pool-home', { timeout: 20000 });
-    await expect(page.getByRole('heading', { name: 'Inspect receipts', exact: true })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'History', exact: true })).toBeVisible();
     await expect(page.locator('.pool-page-heading .pool-eyebrow')).toHaveCount(0);
     await expect(page.locator('#pool-peer-ledger')).toHaveCount(0);
 
-    await page.goto('/reputation');
+    await page.goto('/network');
     await page.waitForSelector('.pool-home', { timeout: 20000 });
-    await expect(page.getByRole('heading', { name: 'Reputation', exact: true })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Network', exact: true })).toBeVisible();
     await expect(page.locator('#pool-peer-ledger')).toBeVisible();
   });
 

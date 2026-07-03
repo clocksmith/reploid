@@ -1,6 +1,6 @@
 /**
  * E2E Test: P2P mesh
- * Drives the Ask, Contribute, and Receipts routes through the browser peer room.
+ * Drives the Ask, Compute, and History routes through the browser peer room.
  */
 import { test, expect } from '@playwright/test';
 
@@ -8,6 +8,7 @@ import { LAUNCH_MODEL } from '../../self/pool/model-contract.js';
 
 const BASE_URL = 'http://localhost:8000';
 const RELAY_MODE = 'local';
+const RELAY_LABEL = 'local tab';
 
 const model = {
   modelId: LAUNCH_MODEL.modelId,
@@ -155,21 +156,30 @@ const openPoolPage = async (context, baseURL, route, roomId) => {
   await page.goto(routeUrl(baseURL, route, roomId), { waitUntil: 'domcontentloaded' });
   await page.waitForSelector('.pool-home');
   await expect(page.locator('[data-pool-room-id]')).toHaveText(roomId);
-  await expect(page.locator('[data-pool-relay-mode]')).toHaveText(RELAY_MODE);
+  await expect(page.locator('[data-pool-relay-mode]')).toHaveText(RELAY_LABEL);
+  await expect.poll(() => page.evaluate(() => window.REPLOID_POOL_RELAY_MODE || new URL(window.location.href).searchParams.get('relay'))).toBe(RELAY_MODE);
   return page;
+};
+
+const openPoolNav = async (page) => {
+  const nav = page.locator('.pool-nav-rail');
+  if (await nav.getAttribute('open') === null) {
+    await nav.locator('.pool-nav-trigger').click();
+  }
 };
 
 const startProviderPage = async (page) => {
   await expect(page.locator('#pool-provider-worker-start')).toBeVisible();
   await page.locator('#pool-provider-worker-start').click();
-  await expect(page.locator('[data-pool-provider-status]')).toHaveText('CONTRIBUTOR // ONLINE');
-  await expect(page.locator('#pool-provider-result')).toContainText('peer_room_listening');
+  await expect(page.locator('[data-pool-provider-status]')).toHaveText('WORKER // ONLINE');
+  await expect(page.locator('#pool-provider-result')).toContainText('peer worker listening');
+  await expect(page.locator('#pool-provider-result-raw')).toContainText('peer_room_listening');
 };
 
 const stopProviderPage = async (page) => {
   await expect(page.locator('#pool-provider-worker-stop')).toBeEnabled();
   await page.locator('#pool-provider-worker-stop').click();
-  await expect(page.locator('[data-pool-provider-status]')).toHaveText('CONTRIBUTOR // OFFLINE');
+  await expect(page.locator('[data-pool-provider-status]')).toHaveText('WORKER // OFFLINE');
   await expect(page.locator('#pool-provider-result-raw')).toContainText('peer_provider_stopped');
   await expect(page.locator('#pool-provider-worker-start')).toBeEnabled();
   await expect(page.locator('#pool-provider-worker-stop')).toBeDisabled();
@@ -201,8 +211,8 @@ const closeContexts = async (contexts) => {
   await Promise.all(contexts.map((context) => context.close().catch(() => null)));
 };
 
-test.describe('Ask, Contribute, Receipts peer room', () => {
-  test('preserves room context when Ask opens before Contribute', async ({ browser, baseURL }, testInfo) => {
+test.describe('Ask, Compute, History peer room', () => {
+  test('preserves room context when Ask opens before Compute', async ({ browser, baseURL }, testInfo) => {
     const roomId = roomIdFor(testInfo, 'run-first');
     const contexts = [];
     try {
@@ -211,7 +221,7 @@ test.describe('Ask, Contribute, Receipts peer room', () => {
       const runPage = await openPoolPage(context, baseURL, '/ask', roomId);
       await expect(runPage.locator('[data-pool-invite-link]')).toHaveAttribute('href', new RegExp(`room=${roomId}`));
 
-      const meshPage = await openPoolPage(context, baseURL, '/contribute', roomId);
+      const meshPage = await openPoolPage(context, baseURL, '/compute', roomId);
       await startProviderPage(meshPage);
       await runPeerPrompt(runPage, 'run tab existed before mesh', 'fastest_receipt');
       const result = await readRunResult(runPage);
@@ -220,9 +230,11 @@ test.describe('Ask, Contribute, Receipts peer room', () => {
       expect(result.transport).toBe('webrtc_peer_room');
       expect(result.outputText).toBe('e2e:run tab existed before mesh');
 
-      await runPage.getByRole('link', { name: 'Contribute', exact: true }).click();
+      await openPoolNav(runPage);
+      await runPage.getByRole('link', { name: 'Compute', exact: true }).click();
       await expect(runPage.locator('[data-pool-room-id]')).toHaveText(roomId);
-      await runPage.getByRole('link', { name: 'Receipts', exact: true }).click();
+      await openPoolNav(runPage);
+      await runPage.getByRole('link', { name: 'History', exact: true }).click();
       await expect(runPage.locator('[data-pool-room-id]')).toHaveText(roomId);
     } finally {
       await closeContexts(contexts);
@@ -235,7 +247,7 @@ test.describe('Ask, Contribute, Receipts peer room', () => {
     try {
       const context = await createPoolContext(browser, 'provider_stop');
       contexts.push(context);
-      const providerPage = await openPoolPage(context, baseURL, '/contribute', roomId);
+      const providerPage = await openPoolPage(context, baseURL, '/compute', roomId);
       await startProviderPage(providerPage);
       const firstStart = await readProviderResult(providerPage);
       const firstRoleId = firstStart.identity?.roleId;
@@ -246,7 +258,7 @@ test.describe('Ask, Contribute, Receipts peer room', () => {
       const secondStart = await readProviderResult(providerPage);
       expect(secondStart.identity?.roleId).toBe(firstRoleId);
 
-      const secondProviderPage = await openPoolPage(context, baseURL, '/contribute', roomId);
+      const secondProviderPage = await openPoolPage(context, baseURL, '/compute', roomId);
       await startProviderPage(secondProviderPage);
       const otherStart = await readProviderResult(secondProviderPage);
       expect(otherStart.identity?.roleId).toMatch(/^provider_/);
@@ -269,11 +281,11 @@ test.describe('Ask, Contribute, Receipts peer room', () => {
         }
       });
       contexts.push(context);
-      const providerPage = await openPoolPage(context, baseURL, '/contribute', roomId);
+      const providerPage = await openPoolPage(context, baseURL, '/compute', roomId);
 
       await providerPage.locator('#pool-provider-worker-start').click();
-      await expect(providerPage.locator('[data-pool-provider-status]')).toHaveText('CONTRIBUTOR // OFFLINE');
-      await expect(providerPage.locator('#pool-provider-result')).toContainText('Contributor could not start');
+      await expect(providerPage.locator('[data-pool-provider-status]')).toHaveText('WORKER // OFFLINE');
+      await expect(providerPage.locator('#pool-provider-result')).toContainText('Worker could not start');
       await expect(providerPage.locator('#pool-provider-result-raw')).toContainText('synthetic load failure');
       await expect(providerPage.locator('#pool-provider-worker-start')).toBeEnabled();
       await expect(providerPage.locator('#pool-provider-worker-stop')).toBeDisabled();
@@ -290,7 +302,7 @@ test.describe('Ask, Contribute, Receipts peer room', () => {
       contexts.push(context);
       const providerPages = [];
       for (let index = 0; index < 4; index += 1) {
-        providerPages.push(await openPoolPage(context, baseURL, '/contribute', roomId));
+        providerPages.push(await openPoolPage(context, baseURL, '/compute', roomId));
       }
       await Promise.all(providerPages.map(startProviderPage));
 
@@ -326,13 +338,13 @@ test.describe('Ask, Contribute, Receipts peer room', () => {
       contexts.push(context);
       const providerPages = [];
       for (let index = 0; index < 12; index += 1) {
-        providerPages.push(await openPoolPage(context, baseURL, '/contribute', roomId));
+        providerPages.push(await openPoolPage(context, baseURL, '/compute', roomId));
       }
       await Promise.all(providerPages.map(startProviderPage));
 
       const runPage = await openPoolPage(context, baseURL, '/ask', roomId);
-      const receiptsPage = await openPoolPage(context, baseURL, '/receipts', roomId);
-      const reputationPage = await openPoolPage(context, baseURL, '/reputation', roomId);
+      const receiptsPage = await openPoolPage(context, baseURL, '/history', roomId);
+      const reputationPage = await openPoolPage(context, baseURL, '/network', roomId);
 
       await runPeerPrompt(runPage, 'twelve page browser quorum');
       const result = await readRunResult(runPage);
@@ -354,7 +366,8 @@ test.describe('Ask, Contribute, Receipts peer room', () => {
       await expect(reputationPage.locator('#pool-peer-ledger [aria-label="Local peer ledger"]')).toBeVisible();
       await expect(reputationPage.locator('#pool-peer-ledger')).toContainText('Accepted');
 
-      await runPage.getByRole('link', { name: 'Receipts', exact: true }).click();
+      await openPoolNav(runPage);
+      await runPage.getByRole('link', { name: 'History', exact: true }).click();
       await expect(runPage.locator('[data-pool-room-id]')).toHaveText(roomId);
       await expect(runPage.locator('#pool-receipt-ledger')).toContainText('accepted');
       await receiptsPage.reload({ waitUntil: 'domcontentloaded' });
@@ -377,7 +390,7 @@ test.describe('Ask, Contribute, Receipts peer room', () => {
     try {
       const context = await createPoolContext(browser, 'single_provider_queue', { generationDelayMs: 150 });
       contexts.push(context);
-      const providerPage = await openPoolPage(context, baseURL, '/contribute', roomId);
+      const providerPage = await openPoolPage(context, baseURL, '/compute', roomId);
       await startProviderPage(providerPage);
 
       const firstRunPage = await openPoolPage(context, baseURL, '/ask', roomId);
@@ -411,8 +424,8 @@ test.describe('Ask, Contribute, Receipts peer room', () => {
     try {
       const context = await createPoolContext(browser, 'two_room_isolation');
       contexts.push(context);
-      const providerOne = await openPoolPage(context, baseURL, '/contribute', roomOne);
-      const providerTwo = await openPoolPage(context, baseURL, '/contribute', roomTwo);
+      const providerOne = await openPoolPage(context, baseURL, '/compute', roomOne);
+      const providerTwo = await openPoolPage(context, baseURL, '/compute', roomTwo);
       await Promise.all([startProviderPage(providerOne), startProviderPage(providerTwo)]);
       const providerStartOne = await readProviderResult(providerOne);
       const providerStartTwo = await readProviderResult(providerTwo);
@@ -446,7 +459,7 @@ test.describe('Ask, Contribute, Receipts peer room', () => {
       contexts.push(context);
       const providerPages = [];
       for (let index = 0; index < 4; index += 1) {
-        providerPages.push(await openPoolPage(context, baseURL, '/contribute', roomId));
+        providerPages.push(await openPoolPage(context, baseURL, '/compute', roomId));
       }
       await Promise.all(providerPages.map(startProviderPage));
 

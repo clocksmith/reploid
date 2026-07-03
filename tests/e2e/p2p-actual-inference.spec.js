@@ -86,7 +86,7 @@ const waitForProviderListening = async (page) => {
       const snapshot = await readSnapshot(page, 'pool-provider-result');
       const parsed = snapshot.parsed || {};
       if (parsed.status === 'error' || parsed.error) return `error:${parsed.reason || parsed.error}`;
-      if (snapshot.providerStatus === 'CONTRIBUTOR // ONLINE' && parsed.runner === 'peer_room_listening') return 'ready';
+      if (snapshot.providerStatus === 'WORKER // ONLINE' && parsed.runner === 'peer_room_listening') return 'ready';
       return parsed.runner || parsed.status || snapshot.providerStatus || 'waiting';
     }, {
       timeout: ACTUAL_INFERENCE_TIMEOUT_MS,
@@ -120,7 +120,7 @@ const runActualPrompt = async (page, prompt) => {
   return (await readSnapshot(page, 'pool-run-result')).parsed;
 };
 
-test.describe('Ask and Contribute actual browser inference', () => {
+test.describe('Ask and Compute actual browser inference', () => {
   test.skip(process.env.REPLOID_E2E_ACTUAL_INFERENCE !== '1', 'Set REPLOID_E2E_ACTUAL_INFERENCE=1 to run the real Doppler browser workload.');
 
   test('loads Doppler, generates in a provider tab, and returns a signed peer receipt', async ({ browser, baseURL }, testInfo) => {
@@ -128,7 +128,7 @@ test.describe('Ask and Contribute actual browser inference', () => {
     const context = await browser.newContext();
     await installActualRuntimeConfig(context);
     try {
-      const providerPage = await openPoolPage(context, baseURL, '/contribute', roomId, 'provider');
+      const providerPage = await openPoolPage(context, baseURL, '/compute', roomId, 'provider');
       await expect(providerPage.locator('#pool-provider-model')).toHaveValue(LAUNCH_MODEL.modelId);
       await waitForProviderListening(providerPage);
 
@@ -151,7 +151,7 @@ test.describe('Ask and Contribute actual browser inference', () => {
     const context = await browser.newContext();
     await installActualRuntimeConfig(context);
     try {
-      const providerPage = await openPoolPage(context, baseURL, '/contribute', roomId, 'provider');
+      const providerPage = await openPoolPage(context, baseURL, '/compute', roomId, 'provider');
       await expect(providerPage.locator('#pool-provider-model')).toHaveValue(LAUNCH_MODEL.modelId);
       await waitForProviderListening(providerPage);
 

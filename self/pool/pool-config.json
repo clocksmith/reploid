@@ -286,7 +286,7 @@
     ],
     "primaryRoutes": [
       "/ask",
-      "/contribute"
+      "/compute"
     ],
     "messageTypes": [
       "job_intent",

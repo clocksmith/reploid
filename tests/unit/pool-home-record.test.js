@@ -105,20 +105,43 @@ describe('Poolday record ledgers', () => {
     expect(html).toContain('<td>0</td>');
   });
 
-  it('uses split empty states on the receipts and reputation routes', () => {
+  it('serializes repeated result objects without losing arrays as circular values', () => {
+    document.body.innerHTML = `
+      <div id="pool-run-result-summary"></div>
+      <pre id="pool-run-result-raw"></pre>
+      <pre id="pool-run-result-stream"></pre>
+      <span id="pool-run-result-stream-cursor"></span>
+    `;
+    const assignments = [{ providerId: 'provider_a' }, { providerId: 'provider_b' }];
+    const repeated = assignments[0];
+    repeated.self = repeated;
+
+    setResult('pool-run-result', {
+      assignments,
+      firstAssignment: repeated
+    }, { stream: true });
+
+    const parsed = JSON.parse(document.getElementById('pool-run-result-raw').textContent);
+    expect(parsed.assignments).toHaveLength(2);
+    expect(parsed.assignments[0].providerId).toBe('provider_a');
+    expect(parsed.assignments[0].self).toBe('[Circular]');
+    expect(parsed.firstAssignment.providerId).toBe('provider_a');
+  });
+
+  it('uses split empty states on the history and network routes', () => {
     setRoom(`record-copy-${crypto.randomUUID()}`);
 
-    const receiptsHtml = renderRouteDetail('receipts');
-    const reputationHtml = renderRouteDetail('reputation');
+    const historyHtml = renderRouteDetail('history');
+    const networkHtml = renderRouteDetail('network');
 
-    expect(receiptsHtml).toContain('No receipt lookup yet.');
-    expect(receiptsHtml).toContain('No rounds logged yet.');
-    expect(receiptsHtml).toContain('Room Activity');
-    expect(receiptsHtml).toContain('Loading room activity...');
-    expect(receiptsHtml).not.toContain('Peer Ledger');
-    expect(reputationHtml).toContain('Room Evidence');
-    expect(reputationHtml).toContain('Peer Ledger');
-    expect(reputationHtml).toContain('No local peer ledger events yet.');
+    expect(historyHtml).toContain('No lookup yet.');
+    expect(historyHtml).toContain('No rounds logged yet.');
+    expect(historyHtml).toContain('Room Activity');
+    expect(historyHtml).toContain('Loading room activity...');
+    expect(historyHtml).not.toContain('Peer Scores');
+    expect(networkHtml).toContain('Room State');
+    expect(networkHtml).toContain('Peer Scores');
+    expect(networkHtml).toContain('No local peer ledger events yet.');
   });
 
   it('renders compact server relay room activity summaries', () => {

@@ -180,7 +180,7 @@ export const bindRunControls = () => {
     } catch (error) {
       setResult('pool-run-result', displayPoolError(error, {
         title: 'Request could not complete',
-        action: 'Open Contribute in another tab with the same room, start contributing, wait for the provider to listen, then ask again.',
+        action: 'Open Compute in another tab with the same room, start compute, wait for the worker to listen, then ask again.',
         context: {
           roomId: getPeerRoomId(),
           relay: getPeerRelayMode(),
@@ -205,7 +205,7 @@ export const bindProviderControls = () => {
   const runtime = window.REPLOID_DOPPLER_RUNTIME || createDopplerRuntime();
   window.REPLOID_DOPPLER_RUNTIME = runtime;
   const mount = document.getElementById('app');
-  updateProviderStatus(mount, 'CONTRIBUTOR // OFFLINE');
+  updateProviderStatus(mount, 'WORKER // OFFLINE');
   updateProviderHealth({
     webgpu: navigator.gpu ? 'available' : 'unavailable',
     storage: navigator.storage ? 'available' : 'unknown'
@@ -229,7 +229,7 @@ export const bindProviderControls = () => {
       && loaded.backend === model.backend;
   };
   const loadSelectedProviderModel = async () => {
-    updateProviderStatus(mount, 'CONTRIBUTOR // STARTING');
+    updateProviderStatus(mount, 'WORKER // STARTING');
     await refreshProviderStorageHealth();
     updateProviderHealth({
       webgpu: navigator.gpu ? 'available' : 'unavailable',
@@ -263,7 +263,7 @@ export const bindProviderControls = () => {
       updateProviderHealth({
         model: model.modelId,
         artifact: 'ready',
-        trust: 'receipt-backed'
+        trust: 'signed_record'
       });
       return {
         ok: true,
@@ -305,7 +305,7 @@ export const bindProviderControls = () => {
     updateProviderHealth({
       model: model.modelId,
       artifact: artifactPreflight.ok ? artifactPreflight.status : 'manifest_unavailable',
-      trust: 'receipt-backed'
+        trust: 'signed_record'
     });
     return {
       ...loadResult,
@@ -331,20 +331,20 @@ export const bindProviderControls = () => {
       roomBusFactory: getPeerRoomBusFactory(),
       onActivity(event) {
         if (event?.status === 'provider_advertised') {
-          updateProviderStatus(mount, 'CONTRIBUTOR // ONLINE');
+          updateProviderStatus(mount, 'WORKER // ONLINE');
           updateProviderHealth({ queue: 'listening' });
           return;
         }
         if (event?.status === 'peer_session_opening') {
-          updateProviderStatus(mount, 'CONTRIBUTOR // OPENING');
+          updateProviderStatus(mount, 'WORKER // OPENING');
           updateProviderHealth({ queue: 'opening_session' });
         }
         if (event?.status === 'peer_session_open') {
-          updateProviderStatus(mount, 'CONTRIBUTOR // RUNNING');
+          updateProviderStatus(mount, 'WORKER // RUNNING');
           updateProviderHealth({ queue: 'running_peer_job' });
         }
         if (event?.status === 'peer_receipt_sent') {
-          updateProviderStatus(mount, 'CONTRIBUTOR // ONLINE');
+          updateProviderStatus(mount, 'WORKER // ONLINE');
           updateProviderHealth({
             queue: 'receipt_sent',
             lastReceipt: event.receiptRecord?.receiptHash || 'signed'
@@ -360,7 +360,7 @@ export const bindProviderControls = () => {
           });
         }
         if (event?.status === 'peer_session_failed') {
-          updateProviderStatus(mount, 'CONTRIBUTOR // OFFLINE');
+          updateProviderStatus(mount, 'WORKER // OFFLINE');
           updateProviderHealth({ queue: 'session_failed' });
         }
         setResult('pool-provider-result', {
@@ -396,18 +396,18 @@ export const bindProviderControls = () => {
   const stopWorker = () => {
     workerRunning = false;
     syncWorkerButtons();
-    updateProviderStatus(mount, 'CONTRIBUTOR // OFFLINE');
+    updateProviderStatus(mount, 'WORKER // OFFLINE');
   };
   workerStartButton?.addEventListener('click', async () => {
     if (workerRunning) return;
     workerStartButton.disabled = true;
     setResult('pool-provider-result', { runner: 'peer_room_starting', roomId: getPeerRoomId(), model: getProviderModel() });
-    updateProviderStatus(mount, 'CONTRIBUTOR // STARTING');
+    updateProviderStatus(mount, 'WORKER // STARTING');
     try {
       const ready = await ensurePeerProviderReady();
       workerRunning = true;
       syncWorkerButtons();
-      updateProviderStatus(mount, 'CONTRIBUTOR // ONLINE');
+      updateProviderStatus(mount, 'WORKER // ONLINE');
       updateProviderHealth({ queue: 'listening' });
       setResult('pool-provider-result', { runner: 'peer_room_listening', relay: getPeerRelayMode(), inviteUrl: getPeerInviteUrl(), ...ready });
     } catch (error) {
@@ -415,7 +415,7 @@ export const bindProviderControls = () => {
       stopWorker();
       updateProviderHealth({ queue: 'stopped', model: 'load_failed' });
       setResult('pool-provider-result', displayPoolError(error, {
-        title: 'Contributor could not start',
+        title: 'Worker could not start',
         action: 'Load a compatible model first. If the manifest URL is missing, deploy the model artifacts or attach a Doppler runtime handle.',
         context: {
           runner: 'stopped',
@@ -449,7 +449,7 @@ export const bindReceiptControls = () => {
   button.addEventListener('click', async () => {
     const receiptHash = input.value.trim();
     if (!receiptHash) {
-      setResult('pool-receipt-result', { error: 'Receipt hash is required' });
+      setResult('pool-receipt-result', { error: 'Record hash is required' });
       return;
     }
     button.disabled = true;
@@ -459,7 +459,7 @@ export const bindReceiptControls = () => {
         setResult('pool-receipt-result', {
           status: 'not_found',
           receiptHash,
-          action: 'Submit a local peer-room job first, then inspect the receipt from this browser.'
+          action: 'Submit a local peer-room job first, then inspect the history from this browser.'
         });
         return;
       }

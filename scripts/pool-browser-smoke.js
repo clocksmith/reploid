@@ -11,13 +11,13 @@ if (!baseUrl) {
 }
 
 const { LAUNCH_MODEL } = await import('../self/pool/model-contract.js');
-const routes = ['/', '/ask', '/contribute', '/receipts', '/reputation', '/zero'];
+const routes = ['/', '/ask', '/compute', '/history', '/network', '/zero'];
 const requiredText = {
-  '/': 'signed receipt',
+  '/': 'Run browser models together',
   '/ask': 'Prompt',
-  '/contribute': 'Provider',
-  '/receipts': 'Receipts',
-  '/reputation': 'Reputation',
+  '/compute': 'Worker',
+  '/history': 'History',
+  '/network': 'Network',
   '/zero': 'Zero'
 };
 
@@ -110,6 +110,14 @@ const gotoRoute = async (targetPage, route) => {
   return response;
 };
 
+const clickPoolRoute = async (targetPage, route) => {
+  const nav = targetPage.locator('.pool-nav-rail');
+  await nav.waitFor({ timeout: 30000 });
+  const isOpen = await nav.evaluate((node) => node.open);
+  if (!isOpen) await nav.locator('.pool-nav-trigger').click();
+  await targetPage.locator(`[data-pool-route-link="${route}"]`).click();
+};
+
 for (const route of routes) {
   try {
     await gotoRoute(page, route);
@@ -129,14 +137,14 @@ try {
   await page.evaluate(() => {
     window.__REPLOID_POOL_SMOKE_MARKER = 'same-document-route';
   });
-  await page.click('[data-pool-route-link="/ask"]');
+  await clickPoolRoute(page, '/ask');
   await page.waitForFunction(() => window.location.pathname === '/ask');
   const runMarker = await page.evaluate(() => window.__REPLOID_POOL_SMOKE_MARKER);
   if (runMarker !== 'same-document-route') failures.push('route toggle to /ask reloaded the boot document');
-  await page.click('[data-pool-route-link="/contribute"]');
-  await page.waitForFunction(() => window.location.pathname === '/contribute');
+  await clickPoolRoute(page, '/compute');
+  await page.waitForFunction(() => window.location.pathname === '/compute');
   const meshMarker = await page.evaluate(() => window.__REPLOID_POOL_SMOKE_MARKER);
-  if (meshMarker !== 'same-document-route') failures.push('route toggle to /contribute reloaded the boot document');
+  if (meshMarker !== 'same-document-route') failures.push('route toggle to /compute reloaded the boot document');
 } catch (error) {
   failures.push(`same-document route smoke failed: ${error.message}`);
 }
@@ -145,7 +153,7 @@ try {
   const room = `pool-smoke-${Date.now().toString(36)}`;
   const provider = await context.newPage();
   const requester = await context.newPage();
-  await provider.goto(`${baseUrl}/contribute?room=${room}`, { waitUntil: 'domcontentloaded' });
+  await provider.goto(`${baseUrl}/compute?room=${room}`, { waitUntil: 'domcontentloaded' });
   await provider.waitForSelector('.pool-home', { timeout: 30000 });
   await provider.waitForSelector('#pool-provider-worker-start');
   await provider.click('#pool-provider-worker-start');
@@ -156,7 +164,7 @@ try {
   await requester.fill('#pool-run-prompt', 'browser peer smoke');
   await requester.click('#pool-run-submit');
   await requester.waitForFunction(() => document.body.textContent.includes('smoke:browser peer smoke'));
-  await requester.goto(`${baseUrl}/reputation?room=${room}`, { waitUntil: 'domcontentloaded' });
+  await requester.goto(`${baseUrl}/network?room=${room}`, { waitUntil: 'domcontentloaded' });
   await requester.waitForSelector('.pool-home', { timeout: 30000 });
   await requester.waitForSelector('#pool-peer-ledger', { timeout: 30000, state: 'attached' });
   const peerLedger = await requester.evaluate(() => {
@@ -168,7 +176,7 @@ try {
     };
   });
   if (!peerLedger.exists || (!peerLedger.hasLedgerTable && !peerLedger.text.includes('local peer ledger'))) {
-    failures.push('reputation route did not expose local peer ledger');
+    failures.push('network route did not expose local peer ledger');
   }
   await provider.close();
   await requester.close();

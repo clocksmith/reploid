@@ -10,7 +10,7 @@
     <link rel="icon" type="image/svg+xml" href="favicon.svg" />
     <title>Reploid</title>
     <script>
-    window.REPLOID_BUILD_VERSION = '2026070301';
+    window.REPLOID_BUILD_VERSION = '2026070302';
       window.REPLOID_SW_VERSION = window.REPLOID_BUILD_VERSION;
       window.REPLOID_VFS_VERSION = window.REPLOID_BUILD_VERSION;
     </script>
@@ -26,10 +26,10 @@
       const pathname = (window.location.pathname || '/').replace(/\/+$/, '') || '/';
       const productPaths = new Set([
         '/',
-        '/contribute',
+        '/compute',
         '/ask',
-        '/receipts',
-        '/reputation'
+        '/history',
+        '/network'
       ]);
       const productRoute = productPaths.has(pathname);
       const ROOT_SW_RELEASE_RELOAD_KEY = 'REPLOID_ROOT_SW_RELEASE_RELOAD';
