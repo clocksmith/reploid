@@ -160,6 +160,29 @@ describe('ReadFile', () => {
         .rejects.toThrow('File not found in VFS: /missing.txt');
     });
 
+    it('should resolve an exact existing file when the requested path has trailing typo characters', async () => {
+      mockVFS.stat.mockImplementation(async (path) => (
+        path === '/config/genesis-levels.json'
+          ? { size: 12, type: 'file' }
+          : null
+      ));
+      mockVFS.list.mockImplementation(async (path) => {
+        if (path === '/config') {
+          return ['/config/genesis-levels.json'];
+        }
+        return [];
+      });
+      mockVFS.read.mockResolvedValue('file content');
+
+      const result = await call({ path: '/config/genesis-levels.json_' }, { VFS: mockVFS });
+
+      expect(result.path).toBe('/config/genesis-levels.json');
+      expect(result.requestedPath).toBe('/config/genesis-levels.json_');
+      expect(result.resolvedFrom).toBe('/config/genesis-levels.json_');
+      expect(result.content).toBe('file content');
+      expect(mockVFS.read).toHaveBeenCalledWith('/config/genesis-levels.json');
+    });
+
     it('should suggest existing VFS files for near-miss paths', async () => {
       mockVFS.stat.mockResolvedValue(null);
       mockVFS.list.mockImplementation(async (path) => {
@@ -169,7 +192,7 @@ describe('ReadFile', () => {
         return [];
       });
 
-      await expect(call({ path: '/config/genesis-levels.json_' }, { VFS: mockVFS }))
+      await expect(call({ path: '/config/genesis-levels.jsox' }, { VFS: mockVFS }))
         .rejects.toThrow('Retry with ReadFile path: /config/genesis-levels.json.');
     });
   });

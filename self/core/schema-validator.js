@@ -655,8 +655,16 @@ const z = {
 const ReadFileResultSchema = z.object({
   content: z.string(),
   path: z.string(),
+  requestedPath: z.string().optional(),
+  resolvedFrom: z.string().optional(),
+  backend: z.string().optional(),
+  type: z.string().optional(),
   size: z.number().int().optional(),
-  encoding: z.string().optional()
+  bytes: z.number().int().optional(),
+  encoding: z.string().optional(),
+  data: z.string().optional(),
+  entries: z.array(z.string()).optional(),
+  range: z.unknown().optional()
 });
 
 /**
