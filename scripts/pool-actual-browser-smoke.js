@@ -229,10 +229,10 @@ const waitForProviderListening = async (page) => {
       lastObserved = observed;
     }
     if (parsed.status === 'error' || parsed.error) fail('Actual provider did not start', snapshot);
-    if (snapshot.providerStatus === 'NODE // OFFLINE' && (snapshot.raw || snapshot.message)) {
+    if (snapshot.providerStatus === 'CONTRIBUTOR // OFFLINE' && (snapshot.raw || snapshot.message)) {
       fail('Actual provider went offline before listening', snapshot);
     }
-    if (snapshot.providerStatus === 'NODE // SPAWNED' && parsed.runner === 'peer_room_listening') {
+    if (snapshot.providerStatus === 'CONTRIBUTOR // ONLINE' && parsed.runner === 'peer_room_listening') {
       console.log(`[actual-smoke] provider advert ${JSON.stringify(summarizeProviderAdvert(parsed.advert))}`);
       return 'ready';
     }
@@ -325,12 +325,12 @@ const runSingleReceipt = async (browser) => {
   const context = await browser.newContext();
   await installActualRuntimeConfig(context);
   try {
-    const providerPage = await openPoolPage(context, '/mesh', roomId, 'single-provider');
+    const providerPage = await openPoolPage(context, '/contribute', roomId, 'single-provider');
     await selectProviderModel(providerPage, SMOKE_MODEL.modelId);
     await expectEqual(await providerPage.locator('#pool-provider-model').inputValue(), SMOKE_MODEL.modelId, 'single provider model');
     await waitForProviderListening(providerPage);
 
-    const runPage = await openPoolPage(context, '/run', roomId, 'single-requester');
+    const runPage = await openPoolPage(context, '/ask', roomId, 'single-requester');
     const result = await runActualPrompt(runPage, 'Reply with exactly OK.');
     validateActualResult(result, 'single');
     console.log(`[actual-smoke] single receipt ${result.receiptHash}`);
@@ -344,13 +344,13 @@ const runQueuedReceipts = async (browser) => {
   const context = await browser.newContext();
   await installActualRuntimeConfig(context);
   try {
-    const providerPage = await openPoolPage(context, '/mesh', roomId, 'queue-provider');
+    const providerPage = await openPoolPage(context, '/contribute', roomId, 'queue-provider');
     await selectProviderModel(providerPage, SMOKE_MODEL.modelId);
     await expectEqual(await providerPage.locator('#pool-provider-model').inputValue(), SMOKE_MODEL.modelId, 'queue provider model');
     await waitForProviderListening(providerPage);
 
-    const firstRunPage = await openPoolPage(context, '/run', roomId, 'queue-requester-one');
-    const secondRunPage = await openPoolPage(context, '/run', roomId, 'queue-requester-two');
+    const firstRunPage = await openPoolPage(context, '/ask', roomId, 'queue-requester-one');
+    const secondRunPage = await openPoolPage(context, '/ask', roomId, 'queue-requester-two');
     const [first, second] = await Promise.all([
       runActualPrompt(firstRunPage, 'Reply with exactly A.'),
       runActualPrompt(secondRunPage, 'Reply with exactly B.')
@@ -481,14 +481,14 @@ const runTwelveProviderRing = async (browser) => {
   const context = await browser.newContext();
   await installActualRuntimeConfig(context);
   try {
-    const providerHubPage = await openPoolPage(context, '/mesh', roomId, 'ring12-provider-hub');
+    const providerHubPage = await openPoolPage(context, '/contribute', roomId, 'ring12-provider-hub');
     const providerRing = await startSharedRuntimeProviderRing(providerHubPage, roomId, providerCount);
     expectEqual(providerRing.providerCount, providerCount, 'ring12 shared provider count');
     expectEqual(providerRing.model.modelId, SMOKE_MODEL.modelId, 'ring12 shared runtime model');
     console.log(`[actual-smoke] ring12 shared runtime providers ${providerRing.providers.map((provider) => provider.providerId).join(' ')}`);
     const roomSummary = await waitForRoomProviderCount(roomId, providerCount);
     console.log(`[actual-smoke] ring12 room providers ${roomSummary.providerCount}/${providerCount}, messages ${roomSummary.messageCount}`);
-    const runPage = await openPoolPage(context, '/run', roomId, 'ring12-requester');
+    const runPage = await openPoolPage(context, '/ask', roomId, 'ring12-requester');
     const result = await runActualPrompt(runPage, 'Reply with exactly YES.', {
       policyId: 'ring_quorum_receipt'
     });

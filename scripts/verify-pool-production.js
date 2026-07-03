@@ -55,12 +55,11 @@ const requiredRewrites = [
   '/pool/signaling/**',
   '/pool/peer/**',
   '/',
-  '/run',
+  '/ask',
   '/contribute',
-  '/agents',
   '/receipts',
   '/reputation',
-  '/0',
+  '/zero',
   '/x'
 ];
 

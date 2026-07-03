@@ -9,7 +9,7 @@ const VFS_DB_NAME = 'reploid-vfs-v0';
 const VFS_STORE_NAME = 'files';
 const INSTANCE_QUERY_PARAM = 'instance';
 const INSTANCE_ID_MAX_LENGTH = 64;
-const LAB_RUNTIME_ROUTES = new Set(['/0', '/x']);
+const LAB_RUNTIME_ROUTES = new Set(['/zero', '/x']);
 const LAB_RUNTIME_ASSET_PATHS = new Set([
   '/blueprint-index.json',
   '/index.html',

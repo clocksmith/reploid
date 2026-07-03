@@ -193,7 +193,7 @@ const createPeerDiscoveryError = ({ roomId, requiredModel, discoveryWindowMs, ob
     observedProviders: observedAdverts,
     action: mismatch
       ? 'Start a contributor with the same selected model, or switch the request model to one the contributor advertises.'
-      : 'Open Mesh in another tab with the same room, click Start, then run the request again.'
+      : 'Open Contribute in another tab with the same room, click Start, then ask again.'
   };
   return error;
 };
@@ -665,6 +665,10 @@ export function createPeerProviderNode({
     activeExecutionSessions.add(activeEntry.sessionId);
     try {
       const result = await providerClient.executePeerAssignment(assignment, { promptPayload: payload });
+      if (stopped || !activeTransports.has(activeEntry)) {
+        releaseExecutionSlot(activeEntry?.sessionId);
+        return;
+      }
       const receiptRecord = {
         receiptHash: result.receiptHash,
         assignmentId: assignment.assignmentId,
@@ -688,6 +692,10 @@ export function createPeerProviderNode({
         fromPeerId: assignment.providerId,
         toPeerId: assignment.requesterId
       });
+      if (stopped || !activeTransports.has(activeEntry)) {
+        releaseExecutionSlot(activeEntry?.sessionId);
+        return;
+      }
       transport.send(receiptPayload);
       if (typeof onActivity === 'function') {
         onActivity({
@@ -704,6 +712,7 @@ export function createPeerProviderNode({
       }
     } catch (error) {
       releaseExecutionSlot(activeEntry?.sessionId);
+      if (stopped || !activeTransports.has(activeEntry)) return;
       sendProviderError({ assignment, activeEntry, transport, signaling, error });
     }
   };

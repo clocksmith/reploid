@@ -34,7 +34,7 @@ test('a claimed iteration produces input, trace, toolcall, score, mutation, deci
 
   await awakenWithMockGoal(
     page,
-    '/0',
+    '/zero',
     instanceId,
     'write an artifact-chain probe',
     writeResponse,

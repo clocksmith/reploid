@@ -1,6 +1,6 @@
 /**
  * E2E Test: P2P mesh
- * Drives the Run, Mesh, and Record routes through the browser peer room.
+ * Drives the Ask, Contribute, and Receipts routes through the browser peer room.
  */
 import { test, expect } from '@playwright/test';
 
@@ -162,14 +162,14 @@ const openPoolPage = async (context, baseURL, route, roomId) => {
 const startProviderPage = async (page) => {
   await expect(page.locator('#pool-provider-worker-start')).toBeVisible();
   await page.locator('#pool-provider-worker-start').click();
-  await expect(page.locator('[data-pool-provider-status]')).toHaveText('NODE // SPAWNED');
-  await expect(page.locator('#pool-provider-result')).toContainText('peer provider listening');
+  await expect(page.locator('[data-pool-provider-status]')).toHaveText('CONTRIBUTOR // ONLINE');
+  await expect(page.locator('#pool-provider-result')).toContainText('peer_room_listening');
 };
 
 const stopProviderPage = async (page) => {
   await expect(page.locator('#pool-provider-worker-stop')).toBeEnabled();
   await page.locator('#pool-provider-worker-stop').click();
-  await expect(page.locator('[data-pool-provider-status]')).toHaveText('NODE // OFFLINE');
+  await expect(page.locator('[data-pool-provider-status]')).toHaveText('CONTRIBUTOR // OFFLINE');
   await expect(page.locator('#pool-provider-result-raw')).toContainText('peer_provider_stopped');
   await expect(page.locator('#pool-provider-worker-start')).toBeEnabled();
   await expect(page.locator('#pool-provider-worker-stop')).toBeDisabled();
@@ -201,17 +201,17 @@ const closeContexts = async (contexts) => {
   await Promise.all(contexts.map((context) => context.close().catch(() => null)));
 };
 
-test.describe('Run, Mesh, Record peer room', () => {
-  test('preserves room context when Run opens before Mesh', async ({ browser, baseURL }, testInfo) => {
+test.describe('Ask, Contribute, Receipts peer room', () => {
+  test('preserves room context when Ask opens before Contribute', async ({ browser, baseURL }, testInfo) => {
     const roomId = roomIdFor(testInfo, 'run-first');
     const contexts = [];
     try {
       const context = await createPoolContext(browser, 'run_before_mesh');
       contexts.push(context);
-      const runPage = await openPoolPage(context, baseURL, '/run', roomId);
+      const runPage = await openPoolPage(context, baseURL, '/ask', roomId);
       await expect(runPage.locator('[data-pool-invite-link]')).toHaveAttribute('href', new RegExp(`room=${roomId}`));
 
-      const meshPage = await openPoolPage(context, baseURL, '/mesh', roomId);
+      const meshPage = await openPoolPage(context, baseURL, '/contribute', roomId);
       await startProviderPage(meshPage);
       await runPeerPrompt(runPage, 'run tab existed before mesh', 'fastest_receipt');
       const result = await readRunResult(runPage);
@@ -220,9 +220,9 @@ test.describe('Run, Mesh, Record peer room', () => {
       expect(result.transport).toBe('webrtc_peer_room');
       expect(result.outputText).toBe('e2e:run tab existed before mesh');
 
-      await runPage.getByRole('link', { name: 'Mesh', exact: true }).click();
+      await runPage.getByRole('link', { name: 'Contribute', exact: true }).click();
       await expect(runPage.locator('[data-pool-room-id]')).toHaveText(roomId);
-      await runPage.getByRole('link', { name: 'Record', exact: true }).click();
+      await runPage.getByRole('link', { name: 'Receipts', exact: true }).click();
       await expect(runPage.locator('[data-pool-room-id]')).toHaveText(roomId);
     } finally {
       await closeContexts(contexts);
@@ -235,7 +235,7 @@ test.describe('Run, Mesh, Record peer room', () => {
     try {
       const context = await createPoolContext(browser, 'provider_stop');
       contexts.push(context);
-      const providerPage = await openPoolPage(context, baseURL, '/mesh', roomId);
+      const providerPage = await openPoolPage(context, baseURL, '/contribute', roomId);
       await startProviderPage(providerPage);
       const firstStart = await readProviderResult(providerPage);
       const firstRoleId = firstStart.identity?.roleId;
@@ -246,7 +246,7 @@ test.describe('Run, Mesh, Record peer room', () => {
       const secondStart = await readProviderResult(providerPage);
       expect(secondStart.identity?.roleId).toBe(firstRoleId);
 
-      const secondProviderPage = await openPoolPage(context, baseURL, '/mesh', roomId);
+      const secondProviderPage = await openPoolPage(context, baseURL, '/contribute', roomId);
       await startProviderPage(secondProviderPage);
       const otherStart = await readProviderResult(secondProviderPage);
       expect(otherStart.identity?.roleId).toMatch(/^provider_/);
@@ -269,10 +269,10 @@ test.describe('Run, Mesh, Record peer room', () => {
         }
       });
       contexts.push(context);
-      const providerPage = await openPoolPage(context, baseURL, '/mesh', roomId);
+      const providerPage = await openPoolPage(context, baseURL, '/contribute', roomId);
 
       await providerPage.locator('#pool-provider-worker-start').click();
-      await expect(providerPage.locator('[data-pool-provider-status]')).toHaveText('NODE // OFFLINE');
+      await expect(providerPage.locator('[data-pool-provider-status]')).toHaveText('CONTRIBUTOR // OFFLINE');
       await expect(providerPage.locator('#pool-provider-result')).toContainText('Contributor could not start');
       await expect(providerPage.locator('#pool-provider-result-raw')).toContainText('synthetic load failure');
       await expect(providerPage.locator('#pool-provider-worker-start')).toBeEnabled();
@@ -290,11 +290,11 @@ test.describe('Run, Mesh, Record peer room', () => {
       contexts.push(context);
       const providerPages = [];
       for (let index = 0; index < 4; index += 1) {
-        providerPages.push(await openPoolPage(context, baseURL, '/mesh', roomId));
+        providerPages.push(await openPoolPage(context, baseURL, '/contribute', roomId));
       }
       await Promise.all(providerPages.map(startProviderPage));
 
-      const requesterPage = await openPoolPage(context, baseURL, '/run', roomId);
+      const requesterPage = await openPoolPage(context, baseURL, '/ask', roomId);
 
       await runPeerPrompt(requesterPage, 'five page browser quorum');
       const result = await readRunResult(requesterPage);
@@ -326,12 +326,13 @@ test.describe('Run, Mesh, Record peer room', () => {
       contexts.push(context);
       const providerPages = [];
       for (let index = 0; index < 12; index += 1) {
-        providerPages.push(await openPoolPage(context, baseURL, '/mesh', roomId));
+        providerPages.push(await openPoolPage(context, baseURL, '/contribute', roomId));
       }
       await Promise.all(providerPages.map(startProviderPage));
 
-      const runPage = await openPoolPage(context, baseURL, '/run', roomId);
-      const recordPage = await openPoolPage(context, baseURL, '/record', roomId);
+      const runPage = await openPoolPage(context, baseURL, '/ask', roomId);
+      const receiptsPage = await openPoolPage(context, baseURL, '/receipts', roomId);
+      const reputationPage = await openPoolPage(context, baseURL, '/reputation', roomId);
 
       await runPeerPrompt(runPage, 'twelve page browser quorum');
       const result = await readRunResult(runPage);
@@ -348,14 +349,17 @@ test.describe('Run, Mesh, Record peer room', () => {
       });
       expect(new Set(result.assignments.map((assignment) => assignment.providerId)).size).toBe(12);
 
-      await recordPage.reload({ waitUntil: 'domcontentloaded' });
-      await recordPage.waitForSelector('.pool-home');
-      await expect(recordPage.locator('#pool-peer-ledger [aria-label="Local peer ledger"]')).toBeVisible();
-      await expect(recordPage.locator('#pool-peer-ledger')).toContainText('Accepted');
+      await reputationPage.reload({ waitUntil: 'domcontentloaded' });
+      await reputationPage.waitForSelector('.pool-home');
+      await expect(reputationPage.locator('#pool-peer-ledger [aria-label="Local peer ledger"]')).toBeVisible();
+      await expect(reputationPage.locator('#pool-peer-ledger')).toContainText('Accepted');
 
-      await runPage.getByRole('link', { name: 'Record', exact: true }).click();
+      await runPage.getByRole('link', { name: 'Receipts', exact: true }).click();
       await expect(runPage.locator('[data-pool-room-id]')).toHaveText(roomId);
       await expect(runPage.locator('#pool-receipt-ledger')).toContainText('accepted');
+      await receiptsPage.reload({ waitUntil: 'domcontentloaded' });
+      await receiptsPage.waitForSelector('.pool-home');
+      await expect(receiptsPage.locator('#pool-receipt-ledger')).toContainText('accepted');
       await runPage.locator('#pool-receipt-hash').fill(result.receiptHash);
       await runPage.locator('#pool-receipt-lookup').click();
       await expect(runPage.locator('#pool-receipt-result-raw')).toContainText(result.receiptHash);
@@ -373,11 +377,11 @@ test.describe('Run, Mesh, Record peer room', () => {
     try {
       const context = await createPoolContext(browser, 'single_provider_queue', { generationDelayMs: 150 });
       contexts.push(context);
-      const providerPage = await openPoolPage(context, baseURL, '/mesh', roomId);
+      const providerPage = await openPoolPage(context, baseURL, '/contribute', roomId);
       await startProviderPage(providerPage);
 
-      const firstRunPage = await openPoolPage(context, baseURL, '/run', roomId);
-      const secondRunPage = await openPoolPage(context, baseURL, '/run', roomId);
+      const firstRunPage = await openPoolPage(context, baseURL, '/ask', roomId);
+      const secondRunPage = await openPoolPage(context, baseURL, '/ask', roomId);
 
       await Promise.all([
         runPeerPrompt(firstRunPage, 'queued browser request one', 'fastest_receipt'),
@@ -407,14 +411,14 @@ test.describe('Run, Mesh, Record peer room', () => {
     try {
       const context = await createPoolContext(browser, 'two_room_isolation');
       contexts.push(context);
-      const providerOne = await openPoolPage(context, baseURL, '/mesh', roomOne);
-      const providerTwo = await openPoolPage(context, baseURL, '/mesh', roomTwo);
+      const providerOne = await openPoolPage(context, baseURL, '/contribute', roomOne);
+      const providerTwo = await openPoolPage(context, baseURL, '/contribute', roomTwo);
       await Promise.all([startProviderPage(providerOne), startProviderPage(providerTwo)]);
       const providerStartOne = await readProviderResult(providerOne);
       const providerStartTwo = await readProviderResult(providerTwo);
 
-      const runOne = await openPoolPage(context, baseURL, '/run', roomOne);
-      const runTwo = await openPoolPage(context, baseURL, '/run', roomTwo);
+      const runOne = await openPoolPage(context, baseURL, '/ask', roomOne);
+      const runTwo = await openPoolPage(context, baseURL, '/ask', roomTwo);
       await Promise.all([
         runPeerPrompt(runOne, 'room one prompt', 'fastest_receipt'),
         runPeerPrompt(runTwo, 'room two prompt', 'fastest_receipt')
@@ -442,12 +446,12 @@ test.describe('Run, Mesh, Record peer room', () => {
       contexts.push(context);
       const providerPages = [];
       for (let index = 0; index < 4; index += 1) {
-        providerPages.push(await openPoolPage(context, baseURL, '/mesh', roomId));
+        providerPages.push(await openPoolPage(context, baseURL, '/contribute', roomId));
       }
       await Promise.all(providerPages.map(startProviderPage));
 
-      const firstRunPage = await openPoolPage(context, baseURL, '/run', roomId);
-      const secondRunPage = await openPoolPage(context, baseURL, '/run', roomId);
+      const firstRunPage = await openPoolPage(context, baseURL, '/ask', roomId);
+      const secondRunPage = await openPoolPage(context, baseURL, '/ask', roomId);
 
       await Promise.all([
         runPeerPrompt(firstRunPage, 'distributed browser quorum one'),

@@ -119,7 +119,7 @@ describe('pool peer rendezvous', () => {
     const invite = createPeerRoomInviteUrl({
       roomId: 'invite_room',
       relay: 'server',
-      baseUrl: 'https://reploid.example/run'
+      baseUrl: 'https://reploid.example/ask'
     });
     expect(parsePeerRoomInviteUrl(invite)).toEqual({
       roomId: 'invite_room',

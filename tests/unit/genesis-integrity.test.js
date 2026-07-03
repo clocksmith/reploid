@@ -10,7 +10,7 @@ import { LAB_ROUTE_PROFILES } from '../../self/config/lab-route-profiles.js';
 const genesisConfig = JSON.parse(readFileSync('self/config/genesis-levels.json', 'utf8'));
 
 describe('genesis integrity', () => {
-  it('/0 spark resolves the minimal bootstrapping module tier', () => {
+  it('/zero spark resolves the minimal bootstrapping module tier', () => {
     const modules = resolveBaseModules('spark', genesisConfig);
 
     expect(modules).toEqual(expect.arrayContaining([

@@ -1,5 +1,5 @@
 /**
- * E2E Test: /0 and /x boot contract
+ * E2E Test: /zero and /x boot contract
  * Verifies route, genesis, DI, tools, VFS, and service-worker readiness.
  */
 import { test, expect } from '@playwright/test';

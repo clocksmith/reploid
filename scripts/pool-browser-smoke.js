@@ -11,15 +11,14 @@ if (!baseUrl) {
 }
 
 const { LAUNCH_MODEL } = await import('../self/pool/model-contract.js');
-const routes = ['/', '/run', '/contribute', '/agents', '/receipts', '/reputation', '/0'];
+const routes = ['/', '/ask', '/contribute', '/receipts', '/reputation', '/zero'];
 const requiredText = {
-  '/': 'home',
-  '/run': 'Prompt',
-  '/contribute': 'Mesh',
-  '/agents': 'Mesh',
-  '/receipts': 'Record',
-  '/reputation': 'Record',
-  '/0': 'Zero'
+  '/': 'signed receipt',
+  '/ask': 'Prompt',
+  '/contribute': 'Provider',
+  '/receipts': 'Receipts',
+  '/reputation': 'Reputation',
+  '/zero': 'Zero'
 };
 
 const { chromium } = await import('@playwright/test');
@@ -103,7 +102,7 @@ const failures = [];
 const gotoRoute = async (targetPage, route) => {
   const response = await targetPage.goto(`${baseUrl}${route}`, { waitUntil: 'domcontentloaded' });
   if (!response || !response.ok()) failures.push(`${route} returned ${response?.status() || 'no response'}`);
-  if (route === '/0') {
+  if (route === '/zero') {
     await targetPage.waitForFunction(() => document.title === 'Zero' || document.body.textContent.includes('Zero'));
     return response;
   }
@@ -130,14 +129,14 @@ try {
   await page.evaluate(() => {
     window.__REPLOID_POOL_SMOKE_MARKER = 'same-document-route';
   });
-  await page.click('[data-pool-route-link="/run"]');
-  await page.waitForFunction(() => window.location.pathname === '/run');
+  await page.click('[data-pool-route-link="/ask"]');
+  await page.waitForFunction(() => window.location.pathname === '/ask');
   const runMarker = await page.evaluate(() => window.__REPLOID_POOL_SMOKE_MARKER);
-  if (runMarker !== 'same-document-route') failures.push('route toggle to /run reloaded the boot document');
-  await page.click('[data-pool-route-link="/mesh"]');
-  await page.waitForFunction(() => window.location.pathname === '/mesh');
+  if (runMarker !== 'same-document-route') failures.push('route toggle to /ask reloaded the boot document');
+  await page.click('[data-pool-route-link="/contribute"]');
+  await page.waitForFunction(() => window.location.pathname === '/contribute');
   const meshMarker = await page.evaluate(() => window.__REPLOID_POOL_SMOKE_MARKER);
-  if (meshMarker !== 'same-document-route') failures.push('route toggle to /mesh reloaded the boot document');
+  if (meshMarker !== 'same-document-route') failures.push('route toggle to /contribute reloaded the boot document');
 } catch (error) {
   failures.push(`same-document route smoke failed: ${error.message}`);
 }
@@ -151,7 +150,7 @@ try {
   await provider.waitForSelector('#pool-provider-worker-start');
   await provider.click('#pool-provider-worker-start');
   await provider.waitForFunction(() => document.body.textContent.includes('peer_room_listening'));
-  await requester.goto(`${baseUrl}/run?room=${room}`, { waitUntil: 'domcontentloaded' });
+  await requester.goto(`${baseUrl}/ask?room=${room}`, { waitUntil: 'domcontentloaded' });
   await requester.waitForSelector('.pool-home', { timeout: 30000 });
   await requester.waitForSelector('#pool-run-submit');
   await requester.fill('#pool-run-prompt', 'browser peer smoke');

@@ -44,7 +44,7 @@ describe('PersonaManager', () => {
     expect(prompt).not.toContain('all Web APIs');
   });
 
-  it('uses Zero filesystem discovery rules when booted in /0 mode', async () => {
+  it('uses Zero filesystem discovery rules when booted in /zero mode', async () => {
     vi.stubGlobal('window', {
       getReploidMode: () => 'zero'
     });

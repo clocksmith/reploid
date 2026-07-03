@@ -285,7 +285,7 @@
       "deterministic_event_reducers"
     ],
     "primaryRoutes": [
-      "/run",
+      "/ask",
       "/contribute"
     ],
     "messageTypes": [

@@ -34,7 +34,7 @@
           ]
         },
         {
-          "source": "/0",
+          "source": "/zero",
           "headers": [
             {
               "key": "Cache-Control",
@@ -223,23 +223,11 @@
           "destination": "/index.html"
         },
         {
-          "source": "/run",
-          "destination": "/index.html"
-        },
-        {
-          "source": "/mesh",
-          "destination": "/index.html"
-        },
-        {
-          "source": "/record",
+          "source": "/ask",
           "destination": "/index.html"
         },
         {
           "source": "/contribute",
-          "destination": "/index.html"
-        },
-        {
-          "source": "/agents",
           "destination": "/index.html"
         },
         {
@@ -251,7 +239,7 @@
           "destination": "/index.html"
         },
         {
-          "source": "/0",
+          "source": "/zero",
           "destination": "/index.html"
         },
         {

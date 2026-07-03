@@ -25,7 +25,7 @@ test('Seed to Shadow transition is recorded with cycle artifacts', async ({ page
 
   await awakenWithMockGoal(
     page,
-    '/0',
+    '/zero',
     instanceId,
     'write a state-machine probe artifact',
     writeResponse,

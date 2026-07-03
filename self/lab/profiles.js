@@ -1,5 +1,5 @@
 /**
- * @fileoverview Canonical /0 and /x lab profile registry.
+ * @fileoverview Canonical /zero and /x lab profile registry.
  *
  * X is defined as Zero plus enhanced starter capabilities. The boot substrate,
  * VFS, /self runtime semantics, promotion model, and tool contracts are shared.
@@ -72,7 +72,7 @@ const makeBootSpec = (profile) => Object.freeze({
 
 export const ZERO_LAB_PROFILE = defineLabProfile({
   id: 'zero',
-  route: '/0',
+  route: '/zero',
   label: 'zero',
   title: 'Zero',
   mode: 'zero',

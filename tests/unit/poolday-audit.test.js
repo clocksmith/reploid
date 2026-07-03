@@ -68,12 +68,15 @@ const assignmentFixture = async () => ({
 describe('Poolday audit boundaries', () => {
   it('keeps Poolday, Zero, and X route profiles separate', () => {
     expect(PRODUCT_ROUTES['/']).toBe('home');
-    expect(PRODUCT_ROUTES['/run']).toBe('run');
-    expect(PRODUCT_ROUTES['/mesh']).toBe('mesh');
-    expect(PRODUCT_ROUTES['/agents']).toBe('mesh');
-    expect(PRODUCT_ROUTES['/receipts']).toBe('record');
-    expect(PRODUCT_ROUTES['/reputation']).toBe('record');
-    expect(SELF_BOOT_SPEC.routes['/0']).toMatchObject({
+    expect(PRODUCT_ROUTES['/ask']).toBe('ask');
+    expect(PRODUCT_ROUTES['/contribute']).toBe('contribute');
+    expect(PRODUCT_ROUTES['/receipts']).toBe('receipts');
+    expect(PRODUCT_ROUTES['/reputation']).toBe('reputation');
+    expect(PRODUCT_ROUTES['/run']).toBeUndefined();
+    expect(PRODUCT_ROUTES['/mesh']).toBeUndefined();
+    expect(PRODUCT_ROUTES['/record']).toBeUndefined();
+    expect(PRODUCT_ROUTES['/agents']).toBeUndefined();
+    expect(SELF_BOOT_SPEC.routes['/zero']).toMatchObject({
       mode: 'zero',
       genesisLevel: 'spark',
       surface: 'zero',
@@ -85,7 +88,7 @@ describe('Poolday audit boundaries', () => {
       surface: 'x',
       productFacing: false
     });
-    expect(PRODUCT_ROUTES['/0']).toBeUndefined();
+    expect(PRODUCT_ROUTES['/zero']).toBeUndefined();
     expect(PRODUCT_ROUTES['/x']).toBeUndefined();
   });
 

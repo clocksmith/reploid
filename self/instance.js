@@ -10,7 +10,7 @@ export const REPLOID_DEFAULT_VFS_DB_NAME = 'reploid-vfs-v0';
 export const REPLOID_TAB_INSTANCE_STORAGE_KEY = 'REPLOID_TAB_INSTANCE_ID';
 
 const INSTANCE_ID_MAX_LENGTH = 64;
-const HIDDEN_AUTO_INSTANCE_PATHS = new Set(['/0', '/x']);
+const HIDDEN_AUTO_INSTANCE_PATHS = new Set(['/zero', '/x']);
 
 const getStorageTarget = (storage) => (
   storage && typeof storage.getItem === 'function' && typeof storage.setItem === 'function'

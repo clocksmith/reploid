@@ -102,8 +102,8 @@ describe('boot seed manifest', () => {
     expect(xBootFiles).toContain('styles/proto/index.css');
   });
 
-  it('routes /0 to the Zero tabula-rasa profile', () => {
-    expect(getRouteBootSpec('/0')).toMatchObject({
+  it('routes /zero to the Zero tabula-rasa profile', () => {
+    expect(getRouteBootSpec('/zero')).toMatchObject({
       mode: 'zero',
       bootProfile: 'zero_home',
       genesisLevel: 'spark',
@@ -112,7 +112,7 @@ describe('boot seed manifest', () => {
   });
 
   it('normalizes substrate route trailing slashes', () => {
-    expect(getRouteBootSpec('/0/')).toMatchObject({
+    expect(getRouteBootSpec('/zero/')).toMatchObject({
       mode: 'zero',
       bootProfile: 'zero_home'
     });

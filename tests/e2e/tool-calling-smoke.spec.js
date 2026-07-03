@@ -117,7 +117,7 @@ test.describe('tool calling smoke', () => {
       expect(badArgs.ok).toBe(false);
       expect(badArgs.message).toContain('Missing path');
 
-      if (routeCase.route === '/0') {
+      if (routeCase.route === '/zero') {
         const forbidden = await executeToolResult(page, 'SpawnWorker', {});
         expect(forbidden.ok).toBe(false);
         expect(forbidden.message).toMatch(/Tool (not found|not available)/);

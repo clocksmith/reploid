@@ -1,5 +1,5 @@
 /**
- * E2E Test: /0 one safe iteration.
+ * E2E Test: /zero one safe iteration.
  */
 import { test, expect } from '@playwright/test';
 import {
@@ -21,12 +21,12 @@ zero-safe-iteration
 EOF
 `;
 
-test('/0 completes one safe artifact-producing iteration', async ({ page }, testInfo) => {
+test('/zero completes one safe artifact-producing iteration', async ({ page }, testInfo) => {
   const instanceId = sanitizeInstanceId(`zero-one-safe-${testInfo.project.name}-${Date.now()}`);
 
   await awakenWithMockGoal(
     page,
-    '/0',
+    '/zero',
     instanceId,
     'write a timestamp note to /artifacts/probe.txt',
     response,

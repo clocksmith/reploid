@@ -80,7 +80,7 @@ const prepareBootstrapVisibility = (bootProfile, options = {}) => {
 
   if (quiet) return;
 
-  // Locked routes (/0, /x): keep wizard-container empty/hidden (boot contract: no
+  // Locked routes (/zero, /x): keep wizard-container empty/hidden (boot contract: no
   // wizard content before mirror:done). Show a minimal progress indicator in #app
   // instead so the viewport is never blank during VFS hydration.
   wizardContainer.style.display = 'none';
@@ -208,7 +208,7 @@ const SW_REGISTER_WAIT_MS = 3000;
 const SW_INSTANCE_REGISTER_ACK_MS = 1000;
 const SERVICE_WORKER_BOOT_PROFILES = new Set(['zero_home', 'x_home']);
 const SERVICE_WORKER_SCOPE_BY_BOOT_PROFILE = Object.freeze({
-  zero_home: '/0',
+  zero_home: '/zero',
   x_home: '/x'
 });
 const LEGACY_ROOT_SERVICE_WORKER_SCOPE = '/';

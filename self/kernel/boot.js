@@ -11,7 +11,7 @@ import {
   getCurrentReploidStorage as getScopedLocalStorage
 } from '../instance.js';
 
-const BUILD_VERSION = '2026070208';
+const BUILD_VERSION = '2026070301';
 const IMPORTMAP_ID = 'reploid-doppler-importmap';
 const BASE_ID = 'reploid-base';
 const CORE_STYLE_ID = 'reploid-core-style';
@@ -175,7 +175,7 @@ const installRuntimeGlobals = () => {
     return route?.bootProfile || 'reploid_home';
   };
 
-  window.isReploidHome = () => window.location.pathname === '/0';
+  window.isReploidHome = () => window.location.pathname === '/zero';
   window.isReploidProductHome = () => window.location.pathname === '/';
 
   window.getReploidMode = () => {
@@ -213,7 +213,7 @@ const installRuntimeGlobals = () => {
   };
 };
 
-const REPLOID_SERVICE_WORKER_SCOPE_PATHS = new Set(['/', '/0', '/x']);
+const REPLOID_SERVICE_WORKER_SCOPE_PATHS = new Set(['/', '/zero', '/x']);
 
 const normalizeServiceWorkerScopePath = (value = '/') => {
   const normalized = String(value || '/').replace(/\/+$/, '') || '/';
