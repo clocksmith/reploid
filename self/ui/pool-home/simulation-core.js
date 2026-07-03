@@ -44,6 +44,7 @@ const POINTER_SHOOTER_CAPTURE = 0.18;
 const POINTER_SHOOTER_HOLD_RATE = 18;
 const POINTER_SHOOTER_MOVE_RATE = 52;
 const POINTER_SHOOTER_MAX_SPAWN_PER_FRAME = 9;
+const PARTICLE_ROUTE_FADE_RATE = 0.16;
 
 export const clamp01 = (value) => Math.max(0, Math.min(1, value));
 export const clampRange = (value, min, max) => Math.max(min, Math.min(max, value));
@@ -312,7 +313,7 @@ const createTopologyTransition = (fromPoints, toPoints, mode = 'arc', span = POO
     cueStart: clamp01(options.cueStart || 0),
     twist: (options.random?.() || 0) > 0.5 ? 1 : -1,
     linePairs,
-    settledLineSpecs: linePairs.map((pair) => pair.to),
+    settledLineSpecs: toLineSpecs,
     controls: Object.fromEntries(POOLDAY_GRAPH_NODE_IDS.map((id, index) => {
       const from = fromPoints[id] || { x: 0.5, y: 0.5 };
       const to = toPoints[id] || from;
@@ -592,7 +593,9 @@ export const createPoolSimulationState = () => {
     tone: index % 4,
     participantIndex: index % participantSpecs.length,
     phase: index * 0.47,
-    size: (2.7 + (index % 4) * 0.74) * POOLDAY_FLOW_TUNING.particleScale
+    size: (2.7 + (index % 4) * 0.74) * POOLDAY_FLOW_TUNING.particleScale,
+    routeId: '',
+    routeBlend: 1
   }));
   const pointerShots = Array.from({ length: POINTER_SHOOTER_PARTICLE_COUNT }, (_, index) => ({
     index,
@@ -605,7 +608,8 @@ export const createPoolSimulationState = () => {
     speed: 1,
     originX: 0.5,
     originY: 0.5,
-    toneIndex: index
+    toneIndex: index,
+    lineRouteId: ''
   }));
   const frameParticles = [
     ...particles.map((particle) => createFrameParticle(particle.index)),
@@ -730,6 +734,38 @@ const resolveTransitionBlend = (transition) => {
   return transition?.profile?.ease === 'sinePlateau'
     ? easeSinePlateau(bounded)
     : easeInOutSine(bounded);
+};
+
+const resolveLineRouteId = (line) => (
+  line?.toRouteId || line?.routeId || line?.fromRouteId || ''
+);
+
+const lineMatchesRoute = (line, routeId) => Boolean(routeId) && (
+  line?.routeId === routeId
+  || line?.toRouteId === routeId
+  || line?.fromRouteId === routeId
+);
+
+const findLineByRouteId = (lines, routeId) => {
+  if (!routeId) return null;
+  return lines.find((line) => lineMatchesRoute(line, routeId)) || null;
+};
+
+const pickParticleLine = (particle, lines) => {
+  if (!lines.length) return null;
+  const routedLine = findLineByRouteId(lines, particle.routeId);
+  if (routedLine) {
+    const nextRouteId = resolveLineRouteId(routedLine);
+    if (nextRouteId) particle.routeId = nextRouteId;
+    return routedLine;
+  }
+  const nextLine = lines[particle.edgeIndex % lines.length] || lines[0];
+  const nextRouteId = resolveLineRouteId(nextLine);
+  if (particle.routeId && particle.routeId !== nextRouteId) {
+    particle.routeBlend = 0;
+  }
+  particle.routeId = nextRouteId;
+  return nextLine;
 };
 
 const easeOutQuart = (value) => {
@@ -868,6 +904,7 @@ const spawnPointerShot = (state, lines, width, height) => {
   shot.originX = originX;
   shot.originY = originY;
   shot.toneIndex = (nearest.bestLine.toneIndex ?? serial) + (serial % 7);
+  shot.lineRouteId = resolveLineRouteId(nearest.bestLine);
   pointer.shotCursor = (slot + 1) % state.pointerShots.length;
   pointer.shotSerial += 1;
   return true;
@@ -919,12 +956,13 @@ const writePointerShooterParticles = (state, lines, width, height, safeDelta, ti
       hidePointerShotFrame(target, index);
       continue;
     }
-    const line = lines[shot.lineIndex % lines.length];
+    const line = findLineByRouteId(lines, shot.lineRouteId) || lines[shot.lineIndex % lines.length];
     if (!line) {
       shot.active = false;
       hidePointerShotFrame(target, index);
       continue;
     }
+    shot.lineRouteId = resolveLineRouteId(line) || shot.lineRouteId;
     shot.age += safeDelta;
     const lifeProgress = shot.age / Math.max(0.001, shot.life);
     const routeProgress = shot.start + shot.direction * shot.age * shot.speed * (line.speed || 1) * flowScale * 0.38;
@@ -1064,7 +1102,7 @@ export const buildPoolSimulationFrame = (state, width, height, deltaSeconds = SI
     ? (state.layout.transition.cueStart || 0) * Math.pow(1 - transitionProgress, 1.35)
     : 0;
   const topologyCue = Math.max(state.layout.anticipation || 0, carriedCue, transitionSignal * 0.58);
-  const countdownProgress = Math.max(state.layout.anticipation || 0, transitionSignal);
+  const countdownProgress = Math.max(state.layout.anticipation || 0, carriedCue, transitionSignal);
   const orbitCue = easeInOutCubic(topologyCue);
   const anchorMotionScale = state.layout.transition
     ? 1
@@ -1125,7 +1163,7 @@ export const buildPoolSimulationFrame = (state, width, height, deltaSeconds = SI
   const renderParticleScratch = state.frameParticles;
   for (let index = 0; index < state.particles.length; index += 1) {
     const particle = state.particles[index];
-    const line = lines[particle.edgeIndex % Math.max(1, lines.length)];
+    const line = pickParticleLine(particle, lines);
     const participant = participants[particle.participantIndex % participants.length];
     const flowPulse = Math.sin(time * 6.2 + particle.phase) * 0.5 + 0.5;
     const progress = resolveParticleProgress(particle, line, participant, time, flowScale);
@@ -1141,12 +1179,19 @@ export const buildPoolSimulationFrame = (state, width, height, deltaSeconds = SI
     const particleScale = line?.particleScale ?? 1;
     const sizeWidth = line?.width ?? 1;
     const sizeScale = particleScale * (0.88 + Math.min(3, sizeWidth) * 0.075);
+    particle.routeBlend = lerpToward(particle.routeBlend ?? 1, 1, PARTICLE_ROUTE_FADE_RATE, safeDelta);
     const target = renderParticleScratch[index];
     target.index = particle.index;
     target.x = point.x;
     target.y = point.y;
     target.size = (particle.size + flowPulse * 2.45 + participant.pulse * 0.9) * sizeScale;
-    target.alpha = clamp01((0.34 + flowPulse * 0.60) * (0.84 + state.layout.flowEnergy * 0.22) * flowAlpha * visibility);
+    target.alpha = clamp01(
+      (0.34 + flowPulse * 0.60)
+      * (0.84 + state.layout.flowEnergy * 0.22)
+      * flowAlpha
+      * visibility
+      * (particle.routeBlend ?? 1)
+    );
     target.tone = line?.tone || 'rainbow';
     target.toneIndex = line?.toneIndex ?? particle.tone;
     target.toneTo = line?.toneTo || null;

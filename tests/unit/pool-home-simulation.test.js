@@ -20,6 +20,7 @@ import {
   POOLDAY_GRAPH_TOPOLOGIES,
   SIMULATION_TARGET_STEP_MS
 } from '../../self/ui/pool-home/constants.js';
+import { buildSimulationLineSpecs } from '../../self/ui/pool-home/simulation-flow-specs.js';
 
 const withSimulationSearch = (search, callback) => {
   const descriptor = Object.getOwnPropertyDescriptor(globalThis, 'location');
@@ -421,6 +422,59 @@ describe('pool home simulation performance contracts', () => {
       }
 
       expect(handoffFrame.transitionRelease).toBeLessThan(0.05);
+    });
+  });
+
+  it('carries cue progress into topology transitions without dropping ring effects', () => {
+    withSimulationSearch('?seed=cue-check&shape=runner_reduce', () => {
+      const state = createPoolSimulationState();
+      const width = 1200;
+      const height = 680;
+      const step = 1 / 60;
+      let previousFrame = null;
+      let transitionStartFrame = null;
+      let previousCountdown = 0;
+
+      for (let frameIndex = 0; frameIndex < 1800; frameIndex += 1) {
+        const frame = buildPoolSimulationFrame(state, width, height, step);
+        if (previousFrame && !previousFrame.transitionActive && frame.transitionActive) {
+          transitionStartFrame = frame;
+          previousCountdown = previousFrame.countdownProgress;
+          break;
+        }
+        previousFrame = { ...frame };
+      }
+
+      expect(transitionStartFrame).toBeTruthy();
+      expect(previousCountdown).toBeGreaterThan(0.80);
+      expect(transitionStartFrame.countdownProgress).toBeGreaterThan(0.80);
+      expect(Math.abs(transitionStartFrame.countdownProgress - previousCountdown)).toBeLessThan(0.12);
+      expect(transitionStartFrame.topologyCue).toBeGreaterThan(0.80);
+    });
+  });
+
+  it('settles topology transitions to canonical edge presets without retaining faded lines', () => {
+    withSimulationSearch('?seed=edge-settle-check&shape=runner_reduce', () => {
+      const state = createPoolSimulationState();
+      const width = 1200;
+      const height = 680;
+      const step = 1 / 60;
+      let previousTransitionActive = false;
+      let settledTransitions = 0;
+
+      for (let frameIndex = 0; frameIndex < 5200 && settledTransitions < 4; frameIndex += 1) {
+        const frame = buildPoolSimulationFrame(state, width, height, step);
+        if (previousTransitionActive && !frame.transitionActive) {
+          const expectedSpecs = buildSimulationLineSpecs(state.layout.edgePreset);
+          expect(state.layout.edgeSpecs).toHaveLength(expectedSpecs.length);
+          expect(state.layout.edgeSpecs.map((spec) => spec.routeId)).toEqual(expectedSpecs.map((spec) => spec.routeId));
+          expect(state.layout.edgeSpecs.every((spec) => (spec.alpha ?? 1) > 0 && (spec.flowAlpha ?? 1) > 0)).toBe(true);
+          settledTransitions += 1;
+        }
+        previousTransitionActive = frame.transitionActive;
+      }
+
+      expect(settledTransitions).toBe(4);
     });
   });
 
