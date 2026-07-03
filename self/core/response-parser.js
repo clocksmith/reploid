@@ -19,7 +19,7 @@ const ResponseParser = {
     const TOP_LEVEL_DIRECTIVE_REGEX = /^(?:REPLOID\/\d+|PLAN:|TOOL:\s*[a-zA-Z0-9_]+|TOOL_CALL:\s*[a-zA-Z0-9_]+|MILESTONE:|DONE:|IDLE:|PARK:)/;
     const REPLTOOL_HEADER_REGEX = /^REPLOID\/\d+\s*$/;
     const PLAN_DIRECTIVE_REGEX = /^PLAN:\s*(.*)$/;
-    const TOOL_DIRECTIVE_REGEX = /^TOOL:\s*([a-zA-Z0-9_]+)(?:\s+(\{.*\}))?\s*$/;
+    const TOOL_DIRECTIVE_REGEX = /^TOOL:\s*([a-zA-Z0-9_]+)(?:\s+(.*))?$/;
     const INLINE_ARG_REGEX = /^([a-zA-Z0-9_.-]+)\s*:\s*(.*)$/;
     const BLOCK_ARG_REGEX = /^([a-zA-Z0-9_.-]+)\s*(?::\s*)?<<\s*([A-Za-z0-9_-]+)\s*$/;
     const LEGACY_TOOL_CALL_REGEX = /TOOL_CALL:\s*([a-zA-Z0-9_]+)\s*\nARGS:\s*/g;
@@ -77,6 +77,41 @@ const ResponseParser = {
       }
     };
 
+    const parseInlineArgPairs = (rawLine) => {
+      const value = String(rawLine || '').trim();
+      if (!value) return { matched: false, value: null, error: null };
+
+      const pairs = [];
+      const keyRegex = /(?:^|\s)([a-zA-Z0-9_.-]+)\s*:\s+/g;
+      let match;
+      while ((match = keyRegex.exec(value)) !== null) {
+        pairs.push({
+          key: match[1],
+          valueStart: match.index + match[0].length,
+          matchStart: match.index
+        });
+      }
+
+      if (pairs.length === 0) {
+        return { matched: false, value: null, error: null };
+      }
+
+      const parsed = {};
+      for (let i = 0; i < pairs.length; i++) {
+        const pair = pairs[i];
+        const valueEnd = i + 1 < pairs.length ? pairs[i + 1].matchStart : value.length;
+        const rawValue = value.slice(pair.valueStart, valueEnd).trim();
+
+        try {
+          parsed[pair.key] = parseScalarValue(rawValue);
+        } catch (error) {
+          return { matched: true, value: null, error: error.message };
+        }
+      }
+
+      return { matched: true, value: parsed, error: null };
+    };
+
     const normalizePlanDeps = (value) => {
       if (value === undefined || value === null || value === '') return [];
       if (Array.isArray(value)) {
@@ -111,6 +146,13 @@ const ResponseParser = {
       const normalized = String(line || '').trimStart();
       return TOP_LEVEL_DIRECTIVE_REGEX.test(normalized) || isToolBatchSeparator(normalized);
     };
+
+    const normalizeInlineReploidProtocol = (text) => String(text || '')
+      .split(/\r?\n/)
+      .map((line) => String(line || '')
+        .replace(/\b(REPLOID\/\d+)\s+(?=(?:PLAN:|TOOL:|DONE:|IDLE:|PARK:))/g, '$1\n')
+        .replace(/\s+---\s+(?=(?:REPLOID\/\d+|PLAN:|TOOL:|DONE:|IDLE:|PARK:))/g, '\n---\n'))
+      .join('\n');
 
     const readPlanJson = (lines, startIndex, initialText = '') => {
       let index = startIndex;
@@ -200,7 +242,7 @@ const ResponseParser = {
     const parseReploidToolCalls = (text) => {
       if (!text || typeof text !== 'string') return [];
 
-      const lines = text.split(/\r?\n/);
+      const lines = normalizeInlineReploidProtocol(text).split(/\r?\n/);
       const calls = [];
       let index = 0;
 
@@ -234,12 +276,24 @@ const ResponseParser = {
         const name = toolMatch[1];
         const args = {};
         let error = null;
-        const inlineObjectArgs = parseObjectArgsLine(toolMatch[2] || '');
+        const inlineArgsText = toolMatch[2] || '';
+        const inlineObjectArgs = parseObjectArgsLine(inlineArgsText);
         if (inlineObjectArgs.matched) {
           if (inlineObjectArgs.error) {
             error = inlineObjectArgs.error;
           } else {
             Object.assign(args, inlineObjectArgs.value);
+          }
+        } else {
+          const inlinePairs = parseInlineArgPairs(inlineArgsText);
+          if (inlinePairs.matched) {
+            if (inlinePairs.error) {
+              error = inlinePairs.error;
+            } else {
+              Object.assign(args, inlinePairs.value);
+            }
+          } else if (inlineArgsText.trim()) {
+            error = `Invalid inline tool args: ${inlineArgsText.trim()}`;
           }
         }
         index++;

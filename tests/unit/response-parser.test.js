@@ -186,6 +186,49 @@ path: /ui/boot-home/`;
         expect(calls[2]).toEqual({ name: 'ListFiles', args: { path: '/ui/boot-home/' } });
       });
 
+      it('should parse one-line REPLOID/0 tool calls with inline args', () => {
+        const text = 'REPLOID/0 TOOL: ReadFile path: /blueprint-index.json binary: true length: 5000 offset: 0';
+
+        const calls = responseParser.parseToolCalls(text);
+
+        expect(calls).toHaveLength(1);
+        expect(calls[0]).toEqual({
+          name: 'ReadFile',
+          args: {
+            path: '/blueprint-index.json',
+            binary: true,
+            length: 5000,
+            offset: 0
+          }
+        });
+      });
+
+      it('should parse one-line REPLOID/0 batched tool calls separated by markdown rules', () => {
+        const text = 'REPLOID/0 TOOL: ListTools {} --- TOOL: ReadFile path: /blueprint-index.json --- TOOL: ListFiles path: /ui/boot-home/';
+
+        const calls = responseParser.parseToolCalls(text);
+
+        expect(calls).toHaveLength(3);
+        expect(calls[0]).toEqual({ name: 'ListTools', args: {} });
+        expect(calls[1]).toEqual({ name: 'ReadFile', args: { path: '/blueprint-index.json' } });
+        expect(calls[2]).toEqual({ name: 'ListFiles', args: { path: '/ui/boot-home/' } });
+      });
+
+      it('should keep colons inside one-line REPLOID/0 arg values', () => {
+        const text = 'REPLOID/0 TOOL: Fetch url: https://example.com/a:b mode: read';
+
+        const calls = responseParser.parseToolCalls(text);
+
+        expect(calls).toHaveLength(1);
+        expect(calls[0]).toEqual({
+          name: 'Fetch',
+          args: {
+            url: 'https://example.com/a:b',
+            mode: 'read'
+          }
+        });
+      });
+
       it('should parse REPLOID/0 literal blocks without JSON escaping', () => {
         const text = `REPLOID/0
 
