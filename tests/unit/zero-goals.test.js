@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   DEFAULT_ZERO_GOAL,
   ZERO_GOAL_CHOICES,
+  getGoalCategories,
   getRandomZeroGoal
 } from '../../self/ui/boot-wizard/goals.js';
 
@@ -57,5 +58,15 @@ describe('Zero goal presets', () => {
       level: expect.any(Number)
     }));
     expect(nextGoal.text).not.toBe(currentGoal);
+  });
+
+  it('makes the Katamari default target the live browser runtime area', () => {
+    expect(DEFAULT_ZERO_GOAL).toContain('injected into the current page/runtime area');
+    expect(DEFAULT_ZERO_GOAL).toContain('live buttons, cards, and forms');
+
+    const katamariBootGoal = getGoalCategories()['L0: Basic Functions']
+      .find((goal) => goal.view === 'Katamari DOM');
+    expect(katamariBootGoal.text).toContain('injects into the current browser runtime area');
+    expect(katamariBootGoal.text).toContain('live page elements');
   });
 });
