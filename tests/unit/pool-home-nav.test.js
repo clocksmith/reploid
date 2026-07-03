@@ -45,10 +45,13 @@ describe('poolday home navigation', () => {
   it('renders collapsed active route links from the shared nav route list', () => {
     const html = renderNav('compute');
 
-    expect(html).toContain('<details class="pool-nav-rail"');
-    expect(html).toContain('<summary class="pool-nav-trigger"');
-    expect(html).toContain('pool-nav-trigger-icon');
-    expect(html).toContain('☰');
+    expect(html).toContain('<nav class="pool-nav-rail"');
+    expect(html).toContain('<button class="pool-nav-toggle"');
+    expect(html).toContain('pool-nav-mark');
+    expect(html).toContain('pool-nav-mark-seven-top');
+    expect(html).not.toContain('<details');
+    expect(html).not.toContain('<summary');
+    expect(html).not.toContain('☰');
     expect(html).toContain('href="/" data-pool-route-link="/"');
     expect(html).toContain('href="/ask" data-pool-route-link="/ask"');
     expect(html).toContain('href="/compute" data-pool-route-link="/compute" aria-current="page"');

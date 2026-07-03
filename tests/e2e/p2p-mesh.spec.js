@@ -163,8 +163,9 @@ const openPoolPage = async (context, baseURL, route, roomId) => {
 
 const openPoolNav = async (page) => {
   const nav = page.locator('.pool-nav-rail');
-  if (await nav.getAttribute('open') === null) {
-    await nav.locator('.pool-nav-trigger').click();
+  const isOpen = await nav.evaluate((node) => node.classList.contains('is-open'));
+  if (!isOpen) {
+    await nav.locator('.pool-nav-toggle').click();
   }
 };
 

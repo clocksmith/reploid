@@ -113,8 +113,8 @@ const gotoRoute = async (targetPage, route) => {
 const clickPoolRoute = async (targetPage, route) => {
   const nav = targetPage.locator('.pool-nav-rail');
   await nav.waitFor({ timeout: 30000 });
-  const isOpen = await nav.evaluate((node) => node.open);
-  if (!isOpen) await nav.locator('.pool-nav-trigger').click();
+  const isOpen = await nav.evaluate((node) => node.classList.contains('is-open'));
+  if (!isOpen) await nav.locator('.pool-nav-toggle').click();
   await targetPage.locator(`[data-pool-route-link="${route}"]`).click();
 };
 
@@ -133,18 +133,20 @@ for (const route of routes) {
 }
 
 try {
-  await gotoRoute(page, '/');
-  await page.evaluate(() => {
+  const routePage = await context.newPage();
+  await gotoRoute(routePage, '/');
+  await routePage.evaluate(() => {
     window.__REPLOID_POOL_SMOKE_MARKER = 'same-document-route';
   });
-  await clickPoolRoute(page, '/ask');
-  await page.waitForFunction(() => window.location.pathname === '/ask');
-  const runMarker = await page.evaluate(() => window.__REPLOID_POOL_SMOKE_MARKER);
+  await clickPoolRoute(routePage, '/ask');
+  await routePage.waitForFunction(() => window.location.pathname === '/ask');
+  const runMarker = await routePage.evaluate(() => window.__REPLOID_POOL_SMOKE_MARKER);
   if (runMarker !== 'same-document-route') failures.push('route toggle to /ask reloaded the boot document');
-  await clickPoolRoute(page, '/compute');
-  await page.waitForFunction(() => window.location.pathname === '/compute');
-  const meshMarker = await page.evaluate(() => window.__REPLOID_POOL_SMOKE_MARKER);
+  await clickPoolRoute(routePage, '/compute');
+  await routePage.waitForFunction(() => window.location.pathname === '/compute');
+  const meshMarker = await routePage.evaluate(() => window.__REPLOID_POOL_SMOKE_MARKER);
   if (meshMarker !== 'same-document-route') failures.push('route toggle to /compute reloaded the boot document');
+  await routePage.close();
 } catch (error) {
   failures.push(`same-document route smoke failed: ${error.message}`);
 }

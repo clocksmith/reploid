@@ -776,25 +776,26 @@ export const setResult = (id, value, options = {}) => {
 };
 
 export const renderNav = (activeRoute) => {
-  const activeLabel = POOLDAY_NAV_ROUTES.find((route) => route.id === activeRoute)?.label || POOLDAY_NAME;
   const renderItem = ({ id, path, label }) => {
     const isActive = activeRoute === id;
     const currentAttr = isActive ? ' aria-current="page"' : '';
     return `<a class="pool-nav-link${isActive ? ' is-active' : ''}" href="${path}" data-pool-route-link="${path}"${currentAttr}>${escapeHtml(label)}</a>`;
   };
   return `
-    <details class="pool-nav-rail" aria-label="Reploid navigation">
-      <summary class="pool-nav-trigger" aria-label="Open Reploid navigation">
-        <span class="pool-nav-trigger-icon" aria-hidden="true">☰</span>
-        <strong>${escapeHtml(activeLabel)}</strong>
-      </summary>
-      <nav class="pool-nav" aria-label="Reploid routes">
+    <nav class="pool-nav-rail" aria-label="Navigation">
+      <button class="pool-nav-toggle" type="button" aria-label="Open navigation" aria-controls="pool-nav-menu" aria-expanded="false">
+        <span class="pool-nav-mark" aria-hidden="true">
+          <span class="pool-nav-mark-seven pool-nav-mark-seven-top">7</span>
+          <span class="pool-nav-mark-seven pool-nav-mark-seven-bottom">7</span>
+        </span>
+      </button>
+      <div class="pool-nav-menu" id="pool-nav-menu" hidden>
         ${POOLDAY_NAV_ROUTES.map(renderItem).join('')}
         <span class="pool-nav-divider" aria-hidden="true"></span>
         <a class="pool-nav-link pool-nav-substrate-link pool-zero-link link-secondary" href="/zero" data-pool-substrate-route="/zero" title="Open Zero Runtime.">Zero</a>
         <a class="pool-nav-link pool-nav-substrate-link pool-zero-link link-secondary" href="/x" data-pool-substrate-route="/x" title="Open X Runtime.">X</a>
-      </nav>
-    </details>
+      </div>
+    </nav>
   `;
 };
 
