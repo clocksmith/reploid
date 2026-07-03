@@ -2020,6 +2020,21 @@ body[data-pool-route-id='home'] #app {
   opacity: var(--opacity-soft);
 }
 
+.pool-nav-trigger .pool-nav-trigger-icon {
+  display: inline-flex;
+  width: 22px;
+  height: 22px;
+  align-items: center;
+  justify-content: center;
+  border: var(--border-sm) solid var(--fg);
+  font-family: var(--font-mono);
+  font-size: 15px;
+  line-height: 1;
+  letter-spacing: 0;
+  opacity: 1;
+  text-transform: none;
+}
+
 .pool-nav-trigger strong {
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-bold);

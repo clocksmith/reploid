@@ -18,7 +18,7 @@ describe('poolday home navigation', () => {
       'network'
     ]);
     expect(POOLDAY_NAV_ROUTES).toEqual([
-      { id: 'home', path: '/', label: 'Reploid' },
+      { id: 'home', path: '/', label: 'Home' },
       { id: 'ask', path: '/ask', label: 'Ask' },
       { id: 'compute', path: '/compute', label: 'Compute' },
       { id: 'history', path: '/history', label: 'History' },
@@ -47,6 +47,8 @@ describe('poolday home navigation', () => {
 
     expect(html).toContain('<details class="pool-nav-rail"');
     expect(html).toContain('<summary class="pool-nav-trigger"');
+    expect(html).toContain('pool-nav-trigger-icon');
+    expect(html).toContain('☰');
     expect(html).toContain('href="/" data-pool-route-link="/"');
     expect(html).toContain('href="/ask" data-pool-route-link="/ask"');
     expect(html).toContain('href="/compute" data-pool-route-link="/compute" aria-current="page"');
