@@ -101,10 +101,11 @@ test.describe('Route Entry Points', () => {
     await expect(page.locator('.pool-topbar')).toHaveCount(0);
     await expect(page.locator('.pool-home')).toHaveAttribute('data-pool-route-id', 'home');
     await expect(nav).not.toHaveAttribute('open', '');
-    await expect(nav.locator('.pool-nav-trigger')).toContainText('Reploid');
+    await expect(nav.locator('.pool-nav-trigger')).toContainText('☰');
+    await expect(nav.locator('.pool-nav-trigger')).toContainText('Home');
     await nav.locator('.pool-nav-trigger').click();
-    await expect(nav.getByRole('link', { name: 'Reploid', exact: true })).toBeVisible();
-    await expect(nav.getByRole('link', { name: 'Reploid', exact: true })).toHaveAttribute('aria-current', 'page');
+    await expect(nav.getByRole('link', { name: 'Home', exact: true })).toBeVisible();
+    await expect(nav.getByRole('link', { name: 'Home', exact: true })).toHaveAttribute('aria-current', 'page');
     await expect(nav.getByRole('link', { name: 'Ask', exact: true })).toBeVisible();
     await expect(nav.getByRole('link', { name: 'Compute', exact: true })).toBeVisible();
     await expect(nav.getByRole('link', { name: 'History', exact: true })).toBeVisible();
@@ -221,7 +222,7 @@ test.describe('Route Entry Points', () => {
     expect(mobile.scrollHeight).toBeLessThanOrEqual(mobile.viewportHeight + 1);
     const mobileNav = page.locator('.pool-nav-rail');
     await mobileNav.locator('.pool-nav-trigger').click();
-    await expect(mobileNav.getByRole('link', { name: 'Reploid', exact: true })).toBeVisible();
+    await expect(mobileNav.getByRole('link', { name: 'Home', exact: true })).toBeVisible();
     await expect(mobileNav.getByRole('link', { name: 'Ask', exact: true })).toBeVisible();
     await expect(mobileNav.getByRole('link', { name: 'Compute', exact: true })).toBeVisible();
     await expect(mobileNav.getByRole('link', { name: 'History', exact: true })).toBeVisible();

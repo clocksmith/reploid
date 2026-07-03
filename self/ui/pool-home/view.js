@@ -785,7 +785,7 @@ export const renderNav = (activeRoute) => {
   return `
     <details class="pool-nav-rail" aria-label="Reploid navigation">
       <summary class="pool-nav-trigger" aria-label="Open Reploid navigation">
-        <span>Menu</span>
+        <span class="pool-nav-trigger-icon" aria-hidden="true">☰</span>
         <strong>${escapeHtml(activeLabel)}</strong>
       </summary>
       <nav class="pool-nav" aria-label="Reploid routes">

@@ -18,7 +18,7 @@ export const POOLDAY_ROUTE_DEFINITIONS = Object.freeze([
   createPooldayRoute({
     id: 'home',
     path: '/',
-    label: 'Reploid',
+    label: 'Home',
     eyebrow: POOLDAY_PROTOCOL,
     title: POOLDAY_NAME,
     body: 'Run browser models together.'
