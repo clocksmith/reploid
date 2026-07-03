@@ -29,7 +29,7 @@ export const POOLDAY_ROUTE_DEFINITIONS = Object.freeze([
     label: 'Ask',
     eyebrow: 'Ask',
     title: 'Ask',
-    body: 'Send a prompt to compatible browser tabs in the room.'
+    body: 'Send a prompt to matching browser tabs in the room.'
   }),
   createPooldayRoute({
     id: 'compute',
@@ -37,7 +37,7 @@ export const POOLDAY_ROUTE_DEFINITIONS = Object.freeze([
     label: 'Compute',
     eyebrow: 'Compute',
     title: 'Compute',
-    body: 'Use this browser as a worker for the current room.'
+    body: 'Let this tab help answer prompts for the current room.'
   }),
   createPooldayRoute({
     id: 'history',
@@ -45,7 +45,7 @@ export const POOLDAY_ROUTE_DEFINITIONS = Object.freeze([
     label: 'History',
     eyebrow: 'History',
     title: 'History',
-    body: 'Review local jobs, outputs, hashes, and room activity.'
+    body: 'Review answers saved by this browser and activity in this room.'
   }),
   createPooldayRoute({
     id: 'network',
@@ -53,7 +53,7 @@ export const POOLDAY_ROUTE_DEFINITIONS = Object.freeze([
     label: 'Network',
     eyebrow: 'Network',
     title: 'Network',
-    body: 'Inspect peers, local scores, room state, and worker history.'
+    body: 'See room activity and local scores for tabs this browser has seen.'
   })
 ]);
 

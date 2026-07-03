@@ -64,7 +64,7 @@ describe('Poolday record ledgers', () => {
     expect(renderReceiptLedger()).toContain('provider_page_nested');
 
     setRoom(roomB);
-    expect(renderReceiptLedger()).toContain('No rounds logged yet.');
+    expect(renderReceiptLedger()).toContain('No answers saved yet.');
     expect(findReceiptLedgerRecord('sha256:receipt-a')).toBeNull();
 
     setRoom(roomA);
@@ -135,13 +135,14 @@ describe('Poolday record ledgers', () => {
     const networkHtml = renderRouteDetail('network');
 
     expect(historyHtml).toContain('No lookup yet.');
-    expect(historyHtml).toContain('No rounds logged yet.');
-    expect(historyHtml).toContain('Room Activity');
-    expect(historyHtml).toContain('Loading room activity...');
-    expect(historyHtml).not.toContain('Peer Scores');
-    expect(networkHtml).toContain('Room State');
-    expect(networkHtml).toContain('Peer Scores');
-    expect(networkHtml).toContain('No local peer ledger events yet.');
+    expect(historyHtml).toContain('No answers saved yet.');
+    expect(historyHtml).toContain('Room activity');
+    expect(historyHtml).toContain('Checking room activity...');
+    expect(historyHtml).toContain('Find saved answer by hash');
+    expect(historyHtml).not.toContain('Local scores');
+    expect(networkHtml).toContain('Room activity');
+    expect(networkHtml).toContain('Local scores');
+    expect(networkHtml).toContain('No local scores yet.');
   });
 
   it('renders compact server relay room activity summaries', () => {
@@ -158,7 +159,7 @@ describe('Poolday record ledgers', () => {
       ]
     });
 
-    expect(html).toContain('Server relay room activity');
+    expect(html).toContain('Shared room activity');
     expect(html).toContain('<td>3</td>');
     expect(html).toContain('<td>2</td>');
     expect(html).toContain('<td>1</td>');

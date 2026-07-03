@@ -172,15 +172,15 @@ const openPoolNav = async (page) => {
 const startProviderPage = async (page) => {
   await expect(page.locator('#pool-provider-worker-start')).toBeVisible();
   await page.locator('#pool-provider-worker-start').click();
-  await expect(page.locator('[data-pool-provider-status]')).toHaveText('WORKER // ONLINE');
-  await expect(page.locator('#pool-provider-result')).toContainText('peer worker listening');
+  await expect(page.locator('[data-pool-provider-status]')).toHaveText('Ready');
+  await expect(page.locator('#pool-provider-result')).toContainText('This tab is ready to help');
   await expect(page.locator('#pool-provider-result-raw')).toContainText('peer_room_listening');
 };
 
 const stopProviderPage = async (page) => {
   await expect(page.locator('#pool-provider-worker-stop')).toBeEnabled();
   await page.locator('#pool-provider-worker-stop').click();
-  await expect(page.locator('[data-pool-provider-status]')).toHaveText('WORKER // OFFLINE');
+  await expect(page.locator('[data-pool-provider-status]')).toHaveText('Idle');
   await expect(page.locator('#pool-provider-result-raw')).toContainText('peer_provider_stopped');
   await expect(page.locator('#pool-provider-worker-start')).toBeEnabled();
   await expect(page.locator('#pool-provider-worker-stop')).toBeDisabled();
@@ -285,8 +285,8 @@ test.describe('Ask, Compute, History peer room', () => {
       const providerPage = await openPoolPage(context, baseURL, '/compute', roomId);
 
       await providerPage.locator('#pool-provider-worker-start').click();
-      await expect(providerPage.locator('[data-pool-provider-status]')).toHaveText('WORKER // OFFLINE');
-      await expect(providerPage.locator('#pool-provider-result')).toContainText('Worker could not start');
+      await expect(providerPage.locator('[data-pool-provider-status]')).toHaveText('Idle');
+      await expect(providerPage.locator('#pool-provider-result')).toContainText('This tab could not start');
       await expect(providerPage.locator('#pool-provider-result-raw')).toContainText('synthetic load failure');
       await expect(providerPage.locator('#pool-provider-worker-start')).toBeEnabled();
       await expect(providerPage.locator('#pool-provider-worker-stop')).toBeDisabled();
@@ -364,8 +364,8 @@ test.describe('Ask, Compute, History peer room', () => {
 
       await reputationPage.reload({ waitUntil: 'domcontentloaded' });
       await reputationPage.waitForSelector('.pool-home');
-      await expect(reputationPage.locator('#pool-peer-ledger [aria-label="Local peer ledger"]')).toBeVisible();
-      await expect(reputationPage.locator('#pool-peer-ledger')).toContainText('Accepted');
+      await expect(reputationPage.locator('#pool-peer-ledger [aria-label="Local peer scores"]')).toBeVisible();
+      await expect(reputationPage.locator('#pool-peer-ledger')).toContainText('Matched');
 
       await openPoolNav(runPage);
       await runPage.getByRole('link', { name: 'History', exact: true }).click();
@@ -374,6 +374,7 @@ test.describe('Ask, Compute, History peer room', () => {
       await receiptsPage.reload({ waitUntil: 'domcontentloaded' });
       await receiptsPage.waitForSelector('.pool-home');
       await expect(receiptsPage.locator('#pool-receipt-ledger')).toContainText('accepted');
+      await runPage.locator('details.pool-record-lookup > summary').click();
       await runPage.locator('#pool-receipt-hash').fill(result.receiptHash);
       await runPage.locator('#pool-receipt-lookup').click();
       await expect(runPage.locator('#pool-receipt-result-raw')).toContainText(result.receiptHash);

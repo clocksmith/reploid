@@ -194,13 +194,14 @@ export const getPeerInviteUrl = () => createPeerRoomInviteUrl({
 
 const getProviderStatusEl = (mount) => mount?.querySelector('[data-pool-provider-status]');
 
-export const updateProviderStatus = (mount, status = 'WORKER // OFFLINE') => {
+export const updateProviderStatus = (mount, status = 'Idle') => {
   const statusEl = getProviderStatusEl(mount);
   if (!statusEl) return;
   statusEl.textContent = status;
-  statusEl.dataset.providerState = status.includes('ONLINE') || status.includes('RUNNING')
+  const normalized = String(status || '').toLowerCase();
+  statusEl.dataset.providerState = normalized.includes('ready') || normalized.includes('answering') || normalized.includes('online') || normalized.includes('running')
     ? 'online'
-    : status.includes('STARTING') || status.includes('OPENING')
+    : normalized.includes('starting') || normalized.includes('opening')
       ? 'starting'
       : 'offline';
 };
@@ -310,17 +311,17 @@ export const findReceiptLedgerRecord = (receiptHash = '') => {
 export const renderReceiptLedger = (rows = POOLDAY_RECEIPT_LEDGER) => {
   if (rows === POOLDAY_RECEIPT_LEDGER) ensureReceiptLedgerLoaded();
   if (!rows.length) {
-    return '<p class="type-caption pool-receipt-empty">No rounds logged yet.</p>';
+    return '<p class="type-caption pool-receipt-empty">No answers saved yet.</p>';
   }
   return `
-    <div class="pool-ledger" role="table" aria-label="Execution history">
+    <div class="pool-ledger" role="table" aria-label="Answer history">
       <table>
         <thead>
           <tr>
-            <th>Job ID</th>
-            <th>Runner</th>
-            <th>Fidelity</th>
-            <th>Speed (t/s)</th>
+            <th>Answer</th>
+            <th>Helper</th>
+            <th>Status</th>
+            <th>Speed</th>
           </tr>
         </thead>
         <tbody>
@@ -363,17 +364,17 @@ export const renderPeerLedgerState = () => {
   const pointRows = Object.entries(reduced.points || {}).sort(([left], [right]) => left.localeCompare(right));
   const reputationRows = Object.values(reduced.reputation || {}).sort((left, right) => String(left.providerId).localeCompare(String(right.providerId)));
   if (pointRows.length === 0 && reputationRows.length === 0) {
-    return '<p class="type-caption pool-receipt-empty">No local peer ledger events yet.</p>';
+    return '<p class="type-caption pool-receipt-empty">No local scores yet.</p>';
   }
   return `
-    <div class="pool-ledger" role="table" aria-label="Local peer ledger">
+    <div class="pool-ledger" role="table" aria-label="Local peer scores">
       <table>
         <thead>
           <tr>
-            <th>Peer</th>
-            <th>Evidence</th>
-            <th>Accepted</th>
-            <th>Rejected</th>
+            <th>Tab</th>
+            <th>Points</th>
+            <th>Matched</th>
+            <th>Flagged</th>
           </tr>
         </thead>
         <tbody>
@@ -409,24 +410,24 @@ export const refreshPeerLedgerState = () => {
 
 export const renderRoomActivity = (summary = null) => {
   if (getPeerRelayMode() === 'local') {
-    return '<p class="type-caption pool-receipt-empty">Local relay only. Add <code>?relay=server</code> to use shared room discovery.</p>';
+    return '<p class="type-caption pool-receipt-empty">This room is local to this browser profile. Use a server relay link to share across devices.</p>';
   }
   if (!summary) {
-    return '<p class="type-caption pool-receipt-empty">Loading room activity...</p>';
+    return '<p class="type-caption pool-receipt-empty">Checking room activity...</p>';
   }
   if (summary.error) {
     return `<p class="type-caption pool-receipt-empty">Room activity unavailable: ${escapeHtml(summary.error)}</p>`;
   }
   const recent = Array.isArray(summary.recent) ? summary.recent : [];
   return `
-    <div class="pool-ledger" role="table" aria-label="Server relay room activity">
+    <div class="pool-ledger" role="table" aria-label="Shared room activity">
       <table>
         <thead>
           <tr>
-            <th>Relay</th>
+            <th>Room</th>
             <th>Messages</th>
-            <th>Peers</th>
-            <th>Workers</th>
+            <th>Tabs</th>
+            <th>Helpers</th>
           </tr>
         </thead>
         <tbody>
@@ -442,7 +443,7 @@ export const renderRoomActivity = (summary = null) => {
     <p class="type-caption pool-room-recent">
       ${recent.length
         ? escapeHtml(recent.map((entry) => `${entry.type}:${compactHash(entry.fromPeerId || 'unknown')}`).join(' / '))
-        : 'No relay messages in this room yet.'}
+        : 'No shared-room messages yet.'}
     </p>
   `;
 };
@@ -481,23 +482,25 @@ export const bindRecordStorageSync = () => {
   });
 };
 
+const formatHealthValue = (value) => String(value ?? 'unknown').replace(/_/g, ' ');
+
 const renderProviderHealth = (state = POOLDAY_PROVIDER_HEALTH) => {
   const rows = [
-    ['WebGPU', state.webgpu],
+    ['Browser', state.webgpu],
     ['Model', state.model],
-    ['Artifact', state.artifact],
+    ['Files', state.artifact],
     ['Local cache', state.storage],
-    ['Peer room', state.queue],
-    ['Last record', state.lastReceipt],
-    ['Mode', state.trust],
-    ['History', state.reputation]
+    ['Room', state.queue],
+    ['Last answer', state.lastReceipt],
+    ['Check', state.trust],
+    ['Score', state.reputation]
   ];
   return `
     <div class="boot-status-strip pool-summary" aria-label="Node health">
       ${rows.map(([label, value]) => `
         <span class="pool-summary-item">
           <span class="rgr-status-label">${escapeHtml(label)}</span>
-          <span class="rgr-status-value">${escapeHtml(compactHash(value))}</span>
+          <span class="rgr-status-value">${escapeHtml(compactHash(formatHealthValue(value)))}</span>
         </span>
       `).join('')}
     </div>
@@ -630,7 +633,7 @@ const renderSummaryRows = (summary) => summary.map(([label, value]) => `
   </span>
 `).join('');
 
-const renderRawDetails = (id, label = 'Advanced details') => `
+const renderRawDetails = (id, label = 'Technical details') => `
   <details class="pool-raw-details">
     <summary>${escapeHtml(label)}</summary>
     <pre class="pool-result pool-result-raw" id="${id}-raw" aria-live="polite"></pre>
@@ -660,8 +663,21 @@ const renderResultBox = (id, options = {}) => {
 };
 
 const formatProductStatusText = (value = '') => String(value)
+  .replace(/^finding_peer_provider$/, 'Looking for a matching compute tab')
+  .replace(/^peer_provider_listening$/, 'This tab is ready to help')
+  .replace(/^peer_room_starting$/, 'Starting this compute tab')
+  .replace(/^peer_room_listening$/, 'This tab is ready to help')
+  .replace(/^provider_advertised$/, 'This tab is visible in the room')
+  .replace(/^peer_session_opening$/, 'Opening a browser-to-browser session')
+  .replace(/^peer_session_open$/, 'Answering a prompt')
+  .replace(/^peer_receipt_sent$/, 'Answer sent')
+  .replace(/^peer_acceptance_received$/, 'Answer accepted')
+  .replace(/^peer_session_failed$/, 'Run failed')
+  .replace(/^stopped$/, 'Stopped')
+  .replace(/^webrtc_peer_room_(local|server)$/, 'Room connection ready')
   .replace(/_/g, ' ')
-  .replace(/\bprovider\b/g, 'worker');
+  .replace(/\bprovider\b/g, 'helper')
+  .replace(/\brequester\b/g, 'asker');
 
 const formatResultMessage = (value = {}) => {
   if (value === undefined || value === null || value === '') return '';
@@ -812,19 +828,22 @@ const renderRoomStrip = () => `
       <span class="rgr-status-label">Room</span>
       <code data-pool-room-id>${escapeHtml(getPeerRoomId())}</code>
     </span>
-    <span class="pool-room-item">
-      <span class="rgr-status-label">Relay</span>
-      <code data-pool-relay-mode>${escapeHtml(getPeerRelayLabel())}</code>
-    </span>
-    <span class="pool-room-item">
-      <span class="rgr-status-label">Work</span>
-      <code>whole job</code>
-    </span>
-    <span class="pool-room-item">
-      <span class="rgr-status-label">Protocol</span>
-      <code>${escapeHtml(POOLDAY_VERSION_TAG)}</code>
-    </span>
     <a class="link-secondary pool-room-link" href="${escapeHtml(getPeerInviteUrl())}" data-pool-invite-link>Invite</a>
+    <details class="pool-room-details">
+      <summary>Connection details</summary>
+      <span class="pool-room-item">
+        <span class="rgr-status-label">Relay</span>
+        <code data-pool-relay-mode>${escapeHtml(getPeerRelayLabel())}</code>
+      </span>
+      <span class="pool-room-item">
+        <span class="rgr-status-label">Work</span>
+        <code>whole prompt</code>
+      </span>
+      <span class="pool-room-item">
+        <span class="rgr-status-label">Version</span>
+        <code>${escapeHtml(POOLDAY_VERSION_TAG)}</code>
+      </span>
+    </details>
   </div>
 `;
 
@@ -840,15 +859,15 @@ const renderRouteShell = (copy, content) => `
 `;
 
 const renderPolicyTrustLabel = (policy) => (
-  policy.adaptiveRing ? 'adaptive quorum' : 'single worker'
+  policy.adaptiveRing ? 'group check' : 'one tab'
 );
 
 const renderPolicyProductLabel = (policy) => {
   const labels = {
-    fastest_receipt: 'Fastest record',
-    canary_audited: 'Canary audited',
-    redundant_agreement: 'Redundant agreement',
-    ring_quorum_receipt: 'Ring quorum'
+    fastest_receipt: 'First answer',
+    canary_audited: 'Sample checked',
+    redundant_agreement: 'Two matching answers',
+    ring_quorum_receipt: 'Group match'
   };
   return labels[policy.policyId] || policy.policyId.replace(/_/g, ' ');
 };
@@ -863,10 +882,10 @@ export const describeSelectedRun = ({ policyId, modelId, status = 'finding_peer_
     relay: getPeerRelayMode(),
     workMode: 'whole_job_redundant_records',
     policyId: policy?.policyId || policyId || FASTEST_RECEIPT_POLICY_ID,
-    trustTier: policy?.adaptiveRing ? 'adaptive quorum' : 'single worker',
+    trustTier: policy?.adaptiveRing ? 'group check' : 'one tab',
     requiredAgreement: policy?.adaptiveRing
-      ? `${policy.minRingSize || 1}-${policy.maxRingSize || 1} workers, quorum by matching output hash`
-      : `${policy?.redundancy || 1} worker${Number(policy?.redundancy || 1) === 1 ? '' : 's'}`,
+      ? `${policy.minRingSize || 1}-${policy.maxRingSize || 1} tabs, match by output hash`
+      : `${policy?.redundancy || 1} tab${Number(policy?.redundancy || 1) === 1 ? '' : 's'}`,
     model: {
       modelId: model.modelId,
       modelHash: model.modelHash,
@@ -932,17 +951,17 @@ export const renderRouteDetail = (routeId) => {
           <div class="pool-run-compose">
             <div class="pool-section-heading">
               <h2 class="type-h2">Prompt</h2>
-              <span class="pool-meta-tag">DataChannel prompt</span>
+              <span class="pool-meta-tag">Room ask</span>
             </div>
             <label class="pool-field">
               <span>Prompt</span>
               <textarea id="pool-run-prompt" rows="6">Summarize Reploid in one sentence.</textarea>
             </label>
             <details class="pool-advanced">
-              <summary>Advanced</summary>
+              <summary>Model and matching</summary>
               <div class="pool-advanced-grid">
                 <label class="pool-field">
-                  <span>Policy</span>
+                  <span>Matching</span>
                   <select id="pool-run-policy">${renderPolicyOptions()}</select>
                 </label>
                 <label class="pool-field">
@@ -958,7 +977,7 @@ export const renderRouteDetail = (routeId) => {
           <div class="pool-run-output">
             <div class="pool-section-heading pool-result-heading">
               <h3 class="type-h2">Result</h3>
-              <span class="pool-meta-tag">Updates when worker answers</span>
+              <span class="pool-meta-tag">Waiting for tabs</span>
             </div>
             ${renderResultBox('pool-run-result', { stream: true, streamLabel: 'Output' })}
           </div>
@@ -970,22 +989,22 @@ export const renderRouteDetail = (routeId) => {
         <div class="pool-form pool-route-grid pool-provider-layout" data-pool-provider>
           <div class="pool-provider-main">
             <div class="pool-section-heading pool-provider-heading">
-              <h2 class="type-h2">Worker</h2>
-              <p class="pool-provider-status" data-pool-provider-status>WORKER // OFFLINE</p>
+              <h2 class="type-h2">This tab</h2>
+              <p class="pool-provider-status" data-pool-provider-status>Idle</p>
             </div>
             <label class="pool-field">
               <span>Model</span>
               <select id="pool-provider-model">${renderModelOptions()}</select>
             </label>
-            <div class="pool-control-row pool-primary-actions" aria-label="Worker controls">
-              <button class="btn btn-primary btn-op" data-op="▶" id="pool-provider-worker-start" type="button">Start compute</button>
+            <div class="pool-control-row pool-primary-actions" aria-label="Compute controls">
+              <button class="btn btn-primary btn-op" data-op="▶" id="pool-provider-worker-start" type="button">Start helping</button>
               <button class="btn btn-ghost btn-op" data-op="■" id="pool-provider-worker-stop" type="button" disabled>Stop</button>
             </div>
           </div>
-          <div class="pool-provider-live" aria-label="Worker live state">
+          <div class="pool-provider-live" aria-label="Compute tab state">
             <div class="pool-section-heading">
-              <h3 class="type-h2">Live</h3>
-              <span class="pool-meta-tag">Worker room</span>
+              <h3 class="type-h2">Ready check</h3>
+              <span class="pool-meta-tag">Local tab</span>
             </div>
             <div id="pool-provider-health" class="pool-ledger-shell" aria-live="polite">${renderProviderHealth()}</div>
           </div>
@@ -1001,11 +1020,26 @@ export const renderRouteDetail = (routeId) => {
   }
   if (routeId === 'history') {
     return renderRouteShell(copy, `
-        <div class="pool-form pool-route-grid pool-record-layout" data-pool-receipts>
-          <div class="pool-record-query">
+        <div class="pool-form pool-route-grid pool-record-layout pool-history-layout" data-pool-receipts>
+          <div class="pool-record-ledgers">
+            <div class="pool-section-heading">
+              <h3 class="type-h2">Answers</h3>
+              <span class="pool-meta-tag">This room</span>
+            </div>
+            <div id="pool-receipt-ledger" class="pool-ledger-shell" aria-live="polite">${renderReceiptLedger()}</div>
+            <div class="pool-form" data-pool-room-activity>
+              <div class="pool-section-heading">
+                <h3 class="type-h2">Room activity</h3>
+                <span class="pool-meta-tag">Shared room</span>
+              </div>
+              <div id="pool-room-activity" class="pool-ledger-shell" aria-live="polite">${renderRoomActivity()}</div>
+            </div>
+          </div>
+          <details class="pool-advanced pool-record-query pool-record-lookup">
+            <summary>Find saved answer by hash</summary>
             <div class="pool-section-heading">
               <h2 class="type-h2">Lookup</h2>
-              <span class="pool-meta-tag">Record hash</span>
+              <span class="pool-meta-tag">Hash</span>
             </div>
             <label class="pool-field">
               <span>Hash</span>
@@ -1015,21 +1049,7 @@ export const renderRouteDetail = (routeId) => {
               <button class="btn btn-primary btn-op" data-op="⚲" id="pool-receipt-lookup" type="button">Lookup</button>
             </div>
             ${renderResultBox('pool-receipt-result', { placeholder: 'No lookup yet.' })}
-          </div>
-          <div class="pool-record-ledgers">
-            <div class="pool-section-heading">
-              <h3 class="type-h2">Jobs</h3>
-              <span class="pool-meta-tag">This room</span>
-            </div>
-            <div id="pool-receipt-ledger" class="pool-ledger-shell" aria-live="polite">${renderReceiptLedger()}</div>
-            <div class="pool-form" data-pool-room-activity>
-              <div class="pool-section-heading">
-                <h3 class="type-h2">Room Activity</h3>
-                <span class="pool-meta-tag">Relay metadata</span>
-              </div>
-              <div id="pool-room-activity" class="pool-ledger-shell" aria-live="polite">${renderRoomActivity()}</div>
-            </div>
-          </div>
+          </details>
         </div>
     `);
   }
@@ -1038,18 +1058,21 @@ export const renderRouteDetail = (routeId) => {
         <div class="pool-form pool-route-grid pool-record-layout" data-pool-reputation>
           <div class="pool-record-query">
             <div class="pool-section-heading">
-              <h2 class="type-h2">Room State</h2>
-              <span class="pool-meta-tag">Relay metadata</span>
+              <h2 class="type-h2">Room activity</h2>
+              <span class="pool-meta-tag">Shared room</span>
             </div>
             <div id="pool-room-activity" class="pool-ledger-shell" aria-live="polite">${renderRoomActivity()}</div>
           </div>
           <div class="pool-record-ledgers">
             <div class="pool-section-heading">
-              <h3 class="type-h2">Peer Scores</h3>
+              <h3 class="type-h2">Local scores</h3>
               <span class="pool-meta-tag">This browser</span>
             </div>
             <div id="pool-peer-ledger" class="pool-ledger-shell" aria-live="polite">${renderPeerLedgerState()}</div>
-            <p class="pool-meta-tag" aria-label="protocol identifier">Protocol ${POOLDAY_VERSION_TAG}</p>
+            <details class="pool-advanced pool-network-technical">
+              <summary>Network details</summary>
+              <p class="pool-meta-tag" aria-label="protocol identifier">Version ${POOLDAY_VERSION_TAG}</p>
+            </details>
           </div>
         </div>
     `);

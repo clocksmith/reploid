@@ -38,7 +38,7 @@ describe('poolday home navigation', () => {
     expect(ROUTE_COPY.compute).toEqual({
       eyebrow: 'Compute',
       title: 'Compute',
-      body: 'Use this browser as a worker for the current room.'
+      body: 'Let this tab help answer prompts for the current room.'
     });
   });
 
