@@ -32,6 +32,17 @@ const stopPoolHomeBackground = () => {
 };
 
 const bindPoolRouteControls = (mount, render) => {
+  const nav = mount.querySelector('.pool-nav-rail');
+  const navToggle = mount.querySelector('.pool-nav-toggle');
+  const navMenu = mount.querySelector('.pool-nav-menu');
+  if (nav && navToggle && navMenu) {
+    navToggle.addEventListener('click', () => {
+      const isOpen = nav.classList.toggle('is-open');
+      navToggle.setAttribute('aria-expanded', String(isOpen));
+      navMenu.hidden = !isOpen;
+    });
+  }
+
   mount.querySelectorAll('[data-pool-route], [data-pool-route-link]').forEach((control) => {
     control.addEventListener('click', (event) => {
       const path = control.dataset.poolRoute || control.dataset.poolRouteLink || control.getAttribute('href');

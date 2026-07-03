@@ -100,10 +100,12 @@ test.describe('Route Entry Points', () => {
     await expect(nav).toBeVisible();
     await expect(page.locator('.pool-topbar')).toHaveCount(0);
     await expect(page.locator('.pool-home')).toHaveAttribute('data-pool-route-id', 'home');
-    await expect(nav).not.toHaveAttribute('open', '');
-    await expect(nav.locator('.pool-nav-trigger')).toContainText('☰');
-    await expect(nav.locator('.pool-nav-trigger')).toContainText('Home');
-    await nav.locator('.pool-nav-trigger').click();
+    await expect(nav.locator('.pool-nav-toggle')).toHaveAttribute('aria-expanded', 'false');
+    await expect(nav.locator('.pool-nav-mark-seven-top')).toHaveText('7');
+    await expect(nav.locator('.pool-nav-mark-seven-bottom')).toHaveText('7');
+    await expect(nav.locator('.pool-nav-menu')).toBeHidden();
+    await nav.locator('.pool-nav-toggle').click();
+    await expect(nav.locator('.pool-nav-toggle')).toHaveAttribute('aria-expanded', 'true');
     await expect(nav.getByRole('link', { name: 'Home', exact: true })).toBeVisible();
     await expect(nav.getByRole('link', { name: 'Home', exact: true })).toHaveAttribute('aria-current', 'page');
     await expect(nav.getByRole('link', { name: 'Ask', exact: true })).toBeVisible();
@@ -157,7 +159,7 @@ test.describe('Route Entry Points', () => {
 
     const desktop = await page.evaluate(() => {
       const rail = document.querySelector('.pool-nav-rail').getBoundingClientRect();
-      const open = document.querySelector('.pool-nav-rail').open;
+      const open = document.querySelector('.pool-nav-rail').classList.contains('is-open');
       return {
         height: rail.height,
         open,
@@ -171,11 +173,12 @@ test.describe('Route Entry Points', () => {
     expect(desktop.x).toBeGreaterThan(1200);
     expect(desktop.y).toBeLessThan(24);
     expect(desktop.height).toBeLessThan(48);
-    expect(desktop.width).toBeGreaterThan(180);
+    expect(desktop.width).toBeLessThan(56);
     expect(desktop.overflowX).toBe(false);
 
-    await page.locator('.pool-nav-trigger').click();
-    await expect(page.locator('.pool-nav-rail')).toHaveAttribute('open', '');
+    await page.locator('.pool-nav-toggle').click();
+    await expect(page.locator('.pool-nav-rail')).toHaveClass(/is-open/);
+    await expect(page.locator('.pool-nav-toggle')).toHaveAttribute('aria-expanded', 'true');
     await expect(page.getByRole('link', { name: 'Network', exact: true })).toBeVisible();
 
     await page.setViewportSize({ width: 390, height: 844 });
@@ -195,7 +198,7 @@ test.describe('Route Entry Points', () => {
         canvasTop: canvas.top,
         height: rail.height,
         left: rail.left,
-        open: document.querySelector('.pool-nav-rail').open,
+        open: document.querySelector('.pool-nav-rail').classList.contains('is-open'),
         right: window.innerWidth - rail.right,
         scrollHeight,
         shellHeight: shell.height,
@@ -209,10 +212,10 @@ test.describe('Route Entry Points', () => {
     });
     expect(mobile.open).toBe(false);
     expect(mobile.y).toBeLessThan(16);
-    expect(mobile.left).toBeLessThan(16);
+    expect(mobile.left).toBeGreaterThan(330);
     expect(mobile.right).toBeLessThan(16);
     expect(mobile.height).toBeLessThan(54);
-    expect(mobile.width).toBeGreaterThan(360);
+    expect(mobile.width).toBeLessThan(56);
     expect(mobile.overflowX).toBe(false);
     expect(mobile.overflowY).toBe(false);
     expect(Math.abs(mobile.canvasTop)).toBeLessThanOrEqual(1);
@@ -221,7 +224,7 @@ test.describe('Route Entry Points', () => {
     expect(Math.abs(mobile.shellHeight - mobile.viewportHeight)).toBeLessThanOrEqual(1);
     expect(mobile.scrollHeight).toBeLessThanOrEqual(mobile.viewportHeight + 1);
     const mobileNav = page.locator('.pool-nav-rail');
-    await mobileNav.locator('.pool-nav-trigger').click();
+    await mobileNav.locator('.pool-nav-toggle').click();
     await expect(mobileNav.getByRole('link', { name: 'Home', exact: true })).toBeVisible();
     await expect(mobileNav.getByRole('link', { name: 'Ask', exact: true })).toBeVisible();
     await expect(mobileNav.getByRole('link', { name: 'Compute', exact: true })).toBeVisible();
@@ -261,7 +264,7 @@ test.describe('Route Entry Points', () => {
     await page.goto('/compute');
     await page.waitForSelector('.pool-home', { timeout: 20000 });
     await expect(page.locator('.pool-home')).toHaveAttribute('data-pool-route-id', 'compute');
-    await page.locator('.pool-nav-trigger').click();
+    await page.locator('.pool-nav-toggle').click();
     await expect(page.getByRole('link', { name: 'Compute', exact: true })).toHaveAttribute('aria-current', 'page');
     await expect(page.getByRole('heading', { name: 'Compute', exact: true })).toBeVisible();
     await expect(page.locator('.pool-page-heading .pool-eyebrow')).toHaveCount(0);
