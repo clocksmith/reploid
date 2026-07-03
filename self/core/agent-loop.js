@@ -348,7 +348,7 @@ const AgentLoop = {
 
     // Track single-tool usage for batching nudges
     let _consecutiveSingleToolCalls = 0;
-    const SINGLE_TOOL_NUDGE_THRESHOLD = 3; // Nudge after 3 consecutive single-tool iterations
+    const SINGLE_TOOL_NUDGE_THRESHOLD = 1; // Nudge after every single-tool iteration
     let _isRunning = false;
     let _abortController = null;
     let _modelConfig = null;
@@ -1337,7 +1337,7 @@ const AgentLoop = {
             if (callsToExecute.length === 1) {
               _consecutiveSingleToolCalls++;
               if (_consecutiveSingleToolCalls >= SINGLE_TOOL_NUDGE_THRESHOLD) {
-                const nudgeMsg = `TIP: You can batch multiple independent tool calls in one response. Read-only tools (ReadFile, ListFiles, Grep, etc.) run in parallel for speed.`;
+                const nudgeMsg = `BATCHING TIP: emit 2-6 independent read-only tool calls in one response when exploring. Read-only tools run in parallel; avoid spending separate cycles on ListFiles, ListTools, ReadFile, or Grep calls that do not depend on each other.`;
                 context.push({ role: 'user', content: nudgeMsg });
                 logger.info('[Agent] Nudging model to batch tool calls');
                 _consecutiveSingleToolCalls = 0; // Reset after nudge
@@ -1642,6 +1642,14 @@ key: value
 - LoadModule: load approved modules after promotion
 - Promote: request a gated /shadow to /self change
 
+## Batching
+- You can emit up to ${getMaxToolCalls()} tool calls per response.
+- Default to batched discovery: combine independent read-only calls in the same response.
+- Good first Zero discovery batch: ListFiles path: /, ListTools {}, and ReadFile path: /blueprint-index.json.
+- Use 2-6 read-only calls together when inspecting unrelated roots or files.
+- Do not spend separate cycles on independent ListFiles, ListTools, ReadFile, or Grep calls.
+- Read-only calls run in parallel. Mutating calls still run sequentially after read-only calls.
+
 ## Rules
 - Read before writing.
 - Use /shadow for candidates and /artifacts for evidence.
@@ -1728,12 +1736,16 @@ The browser is the ecosystem: a same-origin lab enclosure with persistent VFS st
 - Do not claim raw operating-system filesystem, shell, process, or arbitrary network access. Use visible tools, configured providers, peer slots, and gates.
 
 ## Batching
-You can emit up to ${getMaxToolCalls()} tool calls per response. Read-only tools run in PARALLEL, mutating tools run sequentially.
+- You can emit up to ${getMaxToolCalls()} tool calls per response.
+- Default to batching independent read-only work.
+- Use 2-6 read-only calls together when inspecting unrelated roots or files.
+- Do not spend separate cycles on independent ListFiles, ListTools, ReadFile, Grep, or Find calls.
+- Read-only tools run in PARALLEL. Mutating tools run sequentially after read-only tools.
 
 ## Rules
 - Act within configured HITL and security policy
 - Use at least one tool per response (unless DONE)
-- Batch independent tool calls when possible
+- Batch independent tool calls by default
 - Prefer REPLOID/0 TOOL blocks over escaped JSON
 - After writing code: LOAD it, EXECUTE it, VERIFY it works
 - Use ListFiles before assuming paths exist

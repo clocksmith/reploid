@@ -11,7 +11,7 @@ import {
   getCurrentReploidStorage as getScopedLocalStorage
 } from '../instance.js';
 
-const BUILD_VERSION = '2026070311';
+const BUILD_VERSION = '2026070312';
 const IMPORTMAP_ID = 'reploid-doppler-importmap';
 const BASE_ID = 'reploid-base';
 const CORE_STYLE_ID = 'reploid-core-style';
