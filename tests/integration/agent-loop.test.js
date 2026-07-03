@@ -229,6 +229,9 @@ describe('AgentLoop - Integration Tests', () => {
       expect(prompt).toContain('WebRTC, BroadcastChannel, and WebSocket paths');
       expect(prompt).toContain('permission-mediated browser APIs');
       expect(prompt).toContain('Default to Shadow for self changes');
+      expect(prompt).toContain('Default to batching independent read-only work.');
+      expect(prompt).toContain('Use 2-6 read-only calls together when inspecting unrelated roots or files.');
+      expect(prompt).toContain('Batch independent tool calls by default');
       expect(prompt).not.toContain('full DOM access');
       expect(prompt).not.toContain('all Web APIs');
     });
@@ -247,6 +250,8 @@ describe('AgentLoop - Integration Tests', () => {
       expect(prompt).toContain('Start every fresh Zero filesystem pass with ReadFile path: / or ListFiles path: /');
       expect(prompt).toContain('If /blueprint-index.json is absent in an older or pruned instance');
       expect(prompt).toContain('ListFiles: enumerate roots and directories before relying on named paths');
+      expect(prompt).toContain('Default to batched discovery: combine independent read-only calls in the same response.');
+      expect(prompt).toContain('Good first Zero discovery batch: ListFiles path: /, ListTools {}, and ReadFile path: /blueprint-index.json.');
       expect(prompt).toContain('Do not read /self/manifest.json or /self/self.json; those are not Zero tool paths.');
       expect(prompt).not.toContain('Use root-scoped VFS source paths for reads: /core, /config, /tools, /ui, /styles, /boot-helpers, /blueprint-index.json, and /blueprints.');
     });
@@ -417,6 +422,7 @@ describe('AgentLoop - Integration Tests', () => {
       const toolResultMsg = secondCallCtx.find(m => m.content?.includes('TOOL_RESULT'));
       expect(toolResultMsg).toBeDefined();
       expect(toolResultMsg.content).toContain('ListFiles');
+      expect(secondCallCtx.some(m => m.content?.includes('BATCHING TIP: emit 2-6 independent read-only tool calls'))).toBe(true);
     });
 
     it('should emit tool events', async () => {
