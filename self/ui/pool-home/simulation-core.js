@@ -424,6 +424,7 @@ const createPoolGraphLayout = (random) => {
     planStartedAt: 0,
     nextShiftAt: POOLDAY_MORPH_TUNING.shapeHold + random() * POOLDAY_MORPH_TUNING.holdJitter,
     transition: null,
+    transitionRelease: 0,
     anticipation: 0,
     stableHoldProgress: 0,
     stableRelease: 0,
@@ -471,6 +472,7 @@ const shiftPoolGraphTarget = (layout, time, random) => {
     }
   );
   layout.nextPlan = null;
+  layout.transitionRelease = 0;
   layout.nextShiftAt = time + plan.span + plan.hold + random() * POOLDAY_MORPH_TUNING.holdJitter;
   layout.stableHoldProgress = 1;
   layout.stableRelease = 1;
@@ -501,6 +503,7 @@ const updatePoolGraphLayout = (state, safeDelta) => {
       layout.edgePreset = layout.transition.toEdgePreset || layout.edgePreset;
       layout.edgeSpecs = layout.transition.settledLineSpecs || buildSimulationLineSpecs(layout.edgePreset);
       layout.transition = null;
+      layout.transitionRelease = 1;
       layout.planStartedAt = state.time;
       layout.stableHoldProgress = 0;
       layout.stableRelease = 0;
@@ -513,6 +516,7 @@ const updatePoolGraphLayout = (state, safeDelta) => {
     const stableReleaseRaw = clamp01((holdElapsed - stableHoldSpan) / stableReleaseSpan);
     layout.stableHoldProgress = clamp01(holdElapsed / stableHoldSpan);
     layout.stableRelease = easeInOutCubic(stableReleaseRaw);
+    layout.transitionRelease = lerpToward(layout.transitionRelease || 0, 0, 0.055, safeDelta);
     const rawAnticipation = clamp01(
       1 - Math.max(0, layout.nextShiftAt - state.time) / POOLDAY_MORPH_TUNING.anticipationSpan
     );
@@ -1064,7 +1068,7 @@ export const buildPoolSimulationFrame = (state, width, height, deltaSeconds = SI
   const orbitCue = easeInOutCubic(topologyCue);
   const anchorMotionScale = state.layout.transition
     ? 1
-    : clamp01(Math.max(state.layout.stableRelease || 0, topologyCue));
+    : clamp01(Math.max(state.layout.transitionRelease || 0, state.layout.stableRelease || 0, topologyCue));
   const roles = state.roles;
   for (const [id, size, phase, orbit] of POOLDAY_CORE_NODE_CONFIG) {
     writeRoleAnchor(
@@ -1176,6 +1180,7 @@ export const buildPoolSimulationFrame = (state, width, height, deltaSeconds = SI
   frame.anticipation = state.layout.anticipation;
   frame.stableHoldProgress = state.layout.stableHoldProgress;
   frame.stableRelease = state.layout.stableRelease;
+  frame.transitionRelease = state.layout.transitionRelease || 0;
   frame.anchorMotionScale = anchorMotionScale;
   frame.transitionActive = Boolean(state.layout.transition);
   frame.transitionProgress = transitionProgress;
