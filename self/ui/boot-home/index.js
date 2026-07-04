@@ -218,7 +218,7 @@ const renderAwakenButton = (state, options = {}) => {
   const disabled = options.disabled === true;
   const sizeClass = options.large ? ' btn-lg' : '';
   return `
-    <button class="btn${sizeClass} btn-primary btn-op${state.isAwakening ? ' loading' : ''}"
+    <button class="btn${sizeClass} btn-primary btn-op goal-action-button${state.isAwakening ? ' loading' : ''}"
             data-op="☇"
             data-action="awaken"
             id="awaken-btn"

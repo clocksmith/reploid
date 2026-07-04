@@ -696,11 +696,19 @@ body.no-grid-pattern {
   display: flex;
   justify-content: flex-end;
   align-items: center;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
   margin-top: var(--space-sm);
 }
 
 .goal-primary-action .btn {
+  flex: 0 1 220px;
   min-width: 180px;
+}
+
+.goal-primary-action .goal-action-button {
+  justify-content: center;
+  min-height: 44px;
 }
 
 .goal-editor-block {
@@ -721,13 +729,6 @@ body.no-grid-pattern {
   display: flex;
   align-items: flex-start;
   justify-content: flex-end;
-  gap: var(--space-sm);
-  flex-wrap: wrap;
-}
-
-.goal-preset-actions {
-  display: flex;
-  align-items: center;
   gap: var(--space-sm);
   flex-wrap: wrap;
 }
@@ -1115,7 +1116,12 @@ details[open] > .disclosure-summary::before {
   display: flex;
   justify-content: flex-end;
   align-items: center;
+  gap: var(--space-sm);
   margin-top: var(--space-lg);
+}
+
+.goal-primary-action.seed-browser-actions {
+  margin-top: var(--space-sm);
 }
 
 .seed-browser-actions + .seed-browser-panel {
@@ -1871,10 +1877,13 @@ details[open] > .disclosure-summary::before {
   }
 
   .goal-primary-action {
+    flex-direction: column;
+    align-items: stretch;
     justify-content: stretch;
   }
 
   .goal-primary-action .btn {
+    flex: 1 1 auto;
     width: 100%;
   }
 

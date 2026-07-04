@@ -994,7 +994,7 @@ test.describe('Goal Input', () => {
 
     await expect(page.locator('[data-action="shuffle-goals"]')).toBeVisible();
     await expect(page.locator('[data-action="generate-goal"]')).toBeVisible();
-    await expect(page.locator('[data-action="generate-goal"]')).toHaveText('SHUFFLE');
+    await expect(page.locator('[data-action="generate-goal"]')).toHaveText('Draft');
   });
 
   test('shuffle presets updates the goal input', async ({ page }) => {
