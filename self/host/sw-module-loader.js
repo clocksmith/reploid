@@ -16,9 +16,6 @@ const LAB_RUNTIME_ASSET_PATHS = new Set([
   '/kernel/boot.js',
   '/styles/boot.css',
   '/styles/rd.css',
-  '/styles/rd-components.css',
-  '/styles/rd-primitives.css',
-  '/styles/rd-tokens.css',
   '/styles/zero.css',
   '/ui/toast.js'
 ]);

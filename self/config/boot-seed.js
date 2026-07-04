@@ -32,10 +32,7 @@ const SHARED_BOOT_UI_PREFIXES = Object.freeze([
   'ui/boot-wizard/steps/proxy.js',
   'ui/shared/',
   'styles/boot.css',
-  'styles/rd.css',
-  'styles/rd-tokens.css',
-  'styles/rd-primitives.css',
-  'styles/rd-components.css'
+  'styles/rd.css'
 ]);
 
 const REPLOID_MINIMAL_HOME_BOOT_SEED_PREFIXES = Object.freeze([
@@ -80,10 +77,8 @@ const REPLOID_MINIMAL_HOME_BOOT_SEED_PREFIXES = Object.freeze([
   'self/tool-runner.js',
   'styles/boot.css',
   'styles/capsule.css',
-  'styles/rd-components.css',
-  'styles/rd-primitives.css',
-  'styles/rd-tokens.css',
   'styles/rd.css',
+  'styles/poolday.css',
   'tools/Promote.js',
   'self/tools/Promote.js',
   'ui/pool-home/',
@@ -93,6 +88,7 @@ const REPLOID_MINIMAL_HOME_BOOT_SEED_PREFIXES = Object.freeze([
 const POOL_HOME_BOOT_SEED_PREFIXES = Object.freeze([
   ...SHARED_BOOT_UI_PREFIXES,
   'pool/',
+  'styles/poolday.css',
   'ui/pool-home/'
 ]);
 
@@ -196,9 +192,6 @@ export const ZERO_HOME_BOOT_SEED_PREFIXES = Object.freeze([
   'self/tool-runner.js',
   'styles/boot.css',
   'styles/rd.css',
-  'styles/rd-components.css',
-  'styles/rd-primitives.css',
-  'styles/rd-tokens.css',
   'styles/zero.css',
   'ui/boot-home/index.js',
   'ui/boot-wizard/detection.js',

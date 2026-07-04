@@ -78,11 +78,25 @@ describe('boot seed manifest', () => {
     expect(bootFiles).toContain('blueprints/blueprint-index-contract.md');
     expect(bootFiles).toContain('ui/zero/index.js');
     expect(bootFiles).toContain('styles/zero.css');
+    expect(bootFiles).not.toContain('styles/poolday.css');
+    expect(bootFiles).not.toContain('styles/rd-components.css');
+    expect(bootFiles).not.toContain('styles/rd-primitives.css');
+    expect(bootFiles).not.toContain('styles/rd-tokens.css');
     expect(bootFiles).toContain('ui/boot-home/index.js');
     expect(bootFiles).toContain('ui/boot-wizard/zero-function.js');
     expect(bootFiles).toContain('ui/boot-wizard/steps/goal.js');
     expect(bootFiles).not.toContain('ui/pool-home/index.js');
     expect(bootFiles).not.toContain('ui/reploid-home/index.js');
+  });
+
+  it('hydrates the Poolday route extension only in Poolday home boot seeds', () => {
+    const poolBootFiles = pickBootSeedFiles(manifest.files, 'pool_home');
+    const reploidHomeFiles = pickBootSeedFiles(manifest.files, 'reploid_home');
+    const zeroBootFiles = pickBootSeedFiles(manifest.files, 'zero_home');
+
+    expect(poolBootFiles).toContain('styles/poolday.css');
+    expect(reploidHomeFiles).toContain('styles/poolday.css');
+    expect(zeroBootFiles).not.toContain('styles/poolday.css');
   });
 
   it('keeps Zero lightweight while X absorbs the Zero boot surface', () => {
