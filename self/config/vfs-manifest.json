@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-06-30T15:04:59.946Z",
+  "generatedAt": "2026-07-04T17:19:55.742Z",
   "files": [
     "audit.html",
     "blueprint-index.json",
@@ -448,6 +448,7 @@
     "styles/boot.css",
     "styles/capsule.css",
     "styles/landing-mono.css",
+    "styles/poolday.css",
     "styles/proto/components.css",
     "styles/proto/history.css",
     "styles/proto/hitl.css",
@@ -457,9 +458,6 @@
     "styles/proto/panels.css",
     "styles/proto/responsive.css",
     "styles/proto/vfs.css",
-    "styles/rd-components.css",
-    "styles/rd-primitives.css",
-    "styles/rd-tokens.css",
     "styles/rd.css",
     "styles/vfs-explorer.css",
     "styles/zero.css",
@@ -530,6 +528,7 @@
     "ui/panels/cognition-panel.js",
     "ui/panels/metrics-panel.js",
     "ui/pool-home/constants.js",
+    "ui/pool-home/contribution-state.js",
     "ui/pool-home/controls.js",
     "ui/pool-home/index.js",
     "ui/pool-home/simulation-batches.js",

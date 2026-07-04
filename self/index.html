@@ -10,7 +10,7 @@
     <link rel="icon" type="image/svg+xml" href="favicon.svg" />
     <title>Reploid</title>
     <script>
-    window.REPLOID_BUILD_VERSION = '2026070402';
+    window.REPLOID_BUILD_VERSION = '2026070403';
       window.REPLOID_SW_VERSION = window.REPLOID_BUILD_VERSION;
       window.REPLOID_VFS_VERSION = window.REPLOID_BUILD_VERSION;
     </script>
@@ -32,6 +32,16 @@
         '/network'
       ]);
       const productRoute = productPaths.has(pathname);
+      const ensurePooldayStylesheet = () => {
+        const id = 'poolday-route-stylesheet';
+        if (document.getElementById(id)) return;
+        const link = document.createElement('link');
+        link.id = id;
+        link.rel = 'stylesheet';
+        const version = encodeURIComponent(window.REPLOID_BUILD_VERSION || '');
+        link.href = `/styles/poolday.css?v=${version}`;
+        document.head.appendChild(link);
+      };
       const ROOT_SW_RELEASE_RELOAD_KEY = 'REPLOID_ROOT_SW_RELEASE_RELOAD';
       const releaseGlobalReploidServiceWorker = async () => {
         if (!('serviceWorker' in navigator)) return false;
@@ -68,6 +78,7 @@
         document.title = 'Reploid';
       }
       if (productRoute) {
+        ensurePooldayStylesheet();
         await releaseGlobalReploidServiceWorker();
         const appRoot = document.getElementById('app');
         if (!appRoot) {
