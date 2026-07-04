@@ -3,6 +3,7 @@
  */
 
 import { BROWSER_RUNTIME_CONFIG, LAUNCH_MODEL, MODEL_CATALOG } from './config.js';
+import { buildModelArtifactUrls } from './model-artifacts.js';
 
 export { LAUNCH_MODEL, MODEL_CATALOG };
 
@@ -92,18 +93,30 @@ export const LAUNCH_MODEL_ARTIFACT_PATHS = Object.freeze({
   shards: replaceModelPathTokens(LAUNCH_MODEL.artifactPolicy?.paths?.shards)
 });
 
-export function buildLaunchModelArtifactUrls({
-  baseUrl = globalThis.REPLOID_POOL_MODEL_BASE_URL || BROWSER_RUNTIME_CONFIG.modelBaseUrl || '',
-  paths = LAUNCH_MODEL_ARTIFACT_PATHS
-} = {}) {
-  const normalizedBase = String(baseUrl || '').replace(/\/+$/, '');
-  const join = (path) => normalizedBase ? `${normalizedBase}/${path}` : path;
+export function buildLaunchModelArtifactUrls(options = {}) {
+  const hasBaseUrl = Object.hasOwn(options, 'baseUrl');
+  const baseUrl = hasBaseUrl
+    ? options.baseUrl
+    : (
+        globalThis.REPLOID_POOL_MODEL_BASE_URL
+        || LAUNCH_MODEL.artifactPolicy?.baseUrl
+        || BROWSER_RUNTIME_CONFIG.modelBaseUrl
+        || ''
+      );
+  const paths = options.paths || LAUNCH_MODEL_ARTIFACT_PATHS;
+  const urls = buildModelArtifactUrls({
+    ...LAUNCH_MODEL,
+    artifactPolicy: {
+      ...(LAUNCH_MODEL.artifactPolicy || {}),
+      paths
+    }
+  }, { baseUrl });
   return {
     transport: LAUNCH_MODEL.artifactPolicy?.transport || 'offloaded_content_addressed',
     cache: LAUNCH_MODEL.artifactPolicy?.cache || 'browser_opfs',
-    manifestUrl: join(paths.manifest),
-    tokenizerUrl: join(paths.tokenizer),
-    shardBaseUrl: join(paths.shards)
+    manifestUrl: urls.manifest,
+    tokenizerUrl: urls.tokenizer,
+    shardBaseUrl: urls.shards
   };
 }
 

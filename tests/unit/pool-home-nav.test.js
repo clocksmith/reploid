@@ -77,6 +77,16 @@ describe('poolday home navigation', () => {
     expect(html).toContain('>See the Network</a>');
   });
 
+  it('renders Qwen as the visible default model on Ask and Compute', () => {
+    const askHtml = renderRouteDetail('ask');
+    const computeHtml = renderRouteDetail('compute');
+
+    expect(askHtml).toContain('<option value="qwen-3-5-0-8b-q4k-ehaf16" selected>Qwen 3.5 0.8B</option>');
+    expect(computeHtml).toContain('<option value="qwen-3-5-0-8b-q4k-ehaf16" selected>Qwen 3.5 0.8B</option>');
+    expect(askHtml).not.toContain('<option value="gemma-3-270m-it-q4k-ehf16-af32" selected>');
+    expect(computeHtml).not.toContain('<option value="gemma-3-270m-it-q4k-ehf16-af32" selected>');
+  });
+
   it('renders a network route call to action for compute sharing', () => {
     const html = renderRouteDetail('network');
 

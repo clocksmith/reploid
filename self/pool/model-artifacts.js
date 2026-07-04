@@ -125,7 +125,7 @@ export function buildModelArtifactUrls(model = {}, { baseUrl } = {}) {
   if (!manifestHash) throw new Error('manifestHash is required for artifact URL construction');
   const artifactPolicy = model.artifactPolicy || {};
   const resolvedBaseUrl = resolveModelArtifactBaseUrl(
-    artifactPolicy.baseUrl || model.modelBaseUrl || baseUrl
+    baseUrl || artifactPolicy.baseUrl || model.modelBaseUrl
   );
   const pathTemplate = artifactPolicy.pathTemplate;
   const root = typeof pathTemplate === 'string'
