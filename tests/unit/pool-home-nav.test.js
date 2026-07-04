@@ -6,7 +6,12 @@ import {
   PRODUCT_ROUTES,
   ROUTE_COPY
 } from '../../self/ui/pool-home/constants.js';
-import { renderNav, renderRouteDetail, renderRoutePanel } from '../../self/ui/pool-home/view.js';
+import {
+  renderContributionStatusBar,
+  renderNav,
+  renderRouteDetail,
+  renderRoutePanel
+} from '../../self/ui/pool-home/view.js';
 
 describe('poolday home navigation', () => {
   it('derives visible nav buttons and page copy from one route list', () => {
@@ -94,5 +99,22 @@ describe('poolday home navigation', () => {
     expect(html).toContain('href="/compute"');
     expect(html).toContain('data-pool-route="/compute"');
     expect(html).toContain('>Share Compute</a>');
+  });
+
+  it('renders a compact global compute contribution status', () => {
+    const html = renderContributionStatusBar({
+      state: 'inactive',
+      label: 'Not active',
+      tokens24h: 0,
+      tokensHour: 0,
+      recent: []
+    });
+
+    expect(html).toContain('id="pool-contribution-status"');
+    expect(html).toContain('data-contribution-state="inactive"');
+    expect(html).toContain('Not active');
+    expect(html).toContain('<b>24h</b> 0');
+    expect(html).toContain('<b>1h</b> 0/hr');
+    expect(html).toContain('<b>Last</b> none');
   });
 });

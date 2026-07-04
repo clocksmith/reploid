@@ -25,6 +25,7 @@ import {
   POOLDAY_VERSION_TAG,
   ROUTE_COPY
 } from './constants.js';
+import { getContributionSnapshot } from './contribution-state.js';
 
 const POOLDAY_STREAM_STATE = new Map();
 const POOLDAY_RECEIPT_LEDGER = [];
@@ -861,6 +862,44 @@ const renderRouteShell = (copy, content) => `
 const renderPolicyTrustLabel = (policy) => (
   policy.adaptiveRing ? 'group check' : 'one tab'
 );
+
+const formatContributionTokens = (value) => {
+  const tokens = Number(value || 0);
+  if (!Number.isFinite(tokens) || tokens <= 0) return '0';
+  if (tokens >= 1000000) return `${(tokens / 1000000).toFixed(1)}M`;
+  if (tokens >= 1000) return `${(tokens / 1000).toFixed(1)}k`;
+  return String(Math.round(tokens));
+};
+
+const formatContributionLast = (snapshot = {}) => {
+  const recent = snapshot.recent?.[0];
+  if (!recent) return 'none';
+  const hash = recent.receiptHash ? ` ${compactHex(recent.receiptHash)}` : '';
+  return `${formatContributionTokens(recent.tokens)}${hash}`;
+};
+
+export const renderContributionStatusBar = (snapshot = getContributionSnapshot()) => `
+  <aside
+    class="pool-contribution-status"
+    id="pool-contribution-status"
+    data-contribution-state="${escapeHtml(snapshot.state || 'inactive')}"
+    aria-label="Compute contribution status"
+  >
+    <span class="pool-contribution-dot" aria-hidden="true"></span>
+    <span class="pool-contribution-state">${escapeHtml(snapshot.label || 'Not active')}</span>
+    <span class="pool-contribution-metric"><b>24h</b> ${escapeHtml(formatContributionTokens(snapshot.tokens24h))}</span>
+    <span class="pool-contribution-metric"><b>1h</b> ${escapeHtml(formatContributionTokens(snapshot.tokensHour))}/hr</span>
+    <span class="pool-contribution-metric pool-contribution-last"><b>Last</b> ${escapeHtml(formatContributionLast(snapshot))}</span>
+  </aside>
+`;
+
+export const refreshContributionStatusBar = () => {
+  const current = document.getElementById('pool-contribution-status');
+  if (!current) return;
+  const template = document.createElement('template');
+  template.innerHTML = renderContributionStatusBar().trim();
+  current.replaceWith(template.content.firstElementChild);
+};
 
 const renderPolicyProductLabel = (policy) => {
   const labels = {
