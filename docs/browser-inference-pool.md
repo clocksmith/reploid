@@ -33,12 +33,13 @@ Do not describe this as trustless compute, hardware-attested inference, or guara
 
 ```json
 {
-  "modelId": "gemma-3-270m-it-q4k-ehf16-af32",
-  "modelHash": "sha256:6e9c0037ca1508855c441a4da1a0916a347f0901779549d6a70381bc5089a4b9",
-  "manifestHash": "sha256:cdc1d7a596fd2314c32da553c908a1aa6183abe056bc272c249b0a084c127a16",
+  "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+  "modelHash": "sha256:fab133e49d6dc67912fc3a087222ec44ca1941d9b7bc36c60cb1379863a6dd4f",
+  "manifestHash": "sha256:0b81efea7c6ccde9a79d6788083a28ab39b3cae6e21b1a08075b14194bcbe34e",
+  "tokenizerHash": "sha256:8fc3b6de02de5a8e21d3867aba335e2d9a3c2263201f55daaed1feab3541bea4",
   "runtime": "doppler",
   "backend": "browser-webgpu",
-  "dopplerLoadRef": "gemma3-270m"
+  "dopplerLoadRef": "qwen-3-5-0-8b-q4k-ehaf16"
 }
 ```
 
@@ -46,15 +47,15 @@ Do not describe this as trustless compute, hardware-attested inference, or guara
 
 ## Offloaded model artifacts
 
-Model bytes should not be served from Firebase Hosting or the Cloud Run coordinator. The launch path is offloaded, content-addressed artifact hosting:
+Model bytes should not be served from Firebase Hosting or the Cloud Run coordinator. The launch path is offloaded, content-addressed artifact hosting. The active Qwen launch model uses a pinned model artifact root:
 
 | Artifact | Path shape |
 |----------|------------|
-| Manifest | `<modelId>/<manifestHash>/manifest.json` |
-| Tokenizer | `<modelId>/<manifestHash>/tokenizer.json` |
-| Shards | `<modelId>/<manifestHash>/shards/*` |
+| Manifest | `<artifactPolicy.baseUrl>/manifest.json` |
+| Tokenizer | `<artifactPolicy.baseUrl>/tokenizer.json` |
+| Shards | `<artifactPolicy.baseUrl>/*` |
 
-Browser providers derive artifact URLs from `window.REPLOID_POOL_MODEL_BASE_URL` through `self/pool/model-contract.js`. The storage backend can be object storage, a model hub, IPFS, or another CDN. The receipt identity does not include the storage URL; it includes the exact model id, model hash, manifest hash, runtime, and backend. Providers cache fetched model artifacts in OPFS after first load.
+Browser providers derive artifact URLs from the selected model's `artifactPolicy`, with `window.REPLOID_POOL_MODEL_BASE_URL` as an override, through `self/pool/model-contract.js` and `self/pool/model-artifacts.js`. The storage backend can be object storage, a model hub, IPFS, or another CDN. The receipt identity does not include the storage URL; it includes the exact model id, model hash, manifest hash, runtime, and backend. Providers cache fetched model artifacts in OPFS after first load.
 
 Current hosted implementation order:
 

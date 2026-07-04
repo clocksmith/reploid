@@ -92,7 +92,8 @@ describe('Doppler browser runtime adapter', () => {
     });
 
     expect(loaded.ok).toBe(true);
-    expect(loadInput).toBe(LAUNCH_MODEL.dopplerLoadRef);
+    expect(loadInput).toEqual(LAUNCH_MODEL.loadInput);
+    expect(loadInput.url).toContain(LAUNCH_MODEL.dopplerLoadRef);
     expect(loadOptions).toMatchObject({
       modelBaseUrl: '/models',
       cache: 'memory',

@@ -904,7 +904,8 @@ const renderModelOptions = () => listPoolModels().map((model) => {
   const enabled = model.enabled !== false && model.modelHash && model.manifestHash;
   const label = model.label || model.modelId;
   const suffix = enabled ? '' : ` - ${model.unavailableReason || 'not enabled'}`;
-  return `<option value="${escapeHtml(model.modelId)}"${enabled ? '' : ' disabled'}>${escapeHtml(`${label}${suffix}`)}</option>`;
+  const selected = model.modelId === LAUNCH_MODEL.modelId ? ' selected' : '';
+  return `<option value="${escapeHtml(model.modelId)}"${enabled ? '' : ' disabled'}${selected}>${escapeHtml(`${label}${suffix}`)}</option>`;
 }).join('');
 
 const renderFlowLabels = () => POOLDAY_FLOW_LABELS.map((item) => `

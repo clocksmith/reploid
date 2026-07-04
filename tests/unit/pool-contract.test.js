@@ -57,6 +57,14 @@ const modelRequirementsFor = (model) => ({
 });
 
 describe('pool launch contract', () => {
+  it('uses Qwen 0.8B as the browser and server launch model', () => {
+    expect(SERVER_LAUNCH_MODEL.modelId).toBe(QWEN_MODEL_ID);
+    expect(BROWSER_LAUNCH_MODEL.modelId).toBe(QWEN_MODEL_ID);
+    expect(BROWSER_LAUNCH_MODEL).toEqual(SERVER_LAUNCH_MODEL);
+    expect(SERVER_LAUNCH_MODEL.label).toBe('Qwen 3.5 0.8B');
+    expect(SERVER_LAUNCH_MODEL.dopplerLoadRef).toBe(QWEN_MODEL_ID);
+  });
+
   it('accepts only the exact server launch model and generation config', () => {
     expect(validateJobRequest(makeJob()).ok).toBe(true);
 
@@ -226,9 +234,9 @@ describe('pool launch contract', () => {
     expect(artifactUrls).toEqual({
       transport: 'offloaded_content_addressed',
       cache: 'browser_opfs',
-      manifestUrl: `https://models.example/reploid/${BROWSER_LAUNCH_MODEL.modelId}/${BROWSER_LAUNCH_MODEL.manifestHash}/manifest.json`,
-      tokenizerUrl: `https://models.example/reploid/${BROWSER_LAUNCH_MODEL.modelId}/${BROWSER_LAUNCH_MODEL.manifestHash}/tokenizer.json`,
-      shardBaseUrl: `https://models.example/reploid/${BROWSER_LAUNCH_MODEL.modelId}/${BROWSER_LAUNCH_MODEL.manifestHash}/shards/`
+      manifestUrl: 'https://models.example/reploid/manifest.json',
+      tokenizerUrl: 'https://models.example/reploid/tokenizer.json',
+      shardBaseUrl: 'https://models.example/reploid/'
     });
     expect(SERVER_LAUNCH_MODEL.artifactPolicy.identityFields).toEqual([
       'modelId',

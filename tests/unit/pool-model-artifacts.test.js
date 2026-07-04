@@ -41,6 +41,27 @@ describe('pool model artifact helpers', () => {
     });
   });
 
+  it('lets an explicit artifact root override a model-specific base policy', () => {
+    expect(buildModelArtifactUrls({
+      modelId: 'qwen-3-5-0-8b-q4k-ehaf16',
+      manifestHash: 'sha256:manifest',
+      artifactPolicy: {
+        baseUrl: 'https://huggingface.co/Clocksmith/rdrr/resolve/pinned/models/qwen-3-5-0-8b-q4k-ehaf16',
+        pathTemplate: '',
+        paths: {
+          manifest: 'manifest.json',
+          tokenizer: 'tokenizer.json',
+          shards: ''
+        }
+      }
+    }, { baseUrl: 'https://models.example/qwen-root/' })).toEqual({
+      root: 'https://models.example/qwen-root',
+      manifest: 'https://models.example/qwen-root/manifest.json',
+      tokenizer: 'https://models.example/qwen-root/tokenizer.json',
+      shards: 'https://models.example/qwen-root/'
+    });
+  });
+
   it('accepts Doppler manifest shape with artifact identity and filename shards', () => {
     const result = validateModelArtifactManifestShape({
       modelId: 'qwen-3-5-0-8b-q4k-ehaf16',

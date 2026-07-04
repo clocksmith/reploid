@@ -1,6 +1,6 @@
 {
   "schema": "reploid.pool.config/v1",
-  "configVersion": "2026-06-28.lane-a-protocol.v2",
+  "configVersion": "2026-07-03.qwen-default.v1",
   "claim": "receipt-backed, audit-backed, reputation-backed, policy-controlled browser inference",
   "forbiddenClaims": [
     "trustless",
@@ -90,23 +90,39 @@
     }
   },
   "launchModel": {
-    "modelId": "gemma-3-270m-it-q4k-ehf16-af32",
-    "modelHash": "sha256:6e9c0037ca1508855c441a4da1a0916a347f0901779549d6a70381bc5089a4b9",
-    "manifestHash": "sha256:cdc1d7a596fd2314c32da553c908a1aa6183abe056bc272c249b0a084c127a16",
-    "contextLength": 32768,
+    "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+    "modelHash": "sha256:fab133e49d6dc67912fc3a087222ec44ca1941d9b7bc36c60cb1379863a6dd4f",
+    "manifestHash": "sha256:0b81efea7c6ccde9a79d6788083a28ab39b3cae6e21b1a08075b14194bcbe34e",
+    "tokenizerHash": "sha256:8fc3b6de02de5a8e21d3867aba335e2d9a3c2263201f55daaed1feab3541bea4",
+    "contextLength": 262144,
     "quantization": "q4k",
     "artifactIdentity": {
-      "sourceCheckpointId": "google/gemma-3-270m-it",
-      "weightPackId": "gemma-3-270m-it-q4k-ehf16-af32-wp-catalog-v1",
-      "manifestVariantId": "gemma-3-270m-it-q4k-ehf16-af32-mv-exec-v1",
+      "sourceCheckpointId": "Qwen/Qwen3.5-0.8B",
+      "sourceRepo": "Qwen/Qwen3.5-0.8B",
+      "sourceRevision": "2fc06364715b967f1860aea9cf38778875588b17",
+      "weightPackId": "qwen-3-5-0-8b-q4k-ehaf16-wp-catalog-v1",
+      "weightPackHash": "sha256:fab133e49d6dc67912fc3a087222ec44ca1941d9b7bc36c60cb1379863a6dd4f",
+      "manifestVariantId": "qwen-3-5-0-8b-q4k-ehaf16-mv-exec-v1",
+      "conversionConfigDigest": "sha256:01083d6518cee0445c7114402dade2b2ea0cd39acac0b61cad7dc2dece958f85",
+      "conversionConfigPath": "src/config/conversion/qwen3/qwen-3-5-0-8b-q4k-ehaf16.json",
+      "materializationProfile": "auto",
+      "modalitySet": [
+        "text",
+        "vision"
+      ],
+      "sourceFormat": "safetensors",
       "artifactCompleteness": "complete"
     },
     "runtime": "doppler",
     "backend": "browser-webgpu",
-    "dopplerLoadRef": "gemma3-270m",
+    "dopplerLoadRef": "qwen-3-5-0-8b-q4k-ehaf16",
+    "loadInput": {
+      "url": "https://huggingface.co/Clocksmith/rdrr/resolve/a6118fb24a8e6c4fe7527f1a3dc7b406e0a3ef10/models/qwen-3-5-0-8b-q4k-ehaf16"
+    },
     "artifactPolicy": {
       "transport": "offloaded_content_addressed",
       "cache": "browser_opfs",
+      "baseUrl": "https://huggingface.co/Clocksmith/rdrr/resolve/a6118fb24a8e6c4fe7527f1a3dc7b406e0a3ef10/models/qwen-3-5-0-8b-q4k-ehaf16",
       "identityFields": [
         "modelId",
         "modelHash",
@@ -114,13 +130,32 @@
         "runtime",
         "backend"
       ],
-      "pathTemplate": "<modelId>/<manifestHash>",
+      "pathTemplate": "",
       "paths": {
-        "manifest": "<modelId>/<manifestHash>/manifest.json",
-        "tokenizer": "<modelId>/<manifestHash>/tokenizer.json",
-        "shards": "<modelId>/<manifestHash>/shards/"
+        "manifest": "manifest.json",
+        "tokenizer": "tokenizer.json",
+        "shards": ""
       }
-    }
+    },
+    "runtimeCompatibility": {
+      "requiredWebGpuFeatures": [],
+      "capabilityFallbacks": [
+        {
+          "whenMissingWebGpuFeatures": [
+            "shader-f16"
+          ],
+          "runtime": "doppler-gpu@0.4.6",
+          "transform": "widenToF32Activations",
+          "prefillProjectionKernel": "fused_matmul_q4_batched_multicol_shared.wgsl",
+          "kvDtype": "f32",
+          "status": "supported"
+        }
+      ],
+      "fallbackStatus": "doppler_0_4_6_manifest_capability_remap",
+      "capabilityAction": "Use doppler-gpu@0.4.6 or newer with capability-aware kernelPathPolicy; browsers without shader-f16 run the declared f32 fallback lane."
+    },
+    "label": "Qwen 3.5 0.8B",
+    "enabled": true
   },
   "generationConfig": {
     "mode": "greedy",
@@ -311,7 +346,7 @@
   "artifactPreflight": {
     "status": "available_strict_mode",
     "strictFlag": "window.REPLOID_POOL_STRICT_ARTIFACT_PREFLIGHT",
-    "manifestPath": "<modelId>/<manifestHash>/manifest.json",
+    "manifestPath": "artifactPolicy.paths.manifest resolved under artifactPolicy.baseUrl or REPLOID_POOL_MODEL_BASE_URL",
     "checks": [
       "cors_fetch",
       "manifest_json",

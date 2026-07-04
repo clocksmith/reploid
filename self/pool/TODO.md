@@ -57,7 +57,7 @@ The current Cloud Run and Firestore path is transitional. The target Reploid con
 
 ## Model Artifact Path
 
-- [ ] Publish launch model artifacts under `REPLOID_POOL_MODEL_BASE_URL` with the configured `<modelId>/<manifestHash>/manifest.json` path shape.
+- [ ] Publish launch model artifacts under the selected model's configured `artifactPolicy.baseUrl`, with `REPLOID_POOL_MODEL_BASE_URL` as an override for alternate artifact roots.
 - [x] Add strict artifact manifest preflight for CORS fetch, manifest JSON, manifest hash, model id, and model hash.
 - [ ] Verify tokenizer, shard hashes, range or resume behavior, and OPFS cache reuse against the published artifact host.
 - [x] Make strict-preflight artifact failures legible in `/compute`: missing manifest, hash mismatch, CORS denial, and unsupported browser runtime.
