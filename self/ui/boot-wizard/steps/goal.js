@@ -405,7 +405,7 @@ export function renderGoalStep(state, options = {}) {
   const headingTag = options.headingTag || 'h2';
   const headingClass = options.headingClass || 'type-h1';
   const showPresetControls = goalActionMode !== 'generate-only';
-  const generateButtonLabel = options.generateButtonLabel || 'SHUFFLE';
+  const generateButtonLabel = options.generateButtonLabel || (showPresetControls ? 'Draft' : 'Shuffle');
   const shuffleSeed = Number(state.goalShuffleSeed) || 0;
   const entries = sortGoalEntriesByLevel(getGoalEntries(shuffleSeed));
   const goalValue = state.goal || '';
@@ -442,6 +442,24 @@ export function renderGoalStep(state, options = {}) {
     ? String(options.generatedStatusText || '')
     : (generatorSource === 'seed' ? '' : `Objective drafted by ${isZero ? 'Zero' : 'Reploid'}`);
   const primaryActionHtml = options.primaryActionHtml || '';
+  const presetShuffleActionHtml = showPresetControls ? `
+    <button class="btn btn-primary btn-op goal-action-button"
+            data-op="⇄"
+            data-action="shuffle-goals"
+            type="button">
+      Shuffle
+    </button>
+  ` : '';
+  const generateGoalActionHtml = `
+    <button class="btn btn-primary btn-op goal-action-button${generating ? ' loading' : ''}"
+            data-op="${showPresetControls ? '☩' : '⇄'}"
+            data-action="generate-goal"
+            type="button"
+            ${generating ? 'disabled aria-busy="true"' : 'aria-busy="false"'}>
+      ${generating ? (showPresetControls ? 'Drafting...' : 'Shuffling...') : escapeText(generateButtonLabel)}
+    </button>
+  `;
+  const goalActionHtml = `${presetShuffleActionHtml}${generateGoalActionHtml}${primaryActionHtml}`;
 
   return `
     <div class="wizard-step wizard-goal">
@@ -474,21 +492,6 @@ export function renderGoalStep(state, options = {}) {
                     }).join('')}
                   </div>
                 ` : ''}
-                <div class="goal-preset-actions">
-                  ${showPresetControls ? `
-                    <button class="btn btn-ghost"
-                            data-action="shuffle-goals"
-                            type="button">
-                      Shuffle
-                    </button>
-                  ` : ''}
-                  <button class="btn btn-prism"
-                          data-action="generate-goal"
-                          type="button"
-                          ${generating ? 'disabled' : ''}>
-                    ${generating ? 'Creating...' : escapeText(generateButtonLabel)}
-                  </button>
-                </div>
               </div>
             </div>
             ${showPresetControls ? `
@@ -542,9 +545,9 @@ export function renderGoalStep(state, options = {}) {
                 ${generatorError ? `Error: ${escapeText(generatorError)}` : escapeText(generatedStatusText)}
               </div>
             ` : ''}
-            ${primaryActionHtml ? `
+            ${goalActionHtml.trim() ? `
               <div class="goal-primary-action">
-                ${primaryActionHtml}
+                ${goalActionHtml}
               </div>
             ` : ''}
           </div>

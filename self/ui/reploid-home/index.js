@@ -258,14 +258,11 @@ const renderHome = (state) => {
           <h2 class="type-h2">Objective</h2>
         </div>
         <textarea id="goal-input" maxlength="500" spellcheck="true">${escapeHtml(state.goal)}</textarea>
-        <div class="goal-toolbar">
-          <button class="btn btn-ghost" type="button" data-action="generate-goal">SHUFFLE</button>
-          <span class="goal-toolbar-status type-caption">${escapeHtml(state.goalStatus)}</span>
+        <span class="goal-toolbar-status type-caption">${escapeHtml(state.goalStatus)}</span>
+        <div class="goal-primary-action seed-browser-actions">
+          <button class="btn btn-primary btn-op goal-action-button" data-op="⇄" type="button" data-action="generate-goal">Shuffle</button>
+          <button class="btn btn-primary btn-op goal-action-button${state.isAwakening ? ' loading' : ''}" data-op="☇" id="awaken-btn" type="button" aria-busy="${state.isAwakening ? 'true' : 'false'}"${state.isAwakening || !launch.canAwaken || !normalize(state.goal) ? ' disabled' : ''}>${state.isAwakening ? 'Awakening...' : 'Awaken'}</button>
         </div>
-      </div>
-
-      <div class="seed-browser-actions">
-        <button class="btn btn-primary btn-op${state.isAwakening ? ' loading' : ''}" data-op="☇" id="awaken-btn" type="button" aria-busy="${state.isAwakening ? 'true' : 'false'}"${state.isAwakening || !launch.canAwaken || !normalize(state.goal) ? ' disabled' : ''}>${state.isAwakening ? 'Awakening...' : 'Awaken'}</button>
       </div>
 
       <details class="seed-browser-panel"${state.selfBrowserOpen ? ' open' : ''}>

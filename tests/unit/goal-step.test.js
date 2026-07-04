@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { renderAwakenedFilesPanel } from '../../self/ui/boot-wizard/steps/goal.js';
+import { renderAwakenedFilesPanel, renderGoalStep } from '../../self/ui/boot-wizard/steps/goal.js';
 
 const createReploidState = (overrides = {}) => ({
   mode: 'reploid',
@@ -59,5 +59,36 @@ describe('goal step awakened files panel', () => {
     expect(html).toContain('/self/runtime.js');
     expect(html).toContain('/self/capsule/index.js');
     expect(html).not.toContain('seed-tree-panel');
+  });
+});
+
+describe('goal step action row', () => {
+  it('renders shuffle and awaken together below the goal input', () => {
+    const html = renderGoalStep(createReploidState({
+      mode: 'zero',
+      goal: 'Build live DOM katamari'
+    }), {
+      goalActionMode: 'generate-only',
+      primaryActionHtml: `
+        <button class="btn btn-primary btn-op goal-action-button"
+                data-op="☇"
+                data-action="awaken"
+                id="awaken-btn">
+          Awaken
+        </button>
+      `
+    });
+
+    const inputIndex = html.indexOf('id="goal-input"');
+    const actionRowIndex = html.indexOf('class="goal-primary-action"');
+    const shuffleIndex = html.indexOf('data-action="generate-goal"');
+    const awakenIndex = html.indexOf('data-action="awaken"');
+
+    expect(actionRowIndex).toBeGreaterThan(inputIndex);
+    expect(shuffleIndex).toBeGreaterThan(actionRowIndex);
+    expect(awakenIndex).toBeGreaterThan(shuffleIndex);
+    expect(html).toContain('data-op="⇄"');
+    expect(html).toContain('data-op="☇"');
+    expect(html).toContain('goal-action-button');
   });
 });
