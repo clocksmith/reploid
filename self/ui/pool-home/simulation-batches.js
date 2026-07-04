@@ -11,34 +11,31 @@ import {
 } from './constants.js';
 import {
   clamp01,
-  easeInOutCubic,
   resolveFrameBounds,
-  resolveLineGeometry,
-  resolveLinePointInto
+  resolveLineGeometryInto
 } from './simulation-core.js';
-
-const normalizePoolGpuColor = (color, alpha = 1) => [
-  (color?.[0] ?? 0) / 255,
-  (color?.[1] ?? 0) / 255,
-  (color?.[2] ?? 0) / 255,
-  clamp01(alpha)
-];
-
-const mixPoolColor = (from, to, amount) => from.map((value, index) => value + (to[index] - value) * amount);
 
 const wrapPoolIndex = (index, length) => ((index % length) + length) % length;
 
-const resolveRainbowColor = (rainbow, toneIndex = 0) => {
-  const length = Math.max(1, rainbow.length);
-  const baseIndex = Math.floor(toneIndex);
-  return mixPoolColor(
-    rainbow[wrapPoolIndex(baseIndex, length)] || [255, 255, 255],
-    rainbow[wrapPoolIndex(baseIndex + 1, length)] || [255, 255, 255],
-    toneIndex - baseIndex
-  );
+const writePoolRgbColorInto = (target, color) => {
+  target[0] = color?.[0] ?? 255;
+  target[1] = color?.[1] ?? 255;
+  target[2] = color?.[2] ?? 255;
+  return target;
 };
 
-const WHITE_FILL_COLOR = Object.freeze([1, 1, 1, 1]);
+const resolveRainbowRgbInto = (target, rainbow, toneIndex = 0) => {
+  const length = Math.max(1, rainbow.length);
+  const baseIndex = Math.floor(toneIndex);
+  const from = rainbow[wrapPoolIndex(baseIndex, length)] || [255, 255, 255];
+  const to = rainbow[wrapPoolIndex(baseIndex + 1, length)] || [255, 255, 255];
+  const amount = toneIndex - baseIndex;
+  target[0] = from[0] + (to[0] - from[0]) * amount;
+  target[1] = from[1] + (to[1] - from[1]) * amount;
+  target[2] = from[2] + (to[2] - from[2]) * amount;
+  return target;
+};
+
 const BACKGROUND_BAND_COLOR = Object.freeze([0, 0, 0, 0.018]);
 const POOL_CIRCLE_CORNERS = Object.freeze([
   [-1, -1],
@@ -49,32 +46,40 @@ const POOL_CIRCLE_CORNERS = Object.freeze([
   [1, 1]
 ]);
 
-const resolvePoolRawToneColor = (frame, tone, toneIndex = 0) => {
+const resolvePoolRawToneRgbInto = (target, frame, tone, toneIndex = 0) => {
   const palette = frame.palette || POOLDAY_GRAPH_PALETTES[0];
   const rainbow = palette.rainbow || POOLDAY_RAINBOW_COLORS;
-  const fallback = resolveRainbowColor(rainbow, toneIndex);
-  return tone === 'rainbow'
-    ? fallback
-    : (palette[tone] || fallback);
+  if (tone === 'rainbow') return resolveRainbowRgbInto(target, rainbow, toneIndex);
+  const paletteColor = palette[tone];
+  return paletteColor
+    ? writePoolRgbColorInto(target, paletteColor)
+    : resolveRainbowRgbInto(target, rainbow, toneIndex);
 };
 
-const flowToneMix = (item, toneIndexOffset = 0) => (
-  item?.toneTo
-    ? {
-      toneTo: item.toneTo,
-      toneToIndex: (item.toneToIndex ?? item.toneIndex ?? 0) + toneIndexOffset,
-      toneBlend: item.toneBlend ?? 0
-    }
-    : null
-);
-
-const resolvePoolRenderToneColor = (frame, tone, alpha, toneIndex = 0, mix = null) => {
-  const fromColor = resolvePoolRawToneColor(frame, tone, toneIndex);
-  const blend = clamp01(mix?.toneBlend ?? 0);
-  const color = mix?.toneTo && blend > 0
-    ? mixPoolColor(fromColor, resolvePoolRawToneColor(frame, mix.toneTo, mix.toneToIndex ?? toneIndex), blend)
-    : fromColor;
-  return normalizePoolGpuColor(color, alpha);
+const resolvePoolRenderToneColorInto = (
+  target,
+  mixScratch,
+  frame,
+  tone,
+  alpha,
+  toneIndex = 0,
+  toneTo = null,
+  toneToIndex = toneIndex,
+  toneBlend = 0
+) => {
+  resolvePoolRawToneRgbInto(target, frame, tone, toneIndex);
+  const blend = clamp01(toneBlend);
+  if (toneTo && blend > 0) {
+    resolvePoolRawToneRgbInto(mixScratch, frame, toneTo, toneToIndex);
+    target[0] += (mixScratch[0] - target[0]) * blend;
+    target[1] += (mixScratch[1] - target[1]) * blend;
+    target[2] += (mixScratch[2] - target[2]) * blend;
+  }
+  target[0] /= 255;
+  target[1] /= 255;
+  target[2] /= 255;
+  target[3] = clamp01(alpha);
+  return target;
 };
 
 const pushPoolFillVertex = (vertices, x, y, color) => {
@@ -195,87 +200,164 @@ const samplePoolCubicInto = (out, a, b, c, d, amount) => {
   return out;
 };
 
-const pushPoolLineSegmentMesh = (vertices, a, b, lineWidth, colorA, colorB) => {
+const createPoolBatchScratch = () => ({
+  previous: { x: 0, y: 0 },
+  current: { x: 0, y: 0 },
+  colorA: [0, 0, 0, 0],
+  colorB: [0, 0, 0, 0],
+  fadeColorA: [0, 0, 0, 0],
+  fadeColorB: [0, 0, 0, 0],
+  color: [0, 0, 0, 0],
+  mixColor: [0, 0, 0, 0],
+  lineGeometry: {
+    start: { x: 0, y: 0 },
+    end: { x: 0, y: 0 },
+    control: { x: 0, y: 0 }
+  },
+  bandA: { x: 0, y: 0 },
+  bandB: { x: 0, y: 0 },
+  bandC: { x: 0, y: 0 },
+  bandD: { x: 0, y: 0 }
+});
+
+const writePoolAlphaScaledColorInto = (target, color, alphaScale) => {
+  target[0] = color[0];
+  target[1] = color[1];
+  target[2] = color[2];
+  target[3] = color[3] * alphaScale;
+  return target;
+};
+
+const pushPoolLineSegmentMesh = (vertices, a, b, lineWidth, colorA, colorB, sampleScratch) => {
   const half = Math.max(0.35, lineWidth / 2);
   const dx = b.x - a.x;
   const dy = b.y - a.y;
   const distance = Math.hypot(dx, dy);
   if (!Number.isFinite(distance) || distance <= 0.001) return;
-  const normalX = -dy / distance * half;
-  const normalY = dx / distance * half;
-  const a0x = a.x + normalX;
-  const a0y = a.y + normalY;
-  const a1x = a.x - normalX;
-  const a1y = a.y - normalY;
-  const b0x = b.x + normalX;
-  const b0y = b.y + normalY;
-  const b1x = b.x - normalX;
-  const b1y = b.y - normalY;
-  pushPoolFillTriangleCoords(vertices, a0x, a0y, a1x, a1y, b0x, b0y, colorA, colorA, colorB);
-  pushPoolFillTriangleCoords(vertices, a1x, a1y, b1x, b1y, b0x, b0y, colorA, colorB, colorB);
+  const directionX = dx / distance;
+  const directionY = dy / distance;
+  const extension = Math.min(1.15, distance * 0.22);
+  const startX = a.x - directionX * extension;
+  const startY = a.y - directionY * extension;
+  const endX = b.x + directionX * extension;
+  const endY = b.y + directionY * extension;
+  const unitNormalX = -directionY;
+  const unitNormalY = directionX;
+  const fringe = Math.max(0.78, Math.min(1.45, lineWidth * 0.36 + 0.48));
+  const outer = half + fringe;
+  const innerX = unitNormalX * half;
+  const innerY = unitNormalY * half;
+  const outerX = unitNormalX * outer;
+  const outerY = unitNormalY * outer;
+  const fadeColorA = writePoolAlphaScaledColorInto(sampleScratch.fadeColorA, colorA, 0);
+  const fadeColorB = writePoolAlphaScaledColorInto(sampleScratch.fadeColorB, colorB, 0);
+  const aPlusX = startX + innerX;
+  const aPlusY = startY + innerY;
+  const aMinusX = startX - innerX;
+  const aMinusY = startY - innerY;
+  const bPlusX = endX + innerX;
+  const bPlusY = endY + innerY;
+  const bMinusX = endX - innerX;
+  const bMinusY = endY - innerY;
+  const aOuterPlusX = startX + outerX;
+  const aOuterPlusY = startY + outerY;
+  const bOuterPlusX = endX + outerX;
+  const bOuterPlusY = endY + outerY;
+  const aOuterMinusX = startX - outerX;
+  const aOuterMinusY = startY - outerY;
+  const bOuterMinusX = endX - outerX;
+  const bOuterMinusY = endY - outerY;
+  pushPoolFillTriangleCoords(vertices, aPlusX, aPlusY, aMinusX, aMinusY, bPlusX, bPlusY, colorA, colorA, colorB);
+  pushPoolFillTriangleCoords(vertices, aMinusX, aMinusY, bMinusX, bMinusY, bPlusX, bPlusY, colorA, colorB, colorB);
+  pushPoolFillTriangleCoords(vertices, aOuterPlusX, aOuterPlusY, aPlusX, aPlusY, bOuterPlusX, bOuterPlusY, fadeColorA, colorA, fadeColorB);
+  pushPoolFillTriangleCoords(vertices, aPlusX, aPlusY, bPlusX, bPlusY, bOuterPlusX, bOuterPlusY, colorA, colorB, fadeColorB);
+  pushPoolFillTriangleCoords(vertices, aMinusX, aMinusY, aOuterMinusX, aOuterMinusY, bMinusX, bMinusY, colorA, fadeColorA, colorB);
+  pushPoolFillTriangleCoords(vertices, aOuterMinusX, aOuterMinusY, bOuterMinusX, bOuterMinusY, bMinusX, bMinusY, fadeColorA, fadeColorB, colorB);
 };
 
-const pushSampledPoolLineMesh = (vertices, segments, sampleAt, lineWidth, colorAt) => {
-  const previous = { x: 0, y: 0 };
-  const current = { x: 0, y: 0 };
+const pushSampledPoolLineMesh = (vertices, segments, sampleAt, lineWidth, colorAt, sampleScratch) => {
+  const previous = sampleScratch.previous;
+  const current = sampleScratch.current;
   sampleAt(previous, 0);
   for (let index = 0; index < segments; index += 1) {
     const amountA = index / Math.max(1, segments);
     const amountB = (index + 1) / Math.max(1, segments);
     sampleAt(current, amountB);
+    colorAt(sampleScratch.colorA, amountA, index);
+    colorAt(sampleScratch.colorB, amountB, index + 1);
     pushPoolLineSegmentMesh(
       vertices,
       previous,
       current,
       lineWidth,
-      colorAt(amountA, index),
-      colorAt(amountB, index + 1)
+      sampleScratch.colorA,
+      sampleScratch.colorB,
+      sampleScratch
     );
     previous.x = current.x;
     previous.y = current.y;
   }
 };
 
-const pushPoolPrismLine = (vertices, frame, line, width, height, alpha, lineWidth) => {
-  const { start, end, control } = resolveLineGeometry(line, width, height);
+const pushPoolPrismLine = (vertices, frame, line, width, height, alpha, lineWidth, segments, sampleScratch) => {
+  const { start, end, control } = resolveLineGeometryInto(sampleScratch.lineGeometry, line, width, height);
   const draw = clamp01(line.draw ?? 1);
-  pushSampledPoolLineMesh(vertices, POOLDAY_RENDERER_LINE_SEGMENTS, (out, amount) => (
+  pushSampledPoolLineMesh(vertices, segments, (out, amount) => (
     samplePoolQuadraticInto(out, start, control, end, draw * amount)
-  ), lineWidth, (amount) => {
+  ), lineWidth, (out, amount) => {
     const local = Math.max(0.62, 1 - Math.abs(amount - 0.48) * 0.56);
     const offset = amount * 6;
-    return resolvePoolRenderToneColor(frame, line.tone || 'rainbow', alpha * local, line.toneIndex + offset, flowToneMix(line, offset));
-  });
+    resolvePoolRenderToneColorInto(
+      out,
+      sampleScratch.mixColor,
+      frame,
+      line.tone || 'rainbow',
+      alpha * local,
+      line.toneIndex + offset,
+      line.toneTo || null,
+      (line.toneToIndex ?? line.toneIndex ?? 0) + offset,
+      line.toneBlend ?? 0
+    );
+  }, sampleScratch);
 };
 
-const pushPoolBezierBand = (vertices, width, y, color) => {
-  const a = { x: width * 0.10, y };
-  const b = { x: width * 0.34, y: y - 22 };
-  const c = { x: width * 0.62, y: y + 22 };
-  const d = { x: width * 0.92, y };
-  pushSampledPoolLineMesh(vertices, POOLDAY_RENDERER_BAND_SEGMENTS, (out, amount) => (
+const pushPoolBezierBand = (vertices, width, y, color, segments, sampleScratch) => {
+  const a = sampleScratch.bandA;
+  const b = sampleScratch.bandB;
+  const c = sampleScratch.bandC;
+  const d = sampleScratch.bandD;
+  a.x = width * 0.10;
+  a.y = y;
+  b.x = width * 0.34;
+  b.y = y - 22;
+  c.x = width * 0.62;
+  c.y = y + 22;
+  d.x = width * 0.92;
+  d.y = y;
+  pushSampledPoolLineMesh(vertices, segments, (out, amount) => (
     samplePoolCubicInto(out, a, b, c, d, amount)
-  ), 1, () => color);
+  ), 1, (out) => {
+    out[0] = color[0];
+    out[1] = color[1];
+    out[2] = color[2];
+    out[3] = color[3];
+  }, sampleScratch);
 };
 
 export const createPoolRenderBatchBuilder = () => {
   const outputPool = [];
   const outputs = [];
   const scratch = {
-    whiteField: createFloatList(64),
-    backgroundLines: createFloatList(4096),
+    backgroundLines: createFloatList(16384),
     prismCircles: createFloatList(512),
     facetFill: createFloatList(512),
-    haloCircles: createFloatList(1024),
-    edgeGlowFill: createFloatList(4096),
-    cueCircles: createFloatList(2048),
-    lineFill: createFloatList(8192),
-    linePulseCircles: createFloatList(1024),
+    edgeGlowFill: createFloatList(65536),
+    lineFill: createFloatList(65536),
     particleCircles: createFloatList(8192),
     nodeCircles: createFloatList(1024)
   };
   const scratchArrays = Object.values(scratch);
-  const tempPoint = { x: 0, y: 0 };
+  const sampleScratch = createPoolBatchScratch();
   const resetScratch = () => {
     for (const vertices of scratchArrays) vertices.reset();
     outputs.length = 0;
@@ -300,12 +382,13 @@ export const createPoolRenderBatchBuilder = () => {
 
   return (frame, width, height) => {
     resetScratch();
-    pushPoolFillTriangleCoords(scratch.whiteField, 0, 0, width, 0, 0, height, WHITE_FILL_COLOR);
-    pushPoolFillTriangleCoords(scratch.whiteField, 0, height, width, 0, width, height, WHITE_FILL_COLOR);
-    pushBatch('fill', scratch.whiteField);
-
+    const renderQuality = Math.max(0.62, Math.min(1, Number(frame.renderQuality ?? 1) || 1));
+    const lineSegments = Math.max(7, Math.round(POOLDAY_RENDERER_LINE_SEGMENTS * renderQuality));
+    const bandSegments = Math.max(12, Math.round(POOLDAY_RENDERER_BAND_SEGMENTS * renderQuality));
+    const color = sampleScratch.color;
+    const mixColor = sampleScratch.mixColor;
     for (let index = 0; index < 6; index += 1) {
-      pushPoolBezierBand(scratch.backgroundLines, width, height * (0.18 + index * 0.12), BACKGROUND_BAND_COLOR);
+      pushPoolBezierBand(scratch.backgroundLines, width, height * (0.18 + index * 0.12), BACKGROUND_BAND_COLOR, bandSegments, sampleScratch);
     }
     pushBatch('fill', scratch.backgroundLines);
 
@@ -323,7 +406,7 @@ export const createPoolRenderBatchBuilder = () => {
           centerX,
           centerY,
           Math.max(80, radius),
-          resolvePoolRenderToneColor(frame, 'rainbow', 0.018 + index * 0.004, index * 2)
+          resolvePoolRenderToneColorInto(color, mixColor, frame, 'rainbow', 0.018 + index * 0.004, index * 2)
         );
       }
     }
@@ -334,146 +417,60 @@ export const createPoolRenderBatchBuilder = () => {
       const facetCount = Math.min(6, Math.max(2, Math.floor(nodes.length / 2)));
       for (let index = 0; index < facetCount; index += 1) {
         const pulse = 0.5 + 0.5 * Math.sin(time * 0.82 + index);
-        const color = resolvePoolRenderToneColor(
-          frame,
-          'rainbow',
-          POOLDAY_FLOW_TUNING.prismFacetAlpha * (0.48 + pulse * 0.52),
-          index * 2
-        );
         pushPoolFillTriangle(
           scratch.facetFill,
           nodes[index % nodes.length],
           nodes[(index + 3) % nodes.length],
           nodes[(index + 6) % nodes.length],
-          color
+          resolvePoolRenderToneColorInto(
+            color,
+            mixColor,
+            frame,
+            'rainbow',
+            POOLDAY_FLOW_TUNING.prismFacetAlpha * (0.48 + pulse * 0.52),
+            index * 2
+          )
         );
       }
     }
     pushBatch('fill', scratch.facetFill);
 
-    for (let index = 0; index < nodes.length; index += 1) {
-      const node = nodes[index];
-      const core = node.core === true;
-      const pulse = 0.5 + 0.5 * Math.sin((frame.time || 0) * 1.15 + index * 0.74);
-      const radius = node.size * (core ? 6.8 : 5.2) + pulse * (core ? 10 : 7);
-      pushPoolCircle(
-        scratch.haloCircles,
-        node.x,
-        node.y,
-        radius,
-        resolvePoolRenderToneColor(frame, 'rainbow', POOLDAY_FLOW_TUNING.nodeGlowAlpha * (core ? 0.60 : 0.44), index + 2)
-      );
-    }
-    pushBatch('circle', scratch.haloCircles);
-
     const glowLines = frame.lines || [];
-    const glowBudget = Math.min(1, POOLDAY_FLOW_TUNING.maxGlowLines / Math.max(1, glowLines.length));
+    const glowBudget = Math.min(1, Math.max(8, POOLDAY_FLOW_TUNING.maxGlowLines * renderQuality) / Math.max(1, glowLines.length));
     for (let index = 0; index < glowLines.length; index += 1) {
       const line = glowLines[index];
-      const alpha = Math.min(0.32, (line.alpha || 0.1) * POOLDAY_FLOW_TUNING.edgeGlowAlpha * 2.6 * glowBudget);
-      pushPoolPrismLine(scratch.edgeGlowFill, frame, line, width, height, alpha, Math.max(3, line.width * POOLDAY_FLOW_TUNING.edgeGlowWidth));
+      const hotPathBoost = line.hotPathActive ? 3.4 : 1;
+      const alpha = Math.min(0.62, (line.alpha || 0.1) * POOLDAY_FLOW_TUNING.edgeGlowAlpha * 2.6 * glowBudget * hotPathBoost);
+      pushPoolPrismLine(
+        scratch.edgeGlowFill,
+        frame,
+        line,
+        width,
+        height,
+        alpha,
+        Math.max(3, line.width * POOLDAY_FLOW_TUNING.edgeGlowWidth * (line.hotPathActive ? 2.2 : 1)),
+        lineSegments,
+        sampleScratch
+      );
     }
     pushBatch('fill', scratch.edgeGlowFill);
 
-    const cueAmount = clamp01(frame.countdownProgress ?? frame.anticipation ?? 0);
-    if (cueAmount > 0.0001) {
-      const eased = easeInOutCubic(cueAmount);
-      const time = Number(frame.time || 0);
-      const cueLines = frame.lines || [];
-      const cueSlots = 5;
-      const cueBudget = Math.min(1, 12 / Math.max(1, cueLines.length));
-      for (let index = 0; index < cueLines.length; index += 1) {
-        const line = cueLines[index];
-        const edgeCue = clamp01(line.flowCountdown ?? cueAmount);
-        for (let cue = 0; cue < cueSlots; cue += 1) {
-          const cueReveal = easeInOutCubic(clamp01(eased * 4.2 - cue * 0.62));
-          const route = index + cue * 3;
-          const progress = (
-            time * (0.055 + edgeCue * 0.035)
-            + edgeCue * 0.28
-            + (line.phaseShift || 0) * 0.05
-            + cue / cueSlots
-            + index * 0.017
-          ) % 1;
-          const point = resolveLinePointInto(tempPoint, line, progress, width, height);
-          const ringRadius = 3.6 + edgeCue * 9.5 + Math.sin(time * 2.2 + route) * 1.8;
-          pushPoolCircle(
-            scratch.cueCircles,
-            point.x,
-            point.y,
-            ringRadius,
-            resolvePoolRenderToneColor(frame, 'rainbow', (0.09 + edgeCue * 0.27) * cueReveal * cueBudget, route + eased * 3),
-            0.62
-          );
-        }
-      }
-      for (let index = 0; index < nodes.length; index += 1) {
-        const node = nodes[index];
-        const core = node.core === true;
-        const local = clamp01((node.ringProgress ?? eased) - (index % 6) * 0.035);
-        if (local <= 0.01) continue;
-        const pulse = Math.sin(time * (1.1 + eased) + index * 0.8) * 0.5 + 0.5;
-        const radius = node.size + (core ? 9 : 6) + local * (core ? 15 : 9) + pulse * 3;
-        pushPoolCircle(
-          scratch.cueCircles,
-          node.x,
-          node.y,
-          radius,
-          resolvePoolRenderToneColor(frame, 'rainbow', 0.11 + local * (core ? 0.30 : 0.20), index + eased * 6),
-          0.70
-        );
-      }
-    }
-    pushBatch('circle', scratch.cueCircles);
-
     const flowEnergy = Number(frame.flowEnergy || 1);
     for (const line of frame.lines || []) {
-      const activeAlpha = line.alpha * (1.05 + flowEnergy * 0.50);
-      pushPoolPrismLine(scratch.lineFill, frame, line, width, height, activeAlpha, line.width);
-      if (line.pulse > 0.02) {
-        const pulsePoint = resolveLinePointInto(tempPoint, line, clamp01(0.5 + Math.sin(line.pulse * Math.PI) * 0.34), width, height);
-        pushPoolCircle(
-          scratch.linePulseCircles,
-          pulsePoint.x,
-          pulsePoint.y,
-          3 + line.pulse * 7,
-          resolvePoolRenderToneColor(
-            frame,
-            line.tone === 'primary' ? 'evidence' : line.tone,
-            Math.min(0.64, activeAlpha + line.pulse * POOLDAY_FLOW_TUNING.pulseScale),
-            line.toneIndex + 1,
-            flowToneMix(line, 1)
-          )
-        );
-      }
+      const hotPathBoost = line.hotPathActive ? 1.62 : 1;
+      const activeAlpha = line.alpha * (1.05 + flowEnergy * 0.50) * hotPathBoost;
+      pushPoolPrismLine(scratch.lineFill, frame, line, width, height, activeAlpha, Math.max(line.width, line.width * hotPathBoost), lineSegments, sampleScratch);
     }
     pushBatch('fill', scratch.lineFill);
-    pushBatch('circle', scratch.linePulseCircles);
 
     for (const particle of frame.particles || []) {
       const particleHue = (particle.toneIndex ?? 0) + (particle.index % 5);
-      if (particle.index % POOLDAY_FLOW_TUNING.shimmerStride === 0) {
-        const shimmer = 0.58 + Math.sin((frame.time || 0) * 3 + particle.toneIndex) * 0.18;
-        const glowRadius = particle.size * (2.2 + shimmer * 0.72);
-        pushPoolCircle(
-          scratch.particleCircles,
-          particle.x,
-          particle.y,
-          Math.max(4, glowRadius),
-          resolvePoolRenderToneColor(
-            frame,
-            'rainbow',
-            particle.alpha * POOLDAY_FLOW_TUNING.shimmerAlpha * 0.36,
-            particleHue + 1
-          )
-        );
-      }
       pushPoolCircle(
         scratch.particleCircles,
         particle.x,
         particle.y,
         Math.max(2.8, particle.size * 1.36),
-        resolvePoolRenderToneColor(frame, 'rainbow', particle.alpha * 0.30, particleHue + 3),
+        resolvePoolRenderToneColorInto(color, mixColor, frame, 'rainbow', particle.alpha * 0.30, particleHue + 3),
         0.58
       );
       pushPoolCircle(
@@ -481,14 +478,14 @@ export const createPoolRenderBatchBuilder = () => {
         particle.x,
         particle.y,
         particle.size * 0.92,
-        resolvePoolRenderToneColor(frame, 'rainbow', particle.alpha * 0.88, particleHue + 4)
+        resolvePoolRenderToneColorInto(color, mixColor, frame, 'rainbow', particle.alpha * 0.88, particleHue + 4)
       );
       pushPoolCircle(
         scratch.particleCircles,
         particle.x,
         particle.y,
         Math.max(1.2, particle.size * 0.34),
-        resolvePoolRenderToneColor(frame, 'rainbow', particle.alpha * 0.54, particleHue + 6)
+        resolvePoolRenderToneColorInto(color, mixColor, frame, 'rainbow', particle.alpha * 0.54, particleHue + 6)
       );
     }
     pushBatch('circle', scratch.particleCircles);
@@ -496,24 +493,25 @@ export const createPoolRenderBatchBuilder = () => {
     for (let index = 0; index < nodes.length; index += 1) {
       const node = nodes[index];
       const core = node.core === true;
+      const hotPathBoost = node.hotPathActive ? 1.34 : 1;
       pushPoolCircle(
         scratch.nodeCircles,
         node.x,
         node.y,
-        node.size + (core ? 1.9 : 1.2),
+        (node.size + (core ? 1.9 : 1.2)) * hotPathBoost,
         core
-          ? resolvePoolRenderToneColor(frame, 'primary', 0.74, index)
-          : resolvePoolRenderToneColor(frame, 'rainbow', node.alpha * 0.62, index),
+          ? resolvePoolRenderToneColorInto(color, mixColor, frame, 'primary', node.hotPathActive ? 0.96 : 0.74, index)
+          : resolvePoolRenderToneColorInto(color, mixColor, frame, 'rainbow', node.alpha * (node.hotPathActive ? 0.92 : 0.62), index),
         0.74
       );
       pushPoolCircle(
         scratch.nodeCircles,
         node.x,
         node.y,
-        Math.max(2, node.size * 0.28),
+        Math.max(2, node.size * (node.hotPathActive ? 0.40 : 0.28)),
         core
-          ? resolvePoolRenderToneColor(frame, 'rainbow', node.alpha * 0.82, index + 3)
-          : resolvePoolRenderToneColor(frame, 'rainbow', node.alpha * 0.54, index)
+          ? resolvePoolRenderToneColorInto(color, mixColor, frame, 'rainbow', node.alpha * (node.hotPathActive ? 1 : 0.82), index + 3)
+          : resolvePoolRenderToneColorInto(color, mixColor, frame, 'rainbow', node.alpha * (node.hotPathActive ? 0.78 : 0.54), index)
       );
     }
     pushBatch('circle', scratch.nodeCircles);

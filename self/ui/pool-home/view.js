@@ -14,6 +14,8 @@ import {
 import {
   PRODUCT_ROUTES,
   POOLDAY_FLOW_LABELS,
+  POOLDAY_HOT_PATH_EXAMPLE_QUERY,
+  POOLDAY_HOT_PATH_STEPS,
   POOLDAY_NAME,
   POOLDAY_NAV_ROUTES,
   POOLDAY_PEER_LEDGER_STORAGE_KEY,
@@ -23,7 +25,8 @@ import {
   POOLDAY_STREAM_CHUNK_SIZE,
   POOLDAY_STREAM_TICK_MS,
   POOLDAY_VERSION_TAG,
-  ROUTE_COPY
+  ROUTE_COPY,
+  choosePooldayAskPlaceholder
 } from './constants.js';
 import { getContributionSnapshot } from './contribution-state.js';
 
@@ -1044,6 +1047,10 @@ export const renderRecentContributionHistory = (snapshot = getContributionSnapsh
   </div>
 `;
 
+export const shouldRenderContributionStatusBar = (snapshot = getContributionSnapshot()) => {
+  return snapshot?.optedIn === true;
+};
+
 export const refreshContributionPanels = () => {
   const stats = document.getElementById('pool-provider-node-stats');
   const history = document.getElementById('pool-provider-node-history');
@@ -1052,27 +1059,47 @@ export const refreshContributionPanels = () => {
   if (history) history.innerHTML = renderRecentContributionHistory(snapshot);
 };
 
-export const renderContributionStatusBar = (snapshot = getContributionSnapshot()) => `
-  <aside
-    class="pool-contribution-status"
-    id="pool-contribution-status"
-    data-contribution-state="${escapeHtml(snapshot.state || 'inactive')}"
-    aria-label="Compute contribution status"
-  >
-    <span class="pool-contribution-dot" aria-hidden="true"></span>
-    <span class="pool-contribution-state">${escapeHtml(snapshot.label || 'Not active')}</span>
-    <span class="pool-contribution-metric"><b>24h</b> ${escapeHtml(formatContributionTokens(snapshot.tokens24h))}</span>
-    <span class="pool-contribution-metric"><b>1h</b> ${escapeHtml(formatContributionTokens(snapshot.tokensHour))}/hr</span>
-    <span class="pool-contribution-metric pool-contribution-last"><b>Last</b> ${escapeHtml(formatContributionLast(snapshot))}</span>
-  </aside>
-`;
+export const renderContributionStatusBar = (snapshot = getContributionSnapshot()) => {
+  if (!shouldRenderContributionStatusBar(snapshot)) return '';
+  return `
+    <aside
+      class="pool-contribution-status"
+      id="pool-contribution-status"
+      data-contribution-state="${escapeHtml(snapshot.state || 'inactive')}"
+      aria-label="Compute contribution status"
+    >
+      <span class="pool-contribution-dot" aria-hidden="true"></span>
+      <span class="pool-contribution-state">${escapeHtml(snapshot.label || 'Not active')}</span>
+      <span class="pool-contribution-metric"><b>24h</b> ${escapeHtml(formatContributionTokens(snapshot.tokens24h))}</span>
+      <span class="pool-contribution-metric"><b>1h</b> ${escapeHtml(formatContributionTokens(snapshot.tokensHour))}/hr</span>
+      <span class="pool-contribution-metric pool-contribution-last"><b>Last</b> ${escapeHtml(formatContributionLast(snapshot))}</span>
+    </aside>
+  `;
+};
 
 export const refreshContributionStatusBar = () => {
+  const snapshot = getContributionSnapshot();
   const current = document.getElementById('pool-contribution-status');
-  if (!current) return;
+  if (!shouldRenderContributionStatusBar(snapshot)) {
+    current?.remove();
+    return;
+  }
   const template = document.createElement('template');
-  template.innerHTML = renderContributionStatusBar().trim();
-  current.replaceWith(template.content.firstElementChild);
+  template.innerHTML = renderContributionStatusBar(snapshot).trim();
+  const next = template.content.firstElementChild;
+  if (!next) {
+    current?.remove();
+    return;
+  }
+  if (current) {
+    current.replaceWith(next);
+    return;
+  }
+  const main = document.querySelector('.pool-home');
+  const nav = main?.querySelector('.pool-nav-rail');
+  if (main && nav) {
+    nav.insertAdjacentElement('afterend', next);
+  }
 };
 
 const renderPolicyProductLabel = (policy) => {
@@ -1135,34 +1162,86 @@ const renderFlowLabels = () => POOLDAY_FLOW_LABELS.map((item) => `
   </span>
 `).join('');
 
-const renderHomeSimulation = () => `
-  <section class="pool-simulation-shell" aria-label="Reploid network graph">
-    <canvas class="pool-simulation-canvas" data-pool-simulation width="1200" height="680"></canvas>
-    <div class="pool-home-overlay" aria-label="Reploid overview">
-      <h1 class="type-h1">Reploid</h1>
-      <p class="pool-hero-body">Run browser models together.</p>
-      <div class="pool-home-cta-row" aria-label="Primary actions">
-        <a class="btn btn-primary btn-op pool-cta-link"
-           data-op="▶"
-           href="/ask"
-           data-pool-route="/ask"
-           aria-label="Ask">Ask</a>
-        <a class="btn btn-primary btn-op pool-cta-link"
-           data-op="☍"
-           href="/network"
-           data-pool-route="/network"
-           aria-label="See the Network">See the Network</a>
-      </div>
+const renderHotPathText = (text = '', wordLimit = 7) => {
+  const words = String(text).trim().split(/\s+/).filter(Boolean);
+  if (words.length <= wordLimit) return words.join(' ');
+  return `${words.slice(0, wordLimit).join(' ')}...`;
+};
+
+const renderHotPathSteps = () => `
+  <div class="pool-hot-path" data-pool-hot-path aria-label="Example browser inference hot path">
+    <div class="pool-hot-path-query">
+      <b>Example</b>
+      <span>${escapeHtml(renderHotPathText(POOLDAY_HOT_PATH_EXAMPLE_QUERY))}</span>
     </div>
-    <div class="pool-simulation-labels">
-      ${renderFlowLabels()}
-    </div>
-    <div class="pool-simulation-tooltip" data-pool-tooltip data-placement="above" role="tooltip" aria-hidden="true">
-      <b data-pool-tooltip-title></b>
-      <span data-pool-tooltip-body></span>
-    </div>
-  </section>
+    <ol class="pool-hot-path-steps">
+      ${POOLDAY_HOT_PATH_STEPS.map((step, index) => `
+        <li class="pool-hot-path-step${index === 0 ? ' is-active' : ''}"
+            data-pool-hot-path-step="${escapeHtml(step.id)}">
+          <span class="pool-hot-path-index">${String(index + 1).padStart(2, '0')}</span>
+          <b>${escapeHtml(step.label)}</b>
+          <span>${escapeHtml(renderHotPathText(step.text))}</span>
+        </li>
+      `).join('')}
+    </ol>
+  </div>
 `;
+
+const renderHomeSimulation = () => {
+  const suggestedPrompt = choosePooldayAskPlaceholder();
+  return `
+    <section class="pool-home-stage" aria-label="Reploid network preview">
+      <div class="pool-home-toolbar" aria-label="Reploid home controls">
+        <div class="pool-home-toolbar-leading pool-home-overlay" aria-label="Reploid overview">
+          <div class="pool-home-title-lockup">
+            <h1 class="type-h1 pool-home-brand-word">REPLOID</h1>
+            <p class="pool-hero-body">Run browser models together.</p>
+          </div>
+        </div>
+        <form class="pool-home-toolbar-center pool-home-cta-row pool-home-ask-form" id="pool-home-ask-form" aria-label="Ask the network">
+          <div class="pool-home-ask-pill">
+            <input
+              id="pool-home-ask-prompt"
+              class="pool-home-ask-input"
+              name="prompt"
+              type="text"
+              aria-label="Ask prompt"
+              autocomplete="off"
+              value="${escapeHtml(suggestedPrompt)}"
+              data-pool-suggested-prompt="${escapeHtml(suggestedPrompt)}"
+            >
+            <button class="pool-shape-action pool-shape-action--circle pool-shape-action--ask pool-home-ask-submit"
+                    type="submit"
+                    aria-label="Ask">
+              <span class="pool-shape-action-glyph" aria-hidden="true">▶</span>
+              <span class="pool-shape-action-label">Ask</span>
+            </button>
+          </div>
+        </form>
+        <div class="pool-home-toolbar-right" aria-label="Network shortcut">
+          <a class="pool-shape-action pool-shape-action--square pool-shape-action--network pool-home-network-cta"
+             href="/network"
+             data-pool-route="/network"
+             aria-label="Live Network">
+            <span class="pool-shape-action-glyph" aria-hidden="true">☍</span>
+            <span class="pool-shape-action-label">Live Network</span>
+          </a>
+        </div>
+      </div>
+      <div class="pool-simulation-shell" aria-label="Reploid network graph">
+        <canvas class="pool-simulation-canvas" data-pool-simulation width="1200" height="680"></canvas>
+        <div class="pool-simulation-labels">
+          ${renderFlowLabels()}
+        </div>
+        ${renderHotPathSteps()}
+        <div class="pool-simulation-tooltip" data-pool-tooltip data-placement="above" role="tooltip" aria-hidden="true">
+          <b data-pool-tooltip-title></b>
+          <span data-pool-tooltip-body></span>
+        </div>
+      </div>
+    </section>
+  `;
+};
 
 export const renderRoutePanel = (routeId) => {
   if (routeId === 'home') return renderHomeSimulation();
@@ -1300,11 +1379,13 @@ export const renderRouteDetail = (routeId) => {
               <span class="pool-meta-tag">Online room</span>
             </div>
             <div class="pool-route-cta-row" aria-label="Network actions">
-              <a class="btn btn-primary btn-op pool-cta-link"
-                 data-op="☇"
+              <a class="pool-shape-action pool-shape-action--square pool-shape-action--compute pool-shape-action--compact"
                  href="/compute"
                  data-pool-route="/compute"
-                 aria-label="Share Compute">Share Compute</a>
+                 aria-label="Share Compute">
+                <span class="pool-shape-action-glyph" aria-hidden="true">☇</span>
+                <span class="pool-shape-action-label">Share Compute</span>
+              </a>
             </div>
             <div id="pool-room-activity" class="pool-ledger-shell" aria-live="polite">${renderRoomActivity()}</div>
           </div>

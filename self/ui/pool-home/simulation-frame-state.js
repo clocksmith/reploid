@@ -4,21 +4,27 @@
 
 import {
   POOLDAY_GRAPH_PALETTES,
+  POOLDAY_GRAPH_VIEW_MARGIN_PX,
   POOLDAY_RAINBOW_COLORS
 } from './constants.js';
 
 const clamp01 = (value) => Math.max(0, Math.min(1, value));
 const clampRange = (value, min, max) => Math.max(min, Math.min(max, value));
 
-const resolveCanvasCoordinate = (value = 0.5, size = 1) => size * value;
+const resolveCanvasCoordinate = (value = 0.5, size = 1) => {
+  const margin = Math.min(POOLDAY_GRAPH_VIEW_MARGIN_PX, Math.max(0, size * 0.5));
+  const usableSize = Math.max(0, size - margin * 2);
+  if (usableSize <= 0) return size * 0.5;
+  return margin + clamp01(value) * usableSize;
+};
 
 export const POOLDAY_CORE_NODE_CONFIG = Object.freeze([
-  ['requester', 17, 0.2, 7],
-  ['policy', 15, 0.9, 7],
-  ['assignment', 21, 1.8, 8],
-  ['agreement', 16, 3.3, 7],
-  ['settlement', 15, 4.1, 7],
-  ['ledger', 17, 4.8, 7]
+  ['requester', 17],
+  ['policy', 15],
+  ['assignment', 21],
+  ['agreement', 16],
+  ['settlement', 15],
+  ['ledger', 17]
 ]);
 
 export const createFrameNode = (id = '') => ({
@@ -40,6 +46,7 @@ export const createFrameNode = (id = '') => ({
   online: true,
   presence: 1,
   lineDraw: 1,
+  hotPathActive: false,
   label: id,
   labelKind: id,
   labelStage: '',
@@ -79,6 +86,7 @@ export const copyCanvasPointInto = (target, point, width, height, margin = 6) =>
   target.online = point.online !== false;
   target.presence = point.presence ?? 1;
   target.lineDraw = point.lineDraw ?? 1;
+  target.hotPathActive = point.hotPathActive === true;
   target.label = point.label || point.id;
   target.labelKind = point.labelKind || point.role || point.id;
   target.labelStage = point.labelStage || '';
@@ -134,44 +142,34 @@ export const writeRoleAnchor = (
   target,
   id,
   size,
-  phase,
-  orbit,
   graphPositions,
   width,
   height,
-  time,
-  orbitCue,
   countdownProgress,
-  transitionProgress,
-  motionScale = 1
+  transitionProgress
 ) => {
   const base = graphPositions[id] || { x: 0.5, y: 0.5 };
-  const motionCue = clamp01(motionScale);
-  const breathe = 0.5 + 0.5 * Math.sin(time * 1.4 + phase);
   const baseX = resolveCanvasCoordinate(base.x, width);
   const baseY = resolveCanvasCoordinate(base.y, height);
-  const cuePhase = phase + orbitCue * (1.2 + phase * 0.08);
-  const cueOrbit = orbit * motionCue * (1 + orbitCue * 0.52);
-  const offsetX = Math.cos(time * 0.52 + cuePhase) * cueOrbit;
-  const offsetY = Math.sin(time * 0.46 + cuePhase * 1.3) * cueOrbit;
   target.id = id;
   target.role = id;
   target.core = true;
   target.baseX = baseX;
   target.baseY = baseY;
-  target.offsetX = offsetX;
-  target.offsetY = offsetY;
-  target.x = baseX + offsetX;
-  target.y = baseY + offsetY;
-  target.size = size * (0.9 + breathe * 0.2);
+  target.offsetX = 0;
+  target.offsetY = 0;
+  target.x = baseX;
+  target.y = baseY;
+  target.size = size;
   target.alpha = 1;
-  target.pulse = breathe;
-  target.halo = 0.55 + breathe * 0.45;
+  target.pulse = 0;
+  target.halo = 0;
   target.ringProgress = countdownProgress;
   target.topologyProgress = transitionProgress;
   target.online = true;
   target.presence = 1;
   target.lineDraw = 1;
+  target.hotPathActive = false;
   return target;
 };
 
@@ -182,36 +180,30 @@ export const writeParticipantAnchor = (
   width,
   height,
   time,
-  orbitCue,
   countdownProgress,
-  transitionProgress,
-  motionScale = 1
+  transitionProgress
 ) => {
   const base = graphPositions[spec.id] || { x: 0.5, y: 0.5 };
-  const motionCue = clamp01(motionScale);
   const pulse = 0.5 + 0.5 * Math.sin(time * 1.55 + spec.phase);
   const baseX = resolveCanvasCoordinate(base.x, width);
   const baseY = resolveCanvasCoordinate(base.y, height);
-  const driftX = Math.cos(time * (0.78 + orbitCue * 0.10) + spec.phase + orbitCue * 1.6) * spec.driftX * (0.44 + orbitCue * 0.22) * motionCue
-    + Math.sin(time * 0.33 + spec.phase * 1.4 + orbitCue) * spec.driftX * (0.22 + orbitCue * 0.10) * motionCue;
-  const driftY = Math.sin(time * (0.72 + orbitCue * 0.10) + spec.phase + orbitCue * 1.4) * spec.driftY * (0.44 + orbitCue * 0.22) * motionCue
-    + Math.cos(time * 0.41 + spec.phase * 1.2 + orbitCue) * spec.driftY * (0.18 + orbitCue * 0.10) * motionCue;
   target.id = spec.id;
   target.role = spec.role;
   target.index = spec.index;
   target.core = false;
   target.baseX = baseX;
   target.baseY = baseY;
-  target.offsetX = driftX;
-  target.offsetY = driftY;
-  target.x = baseX + driftX;
-  target.y = baseY + driftY;
+  target.offsetX = 0;
+  target.offsetY = 0;
+  target.x = baseX;
+  target.y = baseY;
   target.alpha = 0.78 + pulse * 0.18;
   target.size = spec.size * (0.78 + pulse * 0.5);
   target.presence = 1;
   target.lineDraw = 1;
+  target.hotPathActive = false;
   target.pulse = pulse;
-  target.halo = 0.48 + pulse * 0.52;
+  target.halo = 0;
   target.ringProgress = countdownProgress;
   target.topologyProgress = transitionProgress;
   target.online = true;

@@ -43,6 +43,107 @@ const cssColor = (r, g, b, a) => (
   `rgba(${Math.round(r * 255)}, ${Math.round(g * 255)}, ${Math.round(b * 255)}, ${Math.max(0, Math.min(1, a))})`
 );
 
+const DEFAULT_CLEAR_COLOR = Object.freeze({ r: 1, g: 1, b: 1, a: 1 });
+
+const clampUnit = (value) => Math.max(0, Math.min(1, value));
+
+const parseCssColorChannel = (token) => {
+  const text = String(token || '').trim();
+  if (!text) return NaN;
+  if (text.endsWith('%')) return clampUnit(Number(text.slice(0, -1)) / 100);
+  return clampUnit(Number(text) / 255);
+};
+
+const parseCssAlphaChannel = (token) => {
+  const text = String(token || '').trim();
+  if (!text) return NaN;
+  if (text.endsWith('%')) return clampUnit(Number(text.slice(0, -1)) / 100);
+  return clampUnit(Number(text));
+};
+
+const parseHexCssColor = (text) => {
+  const hex = text.slice(1);
+  if (![3, 4, 6, 8].includes(hex.length) || /[^0-9a-f]/i.test(hex)) return null;
+  const expand = (value) => value.length === 1 ? `${value}${value}` : value;
+  const size = hex.length <= 4 ? 1 : 2;
+  const r = parseInt(expand(hex.slice(0, size)), 16) / 255;
+  const g = parseInt(expand(hex.slice(size, size * 2)), 16) / 255;
+  const b = parseInt(expand(hex.slice(size * 2, size * 3)), 16) / 255;
+  const alphaText = hex.slice(size * 3, size * 4);
+  const a = alphaText ? parseInt(expand(alphaText), 16) / 255 : 1;
+  return { r, g, b, a };
+};
+
+export const parsePoolRendererCssColor = (value) => {
+  const text = String(value || '').trim().toLowerCase();
+  if (!text || text === 'transparent') return null;
+  if (text.startsWith('#')) return parseHexCssColor(text);
+
+  const match = text.match(/^rgba?\((.*)\)$/);
+  if (!match) return null;
+  let body = match[1].trim();
+  let alphaToken = null;
+  const slashIndex = body.indexOf('/');
+  if (slashIndex >= 0) {
+    alphaToken = body.slice(slashIndex + 1).trim();
+    body = body.slice(0, slashIndex).trim();
+  }
+  const channels = body.includes(',')
+    ? body.split(',').map((part) => part.trim()).filter(Boolean)
+    : body.split(/\s+/).filter(Boolean);
+  if (channels.length === 4 && !alphaToken) alphaToken = channels.pop();
+  if (channels.length !== 3) return null;
+
+  const color = {
+    r: parseCssColorChannel(channels[0]),
+    g: parseCssColorChannel(channels[1]),
+    b: parseCssColorChannel(channels[2]),
+    a: alphaToken ? parseCssAlphaChannel(alphaToken) : 1
+  };
+  return Object.values(color).every(Number.isFinite) ? color : null;
+};
+
+const flattenAgainstWhite = (color) => {
+  const alpha = clampUnit(color.a);
+  return {
+    r: color.r * alpha + DEFAULT_CLEAR_COLOR.r * (1 - alpha),
+    g: color.g * alpha + DEFAULT_CLEAR_COLOR.g * (1 - alpha),
+    b: color.b * alpha + DEFAULT_CLEAR_COLOR.b * (1 - alpha),
+    a: 1
+  };
+};
+
+const readComputedStyle = (element) => {
+  try {
+    return globalThis.getComputedStyle?.(element) || null;
+  } catch {
+    return null;
+  }
+};
+
+const findClosestPoolHome = (canvas) => {
+  try {
+    return typeof canvas?.closest === 'function' ? canvas.closest('.pool-home') : null;
+  } catch {
+    return null;
+  }
+};
+
+export const resolvePoolRendererClearColor = (canvas, readStyle = readComputedStyle) => {
+  const candidates = [
+    canvas,
+    findClosestPoolHome(canvas),
+    globalThis.document?.body,
+    globalThis.document?.documentElement
+  ];
+  for (const candidate of candidates) {
+    if (!candidate) continue;
+    const color = parsePoolRendererCssColor(readStyle(candidate)?.backgroundColor);
+    if (color && color.a > 0) return flattenAgainstWhite(color);
+  }
+  return DEFAULT_CLEAR_COLOR;
+};
+
 const drawFillBatch2D = (ctx, data) => {
   for (let index = 0; index < data.length; index += 18) {
     const ax = data[index];
@@ -98,12 +199,15 @@ const drawCircleBatch2D = (ctx, data) => {
 const createCanvas2DRenderer = (canvas, buildBatches) => {
   const ctx = canvas.getContext('2d');
   if (!ctx) return null;
+  const clearColor = resolvePoolRendererClearColor(canvas);
+  const clearFill = cssColor(clearColor.r, clearColor.g, clearColor.b, clearColor.a);
   return {
     backend: '2d',
     canvas,
     render: (frame, width, height) => {
-      ctx.clearRect(0, 0, width, height);
       ctx.globalCompositeOperation = 'source-over';
+      ctx.fillStyle = clearFill;
+      ctx.fillRect(0, 0, width, height);
       for (const batch of buildBatches(frame, width, height)) {
         if (batch.kind === 'circle') drawCircleBatch2D(ctx, batch.data);
         else drawFillBatch2D(ctx, batch.data);
@@ -129,6 +233,7 @@ const createWebGPURenderer = async (canvas, buildBatches) => {
       return null;
     }
     const format = gpu.getPreferredCanvasFormat();
+    const clearColor = resolvePoolRendererClearColor(canvas);
     context.configure({
       device,
       format,
@@ -316,7 +421,7 @@ const createWebGPURenderer = async (canvas, buildBatches) => {
         const pass = encoder.beginRenderPass({
           colorAttachments: [{
             view: context.getCurrentTexture().createView(),
-            clearValue: { r: 1, g: 1, b: 1, a: 1 },
+            clearValue: clearColor,
             loadOp: 'clear',
             storeOp: 'store'
           }]
@@ -346,7 +451,9 @@ const createWebGPURenderer = async (canvas, buildBatches) => {
 
 const createWebGLRenderer = (canvas, buildBatches) => {
   const gl = canvas.getContext('webgl', { antialias: true, alpha: false })
-    || canvas.getContext('experimental-webgl', { antialias: true, alpha: false });
+    || canvas.getContext('experimental-webgl', { antialias: true, alpha: false })
+    || canvas.getContext('webgl', { antialias: true, alpha: true })
+    || canvas.getContext('experimental-webgl', { antialias: true, alpha: true });
   if (!gl) return null;
   let fillProgram = null;
   let circleProgram = null;
@@ -422,6 +529,7 @@ const createWebGLRenderer = (canvas, buildBatches) => {
     gl.enable(gl.BLEND);
     gl.disable(gl.DEPTH_TEST);
     gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+    const clearColor = resolvePoolRendererClearColor(canvas);
 
     const uploadDynamicData = (data, currentSize, setSize) => {
       const nextSize = Math.max(4, Math.ceil(data.byteLength / 4) * 4);
@@ -466,7 +574,7 @@ const createWebGLRenderer = (canvas, buildBatches) => {
       canvas,
       render: (frame, width, height) => {
         gl.viewport(0, 0, width, height);
-        gl.clearColor(1, 1, 1, 1);
+        gl.clearColor(clearColor.r, clearColor.g, clearColor.b, clearColor.a);
         gl.clear(gl.COLOR_BUFFER_BIT);
         for (const batch of buildBatches(frame, width, height)) {
           if (batch.kind === 'circle') drawCircleBatch(batch.data, width, height);
