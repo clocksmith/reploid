@@ -67,6 +67,15 @@ const usesRegistryBackedDopplerLoad = (model = {}) => (
   && !model.artifactPolicy?.baseUrl
 );
 
+const formatDeviceLabel = (deviceInfo = {}) => {
+  const adapter = deviceInfo.adapterInfo || {};
+  return [
+    adapter.vendor,
+    adapter.architecture,
+    adapter.device
+  ].filter(Boolean).join(' / ') || deviceInfo.probeStatus || 'unknown';
+};
+
 const getPageIdentityNamespace = (globalKey) => {
   if (window[globalKey]) return window[globalKey];
   const id = window.crypto?.randomUUID
@@ -282,6 +291,7 @@ const createProviderContributionController = () => {
     updateProviderHealth({
       webgpu: navigator.gpu ? 'available' : 'unavailable',
       storage: navigator.storage ? 'available' : 'unknown',
+      hardware: 'unknown',
       queue: workerRunning ? 'listening' : 'stopped'
     });
     void refreshProviderStorageHealth();
@@ -315,6 +325,11 @@ const createProviderContributionController = () => {
     const deviceInfo = typeof runtime?.getDeviceInfo === 'function'
       ? await runtime.getDeviceInfo()
       : { hasWebGPU: !!navigator.gpu, features: [] };
+    updateProviderHealth({
+      webgpu: deviceInfo.hasWebGPU ? 'available' : 'unavailable',
+      hardware: formatDeviceLabel(deviceInfo),
+      maxBufferSize: deviceInfo.maxBufferSize || null
+    });
     const capabilityCheck = validateModelRuntimeCapabilities(model, deviceInfo);
     if (!capabilityCheck.ok) {
       updateProviderHealth({

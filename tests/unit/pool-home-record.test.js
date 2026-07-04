@@ -128,6 +128,60 @@ describe('Poolday record ledgers', () => {
     expect(parsed.firstAssignment.providerId).toBe('provider_a');
   });
 
+  it('renders clean answer contributors while preserving the full result', () => {
+    document.body.innerHTML = `
+      <div id="pool-run-result-summary"></div>
+      <div id="pool-run-result-evidence"></div>
+      <pre id="pool-run-result-raw"></pre>
+      <pre id="pool-run-result-stream"></pre>
+      <span id="pool-run-result-stream-cursor"></span>
+    `;
+
+    setResult('pool-run-result', {
+      outputText: 'distributed answer',
+      policyId: 'ring_quorum_receipt',
+      agreement: {
+        accepted: true,
+        requiredAgreement: 2,
+        acceptedProviderCount: 2,
+        receiptHashes: ['sha256:a', 'sha256:b']
+      },
+      receiptPayloads: [
+        {
+          fromPeerId: 'provider_a',
+          body: {
+            receiptHash: 'sha256:a',
+            providerId: 'provider_a',
+            tokenIds: [1, 2],
+            receipt: {
+              providerId: 'provider_a',
+              outputHash: 'sha256:output-a',
+              tokenCounts: { input: 3, output: 2 }
+            }
+          }
+        },
+        {
+          fromPeerId: 'provider_b',
+          body: {
+            receiptHash: 'sha256:b',
+            providerId: 'provider_b',
+            tokenIds: [1, 2],
+            receipt: {
+              providerId: 'provider_b',
+              outputHash: 'sha256:output-b',
+              tokenCounts: { input: 3, output: 2 }
+            }
+          }
+        }
+      ]
+    }, { stream: true });
+
+    expect(document.getElementById('pool-run-result-stream').textContent).toBe('distributed answer');
+    expect(document.getElementById('pool-run-result-evidence').textContent).toContain('provider_a');
+    expect(document.getElementById('pool-run-result-evidence').textContent).toContain('matched');
+    expect(JSON.parse(document.getElementById('pool-run-result-raw').textContent).receiptPayloads).toHaveLength(2);
+  });
+
   it('uses split empty states on the history and network routes', () => {
     setRoom(`record-copy-${crypto.randomUUID()}`);
 
@@ -140,8 +194,8 @@ describe('Poolday record ledgers', () => {
     expect(historyHtml).toContain('Checking room activity...');
     expect(historyHtml).toContain('Find saved answer by hash');
     expect(historyHtml).not.toContain('Local scores');
-    expect(networkHtml).toContain('Room activity');
-    expect(networkHtml).toContain('Local scores');
+    expect(networkHtml).toContain('Network health');
+    expect(networkHtml).toContain('Seen by this browser');
     expect(networkHtml).toContain('No local scores yet.');
   });
 

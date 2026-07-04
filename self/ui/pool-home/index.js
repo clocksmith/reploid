@@ -8,6 +8,7 @@ import {
   bindRecordStorageSync,
   getRouteId,
   isProductPath,
+  refreshContributionPanels,
   refreshRecordLedgerState,
   renderContributionStatusBar,
   renderNav,
@@ -114,10 +115,12 @@ export function initPoolHome(mount) {
   }
   window.REPLOID_POOL_CONTRIBUTION_UNSUBSCRIBE = subscribeContributionState(() => {
     const current = document.getElementById('pool-contribution-status');
-    if (!current) return;
-    const template = document.createElement('template');
-    template.innerHTML = renderContributionStatusBar().trim();
-    current.replaceWith(template.content.firstElementChild);
+    if (current) {
+      const template = document.createElement('template');
+      template.innerHTML = renderContributionStatusBar().trim();
+      current.replaceWith(template.content.firstElementChild);
+    }
+    refreshContributionPanels();
   });
   window.REPLOID_POOL_POPSTATE_HANDLER = render;
   window.addEventListener('popstate', render);
