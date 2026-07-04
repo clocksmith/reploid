@@ -9,6 +9,7 @@ import {
   resizePoolCanvas
 } from '../../self/ui/pool-home/simulation-core.js';
 import { resolvePoolFrameDeltaMs } from '../../self/ui/pool-home/simulation-bind.js';
+import { createPoolRenderBatchBuilder } from '../../self/ui/pool-home/simulation-batches.js';
 import {
   SIMULATION_MAX_STEP_MS,
   SIMULATION_GENTLE_SPEED,
@@ -16,11 +17,18 @@ import {
   POOLDAY_MORPH_TUNING,
   POOLDAY_FLOW_TUNING,
   POOLDAY_GRAPH_VIEW_CENTER_PULL,
+  POOLDAY_GRAPH_VIEW_MARGIN_PX,
   POOLDAY_GRAPH_NODE_IDS,
   POOLDAY_GRAPH_TOPOLOGIES,
+  POOLDAY_HOT_PATH_STEPS,
+  POOLDAY_RENDERER_LINE_SEGMENTS,
   SIMULATION_TARGET_STEP_MS
 } from '../../self/ui/pool-home/constants.js';
 import { buildSimulationLineSpecs } from '../../self/ui/pool-home/simulation-flow-specs.js';
+import {
+  parsePoolRendererCssColor,
+  resolvePoolRendererClearColor
+} from '../../self/ui/pool-home/simulation-renderer.js';
 
 const withSimulationSearch = (search, callback) => {
   const descriptor = Object.getOwnPropertyDescriptor(globalThis, 'location');
@@ -59,11 +67,49 @@ const expectIncreasingY = (topology, ids) => {
     expect(yOf(topology, ids[index])).toBeGreaterThan(yOf(topology, ids[index - 1]));
   }
 };
+
+const maxFillAlpha = (batch) => {
+  let maxAlpha = 0;
+  for (let index = 5; index < batch.length; index += 6) {
+    maxAlpha = Math.max(maxAlpha, batch.data[index]);
+  }
+  return maxAlpha;
+};
 const expectedCenteredCoordinate = (value, size) => (
-  (0.5 + (value - 0.5) * (1 - POOLDAY_GRAPH_VIEW_CENTER_PULL)) * size
+  POOLDAY_GRAPH_VIEW_MARGIN_PX
+  + (0.5 + (value - 0.5) * (1 - POOLDAY_GRAPH_VIEW_CENTER_PULL))
+    * Math.max(0, size - POOLDAY_GRAPH_VIEW_MARGIN_PX * 2)
 );
 
 describe('pool home simulation performance contracts', () => {
+  it('resolves renderer clear colors from CSS as an opaque page surface', () => {
+    expect(parsePoolRendererCssColor('#fff')).toEqual({ r: 1, g: 1, b: 1, a: 1 });
+    expect(parsePoolRendererCssColor('rgb(255 255 255 / 96%)')).toEqual({
+      r: 1,
+      g: 1,
+      b: 1,
+      a: 0.96
+    });
+
+    const home = {};
+    const canvas = { closest: () => home };
+    const clearColor = resolvePoolRendererClearColor(canvas, (element) => {
+      if (element === canvas) return { backgroundColor: 'rgba(0, 0, 0, 0)' };
+      if (element === home) return { backgroundColor: 'rgb(255 255 255)' };
+      return null;
+    });
+
+    expect(clearColor).toEqual({ r: 1, g: 1, b: 1, a: 1 });
+
+    const flattenedColor = resolvePoolRendererClearColor(canvas, () => ({
+      backgroundColor: 'rgb(240 248 255 / 50%)'
+    }));
+    expect(flattenedColor.r).toBeCloseTo((240 / 255) * 0.5 + 0.5, 8);
+    expect(flattenedColor.g).toBeCloseTo((248 / 255) * 0.5 + 0.5, 8);
+    expect(flattenedColor.b).toBe(1);
+    expect(flattenedColor.a).toBe(1);
+  });
+
   it('resizes from cached CSS dimensions without reading layout', () => {
     const canvas = {
       width: 0,
@@ -98,6 +144,89 @@ describe('pool home simulation performance contracts', () => {
     expect(second.lines.length).toBeGreaterThan(0);
   });
 
+  it('reuses render batch containers and typed array buffers across ticks', () => {
+    const state = createPoolSimulationState();
+    const buildBatches = createPoolRenderBatchBuilder();
+    const firstFrame = buildPoolSimulationFrame(state, 960, 640, 1 / 60);
+    firstFrame.renderQuality = 1;
+    const first = buildBatches(firstFrame, 960, 640);
+    const batchRefs = first.map((batch) => batch);
+    const batchBuffers = first.map((batch) => batch.data.buffer);
+    const batchKinds = first.map((batch) => batch.kind);
+    const secondFrame = buildPoolSimulationFrame(state, 960, 640, 1 / 60);
+    secondFrame.renderQuality = 1;
+    const second = buildBatches(secondFrame, 960, 640);
+
+    expect(second).toBe(first);
+    expect(second.map((batch) => batch.kind)).toEqual(batchKinds);
+    for (let index = 0; index < batchRefs.length; index += 1) {
+      expect(second[index]).toBe(batchRefs[index]);
+      expect(second[index].data.buffer).toBe(batchBuffers[index]);
+    }
+  });
+
+  it('reduces nonessential render detail below full quality', () => {
+    const fullState = createPoolSimulationState();
+    const lowState = createPoolSimulationState();
+    const fullFrame = buildPoolSimulationFrame(fullState, 960, 640, 1 / 60);
+    fullFrame.renderQuality = 1;
+    const lowFrame = buildPoolSimulationFrame(lowState, 960, 640, 1 / 60);
+    lowFrame.renderQuality = 0.62;
+    const fullBatches = createPoolRenderBatchBuilder()(fullFrame, 960, 640);
+    const lowBatches = createPoolRenderBatchBuilder()(lowFrame, 960, 640);
+    const fullFloats = fullBatches.reduce((sum, batch) => sum + batch.length, 0);
+    const lowFloats = lowBatches.reduce((sum, batch) => sum + batch.length, 0);
+
+    expect(lowFloats).toBeLessThan(fullFloats);
+    expect(lowBatches.length).toBe(fullBatches.length);
+  });
+
+  it('keeps graph primitives to simple edges, compact nodes, and non-shimmer particles', () => {
+    const state = createPoolSimulationState();
+    const frame = buildPoolSimulationFrame(state, 960, 640, 1 / 60);
+    frame.renderQuality = 1;
+    frame.countdownProgress = 1;
+    for (const line of frame.lines) line.pulse = 1;
+    const batches = createPoolRenderBatchBuilder()(frame, 960, 640);
+    const circleFloatCount = 6 * 9;
+    const antialiasedLineFloatCount = 6 * 3 * 6;
+    const activeParticles = frame.particles.filter((particle) => particle.alpha > 0 && particle.size > 0).length;
+
+    expect(batches.map((batch) => batch.kind)).toEqual([
+      'fill',
+      'circle',
+      'fill',
+      'fill',
+      'fill',
+      'circle',
+      'circle'
+    ]);
+    expect(batches.filter((batch) => batch.kind === 'circle')).toHaveLength(3);
+    expect(batches[3].length).toBe(frame.lines.length * POOLDAY_RENDERER_LINE_SEGMENTS * antialiasedLineFloatCount);
+    expect(batches[4].length).toBe(frame.lines.length * POOLDAY_RENDERER_LINE_SEGMENTS * antialiasedLineFloatCount);
+    expect(batches[5].length).toBe(activeParticles * 3 * circleFloatCount);
+    expect(batches[6].length).toBe(frame.nodes.length * 2 * circleFloatCount);
+  });
+
+  it('keeps node anchors static without core breathing or participant drift', () => {
+    const state = createPoolSimulationState();
+    let frame = null;
+
+    for (let index = 0; index < 180; index += 1) {
+      frame = buildPoolSimulationFrame(state, 960, 640, 1 / 60);
+      for (const node of frame.nodes) {
+        expect(node.offsetX).toBe(0);
+        expect(node.offsetY).toBe(0);
+        expect(node.x).toBe(node.baseX);
+        expect(node.y).toBe(node.baseY);
+        expect(node.halo).toBe(0);
+        if (node.core) {
+          expect(node.pulse).toBe(0);
+        }
+      }
+    }
+  });
+
   it('labels a 12 node staged graph with duplicated flow roles', () => {
     const state = createPoolSimulationState();
     const frame = buildPoolSimulationFrame(state, 960, 640, 1 / 60);
@@ -114,13 +243,55 @@ describe('pool home simulation performance contracts', () => {
     expect(frame.nodes).toHaveLength(12);
     expect(anchorIds).toEqual(nodeIds);
     expect(labels.every(Boolean)).toBe(true);
-    expect(labelCounts.Request).toBe(1);
+    expect(labelCounts.Prompt).toBe(1);
     expect(labelCounts.Policy).toBe(1);
     expect(labelCounts.Match).toBe(1);
     expect(labelCounts.Infer).toBeGreaterThanOrEqual(4);
     expect(labelCounts.Verify).toBeGreaterThanOrEqual(3);
-    expect(labelCounts.History).toBeGreaterThanOrEqual(2);
+    expect(labelCounts.Answer).toBeGreaterThanOrEqual(2);
+    expect(labelCounts.Request || 0).toBe(0);
+    expect(labelCounts.History || 0).toBe(0);
     expect(stages.size).toBe(6);
+  });
+
+  it('runs a staged hot path with active nodes and edge emphasis', () => {
+    const state = createPoolSimulationState();
+    let frame = buildPoolSimulationFrame(state, 1200, 680, 1 / 60);
+
+    expect(frame.hotPath.steps).toBe(POOLDAY_HOT_PATH_STEPS);
+    expect(frame.hotPath.activeStepId).toBe('prompt');
+    expect(frame.hotPath.activeIds).toEqual(['requester']);
+    expect(frame.nodes.find((node) => node.id === 'requester').hotPathActive).toBe(true);
+    expect(frame.lines.some((line) => line.hotPathActive)).toBe(true);
+
+    for (let index = 0; index < 420; index += 1) {
+      frame = buildPoolSimulationFrame(state, 1200, 680, 1 / 60);
+      if (frame.hotPath.activeStepId === 'infer') break;
+    }
+
+    expect(frame.hotPath.activeStepId).toBe('infer');
+    expect(frame.hotPath.activeIds).toEqual(['runner0', 'runner1', 'runner2', 'runner3']);
+    expect(frame.nodes.filter((node) => node.hotPathActive).map((node) => node.id).sort()).toEqual([
+      'runner0',
+      'runner1',
+      'runner2',
+      'runner3'
+    ]);
+  });
+
+  it('renders active hot path edges with stronger glow data', () => {
+    const state = createPoolSimulationState();
+    const frame = buildPoolSimulationFrame(state, 960, 640, 1 / 60);
+    frame.renderQuality = 1;
+    const activeBatches = createPoolRenderBatchBuilder()(frame, 960, 640);
+    const activeGlowAlpha = maxFillAlpha(activeBatches[3]);
+
+    for (const line of frame.lines) line.hotPathActive = false;
+    for (const node of frame.nodes) node.hotPathActive = false;
+    const inactiveBatches = createPoolRenderBatchBuilder()(frame, 960, 640);
+    const inactiveGlowAlpha = maxFillAlpha(inactiveBatches[3]);
+
+    expect(activeGlowAlpha).toBeGreaterThan(inactiveGlowAlpha);
   });
 
   it('defines complete normalized topology points for every graph node', () => {
@@ -230,7 +401,7 @@ describe('pool home simulation performance contracts', () => {
       const height = 680;
       const frame = buildPoolSimulationFrame(state, width, height, 1 / 60);
       const topology = topologyById('runner_reduce');
-      const sourceXs = POOLDAY_GRAPH_NODE_IDS.map((id) => xOf(topology, id) * width);
+      const sourceXs = POOLDAY_GRAPH_NODE_IDS.map((id) => xOf(topology, id) * Math.max(0, width - POOLDAY_GRAPH_VIEW_MARGIN_PX * 2));
       const renderedXs = frame.nodes.map((node) => node.baseX);
       const sourceWidth = Math.max(...sourceXs) - Math.min(...sourceXs);
       const renderedWidth = Math.max(...renderedXs) - Math.min(...renderedXs);
@@ -238,6 +409,24 @@ describe('pool home simulation performance contracts', () => {
       expect(POOLDAY_GRAPH_VIEW_CENTER_PULL).toBe(0.25);
       expect(renderedWidth).toBeCloseTo(sourceWidth * 0.75, 8);
     });
+  });
+
+  it('keeps every node center at least 64 pixels from each canvas edge', () => {
+    for (const topology of POOLDAY_GRAPH_TOPOLOGIES) {
+      withSimulationSearch(`?seed=margin-check&shape=${topology.id}`, () => {
+        const state = createPoolSimulationState();
+        const width = 1200;
+        const height = 680;
+        const frame = buildPoolSimulationFrame(state, width, height, 1 / 60);
+
+        for (const node of frame.nodes) {
+          expect(node.baseX).toBeGreaterThanOrEqual(POOLDAY_GRAPH_VIEW_MARGIN_PX);
+          expect(node.baseX).toBeLessThanOrEqual(width - POOLDAY_GRAPH_VIEW_MARGIN_PX);
+          expect(node.baseY).toBeGreaterThanOrEqual(POOLDAY_GRAPH_VIEW_MARGIN_PX);
+          expect(node.baseY).toBeLessThanOrEqual(height - POOLDAY_GRAPH_VIEW_MARGIN_PX);
+        }
+      });
+    }
   });
 
   it('keeps pointer shooter particles inactive until the canvas is held', () => {
@@ -327,10 +516,10 @@ describe('pool home simulation performance contracts', () => {
 
     for (let index = 0; index < 2400; index += 1) {
       const frame = buildPoolSimulationFrame(state, 960, 640, 1 / 60);
-      const orbitCue = easeInOutCubic(frame.topologyCue);
+      const topologyEase = easeInOutCubic(frame.topologyCue);
       for (const line of frame.lines) {
-        const expectedSpeed = (line.baseSpeed || line.speed) * (1 + orbitCue * 0.16);
-        const expectedWidth = (line.baseWidth || line.width) * (1 + orbitCue * 0.08);
+        const expectedSpeed = (line.baseSpeed || line.speed) * (1 + topologyEase * 0.16);
+        const expectedWidth = (line.baseWidth || line.width) * (1 + topologyEase * 0.08);
         maxSpeed = Math.max(maxSpeed, line.speed || 0);
         maxWidth = Math.max(maxWidth, line.width || 0);
         maxExpectedSpeed = Math.max(maxExpectedSpeed, expectedSpeed);
@@ -366,7 +555,7 @@ describe('pool home simulation performance contracts', () => {
 
       expect(frame.transitionActive).toBe(false);
       expect(frame.anticipation).toBeLessThanOrEqual(0.001);
-      expect(frame.anchorMotionScale).toBeLessThanOrEqual(0.001);
+      expect(frame.layoutMotionScale).toBeLessThanOrEqual(0.001);
       expect(maxHoldDelta).toBeLessThanOrEqual(1);
 
       let maxReleasedDelta = maxHoldDelta;
@@ -378,7 +567,7 @@ describe('pool home simulation performance contracts', () => {
         }
       }
 
-      expect(frame.anchorMotionScale).toBeGreaterThan(0);
+      expect(frame.layoutMotionScale).toBeGreaterThan(0);
       expect(maxReleasedDelta).toBeGreaterThan(2);
     });
   });
@@ -414,7 +603,7 @@ describe('pool home simulation performance contracts', () => {
       expect(handoffFrame).toBeTruthy();
       expect(handoffFrame.transitionActive).toBe(false);
       expect(handoffFrame.transitionRelease).toBeCloseTo(1, 8);
-      expect(handoffFrame.anchorMotionScale).toBeGreaterThan(0.95);
+      expect(handoffFrame.layoutMotionScale).toBeGreaterThan(0.95);
       expect(handoffMaxDelta).toBeLessThan(2.5);
 
       for (let frameIndex = 0; frameIndex < 120; frameIndex += 1) {
@@ -450,6 +639,38 @@ describe('pool home simulation performance contracts', () => {
       expect(transitionStartFrame.countdownProgress).toBeGreaterThan(0.80);
       expect(Math.abs(transitionStartFrame.countdownProgress - previousCountdown)).toBeLessThan(0.12);
       expect(transitionStartFrame.topologyCue).toBeGreaterThan(0.80);
+    });
+  });
+
+  it('uses a faster visual topology transition while preserving the schedule interval', () => {
+    withSimulationSearch('?seed=transition-speed&shape=runner_reduce', () => {
+      const state = createPoolSimulationState();
+      const step = 1 / 60;
+      let transitionFrame = null;
+
+      for (let frameIndex = 0; frameIndex < 1800; frameIndex += 1) {
+        const frame = buildPoolSimulationFrame(state, 1200, 680, step);
+        if (frame.transitionActive) {
+          transitionFrame = frame;
+          break;
+        }
+      }
+
+      expect(transitionFrame).toBeTruthy();
+      expect(state.layout.transition.span).toBeCloseTo(
+        POOLDAY_MORPH_TUNING.floatSpan * POOLDAY_MORPH_TUNING.visualSpanScale,
+        8
+      );
+      expect(state.layout.hotPathSpan).toBeGreaterThanOrEqual(
+        (POOLDAY_MORPH_TUNING.floatSpan + POOLDAY_MORPH_TUNING.floatHold) * POOLDAY_MORPH_TUNING.scheduleSpanScale
+      );
+      expect(state.layout.hotPathSpan).toBeLessThanOrEqual(
+        (
+          POOLDAY_MORPH_TUNING.floatSpan
+          + POOLDAY_MORPH_TUNING.floatHold
+          + POOLDAY_MORPH_TUNING.holdJitter
+        ) * POOLDAY_MORPH_TUNING.scheduleSpanScale
+      );
     });
   });
 

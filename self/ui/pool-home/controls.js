@@ -87,6 +87,56 @@ const getPageIdentityNamespace = (globalKey) => {
 
 const getProviderIdentityNamespace = () => getPageIdentityNamespace('REPLOID_POOL_PROVIDER_NAMESPACE');
 const getRequesterIdentityNamespace = () => getPageIdentityNamespace('REPLOID_POOL_REQUESTER_NAMESPACE');
+export const POOLDAY_PENDING_ASK_STORAGE_KEY = 'reploid.pool.pending-ask.v1';
+
+const getPooldaySessionStorage = () => {
+  try {
+    return window.sessionStorage || null;
+  } catch {
+    return null;
+  }
+};
+
+const storePendingAskPrompt = (promptText) => {
+  try {
+    getPooldaySessionStorage()?.setItem(POOLDAY_PENDING_ASK_STORAGE_KEY, JSON.stringify({
+      prompt: promptText,
+      createdAt: new Date().toISOString()
+    }));
+  } catch {
+    window.REPLOID_POOL_PENDING_ASK_PROMPT = promptText;
+  }
+};
+
+const consumePendingAskPrompt = () => {
+  const fallback = window.REPLOID_POOL_PENDING_ASK_PROMPT || '';
+  window.REPLOID_POOL_PENDING_ASK_PROMPT = '';
+  try {
+    const storage = getPooldaySessionStorage();
+    const raw = storage?.getItem(POOLDAY_PENDING_ASK_STORAGE_KEY);
+    storage?.removeItem(POOLDAY_PENDING_ASK_STORAGE_KEY);
+    if (!raw) return fallback;
+    const parsed = JSON.parse(raw);
+    return String(parsed?.prompt || fallback || '').trim();
+  } catch {
+    return String(fallback || '').trim();
+  }
+};
+
+const bindSuggestedPromptEditing = (input) => {
+  if (!input || input.dataset.poolSuggestedPromptBound === 'true') return;
+  input.dataset.poolSuggestedPromptBound = 'true';
+  const clearSuggestedPrompt = () => {
+    if (input.dataset.poolSuggestedPromptCleared === 'true') return;
+    const suggestedPrompt = String(input.dataset.poolSuggestedPrompt || '');
+    if (suggestedPrompt && input.value === suggestedPrompt) {
+      input.value = '';
+      input.dataset.poolSuggestedPromptCleared = 'true';
+    }
+  };
+  input.addEventListener('focus', clearSuggestedPrompt);
+  input.addEventListener('pointerdown', clearSuggestedPrompt);
+};
 
 const refreshServerRoomActivity = async () => {
   const activity = document.getElementById('pool-room-activity');
@@ -153,7 +203,7 @@ export const bindRunControls = () => {
     sdk: null,
     identity: requesterIdentity
   });
-  button.addEventListener('click', async () => {
+  const submitRunRequest = async () => {
     const promptText = prompt.value.trim();
     if (!promptText) {
       setResult('pool-run-result', {
@@ -204,6 +254,45 @@ export const bindRunControls = () => {
     } finally {
       button.disabled = false;
     }
+  };
+  button.addEventListener('click', () => {
+    void submitRunRequest();
+  });
+  const pendingPrompt = consumePendingAskPrompt();
+  if (pendingPrompt) {
+    prompt.value = pendingPrompt;
+    window.setTimeout(() => {
+      void submitRunRequest();
+    }, 0);
+  }
+};
+
+export const bindHomeAskControls = (render) => {
+  const form = document.getElementById('pool-home-ask-form');
+  const input = document.getElementById('pool-home-ask-prompt');
+  if (!form || !input || form.dataset.poolHomeAskBound === 'true') return;
+  form.dataset.poolHomeAskBound = 'true';
+  bindSuggestedPromptEditing(input);
+  form.addEventListener('submit', (event) => {
+    event.preventDefault();
+    const promptText = input.value.trim();
+    if (!promptText) {
+      input.focus();
+      return;
+    }
+    storePendingAskPrompt(promptText);
+    const nextUrl = new URL('/ask', window.location.origin);
+    const currentUrl = new URL(window.location.href);
+    for (const key of ['room', 'relay']) {
+      if (currentUrl.searchParams.has(key)) {
+        nextUrl.searchParams.set(key, currentUrl.searchParams.get(key));
+      }
+    }
+    const nextPath = `${nextUrl.pathname}${nextUrl.search}`;
+    if (`${window.location.pathname}${window.location.search}` !== nextPath) {
+      window.history.pushState({ reploidPoolRoute: nextPath }, '', nextPath);
+    }
+    if (typeof render === 'function') render();
   });
 };
 

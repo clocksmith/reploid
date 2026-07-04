@@ -85,6 +85,10 @@ describe('Poolday contribution state', () => {
   });
 
   it('renders contribution metrics from the stored snapshot', () => {
+    updateContributionState({
+      state: 'idle',
+      optedIn: true
+    });
     recordContributionReceipt({
       receiptHash: 'sha256:recent-render',
       receipt: {

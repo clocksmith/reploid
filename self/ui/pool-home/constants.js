@@ -75,6 +75,78 @@ export const ROUTE_COPY = Object.freeze(Object.fromEntries(
   })])
 ));
 
+export const POOLDAY_ASK_PLACEHOLDERS = Object.freeze([
+  'Dinner ideas tonight',
+  'Explain quantum physics',
+  'Plan a roadtrip',
+  'Write a resignation',
+  'Fix my resume',
+  'Summarize this article',
+  'Best budget laptop',
+  'Healthy lunch ideas',
+  'Learn Spanish basics',
+  'Plan leg day',
+  'Debug this error',
+  'Write a poem',
+  'Compare electric cars',
+  'Explain compound interest',
+  'Birthday gift ideas',
+  'Plan date night',
+  'Improve this email',
+  'Make a study plan',
+  'Easy pasta recipe',
+  'Explain black holes',
+  'Write product copy',
+  'Plan weekend trip',
+  'Find cheap flights',
+  'Summarize meeting notes',
+  'Translate this sentence',
+  'Name my startup',
+  'Create workout plan',
+  'Explain tax brackets',
+  'Write thank you',
+  'Plan family vacation',
+  'Fix JavaScript bug',
+  'Compare phone plans',
+  'Meal prep ideas',
+  'Learn guitar chords',
+  'Write cover letter',
+  'Explain mortgage rates',
+  'Best dog names',
+  'Plan birthday party',
+  'Simplify this text',
+  'Make packing list',
+  'Explain climate change',
+  'Draft text reply',
+  'Find dinner recipe',
+  'Plan home workout',
+  'Compare headphones',
+  'Write Instagram caption',
+  'Explain inflation simply',
+  'Create quiz questions',
+  'Plan garden layout',
+  'Improve LinkedIn profile',
+  'Write apology note',
+  'Explain calories burned',
+  'Find movie recommendations',
+  'Plan weekly meals',
+  'Write bedtime story',
+  'Explain stock options',
+  'Make travel itinerary',
+  'Fix grammar errors',
+  'Compare credit cards',
+  'Write wedding toast',
+  'Plan morning routine',
+  'Explain photosynthesis simply',
+  'Find book recommendations',
+  'Create budget plan'
+]);
+
+export const choosePooldayAskPlaceholder = (random = Math.random) => {
+  const index = Math.floor(Math.max(0, Math.min(0.999999999, Number(random()) || 0)) * POOLDAY_ASK_PLACEHOLDERS.length);
+  return POOLDAY_ASK_PLACEHOLDERS[index] || POOLDAY_ASK_PLACEHOLDERS[0];
+};
+
 export const SIMULATION_TARGET_STEP_MS = 1000 / 60;
 export const SIMULATION_MAX_STEP_MS = 1000 / 16;
 export const SIMULATION_RESUME_GAP_MS = SIMULATION_MAX_STEP_MS * 4;
@@ -85,6 +157,7 @@ export const SIMULATION_MAX_PIXEL_RATIO = 1.35;
 export const SIMULATION_MIN_PIXEL_RATIO = 0.72;
 export const SIMULATION_MAX_CANVAS_PIXELS = 1_250_000;
 export const POOLDAY_GRAPH_VIEW_CENTER_PULL = 0.25;
+export const POOLDAY_GRAPH_VIEW_MARGIN_PX = 64;
 export const POOLDAY_RECEIPT_LEDGER_LIMIT = 10;
 export const POOLDAY_STREAM_CHUNK_SIZE = 18;
 export const POOLDAY_STREAM_TICK_MS = 14;
@@ -97,20 +170,16 @@ export const POOLDAY_FLOW_TUNING = Object.freeze({
   curveLift: 0.034,
   pipeCurveLift: 0.006,
   particleScale: 1.05,
-  pulseScale: 0.42,
   coreLineWidth: 1.55,
   peerLineWidth: 1.18,
   pipeLineWidth: 1.34,
   backgroundBandAlpha: 0.10,
   prismFacetAlpha: 0.026,
-  nodeGlowAlpha: 0.092,
   edgeGlowAlpha: 0.11,
   edgeGlowWidth: 4.2,
-  maxGlowLines: 18,
-  shimmerStride: 3,
-  shimmerAlpha: 0.58
+  maxGlowLines: 18
 });
-export const POOLDAY_RENDERER_LINE_SEGMENTS = 11;
+export const POOLDAY_RENDERER_LINE_SEGMENTS = 20;
 export const POOLDAY_RENDERER_BAND_SEGMENTS = 24;
 export const POOLDAY_MORPH_TUNING = Object.freeze({
   shapeHold: 6.1,
@@ -118,6 +187,8 @@ export const POOLDAY_MORPH_TUNING = Object.freeze({
   holdJitter: 1.15,
   shapeSpan: 4.35,
   floatSpan: 3.15,
+  visualSpanScale: 2 / 3,
+  scheduleSpanScale: 4 / 3,
   anticipationSpan: 2.35,
   stableHoldSpan: 3.6,
   stableReleaseSpan: 0.92,
@@ -352,8 +423,8 @@ export const POOLDAY_GRAPH_TOPOLOGIES = Object.freeze([
   }
 ]);
 export const POOLDAY_GRAPH_LABEL_ROLE_META = Object.freeze({
-  request: {
-    label: 'Request',
+  prompt: {
+    label: 'Prompt',
     body: 'Send a prompt with a declared model, policy, and acceptance rule.'
   },
   policy: {
@@ -364,7 +435,7 @@ export const POOLDAY_GRAPH_LABEL_ROLE_META = Object.freeze({
     label: 'Match',
     body: 'Pair the request with compatible browser nodes in the current room.'
   },
-  run: {
+  infer: {
     label: 'Infer',
     body: 'Run the selected model in a contributor tab and sign the result.'
   },
@@ -372,17 +443,17 @@ export const POOLDAY_GRAPH_LABEL_ROLE_META = Object.freeze({
     label: 'Verify',
     body: 'Check output, model identity, policy, and agreement before acceptance.'
   },
-  record: {
-    label: 'History',
-    body: 'Store accepted work, decisions, scores, and local routing evidence.'
+  answer: {
+    label: 'Answer',
+    body: 'Return accepted work with signed receipt and local routing evidence.'
   }
 });
 export const POOLDAY_GRAPH_LABEL_STAGES = Object.freeze([
   {
-    id: 'request',
-    label: 'Request',
+    id: 'prompt',
+    label: 'Prompt',
     ids: ['requester'],
-    roles: ['request']
+    roles: ['prompt']
   },
   {
     id: 'policy',
@@ -397,10 +468,10 @@ export const POOLDAY_GRAPH_LABEL_STAGES = Object.freeze([
     roles: ['match']
   },
   {
-    id: 'run',
+    id: 'infer',
     label: 'Infer',
     ids: ['runner0', 'runner1', 'runner2', 'runner3'],
-    roles: ['run', 'run', 'run', 'run']
+    roles: ['infer', 'infer', 'infer', 'infer']
   },
   {
     id: 'verify',
@@ -409,10 +480,49 @@ export const POOLDAY_GRAPH_LABEL_STAGES = Object.freeze([
     roles: ['verify', 'verify', 'verify']
   },
   {
-    id: 'record',
-    label: 'History',
+    id: 'answer',
+    label: 'Answer',
     ids: ['settlement', 'ledger'],
-    roles: ['record', 'record']
+    roles: ['answer', 'answer']
+  }
+]);
+export const POOLDAY_HOT_PATH_EXAMPLE_QUERY = 'Explain battery safety for a school robotics team';
+export const POOLDAY_HOT_PATH_STEPS = Object.freeze([
+  {
+    id: 'prompt',
+    label: 'Prompt',
+    ids: ['requester'],
+    text: 'Explain battery safety for a school robotics team'
+  },
+  {
+    id: 'policy',
+    label: 'Policy',
+    ids: ['policy'],
+    text: 'Educational safety answer allowed with local verification'
+  },
+  {
+    id: 'match',
+    label: 'Match',
+    ids: ['assignment'],
+    text: 'Find Qwen capable tabs with signed manifests'
+  },
+  {
+    id: 'infer',
+    label: 'Infer',
+    ids: ['runner0', 'runner1', 'runner2', 'runner3'],
+    text: 'Stream practical Li ion handling guidance'
+  },
+  {
+    id: 'verify',
+    label: 'Verify',
+    ids: ['verifier0', 'verifier1', 'agreement'],
+    text: 'Check model hash policy and agreement'
+  },
+  {
+    id: 'answer',
+    label: 'Answer',
+    ids: ['settlement', 'ledger'],
+    text: 'Use fire safe charging inspect swollen packs'
   }
 ]);
 const DEFAULT_GRAPH_ROLE_BY_ID = Object.freeze(Object.fromEntries(
@@ -420,8 +530,8 @@ const DEFAULT_GRAPH_ROLE_BY_ID = Object.freeze(Object.fromEntries(
 ));
 export const POOLDAY_FLOW_LABELS = Object.freeze(POOLDAY_GRAPH_NODE_IDS.map((id) => {
   const point = POOLDAY_GRAPH_TOPOLOGIES[0].points[id] || [0.5, 0.5];
-  const role = DEFAULT_GRAPH_ROLE_BY_ID[id] || 'run';
-  const meta = POOLDAY_GRAPH_LABEL_ROLE_META[role] || POOLDAY_GRAPH_LABEL_ROLE_META.run;
+  const role = DEFAULT_GRAPH_ROLE_BY_ID[id] || 'infer';
+  const meta = POOLDAY_GRAPH_LABEL_ROLE_META[role] || POOLDAY_GRAPH_LABEL_ROLE_META.infer;
   return {
     id,
     label: meta.label,

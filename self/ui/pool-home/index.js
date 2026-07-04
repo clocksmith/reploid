@@ -9,6 +9,7 @@ import {
   getRouteId,
   isProductPath,
   refreshContributionPanels,
+  refreshContributionStatusBar,
   refreshRecordLedgerState,
   renderContributionStatusBar,
   renderNav,
@@ -17,6 +18,7 @@ import {
 } from './view.js';
 import { subscribeContributionState } from './contribution-state.js';
 import {
+  bindHomeAskControls,
   bindProviderControls,
   bindReceiptControls,
   bindRunControls
@@ -53,7 +55,7 @@ const bindPoolRouteControls = (mount, render) => {
       event.preventDefault();
       const nextUrl = new URL(path, window.location.origin);
       const currentUrl = new URL(window.location.href);
-      for (const key of ['room']) {
+      for (const key of ['room', 'relay']) {
         if (!nextUrl.searchParams.has(key) && currentUrl.searchParams.has(key)) {
           nextUrl.searchParams.set(key, currentUrl.searchParams.get(key));
         }
@@ -100,6 +102,7 @@ export function initPoolHome(mount) {
       </main>
     `;
     bindPoolRouteControls(mount, render);
+    bindHomeAskControls(render);
     bindHomeSimulation(mount);
     bindRunControls();
     bindProviderControls();
@@ -114,12 +117,7 @@ export function initPoolHome(mount) {
     window.REPLOID_POOL_CONTRIBUTION_UNSUBSCRIBE();
   }
   window.REPLOID_POOL_CONTRIBUTION_UNSUBSCRIBE = subscribeContributionState(() => {
-    const current = document.getElementById('pool-contribution-status');
-    if (current) {
-      const template = document.createElement('template');
-      template.innerHTML = renderContributionStatusBar().trim();
-      current.replaceWith(template.content.firstElementChild);
-    }
+    refreshContributionStatusBar();
     refreshContributionPanels();
   });
   window.REPLOID_POOL_POPSTATE_HANDLER = render;

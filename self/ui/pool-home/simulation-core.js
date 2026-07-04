@@ -5,6 +5,8 @@
 import {
   POOLDAY_FLOW_TUNING,
   POOLDAY_GRAPH_VIEW_CENTER_PULL,
+  POOLDAY_HOT_PATH_EXAMPLE_QUERY,
+  POOLDAY_HOT_PATH_STEPS,
   POOLDAY_GRAPH_LABEL_ROLE_META,
   POOLDAY_GRAPH_LABEL_STAGES,
   POOLDAY_GRAPH_NODE_IDS,
@@ -120,7 +122,7 @@ const createPoolGraphLabelPlan = (random) => {
     for (let index = 0; index < ids.length; index += 1) {
       const id = ids[index];
       const role = roles[index % roles.length];
-      const meta = POOLDAY_GRAPH_LABEL_ROLE_META[role] || POOLDAY_GRAPH_LABEL_ROLE_META.run;
+      const meta = POOLDAY_GRAPH_LABEL_ROLE_META[role] || POOLDAY_GRAPH_LABEL_ROLE_META.infer;
       const stagger = index - (ids.length - 1) / 2;
       plan[id] = {
         id,
@@ -135,6 +137,34 @@ const createPoolGraphLabelPlan = (random) => {
     }
   }
   return plan;
+};
+
+const createHotPathFrame = () => ({
+  exampleQuery: POOLDAY_HOT_PATH_EXAMPLE_QUERY,
+  activeStepId: POOLDAY_HOT_PATH_STEPS[0]?.id || '',
+  activeStepIndex: 0,
+  activeIds: POOLDAY_HOT_PATH_STEPS[0]?.ids || [],
+  stepProgress: 0,
+  intervalProgress: 0,
+  steps: POOLDAY_HOT_PATH_STEPS
+});
+
+const resolveHotPathFrame = (layout, time, target = createHotPathFrame()) => {
+  const steps = POOLDAY_HOT_PATH_STEPS;
+  const stepCount = Math.max(1, steps.length);
+  const span = Math.max(0.001, Number(layout.hotPathSpan || 0));
+  const intervalProgress = clamp01((time - Number(layout.hotPathStartedAt || 0)) / span);
+  const scaled = Math.min(stepCount - 0.000001, intervalProgress * stepCount);
+  const activeStepIndex = Math.max(0, Math.min(stepCount - 1, Math.floor(scaled)));
+  const step = steps[activeStepIndex] || steps[0] || {};
+  target.exampleQuery = POOLDAY_HOT_PATH_EXAMPLE_QUERY;
+  target.activeStepId = step.id || '';
+  target.activeStepIndex = activeStepIndex;
+  target.activeIds = step.ids || [];
+  target.stepProgress = clamp01(scaled - activeStepIndex);
+  target.intervalProgress = intervalProgress;
+  target.steps = steps;
+  return target;
 };
 
 const applyNodeLabelPlan = (node, labelPlan = {}) => {
@@ -267,6 +297,7 @@ const createNextPoolGraphPlan = (layout, random) => {
       edgePreset: 'float',
       mode: 'float',
       span: POOLDAY_MORPH_TUNING.floatSpan,
+      transitionSpan: POOLDAY_MORPH_TUNING.floatSpan * POOLDAY_MORPH_TUNING.visualSpanScale,
       hold: POOLDAY_MORPH_TUNING.floatHold
     };
   }
@@ -287,6 +318,7 @@ const createNextPoolGraphPlan = (layout, random) => {
     edgePreset: topology.edgePreset,
     mode: topology.morph || 'arc',
     span: POOLDAY_MORPH_TUNING.shapeSpan,
+    transitionSpan: POOLDAY_MORPH_TUNING.shapeSpan * POOLDAY_MORPH_TUNING.visualSpanScale,
     hold: POOLDAY_MORPH_TUNING.shapeHold,
     topologyIndex,
     topologyOrder,
@@ -411,6 +443,8 @@ const createPoolGraphLayout = (random) => {
   const firstTopology = findTopologyByIndex(initialIndex);
   const points = cloneTopologyPoints(firstTopology);
   const topologyOrder = createTopologyOrder(initialIndex, random);
+  const initialJitter = random() * POOLDAY_MORPH_TUNING.holdJitter;
+  const firstShiftAt = (POOLDAY_MORPH_TUNING.shapeHold + initialJitter) * POOLDAY_MORPH_TUNING.scheduleSpanScale;
   const layout = {
     positions: copyGraphPoints(points),
     targets: points,
@@ -423,7 +457,9 @@ const createPoolGraphLayout = (random) => {
     edgeSpecs: buildSimulationLineSpecs(firstTopology.edgePreset),
     nextPlan: null,
     planStartedAt: 0,
-    nextShiftAt: POOLDAY_MORPH_TUNING.shapeHold + random() * POOLDAY_MORPH_TUNING.holdJitter,
+    nextShiftAt: firstShiftAt,
+    hotPathStartedAt: 0,
+    hotPathSpan: firstShiftAt,
     transition: null,
     transitionRelease: 0,
     anticipation: 0,
@@ -463,7 +499,7 @@ const shiftPoolGraphTarget = (layout, time, random) => {
     layout.positions,
     layout.targets,
     plan.mode || 'arc',
-    plan.span,
+    plan.transitionSpan || plan.span,
     {
       fromEdgePreset,
       toEdgePreset: plan.edgePreset,
@@ -474,7 +510,12 @@ const shiftPoolGraphTarget = (layout, time, random) => {
   );
   layout.nextPlan = null;
   layout.transitionRelease = 0;
-  layout.nextShiftAt = time + plan.span + plan.hold + random() * POOLDAY_MORPH_TUNING.holdJitter;
+  const scheduleSpan = (
+    plan.span + plan.hold + random() * POOLDAY_MORPH_TUNING.holdJitter
+  ) * POOLDAY_MORPH_TUNING.scheduleSpanScale;
+  layout.hotPathStartedAt = time;
+  layout.hotPathSpan = scheduleSpan;
+  layout.nextShiftAt = time + scheduleSpan;
   layout.stableHoldProgress = 1;
   layout.stableRelease = 1;
   layout.flowEnergyTarget = 0.62 + random() * 0.92;
@@ -556,8 +597,6 @@ export const createPoolSimulationState = () => {
     role: id.startsWith('verifier') ? 'verifier' : 'runner',
     index,
     phase: index * 1.7,
-    driftX: 8 + (index % 3) * 3,
-    driftY: 9 + (index % 2) * 4,
     size: 10 + (index % 3) * 1.5,
     presence: 1,
     lineDraw: 1,
@@ -631,7 +670,8 @@ export const createPoolSimulationState = () => {
     topologyProgress: 0,
     countdownProgress: 0,
     palette: createPoolGraphPaletteFrame(),
-    labelAnchors
+    labelAnchors,
+    hotPath: createHotPathFrame()
   };
   return {
     participantSpecs,
@@ -639,6 +679,8 @@ export const createPoolSimulationState = () => {
     roles,
     nodeLookup,
     nodeLabelPlan: labelPlan,
+    hotPathFrame: createHotPathFrame(),
+    hotPathActiveIds: new Set(),
     frameNodes,
     frameParticles,
     labelAnchors,
@@ -1021,23 +1063,29 @@ const resolveLineGeometryScalarsInto = (target, line, width, height) => {
   return target;
 };
 
-export const resolveLineGeometry = (line, width, height) => {
-  const geometry = resolveLineGeometryScalarsInto({}, line, width, height);
-  return {
-    start: {
-      x: geometry.startX,
-      y: geometry.startY
-    },
-    end: {
-      x: geometry.endX,
-      y: geometry.endY
-    },
-    control: {
-      x: geometry.controlX,
-      y: geometry.controlY
-    }
-  };
+const LINE_GEOMETRY_SCALARS = {};
+
+export const resolveLineGeometryInto = (target, line, width, height) => {
+  const geometry = resolveLineGeometryScalarsInto(LINE_GEOMETRY_SCALARS, line, width, height);
+  const start = target.start || (target.start = { x: 0, y: 0 });
+  const end = target.end || (target.end = { x: 0, y: 0 });
+  const control = target.control || (target.control = { x: 0, y: 0 });
+  start.x = geometry.startX;
+  start.y = geometry.startY;
+  end.x = geometry.endX;
+  end.y = geometry.endY;
+  control.x = geometry.controlX;
+  control.y = geometry.controlY;
+  return target;
 };
+
+export const resolveLineGeometry = (line, width, height) => (
+  resolveLineGeometryInto({
+    start: { x: 0, y: 0 },
+    end: { x: 0, y: 0 },
+    control: { x: 0, y: 0 }
+  }, line, width, height)
+);
 
 export const resolveLinePoint = (line, amount, width, height) => {
   return resolveLinePointInto({ x: 0, y: 0 }, line, amount, width, height);
@@ -1096,6 +1144,10 @@ export const buildPoolSimulationFrame = (state, width, height, deltaSeconds = SI
   const time = state.motionTime;
   const layoutPositions = updatePoolGraphLayout(state, safeDelta);
   const graphPositions = copyCenteredGraphPointsInto(state.graphViewPositions, layoutPositions);
+  const hotPath = resolveHotPathFrame(state.layout, state.time, state.hotPathFrame);
+  const hotPathActiveIds = state.hotPathActiveIds;
+  hotPathActiveIds.clear();
+  for (const id of hotPath.activeIds || []) hotPathActiveIds.add(id);
   const transitionProgress = clamp01(state.layout.transition?.progress || 0);
   const transitionSignal = state.layout.transition ? Math.sin(transitionProgress * Math.PI) : 0;
   const carriedCue = state.layout.transition
@@ -1103,27 +1155,23 @@ export const buildPoolSimulationFrame = (state, width, height, deltaSeconds = SI
     : 0;
   const topologyCue = Math.max(state.layout.anticipation || 0, carriedCue, transitionSignal * 0.58);
   const countdownProgress = Math.max(state.layout.anticipation || 0, carriedCue, transitionSignal);
-  const orbitCue = easeInOutCubic(topologyCue);
-  const anchorMotionScale = state.layout.transition
+  const topologyEase = easeInOutCubic(topologyCue);
+  const layoutMotionScale = state.layout.transition
     ? 1
     : clamp01(Math.max(state.layout.transitionRelease || 0, state.layout.stableRelease || 0, topologyCue));
   const roles = state.roles;
-  for (const [id, size, phase, orbit] of POOLDAY_CORE_NODE_CONFIG) {
+  for (const [id, size] of POOLDAY_CORE_NODE_CONFIG) {
     writeRoleAnchor(
       roles[id],
       id,
       size,
-      phase,
-      orbit,
       graphPositions,
       width,
       height,
-      time,
-      orbitCue,
       countdownProgress,
-      transitionProgress,
-      anchorMotionScale
+      transitionProgress
     );
+    roles[id].hotPathActive = hotPathActiveIds.has(id);
   }
   const participants = state.participants;
   for (let index = 0; index < state.participantSpecs.length; index += 1) {
@@ -1134,11 +1182,10 @@ export const buildPoolSimulationFrame = (state, width, height, deltaSeconds = SI
       width,
       height,
       time,
-      orbitCue,
       countdownProgress,
-      transitionProgress,
-      anchorMotionScale
+      transitionProgress
     );
+    participants[index].hotPathActive = hotPathActiveIds.has(participants[index].id);
   }
   const flowScale = 0.72 + state.layout.flowEnergy * 0.42;
   const lines = buildTransitionSimulationLines({
@@ -1153,9 +1200,16 @@ export const buildPoolSimulationFrame = (state, width, height, deltaSeconds = SI
     const basePulse = Number.isFinite(line.basePulse) ? line.basePulse : line.pulse;
     const baseSpeed = Number.isFinite(line.baseSpeed) ? line.baseSpeed : line.speed;
     const baseWidth = Number.isFinite(line.baseWidth) ? line.baseWidth : line.width;
-    line.pulse = basePulse + orbitCue * (0.08 + (index % 5) * 0.018);
-    line.speed = baseSpeed * (1 + orbitCue * 0.16);
-    line.width = baseWidth * (1 + orbitCue * 0.08);
+    line.hotPathActive = (
+      hotPathActiveIds.has(line.fromId)
+      || hotPathActiveIds.has(line.toId)
+      || hotPathActiveIds.has(line.targetFromId)
+      || hotPathActiveIds.has(line.targetToId)
+    );
+    line.hotPathStage = hotPath.activeStepId;
+    line.pulse = basePulse + topologyEase * (0.08 + (index % 5) * 0.018);
+    line.speed = baseSpeed * (1 + topologyEase * 0.16);
+    line.width = baseWidth * (1 + topologyEase * 0.08);
     line.flowCountdown = countdownProgress;
     line.phaseShift = topologyCue;
     line.topologyProgress = transitionProgress;
@@ -1226,7 +1280,7 @@ export const buildPoolSimulationFrame = (state, width, height, deltaSeconds = SI
   frame.stableHoldProgress = state.layout.stableHoldProgress;
   frame.stableRelease = state.layout.stableRelease;
   frame.transitionRelease = state.layout.transitionRelease || 0;
-  frame.anchorMotionScale = anchorMotionScale;
+  frame.layoutMotionScale = layoutMotionScale;
   frame.transitionActive = Boolean(state.layout.transition);
   frame.transitionProgress = transitionProgress;
   frame.topologyCue = topologyCue;
@@ -1234,5 +1288,6 @@ export const buildPoolSimulationFrame = (state, width, height, deltaSeconds = SI
   frame.countdownProgress = countdownProgress;
   frame.palette = resolvePoolGraphPalette(state.layout, frame.palette);
   frame.labelAnchors = labelAnchors;
+  frame.hotPath = hotPath;
   return frame;
 };

@@ -104,8 +104,35 @@ test.describe('Route Entry Points', () => {
     await expect(nav.locator('.pool-nav-mark-seven-top')).toHaveText('7');
     await expect(nav.locator('.pool-nav-mark-seven-bottom')).toHaveText('7');
     await expect(nav.locator('.pool-nav-menu')).toBeHidden();
-    await expect(page.locator('.pool-home-cta-row').getByRole('link', { name: 'Ask', exact: true })).toHaveAttribute('href', '/ask');
-    await expect(page.locator('.pool-home-cta-row').getByRole('link', { name: 'See the Network', exact: true })).toHaveAttribute('href', '/network');
+    await expect(page.locator('#pool-home-ask-form')).toBeVisible();
+    const askValue = await page.locator('#pool-home-ask-prompt').inputValue();
+    expect(askValue).toBeTruthy();
+    expect(askValue).not.toBe('Ask the network...');
+    expect(askValue.trim().split(/\s+/).length).toBeGreaterThanOrEqual(2);
+    expect(askValue.trim().split(/\s+/).length).toBeLessThanOrEqual(4);
+    await expect(page.locator('#pool-home-ask-prompt')).toHaveAttribute('data-pool-suggested-prompt', askValue);
+    await expect(page.locator('#pool-home-ask-form').getByRole('button', { name: 'Ask', exact: true })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Live Network', exact: true })).toHaveAttribute('href', '/network');
+    await expect(page.locator('.pool-home-toolbar')).toBeVisible();
+    await expect(page.locator('.pool-simulation-shell')).toBeVisible();
+    await expect(page.locator('[data-pool-hot-path]')).toBeVisible();
+    await expect(page.locator('[data-pool-hot-path-step]')).toHaveCount(6);
+    const stack = await page.evaluate(() => {
+      const home = document.querySelector('.pool-home').getBoundingClientRect();
+      const toolbar = document.querySelector('.pool-home-toolbar').getBoundingClientRect();
+      const shell = document.querySelector('.pool-simulation-shell').getBoundingClientRect();
+      return {
+        homeHeight: home.height,
+        homeWidth: home.width,
+        shellHeight: shell.height,
+        shellWidth: shell.width,
+        shellTop: shell.top,
+        toolbarBottom: toolbar.bottom
+      };
+    });
+    expect(Math.abs(stack.shellTop)).toBeLessThanOrEqual(1);
+    expect(Math.abs(stack.shellWidth - stack.homeWidth)).toBeLessThan(2);
+    expect(Math.abs(stack.shellHeight - stack.homeHeight)).toBeLessThan(2);
     await nav.locator('.pool-nav-toggle').click();
     await expect(nav.locator('.pool-nav-toggle')).toHaveAttribute('aria-expanded', 'true');
     await expect(nav.getByRole('link', { name: 'Home', exact: true })).toBeVisible();
@@ -116,7 +143,7 @@ test.describe('Route Entry Points', () => {
     await expect(nav.getByRole('link', { name: 'Network', exact: true })).toBeVisible();
     await expect(nav.getByRole('link', { name: 'Zero' })).toHaveAttribute('href', '/zero');
     await expect(nav.getByRole('link', { name: 'X', exact: true })).toHaveAttribute('href', '/x');
-    await expect(page.locator('.pool-home-overlay')).toContainText('Reploid');
+    await expect(page.locator('.pool-home-overlay')).toContainText('REPLOID');
     await expect(page.locator('.pool-home-overlay')).toContainText('Run browser models together.');
     await expect(page.locator('[data-pool-flow-label]')).toHaveCount(12);
     await expect.poll(async () => page.locator('[data-pool-flow-label]').evaluateAll((labels) => {
@@ -126,11 +153,13 @@ test.describe('Route Entry Points', () => {
         return acc;
       }, {});
       return {
-        request: counts.Request || 0,
+        prompt: counts.Prompt || 0,
         policy: counts.Policy || 0,
         match: counts.Match || 0,
         infer: counts.Infer || 0,
         verify: counts.Verify || 0,
+        answer: counts.Answer || 0,
+        request: counts.Request || 0,
         history: counts.History || 0,
         consumer: counts.Consumer || 0,
         producer: counts.Producer || 0,
@@ -139,12 +168,14 @@ test.describe('Route Entry Points', () => {
         ledger: counts.Ledger || 0
       };
     })).toEqual({
-      request: 1,
+      prompt: 1,
       policy: 1,
       match: 1,
       infer: 4,
       verify: 3,
-      history: 2,
+      answer: 2,
+      request: 0,
+      history: 0,
       consumer: 0,
       producer: 0,
       provider: 0,
@@ -174,7 +205,7 @@ test.describe('Route Entry Points', () => {
     expect(desktop.open).toBe(false);
     expect(desktop.x).toBeLessThan(24);
     expect(desktop.y).toBeLessThan(24);
-    expect(desktop.height).toBeLessThan(48);
+    expect(desktop.height).toBeLessThanOrEqual(48);
     expect(desktop.width).toBeLessThan(56);
     expect(desktop.overflowX).toBe(false);
 
@@ -986,7 +1017,8 @@ test.describe('Goal Input', () => {
   test('shows runtime preset rail and a single dropdown for the active level', async ({ page }) => {
     await unlockGoalSection(page);
 
-    await expect(page.locator('[data-action="toggle-goal-category"]')).toHaveCount(5);
+    await expect(page.locator('[data-action="toggle-goal-category"]')).toHaveCount(6);
+    await expect(page.locator('[data-action="toggle-goal-category"][data-category="Handwritten RSI Browser Goals"]')).toBeVisible();
     await expect(page.locator('.goal-level-dropdown')).toBeVisible();
     await expect(page.locator('.goal-level-dropdown')).toContainText('L0: Basic Functions');
     expect(await page.locator('.goal-level-dropdown-list .goal-chip').count()).toBeGreaterThanOrEqual(5);

@@ -13,6 +13,10 @@ import {
 import { SIMULATION_MAX_STEP_MS, SIMULATION_RESUME_GAP_MS, SIMULATION_TARGET_STEP_MS } from './constants.js';
 
 const LABEL_STYLE_EPSILON_PERCENT = 0.025;
+const POOL_SIMULATION_MIN_RENDER_QUALITY = 0.62;
+const POOL_SIMULATION_QUALITY_DOWN_COST = SIMULATION_TARGET_STEP_MS * 0.62;
+const POOL_SIMULATION_QUALITY_UP_COST = SIMULATION_TARGET_STEP_MS * 0.36;
+const POOL_SIMULATION_STATS_BLEND = 0.08;
 
 export const resolvePoolFrameDeltaMs = (rawDeltaMs, forceReset = false) => {
   if (
@@ -38,14 +42,29 @@ export const bindHomeSimulation = async (mount) => {
   let active = true;
   let frameId = null;
   let renderer = null;
+  let drawFrame = null;
   let removeCanvasListeners = () => {};
   const removeLabelListeners = [];
   let canvasRect = null;
   let canvasCssSize = { width: 0, height: 0 };
   let layoutFrameId = null;
   let resizeObserver = null;
+  let viewportObserver = null;
   let resetFrameClock = true;
+  let simulationInViewport = true;
+  let renderQuality = 1;
+  const simulationStats = {
+    active: true,
+    suspended: false,
+    backend: 'pending',
+    frameCount: 0,
+    lastFrameCostMs: 0,
+    averageFrameCostMs: 0,
+    renderQuality
+  };
+  window.REPLOID_POOL_SIMULATION_STATS = simulationStats;
   const flowLabels = [...mount.querySelectorAll('[data-pool-flow-label]')];
+  const hotPathSteps = [...mount.querySelectorAll('[data-pool-hot-path-step]')];
   const simulationShell = mount.querySelector('.pool-simulation-shell') || mount;
   const tooltip = mount.querySelector('[data-pool-tooltip]');
   const tooltipTitle = tooltip?.querySelector('[data-pool-tooltip-title]');
@@ -54,6 +73,7 @@ export const bindHomeSimulation = async (mount) => {
   const labelPositions = new Map();
   let labelCanvasSize = null;
   let tooltipMetrics = null;
+  let activeHotPathStepId = '';
   const refreshTooltipMetrics = () => {
     const shellBox = simulationShell.getBoundingClientRect();
     const tooltipBox = tooltip?.getBoundingClientRect();
@@ -132,9 +152,33 @@ export const bindHomeSimulation = async (mount) => {
       if (activeTooltipLabel) updateTooltipPosition(true);
     });
   };
+  const cancelFrame = () => {
+    if (frameId !== null) window.cancelAnimationFrame(frameId);
+    frameId = null;
+  };
+  const isAnimationRunnable = () => (
+    active
+    && renderer
+    && document.visibilityState !== 'hidden'
+    && simulationInViewport
+  );
+  const syncSuspendedStats = () => {
+    simulationStats.suspended = !isAnimationRunnable();
+  };
+  const scheduleFrame = () => {
+    syncSuspendedStats();
+    if (!isAnimationRunnable() || frameId !== null || typeof drawFrame !== 'function') return;
+    frameId = window.requestAnimationFrame(drawFrame);
+  };
   const handleVisibilityChange = () => {
     resetFrameClock = true;
     state.lastFrameMs = performance.now();
+    if (document.visibilityState === 'hidden') {
+      cancelFrame();
+      syncSuspendedStats();
+      return;
+    }
+    scheduleFrame();
   };
   window.addEventListener('resize', handleLayoutChange);
   window.addEventListener('scroll', handleLayoutChange, true);
@@ -214,6 +258,14 @@ export const bindHomeSimulation = async (mount) => {
       }
     }
   };
+  const syncHotPath = (hotPath = {}) => {
+    const nextStepId = hotPath.activeStepId || '';
+    if (nextStepId === activeHotPathStepId) return;
+    activeHotPathStepId = nextStepId;
+    for (const step of hotPathSteps) {
+      step.classList.toggle('is-active', step.dataset.poolHotPathStep === nextStepId);
+    }
+  };
   window.REPLOID_POOL_SIMULATION_STOP = () => {
     active = false;
     if (frameId !== null) window.cancelAnimationFrame(frameId);
@@ -226,10 +278,13 @@ export const bindHomeSimulation = async (mount) => {
     }
     removeCanvasListeners();
     resizeObserver?.disconnect();
+    viewportObserver?.disconnect();
     window.removeEventListener('resize', handleLayoutChange);
     window.removeEventListener('scroll', handleLayoutChange, true);
     document.removeEventListener('visibilitychange', handleVisibilityChange);
     renderer?.dispose();
+    simulationStats.active = false;
+    simulationStats.suspended = true;
   };
   try {
     renderer = await createPoolSimulationRenderer(canvas, {
@@ -254,24 +309,55 @@ export const bindHomeSimulation = async (mount) => {
   }
   canvas.dataset.poolRenderer = renderer.backend;
   window.REPLOID_POOL_RENDERER_BACKEND = renderer.backend;
-  const draw = (timestamp = performance.now()) => {
+  simulationStats.backend = renderer.backend;
+  if (typeof IntersectionObserver === 'function') {
+    viewportObserver = new IntersectionObserver((entries) => {
+      const nextInViewport = entries.some((entry) => entry.isIntersecting && entry.intersectionRatio > 0);
+      if (nextInViewport === simulationInViewport) return;
+      simulationInViewport = nextInViewport;
+      resetFrameClock = true;
+      state.lastFrameMs = performance.now();
+      if (simulationInViewport) scheduleFrame();
+      else {
+        cancelFrame();
+        syncSuspendedStats();
+      }
+    });
+    viewportObserver.observe(simulationShell);
+  }
+  drawFrame = (timestamp = performance.now()) => {
     if (!active) return;
     frameId = null;
-    const rawDeltaMs = Math.max(0, timestamp - state.lastFrameMs);
-    state.lastFrameMs = timestamp;
-    if (document.visibilityState === 'hidden') {
+    if (!isAnimationRunnable()) {
       resetFrameClock = true;
-      frameId = window.requestAnimationFrame(draw);
+      syncSuspendedStats();
       return;
     }
+    const frameStart = performance.now();
+    const rawDeltaMs = Math.max(0, timestamp - state.lastFrameMs);
+    state.lastFrameMs = timestamp;
     const deltaMs = resolvePoolFrameDeltaMs(rawDeltaMs, resetFrameClock);
     resetFrameClock = false;
     const { width, height } = resizePoolCanvas(canvas, getCanvasCssSize());
     const frame = buildPoolSimulationFrame(state, width, height, deltaMs / 1000);
+    frame.renderQuality = renderQuality;
     renderer.render(frame, width, height);
     syncFlowLabels(frame.labelAnchors, width, height, deltaMs / 1000);
+    syncHotPath(frame.hotPath);
     if (activeTooltipLabel) updateTooltipPosition(false);
-    frameId = window.requestAnimationFrame(draw);
+    const frameCostMs = Math.max(0, performance.now() - frameStart);
+    simulationStats.frameCount += 1;
+    simulationStats.lastFrameCostMs = frameCostMs;
+    simulationStats.averageFrameCostMs = simulationStats.averageFrameCostMs === 0
+      ? frameCostMs
+      : simulationStats.averageFrameCostMs + (frameCostMs - simulationStats.averageFrameCostMs) * POOL_SIMULATION_STATS_BLEND;
+    if (simulationStats.averageFrameCostMs > POOL_SIMULATION_QUALITY_DOWN_COST) {
+      renderQuality = Math.max(POOL_SIMULATION_MIN_RENDER_QUALITY, renderQuality - 0.035);
+    } else if (simulationStats.averageFrameCostMs < POOL_SIMULATION_QUALITY_UP_COST) {
+      renderQuality = Math.min(1, renderQuality + 0.018);
+    }
+    simulationStats.renderQuality = renderQuality;
+    scheduleFrame();
   };
   const syncPointerPosition = (event) => {
     const box = canvasRect || refreshCanvasRect();
@@ -344,5 +430,5 @@ export const bindHomeSimulation = async (mount) => {
     canvas.removeEventListener('lostpointercapture', losePointerCapture);
   };
   state.lastFrameMs = performance.now();
-  frameId = window.requestAnimationFrame(draw);
+  scheduleFrame();
 };
