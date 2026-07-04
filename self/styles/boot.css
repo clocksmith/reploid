@@ -2001,6 +2001,24 @@ body[data-pool-route-id='home'] #app {
   flex-wrap: wrap;
 }
 
+.pool-home-cta-row,
+.pool-route-cta-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+}
+
+.pool-home-cta-row {
+  pointer-events: auto;
+}
+
+.pool-cta-link {
+  flex: 0 1 auto;
+  min-width: 11rem;
+  justify-content: center;
+}
+
 .pool-nav-rail {
   position: fixed;
   z-index: 10;
@@ -2447,6 +2465,10 @@ body[data-pool-route-id='home'] #app {
   gap: var(--space-md);
 }
 
+.pool-route-cta-row {
+  justify-content: flex-start;
+}
+
 .pool-provider-live {
   justify-content: space-between;
   min-height: 100%;
@@ -2776,6 +2798,10 @@ body[data-pool-route-id='home'] #app {
   line-height: var(--font-read-leading);
 }
 
+.pool-home-overlay .pool-home-cta-row {
+  margin-top: var(--space-xs);
+}
+
 .pool-simulation-labels {
   position: absolute;
   inset: 0;
@@ -2977,6 +3003,17 @@ body[data-pool-route-id='home'] #app {
   .pool-actions .btn {
     flex: 0 0 auto;
     width: auto;
+  }
+
+  .pool-home-cta-row,
+  .pool-route-cta-row {
+    align-items: stretch;
+  }
+
+  .pool-home-cta-row .pool-cta-link,
+  .pool-route-cta-row .pool-cta-link {
+    flex: 1 1 100%;
+    width: 100%;
   }
 
   .pool-nav-link {

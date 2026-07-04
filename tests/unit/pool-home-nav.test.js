@@ -6,7 +6,7 @@ import {
   PRODUCT_ROUTES,
   ROUTE_COPY
 } from '../../self/ui/pool-home/constants.js';
-import { renderNav } from '../../self/ui/pool-home/view.js';
+import { renderNav, renderRouteDetail, renderRoutePanel } from '../../self/ui/pool-home/view.js';
 
 describe('poolday home navigation', () => {
   it('derives visible nav buttons and page copy from one route list', () => {
@@ -63,5 +63,26 @@ describe('poolday home navigation', () => {
     expect(html).not.toContain('href="/run"');
     expect(html).not.toContain('href="/mesh"');
     expect(html).not.toContain('href="/record"');
+  });
+
+  it('renders the main home calls to action', () => {
+    const html = renderRoutePanel('home');
+
+    expect(html).toContain('class="pool-home-cta-row"');
+    expect(html).toContain('href="/ask"');
+    expect(html).toContain('data-pool-route="/ask"');
+    expect(html).toContain('>Ask</a>');
+    expect(html).toContain('href="/network"');
+    expect(html).toContain('data-pool-route="/network"');
+    expect(html).toContain('>See the Network</a>');
+  });
+
+  it('renders a network route call to action for compute sharing', () => {
+    const html = renderRouteDetail('network');
+
+    expect(html).toContain('class="pool-route-cta-row"');
+    expect(html).toContain('href="/compute"');
+    expect(html).toContain('data-pool-route="/compute"');
+    expect(html).toContain('>Share Compute</a>');
   });
 });
