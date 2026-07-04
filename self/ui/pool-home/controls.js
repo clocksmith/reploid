@@ -27,6 +27,7 @@ import {
   getPeerRelayMode,
   getPeerRoomBusFactory,
   getPeerRoomId,
+  refreshContributionStatusBar,
   refreshProviderStorageHealth,
   refreshRoomActivityState,
   renderReceiptLedger,
@@ -34,6 +35,10 @@ import {
   updateProviderHealth,
   updateProviderStatus
 } from './view.js';
+import {
+  recordContributionReceipt,
+  updateContributionState
+} from './contribution-state.js';
 
 const errorString = (error) => String(error?.message || error?.error || error || 'Unknown error');
 
@@ -193,33 +198,98 @@ export const bindRunControls = () => {
   });
 };
 
-export const bindProviderControls = () => {
-  const workerStartButton = document.getElementById('pool-provider-worker-start');
-  const workerStopButton = document.getElementById('pool-provider-worker-stop');
-  const modelInput = document.getElementById('pool-provider-model');
-  if (!modelInput || !workerStartButton) return;
-  const peerProviderIdentity = createPoolIdentity('provider', {
-    localOnly: true,
-    namespace: getProviderIdentityNamespace()
-  });
-  const runtime = window.REPLOID_DOPPLER_RUNTIME || createDopplerRuntime();
-  window.REPLOID_DOPPLER_RUNTIME = runtime;
-  const mount = document.getElementById('app');
-  updateProviderStatus(mount, 'Idle');
-  updateProviderHealth({
-    webgpu: navigator.gpu ? 'available' : 'unavailable',
-    storage: navigator.storage ? 'available' : 'unknown'
-  });
-  void refreshProviderStorageHealth();
-  const peerProviderClient = createProviderClient({
-    sdk: null,
-    runtime,
-    identity: peerProviderIdentity
-  });
+const createProviderContributionController = () => {
+  let peerProviderIdentity = null;
+  let peerProviderClient = null;
+  let peerProviderNode = null;
+  let workerRunning = false;
+  let workerStarting = false;
+  let currentModel = null;
+  let controls = {
+    workerStartButton: null,
+    workerStopButton: null,
+    modelInput: null,
+    mount: null
+  };
+
+  const getRuntime = () => {
+    const runtime = window.REPLOID_DOPPLER_RUNTIME || createDopplerRuntime();
+    window.REPLOID_DOPPLER_RUNTIME = runtime;
+    return runtime;
+  };
+
+  const getMount = () => controls.mount || document.getElementById('app');
+
+  const getProviderIdentity = () => {
+    if (!peerProviderIdentity) {
+      peerProviderIdentity = createPoolIdentity('provider', {
+        localOnly: true,
+        namespace: getProviderIdentityNamespace()
+      });
+    }
+    return peerProviderIdentity;
+  };
+
+  const getProviderClient = () => {
+    if (!peerProviderClient) {
+      peerProviderClient = createProviderClient({
+        sdk: null,
+        runtime: getRuntime(),
+        identity: getProviderIdentity()
+      });
+    }
+    return peerProviderClient;
+  };
+
+  const getSelectedModelId = () => (
+    controls.modelInput?.value
+    || currentModel?.modelId
+    || LAUNCH_MODEL.modelId
+  );
+
   const getProviderModel = () => ({
-    ...buildLaunchProviderModel({ modelId: modelInput.value || LAUNCH_MODEL.modelId })
+    ...buildLaunchProviderModel({ modelId: getSelectedModelId() })
   });
+
+  const setContributionState = (patch = {}) => {
+    updateContributionState({
+      roomId: getPeerRoomId(),
+      relay: getPeerRelayMode(),
+      modelId: currentModel?.modelId || getSelectedModelId(),
+      ...patch
+    });
+    refreshContributionStatusBar();
+  };
+
+  const syncWorkerControls = () => {
+    if (controls.modelInput && currentModel?.modelId && (workerRunning || workerStarting)) {
+      controls.modelInput.value = currentModel.modelId;
+    }
+    if (controls.workerStartButton) controls.workerStartButton.disabled = workerRunning || workerStarting;
+    if (controls.workerStopButton) controls.workerStopButton.disabled = !workerRunning && !workerStarting;
+    if (controls.modelInput) controls.modelInput.disabled = workerRunning || workerStarting;
+    refreshContributionStatusBar();
+  };
+
+  const setProviderStatus = (status) => updateProviderStatus(getMount(), status);
+
+  const syncProviderPanel = () => {
+    if (!controls.modelInput && !controls.workerStartButton && !controls.workerStopButton) {
+      syncWorkerControls();
+      return;
+    }
+    setProviderStatus(workerStarting ? 'Starting' : workerRunning ? 'Ready' : 'Idle');
+    updateProviderHealth({
+      webgpu: navigator.gpu ? 'available' : 'unavailable',
+      storage: navigator.storage ? 'available' : 'unknown',
+      queue: workerRunning ? 'listening' : 'stopped'
+    });
+    void refreshProviderStorageHealth();
+    syncWorkerControls();
+  };
+
   const modelMatchesLoadedRuntime = (model = {}) => {
+    const runtime = getRuntime();
     const loaded = typeof runtime?.getModelInfo === 'function' ? runtime.getModelInfo() : null;
     return !!loaded
       && loaded.modelId === model.modelId
@@ -228,8 +298,10 @@ export const bindProviderControls = () => {
       && loaded.runtime === model.runtime
       && loaded.backend === model.backend;
   };
+
   const loadSelectedProviderModel = async () => {
-    updateProviderStatus(mount, 'Starting');
+    const runtime = getRuntime();
+    setProviderStatus('Starting');
     await refreshProviderStorageHealth();
     updateProviderHealth({
       webgpu: navigator.gpu ? 'available' : 'unavailable',
@@ -237,8 +309,9 @@ export const bindProviderControls = () => {
       artifact: window.REPLOID_POOL_STRICT_ARTIFACT_PREFLIGHT === true ? 'checking' : 'strict_preflight_off',
       queue: 'starting'
     });
-    const model = getEnabledPoolModelContract(modelInput.value || LAUNCH_MODEL.modelId);
+    const model = getEnabledPoolModelContract(getSelectedModelId());
     if (!model) throw new Error('Selected model is not enabled for peer contribution');
+    currentModel = model;
     const deviceInfo = typeof runtime?.getDeviceInfo === 'function'
       ? await runtime.getDeviceInfo()
       : { hasWebGPU: !!navigator.gpu, features: [] };
@@ -305,7 +378,7 @@ export const bindProviderControls = () => {
     updateProviderHealth({
       model: model.modelId,
       artifact: artifactPreflight.ok ? artifactPreflight.status : 'manifest_unavailable',
-        trust: 'signed_record'
+      trust: 'signed_record'
     });
     return {
       ...loadResult,
@@ -313,65 +386,89 @@ export const bindProviderControls = () => {
       status: 'model_loaded'
     };
   };
-  let peerProviderNode = null;
+
   const stopPeerProvider = async () => {
     if (!peerProviderNode) return null;
     const node = peerProviderNode;
     peerProviderNode = null;
     return node.stop();
   };
+
+  const handlePeerActivity = (event) => {
+    if (event?.status === 'provider_advertised') {
+      setProviderStatus('Ready');
+      updateProviderHealth({ queue: 'listening' });
+      setContributionState({ state: 'idle', optedIn: true, lastError: null });
+      return;
+    }
+    if (event?.status === 'peer_session_opening') {
+      setProviderStatus('Opening');
+      updateProviderHealth({ queue: 'opening_session' });
+      setContributionState({ state: 'working', optedIn: true, lastError: null });
+    }
+    if (event?.status === 'peer_session_open') {
+      setProviderStatus('Answering');
+      updateProviderHealth({ queue: 'running_peer_job' });
+      setContributionState({ state: 'working', optedIn: true, lastError: null });
+    }
+    if (event?.status === 'peer_receipt_sent') {
+      setProviderStatus('Ready');
+      updateProviderHealth({
+        queue: 'receipt_sent',
+        lastReceipt: event.receiptRecord?.receiptHash || 'signed'
+      });
+      if (event.receiptRecord) {
+        recordContributionReceipt(event.receiptRecord, {
+          roomId: getPeerRoomId(),
+          modelId: currentModel?.modelId || getSelectedModelId()
+        });
+        addReceiptLedgerRow(event.receiptRecord, event.receiptRecord.receiptHash);
+      }
+      setContributionState({
+        state: 'idle',
+        optedIn: true,
+        lastReceiptHash: event.receiptRecord?.receiptHash || null,
+        lastError: null
+      });
+    }
+    if (event?.status === 'peer_acceptance_received') {
+      updateProviderHealth({
+        queue: 'accepted',
+        reputation: 'local_event_received'
+      });
+      setContributionState({ state: 'idle', optedIn: true, lastError: null });
+    }
+    if (event?.status === 'peer_session_failed') {
+      setProviderStatus(workerRunning ? 'Ready' : 'Idle');
+      updateProviderHealth({ queue: 'session_failed' });
+      setContributionState({
+        state: workerRunning ? 'idle' : 'inactive',
+        optedIn: workerRunning,
+        lastError: errorString(event.error || event.reason || 'Peer session failed')
+      });
+    }
+    setResult('pool-provider-result', {
+      runner: 'peer_room',
+      roomId: getPeerRoomId(),
+      relay: getPeerRelayMode(),
+      inviteUrl: getPeerInviteUrl(),
+      ...event
+    });
+    void refreshServerRoomActivity();
+  };
+
   const ensurePeerProviderReady = async () => {
     const loaded = await loadSelectedProviderModel();
+    const runtime = getRuntime();
     const model = loaded.model || runtime.getModelInfo();
-    const providerIdentityState = await peerProviderIdentity.resolve();
+    currentModel = model;
+    const providerIdentityState = await getProviderIdentity().resolve();
     await stopPeerProvider();
     const node = createPeerProviderNode({
       roomId: getPeerRoomId(),
-      providerClient: peerProviderClient,
+      providerClient: getProviderClient(),
       roomBusFactory: getPeerRoomBusFactory(),
-      onActivity(event) {
-        if (event?.status === 'provider_advertised') {
-          updateProviderStatus(mount, 'Ready');
-          updateProviderHealth({ queue: 'listening' });
-          return;
-        }
-        if (event?.status === 'peer_session_opening') {
-          updateProviderStatus(mount, 'Opening');
-          updateProviderHealth({ queue: 'opening_session' });
-        }
-        if (event?.status === 'peer_session_open') {
-          updateProviderStatus(mount, 'Answering');
-          updateProviderHealth({ queue: 'running_peer_job' });
-        }
-        if (event?.status === 'peer_receipt_sent') {
-          updateProviderStatus(mount, 'Ready');
-          updateProviderHealth({
-            queue: 'receipt_sent',
-            lastReceipt: event.receiptRecord?.receiptHash || 'signed'
-          });
-          if (event.receiptRecord) {
-            addReceiptLedgerRow(event.receiptRecord, event.receiptRecord.receiptHash);
-          }
-        }
-        if (event?.status === 'peer_acceptance_received') {
-          updateProviderHealth({
-            queue: 'accepted',
-            reputation: 'local_event_received'
-          });
-        }
-        if (event?.status === 'peer_session_failed') {
-          updateProviderStatus(mount, 'Idle');
-          updateProviderHealth({ queue: 'session_failed' });
-        }
-        setResult('pool-provider-result', {
-          runner: 'peer_room',
-          roomId: getPeerRoomId(),
-          relay: getPeerRelayMode(),
-          inviteUrl: getPeerInviteUrl(),
-          ...event
-        });
-        void refreshServerRoomActivity();
-      }
+      onActivity: handlePeerActivity
     });
     peerProviderNode = node;
     const result = await node.start({
@@ -388,32 +485,42 @@ export const bindProviderControls = () => {
       ...result
     };
   };
-  let workerRunning = false;
-  const syncWorkerButtons = () => {
-    if (workerStartButton) workerStartButton.disabled = workerRunning;
-    if (workerStopButton) workerStopButton.disabled = !workerRunning;
-  };
-  const stopWorker = () => {
-    workerRunning = false;
-    syncWorkerButtons();
-    updateProviderStatus(mount, 'Idle');
-  };
-  workerStartButton?.addEventListener('click', async () => {
-    if (workerRunning) return;
-    workerStartButton.disabled = true;
-    setResult('pool-provider-result', { runner: 'peer_room_starting', roomId: getPeerRoomId(), model: getProviderModel() });
-    updateProviderStatus(mount, 'Starting');
+
+  const startWorker = async () => {
+    if (workerRunning || workerStarting) return;
+    workerStarting = true;
+    setContributionState({ state: 'starting', optedIn: true, lastError: null });
+    syncWorkerControls();
+    setResult('pool-provider-result', {
+      runner: 'peer_room_starting',
+      roomId: getPeerRoomId(),
+      model: getProviderModel()
+    });
+    setProviderStatus('Starting');
     try {
       const ready = await ensurePeerProviderReady();
+      workerStarting = false;
       workerRunning = true;
-      syncWorkerButtons();
-      updateProviderStatus(mount, 'Ready');
+      setProviderStatus('Ready');
       updateProviderHealth({ queue: 'listening' });
-      setResult('pool-provider-result', { runner: 'peer_room_listening', relay: getPeerRelayMode(), inviteUrl: getPeerInviteUrl(), ...ready });
+      setContributionState({ state: 'idle', optedIn: true, lastError: null });
+      setResult('pool-provider-result', {
+        runner: 'peer_room_listening',
+        relay: getPeerRelayMode(),
+        inviteUrl: getPeerInviteUrl(),
+        ...ready
+      });
     } catch (error) {
       await stopPeerProvider().catch(() => null);
-      stopWorker();
+      workerStarting = false;
+      workerRunning = false;
+      setProviderStatus('Idle');
       updateProviderHealth({ queue: 'stopped', model: 'load_failed' });
+      setContributionState({
+        state: 'error',
+        optedIn: false,
+        lastError: errorString(error)
+      });
       setResult('pool-provider-result', displayPoolError(error, {
         title: 'This tab could not start',
         action: 'Load a compatible model first. If the manifest URL is missing, deploy the model artifacts or attach a Doppler runtime handle.',
@@ -425,15 +532,62 @@ export const bindProviderControls = () => {
         }
       }));
     } finally {
-      syncWorkerButtons();
+      syncWorkerControls();
     }
-  });
-  workerStopButton?.addEventListener('click', async () => {
-    workerStopButton.disabled = true;
-    const stopped = await stopPeerProvider().catch((error) => ({ error: error.message, payload: error.payload || null }));
-    stopWorker();
+  };
+
+  const stopWorker = async () => {
+    controls.workerStopButton?.setAttribute('disabled', 'true');
+    const stopped = await stopPeerProvider().catch((error) => ({
+      error: error.message,
+      payload: error.payload || null
+    }));
+    workerStarting = false;
+    workerRunning = false;
+    setProviderStatus('Idle');
     updateProviderHealth({ queue: 'stopped' });
+    setContributionState({ state: 'inactive', optedIn: false, lastError: null });
     setResult('pool-provider-result', { runner: 'stopped', peer: stopped });
+    syncWorkerControls();
+  };
+
+  return {
+    attachControls(nextControls = {}) {
+      controls = {
+        workerStartButton: nextControls.workerStartButton || null,
+        workerStopButton: nextControls.workerStopButton || null,
+        modelInput: nextControls.modelInput || null,
+        mount: nextControls.mount || controls.mount || document.getElementById('app')
+      };
+      if (controls.modelInput && currentModel?.modelId) controls.modelInput.value = currentModel.modelId;
+      if (controls.workerStartButton && controls.workerStartButton.dataset.poolContributionBound !== 'true') {
+        controls.workerStartButton.dataset.poolContributionBound = 'true';
+        controls.workerStartButton.addEventListener('click', startWorker);
+      }
+      if (controls.workerStopButton && controls.workerStopButton.dataset.poolContributionBound !== 'true') {
+        controls.workerStopButton.dataset.poolContributionBound = 'true';
+        controls.workerStopButton.addEventListener('click', stopWorker);
+      }
+      syncProviderPanel();
+    }
+  };
+};
+
+let providerContributionController = null;
+
+const getProviderContributionController = () => {
+  if (!providerContributionController) {
+    providerContributionController = createProviderContributionController();
+  }
+  return providerContributionController;
+};
+
+export const bindProviderControls = () => {
+  getProviderContributionController().attachControls({
+    workerStartButton: document.getElementById('pool-provider-worker-start'),
+    workerStopButton: document.getElementById('pool-provider-worker-stop'),
+    modelInput: document.getElementById('pool-provider-model'),
+    mount: document.getElementById('app')
   });
 };
 

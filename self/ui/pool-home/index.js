@@ -9,10 +9,12 @@ import {
   getRouteId,
   isProductPath,
   refreshRecordLedgerState,
+  renderContributionStatusBar,
   renderNav,
   renderRouteDetail,
   renderRoutePanel
 } from './view.js';
+import { subscribeContributionState } from './contribution-state.js';
 import {
   bindProviderControls,
   bindReceiptControls,
@@ -91,6 +93,7 @@ export function initPoolHome(mount) {
     mount.innerHTML = `
       <main class="pool-home" data-pool-route-id="${routeId}">
         ${renderNav(routeId)}
+        ${renderContributionStatusBar()}
         ${renderRoutePanel(routeId)}
         ${secondaryContent}
       </main>
@@ -106,6 +109,16 @@ export function initPoolHome(mount) {
   if (window.REPLOID_POOL_POPSTATE_HANDLER) {
     window.removeEventListener('popstate', window.REPLOID_POOL_POPSTATE_HANDLER);
   }
+  if (window.REPLOID_POOL_CONTRIBUTION_UNSUBSCRIBE) {
+    window.REPLOID_POOL_CONTRIBUTION_UNSUBSCRIBE();
+  }
+  window.REPLOID_POOL_CONTRIBUTION_UNSUBSCRIBE = subscribeContributionState(() => {
+    const current = document.getElementById('pool-contribution-status');
+    if (!current) return;
+    const template = document.createElement('template');
+    template.innerHTML = renderContributionStatusBar().trim();
+    current.replaceWith(template.content.firstElementChild);
+  });
   window.REPLOID_POOL_POPSTATE_HANDLER = render;
   window.addEventListener('popstate', render);
   render();
