@@ -104,6 +104,8 @@ test.describe('Route Entry Points', () => {
     await expect(nav.locator('.pool-nav-mark-seven-top')).toHaveText('7');
     await expect(nav.locator('.pool-nav-mark-seven-bottom')).toHaveText('7');
     await expect(nav.locator('.pool-nav-menu')).toBeHidden();
+    await expect(page.locator('.pool-home-cta-row').getByRole('link', { name: 'Ask', exact: true })).toHaveAttribute('href', '/ask');
+    await expect(page.locator('.pool-home-cta-row').getByRole('link', { name: 'See the Network', exact: true })).toHaveAttribute('href', '/network');
     await nav.locator('.pool-nav-toggle').click();
     await expect(nav.locator('.pool-nav-toggle')).toHaveAttribute('aria-expanded', 'true');
     await expect(nav.getByRole('link', { name: 'Home', exact: true })).toBeVisible();
@@ -287,6 +289,7 @@ test.describe('Route Entry Points', () => {
     await page.goto('/network');
     await page.waitForSelector('.pool-home', { timeout: 20000 });
     await expect(page.getByRole('heading', { name: 'Network', exact: true })).toBeVisible();
+    await expect(page.locator('.pool-route-cta-row').getByRole('link', { name: 'Share Compute', exact: true })).toHaveAttribute('href', '/compute');
     await expect(page.locator('#pool-peer-ledger')).toBeVisible();
   });
 

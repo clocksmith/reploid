@@ -927,6 +927,18 @@ const renderHomeSimulation = () => `
     <div class="pool-home-overlay" aria-label="Reploid overview">
       <h1 class="type-h1">Reploid</h1>
       <p class="pool-hero-body">Run browser models together.</p>
+      <div class="pool-home-cta-row" aria-label="Primary actions">
+        <a class="btn btn-primary btn-op pool-cta-link"
+           data-op="▶"
+           href="/ask"
+           data-pool-route="/ask"
+           aria-label="Ask">Ask</a>
+        <a class="btn btn-primary btn-op pool-cta-link"
+           data-op="☍"
+           href="/network"
+           data-pool-route="/network"
+           aria-label="See the Network">See the Network</a>
+      </div>
     </div>
     <div class="pool-simulation-labels">
       ${renderFlowLabels()}
@@ -1060,6 +1072,13 @@ export const renderRouteDetail = (routeId) => {
             <div class="pool-section-heading">
               <h2 class="type-h2">Room activity</h2>
               <span class="pool-meta-tag">Shared room</span>
+            </div>
+            <div class="pool-route-cta-row" aria-label="Network actions">
+              <a class="btn btn-primary btn-op pool-cta-link"
+                 data-op="☇"
+                 href="/compute"
+                 data-pool-route="/compute"
+                 aria-label="Share Compute">Share Compute</a>
             </div>
             <div id="pool-room-activity" class="pool-ledger-shell" aria-live="polite">${renderRoomActivity()}</div>
           </div>
