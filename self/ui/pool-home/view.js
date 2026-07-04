@@ -485,23 +485,33 @@ export const bindRecordStorageSync = () => {
 
 const formatHealthValue = (value) => String(value ?? 'unknown').replace(/_/g, ' ');
 
+const formatBytes = (value) => {
+  const bytes = Number(value || 0);
+  if (!Number.isFinite(bytes) || bytes <= 0) return 'unknown';
+  if (bytes >= 1024 ** 3) return `${(bytes / (1024 ** 3)).toFixed(1)} GB`;
+  if (bytes >= 1024 ** 2) return `${Math.round(bytes / (1024 ** 2))} MB`;
+  if (bytes >= 1024) return `${Math.round(bytes / 1024)} KB`;
+  return `${Math.round(bytes)} B`;
+};
+
 const renderProviderHealth = (state = POOLDAY_PROVIDER_HEALTH) => {
   const rows = [
-    ['Browser', state.webgpu],
+    ['WebGPU', state.webgpu],
+    ['GPU', state.hardware],
+    ['GPU buffer', state.maxBufferSize],
     ['Model', state.model],
     ['Files', state.artifact],
     ['Local cache', state.storage],
-    ['Room', state.queue],
+    ['Worker', state.queue],
     ['Last answer', state.lastReceipt],
-    ['Check', state.trust],
-    ['Score', state.reputation]
+    ['Check', state.trust]
   ];
   return `
     <div class="boot-status-strip pool-summary" aria-label="Node health">
-      ${rows.map(([label, value]) => `
+      ${rows.filter(([, value]) => value !== undefined && value !== null).map(([label, value]) => `
         <span class="pool-summary-item">
           <span class="rgr-status-label">${escapeHtml(label)}</span>
-          <span class="rgr-status-value">${escapeHtml(compactHash(formatHealthValue(value)))}</span>
+          <span class="rgr-status-value">${escapeHtml(compactHash(label === 'GPU buffer' ? formatBytes(value) : formatHealthValue(value)))}</span>
         </span>
       `).join('')}
     </div>
@@ -612,11 +622,10 @@ const extractResultSummary = (value = {}) => {
   const ring = receipt?.verification?.ring || job.ring || agreement?.ring || null;
   const fields = [
     ['Job', firstPresent(job.jobId, record.jobId, receipt.jobId)],
-    ['Record', firstPresent(job.receiptHash, record.receiptHash, verifier?.receiptHash, acceptance?.receiptHash)],
+    ['Answer ID', firstPresent(job.receiptHash, record.receiptHash, verifier?.receiptHash, acceptance?.receiptHash)],
     ['Status', firstPresent(job.status, agreement?.status, verifier?.accepted === true ? 'accepted' : verifier?.accepted === false ? 'rejected' : null)],
-    ['Tier', firstPresent(job.trustTier, job.effectiveTrustTier, agreement?.effectiveTrustTier, ring?.effectiveTrustTier, receipt?.trustTier)],
-    ['Agreement', agreement ? `${agreement.status || 'pending'} ${Number(agreement.requiredAgreement || agreement.requiredProviders || 1)}-of-${Number(agreement.providerCount || agreement.providerIds?.length || 1)}` : null],
-    ['Transport', firstPresent(job.transport, value.transport, receipt?.promptTransport)],
+    ['Check', agreement ? `${agreement.status || 'pending'} ${Number(agreement.requiredAgreement || agreement.requiredProviders || 1)}-of-${Number(agreement.providerCount || agreement.providerIds?.length || 1)}` : firstPresent(job.trustTier, job.effectiveTrustTier, agreement?.effectiveTrustTier, ring?.effectiveTrustTier, receipt?.trustTier)],
+    ['Connection', firstPresent(job.transport, value.transport, receipt?.promptTransport)],
     ['Model', firstPresent(job.model?.id, job.modelRequirements?.modelId, receipt?.model?.id, value.model?.modelId)],
     ['Spend', firstPresent(acceptance?.pointSpend, value.pointSpend)],
     ['Runtime', firstPresent(receipt?.verification?.runtimeProfileHash, job.runtimeProfileHash, record.runtimeProfileHash)],
@@ -634,10 +643,109 @@ const renderSummaryRows = (summary) => summary.map(([label, value]) => `
   </span>
 `).join('');
 
-const renderRawDetails = (id, label = 'Technical details') => `
-  <details class="pool-raw-details">
+const renderRawDetails = (id, label = 'Full result', options = {}) => `
+  <details class="pool-raw-details${options.full ? ' pool-raw-details-full' : ''}">
     <summary>${escapeHtml(label)}</summary>
     <pre class="pool-result pool-result-raw" id="${id}-raw" aria-live="polite"></pre>
+  </details>
+`;
+
+const receiptTokenTotal = (record = {}) => {
+  const receipt = record.receipt || record.body?.receipt || record;
+  const counts = receipt.tokenCounts || record.tokenCounts || {};
+  const input = Number(counts.input || 0);
+  const output = Number(counts.output || 0);
+  const tokenIds = record.tokenIds || record.body?.tokenIds || receipt.tokenIds || [];
+  return (Number.isFinite(input) ? input : 0)
+    + (Number.isFinite(output) && output > 0 ? output : Array.isArray(tokenIds) ? tokenIds.length : 0);
+};
+
+const formatContributionPolicy = (policyId) => ({
+  fastest_receipt: 'First answer',
+  canary_audited: 'Sample checked',
+  redundant_agreement: 'Two matching answers',
+  ring_quorum_receipt: 'Group match'
+}[policyId] || String(policyId || 'default').replace(/_/g, ' '));
+
+const renderRunContributionLayer = (value = {}) => {
+  const payloads = Array.isArray(value.receiptPayloads) ? value.receiptPayloads : [];
+  const agreement = value.agreement || {};
+  const acceptedHashes = new Set(agreement.receiptHashes || []);
+  const validHashes = new Set((agreement.validRecords || []).map((record) => record.receiptHash).filter(Boolean));
+  const rejectedByHash = new Map((agreement.rejectedRecords || []).map((record) => [
+    record.receiptHash || record.receiptPayload?.body?.receiptHash || record.receiptPayload?.fromPeerId || 'unknown',
+    record.reasons || []
+  ]));
+  const rows = payloads.map((payload) => {
+    const body = payload.body || payload;
+    const receipt = body.receipt || {};
+    const hash = body.receiptHash || receipt.receiptHash || '';
+    const providerId = body.providerId || receipt.providerId || payload.fromPeerId || 'unknown';
+    const status = acceptedHashes.has(hash)
+      ? 'matched'
+      : validHashes.has(hash)
+        ? 'returned'
+        : 'flagged';
+    const reason = rejectedByHash.get(hash)?.join('; ') || null;
+    return {
+      providerId,
+      role: 'generated',
+      status,
+      hash,
+      tokens: receiptTokenTotal(body),
+      outputHash: receipt.outputHash || body.outputHash || null,
+      reason
+    };
+  });
+  const policyId = value.policyId || agreement.policyId || value.assignment?.policyId || 'default';
+  const checkStatus = agreement.accepted
+    ? `${agreement.acceptedProviderCount || acceptedHashes.size || 1}/${agreement.requiredAgreement || 1} matched`
+    : value.status === 'finding_peer_provider'
+      ? 'waiting for matching tabs'
+      : 'not accepted';
+  return `
+    <div class="pool-contributor-layer">
+      <div class="pool-contributor-summary">
+        <span><b>Generated</b>${escapeHtml(rows.length || value.acceptedSessionCount || 0)} tab${(rows.length || value.acceptedSessionCount || 0) === 1 ? '' : 's'}</span>
+        <span><b>Checked</b>${escapeHtml(checkStatus)}</span>
+        <span><b>Policy</b>${escapeHtml(formatContributionPolicy(policyId))}</span>
+      </div>
+      ${rows.length ? `
+        <div class="pool-ledger pool-contributor-table" role="table" aria-label="Answer contributors">
+          <table>
+            <thead>
+              <tr>
+                <th>Tab</th>
+                <th>Work</th>
+                <th>Status</th>
+                <th>Tokens</th>
+                <th>Output</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${rows.map((row) => `
+                <tr>
+                  <td title="${escapeHtml(row.providerId)}">${escapeHtml(compactHash(row.providerId))}</td>
+                  <td>${escapeHtml(row.role)}</td>
+                  <td title="${escapeHtml(row.reason || row.status)}">${escapeHtml(row.status)}</td>
+                  <td>${escapeHtml(row.tokens || '—')}</td>
+                  <td title="${escapeHtml(row.outputHash || row.hash || '—')}">${escapeHtml(compactHash(row.outputHash || row.hash || '—'))}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      ` : '<p class="type-caption pool-receipt-empty">Contributor details appear after matching tabs answer.</p>'}
+    </div>
+  `;
+};
+
+const renderContributionDetails = (id, label = 'Contributors') => `
+  <details class="pool-raw-details pool-contributor-details">
+    <summary>${escapeHtml(label)}</summary>
+    <div class="pool-contributor-content" id="${id}-evidence" aria-live="polite">
+      ${renderRunContributionLayer({ status: 'finding_peer_provider' })}
+    </div>
   </details>
 `;
 
@@ -645,21 +753,22 @@ const renderResultBox = (id, options = {}) => {
   if (options?.stream) {
     return `
       <div class="boot-status-strip pool-summary" id="${id}-summary" aria-live="polite"></div>
-      <div class="pool-stream-box">
+      <div class="pool-stream-box pool-answer-box">
         <label class="pool-result-label" for="${id}-stream">${escapeHtml(options.streamLabel || 'Output stream')}</label>
         <div class="pool-stream-shell">
           <pre class="pool-stream-output" id="${id}-stream" aria-live="polite"></pre>
           <span class="pool-stream-cursor" id="${id}-stream-cursor" aria-hidden="true">▍</span>
         </div>
       </div>
-      ${renderRawDetails(id)}
+      ${options.evidence ? renderContributionDetails(id, options.evidenceLabel || 'Contributors') : ''}
+      ${renderRawDetails(id, options.rawLabel || 'Full result', { full: options.rawFull === true })}
     `;
   }
   const placeholder = options.placeholder || 'No local activity yet.';
   return `
   <div class="boot-status-strip pool-summary" id="${id}-summary" aria-live="polite"></div>
   <p class="pool-result-message" id="${id}" aria-live="polite">${escapeHtml(placeholder)}</p>
-  ${renderRawDetails(id)}
+  ${renderRawDetails(id, options.rawLabel || 'Full result', { full: options.rawFull === true })}
   `;
 };
 
@@ -768,10 +877,14 @@ export const setResult = (id, value, options = {}) => {
   const streamEl = streamMode ? document.getElementById(`${id}-stream`) : document.getElementById(id);
   const streamCursor = streamMode ? document.getElementById(`${id}-stream-cursor`) : null;
   const rawEl = document.getElementById(`${id}-raw`);
+  const evidenceEl = document.getElementById(`${id}-evidence`);
   if (summaryEl) {
     summaryEl.innerHTML = summary.length > 0 ? renderSummaryRows(summary) : '';
   }
   if (rawEl) rawEl.textContent = raw;
+  if (evidenceEl && value && typeof value === 'object') {
+    evidenceEl.innerHTML = renderRunContributionLayer(value);
+  }
   if (streamMode && streamEl) {
     if (outputText && outputText.length > 0) {
       if (streamCursor) streamCursor.classList.add('is-visible', 'is-active');
@@ -876,6 +989,67 @@ const formatContributionLast = (snapshot = {}) => {
   if (!recent) return 'none';
   const hash = recent.receiptHash ? ` ${compactHex(recent.receiptHash)}` : '';
   return `${formatContributionTokens(recent.tokens)}${hash}`;
+};
+
+const formatContributionModel = (modelId) => {
+  if (!modelId) return 'none loaded';
+  const contract = getEnabledPoolModelContract(modelId);
+  return contract?.label || modelId;
+};
+
+const renderRecentContributionRows = (snapshot = {}) => {
+  const recent = snapshot.recent || [];
+  if (!recent.length) {
+    return '<p class="type-caption pool-receipt-empty">No completed work from this tab yet.</p>';
+  }
+  return `
+    <div class="pool-ledger pool-contribution-table" role="table" aria-label="Recent compute work">
+      <table>
+        <thead>
+          <tr>
+            <th>Answer</th>
+            <th>Model</th>
+            <th>Tokens</th>
+            <th>Room</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${recent.map((row) => `
+            <tr>
+              <td title="${escapeHtml(row.receiptHash || '—')}">${escapeHtml(compactHex(row.receiptHash || '—'))}</td>
+              <td title="${escapeHtml(row.modelId || '—')}">${escapeHtml(formatContributionModel(row.modelId))}</td>
+              <td>${escapeHtml(formatContributionTokens(row.tokens))}</td>
+              <td title="${escapeHtml(row.roomId || '—')}">${escapeHtml(compactHash(row.roomId || '—'))}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    </div>
+  `;
+};
+
+export const renderComputeNodeStats = (snapshot = getContributionSnapshot()) => `
+  <div class="pool-node-stats" aria-label="This node compute status">
+    <span><b>Status</b>${escapeHtml(snapshot.label || 'Not active')}</span>
+    <span><b>Model</b>${escapeHtml(formatContributionModel(snapshot.modelId))}</span>
+    <span><b>24h work</b>${escapeHtml(snapshot.contributions24h || 0)}</span>
+    <span><b>24h tokens</b>${escapeHtml(formatContributionTokens(snapshot.tokens24h))}</span>
+    <span><b>Tokens/hr</b>${escapeHtml(formatContributionTokens(snapshot.tokensHour))}</span>
+  </div>
+`;
+
+export const renderRecentContributionHistory = (snapshot = getContributionSnapshot()) => `
+  <div class="pool-node-history" aria-label="This node recent work">
+    ${renderRecentContributionRows(snapshot)}
+  </div>
+`;
+
+export const refreshContributionPanels = () => {
+  const stats = document.getElementById('pool-provider-node-stats');
+  const history = document.getElementById('pool-provider-node-history');
+  const snapshot = getContributionSnapshot();
+  if (stats) stats.innerHTML = renderComputeNodeStats(snapshot);
+  if (history) history.innerHTML = renderRecentContributionHistory(snapshot);
 };
 
 export const renderContributionStatusBar = (snapshot = getContributionSnapshot()) => `
@@ -1002,18 +1176,18 @@ export const renderRouteDetail = (routeId) => {
         <div class="pool-form pool-route-grid pool-run-layout" data-pool-run>
           <div class="pool-run-compose">
             <div class="pool-section-heading">
-              <h2 class="type-h2">Prompt</h2>
-              <span class="pool-meta-tag">Room ask</span>
+              <h2 class="type-h2">Ask the room</h2>
+              <span class="pool-meta-tag">Distributed answer</span>
             </div>
             <label class="pool-field">
-              <span>Prompt</span>
+              <span>Message</span>
               <textarea id="pool-run-prompt" rows="6">Summarize Reploid in one sentence.</textarea>
             </label>
             <details class="pool-advanced">
-              <summary>Model and matching</summary>
+              <summary>Answer settings</summary>
               <div class="pool-advanced-grid">
                 <label class="pool-field">
-                  <span>Matching</span>
+                  <span>Check</span>
                   <select id="pool-run-policy">${renderPolicyOptions()}</select>
                 </label>
                 <label class="pool-field">
@@ -1028,10 +1202,17 @@ export const renderRouteDetail = (routeId) => {
           </div>
           <div class="pool-run-output">
             <div class="pool-section-heading pool-result-heading">
-              <h3 class="type-h2">Result</h3>
-              <span class="pool-meta-tag">Waiting for tabs</span>
+              <h3 class="type-h2">Answer</h3>
+              <span class="pool-meta-tag">Clean output first</span>
             </div>
-            ${renderResultBox('pool-run-result', { stream: true, streamLabel: 'Output' })}
+            ${renderResultBox('pool-run-result', {
+              stream: true,
+              streamLabel: 'Answer',
+              evidence: true,
+              evidenceLabel: 'Contributors',
+              rawLabel: 'Full result',
+              rawFull: true
+            })}
           </div>
         </div>
     `);
@@ -1041,11 +1222,12 @@ export const renderRouteDetail = (routeId) => {
         <div class="pool-form pool-route-grid pool-provider-layout" data-pool-provider>
           <div class="pool-provider-main">
             <div class="pool-section-heading pool-provider-heading">
-              <h2 class="type-h2">This tab</h2>
+              <h2 class="type-h2">This node</h2>
               <p class="pool-provider-status" data-pool-provider-status>Idle</p>
             </div>
+            <div id="pool-provider-node-stats" class="pool-ledger-shell" aria-live="polite">${renderComputeNodeStats()}</div>
             <label class="pool-field">
-              <span>Model</span>
+              <span>Model to share</span>
               <select id="pool-provider-model">${renderModelOptions()}</select>
             </label>
             <div class="pool-control-row pool-primary-actions" aria-label="Compute controls">
@@ -1055,17 +1237,21 @@ export const renderRouteDetail = (routeId) => {
           </div>
           <div class="pool-provider-live" aria-label="Compute tab state">
             <div class="pool-section-heading">
-              <h3 class="type-h2">Ready check</h3>
-              <span class="pool-meta-tag">Local tab</span>
+              <h3 class="type-h2">Live utilization</h3>
+              <span class="pool-meta-tag">Model, cache, room</span>
             </div>
             <div id="pool-provider-health" class="pool-ledger-shell" aria-live="polite">${renderProviderHealth()}</div>
           </div>
           <div class="pool-inspector-shell">
             <div class="pool-section-heading pool-result-heading">
-              <h3 class="type-h2">Activity</h3>
-              <span class="pool-meta-tag">Inspector</span>
+              <h3 class="type-h2">Handled requests</h3>
+              <span class="pool-meta-tag">This node</span>
             </div>
-            ${renderResultBox('pool-provider-result', { placeholder: 'No activity yet.' })}
+            <div id="pool-provider-node-history" class="pool-ledger-shell" aria-live="polite">${renderRecentContributionHistory()}</div>
+            <details class="pool-advanced">
+              <summary>Latest event details</summary>
+              ${renderResultBox('pool-provider-result', { placeholder: 'No activity yet.', rawLabel: 'Full event' })}
+            </details>
           </div>
         </div>
     `);
@@ -1075,14 +1261,14 @@ export const renderRouteDetail = (routeId) => {
         <div class="pool-form pool-route-grid pool-record-layout pool-history-layout" data-pool-receipts>
           <div class="pool-record-ledgers">
             <div class="pool-section-heading">
-              <h3 class="type-h2">Answers</h3>
-              <span class="pool-meta-tag">This room</span>
+              <h3 class="type-h2">Saved answers</h3>
+              <span class="pool-meta-tag">This browser</span>
             </div>
             <div id="pool-receipt-ledger" class="pool-ledger-shell" aria-live="polite">${renderReceiptLedger()}</div>
             <div class="pool-form" data-pool-room-activity>
               <div class="pool-section-heading">
                 <h3 class="type-h2">Room activity</h3>
-                <span class="pool-meta-tag">Shared room</span>
+                <span class="pool-meta-tag">Current room</span>
               </div>
               <div id="pool-room-activity" class="pool-ledger-shell" aria-live="polite">${renderRoomActivity()}</div>
             </div>
@@ -1110,8 +1296,8 @@ export const renderRouteDetail = (routeId) => {
         <div class="pool-form pool-route-grid pool-record-layout" data-pool-reputation>
           <div class="pool-record-query">
             <div class="pool-section-heading">
-              <h2 class="type-h2">Room activity</h2>
-              <span class="pool-meta-tag">Shared room</span>
+              <h2 class="type-h2">Network health</h2>
+              <span class="pool-meta-tag">Online room</span>
             </div>
             <div class="pool-route-cta-row" aria-label="Network actions">
               <a class="btn btn-primary btn-op pool-cta-link"
@@ -1124,8 +1310,8 @@ export const renderRouteDetail = (routeId) => {
           </div>
           <div class="pool-record-ledgers">
             <div class="pool-section-heading">
-              <h3 class="type-h2">Local scores</h3>
-              <span class="pool-meta-tag">This browser</span>
+              <h3 class="type-h2">Seen by this browser</h3>
+              <span class="pool-meta-tag">Local memory</span>
             </div>
             <div id="pool-peer-ledger" class="pool-ledger-shell" aria-live="polite">${renderPeerLedgerState()}</div>
             <details class="pool-advanced pool-network-technical">

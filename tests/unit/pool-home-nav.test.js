@@ -43,7 +43,7 @@ describe('poolday home navigation', () => {
     expect(ROUTE_COPY.compute).toEqual({
       eyebrow: 'Compute',
       title: 'Compute',
-      body: 'Let this tab help answer prompts for the current room.'
+      body: 'Share this tab as a live model worker.'
     });
   });
 
@@ -92,9 +92,33 @@ describe('poolday home navigation', () => {
     expect(computeHtml).not.toContain('<option value="gemma-3-270m-it-q4k-ehf16-af32" selected>');
   });
 
+  it('renders Ask as answer-first with contributor and full-result layers', () => {
+    const html = renderRouteDetail('ask');
+
+    expect(html).toContain('Ask the room');
+    expect(html).toContain('Clean output first');
+    expect(html).toContain('id="pool-run-result-evidence"');
+    expect(html).toContain('<summary>Contributors</summary>');
+    expect(html).toContain('<summary>Full result</summary>');
+    expect(html).toContain('pool-raw-details-full');
+  });
+
+  it('renders Compute as a live node dashboard', () => {
+    const html = renderRouteDetail('compute');
+
+    expect(html).toContain('This node');
+    expect(html).toContain('id="pool-provider-node-stats"');
+    expect(html).toContain('Live utilization');
+    expect(html).toContain('Handled requests');
+    expect(html).toContain('id="pool-provider-node-history"');
+    expect(html).toContain('<summary>Latest event details</summary>');
+  });
+
   it('renders a network route call to action for compute sharing', () => {
     const html = renderRouteDetail('network');
 
+    expect(html).toContain('Network health');
+    expect(html).toContain('Seen by this browser');
     expect(html).toContain('class="pool-route-cta-row"');
     expect(html).toContain('href="/compute"');
     expect(html).toContain('data-pool-route="/compute"');
