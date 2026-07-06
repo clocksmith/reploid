@@ -84,7 +84,7 @@ const SchemaRegistry = {
         }
       },
       Promote: {
-        description: 'Promote a /shadow candidate into an allowlisted /self target when replay evidence passes',
+        description: 'Promote a /shadow candidate into an allowlisted /self target when replay evidence passes. Use candidatePath, targetPath, and evidencePath.',
         readOnly: false,
         parameters: {
           type: 'object',
@@ -92,7 +92,13 @@ const SchemaRegistry = {
           properties: {
             candidatePath: { type: 'string', description: 'Candidate file path under /shadow' },
             targetPath: { type: 'string', description: 'Promotion target path under an allowlisted /self root' },
-            evidencePath: { type: 'string', description: 'Evidence JSON path under /artifacts with replayPassed: true' }
+            evidencePath: { type: 'string', description: 'Evidence JSON path under /artifacts with replayPassed: true' },
+            source: { type: 'string', description: 'Alias for candidatePath' },
+            sourcePath: { type: 'string', description: 'Alias for candidatePath' },
+            target: { type: 'string', description: 'Alias for targetPath' },
+            destination: { type: 'string', description: 'Alias for targetPath' },
+            evidence: { type: 'string', description: 'Alias for evidencePath' },
+            proofPath: { type: 'string', description: 'Alias for evidencePath' }
           }
         }
       },

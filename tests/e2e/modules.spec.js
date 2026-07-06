@@ -57,12 +57,12 @@ test.describe('Genesis Configuration', () => {
 
     const tabula = config.levels.tabula;
     expect(tabula.modules).toContain('VFS');
-    expect(tabula.modules).toContain('AgentLoop');
-    expect(tabula.modules).toContain('LLMClient');
+    expect(tabula.modules).toContain('StateManager');
+    expect(tabula.modules).toContain('ErrorStore');
     expect(tabula.modules.length).toBeLessThan(20);
   });
 
-  test('reflection level extends tabula', async ({ page }) => {
+  test('reflection level extends spark', async ({ page }) => {
     await page.goto(APP_PATH);
     await page.waitForSelector('#wizard-container', { timeout: 10000 });
 
@@ -72,11 +72,11 @@ test.describe('Genesis Configuration', () => {
     });
 
     const reflection = config.levels.reflection;
-    expect(reflection.extends).toBe('tabula');
+    expect(reflection.extends).toBe('spark');
     expect(reflection.modules).toContain('ReflectionStore');
   });
 
-  test('full level extends reflection', async ({ page }) => {
+  test('full level extends substrate', async ({ page }) => {
     await page.goto(APP_PATH);
     await page.waitForSelector('#wizard-container', { timeout: 10000 });
 
@@ -86,9 +86,9 @@ test.describe('Genesis Configuration', () => {
     });
 
     const full = config.levels.full;
-    expect(full.extends).toBe('reflection');
-    expect(full.modules).toContain('WorkerManager');
-    expect(full.modules).toContain('CognitionAPI');
+    expect(full.extends).toBe('substrate');
+    expect(full.modules).toContain('ArenaHarness');
+    expect(full.modules).toContain('WebRTCSwarm');
   });
 });
 

@@ -489,7 +489,8 @@ async function handleModuleRequest(request, url, event) {
           'Content-Type': getMimeType(vfsPath),
           'X-VFS-Source': 'true',
           ...(vfsResult.mirrorFallback ? { 'X-VFS-Mirror-Fallback': vfsResult.sourcePath } : {}),
-          'Cache-Control': 'no-cache'
+          'Cache-Control': 'no-cache',
+          'Access-Control-Allow-Origin': '*'
         }
       });
     }

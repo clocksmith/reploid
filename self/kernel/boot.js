@@ -11,7 +11,7 @@ import {
   getCurrentReploidStorage as getScopedLocalStorage
 } from '../instance.js';
 
-const BUILD_VERSION = '2026070403';
+const BUILD_VERSION = '2026070502';
 const IMPORTMAP_ID = 'reploid-doppler-importmap';
 const BASE_ID = 'reploid-base';
 const CORE_STYLE_ID = 'reploid-core-style';
@@ -183,6 +183,8 @@ const installRuntimeGlobals = () => {
     if (routeMode) return routeMode;
 
     const storedMode = scopedLocalStorage.getItem('REPLOID_MODE');
+    const rawMode = localStorage.getItem('REPLOID_MODE');
+    console.log(`[BOOT DEBUG] getReploidMode: storedMode=${storedMode}, rawMode=${rawMode}, instanceId=${scopedLocalStorage.instanceId}`);
     if (storedMode === 'pool' || storedMode === 'zero' || storedMode === 'reploid' || storedMode === 'x') {
       return storedMode;
     }

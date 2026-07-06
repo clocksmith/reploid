@@ -339,6 +339,7 @@ async function completeAwaken(bootResult, goal, wizardContainer) {
       link = document.createElement('link');
       link.id = 'runtime-ui-stylesheet';
       link.rel = 'stylesheet';
+      link.crossOrigin = 'anonymous';
       link.addEventListener('error', () => {
         if (!spec.sourceStylePath || link.dataset.fallbackApplied === 'true') return;
         link.dataset.fallbackApplied = 'true';

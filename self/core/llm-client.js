@@ -452,7 +452,9 @@ const LLMClient = {
         }, 'Proxy API');
 
         if (!response.ok) {
-          throw new Errors.ApiError(`API Error ${response.status}`, response.status);
+          const error = new Errors.ApiError(`API Error ${response.status}`, response.status);
+          error.retryAfterMs = parseRetryAfterMs(response.headers?.get?.('retry-after'));
+          throw error;
         }
 
         let fullContent = '';

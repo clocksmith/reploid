@@ -7,23 +7,36 @@ import { test, expect } from '@playwright/test';
 
 // Helper to configure model and boot into dashboard with Full Substrate
 async function bootWithWorkers(page, goal = 'Test workers') {
-  await page.goto('/');
-  await page.waitForSelector('#boot-container', { timeout: 10000 });
+  await page.goto('/x');
+  await page.evaluate(() => {
+    localStorage.clear();
+    sessionStorage.clear();
+  });
+  await page.goto('/x');
+  await page.waitForSelector('#wizard-container', { timeout: 10000 });
 
   // Configure a model via localStorage
   await page.evaluate(() => {
-    localStorage.setItem('SELECTED_MODELS', JSON.stringify([{
+    const key = 'REPLOID_TAB_INSTANCE_ID:/x';
+    const instanceId = sessionStorage.getItem(key);
+    const write = (k, v) => {
+      localStorage.setItem(k, v);
+      if (instanceId) {
+        localStorage.setItem(`${instanceId}:${k}`, v);
+      }
+    };
+    write('SELECTED_MODELS', JSON.stringify([{
       id: 'gemini-3.5-flash',
       name: 'Gemini 2.5 Flash',
       provider: 'gemini',
       hostType: 'browser-cloud'
     }]));
-    localStorage.setItem('REPLOID_GENESIS_LEVEL', 'full');
+    write('REPLOID_MODE', 'x');
+    write('REPLOID_GENESIS_LEVEL', 'full');
   });
 
   // Reload to apply config
   await page.reload();
-  await page.waitForSelector('#boot-container', { timeout: 10000 });
 
   // Wait for goal input to be enabled
   await page.waitForSelector('#goal-input:not([disabled])', { timeout: 10000 });
@@ -115,23 +128,38 @@ test.describe('Worker Card Structure', () => {
     await bootWithWorkers(page);
 
     // Check that worker card CSS classes exist
-    const styles = await page.evaluate(() => {
+    const debugInfo = await page.evaluate(() => {
       const styleSheets = Array.from(document.styleSheets);
-      const rules = [];
-      for (const sheet of styleSheets) {
+      const results = [];
+      const traverse = (sheet, href) => {
+        if (!sheet) return;
+        let rulesCount = 0;
+        let error = null;
+        let rules = [];
         try {
-          for (const rule of sheet.cssRules) {
+          rulesCount = sheet.cssRules ? sheet.cssRules.length : 0;
+          for (const rule of sheet.cssRules || []) {
             if (rule.selectorText?.includes('.worker-card')) {
               rules.push(rule.selectorText);
             }
+            if (rule.styleSheet) {
+              traverse(rule.styleSheet, rule.href || href);
+            }
           }
         } catch (e) {
-          // Cross-origin stylesheets will throw
+          error = e.message || String(e);
         }
+        results.push({ href: href || sheet.href, rulesCount, error, rules });
+      };
+
+      for (const sheet of styleSheets) {
+        traverse(sheet, sheet.href);
       }
-      return rules;
+      return results;
     });
 
-    expect(styles.some(s => s.includes('.worker-card'))).toBe(true);
+    console.log('[DEBUG STYLES]', JSON.stringify(debugInfo, null, 2));
+    const allRules = debugInfo.flatMap(info => info.rules);
+    expect(allRules.some(s => s.includes('.worker-card'))).toBe(true);
   });
 });

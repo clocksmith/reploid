@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-03-30T13:53:19.709Z",
+  "generatedAt": "2026-07-05T22:34:43.915Z",
   "modules": {
     "AgentLoop": {
       "id": "AgentLoop",
@@ -17,6 +17,10 @@
         {
           "id": "EventBus",
           "optional": false
+        },
+        {
+          "id": "VFS",
+          "optional": true
         },
         {
           "id": "LLMClient",

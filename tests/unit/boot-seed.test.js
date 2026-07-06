@@ -14,6 +14,7 @@ import { AWAKEN_REQUIRED_MODULES } from '../../self/config/module-resolution.js'
 import { resolveModules } from '../../self/boot-helpers/config.js';
 import {
   buildZeroGeminiProxyConfig,
+  ZERO_GEMINI_AGENT_THROTTLE,
   ZERO_MANAGED_MAX_ITERATIONS
 } from '../../self/ui/boot-wizard/zero-function.js';
 
@@ -163,9 +164,14 @@ describe('boot seed manifest', () => {
 
   it('caps the managed Zero server proxy model loop', () => {
     expect(buildZeroGeminiProxyConfig()).toMatchObject({
-      maxIterations: ZERO_MANAGED_MAX_ITERATIONS
+      maxIterations: ZERO_MANAGED_MAX_ITERATIONS,
+      agentThrottle: ZERO_GEMINI_AGENT_THROTTLE
     });
     expect(ZERO_MANAGED_MAX_ITERATIONS).toBe(99);
+    expect(ZERO_GEMINI_AGENT_THROTTLE).toMatchObject({
+      minProviderRequestIntervalMs: 6000,
+      providerAutoResume: true
+    });
   });
 
   it('expands capsule genesis into a complete awaken runtime', () => {

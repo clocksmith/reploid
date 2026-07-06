@@ -267,6 +267,51 @@ test.describe('Route Entry Points', () => {
     await expect(mobileNav.getByRole('link', { name: 'X', exact: true })).toBeVisible();
   });
 
+  test('product routes fit a narrow mobile viewport without horizontal clipping', async ({ page }) => {
+    await page.setViewportSize({ width: 320, height: 844 });
+
+    for (const route of ['/', '/ask', '/compute', '/history', '/network']) {
+      await page.goto(route);
+      await page.waitForSelector('.pool-home', { timeout: 20000 });
+
+      const layout = await page.evaluate(() => {
+        const root = document.documentElement;
+        const offenders = [...document.querySelectorAll('body *')].map((element) => {
+          const rect = element.getBoundingClientRect();
+          return {
+            id: element.id || '',
+            className: String(element.className || ''),
+            left: rect.left,
+            right: rect.right,
+            width: rect.width
+          };
+        }).filter((item) => item.width > 1 && (item.left < -1 || item.right > window.innerWidth + 1));
+        const nav = document.querySelector('.pool-nav-toggle')?.getBoundingClientRect();
+        const ask = document.querySelector('.pool-home-ask-submit')?.getBoundingClientRect() || null;
+        const network = document.querySelector('.pool-home-network-cta')?.getBoundingClientRect() || null;
+        return {
+          ask: ask ? { height: ask.height, width: ask.width } : null,
+          network: network ? { height: network.height, right: window.innerWidth - network.right, width: network.width } : null,
+          nav: nav ? { height: nav.height, left: nav.left, width: nav.width } : null,
+          offenders: offenders.slice(0, 5),
+          overflowX: root.scrollWidth > root.clientWidth + 1
+        };
+      });
+
+      expect(layout.overflowX, route).toBe(false);
+      expect(layout.offenders, route).toEqual([]);
+      expect(layout.nav?.width, route).toBeGreaterThanOrEqual(48);
+      expect(layout.nav?.height, route).toBeGreaterThanOrEqual(48);
+      if (route === '/') {
+        expect(layout.ask?.width).toBeGreaterThanOrEqual(48);
+        expect(layout.ask?.height).toBeGreaterThanOrEqual(48);
+        expect(layout.network?.width).toBeGreaterThanOrEqual(48);
+        expect(layout.network?.height).toBeGreaterThanOrEqual(48);
+        expect(layout.network?.right).toBeLessThanOrEqual(8);
+      }
+    }
+  });
+
   test('product routes hide raw payloads and hosted controls by default', async ({ page }) => {
     for (const route of ['/ask', '/compute', '/history', '/network']) {
       await page.goto(route);

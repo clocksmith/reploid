@@ -29,6 +29,10 @@ export const renderProtoTemplate = (escapeHtml, goalFromBoot) => `
       <span class="sidebar-icon">∿</span>
       <span class="tab-indicator" aria-hidden="true"><span></span><span></span><span></span></span>
     </button>
+    <button id="workers-tab-btn" class="sidebar-btn" data-tab="workers" title="Workers (7)">
+      <span class="sidebar-icon">☌</span>
+      <span class="tab-indicator" aria-hidden="true"><span></span><span></span><span></span></span>
+    </button>
     <div class="sidebar-spacer"></div>
     <button id="btn-replay" class="sidebar-btn" title="Replay"><span class="sidebar-icon">↻</span></button>
     <button id="btn-toggle" class="sidebar-btn" title="Stop (Esc)"><span class="sidebar-icon">■</span></button>
@@ -40,7 +44,7 @@ export const renderProtoTemplate = (escapeHtml, goalFromBoot) => `
     <div class="workspace-header">
       <div class="workspace-title">
         <span class="text-secondary">Goal:</span>
-        <span class="goal-text muted">${escapeHtml(goalFromBoot || 'No goal set')}</span>
+        <span id="agent-goal" class="goal-text muted">${escapeHtml(goalFromBoot || 'No goal set')}</span>
       </div>
       <div class="workspace-status">
         <div class="token-budget" title="Token Budget">
@@ -54,6 +58,10 @@ export const renderProtoTemplate = (escapeHtml, goalFromBoot) => `
         <span class="muted">|</span>
         <span class="muted">Cycle</span>
         <span id="agent-cycle">0</span>
+        <span class="muted">|</span>
+        <div id="worker-indicator" class="workspace-indicator" title="Active Workers">
+          <span id="worker-indicator-count">0</span> workers
+        </div>
         <span class="muted">|</span>
       </div>
     </div>
@@ -188,6 +196,65 @@ export const renderProtoTemplate = (escapeHtml, goalFromBoot) => `
 
       <div class="workspace-content hidden" id="tab-cognition">
         <div id="cognition-panel" class="cognition-panel"></div>
+      </div>
+
+      <div class="workspace-content hidden" id="tab-workers">
+        <div class="workers-panel">
+          <div class="workers-summary">
+            <div class="workers-summary-item">
+              <span>Active Workers</span>
+              <strong id="workers-active-count">0</strong>
+            </div>
+            <div class="workers-summary-item">
+              <span>Completed Workers</span>
+              <strong id="workers-completed-count">0</strong>
+            </div>
+          </div>
+
+          <div class="workers-panel-header">
+            <strong>Active Workers List</strong>
+          </div>
+          <div id="workers-active-list" class="workers-list">
+            <div class="empty-state">No active workers</div>
+          </div>
+          <div class="workers-panel-header" style="margin-top: 24px;">
+            <strong>Completed Workers List</strong>
+          </div>
+          <div id="workers-completed-list" class="workers-list">
+            <div class="empty-state">No completed workers yet</div>
+          </div>
+          <div class="workers-footer" style="margin-top: 16px; display: flex; justify-content: space-between; align-items: center;">
+            <span id="workers-last-update" class="muted">Last updated: -</span>
+            <button id="workers-clear-completed" class="btn btn-small">Clear Completed</button>
+          </div>
+      </div>
+
+      <!-- VFS Browser Panel -->
+      <div id="vfs-browser" class="vfs-panel">
+        <div class="vfs-search-container">
+          <input type="text" id="vfs-search" class="vfs-search-input" placeholder="Search VFS..." />
+        </div>
+        <div id="vfs-tree" class="vfs-tree"></div>
+        <div id="vfs-content" class="vfs-content hidden">
+          <div id="vfs-content-header" class="vfs-content-header">
+            <span id="vfs-current-path" class="vfs-file-path"></span>
+            <div class="vfs-content-actions">
+              <button id="vfs-preview-btn" class="btn btn-small">Preview</button>
+              <button id="vfs-edit-btn" class="btn btn-small">Edit</button>
+              <button id="vfs-save-btn" class="btn btn-small hidden">Save</button>
+              <button id="vfs-cancel-btn" class="btn btn-small hidden">Cancel</button>
+            </div>
+          </div>
+          <div id="vfs-content-body" class="vfs-content-body">
+            <pre></pre>
+          </div>
+          <textarea id="vfs-editor" class="vfs-editor hidden"></textarea>
+          <div id="vfs-preview-panel" class="vfs-preview-panel hidden">
+            <iframe id="vfs-preview-iframe"></iframe>
+          </div>
+          <div id="vfs-diff-panel" class="vfs-diff-panel hidden"></div>
+          <div id="vfs-snapshot-panel" class="vfs-snapshot-panel hidden"></div>
+        </div>
       </div>
     </div>
 

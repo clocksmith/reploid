@@ -103,7 +103,16 @@ export const createWorkerManager = (deps) => {
       tabBtn.title = `Workers (${active.length} active)`;
       tabBtn.dataset.count = active.length;
     }
-    if (clearBtn) clearBtn.classList.toggle('hidden', completed.length === 0);
+    if (clearBtn) {
+      clearBtn.classList.toggle('hidden', completed.length === 0);
+      clearBtn.onclick = clearCompletedWorkers;
+    }
+    if (indicatorEl) {
+      indicatorEl.onclick = () => {
+        const tabBtn = document.getElementById('workers-tab-btn');
+        if (tabBtn) tabBtn.click();
+      };
+    }
 
     activeList.innerHTML = active.length === 0
       ? '<div class="empty-state">No active workers</div>'

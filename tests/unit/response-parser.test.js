@@ -214,6 +214,60 @@ path: /ui/boot-home/`;
         expect(calls[2]).toEqual({ name: 'ListFiles', args: { path: '/ui/boot-home/' } });
       });
 
+      it('should ignore hash comments between REPLOID/0 tool calls', () => {
+        const text = `REPLOID/0
+
+TOOL: Promote
+path: /shadow/tools/KatamariEngine.js
+target: /self/tools/KatamariEngine.js
+# Correcting the Promote syntax. Promoting the staged engine.
+
+TOOL: ListTools
+{}`;
+
+        const calls = responseParser.parseToolCalls(text);
+
+        expect(calls).toHaveLength(2);
+        expect(calls[0]).toEqual({
+          name: 'Promote',
+          args: {
+            path: '/shadow/tools/KatamariEngine.js',
+            target: '/self/tools/KatamariEngine.js'
+          }
+        });
+        expect(calls[1]).toEqual({ name: 'ListTools', args: {} });
+      });
+
+      it('should strip trailing hash comments from inline REPLOID/0 args', () => {
+        const text = 'REPLOID/0 TOOL: Promote path: /shadow/tools/KatamariEngine.js target: /self/tools/KatamariEngine.js # correcting syntax';
+
+        const calls = responseParser.parseToolCalls(text);
+
+        expect(calls).toHaveLength(1);
+        expect(calls[0]).toEqual({
+          name: 'Promote',
+          args: {
+            path: '/shadow/tools/KatamariEngine.js',
+            target: '/self/tools/KatamariEngine.js'
+          }
+        });
+      });
+
+      it('should preserve hash values that are not standalone comments', () => {
+        const text = 'REPLOID/0 TOOL: Paint color: #fff path: /shadow/style.css';
+
+        const calls = responseParser.parseToolCalls(text);
+
+        expect(calls).toHaveLength(1);
+        expect(calls[0]).toEqual({
+          name: 'Paint',
+          args: {
+            color: '#fff',
+            path: '/shadow/style.css'
+          }
+        });
+      });
+
       it('should keep colons inside one-line REPLOID/0 arg values', () => {
         const text = 'REPLOID/0 TOOL: Fetch url: https://example.com/a:b mode: read';
 

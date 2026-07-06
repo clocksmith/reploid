@@ -35,6 +35,13 @@ const AgentLoop = {
     const MANAGED_SERVER_PROXY_MAX_ITERATIONS = 99;
     const DEFAULT_MAX_TOOL_CALLS = 8;
     const TRANSIENT_PROVIDER_STATUSES = new Set([408, 429, 500, 502, 503, 504]);
+    const DEFAULT_PROVIDER_THROTTLE = Object.freeze({
+      minProviderRequestIntervalMs: 0,
+      providerBackoffBaseMs: 15000,
+      providerBackoffMaxMs: 300000,
+      providerBackoffJitterRatio: 0.20,
+      providerAutoResume: true
+    });
 
     // Configurable limits - can be overridden via StateManager config
     const getMaxToolCalls = () => {
@@ -45,6 +52,93 @@ const AgentLoop = {
         return DEFAULT_MAX_TOOL_CALLS;
       }
     };
+
+    const getStateConfig = () => {
+      try {
+        return StateManager?.getState?.()?.config || {};
+      } catch {
+        return {};
+      }
+    };
+
+    const firstDefined = (...values) => values.find((value) => value !== undefined && value !== null);
+
+    const finiteNumber = (value, fallback) => {
+      const parsed = Number(value);
+      return Number.isFinite(parsed) ? parsed : fallback;
+    };
+
+    const clampNumber = (value, fallback, min, max) => {
+      const parsed = finiteNumber(value, fallback);
+      return Math.min(max, Math.max(min, parsed));
+    };
+
+    const getProviderThrottleConfig = (model = _modelConfig) => {
+      const stateConfig = getStateConfig();
+      const localConfig = readLocalStorageJson('REPLOID_PROVIDER_THROTTLE');
+      const sources = [
+        model?.agentThrottle,
+        model?.providerThrottle,
+        model?.throttle?.provider,
+        stateConfig.agentThrottle,
+        stateConfig.providerThrottle,
+        localConfig
+      ].filter((entry) => entry && typeof entry === 'object');
+      const merged = Object.assign({}, DEFAULT_PROVIDER_THROTTLE, ...sources);
+
+      const maxBackoff = Math.floor(clampNumber(
+        firstDefined(merged.providerBackoffMaxMs, merged.backoffMaxMs),
+        DEFAULT_PROVIDER_THROTTLE.providerBackoffMaxMs,
+        0,
+        3600000
+      ));
+
+      return {
+        minProviderRequestIntervalMs: Math.floor(clampNumber(
+          firstDefined(
+            merged.minProviderRequestIntervalMs,
+            merged.providerMinRequestIntervalMs,
+            merged.minRequestIntervalMs,
+            merged.requestIntervalMs
+          ),
+          DEFAULT_PROVIDER_THROTTLE.minProviderRequestIntervalMs,
+          0,
+          3600000
+        )),
+        providerBackoffBaseMs: Math.floor(clampNumber(
+          firstDefined(merged.providerBackoffBaseMs, merged.backoffBaseMs),
+          DEFAULT_PROVIDER_THROTTLE.providerBackoffBaseMs,
+          0,
+          maxBackoff
+        )),
+        providerBackoffMaxMs: maxBackoff,
+        providerBackoffJitterRatio: clampNumber(
+          firstDefined(merged.providerBackoffJitterRatio, merged.backoffJitterRatio, merged.jitterRatio),
+          DEFAULT_PROVIDER_THROTTLE.providerBackoffJitterRatio,
+          0,
+          1
+        ),
+        providerAutoResume: merged.providerAutoResume !== false && merged.autoResume !== false
+      };
+    };
+
+    const sleepWithAbort = (delayMs, signal) => new Promise((resolve, reject) => {
+      const delay = Math.max(0, Math.floor(Number(delayMs) || 0));
+      if (delay === 0) {
+        resolve();
+        return;
+      }
+      if (signal?.aborted) {
+        reject(signal.reason || new Errors.AbortError('Aborted'));
+        return;
+      }
+      const timer = setTimeout(resolve, delay);
+      const onAbort = () => {
+        clearTimeout(timer);
+        reject(signal.reason || new Errors.AbortError('Aborted'));
+      };
+      signal?.addEventListener?.('abort', onAbort, { once: true });
+    });
 
     const normalizeIterationLimit = (value, fallback = MAX_ITERATIONS) => {
       const parsed = Number(value);
@@ -365,6 +459,10 @@ const AgentLoop = {
     let _currentContext = [];
     let _currentSystemPrompt = '';
     let _traceSessionId = null;
+    let _providerResumeTimer = null;
+    let _providerResumeState = null;
+    let _providerResumePromise = null;
+    let _lastProviderRequestAt = null;
 
     // Human-in-the-loop message queue
     let _humanMessageQueue = [];
@@ -536,6 +634,84 @@ const AgentLoop = {
       return TRANSIENT_PROVIDER_STATUSES.has(status);
     };
 
+    const getProviderRetryAfterMs = (error) => {
+      const direct = Number(error?.retryAfterMs ?? error?.details?.retryAfterMs);
+      if (Number.isFinite(direct) && direct >= 0) return direct;
+      const retryAfter = error?.retryAfter ?? error?.details?.retryAfter;
+      if (retryAfter === undefined || retryAfter === null) return null;
+
+      const seconds = Number(retryAfter);
+      if (Number.isFinite(seconds) && seconds >= 0) return seconds * 1000;
+
+      const retryAt = Date.parse(String(retryAfter));
+      if (Number.isFinite(retryAt)) return Math.max(0, retryAt - Date.now());
+
+      return null;
+    };
+
+    const clampProviderBackoffMs = (value, model) => {
+      const config = getProviderThrottleConfig(model);
+      return Math.min(
+        config.providerBackoffMaxMs,
+        Math.max(0, Math.floor(Number(value) || 0))
+      );
+    };
+
+    const computeProviderBackoffMs = (attempt, error, model = _modelConfig) => {
+      const config = getProviderThrottleConfig(model);
+      const retryAfterMs = getProviderRetryAfterMs(error);
+      if (retryAfterMs !== null) return clampProviderBackoffMs(retryAfterMs, model);
+
+      const exponent = Math.max(0, Math.floor(Number(attempt) || 0));
+      const baseDelay = Math.min(
+        config.providerBackoffMaxMs,
+        config.providerBackoffBaseMs * (2 ** exponent)
+      );
+      const jitter = Math.floor(baseDelay * config.providerBackoffJitterRatio * Math.random());
+      return clampProviderBackoffMs(baseDelay + jitter, model);
+    };
+
+    const applyProviderRequestThrottle = async (model, iteration) => {
+      const config = getProviderThrottleConfig(model);
+      const intervalMs = config.minProviderRequestIntervalMs;
+      const now = Date.now();
+      const delayMs = _lastProviderRequestAt !== null
+        ? Math.max(0, intervalMs - (now - _lastProviderRequestAt))
+        : 0;
+
+      if (delayMs > 0) {
+        const retryAt = now + delayMs;
+        const modelId = getModelIdentity(model) || 'unknown';
+        EventBus.emit('agent:history', {
+          type: 'provider_throttle',
+          cycle: iteration,
+          model: modelId,
+          provider: model?.provider || null,
+          throttleDelayMs: delayMs,
+          retryAt,
+          ts: now
+        });
+        EventBus.emit('agent:status', {
+          state: 'WAITING',
+          activity: 'Provider throttle',
+          cycle: iteration,
+          throttleDelayMs: delayMs,
+          retryAt
+        });
+        _pushActivity({
+          kind: 'provider_throttle',
+          cycle: iteration,
+          model: modelId,
+          provider: model?.provider || null,
+          throttleDelayMs: delayMs,
+          retryAt
+        });
+        await sleepWithAbort(delayMs, _abortController?.signal);
+      }
+
+      _lastProviderRequestAt = Date.now();
+    };
+
     const getProviderRecoveryCandidates = (primaryModel) => {
       const candidates = [];
       const add = (model) => {
@@ -563,6 +739,7 @@ const AgentLoop = {
       for (let index = 0; index < candidates.length; index++) {
         const model = candidates[index];
         try {
+          await applyProviderRequestThrottle(model, iteration);
           const response = await LLMClient.chat(context, model, streamCallback, { tools: toolSchemas });
           if (index > 0) {
             const recoveredModel = getModelIdentity(model) || 'unknown';
@@ -805,29 +982,97 @@ const AgentLoop = {
       _logReflection(call, processedResult, iteration);
     };
 
-    const run = async (goal) => {
+    const clearProviderResumeTimer = () => {
+      if (_providerResumeTimer) {
+        clearTimeout(_providerResumeTimer);
+        _providerResumeTimer = null;
+      }
+      _providerResumeState = null;
+    };
+
+    const scheduleProviderResume = (resumeState, delayMs) => {
+      clearProviderResumeTimer();
+
+      const retryAt = Date.now() + delayMs;
+      _providerResumeState = {
+        ...resumeState,
+        delayMs,
+        retryAt
+      };
+
+      _providerResumeTimer = setTimeout(() => {
+        const state = _providerResumeState;
+        _providerResumeTimer = null;
+        _providerResumeState = null;
+
+        if (!state || _isRunning) return;
+        EventBus.emit('agent:history', {
+          type: 'provider_resume',
+          cycle: state.iteration,
+          attempt: state.providerRetryAttempt,
+          content: 'Resuming after provider backoff',
+          ts: Date.now()
+        });
+        EventBus.emit('agent:status', {
+          state: 'RESUMING',
+          activity: 'Retrying provider request',
+          cycle: state.iteration,
+          retryAttempt: state.providerRetryAttempt
+        });
+        _pushActivity({
+          kind: 'provider_resume',
+          cycle: state.iteration,
+          attempt: state.providerRetryAttempt
+        });
+
+        _providerResumePromise = startRun(state.goal, state).catch((error) => {
+          logger.error('[Agent] Provider resume failed:', error);
+          EventBus.emit('agent:error', {
+            error: error?.message || String(error),
+            cycle: state.iteration
+          });
+        });
+      }, delayMs);
+    };
+
+    const startRun = async (goal, resumeState = null) => {
       if (_isRunning) throw new Errors.StateError('Agent already running');
       if (!_modelConfig) throw new Errors.ConfigError('No model configured');
 
+      const isResume = !!resumeState;
+      if (!isResume) {
+        clearProviderResumeTimer();
+      }
+
       _isRunning = true;
       _abortController = new AbortController();
-      _resetLoopHealth();
-      _toolCircuitBreaker.reset();
+      if (!isResume) {
+        _resetLoopHealth();
+        _toolCircuitBreaker.reset();
+      }
 
-      logger.info(`[Agent] Starting cycle. Goal: "${goal}"`);
-      EventBus.emit('agent:status', { state: 'STARTING', activity: 'Initializing...' });
+      logger.info(`[Agent] ${isResume ? 'Resuming' : 'Starting'} cycle. Goal: "${goal}"`);
+      EventBus.emit('agent:status', {
+        state: isResume ? 'RESUMING' : 'STARTING',
+        activity: isResume ? 'Resuming after provider backoff' : 'Initializing...',
+        cycle: resumeState?.iteration ?? 0
+      });
 
-      await StateManager.setGoal(goal);
+      if (!isResume) {
+        await StateManager.setGoal(goal);
+      }
       if (TraceStore) {
         _traceSessionId = await TraceStore.startSession({
           source: 'agent',
           goal,
-          modelId: _modelConfig?.id || null
+          modelId: _modelConfig?.id || null,
+          resumedFromProviderBackoff: isResume,
+          resumeAttempt: resumeState?.providerRetryAttempt ?? 0
         });
       }
 
       // Initialize MemoryManager for this session
-      if (MemoryManager) {
+      if (MemoryManager && !isResume) {
         try {
           await MemoryManager.init();
           await MemoryManager.newSession();
@@ -839,19 +1084,27 @@ const AgentLoop = {
         }
       }
 
-      let context = await _buildInitialContext(goal);
-      EventBus.emit('agent:history', {
-        type: 'system_prompt',
-        cycle: 0,
-        content: _currentSystemPrompt
-      });
-      _pushActivity({ kind: 'system_prompt', cycle: 0, content: _currentSystemPrompt });
-      let iteration = 0;
+      let context = isResume && Array.isArray(resumeState.context)
+        ? resumeState.context.map((entry) => ({ ...entry }))
+        : await _buildInitialContext(goal);
+      if (!isResume) {
+        EventBus.emit('agent:history', {
+          type: 'system_prompt',
+          cycle: 0,
+          content: _currentSystemPrompt
+        });
+        _pushActivity({ kind: 'system_prompt', cycle: 0, content: _currentSystemPrompt });
+      }
+      let iteration = Number.isFinite(Number(resumeState?.iteration))
+        ? Math.max(0, Math.floor(Number(resumeState.iteration)))
+        : 0;
       const maxIterations = getConfiguredMaxIterations();
       const functionGemmaConfig = resolveFunctionGemmaConfig();
       let functionGemmaEnabled = !!functionGemmaConfig;
       let providerParked = false;
       let providerParkReason = null;
+      let scheduledProviderResume = false;
+      let providerRetryAttempt = Math.max(0, Math.floor(Number(resumeState?.providerRetryAttempt) || 0));
       if (functionGemmaEnabled) {
         functionGemmaEnabled = await ensureFunctionGemmaReady(context, functionGemmaConfig);
       }
@@ -1529,14 +1782,23 @@ const AgentLoop = {
           logger.info('[Agent] Cycle aborted.');
         } else if (isTransientProviderError(err)) {
           const status = getProviderErrorStatus(err);
+          const throttleConfig = getProviderThrottleConfig(_modelConfig);
+          const delayMs = computeProviderBackoffMs(providerRetryAttempt, err, _modelConfig);
+          const nextRetryAttempt = providerRetryAttempt + 1;
+          const retryAt = Date.now() + delayMs;
           providerParked = true;
-          providerParkReason = `Provider unavailable${status ? ` (${status})` : ''}`;
+          scheduledProviderResume = throttleConfig.providerAutoResume;
+          providerParkReason = `Provider unavailable${status ? ` (${status})` : ''}; ${scheduledProviderResume ? 'retry scheduled' : 'auto-resume disabled'}`;
           logger.warn(`[Agent] ${providerParkReason}; parking run.`);
           EventBus.emit('agent:warning', {
             type: 'provider_unavailable',
             cycle: iteration,
             status,
-            error: err?.message || String(err)
+            error: err?.message || String(err),
+            retryAttempt: nextRetryAttempt,
+            retryDelayMs: delayMs,
+            retryAt,
+            autoResume: scheduledProviderResume
           });
           EventBus.emit('agent:history', {
             type: 'provider_unavailable',
@@ -1544,23 +1806,43 @@ const AgentLoop = {
             content: providerParkReason,
             status,
             error: err?.message || String(err),
+            retryAttempt: nextRetryAttempt,
+            retryDelayMs: delayMs,
+            retryAt,
+            autoResume: scheduledProviderResume,
             ts: Date.now()
           });
           _pushActivity({
             kind: 'provider_unavailable',
             cycle: iteration,
             status,
-            error: err?.message || String(err)
+            error: err?.message || String(err),
+            retryAttempt: nextRetryAttempt,
+            retryDelayMs: delayMs,
+            retryAt,
+            autoResume: scheduledProviderResume
           });
           try {
             await _writeCycleArtifact(iteration || 0, 'provider-recovery.json', {
               event: 'provider:parked',
               cycle: iteration,
               status,
-              error: err?.message || String(err)
+              error: err?.message || String(err),
+              retryAttempt: nextRetryAttempt,
+              retryDelayMs: delayMs,
+              retryAt,
+              autoResume: scheduledProviderResume
             });
           } catch (artifactError) {
             logger.debug('[Agent] Failed to write provider recovery artifact:', artifactError?.message || artifactError);
+          }
+          if (scheduledProviderResume) {
+            scheduleProviderResume({
+              goal,
+              context,
+              iteration,
+              providerRetryAttempt: nextRetryAttempt
+            }, delayMs);
           }
         } else {
           logger.error('[Agent] Critical Error', err);
@@ -1578,7 +1860,15 @@ const AgentLoop = {
           _traceSessionId = null;
         }
         EventBus.emit('agent:status', providerParked
-          ? { state: 'PARKED', activity: providerParkReason || 'Provider unavailable' }
+          ? {
+              state: 'PARKED',
+              activity: providerParkReason || 'Provider unavailable',
+              cycle: iteration,
+              retryAttempt: _providerResumeState?.providerRetryAttempt ?? providerRetryAttempt,
+              retryDelayMs: _providerResumeState?.delayMs ?? null,
+              retryAt: _providerResumeState?.retryAt ?? null,
+              autoResume: scheduledProviderResume
+            }
           : { state: 'IDLE', activity: 'Stopped' });
       }
     };
@@ -1629,7 +1919,13 @@ REPLOID/0
 
 TOOL: ToolName
 key: value
+
+TOOL: OtherReadOnlyTool
+key: value
 \`\`\`
+- A tool block may contain only TOOL headers, key: value argument lines, JSON argument objects, or literal blocks.
+- Do not put comments, markdown, or explanatory prose inside a tool block.
+- Put explanations before the REPLOID/0 block or after tool results, not between tool calls.
 
 ## Kernel Tools
 - ReadFile: read seed files, blueprints, shadow candidates, and artifacts
@@ -1654,7 +1950,9 @@ key: value
 - Read before writing.
 - Use /shadow for candidates and /artifacts for evidence.
 - Do not write durable runtime changes directly into /self.
-- To create a new runtime tool, use CreateTool with a CamelCase name and ES module code, then produce evidence and Promote it into /self/tools before LoadModule.
+- CreateTool code must export a tool contract and an async default function.
+- To create a new runtime tool, use CreateTool with a CamelCase name and ES module code, write evidence under /artifacts, then Promote it into /self/tools before LoadModule.
+- Valid Promote syntax is candidatePath: /shadow/tools/MyTool.js, targetPath: /self/tools/MyTool.js, evidencePath: /artifacts/MyTool-evidence.json.
 - To modify the self, interface, or source surface, stage under /shadow and Promote after evidence exists.
 - Use at least one tool per response unless parking or complete.
 - Park with IDLE: when waiting for user input or model availability.
@@ -1771,10 +2069,15 @@ ${goal}
     };
 
     const getRecentActivities = () => [..._activityLog];
+    const run = (goal) => startRun(goal, null);
 
     return {
       run,
-      stop: () => { if (_abortController) _abortController.abort(); _isRunning = false; },
+      stop: () => {
+        clearProviderResumeTimer();
+        if (_abortController) _abortController.abort();
+        _isRunning = false;
+      },
       setModel: (c) => { _modelConfig = c; resetFunctionGemmaState(); },
       setModels: (models) => {
         _modelConfigs = models || [];
@@ -1786,7 +2089,10 @@ ${goal}
       },
       setConsensusStrategy: (strategy) => { _consensusStrategy = strategy || 'arena'; },
       isRunning: () => _isRunning,
+      hasPendingProviderResume: () => !!_providerResumeState,
       getRecentActivities,
+      getProviderRetryState: () => (_providerResumeState ? { ..._providerResumeState } : null),
+      getProviderResumePromise: () => _providerResumePromise,
       // Debug visibility
       getSystemPrompt: () => _currentSystemPrompt,
       getContext: () => [..._currentContext],

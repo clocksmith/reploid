@@ -35,8 +35,8 @@ test.describe('RSI Loop E2E', () => {
   test.setTimeout(TEST_CONFIG.timeout);
 
   test.beforeEach(async ({ page }) => {
-    await page.goto('/');
-    await page.waitForSelector('#boot-container', { timeout: 10000 });
+    await page.goto('/index.html');
+    await page.waitForSelector('#goal-input', { timeout: 10000 });
   });
 
   test('WebGPU is available for inference', async ({ page }) => {
@@ -67,20 +67,26 @@ test.describe('RSI Loop E2E', () => {
   });
 
   test('RSI infrastructure modules load correctly', async ({ page }) => {
-    // Check core UI elements exist (these are static HTML, no JS required)
+    // Select browser Doppler mode and model to unlock goal input and awaken button
+    await page.click('[data-action="choose-browser"]');
+    await page.click('[data-model="smollm2-360m"]');
+    await page.locator('#goal-input').fill('Test goal');
+    await page.click('[data-action="advanced-settings"]');
+
+    // Check core UI elements exist
     const bootStatus = await page.evaluate(() => {
       return {
-        hasBootContainer: !!document.getElementById('boot-container'),
+        hasWizardContainer: !!document.getElementById('wizard-container'),
         hasGoalInput: !!document.getElementById('goal-input'),
         hasAwakenBtn: !!document.getElementById('awaken-btn'),
-        hasModelCards: !!document.getElementById('model-cards-list'),
-        hasAdvancedOptions: !!document.getElementById('advanced-options'),
+        hasModelCards: !!document.querySelector('.model-options'),
+        hasAdvancedOptions: !!document.querySelector('.advanced-panel'),
       };
     });
 
     console.log('Boot status:', JSON.stringify(bootStatus, null, 2));
 
-    expect(bootStatus.hasBootContainer).toBe(true);
+    expect(bootStatus.hasWizardContainer).toBe(true);
     expect(bootStatus.hasGoalInput).toBe(true);
     expect(bootStatus.hasAwakenBtn).toBe(true);
     expect(bootStatus.hasModelCards).toBe(true);
