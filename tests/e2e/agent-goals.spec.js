@@ -48,9 +48,8 @@ async function runAgentWithGoal(page, goal, waitTime = 360000) {
   await page.goto('/x');
   await page.waitForSelector('#wizard-container', { timeout: 10000 });
 
-  // Configure Gemini for browser-cloud mode with API key
-  const apiKey = GEMINI_API_KEY;
-  await page.evaluate((key) => {
+  // Configure Mock Model via localStorage
+  await page.evaluate(() => {
     const instanceId = window.REPLOID_INSTANCE_ID;
     const write = (k, v) => {
       localStorage.setItem(k, v);
@@ -59,35 +58,65 @@ async function runAgentWithGoal(page, goal, waitTime = 360000) {
       }
     };
     write('SELECTED_MODELS', JSON.stringify([{
-      id: 'gemini-3.5-flash',
-      name: 'Gemini 2.5 Flash',
-      provider: 'gemini',
-      hostType: 'proxy-cloud'
+      id: 'mock-model',
+      name: 'Mock Model',
+      provider: 'mock',
+      hostType: 'direct'
     }]));
     write('REPLOID_GENESIS_LEVEL', 'full');
     write('REPLOID_MODE', 'x');
-    write('GEMINI_API_KEY', key);
-    write('REPLOID_KEY_GEMINI', key);
-  }, apiKey);
+    write('REPLOID_KEY_MOCK', 'mock-key');
+  });
 
   // Reload to apply config
   await page.reload();
 
-  // Wait for goal input to be enabled
   await page.waitForSelector('#goal-input:not([disabled])', { timeout: 10000 });
 
-  console.log(`\n=== STARTING GOAL: ${goal.substring(0, 60)}... ===\n`);
+  // Install Mock LLM Provider on the reloaded page
+  await page.evaluate(() => {
+    window.MockLLMProvider = {
+      calls: [],
+      responses: [],
+      chat(messages) {
+        const index = this.calls.length;
+        this.calls.push(messages);
+        
+        let content = '';
+        if (index === 0) {
+          content = `<thought>Listing files in workspace.</thought>\n<call:default_api:ListFiles>{}</call:default_api:ListFiles>`;
+        } else if (index === 1) {
+          content = `<thought>Writing report.</thought>\n<call:default_api:WriteFile>{"path":"/report.txt","content":"VFS mock report"}</call:default_api:WriteFile>`;
+        } else {
+          content = `<thought>Done.</thought>\nTask completed.`;
+        }
+        
+        return {
+          content,
+          raw: content,
+          provider: 'mock',
+          model: 'mock-model',
+          usage: { inputTokens: 10, outputTokens: 10 }
+        };
+      },
+      getCapabilities() {
+        return { available: true, initialized: true, currentModelId: 'mock-model' };
+      }
+    };
+  });
 
-  // Enter goal and awaken
   await page.locator('#goal-input').fill(goal);
   await page.locator('#awaken-btn').click();
 
   await page.waitForSelector('#app.active', { timeout: 15000 });
 
-  console.log(`Agent awakened. Running for ${waitTime / 1000}s...`);
-
-  // Let agent run
-  await page.waitForTimeout(waitTime);
+  console.log(`Agent awakened. Waiting for cycle progression...`);
+  
+  // Wait for the cycle count to reach at least 2
+  await expect.poll(async () => {
+    const cycleText = await page.locator('#agent-cycle').textContent().catch(() => '0');
+    return parseInt(cycleText, 10);
+  }, { timeout: 30000 }).toBeGreaterThanOrEqual(2);
 
   return page;
 }
