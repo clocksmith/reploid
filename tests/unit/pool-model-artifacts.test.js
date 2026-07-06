@@ -5,7 +5,7 @@ import {
   validateModelArtifactManifestShape,
   verifyModelArtifactManifest
 } from '../../self/pool/model-artifacts.js';
-import { hashJson } from '../../self/pool/inference-receipt.js';
+import { hashJson, sha256Hex } from '../../self/pool/inference-receipt.js';
 
 describe('pool model artifact helpers', () => {
   it('builds content-addressed artifact URLs from model identity', () => {
@@ -123,6 +123,40 @@ describe('pool model artifact helpers', () => {
       model: {
         modelId: 'model-identity',
         modelHash: 'sha256:fab133e49d6dc67912fc3a087222ec44ca1941d9b7bc36c60cb1379863a6dd4f',
+        manifestHash
+      },
+      baseUrl: 'https://models.example',
+      fetchImpl: async () => ({
+        ok: true,
+        text: async () => JSON.stringify(manifest)
+      })
+    });
+
+    expect(result.ok).toBe(true);
+    expect(result.manifestHash).toBe(manifestHash);
+  });
+
+  it('verifies manifest identity through derived shard-set hash', async () => {
+    const manifest = {
+      modelId: 'model-shardset',
+      tokenizer: {
+        file: 'tokenizer.json',
+        hash: 'sha256:tokenizer'
+      },
+      shards: [
+        {
+          filename: 'shard_00000.bin',
+          size: 3,
+          hash: 'abc123'
+        }
+      ]
+    };
+    const manifestHash = await hashJson(manifest);
+    const shardSetHash = await sha256Hex('shard_00000.bin:3:abc123');
+    const result = await verifyModelArtifactManifest({
+      model: {
+        modelId: 'model-shardset',
+        modelHash: shardSetHash,
         manifestHash
       },
       baseUrl: 'https://models.example',

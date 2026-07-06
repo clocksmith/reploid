@@ -91,4 +91,31 @@ describe('goal step action row', () => {
     expect(html).toContain('data-op="☇"');
     expect(html).toContain('goal-action-button');
   });
+
+  it('renders cycle interval control for Zero and X boot goals only', () => {
+    const zeroHtml = renderGoalStep(createReploidState({
+      mode: 'zero',
+      cycleIntervalSeconds: 12
+    }), {
+      goalActionMode: 'generate-only'
+    });
+    const xHtml = renderGoalStep(createReploidState({
+      mode: 'x',
+      cycleIntervalSeconds: 7
+    }), {
+      goalActionMode: 'generate-only'
+    });
+    const reploidHtml = renderGoalStep(createReploidState({
+      mode: 'reploid',
+      cycleIntervalSeconds: 5
+    }), {
+      goalActionMode: 'generate-only'
+    });
+
+    expect(zeroHtml).toContain('id="cycle-interval-seconds"');
+    expect(zeroHtml).toContain('value="12"');
+    expect(xHtml).toContain('id="cycle-interval-seconds"');
+    expect(xHtml).toContain('value="7"');
+    expect(reploidHtml).not.toContain('id="cycle-interval-seconds"');
+  });
 });

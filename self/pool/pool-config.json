@@ -363,7 +363,8 @@
       "agreementMode": "single",
       "allowedModels": [
         "gemma-3-270m-it-q4k-ehf16-af32",
-        "qwen-3-5-0-8b-q4k-ehaf16"
+        "qwen-3-5-0-8b-q4k-ehaf16",
+        "gemma-4-e2b-it-q4k-ehf16-af32-int4ple"
       ],
       "minProviderReputation": 0,
       "maxQueueDepth": 100,
@@ -392,7 +393,8 @@
       "agreementMode": "single",
       "allowedModels": [
         "gemma-3-270m-it-q4k-ehf16-af32",
-        "qwen-3-5-0-8b-q4k-ehaf16"
+        "qwen-3-5-0-8b-q4k-ehaf16",
+        "gemma-4-e2b-it-q4k-ehf16-af32-int4ple"
       ],
       "minProviderReputation": 0,
       "maxQueueDepth": 100,
@@ -423,7 +425,8 @@
       "agreementMode": "redundant",
       "allowedModels": [
         "gemma-3-270m-it-q4k-ehf16-af32",
-        "qwen-3-5-0-8b-q4k-ehaf16"
+        "qwen-3-5-0-8b-q4k-ehaf16",
+        "gemma-4-e2b-it-q4k-ehf16-af32-int4ple"
       ],
       "minProviderReputation": 0,
       "maxQueueDepth": 100,
@@ -456,7 +459,8 @@
       "agreementMode": "ring_quorum",
       "allowedModels": [
         "gemma-3-270m-it-q4k-ehf16-af32",
-        "qwen-3-5-0-8b-q4k-ehaf16"
+        "qwen-3-5-0-8b-q4k-ehaf16",
+        "gemma-4-e2b-it-q4k-ehf16-af32-int4ple"
       ],
       "minProviderReputation": 0,
       "maxQueueDepth": 100,
@@ -870,26 +874,48 @@
       "enabled": true
     },
     {
-      "modelId": "gemma-3-1b-it-q4k-ehf16-af32",
-      "label": "Gemma 3 1B",
-      "contextLength": 32768,
-      "quantization": "q4k",
+      "modelId": "gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
+      "modelHash": "sha256:7ae3b0075c41d6e846944a4dde8460b214d34d45c27aa49b214b87f18e63a32b",
+      "manifestHash": "sha256:d3bd97d3f9065d2950cbee4267b93f345eabbb626eb7b8b9c96c9b0f590b6264",
+      "tokenizerHash": "sha256:4453a86456cdf02b3c8f79091ffda7ca017619ff5da495b9eda12141d5793962",
+      "contextLength": 131072,
+      "quantization": "q4k-int4ple",
+      "artifactIdentity": {
+        "sourceCheckpointId": "google/gemma-4-E2B-it",
+        "weightPackId": "gemma-4-e2b-it-q4k-ehf16-af32-int4ple-wp-catalog-v1",
+        "manifestVariantId": "gemma-4-e2b-it-q4k-ehf16-af32-int4ple-mv-exec-v1",
+        "artifactCompleteness": "complete"
+      },
       "runtime": "doppler",
       "backend": "browser-webgpu",
-      "dopplerLoadRef": "gemma3-1b",
-      "enabled": false,
-      "unavailableReason": "Hash contract pending promotion into Reploid config"
-    },
-    {
-      "modelId": "gemma-4-e2b-it-q4k-ehf16-af32",
-      "label": "Gemma 4 E2B",
-      "contextLength": 32768,
-      "quantization": "q4k",
-      "runtime": "doppler",
-      "backend": "browser-webgpu",
-      "dopplerLoadRef": "gemma4-e2b",
-      "enabled": false,
-      "unavailableReason": "Large browser model; hash contract pending promotion into Reploid config"
+      "dopplerLoadRef": "gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
+      "loadInput": {
+        "url": "https://huggingface.co/Clocksmith/rdrr/resolve/dbb354acb00108965c5324ca7b6fecc198d12501/models/gemma-4-e2b-it-q4k-ehf16-af32-int4ple"
+      },
+      "artifactPolicy": {
+        "transport": "offloaded_content_addressed",
+        "cache": "browser_opfs",
+        "baseUrl": "https://huggingface.co/Clocksmith/rdrr/resolve/dbb354acb00108965c5324ca7b6fecc198d12501/models/gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
+        "identityFields": [
+          "modelId",
+          "modelHash",
+          "manifestHash",
+          "runtime",
+          "backend"
+        ],
+        "pathTemplate": "",
+        "paths": {
+          "manifest": "manifest.json",
+          "tokenizer": "tokenizer.json",
+          "shards": ""
+        }
+      },
+      "runtimeCompatibility": {
+        "requiredWebGpuFeatures": [],
+        "fallbackStatus": "manifest_owned_f32_activation_lane"
+      },
+      "label": "Gemma 4 E2B INT4 PLE",
+      "enabled": true
     }
   ]
 }

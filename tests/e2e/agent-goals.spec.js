@@ -40,20 +40,34 @@ async function runAgentWithGoal(page, goal, waitTime = 360000) {
     }
   });
 
-  await page.goto('/index.html');
+  await page.goto('/x');
+  await page.evaluate(() => {
+    localStorage.clear();
+    sessionStorage.clear();
+  });
+  await page.goto('/x');
   await page.waitForSelector('#wizard-container', { timeout: 10000 });
 
   // Configure Gemini for browser-cloud mode with API key
   const apiKey = GEMINI_API_KEY;
   await page.evaluate((key) => {
-    localStorage.setItem('SELECTED_MODELS', JSON.stringify([{
+    const instanceId = window.REPLOID_INSTANCE_ID;
+    const write = (k, v) => {
+      localStorage.setItem(k, v);
+      if (instanceId) {
+        localStorage.setItem(`REPLOID_INSTANCE_${instanceId}::${k}`, v);
+      }
+    };
+    write('SELECTED_MODELS', JSON.stringify([{
       id: 'gemini-3.5-flash',
       name: 'Gemini 2.5 Flash',
       provider: 'gemini',
-      hostType: 'browser-cloud'
+      hostType: 'proxy-cloud'
     }]));
-    localStorage.setItem('REPLOID_GENESIS_LEVEL', 'full');
-    localStorage.setItem('GEMINI_API_KEY', key);
+    write('REPLOID_GENESIS_LEVEL', 'full');
+    write('REPLOID_MODE', 'x');
+    write('GEMINI_API_KEY', key);
+    write('REPLOID_KEY_GEMINI', key);
   }, apiKey);
 
   // Reload to apply config

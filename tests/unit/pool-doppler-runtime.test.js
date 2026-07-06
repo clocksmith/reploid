@@ -5,7 +5,7 @@ import {
   resetDopplerModuleCacheForTests
 } from '../../self/pool/doppler-runtime.js';
 import { BROWSER_RUNTIME_CONFIG } from '../../self/pool/config.js';
-import { hashJson } from '../../self/pool/inference-receipt.js';
+import { hashJson, sha256Hex } from '../../self/pool/inference-receipt.js';
 import { LAUNCH_MODEL, getEnabledPoolModelContract } from '../../self/pool/model-contract.js';
 
 const launchHandle = () => ({
@@ -192,7 +192,7 @@ describe('Doppler browser runtime adapter', () => {
     expect(runtime.getModelInfo().modelId).toBe(qwenModel.modelId);
   });
 
-  it('derives public handle identity from manifest artifact identity', async () => {
+  it('derives public handle model hash from manifest shard identity', async () => {
     const artifactIdentity = {
       sourceCheckpointId: 'google/gemma-test',
       weightPackId: 'gemma-test-wp-catalog-v1',
@@ -206,7 +206,7 @@ describe('Doppler browser runtime adapter', () => {
     };
     const descriptor = {
       modelId: manifest.modelId,
-      modelHash: await hashJson(artifactIdentity),
+      modelHash: await sha256Hex('shard_00000.bin:16:abc123'),
       manifestHash: await hashJson(manifest),
       runtime: 'doppler',
       backend: 'browser-webgpu',

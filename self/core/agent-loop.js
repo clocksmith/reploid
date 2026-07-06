@@ -42,6 +42,9 @@ const AgentLoop = {
       providerBackoffJitterRatio: 0.20,
       providerAutoResume: true
     });
+    const DEFAULT_AGENT_CYCLE_THROTTLE = Object.freeze({
+      cycleIntervalMs: 0
+    });
 
     // Configurable limits - can be overridden via StateManager config
     const getMaxToolCalls = () => {
@@ -188,6 +191,72 @@ const AgentLoop = {
         logger.warn(`[Agent] Failed to parse ${key}: ${e.message}`);
         return null;
       }
+    };
+
+    const readLocalStorageNumber = (key) => {
+      const storage = getReploidStorage();
+      try {
+        const raw = storage.getItem(key);
+        if (raw === null || raw === undefined || raw === '') return null;
+        const parsed = Number(raw);
+        return Number.isFinite(parsed) ? parsed : null;
+      } catch (e) {
+        logger.warn(`[Agent] Failed to parse ${key}: ${e.message}`);
+        return null;
+      }
+    };
+
+    const getAgentCycleIntervalMs = (model = _modelConfig) => {
+      const stateConfig = getStateConfig();
+      const localConfig = readLocalStorageJson('REPLOID_AGENT_CYCLE_THROTTLE');
+      const localSeconds = readLocalStorageNumber('REPLOID_CYCLE_INTERVAL_SECONDS');
+      const sources = [
+        model?.agentCycleThrottle,
+        model?.cycleThrottle,
+        stateConfig.agentCycleThrottle,
+        stateConfig.cycleThrottle,
+        localConfig
+      ].filter((entry) => entry && typeof entry === 'object');
+      const merged = Object.assign({}, DEFAULT_AGENT_CYCLE_THROTTLE, ...sources);
+      const intervalMs = firstDefined(
+        merged.cycleIntervalMs,
+        merged.secondsBetweenCyclesMs,
+        merged.cycleDelayMs,
+        merged.minCycleIntervalMs,
+        merged.secondsBetweenCycles !== undefined ? Number(merged.secondsBetweenCycles) * 1000 : undefined,
+        merged.cycleIntervalSeconds !== undefined ? Number(merged.cycleIntervalSeconds) * 1000 : undefined,
+        localSeconds !== null ? localSeconds * 1000 : undefined
+      );
+      return Math.floor(clampNumber(intervalMs, DEFAULT_AGENT_CYCLE_THROTTLE.cycleIntervalMs, 0, 3600000));
+    };
+
+    const waitForCycleInterval = async (nextIteration) => {
+      if (nextIteration <= 1) return;
+      const delayMs = getAgentCycleIntervalMs(_modelConfig);
+      if (delayMs <= 0) return;
+      const previousCycle = nextIteration - 1;
+      EventBus.emit('agent:status', {
+        state: 'WAITING',
+        activity: `Waiting ${Math.ceil(delayMs / 1000)}s before cycle ${nextIteration}`,
+        cycle: previousCycle,
+        cycleThrottleDelayMs: delayMs,
+        nextCycle: nextIteration
+      });
+      EventBus.emit('agent:history', {
+        type: 'cycle_throttle',
+        cycle: previousCycle,
+        content: `Waiting ${Math.ceil(delayMs / 1000)}s before cycle ${nextIteration}`,
+        throttleDelayMs: delayMs,
+        nextCycle: nextIteration,
+        ts: Date.now()
+      });
+      _pushActivity({
+        kind: 'cycle_throttle',
+        cycle: previousCycle,
+        throttleDelayMs: delayMs,
+        nextCycle: nextIteration
+      });
+      await sleepWithAbort(delayMs, _abortController?.signal);
     };
 
     const getFunctionGemmaConfigFromState = () => {
@@ -1114,6 +1183,9 @@ const AgentLoop = {
 
       try {
         while (_isRunning && iteration < maxIterations) {
+          if (_abortController.signal.aborted) break;
+
+          await waitForCycleInterval(iteration + 1);
           if (_abortController.signal.aborted) break;
 
           iteration++;
