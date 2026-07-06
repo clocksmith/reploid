@@ -15,7 +15,8 @@ import {
   saveConfig,
   forgetDevice,
   canAwaken,
-  hydrateSavedConfig
+  hydrateSavedConfig,
+  normalizeCycleIntervalSeconds
 } from './state.js';
 
 import {
@@ -614,6 +615,16 @@ function updateGoalSelectionUI(state) {
   const goalInput = container.querySelector('#goal-input');
   if (goalInput && document.activeElement !== goalInput && goalInput.value !== (state.goal || '')) {
     goalInput.value = state.goal || '';
+  }
+
+  const cycleIntervalInput = container.querySelector('#cycle-interval-seconds');
+  const cycleIntervalValue = String(normalizeCycleIntervalSeconds(state.cycleIntervalSeconds));
+  if (
+    cycleIntervalInput
+    && document.activeElement !== cycleIntervalInput
+    && cycleIntervalInput.value !== cycleIntervalValue
+  ) {
+    cycleIntervalInput.value = cycleIntervalValue;
   }
 
   const environmentInput = container.querySelector('#environment-input');
@@ -1219,6 +1230,13 @@ function handleInput(e) {
         }
       });
       break;
+
+    case 'cycle-interval-seconds': {
+      const cycleIntervalSeconds = normalizeCycleIntervalSeconds(value);
+      setState({ cycleIntervalSeconds });
+      getReploidStorage().setItem('REPLOID_CYCLE_INTERVAL_SECONDS', String(cycleIntervalSeconds));
+      break;
+    }
 
     case 'environment-input':
       setState({

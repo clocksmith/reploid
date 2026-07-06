@@ -6,7 +6,7 @@
  * caller-provided public handle/session.
  */
 
-import { hashJson } from './inference-receipt.js';
+import { hashJson, sha256Hex } from './inference-receipt.js';
 import { collectRuntimeProfile } from './runtime-profile.js';
 import { BROWSER_RUNTIME_CONFIG } from './config.js';
 import { validateModelRuntimeCapabilities } from './model-contract.js';
@@ -30,6 +30,22 @@ const identityValuesMatch = (field, expected, actual) => {
     return normalizeHashIdentity(expected) === normalizeHashIdentity(actual);
   }
   return expected === actual;
+};
+
+const computeManifestShardSetHash = async (manifest = {}) => {
+  const shards = Array.isArray(manifest?.shards) ? manifest.shards : [];
+  if (shards.length === 0) return null;
+  const shardHashInput = shards
+    .map((shard) => {
+      const filename = typeof shard?.filename === 'string' ? shard.filename : '';
+      const size = Number.isFinite(Number(shard?.size)) ? Number(shard.size) : '';
+      const hash = typeof shard?.hash === 'string'
+        ? shard.hash
+        : (typeof shard?.blake3 === 'string' ? shard.blake3 : '');
+      return `${filename}:${size}:${hash}`;
+    })
+    .join('\n');
+  return sha256Hex(shardHashInput);
 };
 
 const isBrowserResolvableSpecifier = (specifier) => (
@@ -279,6 +295,7 @@ const getHandleModelEvidence = async (handle) => {
   const modelHash = manifest?.modelHash
     || manifest?.artifactIdentity?.weightPackHash
     || manifest?.artifactIdentity?.shardSetHash
+    || (manifest ? await computeManifestShardSetHash(manifest) : null)
     || handle?.modelHash
     || handle?.hash
     || handle?.model?.modelHash

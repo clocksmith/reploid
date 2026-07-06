@@ -1140,12 +1140,10 @@ const renderPolicyOptions = () => listPolicies().map((policy) => `
   <option value="${escapeHtml(policy.policyId)}">${escapeHtml(renderPolicyProductLabel(policy))} - ${escapeHtml(renderPolicyTrustLabel(policy))}</option>
 `).join('');
 
-const renderModelOptions = () => listPoolModels().map((model) => {
-  const enabled = model.enabled !== false && model.modelHash && model.manifestHash;
+const renderModelOptions = () => listPoolModels({ enabledOnly: true }).map((model) => {
   const label = model.label || model.modelId;
-  const suffix = enabled ? '' : ` - ${model.unavailableReason || 'not enabled'}`;
   const selected = model.modelId === LAUNCH_MODEL.modelId ? ' selected' : '';
-  return `<option value="${escapeHtml(model.modelId)}"${enabled ? '' : ' disabled'}${selected}>${escapeHtml(`${label}${suffix}`)}</option>`;
+  return `<option value="${escapeHtml(model.modelId)}"${selected}>${escapeHtml(label)}</option>`;
 }).join('');
 
 const renderFlowLabels = () => POOLDAY_FLOW_LABELS.map((item) => `

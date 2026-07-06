@@ -35,7 +35,7 @@ async function bootToDashboard(page, goal = 'Test dashboard') {
     const write = (k, v) => {
       localStorage.setItem(k, v);
       if (instanceId) {
-        localStorage.setItem(`${instanceId}:${k}`, v);
+        localStorage.setItem(`REPLOID_INSTANCE_${instanceId}::${k}`, v);
       }
     };
     write('SELECTED_MODELS', JSON.stringify([{

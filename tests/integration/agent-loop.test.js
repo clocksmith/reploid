@@ -750,6 +750,46 @@ describe('AgentLoop - Integration Tests', () => {
       }));
     });
 
+    it('should wait the configured interval between successful cycles', async () => {
+      vi.useFakeTimers();
+      vi.setSystemTime(0);
+      agentLoop.setModel({
+        id: 'primary-model',
+        provider: 'gemini',
+        agentCycleThrottle: {
+          cycleIntervalMs: 1500
+        }
+      });
+      const callTimes = [];
+      mockResponseParser.isDone.mockImplementation((content) => content === 'DONE');
+      mockLLMClient.chat.mockImplementation(async () => {
+        callTimes.push(Date.now());
+        return { content: callTimes.length === 1 ? 'continue' : 'DONE', usage: {} };
+      });
+
+      const runPromise = agentLoop.run('Throttle cycles');
+      await flushPromises();
+
+      expect(mockLLMClient.chat).toHaveBeenCalledTimes(1);
+      await vi.advanceTimersByTimeAsync(1499);
+      expect(mockLLMClient.chat).toHaveBeenCalledTimes(1);
+
+      await vi.advanceTimersByTimeAsync(1);
+      await runPromise;
+
+      expect(mockLLMClient.chat).toHaveBeenCalledTimes(2);
+      expect(callTimes).toEqual([0, 1500]);
+      expect(mockEventBus.emit).toHaveBeenCalledWith('agent:history', expect.objectContaining({
+        type: 'cycle_throttle',
+        throttleDelayMs: 1500,
+        nextCycle: 2
+      }));
+      expect(mockEventBus.emit).toHaveBeenCalledWith('agent:status', expect.objectContaining({
+        state: 'WAITING',
+        nextCycle: 2
+      }));
+    });
+
     it('should park instead of throwing when every provider candidate is unavailable', async () => {
       agentLoop.setModel({ id: 'primary-model', provider: 'gemini' });
       mockLLMClient.chat.mockRejectedValue(Object.assign(new Error('API Error 503'), { status: 503 }));

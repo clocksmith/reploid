@@ -28,6 +28,10 @@ const escapeText = (value) => String(value || '')
   .replace(/"/g, '&quot;');
 
 const escapeAttr = (value) => escapeText(value).replace(/'/g, '&#39;');
+const normalizeCycleIntervalSeconds = (value) => {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? Math.min(3600, Math.max(0, Math.floor(parsed))) : 0;
+};
 const hasOwn = (value, key) => Object.prototype.hasOwnProperty.call(value || {}, key);
 const isEditableSeedPath = (path) => EDITABLE_SEED_PATH_PREFIXES
   .some((prefix) => String(path || '').startsWith(prefix));
@@ -417,6 +421,9 @@ export function renderGoalStep(state, options = {}) {
   const generatorSource = state.goalGenerator?.source || null;
   const generating = generatorStatus === 'generating';
   const showReploidEnvironment = state.mode === 'reploid';
+  const showCycleThrottle = options.showCycleThrottle === true
+    || (options.showCycleThrottle !== false && (state.mode === 'zero' || state.mode === 'x'));
+  const cycleIntervalSeconds = normalizeCycleIntervalSeconds(state.cycleIntervalSeconds);
   const bootPayload = state.bootPayload || {};
   const showExpandedReploidInternals = showReploidEnvironment && !hideBootInternals;
   const explorer = showExpandedReploidInternals ? buildSelfBrowserData(state) : null;
@@ -540,6 +547,21 @@ export function renderGoalStep(state, options = {}) {
                       maxlength="500"
                       rows="3"
                       placeholder="${escapeAttr(goalPlaceholder)}">${escapeText(goalValue)}</textarea>
+            ${showCycleThrottle ? `
+              <label class="cycle-interval-control" for="cycle-interval-seconds">
+                <span>
+                  <span class="type-label">Seconds between cycles</span>
+                  <span class="type-caption">Applied after each completed cycle before the next model call.</span>
+                </span>
+                <input id="cycle-interval-seconds"
+                       type="number"
+                       min="0"
+                       max="3600"
+                       step="1"
+                       inputmode="numeric"
+                       value="${cycleIntervalSeconds}" />
+              </label>
+            ` : ''}
             ${(generatorError || (generatorStatus === 'ready' && generatedStatusText)) ? `
               <div class="goal-toolbar-status type-caption">
                 ${generatorError ? `Error: ${escapeText(generatorError)}` : escapeText(generatedStatusText)}

@@ -149,8 +149,14 @@ describe('poolday home navigation', () => {
 
     expect(askHtml).toContain('<option value="qwen-3-5-0-8b-q4k-ehaf16" selected>Qwen 3.5 0.8B</option>');
     expect(computeHtml).toContain('<option value="qwen-3-5-0-8b-q4k-ehaf16" selected>Qwen 3.5 0.8B</option>');
+    expect(askHtml).toContain('<option value="gemma-4-e2b-it-q4k-ehf16-af32-int4ple">Gemma 4 E2B INT4 PLE</option>');
+    expect(computeHtml).toContain('<option value="gemma-4-e2b-it-q4k-ehf16-af32-int4ple">Gemma 4 E2B INT4 PLE</option>');
+    expect(askHtml).not.toContain('gemma-3-1b-it-q4k-ehf16-af32');
+    expect(computeHtml).not.toContain('gemma-3-1b-it-q4k-ehf16-af32');
     expect(askHtml).not.toContain('<option value="gemma-3-270m-it-q4k-ehf16-af32" selected>');
     expect(computeHtml).not.toContain('<option value="gemma-3-270m-it-q4k-ehf16-af32" selected>');
+    expect(askHtml).not.toMatch(/<option[^>]+disabled/);
+    expect(computeHtml).not.toMatch(/<option[^>]+disabled/);
   });
 
   it('renders Ask as answer-first with contributor and full-result layers', () => {

@@ -10,6 +10,7 @@ import {
   getStoredSwarmEnabled,
   getState,
   hydrateSavedConfig,
+  normalizeCycleIntervalSeconds,
   resetWizard,
   saveConfig,
   setNestedState,
@@ -467,6 +468,7 @@ const getHomeRenderSignature = (state) => {
     proxyConfig: state.proxyConfig,
     dopplerConfig: state.dopplerConfig,
     goalGenerator: state.goalGenerator,
+    cycleIntervalSeconds: normalizeCycleIntervalSeconds(state.cycleIntervalSeconds),
     selectedGoalCategory: state.selectedGoalCategory,
     goalShuffleSeed: state.goalShuffleSeed,
     goalPresetsOpen: !!state.goalPresetsOpen,
@@ -509,7 +511,7 @@ const getHomeRenderSignature = (state) => {
 const syncInputValue = (id, value) => {
   const input = document.getElementById(id);
   if (!input || document.activeElement === input) return;
-  const nextValue = String(value || '');
+  const nextValue = String(value ?? '');
   if ('value' in input && input.value !== nextValue) {
     input.value = nextValue;
   }
@@ -519,6 +521,7 @@ const updateInteractiveUi = (state) => {
   if (!container) return;
 
   syncInputValue('goal-input', state.goal || '');
+  syncInputValue('cycle-interval-seconds', normalizeCycleIntervalSeconds(state.cycleIntervalSeconds));
 
   const awakenBtn = container.querySelector('#awaken-btn');
   if (!awakenBtn) return;
@@ -942,6 +945,13 @@ function handleInput(event) {
         }
       });
       break;
+
+    case 'cycle-interval-seconds': {
+      const cycleIntervalSeconds = normalizeCycleIntervalSeconds(value);
+      setState({ cycleIntervalSeconds });
+      getReploidStorage().setItem('REPLOID_CYCLE_INTERVAL_SECONDS', String(cycleIntervalSeconds));
+      break;
+    }
 
     case 'reploid-access-code':
       setNestedState('accessConfig', {

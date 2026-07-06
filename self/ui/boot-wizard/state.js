@@ -42,6 +42,15 @@ export const VERIFY_STATE = {
   FAILED: 'failed'
 };
 
+export const DEFAULT_CYCLE_INTERVAL_SECONDS = 0;
+export const MAX_CYCLE_INTERVAL_SECONDS = 3600;
+
+export const normalizeCycleIntervalSeconds = (value, fallback = DEFAULT_CYCLE_INTERVAL_SECONDS) => {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) return fallback;
+  return Math.min(MAX_CYCLE_INTERVAL_SECONDS, Math.max(0, Math.floor(parsed)));
+};
+
 // Provider test endpoints
 export const PROVIDER_TEST_ENDPOINTS = {
   anthropic: {
@@ -181,6 +190,14 @@ const getStoredEnvironmentTemplateId = () => {
     : (findReploidEnvironmentTemplateId(storedText) || null);
 };
 
+const getStoredCycleIntervalSeconds = () => {
+  const storage = getReploidStorage();
+  if (!storage.raw) {
+    return DEFAULT_CYCLE_INTERVAL_SECONDS;
+  }
+  return normalizeCycleIntervalSeconds(storage.getItem('REPLOID_CYCLE_INTERVAL_SECONDS'));
+};
+
 export const DEFAULT_SWARM_ENABLED = true;
 
 export const getStoredSwarmEnabled = () => {
@@ -257,6 +274,7 @@ const defaultState = {
   goal: getStoredGoal(),
   environment: getStoredEnvironment(),
   selectedEnvironmentTemplate: getStoredEnvironmentTemplateId(),
+  cycleIntervalSeconds: getStoredCycleIntervalSeconds(),
   swarmEnabled: getStoredSwarmEnabled(),
   selectedGoalCategory: null,
   goalShuffleSeed: 0,
@@ -361,6 +379,7 @@ export function resetWizard() {
     goal: getStoredGoal(),
     environment: getStoredEnvironment(),
     selectedEnvironmentTemplate: getStoredEnvironmentTemplateId(),
+    cycleIntervalSeconds: getStoredCycleIntervalSeconds(),
     swarmEnabled: getStoredSwarmEnabled(),
     selectedGoalCategory: null,
     goalShuffleSeed: 0,
@@ -503,8 +522,16 @@ export function hydrateSavedConfig(saved, apiKey = null) {
 export function saveConfig() {
   const { directConfig, proxyConfig, dopplerConfig, connectionType, mode, advancedConfig } = state;
   const storage = getReploidStorage();
+  const cycleIntervalSeconds = normalizeCycleIntervalSeconds(state.cycleIntervalSeconds);
 
   const models = [];
+  const withCycleThrottle = (model) => ({
+    ...model,
+    agentCycleThrottle: {
+      cycleIntervalMs: cycleIntervalSeconds * 1000,
+      cycleIntervalSeconds
+    }
+  });
 
   storage.setItem('REPLOID_MODE', normalizeBootMode(mode));
   storage.setItem(
@@ -527,7 +554,7 @@ export function saveConfig() {
       storage.setItem(`REPLOID_KEY_${directConfig.provider.toUpperCase()}`, directConfig.apiKey);
     }
 
-    models.push(model);
+    models.push(withCycleThrottle(model));
   }
 
   if (connectionType === 'proxy' && proxyConfig.model) {
@@ -546,17 +573,17 @@ export function saveConfig() {
       model.maxIterations = ZERO_MANAGED_MAX_ITERATIONS;
       model.managedServerProxy = true;
     }
-    models.push(model);
+    models.push(withCycleThrottle(model));
   }
 
   if (connectionType === 'browser' && dopplerConfig.model) {
-    models.push({
+    models.push(withCycleThrottle({
       id: dopplerConfig.model,
       name: dopplerConfig.model,
       provider: 'doppler',
       queryMethod: 'browser',
       hostType: 'browser-local'
-    });
+    }));
   }
 
   if (models.length > 0) {
@@ -584,6 +611,7 @@ export function saveConfig() {
     'REPLOID_SWARM_ENABLED',
     state.swarmEnabled ? 'true' : 'false'
   );
+  storage.setItem('REPLOID_CYCLE_INTERVAL_SECONDS', String(cycleIntervalSeconds));
   storage.removeItem('REPLOID_GOAL_CRITERIA', { removeLegacy: true });
 }
 
@@ -609,6 +637,7 @@ export function forgetDevice() {
     'REPLOID_ENVIRONMENT',
     'REPLOID_ENVIRONMENT_TEMPLATE',
     'REPLOID_SWARM_ENABLED',
+    'REPLOID_CYCLE_INTERVAL_SECONDS',
     'REPLOID_GOAL_CRITERIA'
   ];
 

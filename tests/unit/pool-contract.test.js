@@ -47,6 +47,7 @@ const makeJob = (overrides = {}) => ({
 });
 
 const QWEN_MODEL_ID = 'qwen-3-5-0-8b-q4k-ehaf16';
+const GEMMA4_INT4_PLE_MODEL_ID = 'gemma-4-e2b-it-q4k-ehf16-af32-int4ple';
 
 const modelRequirementsFor = (model) => ({
   modelId: model.modelId,
@@ -189,6 +190,42 @@ describe('pool launch contract', () => {
       manifest: 'https://huggingface.co/Clocksmith/rdrr/resolve/a6118fb24a8e6c4fe7527f1a3dc7b406e0a3ef10/models/qwen-3-5-0-8b-q4k-ehaf16/manifest.json',
       tokenizer: 'https://huggingface.co/Clocksmith/rdrr/resolve/a6118fb24a8e6c4fe7527f1a3dc7b406e0a3ef10/models/qwen-3-5-0-8b-q4k-ehaf16/tokenizer.json',
       shards: 'https://huggingface.co/Clocksmith/rdrr/resolve/a6118fb24a8e6c4fe7527f1a3dc7b406e0a3ef10/models/qwen-3-5-0-8b-q4k-ehaf16/'
+    });
+  });
+
+  it('accepts Gemma 4 E2B INT4 PLE as an enabled Poolday model contract', () => {
+    const serverModel = getServerEnabledPoolModelContract(GEMMA4_INT4_PLE_MODEL_ID);
+    const browserModel = getBrowserEnabledPoolModelContract(GEMMA4_INT4_PLE_MODEL_ID);
+    expect(serverModel).toMatchObject({
+      modelId: GEMMA4_INT4_PLE_MODEL_ID,
+      modelHash: 'sha256:7ae3b0075c41d6e846944a4dde8460b214d34d45c27aa49b214b87f18e63a32b',
+      manifestHash: 'sha256:d3bd97d3f9065d2950cbee4267b93f345eabbb626eb7b8b9c96c9b0f590b6264',
+      tokenizerHash: 'sha256:4453a86456cdf02b3c8f79091ffda7ca017619ff5da495b9eda12141d5793962',
+      runtime: 'doppler',
+      backend: 'browser-webgpu',
+      enabled: true
+    });
+    expect(serverModel.label).toBe('Gemma 4 E2B INT4 PLE');
+    expect(serverModel.dopplerLoadRef).toBe(GEMMA4_INT4_PLE_MODEL_ID);
+    expect(browserModel).toEqual(serverModel);
+
+    for (const policyId of ['fastest_receipt', 'canary_audited', 'redundant_agreement', 'ring_quorum_receipt']) {
+      expect(getPolicy(policyId).allowedModels).toContain(GEMMA4_INT4_PLE_MODEL_ID);
+    }
+
+    expect(validateJobRequest(makeJob({
+      modelRequirements: modelRequirementsFor(serverModel)
+    }))).toMatchObject({ ok: true });
+    expect(validatePolicyRequest({
+      modelRequirements: modelRequirementsFor(browserModel),
+      generationConfig: { ...BROWSER_GENERATION_CONFIG }
+    })).toMatchObject({ ok: true });
+
+    expect(buildModelArtifactUrls(browserModel)).toEqual({
+      root: 'https://huggingface.co/Clocksmith/rdrr/resolve/dbb354acb00108965c5324ca7b6fecc198d12501/models/gemma-4-e2b-it-q4k-ehf16-af32-int4ple',
+      manifest: 'https://huggingface.co/Clocksmith/rdrr/resolve/dbb354acb00108965c5324ca7b6fecc198d12501/models/gemma-4-e2b-it-q4k-ehf16-af32-int4ple/manifest.json',
+      tokenizer: 'https://huggingface.co/Clocksmith/rdrr/resolve/dbb354acb00108965c5324ca7b6fecc198d12501/models/gemma-4-e2b-it-q4k-ehf16-af32-int4ple/tokenizer.json',
+      shards: 'https://huggingface.co/Clocksmith/rdrr/resolve/dbb354acb00108965c5324ca7b6fecc198d12501/models/gemma-4-e2b-it-q4k-ehf16-af32-int4ple/'
     });
   });
 
