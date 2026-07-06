@@ -74,7 +74,8 @@ describe('AgentLoop - Integration Tests', () => {
 
     mockStateManager = {
       setGoal: vi.fn().mockResolvedValue(true),
-      incrementCycle: vi.fn().mockResolvedValue(1)
+      incrementCycle: vi.fn().mockResolvedValue(1),
+      getState: vi.fn().mockReturnValue({ config: {} })
     };
 
     mockPersonaManager = {
@@ -117,6 +118,12 @@ describe('AgentLoop - Integration Tests', () => {
     };
   };
 
+  const flushPromises = async (passes = 8) => {
+    for (let pass = 0; pass < passes; pass++) {
+      await Promise.resolve();
+    }
+  };
+
   beforeEach(() => {
     createMocks();
     agentLoop = AgentLoopModule.factory({
@@ -148,6 +155,7 @@ describe('AgentLoop - Integration Tests', () => {
   afterEach(() => {
     vi.clearAllMocks();
     vi.clearAllTimers();
+    vi.useRealTimers();
     vi.unstubAllGlobals();
   });
 
@@ -252,6 +260,9 @@ describe('AgentLoop - Integration Tests', () => {
       expect(prompt).toContain('ListFiles: enumerate roots and directories before relying on named paths');
       expect(prompt).toContain('Default to batched discovery: combine independent read-only calls in the same response.');
       expect(prompt).toContain('Good first Zero discovery batch: ListFiles path: /, ListTools {}, and ReadFile path: /blueprint-index.json.');
+      expect(prompt).toContain('Do not put comments, markdown, or explanatory prose inside a tool block.');
+      expect(prompt).toContain('CreateTool code must export a tool contract and an async default function.');
+      expect(prompt).toContain('Valid Promote syntax is candidatePath: /shadow/tools/MyTool.js, targetPath: /self/tools/MyTool.js, evidencePath: /artifacts/MyTool-evidence.json.');
       expect(prompt).toContain('Do not read /self/manifest.json or /self/self.json; those are not Zero tool paths.');
       expect(prompt).not.toContain('Use root-scoped VFS source paths for reads: /core, /config, /tools, /ui, /styles, /boot-helpers, /blueprint-index.json, and /blueprints.');
     });
@@ -704,6 +715,41 @@ describe('AgentLoop - Integration Tests', () => {
       }));
     });
 
+    it('should throttle provider requests from model config', async () => {
+      vi.useFakeTimers();
+      vi.setSystemTime(0);
+      agentLoop.setModel({
+        id: 'primary-model',
+        provider: 'gemini',
+        agentThrottle: {
+          minProviderRequestIntervalMs: 1000
+        }
+      });
+      const callTimes = [];
+      mockResponseParser.isDone.mockImplementation((content) => content === 'DONE');
+      mockLLMClient.chat.mockImplementation(async () => {
+        callTimes.push(Date.now());
+        return { content: callTimes.length === 1 ? 'continue' : 'DONE', usage: {} };
+      });
+
+      const runPromise = agentLoop.run('Throttle provider');
+      await flushPromises();
+
+      expect(mockLLMClient.chat).toHaveBeenCalledTimes(1);
+      await vi.advanceTimersByTimeAsync(999);
+      expect(mockLLMClient.chat).toHaveBeenCalledTimes(1);
+
+      await vi.advanceTimersByTimeAsync(1);
+      await runPromise;
+
+      expect(mockLLMClient.chat).toHaveBeenCalledTimes(2);
+      expect(callTimes).toEqual([0, 1000]);
+      expect(mockEventBus.emit).toHaveBeenCalledWith('agent:history', expect.objectContaining({
+        type: 'provider_throttle',
+        throttleDelayMs: 1000
+      }));
+    });
+
     it('should park instead of throwing when every provider candidate is unavailable', async () => {
       agentLoop.setModel({ id: 'primary-model', provider: 'gemini' });
       mockLLMClient.chat.mockRejectedValue(Object.assign(new Error('API Error 503'), { status: 503 }));
@@ -716,6 +762,66 @@ describe('AgentLoop - Integration Tests', () => {
       }));
       expect(mockEventBus.emit).toHaveBeenCalledWith('agent:status', expect.objectContaining({
         state: 'PARKED'
+      }));
+      expect(agentLoop.getProviderRetryState()).toEqual(expect.objectContaining({
+        providerRetryAttempt: 1
+      }));
+
+      agentLoop.stop();
+    });
+
+    it('should auto-resume parked provider requests with exponential backoff', async () => {
+      vi.useFakeTimers();
+      vi.spyOn(Math, 'random').mockReturnValue(0);
+      agentLoop.setModel({
+        id: 'primary-model',
+        provider: 'gemini',
+        agentThrottle: {
+          providerBackoffBaseMs: 1000,
+          providerBackoffMaxMs: 8000,
+          providerBackoffJitterRatio: 0
+        }
+      });
+      mockResponseParser.isDone.mockImplementation((content) => content === 'DONE');
+      mockLLMClient.chat
+        .mockRejectedValueOnce(Object.assign(new Error('API Error 429'), { status: 429 }))
+        .mockRejectedValueOnce(Object.assign(new Error('API Error 429'), { status: 429 }))
+        .mockResolvedValueOnce({ content: 'DONE', usage: {} });
+
+      await agentLoop.run('Resume provider');
+
+      expect(mockLLMClient.chat).toHaveBeenCalledTimes(1);
+      const firstRetry = agentLoop.getProviderRetryState();
+      expect(firstRetry).toMatchObject({
+        goal: 'Resume provider',
+        iteration: 1,
+        providerRetryAttempt: 1,
+        delayMs: 1000
+      });
+
+      await vi.advanceTimersByTimeAsync(firstRetry.delayMs);
+      await agentLoop.getProviderResumePromise();
+
+      expect(mockLLMClient.chat).toHaveBeenCalledTimes(2);
+      const secondRetry = agentLoop.getProviderRetryState();
+      expect(secondRetry).toMatchObject({
+        goal: 'Resume provider',
+        iteration: 2,
+        providerRetryAttempt: 2,
+        delayMs: 2000
+      });
+      expect(secondRetry.delayMs).toBeGreaterThan(firstRetry.delayMs);
+
+      await vi.advanceTimersByTimeAsync(secondRetry.delayMs);
+      await agentLoop.getProviderResumePromise();
+
+      expect(mockLLMClient.chat).toHaveBeenCalledTimes(3);
+      expect(agentLoop.getProviderRetryState()).toBe(null);
+      expect(mockEventBus.emit).toHaveBeenCalledWith('agent:history', expect.objectContaining({
+        type: 'provider_resume'
+      }));
+      expect(mockEventBus.emit).toHaveBeenCalledWith('agent:status', expect.objectContaining({
+        state: 'IDLE'
       }));
     });
   });

@@ -7,23 +7,49 @@ import { test, expect } from '@playwright/test';
 
 // Helper to configure model and boot into dashboard
 async function bootToDashboard(page, goal = 'Test dashboard') {
-  await page.goto('/');
-  await page.waitForSelector('#boot-container', { timeout: 10000 });
+  page.on('console', (msg) => {
+    const text = msg.text();
+    if (text.includes('Failed to load resource')) return;
+    console.log(`[BROWSER CONSOLE] ${msg.type()}: ${text}`);
+  });
+  await page.goto('/x');
+  await page.evaluate(async () => {
+    localStorage.clear();
+    sessionStorage.clear();
+    if (window.indexedDB && window.indexedDB.databases) {
+      const dbs = await window.indexedDB.databases();
+      for (const db of dbs) {
+        if (db.name && db.name.startsWith('reploid-vfs-v0')) {
+          window.indexedDB.deleteDatabase(db.name);
+        }
+      }
+    }
+  });
+  await page.goto('/x');
+  await page.waitForSelector('#wizard-container', { timeout: 10000 });
 
   // Configure a model via localStorage (simulates having selected a model)
   await page.evaluate(() => {
-    localStorage.setItem('SELECTED_MODELS', JSON.stringify([{
+    const key = 'REPLOID_TAB_INSTANCE_ID:/x';
+    const instanceId = sessionStorage.getItem(key);
+    const write = (k, v) => {
+      localStorage.setItem(k, v);
+      if (instanceId) {
+        localStorage.setItem(`${instanceId}:${k}`, v);
+      }
+    };
+    write('SELECTED_MODELS', JSON.stringify([{
       id: 'gemini-3.5-flash',
       name: 'Gemini 2.5 Flash',
       provider: 'gemini',
       hostType: 'browser-cloud'
     }]));
-    localStorage.setItem('REPLOID_GENESIS_LEVEL', 'full');
+    write('REPLOID_MODE', 'x');
+    write('REPLOID_GENESIS_LEVEL', 'full');
   });
 
   // Reload to apply config
   await page.reload();
-  await page.waitForSelector('#boot-container', { timeout: 10000 });
 
   // Wait for goal input to be enabled
   await page.waitForSelector('#goal-input:not([disabled])', { timeout: 10000 });
@@ -38,8 +64,8 @@ test.describe('Boot to Dashboard Transition', () => {
   test('transitions from boot to dashboard after awakening', async ({ page }) => {
     await bootToDashboard(page, 'Test transition');
 
-    // Boot container should be removed
-    await expect(page.locator('#boot-container')).toHaveCount(0, { timeout: 10000 });
+    // Wizard container should be hidden
+    await expect(page.locator('#wizard-container')).toBeHidden({ timeout: 10000 });
 
     // App should be active
     await expect(page.locator('#app')).toHaveClass(/active/);
@@ -56,8 +82,8 @@ test.describe('Dashboard Layout', () => {
     await expect(sidebar).toBeVisible();
 
     // Check for tab buttons
-    await expect(page.locator('.sidebar-btn[data-tab="history"]')).toBeVisible();
-    await expect(page.locator('.sidebar-btn[data-tab="reflections"]')).toBeVisible();
+    await expect(page.locator('.sidebar-btn[data-tab="timeline"]')).toBeVisible();
+    await expect(page.locator('.sidebar-btn[data-tab="memory"]')).toBeVisible();
     await expect(page.locator('.sidebar-btn[data-tab="status"]')).toBeVisible();
     await expect(page.locator('#workers-tab-btn')).toBeVisible();
   });
@@ -91,15 +117,15 @@ test.describe('Tab Navigation', () => {
     await bootToDashboard(page);
   });
 
-  test('history tab is active by default', async ({ page }) => {
-    const historyTab = page.locator('.sidebar-btn[data-tab="history"]');
-    await expect(historyTab).toHaveClass(/active/);
-    await expect(page.locator('#tab-history')).toBeVisible();
+  test('timeline tab is active by default', async ({ page }) => {
+    const timelineTab = page.locator('.sidebar-btn[data-tab="timeline"]');
+    await expect(timelineTab).toHaveClass(/active/);
+    await expect(page.locator('#tab-timeline')).toBeVisible();
   });
 
-  test('can switch to reflections tab', async ({ page }) => {
-    await page.click('.sidebar-btn[data-tab="reflections"]');
-    await expect(page.locator('#tab-reflections')).toBeVisible();
+  test('can switch to memory tab', async ({ page }) => {
+    await page.click('.sidebar-btn[data-tab="memory"]');
+    await expect(page.locator('#tab-memory')).toBeVisible();
   });
 
   test('can switch to status tab', async ({ page }) => {
@@ -119,8 +145,8 @@ test.describe('Control Buttons', () => {
     await bootToDashboard(page);
   });
 
-  test('has command palette button', async ({ page }) => {
-    await expect(page.locator('#btn-palette')).toBeVisible();
+  test('has replay button', async ({ page }) => {
+    await expect(page.locator('#btn-replay')).toBeVisible();
   });
 
   test('has stop button', async ({ page }) => {

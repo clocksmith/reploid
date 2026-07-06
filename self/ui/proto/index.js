@@ -9,9 +9,11 @@ import InlineChat from '../components/inline-chat.js';
 
 import { createTelemetryManager } from './telemetry.js';
 import { createReplayManager } from './replay.js';
+import { createWorkerManager } from './workers.js';
 import { formatDuration, formatSince, formatTimestamp, summarizeText } from './utils.js';
 import CognitionPanel from '../panels/cognition-panel.js';
 import { getCurrentReploidStorage as getReploidStorage } from '../../instance.js';
+import { createVFSManager } from './vfs.js';
 
 const Proto = {
   factory: (deps) => {
@@ -23,6 +25,8 @@ const Proto = {
     const replayManager = createReplayManager({ logger, escapeHtml, EventBus });
     const memoryPanel = createMemoryPanel({ logger, escapeHtml, VFS });
     const cognitionPanel = createCognitionPanel({ Utils, EventBus });
+    const workerManager = createWorkerManager({ escapeHtml, WorkerManager: deps.WorkerManager });
+    const vfsManager = createVFSManager({ escapeHtml, logger, Toast, EventBus });
 
     // UI state
     let _root = null;
@@ -30,7 +34,7 @@ const Proto = {
     let _toolsCountEl = null;
     let _inlineChat = null;
     const _toolEntries = [];
-    const TAB_IDS = ['timeline', 'tools', 'telemetry', 'status', 'memory', 'cognition'];
+    const TAB_IDS = ['timeline', 'tools', 'telemetry', 'status', 'memory', 'cognition', 'workers'];
     const MAX_ACTIVE_TABS = 3;
     let _activeTabs = [];
 
@@ -673,7 +677,7 @@ const Proto = {
 
       const workspaceColumns = container.querySelector('#workspace-columns');
       if (workspaceColumns) {
-        workspaceColumns.style.setProperty('--columns', `${_activeTabs.length || 1}`);
+        workspaceColumns.style.setProperty('--columns', `${(_activeTabs.length || 1) + 1}`);
         workspaceColumns.classList.remove('hidden');
         const panels = Array.from(workspaceColumns.querySelectorAll('.workspace-content'))
           .filter((panel) => panel.id && panel.id.startsWith('tab-'));
@@ -691,6 +695,11 @@ const Proto = {
             workspaceColumns.appendChild(panel);
           }
         });
+
+        const vfsPanel = workspaceColumns.querySelector('#vfs-browser');
+        if (vfsPanel) {
+          workspaceColumns.appendChild(vfsPanel);
+        }
       }
 
     };
@@ -959,6 +968,11 @@ const Proto = {
       if (!telemetryManager.isLoaded()) {
         telemetryManager.loadTelemetryHistory();
       }
+      workerManager.renderWorkersPanel();
+
+      if (VFS) {
+        vfsManager.setVFS(VFS);
+      }
 
       // Wire up replay panel
       replayManager.wireEvents();
@@ -1040,6 +1054,12 @@ const Proto = {
         }
       }));
       _subscriptionIds.push(EventBus.on('telemetry:event', telemetryManager.appendTelemetryEntry));
+      _subscriptionIds.push(EventBus.on('worker:spawned', (data) => workerManager.handleWorkerSpawned(data)));
+      _subscriptionIds.push(EventBus.on('worker:started', (data) => workerManager.handleWorkerSpawned(data)));
+      _subscriptionIds.push(EventBus.on('worker:progress', (data) => workerManager.handleWorkerProgress(data)));
+      _subscriptionIds.push(EventBus.on('worker:completed', (data) => workerManager.handleWorkerCompleted(data)));
+      _subscriptionIds.push(EventBus.on('worker:error', (data) => workerManager.handleWorkerError(data)));
+      _subscriptionIds.push(EventBus.on('worker:terminated', (data) => workerManager.handleWorkerTerminated(data)));
 
       _subscriptionIds.push(EventBus.on('context:compacted', (data = {}) => {
         Toast.info('Context Compacted', 'Conversation summarized to save tokens', { duration: 3000 });

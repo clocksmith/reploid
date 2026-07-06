@@ -57,6 +57,10 @@ describe('RD stylesheet ownership', () => {
     expect(poolday).toMatch(/\.pool-simulation-shell\s*\{[\s\S]*?overflow: hidden;/);
     expect(poolday).toMatch(/\.pool-simulation-shell\s*\{[\s\S]*?background: var\(--bg\);/);
     expect(poolday).toMatch(/\.pool-simulation-canvas\s*\{[\s\S]*?background: var\(--bg\);/);
+    expect(poolday).toMatch(/\.pool-room-details\s*\{[\s\S]*?flex: 0 0 auto;/);
+    expect(poolday).toMatch(/\.pool-room-details\[open\]\s*\{[\s\S]*?display: flex;/);
+    expect(poolday).toMatch(/@media \(max-width: 720px\)\s*\{[\s\S]*?\.pool-room-details\[open\]\s*\{[\s\S]*?display: grid;/);
+    expect(poolday).toMatch(/@media \(max-width: 720px\)\s*\{[\s\S]*?\.pool-ledger table\s*\{[\s\S]*?table-layout: fixed;/);
     expect(poolday).toContain('family=Michroma');
     expect(poolday).toContain('.pool-home-brand-word');
     expect(poolday).toContain('--pool-wordmark-optical-left');

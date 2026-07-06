@@ -81,6 +81,7 @@ const ensureCapsuleStyles = (version) => {
     link = document.createElement('link');
     link.id = 'runtime-ui-stylesheet';
     link.rel = 'stylesheet';
+    link.crossOrigin = 'anonymous';
     document.head.appendChild(link);
   }
   link.href = withSourceQuery(SELF_BOOT_SPEC.runtime.uiStylePath, {

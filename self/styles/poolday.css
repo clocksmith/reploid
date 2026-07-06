@@ -724,10 +724,8 @@ body[data-pool-route-id='home'] #app {
 }
 
 .pool-room-details {
-  display: inline-flex;
   min-width: 0;
-  flex: 1 1 100%;
-  gap: var(--space-sm);
+  flex: 0 0 auto;
 }
 
 .pool-room-details:not([open]) {
@@ -743,6 +741,10 @@ body[data-pool-route-id='home'] #app {
 }
 
 .pool-room-details[open] {
+  display: flex;
+  flex: 1 1 100%;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
   padding-top: 8px;
   border-top: 1px solid color-mix(in srgb, var(--fg), transparent 88%);
 }
@@ -1723,6 +1725,54 @@ body[data-pool-route-id='home'] #app {
     width: auto;
   }
 
+  .pool-route-shell {
+    width: 100%;
+    min-width: 0;
+    padding: var(--space-md);
+  }
+
+  .pool-room-strip {
+    align-items: stretch;
+    gap: 7px;
+    padding: 8px;
+  }
+
+  .pool-room-item {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .pool-room-item code {
+    max-width: min(58vw, 17ch);
+  }
+
+  .pool-room-link {
+    min-height: 40px;
+    display: inline-flex;
+    align-items: center;
+  }
+
+  .pool-room-details {
+    flex: 1 1 100%;
+    max-width: 100%;
+  }
+
+  .pool-room-details summary {
+    min-height: 40px;
+    display: flex;
+    align-items: center;
+  }
+
+  .pool-room-details[open] {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+
+  .pool-room-details[open] summary {
+    margin-right: 0;
+  }
+
   .pool-home-cta-row,
   .pool-route-cta-row {
     align-items: center;
@@ -1873,6 +1923,36 @@ body[data-pool-route-id='home'] #app {
   .pool-record-layout,
   .pool-advanced-grid {
     grid-template-columns: 1fr;
+  }
+
+  .pool-ledger-shell {
+    min-width: 0;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .pool-ledger table {
+    table-layout: fixed;
+  }
+
+  .pool-ledger th,
+  .pool-ledger td {
+    max-width: 0;
+    overflow: hidden;
+    padding: 7px 5px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .pool-form,
+  .pool-record-ledgers,
+  .pool-record-query,
+  .pool-run-compose,
+  .pool-run-output,
+  .pool-provider-main,
+  .pool-provider-live,
+  .pool-inspector-shell {
+    min-width: 0;
   }
 
   .pool-run-output,

@@ -274,6 +274,7 @@ async function ensureBootPayloadLoaded() {
  * Initialize wizard
  */
 export function initWizard(containerEl) {
+  console.log(`[BOOT DEBUG] initWizard: state.mode=${getState().mode}`);
   container = containerEl;
   listenersAttached = false;
   isInitialRender = true;
@@ -307,6 +308,7 @@ function handleStart() {
  */
 function autoSelectConnectionType() {
   const state = getState();
+  console.log(`[BOOT DEBUG] autoSelectConnectionType: state.mode=${state.mode}`);
   if (state.connectionType) return; // Already selected
 
   const { detection, savedConfig } = state;
@@ -1458,6 +1460,7 @@ async function shouldResetReploidVfs(state) {
 
 async function doAwaken() {
   const state = getState();
+  console.log(`[BOOT DEBUG] doAwaken: state.mode=${state.mode}`);
   const goalPacket = formatGoalPacket(state.goal);
   if (!goalPacket) return;
 

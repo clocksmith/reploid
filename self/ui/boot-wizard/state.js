@@ -73,6 +73,11 @@ const getStoredMode = () => {
     const routeMode = normalizeBootMode(window.getReploidRouteMode(), '');
     if (routeMode) return routeMode;
   }
+  const storage = getReploidStorage();
+  if (storage?.raw) {
+    const stored = normalizeBootMode(storage.getItem('REPLOID_MODE', { legacyFallback: false }), '');
+    if (stored) return stored;
+  }
   return DEFAULT_BOOT_MODE;
 };
 

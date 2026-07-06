@@ -474,15 +474,20 @@ export async function seedVfsFromManifest(manifest, options = {}) {
 
   const fetchFile = async (file) => {
     const webPath = toWebPath(file);
-    const response = await fetch(webPath, {
-      cache: 'no-store',
-      headers: { [VFS_BYPASS_HEADER]: '1' }
-    });
-    if (!response.ok) {
-      throw new Error(`Failed to fetch ${webPath} (${response.status})`);
+    try {
+      const response = await fetch(webPath, {
+        cache: 'no-store',
+        headers: { [VFS_BYPASS_HEADER]: '1' }
+      });
+      if (!response.ok) {
+        throw new Error(`Failed to fetch ${webPath} (${response.status})`);
+      }
+      const content = await response.text();
+      return { path: normalizePath(file), content };
+    } catch (err) {
+      console.error(`[VFS BOOTSTRAP ERROR] fetchFile failed for ${webPath}:`, err);
+      throw err;
     }
-    const content = await response.text();
-    return { path: normalizePath(file), content };
   };
 
   if (filesToFetch.length > 0) {

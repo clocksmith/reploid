@@ -17,28 +17,76 @@ import {
   textBytes
 } from '../core/promotion-policy.js';
 
+const pickArg = (args, keys) => {
+  for (const key of keys) {
+    const value = args?.[key];
+    if (typeof value === 'string' && value.trim()) return value;
+  }
+  return '';
+};
+
+const resolvePromotePath = (args, keys, label, hint) => {
+  const rawPath = pickArg(args, keys);
+  if (!rawPath) {
+    return {
+      path: '',
+      error: `${label} missing. ${hint}`
+    };
+  }
+
+  try {
+    return { path: normalizePath(rawPath), error: null };
+  } catch (error) {
+    return {
+      path: '',
+      error: `${label} invalid: ${error.message}`
+    };
+  }
+};
+
 export async function promoteShadowCandidate(args = {}, deps = {}) {
   const { VFS, EventBus, AuditLogger, logger } = deps;
   if (!VFS) throw new Error('VFS not available');
 
-  const candidatePath = normalizePath(args.candidatePath || args.path);
-  const targetPath = normalizePath(args.targetPath || args.target);
-  const evidencePath = normalizePath(args.evidencePath || args.tracePath);
+  const candidate = resolvePromotePath(
+    args,
+    ['candidatePath', 'source', 'sourcePath', 'from', 'src', 'candidate', 'path'],
+    'candidatePath',
+    'Use candidatePath: /shadow/tools/MyTool.js.'
+  );
+  const target = resolvePromotePath(
+    args,
+    ['targetPath', 'target', 'destination', 'dest', 'to'],
+    'targetPath',
+    'Use targetPath: /self/tools/MyTool.js.'
+  );
+  const evidenceArg = resolvePromotePath(
+    args,
+    ['evidencePath', 'tracePath', 'evidence', 'proofPath'],
+    'evidencePath',
+    'Write evidence under /artifacts and pass evidencePath: /artifacts/MyTool-evidence.json.'
+  );
+  const candidatePath = candidate.path;
+  const targetPath = target.path;
+  const evidencePath = evidenceArg.path;
   const allowTargetPath = typeof deps.allowTargetPath === 'function'
     ? deps.allowTargetPath
     : defaultAllowTargetPath;
 
   const reasons = [];
-  if (!isWithinRoot(candidatePath, '/shadow')) {
+  for (const error of [candidate.error, target.error, evidenceArg.error]) {
+    if (error) reasons.push(error);
+  }
+  if (candidatePath && !isWithinRoot(candidatePath, '/shadow')) {
     reasons.push('candidatePath must be under /shadow');
   }
-  if (!isWithinRoot(targetPath, '/self')) {
+  if (targetPath && !isWithinRoot(targetPath, '/self')) {
     reasons.push('targetPath must be under /self');
   }
-  if (!allowTargetPath(targetPath)) {
+  if (targetPath && !allowTargetPath(targetPath)) {
     reasons.push('targetPath is not allowlisted for Promote');
   }
-  if (!isWithinRoot(evidencePath, '/artifacts')) {
+  if (evidencePath && !isWithinRoot(evidencePath, '/artifacts')) {
     reasons.push('evidencePath must be under /artifacts');
   }
 
@@ -180,14 +228,20 @@ async function call(args = {}, deps = {}) {
 
 export const tool = {
   name: 'Promote',
-  description: 'Promote a /shadow candidate into an allowlisted /self target when evidence JSON says replayPassed is true.',
+  description: 'Promote a /shadow candidate into an allowlisted /self target when evidence JSON says replayPassed is true. Use candidatePath, targetPath, and evidencePath.',
   inputSchema: {
     type: 'object',
     required: ['candidatePath', 'targetPath', 'evidencePath'],
     properties: {
       candidatePath: { type: 'string', description: 'Candidate VFS path under /shadow.' },
       targetPath: { type: 'string', description: 'Allowlisted target VFS path under /self.' },
-      evidencePath: { type: 'string', description: 'Evidence JSON path under /artifacts.' }
+      evidencePath: { type: 'string', description: 'Evidence JSON path under /artifacts.' },
+      source: { type: 'string', description: 'Alias for candidatePath.' },
+      sourcePath: { type: 'string', description: 'Alias for candidatePath.' },
+      target: { type: 'string', description: 'Alias for targetPath.' },
+      destination: { type: 'string', description: 'Alias for targetPath.' },
+      evidence: { type: 'string', description: 'Alias for evidencePath.' },
+      proofPath: { type: 'string', description: 'Alias for evidencePath.' }
     }
   },
   call

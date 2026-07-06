@@ -40,8 +40,8 @@ async function runAgentWithGoal(page, goal, waitTime = 360000) {
     }
   });
 
-  await page.goto('/');
-  await page.waitForSelector('#boot-container', { timeout: 10000 });
+  await page.goto('/index.html');
+  await page.waitForSelector('#wizard-container', { timeout: 10000 });
 
   // Configure Gemini for browser-cloud mode with API key
   const apiKey = GEMINI_API_KEY;
@@ -58,7 +58,6 @@ async function runAgentWithGoal(page, goal, waitTime = 360000) {
 
   // Reload to apply config
   await page.reload();
-  await page.waitForSelector('#boot-container', { timeout: 10000 });
 
   // Wait for goal input to be enabled
   await page.waitForSelector('#goal-input:not([disabled])', { timeout: 10000 });

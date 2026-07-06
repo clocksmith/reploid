@@ -142,8 +142,48 @@ const ResponseParser = {
 
     const isToolBatchSeparator = (line) => TOOL_BATCH_SEPARATOR_REGEX.test(String(line || '').trim());
 
+    const stripProtocolInlineComment = (rawLine) => {
+      const line = String(rawLine || '');
+      let quote = null;
+      let escaped = false;
+
+      for (let i = 0; i < line.length; i++) {
+        const char = line[i];
+
+        if (escaped) {
+          escaped = false;
+          continue;
+        }
+
+        if (char === '\\' && quote) {
+          escaped = true;
+          continue;
+        }
+
+        if (char === '"' || char === '\'' || char === '`') {
+          if (!quote) {
+            quote = char;
+          } else if (quote === char) {
+            quote = null;
+          }
+          continue;
+        }
+
+        if (
+          char === '#'
+          && !quote
+          && (i === 0 || /\s/.test(line[i - 1]))
+          && (i + 1 >= line.length || /\s/.test(line[i + 1]))
+        ) {
+          return line.slice(0, i).trimEnd();
+        }
+      }
+
+      return line;
+    };
+
     const isDirectiveBoundary = (line) => {
-      const normalized = String(line || '').trimStart();
+      const normalized = stripProtocolInlineComment(String(line || '').trimStart());
       return TOP_LEVEL_DIRECTIVE_REGEX.test(normalized) || isToolBatchSeparator(normalized);
     };
 
@@ -248,7 +288,7 @@ const ResponseParser = {
 
       while (index < lines.length) {
         const rawLine = lines[index];
-        const line = rawLine.trimStart();
+        const line = stripProtocolInlineComment(rawLine.trimStart());
 
         const planMatch = line.match(PLAN_DIRECTIVE_REGEX);
         if (planMatch) {
@@ -300,7 +340,7 @@ const ResponseParser = {
 
         while (index < lines.length) {
           const nextRawLine = lines[index];
-          const nextLine = nextRawLine.trimStart();
+          const nextLine = stripProtocolInlineComment(nextRawLine.trimStart());
 
           if (!nextLine) {
             index++;

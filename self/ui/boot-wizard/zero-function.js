@@ -3,6 +3,13 @@ export const ZERO_GEMINI_PROVIDER = 'gemini';
 export const ZERO_GEMINI_MODEL = 'gemini-3.5-flash';
 export const ZERO_GEMINI_SERVER_TYPE = 'firebase-function';
 export const ZERO_MANAGED_MAX_ITERATIONS = 99;
+export const ZERO_GEMINI_AGENT_THROTTLE = Object.freeze({
+  minProviderRequestIntervalMs: 6000,
+  providerBackoffBaseMs: 15000,
+  providerBackoffMaxMs: 300000,
+  providerBackoffJitterRatio: 0.2,
+  providerAutoResume: true
+});
 
 const trimTrailingSlash = (value) => String(value || '').replace(/\/$/, '');
 
@@ -23,7 +30,8 @@ export const buildZeroGeminiProxyConfig = (current = {}) => ({
   serverType: ZERO_GEMINI_SERVER_TYPE,
   provider: ZERO_GEMINI_PROVIDER,
   model: current.model || ZERO_GEMINI_MODEL,
-  maxIterations: ZERO_MANAGED_MAX_ITERATIONS
+  maxIterations: ZERO_MANAGED_MAX_ITERATIONS,
+  agentThrottle: current.agentThrottle || ZERO_GEMINI_AGENT_THROTTLE
 });
 
 export const isZeroGeminiFunctionServer = (serverType) =>

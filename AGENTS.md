@@ -81,6 +81,17 @@ npm start                   # Start server
 - Preserve Genesis Kernel immutability for recovery
 - Test in browser environment; uses IndexedDB for VFS
 
+## Intent-First Operations
+
+- Treat Reploid intent as distinct surfaces with distinct authority: Poolday, Zero, and X must not be mentally merged.
+- If the user asks what a route or UI does, inspect the actual route files, boot profile, VFS seed, and rendered state before proposing names or navigation changes.
+- The user controls public naming and product copy. Do not rename routes, labels, buttons, or trust language without direction.
+- For Poolday, claim only browser inference backed by signed records, audits, reputation, policy, and deterministic comparison. Do not imply trustless compute, hardware attestation, or guaranteed honest browser/GPU execution.
+- For Zero, operational questions require process parentage, provider status, VFS readability/writability, tool-call logs, and resume state before explanation.
+- For X, keep self-modification, swarm, validation, and promotion evidence separate from Poolday inference records.
+- If the user asks "deployed?", answer with deployed URL/build identifier, not general progress language.
+- If provider/API errors occur, verify the HTTP status, retry/backoff state, and parked/resumable state before describing behavior.
+
 ### Capability Levels
 | Level | Name | Scope | Gate |
 |-------|------|-------|------|

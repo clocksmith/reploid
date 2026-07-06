@@ -321,8 +321,11 @@ const ZeroUI = {
         goalEl.textContent = _goal || 'No goal captured yet';
       }
       if (stopBtn) {
-        stopBtn.textContent = AgentLoop.isRunning() ? 'Stop' : 'Stopped';
-        stopBtn.disabled = !AgentLoop.isRunning();
+        const pendingResume = AgentLoop.hasPendingProviderResume?.() || _status.autoResume;
+        stopBtn.textContent = AgentLoop.isRunning()
+          ? 'Stop'
+          : (pendingResume ? 'Cancel retry' : 'Stopped');
+        stopBtn.disabled = !AgentLoop.isRunning() && !pendingResume;
       }
     };
 

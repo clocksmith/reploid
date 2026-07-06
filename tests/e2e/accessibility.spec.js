@@ -4,12 +4,13 @@
  */
 import { test, expect } from '@playwright/test';
 
-const APP_PATH = '/index.html';
+const BOOT_PATH = '/index.html';
+const DASHBOARD_PATH = '/x';
 
 test.describe('Accessibility - Boot Screen', () => {
   test('should have REPLOID heading', async ({ page }) => {
-    await page.goto(APP_PATH);
-    await page.waitForSelector('#wizard-container', { timeout: 10000 });
+    await page.goto(BOOT_PATH);
+    await page.waitForSelector('#goal-input', { timeout: 10000 });
 
     const heading = page.locator('h1');
     await expect(heading).toBeVisible();
@@ -17,26 +18,26 @@ test.describe('Accessibility - Boot Screen', () => {
   });
 
   test('should have proper semantic HTML structure', async ({ page }) => {
-    await page.goto(APP_PATH);
-    await page.waitForSelector('#wizard-container', { timeout: 10000 });
+    await page.goto(BOOT_PATH);
+    await page.waitForSelector('#goal-input', { timeout: 10000 });
 
     // Check for heading
     await expect(page.locator('h1')).toBeVisible();
 
     // Check for button elements
-    const awakenBtn = page.locator('#awaken-btn');
+    const awakenBtn = page.locator('.boot-mode-btn').first();
     const tagName = await awakenBtn.evaluate((el) => el.tagName);
     expect(tagName).toBe('BUTTON');
 
     // Check for input elements
     const goalInput = page.locator('#goal-input');
-    const inputType = await goalInput.getAttribute('type');
-    expect(inputType).toBe('text');
+    const tagNameGoal = await goalInput.evaluate((el) => el.tagName);
+    expect(tagNameGoal === 'TEXTAREA' || tagNameGoal === 'INPUT').toBe(true);
   });
 
   test('should have goal input with placeholder', async ({ page }) => {
-    await page.goto(APP_PATH);
-    await page.waitForSelector('#wizard-container', { timeout: 10000 });
+    await page.goto(BOOT_PATH);
+    await page.waitForSelector('#goal-input', { timeout: 10000 });
 
     const goalInput = page.locator('#goal-input');
     const placeholder = await goalInput.getAttribute('placeholder');
@@ -44,8 +45,8 @@ test.describe('Accessibility - Boot Screen', () => {
   });
 
   test('should have clickable boot mode buttons', async ({ page }) => {
-    await page.goto(APP_PATH);
-    await page.waitForSelector('#wizard-container', { timeout: 10000 });
+    await page.goto(BOOT_PATH);
+    await page.waitForSelector('#goal-input', { timeout: 10000 });
 
     const bootModeButtons = page.locator('.boot-mode-btn[data-mode]');
     const firstButton = bootModeButtons.first();
@@ -57,8 +58,8 @@ test.describe('Accessibility - Boot Screen', () => {
   });
 
   test('should have proper focus indicators', async ({ page }) => {
-    await page.goto(APP_PATH);
-    await page.waitForSelector('#wizard-container', { timeout: 10000 });
+    await page.goto(BOOT_PATH);
+    await page.waitForSelector('#goal-input', { timeout: 10000 });
 
     // Focus on a boot mode button (always enabled)
     const bootModeBtn = page.locator('.boot-mode-btn[data-mode]').first();
@@ -69,8 +70,13 @@ test.describe('Accessibility - Boot Screen', () => {
 
 test.describe('Accessibility - Dashboard', () => {
   async function bootToDashboard(page) {
-    await page.goto(APP_PATH);
-    await page.waitForSelector('#wizard-container', { timeout: 10000 });
+    await page.goto(DASHBOARD_PATH);
+    await page.evaluate(() => {
+      localStorage.clear();
+      sessionStorage.clear();
+    });
+    await page.goto(DASHBOARD_PATH);
+    await page.waitForSelector('#goal-input', { timeout: 10000 });
 
     // Configure a model via localStorage
     await page.evaluate(() => {
@@ -84,7 +90,6 @@ test.describe('Accessibility - Dashboard', () => {
     });
 
     await page.reload();
-    await page.waitForSelector('#wizard-container', { timeout: 10000 });
     await page.waitForSelector('#goal-input:not([disabled])', { timeout: 10000 });
 
     await page.locator('#goal-input').fill('Test accessibility');

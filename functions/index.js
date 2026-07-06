@@ -23,6 +23,7 @@ const DEFAULT_MAX_INPUT_CHARS = 120000;
 const DEFAULT_MAX_OUTPUT_TOKENS = 8192;
 const DEFAULT_CLIENT_REQUESTS_PER_MINUTE = 12;
 const DEFAULT_GLOBAL_REQUESTS_PER_MINUTE = 120;
+const RATE_LIMIT_WINDOW_MS = 60 * 1000;
 const rateBuckets = new Map();
 
 const numberEnv = (name, fallback) => {
@@ -130,16 +131,22 @@ const getClientKey = (req) => {
 };
 
 const checkBucket = (key, limit, now) => {
-  const windowMs = 60 * 1000;
   const current = rateBuckets.get(key) || [];
-  const recent = current.filter((timestamp) => now - timestamp < windowMs);
+  const recent = current.filter((timestamp) => now - timestamp < RATE_LIMIT_WINDOW_MS);
   if (recent.length >= limit) {
     rateBuckets.set(key, recent);
-    return false;
+    const oldest = Math.min(...recent);
+    return {
+      allowed: false,
+      retryAfterMs: Math.max(1000, RATE_LIMIT_WINDOW_MS - (now - oldest))
+    };
   }
   recent.push(now);
   rateBuckets.set(key, recent);
-  return true;
+  return {
+    allowed: true,
+    retryAfterMs: 0
+  };
 };
 
 const enforceRateLimit = (req) => {
@@ -147,13 +154,16 @@ const enforceRateLimit = (req) => {
   const clientLimit = numberEnv('ZERO_GEMINI_CLIENT_RPM', DEFAULT_CLIENT_REQUESTS_PER_MINUTE);
   const globalLimit = numberEnv('ZERO_GEMINI_GLOBAL_RPM', DEFAULT_GLOBAL_REQUESTS_PER_MINUTE);
   const clientKey = getClientKey(req);
-  const globalAllowed = checkBucket('global', globalLimit, now);
-  const clientAllowed = checkBucket(clientKey, clientLimit, now);
+  const globalBucket = checkBucket('global', globalLimit, now);
+  const clientBucket = checkBucket(clientKey, clientLimit, now);
+  const retryAfterMs = Math.max(globalBucket.retryAfterMs, clientBucket.retryAfterMs);
   return {
-    allowed: globalAllowed && clientAllowed,
+    allowed: globalBucket.allowed && clientBucket.allowed,
     clientKey,
     clientLimit,
-    globalLimit
+    globalLimit,
+    retryAfterMs,
+    retryAfterSeconds: Math.max(1, Math.ceil(retryAfterMs / 1000))
   };
 };
 
@@ -230,10 +240,13 @@ export const zeroGemini = onRequest({
 
   const rateLimit = enforceRateLimit(req);
   if (!rateLimit.allowed) {
+    res.set('Retry-After', String(rateLimit.retryAfterSeconds));
     res.status(429).json({
       error: 'Rate limit exceeded.',
       clientRequestsPerMinute: rateLimit.clientLimit,
-      globalRequestsPerMinute: rateLimit.globalLimit
+      globalRequestsPerMinute: rateLimit.globalLimit,
+      retryAfterMs: rateLimit.retryAfterMs,
+      retryAfterSeconds: rateLimit.retryAfterSeconds
     });
     return;
   }
@@ -271,7 +284,14 @@ export const zeroGemini = onRequest({
     });
 
     if (!response.ok) {
-      res.status(response.status).json({ error: await readError(response) });
+      const retryAfter = response.headers?.get?.('retry-after');
+      if (retryAfter) {
+        res.set('Retry-After', retryAfter);
+      }
+      res.status(response.status).json({
+        error: await readError(response),
+        retryAfter: retryAfter || null
+      });
       return;
     }
 
