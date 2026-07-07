@@ -55,6 +55,11 @@ import {
   hasDirectInferenceConfig,
   resolveReploidModelConfig
 } from '../boot-wizard/reploid-inference.js';
+import {
+  RUN_REPLAY_STORAGE_KEY,
+  deriveBootStateFromRunReplayBundle,
+  writeImportedRunReplaySummary
+} from '../../core/run-replay-bundle.js';
 import { renderConnectionProviderOptions } from '../boot-wizard/steps/choose.js';
 import { CLOUD_MODELS, renderDirectConfigStep } from '../boot-wizard/steps/direct.js';
 import { renderProxyConfigStep } from '../boot-wizard/steps/proxy.js';
@@ -229,6 +234,48 @@ const renderAwakenButton = (state, options = {}) => {
     </button>
   `;
 };
+
+const renderRunReplayImportControl = (state) => {
+  const status = state.runReplayImport || {};
+  let statusHtml = '';
+  if (status.status === 'ready') {
+    const cycles = Number(status.summary?.cycles || 0);
+    const files = Number(status.summary?.files || 0);
+    statusHtml = `<span class="type-caption">Loaded ${escapeHtml(status.filename || 'run JSON')} · ${cycles} cycle(s), ${files} file(s)</span>`;
+  } else if (status.status === 'error') {
+    statusHtml = `<span class="type-caption type-caption-error">☒ ${escapeHtml(status.error || 'Import failed')}</span>`;
+  } else if (status.status === 'loading') {
+    statusHtml = '<span class="type-caption">Reading run JSON...</span>';
+  }
+
+  return `
+    <span class="run-replay-import-control">
+      <input id="run-replay-file-input"
+             type="file"
+             accept="application/json,.json"
+             hidden />
+      <button class="btn btn-primary btn-op goal-action-button"
+              data-op="☋"
+              data-action="import-run-json"
+              type="button">
+        Import run JSON
+      </button>
+      ${statusHtml}
+    </span>
+  `;
+};
+
+const renderRunReplayImportPanel = (state) => `
+  <div class="wizard-step wizard-run-replay-import">
+    <div class="goal-header">
+      <h2 class="type-h2">Run JSON</h2>
+      <p class="type-caption">Import a replayable run JSON to refill the objective and compatible model settings.</p>
+    </div>
+    <div class="goal-primary-action">
+      ${renderRunReplayImportControl(state)}
+    </div>
+  </div>
+`;
 
 const getDefaultCloudModelForProvider = (provider) => {
   const models = CLOUD_MODELS[provider] || [];
@@ -472,6 +519,12 @@ const getHomeRenderSignature = (state) => {
     selectedGoalCategory: state.selectedGoalCategory,
     goalShuffleSeed: state.goalShuffleSeed,
     goalPresetsOpen: !!state.goalPresetsOpen,
+    runReplayImport: state.runReplayImport ? {
+      status: state.runReplayImport.status,
+      error: state.runReplayImport.error,
+      filename: state.runReplayImport.filename,
+      summary: state.runReplayImport.summary
+    } : null,
     bootPayload: state.bootPayload,
     selfPreview: state.selfPreview,
     selectedSelfPath: state.selectedSelfPath,
@@ -766,6 +819,52 @@ async function handleTestDirectModel() {
   });
 }
 
+async function handleImportRunReplayFile(file) {
+  if (!file) return;
+  setState({
+    runReplayImport: {
+      status: 'loading',
+      error: null,
+      filename: file.name || '',
+      summary: null
+    }
+  });
+
+  try {
+    const text = await file.text();
+    const currentState = getState();
+    const { bundle, stateUpdates, storageModels, summary } = deriveBootStateFromRunReplayBundle(
+      JSON.parse(text),
+      currentState
+    );
+    const storage = getReploidStorage();
+    writeImportedRunReplaySummary(storage, bundle);
+    if (storageModels.length > 0) {
+      storage.setItem('SELECTED_MODELS', JSON.stringify(storageModels));
+    }
+    setState({
+      ...stateUpdates,
+      runReplayImport: {
+        status: 'ready',
+        error: null,
+        filename: file.name || '',
+        summary
+      }
+    });
+  } catch (err) {
+    console.warn('[BootHome] Run JSON import failed:', err?.message || err);
+    getReploidStorage().removeItem(RUN_REPLAY_STORAGE_KEY, { removeLegacy: true });
+    setState({
+      runReplayImport: {
+        status: 'error',
+        error: err?.message || 'Run JSON import failed',
+        filename: file.name || '',
+        summary: null
+      }
+    });
+  }
+}
+
 async function doAwaken() {
   const state = getState();
   const goalPacket = formatGoalPacket(state.goal);
@@ -859,6 +958,12 @@ function handleChange(event) {
   const value = event.target.type === 'checkbox' ? event.target.checked : event.target.value;
 
   switch (id) {
+    case 'run-replay-file-input':
+      void handleImportRunReplayFile(event.target.files?.[0]).finally(() => {
+        event.target.value = '';
+      });
+      break;
+
     case 'direct-provider':
       setNestedState('directConfig', {
         provider: value,
@@ -1123,6 +1228,12 @@ async function handleClick(event) {
       await handleGenerateGoal();
       break;
 
+    case 'import-run-json': {
+      const input = document.getElementById('run-replay-file-input');
+      if (input) input.click();
+      break;
+    }
+
     case 'apply-environment-template': {
       const button = event.target.closest('[data-template]');
       const templateId = button?.dataset.template;
@@ -1290,7 +1401,7 @@ function render() {
       goalPlaceholder: homeConfig.goalPlaceholder,
       headingClass: 'type-h2',
       showMinimalAwakenedFiles: false,
-      primaryActionHtml: renderAwakenButton(state, {
+      primaryActionHtml: renderRunReplayImportControl(state) + renderAwakenButton(state, {
         disabled: state.isAwakening || !hasGoal || !launch?.canAwaken
       })
     });
@@ -1329,6 +1440,7 @@ function render() {
           ? 'Finish inference configuration to unlock the objective editor.'
           : 'Choose and configure inference before continuing.'
       );
+      html += renderRunReplayImportPanel(state);
       } else {
         html += renderGoalStep(state, {
           title: homeConfig.goalTitle,
@@ -1338,7 +1450,7 @@ function render() {
           generatedStatusText: homeConfig.generatedStatusText,
           goalPlaceholder: homeConfig.goalPlaceholder,
           headingClass: 'type-h2',
-          primaryActionHtml: renderAwakenButton(state, {
+          primaryActionHtml: renderRunReplayImportControl(state) + renderAwakenButton(state, {
             large: true,
             disabled: state.isAwakening || !hasGoal || !canAwaken()
           })

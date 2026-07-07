@@ -148,11 +148,13 @@ export const ZERO_HOME_BOOT_SEED_PREFIXES = Object.freeze([
   'core/promotion-policy.js',
   'core/provider-registry.js',
   'core/response-parser.js',
+  'core/run-replay-bundle.js',
   'core/schema-registry.js',
   'core/security-config.js',
   'core/state-helpers-pure.js',
   'core/state-manager.js',
   'core/tool-runner.js',
+  'core/zero-prompt.js',
   'core/tool-writer.js',
   'core/utils.js',
   'core/vfs.js',
@@ -203,6 +205,7 @@ export const ZERO_HOME_BOOT_SEED_PREFIXES = Object.freeze([
   'ui/boot-wizard/steps/proxy.js',
   'ui/toast.js',
   'ui/zero/index.js',
+  'ui/zero/trace-view.js',
   ...ZERO_SHARED_TOOL_FILES
 ]);
 

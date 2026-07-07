@@ -47,21 +47,35 @@ describe('ZeroUI', () => {
   let root;
   let eventBus;
   let ui;
+  let agentLoop;
 
   beforeEach(async () => {
     document.body.innerHTML = '<main id="root"></main>';
     localStorage.clear();
     root = document.querySelector('#root');
     eventBus = createEventBus();
+    agentLoop = {
+      getRecentActivities: vi.fn(() => []),
+      hasPendingProviderResume: vi.fn(() => false),
+      isRunning: vi.fn(() => true),
+      stop: vi.fn(),
+      exportReplayBundle: vi.fn(async () => ({
+        schema: 'reploid.run-replay.v1',
+        exportedAt: Date.parse('2026-07-07T00:00:00Z'),
+        mode: 'zero',
+        route: '/zero',
+        goal: 'Build something',
+        metadata: {
+          cycleCount: 1,
+          activityCount: 2,
+          fileCount: 3
+        }
+      }))
+    };
     ui = ZeroUI.factory({
       Utils: createUtils(),
       EventBus: eventBus,
-      AgentLoop: {
-        getRecentActivities: vi.fn(() => []),
-        hasPendingProviderResume: vi.fn(() => false),
-        isRunning: vi.fn(() => true),
-        stop: vi.fn()
-      },
+      AgentLoop: agentLoop,
       StateManager: {
         getState: vi.fn(() => ({ totalCycles: 0 }))
       },
@@ -146,7 +160,7 @@ describe('ZeroUI', () => {
     expect(container.scrollTop).toBe(185);
   });
 
-  it('renders the Reploid loop as Model Input, Model Output, Tool Run, and Runtime Event cards', () => {
+  it('renders the Reploid loop as Model Input, Model Response, Tool Run, and Runtime Event cards', () => {
     const firstContext = [
       '## Message 1 / 2 [SYSTEM]\nYou are Zero.',
       '## Message 2 / 2 [USER]\nBegin. Goal: Build.',
@@ -223,7 +237,7 @@ describe('ZeroUI', () => {
 
     const titles = [...root.querySelectorAll('.zero-trace-title')].map((item) => item.textContent);
     expect(titles).toContain('Model Input');
-    expect(titles).toContain('Model Output');
+    expect(titles).toContain('Model Response');
     expect(titles).toContain('Tool Run');
     expect(titles).toContain('Runtime Event');
     expect(titles).not.toContain('WriteFile');
@@ -235,13 +249,13 @@ describe('ZeroUI', () => {
     expect(contextRow.textContent).toContain('/ui/zero/index.js');
 
     const decisionRow = [...root.querySelectorAll('.zero-trace-entry')]
-      .find((row) => row.querySelector('.zero-trace-title')?.textContent === 'Model Output');
-    expect(decisionRow.textContent).toContain('tool request: 1 tool kind');
+      .find((row) => row.querySelector('.zero-trace-title')?.textContent === 'Model Response');
+    expect(decisionRow.textContent).toContain('requested 1 tool kind');
 
     const actionRows = [...root.querySelectorAll('.zero-trace-entry')]
       .filter((row) => row.querySelector('.zero-trace-title')?.textContent === 'Tool Run');
     expect(actionRows).toHaveLength(1);
-    expect(actionRows[0].textContent).toContain('Ran: WriteFile');
+    expect(actionRows[0].textContent).toContain('Requested: WriteFile');
     expect(actionRows[0].textContent).toContain('bytesWritten');
     expect(actionRows[0].textContent.match(/1\. WriteFile/g)).toHaveLength(1);
   });
@@ -282,15 +296,15 @@ describe('ZeroUI', () => {
     });
 
     const decisionRow = [...root.querySelectorAll('.zero-trace-entry')]
-      .find((row) => row.querySelector('.zero-trace-title')?.textContent === 'Model Output');
+      .find((row) => row.querySelector('.zero-trace-title')?.textContent === 'Model Response');
     const actionRow = [...root.querySelectorAll('.zero-trace-entry')]
       .find((row) => row.querySelector('.zero-trace-title')?.textContent === 'Tool Run');
 
-    expect(decisionRow.querySelector('summary').textContent).toBe('tool request: 2 tool kind(s)');
+    expect(decisionRow.querySelector('summary').textContent).toBe('requested 2 tool kind(s)');
     expect(actionRow.querySelector('summary')).toBeNull();
-    expect(actionRow.textContent).toContain('Result: 1 ok / 1 err');
+    expect(actionRow.textContent).toContain('Executed: 1 ok / 1 err');
     expect(actionRow.textContent).toContain('First error: Error: Tool module load failed');
-    expect(actionRow.textContent).toContain('Ran: CreateTool, LoadModule');
+    expect(actionRow.textContent).toContain('Requested: CreateTool, LoadModule');
   });
 
   it('keeps action result details in requested tool order', () => {
@@ -404,5 +418,37 @@ describe('ZeroUI', () => {
       activity: 'Provider unavailable'
     });
     expect(root.querySelector('#agent-state').textContent).toBe('Parked');
+  });
+
+  it('exports a replayable run JSON from the More menu', async () => {
+    const urls = [];
+    globalThis.URL.createObjectURL = vi.fn((blob) => {
+      urls.push(blob);
+      return 'blob:run-json';
+    });
+    globalThis.URL.revokeObjectURL = vi.fn();
+    const clicked = [];
+    const originalClick = HTMLAnchorElement.prototype.click;
+    HTMLAnchorElement.prototype.click = function click() {
+      clicked.push(this.download);
+    };
+
+    try {
+      root.querySelector('[data-zero-action="export-run-json"]').click();
+      await Promise.resolve();
+      await Promise.resolve();
+    } finally {
+      HTMLAnchorElement.prototype.click = originalClick;
+    }
+
+    expect(agentLoop.exportReplayBundle).toHaveBeenCalledWith({
+      route: expect.any(String),
+      mode: 'zero'
+    });
+    expect(clicked[0]).toMatch(/^reploid-zero-build-something-/);
+    expect(URL.createObjectURL).toHaveBeenCalledWith(expect.any(Blob));
+    expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:run-json');
+    expect(root.textContent).toContain('Run JSON exported');
+    expect(root.textContent).toContain('1 cycle(s), 2 trace event(s), and 3 replay file(s)');
   });
 });

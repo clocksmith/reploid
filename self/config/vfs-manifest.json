@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-07-07T15:48:00.396Z",
+  "generatedAt": "2026-07-07T22:39:43.177Z",
   "files": [
     "audit.html",
     "blueprint-index.json",
@@ -320,6 +320,9 @@
     "blueprints/0x000144-ui-pool-home-view.md",
     "blueprints/0x000145-ui-reploid-home-index.md",
     "blueprints/0x000146-ui-shared-reploid-contract.md",
+    "blueprints/0x000147-core-zero-prompt.md",
+    "blueprints/0x000148-ui-zero-trace-view.md",
+    "blueprints/0x000149-core-run-replay-bundle.md",
     "blueprints/README.md",
     "blueprints/blueprint-index-contract.md",
     "blueprints/implementation-status.md",
@@ -390,6 +393,7 @@
     "core/promotion-policy.js",
     "core/provider-registry.js",
     "core/response-parser.js",
+    "core/run-replay-bundle.js",
     "core/schema-registry.js",
     "core/schema-validator.js",
     "core/security-config.js",
@@ -405,6 +409,7 @@
     "core/vfs.js",
     "core/worker-agent.js",
     "core/worker-manager.js",
+    "core/zero-prompt.js",
     "design.html",
     "entry/seed-vfs.js",
     "entry/start-app.js",
@@ -603,6 +608,7 @@
     "ui/reploid-home/index.js",
     "ui/shared/reploid-contract.js",
     "ui/toast.js",
-    "ui/zero/index.js"
+    "ui/zero/index.js",
+    "ui/zero/trace-view.js"
   ]
 }
