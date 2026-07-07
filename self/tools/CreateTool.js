@@ -32,6 +32,11 @@ const createActivationEvidence = (name, candidatePath, targetPath, evidencePath)
   toolName: name
 });
 
+const getQuarantinePath = (name) => {
+  const safeName = String(name || 'tool').replace(/[^A-Za-z0-9_-]/g, '-');
+  return `/artifacts/quarantine/${safeName}-create-tool-quarantine.json`;
+};
+
 async function activateZeroTool(result = {}, deps = {}) {
   const { VFS, ToolRunner, EventBus, AuditLogger } = deps;
   if (!VFS?.read || !VFS?.write) {
@@ -43,7 +48,47 @@ async function activateZeroTool(result = {}, deps = {}) {
 
   const targetPath = getZeroTargetPath(result.path);
   const evidencePath = `/artifacts/${result.name}-evidence.json`;
-  if (!defaultAllowTargetPath(targetPath) || isValidatorMutationTarget(targetPath)) {
+  if (isValidatorMutationTarget(targetPath)) {
+    const quarantinePath = getQuarantinePath(result.name);
+    const quarantine = {
+      schema: 'reploid.createTool.quarantine.v1',
+      ok: false,
+      quarantined: true,
+      reason: 'protected_validator_mutation_target',
+      action: 'CreateTool.activate',
+      name: result.name,
+      candidatePath: result.path,
+      targetPath,
+      evidencePath,
+      quarantinePath,
+      createdAt: new Date().toISOString()
+    };
+
+    await VFS.write(quarantinePath, JSON.stringify(quarantine, null, 2));
+    EventBus?.emit?.('tool:create_quarantined', quarantine);
+    if (AuditLogger?.logEvent) {
+      await AuditLogger.logEvent('TOOL_CREATE_QUARANTINED', {
+        name: result.name,
+        candidatePath: result.path,
+        targetPath,
+        quarantinePath,
+        reason: quarantine.reason
+      }, 'WARN');
+    }
+    return {
+      ...result,
+      ok: false,
+      success: false,
+      activated: false,
+      quarantined: true,
+      reason: quarantine.reason,
+      targetPath,
+      evidencePath,
+      quarantinePath,
+      message: `Tool ${result.name} targets a protected validator path and was quarantined`
+    };
+  }
+  if (!defaultAllowTargetPath(targetPath)) {
     throw new Error(`CreateTool activation target is protected and requires promotion: ${targetPath}`);
   }
   if (VFS.exists && await VFS.exists(targetPath)) {

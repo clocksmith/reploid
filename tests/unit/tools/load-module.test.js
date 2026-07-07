@@ -27,4 +27,22 @@ export default tool;`)
 
     expect(ToolRunner.loadPath).not.toHaveBeenCalled();
   });
+
+  it('propagates promoted tool import failures from ToolRunner', async () => {
+    const ToolRunner = {
+      loadPath: vi.fn().mockRejectedValue(new SyntaxError('Unexpected token export'))
+    };
+    const VFS = {
+      read: vi.fn().mockResolvedValue('export default async function() {')
+    };
+
+    await expect(call({
+      path: '/self/tools/BrokenTool.js'
+    }, {
+      VFS,
+      ToolRunner
+    })).rejects.toThrow('Unexpected token export');
+
+    expect(ToolRunner.loadPath).toHaveBeenCalledWith('/self/tools/BrokenTool.js', null, { allow: true });
+  });
 });

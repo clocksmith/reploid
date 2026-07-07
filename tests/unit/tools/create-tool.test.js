@@ -97,7 +97,7 @@ describe('CreateTool', () => {
     });
   });
 
-  it('rejects protected Zero activation targets', async () => {
+  it('quarantines protected Zero validator activation targets', async () => {
     vi.stubGlobal('window', {
       getReploidMode: () => 'zero'
     });
@@ -109,13 +109,32 @@ describe('CreateTool', () => {
       staged: true
     });
 
-    await expect(CreateTool({
+    const result = await CreateTool({
       name: 'Promote',
       code: 'export default async function(args) { return args; }'
-    }, deps)).rejects.toThrow('requires promotion');
+    }, deps);
 
-    expect(deps.VFS.write).not.toHaveBeenCalled();
+    expect(deps.VFS.read).not.toHaveBeenCalled();
+    expect(deps.VFS.write).toHaveBeenCalledTimes(1);
+    expect(deps.VFS.write).toHaveBeenCalledWith(
+      '/artifacts/quarantine/Promote-create-tool-quarantine.json',
+      expect.stringContaining('"reason": "protected_validator_mutation_target"')
+    );
     expect(deps.ToolRunner.loadPath).not.toHaveBeenCalled();
+    expect(deps.EventBus.emit).toHaveBeenCalledWith('tool:create_quarantined', expect.objectContaining({
+      name: 'Promote',
+      targetPath: '/self/tools/Promote.js',
+      quarantinePath: '/artifacts/quarantine/Promote-create-tool-quarantine.json'
+    }));
+    expect(result).toMatchObject({
+      ok: false,
+      success: false,
+      activated: false,
+      quarantined: true,
+      reason: 'protected_validator_mutation_target',
+      targetPath: '/self/tools/Promote.js',
+      quarantinePath: '/artifacts/quarantine/Promote-create-tool-quarantine.json'
+    });
   });
 
   it('does not overwrite an existing installed Zero tool', async () => {

@@ -617,6 +617,76 @@ describe('AgentLoop - Integration Tests', () => {
       }));
     });
 
+    it('treats worker-returned ok:false tool results as logical failures', async () => {
+      const calls = [
+        { name: 'AwaitWorkers', args: { workerIds: ['worker_1'] } },
+        { name: 'LoadModule', args: { path: '/self/tools/KatamariPicker.js' } }
+      ];
+      let iteration = 0;
+      mockLLMClient.chat.mockImplementation(() => {
+        iteration++;
+        if (iteration === 1) {
+          return Promise.resolve({ content: '', toolCalls: calls });
+        }
+        mockResponseParser.isDone.mockReturnValue(true);
+        return Promise.resolve({ content: 'DONE' });
+      });
+      mockToolRunner.execute.mockImplementation(async (name) => {
+        if (name === 'AwaitWorkers') {
+          return {
+            awaited: 1,
+            timedOut: false,
+            results: [
+              {
+                workerId: 'worker_1',
+                status: 'fulfilled',
+                value: {
+                  workerId: 'worker_1',
+                  status: 'completed',
+                  toolResults: [
+                    {
+                      tool: 'Promote',
+                      args: { candidatePath: '/shadow/tools/KatamariPicker.js' },
+                      result: '{"ok":false,"reasons":["worker evidence failed"]}',
+                      rawResult: { ok: false, reasons: ['worker evidence failed'] },
+                      success: false,
+                      error: 'worker evidence failed'
+                    }
+                  ]
+                }
+              }
+            ]
+          };
+        }
+        return { ok: true };
+      });
+
+      await agentLoop.run('Collect worker result');
+
+      expect(mockToolRunner.execute).toHaveBeenCalledWith('AwaitWorkers', calls[0].args);
+      expect(mockToolRunner.execute).not.toHaveBeenCalledWith('LoadModule', calls[1].args);
+      const breaker = mockCircuitBreaker.create.mock.results[0].value;
+      expect(breaker.recordFailure).toHaveBeenCalledWith(
+        'AwaitWorkers',
+        expect.objectContaining({ message: expect.stringContaining('worker_1/Promote: worker evidence failed') })
+      );
+      expect(mockEventBus.emit).toHaveBeenCalledWith('agent:history', expect.objectContaining({
+        type: 'tool_batch',
+        total: 2,
+        errors: 2,
+        results: expect.arrayContaining([
+          expect.objectContaining({
+            name: 'AwaitWorkers',
+            error: expect.stringContaining('worker_1/Promote: worker evidence failed')
+          }),
+          expect.objectContaining({
+            name: 'LoadModule',
+            error: expect.stringContaining('skipped because AwaitWorkers failed')
+          })
+        ])
+      }));
+    });
+
     it('clears stale LoadModule circuit state after successful promotion', async () => {
       const calls = [
         {

@@ -42,6 +42,17 @@ const _progress = (iteration, message) => _post({
   message
 });
 
+const _logicalFailureMessage = (rawResult) => {
+  if (!rawResult || typeof rawResult !== 'object') return null;
+  if (!(rawResult.ok === false || rawResult.success === false)) return null;
+  if (Array.isArray(rawResult.reasons) && rawResult.reasons.length > 0) {
+    return rawResult.reasons.join('; ');
+  }
+  if (typeof rawResult.error === 'string' && rawResult.error) return rawResult.error;
+  if (typeof rawResult.message === 'string' && rawResult.message) return rawResult.message;
+  return 'tool reported unsuccessful result';
+};
+
 const _executeLoop = async (task) => {
   const startTime = Date.now();
   let iterations = 0;
@@ -88,11 +99,14 @@ Use tools when needed and report results clearly.`
       });
 
       const result = toolResponse?.result || '';
-      const error = toolResponse?.error || null;
+      const rawResult = toolResponse?.rawResult ?? null;
+      const logicalFailure = _logicalFailureMessage(rawResult);
+      const error = toolResponse?.error || logicalFailure || null;
       toolResults.push({
         tool: name,
         args,
         result,
+        rawResult,
         success: !error,
         error
       });
