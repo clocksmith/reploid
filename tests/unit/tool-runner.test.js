@@ -382,6 +382,13 @@ describe('ToolRunner', () => {
         loadError
       );
     });
+
+    it('loadPath only accepts installed /self/tools modules', async () => {
+      await expect(toolRunner.loadPath('/shadow/tools/BrokenTool.js', 'BrokenTool', { allow: true }))
+        .rejects.toThrow('ToolRunner.loadPath only supports installed /self/tools/*.js modules');
+
+      expect(mockVFS.read).not.toHaveBeenCalled();
+    });
   });
 
   describe('SubstrateLoader integration', () => {

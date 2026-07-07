@@ -85,16 +85,33 @@ test.describe('tool calling smoke', () => {
         code: toolCandidateCode
       });
       expect(createTool.ok).toBe(true);
-      expect(createTool.value).toMatchObject({
-        success: true,
-        name: 'ContractProbeTool',
-        path: '/shadow/tools/ContractProbeTool.js',
-        staged: true,
-        toolLoaded: false
-      });
+      if (routeCase.route === '/zero') {
+        expect(createTool.value).toMatchObject({
+          success: true,
+          name: 'ContractProbeTool',
+          path: '/shadow/tools/ContractProbeTool.js',
+          staged: true,
+          activated: true,
+          targetPath: '/self/tools/ContractProbeTool.js',
+          validationPassed: true,
+          toolLoaded: true
+        });
+      } else {
+        expect(createTool.value).toMatchObject({
+          success: true,
+          name: 'ContractProbeTool',
+          path: '/shadow/tools/ContractProbeTool.js',
+          staged: true,
+          toolLoaded: false
+        });
+      }
 
       const toolNamesAfterCreate = await executeToolResult(page, 'ListTools');
-      expect(toolNamesAfterCreate.value).not.toContain('ContractProbeTool');
+      if (routeCase.route === '/zero') {
+        expect(toolNamesAfterCreate.value).toContain('ContractProbeTool');
+      } else {
+        expect(toolNamesAfterCreate.value).not.toContain('ContractProbeTool');
+      }
 
       const badLoad = await executeToolResult(page, 'LoadModule', { path: '/shadow/tools/ContractProbeTool.js' });
       expect(badLoad.ok).toBe(false);

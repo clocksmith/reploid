@@ -62,6 +62,27 @@ const getCurrentInstanceId = () => {
   }
 };
 
+const isNodeRuntime = () => (
+  typeof process !== 'undefined'
+  && !!process.versions?.node
+);
+
+const createModuleImportUrl = (contents) => {
+  if (isNodeRuntime()) {
+    return {
+      url: `data:text/javascript;charset=utf-8,${encodeURIComponent(contents)}`,
+      revoke: () => {}
+    };
+  }
+
+  const blob = new Blob([contents], { type: 'text/javascript' });
+  const url = URL.createObjectURL(blob);
+  return {
+    url,
+    revoke: () => URL.revokeObjectURL(url)
+  };
+};
+
 /**
  * Rewrite local VFS imports to service-worker-addressable absolute URLs.
  * Blob module URLs cannot resolve relative imports on their own.
@@ -175,12 +196,10 @@ export async function loadVfsModule(options) {
           version: hashString(`${path}:${contents}`)
         });
 
-        // Create blob URL and import
-        const blob = new Blob([rewrittenContents], { type: 'text/javascript' });
-        const url = URL.createObjectURL(blob);
+        const importUrl = createModuleImportUrl(rewrittenContents);
 
         try {
-          const mod = await import(url);
+          const mod = await import(importUrl.url);
           setCached(path, contents, mod);
 
           if (logger) logger.debug(`[VFSLoader] Loaded: ${path}`);
@@ -188,7 +207,7 @@ export async function loadVfsModule(options) {
 
           return mod;
         } finally {
-          URL.revokeObjectURL(url);
+          importUrl.revoke();
         }
       } catch (err) {
         lastError = err;

@@ -215,7 +215,7 @@ describe('WriteFile', () => {
           autoLoad: true
         },
         context()
-      )).rejects.toThrow('autoLoad is only available after Promote places a module under /self');
+      )).rejects.toThrow('autoLoad is not available on direct writes');
 
       expect(mockSubstrateLoader.loadModule).not.toHaveBeenCalled();
     });

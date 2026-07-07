@@ -9,6 +9,7 @@ const MUTATING_TOOLS = new Set([
   'EditFile',
   'DeleteFile',
   'CreateTool',
+  'LoadModule',
   'Promote'
 ]);
 
@@ -114,7 +115,7 @@ export function createCycleArtifactWriter({ VFS, EventBus, logger } = {}) {
         stateBefore,
         event: 'decision',
         modelUsed,
-        stateAfter: done ? 'Promote' : 'Shadow',
+        stateAfter: done ? 'Complete' : 'Shadow',
         promotionDecision,
         done,
         reason
@@ -130,7 +131,7 @@ export function createCycleArtifactWriter({ VFS, EventBus, logger } = {}) {
       stateBefore,
       event: 'audit',
       modelUsed,
-      stateAfter: done ? 'Promote' : 'Shadow',
+      stateAfter: done ? 'Complete' : 'Shadow',
       responsePreview: String(responseContent || '').slice(0, 2000),
       score,
       artifactPaths: paths

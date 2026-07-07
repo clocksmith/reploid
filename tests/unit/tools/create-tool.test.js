@@ -53,7 +53,15 @@ describe('CreateTool', () => {
     expect(deps.VFS.read).toHaveBeenCalledWith('/shadow/tools/KatamariEngine.js');
     expect(deps.VFS.write).toHaveBeenCalledWith(
       '/artifacts/KatamariEngine-evidence.json',
-      expect.stringContaining('"replayPassed": true')
+      expect.stringContaining('"schema": "reploid.zero.createToolEvidence.v2"')
+    );
+    expect(deps.VFS.write).toHaveBeenCalledWith(
+      '/artifacts/KatamariEngine-evidence.json',
+      expect.stringContaining('"candidateHash"')
+    );
+    expect(deps.VFS.write).toHaveBeenCalledWith(
+      '/artifacts/KatamariEngine-evidence.json',
+      expect.stringContaining('"validationPassed": true')
     );
     expect(deps.VFS.write).toHaveBeenCalledWith(
       '/self/tools/KatamariEngine.js',
@@ -71,6 +79,7 @@ describe('CreateTool', () => {
       activated: true,
       targetPath: '/self/tools/KatamariEngine.js',
       evidencePath: '/artifacts/KatamariEngine-evidence.json',
+      validationPassed: true,
       loaded: true,
       toolLoaded: true
     });

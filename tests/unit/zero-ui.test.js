@@ -250,7 +250,7 @@ describe('ZeroUI', () => {
     eventBus.emit('agent:history', {
       type: 'llm_response',
       cycle: 4,
-      content: 'REPLOID/0\n\nTOOL: Promote\ncandidatePath: /shadow/tool.js\n\nTOOL: LoadModule\npath: /self/tools/tool.js',
+      content: 'REPLOID/0\n\nTOOL: CreateTool\nname: DemoTool\n\nTOOL: LoadModule\npath: /self/tools/DemoTool.js',
       latencyMs: 80
     });
     eventBus.emit('agent:history', {
@@ -259,20 +259,20 @@ describe('ZeroUI', () => {
       total: 2,
       errors: 1,
       calls: [
-        { name: 'Promote', args: { candidatePath: '/shadow/tool.js' } },
-        { name: 'LoadModule', args: { path: '/self/tools/tool.js' } }
+        { name: 'CreateTool', args: { name: 'DemoTool' } },
+        { name: 'LoadModule', args: { path: '/self/tools/DemoTool.js' } }
       ],
       results: [
         {
-          name: 'Promote',
-          args: { candidatePath: '/shadow/tool.js' },
+          name: 'CreateTool',
+          args: { name: 'DemoTool' },
           error: null,
-          resultPreview: '{"promoted":true}',
+          resultPreview: '{"activated":true}',
           durationMs: 4
         },
         {
           name: 'LoadModule',
-          args: { path: '/self/tools/tool.js' },
+          args: { path: '/self/tools/DemoTool.js' },
           error: 'Error: Tool module load failed',
           resultPreview: 'Error: Tool module load failed',
           durationMs: 20
@@ -290,19 +290,17 @@ describe('ZeroUI', () => {
     expect(actionRow.querySelector('summary')).toBeNull();
     expect(actionRow.textContent).toContain('Result: 1 ok / 1 err');
     expect(actionRow.textContent).toContain('First error: Error: Tool module load failed');
-    expect(actionRow.textContent).toContain('Ran: Promote, LoadModule');
+    expect(actionRow.textContent).toContain('Ran: CreateTool, LoadModule');
   });
 
   it('keeps action result details in requested tool order', () => {
     eventBus.emit('agent:history', {
       type: 'tool_batch',
       cycle: 13,
-      total: 4,
+      total: 2,
       errors: 1,
       calls: [
         { name: 'CreateTool', args: { name: 'KatamariEngine' } },
-        { name: 'WriteFile', args: { path: '/artifacts/KatamariEngine-evidence.json' } },
-        { name: 'Promote', args: { candidatePath: '/shadow/tools/KatamariEngine.js' } },
         { name: 'LoadModule', args: { path: '/self/tools/KatamariEngine.js' } }
       ],
       results: [
@@ -315,21 +313,9 @@ describe('ZeroUI', () => {
         {
           name: 'CreateTool',
           args: { name: 'KatamariEngine' },
-          resultPreview: '{"success":true}',
+          resultPreview: '{"activated":true}',
           durationMs: 23
         },
-        {
-          name: 'WriteFile',
-          args: { path: '/artifacts/KatamariEngine-evidence.json' },
-          resultPreview: '{"bytesWritten":190}',
-          durationMs: 26
-        },
-        {
-          name: 'Promote',
-          args: { candidatePath: '/shadow/tools/KatamariEngine.js' },
-          resultPreview: '{"promoted":true}',
-          durationMs: 14
-        }
       ],
       durationMs: 107
     });
@@ -339,9 +325,7 @@ describe('ZeroUI', () => {
     const text = actionRow.textContent;
 
     expect(text.indexOf('1. CreateTool ok')).toBeGreaterThan(-1);
-    expect(text.indexOf('2. WriteFile ok')).toBeGreaterThan(text.indexOf('1. CreateTool ok'));
-    expect(text.indexOf('3. Promote ok')).toBeGreaterThan(text.indexOf('2. WriteFile ok'));
-    expect(text.indexOf('4. LoadModule error')).toBeGreaterThan(text.indexOf('3. Promote ok'));
+    expect(text.indexOf('2. LoadModule error')).toBeGreaterThan(text.indexOf('1. CreateTool ok'));
     expect(text).toContain('First error: Error: Tool LoadModule is temporarily disabled.');
   });
 

@@ -182,7 +182,7 @@ export function buildSelfManifest(options = {}) {
     shadow: {
       candidateRoot: '/shadow',
       evidenceRoot: '/artifacts',
-      promotionBoundary: 'Only Promote requests durable changes from /shadow into /self.'
+      promotionBoundary: 'Zero installs new tools through CreateTool activation evidence. Broader Reploid/X surfaces use Promote for evidence-gated /shadow to /self changes.'
     },
     swarm: {
       enabled: swarmEnabled,
@@ -208,7 +208,11 @@ export function buildSelfManifest(options = {}) {
     blueprintIndexPath: '/self/blueprint-index.json',
     promptPaths: [...SELF_PROMPT_PATHS],
     blueprintPaths: [...SELF_BLUEPRINT_PATHS],
-    visibleTools: ['ReadFile', 'WriteFile', 'CreateTool', 'LoadModule', 'Promote'],
+    visibleToolsByMode: {
+      zero: ['ReadFile', 'WriteFile', 'EditFile', 'ListFiles', 'Grep', 'ListTools', 'CreateTool', 'LoadModule'],
+      reploid: ['ReadFile', 'WriteFile', 'EditFile', 'ListFiles', 'Grep', 'ListTools', 'CreateTool', 'LoadModule', 'Promote'],
+      x: ['ReadFile', 'WriteFile', 'EditFile', 'ListFiles', 'Grep', 'ListTools', 'CreateTool', 'LoadModule', 'Promote', 'SpawnWorker', 'AwaitWorkers']
+    },
     sourceRoots: [
       '/self',
       '/shadow',

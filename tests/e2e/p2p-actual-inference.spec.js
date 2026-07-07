@@ -120,7 +120,7 @@ const runActualPrompt = async (page, prompt) => {
   return (await readSnapshot(page, 'pool-run-result')).parsed;
 };
 
-test.describe('Ask and Compute actual browser inference', () => {
+test.describe('Run and Contribute actual browser inference', () => {
   test.skip(process.env.REPLOID_E2E_ACTUAL_INFERENCE !== '1', 'Set REPLOID_E2E_ACTUAL_INFERENCE=1 to run the real Doppler browser workload.');
 
   test('loads Doppler, generates in a provider tab, and returns a signed peer receipt', async ({ browser, baseURL }, testInfo) => {

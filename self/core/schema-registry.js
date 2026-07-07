@@ -11,7 +11,7 @@ const SchemaRegistry = {
   metadata: {
     id: 'SchemaRegistry',
     version: '1.1.0',
-    genesis: { introduced: 'spark' },
+    genesis: { introduced: 'capsule' },
     dependencies: ['Utils', 'VFS', 'SchemaValidator?'],
     async: true,
     type: 'service'
@@ -63,7 +63,7 @@ const SchemaRegistry = {
         }
       },
       WriteFile: {
-        description: 'Mutating. Write text or binary content to VFS/OPFS. JSON object content is serialized as JSON text. For build goals, stage candidates under /shadow and evidence JSON with replayPassed true under /artifacts after discovery.',
+        description: 'Mutating. Write text or binary content to VFS/OPFS. Stage candidates under /shadow and evidence under /artifacts. JSON object content is serialized as JSON text. Use CreateTool for Zero runtime tools; broader surfaces use Promote for evidence-gated /self changes.',
         readOnly: false,
         parameters: {
           type: 'object',
@@ -164,7 +164,7 @@ const SchemaRegistry = {
         }
       },
       CreateTool: {
-        description: 'Mutating. Create a CamelCase runtime tool after discovery identifies a tool-shaped implementation. In Zero it stages under /shadow/tools, installs to /self/tools, and loads the tool.',
+        description: 'Mutating. Create a CamelCase runtime tool after discovery identifies a tool-shaped implementation. In Zero it stages under /shadow/tools, validates the candidate, writes hash-bound activation evidence under /artifacts, installs to /self/tools, and loads the tool.',
         readOnly: false,
         parameters: {
           type: 'object',

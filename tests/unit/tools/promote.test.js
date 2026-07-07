@@ -4,6 +4,7 @@
 
 import { describe, it, expect, vi } from 'vitest';
 import { promoteShadowCandidate } from '../../../self/tools/Promote.js';
+import { sha256 } from '../../../self/core/promotion-policy.js';
 
 const createMemoryVfs = (entries = {}) => {
   const files = new Map(Object.entries(entries));
@@ -27,13 +28,15 @@ describe('Promote', () => {
     const targetPath = '/self/tools/KatamariEngine.js';
     const evidencePath = '/artifacts/KatamariEngine-evidence.json';
     const code = 'export default async function() { return { ok: true }; }\n';
+    const candidateHash = await sha256(code);
     const VFS = createMemoryVfs({
       [candidatePath]: code,
       [evidencePath]: JSON.stringify({
         candidatePath,
         targetPath,
         evidencePath,
-        replayPassed: true
+        replayPassed: true,
+        candidateHash
       })
     });
 
@@ -73,5 +76,32 @@ describe('Promote', () => {
     expect(result.reasons).toContain('targetPath must be under /self');
     expect(result.reasons.join('\n')).toContain('evidencePath missing');
     expect(VFS.files.has('/tools/KatamariEngine.js')).toBe(false);
+  });
+
+  it('rejects replay evidence that does not bind candidate bytes', async () => {
+    const candidatePath = '/shadow/tools/KatamariEngine.js';
+    const targetPath = '/self/tools/KatamariEngine.js';
+    const evidencePath = '/artifacts/KatamariEngine-evidence.json';
+    const VFS = createMemoryVfs({
+      [candidatePath]: 'export default async function() { return {}; }\n',
+      [evidencePath]: JSON.stringify({
+        candidatePath,
+        targetPath,
+        evidencePath,
+        replayPassed: true
+      })
+    });
+
+    const result = await promoteShadowCandidate({ candidatePath, targetPath, evidencePath }, { VFS });
+
+    expect(result).toMatchObject({
+      ok: false,
+      promoted: false,
+      candidatePath,
+      targetPath,
+      evidencePath
+    });
+    expect(result.reasons).toContain('evidence candidateHash or targetHash is required');
+    expect(VFS.files.has(targetPath)).toBe(false);
   });
 });

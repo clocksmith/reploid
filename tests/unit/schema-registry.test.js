@@ -47,10 +47,12 @@ describe('SchemaRegistry', () => {
   it('tells native callers where build artifacts should be staged', async () => {
     const registry = await createRegistry('zero');
 
-    expect(registry.getToolSchema('WriteFile').description).toContain('stage candidates under /shadow');
-    expect(registry.getToolSchema('WriteFile').description).toContain('evidence JSON with replayPassed true under /artifacts');
+    expect(registry.getToolSchema('WriteFile').description).toContain('Stage candidates under /shadow');
+    expect(registry.getToolSchema('WriteFile').description).toContain('Use CreateTool for Zero runtime tools');
     expect(registry.getToolSchema('WriteFile').description).toContain('JSON object content is serialized as JSON text');
     expect(registry.getToolSchema('Promote')).toBeNull();
+    expect(registry.getToolSchema('CreateTool').description).toContain('validates the candidate');
+    expect(registry.getToolSchema('CreateTool').description).toContain('activation evidence');
     expect(registry.getToolSchema('CreateTool').description).toContain('installs to /self/tools');
     expect(registry.getToolSchema('CreateTool').description).toContain('loads the tool');
     expect(registry.getToolSchema('WriteFile').readOnly).toBe(false);

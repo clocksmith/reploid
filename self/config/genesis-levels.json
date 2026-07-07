@@ -30,21 +30,14 @@
     "spark": {
       "name": "ZERO",
       "description": "Minimal self-building core with tool creation and VFS module loading",
-      "extends": "tabula",
+      "extends": "capsule",
       "modules": [
-        "AgentLoop",
         "CircuitBreaker",
         "ContextManager",
         "DopplerToolbox",
-        "LLMClient",
         "PersonaManager",
-        "ProviderRegistry",
-        "ResponseParser",
-        "SchemaRegistry",
         "SubstrateLoader",
         "TelemetryTimeline",
-        "ToolExecutor",
-        "ToolRunner",
         "ToolWriter"
       ]
     },
