@@ -24,6 +24,7 @@ const ResponseParser = {
     const BLOCK_ARG_REGEX = /^([a-zA-Z0-9_.-]+)\s*(?::\s*)?<<\s*([A-Za-z0-9_-]+)\s*$/;
     const PIPE_BLOCK_ARG_REGEX = /^([a-zA-Z0-9_.-]+)\s*:\s*\|[+-]?\s*$/;
     const LEGACY_TOOL_CALL_REGEX = /TOOL_CALL:\s*([a-zA-Z0-9_]+)\s*\nARGS:\s*/g;
+    const INLINE_LEGACY_TOOL_CALL_REGEX = /TOOL_CALL:\s*([a-zA-Z0-9_]+)(?=\s*\{)/g;
     const TOOL_BATCH_SEPARATOR_REGEX = /^-{3,}$/;
     const CONTINUATION_ARG_KEYS = new Set(['code', 'content']);
     const PATH_ARG_KEYS = new Set([
@@ -481,70 +482,78 @@ const ResponseParser = {
       return calls;
     };
 
-    const parseLegacyToolCalls = (text) => {
-      if (!text) return [];
-      const calls = [];
-      let match;
+    const readJsonObjectAt = (text, startIdx) => {
+      while (startIdx < text.length && /\s/.test(text[startIdx])) startIdx++;
+      if (text[startIdx] !== '{') {
+        return {
+          rawArgs: '',
+          endIdx: startIdx,
+          error: 'Invalid JSON block'
+        };
+      }
 
-      while ((match = LEGACY_TOOL_CALL_REGEX.exec(text)) !== null) {
-        const name = match[1].trim();
-        let startIdx = match.index + match[0].length;
+      let braceCount = 0;
+      let stringDelimiter = null; // Track which delimiter started the string: " or `
+      let escape = false;
+      let endIdx = startIdx;
 
-        while (startIdx < text.length && /\s/.test(text[startIdx])) startIdx++;
-        if (text[startIdx] !== '{') {
-          logger.warn(`[ResponseParser] Expected JSON object for ${name}`);
-          calls.push({ name, args: {}, error: 'Invalid JSON block' });
+      for (let i = startIdx; i < text.length; i++) {
+        const char = text[i];
+
+        if (escape) {
+          escape = false;
           continue;
         }
 
-        let braceCount = 0;
-        let stringDelimiter = null; // Track which delimiter started the string: " or `
-        let escape = false;
-        let endIdx = startIdx;
+        if (char === '\\' && stringDelimiter) {
+          escape = true;
+          continue;
+        }
 
-        for (let i = startIdx; i < text.length; i++) {
-          const char = text[i];
-
-          if (escape) {
-            escape = false;
-            continue;
-          }
-
-          if (char === '\\' && stringDelimiter) {
-            escape = true;
-            continue;
-          }
-
-          // Handle both double quotes and backticks as string delimiters
-          if (char === '"' || char === '`') {
-            if (!stringDelimiter) {
-              stringDelimiter = char; // Start string
-            } else if (stringDelimiter === char) {
-              stringDelimiter = null; // End string (matching delimiter)
-            }
-            // If in a string with different delimiter, ignore this char
-            continue;
-          }
-
+        // Handle both double quotes and backticks as string delimiters
+        if (char === '"' || char === '`') {
           if (!stringDelimiter) {
-            if (char === '{') {
-              braceCount++;
-            } else if (char === '}') {
-              braceCount--;
-              if (braceCount === 0) {
-                endIdx = i + 1;
-                break;
-              }
+            stringDelimiter = char; // Start string
+          } else if (stringDelimiter === char) {
+            stringDelimiter = null; // End string (matching delimiter)
+          }
+          // If in a string with different delimiter, ignore this char
+          continue;
+        }
+
+        if (!stringDelimiter) {
+          if (char === '{') {
+            braceCount++;
+          } else if (char === '}') {
+            braceCount--;
+            if (braceCount === 0) {
+              endIdx = i + 1;
+              break;
             }
           }
         }
+      }
 
-        const rawArgs = text.slice(startIdx, endIdx);
+      if (braceCount !== 0) {
+        return {
+          rawArgs: text.slice(startIdx),
+          endIdx: text.length,
+          error: 'Unterminated JSON block'
+        };
+      }
 
-        const { json } = sanitizeLlmJsonRespPure(rawArgs);
+      return {
+        rawArgs: text.slice(startIdx, endIdx),
+        endIdx,
+        error: null
+      };
+    };
+
+    const parseLegacyJsonArgs = (name, rawArgs) => {
+      const { json } = sanitizeLlmJsonRespPure(rawArgs);
         try {
           const args = JSON.parse(json);
-          calls.push({ name, args });
+        return { name, args };
         } catch (e) {
           logger.warn(`[ResponseParser] Bad args for ${name}`, {
             error: e.message,
@@ -556,8 +565,47 @@ const ResponseParser = {
           const hint = rawArgs.includes('\n') && !rawArgs.includes('\\n')
             ? ' Hint: Content has literal newlines - use \\n escapes instead.'
             : '';
-          calls.push({ name, args: {}, error: `JSON Parse Error: ${e.message}.${hint}` });
+        return { name, args: {}, error: `JSON Parse Error: ${e.message}.${hint}` };
+      }
+    };
+
+    const parseLegacyToolCalls = (text) => {
+      if (!text) return [];
+      const calls = [];
+      let match;
+
+      while ((match = LEGACY_TOOL_CALL_REGEX.exec(text)) !== null) {
+        const name = match[1].trim();
+        const parsed = readJsonObjectAt(text, match.index + match[0].length);
+        if (parsed.error) {
+          logger.warn(`[ResponseParser] Expected JSON object for ${name}`);
+          calls.push({ name, args: {}, error: parsed.error });
+          continue;
         }
+
+        calls.push(parseLegacyJsonArgs(name, parsed.rawArgs));
+      }
+
+      return calls;
+    };
+
+    const parseInlineLegacyToolCalls = (text) => {
+      if (!text) return [];
+      const calls = [];
+      let match;
+
+      while ((match = INLINE_LEGACY_TOOL_CALL_REGEX.exec(text)) !== null) {
+        const name = match[1].trim();
+        const parsed = readJsonObjectAt(text, match.index + match[0].length);
+        if (parsed.error) {
+          logger.warn(`[ResponseParser] Expected inline JSON object for ${name}`);
+          calls.push({ name, args: {}, error: parsed.error });
+          INLINE_LEGACY_TOOL_CALL_REGEX.lastIndex = parsed.endIdx;
+          continue;
+        }
+
+        calls.push(parseLegacyJsonArgs(name, parsed.rawArgs));
+        INLINE_LEGACY_TOOL_CALL_REGEX.lastIndex = parsed.endIdx;
       }
 
       return calls;
@@ -571,7 +619,12 @@ const ResponseParser = {
         return reploidCalls;
       }
 
-      return parseLegacyToolCalls(text);
+      const legacyCalls = parseLegacyToolCalls(text);
+      if (legacyCalls.length > 0) {
+        return legacyCalls;
+      }
+
+      return parseInlineLegacyToolCalls(text);
     };
 
     const isDone = (text) => {

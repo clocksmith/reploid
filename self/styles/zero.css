@@ -121,13 +121,12 @@
 
 .zero-main {
   display: grid;
-  grid-template-columns: minmax(160px, 0.36fr) minmax(0, 2fr);
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--space-md);
   min-height: 0;
   overflow: hidden;
 }
 
-.zero-goal,
 .zero-trace {
   min-height: 0;
   min-width: 0;
@@ -136,26 +135,8 @@
   gap: var(--space-sm);
 }
 
-.zero-goal {
-  justify-content: flex-start;
-  border: var(--border-sm) dashed color-mix(in srgb, var(--fg) 42%, transparent);
-  padding: var(--space-sm);
-  background: color-mix(in srgb, var(--bg) 98%, #00ffff 2%);
-}
-
-.zero-goal-text {
-  margin: 0;
-  white-space: pre-wrap;
-  word-break: break-word;
-  font-size: clamp(0.78rem, 1.1vw, 0.95rem);
-  line-height: 1.34;
-  letter-spacing: 0;
-  opacity: 0.82;
-}
-
 .zero-trace {
-  border-left: var(--border-sm) solid var(--fg);
-  padding-left: var(--space-md);
+  min-height: 0;
 }
 
 .zero-trace-list {
@@ -315,16 +296,8 @@
     overflow: visible;
   }
 
-  .zero-goal {
-    min-height: auto;
-  }
-
   .zero-trace {
     min-height: 42dvh;
-    border-left: none;
-    border-top: var(--border-sm) solid var(--fg);
-    padding-left: 0;
-    padding-top: var(--space-md);
   }
 
   .zero-trace-list {
@@ -363,10 +336,6 @@
 
   .zero-runtime-strip {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .zero-goal-text {
-    font-size: clamp(0.8rem, 3.2vw, 0.95rem);
   }
 
   .zero-input-row {

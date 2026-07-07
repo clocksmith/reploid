@@ -479,6 +479,27 @@ Done.`;
         expect(calls[1].args.content).toBe('Hello');
       });
 
+      it('should parse inline legacy JSON tool calls', () => {
+        const text = 'TOOL_CALL: ListFiles { "path": "/tools/" }';
+
+        const calls = responseParser.parseToolCalls(text);
+
+        expect(calls).toEqual([
+          { name: 'ListFiles', args: { path: '/tools/' } }
+        ]);
+      });
+
+      it('should parse multiple inline legacy JSON tool calls from one response', () => {
+        const text = 'TOOL_CALL: ListFiles { "path": "/tools/" } TOOL_CALL: ListFiles { "path": "/ui/panels/" }';
+
+        const calls = responseParser.parseToolCalls(text);
+
+        expect(calls).toEqual([
+          { name: 'ListFiles', args: { path: '/tools/' } },
+          { name: 'ListFiles', args: { path: '/ui/panels/' } }
+        ]);
+      });
+
       it('should parse tool call with nested JSON args', () => {
         const text = `TOOL_CALL: CreateTool
 ARGS: { "name": "MyTool", "config": { "nested": { "deep": true }, "array": [1, 2, 3] } }`;
