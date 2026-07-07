@@ -5,6 +5,15 @@
 
 import { getCurrentReploidStorage as getReploidStorage } from '../instance.js';
 import { createCycleArtifactWriter } from './cycle-artifacts.js';
+import {
+  buildRunReplayBundle,
+  collectReplayVfsFiles,
+  readImportedRunReplaySummary
+} from './run-replay-bundle.js';
+import {
+  buildZeroSystemPrompt,
+  getZeroMutationProgressToolList
+} from './zero-prompt.js';
 
 const AgentLoop = {
   metadata: {
@@ -2646,57 +2655,20 @@ const AgentLoop = {
 
     const getMutationProgressToolList = () => (
       getRuntimeMode() === 'zero'
-        ? 'WriteFile, EditFile, CreateTool, or LoadModule'
+        ? getZeroMutationProgressToolList()
         : 'WriteFile, CreateTool, EditFile, Promote, or LoadModule'
     );
-
-    const extractPersonaSection = (personaPrompt = '') => {
-      const match = String(personaPrompt || '').match(/\n## PERSONA:[\s\S]*$/);
-      return match ? match[0].trim() : '';
-    };
-
-    const buildZeroSystemPrompt = (personaPrompt, goal) => {
-      const personaSection = extractPersonaSection(personaPrompt);
-      return `
-You are Zero, a browser-local tabula-rasa RSI agent.
-Improve this goal and keep iterating until it is truly complete:
-${goal}
-
-${personaSection ? `${personaSection}\n` : ''}
-
-## Scope and constraints
-- This is a self-contained browser substrate (IndexedDB VFS, DOM/CSS, workers, Service Worker loading).
-- No host shell/filesystem/process claims. Use the provided tools and paths only.
-- The loop is RSI: after each mutation, verify a real artifact before deciding the next move.
-
-## Writable boundary (critical)
-- Read from live paths (e.g. /core, /ui, /styles, /tools, /config, /artifacts, /shadow).
-- Candidate edits go to /shadow, evidence to /artifacts.
-- Zero cannot write arbitrary /self files directly. Runtime tools load only from /self.
-
-## Zero tool creation workflow
-- Use CreateTool for new runtime tools. In Zero it stages /shadow/tools/MyTool.js, validates the candidate, writes hash-bound activation evidence under /artifacts, installs /self/tools/MyTool.js, and loads it.
-- Use LoadModule only to reload an already installed /self tool.
-- Never write candidates under /lab, never LoadModule a /shadow path, and do not use Promote in Zero.
-
-## Required tools
-ReadFile, ListFiles, Grep, ListTools, WriteFile, EditFile, CreateTool, LoadModule.
-
-## Calling style
-- Use REPLOID/0 with TOOL blocks and one tool call minimum.
-- For tools, send code only as raw content (no markdown wrapper):  
-  export const tool = { name, description, inputSchema, call };
-  export default tool;
-
-Evidence JSON must be strict JSON only (no fences, no trailing prose).
-      `.trim();
-    };
 
     const _buildInitialContext = async (goal) => {
       const personaPrompt = await PersonaManager.getSystemPrompt();
 
       const systemPrompt = getRuntimeMode() === 'zero'
-        ? buildZeroSystemPrompt(personaPrompt, goal)
+        ? buildZeroSystemPrompt({
+            personaPrompt,
+            goal,
+            maxToolCalls: getMaxToolCalls(),
+            readOnlyDiscoveryLimit: BUILD_READ_ONLY_DISCOVERY_LIMIT
+          })
         : `
 ${personaPrompt}
 
@@ -2801,6 +2773,32 @@ ${goal}
     };
 
     const getRecentActivities = () => [..._activityLog];
+    const exportReplayBundle = async (options = {}) => {
+      const state = StateManager?.getState?.() || {};
+      const goal = options.goal
+        || state.currentGoal?.text
+        || _currentContext.find((message) => (
+          message?.role === 'user'
+          && String(message?.content || '').startsWith('Begin. Goal:')
+        ))?.content?.replace(/^Begin\. Goal:\s*/i, '')
+        || '';
+      const vfsFiles = await collectReplayVfsFiles(VFS, options.vfs || {});
+      const storage = getReploidStorage();
+      return buildRunReplayBundle({
+        route: typeof window !== 'undefined' ? window.location?.pathname : options.route,
+        mode: getRuntimeMode(),
+        goal,
+        modelConfig: _modelConfig,
+        modelConfigs: _modelConfigs.length ? _modelConfigs : (_modelConfig ? [_modelConfig] : []),
+        systemPrompt: _currentSystemPrompt,
+        context: _currentContext,
+        messageQueue: _humanMessageQueue,
+        activities: _activityLog,
+        vfsFiles,
+        state,
+        importedReplay: readImportedRunReplaySummary(storage)
+      });
+    };
     const run = (goal) => startRun(goal, null);
 
     return {
@@ -2823,6 +2821,7 @@ ${goal}
       isRunning: () => _isRunning,
       hasPendingProviderResume: () => !!_providerResumeState,
       getRecentActivities,
+      exportReplayBundle,
       getProviderRetryState: () => (_providerResumeState ? { ..._providerResumeState } : null),
       getProviderResumePromise: () => _providerResumePromise,
       // Debug visibility

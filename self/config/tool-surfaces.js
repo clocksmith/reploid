@@ -9,11 +9,11 @@
 export const TOOL_SURFACES = Object.freeze({
   sharedFile: Object.freeze([
     'ReadFile',
-    'WriteFile',
-    'EditFile',
     'ListFiles',
     'Grep',
     'ListTools',
+    'WriteFile',
+    'EditFile',
     'CreateTool',
     'LoadModule'
   ]),
@@ -91,4 +91,12 @@ export function getToolSurfaceIdsForMode(mode = 'reploid') {
 
 export function getToolNamesForMode(mode = 'reploid', options = {}) {
   return getToolNamesForSurfaceIds(getToolSurfaceIdsForMode(mode), options);
+}
+
+export function getVisibleToolsByMode(options = {}) {
+  return Object.freeze({
+    zero: getToolNamesForMode('zero', options),
+    reploid: getToolNamesForMode('reploid', options),
+    x: getToolNamesForMode('x', options)
+  });
 }

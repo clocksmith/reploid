@@ -82,6 +82,7 @@ describe('boot seed manifest', () => {
     expect(bootFiles).not.toContain('blueprints/rgr-runtime-contract.md');
     expect(bootFiles).toContain('ui/zero/index.js');
     expect(bootFiles).toContain('styles/zero.css');
+    expect(bootFiles).toContain('core/run-replay-bundle.js');
     expect(bootFiles).not.toContain('styles/poolday.css');
     expect(bootFiles).not.toContain('styles/rd-components.css');
     expect(bootFiles).not.toContain('styles/rd-primitives.css');

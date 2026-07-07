@@ -2,6 +2,8 @@
  * @fileoverview Shared tabula-rasa Reploid boot contracts.
  */
 
+import { getVisibleToolsByMode } from '../../config/tool-surfaces.js';
+
 export const DEFAULT_REPLOID_HOME_GOAL = [
   'Start from the blueprint index.',
   'Read only the blueprints needed for the objective.',
@@ -53,11 +55,7 @@ export function buildSelfPreview() {
     productModel: 'Reploid',
     operatingState: 'tabula-rasa',
     blueprintIndexPath: '/self/blueprint-index.json',
-    visibleToolsByMode: {
-      zero: ['ReadFile', 'WriteFile', 'EditFile', 'ListFiles', 'Grep', 'ListTools', 'CreateTool', 'LoadModule'],
-      reploid: ['ReadFile', 'WriteFile', 'EditFile', 'ListFiles', 'Grep', 'ListTools', 'CreateTool', 'LoadModule', 'Promote'],
-      x: ['ReadFile', 'WriteFile', 'EditFile', 'ListFiles', 'Grep', 'ListTools', 'CreateTool', 'LoadModule', 'Promote', 'SpawnWorker', 'AwaitWorkers']
-    },
+    visibleToolsByMode: getVisibleToolsByMode(),
     writableRoots: ['/shadow', '/artifacts', 'opfs:/artifacts']
   }, null, 2);
 }

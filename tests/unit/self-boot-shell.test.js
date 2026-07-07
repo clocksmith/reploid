@@ -58,6 +58,8 @@ describe('self-first boot shell', () => {
   it('mirrors proto shared UI dependencies into /self', () => {
     const mirrors = readRepoFile('self/lab/mirrors.js');
 
+    expect(mirrors).toContain("sourcePath: '/core/run-replay-bundle.js', targetPath: '/self/core/run-replay-bundle.js'");
+    expect(mirrors).toContain("sourcePrefix: '/ui/zero/'");
     expect(mirrors).toContain("sourcePath: '/ui/toast.js', targetPath: '/self/ui/toast.js'");
     expect(mirrors).toContain("sourcePrefix: '/ui/components/'");
     expect(mirrors).toContain("sourcePrefix: '/ui/panels/'");
@@ -117,7 +119,8 @@ describe('self-first boot shell', () => {
     const styles = readRepoFile('self/styles/boot.css');
 
     expect(bootHome).toContain('const renderAwakenButton = (state, options = {}) =>');
-    expect(bootHome).toContain('primaryActionHtml: renderAwakenButton');
+    expect(bootHome).toContain('primaryActionHtml: renderRunReplayImportControl(state) + renderAwakenButton');
+    expect(bootHome).toContain('data-action="import-run-json"');
     expect(bootHome).not.toContain('wizard-awaken-simple');
     expect(goalStep).toContain('const primaryActionHtml = options.primaryActionHtml ||');
     expect(goalStep).toContain('goal-primary-action');

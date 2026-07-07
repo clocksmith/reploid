@@ -248,6 +248,27 @@ describe('AgentLoop - Integration Tests', () => {
       expect(prompt).not.toContain('all Web APIs');
     });
 
+    it('exports a redacted replay bundle for the current run', async () => {
+      agentLoop.setModel({ id: 'test-model', provider: 'test', apiKey: 'secret' });
+      mockLLMClient.chat.mockResolvedValue({ content: 'DONE' });
+      mockResponseParser.isDone.mockReturnValue(true);
+
+      await agentLoop.run('Export this run');
+      const bundle = await agentLoop.exportReplayBundle();
+
+      expect(bundle).toMatchObject({
+        schema: 'reploid.run-replay.v1',
+        goal: 'Export this run',
+        model: {
+          id: 'test-model',
+          provider: 'test',
+          apiKey: '[redacted]'
+        }
+      });
+      expect(bundle.context.some((message) => message.content.includes('Export this run'))).toBe(true);
+      expect(bundle.history.some((entry) => entry.kind === 'llm_response')).toBe(true);
+    });
+
     it('builds Zero context with discovery-first VFS rules', async () => {
       vi.stubGlobal('window', {
         getReploidMode: () => 'zero'
@@ -265,7 +286,7 @@ describe('AgentLoop - Integration Tests', () => {
       expect(prompt).toContain('Inspect the Zero VFS');
       expect(prompt).toContain('## Scope and constraints');
       expect(prompt).toContain('No host shell/filesystem/process claims');
-      expect(prompt).toContain('## Writable boundary (critical)');
+      expect(prompt).toContain('## Writable boundary');
       expect(prompt).toContain('Candidate edits go to /shadow, evidence to /artifacts.');
       expect(prompt).toContain('## Zero tool creation workflow');
       expect(prompt).toContain('Use CreateTool for new runtime tools.');
