@@ -9,7 +9,11 @@
 import { hashJson, sha256Hex } from './inference-receipt.js';
 import { collectRuntimeProfile } from './runtime-profile.js';
 import { BROWSER_RUNTIME_CONFIG } from './config.js';
-import { validateModelRuntimeCapabilities } from './model-contract.js';
+import {
+  POOLDAY_MODEL_WORKLOADS,
+  getPoolModelWorkload,
+  validateModelRuntimeCapabilities
+} from './model-contract.js';
 
 const DOPPLER_IMPORTS = Object.freeze([
   '@simulatte/doppler',
@@ -174,6 +178,20 @@ const generateMethodName = (candidate) => {
   return null;
 };
 
+const embeddingMethodName = (candidate) => {
+  if (!candidate) return null;
+  if (typeof candidate.embed === 'function') return 'embed';
+  if (typeof candidate.embedText === 'function') return 'embedText';
+  if (typeof candidate.run === 'function') return 'run';
+  return null;
+};
+
+const publicMethodNameForWorkload = (candidate, model = {}) => (
+  getPoolModelWorkload(model) === POOLDAY_MODEL_WORKLOADS.embedding
+    ? embeddingMethodName(candidate)
+    : generateMethodName(candidate)
+);
+
 const normalizeTokenIds = (value) => {
   const candidates = [
     value?.tokenIds,
@@ -218,6 +236,38 @@ const normalizeTokenCounts = (value, tokenIds) => {
   };
 };
 
+const normalizeEmbeddingValues = (value) => {
+  const candidate = ArrayBuffer.isView(value) || Array.isArray(value)
+    ? value
+    : (
+        value?.embedding
+        || value?.vector
+        || value?.values
+        || value?.outputEmbedding
+        || value?.result?.embedding
+        || value?.receipt?.embedding
+      );
+  if (!(ArrayBuffer.isView(candidate) || Array.isArray(candidate))) return [];
+  return Array.from(candidate, (item) => Math.fround(Number(item)));
+};
+
+const summarizeEmbeddingValues = (values) => {
+  let nonFiniteCount = 0;
+  let sumSquares = 0;
+  for (const value of values) {
+    if (!Number.isFinite(value)) {
+      nonFiniteCount += 1;
+      continue;
+    }
+    sumSquares += value * value;
+  }
+  return {
+    dimensions: values.length,
+    nonFiniteCount,
+    l2Norm: values.length ? Number(Math.sqrt(sumSquares).toFixed(6)) : 0
+  };
+};
+
 const isAsyncIterable = (value) => value && typeof value[Symbol.asyncIterator] === 'function';
 const isIterable = (value) => value && typeof value[Symbol.iterator] === 'function' && typeof value !== 'string';
 
@@ -256,6 +306,8 @@ const collectGenerationResult = async (value) => {
   return value;
 };
 
+const collectEmbeddingResult = async (value) => value;
+
 const normalizeModelInfo = async (model, handle) => {
   const manifest = model?.manifest || handle?.manifest || handle?.model?.manifest || null;
   const evidence = await getHandleModelEvidence(handle);
@@ -266,6 +318,8 @@ const normalizeModelInfo = async (model, handle) => {
     modelId: model?.modelId || model?.id || evidence.modelId || null,
     modelHash: model?.modelHash || evidence.modelHash || null,
     manifestHash: manifestHash || null,
+    workload: getPoolModelWorkload(model || manifest || {}),
+    executionMode: model?.executionMode || model?.execution || null,
     contextLength: Number(model?.contextLength || handle?.contextLength || handle?.model?.contextLength || 0),
     quantization: model?.quantization || handle?.quantization || handle?.model?.quantization || null,
     runtime: 'doppler',
@@ -515,6 +569,25 @@ const callGenerate = async (session, prompt, generationConfig, assignment) => {
   throw new Error('Doppler public handle does not expose generate, generateText, or run');
 };
 
+const callEmbed = async (session, prompt, assignment) => {
+  const request = {
+    prompt,
+    input: prompt,
+    assignment,
+    workload: POOLDAY_MODEL_WORKLOADS.embedding
+  };
+  if (typeof session.embed === 'function') {
+    return collectEmbeddingResult(await session.embed(prompt, { assignment }));
+  }
+  if (typeof session.embedText === 'function') {
+    return collectEmbeddingResult(await session.embedText(prompt, { assignment }));
+  }
+  if (typeof session.run === 'function') {
+    return collectEmbeddingResult(await session.run(request));
+  }
+  throw new Error('Doppler public handle does not expose embed, embedText, or run');
+};
+
 const resetSessionGenerationState = async (session) => {
   if (typeof session?.resetGenerationState === 'function') {
     await session.resetGenerationState();
@@ -534,14 +607,18 @@ export function createDopplerRuntime({ modelSession = null, model = null, runtim
   let generationQueue = Promise.resolve();
 
   const attachHandle = async (handle, nextModel = null, nextRuntime = null) => {
-    const method = generateMethodName(handle);
+    const nextModelInfo = nextModel || modelInfo || {};
+    const method = publicMethodNameForWorkload(handle, nextModelInfo);
     if (!method) {
-      throw new Error('Doppler handle is missing a public generation method');
+      throw new Error(`Doppler handle is missing a public ${getPoolModelWorkload(nextModelInfo)} method`);
     }
-    await assertHandleMatchesDescriptor(handle, nextModel || modelInfo || {});
+    await assertHandleMatchesDescriptor(handle, nextModelInfo);
     session = handle;
-    modelInfo = await normalizeModelInfo(nextModel || modelInfo || {}, handle);
-    runtimeInfo = normalizeRuntimeInfo(nextRuntime || runtimeInfo, handle);
+    modelInfo = await normalizeModelInfo(nextModelInfo, handle);
+    runtimeInfo = {
+      ...normalizeRuntimeInfo(nextRuntime || runtimeInfo, handle),
+      publicApi: method
+    };
     loadState = 'loaded';
     return { ok: true, model: modelInfo, runtime: runtimeInfo };
   };
@@ -581,7 +658,7 @@ export function createDopplerRuntime({ modelSession = null, model = null, runtim
       }
     },
     isReady() {
-      return !!session && !!generateMethodName(session);
+      return !!session && !!publicMethodNameForWorkload(session, modelInfo || {});
     },
     getLoadState() {
       return loadState;
@@ -638,6 +715,52 @@ export function createDopplerRuntime({ modelSession = null, model = null, runtim
         };
       };
       const task = generationQueue.then(runGeneration, runGeneration);
+      generationQueue = task.catch(() => null);
+      return task;
+    },
+    async embed({ prompt, assignment }) {
+      if (!session || !embeddingMethodName(session)) {
+        throw new Error('Doppler browser embedding session is not connected');
+      }
+      const runEmbedding = async () => {
+        await resetSessionGenerationState(session);
+        const startedAt = new Date().toISOString();
+        const result = await callEmbed(session, prompt, assignment);
+        const completedAt = new Date().toISOString();
+        const values = normalizeEmbeddingValues(result);
+        if (values.length === 0) throw new Error('Doppler embedding result did not include an embedding vector');
+        const stats = summarizeEmbeddingValues(values);
+        if (stats.nonFiniteCount > 0) {
+          throw new Error(`Doppler embedding result contains ${stats.nonFiniteCount} non-finite values`);
+        }
+        const vectorHash = await hashJson(values);
+        const transcript = {
+          outputKind: POOLDAY_MODEL_WORKLOADS.embedding,
+          vectorHash,
+          dimensions: stats.dimensions,
+          l2Norm: stats.l2Norm
+        };
+        return {
+          outputKind: POOLDAY_MODEL_WORKLOADS.embedding,
+          outputText: '',
+          tokenIds: [],
+          vectorHash,
+          embeddingDimensions: stats.dimensions,
+          embeddingStats: stats,
+          transcript,
+          tokenCounts: {
+            input: Number(result?.tokenCount || result?.tokenCounts?.input || result?.usage?.promptTokens || 0),
+            output: 0
+          },
+          timing: result?.timing || { startedAt, completedAt },
+          dopplerProviderReceipt: result?.receipt || result?.dopplerProviderReceipt || null,
+          model: modelInfo,
+          runtime: runtimeInfo,
+          evidenceWarnings: [],
+          status: 'completed'
+        };
+      };
+      const task = generationQueue.then(runEmbedding, runEmbedding);
       generationQueue = task.catch(() => null);
       return task;
     }

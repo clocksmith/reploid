@@ -8,6 +8,14 @@ import { isSecurityEnabled } from './security-config.js';
 import { getCurrentReploidStorage as getReploidStorage } from '../instance.js';
 import { getToolNamesForMode } from '../config/tool-surfaces.js';
 
+export const filterToolDepsForMode = (deps = {}, mode = 'reploid') => {
+  if (mode !== 'zero') return deps;
+  const filtered = { ...deps };
+  delete filtered.Shell;
+  delete filtered.gitTools;
+  return filtered;
+};
+
 const ToolRunner = {
   metadata: {
     id: 'ToolRunner',
@@ -418,7 +426,7 @@ const ToolRunner = {
 
         // Inject comprehensive deps for full RSI capability
         // All available modules are passed - tools can check availability via !!deps.ModuleName
-        const toolDeps = {
+        const toolDeps = filterToolDepsForMode({
           Utils,
           VFS,
           Shell,
@@ -454,7 +462,7 @@ const ToolRunner = {
             load: loadToolByName,
             loadPath: loadToolPath
           }
-        };
+        }, getBootMode());
         let result = await toolFn(args, toolDeps);
 
         // Validate tool output if SchemaValidator is available and enabled

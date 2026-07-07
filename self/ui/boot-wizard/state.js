@@ -18,6 +18,7 @@ import { getSecurityState } from '../../core/security-config.js';
 import { getCurrentReploidStorage as getReploidStorage } from '../../instance.js';
 import { getReploidLaunchState } from './reploid-inference.js';
 import {
+  ZERO_GEMINI_AGENT_THROTTLE,
   ZERO_GEMINI_SERVER_TYPE,
   ZERO_MANAGED_MAX_ITERATIONS
 } from './zero-function.js';
@@ -42,13 +43,15 @@ export const VERIFY_STATE = {
   FAILED: 'failed'
 };
 
-export const DEFAULT_CYCLE_INTERVAL_SECONDS = 0;
+export const DEFAULT_CYCLE_INTERVAL_SECONDS = 7.7;
 export const MAX_CYCLE_INTERVAL_SECONDS = 3600;
 
 export const normalizeCycleIntervalSeconds = (value, fallback = DEFAULT_CYCLE_INTERVAL_SECONDS) => {
+  if (value === null || value === undefined || value === '') return fallback;
   const parsed = Number(value);
   if (!Number.isFinite(parsed)) return fallback;
-  return Math.min(MAX_CYCLE_INTERVAL_SECONDS, Math.max(0, Math.floor(parsed)));
+  const clamped = Math.min(MAX_CYCLE_INTERVAL_SECONDS, Math.max(0, parsed));
+  return Math.round(clamped * 10) / 10;
 };
 
 // Provider test endpoints
@@ -572,6 +575,7 @@ export function saveConfig() {
       model.endpoint = proxyConfig.endpoint || proxyConfig.url;
       model.maxIterations = ZERO_MANAGED_MAX_ITERATIONS;
       model.managedServerProxy = true;
+      model.agentThrottle = proxyConfig.agentThrottle || ZERO_GEMINI_AGENT_THROTTLE;
     }
     models.push(withCycleThrottle(model));
   }

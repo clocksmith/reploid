@@ -77,6 +77,9 @@ describe('boot seed manifest', () => {
 
     expect(bootFiles).toContain('blueprint-index.json');
     expect(bootFiles).toContain('blueprints/blueprint-index-contract.md');
+    expect(bootFiles).toContain('blueprints/tool-contract.md');
+    expect(bootFiles).not.toContain('blueprints/promotion-contract.md');
+    expect(bootFiles).not.toContain('blueprints/rgr-runtime-contract.md');
     expect(bootFiles).toContain('ui/zero/index.js');
     expect(bootFiles).toContain('styles/zero.css');
     expect(bootFiles).not.toContain('styles/poolday.css');
@@ -109,10 +112,16 @@ describe('boot seed manifest', () => {
     expect(zeroBootFiles).not.toContain('tools/DeleteFile.js');
     expect(zeroBootFiles).not.toContain('tools/CopyFile.js');
     expect(zeroBootFiles).not.toContain('tools/git.js');
+    expect(zeroBootFiles).not.toContain('tools/Promote.js');
+    expect(zeroBootFiles).not.toContain('blueprints/promotion-contract.md');
+    expect(zeroBootFiles).not.toContain('blueprints/rgr-runtime-contract.md');
     expect(zeroBootFiles).not.toContain('capabilities/system/README.md');
     expect(zeroBootFiles).not.toContain('core/README.md');
     expect(zeroBootFiles).not.toContain('infrastructure/README.md');
     expect(zeroBootFiles.every((file) => xBootSet.has(file))).toBe(true);
+    expect(xBootFiles).toContain('blueprints/promotion-contract.md');
+    expect(xBootFiles).toContain('blueprints/rgr-runtime-contract.md');
+    expect(xBootFiles).toContain('tools/Promote.js');
     expect(xBootFiles).toContain('ui/proto/index.js');
     expect(xBootFiles).toContain('styles/proto/index.css');
   });
@@ -160,6 +169,24 @@ describe('boot seed manifest', () => {
         region: 'us-central1'
       }
     });
+  });
+
+  it('routes stale split rd.css requests back to the self-contained bundle', () => {
+    const hosting = firebaseConfig.hosting.find((entry) => entry.target === 'reploid');
+
+    for (const source of [
+      '/styles/rd-tokens.css',
+      '/styles/rd-primitives.css',
+      '/styles/rd-components.css',
+      '/rd-tokens.css',
+      '/rd-primitives.css',
+      '/rd-components.css'
+    ]) {
+      expect(hosting?.rewrites).toContainEqual({
+        source,
+        destination: '/styles/rd.css'
+      });
+    }
   });
 
   it('caps the managed Zero server proxy model loop', () => {

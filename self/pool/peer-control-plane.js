@@ -23,8 +23,10 @@ import {
 import { validatePooldayPolicyClasses } from './policy-router.js';
 import {
   LAUNCH_MODEL,
+  POOLDAY_MODEL_WORKLOADS,
   buildLaunchModelRequirements,
   buildLaunchProviderModel,
+  getPoolModelWorkload,
   validateLaunchModelRequirement
 } from './model-contract.js';
 import {
@@ -197,6 +199,7 @@ export async function createSignedJobIntent({
   const resolvedRequesterId = requireString(requesterId, 'requesterId');
   const resolvedPrompt = requireString(prompt, 'prompt');
   const resolvedModelRequirements = buildLaunchModelRequirements(modelRequirements);
+  const workload = resolvedModelRequirements.workload || getPoolModelWorkload(resolvedModelRequirements);
   const resolvedGenerationConfig = {
     ...DETERMINISTIC_GENERATION_CONFIG,
     ...generationConfig
@@ -219,6 +222,7 @@ export async function createSignedJobIntent({
     inputHash,
     promptTransport: 'webrtc_datachannel',
     promptDisclosure: 'selected_providers_only',
+    workload,
     modelRequirements: resolvedModelRequirements,
     generationConfig: resolvedGenerationConfig,
     generationConfigHash,
@@ -360,6 +364,19 @@ const ringAttemptIdFor = (intentHash, assignmentAttemptId = 1) => (
   `peer_ring_attempt_${intentHash.replace(/^sha256:/, '').slice(0, 16)}_${assignmentAttemptId}`
 );
 
+const intentWorkload = (intent = {}) => (
+  intent.body?.workload
+  || intent.body?.modelRequirements?.workload
+  || intent.body?.modelRequirements?.workloadType
+  || POOLDAY_MODEL_WORKLOADS.textGeneration
+);
+
+const agreementFieldForIntent = (intent = {}, policy = {}) => (
+  intentWorkload(intent) === POOLDAY_MODEL_WORKLOADS.embedding
+    ? 'vectorHash'
+    : (policy.agreementField || 'tokenIdsHash')
+);
+
 const buildPeerRingPlan = async ({ intent, intentHash, candidates, policy, assignmentAttemptId = 1 }) => {
   const providerIds = candidates.map((candidate) => peerIdForMessage(candidate.advert));
   const ringSeed = await hashJson({
@@ -384,7 +401,7 @@ const buildPeerRingPlan = async ({ intent, intentHash, candidates, policy, assig
     ringAttemptId: ringAttemptIdFor(intentHash, assignmentAttemptId),
     ringSize,
     requiredAgreement,
-    agreementField: policy.agreementField || 'tokenIdsHash',
+    agreementField: agreementFieldForIntent(intent, policy),
     providerIds: orderedProviderIds,
     ringSeed
   };
@@ -477,6 +494,10 @@ export async function buildPeerAssignmentPlan({
   const requiredAgreement = ringPlan?.requiredAgreement || providerCount;
   const jobId = `peer_job_${intentVerification.messageHash.replace(/^sha256:/, '').slice(0, 16)}`;
   const assignments = [];
+  const workload = intentWorkload(intent);
+  const assignmentAgreementField = workload === POOLDAY_MODEL_WORKLOADS.embedding
+    ? agreementFieldForIntent(intent, policy)
+    : null;
   for (const [index, candidate] of selectedCandidates.entries()) {
     const providerId = peerIdForMessage(candidate.advert);
     const assignmentHash = await hashJson({
@@ -499,6 +520,9 @@ export async function buildPeerAssignmentPlan({
       policyConfigHash: intent.body.policyConfigHash || null,
       maxPointSpend: intent.body.maxPointSpend ?? null,
       inputHash: intent.body.inputHash,
+      workload,
+      outputKind: workload,
+      ...(assignmentAgreementField ? { agreementField: assignmentAgreementField } : {}),
       promptTransport: 'webrtc_datachannel',
       requiresPromptPayload: true,
       generationConfigHash: intent.body.generationConfigHash,
@@ -515,6 +539,8 @@ export async function buildPeerAssignmentPlan({
         manifestHash: intent.body.modelRequirements.manifestHash,
         runtime: intent.body.modelRequirements.runtime || LAUNCH_MODEL.runtime,
         backend: intent.body.modelRequirements.backend || LAUNCH_MODEL.backend,
+        workload,
+        executionMode: intent.body.modelRequirements.executionMode || null,
         requirements: intent.body.modelRequirements
       },
       runtimeProfileHash: candidate.advert.body?.runtimeProfileHash || null,
@@ -547,6 +573,7 @@ export async function buildPeerAssignmentPlan({
       ringSize: ringPlan.ringSize,
       requiredAgreement: ringPlan.requiredAgreement,
       effectiveTrustTier: ringPlan.effectiveTrustTier,
+      agreementField: ringPlan.agreementField,
       layoutHash: ringPlan.layoutHash,
       providerIds: ringPlan.providerIds
     } : null
@@ -617,6 +644,7 @@ export async function validatePeerAssignmentForIntentAndAdvert({
   if (assignment.providerId !== advertProviderId) reasons.push('providerId mismatch');
   if (assignment.inputHash !== intent?.body?.inputHash) reasons.push('inputHash mismatch');
   if (assignment.generationConfigHash !== intent?.body?.generationConfigHash) reasons.push('generationConfigHash mismatch');
+  if ((assignment.workload || POOLDAY_MODEL_WORKLOADS.textGeneration) !== intentWorkload(intent)) reasons.push('workload mismatch');
   const requiredModel = intent?.body?.modelRequirements || {};
   const assignmentModel = assignment.model || {};
   if (assignmentModel.id !== requiredModel.modelId) reasons.push('model id mismatch');
@@ -624,6 +652,7 @@ export async function validatePeerAssignmentForIntentAndAdvert({
   if (assignmentModel.manifestHash !== requiredModel.manifestHash) reasons.push('manifest hash mismatch');
   if ((assignmentModel.runtime || LAUNCH_MODEL.runtime) !== (requiredModel.runtime || LAUNCH_MODEL.runtime)) reasons.push('runtime mismatch');
   if ((assignmentModel.backend || LAUNCH_MODEL.backend) !== (requiredModel.backend || LAUNCH_MODEL.backend)) reasons.push('backend mismatch');
+  if ((assignmentModel.workload || POOLDAY_MODEL_WORKLOADS.textGeneration) !== (requiredModel.workload || POOLDAY_MODEL_WORKLOADS.textGeneration)) reasons.push('model workload mismatch');
   const advertModels = providerAdvert?.body?.models || [];
   const advertHasModel = advertModels.some((model) => (
     model.modelId === requiredModel.modelId
@@ -649,6 +678,7 @@ const receiptAgreementValue = (receipt = {}, agreementField = 'tokenIdsHash') =>
   if (receipt[agreementField]) return receipt[agreementField];
   if (agreementField === 'tokenIdsHash') return receipt.tokenIdsHash || null;
   if (agreementField === 'outputHash') return receipt.outputHash || null;
+  if (agreementField === 'vectorHash') return receipt.vectorHash || null;
   return null;
 };
 
@@ -669,7 +699,12 @@ const receiptMatchesAssignment = (receipt = {}, assignment = {}) => {
   if (!receipt.providerSignature) reasons.push('receipt providerSignature is required');
   if (receipt.signatureDomain !== SIGNATURE_DOMAINS.providerReceipt) reasons.push('receipt signature domain mismatch');
   if (!receipt.outputHash) reasons.push('receipt outputHash is required');
-  if (!receipt.tokenIdsHash) reasons.push('receipt tokenIdsHash is required');
+  const workload = assignment.workload || assignment.model?.workload || assignment.model?.requirements?.workload || POOLDAY_MODEL_WORKLOADS.textGeneration;
+  if (workload === POOLDAY_MODEL_WORKLOADS.embedding) {
+    if (!receipt.vectorHash) reasons.push('receipt vectorHash is required');
+  } else if (!receipt.tokenIdsHash) {
+    reasons.push('receipt tokenIdsHash is required');
+  }
   return reasons;
 };
 
@@ -682,7 +717,7 @@ export async function buildPeerReceiptAgreement({
   }
   const assignmentsById = new Map(plan.assignments.map((assignment) => [assignment.assignmentId, assignment]));
   const requiredAgreement = Math.max(1, Number(plan.ring?.requiredAgreement || plan.assignment?.requiredAgreement || 1));
-  const agreementField = plan.ring?.agreementField || 'tokenIdsHash';
+  const agreementField = plan.ring?.agreementField || plan.assignment?.agreementField || 'tokenIdsHash';
   const policy = getPolicy(plan.assignment?.policyId || plan.assignments[0]?.policyId);
   const pointMultiplier = Number(policy?.pointCostMultiplier || 1);
   const maxPointSpend = plan.assignment?.maxPointSpend ?? plan.assignments[0]?.maxPointSpend ?? null;
@@ -719,7 +754,8 @@ export async function buildPeerReceiptAgreement({
       providerId: assignment.providerId,
       agreementValue,
       outputHash: receipt.outputHash,
-      tokenIdsHash: receipt.tokenIdsHash
+      tokenIdsHash: receipt.tokenIdsHash,
+      vectorHash: receipt.vectorHash || null
     });
   }
   const groups = new Map();
@@ -771,6 +807,7 @@ export async function buildPeerReceiptAgreement({
     receiptHash: acceptedSlice[0]?.receiptHash || null,
     outputHash: acceptedSlice[0]?.outputHash || null,
     tokenIdsHash: acceptedSlice[0]?.tokenIdsHash || null,
+    vectorHash: acceptedSlice[0]?.vectorHash || null,
     effectiveTrustTier: plan.ring?.effectiveTrustTier || plan.assignment?.trustTier || null,
     ring: plan.ring || null,
     maxPointSpend,

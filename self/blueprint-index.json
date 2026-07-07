@@ -3,8 +3,7 @@
   "active": [
     "tabula-rasa-runtime",
     "blueprint-index-contract",
-    "tool-contract",
-    "promotion-contract"
+    "tool-contract"
   ],
   "entries": [
     {
@@ -27,13 +26,6 @@
       "status": "active",
       "tags": ["tools", "shadow", "kernel"],
       "summary": "Defines the primitive tool surface for the tabula-rasa runtime."
-    },
-    {
-      "id": "promotion-contract",
-      "path": "/self/blueprints/promotion-contract.md",
-      "status": "active",
-      "tags": ["promotion", "shadow", "self"],
-      "summary": "Defines the gated path from /shadow candidates into active /self."
     }
   ]
 }

@@ -21,6 +21,7 @@ import {
   bindHomeAskControls,
   bindProviderControls,
   bindReceiptControls,
+  bindRoomActivityControls,
   bindRunControls
 } from './controls.js';
 import { bindHomeSimulation } from './simulation-bind.js';
@@ -41,10 +42,23 @@ const bindPoolRouteControls = (mount, render) => {
   const navToggle = mount.querySelector('.pool-nav-toggle');
   const navMenu = mount.querySelector('.pool-nav-menu');
   if (nav && navToggle && navMenu) {
-    navToggle.addEventListener('click', () => {
-      const isOpen = nav.classList.toggle('is-open');
+    navMenu.hidden = false;
+    const toggleTooltips = {
+      closed: 'Open the route drawer from the left',
+      open: 'Close the route drawer and keep rail'
+    };
+    const setNavOpen = (isOpen) => {
+      nav.classList.toggle('is-open', isOpen);
       navToggle.setAttribute('aria-expanded', String(isOpen));
-      navMenu.hidden = !isOpen;
+      navToggle.setAttribute('aria-label', isOpen ? 'Close navigation' : 'Open navigation');
+      navToggle.setAttribute('title', isOpen ? toggleTooltips.open : toggleTooltips.closed);
+      navToggle.dataset.poolNavTooltip = isOpen ? toggleTooltips.open : toggleTooltips.closed;
+    };
+    navToggle.addEventListener('click', () => {
+      setNavOpen(!nav.classList.contains('is-open'));
+    });
+    nav.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') setNavOpen(false);
     });
   }
 
@@ -106,6 +120,7 @@ export function initPoolHome(mount) {
     bindHomeSimulation(mount);
     bindRunControls();
     bindProviderControls();
+    bindRoomActivityControls();
     bindReceiptControls();
     refreshRecordLedgerState();
   };

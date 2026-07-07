@@ -1352,7 +1352,7 @@ const setStaticHeaders = (res, filePath) => {
   }
 };
 
-const PRODUCT_ROUTES = ['/', '/ask', '/compute', '/history', '/network'];
+const PRODUCT_ROUTES = ['/', '/ask', '/compute', '/records', '/history', '/network'];
 const SUBSTRATE_ROUTES = ['/zero', '/x'];
 
 // Main routes

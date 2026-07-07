@@ -44,7 +44,7 @@ const SchemaRegistry = {
     // readOnly: false/undefined = mutating, must execute sequentially
     const DEFAULT_TOOL_SCHEMAS = {
       ReadFile: {
-        description: 'Read contents of a file from VFS or OPFS. VFS directory paths return a listing.',
+        description: 'Read-only. Read VFS/OPFS file contents or list a VFS directory path. Batch with up to 8 independent read-only calls during discovery.',
         readOnly: true,
         parameters: {
           type: 'object',
@@ -63,7 +63,7 @@ const SchemaRegistry = {
         }
       },
       WriteFile: {
-        description: 'Write content to a file in VFS or OPFS',
+        description: 'Mutating. Write text or binary content to VFS/OPFS. JSON object content is serialized as JSON text. For build goals, stage candidates under /shadow and evidence JSON with replayPassed true under /artifacts after discovery.',
         readOnly: false,
         parameters: {
           type: 'object',
@@ -72,7 +72,7 @@ const SchemaRegistry = {
             path: { type: 'string', description: 'Path to write (vfs:/ or opfs:/). Default backend is VFS.' },
             backend: { type: 'string', description: 'Optional backend override (vfs or opfs)' },
             mode: { type: 'string', enum: ['text', 'binary'], description: 'Write mode (default: text)' },
-            content: { type: 'string', description: 'Text content to write' },
+            content: { type: 'string', description: 'Text content to write. JSON object content is accepted and serialized as JSON text.' },
             data: { type: 'string', description: 'Base64 data for binary writes' },
             checksum: { type: 'string', description: 'Optional checksum for binary data' },
             checksumAlgorithm: { type: 'string', description: 'Checksum algorithm (default: sha256)' },
@@ -84,7 +84,7 @@ const SchemaRegistry = {
         }
       },
       Promote: {
-        description: 'Promote a /shadow candidate into an allowlisted /self target when replay evidence passes. Use candidatePath, targetPath, and evidencePath.',
+        description: 'Mutating. Promote a /shadow candidate into an allowlisted /self target only after evidence JSON under /artifacts includes replayPassed: true. Use candidatePath, targetPath, and evidencePath.',
         readOnly: false,
         parameters: {
           type: 'object',
@@ -103,7 +103,7 @@ const SchemaRegistry = {
         }
       },
       EditFile: {
-        description: 'Apply literal match/replace edits to a text file in VFS or OPFS',
+        description: 'Mutating. Apply narrow literal edits to a discovered VFS/OPFS text file after reading it.',
         readOnly: false,
         parameters: {
           type: 'object',
@@ -143,7 +143,7 @@ const SchemaRegistry = {
         }
       },
       ListFiles: {
-        description: 'List files in a directory',
+        description: 'Read-only. List files in a directory. Batch with up to 8 independent read-only calls when mapping roots or unrelated directories.',
         readOnly: true,
         parameters: {
           type: 'object',
@@ -164,25 +164,26 @@ const SchemaRegistry = {
         }
       },
       CreateTool: {
-        description: 'Stage a new tool candidate under /shadow/tools for gated promotion',
+        description: 'Mutating. Create a CamelCase runtime tool after discovery identifies a tool-shaped implementation. In Zero it stages under /shadow/tools, installs to /self/tools, and loads the tool.',
         readOnly: false,
         parameters: {
           type: 'object',
           required: ['name', 'code'],
           properties: {
             name: { type: 'string', description: 'Tool name (CamelCase, e.g., ReadFile, AnalyzeLogs)' },
-            code: { type: 'string', description: 'JavaScript code with export default async function(args, deps). The candidate is staged, not auto-loaded.' },
-            root: { type: 'string', description: 'Optional staging root. Must be under /shadow/tools.' }
+            code: { type: 'string', description: 'JavaScript code with export default async function(args, deps), or export const tool with call(args, deps).' },
+            root: { type: 'string', description: 'Optional staging root. Must be under /shadow/tools.' },
+            activate: { type: 'boolean', description: 'Zero only: set false to stage without installing and loading.' }
           }
         }
       },
       ListTools: {
-        description: 'List all available tools',
+        description: 'Read-only. List all available tools. Batch with up to 8 ListFiles, ReadFile, or Grep calls during first-cycle discovery.',
         readOnly: true,
         parameters: { type: 'object', properties: {} }
       },
       LoadModule: {
-        description: 'Hot-reload a promoted /self module from the VFS',
+        description: 'Mutating. Hot-reload an approved /self module from the VFS after creation, repair, or promotion.',
         readOnly: false,
         parameters: {
           type: 'object',

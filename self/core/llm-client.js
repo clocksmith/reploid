@@ -297,6 +297,31 @@ const LLMClient = {
       return response;
     };
 
+    const readProxyErrorBody = async (response) => {
+      const contentType = String(response.headers?.get?.('content-type') || '').toLowerCase();
+      if (contentType.includes('application/json')) {
+        try {
+          const data = await response.json();
+          return {
+            body: data,
+            message: data?.error?.message || data?.error || data?.message || null
+          };
+        } catch {
+          return { body: null, message: null };
+        }
+      }
+
+      try {
+        const text = await response.text();
+        return {
+          body: text,
+          message: text ? text.slice(0, 240) : null
+        };
+      } catch {
+        return { body: null, message: null };
+      }
+    };
+
     // --- Mode: Browser-Native (WebLLM) ---
     const _chatBrowser = async (messages, modelConfig, onUpdate, requestId) => {
         logger.info(`[LLM] Browser-Native Request to ${modelConfig.id}`);
@@ -452,8 +477,20 @@ const LLMClient = {
         }, 'Proxy API');
 
         if (!response.ok) {
-          const error = new Errors.ApiError(`API Error ${response.status}`, response.status);
+          const errorBody = await readProxyErrorBody(response);
+          const message = errorBody.message
+            ? `API Error ${response.status}: ${errorBody.message}`
+            : `API Error ${response.status}`;
+          const error = new Errors.ApiError(message, response.status, {
+            responseBody: errorBody.body,
+            responseMessage: errorBody.message,
+            endpoint,
+            provider: modelConfig.provider,
+            model: modelConfig.id
+          });
           error.retryAfterMs = parseRetryAfterMs(response.headers?.get?.('retry-after'));
+          error.responseBody = errorBody.body;
+          error.responseMessage = errorBody.message;
           throw error;
         }
 

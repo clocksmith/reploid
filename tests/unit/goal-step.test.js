@@ -95,7 +95,7 @@ describe('goal step action row', () => {
   it('renders cycle interval control for Zero and X boot goals only', () => {
     const zeroHtml = renderGoalStep(createReploidState({
       mode: 'zero',
-      cycleIntervalSeconds: 12
+      cycleIntervalSeconds: 7.7
     }), {
       goalActionMode: 'generate-only'
     });
@@ -113,7 +113,9 @@ describe('goal step action row', () => {
     });
 
     expect(zeroHtml).toContain('id="cycle-interval-seconds"');
-    expect(zeroHtml).toContain('value="12"');
+    expect(zeroHtml).toContain('value="7.7"');
+    expect(zeroHtml).toContain('step="0.1"');
+    expect(zeroHtml).toContain('inputmode="decimal"');
     expect(xHtml).toContain('id="cycle-interval-seconds"');
     expect(xHtml).toContain('value="7"');
     expect(reploidHtml).not.toContain('id="cycle-interval-seconds"');

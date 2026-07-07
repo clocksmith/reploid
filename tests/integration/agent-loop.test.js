@@ -5,6 +5,7 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import AgentLoopModule from '../../core/agent-loop.js';
+import ToolExecutorModule from '../../infrastructure/tool-executor.js';
 
 describe('AgentLoop - Integration Tests', () => {
   let agentLoop;
@@ -28,6 +29,7 @@ describe('AgentLoop - Integration Tests', () => {
         warn: vi.fn(),
         error: vi.fn()
       },
+      trunc: (value, max) => String(value).slice(0, max),
       generateId: vi.fn().mockReturnValue('req_test123'),
       Errors: {
         StateError: class StateError extends Error {
@@ -75,7 +77,11 @@ describe('AgentLoop - Integration Tests', () => {
     mockStateManager = {
       setGoal: vi.fn().mockResolvedValue(true),
       incrementCycle: vi.fn().mockResolvedValue(1),
-      getState: vi.fn().mockReturnValue({ config: {} })
+      getState: vi.fn().mockReturnValue({
+        config: {
+          agentCycleThrottle: { cycleIntervalMs: 0 }
+        }
+      })
     };
 
     mockPersonaManager = {
@@ -139,16 +145,13 @@ describe('AgentLoop - Integration Tests', () => {
       ReflectionAnalyzer: mockReflectionAnalyzer,
       CircuitBreaker: mockCircuitBreaker,
       SchemaRegistry: { getToolSchemas: vi.fn().mockReturnValue([]) },
-      ToolExecutor: {
-        executeWithRetry: vi.fn().mockImplementation(async (call) => {
-          try {
-            const result = await mockToolRunner.execute(call.name, call.args || call.arguments || {});
-            return { result, error: null, duration: 10 };
-          } catch (err) {
-            return { result: null, error: err, duration: 10 };
-          }
-        })
-      }
+      ToolExecutor: ToolExecutorModule.factory({
+        Utils: mockUtils,
+        EventBus: mockEventBus,
+        ToolRunner: {
+          execute: (name, args) => mockToolRunner.execute(name, args)
+        }
+      })
     });
   });
 
@@ -238,7 +241,8 @@ describe('AgentLoop - Integration Tests', () => {
       expect(prompt).toContain('permission-mediated browser APIs');
       expect(prompt).toContain('Default to Shadow for self changes');
       expect(prompt).toContain('Default to batching independent read-only work.');
-      expect(prompt).toContain('Use 2-6 read-only calls together when inspecting unrelated roots or files.');
+      expect(prompt).toContain('Use 4-8 independent read-only calls together when inspecting unrelated roots or files.');
+      expect(prompt).toContain('Use all 8 tool-call slots when broad discovery has 8 independent read-only calls.');
       expect(prompt).toContain('Batch independent tool calls by default');
       expect(prompt).not.toContain('full DOM access');
       expect(prompt).not.toContain('all Web APIs');
@@ -255,16 +259,25 @@ describe('AgentLoop - Integration Tests', () => {
       await agentLoop.run('Inspect the Zero VFS');
 
       const prompt = agentLoop.getSystemPrompt();
-      expect(prompt).toContain('Start every fresh Zero filesystem pass with ReadFile path: / or ListFiles path: /');
-      expect(prompt).toContain('If /blueprint-index.json is absent in an older or pruned instance');
-      expect(prompt).toContain('ListFiles: enumerate roots and directories before relying on named paths');
-      expect(prompt).toContain('Default to batched discovery: combine independent read-only calls in the same response.');
-      expect(prompt).toContain('Good first Zero discovery batch: ListFiles path: /, ListTools {}, and ReadFile path: /blueprint-index.json.');
-      expect(prompt).toContain('Do not put comments, markdown, or explanatory prose inside a tool block.');
-      expect(prompt).toContain('CreateTool code must export a tool contract and an async default function.');
-      expect(prompt).toContain('Valid Promote syntax is candidatePath: /shadow/tools/MyTool.js, targetPath: /self/tools/MyTool.js, evidencePath: /artifacts/MyTool-evidence.json.');
-      expect(prompt).toContain('Do not read /self/manifest.json or /self/self.json; those are not Zero tool paths.');
-      expect(prompt).not.toContain('Use root-scoped VFS source paths for reads: /core, /config, /tools, /ui, /styles, /boot-helpers, /blueprint-index.json, and /blueprints.');
+      expect(prompt.match(/You are Zero/g)).toHaveLength(1);
+      expect(prompt.length).toBeLessThan(5200);
+      expect(prompt).toContain('Improve this goal and keep iterating until it is truly complete');
+      expect(prompt).toContain('Inspect the Zero VFS');
+      expect(prompt).toContain('## Scope and constraints');
+      expect(prompt).toContain('No host shell/filesystem/process claims');
+      expect(prompt).toContain('## Writable boundary (critical)');
+      expect(prompt).toContain('Candidate edits go to /shadow, evidence to /artifacts.');
+      expect(prompt).toContain('## Zero tool creation workflow');
+      expect(prompt).toContain('Use CreateTool for new runtime tools.');
+      expect(prompt).toContain('stages /shadow/tools/MyTool.js');
+      expect(prompt).toContain('installs /self/tools/MyTool.js');
+      expect(prompt).toContain('Use LoadModule only to reload an already installed /self tool.');
+      expect(prompt).toContain('Never write candidates under /lab, and never LoadModule a /shadow path.');
+      expect(prompt).toContain('ReadFile, ListFiles, Grep, ListTools, WriteFile, EditFile, CreateTool, LoadModule.');
+      expect(prompt).toContain('Evidence JSON must be strict JSON only');
+      expect(prompt).not.toContain('CreateTool creates, installs, and loads new runtime tools');
+      expect(prompt).not.toContain('Valid Promote syntax is candidatePath');
+      expect(prompt).not.toContain('CreateTool -> WriteFile -> Promote -> LoadModule');
     });
 
     it('should throw if already running', async () => {
@@ -343,12 +356,65 @@ describe('AgentLoop - Integration Tests', () => {
       expect(mockContextManager.manage).toHaveBeenCalled();
     });
 
+    it('emits visible history when context compacts', async () => {
+      mockContextManager.manage.mockImplementationOnce((ctx) => Promise.resolve({
+        context: ctx,
+        halted: false,
+        error: null,
+        compacted: true,
+        previousTokens: 9000,
+        newTokens: 3000
+      }));
+      mockLLMClient.chat.mockResolvedValue({ content: 'DONE' });
+      mockResponseParser.isDone.mockReturnValue(true);
+
+      await agentLoop.run('Test compaction');
+
+      expect(mockEventBus.emit).toHaveBeenCalledWith('agent:history', expect.objectContaining({
+        type: 'context_compacted',
+        previousTokens: 9000,
+        newTokens: 3000
+      }));
+    });
+
+    it('should fit managed Zero provider requests inside the function envelope', async () => {
+      agentLoop.setModel({
+        id: 'gemini-3.1-flash-lite',
+        provider: 'gemini',
+        managedServerProxy: true,
+        serverType: 'firebase-function'
+      });
+      for (let index = 0; index < 80; index++) {
+        agentLoop.injectHumanMessage(`extra context ${index} ${'x'.repeat(3000)}`);
+      }
+      mockLLMClient.chat.mockResolvedValue({ content: 'DONE', usage: {} });
+      mockResponseParser.isDone.mockReturnValue(true);
+
+      await agentLoop.run('Keep managed request bounded');
+
+      const providerContext = mockLLMClient.chat.mock.calls[0][0];
+      const inputChars = providerContext.reduce((sum, message) => sum + String(message.content || '').length, 0);
+      expect(providerContext.length).toBeLessThanOrEqual(56);
+      expect(inputChars).toBeLessThanOrEqual(100000);
+      expect(providerContext[0].role).toBe('system');
+      expect(providerContext.some((message) => String(message.content || '').includes('Begin. Goal: Keep managed request bounded'))).toBe(true);
+      expect(mockEventBus.emit).toHaveBeenCalledWith('agent:history', expect.objectContaining({
+        type: 'provider_context_envelope'
+      }));
+    });
+
     it('should emit history events', async () => {
       mockLLMClient.chat.mockResolvedValue({ content: 'DONE' });
       mockResponseParser.isDone.mockReturnValue(true);
 
       await agentLoop.run('Test goal');
 
+      expect(mockEventBus.emit).toHaveBeenCalledWith('agent:history', expect.objectContaining({
+        type: 'model_request',
+        content: expect.stringContaining('## Message 1 /'),
+        messageCount: expect.any(Number),
+        inputChars: expect.any(Number)
+      }));
       expect(mockEventBus.emit).toHaveBeenCalledWith('agent:history', expect.objectContaining({
         type: 'llm_response'
       }));
@@ -409,6 +475,275 @@ describe('AgentLoop - Integration Tests', () => {
       expect(mockToolRunner.execute).toHaveBeenCalledWith('ReadFile', { path: '/test.txt' });
     });
 
+    it('executes the full 8-call read-only native batch when available', async () => {
+      const calls = Array.from({ length: 8 }, (_, index) => ({
+        name: 'ReadFile',
+        args: { path: `/target-${index + 1}.js` }
+      }));
+      let iteration = 0;
+      mockLLMClient.chat.mockImplementation(() => {
+        iteration++;
+        if (iteration === 1) {
+          return Promise.resolve({ content: '', toolCalls: calls });
+        }
+        mockResponseParser.isDone.mockReturnValue(true);
+        return Promise.resolve({ content: 'DONE' });
+      });
+      mockToolRunner.execute.mockImplementation(async (name, args) => `${name}:${args.path}`);
+
+      await agentLoop.run('Read eight files');
+
+      expect(mockToolRunner.execute).toHaveBeenCalledTimes(8);
+      for (let index = 0; index < 8; index++) {
+        expect(mockToolRunner.execute).toHaveBeenCalledWith('ReadFile', { path: `/target-${index + 1}.js` });
+      }
+      expect(mockEventBus.emit).toHaveBeenCalledWith('agent:history', expect.objectContaining({
+        type: 'tool_batch',
+        total: 8,
+        errors: 0
+      }));
+    });
+
+    it('requires a mutating tool after repeated read-only batches on build goals', async () => {
+      mockToolRunner.getToolSchemas = vi.fn().mockReturnValue([
+        {
+          type: 'function',
+          function: {
+            name: 'ReadFile',
+            description: 'read',
+            parameters: { type: 'object', properties: {} }
+          }
+        },
+        {
+          type: 'function',
+          function: {
+            name: 'WriteFile',
+            description: 'write',
+            parameters: { type: 'object', properties: {} }
+          }
+        }
+      ]);
+      const optionsByCall = [];
+      let iteration = 0;
+      mockLLMClient.chat.mockImplementation((ctx, model, callback, options = {}) => {
+        optionsByCall.push(options);
+        iteration++;
+        if (iteration <= 4) {
+          return Promise.resolve({
+            content: '',
+            toolCalls: [{ name: 'ReadFile', args: { path: `/target-${iteration}.js` } }]
+          });
+        }
+        mockResponseParser.isDone.mockReturnValue(true);
+        return Promise.resolve({ content: 'DONE' });
+      });
+      mockToolRunner.execute.mockResolvedValue('file');
+
+      await agentLoop.run('Build a Katamari DOM picker');
+
+      expect(mockToolRunner.execute).toHaveBeenCalledTimes(3);
+      expect(mockToolRunner.execute).not.toHaveBeenCalledWith('ReadFile', { path: '/target-4.js' });
+      expect(optionsByCall[3].tools.map((schema) => schema.function.name)).toEqual(['WriteFile']);
+      expect(mockEventBus.emit).toHaveBeenCalledWith('agent:history', expect.objectContaining({
+        type: 'build_progress_gate',
+        consecutiveReadOnlyBatches: 3
+      }));
+      expect(mockEventBus.emit).toHaveBeenCalledWith('agent:history', expect.objectContaining({
+        type: 'tool_batch',
+        errors: 1,
+        results: expect.arrayContaining([
+          expect.objectContaining({
+            name: 'ReadFile',
+            error: expect.stringContaining('Build progress gate active')
+          })
+        ])
+      }));
+    });
+
+    it('treats ok:false mutating results as failures and skips dependent mutations', async () => {
+      const calls = [
+        { name: 'WriteFile', args: { path: '/artifacts/KatamariPicker-evidence.json', content: { verified: true } } },
+        {
+          name: 'Promote',
+          args: {
+            candidatePath: '/shadow/tools/KatamariPicker.js',
+            targetPath: '/self/tools/KatamariPicker.js',
+            evidencePath: '/artifacts/KatamariPicker-evidence.json'
+          }
+        },
+        { name: 'LoadModule', args: { path: '/self/tools/KatamariPicker.js' } }
+      ];
+      let iteration = 0;
+      mockLLMClient.chat.mockImplementation(() => {
+        iteration++;
+        if (iteration === 1) {
+          return Promise.resolve({ content: '', toolCalls: calls });
+        }
+        mockResponseParser.isDone.mockReturnValue(true);
+        return Promise.resolve({ content: 'DONE' });
+      });
+      mockToolRunner.execute.mockImplementation(async (name) => {
+        if (name === 'Promote') {
+          return { ok: false, promoted: false, reasons: ['evidence replayPassed must be true'] };
+        }
+        return { ok: true };
+      });
+
+      await agentLoop.run('Promote staged Katamari tool');
+
+      expect(mockToolRunner.execute).toHaveBeenCalledWith('WriteFile', calls[0].args);
+      expect(mockToolRunner.execute).toHaveBeenCalledWith('Promote', calls[1].args);
+      expect(mockToolRunner.execute).not.toHaveBeenCalledWith('LoadModule', calls[2].args);
+      const breaker = mockCircuitBreaker.create.mock.results[0].value;
+      expect(breaker.recordSuccess).not.toHaveBeenCalledWith('Promote');
+      expect(breaker.recordFailure).toHaveBeenCalledWith(
+        'Promote',
+        expect.objectContaining({ message: 'evidence replayPassed must be true' })
+      );
+      expect(mockEventBus.emit).toHaveBeenCalledWith('agent:history', expect.objectContaining({
+        type: 'tool_batch',
+        total: 3,
+        errors: 2,
+        results: expect.arrayContaining([
+          expect.objectContaining({
+            name: 'Promote',
+            error: expect.stringContaining('evidence replayPassed must be true')
+          }),
+          expect.objectContaining({
+            name: 'LoadModule',
+            error: expect.stringContaining('skipped because Promote failed')
+          })
+        ])
+      }));
+    });
+
+    it('clears stale LoadModule circuit state after successful promotion', async () => {
+      const calls = [
+        {
+          name: 'Promote',
+          args: {
+            candidatePath: '/shadow/tools/KatamariPicker.js',
+            targetPath: '/self/tools/KatamariPicker.js',
+            evidencePath: '/artifacts/KatamariPicker-evidence.json'
+          }
+        }
+      ];
+      let iteration = 0;
+      mockLLMClient.chat.mockImplementation(() => {
+        iteration++;
+        if (iteration === 1) {
+          return Promise.resolve({ content: '', toolCalls: calls });
+        }
+        mockResponseParser.isDone.mockReturnValue(true);
+        return Promise.resolve({ content: 'DONE' });
+      });
+      mockToolRunner.execute.mockResolvedValue({
+        ok: true,
+        promoted: true,
+        targetPath: '/self/tools/KatamariPicker.js'
+      });
+
+      await agentLoop.run('Promote staged Katamari tool');
+
+      const breaker = mockCircuitBreaker.create.mock.results[0].value;
+      expect(breaker.recordSuccess).toHaveBeenCalledWith('Promote');
+      expect(breaker.recordSuccess).toHaveBeenCalledWith('LoadModule');
+    });
+
+    it('circuit-breaks LoadModule after repeated module load failures', async () => {
+      const calls = [
+        { name: 'LoadModule', args: { path: '/self/tools/KatamariEngine.js' } }
+      ];
+      let iteration = 0;
+      mockLLMClient.chat.mockImplementation(() => {
+        iteration++;
+        if (iteration <= 4) {
+          return Promise.resolve({ content: '', toolCalls: calls });
+        }
+        mockResponseParser.isDone.mockReturnValue(true);
+        return Promise.resolve({ content: 'DONE' });
+      });
+      mockToolRunner.execute.mockRejectedValue(new Error('Tool module load failed: /self/tools/KatamariEngine.js'));
+
+      await agentLoop.run('Load Katamari tool');
+
+      const breaker = mockCircuitBreaker.create.mock.results[0].value;
+      expect(mockToolRunner.execute).toHaveBeenCalledTimes(9);
+      expect(breaker.recordFailure).toHaveBeenCalledWith(
+        'LoadModule',
+        expect.any(Error)
+      );
+      expect(mockEventBus.emit).toHaveBeenCalledWith('tool:circuit_skip', expect.objectContaining({
+        tool: 'LoadModule'
+      }));
+    });
+
+    it('does not circuit-break LoadModule for recoverable precondition failures', async () => {
+      const calls = [
+        { name: 'LoadModule', args: { path: '/shadow/tools/KatamariEngine.js' } }
+      ];
+      let iteration = 0;
+      mockLLMClient.chat.mockImplementation(() => {
+        iteration++;
+        if (iteration <= 3) {
+          return Promise.resolve({ content: '', toolCalls: calls });
+        }
+        mockResponseParser.isDone.mockReturnValue(true);
+        return Promise.resolve({ content: 'DONE' });
+      });
+      mockToolRunner.execute.mockRejectedValue(new Error('LoadModule only supports promoted /self paths'));
+
+      await agentLoop.run('Load Katamari tool');
+
+      const breaker = mockCircuitBreaker.create.mock.results[0].value;
+      expect(mockToolRunner.execute).toHaveBeenCalledTimes(3);
+      expect(breaker.recordFailure).not.toHaveBeenCalledWith(
+        'LoadModule',
+        expect.any(Error)
+      );
+      expect(mockEventBus.emit).not.toHaveBeenCalledWith('tool:circuit_skip', expect.objectContaining({
+        tool: 'LoadModule'
+      }));
+    });
+
+    it('parks for tool cooldown resume after successful mutations with a skipped promoted write', async () => {
+      vi.useFakeTimers();
+      const calls = [
+        { name: 'CreateTool', args: { name: 'KatamariEngine', code: 'export default async function() {}' } },
+        { name: 'WriteFile', args: { path: '/artifacts/KatamariEngine-evidence.json', content: '{"replayPassed":true}' } },
+        {
+          name: 'Promote',
+          args: {
+            candidatePath: '/shadow/tools/KatamariEngine.js',
+            targetPath: '/self/tools/KatamariEngine.js',
+            evidencePath: '/artifacts/KatamariEngine-evidence.json'
+          }
+        }
+      ];
+      const breaker = mockCircuitBreaker.create.mock.results[0].value;
+      breaker.recordFailure('Promote');
+      breaker.recordFailure('Promote');
+      breaker.recordFailure('Promote');
+      mockLLMClient.chat.mockResolvedValueOnce({ content: '', toolCalls: calls });
+      mockToolRunner.execute.mockResolvedValue({ ok: true });
+
+      await agentLoop.run('Build Katamari tool');
+
+      expect(mockToolRunner.execute).toHaveBeenCalledWith('CreateTool', calls[0].args);
+      expect(mockToolRunner.execute).toHaveBeenCalledWith('WriteFile', calls[1].args);
+      expect(mockToolRunner.execute).not.toHaveBeenCalledWith('Promote', calls[2].args);
+      expect(mockLLMClient.chat).toHaveBeenCalledTimes(1);
+      expect(agentLoop.getProviderRetryState()).toMatchObject({
+        goal: 'Build Katamari tool',
+        iteration: 1,
+        resumeKind: 'tool_cooldown'
+      });
+      expect(mockEventBus.emit).toHaveBeenCalledWith('agent:status', expect.objectContaining({
+        state: 'PARKED',
+        autoResume: true
+      }));
+    });
+
     it('should add tool result to context', async () => {
       let chatCalls = [];
       mockLLMClient.chat.mockImplementation((ctx) => {
@@ -433,7 +768,8 @@ describe('AgentLoop - Integration Tests', () => {
       const toolResultMsg = secondCallCtx.find(m => m.content?.includes('TOOL_RESULT'));
       expect(toolResultMsg).toBeDefined();
       expect(toolResultMsg.content).toContain('ListFiles');
-      expect(secondCallCtx.some(m => m.content?.includes('BATCHING TIP: emit 2-6 independent read-only tool calls'))).toBe(true);
+      expect(secondCallCtx.some(m => m.content?.includes('BATCHING TIP: emit 4-8 independent read-only tool calls'))).toBe(true);
+      expect(secondCallCtx.some(m => m.content?.includes('Use all 8 slots when there are 8 independent read-only calls.'))).toBe(true);
     });
 
     it('should emit tool events', async () => {
@@ -750,6 +1086,43 @@ describe('AgentLoop - Integration Tests', () => {
       }));
     });
 
+    it('should throttle every LLM call inside a cycle', async () => {
+      vi.useFakeTimers();
+      vi.setSystemTime(0);
+      agentLoop.setModel({
+        id: 'primary-model',
+        provider: 'gemini',
+        agentThrottle: {
+          minProviderRequestIntervalMs: 1000
+        }
+      });
+      const callTimes = [];
+      mockResponseParser.parseToolCalls.mockReturnValue([]);
+      mockResponseParser.isDone.mockReturnValue(false);
+      mockLLMClient.chat.mockImplementation(async () => {
+        callTimes.push(Date.now());
+        return { content: 'Thinking about something...', usage: {} };
+      });
+
+      const runPromise = agentLoop.run('Throttle all provider calls');
+      await flushPromises();
+
+      expect(mockLLMClient.chat).toHaveBeenCalledTimes(1);
+      for (let expectedCalls = 2; expectedCalls <= 6; expectedCalls++) {
+        await vi.advanceTimersByTimeAsync(999);
+        await flushPromises();
+        expect(mockLLMClient.chat).toHaveBeenCalledTimes(expectedCalls - 1);
+        await vi.advanceTimersByTimeAsync(1);
+        await flushPromises();
+      }
+      await runPromise;
+
+      expect(callTimes).toEqual([0, 1000, 2000, 3000, 4000, 5000]);
+      expect(mockEventBus.emit).toHaveBeenCalledWith('agent:warning', expect.objectContaining({
+        type: 'stuck_loop'
+      }));
+    });
+
     it('should wait the configured interval between successful cycles', async () => {
       vi.useFakeTimers();
       vi.setSystemTime(0);
@@ -808,6 +1181,34 @@ describe('AgentLoop - Integration Tests', () => {
       }));
 
       agentLoop.stop();
+    });
+
+    it('should park managed Zero request rejections instead of crashing Boot', async () => {
+      agentLoop.setModel({
+        id: 'gemini-3.1-flash-lite',
+        provider: 'gemini',
+        managedServerProxy: true,
+        serverType: 'firebase-function'
+      });
+      const rejection = Object.assign(new Error('API Error 400: input exceeds limit (120000 chars)'), {
+        status: 400,
+        responseMessage: 'input exceeds limit (120000 chars)'
+      });
+      mockLLMClient.chat.mockRejectedValue(rejection);
+
+      await expect(agentLoop.run('Park rejected request')).resolves.toBeUndefined();
+
+      expect(mockEventBus.emit).toHaveBeenCalledWith('agent:warning', expect.objectContaining({
+        type: 'provider_request_rejected',
+        status: 400,
+        responseMessage: 'input exceeds limit (120000 chars)',
+        autoResume: false
+      }));
+      expect(mockEventBus.emit).toHaveBeenCalledWith('agent:status', expect.objectContaining({
+        state: 'PARKED',
+        activity: expect.stringContaining('Provider request rejected (400)')
+      }));
+      expect(agentLoop.getProviderRetryState()).toBe(null);
     });
 
     it('should auto-resume parked provider requests with exponential backoff', async () => {

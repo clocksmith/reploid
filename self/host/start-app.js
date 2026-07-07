@@ -13,6 +13,7 @@ import {
   getCurrentReploidStorage as getReploidStorage,
   hasRequestedFreshIdentity
 } from '../instance.js';
+import { ZERO_GEMINI_AGENT_THROTTLE } from '../ui/boot-wizard/zero-function.js';
 
 let sharedBootModulesPromise = null;
 let reploidModulesPromise = null;
@@ -258,7 +259,8 @@ function parseModels() {
       return {
         ...model,
         maxIterations: normalizeManagedServerProxyMaxIterations(model.maxIterations ?? model.iterationLimit),
-        managedServerProxy: true
+        managedServerProxy: true,
+        agentThrottle: model.agentThrottle || ZERO_GEMINI_AGENT_THROTTLE
       };
     });
   } catch (e) {

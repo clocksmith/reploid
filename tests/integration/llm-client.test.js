@@ -28,7 +28,12 @@ describe('LLMClient - Integration Tests', () => {
           constructor(msg) { super(msg); this.name = 'ConfigError'; }
         },
         ApiError: class ApiError extends Error {
-          constructor(msg, status) { super(msg); this.name = 'ApiError'; this.status = status; }
+          constructor(msg, status, details) {
+            super(msg);
+            this.name = 'ApiError';
+            this.status = status;
+            this.details = details;
+          }
         }
       }
     };
@@ -203,6 +208,28 @@ describe('LLMClient - Integration Tests', () => {
         [{ role: 'user', content: 'Hi' }],
         { id: 'test', provider: 'ollama' }
       )).rejects.toThrow('API Error 500');
+    });
+
+    it('should include proxy JSON error details on non-OK response', async () => {
+      global.fetch.mockResolvedValue({
+        ok: false,
+        status: 400,
+        headers: { get: (name) => name === 'content-type' ? 'application/json' : null },
+        json: () => Promise.resolve({ error: 'messages exceeds limit (64)' })
+      });
+
+      await expect(llmClient.chat(
+        [{ role: 'user', content: 'Hi' }],
+        { id: 'gemini-3.1-flash-lite', provider: 'gemini', endpoint: '/zero/gemini' }
+      )).rejects.toMatchObject({
+        message: 'API Error 400: messages exceeds limit (64)',
+        status: 400,
+        responseMessage: 'messages exceeds limit (64)',
+        details: expect.objectContaining({
+          responseBody: { error: 'messages exceeds limit (64)' },
+          endpoint: '/zero/gemini'
+        })
+      });
     });
 
     it('should retry transient proxy failures', async () => {

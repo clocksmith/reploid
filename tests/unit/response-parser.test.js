@@ -166,6 +166,57 @@ EOF`;
         expect(calls[1].args.content).toBe('Hello');
       });
 
+      it('should parse pipe literal blocks without writing the pipe marker into content', () => {
+        const text = `REPLOID/0
+
+TOOL: CreateTool
+name: KatamariEngine
+code: |
+  /**
+   * @fileoverview Katamari Engine
+   */
+  export const tool = {
+    name: 'KatamariEngine'
+  };
+
+TOOL: WriteFile
+path: /artifacts/KatamariEngine-evidence.json
+content: |
+  {
+    "candidatePath": "/shadow/tools/KatamariEngine.js",
+    "targetPath": "/self/tools/KatamariEngine.js",
+    "replayPassed": true
+  }`;
+
+        const calls = responseParser.parseToolCalls(text);
+
+        expect(calls).toHaveLength(2);
+        expect(calls[0].name).toBe('CreateTool');
+        expect(calls[0].args.code).toContain('@fileoverview Katamari Engine');
+        expect(calls[0].args.code).toContain('export const tool');
+        expect(calls[0].args.code.trimStart().startsWith('|')).toBe(false);
+        expect(calls[1].name).toBe('WriteFile');
+        expect(calls[1].args.content).toContain('"replayPassed": true');
+        expect(calls[1].args.content.trimStart().startsWith('|')).toBe(false);
+      });
+
+      it('should recover inline pipe literal markers for continuation args', () => {
+        const text = `REPLOID/0
+
+TOOL: CreateTool name: KatamariEngine code: |
+export default async function KatamariEngine() {
+  return { ok: true };
+}`;
+
+        const calls = responseParser.parseToolCalls(text);
+
+        expect(calls).toHaveLength(1);
+        expect(calls[0].name).toBe('CreateTool');
+        expect(calls[0].args.name).toBe('KatamariEngine');
+        expect(calls[0].args.code).toContain('export default async function');
+        expect(calls[0].args.code.trimStart().startsWith('|')).toBe(false);
+      });
+
       it('should parse REPLOID/0 batched tool calls separated by markdown rules', () => {
         const text = `REPLOID/0
 
@@ -574,6 +625,32 @@ path /missing-colon`;
         expect(calls).toHaveLength(1);
         expect(calls[0].name).toBe('ReadFile');
         expect(calls[0].error).toContain('Invalid argument line');
+      });
+
+      it('should ignore prose after a valid REPLOID/0 tool argument block', () => {
+        const text = `REPLOID/0
+
+TOOL: LoadModule
+path: /self/tools/KatamariEngine.js
+The module has been loaded. I will verify it next.`;
+
+        const calls = responseParser.parseToolCalls(text);
+
+        expect(calls).toEqual([{
+          name: 'LoadModule',
+          args: { path: '/self/tools/KatamariEngine.js' }
+        }]);
+      });
+
+      it('should trim prose accidentally appended to inline path arguments', () => {
+        const text = 'REPLOID/0 TOOL: LoadModule path: /self/tools/KatamariEngine.js The module has been loaded. DONE';
+
+        const calls = responseParser.parseToolCalls(text);
+
+        expect(calls).toEqual([{
+          name: 'LoadModule',
+          args: { path: '/self/tools/KatamariEngine.js' }
+        }]);
       });
 
       it('should recover multiline CreateTool code after inline code prefix', () => {

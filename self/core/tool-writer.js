@@ -16,6 +16,11 @@ const ToolWriter = {
     const { Utils, VFS, SubstrateLoader } = deps;
     const { logger, Errors } = Utils;
 
+    const normalizeCode = (code) => {
+      const text = String(code || '');
+      return text.replace(/^\s*\|[+-]?\s*\r?\n/, '');
+    };
+
     const validateCode = (code) => {
       // Check if code is provided
       if (!code || typeof code !== 'string') {
@@ -58,12 +63,13 @@ const ToolWriter = {
         throw new Errors.ValidationError('Invalid tool name. Use CamelCase and start with an uppercase letter (e.g., ReadFile, AnalyzeLogs).');
       }
 
-      validateCode(code);
+      const normalizedCode = normalizeCode(code);
+      validateCode(normalizedCode);
 
       const root = normalizeRoot(options.root);
       const path = `${root}/${trimmedName}.js`;
 
-      await VFS.write(path, code);
+      await VFS.write(path, normalizedCode);
 
       let toolLoaded = false;
       let toolLoadError = null;

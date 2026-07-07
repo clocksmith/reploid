@@ -6,7 +6,7 @@ import {
 } from '../../self/pool/doppler-runtime.js';
 import { BROWSER_RUNTIME_CONFIG } from '../../self/pool/config.js';
 import { hashJson, sha256Hex } from '../../self/pool/inference-receipt.js';
-import { LAUNCH_MODEL, getEnabledPoolModelContract } from '../../self/pool/model-contract.js';
+import { LAUNCH_MODEL, POOLDAY_MODEL_WORKLOADS, getEnabledPoolModelContract } from '../../self/pool/model-contract.js';
 
 const launchHandle = () => ({
   modelId: LAUNCH_MODEL.modelId,
@@ -190,6 +190,44 @@ describe('Doppler browser runtime adapter', () => {
     expect(loaded.ok).toBe(true);
     expect(loadCalled).toBe(true);
     expect(runtime.getModelInfo().modelId).toBe(qwenModel.modelId);
+  });
+
+  it('runs Qwen embedding handles through the explicit embedding workload path', async () => {
+    const embeddingModel = getEnabledPoolModelContract('qwen-3-embedding-0-6b-q4k-ehf16-af32');
+    const runtime = createDopplerRuntime({
+      model: embeddingModel,
+      modelSession: {
+        modelId: embeddingModel.modelId,
+        modelHash: embeddingModel.modelHash,
+        manifestHash: embeddingModel.manifestHash,
+        workload: POOLDAY_MODEL_WORKLOADS.embedding,
+        resetGenerationState() {},
+        embed(prompt, options = {}) {
+          return {
+            embedding: new Float32Array([0.6, 0.8]),
+            tokenCount: prompt.split(/\s+/).length,
+            options
+          };
+        }
+      }
+    });
+
+    expect(runtime.isReady()).toBe(true);
+    const result = await runtime.embed({
+      prompt: 'semantic search',
+      assignment: { assignmentId: 'assignment_embedding' }
+    });
+
+    expect(result.outputKind).toBe(POOLDAY_MODEL_WORKLOADS.embedding);
+    expect(result.embeddingDimensions).toBe(2);
+    expect(result.embeddingStats).toMatchObject({
+      dimensions: 2,
+      nonFiniteCount: 0,
+      l2Norm: 1
+    });
+    expect(result.vectorHash).toBe(await hashJson([Math.fround(0.6), Math.fround(0.8)]));
+    expect(result.tokenIds).toEqual([]);
+    expect(result.outputText).toBe('');
   });
 
   it('derives public handle model hash from manifest shard identity', async () => {

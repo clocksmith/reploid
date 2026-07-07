@@ -5,7 +5,7 @@
 import { createPoolSdk } from './sdk.js';
 import { buildPoolReceipt, createSigningKeyPair, exportPublicKey, hashJson, sha256Hex, signProviderReceipt } from './inference-receipt.js';
 import { createDopplerRuntime } from './doppler-runtime.js';
-import { buildLaunchProviderModel } from './model-contract.js';
+import { POOLDAY_MODEL_WORKLOADS, buildLaunchProviderModel, getPoolModelWorkload } from './model-contract.js';
 import { createPoolIdentity } from './identity.js';
 import { listPolicies } from './policy-router.js';
 import { collectRuntimeProfile } from './runtime-profile.js';
@@ -53,6 +53,7 @@ export function createProviderClient({ providerId, sdk = createPoolSdk(), runtim
     && model.manifestHash === runtimeModel.manifestHash
     && (model.runtime || 'doppler') === (runtimeModel.runtime || 'doppler')
     && (model.backend || 'browser-webgpu') === (runtimeModel.backend || 'browser-webgpu')
+    && getPoolModelWorkload(model) === getPoolModelWorkload(runtimeModel)
   );
 
   const assignmentMatchesRuntime = (assignmentModel = {}, runtimeModel = {}) => (
@@ -61,6 +62,7 @@ export function createProviderClient({ providerId, sdk = createPoolSdk(), runtim
     && assignmentModel.manifestHash === runtimeModel.manifestHash
     && (assignmentModel.runtime || 'doppler') === (runtimeModel.runtime || 'doppler')
     && (assignmentModel.backend || 'browser-webgpu') === (runtimeModel.backend || 'browser-webgpu')
+    && (assignmentModel.workload || assignmentModel.requirements?.workload || POOLDAY_MODEL_WORKLOADS.textGeneration) === getPoolModelWorkload(runtimeModel)
   );
 
   const resolveRuntimeProfile = async () => {
@@ -100,11 +102,17 @@ export function createProviderClient({ providerId, sdk = createPoolSdk(), runtim
       throw new Error('Assignment model identity does not match the loaded Doppler runtime');
     }
     const promptText = await resolveAssignmentPrompt(assignment, { promptPayload, prompt });
-    const execution = await runtime.generate({
-      prompt: promptText,
-      generationConfig: assignment.generationConfig,
-      assignment
-    });
+    const workload = assignment.workload || assignment.model?.requirements?.workload || getPoolModelWorkload(runtimeModel || {});
+    const execution = workload === POOLDAY_MODEL_WORKLOADS.embedding
+      ? await runtime.embed({
+        prompt: promptText,
+        assignment
+      })
+      : await runtime.generate({
+        prompt: promptText,
+        generationConfig: assignment.generationConfig,
+        assignment
+      });
     const receipt = await buildPoolReceipt({
       assignment,
       provider: registration || {

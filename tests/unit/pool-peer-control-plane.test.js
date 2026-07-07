@@ -9,7 +9,7 @@ import {
 } from '../../self/pool/inference-receipt.js';
 import { createProviderClient } from '../../self/pool/provider-client.js';
 import { createRequesterClient } from '../../self/pool/requester-client.js';
-import { LAUNCH_MODEL } from '../../self/pool/model-contract.js';
+import { LAUNCH_MODEL, getEnabledPoolModelContract } from '../../self/pool/model-contract.js';
 import { POOL_CONFIG_VERSION } from '../../self/pool/config.js';
 import {
   PEER_MESSAGE_TYPES,
@@ -114,6 +114,19 @@ const launchModelAdvert = () => ({
   runtime: LAUNCH_MODEL.runtime,
   backend: LAUNCH_MODEL.backend
 });
+
+const embeddingModelAdvert = () => {
+  const model = getEnabledPoolModelContract('qwen-3-embedding-0-6b-q4k-ehf16-af32');
+  return {
+    modelId: model.modelId,
+    modelHash: model.modelHash,
+    manifestHash: model.manifestHash,
+    runtime: model.runtime,
+    backend: model.backend,
+    workload: model.workload,
+    executionMode: model.executionMode
+  };
+};
 
 describe('pool peer control plane', () => {
   it('creates signed job intents without leaking prompt text into the control plane', async () => {
@@ -317,6 +330,99 @@ describe('pool peer control plane', () => {
         points: 5
       });
     }
+  });
+
+  it('forms embedding agreement from matching vector hashes instead of token ids', async () => {
+    const requesterKeys = await createSigningKeyPair();
+    const requesterPublicKey = await exportPublicKey(requesterKeys.publicKey);
+    const intent = await createSignedJobIntent({
+      requesterId: 'requester_embedding_agreement',
+      requesterPublicKey,
+      privateKey: requesterKeys.privateKey,
+      prompt: 'find semantically similar documents',
+      policyId: 'ring_quorum_receipt',
+      modelRequirements: embeddingModelAdvert()
+    });
+    const adverts = [];
+    for (let index = 0; index < 3; index += 1) {
+      const providerKeys = await createSigningKeyPair();
+      const providerPublicKey = await exportPublicKey(providerKeys.publicKey);
+      adverts.push(await createSignedProviderAdvert({
+        providerId: `provider_embedding_${index}`,
+        providerPublicKey,
+        privateKey: providerKeys.privateKey,
+        models: [embeddingModelAdvert()],
+        runtimeProfileHash: 'sha256:runtime_embedding_shared',
+        availability: {
+          acceptedPolicies: ['ring_quorum_receipt']
+        }
+      }));
+    }
+    const plan = await buildPeerAssignmentPlan({
+      jobIntent: intent.intent,
+      providerAdverts: adverts
+    });
+
+    expect(plan.ok).toBe(true);
+    expect(plan.ring.agreementField).toBe('vectorHash');
+    expect(plan.assignments.every((assignment) => assignment.workload === 'embedding')).toBe(true);
+
+    const receiptPayloads = await Promise.all(plan.assignments.map(async (assignment) => {
+      const receipt = {
+        receiptVersion: 'reploid_browser_inference/v1',
+        signatureDomain: SIGNATURE_DOMAINS.providerReceipt,
+        assignmentId: assignment.assignmentId,
+        jobId: assignment.jobId,
+        requesterId: assignment.requesterId,
+        providerId: assignment.providerId,
+        policyId: assignment.policyId,
+        model: assignment.model,
+        outputKind: 'embedding',
+        inputHash: assignment.inputHash,
+        generationConfigHash: assignment.generationConfigHash,
+        outputHash: await sha256Hex(''),
+        tokenIdsHash: await hashJson([]),
+        vectorHash: 'sha256:matching_vector',
+        tokenCounts: {
+          input: 5,
+          output: 0
+        },
+        embedding: {
+          dimensions: 1024,
+          stats: {
+            dimensions: 1024,
+            nonFiniteCount: 0,
+            l2Norm: 1
+          }
+        },
+        verification: {
+          runtimeProfileHash: assignment.runtimeProfileHash
+        },
+        status: 'completed',
+        providerSignature: `signature_${assignment.providerId}`
+      };
+      return createReceiptPayload({
+        assignment,
+        receiptRecord: {
+          receiptHash: await hashJson(receipt),
+          providerId: assignment.providerId,
+          requesterId: assignment.requesterId,
+          receipt,
+          outputKind: 'embedding',
+          vectorHash: receipt.vectorHash,
+          embeddingDimensions: 1024
+        },
+        fromPeerId: assignment.providerId,
+        toPeerId: assignment.requesterId
+      });
+    }));
+
+    const agreement = await buildPeerReceiptAgreement({ plan, receiptPayloads });
+
+    expect(agreement.accepted).toBe(true);
+    expect(agreement.agreementField).toBe('vectorHash');
+    expect(agreement.vectorHash).toBe('sha256:matching_vector');
+    expect(agreement.tokenIdsHash).toBe(await hashJson([]));
   });
 
   it('rejects peer receipt agreement when accepted receipts exceed requester point spend', async () => {

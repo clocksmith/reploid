@@ -102,6 +102,22 @@ const getTextBytes = (content) => {
   return content.length;
 };
 
+const normalizeTextContent = (content) => {
+  if (typeof content === 'string') return content;
+  if (content instanceof String) return String(content);
+  if (content === undefined) {
+    throw new Error('Missing content argument');
+  }
+  if (content === null || typeof content === 'number' || typeof content === 'boolean') {
+    return String(content);
+  }
+  try {
+    return JSON.stringify(content, null, 2);
+  } catch {
+    throw new Error('Text content must be a string or JSON-serializable value');
+  }
+};
+
 const computeSha256 = async (bytes) => {
   if (!crypto?.subtle) {
     throw new Error('SHA-256 not available in this environment');
@@ -141,7 +157,8 @@ async function call(args = {}, deps = {}) {
       if (args.content === undefined) {
         throw new Error('Missing content argument');
       }
-      const bytes = getTextBytes(args.content);
+      const content = normalizeTextContent(args.content);
+      const bytes = getTextBytes(content);
       if (bytes > maxBytes) {
         throw new Error(`Content exceeds maxBytes (${maxBytes} bytes)`);
       }
@@ -169,7 +186,7 @@ async function call(args = {}, deps = {}) {
         createFile: true
       });
       const writable = await fileHandle.createWritable();
-      await writable.write(args.content);
+      await writable.write(content);
       await writable.close();
 
       return { path, backend: 'opfs', bytesWritten: bytes };
@@ -232,8 +249,7 @@ async function call(args = {}, deps = {}) {
     throw new Error('VFS supports text mode only');
   }
 
-  const content = args.content;
-  if (content === undefined) throw new Error('Missing content argument');
+  const content = normalizeTextContent(args.content);
 
   const bytesWritten = getTextBytes(content);
   if (bytesWritten > maxBytes) {
@@ -345,7 +361,7 @@ async function call(args = {}, deps = {}) {
 
 export const tool = {
   name: "WriteFile",
-  description: "Write content to VFS or OPFS. Use opfs:/ for binary assets and mode: \"binary\" for tensor data.",
+  description: "Write content to VFS or OPFS. JSON object content is serialized as JSON text. Use opfs:/ for binary assets and mode: \"binary\" for tensor data.",
   inputSchema: {
     type: 'object',
     required: ['path'],
@@ -353,7 +369,7 @@ export const tool = {
       path: { type: 'string', description: 'Path to write (vfs:/ or opfs:/). Default backend is VFS.' },
       backend: { type: 'string', description: 'Optional backend override (vfs or opfs)' },
       mode: { type: 'string', enum: ['text', 'binary'], description: 'Write mode (default: text)' },
-      content: { type: 'string', description: 'Text content to write' },
+      content: { type: 'string', description: 'Text content to write. JSON object content is accepted and serialized as JSON text.' },
       data: { type: 'string', description: 'Base64 data for binary writes' },
       checksum: { type: 'string', description: 'Optional checksum for binary data' },
       checksumAlgorithm: { type: 'string', description: 'Checksum algorithm (default: sha256)' },

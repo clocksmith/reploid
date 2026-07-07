@@ -35,7 +35,7 @@ async function withTimeoutAndRetry(fn, options = {}) {
 }
 
 async function call(args = {}, deps = {}) {
-  const { SubstrateLoader, EventBus, ToolRunner } = deps;
+  const { SubstrateLoader, EventBus, ToolRunner, VFS } = deps;
 
   const {
     path,
@@ -54,6 +54,12 @@ async function call(args = {}, deps = {}) {
   }
 
   if (cleanPath.startsWith('/self/tools/') && cleanPath.endsWith('.js') && ToolRunner?.loadPath) {
+    if (VFS?.read) {
+      const contents = await VFS.read(cleanPath);
+      if (/^\s*\|[+-]?\s*\r?\n/.test(String(contents || ''))) {
+        throw new Error(`Tool module has a leading pipe literal marker and must be rewritten before loading: ${cleanPath}`);
+      }
+    }
     const loaded = await ToolRunner.loadPath(cleanPath, null, { allow: true });
     if (!loaded) {
       throw new Error(`Tool module load failed: ${cleanPath}`);

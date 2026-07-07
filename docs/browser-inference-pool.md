@@ -13,6 +13,8 @@ receipt-backed, audit-backed, reputation-backed, policy-controlled browser infer
 
 Do not describe this as trustless compute, hardware-attested inference, or guaranteed honest GPU execution. A browser provider can sign an assignment-bound artifact, but normal browser execution cannot prove that the tab was not tampered with.
 
+The target retrieval extension is documented in [Poolday Receipt-Backed Retrieval](./poolday/receipt-backed-retrieval.md). That document covers embeddings, vector indexes, query receipts, reranking receipts, and the competitive retrieval strategy. It is not a replacement for this current browser inference claim.
+
 ---
 
 ## Product routes
@@ -21,9 +23,10 @@ Do not describe this as trustless compute, hardware-attested inference, or guara
 |-------|---------|
 | `/` | Public Reploid model-serving home. Docs/internal surface name: Poolday |
 | `/ask` | Requester prompt flow and local acceptance |
-| `/compute` | Browser worker peer listener with manual hosted diagnostics |
-| `/history` | Job history, hash lookup, and local artifact verification |
-| `/network` | Peers, scores, room state, pool metrics, and deployment check |
+| `/compute` | Browser contributor tab and local receipt generation |
+| `/records` | Saved answers, room activity, contributor scores, receipt lookup, and protocol details |
+| `/history` | Compatibility alias for `/records` |
+| `/network` | Compatibility alias for `/records`; `/` still exposes a live room summary |
 | `/zero` | Zero research Reploid surface |
 | `/x` | X mature Reploid agent surface |
 
@@ -500,6 +503,7 @@ Product routes rewrite to `/index.html`:
 - `/`
 - `/ask`
 - `/compute`
+- `/records`
 - `/history`
 - `/network`
 - `/zero`
@@ -622,7 +626,7 @@ Local route and peer-flow smoke:
 REPLOID_POOL_SMOKE_ALLOW_LOCAL=1 npm run smoke:pool -- http://127.0.0.1:8000
 ```
 
-The smoke script opens `/`, `/ask`, `/compute`, `/history`, `/network`, and `/zero`, proves a browser-room worker/requester flow, then checks `/pool/deployment/check` from the browser context. Local mode requires the deployment check route to respond with config identity. Deployed mode requires production readiness.
+The smoke script opens `/`, `/ask`, `/compute`, `/records`, `/history`, `/network`, and `/zero`, proves a browser-room worker/requester flow, then checks `/pool/deployment/check` from the browser context. Local mode requires the deployment check route to respond with config identity. Deployed mode requires production readiness.
 
 ---
 

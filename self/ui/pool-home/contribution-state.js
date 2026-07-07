@@ -53,8 +53,8 @@ const writeHistory = (rows) => {
 const stateLabel = (state) => ({
   inactive: 'Not active',
   starting: 'Starting',
-  idle: 'Active idle',
-  working: 'Doing work',
+  idle: 'Available',
+  working: 'Answering',
   error: 'Needs attention'
 }[state] || 'Not active');
 

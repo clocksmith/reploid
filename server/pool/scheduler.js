@@ -4,6 +4,7 @@
 
 import { hashJson, sha256Hex } from './hash.js';
 import { quorumForRingSize as configuredQuorumForRingSize } from './config.js';
+import { getPoolModelExecutionMode, getPoolModelWorkload } from './model-contract.js';
 import {
   deriveProviderAdmission,
   effectiveTrustTierForRingAdmissions,
@@ -32,6 +33,8 @@ const selectModel = (provider, job = {}) => {
   const requestedManifestHash = requirements.manifestHash;
   const requestedRuntime = requirements.runtime;
   const requestedBackend = requirements.backend;
+  const requestedWorkload = requirements.workload || requirements.workloadType;
+  const requestedExecutionMode = requirements.executionMode || requirements.execution;
   if (!requestedModel || !requestedModelHash || !requestedManifestHash) return null;
   return models.find((model) => {
     if (model.modelId !== requestedModel) return false;
@@ -39,6 +42,8 @@ const selectModel = (provider, job = {}) => {
     if (model.manifestHash !== requestedManifestHash) return false;
     if (requestedRuntime && model.runtime !== requestedRuntime) return false;
     if (requestedBackend && model.backend !== requestedBackend) return false;
+    if (requestedWorkload && getPoolModelWorkload(model) !== requestedWorkload) return false;
+    if (requestedExecutionMode && getPoolModelExecutionMode(model) !== requestedExecutionMode) return false;
     return true;
   }) || null;
 };
@@ -212,6 +217,8 @@ const buildAssignmentInput = ({ job, provider, model, policy, inputHash, generat
     manifestHash: model.manifestHash,
     runtime: model.runtime || 'doppler',
     backend: model.backend || 'browser-webgpu',
+    workload: getPoolModelWorkload(model),
+    executionMode: getPoolModelExecutionMode(model),
     requirements: job.modelRequirements || {}
   }
 });

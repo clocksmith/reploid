@@ -364,6 +364,7 @@
       "allowedModels": [
         "gemma-3-270m-it-q4k-ehf16-af32",
         "qwen-3-5-0-8b-q4k-ehaf16",
+        "qwen-3-embedding-0-6b-q4k-ehf16-af32",
         "gemma-4-e2b-it-q4k-ehf16-af32-int4ple"
       ],
       "minProviderReputation": 0,
@@ -394,6 +395,7 @@
       "allowedModels": [
         "gemma-3-270m-it-q4k-ehf16-af32",
         "qwen-3-5-0-8b-q4k-ehaf16",
+        "qwen-3-embedding-0-6b-q4k-ehf16-af32",
         "gemma-4-e2b-it-q4k-ehf16-af32-int4ple"
       ],
       "minProviderReputation": 0,
@@ -426,6 +428,7 @@
       "allowedModels": [
         "gemma-3-270m-it-q4k-ehf16-af32",
         "qwen-3-5-0-8b-q4k-ehaf16",
+        "qwen-3-embedding-0-6b-q4k-ehf16-af32",
         "gemma-4-e2b-it-q4k-ehf16-af32-int4ple"
       ],
       "minProviderReputation": 0,
@@ -460,6 +463,7 @@
       "allowedModels": [
         "gemma-3-270m-it-q4k-ehf16-af32",
         "qwen-3-5-0-8b-q4k-ehaf16",
+        "qwen-3-embedding-0-6b-q4k-ehf16-af32",
         "gemma-4-e2b-it-q4k-ehf16-af32-int4ple"
       ],
       "minProviderReputation": 0,
@@ -871,6 +875,68 @@
         "capabilityAction": "Use doppler-gpu@0.4.6 or newer with capability-aware kernelPathPolicy; browsers without shader-f16 run the declared f32 fallback lane."
       },
       "label": "Qwen 3.5 0.8B",
+      "enabled": true
+    },
+    {
+      "modelId": "qwen-3-embedding-0-6b-q4k-ehf16-af32",
+      "modelHash": "sha256:ef89c72fdf91f6d256d6247604217590b67f9a689f693abe64d77d91598d10a3",
+      "manifestHash": "sha256:95112b473292836b92b030d984af6b5aaf8917add6b3d0575c9217dabe3bd0d5",
+      "tokenizerHash": "sha256:fc0c640dde6fe5c2892af6be480ac6728483fefba8bddb5e3bbeab523201666d",
+      "contextLength": 32768,
+      "quantization": "q4k",
+      "workload": "embedding",
+      "executionMode": "full_model_browser_embedding",
+      "embeddingDimensions": 1024,
+      "artifactIdentity": {
+        "sourceCheckpointId": "Qwen/Qwen3-Embedding-0.6B",
+        "sourceRepo": "Qwen/Qwen3-Embedding-0.6B",
+        "weightPackId": "qwen-3-embedding-0-6b-q4k-ehf16-af32-wp-catalog-v1",
+        "weightPackHash": "sha256:ef89c72fdf91f6d256d6247604217590b67f9a689f693abe64d77d91598d10a3",
+        "manifestVariantId": "qwen-3-embedding-0-6b-q4k-ehf16-af32-mv-exec-v1",
+        "conversionConfigDigest": "sha256:a290edefde2f3156a8494d0aec19dcfadb7b57e8317fd97a75b32cdecd4d074b",
+        "conversionConfigPath": "src/config/conversion/qwen3/qwen-3-embedding-0-6b-q4k-ehf16-af32.json",
+        "materializationProfile": "auto",
+        "modalitySet": [
+          "embedding"
+        ],
+        "sourceFormat": "safetensors",
+        "artifactCompleteness": "complete"
+      },
+      "runtime": "doppler",
+      "backend": "browser-webgpu",
+      "dopplerLoadRef": "qwen-3-embedding-0-6b-q4k-ehf16-af32",
+      "loadInput": {
+        "url": "https://huggingface.co/Clocksmith/rdrr/resolve/049000f49325dca7db2ed2c9de2c8881bd0f4603/models/qwen-3-embedding-0-6b-q4k-ehf16-af32"
+      },
+      "artifactPolicy": {
+        "transport": "offloaded_content_addressed",
+        "cache": "browser_opfs",
+        "baseUrl": "https://huggingface.co/Clocksmith/rdrr/resolve/049000f49325dca7db2ed2c9de2c8881bd0f4603/models/qwen-3-embedding-0-6b-q4k-ehf16-af32",
+        "identityFields": [
+          "modelId",
+          "modelHash",
+          "manifestHash",
+          "runtime",
+          "backend",
+          "workload",
+          "executionMode"
+        ],
+        "pathTemplate": "",
+        "paths": {
+          "manifest": "manifest.json",
+          "tokenizer": "tokenizer.json",
+          "shards": ""
+        }
+      },
+      "runtimeCompatibility": {
+        "requiredWebGpuFeatures": [],
+        "fallbackStatus": "doppler_0_4_6_embedding_q4_browser_node_verified",
+        "verificationEvidence": [
+          "reports/release-claims/qwen-3-embedding-0-6b-q4k-ehf16-af32/2026-07-05T16-24-38.048Z.node.json",
+          "reports/release-claims/qwen-3-embedding-0-6b-q4k-ehf16-af32/2026-07-05T16-26-35.664Z.browser.json"
+        ]
+      },
+      "label": "Qwen3 Embedding 0.6B",
       "enabled": true
     },
     {

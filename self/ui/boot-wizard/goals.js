@@ -50,7 +50,7 @@ const GOAL_CATEGORIES = {
     },
     {
       view: 'Katamari DOM',
-      text: 'Build a visually impressive Katamari-style 3D DOM picker that injects into the current browser runtime area, turns live page elements into collectible physics objects on a growing ball, then lets the user orbit, inspect, and export robust selectors from the captured elements.',
+      text: 'Build a visually impressive Katamari-style 3D DOM picker that injects into the current browser runtime area, uses CreateTool to install and load the implementation, turns live page elements into collectible physics objects, then lets the user orbit, inspect, and export robust selectors.',
       tags: [TAGS.UI, TAGS.VISUAL, TAGS.SYS]
     }
   ],
@@ -217,7 +217,7 @@ const GOAL_CATEGORIES = {
 const normalizeText = (value) => String(value || '').trim();
 
 export const ZERO_GOAL_LIBRARY = Object.freeze([
-  { view: 'L1 DOM Katamari', level: 1, text: 'Build a playful DOM katamari injected into the current page/runtime area that gathers live buttons, cards, and forms into labeled selector trophies.' },
+  { view: 'L1 DOM Katamari', level: 1, text: 'Build a playful DOM katamari injected into the current page/runtime area, use CreateTool to install and load the implementation, and gather live buttons, cards, and forms into labeled selector trophies.' },
   { view: 'L1 DOM Aquarium', level: 1, text: 'Render DOM nodes as fish that swim by tag type, with hover bubbles showing selectors and roles.' },
   { view: 'L1 DOM Pinball', level: 1, text: 'Turn clickable elements into bumpers, launch a selector ball, and score robust paths versus brittle paths.' },
   { view: 'L1 DOM Stage Lights', level: 1, text: 'Spotlight page regions one by one, record their semantic purpose, and save a visual component map.' },

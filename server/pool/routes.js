@@ -356,6 +356,7 @@ const compactAgreementForAcceptance = (agreement = null) => {
     agreementField: agreement.agreementField || 'tokenIdsHash',
     outputHash: agreement.outputHash || null,
     tokenIdsHash: agreement.tokenIdsHash || null,
+    vectorHash: agreement.vectorHash || null,
     effectiveTrustTier: agreement.effectiveTrustTier || null
   };
 };
@@ -483,6 +484,7 @@ const evaluateAgreement = async ({ store, job, policy }) => {
     effectiveTrustTier: job?.effectiveTrustTier || job?.trustTier || policy.trustTier
   };
   if (matchingGroup) {
+    const agreementValue = matchingGroup[0].receipt?.[agreementField] || matchingGroup[0].receipt?.tokenIdsHash || null;
     return {
       ...base,
       status: 'accepted',
@@ -490,7 +492,9 @@ const evaluateAgreement = async ({ store, job, policy }) => {
       receiptHash: matchingGroup[0].receiptHash,
       receiptHashes: matchingGroup.slice(0, required).map((record) => record.receiptHash),
       outputHash: matchingGroup[0].receipt?.outputHash,
-      tokenIdsHash: matchingGroup[0].receipt?.tokenIdsHash
+      tokenIdsHash: matchingGroup[0].receipt?.tokenIdsHash,
+      vectorHash: matchingGroup[0].receipt?.vectorHash || null,
+      agreementValue
     };
   }
   if (largestGroupSize + remainingProviders >= required) {
@@ -1302,6 +1306,7 @@ export function createPoolRouter({ store = poolStore, verifyAuthToken = null, re
       providerId: assignment.providerId,
       outputHash: req.body?.outputHash || null,
       tokenIdsHash: req.body?.tokenIdsHash || null,
+      vectorHash: req.body?.vectorHash || null,
       transcriptHash: req.body?.transcriptHash || null,
       salt: req.body?.salt || null
     };
@@ -1448,6 +1453,8 @@ export function createPoolRouter({ store = poolStore, verifyAuthToken = null, re
     const receipt = req.body?.receipt;
     const outputText = req.body?.outputText || '';
     const tokenIds = Array.isArray(req.body?.tokenIds) ? req.body.tokenIds : [];
+    const outputKind = req.body?.outputKind || receipt?.outputKind || 'text_generation';
+    const vectorHash = req.body?.vectorHash || receipt?.vectorHash || null;
     const transcript = req.body?.transcript || { outputText, tokenIds };
     const provider = await store.getProvider(assignment.providerId);
     const decision = await verifyReceipt({
@@ -1456,6 +1463,7 @@ export function createPoolRouter({ store = poolStore, verifyAuthToken = null, re
       receipt,
       outputText,
       tokenIds,
+      vectorHash,
       transcript
     });
     const receiptRecord = await store.saveReceipt(decision.receiptHash, {
@@ -1471,6 +1479,10 @@ export function createPoolRouter({ store = poolStore, verifyAuthToken = null, re
       providerAdmission: assignment.providerAdmission || null,
       outputText,
       tokenIds,
+      outputKind,
+      vectorHash,
+      embeddingDimensions: req.body?.embeddingDimensions || receipt?.embedding?.dimensions || null,
+      embeddingStats: req.body?.embeddingStats || receipt?.embedding?.stats || null,
       transcript,
       receipt,
       providerPublicKey: provider?.publicKey || null,

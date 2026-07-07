@@ -15,7 +15,9 @@ export const TOOL_SURFACES = Object.freeze({
     'Grep',
     'ListTools',
     'CreateTool',
-    'LoadModule',
+    'LoadModule'
+  ]),
+  promotion: Object.freeze([
     'Promote'
   ]),
   extendedFile: Object.freeze([
@@ -50,7 +52,8 @@ export const TOOL_SURFACES = Object.freeze({
 export const ZERO_TOOL_SURFACE_IDS = Object.freeze(['sharedFile']);
 export const REPLOID_TOOL_SURFACE_IDS = Object.freeze([
   ...ZERO_TOOL_SURFACE_IDS,
-  'extendedFile'
+  'extendedFile',
+  'promotion'
 ]);
 export const X_TOOL_SURFACE_IDS = Object.freeze([
   ...REPLOID_TOOL_SURFACE_IDS,

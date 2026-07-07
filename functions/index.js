@@ -3,7 +3,7 @@ import { defineSecret } from 'firebase-functions/params';
 
 const geminiApiKey = defineSecret('GEMINI_API_KEY');
 
-const DEFAULT_GEMINI_MODEL = 'gemini-3.5-flash';
+const DEFAULT_GEMINI_MODEL = 'gemini-3.1-flash-lite';
 const DEFAULT_REFERER = 'https://replo.id';
 const PROVIDER = 'gemini';
 const ALLOWED_METHODS = 'GET,POST,OPTIONS';

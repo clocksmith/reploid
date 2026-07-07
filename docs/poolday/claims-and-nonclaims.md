@@ -23,6 +23,8 @@ The approved product claim is:
 receipt-backed, audit-backed, reputation-backed, policy-controlled browser inference
 ```
 
+The retrieval extension in [Poolday Receipt-Backed Retrieval](./receipt-backed-retrieval.md) is a target strategy. It does not replace this approved claim until retrieval receipts, vector indexes, reranking receipts, and policy checks exist as supported behavior.
+
 ## Nonclaims
 
 Poolday does not provide:

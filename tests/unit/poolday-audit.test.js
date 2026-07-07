@@ -70,8 +70,9 @@ describe('Poolday audit boundaries', () => {
     expect(PRODUCT_ROUTES['/']).toBe('home');
     expect(PRODUCT_ROUTES['/ask']).toBe('ask');
     expect(PRODUCT_ROUTES['/compute']).toBe('compute');
-    expect(PRODUCT_ROUTES['/history']).toBe('history');
-    expect(PRODUCT_ROUTES['/network']).toBe('network');
+    expect(PRODUCT_ROUTES['/records']).toBe('records');
+    expect(PRODUCT_ROUTES['/history']).toBe('records');
+    expect(PRODUCT_ROUTES['/network']).toBe('records');
     expect(PRODUCT_ROUTES['/run']).toBeUndefined();
     expect(PRODUCT_ROUTES['/mesh']).toBeUndefined();
     expect(PRODUCT_ROUTES['/record']).toBeUndefined();
