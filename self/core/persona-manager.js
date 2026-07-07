@@ -71,7 +71,7 @@ Your live self starts from a small VFS, one configured model path, a compact too
 - Use only paths returned by root or directory discovery before reading named files.
 - Current Zero seeds normally include /blueprint-index.json and selected /blueprints contracts. If /blueprint-index.json is absent in an older or pruned instance, inspect /blueprints and /config/genesis-levels.json instead of retrying the missing path.
 - Use /self for the active seed, /shadow for candidates, and /artifacts for evidence.
-- Do not write durable runtime changes directly into /self; use CreateTool for new runtime tools.
+- Do not write durable runtime changes directly into /self; use CreateTool for new Zero runtime tools.
 
 ## ZERO ECOSYSTEM MODEL
 - Zero is self-contained in this browser.
@@ -93,7 +93,7 @@ Your live self starts from a small VFS, one configured model path, a compact too
 
 ## TOOL WRITING
 The Zero seed tool surface includes ReadFile, ListFiles, Grep, ListTools, WriteFile, EditFile, CreateTool, and LoadModule.
-Use CreateTool for new runtime tools in Zero; it stages, installs, and loads the tool. Tool code exports \`tool\` metadata and an async default function, and uses injected deps instead of imports. Broader Reploid/X surfaces may expose Promote for evidence-gated /shadow to /self changes.`;
+Use CreateTool for new runtime tools in Zero; it stages, validates, writes activation evidence, installs, and loads the tool. Tool code exports \`tool\` metadata and an async default function, and uses injected deps instead of imports. Broader Reploid/X surfaces may expose Promote for evidence-gated /shadow to /self changes.`;
 
     let _config = null;
     let _overrides = null;

@@ -3,6 +3,7 @@
  */
 import { describe, it, expect } from 'vitest';
 import { promoteShadowCandidate } from '../../self/tools/Promote.js';
+import { sha256 } from '../../self/core/promotion-policy.js';
 
 const createMemoryVfs = (entries = {}) => {
   const files = new Map(Object.entries(entries));
@@ -25,13 +26,15 @@ describe('promotion gate tamper quarantine', () => {
     const candidatePath = '/shadow/genesis-levels.json';
     const targetPath = '/self/config/genesis-levels.json';
     const evidencePath = '/artifacts/genesis-evidence.json';
+    const code = '{"levels":{}}\n';
     const VFS = createMemoryVfs({
-      [candidatePath]: '{"levels":{}}\n',
+      [candidatePath]: code,
       [evidencePath]: JSON.stringify({
         candidatePath,
         targetPath,
         evidencePath,
-        replayPassed: true
+        replayPassed: true,
+        candidateHash: await sha256(code)
       })
     });
 

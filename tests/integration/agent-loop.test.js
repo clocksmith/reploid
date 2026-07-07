@@ -270,12 +270,13 @@ describe('AgentLoop - Integration Tests', () => {
       expect(prompt).toContain('## Zero tool creation workflow');
       expect(prompt).toContain('Use CreateTool for new runtime tools.');
       expect(prompt).toContain('stages /shadow/tools/MyTool.js');
+      expect(prompt).toContain('validates the candidate');
+      expect(prompt).toContain('hash-bound activation evidence');
       expect(prompt).toContain('installs /self/tools/MyTool.js');
       expect(prompt).toContain('Use LoadModule only to reload an already installed /self tool.');
-      expect(prompt).toContain('Never write candidates under /lab, and never LoadModule a /shadow path.');
+      expect(prompt).toContain('do not use Promote in Zero');
       expect(prompt).toContain('ReadFile, ListFiles, Grep, ListTools, WriteFile, EditFile, CreateTool, LoadModule.');
       expect(prompt).toContain('Evidence JSON must be strict JSON only');
-      expect(prompt).not.toContain('CreateTool creates, installs, and loads new runtime tools');
       expect(prompt).not.toContain('Valid Promote syntax is candidatePath');
       expect(prompt).not.toContain('CreateTool -> WriteFile -> Promote -> LoadModule');
     });

@@ -7,7 +7,7 @@ const ProviderRegistry = {
   metadata: {
     id: 'ProviderRegistry',
     version: '1.0.0',
-    genesis: { introduced: 'spark' },
+    genesis: { introduced: 'capsule' },
     dependencies: ['Utils', 'VFS?'],
     type: 'service'
   },

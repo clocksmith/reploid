@@ -135,25 +135,17 @@ export async function promoteShadowCandidate(args = {}, deps = {}) {
   const expectedCandidateHash = getEvidenceHash(evidence, 'candidateHash') || getEvidenceHash(evidence, 'candidateSha256');
   const expectedTargetHash = getEvidenceHash(evidence, 'targetHash') || getEvidenceHash(evidence, 'targetSha256');
   let nextHash = null;
-  if (expectedCandidateHash || expectedTargetHash) {
-    try {
-      nextHash = await sha256(candidateContent);
-    } catch (error) {
-      reasons.push(error.message);
-    }
-    if (nextHash && expectedCandidateHash && expectedCandidateHash !== nextHash) {
-      reasons.push('candidate hash does not match evidence');
-    }
-    if (nextHash && expectedTargetHash && expectedTargetHash !== nextHash) {
-      reasons.push('target hash does not match evidence');
-    }
-  }
 
   if (reasons.length > 0) {
     return { ok: false, promoted: false, candidatePath, targetPath, evidencePath, reasons };
   }
 
   if (isValidatorMutationTarget(targetPath)) {
+    try {
+      nextHash = await sha256(candidateContent);
+    } catch (error) {
+      nextHash = null;
+    }
     const quarantineId = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
     const quarantinePath = `/artifacts/quarantine/${quarantineId}.json`;
     const result = {
@@ -180,6 +172,27 @@ export async function promoteShadowCandidate(args = {}, deps = {}) {
     }
     logger?.warn?.(`[Promote] Quarantined validator mutation ${candidatePath} -> ${targetPath}`);
     return result;
+  }
+
+  if (!expectedCandidateHash && !expectedTargetHash) {
+    reasons.push('evidence candidateHash or targetHash is required');
+  }
+  if (expectedCandidateHash || expectedTargetHash) {
+    try {
+      nextHash = await sha256(candidateContent);
+    } catch (error) {
+      reasons.push(error.message);
+    }
+    if (nextHash && expectedCandidateHash && expectedCandidateHash !== nextHash) {
+      reasons.push('candidate hash does not match evidence');
+    }
+    if (nextHash && expectedTargetHash && expectedTargetHash !== nextHash) {
+      reasons.push('target hash does not match evidence');
+    }
+  }
+
+  if (reasons.length > 0) {
+    return { ok: false, promoted: false, candidatePath, targetPath, evidencePath, reasons };
   }
 
   let previousHash = null;

@@ -8,7 +8,7 @@ const ResponseParser = {
   metadata: {
     id: 'ResponseParser',
     version: '1.0.0',
-    genesis: { introduced: 'spark' },
+    genesis: { introduced: 'capsule' },
     dependencies: ['Utils'],
     type: 'service'
   },

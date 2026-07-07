@@ -10,7 +10,7 @@ const LLMClient = {
   metadata: {
     id: 'LLMClient',
     version: '1.0.0',
-    genesis: { introduced: 'spark' },
+    genesis: { introduced: 'capsule' },
     dependencies: ['Utils', 'ProviderRegistry', 'RateLimiter?', 'StreamParser?', 'TransformersClient?'],
     type: 'service'
   },

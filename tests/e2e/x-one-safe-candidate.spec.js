@@ -46,12 +46,21 @@ export default async function() {
       })
     });
     const sandboxRestored = !(await vfs.exists(candidatePath).catch(() => false));
+    const candidateDigest = await crypto.subtle.digest(
+      'SHA-256',
+      new TextEncoder().encode(candidateCode)
+    );
+    const candidateHash = Array.from(new Uint8Array(candidateDigest))
+      .map((byte) => byte.toString(16).padStart(2, '0'))
+      .join('');
 
     await vfs.write(candidatePath, candidateCode);
     await vfs.write(evidencePath, JSON.stringify({
       candidatePath,
       targetPath,
       evidencePath,
+      candidateHash,
+      targetHash: candidateHash,
       replayPassed: arenaResult.passed === true
     }));
 

@@ -2,7 +2,8 @@
  * @fileoverview CreateTool - Create runtime tool candidates.
  */
 
-import { defaultAllowTargetPath, isValidatorMutationTarget } from '../core/promotion-policy.js';
+import { defaultAllowTargetPath, isValidatorMutationTarget, sha256 } from '../core/promotion-policy.js';
+import { loadVfsModule } from '../core/vfs-module-loader.js';
 
 const getRuntimeMode = () => {
   try {
@@ -23,14 +24,60 @@ const getZeroTargetPath = (candidatePath) => {
   return `/self/tools/${cleanPath.split('/').pop()}`;
 };
 
-const createActivationEvidence = (name, candidatePath, targetPath, evidencePath) => ({
-  candidatePath,
-  targetPath,
-  evidencePath,
-  replayPassed: true,
-  action: 'CreateTool.activate',
-  toolName: name
-});
+const getToolHandler = (mod = {}) => (
+  typeof mod.default === 'function'
+    ? mod.default
+    : typeof mod.tool?.call === 'function'
+      ? mod.tool.call
+      : null
+);
+
+const validateActivationCandidate = async ({ VFS, logger, name, candidatePath, code }) => {
+  const mod = await loadVfsModule({
+    VFS,
+    logger,
+    path: candidatePath,
+    code,
+    forceReload: true
+  });
+  const handler = getToolHandler(mod);
+  if (!handler) {
+    throw new Error(`CreateTool activation failed validation: ${candidatePath} has no callable export`);
+  }
+  const declaredName = typeof mod.tool?.name === 'string' ? mod.tool.name.trim() : '';
+  if (declaredName && declaredName !== name) {
+    throw new Error(`CreateTool activation failed validation: declared tool name ${declaredName} does not match ${name}`);
+  }
+  const inputSchema = mod.tool?.inputSchema || null;
+  if (inputSchema && typeof inputSchema !== 'object') {
+    throw new Error(`CreateTool activation failed validation: inputSchema must be an object`);
+  }
+  return {
+    moduleImported: true,
+    callableExport: true,
+    declaredName: declaredName || name,
+    hasInputSchema: !!inputSchema
+  };
+};
+
+const createActivationEvidence = async ({ name, candidatePath, targetPath, evidencePath, code, checks }) => {
+  const candidateHash = await sha256(code);
+  return {
+    schema: 'reploid.zero.createToolEvidence.v2',
+    candidatePath,
+    targetPath,
+    evidencePath,
+    candidateHash,
+    targetHash: candidateHash,
+    validationPassed: true,
+    activationChecksPassed: true,
+    replayPassed: true,
+    action: 'CreateTool.activate',
+    toolName: name,
+    checks,
+    createdAt: new Date().toISOString()
+  };
+};
 
 const getQuarantinePath = (name) => {
   const safeName = String(name || 'tool').replace(/[^A-Za-z0-9_-]/g, '-');
@@ -95,7 +142,21 @@ async function activateZeroTool(result = {}, deps = {}) {
     throw new Error(`CreateTool activation target already exists and requires promotion: ${targetPath}`);
   }
   const code = await VFS.read(result.path);
-  const evidence = createActivationEvidence(result.name, result.path, targetPath, evidencePath);
+  const checks = await validateActivationCandidate({
+    VFS,
+    logger: deps.Utils?.logger,
+    name: result.name,
+    candidatePath: result.path,
+    code
+  });
+  const evidence = await createActivationEvidence({
+    name: result.name,
+    candidatePath: result.path,
+    targetPath,
+    evidencePath,
+    code,
+    checks
+  });
 
   await VFS.write(evidencePath, JSON.stringify(evidence, null, 2));
   await VFS.write(targetPath, code);
@@ -110,9 +171,11 @@ async function activateZeroTool(result = {}, deps = {}) {
     activated: true,
     targetPath,
     evidencePath,
+    candidateHash: evidence.candidateHash,
+    validationPassed: true,
     loaded: true,
     toolLoaded: true,
-    message: `Tool ${result.name} created, installed, and loaded`
+    message: `Tool ${result.name} validated, installed, and loaded`
   };
 
   EventBus?.emit?.('tool:created_activated', activated);
@@ -165,7 +228,7 @@ async function call(args = {}, deps = {}) {
 
 export const tool = {
   name: "CreateTool",
-  description: "Create a runtime tool. In Zero, stage under /shadow/tools, install to /self/tools, and load it. In broader modes, stage for evidence-gated promotion.",
+  description: "Create a runtime tool. In Zero, stage under /shadow/tools, validate the candidate, write activation evidence, install to /self/tools, and load it. In broader modes, stage for evidence-gated promotion.",
   inputSchema: {
     type: 'object',
     required: ['name', 'code'],

@@ -145,7 +145,7 @@ async function call(args = {}, deps = {}) {
   const overwrite = args.overwrite !== false;
   const autoLoad = args.autoLoad === true;
   if (autoLoad) {
-    throw new Error('autoLoad is only available after Promote places a module under /self');
+    throw new Error('autoLoad is not available on direct writes. Use CreateTool for Zero runtime tools or LoadModule for an installed /self module.');
   }
 
   if (backend === 'opfs') {
@@ -336,7 +336,7 @@ async function call(args = {}, deps = {}) {
     });
   }
 
-  // Modules become loadable only after Promote places them under /self.
+  // Modules become loadable through CreateTool in Zero or Promote/LoadModule on broader surfaces.
   const loadResult = null;
 
   let toolReload = null;

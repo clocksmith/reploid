@@ -1,6 +1,6 @@
 /**
  * E2E Test: P2P mesh
- * Drives the Ask, Compute, and History routes through the browser peer room.
+ * Drives the Run, Contribute, and Records routes through the browser peer room.
  */
 import { test, expect } from '@playwright/test';
 
@@ -172,8 +172,9 @@ const openPoolNav = async (page) => {
 const startProviderPage = async (page) => {
   await expect(page.locator('#pool-provider-worker-start')).toBeVisible();
   await page.locator('#pool-provider-worker-start').click();
-  await expect(page.locator('[data-pool-provider-status]')).toHaveText('Ready');
-  await expect(page.locator('#pool-provider-result')).toContainText('This tab is ready to help');
+  await expect(page.locator('[data-pool-provider-status]')).toHaveText('Available');
+  await expect(page.locator('[data-pool-provider-status]')).toHaveAttribute('data-provider-state', 'online');
+  await expect(page.locator('#pool-provider-result')).toContainText('This contributor tab is available');
   await expect(page.locator('#pool-provider-result-raw')).toContainText('peer_room_listening');
 };
 
@@ -212,8 +213,8 @@ const closeContexts = async (contexts) => {
   await Promise.all(contexts.map((context) => context.close().catch(() => null)));
 };
 
-test.describe('Ask, Compute, History peer room', () => {
-  test('preserves room context when Ask opens before Compute', async ({ browser, baseURL }, testInfo) => {
+test.describe('Run, Contribute, Records peer room', () => {
+  test('preserves room context when Run opens before Contribute', async ({ browser, baseURL }, testInfo) => {
     const roomId = roomIdFor(testInfo, 'run-first');
     const contexts = [];
     try {
@@ -232,10 +233,10 @@ test.describe('Ask, Compute, History peer room', () => {
       expect(result.outputText).toBe('e2e:run tab existed before mesh');
 
       await openPoolNav(runPage);
-      await runPage.getByRole('link', { name: 'Compute', exact: true }).click();
+      await runPage.getByRole('link', { name: 'Contribute', exact: true }).click();
       await expect(runPage.locator('[data-pool-room-id]')).toHaveText(roomId);
       await openPoolNav(runPage);
-      await runPage.getByRole('link', { name: 'History', exact: true }).click();
+      await runPage.getByRole('link', { name: 'Records', exact: true }).click();
       await expect(runPage.locator('[data-pool-room-id]')).toHaveText(roomId);
     } finally {
       await closeContexts(contexts);
@@ -364,11 +365,11 @@ test.describe('Ask, Compute, History peer room', () => {
 
       await reputationPage.reload({ waitUntil: 'domcontentloaded' });
       await reputationPage.waitForSelector('.pool-home');
-      await expect(reputationPage.locator('#pool-peer-ledger [aria-label="Local peer scores"]')).toBeVisible();
+      await expect(reputationPage.locator('#pool-peer-ledger [aria-label="Local contributor scores"]')).toBeVisible();
       await expect(reputationPage.locator('#pool-peer-ledger')).toContainText('Matched');
 
       await openPoolNav(runPage);
-      await runPage.getByRole('link', { name: 'History', exact: true }).click();
+      await runPage.getByRole('link', { name: 'Records', exact: true }).click();
       await expect(runPage.locator('[data-pool-room-id]')).toHaveText(roomId);
       await expect(runPage.locator('#pool-receipt-ledger')).toContainText('accepted');
       await receiptsPage.reload({ waitUntil: 'domcontentloaded' });

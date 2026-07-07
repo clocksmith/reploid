@@ -17,6 +17,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+const ACTIVE_OR_SETTLED_AGENT_STATES = ['THINKING', 'ACTING', 'OBSERVING', 'WAITING', 'IDLE', 'DONE'];
 
 // 10 minutes per test timeout
 test.setTimeout(600000);
@@ -152,7 +153,7 @@ test.describe('RSI Goals', () => {
     // Verify agent is still running or completed without crash
     const agentState = await page.locator('#agent-state').textContent();
     console.log(`\n=== FINAL STATE: ${agentState} ===\n`);
-    expect(['THINKING', 'ACTING', 'OBSERVING', 'IDLE', 'DONE']).toContain(agentState);
+    expect(ACTIVE_OR_SETTLED_AGENT_STATES).toContain(agentState);
   });
 
   test('self audit', async ({ page }) => {
@@ -171,7 +172,7 @@ test.describe('Exploration Goals', () => {
 
     const agentState = await page.locator('#agent-state').textContent();
     console.log(`\n=== FINAL STATE: ${agentState} ===\n`);
-    expect(['THINKING', 'ACTING', 'OBSERVING', 'IDLE', 'DONE']).toContain(agentState);
+    expect(ACTIVE_OR_SETTLED_AGENT_STATES).toContain(agentState);
   });
 
   test('dependency graph', async ({ page }) => {
@@ -201,7 +202,7 @@ test.describe('Edge Case Goals', () => {
     // Agent should handle error gracefully
     const agentState = await page.locator('#agent-state').textContent();
     console.log(`\n=== FINAL STATE: ${agentState} ===\n`);
-    expect(['THINKING', 'ACTING', 'OBSERVING', 'IDLE', 'DONE']).toContain(agentState);
+    expect(ACTIVE_OR_SETTLED_AGENT_STATES).toContain(agentState);
   });
 
   test('empty VFS check', async ({ page }) => {
@@ -219,7 +220,7 @@ test.describe('Creative Goals', () => {
 
     const agentState = await page.locator('#agent-state').textContent();
     console.log(`\n=== FINAL STATE: ${agentState} ===\n`);
-    expect(['THINKING', 'ACTING', 'OBSERVING', 'IDLE', 'DONE']).toContain(agentState);
+    expect(ACTIVE_OR_SETTLED_AGENT_STATES).toContain(agentState);
   });
 });
 

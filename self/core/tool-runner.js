@@ -16,11 +16,52 @@ export const filterToolDepsForMode = (deps = {}, mode = 'reploid') => {
   return filtered;
 };
 
+const ZERO_INTERNAL_TOOL_NAMES = new Set([
+  'ReadFile',
+  'WriteFile',
+  'EditFile',
+  'ListFiles',
+  'Grep',
+  'ListTools',
+  'CreateTool',
+  'LoadModule'
+]);
+
+const createReadOnlyVfs = (VFS) => {
+  if (!VFS) return VFS;
+  return {
+    read: VFS.read?.bind(VFS),
+    list: VFS.list?.bind(VFS),
+    exists: VFS.exists?.bind(VFS),
+    stat: VFS.stat?.bind(VFS),
+    getMetadata: VFS.getMetadata?.bind(VFS)
+  };
+};
+
+export const filterToolDepsForTool = (deps = {}, mode = 'reploid', toolName = '') => {
+  const filtered = filterToolDepsForMode(deps, mode);
+  if (mode !== 'zero') return filtered;
+  const isInternal = ZERO_INTERNAL_TOOL_NAMES.has(String(toolName || ''));
+  if (!isInternal) {
+    filtered.VFS = createReadOnlyVfs(filtered.VFS);
+  }
+  filtered.ToolRunner = {
+    list: filtered.ToolRunner?.list,
+    execute: filtered.ToolRunner?.execute,
+    has: filtered.ToolRunner?.has,
+    refresh: isInternal ? filtered.ToolRunner?.refresh : undefined,
+    allow: isInternal ? filtered.ToolRunner?.allow : undefined,
+    load: isInternal ? filtered.ToolRunner?.load : undefined,
+    loadPath: isInternal ? filtered.ToolRunner?.loadPath : undefined
+  };
+  return filtered;
+};
+
 const ToolRunner = {
   metadata: {
     id: 'ToolRunner',
     version: '1.2.0',
-    genesis: { introduced: 'spark' },
+    genesis: { introduced: 'capsule' },
     dependencies: ['Utils', 'VFS', 'ToolWriter?', 'SubstrateLoader?', 'EventBus', 'AuditLogger?', 'HITLController?', 'ArenaHarness?', 'VFSSandbox?', 'VerificationManager?', 'Shell?', 'gitTools?', 'WorkerManager?', 'EmbeddingStore?', 'SemanticMemory?', 'KnowledgeGraph?', 'GEPAOptimizer?', 'PromptMemory?', 'SchemaRegistry', 'TraceStore?', 'PersonaManager?', 'Observability?', 'GenesisSnapshot?', 'PolicyEngine?', 'SchemaValidator?'],
     async: true,
     type: 'service'
@@ -208,6 +249,22 @@ const ToolRunner = {
       return true;
     };
 
+    const normalizeLoadPath = (rawPath) => {
+      const value = String(rawPath || '').trim();
+      if (!value) throw new Errors.ToolError('Missing tool module path');
+      const path = value.startsWith('/') ? value : `/${value}`;
+      if (path.split('/').includes('..')) {
+        throw new Errors.ToolError('Path traversal is not allowed');
+      }
+      return path;
+    };
+
+    const assertInstallToolPath = (path) => {
+      if (!path.startsWith('/self/tools/') || !path.endsWith('.js')) {
+        throw new Errors.ToolError(`ToolRunner.loadPath only supports installed /self/tools/*.js modules: ${path}`);
+      }
+    };
+
     const loadToolModule = async (path, forcedName = null, options = {}) => {
       try {
         const contents = await VFS.read(path);
@@ -257,11 +314,13 @@ const ToolRunner = {
     };
 
     const loadToolPath = async (path, forcedName = null, options = {}) => {
-      const name = forcedName || String(path || '').split('/').pop()?.replace('.js', '');
+      const cleanPath = normalizeLoadPath(path);
+      assertInstallToolPath(cleanPath);
+      const name = forcedName || cleanPath.split('/').pop()?.replace('.js', '');
       if (options.allow && name) {
         allowTool(name);
       }
-      return loadToolModule(path, forcedName, { throwOnError: true });
+      return loadToolModule(cleanPath, forcedName, { throwOnError: true });
     };
 
     const unloadDynamicTools = () => {
@@ -278,21 +337,31 @@ const ToolRunner = {
       unloadDynamicTools();
       const allowlist = getInitialToolAllowlist();
 
-      let files = [];
-      try {
-        files = await VFS.list('/tools/');
-      } catch (err) {
-        logger.warn('[ToolRunner] Failed to list /tools directory', err);
-        return true;
-      }
+      const scanRoots = ['/tools/', '/self/tools/'];
+      for (const root of scanRoots) {
+        let files = [];
+        try {
+          files = await VFS.list(root);
+        } catch (err) {
+          if (root === '/tools/') {
+            logger.warn('[ToolRunner] Failed to list /tools directory', err);
+          }
+          continue;
+        }
 
-      for (const file of files) {
-        if (!file.endsWith('.js')) continue;
-        // Skip test files
-        if (file.includes('.test.') || file.includes('.spec.') || file.includes('.integration.')) continue;
-        const toolName = file.split('/').pop().replace('.js', '');
-        if (allowlist && !allowlist.has(toolName)) continue;
-        await loadToolModule(file);
+        for (const file of files) {
+          if (!String(file || '').startsWith(root)) continue;
+          if (!file.endsWith('.js')) continue;
+          // Skip test files
+          if (file.includes('.test.') || file.includes('.spec.') || file.includes('.integration.')) continue;
+          const toolName = file.split('/').pop().replace('.js', '');
+          if (root === '/tools/' && allowlist && !allowlist.has(toolName)) continue;
+          if (getBootMode() === 'zero' && toolName === 'Promote') continue;
+          await loadToolModule(file);
+          if (root === '/self/tools/') {
+            allowTool(toolName);
+          }
+        }
       }
       return true;
     };
@@ -429,7 +498,7 @@ const ToolRunner = {
 
         // Inject comprehensive deps for full RSI capability
         // All available modules are passed - tools can check availability via !!deps.ModuleName
-        const toolDeps = filterToolDepsForMode({
+        const toolDeps = filterToolDepsForTool({
           Utils,
           VFS,
           Shell,
@@ -465,7 +534,7 @@ const ToolRunner = {
             load: loadToolByName,
             loadPath: loadToolPath
           }
-        }, getBootMode());
+        }, getBootMode(), name);
         let result = await toolFn(args, toolDeps);
 
         // Validate tool output if SchemaValidator is available and enabled

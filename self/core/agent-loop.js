@@ -10,7 +10,7 @@ const AgentLoop = {
   metadata: {
     id: 'AgentLoop',
     version: '1.2.0', // MemoryManager integration
-    genesis: { introduced: 'spark' },
+    genesis: { introduced: 'capsule' },
     dependencies: [
       'Utils', 'EventBus', 'VFS?', 'LLMClient', 'ToolRunner', 'ContextManager',
       'ResponseParser', 'StateManager', 'PersonaManager', 'CircuitBreaker', 'SchemaRegistry',
@@ -2119,7 +2119,7 @@ const AgentLoop = {
           await _writeCycleArtifact(iteration, 'trace.json', {
             stateBefore,
             event: 'llm:response',
-            stateAfter: toolCalls.length > 0 ? 'Shadow' : (ResponseParser.isDone(response.content) ? 'Promote' : 'Shadow'),
+            stateAfter: toolCalls.length > 0 ? 'Shadow' : (ResponseParser.isDone(response.content) ? 'Complete' : 'Shadow'),
             model: modelUsed.id,
             provider: modelUsed.provider,
             modelName: modelUsed.name,
@@ -2675,9 +2675,9 @@ ${personaSection ? `${personaSection}\n` : ''}
 - Zero cannot write arbitrary /self files directly. Runtime tools load only from /self.
 
 ## Zero tool creation workflow
-- Use CreateTool for new runtime tools. In Zero it stages /shadow/tools/MyTool.js, writes /artifacts/MyTool-evidence.json, installs /self/tools/MyTool.js, and loads it.
+- Use CreateTool for new runtime tools. In Zero it stages /shadow/tools/MyTool.js, validates the candidate, writes hash-bound activation evidence under /artifacts, installs /self/tools/MyTool.js, and loads it.
 - Use LoadModule only to reload an already installed /self tool.
-- Never write candidates under /lab, and never LoadModule a /shadow path.
+- Never write candidates under /lab, never LoadModule a /shadow path, and do not use Promote in Zero.
 
 ## Required tools
 ReadFile, ListFiles, Grep, ListTools, WriteFile, EditFile, CreateTool, LoadModule.

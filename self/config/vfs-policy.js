@@ -24,13 +24,13 @@ export function assertNoPathTraversal(path) {
 
 const getWritableError = (path, operation) => {
   if (operation === 'WriteFile') {
-    return `VFS path not writable by WriteFile: ${path}. Write candidates under /shadow or evidence under /artifacts, then use Promote for /self.`;
+    return `VFS path not writable by WriteFile: ${path}. Write candidates under /shadow or evidence under /artifacts. Use CreateTool for Zero runtime tools or Promote on broader surfaces.`;
   }
   if (operation === 'EditFile') {
-    return `VFS path not editable by EditFile: ${path}. Edit candidates under /shadow or evidence under /artifacts, then use Promote for /self.`;
+    return `VFS path not editable by EditFile: ${path}. Edit candidates under /shadow or evidence under /artifacts. Use CreateTool for Zero runtime tools or Promote on broader surfaces.`;
   }
   if (operation === 'DeleteFile') {
-    return `VFS path not deletable by DeleteFile: ${path}. Delete candidates under /shadow or evidence under /artifacts, then use Promote for /self.`;
+    return `VFS path not deletable by DeleteFile: ${path}. Delete candidates under /shadow or evidence under /artifacts. Use Promote on broader surfaces.`;
   }
   if (operation === 'CopyFile') {
     return `VFS destination not writable by CopyFile: ${path}. Copy into /shadow, /artifacts, or /cycles.`;
@@ -57,4 +57,3 @@ export function assertOpfsArtifactPath(path) {
     throw new Error(`OPFS path not allowed: ${path}`);
   }
 }
-

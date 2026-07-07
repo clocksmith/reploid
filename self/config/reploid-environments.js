@@ -34,7 +34,7 @@ const TEMPLATE_DEFINITIONS = [
       'Browser-hosted JavaScript runtime with VFS and OPFS.',
       'Canonical self lives under /self.',
       'Model writes go under /shadow and /artifacts.',
-      'CreateTool stages, installs, and loads Zero tool candidates. LoadModule reloads approved JavaScript tools from /self/tools.',
+      'CreateTool stages, validates, installs, and loads Zero tool candidates. LoadModule reloads installed JavaScript tools from /self/tools.',
       'Put reusable candidates under /shadow and durable outputs under /artifacts.'
     ].join('\n')
   },
@@ -46,7 +46,7 @@ const TEMPLATE_DEFINITIONS = [
       'Browser-hosted JavaScript runtime with VFS and OPFS.',
       'Canonical self lives under /self.',
       'Model writes go under /shadow and /artifacts.',
-      'CreateTool stages, installs, and loads Zero tool candidates. LoadModule reloads approved JavaScript tools from /self/tools.',
+      'CreateTool stages, validates, installs, and loads Zero tool candidates. LoadModule reloads installed JavaScript tools from /self/tools.',
       'Any web API may exist; verify it before relying on it.'
     ].join('\n')
   },
@@ -58,7 +58,7 @@ const TEMPLATE_DEFINITIONS = [
       'Browser-hosted JavaScript runtime with VFS and OPFS.',
       'Canonical self lives under /self.',
       'Model writes go under /shadow and /artifacts.',
-      'CreateTool stages, installs, and loads Zero tool candidates. LoadModule reloads approved JavaScript tools from /self/tools.',
+      'CreateTool stages, validates, installs, and loads Zero tool candidates. LoadModule reloads installed JavaScript tools from /self/tools.',
       'Prefer small reversible changes, keep candidates under /shadow, and place evidence under /artifacts or opfs:/artifacts.',
       'Any web API may exist; verify it before relying on it.'
     ].join('\n')

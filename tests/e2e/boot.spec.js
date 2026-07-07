@@ -450,7 +450,7 @@ test.describe('Route Entry Points', () => {
 
     await page.locator('.seed-browser-panel summary').click();
     await expect(page.locator('.seed-viewer-panel')).toContainText('/self/self.json');
-    await expect(page.locator('.seed-file-viewer')).toContainText('"visibleTools"');
+    await expect(page.locator('.seed-file-viewer')).toContainText('"visibleToolsByMode"');
 
     await page.locator('[data-action="select-self-path"][data-path="/self/runtime.js"]').click();
     await expect(page.locator('.seed-viewer-panel')).toContainText('/self/runtime.js');
@@ -1040,7 +1040,7 @@ test.describe('Goal Input', () => {
     await expect(page.locator('[data-action="select-self-path"][data-path="/self/runtime.js"]')).toBeVisible();
     await expect(page.locator('[data-action="select-self-path"][data-path="/self/capsule/index.js"]')).toBeVisible();
     await expect(page.locator('.seed-viewer-panel')).toContainText('/self/self.json');
-    await expect(page.locator('.seed-viewer-panel')).toContainText('"visibleTools"');
+    await expect(page.locator('.seed-viewer-panel')).toContainText('"visibleToolsByMode"');
     await expect(page.locator('.boot-debug-panel')).not.toHaveAttribute('open', '');
     await expect(page.locator('.seed-viewer-panel')).toContainText('"selfHosted": true');
   });

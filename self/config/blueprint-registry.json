@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-03-30T13:53:19.584Z",
+  "generatedAt": "2026-07-07T15:47:33.334Z",
   "features": [
     {
       "id": "0x000003",
@@ -1101,6 +1101,20 @@
       ]
     },
     {
+      "id": "0x0000ab",
+      "name": "tools-copyfile",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x0000ab",
+          "path": "blueprints/0x0000ab-tools-copyfile.md"
+        }
+      ],
+      "files": [
+        "tools/CopyFile.js"
+      ]
+    },
+    {
       "id": "0x0000ac",
       "name": "tools-deletefile",
       "status": "active",
@@ -1280,6 +1294,34 @@
       ],
       "files": [
         "tools/LoadModule.js"
+      ]
+    },
+    {
+      "id": "0x0000ba",
+      "name": "tools-makedirectory",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x0000ba",
+          "path": "blueprints/0x0000ba-tools-makedirectory.md"
+        }
+      ],
+      "files": [
+        "tools/MakeDirectory.js"
+      ]
+    },
+    {
+      "id": "0x0000bb",
+      "name": "tools-movefile",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x0000bb",
+          "path": "blueprints/0x0000bb-tools-movefile.md"
+        }
+      ],
+      "files": [
+        "tools/MoveFile.js"
       ]
     },
     {
@@ -2428,6 +2470,734 @@
       ],
       "files": [
         "ui/zero/index.js"
+      ]
+    },
+    {
+      "id": "0x000113",
+      "name": "config-lab-route-profiles",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x000113",
+          "path": "blueprints/0x000113-config-lab-route-profiles.md"
+        }
+      ],
+      "files": [
+        "config/lab-route-profiles.js"
+      ]
+    },
+    {
+      "id": "0x000114",
+      "name": "config-tool-surfaces",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x000114",
+          "path": "blueprints/0x000114-config-tool-surfaces.md"
+        }
+      ],
+      "files": [
+        "config/tool-surfaces.js"
+      ]
+    },
+    {
+      "id": "0x000115",
+      "name": "config-vfs-policy",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x000115",
+          "path": "blueprints/0x000115-config-vfs-policy.md"
+        }
+      ],
+      "files": [
+        "config/vfs-policy.js"
+      ]
+    },
+    {
+      "id": "0x000116",
+      "name": "core-cycle-artifacts",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x000116",
+          "path": "blueprints/0x000116-core-cycle-artifacts.md"
+        }
+      ],
+      "files": [
+        "core/cycle-artifacts.js"
+      ]
+    },
+    {
+      "id": "0x000117",
+      "name": "core-import-rewrite",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x000117",
+          "path": "blueprints/0x000117-core-import-rewrite.md"
+        }
+      ],
+      "files": [
+        "core/import-rewrite.js"
+      ]
+    },
+    {
+      "id": "0x000118",
+      "name": "core-promotion-policy",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x000118",
+          "path": "blueprints/0x000118-core-promotion-policy.md"
+        }
+      ],
+      "files": [
+        "core/promotion-policy.js"
+      ]
+    },
+    {
+      "id": "0x000119",
+      "name": "lab-mirrors",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x000119",
+          "path": "blueprints/0x000119-lab-mirrors.md"
+        }
+      ],
+      "files": [
+        "lab/mirrors.js"
+      ]
+    },
+    {
+      "id": "0x00011a",
+      "name": "lab-profiles",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x00011a",
+          "path": "blueprints/0x00011a-lab-profiles.md"
+        }
+      ],
+      "files": [
+        "lab/profiles.js"
+      ]
+    },
+    {
+      "id": "0x00011b",
+      "name": "lab-runtime-ui",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x00011b",
+          "path": "blueprints/0x00011b-lab-runtime-ui.md"
+        }
+      ],
+      "files": [
+        "lab/runtime-ui.js"
+      ]
+    },
+    {
+      "id": "0x00011c",
+      "name": "lab-surface",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x00011c",
+          "path": "blueprints/0x00011c-lab-surface.md"
+        }
+      ],
+      "files": [
+        "lab/surface.js"
+      ]
+    },
+    {
+      "id": "0x00011d",
+      "name": "pool-agent-client",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x00011d",
+          "path": "blueprints/0x00011d-pool-agent-client.md"
+        }
+      ],
+      "files": [
+        "pool/agent-client.js"
+      ]
+    },
+    {
+      "id": "0x00011e",
+      "name": "pool-config",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x00011e",
+          "path": "blueprints/0x00011e-pool-config.md"
+        }
+      ],
+      "files": [
+        "pool/config.js"
+      ]
+    },
+    {
+      "id": "0x00011f",
+      "name": "pool-doppler-runtime",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x00011f",
+          "path": "blueprints/0x00011f-pool-doppler-runtime.md"
+        }
+      ],
+      "files": [
+        "pool/doppler-runtime.js"
+      ]
+    },
+    {
+      "id": "0x000120",
+      "name": "pool-firebase-auth",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x000120",
+          "path": "blueprints/0x000120-pool-firebase-auth.md"
+        }
+      ],
+      "files": [
+        "pool/firebase-auth.js"
+      ]
+    },
+    {
+      "id": "0x000121",
+      "name": "pool-identity",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x000121",
+          "path": "blueprints/0x000121-pool-identity.md"
+        }
+      ],
+      "files": [
+        "pool/identity.js"
+      ]
+    },
+    {
+      "id": "0x000122",
+      "name": "pool-inference-receipt",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x000122",
+          "path": "blueprints/0x000122-pool-inference-receipt.md"
+        }
+      ],
+      "files": [
+        "pool/inference-receipt.js"
+      ]
+    },
+    {
+      "id": "0x000123",
+      "name": "pool-layer-scheduler",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x000123",
+          "path": "blueprints/0x000123-pool-layer-scheduler.md"
+        }
+      ],
+      "files": [
+        "pool/layer-scheduler.js"
+      ]
+    },
+    {
+      "id": "0x000124",
+      "name": "pool-model-artifacts",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x000124",
+          "path": "blueprints/0x000124-pool-model-artifacts.md"
+        }
+      ],
+      "files": [
+        "pool/model-artifacts.js"
+      ]
+    },
+    {
+      "id": "0x000125",
+      "name": "pool-model-contract",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x000125",
+          "path": "blueprints/0x000125-pool-model-contract.md"
+        }
+      ],
+      "files": [
+        "pool/model-contract.js"
+      ]
+    },
+    {
+      "id": "0x000126",
+      "name": "pool-p2p-payload",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x000126",
+          "path": "blueprints/0x000126-pool-p2p-payload.md"
+        }
+      ],
+      "files": [
+        "pool/p2p-payload.js"
+      ]
+    },
+    {
+      "id": "0x000127",
+      "name": "pool-p2p-signaling",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x000127",
+          "path": "blueprints/0x000127-pool-p2p-signaling.md"
+        }
+      ],
+      "files": [
+        "pool/p2p-signaling.js"
+      ]
+    },
+    {
+      "id": "0x000128",
+      "name": "pool-p2p-transport",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x000128",
+          "path": "blueprints/0x000128-pool-p2p-transport.md"
+        }
+      ],
+      "files": [
+        "pool/p2p-transport.js"
+      ]
+    },
+    {
+      "id": "0x000129",
+      "name": "pool-peer-control-plane",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x000129",
+          "path": "blueprints/0x000129-pool-peer-control-plane.md"
+        }
+      ],
+      "files": [
+        "pool/peer-control-plane.js"
+      ]
+    },
+    {
+      "id": "0x00012a",
+      "name": "pool-peer-registry",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x00012a",
+          "path": "blueprints/0x00012a-pool-peer-registry.md"
+        }
+      ],
+      "files": [
+        "pool/peer-registry.js"
+      ]
+    },
+    {
+      "id": "0x00012b",
+      "name": "pool-peer-rendezvous",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x00012b",
+          "path": "blueprints/0x00012b-pool-peer-rendezvous.md"
+        }
+      ],
+      "files": [
+        "pool/peer-rendezvous.js"
+      ]
+    },
+    {
+      "id": "0x00012c",
+      "name": "pool-peer-room",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x00012c",
+          "path": "blueprints/0x00012c-pool-peer-room.md"
+        }
+      ],
+      "files": [
+        "pool/peer-room.js"
+      ]
+    },
+    {
+      "id": "0x00012d",
+      "name": "pool-points-ledger",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x00012d",
+          "path": "blueprints/0x00012d-pool-points-ledger.md"
+        }
+      ],
+      "files": [
+        "pool/points-ledger.js"
+      ]
+    },
+    {
+      "id": "0x00012e",
+      "name": "pool-policy-router",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x00012e",
+          "path": "blueprints/0x00012e-pool-policy-router.md"
+        }
+      ],
+      "files": [
+        "pool/policy-router.js"
+      ]
+    },
+    {
+      "id": "0x00012f",
+      "name": "pool-provider-client",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x00012f",
+          "path": "blueprints/0x00012f-pool-provider-client.md"
+        }
+      ],
+      "files": [
+        "pool/provider-client.js"
+      ]
+    },
+    {
+      "id": "0x000130",
+      "name": "pool-reputation",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x000130",
+          "path": "blueprints/0x000130-pool-reputation.md"
+        }
+      ],
+      "files": [
+        "pool/reputation.js"
+      ]
+    },
+    {
+      "id": "0x000131",
+      "name": "pool-requester-client",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x000131",
+          "path": "blueprints/0x000131-pool-requester-client.md"
+        }
+      ],
+      "files": [
+        "pool/requester-client.js"
+      ]
+    },
+    {
+      "id": "0x000132",
+      "name": "pool-runtime-profile",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x000132",
+          "path": "blueprints/0x000132-pool-runtime-profile.md"
+        }
+      ],
+      "files": [
+        "pool/runtime-profile.js"
+      ]
+    },
+    {
+      "id": "0x000133",
+      "name": "pool-sdk",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x000133",
+          "path": "blueprints/0x000133-pool-sdk.md"
+        }
+      ],
+      "files": [
+        "pool/sdk.js"
+      ]
+    },
+    {
+      "id": "0x000134",
+      "name": "pool-shard-negotiation",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x000134",
+          "path": "blueprints/0x000134-pool-shard-negotiation.md"
+        }
+      ],
+      "files": [
+        "pool/shard-negotiation.js"
+      ]
+    },
+    {
+      "id": "0x000135",
+      "name": "self-dream-instance",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x000135",
+          "path": "blueprints/0x000135-self-dream-instance.md"
+        }
+      ],
+      "files": [
+        "self/dream-instance.js"
+      ]
+    },
+    {
+      "id": "0x000136",
+      "name": "self-host-start-reploid",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x000136",
+          "path": "blueprints/0x000136-self-host-start-reploid.md"
+        }
+      ],
+      "files": [
+        "self/host/start-reploid.js"
+      ]
+    },
+    {
+      "id": "0x000137",
+      "name": "tools-promote",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x000137",
+          "path": "blueprints/0x000137-tools-promote.md"
+        }
+      ],
+      "files": [
+        "tools/Promote.js"
+      ]
+    },
+    {
+      "id": "0x000138",
+      "name": "ui-boot-wizard-zero-function",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x000138",
+          "path": "blueprints/0x000138-ui-boot-wizard-zero-function.md"
+        }
+      ],
+      "files": [
+        "ui/boot-wizard/zero-function.js"
+      ]
+    },
+    {
+      "id": "0x000139",
+      "name": "ui-pool-home-constants",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x000139",
+          "path": "blueprints/0x000139-ui-pool-home-constants.md"
+        }
+      ],
+      "files": [
+        "ui/pool-home/constants.js"
+      ]
+    },
+    {
+      "id": "0x00013a",
+      "name": "ui-pool-home-contribution-state",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x00013a",
+          "path": "blueprints/0x00013a-ui-pool-home-contribution-state.md"
+        }
+      ],
+      "files": [
+        "ui/pool-home/contribution-state.js"
+      ]
+    },
+    {
+      "id": "0x00013b",
+      "name": "ui-pool-home-controls",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x00013b",
+          "path": "blueprints/0x00013b-ui-pool-home-controls.md"
+        }
+      ],
+      "files": [
+        "ui/pool-home/controls.js"
+      ]
+    },
+    {
+      "id": "0x00013c",
+      "name": "ui-pool-home-index",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x00013c",
+          "path": "blueprints/0x00013c-ui-pool-home-index.md"
+        }
+      ],
+      "files": [
+        "ui/pool-home/index.js"
+      ]
+    },
+    {
+      "id": "0x00013d",
+      "name": "ui-pool-home-simulation-batches",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x00013d",
+          "path": "blueprints/0x00013d-ui-pool-home-simulation-batches.md"
+        }
+      ],
+      "files": [
+        "ui/pool-home/simulation-batches.js"
+      ]
+    },
+    {
+      "id": "0x00013e",
+      "name": "ui-pool-home-simulation-bind",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x00013e",
+          "path": "blueprints/0x00013e-ui-pool-home-simulation-bind.md"
+        }
+      ],
+      "files": [
+        "ui/pool-home/simulation-bind.js"
+      ]
+    },
+    {
+      "id": "0x00013f",
+      "name": "ui-pool-home-simulation-core",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x00013f",
+          "path": "blueprints/0x00013f-ui-pool-home-simulation-core.md"
+        }
+      ],
+      "files": [
+        "ui/pool-home/simulation-core.js"
+      ]
+    },
+    {
+      "id": "0x000140",
+      "name": "ui-pool-home-simulation-flow-specs",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x000140",
+          "path": "blueprints/0x000140-ui-pool-home-simulation-flow-specs.md"
+        }
+      ],
+      "files": [
+        "ui/pool-home/simulation-flow-specs.js"
+      ]
+    },
+    {
+      "id": "0x000141",
+      "name": "ui-pool-home-simulation-flow-transition",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x000141",
+          "path": "blueprints/0x000141-ui-pool-home-simulation-flow-transition.md"
+        }
+      ],
+      "files": [
+        "ui/pool-home/simulation-flow-transition.js"
+      ]
+    },
+    {
+      "id": "0x000142",
+      "name": "ui-pool-home-simulation-frame-state",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x000142",
+          "path": "blueprints/0x000142-ui-pool-home-simulation-frame-state.md"
+        }
+      ],
+      "files": [
+        "ui/pool-home/simulation-frame-state.js"
+      ]
+    },
+    {
+      "id": "0x000143",
+      "name": "ui-pool-home-simulation-renderer",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x000143",
+          "path": "blueprints/0x000143-ui-pool-home-simulation-renderer.md"
+        }
+      ],
+      "files": [
+        "ui/pool-home/simulation-renderer.js"
+      ]
+    },
+    {
+      "id": "0x000144",
+      "name": "ui-pool-home-view",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x000144",
+          "path": "blueprints/0x000144-ui-pool-home-view.md"
+        }
+      ],
+      "files": [
+        "ui/pool-home/view.js"
+      ]
+    },
+    {
+      "id": "0x000145",
+      "name": "ui-reploid-home-index",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x000145",
+          "path": "blueprints/0x000145-ui-reploid-home-index.md"
+        }
+      ],
+      "files": [
+        "ui/reploid-home/index.js"
+      ]
+    },
+    {
+      "id": "0x000146",
+      "name": "ui-shared-reploid-contract",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x000146",
+          "path": "blueprints/0x000146-ui-shared-reploid-contract.md"
+        }
+      ],
+      "files": [
+        "ui/shared/reploid-contract.js"
       ]
     }
   ]

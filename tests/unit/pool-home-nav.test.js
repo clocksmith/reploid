@@ -151,7 +151,7 @@ describe('poolday home navigation', () => {
     expect(html).toContain('<span class="pool-shape-action-label">Contribute</span>');
   });
 
-  it('renders Qwen as the visible default model on Ask and Compute', () => {
+  it('renders Qwen as the visible default model on Run and Contribute', () => {
     const askHtml = renderRouteDetail('ask');
     const computeHtml = renderRouteDetail('compute');
 

@@ -1122,7 +1122,7 @@ export const renderContributionStatusBar = (snapshot = getContributionSnapshot()
       class="pool-contribution-status"
       id="pool-contribution-status"
       data-contribution-state="${escapeHtml(snapshot.state || 'inactive')}"
-      aria-label="Compute contribution status"
+      aria-label="Contribution status"
     >
       <span class="pool-contribution-dot" aria-hidden="true"></span>
       <span class="pool-contribution-state">${escapeHtml(snapshot.label || 'Not active')}</span>
@@ -1378,7 +1378,7 @@ export const renderRouteDetail = (routeId) => {
               <button class="btn btn-ghost btn-op" data-op="■" id="pool-provider-worker-stop" type="button" disabled>Stop</button>
             </div>
           </div>
-          <div class="pool-provider-live" aria-label="Compute tab state">
+          <div class="pool-provider-live" aria-label="Contributor tab state">
             <div class="pool-section-heading">
               <h3 class="type-h2">Readiness</h3>
               <span class="pool-meta-tag">Model, cache, room</span>
