@@ -81,6 +81,30 @@
       ],
       "rewrites": [
         {
+          "source": "/styles/rd-tokens.css",
+          "destination": "/styles/rd.css"
+        },
+        {
+          "source": "/styles/rd-primitives.css",
+          "destination": "/styles/rd.css"
+        },
+        {
+          "source": "/styles/rd-components.css",
+          "destination": "/styles/rd.css"
+        },
+        {
+          "source": "/rd-tokens.css",
+          "destination": "/styles/rd.css"
+        },
+        {
+          "source": "/rd-primitives.css",
+          "destination": "/styles/rd.css"
+        },
+        {
+          "source": "/rd-components.css",
+          "destination": "/styles/rd.css"
+        },
+        {
           "source": "/design",
           "destination": "/design.html"
         },
@@ -228,6 +252,10 @@
         },
         {
           "source": "/compute",
+          "destination": "/index.html"
+        },
+        {
+          "source": "/records",
           "destination": "/index.html"
         },
         {

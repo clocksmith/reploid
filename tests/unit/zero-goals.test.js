@@ -62,11 +62,13 @@ describe('Zero goal presets', () => {
 
   it('makes the Katamari default target the live browser runtime area', () => {
     expect(DEFAULT_ZERO_GOAL).toContain('injected into the current page/runtime area');
+    expect(DEFAULT_ZERO_GOAL).toContain('use CreateTool to install and load the implementation');
     expect(DEFAULT_ZERO_GOAL).toContain('live buttons, cards, and forms');
 
     const katamariBootGoal = getGoalCategories()['L0: Basic Functions']
       .find((goal) => goal.view === 'Katamari DOM');
     expect(katamariBootGoal.text).toContain('injects into the current browser runtime area');
+    expect(katamariBootGoal.text).toContain('uses CreateTool to install and load the implementation');
     expect(katamariBootGoal.text).toContain('live page elements');
   });
 });

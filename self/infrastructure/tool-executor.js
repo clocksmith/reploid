@@ -37,6 +37,8 @@ const ToolExecutor = {
       /^Unsupported VFS entry type/i,
       /^Tool not found:/i,
       /^Tool '.+' not permitted/i,
+      /^LoadModule only supports promoted \/self paths/i,
+      /^Tool module has a leading pipe literal marker/i,
       /^Policy violation:/i,
       /^Operation rejected by user/i
     ];
@@ -99,6 +101,7 @@ const ToolExecutor = {
       } = options;
 
       let result = null;
+      let rawResult = null;
       let lastError = null;
       const startTime = Date.now();
       if (EventBus) {
@@ -108,7 +111,7 @@ const ToolExecutor = {
       for (let attempt = 0; attempt <= maxRetries; attempt++) {
         try {
           const toolStartTime = Date.now();
-          const rawResult = await executeWithTimeout(call.name, call.args, {
+          rawResult = await executeWithTimeout(call.name, call.args, {
             timeoutMs,
             workerId,
             allowedTools,
@@ -211,6 +214,7 @@ const ToolExecutor = {
 
       return {
         result,
+        rawResult,
         error: lastError,
         duration: Date.now() - startTime
       };
@@ -225,8 +229,8 @@ const ToolExecutor = {
     const executeBatch = async (calls, options = {}) => {
       const results = await Promise.all(
         calls.map(async (call) => {
-          const { result, error, duration } = await executeWithRetry(call, options);
-          return { call, result, error, duration };
+          const { result, rawResult, error, duration } = await executeWithRetry(call, options);
+          return { call, result, rawResult, error, duration };
         })
       );
       return results;
@@ -258,8 +262,8 @@ const ToolExecutor = {
 
       // Execute mutating tools sequentially
       for (const call of mutatingCalls) {
-        const { result, error, duration } = await executeWithRetry(call, options);
-        results.push({ call, result, error, duration });
+        const { result, rawResult, error, duration } = await executeWithRetry(call, options);
+        results.push({ call, result, rawResult, error, duration });
       }
 
       if (mutatingCalls.length > 0) {

@@ -105,6 +105,10 @@ export async function createExecutionResultPayload({ assignment, execution, from
     body: {
       outputText: execution?.outputText || '',
       tokenIds: Array.isArray(execution?.tokenIds) ? execution.tokenIds : [],
+      outputKind: execution?.outputKind || null,
+      vectorHash: execution?.vectorHash || null,
+      embeddingDimensions: execution?.embeddingDimensions || null,
+      embeddingStats: execution?.embeddingStats || null,
       transcript: execution?.transcript || null,
       tokenCounts: execution?.tokenCounts || null,
       timing: execution?.timing || null
@@ -130,6 +134,10 @@ export async function createReceiptPayload({ assignment, receiptRecord, fromPeer
       receipt: receiptRecord?.receipt || null,
       outputText: receiptRecord?.outputText || '',
       tokenIds: Array.isArray(receiptRecord?.tokenIds) ? receiptRecord.tokenIds : [],
+      outputKind: receiptRecord?.outputKind || receiptRecord?.receipt?.outputKind || null,
+      vectorHash: receiptRecord?.vectorHash || receiptRecord?.receipt?.vectorHash || null,
+      embeddingDimensions: receiptRecord?.embeddingDimensions || receiptRecord?.receipt?.embedding?.dimensions || null,
+      embeddingStats: receiptRecord?.embeddingStats || receiptRecord?.receipt?.embedding?.stats || null,
       transcript: receiptRecord?.transcript || null,
       verifierDecision: receiptRecord?.verifierDecision || null,
       providerPublicKey: receiptRecord?.providerPublicKey || null,
@@ -170,6 +178,7 @@ export async function buildAssignmentCommitmentPayload({
     ringAttemptId: assignment?.ringAttemptId || assignment?.ring?.ringAttemptId || null,
     outputHash: receipt?.outputHash || await sha256Hex(outputText),
     tokenIdsHash: receipt?.tokenIdsHash || await hashJson(tokenIds),
+    vectorHash: receipt?.vectorHash || execution?.vectorHash || null,
     transcriptHash: receipt?.transcriptHash || await hashJson(transcript),
     salt
   };
@@ -184,6 +193,7 @@ export async function buildAssignmentCommitmentPayload({
     ringAttemptId: commitmentBody.ringAttemptId,
     outputHash: commitmentBody.outputHash,
     tokenIdsHash: commitmentBody.tokenIdsHash,
+    vectorHash: commitmentBody.vectorHash,
     transcriptHash: commitmentBody.transcriptHash,
     receiptHash,
     commitmentHash
@@ -214,6 +224,7 @@ export async function buildAssignmentRevealPayload({
     salt: requireString(salt, 'salt'),
     outputText,
     tokenIds,
+    vectorHash: receipt?.vectorHash || execution?.vectorHash || null,
     transcript,
     receipt,
     receiptHash,

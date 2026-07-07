@@ -49,11 +49,21 @@ async function verifyProviderSignature(receipt, publicKeyBase64) {
 const compareModel = (assignment, receipt, reasons) => {
   const expected = assignment?.model || {};
   const actual = receipt?.model || {};
+  const expectedWorkload = expected.workload || expected.requirements?.workload || null;
+  const actualWorkload = actual.workload || actual.requirements?.workload || null;
+  const expectedExecutionMode = expected.executionMode || expected.requirements?.executionMode || null;
+  const actualExecutionMode = actual.executionMode || actual.requirements?.executionMode || null;
   if (expected.id && actual.id !== expected.id) reasons.push('model id mismatch');
   if (expected.hash && actual.hash !== expected.hash) reasons.push('model hash mismatch');
   if (expected.manifestHash && actual.manifestHash !== expected.manifestHash) reasons.push('manifest hash mismatch');
   if (expected.runtime && actual.runtime !== expected.runtime) reasons.push('runtime mismatch');
   if (expected.backend && actual.backend !== expected.backend) reasons.push('backend mismatch');
+  if (expectedWorkload && actualWorkload && actualWorkload !== expectedWorkload) reasons.push('model workload mismatch');
+  if (expectedWorkload === 'embedding' && actualWorkload !== expectedWorkload) reasons.push('model workload mismatch');
+  if (expectedExecutionMode && actualExecutionMode && actualExecutionMode !== expectedExecutionMode) reasons.push('model execution mode mismatch');
+  if (expectedWorkload === 'embedding' && expectedExecutionMode && actualExecutionMode !== expectedExecutionMode) {
+    reasons.push('model execution mode mismatch');
+  }
 };
 
 const compareRuntime = (assignment, receipt, reasons) => {
@@ -63,7 +73,7 @@ const compareRuntime = (assignment, receipt, reasons) => {
   if (expected.backend && actual.backend !== expected.backend) reasons.push('receipt backend identity mismatch');
 };
 
-export async function verifyReceipt({ store, assignment, receipt, outputText = '', tokenIds = [], transcript = null }) {
+export async function verifyReceipt({ store, assignment, receipt, outputText = '', tokenIds = [], vectorHash = null, transcript = null }) {
   const reasons = [];
   const provider = assignment ? await store.getProvider(assignment.providerId) : null;
   if (!assignment) reasons.push('assignment not found');
@@ -119,6 +129,7 @@ export async function verifyReceipt({ store, assignment, receipt, outputText = '
           if (!commitmentCheck.ok) reasons.push('ring reveal does not match commitment');
           if (receipt?.outputHash !== reveal.outputHash) reasons.push('receipt outputHash does not match reveal');
           if (receipt?.tokenIdsHash !== reveal.tokenIdsHash) reasons.push('receipt tokenIdsHash does not match reveal');
+          if (reveal.vectorHash && receipt?.vectorHash !== reveal.vectorHash) reasons.push('receipt vectorHash does not match reveal');
           if (receipt?.transcriptHash !== reveal.transcriptHash) reasons.push('receipt transcriptHash does not match reveal');
         }
       }
@@ -126,6 +137,9 @@ export async function verifyReceipt({ store, assignment, receipt, outputText = '
   }
   if (!receipt?.outputHash) reasons.push('output hash missing');
   if (!receipt?.tokenIdsHash) reasons.push('token ids hash missing');
+  if ((assignment?.model?.workload || assignment?.model?.requirements?.workload) === 'embedding' && !receipt?.vectorHash) {
+    reasons.push('vector hash missing');
+  }
   if (!receipt?.transcriptHash) reasons.push('transcript hash missing');
   if (!receipt?.providerSignature) reasons.push('provider signature missing');
   if (!provider?.publicKey) reasons.push('provider public key missing');
@@ -138,6 +152,9 @@ export async function verifyReceipt({ store, assignment, receipt, outputText = '
   }
   if (receipt?.tokenIdsHash && Array.isArray(tokenIds) && receipt.tokenIdsHash !== hashJson(tokenIds)) {
     reasons.push('token ids hash does not match submitted tokenIds');
+  }
+  if (vectorHash && receipt?.vectorHash !== vectorHash) {
+    reasons.push('vector hash does not match submitted vectorHash');
   }
   const submittedTranscript = transcript || { outputText, tokenIds: Array.isArray(tokenIds) ? tokenIds : [] };
   if (receipt?.transcriptHash && receipt.transcriptHash !== hashJson(submittedTranscript)) {

@@ -81,6 +81,31 @@ describe('WriteFile', () => {
       expect(mockVFS.write).toHaveBeenCalledWith('/artifacts/evidence.json', '{"replayPassed":true}');
     });
 
+    it('should serialize JSON object content before writing artifact evidence', async () => {
+      await call(
+        {
+          path: '/artifacts/evidence.json',
+          content: {
+            candidatePath: '/shadow/tools/KatamariPicker.js',
+            targetPath: '/self/tools/KatamariPicker.js',
+            evidencePath: '/artifacts/evidence.json',
+            replayPassed: true
+          }
+        },
+        context()
+      );
+
+      const written = mockVFS.write.mock.calls[0][1];
+      expect(mockVFS.write.mock.calls[0][0]).toBe('/artifacts/evidence.json');
+      expect(JSON.parse(written)).toEqual({
+        candidatePath: '/shadow/tools/KatamariPicker.js',
+        targetPath: '/self/tools/KatamariPicker.js',
+        evidencePath: '/artifacts/evidence.json',
+        replayPassed: true
+      });
+      expect(written).not.toBe('[object Object]');
+    });
+
     it('should allow empty string content', async () => {
       await call({ path: '/shadow/empty.txt', content: '' }, context());
 

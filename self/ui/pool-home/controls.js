@@ -58,7 +58,7 @@ const displayPoolError = (error, {
 });
 
 const artifactPreflightFailureAction = (model) => (
-  `Deploy ${model?.modelId || 'the selected model'} artifacts at the configured model base, or attach a compatible Doppler runtime handle before starting a contributor.`
+  `Deploy ${model?.modelId || 'the selected model'} artifacts at the configured model base, or attach a compatible Doppler runtime handle before contributing.`
 );
 
 const usesRegistryBackedDopplerLoad = (model = {}) => (
@@ -155,6 +155,10 @@ const refreshServerRoomActivity = async () => {
   }
 };
 
+export const bindRoomActivityControls = () => {
+  void refreshServerRoomActivity();
+};
+
 const probeModelArtifacts = async (model) => {
   if (window.REPLOID_POOL_STRICT_ARTIFACT_PREFLIGHT !== true && usesRegistryBackedDopplerLoad(model)) {
     return {
@@ -244,7 +248,7 @@ export const bindRunControls = () => {
     } catch (error) {
       setResult('pool-run-result', displayPoolError(error, {
         title: 'Request could not complete',
-        action: 'Open Compute in another tab with the same room, start helping, wait for the tab to say Ready, then ask again.',
+        action: 'Open Contribute in another tab with the same room, start contributing, wait for the tab to say Available, then ask again.',
         context: {
           roomId: getPeerRoomId(),
           relay: getPeerRelayMode(),
@@ -376,7 +380,7 @@ const createProviderContributionController = () => {
       syncWorkerControls();
       return;
     }
-    setProviderStatus(workerStarting ? 'Starting' : workerRunning ? 'Ready' : 'Idle');
+    setProviderStatus(workerStarting ? 'Starting' : workerRunning ? 'Available' : 'Idle');
     updateProviderHealth({
       webgpu: navigator.gpu ? 'available' : 'unavailable',
       storage: navigator.storage ? 'available' : 'unknown',
@@ -395,7 +399,8 @@ const createProviderContributionController = () => {
       && loaded.modelHash === model.modelHash
       && loaded.manifestHash === model.manifestHash
       && loaded.runtime === model.runtime
-      && loaded.backend === model.backend;
+      && loaded.backend === model.backend
+      && (loaded.workload || model.workload || 'text_generation') === (model.workload || 'text_generation');
   };
 
   const loadSelectedProviderModel = async () => {
@@ -500,13 +505,13 @@ const createProviderContributionController = () => {
 
   const handlePeerActivity = (event) => {
     if (event?.status === 'provider_advertised') {
-      setProviderStatus('Ready');
+      setProviderStatus('Available');
       updateProviderHealth({ queue: 'listening' });
       setContributionState({ state: 'idle', optedIn: true, lastError: null });
       return;
     }
     if (event?.status === 'peer_session_opening') {
-      setProviderStatus('Opening');
+      setProviderStatus('Connecting');
       updateProviderHealth({ queue: 'opening_session' });
       setContributionState({ state: 'working', optedIn: true, lastError: null });
     }
@@ -516,7 +521,7 @@ const createProviderContributionController = () => {
       setContributionState({ state: 'working', optedIn: true, lastError: null });
     }
     if (event?.status === 'peer_receipt_sent') {
-      setProviderStatus('Ready');
+      setProviderStatus('Available');
       updateProviderHealth({
         queue: 'receipt_sent',
         lastReceipt: event.receiptRecord?.receiptHash || 'signed'
@@ -543,7 +548,7 @@ const createProviderContributionController = () => {
       setContributionState({ state: 'idle', optedIn: true, lastError: null });
     }
     if (event?.status === 'peer_session_failed') {
-      setProviderStatus(workerRunning ? 'Ready' : 'Idle');
+      setProviderStatus(workerRunning ? 'Available' : 'Idle');
       updateProviderHealth({ queue: 'session_failed' });
       setContributionState({
         state: workerRunning ? 'idle' : 'inactive',
@@ -605,7 +610,7 @@ const createProviderContributionController = () => {
       const ready = await ensurePeerProviderReady();
       workerStarting = false;
       workerRunning = true;
-      setProviderStatus('Ready');
+      setProviderStatus('Available');
       updateProviderHealth({ queue: 'listening' });
       setContributionState({ state: 'idle', optedIn: true, lastError: null });
       setResult('pool-provider-result', {
@@ -717,7 +722,7 @@ export const bindReceiptControls = () => {
         setResult('pool-receipt-result', {
           status: 'not_found',
           receiptHash,
-          action: 'Submit a local peer-room job first, then inspect the history from this browser.'
+          action: 'Submit a local peer-room job first, then inspect Records from this browser.'
         });
         return;
       }

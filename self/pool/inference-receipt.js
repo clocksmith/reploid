@@ -164,6 +164,8 @@ const normalizeReceiptModel = (model = {}) => ({
   manifestHash: model.manifestHash || null,
   runtime: model.runtime || 'doppler',
   backend: model.backend || 'browser-webgpu',
+  workload: model.workload || model.workloadType || model.modelType || model.requirements?.workload || null,
+  executionMode: model.executionMode || model.execution || model.requirements?.executionMode || null,
   contextLength: Number(model.contextLength || 0),
   quantization: model.quantization || null,
   artifactIdentity: model.artifactIdentity || model.requirements?.artifactIdentity || null,
@@ -173,7 +175,14 @@ const normalizeReceiptModel = (model = {}) => ({
 export async function buildPoolReceipt({ assignment, provider, model, runtime, execution }) {
   const outputText = execution?.outputText || '';
   const tokenIds = Array.isArray(execution?.tokenIds) ? execution.tokenIds : [];
-  const transcript = execution?.transcript || { outputText, tokenIds };
+  const outputKind = execution?.outputKind || assignment?.workload || model?.workload || model?.requirements?.workload || 'text_generation';
+  const vectorHash = execution?.vectorHash || execution?.embeddingHash || null;
+  const transcript = execution?.transcript || {
+    outputKind,
+    outputText,
+    tokenIds,
+    vectorHash
+  };
   const runtimeProfileHash = assignment.runtimeProfileHash
     || provider?.runtimeProfileHash
     || provider?.device?.runtimeProfileHash
@@ -192,12 +201,18 @@ export async function buildPoolReceipt({ assignment, provider, model, runtime, e
     policyConfigHash: assignment.policyConfigHash || null,
     model: normalizeReceiptModel(model),
     runtime,
+    outputKind,
     inputHash: assignment.inputHash,
     generationConfigHash: assignment.generationConfigHash,
     outputHash: await sha256Hex(outputText),
     tokenIdsHash: await hashJson(tokenIds),
+    vectorHash,
     transcriptHash: await hashJson(transcript),
     tokenCounts: execution?.tokenCounts || { input: 0, output: tokenIds.length },
+    embedding: execution?.embeddingDimensions ? {
+      dimensions: execution.embeddingDimensions,
+      stats: execution.embeddingStats || null
+    } : null,
     device: provider?.device || {},
     timing: execution?.timing || {},
     verification: {
@@ -252,6 +267,7 @@ export function compactAgreementForAcceptance(agreement = null) {
     agreementField: agreement.agreementField || 'tokenIdsHash',
     outputHash: agreement.outputHash || null,
     tokenIdsHash: agreement.tokenIdsHash || null,
+    vectorHash: agreement.vectorHash || null,
     effectiveTrustTier: agreement.effectiveTrustTier || null
   };
 }

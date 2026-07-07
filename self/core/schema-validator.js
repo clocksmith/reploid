@@ -718,6 +718,10 @@ const CreateToolResultSchema = z.object({
   staged: z.boolean().optional(),
   toolLoaded: z.boolean().optional(),
   toolLoadError: z.string().nullable().optional(),
+  activated: z.boolean().optional(),
+  targetPath: z.string().optional(),
+  evidencePath: z.string().optional(),
+  loaded: z.boolean().optional(),
   message: z.string().optional()
 });
 

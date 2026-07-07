@@ -20,7 +20,9 @@ import {
 import { validatePolicyRequest } from '../../self/pool/policy-router.js';
 import {
   LAUNCH_MODEL as BROWSER_LAUNCH_MODEL,
+  POOLDAY_MODEL_WORKLOADS,
   buildLaunchModelArtifactUrls,
+  buildLaunchModelRequirements,
   getEnabledPoolModelContract as getBrowserEnabledPoolModelContract,
   validateModelRuntimeCapabilities
 } from '../../self/pool/model-contract.js';
@@ -47,6 +49,7 @@ const makeJob = (overrides = {}) => ({
 });
 
 const QWEN_MODEL_ID = 'qwen-3-5-0-8b-q4k-ehaf16';
+const QWEN_EMBEDDING_MODEL_ID = 'qwen-3-embedding-0-6b-q4k-ehf16-af32';
 const GEMMA4_INT4_PLE_MODEL_ID = 'gemma-4-e2b-it-q4k-ehf16-af32-int4ple';
 
 const modelRequirementsFor = (model) => ({
@@ -226,6 +229,51 @@ describe('pool launch contract', () => {
       manifest: 'https://huggingface.co/Clocksmith/rdrr/resolve/dbb354acb00108965c5324ca7b6fecc198d12501/models/gemma-4-e2b-it-q4k-ehf16-af32-int4ple/manifest.json',
       tokenizer: 'https://huggingface.co/Clocksmith/rdrr/resolve/dbb354acb00108965c5324ca7b6fecc198d12501/models/gemma-4-e2b-it-q4k-ehf16-af32-int4ple/tokenizer.json',
       shards: 'https://huggingface.co/Clocksmith/rdrr/resolve/dbb354acb00108965c5324ca7b6fecc198d12501/models/gemma-4-e2b-it-q4k-ehf16-af32-int4ple/'
+    });
+  });
+
+  it('accepts Qwen3 Embedding 0.6B as an explicit embedding workload contract', () => {
+    const serverModel = getServerEnabledPoolModelContract(QWEN_EMBEDDING_MODEL_ID);
+    const browserModel = getBrowserEnabledPoolModelContract(QWEN_EMBEDDING_MODEL_ID);
+    expect(serverModel).toMatchObject({
+      modelId: QWEN_EMBEDDING_MODEL_ID,
+      modelHash: 'sha256:ef89c72fdf91f6d256d6247604217590b67f9a689f693abe64d77d91598d10a3',
+      manifestHash: 'sha256:95112b473292836b92b030d984af6b5aaf8917add6b3d0575c9217dabe3bd0d5',
+      tokenizerHash: 'sha256:fc0c640dde6fe5c2892af6be480ac6728483fefba8bddb5e3bbeab523201666d',
+      workload: POOLDAY_MODEL_WORKLOADS.embedding,
+      executionMode: 'full_model_browser_embedding',
+      embeddingDimensions: 1024,
+      enabled: true
+    });
+    expect(browserModel).toEqual(serverModel);
+
+    const browserRequirements = buildLaunchModelRequirements({ modelId: QWEN_EMBEDDING_MODEL_ID });
+    expect(browserRequirements).toMatchObject({
+      workload: POOLDAY_MODEL_WORKLOADS.embedding,
+      executionMode: 'full_model_browser_embedding'
+    });
+    expect(validatePolicyRequest({
+      modelRequirements: browserRequirements,
+      generationConfig: { ...BROWSER_GENERATION_CONFIG }
+    })).toMatchObject({ ok: true });
+
+    expect(validateJobRequest(makeJob({
+      modelRequirements: {
+        modelId: serverModel.modelId,
+        modelHash: serverModel.modelHash,
+        manifestHash: serverModel.manifestHash,
+        runtime: serverModel.runtime,
+        backend: serverModel.backend,
+        workload: serverModel.workload,
+        executionMode: serverModel.executionMode
+      }
+    }))).toMatchObject({ ok: true });
+
+    expect(buildModelArtifactUrls(browserModel)).toEqual({
+      root: 'https://huggingface.co/Clocksmith/rdrr/resolve/049000f49325dca7db2ed2c9de2c8881bd0f4603/models/qwen-3-embedding-0-6b-q4k-ehf16-af32',
+      manifest: 'https://huggingface.co/Clocksmith/rdrr/resolve/049000f49325dca7db2ed2c9de2c8881bd0f4603/models/qwen-3-embedding-0-6b-q4k-ehf16-af32/manifest.json',
+      tokenizer: 'https://huggingface.co/Clocksmith/rdrr/resolve/049000f49325dca7db2ed2c9de2c8881bd0f4603/models/qwen-3-embedding-0-6b-q4k-ehf16-af32/tokenizer.json',
+      shards: 'https://huggingface.co/Clocksmith/rdrr/resolve/049000f49325dca7db2ed2c9de2c8881bd0f4603/models/qwen-3-embedding-0-6b-q4k-ehf16-af32/'
     });
   });
 

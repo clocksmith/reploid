@@ -52,7 +52,7 @@ const createMockSchemaRegistry = () => ({
   unregisterToolSchema: vi.fn()
 });
 
-import ToolRunnerModule from '../../core/tool-runner.js';
+import ToolRunnerModule, { filterToolDepsForMode } from '../../core/tool-runner.js';
 
 describe('ToolRunner', () => {
   let toolRunner;
@@ -85,6 +85,23 @@ describe('ToolRunner', () => {
   // NOTE: In RSI mode, there are NO built-in tools
   // All tools are dynamically loaded from /tools/ directory
   // This enables full self-modification capability
+
+  describe('mode dependency filtering', () => {
+    it('removes host shell and git dependencies in Zero only', () => {
+      const deps = {
+        VFS: {},
+        Shell: {},
+        gitTools: {},
+        ToolRunner: {}
+      };
+
+      expect(filterToolDepsForMode(deps, 'zero')).toEqual({
+        VFS: {},
+        ToolRunner: {}
+      });
+      expect(filterToolDepsForMode(deps, 'x')).toBe(deps);
+    });
+  });
 
   describe('tool management', () => {
     describe('list', () => {
@@ -270,6 +287,47 @@ describe('ToolRunner', () => {
           '/tools/LoadModule.js',
           '/tools/Promote.js'
         ]);
+      });
+
+      it('should not load Promote for the Zero tool surface', async () => {
+        global.window = {
+          getReploidMode: () => 'zero'
+        };
+        const zeroRunner = ToolRunnerModule.factory({
+          Utils: mockUtils,
+          VFS: mockVFS,
+          ToolWriter: mockToolWriter,
+          SchemaRegistry: mockSchemaRegistry,
+          SubstrateLoader: { loadModule: vi.fn() }
+        });
+        mockVFS.list.mockResolvedValue([
+          '/tools/ReadFile.js',
+          '/tools/WriteFile.js',
+          '/tools/EditFile.js',
+          '/tools/ListFiles.js',
+          '/tools/Grep.js',
+          '/tools/ListTools.js',
+          '/tools/CreateTool.js',
+          '/tools/LoadModule.js',
+          '/tools/Promote.js'
+        ]);
+        mockVFS.read.mockResolvedValue('export default async () => "ok";');
+        global.URL.createObjectURL = vi.fn(() => 'blob:mock-url');
+        global.URL.revokeObjectURL = vi.fn();
+
+        await zeroRunner.init();
+
+        expect(mockVFS.read.mock.calls.map(([path]) => path)).toEqual([
+          '/tools/ReadFile.js',
+          '/tools/WriteFile.js',
+          '/tools/EditFile.js',
+          '/tools/ListFiles.js',
+          '/tools/Grep.js',
+          '/tools/ListTools.js',
+          '/tools/CreateTool.js',
+          '/tools/LoadModule.js'
+        ]);
+        expect(zeroRunner.list()).not.toContain('Promote');
       });
     });
 

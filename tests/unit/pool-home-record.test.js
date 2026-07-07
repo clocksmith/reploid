@@ -182,21 +182,23 @@ describe('Poolday record ledgers', () => {
     expect(JSON.parse(document.getElementById('pool-run-result-raw').textContent).receiptPayloads).toHaveLength(2);
   });
 
-  it('uses split empty states on the history and network routes', () => {
+  it('uses one records surface for saved answers, room activity, and contributor scores', () => {
     setRoom(`record-copy-${crypto.randomUUID()}`);
 
-    const historyHtml = renderRouteDetail('history');
-    const networkHtml = renderRouteDetail('network');
+    const recordsHtml = renderRouteDetail('records');
+    const historyAliasHtml = renderRouteDetail('history');
+    const networkAliasHtml = renderRouteDetail('network');
 
-    expect(historyHtml).toContain('No lookup yet.');
-    expect(historyHtml).toContain('No answers saved yet.');
-    expect(historyHtml).toContain('Room activity');
-    expect(historyHtml).toContain('Checking room activity...');
-    expect(historyHtml).toContain('Find saved answer by hash');
-    expect(historyHtml).not.toContain('Local scores');
-    expect(networkHtml).toContain('Network health');
-    expect(networkHtml).toContain('Seen by this browser');
-    expect(networkHtml).toContain('No local scores yet.');
+    expect(recordsHtml).toContain('No lookup yet.');
+    expect(recordsHtml).toContain('No answers saved yet.');
+    expect(recordsHtml).toContain('Live room');
+    expect(recordsHtml).toContain('Checking room activity...');
+    expect(recordsHtml).toContain('Contributor scores');
+    expect(recordsHtml).toContain('No local scores yet.');
+    expect(recordsHtml).toContain('Find saved answer by hash');
+    expect(historyAliasHtml).toContain('Contributor scores');
+    expect(networkAliasHtml).toContain('Saved answers');
+    expect(networkAliasHtml).toContain('Live room');
   });
 
   it('renders compact server relay room activity summaries', () => {

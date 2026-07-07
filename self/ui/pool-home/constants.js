@@ -26,39 +26,39 @@ export const POOLDAY_ROUTE_DEFINITIONS = Object.freeze([
   createPooldayRoute({
     id: 'ask',
     path: '/ask',
-    label: 'Ask',
-    eyebrow: 'Ask',
-    title: 'Ask',
-    body: 'Ask matching browser tabs for an answer.'
+    label: 'Run',
+    eyebrow: 'Run',
+    title: 'Run',
+    body: 'Submit browser inference work and review receipt-backed results.'
   }),
   createPooldayRoute({
     id: 'compute',
     path: '/compute',
-    label: 'Compute',
-    eyebrow: 'Compute',
-    title: 'Compute',
-    body: 'Share this tab as a live model worker.'
+    label: 'Contribute',
+    eyebrow: 'Contribute',
+    title: 'Contribute',
+    body: 'Share this tab as browser compute with signed receipts.'
   }),
   createPooldayRoute({
-    id: 'history',
-    path: '/history',
-    label: 'History',
-    eyebrow: 'History',
-    title: 'History',
-    body: 'Review answers saved in this browser.'
-  }),
-  createPooldayRoute({
-    id: 'network',
-    path: '/network',
-    label: 'Network',
-    eyebrow: 'Network',
-    title: 'Network',
-    body: 'See public room health and recent network activity.'
+    id: 'records',
+    path: '/records',
+    label: 'Records',
+    eyebrow: 'Records',
+    title: 'Records',
+    body: 'Review saved answers, room activity, peer matches, and receipts.'
   })
 ]);
 
+export const POOLDAY_ROUTE_ALIASES = Object.freeze({
+  '/history': 'records',
+  '/network': 'records'
+});
+
 export const PRODUCT_ROUTES = Object.freeze(Object.fromEntries(
-  POOLDAY_ROUTE_DEFINITIONS.map((route) => [route.path, route.id])
+  [
+    ...POOLDAY_ROUTE_DEFINITIONS.map((route) => [route.path, route.id]),
+    ...Object.entries(POOLDAY_ROUTE_ALIASES)
+  ]
 ));
 
 export const POOLDAY_NAV_ROUTES = Object.freeze(POOLDAY_ROUTE_DEFINITIONS.map((route) => Object.freeze({

@@ -34,31 +34,30 @@ describe('poolday home navigation', () => {
       'home',
       'ask',
       'compute',
-      'history',
-      'network'
+      'records'
     ]);
     expect(POOLDAY_NAV_ROUTES).toEqual([
       { id: 'home', path: '/', label: 'Home' },
-      { id: 'ask', path: '/ask', label: 'Ask' },
-      { id: 'compute', path: '/compute', label: 'Compute' },
-      { id: 'history', path: '/history', label: 'History' },
-      { id: 'network', path: '/network', label: 'Network' }
+      { id: 'ask', path: '/ask', label: 'Run' },
+      { id: 'compute', path: '/compute', label: 'Contribute' },
+      { id: 'records', path: '/records', label: 'Records' }
     ]);
     expect(PRODUCT_ROUTES).toEqual({
       '/': 'home',
       '/ask': 'ask',
       '/compute': 'compute',
-      '/history': 'history',
-      '/network': 'network'
+      '/records': 'records',
+      '/history': 'records',
+      '/network': 'records'
     });
     expect(PRODUCT_ROUTES['/run']).toBeUndefined();
     expect(PRODUCT_ROUTES['/mesh']).toBeUndefined();
     expect(PRODUCT_ROUTES['/record']).toBeUndefined();
     expect(PRODUCT_ROUTES['/agents']).toBeUndefined();
     expect(ROUTE_COPY.compute).toEqual({
-      eyebrow: 'Compute',
-      title: 'Compute',
-      body: 'Share this tab as a live model worker.'
+      eyebrow: 'Contribute',
+      title: 'Contribute',
+      body: 'Share this tab as browser compute with signed receipts.'
     });
   });
 
@@ -72,13 +71,19 @@ describe('poolday home navigation', () => {
     expect(html).not.toContain('<details');
     expect(html).not.toContain('<summary');
     expect(html).not.toContain('☰');
+    expect(html).toContain('data-pool-nav-tooltip="Open the route drawer from the left"');
+    expect(html).toContain('data-pool-nav-tooltip="Submit a prompt to browser model contributors"');
+    expect(html).toContain('data-pool-nav-tooltip="Share this tab as browser compute"');
     expect(html).toContain('href="/" data-pool-route-link="/"');
     expect(html).toContain('href="/ask" data-pool-route-link="/ask"');
-    expect(html).toContain('href="/compute" data-pool-route-link="/compute" aria-current="page"');
-    expect(html).toContain('href="/history" data-pool-route-link="/history"');
-    expect(html).toContain('href="/network" data-pool-route-link="/network"');
+    expect(html).toMatch(/href="\/compute"[\s\S]*data-pool-route-link="\/compute"[\s\S]*aria-current="page"/);
+    expect(html).toContain('href="/records" data-pool-route-link="/records"');
     expect(html).toContain('href="/zero" data-pool-substrate-route="/zero"');
     expect(html).toContain('href="/x" data-pool-substrate-route="/x"');
+    expect(html).toContain('aria-label="Zero Experimental"');
+    expect(html).toContain('aria-label="X Experimental"');
+    expect(html).toContain('pool-nav-badge">Experimental</span>');
+    expect(html.match(/data-pool-nav-tooltip=/g)).toHaveLength(7);
     expect(html).not.toContain('aria-pressed');
     expect(html).not.toContain('href="/run"');
     expect(html).not.toContain('href="/mesh"');
@@ -127,9 +132,12 @@ describe('poolday home navigation', () => {
     expect(html).toMatch(/class="pool-home-ask-pill"[\s\S]*id="pool-home-ask-prompt"[\s\S]*pool-home-ask-submit/);
     expect(html).toContain('href="/network"');
     expect(html).toContain('data-pool-route="/network"');
-    expect(html).toContain('pool-shape-action--square pool-shape-action--network pool-home-network-cta');
+    expect(html).toContain('pool-shape-action--circle pool-shape-action--network pool-home-network-cta');
     expect(html).toContain('aria-label="Live Network"');
     expect(html).toContain('<span class="pool-shape-action-label">Live Network</span>');
+    expect(html).toContain('class="pool-home-network-panel pool-home-overlay"');
+    expect(html).toContain('Live room');
+    expect(html).toContain('Open records');
     expect(html).not.toContain('class="pool-home-status"');
     expect(html).not.toContain('aria-label="Current room and model"');
     expect(html.indexOf('class="pool-home-toolbar"')).toBeLessThan(html.indexOf('class="pool-simulation-shell"'));
@@ -137,10 +145,10 @@ describe('poolday home navigation', () => {
   });
 
   it('renders route actions as Poolday shape components', () => {
-    const html = renderRouteDetail('network');
+    const html = renderRouteDetail('records');
 
     expect(html).toContain('pool-shape-action--square pool-shape-action--compute');
-    expect(html).toContain('<span class="pool-shape-action-label">Share Compute</span>');
+    expect(html).toContain('<span class="pool-shape-action-label">Contribute</span>');
   });
 
   it('renders Qwen as the visible default model on Ask and Compute', () => {
@@ -151,6 +159,8 @@ describe('poolday home navigation', () => {
     expect(computeHtml).toContain('<option value="qwen-3-5-0-8b-q4k-ehaf16" selected>Qwen 3.5 0.8B</option>');
     expect(askHtml).toContain('<option value="gemma-4-e2b-it-q4k-ehf16-af32-int4ple">Gemma 4 E2B INT4 PLE</option>');
     expect(computeHtml).toContain('<option value="gemma-4-e2b-it-q4k-ehf16-af32-int4ple">Gemma 4 E2B INT4 PLE</option>');
+    expect(askHtml).not.toContain('qwen-3-embedding-0-6b-q4k-ehf16-af32');
+    expect(computeHtml).toContain('<option value="qwen-3-embedding-0-6b-q4k-ehf16-af32">Qwen3 Embedding 0.6B · embedding</option>');
     expect(askHtml).not.toContain('gemma-3-1b-it-q4k-ehf16-af32');
     expect(computeHtml).not.toContain('gemma-3-1b-it-q4k-ehf16-af32');
     expect(askHtml).not.toContain('<option value="gemma-3-270m-it-q4k-ehf16-af32" selected>');
@@ -162,7 +172,7 @@ describe('poolday home navigation', () => {
   it('renders Ask as answer-first with contributor and full-result layers', () => {
     const html = renderRouteDetail('ask');
 
-    expect(html).toContain('Ask the room');
+    expect(html).toContain('Submit a run');
     expect(html).toContain('Clean output first');
     expect(html).toContain('id="pool-run-result-evidence"');
     expect(html).toContain('<summary>Contributors</summary>');
@@ -170,27 +180,28 @@ describe('poolday home navigation', () => {
     expect(html).toContain('pool-raw-details-full');
   });
 
-  it('renders Compute as a live node dashboard', () => {
+  it('renders Contribute as a live contributor tab dashboard', () => {
     const html = renderRouteDetail('compute');
 
-    expect(html).toContain('This node');
+    expect(html).toContain('This tab');
     expect(html).toContain('id="pool-provider-node-stats"');
-    expect(html).toContain('Live utilization');
-    expect(html).toContain('Handled requests');
+    expect(html).toContain('Readiness');
+    expect(html).toContain('Contribution receipts');
     expect(html).toContain('id="pool-provider-node-history"');
-    expect(html).toContain('<summary>Latest event details</summary>');
+    expect(html).toContain('<summary>Debug event</summary>');
   });
 
-  it('renders a network route call to action for compute sharing', () => {
-    const html = renderRouteDetail('network');
+  it('renders a records route with room activity and contributor scores', () => {
+    const html = renderRouteDetail('records');
 
-    expect(html).toContain('Network health');
-    expect(html).toContain('Seen by this browser');
+    expect(html).toContain('Saved answers');
+    expect(html).toContain('Live room');
+    expect(html).toContain('Contributor scores');
     expect(html).toContain('class="pool-route-cta-row"');
     expect(html).toContain('href="/compute"');
     expect(html).toContain('data-pool-route="/compute"');
     expect(html).toContain('pool-shape-action--square pool-shape-action--compute');
-    expect(html).toContain('<span class="pool-shape-action-label">Share Compute</span>');
+    expect(html).toContain('<span class="pool-shape-action-label">Contribute</span>');
   });
 
   it('hides global compute status for tabs that are not contributing', () => {
@@ -210,7 +221,7 @@ describe('poolday home navigation', () => {
     const html = renderContributionStatusBar({
       state: 'idle',
       optedIn: true,
-      label: 'Active idle',
+      label: 'Available',
       tokens24h: 0,
       tokensHour: 0,
       recent: []
@@ -218,7 +229,7 @@ describe('poolday home navigation', () => {
 
     expect(html).toContain('id="pool-contribution-status"');
     expect(html).toContain('data-contribution-state="idle"');
-    expect(html).toContain('Active idle');
+    expect(html).toContain('Available');
     expect(html).toContain('<b>24h</b> 0');
     expect(html).toContain('<b>1h</b> 0/hr');
     expect(html).toContain('<b>Last</b> none');

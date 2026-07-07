@@ -22,9 +22,22 @@ const ResponseParser = {
     const TOOL_DIRECTIVE_REGEX = /^TOOL:\s*([a-zA-Z0-9_]+)(?:\s+(.*))?$/;
     const INLINE_ARG_REGEX = /^([a-zA-Z0-9_.-]+)\s*:\s*(.*)$/;
     const BLOCK_ARG_REGEX = /^([a-zA-Z0-9_.-]+)\s*(?::\s*)?<<\s*([A-Za-z0-9_-]+)\s*$/;
+    const PIPE_BLOCK_ARG_REGEX = /^([a-zA-Z0-9_.-]+)\s*:\s*\|[+-]?\s*$/;
     const LEGACY_TOOL_CALL_REGEX = /TOOL_CALL:\s*([a-zA-Z0-9_]+)\s*\nARGS:\s*/g;
     const TOOL_BATCH_SEPARATOR_REGEX = /^-{3,}$/;
     const CONTINUATION_ARG_KEYS = new Set(['code', 'content']);
+    const PATH_ARG_KEYS = new Set([
+      'path',
+      'candidatePath',
+      'targetPath',
+      'evidencePath',
+      'source',
+      'sourcePath',
+      'target',
+      'destination',
+      'evidence',
+      'proofPath'
+    ]);
 
     const parseScalarValue = (rawValue) => {
       const value = String(rawValue ?? '').trim();
@@ -58,6 +71,16 @@ const ResponseParser = {
       }
 
       return value;
+    };
+
+    const parseScalarArgValue = (key, rawValue) => {
+      if (CONTINUATION_ARG_KEYS.has(key) && /^\s*\|[+-]?\s*$/.test(String(rawValue ?? ''))) {
+        return '';
+      }
+      const parsed = parseScalarValue(rawValue);
+      if (!PATH_ARG_KEYS.has(key) || typeof parsed !== 'string') return parsed;
+      const [firstToken] = parsed.trim().split(/\s+/);
+      return firstToken || parsed;
     };
 
     const parseObjectArgsLine = (rawLine) => {
@@ -103,7 +126,7 @@ const ResponseParser = {
         const rawValue = value.slice(pair.valueStart, valueEnd).trim();
 
         try {
-          parsed[pair.key] = parseScalarValue(rawValue);
+          parsed[pair.key] = parseScalarArgValue(pair.key, rawValue);
         } catch (error) {
           return { matched: true, value: null, error: error.message };
         }
@@ -377,6 +400,25 @@ const ResponseParser = {
             continue;
           }
 
+          const pipeBlockMatch = nextLine.match(PIPE_BLOCK_ARG_REGEX);
+          if (pipeBlockMatch) {
+            const [, key] = pipeBlockMatch;
+            const blockLines = [];
+            index++;
+
+            while (index < lines.length && !isDirectiveBoundary(lines[index])) {
+              blockLines.push(lines[index]);
+              index++;
+            }
+
+            while (blockLines.length > 0 && !blockLines[0].trim()) {
+              blockLines.shift();
+            }
+
+            args[key] = blockLines.join('\n');
+            continue;
+          }
+
           const argMatch = nextLine.match(INLINE_ARG_REGEX);
           if (!argMatch) {
             const continuationKey = getContinuationArgKey(args);
@@ -404,6 +446,13 @@ const ResponseParser = {
               continue;
             }
 
+            if (Object.keys(args).length > 0) {
+              while (index < lines.length && !isDirectiveBoundary(lines[index])) {
+                index++;
+              }
+              break;
+            }
+
             error = `Invalid argument line: ${nextLine.trim()}`;
             while (index < lines.length && !isDirectiveBoundary(lines[index])) {
               index++;
@@ -414,7 +463,7 @@ const ResponseParser = {
           const [, key, rawValue] = argMatch;
 
           try {
-            args[key] = parseScalarValue(rawValue);
+            args[key] = parseScalarArgValue(key, rawValue);
           } catch (parseError) {
             error = parseError.message;
             while (index < lines.length && !isDirectiveBoundary(lines[index])) {

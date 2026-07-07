@@ -47,4 +47,30 @@ describe('ToolExecutor', () => {
     expect(result.error).toBeNull();
     expect(result.result).toBe('ok');
   });
+
+  it('preserves raw object results alongside display output', async () => {
+    const raw = { ok: false, reasons: ['evidence replayPassed must be true'] };
+    toolRunner.execute.mockResolvedValue(raw);
+
+    const result = await toolExecutor.executeWithRetry(
+      { name: 'Promote', args: {} },
+      { maxRetries: 0 }
+    );
+
+    expect(result.error).toBeNull();
+    expect(result.rawResult).toBe(raw);
+    expect(JSON.parse(result.result)).toEqual(raw);
+  });
+
+  it('does not retry LoadModule precondition errors', async () => {
+    toolRunner.execute.mockRejectedValue(new Error('LoadModule only supports promoted /self paths'));
+
+    const result = await toolExecutor.executeWithRetry(
+      { name: 'LoadModule', args: { path: '/shadow/tools/Demo.js' } },
+      { maxRetries: 2 }
+    );
+
+    expect(toolRunner.execute).toHaveBeenCalledTimes(1);
+    expect(result.error?.message).toBe('LoadModule only supports promoted /self paths');
+  });
 });

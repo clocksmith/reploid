@@ -116,6 +116,7 @@ const buildExpiredAssignmentJobPatch = ({ job, assignment, receiptRecords = [] }
   };
   if (matchingGroup) {
     const receiptHashes = matchingGroup.slice(0, required).map((record) => record.receiptHash);
+    const agreementValue = matchingGroup[0].receipt?.[agreementField] || matchingGroup[0].receipt?.tokenIdsHash || null;
     return {
       status: 'receipt_verified',
       reason: null,
@@ -131,7 +132,9 @@ const buildExpiredAssignmentJobPatch = ({ job, assignment, receiptRecords = [] }
         receiptHash: receiptHashes[0],
         receiptHashes,
         outputHash: matchingGroup[0].receipt?.outputHash,
-        tokenIdsHash: matchingGroup[0].receipt?.tokenIdsHash
+        tokenIdsHash: matchingGroup[0].receipt?.tokenIdsHash,
+        vectorHash: matchingGroup[0].receipt?.vectorHash || null,
+        agreementValue
       }
     };
   }

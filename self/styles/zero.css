@@ -199,6 +199,25 @@
   border-left-width: var(--border-lg);
 }
 
+.zero-trace-request {
+  border-left-width: var(--border-lg);
+  background: linear-gradient(90deg, color-mix(in srgb, #00ffff 7%, transparent), transparent 62%);
+}
+
+.zero-trace-decision {
+  border-left-width: var(--border-lg);
+  background: linear-gradient(90deg, color-mix(in srgb, #ffff00 6%, transparent), transparent 62%);
+}
+
+.zero-trace-action {
+  border-left-style: dashed;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--fg) 5%, transparent), transparent 62%);
+}
+
+.zero-trace-status {
+  border-left-style: dotted;
+}
+
 .zero-trace-entry-header {
   display: flex;
   justify-content: space-between;
@@ -246,6 +265,15 @@
   padding: var(--space-sm);
   border: var(--border-sm) solid color-mix(in srgb, var(--fg) 28%, transparent);
   background: color-mix(in srgb, var(--fg) 3%, transparent);
+  max-height: min(62dvh, 720px);
+  overflow: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+.zero-trace-body:focus {
+  outline: var(--border-sm) solid color-mix(in srgb, var(--fg) 64%, transparent);
+  outline-offset: 2px;
 }
 
 .zero-input {

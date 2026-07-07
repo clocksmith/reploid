@@ -103,7 +103,7 @@ test.describe('Route Entry Points', () => {
     await expect(nav.locator('.pool-nav-toggle')).toHaveAttribute('aria-expanded', 'false');
     await expect(nav.locator('.pool-nav-mark-seven-top')).toHaveText('7');
     await expect(nav.locator('.pool-nav-mark-seven-bottom')).toHaveText('7');
-    await expect(nav.locator('.pool-nav-menu')).toBeHidden();
+    await expect(nav.locator('.pool-nav-menu')).toBeVisible();
     await expect(page.locator('#pool-home-ask-form')).toBeVisible();
     const askValue = await page.locator('#pool-home-ask-prompt').inputValue();
     expect(askValue).toBeTruthy();
@@ -137,14 +137,13 @@ test.describe('Route Entry Points', () => {
     await expect(nav.locator('.pool-nav-toggle')).toHaveAttribute('aria-expanded', 'true');
     await expect(nav.getByRole('link', { name: 'Home', exact: true })).toBeVisible();
     await expect(nav.getByRole('link', { name: 'Home', exact: true })).toHaveAttribute('aria-current', 'page');
-    await expect(nav.getByRole('link', { name: 'Ask', exact: true })).toBeVisible();
-    await expect(nav.getByRole('link', { name: 'Compute', exact: true })).toBeVisible();
-    await expect(nav.getByRole('link', { name: 'History', exact: true })).toBeVisible();
-    await expect(nav.getByRole('link', { name: 'Network', exact: true })).toBeVisible();
-    await expect(nav.getByRole('link', { name: 'Zero' })).toHaveAttribute('href', '/zero');
-    await expect(nav.getByRole('link', { name: 'X', exact: true })).toHaveAttribute('href', '/x');
-    await expect(page.locator('.pool-home-overlay')).toContainText('REPLOID');
-    await expect(page.locator('.pool-home-overlay')).toContainText('Run browser models together.');
+    await expect(nav.getByRole('link', { name: 'Run', exact: true })).toBeVisible();
+    await expect(nav.getByRole('link', { name: 'Contribute', exact: true })).toBeVisible();
+    await expect(nav.getByRole('link', { name: 'Records', exact: true })).toBeVisible();
+    await expect(nav.getByRole('link', { name: 'Zero Experimental', exact: true })).toHaveAttribute('href', '/zero');
+    await expect(nav.getByRole('link', { name: 'X Experimental', exact: true })).toHaveAttribute('href', '/x');
+    await expect(page.getByLabel('Reploid overview')).toContainText('REPLOID');
+    await expect(page.getByLabel('Reploid overview')).toContainText('Run browser models together.');
     await expect(page.locator('[data-pool-flow-label]')).toHaveCount(12);
     await expect.poll(async () => page.locator('[data-pool-flow-label]').evaluateAll((labels) => {
       const counts = labels.reduce((acc, label) => {
@@ -205,14 +204,15 @@ test.describe('Route Entry Points', () => {
     expect(desktop.open).toBe(false);
     expect(desktop.x).toBeLessThan(24);
     expect(desktop.y).toBeLessThan(24);
-    expect(desktop.height).toBeLessThanOrEqual(48);
-    expect(desktop.width).toBeLessThan(56);
+    expect(desktop.height).toBeGreaterThan(320);
+    expect(desktop.height).toBeLessThanOrEqual(430);
+    expect(desktop.width).toBeLessThanOrEqual(64);
     expect(desktop.overflowX).toBe(false);
 
     await page.locator('.pool-nav-toggle').click();
     await expect(page.locator('.pool-nav-rail')).toHaveClass(/is-open/);
     await expect(page.locator('.pool-nav-toggle')).toHaveAttribute('aria-expanded', 'true');
-    await expect(page.getByRole('link', { name: 'Network', exact: true })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Records', exact: true })).toBeVisible();
 
     await page.setViewportSize({ width: 390, height: 844 });
     await page.reload();
@@ -246,9 +246,10 @@ test.describe('Route Entry Points', () => {
     expect(mobile.open).toBe(false);
     expect(mobile.y).toBeLessThan(16);
     expect(mobile.left).toBeLessThan(16);
-    expect(mobile.right).toBeGreaterThan(330);
-    expect(mobile.height).toBeLessThan(54);
-    expect(mobile.width).toBeLessThan(56);
+    expect(mobile.right).toBeGreaterThan(300);
+    expect(mobile.height).toBeGreaterThan(320);
+    expect(mobile.height).toBeLessThanOrEqual(430);
+    expect(mobile.width).toBeLessThanOrEqual(64);
     expect(mobile.overflowX).toBe(false);
     expect(mobile.overflowY).toBe(false);
     expect(Math.abs(mobile.canvasTop)).toBeLessThanOrEqual(1);
@@ -259,18 +260,17 @@ test.describe('Route Entry Points', () => {
     const mobileNav = page.locator('.pool-nav-rail');
     await mobileNav.locator('.pool-nav-toggle').click();
     await expect(mobileNav.getByRole('link', { name: 'Home', exact: true })).toBeVisible();
-    await expect(mobileNav.getByRole('link', { name: 'Ask', exact: true })).toBeVisible();
-    await expect(mobileNav.getByRole('link', { name: 'Compute', exact: true })).toBeVisible();
-    await expect(mobileNav.getByRole('link', { name: 'History', exact: true })).toBeVisible();
-    await expect(mobileNav.getByRole('link', { name: 'Network', exact: true })).toBeVisible();
-    await expect(mobileNav.getByRole('link', { name: 'Zero' })).toBeVisible();
-    await expect(mobileNav.getByRole('link', { name: 'X', exact: true })).toBeVisible();
+    await expect(mobileNav.getByRole('link', { name: 'Run', exact: true })).toBeVisible();
+    await expect(mobileNav.getByRole('link', { name: 'Contribute', exact: true })).toBeVisible();
+    await expect(mobileNav.getByRole('link', { name: 'Records', exact: true })).toBeVisible();
+    await expect(mobileNav.getByRole('link', { name: 'Zero Experimental', exact: true })).toBeVisible();
+    await expect(mobileNav.getByRole('link', { name: 'X Experimental', exact: true })).toBeVisible();
   });
 
   test('product routes fit a narrow mobile viewport without horizontal clipping', async ({ page }) => {
     await page.setViewportSize({ width: 320, height: 844 });
 
-    for (const route of ['/', '/ask', '/compute', '/history', '/network']) {
+    for (const route of ['/', '/ask', '/compute', '/records', '/history', '/network']) {
       await page.goto(route);
       await page.waitForSelector('.pool-home', { timeout: 20000 });
 
@@ -313,7 +313,7 @@ test.describe('Route Entry Points', () => {
   });
 
   test('product routes hide raw payloads and hosted controls by default', async ({ page }) => {
-    for (const route of ['/ask', '/compute', '/history', '/network']) {
+    for (const route of ['/ask', '/compute', '/records', '/history', '/network']) {
       await page.goto(route);
       await page.waitForSelector('.pool-home', { timeout: 20000 });
 
@@ -332,9 +332,9 @@ test.describe('Route Entry Points', () => {
   test('ask and compute are presented as local peer-room flows', async ({ page }) => {
     await page.goto('/ask');
     await page.waitForSelector('.pool-home', { timeout: 20000 });
-    await expect(page.getByRole('heading', { name: 'Ask', exact: true })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Run', exact: true })).toBeVisible();
     await expect(page.locator('.pool-page-heading .pool-eyebrow')).toHaveCount(0);
-    await expect(page.getByLabel('Ask controls')).toContainText('Ask');
+    await expect(page.getByLabel('Run controls')).toContainText('Ask');
     await expect(page.locator('#pool-run-result-raw')).toBeHidden();
     await expect(page.locator('#pool-run-poll')).toHaveCount(0);
     await expect(page.locator('#pool-run-max-spend')).toHaveCount(0);
@@ -343,13 +343,13 @@ test.describe('Route Entry Points', () => {
     await page.waitForSelector('.pool-home', { timeout: 20000 });
     await expect(page.locator('.pool-home')).toHaveAttribute('data-pool-route-id', 'compute');
     await page.locator('.pool-nav-toggle').click();
-    await expect(page.getByRole('link', { name: 'Compute', exact: true })).toHaveAttribute('aria-current', 'page');
-    await expect(page.getByRole('heading', { name: 'Compute', exact: true })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Contribute', exact: true })).toHaveAttribute('aria-current', 'page');
+    await expect(page.getByRole('heading', { name: 'Contribute', exact: true })).toBeVisible();
     await expect(page.locator('.pool-page-heading .pool-eyebrow')).toHaveCount(0);
     await expect(page.locator('[data-pool-simulation]')).toHaveCount(0);
     await expect(page.locator('[data-pool-provider-status]')).toHaveText('Idle');
     await expect(page.locator('#pool-provider-worker-start')).toBeVisible();
-    await expect(page.locator('#pool-provider-worker-start')).toHaveText('Start helping');
+    await expect(page.locator('#pool-provider-worker-start')).toHaveText('Start contributing');
     await expect(page.locator('#pool-provider-worker-stop')).toBeVisible();
     await expect(page.locator('#pool-provider-load')).toHaveCount(0);
     await expect(page.locator('#pool-provider-profile')).toHaveCount(0);
@@ -358,14 +358,14 @@ test.describe('Route Entry Points', () => {
 
     await page.goto('/history');
     await page.waitForSelector('.pool-home', { timeout: 20000 });
-    await expect(page.getByRole('heading', { name: 'History', exact: true })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Records', exact: true })).toBeVisible();
     await expect(page.locator('.pool-page-heading .pool-eyebrow')).toHaveCount(0);
-    await expect(page.locator('#pool-peer-ledger')).toHaveCount(0);
+    await expect(page.locator('#pool-peer-ledger')).toBeVisible();
 
     await page.goto('/network');
     await page.waitForSelector('.pool-home', { timeout: 20000 });
-    await expect(page.getByRole('heading', { name: 'Network', exact: true })).toBeVisible();
-    await expect(page.locator('.pool-route-cta-row').getByRole('link', { name: 'Share Compute', exact: true })).toHaveAttribute('href', '/compute');
+    await expect(page.getByRole('heading', { name: 'Records', exact: true })).toBeVisible();
+    await expect(page.locator('.pool-route-cta-row').getByRole('link', { name: 'Contribute', exact: true })).toHaveAttribute('href', '/compute');
     await expect(page.locator('#pool-peer-ledger')).toBeVisible();
   });
 
@@ -571,7 +571,7 @@ test.describe('Route Entry Points', () => {
     await expect(page.locator('.wizard-proxy .type-h1')).toHaveText('Server proxy');
     await expect(page.locator('#proxy-url')).toHaveValue(/\/zero\/gemini$/);
     await expect(page.locator('#proxy-provider')).toHaveValue('gemini');
-    await expect(page.locator('#proxy-model')).toHaveValue('gemini-3.5-flash');
+    await expect(page.locator('#proxy-model')).toHaveValue('gemini-3.1-flash-lite');
     await expect(page.locator('#goal-input')).toBeVisible();
     await page.locator('#goal-input').fill('');
     await page.locator('[data-action="generate-goal"]').click();
@@ -637,7 +637,9 @@ test.describe('Route Entry Points', () => {
       'Grep',
       'ListTools',
       'CreateTool',
-      'LoadModule',
+      'LoadModule'
+    ]));
+    expect(resolvedServices.tools).not.toEqual(expect.arrayContaining([
       'Promote'
     ]));
     expect(resolvedServices.tools).not.toEqual(expect.arrayContaining([
@@ -681,25 +683,15 @@ export default async function(args) {
         name: 'EchoProbe',
         code: createCode
       });
-      const hasEchoBeforePromote = toolRunner.list().includes('EchoProbe');
-      await vfs.write('/shadow/tools/LoadedProbe.js', loadCode);
-      await vfs.write('/artifacts/LoadedProbe-evidence.json', JSON.stringify({
-        candidatePath: '/shadow/tools/LoadedProbe.js',
-        targetPath: '/self/tools/LoadedProbe.js',
-        evidencePath: '/artifacts/LoadedProbe-evidence.json',
-        replayPassed: true
-      }));
-      const promoted = await toolRunner.execute('Promote', {
-        candidatePath: '/shadow/tools/LoadedProbe.js',
-        targetPath: '/self/tools/LoadedProbe.js',
-        evidencePath: '/artifacts/LoadedProbe-evidence.json'
-      });
+      const hasEchoAfterCreate = toolRunner.list().includes('EchoProbe');
+      const echoResult = await toolRunner.execute('EchoProbe', { value: 'zero' });
+      await vfs.write('/self/tools/LoadedProbe.js', loadCode);
       const loaded = await toolRunner.execute('LoadModule', { path: '/self/tools/LoadedProbe.js' });
       const loadedResult = await toolRunner.execute('LoadedProbe', { value: 'self' });
       return {
         created,
-        hasEchoBeforePromote,
-        promoted,
+        hasEchoAfterCreate,
+        echoResult,
         loaded,
         loadedResult,
         tools: toolRunner.list(),
@@ -713,13 +705,15 @@ export default async function(args) {
       name: 'EchoProbe',
       path: '/shadow/tools/EchoProbe.js',
       staged: true,
-      toolLoaded: false
+      activated: true,
+      targetPath: '/self/tools/EchoProbe.js',
+      toolLoaded: true
     });
-    expect(liveToolResult.hasEchoBeforePromote).toBe(false);
-    expect(liveToolResult.promoted).toMatchObject({ ok: true, promoted: true });
+    expect(liveToolResult.hasEchoAfterCreate).toBe(true);
+    expect(liveToolResult.echoResult).toEqual({ echo: 'zero' });
     expect(liveToolResult.loadedResult).toEqual({ loaded: 'self' });
+    expect(liveToolResult.tools).toContain('EchoProbe');
     expect(liveToolResult.tools).toContain('LoadedProbe');
-    expect(liveToolResult.tools).not.toContain('EchoProbe');
     expect(liveToolResult.hasZeroSelfUi).toBe(true);
     expect(liveToolResult.hasZeroSelfStyles).toBe(true);
     expect(selfVfsMisses).toEqual([]);

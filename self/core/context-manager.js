@@ -600,6 +600,11 @@ const ContextManager = {
       const limits = getLimitsForModel(modelId);
       let currentContext = context;
       let tokens = countTokens(currentContext);
+      let compactionMeta = {
+        compacted: false,
+        previousTokens: tokens,
+        newTokens: tokens
+      };
 
       // Emit current token count
       emitTokens(currentContext, modelId);
@@ -622,6 +627,11 @@ const ContextManager = {
         if (result.compacted) {
           currentContext = result.context;
           tokens = countTokens(currentContext);
+          compactionMeta = {
+            compacted: true,
+            previousTokens: result.previousTokens ?? compactionMeta.previousTokens,
+            newTokens: result.newTokens ?? tokens
+          };
         }
       }
 
@@ -634,6 +644,13 @@ const ContextManager = {
         if (result.compacted) {
           currentContext = result.context;
           tokens = countTokens(currentContext);
+          compactionMeta = {
+            compacted: true,
+            previousTokens: compactionMeta.compacted
+              ? compactionMeta.previousTokens
+              : (result.previousTokens ?? compactionMeta.previousTokens),
+            newTokens: result.newTokens ?? tokens
+          };
         }
 
         // Step 4: Final check - if still over, halt the agent
@@ -654,7 +671,8 @@ const ContextManager = {
           return {
             context: currentContext,
             halted: true,
-            error
+            error,
+            ...compactionMeta
           };
         }
       }
@@ -662,7 +680,8 @@ const ContextManager = {
       return {
         context: currentContext,
         halted: false,
-        error: null
+        error: null,
+        ...compactionMeta
       };
     };
 

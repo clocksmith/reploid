@@ -30,7 +30,8 @@ const escapeText = (value) => String(value || '')
 const escapeAttr = (value) => escapeText(value).replace(/'/g, '&#39;');
 const normalizeCycleIntervalSeconds = (value) => {
   const parsed = Number(value);
-  return Number.isFinite(parsed) ? Math.min(3600, Math.max(0, Math.floor(parsed))) : 0;
+  if (!Number.isFinite(parsed)) return 0;
+  return Math.round(Math.min(3600, Math.max(0, parsed)) * 10) / 10;
 };
 const hasOwn = (value, key) => Object.prototype.hasOwnProperty.call(value || {}, key);
 const isEditableSeedPath = (path) => EDITABLE_SEED_PATH_PREFIXES
@@ -557,8 +558,8 @@ export function renderGoalStep(state, options = {}) {
                        type="number"
                        min="0"
                        max="3600"
-                       step="1"
-                       inputmode="numeric"
+                       step="0.1"
+                       inputmode="decimal"
                        value="${cycleIntervalSeconds}" />
               </label>
             ` : ''}

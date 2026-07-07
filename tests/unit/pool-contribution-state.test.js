@@ -32,7 +32,7 @@ describe('Poolday contribution state', () => {
     vi.unstubAllGlobals();
   });
 
-  it('tracks live state labels without starting a worker in tests', () => {
+  it('tracks live state labels without starting contribution in tests', () => {
     const snapshot = updateContributionState({
       state: 'working',
       optedIn: true,
@@ -41,7 +41,7 @@ describe('Poolday contribution state', () => {
     });
 
     expect(snapshot.state).toBe('working');
-    expect(snapshot.label).toBe('Doing work');
+    expect(snapshot.label).toBe('Answering');
     expect(snapshot.optedIn).toBe(true);
     expect(snapshot.modelId).toBe('qwen-3-5-0-8b-q4k-ehaf16');
   });
