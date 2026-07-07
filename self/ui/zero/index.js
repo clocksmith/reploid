@@ -8,7 +8,7 @@ import { createZeroTraceView } from './trace-view.js';
 
 const ZeroUI = {
   factory: (deps) => {
-    const { Utils, EventBus, AgentLoop, StateManager, initialGoal, mode } = deps;
+    const { Utils, EventBus, AgentLoop, StateManager, mode } = deps;
     const { escapeHtml, trunc, logger } = Utils;
 
     const MAX_HISTORY_ENTRIES = 80;
@@ -29,7 +29,6 @@ const ZeroUI = {
       success: 0,
       error: 0
     };
-    let _goal = initialGoal || '';
     let _models = [];
 
     const getModeLabel = () => {
@@ -195,7 +194,6 @@ const ZeroUI = {
       const modelEl = _root.querySelector('#agent-model');
       const toolEl = _root.querySelector('#agent-tools');
       const toolRateEl = _root.querySelector('#agent-tool-rate');
-      const goalEl = _root.querySelector('#agent-goal');
       const stopBtn = _root.querySelector('#btn-toggle');
 
       if (stateEl) stateEl.textContent = traceView.formatAgentState(_status.state);
@@ -217,9 +215,6 @@ const ZeroUI = {
       if (toolRateEl) {
         toolRateEl.textContent = formatToolErrorRate();
       }
-      if (goalEl) {
-        goalEl.textContent = _goal || 'No goal captured yet';
-      }
       if (stopBtn) {
         const pendingResume = AgentLoop.hasPendingProviderResume?.() || _status.autoResume;
         stopBtn.textContent = AgentLoop.isRunning()
@@ -237,9 +232,6 @@ const ZeroUI = {
     const syncFromState = () => {
       try {
         const state = StateManager?.getState?.();
-        if (state?.currentGoal?.text) {
-          _goal = state.currentGoal.text;
-        }
         if (Number.isFinite(state?.totalCycles) && !_status.cycle) {
           _status.cycle = state.totalCycles;
         }
@@ -370,9 +362,6 @@ const ZeroUI = {
         if (entry.type === 'llm_response') {
           traceView.resetStreamTrace();
         }
-        if (entry.type === 'human' && entry.content) {
-          _goal = entry.messageType === 'goal' ? entry.content : _goal;
-        }
         renderSummary();
       }));
 
@@ -481,11 +470,6 @@ const ZeroUI = {
           </section>
 
           <main class="zero-main">
-            <section class="zero-goal">
-              <div class="zero-label">Goal</div>
-              <p class="zero-goal-text" id="agent-goal"></p>
-            </section>
-
             <section class="zero-trace">
               <div class="zero-label">Trace</div>
               <div id="history-container" class="zero-trace-list"></div>
