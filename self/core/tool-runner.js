@@ -208,7 +208,7 @@ const ToolRunner = {
       return true;
     };
 
-    const loadToolModule = async (path, forcedName = null) => {
+    const loadToolModule = async (path, forcedName = null, options = {}) => {
       try {
         const contents = await VFS.read(path);
         if (typeof contents === 'string' && contents.includes('ToolRunner.run')) {
@@ -249,6 +249,9 @@ const ToolRunner = {
         return true;
       } catch (e) {
         logger.error(`[ToolRunner] Failed to load ${path}`, e);
+        if (options.throwOnError) {
+          throw e;
+        }
         return false;
       }
     };
@@ -258,7 +261,7 @@ const ToolRunner = {
       if (options.allow && name) {
         allowTool(name);
       }
-      return loadToolModule(path, forcedName);
+      return loadToolModule(path, forcedName, { throwOnError: true });
     };
 
     const unloadDynamicTools = () => {

@@ -228,7 +228,7 @@ const WorkerManager = {
 
         if (op === 'tool:execute') {
           const { call, iteration } = payload;
-          const { result, error } = await ToolExecutor.executeWithRetry(call, {
+          const { result, rawResult, error } = await ToolExecutor.executeWithRetry(call, {
             iteration,
             workerId,
             allowedTools: record.allowedTools,
@@ -236,6 +236,7 @@ const WorkerManager = {
           });
           _postRpcResponse(worker, requestId, true, {
             result,
+            rawResult,
             error: error ? error.message : null
           });
           return;

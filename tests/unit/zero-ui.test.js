@@ -146,7 +146,7 @@ describe('ZeroUI', () => {
     expect(container.scrollTop).toBe(185);
   });
 
-  it('renders the Reploid loop as Context, Decision, Action, and Status cards', () => {
+  it('renders the Reploid loop as Model Input, Model Output, Tool Run, and Runtime Event cards', () => {
     const firstContext = [
       '## Message 1 / 2 [SYSTEM]\nYou are Zero.',
       '## Message 2 / 2 [USER]\nBegin. Goal: Build.',
@@ -222,10 +222,10 @@ describe('ZeroUI', () => {
     });
 
     const titles = [...root.querySelectorAll('.zero-trace-title')].map((item) => item.textContent);
-    expect(titles).toContain('Context');
-    expect(titles).toContain('Decision');
-    expect(titles).toContain('Action');
-    expect(titles).toContain('Status');
+    expect(titles).toContain('Model Input');
+    expect(titles).toContain('Model Output');
+    expect(titles).toContain('Tool Run');
+    expect(titles).toContain('Runtime Event');
     expect(titles).not.toContain('WriteFile');
     expect(titles).not.toContain('Tool results (1)');
 
@@ -235,11 +235,11 @@ describe('ZeroUI', () => {
     expect(contextRow.textContent).toContain('/ui/zero/index.js');
 
     const decisionRow = [...root.querySelectorAll('.zero-trace-entry')]
-      .find((row) => row.querySelector('.zero-trace-title')?.textContent === 'Decision');
+      .find((row) => row.querySelector('.zero-trace-title')?.textContent === 'Model Output');
     expect(decisionRow.textContent).toContain('tool request: 1 tool kind');
 
     const actionRows = [...root.querySelectorAll('.zero-trace-entry')]
-      .filter((row) => row.querySelector('.zero-trace-title')?.textContent === 'Action');
+      .filter((row) => row.querySelector('.zero-trace-title')?.textContent === 'Tool Run');
     expect(actionRows).toHaveLength(1);
     expect(actionRows[0].textContent).toContain('Ran: WriteFile');
     expect(actionRows[0].textContent).toContain('bytesWritten');
@@ -282,9 +282,9 @@ describe('ZeroUI', () => {
     });
 
     const decisionRow = [...root.querySelectorAll('.zero-trace-entry')]
-      .find((row) => row.querySelector('.zero-trace-title')?.textContent === 'Decision');
+      .find((row) => row.querySelector('.zero-trace-title')?.textContent === 'Model Output');
     const actionRow = [...root.querySelectorAll('.zero-trace-entry')]
-      .find((row) => row.querySelector('.zero-trace-title')?.textContent === 'Action');
+      .find((row) => row.querySelector('.zero-trace-title')?.textContent === 'Tool Run');
 
     expect(decisionRow.querySelector('summary').textContent).toBe('tool request: 2 tool kind(s)');
     expect(actionRow.querySelector('summary')).toBeNull();
@@ -335,7 +335,7 @@ describe('ZeroUI', () => {
     });
 
     const actionRow = [...root.querySelectorAll('.zero-trace-entry')]
-      .find((row) => row.querySelector('.zero-trace-title')?.textContent === 'Action');
+      .find((row) => row.querySelector('.zero-trace-title')?.textContent === 'Tool Run');
     const text = actionRow.textContent;
 
     expect(text.indexOf('1. CreateTool ok')).toBeGreaterThan(-1);
@@ -367,7 +367,7 @@ describe('ZeroUI', () => {
     });
 
     const titles = [...root.querySelectorAll('.zero-trace-title')].map((item) => item.textContent);
-    expect(titles).toEqual(['Context']);
+    expect(titles).toEqual(['Model Input']);
     expect(root.textContent).not.toContain('Initial system prompt');
     expect(root.textContent).toContain('Full envelope: 2 messages');
   });
@@ -396,7 +396,7 @@ describe('ZeroUI', () => {
     });
 
     const contextRow = [...root.querySelectorAll('.zero-trace-entry')]
-      .find((row) => row.querySelector('.zero-trace-title')?.textContent === 'Context');
+      .find((row) => row.querySelector('.zero-trace-title')?.textContent === 'Model Input');
     expect(contextRow.textContent).toContain('New context: 1 messages / 41 chars');
     expect(contextRow.textContent).toContain('/ui/zero/index.js');
     expect(contextRow.textContent).not.toContain('Begin. Goal: Build.');

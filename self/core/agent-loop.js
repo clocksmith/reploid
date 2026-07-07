@@ -1207,13 +1207,75 @@ const AgentLoop = {
       return entryOrResult ?? null;
     };
 
-    const isLogicalToolFailureResult = (result) => {
+    const getDirectLogicalFailureReasons = (logical) => {
+      if (!logical || typeof logical !== 'object') return [];
+      if (!(logical.ok === false || logical.success === false)) return [];
+      if (Array.isArray(logical.reasons) && logical.reasons.length > 0) {
+        return logical.reasons.map((reason) => String(reason));
+      }
+      if (typeof logical.error === 'string' && logical.error) return [logical.error];
+      if (typeof logical.message === 'string' && logical.message) return [logical.message];
+      return ['tool reported unsuccessful result'];
+    };
+
+    const getWorkerToolLogicalResult = (entry = {}) => (
+      entry.rawResult
+      ?? parsePossibleJsonResult(entry.result)
+      ?? entry.result
+      ?? null
+    );
+
+    const getWorkerResultPayload = (entry = {}) => (
+      entry.value
+      ?? entry.result
+      ?? entry
+    );
+
+    const getWorkerLogicalFailureReasons = (logical) => {
+      if (!logical || typeof logical !== 'object') return [];
+      if (!Array.isArray(logical.results) || !('awaited' in logical || 'timedOut' in logical)) return [];
+
+      const reasons = [];
+      for (const workerEntry of logical.results) {
+        const workerId = workerEntry?.workerId || 'worker';
+        if (workerEntry?.status === 'rejected' || workerEntry?.status === 'error') {
+          reasons.push(`${workerId}: ${workerEntry.error || 'worker failed'}`);
+          continue;
+        }
+
+        const workerResult = getWorkerResultPayload(workerEntry);
+        if (workerResult?.status === 'error') {
+          reasons.push(`${workerId}: ${workerResult.error || 'worker failed'}`);
+        }
+        for (const reason of getDirectLogicalFailureReasons(workerResult)) {
+          reasons.push(`${workerId}: ${reason}`);
+        }
+
+        const toolResults = Array.isArray(workerResult?.toolResults) ? workerResult.toolResults : [];
+        for (const toolEntry of toolResults) {
+          const toolName = toolEntry?.tool || toolEntry?.name || 'worker tool';
+          const logicalToolResult = getWorkerToolLogicalResult(toolEntry);
+          const toolReasons = getDirectLogicalFailureReasons(logicalToolResult);
+          if (toolReasons.length > 0) {
+            reasons.push(`${workerId}/${toolName}: ${toolReasons.join('; ')}`);
+          } else if (toolEntry?.success === false || toolEntry?.ok === false) {
+            reasons.push(`${workerId}/${toolName}: ${toolEntry.error || 'tool reported unsuccessful result'}`);
+          }
+        }
+      }
+      return reasons;
+    };
+
+    const getLogicalToolFailureReasons = (result) => {
       const logical = getLogicalToolResult(result);
-      return (
-        logical
-        && typeof logical === 'object'
-        && (logical.ok === false || logical.success === false)
-      );
+      return [
+        ...getDirectLogicalFailureReasons(logical),
+        ...getWorkerLogicalFailureReasons(logical)
+      ];
+    };
+
+    const isLogicalToolFailureResult = (result) => {
+      return getLogicalToolFailureReasons(result).length > 0;
     };
 
     const handleSuccessfulToolResult = (call, result) => {
@@ -1226,9 +1288,7 @@ const AgentLoop = {
     };
 
     const _recordLogicalToolFailure = (call, result, iteration) => {
-      const reasons = Array.isArray(result?.reasons) && result.reasons.length > 0
-        ? result.reasons.join('; ')
-        : 'tool reported unsuccessful result';
+      const reasons = getLogicalToolFailureReasons(result).join('; ') || 'tool reported unsuccessful result';
       _recordToolExecutionError(call, new Error(reasons), iteration);
     };
 
@@ -1324,9 +1384,7 @@ const AgentLoop = {
       }
       const result = getLogicalToolResult(entry) ?? entry.finalResult;
       if (isLogicalToolFailureResult(result)) {
-        const reasons = Array.isArray(result.reasons) && result.reasons.length > 0
-          ? result.reasons.join('; ')
-          : 'tool reported unsuccessful result';
+        const reasons = getLogicalToolFailureReasons(result).join('; ') || 'tool reported unsuccessful result';
         return `Error: ${entry.call?.name || 'Tool'} failed: ${reasons}`;
       }
       return null;

@@ -367,6 +367,21 @@ describe('ToolRunner', () => {
         expect(err.message).toBe('Tool not found: NonExistent');
       }
     });
+
+    it('loadPath propagates dynamic module load failures', async () => {
+      const loadError = new SyntaxError('Unexpected token |');
+      mockVFS.read.mockRejectedValue(loadError);
+
+      await expect(toolRunner.loadPath('/self/tools/BrokenTool.js', 'BrokenTool', { allow: true }))
+        .rejects.toThrow('Unexpected token |');
+
+      expect(mockVFS.read).toHaveBeenCalledWith('/self/tools/BrokenTool.js');
+      expect(toolRunner.list()).not.toContain('BrokenTool');
+      expect(mockUtils.logger.error).toHaveBeenCalledWith(
+        '[ToolRunner] Failed to load /self/tools/BrokenTool.js',
+        loadError
+      );
+    });
   });
 
   describe('SubstrateLoader integration', () => {

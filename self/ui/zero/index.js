@@ -238,7 +238,7 @@ const ZeroUI = {
       return {
         kind: 'request',
         key: cycleKey(entry.cycle, 'context'),
-        title: 'Context',
+        title: 'Model Input',
         body: traceText(bodyLines.join('\n')),
         summary: `new ${formatCount(deltaCount)} message(s) | full ${formatCount(entry.messageCount)} messages / ${formatCount(entry.inputChars)} chars`,
         collapsed: true,
@@ -277,7 +277,7 @@ const ZeroUI = {
       return {
         kind: 'decision',
         key: cycleKey(entry.cycle, 'decision'),
-        title: 'Decision',
+        title: 'Model Output',
         body: traceText(entry.content),
         summary: options.streaming ? tracePreview(entry.content) : summarizeDecision(entry),
         collapsed: true,
@@ -406,7 +406,7 @@ const ZeroUI = {
       return {
         kind: 'action',
         key: cycleKey(state.cycle, 'action'),
-        title: 'Action',
+        title: 'Tool Run',
         body: traceText(bodyLines.join('\n')),
         summary: [
           requested.length ? `ran ${formatCount(state.total || resultRows.length)} tool(s)` : 'waiting for tool execution',
@@ -526,7 +526,7 @@ const ZeroUI = {
       return {
         kind: latest.kind || 'status',
         key: cycleKey(state.cycle, 'status'),
-        title: 'Status',
+        title: 'Runtime Event',
         body: traceText(events.map((event) => {
           const duration = formatDuration(event.durationMs);
           return [
