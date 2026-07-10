@@ -164,14 +164,14 @@ const SchemaRegistry = {
         }
       },
       CreateTool: {
-        description: 'Mutating. Create a CamelCase runtime tool after discovery identifies a tool-shaped implementation. In Zero it stages under /shadow/tools, validates the candidate, writes hash-bound activation evidence under /artifacts, installs to /self/tools, and loads the tool. Created tools that need substrate mutation declare capabilities such as vfs:write and tool:load in exported tool metadata.',
+        description: 'Mutating. Create a CamelCase runtime tool after discovery identifies a tool-shaped implementation. In Zero the exported tool.activation contract must contain fixture-backed checks with name, args, and expected fields. CreateTool executes the checks, re-imports and replays them in a fresh harness, requires matching transcripts, installs to /self/tools, loads the tool, and writes hash-bound evidence derived from those outcomes. Created tools that need substrate mutation declare capabilities such as vfs:write and tool:load in exported tool metadata.',
         readOnly: false,
         parameters: {
           type: 'object',
           required: ['name', 'code'],
           properties: {
             name: { type: 'string', description: 'Tool name (CamelCase, e.g., ReadFile, AnalyzeLogs)' },
-            code: { type: 'string', description: 'JavaScript code with export default async function(args, deps), or export const tool with call(args, deps).' },
+            code: { type: 'string', description: 'JavaScript code with an async handler and, for Zero activation, exported tool.activation fixtures and checks with name, args, and expected fields.' },
             root: { type: 'string', description: 'Optional staging root. Must be under /shadow/tools.' },
             activate: { type: 'boolean', description: 'Zero only: set false to stage without installing and loading.' }
           }

@@ -169,6 +169,18 @@ describe('ToolRunner', () => {
         expect(toolRunner.has('unknown_tool')).toBe(false);
       });
     });
+
+    it('unloads a runtime-installed tool and its schema', async () => {
+      mockVFS.read.mockResolvedValue('export default async function() { return { ok: true }; }');
+
+      await expect(toolRunner.loadPath('/self/tools/ActivationProbe.js', 'ActivationProbe', { allow: true }))
+        .resolves.toBe(true);
+      expect(toolRunner.has('ActivationProbe')).toBe(true);
+
+      expect(toolRunner.unload('ActivationProbe')).toBe(true);
+      expect(toolRunner.has('ActivationProbe')).toBe(false);
+      expect(mockSchemaRegistry.unregisterToolSchema).toHaveBeenCalledWith('ActivationProbe');
+    });
   });
 
   describe('dynamic tool loading', () => {

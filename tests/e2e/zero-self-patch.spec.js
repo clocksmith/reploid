@@ -16,6 +16,20 @@ const READ_FILE_TOOL_CODE = `
 export const tool = {
   name: 'ReadFile',
   description: 'Read a VFS file or list a VFS directory.',
+  activation: {
+    fixtures: {
+      vfs: { '/activation/read.txt': 'activation-read' }
+    },
+    checks: [{
+      name: 'reads a fixture file',
+      args: { path: '/activation/read.txt' },
+      expected: {
+        path: '/activation/read.txt',
+        kind: 'file',
+        content: 'activation-read'
+      }
+    }]
+  },
   inputSchema: {
     type: 'object',
     required: ['path'],
@@ -86,6 +100,25 @@ export const tool = {
   name: 'SelfWrite',
   description: 'Evidence-backed self writer created by Zero from CreateTool.',
   capabilities: ['self:write'],
+  activation: {
+    checks: [{
+      name: 'writes and loads a fixture tool',
+      args: {
+        targetPath: '/self/tools/ActivationProbe.js',
+        content: 'export default async function() { return { ok: true }; }',
+        evidencePath: '/artifacts/activation-self-write.json'
+      },
+      expected: {
+        ok: true,
+        applied: true,
+        targetPath: '/self/tools/ActivationProbe.js',
+        activeTargetPath: '/tools/ActivationProbe.js',
+        reloaded: true,
+        reloadKind: 'tool',
+        toolName: 'ActivationProbe'
+      }
+    }]
+  },
   inputSchema: {
     type: 'object',
     required: ['targetPath', 'content'],
@@ -98,7 +131,7 @@ export const tool = {
 };
 
 export default async function(args = {}, deps = {}) {
-  const { VFS, ToolRunner, EventBus } = deps;
+  const { VFS, ToolRunner, EventBus, Utils } = deps;
   if (!VFS?.write || !VFS?.read) throw new Error('Writable VFS unavailable');
   const targetPath = String(args.targetPath || '').trim();
   if (!targetPath.startsWith('/self/')) throw new Error('targetPath must be under /self');
@@ -106,7 +139,9 @@ export default async function(args = {}, deps = {}) {
   const content = String(args.content ?? '');
   const activeTargetPath = activePathFor(targetPath);
   const writePaths = [...new Set([targetPath, activeTargetPath])];
-  const rollbackPath = '/artifacts/rollback/' + Date.now().toString(36) + '-' + safeId(targetPath) + '.json';
+  const now = typeof Utils?.now === 'function' ? Utils.now() : Date.now();
+  const createdAt = new Date(now).toISOString();
+  const rollbackPath = '/artifacts/rollback/' + now.toString(36) + '-' + safeId(targetPath) + '.json';
   const evidencePath = String(args.evidencePath || '/artifacts/' + safeId(targetPath) + '-self-write.json');
   const previousTargets = await readPreviousTargets(VFS, writePaths);
   const rollback = {
@@ -116,7 +151,7 @@ export default async function(args = {}, deps = {}) {
     writePaths,
     rollbackPath,
     previousTargets,
-    createdAt: new Date().toISOString()
+    createdAt
   };
   const evidence = {
     schema: 'reploid.zero.createdSelfWriter.evidence.v1',
@@ -124,9 +159,8 @@ export default async function(args = {}, deps = {}) {
     activeTargetPath,
     evidencePath,
     bytes: textBytes(content),
-    replayPassed: true,
-    smokePassed: true,
-    createdAt: new Date().toISOString()
+    writePrepared: true,
+    createdAt
   };
 
   await VFS.write(rollbackPath, JSON.stringify(rollback, null, 2));
@@ -167,6 +201,8 @@ async function installTool(page, name, code) {
   expect(result.value).toMatchObject({
     activated: true,
     targetPath: `/self/tools/${name}.js`,
+    activationChecksPassed: true,
+    replayPassed: true,
     toolLoaded: true
   });
   return result.value;

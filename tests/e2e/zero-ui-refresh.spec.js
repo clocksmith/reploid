@@ -45,6 +45,9 @@ code <<EOF
 export const tool = {
   name: 'CounterProbe',
   description: 'Tool counter probe',
+  activation: {
+    checks: [{ name: 'returns ok', args: {}, expected: { ok: true } }]
+  },
   inputSchema: { type: 'object', properties: {} }
 };
 
