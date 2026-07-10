@@ -376,8 +376,8 @@ export const renderPeerLedgerState = () => {
     return '<p class="type-caption pool-receipt-empty">No local scores yet.</p>';
   }
   return `
-    <div class="pool-ledger" role="table" aria-label="Local contributor scores">
-      <table>
+    <div class="pool-ledger" role="group" aria-label="Local contributor scores">
+      <table aria-label="Local contributor scores">
         <thead>
           <tr>
             <th>Tab</th>

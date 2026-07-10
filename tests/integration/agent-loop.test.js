@@ -6,6 +6,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import AgentLoopModule from '../../core/agent-loop.js';
 import ToolExecutorModule from '../../infrastructure/tool-executor.js';
+import { ZERO_SEED_TOOLS } from '../../self/config/tool-surfaces.js';
 
 describe('AgentLoop - Integration Tests', () => {
   let agentLoop;
@@ -273,10 +274,14 @@ describe('AgentLoop - Integration Tests', () => {
       expect(prompt).toContain('validates the candidate');
       expect(prompt).toContain('hash-bound activation evidence');
       expect(prompt).toContain('installs /self/tools/MyTool.js');
-      expect(prompt).toContain('Use LoadModule only to reload an already installed /self tool.');
+      expect(prompt).toContain('First create a directory-aware reader/lister');
+      expect(prompt).toContain('Created tools start read-only');
+      expect(prompt).toContain('vfs:write');
+      expect(prompt).toContain('self-write tool');
       expect(prompt).toContain('do not use Promote in Zero');
-      expect(prompt).toContain('ReadFile, ListFiles, Grep, ListTools, WriteFile, EditFile, CreateTool, LoadModule.');
+      expect(prompt).toContain(`${ZERO_SEED_TOOLS.join(', ')}.`);
       expect(prompt).toContain('Evidence JSON must be strict JSON only');
+      expect(prompt).not.toContain('ProposeSelfPatch');
       expect(prompt).not.toContain('Valid Promote syntax is candidatePath');
       expect(prompt).not.toContain('CreateTool -> WriteFile -> Promote -> LoadModule');
     });
@@ -841,6 +846,48 @@ describe('AgentLoop - Integration Tests', () => {
       expect(toolResultMsg.content).toContain('ListFiles');
       expect(secondCallCtx.some(m => m.content?.includes('BATCHING TIP: emit 4-8 independent read-only tool calls'))).toBe(true);
       expect(secondCallCtx.some(m => m.content?.includes('Use all 8 slots when there are 8 independent read-only calls.'))).toBe(true);
+    });
+
+    it('surfaces tool parse errors to the next model cycle as corrective observations', async () => {
+      const chatCalls = [];
+      mockLLMClient.chat.mockImplementation((ctx) => {
+        chatCalls.push([...ctx]);
+        if (chatCalls.length === 1) {
+          mockResponseParser.parseToolCalls.mockReturnValue([
+            {
+              name: 'WriteFile',
+              args: { path: '/shadow/katamari.js' },
+              error: 'Invalid JSON argument object'
+            }
+          ]);
+          return Promise.resolve({ content: 'Writing file' });
+        }
+        mockResponseParser.parseToolCalls.mockReturnValue([]);
+        mockResponseParser.isDone.mockReturnValue(true);
+        return Promise.resolve({ content: 'DONE' });
+      });
+
+      await agentLoop.run('Write a file');
+
+      expect(mockToolRunner.execute).not.toHaveBeenCalled();
+      const secondCallCtx = chatCalls[1];
+      const parseResultMsg = secondCallCtx.find(m => m.content?.includes('TOOL_CALL_PARSE_ERROR'));
+      expect(parseResultMsg).toBeDefined();
+      expect(parseResultMsg.content).toContain('Tool: WriteFile');
+      expect(parseResultMsg.content).toContain('Error: Invalid JSON argument object');
+      expect(parseResultMsg.content).toContain('Status: tool was not executed.');
+      expect(parseResultMsg.content).toContain('Next action: retry the intended operation with one valid JSON argument object');
+      expect(mockEventBus.emit).toHaveBeenCalledWith('agent:history', expect.objectContaining({
+        type: 'tool_batch',
+        errors: 1,
+        results: expect.arrayContaining([
+          expect.objectContaining({
+            name: 'WriteFile',
+            error: 'Parse error before execution: Invalid JSON argument object',
+            resultPreview: expect.stringContaining('TOOL_CALL_PARSE_ERROR')
+          })
+        ])
+      }));
     });
 
     it('should emit tool events', async () => {

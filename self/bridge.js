@@ -413,7 +413,7 @@ export function createSelfBridge(options = {}) {
         throw new Error('Missing content argument');
       }
       if (args.autoLoad === true) {
-        throw new Error('autoLoad is not available on direct writes. Use CreateTool for Zero runtime tools or LoadModule for an installed /self module.');
+        throw new Error('autoLoad is not available on direct writes. Use CreateTool for new Zero runtime tools, or LoadModule for an installed /self tool on broader surfaces.');
       }
       const content = String(args.content);
       if (getTextBytes(content) > TEXT_LIMIT_BYTES) {

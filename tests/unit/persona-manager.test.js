@@ -58,10 +58,13 @@ describe('PersonaManager', () => {
     const prompt = await manager.getSystemPrompt();
 
     expect(prompt).toContain('You are Zero');
-    expect(prompt).toContain('Start fresh filesystem discovery with ReadFile path: / or ListFiles path: /');
+    expect(prompt).toContain('Start fresh filesystem discovery by using CreateTool to make a directory-aware reader or lister.');
     expect(prompt).toContain('If /blueprint-index.json is absent');
-    expect(prompt).toContain('ListFiles');
+    expect(prompt).toContain('The Zero seed tool surface includes CreateTool.');
+    expect(prompt).toContain('vfs:write');
+    expect(prompt).toContain('self:write');
     expect(prompt).not.toContain('/self/manifest.json');
     expect(prompt).not.toContain('/self/self.json');
+    expect(prompt).not.toContain('ProposeSelfPatch');
   });
 });

@@ -5,7 +5,7 @@
 
 import { getGoalEntries } from './goals.js';
 import { getState, setNestedState } from './state.js';
-import { getProxyChatEndpoint, getProxyHealthEndpoint } from './zero-function.js';
+import { getProxyChatEndpoint, getProxyHealthEndpoint } from '../../config/zero-inference.js';
 
 const PROBE_TIMEOUT = 3000;
 const GOAL_GENERATOR_SYSTEM_PROMPT = 'You are writing the initial goal for a browser-based autonomous coding agent pursuing recursive self-improvement. Output exactly one concrete, ambitious sentence of 16 to 24 words. No quotes, labels, numbering, or explanation.';

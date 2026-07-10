@@ -8,6 +8,10 @@ Reploid is a browser-hosted self-improvement loop. It runs candidates in Shadow,
 
 The browser is the ecosystem: same-origin VFS, OPFS, Service Worker module loading, DOM UI, workers, WebGPU/WASM capability checks, and peer slots provide bounded mutation, observable state, durable artifacts, and replayable evidence.
 
+## Surface Intent Source
+
+Zero and X route intent lives in `/self/config/surface-intents.js`. This contract defines shared RGR runtime semantics; route purpose, boot profile, tool surface, required modules, and Zero/X extension shape should stay anchored to that executable config.
+
 ## Operating States
 
 | State | Meaning |

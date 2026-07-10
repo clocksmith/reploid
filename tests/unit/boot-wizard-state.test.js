@@ -45,7 +45,7 @@ describe('boot wizard state persistence', () => {
       ZERO_GEMINI_MODEL,
       ZERO_GEMINI_SERVER_TYPE,
       buildZeroGeminiProxyConfig
-    } = await import('../../self/ui/boot-wizard/zero-function.js');
+    } = await import('../../self/config/zero-inference.js');
 
     expect(module.DEFAULT_CYCLE_INTERVAL_SECONDS).toBe(7.7);
     expect(ZERO_GEMINI_MODEL).toBe('gemini-3.1-flash-lite');
@@ -90,7 +90,7 @@ describe('boot wizard state persistence', () => {
       ZERO_GEMINI_AGENT_THROTTLE,
       ZERO_GEMINI_SERVER_TYPE,
       ZERO_MANAGED_MAX_ITERATIONS
-    } = await import('../../self/ui/boot-wizard/zero-function.js');
+    } = await import('../../self/config/zero-inference.js');
 
     for (const [mode, cycleIntervalSeconds] of [['zero', 17], ['x', 23]]) {
       window.getReploidRouteMode = () => mode;

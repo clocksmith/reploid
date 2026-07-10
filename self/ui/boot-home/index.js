@@ -65,13 +65,14 @@ import {
   ZERO_GEMINI_PROVIDER,
   buildZeroGeminiProxyConfig,
   isZeroGeminiFunctionServer
-} from '../boot-wizard/zero-function.js';
+} from '../../config/zero-inference.js';
 import {
   getBootSeedProfile,
   shouldHydrateFullManifest
 } from '../../config/boot-seed.js';
+import { DEFAULT_DOPPLER_MODEL_ID } from '../../config/doppler-local-models.js';
 
-const DEFAULT_DOPPLER_MODEL = 'smollm2-360m';
+const DEFAULT_DOPPLER_MODEL = DEFAULT_DOPPLER_MODEL_ID;
 const DEFAULT_GTM_PROXY_PROVIDER = ZERO_GEMINI_PROVIDER;
 const DEFAULT_GTM_PROXY_MODEL = ZERO_GEMINI_MODEL;
 const RGR_SLOT_ROLES = Object.freeze([

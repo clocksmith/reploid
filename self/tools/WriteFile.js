@@ -145,7 +145,7 @@ async function call(args = {}, deps = {}) {
   const overwrite = args.overwrite !== false;
   const autoLoad = args.autoLoad === true;
   if (autoLoad) {
-    throw new Error('autoLoad is not available on direct writes. Use CreateTool for Zero runtime tools or LoadModule for an installed /self module.');
+    throw new Error('autoLoad is not available on direct writes. Use CreateTool for new Zero runtime tools, or LoadModule for an installed /self tool on broader surfaces.');
   }
 
   if (backend === 'opfs') {

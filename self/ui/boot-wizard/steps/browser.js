@@ -2,19 +2,15 @@
  * @fileoverview Doppler configuration step renderer
  */
 
+import { LOCAL_DOPPLER_MODELS } from '../../../config/doppler-local-models.js';
+
 /**
  * Render DOPPLER_CONFIG step
  */
 export function renderBrowserConfigStep(state) {
   const { dopplerConfig, detection } = state;
   const models = detection.doppler?.models || [];
-
-  // Available Doppler models to download
-  const downloadableModels = [
-    { id: 'smollm2-360m', name: 'SmolLM2 360M', size: '200MB', recommended: true },
-    { id: 'gemma-2b', name: 'Gemma 2B', size: '1.2GB' },
-    { id: 'qwen-0.5b', name: 'Qwen 0.5B', size: '300MB' }
-  ];
+  const downloadableModels = LOCAL_DOPPLER_MODELS;
 
   return `
     <div class="wizard-step wizard-doppler-config">

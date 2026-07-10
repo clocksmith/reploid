@@ -63,7 +63,7 @@ const SchemaRegistry = {
         }
       },
       WriteFile: {
-        description: 'Mutating. Write text or binary content to VFS/OPFS. Stage candidates under /shadow and evidence under /artifacts. JSON object content is serialized as JSON text. Use CreateTool for Zero runtime tools; broader surfaces use Promote for evidence-gated /self changes.',
+        description: 'Mutating. Write text or binary content to VFS/OPFS. Stage candidates under /shadow and evidence under /artifacts. JSON object content is serialized as JSON text. Use CreateTool for new Zero runtime tools; broader surfaces use Promote for evidence-gated /self changes.',
         readOnly: false,
         parameters: {
           type: 'object',
@@ -164,7 +164,7 @@ const SchemaRegistry = {
         }
       },
       CreateTool: {
-        description: 'Mutating. Create a CamelCase runtime tool after discovery identifies a tool-shaped implementation. In Zero it stages under /shadow/tools, validates the candidate, writes hash-bound activation evidence under /artifacts, installs to /self/tools, and loads the tool.',
+        description: 'Mutating. Create a CamelCase runtime tool after discovery identifies a tool-shaped implementation. In Zero it stages under /shadow/tools, validates the candidate, writes hash-bound activation evidence under /artifacts, installs to /self/tools, and loads the tool. Created tools that need substrate mutation declare capabilities such as vfs:write and tool:load in exported tool metadata.',
         readOnly: false,
         parameters: {
           type: 'object',

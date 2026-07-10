@@ -91,10 +91,16 @@ const NETWORK_FALLBACK_PREFIXES = [
   '/ui/boot-wizard/'
 ];
 const SELF_MIRROR_SOURCE_PREFIXES = [
+  { targetPrefix: '/self/boot-helpers/', sourcePrefix: '/boot-helpers/' },
+  { targetPrefix: '/self/capabilities/', sourcePrefix: '/capabilities/' },
   { targetPrefix: '/self/config/', sourcePrefix: '/config/' },
+  { targetPrefix: '/self/core/', sourcePrefix: '/core/' },
+  { targetPrefix: '/self/host/', sourcePrefix: '/host/' },
+  { targetPrefix: '/self/infrastructure/', sourcePrefix: '/infrastructure/' },
   { targetPrefix: '/self/lab/', sourcePrefix: '/lab/' },
   { targetPrefix: '/self/styles/proto/', sourcePrefix: '/styles/proto/' },
   { targetPrefix: '/self/styles/', sourcePrefix: '/styles/' },
+  { targetPrefix: '/self/tools/', sourcePrefix: '/tools/' },
   { targetPrefix: '/self/ui/components/', sourcePrefix: '/ui/components/' },
   { targetPrefix: '/self/ui/panels/', sourcePrefix: '/ui/panels/' },
   { targetPrefix: '/self/ui/proto/', sourcePrefix: '/ui/proto/' },

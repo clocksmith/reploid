@@ -1,12 +1,15 @@
 /**
  * @fileoverview Route/tool surface composition.
  *
- * /0 uses the minimal shared file substrate. Reploid uses the complete
- * file substrate. /x is a strict superset with cognition, worker, and
- * swarm tools enabled by default.
+ * /zero starts with only the tool writer. Reploid uses the complete file
+ * substrate. /x is a strict superset with cognition, worker, and swarm tools
+ * enabled by default.
  */
 
 export const TOOL_SURFACES = Object.freeze({
+  zeroSeed: Object.freeze([
+    'CreateTool'
+  ]),
   sharedFile: Object.freeze([
     'ReadFile',
     'WriteFile',
@@ -49,9 +52,9 @@ export const TOOL_SURFACES = Object.freeze({
   ])
 });
 
-export const ZERO_TOOL_SURFACE_IDS = Object.freeze(['sharedFile']);
+export const ZERO_TOOL_SURFACE_IDS = Object.freeze(['zeroSeed']);
 export const REPLOID_TOOL_SURFACE_IDS = Object.freeze([
-  ...ZERO_TOOL_SURFACE_IDS,
+  'sharedFile',
   'extendedFile',
   'promotion'
 ]);
@@ -68,6 +71,7 @@ export const TOOL_SURFACE_IDS_BY_MODE = Object.freeze({
   x: X_TOOL_SURFACE_IDS
 });
 
+export const ZERO_SEED_TOOLS = TOOL_SURFACES.zeroSeed;
 export const SHARED_FILE_TOOLS = TOOL_SURFACES.sharedFile;
 
 export function getToolNamesForSurfaceIds(surfaceIds = [], options = {}) {
@@ -76,7 +80,6 @@ export function getToolNamesForSurfaceIds(surfaceIds = [], options = {}) {
   for (const surfaceId of surfaceIds || []) {
     for (const toolName of TOOL_SURFACES[surfaceId] || []) {
       if (toolName === 'CreateTool' && options.hasToolWriter === false) continue;
-      if (toolName === 'LoadModule' && options.hasSubstrateLoader === false) continue;
       if (seen.has(toolName)) continue;
       seen.add(toolName);
       tools.push(toolName);

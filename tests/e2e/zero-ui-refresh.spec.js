@@ -20,7 +20,7 @@ test.describe('Zero runtime UI refresh', () => {
 
     await expect(page.locator('.zero-runtime-strip')).toBeVisible();
     await expect(page.locator('.zero-trace')).toBeVisible();
-    await expect(page.locator('.zero-goal-text')).toBeVisible();
+    await expect(page.locator('.zero-goal-text')).toHaveCount(0);
 
     const beforeVersion = await page.evaluate(() => window.REPLOID_UI?.getVersion?.() || null);
     await page.locator('.zero-more summary').click();
@@ -37,15 +37,29 @@ test.describe('Zero runtime UI refresh', () => {
 
   test('shows successful and errored tool call counters', async ({ page }, testInfo) => {
     const instanceId = sanitizeInstanceId(`zero-tool-stats-${testInfo.project.name}-${Date.now()}`);
+    const createToolResponse = `REPLOID/0
+
+TOOL: CreateTool
+name: CounterProbe
+code <<EOF
+export const tool = {
+  name: 'CounterProbe',
+  description: 'Tool counter probe',
+  inputSchema: { type: 'object', properties: {} }
+};
+
+export default async function() {
+  return { ok: true };
+}
+EOF`;
     const toolBatchResponse = `REPLOID/0
 
-TOOL: ReadFile
-path: /self/boot-spec.js
+TOOL: CounterProbe
 
-TOOL: ReadFile
-path: /missing-tool-stats.txt`;
+TOOL: MissingCounterProbe`;
 
     await awakenWithMockGoal(page, '/zero', instanceId, 'Exercise tool metrics.', [
+      createToolResponse,
       toolBatchResponse,
       'DONE: tool metrics observed'
     ], { maxIterations: 2 });
@@ -53,8 +67,8 @@ path: /missing-tool-stats.txt`;
     await expect(page.locator('.zero-runtime-strip')).toBeVisible();
     await expect.poll(async () => page.locator('#agent-tools').textContent(), {
       timeout: 30000
-    }).toBe('1 ok / 1 err');
-    await expect(page.locator('#agent-tool-rate')).toHaveText('50% fail');
+    }).toBe('2 ok / 1 err');
+    await expect(page.locator('#agent-tool-rate')).toHaveText('33% fail');
 
     const beforeVersion = await page.evaluate(() => window.REPLOID_UI?.getVersion?.() || null);
     await page.locator('.zero-more summary').click();
@@ -62,7 +76,7 @@ path: /missing-tool-stats.txt`;
     await expect.poll(async () => page.evaluate(() => window.REPLOID_UI?.getVersion?.() || null), {
       timeout: 30000
     }).not.toBe(beforeVersion);
-    await expect(page.locator('#agent-tools')).toHaveText('1 ok / 1 err');
-    await expect(page.locator('#agent-tool-rate')).toHaveText('50% fail');
+    await expect(page.locator('#agent-tools')).toHaveText('2 ok / 1 err');
+    await expect(page.locator('#agent-tool-rate')).toHaveText('33% fail');
   });
 });

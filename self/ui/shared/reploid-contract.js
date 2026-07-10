@@ -6,7 +6,7 @@ export const DEFAULT_REPLOID_HOME_GOAL = [
   'Start from the blueprint index.',
   'Read only the blueprints needed for the objective.',
   'Write any candidate changes under /shadow and evidence under /artifacts.',
-  'Zero installs tools through CreateTool activation evidence; broader Reploid/X changes use Promote.'
+  'Zero starts from CreateTool, then creates reader, writer, loader, and self-mutation tools as needed; broader Reploid/X changes may use Promote.'
 ].join(' ');
 
 export const RING_SLOTS = Object.freeze([
@@ -54,7 +54,7 @@ export function buildSelfPreview() {
     operatingState: 'tabula-rasa',
     blueprintIndexPath: '/self/blueprint-index.json',
     visibleToolsByMode: {
-      zero: ['ReadFile', 'WriteFile', 'EditFile', 'ListFiles', 'Grep', 'ListTools', 'CreateTool', 'LoadModule'],
+      zero: ['CreateTool'],
       reploid: ['ReadFile', 'WriteFile', 'EditFile', 'ListFiles', 'Grep', 'ListTools', 'CreateTool', 'LoadModule', 'Promote'],
       x: ['ReadFile', 'WriteFile', 'EditFile', 'ListFiles', 'Grep', 'ListTools', 'CreateTool', 'LoadModule', 'Promote', 'SpawnWorker', 'AwaitWorkers']
     },

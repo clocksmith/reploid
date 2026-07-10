@@ -24,10 +24,10 @@ export function assertNoPathTraversal(path) {
 
 const getWritableError = (path, operation) => {
   if (operation === 'WriteFile') {
-    return `VFS path not writable by WriteFile: ${path}. Write candidates under /shadow or evidence under /artifacts. Use CreateTool for Zero runtime tools or Promote on broader surfaces.`;
+    return `VFS path not writable by WriteFile: ${path}. Write candidates under /shadow or evidence under /artifacts. Use CreateTool for new Zero runtime tools or Promote on broader surfaces.`;
   }
   if (operation === 'EditFile') {
-    return `VFS path not editable by EditFile: ${path}. Edit candidates under /shadow or evidence under /artifacts. Use CreateTool for Zero runtime tools or Promote on broader surfaces.`;
+    return `VFS path not editable by EditFile: ${path}. Edit candidates under /shadow or evidence under /artifacts. Use CreateTool for new Zero runtime tools or Promote on broader surfaces.`;
   }
   if (operation === 'DeleteFile') {
     return `VFS path not deletable by DeleteFile: ${path}. Delete candidates under /shadow or evidence under /artifacts. Use Promote on broader surfaces.`;

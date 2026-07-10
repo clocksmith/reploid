@@ -5,6 +5,7 @@
 
 import { getCurrentReploidStorage as getReploidStorage } from '../instance.js';
 import { createCycleArtifactWriter } from './cycle-artifacts.js';
+import { ZERO_SEED_TOOLS } from '../config/tool-surfaces.js';
 
 const AgentLoop = {
   metadata: {
@@ -1379,6 +1380,9 @@ const AgentLoop = {
 
     const getToolExecutionFailureReason = (entry) => {
       if (!entry) return null;
+      if (entry.errorKind === 'parse_error') {
+        return `Parse error before execution: ${entry.call?.error || 'Invalid tool arguments'}`;
+      }
       if (typeof entry.finalResult === 'string' && entry.finalResult.startsWith('Error:')) {
         return entry.finalResult;
       }
@@ -1397,6 +1401,24 @@ const AgentLoop = {
       return text.length > 800
         ? `${text.slice(0, 800)}\n... [result preview truncated]`
         : text;
+    };
+
+    const formatToolCallParseErrorResult = (call = {}) => {
+      const argsPreview = call.args && Object.keys(call.args).length > 0
+        ? stringifyMessageContent(call.args)
+        : '';
+      const lines = [
+        'TOOL_CALL_PARSE_ERROR',
+        `Tool: ${call.name || 'Tool'}`,
+        `Error: ${call.error || 'Invalid tool argument JSON'}`,
+        'Status: tool was not executed.',
+        'Next action: retry the intended operation with one valid JSON argument object that matches the tool schema.',
+        'Keep commentary outside the argument object. Do not add evidence/protocol keys unless the schema requires them.'
+      ];
+      if (argsPreview) {
+        lines.push(`Parsed args preview: ${argsPreview.slice(0, 500)}`);
+      }
+      return lines.join('\n');
     };
 
     /**
@@ -2198,7 +2220,12 @@ const AgentLoop = {
             for (const call of callsToExecute) {
               if (call.error) {
                 logger.warn(`[Agent] Tool ${call.name} has parse error: ${call.error}`);
-                preResults.push({ call, finalResult: `Error: ${call.error}`, skipped: true });
+                preResults.push({
+                  call,
+                  finalResult: formatToolCallParseErrorResult(call),
+                  skipped: true,
+                  errorKind: 'parse_error'
+                });
                 continue;
               }
               if (_toolCircuitBreaker.isOpen(call.name)) {
@@ -2646,7 +2673,7 @@ const AgentLoop = {
 
     const getMutationProgressToolList = () => (
       getRuntimeMode() === 'zero'
-        ? 'WriteFile, EditFile, CreateTool, or LoadModule'
+        ? 'CreateTool or a created mutation tool'
         : 'WriteFile, CreateTool, EditFile, Promote, or LoadModule'
     );
 
@@ -2657,6 +2684,7 @@ const AgentLoop = {
 
     const buildZeroSystemPrompt = (personaPrompt, goal) => {
       const personaSection = extractPersonaSection(personaPrompt);
+      const zeroToolSurfaceText = ZERO_SEED_TOOLS.join(', ');
       return `
 You are Zero, a browser-local tabula-rasa RSI agent.
 Improve this goal and keep iterating until it is truly complete:
@@ -2672,20 +2700,22 @@ ${personaSection ? `${personaSection}\n` : ''}
 ## Writable boundary (critical)
 - Read from live paths (e.g. /core, /ui, /styles, /tools, /config, /artifacts, /shadow).
 - Candidate edits go to /shadow, evidence to /artifacts.
-- Zero cannot write arbitrary /self files directly. Runtime tools load only from /self.
+- The seed cannot write arbitrary /self files directly. Create runtime tools for reading, writing, loading, and self-mutation as needed.
 
 ## Zero tool creation workflow
 - Use CreateTool for new runtime tools. In Zero it stages /shadow/tools/MyTool.js, validates the candidate, writes hash-bound activation evidence under /artifacts, installs /self/tools/MyTool.js, and loads it.
-- Use LoadModule only to reload an already installed /self tool.
-- Never write candidates under /lab, never LoadModule a /shadow path, and do not use Promote in Zero.
+- First create a directory-aware reader/lister if inspection is needed, then call it and continue from observed paths.
+- Created tools start read-only unless their exported tool metadata declares capabilities such as \`vfs:write\`, \`tool:load\`, or \`self:write\`.
+- For UI, core, prompt, config, style, and existing-tool patches, create a small self-write tool that writes evidence and rollback metadata, writes the canonical /self path and mapped active path, then reloads or refreshes the affected surface.
+- Never write candidates under /lab, never load a /shadow path, and do not use Promote in Zero.
 
-## Required tools
-ReadFile, ListFiles, Grep, ListTools, WriteFile, EditFile, CreateTool, LoadModule.
+## Seed tools
+${zeroToolSurfaceText}.
 
 ## Calling style
 - Use REPLOID/0 with TOOL blocks and one tool call minimum.
 - For tools, send code only as raw content (no markdown wrapper):  
-  export const tool = { name, description, inputSchema, call };
+  export const tool = { name, description, inputSchema, capabilities, call };
   export default tool;
 
 Evidence JSON must be strict JSON only (no fences, no trailing prose).

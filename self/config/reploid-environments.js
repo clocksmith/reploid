@@ -2,6 +2,17 @@
  * @fileoverview Editable environment templates for the Reploid self.
  */
 
+import { ZERO_SEED_TOOLS } from './tool-surfaces.js';
+
+const ZERO_STARTER_TOOLS = Object.freeze([
+  'CreateTool',
+  'created reader/lister',
+  'created mutation tool'
+]);
+
+const ZERO_VISIBLE_SURFACE_LINE = `Visible Zero seed surface: ${ZERO_SEED_TOOLS.join(', ')}.`;
+const ZERO_STARTER_TOOL_LINE = `Starter self-edit path: ${ZERO_STARTER_TOOLS.join(', ')}.`;
+
 const TEMPLATE_DEFINITIONS = [
   {
     id: 'e0',
@@ -11,7 +22,8 @@ const TEMPLATE_DEFINITIONS = [
       'Browser-hosted JavaScript runtime.',
       'Canonical self lives under /self.',
       'Model writes go under /shadow and /artifacts.',
-      'Visible Zero tools: ReadFile, WriteFile, CreateTool, LoadModule.',
+      ZERO_VISIBLE_SURFACE_LINE,
+      ZERO_STARTER_TOOL_LINE,
       'Assume nothing else until verified.'
     ].join('\n')
   },
@@ -23,7 +35,8 @@ const TEMPLATE_DEFINITIONS = [
       'Browser-hosted JavaScript runtime with VFS and OPFS.',
       'Canonical self lives under /self.',
       'Model writes go under /shadow and /artifacts.',
-      'Visible Zero tools: ReadFile, WriteFile, CreateTool, LoadModule.'
+      ZERO_VISIBLE_SURFACE_LINE,
+      ZERO_STARTER_TOOL_LINE
     ].join('\n')
   },
   {
@@ -34,7 +47,8 @@ const TEMPLATE_DEFINITIONS = [
       'Browser-hosted JavaScript runtime with VFS and OPFS.',
       'Canonical self lives under /self.',
       'Model writes go under /shadow and /artifacts.',
-      'CreateTool stages, validates, installs, and loads Zero tool candidates. LoadModule reloads installed JavaScript tools from /self/tools.',
+      ZERO_VISIBLE_SURFACE_LINE,
+      'CreateTool stages, validates, installs, and loads Zero tool candidates. Created tools declare capabilities for VFS writes or tool loading.',
       'Put reusable candidates under /shadow and durable outputs under /artifacts.'
     ].join('\n')
   },
@@ -46,7 +60,8 @@ const TEMPLATE_DEFINITIONS = [
       'Browser-hosted JavaScript runtime with VFS and OPFS.',
       'Canonical self lives under /self.',
       'Model writes go under /shadow and /artifacts.',
-      'CreateTool stages, validates, installs, and loads Zero tool candidates. LoadModule reloads installed JavaScript tools from /self/tools.',
+      ZERO_VISIBLE_SURFACE_LINE,
+      'CreateTool stages, validates, installs, and loads Zero tool candidates. Created tools declare capabilities for VFS writes or tool loading.',
       'Any web API may exist; verify it before relying on it.'
     ].join('\n')
   },
@@ -58,7 +73,8 @@ const TEMPLATE_DEFINITIONS = [
       'Browser-hosted JavaScript runtime with VFS and OPFS.',
       'Canonical self lives under /self.',
       'Model writes go under /shadow and /artifacts.',
-      'CreateTool stages, validates, installs, and loads Zero tool candidates. LoadModule reloads installed JavaScript tools from /self/tools.',
+      ZERO_VISIBLE_SURFACE_LINE,
+      'CreateTool stages, validates, installs, and loads Zero tool candidates. Created tools declare capabilities for VFS writes or tool loading.',
       'Prefer small reversible changes, keep candidates under /shadow, and place evidence under /artifacts or opfs:/artifacts.',
       'Any web API may exist; verify it before relying on it.'
     ].join('\n')

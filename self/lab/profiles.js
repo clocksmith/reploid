@@ -6,10 +6,9 @@
  */
 
 import {
-  ZERO_TOOL_SURFACE_IDS,
-  X_TOOL_SURFACE_IDS,
   getToolNamesForSurfaceIds
 } from '../config/tool-surfaces.js';
+import { requireSurfaceIntent } from '../config/surface-intents.js';
 import {
   defineLabProfile,
   extendLabProfile
@@ -24,37 +23,25 @@ import {
   buildRuntimeSelfMirrors
 } from './mirrors.js';
 
-const ZERO_REQUIRED_MODULES = Object.freeze([
-  'AgentLoop',
-  'CircuitBreaker',
-  'ContextManager',
-  'DopplerToolbox',
-  'LLMClient',
-  'SubstrateLoader',
-  'ToolRunner',
-  'ToolWriter',
-  'VFS'
-]);
+const ZERO_INTENT = requireSurfaceIntent('zero');
+const X_INTENT = requireSurfaceIntent('x');
 
-const X_ADDITIONAL_REQUIRED_MODULES = Object.freeze([
-  'ArenaHarness',
-  'KnowledgeGraph',
-  'MemoryManager',
-  'SemanticMemory',
-  'SwarmTransport',
-  'VFSSandbox',
-  'VerificationManager',
-  'WebRTCSwarm',
-  'WorkerManager'
-]);
+const intentProfileFields = (intent) => ({
+  id: intent.id,
+  route: intent.route,
+  label: intent.id,
+  title: intent.label,
+  mode: intent.mode,
+  bootProfile: intent.bootProfile,
+  genesisLevel: intent.genesisLevel,
+  uiMode: intent.uiMode,
+  surface: intent.surface,
+  intent: intent.intent,
+  role: intent.role
+});
 
-const ZERO_FORBIDDEN_MODULES = Object.freeze([
-  ...X_ADDITIONAL_REQUIRED_MODULES,
-  'HITLController'
-]);
-
-const ZERO_TOOL_NAMES = Object.freeze(getToolNamesForSurfaceIds(ZERO_TOOL_SURFACE_IDS));
-const X_TOOL_NAMES = Object.freeze(getToolNamesForSurfaceIds(X_TOOL_SURFACE_IDS));
+const ZERO_TOOL_NAMES = Object.freeze(getToolNamesForSurfaceIds(ZERO_INTENT.toolSurfaceIds));
+const X_TOOL_NAMES = Object.freeze(getToolNamesForSurfaceIds(X_INTENT.toolSurfaceIds));
 const ZERO_FORBIDDEN_TOOLS = Object.freeze(
   X_TOOL_NAMES.filter((toolName) => !ZERO_TOOL_NAMES.includes(toolName))
 );
@@ -71,36 +58,20 @@ const makeBootSpec = (profile) => Object.freeze({
 });
 
 export const ZERO_LAB_PROFILE = defineLabProfile({
-  id: 'zero',
-  route: '/zero',
-  label: 'zero',
-  title: 'Zero',
-  mode: 'zero',
-  bootProfile: 'zero_home',
-  genesisLevel: 'spark',
-  uiMode: 'zero',
+  ...intentProfileFields(ZERO_INTENT),
   runtimeUi: ZERO_RUNTIME_UI,
   runtimeSelfMirrorRules: ZERO_RUNTIME_SELF_MIRROR_RULES,
-  surface: 'zero',
-  toolSurfaceIds: ZERO_TOOL_SURFACE_IDS,
-  requiredModules: ZERO_REQUIRED_MODULES,
-  forbiddenModules: ZERO_FORBIDDEN_MODULES,
+  toolSurfaceIds: ZERO_INTENT.toolSurfaceIds,
+  requiredModules: ZERO_INTENT.requiredModules,
+  forbiddenModules: ZERO_INTENT.forbiddenModules,
   forbiddenTools: ZERO_FORBIDDEN_TOOLS
 });
 
 export const X_LAB_PROFILE = extendLabProfile(ZERO_LAB_PROFILE, {
-  id: 'x',
-  route: '/x',
-  label: 'x',
-  title: 'X',
-  mode: 'x',
-  bootProfile: 'x_home',
-  genesisLevel: 'full',
-  uiMode: 'proto',
+  ...intentProfileFields(X_INTENT),
   runtimeUi: PROTO_RUNTIME_UI,
-  surface: 'x',
-  additionalToolSurfaceIds: X_TOOL_SURFACE_IDS,
-  additionalRequiredModules: X_ADDITIONAL_REQUIRED_MODULES,
+  additionalToolSurfaceIds: X_INTENT.additionalToolSurfaceIds,
+  additionalRequiredModules: X_INTENT.additionalRequiredModules,
   additionalRuntimeSelfMirrorRules: PROTO_RUNTIME_SELF_MIRROR_RULES
 });
 

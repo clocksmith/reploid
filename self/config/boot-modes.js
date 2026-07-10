@@ -2,7 +2,23 @@
  * @fileoverview Product boot mode definitions and internal genesis mapping.
  */
 
+import { requireSurfaceIntent } from './surface-intents.js';
+
 export const DEFAULT_BOOT_MODE = 'reploid';
+
+const ZERO_SURFACE = requireSurfaceIntent('zero');
+const X_SURFACE = requireSurfaceIntent('x');
+
+const toSurfaceBootMode = (surface) => Object.freeze({
+  id: surface.id,
+  label: surface.label,
+  route: surface.route,
+  description: surface.summary,
+  detail: surface.detail,
+  intent: surface.intent,
+  genesisLevel: surface.genesisLevel,
+  requiresBrowserBrain: surface.requiresBrowserBrain
+});
 
 export const BOOT_MODES = Object.freeze({
   pool: {
@@ -13,14 +29,7 @@ export const BOOT_MODES = Object.freeze({
     genesisLevel: 'capsule',
     requiresBrowserBrain: false
   },
-  zero: {
-    id: 'zero',
-    label: 'Zero',
-    description: 'Tabula-rasa browser RSI agent.',
-    detail: 'Self-contained RSI agent with server proxy inference by default and optional local Doppler execution.',
-    genesisLevel: 'spark',
-    requiresBrowserBrain: false
-  },
+  zero: toSurfaceBootMode(ZERO_SURFACE),
   reploid: {
     id: 'reploid',
     label: 'Reploid',
@@ -29,14 +38,7 @@ export const BOOT_MODES = Object.freeze({
     genesisLevel: 'capsule',
     requiresBrowserBrain: false
   },
-  x: {
-    id: 'x',
-    label: 'X',
-    description: 'Prebuilt full-stack substrate.',
-    detail: 'Starts with the mature RSI surface already assembled.',
-    genesisLevel: 'full',
-    requiresBrowserBrain: false
-  }
+  x: toSurfaceBootMode(X_SURFACE)
 });
 
 export const BOOT_MODE_ORDER = Object.freeze([

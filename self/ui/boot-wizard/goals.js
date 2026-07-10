@@ -50,7 +50,7 @@ const GOAL_CATEGORIES = {
     },
     {
       view: 'Katamari DOM',
-      text: 'Build a visually impressive Katamari-style 3D DOM picker that injects into the current browser runtime area, uses CreateTool to install and load the implementation, turns live page elements into collectible physics objects, then lets the user orbit, inspect, and export robust selectors.',
+      text: 'Build a playable Katamari-style DOM overlay: install and load it with CreateTool, mount a transparent full-screen layer over the current page, scan visible DOM nodes into physics pickups, let the player roll a growing ball to collect elements, then orbit, inspect, export robust selectors, and save selector-quality notes for the next self-improvement pass.',
       tags: [TAGS.UI, TAGS.VISUAL, TAGS.SYS]
     }
   ],
@@ -216,8 +216,8 @@ const GOAL_CATEGORIES = {
 
 const normalizeText = (value) => String(value || '').trim();
 
-export const ZERO_GOAL_LIBRARY = Object.freeze([
-  { view: 'L1 DOM Katamari', level: 1, text: 'Build a playful DOM katamari injected into the current page/runtime area, use CreateTool to install and load the implementation, and gather live buttons, cards, and forms into labeled selector trophies.' },
+const ZERO_GOAL_RAW_LIBRARY = Object.freeze([
+  { view: 'L1 DOM Katamari', level: 1, text: 'Build a playable DOM katamari overlay in the current page/runtime area: use CreateTool to install and load it, scan buttons, cards, and forms into physics pickups, let the player roll a growing selector ball, export captures, and save an improvement log for the next run.' },
   { view: 'L1 DOM Aquarium', level: 1, text: 'Render DOM nodes as fish that swim by tag type, with hover bubbles showing selectors and roles.' },
   { view: 'L1 DOM Pinball', level: 1, text: 'Turn clickable elements into bumpers, launch a selector ball, and score robust paths versus brittle paths.' },
   { view: 'L1 DOM Stage Lights', level: 1, text: 'Spotlight page regions one by one, record their semantic purpose, and save a visual component map.' },
@@ -730,6 +730,211 @@ export const ZERO_GOAL_LIBRARY = Object.freeze([
   { view: 'L8 Promotion Speculation Filter', level: 8, text: 'Reject promotion narratives that predict benefits without fixed checks and rollback proof.' },
   { view: 'L8 Promotion Recursive Anchor', level: 8, text: 'Anchor every future promotion to parent evidence, independent verification, and visible user halt.' }
 ]);
+
+const ZERO_GOAL_QUALITY_TARGET = 343;
+const ZERO_GOAL_LEVEL_QUOTAS = Object.freeze({
+  1: 43,
+  2: 43,
+  3: 43,
+  4: 43,
+  5: 43,
+  6: 43,
+  7: 43,
+  8: 42
+});
+
+const ZERO_GOAL_SURFACE_WEIGHTS = Object.freeze({
+  DOM: 18,
+  VFS: 16,
+  'Service Worker': 16,
+  Tool: 15,
+  Artifact: 15,
+  Promotion: 15,
+  Context: 14,
+  Worker: 13,
+  WebGPU: 13,
+  WebRTC: 12,
+  OPFS: 12,
+  Memory: 11,
+  Canvas: 10,
+  SVG: 9,
+  Prompt: 8,
+  CSS: 4
+});
+
+const ZERO_GOAL_SEED_LABELS = Object.freeze({
+  'L1 DOM Katamari': 10,
+  'L1 DOM Aquarium': 10,
+  'L1 DOM Pinball': 10,
+  'L1 DOM Stage Lights': 10,
+  'L1 Canvas Fireworks': 9,
+  'L1 Canvas Maze': 3,
+  'L1 Canvas Oscilloscope': 5,
+  'L1 Canvas Diorama': 9,
+  'L1 CSS Weather Map': 2,
+  'L1 CSS Token Garden': 1
+});
+
+const ZERO_GOAL_POSITIVE_PATTERNS = Object.freeze([
+  ['selector', 16],
+  ['current page', 14],
+  ['playable', 13],
+  ['inspect', 12],
+  ['export', 12],
+  ['capability', 11],
+  ['receipt', 11],
+  ['evidence', 11],
+  ['artifact', 10],
+  ['hash', 10],
+  ['rollback', 10],
+  ['verify', 10],
+  ['prove', 10],
+  ['replay', 9],
+  ['trace', 9],
+  ['probe', 9],
+  ['benchmark', 9],
+  ['fallback', 9],
+  ['worker', 8],
+  ['vfs', 8],
+  ['service worker', 8],
+  ['webgpu', 8],
+  ['peer', 8],
+  ['context', 8],
+  ['tool', 8],
+  ['promotion', 8],
+  ['audit', 8],
+  ['gate', 8],
+  ['validator', 8],
+  ['source', 7],
+  ['schema', 7],
+  ['typed', 7],
+  ['compare', 7],
+  ['score', 7],
+  ['accessibility', 7],
+  ['keyboard', 7],
+  ['roles', 7],
+  ['path', 6],
+  ['diff', 6],
+  ['status', 6],
+  ['latency', 6],
+  ['failure', 6],
+  ['error', 6],
+  ['safe', 6],
+  ['bounded', 6],
+  ['halt', 6],
+  ['user-visible', 6],
+  ['visible', 4],
+  ['render', 3],
+  ['map', 3]
+]);
+
+const ZERO_GOAL_NEGATIVE_PATTERNS = Object.freeze([
+  ['token garden', -18],
+  ['weather map', -16],
+  ['friendly creatures', -15],
+  ['tarot', -15],
+  ['campfire', -14],
+  ['fireflies', -14],
+  ['firefly', -14],
+  ['bonsai', -12],
+  ['cave', -12],
+  ['puppet', -11],
+  ['quilt', -11],
+  ['stage actors', -10],
+  ['beast', -10],
+  ['dragon', -10],
+  ['zoo', -9],
+  ['ant farm', -9],
+  ['beehive', -9],
+  ['snow globe', -9],
+  ['fossil', -8],
+  ['flowers', -8],
+  ['lanterns', -7],
+  ['lantern', -7],
+  ['glass lab', -7],
+  ['ribbon', -7],
+  ['spellbook', -7],
+  ['doll', -7],
+  ['creature', -7],
+  ['maze', -6],
+  ['fog', -6],
+  ['only when', -2]
+]);
+
+const getZeroGoalSurface = (goal) => {
+  const view = normalizeText(goal.view);
+  const surfaces = Object.keys(ZERO_GOAL_SURFACE_WEIGHTS)
+    .sort((left, right) => right.length - left.length);
+  return surfaces.find((surface) => view.includes(` ${surface} `)) || '';
+};
+
+const scoreZeroGoalQuality = (goal, index) => {
+  const surface = getZeroGoalSurface(goal);
+  const text = `${goal.view || ''} ${goal.text || ''}`.toLowerCase();
+  let score = ZERO_GOAL_SURFACE_WEIGHTS[surface] || 0;
+  const seedLabel = ZERO_GOAL_SEED_LABELS[goal.view];
+  if (Number.isFinite(seedLabel)) {
+    score += seedLabel >= 8
+      ? seedLabel * 10
+      : seedLabel * 4 - 16;
+  }
+
+  score += Math.max(0, 9 - Number(goal.level || 0));
+
+  for (const [pattern, weight] of ZERO_GOAL_POSITIVE_PATTERNS) {
+    if (text.includes(pattern)) score += weight;
+  }
+
+  for (const [pattern, weight] of ZERO_GOAL_NEGATIVE_PATTERNS) {
+    if (text.includes(pattern)) score += weight;
+  }
+
+  const wordCount = normalizeText(goal.text).split(/\s+/).filter(Boolean).length;
+  if (wordCount >= 12 && wordCount <= 28) score += 6;
+  if (wordCount < 9) score -= 5;
+  if (wordCount > 34) score -= 4;
+
+  return { goal, index, score };
+};
+
+const selectZeroGoalQualityPool = (goals, targetCount = ZERO_GOAL_QUALITY_TARGET) => {
+  const selectedIndexes = new Set();
+
+  for (const [levelText, quota] of Object.entries(ZERO_GOAL_LEVEL_QUOTAS)) {
+    const level = Number(levelText);
+    const ranked = goals
+      .map((goal, index) => ({ goal, index }))
+      .filter((entry) => Number(entry.goal.level) === level)
+      .map((entry) => scoreZeroGoalQuality(entry.goal, entry.index))
+      .sort((left, right) => (
+        right.score - left.score
+        || left.index - right.index
+      ));
+
+    for (const entry of ranked.slice(0, quota)) {
+      selectedIndexes.add(entry.index);
+    }
+  }
+
+  if (selectedIndexes.size !== targetCount) {
+    const ranked = goals
+      .map((goal, index) => scoreZeroGoalQuality(goal, index))
+      .filter((entry) => !selectedIndexes.has(entry.index))
+      .sort((left, right) => (
+        right.score - left.score
+        || left.index - right.index
+      ));
+
+    for (const entry of ranked) {
+      if (selectedIndexes.size >= targetCount) break;
+      selectedIndexes.add(entry.index);
+    }
+  }
+
+  return goals.filter((_, index) => selectedIndexes.has(index));
+};
+
+export const ZERO_GOAL_LIBRARY = Object.freeze(selectZeroGoalQualityPool(ZERO_GOAL_RAW_LIBRARY));
 
 export const ZERO_GOAL_CHOICES = ZERO_GOAL_LIBRARY;
 

@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-07-07T15:48:00.396Z",
+  "generatedAt": "2026-07-09T18:33:46.784Z",
   "files": [
     "audit.html",
     "blueprint-index.json",
@@ -366,16 +366,21 @@
     "config/blueprint-registry.json",
     "config/boot-modes.js",
     "config/boot-seed.js",
+    "config/doppler-local-models.js",
     "config/genesis-levels.json",
     "config/genesis-template.json",
+    "config/immutability.js",
     "config/lab-route-profiles.js",
     "config/lora-adapters/react-forms.json",
     "config/module-registry.json",
     "config/module-resolution.js",
     "config/reploid-environments.js",
+    "config/surface-intents.js",
     "config/tool-surfaces.js",
     "config/vfs-manifest.json",
     "config/vfs-policy.js",
+    "config/zero-goals.js",
+    "config/zero-inference.js",
     "core/README.md",
     "core/agent-loop.js",
     "core/async-utils.js",
@@ -603,6 +608,7 @@
     "ui/reploid-home/index.js",
     "ui/shared/reploid-contract.js",
     "ui/toast.js",
+    "ui/zero-home/index.js",
     "ui/zero/index.js"
   ]
 }
