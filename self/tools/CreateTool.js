@@ -228,7 +228,7 @@ async function call(args = {}, deps = {}) {
 
 export const tool = {
   name: "CreateTool",
-  description: "Create a runtime tool. In Zero, stage under /shadow/tools, validate the candidate, write activation evidence, install to /self/tools, and load it. In broader modes, stage for evidence-gated promotion.",
+  description: "Create a runtime tool. In Zero, stage under /shadow/tools, validate the candidate, write activation evidence, install to /self/tools, and load it. Created tools start read-only unless exported tool metadata declares capabilities such as vfs:write, tool:load, or self:write. In broader modes, stage for evidence-gated promotion.",
   inputSchema: {
     type: 'object',
     required: ['name', 'code'],

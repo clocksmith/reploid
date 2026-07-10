@@ -6,17 +6,21 @@ import { describe, expect, it } from 'vitest';
 
 import { getRouteBootSpec } from '../../self/boot-spec.js';
 import {
+  BOOT_SEED_PROFILES,
   pickBootSeedFiles,
   shouldAwaitFullManifestBeforeStart,
   shouldHydrateFullManifest
 } from '../../self/config/boot-seed.js';
 import { AWAKEN_REQUIRED_MODULES } from '../../self/config/module-resolution.js';
-import { resolveModules } from '../../self/boot-helpers/config.js';
+import {
+  getRouteModuleOverrides,
+  resolveModules
+} from '../../self/boot-helpers/config.js';
 import {
   buildZeroGeminiProxyConfig,
   ZERO_GEMINI_AGENT_THROTTLE,
   ZERO_MANAGED_MAX_ITERATIONS
-} from '../../self/ui/boot-wizard/zero-function.js';
+} from '../../self/config/zero-inference.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const manifestPath = path.resolve(__dirname, '../../self/config/vfs-manifest.json');
@@ -76,6 +80,9 @@ describe('boot seed manifest', () => {
     const bootFiles = pickBootSeedFiles(manifest.files, 'zero_home');
 
     expect(bootFiles).toContain('blueprint-index.json');
+    expect(bootFiles).toContain('config/doppler-local-models.js');
+    expect(bootFiles).toContain('config/immutability.js');
+    expect(bootFiles).toContain('config/surface-intents.js');
     expect(bootFiles).toContain('blueprints/blueprint-index-contract.md');
     expect(bootFiles).toContain('blueprints/tool-contract.md');
     expect(bootFiles).not.toContain('blueprints/promotion-contract.md');
@@ -86,11 +93,34 @@ describe('boot seed manifest', () => {
     expect(bootFiles).not.toContain('styles/rd-components.css');
     expect(bootFiles).not.toContain('styles/rd-primitives.css');
     expect(bootFiles).not.toContain('styles/rd-tokens.css');
-    expect(bootFiles).toContain('ui/boot-home/index.js');
-    expect(bootFiles).toContain('ui/boot-wizard/zero-function.js');
-    expect(bootFiles).toContain('ui/boot-wizard/steps/goal.js');
+    expect(bootFiles).toContain('config/zero-goals.js');
+    expect(bootFiles).toContain('config/zero-inference.js');
+    expect(bootFiles).toContain('ui/zero-home/index.js');
+    expect(bootFiles).not.toContain('ui/boot-home/index.js');
+    expect(bootFiles.some((file) => file.startsWith('ui/boot-wizard/'))).toBe(false);
+    expect(bootFiles).not.toContain('capabilities/system/doppler-toolbox.js');
+    expect(bootFiles).not.toContain('capabilities/system/substrate-loader.js');
+    expect(bootFiles).not.toContain('infrastructure/error-store.js');
+    expect(bootFiles).not.toContain('infrastructure/telemetry-timeline.js');
+    expect(bootFiles).not.toContain('self/cloud-access.js');
+    expect(bootFiles).not.toContain('self/cloud-access-status.js');
+    expect(bootFiles).not.toContain('self/identity.js');
+    expect(bootFiles).not.toContain('self/key-unsealer.js');
+    expect(bootFiles).not.toContain('self/receipt.js');
+    expect(bootFiles).not.toContain('self/reward-policy.js');
+    expect(bootFiles).not.toContain('self/swarm.js');
     expect(bootFiles).not.toContain('ui/pool-home/index.js');
     expect(bootFiles).not.toContain('ui/reploid-home/index.js');
+  });
+
+  it('keeps surface intent import dependencies in every boot seed profile', () => {
+    for (const profile of Object.keys(BOOT_SEED_PROFILES)) {
+      const bootFiles = pickBootSeedFiles(manifest.files, profile);
+      if (!bootFiles.includes('config/surface-intents.js')) continue;
+
+      expect(bootFiles, profile).toContain('config/immutability.js');
+      expect(bootFiles, profile).toContain('config/tool-surfaces.js');
+    }
   });
 
   it('hydrates the Poolday route extension only in Poolday home boot seeds', () => {
@@ -108,10 +138,19 @@ describe('boot seed manifest', () => {
     const xBootFiles = pickBootSeedFiles(manifest.files, 'x_home');
     const xBootSet = new Set(xBootFiles);
 
-    expect(zeroBootFiles.length).toBeLessThanOrEqual(120);
+    expect(zeroBootFiles.length).toBeLessThanOrEqual(68);
     expect(zeroBootFiles).not.toContain('tools/DeleteFile.js');
     expect(zeroBootFiles).not.toContain('tools/CopyFile.js');
     expect(zeroBootFiles).not.toContain('tools/git.js');
+    expect(zeroBootFiles).toContain('tools/CreateTool.js');
+    expect(zeroBootFiles).not.toContain('tools/ReadFile.js');
+    expect(zeroBootFiles).not.toContain('tools/WriteFile.js');
+    expect(zeroBootFiles).not.toContain('tools/EditFile.js');
+    expect(zeroBootFiles).not.toContain('tools/ListFiles.js');
+    expect(zeroBootFiles).not.toContain('tools/Grep.js');
+    expect(zeroBootFiles).not.toContain('tools/ListTools.js');
+    expect(zeroBootFiles).not.toContain('tools/LoadModule.js');
+    expect(zeroBootFiles).not.toContain('tools/ProposeSelfPatch.js');
     expect(zeroBootFiles).not.toContain('tools/Promote.js');
     expect(zeroBootFiles).not.toContain('blueprints/promotion-contract.md');
     expect(zeroBootFiles).not.toContain('blueprints/rgr-runtime-contract.md');
@@ -211,5 +250,19 @@ describe('boot seed manifest', () => {
       'CircuitBreaker',
       'ProviderRegistry'
     ]));
+  });
+
+  it('prunes optional service modules from the Zero route before module imports', () => {
+    const overrides = getRouteModuleOverrides('/zero');
+    const resolved = resolveModules('spark', genesisConfig, moduleRegistry, overrides);
+
+    expect(resolved).toEqual(expect.arrayContaining(AWAKEN_REQUIRED_MODULES));
+    expect(resolved).not.toEqual(expect.arrayContaining([
+      'DopplerToolbox',
+      'ErrorStore',
+      'SubstrateLoader',
+      'TelemetryTimeline'
+    ]));
+    expect(getRouteModuleOverrides('/x')).toEqual({});
   });
 });

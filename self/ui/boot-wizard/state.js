@@ -14,14 +14,18 @@ import {
   findReploidEnvironmentTemplateId,
   getDefaultReploidEnvironment
 } from '../../config/reploid-environments.js';
-import { getSecurityState } from '../../core/security-config.js';
-import { getCurrentReploidStorage as getReploidStorage } from '../../instance.js';
-import { getReploidLaunchState } from './reploid-inference.js';
+import {
+  buildLocalDopplerModelConfig,
+  getLocalDopplerModel
+} from '../../config/doppler-local-models.js';
 import {
   ZERO_GEMINI_AGENT_THROTTLE,
   ZERO_GEMINI_SERVER_TYPE,
   ZERO_MANAGED_MAX_ITERATIONS
-} from './zero-function.js';
+} from '../../config/zero-inference.js';
+import { getSecurityState } from '../../core/security-config.js';
+import { getCurrentReploidStorage as getReploidStorage } from '../../instance.js';
+import { getReploidLaunchState } from './reploid-inference.js';
 
 // Wizard steps in order
 export const STEPS = {
@@ -581,13 +585,13 @@ export function saveConfig() {
   }
 
   if (connectionType === 'browser' && dopplerConfig.model) {
-    models.push(withCycleThrottle({
-      id: dopplerConfig.model,
-      name: dopplerConfig.model,
-      provider: 'doppler',
-      queryMethod: 'browser',
-      hostType: 'browser-local'
-    }));
+    const model = buildLocalDopplerModelConfig(dopplerConfig.model);
+    if (model) {
+      models.push(withCycleThrottle({
+        ...model,
+        queryMethod: 'browser'
+      }));
+    }
   }
 
   if (models.length > 0) {
@@ -676,7 +680,7 @@ export function canAwaken() {
 
   if (mode === 'zero') {
     return (connectionType === 'proxy' && !!(proxyConfig.url && proxyConfig.model))
-      || (connectionType === 'browser' && !!dopplerConfig.model);
+      || (connectionType === 'browser' && !!getLocalDopplerModel(dopplerConfig.model));
   }
 
   switch (connectionType) {
@@ -690,7 +694,7 @@ export function canAwaken() {
     case 'proxy':
       return proxyConfig.url && proxyConfig.model;
     case 'browser':
-      return dopplerConfig.model;
+      return !!getLocalDopplerModel(dopplerConfig.model);
     default:
       return false;
   }
@@ -719,7 +723,7 @@ export function getCapabilityLevel() {
     }
   }
 
-  const hasDopplerModel = !!dopplerConfig?.model;
+  const hasDopplerModel = !!getLocalDopplerModel(dopplerConfig?.model);
   const hasModelAccess = connectionType === 'browser';
   const hasDopplerAccess = hasDopplerModel && connectionType === 'browser';
 

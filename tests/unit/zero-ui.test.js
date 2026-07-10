@@ -65,7 +65,6 @@ describe('ZeroUI', () => {
       StateManager: {
         getState: vi.fn(() => ({ totalCycles: 0 }))
       },
-      initialGoal: 'Build something',
       mode: 'zero'
     });
     await ui.mount(root);

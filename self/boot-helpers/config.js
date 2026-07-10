@@ -36,11 +36,7 @@ export async function loadModuleRegistry() {
   }
 }
 
-/**
- * Read module overrides from localStorage.
- * @returns {Object} Normalized module overrides
- */
-export function getModuleOverrides() {
+const readStoredModuleOverrides = () => {
   if (typeof localStorage === 'undefined') return {};
   try {
     const raw = localStorage.getItem('REPLOID_MODULE_OVERRIDES');
@@ -49,6 +45,31 @@ export function getModuleOverrides() {
   } catch (e) {
     return {};
   }
+};
+
+/**
+ * Convert the active route profile's forbidden modules into resolution overrides.
+ * @param {string} pathname - Route path. Defaults to window.location.pathname.
+ * @returns {Object} Normalized module overrides
+ */
+export function getRouteModuleOverrides(pathname = '') {
+  const routePath = pathname || (typeof window === 'undefined' ? '' : window.location.pathname || '');
+  const profile = getLabRouteProfileByPath(routePath);
+  if (!profile?.forbiddenModules?.length) return {};
+  return normalizeOverrides(Object.fromEntries(
+    profile.forbiddenModules.map((moduleName) => [moduleName, 'off'])
+  ));
+}
+
+/**
+ * Read module overrides from localStorage and enforce route-level module exclusions.
+ * @returns {Object} Normalized module overrides
+ */
+export function getModuleOverrides() {
+  return normalizeOverrides({
+    ...readStoredModuleOverrides(),
+    ...getRouteModuleOverrides()
+  });
 }
 
 /**

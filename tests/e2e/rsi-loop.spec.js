@@ -19,6 +19,7 @@
  */
 
 import { test, expect } from '@playwright/test';
+import { DEFAULT_DOPPLER_MODEL_ID } from '../../self/config/doppler-local-models.js';
 import { MockLLMProvider, injectMockProvider } from './rsi-mock-provider.js';
 
 const TEST_CONFIG = {
@@ -69,7 +70,7 @@ test.describe('RSI Loop E2E', () => {
   test('RSI infrastructure modules load correctly', async ({ page }) => {
     // Select browser Doppler mode and model to unlock goal input and awaken button
     await page.click('[data-action="choose-browser"]');
-    await page.click('[data-model="smollm2-360m"]');
+    await page.click(`[data-model="${DEFAULT_DOPPLER_MODEL_ID}"]`);
     await page.locator('#goal-input').fill('Test goal');
     await page.click('[data-action="advanced-settings"]');
 

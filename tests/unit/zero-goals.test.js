@@ -8,8 +8,8 @@ import {
 } from '../../self/ui/boot-wizard/goals.js';
 
 describe('Zero goal presets', () => {
-  it('keeps a 512-prompt RSI shuffle pool across levels 1 through 8', () => {
-    expect(ZERO_GOAL_CHOICES).toHaveLength(512);
+  it('keeps a 343-prompt quality-filtered RSI shuffle pool across levels 1 through 8', () => {
+    expect(ZERO_GOAL_CHOICES).toHaveLength(343);
     expect(DEFAULT_ZERO_GOAL).toBe(ZERO_GOAL_CHOICES[0].text);
 
     const levelCounts = ZERO_GOAL_CHOICES.reduce((counts, goal) => {
@@ -19,15 +19,28 @@ describe('Zero goal presets', () => {
 
     expect([...levelCounts.keys()].sort()).toEqual([1, 2, 3, 4, 5, 6, 7, 8]);
     expect(Object.fromEntries(levelCounts)).toEqual({
-      1: 64,
-      2: 64,
-      3: 64,
-      4: 64,
-      5: 64,
-      6: 64,
-      7: 64,
-      8: 64
+      1: 43,
+      2: 43,
+      3: 43,
+      4: 43,
+      5: 43,
+      6: 43,
+      7: 43,
+      8: 42
     });
+  });
+
+  it('keeps user-scored high-quality examples and drops low-quality seed examples', () => {
+    const views = new Set(ZERO_GOAL_CHOICES.map((goal) => goal.view));
+
+    expect(views.has('L1 DOM Katamari')).toBe(true);
+    expect(views.has('L1 DOM Aquarium')).toBe(true);
+    expect(views.has('L1 DOM Pinball')).toBe(true);
+    expect(views.has('L1 DOM Stage Lights')).toBe(true);
+    expect(views.has('L1 Canvas Fireworks')).toBe(true);
+    expect(views.has('L1 Canvas Diorama')).toBe(true);
+    expect(views.has('L1 CSS Weather Map')).toBe(false);
+    expect(views.has('L1 CSS Token Garden')).toBe(false);
   });
 
   it('keeps every prompt unique, named, and below the goal input limit', () => {
@@ -61,14 +74,16 @@ describe('Zero goal presets', () => {
   });
 
   it('makes the Katamari default target the live browser runtime area', () => {
-    expect(DEFAULT_ZERO_GOAL).toContain('injected into the current page/runtime area');
-    expect(DEFAULT_ZERO_GOAL).toContain('use CreateTool to install and load the implementation');
-    expect(DEFAULT_ZERO_GOAL).toContain('live buttons, cards, and forms');
+    expect(DEFAULT_ZERO_GOAL).toContain('overlay in the current page/runtime area');
+    expect(DEFAULT_ZERO_GOAL).toContain('use CreateTool to install and load it');
+    expect(DEFAULT_ZERO_GOAL).toContain('let the player roll a growing selector ball');
+    expect(DEFAULT_ZERO_GOAL).toContain('save an improvement log for the next run');
 
     const katamariBootGoal = getGoalCategories()['L0: Basic Functions']
       .find((goal) => goal.view === 'Katamari DOM');
-    expect(katamariBootGoal.text).toContain('injects into the current browser runtime area');
-    expect(katamariBootGoal.text).toContain('uses CreateTool to install and load the implementation');
-    expect(katamariBootGoal.text).toContain('live page elements');
+    expect(katamariBootGoal.text).toContain('transparent full-screen layer over the current page');
+    expect(katamariBootGoal.text).toContain('scan visible DOM nodes into physics pickups');
+    expect(katamariBootGoal.text).toContain('let the player roll a growing ball');
+    expect(katamariBootGoal.text).toContain('next self-improvement pass');
   });
 });

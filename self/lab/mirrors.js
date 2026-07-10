@@ -3,8 +3,13 @@
  */
 
 export const ZERO_RUNTIME_SELF_MIRROR_RULES = Object.freeze([
+  { sourcePrefix: '/boot-helpers/', targetPrefix: '/self/boot-helpers/' },
+  { sourcePrefix: '/capabilities/', targetPrefix: '/self/capabilities/' },
   { sourcePath: '/config/lab-route-profiles.js', targetPath: '/self/config/lab-route-profiles.js' },
   { sourcePath: '/config/tool-surfaces.js', targetPath: '/self/config/tool-surfaces.js' },
+  { sourcePrefix: '/core/', targetPrefix: '/self/core/' },
+  { sourcePrefix: '/host/', targetPrefix: '/self/host/' },
+  { sourcePrefix: '/infrastructure/', targetPrefix: '/self/infrastructure/' },
   { sourcePrefix: '/lab/', targetPrefix: '/self/lab/' },
   { sourcePath: '/ui/zero/index.js', targetPath: '/self/ui/zero/index.js' },
   { sourcePath: '/styles/zero.css', targetPath: '/self/styles/zero.css' }

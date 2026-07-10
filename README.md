@@ -9,14 +9,14 @@ Reploid is the public family name and shared browser substrate. The root UI keep
 | Route | Purpose |
 |-------|---------|
 | `/` | Reploid model-serving network surface. Docs/internal name: Poolday. |
-| `/0` | Zero. Browser-local tabula-rasa RSI agent with no peer or pool dependency. |
+| `/zero` | Zero. Browser-local tabula-rasa RSI agent with no peer or pool dependency. |
 | `/x` | X. Mature Reploid agent surface for the editable browser self, tools, traces, and promotion gates. |
 
 The three public surfaces share the Reploid substrate:
 
 - `/` runs receipt-backed browser inference with requester, contributor, receipt, and reputation flows.
 - `/x` runs the mature self-modifying browser agent workspace.
-- `/0` runs a local-only tabula-rasa RSI loop with a minimal tool and blueprint surface.
+- `/zero` runs a local-only tabula-rasa RSI loop with a minimal tool and blueprint surface.
 
 ## Quick Start
 
@@ -46,10 +46,10 @@ That command:
 
 Zero is intentionally small:
 
-- local browser model
-- objective
+- one objective
+- one inference path
 - `Awaken`
-- `ReadFile`, `WriteFile`, `LoadModule`, and `Promote`
+- `ReadFile`, `WriteFile`, `EditFile`, `ListFiles`, `Grep`, `ListTools`, `CreateTool`, and `LoadModule`
 - `/shadow` candidates and `/artifacts` evidence
 
 X is the mature agent surface:
@@ -59,6 +59,9 @@ X is the mature agent surface:
 - objective
 - peer slots
 - `Awaken`
+- `VFSSandbox`, `ArenaHarness`, `VerificationManager`, workers, memory, swarm, and `Promote`
+
+Zero and X route intent is canonical in `/self/config/surface-intents.js`. Boot mode config and lab profiles consume that contract; docs point to it instead of defining separate route purposes, tool surfaces, or required modules.
 
 Root operating states:
 

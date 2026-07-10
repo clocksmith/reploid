@@ -16,16 +16,20 @@ export const filterToolDepsForMode = (deps = {}, mode = 'reploid') => {
   return filtered;
 };
 
-const ZERO_INTERNAL_TOOL_NAMES = new Set([
-  'ReadFile',
-  'WriteFile',
-  'EditFile',
-  'ListFiles',
-  'Grep',
-  'ListTools',
-  'CreateTool',
-  'LoadModule'
-]);
+const ZERO_INTERNAL_TOOL_NAMES = new Set(['CreateTool']);
+
+const normalizeToolCapabilities = (capabilities = []) => {
+  if (capabilities instanceof Set) {
+    return new Set([...capabilities].map((capability) => String(capability || '').trim()).filter(Boolean));
+  }
+  if (Array.isArray(capabilities)) {
+    return new Set(capabilities.map((capability) => String(capability || '').trim()).filter(Boolean));
+  }
+  if (typeof capabilities === 'string') {
+    return new Set(capabilities.split(/[,\s]+/).map((capability) => capability.trim()).filter(Boolean));
+  }
+  return new Set();
+};
 
 const createReadOnlyVfs = (VFS) => {
   if (!VFS) return VFS;
@@ -38,21 +42,28 @@ const createReadOnlyVfs = (VFS) => {
   };
 };
 
-export const filterToolDepsForTool = (deps = {}, mode = 'reploid', toolName = '') => {
+export const filterToolDepsForTool = (deps = {}, mode = 'reploid', toolName = '', options = {}) => {
   const filtered = filterToolDepsForMode(deps, mode);
   if (mode !== 'zero') return filtered;
   const isInternal = ZERO_INTERNAL_TOOL_NAMES.has(String(toolName || ''));
-  if (!isInternal) {
+  const capabilities = normalizeToolCapabilities(options.capabilities);
+  const canWriteVfs = isInternal
+    || capabilities.has('vfs:write')
+    || capabilities.has('self:write');
+  const canLoadTools = isInternal
+    || capabilities.has('tool:load')
+    || capabilities.has('self:write');
+  if (!canWriteVfs) {
     filtered.VFS = createReadOnlyVfs(filtered.VFS);
   }
   filtered.ToolRunner = {
     list: filtered.ToolRunner?.list,
     execute: filtered.ToolRunner?.execute,
     has: filtered.ToolRunner?.has,
-    refresh: isInternal ? filtered.ToolRunner?.refresh : undefined,
-    allow: isInternal ? filtered.ToolRunner?.allow : undefined,
-    load: isInternal ? filtered.ToolRunner?.load : undefined,
-    loadPath: isInternal ? filtered.ToolRunner?.loadPath : undefined
+    refresh: canLoadTools ? filtered.ToolRunner?.refresh : undefined,
+    allow: canLoadTools ? filtered.ToolRunner?.allow : undefined,
+    load: canLoadTools ? filtered.ToolRunner?.load : undefined,
+    loadPath: canLoadTools ? filtered.ToolRunner?.loadPath : undefined
   };
   return filtered;
 };
@@ -107,6 +118,7 @@ const ToolRunner = {
 
     const _tools = new Map();
     const _dynamicTools = new Set();
+    const _toolCapabilities = new Map();
     const _runtimeAllowedTools = new Set();
 
     // Schema cache for performance (#3)
@@ -290,7 +302,11 @@ const ToolRunner = {
         }
 
         const name = forcedName || path.split('/').pop().replace('.js', '');
+        const capabilities = normalizeToolCapabilities(
+          mod.tool?.zeroCapabilities || mod.tool?.capabilities || []
+        );
         _tools.set(name, handler);
+        _toolCapabilities.set(name, capabilities);
         _dynamicTools.add(name);
         invalidateSchemaCache(); // Invalidate cache when tools change
 
@@ -326,6 +342,7 @@ const ToolRunner = {
     const unloadDynamicTools = () => {
       for (const name of _dynamicTools) {
         _tools.delete(name);
+        _toolCapabilities.delete(name);
         SchemaRegistry.unregisterToolSchema(name);
       }
       _dynamicTools.clear();
@@ -534,7 +551,7 @@ const ToolRunner = {
             load: loadToolByName,
             loadPath: loadToolPath
           }
-        }, getBootMode(), name);
+        }, getBootMode(), name, { capabilities: _toolCapabilities.get(name) });
         let result = await toolFn(args, toolDeps);
 
         // Validate tool output if SchemaValidator is available and enabled

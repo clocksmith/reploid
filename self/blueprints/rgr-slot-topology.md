@@ -23,7 +23,7 @@ Ring slots can be local or remote.
 ## Root Route Policy
 
 - `/` is the product path.
-- `/0` and `/x` remain lab paths.
+- `/zero` and `/x` remain lab paths.
 - Root boot must stay compact: identity, executor state, ring topology, objective, awaken.
 - Root boot must not require local inference. Remote slots are a valid awaken state.
 - Root boot must not expose dashboards, arenas, GEPA, or full VFS controls by default.
@@ -77,7 +77,7 @@ Feature ideas without this evidence are only ideas, not Shadow RSI results.
 
 ## Served Contract
 
-The server must route `/`, `/0`, and `/x` to `self/index.html`.
+The server must route `/`, `/zero`, and `/x` to `self/index.html`.
 
 The root title must identify the served experience as `Reploid`.
 
@@ -95,7 +95,7 @@ A root route change is valid only if:
 - the boot UI still awakens with remote slots and no local inference
 - the runtime still receives the kernel prompt, Blueprint `0x000112`, and this support blueprint in bootstrap context
 - `ReadFile` can read those files from the awakened self
-- `/0` and `/x` still route to their lab modes
+- `/zero` and `/x` still route to their lab modes
 - the product model remains: ring slots can be local or remote
 
 *Last updated: May 2026*

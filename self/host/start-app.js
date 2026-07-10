@@ -5,7 +5,8 @@
 import Utils from '../core/utils.js';
 import { SELF_BOOT_SPEC, toSourceWebPath } from '../boot-spec.js';
 import { getRuntimeUiSpecByMode } from '../lab/profiles.js';
-import { rotateIdentityBundle } from '../identity.js';
+import { buildDefaultLocalDopplerModelConfig } from '../config/doppler-local-models.js';
+import { ZERO_GEMINI_AGENT_THROTTLE } from '../config/zero-inference.js';
 import {
   clearRequestedFreshIdentity,
   getCurrentReploidInstanceLabel,
@@ -13,7 +14,6 @@ import {
   getCurrentReploidStorage as getReploidStorage,
   hasRequestedFreshIdentity
 } from '../instance.js';
-import { ZERO_GEMINI_AGENT_THROTTLE } from '../ui/boot-wizard/zero-function.js';
 
 let sharedBootModulesPromise = null;
 let reploidModulesPromise = null;
@@ -502,13 +502,11 @@ async function completeAwaken(bootResult, goal, wizardContainer) {
     let models = parseModels();
 
     if (models.length === 0 && navigator.gpu) {
-      models = [{
-        id: 'smollm2-360m',
-        name: 'SmolLM2 360M (Auto)',
-        provider: 'doppler',
-        hostType: 'browser-local'
-      }];
-      logger.info('[Boot] Auto-selected: ' + models[0].name);
+      const defaultModel = buildDefaultLocalDopplerModelConfig();
+      models = defaultModel ? [defaultModel] : [];
+      if (models[0]) {
+        logger.info('[Boot] Auto-selected: ' + models[0].name);
+      }
     }
 
     if (models.length > 0) {
@@ -562,13 +560,11 @@ async function completeReploidAwaken(goal, wizardContainer) {
   let models = parseModels();
   const hasExplicitModelConfig = Object.prototype.hasOwnProperty.call(awakenInput, 'modelConfig');
   if (!hasExplicitModelConfig && models.length === 0 && navigator.gpu) {
-    models = [{
-      id: 'smollm2-360m',
-      name: 'SmolLM2 360M (Auto)',
-      provider: 'doppler',
-      hostType: 'browser-local'
-    }];
-    logger.info('[Reploid] Auto-selected: ' + models[0].name);
+    const defaultModel = buildDefaultLocalDopplerModelConfig();
+    models = defaultModel ? [defaultModel] : [];
+    if (models[0]) {
+      logger.info('[Reploid] Auto-selected: ' + models[0].name);
+    }
   }
 
   const modelConfig = hasExplicitModelConfig ? awakenInput.modelConfig : (models[0] || null);
@@ -718,6 +714,12 @@ async function completeReploidAwaken(goal, wizardContainer) {
           loadReploidModules().catch((err) => {
             console.warn('[Boot] Failed to prewarm Reploid modules:', err?.message || err);
           });
+        } else if (runtimeMode === 'zero' || routeMode === 'zero') {
+          const { initZeroBootHome } = await import(withQuery('/ui/zero-home/index.js', getCurrentReploidPeerQuery()));
+          initZeroBootHome(wizardContainer);
+          loadSharedBootModules().catch((err) => {
+            console.warn('[Boot] Failed to prewarm shared boot modules:', err?.message || err);
+          });
         } else {
           const { initLockedBootHome } = await import(withQuery('/ui/boot-home/index.js', getCurrentReploidPeerQuery()));
           initLockedBootHome(wizardContainer, routeMode || runtimeMode);
@@ -737,6 +739,7 @@ async function completeReploidAwaken(goal, wizardContainer) {
         return runtime.rotateIdentity(options);
       }
 
+      const { rotateIdentityBundle } = await import('../identity.js');
       return rotateIdentityBundle({
         ...options,
         instanceId: getCurrentReploidInstanceLabel(),

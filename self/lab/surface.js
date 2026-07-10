@@ -2,9 +2,9 @@
  * @fileoverview Shared helpers for defining lab profiles as explicit extensions.
  */
 
-const freezeArray = (items = []) => Object.freeze([...items]);
+import { extendIds, freezeArray } from '../config/immutability.js';
 
-export const extendIds = (...groups) => Object.freeze([...new Set(groups.flat())]);
+export { extendIds, freezeArray };
 
 export const defineLabProfile = (profile) => Object.freeze({
   ...profile,

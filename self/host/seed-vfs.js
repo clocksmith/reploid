@@ -534,7 +534,12 @@ const ensureVfsVersion = async () => {
 
 const shouldPreserveBootVfs = ({ bootProfile, vfsReset }) => {
   if (vfsReset) return false;
-  if (bootProfile === 'reploid_home' || bootProfile === 'substrate_console') return true;
+  if (
+    bootProfile === 'reploid_home'
+    || bootProfile === 'substrate_console'
+    || bootProfile === 'zero_home'
+    || bootProfile === 'x_home'
+  ) return true;
   return getScopedLocalStorage().getItem('REPLOID_PRESERVE_ON_BOOT') === 'true';
 };
 

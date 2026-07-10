@@ -52,7 +52,7 @@ const createMockSchemaRegistry = () => ({
   unregisterToolSchema: vi.fn()
 });
 
-import ToolRunnerModule, { filterToolDepsForMode } from '../../core/tool-runner.js';
+import ToolRunnerModule, { filterToolDepsForMode, filterToolDepsForTool } from '../../core/tool-runner.js';
 
 describe('ToolRunner', () => {
   let toolRunner;
@@ -100,6 +100,43 @@ describe('ToolRunner', () => {
         ToolRunner: {}
       });
       expect(filterToolDepsForMode(deps, 'x')).toBe(deps);
+    });
+
+    it('gives Zero-created tools read-only deps until capabilities are declared', () => {
+      const deps = {
+        VFS: {
+          read: vi.fn(),
+          list: vi.fn(),
+          exists: vi.fn(),
+          write: vi.fn()
+        },
+        ToolRunner: {
+          list: vi.fn(),
+          execute: vi.fn(),
+          has: vi.fn(),
+          refresh: vi.fn(),
+          allow: vi.fn(),
+          load: vi.fn(),
+          loadPath: vi.fn()
+        },
+        Shell: {},
+        gitTools: {}
+      };
+
+      const readonly = filterToolDepsForTool(deps, 'zero', 'CreatedReader');
+      expect(readonly.Shell).toBeUndefined();
+      expect(readonly.gitTools).toBeUndefined();
+      expect(typeof readonly.VFS.read).toBe('function');
+      expect(readonly.VFS.write).toBeUndefined();
+      expect(readonly.ToolRunner.execute).toBe(deps.ToolRunner.execute);
+      expect(readonly.ToolRunner.loadPath).toBeUndefined();
+
+      const writer = filterToolDepsForTool(deps, 'zero', 'CreatedWriter', {
+        capabilities: ['vfs:write', 'tool:load']
+      });
+      expect(writer.VFS).toBe(deps.VFS);
+      expect(writer.ToolRunner.loadPath).toBe(deps.ToolRunner.loadPath);
+      expect(writer.ToolRunner.refresh).toBe(deps.ToolRunner.refresh);
     });
   });
 
@@ -231,6 +268,7 @@ describe('ToolRunner', () => {
           '/tools/git.js',
           '/tools/ListTools.js',
           '/tools/CreateTool.js',
+          '/tools/LoadModule.js',
           '/tools/Promote.js'
         ]);
       });
@@ -289,7 +327,40 @@ describe('ToolRunner', () => {
         ]);
       });
 
-      it('should not load Promote for the Zero tool surface', async () => {
+      it('should keep only CreateTool in the Zero kernel without SubstrateLoader', async () => {
+        global.window = {
+          getReploidMode: () => 'zero'
+        };
+        const runnerWithoutLoader = ToolRunnerModule.factory({
+          Utils: mockUtils,
+          VFS: mockVFS,
+          ToolWriter: mockToolWriter,
+          SchemaRegistry: mockSchemaRegistry
+        });
+        mockVFS.list.mockResolvedValue([
+          '/tools/ReadFile.js',
+          '/tools/WriteFile.js',
+          '/tools/EditFile.js',
+          '/tools/ListFiles.js',
+          '/tools/Grep.js',
+          '/tools/ListTools.js',
+          '/tools/CreateTool.js',
+          '/tools/LoadModule.js',
+          '/tools/Promote.js'
+        ]);
+        mockVFS.read.mockResolvedValue('export default async () => "ok";');
+        global.URL.createObjectURL = vi.fn(() => 'blob:mock-url');
+        global.URL.revokeObjectURL = vi.fn();
+
+        await runnerWithoutLoader.init();
+
+        expect(runnerWithoutLoader.list()).toEqual(['CreateTool']);
+        expect(runnerWithoutLoader.list()).not.toContain('ReadFile');
+        expect(runnerWithoutLoader.list()).not.toContain('LoadModule');
+        expect(runnerWithoutLoader.list()).not.toContain('Promote');
+      });
+
+      it('should not load non-seed file tools for the Zero tool surface', async () => {
         global.window = {
           getReploidMode: () => 'zero'
         };
@@ -318,15 +389,11 @@ describe('ToolRunner', () => {
         await zeroRunner.init();
 
         expect(mockVFS.read.mock.calls.map(([path]) => path)).toEqual([
-          '/tools/ReadFile.js',
-          '/tools/WriteFile.js',
-          '/tools/EditFile.js',
-          '/tools/ListFiles.js',
-          '/tools/Grep.js',
-          '/tools/ListTools.js',
-          '/tools/CreateTool.js',
-          '/tools/LoadModule.js'
+          '/tools/CreateTool.js'
         ]);
+        expect(zeroRunner.list()).toEqual(['CreateTool']);
+        expect(zeroRunner.list()).not.toContain('ReadFile');
+        expect(zeroRunner.list()).not.toContain('LoadModule');
         expect(zeroRunner.list()).not.toContain('Promote');
       });
     });

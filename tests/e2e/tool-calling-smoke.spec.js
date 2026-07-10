@@ -34,6 +34,47 @@ test.describe('tool calling smoke', () => {
       await bootRouteWithServiceWorker(page, routeCase.route, instanceId);
       await awakenWithoutGoal(page);
 
+      if (routeCase.route === '/zero') {
+        const initialTools = await page.evaluate(() => window.REPLOID.toolRunner.list());
+        expect(initialTools).toEqual(['CreateTool']);
+        for (const toolName of routeCase.requiredTools) {
+          expect(initialTools, `${routeCase.route} tool ${toolName}`).toContain(toolName);
+        }
+        for (const toolName of routeCase.forbiddenTools) {
+          expect(initialTools, `${routeCase.route} forbidden tool ${toolName}`).not.toContain(toolName);
+        }
+
+        const readBeforeCreate = await executeToolResult(page, 'ReadFile', { path: '/self/boot-spec.js' });
+        expect(readBeforeCreate.ok).toBe(false);
+        expect(readBeforeCreate.message).toMatch(/Tool (not found|not available)/);
+
+        const createTool = await executeToolResult(page, 'CreateTool', {
+          name: 'ContractProbeTool',
+          code: toolCandidateCode
+        });
+        expect(createTool.ok).toBe(true);
+        expect(createTool.value).toMatchObject({
+          success: true,
+          name: 'ContractProbeTool',
+          path: '/shadow/tools/ContractProbeTool.js',
+          staged: true,
+          activated: true,
+          targetPath: '/self/tools/ContractProbeTool.js',
+          validationPassed: true,
+          toolLoaded: true
+        });
+
+        const probeRun = await executeToolResult(page, 'ContractProbeTool', {});
+        expect(probeRun).toMatchObject({
+          ok: true,
+          value: { ok: true }
+        });
+
+        const afterCreate = await page.evaluate(() => window.REPLOID.toolRunner.list());
+        expect(afterCreate).toEqual(expect.arrayContaining(['CreateTool', 'ContractProbeTool']));
+        return;
+      }
+
       const listed = await executeToolResult(page, 'ListTools');
       expect(listed.ok).toBe(true);
       for (const toolName of routeCase.requiredTools) {

@@ -62,7 +62,8 @@ import {
   ZERO_GEMINI_PROVIDER,
   buildZeroGeminiProxyConfig,
   isZeroGeminiFunctionServer
-} from './zero-function.js';
+} from '../../config/zero-inference.js';
+import { DEFAULT_DOPPLER_MODEL_ID } from '../../config/doppler-local-models.js';
 
 // DOM container reference
 let container = null;
@@ -347,7 +348,7 @@ function autoSelectConnectionType() {
       hydrateSavedConfig(savedConfig);
     } else if (choice === 'browser') {
       setState({ connectionType: 'browser' });
-      setNestedState('dopplerConfig', { model: 'smollm2-360m' });
+      setNestedState('dopplerConfig', { model: DEFAULT_DOPPLER_MODEL_ID });
     }
   }
 }
@@ -919,7 +920,7 @@ async function handleClick(e) {
     case 'choose-browser':
       setState({ connectionType: 'browser' });
       if (!getState().dopplerConfig?.model) {
-        setNestedState('dopplerConfig', { model: 'smollm2-360m' });
+        setNestedState('dopplerConfig', { model: DEFAULT_DOPPLER_MODEL_ID });
       }
       break;
 

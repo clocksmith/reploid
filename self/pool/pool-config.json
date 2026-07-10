@@ -144,15 +144,15 @@
           "whenMissingWebGpuFeatures": [
             "shader-f16"
           ],
-          "runtime": "doppler-gpu@0.4.6",
+          "runtime": "doppler-gpu@0.4.7",
           "transform": "widenToF32Activations",
           "prefillProjectionKernel": "fused_matmul_q4_batched_multicol_shared.wgsl",
           "kvDtype": "f32",
           "status": "supported"
         }
       ],
-      "fallbackStatus": "doppler_0_4_6_manifest_capability_remap",
-      "capabilityAction": "Use doppler-gpu@0.4.6 or newer with capability-aware kernelPathPolicy; browsers without shader-f16 run the declared f32 fallback lane."
+      "fallbackStatus": "doppler_0_4_7_manifest_capability_remap",
+      "capabilityAction": "Use doppler-gpu@0.4.7 or newer with capability-aware kernelPathPolicy; browsers without shader-f16 run the declared f32 fallback lane."
     },
     "label": "Qwen 3.5 0.8B",
     "enabled": true
@@ -167,8 +167,8 @@
     "useChatTemplate": false
   },
   "browserRuntime": {
-    "dopplerModuleUrl": "https://esm.sh/doppler-gpu@0.4.6/src/client/doppler-api.browser.js?bundle",
-    "dopplerKernelBaseUrl": "https://esm.sh/doppler-gpu@0.4.6/src/gpu/kernels",
+    "dopplerModuleUrl": "https://esm.sh/doppler-gpu@0.4.7/src/client/doppler-api.browser.js?bundle",
+    "dopplerKernelBaseUrl": "https://esm.sh/doppler-gpu@0.4.7/src/gpu/kernels",
     "modelBaseUrl": "https://reploid.web.app/models",
     "loadOptions": {
       "cache": "opfs",
@@ -864,15 +864,15 @@
             "whenMissingWebGpuFeatures": [
               "shader-f16"
             ],
-            "runtime": "doppler-gpu@0.4.6",
+            "runtime": "doppler-gpu@0.4.7",
             "transform": "widenToF32Activations",
             "prefillProjectionKernel": "fused_matmul_q4_batched_multicol_shared.wgsl",
             "kvDtype": "f32",
             "status": "supported"
           }
         ],
-        "fallbackStatus": "doppler_0_4_6_manifest_capability_remap",
-        "capabilityAction": "Use doppler-gpu@0.4.6 or newer with capability-aware kernelPathPolicy; browsers without shader-f16 run the declared f32 fallback lane."
+        "fallbackStatus": "doppler_0_4_7_manifest_capability_remap",
+        "capabilityAction": "Use doppler-gpu@0.4.7 or newer with capability-aware kernelPathPolicy; browsers without shader-f16 run the declared f32 fallback lane."
       },
       "label": "Qwen 3.5 0.8B",
       "enabled": true
@@ -930,7 +930,7 @@
       },
       "runtimeCompatibility": {
         "requiredWebGpuFeatures": [],
-        "fallbackStatus": "doppler_0_4_6_embedding_q4_browser_node_verified",
+        "fallbackStatus": "doppler_0_4_7_embedding_q4_browser_node_verified",
         "verificationEvidence": [
           "reports/release-claims/qwen-3-embedding-0-6b-q4k-ehf16-af32/2026-07-05T16-24-38.048Z.node.json",
           "reports/release-claims/qwen-3-embedding-0-6b-q4k-ehf16-af32/2026-07-05T16-26-35.664Z.browser.json"

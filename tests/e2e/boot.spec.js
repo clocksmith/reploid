@@ -3,6 +3,7 @@
  * Covers the current wizard homepage and product mode switch.
  */
 import { test, expect } from '@playwright/test';
+import { DEFAULT_DOPPLER_MODEL_ID } from '../../self/config/doppler-local-models.js';
 
 const APP_PATH = '/index.html';
 const HOME_PATH = '/index.html?profile=reploid-home';
@@ -22,7 +23,7 @@ async function openHome(page) {
 async function unlockGoalSection(page) {
   await openBoot(page);
   await page.click('[data-action="choose-browser"]');
-  await page.click('[data-model="smollm2-360m"]');
+  await page.click(`[data-model="${DEFAULT_DOPPLER_MODEL_ID}"]`);
   await expect(page.locator('#goal-input')).toBeVisible();
 }
 
@@ -63,7 +64,7 @@ test.describe('Boot Screen', () => {
 
     await expect(page.locator('.boot-mode-btn.selected[data-mode="reploid"] .boot-mode-label')).toContainText('Reploid');
     await page.click('[data-action="choose-browser"]');
-    await page.click('[data-model="smollm2-360m"]');
+    await page.click(`[data-model="${DEFAULT_DOPPLER_MODEL_ID}"]`);
     await page.locator('#goal-input').fill('Verify default mode mapping');
     await page.click('[data-action="advanced-settings"]');
     await expect(page.locator('#advanced-genesis-level')).toHaveValue('capsule');
@@ -568,13 +569,13 @@ test.describe('Route Entry Points', () => {
     await expect(page.locator('[data-action="choose-proxy"]')).toHaveAttribute('aria-pressed', 'true');
     await expect(page.locator('[data-action="choose-browser"]')).toBeVisible();
     await expect(page.locator('[data-action="choose-direct"]')).toHaveCount(0);
-    await expect(page.locator('.wizard-proxy .type-h1')).toHaveText('Server proxy');
+    await expect(page.locator('.wizard-proxy-config .type-h1')).toHaveText('Server proxy');
     await expect(page.locator('#proxy-url')).toHaveValue(/\/zero\/gemini$/);
-    await expect(page.locator('#proxy-provider')).toHaveValue('gemini');
     await expect(page.locator('#proxy-model')).toHaveValue('gemini-3.1-flash-lite');
+    await expect(page.locator('.wizard-proxy-config')).toContainText('gemini through firebase-function');
     await expect(page.locator('#goal-input')).toBeVisible();
     await page.locator('#goal-input').fill('');
-    await page.locator('[data-action="generate-goal"]').click();
+    await page.locator('[data-action="shuffle-goal"]').click();
     await expect(page.locator('#goal-input')).not.toHaveValue('');
     await expect(page.locator('#goal-input')).not.toHaveValue('[object Object]');
     await expect(page.locator('#awaken-btn')).toBeEnabled();
@@ -606,11 +607,20 @@ test.describe('Route Entry Points', () => {
 
     const resolvedServices = await page.evaluate(async () => {
       const container = window.REPLOID?.container;
-      const names = ['ContextManager', 'PersonaManager', 'CircuitBreaker', 'ToolWriter', 'SubstrateLoader'];
+      const names = [
+        'ContextManager',
+        'PersonaManager',
+        'CircuitBreaker',
+        'ToolWriter',
+        'DopplerToolbox',
+        'ErrorStore',
+        'SubstrateLoader',
+        'TelemetryTimeline'
+      ];
       const results = {};
       for (const name of names) {
         try {
-          results[name] = !!(await container.resolve(name));
+          results[name] = container.hasModule(name) && !!(await container.resolve(name));
         } catch (error) {
           results[name] = error?.message || String(error);
         }
@@ -628,18 +638,19 @@ test.describe('Route Entry Points', () => {
     expect(resolvedServices.PersonaManager).toBe(true);
     expect(resolvedServices.CircuitBreaker).toBe(true);
     expect(resolvedServices.ToolWriter).toBe(true);
-    expect(resolvedServices.SubstrateLoader).toBe(true);
-    expect(resolvedServices.tools).toEqual(expect.arrayContaining([
+    expect(resolvedServices.DopplerToolbox).toBe(false);
+    expect(resolvedServices.ErrorStore).toBe(false);
+    expect(resolvedServices.SubstrateLoader).toBe(false);
+    expect(resolvedServices.TelemetryTimeline).toBe(false);
+    expect(resolvedServices.tools).toEqual(['CreateTool']);
+    expect(resolvedServices.tools).not.toEqual(expect.arrayContaining([
       'ReadFile',
       'WriteFile',
       'EditFile',
       'ListFiles',
       'Grep',
       'ListTools',
-      'CreateTool',
-      'LoadModule'
-    ]));
-    expect(resolvedServices.tools).not.toEqual(expect.arrayContaining([
+      'LoadModule',
       'Promote'
     ]));
     expect(resolvedServices.tools).not.toEqual(expect.arrayContaining([
@@ -668,32 +679,16 @@ export default async function(args) {
   return { echo: args.value || '' };
 }
 `;
-      const loadCode = `
-export const tool = {
-  name: 'LoadedProbe',
-  description: 'E2E loaded self tool',
-  inputSchema: { type: 'object', properties: { value: { type: 'string' } } }
-};
-
-export default async function(args) {
-  return { loaded: args.value || '' };
-}
-`;
       const created = await toolRunner.execute('CreateTool', {
         name: 'EchoProbe',
         code: createCode
       });
       const hasEchoAfterCreate = toolRunner.list().includes('EchoProbe');
       const echoResult = await toolRunner.execute('EchoProbe', { value: 'zero' });
-      await vfs.write('/self/tools/LoadedProbe.js', loadCode);
-      const loaded = await toolRunner.execute('LoadModule', { path: '/self/tools/LoadedProbe.js' });
-      const loadedResult = await toolRunner.execute('LoadedProbe', { value: 'self' });
       return {
         created,
         hasEchoAfterCreate,
         echoResult,
-        loaded,
-        loadedResult,
         tools: toolRunner.list(),
         hasZeroSelfUi: await vfs.exists('/self/ui/zero/index.js'),
         hasZeroSelfStyles: await vfs.exists('/self/styles/zero.css')
@@ -711,9 +706,8 @@ export default async function(args) {
     });
     expect(liveToolResult.hasEchoAfterCreate).toBe(true);
     expect(liveToolResult.echoResult).toEqual({ echo: 'zero' });
-    expect(liveToolResult.loadedResult).toEqual({ loaded: 'self' });
     expect(liveToolResult.tools).toContain('EchoProbe');
-    expect(liveToolResult.tools).toContain('LoadedProbe');
+    expect(liveToolResult.tools).not.toContain('LoadedProbe');
     expect(liveToolResult.hasZeroSelfUi).toBe(true);
     expect(liveToolResult.hasZeroSelfStyles).toBe(true);
     expect(selfVfsMisses).toEqual([]);
@@ -1003,7 +997,7 @@ test.describe('Advanced Mapping', () => {
 
     await page.click('.boot-mode-btn[data-mode="x"]');
     await page.click('[data-action="choose-browser"]');
-    await page.click('[data-model="smollm2-360m"]');
+    await page.click(`[data-model="${DEFAULT_DOPPLER_MODEL_ID}"]`);
     await page.locator('#goal-input').fill('Boot into X');
     await page.click('[data-action="advanced-settings"]');
     await expect(page.locator('#advanced-genesis-level')).toHaveValue('full');
@@ -1026,7 +1020,7 @@ test.describe('Goal Input', () => {
     }
 
     await page.click('[data-action="choose-browser"]');
-    await page.click('[data-model="smollm2-360m"]');
+    await page.click(`[data-model="${DEFAULT_DOPPLER_MODEL_ID}"]`);
     await expect(goalInput).toBeVisible();
   });
 

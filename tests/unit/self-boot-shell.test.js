@@ -70,6 +70,8 @@ describe('self-first boot shell', () => {
     expect(seedVfs).toContain("headers: { [VFS_BYPASS_HEADER]: '1' }");
     expect(seedVfs).toContain('releaseBootServiceWorkers');
     expect(seedVfs).toContain('REPLOID_NETWORK_VERSION_RELOAD');
+    expect(seedVfs).toContain("bootProfile === 'zero_home'");
+    expect(seedVfs).toContain("bootProfile === 'x_home'");
   });
 
   it('stops boot backgrounds through declared browser globals only', () => {
@@ -80,6 +82,14 @@ describe('self-first boot shell', () => {
     expect(startApp).toContain('window.stopParticleBg');
     expect(startApp).not.toContain('if (stopParticleBg)');
     expect(startApp.replaceAll('window.stopParticleBg', '')).not.toContain('stopParticleBg = null');
+  });
+
+  it('routes Zero through a dedicated shell without statically importing identity', () => {
+    const startApp = readRepoFile('self/host/start-app.js');
+
+    expect(startApp).toContain("'/ui/zero-home/index.js'");
+    expect(startApp).toContain("await import('../identity.js')");
+    expect(startApp).not.toContain("import { rotateIdentityBundle } from '../identity.js'");
   });
 
   it('does not invalidate service worker modules for non-module VFS logs', () => {
@@ -105,7 +115,7 @@ describe('self-first boot shell', () => {
   });
 
   it('mirrors the active locked-route runtime UI before awaken', () => {
-    const bootHome = readRepoFile('self/ui/boot-home/index.js');
+    const bootHome = readRepoFile('self/ui/zero-home/index.js');
 
     expect(bootHome).toContain('getRuntimeSelfMirrorsByBootProfile(bootProfile');
     expect(bootHome).not.toContain("getRuntimeSelfMirrorsByBootProfile('zero_home'");
