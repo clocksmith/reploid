@@ -2,6 +2,28 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import CreateTool from '../../../self/tools/CreateTool.js';
 
+const VALID_CODE = `export const tool = {
+  name: 'KatamariEngine',
+  activation: {
+    checks: [
+      {
+        name: 'echoes activation input',
+        args: { value: 'activation' },
+        expected: { value: 'activation' }
+      }
+    ]
+  }
+};
+
+export default async function(args) {
+  return args;
+}`;
+
+const getWrittenEvidence = (deps) => {
+  const call = deps.VFS.write.mock.calls.find(([path]) => path === '/artifacts/KatamariEngine-evidence.json');
+  return call ? JSON.parse(call[1]) : null;
+};
+
 const makeDeps = () => ({
   ToolWriter: {
     create: vi.fn().mockResolvedValue({
@@ -14,12 +36,14 @@ const makeDeps = () => ({
     })
   },
   VFS: {
-    read: vi.fn().mockResolvedValue('export default async function(args) { return args; }'),
+    read: vi.fn().mockResolvedValue(VALID_CODE),
     write: vi.fn().mockResolvedValue(true),
+    delete: vi.fn().mockResolvedValue(true),
     exists: vi.fn().mockResolvedValue(false)
   },
   ToolRunner: {
-    loadPath: vi.fn().mockResolvedValue(true)
+    loadPath: vi.fn().mockResolvedValue(true),
+    unload: vi.fn().mockResolvedValue(true)
   },
   EventBus: {
     emit: vi.fn()
@@ -31,6 +55,7 @@ const makeDeps = () => ({
 
 describe('CreateTool', () => {
   afterEach(() => {
+    delete globalThis.__reploidCreateToolReplayProbe;
     vi.unstubAllGlobals();
   });
 
@@ -42,18 +67,18 @@ describe('CreateTool', () => {
 
     const result = await CreateTool({
       name: 'KatamariEngine',
-      code: 'export default async function(args) { return args; }'
+      code: VALID_CODE
     }, deps);
 
     expect(deps.ToolWriter.create).toHaveBeenCalledWith(
       'KatamariEngine',
-      'export default async function(args) { return args; }',
+      VALID_CODE,
       { root: '/shadow/tools', load: false }
     );
     expect(deps.VFS.read).toHaveBeenCalledWith('/shadow/tools/KatamariEngine.js');
     expect(deps.VFS.write).toHaveBeenCalledWith(
       '/artifacts/KatamariEngine-evidence.json',
-      expect.stringContaining('"schema": "reploid.zero.createToolEvidence.v2"')
+      expect.stringContaining('"schema": "reploid.zero.createToolEvidence.v3"')
     );
     expect(deps.VFS.write).toHaveBeenCalledWith(
       '/artifacts/KatamariEngine-evidence.json',
@@ -65,7 +90,7 @@ describe('CreateTool', () => {
     );
     expect(deps.VFS.write).toHaveBeenCalledWith(
       '/self/tools/KatamariEngine.js',
-      'export default async function(args) { return args; }'
+      VALID_CODE
     );
     expect(deps.ToolRunner.loadPath).toHaveBeenCalledWith(
       '/self/tools/KatamariEngine.js',
@@ -80,8 +105,194 @@ describe('CreateTool', () => {
       targetPath: '/self/tools/KatamariEngine.js',
       evidencePath: '/artifacts/KatamariEngine-evidence.json',
       validationPassed: true,
+      activationChecksPassed: true,
+      replayPassed: true,
       loaded: true,
       toolLoaded: true
+    });
+    expect(getWrittenEvidence(deps)).toMatchObject({
+      validationPassed: true,
+      activationChecksPassed: true,
+      replayPassed: true,
+      activated: true,
+      checks: {
+        validation: {
+          moduleImported: true,
+          activationContractValid: true,
+          activationCheckCount: 1
+        },
+        activation: {
+          executed: true,
+          declaredChecksPassed: true,
+          installedBytesMatch: true,
+          runtimeLoaded: true,
+          passed: true
+        },
+        replay: {
+          executed: true,
+          matchesActivationTranscript: true,
+          passed: true
+        }
+      },
+      failure: null
+    });
+  });
+
+  it('rejects a callable candidate whose activation check fails', async () => {
+    vi.stubGlobal('window', {
+      getReploidMode: () => 'zero'
+    });
+    const code = `export const tool = {
+  name: 'KatamariEngine',
+  activation: {
+    checks: [{ name: 'reports success', args: {}, expected: { ok: true } }]
+  }
+};
+
+export default async function() {
+  return { ok: false };
+}`;
+    const deps = makeDeps();
+    deps.VFS.read.mockResolvedValue(code);
+
+    await expect(CreateTool({ name: 'KatamariEngine', code }, deps))
+      .rejects.toThrow('activation check reports success failed');
+
+    expect(deps.VFS.write).not.toHaveBeenCalledWith('/self/tools/KatamariEngine.js', code);
+    expect(deps.ToolRunner.loadPath).not.toHaveBeenCalled();
+    expect(getWrittenEvidence(deps)).toMatchObject({
+      validationPassed: true,
+      activationChecksPassed: false,
+      replayPassed: false,
+      activated: false,
+      failure: {
+        stage: 'activation_checks'
+      },
+      checks: {
+        activation: {
+          executed: true,
+          declaredChecksPassed: false
+        },
+        replay: {
+          executed: false
+        }
+      }
+    });
+  });
+
+  it('rejects an import-only callable without an activation contract', async () => {
+    vi.stubGlobal('window', {
+      getReploidMode: () => 'zero'
+    });
+    const code = 'export default async function(args) { return args; }';
+    const deps = makeDeps();
+    deps.VFS.read.mockResolvedValue(code);
+
+    await expect(CreateTool({ name: 'KatamariEngine', code }, deps))
+      .rejects.toThrow('must declare tool.activation');
+
+    expect(deps.VFS.write).not.toHaveBeenCalledWith('/self/tools/KatamariEngine.js', code);
+    expect(deps.ToolRunner.loadPath).not.toHaveBeenCalled();
+    expect(getWrittenEvidence(deps)).toMatchObject({
+      validationPassed: false,
+      activationChecksPassed: false,
+      replayPassed: false,
+      activated: false,
+      failure: {
+        stage: 'validation'
+      },
+      checks: {
+        validation: {
+          executed: true,
+          passed: false
+        },
+        activation: {
+          executed: false
+        },
+        replay: {
+          executed: false
+        }
+      }
+    });
+  });
+
+  it('rejects a candidate whose replay transcript differs', async () => {
+    vi.stubGlobal('window', {
+      getReploidMode: () => 'zero'
+    });
+    const code = `export const tool = {
+  name: 'KatamariEngine',
+  activation: {
+    checks: [{ name: 'runs successfully', args: {}, expected: { ok: true } }]
+  }
+};
+
+export default async function() {
+  globalThis.__reploidCreateToolReplayProbe = (globalThis.__reploidCreateToolReplayProbe || 0) + 1;
+  return { ok: true, run: globalThis.__reploidCreateToolReplayProbe };
+}`;
+    const deps = makeDeps();
+    deps.VFS.read.mockResolvedValue(code);
+
+    await expect(CreateTool({ name: 'KatamariEngine', code }, deps))
+      .rejects.toThrow('replay failed');
+
+    expect(deps.VFS.write).not.toHaveBeenCalledWith('/self/tools/KatamariEngine.js', code);
+    expect(deps.ToolRunner.loadPath).not.toHaveBeenCalled();
+    expect(getWrittenEvidence(deps)).toMatchObject({
+      validationPassed: true,
+      activationChecksPassed: false,
+      replayPassed: false,
+      activated: false,
+      failure: {
+        stage: 'replay'
+      },
+      checks: {
+        activation: {
+          executed: true,
+          declaredChecksPassed: true
+        },
+        replay: {
+          executed: true,
+          matchesActivationTranscript: false,
+          passed: false
+        }
+      }
+    });
+  });
+
+  it('removes the installed target when runtime loading fails', async () => {
+    vi.stubGlobal('window', {
+      getReploidMode: () => 'zero'
+    });
+    const deps = makeDeps();
+    deps.ToolRunner.loadPath.mockResolvedValue(false);
+
+    await expect(CreateTool({ name: 'KatamariEngine', code: VALID_CODE }, deps))
+      .rejects.toThrow('failed to load');
+
+    expect(deps.VFS.write).toHaveBeenCalledWith('/self/tools/KatamariEngine.js', VALID_CODE);
+    expect(deps.ToolRunner.unload).toHaveBeenCalledWith('KatamariEngine');
+    expect(deps.VFS.delete).toHaveBeenCalledWith('/self/tools/KatamariEngine.js');
+    expect(getWrittenEvidence(deps)).toMatchObject({
+      validationPassed: true,
+      activationChecksPassed: false,
+      replayPassed: true,
+      activated: false,
+      failure: {
+        stage: 'runtime_load'
+      },
+      checks: {
+        activation: {
+          declaredChecksPassed: true,
+          installedBytesMatch: true,
+          runtimeLoaded: false,
+          passed: false
+        },
+        replay: {
+          passed: true
+        }
+      }
     });
   });
 
@@ -93,7 +304,7 @@ describe('CreateTool', () => {
 
     const result = await CreateTool({
       name: 'KatamariEngine',
-      code: 'export default async function(args) { return args; }'
+      code: VALID_CODE
     }, deps);
 
     expect(deps.VFS.write).not.toHaveBeenCalled();
@@ -120,7 +331,7 @@ describe('CreateTool', () => {
 
     const result = await CreateTool({
       name: 'Promote',
-      code: 'export default async function(args) { return args; }'
+      code: VALID_CODE
     }, deps);
 
     expect(deps.VFS.read).not.toHaveBeenCalled();
@@ -155,7 +366,7 @@ describe('CreateTool', () => {
 
     await expect(CreateTool({
       name: 'KatamariEngine',
-      code: 'export default async function(args) { return args; }'
+      code: VALID_CODE
     }, deps)).rejects.toThrow('already exists');
 
     expect(deps.VFS.write).not.toHaveBeenCalled();

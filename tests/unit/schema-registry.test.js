@@ -36,8 +36,10 @@ describe('SchemaRegistry', () => {
   it('registers only CreateTool as a built-in Zero tool schema', async () => {
     const registry = await createRegistry('zero');
 
-    expect(registry.getToolSchema('CreateTool').description).toContain('validates the candidate');
-    expect(registry.getToolSchema('CreateTool').description).toContain('activation evidence');
+    expect(registry.getToolSchema('CreateTool').description).toContain('tool.activation');
+    expect(registry.getToolSchema('CreateTool').description).toContain('re-imports and replays');
+    expect(registry.getToolSchema('CreateTool').description).toContain('matching transcripts');
+    expect(registry.getToolSchema('CreateTool').description).toContain('evidence derived from those outcomes');
     expect(registry.getToolSchema('CreateTool').description).toContain('installs to /self/tools');
     expect(registry.getToolSchema('CreateTool').description).toContain('loads the tool');
     expect(registry.getToolSchema('CreateTool').description).toContain('capabilities');

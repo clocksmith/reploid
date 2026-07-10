@@ -63,7 +63,8 @@ export const filterToolDepsForTool = (deps = {}, mode = 'reploid', toolName = ''
     refresh: canLoadTools ? filtered.ToolRunner?.refresh : undefined,
     allow: canLoadTools ? filtered.ToolRunner?.allow : undefined,
     load: canLoadTools ? filtered.ToolRunner?.load : undefined,
-    loadPath: canLoadTools ? filtered.ToolRunner?.loadPath : undefined
+    loadPath: canLoadTools ? filtered.ToolRunner?.loadPath : undefined,
+    unload: canLoadTools ? filtered.ToolRunner?.unload : undefined
   };
   return filtered;
 };
@@ -261,6 +262,18 @@ const ToolRunner = {
       return true;
     };
 
+    const unloadTool = (name) => {
+      const cleanName = String(name || '').trim();
+      if (!cleanName) return false;
+      const existed = _tools.delete(cleanName);
+      _toolCapabilities.delete(cleanName);
+      _dynamicTools.delete(cleanName);
+      _runtimeAllowedTools.delete(cleanName);
+      SchemaRegistry.unregisterToolSchema(cleanName);
+      if (existed) invalidateSchemaCache();
+      return existed;
+    };
+
     const normalizeLoadPath = (rawPath) => {
       const value = String(rawPath || '').trim();
       if (!value) throw new Errors.ToolError('Missing tool module path');
@@ -333,10 +346,11 @@ const ToolRunner = {
       const cleanPath = normalizeLoadPath(path);
       assertInstallToolPath(cleanPath);
       const name = forcedName || cleanPath.split('/').pop()?.replace('.js', '');
-      if (options.allow && name) {
+      const loaded = await loadToolModule(cleanPath, forcedName, { throwOnError: true });
+      if (loaded && options.allow && name) {
         allowTool(name);
       }
-      return loadToolModule(cleanPath, forcedName, { throwOnError: true });
+      return loaded;
     };
 
     const unloadDynamicTools = () => {
@@ -549,7 +563,8 @@ const ToolRunner = {
             refresh: loadDynamicTools,
             allow: allowTool,
             load: loadToolByName,
-            loadPath: loadToolPath
+            loadPath: loadToolPath,
+            unload: unloadTool
           }
         }, getBootMode(), name, { capabilities: _toolCapabilities.get(name) });
         let result = await toolFn(args, toolDeps);
@@ -810,6 +825,7 @@ const ToolRunner = {
       allow: allowTool,
       load: loadToolByName,
       loadPath: loadToolPath,
+      unload: unloadTool,
       list: () => Array.from(_tools.keys()),
       listFiltered,
       has: (name) => _tools.has(name),

@@ -14,6 +14,9 @@ const toolCandidateCode = `
 export const tool = {
   name: 'ContractProbeTool',
   description: 'Contract probe',
+  activation: {
+    checks: [{ name: 'returns ok', args: {}, expected: { ok: true } }]
+  },
   inputSchema: { type: 'object', properties: {} }
 };
 
@@ -61,7 +64,32 @@ test.describe('tool calling smoke', () => {
           activated: true,
           targetPath: '/self/tools/ContractProbeTool.js',
           validationPassed: true,
+          activationChecksPassed: true,
+          replayPassed: true,
           toolLoaded: true
+        });
+
+        const activationEvidence = await page.evaluate(async () => {
+          const content = await window.REPLOID.vfs.read('/artifacts/ContractProbeTool-evidence.json');
+          return JSON.parse(content);
+        });
+        expect(activationEvidence).toMatchObject({
+          schema: 'reploid.zero.createToolEvidence.v3',
+          validationPassed: true,
+          activationChecksPassed: true,
+          replayPassed: true,
+          activated: true,
+          checks: {
+            activation: {
+              executed: true,
+              passed: true
+            },
+            replay: {
+              executed: true,
+              matchesActivationTranscript: true,
+              passed: true
+            }
+          }
         });
 
         const probeRun = await executeToolResult(page, 'ContractProbeTool', {});

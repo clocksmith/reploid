@@ -61,6 +61,8 @@ describe('PersonaManager', () => {
     expect(prompt).toContain('Start fresh filesystem discovery by using CreateTool to make a directory-aware reader or lister.');
     expect(prompt).toContain('If /blueprint-index.json is absent');
     expect(prompt).toContain('The Zero seed tool surface includes CreateTool.');
+    expect(prompt).toContain('tool.activation');
+    expect(prompt).toContain('requires matching transcripts');
     expect(prompt).toContain('vfs:write');
     expect(prompt).toContain('self:write');
     expect(prompt).not.toContain('/self/manifest.json');

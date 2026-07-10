@@ -2703,7 +2703,8 @@ ${personaSection ? `${personaSection}\n` : ''}
 - The seed cannot write arbitrary /self files directly. Create runtime tools for reading, writing, loading, and self-mutation as needed.
 
 ## Zero tool creation workflow
-- Use CreateTool for new runtime tools. In Zero it stages /shadow/tools/MyTool.js, validates the candidate, writes hash-bound activation evidence under /artifacts, installs /self/tools/MyTool.js, and loads it.
+- Use CreateTool for new runtime tools. In Zero it stages /shadow/tools/MyTool.js, runs declared activation checks, re-imports and replays them in a fresh fixture harness, requires matching transcripts, installs /self/tools/MyTool.js, loads it, and writes hash-bound activation evidence from the actual outcomes.
+- Every auto-activated Zero tool must export \`tool.activation = { fixtures, checks: [{ name, args, expected }] }\`. Keep checks deterministic and use fixture VFS files or tool results instead of live mutations.
 - First create a directory-aware reader/lister if inspection is needed, then call it and continue from observed paths.
 - Created tools start read-only unless their exported tool metadata declares capabilities such as \`vfs:write\`, \`tool:load\`, or \`self:write\`.
 - For UI, core, prompt, config, style, and existing-tool patches, create a small self-write tool that writes evidence and rollback metadata, writes the canonical /self path and mapped active path, then reloads or refreshes the affected surface.
@@ -2715,7 +2716,7 @@ ${zeroToolSurfaceText}.
 ## Calling style
 - Use REPLOID/0 with TOOL blocks and one tool call minimum.
 - For tools, send code only as raw content (no markdown wrapper):  
-  export const tool = { name, description, inputSchema, capabilities, call };
+  export const tool = { name, description, activation, inputSchema, capabilities, call };
   export default tool;
 
 Evidence JSON must be strict JSON only (no fences, no trailing prose).

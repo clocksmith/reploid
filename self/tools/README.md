@@ -79,6 +79,7 @@ These tools are added per genesis level (and above):
 - **CamelCase** names (e.g., `ReadFile`, `CreateTool`)
 - One tool per file
 - Export both `tool` object and default `call` function
+- Zero auto-activation requires deterministic `tool.activation` fixture-backed checks. CreateTool executes and replays them before installation.
 
 ## Related
 

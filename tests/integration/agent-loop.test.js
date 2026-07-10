@@ -271,7 +271,10 @@ describe('AgentLoop - Integration Tests', () => {
       expect(prompt).toContain('## Zero tool creation workflow');
       expect(prompt).toContain('Use CreateTool for new runtime tools.');
       expect(prompt).toContain('stages /shadow/tools/MyTool.js');
-      expect(prompt).toContain('validates the candidate');
+      expect(prompt).toContain('runs declared activation checks');
+      expect(prompt).toContain('re-imports and replays them');
+      expect(prompt).toContain('requires matching transcripts');
+      expect(prompt).toContain('tool.activation');
       expect(prompt).toContain('hash-bound activation evidence');
       expect(prompt).toContain('installs /self/tools/MyTool.js');
       expect(prompt).toContain('First create a directory-aware reader/lister');

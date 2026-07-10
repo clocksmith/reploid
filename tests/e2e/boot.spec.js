@@ -672,6 +672,13 @@ test.describe('Route Entry Points', () => {
 export const tool = {
   name: 'EchoProbe',
   description: 'E2E probe tool',
+  activation: {
+    checks: [{
+      name: 'echoes a value',
+      args: { value: 'activation' },
+      expected: { echo: 'activation' }
+    }]
+  },
   inputSchema: { type: 'object', properties: { value: { type: 'string' } } }
 };
 
@@ -702,6 +709,8 @@ export default async function(args) {
       staged: true,
       activated: true,
       targetPath: '/self/tools/EchoProbe.js',
+      activationChecksPassed: true,
+      replayPassed: true,
       toolLoaded: true
     });
     expect(liveToolResult.hasEchoAfterCreate).toBe(true);
