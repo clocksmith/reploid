@@ -154,11 +154,15 @@
 }
 
 .zero-trace {
+  width: 100%;
+  box-sizing: border-box;
   border-left: var(--border-sm) solid var(--fg);
   padding-left: var(--space-md);
 }
 
 .zero-trace-list {
+  width: 100%;
+  box-sizing: border-box;
   min-height: 0;
   flex: 1 1 auto;
   display: flex;
@@ -175,6 +179,9 @@
 }
 
 .zero-trace-entry {
+  width: 100%;
+  box-sizing: border-box;
+  min-width: 0;
   display: grid;
   gap: 4px;
   padding: var(--space-sm) 0 var(--space-sm) var(--space-sm);

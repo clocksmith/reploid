@@ -4,8 +4,8 @@
 
 const ZERO_GOAL_LIBRARY = Object.freeze([
   Object.freeze({
-    view: 'DOM Katamari',
-    text: 'Build a playable DOM katamari overlay in the current page/runtime area: use CreateTool to install and load it, scan buttons, cards, and forms into physics pickups, let the player roll a growing selector ball, export captures, and save an improvement log for the next run.'
+    view: 'Katamari DOM',
+    text: 'Build a playable Katamari-style DOM overlay: install and load it with CreateTool, mount a transparent full-screen layer over the current page, scan visible DOM nodes into physics pickups, let the player roll a growing ball to collect elements, then orbit, inspect, export robust selectors, and save selector-quality notes for the next self-improvement pass.'
   }),
   Object.freeze({
     view: 'Context Packet',

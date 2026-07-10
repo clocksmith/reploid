@@ -87,7 +87,7 @@ const ResponseParser = {
       const value = String(rawLine || '').trim();
       if (!value.startsWith('{')) return { matched: false, value: null, error: null };
       if (!value.endsWith('}')) {
-        return { matched: true, value: null, error: 'Invalid JSON argument object' };
+        return { matched: false, value: null, error: null };
       }
       try {
         const parsed = JSON.parse(value);
@@ -443,6 +443,26 @@ const ResponseParser = {
               }
               Object.assign(args, objectArgs.value);
               index++;
+              continue;
+            }
+
+            // Models commonly emit a pretty-printed JSON object immediately
+            // after TOOL:. Collect its lines before treating the opening `{`
+            // as a malformed one-line argument object.
+            if (nextLine.startsWith('{')) {
+              const objectLines = [nextLine];
+              index++;
+              while (index < lines.length && !isDirectiveBoundary(lines[index])) {
+                objectLines.push(lines[index].trim());
+                const candidate = parseObjectArgsLine(objectLines.join(' '));
+                if (candidate.matched && !candidate.error) {
+                  Object.assign(args, candidate.value);
+                  break;
+                }
+                index++;
+              }
+              const candidate = parseObjectArgsLine(objectLines.join(' '));
+              if (candidate.matched && candidate.error) error = candidate.error;
               continue;
             }
 

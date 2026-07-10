@@ -217,7 +217,7 @@ const GOAL_CATEGORIES = {
 const normalizeText = (value) => String(value || '').trim();
 
 const ZERO_GOAL_RAW_LIBRARY = Object.freeze([
-  { view: 'L1 DOM Katamari', level: 1, text: 'Build a playable DOM katamari overlay in the current page/runtime area: use CreateTool to install and load it, scan buttons, cards, and forms into physics pickups, let the player roll a growing selector ball, export captures, and save an improvement log for the next run.' },
+  { view: 'L1 DOM Katamari', level: 1, text: 'Build a playable Katamari-style DOM overlay: install and load it with CreateTool, mount a transparent full-screen layer over the current page, scan visible DOM nodes into physics pickups, let the player roll a growing ball to collect elements, then orbit, inspect, export robust selectors, and save selector-quality notes for the next self-improvement pass.' },
   { view: 'L1 DOM Aquarium', level: 1, text: 'Render DOM nodes as fish that swim by tag type, with hover bubbles showing selectors and roles.' },
   { view: 'L1 DOM Pinball', level: 1, text: 'Turn clickable elements into bumpers, launch a selector ball, and score robust paths versus brittle paths.' },
   { view: 'L1 DOM Stage Lights', level: 1, text: 'Spotlight page regions one by one, record their semantic purpose, and save a visual component map.' },

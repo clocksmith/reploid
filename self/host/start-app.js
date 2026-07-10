@@ -273,8 +273,16 @@ function parseModels() {
 /**
  * Complete the awaken process after boot
  */
+const normalizeAwakenGoal = (goal) => {
+  if (goal && typeof goal === 'object' && !Array.isArray(goal)) {
+    return String(goal.goal ?? goal.text ?? goal.objective ?? '').trim();
+  }
+  return String(goal ?? '').trim();
+};
+
 async function completeAwaken(bootResult, goal, wizardContainer) {
   const { agent, vfs, container, genesisConfig } = bootResult;
+  const goalText = normalizeAwakenGoal(goal);
   const utils = Utils.factory();
   const logger = utils.logger;
   const eventBus = await container.resolve('EventBus');
@@ -379,7 +387,7 @@ async function completeAwaken(bootResult, goal, wizardContainer) {
       VFS: vfs,
       WorkerManager: workerManager,
       ArenaHarness: arenaHarness,
-      initialGoal: goal,
+    initialGoal: goalText,
       mode: runtimeMode
     });
   };
@@ -496,7 +504,7 @@ async function completeAwaken(bootResult, goal, wizardContainer) {
   };
 
   // Start agent if goal provided
-  if (goal) {
+  if (goalText) {
     const storage = getReploidStorage();
     const consensusStrategy = storage.getItem('CONSENSUS_TYPE') || 'arena';
     let models = parseModels();
@@ -526,8 +534,8 @@ async function completeAwaken(bootResult, goal, wizardContainer) {
       }
     }
 
-    logger.info('[Boot] Awakening Reploid with goal: ' + goal);
-    agent.run(goal).catch(e => logger.error('[Boot] Agent error:', e.message));
+    logger.info('[Boot] Awakening Reploid with goal: ' + goalText);
+    agent.run(goalText).catch(e => logger.error('[Boot] Agent error:', e.message));
   }
 }
 

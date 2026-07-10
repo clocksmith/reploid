@@ -43,7 +43,8 @@ const makeDeps = () => ({
   },
   ToolRunner: {
     loadPath: vi.fn().mockResolvedValue(true),
-    unload: vi.fn().mockResolvedValue(true)
+    unload: vi.fn().mockResolvedValue(true),
+    has: vi.fn().mockReturnValue(false)
   },
   EventBus: {
     emit: vi.fn()
@@ -216,6 +217,45 @@ export default async function() {
     });
   });
 
+  it('runs activation checks with the candidate runtime capabilities', async () => {
+    vi.stubGlobal('window', {
+      getReploidMode: () => 'zero'
+    });
+    const code = `export const tool = {
+  name: 'KatamariEngine',
+  activation: {
+    checks: [{ name: 'writes a file', args: {}, expected: { ok: true } }]
+  }
+};
+
+export default async function(args, deps) {
+  await deps.VFS.write('/activation/output.txt', 'written');
+  return { ok: true };
+}`;
+    const deps = makeDeps();
+    deps.VFS.read.mockResolvedValue(code);
+
+    await expect(CreateTool({ name: 'KatamariEngine', code }, deps))
+      .rejects.toThrow(/VFS\.write is not a function/);
+
+    expect(deps.VFS.write).not.toHaveBeenCalledWith('/self/tools/KatamariEngine.js', code);
+    expect(deps.ToolRunner.loadPath).not.toHaveBeenCalled();
+    expect(getWrittenEvidence(deps)).toMatchObject({
+      validationPassed: true,
+      activationChecksPassed: false,
+      replayPassed: false,
+      activated: false,
+      checks: {
+        validation: {
+          declaredCapabilities: []
+        },
+        activation: {
+          declaredChecksPassed: false
+        }
+      }
+    });
+  });
+
   it('rejects a candidate whose replay transcript differs', async () => {
     vi.stubGlobal('window', {
       getReploidMode: () => 'zero'
@@ -280,7 +320,16 @@ export default async function() {
       replayPassed: true,
       activated: false,
       failure: {
-        stage: 'runtime_load'
+        stage: 'runtime_load',
+        cleanup: {
+          runtimeUnloadAttempted: true,
+          runtimeUnloadSucceeded: true,
+          targetRemovalAttempted: true,
+          targetRemovalSucceeded: true,
+          runtimeStillLoaded: false,
+          targetStillExists: false,
+          errors: []
+        }
       },
       checks: {
         activation: {

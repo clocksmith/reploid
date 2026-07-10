@@ -29,6 +29,6 @@ export const tool = {
 };
 ```
 
-`expected` object values are matched as subsets. Replay compares the complete result and harness transcript, including VFS state, tool calls, events, audit calls, and loaded tools. Failed validation, activation, replay, installation, or runtime loading leaves `activated: false` evidence and does not retain the installed target.
+`expected` object values are matched as subsets. Replay compares the complete result and harness transcript, including VFS state, tool calls, events, audit calls, and loaded tools. Failed validation, activation, replay, installation, or runtime loading writes rejection evidence. If installation started, CreateTool unloads the runtime tool and removes the target, then records the observed cleanup state. A cleanup failure leaves the actual loaded and retained-target state in the evidence instead of claiming rollback succeeded.
 
 *Last updated: July 2026*
