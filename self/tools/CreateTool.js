@@ -162,7 +162,7 @@ const validateActivationContract = (mod, candidatePath) => {
   return cloneActivationValue(normalized);
 };
 
-const createActivationHarness = ({ VFS, logger, fixtures = {} }) => {
+const createActivationHarness = ({ Utils = {}, logger, fixtures = {} }) => {
   const files = new Map(
     Object.entries(fixtures.vfs || {}).map(([path, content]) => [normalizeActivationPath(path), content])
   );
@@ -318,6 +318,7 @@ const createActivationHarness = ({ VFS, logger, fixtures = {} }) => {
     EventBus: activationEventBus,
     AuditLogger: activationAuditLogger,
     Utils: {
+      ...Utils,
       logger: silentLogger,
       now: () => 0,
       generateId: (prefix = 'activation') => `${prefix}_${++generatedId}`
@@ -337,8 +338,8 @@ const createActivationHarness = ({ VFS, logger, fixtures = {} }) => {
   };
 };
 
-const runActivationChecks = async ({ handler, contract, VFS, logger }) => {
-  const harness = createActivationHarness({ VFS, logger, fixtures: contract.fixtures });
+const runActivationChecks = async ({ handler, contract, Utils, logger }) => {
+  const harness = createActivationHarness({ Utils, logger, fixtures: contract.fixtures });
   const results = [];
   for (const check of contract.checks) {
     let timeoutId = null;
@@ -519,8 +520,18 @@ async function activateZeroTool(result = {}, deps = {}) {
   const candidateHash = await sha256(code);
   const logger = deps.Utils?.logger;
   let validation = { passed: false, executed: false, reason: 'not_run' };
-  let activation = { passed: false, executed: false, reason: 'not_run' };
-  let replay = { passed: false, executed: false, reason: 'not_run' };
+  let activation = {
+    kind: 'declared_fixture_checks',
+    passed: false,
+    executed: false,
+    reason: 'not_run'
+  };
+  let replay = {
+    kind: 'fresh_module_fixture_replay',
+    passed: false,
+    executed: false,
+    reason: 'not_run'
+  };
   let targetHash = null;
   let targetWritten = false;
   let runtimeLoadAttempted = false;
@@ -612,7 +623,7 @@ async function activateZeroTool(result = {}, deps = {}) {
     const activationRun = await runActivationChecks({
       handler: candidate.handler,
       contract: candidate.activation,
-      VFS,
+      Utils: deps.Utils,
       logger
     });
     activation = {
@@ -643,7 +654,7 @@ async function activateZeroTool(result = {}, deps = {}) {
     const replayRun = await runActivationChecks({
       handler: replayCandidate.handler,
       contract: replayCandidate.activation,
-      VFS,
+      Utils: deps.Utils,
       logger
     });
     const replayTranscriptHash = await sha256(replayRun.transcriptText);
@@ -665,13 +676,19 @@ async function activateZeroTool(result = {}, deps = {}) {
       validation = { passed: false, executed: true, error: error.message };
     } else if (stage === 'activation_checks') {
       activation = {
+        kind: 'declared_fixture_checks',
         passed: false,
         executed: true,
         declaredChecksPassed: false,
         error: error.message
       };
     } else if (stage === 'replay' && replay.executed !== true) {
-      replay = { passed: false, executed: true, error: error.message };
+      replay = {
+        kind: 'fresh_module_fixture_replay',
+        passed: false,
+        executed: true,
+        error: error.message
+      };
     }
     await writeFailureEvidence(error);
     throw error;
