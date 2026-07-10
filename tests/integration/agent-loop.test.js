@@ -289,6 +289,20 @@ describe('AgentLoop - Integration Tests', () => {
       expect(prompt).not.toContain('CreateTool -> WriteFile -> Promote -> LoadModule');
     });
 
+    it('normalizes structured awaken goal packets before starting a cycle', async () => {
+      mockLLMClient.chat.mockResolvedValue({ content: 'DONE' });
+      mockResponseParser.isDone.mockReturnValue(true);
+
+      await agentLoop.run({
+        text: 'Build the Katamari DOM overlay',
+        source: 'zero-home',
+        createdAt: '2026-07-10T00:00:00.000Z'
+      });
+
+      expect(mockStateManager.setGoal).toHaveBeenCalledWith('Build the Katamari DOM overlay');
+      expect(agentLoop.getSystemPrompt()).toContain('Build the Katamari DOM overlay');
+    });
+
     it('should throw if already running', async () => {
       mockLLMClient.chat.mockImplementation(() => new Promise(() => {})); // Never resolves
 

@@ -74,10 +74,13 @@ describe('Zero goal presets', () => {
   });
 
   it('makes the Katamari default target the live browser runtime area', () => {
-    expect(DEFAULT_ZERO_GOAL).toContain('overlay in the current page/runtime area');
-    expect(DEFAULT_ZERO_GOAL).toContain('use CreateTool to install and load it');
-    expect(DEFAULT_ZERO_GOAL).toContain('let the player roll a growing selector ball');
-    expect(DEFAULT_ZERO_GOAL).toContain('save an improvement log for the next run');
+    expect(DEFAULT_ZERO_GOAL).toBe(
+      getGoalCategories()['L0: Basic Functions'].find((goal) => goal.view === 'Katamari DOM').text
+    );
+    expect(DEFAULT_ZERO_GOAL).toContain('transparent full-screen layer over the current page');
+    expect(DEFAULT_ZERO_GOAL).toContain('scan visible DOM nodes into physics pickups');
+    expect(DEFAULT_ZERO_GOAL).toContain('let the player roll a growing ball');
+    expect(DEFAULT_ZERO_GOAL).toContain('next self-improvement pass');
 
     const katamariBootGoal = getGoalCategories()['L0: Basic Functions']
       .find((goal) => goal.view === 'Katamari DOM');

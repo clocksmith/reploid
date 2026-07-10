@@ -25,6 +25,21 @@ export default async function() {
 }
 `;
 
+const rejectedToolCandidateCode = `
+export const tool = {
+  name: 'RejectedProbeTool',
+  description: 'Rejected contract probe',
+  activation: {
+    checks: [{ name: 'returns ok', args: {}, expected: { ok: true } }]
+  },
+  inputSchema: { type: 'object', properties: {} }
+};
+
+export default async function() {
+  return { ok: false };
+}
+`;
+
 test.describe('tool calling smoke', () => {
   for (const routeCase of LAB_ROUTE_CASES) {
     test(`${routeCase.route} tools return typed results and enforce route boundaries`, async ({ page }, testInfo) => {
@@ -50,6 +65,30 @@ test.describe('tool calling smoke', () => {
         const readBeforeCreate = await executeToolResult(page, 'ReadFile', { path: '/self/boot-spec.js' });
         expect(readBeforeCreate.ok).toBe(false);
         expect(readBeforeCreate.message).toMatch(/Tool (not found|not available)/);
+
+        const rejectedTool = await executeToolResult(page, 'CreateTool', {
+          name: 'RejectedProbeTool',
+          code: rejectedToolCandidateCode
+        });
+        expect(rejectedTool.ok).toBe(false);
+        expect(rejectedTool.message).toContain('activation check returns ok failed');
+
+        const rejectedState = await page.evaluate(async () => ({
+          evidence: JSON.parse(await window.REPLOID.vfs.read('/artifacts/RejectedProbeTool-evidence.json')),
+          targetExists: await window.REPLOID.vfs.exists('/self/tools/RejectedProbeTool.js'),
+          toolLoaded: window.REPLOID.toolRunner.has('RejectedProbeTool')
+        }));
+        expect(rejectedState).toMatchObject({
+          evidence: {
+            validationPassed: true,
+            activationChecksPassed: false,
+            replayPassed: false,
+            activated: false,
+            failure: { stage: 'activation_checks' }
+          },
+          targetExists: false,
+          toolLoaded: false
+        });
 
         const createTool = await executeToolResult(page, 'CreateTool', {
           name: 'ContractProbeTool',

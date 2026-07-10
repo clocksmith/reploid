@@ -2832,7 +2832,13 @@ ${goal}
     };
 
     const getRecentActivities = () => [..._activityLog];
-    const run = (goal) => startRun(goal, null);
+    const normalizeGoalInput = (goal) => {
+      if (goal && typeof goal === 'object' && !Array.isArray(goal)) {
+        return String(goal.goal ?? goal.text ?? goal.objective ?? '').trim();
+      }
+      return String(goal ?? '').trim();
+    };
+    const run = (goal) => startRun(normalizeGoalInput(goal), null);
 
     return {
       run,

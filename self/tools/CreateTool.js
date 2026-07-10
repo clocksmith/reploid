@@ -35,6 +35,19 @@ const getToolHandler = (mod = {}) => (
 const MAX_ACTIVATION_CHECKS = 8;
 const ACTIVATION_CHECK_TIMEOUT_MS = 5000;
 
+const normalizeToolCapabilities = (capabilities = []) => {
+  if (capabilities instanceof Set) {
+    return new Set([...capabilities].map((capability) => String(capability || '').trim()).filter(Boolean));
+  }
+  if (Array.isArray(capabilities)) {
+    return new Set(capabilities.map((capability) => String(capability || '').trim()).filter(Boolean));
+  }
+  if (typeof capabilities === 'string') {
+    return new Set(capabilities.split(/[,\s]+/).map((capability) => capability.trim()).filter(Boolean));
+  }
+  return new Set();
+};
+
 const isRecord = (value) => (
   value !== null
   && typeof value === 'object'
@@ -162,7 +175,7 @@ const validateActivationContract = (mod, candidatePath) => {
   return cloneActivationValue(normalized);
 };
 
-const createActivationHarness = ({ Utils = {}, logger, fixtures = {} }) => {
+const createActivationHarness = ({ Utils = {}, logger, fixtures = {}, capabilities = [] }) => {
   const files = new Map(
     Object.entries(fixtures.vfs || {}).map(([path, content]) => [normalizeActivationPath(path), content])
   );
@@ -172,6 +185,9 @@ const createActivationHarness = ({ Utils = {}, logger, fixtures = {} }) => {
   const audit = [];
   const loadedTools = new Map();
   const fixtureTools = fixtures.tools || {};
+  const capabilitySet = normalizeToolCapabilities(capabilities);
+  const canWriteVfs = capabilitySet.has('vfs:write') || capabilitySet.has('self:write');
+  const canLoadTools = capabilitySet.has('tool:load') || capabilitySet.has('self:write');
   let generatedId = 0;
   let activationDeps = null;
 
@@ -258,6 +274,10 @@ const createActivationHarness = ({ Utils = {}, logger, fixtures = {} }) => {
       loadedTools.set(name, handler);
       return true;
     },
+    unload: (toolName) => {
+      recordCall('ToolRunner', 'unload', [toolName]);
+      return loadedTools.delete(toolName);
+    },
     execute: async (toolName, args = {}) => {
       recordCall('ToolRunner', 'execute', [toolName, args]);
       if (loadedTools.has(toolName)) {
@@ -312,9 +332,31 @@ const createActivationHarness = ({ Utils = {}, logger, fixtures = {} }) => {
     error: () => {}
   };
 
+  const exposedVFS = canWriteVfs
+    ? activationVFS
+    : {
+        read: activationVFS.read,
+        list: activationVFS.list,
+        exists: activationVFS.exists,
+        stat: activationVFS.stat,
+        getMetadata: activationVFS.getMetadata
+      };
+  const exposedToolRunner = {
+    list: activationToolRunner.list,
+    execute: activationToolRunner.execute,
+    has: activationToolRunner.has,
+    refresh: canLoadTools ? activationToolRunner.refresh : undefined,
+    allow: canLoadTools ? activationToolRunner.allow : undefined,
+    load: canLoadTools
+      ? async (toolName) => activationToolRunner.loadPath(`/tools/${toolName}.js`, toolName)
+      : undefined,
+    loadPath: canLoadTools ? activationToolRunner.loadPath : undefined,
+    unload: canLoadTools ? activationToolRunner.unload : undefined
+  };
+
   activationDeps = {
-    VFS: activationVFS,
-    ToolRunner: activationToolRunner,
+    VFS: exposedVFS,
+    ToolRunner: exposedToolRunner,
     EventBus: activationEventBus,
     AuditLogger: activationAuditLogger,
     Utils: {
@@ -338,8 +380,13 @@ const createActivationHarness = ({ Utils = {}, logger, fixtures = {} }) => {
   };
 };
 
-const runActivationChecks = async ({ handler, contract, Utils, logger }) => {
-  const harness = createActivationHarness({ Utils, logger, fixtures: contract.fixtures });
+const runActivationChecks = async ({ handler, contract, capabilities, Utils, logger }) => {
+  const harness = createActivationHarness({
+    Utils,
+    logger,
+    fixtures: contract.fixtures,
+    capabilities
+  });
   const results = [];
   for (const check of contract.checks) {
     let timeoutId = null;
@@ -397,10 +444,12 @@ const validateActivationCandidate = async ({ VFS, logger, name, candidatePath, c
     throw new Error(`CreateTool activation failed validation: inputSchema must be an object`);
   }
   const activation = validateActivationContract(mod, candidatePath);
+  const capabilities = [...normalizeToolCapabilities(mod.tool?.zeroCapabilities || mod.tool?.capabilities || [])].sort();
   return {
     mod,
     handler,
     activation,
+    capabilities,
     checks: {
       passed: true,
       moduleImported: true,
@@ -410,7 +459,8 @@ const validateActivationCandidate = async ({ VFS, logger, name, candidatePath, c
       inputSchemaValid: true,
       hasInputSchema: !!inputSchema,
       activationContractValid: true,
-      activationCheckCount: activation.checks.length
+      activationCheckCount: activation.checks.length,
+      declaredCapabilities: capabilities
     }
   };
 };
@@ -536,6 +586,7 @@ async function activateZeroTool(result = {}, deps = {}) {
   let targetWritten = false;
   let runtimeLoadAttempted = false;
   let runtimeLoaded = false;
+  let cleanup = null;
   let stage = 'validation';
 
   const writeFailureEvidence = async (error) => {
@@ -549,10 +600,11 @@ async function activateZeroTool(result = {}, deps = {}) {
       validation,
       activation,
       replay,
-      activated: false,
+      activated: activation.runtimeLoaded === true,
       failure: {
         stage,
-        message: error.message
+        message: error.message,
+        cleanup
       }
     });
     try {
@@ -589,20 +641,64 @@ async function activateZeroTool(result = {}, deps = {}) {
   };
 
   const cleanupFailedActivation = async () => {
+    const cleanupResult = {
+      runtimeUnloadAttempted: false,
+      runtimeUnloadSucceeded: !runtimeLoadAttempted,
+      targetRemovalAttempted: false,
+      targetRemovalSucceeded: !targetWritten,
+      runtimeStillLoaded: false,
+      targetStillExists: false,
+      errors: []
+    };
     if (runtimeLoadAttempted && ToolRunner.unload) {
+      cleanupResult.runtimeUnloadAttempted = true;
       try {
         await ToolRunner.unload(result.name);
+        cleanupResult.runtimeUnloadSucceeded = true;
       } catch (unloadError) {
+        cleanupResult.errors.push(`unload: ${unloadError.message}`);
         logger?.warn?.(`[CreateTool] Failed to unload rejected tool ${result.name}: ${unloadError.message}`);
       }
+    } else if (runtimeLoadAttempted) {
+      cleanupResult.errors.push('unload: ToolRunner.unload unavailable');
     }
     if (targetWritten && VFS.delete) {
+      cleanupResult.targetRemovalAttempted = true;
       try {
         await VFS.delete(targetPath);
+        cleanupResult.targetRemovalSucceeded = true;
       } catch (deleteError) {
+        cleanupResult.errors.push(`delete: ${deleteError.message}`);
         logger?.warn?.(`[CreateTool] Failed to remove rejected target ${targetPath}: ${deleteError.message}`);
       }
+    } else if (targetWritten) {
+      cleanupResult.errors.push('delete: VFS.delete unavailable');
     }
+
+    try {
+      cleanupResult.runtimeStillLoaded = ToolRunner.has
+        ? ToolRunner.has(result.name) === true
+        : runtimeLoaded && cleanupResult.runtimeUnloadSucceeded !== true;
+    } catch (hasError) {
+      cleanupResult.runtimeStillLoaded = runtimeLoaded && cleanupResult.runtimeUnloadSucceeded !== true;
+      cleanupResult.errors.push(`runtime status: ${hasError.message}`);
+    }
+    try {
+      cleanupResult.targetStillExists = VFS.exists
+        ? await VFS.exists(targetPath) === true
+        : targetWritten && cleanupResult.targetRemovalSucceeded !== true;
+    } catch (existsError) {
+      cleanupResult.targetStillExists = targetWritten && cleanupResult.targetRemovalSucceeded !== true;
+      cleanupResult.errors.push(`target status: ${existsError.message}`);
+    }
+    if (cleanupResult.runtimeUnloadAttempted) {
+      cleanupResult.runtimeUnloadSucceeded = !cleanupResult.runtimeStillLoaded;
+    }
+    if (cleanupResult.targetRemovalAttempted) {
+      cleanupResult.targetRemovalSucceeded = !cleanupResult.targetStillExists;
+    }
+    activation.runtimeLoaded = cleanupResult.runtimeStillLoaded;
+    return cleanupResult;
   };
 
   try {
@@ -623,6 +719,7 @@ async function activateZeroTool(result = {}, deps = {}) {
     const activationRun = await runActivationChecks({
       handler: candidate.handler,
       contract: candidate.activation,
+      capabilities: candidate.capabilities,
       Utils: deps.Utils,
       logger
     });
@@ -631,6 +728,7 @@ async function activateZeroTool(result = {}, deps = {}) {
       passed: false,
       executed: activationRun.executed,
       declaredChecksPassed: activationRun.passed,
+      capabilities: candidate.capabilities,
       checkCount: activationRun.checkCount,
       checkNames: activationRun.checkNames,
       timeoutMsPerCheck: ACTIVATION_CHECK_TIMEOUT_MS,
@@ -651,9 +749,13 @@ async function activateZeroTool(result = {}, deps = {}) {
     if (stableStringify(replayCandidate.activation) !== activationContractText) {
       throw new Error('CreateTool replay failed: activation contract changed after re-import');
     }
+    if (stableStringify(replayCandidate.capabilities) !== stableStringify(candidate.capabilities)) {
+      throw new Error('CreateTool replay failed: tool capabilities changed after re-import');
+    }
     const replayRun = await runActivationChecks({
       handler: replayCandidate.handler,
       contract: replayCandidate.activation,
+      capabilities: replayCandidate.capabilities,
       Utils: deps.Utils,
       logger
     });
@@ -762,7 +864,8 @@ async function activateZeroTool(result = {}, deps = {}) {
   } catch (error) {
     activation.passed = false;
     activation.error = error.message;
-    await cleanupFailedActivation();
+    cleanup = await cleanupFailedActivation();
+    activation.cleanup = cleanup;
     await writeFailureEvidence(error);
     throw error;
   }
