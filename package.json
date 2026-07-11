@@ -38,6 +38,7 @@
     "verify:pool:release": "node scripts/verify-pool-release.js",
     "smoke:pool": "node scripts/pool-browser-smoke.js",
     "smoke:pool:actual": "node scripts/pool-actual-browser-smoke.js",
+    "verify:surface-claims": "node scripts/verify-surface-claim-index.js",
     "verify:module-system": "node scripts/verify-module-system.js"
   },
   "keywords": [
