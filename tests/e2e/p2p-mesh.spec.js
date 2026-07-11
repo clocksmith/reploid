@@ -365,7 +365,7 @@ test.describe('Run, Contribute, Records peer room', () => {
 
       await reputationPage.reload({ waitUntil: 'domcontentloaded' });
       await reputationPage.waitForSelector('.pool-home');
-      await expect(reputationPage.locator('#pool-peer-ledger [aria-label="Local contributor scores"]')).toBeVisible();
+      await expect(reputationPage.locator('#pool-peer-ledger table[aria-label="Local contributor scores"]')).toBeVisible();
       await expect(reputationPage.locator('#pool-peer-ledger')).toContainText('Matched');
 
       await openPoolNav(runPage);

@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   buildModelArtifactUrls,
+  validateDopplerExecutionManifestShape,
   validateModelArtifactManifestShape,
   verifyModelArtifactManifest
 } from '../../self/pool/model-artifacts.js';
@@ -83,6 +84,43 @@ describe('pool model artifact helpers', () => {
 
     expect(result.ok).toBe(true);
     expect(result.reasons).toEqual([]);
+  });
+
+  it('requires runtime-significant Doppler execution fields to be explicit', () => {
+    const valid = validateDopplerExecutionManifestShape({
+      inference: {
+        schema: 'doppler.execution/v1',
+        ffn: { branchMode: 'auto' },
+        output: { embeddingScale: null, logitInputScale: 1 },
+        layerPattern: { residualBranchScale: 1 },
+        rope: {
+          longropeShortFactor: null,
+          longropeLongFactor: null,
+          longropeOriginalMaxPos: null
+        }
+      }
+    });
+    const stale = validateDopplerExecutionManifestShape({
+      inference: {
+        schema: 'doppler.execution/v1',
+        ffn: {},
+        output: {},
+        layerPattern: {},
+        rope: {}
+      }
+    });
+
+    expect(valid).toEqual({ ok: true, reasons: [] });
+    expect(stale.ok).toBe(false);
+    expect(stale.reasons).toEqual(expect.arrayContaining([
+      'manifest.inference.ffn.branchMode must be explicit',
+      'manifest.inference.output.embeddingScale must be explicit',
+      'manifest.inference.output.logitInputScale must be explicit',
+      'manifest.inference.layerPattern.residualBranchScale must be explicit',
+      'manifest.inference.rope.longropeShortFactor must be explicit',
+      'manifest.inference.rope.longropeLongFactor must be explicit',
+      'manifest.inference.rope.longropeOriginalMaxPos must be explicit'
+    ]));
   });
 
   it('verifies manifest JSON hash and model identity', async () => {

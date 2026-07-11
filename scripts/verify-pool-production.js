@@ -4,6 +4,12 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { POOL_CONFIG, POOL_CONFIG_HASH, POOL_CONFIG_VERSION, validatePoolConfig } from '../server/pool/config.js';
+import { LAUNCH_MODEL } from '../self/pool/model-contract.js';
+import {
+  validateDopplerExecutionManifestShape,
+  validateModelArtifactManifestShape,
+  verifyModelArtifactManifest
+} from '../self/pool/model-artifacts.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -17,6 +23,7 @@ const valueArg = (name) => {
 
 const allowPlaceholders = args.has('--allow-placeholders');
 const deploymentUrl = valueArg('--url') || process.env.REPLOID_POOL_DEPLOYMENT_URL || null;
+const verifyArtifact = args.has('--verify-artifact') || !!deploymentUrl;
 const envPath = valueArg('--env')
   ? path.resolve(valueArg('--env'))
   : path.join(repoRoot, 'deploy', 'env.production.json');
@@ -46,17 +53,22 @@ const requiredRewrites = [
   '/pool/policies',
   '/pool/config',
   '/pool/status',
+  '/pool/metrics',
   '/pool/deployment/check',
   '/pool/providers/**',
   '/pool/jobs',
   '/pool/jobs/**',
   '/pool/assignments/**',
   '/pool/receipts/**',
+  '/pool/audits/**',
+  '/pool/points/**',
+  '/pool/reputation/**',
   '/pool/signaling/**',
   '/pool/peer/**',
   '/',
   '/ask',
   '/compute',
+  '/records',
   '/history',
   '/network',
   '/zero',
@@ -185,9 +197,38 @@ const checkDeploymentUrl = async (baseUrl) => {
   return reasons;
 };
 
+const checkLaunchModelArtifact = async () => {
+  if (!verifyArtifact) return [];
+  const reasons = [];
+  try {
+    const manifestResult = await verifyModelArtifactManifest({
+      model: LAUNCH_MODEL,
+      baseUrl: LAUNCH_MODEL.artifactPolicy?.baseUrl || POOL_CONFIG.browserRuntime?.modelBaseUrl,
+      fetchImpl: (url, options = {}) => fetch(url, {
+        ...options,
+        signal: AbortSignal.timeout(30000)
+      })
+    });
+    const packageShape = validateModelArtifactManifestShape(manifestResult.manifest, LAUNCH_MODEL);
+    if (!packageShape.ok) {
+      reasons.push(...packageShape.reasons.map((reason) => `launch artifact: ${reason}`));
+    }
+    if (LAUNCH_MODEL.runtime === 'doppler') {
+      const executionShape = validateDopplerExecutionManifestShape(manifestResult.manifest);
+      if (!executionShape.ok) {
+        reasons.push(...executionShape.reasons.map((reason) => `launch artifact: ${reason}`));
+      }
+    }
+  } catch (error) {
+    reasons.push(`launch artifact verification failed: ${error.message}`);
+  }
+  return reasons;
+};
+
 const reasons = [
   ...checkLocalFiles(),
-  ...await checkDeploymentUrl(deploymentUrl)
+  ...await checkDeploymentUrl(deploymentUrl),
+  ...await checkLaunchModelArtifact()
 ];
 
 if (reasons.length > 0) fail(reasons);

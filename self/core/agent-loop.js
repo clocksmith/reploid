@@ -2715,11 +2715,20 @@ ${zeroToolSurfaceText}.
 
 ## Calling style
 - Use REPLOID/0 with TOOL blocks and one tool call minimum.
-- For tools, send code only as raw content (no markdown wrapper):  
-  export const tool = { name, description, activation, inputSchema, capabilities, call };
-  export default tool;
-
-Evidence JSON must be strict JSON only (no fences, no trailing prose).
+- Canonical CreateTool syntax puts the complete module in the \`code\` argument. Do not send description, activation, inputSchema, capabilities, or call as unrelated top-level commentary:
+  TOOL: CreateTool
+  name: EchoTool
+  code <<EOF
+  export const tool = {
+    name: 'EchoTool',
+    description: 'Returns its input.',
+    activation: { fixtures: {}, checks: [{ name: 'echo', args: { value: 'ok' }, expected: { value: 'ok' } }] },
+    inputSchema: { type: 'object', properties: { value: { type: 'string' } } },
+    capabilities: []
+  };
+  export default async function(args) { return args; }
+  EOF
+- Never output an EVIDENCE block or claim a tool ran. CreateTool writes evidence only after the runtime executes matching activation and replay checks.
       `.trim();
     };
 

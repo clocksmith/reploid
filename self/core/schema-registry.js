@@ -164,14 +164,19 @@ const SchemaRegistry = {
         }
       },
       CreateTool: {
-        description: 'Mutating. Create a CamelCase runtime tool after discovery identifies a tool-shaped implementation. In Zero the exported tool.activation contract must contain fixture-backed checks with name, args, and expected fields. CreateTool executes the checks, re-imports and replays them in a fresh harness, requires matching transcripts, installs to /self/tools, loads the tool, and writes hash-bound evidence derived from those outcomes. Created tools that need substrate mutation declare capabilities such as vfs:write and tool:load in exported tool metadata.',
+        description: 'Mutating. Create a CamelCase runtime tool from module source in code, or from structured description, activation, inputSchema, capabilities, and call fields. In Zero the exported tool.activation contract must contain fixture-backed checks with name, args, and expected fields. CreateTool executes the checks, re-imports and replays them in a fresh harness, requires matching transcripts, installs to /self/tools, loads the tool, and writes hash-bound evidence derived from those outcomes. Created tools that need substrate mutation declare capabilities such as vfs:write and tool:load in exported tool metadata.',
         readOnly: false,
         parameters: {
           type: 'object',
-          required: ['name', 'code'],
+          required: ['name'],
           properties: {
             name: { type: 'string', description: 'Tool name (CamelCase, e.g., ReadFile, AnalyzeLogs)' },
-            code: { type: 'string', description: 'JavaScript code with an async handler and, for Zero activation, exported tool.activation fixtures and checks with name, args, and expected fields.' },
+            code: { type: 'string', description: 'Preferred: complete JavaScript module source. In text protocol use code <<EOF ... EOF.' },
+            description: { type: 'string', description: 'Structured-source alternative: tool description.' },
+            activation: { type: 'object', description: 'Structured-source alternative: fixtures and deterministic checks with name, args, and expected.' },
+            inputSchema: { type: 'object', description: 'Structured-source alternative: JSON Schema for the created tool arguments.' },
+            capabilities: { type: 'array', items: { type: 'string' }, description: 'Structured-source alternative: declared tool capabilities.' },
+            call: { type: 'string', description: 'Structured-source alternative: async JavaScript function expression.' },
             root: { type: 'string', description: 'Optional staging root. Must be under /shadow/tools.' },
             activate: { type: 'boolean', description: 'Zero only: set false to stage without installing and loading.' }
           }

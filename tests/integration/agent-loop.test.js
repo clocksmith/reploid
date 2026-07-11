@@ -283,7 +283,11 @@ describe('AgentLoop - Integration Tests', () => {
       expect(prompt).toContain('self-write tool');
       expect(prompt).toContain('do not use Promote in Zero');
       expect(prompt).toContain(`${ZERO_SEED_TOOLS.join(', ')}.`);
-      expect(prompt).toContain('Evidence JSON must be strict JSON only');
+      expect(prompt).toContain('Canonical CreateTool syntax');
+      expect(prompt).toContain('code <<EOF');
+      expect(prompt).toContain("activation: { fixtures: {}, checks:");
+      expect(prompt).toContain('Never output an EVIDENCE block');
+      expect(prompt).not.toContain('Evidence JSON must be strict JSON only');
       expect(prompt).not.toContain('ProposeSelfPatch');
       expect(prompt).not.toContain('Valid Promote syntax is candidatePath');
       expect(prompt).not.toContain('CreateTool -> WriteFile -> Promote -> LoadModule');

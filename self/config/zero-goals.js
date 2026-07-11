@@ -2,11 +2,18 @@
  * @fileoverview Compact Zero objective seed library.
  */
 
+export const ZERO_KATAMARI_GOAL = Object.freeze({
+  view: 'L1 DOM Katamari',
+  level: 1,
+  text: 'Build a playable DOM katamari overlay in the current page/runtime area: use CreateTool to install and load it, scan buttons, cards, and forms into physics pickups, let the player roll a growing selector ball, export captures, and save an improvement log for the next run.'
+});
+
+const LEGACY_ZERO_KATAMARI_GOALS = new Set([
+  'Build a playable Katamari-style DOM overlay: install and load it with CreateTool, mount a transparent full-screen layer over the current page, scan visible DOM nodes into physics pickups, let the player roll a growing ball to collect elements, then orbit, inspect, export robust selectors, and save selector-quality notes for the next self-improvement pass.'
+]);
+
 const ZERO_GOAL_LIBRARY = Object.freeze([
-  Object.freeze({
-    view: 'Katamari DOM',
-    text: 'Build a playable Katamari-style DOM overlay: install and load it with CreateTool, mount a transparent full-screen layer over the current page, scan visible DOM nodes into physics pickups, let the player roll a growing ball to collect elements, then orbit, inspect, export robust selectors, and save selector-quality notes for the next self-improvement pass.'
-  }),
+  ZERO_KATAMARI_GOAL,
   Object.freeze({
     view: 'Context Packet',
     text: 'Evolve compact context packets against fixed tasks and keep only the packet with better evidence.'
@@ -40,6 +47,12 @@ const ZERO_GOAL_LIBRARY = Object.freeze([
 export const DEFAULT_ZERO_GOAL = ZERO_GOAL_LIBRARY[0].text;
 
 const normalizeText = (value) => String(value || '').trim();
+
+export function normalizeZeroGoal(value) {
+  const goal = normalizeText(value);
+  if (!goal || LEGACY_ZERO_KATAMARI_GOALS.has(goal)) return DEFAULT_ZERO_GOAL;
+  return goal;
+}
 
 const createSeededRandom = (seed) => {
   let state = (Number(seed) || 0) >>> 0;

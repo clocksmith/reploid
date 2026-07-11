@@ -4,6 +4,7 @@
 
 export const REPUTATION_REDUCER_VERSION = 'poolday.reputation.reducer.v1';
 export const REPUTATION_EVENT_TYPES = Object.freeze({
+  seed: 'reputation_seed',
   providerAdvertised: 'provider_advertised',
   assignmentAccepted: 'assignment_accepted',
   commitReceived: 'commit_received',
@@ -60,6 +61,18 @@ const applyEvent = (state, event = {}) => {
   if (points) next.points += points;
   if (event.createdAt) next.lastEventAt = event.createdAt;
   switch (type) {
+    case REPUTATION_EVENT_TYPES.seed:
+      next.acceptedReceipts += Number(event.acceptedReceipts || 0);
+      next.rejectedReceipts += Number(event.rejectedReceipts || 0);
+      next.timeouts += Number(event.timeouts || 0);
+      next.canaryPasses += Number(event.canaryPasses ?? event.passedCanaries ?? 0);
+      next.canaryFailures += Number(event.canaryFailures ?? event.failedCanaries ?? 0);
+      next.challengePasses += Number(event.challengePasses || 0);
+      next.challengeFailures += Number(event.challengeFailures || 0);
+      next.quorumMatches += Number(event.quorumMatches || 0);
+      next.quorumMismatches += Number(event.quorumMismatches || 0);
+      next.policyViolations += Number(event.policyViolations || 0);
+      break;
     case REPUTATION_EVENT_TYPES.receiptValidated:
     case REPUTATION_EVENT_TYPES.requesterAccepted:
       next.acceptedReceipts += 1;
@@ -145,6 +158,8 @@ export function reduceReputationEvents(events = []) {
     providerId,
     {
       ...state,
+      passedCanaries: state.canaryPasses,
+      failedCanaries: state.canaryFailures,
       reducerVersion: REPUTATION_REDUCER_VERSION,
       ...scoreReputationState(state)
     }

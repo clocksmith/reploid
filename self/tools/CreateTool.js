@@ -54,6 +54,62 @@ const isRecord = (value) => (
   && !Array.isArray(value)
 );
 
+const serializeStructuredField = (value, fallback, fieldName) => {
+  try {
+    const serialized = JSON.stringify(value === undefined ? fallback : value, null, 2);
+    if (serialized === undefined) {
+      throw new Error('value is not JSON-serializable');
+    }
+    return serialized;
+  } catch (error) {
+    throw new Error(`Invalid structured CreateTool ${fieldName}: ${error.message}`);
+  }
+};
+
+const buildStructuredToolCode = (args = {}) => {
+  const callSource = typeof args.call === 'string' ? args.call.trim() : '';
+  if (!callSource) return null;
+
+  const expression = callSource.replace(/;+\s*$/, '');
+  const description = typeof args.description === 'string' ? args.description : '';
+  const activation = serializeStructuredField(args.activation, null, 'activation');
+  const inputSchema = serializeStructuredField(
+    args.inputSchema,
+    { type: 'object', properties: {} },
+    'inputSchema'
+  );
+  const capabilities = serializeStructuredField(
+    args.capabilities ?? args.zeroCapabilities,
+    [],
+    'capabilities'
+  );
+
+  return `const call = (
+${expression}
+);
+
+export const tool = {
+  name: ${JSON.stringify(String(args.name || '').trim())},
+  description: ${JSON.stringify(description)},
+  activation: ${activation},
+  inputSchema: ${inputSchema},
+  capabilities: ${capabilities},
+  call
+};
+
+export default call;`;
+};
+
+const resolveToolCode = (args = {}) => {
+  if (typeof args.code === 'string' && args.code.trim()) return args.code;
+  const structuredCode = buildStructuredToolCode(args);
+  if (structuredCode) return structuredCode;
+  throw new Error(
+    'Missing code argument: pass module source in code <<EOF ... EOF. '
+    + 'Description, activation, inputSchema, capabilities, and call normally belong inside that code block.'
+  );
+};
+
 const canonicalize = (value, seen = new Set()) => {
   if (value === undefined) return { $type: 'undefined' };
   if (value === null || typeof value === 'string' || typeof value === 'boolean') return value;
@@ -875,9 +931,9 @@ async function call(args = {}, deps = {}) {
   const { ToolWriter, EventBus, AuditLogger } = deps;
   if (!ToolWriter) throw new Error('ToolWriter not available');
 
-  const { name, code } = args;
+  const { name } = args;
   if (!name) throw new Error('Missing name argument');
-  if (!code) throw new Error('Missing code argument');
+  const code = resolveToolCode(args);
 
   const cleanName = typeof name === 'string' ? name.trim() : name;
   const normalizedCode = typeof code === 'string'
@@ -908,13 +964,18 @@ async function call(args = {}, deps = {}) {
 
 export const tool = {
   name: "CreateTool",
-  description: "Create a runtime tool. In Zero, tool.activation must declare fixture-backed checks. CreateTool runs the checks, re-imports and replays them in a fresh harness, requires matching transcripts, installs to /self/tools, loads the tool, and writes derived activation evidence. Created tools start read-only unless exported tool metadata declares capabilities such as vfs:write, tool:load, or self:write. In broader modes, stage for evidence-gated promotion.",
+  description: "Create a runtime tool from module source in code, or from structured description, activation, inputSchema, capabilities, and call fields. In Zero, tool.activation must declare fixture-backed checks. CreateTool runs the checks, re-imports and replays them in a fresh harness, requires matching transcripts, installs to /self/tools, loads the tool, and writes derived activation evidence. Created tools start read-only unless exported tool metadata declares capabilities such as vfs:write, tool:load, or self:write. In broader modes, stage for evidence-gated promotion.",
   inputSchema: {
     type: 'object',
-    required: ['name', 'code'],
+    required: ['name'],
     properties: {
       name: { type: 'string', description: 'Tool name (CamelCase, start with uppercase letter)' },
-      code: { type: 'string', description: 'JavaScript code with an async handler and, for Zero activation, tool.activation fixtures and checks with name, args, and expected fields' },
+      code: { type: 'string', description: 'Preferred: complete JavaScript module source. In text protocol use code <<EOF ... EOF.' },
+      description: { type: 'string', description: 'Structured-source alternative: tool description.' },
+      activation: { type: 'object', description: 'Structured-source alternative: fixtures and deterministic checks with name, args, and expected.' },
+      inputSchema: { type: 'object', description: 'Structured-source alternative: JSON Schema for the created tool arguments.' },
+      capabilities: { type: 'array', items: { type: 'string' }, description: 'Structured-source alternative: declared tool capabilities.' },
+      call: { type: 'string', description: 'Structured-source alternative: async JavaScript function expression.' },
       root: { type: 'string', description: 'Optional staging root. Must be /shadow/tools or a child path.' },
       activate: { type: 'boolean', description: 'Zero only: set false to stage without installing and loading.' }
     }

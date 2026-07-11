@@ -4,15 +4,16 @@
 
 import { getPolicy } from './config.js';
 import { deriveProviderAdmission } from './runtime-profile.js';
+import { REPUTATION_EVENT_TYPES } from '../../self/pool/reputation.js';
 
-export async function recordAcceptedReceipt({ store, providerId, points = 0 }) {
-  const current = await store.getReputation(providerId);
+export async function recordAcceptedReceipt({ store, providerId, receiptHash = null, points = 0 }) {
   const provider = await store.getProvider?.(providerId);
-  const nextBase = {
-    ...current,
-    acceptedReceipts: Number(current.acceptedReceipts || 0) + 1,
-    points: Number(current.points || 0) + points
-  };
+  const nextBase = await store.appendReputationEvent({
+    type: REPUTATION_EVENT_TYPES.requesterAccepted,
+    providerId,
+    receiptHash,
+    points
+  });
   const admission = deriveProviderAdmission({
     provider: provider || {},
     reputation: nextBase,
@@ -27,20 +28,29 @@ export async function recordAcceptedReceipt({ store, providerId, points = 0 }) {
   });
 }
 
-export async function recordRejectedReceipt({ store, providerId, reasons = [] }) {
-  const current = await store.getReputation(providerId);
-  const rejectedReceipts = Number(current.rejectedReceipts || 0) + 1;
+export async function recordRejectedReceipt({
+  store,
+  providerId,
+  receiptHash = null,
+  assignmentId = null,
+  jobId = null,
+  reasons = []
+}) {
   const identityViolation = reasons.some((reason) => /model|manifest|runtime|backend/i.test(String(reason || '')));
-  const repeatedRejections = rejectedReceipts >= 3;
+  const reputation = await store.appendReputationEvent({
+    type: identityViolation ? REPUTATION_EVENT_TYPES.policyViolation : REPUTATION_EVENT_TYPES.requesterDisputed,
+    providerId,
+    receiptHash,
+    assignmentId,
+    jobId,
+    reasons,
+    routingBlocked: identityViolation,
+    quarantineReason: identityViolation ? 'model_or_runtime_identity_violation' : null
+  });
+  const routingBlocked = reputation.routingBlocked === true;
   return store.updateReputation(providerId, {
-    rejectedReceipts,
-    lastRejectionReasons: reasons,
-    routingBlocked: identityViolation || repeatedRejections,
-    admissionLane: identityViolation || repeatedRejections ? 'quarantined_provider' : current.admissionLane,
-    ringEligible: identityViolation || repeatedRejections ? false : current.ringEligible,
-    quarantineReason: identityViolation
-      ? 'model_or_runtime_identity_violation'
-      : (repeatedRejections ? 'repeated_rejected_receipts' : current.quarantineReason)
+    admissionLane: routingBlocked ? 'quarantined_provider' : reputation.admissionLane,
+    ringEligible: routingBlocked ? false : reputation.ringEligible
   });
 }
 

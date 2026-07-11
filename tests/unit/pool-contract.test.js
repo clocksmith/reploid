@@ -139,7 +139,7 @@ describe('pool launch contract', () => {
     expect(serverModel).toMatchObject({
       modelId: QWEN_MODEL_ID,
       modelHash: 'sha256:fab133e49d6dc67912fc3a087222ec44ca1941d9b7bc36c60cb1379863a6dd4f',
-      manifestHash: 'sha256:0b81efea7c6ccde9a79d6788083a28ab39b3cae6e21b1a08075b14194bcbe34e',
+      manifestHash: 'sha256:c1564f7422cfb05f5404d7602b3531188de11b7f8409430b6671fe66431cc88b',
       tokenizerHash: 'sha256:8fc3b6de02de5a8e21d3867aba335e2d9a3c2263201f55daaed1feab3541bea4',
       runtime: 'doppler',
       backend: 'browser-webgpu',
@@ -189,10 +189,10 @@ describe('pool launch contract', () => {
     expect(noF16.fallbackStatus).toBe('doppler_0_4_7_manifest_capability_remap');
 
     expect(buildModelArtifactUrls(browserModel)).toEqual({
-      root: 'https://huggingface.co/Clocksmith/rdrr/resolve/a6118fb24a8e6c4fe7527f1a3dc7b406e0a3ef10/models/qwen-3-5-0-8b-q4k-ehaf16',
-      manifest: 'https://huggingface.co/Clocksmith/rdrr/resolve/a6118fb24a8e6c4fe7527f1a3dc7b406e0a3ef10/models/qwen-3-5-0-8b-q4k-ehaf16/manifest.json',
-      tokenizer: 'https://huggingface.co/Clocksmith/rdrr/resolve/a6118fb24a8e6c4fe7527f1a3dc7b406e0a3ef10/models/qwen-3-5-0-8b-q4k-ehaf16/tokenizer.json',
-      shards: 'https://huggingface.co/Clocksmith/rdrr/resolve/a6118fb24a8e6c4fe7527f1a3dc7b406e0a3ef10/models/qwen-3-5-0-8b-q4k-ehaf16/'
+      root: 'https://huggingface.co/Clocksmith/rdrr/resolve/f58f1d0b58641c84e7ea50d13fea0dd4dc91389a/models/qwen-3-5-0-8b-q4k-ehaf16',
+      manifest: 'https://huggingface.co/Clocksmith/rdrr/resolve/f58f1d0b58641c84e7ea50d13fea0dd4dc91389a/models/qwen-3-5-0-8b-q4k-ehaf16/manifest.json',
+      tokenizer: 'https://huggingface.co/Clocksmith/rdrr/resolve/f58f1d0b58641c84e7ea50d13fea0dd4dc91389a/models/qwen-3-5-0-8b-q4k-ehaf16/tokenizer.json',
+      shards: 'https://huggingface.co/Clocksmith/rdrr/resolve/f58f1d0b58641c84e7ea50d13fea0dd4dc91389a/models/qwen-3-5-0-8b-q4k-ehaf16/'
     });
   });
 
@@ -308,7 +308,7 @@ describe('pool launch contract', () => {
     expect(BROWSER_BROWSER_RUNTIME_CONFIG).toEqual(SERVER_BROWSER_RUNTIME_CONFIG);
     expect(BROWSER_BROWSER_RUNTIME_CONFIG.dopplerModuleUrl).toBe('https://esm.sh/doppler-gpu@0.4.7/src/client/doppler-api.browser.js?bundle');
     expect(BROWSER_BROWSER_RUNTIME_CONFIG.dopplerKernelBaseUrl).toBe('https://esm.sh/doppler-gpu@0.4.7/src/gpu/kernels');
-    expect(BROWSER_BROWSER_RUNTIME_CONFIG.modelBaseUrl).toBe('https://reploid.web.app/models');
+    expect(BROWSER_BROWSER_RUNTIME_CONFIG.modelBaseUrl).toBe('https://huggingface.co/Clocksmith/rdrr/resolve/f58f1d0b58641c84e7ea50d13fea0dd4dc91389a/models');
   });
 
   it('keeps offloaded artifact URLs separate from receipt identity fields', () => {

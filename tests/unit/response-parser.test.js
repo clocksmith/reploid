@@ -166,6 +166,44 @@ EOF`;
         expect(calls[1].args.content).toBe('Hello');
       });
 
+      it('should ignore claimed EVIDENCE blocks instead of merging them into tool arguments', () => {
+        const text = `REPLOID/0
+
+TOOL: CreateTool
+{
+  "name": "KatamariEngine",
+  "description": "DOM-based physics overlay for element collection.",
+  "inputSchema": { "type": "object" },
+  "call": "async () => ({ status: 'overlay_injected' })"
+}
+
+EVIDENCE:
+{"status":"success","tool":"KatamariEngine"}
+
+REPLOID/0
+
+TOOL: KatamariEngine
+{}
+
+EVIDENCE:
+{"status":"active","overlay_id":"katamari-overlay"}`;
+
+        const calls = responseParser.parseToolCalls(text);
+
+        expect(calls).toEqual([
+          {
+            name: 'CreateTool',
+            args: {
+              name: 'KatamariEngine',
+              description: 'DOM-based physics overlay for element collection.',
+              inputSchema: { type: 'object' },
+              call: "async () => ({ status: 'overlay_injected' })"
+            }
+          },
+          { name: 'KatamariEngine', args: {} }
+        ]);
+      });
+
       it('should parse pipe literal blocks without writing the pipe marker into content', () => {
         const text = `REPLOID/0
 

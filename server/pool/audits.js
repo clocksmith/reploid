@@ -3,8 +3,10 @@
  */
 
 import { hashJson, sha256Hex } from './hash.js';
+import { REPUTATION_EVENT_TYPES } from '../../self/pool/reputation.js';
 
 export const CANARY_AUDIT_KIND = 'deterministic_canary';
+export const CHALLENGE_AUDIT_KIND = 'delayed_challenge_rerun';
 
 const nowIso = () => new Date().toISOString();
 
@@ -17,6 +19,7 @@ export async function createCanaryChallenge({
   modelRequirements = {},
   generationConfig = {},
   policyId = 'fastest_receipt',
+  kind = CANARY_AUDIT_KIND,
   metadata = {}
 } = {}) {
   if (!store?.createAuditChallenge) throw new Error('store.createAuditChallenge is required');
@@ -24,7 +27,7 @@ export async function createCanaryChallenge({
   const hasExpectedTokenIds = Array.isArray(expectedTokenIds);
   const tokenIds = hasExpectedTokenIds ? expectedTokenIds : [];
   return store.createAuditChallenge({
-    kind: CANARY_AUDIT_KIND,
+    kind,
     providerId,
     policyId,
     prompt,
@@ -37,6 +40,33 @@ export async function createCanaryChallenge({
     expectedTranscriptHash: hasExpectedTokenIds ? hashJson({ outputText: expectedOutputText, tokenIds }) : null,
     status: 'pending',
     metadata
+  });
+}
+
+export async function createChallengeRerun({
+  store,
+  providerId,
+  sourceReceipt,
+  sourceJob,
+  metadata = {}
+} = {}) {
+  if (!sourceReceipt?.receiptHash) throw new Error('source receipt is required');
+  if (!sourceJob?.prompt) throw new Error('source job prompt is required');
+  return createCanaryChallenge({
+    store,
+    providerId,
+    prompt: sourceJob.prompt,
+    expectedOutputText: sourceReceipt.outputText || '',
+    expectedTokenIds: Array.isArray(sourceReceipt.tokenIds) ? sourceReceipt.tokenIds : null,
+    modelRequirements: sourceJob.modelRequirements || sourceReceipt.receipt?.model || {},
+    generationConfig: sourceJob.generationConfig || {},
+    policyId: sourceJob.policyId || 'fastest_receipt',
+    kind: CHALLENGE_AUDIT_KIND,
+    metadata: {
+      ...metadata,
+      sourceReceiptHash: sourceReceipt.receiptHash,
+      sourceJobId: sourceReceipt.jobId || sourceJob.jobId || null
+    }
   });
 }
 
@@ -59,9 +89,10 @@ export async function verifyCanaryResult({ store, auditId, providerId = null, ou
     };
   }
   const reasons = [];
+  const label = audit.kind === CHALLENGE_AUDIT_KIND ? 'challenge' : 'canary';
   if (providerId && audit.providerId && providerId !== audit.providerId) reasons.push('audit provider mismatch');
-  if (audit.expectedOutputHash && audit.expectedOutputHash !== sha256Hex(outputText)) reasons.push('canary output hash mismatch');
-  if (audit.expectedTokenIdsHash && audit.expectedTokenIdsHash !== hashJson(Array.isArray(tokenIds) ? tokenIds : [])) reasons.push('canary token ids hash mismatch');
+  if (audit.expectedOutputHash && audit.expectedOutputHash !== sha256Hex(outputText)) reasons.push(`${label} output hash mismatch`);
+  if (audit.expectedTokenIdsHash && audit.expectedTokenIdsHash !== hashJson(Array.isArray(tokenIds) ? tokenIds : [])) reasons.push(`${label} token ids hash mismatch`);
   const accepted = reasons.length === 0;
   const updated = await store.updateAuditChallenge(auditId, {
     status: accepted ? 'passed' : 'failed',
@@ -77,19 +108,33 @@ export async function verifyCanaryResult({ store, auditId, providerId = null, ou
   };
 }
 
-export async function applyCanaryReputation({ store, providerId, accepted, reasons = [] } = {}) {
+export async function applyCanaryReputation({
+  store,
+  providerId,
+  accepted,
+  reasons = [],
+  kind = CANARY_AUDIT_KIND,
+  auditId = null,
+  assignmentId = null,
+  jobId = null
+} = {}) {
   if (!providerId) return null;
-  const current = await store.getReputation(providerId);
-  const passedCanaries = Number(current.passedCanaries || 0) + (accepted ? 1 : 0);
-  const failedCanaries = Number(current.failedCanaries || 0) + (accepted ? 0 : 1);
-  const clearsCanaryQuarantine = accepted && current.quarantineReason === 'canary_failed';
-  return store.updateReputation(providerId, {
-    passedCanaries,
-    failedCanaries,
-    lastCanaryAt: nowIso(),
-    lastCanaryReasons: reasons,
-    routingBlocked: accepted ? (clearsCanaryQuarantine ? false : current.routingBlocked) : true,
-    quarantineReason: accepted ? (clearsCanaryQuarantine ? null : current.quarantineReason) : 'canary_failed'
+  const isChallenge = kind === CHALLENGE_AUDIT_KIND;
+  const failureReason = isChallenge ? 'challenge_failed' : 'canary_failed';
+  const type = isChallenge
+    ? (accepted ? REPUTATION_EVENT_TYPES.challengePassed : REPUTATION_EVENT_TYPES.challengeFailed)
+    : (accepted ? REPUTATION_EVENT_TYPES.canaryPassed : REPUTATION_EVENT_TYPES.canaryFailed);
+  return store.appendReputationEvent({
+    type,
+    providerId,
+    auditId,
+    assignmentId,
+    jobId,
+    reasons,
+    routingBlocked: !accepted,
+    quarantineReason: accepted ? null : failureReason,
+    clearRoutingBlock: accepted,
+    clearQuarantineReasons: accepted ? [failureReason] : []
   });
 }
 
@@ -98,6 +143,7 @@ export function createAuditScheduler({ store } = {}) {
     enabled: true,
     kind: CANARY_AUDIT_KIND,
     createCanaryChallenge: (input) => createCanaryChallenge({ store, ...input }),
+    createChallengeRerun: (input) => createChallengeRerun({ store, ...input }),
     attachAuditAssignment: (input) => attachAuditAssignment({ store, ...input }),
     verifyCanaryResult: (input) => verifyCanaryResult({ store, ...input }),
     applyCanaryReputation: (input) => applyCanaryReputation({ store, ...input })
@@ -106,7 +152,9 @@ export function createAuditScheduler({ store } = {}) {
 
 export default {
   CANARY_AUDIT_KIND,
+  CHALLENGE_AUDIT_KIND,
   createCanaryChallenge,
+  createChallengeRerun,
   attachAuditAssignment,
   verifyCanaryResult,
   applyCanaryReputation,

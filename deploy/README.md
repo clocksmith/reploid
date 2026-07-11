@@ -36,11 +36,10 @@ Replace required placeholder values in `deploy/env.production.json` before Cloud
 Then check:
 
 ```bash
-npm run verify:pool -- --url https://<hosting-domain>
-REPLOID_POOL_SMOKE_URL=https://<hosting-domain> npm run smoke:pool
+npm run verify:pool:release -- --url https://<hosting-domain> --channel=chrome
 ```
 
-`/pool/deployment/check` must return `ok: true` before public traffic. The production verifier also checks local config validity, Firebase rewrites, Firestore indexes, Cloud Run env, required deployment values, config hash agreement, commit-reveal store support, and Firebase auth readiness.
+`/pool/deployment/check` must return `ok: true` before public traffic. The release verifier checks local config validity, Firebase rewrites, Firestore indexes, Cloud Run env, required deployment values, config hash agreement, commit-reveal store support, Firebase auth readiness, the pinned launch manifest and Doppler execution fields, synthetic browser peer wiring, and one actual browser inference through signed receipt acceptance.
 
 ## Runtime authority
 

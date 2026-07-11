@@ -192,6 +192,12 @@ export function createPoolSdk({ baseUrl = DEFAULT_BASE_URL, authTokenProvider = 
     createCanaryAudit(payload) {
       return request('/audits/canary', { method: 'POST', body: payload });
     },
+    createChallengeAudit(payload) {
+      return request('/audits/challenge', { method: 'POST', body: payload });
+    },
+    getAudit(auditId) {
+      return request(`/audits/${encodeURIComponent(auditId)}`);
+    },
     getCanaryAudit(auditId) {
       return request(`/audits/${encodeURIComponent(auditId)}`);
     },

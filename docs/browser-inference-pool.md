@@ -38,7 +38,7 @@ The target retrieval extension is documented in [Poolday Receipt-Backed Retrieva
 {
   "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
   "modelHash": "sha256:fab133e49d6dc67912fc3a087222ec44ca1941d9b7bc36c60cb1379863a6dd4f",
-  "manifestHash": "sha256:0b81efea7c6ccde9a79d6788083a28ab39b3cae6e21b1a08075b14194bcbe34e",
+  "manifestHash": "sha256:c1564f7422cfb05f5404d7602b3531188de11b7f8409430b6671fe66431cc88b",
   "tokenizerHash": "sha256:8fc3b6de02de5a8e21d3867aba335e2d9a3c2263201f55daaed1feab3541bea4",
   "runtime": "doppler",
   "backend": "browser-webgpu",
@@ -59,6 +59,8 @@ Model bytes should not be served from Firebase Hosting or the Cloud Run coordina
 | Shards | `<artifactPolicy.baseUrl>/*` |
 
 Browser providers derive artifact URLs from the selected model's `artifactPolicy`, with `window.REPLOID_POOL_MODEL_BASE_URL` as an override, through `self/pool/model-contract.js` and `self/pool/model-artifacts.js`. The storage backend can be object storage, a model hub, IPFS, or another CDN. The receipt identity does not include the storage URL; it includes the exact model id, model hash, manifest hash, runtime, and backend. Providers cache fetched model artifacts in OPFS after first load.
+
+The launch Qwen artifact is pinned to Hugging Face revision `f58f1d0b58641c84e7ea50d13fea0dd4dc91389a`. Production verification fetches that manifest, verifies its configured content hash and model identity, and rejects manifests missing runtime-significant Doppler execution fields. Changing the artifact revision requires changing the manifest hash and config version together.
 
 Current hosted implementation order:
 
@@ -164,7 +166,7 @@ The ring policy is governed by explicit config lanes:
 | Determinism | `strict_hash_same_runtime_profile` | Strict token/output hash quorum is valid only inside the same model/runtime/browser/WebGPU/kernel profile bucket. |
 | Ring phase | `commit_reveal_v1` | Providers submit `commitmentHash` before reveal. Receipts are rejected until matching reveal evidence exists. |
 | Provider admission | `tiered_browser_provider_v1` | New providers are capped, trusted providers earn higher trust, quarantined providers cannot route. |
-| State mode | `direct_firestore_projection_v1` | Current production mode stores direct job projections plus isolated receipts, commitments, reveals, ledger, and reputation records. |
+| State mode | `direct_firestore_projection_v1` | Current production mode stores direct job projections plus isolated receipts, commitments, and reveals. Reputation events are append-only in `pool_events`; `reputation_state` is their derived routing view. |
 
 Provider registration for ring-capable providers must include `runtimeProfile` and `runtimeProfileHash`. The coordinator recomputes the hash and rejects mismatches. Ring scheduling groups compatible runtime profiles and applies diversity rules so one identity/device/network/runtime cluster cannot satisfy quorum alone.
 
@@ -220,7 +222,8 @@ Receipts for ring assignments are accepted only after:
 | `POST` | `/pool/signaling/sessions/:sessionId/messages` | Publish SDP/ICE signaling metadata |
 | `GET` | `/pool/signaling/sessions/:sessionId/messages` | Poll SDP/ICE signaling metadata |
 | `POST` | `/pool/audits/canary` | Create hidden deterministic canary assignment for a provider |
-| `GET` | `/pool/audits/:auditId` | Inspect canary audit state |
+| `POST` | `/pool/audits/challenge` | Create a delayed deterministic rerun from a prior receipt and its source job |
+| `GET` | `/pool/audits/:auditId` | Inspect canary or challenge audit state |
 | `GET` | `/pool/points/:userId` | Fetch points ledger events |
 | `GET` | `/pool/reputation/:providerId` | Fetch provider reputation state |
 
@@ -377,6 +380,7 @@ POOL_ALLOW_BROWSER_CANARY_CREATE=true
 ```
 
 Production canary creation should use a Firebase custom claim such as `poolCoordinator: true`, `coordinator: true`, or `admin: true`.
+Delayed challenge reruns use the same authorization boundary and bind the new audit to the source receipt hash, source job, prompt, generation config, model requirement, expected output hash, and expected token hash when token ids are available.
 
 
 
@@ -476,20 +480,24 @@ Reputation records:
 - Rejected receipts
 - Timeouts
 - Canary pass/fail counts
+- Challenge pass/fail counts
 - Routing block state
 - Quarantine reason
 
-Identity violations and failed canaries block routing.
+Hosted reputation is sourced from append-only `pool_events` entries and replayed through the versioned deterministic reducer. `reputation_state` is a rebuildable projection used by the scheduler. Existing direct projections are migrated once through a `reputation_seed` event before the next reputation event is appended. Stable event ids make retry replay idempotent.
+
+Identity violations and unresolved canary or challenge failures block routing.
 
 Penalty ledger events are recorded with `eventType: "points_penalized"` for:
 
 - `receipt_rejected`
 - `assignment_timeout`
 - `canary_failed`
+- `challenge_failed`
 - `redundant_agreement_mismatch`
 - `ring_quorum_mismatch`
 
-Repeated invalid receipts or attributable assignment timeouts set `routingBlocked` in reputation state. Model, manifest, runtime, or backend identity violations block routing immediately. Canary failure blocks routing with `quarantineReason: "canary_failed"` and can be cleared only by a later passing coordinator-issued canary.
+Repeated invalid receipts or attributable assignment timeouts set `routingBlocked` in reputation state. Model, manifest, runtime, or backend identity violations block routing immediately. Canary and challenge quarantine is derived from unresolved failure balance, not event arrival order: a matching class of passing coordinator-issued audit resolves one failure while excess failures remain blocked.
 
 ---
 
@@ -604,7 +612,7 @@ Hosted production requires:
 - Doppler module and WGSL kernel base configured in the browser as `window.REPLOID_DOPPLER_MODULE_URL` and `window.REPLOID_DOPPLER_KERNEL_BASE_URL`.
 - Model artifact URLs content-addressed by model id and manifest hash.
 
-`/pool/deployment/check` must return `ok: true` before public traffic. The readiness check requires Firestore storage, Firebase Auth verification, auth-required pool routes, offloaded model artifact base, Doppler module URL, Doppler WGSL kernel base URL, hybrid P2P signaling, and commit-reveal store support. It also reports the append-only `pool_events` seam for the future event-sourced reducer.
+`/pool/deployment/check` must return `ok: true` before public traffic. The readiness check requires Firestore storage, Firebase Auth verification, auth-required pool routes, offloaded model artifact base, Doppler module URL, Doppler WGSL kernel base URL, hybrid P2P signaling, and commit-reveal store support. It also reports the append-only `pool_events` source used by the reputation reducer.
 
 Local production verification:
 
@@ -612,7 +620,7 @@ Local production verification:
 npm run verify:pool
 ```
 
-The verifier checks config validity, Firebase rewrites, Firestore indexes, Cloud Run env, required deployment values, forbidden trust language, and optional deployed readiness when `REPLOID_POOL_DEPLOYMENT_URL` or `--url` is supplied. Use `--allow-placeholders` only for local dry runs before replacing deployment values.
+The verifier checks config validity, Firebase rewrites, Firestore indexes, Cloud Run env, required deployment values, forbidden trust language, and optional deployed readiness when `REPLOID_POOL_DEPLOYMENT_URL` or `--url` is supplied. With `--url` or `--verify-artifact`, it also fetches the launch manifest and checks the manifest hash, model identity, package shape, and required Doppler execution fields. Use `--allow-placeholders` only for local dry runs before replacing deployment values.
 
 Browser smoke after deployment:
 
@@ -627,6 +635,14 @@ REPLOID_POOL_SMOKE_ALLOW_LOCAL=1 npm run smoke:pool -- http://127.0.0.1:8000
 ```
 
 The smoke script opens `/`, `/ask`, `/compute`, `/records`, `/history`, `/network`, and `/zero`, proves a browser-room worker/requester flow, then checks `/pool/deployment/check` from the browser context. Local mode requires the deployment check route to respond with config identity. Deployed mode requires production readiness.
+
+The standard smoke injects a deterministic runtime and proves route and protocol wiring; it is not evidence that Doppler executed the published model. The release gate requires both that synthetic smoke and a real browser inference:
+
+```bash
+npm run verify:pool:release -- --url https://<hosting-domain> --channel=chrome
+```
+
+The release gate runs production/deployment verification, the synthetic browser peer flow, then one actual Doppler WebGPU generation through provider advert, requester intent, signed receipt, agreement, and requester acceptance. Any missing phase fails the release.
 
 ---
 
