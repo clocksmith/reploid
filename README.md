@@ -1,202 +1,78 @@
 # REPLOID
 
-Browser-native runtime family for peer model serving, governed agents, and recursive research surfaces.
+[![Test Suite](https://img.shields.io/github/actions/workflow/status/clocksmith/reploid/test.yml?branch=main&label=tests)](https://github.com/clocksmith/reploid/actions/workflows/test.yml)
+[![License metadata: MIT](https://img.shields.io/badge/license%20metadata-MIT-blue.svg)](package.json)
 
-Reploid is the public family name and shared browser substrate. The root UI keeps the Reploid name; Poolday is the docs/internal name for the model-serving pool layer under `/`, not a public UI label.
+Reploid is a browser runtime family. Its self-modifying agent modes use Seed,
+Shadow, and Promote. Seed creates the recoverable self. Shadow stages candidate
+changes. Promote writes an allowlisted candidate into the live self only after
+its evidence passes. Zero starts from `CreateTool`; the root Reploid UI runs
+receipt-backed browser inference under the internal Poolday contract.
 
-## What Ships Now
+The agent modes that expose `Promote` use these states:
 
-| Route | Purpose |
-|-------|---------|
-| `/` | Reploid model-serving network surface. Docs/internal name: Poolday. |
-| `/zero` | Zero. Browser-local tabula-rasa RSI agent with no peer or pool dependency. |
-| `/x` | X. Mature Reploid agent surface for the editable browser self, tools, traces, and promotion gates. |
+| State | File mutation | Evidence | Activation boundary |
+| --- | --- | --- | --- |
+| Seed | Writes the recoverable identity, prompt, tools, VFS, objective, and Blueprint `0x000112`. | Boot manifest. | Establishes the self that can be restored. |
+| Shadow | Writes candidates under `/shadow`; the active `/self` stays unchanged. | RGR traces, scores, receipts, and rollback paths under `/artifacts/rgr`. | Candidate code remains provisional. |
+| Promote | Copies an allowlisted candidate from `/shadow` into `/self`. | Anchored gate result, replay result, and candidate hash. | Changes `/self`; validator mutations enter quarantine instead. |
 
-The three public surfaces share the Reploid substrate:
+## Surfaces
 
-- `/` runs receipt-backed browser inference with requester, contributor, receipt, and reputation flows.
-- `/x` runs the mature self-modifying browser agent workspace.
-- `/zero` runs a local-only tabula-rasa RSI loop with a minimal tool and blueprint surface.
+| Name | Role and boundary |
+| --- | --- |
+| Reploid | Public family name and shared browser substrate. |
+| Poolday | Internal/docs name for the model-serving pool at `/`; the public UI remains Reploid. |
+| X | Mature agent surface at `/x` with workers, memory, peer slots, verification, and promotion. |
+| Zero | Minimal agent surface at `/zero`; it begins with `CreateTool` and has no pool dependency. |
+
+The [Zero and X intent contract](self/config/surface-intents.js) owns their routes, boot profiles, modules, and tool surfaces. The root Poolday path is owned separately by the [product boot modes](self/config/boot-modes.js), [pool config](self/pool/pool-config.json), and [pool claim boundary](docs/poolday/claims-and-nonclaims.md). Current support claims resolve to the machine-checked [surface claim index](docs/status/surface-claim-index.json).
 
 ## Quick Start
 
-Install dependencies:
-
 ```bash
 npm install
-```
-
-For local development, put your Gemini key in `.env`:
-
-```bash
-GEMINI_API_KEY=your_key_here
-```
-
-Start Reploid:
-
-```bash
 npm start
 ```
 
-That command:
-- provisions sealed Reploid Cloud access windows from `.env`
-- starts the local dev server on `http://localhost:8000`
+Open `http://localhost:8000`. For the managed Gemini path, set `GEMINI_API_KEY` in `.env` before starting.
 
-## Agent Runtime Surfaces
+## Self Contract
 
-Zero is intentionally small:
+Awaken clears prior live VFS state, writes the generated self manifests, exposes canonical source through a copy-on-write `/self` overlay, mounts Capsule, and starts the runtime. Reploid-owned behavior stays in visible self files, prompts, blueprints, traces, and receipts.
 
-- one objective
-- one inference path
-- `Awaken`
-- `ReadFile`, `WriteFile`, `EditFile`, `ListFiles`, `Grep`, `ListTools`, `CreateTool`, and `LoadModule`
-- `/shadow` candidates and `/artifacts` evidence
+The generated [VFS manifest](self/config/vfs-manifest.json) enumerates seeded files. The executable [tool-surface contract](self/config/tool-surfaces.js) enumerates tool membership. The [RGR runtime contract](self/blueprints/rgr-runtime-contract.md) defines candidate evidence, anchors, quarantine, rollback, and promotion.
 
-X is the mature agent surface:
+## Remote Execution
 
-- peer identity
-- ring topology
-- objective
-- peer slots
-- `Awaken`
-- `VFSSandbox`, `ArenaHarness`, `VerificationManager`, workers, memory, swarm, and `Promote`
+The [surface claim index](docs/status/surface-claim-index.json) owns these status lines and their evidence paths:
 
-Zero and X route intent is canonical in `/self/config/surface-intents.js`. Boot mode config and lab profiles consume that contract; docs point to it instead of defining separate route purposes, tool surfaces, or required modules.
+| Index row | Current boundary |
+| --- | --- |
+| `local-execution` | A configured local executor runs slots in the current browser. |
+| `peer-slot-placement` | Opted-in slots may run on joined peers; enabling slots does not expose local inference unless this browser has an executor. |
+| `browser-provider-roles` | Browser requester and provider clients exchange assignments, outputs, and receipts through peer rooms. |
+| `signaling` | Same-browser rooms can use `BroadcastChannel`; cross-host WebRTC uses signaling for rendezvous. |
+| `sealed-credentials` | `npm start` can build sealed access windows; client artifacts omit the plaintext key and the operator codebook stays ignored under `.reploid-cloud/`. |
+| `public-mesh` | Blocked as a signaling-free claim while cross-host rendezvous still requires signaling. |
 
-Root operating states:
+Users can bypass the managed access-window path and supply their own browser inference.
 
-| State | Meaning |
-|-------|---------|
-| Seed | Boot identity, prompt, tools, VFS, objective, and Blueprint `0x000112`. |
-| Shadow | Execute, trace, reflect, mutate, score, and archive provisional candidates. |
-| Promote | Change the active self only after the anchored gate passes. |
+## Start here
 
-Ring topology:
+| Reader | Entry points |
+| --- | --- |
+| Operators | [Quick start](docs/QUICK-START.md), [configuration](docs/CONFIGURATION.md), and [local models](docs/local-models.md) |
+| Agent and runtime contributors | [System architecture](docs/system-architecture.md), [RGR runtime contract](self/blueprints/rgr-runtime-contract.md), and [tool surfaces](self/config/tool-surfaces.js) |
+| Security and claim reviewers | [Security model](docs/SECURITY.md), [surface claim index](docs/status/surface-claim-index.json), [Poolday claims](docs/poolday/claims-and-nonclaims.md), and [threat model](docs/poolday/threat-model.md) |
+| Inference integrators | [Browser inference pool](docs/browser-inference-pool.md), [receipt schema](docs/poolday/receipt-schema.md), and [Doppler](https://github.com/clocksmith/doppler) |
 
-| Topology | Meaning |
-|----------|---------|
-| local | Ring slots run in this browser when local inference is available. |
-| peer-assisted | Some slots may run on remote peers or contribute anchor observations. |
-| remote-wait | The browser parks until a remote host appears. |
-
-`Configure` means bring your own local executor.
-
-`Peer slots` means opt in to remote slot placement. It does not force local inference sharing unless this Reploid instance actually has inference available.
-
-## Awakened Self
-
-Awaken clears prior live VFS state, writes the generated self manifests, exposes the canonical self source as a copy-on-write `/self` overlay, mounts Capsule, and starts the runtime.
-
-Core system files:
-
-```text
-/self/self.json
-/self/identity.json
-/self/prompts/kernel.md
-/self/blueprints/0x000112-recursive-gepa-ring.md
-/self/blueprints/rgr-slot-topology.md
-/self/runtime.js
-/self/bridge.js
-/self/tool-runner.js
-/self/manifest.js
-/self/environment.js
-/capsule/index.js
-```
-
-Collaboration and cloud access modules also live in self:
-
-```text
-/self/cloud-access.js
-/self/cloud-access-status.js
-/self/cloud-access-windows.js
-/self/identity.js
-/self/key-unsealer.js
-/self/receipt.js
-/self/reward-policy.js
-/self/swarm.js
-```
-
-Primitive visible tools:
-
-- `ReadFile`
-- `WriteFile`
-- `CreateTool`
-- `LoadModule`
-
-The goal is explicit self ownership. Reploid-owned logic lives in seeded self files, prompts, blueprints, traces, and receipts, not in hidden product layers.
-
-## Runtime Model
-
-Reploid uses a small live loop oriented around Blueprint `0x000112`:
-
-1. read self and context
-2. enter Shadow
-3. execute, trace, reflect, mutate, score, and archive
-4. use peers only as local or remote ring slots
-5. promote only after anchored evidence passes
-
-The awakened self can:
-- read and rewrite its own files
-- load new tools from `/tools` or `/self`
-- mutate Capsule UI
-- persist memory under `/.memory`
-- emit artifacts under `/artifacts`
-- write RGR traces and receipts under `/artifacts/rgr`
-
-## Swarm Status
-
-Swarm is part of the seeded self and is readable and evolvable like the rest of Reploid. In the product model, swarm only supplies remote ring slots and witness capacity.
-
-Current reality:
-- peer slots are enabled by default on the primary route
-- same-browser swarm can fall back to `BroadcastChannel`
-- cross-host swarm still uses signaling for WebRTC rendezvous
-- browser-to-browser provider and consumer roles exist in the self model
-- this is not yet a signaling-free public mesh
-
-## Reploid Cloud
-
-Local development currently supports a managed path:
-
-- `npm start` provisions sealed access windows from `GEMINI_API_KEY`
-- the generated client artifact stores sealed blobs, not the plaintext key
-- the local operator codebook is written under `.reploid-cloud/` and ignored by git
-
-Users can also bypass that path and use their own inference directly in the browser.
-
-## Repository Shape
-
-```text
-reploid/
-├── self/
-│   ├── kernel/          # Boot shell and bootstrap entry
-│   ├── host/            # VFS seeding and runtime handoff
-│   ├── capsule/         # Capsule shell
-│   ├── ui/boot-home/    # Primary boot UI
-│   ├── core/            # Shared runtime helpers
-│   ├── capabilities/    # Transport and other subsystems
-│   └── blueprints/      # Architectural research notes
-├── server/              # Local dev proxy and signaling
-├── scripts/             # Build helpers
-├── tests/               # Unit and E2E coverage
-└── docs/                # Human-facing documentation
-```
-
-## Documentation
-
-Start here:
-
-- [docs/INDEX.md](docs/INDEX.md)
-- [docs/CONFIGURATION.md](docs/CONFIGURATION.md)
-- [docs/system-architecture.md](docs/system-architecture.md)
-- [docs/SECURITY.md](docs/SECURITY.md)
-
-## Related
-
-- [Doppler](https://github.com/clocksmith/doppler): WebGPU inference engine used by the broader stack
+The [documentation index](docs/INDEX.md) owns the complete architecture,
+blueprint, API, and operator inventory.
 
 ## License
 
-MIT
+`package.json` declares MIT. This repository does not currently include a
+standalone `LICENSE` file.
 
-*Last updated: March 2026*
+*Last updated: July 2026*

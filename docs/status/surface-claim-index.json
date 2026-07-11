@@ -1,0 +1,104 @@
+{
+  "schema": "reploid/surface-claim-index/v1",
+  "updated": "2026-07-11",
+  "entries": [
+    {
+      "surface": "/",
+      "status": "supported",
+      "evidencePaths": [
+        "self/pool/pool-config.json",
+        "tests/unit/pool-contract.test.js",
+        "tests/unit/pool-routes.test.js",
+        "docs/poolday/claims-and-nonclaims.md"
+      ],
+      "blockers": [],
+      "claimPermission": true
+    },
+    {
+      "surface": "/zero",
+      "status": "supported",
+      "evidencePaths": [
+        "self/config/surface-intents.js",
+        "tests/unit/surface-intents.test.js",
+        "tests/e2e/boot.spec.js"
+      ],
+      "blockers": [],
+      "claimPermission": true
+    },
+    {
+      "surface": "/x",
+      "status": "supported",
+      "evidencePaths": [
+        "self/config/surface-intents.js",
+        "tests/unit/surface-intents.test.js",
+        "tests/e2e/boot.spec.js"
+      ],
+      "blockers": [],
+      "claimPermission": true
+    },
+    {
+      "surface": "local-execution",
+      "status": "supported",
+      "evidencePaths": [
+        "self/config/doppler-local-models.js",
+        "tests/e2e/boot.spec.js"
+      ],
+      "blockers": [],
+      "claimPermission": true
+    },
+    {
+      "surface": "peer-slot-placement",
+      "status": "supported",
+      "evidencePaths": [
+        "self/ui/boot-home/index.js",
+        "tests/e2e/boot.spec.js"
+      ],
+      "blockers": [],
+      "claimPermission": true
+    },
+    {
+      "surface": "browser-provider-roles",
+      "status": "supported",
+      "evidencePaths": [
+        "self/pool/requester-client.js",
+        "self/pool/provider-client.js",
+        "tests/unit/pool-peer-room.test.js"
+      ],
+      "blockers": [],
+      "claimPermission": true
+    },
+    {
+      "surface": "signaling",
+      "status": "supported",
+      "evidencePaths": [
+        "server/signaling-server.js",
+        "tests/integration/signaling-server.test.js"
+      ],
+      "blockers": [],
+      "claimPermission": true
+    },
+    {
+      "surface": "sealed-credentials",
+      "status": "supported",
+      "evidencePaths": [
+        "scripts/build-reploid-cloud-access.js",
+        "tests/unit/cloud-access-build.test.js"
+      ],
+      "blockers": [],
+      "claimPermission": true
+    },
+    {
+      "surface": "public-mesh",
+      "status": "blocked",
+      "evidencePaths": [
+        "self/pool/p2p-transport.js",
+        "tests/integration/signaling-server.test.js",
+        "docs/browser-inference-pool.md"
+      ],
+      "blockers": [
+        "Cross-host WebRTC rendezvous still requires signaling."
+      ],
+      "claimPermission": false
+    }
+  ]
+}
