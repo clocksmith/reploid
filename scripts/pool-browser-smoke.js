@@ -11,13 +11,14 @@ if (!baseUrl) {
 }
 
 const { LAUNCH_MODEL } = await import('../self/pool/model-contract.js');
-const routes = ['/', '/ask', '/compute', '/history', '/network', '/zero'];
+const routes = ['/', '/ask', '/compute', '/records', '/history', '/network', '/zero'];
 const requiredText = {
   '/': 'Run browser models together',
   '/ask': 'Prompt',
   '/compute': 'This tab',
-  '/history': 'History',
-  '/network': 'Network',
+  '/records': 'Records',
+  '/history': 'Records',
+  '/network': 'Records',
   '/zero': 'Zero'
 };
 
@@ -120,6 +121,7 @@ const clickPoolRoute = async (targetPage, route) => {
 
 for (const route of routes) {
   try {
+    console.log(`[pool-smoke] route ${route}`);
     await gotoRoute(page, route);
     const expected = String(requiredText[route] || '').toLowerCase();
     await page.waitForFunction((text) => document.body.textContent.toLowerCase().includes(text), expected);
@@ -127,12 +129,14 @@ for (const route of routes) {
     if (!body.includes(expected)) {
       failures.push(`${route} did not include expected text: ${requiredText[route]}`);
     }
+    console.log(`[pool-smoke] route passed ${route}`);
   } catch (error) {
     failures.push(`${route} failed: ${error.message}`);
   }
 }
 
 try {
+  console.log('[pool-smoke] same-document navigation');
   const routePage = await context.newPage();
   await gotoRoute(routePage, '/');
   await routePage.evaluate(() => {
@@ -147,11 +151,13 @@ try {
   const meshMarker = await routePage.evaluate(() => window.__REPLOID_POOL_SMOKE_MARKER);
   if (meshMarker !== 'same-document-route') failures.push('route toggle to /compute reloaded the boot document');
   await routePage.close();
+  console.log('[pool-smoke] same-document navigation passed');
 } catch (error) {
   failures.push(`same-document route smoke failed: ${error.message}`);
 }
 
 try {
+  console.log('[pool-smoke] synthetic peer receipt flow');
   const room = `pool-smoke-${Date.now().toString(36)}`;
   const provider = await context.newPage();
   const requester = await context.newPage();
@@ -173,7 +179,7 @@ try {
     const ledger = document.querySelector('#pool-peer-ledger');
     return {
       exists: !!ledger,
-      hasScoreTable: !!ledger?.querySelector('[aria-label="Local peer scores"]'),
+      hasScoreTable: !!ledger?.querySelector('[aria-label="Local contributor scores"]'),
       text: ledger?.textContent || ''
     };
   });
@@ -182,11 +188,13 @@ try {
   }
   await provider.close();
   await requester.close();
+  console.log('[pool-smoke] synthetic peer receipt flow passed');
 } catch (error) {
   failures.push(`peer browser smoke failed: ${error.message}`);
 }
 
 try {
+  console.log('[pool-smoke] deployment check');
   const deployment = await page.evaluate(async () => {
     const response = await fetch('/pool/deployment/check');
     return response.json();
@@ -198,6 +206,7 @@ try {
     if (deployment.store?.commitReveal?.supported !== true) failures.push('commit-reveal support missing from deployment check');
     if (deployment.identity?.serverAuth?.required !== true) failures.push('server auth is not required in deployment check');
   }
+  console.log('[pool-smoke] deployment check passed');
 } catch (error) {
   failures.push(`deployment check failed in browser: ${error.message}`);
 }

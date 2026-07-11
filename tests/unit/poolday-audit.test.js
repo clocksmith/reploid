@@ -23,6 +23,11 @@ import {
   validatePolicyRequest
 } from '../../self/pool/policy-router.js';
 import { validateJobRequest } from '../../server/pool/policy-router.js';
+import { createPoolStore } from '../../server/pool/store.js';
+import {
+  CHALLENGE_AUDIT_KIND,
+  applyCanaryReputation
+} from '../../server/pool/audits.js';
 import {
   PEER_CONTROL_NETWORK,
   createPeerControlPlane,
@@ -362,5 +367,78 @@ describe('Poolday artifacts and reputation', () => {
       points: 5,
       totalEvidence: 3
     });
+  });
+
+  it('migrates legacy reputation into an event seed and deduplicates retried events', async () => {
+    const store = createPoolStore();
+    const providerId = 'provider_legacy_rep';
+    store.updateReputation(providerId, {
+      acceptedReceipts: 2,
+      passedCanaries: 1,
+      points: 7
+    });
+    const acceptedEvent = {
+      type: REPUTATION_EVENT_TYPES.requesterAccepted,
+      providerId,
+      receiptHash: 'sha256:accepted-once',
+      points: 3,
+      createdAt: '2026-07-10T00:00:00.000Z'
+    };
+
+    await store.appendReputationEvent(acceptedEvent);
+    const projection = await store.appendReputationEvent(acceptedEvent);
+    const events = await store.listPoolEventsForProvider(providerId);
+
+    expect(events.some((event) => event.type === REPUTATION_EVENT_TYPES.seed)).toBe(true);
+    expect(projection).toMatchObject({
+      providerId,
+      acceptedReceipts: 3,
+      canaryPasses: 1,
+      passedCanaries: 1,
+      points: 10
+    });
+
+    store.updateReputation(providerId, { acceptedReceipts: 999, points: 999 });
+    expect(await store.getReputation(providerId)).toMatchObject({
+      acceptedReceipts: 3,
+      points: 10
+    });
+  });
+
+  it('records challenge outcomes separately and clears challenge quarantine after a pass', async () => {
+    const store = createPoolStore();
+    const providerId = 'provider_challenge_rep';
+    const failed = await applyCanaryReputation({
+      store,
+      providerId,
+      accepted: false,
+      reasons: ['challenge output hash mismatch'],
+      kind: CHALLENGE_AUDIT_KIND,
+      auditId: 'audit_failed'
+    });
+    const passed = await applyCanaryReputation({
+      store,
+      providerId,
+      accepted: true,
+      kind: CHALLENGE_AUDIT_KIND,
+      auditId: 'audit_passed'
+    });
+    const eventTypes = (await store.listPoolEventsForProvider(providerId)).map((event) => event.type);
+
+    expect(failed).toMatchObject({
+      challengeFailures: 1,
+      routingBlocked: true,
+      quarantineReason: 'challenge_failed'
+    });
+    expect(passed).toMatchObject({
+      challengeFailures: 1,
+      challengePasses: 1,
+      routingBlocked: false,
+      quarantineReason: null
+    });
+    expect(eventTypes).toEqual([
+      REPUTATION_EVENT_TYPES.challengeFailed,
+      REPUTATION_EVENT_TYPES.challengePassed
+    ]);
   });
 });

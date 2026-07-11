@@ -1,6 +1,6 @@
 {
   "schema": "reploid.pool.config/v1",
-  "configVersion": "2026-07-03.qwen-default.v1",
+  "configVersion": "2026-07-10.qwen-manifest.v2",
   "claim": "receipt-backed, audit-backed, reputation-backed, policy-controlled browser inference",
   "forbiddenClaims": [
     "trustless",
@@ -92,7 +92,7 @@
   "launchModel": {
     "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
     "modelHash": "sha256:fab133e49d6dc67912fc3a087222ec44ca1941d9b7bc36c60cb1379863a6dd4f",
-    "manifestHash": "sha256:0b81efea7c6ccde9a79d6788083a28ab39b3cae6e21b1a08075b14194bcbe34e",
+    "manifestHash": "sha256:c1564f7422cfb05f5404d7602b3531188de11b7f8409430b6671fe66431cc88b",
     "tokenizerHash": "sha256:8fc3b6de02de5a8e21d3867aba335e2d9a3c2263201f55daaed1feab3541bea4",
     "contextLength": 262144,
     "quantization": "q4k",
@@ -103,7 +103,7 @@
       "weightPackId": "qwen-3-5-0-8b-q4k-ehaf16-wp-catalog-v1",
       "weightPackHash": "sha256:fab133e49d6dc67912fc3a087222ec44ca1941d9b7bc36c60cb1379863a6dd4f",
       "manifestVariantId": "qwen-3-5-0-8b-q4k-ehaf16-mv-exec-v1",
-      "conversionConfigDigest": "sha256:01083d6518cee0445c7114402dade2b2ea0cd39acac0b61cad7dc2dece958f85",
+      "conversionConfigDigest": "sha256:e6273027b3d2413031f4ed55ecb0f0d8f77161bc05f1c46a89b9cfad792bc8a2",
       "conversionConfigPath": "src/config/conversion/qwen3/qwen-3-5-0-8b-q4k-ehaf16.json",
       "materializationProfile": "auto",
       "modalitySet": [
@@ -117,12 +117,12 @@
     "backend": "browser-webgpu",
     "dopplerLoadRef": "qwen-3-5-0-8b-q4k-ehaf16",
     "loadInput": {
-      "url": "https://huggingface.co/Clocksmith/rdrr/resolve/a6118fb24a8e6c4fe7527f1a3dc7b406e0a3ef10/models/qwen-3-5-0-8b-q4k-ehaf16"
+      "url": "https://huggingface.co/Clocksmith/rdrr/resolve/f58f1d0b58641c84e7ea50d13fea0dd4dc91389a/models/qwen-3-5-0-8b-q4k-ehaf16"
     },
     "artifactPolicy": {
       "transport": "offloaded_content_addressed",
       "cache": "browser_opfs",
-      "baseUrl": "https://huggingface.co/Clocksmith/rdrr/resolve/a6118fb24a8e6c4fe7527f1a3dc7b406e0a3ef10/models/qwen-3-5-0-8b-q4k-ehaf16",
+      "baseUrl": "https://huggingface.co/Clocksmith/rdrr/resolve/f58f1d0b58641c84e7ea50d13fea0dd4dc91389a/models/qwen-3-5-0-8b-q4k-ehaf16",
       "identityFields": [
         "modelId",
         "modelHash",
@@ -169,7 +169,7 @@
   "browserRuntime": {
     "dopplerModuleUrl": "https://esm.sh/doppler-gpu@0.4.7/src/client/doppler-api.browser.js?bundle",
     "dopplerKernelBaseUrl": "https://esm.sh/doppler-gpu@0.4.7/src/gpu/kernels",
-    "modelBaseUrl": "https://reploid.web.app/models",
+    "modelBaseUrl": "https://huggingface.co/Clocksmith/rdrr/resolve/f58f1d0b58641c84e7ea50d13fea0dd4dc91389a/models",
     "loadOptions": {
       "cache": "opfs",
       "runtimeConfig": {
@@ -812,7 +812,7 @@
     {
       "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
       "modelHash": "sha256:fab133e49d6dc67912fc3a087222ec44ca1941d9b7bc36c60cb1379863a6dd4f",
-      "manifestHash": "sha256:0b81efea7c6ccde9a79d6788083a28ab39b3cae6e21b1a08075b14194bcbe34e",
+      "manifestHash": "sha256:c1564f7422cfb05f5404d7602b3531188de11b7f8409430b6671fe66431cc88b",
       "tokenizerHash": "sha256:8fc3b6de02de5a8e21d3867aba335e2d9a3c2263201f55daaed1feab3541bea4",
       "contextLength": 262144,
       "quantization": "q4k",
@@ -823,7 +823,7 @@
         "weightPackId": "qwen-3-5-0-8b-q4k-ehaf16-wp-catalog-v1",
         "weightPackHash": "sha256:fab133e49d6dc67912fc3a087222ec44ca1941d9b7bc36c60cb1379863a6dd4f",
         "manifestVariantId": "qwen-3-5-0-8b-q4k-ehaf16-mv-exec-v1",
-        "conversionConfigDigest": "sha256:01083d6518cee0445c7114402dade2b2ea0cd39acac0b61cad7dc2dece958f85",
+        "conversionConfigDigest": "sha256:e6273027b3d2413031f4ed55ecb0f0d8f77161bc05f1c46a89b9cfad792bc8a2",
         "conversionConfigPath": "src/config/conversion/qwen3/qwen-3-5-0-8b-q4k-ehaf16.json",
         "materializationProfile": "auto",
         "modalitySet": [
@@ -837,12 +837,12 @@
       "backend": "browser-webgpu",
       "dopplerLoadRef": "qwen-3-5-0-8b-q4k-ehaf16",
       "loadInput": {
-        "url": "https://huggingface.co/Clocksmith/rdrr/resolve/a6118fb24a8e6c4fe7527f1a3dc7b406e0a3ef10/models/qwen-3-5-0-8b-q4k-ehaf16"
+        "url": "https://huggingface.co/Clocksmith/rdrr/resolve/f58f1d0b58641c84e7ea50d13fea0dd4dc91389a/models/qwen-3-5-0-8b-q4k-ehaf16"
       },
       "artifactPolicy": {
         "transport": "offloaded_content_addressed",
         "cache": "browser_opfs",
-        "baseUrl": "https://huggingface.co/Clocksmith/rdrr/resolve/a6118fb24a8e6c4fe7527f1a3dc7b406e0a3ef10/models/qwen-3-5-0-8b-q4k-ehaf16",
+        "baseUrl": "https://huggingface.co/Clocksmith/rdrr/resolve/f58f1d0b58641c84e7ea50d13fea0dd4dc91389a/models/qwen-3-5-0-8b-q4k-ehaf16",
         "identityFields": [
           "modelId",
           "modelHash",

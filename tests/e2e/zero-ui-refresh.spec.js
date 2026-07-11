@@ -8,8 +8,18 @@ import {
   bootRouteWithServiceWorker,
   sanitizeInstanceId
 } from './reploid-lab-helpers.js';
+import { ZERO_KATAMARI_GOAL } from '../../self/config/zero-goals.js';
 
 test.describe('Zero runtime UI refresh', () => {
+  test('boots with the single selected registry Katamari goal', async ({ page }, testInfo) => {
+    const instanceId = sanitizeInstanceId(`zero-default-goal-${testInfo.project.name}-${Date.now()}`);
+
+    await bootRouteWithServiceWorker(page, '/zero', instanceId);
+
+    await expect(page.locator('#goal-input')).toHaveValue(ZERO_KATAMARI_GOAL.text);
+    await expect(page.locator('#goal-input')).toHaveAttribute('placeholder', ZERO_KATAMARI_GOAL.text);
+  });
+
   test('keeps the agent runtime usable after manual UI reload', async ({ page }, testInfo) => {
     const instanceId = sanitizeInstanceId(`zero-ui-refresh-${testInfo.project.name}-${Date.now()}`);
     const pageErrors = [];
@@ -21,6 +31,14 @@ test.describe('Zero runtime UI refresh', () => {
     await expect(page.locator('.zero-runtime-strip')).toBeVisible();
     await expect(page.locator('.zero-trace')).toBeVisible();
     await expect(page.locator('.zero-goal-text')).toHaveCount(0);
+    const initialWidths = await page.evaluate(() => {
+      const main = document.querySelector('.zero-main').getBoundingClientRect();
+      const trace = document.querySelector('.zero-trace').getBoundingClientRect();
+      const list = document.querySelector('.zero-trace-list').getBoundingClientRect();
+      return { main: main.width, trace: trace.width, list: list.width };
+    });
+    expect(initialWidths.trace).toBeGreaterThanOrEqual(initialWidths.main * 0.98);
+    expect(initialWidths.list).toBeGreaterThanOrEqual(initialWidths.trace * 0.98);
 
     const beforeVersion = await page.evaluate(() => window.REPLOID_UI?.getVersion?.() || null);
     await page.locator('.zero-more summary').click();
@@ -81,5 +99,11 @@ TOOL: MissingCounterProbe`;
     }).not.toBe(beforeVersion);
     await expect(page.locator('#agent-tools')).toHaveText('2 ok / 1 err');
     await expect(page.locator('#agent-tool-rate')).toHaveText('33% fail');
+    const traceWidths = await page.evaluate(() => {
+      const list = document.querySelector('.zero-trace-list').getBoundingClientRect();
+      const entry = document.querySelector('.zero-trace-entry').getBoundingClientRect();
+      return { list: list.width, entry: entry.width };
+    });
+    expect(traceWidths.entry).toBeGreaterThanOrEqual(traceWidths.list * 0.98);
   });
 });

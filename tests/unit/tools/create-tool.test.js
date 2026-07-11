@@ -139,6 +139,68 @@ describe('CreateTool', () => {
     });
   });
 
+  it('compiles the structured tool definition emitted by text models', async () => {
+    vi.stubGlobal('window', {
+      getReploidMode: () => 'zero'
+    });
+    const deps = makeDeps();
+    let stagedCode = '';
+    deps.ToolWriter.create.mockImplementation(async (name, code) => {
+      stagedCode = code;
+      return {
+        success: true,
+        name,
+        path: `/shadow/tools/${name}.js`,
+        staged: true,
+        toolLoaded: false,
+        toolLoadError: null
+      };
+    });
+    deps.VFS.read.mockImplementation(async () => stagedCode);
+
+    const result = await CreateTool({
+      name: 'KatamariEngine',
+      description: 'Structured model output.',
+      activation: {
+        fixtures: {},
+        checks: [{
+          name: 'echoes activation input',
+          args: { value: 'activation' },
+          expected: { value: 'activation' }
+        }]
+      },
+      inputSchema: {
+        type: 'object',
+        properties: { value: { type: 'string' } }
+      },
+      capabilities: ['dom:read'],
+      call: 'async (args) => args'
+    }, deps);
+
+    expect(stagedCode).toContain("name: \"KatamariEngine\"");
+    expect(stagedCode).toContain('const call = (');
+    expect(stagedCode).toContain('async (args) => args');
+    expect(stagedCode).toContain('export default call;');
+    expect(result).toMatchObject({
+      name: 'KatamariEngine',
+      activated: true,
+      validationPassed: true,
+      activationChecksPassed: true,
+      replayPassed: true
+    });
+  });
+
+  it('returns the canonical CreateTool syntax when neither code nor call is present', async () => {
+    const deps = makeDeps();
+
+    await expect(CreateTool({
+      name: 'KatamariEngine',
+      description: 'Incomplete structured definition.'
+    }, deps)).rejects.toThrow('pass module source in code <<EOF ... EOF');
+
+    expect(deps.ToolWriter.create).not.toHaveBeenCalled();
+  });
+
   it('rejects a callable candidate whose activation check fails', async () => {
     vi.stubGlobal('window', {
       getReploidMode: () => 'zero'

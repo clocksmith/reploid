@@ -3,6 +3,12 @@
  */
 
 import crypto from 'crypto';
+import {
+  createReputationSeedEvent,
+  hasLegacyReputationEvidence,
+  projectProviderReputation,
+  reputationEventIdFor
+} from './reputation-projection.js';
 
 const makeId = (prefix) => `${prefix}_${crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2)}`;
 const nowIso = () => new Date().toISOString();
@@ -359,13 +365,13 @@ export function createPoolStore() {
         }
         if (assignment.providerId && providers.has(assignment.providerId)) {
           providers.get(assignment.providerId).status = 'available';
-          const current = this.getReputation(assignment.providerId);
-          const timeouts = Number(current.timeouts || 0) + 1;
-          this.updateReputation(assignment.providerId, {
-            timeouts,
-            lastTimeoutAt: nowIso(),
-            routingBlocked: current.routingBlocked || timeouts >= 3,
-            quarantineReason: timeouts >= 3 ? 'repeated_assignment_timeouts' : current.quarantineReason
+          this.appendReputationEvent({
+            type: 'timeout',
+            category: 'reputation',
+            providerId: assignment.providerId,
+            assignmentId: assignment.assignmentId,
+            jobId: assignment.jobId,
+            reasons: ['assignment expired before completion']
           });
           this.appendLedger({
             eventType: 'points_penalized',
@@ -450,6 +456,26 @@ export function createPoolStore() {
     },
     listPoolEventsForJob(jobId) {
       return poolEvents.filter((event) => event.jobId === jobId);
+    },
+    listPoolEventsForProvider(providerId) {
+      return poolEvents.filter((event) => event.providerId === providerId && event.category === 'reputation');
+    },
+    appendReputationEvent(event = {}) {
+      const providerId = event.providerId;
+      if (!providerId) throw new Error('reputation event providerId is required');
+      const current = this.getReputation(providerId);
+      let events = this.listPoolEventsForProvider(providerId);
+      if (events.length === 0 && hasLegacyReputationEvidence(current)) {
+        this.appendPoolEvent(createReputationSeedEvent(providerId, current));
+      }
+      const eventId = event.eventId || reputationEventIdFor(event);
+      this.appendPoolEvent({
+        ...event,
+        ...(eventId ? { eventId } : {}),
+        category: 'reputation'
+      });
+      events = this.listPoolEventsForProvider(providerId);
+      return this.updateReputation(providerId, projectProviderReputation(providerId, events, current));
     },
     createSignalingSession(input = {}) {
       const sessionId = input.sessionId || makeId('signal_session');
@@ -550,7 +576,7 @@ export function createPoolStore() {
       return pointsLedger.filter((event) => event.userId === userId || event.providerId === userId || event.requesterId === userId);
     },
     getReputation(providerId) {
-      return reputationState.get(providerId) || {
+      const current = reputationState.get(providerId) || {
         providerId,
         acceptedReceipts: 0,
         rejectedReceipts: 0,
@@ -558,6 +584,10 @@ export function createPoolStore() {
         points: 0,
         updatedAt: nowIso()
       };
+      const events = this.listPoolEventsForProvider(providerId);
+      return events.length > 0
+        ? projectProviderReputation(providerId, events, current)
+        : current;
     },
     updateReputation(providerId, patch = {}) {
       const current = this.getReputation(providerId);

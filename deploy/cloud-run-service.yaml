@@ -43,7 +43,7 @@ spec:
             - name: POOL_MAX_SIGNAL_MESSAGES_PER_POLL
               value: "100"
             - name: REPLOID_POOL_MODEL_BASE_URL
-              value: "https://reploid.web.app/models"
+              value: "https://huggingface.co/Clocksmith/rdrr/resolve/f58f1d0b58641c84e7ea50d13fea0dd4dc91389a/models"
             - name: REPLOID_DOPPLER_MODULE_URL
               value: "https://esm.sh/doppler-gpu@0.4.7/src/client/doppler-api.browser.js?bundle"
             - name: REPLOID_DOPPLER_KERNEL_BASE_URL

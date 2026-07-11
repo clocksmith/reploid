@@ -3,6 +3,7 @@
  */
 
 import { DEFAULT_REPLOID_HOME_GOAL } from '../shared/reploid-contract.js';
+import { ZERO_KATAMARI_GOAL } from '../../config/zero-goals.js';
 
 export { DEFAULT_REPLOID_HOME_GOAL };
 
@@ -47,11 +48,6 @@ const GOAL_CATEGORIES = {
       view: 'Artifact studio',
       text: 'Create an artifact studio that captures screenshots, canvases, logs, and structured outputs into a gallery with labels, filters, and preview panes.',
       tags: [TAGS.UI, TAGS.VISUAL, TAGS.DATA]
-    },
-    {
-      view: 'Katamari DOM',
-      text: 'Build a playable Katamari-style DOM overlay: install and load it with CreateTool, mount a transparent full-screen layer over the current page, scan visible DOM nodes into physics pickups, let the player roll a growing ball to collect elements, then orbit, inspect, export robust selectors, and save selector-quality notes for the next self-improvement pass.',
-      tags: [TAGS.UI, TAGS.VISUAL, TAGS.SYS]
     }
   ],
   'L1: Meta Tooling': [
@@ -217,7 +213,7 @@ const GOAL_CATEGORIES = {
 const normalizeText = (value) => String(value || '').trim();
 
 const ZERO_GOAL_RAW_LIBRARY = Object.freeze([
-  { view: 'L1 DOM Katamari', level: 1, text: 'Build a playable Katamari-style DOM overlay: install and load it with CreateTool, mount a transparent full-screen layer over the current page, scan visible DOM nodes into physics pickups, let the player roll a growing ball to collect elements, then orbit, inspect, export robust selectors, and save selector-quality notes for the next self-improvement pass.' },
+  ZERO_KATAMARI_GOAL,
   { view: 'L1 DOM Aquarium', level: 1, text: 'Render DOM nodes as fish that swim by tag type, with hover bubbles showing selectors and roles.' },
   { view: 'L1 DOM Pinball', level: 1, text: 'Turn clickable elements into bumpers, launch a selector ball, and score robust paths versus brittle paths.' },
   { view: 'L1 DOM Stage Lights', level: 1, text: 'Spotlight page regions one by one, record their semantic purpose, and save a visual component map.' },

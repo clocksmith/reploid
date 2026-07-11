@@ -16,7 +16,7 @@ const ResponseParser = {
   factory: (deps) => {
     const { logger, sanitizeLlmJsonRespPure } = deps.Utils;
 
-    const TOP_LEVEL_DIRECTIVE_REGEX = /^(?:REPLOID\/\d+|PLAN:|TOOL:\s*[a-zA-Z0-9_]+|TOOL_CALL:\s*[a-zA-Z0-9_]+|MILESTONE:|DONE:|IDLE:|PARK:)/;
+    const TOP_LEVEL_DIRECTIVE_REGEX = /^(?:REPLOID\/\d+|PLAN:|TOOL:\s*[a-zA-Z0-9_]+|TOOL_CALL:\s*[a-zA-Z0-9_]+|EVIDENCE:|MILESTONE:|DONE:|IDLE:|PARK:)/;
     const REPLTOOL_HEADER_REGEX = /^REPLOID\/\d+\s*$/;
     const PLAN_DIRECTIVE_REGEX = /^PLAN:\s*(.*)$/;
     const TOOL_DIRECTIVE_REGEX = /^TOOL:\s*([a-zA-Z0-9_]+)(?:\s+(.*))?$/;
@@ -457,6 +457,7 @@ const ResponseParser = {
                 const candidate = parseObjectArgsLine(objectLines.join(' '));
                 if (candidate.matched && !candidate.error) {
                   Object.assign(args, candidate.value);
+                  index++;
                   break;
                 }
                 index++;

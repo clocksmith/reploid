@@ -292,6 +292,91 @@ describe('pool coordinator routes', () => {
     expect(response.body.error).toBe('provider must advertise the exact launch model identity');
   });
 
+  it('creates a delayed challenge rerun from a prior receipt', async () => {
+    store.kind = 'memory';
+    router = createPoolRouter({ store, allowCanaryCreation: true });
+    const providerKeys = await createSigningKeyPair();
+    const provider = store.registerProvider({
+      providerId: 'provider_challenge',
+      publicKey: await exportPublicKey(providerKeys.publicKey),
+      models: [launchModel()],
+      availability: { acceptedPolicies: ['fastest_receipt'] }
+    });
+    const sourceJob = store.createJob({
+      requesterId: 'requester_challenge',
+      requesterPublicKey: 'requester-challenge-key',
+      prompt: 'repeat this deterministic result',
+      policyId: 'fastest_receipt',
+      modelRequirements: launchModel(),
+      generationConfig: { ...DETERMINISTIC_GENERATION_CONFIG }
+    });
+    store.saveReceipt('sha256:challenge-source', {
+      receiptHash: 'sha256:challenge-source',
+      jobId: sourceJob.jobId,
+      providerId: provider.providerId,
+      outputText: 'deterministic result',
+      tokenIds: [41, 42],
+      receipt: {
+        providerId: provider.providerId,
+        model: {
+          id: LAUNCH_MODEL.modelId,
+          hash: LAUNCH_MODEL.modelHash,
+          manifestHash: LAUNCH_MODEL.manifestHash,
+          runtime: LAUNCH_MODEL.runtime,
+          backend: LAUNCH_MODEL.backend
+        }
+      }
+    });
+
+    const response = await dispatchJson(router, '/audits/challenge', {
+      method: 'POST',
+      body: { receiptHash: 'sha256:challenge-source' }
+    });
+
+    expect(response.status).toBe(200);
+    expect(response.body.audit).toMatchObject({
+      kind: 'delayed_challenge_rerun',
+      providerId: provider.providerId,
+      status: 'assigned',
+      metadata: {
+        sourceReceiptHash: 'sha256:challenge-source',
+        sourceJobId: sourceJob.jobId
+      }
+    });
+    expect(response.body.job).toMatchObject({
+      auditKind: 'delayed_challenge_rerun',
+      status: 'assigned'
+    });
+    expect(response.body.assignment).toMatchObject({
+      providerId: provider.providerId,
+      auditKind: 'delayed_challenge_rerun',
+      prompt: sourceJob.prompt
+    });
+
+    const challengePayload = await signedReceiptFor({
+      assignment: response.body.assignment,
+      providerKeys: { keyPair: providerKeys },
+      outputText: 'deterministic result',
+      tokenIds: [41, 42]
+    });
+    const completed = await submitReceipt(router, response.body.assignment, challengePayload);
+
+    expect(completed.status).toBe(200);
+    expect(completed.body.routeDecision).toMatchObject({
+      mode: 'canary',
+      canary: {
+        accepted: true,
+        audit: { kind: 'delayed_challenge_rerun', status: 'passed' }
+      },
+      reputation: {
+        challengePasses: 1,
+        challengeFailures: 0,
+        routingBlocked: false
+      }
+    });
+    expect((await store.listPoolEventsForProvider(provider.providerId)).map((event) => event.type)).toContain('challenge_passed');
+  });
+
   it('absorbs one invalid ring receipt while quorum remains possible', async () => {
     store.kind = 'memory';
     const { providers, assignments, job } = await createRingJob({ store, providerCount: 4 });

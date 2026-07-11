@@ -10,7 +10,14 @@ import { assignJob } from './scheduler.js';
 import { verifyReceipt, verifyRequesterAcceptance } from './verifier.js';
 import { awardAcceptedReceipt, calculateReceiptPoints, chargeRequester, penalizeProvider } from './points.js';
 import { recordAcceptedReceipt, recordRejectedReceipt } from './reputation.js';
-import { attachAuditAssignment, createCanaryChallenge, verifyCanaryResult, applyCanaryReputation } from './audits.js';
+import {
+  CHALLENGE_AUDIT_KIND,
+  attachAuditAssignment,
+  createCanaryChallenge,
+  createChallengeRerun,
+  verifyCanaryResult,
+  applyCanaryReputation
+} from './audits.js';
 import { hashJson, sha256Hex } from './hash.js';
 import { POOL_CONFIG, POOL_CONFIG_HASH, POOL_CONFIG_VERSION, getLedgerReasons, getRingPhaseProtocol, validatePoolConfig } from './config.js';
 import { buildCommitmentHash, revealMatchesCommitment, validateCommitmentInput, validateRevealInput } from './commit-reveal.js';
@@ -144,6 +151,66 @@ const requireSignalFromPeer = (req, res, session, fromPeerId) => {
 };
 
 const providerHasLaunchModel = (provider) => (provider?.models || []).find((model) => isLaunchModelRequirement(model));
+
+const scheduleAuditExecution = async ({ store, provider, model, audit }) => {
+  const policyId = audit.policyId || 'fastest_receipt';
+  const job = await store.createJob({
+    requesterId: 'coordinator_audit',
+    requesterPublicKey: null,
+    prompt: audit.prompt,
+    policyId,
+    modelRequirements: audit.modelRequirements,
+    generationConfig: audit.generationConfig,
+    verificationLevel: 'audit',
+    trustTier: 'T2_canary_audited',
+    auditId: audit.auditId,
+    auditKind: audit.kind
+  });
+  const assignment = await store.createAssignment({
+    jobId: job.jobId,
+    requesterId: job.requesterId,
+    providerId: provider.providerId,
+    modelId: model.modelId,
+    policyId,
+    inputHash: audit.inputHash,
+    generationConfigHash: audit.generationConfigHash,
+    verificationLevel: 'audit',
+    trustTier: 'T2_canary_audited',
+    auditId: audit.auditId,
+    auditKind: audit.kind,
+    expiresAt: new Date(Date.now() + 120000).toISOString(),
+    prompt: audit.prompt,
+    generationConfig: audit.generationConfig,
+    model: {
+      id: model.modelId,
+      hash: model.modelHash,
+      manifestHash: model.manifestHash,
+      runtime: model.runtime,
+      backend: model.backend,
+      requirements: audit.modelRequirements
+    }
+  });
+  await attachAuditAssignment({
+    store,
+    auditId: audit.auditId,
+    assignmentId: assignment.assignmentId,
+    providerId: provider.providerId
+  });
+  await store.updateJob(job.jobId, {
+    status: 'assigned',
+    assignmentId: assignment.assignmentId,
+    assignmentIds: [assignment.assignmentId],
+    providerId: provider.providerId,
+    providerIds: [provider.providerId],
+    inputHash: audit.inputHash,
+    generationConfigHash: audit.generationConfigHash
+  });
+  return {
+    audit: await store.getAuditChallenge(audit.auditId),
+    job: await store.getJob(job.jobId),
+    assignment
+  };
+};
 
 const activeAssignmentStatuses = new Set(['assigned', 'running', 'commit_submitted', 'reveal_open', 'reveal_submitted']);
 const finalizedJobStatuses = new Set(['accepted', 'acceptance_processing', 'rejected_by_requester']);
@@ -524,15 +591,22 @@ const updateJobAfterVerifiedReceipt = async ({ store, assignment, receiptRecord,
       store,
       providerId: assignment.providerId,
       accepted: canary.accepted,
-      reasons: canary.reasons
+      reasons: canary.reasons,
+      kind: canary.audit?.kind,
+      auditId: assignment.auditId,
+      assignmentId: assignment.assignmentId,
+      jobId: assignment.jobId
     });
+    const auditFailureReason = canary.audit?.kind === CHALLENGE_AUDIT_KIND
+      ? 'challenge_failed'
+      : 'canary_failed';
     const penaltyEvent = canary.accepted ? null : await penalizeProvider({
       store,
       providerId: assignment.providerId,
       requesterId: assignment.requesterId,
       receiptHash: receiptRecord.receiptHash,
       assignmentId: assignment.assignmentId,
-      reason: 'canary_failed',
+      reason: auditFailureReason,
       points: -5,
       evidence: { reasons: canary.reasons }
     });
@@ -585,6 +659,9 @@ const updateJobAfterVerifiedReceipt = async ({ store, assignment, receiptRecord,
         await recordRejectedReceipt({
           store,
           providerId: record.providerId,
+          receiptHash: record.receiptHash,
+          assignmentId: record.assignmentId,
+          jobId: record.jobId,
           reasons: [mismatchReasonForAgreement(agreement)]
         });
         await penalizeProvider({
@@ -1332,6 +1409,8 @@ export function createPoolRouter({ store = poolStore, verifyAuthToken = null, re
         await recordRejectedReceipt({
           store,
           providerId: assignment.providerId,
+          assignmentId: assignment.assignmentId,
+          jobId: assignment.jobId,
           reasons
         });
         await penalizeProvider({
@@ -1500,6 +1579,9 @@ export function createPoolRouter({ store = poolStore, verifyAuthToken = null, re
         await recordRejectedReceipt({
           store,
           providerId: assignment.providerId,
+          receiptHash: decision.receiptHash,
+          assignmentId: assignment.assignmentId,
+          jobId: assignment.jobId,
           reasons: decision.reasons
         });
         await penalizeProvider({
@@ -1533,6 +1615,9 @@ export function createPoolRouter({ store = poolStore, verifyAuthToken = null, re
       await recordRejectedReceipt({
         store,
         providerId: assignment.providerId,
+        receiptHash: decision.receiptHash,
+        assignmentId: assignment.assignmentId,
+        jobId: assignment.jobId,
         reasons: decision.reasons
       });
       await penalizeProvider({
@@ -1662,6 +1747,8 @@ export function createPoolRouter({ store = poolStore, verifyAuthToken = null, re
       reputation = await recordRejectedReceipt({
         store,
         providerId: assignment.providerId,
+        assignmentId: assignment.assignmentId,
+        jobId: assignment.jobId,
         reasons: [reason]
       });
       penalty = await penalizeProvider({
@@ -1834,6 +1921,7 @@ export function createPoolRouter({ store = poolStore, verifyAuthToken = null, re
       const reputation = await recordAcceptedReceipt({
         store,
         providerId: agreedRecord.providerId,
+        receiptHash: agreedRecord.receiptHash,
         points: ledgerEvent.points
       });
       await store.saveReceipt(agreedRecord.receiptHash, {
@@ -1906,53 +1994,32 @@ export function createPoolRouter({ store = poolStore, verifyAuthToken = null, re
       policyId: 'fastest_receipt',
       metadata: body.metadata || {}
     });
-    const job = await store.createJob({
-      requesterId: 'coordinator_audit',
-      requesterPublicKey: null,
-      prompt: body.prompt,
-      policyId: 'fastest_receipt',
-      modelRequirements,
-      generationConfig,
-      verificationLevel: 'canary',
-      trustTier: 'T2_canary_audited',
-      auditId: audit.auditId
+    return res.json(await scheduleAuditExecution({ store, provider, model, audit }));
+  }));
+
+  router.post('/audits/challenge', asyncRoute(async (req, res) => {
+    if (!allowCanaryCreation && !hasCoordinatorClaim(req.poolAuth)) {
+      return res.status(403).json({ error: 'challenge creation requires coordinator authorization' });
+    }
+    const body = req.body || {};
+    if (!body.receiptHash) return res.status(400).json({ error: 'receiptHash is required' });
+    const sourceReceipt = await store.getReceipt(body.receiptHash);
+    if (!sourceReceipt) return res.status(404).json({ error: 'source receipt not found' });
+    const sourceJob = await store.getJob(sourceReceipt.jobId);
+    if (!sourceJob) return res.status(404).json({ error: 'source job not found' });
+    const providerId = body.providerId || sourceReceipt.providerId;
+    const provider = await store.getProvider(providerId);
+    if (!provider) return res.status(404).json({ error: 'provider not found' });
+    const model = providerHasLaunchModel(provider);
+    if (!model) return res.status(400).json({ error: 'provider does not advertise the launch model identity' });
+    const audit = await createChallengeRerun({
+      store,
+      providerId,
+      sourceReceipt,
+      sourceJob,
+      metadata: body.metadata || {}
     });
-    const inputHash = sha256Hex(body.prompt);
-    const generationConfigHash = hashJson(generationConfig);
-    const assignment = await store.createAssignment({
-      jobId: job.jobId,
-      requesterId: job.requesterId,
-      providerId: provider.providerId,
-      modelId: model.modelId,
-      policyId: 'fastest_receipt',
-      inputHash,
-      generationConfigHash,
-      verificationLevel: 'canary',
-      trustTier: 'T2_canary_audited',
-      auditId: audit.auditId,
-      expiresAt: new Date(Date.now() + 120000).toISOString(),
-      prompt: body.prompt,
-      generationConfig,
-      model: {
-        id: model.modelId,
-        hash: model.modelHash,
-        manifestHash: model.manifestHash,
-        runtime: model.runtime,
-        backend: model.backend,
-        requirements: modelRequirements
-      }
-    });
-    await attachAuditAssignment({ store, auditId: audit.auditId, assignmentId: assignment.assignmentId, providerId: provider.providerId });
-    await store.updateJob(job.jobId, {
-      status: 'assigned',
-      assignmentId: assignment.assignmentId,
-      assignmentIds: [assignment.assignmentId],
-      providerId: provider.providerId,
-      providerIds: [provider.providerId],
-      inputHash,
-      generationConfigHash
-    });
-    return res.json({ audit: await store.getAuditChallenge(audit.auditId), job: await store.getJob(job.jobId), assignment });
+    return res.json(await scheduleAuditExecution({ store, provider, model, audit }));
   }));
 
   router.get('/audits/:auditId', asyncRoute(async (req, res) => {

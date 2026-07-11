@@ -13,7 +13,8 @@ import {
 import {
   DEFAULT_ZERO_GOAL,
   formatGoalPacket,
-  getRandomZeroGoal
+  getRandomZeroGoal,
+  normalizeZeroGoal
 } from '../../config/zero-goals.js';
 import {
   DEFAULT_DOPPLER_MODEL_ID,
@@ -65,8 +66,13 @@ const normalizeCycleIntervalSeconds = (value, fallback = DEFAULT_CYCLE_INTERVAL_
 };
 
 const getStoredGoal = () => {
-  const stored = getReploidStorage().getItem('REPLOID_GOAL');
-  return String(stored || '').trim() || DEFAULT_ZERO_GOAL;
+  const storage = getReploidStorage();
+  const stored = String(storage.getItem('REPLOID_GOAL') || '').trim();
+  const normalized = normalizeZeroGoal(stored);
+  if (stored && normalized !== stored) {
+    storage.setItem('REPLOID_GOAL', normalized);
+  }
+  return normalized;
 };
 
 const getStoredCycleIntervalSeconds = () =>

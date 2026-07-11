@@ -22,7 +22,7 @@ const installActualRuntimeConfig = async (context) => {
   await context.addInitScript(() => {
     window.REPLOID_POOL_DISCOVERY_WINDOW_MS = 300000;
     window.REPLOID_POOL_RECEIPT_WINDOW_MS = 300000;
-    window.REPLOID_POOL_MAX_OUTPUT_TOKENS = 1;
+    window.REPLOID_POOL_MAX_OUTPUT_TOKENS = 8;
     window.REPLOID_POOL_STRICT_ARTIFACT_PREFLIGHT = false;
   });
 };
@@ -68,6 +68,7 @@ const readSnapshot = async (page, resultId) => page.evaluate((id) => {
   return {
     url: window.location.href,
     providerStatus: document.querySelector('[data-pool-provider-status]')?.textContent?.trim() || null,
+    providerState: document.querySelector('[data-pool-provider-status]')?.dataset?.providerState || null,
     stream: document.getElementById(`${id}-stream`)?.textContent || '',
     raw
   };
@@ -86,8 +87,8 @@ const waitForProviderListening = async (page) => {
       const snapshot = await readSnapshot(page, 'pool-provider-result');
       const parsed = snapshot.parsed || {};
       if (parsed.status === 'error' || parsed.error) return `error:${parsed.reason || parsed.error}`;
-      if (snapshot.providerStatus === 'WORKER // ONLINE' && parsed.runner === 'peer_room_listening') return 'ready';
-      return parsed.runner || parsed.status || snapshot.providerStatus || 'waiting';
+      if (snapshot.providerState === 'online' && parsed.runner === 'peer_room_listening') return 'ready';
+      return parsed.runner || parsed.status || snapshot.providerState || snapshot.providerStatus || 'waiting';
     }, {
       timeout: ACTUAL_INFERENCE_TIMEOUT_MS,
       intervals: [1000, 2500, 5000]
@@ -130,13 +131,14 @@ test.describe('Run and Contribute actual browser inference', () => {
     try {
       const providerPage = await openPoolPage(context, baseURL, '/compute', roomId, 'provider');
       await expect(providerPage.locator('#pool-provider-model')).toHaveValue(LAUNCH_MODEL.modelId);
+      const runPage = await openPoolPage(context, baseURL, '/ask', roomId, 'requester');
       await waitForProviderListening(providerPage);
 
-      const runPage = await openPoolPage(context, baseURL, '/ask', roomId, 'requester');
-      const result = await runActualPrompt(runPage, 'Reply with exactly OK.');
+      const result = await runActualPrompt(runPage, 'The color of the sky is');
 
       expect(result.transport).toBe('webrtc_peer_room');
-      expect(result.outputText.length).toBeGreaterThan(0);
+      expect(result.outputText.trim().length).toBeGreaterThan(0);
+      expect(result.outputText).toMatch(/[a-z0-9]/i);
       expect(result.receiptHash).toMatch(/^sha256:/);
       expect(result.receiptRecord?.receipt?.model?.id || result.receiptRecord?.receipt?.model?.modelId).toBe(LAUNCH_MODEL.modelId);
       expect(result.receiptPayloads).toHaveLength(1);
@@ -153,10 +155,9 @@ test.describe('Run and Contribute actual browser inference', () => {
     try {
       const providerPage = await openPoolPage(context, baseURL, '/compute', roomId, 'provider');
       await expect(providerPage.locator('#pool-provider-model')).toHaveValue(LAUNCH_MODEL.modelId);
-      await waitForProviderListening(providerPage);
-
       const firstRunPage = await openPoolPage(context, baseURL, '/ask', roomId, 'requester-one');
       const secondRunPage = await openPoolPage(context, baseURL, '/ask', roomId, 'requester-two');
+      await waitForProviderListening(providerPage);
       const [first, second] = await Promise.all([
         runActualPrompt(firstRunPage, 'Reply with exactly A.'),
         runActualPrompt(secondRunPage, 'Reply with exactly B.')
@@ -164,7 +165,8 @@ test.describe('Run and Contribute actual browser inference', () => {
 
       for (const result of [first, second]) {
         expect(result.transport).toBe('webrtc_peer_room');
-        expect(result.outputText.length).toBeGreaterThan(0);
+        expect(result.outputText.trim().length).toBeGreaterThan(0);
+        expect(result.outputText).toMatch(/[a-z0-9]/i);
         expect(result.receiptHash).toMatch(/^sha256:/);
         expect(result.receiptRecord?.receipt?.model?.id || result.receiptRecord?.receipt?.model?.modelId).toBe(LAUNCH_MODEL.modelId);
         expect(result.receiptPayloads).toHaveLength(1);

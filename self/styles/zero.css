@@ -121,7 +121,7 @@
 
 .zero-main {
   display: grid;
-  grid-template-columns: minmax(160px, 0.36fr) minmax(0, 2fr);
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--space-md);
   min-height: 0;
   overflow: hidden;

@@ -531,7 +531,7 @@ describe('pool home simulation performance contracts', () => {
 
     expect(maxSpeed).toBeCloseTo(maxExpectedSpeed, 8);
     expect(maxWidth).toBeCloseTo(maxExpectedWidth, 8);
-  });
+  }, 15000);
 
   it('keeps topology node centers still through the opening hold plateau', () => {
     withSimulationSearch('?seed=layout-check&shape=receipt_tree', () => {

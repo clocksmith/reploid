@@ -11,7 +11,10 @@ The current Cloud Run and Firestore path is transitional. The target Reploid con
 ## Current Local Checks
 
 - [x] `npm run verify:pool -- --allow-placeholders` passes locally.
-- [x] Focused pool tests pass: `pool-contract`, `pool-routes`, `pool-doppler-runtime`, `p2p-signaling`, `pool-peer-control-plane`, `pool-peer-room`, `pool-peer-rendezvous`, and `pool-model-artifacts`.
+- [x] Unit suite passes: 1,385 passed and 25 skipped.
+- [x] Integration suite passes: 358 passed and 9 skipped.
+- [x] `npm run verify:pool:release -- --url https://reploid.web.app --channel=chrome` passes production readiness, all public routes, synthetic peer flow, actual Doppler WebGPU inference, receipt agreement, requester signature verification, and signed points/reputation event verification.
+- [x] `npm audit` and the production-image `npm ci --omit=dev --include=optional` audit report zero vulnerabilities.
 - [x] No literal `TODO`, `FIXME`, `TBD`, or `XXX` markers existed in pool files before this document.
 
 ---
@@ -32,9 +35,9 @@ The current Cloud Run and Firestore path is transitional. The target Reploid con
 
 ## Launch Proof
 
-- [ ] Deploy Reploid public hosting plus the Reploid Cloud Run coordinator with `POOL_BACKEND_ONLY=true`, `POOL_STORE=firestore`, Firebase Auth verification, required rewrites, commit-reveal support, and metadata-only signaling.
-- [ ] Run `npm run verify:pool -- --url <hosting-domain>` and record `/pool/deployment/check` with `ok: true`, config version, config hash, store mode, auth requirement, artifact base, and commit-reveal status.
-- [ ] Run `REPLOID_POOL_SMOKE_URL=<hosting-domain> npm run smoke:pool` and record route coverage for the public product surface.
+- [x] Deploy Reploid public hosting plus the Reploid Cloud Run coordinator with `POOL_BACKEND_ONLY=true`, `POOL_STORE=firestore`, Firebase Auth verification, required rewrites, commit-reveal support, and metadata-only signaling.
+- [x] Run production verification against `https://reploid.web.app`; `/pool/deployment/check` returns `ok: true` for config `2026-07-10.qwen-manifest.v2`, Firestore, required auth, artifact base, and commit-reveal support.
+- [x] Run public smoke against `https://reploid.web.app` and cover `/`, `/ask`, `/compute`, `/records`, `/history`, `/network`, and `/zero` plus the synthetic peer flow.
 - [ ] Prove one full loop with WebRTC as the main transit: requester submit, provider load, provider register, assignment claim, Doppler generation, commit, reveal, receipt submit, verifier decision, requester acceptance, points update, and reputation update.
 
 ---
@@ -57,7 +60,7 @@ The current Cloud Run and Firestore path is transitional. The target Reploid con
 
 ## Model Artifact Path
 
-- [ ] Publish launch model artifacts under the selected model's configured `artifactPolicy.baseUrl`, with `REPLOID_POOL_MODEL_BASE_URL` as an override for alternate artifact roots.
+- [x] Publish and pin launch model artifacts under the selected model's configured `artifactPolicy.baseUrl`, with `REPLOID_POOL_MODEL_BASE_URL` as an override for alternate artifact roots.
 - [x] Add strict artifact manifest preflight for CORS fetch, manifest JSON, manifest hash, model id, and model hash.
 - [ ] Verify tokenizer, shard hashes, range or resume behavior, and OPFS cache reuse against the published artifact host.
 - [x] Make strict-preflight artifact failures legible in `/compute`: missing manifest, hash mismatch, CORS denial, and unsupported browser runtime.
@@ -67,7 +70,7 @@ The current Cloud Run and Firestore path is transitional. The target Reploid con
 
 ## Doppler Evidence Contract
 
-- [ ] Confirm the configured `doppler-gpu@0.4.7` browser module loads from the public module URL without import-map or bundler assumptions.
+- [x] Confirm the configured `doppler-gpu@0.4.7` browser module loads from the public module URL without import-map or bundler assumptions.
 - [ ] Add or consume a narrow public Doppler evidence export for token ids, transcript hashes, generation config, runtime profile hash, and backend identity.
 - [ ] Keep Reploid from deep-importing Doppler internals.
 - [ ] Show a visible comparison receipt for Doppler output fields versus Reploid receipt fields.
@@ -115,7 +118,7 @@ The current Cloud Run and Firestore path is transitional. The target Reploid con
 - [x] Position Doppler as the browser inference engine. Reploid is the decentralized serving product and governed browser substrate.
 - [x] Treat WebRTC as both the target control plane and the default prompt/output/receipt transit.
 - [x] Avoid forbidden claims: `trustless`, `hardware-attested`, `guaranteed honest GPU execution`, and `decentralized AI compute marketplace at launch`.
-- [ ] Optimize for one public proof that a browser can do useful model work, produce an inspectable receipt, earn reputation, and serve an agent or requester.
+- [x] Optimize for one public proof that a browser can do useful model work, produce an inspectable receipt, earn reputation, and serve an agent or requester.
 
 ---
 
@@ -133,19 +136,19 @@ The current Cloud Run and Firestore path is transitional. The target Reploid con
 
 ## Done Definition
 
-- [ ] Deployed `/pool/deployment/check` returns `ok: true`.
-- [ ] Public smoke passes against the hosted surface.
+- [x] Deployed `/pool/deployment/check` returns `ok: true`.
+- [x] Public smoke passes against the hosted surface.
 - [x] The browser-room code path can run `/compute` providers and `/ask` requester logic without coordinator job creation, collect accepted receipts, and reduce signed points plus reputation events locally.
 - [x] A browser smoke can open `/compute` and `/ask`, receive an accepted receipt, and expose local points plus reputation projection in the visible UI.
-- [ ] A user can do the same against published model artifacts on the hosted surface.
-- [ ] Prompt, output, and full receipt payloads move over WebRTC DataChannel by default, with coordinator signaling restricted to WebRTC metadata.
+- [x] A user can do the same against published model artifacts on the hosted surface.
+- [x] Prompt, output, and full receipt payloads move over WebRTC DataChannel by default, with coordinator signaling restricted to WebRTC metadata.
 - [x] Browser-room ring policy agreement happens through WebRTC provider sessions and produces accepted receipt sets plus agreement hashes.
 - [x] Same-origin browser-room target path works without required Reploid server control-plane calls: peers discover local adverts, route signed intents, elect providers, reach quorum, countersign acceptance, and produce signed reputation events.
 - [x] Wider room path works with optional metadata relay and without required Reploid server job, assignment, quorum, acceptance, points, or reputation authority.
 - [ ] Wider peer graph path works without any Reploid server relay across remote browsers.
 - [ ] The receipt binds model hash, manifest hash, runtime, backend, generation config, output hash, token ids hash or documented warning, provider signature, verifier decision, and requester acceptance.
-- [ ] Docs, config, UI copy, and verifier claims match.
+- [x] Docs, config, UI copy, and verifier claims match.
 
 ---
 
-*Last updated: June 2026*
+*Last updated: July 10, 2026*

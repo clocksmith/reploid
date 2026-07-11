@@ -251,6 +251,39 @@ export function validateModelArtifactManifestShape(manifest = {}, model = {}) {
   };
 }
 
+export function validateDopplerExecutionManifestShape(manifest = {}) {
+  const reasons = [];
+  const inference = manifest?.inference;
+  const hasOwn = (object, field) => (
+    !!object && typeof object === 'object' && Object.prototype.hasOwnProperty.call(object, field)
+  );
+  if (!inference || typeof inference !== 'object' || Array.isArray(inference)) {
+    reasons.push('manifest.inference must be an object');
+    return { ok: false, reasons };
+  }
+  if (inference.schema !== 'doppler.execution/v1') {
+    reasons.push('manifest.inference.schema must be doppler.execution/v1');
+  }
+  const requiredFields = [
+    ['ffn', 'branchMode'],
+    ['output', 'embeddingScale'],
+    ['output', 'logitInputScale'],
+    ['layerPattern', 'residualBranchScale'],
+    ['rope', 'longropeShortFactor'],
+    ['rope', 'longropeLongFactor'],
+    ['rope', 'longropeOriginalMaxPos']
+  ];
+  for (const [section, field] of requiredFields) {
+    if (!hasOwn(inference[section], field)) {
+      reasons.push(`manifest.inference.${section}.${field} must be explicit`);
+    }
+  }
+  return {
+    ok: reasons.length === 0,
+    reasons
+  };
+}
+
 export async function verifyModelArtifactPackage({
   model,
   baseUrl,
@@ -315,5 +348,6 @@ export default {
   buildModelArtifactUrls,
   verifyModelArtifactManifest,
   validateModelArtifactManifestShape,
+  validateDopplerExecutionManifestShape,
   verifyModelArtifactPackage
 };

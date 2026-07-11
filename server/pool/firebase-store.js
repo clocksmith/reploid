@@ -4,6 +4,12 @@
 
 import crypto from 'crypto';
 import poolStore from './store.js';
+import {
+  createReputationSeedEvent,
+  hasLegacyReputationEvidence,
+  projectProviderReputation,
+  reputationEventIdFor
+} from './reputation-projection.js';
 
 const makeId = (prefix) => `${prefix}_${crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2)}`;
 const nowIso = () => new Date().toISOString();
@@ -458,13 +464,13 @@ export function createFirestorePoolStore({ firestore, collectionPrefix = '' } = 
         }
         if (assignment.providerId) {
           await api.setProviderStatus(assignment.providerId, 'available');
-          const current = await api.getReputation(assignment.providerId);
-          const timeouts = Number(current.timeouts || 0) + 1;
-          await api.updateReputation(assignment.providerId, {
-            timeouts,
-            lastTimeoutAt: nowIso(),
-            routingBlocked: current.routingBlocked || timeouts >= 3,
-            quarantineReason: timeouts >= 3 ? 'repeated_assignment_timeouts' : current.quarantineReason
+          await api.appendReputationEvent({
+            type: 'timeout',
+            category: 'reputation',
+            providerId: assignment.providerId,
+            assignmentId: assignment.assignmentId,
+            jobId: assignment.jobId,
+            reasons: ['assignment expired before completion']
           });
           await api.appendLedger({
             eventType: 'points_penalized',
@@ -557,6 +563,31 @@ export function createFirestorePoolStore({ firestore, collectionPrefix = '' } = 
         .where('jobId', '==', jobId)
         .get();
       return snapshot.docs.map((entry) => entry.data());
+    },
+    async listPoolEventsForProvider(providerId) {
+      const snapshot = await collection(COLLECTIONS.poolEvents)
+        .where('providerId', '==', providerId)
+        .get();
+      return snapshot.docs
+        .map((entry) => entry.data())
+        .filter((event) => event.category === 'reputation');
+    },
+    async appendReputationEvent(event = {}) {
+      const providerId = event.providerId;
+      if (!providerId) throw new Error('reputation event providerId is required');
+      const current = await api.getReputation(providerId);
+      let events = await api.listPoolEventsForProvider(providerId);
+      if (events.length === 0 && hasLegacyReputationEvidence(current)) {
+        await api.appendPoolEvent(createReputationSeedEvent(providerId, current));
+      }
+      const eventId = event.eventId || reputationEventIdFor(event);
+      await api.appendPoolEvent({
+        ...event,
+        ...(eventId ? { eventId } : {}),
+        category: 'reputation'
+      });
+      events = await api.listPoolEventsForProvider(providerId);
+      return api.updateReputation(providerId, projectProviderReputation(providerId, events, current));
     },
     async createSignalingSession(input = {}) {
       const sessionId = input.sessionId || makeId('signal_session');
@@ -701,7 +732,11 @@ export function createFirestorePoolStore({ firestore, collectionPrefix = '' } = 
       return Array.from(events.values());
     },
     async getReputation(providerId) {
-      return (await readDoc(COLLECTIONS.reputationState, providerId)) || defaultReputation(providerId);
+      const current = (await readDoc(COLLECTIONS.reputationState, providerId)) || defaultReputation(providerId);
+      const events = await api.listPoolEventsForProvider(providerId);
+      return events.length > 0
+        ? projectProviderReputation(providerId, events, current)
+        : current;
     },
     async updateReputation(providerId, patch = {}) {
       const current = await api.getReputation(providerId);

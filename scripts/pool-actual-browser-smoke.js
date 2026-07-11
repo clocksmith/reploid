@@ -2,6 +2,12 @@
 import { chromium } from '@playwright/test';
 
 import { LAUNCH_MODEL, getEnabledPoolModelContract } from '../self/pool/model-contract.js';
+import {
+  SIGNATURE_DOMAINS,
+  acceptanceSigningPayload,
+  verifyCanonicalSignature
+} from '../self/pool/inference-receipt.js';
+import { verifyPeerMessage } from '../self/pool/peer-control-plane.js';
 
 const args = process.argv.slice(2);
 const positionalUrl = args.find((arg) => !arg.startsWith('--'));
@@ -19,7 +25,13 @@ const selectedBrowserChannel = channelArg
   : String(process.env.REPLOID_POOL_ACTUAL_BROWSER_CHANNEL || '').trim();
 const baseUrl = (positionalUrl || process.env.REPLOID_POOL_ACTUAL_SMOKE_URL || '').replace(/\/+$/, '');
 const ACTUAL_SMOKE_WINDOW_MS = Number(process.env.REPLOID_POOL_ACTUAL_SMOKE_WINDOW_MS || 300000);
-const ACTUAL_DISCOVERY_WINDOW_MS = Number(process.env.REPLOID_POOL_ACTUAL_DISCOVERY_WINDOW_MS || ACTUAL_SMOKE_WINDOW_MS);
+const ACTUAL_DISCOVERY_WINDOW_MS = Number(
+  process.env.REPLOID_POOL_ACTUAL_DISCOVERY_WINDOW_MS
+  || Math.min(ACTUAL_SMOKE_WINDOW_MS, 15000)
+);
+const ACTUAL_MAX_OUTPUT_TOKENS = Math.max(2, Number(
+  process.env.REPLOID_POOL_ACTUAL_MAX_OUTPUT_TOKENS || 8
+));
 const dopplerModuleUrl = String(process.env.REPLOID_DOPPLER_MODULE_URL || '').trim();
 const dopplerKernelBaseUrl = String(process.env.REPLOID_DOPPLER_KERNEL_BASE_URL || '').trim();
 const dopplerLoadOptionsJson = String(process.env.REPLOID_DOPPLER_LOAD_OPTIONS_JSON || '').trim();
@@ -80,6 +92,7 @@ const readSnapshot = async (page, resultId) => page.evaluate((id) => {
   return {
     url: window.location.href,
     providerStatus: document.querySelector('[data-pool-provider-status]')?.textContent?.trim() || null,
+    providerState: document.querySelector('[data-pool-provider-status]')?.dataset?.providerState || null,
     message: document.getElementById(id)?.textContent || '',
     stream: document.getElementById(`${id}-stream`)?.textContent || '',
     raw
@@ -154,10 +167,10 @@ const summarizeProviderAdvert = (advert = {}) => ({
 });
 
 const installActualRuntimeConfig = async (context) => {
-  await context.addInitScript(({ windowMs, discoveryWindowMs, moduleUrl, kernelBaseUrl, loadOptions }) => {
+  await context.addInitScript(({ windowMs, discoveryWindowMs, maxOutputTokens, moduleUrl, kernelBaseUrl, loadOptions }) => {
     window.REPLOID_POOL_DISCOVERY_WINDOW_MS = discoveryWindowMs;
     window.REPLOID_POOL_RECEIPT_WINDOW_MS = windowMs;
-    window.REPLOID_POOL_MAX_OUTPUT_TOKENS = 1;
+    window.REPLOID_POOL_MAX_OUTPUT_TOKENS = maxOutputTokens;
     window.REPLOID_POOL_STRICT_ARTIFACT_PREFLIGHT = false;
     if (moduleUrl) window.REPLOID_DOPPLER_MODULE_URL = moduleUrl;
     if (kernelBaseUrl) window.REPLOID_DOPPLER_KERNEL_BASE_URL = kernelBaseUrl;
@@ -165,6 +178,7 @@ const installActualRuntimeConfig = async (context) => {
   }, {
     windowMs: ACTUAL_SMOKE_WINDOW_MS,
     discoveryWindowMs: ACTUAL_DISCOVERY_WINDOW_MS,
+    maxOutputTokens: ACTUAL_MAX_OUTPUT_TOKENS,
     moduleUrl: dopplerModuleUrl,
     kernelBaseUrl: dopplerKernelBaseUrl,
     loadOptions: dopplerLoadOptions,
@@ -179,7 +193,7 @@ const wireDiagnostics = (page, label) => {
     }
   });
   page.on('pageerror', (error) => {
-    console.log(`[${label}:pageerror] ${error.message}`);
+    console.log(`[${label}:pageerror] ${error.stack || error.message}`);
   });
   page.on('requestfailed', (request) => {
     const url = request.url();
@@ -219,6 +233,7 @@ const waitForProviderListening = async (page) => {
     const parsed = snapshot.parsed || {};
     const observed = JSON.stringify({
       providerStatus: snapshot.providerStatus,
+      providerState: snapshot.providerState,
       runner: parsed.runner || null,
       status: parsed.status || null,
       error: parsed.error || null,
@@ -229,10 +244,10 @@ const waitForProviderListening = async (page) => {
       lastObserved = observed;
     }
     if (parsed.status === 'error' || parsed.error) fail('Actual provider did not start', snapshot);
-    if (snapshot.providerStatus === 'WORKER // OFFLINE' && (snapshot.raw || snapshot.message)) {
+    if (snapshot.providerState === 'offline' && (snapshot.raw || snapshot.message)) {
       fail('Actual provider went offline before listening', snapshot);
     }
-    if (snapshot.providerStatus === 'WORKER // ONLINE' && parsed.runner === 'peer_room_listening') {
+    if (snapshot.providerState === 'online' && parsed.runner === 'peer_room_listening') {
       console.log(`[actual-smoke] provider advert ${JSON.stringify(summarizeProviderAdvert(parsed.advert))}`);
       return 'ready';
     }
@@ -285,7 +300,7 @@ const runActualPrompt = async (page, prompt, { policyId = null } = {}) => {
   return (await readSnapshot(page, 'pool-run-result')).parsed;
 };
 
-const validateActualResult = (result, label, { receiptCount = 1, expectedMode = null, requiredAgreement = null } = {}) => {
+const validateActualResult = async (result, label, { receiptCount = 1, expectedMode = null, requiredAgreement = null } = {}) => {
   expectEqual(result.transport, 'webrtc_peer_room', `${label} transport`);
   const receiptPayloadCount = Array.isArray(result.receiptPayloads) ? result.receiptPayloads.length : 0;
   if (expectedMode === 'ring_quorum') {
@@ -295,7 +310,8 @@ const validateActualResult = (result, label, { receiptCount = 1, expectedMode = 
       expectTruthy(receiptPayloadCount === receiptCount, `${label} receipt payload`, result);
     }
   } else {
-    expectTruthy(result.outputText.length > 0, `${label} outputText`, result);
+    expectTruthy(result.outputText.trim().length > 0, `${label} non-whitespace outputText`, result);
+    expectTruthy(/[a-z0-9]/i.test(result.outputText), `${label} meaningful outputText`, result);
   }
   expectTruthy(/^sha256:/.test(result.receiptHash || ''), `${label} receiptHash`, result);
   const receiptModel = result.receiptRecord?.receipt?.model
@@ -318,6 +334,31 @@ const validateActualResult = (result, label, { receiptCount = 1, expectedMode = 
   expectTruthy(result.agreement?.accepted === true, `${label} accepted agreement`, result);
   if (expectedMode) expectEqual(result.agreement?.mode, expectedMode, `${label} agreement mode`);
   if (requiredAgreement !== null) expectEqual(Number(result.agreement?.requiredAgreement), Number(requiredAgreement), `${label} required agreement`);
+  const acceptance = result.requesterAcceptance;
+  expectTruthy(acceptance?.accepted === true, `${label} requester acceptance`, result);
+  expectEqual(acceptance?.receiptHash, result.agreement?.receiptHash, `${label} accepted receipt hash`);
+  expectEqual(acceptance?.agreementHash, result.agreement?.agreementHash, `${label} accepted agreement hash`);
+  expectTruthy(acceptance?.requesterSignature, `${label} requester signature`, result);
+  const ledgerEvents = Array.isArray(result.ledgerEvents) ? result.ledgerEvents : [];
+  const requesterPublicKey = ledgerEvents[0]?.publicKey;
+  expectTruthy(requesterPublicKey, `${label} requester public key`, result);
+  expectTruthy(await verifyCanonicalSignature(
+    acceptanceSigningPayload(acceptance),
+    requesterPublicKey,
+    acceptance.requesterSignature,
+    { domain: SIGNATURE_DOMAINS.requesterAcceptance }
+  ), `${label} requester signature validity`, result);
+  expectTruthy(ledgerEvents.some((event) => event.type === 'points_event'), `${label} points event`, result);
+  expectTruthy(ledgerEvents.some((event) => event.type === 'reputation_event'), `${label} reputation event`, result);
+  expectTruthy(ledgerEvents.every((event) => event.messageHash && event.signature), `${label} signed ledger events`, result);
+  const ledgerDecisions = await Promise.all(ledgerEvents.map((event) => verifyPeerMessage(event)));
+  expectTruthy(ledgerDecisions.every((decision) => decision.ok), `${label} ledger signature validity`, {
+    result,
+    ledgerDecisions
+  });
+  expectTruthy(ledgerEvents.every((event) => (
+    event.publicKey === requesterPublicKey && event.fromPeerId === acceptance.requesterId
+  )), `${label} ledger signer identity`, result);
 };
 
 const runSingleReceipt = async (browser) => {
@@ -328,11 +369,11 @@ const runSingleReceipt = async (browser) => {
     const providerPage = await openPoolPage(context, '/compute', roomId, 'single-provider');
     await selectProviderModel(providerPage, SMOKE_MODEL.modelId);
     await expectEqual(await providerPage.locator('#pool-provider-model').inputValue(), SMOKE_MODEL.modelId, 'single provider model');
+    const runPage = await openPoolPage(context, '/ask', roomId, 'single-requester');
     await waitForProviderListening(providerPage);
 
-    const runPage = await openPoolPage(context, '/ask', roomId, 'single-requester');
-    const result = await runActualPrompt(runPage, 'Reply with exactly OK.');
-    validateActualResult(result, 'single');
+    const result = await runActualPrompt(runPage, 'The color of the sky is');
+    await validateActualResult(result, 'single');
     console.log(`[actual-smoke] single receipt ${result.receiptHash}`);
   } finally {
     await context.close().catch(() => null);
@@ -347,16 +388,15 @@ const runQueuedReceipts = async (browser) => {
     const providerPage = await openPoolPage(context, '/compute', roomId, 'queue-provider');
     await selectProviderModel(providerPage, SMOKE_MODEL.modelId);
     await expectEqual(await providerPage.locator('#pool-provider-model').inputValue(), SMOKE_MODEL.modelId, 'queue provider model');
-    await waitForProviderListening(providerPage);
-
     const firstRunPage = await openPoolPage(context, '/ask', roomId, 'queue-requester-one');
     const secondRunPage = await openPoolPage(context, '/ask', roomId, 'queue-requester-two');
+    await waitForProviderListening(providerPage);
     const [first, second] = await Promise.all([
       runActualPrompt(firstRunPage, 'Reply with exactly A.'),
       runActualPrompt(secondRunPage, 'Reply with exactly B.')
     ]);
-    validateActualResult(first, 'queue first');
-    validateActualResult(second, 'queue second');
+    await validateActualResult(first, 'queue first');
+    await validateActualResult(second, 'queue second');
     expectEqual(first.assignment.providerId, second.assignment.providerId, 'queued provider identity');
     expectTruthy(first.receiptHash !== second.receiptHash, 'queued receipts must be distinct', { first, second });
     console.log(`[actual-smoke] queued receipts ${first.receiptHash} ${second.receiptHash}`);
@@ -492,7 +532,7 @@ const runTwelveProviderRing = async (browser) => {
     const result = await runActualPrompt(runPage, 'Reply with exactly YES.', {
       policyId: 'ring_quorum_receipt'
     });
-    validateActualResult(result, 'ring12', {
+    await validateActualResult(result, 'ring12', {
       receiptCount: null,
       expectedMode: 'ring_quorum',
       requiredAgreement: 7
