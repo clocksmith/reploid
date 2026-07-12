@@ -133,6 +133,13 @@ describe('boot seed manifest', () => {
     expect(zeroBootFiles).not.toContain('styles/poolday.css');
   });
 
+  it('hydrates the shared local Doppler contract for Poolday, Zero, and X', () => {
+    for (const profile of ['pool_home', 'zero_home', 'x_home']) {
+      expect(pickBootSeedFiles(manifest.files, profile), profile)
+        .toContain('config/doppler-local-models.js');
+    }
+  });
+
   it('keeps Zero lightweight while X absorbs the Zero boot surface', () => {
     const zeroBootFiles = pickBootSeedFiles(manifest.files, 'zero_home');
     const xBootFiles = pickBootSeedFiles(manifest.files, 'x_home');

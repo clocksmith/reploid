@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-07-07T15:47:33.334Z",
+  "generatedAt": "2026-07-12T20:00:06.302Z",
   "features": [
     {
       "id": "0x000003",
@@ -3198,6 +3198,90 @@
       ],
       "files": [
         "ui/shared/reploid-contract.js"
+      ]
+    },
+    {
+      "id": "0x000147",
+      "name": "config-doppler-local-models",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x000147",
+          "path": "blueprints/0x000147-config-doppler-local-models.md"
+        }
+      ],
+      "files": [
+        "config/doppler-local-models.js"
+      ]
+    },
+    {
+      "id": "0x000148",
+      "name": "config-immutability",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x000148",
+          "path": "blueprints/0x000148-config-immutability.md"
+        }
+      ],
+      "files": [
+        "config/immutability.js"
+      ]
+    },
+    {
+      "id": "0x000149",
+      "name": "config-surface-intents",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x000149",
+          "path": "blueprints/0x000149-config-surface-intents.md"
+        }
+      ],
+      "files": [
+        "config/surface-intents.js"
+      ]
+    },
+    {
+      "id": "0x00014a",
+      "name": "config-zero-goals",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x00014a",
+          "path": "blueprints/0x00014a-config-zero-goals.md"
+        }
+      ],
+      "files": [
+        "config/zero-goals.js"
+      ]
+    },
+    {
+      "id": "0x00014b",
+      "name": "config-zero-inference",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x00014b",
+          "path": "blueprints/0x00014b-config-zero-inference.md"
+        }
+      ],
+      "files": [
+        "config/zero-inference.js"
+      ]
+    },
+    {
+      "id": "0x00014c",
+      "name": "ui-zero-home-index",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x00014c",
+          "path": "blueprints/0x00014c-ui-zero-home-index.md"
+        }
+      ],
+      "files": [
+        "ui/zero-home/index.js"
       ]
     }
   ]

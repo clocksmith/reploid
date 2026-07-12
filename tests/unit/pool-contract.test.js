@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 
 import { BROWSER_RUNTIME_CONFIG as SERVER_BROWSER_RUNTIME_CONFIG } from '../../server/pool/config.js';
@@ -51,6 +52,8 @@ const makeJob = (overrides = {}) => ({
 const QWEN_MODEL_ID = 'qwen-3-5-0-8b-q4k-ehaf16';
 const QWEN_EMBEDDING_MODEL_ID = 'qwen-3-embedding-0-6b-q4k-ehf16-af32';
 const GEMMA4_INT4_PLE_MODEL_ID = 'gemma-4-e2b-it-q4k-ehf16-af32-int4ple';
+const deploymentEnv = JSON.parse(readFileSync('deploy/env.production.json', 'utf8'));
+const cloudRunService = readFileSync('deploy/cloud-run-service.yaml', 'utf8');
 
 const modelRequirementsFor = (model) => ({
   modelId: model.modelId,
@@ -147,11 +150,11 @@ describe('pool launch contract', () => {
     });
     expect(serverModel.runtimeCompatibility).toMatchObject({
       requiredWebGpuFeatures: [],
-      fallbackStatus: 'doppler_0_4_7_manifest_capability_remap',
+      fallbackStatus: 'doppler_0_4_8_manifest_capability_remap',
       capabilityFallbacks: [
         expect.objectContaining({
           whenMissingWebGpuFeatures: ['shader-f16'],
-          runtime: 'doppler-gpu@0.4.7',
+          runtime: 'doppler-gpu@0.4.8',
           transform: 'widenToF32Activations',
           prefillProjectionKernel: 'fused_matmul_q4_batched_multicol_shared.wgsl',
           kvDtype: 'f32',
@@ -186,7 +189,7 @@ describe('pool launch contract', () => {
     });
     expect(noF16.ok).toBe(true);
     expect(noF16.missingFeatures).toEqual([]);
-    expect(noF16.fallbackStatus).toBe('doppler_0_4_7_manifest_capability_remap');
+    expect(noF16.fallbackStatus).toBe('doppler_0_4_8_manifest_capability_remap');
 
     expect(buildModelArtifactUrls(browserModel)).toEqual({
       root: 'https://huggingface.co/Clocksmith/rdrr/resolve/f58f1d0b58641c84e7ea50d13fea0dd4dc91389a/models/qwen-3-5-0-8b-q4k-ehaf16',
@@ -306,9 +309,17 @@ describe('pool launch contract', () => {
 
   it('keeps browser runtime deployment config aligned across server and browser', () => {
     expect(BROWSER_BROWSER_RUNTIME_CONFIG).toEqual(SERVER_BROWSER_RUNTIME_CONFIG);
-    expect(BROWSER_BROWSER_RUNTIME_CONFIG.dopplerModuleUrl).toBe('https://esm.sh/doppler-gpu@0.4.7/src/client/doppler-api.browser.js?bundle');
-    expect(BROWSER_BROWSER_RUNTIME_CONFIG.dopplerKernelBaseUrl).toBe('https://esm.sh/doppler-gpu@0.4.7/src/gpu/kernels');
+    expect(BROWSER_BROWSER_RUNTIME_CONFIG.dopplerModuleUrl).toBe('https://esm.sh/doppler-gpu@0.4.8/src/client/doppler-api.js?bundle');
+    expect(BROWSER_BROWSER_RUNTIME_CONFIG.dopplerKernelBaseUrl).toBe('https://esm.sh/doppler-gpu@0.4.8/src/gpu/kernels');
     expect(BROWSER_BROWSER_RUNTIME_CONFIG.modelBaseUrl).toBe('https://huggingface.co/Clocksmith/rdrr/resolve/f58f1d0b58641c84e7ea50d13fea0dd4dc91389a/models');
+
+    for (const env of [deploymentEnv.runtimeEnv, deploymentEnv.browserEnv]) {
+      expect(env.REPLOID_DOPPLER_MODULE_URL).toBe(BROWSER_BROWSER_RUNTIME_CONFIG.dopplerModuleUrl);
+      expect(env.REPLOID_DOPPLER_KERNEL_BASE_URL).toBe(BROWSER_BROWSER_RUNTIME_CONFIG.dopplerKernelBaseUrl);
+    }
+    expect(cloudRunService).toContain(`value: "${BROWSER_BROWSER_RUNTIME_CONFIG.dopplerModuleUrl}"`);
+    expect(cloudRunService).toContain(`value: "${BROWSER_BROWSER_RUNTIME_CONFIG.dopplerKernelBaseUrl}"`);
+    expect(cloudRunService).not.toContain('doppler-api.browser.js');
   });
 
   it('keeps offloaded artifact URLs separate from receipt identity fields', () => {

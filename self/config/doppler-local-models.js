@@ -3,7 +3,7 @@
  */
 
 export const DOPPLER_PACKAGE_NAME = 'doppler-gpu';
-export const DOPPLER_PACKAGE_VERSION = '0.4.7';
+export const DOPPLER_PACKAGE_VERSION = '0.4.8';
 
 export const DEFAULT_DOPPLER_MODEL_ID = 'qwen-3-5-2b-q4k-ehaf16';
 

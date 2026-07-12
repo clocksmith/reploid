@@ -17,7 +17,7 @@ const packageJson = JSON.parse(readFileSync('package.json', 'utf8'));
 describe('local Doppler model contract', () => {
   it('exposes Qwen as the only local Doppler option for now', () => {
     expect(DOPPLER_PACKAGE_NAME).toBe('doppler-gpu');
-    expect(DOPPLER_PACKAGE_VERSION).toBe('0.4.7');
+    expect(DOPPLER_PACKAGE_VERSION).toBe('0.4.8');
     expect(DEFAULT_DOPPLER_MODEL_ID).toBe('qwen-3-5-2b-q4k-ehaf16');
     expect(LOCAL_DOPPLER_MODELS.map((model) => model.id)).toEqual([
       DEFAULT_DOPPLER_MODEL_ID
@@ -31,7 +31,7 @@ describe('local Doppler model contract', () => {
   it('resolves only declared local Doppler model ids', () => {
     expect(getLocalDopplerModel(DEFAULT_DOPPLER_MODEL_ID)).toMatchObject({
       id: DEFAULT_DOPPLER_MODEL_ID,
-      packageVersion: '0.4.7'
+      packageVersion: '0.4.8'
     });
     expect(getDefaultLocalDopplerModel()?.id).toBe(DEFAULT_DOPPLER_MODEL_ID);
     expect(getLocalDopplerModel('smollm2-360m')).toBeNull();
@@ -46,7 +46,7 @@ describe('local Doppler model contract', () => {
       provider: 'doppler',
       hostType: 'browser-local',
       packageName: 'doppler-gpu',
-      packageVersion: '0.4.7'
+      packageVersion: '0.4.8'
     });
     expect(buildDefaultLocalDopplerModelConfig()).toMatchObject({
       id: DEFAULT_DOPPLER_MODEL_ID
