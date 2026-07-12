@@ -5,6 +5,7 @@
 
 import { getGoalEntries } from './goals.js';
 import { getState, setNestedState } from './state.js';
+import { DOPPLER_MODULE_URL } from '../../config/doppler-local-models.js';
 import { getProxyChatEndpoint, getProxyHealthEndpoint } from '../../config/zero-inference.js';
 
 const PROBE_TIMEOUT = 3000;
@@ -299,8 +300,7 @@ const readResponsePayload = async (response) => {
 };
 
 const getDopplerProviderUrl = () => {
-  const base = window.DOPPLER_BASE_URL || '/doppler';
-  return `${base.replace(/\/$/, '')}/src/client/doppler-provider.js`;
+  return window.REPLOID_DOPPLER_MODULE_URL || DOPPLER_MODULE_URL;
 };
 
 const ensureGoalGeneratorRuntime = async () => {
@@ -755,7 +755,7 @@ export async function checkDoppler() {
       return { supported: false };
     }
 
-    const { DopplerProvider } = await import('@simulatte/doppler/provider');
+    const { DopplerProvider } = await import('../../providers/doppler-reploid.js');
     const available = await DopplerProvider.init();
 
     if (available) {

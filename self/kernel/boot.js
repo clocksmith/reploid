@@ -10,8 +10,12 @@ import {
   getCurrentReploidSessionStorage as getScopedSessionStorage,
   getCurrentReploidStorage as getScopedLocalStorage
 } from '../instance.js';
+import {
+  DOPPLER_KERNEL_BASE_URL,
+  DOPPLER_MODULE_URL
+} from '../config/doppler-local-models.js';
 
-const BUILD_VERSION = '2026071002';
+const BUILD_VERSION = '2026071201';
 const IMPORTMAP_ID = 'reploid-doppler-importmap';
 const BASE_ID = 'reploid-base';
 const CORE_STYLE_ID = 'reploid-core-style';
@@ -62,17 +66,23 @@ const installDopplerImportMap = () => {
     stored = null;
   }
 
-  const base = (fromQuery || stored || '/doppler').replace(/\/$/, '');
+  const base = (fromQuery || stored || '').replace(/\/$/, '');
+  const moduleUrl = base ? `${base}/src/client/doppler-api.js` : DOPPLER_MODULE_URL;
+  const kernelBaseUrl = base ? `${base}/src/gpu/kernels` : DOPPLER_KERNEL_BASE_URL;
   window.DOPPLER_BASE_URL = base;
+  window.REPLOID_DOPPLER_MODULE_URL = moduleUrl;
+  window.REPLOID_DOPPLER_KERNEL_BASE_URL = kernelBaseUrl;
+  window.__DOPPLER_KERNEL_BASE_PATH__ = kernelBaseUrl;
 
-  const join = (suffix) => `${base}${suffix}`;
   const imports = {
-    '@simulatte/doppler': join('/src/index.js'),
-    '@simulatte/doppler/provider': join('/src/client/doppler-provider.js'),
-    '@simulatte/doppler/bridge/': join('/src/bridge/'),
-    '@simulatte/doppler/browser/': join('/src/browser/'),
-    '@simulatte/doppler/': join('/src/')
+    '@simulatte/doppler': moduleUrl,
+    '@simulatte/doppler/provider': '/providers/doppler-reploid.js'
   };
+  if (base) {
+    imports['@simulatte/doppler/bridge/'] = `${base}/src/bridge/`;
+    imports['@simulatte/doppler/browser/'] = `${base}/src/browser/`;
+    imports['@simulatte/doppler/'] = `${base}/src/`;
+  }
 
   let script = document.getElementById(IMPORTMAP_ID);
   if (!script) {

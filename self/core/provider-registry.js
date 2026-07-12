@@ -13,27 +13,14 @@ const ProviderRegistry = {
   },
 
   factory: (deps) => {
-    const { Utils, VFS } = deps;
+    const { Utils } = deps;
     const { logger, Errors } = Utils;
 
     const _providers = new Map();
     const _loaders = new Map();
     const _loading = new Map();
-    let _dopplerVfsChecked = false;
 
     const normalizeId = (id) => (id || '').toLowerCase().trim();
-    const getDopplerBaseUrl = () => {
-      if (typeof window === 'undefined') return null;
-      const direct = window.DOPPLER_BASE_URL;
-      if (direct && typeof direct === 'string') return direct;
-      try {
-        const stored = window.localStorage?.getItem('DOPPLER_BASE_URL');
-        if (stored && typeof stored === 'string') return stored;
-      } catch {
-        return null;
-      }
-      return null;
-    };
 
     const registerProvider = (id, provider, options = {}) => {
       const cleanId = normalizeId(id);
@@ -139,33 +126,14 @@ const ProviderRegistry = {
         : { available: true };
     };
 
-    const ensureDopplerModules = async () => {
-      if (_dopplerVfsChecked || !VFS) return true;
-      const entry = await VFS.stat('/doppler/src/client/doppler-provider.js').catch(() => null);
-      if (!entry) {
-        const base = getDopplerBaseUrl();
-        const manifestUrl = base
-          ? `${base.replace(/\/$/, '')}/config/vfs-manifest.json`
-          : '/doppler/config/vfs-manifest.json';
-        const assetsHint = base || '/doppler';
-        throw new Errors.ConfigError(
-          `Doppler provider not present in VFS. Seed VFS from ${manifestUrl} or host Doppler assets at ${assetsHint}.`
-        );
-      }
-      _dopplerVfsChecked = true;
-      return true;
-    };
-
     const loadDopplerProvider = async () => {
       if (typeof window === 'undefined') {
         throw new Errors.ConfigError('Doppler provider requires a browser environment');
       }
 
-      await ensureDopplerModules();
-
       let module;
       try {
-        module = await import('@simulatte/doppler/provider');
+        module = await import('../providers/doppler-reploid.js');
       } catch (err) {
         throw new Errors.ConfigError(`Failed to import Doppler provider: ${err.message}`);
       }

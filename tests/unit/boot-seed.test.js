@@ -140,12 +140,19 @@ describe('boot seed manifest', () => {
     }
   });
 
+  it('hydrates the Doppler 0.4.8 provider adapter for Zero and X', () => {
+    for (const profile of ['zero_home', 'x_home']) {
+      const files = pickBootSeedFiles(manifest.files, profile);
+      expect(files, profile).toContain('providers/doppler-reploid.js');
+    }
+  });
+
   it('keeps Zero lightweight while X absorbs the Zero boot surface', () => {
     const zeroBootFiles = pickBootSeedFiles(manifest.files, 'zero_home');
     const xBootFiles = pickBootSeedFiles(manifest.files, 'x_home');
     const xBootSet = new Set(xBootFiles);
 
-    expect(zeroBootFiles.length).toBeLessThanOrEqual(68);
+    expect(zeroBootFiles.length).toBeLessThanOrEqual(69);
     expect(zeroBootFiles).not.toContain('tools/DeleteFile.js');
     expect(zeroBootFiles).not.toContain('tools/CopyFile.js');
     expect(zeroBootFiles).not.toContain('tools/git.js');
