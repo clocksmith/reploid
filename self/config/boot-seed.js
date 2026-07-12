@@ -161,6 +161,7 @@ export const ZERO_HOME_BOOT_SEED_PREFIXES = Object.freeze([
   'core/utils.js',
   'core/vfs.js',
   'core/vfs-module-loader.js',
+  'providers/doppler-reploid.js',
   'infrastructure/circuit-breaker.js',
   'infrastructure/di-container.js',
   'infrastructure/event-bus.js',

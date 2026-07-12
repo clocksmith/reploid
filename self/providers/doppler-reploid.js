@@ -1,15 +1,126 @@
 /**
  * Reploid-specific Doppler adapter.
  *
- * Doppler ships `@simulatte/doppler` (engine) and `@simulatte/doppler/provider` (generic browser facade).
- * Reploid wraps those into Reploid's provider contract (chat/stream/status + LoRA + KV prefill)
- * and exposes Reploid-only "toolbox" surfaces (bench harness).
+ * Doppler owns model loading and model handles. Reploid adapts those public
+ * handles into its chat/stream/status + LoRA + KV-prefill provider contract.
  */
 
+import {
+  DOPPLER_MODULE_URL,
+  DOPPLER_TOOLING_URL
+} from '../config/doppler-local-models.js';
+
 async function loadBenchHarness() {
-  // Keep this lazy: most sessions never touch the harness.
-  return import('@simulatte/doppler/inference/browser-harness.js');
+  return import(DOPPLER_TOOLING_URL);
 }
+
+const generationOptionsFromModel = (model = {}) => Object.fromEntries(Object.entries({
+  maxTokens: model.maxTokens ?? model.maxOutputTokens,
+  temperature: model.temperature,
+  topK: model.topK,
+  topP: model.topP,
+  stopSequences: model.stopSequences,
+  useChatTemplate: model.useChatTemplate
+}).filter(([, value]) => value !== undefined));
+
+const configError = (Errors, message) => {
+  const ConfigError = Errors?.ConfigError || Error;
+  return new ConfigError(message);
+};
+
+export function createDopplerPublicProviderAdapter(dopplerModule, { Errors = null } = {}) {
+  const runtime = dopplerModule?.doppler || dopplerModule?.dr || dopplerModule?.default || null;
+  const load = dopplerModule?.load || runtime?.load?.bind(runtime);
+  if (typeof load !== 'function') {
+    throw configError(Errors, 'Doppler public module does not expose load');
+  }
+
+  let initialized = false;
+  let handle = null;
+  let loadedModelId = null;
+  const hasWebGPU = () => typeof navigator !== 'undefined' && !!navigator.gpu;
+  const requireHandle = () => {
+    if (!handle?.loaded) throw configError(Errors, 'Doppler model is not loaded');
+    return handle;
+  };
+
+  return {
+    async init() {
+      initialized = true;
+      return hasWebGPU();
+    },
+    getCapabilities() {
+      return {
+        available: hasWebGPU(),
+        initialized,
+        currentModelId: loadedModelId,
+        deviceInfo: handle?.deviceInfo || null
+      };
+    },
+    async loadModel(modelId, modelUrl = null, onProgress = null, localPath = null) {
+      if (localPath && !modelUrl) {
+        throw configError(Errors, 'Doppler 0.4.8 browser loads require a registry id or model URL');
+      }
+      const source = modelUrl ? { url: modelUrl } : modelId;
+      handle = await load(source, {
+        ...(globalThis.REPLOID_DOPPLER_LOAD_OPTIONS || {}),
+        ...(onProgress ? { onProgress } : {})
+      });
+      loadedModelId = modelId;
+      return handle;
+    },
+    async chat(messages, options = {}) {
+      return requireHandle().chatText(messages, generationOptionsFromModel(options));
+    },
+    async *stream(messages, options = {}) {
+      for await (const token of requireHandle().chat(messages, generationOptionsFromModel(options))) {
+        yield token;
+      }
+    },
+    async prefillKV(prompt, options = {}) {
+      const prefill = requireHandle().advanced?.prefillKV;
+      if (typeof prefill !== 'function') {
+        throw configError(Errors, 'Doppler model handle does not expose KV prefill');
+      }
+      return prefill(prompt, generationOptionsFromModel(options));
+    },
+    async loadLoRAAdapter(adapter) {
+      return requireHandle().loadLoRA(adapter);
+    },
+    async unloadLoRAAdapter() {
+      return requireHandle().unloadLoRA();
+    },
+    getActiveLoRA() {
+      return handle?.activeLoRA || null;
+    },
+    getCurrentModelId() {
+      return loadedModelId;
+    },
+    getPipeline() {
+      return handle;
+    },
+    async getModels() {
+      return typeof runtime?.listModels === 'function' ? runtime.listModels() : [];
+    },
+    async getAvailableModels() {
+      return typeof runtime?.listModels === 'function' ? runtime.listModels() : [];
+    },
+    async destroy() {
+      if (handle) await handle.unload();
+      handle = null;
+      loadedModelId = null;
+      initialized = false;
+    }
+  };
+}
+
+const callTooling = async (method, args) => {
+  const tooling = await loadBenchHarness();
+  if (typeof tooling?.[method] !== 'function') {
+    throw new Error(`Doppler 0.4.8 tooling does not expose ${method}`);
+  }
+  return tooling[method](...args);
+};
 
 export function createReploidDopplerProvider(baseProvider, { Errors }) {
   if (!baseProvider) {
@@ -145,15 +256,15 @@ export function createReploidDopplerProvider(baseProvider, { Errors }) {
   };
 
   const bench = {
-    loadRuntimeConfigFromUrl: async (...args) => (await loadBenchHarness()).loadRuntimeConfigFromUrl(...args),
-    applyRuntimeConfigFromUrl: async (...args) => (await loadBenchHarness()).applyRuntimeConfigFromUrl(...args),
-    loadRuntimePreset: async (...args) => (await loadBenchHarness()).loadRuntimePreset(...args),
-    applyRuntimePreset: async (...args) => (await loadBenchHarness()).applyRuntimePreset(...args),
-    initializeBrowserHarness: async (...args) => (await loadBenchHarness()).initializeBrowserHarness(...args),
-    saveBrowserReport: async (...args) => (await loadBenchHarness()).saveBrowserReport(...args),
-    runBrowserHarness: async (...args) => (await loadBenchHarness()).runBrowserHarness(...args),
-    runBrowserSuite: async (...args) => (await loadBenchHarness()).runBrowserSuite(...args),
-    runBrowserManifest: async (...args) => (await loadBenchHarness()).runBrowserManifest(...args),
+    loadRuntimeConfigFromUrl: (...args) => callTooling('loadRuntimeConfigFromUrl', args),
+    applyRuntimeConfigFromUrl: (...args) => callTooling('applyRuntimeConfigFromUrl', args),
+    loadRuntimePreset: (...args) => callTooling('loadRuntimePreset', args),
+    applyRuntimePreset: (...args) => callTooling('applyRuntimePreset', args),
+    initializeBrowserHarness: (...args) => callTooling('initializeBrowserHarness', args),
+    saveBrowserReport: (...args) => callTooling('saveBrowserReport', args),
+    runBrowserHarness: (...args) => callTooling('runBrowserHarness', args),
+    runBrowserSuite: (...args) => callTooling('runBrowserSuite', args),
+    runBrowserManifest: (...args) => callTooling('runBrowserManifest', args)
   };
 
   return {
@@ -176,3 +287,53 @@ export function createReploidDopplerProvider(baseProvider, { Errors }) {
   };
 }
 
+class DopplerConfigError extends Error {}
+
+let publicAdapter = null;
+let publicAdapterPromise = null;
+
+const ensurePublicAdapter = async () => {
+  if (publicAdapter) return publicAdapter;
+  if (!publicAdapterPromise) {
+    publicAdapterPromise = import(DOPPLER_MODULE_URL)
+      .then((module) => createDopplerPublicProviderAdapter(module, {
+        Errors: { ConfigError: DopplerConfigError }
+      }))
+      .then((value) => {
+        publicAdapter = value;
+        return value;
+      })
+      .catch((error) => {
+        publicAdapterPromise = null;
+        throw error;
+      });
+  }
+  return publicAdapterPromise;
+};
+
+export const DopplerProvider = {
+  init: async () => (await ensurePublicAdapter()).init(),
+  getCapabilities: () => publicAdapter?.getCapabilities() || {
+    available: typeof navigator !== 'undefined' && !!navigator.gpu,
+    initialized: false,
+    currentModelId: null
+  },
+  loadModel: async (...args) => (await ensurePublicAdapter()).loadModel(...args),
+  chat: async (...args) => (await ensurePublicAdapter()).chat(...args),
+  async *stream(...args) {
+    yield* (await ensurePublicAdapter()).stream(...args);
+  },
+  prefillKV: async (...args) => (await ensurePublicAdapter()).prefillKV(...args),
+  loadLoRAAdapter: async (...args) => (await ensurePublicAdapter()).loadLoRAAdapter(...args),
+  unloadLoRAAdapter: async (...args) => (await ensurePublicAdapter()).unloadLoRAAdapter(...args),
+  getActiveLoRA: () => publicAdapter?.getActiveLoRA() || null,
+  getCurrentModelId: () => publicAdapter?.getCurrentModelId() || null,
+  getPipeline: () => publicAdapter?.getPipeline() || null,
+  getModels: async () => (await ensurePublicAdapter()).getModels(),
+  getAvailableModels: async () => (await ensurePublicAdapter()).getAvailableModels(),
+  async destroy() {
+    if (publicAdapter) await publicAdapter.destroy();
+    publicAdapter = null;
+    publicAdapterPromise = null;
+  }
+};

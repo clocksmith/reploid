@@ -5,6 +5,9 @@ import {
   DEFAULT_DOPPLER_MODEL_ID,
   DOPPLER_PACKAGE_NAME,
   DOPPLER_PACKAGE_VERSION,
+  DOPPLER_KERNEL_BASE_URL,
+  DOPPLER_MODULE_URL,
+  DOPPLER_TOOLING_URL,
   LOCAL_DOPPLER_MODELS,
   buildDefaultLocalDopplerModelConfig,
   buildLocalDopplerModelConfig,
@@ -18,6 +21,9 @@ describe('local Doppler model contract', () => {
   it('exposes Qwen as the only local Doppler option for now', () => {
     expect(DOPPLER_PACKAGE_NAME).toBe('doppler-gpu');
     expect(DOPPLER_PACKAGE_VERSION).toBe('0.4.8');
+    expect(DOPPLER_MODULE_URL).toBe('https://esm.sh/doppler-gpu@0.4.8/src/client/doppler-api.js?bundle');
+    expect(DOPPLER_KERNEL_BASE_URL).toBe('https://esm.sh/doppler-gpu@0.4.8/src/gpu/kernels');
+    expect(DOPPLER_TOOLING_URL).toBe('https://esm.sh/doppler-gpu@0.4.8/tooling?bundle');
     expect(DEFAULT_DOPPLER_MODEL_ID).toBe('qwen-3-5-2b-q4k-ehaf16');
     expect(LOCAL_DOPPLER_MODELS.map((model) => model.id)).toEqual([
       DEFAULT_DOPPLER_MODEL_ID
