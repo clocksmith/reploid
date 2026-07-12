@@ -328,7 +328,8 @@ const normalizeModelInfo = async (model, handle) => {
     identityEvidence: {
       modelId: hasIdentityValue(evidence.modelId),
       modelHash: hasIdentityValue(evidence.modelHash),
-      manifestHash: hasIdentityValue(evidence.manifestHash),
+      manifestHash: hasIdentityValue(evidence.manifestHash)
+        || hasIdentityValue(evidence.runtimeManifestHash),
       artifactIdentity: !!evidence.artifactIdentity
     }
   };
@@ -355,8 +356,8 @@ const getHandleModelEvidence = async (handle) => {
     || handle?.model?.modelHash
     || handle?.model?.hash
     || (artifactIdentity ? await hashJson(artifactIdentity) : null);
-  const manifestHash = manifest?.manifestHash
-    || manifest?.hash
+  const declaredManifestHash = manifest?.manifestHash || manifest?.hash || null;
+  const manifestHash = declaredManifestHash
     || handle?.manifestHash
     || handle?.model?.manifestHash
     || handle?.model?.manifest?.hash
@@ -373,6 +374,7 @@ const getHandleModelEvidence = async (handle) => {
     modelHash,
     manifestHash,
     runtimeManifestHash,
+    declaredManifestHash,
     artifactIdentity
   };
 };
@@ -409,10 +411,31 @@ const assertHandleMatchesDescriptor = async (handle, descriptor = {}) => {
   };
   assertField('modelId', descriptor?.modelId || descriptor?.id, evidence.modelId);
   assertField('modelHash', descriptor?.modelHash || descriptor?.hash, evidence.modelHash);
-  if (hasIdentityValue(evidence.manifestHash)) {
-    assertField('manifestHash', descriptor?.manifestHash, evidence.manifestHash);
-  } else if (hasIdentityValue(descriptor?.manifestHash) && !evidence.artifactIdentity) {
-    throw new Error('Loaded Doppler handle must expose manifestHash or artifactIdentity before provider registration');
+  if (hasIdentityValue(descriptor?.manifestHash)) {
+    if (hasIdentityValue(evidence.declaredManifestHash)) {
+      assertField('manifestHash', descriptor.manifestHash, evidence.declaredManifestHash);
+    } else {
+      const observedManifestHashes = [evidence.manifestHash, evidence.runtimeManifestHash]
+        .filter(hasIdentityValue);
+      if (observedManifestHashes.length === 0 && !evidence.artifactIdentity) {
+        throw new Error('Loaded Doppler handle must expose manifestHash or artifactIdentity before provider registration');
+      }
+      const canonicalHashMatches = observedManifestHashes.some((observedHash) => identityValuesMatch(
+        'manifestHash',
+        descriptor.manifestHash,
+        observedHash
+      ));
+      const byteHashMatches = hasIdentityValue(descriptor.manifestByteHash)
+        && hasIdentityValue(evidence.manifestHash)
+        && identityValuesMatch('manifestHash', descriptor.manifestByteHash, evidence.manifestHash);
+      if (
+        observedManifestHashes.length > 0
+        && !canonicalHashMatches
+        && !byteHashMatches
+      ) {
+        throw new Error('Loaded Doppler handle manifestHash does not match requested model identity');
+      }
+    }
   }
   if (descriptor?.artifactIdentity && !artifactIdentityMatches(descriptor.artifactIdentity, evidence.artifactIdentity)) {
     throw new Error('Loaded Doppler handle artifactIdentity does not match requested model identity');

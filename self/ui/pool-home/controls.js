@@ -467,7 +467,13 @@ const createProviderContributionController = () => {
       };
       throw error;
     }
-    const loadResult = await runtime.loadModel(model);
+    const manifestByteHash = artifactPreflight.ok
+      ? artifactPreflight.observedHashes?.textHash
+      : null;
+    const loadResult = await runtime.loadModel({
+      ...model,
+      ...(manifestByteHash ? { manifestByteHash } : {})
+    });
     if (!loadResult?.ok || !runtime.isReady?.() || !modelMatchesLoadedRuntime(model)) {
       const reason = loadResult?.reason || 'Doppler runtime did not expose the selected model after load';
       const error = new Error(`Doppler model load failed: ${reason}`);

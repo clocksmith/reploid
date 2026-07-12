@@ -274,10 +274,126 @@ describe('Doppler browser runtime adapter', () => {
       identityEvidence: {
         modelId: true,
         modelHash: true,
-        manifestHash: false,
+        manifestHash: true,
         artifactIdentity: true
       }
     });
+  });
+
+  it('accepts Doppler raw-byte manifest hashes when the loaded manifest matches canonically', async () => {
+    const artifactIdentity = {
+      sourceCheckpointId: 'Qwen/Qwen3.5-0.8B',
+      weightPackHash: 'sha256:1234567890abcdef',
+      weightPackId: 'qwen-wp-catalog-v1',
+      manifestVariantId: 'qwen-mv-exec-v1'
+    };
+    const manifest = {
+      modelId: 'qwen-3-5-0-8b-q4k-ehaf16',
+      artifactIdentity,
+      shards: [{ filename: 'shard_00000.bin', size: 16, hash: 'abc123' }]
+    };
+    const canonicalManifestHash = await hashJson(manifest);
+    const rawManifestHash = await sha256Hex(JSON.stringify(manifest, null, 2));
+    expect(rawManifestHash).not.toBe(canonicalManifestHash);
+
+    globalThis.REPLOID_DOPPLER_MODULE = {
+      load() {
+        return {
+          modelId: manifest.modelId,
+          modelHash: artifactIdentity.weightPackHash,
+          manifestHash: rawManifestHash,
+          manifest,
+          generate() {
+            return { outputText: 'manifest hash representations agree', tokenIds: [505] };
+          }
+        };
+      }
+    };
+
+    const runtime = createDopplerRuntime();
+    const loaded = await runtime.loadModel({
+      modelId: manifest.modelId,
+      modelHash: artifactIdentity.weightPackHash,
+      manifestHash: canonicalManifestHash,
+      artifactIdentity
+    });
+
+    expect(loaded.ok).toBe(true);
+    expect(runtime.getModelInfo()).toMatchObject({
+      modelId: manifest.modelId,
+      manifestHash: canonicalManifestHash,
+      identityEvidence: {
+        manifestHash: true
+      }
+    });
+  });
+
+  it('accepts a preflight-verified manifest byte hash when Doppler normalizes the loaded manifest', async () => {
+    const artifactIdentity = {
+      sourceCheckpointId: 'Qwen/Qwen3.5-0.8B',
+      weightPackHash: 'sha256:1234567890abcdef',
+      weightPackId: 'qwen-wp-catalog-v1',
+      manifestVariantId: 'qwen-mv-exec-v1'
+    };
+    const sourceManifest = {
+      modelId: 'qwen-3-5-0-8b-q4k-ehaf16',
+      artifactIdentity,
+      shards: [{ filename: 'shard_00000.bin', size: 16, hash: 'abc123' }]
+    };
+    const runtimeManifest = {
+      ...sourceManifest,
+      inference: { runtimeSelectedProfile: 'metal-throughput' }
+    };
+    const canonicalManifestHash = await hashJson(sourceManifest);
+    const manifestByteHash = await sha256Hex(JSON.stringify(sourceManifest, null, 2));
+
+    globalThis.REPLOID_DOPPLER_MODULE = {
+      load() {
+        return {
+          modelId: sourceManifest.modelId,
+          modelHash: artifactIdentity.weightPackHash,
+          manifestHash: manifestByteHash,
+          manifest: runtimeManifest,
+          artifactIdentity,
+          generate() {
+            return { outputText: 'verified byte identity', tokenIds: [606] };
+          }
+        };
+      }
+    };
+
+    const runtime = createDopplerRuntime();
+    const loaded = await runtime.loadModel({
+      modelId: sourceManifest.modelId,
+      modelHash: artifactIdentity.weightPackHash,
+      manifestHash: canonicalManifestHash,
+      manifestByteHash,
+      artifactIdentity
+    });
+
+    expect(loaded.ok).toBe(true);
+    expect(runtime.getModelInfo().manifestHash).toBe(canonicalManifestHash);
+  });
+
+  it('rejects an unverified manifest byte hash alias', async () => {
+    const descriptor = {
+      ...LAUNCH_MODEL,
+      manifestByteHash: 'sha256:expected_manifest_bytes'
+    };
+    globalThis.REPLOID_DOPPLER_MODULE = {
+      load() {
+        return {
+          ...launchHandle(),
+          manifestHash: 'sha256:different_manifest_bytes'
+        };
+      }
+    };
+
+    const runtime = createDopplerRuntime();
+    const loaded = await runtime.loadModel(descriptor);
+
+    expect(loaded.ok).toBe(false);
+    expect(loaded.reason).toContain('Loaded Doppler handle manifestHash does not match requested model identity');
   });
 
   it('uses manifest identity before loader-level handle ids', async () => {
