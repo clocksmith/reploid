@@ -47,6 +47,9 @@ export const createFrameNode = (id = '') => ({
   presence: 1,
   lineDraw: 1,
   hotPathActive: false,
+  liveWeight: 0,
+  liveId: null,
+  liveProvider: false,
   label: id,
   labelKind: id,
   labelStage: '',
@@ -87,6 +90,9 @@ export const copyCanvasPointInto = (target, point, width, height, margin = 6) =>
   target.presence = point.presence ?? 1;
   target.lineDraw = point.lineDraw ?? 1;
   target.hotPathActive = point.hotPathActive === true;
+  target.liveWeight = clamp01(point.liveWeight ?? 0);
+  target.liveId = point.liveId || null;
+  target.liveProvider = point.liveProvider === true;
   target.label = point.label || point.id;
   target.labelKind = point.labelKind || point.role || point.id;
   target.labelStage = point.labelStage || '';

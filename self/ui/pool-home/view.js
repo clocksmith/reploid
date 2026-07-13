@@ -20,9 +20,11 @@ import {
 import {
   PRODUCT_ROUTES,
   POOLDAY_FLOW_LABELS,
-  POOLDAY_HOT_PATH_STEPS,
+  POOLDAY_GRAPH_LABEL_STAGES,
   POOLDAY_NAME,
   POOLDAY_NAV_ROUTES,
+  POOLDAY_NETWORK_VISUAL_EVENT,
+  POOLDAY_PARTICIPANT_NODE_IDS,
   POOLDAY_PEER_LEDGER_STORAGE_KEY,
   POOLDAY_PROTOCOL,
   POOLDAY_RECEIPT_LEDGER_STORAGE_KEY,
@@ -457,9 +459,94 @@ export const renderRoomActivity = (summary = null) => {
   `;
 };
 
+const networkCount = (value) => {
+  const number = Number(value || 0);
+  return Number.isFinite(number) && number > 0 ? Math.floor(number) : 0;
+};
+
+const uniqueNetworkIds = (values = []) => [...new Set(values
+  .map((value) => String(value || '').trim())
+  .filter(Boolean))];
+
+export const resolvePoolNetworkVisualState = (summary = null) => {
+  const unavailable = Boolean(summary?.error);
+  const providers = Array.isArray(summary?.providers) ? summary.providers : [];
+  const providerIds = uniqueNetworkIds(providers.map((provider) => provider?.providerId));
+  const recent = Array.isArray(summary?.recent) ? summary.recent : [];
+  const peerIds = uniqueNetworkIds([
+    ...(Array.isArray(summary?.peers) ? summary.peers : []),
+    ...recent.map((entry) => entry?.fromPeerId),
+    ...providerIds
+  ]);
+  const peerCount = unavailable ? 0 : Math.max(networkCount(summary?.peerCount), peerIds.length);
+  const providerCount = unavailable ? 0 : Math.max(networkCount(summary?.providerCount), providerIds.length);
+  const messageCount = unavailable ? 0 : networkCount(summary?.messageCount);
+  const reportedParticipants = unavailable ? 0 : Math.max(peerCount, providerCount, peerIds.length);
+  const liveParticipantCount = Math.min(POOLDAY_PARTICIPANT_NODE_IDS.length, reportedParticipants);
+  const providerSet = new Set(providerIds);
+  const orderedIds = uniqueNetworkIds([
+    ...providerIds,
+    ...peerIds.filter((id) => !providerSet.has(id))
+  ]);
+  const participants = Array.from({ length: liveParticipantCount }, (_, index) => {
+    const id = orderedIds[index] || null;
+    return {
+      id,
+      provider: id ? providerSet.has(id) : index < providerCount
+    };
+  });
+  const hasLiveData = liveParticipantCount > 0 || messageCount > 0 || recent.length > 0;
+  const mode = !hasLiveData
+    ? 'simulation'
+    : liveParticipantCount >= POOLDAY_PARTICIPANT_NODE_IDS.length
+      ? 'live'
+      : 'hybrid';
+  return {
+    mode,
+    available: !unavailable,
+    error: unavailable ? String(summary.error) : null,
+    roomId: summary?.roomId || null,
+    peerCount,
+    providerCount,
+    messageCount,
+    liveParticipantCount,
+    participants,
+    recent: recent.slice(0, 10).map((entry) => ({
+      type: String(entry?.type || 'unknown'),
+      fromPeerId: entry?.fromPeerId ? String(entry.fromPeerId) : null,
+      createdAt: entry?.createdAt || null
+    }))
+  };
+};
+
+export const applyPoolNetworkVisualState = (summary = null) => {
+  const visual = resolvePoolNetworkVisualState(summary);
+  const status = visual.available
+    ? `${visual.peerCount} live tab${visual.peerCount === 1 ? '' : 's'}, ${visual.providerCount} contributor${visual.providerCount === 1 ? '' : 's'}, ${visual.messageCount} message${visual.messageCount === 1 ? '' : 's'}`
+    : 'room status unavailable';
+  for (const control of document.querySelectorAll('[data-pool-network-state]')) {
+    control.dataset.networkMode = visual.mode;
+    control.setAttribute('aria-label', `Live Network, ${status}`);
+    control.setAttribute('title', status);
+    const badge = control.querySelector('[data-pool-network-count]');
+    if (badge) {
+      const count = Math.max(visual.peerCount, visual.liveParticipantCount);
+      badge.textContent = String(count);
+      badge.hidden = visual.mode === 'simulation';
+    }
+  }
+  for (const shell of document.querySelectorAll('.pool-simulation-shell')) {
+    shell.dataset.networkMode = visual.mode;
+  }
+  window.REPLOID_POOL_NETWORK_VISUAL_STATE = visual;
+  window.dispatchEvent(new CustomEvent(POOLDAY_NETWORK_VISUAL_EVENT, { detail: visual }));
+  return visual;
+};
+
 export const refreshRoomActivityState = (summary = null) => {
   const activity = document.getElementById('pool-room-activity');
   if (activity) activity.innerHTML = renderRoomActivity(summary);
+  applyPoolNetworkVisualState(summary);
 };
 
 export const refreshRecordLedgerState = (options = {}) => {
@@ -1208,7 +1295,9 @@ const renderModelOptions = ({ workload = null, includeWorkloadLabel = false } = 
   return `<option value="${escapeHtml(model.modelId)}"${selected}>${escapeHtml(label)}${escapeHtml(workloadLabel)}</option>`;
 }).join('');
 
-const renderFlowLabels = () => POOLDAY_FLOW_LABELS.map((item) => `
+const renderFlowLabels = () => POOLDAY_GRAPH_LABEL_STAGES.map((stage) => (
+  POOLDAY_FLOW_LABELS.find((item) => item.id === stage.ids[0])
+)).filter(Boolean).map((item) => `
   <span
     class="pool-flow-label pool-flow-label-${escapeHtml(item.id)}"
     data-pool-flow-label="${escapeHtml(item.id)}"
@@ -1221,27 +1310,6 @@ const renderFlowLabels = () => POOLDAY_FLOW_LABELS.map((item) => `
     <b>${escapeHtml(item.label)}</b>
   </span>
 `).join('');
-
-const renderHotPathText = (text = '', wordLimit = 7) => {
-  const words = String(text).trim().split(/\s+/).filter(Boolean);
-  if (words.length <= wordLimit) return words.join(' ');
-  return `${words.slice(0, wordLimit).join(' ')}...`;
-};
-
-const renderHotPathSteps = () => `
-  <div class="pool-hot-path" data-pool-hot-path aria-label="Browser inference pipeline">
-    <ol class="pool-hot-path-steps">
-      ${POOLDAY_HOT_PATH_STEPS.map((step, index) => `
-        <li class="pool-hot-path-step${index === 0 ? ' is-active' : ''}"
-            data-pool-hot-path-step="${escapeHtml(step.id)}">
-          <span class="pool-hot-path-index">${String(index + 1).padStart(2, '0')}</span>
-          <b>${escapeHtml(step.label)}</b>
-          <span>${escapeHtml(renderHotPathText(step.text))}</span>
-        </li>
-      `).join('')}
-    </ol>
-  </div>
-`;
 
 const renderHomeSimulation = () => {
   const suggestedPrompt = choosePooldayAskPlaceholder();
@@ -1278,25 +1346,20 @@ const renderHomeSimulation = () => {
           <a class="pool-shape-action pool-shape-action--circle pool-shape-action--network pool-home-network-cta"
              href="/network"
              data-pool-route="/network"
+             data-pool-network-state
+             data-network-mode="simulation"
              aria-label="Live Network">
             <span class="pool-shape-action-glyph" aria-hidden="true">☍</span>
             <span class="pool-shape-action-label">Live Network</span>
+            <span class="pool-home-network-badge" data-pool-network-count hidden aria-hidden="true">0</span>
           </a>
         </div>
       </div>
-      <aside class="pool-home-network-panel pool-home-overlay" aria-label="Live room activity">
-        <div class="pool-home-network-heading">
-          <span class="rgr-status-label">Live room</span>
-          <a class="link-secondary" href="/network" data-pool-route="/network">Open records</a>
-        </div>
-        <div id="pool-room-activity" class="pool-ledger-shell pool-home-room-activity" aria-live="polite">${renderRoomActivity()}</div>
-      </aside>
       <div class="pool-simulation-shell" aria-label="Reploid network graph">
         <canvas class="pool-simulation-canvas" data-pool-simulation width="1200" height="680"></canvas>
         <div class="pool-simulation-labels">
           ${renderFlowLabels()}
         </div>
-        ${renderHotPathSteps()}
         <div class="pool-simulation-tooltip" data-pool-tooltip data-placement="above" role="tooltip" aria-hidden="true">
           <b data-pool-tooltip-title></b>
           <span data-pool-tooltip-body></span>

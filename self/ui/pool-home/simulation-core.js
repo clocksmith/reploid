@@ -40,13 +40,52 @@ import {
   writeRoleAnchor
 } from './simulation-frame-state.js';
 
-const POINTER_SHOOTER_PARTICLE_COUNT = 32;
-const POINTER_SHOOTER_EDGE_SAMPLES = 18;
+const POINTER_SHOOTER_PARTICLE_COUNT = 12;
+const POINTER_SHOOTER_EDGE_SAMPLES = 6;
 const POINTER_SHOOTER_CAPTURE = 0.18;
 const POINTER_SHOOTER_HOLD_RATE = 18;
 const POINTER_SHOOTER_MOVE_RATE = 52;
 const POINTER_SHOOTER_MAX_SPAWN_PER_FRAME = 9;
 const PARTICLE_ROUTE_FADE_RATE = 0.16;
+
+const createPoolNetworkVisualState = () => ({
+  mode: 'simulation',
+  peerCount: 0,
+  providerCount: 0,
+  messageCount: 0,
+  liveParticipantCount: 0,
+  simulationMix: 1,
+  liveMix: 0,
+  slots: POOLDAY_PARTICIPANT_NODE_IDS.map(() => ({
+    id: null,
+    provider: false,
+    mix: 0
+  })),
+  recent: []
+});
+
+export const setPoolSimulationNetworkVisualState = (state, visual = {}) => {
+  const network = state?.networkVisual;
+  if (!network) return null;
+  network.mode = ['simulation', 'hybrid', 'live'].includes(visual.mode)
+    ? visual.mode
+    : 'simulation';
+  network.peerCount = Math.max(0, Number(visual.peerCount) || 0);
+  network.providerCount = Math.max(0, Number(visual.providerCount) || 0);
+  network.messageCount = Math.max(0, Number(visual.messageCount) || 0);
+  network.liveParticipantCount = Math.min(
+    network.slots.length,
+    Math.max(0, Number(visual.liveParticipantCount) || 0)
+  );
+  const participants = Array.isArray(visual.participants) ? visual.participants : [];
+  for (let index = 0; index < network.slots.length; index += 1) {
+    const participant = participants[index] || null;
+    network.slots[index].id = participant?.id ? String(participant.id) : null;
+    network.slots[index].provider = participant?.provider === true;
+  }
+  network.recent = Array.isArray(visual.recent) ? visual.recent.slice(0, 10) : [];
+  return network;
+};
 
 export const clamp01 = (value) => Math.max(0, Math.min(1, value));
 export const clampRange = (value, min, max) => Math.max(min, Math.min(max, value));
@@ -673,6 +712,7 @@ export const createPoolSimulationState = () => {
     labelAnchors,
     hotPath: createHotPathFrame()
   };
+  const networkVisual = createPoolNetworkVisualState();
   return {
     participantSpecs,
     participants,
@@ -685,6 +725,7 @@ export const createPoolSimulationState = () => {
     frameParticles,
     labelAnchors,
     frame,
+    networkVisual,
     particles,
     pointerShots,
     pointer: {
@@ -820,6 +861,11 @@ const lerpToward = (current, target, rate, deltaSeconds) => {
   const deltaScale = deltaMs / SIMULATION_TARGET_STEP_MS;
   const blend = 1 - Math.pow(1 - rate, deltaScale);
   return current + (target - current) * blend;
+};
+
+const lerpTowardSnapped = (current, target, rate, deltaSeconds, epsilon = 0.001) => {
+  const next = lerpToward(current, target, rate, deltaSeconds);
+  return Math.abs(next - target) <= epsilon ? target : next;
 };
 
 const buildTransitionSimulationLines = ({ roles, participants, layout, time, projector }) => {
@@ -1142,6 +1188,13 @@ export const buildPoolSimulationFrame = (state, width, height, deltaSeconds = SI
   state.pointer.y = lerpToward(state.pointer.y, state.pointer.targetY, SIMULATION_POINTER_LERP, safeDelta);
 
   const time = state.motionTime;
+  const networkVisual = state.networkVisual;
+  networkVisual.simulationMix = lerpTowardSnapped(
+    networkVisual.simulationMix,
+    networkVisual.mode === 'live' ? 0 : 1,
+    0.10,
+    safeDelta
+  );
   const layoutPositions = updatePoolGraphLayout(state, safeDelta);
   const graphPositions = copyCenteredGraphPointsInto(state.graphViewPositions, layoutPositions);
   const hotPath = resolveHotPathFrame(state.layout, state.time, state.hotPathFrame);
@@ -1185,8 +1238,22 @@ export const buildPoolSimulationFrame = (state, width, height, deltaSeconds = SI
       countdownProgress,
       transitionProgress
     );
+    const slot = networkVisual.slots[index];
+    slot.mix = lerpTowardSnapped(
+      slot.mix,
+      index < networkVisual.liveParticipantCount ? 1 : 0,
+      0.12,
+      safeDelta
+    );
+    participants[index].liveWeight = slot.mix;
+    participants[index].liveId = slot.id;
+    participants[index].liveProvider = slot.provider;
+    participants[index].size *= 1 + slot.mix * 0.10;
+    participants[index].alpha *= 0.72 + slot.mix * 0.28;
     participants[index].hotPathActive = hotPathActiveIds.has(participants[index].id);
   }
+  networkVisual.liveMix = networkVisual.slots.reduce((sum, slot) => sum + slot.mix, 0)
+    / Math.max(1, networkVisual.slots.length);
   const flowScale = 0.72 + state.layout.flowEnergy * 0.42;
   const lines = buildTransitionSimulationLines({
     roles,
@@ -1215,8 +1282,18 @@ export const buildPoolSimulationFrame = (state, width, height, deltaSeconds = SI
     line.topologyProgress = transitionProgress;
   }
   const renderParticleScratch = state.frameParticles;
+  const liveParticleCount = Math.min(
+    state.particles.length,
+    Math.max(networkVisual.messageCount, networkVisual.recent.length)
+  );
   for (let index = 0; index < state.particles.length; index += 1) {
     const particle = state.particles[index];
+    const target = renderParticleScratch[index];
+    if (index >= liveParticleCount && networkVisual.simulationMix === 0) {
+      target.size = 0;
+      target.alpha = 0;
+      continue;
+    }
     const line = pickParticleLine(particle, lines);
     const participant = participants[particle.participantIndex % participants.length];
     const flowPulse = Math.sin(time * 6.2 + particle.phase) * 0.5 + 0.5;
@@ -1234,7 +1311,6 @@ export const buildPoolSimulationFrame = (state, width, height, deltaSeconds = SI
     const sizeWidth = line?.width ?? 1;
     const sizeScale = particleScale * (0.88 + Math.min(3, sizeWidth) * 0.075);
     particle.routeBlend = lerpToward(particle.routeBlend ?? 1, 1, PARTICLE_ROUTE_FADE_RATE, safeDelta);
-    const target = renderParticleScratch[index];
     target.index = particle.index;
     target.x = point.x;
     target.y = point.y;
@@ -1245,6 +1321,7 @@ export const buildPoolSimulationFrame = (state, width, height, deltaSeconds = SI
       * flowAlpha
       * visibility
       * (particle.routeBlend ?? 1)
+      * (index < liveParticleCount ? 1 : networkVisual.simulationMix)
     );
     target.tone = line?.tone || 'rainbow';
     target.toneIndex = line?.toneIndex ?? particle.tone;
@@ -1265,7 +1342,12 @@ export const buildPoolSimulationFrame = (state, width, height, deltaSeconds = SI
   }
   const labelAnchors = state.labelAnchors;
   for (const id of POOLDAY_GRAPH_NODE_IDS) {
-    copyNodeLabelAnchorInto(labelAnchors[id], nodeLookup[id], state.nodeLabelPlan, width, height);
+    const node = nodeLookup[id];
+    const anchor = copyNodeLabelAnchorInto(labelAnchors[id], node, state.nodeLabelPlan, width, height);
+    if (node.liveWeight > 0.01 && POOLDAY_PARTICIPANT_NODE_IDS.includes(id)) {
+      const identity = node.liveId ? ` ${node.liveId}` : '';
+      anchor.labelBody = `${node.liveProvider ? 'Live contributor' : 'Live peer'}${identity} in this room.`;
+    }
   }
   const frame = state.frame;
   frame.lines = lines;
@@ -1289,5 +1371,10 @@ export const buildPoolSimulationFrame = (state, width, height, deltaSeconds = SI
   frame.palette = resolvePoolGraphPalette(state.layout, frame.palette);
   frame.labelAnchors = labelAnchors;
   frame.hotPath = hotPath;
+  frame.networkMode = networkVisual.mode;
+  frame.networkLiveMix = networkVisual.liveMix;
+  frame.networkPeerCount = networkVisual.peerCount;
+  frame.networkProviderCount = networkVisual.providerCount;
+  frame.networkMessageCount = networkVisual.messageCount;
   return frame;
 };

@@ -6,12 +6,14 @@ import {
   createPoolSimulationState,
   easeInOutCubic,
   resolveLinePoint,
-  resizePoolCanvas
+  resizePoolCanvas,
+  setPoolSimulationNetworkVisualState
 } from '../../self/ui/pool-home/simulation-core.js';
 import { resolvePoolFrameDeltaMs } from '../../self/ui/pool-home/simulation-bind.js';
 import { createPoolRenderBatchBuilder } from '../../self/ui/pool-home/simulation-batches.js';
 import {
   SIMULATION_MAX_STEP_MS,
+  SIMULATION_MAX_CANVAS_PIXELS,
   SIMULATION_GENTLE_SPEED,
   SIMULATION_MOTION_CLOCK_WRAP_SECONDS,
   POOLDAY_MORPH_TUNING,
@@ -119,10 +121,11 @@ describe('pool home simulation performance contracts', () => {
       }
     };
 
-    const result = resizePoolCanvas(canvas, { width: 800, height: 600 });
+    const result = resizePoolCanvas(canvas, { width: 1440, height: 900 });
 
     expect(result.width).toBeGreaterThan(0);
     expect(result.height).toBeGreaterThan(0);
+    expect(result.width * result.height).toBeLessThanOrEqual(SIMULATION_MAX_CANVAS_PIXELS);
     expect(canvas.width).toBe(result.width);
     expect(canvas.height).toBe(result.height);
   });
@@ -192,20 +195,64 @@ describe('pool home simulation performance contracts', () => {
     const antialiasedLineFloatCount = 6 * 3 * 6;
     const activeParticles = frame.particles.filter((particle) => particle.alpha > 0 && particle.size > 0).length;
 
-    expect(batches.map((batch) => batch.kind)).toEqual([
-      'fill',
-      'circle',
-      'fill',
-      'fill',
-      'fill',
-      'circle',
-      'circle'
-    ]);
-    expect(batches.filter((batch) => batch.kind === 'circle')).toHaveLength(3);
-    expect(batches[3].length).toBe(frame.lines.length * POOLDAY_RENDERER_LINE_SEGMENTS * antialiasedLineFloatCount);
-    expect(batches[4].length).toBe(frame.lines.length * POOLDAY_RENDERER_LINE_SEGMENTS * antialiasedLineFloatCount);
-    expect(batches[5].length).toBe(activeParticles * 3 * circleFloatCount);
-    expect(batches[6].length).toBe(frame.nodes.length * 2 * circleFloatCount);
+    expect(batches.map((batch) => batch.kind)).toEqual(['fill', 'circle']);
+    expect(batches[0].length).toBe(frame.lines.length * POOLDAY_RENDERER_LINE_SEGMENTS * antialiasedLineFloatCount);
+    expect(batches[1].length).toBe((activeParticles + frame.nodes.length) * circleFloatCount);
+    expect(batches.reduce((sum, batch) => sum + batch.length, 0)).toBeLessThan(50_000);
+  });
+
+  it('crossfades real room participants through hybrid and live-only modes', () => {
+    const state = createPoolSimulationState();
+    setPoolSimulationNetworkVisualState(state, {
+      mode: 'hybrid',
+      peerCount: 2,
+      providerCount: 1,
+      messageCount: 3,
+      liveParticipantCount: 2,
+      participants: [
+        { id: 'provider-a', provider: true },
+        { id: 'peer-a', provider: false }
+      ],
+      recent: [{ type: 'provider-advert', fromPeerId: 'provider-a' }]
+    });
+
+    let frame;
+    for (let index = 0; index < 60; index += 1) {
+      frame = buildPoolSimulationFrame(state, 960, 640, 1 / 60);
+    }
+    const hybridParticipants = frame.nodes.filter((node) => !node.core);
+    expect(frame.networkMode).toBe('hybrid');
+    expect(hybridParticipants.slice(0, 2).every((node) => node.liveWeight === 1)).toBe(true);
+    expect(hybridParticipants.slice(2).every((node) => node.liveWeight === 0)).toBe(true);
+    expect(hybridParticipants[0]).toMatchObject({
+      liveId: 'provider-a',
+      liveProvider: true
+    });
+    expect(frame.labelAnchors.runner0.labelBody).toContain('Live contributor provider-a');
+
+    setPoolSimulationNetworkVisualState(state, {
+      mode: 'live',
+      peerCount: 7,
+      providerCount: 4,
+      messageCount: 2,
+      liveParticipantCount: 6,
+      participants: Array.from({ length: 6 }, (_, index) => ({
+        id: `live-${index}`,
+        provider: index < 4
+      })),
+      recent: []
+    });
+    for (let index = 0; index < 80; index += 1) {
+      frame = buildPoolSimulationFrame(state, 960, 640, 1 / 60);
+    }
+    const liveParticipants = frame.nodes.filter((node) => !node.core);
+    const activeFlowParticles = frame.particles
+      .slice(0, POOLDAY_FLOW_TUNING.particleCount)
+      .filter((particle) => particle.alpha > 0 && particle.size > 0);
+    expect(frame.networkMode).toBe('live');
+    expect(frame.networkLiveMix).toBe(1);
+    expect(liveParticipants.every((node) => node.liveWeight === 1)).toBe(true);
+    expect(activeFlowParticles.length).toBeLessThanOrEqual(2);
   });
 
   it('keeps node anchors static without core breathing or participant drift', () => {
@@ -279,19 +326,19 @@ describe('pool home simulation performance contracts', () => {
     ]);
   });
 
-  it('renders active hot path edges with stronger glow data', () => {
+  it('renders active hot path edges with stronger line data', () => {
     const state = createPoolSimulationState();
     const frame = buildPoolSimulationFrame(state, 960, 640, 1 / 60);
     frame.renderQuality = 1;
     const activeBatches = createPoolRenderBatchBuilder()(frame, 960, 640);
-    const activeGlowAlpha = maxFillAlpha(activeBatches[3]);
+    const activeLineAlpha = maxFillAlpha(activeBatches[0]);
 
     for (const line of frame.lines) line.hotPathActive = false;
     for (const node of frame.nodes) node.hotPathActive = false;
     const inactiveBatches = createPoolRenderBatchBuilder()(frame, 960, 640);
-    const inactiveGlowAlpha = maxFillAlpha(inactiveBatches[3]);
+    const inactiveLineAlpha = maxFillAlpha(inactiveBatches[0]);
 
-    expect(activeGlowAlpha).toBeGreaterThan(inactiveGlowAlpha);
+    expect(activeLineAlpha).toBeGreaterThan(inactiveLineAlpha);
   });
 
   it('defines complete normalized topology points for every graph node', () => {

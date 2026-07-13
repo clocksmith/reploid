@@ -9,6 +9,7 @@ export const PUBLIC_PRODUCT_NAME = 'Reploid';
 export const POOLDAY_NAME = PUBLIC_PRODUCT_NAME;
 export const POOLDAY_PROTOCOL = 'Verified Browser Inference';
 export const POOLDAY_VERSION_TAG = 'vBI-1.6';
+export const POOLDAY_NETWORK_VISUAL_EVENT = 'reploid:pool-network-visual-state';
 
 const createPooldayRoute = (route) => Object.freeze({
   ...route
@@ -153,16 +154,16 @@ export const SIMULATION_RESUME_GAP_MS = SIMULATION_MAX_STEP_MS * 4;
 export const SIMULATION_MOTION_CLOCK_WRAP_SECONDS = 3600;
 export const SIMULATION_GENTLE_SPEED = 0.72;
 export const SIMULATION_POINTER_LERP = 0.12;
-export const SIMULATION_MAX_PIXEL_RATIO = 1.35;
-export const SIMULATION_MIN_PIXEL_RATIO = 0.72;
-export const SIMULATION_MAX_CANVAS_PIXELS = 1_250_000;
+export const SIMULATION_MAX_PIXEL_RATIO = 1;
+export const SIMULATION_MIN_PIXEL_RATIO = 0.65;
+export const SIMULATION_MAX_CANVAS_PIXELS = 650_000;
 export const POOLDAY_GRAPH_VIEW_CENTER_PULL = 0.25;
 export const POOLDAY_GRAPH_VIEW_MARGIN_PX = 64;
 export const POOLDAY_RECEIPT_LEDGER_LIMIT = 10;
 export const POOLDAY_STREAM_CHUNK_SIZE = 18;
 export const POOLDAY_STREAM_TICK_MS = 14;
 export const POOLDAY_FLOW_TUNING = Object.freeze({
-  particleCount: 80,
+  particleCount: 32,
   baseSpeed: 0.118,
   speedJitter: 0.026,
   edgeSpeedStep: 0.008,
@@ -172,15 +173,9 @@ export const POOLDAY_FLOW_TUNING = Object.freeze({
   particleScale: 1.05,
   coreLineWidth: 1.55,
   peerLineWidth: 1.18,
-  pipeLineWidth: 1.34,
-  backgroundBandAlpha: 0.10,
-  prismFacetAlpha: 0.026,
-  edgeGlowAlpha: 0.11,
-  edgeGlowWidth: 4.2,
-  maxGlowLines: 18
+  pipeLineWidth: 1.34
 });
-export const POOLDAY_RENDERER_LINE_SEGMENTS = 20;
-export const POOLDAY_RENDERER_BAND_SEGMENTS = 24;
+export const POOLDAY_RENDERER_LINE_SEGMENTS = 8;
 export const POOLDAY_MORPH_TUNING = Object.freeze({
   shapeHold: 6.1,
   floatHold: 2.3,
