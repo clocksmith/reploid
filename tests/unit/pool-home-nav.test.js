@@ -3,7 +3,6 @@ import { describe, expect, it } from 'vitest';
 import {
   POOLDAY_NAV_ROUTES,
   POOLDAY_ASK_PLACEHOLDERS,
-  POOLDAY_HOT_PATH_STEPS,
   POOLDAY_ROUTE_DEFINITIONS,
   PRODUCT_ROUTES,
   ROUTE_COPY,
@@ -12,6 +11,7 @@ import {
 import {
   renderContributionStatusBar,
   renderNav,
+  resolvePoolNetworkVisualState,
   renderRouteDetail,
   renderRoutePanel
 } from '../../self/ui/pool-home/view.js';
@@ -93,14 +93,6 @@ describe('poolday home navigation', () => {
   it('renders the main home calls to action', () => {
     const html = renderRoutePanel('home');
 
-    expect(POOLDAY_HOT_PATH_STEPS.map((step) => step.id)).toEqual([
-      'prompt',
-      'policy',
-      'match',
-      'infer',
-      'verify',
-      'answer'
-    ]);
     expect(html).toContain('class="pool-home-stage"');
     expect(html).toContain('class="pool-home-toolbar"');
     expect(html).toContain('class="pool-home-toolbar-leading pool-home-overlay"');
@@ -108,12 +100,7 @@ describe('poolday home navigation', () => {
     expect(html).toContain('class="pool-home-toolbar-right"');
     expect(html).toContain('class="pool-simulation-shell"');
     expect(html).toContain('data-pool-simulation');
-    expect(html).toContain('data-pool-hot-path');
-    for (const step of POOLDAY_HOT_PATH_STEPS) {
-      expect(html).toContain(`data-pool-hot-path-step="${step.id}"`);
-    }
-    expect(html).toContain('Explain battery safety for a school robotics...');
-    expect(html).toContain('Use fire safe charging inspect swollen packs');
+    expect(html).not.toContain('data-pool-hot-path');
     expect(html).toContain('class="pool-home-title-lockup"');
     expect(html).toContain('<h1 class="type-h1 pool-home-brand-word">REPLOID</h1>');
     expect(html).toContain('Run browser models together.');
@@ -135,13 +122,59 @@ describe('poolday home navigation', () => {
     expect(html).toContain('pool-shape-action--circle pool-shape-action--network pool-home-network-cta');
     expect(html).toContain('aria-label="Live Network"');
     expect(html).toContain('<span class="pool-shape-action-label">Live Network</span>');
-    expect(html).toContain('class="pool-home-network-panel pool-home-overlay"');
-    expect(html).toContain('Live room');
-    expect(html).toContain('Open records');
+    expect(html).toContain('data-pool-network-state');
+    expect(html).toContain('data-pool-network-count hidden');
+    expect(html).not.toContain('pool-home-network-panel');
+    expect(html).not.toContain('Open records');
     expect(html).not.toContain('class="pool-home-status"');
     expect(html).not.toContain('aria-label="Current room and model"');
     expect(html.indexOf('class="pool-home-toolbar"')).toBeLessThan(html.indexOf('class="pool-simulation-shell"'));
     expect(html).toMatch(/class="pool-home-toolbar"[\s\S]*pool-home-toolbar-leading[\s\S]*pool-home-toolbar-center[\s\S]*pool-home-toolbar-right[\s\S]*class="pool-simulation-shell"/);
+  });
+
+  it('maps room summaries to simulation, hybrid, and live graph modes', () => {
+    expect(resolvePoolNetworkVisualState({
+      messageCount: 0,
+      peerCount: 0,
+      providerCount: 0,
+      peers: [],
+      providers: [],
+      recent: []
+    })).toMatchObject({
+      mode: 'simulation',
+      liveParticipantCount: 0
+    });
+
+    const hybrid = resolvePoolNetworkVisualState({
+      messageCount: 4,
+      peerCount: 2,
+      providerCount: 1,
+      peers: ['peer-a', 'provider-a'],
+      providers: [{ providerId: 'provider-a' }],
+      recent: [{ type: 'provider-advert', fromPeerId: 'provider-a' }]
+    });
+    expect(hybrid).toMatchObject({
+      mode: 'hybrid',
+      liveParticipantCount: 2,
+      peerCount: 2,
+      providerCount: 1,
+      messageCount: 4
+    });
+    expect(hybrid.participants).toEqual([
+      { id: 'provider-a', provider: true },
+      { id: 'peer-a', provider: false }
+    ]);
+
+    const live = resolvePoolNetworkVisualState({
+      messageCount: 12,
+      peerCount: 7,
+      providerCount: 4,
+      peers: ['p0', 'p1', 'p2', 'p3', 'p4', 'p5', 'p6'],
+      providers: ['p0', 'p1', 'p2', 'p3'].map((providerId) => ({ providerId }))
+    });
+    expect(live.mode).toBe('live');
+    expect(live.liveParticipantCount).toBe(6);
+    expect(live.participants).toHaveLength(6);
   });
 
   it('renders route actions as Poolday shape components', () => {

@@ -8,15 +8,23 @@ import {
   buildPoolSimulationFrame,
   clampRange,
   createPoolSimulationState,
-  resizePoolCanvas
+  resizePoolCanvas,
+  setPoolSimulationNetworkVisualState
 } from './simulation-core.js';
-import { SIMULATION_MAX_STEP_MS, SIMULATION_RESUME_GAP_MS, SIMULATION_TARGET_STEP_MS } from './constants.js';
+import {
+  POOLDAY_NETWORK_VISUAL_EVENT,
+  SIMULATION_MAX_STEP_MS,
+  SIMULATION_RESUME_GAP_MS,
+  SIMULATION_TARGET_STEP_MS
+} from './constants.js';
 
 const LABEL_STYLE_EPSILON_PERCENT = 0.025;
 const POOL_SIMULATION_MIN_RENDER_QUALITY = 0.62;
-const POOL_SIMULATION_QUALITY_DOWN_COST = SIMULATION_TARGET_STEP_MS * 0.62;
-const POOL_SIMULATION_QUALITY_UP_COST = SIMULATION_TARGET_STEP_MS * 0.36;
+const POOL_SIMULATION_TARGET_COST_MS = 1;
+const POOL_SIMULATION_QUALITY_DOWN_COST = POOL_SIMULATION_TARGET_COST_MS;
+const POOL_SIMULATION_QUALITY_UP_COST = POOL_SIMULATION_TARGET_COST_MS * 0.70;
 const POOL_SIMULATION_STATS_BLEND = 0.08;
+const POOL_SIMULATION_LABEL_SYNC_INTERVAL_MS = 50;
 
 export const resolvePoolFrameDeltaMs = (rawDeltaMs, forceReset = false) => {
   if (
@@ -38,6 +46,11 @@ export const bindHomeSimulation = async (mount) => {
     window.REPLOID_POOL_SIMULATION_STOP = null;
   }
   const state = createPoolSimulationState();
+  const handleNetworkVisualState = (event) => {
+    setPoolSimulationNetworkVisualState(state, event?.detail || {});
+  };
+  window.addEventListener(POOLDAY_NETWORK_VISUAL_EVENT, handleNetworkVisualState);
+  setPoolSimulationNetworkVisualState(state, window.REPLOID_POOL_NETWORK_VISUAL_STATE || {});
   const buildPoolRenderBatches = createPoolRenderBatchBuilder();
   let active = true;
   let frameId = null;
@@ -53,6 +66,7 @@ export const bindHomeSimulation = async (mount) => {
   let resetFrameClock = true;
   let simulationInViewport = true;
   let renderQuality = 1;
+  let lastLabelSyncMs = -Infinity;
   const simulationStats = {
     active: true,
     suspended: false,
@@ -60,20 +74,21 @@ export const bindHomeSimulation = async (mount) => {
     frameCount: 0,
     lastFrameCostMs: 0,
     averageFrameCostMs: 0,
+    theoreticalFps: 0,
+    networkMode: 'simulation',
     renderQuality
   };
   window.REPLOID_POOL_SIMULATION_STATS = simulationStats;
   const flowLabels = [...mount.querySelectorAll('[data-pool-flow-label]')];
-  const hotPathSteps = [...mount.querySelectorAll('[data-pool-hot-path-step]')];
   const simulationShell = mount.querySelector('.pool-simulation-shell') || mount;
   const tooltip = mount.querySelector('[data-pool-tooltip]');
   const tooltipTitle = tooltip?.querySelector('[data-pool-tooltip-title]');
   const tooltipBody = tooltip?.querySelector('[data-pool-tooltip-body]');
   let activeTooltipLabel = null;
   const labelPositions = new Map();
+  const labelMetrics = new Map();
   let labelCanvasSize = null;
   let tooltipMetrics = null;
-  let activeHotPathStepId = '';
   const refreshTooltipMetrics = () => {
     const shellBox = simulationShell.getBoundingClientRect();
     const tooltipBox = tooltip?.getBoundingClientRect();
@@ -96,10 +111,10 @@ export const bindHomeSimulation = async (mount) => {
     const padding = 16;
     const labelPosition = labelPositions.get(activeTooltipLabel.dataset.poolFlowLabel);
     const anchorX = labelPosition
-      ? (labelPosition.x / 100) * metrics.shellWidth
+      ? ((labelPosition.displayX ?? labelPosition.x) / 100) * metrics.shellWidth
       : metrics.shellWidth * 0.5;
     const anchorY = labelPosition
-      ? (labelPosition.y / 100) * metrics.shellHeight
+      ? ((labelPosition.displayY ?? labelPosition.y) / 100) * metrics.shellHeight
       : metrics.shellHeight * 0.5;
     const hasRoomAbove = anchorY > metrics.tooltipHeight + padding * 2;
     const placement = hasRoomAbove ? 'above' : 'below';
@@ -135,6 +150,13 @@ export const bindHomeSimulation = async (mount) => {
       width: Math.max(1, canvasRect.width),
       height: Math.max(1, canvasRect.height)
     };
+    for (const label of flowLabels) {
+      const box = label.getBoundingClientRect();
+      labelMetrics.set(label.dataset.poolFlowLabel, {
+        width: Math.max(48, box.width || 0),
+        height: Math.max(24, box.height || 0)
+      });
+    }
     return canvasRect;
   };
   const getCanvasCssSize = () => {
@@ -212,6 +234,7 @@ export const bindHomeSimulation = async (mount) => {
     }
     const deltaFrames = Math.max(0, Math.min(4, deltaSeconds / (SIMULATION_TARGET_STEP_MS / 1000)));
     const labelBlend = 1 - Math.pow(1 - 0.18, deltaFrames);
+    const positioned = [];
     for (const label of flowLabels) {
       const anchor = anchors[label.dataset.poolFlowLabel];
       if (!anchor) continue;
@@ -238,6 +261,8 @@ export const bindHomeSimulation = async (mount) => {
         current = {
           x: targetX,
           y: targetY,
+          displayX: targetX,
+          displayY: targetY,
           styleX: NaN,
           styleY: NaN
         };
@@ -246,24 +271,41 @@ export const bindHomeSimulation = async (mount) => {
         current.x += (targetX - current.x) * labelBlend;
         current.y += (targetY - current.y) * labelBlend;
       }
-      if (
-        !Number.isFinite(current.styleX)
-        || Math.abs(current.styleX - current.x) >= LABEL_STYLE_EPSILON_PERCENT
-        || Math.abs(current.styleY - current.y) >= LABEL_STYLE_EPSILON_PERCENT
-      ) {
-        current.styleX = current.x;
-        current.styleY = current.y;
-        label.style.setProperty('--x', `${current.x}%`);
-        label.style.setProperty('--y', `${current.y}%`);
-      }
+      positioned.push({ key, label, current });
     }
-  };
-  const syncHotPath = (hotPath = {}) => {
-    const nextStepId = hotPath.activeStepId || '';
-    if (nextStepId === activeHotPathStepId) return;
-    activeHotPathStepId = nextStepId;
-    for (const step of hotPathSteps) {
-      step.classList.toggle('is-active', step.dataset.poolHotPathStep === nextStepId);
+
+    const cssWidth = Math.max(1, canvasCssSize.width || width);
+    const cssHeight = Math.max(1, canvasCssSize.height || height);
+    const resolved = [];
+    for (let index = 0; index < positioned.length; index += 1) {
+      const entry = positioned[index];
+      const metrics = labelMetrics.get(entry.key) || { width: 64, height: 26 };
+      let displayX = entry.current.x;
+      let displayY = entry.current.y;
+      for (const previous of resolved) {
+        const minX = ((metrics.width + previous.metrics.width) * 0.5 + 6) / cssWidth * 100;
+        const minY = ((metrics.height + previous.metrics.height) * 0.5 + 4) / cssHeight * 100;
+        if (Math.abs(displayX - previous.x) >= minX || Math.abs(displayY - previous.y) >= minY) continue;
+        const direction = displayX > previous.x || (displayX === previous.x && index % 2 === 0) ? 1 : -1;
+        displayX = previous.x + direction * minX;
+      }
+      const halfWidth = (metrics.width * 0.5 + 4) / cssWidth * 100;
+      const halfHeight = (metrics.height * 0.5 + 4) / cssHeight * 100;
+      displayX = clampRange(displayX, halfWidth, Math.max(halfWidth, 100 - halfWidth));
+      displayY = clampRange(displayY, halfHeight, Math.max(halfHeight, 100 - halfHeight));
+      entry.current.displayX = displayX;
+      entry.current.displayY = displayY;
+      resolved.push({ x: displayX, y: displayY, metrics });
+      if (
+        !Number.isFinite(entry.current.styleX)
+        || Math.abs(entry.current.styleX - displayX) >= LABEL_STYLE_EPSILON_PERCENT
+        || Math.abs(entry.current.styleY - displayY) >= LABEL_STYLE_EPSILON_PERCENT
+      ) {
+        entry.current.styleX = displayX;
+        entry.current.styleY = displayY;
+        entry.label.style.setProperty('--x', `${displayX}%`);
+        entry.label.style.setProperty('--y', `${displayY}%`);
+      }
     }
   };
   window.REPLOID_POOL_SIMULATION_STOP = () => {
@@ -282,6 +324,7 @@ export const bindHomeSimulation = async (mount) => {
     window.removeEventListener('resize', handleLayoutChange);
     window.removeEventListener('scroll', handleLayoutChange, true);
     document.removeEventListener('visibilitychange', handleVisibilityChange);
+    window.removeEventListener(POOLDAY_NETWORK_VISUAL_EVENT, handleNetworkVisualState);
     renderer?.dispose();
     simulationStats.active = false;
     simulationStats.suspended = true;
@@ -342,21 +385,31 @@ export const bindHomeSimulation = async (mount) => {
     const frame = buildPoolSimulationFrame(state, width, height, deltaMs / 1000);
     frame.renderQuality = renderQuality;
     renderer.render(frame, width, height);
-    syncFlowLabels(frame.labelAnchors, width, height, deltaMs / 1000);
-    syncHotPath(frame.hotPath);
-    if (activeTooltipLabel) updateTooltipPosition(false);
+    if (timestamp - lastLabelSyncMs >= POOL_SIMULATION_LABEL_SYNC_INTERVAL_MS) {
+      const labelDeltaSeconds = Number.isFinite(lastLabelSyncMs)
+        ? (timestamp - lastLabelSyncMs) / 1000
+        : deltaMs / 1000;
+      lastLabelSyncMs = timestamp;
+      syncFlowLabels(frame.labelAnchors, width, height, labelDeltaSeconds);
+      if (activeTooltipLabel) updateTooltipPosition(false);
+    }
     const frameCostMs = Math.max(0, performance.now() - frameStart);
     simulationStats.frameCount += 1;
     simulationStats.lastFrameCostMs = frameCostMs;
     simulationStats.averageFrameCostMs = simulationStats.averageFrameCostMs === 0
       ? frameCostMs
       : simulationStats.averageFrameCostMs + (frameCostMs - simulationStats.averageFrameCostMs) * POOL_SIMULATION_STATS_BLEND;
+    simulationStats.theoreticalFps = simulationStats.averageFrameCostMs > 0
+      ? 1000 / simulationStats.averageFrameCostMs
+      : 0;
     if (simulationStats.averageFrameCostMs > POOL_SIMULATION_QUALITY_DOWN_COST) {
       renderQuality = Math.max(POOL_SIMULATION_MIN_RENDER_QUALITY, renderQuality - 0.035);
     } else if (simulationStats.averageFrameCostMs < POOL_SIMULATION_QUALITY_UP_COST) {
       renderQuality = Math.min(1, renderQuality + 0.018);
     }
     simulationStats.renderQuality = renderQuality;
+    simulationStats.networkMode = frame.networkMode;
+    simulationShell.dataset.networkMode = frame.networkMode;
     scheduleFrame();
   };
   const syncPointerPosition = (event) => {

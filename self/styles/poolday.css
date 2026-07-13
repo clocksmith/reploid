@@ -35,6 +35,8 @@
   --pool-menu-square-size: 48px;
   --pool-nav-rail-width: 58px;
   --pool-nav-item-height: 52px;
+  --pool-nav-motion-duration: 320ms;
+  --pool-nav-motion-easing: cubic-bezier(0.22, 1, 0.36, 1);
   --pool-font: Inter, 'Avenir Next', 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
   --pool-nav-width: 210px;
   min-height: min(100vh, 100dvh);
@@ -393,8 +395,8 @@ body[data-pool-route-id='home'] #app {
   color: var(--fg);
   overflow: visible;
   transition:
-    width 320ms cubic-bezier(0.22, 1, 0.36, 1),
-    padding 320ms cubic-bezier(0.22, 1, 0.36, 1),
+    width var(--pool-nav-motion-duration) var(--pool-nav-motion-easing),
+    padding var(--pool-nav-motion-duration) var(--pool-nav-motion-easing),
     background 240ms ease,
     box-shadow 240ms ease;
 }
@@ -419,72 +421,118 @@ body[data-pool-route-id='home'] #app {
   position: relative;
   align-items: center;
   justify-content: center;
-  width: var(--pool-menu-square-size);
+  width: calc(var(--pool-nav-rail-width) - 10px);
   height: var(--pool-menu-square-size);
-  margin-inline: calc((var(--pool-nav-rail-width) - var(--pool-menu-square-size)) / 2);
+  margin-inline: 5px;
   padding: 0;
-  border: var(--border-md) solid transparent;
-  background:
-    var(--pool-shape-surface) padding-box,
-    var(--pool-shape-border) border-box;
+  border: 0;
+  border-radius: 9px;
+  background: rgb(255 255 255 / 42%);
   color: inherit;
   cursor: pointer;
-  box-shadow:
-    0 18px 34px rgb(0 0 0 / 8%),
-    0 7px 18px rgb(68 199 217 / 8%),
-    inset 0 1px 0 rgb(255 255 255 / 94%),
-    inset 0 -12px 22px rgb(0 0 0 / 4%);
+  box-shadow: inset 3px 0 0 rgb(68 199 217 / 20%);
   list-style: none;
+  overflow: hidden;
   transition:
+    width var(--pool-nav-motion-duration) var(--pool-nav-motion-easing),
+    height var(--pool-nav-motion-duration) var(--pool-nav-motion-easing),
+    margin var(--pool-nav-motion-duration) var(--pool-nav-motion-easing),
+    border-radius var(--pool-nav-motion-duration) var(--pool-nav-motion-easing),
     background 240ms ease,
-    box-shadow 240ms ease,
-    transform 320ms cubic-bezier(0.22, 1, 0.36, 1);
+    box-shadow 240ms ease;
   user-select: none;
 }
 
-.pool-nav-toggle:hover,
+.pool-nav-toggle:hover {
+  background: linear-gradient(90deg, rgb(68 199 217 / 10%), rgb(174 122 238 / 4%), transparent);
+  box-shadow: inset 3px 0 0 rgb(68 199 217 / 42%);
+}
+
 .pool-nav-toggle:focus-visible {
-  outline: 0;
-  box-shadow:
-    0 0 0 3px rgb(255 255 255 / 80%),
-    0 0 24px rgb(68 199 217 / 18%),
-    0 0 36px rgb(174 122 238 / 14%),
-    0 18px 34px rgb(0 0 0 / 9%),
-    inset 0 1px 0 rgb(255 255 255 / 96%),
-    inset 0 -10px 20px rgb(0 0 0 / 3%);
+  outline: 2px solid color-mix(in srgb, var(--pool-cyan), transparent 52%);
+  outline-offset: 2px;
 }
 
 .pool-nav-mark {
-  position: relative;
+  position: absolute;
+  left: 8px;
   display: block;
+  flex: 0 0 32px;
   width: 32px;
   height: 32px;
   color: var(--fg);
+  transform: translateX(0);
+  transition: transform var(--pool-nav-motion-duration) var(--pool-nav-motion-easing);
 }
 
 .pool-nav-mark-seven {
   position: absolute;
+  top: 0;
+  left: 0;
   font-family: var(--font-mono);
   font-weight: 900;
   line-height: 1;
+  transform-origin: center;
+  transition:
+    font-size var(--pool-nav-motion-duration) var(--pool-nav-motion-easing),
+    transform var(--pool-nav-motion-duration) var(--pool-nav-motion-easing),
+    opacity 180ms ease;
 }
 
 .pool-nav-mark-seven-top {
-  top: 0;
-  left: 1px;
   font-size: 16px;
+  transform: translate(1px, 0) scale(0.94);
 }
 
 .pool-nav-mark-seven-bottom {
-  right: 1px;
-  bottom: -3px;
   font-size: 26px;
+  transform: translate(8px, 8px) scale(1.06);
+}
+
+.pool-nav-toggle::after {
+  content: '';
+  position: absolute;
+  right: 9px;
+  width: 7px;
+  height: 7px;
+  border-top: 1.5px solid currentColor;
+  border-right: 1.5px solid currentColor;
+  opacity: 0.42;
+  transform: rotate(45deg);
+  transition:
+    right var(--pool-nav-motion-duration) var(--pool-nav-motion-easing),
+    opacity 180ms ease,
+    transform var(--pool-nav-motion-duration) var(--pool-nav-motion-easing);
 }
 
 .pool-nav-rail.is-open .pool-nav-toggle {
-  box-shadow:
-    inset 0 8px 16px rgb(0 0 0 / 6%),
-    inset 0 1px 0 rgb(255 255 255 / 84%);
+  width: 100%;
+  height: 42px;
+  margin-inline: 0;
+  border-radius: 6px;
+  background: linear-gradient(90deg, rgb(68 199 217 / 7%), rgb(174 122 238 / 3%) 48%, transparent);
+  box-shadow: inset 0 -1px 0 rgb(0 0 0 / 10%);
+}
+
+.pool-nav-rail.is-open .pool-nav-mark {
+  transform: translateX(0);
+}
+
+.pool-nav-rail.is-open .pool-nav-mark-seven-top {
+  font-size: 26px;
+  transform: translate(8px, 8px) scale(1.06);
+}
+
+.pool-nav-rail.is-open .pool-nav-mark-seven-bottom {
+  font-size: 16px;
+  opacity: 0.78;
+  transform: translate(1px, 0) scale(0.94);
+}
+
+.pool-nav-rail.is-open .pool-nav-toggle::after {
+  right: 13px;
+  opacity: 0.58;
+  transform: rotate(225deg);
 }
 
 .pool-nav-menu {
@@ -1459,67 +1507,38 @@ body[data-pool-route-id='home'] #app {
   position: relative;
   z-index: 4;
   flex: 0 0 var(--pool-home-action-size);
+  transition: box-shadow 180ms ease, transform 180ms ease;
 }
 
-.pool-home-network-panel {
-  position: absolute;
-  right: clamp(0.75rem, 2vw, 1.35rem);
-  top: calc(var(--pool-home-action-size) + 1.35rem);
-  z-index: 4;
-  display: grid;
-  width: min(22rem, calc(100vw - 1.5rem));
-  max-height: min(13.5rem, 36vh);
-  gap: 8px;
-  padding: 10px 12px;
-  border: var(--border-sm) solid transparent;
-  border-radius: 8px;
-  background:
-    linear-gradient(rgb(255 255 255 / 82%), rgb(255 255 255 / 64%)) padding-box,
-    var(--pool-prism-border-soft) border-box;
+.pool-home-network-cta[data-network-mode='hybrid'],
+.pool-home-network-cta[data-network-mode='live'] {
   box-shadow:
-    0 12px 34px rgb(68 199 217 / 11%),
-    0 8px 26px rgb(174 122 238 / 8%),
-    inset 0 1px 0 rgb(255 255 255 / 70%);
-  overflow: hidden;
-  backdrop-filter: blur(14px) saturate(140%);
-  -webkit-backdrop-filter: blur(14px) saturate(140%);
-  pointer-events: auto;
+    0 0 0 2px rgb(255 255 255 / 92%),
+    0 0 22px rgb(68 199 217 / 22%),
+    0 0 30px rgb(174 122 238 / 14%);
 }
 
-.pool-home-network-heading {
-  display: flex;
-  min-width: 0;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-}
-
-.pool-home-network-heading .link-secondary {
-  flex: 0 0 auto;
-  font-size: 0.68rem;
+.pool-home-network-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  display: grid;
+  min-width: 20px;
+  height: 20px;
+  place-items: center;
+  padding: 0 5px;
+  border: 2px solid var(--bg);
+  border-radius: 999px;
+  background: var(--fg);
+  color: var(--bg);
+  font-size: 0.62rem;
   font-weight: var(--font-weight-bold);
-  letter-spacing: var(--font-tracking-label);
-  text-transform: uppercase;
+  letter-spacing: 0;
+  line-height: 1;
+  transition: opacity 180ms ease, transform 180ms ease;
 }
 
-.pool-home-room-activity {
-  min-height: 0;
-  overflow: auto;
-}
-
-.pool-home-room-activity .pool-ledger th,
-.pool-home-room-activity .pool-ledger td {
-  padding: 5px 6px;
-  font-size: 0.68rem;
-}
-
-.pool-home-room-activity .pool-room-recent {
-  max-width: 100%;
-  margin: 6px 0 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
+.pool-home-network-badge[hidden] { display: none; }
 
 .pool-simulation-labels {
   position: absolute;
@@ -1583,98 +1602,6 @@ body[data-pool-route-id='home'] #app {
     0 0 42px rgb(174 122 238 / 12%),
     0 12px 34px rgb(247 139 83 / 10%),
     inset 0 1px 0 rgb(255 255 255 / 78%);
-}
-
-.pool-hot-path {
-  position: absolute;
-  right: clamp(0.75rem, 2vw, 1.35rem);
-  bottom: clamp(0.75rem, 2vw, 1.35rem);
-  left: clamp(0.75rem, 2vw, 1.35rem);
-  z-index: 4;
-  display: grid;
-  gap: 6px;
-  pointer-events: none;
-}
-
-.pool-hot-path-step {
-  display: flex;
-  min-width: 0;
-  align-items: center;
-  border: 1px solid rgb(0 0 0 / 11%);
-  background: rgb(255 255 255 / 26%);
-  box-shadow: none;
-  color: color-mix(in srgb, var(--fg), transparent 22%);
-  font-size: 0.64rem;
-  line-height: var(--font-leading-tight);
-  white-space: nowrap;
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-}
-
-.pool-hot-path-step b {
-  color: var(--fg);
-  font-size: 0.58rem;
-  font-weight: var(--font-weight-bold);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
-
-.pool-hot-path-step span:last-child {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.pool-hot-path-steps {
-  display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
-  gap: 6px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.pool-hot-path-step {
-  gap: 6px;
-  min-height: 30px;
-  padding: 4px 7px;
-  border-radius: 999px;
-  opacity: 0.62;
-  transition:
-    opacity 140ms ease,
-    border-color 160ms ease,
-    background 160ms ease;
-}
-
-.pool-hot-path-step.is-active {
-  border-color: rgb(0 0 0 / 35%);
-  background: rgb(255 255 255 / 54%);
-  outline: 2px solid rgb(0 0 0 / 22%);
-  outline-offset: -2px;
-  box-shadow:
-    inset 0 0 0 1px rgb(0 0 0 / 24%),
-    0 0 0 2px rgb(255 255 255 / 38%),
-    0 0 22px rgb(68 199 217 / 16%);
-  opacity: 1;
-}
-
-.pool-hot-path-step.is-active .pool-hot-path-index,
-.pool-hot-path-step.is-active b {
-  color: var(--fg);
-  font-weight: 800;
-}
-
-.pool-hot-path-step.is-active span:last-child {
-  color: color-mix(in srgb, var(--fg), transparent 10%);
-  font-weight: 650;
-}
-
-.pool-hot-path-index {
-  flex: 0 0 auto;
-  color: color-mix(in srgb, var(--fg), transparent 42%);
-  font-size: 0.56rem;
-  font-weight: var(--font-weight-bold);
-  letter-spacing: 0.04em;
 }
 
 .pool-simulation-tooltip {
@@ -2017,37 +1944,6 @@ body[data-pool-route-id='home'] #app {
     position: relative;
   }
 
-  .pool-home-network-panel {
-    right: 8px;
-    top: auto;
-    bottom: calc(8px + 2 * 34px + 10px);
-    width: min(18.5rem, calc(100vw - 16px));
-    max-height: 7.5rem;
-    padding: 8px;
-  }
-
-  .pool-home-network-panel .pool-ledger thead {
-    display: none;
-  }
-
-  .pool-home-network-panel .pool-ledger td {
-    font-size: 0.62rem;
-  }
-
-  .pool-hot-path {
-    right: 8px;
-    bottom: 8px;
-    left: 8px;
-  }
-
-  .pool-hot-path-steps {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .pool-hot-path-step {
-    min-height: 34px;
-  }
-
   .pool-simulation-labels span {
     max-width: 5.6rem;
     padding: 4px 6px;
@@ -2118,5 +2014,20 @@ body[data-pool-route-id='home'] #app {
 @media (max-width: 520px) {
   .pool-contribution-last {
     display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pool-nav-rail,
+  .pool-nav-toggle,
+  .pool-nav-mark,
+  .pool-nav-mark-seven,
+  .pool-nav-toggle::after,
+  .pool-nav-menu,
+  .pool-nav-link,
+  .pool-nav-glyph,
+  .pool-nav-label,
+  .pool-nav-divider {
+    transition-duration: 0.01ms;
   }
 }

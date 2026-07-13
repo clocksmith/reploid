@@ -41,6 +41,7 @@ import {
 } from './contribution-state.js';
 
 const errorString = (error) => String(error?.message || error?.error || error || 'Unknown error');
+const POOL_ROOM_ACTIVITY_POLL_MS = 5000;
 
 const displayPoolError = (error, {
   title = 'Request failed',
@@ -138,25 +139,45 @@ const bindSuggestedPromptEditing = (input) => {
   input.addEventListener('pointerdown', clearSuggestedPrompt);
 };
 
-const refreshServerRoomActivity = async () => {
+const refreshServerRoomActivity = async (isActive = () => true) => {
   const activity = document.getElementById('pool-room-activity');
-  if (!activity) return null;
+  const networkState = document.querySelector('[data-pool-network-state]');
+  if (!activity && !networkState) return null;
   if (getPeerRelayMode() === 'local') {
-    refreshRoomActivityState();
+    if (isActive()) refreshRoomActivityState();
     return null;
   }
   try {
     const summary = await createPoolSdk({ authTokenProvider: null }).peerRoomSummary(getPeerRoomId(), { limit: 100 });
-    refreshRoomActivityState(summary);
+    if (isActive()) refreshRoomActivityState(summary);
     return summary;
   } catch (error) {
-    refreshRoomActivityState({ error: errorString(error) });
+    if (isActive()) refreshRoomActivityState({ error: errorString(error) });
     return null;
   }
 };
 
 export const bindRoomActivityControls = () => {
-  void refreshServerRoomActivity();
+  window.REPLOID_POOL_ROOM_ACTIVITY_STOP?.();
+  if (!document.getElementById('pool-room-activity') && !document.querySelector('[data-pool-network-state]')) return;
+  let active = true;
+  let refreshing = false;
+  const refresh = async () => {
+    if (!active || refreshing || document.visibilityState === 'hidden') return;
+    refreshing = true;
+    try {
+      await refreshServerRoomActivity(() => active);
+    } finally {
+      refreshing = false;
+    }
+  };
+  const intervalId = window.setInterval(() => void refresh(), POOL_ROOM_ACTIVITY_POLL_MS);
+  window.REPLOID_POOL_ROOM_ACTIVITY_STOP = () => {
+    active = false;
+    window.clearInterval(intervalId);
+    if (window.REPLOID_POOL_ROOM_ACTIVITY_STOP) window.REPLOID_POOL_ROOM_ACTIVITY_STOP = null;
+  };
+  void refresh();
 };
 
 const probeModelArtifacts = async (model) => {

@@ -113,11 +113,11 @@ test.describe('Route Entry Points', () => {
     expect(askValue.trim().split(/\s+/).length).toBeLessThanOrEqual(4);
     await expect(page.locator('#pool-home-ask-prompt')).toHaveAttribute('data-pool-suggested-prompt', askValue);
     await expect(page.locator('#pool-home-ask-form').getByRole('button', { name: 'Ask', exact: true })).toBeVisible();
-    await expect(page.getByRole('link', { name: 'Live Network', exact: true })).toHaveAttribute('href', '/network');
+    await expect(page.getByRole('link', { name: /^Live Network/ })).toHaveAttribute('href', '/network');
     await expect(page.locator('.pool-home-toolbar')).toBeVisible();
     await expect(page.locator('.pool-simulation-shell')).toBeVisible();
-    await expect(page.locator('[data-pool-hot-path]')).toBeVisible();
-    await expect(page.locator('[data-pool-hot-path-step]')).toHaveCount(6);
+    await expect(page.locator('[data-pool-hot-path]')).toHaveCount(0);
+    await expect(page.locator('.pool-home-network-panel')).toHaveCount(0);
     const stack = await page.evaluate(() => {
       const home = document.querySelector('.pool-home').getBoundingClientRect();
       const toolbar = document.querySelector('.pool-home-toolbar').getBoundingClientRect();
@@ -134,8 +134,35 @@ test.describe('Route Entry Points', () => {
     expect(Math.abs(stack.shellTop)).toBeLessThanOrEqual(1);
     expect(Math.abs(stack.shellWidth - stack.homeWidth)).toBeLessThan(2);
     expect(Math.abs(stack.shellHeight - stack.homeHeight)).toBeLessThan(2);
+    const collapsedToggle = await nav.locator('.pool-nav-toggle').evaluate((toggle) => {
+      const top = toggle.querySelector('.pool-nav-mark-seven-top');
+      const bottom = toggle.querySelector('.pool-nav-mark-seven-bottom');
+      return {
+        width: toggle.getBoundingClientRect().width,
+        topSize: Number.parseFloat(getComputedStyle(top).fontSize),
+        bottomSize: Number.parseFloat(getComputedStyle(bottom).fontSize),
+        topTransform: getComputedStyle(top).transform,
+        bottomTransform: getComputedStyle(bottom).transform
+      };
+    });
     await nav.locator('.pool-nav-toggle').click();
     await expect(nav.locator('.pool-nav-toggle')).toHaveAttribute('aria-expanded', 'true');
+    await expect.poll(() => nav.locator('.pool-nav-toggle').evaluate((toggle) => toggle.getBoundingClientRect().width))
+      .toBeGreaterThan(collapsedToggle.width + 80);
+    const expandedToggle = await nav.locator('.pool-nav-toggle').evaluate((toggle) => {
+      const top = toggle.querySelector('.pool-nav-mark-seven-top');
+      const bottom = toggle.querySelector('.pool-nav-mark-seven-bottom');
+      return {
+        topSize: Number.parseFloat(getComputedStyle(top).fontSize),
+        bottomSize: Number.parseFloat(getComputedStyle(bottom).fontSize),
+        topTransform: getComputedStyle(top).transform,
+        bottomTransform: getComputedStyle(bottom).transform
+      };
+    });
+    expect(collapsedToggle.topSize).toBeLessThan(collapsedToggle.bottomSize);
+    expect(expandedToggle.topSize).toBeGreaterThan(expandedToggle.bottomSize);
+    expect(expandedToggle.topTransform).not.toBe(collapsedToggle.topTransform);
+    expect(expandedToggle.bottomTransform).not.toBe(collapsedToggle.bottomTransform);
     await expect(nav.getByRole('link', { name: 'Home', exact: true })).toBeVisible();
     await expect(nav.getByRole('link', { name: 'Home', exact: true })).toHaveAttribute('aria-current', 'page');
     await expect(nav.getByRole('link', { name: 'Run', exact: true })).toBeVisible();
@@ -145,7 +172,7 @@ test.describe('Route Entry Points', () => {
     await expect(nav.getByRole('link', { name: 'X Experimental', exact: true })).toHaveAttribute('href', '/x');
     await expect(page.getByLabel('Reploid overview')).toContainText('REPLOID');
     await expect(page.getByLabel('Reploid overview')).toContainText('Run browser models together.');
-    await expect(page.locator('[data-pool-flow-label]')).toHaveCount(12);
+    await expect(page.locator('[data-pool-flow-label]')).toHaveCount(6);
     await expect.poll(async () => page.locator('[data-pool-flow-label]').evaluateAll((labels) => {
       const counts = labels.reduce((acc, label) => {
         const text = label.textContent.trim();
@@ -171,9 +198,9 @@ test.describe('Route Entry Points', () => {
       prompt: 1,
       policy: 1,
       match: 1,
-      infer: 4,
-      verify: 3,
-      answer: 2,
+      infer: 1,
+      verify: 1,
+      answer: 1,
       request: 0,
       history: 0,
       consumer: 0,
