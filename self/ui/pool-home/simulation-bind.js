@@ -18,13 +18,12 @@ import {
   SIMULATION_TARGET_STEP_MS
 } from './constants.js';
 
-const LABEL_STYLE_EPSILON_PERCENT = 0.025;
+const LABEL_STYLE_EPSILON_PERCENT = 0;
 const POOL_SIMULATION_MIN_RENDER_QUALITY = 0.62;
 const POOL_SIMULATION_TARGET_COST_MS = 1;
 const POOL_SIMULATION_QUALITY_DOWN_COST = POOL_SIMULATION_TARGET_COST_MS;
 const POOL_SIMULATION_QUALITY_UP_COST = POOL_SIMULATION_TARGET_COST_MS * 0.70;
 const POOL_SIMULATION_STATS_BLEND = 0.08;
-const POOL_SIMULATION_LABEL_SYNC_INTERVAL_MS = 50;
 
 export const resolvePoolFrameDeltaMs = (rawDeltaMs, forceReset = false) => {
   if (
@@ -66,7 +65,6 @@ export const bindHomeSimulation = async (mount) => {
   let resetFrameClock = true;
   let simulationInViewport = true;
   let renderQuality = 1;
-  let lastLabelSyncMs = -Infinity;
   const simulationStats = {
     active: true,
     suspended: false,
@@ -303,8 +301,8 @@ export const bindHomeSimulation = async (mount) => {
       ) {
         entry.current.styleX = displayX;
         entry.current.styleY = displayY;
-        entry.label.style.setProperty('--x', `${displayX}%`);
-        entry.label.style.setProperty('--y', `${displayY}%`);
+        entry.label.style.setProperty('--pool-label-x', `${(displayX / 100) * cssWidth}px`);
+        entry.label.style.setProperty('--pool-label-y', `${(displayY / 100) * cssHeight}px`);
       }
     }
   };
@@ -385,14 +383,8 @@ export const bindHomeSimulation = async (mount) => {
     const frame = buildPoolSimulationFrame(state, width, height, deltaMs / 1000);
     frame.renderQuality = renderQuality;
     renderer.render(frame, width, height);
-    if (timestamp - lastLabelSyncMs >= POOL_SIMULATION_LABEL_SYNC_INTERVAL_MS) {
-      const labelDeltaSeconds = Number.isFinite(lastLabelSyncMs)
-        ? (timestamp - lastLabelSyncMs) / 1000
-        : deltaMs / 1000;
-      lastLabelSyncMs = timestamp;
-      syncFlowLabels(frame.labelAnchors, width, height, labelDeltaSeconds);
-      if (activeTooltipLabel) updateTooltipPosition(false);
-    }
+    syncFlowLabels(frame.labelAnchors, width, height, deltaMs / 1000);
+    if (activeTooltipLabel) updateTooltipPosition(false);
     const frameCostMs = Math.max(0, performance.now() - frameStart);
     simulationStats.frameCount += 1;
     simulationStats.lastFrameCostMs = frameCostMs;

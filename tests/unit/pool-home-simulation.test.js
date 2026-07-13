@@ -69,6 +69,14 @@ const expectIncreasingY = (topology, ids) => {
     expect(yOf(topology, ids[index])).toBeGreaterThan(yOf(topology, ids[index - 1]));
   }
 };
+const topologySymmetryTransforms = Object.freeze({
+  'x-axis': ([x, y]) => [x, 1 - y],
+  'y-axis': ([x, y]) => [1 - x, y],
+  rotational: ([x, y]) => [1 - x, 1 - y]
+});
+const coordinateKey = ([x, y]) => `${x.toFixed(6)},${y.toFixed(6)}`;
+const edgeCoordinateKey = (from, to) => [coordinateKey(from), coordinateKey(to)].sort().join('|');
+const sortedMultiset = (values) => [...values].sort();
 
 const maxFillAlpha = (batch) => {
   let maxAlpha = 0;
@@ -355,6 +363,34 @@ describe('pool home simulation performance contracts', () => {
     }
   });
 
+  it('keeps every edge preset symmetric under its declared coordinate transform', () => {
+    for (const topology of POOLDAY_GRAPH_TOPOLOGIES) {
+      const transform = topologySymmetryTransforms[topology.symmetry];
+      expect(transform, `${topology.id} must declare a supported symmetry`).toBeTypeOf('function');
+
+      const nodeCoordinates = sortedMultiset(Object.values(topology.points).map(coordinateKey));
+      const transformedNodeCoordinates = sortedMultiset(
+        Object.values(topology.points).map((point) => coordinateKey(transform(point)))
+      );
+      const lineSpecs = buildSimulationLineSpecs(topology.edgePreset);
+      const edgeCoordinates = sortedMultiset(lineSpecs.map((spec) => edgeCoordinateKey(
+        topology.points[spec.fromId],
+        topology.points[spec.toId]
+      )));
+      const transformedEdgeCoordinates = sortedMultiset(lineSpecs.map((spec) => edgeCoordinateKey(
+        transform(topology.points[spec.fromId]),
+        transform(topology.points[spec.toId])
+      )));
+
+      expect(transformedNodeCoordinates, `${topology.id} node coordinates`).toEqual(nodeCoordinates);
+      expect(transformedEdgeCoordinates, `${topology.id} edge coordinates and lane counts`).toEqual(edgeCoordinates);
+      expect(
+        Object.values(topology.points).some((point) => coordinateKey(transform(point)) !== coordinateKey(point)),
+        `${topology.id} symmetry must move at least one node`
+      ).toBe(true);
+    }
+  });
+
   it('keeps topology coordinates aligned to their named shapes', () => {
     const receiptTree = topologyById('receipt_tree');
     expectSameX(receiptTree, ['requester', 'policy', 'assignment', 'agreement', 'settlement', 'ledger'], 0.5);
@@ -378,7 +414,10 @@ describe('pool home simulation performance contracts', () => {
     const hourglass = topologyById('hourglass');
     expectSameX(hourglass, ['runner0', 'runner1']);
     expectSameX(hourglass, ['runner2', 'runner3']);
-    expectSameY(hourglass, ['assignment', 'agreement'], 0.5);
+    expectSameY(hourglass, ['requester', 'policy', 'assignment', 'agreement', 'settlement', 'ledger'], 0.5);
+    expect(yOf(hourglass, 'runner0')).toBeCloseTo(1 - yOf(hourglass, 'runner1'), 8);
+    expect(yOf(hourglass, 'runner2')).toBeCloseTo(1 - yOf(hourglass, 'runner3'), 8);
+    expect(yOf(hourglass, 'verifier0')).toBeCloseTo(1 - yOf(hourglass, 'verifier1'), 8);
     expect(xOf(hourglass, 'assignment')).toBeLessThan(xOf(hourglass, 'agreement'));
     expect(xOf(hourglass, 'assignment')).toBeGreaterThan(xOf(hourglass, 'runner1'));
     expect(xOf(hourglass, 'agreement')).toBeLessThan(xOf(hourglass, 'runner2'));
@@ -386,6 +425,7 @@ describe('pool home simulation performance contracts', () => {
     const bowtie = topologyById('bowtie_exchange');
     expectSameY(bowtie, ['requester', 'policy', 'assignment', 'agreement', 'settlement', 'ledger'], 0.5);
     expectSameX(bowtie, ['runner0', 'runner1']);
+    expectSameX(bowtie, ['runner2', 'runner3']);
     expectSameX(bowtie, ['verifier0', 'verifier1']);
     expect(yOf(bowtie, 'runner0')).toBeLessThan(yOf(bowtie, 'policy'));
     expect(yOf(bowtie, 'runner1')).toBeGreaterThan(yOf(bowtie, 'policy'));
@@ -404,8 +444,13 @@ describe('pool home simulation performance contracts', () => {
 
     const triangulation = topologyById('triangulation');
     expect(yOf(triangulation, 'policy')).toBeLessThan(yOf(triangulation, 'requester'));
+    expectSameX(triangulation, ['policy', 'requester', 'settlement', 'ledger'], 0.5);
     expect(xOf(triangulation, 'assignment')).toBeLessThan(xOf(triangulation, 'policy'));
     expect(xOf(triangulation, 'agreement')).toBeGreaterThan(xOf(triangulation, 'policy'));
+    expect(xOf(triangulation, 'assignment')).toBeCloseTo(1 - xOf(triangulation, 'agreement'), 8);
+    expect(xOf(triangulation, 'runner0')).toBeCloseTo(1 - xOf(triangulation, 'runner3'), 8);
+    expect(xOf(triangulation, 'runner1')).toBeCloseTo(1 - xOf(triangulation, 'runner2'), 8);
+    expect(xOf(triangulation, 'verifier0')).toBeCloseTo(1 - xOf(triangulation, 'verifier1'), 8);
     expect(['runner0', 'runner1', 'runner2', 'runner3'].every((id) => yOf(triangulation, id) > yOf(triangulation, 'assignment'))).toBe(true);
     expect(['verifier0', 'verifier1'].every((id) => yOf(triangulation, id) > yOf(triangulation, 'runner1'))).toBe(true);
     expectIncreasingY(triangulation, ['policy', 'assignment', 'runner1', 'verifier0', 'settlement', 'ledger']);
@@ -413,13 +458,17 @@ describe('pool home simulation performance contracts', () => {
     const honeycomb = topologyById('honeycomb');
     expectSameY(honeycomb, ['policy', 'assignment']);
     expectSameY(honeycomb, ['requester', 'runner0', 'runner1']);
-    expectSameY(honeycomb, ['runner2', 'verifier0', 'runner3']);
-    expectSameY(honeycomb, ['verifier1', 'agreement', 'settlement']);
+    expectSameY(honeycomb, ['verifier0', 'verifier1'], 0.5);
+    expectSameY(honeycomb, ['runner2', 'runner3', 'ledger']);
+    expectSameY(honeycomb, ['agreement', 'settlement']);
     expectIncreasingX(honeycomb, ['policy', 'assignment']);
     expectIncreasingX(honeycomb, ['requester', 'runner0', 'runner1']);
-    expectIncreasingX(honeycomb, ['runner2', 'verifier0', 'runner3']);
-    expectIncreasingX(honeycomb, ['verifier1', 'agreement', 'settlement']);
-    expect(yOf(honeycomb, 'ledger')).toBeGreaterThan(yOf(honeycomb, 'settlement'));
+    expectIncreasingX(honeycomb, ['runner2', 'runner3', 'ledger']);
+    expectIncreasingX(honeycomb, ['agreement', 'settlement']);
+    expect(xOf(honeycomb, 'requester')).toBeCloseTo(1 - xOf(honeycomb, 'ledger'), 8);
+    expect(yOf(honeycomb, 'requester')).toBeCloseTo(1 - yOf(honeycomb, 'ledger'), 8);
+    expect(xOf(honeycomb, 'policy')).toBeCloseTo(1 - xOf(honeycomb, 'settlement'), 8);
+    expect(yOf(honeycomb, 'policy')).toBeCloseTo(1 - yOf(honeycomb, 'settlement'), 8);
   });
 
   it('renders initial node centers from active topology coordinates with a centered view transform', () => {

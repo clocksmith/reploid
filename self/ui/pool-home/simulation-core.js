@@ -235,65 +235,6 @@ const createTopologyOrder = (currentIndex, random) => [
     .filter((index) => index !== currentIndex), random)
 ];
 
-const TRANSITION_MOTION_PROFILES = Object.freeze({
-  arc: {
-    ease: 'sinePlateau',
-    scatter: 0.024,
-    assemble: 0.024,
-    liftScale: 0.74,
-    delayScale: 0.40
-  },
-  braid: {
-    ease: 'sinePlateau',
-    scatter: 0.048,
-    assemble: 0.016,
-    liftScale: 0.92,
-    delayScale: 0.54
-  },
-  fan: {
-    ease: 'sinePlateau',
-    scatter: 0.036,
-    assemble: 0.034,
-    liftScale: 0.84,
-    delayScale: 0.44
-  },
-  float: {
-    ease: 'sinePlateau',
-    scatter: 0.070,
-    assemble: 0.010,
-    liftScale: 0.96,
-    delayScale: 0.70
-  },
-  fold: {
-    ease: 'sinePlateau',
-    scatter: 0.030,
-    assemble: 0.030,
-    liftScale: 0.80,
-    delayScale: 0.40
-  },
-  orthogonal: {
-    ease: 'sinePlateau',
-    scatter: 0.020,
-    assemble: 0.040,
-    liftScale: 0.70,
-    delayScale: 0.34
-  },
-  pipe: {
-    ease: 'sinePlateau',
-    scatter: 0.010,
-    assemble: 0.020,
-    liftScale: 0.52,
-    delayScale: 0.22
-  },
-  root: {
-    ease: 'sinePlateau',
-    scatter: 0.014,
-    assemble: 0.046,
-    liftScale: 0.68,
-    delayScale: 0.36
-  }
-});
-
 const getInitialGraphTopologyIndex = (random) => {
   try {
     const shape = new URLSearchParams(globalThis.location?.search || '').get('shape');
@@ -334,7 +275,6 @@ const createNextPoolGraphPlan = (layout, random) => {
       targets: createFloatTopologyPoints(layout.targets || layout.positions, random),
       label: 'floating reassort',
       edgePreset: 'float',
-      mode: 'float',
       span: POOLDAY_MORPH_TUNING.floatSpan,
       transitionSpan: POOLDAY_MORPH_TUNING.floatSpan * POOLDAY_MORPH_TUNING.visualSpanScale,
       hold: POOLDAY_MORPH_TUNING.floatHold
@@ -355,7 +295,6 @@ const createNextPoolGraphPlan = (layout, random) => {
     targets: cloneTopologyPoints(topology),
     label: topology.label,
     edgePreset: topology.edgePreset,
-    mode: topology.morph || 'arc',
     span: POOLDAY_MORPH_TUNING.shapeSpan,
     transitionSpan: POOLDAY_MORPH_TUNING.shapeSpan * POOLDAY_MORPH_TUNING.visualSpanScale,
     hold: POOLDAY_MORPH_TUNING.shapeHold,
@@ -365,115 +304,34 @@ const createNextPoolGraphPlan = (layout, random) => {
   };
 };
 
-const createTopologyTransition = (fromPoints, toPoints, mode = 'arc', span = POOLDAY_MORPH_TUNING.shapeSpan, options = {}) => {
+const createTopologyTransition = (fromPoints, toPoints, span = POOLDAY_MORPH_TUNING.shapeSpan, options = {}) => {
   const fromEdgePreset = options.fromEdgePreset || null;
   const toEdgePreset = options.toEdgePreset || null;
   const fromLineSpecs = options.fromLineSpecs || buildSimulationLineSpecs(fromEdgePreset || toEdgePreset || 'float');
   const toLineSpecs = buildSimulationLineSpecs(toEdgePreset || fromEdgePreset || 'float');
-  const profile = TRANSITION_MOTION_PROFILES[mode] || TRANSITION_MOTION_PROFILES.arc;
   const linePairs = pairFlowTransitionLines(fromLineSpecs, toLineSpecs);
   return {
     from: copyGraphPoints(fromPoints),
     to: copyGraphPoints(toPoints),
-    mode,
     span,
     progress: 0,
-    profile,
     fromEdgePreset,
     toEdgePreset,
     cueStart: clamp01(options.cueStart || 0),
-    twist: (options.random?.() || 0) > 0.5 ? 1 : -1,
     linePairs,
-    settledLineSpecs: toLineSpecs,
-    controls: Object.fromEntries(POOLDAY_GRAPH_NODE_IDS.map((id, index) => {
-      const from = fromPoints[id] || { x: 0.5, y: 0.5 };
-      const to = toPoints[id] || from;
-      const dx = to.x - from.x;
-      const dy = to.y - from.y;
-      const distance = Math.max(0.01, Math.hypot(dx, dy));
-      const normalX = -dy / distance;
-      const normalY = dx / distance;
-      const participantIndex = POOLDAY_PARTICIPANT_NODE_IDS.indexOf(id);
-      const lane = participantIndex >= 0 ? participantIndex : index;
-      const lanePhase = ((lane % 5) - 2) / 2;
-      return [
-        id,
-        {
-          normalX,
-          normalY,
-          lanePhase,
-          delay: (participantIndex >= 0 ? (lane % 6) * 0.018 : index * 0.01) * profile.delayScale,
-          scatterX: ((options.random?.() || 0.5) - 0.5) * profile.scatter,
-          scatterY: ((options.random?.() || 0.5) - 0.5) * profile.scatter * 0.82,
-          assembleX: normalX * profile.assemble * (0.55 + Math.abs(lanePhase) * 0.45),
-          assembleY: normalY * profile.assemble * (0.55 + Math.abs(lanePhase) * 0.45),
-          spin: (index % 2 === 0 ? 1 : -1) * (0.65 + (lane % 3) * 0.16)
-        }
-      ];
-    }))
+    settledLineSpecs: toLineSpecs
   };
-};
-
-const resolveMorphLift = (transition, id, eased, raw) => {
-  const control = transition.controls[id] || {};
-  const lift = Math.sin(raw * Math.PI);
-  const mode = transition.mode;
-  const profile = transition.profile || TRANSITION_MOTION_PROFILES.arc;
-  const scatterWave = Math.sin(raw * Math.PI) * Math.pow(1 - eased, 0.72);
-  const assembleWave = Math.sin(raw * Math.PI) * Math.pow(eased, 0.72);
-  const profileX = (control.scatterX || 0) * scatterWave + (control.assembleX || 0) * assembleWave;
-  const profileY = (control.scatterY || 0) * scatterWave + (control.assembleY || 0) * assembleWave;
-  const scaled = (point) => ({
-    x: point.x * profile.liftScale + profileX,
-    y: point.y * profile.liftScale + profileY
-  });
-  if (mode === 'fan') return scaled({
-    x: (control.normalX || 0) * POOLDAY_MORPH_TUNING.arcLift * lift,
-    y: ((control.normalY || 0) + (control.lanePhase || 0) * 0.32) * POOLDAY_MORPH_TUNING.arcLift * lift
-  });
-  if (mode === 'fold') return scaled({
-    x: (control.normalX || 0) * POOLDAY_MORPH_TUNING.foldLift * lift,
-    y: Math.sin((raw - 0.5) * Math.PI) * POOLDAY_MORPH_TUNING.foldLift * (0.7 + Math.abs(control.lanePhase || 0)) * lift
-  });
-  if (mode === 'braid') return scaled({
-    x: Math.sin(raw * Math.PI * 2 + (control.lanePhase || 0)) * POOLDAY_MORPH_TUNING.swirlLift * 0.62 * lift,
-    y: Math.cos(raw * Math.PI * 2 + (control.lanePhase || 0)) * POOLDAY_MORPH_TUNING.swirlLift * 0.42 * lift
-  });
-  if (mode === 'root') return scaled({
-    x: (control.normalX || 0) * POOLDAY_MORPH_TUNING.arcLift * 0.42 * lift,
-    y: -Math.abs(control.lanePhase || 0) * POOLDAY_MORPH_TUNING.arcLift * lift
-  });
-  if (mode === 'pipe') return scaled({
-    x: Math.sin(raw * Math.PI * 2) * POOLDAY_MORPH_TUNING.pipeLift * 0.32 * lift,
-    y: (control.lanePhase || 0) * POOLDAY_MORPH_TUNING.pipeLift * lift
-  });
-  if (mode === 'orthogonal') return scaled({
-    x: (control.normalX || 0) * (1 - eased) * POOLDAY_MORPH_TUNING.arcLift * 0.52 * lift,
-    y: (control.normalY || 0) * eased * POOLDAY_MORPH_TUNING.arcLift * 0.52 * lift
-  });
-  if (mode === 'float') return scaled({
-    x: Math.cos(raw * Math.PI * control.spin) * POOLDAY_MORPH_TUNING.swirlLift * 0.74 * lift,
-    y: Math.sin(raw * Math.PI * (1.2 + Math.abs(control.lanePhase || 0))) * POOLDAY_MORPH_TUNING.swirlLift * 0.52 * lift
-  });
-  return scaled({
-    x: (control.normalX || 0) * POOLDAY_MORPH_TUNING.arcLift * lift,
-    y: (control.normalY || 0) * POOLDAY_MORPH_TUNING.arcLift * lift
-  });
 };
 
 const resolveTransitionPoint = (id, transition) => {
   const from = transition.from[id] || { x: 0.5, y: 0.5 };
   const to = transition.to[id] || from;
-  const control = transition.controls[id] || {};
-  const raw = clamp01((transition.progress - (control.delay || 0)) / Math.max(0.001, 1 - (control.delay || 0)));
+  const raw = clamp01(transition.progress);
   if (raw >= 1) return { x: to.x, y: to.y };
-  const eased = transition.profile?.ease === 'sinePlateau'
-    ? easeSinePlateau(raw)
-    : easeInOutSine(raw);
-  const lift = resolveMorphLift(transition, id, eased, raw);
+  const eased = easeInOutSine(raw);
   return {
-    x: clampRange(from.x + (to.x - from.x) * eased + lift.x, 0.04, 0.96),
-    y: clampRange(from.y + (to.y - from.y) * eased + lift.y, 0.06, 0.96)
+    x: clampRange(from.x + (to.x - from.x) * eased, 0.04, 0.96),
+    y: clampRange(from.y + (to.y - from.y) * eased, 0.06, 0.96)
   };
 };
 
@@ -537,14 +395,12 @@ const shiftPoolGraphTarget = (layout, time, random) => {
   layout.transition = createTopologyTransition(
     layout.positions,
     layout.targets,
-    plan.mode || 'arc',
     plan.transitionSpan || plan.span,
     {
       fromEdgePreset,
       toEdgePreset: plan.edgePreset,
       fromLineSpecs: layout.edgeSpecs,
-      cueStart: layout.anticipation,
-      random
+      cueStart: layout.anticipation
     }
   );
   layout.nextPlan = null;
@@ -797,26 +653,9 @@ const easeInOutSine = (value) => {
   return -(Math.cos(Math.PI * bounded) - 1) / 2;
 };
 
-const easeSinePlateau = (value) => {
-  const bounded = Math.max(0, Math.min(1, value));
-  const shoulder = 0.32;
-  if (bounded < shoulder) {
-    const cruiseVelocity = 1 / (1 - shoulder);
-    return cruiseVelocity * bounded * bounded / (2 * shoulder);
-  }
-  if (bounded > 1 - shoulder) {
-    const cruiseVelocity = 1 / (1 - shoulder);
-    const remaining = 1 - bounded;
-    return 1 - cruiseVelocity * remaining * remaining / (2 * shoulder);
-  }
-  return (bounded - shoulder / 2) / (1 - shoulder);
-};
-
 const resolveTransitionBlend = (transition) => {
   const bounded = clamp01(transition?.progress || 0);
-  return transition?.profile?.ease === 'sinePlateau'
-    ? easeSinePlateau(bounded)
-    : easeInOutSine(bounded);
+  return easeInOutSine(bounded);
 };
 
 const resolveLineRouteId = (line) => (

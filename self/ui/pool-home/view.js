@@ -1303,7 +1303,7 @@ const renderFlowLabels = () => POOLDAY_GRAPH_LABEL_STAGES.map((stage) => (
     data-pool-flow-label="${escapeHtml(item.id)}"
     data-tooltip-title="${escapeHtml(item.label)}"
     data-tooltip-body="${escapeHtml(item.body)}"
-    style="--x: ${escapeHtml(item.x)}; --y: ${escapeHtml(item.y)};"
+    style="--pool-label-x: ${escapeHtml(String(item.x).replace('%', 'vw'))}; --pool-label-y: ${escapeHtml(String(item.y).replace('%', 'vh'))};"
     tabindex="0"
     aria-label="${escapeHtml(`${item.label}: ${item.body}`)}"
   >
