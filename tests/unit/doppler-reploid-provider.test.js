@@ -14,7 +14,7 @@ const setWebGpu = (value) => {
   });
 };
 
-describe('Reploid Doppler 0.4.8 provider adapter', () => {
+describe('Reploid Doppler 0.4.9 provider adapter', () => {
   afterEach(() => {
     setWebGpu(undefined);
     delete globalThis.REPLOID_DOPPLER_LOAD_OPTIONS;

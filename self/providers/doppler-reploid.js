@@ -59,7 +59,7 @@ export function createDopplerPublicProviderAdapter(dopplerModule, { Errors = nul
     },
     async loadModel(modelId, modelUrl = null, onProgress = null, localPath = null) {
       if (localPath && !modelUrl) {
-        throw configError(Errors, 'Doppler 0.4.8 browser loads require a registry id or model URL');
+        throw configError(Errors, 'Doppler 0.4.9 browser loads require a registry id or model URL');
       }
       const source = modelUrl ? { url: modelUrl } : modelId;
       handle = await load(source, {
@@ -117,7 +117,7 @@ export function createDopplerPublicProviderAdapter(dopplerModule, { Errors = nul
 const callTooling = async (method, args) => {
   const tooling = await loadBenchHarness();
   if (typeof tooling?.[method] !== 'function') {
-    throw new Error(`Doppler 0.4.8 tooling does not expose ${method}`);
+    throw new Error(`Doppler 0.4.9 tooling does not expose ${method}`);
   }
   return tooling[method](...args);
 };
