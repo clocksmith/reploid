@@ -1,5 +1,5 @@
 ---
-name: security_audit
+name: security-audit
 description: Cooperative self-audit for public runners that flags likely secret exposure without reading secret values.
 ---
 
