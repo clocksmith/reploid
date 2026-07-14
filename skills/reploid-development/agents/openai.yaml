@@ -1,0 +1,4 @@
+interface:
+  display_name: "Reploid Development"
+  short_description: "Build and validate Reploid project changes"
+  default_prompt: "Use $reploid-development to implement and validate this change in Reploid."

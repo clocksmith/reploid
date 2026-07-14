@@ -1,0 +1,4 @@
+interface:
+  display_name: "Reploid Debug"
+  short_description: "Trace and fix Reploid project failures"
+  default_prompt: "Use $reploid-debug to reproduce, trace, and fix this failure in Reploid."

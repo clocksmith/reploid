@@ -1,0 +1,4 @@
+interface:
+  display_name: "Reploid Security Audit"
+  short_description: "Audit secret exposure without reading values"
+  default_prompt: "Use $security-audit to perform a sanitized Reploid security self-audit."
