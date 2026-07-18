@@ -81,34 +81,35 @@ const DopplerToolbox = {
       return ProviderRegistry.getStatus('doppler', options);
     };
 
-    const bench = {
-      loadRuntimeConfigFromUrl: async (...args) => {
-        return callProviderMethod(['bench', 'loadRuntimeConfigFromUrl'], 'bench.loadRuntimeConfigFromUrl', args);
+    const tooling = {
+      runBrowserCommand: async (...args) => {
+        return callProviderMethod(['tooling', 'runBrowserCommand'], 'tooling.runBrowserCommand', args);
       },
-      applyRuntimeConfigFromUrl: async (...args) => {
-        return callProviderMethod(['bench', 'applyRuntimeConfigFromUrl'], 'bench.applyRuntimeConfigFromUrl', args);
-      },
-      loadRuntimePreset: async (...args) => {
-        return callProviderMethod(['bench', 'loadRuntimePreset'], 'bench.loadRuntimePreset', args);
-      },
-      applyRuntimePreset: async (...args) => {
-        return callProviderMethod(['bench', 'applyRuntimePreset'], 'bench.applyRuntimePreset', args);
-      },
-      initializeBrowserHarness: async (...args) => {
-        return callProviderMethod(['bench', 'initializeBrowserHarness'], 'bench.initializeBrowserHarness', args);
-      },
-      saveBrowserReport: async (...args) => {
-        return callProviderMethod(['bench', 'saveBrowserReport'], 'bench.saveBrowserReport', args);
-      },
-      runBrowserHarness: async (...args) => {
-        return callProviderMethod(['bench', 'runBrowserHarness'], 'bench.runBrowserHarness', args);
-      },
-      runBrowserSuite: async (...args) => {
-        return callProviderMethod(['bench', 'runBrowserSuite'], 'bench.runBrowserSuite', args);
-      },
-      runBrowserManifest: async (...args) => {
-        return callProviderMethod(['bench', 'runBrowserManifest'], 'bench.runBrowserManifest', args);
+      optimization: {
+        validateContract: async (...args) => {
+          return callProviderMethod(['tooling', 'optimization', 'validateContract'], 'tooling.optimization.validateContract', args);
+        },
+        hashContract: async (...args) => {
+          return callProviderMethod(['tooling', 'optimization', 'hashContract'], 'tooling.optimization.hashContract', args);
+        },
+        enumerateCandidates: async (...args) => {
+          return callProviderMethod(['tooling', 'optimization', 'enumerateCandidates'], 'tooling.optimization.enumerateCandidates', args);
+        },
+        materializeCandidate: async (...args) => {
+          return callProviderMethod(['tooling', 'optimization', 'materializeCandidate'], 'tooling.optimization.materializeCandidate', args);
+        },
+        evaluateCandidate: async (...args) => {
+          return callProviderMethod(['tooling', 'optimization', 'evaluateCandidate'], 'tooling.optimization.evaluateCandidate', args);
+        }
       }
+    };
+
+    const resetProvider = async () => {
+      const provider = await ensureProvider();
+      if (typeof provider.destroy === 'function') {
+        await provider.destroy();
+      }
+      return true;
     };
 
     return {
@@ -119,7 +120,8 @@ const DopplerToolbox = {
       embeddings,
       getCapabilities,
       getStatus,
-      bench,
+      tooling,
+      resetProvider,
       getProvider: ensureProvider
     };
   }

@@ -85,6 +85,7 @@ test.describe('Dashboard Layout', () => {
     await expect(page.locator('.sidebar-btn[data-tab="timeline"]')).toBeVisible();
     await expect(page.locator('.sidebar-btn[data-tab="memory"]')).toBeVisible();
     await expect(page.locator('.sidebar-btn[data-tab="status"]')).toBeVisible();
+    await expect(page.locator('.sidebar-btn[data-tab="optimization"]')).toBeVisible();
     await expect(page.locator('#workers-tab-btn')).toBeVisible();
   });
 
@@ -137,6 +138,20 @@ test.describe('Tab Navigation', () => {
     await page.click('#workers-tab-btn');
     await expect(page.locator('#tab-workers')).toBeVisible();
     await expect(page.locator('.workers-panel')).toBeVisible();
+  });
+
+  test('can inspect Doppler optimization runs', async ({ page }) => {
+    await page.click('.sidebar-btn[data-tab="optimization"]');
+
+    await expect(page.locator('#tab-optimization')).toBeVisible();
+    await expect(page.locator('#tab-timeline')).toBeHidden();
+    await expect(page.locator('#tab-tools')).toBeHidden();
+    await expect(page.locator('#optimization-contract')).toBeVisible();
+    await expect(page.locator('#optimization-run')).toBeEnabled();
+    await expect(page.locator('#optimization-refresh')).toBeVisible();
+    await expect(page.locator('#optimization-stop')).toBeVisible();
+    await expect(page.locator('#optimization-candidates')).toBeVisible();
+    await expect(page.locator('#optimization-candidate-detail')).toBeVisible();
   });
 });
 

@@ -64,6 +64,13 @@ const createPoolNetworkVisualState = () => ({
   recent: []
 });
 
+const createPoolRunVisualState = () => ({
+  state: 'idle',
+  phase: '',
+  message: '',
+  energy: 0.22
+});
+
 export const setPoolSimulationNetworkVisualState = (state, visual = {}) => {
   const network = state?.networkVisual;
   if (!network) return null;
@@ -85,6 +92,17 @@ export const setPoolSimulationNetworkVisualState = (state, visual = {}) => {
   }
   network.recent = Array.isArray(visual.recent) ? visual.recent.slice(0, 10) : [];
   return network;
+};
+
+export const setPoolSimulationRunVisualState = (state, visual = {}) => {
+  const run = state?.runVisual;
+  if (!run) return null;
+  run.state = ['idle', 'submitting', 'running', 'complete', 'error', 'inspecting'].includes(visual.state)
+    ? visual.state
+    : 'idle';
+  run.phase = String(visual.phase || '');
+  run.message = String(visual.message || '');
+  return run;
 };
 
 export const clamp01 = (value) => Math.max(0, Math.min(1, value));
@@ -202,6 +220,21 @@ const resolveHotPathFrame = (layout, time, target = createHotPathFrame()) => {
   target.activeIds = step.ids || [];
   target.stepProgress = clamp01(scaled - activeStepIndex);
   target.intervalProgress = intervalProgress;
+  target.steps = steps;
+  return target;
+};
+
+const resolveRunHotPathFrame = (runVisual, target = createHotPathFrame()) => {
+  const steps = POOLDAY_HOT_PATH_STEPS;
+  const step = steps.find((candidate) => candidate.id === runVisual.phase) || null;
+  target.exampleQuery = '';
+  target.activeStepId = step?.id || '';
+  target.activeStepIndex = step ? steps.indexOf(step) : -1;
+  target.activeIds = step?.ids || (runVisual.state === 'running'
+    ? POOLDAY_GRAPH_NODE_IDS
+    : []);
+  target.stepProgress = runVisual.state === 'complete' ? 1 : 0;
+  target.intervalProgress = runVisual.state === 'complete' ? 1 : 0;
   target.steps = steps;
   return target;
 };
@@ -569,6 +602,7 @@ export const createPoolSimulationState = () => {
     hotPath: createHotPathFrame()
   };
   const networkVisual = createPoolNetworkVisualState();
+  const runVisual = createPoolRunVisualState();
   return {
     participantSpecs,
     participants,
@@ -582,6 +616,7 @@ export const createPoolSimulationState = () => {
     labelAnchors,
     frame,
     networkVisual,
+    runVisual,
     particles,
     pointerShots,
     pointer: {
@@ -1028,6 +1063,15 @@ export const buildPoolSimulationFrame = (state, width, height, deltaSeconds = SI
 
   const time = state.motionTime;
   const networkVisual = state.networkVisual;
+  const runVisual = state.runVisual;
+  const runEnergyTarget = runVisual.state === 'running'
+    ? 1
+    : runVisual.state === 'submitting' || runVisual.state === 'complete'
+      ? 0.72
+      : runVisual.state === 'error'
+        ? 0.38
+        : 0.22;
+  runVisual.energy = lerpTowardSnapped(runVisual.energy, runEnergyTarget, 0.09, safeDelta);
   networkVisual.simulationMix = lerpTowardSnapped(
     networkVisual.simulationMix,
     networkVisual.mode === 'live' ? 0 : 1,
@@ -1036,7 +1080,7 @@ export const buildPoolSimulationFrame = (state, width, height, deltaSeconds = SI
   );
   const layoutPositions = updatePoolGraphLayout(state, safeDelta);
   const graphPositions = copyCenteredGraphPointsInto(state.graphViewPositions, layoutPositions);
-  const hotPath = resolveHotPathFrame(state.layout, state.time, state.hotPathFrame);
+  const hotPath = resolveRunHotPathFrame(runVisual, state.hotPathFrame);
   const hotPathActiveIds = state.hotPathActiveIds;
   hotPathActiveIds.clear();
   for (const id of hotPath.activeIds || []) hotPathActiveIds.add(id);
@@ -1093,7 +1137,7 @@ export const buildPoolSimulationFrame = (state, width, height, deltaSeconds = SI
   }
   networkVisual.liveMix = networkVisual.slots.reduce((sum, slot) => sum + slot.mix, 0)
     / Math.max(1, networkVisual.slots.length);
-  const flowScale = 0.72 + state.layout.flowEnergy * 0.42;
+  const flowScale = (0.72 + state.layout.flowEnergy * 0.42) * (0.52 + runVisual.energy * 0.48);
   const lines = buildTransitionSimulationLines({
     roles,
     participants,
@@ -1160,6 +1204,7 @@ export const buildPoolSimulationFrame = (state, width, height, deltaSeconds = SI
       * flowAlpha
       * visibility
       * (particle.routeBlend ?? 1)
+      * (0.42 + runVisual.energy * 0.58)
       * (index < liveParticleCount ? 1 : networkVisual.simulationMix)
     );
     target.tone = line?.tone || 'rainbow';
@@ -1196,7 +1241,7 @@ export const buildPoolSimulationFrame = (state, width, height, deltaSeconds = SI
   frame.participantCount = participants.length;
   frame.topologyLabel = state.layout.label;
   frame.time = time;
-  frame.flowEnergy = state.layout.flowEnergy;
+  frame.flowEnergy = state.layout.flowEnergy * (0.36 + runVisual.energy * 0.64);
   frame.anticipation = state.layout.anticipation;
   frame.stableHoldProgress = state.layout.stableHoldProgress;
   frame.stableRelease = state.layout.stableRelease;
@@ -1215,5 +1260,7 @@ export const buildPoolSimulationFrame = (state, width, height, deltaSeconds = SI
   frame.networkPeerCount = networkVisual.peerCount;
   frame.networkProviderCount = networkVisual.providerCount;
   frame.networkMessageCount = networkVisual.messageCount;
+  frame.runState = runVisual.state;
+  frame.runPhase = runVisual.phase;
   return frame;
 };

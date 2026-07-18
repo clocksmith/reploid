@@ -158,6 +158,10 @@
   height: 100%;
 }
 
+#workspace-columns .workspace-content.hidden {
+  display: none;
+}
+
 .workspace-title {
   display: flex;
   align-items: flex-start;

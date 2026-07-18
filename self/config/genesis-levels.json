@@ -100,6 +100,7 @@
         "ArenaHarness",
         "ArenaMetrics",
         "Consensus",
+        "DopplerOptimizer",
         "EpisodicMemory",
         "FederatedLearning",
         "FunctionGemmaOrchestrator",
@@ -148,6 +149,9 @@
     ],
     "DIContainer": [
       "infrastructure/di-container.js"
+    ],
+    "DopplerOptimizer": [
+      "capabilities/system/doppler-optimizer.js"
     ],
     "DopplerToolbox": [
       "capabilities/system/doppler-toolbox.js"
@@ -322,6 +326,7 @@
       "tools/CopyFile.js",
       "tools/CreateTool.js",
       "tools/DeleteFile.js",
+      "tools/DopplerOptimize.js",
       "tools/EditFile.js",
       "tools/FileOutline.js",
       "tools/Find.js",
@@ -341,6 +346,7 @@
     "ui": [
       "ui/proto.js",
       "ui/proto/index.js",
+      "ui/proto/optimization.js",
       "ui/proto/template.js",
       "ui/proto/telemetry.js",
       "ui/proto/schemas.js",
@@ -379,7 +385,8 @@
       "styles/proto/vfs.css",
       "styles/proto/responsive.css",
       "styles/proto/inline-chat.css",
-      "styles/proto/hitl.css"
+      "styles/proto/hitl.css",
+      "styles/proto/optimization.css"
     ],
     "docs": []
   },

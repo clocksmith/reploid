@@ -314,6 +314,20 @@ async function completeAwaken(bootResult, goal, wizardContainer) {
     ? window.getReploidMode()
     : 'zero';
 
+  let dopplerOptimizer = null;
+  let toolRunner = null;
+  if (runtimeMode === 'x') {
+    try {
+      [dopplerOptimizer, toolRunner] = await Promise.all([
+        container.resolve('DopplerOptimizer'),
+        container.resolve('ToolRunner')
+      ]);
+      await dopplerOptimizer.restoreActiveProfile();
+    } catch (error) {
+      logger.warn('[Boot] Doppler optimization state unavailable', error?.message || error);
+    }
+  }
+
   let runtimeUI = null;
   let reloadTimer = null;
   let reloadInProgress = false;
@@ -387,7 +401,9 @@ async function completeAwaken(bootResult, goal, wizardContainer) {
       VFS: vfs,
       WorkerManager: workerManager,
       ArenaHarness: arenaHarness,
-    initialGoal: goalText,
+      DopplerOptimizer: dopplerOptimizer,
+      ToolRunner: toolRunner,
+      initialGoal: goalText,
       mode: runtimeMode
     });
   };

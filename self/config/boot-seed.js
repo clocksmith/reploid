@@ -193,6 +193,8 @@ export const X_HOME_BOOT_SEED_PREFIXES = Object.freeze([
   'blueprints/rgr-runtime-contract.md',
   'blueprints/promotion-contract.md',
   'tools/Promote.js',
+  'tools/DopplerOptimize.js',
+  'capabilities/system/doppler-optimizer.js',
   'styles/proto/',
   'ui/proto/'
 ]);

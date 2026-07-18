@@ -31,6 +31,7 @@ import {
   refreshProviderStorageHealth,
   refreshRoomActivityState,
   renderReceiptLedger,
+  setPoolRunVisualState,
   setResult,
   updateProviderHealth,
   updateProviderStatus
@@ -88,41 +89,6 @@ const getPageIdentityNamespace = (globalKey) => {
 
 const getProviderIdentityNamespace = () => getPageIdentityNamespace('REPLOID_POOL_PROVIDER_NAMESPACE');
 const getRequesterIdentityNamespace = () => getPageIdentityNamespace('REPLOID_POOL_REQUESTER_NAMESPACE');
-export const POOLDAY_PENDING_ASK_STORAGE_KEY = 'reploid.pool.pending-ask.v1';
-
-const getPooldaySessionStorage = () => {
-  try {
-    return window.sessionStorage || null;
-  } catch {
-    return null;
-  }
-};
-
-const storePendingAskPrompt = (promptText) => {
-  try {
-    getPooldaySessionStorage()?.setItem(POOLDAY_PENDING_ASK_STORAGE_KEY, JSON.stringify({
-      prompt: promptText,
-      createdAt: new Date().toISOString()
-    }));
-  } catch {
-    window.REPLOID_POOL_PENDING_ASK_PROMPT = promptText;
-  }
-};
-
-const consumePendingAskPrompt = () => {
-  const fallback = window.REPLOID_POOL_PENDING_ASK_PROMPT || '';
-  window.REPLOID_POOL_PENDING_ASK_PROMPT = '';
-  try {
-    const storage = getPooldaySessionStorage();
-    const raw = storage?.getItem(POOLDAY_PENDING_ASK_STORAGE_KEY);
-    storage?.removeItem(POOLDAY_PENDING_ASK_STORAGE_KEY);
-    if (!raw) return fallback;
-    const parsed = JSON.parse(raw);
-    return String(parsed?.prompt || fallback || '').trim();
-  } catch {
-    return String(fallback || '').trim();
-  }
-};
 
 const bindSuggestedPromptEditing = (input) => {
   if (!input || input.dataset.poolSuggestedPromptBound === 'true') return;
@@ -214,12 +180,27 @@ const probeModelArtifacts = async (model) => {
   }
 };
 
-export const bindRunControls = () => {
-  const button = document.getElementById('pool-run-submit');
-  const prompt = document.getElementById('pool-run-prompt');
-  const policySelect = document.getElementById('pool-run-policy');
-  const modelSelect = document.getElementById('pool-run-model');
-  if (!button || !prompt) return;
+const RUN_ACTIVITY_COPY = Object.freeze({
+  peer_run_intent_created: 'Request signed',
+  peer_provider_discovery_started: 'Finding compatible contributor tabs',
+  peer_assignment_planned: 'Contributor tabs matched',
+  peer_inference_started: 'Contributor tabs are answering',
+  peer_receipts_received: 'Checking returned receipts',
+  peer_agreement_verified: 'Agreement verified',
+  peer_run_completed: 'Answer verified',
+  peer_run_failed: 'Run needs attention'
+});
+
+const bindPeerRunSurface = ({
+  button,
+  prompt,
+  form = null,
+  policySelect = null,
+  modelSelect = null,
+  resultId
+} = {}) => {
+  if (!button || !prompt || !resultId || button.dataset.poolRunBound === 'true') return;
+  button.dataset.poolRunBound = 'true';
   const requesterIdentity = createPoolIdentity('requester', {
     localOnly: true,
     namespace: getRequesterIdentityNamespace()
@@ -228,19 +209,35 @@ export const bindRunControls = () => {
     sdk: null,
     identity: requesterIdentity
   });
+  const updateRunState = (state, phase = '', message = '') => {
+    setPoolRunVisualState({ state, phase, message });
+  };
+  const handleRunActivity = (activity = {}) => {
+    const failed = activity.status === 'peer_run_failed';
+    updateRunState(
+      failed ? 'error' : activity.status === 'peer_run_completed' ? 'complete' : 'running',
+      activity.phase || '',
+      RUN_ACTIVITY_COPY[activity.status] || 'Running on the network'
+    );
+  };
   const submitRunRequest = async () => {
     const promptText = prompt.value.trim();
     if (!promptText) {
-      setResult('pool-run-result', {
+      updateRunState('error', 'prompt', 'Enter a prompt to run');
+      setResult(resultId, {
         status: 'error',
         error: 'Prompt is required',
         reason: 'The request body is empty.',
-        action: 'Enter a prompt, then ask again.'
+        action: 'Enter a prompt, then run again.'
       }, { stream: true });
       return;
     }
     button.disabled = true;
-    setResult('pool-run-result', describeSelectedRun({
+    button.setAttribute('aria-busy', 'true');
+    const idleLabel = button.textContent;
+    button.textContent = 'Running';
+    updateRunState('submitting', 'prompt', 'Preparing signed request');
+    setResult(resultId, describeSelectedRun({
       status: 'finding_peer_provider',
       policyId: policySelect?.value || FASTEST_RECEIPT_POLICY_ID,
       modelId: modelSelect?.value || LAUNCH_MODEL.modelId
@@ -255,7 +252,8 @@ export const bindRunControls = () => {
         discoveryWindowMs: getPeerDiscoveryWindowMs(),
         receiptWindowMs: getPeerReceiptWindowMs(),
         roomBusFactory: getPeerRoomBusFactory(),
-        generationConfig: getPeerGenerationConfig()
+        generationConfig: getPeerGenerationConfig(),
+        onActivity: handleRunActivity
       });
       result.inviteUrl = getPeerInviteUrl();
       result.relay = getPeerRelayMode();
@@ -265,59 +263,55 @@ export const bindRunControls = () => {
         agreement: result.agreement || null
       }, result.receiptHash);
       void refreshServerRoomActivity();
-      setResult('pool-run-result', result, { stream: true });
+      setResult(resultId, result, { stream: true });
+      updateRunState('complete', 'answer', 'Answer verified');
     } catch (error) {
-      setResult('pool-run-result', displayPoolError(error, {
+      setResult(resultId, displayPoolError(error, {
         title: 'Request could not complete',
-        action: 'Open Contribute in another tab with the same room, start contributing, wait for the tab to say Available, then ask again.',
+        action: 'Open Contribute in another tab with the same room, start contributing, wait for the tab to say Available, then run again.',
         context: {
           roomId: getPeerRoomId(),
           relay: getPeerRelayMode(),
           model: getEnabledPoolModelContract(modelSelect?.value || LAUNCH_MODEL.modelId) || LAUNCH_MODEL
         }
       }), { stream: true });
+      updateRunState('error', 'error', 'Run needs attention');
     } finally {
       button.disabled = false;
+      button.removeAttribute('aria-busy');
+      button.textContent = idleLabel;
     }
   };
-  button.addEventListener('click', () => {
+  const submit = (event) => {
+    event?.preventDefault?.();
     void submitRunRequest();
-  });
-  const pendingPrompt = consumePendingAskPrompt();
-  if (pendingPrompt) {
-    prompt.value = pendingPrompt;
-    window.setTimeout(() => {
-      void submitRunRequest();
-    }, 0);
-  }
+  };
+  if (form) form.addEventListener('submit', submit);
+  else button.addEventListener('click', submit);
+  updateRunState('idle');
 };
 
-export const bindHomeAskControls = (render) => {
+export const bindRunControls = () => {
+  bindPeerRunSurface({
+    button: document.getElementById('pool-run-submit'),
+    prompt: document.getElementById('pool-run-prompt'),
+    policySelect: document.getElementById('pool-run-policy'),
+    modelSelect: document.getElementById('pool-run-model'),
+    resultId: 'pool-run-result'
+  });
+};
+
+export const bindHomeAskControls = () => {
   const form = document.getElementById('pool-home-ask-form');
   const input = document.getElementById('pool-home-ask-prompt');
-  if (!form || !input || form.dataset.poolHomeAskBound === 'true') return;
-  form.dataset.poolHomeAskBound = 'true';
+  const button = document.getElementById('pool-home-run-submit');
+  if (!form || !input || !button) return;
   bindSuggestedPromptEditing(input);
-  form.addEventListener('submit', (event) => {
-    event.preventDefault();
-    const promptText = input.value.trim();
-    if (!promptText) {
-      input.focus();
-      return;
-    }
-    storePendingAskPrompt(promptText);
-    const nextUrl = new URL('/ask', window.location.origin);
-    const currentUrl = new URL(window.location.href);
-    for (const key of ['room', 'relay']) {
-      if (currentUrl.searchParams.has(key)) {
-        nextUrl.searchParams.set(key, currentUrl.searchParams.get(key));
-      }
-    }
-    const nextPath = `${nextUrl.pathname}${nextUrl.search}`;
-    if (`${window.location.pathname}${window.location.search}` !== nextPath) {
-      window.history.pushState({ reploidPoolRoute: nextPath }, '', nextPath);
-    }
-    if (typeof render === 'function') render();
+  bindPeerRunSurface({
+    button,
+    prompt: input,
+    form,
+    resultId: 'pool-home-run-result'
   });
 };
 
@@ -327,10 +321,10 @@ const createProviderContributionController = () => {
   let peerProviderNode = null;
   let workerRunning = false;
   let workerStarting = false;
+  let lifecycleGeneration = 0;
   let currentModel = null;
   let controls = {
-    workerStartButton: null,
-    workerStopButton: null,
+    workerToggleButton: null,
     modelInput: null,
     mount: null
   };
@@ -388,8 +382,16 @@ const createProviderContributionController = () => {
     if (controls.modelInput && currentModel?.modelId && (workerRunning || workerStarting)) {
       controls.modelInput.value = currentModel.modelId;
     }
-    if (controls.workerStartButton) controls.workerStartButton.disabled = workerRunning || workerStarting;
-    if (controls.workerStopButton) controls.workerStopButton.disabled = !workerRunning && !workerStarting;
+    if (controls.workerToggleButton) {
+      const active = workerRunning || workerStarting;
+      controls.workerToggleButton.disabled = false;
+      controls.workerToggleButton.textContent = active ? 'Stop' : 'Start contributing';
+      controls.workerToggleButton.dataset.op = active ? '■' : '▶';
+      controls.workerToggleButton.dataset.contributionAction = active ? 'stop' : 'start';
+      controls.workerToggleButton.setAttribute('aria-pressed', String(active));
+      controls.workerToggleButton.classList.toggle('btn-primary', !active);
+      controls.workerToggleButton.classList.toggle('btn-ghost', active);
+    }
     if (controls.modelInput) controls.modelInput.disabled = workerRunning || workerStarting;
     refreshContributionStatusBar();
   };
@@ -397,7 +399,7 @@ const createProviderContributionController = () => {
   const setProviderStatus = (status) => updateProviderStatus(getMount(), status);
 
   const syncProviderPanel = () => {
-    if (!controls.modelInput && !controls.workerStartButton && !controls.workerStopButton) {
+    if (!controls.modelInput && !controls.workerToggleButton) {
       syncWorkerControls();
       return;
     }
@@ -624,6 +626,7 @@ const createProviderContributionController = () => {
 
   const startWorker = async () => {
     if (workerRunning || workerStarting) return;
+    const generation = ++lifecycleGeneration;
     workerStarting = true;
     setContributionState({ state: 'starting', optedIn: true, lastError: null });
     syncWorkerControls();
@@ -635,6 +638,10 @@ const createProviderContributionController = () => {
     setProviderStatus('Starting');
     try {
       const ready = await ensurePeerProviderReady();
+      if (generation !== lifecycleGeneration) {
+        await stopPeerProvider().catch(() => null);
+        return;
+      }
       workerStarting = false;
       workerRunning = true;
       setProviderStatus('Available');
@@ -647,6 +654,7 @@ const createProviderContributionController = () => {
         ...ready
       });
     } catch (error) {
+      if (generation !== lifecycleGeneration) return;
       await stopPeerProvider().catch(() => null);
       workerStarting = false;
       workerRunning = false;
@@ -667,13 +675,15 @@ const createProviderContributionController = () => {
           model: getProviderModel()
         }
       }));
+      document.getElementById('pool-provider-details')?.setAttribute('open', '');
     } finally {
-      syncWorkerControls();
+      if (generation === lifecycleGeneration) syncWorkerControls();
     }
   };
 
   const stopWorker = async () => {
-    controls.workerStopButton?.setAttribute('disabled', 'true');
+    lifecycleGeneration += 1;
+    controls.workerToggleButton?.setAttribute('disabled', 'true');
     const stopped = await stopPeerProvider().catch((error) => ({
       error: error.message,
       payload: error.payload || null
@@ -690,19 +700,17 @@ const createProviderContributionController = () => {
   return {
     attachControls(nextControls = {}) {
       controls = {
-        workerStartButton: nextControls.workerStartButton || null,
-        workerStopButton: nextControls.workerStopButton || null,
+        workerToggleButton: nextControls.workerToggleButton || null,
         modelInput: nextControls.modelInput || null,
         mount: nextControls.mount || controls.mount || document.getElementById('app')
       };
       if (controls.modelInput && currentModel?.modelId) controls.modelInput.value = currentModel.modelId;
-      if (controls.workerStartButton && controls.workerStartButton.dataset.poolContributionBound !== 'true') {
-        controls.workerStartButton.dataset.poolContributionBound = 'true';
-        controls.workerStartButton.addEventListener('click', startWorker);
-      }
-      if (controls.workerStopButton && controls.workerStopButton.dataset.poolContributionBound !== 'true') {
-        controls.workerStopButton.dataset.poolContributionBound = 'true';
-        controls.workerStopButton.addEventListener('click', stopWorker);
+      if (controls.workerToggleButton && controls.workerToggleButton.dataset.poolContributionBound !== 'true') {
+        controls.workerToggleButton.dataset.poolContributionBound = 'true';
+        controls.workerToggleButton.addEventListener('click', () => {
+          if (workerRunning || workerStarting) void stopWorker();
+          else void startWorker();
+        });
       }
       syncProviderPanel();
     }
@@ -720,8 +728,7 @@ const getProviderContributionController = () => {
 
 export const bindProviderControls = () => {
   getProviderContributionController().attachControls({
-    workerStartButton: document.getElementById('pool-provider-worker-start'),
-    workerStopButton: document.getElementById('pool-provider-worker-stop'),
+    workerToggleButton: document.getElementById('pool-provider-worker-toggle'),
     modelInput: document.getElementById('pool-provider-model'),
     mount: document.getElementById('app')
   });

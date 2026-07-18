@@ -314,12 +314,21 @@ export async function runPeerJob({
   transportConnectWindowMs = DEFAULT_PROVIDER_SESSION_SETTLE_MS,
   promptDispatchConcurrency = null,
   requesterTransportFactory = createP2PRequesterTransport,
-  roomBusFactory = createBroadcastPeerRoomBus
+  roomBusFactory = createBroadcastPeerRoomBus,
+  onActivity = null
 } = {}) {
   if (!requesterClient?.createPeerJobIntent) throw new TypeError('requesterClient with createPeerJobIntent() is required');
   const resolvedRoomId = roomId || DEFAULT_PEER_ROOM_ID;
   let channel = null;
   const sessions = [];
+  const reportActivity = (status, phase, detail = {}) => {
+    if (typeof onActivity !== 'function') return;
+    try {
+      onActivity({ status, phase, roomId: resolvedRoomId, ...detail });
+    } catch {
+      // Presentation telemetry must not change peer execution or its receipts.
+    }
+  };
   try {
     const intent = await requesterClient.createPeerJobIntent({
       prompt,
@@ -327,6 +336,9 @@ export async function runPeerJob({
       modelRequirements,
       generationConfig,
       maxPointSpend
+    });
+    reportActivity('peer_run_intent_created', 'prompt', {
+      requesterId: intent.intent?.body?.requesterId || null
     });
     channel = openPeerRoomBus({
       roomId: resolvedRoomId,
@@ -342,6 +354,10 @@ export async function runPeerJob({
     const minAdverts = policy?.adaptiveRing
       ? Math.max(1, Number(policy.minRingSize || 1))
       : Math.max(1, Number(policy?.redundancy || 1));
+    reportActivity('peer_provider_discovery_started', 'match', {
+      requiredProviders: minAdverts,
+      maximumProviders: maxAdverts
+    });
     const providerAdverts = await waitForProviderAdverts({
       channel,
       roomId: resolvedRoomId,
@@ -365,6 +381,9 @@ export async function runPeerJob({
     if (!plan.ok || !plan.assignment) {
       throw new Error(plan.reason || 'No peer assignment could be built');
     }
+    reportActivity('peer_assignment_planned', 'match', {
+      providerCount: plan.assignments.length
+    });
     for (const assignment of plan.assignments) {
       const sessionId = makeId('peer_session');
       const signaling = createRoomSignaling({
@@ -449,6 +468,9 @@ export async function runPeerJob({
     if (acceptedSessions.length < requiredAcceptedSessions) {
       throw new Error(`Peer provider acceptance failed: ${acceptedSessions.length}/${requiredAcceptedSessions} accepted${acceptErrors.length ? `; ${acceptErrors.join('; ')}` : ''}`);
     }
+    reportActivity('peer_inference_started', 'infer', {
+      providerCount: acceptedSessions.length
+    });
     const promptPayloads = new Array(acceptedSessions.length);
     const receiptResults = new Array(acceptedSessions.length);
     let nextDispatchIndex = 0;
@@ -492,10 +514,18 @@ export async function runPeerJob({
     const receiptErrors = receiptResults
       .filter((result) => result.status === 'rejected')
       .map((result) => result.reason?.message || String(result.reason));
+    reportActivity('peer_receipts_received', 'verify', {
+      receiptCount: receiptPayloads.length,
+      receiptErrorCount: receiptErrors.length
+    });
     const agreement = await buildPeerReceiptAgreement({ plan, receiptPayloads });
     if (!agreement.accepted) {
       throw new Error(`Peer receipt agreement failed: ${agreement.validRecords.length}/${agreement.requiredAgreement} matching receipts${receiptErrors.length ? `; ${receiptErrors.join('; ')}` : ''}`);
     }
+    reportActivity('peer_agreement_verified', 'verify', {
+      acceptedProviderCount: agreement.acceptedProviderCount,
+      requiredAgreement: agreement.requiredAgreement
+    });
     const acceptance = requesterClient.createPeerReceiptAcceptance
       ? await requesterClient.createPeerReceiptAcceptance({
         receiptHash: agreement.receiptHash,
@@ -532,6 +562,9 @@ export async function runPeerJob({
     }
     const primaryRecord = agreement.acceptedRecords[0] || agreement.validRecords[0] || null;
     const receiptPayload = primaryRecord?.receiptPayload || receiptPayloads[0] || null;
+    reportActivity('peer_run_completed', 'answer', {
+      receiptHash: agreement.receiptHash || receiptPayload?.body?.receiptHash || null
+    });
     return {
       transport: 'webrtc_peer_room',
       roomId: resolvedRoomId,
@@ -558,6 +591,11 @@ export async function runPeerJob({
       acceptedSessionCount: acceptedSessions.length,
       acceptErrors
     };
+  } catch (error) {
+    reportActivity('peer_run_failed', 'error', {
+      reason: error?.message || String(error)
+    });
+    throw error;
   } finally {
     channel?.close();
     for (const session of sessions) {

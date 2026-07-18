@@ -10,6 +10,7 @@ import InlineChat from '../components/inline-chat.js';
 import { createTelemetryManager } from './telemetry.js';
 import { createReplayManager } from './replay.js';
 import { createWorkerManager } from './workers.js';
+import { createDopplerOptimizationManager } from './optimization.js';
 import { formatDuration, formatSince, formatTimestamp, summarizeText } from './utils.js';
 import CognitionPanel from '../panels/cognition-panel.js';
 import { getCurrentReploidStorage as getReploidStorage } from '../../instance.js';
@@ -17,7 +18,16 @@ import { createVFSManager } from './vfs.js';
 
 const Proto = {
   factory: (deps) => {
-    const { Utils, EventBus, AgentLoop, StateManager, ErrorStore, VFS } = deps;
+    const {
+      Utils,
+      EventBus,
+      AgentLoop,
+      StateManager,
+      ErrorStore,
+      VFS,
+      DopplerOptimizer,
+      ToolRunner
+    } = deps;
     const { logger, escapeHtml } = Utils;
 
     // Initialize managers
@@ -27,6 +37,15 @@ const Proto = {
     const cognitionPanel = createCognitionPanel({ Utils, EventBus });
     const workerManager = createWorkerManager({ escapeHtml, WorkerManager: deps.WorkerManager });
     const vfsManager = createVFSManager({ escapeHtml, logger, Toast, EventBus });
+    const optimizationManager = DopplerOptimizer && ToolRunner
+      ? createDopplerOptimizationManager({
+          DopplerOptimizer,
+          ToolRunner,
+          EventBus,
+          Toast,
+          logger
+        })
+      : null;
 
     // UI state
     let _root = null;
@@ -34,8 +53,18 @@ const Proto = {
     let _toolsCountEl = null;
     let _inlineChat = null;
     const _toolEntries = [];
-    const TAB_IDS = ['timeline', 'tools', 'telemetry', 'status', 'memory', 'cognition', 'workers'];
+    const TAB_IDS = [
+      'timeline',
+      'tools',
+      'telemetry',
+      'status',
+      'memory',
+      'cognition',
+      'optimization',
+      'workers'
+    ];
     const MAX_ACTIVE_TABS = 3;
+    const EXCLUSIVE_TABS = new Set(['optimization']);
     let _activeTabs = [];
 
     // Token tracking - values come from ContextManager via EventBus
@@ -648,6 +677,9 @@ const Proto = {
       if (tabId === 'status') {
         updateStatusBadge();
       }
+      if (tabId === 'optimization' && optimizationManager) {
+        optimizationManager.refresh();
+      }
     };
 
     const applyActiveTabs = (rootOverride) => {
@@ -706,6 +738,20 @@ const Proto = {
 
     const toggleTab = (tabId) => {
       if (!TAB_IDS.includes(tabId)) return;
+
+      if (EXCLUSIVE_TABS.has(tabId)) {
+        if (_activeTabs.length !== 1 || _activeTabs[0] !== tabId) {
+          _activeTabs = [tabId];
+          handleTabActivation(tabId);
+          persistActiveTabs();
+          applyActiveTabs();
+        }
+        return;
+      }
+
+      if (_activeTabs.some((activeTabId) => EXCLUSIVE_TABS.has(activeTabId))) {
+        _activeTabs = [];
+      }
       const idx = _activeTabs.indexOf(tabId);
       if (idx >= 0) {
         if (_activeTabs.length === 1) return;
@@ -1025,6 +1071,10 @@ const Proto = {
 
       cleanup();
 
+      if (optimizationManager) {
+        await optimizationManager.mount(_root);
+      }
+
       // Event subscriptions
       _subscriptionIds.push(EventBus.on('agent:status', (status) => {
         const stateEl = document.getElementById('agent-state');
@@ -1304,6 +1354,10 @@ const Proto = {
       if (_inlineChat && _inlineChat.cleanup) {
         _inlineChat.cleanup();
         _inlineChat = null;
+      }
+
+      if (optimizationManager) {
+        optimizationManager.cleanup();
       }
 
       _historyScrollScheduled = false;

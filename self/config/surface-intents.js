@@ -21,6 +21,7 @@ const ZERO_REQUIRED_MODULES = Object.freeze([
 const X_ADDITIONAL_REQUIRED_MODULES = Object.freeze([
   'ArenaHarness',
   'DopplerToolbox',
+  'DopplerOptimizer',
   'ErrorStore',
   'KnowledgeGraph',
   'MemoryManager',
