@@ -13,10 +13,32 @@ import {
   renderNav,
   resolvePoolNetworkVisualState,
   renderRouteDetail,
-  renderRoutePanel
+  renderRoutePanel,
+  setPoolRunVisualState
 } from '../../self/ui/pool-home/view.js';
 
 describe('poolday home navigation', () => {
+  it('keeps output behind the graph until a run reaches a terminal state', () => {
+    document.body.innerHTML = `
+      <section data-pool-run-surface data-run-state="idle">
+        <p data-pool-run-status></p>
+        <section data-pool-run-output hidden></section>
+      </section>
+    `;
+    const output = document.querySelector('[data-pool-run-output]');
+
+    setPoolRunVisualState({ state: 'running', phase: 'infer' });
+    expect(output.hidden).toBe(true);
+    setPoolRunVisualState({ state: 'complete', phase: 'answer' });
+    expect(output.hidden).toBe(false);
+    setPoolRunVisualState({ state: 'error', phase: 'error' });
+    expect(output.hidden).toBe(false);
+    setPoolRunVisualState({ state: 'idle' });
+    expect(output.hidden).toBe(true);
+
+    document.body.innerHTML = '';
+  });
+
   it('keeps the home Ask hint pool short, diverse, and finite', () => {
     expect(POOLDAY_ASK_PLACEHOLDERS).toHaveLength(64);
     expect(new Set(POOLDAY_ASK_PLACEHOLDERS).size).toBe(64);
@@ -57,7 +79,7 @@ describe('poolday home navigation', () => {
     expect(ROUTE_COPY.compute).toEqual({
       eyebrow: 'Contribute',
       title: 'Contribute',
-      body: 'Share this tab as browser compute with signed receipts.'
+      body: 'Let this tab answer compatible runs. Stop at any time.'
     });
   });
 
@@ -68,8 +90,9 @@ describe('poolday home navigation', () => {
     expect(html).toContain('<button class="pool-nav-toggle"');
     expect(html).toContain('pool-nav-mark');
     expect(html).toContain('pool-nav-mark-seven-top');
-    expect(html).not.toContain('<details');
-    expect(html).not.toContain('<summary');
+    expect(html).toContain('<details class="pool-nav-more">');
+    expect(html).toContain('<summary class="pool-nav-more-summary">');
+    expect(html).toContain('<span class="pool-nav-label">More</span>');
     expect(html).not.toContain('☰');
     expect(html).toContain('data-pool-nav-tooltip="Open the route drawer from the left"');
     expect(html).toContain('data-pool-nav-tooltip="Submit a prompt to browser model contributors"');
@@ -83,6 +106,8 @@ describe('poolday home navigation', () => {
     expect(html).toContain('aria-label="Zero Experimental"');
     expect(html).toContain('aria-label="X Experimental"');
     expect(html).toContain('pool-nav-badge">Experimental</span>');
+    expect(html).toContain('class="pool-room-context"');
+    expect(html).toContain('data-pool-room-id');
     expect(html.match(/data-pool-nav-tooltip=/g)).toHaveLength(7);
     expect(html).not.toContain('aria-pressed');
     expect(html).not.toContain('href="/run"');
@@ -97,7 +122,7 @@ describe('poolday home navigation', () => {
     expect(html).toContain('class="pool-home-toolbar"');
     expect(html).toContain('class="pool-home-toolbar-leading pool-home-overlay"');
     expect(html).toContain('class="pool-home-toolbar-center pool-home-cta-row pool-home-ask-form"');
-    expect(html).toContain('class="pool-home-toolbar-right"');
+    expect(html).not.toContain('class="pool-home-toolbar-right"');
     expect(html).toContain('class="pool-simulation-shell"');
     expect(html).toContain('data-pool-simulation');
     expect(html).not.toContain('data-pool-hot-path');
@@ -115,21 +140,21 @@ describe('poolday home navigation', () => {
     expect(html).not.toContain('placeholder="Ask the network..."');
     expect(html).toContain('pool-shape-action--circle pool-shape-action--ask pool-home-ask-submit');
     expect(html).toContain('type="submit"');
-    expect(html).toContain('<span class="pool-shape-action-label">Ask</span>');
+    expect(html).toContain('<span class="pool-shape-action-label">Run</span>');
     expect(html).toMatch(/class="pool-home-ask-pill"[\s\S]*id="pool-home-ask-prompt"[\s\S]*pool-home-ask-submit/);
-    expect(html).toContain('href="/network"');
-    expect(html).toContain('data-pool-route="/network"');
-    expect(html).toContain('pool-shape-action--circle pool-shape-action--network pool-home-network-cta');
-    expect(html).toContain('aria-label="Live Network"');
-    expect(html).toContain('<span class="pool-shape-action-label">Live Network</span>');
+    expect(html).not.toContain('href="/network"');
+    expect(html).not.toContain('pool-home-network-cta');
+    expect(html).not.toContain('Live Network</span>');
     expect(html).toContain('data-pool-network-state');
-    expect(html).toContain('data-pool-network-count hidden');
+    expect(html).toContain('data-pool-run-surface="home"');
+    expect(html).toContain('id="pool-home-run-result-stream"');
+    expect(html).toContain('data-pool-run-output hidden');
     expect(html).not.toContain('pool-home-network-panel');
     expect(html).not.toContain('Open records');
     expect(html).not.toContain('class="pool-home-status"');
     expect(html).not.toContain('aria-label="Current room and model"');
     expect(html.indexOf('class="pool-home-toolbar"')).toBeLessThan(html.indexOf('class="pool-simulation-shell"'));
-    expect(html).toMatch(/class="pool-home-toolbar"[\s\S]*pool-home-toolbar-leading[\s\S]*pool-home-toolbar-center[\s\S]*pool-home-toolbar-right[\s\S]*class="pool-simulation-shell"/);
+    expect(html).toMatch(/class="pool-home-toolbar"[\s\S]*pool-home-toolbar-leading[\s\S]*pool-home-toolbar-center[\s\S]*class="pool-simulation-shell"/);
   });
 
   it('maps room summaries to simulation, hybrid, and live graph modes', () => {
@@ -177,11 +202,15 @@ describe('poolday home navigation', () => {
     expect(live.participants).toHaveLength(6);
   });
 
-  it('renders route actions as Poolday shape components', () => {
-    const html = renderRouteDetail('records');
+  it('keeps one primary action on Run and Contribute', () => {
+    const runHtml = renderRouteDetail('ask');
+    const contributeHtml = renderRouteDetail('compute');
 
-    expect(html).toContain('pool-shape-action--square pool-shape-action--compute');
-    expect(html).toContain('<span class="pool-shape-action-label">Contribute</span>');
+    expect(runHtml.match(/id="pool-run-submit"/g)).toHaveLength(1);
+    expect(runHtml).toContain('id="pool-run-submit" type="button">Run</button>');
+    expect(contributeHtml.match(/id="pool-provider-worker-toggle"/g)).toHaveLength(1);
+    expect(contributeHtml).not.toContain('pool-provider-worker-start');
+    expect(contributeHtml).not.toContain('pool-provider-worker-stop');
   });
 
   it('renders Qwen as the visible default model on Run and Contribute', () => {
@@ -202,39 +231,42 @@ describe('poolday home navigation', () => {
     expect(computeHtml).not.toMatch(/<option[^>]+disabled/);
   });
 
-  it('renders Ask as answer-first with contributor and full-result layers', () => {
+  it('renders Run as answer-first with proof and raw-result layers', () => {
     const html = renderRouteDetail('ask');
 
-    expect(html).toContain('Submit a run');
-    expect(html).toContain('Clean output first');
+    expect(html).toContain('<span>Prompt</span>');
+    expect(html).toContain('<summary>Settings</summary>');
+    expect(html).toContain('data-pool-run-output hidden');
     expect(html).toContain('id="pool-run-result-evidence"');
-    expect(html).toContain('<summary>Contributors</summary>');
-    expect(html).toContain('<summary>Full result</summary>');
+    expect(html).toContain('<summary>Proof</summary>');
+    expect(html).toContain('<summary>Raw result</summary>');
     expect(html).toContain('pool-raw-details-full');
   });
 
   it('renders Contribute as a live contributor tab dashboard', () => {
     const html = renderRouteDetail('compute');
 
-    expect(html).toContain('This tab');
+    expect(html).toContain('data-pool-provider');
     expect(html).toContain('id="pool-provider-node-stats"');
+    expect(html).toContain('id="pool-provider-worker-toggle"');
     expect(html).toContain('Readiness');
-    expect(html).toContain('Contribution receipts');
+    expect(html).toContain('Recent receipts');
     expect(html).toContain('id="pool-provider-node-history"');
+    expect(html).toContain('data-pool-contribution-history hidden');
+    expect(html).toContain('<summary>Details</summary>');
     expect(html).toContain('<summary>Debug event</summary>');
   });
 
   it('renders a records route with room activity and contributor scores', () => {
     const html = renderRouteDetail('records');
 
-    expect(html).toContain('Saved answers');
-    expect(html).toContain('Live room');
+    expect(html).toContain('id="pool-record-ledger"');
+    expect(html).toContain('No records yet. Completed runs and contributions will appear here.');
+    expect(html).toContain('<summary>Technical tools</summary>');
+    expect(html).toContain('Room activity');
     expect(html).toContain('Contributor scores');
-    expect(html).toContain('class="pool-route-cta-row"');
-    expect(html).toContain('href="/compute"');
-    expect(html).toContain('data-pool-route="/compute"');
-    expect(html).toContain('pool-shape-action--square pool-shape-action--compute');
-    expect(html).toContain('<span class="pool-shape-action-label">Contribute</span>');
+    expect(html).toContain('Saved answer receipts');
+    expect(html).not.toContain('class="pool-route-cta-row"');
   });
 
   it('hides global compute status for tabs that are not contributing', () => {
@@ -263,8 +295,8 @@ describe('poolday home navigation', () => {
     expect(html).toContain('id="pool-contribution-status"');
     expect(html).toContain('data-contribution-state="idle"');
     expect(html).toContain('Available');
-    expect(html).toContain('<b>24h</b> 0');
-    expect(html).toContain('<b>1h</b> 0/hr');
-    expect(html).toContain('<b>Last</b> none');
+    expect(html).not.toContain('<b>24h</b>');
+    expect(html).not.toContain('<b>1h</b>');
+    expect(html).not.toContain('<b>Last</b>');
   });
 });

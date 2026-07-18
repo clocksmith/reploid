@@ -677,6 +677,7 @@ export const setPoolRunVisualState = ({ state = 'idle', phase = '', message = ''
     phase,
     message: message || RUN_STATE_COPY[state] || RUN_STATE_COPY.idle
   };
+  const outputVisible = ['complete', 'error', 'inspecting'].includes(visual.state);
   for (const surface of document.querySelectorAll('[data-pool-run-surface]')) {
     surface.dataset.runState = visual.state;
     surface.dataset.runPhase = visual.phase;
@@ -685,7 +686,7 @@ export const setPoolRunVisualState = ({ state = 'idle', phase = '', message = ''
     status.textContent = visual.message;
   }
   for (const output of document.querySelectorAll('[data-pool-run-output]')) {
-    output.hidden = visual.state === 'idle';
+    output.hidden = !outputVisible;
   }
   window.REPLOID_POOL_RUN_VISUAL_STATE = visual;
   window.dispatchEvent(new CustomEvent(POOLDAY_RUN_VISUAL_EVENT, { detail: visual }));

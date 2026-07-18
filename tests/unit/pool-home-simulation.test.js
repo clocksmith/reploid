@@ -7,7 +7,8 @@ import {
   easeInOutCubic,
   resolveLinePoint,
   resizePoolCanvas,
-  setPoolSimulationNetworkVisualState
+  setPoolSimulationNetworkVisualState,
+  setPoolSimulationRunVisualState
 } from '../../self/ui/pool-home/simulation-core.js';
 import { resolvePoolFrameDeltaMs } from '../../self/ui/pool-home/simulation-bind.js';
 import { createPoolRenderBatchBuilder } from '../../self/ui/pool-home/simulation-batches.js';
@@ -177,14 +178,12 @@ describe('pool home simulation performance contracts', () => {
   });
 
   it('reduces nonessential render detail below full quality', () => {
-    const fullState = createPoolSimulationState();
-    const lowState = createPoolSimulationState();
-    const fullFrame = buildPoolSimulationFrame(fullState, 960, 640, 1 / 60);
-    fullFrame.renderQuality = 1;
-    const lowFrame = buildPoolSimulationFrame(lowState, 960, 640, 1 / 60);
-    lowFrame.renderQuality = 0.62;
-    const fullBatches = createPoolRenderBatchBuilder()(fullFrame, 960, 640);
-    const lowBatches = createPoolRenderBatchBuilder()(lowFrame, 960, 640);
+    const state = createPoolSimulationState();
+    const frame = buildPoolSimulationFrame(state, 960, 640, 1 / 60);
+    frame.renderQuality = 1;
+    const fullBatches = createPoolRenderBatchBuilder()(frame, 960, 640);
+    frame.renderQuality = 0.62;
+    const lowBatches = createPoolRenderBatchBuilder()(frame, 960, 640);
     const fullFloats = fullBatches.reduce((sum, batch) => sum + batch.length, 0);
     const lowFloats = lowBatches.reduce((sum, batch) => sum + batch.length, 0);
 
@@ -309,21 +308,24 @@ describe('pool home simulation performance contracts', () => {
     expect(stages.size).toBe(6);
   });
 
-  it('runs a staged hot path with active nodes and edge emphasis', () => {
+  it('keeps the idle graph quiet and follows reported run phases', () => {
     const state = createPoolSimulationState();
     let frame = buildPoolSimulationFrame(state, 1200, 680, 1 / 60);
 
     expect(frame.hotPath.steps).toBe(POOLDAY_HOT_PATH_STEPS);
+    expect(frame.hotPath.activeStepId).toBe('');
+    expect(frame.hotPath.activeIds).toEqual([]);
+    expect(frame.nodes.every((node) => !node.hotPathActive)).toBe(true);
+
+    setPoolSimulationRunVisualState(state, { state: 'running', phase: 'prompt' });
+    frame = buildPoolSimulationFrame(state, 1200, 680, 1 / 60);
     expect(frame.hotPath.activeStepId).toBe('prompt');
     expect(frame.hotPath.activeIds).toEqual(['requester']);
     expect(frame.nodes.find((node) => node.id === 'requester').hotPathActive).toBe(true);
     expect(frame.lines.some((line) => line.hotPathActive)).toBe(true);
 
-    for (let index = 0; index < 420; index += 1) {
-      frame = buildPoolSimulationFrame(state, 1200, 680, 1 / 60);
-      if (frame.hotPath.activeStepId === 'infer') break;
-    }
-
+    setPoolSimulationRunVisualState(state, { state: 'running', phase: 'infer' });
+    frame = buildPoolSimulationFrame(state, 1200, 680, 1 / 60);
     expect(frame.hotPath.activeStepId).toBe('infer');
     expect(frame.hotPath.activeIds).toEqual(['runner0', 'runner1', 'runner2', 'runner3']);
     expect(frame.nodes.filter((node) => node.hotPathActive).map((node) => node.id).sort()).toEqual([
@@ -336,6 +338,7 @@ describe('pool home simulation performance contracts', () => {
 
   it('renders active hot path edges with stronger line data', () => {
     const state = createPoolSimulationState();
+    setPoolSimulationRunVisualState(state, { state: 'running', phase: 'prompt' });
     const frame = buildPoolSimulationFrame(state, 960, 640, 1 / 60);
     frame.renderQuality = 1;
     const activeBatches = createPoolRenderBatchBuilder()(frame, 960, 640);
@@ -757,10 +760,10 @@ describe('pool home simulation performance contracts', () => {
         POOLDAY_MORPH_TUNING.floatSpan * POOLDAY_MORPH_TUNING.visualSpanScale,
         8
       );
-      expect(state.layout.hotPathSpan).toBeGreaterThanOrEqual(
+      expect(state.layout.scheduleSpan).toBeGreaterThanOrEqual(
         (POOLDAY_MORPH_TUNING.floatSpan + POOLDAY_MORPH_TUNING.floatHold) * POOLDAY_MORPH_TUNING.scheduleSpanScale
       );
-      expect(state.layout.hotPathSpan).toBeLessThanOrEqual(
+      expect(state.layout.scheduleSpan).toBeLessThanOrEqual(
         (
           POOLDAY_MORPH_TUNING.floatSpan
           + POOLDAY_MORPH_TUNING.floatHold

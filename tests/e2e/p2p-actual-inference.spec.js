@@ -80,8 +80,10 @@ const readSnapshot = async (page, resultId) => page.evaluate((id) => {
 const stringifySnapshot = (snapshot) => JSON.stringify(snapshot, null, 2);
 
 const waitForProviderListening = async (page) => {
-  await expect(page.locator('#pool-provider-worker-start')).toBeVisible();
-  await page.locator('#pool-provider-worker-start').click();
+  const toggle = page.locator('#pool-provider-worker-toggle');
+  await expect(toggle).toBeVisible();
+  await expect(toggle).toHaveAttribute('data-contribution-action', 'start');
+  await toggle.click();
   try {
     await expect.poll(async () => {
       const snapshot = await readSnapshot(page, 'pool-provider-result');

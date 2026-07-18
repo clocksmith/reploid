@@ -6,6 +6,7 @@ import {
   findReceiptLedgerRecord,
   getPooldayRecordStorageKeys,
   renderPeerLedgerState,
+  renderRecordLedger,
   renderReceiptLedger,
   renderRoomActivity,
   renderRouteDetail,
@@ -62,6 +63,7 @@ describe('Poolday record ledgers', () => {
     expect(storage.getItem(keysA.receipts)).toContain('provider_page_nested');
     expect(findReceiptLedgerRecord('sha256:receipt-a')?.jobId).toBe('peer_job_a');
     expect(renderReceiptLedger()).toContain('provider_page_nested');
+    expect(renderRecordLedger()).toContain('Answer completed');
 
     setRoom(roomB);
     expect(renderReceiptLedger()).toContain('No answers saved yet.');
@@ -191,14 +193,16 @@ describe('Poolday record ledgers', () => {
 
     expect(recordsHtml).toContain('No lookup yet.');
     expect(recordsHtml).toContain('No answers saved yet.');
-    expect(recordsHtml).toContain('Live room');
+    expect(recordsHtml).toContain('No records yet. Completed runs and contributions will appear here.');
+    expect(recordsHtml).toContain('Technical tools');
+    expect(recordsHtml).toContain('Room activity');
     expect(recordsHtml).toContain('Checking room activity...');
     expect(recordsHtml).toContain('Contributor scores');
     expect(recordsHtml).toContain('No local scores yet.');
-    expect(recordsHtml).toContain('Find saved answer by hash');
+    expect(recordsHtml).toContain('Find by receipt hash');
     expect(historyAliasHtml).toContain('Contributor scores');
-    expect(networkAliasHtml).toContain('Saved answers');
-    expect(networkAliasHtml).toContain('Live room');
+    expect(networkAliasHtml).toContain('Saved answer receipts');
+    expect(networkAliasHtml).toContain('Room activity');
   });
 
   it('renders compact server relay room activity summaries', () => {

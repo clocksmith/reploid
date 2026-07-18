@@ -213,9 +213,8 @@ const bindPeerRunSurface = ({
     setPoolRunVisualState({ state, phase, message });
   };
   const handleRunActivity = (activity = {}) => {
-    const failed = activity.status === 'peer_run_failed';
     updateRunState(
-      failed ? 'error' : activity.status === 'peer_run_completed' ? 'complete' : 'running',
+      'running',
       activity.phase || '',
       RUN_ACTIVITY_COPY[activity.status] || 'Running on the network'
     );
