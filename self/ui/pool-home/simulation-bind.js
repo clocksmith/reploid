@@ -9,10 +9,12 @@ import {
   clampRange,
   createPoolSimulationState,
   resizePoolCanvas,
-  setPoolSimulationNetworkVisualState
+  setPoolSimulationNetworkVisualState,
+  setPoolSimulationRunVisualState
 } from './simulation-core.js';
 import {
   POOLDAY_NETWORK_VISUAL_EVENT,
+  POOLDAY_RUN_VISUAL_EVENT,
   SIMULATION_MAX_STEP_MS,
   SIMULATION_RESUME_GAP_MS,
   SIMULATION_TARGET_STEP_MS
@@ -48,8 +50,16 @@ export const bindHomeSimulation = async (mount) => {
   const handleNetworkVisualState = (event) => {
     setPoolSimulationNetworkVisualState(state, event?.detail || {});
   };
+  const handleRunVisualState = (event) => {
+    const visual = event?.detail || {};
+    setPoolSimulationRunVisualState(state, visual);
+    simulationShell.dataset.runState = visual.state || 'idle';
+    simulationShell.dataset.runPhase = visual.phase || '';
+  };
   window.addEventListener(POOLDAY_NETWORK_VISUAL_EVENT, handleNetworkVisualState);
+  window.addEventListener(POOLDAY_RUN_VISUAL_EVENT, handleRunVisualState);
   setPoolSimulationNetworkVisualState(state, window.REPLOID_POOL_NETWORK_VISUAL_STATE || {});
+  setPoolSimulationRunVisualState(state, window.REPLOID_POOL_RUN_VISUAL_STATE || {});
   const buildPoolRenderBatches = createPoolRenderBatchBuilder();
   let active = true;
   let frameId = null;
@@ -79,6 +89,8 @@ export const bindHomeSimulation = async (mount) => {
   window.REPLOID_POOL_SIMULATION_STATS = simulationStats;
   const flowLabels = [...mount.querySelectorAll('[data-pool-flow-label]')];
   const simulationShell = mount.querySelector('.pool-simulation-shell') || mount;
+  simulationShell.dataset.runState = window.REPLOID_POOL_RUN_VISUAL_STATE?.state || 'idle';
+  simulationShell.dataset.runPhase = window.REPLOID_POOL_RUN_VISUAL_STATE?.phase || '';
   const tooltip = mount.querySelector('[data-pool-tooltip]');
   const tooltipTitle = tooltip?.querySelector('[data-pool-tooltip-title]');
   const tooltipBody = tooltip?.querySelector('[data-pool-tooltip-body]');
@@ -323,6 +335,7 @@ export const bindHomeSimulation = async (mount) => {
     window.removeEventListener('scroll', handleLayoutChange, true);
     document.removeEventListener('visibilitychange', handleVisibilityChange);
     window.removeEventListener(POOLDAY_NETWORK_VISUAL_EVENT, handleNetworkVisualState);
+    window.removeEventListener(POOLDAY_RUN_VISUAL_EVENT, handleRunVisualState);
     renderer?.dispose();
     simulationStats.active = false;
     simulationStats.suspended = true;

@@ -10,6 +10,7 @@ export const POOLDAY_NAME = PUBLIC_PRODUCT_NAME;
 export const POOLDAY_PROTOCOL = 'Verified Browser Inference';
 export const POOLDAY_VERSION_TAG = 'vBI-1.6';
 export const POOLDAY_NETWORK_VISUAL_EVENT = 'reploid:pool-network-visual-state';
+export const POOLDAY_RUN_VISUAL_EVENT = 'reploid:pool-run-visual-state';
 
 const createPooldayRoute = (route) => Object.freeze({
   ...route
@@ -30,7 +31,7 @@ export const POOLDAY_ROUTE_DEFINITIONS = Object.freeze([
     label: 'Run',
     eyebrow: 'Run',
     title: 'Run',
-    body: 'Submit browser inference work and review receipt-backed results.'
+    body: 'Send one prompt. Read the answer, then inspect its proof.'
   }),
   createPooldayRoute({
     id: 'compute',
@@ -38,7 +39,7 @@ export const POOLDAY_ROUTE_DEFINITIONS = Object.freeze([
     label: 'Contribute',
     eyebrow: 'Contribute',
     title: 'Contribute',
-    body: 'Share this tab as browser compute with signed receipts.'
+    body: 'Let this tab answer compatible runs. Stop at any time.'
   }),
   createPooldayRoute({
     id: 'records',
@@ -46,7 +47,7 @@ export const POOLDAY_ROUTE_DEFINITIONS = Object.freeze([
     label: 'Records',
     eyebrow: 'Records',
     title: 'Records',
-    body: 'Review saved answers, room activity, peer matches, and receipts.'
+    body: 'Answers, contributions, and room events in one ledger.'
   })
 ]);
 

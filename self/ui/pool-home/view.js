@@ -24,6 +24,7 @@ import {
   POOLDAY_NAME,
   POOLDAY_NAV_ROUTES,
   POOLDAY_NETWORK_VISUAL_EVENT,
+  POOLDAY_RUN_VISUAL_EVENT,
   POOLDAY_PARTICIPANT_NODE_IDS,
   POOLDAY_PEER_LEDGER_STORAGE_KEY,
   POOLDAY_PROTOCOL,
@@ -43,6 +44,7 @@ const POOLDAY_PEER_EVENTS = [];
 const POOLDAY_PEER_EVENT_HASHES = new Set();
 let POOLDAY_RECEIPT_LEDGER_ROOM = null;
 let POOLDAY_PEER_EVENTS_ROOM = null;
+let POOLDAY_ROOM_ACTIVITY_SUMMARY = null;
 
 const getPooldayStorage = () => {
   try {
@@ -276,6 +278,16 @@ const normalizeReceiptSpeed = (value) => {
   return Number.isFinite(parsed) ? `${parsed.toFixed(2)} t/s` : String(candidate);
 };
 
+const receiptOccurredAt = (record = {}) => firstPresent(
+  record?.receipt?.timing?.completedAt,
+  record?.receipt?.timing?.endedAt,
+  record?.receipt?.endTimestamp,
+  record?.timing?.completedAt,
+  record?.completedAt,
+  record?.createdAt,
+  new Date().toISOString()
+);
+
 export const addReceiptLedgerRow = (record = {}, receiptHash = '') => {
   ensureReceiptLedgerLoaded();
   const jobId = firstPresent(
@@ -304,6 +316,7 @@ export const addReceiptLedgerRow = (record = {}, receiptHash = '') => {
     fidelity,
     speed,
     receiptHash: rowReceiptHash,
+    occurredAt: receiptOccurredAt(record),
     record
   });
   while (POOLDAY_RECEIPT_LEDGER.length > POOLDAY_RECEIPT_LEDGER_LIMIT) {
@@ -459,6 +472,112 @@ export const renderRoomActivity = (summary = null) => {
   `;
 };
 
+const recordTimeMs = (value) => {
+  const parsed = Date.parse(String(value || ''));
+  return Number.isFinite(parsed) ? parsed : 0;
+};
+
+const formatRecordTime = (value) => {
+  const parsed = recordTimeMs(value);
+  if (!parsed) return 'Unknown time';
+  return new Intl.DateTimeFormat(undefined, {
+    hour: '2-digit',
+    minute: '2-digit'
+  }).format(new Date(parsed));
+};
+
+const receiptRecordKind = (row = {}) => {
+  const record = row.record || {};
+  return record.requesterAcceptance || record.agreement
+    ? 'Answer completed'
+    : 'Contribution made';
+};
+
+const unifiedRecordRows = () => {
+  ensureRecordLedgersLoaded();
+  const receiptRows = POOLDAY_RECEIPT_LEDGER.map((row) => ({
+    id: `receipt:${row.receiptHash}`,
+    occurredAt: row.occurredAt || receiptOccurredAt(row.record),
+    title: receiptRecordKind(row),
+    meta: [row.fidelity, row.provider !== '—' ? compactHash(row.provider) : null]
+      .filter(Boolean)
+      .join(' · '),
+    detail: row.record
+  }));
+  const knownReceiptHashes = new Set(receiptRows.map((row) => row.detail?.receiptHash || row.detail?.receipt?.receiptHash).filter(Boolean));
+  const contributionRows = (getContributionSnapshot().recent || [])
+    .filter((row) => row.receiptHash && !knownReceiptHashes.has(row.receiptHash))
+    .map((row) => ({
+      id: `contribution:${row.receiptHash}`,
+      occurredAt: row.completedAt,
+      title: 'Contribution made',
+      meta: [
+        row.tokens > 0 ? `${formatContributionTokens(row.tokens)} tokens` : null,
+        row.modelId ? formatContributionModel(row.modelId) : null
+      ].filter(Boolean).join(' · '),
+      detail: row
+    }));
+  const peerRows = POOLDAY_PEER_EVENTS.map((event) => {
+    const body = event.body || {};
+    const isScore = event.type === 'reputation_event' || event.type === 'points_event';
+    return {
+      id: `peer:${getPeerEventHash(event)}`,
+      occurredAt: event.createdAt,
+      title: isScore ? 'Contributor score updated' : 'Room activity',
+      meta: [
+        body.providerId || body.userId || event.fromPeerId,
+        body.reason
+      ].filter(Boolean).map(compactHash).join(' · '),
+      detail: event
+    };
+  });
+  const roomRows = POOLDAY_ROOM_ACTIVITY_SUMMARY && !POOLDAY_ROOM_ACTIVITY_SUMMARY.error
+    && (Number(POOLDAY_ROOM_ACTIVITY_SUMMARY.messageCount || 0) > 0 || POOLDAY_ROOM_ACTIVITY_SUMMARY.recent?.length)
+    ? [{
+        id: `room:${getPeerRoomId()}`,
+        occurredAt: POOLDAY_ROOM_ACTIVITY_SUMMARY.recent?.[0]?.createdAt || new Date().toISOString(),
+        title: 'Room activity',
+        meta: `${Number(POOLDAY_ROOM_ACTIVITY_SUMMARY.peerCount || 0)} tabs · ${Number(POOLDAY_ROOM_ACTIVITY_SUMMARY.providerCount || 0)} contributors`,
+        detail: POOLDAY_ROOM_ACTIVITY_SUMMARY
+      }]
+    : [];
+  const byId = new Map();
+  for (const row of [...receiptRows, ...contributionRows, ...peerRows, ...roomRows]) {
+    byId.set(row.id, row);
+  }
+  return [...byId.values()]
+    .sort((left, right) => recordTimeMs(right.occurredAt) - recordTimeMs(left.occurredAt))
+    .slice(0, 60);
+};
+
+export const renderRecordLedger = () => {
+  const rows = unifiedRecordRows();
+  if (!rows.length) {
+    return '<p class="pool-record-empty">No records yet. Completed runs and contributions will appear here.</p>';
+  }
+  return `
+    <ol class="pool-record-timeline" aria-label="Reploid records">
+      ${rows.map((row) => `
+        <li>
+          <details class="pool-record-event">
+            <summary>
+              <time datetime="${escapeHtml(row.occurredAt || '')}">${escapeHtml(formatRecordTime(row.occurredAt))}</time>
+              <strong>${escapeHtml(row.title)}</strong>
+              <span>${escapeHtml(row.meta || 'Recorded')}</span>
+            </summary>
+            <pre>${escapeHtml(safeJsonStringify(row.detail) || '')}</pre>
+          </details>
+        </li>
+      `).join('')}
+    </ol>
+  `;
+};
+
+export const refreshRecordTimelineState = () => {
+  const ledger = document.getElementById('pool-record-ledger');
+  if (ledger) ledger.innerHTML = renderRecordLedger();
+};
+
 const networkCount = (value) => {
   const number = Number(value || 0);
   return Number.isFinite(number) && number > 0 ? Math.floor(number) : 0;
@@ -543,9 +662,41 @@ export const applyPoolNetworkVisualState = (summary = null) => {
   return visual;
 };
 
+const RUN_STATE_COPY = Object.freeze({
+  idle: 'Ready',
+  submitting: 'Preparing request',
+  running: 'Running on the network',
+  complete: 'Answer verified',
+  error: 'Run needs attention',
+  inspecting: 'Inspecting proof'
+});
+
+export const setPoolRunVisualState = ({ state = 'idle', phase = '', message = '' } = {}) => {
+  const visual = {
+    state,
+    phase,
+    message: message || RUN_STATE_COPY[state] || RUN_STATE_COPY.idle
+  };
+  for (const surface of document.querySelectorAll('[data-pool-run-surface]')) {
+    surface.dataset.runState = visual.state;
+    surface.dataset.runPhase = visual.phase;
+  }
+  for (const status of document.querySelectorAll('[data-pool-run-status]')) {
+    status.textContent = visual.message;
+  }
+  for (const output of document.querySelectorAll('[data-pool-run-output]')) {
+    output.hidden = visual.state === 'idle';
+  }
+  window.REPLOID_POOL_RUN_VISUAL_STATE = visual;
+  window.dispatchEvent(new CustomEvent(POOLDAY_RUN_VISUAL_EVENT, { detail: visual }));
+  return visual;
+};
+
 export const refreshRoomActivityState = (summary = null) => {
+  POOLDAY_ROOM_ACTIVITY_SUMMARY = summary;
   const activity = document.getElementById('pool-room-activity');
   if (activity) activity.innerHTML = renderRoomActivity(summary);
+  refreshRecordTimelineState();
   applyPoolNetworkVisualState(summary);
 };
 
@@ -556,6 +707,7 @@ export const refreshRecordLedgerState = (options = {}) => {
     POOLDAY_PEER_EVENTS_ROOM = null;
   }
   ensureRecordLedgersLoaded(roomId);
+  refreshRecordTimelineState();
   refreshReceiptLedgerState();
   refreshPeerLedgerState();
 };
@@ -990,6 +1142,7 @@ export const setResult = (id, value, options = {}) => {
   if (value && typeof value === 'object') {
     recordPeerLedgerEvents(value.ledgerEvents || value.body?.ledgerEvents || []);
     refreshPeerLedgerState();
+    refreshRecordTimelineState();
   }
   const summaryEl = document.getElementById(`${id}-summary`);
   const streamMode = !!options.stream;
@@ -1074,36 +1227,28 @@ export const renderNav = (activeRoute) => {
       </button>
       <div class="pool-nav-menu" id="pool-nav-menu">
         ${POOLDAY_NAV_ROUTES.map(renderItem).join('')}
-        <span class="pool-nav-divider" aria-hidden="true"></span>
-        ${renderSubstrateItem({ id: 'zero', path: '/zero', label: 'Zero' })}
-        ${renderSubstrateItem({ id: 'x', path: '/x', label: 'X' })}
+        <details class="pool-nav-more">
+          <summary class="pool-nav-more-summary">
+            <span class="pool-nav-glyph" aria-hidden="true">···</span>
+            <span class="pool-nav-label">More</span>
+          </summary>
+          <div class="pool-nav-more-panel">
+            ${renderSubstrateItem({ id: 'zero', path: '/zero', label: 'Zero' })}
+            ${renderSubstrateItem({ id: 'x', path: '/x', label: 'X' })}
+            ${renderRoomContext()}
+          </div>
+        </details>
       </div>
     </nav>
   `;
 };
 
-const renderRoomStrip = () => `
-  <div class="pool-room-strip" aria-label="Peer room">
-    <span class="pool-room-item">
-      <span class="rgr-status-label">Room</span>
-      <code data-pool-room-id>${escapeHtml(getPeerRoomId())}</code>
-    </span>
-    <a class="link-secondary pool-room-link" href="${escapeHtml(getPeerInviteUrl())}" data-pool-invite-link>Invite</a>
-    <details class="pool-room-details">
-      <summary>Room details</summary>
-      <span class="pool-room-item">
-        <span class="rgr-status-label">Relay</span>
-        <code data-pool-relay-mode>${escapeHtml(getPeerRelayLabel())}</code>
-      </span>
-      <span class="pool-room-item">
-        <span class="rgr-status-label">Work</span>
-        <code>whole prompt</code>
-      </span>
-      <span class="pool-room-item">
-        <span class="rgr-status-label">Version</span>
-        <code>${escapeHtml(POOLDAY_VERSION_TAG)}</code>
-      </span>
-    </details>
+const renderRoomContext = () => `
+  <div class="pool-room-context" aria-label="Peer room details">
+    <span><b>Room</b><code data-pool-room-id>${escapeHtml(getPeerRoomId())}</code></span>
+    <span><b>Relay</b><code data-pool-relay-mode>${escapeHtml(getPeerRelayLabel())}</code></span>
+    <span><b>Version</b><code>${escapeHtml(POOLDAY_VERSION_TAG)}</code></span>
+    <a class="link-secondary" href="${escapeHtml(getPeerInviteUrl())}" data-pool-invite-link>Invite to this room</a>
   </div>
 `;
 
@@ -1113,7 +1258,6 @@ const renderRouteShell = (copy, content) => `
       <h1 class="type-h1">${escapeHtml(copy.title)}</h1>
       <p class="type-caption pool-hero-body">${escapeHtml(copy.body)}</p>
     </div>
-    ${renderRoomStrip()}
     ${content}
   </section>
 `;
@@ -1197,13 +1341,22 @@ export const shouldRenderContributionStatusBar = (snapshot = getContributionSnap
 export const refreshContributionPanels = () => {
   const stats = document.getElementById('pool-provider-node-stats');
   const history = document.getElementById('pool-provider-node-history');
+  const historySection = document.querySelector('[data-pool-contribution-history]');
   const snapshot = getContributionSnapshot();
-  if (stats) stats.innerHTML = renderComputeNodeStats(snapshot);
+  if (stats) {
+    stats.innerHTML = renderComputeNodeStats(snapshot);
+    stats.hidden = !snapshot.optedIn;
+  }
   if (history) history.innerHTML = renderRecentContributionHistory(snapshot);
+  if (historySection) historySection.hidden = !snapshot.recent?.length;
+  refreshRecordTimelineState();
 };
 
 export const renderContributionStatusBar = (snapshot = getContributionSnapshot()) => {
   if (!shouldRenderContributionStatusBar(snapshot)) return '';
+  const hasHourTokens = Number(snapshot.tokensHour || 0) > 0;
+  const hasDayTokens = Number(snapshot.tokens24h || 0) > 0;
+  const hasRecent = Boolean(snapshot.recent?.length);
   return `
     <aside
       class="pool-contribution-status"
@@ -1213,9 +1366,9 @@ export const renderContributionStatusBar = (snapshot = getContributionSnapshot()
     >
       <span class="pool-contribution-dot" aria-hidden="true"></span>
       <span class="pool-contribution-state">${escapeHtml(snapshot.label || 'Not active')}</span>
-      <span class="pool-contribution-metric"><b>24h</b> ${escapeHtml(formatContributionTokens(snapshot.tokens24h))}</span>
-      <span class="pool-contribution-metric"><b>1h</b> ${escapeHtml(formatContributionTokens(snapshot.tokensHour))}/hr</span>
-      <span class="pool-contribution-metric pool-contribution-last"><b>Last</b> ${escapeHtml(formatContributionLast(snapshot))}</span>
+      ${hasDayTokens ? `<span class="pool-contribution-metric"><b>24h</b> ${escapeHtml(formatContributionTokens(snapshot.tokens24h))}</span>` : ''}
+      ${hasHourTokens ? `<span class="pool-contribution-metric"><b>1h</b> ${escapeHtml(formatContributionTokens(snapshot.tokensHour))}/hr</span>` : ''}
+      ${hasRecent ? `<span class="pool-contribution-metric pool-contribution-last"><b>Last</b> ${escapeHtml(formatContributionLast(snapshot))}</span>` : ''}
     </aside>
   `;
 };
@@ -1295,12 +1448,14 @@ const renderModelOptions = ({ workload = null, includeWorkloadLabel = false } = 
   return `<option value="${escapeHtml(model.modelId)}"${selected}>${escapeHtml(label)}${escapeHtml(workloadLabel)}</option>`;
 }).join('');
 
-const renderFlowLabels = () => POOLDAY_GRAPH_LABEL_STAGES.map((stage) => (
-  POOLDAY_FLOW_LABELS.find((item) => item.id === stage.ids[0])
-)).filter(Boolean).map((item) => `
+const renderFlowLabels = () => POOLDAY_GRAPH_LABEL_STAGES.map((stage) => ({
+  stage,
+  item: POOLDAY_FLOW_LABELS.find((candidate) => candidate.id === stage.ids[0])
+})).filter(({ item }) => Boolean(item)).map(({ stage, item }) => `
   <span
     class="pool-flow-label pool-flow-label-${escapeHtml(item.id)}"
     data-pool-flow-label="${escapeHtml(item.id)}"
+    data-pool-flow-stage="${escapeHtml(stage.id)}"
     data-tooltip-title="${escapeHtml(item.label)}"
     data-tooltip-body="${escapeHtml(item.body)}"
     style="--pool-label-x: ${escapeHtml(String(item.x).replace('%', 'vw'))}; --pool-label-y: ${escapeHtml(String(item.y).replace('%', 'vh'))};"
@@ -1314,7 +1469,7 @@ const renderFlowLabels = () => POOLDAY_GRAPH_LABEL_STAGES.map((stage) => (
 const renderHomeSimulation = () => {
   const suggestedPrompt = choosePooldayAskPlaceholder();
   return `
-    <section class="pool-home-stage" aria-label="Reploid network preview">
+    <section class="pool-home-stage" aria-label="Reploid network" data-pool-run-surface="home" data-run-state="idle" data-run-phase="">
       <div class="pool-home-toolbar" aria-label="Reploid home controls">
         <div class="pool-home-toolbar-leading pool-home-overlay" aria-label="Reploid overview">
           <div class="pool-home-title-lockup">
@@ -1335,27 +1490,17 @@ const renderHomeSimulation = () => {
               data-pool-suggested-prompt="${escapeHtml(suggestedPrompt)}"
             >
             <button class="pool-shape-action pool-shape-action--circle pool-shape-action--ask pool-home-ask-submit"
+                    id="pool-home-run-submit"
                     type="submit"
-                    aria-label="Ask">
+                    aria-label="Run">
               <span class="pool-shape-action-glyph" aria-hidden="true">▶</span>
-              <span class="pool-shape-action-label">Ask</span>
+              <span class="pool-shape-action-label">Run</span>
             </button>
           </div>
         </form>
-        <div class="pool-home-toolbar-right" aria-label="Network shortcut">
-          <a class="pool-shape-action pool-shape-action--circle pool-shape-action--network pool-home-network-cta"
-             href="/network"
-             data-pool-route="/network"
-             data-pool-network-state
-             data-network-mode="simulation"
-             aria-label="Live Network">
-            <span class="pool-shape-action-glyph" aria-hidden="true">☍</span>
-            <span class="pool-shape-action-label">Live Network</span>
-            <span class="pool-home-network-badge" data-pool-network-count hidden aria-hidden="true">0</span>
-          </a>
-        </div>
       </div>
-      <div class="pool-simulation-shell" aria-label="Reploid network graph">
+      <p class="pool-home-run-status" data-pool-run-status aria-live="polite">Ready</p>
+      <div class="pool-simulation-shell" data-pool-network-state data-network-mode="simulation" aria-label="Reploid network graph">
         <canvas class="pool-simulation-canvas" data-pool-simulation width="1200" height="680"></canvas>
         <div class="pool-simulation-labels">
           ${renderFlowLabels()}
@@ -1365,6 +1510,17 @@ const renderHomeSimulation = () => {
           <span data-pool-tooltip-body></span>
         </div>
       </div>
+      <section class="pool-home-result-panel" data-pool-run-output hidden aria-label="Run result">
+        <h2 class="type-h2">Answer</h2>
+        ${renderResultBox('pool-home-run-result', {
+          stream: true,
+          streamLabel: 'Answer',
+          evidence: true,
+          evidenceLabel: 'Proof',
+          rawLabel: 'Raw result',
+          rawFull: true
+        })}
+      </section>
     </section>
   `;
 };
@@ -1379,18 +1535,14 @@ export const renderRouteDetail = (routeId) => {
   const copy = ROUTE_COPY[normalizedRouteId] || ROUTE_COPY.home;
   if (normalizedRouteId === 'ask') {
     return renderRouteShell(copy, `
-        <div class="pool-form pool-route-grid pool-run-layout" data-pool-run>
+        <div class="pool-form pool-route-grid pool-run-layout" data-pool-run data-pool-run-surface="run" data-run-state="idle" data-run-phase="">
           <div class="pool-run-compose">
-            <div class="pool-section-heading">
-              <h2 class="type-h2">Submit a run</h2>
-              <span class="pool-meta-tag">Peer-assisted answer</span>
-            </div>
             <label class="pool-field">
-              <span>Message</span>
+              <span>Prompt</span>
               <textarea id="pool-run-prompt" rows="6">Summarize Reploid in one sentence.</textarea>
             </label>
             <details class="pool-advanced">
-              <summary>Answer settings</summary>
+              <summary>Settings</summary>
               <div class="pool-advanced-grid">
                 <label class="pool-field">
                   <span>Check</span>
@@ -1402,24 +1554,22 @@ export const renderRouteDetail = (routeId) => {
                 </label>
               </div>
             </details>
+            <p class="pool-run-status" data-pool-run-status aria-live="polite">Ready</p>
             <div class="pool-control-row pool-primary-actions" aria-label="Run controls">
-              <button class="btn btn-primary btn-op" data-op="▶" id="pool-run-submit" type="button">Ask</button>
+              <button class="btn btn-primary btn-op" data-op="▶" id="pool-run-submit" type="button">Run</button>
             </div>
           </div>
-          <div class="pool-run-output">
-            <div class="pool-section-heading pool-result-heading">
-              <h3 class="type-h2">Answer</h3>
-              <span class="pool-meta-tag">Clean output first</span>
-            </div>
+          <section class="pool-run-output" data-pool-run-output hidden>
+            <h2 class="type-h2">Answer</h2>
             ${renderResultBox('pool-run-result', {
               stream: true,
               streamLabel: 'Answer',
               evidence: true,
-              evidenceLabel: 'Contributors',
-              rawLabel: 'Full result',
+              evidenceLabel: 'Proof',
+              rawLabel: 'Raw result',
               rawFull: true
             })}
-          </div>
+          </section>
         </div>
     `);
   }
@@ -1428,88 +1578,70 @@ export const renderRouteDetail = (routeId) => {
         <div class="pool-form pool-route-grid pool-provider-layout" data-pool-provider>
           <div class="pool-provider-main">
             <div class="pool-section-heading pool-provider-heading">
-              <h2 class="type-h2">This tab</h2>
               <p class="pool-provider-status" data-pool-provider-status>Idle</p>
             </div>
-            <div id="pool-provider-node-stats" class="pool-ledger-shell" aria-live="polite">${renderComputeNodeStats()}</div>
+            <div id="pool-provider-node-stats" class="pool-node-status-line" aria-live="polite" hidden></div>
             <label class="pool-field">
-              <span>Model to contribute</span>
+              <span>Model</span>
               <select id="pool-provider-model">${renderModelOptions({ includeWorkloadLabel: true })}</select>
             </label>
             <div class="pool-control-row pool-primary-actions" aria-label="Contribution controls">
-              <button class="btn btn-primary btn-op" data-op="▶" id="pool-provider-worker-start" type="button">Start contributing</button>
-              <button class="btn btn-ghost btn-op" data-op="■" id="pool-provider-worker-stop" type="button" disabled>Stop</button>
+              <button class="btn btn-primary btn-op" data-op="▶" id="pool-provider-worker-toggle" type="button" aria-pressed="false">Start contributing</button>
             </div>
           </div>
-          <div class="pool-provider-live" aria-label="Contributor tab state">
-            <div class="pool-section-heading">
-              <h3 class="type-h2">Readiness</h3>
-              <span class="pool-meta-tag">Model, cache, room</span>
-            </div>
-            <div id="pool-provider-health" class="pool-ledger-shell" aria-live="polite">${renderProviderHealth()}</div>
-          </div>
-          <div class="pool-inspector-shell">
-            <div class="pool-section-heading pool-result-heading">
-              <h3 class="type-h2">Contribution receipts</h3>
-              <span class="pool-meta-tag">This tab</span>
-            </div>
+          <section class="pool-inspector-shell" data-pool-contribution-history hidden>
+            <h2 class="type-h2">Recent receipts</h2>
             <div id="pool-provider-node-history" class="pool-ledger-shell" aria-live="polite">${renderRecentContributionHistory()}</div>
-            <details class="pool-advanced">
-              <summary>Debug event</summary>
+          </section>
+          <details class="pool-advanced pool-provider-details" id="pool-provider-details">
+            <summary>Details</summary>
+            <div class="pool-provider-detail-grid">
+              <section aria-label="Contributor readiness">
+                <h2 class="type-h2">Readiness</h2>
+                <div id="pool-provider-health" class="pool-ledger-shell" aria-live="polite">${renderProviderHealth()}</div>
+              </section>
+              <details class="pool-advanced">
+                <summary>Debug event</summary>
               ${renderResultBox('pool-provider-result', { placeholder: 'No activity yet.', rawLabel: 'Full event' })}
-            </details>
-          </div>
+              </details>
+            </div>
+          </details>
         </div>
     `);
   }
   if (normalizedRouteId === 'records') {
     return renderRouteShell(copy, `
         <div class="pool-form pool-route-grid pool-record-layout" data-pool-receipts data-pool-reputation>
-          <div class="pool-record-ledgers">
-            <div class="pool-section-heading">
-              <h3 class="type-h2">Saved answers</h3>
-              <span class="pool-meta-tag">Receipts</span>
+          <div id="pool-record-ledger" aria-live="polite">${renderRecordLedger()}</div>
+          <details class="pool-advanced pool-record-tools">
+            <summary>Technical tools</summary>
+            <div class="pool-record-tool-grid">
+              <section data-pool-room-activity>
+                <h2 class="type-h2">Room activity</h2>
+                <div id="pool-room-activity" class="pool-ledger-shell" aria-live="polite">${renderRoomActivity()}</div>
+              </section>
+              <section>
+                <h2 class="type-h2">Contributor scores</h2>
+                <div id="pool-peer-ledger" class="pool-ledger-shell" aria-live="polite">${renderPeerLedgerState()}</div>
+              </section>
+              <section>
+                <h2 class="type-h2">Saved answer receipts</h2>
+                <div id="pool-receipt-ledger" class="pool-ledger-shell" aria-live="polite">${renderReceiptLedger()}</div>
+              </section>
+              <details class="pool-advanced pool-record-lookup">
+                <summary>Find by receipt hash</summary>
+                <label class="pool-field">
+                  <span>Hash</span>
+                  <input id="pool-receipt-hash" placeholder="sha256:..." />
+                </label>
+                <div class="pool-control-row pool-primary-actions">
+                  <button class="btn btn-primary btn-op" data-op="⚲" id="pool-receipt-lookup" type="button">Lookup</button>
+                </div>
+                ${renderResultBox('pool-receipt-result', { placeholder: 'No lookup yet.' })}
+              </details>
             </div>
-            <div id="pool-receipt-ledger" class="pool-ledger-shell" aria-live="polite">${renderReceiptLedger()}</div>
-            <div class="pool-form" data-pool-room-activity>
-              <div class="pool-section-heading">
-                <h3 class="type-h2">Live room</h3>
-                <span class="pool-meta-tag">Current room</span>
-              </div>
-              <div id="pool-room-activity" class="pool-ledger-shell" aria-live="polite">${renderRoomActivity()}</div>
-            </div>
-          </div>
-          <div class="pool-record-query">
-            <div class="pool-section-heading">
-              <h3 class="type-h2">Contributor scores</h3>
-              <span class="pool-meta-tag">This browser</span>
-            </div>
-            <div id="pool-peer-ledger" class="pool-ledger-shell" aria-live="polite">${renderPeerLedgerState()}</div>
-            <div class="pool-route-cta-row" aria-label="Contribution action">
-              <a class="pool-shape-action pool-shape-action--square pool-shape-action--compute pool-shape-action--compact"
-                 href="/compute"
-                 data-pool-route="/compute"
-                 aria-label="Contribute">
-                <span class="pool-shape-action-glyph" aria-hidden="true">☇</span>
-                <span class="pool-shape-action-label">Contribute</span>
-              </a>
-            </div>
-            <details class="pool-advanced pool-record-lookup">
-              <summary>Find saved answer by hash</summary>
-              <label class="pool-field">
-                <span>Hash</span>
-                <input id="pool-receipt-hash" placeholder="sha256:..." />
-              </label>
-              <div class="pool-control-row pool-primary-actions">
-                <button class="btn btn-primary btn-op" data-op="⚲" id="pool-receipt-lookup" type="button">Lookup</button>
-              </div>
-              ${renderResultBox('pool-receipt-result', { placeholder: 'No lookup yet.' })}
-            </details>
-            <details class="pool-advanced pool-network-technical">
-              <summary>Protocol details</summary>
-              <p class="pool-meta-tag" aria-label="protocol identifier">Version ${POOLDAY_VERSION_TAG}</p>
-            </details>
-          </div>
+            <p class="type-caption pool-protocol-version" aria-label="protocol identifier">Protocol ${POOLDAY_VERSION_TAG}</p>
+          </details>
         </div>
     `);
   }

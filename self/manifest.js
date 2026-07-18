@@ -42,6 +42,7 @@ export const SELF_SOURCE_MIRRORS = Object.freeze([
   { webPath: '/core/cycle-artifacts.js', vfsPath: '/self/core/cycle-artifacts.js' },
   { webPath: '/core/import-rewrite.js', vfsPath: '/self/core/import-rewrite.js' },
   { webPath: '/core/promotion-policy.js', vfsPath: '/self/core/promotion-policy.js' },
+  { webPath: '/capabilities/system/doppler-optimizer.js', vfsPath: '/self/capabilities/system/doppler-optimizer.js' },
   { webPath: '/tools/Promote.js', vfsPath: '/self/tools/Promote.js' },
   { webPath: '/manifest.js', vfsPath: '/self/manifest.js' },
   { webPath: '/environment.js', vfsPath: '/self/environment.js' },
@@ -211,7 +212,7 @@ export function buildSelfManifest(options = {}) {
     visibleToolsByMode: {
       zero: ['CreateTool'],
       reploid: ['ReadFile', 'WriteFile', 'EditFile', 'ListFiles', 'Grep', 'ListTools', 'CreateTool', 'LoadModule', 'Promote'],
-      x: ['ReadFile', 'WriteFile', 'EditFile', 'ListFiles', 'Grep', 'ListTools', 'CreateTool', 'LoadModule', 'Promote', 'SpawnWorker', 'AwaitWorkers']
+      x: ['ReadFile', 'WriteFile', 'EditFile', 'ListFiles', 'Grep', 'ListTools', 'CreateTool', 'LoadModule', 'Promote', 'DopplerOptimize', 'SpawnWorker', 'AwaitWorkers']
     },
     sourceRoots: [
       '/self',

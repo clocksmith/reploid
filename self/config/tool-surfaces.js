@@ -23,6 +23,9 @@ export const TOOL_SURFACES = Object.freeze({
   promotion: Object.freeze([
     'Promote'
   ]),
+  optimization: Object.freeze([
+    'DopplerOptimize'
+  ]),
   extendedFile: Object.freeze([
     'DeleteFile',
     'MakeDirectory',
@@ -60,6 +63,7 @@ export const REPLOID_TOOL_SURFACE_IDS = Object.freeze([
 ]);
 export const X_TOOL_SURFACE_IDS = Object.freeze([
   ...REPLOID_TOOL_SURFACE_IDS,
+  'optimization',
   'cognition',
   'workers',
   'swarm'

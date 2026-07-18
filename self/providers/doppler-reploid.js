@@ -10,9 +10,32 @@ import {
   DOPPLER_TOOLING_URL
 } from '../config/doppler-local-models.js';
 
-async function loadBenchHarness() {
-  return import(DOPPLER_TOOLING_URL);
+async function loadDopplerTooling() {
+  const base = String(globalThis.DOPPLER_BASE_URL || '').replace(/\/$/, '');
+  const toolingUrl = base
+    ? `${base}/src/tooling-exports.browser.js`
+    : DOPPLER_TOOLING_URL;
+  return import(toolingUrl);
 }
+
+const resolveDopplerModuleUrl = () => (
+  globalThis.REPLOID_DOPPLER_MODULE_URL || DOPPLER_MODULE_URL
+);
+
+const resolveGlobalLoadOptions = (modelId) => {
+  const raw = globalThis.REPLOID_DOPPLER_LOAD_OPTIONS;
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return {};
+  const scopeModelId = typeof raw.scopeModelId === 'string' && raw.scopeModelId.trim()
+    ? raw.scopeModelId.trim()
+    : null;
+  if (scopeModelId && scopeModelId !== modelId) return {};
+  const {
+    scopeModelId: _scopeModelId,
+    optimizationProfileHash: _optimizationProfileHash,
+    ...loadOptions
+  } = raw;
+  return loadOptions;
+};
 
 const generationOptionsFromModel = (model = {}) => Object.fromEntries(Object.entries({
   maxTokens: model.maxTokens ?? model.maxOutputTokens,
@@ -63,7 +86,7 @@ export function createDopplerPublicProviderAdapter(dopplerModule, { Errors = nul
       }
       const source = modelUrl ? { url: modelUrl } : modelId;
       handle = await load(source, {
-        ...(globalThis.REPLOID_DOPPLER_LOAD_OPTIONS || {}),
+        ...resolveGlobalLoadOptions(modelId),
         ...(onProgress ? { onProgress } : {})
       });
       loadedModelId = modelId;
@@ -114,15 +137,18 @@ export function createDopplerPublicProviderAdapter(dopplerModule, { Errors = nul
   };
 }
 
-const callTooling = async (method, args) => {
-  const tooling = await loadBenchHarness();
+const callTooling = async (loadTooling, method, args) => {
+  const tooling = await loadTooling();
   if (typeof tooling?.[method] !== 'function') {
     throw new Error(`Doppler 0.4.9 tooling does not expose ${method}`);
   }
   return tooling[method](...args);
 };
 
-export function createReploidDopplerProvider(baseProvider, { Errors }) {
+export function createReploidDopplerProvider(baseProvider, {
+  Errors,
+  loadTooling = loadDopplerTooling
+}) {
   if (!baseProvider) {
     throw new Error('createReploidDopplerProvider requires a base DopplerProvider');
   }
@@ -255,16 +281,15 @@ export function createReploidDopplerProvider(baseProvider, { Errors }) {
     );
   };
 
-  const bench = {
-    loadRuntimeConfigFromUrl: (...args) => callTooling('loadRuntimeConfigFromUrl', args),
-    applyRuntimeConfigFromUrl: (...args) => callTooling('applyRuntimeConfigFromUrl', args),
-    loadRuntimePreset: (...args) => callTooling('loadRuntimePreset', args),
-    applyRuntimePreset: (...args) => callTooling('applyRuntimePreset', args),
-    initializeBrowserHarness: (...args) => callTooling('initializeBrowserHarness', args),
-    saveBrowserReport: (...args) => callTooling('saveBrowserReport', args),
-    runBrowserHarness: (...args) => callTooling('runBrowserHarness', args),
-    runBrowserSuite: (...args) => callTooling('runBrowserSuite', args),
-    runBrowserManifest: (...args) => callTooling('runBrowserManifest', args)
+  const tooling = {
+    runBrowserCommand: (...args) => callTooling(loadTooling, 'runBrowserCommand', args),
+    optimization: {
+      validateContract: (...args) => callTooling(loadTooling, 'validateRuntimeOptimizationContract', args),
+      hashContract: (...args) => callTooling(loadTooling, 'hashRuntimeOptimizationContract', args),
+      enumerateCandidates: (...args) => callTooling(loadTooling, 'enumerateRuntimeOptimizationCandidates', args),
+      materializeCandidate: (...args) => callTooling(loadTooling, 'materializeRuntimeOptimizationCandidate', args),
+      evaluateCandidate: (...args) => callTooling(loadTooling, 'evaluateBrowserRuntimeOptimizationCandidate', args)
+    }
   };
 
   return {
@@ -282,7 +307,7 @@ export function createReploidDopplerProvider(baseProvider, { Errors }) {
     getAvailableModels: baseProvider.getAvailableModels?.bind(baseProvider),
     getPipeline: baseProvider.getPipeline?.bind(baseProvider),
     getCurrentModelId: baseProvider.getCurrentModelId?.bind(baseProvider),
-    bench,
+    tooling,
     destroy: baseProvider.destroy?.bind(baseProvider),
   };
 }
@@ -295,7 +320,7 @@ let publicAdapterPromise = null;
 const ensurePublicAdapter = async () => {
   if (publicAdapter) return publicAdapter;
   if (!publicAdapterPromise) {
-    publicAdapterPromise = import(DOPPLER_MODULE_URL)
+    publicAdapterPromise = import(resolveDopplerModuleUrl())
       .then((module) => createDopplerPublicProviderAdapter(module, {
         Errors: { ConfigError: DopplerConfigError }
       }))

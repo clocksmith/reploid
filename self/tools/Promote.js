@@ -196,12 +196,15 @@ export async function promoteShadowCandidate(args = {}, deps = {}) {
   }
 
   let previousHash = null;
+  let previousContent = null;
   const targetExisted = await VFS.exists(targetPath);
   if (targetExisted) {
     try {
-      previousHash = await sha256(await VFS.read(targetPath));
+      previousContent = await VFS.read(targetPath);
+      previousHash = await sha256(previousContent);
     } catch {
       previousHash = null;
+      previousContent = null;
     }
   }
   if (!nextHash) {
@@ -212,7 +215,49 @@ export async function promoteShadowCandidate(args = {}, deps = {}) {
     }
   }
 
-  await VFS.write(targetPath, candidateContent);
+  const promotionId = `${Date.now().toString(36)}-${String(nextHash || 'unhashed').slice(0, 12)}`;
+  const rollbackRoot = `/artifacts/promotions/${promotionId}`;
+  const previousContentPath = targetExisted ? `${rollbackRoot}/previous.txt` : null;
+  const rollbackPath = `${rollbackRoot}/rollback.json`;
+  try {
+    if (previousContentPath) {
+      await VFS.write(previousContentPath, previousContent);
+    }
+    await VFS.write(rollbackPath, JSON.stringify({
+      schema: 'reploid/promotion-rollback/v1',
+      promotionId,
+      candidatePath,
+      targetPath,
+      evidencePath,
+      targetExisted,
+      previousHash,
+      previousContentPath,
+      candidateHash: nextHash
+    }, null, 2));
+  } catch (error) {
+    return {
+      ok: false,
+      promoted: false,
+      candidatePath,
+      targetPath,
+      evidencePath,
+      reasons: [`failed to preserve rollback evidence: ${error.message}`]
+    };
+  }
+
+  try {
+    await VFS.write(targetPath, candidateContent);
+  } catch (error) {
+    return {
+      ok: false,
+      promoted: false,
+      candidatePath,
+      targetPath,
+      evidencePath,
+      rollbackPath,
+      reasons: [`failed to write promotion target: ${error.message}`]
+    };
+  }
 
   const result = {
     ok: true,
@@ -224,6 +269,9 @@ export async function promoteShadowCandidate(args = {}, deps = {}) {
     targetExisted,
     previousHash,
     targetHash: nextHash,
+    promotionId,
+    rollbackPath,
+    previousContentPath,
     reasons: []
   };
 

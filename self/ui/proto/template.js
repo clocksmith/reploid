@@ -29,7 +29,11 @@ export const renderProtoTemplate = (escapeHtml, goalFromBoot) => `
       <span class="sidebar-icon">∿</span>
       <span class="tab-indicator" aria-hidden="true"><span></span><span></span><span></span></span>
     </button>
-    <button id="workers-tab-btn" class="sidebar-btn" data-tab="workers" title="Workers (7)">
+    <button id="optimization-tab-btn" class="sidebar-btn" data-tab="optimization" title="Optimization (7)">
+      <span class="sidebar-icon">☫</span>
+      <span class="tab-indicator" aria-hidden="true"><span></span><span></span><span></span></span>
+    </button>
+    <button id="workers-tab-btn" class="sidebar-btn" data-tab="workers" title="Workers (8)">
       <span class="sidebar-icon">☌</span>
       <span class="tab-indicator" aria-hidden="true"><span></span><span></span><span></span></span>
     </button>
@@ -198,6 +202,68 @@ export const renderProtoTemplate = (escapeHtml, goalFromBoot) => `
         <div id="cognition-panel" class="cognition-panel"></div>
       </div>
 
+      <div class="workspace-content hidden" id="tab-optimization">
+        <div class="optimization-panel">
+          <div class="optimization-header">
+            <div class="optimization-toolbar">
+              <strong>Runtime Optimization</strong>
+              <span id="optimization-status" class="muted">IDLE</span>
+              <span class="muted">|</span>
+              <span id="optimization-active-profile" class="muted">Active: base</span>
+            </div>
+            <div class="optimization-run-controls">
+              <select id="optimization-runs" aria-label="Optimization runs" disabled>
+                <option value="">No runs</option>
+              </select>
+              <button id="optimization-refresh" class="btn btn-small" title="Refresh" aria-label="Refresh">♺</button>
+              <button id="optimization-run" class="btn btn-primary">Run</button>
+              <button id="optimization-stop" class="btn btn-small" title="Stop" aria-label="Stop" disabled>■</button>
+            </div>
+          </div>
+
+          <div class="optimization-contract-wrap">
+            <label for="optimization-contract">
+              <span>Contract</span>
+              <span class="muted">JSON</span>
+            </label>
+            <textarea id="optimization-contract" spellcheck="false"></textarea>
+            <div id="optimization-contract-error" class="muted" role="status"></div>
+          </div>
+
+          <div class="optimization-results">
+            <div class="optimization-section-label">
+              <span>Candidates</span>
+              <span class="muted">Median | 95% CI | CV</span>
+            </div>
+            <div class="optimization-table-wrap">
+              <table class="optimization-table">
+                <thead>
+                  <tr>
+                    <th>Candidate</th>
+                    <th>Patch</th>
+                    <th>Verdict</th>
+                    <th>Median</th>
+                    <th>95% CI</th>
+                    <th>CV</th>
+                  </tr>
+                </thead>
+                <tbody id="optimization-candidates">
+                  <tr><td colspan="6" class="muted">No run selected</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="optimization-detail">
+            <div class="optimization-section-label">
+              <span>Receipt</span>
+              <button id="optimization-promote" class="btn btn-small" disabled>Promote</button>
+            </div>
+            <pre id="optimization-candidate-detail">Select a completed candidate.</pre>
+          </div>
+        </div>
+      </div>
+
       <div class="workspace-content hidden" id="tab-workers">
         <div class="workers-panel">
           <div class="workers-summary">
@@ -227,6 +293,7 @@ export const renderProtoTemplate = (escapeHtml, goalFromBoot) => `
             <span id="workers-last-update" class="muted">Last updated: -</span>
             <button id="workers-clear-completed" class="btn btn-small">Clear Completed</button>
           </div>
+        </div>
       </div>
 
       <!-- VFS Browser Panel -->

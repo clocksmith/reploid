@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-07-05T22:34:43.915Z",
+  "generatedAt": "2026-07-16T23:31:31.505Z",
   "modules": {
     "AgentLoop": {
       "id": "AgentLoop",
@@ -8,7 +8,7 @@
       "files": [
         "core/agent-loop.js"
       ],
-      "introduced": "spark",
+      "introduced": "capsule",
       "dependencies": [
         {
           "id": "Utils",
@@ -334,6 +334,37 @@
         }
       ],
       "blueprint": "blueprints/0x000042-dependency-injection-container.md"
+    },
+    "DopplerOptimizer": {
+      "id": "DopplerOptimizer",
+      "entry": "capabilities/system/doppler-optimizer.js",
+      "files": [
+        "capabilities/system/doppler-optimizer.js"
+      ],
+      "introduced": "full",
+      "dependencies": [
+        {
+          "id": "Utils",
+          "optional": false
+        },
+        {
+          "id": "VFS",
+          "optional": false
+        },
+        {
+          "id": "EventBus",
+          "optional": false
+        },
+        {
+          "id": "DopplerToolbox",
+          "optional": false
+        },
+        {
+          "id": "AuditLogger",
+          "optional": true
+        }
+      ],
+      "blueprint": "blueprints/0x00014d-capabilities-system-doppler-optimizer.md"
     },
     "DopplerToolbox": {
       "id": "DopplerToolbox",
@@ -734,7 +765,7 @@
       "files": [
         "core/llm-client.js"
       ],
-      "introduced": "spark",
+      "introduced": "capsule",
       "dependencies": [
         {
           "id": "Utils",
@@ -1047,7 +1078,7 @@
       "files": [
         "core/provider-registry.js"
       ],
-      "introduced": "spark",
+      "introduced": "capsule",
       "dependencies": [
         {
           "id": "Utils",
@@ -1162,7 +1193,7 @@
       "files": [
         "core/response-parser.js"
       ],
-      "introduced": "spark",
+      "introduced": "capsule",
       "dependencies": [
         {
           "id": "Utils",
@@ -1204,7 +1235,7 @@
       "files": [
         "core/schema-registry.js"
       ],
-      "introduced": "spark",
+      "introduced": "capsule",
       "dependencies": [
         {
           "id": "Utils",
@@ -1452,7 +1483,7 @@
       "files": [
         "infrastructure/tool-executor.js"
       ],
-      "introduced": "spark",
+      "introduced": "capsule",
       "dependencies": [
         {
           "id": "Utils",
@@ -1479,7 +1510,7 @@
       "files": [
         "core/tool-runner.js"
       ],
-      "introduced": "spark",
+      "introduced": "capsule",
       "dependencies": [
         {
           "id": "Utils",
@@ -1579,6 +1610,10 @@
         },
         {
           "id": "SchemaValidator",
+          "optional": true
+        },
+        {
+          "id": "DopplerOptimizer",
           "optional": true
         }
       ],

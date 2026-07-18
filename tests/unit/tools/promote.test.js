@@ -104,4 +104,40 @@ describe('Promote', () => {
     expect(result.reasons).toContain('evidence candidateHash or targetHash is required');
     expect(VFS.files.has(targetPath)).toBe(false);
   });
+
+  it('preserves the previous target bytes before promotion', async () => {
+    const candidatePath = '/shadow/config/profile.json';
+    const targetPath = '/self/config/profile.json';
+    const evidencePath = '/artifacts/profile-evidence.json';
+    const candidate = '{"profile":"next"}\n';
+    const previous = '{"profile":"previous"}\n';
+    const candidateHash = await sha256(candidate);
+    const VFS = createMemoryVfs({
+      [candidatePath]: candidate,
+      [targetPath]: previous,
+      [evidencePath]: JSON.stringify({
+        candidatePath,
+        targetPath,
+        evidencePath,
+        replayPassed: true,
+        candidateHash
+      })
+    });
+
+    const result = await promoteShadowCandidate({ candidatePath, targetPath, evidencePath }, { VFS });
+
+    expect(result).toMatchObject({
+      ok: true,
+      promoted: true,
+      targetExisted: true,
+      previousHash: await sha256(previous)
+    });
+    expect(VFS.files.get(result.previousContentPath)).toBe(previous);
+    expect(JSON.parse(VFS.files.get(result.rollbackPath))).toMatchObject({
+      targetPath,
+      previousContentPath: result.previousContentPath,
+      candidateHash
+    });
+    expect(VFS.files.get(targetPath)).toBe(candidate);
+  });
 });

@@ -74,13 +74,13 @@ const ToolRunner = {
     id: 'ToolRunner',
     version: '1.2.0',
     genesis: { introduced: 'capsule' },
-    dependencies: ['Utils', 'VFS', 'ToolWriter?', 'SubstrateLoader?', 'EventBus', 'AuditLogger?', 'HITLController?', 'ArenaHarness?', 'VFSSandbox?', 'VerificationManager?', 'Shell?', 'gitTools?', 'WorkerManager?', 'EmbeddingStore?', 'SemanticMemory?', 'KnowledgeGraph?', 'GEPAOptimizer?', 'PromptMemory?', 'SchemaRegistry', 'TraceStore?', 'PersonaManager?', 'Observability?', 'GenesisSnapshot?', 'PolicyEngine?', 'SchemaValidator?'],
+    dependencies: ['Utils', 'VFS', 'ToolWriter?', 'SubstrateLoader?', 'EventBus', 'AuditLogger?', 'HITLController?', 'ArenaHarness?', 'VFSSandbox?', 'VerificationManager?', 'Shell?', 'gitTools?', 'WorkerManager?', 'EmbeddingStore?', 'SemanticMemory?', 'KnowledgeGraph?', 'GEPAOptimizer?', 'PromptMemory?', 'SchemaRegistry', 'TraceStore?', 'PersonaManager?', 'Observability?', 'GenesisSnapshot?', 'PolicyEngine?', 'SchemaValidator?', 'DopplerOptimizer?'],
     async: true,
     type: 'service'
   },
 
   factory: (deps) => {
-    const { Utils, VFS, ToolWriter, SubstrateLoader, EventBus, AuditLogger, HITLController, ArenaHarness, VFSSandbox, VerificationManager, Shell, gitTools, EmbeddingStore, SemanticMemory, KnowledgeGraph, GEPAOptimizer, PromptMemory, SchemaRegistry, TraceStore, PersonaManager, Observability, GenesisSnapshot, PolicyEngine, SchemaValidator } = deps;
+    const { Utils, VFS, ToolWriter, SubstrateLoader, EventBus, AuditLogger, HITLController, ArenaHarness, VFSSandbox, VerificationManager, Shell, gitTools, EmbeddingStore, SemanticMemory, KnowledgeGraph, GEPAOptimizer, PromptMemory, SchemaRegistry, TraceStore, PersonaManager, Observability, GenesisSnapshot, PolicyEngine, SchemaValidator, DopplerOptimizer } = deps;
     const { logger, Errors, trunc } = Utils;
     // WorkerManager is mutable because of circular dependency:
     // ToolRunner -> WorkerManager? (optional) -> ToolRunner
@@ -556,6 +556,7 @@ const ToolRunner = {
           PolicyEngine,
           SchemaValidator,
           SchemaRegistry,
+          DopplerOptimizer,
           ToolRunner: {
             list: () => Array.from(_tools.keys()),
             execute,

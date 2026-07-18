@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-07-12T20:00:06.302Z",
+  "generatedAt": "2026-07-16T23:31:09.858Z",
   "features": [
     {
       "id": "0x000003",
@@ -3282,6 +3282,48 @@
       ],
       "files": [
         "ui/zero-home/index.js"
+      ]
+    },
+    {
+      "id": "0x00014d",
+      "name": "capabilities-system-doppler-optimizer",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x00014d",
+          "path": "blueprints/0x00014d-capabilities-system-doppler-optimizer.md"
+        }
+      ],
+      "files": [
+        "capabilities/system/doppler-optimizer.js"
+      ]
+    },
+    {
+      "id": "0x00014e",
+      "name": "tools-doppleroptimize",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x00014e",
+          "path": "blueprints/0x00014e-tools-doppleroptimize.md"
+        }
+      ],
+      "files": [
+        "tools/DopplerOptimize.js"
+      ]
+    },
+    {
+      "id": "0x00014f",
+      "name": "ui-proto-optimization",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x00014f",
+          "path": "blueprints/0x00014f-ui-proto-optimization.md"
+        }
+      ],
+      "files": [
+        "ui/proto/optimization.js"
       ]
     }
   ]

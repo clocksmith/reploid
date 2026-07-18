@@ -81,6 +81,63 @@ describe('Reploid Doppler 0.4.9 provider adapter', () => {
     expect(handle.unload).toHaveBeenCalledOnce();
   });
 
+  it('scopes promoted runtime options to the intended model', async () => {
+    setWebGpu({});
+    const handle = {
+      loaded: true,
+      async chatText() { return { content: 'ok' }; },
+      unload: vi.fn(async () => {})
+    };
+    const load = vi.fn(async () => handle);
+    const base = createDopplerPublicProviderAdapter({ load }, { Errors: { ConfigError } });
+    await base.init();
+    globalThis.REPLOID_DOPPLER_LOAD_OPTIONS = {
+      scopeModelId: 'qwen-target',
+      optimizationProfileHash: 'sha256:profile',
+      isolatedLoader: true,
+      runtimeConfig: { shared: { kernelWarmup: { enabled: true } } }
+    };
+
+    await base.loadModel('qwen-other');
+    await base.loadModel('qwen-target');
+
+    expect(load).toHaveBeenNthCalledWith(1, 'qwen-other', {});
+    expect(load).toHaveBeenNthCalledWith(2, 'qwen-target', {
+      isolatedLoader: true,
+      runtimeConfig: { shared: { kernelWarmup: { enabled: true } } }
+    });
+  });
+
+  it('forwards only the supported Doppler tooling surface', async () => {
+    const base = {
+      getCapabilities: vi.fn(() => ({ available: true, initialized: true })),
+      destroy: vi.fn(async () => {})
+    };
+    const tooling = {
+      runBrowserCommand: vi.fn(async () => ({ ok: true })),
+      validateRuntimeOptimizationContract: vi.fn((contract) => contract),
+      hashRuntimeOptimizationContract: vi.fn(() => 'sha256:contract'),
+      enumerateRuntimeOptimizationCandidates: vi.fn(() => [{ candidateId: 'candidate-a' }]),
+      materializeRuntimeOptimizationCandidate: vi.fn(() => ({ runtimeConfig: {} })),
+      evaluateBrowserRuntimeOptimizationCandidate: vi.fn(async () => ({
+        decision: { accepted: true }
+      }))
+    };
+    const provider = createReploidDopplerProvider(base, {
+      Errors: { ConfigError },
+      loadTooling: vi.fn(async () => tooling)
+    });
+    const contract = { schema: 'test' };
+
+    await expect(provider.tooling.runBrowserCommand({ request: {} })).resolves.toEqual({ ok: true });
+    expect(provider.tooling.optimization.validateContract(contract)).resolves.toBe(contract);
+    expect(provider.tooling.optimization.hashContract(contract)).resolves.toBe('sha256:contract');
+    expect(provider.tooling.optimization.enumerateCandidates(contract)).resolves.toEqual([
+      { candidateId: 'candidate-a' }
+    ]);
+    expect(provider.bench).toBeUndefined();
+  });
+
   it('keeps the requested registry identity when Doppler reports a source URL', async () => {
     setWebGpu({});
     const handle = {
