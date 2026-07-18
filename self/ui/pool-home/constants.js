@@ -478,7 +478,6 @@ export const POOLDAY_GRAPH_LABEL_STAGES = Object.freeze([
     roles: ['answer', 'answer']
   }
 ]);
-export const POOLDAY_HOT_PATH_EXAMPLE_QUERY = 'Explain battery safety for a school robotics team';
 export const POOLDAY_HOT_PATH_STEPS = Object.freeze([
   {
     id: 'prompt',

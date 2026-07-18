@@ -660,6 +660,7 @@ describe('pool peer room', () => {
       sessions
     } = createFakeTransportFactories();
     const activity = [];
+    const runActivity = [];
     const providerNode = createPeerProviderNode({
       roomId: 'room-test',
       providerClient,
@@ -681,7 +682,8 @@ describe('pool peer room', () => {
       prompt: 'peer room prompt',
       modelRequirements: runtimeModel(),
       discoveryWindowMs: 1000,
-      receiptWindowMs: 1000
+      receiptWindowMs: 1000,
+      onActivity: (event) => runActivity.push(event)
     });
     const stopped = await providerNode.stop();
 
@@ -720,6 +722,16 @@ describe('pool peer room', () => {
     });
     expect(activity.map((event) => event.status)).toContain('peer_receipt_sent');
     expect(activity.map((event) => event.status)).toContain('peer_acceptance_received');
+    expect(runActivity.map(({ status, phase }) => `${status}:${phase}`)).toEqual([
+      'peer_run_intent_created:prompt',
+      'peer_provider_discovery_started:match',
+      'peer_assignment_planned:match',
+      'peer_inference_started:infer',
+      'peer_receipts_received:verify',
+      'peer_agreement_verified:verify',
+      'peer_run_completed:answer'
+    ]);
+    expect(runActivity.every((event) => event.roomId === 'room-test')).toBe(true);
     expect(sessions.size).toBe(1);
     expect(stopped.status).toBe('peer_provider_stopped');
   });

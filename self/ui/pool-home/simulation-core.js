@@ -5,7 +5,6 @@
 import {
   POOLDAY_FLOW_TUNING,
   POOLDAY_GRAPH_VIEW_CENTER_PULL,
-  POOLDAY_HOT_PATH_EXAMPLE_QUERY,
   POOLDAY_HOT_PATH_STEPS,
   POOLDAY_GRAPH_LABEL_ROLE_META,
   POOLDAY_GRAPH_LABEL_STAGES,
@@ -197,7 +196,7 @@ const createPoolGraphLabelPlan = (random) => {
 };
 
 const createHotPathFrame = () => ({
-  exampleQuery: POOLDAY_HOT_PATH_EXAMPLE_QUERY,
+  exampleQuery: '',
   activeStepId: POOLDAY_HOT_PATH_STEPS[0]?.id || '',
   activeStepIndex: 0,
   activeIds: POOLDAY_HOT_PATH_STEPS[0]?.ids || [],
@@ -205,24 +204,6 @@ const createHotPathFrame = () => ({
   intervalProgress: 0,
   steps: POOLDAY_HOT_PATH_STEPS
 });
-
-const resolveHotPathFrame = (layout, time, target = createHotPathFrame()) => {
-  const steps = POOLDAY_HOT_PATH_STEPS;
-  const stepCount = Math.max(1, steps.length);
-  const span = Math.max(0.001, Number(layout.hotPathSpan || 0));
-  const intervalProgress = clamp01((time - Number(layout.hotPathStartedAt || 0)) / span);
-  const scaled = Math.min(stepCount - 0.000001, intervalProgress * stepCount);
-  const activeStepIndex = Math.max(0, Math.min(stepCount - 1, Math.floor(scaled)));
-  const step = steps[activeStepIndex] || steps[0] || {};
-  target.exampleQuery = POOLDAY_HOT_PATH_EXAMPLE_QUERY;
-  target.activeStepId = step.id || '';
-  target.activeStepIndex = activeStepIndex;
-  target.activeIds = step.ids || [];
-  target.stepProgress = clamp01(scaled - activeStepIndex);
-  target.intervalProgress = intervalProgress;
-  target.steps = steps;
-  return target;
-};
 
 const resolveRunHotPathFrame = (runVisual, target = createHotPathFrame()) => {
   const steps = POOLDAY_HOT_PATH_STEPS;
@@ -388,8 +369,7 @@ const createPoolGraphLayout = (random) => {
     nextPlan: null,
     planStartedAt: 0,
     nextShiftAt: firstShiftAt,
-    hotPathStartedAt: 0,
-    hotPathSpan: firstShiftAt,
+    scheduleSpan: firstShiftAt,
     transition: null,
     transitionRelease: 0,
     anticipation: 0,
@@ -441,8 +421,7 @@ const shiftPoolGraphTarget = (layout, time, random) => {
   const scheduleSpan = (
     plan.span + plan.hold + random() * POOLDAY_MORPH_TUNING.holdJitter
   ) * POOLDAY_MORPH_TUNING.scheduleSpanScale;
-  layout.hotPathStartedAt = time;
-  layout.hotPathSpan = scheduleSpan;
+  layout.scheduleSpan = scheduleSpan;
   layout.nextShiftAt = time + scheduleSpan;
   layout.stableHoldProgress = 1;
   layout.stableRelease = 1;

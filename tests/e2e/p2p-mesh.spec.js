@@ -170,21 +170,27 @@ const openPoolNav = async (page) => {
 };
 
 const startProviderPage = async (page) => {
-  await expect(page.locator('#pool-provider-worker-start')).toBeVisible();
-  await page.locator('#pool-provider-worker-start').click();
+  const toggle = page.locator('#pool-provider-worker-toggle');
+  await expect(toggle).toBeVisible();
+  await expect(toggle).toHaveAttribute('data-contribution-action', 'start');
+  await toggle.click();
   await expect(page.locator('[data-pool-provider-status]')).toHaveText('Available');
   await expect(page.locator('[data-pool-provider-status]')).toHaveAttribute('data-provider-state', 'online');
+  await expect(toggle).toHaveText('Stop');
+  await expect(toggle).toHaveAttribute('data-contribution-action', 'stop');
   await expect(page.locator('#pool-provider-result')).toContainText('This contributor tab is available');
   await expect(page.locator('#pool-provider-result-raw')).toContainText('peer_room_listening');
 };
 
 const stopProviderPage = async (page) => {
-  await expect(page.locator('#pool-provider-worker-stop')).toBeEnabled();
-  await page.locator('#pool-provider-worker-stop').click();
+  const toggle = page.locator('#pool-provider-worker-toggle');
+  await expect(toggle).toHaveAttribute('data-contribution-action', 'stop');
+  await toggle.click();
   await expect(page.locator('[data-pool-provider-status]')).toHaveText('Idle');
   await expect(page.locator('#pool-provider-result-raw')).toContainText('peer_provider_stopped');
-  await expect(page.locator('#pool-provider-worker-start')).toBeEnabled();
-  await expect(page.locator('#pool-provider-worker-stop')).toBeDisabled();
+  await expect(toggle).toBeEnabled();
+  await expect(toggle).toHaveText('Start contributing');
+  await expect(toggle).toHaveAttribute('data-contribution-action', 'start');
 };
 
 const runPeerPrompt = async (page, prompt, policyId = 'ring_quorum_receipt') => {
@@ -214,6 +220,55 @@ const closeContexts = async (contexts) => {
 };
 
 test.describe('Run, Contribute, Records peer room', () => {
+  test('runs from Home and drives the graph with real peer activity', async ({ browser, baseURL }, testInfo) => {
+    const roomId = roomIdFor(testInfo, 'home-run');
+    const contexts = [];
+    try {
+      const context = await createPoolContext(browser, 'home_run');
+      contexts.push(context);
+      const providerPage = await openPoolPage(context, baseURL, '/compute', roomId);
+      await startProviderPage(providerPage);
+      const homePage = await openPoolPage(context, baseURL, '/', roomId);
+      await homePage.evaluate(() => {
+        window.REPLOID_E2E_RUN_VISUAL_STATES = [];
+        window.addEventListener('reploid:pool-run-visual-state', (event) => {
+          window.REPLOID_E2E_RUN_VISUAL_STATES.push({
+            ...event.detail,
+            outputHidden: document.querySelector('[data-pool-run-output]')?.hidden
+          });
+        });
+      });
+
+      const prompt = 'home graph follows execution';
+      await homePage.locator('#pool-home-ask-prompt').fill(prompt);
+      await homePage.locator('#pool-home-run-submit').click();
+      await expect(homePage.locator('#pool-home-run-result-stream')).toContainText(`e2e:${prompt}`, { timeout: 60000 });
+      await expect(homePage.locator('[data-pool-run-surface="home"]')).toHaveAttribute('data-run-state', 'complete');
+      await expect(homePage.locator('[data-pool-run-surface="home"]')).toHaveAttribute('data-run-phase', 'answer');
+      await expect(homePage.locator('[data-pool-run-output]')).toBeVisible();
+      await expect(homePage.locator('[data-pool-run-status]')).toHaveText('Answer verified');
+
+      const result = JSON.parse(await homePage.locator('#pool-home-run-result-raw').textContent() || '{}');
+      const states = await homePage.evaluate(() => window.REPLOID_E2E_RUN_VISUAL_STATES || []);
+      expect(result).toMatchObject({
+        roomId,
+        outputText: `e2e:${prompt}`,
+        transport: 'webrtc_peer_room'
+      });
+      expect(states).toEqual(expect.arrayContaining([
+        expect.objectContaining({ state: 'submitting', phase: 'prompt' }),
+        expect.objectContaining({ state: 'running', phase: 'match' }),
+        expect.objectContaining({ state: 'running', phase: 'infer' }),
+        expect.objectContaining({ state: 'running', phase: 'verify' }),
+        expect.objectContaining({ state: 'complete', phase: 'answer' })
+      ]));
+      expect(states.filter((state) => state.state === 'running').every((state) => state.outputHidden === true)).toBe(true);
+      expect(states.find((state) => state.state === 'complete')?.outputHidden).toBe(false);
+    } finally {
+      await closeContexts(contexts);
+    }
+  });
+
   test('preserves room context when Run opens before Contribute', async ({ browser, baseURL }, testInfo) => {
     const roomId = roomIdFor(testInfo, 'run-first');
     const contexts = [];
@@ -285,12 +340,14 @@ test.describe('Run, Contribute, Records peer room', () => {
       contexts.push(context);
       const providerPage = await openPoolPage(context, baseURL, '/compute', roomId);
 
-      await providerPage.locator('#pool-provider-worker-start').click();
+      const toggle = providerPage.locator('#pool-provider-worker-toggle');
+      await toggle.click();
       await expect(providerPage.locator('[data-pool-provider-status]')).toHaveText('Idle');
       await expect(providerPage.locator('#pool-provider-result')).toContainText('This tab could not start');
       await expect(providerPage.locator('#pool-provider-result-raw')).toContainText('synthetic load failure');
-      await expect(providerPage.locator('#pool-provider-worker-start')).toBeEnabled();
-      await expect(providerPage.locator('#pool-provider-worker-stop')).toBeDisabled();
+      await expect(toggle).toBeEnabled();
+      await expect(toggle).toHaveText('Start contributing');
+      await expect(toggle).toHaveAttribute('data-contribution-action', 'start');
     } finally {
       await closeContexts(contexts);
     }
@@ -365,15 +422,18 @@ test.describe('Run, Contribute, Records peer room', () => {
 
       await reputationPage.reload({ waitUntil: 'domcontentloaded' });
       await reputationPage.waitForSelector('.pool-home');
+      await reputationPage.locator('details.pool-record-tools > summary').click();
       await expect(reputationPage.locator('#pool-peer-ledger table[aria-label="Local contributor scores"]')).toBeVisible();
       await expect(reputationPage.locator('#pool-peer-ledger')).toContainText('Matched');
 
       await openPoolNav(runPage);
       await runPage.getByRole('link', { name: 'Records', exact: true }).click();
       await expect(runPage.locator('[data-pool-room-id]')).toHaveText(roomId);
+      await runPage.locator('details.pool-record-tools > summary').click();
       await expect(runPage.locator('#pool-receipt-ledger')).toContainText('accepted');
       await receiptsPage.reload({ waitUntil: 'domcontentloaded' });
       await receiptsPage.waitForSelector('.pool-home');
+      await receiptsPage.locator('details.pool-record-tools > summary').click();
       await expect(receiptsPage.locator('#pool-receipt-ledger')).toContainText('accepted');
       await runPage.locator('details.pool-record-lookup > summary').click();
       await runPage.locator('#pool-receipt-hash').fill(result.receiptHash);
