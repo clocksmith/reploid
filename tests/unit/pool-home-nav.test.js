@@ -260,6 +260,15 @@ describe('poolday home navigation', () => {
       expect(source).toContain('#pool-provider-worker-toggle');
       expect(source).not.toContain('#pool-provider-worker-start');
     }
+
+    const syntheticSmoke = readFileSync('scripts/pool-browser-smoke.js', 'utf8');
+    expect(syntheticSmoke).toContain('data-pool-dashboard-view');
+    expect(syntheticSmoke).not.toContain("clickPoolRoute(routePage, '/ask')");
+    expect(syntheticSmoke).toContain("const SYNTHETIC_MODEL_ID = 'gemma-3-270m-it-q4k-ehf16-af32'");
+    expect(syntheticSmoke).toContain("url.searchParams.set('relay', 'local')");
+    expect(syntheticSmoke).toContain("window.REPLOID_POOL_RELAY = 'local'");
+    expect(syntheticSmoke).toContain("'--use-angle=swiftshader'");
+    expect(syntheticSmoke).toContain('maxComputeInvocationsPerWorkgroup: 256');
   });
 
   it('renders Qwen as the visible default model on Run and Contribute', () => {

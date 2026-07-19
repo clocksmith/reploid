@@ -10,7 +10,20 @@ if (!baseUrl) {
   process.exit(1);
 }
 
-const { LAUNCH_MODEL } = await import('../self/pool/model-contract.js');
+const localPeerUrl = (route, room) => {
+  const url = new URL(route, baseUrl);
+  url.searchParams.set('room', room);
+  url.searchParams.set('relay', 'local');
+  return url.toString();
+};
+
+const { getEnabledPoolModelContract } = await import('../self/pool/model-contract.js');
+const SYNTHETIC_MODEL_ID = 'gemma-3-270m-it-q4k-ehf16-af32';
+const SYNTHETIC_MODEL = getEnabledPoolModelContract(SYNTHETIC_MODEL_ID);
+if (!SYNTHETIC_MODEL) {
+  console.error(`Synthetic pool smoke model is not enabled: ${SYNTHETIC_MODEL_ID}`);
+  process.exit(1);
+}
 const routes = ['/', '/ask', '/compute', '/records', '/history', '/network', '/zero'];
 const requiredText = {
   '/': 'Run browser models together',
@@ -23,7 +36,13 @@ const requiredText = {
 };
 
 const { chromium } = await import('@playwright/test');
-const browser = await chromium.launch();
+const browser = await chromium.launch({
+  args: [
+    '--enable-unsafe-webgpu',
+    '--use-angle=swiftshader',
+    '--disable-gpu-sandbox'
+  ]
+});
 const context = await browser.newContext();
 await context.addInitScript((launchModel) => {
   const model = { ...launchModel };
@@ -56,7 +75,7 @@ await context.addInitScript((launchModel) => {
     device: { hasWebGPU: true, probeStatus: 'smoke' },
     browser: { userAgent: 'pool-smoke' }
   });
-  window.REPLOID_POOL_RELAY_MODE = 'local';
+  window.REPLOID_POOL_RELAY = 'local';
   window.REPLOID_POOL_DISCOVERY_WINDOW_MS = 30000;
   window.REPLOID_POOL_RECEIPT_WINDOW_MS = 30000;
   window.REPLOID_POOL_STRICT_ARTIFACT_PREFLIGHT = false;
@@ -77,7 +96,17 @@ await context.addInitScript((launchModel) => {
         runtimeProfileHash: await hashJson(runtimeProfile)
       };
     },
-    getDeviceInfo: async () => ({ hasWebGPU: true, probeStatus: 'smoke' }),
+    getDeviceInfo: async () => ({
+      hasWebGPU: true,
+      probeStatus: 'smoke',
+      adapterInfo: { vendor: 'playwright', architecture: 'pool-smoke' },
+      features: ['datachannel', 'shader-f16', 'subgroups'],
+      limits: {
+        maxBufferSize: 1_073_741_824,
+        maxStorageBufferBindingSize: 536_870_912,
+        maxComputeInvocationsPerWorkgroup: 256
+      }
+    }),
     generate: async ({ prompt }) => ({
       outputText: `smoke:${prompt}`,
       tokenIds: [101, 102, 103],
@@ -96,7 +125,7 @@ await context.addInitScript((launchModel) => {
       status: 'completed'
     })
   };
-}, LAUNCH_MODEL);
+}, SYNTHETIC_MODEL);
 const page = await context.newPage();
 const failures = [];
 
@@ -111,12 +140,12 @@ const gotoRoute = async (targetPage, route) => {
   return response;
 };
 
-const clickPoolRoute = async (targetPage, route) => {
+const clickPoolDashboardView = async (targetPage, view) => {
   const nav = targetPage.locator('.pool-nav-rail');
   await nav.waitFor({ timeout: 30000 });
   const isOpen = await nav.evaluate((node) => node.classList.contains('is-open'));
   if (!isOpen) await nav.locator('.pool-nav-toggle').click();
-  await targetPage.locator(`[data-pool-route-link="${route}"]`).click();
+  await targetPage.locator(`[data-pool-dashboard-view="${view}"]`).click();
 };
 
 for (const route of routes) {
@@ -142,37 +171,42 @@ try {
   await routePage.evaluate(() => {
     window.__REPLOID_POOL_SMOKE_MARKER = 'same-document-route';
   });
-  await clickPoolRoute(routePage, '/ask');
-  await routePage.waitForFunction(() => window.location.pathname === '/ask');
+  await clickPoolDashboardView(routePage, 'ask');
+  await routePage.waitForFunction(() => new URLSearchParams(window.location.search).get('view') === 'ask');
   const runMarker = await routePage.evaluate(() => window.__REPLOID_POOL_SMOKE_MARKER);
-  if (runMarker !== 'same-document-route') failures.push('route toggle to /ask reloaded the boot document');
-  await clickPoolRoute(routePage, '/compute');
-  await routePage.waitForFunction(() => window.location.pathname === '/compute');
+  if (runMarker !== 'same-document-route') failures.push('dashboard switch to Run reloaded the boot document');
+  await clickPoolDashboardView(routePage, 'compute');
+  await routePage.waitForFunction(() => new URLSearchParams(window.location.search).get('view') === 'compute');
   const meshMarker = await routePage.evaluate(() => window.__REPLOID_POOL_SMOKE_MARKER);
-  if (meshMarker !== 'same-document-route') failures.push('route toggle to /compute reloaded the boot document');
+  if (meshMarker !== 'same-document-route') failures.push('dashboard switch to Contribute reloaded the boot document');
   await routePage.close();
   console.log('[pool-smoke] same-document navigation passed');
 } catch (error) {
   failures.push(`same-document route smoke failed: ${error.message}`);
 }
 
+let provider = null;
+let requester = null;
 try {
   console.log('[pool-smoke] synthetic peer receipt flow');
   const room = `pool-smoke-${Date.now().toString(36)}`;
-  const provider = await context.newPage();
-  const requester = await context.newPage();
-  await provider.goto(`${baseUrl}/compute?room=${room}`, { waitUntil: 'domcontentloaded' });
+  provider = await context.newPage();
+  requester = await context.newPage();
+  await provider.goto(localPeerUrl('/compute', room), { waitUntil: 'domcontentloaded' });
   await provider.waitForSelector('.pool-home', { timeout: 30000 });
   await provider.waitForSelector('#pool-provider-worker-toggle');
+  await provider.selectOption('#pool-provider-model', SYNTHETIC_MODEL_ID);
   await provider.click('#pool-provider-worker-toggle');
-  await provider.waitForFunction(() => document.body.textContent.includes('peer_room_listening'));
-  await requester.goto(`${baseUrl}/ask?room=${room}`, { waitUntil: 'domcontentloaded' });
+  await provider.waitForSelector('[data-pool-provider-status][data-provider-state="online"]');
+  await provider.waitForFunction(() => document.querySelector('#pool-provider-result-raw')?.textContent.includes('peer_room_listening'));
+  await requester.goto(localPeerUrl('/ask', room), { waitUntil: 'domcontentloaded' });
   await requester.waitForSelector('.pool-home', { timeout: 30000 });
   await requester.waitForSelector('#pool-run-submit');
+  await requester.selectOption('#pool-run-model', SYNTHETIC_MODEL_ID);
   await requester.fill('#pool-run-prompt', 'browser peer smoke');
   await requester.click('#pool-run-submit');
   await requester.waitForFunction(() => document.body.textContent.includes('smoke:browser peer smoke'));
-  await requester.goto(`${baseUrl}/network?room=${room}`, { waitUntil: 'domcontentloaded' });
+  await requester.goto(localPeerUrl('/network', room), { waitUntil: 'domcontentloaded' });
   await requester.waitForSelector('.pool-home', { timeout: 30000 });
   await requester.waitForSelector('#pool-peer-ledger', { timeout: 30000, state: 'attached' });
   const peerLedger = await requester.evaluate(() => {
@@ -190,7 +224,26 @@ try {
   await requester.close();
   console.log('[pool-smoke] synthetic peer receipt flow passed');
 } catch (error) {
-  failures.push(`peer browser smoke failed: ${error.message}`);
+  const providerState = provider && !provider.isClosed()
+    ? await provider.evaluate(() => ({
+      url: window.location.href,
+      status: document.querySelector('[data-pool-provider-status]')?.textContent?.trim() || null,
+      providerState: document.querySelector('[data-pool-provider-status]')?.dataset?.providerState || null,
+      result: document.querySelector('#pool-provider-result')?.textContent?.trim() || null,
+      raw: document.querySelector('#pool-provider-result-raw')?.textContent?.trim() || null,
+      capability: window.REPLOID_POOL_DEVICE_CAPABILITY || null
+    })).catch((stateError) => ({ diagnosticError: stateError.message }))
+    : null;
+  const requesterState = requester && !requester.isClosed()
+    ? await requester.evaluate(() => ({
+      url: window.location.href,
+      status: document.querySelector('[data-pool-run-status]')?.textContent?.trim() || null,
+      result: document.querySelector('#pool-run-result-stream')?.textContent?.trim() || null,
+      raw: document.querySelector('#pool-run-result-raw')?.textContent?.trim() || null,
+      modelId: document.querySelector('#pool-run-model')?.value || null
+    })).catch((stateError) => ({ diagnosticError: stateError.message }))
+    : null;
+  failures.push(`peer browser smoke failed: ${error.message}; provider=${JSON.stringify(providerState)}; requester=${JSON.stringify(requesterState)}`);
 }
 
 try {
