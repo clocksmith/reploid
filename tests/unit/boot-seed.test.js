@@ -89,7 +89,7 @@ describe('boot seed manifest', () => {
     expect(bootFiles).not.toContain('blueprints/rgr-runtime-contract.md');
     expect(bootFiles).toContain('ui/zero/index.js');
     expect(bootFiles).toContain('styles/zero.css');
-    expect(bootFiles).not.toContain('styles/poolday.css');
+    expect(bootFiles.some((file) => file.startsWith('styles/poolday/'))).toBe(false);
     expect(bootFiles).not.toContain('styles/rd-components.css');
     expect(bootFiles).not.toContain('styles/rd-primitives.css');
     expect(bootFiles).not.toContain('styles/rd-tokens.css');
@@ -128,9 +128,15 @@ describe('boot seed manifest', () => {
     const reploidHomeFiles = pickBootSeedFiles(manifest.files, 'reploid_home');
     const zeroBootFiles = pickBootSeedFiles(manifest.files, 'zero_home');
 
-    expect(poolBootFiles).toContain('styles/poolday.css');
-    expect(reploidHomeFiles).toContain('styles/poolday.css');
-    expect(zeroBootFiles).not.toContain('styles/poolday.css');
+    for (const layerFile of [
+      'styles/poolday/tokens.css',
+      'styles/poolday/primitives.css',
+      'styles/poolday/components.css'
+    ]) {
+      expect(poolBootFiles).toContain(layerFile);
+      expect(reploidHomeFiles).toContain(layerFile);
+      expect(zeroBootFiles).not.toContain(layerFile);
+    }
   });
 
   it('hydrates the shared local Doppler contract for Poolday, Zero, and X', () => {

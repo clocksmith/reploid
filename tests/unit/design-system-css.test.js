@@ -31,7 +31,13 @@ describe('RD stylesheet ownership', () => {
   it('keeps Poolday visuals as an extension of rd.css', () => {
     const rd = readRepoFile('self/styles/rd.css');
     const boot = readRepoFile('self/styles/boot.css');
-    const poolday = readRepoFile('self/styles/poolday.css');
+    const stylesRoot = path.resolve(__dirname, '../../self/styles');
+    // Poolday is split into the three design-system layers; the legacy
+    // single-file bundle must stay retired.
+    expect(existsSync(path.join(stylesRoot, 'poolday.css'))).toBe(false);
+    const poolday = ['tokens', 'primitives', 'components']
+      .map((layer) => readRepoFile(`self/styles/poolday/${layer}.css`))
+      .join('\n');
     const index = readRepoFile('self/index.html');
     const poolEntry = readRepoFile('self/pool-entry.html');
 
@@ -87,6 +93,8 @@ describe('RD stylesheet ownership', () => {
     expect(poolday).toContain('.pool-contribution-metric');
     expect(poolday).toContain('var(--space-lg)');
     expect(index).toContain('ensurePooldayStylesheet');
-    expect(poolEntry).toContain('/styles/poolday.css');
+    expect(poolEntry).toContain('/styles/poolday/tokens.css');
+    expect(poolEntry).toContain('/styles/poolday/primitives.css');
+    expect(poolEntry).toContain('/styles/poolday/components.css');
   });
 });

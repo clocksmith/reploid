@@ -1,0 +1,130 @@
+/* ============================================
+   Poolday Design System - Primitives
+   Layer 2 of 3: tokens -> primitives -> components
+
+   Semantic custom properties and shared motion patterns. Every
+   declaration consumes only token-layer vars (--pool-<token>) or rd
+   base tokens. No component selectors, no raw color literals; alpha
+   tints compose token rgb triplets via rgb(var(--*-rgb) / N%).
+
+   Categories: --pool-surface-*, --pool-frame-*, --pool-border-*,
+   --pool-space-*, --pool-px-*, --pool-radius-*, --pool-z-*,
+   --pool-transition-*, --pool-motion-*, --pool-text-*, --pool-type-*
+   ============================================ */
+
+.pool-home {
+  /* === SURFACES === */
+  --pool-surface-page: var(--bg);
+  --pool-surface-ink: var(--fg);
+  --pool-surface-shape: var(--pool-gradient-shape-surface);
+
+  /* === FRAMES === */
+  /* Paired fill/border vars for the recurring double-background
+     pattern: background: var(--pool-frame-fill-*) padding-box,
+     var(--pool-frame-border-*) border-box; */
+  --pool-frame-fill-idle: var(--pool-gradient-prism-fill-idle);
+  --pool-frame-fill-hover: var(--pool-gradient-prism-fill-hover);
+  --pool-frame-fill-selected: var(--pool-gradient-prism-fill-selected);
+  --pool-frame-border-soft: var(--pool-gradient-prism-border-soft);
+  --pool-frame-border-hover: var(--pool-gradient-prism-border-hover);
+  --pool-frame-border-selected: var(--pool-gradient-prism-border-selected);
+  --pool-frame-shape: var(--pool-gradient-shape-border);
+
+  /* === SPACING PASSTHROUGH === */
+  /* Components never touch rd tokens directly; the rd space scale is
+     re-exported here. */
+  --pool-space-xxs: var(--space-xxs);
+  --pool-space-xs: var(--space-xs);
+  --pool-space-sm: var(--space-sm);
+  --pool-space-md: var(--space-md);
+  --pool-space-lg: var(--space-lg);
+  --pool-space-xl: var(--space-xl);
+
+  /* === TYPE SCALE PASSTHROUGH === */
+  --pool-text-xs: var(--font-size-xs);
+  --pool-text-sm: var(--font-size-sm);
+  --pool-text-base: var(--font-size-base);
+  --pool-text-lg: var(--font-size-lg);
+  --pool-text-xl: var(--font-size-xl);
+  --pool-text-2xl: var(--font-size-2xl);
+  --pool-text-display: var(--font-size-display);
+
+  /* === TYPOGRAPHY === */
+  --pool-type-ui-family: var(--pool-font-sans);
+  --pool-type-display-family: var(--pool-font-display);
+  --pool-type-mono-family: var(--pool-font-mono);
+  --pool-type-weight-regular: var(--font-read-weight);
+  --pool-type-weight-medium: var(--font-set-weight);
+  --pool-type-weight-emphasis: var(--pool-font-weight-semibold);
+  --pool-type-weight-bold: var(--font-weight-bold);
+  --pool-type-tracking-label: var(--font-tracking-label);
+  --pool-type-leading-tight: var(--font-leading-tight);
+  --pool-type-leading-snug: var(--font-leading-snug);
+
+  /* === BORDERS === */
+  --pool-border-hairline: var(--border-sm);
+  --pool-border-thin: var(--border-md);
+  --pool-border-thick: var(--border-lg);
+
+  /* === Z-INDEX PASSTHROUGH === */
+  --pool-z-dropdown: var(--z-dropdown);
+  --pool-z-toast: var(--z-toast);
+  --pool-z-modal: var(--z-modal);
+
+  /* === MOTION === */
+  --pool-transition-fast: var(--transition-fast);
+  --pool-transition-normal: var(--transition-normal);
+  --pool-motion-nav-duration: var(--pool-motion-duration-nav);
+  --pool-motion-nav-easing: var(--pool-motion-easing-nav);
+  --pool-motion-nav: var(--pool-motion-duration-nav) var(--pool-motion-easing-nav);
+
+  /* === STATE === */
+  --pool-opacity-soft: var(--opacity-soft);
+  --pool-opacity-disabled: var(--opacity-disabled);
+
+  /* === METRIC PASSTHROUGH === */
+  /* Size tokens re-exported for component consumption. */
+  --pool-metric-action: var(--pool-size-home-action);
+  --pool-metric-menu-square: var(--pool-size-menu-square);
+  --pool-metric-nav-rail: var(--pool-size-nav-rail);
+  --pool-metric-nav-item: var(--pool-size-nav-item);
+  --pool-metric-nav-panel: var(--pool-size-nav-panel);
+
+  /* === LEGACY ALIASES (migration only) ===
+     Old ad-hoc names kept alive while component rules are rewritten
+     to the categories above. Deleted at the end of the migration;
+     the layer lint flags them until then. */
+  --pool-cyan: var(--pool-color-cyan);
+  --pool-magenta: var(--pool-color-magenta);
+  --pool-gold: var(--pool-color-gold);
+  --pool-cyan-soft: var(--pool-color-cyan-a12);
+  --pool-gold-soft: var(--pool-color-gold-a12);
+  --pool-prism-border-soft: var(--pool-gradient-prism-border-soft);
+  --pool-prism-border-hover: var(--pool-gradient-prism-border-hover);
+  --pool-prism-border-selected: var(--pool-gradient-prism-border-selected);
+  --pool-prism-idle-fill: var(--pool-gradient-prism-fill-idle);
+  --pool-prism-hover-fill: var(--pool-gradient-prism-fill-hover);
+  --pool-prism-selected-fill: var(--pool-gradient-prism-fill-selected);
+  --pool-shape-border: var(--pool-gradient-shape-border);
+  --pool-shape-surface: var(--pool-gradient-shape-surface);
+  --pool-home-action-size: var(--pool-size-home-action);
+  --pool-menu-square-size: var(--pool-size-menu-square);
+  --pool-nav-rail-width: var(--pool-size-nav-rail);
+  --pool-nav-item-height: var(--pool-size-nav-item);
+  --pool-nav-width: var(--pool-size-nav-panel);
+  --pool-nav-motion-duration: var(--pool-motion-duration-nav);
+  --pool-nav-motion-easing: var(--pool-motion-easing-nav);
+  --pool-font: var(--pool-font-sans);
+}
+
+/* === MOTION PATTERNS === */
+
+@keyframes pool-cursor-blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}

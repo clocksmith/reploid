@@ -3,7 +3,7 @@
  * @fileoverview Deploy-surface drift gate.
  * Fails when the deployed hosting surface differs from the local tree:
  * - served index.html build version must match local REPLOID_BUILD_VERSION;
- * - served poolday.css and rd.css bytes must hash-match the local files;
+ * - served poolday layer css and rd.css bytes must hash-match the local files;
  * - product routes must lay out clear of the fixed nav rail.
  * Screenshots for each checked route are written to artifacts/deploy-surface.
  */
@@ -34,7 +34,12 @@ if (!allowLocal && /^https?:\/\/(localhost|127\.0\.0\.1)/.test(baseUrl)) {
   process.exit(1);
 }
 
-const STYLE_FILES = ['styles/poolday.css', 'styles/rd.css'];
+const STYLE_FILES = [
+  'styles/poolday/tokens.css',
+  'styles/poolday/primitives.css',
+  'styles/poolday/components.css',
+  'styles/rd.css'
+];
 const LAYOUT_ROUTES = ['/ask', '/compute', '/records'];
 const SCREENSHOT_ROUTES = ['/', ...LAYOUT_ROUTES];
 const screenshotDir = path.join(repoRoot, 'artifacts', 'deploy-surface');
