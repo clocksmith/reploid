@@ -70,8 +70,15 @@ describe('RD stylesheet ownership', () => {
     expect(poolday).toContain('--pool-wordmark-optical-left');
     expect(poolday).toContain('font-family: \'Michroma\', var(--pool-font)');
     expect(poolday).toContain('.pool-nav-toggle');
-    expect(poolday).toMatch(/\.pool-nav-toggle\s*\{[\s\S]*?width: calc\(var\(--pool-nav-rail-width\) - 10px\);/);
+    expect(poolday).toMatch(/\.pool-nav-rail\s*\{[\s\S]*?top: 0;[\s\S]*?bottom: 0;[\s\S]*?height: 100dvh;/);
+    expect(poolday).toMatch(/\.pool-nav-rail\s*\{[\s\S]*?border-right: 1px solid/);
+    expect(poolday).toMatch(/\.pool-nav-toggle\s*\{[\s\S]*?width: 100%;[\s\S]*?box-shadow: none;/);
     expect(poolday).toMatch(/\.pool-nav-rail\.is-open \.pool-nav-toggle\s*\{[\s\S]*?width: 100%;/);
+    expect(poolday).toMatch(/\.pool-nav-rail\.is-open \.pool-nav-description\s*\{[\s\S]*?opacity: 1;[\s\S]*?visibility: visible;/);
+    expect(poolday).toContain('.pool-nav-top');
+    expect(poolday).toContain('.pool-nav-bottom');
+    expect(poolday).toContain('.pool-nav-view-context');
+    expect(poolday).toContain('.pool-room-context-heading');
     expect(poolday).toMatch(/\.pool-nav-rail\.is-open \.pool-nav-mark-seven-top\s*\{[\s\S]*?font-size: 26px;[\s\S]*?translate\(8px, 8px\)/);
     expect(poolday).toMatch(/\.pool-nav-rail\.is-open \.pool-nav-mark-seven-bottom\s*\{[\s\S]*?font-size: 16px;[\s\S]*?translate\(1px, 0\)/);
     expect(poolday).toMatch(/@media \(prefers-reduced-motion: reduce\)\s*\{[\s\S]*?\.pool-nav-toggle/);

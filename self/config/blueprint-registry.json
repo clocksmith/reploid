@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-07-19T13:27:50.427Z",
+  "generatedAt": "2026-07-19T19:06:23.342Z",
   "features": [
     {
       "id": "0x000003",
@@ -3169,6 +3169,7 @@
         }
       ],
       "files": [
+        "ui/pool-home/ledger-store.js",
         "ui/pool-home/view.js"
       ]
     },
