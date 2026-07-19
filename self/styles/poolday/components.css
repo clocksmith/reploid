@@ -1,44 +1,25 @@
-@import url('https://fonts.googleapis.com/css2?family=Michroma&display=swap');
+/* ============================================
+   Poolday Design System - Components
+   Layer 3 of 3: tokens -> primitives -> components
 
-/* === POOLDAY ROUTE EXTENSION ===
-   Product-specific layout and pastel treatment on top of rd.css.
-   Base controls, typography, panels, inputs, code, badges, and borders stay owned by rd.css. */
+   pool-* component rules. Every declaration consumes only
+   primitive-layer vars (--pool-surface/frame/border/space/px/radius/
+   z/transition/motion/text/type-*) or component parameter vars
+   (--pool-param-*). No color literals, no token-category vars, no
+   bare rd tokens.
+
+   Exempt by policy (mirrored in scripts/verify-poolday-css-layers.js):
+   media-query conditions, @keyframes internals, transform/clip-path/
+   grid-track numerics, percentages, 0/auto/1fr.
+
+   JS CONTRACT - runtime inputs set by self/ui/pool-home scripts:
+   - --tooltip-x, --tooltip-y        simulation-bind.js (tooltip position)
+   - --pool-label-x, --pool-label-y  simulation-bind.js (flow label position)
+   - data-run-state, data-run-phase  simulation-bind.js (run styling states)
+   These names are load-bearing; do not rename without updating the JS.
+   ============================================ */
 
 .pool-home {
-  --pool-cyan: #00f0ff;
-  --pool-magenta: #ff4fd8;
-  --pool-gold: #f2b95f;
-  --pool-cyan-soft: rgba(0, 240, 255, 0.12);
-  --pool-gold-soft: rgba(242, 185, 95, 0.12);
-  --pool-prism-border-soft: linear-gradient(122deg, rgb(246 82 118 / 20%), rgb(247 139 83 / 16%) 22%, rgb(238 197 82 / 18%) 40%, rgb(105 210 153 / 20%) 58%, rgb(68 199 217 / 27%) 74%, rgb(174 122 238 / 22%));
-  --pool-prism-border-hover: linear-gradient(122deg, rgb(246 82 118 / 31%), rgb(247 139 83 / 24%) 22%, rgb(238 197 82 / 25%) 40%, rgb(105 210 153 / 28%) 58%, rgb(68 199 217 / 40%) 74%, rgb(174 122 238 / 34%));
-  --pool-prism-border-selected: linear-gradient(122deg, rgb(246 82 118 / 48%), rgb(247 139 83 / 38%) 22%, rgb(238 197 82 / 39%) 40%, rgb(105 210 153 / 43%) 58%, rgb(68 199 217 / 58%) 74%, rgb(174 122 238 / 50%));
-  --pool-prism-idle-fill: linear-gradient(rgb(255 255 255 / 97%), rgb(255 255 255 / 97%));
-  --pool-prism-hover-fill: linear-gradient(122deg, rgb(68 199 217 / 7%), rgb(174 122 238 / 5%), rgb(247 139 83 / 5%));
-  --pool-prism-selected-fill: linear-gradient(122deg, rgb(68 199 217 / 9%), rgb(105 210 153 / 6%), rgb(174 122 238 / 8%));
-  --pool-shape-border: linear-gradient(
-    137deg,
-    rgb(0 0 0 / 82%) 0%,
-    rgb(246 82 118 / 62%) 13%,
-    rgb(247 139 83 / 32%) 24%,
-    rgb(238 197 82 / 48%) 37%,
-    rgb(105 210 153 / 38%) 51%,
-    rgb(68 199 217 / 60%) 66%,
-    rgb(174 122 238 / 48%) 81%,
-    rgb(0 0 0 / 76%) 100%
-  );
-  --pool-shape-surface: radial-gradient(circle at 26% 16%, rgb(255 255 255 / 96%) 0 14%, transparent 34%),
-    radial-gradient(ellipse at 82% 18%, rgb(68 199 217 / 12%) 0 16%, transparent 44%),
-    radial-gradient(ellipse at 20% 88%, rgb(246 82 118 / 8%) 0 18%, transparent 52%),
-    linear-gradient(145deg, #fff 0%, #f7f8f8 43%, #eceff1 100%);
-  --pool-home-action-size: 48px;
-  --pool-menu-square-size: 48px;
-  --pool-nav-rail-width: 64px;
-  --pool-nav-item-height: 58px;
-  --pool-nav-motion-duration: 320ms;
-  --pool-nav-motion-easing: cubic-bezier(0.22, 1, 0.36, 1);
-  --pool-font: Inter, 'Avenir Next', 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-  --pool-nav-width: 300px;
   min-height: min(100vh, 100dvh);
   padding: calc(var(--space-lg) + 44px) var(--space-lg) var(--space-lg);
   overflow-x: hidden;
@@ -1424,16 +1405,6 @@ body[data-pool-route-id='home'] #app {
 
 .pool-stream-cursor.is-active {
   animation: pool-cursor-blink 1.1s steps(2, end) infinite;
-}
-
-@keyframes pool-cursor-blink {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0;
-  }
 }
 
 .pool-provider-status {

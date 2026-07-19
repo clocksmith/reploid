@@ -10,7 +10,7 @@
     <link rel="icon" type="image/svg+xml" href="favicon.svg" />
     <title>Reploid</title>
     <script>
-    window.REPLOID_BUILD_VERSION = '2026071905';
+    window.REPLOID_BUILD_VERSION = '2026071906';
       window.REPLOID_SW_VERSION = window.REPLOID_BUILD_VERSION;
       window.REPLOID_VFS_VERSION = window.REPLOID_BUILD_VERSION;
     </script>
@@ -34,14 +34,17 @@
       ]);
       const productRoute = productPaths.has(pathname);
       const ensurePooldayStylesheet = () => {
-        const id = 'poolday-route-stylesheet';
-        if (document.getElementById(id)) return;
-        const link = document.createElement('link');
-        link.id = id;
-        link.rel = 'stylesheet';
         const version = encodeURIComponent(window.REPLOID_BUILD_VERSION || '');
-        link.href = `/styles/poolday.css?v=${version}`;
-        document.head.appendChild(link);
+        // Layer order is load order: tokens -> primitives -> components.
+        for (const layer of ['tokens', 'primitives', 'components']) {
+          const id = `poolday-route-stylesheet-${layer}`;
+          if (document.getElementById(id)) continue;
+          const link = document.createElement('link');
+          link.id = id;
+          link.rel = 'stylesheet';
+          link.href = `/styles/poolday/${layer}.css?v=${version}`;
+          document.head.appendChild(link);
+        }
       };
       const ROOT_SW_RELEASE_RELOAD_KEY = 'REPLOID_ROOT_SW_RELEASE_RELOAD';
       const releaseGlobalReploidServiceWorker = async () => {
