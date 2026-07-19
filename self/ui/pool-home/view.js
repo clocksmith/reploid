@@ -1237,9 +1237,6 @@ export const renderNav = (activeRoute, { open = false } = {}) => {
     compute: 'Offer browser compute; stop any time',
     records: 'Answers, work, rooms, and receipts'
   };
-  const activeDefinition = POOLDAY_NAV_ROUTES.find((route) => route.id === activeRoute)
-    || POOLDAY_NAV_ROUTES[0];
-  const activeCopy = ROUTE_COPY[activeDefinition.id] || ROUTE_COPY.home;
   const toggleTooltip = open ? tooltips.toggleOpen : tooltips.toggleClosed;
   const renderItem = ({ id, path, label }) => {
     const isActive = activeRoute === id;
@@ -1271,11 +1268,6 @@ export const renderNav = (activeRoute, { open = false } = {}) => {
             <small>Peer inference</small>
           </span>
         </button>
-        <section class="pool-nav-view-context" aria-label="Current view">
-          <span>Current view</span>
-          <strong>${escapeHtml(activeDefinition.label)}</strong>
-          <p>${escapeHtml(activeCopy.body)}</p>
-        </section>
         <div class="pool-nav-menu" id="pool-nav-menu">
           ${POOLDAY_NAV_ROUTES.map(renderItem).join('')}
         </div>

@@ -578,58 +578,6 @@ body[data-pool-route-id='home'] #app {
   transform: translate(0, -50%);
 }
 
-.pool-nav-view-context {
-  max-height: 0;
-  margin: 0 5px;
-  padding: 0 9px;
-  border-left: 2px solid transparent;
-  opacity: 0;
-  overflow: hidden;
-  transform: translateX(-8px);
-  transition:
-    max-height var(--pool-nav-motion-duration) var(--pool-nav-motion-easing),
-    margin var(--pool-nav-motion-duration) var(--pool-nav-motion-easing),
-    padding var(--pool-nav-motion-duration) var(--pool-nav-motion-easing),
-    border-color 180ms ease,
-    opacity 180ms ease,
-    transform var(--pool-nav-motion-duration) var(--pool-nav-motion-easing);
-  pointer-events: none;
-}
-
-.pool-nav-view-context > span {
-  display: block;
-  color: color-mix(in srgb, var(--fg), transparent 50%);
-  font-size: 0.55rem;
-  font-weight: var(--font-weight-bold);
-  letter-spacing: 0.08em;
-  line-height: 1;
-  text-transform: uppercase;
-}
-
-.pool-nav-view-context strong {
-  display: block;
-  margin-top: 5px;
-  font-size: 0.84rem;
-  line-height: 1.1;
-}
-
-.pool-nav-view-context p {
-  margin: 5px 0 0;
-  color: color-mix(in srgb, var(--fg), transparent 34%);
-  font-size: 0.67rem;
-  line-height: 1.35;
-}
-
-.pool-nav-rail.is-open .pool-nav-view-context {
-  max-height: 96px;
-  margin: 8px 5px 6px;
-  padding: 8px 9px;
-  border-left-color: color-mix(in srgb, var(--pool-cyan), var(--fg) 38%);
-  background: linear-gradient(90deg, rgb(68 199 217 / 7%), transparent 88%);
-  opacity: 1;
-  transform: translateX(0);
-}
-
 .pool-nav-menu {
   display: flex;
   flex: 0 0 auto;
@@ -2289,7 +2237,6 @@ body[data-pool-route-id='home'] #app {
   .pool-nav-mark-seven,
   .pool-nav-brand-copy,
   .pool-nav-toggle::after,
-  .pool-nav-view-context,
   .pool-nav-menu,
   .pool-nav-link,
   .pool-nav-glyph,

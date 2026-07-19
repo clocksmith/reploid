@@ -93,9 +93,8 @@ describe('poolday home navigation', () => {
     expect(html).toContain('pool-nav-mark-seven-top');
     expect(html).toContain('class="pool-nav-top"');
     expect(html).toContain('class="pool-nav-bottom"');
-    expect(html).toContain('class="pool-nav-view-context"');
-    expect(html).toContain('<strong>Contribute</strong>');
-    expect(html).toContain('Let this tab answer compatible runs. Stop at any time.');
+    expect(html).not.toContain('pool-nav-view-context');
+    expect(html).not.toContain('Current view');
     expect(html).toContain('<details class="pool-nav-more">');
     expect(html).toContain('<summary class="pool-nav-more-summary">');
     expect(html).toContain('<span class="pool-nav-label">More</span>');
@@ -127,8 +126,10 @@ describe('poolday home navigation', () => {
     expect(html).toContain('<nav class="pool-nav-rail is-open"');
     expect(html).toContain('aria-label="Close navigation"');
     expect(html).toContain('aria-expanded="true"');
-    expect(html).toContain('<strong>Records</strong>');
-    expect(html).toContain('Answers, contributions, and room events in one ledger.');
+    expect(html).not.toContain('pool-nav-view-context');
+    expect(html).not.toContain('Current view');
+    expect(html).toMatch(/aria-label="Records"[\s\S]*aria-current="page"/);
+    expect(html).toContain('<span class="pool-nav-description">Answers, work, rooms, and receipts</span>');
     expect(html).toContain('<span class="pool-nav-description">Prompt peers and inspect the proof</span>');
     expect(html).toContain('<span class="pool-nav-description">Zero and X workspaces</span>');
     expect(html).toContain('<div class="pool-room-context-heading">');
