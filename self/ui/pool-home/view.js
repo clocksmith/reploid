@@ -37,14 +37,15 @@ import {
   choosePooldayAskPlaceholder
 } from './constants.js';
 import { getContributionSnapshot } from './contribution-state.js';
+import { getPoolLedgerStore } from './ledger-store.js';
 
-const POOLDAY_STREAM_STATE = new Map();
-const POOLDAY_RECEIPT_LEDGER = [];
-const POOLDAY_PEER_EVENTS = [];
-const POOLDAY_PEER_EVENT_HASHES = new Set();
-let POOLDAY_RECEIPT_LEDGER_ROOM = null;
-let POOLDAY_PEER_EVENTS_ROOM = null;
-let POOLDAY_ROOM_ACTIVITY_SUMMARY = null;
+const ledgerStore = getPoolLedgerStore();
+
+// Single sink for markup writes: every fragment below builds attribute and
+// text values through escapeHtml before reaching this assignment.
+const setPoolHtml = (element, markup) => {
+  element.innerHTML = String(markup ?? '');
+};
 
 const getPooldayStorage = () => {
   try {
@@ -88,10 +89,10 @@ const getPeerEventHash = (event = {}) => (
 );
 
 const reloadPeerEventHashes = () => {
-  POOLDAY_PEER_EVENT_HASHES.clear();
-  for (const event of POOLDAY_PEER_EVENTS) {
+  ledgerStore.peerEventHashes.clear();
+  for (const event of ledgerStore.peerEvents) {
     const eventHash = getPeerEventHash(event);
-    if (eventHash) POOLDAY_PEER_EVENT_HASHES.add(eventHash);
+    if (eventHash) ledgerStore.peerEventHashes.add(eventHash);
   }
 };
 
@@ -102,7 +103,7 @@ const loadReceiptLedgerRows = (roomId = getPeerRoomId()) => {
 
 const persistReceiptLedgerRows = (roomId = getPeerRoomId()) => {
   const keys = getPooldayRecordStorageKeys(roomId);
-  writeStorageArray(keys.receipts, POOLDAY_RECEIPT_LEDGER.slice(0, POOLDAY_RECEIPT_LEDGER_LIMIT));
+  writeStorageArray(keys.receipts, ledgerStore.receipts.slice(0, POOLDAY_RECEIPT_LEDGER_LIMIT));
 };
 
 const loadPeerLedgerEvents = (roomId = getPeerRoomId()) => {
@@ -116,19 +117,19 @@ const loadPeerLedgerEvents = (roomId = getPeerRoomId()) => {
 
 const persistPeerLedgerEvents = (roomId = getPeerRoomId()) => {
   const keys = getPooldayRecordStorageKeys(roomId);
-  writeStorageArray(keys.peerLedger, POOLDAY_PEER_EVENTS.slice(-100));
+  writeStorageArray(keys.peerLedger, ledgerStore.peerEvents.slice(-100));
 };
 
 const ensureReceiptLedgerLoaded = (roomId = getPeerRoomId()) => {
-  if (POOLDAY_RECEIPT_LEDGER_ROOM === roomId) return;
-  POOLDAY_RECEIPT_LEDGER_ROOM = roomId;
-  replaceArrayContents(POOLDAY_RECEIPT_LEDGER, loadReceiptLedgerRows(roomId));
+  if (ledgerStore.receiptRoom === roomId) return;
+  ledgerStore.receiptRoom = roomId;
+  replaceArrayContents(ledgerStore.receipts, loadReceiptLedgerRows(roomId));
 };
 
 const ensurePeerLedgerLoaded = (roomId = getPeerRoomId()) => {
-  if (POOLDAY_PEER_EVENTS_ROOM === roomId) return;
-  POOLDAY_PEER_EVENTS_ROOM = roomId;
-  replaceArrayContents(POOLDAY_PEER_EVENTS, loadPeerLedgerEvents(roomId));
+  if (ledgerStore.peerRoom === roomId) return;
+  ledgerStore.peerRoom = roomId;
+  replaceArrayContents(ledgerStore.peerEvents, loadPeerLedgerEvents(roomId));
   reloadPeerEventHashes();
 };
 
@@ -223,30 +224,30 @@ const streamOutputText = (elementId, text) => {
   const outputEl = document.getElementById(elementId);
   if (!outputEl) return;
   const value = String(text || '');
-  const previous = POOLDAY_STREAM_STATE.get(elementId);
+  const previous = ledgerStore.streams.get(elementId);
   if (previous?.timer) window.clearTimeout(previous.timer);
   outputEl.textContent = '';
   if (!value.length) {
     const cursorEl = document.getElementById(`${elementId}-cursor`);
     if (cursorEl) cursorEl.classList.remove('is-visible', 'is-active');
-    POOLDAY_STREAM_STATE.delete(elementId);
+    ledgerStore.streams.delete(elementId);
     return;
   }
-  POOLDAY_STREAM_STATE.set(elementId, {
+  ledgerStore.streams.set(elementId, {
     text: value,
     timer: null,
     index: 0
   });
   const cursorEl = document.getElementById(`${elementId}-cursor`);
   const tick = () => {
-    const state = POOLDAY_STREAM_STATE.get(elementId);
+    const state = ledgerStore.streams.get(elementId);
     if (!state) return;
     state.index += POOLDAY_STREAM_CHUNK_SIZE;
     outputEl.textContent = value.slice(0, state.index);
     if (state.index < value.length) {
       state.timer = window.setTimeout(tick, POOLDAY_STREAM_TICK_MS);
     } else {
-      POOLDAY_STREAM_STATE.delete(elementId);
+      ledgerStore.streams.delete(elementId);
       if (cursorEl) cursorEl.classList.remove('is-active');
     }
   };
@@ -308,9 +309,9 @@ export const addReceiptLedgerRow = (record = {}, receiptHash = '') => {
   const fidelity = normalizeReceiptFidelity(record?.verifierDecision || record?.verification || record?.requesterAcceptance || record?.peerDecision || record?.agreement);
   const speed = normalizeReceiptSpeed(record);
   const rowReceiptHash = String(receiptHash || record?.receiptHash || record?.receipt?.receiptHash || '—');
-  const existingIndex = POOLDAY_RECEIPT_LEDGER.findIndex((row) => row.receiptHash === rowReceiptHash);
-  if (existingIndex >= 0) POOLDAY_RECEIPT_LEDGER.splice(existingIndex, 1);
-  POOLDAY_RECEIPT_LEDGER.unshift({
+  const existingIndex = ledgerStore.receipts.findIndex((row) => row.receiptHash === rowReceiptHash);
+  if (existingIndex >= 0) ledgerStore.receipts.splice(existingIndex, 1);
+  ledgerStore.receipts.unshift({
     jobId: String(jobId || '—'),
     provider: String(provider || '—'),
     fidelity,
@@ -319,8 +320,8 @@ export const addReceiptLedgerRow = (record = {}, receiptHash = '') => {
     occurredAt: receiptOccurredAt(record),
     record
   });
-  while (POOLDAY_RECEIPT_LEDGER.length > POOLDAY_RECEIPT_LEDGER_LIMIT) {
-    POOLDAY_RECEIPT_LEDGER.pop();
+  while (ledgerStore.receipts.length > POOLDAY_RECEIPT_LEDGER_LIMIT) {
+    ledgerStore.receipts.pop();
   }
   persistReceiptLedgerRows();
 };
@@ -329,11 +330,11 @@ export const findReceiptLedgerRecord = (receiptHash = '') => {
   ensureReceiptLedgerLoaded();
   const normalized = String(receiptHash || '').trim();
   if (!normalized) return null;
-  return POOLDAY_RECEIPT_LEDGER.find((row) => row.receiptHash === normalized)?.record || null;
+  return ledgerStore.receipts.find((row) => row.receiptHash === normalized)?.record || null;
 };
 
-export const renderReceiptLedger = (rows = POOLDAY_RECEIPT_LEDGER) => {
-  if (rows === POOLDAY_RECEIPT_LEDGER) ensureReceiptLedgerLoaded();
+export const renderReceiptLedger = (rows = ledgerStore.receipts) => {
+  if (rows === ledgerStore.receipts) ensureReceiptLedgerLoaded();
   if (!rows.length) {
     return '<p class="type-caption pool-receipt-empty">No answers saved yet.</p>';
   }
@@ -365,7 +366,7 @@ export const renderReceiptLedger = (rows = POOLDAY_RECEIPT_LEDGER) => {
 
 export const refreshReceiptLedgerState = () => {
   const ledger = document.getElementById('pool-receipt-ledger');
-  if (ledger) ledger.innerHTML = renderReceiptLedger();
+  if (ledger) setPoolHtml(ledger, renderReceiptLedger());
 };
 
 const recordPeerLedgerEvents = (events = []) => {
@@ -374,9 +375,9 @@ const recordPeerLedgerEvents = (events = []) => {
   let changed = false;
   for (const event of events) {
     const eventHash = getPeerEventHash(event);
-    if (POOLDAY_PEER_EVENT_HASHES.has(eventHash)) continue;
-    POOLDAY_PEER_EVENT_HASHES.add(eventHash);
-    POOLDAY_PEER_EVENTS.push(event);
+    if (ledgerStore.peerEventHashes.has(eventHash)) continue;
+    ledgerStore.peerEventHashes.add(eventHash);
+    ledgerStore.peerEvents.push(event);
     changed = true;
   }
   if (changed) persistPeerLedgerEvents();
@@ -384,7 +385,7 @@ const recordPeerLedgerEvents = (events = []) => {
 
 export const renderPeerLedgerState = () => {
   ensurePeerLedgerLoaded();
-  const reduced = createPeerEventReducer().reduce(POOLDAY_PEER_EVENTS);
+  const reduced = createPeerEventReducer().reduce(ledgerStore.peerEvents);
   const pointRows = Object.entries(reduced.points || {}).sort(([left], [right]) => left.localeCompare(right));
   const reputationRows = Object.values(reduced.reputation || {}).sort((left, right) => String(left.providerId).localeCompare(String(right.providerId)));
   if (pointRows.length === 0 && reputationRows.length === 0) {
@@ -429,7 +430,7 @@ export const renderPeerLedgerState = () => {
 
 export const refreshPeerLedgerState = () => {
   const ledger = document.getElementById('pool-peer-ledger');
-  if (ledger) ledger.innerHTML = renderPeerLedgerState();
+  if (ledger) setPoolHtml(ledger, renderPeerLedgerState());
 };
 
 export const renderRoomActivity = (summary = null) => {
@@ -495,7 +496,7 @@ const receiptRecordKind = (row = {}) => {
 
 const unifiedRecordRows = () => {
   ensureRecordLedgersLoaded();
-  const receiptRows = POOLDAY_RECEIPT_LEDGER.map((row) => ({
+  const receiptRows = ledgerStore.receipts.map((row) => ({
     id: `receipt:${row.receiptHash}`,
     occurredAt: row.occurredAt || receiptOccurredAt(row.record),
     title: receiptRecordKind(row),
@@ -517,7 +518,7 @@ const unifiedRecordRows = () => {
       ].filter(Boolean).join(' · '),
       detail: row
     }));
-  const peerRows = POOLDAY_PEER_EVENTS.map((event) => {
+  const peerRows = ledgerStore.peerEvents.map((event) => {
     const body = event.body || {};
     const isScore = event.type === 'reputation_event' || event.type === 'points_event';
     return {
@@ -531,14 +532,14 @@ const unifiedRecordRows = () => {
       detail: event
     };
   });
-  const roomRows = POOLDAY_ROOM_ACTIVITY_SUMMARY && !POOLDAY_ROOM_ACTIVITY_SUMMARY.error
-    && (Number(POOLDAY_ROOM_ACTIVITY_SUMMARY.messageCount || 0) > 0 || POOLDAY_ROOM_ACTIVITY_SUMMARY.recent?.length)
+  const roomRows = ledgerStore.roomActivitySummary && !ledgerStore.roomActivitySummary.error
+    && (Number(ledgerStore.roomActivitySummary.messageCount || 0) > 0 || ledgerStore.roomActivitySummary.recent?.length)
     ? [{
         id: `room:${getPeerRoomId()}`,
-        occurredAt: POOLDAY_ROOM_ACTIVITY_SUMMARY.recent?.[0]?.createdAt || new Date().toISOString(),
+        occurredAt: ledgerStore.roomActivitySummary.recent?.[0]?.createdAt || new Date().toISOString(),
         title: 'Room activity',
-        meta: `${Number(POOLDAY_ROOM_ACTIVITY_SUMMARY.peerCount || 0)} tabs · ${Number(POOLDAY_ROOM_ACTIVITY_SUMMARY.providerCount || 0)} contributors`,
-        detail: POOLDAY_ROOM_ACTIVITY_SUMMARY
+        meta: `${Number(ledgerStore.roomActivitySummary.peerCount || 0)} tabs · ${Number(ledgerStore.roomActivitySummary.providerCount || 0)} contributors`,
+        detail: ledgerStore.roomActivitySummary
       }]
     : [];
   const byId = new Map();
@@ -575,7 +576,7 @@ export const renderRecordLedger = () => {
 
 export const refreshRecordTimelineState = () => {
   const ledger = document.getElementById('pool-record-ledger');
-  if (ledger) ledger.innerHTML = renderRecordLedger();
+  if (ledger) setPoolHtml(ledger, renderRecordLedger());
 };
 
 const networkCount = (value) => {
@@ -694,9 +695,9 @@ export const setPoolRunVisualState = ({ state = 'idle', phase = '', message = ''
 };
 
 export const refreshRoomActivityState = (summary = null) => {
-  POOLDAY_ROOM_ACTIVITY_SUMMARY = summary;
+  ledgerStore.roomActivitySummary = summary;
   const activity = document.getElementById('pool-room-activity');
-  if (activity) activity.innerHTML = renderRoomActivity(summary);
+  if (activity) setPoolHtml(activity, renderRoomActivity(summary));
   refreshRecordTimelineState();
   applyPoolNetworkVisualState(summary);
 };
@@ -704,8 +705,8 @@ export const refreshRoomActivityState = (summary = null) => {
 export const refreshRecordLedgerState = (options = {}) => {
   const roomId = getPeerRoomId();
   if (options.reload === true) {
-    POOLDAY_RECEIPT_LEDGER_ROOM = null;
-    POOLDAY_PEER_EVENTS_ROOM = null;
+    ledgerStore.receiptRoom = null;
+    ledgerStore.peerRoom = null;
   }
   ensureRecordLedgersLoaded(roomId);
   refreshRecordTimelineState();
@@ -781,7 +782,7 @@ const renderProviderHealth = (state = POOLDAY_PROVIDER_HEALTH) => {
 export const updateProviderHealth = (partial = {}) => {
   Object.assign(POOLDAY_PROVIDER_HEALTH, partial);
   const health = document.getElementById('pool-provider-health');
-  if (health) health.innerHTML = renderProviderHealth();
+  if (health) setPoolHtml(health, renderProviderHealth());
 };
 
 export const refreshProviderStorageHealth = async () => {
@@ -1161,20 +1162,20 @@ export const setResult = (id, value, options = {}) => {
   const rawEl = document.getElementById(`${id}-raw`);
   const evidenceEl = document.getElementById(`${id}-evidence`);
   if (summaryEl) {
-    summaryEl.innerHTML = summary.length > 0 ? renderSummaryRows(summary) : '';
+    setPoolHtml(summaryEl, summary.length > 0 ? renderSummaryRows(summary) : '');
   }
   if (rawEl) rawEl.textContent = raw;
   if (evidenceEl && value && typeof value === 'object') {
-    evidenceEl.innerHTML = renderRunContributionLayer(value);
+    setPoolHtml(evidenceEl, renderRunContributionLayer(value));
   }
   if (streamMode && streamEl) {
     if (outputText && outputText.length > 0) {
       if (streamCursor) streamCursor.classList.add('is-visible', 'is-active');
       streamOutputText(`${id}-stream`, outputText);
     } else {
-      const previous = POOLDAY_STREAM_STATE.get(`${id}-stream`);
+      const previous = ledgerStore.streams.get(`${id}-stream`);
       if (previous?.timer) window.clearTimeout(previous.timer);
-      POOLDAY_STREAM_STATE.delete(`${id}-stream`);
+      ledgerStore.streams.delete(`${id}-stream`);
       streamEl.textContent = formatResultMessage(value);
       if (streamCursor) streamCursor.classList.remove('is-visible', 'is-active');
     }
@@ -1345,10 +1346,10 @@ export const refreshContributionPanels = () => {
   const historySection = document.querySelector('[data-pool-contribution-history]');
   const snapshot = getContributionSnapshot();
   if (stats) {
-    stats.innerHTML = renderComputeNodeStats(snapshot);
+    setPoolHtml(stats, renderComputeNodeStats(snapshot));
     stats.hidden = !snapshot.optedIn;
   }
-  if (history) history.innerHTML = renderRecentContributionHistory(snapshot);
+  if (history) setPoolHtml(history, renderRecentContributionHistory(snapshot));
   if (historySection) historySection.hidden = !snapshot.recent?.length;
   refreshRecordTimelineState();
 };
@@ -1382,7 +1383,7 @@ export const refreshContributionStatusBar = () => {
     return;
   }
   const template = document.createElement('template');
-  template.innerHTML = renderContributionStatusBar(snapshot).trim();
+  setPoolHtml(template, renderContributionStatusBar(snapshot).trim());
   const next = template.content.firstElementChild;
   if (!next) {
     current?.remove();

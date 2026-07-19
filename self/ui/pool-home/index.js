@@ -17,6 +17,7 @@ import {
   renderRoutePanel
 } from './view.js';
 import { subscribeContributionState } from './contribution-state.js';
+import { resetPoolLedgerStore } from './ledger-store.js';
 import {
   bindHomeAskControls,
   bindProviderControls,
@@ -91,6 +92,7 @@ const bindPoolRouteControls = (mount, render) => {
 
 export function initPoolHome(mount) {
   if (!mount) return;
+  resetPoolLedgerStore();
   const runtime = window.REPLOID_DOPPLER_RUNTIME || createDopplerRuntime();
   window.REPLOID_DOPPLER_RUNTIME = runtime;
   window.REPLOID_POOL_ATTACH_DOPPLER_HANDLE = (handle, model = null, runtimeInfo = null) => runtime.attachHandle(handle, model, runtimeInfo);
