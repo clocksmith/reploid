@@ -86,3 +86,6 @@ showcase/runs/*.json
 !showcase/runs/reploid-export-1765143717007.json
 !showcase/runs/reploid-export-1764172457231.json
 !showcase/runs/reploid-export-1765420266028.json
+
+# Regenerated deploy verification screenshots
+artifacts/deploy-surface/
