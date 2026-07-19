@@ -163,8 +163,8 @@ try {
   const requester = await context.newPage();
   await provider.goto(`${baseUrl}/compute?room=${room}`, { waitUntil: 'domcontentloaded' });
   await provider.waitForSelector('.pool-home', { timeout: 30000 });
-  await provider.waitForSelector('#pool-provider-worker-start');
-  await provider.click('#pool-provider-worker-start');
+  await provider.waitForSelector('#pool-provider-worker-toggle');
+  await provider.click('#pool-provider-worker-toggle');
   await provider.waitForFunction(() => document.body.textContent.includes('peer_room_listening'));
   await requester.goto(`${baseUrl}/ask?room=${room}`, { waitUntil: 'domcontentloaded' });
   await requester.waitForSelector('.pool-home', { timeout: 30000 });

@@ -225,8 +225,8 @@ const openPoolPage = async (context, route, roomId, label, options = {}) => {
 };
 
 const waitForProviderListening = async (page) => {
-  await page.waitForSelector('#pool-provider-worker-start', { timeout: ACTUAL_SMOKE_WINDOW_MS });
-  await page.locator('#pool-provider-worker-start').click();
+  await page.waitForSelector('#pool-provider-worker-toggle', { timeout: ACTUAL_SMOKE_WINDOW_MS });
+  await page.locator('#pool-provider-worker-toggle').click();
   let lastObserved = null;
   await waitFor(async () => {
     const snapshot = await readSnapshot(page, 'pool-provider-result');
