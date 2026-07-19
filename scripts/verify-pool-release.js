@@ -59,6 +59,11 @@ const run = (label, script, scriptArgs = [], env = {}) => new Promise((resolve, 
 });
 
 try {
+  await run('deploy-surface drift gate', 'verify-deploy-surface.js', [
+    baseUrl,
+    ...(isLocal ? ['--allow-local'] : [])
+  ]);
+
   const productionArgs = ['--verify-artifact'];
   if (!isLocal) productionArgs.push('--url', baseUrl);
   if (allowPlaceholders) productionArgs.push('--allow-placeholders');
