@@ -785,12 +785,25 @@ const getProviderContributionController = () => {
   return providerContributionController;
 };
 
+const syncProviderWorkloadCapability = (modelSelect) => {
+  const badge = document.querySelector('[data-pool-provider-workload]');
+  if (!badge) return;
+  const workload = modelSelect?.selectedOptions?.[0]?.dataset?.workload || 'text_generation';
+  badge.textContent = workload.replace(/[-_]/g, ' ');
+};
+
 export const bindProviderControls = () => {
+  const modelInput = document.getElementById('pool-provider-model');
   getProviderContributionController().attachControls({
     workerToggleButton: document.getElementById('pool-provider-worker-toggle'),
-    modelInput: document.getElementById('pool-provider-model'),
+    modelInput,
     mount: document.getElementById('app')
   });
+  if (modelInput && modelInput.dataset.poolWorkloadBound !== 'true') {
+    modelInput.dataset.poolWorkloadBound = 'true';
+    modelInput.addEventListener('change', () => syncProviderWorkloadCapability(modelInput));
+    syncProviderWorkloadCapability(modelInput);
+  }
 };
 
 export const bindReceiptControls = () => {
