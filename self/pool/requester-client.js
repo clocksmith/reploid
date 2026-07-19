@@ -11,6 +11,7 @@ import { createAdapterUseApproval } from './adapter-publication.js';
 import {
   createPeerLedgerEvents,
   createPeerPromptPayload,
+  createPeerSequencePayload,
   createSignedJobIntent
 } from './peer-control-plane.js';
 import {
@@ -92,7 +93,15 @@ export function createRequesterClient({ requesterId, sdk = createPoolSdk(), keyP
         verificationLevel: policy?.verificationLevel || 'signed_receipt'
       });
     },
-    async createPeerJobIntent({ prompt, policyId = FASTEST_RECEIPT_POLICY_ID, modelRequirements = {}, generationConfig = {}, maxPointSpend = null } = {}) {
+    async createPeerJobIntent({
+      prompt,
+      sequence,
+      sequenceRequest = null,
+      policyId = FASTEST_RECEIPT_POLICY_ID,
+      modelRequirements = {},
+      generationConfig = {},
+      maxPointSpend = null
+    } = {}) {
       const keys = await ensureKeys();
       const resolvedRequesterId = await ensureRequesterId();
       return createSignedJobIntent({
@@ -100,6 +109,8 @@ export function createRequesterClient({ requesterId, sdk = createPoolSdk(), keyP
         requesterPublicKey,
         privateKey: keys.privateKey,
         prompt,
+        sequence,
+        sequenceRequest,
         policyId,
         modelRequirements: buildLaunchModelRequirements(modelRequirements),
         generationConfig: {
@@ -109,12 +120,25 @@ export function createRequesterClient({ requesterId, sdk = createPoolSdk(), keyP
         maxPointSpend
       });
     },
+    createPeerSequenceJobIntent(options = {}) {
+      return this.createPeerJobIntent(options);
+    },
     async createPeerPromptPayload({ assignment, prompt, toPeerId = assignment?.providerId } = {}) {
       await ensureKeys();
       const resolvedRequesterId = await ensureRequesterId();
       return createPeerPromptPayload({
         assignment,
         prompt,
+        fromPeerId: resolvedRequesterId,
+        toPeerId
+      });
+    },
+    async createPeerSequencePayload({ assignment, sequence, toPeerId = assignment?.providerId } = {}) {
+      await ensureKeys();
+      const resolvedRequesterId = await ensureRequesterId();
+      return createPeerSequencePayload({
+        assignment,
+        sequence,
         fromPeerId: resolvedRequesterId,
         toPeerId
       });

@@ -5,7 +5,12 @@
 import { createPoolSdk } from './sdk.js';
 import { buildPoolReceipt, createSigningKeyPair, exportPublicKey, hashJson, sha256Hex, signProviderReceipt } from './inference-receipt.js';
 import { createDopplerRuntime } from './doppler-runtime.js';
-import { POOLDAY_MODEL_WORKLOADS, buildLaunchProviderModel, getPoolModelWorkload } from './model-contract.js';
+import {
+  POOLDAY_MODEL_WORKLOADS,
+  buildLaunchProviderModel,
+  getPoolModelWorkload,
+  modelSupportsPoolWorkload
+} from './model-contract.js';
 import {
   runtimeHasActiveAdapterRequirement,
   validateAdapterRequirement
@@ -17,8 +22,9 @@ import { listPolicies } from './policy-router.js';
 import { collectRuntimeProfile } from './runtime-profile.js';
 import {
   createSignedProviderAdvert,
-  validatePromptPayloadForAssignment
+  validateInputPayloadForAssignment
 } from './peer-control-plane.js';
+import { isSequenceWorkload, normalizeSequenceInput } from './sequence-workload.js';
 import {
   buildAssignmentCommitmentPayload,
   buildAssignmentRevealPayload
@@ -68,7 +74,7 @@ export function createProviderClient({
     && model.manifestHash === runtimeModel.manifestHash
     && (model.runtime || 'doppler') === (runtimeModel.runtime || 'doppler')
     && (model.backend || 'browser-webgpu') === (runtimeModel.backend || 'browser-webgpu')
-    && getPoolModelWorkload(model) === getPoolModelWorkload(runtimeModel)
+    && modelSupportsPoolWorkload(runtimeModel, getPoolModelWorkload(model))
   );
 
   const assignmentMatchesRuntime = (assignmentModel = {}, runtimeModel = {}) => (
@@ -77,7 +83,10 @@ export function createProviderClient({
     && assignmentModel.manifestHash === runtimeModel.manifestHash
     && (assignmentModel.runtime || 'doppler') === (runtimeModel.runtime || 'doppler')
     && (assignmentModel.backend || 'browser-webgpu') === (runtimeModel.backend || 'browser-webgpu')
-    && (assignmentModel.workload || assignmentModel.requirements?.workload || POOLDAY_MODEL_WORKLOADS.textGeneration) === getPoolModelWorkload(runtimeModel)
+    && modelSupportsPoolWorkload(
+      runtimeModel,
+      assignmentModel.workload || assignmentModel.requirements?.workload || POOLDAY_MODEL_WORKLOADS.textGeneration
+    )
     && runtimeHasActiveAdapterRequirement(
       runtimeModel,
       assignmentModel.requirements?.adapter || assignmentModel.adapter || null
@@ -165,24 +174,41 @@ export function createProviderClient({
     };
   };
 
-  const resolveAssignmentPrompt = async (assignment = {}, { promptPayload = null, prompt = null } = {}) => {
-    if (promptPayload) {
-      const validation = await validatePromptPayloadForAssignment(promptPayload, assignment);
-      if (!validation.ok) throw new Error(`invalid WebRTC prompt payload: ${validation.reasons.join('; ')}`);
-      return validation.prompt;
+  const resolveAssignmentInput = async (assignment = {}, {
+    inputPayload = null,
+    promptPayload = null,
+    prompt = null,
+    sequence = null
+  } = {}) => {
+    const workload = assignment.workload || assignment.model?.requirements?.workload || POOLDAY_MODEL_WORKLOADS.textGeneration;
+    const payload = inputPayload || promptPayload;
+    if (payload) {
+      const validation = await validateInputPayloadForAssignment(payload, assignment);
+      if (!validation.ok) throw new Error(`invalid WebRTC input payload: ${validation.reasons.join('; ')}`);
+      return {
+        kind: validation.inputKind,
+        value: validation.sequence || validation.prompt
+      };
+    }
+    if (isSequenceWorkload(workload) && sequence !== null && sequence !== undefined) {
+      const normalized = normalizeSequenceInput(sequence, assignment.sequenceRequest?.alphabet);
+      if (assignment.inputHash && await sha256Hex(normalized) !== assignment.inputHash) {
+        throw new Error('assignment inputHash mismatch');
+      }
+      return { kind: 'sequence', value: normalized };
     }
     if (prompt !== null && prompt !== undefined) {
       const promptText = String(prompt);
       if (assignment.inputHash && await sha256Hex(promptText) !== assignment.inputHash) {
         throw new Error('assignment inputHash mismatch');
       }
-      return promptText;
+      return { kind: 'prompt', value: promptText };
     }
-    if (assignment.prompt) return assignment.prompt;
-    throw new Error('assignment prompt must be supplied over WebRTC prompt payload');
+    if (assignment.prompt) return { kind: 'prompt', value: assignment.prompt };
+    throw new Error('assignment input must be supplied over a WebRTC input payload');
   };
 
-  const runLocalAssignment = async (assignment, { promptPayload = null, prompt = null } = {}) => {
+  const runLocalAssignment = async (assignment, options = {}) => {
     await ensureKeys();
     recordHistory({
       eventType: 'assignment_execution_started',
@@ -206,18 +232,24 @@ export function createProviderClient({
     if (!assignmentMatchesRuntime(assignment.model || {}, runtimeModel || {})) {
       throw new Error('Assignment adapter identity does not match the active Doppler runtime');
     }
-    const promptText = await resolveAssignmentPrompt(assignment, { promptPayload, prompt });
+    const input = await resolveAssignmentInput(assignment, options);
     const workload = assignment.workload || assignment.model?.requirements?.workload || getPoolModelWorkload(runtimeModel || {});
-    const runtimeExecution = workload === POOLDAY_MODEL_WORKLOADS.embedding
-      ? await runtime.embed({
-        prompt: promptText,
+    let runtimeExecution;
+    if (workload === POOLDAY_MODEL_WORKLOADS.embedding) {
+      runtimeExecution = await runtime.embed({ prompt: input.value, assignment });
+    } else if (isSequenceWorkload(workload)) {
+      runtimeExecution = await runtime.encodeSequence({
+        sequence: input.value,
+        request: assignment.sequenceRequest,
         assignment
-      })
-      : await runtime.generate({
-        prompt: promptText,
+      });
+    } else {
+      runtimeExecution = await runtime.generate({
+        prompt: input.value,
         generationConfig: assignment.generationConfig,
         assignment
       });
+    }
     const execution = {
       ...runtimeExecution,
       adapter
@@ -234,7 +266,8 @@ export function createProviderClient({
       execution
     });
     return {
-      prompt: promptText,
+      inputKind: input.kind,
+      ...(input.kind === 'prompt' ? { prompt: input.value } : {}),
       execution,
       receipt: await signProviderReceipt(receipt, activeKeyPair.privateKey)
     };
@@ -448,8 +481,8 @@ export function createProviderClient({
       if (!registration?.providerId) throw new Error('Provider is not registered');
       return sdk.nextAssignment(registration.providerId);
     },
-    async executePeerAssignment(assignment, { promptPayload = null, prompt = null } = {}) {
-      const result = await runLocalAssignment(assignment, { promptPayload, prompt });
+    async executePeerAssignment(assignment, options = {}) {
+      const result = await runLocalAssignment(assignment, options);
       const receiptHash = await hashJson(result.receipt);
       recordHistory({
         eventType: 'peer_receipt_created',
@@ -464,9 +497,9 @@ export function createProviderClient({
         transport: 'webrtc_peer_control'
       };
     },
-    async executeAssignment(assignment, { commitReveal = 'auto', promptPayload = null, prompt = null } = {}) {
+    async executeAssignment(assignment, { commitReveal = 'auto', ...inputOptions } = {}) {
       try {
-        const { execution, receipt: signedReceipt } = await runLocalAssignment(assignment, { promptPayload, prompt });
+        const { execution, receipt: signedReceipt } = await runLocalAssignment(assignment, inputOptions);
         const commitRevealResult = await runCommitReveal({
           assignment,
           execution,
@@ -476,10 +509,16 @@ export function createProviderClient({
         const result = await sdk.submitReceipt(assignment.assignmentId, {
           outputText: execution.outputText,
           tokenIds: execution.tokenIds || [],
+          outputKind: execution.outputKind || assignment.workload || null,
+          vectorHash: execution.vectorHash || null,
+          embeddingDimensions: execution.embeddingDimensions || null,
+          embeddingStats: execution.embeddingStats || null,
           transcript: execution.transcript || {
             outputText: execution.outputText,
             tokenIds: execution.tokenIds || []
           },
+          sequenceResultHash: execution.sequenceResultHash || null,
+          sequenceResult: execution.sequenceResult || null,
           receipt: signedReceipt
         });
         result.commitReveal = commitRevealResult;

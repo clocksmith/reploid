@@ -10,6 +10,7 @@ import {
   listPolicies
 } from './config.js';
 import { validateLaunchModelRequirement } from './model-contract.js';
+import { isSequenceWorkload } from '../../self/pool/sequence-workload.js';
 
 export { DETERMINISTIC_GENERATION_CONFIG, POLICIES, POLICY_IDS, getPolicy, listPolicies };
 
@@ -95,6 +96,9 @@ export function validateJobRequest(request = {}) {
   if (!request.modelRequirements?.manifestHash) reasons.push('modelRequirements.manifestHash is required');
   if (!request.modelRequirements?.runtime) reasons.push('modelRequirements.runtime is required');
   if (!request.modelRequirements?.backend) reasons.push('modelRequirements.backend is required');
+  if (isSequenceWorkload(request.modelRequirements?.workload)) {
+    reasons.push('biological sequence jobs require the peer-room WebRTC input lane');
+  }
   if (policy) reasons.push(...validateDeterministicGenerationConfig(request.generationConfig || {}));
   if (policy) reasons.push(...validateLaunchModelRequirement(request.modelRequirements || {}).reasons);
   reasons.push(...validatePooldayPolicyClasses(request).reasons);

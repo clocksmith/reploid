@@ -38,6 +38,7 @@ Guide to all documentation in the REPLOID project.
 - **[docs/poolday/threat-model.md](./poolday/threat-model.md)** - Poolday adversaries, trust boundaries, and evidence
 - **[docs/poolday/receipt-schema.md](./poolday/receipt-schema.md)** - Provider receipts and requester acceptances
 - **[docs/poolday/receipt-backed-retrieval.md](./poolday/receipt-backed-retrieval.md)** - Target strategy for receipt-backed embeddings, retrieval, reranking, and vector memory
+- **[docs/poolday/biological-sequence-lane.md](./poolday/biological-sequence-lane.md)** - Governed protein/DNA sequence execution, receipt, privacy, and AdapterPack boundary
 - **[docs/poolday/p2p-envelope-protocol.md](./poolday/p2p-envelope-protocol.md)** - Signed peer envelope contract
 - **[docs/poolday/reputation-ledger.md](./poolday/reputation-ledger.md)** - Event-sourced reputation reducer contract
 - **[docs/multi-model-evaluation.md](./multi-model-evaluation.md)** - Multi-model evaluation harness

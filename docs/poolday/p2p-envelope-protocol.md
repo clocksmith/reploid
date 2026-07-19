@@ -49,6 +49,7 @@ Signaling servers may relay:
 - close
 - ping
 
-They must not carry prompts, outputs, token ids, full receipts, or model shards.
+They must not carry prompts, biological sequences, outputs, token ids, full
+receipts, or model shards.
 
 *Last updated: June 2026*
