@@ -2,17 +2,19 @@
 
 Reploid stages externally trained adapters in Shadow. It activates them only
 after Doppler proves identity and inference parity, Gamma selects the exact
-artifact on sealed task and retention populations, and a human approves the
-bound receipt chain.
+artifact on sealed task and retention populations, Clocksmith independently
+verifies prospective evidence, and a human approves the bound receipt chain.
 
 ## Contract
 
 `NeuralCompiler.stageTrainedAdapter()` accepts:
 
-- a Tinker-attributed adapter manifest;
+- a Tinker- or Doppler-attributed adapter manifest;
 - a Doppler trainer-artifact identity receipt;
-- a Doppler `tinker_peft_browser_adapter` parity receipt; and
-- a Gamma `tinker-browser-selection-receipt`.
+- a trainer-matched Doppler browser parity receipt;
+- a Gamma selection receipt; and
+- a `clocksmith.promotion-verification/v1` receipt bound to the candidate and
+  the pinned exposure-ledger schema.
 
 The stage verifies each receipt hash, then verifies the links between receipts.
 The Gamma adapter ID, adapter SHA-256, base model ID, and base checkpoint
@@ -55,21 +57,30 @@ but private browser delivery does not expose a long-lived Hugging Face token.
 
 | Decision | Owner |
 |---|---|
-| Adapter training and export | Thinking Machines Tinker |
+| Adapter training and export | Thinking Machines Tinker or Clocksmith Doppler |
+| Exposure chronology and prospective promotion eligibility | Clocksmith independent verifier |
 | Byte identity and browser inference parity | Doppler |
 | Task gain, retention, and required determinism levels | Gamma SAME-R |
 | Shadow state and activation enforcement | Reploid NeuralCompiler |
 | Durable promotion | Human through Reploid HITL |
 | Publication, revocation, requester approval, and transport | Reploid Poolday |
 
-Neither Tinker, Doppler, nor Gamma may activate an adapter. Gamma selection is
-candidate admission, not promotion.
+Neither a trainer, Doppler runtime verification, Gamma selection, nor the
+independent verifier may activate an adapter. They provide separate evidence;
+human approval remains the durable promotion authority.
 
 ## Current claim boundary
 
 The promotion and Poolday network contracts have focused executable tests. The
-repository does not contain a real Tinker training receipt, a promoted Tinker
+repository does not contain a real Tinker or Doppler training receipt, a promoted
 adapter, or a deployed adapter publication. The synthetic Gamma fixture proves
 evaluator mechanics only.
+
+Immutable network-mechanics canaries are recorded in
+[`artifact-custody/network-canaries-v1.json`](artifact-custody/network-canaries-v1.json).
+They cover the hosted Gemma 270M base model, an Apache-2.0 external Qwen 0.8B
+NER adapter mirror, and the 232,808,939-byte WGSL Repair seed-29 transfer
+artifact. Their roles are narrow: none is prospective model-quality or
+promotion evidence.
 
 *Last updated: July 2026*
