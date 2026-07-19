@@ -2118,3 +2118,35 @@ body[data-pool-route-id='home'] #app {
   margin: 0;
   color: rgba(23, 32, 29, 0.66);
 }
+
+.pool-home-lane-chips {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.pool-lane-chip {
+  min-height: 28px;
+  padding: 0 12px;
+  border: 1px solid rgba(26, 49, 47, 0.14);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.72);
+  color: rgba(18, 28, 26, 0.72);
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.pool-lane-chip.is-active {
+  border-color: rgb(68 199 217 / 46%);
+  background: rgb(68 199 217 / 12%);
+  color: rgba(18, 28, 26, 0.92);
+}
+
+.pool-lane-chip:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.pool-home-stage[data-pool-lane='adapters'] .pool-simulation-labels [data-pool-flow-label='infer'] {
+  filter: hue-rotate(36deg);
+}

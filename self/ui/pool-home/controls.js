@@ -360,12 +360,41 @@ export const bindRunControls = () => {
   void populateRunAdapterOptions(adapterSelect, modelSelect);
 };
 
+const HOME_LANE_PROMPTS = Object.freeze({
+  text: null,
+  adapters: 'Answer with a published adapter pack on the base model'
+});
+
+const bindHomeLaneChips = (input) => {
+  const chips = [...document.querySelectorAll('.pool-lane-chip')];
+  const stage = document.querySelector('.pool-home-stage');
+  if (chips.length === 0 || !stage) return;
+  chips.forEach((chip) => {
+    if (chip.disabled || chip.dataset.poolLaneBound === 'true') return;
+    chip.dataset.poolLaneBound = 'true';
+    chip.addEventListener('click', () => {
+      chips.forEach((other) => {
+        other.classList.toggle('is-active', other === chip);
+        other.setAttribute('aria-pressed', String(other === chip));
+      });
+      const lane = chip.dataset.poolLane || 'text';
+      stage.dataset.poolLane = lane;
+      const lanePrompt = HOME_LANE_PROMPTS[lane];
+      const suggested = lanePrompt || String(input?.dataset.poolSuggestedPrompt || '');
+      if (input && input.dataset.poolSuggestedPromptCleared !== 'true') {
+        input.value = suggested;
+      }
+    });
+  });
+};
+
 export const bindHomeAskControls = () => {
   const form = document.getElementById('pool-home-ask-form');
   const input = document.getElementById('pool-home-ask-prompt');
   const button = document.getElementById('pool-home-run-submit');
   if (!form || !input || !button) return;
   bindSuggestedPromptEditing(input);
+  bindHomeLaneChips(input);
   bindPeerRunSurface({
     button,
     prompt: input,

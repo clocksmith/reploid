@@ -1482,6 +1482,13 @@ const renderHomeSimulation = () => {
             <p class="pool-hero-body">Run browser models together.</p>
           </div>
         </div>
+        <div class="pool-home-lane-chips" role="group" aria-label="Workload lanes">
+          <button type="button" class="pool-lane-chip is-active" data-pool-lane="text" aria-pressed="true">Text</button>
+          <button type="button" class="pool-lane-chip" data-pool-lane="adapters" aria-pressed="false"
+                  title="Adapter packs run through the same loop on top of a base model">Adapters</button>
+          <button type="button" class="pool-lane-chip" data-pool-lane="sequence" disabled
+                  title="No qualified sequence model artifacts yet">Sequence</button>
+        </div>
         <form class="pool-home-toolbar-center pool-home-cta-row pool-home-ask-form" id="pool-home-ask-form" aria-label="Ask the network">
           <div class="pool-home-ask-pill">
             <input
