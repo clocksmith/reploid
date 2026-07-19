@@ -270,13 +270,13 @@ const createFloatTopologyPoints = (sourcePoints = {}, random) => {
   return Object.fromEntries(POOLDAY_GRAPH_NODE_IDS.map((id, index) => {
     const source = sourcePoints[id] || { x: centerX, y: centerY };
     const angle = rotation + index * 2.399963229728653;
-    const radius = 0.14 + random() * 0.25;
+    const radius = 0.19 + random() * 0.31;
     const sourcePull = POOLDAY_PARTICIPANT_NODE_IDS.includes(id) ? 0.42 : 0.28;
     return [
       id,
       {
-        x: clampRange(centerX + Math.cos(angle) * radius + (source.x - centerX) * sourcePull, 0.10, 0.90),
-        y: clampRange(centerY + Math.sin(angle) * radius * 0.78 + (source.y - centerY) * sourcePull, 0.14, 0.86)
+        x: clampRange(centerX + Math.cos(angle) * radius + (source.x - centerX) * sourcePull, 0.08, 0.92),
+        y: clampRange(centerY + Math.sin(angle) * radius * 0.80 + (source.y - centerY) * sourcePull, 0.13, 0.87)
       }
     ];
   }));
