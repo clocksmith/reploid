@@ -217,24 +217,23 @@ describe('poolday home navigation', () => {
     const askHtml = renderRouteDetail('ask');
     const computeHtml = renderRouteDetail('compute');
 
-    expect(askHtml).toContain('<option value="qwen-3-5-0-8b-q4k-ehaf16" selected>Qwen 3.5 0.8B</option>');
-    expect(computeHtml).toContain('<option value="qwen-3-5-0-8b-q4k-ehaf16" selected>Qwen 3.5 0.8B</option>');
-    expect(askHtml).toContain('<option value="gemma-4-e2b-it-q4k-ehf16-af32-int4ple">Gemma 4 E2B INT4 PLE</option>');
-    expect(computeHtml).toContain('<option value="gemma-4-e2b-it-q4k-ehf16-af32-int4ple">Gemma 4 E2B INT4 PLE</option>');
-    expect(askHtml).not.toContain('qwen-3-embedding-0-6b-q4k-ehf16-af32');
-    expect(computeHtml).toContain('<option value="qwen-3-embedding-0-6b-q4k-ehf16-af32">Qwen3 Embedding 0.6B · embedding</option>');
+    expect(askHtml).toContain('<option value="qwen-3-5-0-8b-q4k-ehaf16" data-workload="text_generation" selected>Qwen 3.5 0.8B</option>');
+    expect(computeHtml).toContain('<option value="qwen-3-5-0-8b-q4k-ehaf16" data-workload="text_generation" selected>Qwen 3.5 0.8B</option>');
+    expect(askHtml).toContain('<option value="gemma-4-e2b-it-q4k-ehf16-af32-int4ple" data-workload="text_generation">Gemma 4 E2B INT4 PLE</option>');
+    expect(computeHtml).toContain('<option value="gemma-4-e2b-it-q4k-ehf16-af32-int4ple" data-workload="text_generation">Gemma 4 E2B INT4 PLE</option>');
+    expect(askHtml).toContain('<option value="qwen-3-embedding-0-6b-q4k-ehf16-af32" data-workload="embedding" disabled>Qwen3 Embedding 0.6B · embedding (sequence lane pending)</option>');
+    expect(computeHtml).toContain('<option value="qwen-3-embedding-0-6b-q4k-ehf16-af32" data-workload="embedding">Qwen3 Embedding 0.6B · embedding</option>');
     expect(askHtml).not.toContain('gemma-3-1b-it-q4k-ehf16-af32');
     expect(computeHtml).not.toContain('gemma-3-1b-it-q4k-ehf16-af32');
     expect(askHtml).not.toContain('<option value="gemma-3-270m-it-q4k-ehf16-af32" selected>');
     expect(computeHtml).not.toContain('<option value="gemma-3-270m-it-q4k-ehf16-af32" selected>');
-    expect(askHtml).not.toMatch(/<option[^>]+disabled/);
     expect(computeHtml).not.toMatch(/<option[^>]+disabled/);
   });
 
   it('renders Run as answer-first with proof and raw-result layers', () => {
     const html = renderRouteDetail('ask');
 
-    expect(html).toContain('<span>Prompt</span>');
+    expect(html).toContain('<span data-pool-run-prompt-label>Prompt</span>');
     expect(html).toContain('<summary>Settings</summary>');
     expect(html).toContain('data-pool-run-output hidden');
     expect(html).toContain('id="pool-run-result-evidence"');

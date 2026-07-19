@@ -290,14 +290,74 @@ const bindPeerRunSurface = ({
   updateRunState('idle');
 };
 
+const runWorkloadOf = (modelSelect) => (
+  modelSelect?.selectedOptions?.[0]?.dataset?.workload || 'text-generation'
+);
+
+const syncRunWorkloadAffordance = (modelSelect) => {
+  const badge = document.querySelector('[data-pool-run-workload]');
+  const promptLabel = document.querySelector('[data-pool-run-prompt-label]');
+  const workload = runWorkloadOf(modelSelect);
+  const isSequence = workload !== 'text-generation';
+  if (badge) badge.textContent = workload.replace(/[-_]/g, ' ');
+  if (promptLabel) promptLabel.textContent = isSequence ? 'Sequence' : 'Prompt';
+};
+
+const populateRunAdapterOptions = async (adapterSelect, modelSelect) => {
+  if (!adapterSelect || adapterSelect.dataset.poolAdaptersLoaded === 'true') return;
+  adapterSelect.dataset.poolAdaptersLoaded = 'true';
+  const baseOption = '<option value="">Base model only</option>';
+  const disabledOption = (label) => {
+    const option = document.createElement('option');
+    option.disabled = true;
+    option.textContent = label;
+    return option;
+  };
+  try {
+    const response = await fetch('/pool/adapters', { cache: 'no-store' });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const payload = await response.json();
+    const publications = Array.isArray(payload?.publications) ? payload.publications : [];
+    const modelId = modelSelect?.value || '';
+    const matching = publications.filter((publication) => {
+      const baseModelId = publication?.pack?.baseModelId || publication?.baseModelId || '';
+      return !publication?.revoked && (!baseModelId || baseModelId === modelId);
+    });
+    adapterSelect.innerHTML = baseOption;
+    if (matching.length === 0) {
+      adapterSelect.append(disabledOption('No published packs for this model yet'));
+      return;
+    }
+    for (const publication of matching) {
+      const packHash = String(publication?.packHash || publication?.pack?.packHash || '');
+      const label = String(publication?.pack?.label || publication?.label || packHash.slice(0, 18) || 'adapter pack');
+      // Selecting a pack requires the requester approval signature flow,
+      // which is not wired into this surface yet; list packs honestly
+      // without offering an unsupported submission.
+      adapterSelect.append(disabledOption(`${label} (approval signing pending)`));
+    }
+  } catch {
+    adapterSelect.innerHTML = baseOption;
+    adapterSelect.append(disabledOption('Pack registry unreachable'));
+  }
+};
+
 export const bindRunControls = () => {
+  const modelSelect = document.getElementById('pool-run-model');
+  const adapterSelect = document.getElementById('pool-run-adapter');
   bindPeerRunSurface({
     button: document.getElementById('pool-run-submit'),
     prompt: document.getElementById('pool-run-prompt'),
     policySelect: document.getElementById('pool-run-policy'),
-    modelSelect: document.getElementById('pool-run-model'),
+    modelSelect,
     resultId: 'pool-run-result'
   });
+  if (modelSelect && modelSelect.dataset.poolWorkloadBound !== 'true') {
+    modelSelect.dataset.poolWorkloadBound = 'true';
+    modelSelect.addEventListener('change', () => syncRunWorkloadAffordance(modelSelect));
+    syncRunWorkloadAffordance(modelSelect);
+  }
+  void populateRunAdapterOptions(adapterSelect, modelSelect);
 };
 
 export const bindHomeAskControls = () => {
