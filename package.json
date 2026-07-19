@@ -53,7 +53,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "doppler-gpu": "0.4.9",
+    "doppler-gpu": "0.4.11",
     "dotenv": "^16.3.1",
     "express": "^4.22.2",
     "node-fetch": "^3.3.2",
