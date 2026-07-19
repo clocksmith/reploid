@@ -258,24 +258,29 @@ const pushPoolLineSegmentMesh = (vertices, a, b, lineWidth, colorA, colorB, samp
 const pushSampledPoolLineMesh = (vertices, segments, sampleAt, lineWidth, colorAt, sampleScratch) => {
   const previous = sampleScratch.previous;
   const current = sampleScratch.current;
+  const colorA = sampleScratch.colorA;
+  const colorB = sampleScratch.colorB;
   sampleAt(previous, 0);
+  colorAt(colorA, 0, 0);
   for (let index = 0; index < segments; index += 1) {
-    const amountA = index / Math.max(1, segments);
     const amountB = (index + 1) / Math.max(1, segments);
     sampleAt(current, amountB);
-    colorAt(sampleScratch.colorA, amountA, index);
-    colorAt(sampleScratch.colorB, amountB, index + 1);
+    colorAt(colorB, amountB, index + 1);
     pushPoolLineSegmentMesh(
       vertices,
       previous,
       current,
       lineWidth,
-      sampleScratch.colorA,
-      sampleScratch.colorB,
+      colorA,
+      colorB,
       sampleScratch
     );
     previous.x = current.x;
     previous.y = current.y;
+    colorA[0] = colorB[0];
+    colorA[1] = colorB[1];
+    colorA[2] = colorB[2];
+    colorA[3] = colorB[3];
   }
 };
 
@@ -343,7 +348,18 @@ export const createPoolRenderBatchBuilder = () => {
     for (const line of frame.lines || []) {
       const hotPathBoost = line.hotPathActive ? 1.62 : 1;
       const activeAlpha = line.alpha * (1.05 + flowEnergy * 0.50) * hotPathBoost;
-      pushPoolPrismLine(scratch.lineFill, frame, line, width, height, activeAlpha, Math.max(line.width, line.width * hotPathBoost), lineSegments, sampleScratch);
+      // Straight short edges need fewer Bezier samples than long curved
+      // ones; a floor of 4 keeps the rainbow gradient stops intact.
+      const routeLength = Math.hypot(
+        (line.to?.x ?? 0) - (line.from?.x ?? 0),
+        (line.to?.y ?? 0) - (line.from?.y ?? 0)
+      );
+      const curveMagnitude = Math.abs(Number(line.signedCurve ?? line.curve ?? 0));
+      const segments = Math.max(4, Math.min(
+        lineSegments,
+        Math.round(routeLength / 110 + curveMagnitude * 220)
+      ));
+      pushPoolPrismLine(scratch.lineFill, frame, line, width, height, activeAlpha, Math.max(line.width, line.width * hotPathBoost), segments, sampleScratch);
     }
     pushBatch('fill', scratch.lineFill);
 
