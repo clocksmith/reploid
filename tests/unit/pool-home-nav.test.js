@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 
 import {
@@ -229,6 +230,14 @@ describe('poolday home navigation', () => {
     expect(contributeHtml.match(/id="pool-provider-worker-toggle"/g)).toHaveLength(1);
     expect(contributeHtml).not.toContain('pool-provider-worker-start');
     expect(contributeHtml).not.toContain('pool-provider-worker-stop');
+  });
+
+  it('keeps deployed browser smokes aligned with the stateful contribution control', () => {
+    for (const script of ['scripts/pool-browser-smoke.js', 'scripts/pool-actual-browser-smoke.js']) {
+      const source = readFileSync(script, 'utf8');
+      expect(source).toContain('#pool-provider-worker-toggle');
+      expect(source).not.toContain('#pool-provider-worker-start');
+    }
   });
 
   it('renders Qwen as the visible default model on Run and Contribute', () => {
