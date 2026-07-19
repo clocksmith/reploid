@@ -29,6 +29,7 @@ import {
   getPeerRoomId,
   refreshContributionStatusBar,
   refreshProviderStorageHealth,
+  refreshRecordTimelineState,
   refreshRoomActivityState,
   renderReceiptLedger,
   setPoolRunVisualState,
@@ -835,7 +836,20 @@ export const bindProviderControls = () => {
   }
 };
 
+export const bindRecordFacetControls = () => {
+  const ledger = document.getElementById('pool-record-ledger');
+  if (!ledger || ledger.dataset.poolFacetBound === 'true') return;
+  ledger.dataset.poolFacetBound = 'true';
+  ledger.addEventListener('click', (event) => {
+    const chip = event.target.closest?.('[data-pool-record-facet]');
+    if (!chip) return;
+    ledger.dataset.recordFacet = chip.dataset.poolRecordFacet || 'all';
+    refreshRecordTimelineState();
+  });
+};
+
 export const bindReceiptControls = () => {
+  bindRecordFacetControls();
   const button = document.getElementById('pool-receipt-lookup');
   const input = document.getElementById('pool-receipt-hash');
   if (!button || !input) return;

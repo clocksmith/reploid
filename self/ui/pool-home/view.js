@@ -498,6 +498,7 @@ const unifiedRecordRows = () => {
   ensureRecordLedgersLoaded();
   const receiptRows = ledgerStore.receipts.map((row) => ({
     id: `receipt:${row.receiptHash}`,
+    type: 'answer',
     occurredAt: row.occurredAt || receiptOccurredAt(row.record),
     title: receiptRecordKind(row),
     meta: [row.fidelity, row.provider !== '—' ? compactHash(row.provider) : null]
@@ -510,6 +511,7 @@ const unifiedRecordRows = () => {
     .filter((row) => row.receiptHash && !knownReceiptHashes.has(row.receiptHash))
     .map((row) => ({
       id: `contribution:${row.receiptHash}`,
+      type: 'contribution',
       occurredAt: row.completedAt,
       title: 'Contribution made',
       meta: [
@@ -523,6 +525,7 @@ const unifiedRecordRows = () => {
     const isScore = event.type === 'reputation_event' || event.type === 'points_event';
     return {
       id: `peer:${getPeerEventHash(event)}`,
+      type: 'room',
       occurredAt: event.createdAt,
       title: isScore ? 'Contributor score updated' : 'Room activity',
       meta: [
@@ -536,6 +539,7 @@ const unifiedRecordRows = () => {
     && (Number(ledgerStore.roomActivitySummary.messageCount || 0) > 0 || ledgerStore.roomActivitySummary.recent?.length)
     ? [{
         id: `room:${getPeerRoomId()}`,
+        type: 'room',
         occurredAt: ledgerStore.roomActivitySummary.recent?.[0]?.createdAt || new Date().toISOString(),
         title: 'Room activity',
         meta: `${Number(ledgerStore.roomActivitySummary.peerCount || 0)} tabs · ${Number(ledgerStore.roomActivitySummary.providerCount || 0)} contributors`,
@@ -551,15 +555,35 @@ const unifiedRecordRows = () => {
     .slice(0, 60);
 };
 
-export const renderRecordLedger = () => {
+const RECORD_FACETS = Object.freeze([
+  { id: 'all', label: 'All' },
+  { id: 'answer', label: 'Answers' },
+  { id: 'contribution', label: 'Contributions' },
+  { id: 'room', label: 'Room' }
+]);
+
+const renderRecordFacetChips = (rows, facetId) => RECORD_FACETS.map((facet) => {
+  const count = facet.id === 'all' ? rows.length : rows.filter((row) => row.type === facet.id).length;
+  const active = facet.id === facetId ? ' is-active' : '';
+  return `<button type="button" class="pool-lane-chip pool-record-facet-chip${active}"
+    data-pool-record-facet="${escapeHtml(facet.id)}" aria-pressed="${facet.id === facetId ? 'true' : 'false'}">${escapeHtml(facet.label)} (${count})</button>`;
+}).join('');
+
+export const renderRecordLedger = (facetId = 'all') => {
   const rows = unifiedRecordRows();
   if (!rows.length) {
     return '<p class="pool-record-empty">No records yet. Completed runs and contributions will appear here.</p>';
   }
+  const visible = facetId === 'all' ? rows : rows.filter((row) => row.type === facetId);
+  const chips = `<div class="pool-record-facets" role="group" aria-label="Record types">${renderRecordFacetChips(rows, facetId)}</div>`;
+  if (!visible.length) {
+    return `${chips}<p class="pool-record-empty">No records of this type yet.</p>`;
+  }
   return `
+    ${chips}
     <ol class="pool-record-timeline" aria-label="Reploid records">
-      ${rows.map((row) => `
-        <li>
+      ${visible.map((row) => `
+        <li data-record-type="${escapeHtml(row.type)}">
           <details class="pool-record-event">
             <summary>
               <time datetime="${escapeHtml(row.occurredAt || '')}">${escapeHtml(formatRecordTime(row.occurredAt))}</time>
@@ -576,7 +600,7 @@ export const renderRecordLedger = () => {
 
 export const refreshRecordTimelineState = () => {
   const ledger = document.getElementById('pool-record-ledger');
-  if (ledger) setPoolHtml(ledger, renderRecordLedger());
+  if (ledger) setPoolHtml(ledger, renderRecordLedger(ledger.dataset.recordFacet || 'all'));
 };
 
 const networkCount = (value) => {
@@ -1634,7 +1658,7 @@ export const renderRouteDetail = (routeId) => {
   if (normalizedRouteId === 'records') {
     return renderRouteShell(copy, `
         <div class="pool-form pool-route-grid pool-record-layout" data-pool-receipts data-pool-reputation>
-          <div id="pool-record-ledger" aria-live="polite">${renderRecordLedger()}</div>
+          <div id="pool-record-ledger" aria-live="polite" data-record-facet="all">${renderRecordLedger()}</div>
           <details class="pool-advanced pool-record-tools">
             <summary>Technical tools</summary>
             <div class="pool-record-tool-grid">

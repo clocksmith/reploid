@@ -2150,3 +2150,10 @@ body[data-pool-route-id='home'] #app {
 .pool-home-stage[data-pool-lane='adapters'] .pool-simulation-labels [data-pool-flow-label='infer'] {
   filter: hue-rotate(36deg);
 }
+
+.pool-record-facets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+}
