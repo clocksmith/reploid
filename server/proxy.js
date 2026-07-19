@@ -13,6 +13,7 @@ import AgentBridge from './agent-bridge.js';
 import fetch from 'node-fetch';
 import createPoolRouter from './pool/routes.js';
 import { createFirebaseStore } from './pool/firebase-store.js';
+import { createGcsAdapterOriginSigner } from './pool/adapter-origin-signer.js';
 
 // Crash protection - keep server alive on uncaught errors
 process.on('uncaughtException', (err) => {
@@ -155,8 +156,24 @@ const createConfiguredPoolAuth = async () => {
   }
 };
 
+const createConfiguredAdapterOriginSigner = async () => {
+  if (process.env.REPLOID_ADAPTER_GCS_SIGNED_URLS !== 'true') return null;
+  try {
+    const appModule = await import('firebase-admin/app');
+    const storageModule = await import('firebase-admin/storage');
+    if (appModule.getApps().length === 0) appModule.initializeApp();
+    return createGcsAdapterOriginSigner({
+      storage: storageModule.getStorage(),
+      expiresMs: Number(process.env.REPLOID_ADAPTER_SIGNED_URL_TTL_MS || 300000)
+    });
+  } catch (error) {
+    throw new Error(`[Pool] GCS adapter delivery requested but unavailable: ${error.message}`);
+  }
+};
+
 const configuredPoolStore = await createConfiguredPoolStore();
 const configuredPoolAuth = await createConfiguredPoolAuth();
+const configuredAdapterOriginSigner = await createConfiguredAdapterOriginSigner();
 
 if (!GEMINI_API_KEY) {
   console.error('☡  WARNING: GEMINI_API_KEY not found in .env file');
@@ -497,7 +514,8 @@ app.use('/pool', express.static(path.join(__dirname, '..', 'self', 'pool'), {
 app.use('/pool', createPoolRouter({
   ...(configuredPoolStore ? { store: configuredPoolStore } : {}),
   ...configuredPoolAuth,
-  allowCanaryCreation: process.env.POOL_ALLOW_BROWSER_CANARY_CREATE === 'true'
+  allowCanaryCreation: process.env.POOL_ALLOW_BROWSER_CANARY_CREATE === 'true',
+  createAdapterDownloadUrl: configuredAdapterOriginSigner
 }));
 
 // Health check endpoint

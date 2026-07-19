@@ -9,6 +9,7 @@ import { createSigningKeyPair, exportPublicKey, sha256Hex } from '../../self/poo
 import { LAUNCH_MODEL } from '../../self/pool/model-contract.js';
 import { createRoleDelegation, getDeviceRootIdentity } from '../../self/pool/device-identity.js';
 import { createSignedParticipationProfile } from '../../self/pool/participation-profile.js';
+import { validateLaunchModelRequirement } from '../../server/pool/model-contract.js';
 
 const fakeHash = (character) => `sha256:${character.repeat(64)}`;
 
@@ -80,7 +81,13 @@ const createFixture = async () => {
       manifestHash: LAUNCH_MODEL.manifestHash,
       checkpointSha256: fakeHash('1'),
       tokenizerHash: LAUNCH_MODEL.tokenizerHash || fakeHash('2'),
-      moduleGraphHash: fakeHash('3')
+      moduleGraphHash: fakeHash('3'),
+      sourceRepo: LAUNCH_MODEL.artifactIdentity.sourceRepo,
+      sourceRevision: LAUNCH_MODEL.artifactIdentity.sourceRevision,
+      weightPackId: LAUNCH_MODEL.artifactIdentity.weightPackId,
+      weightPackHash: LAUNCH_MODEL.artifactIdentity.weightPackHash,
+      manifestVariantId: LAUNCH_MODEL.artifactIdentity.manifestVariantId,
+      conversionConfigDigest: LAUNCH_MODEL.artifactIdentity.conversionConfigDigest
     },
     runtime: {
       name: 'doppler',
@@ -96,7 +103,13 @@ const createFixture = async () => {
     promotion: { state: 'promoted', humanRequired: true },
     distribution: {
       visibility: 'public',
-      originUrl: 'https://example.invalid/route-adapter.safetensors',
+      primaryOrigin: {
+        provider: 'huggingface',
+        repoId: 'Clocksmith/lora-route-test',
+        revision: 'a'.repeat(40),
+        path: 'adapters/route-adapter/adapter_model.safetensors'
+      },
+      preservationMirrors: [],
       chunks: [{ index: 0, bytes: bytes.byteLength, sha256: adapterHash }]
     },
     runtimeManifest: {
@@ -119,13 +132,27 @@ const createFixture = async () => {
     publisherId: 'publisher_route',
     publisherPublicKey: await exportPublicKey(publisherKeys.publicKey),
     privateKey: publisherKeys.privateKey,
-    visibility: 'public',
-    originUrls: ['https://example.invalid/route-adapter.safetensors']
+    visibility: 'public'
   });
   return { bytes, pack, publisherKeys, publication };
 };
 
 describe('Poolday adapter coordinator routes', () => {
+  it('rejects an adapter whose converted-base identity differs from the model catalog', async () => {
+    const fixture = await createFixture();
+    const requirement = adapterRequirementFromPublication(fixture.publication, { state: 'cached' });
+    const validation = validateLaunchModelRequirement({
+      ...LAUNCH_MODEL,
+      adapter: {
+        ...requirement,
+        baseConversionConfigDigest: fakeHash('9')
+      }
+    });
+
+    expect(validation.ok).toBe(false);
+    expect(validation.reasons).toContain('adapter requirement does not match the selected exact base-model identity');
+  });
+
   it('publishes, advertises, approves, and schedules one exact adapter', async () => {
     const store = createPoolStore();
     const router = createPoolRouter({ store });

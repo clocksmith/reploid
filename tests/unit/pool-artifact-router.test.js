@@ -9,13 +9,20 @@ import {
 
 const hash = (character) => `sha256:${character.repeat(64)}`;
 const adapter = (state = 'fetchable') => ({
-  schema: 'reploid.pool.adapter-requirement/v1',
+  schema: 'reploid.pool.adapter-requirement/v2',
   packHash: hash('1'),
   adapterId: 'legal-extract-v1',
   adapterSha256: hash('2'),
   baseModelId: 'qwen',
   baseModelHash: hash('3'),
   baseManifestHash: hash('4'),
+  baseTokenizerHash: hash('9'),
+  baseSourceRepo: 'Qwen/Qwen3.5-0.8B',
+  baseSourceRevision: 'a'.repeat(40),
+  baseWeightPackId: 'qwen-weight-pack-v1',
+  baseWeightPackHash: hash('3'),
+  baseManifestVariantId: 'qwen-manifest-variant-v1',
+  baseConversionConfigDigest: hash('a'),
   humanPromotionReceiptHash: hash('5'),
   dopplerParityReceiptHash: hash('6'),
   gammaSelectionReceiptHash: hash('7'),
@@ -32,6 +39,15 @@ const intent = (requirement = adapter()) => ({
       modelId: 'qwen',
       modelHash: hash('3'),
       manifestHash: hash('4'),
+      tokenizerHash: hash('9'),
+      artifactIdentity: {
+        sourceRepo: 'Qwen/Qwen3.5-0.8B',
+        sourceRevision: 'a'.repeat(40),
+        weightPackId: 'qwen-weight-pack-v1',
+        weightPackHash: hash('3'),
+        manifestVariantId: 'qwen-manifest-variant-v1',
+        conversionConfigDigest: hash('a')
+      },
       runtime: 'doppler',
       backend: 'browser-webgpu',
       workload: 'text_generation',
@@ -47,6 +63,15 @@ const advert = (providerId, state, availability = {}) => ({
       modelId: 'qwen',
       modelHash: hash('3'),
       manifestHash: hash('4'),
+      tokenizerHash: hash('9'),
+      artifactIdentity: {
+        sourceRepo: 'Qwen/Qwen3.5-0.8B',
+        sourceRevision: 'a'.repeat(40),
+        weightPackId: 'qwen-weight-pack-v1',
+        weightPackHash: hash('3'),
+        manifestVariantId: 'qwen-manifest-variant-v1',
+        conversionConfigDigest: hash('a')
+      },
       runtime: 'doppler',
       backend: 'browser-webgpu',
       workload: 'text_generation',

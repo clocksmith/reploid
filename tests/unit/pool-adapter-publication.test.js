@@ -11,6 +11,7 @@ import {
 } from '../../self/pool/adapter-publication.js';
 import {
   acquireAdapterForAssignment,
+  createPublishedAdapterOriginFetcher,
   createAdapterRegistry
 } from '../../self/pool/adapter-registry.js';
 import {
@@ -42,7 +43,13 @@ const createFixture = async () => {
       manifestHash: LAUNCH_MODEL.manifestHash,
       checkpointSha256: fakeHash('1'),
       tokenizerHash: LAUNCH_MODEL.tokenizerHash || fakeHash('2'),
-      moduleGraphHash: fakeHash('3')
+      moduleGraphHash: fakeHash('3'),
+      sourceRepo: LAUNCH_MODEL.artifactIdentity.sourceRepo,
+      sourceRevision: LAUNCH_MODEL.artifactIdentity.sourceRevision,
+      weightPackId: LAUNCH_MODEL.artifactIdentity.weightPackId,
+      weightPackHash: LAUNCH_MODEL.artifactIdentity.weightPackHash,
+      manifestVariantId: LAUNCH_MODEL.artifactIdentity.manifestVariantId,
+      conversionConfigDigest: LAUNCH_MODEL.artifactIdentity.conversionConfigDigest
     },
     runtime: {
       name: 'doppler',
@@ -58,7 +65,13 @@ const createFixture = async () => {
     promotion: { state: 'promoted', humanRequired: true },
     distribution: {
       visibility: 'public',
-      originUrl: 'https://example.invalid/adapter.safetensors',
+      primaryOrigin: {
+        provider: 'huggingface',
+        repoId: 'Clocksmith/lora-publication-test',
+        revision: 'a'.repeat(40),
+        path: 'adapters/publication-adapter/adapter_model.safetensors'
+      },
+      preservationMirrors: [],
       chunks: [{ index: 0, bytes: bytes.byteLength, sha256: await sha256Hex(bytes) }]
     },
     runtimeManifest: {
@@ -83,7 +96,6 @@ const createFixture = async () => {
     publisherPublicKey,
     privateKey: publisherKeys.privateKey,
     visibility: 'public',
-    originUrls: ['https://example.invalid/adapter.safetensors'],
     capabilities: ['legal-summary']
   });
   return { bytes, pack, publisherKeys, publication };
@@ -126,6 +138,7 @@ describe('Poolday adapter publication and use consent', () => {
     const assignment = {
       assignmentId: 'assignment-publication',
       jobId: 'job-publication',
+      routeDecisionHash: fakeHash('a'),
       adapter: requirement,
       model: {
         id: LAUNCH_MODEL.modelId,
@@ -144,8 +157,12 @@ describe('Poolday adapter publication and use consent', () => {
         return { publication: fixture.publication, bytes: fixture.bytes, sourcePeerId: 'seeder-test' };
       }
     });
-    await acquireAdapterForAssignment({
-      assignment,
+    const cached = await acquireAdapterForAssignment({
+      assignment: {
+        ...assignment,
+        assignmentId: 'assignment-publication-cache',
+        routeDecisionHash: fakeHash('b')
+      },
       registry,
       fetchFromPeer: async () => {
         peerFetches += 1;
@@ -153,6 +170,10 @@ describe('Poolday adapter publication and use consent', () => {
       }
     });
     expect(peerFetches).toBe(1);
+    expect(cached.acquisition).toMatchObject({
+      source: 'cache',
+      routeDecisionHash: fakeHash('b')
+    });
     expect(await registry.hasCached(requirement.packHash)).toBe(true);
 
     const revocation = await createAdapterRevocation({
@@ -171,5 +192,67 @@ describe('Poolday adapter publication and use consent', () => {
     expect(bare.publicationHash).toBeUndefined();
     expect(published.publicationHash).toBe(fixture.publication.publicationHash);
     expect(published.publisherId).toBe('publisher-test');
+  });
+
+  it('uses authorized private GCS delivery without persisting the signed URL', async () => {
+    const fixture = await createFixture();
+    const privateOrigin = {
+      provider: 'gcs',
+      bucket: 'clocksmith-adapters-private',
+      object: 'v1/adapters/qwen/private/adapter_model.safetensors',
+      generation: '1720000000000000'
+    };
+    const privatePack = await sealAdapterPack({
+      ...fixture.pack,
+      distribution: {
+        ...fixture.pack.distribution,
+        visibility: 'private',
+        primaryOrigin: privateOrigin,
+        preservationMirrors: []
+      }
+    });
+    const publication = await createSignedAdapterPublication({
+      pack: privatePack,
+      publisherId: 'publisher-test',
+      publisherPublicKey: await exportPublicKey(fixture.publisherKeys.publicKey),
+      privateKey: fixture.publisherKeys.privateKey,
+      visibility: 'private'
+    });
+    const requirement = adapterRequirementFromPublication(publication);
+    const sdk = {
+      getAdapter: vi.fn().mockResolvedValue({ publication }),
+      createAdapterDownload: vi.fn().mockResolvedValue({
+        origin: privateOrigin,
+        url: 'https://storage.googleapis.com/private/signed?X-Goog-Signature=secret'
+      })
+    };
+    const fetchFromOrigin = createPublishedAdapterOriginFetcher({
+      sdk,
+      fetchImpl: vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        arrayBuffer: async () => fixture.bytes.buffer.slice(
+          fixture.bytes.byteOffset,
+          fixture.bytes.byteOffset + fixture.bytes.byteLength
+        )
+      })
+    });
+    const assignment = {
+      assignmentId: 'assignment-private-gcs',
+      adapter: requirement,
+      model: { requirements: { adapter: requirement } }
+    };
+    const acquired = await acquireAdapterForAssignment({
+      assignment,
+      registry: createAdapterRegistry(),
+      fetchFromOrigin
+    });
+    expect(acquired.acquisition).toMatchObject({
+      source: 'origin',
+      origin: privateOrigin,
+      sourceUrl: null,
+      privateDelivery: true
+    });
+    expect(JSON.stringify(acquired.acquisition)).not.toContain('X-Goog-Signature');
   });
 });

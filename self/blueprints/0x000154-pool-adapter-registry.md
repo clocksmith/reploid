@@ -9,7 +9,7 @@
 ---
 
 ### 1. Intent
-Resolve adapter artifacts in cache, then peer, then origin order without allowing
+Resolve adapter artifacts in cache, then peer, then primary-origin order without allowing
 an unverified source to reach Doppler.
 
 ### 2. Architecture
@@ -17,8 +17,10 @@ The registry verifies signed publications, hashes bytes before caching, stores
 acquisition evidence, and deletes bytes on signed revocation.
 `acquireAdapterForAssignment()` checks the assignment requirement at every
 source boundary. Browser discovery lists only signed public publications for an
-exact base-model identity, and origin fetches are resolved from the signed URL
-set before the registry verifies and caches their bytes.
+exact base-model identity. The registry resolves the one signed primary origin,
+uses the SDK to obtain assignment-bound private delivery when required, then
+verifies bytes before caching. Preservation mirrors never become silent runtime
+fallbacks.
 Every acquisition record binds the assignment's route-decision hash.
 
 ### 3. Implementation Notes
@@ -29,5 +31,6 @@ durable browser storage. Publication metadata is distinct from adapter bytes.
 - [x] Corrupt or substituted bytes fail closed
 - [x] Cache, peer, and origin produce receipt-visible source evidence
 - [x] Revocation removes cached execution material
+- [x] Ephemeral private URLs are not stored as artifact identity
 
 *Last updated: July 2026*

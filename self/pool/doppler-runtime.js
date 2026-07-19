@@ -744,7 +744,7 @@ export function createDopplerRuntime({ modelSession = null, model = null, runtim
       if (typeof session.loadLoRA !== 'function') {
         throw new Error('Loaded Doppler session does not expose loadLoRA');
       }
-      const loadSource = source || pack.runtimeManifest || pack.distribution?.originUrl;
+      const loadSource = source || pack.runtimeManifest;
       if (!loadSource) throw new Error('Adapter pack has no runtime load source');
       await session.loadLoRA(loadSource, loadOptions);
       const requirement = adapterRequirementFromPack(pack);

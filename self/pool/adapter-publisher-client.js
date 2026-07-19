@@ -32,7 +32,7 @@ export function createAdapterPublisherClient({
   };
 
   return Object.freeze({
-    async publish({ pack, visibility, originUrls = [], capabilities = [] } = {}) {
+    async publish({ pack, visibility, capabilities = [] } = {}) {
       const current = await ensureIdentity();
       const publication = await createSignedAdapterPublication({
         pack,
@@ -40,7 +40,6 @@ export function createAdapterPublisherClient({
         publisherPublicKey: current.publisherPublicKey,
         privateKey: current.keyPair.privateKey,
         visibility,
-        originUrls,
         capabilities
       });
       const result = await sdk.publishAdapter(publication);
