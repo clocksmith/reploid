@@ -776,8 +776,9 @@
   "modelCatalog": [
     {
       "modelId": "gemma-3-270m-it-q4k-ehf16-af32",
-      "modelHash": "sha256:6e9c0037ca1508855c441a4da1a0916a347f0901779549d6a70381bc5089a4b9",
-      "manifestHash": "sha256:cdc1d7a596fd2314c32da553c908a1aa6183abe056bc272c249b0a084c127a16",
+      "modelHash": "sha256:c41b842878dbae11b1d6a052b193b0307c7c1518c41f00df99992f51f9a86fff",
+      "manifestHash": "sha256:219391bed08e6db6f9038e44dd5007af0ed3824317ece74863322f6b2c5cd346",
+      "tokenizerHash": "sha256:be6955513a2509d69d18e82180c2a477ad99358d15212fb81d957566d8186075",
       "contextLength": 32768,
       "quantization": "q4k",
       "artifactIdentity": {
@@ -789,9 +790,13 @@
       "runtime": "doppler",
       "backend": "browser-webgpu",
       "dopplerLoadRef": "gemma3-270m",
+      "loadInput": {
+        "url": "https://huggingface.co/Clocksmith/rdrr/resolve/f58f1d0b58641c84e7ea50d13fea0dd4dc91389a/models/gemma-3-270m-it-q4k-ehf16-af32"
+      },
       "artifactPolicy": {
         "transport": "offloaded_content_addressed",
         "cache": "browser_opfs",
+        "baseUrl": "https://huggingface.co/Clocksmith/rdrr/resolve/f58f1d0b58641c84e7ea50d13fea0dd4dc91389a/models/gemma-3-270m-it-q4k-ehf16-af32",
         "identityFields": [
           "modelId",
           "modelHash",
@@ -799,11 +804,11 @@
           "runtime",
           "backend"
         ],
-        "pathTemplate": "<modelId>/<manifestHash>",
+        "pathTemplate": "",
         "paths": {
-          "manifest": "<modelId>/<manifestHash>/manifest.json",
-          "tokenizer": "<modelId>/<manifestHash>/tokenizer.json",
-          "shards": "<modelId>/<manifestHash>/shards/"
+          "manifest": "manifest.json",
+          "tokenizer": "tokenizer.json",
+          "shards": ""
         }
       },
       "label": "Gemma 3 270M",

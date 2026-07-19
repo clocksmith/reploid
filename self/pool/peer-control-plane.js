@@ -29,6 +29,12 @@ import {
   getPoolModelWorkload,
   validateLaunchModelRequirement
 } from './model-contract.js';
+import { modelSupportsAdapterRequirement } from './adapter-pack.js';
+import {
+  createAdapterUseApproval,
+  validatePublishedAdapterRequirement,
+  verifyAdapterUseApproval
+} from './adapter-publication.js';
 import {
   P2P_PAYLOAD_TYPES,
   createP2PPayload,
@@ -214,6 +220,16 @@ export async function createSignedJobIntent({
   }
   const inputHash = await sha256Hex(resolvedPrompt);
   const generationConfigHash = await hashJson(resolvedGenerationConfig);
+  const adapterUseApproval = resolvedModelRequirements.adapter
+    ? await createAdapterUseApproval({
+      adapterRequirement: resolvedModelRequirements.adapter,
+      requesterId: resolvedRequesterId,
+      requesterPublicKey,
+      privateKey,
+      inputHash,
+      modelRequirements: resolvedModelRequirements
+    })
+    : null;
   const intentBody = {
     schema: 'reploid.peer.job_intent/v1',
     requesterId: resolvedRequesterId,
@@ -224,6 +240,7 @@ export async function createSignedJobIntent({
     promptDisclosure: 'selected_providers_only',
     workload,
     modelRequirements: resolvedModelRequirements,
+    adapterUseApproval,
     generationConfig: resolvedGenerationConfig,
     generationConfigHash,
     policyClasses: policyClassValidation.classification.classes,
@@ -267,6 +284,12 @@ export async function createSignedProviderAdvert({
   if (!resolvedModels.some((model) => validateLaunchModelRequirement(model).ok)) {
     throw new Error('provider advert must include an enabled launch model contract');
   }
+  for (const model of resolvedModels) {
+    for (const adapter of model.adapterPacks || []) {
+      const validation = validatePublishedAdapterRequirement(adapter);
+      if (!validation.ok) throw new Error(`invalid provider adapter advert: ${validation.reasons.join('; ')}`);
+    }
+  }
   return createSignedPeerMessage({
     type: PEER_MESSAGE_TYPES.PROVIDER_ADVERT,
     fromPeerId: resolvedProviderId,
@@ -308,6 +331,7 @@ const advertSupportsIntent = (advert = {}, intent = {}, policy = {}) => {
       && model.manifestHash === intent.body?.modelRequirements?.manifestHash
       && model.runtime === intent.body?.modelRequirements?.runtime
       && model.backend === intent.body?.modelRequirements?.backend
+      && modelSupportsAdapterRequirement(model, intent.body?.modelRequirements?.adapter || null)
     ))
     && (!policy.requireRuntimeProfileHash || !!body.runtimeProfileHash);
 };
@@ -440,6 +464,22 @@ export async function buildPeerAssignmentPlan({
       assignments: []
     };
   }
+  if (intent.body?.modelRequirements?.adapter) {
+    const approval = await verifyAdapterUseApproval(intent.body?.adapterUseApproval, {
+      adapterRequirement: intent.body.modelRequirements.adapter,
+      requesterId: intent.body.requesterId,
+      inputHash: intent.body.inputHash,
+      modelRequirements: intent.body.modelRequirements
+    });
+    if (!approval.ok) {
+      return {
+        ok: false,
+        reason: 'invalid_adapter_use_approval',
+        reasons: approval.reasons,
+        assignments: []
+      };
+    }
+  }
   const verifiedAdverts = [];
   for (const advert of providerAdverts) {
     const verification = await verifyPeerMessage(advert);
@@ -543,6 +583,8 @@ export async function buildPeerAssignmentPlan({
         executionMode: intent.body.modelRequirements.executionMode || null,
         requirements: intent.body.modelRequirements
       },
+      adapter: intent.body.modelRequirements.adapter || null,
+      adapterUseApproval: intent.body.adapterUseApproval || null,
       runtimeProfileHash: candidate.advert.body?.runtimeProfileHash || null,
       ring: ringPlan ? {
         ringId: ringPlan.ringId,
@@ -653,6 +695,19 @@ export async function validatePeerAssignmentForIntentAndAdvert({
   if ((assignmentModel.runtime || LAUNCH_MODEL.runtime) !== (requiredModel.runtime || LAUNCH_MODEL.runtime)) reasons.push('runtime mismatch');
   if ((assignmentModel.backend || LAUNCH_MODEL.backend) !== (requiredModel.backend || LAUNCH_MODEL.backend)) reasons.push('backend mismatch');
   if ((assignmentModel.workload || POOLDAY_MODEL_WORKLOADS.textGeneration) !== (requiredModel.workload || POOLDAY_MODEL_WORKLOADS.textGeneration)) reasons.push('model workload mismatch');
+  if (requiredModel.adapter) {
+    const approval = await verifyAdapterUseApproval(assignment.adapterUseApproval, {
+      adapterRequirement: requiredModel.adapter,
+      requesterId: assignment.requesterId,
+      inputHash: assignment.inputHash,
+      modelRequirements: requiredModel
+    });
+    reasons.push(...approval.reasons.map((reason) => `adapter use approval: ${reason}`));
+    if (assignment.adapter?.packHash !== requiredModel.adapter.packHash) reasons.push('assignment adapter pack hash mismatch');
+    if (assignment.adapter?.publicationHash !== requiredModel.adapter.publicationHash) reasons.push('assignment adapter publication hash mismatch');
+  } else if (assignment.adapter) {
+    reasons.push('assignment declares an adapter absent from the intent');
+  }
   const advertModels = providerAdvert?.body?.models || [];
   const advertHasModel = advertModels.some((model) => (
     model.modelId === requiredModel.modelId
@@ -696,6 +751,41 @@ const receiptMatchesAssignment = (receipt = {}, assignment = {}) => {
   if (receipt.model?.manifestHash !== assignment.model?.manifestHash) reasons.push('receipt manifest hash mismatch');
   if ((receipt.model?.runtime || LAUNCH_MODEL.runtime) !== (assignment.model?.runtime || LAUNCH_MODEL.runtime)) reasons.push('receipt runtime mismatch');
   if ((receipt.model?.backend || LAUNCH_MODEL.backend) !== (assignment.model?.backend || LAUNCH_MODEL.backend)) reasons.push('receipt backend mismatch');
+  const expectedAdapter = assignment.adapter || assignment.model?.requirements?.adapter || null;
+  const actualAdapter = receipt.adapter || null;
+  if (!expectedAdapter && actualAdapter) reasons.push('receipt declares an adapter absent from the assignment');
+  if (expectedAdapter && !actualAdapter) reasons.push('receipt adapter identity missing');
+  if (expectedAdapter && actualAdapter) {
+    for (const field of [
+      'schema',
+      'packHash',
+      'adapterId',
+      'adapterSha256',
+      'baseModelId',
+      'baseModelHash',
+      'baseManifestHash',
+      'humanPromotionReceiptHash',
+      'dopplerParityReceiptHash',
+      'gammaSelectionReceiptHash',
+      'publicationHash',
+      'publisherId'
+    ]) {
+      if (actualAdapter[field] !== expectedAdapter[field]) reasons.push(`receipt adapter ${field} mismatch`);
+    }
+    if (actualAdapter.adapterUseApprovalHash !== assignment.adapterUseApproval?.approvalHash) {
+      reasons.push('receipt adapter use approval hash mismatch');
+    }
+    if (actualAdapter.state !== 'active') reasons.push('receipt adapter was not active');
+    if (!Array.isArray(actualAdapter.artifactSources) || actualAdapter.artifactSources.length === 0) {
+      reasons.push('receipt adapter acquisition source evidence missing');
+    } else if (!actualAdapter.artifactSources.some((source) => (
+      ['cache', 'peer', 'origin'].includes(source?.source)
+      && source?.packHash === expectedAdapter.packHash
+      && source?.adapterSha256 === expectedAdapter.adapterSha256
+    ))) {
+      reasons.push('receipt adapter acquisition source evidence mismatch');
+    }
+  }
   if (!receipt.providerSignature) reasons.push('receipt providerSignature is required');
   if (receipt.signatureDomain !== SIGNATURE_DOMAINS.providerReceipt) reasons.push('receipt signature domain mismatch');
   if (!receipt.outputHash) reasons.push('receipt outputHash is required');

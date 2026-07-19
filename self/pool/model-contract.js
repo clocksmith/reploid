@@ -4,6 +4,9 @@
 
 import { BROWSER_RUNTIME_CONFIG, LAUNCH_MODEL, MODEL_CATALOG } from './config.js';
 import { buildModelArtifactUrls } from './model-artifacts.js';
+import { modelSupportsAdapterRequirement, validateAdapterRequirement } from './adapter-pack.js';
+
+export { modelSupportsAdapterRequirement };
 
 export { LAUNCH_MODEL, MODEL_CATALOG };
 
@@ -201,6 +204,14 @@ export function validateLaunchModelRequirement(requirements = {}) {
       reasons.push(`modelRequirements.${field} is not supported by browser peer-room execution`);
     }
   }
+  if (requirements.adapter) {
+    reasons.push(...validateAdapterRequirement(requirements.adapter).reasons);
+    if (model && (
+      requirements.adapter.baseModelId !== model.modelId
+      || requirements.adapter.baseModelHash !== model.modelHash
+      || requirements.adapter.baseManifestHash !== model.manifestHash
+    )) reasons.push('adapter requirement does not match the selected base model');
+  }
   return {
     ok: reasons.length === 0,
     reasons
@@ -226,5 +237,6 @@ export default {
   getModelRequiredWebGpuFeatures,
   isLaunchModelRequirement,
   validateModelRuntimeCapabilities,
-  validateLaunchModelRequirement
+  validateLaunchModelRequirement,
+  modelSupportsAdapterRequirement
 };

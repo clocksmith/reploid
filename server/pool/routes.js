@@ -22,6 +22,14 @@ import { hashJson, sha256Hex } from './hash.js';
 import { POOL_CONFIG, POOL_CONFIG_HASH, POOL_CONFIG_VERSION, getLedgerReasons, getRingPhaseProtocol, validatePoolConfig } from './config.js';
 import { buildCommitmentHash, revealMatchesCommitment, validateCommitmentInput, validateRevealInput } from './commit-reveal.js';
 import { deriveProviderAdmission, runtimeProfileHash, validateRuntimeProfileForPolicy } from './runtime-profile.js';
+import {
+  adapterRequirementFromPublication,
+  publishedAdapterRequirementsEqual,
+  validatePublishedAdapterRequirement,
+  verifyAdapterPublication,
+  verifyAdapterRevocation,
+  verifyAdapterUseApproval
+} from '../../self/pool/adapter-publication.js';
 
 const asyncRoute = (handler) => (req, res, next) => {
   Promise.resolve(handler(req, res, next)).catch(next);
@@ -119,6 +127,12 @@ const requireBoundAnyRole = (req, res, roles, roleId) => {
   });
   return false;
 };
+
+const canReadAdapterPublication = (req, publication = {}) => (
+  publication.visibility === 'public'
+  || hasCoordinatorClaim(req.poolAuth)
+  || authMatchesRoleId(req.poolAuth, 'publisher', publication.publisher?.publisherId)
+);
 
 const hasCoordinatorClaim = (auth) => auth?.decoded?.admin === true
   || auth?.decoded?.poolCoordinator === true
@@ -803,6 +817,8 @@ export function createPoolRouter({ store = poolStore, verifyAuthToken = null, re
         payloadMode: 'hybrid_p2p_anchor',
         signaling: 'assignment_bound_metadata_only',
         offloadedModelArtifacts: true,
+        adapterRegistry: 'signed_metadata_only',
+        adapterArtifactTransport: 'cache_peer_origin',
         modelArtifactBaseConfigured: Boolean(process.env.REPLOID_POOL_MODEL_BASE_URL || process.env.POOL_MODEL_BASE_URL)
       },
       auth: {
@@ -817,6 +833,58 @@ export function createPoolRouter({ store = poolStore, verifyAuthToken = null, re
         coordinatorClaimRequired: !allowCanaryCreation
       }
     });
+  }));
+
+  router.post('/adapters', asyncRoute(async (req, res) => {
+    if (typeof store.saveAdapterPublication !== 'function') {
+      return res.status(501).json({ error: 'adapter publication registry is not supported by this store' });
+    }
+    const publication = req.body?.publication || req.body;
+    const verification = await verifyAdapterPublication(publication);
+    if (!verification.ok) return res.status(400).json({ error: 'invalid adapter publication', reasons: verification.reasons });
+    if (!requireBoundRole(req, res, 'publisher', publication.publisher.publisherId)) return null;
+    const existing = await store.getAdapterPublication?.(publication.packHash);
+    if (existing && existing.publicationHash !== publication.publicationHash) {
+      return res.status(409).json({ error: 'adapter pack hash already has a different publication identity' });
+    }
+    return res.status(existing ? 200 : 201).json({
+      publication: await store.saveAdapterPublication(publication)
+    });
+  }));
+
+  router.get('/adapters', asyncRoute(async (req, res) => {
+    if (typeof store.listAdapterPublications !== 'function') {
+      return res.status(501).json({ error: 'adapter publication registry is not supported by this store' });
+    }
+    const publications = await store.listAdapterPublications({
+      capability: req.query.capability || null,
+      publisherId: req.query.publisherId || null,
+      visibility: req.query.visibility || null
+    });
+    return res.json({ publications: publications.filter((publication) => canReadAdapterPublication(req, publication)) });
+  }));
+
+  router.get('/adapters/:packHash', asyncRoute(async (req, res) => {
+    if (typeof store.getAdapterPublication !== 'function') {
+      return res.status(501).json({ error: 'adapter publication registry is not supported by this store' });
+    }
+    const publication = await store.getAdapterPublication(req.params.packHash);
+    if (!publication || publication.revoked === true) return res.status(404).json({ error: 'adapter publication not found' });
+    if (!canReadAdapterPublication(req, publication)) return res.status(404).json({ error: 'adapter publication not found' });
+    return res.json({ publication });
+  }));
+
+  router.post('/adapters/:packHash/revoke', asyncRoute(async (req, res) => {
+    if (typeof store.revokeAdapterPublication !== 'function') {
+      return res.status(501).json({ error: 'adapter publication registry is not supported by this store' });
+    }
+    const publication = await store.getAdapterPublication?.(req.params.packHash);
+    if (!publication) return res.status(404).json({ error: 'adapter publication not found' });
+    if (!requireBoundRole(req, res, 'publisher', publication.publisher?.publisherId)) return null;
+    const revocation = req.body?.revocation || req.body;
+    const verification = await verifyAdapterRevocation(revocation, publication);
+    if (!verification.ok) return res.status(400).json({ error: 'invalid adapter revocation', reasons: verification.reasons });
+    return res.json({ publication: await store.revokeAdapterPublication(req.params.packHash, revocation) });
   }));
 
   router.post('/signaling/sessions', asyncRoute(async (req, res) => {
@@ -1174,6 +1242,22 @@ export function createPoolRouter({ store = poolStore, verifyAuthToken = null, re
     if (!providerHasLaunchModel(body)) {
       return res.status(400).json({ error: 'provider must advertise the exact launch model identity' });
     }
+    for (const model of body.models) {
+      for (const requirement of model.adapterPacks || []) {
+        const requirementValidation = validatePublishedAdapterRequirement(requirement);
+        if (!requirementValidation.ok) {
+          return res.status(400).json({ error: 'invalid provider adapter advert', reasons: requirementValidation.reasons });
+        }
+        const publication = await store.getAdapterPublication?.(requirement.packHash);
+        if (!publication || publication.revoked === true) {
+          return res.status(400).json({ error: 'provider adapter publication is missing or revoked', packHash: requirement.packHash });
+        }
+        const expected = adapterRequirementFromPublication(publication, { state: requirement.state });
+        if (!publishedAdapterRequirementsEqual(requirement, expected)) {
+          return res.status(400).json({ error: 'provider adapter advert does not match the registered publication' });
+        }
+      }
+    }
     if (!body.publicKey) {
       return res.status(400).json({ error: 'publicKey is required' });
     }
@@ -1242,6 +1326,38 @@ export function createPoolRouter({ store = poolStore, verifyAuthToken = null, re
       return res.status(400).json({ error: 'invalid job request', reasons: validation.reasons });
     }
     if (!requireBoundAnyRole(req, res, ['requester', 'agent'], req.body.requesterId)) return null;
+    const adapterRequirement = req.body.modelRequirements?.adapter || null;
+    if (adapterRequirement) {
+      const requirementValidation = validatePublishedAdapterRequirement(adapterRequirement);
+      if (!requirementValidation.ok) {
+        return res.status(400).json({ error: 'invalid published adapter requirement', reasons: requirementValidation.reasons });
+      }
+      const publication = await store.getAdapterPublication?.(adapterRequirement.packHash);
+      if (!publication || publication.revoked === true) {
+        return res.status(400).json({ error: 'adapter publication is missing or revoked' });
+      }
+      const publicationValidation = await verifyAdapterPublication(publication);
+      if (!publicationValidation.ok) {
+        return res.status(400).json({ error: 'registered adapter publication is invalid', reasons: publicationValidation.reasons });
+      }
+      const expected = adapterRequirementFromPublication(publication, { state: adapterRequirement.state });
+      if (!publishedAdapterRequirementsEqual(adapterRequirement, expected)) {
+        return res.status(400).json({ error: 'adapter requirement does not match its registered publication' });
+      }
+      const approval = await verifyAdapterUseApproval(req.body.adapterUseApproval, {
+        adapterRequirement,
+        requesterId: req.body.requesterId,
+        inputHash: sha256Hex(req.body.prompt),
+        modelRequirements: req.body.modelRequirements
+      });
+      if (req.body.adapterUseApproval?.requesterPublicKey !== req.body.requesterPublicKey) {
+        approval.reasons.push('adapter use public key does not match requester public key');
+        approval.ok = false;
+      }
+      if (!approval.ok) {
+        return res.status(400).json({ error: 'invalid adapter use approval', reasons: approval.reasons });
+      }
+    }
     const job = await store.createJob({
       requesterId: req.body.requesterId,
       prompt: req.body.prompt,
@@ -1250,6 +1366,7 @@ export function createPoolRouter({ store = poolStore, verifyAuthToken = null, re
       policyConfigHash: POOL_CONFIG_HASH,
       requesterPublicKey: req.body.requesterPublicKey,
       modelRequirements: req.body.modelRequirements || {},
+      adapterUseApproval: req.body.adapterUseApproval || null,
       generationConfig: req.body.generationConfig || {},
       maxPointSpend: req.body.maxPointSpend !== null
         && req.body.maxPointSpend !== undefined

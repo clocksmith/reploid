@@ -42,6 +42,7 @@ Guide to all documentation in the REPLOID project.
 - **[docs/poolday/reputation-ledger.md](./poolday/reputation-ledger.md)** - Event-sourced reputation reducer contract
 - **[docs/multi-model-evaluation.md](./multi-model-evaluation.md)** - Multi-model evaluation harness
 - **[docs/intent-bundle-lora.md](./intent-bundle-lora.md)** - Intent bundle LoRA workflow
+- **[docs/trained-adapter-promotion.md](./trained-adapter-promotion.md)** - Tinker adapter evidence, Shadow staging, and human-only promotion
 - **[docs/CONFIGURATION.md](./CONFIGURATION.md)** - Boot UI settings and localStorage keys
 - **[docs/local-models.md](./local-models.md)** - WebLLM and Ollama setup
 - **[docs/style-guide.md](./style-guide.md)** - Code and UI conventions

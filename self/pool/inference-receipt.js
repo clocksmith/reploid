@@ -14,7 +14,10 @@ export const TRUST_TIER_ACCEPTED_RECEIPT = 'T4_requester_accepted';
 export const SIGNATURE_DOMAINS = Object.freeze({
   providerReceipt: 'poolday.provider_receipt.v1',
   requesterAcceptance: 'poolday.requester_acceptance.v1',
-  peerMessage: 'poolday.peer_message.v1'
+  peerMessage: 'poolday.peer_message.v1',
+  adapterPublication: 'poolday.adapter_publication.v1',
+  adapterRevocation: 'poolday.adapter_revocation.v1',
+  adapterUseApproval: 'poolday.adapter_use_approval.v1'
 });
 
 export function canonicalize(value) {
@@ -172,6 +175,24 @@ const normalizeReceiptModel = (model = {}) => ({
   requirements: model.requirements || null
 });
 
+const normalizeReceiptAdapter = (adapter = null) => adapter ? ({
+  schema: adapter.schema || null,
+  packHash: adapter.packHash || null,
+  adapterId: adapter.adapterId || null,
+  adapterSha256: adapter.adapterSha256 || null,
+  baseModelId: adapter.baseModelId || null,
+  baseModelHash: adapter.baseModelHash || null,
+  baseManifestHash: adapter.baseManifestHash || null,
+  humanPromotionReceiptHash: adapter.humanPromotionReceiptHash || null,
+  dopplerParityReceiptHash: adapter.dopplerParityReceiptHash || null,
+  gammaSelectionReceiptHash: adapter.gammaSelectionReceiptHash || null,
+  publicationHash: adapter.publicationHash || null,
+  publisherId: adapter.publisherId || null,
+  adapterUseApprovalHash: adapter.adapterUseApprovalHash || null,
+  state: adapter.state || null,
+  artifactSources: Array.isArray(adapter.artifactSources) ? adapter.artifactSources : []
+}) : null;
+
 export async function buildPoolReceipt({ assignment, provider, model, runtime, execution }) {
   const outputText = execution?.outputText || '';
   const tokenIds = Array.isArray(execution?.tokenIds) ? execution.tokenIds : [];
@@ -200,6 +221,9 @@ export async function buildPoolReceipt({ assignment, provider, model, runtime, e
     policyConfigVersion: assignment.policyConfigVersion || null,
     policyConfigHash: assignment.policyConfigHash || null,
     model: normalizeReceiptModel(model),
+    adapter: normalizeReceiptAdapter(
+      execution?.adapter || assignment?.adapter || assignment?.model?.requirements?.adapter || null
+    ),
     runtime,
     outputKind,
     inputHash: assignment.inputHash,

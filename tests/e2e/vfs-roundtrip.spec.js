@@ -9,10 +9,37 @@ import {
   executeToolResult,
   sanitizeInstanceId
 } from './reploid-lab-helpers.js';
+import {
+  ZERO_READ_FILE_TOOL_CODE,
+  ZERO_WRITE_FILE_TOOL_CODE
+} from './zero-tool-fixtures.js';
+
+async function installZeroTool(page, name, code) {
+  const result = await executeToolResult(page, 'CreateTool', { name, code });
+  expect(result).toMatchObject({
+    ok: true,
+    value: {
+      activated: true,
+      targetPath: `/self/tools/${name}.js`,
+      activationChecksPassed: true,
+      replayPassed: true,
+      toolLoaded: true
+    }
+  });
+}
 
 async function bootAndAwaken(page, route, instanceId) {
   await bootRouteWithServiceWorker(page, route, instanceId);
   await awakenWithoutGoal(page);
+  if (route === '/zero') {
+    const loadedTools = await page.evaluate(() => window.REPLOID.toolRunner.list());
+    if (!loadedTools.includes('ReadFile')) {
+      await installZeroTool(page, 'ReadFile', ZERO_READ_FILE_TOOL_CODE);
+    }
+    if (!loadedTools.includes('WriteFile')) {
+      await installZeroTool(page, 'WriteFile', ZERO_WRITE_FILE_TOOL_CODE);
+    }
+  }
 }
 
 test.describe('VFS round-trip and boundary', () => {
@@ -40,9 +67,8 @@ test.describe('VFS round-trip and boundary', () => {
       expect(artifactRead).toMatchObject({ ok: true });
       expect(JSON.parse(shadowRead.value.content)).toMatchObject({ marker: instanceId });
       expect(JSON.parse(artifactRead.value.content)).toMatchObject({ marker: instanceId });
-      const listedTools = await executeToolResult(page, 'ListTools');
-      expect(listedTools.ok).toBe(true);
-      const canDelete = listedTools.value.includes('DeleteFile');
+      const listedTools = await page.evaluate(() => window.REPLOID.toolRunner.list());
+      const canDelete = listedTools.includes('DeleteFile');
 
       const blockedSelfWrite = await executeToolResult(page, 'WriteFile', {
         path: '/self/core/agent-loop.js',

@@ -51,6 +51,7 @@ const makeJob = (overrides = {}) => ({
 
 const QWEN_MODEL_ID = 'qwen-3-5-0-8b-q4k-ehaf16';
 const QWEN_EMBEDDING_MODEL_ID = 'qwen-3-embedding-0-6b-q4k-ehf16-af32';
+const GEMMA3_270M_MODEL_ID = 'gemma-3-270m-it-q4k-ehf16-af32';
 const GEMMA4_INT4_PLE_MODEL_ID = 'gemma-4-e2b-it-q4k-ehf16-af32-int4ple';
 const deploymentEnv = JSON.parse(readFileSync('deploy/env.production.json', 'utf8'));
 const cloudRunService = readFileSync('deploy/cloud-run-service.yaml', 'utf8');
@@ -232,6 +233,27 @@ describe('pool launch contract', () => {
       manifest: 'https://huggingface.co/Clocksmith/rdrr/resolve/dbb354acb00108965c5324ca7b6fecc198d12501/models/gemma-4-e2b-it-q4k-ehf16-af32-int4ple/manifest.json',
       tokenizer: 'https://huggingface.co/Clocksmith/rdrr/resolve/dbb354acb00108965c5324ca7b6fecc198d12501/models/gemma-4-e2b-it-q4k-ehf16-af32-int4ple/tokenizer.json',
       shards: 'https://huggingface.co/Clocksmith/rdrr/resolve/dbb354acb00108965c5324ca7b6fecc198d12501/models/gemma-4-e2b-it-q4k-ehf16-af32-int4ple/'
+    });
+  });
+
+  it('binds enabled Gemma 3 270M to its immutable hosted artifact', () => {
+    const serverModel = getServerEnabledPoolModelContract(GEMMA3_270M_MODEL_ID);
+    const browserModel = getBrowserEnabledPoolModelContract(GEMMA3_270M_MODEL_ID);
+    expect(serverModel).toMatchObject({
+      modelId: GEMMA3_270M_MODEL_ID,
+      modelHash: 'sha256:c41b842878dbae11b1d6a052b193b0307c7c1518c41f00df99992f51f9a86fff',
+      manifestHash: 'sha256:219391bed08e6db6f9038e44dd5007af0ed3824317ece74863322f6b2c5cd346',
+      tokenizerHash: 'sha256:be6955513a2509d69d18e82180c2a477ad99358d15212fb81d957566d8186075',
+      runtime: 'doppler',
+      backend: 'browser-webgpu',
+      enabled: true
+    });
+    expect(browserModel).toEqual(serverModel);
+    expect(buildModelArtifactUrls(browserModel)).toEqual({
+      root: 'https://huggingface.co/Clocksmith/rdrr/resolve/f58f1d0b58641c84e7ea50d13fea0dd4dc91389a/models/gemma-3-270m-it-q4k-ehf16-af32',
+      manifest: 'https://huggingface.co/Clocksmith/rdrr/resolve/f58f1d0b58641c84e7ea50d13fea0dd4dc91389a/models/gemma-3-270m-it-q4k-ehf16-af32/manifest.json',
+      tokenizer: 'https://huggingface.co/Clocksmith/rdrr/resolve/f58f1d0b58641c84e7ea50d13fea0dd4dc91389a/models/gemma-3-270m-it-q4k-ehf16-af32/tokenizer.json',
+      shards: 'https://huggingface.co/Clocksmith/rdrr/resolve/f58f1d0b58641c84e7ea50d13fea0dd4dc91389a/models/gemma-3-270m-it-q4k-ehf16-af32/'
     });
   });
 

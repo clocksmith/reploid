@@ -3,18 +3,234 @@
  * Routes tasks to LoRA adapters and batches execution to minimize swaps.
  */
 
+export const TRAINED_ADAPTER_ADMISSION_SCHEMA = 'reploid.trained-adapter-admission/v1';
+export const TRAINED_ADAPTER_HUMAN_APPROVAL_SCHEMA = 'reploid.trained-adapter-human-approval/v1';
+
+const SHA256_PATTERN = /^[0-9a-f]{64}$/;
+
+const stableJson = (value) => {
+  if (Array.isArray(value)) {
+    return `[${value.map((item) => stableJson(item)).join(',')}]`;
+  }
+  if (value && typeof value === 'object') {
+    return `{${Object.keys(value).sort().map(
+      (key) => `${JSON.stringify(key)}:${stableJson(value[key])}`
+    ).join(',')}}`;
+  }
+  return JSON.stringify(value);
+};
+
+const requireText = (value, field) => {
+  const text = typeof value === 'string' ? value.trim() : '';
+  if (!text) throw new Error(`Trained adapter admission requires ${field}`);
+  return text;
+};
+
+const requireSha256 = (value, field) => {
+  const digest = requireText(value, field).replace(/^sha256:/, '').toLowerCase();
+  if (!SHA256_PATTERN.test(digest)) {
+    throw new Error(`Trained adapter admission requires a SHA-256 digest at ${field}`);
+  }
+  return digest;
+};
+
+const sha256Text = async (value, cryptoApi = globalThis.crypto) => {
+  if (!cryptoApi?.subtle) throw new Error('Trained adapter admission requires WebCrypto');
+  const bytes = new TextEncoder().encode(value);
+  const digest = await cryptoApi.subtle.digest('SHA-256', bytes);
+  return Array.from(new Uint8Array(digest))
+    .map((byte) => byte.toString(16).padStart(2, '0'))
+    .join('');
+};
+
+const verifyReceiptHash = async (receipt, hashField, field, cryptoApi) => {
+  if (!receipt || typeof receipt !== 'object' || Array.isArray(receipt)) {
+    throw new Error(`Trained adapter admission requires ${field}`);
+  }
+  const expected = requireSha256(receipt[hashField], `${field}.${hashField}`);
+  const core = { ...receipt };
+  delete core[hashField];
+  const observed = await sha256Text(stableJson(core), cryptoApi);
+  if (observed !== expected) {
+    throw new Error(`Trained adapter admission rejected ${field}: receipt hash mismatch`);
+  }
+  return expected;
+};
+
+const manifestTrainer = (manifest) => (
+  manifest?.trainer
+  || manifest?.provenance?.trainer
+  || manifest?.training?.provider
+  || ''
+);
+
+const manifestBaseModelId = (manifest) => (
+  typeof manifest?.baseModel === 'string'
+    ? manifest.baseModel
+    : manifest?.baseModel?.id || manifest?.baseModel?.modelId || ''
+);
+
+const manifestBaseCheckpointSha256 = (manifest) => (
+  manifest?.baseCheckpointSha256 || manifest?.baseModel?.checkpointSha256 || ''
+);
+
+const manifestAdapterSha256 = (manifest) => (
+  manifest?.adapterSha256 || manifest?.integrity?.sha256 || ''
+);
+
+const isGovernedTrainedAdapter = (manifest, entry = null) => (
+  entry?.metadata?.trainedAdapter === true
+  || manifestTrainer(manifest) === 'thinking-machines/tinker'
+);
+
+export async function verifyTrainedAdapterAdmission(admission, manifest, cryptoApi = globalThis.crypto) {
+  if (!admission || admission.schema !== TRAINED_ADAPTER_ADMISSION_SCHEMA) {
+    throw new Error(`Trained adapter admission schema must be ${TRAINED_ADAPTER_ADMISSION_SCHEMA}`);
+  }
+  if (admission.state !== 'shadow') {
+    throw new Error('Trained adapter admission state must be shadow');
+  }
+  if (manifestTrainer(manifest) !== 'thinking-machines/tinker') {
+    throw new Error('Trained adapter manifest trainer must be thinking-machines/tinker');
+  }
+
+  const identity = admission.dopplerIdentityReceipt;
+  const parity = admission.dopplerParityReceipt;
+  const gamma = admission.gammaSelectionReceipt;
+  const identityReceiptHash = await verifyReceiptHash(
+    identity,
+    'receiptHash',
+    'dopplerIdentityReceipt',
+    cryptoApi
+  );
+  const parityReceiptHash = await verifyReceiptHash(
+    parity,
+    'receiptHash',
+    'dopplerParityReceipt',
+    cryptoApi
+  );
+  const gammaReceiptHash = await verifyReceiptHash(
+    gamma,
+    'receiptSha256',
+    'gammaSelectionReceipt',
+    cryptoApi
+  );
+
+  if (identity.schema !== 'doppler.trainer-artifact-handoff-verification/v1'
+    || identity.ok !== true
+    || identity.artifactKind !== 'peft_adapter'
+    || identity.artifactRole !== 'selected_candidate'
+    || identity.selection?.authority !== 'clocksmith/gamma'
+    || identity.selection?.status !== 'selected'
+    || identity.admission?.candidateCompetitionAllowed !== true
+    || identity.admission?.promotionAllowed !== false) {
+    throw new Error('Trained adapter admission rejected the Doppler identity decision');
+  }
+  if (parity.schema !== 'doppler.trainer-artifact-parity-receipt/v1'
+    || parity.profile !== 'tinker_peft_browser_adapter'
+    || parity.decision !== 'pass'
+    || parity.bridgeId !== identity.bridgeId
+    || parity.identityReceiptHash !== identityReceiptHash
+    || parity.artifactIdentitySha256 !== identity.artifactIdentitySha256) {
+    throw new Error('Trained adapter admission rejected the Doppler parity decision');
+  }
+  if (gamma.schema !== 'gamma.tinker-browser-selection-receipt/v1'
+    || gamma.decision !== 'gamma_selected'
+    || gamma.admission?.candidateCompetitionAllowed !== true
+    || gamma.admission?.promotionAllowed !== false
+    || gamma.task?.passed !== true
+    || gamma.retention?.passed !== true) {
+    throw new Error('Trained adapter admission rejected the Gamma selection decision');
+  }
+  for (const [levelId, level] of Object.entries(gamma.determinism || {})) {
+    if (level?.required === true && level.passed !== true) {
+      throw new Error(`Trained adapter admission rejected required determinism level ${levelId}`);
+    }
+  }
+  if (gamma.evidence?.dopplerIdentity?.receiptSha256 !== identityReceiptHash
+    || gamma.evidence?.dopplerParity?.receiptSha256 !== parityReceiptHash) {
+    throw new Error('Trained adapter admission rejected Gamma to Doppler receipt binding');
+  }
+
+  const adapterId = requireText(gamma.artifact?.adapterId, 'gammaSelectionReceipt.artifact.adapterId');
+  const adapterSha256 = requireSha256(
+    gamma.artifact?.adapterSha256,
+    'gammaSelectionReceipt.artifact.adapterSha256'
+  );
+  const baseModelId = requireText(
+    gamma.artifact?.baseModelId,
+    'gammaSelectionReceipt.artifact.baseModelId'
+  );
+  const baseCheckpointSha256 = requireSha256(
+    gamma.artifact?.baseCheckpointSha256,
+    'gammaSelectionReceipt.artifact.baseCheckpointSha256'
+  );
+  if ((manifest.id || manifest.name) !== adapterId
+    || requireSha256(manifestAdapterSha256(manifest), 'manifest.adapterSha256') !== adapterSha256
+    || manifestBaseModelId(manifest) !== baseModelId
+    || requireSha256(
+      manifestBaseCheckpointSha256(manifest),
+      'manifest.baseCheckpointSha256'
+    ) !== baseCheckpointSha256) {
+    throw new Error('Trained adapter admission rejected manifest and Gamma artifact identity mismatch');
+  }
+
+  return {
+    schema: TRAINED_ADAPTER_ADMISSION_SCHEMA,
+    state: 'shadow',
+    artifact: { adapterId, adapterSha256, baseModelId, baseCheckpointSha256 },
+    receipts: { identityReceiptHash, parityReceiptHash, gammaReceiptHash },
+    evidence: { identity, parity, gamma }
+  };
+}
+
+const verifyHumanApproval = async (entry, cryptoApi = globalThis.crypto) => {
+  const approval = entry?.metadata?.humanApproval;
+  if (!approval || approval.schema !== TRAINED_ADAPTER_HUMAN_APPROVAL_SCHEMA) {
+    throw new Error('Trained adapter activation requires a human approval receipt');
+  }
+  const receiptSha256 = await verifyReceiptHash(
+    approval,
+    'receiptSha256',
+    'humanApproval',
+    cryptoApi
+  );
+  const artifact = entry.metadata.trainedAdapterAdmission?.artifact;
+  const receipts = entry.metadata.trainedAdapterAdmission?.receipts;
+  if (approval.decision !== 'approve'
+    || approval.source !== 'hitl-controller'
+    || approval.humanRequired !== true
+    || approval.adapterId !== artifact?.adapterId
+    || approval.adapterSha256 !== artifact?.adapterSha256
+    || approval.dopplerIdentityReceiptHash !== receipts?.identityReceiptHash
+    || approval.dopplerParityReceiptHash !== receipts?.parityReceiptHash
+    || approval.gammaSelectionReceiptHash !== receipts?.gammaReceiptHash) {
+    throw new Error('Trained adapter activation rejected human approval binding');
+  }
+  return receiptSha256;
+};
+
 const NeuralCompiler = {
   metadata: {
     id: 'NeuralCompiler',
     version: '1.0.0',
     genesis: { introduced: 'full' },
-    dependencies: ['Utils', 'EventBus?', 'VFS', 'LLMClient', 'DopplerToolbox?', 'SemanticMemory', 'IntentBundleGate?'],
+    dependencies: ['Utils', 'EventBus?', 'VFS', 'LLMClient', 'DopplerToolbox?', 'SemanticMemory', 'IntentBundleGate?', 'HITLController?'],
     async: true,
     type: 'capability'
   },
 
   factory: (deps) => {
-    const { Utils, EventBus, VFS, LLMClient, DopplerToolbox, SemanticMemory, IntentBundleGate } = deps;
+    const {
+      Utils,
+      EventBus,
+      VFS,
+      LLMClient,
+      DopplerToolbox,
+      SemanticMemory,
+      IntentBundleGate,
+      HITLController
+    } = deps;
     const { logger, Errors, generateId } = Utils;
 
     const REGISTRY_PATH = '/.memory/neural-compiler/adapters.json';
@@ -149,6 +365,13 @@ const NeuralCompiler = {
 
     const init = async () => {
       await loadRegistry();
+      if (HITLController?.registerModule) {
+        HITLController.registerModule(
+          'NeuralCompiler',
+          [HITLController.CAPABILITIES?.APPROVE_TRAINED_ADAPTER || 'approve_trained_adapter'],
+          'Human promotion of evidence-qualified trained adapters'
+        );
+      }
       logger.info('[NeuralCompiler] Initialized');
       return true;
     };
@@ -182,6 +405,112 @@ const NeuralCompiler = {
 
       emit('neural-compiler:adapter-registered', { name });
       return entry;
+    };
+
+    const stageTrainedAdapter = async (manifestPath, admission, options = {}) => {
+      if (!manifestPath && !options.manifest) {
+        throw new Errors.ValidationError('Trained adapter manifest path or manifest required');
+      }
+      const manifest = options.manifest || JSON.parse(await VFS.read(manifestPath));
+      let verified;
+      try {
+        verified = await verifyTrainedAdapterAdmission(admission, manifest);
+      } catch (error) {
+        throw new Errors.ValidationError(error?.message || String(error));
+      }
+      const name = verified.artifact.adapterId;
+      const routingText = options.routingText || name;
+      const embedding = options.embedding
+        || (SemanticMemory ? await SemanticMemory.embed(routingText) : null);
+      const entry = {
+        name,
+        manifestPath: manifestPath || null,
+        manifest,
+        embedding,
+        metadata: {
+          ...(options.metadata || {}),
+          trainedAdapter: true,
+          admissionState: 'shadow',
+          trainedAdapterAdmission: verified,
+          humanApproval: null
+        },
+        routingText,
+        updatedAt: Date.now()
+      };
+      _registry.set(name, entry);
+      await persistRegistry();
+      emit('neural-compiler:trained-adapter-staged', {
+        name,
+        adapterSha256: verified.artifact.adapterSha256
+      });
+      return entry;
+    };
+
+    const promoteTrainedAdapter = async (name) => {
+      const entry = _registry.get(name);
+      if (!entry?.metadata?.trainedAdapter || entry.metadata.admissionState !== 'shadow') {
+        throw new Errors.ValidationError(`Trained adapter is not staged in Shadow: ${name}`);
+      }
+      if (!HITLController?.requestApproval) {
+        throw new Errors.ConfigError('Trained adapter promotion requires HITLController');
+      }
+      const admission = entry.metadata.trainedAdapterAdmission;
+      return new Promise((resolve, reject) => {
+        const approvalId = HITLController.requestApproval({
+          moduleId: 'NeuralCompiler',
+          capability: HITLController.CAPABILITIES?.APPROVE_TRAINED_ADAPTER
+            || 'approve_trained_adapter',
+          action: `Promote trained adapter ${name}`,
+          data: {
+            adapterId: name,
+            adapterSha256: admission.artifact.adapterSha256,
+            baseModelId: admission.artifact.baseModelId,
+            gammaSelectionReceiptHash: admission.receipts.gammaReceiptHash
+          },
+          alwaysRequireHuman: true,
+          onApprove: async (_data, context) => {
+            try {
+              if (context?.source !== 'hitl-controller' || context?.humanRequired !== true) {
+                throw new Error('Trained adapter promotion requires HITL human approval context');
+              }
+              const core = {
+                schema: TRAINED_ADAPTER_HUMAN_APPROVAL_SCHEMA,
+                approvalId: requireText(context.approvalId, 'humanApproval.approvalId'),
+                approvedAt: new Date(context.approvedAt).toISOString(),
+                source: context.source,
+                humanRequired: true,
+                decision: 'approve',
+                adapterId: admission.artifact.adapterId,
+                adapterSha256: admission.artifact.adapterSha256,
+                dopplerIdentityReceiptHash: admission.receipts.identityReceiptHash,
+                dopplerParityReceiptHash: admission.receipts.parityReceiptHash,
+                gammaSelectionReceiptHash: admission.receipts.gammaReceiptHash
+              };
+              entry.metadata.admissionState = 'promoted';
+              entry.metadata.humanApproval = {
+                ...core,
+                receiptSha256: await sha256Text(stableJson(core))
+              };
+              entry.updatedAt = Date.now();
+              await persistRegistry();
+              emit('neural-compiler:trained-adapter-promoted', {
+                name,
+                humanApprovalReceiptHash: entry.metadata.humanApproval.receiptSha256
+              });
+              resolve({ status: 'promoted', name, humanApproval: entry.metadata.humanApproval });
+            } catch (error) {
+              reject(error);
+            }
+          },
+          onReject: (reason) => {
+            emit('neural-compiler:trained-adapter-rejected', { name, reason });
+            resolve({ status: 'rejected', name, reason });
+          }
+        });
+        if (!approvalId) {
+          reject(new Errors.ConfigError('Trained adapter promotion was not queued for a human'));
+        }
+      });
     };
 
     const unregisterAdapter = async (name) => {
@@ -240,6 +569,17 @@ const NeuralCompiler = {
 
       if (!manifest) {
         throw new Errors.ValidationError(`Adapter manifest missing for ${name}`);
+      }
+
+      if (isGovernedTrainedAdapter(manifest, entry)) {
+        if (entry.metadata?.admissionState !== 'promoted') {
+          throw new Errors.ValidationError(`Trained adapter is not human-promoted: ${name}`);
+        }
+        try {
+          await verifyHumanApproval(entry);
+        } catch (error) {
+          throw new Errors.ValidationError(error?.message || String(error));
+        }
       }
 
       const load = DopplerToolbox?.loadLoRAAdapter || LLMClient?.loadLoRAAdapter;
@@ -444,6 +784,8 @@ const NeuralCompiler = {
     return {
       init,
       registerAdapter,
+      stageTrainedAdapter,
+      promoteTrainedAdapter,
       unregisterAdapter,
       listAdapters,
       getActiveAdapter,

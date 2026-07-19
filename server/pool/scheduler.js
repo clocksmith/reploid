@@ -4,7 +4,11 @@
 
 import { hashJson, sha256Hex } from './hash.js';
 import { quorumForRingSize as configuredQuorumForRingSize } from './config.js';
-import { getPoolModelExecutionMode, getPoolModelWorkload } from './model-contract.js';
+import {
+  getPoolModelExecutionMode,
+  getPoolModelWorkload,
+  modelSupportsAdapterRequirement
+} from './model-contract.js';
 import {
   deriveProviderAdmission,
   effectiveTrustTierForRingAdmissions,
@@ -44,6 +48,7 @@ const selectModel = (provider, job = {}) => {
     if (requestedBackend && model.backend !== requestedBackend) return false;
     if (requestedWorkload && getPoolModelWorkload(model) !== requestedWorkload) return false;
     if (requestedExecutionMode && getPoolModelExecutionMode(model) !== requestedExecutionMode) return false;
+    if (!modelSupportsAdapterRequirement(model, requirements.adapter || null)) return false;
     return true;
   }) || null;
 };
@@ -220,7 +225,9 @@ const buildAssignmentInput = ({ job, provider, model, policy, inputHash, generat
     workload: getPoolModelWorkload(model),
     executionMode: getPoolModelExecutionMode(model),
     requirements: job.modelRequirements || {}
-  }
+  },
+  adapter: job.modelRequirements?.adapter || null,
+  adapterUseApproval: job.adapterUseApproval || null
 });
 
 const cancelPreviousActiveAssignments = async ({ store, job }) => {

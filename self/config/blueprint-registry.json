@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-07-16T23:31:09.858Z",
+  "generatedAt": "2026-07-19T01:21:57.944Z",
   "features": [
     {
       "id": "0x000003",
@@ -3324,6 +3324,90 @@
       ],
       "files": [
         "ui/proto/optimization.js"
+      ]
+    },
+    {
+      "id": "0x000150",
+      "name": "pool-adapter-pack-publisher",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x000150",
+          "path": "blueprints/0x000150-pool-adapter-pack-publisher.md"
+        }
+      ],
+      "files": [
+        "pool/adapter-pack-publisher.js"
+      ]
+    },
+    {
+      "id": "0x000151",
+      "name": "pool-adapter-pack",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x000151",
+          "path": "blueprints/0x000151-pool-adapter-pack.md"
+        }
+      ],
+      "files": [
+        "pool/adapter-pack.js"
+      ]
+    },
+    {
+      "id": "0x000152",
+      "name": "pool-adapter-publication",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x000152",
+          "path": "blueprints/0x000152-pool-adapter-publication.md"
+        }
+      ],
+      "files": [
+        "pool/adapter-publication.js"
+      ]
+    },
+    {
+      "id": "0x000153",
+      "name": "pool-adapter-publisher-client",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x000153",
+          "path": "blueprints/0x000153-pool-adapter-publisher-client.md"
+        }
+      ],
+      "files": [
+        "pool/adapter-publisher-client.js"
+      ]
+    },
+    {
+      "id": "0x000154",
+      "name": "pool-adapter-registry",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x000154",
+          "path": "blueprints/0x000154-pool-adapter-registry.md"
+        }
+      ],
+      "files": [
+        "pool/adapter-registry.js"
+      ]
+    },
+    {
+      "id": "0x000155",
+      "name": "pool-p2p-artifact-transfer",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x000155",
+          "path": "blueprints/0x000155-pool-p2p-artifact-transfer.md"
+        }
+      ],
+      "files": [
+        "pool/p2p-artifact-transfer.js"
       ]
     }
   ]

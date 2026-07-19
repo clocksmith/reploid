@@ -6,6 +6,8 @@ It is not `/zero` and it is not `/x`.
 ## Protected Assets
 
 - model artifact identity
+- adapter pack, publication, promotion, and revocation identity
+- requester approval for adapter use
 - prompt hash and generation config hash
 - provider receipt signature
 - requester acceptance signature
@@ -25,6 +27,7 @@ It is not `/zero` and it is not `/x`.
 - sybil provider group
 - signaling relay that injects or withholds metadata
 - artifact host serving wrong bytes
+- peer serving corrupt or substituted adapter bytes
 
 ## Trust Boundaries
 
@@ -47,6 +50,7 @@ An accepted result should be reconstructible from:
 - requester acceptance
 - reputation events
 - model and manifest hashes
+- adapter pack, publication, requester approval, and acquisition-source hashes when used
 - deterministic generation config
 
 *Last updated: June 2026*

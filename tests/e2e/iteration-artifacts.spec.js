@@ -20,7 +20,7 @@ artifact-chain-ok
 EOF
 `;
 
-test('a claimed iteration produces input, trace, toolcall, score, mutation, decision, and audit artifacts', async ({ page }, testInfo) => {
+test('/x claimed iteration produces input, trace, toolcall, score, mutation, decision, and audit artifacts', async ({ page }, testInfo) => {
   const instanceId = sanitizeInstanceId(`iteration-artifacts-${testInfo.project.name}-${Date.now()}`);
   const artifacts = [
     'input.json',
@@ -34,7 +34,7 @@ test('a claimed iteration produces input, trace, toolcall, score, mutation, deci
 
   await awakenWithMockGoal(
     page,
-    '/zero',
+    '/x',
     instanceId,
     'write an artifact-chain probe',
     writeResponse,

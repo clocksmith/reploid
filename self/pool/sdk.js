@@ -96,6 +96,26 @@ export function createPoolSdk({ baseUrl = DEFAULT_BASE_URL, authTokenProvider = 
     deploymentCheck() {
       return request('/deployment/check');
     },
+    publishAdapter(publication) {
+      return request('/adapters', { method: 'POST', body: { publication } });
+    },
+    listAdapters({ capability = null, publisherId = null, visibility = null } = {}) {
+      const query = new URLSearchParams();
+      if (capability) query.set('capability', capability);
+      if (publisherId) query.set('publisherId', publisherId);
+      if (visibility) query.set('visibility', visibility);
+      const suffix = query.toString() ? `?${query.toString()}` : '';
+      return request(`/adapters${suffix}`);
+    },
+    getAdapter(packHash) {
+      return request(`/adapters/${encodeURIComponent(packHash)}`);
+    },
+    revokeAdapter(packHash, revocation) {
+      return request(`/adapters/${encodeURIComponent(packHash)}/revoke`, {
+        method: 'POST',
+        body: { revocation }
+      });
+    },
     submitJob(jobRequest) {
       return request('/jobs', { method: 'POST', body: jobRequest });
     },

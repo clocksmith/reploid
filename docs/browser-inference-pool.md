@@ -62,6 +62,45 @@ Browser providers derive artifact URLs from the selected model's `artifactPolicy
 
 The launch Qwen artifact is pinned to Hugging Face revision `f58f1d0b58641c84e7ea50d13fea0dd4dc91389a`. Production verification fetches that manifest, verifies its configured content hash and model identity, and rejects manifests missing runtime-significant Doppler execution fields. Changing the artifact revision requires changing the manifest hash and config version together.
 
+## Governed adapter lifecycle
+
+Poolday treats a LoRA adapter as an immutable capability bound to one exact base
+model, not as an untyped file attached to a prompt.
+
+```text
+trained adapter
+  -> Shadow admission and human promotion
+  -> immutable AdapterPack
+  -> publisher-signed publication
+  -> requester-signed use approval
+  -> cache, peer, or origin acquisition
+  -> Doppler loadLoRA activation
+  -> adapter-bound inference receipt
+```
+
+The pack binds adapter bytes, PEFT shape, base-model and manifest hashes,
+minimum Doppler version, human-promotion receipt, Doppler parity receipt, Gamma
+selection receipt, distribution chunks, and Doppler runtime manifest. A signed
+publication adds publisher identity, visibility, capability tags, and origin
+locations. Revocation is a separate signed event; it does not rewrite the pack
+or publication.
+
+A requester approval binds one pack and publication to the requester, prompt
+hash, model id, model hash, and manifest hash. The coordinator rejects adapter
+jobs without this signature. The peer-room planner applies the same check.
+
+Providers may advertise a published pack as `cached` or `fetchable` during
+discovery. Before inference, the provider must acquire and hash-check the exact
+bytes, call Doppler's public `loadLoRA()` surface, and expose the pack as
+`active`. Receipts are rejected unless they bind the exact publication,
+requester approval hash, and a cache/peer/origin acquisition record containing
+the pack and adapter hashes.
+
+This is full-model-plus-adapter execution on one provider. Poolday does not
+split adapter matrices, base-model layers, attention, or KV cache across peers.
+The current repository proof uses synthetic adapter bytes and mocked Doppler
+execution. No Tinker-produced adapter is published or deployed by this claim.
+
 Current hosted implementation order:
 
 1. Cloud control plane for assignment, verification, points, and reputation.
@@ -206,6 +245,10 @@ Receipts for ring assignments are accepted only after:
 | `GET` | `/pool/status` | Return safe product status, policy, storage, auth, and trust-language facts |
 | `GET` | `/pool/metrics` | Return provider, job, assignment, receipt, audit, and reputation counters for coordinator-authorized callers |
 | `GET` | `/pool/deployment/check` | Return deployment readiness facts, trust language, and redacted public metrics |
+| `POST` | `/pool/adapters` | Register one publisher-signed adapter publication |
+| `GET` | `/pool/adapters` | List non-revoked publications visible to the authenticated caller |
+| `GET` | `/pool/adapters/:packHash` | Fetch one non-revoked publication by immutable pack hash |
+| `POST` | `/pool/adapters/:packHash/revoke` | Apply the publisher's signed revocation |
 | `POST` | `/pool/providers/register` | Register provider model, device, availability, and public key |
 | `POST` | `/pool/providers/heartbeat` | Refresh provider session state |
 | `GET` | `/pool/providers/assignments/next` | Poll next assignment for a provider |
@@ -258,6 +301,8 @@ import { createPromptPayload, createExecutionResultPayload, createReceiptPayload
 import { createPeerControlPlane, buildPeerAssignmentPlan } from './pool/peer-control-plane.js';
 import { createPeerProviderNode, runPeerJob } from './pool/peer-room.js';
 import { createPeerRoomBusFactory } from './pool/peer-rendezvous.js';
+import { createAdapterPublisherClient } from './pool/adapter-publisher-client.js';
+import { createAdapterRegistry, acquireAdapterForAssignment } from './pool/adapter-registry.js';
 ```
 
 `createAssignmentP2PPayloadChannel()` creates or attaches to the cloud signaling session, builds the WebRTC signaling channel, and sends versioned prompt/output/receipt envelopes only through the DataChannel transport. The SDK signaling routes carry only offer, answer, ICE candidate, close, and ping messages. Ring payload sessions can be rejected until the coordinator opens the configured reveal gate; this keeps pre-reveal provider outputs from becoming copyable P2P data.
@@ -391,11 +436,12 @@ The provider tab does not need Node or Bun. Browser providers use `/compute`.
 Primary peer provider flow:
 
 1. Load the Doppler model through the browser WebGPU runtime.
-2. Build a browser runtime profile from WebGPU adapter data, browser hints, Doppler runtime/backend, model identity, and shader/kernel profile hints.
-3. Create a signed provider advert that binds model identity, runtime profile hash, availability, public key, and accepted policies.
-4. Listen in a peer room for signed requester intents.
-5. Accept a matching session, connect over WebRTC, receive the prompt over DataChannel, verify prompt hash and model identity, execute locally, return a signed receipt over DataChannel, and record local activity.
-6. Receive requester acceptance over DataChannel.
+2. Publish or cache any governed adapter metadata and verified bytes the provider will advertise.
+3. Build a browser runtime profile from WebGPU adapter data, browser hints, Doppler runtime/backend, model identity, and shader/kernel profile hints.
+4. Create a signed provider advert that binds model identity, available adapter packs, runtime profile hash, availability, public key, and accepted policies.
+5. Listen in a peer room for signed requester intents.
+6. Accept a matching session, verify requester adapter approval, acquire missing adapter bytes, activate the exact pack through Doppler, receive the prompt over DataChannel, verify prompt hash and model identity, execute locally, return a signed receipt over DataChannel, and record local activity.
+7. Receive requester acceptance over DataChannel.
 
 The provider client still exposes `runWorkerStep()` for the hosted diagnostic loop. Manual controls under `/compute` can register, heartbeat, poll, execute, inspect points, and inspect reputation against the coordinator. Those controls are compatibility and operations tools, not the primary user path.
 
@@ -458,6 +504,9 @@ The server verifier checks:
 - Ring attempt id when a policy uses a ring commitment
 - Runtime profile hash when a policy requires homogeneous runtime buckets
 - Commitment and reveal evidence when a policy uses commit-reveal
+- Exact active adapter pack and publication identity when an adapter is requested
+- Requester-signed adapter-use approval bound to the prompt and base model
+- Verified cache, peer, or origin acquisition evidence for the adapter bytes
 
 The browser SDK can also verify fetched receipt records locally using the provider public key and submitted output/token/transcript artifact.
 
@@ -559,6 +608,7 @@ When `POOL_STORE=firestore` is set, the server must initialize Firebase Admin an
 - `pool_events`
 - `signaling_sessions`
 - `signaling_messages`
+- `adapter_publications`
 - `points_ledger`
 - `reputation_state`
 - `audit_challenges`
@@ -604,6 +654,7 @@ Hosted production requires:
 - Auth required for all non-discovery pool routes.
 - Firestore rules denying direct client access to pool collections.
 - Firebase Hosting rewrites for every `/pool/*` API route, including `/pool/signaling/**`.
+- Firebase Hosting rewrites for `/pool/adapters` and `/pool/adapters/**` without capturing browser modules under `/pool/*.js`.
 - Commit-reveal store methods for `commitment_events` and `reveal_events`.
 - Signaling sessions capped by assignment expiry and `POOL_SIGNAL_SESSION_TTL_MS`.
 - Signaling messages restricted to WebRTC metadata types: `offer`, `answer`, `ice-candidate`, `close`, and `ping`.

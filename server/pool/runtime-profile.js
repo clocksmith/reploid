@@ -74,7 +74,9 @@ export function runtimeProfileBucketKey({ provider = {}, model = null, profile =
 
 export function validateRuntimeProfileForPolicy(provider = {}, policy = {}) {
   const reasons = [];
-  const profile = getDeterminismProfile(policy.determinismProfileId);
+  const profile = policy.determinismProfileId
+    ? getDeterminismProfile(policy.determinismProfileId)
+    : null;
   const requiresProfile = policy.requireRuntimeProfile === true || profile?.requireRuntimeProfile === true;
   if (!requiresProfile) return reasons;
   if (!provider.runtimeProfile || typeof provider.runtimeProfile !== 'object') {

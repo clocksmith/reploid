@@ -6,6 +6,12 @@ import { createPoolSdk } from './sdk.js';
 import { buildPoolReceipt, createSigningKeyPair, exportPublicKey, hashJson, sha256Hex, signProviderReceipt } from './inference-receipt.js';
 import { createDopplerRuntime } from './doppler-runtime.js';
 import { POOLDAY_MODEL_WORKLOADS, buildLaunchProviderModel, getPoolModelWorkload } from './model-contract.js';
+import {
+  runtimeHasActiveAdapterRequirement,
+  validateAdapterRequirement
+} from './adapter-pack.js';
+import { validatePublishedAdapterRequirement, verifyAdapterUseApproval } from './adapter-publication.js';
+import { acquireAdapterForAssignment, createAdapterRegistry } from './adapter-registry.js';
 import { createPoolIdentity } from './identity.js';
 import { listPolicies } from './policy-router.js';
 import { collectRuntimeProfile } from './runtime-profile.js';
@@ -18,7 +24,16 @@ import {
   buildAssignmentRevealPayload
 } from './p2p-payload.js';
 
-export function createProviderClient({ providerId, sdk = createPoolSdk(), runtime = createDopplerRuntime(), keyPair = null, identity = createPoolIdentity('provider') } = {}) {
+export function createProviderClient({
+  providerId,
+  sdk = createPoolSdk(),
+  runtime = createDopplerRuntime(),
+  keyPair = null,
+  identity = createPoolIdentity('provider'),
+  adapterRegistry = createAdapterRegistry(),
+  fetchAdapterFromPeer = null,
+  fetchAdapterFromOrigin = null
+} = {}) {
   let activeKeyPair = keyPair;
   let publicKey = null;
   let registration = null;
@@ -63,6 +78,10 @@ export function createProviderClient({ providerId, sdk = createPoolSdk(), runtim
     && (assignmentModel.runtime || 'doppler') === (runtimeModel.runtime || 'doppler')
     && (assignmentModel.backend || 'browser-webgpu') === (runtimeModel.backend || 'browser-webgpu')
     && (assignmentModel.workload || assignmentModel.requirements?.workload || POOLDAY_MODEL_WORKLOADS.textGeneration) === getPoolModelWorkload(runtimeModel)
+    && runtimeHasActiveAdapterRequirement(
+      runtimeModel,
+      assignmentModel.requirements?.adapter || assignmentModel.adapter || null
+    )
   );
 
   const resolveRuntimeProfile = async () => {
@@ -70,6 +89,80 @@ export function createProviderClient({ providerId, sdk = createPoolSdk(), runtim
       return runtime.getRuntimeProfile();
     }
     return collectRuntimeProfile({ runtime });
+  };
+
+  const validateAdvertisedAdapterPacks = async (models = [], runtimeModel = {}) => {
+    for (const model of models) {
+      for (const adapter of model.adapterPacks || []) {
+        const validation = validateAdapterRequirement(adapter);
+        if (!validation.ok) throw new Error(`Invalid advertised adapter: ${validation.reasons.join('; ')}`);
+        if (adapter.publicationHash || adapter.publisherId || adapter.state !== 'active') {
+          const published = validatePublishedAdapterRequirement(adapter);
+          if (!published.ok) throw new Error(`Invalid published adapter advert: ${published.reasons.join('; ')}`);
+        }
+        if (adapter.state === 'active' && !runtimeHasActiveAdapterRequirement(runtimeModel, adapter)) {
+          throw new Error('Provider cannot advertise an active adapter that is not active in Doppler');
+        }
+        if (adapter.state === 'cached' && !await adapterRegistry.hasCached(adapter.packHash)) {
+          throw new Error('Provider cannot advertise an adapter as cached without verified local bytes');
+        }
+        if (adapter.state === 'fetchable'
+          && typeof fetchAdapterFromPeer !== 'function'
+          && typeof fetchAdapterFromOrigin !== 'function'
+          && !await adapterRegistry.hasCached(adapter.packHash)) {
+          throw new Error('Provider cannot advertise a fetchable adapter without a peer, origin, or cached source');
+        }
+      }
+    }
+  };
+
+  const prepareAssignmentAdapter = async (assignment = {}) => {
+    const requirement = assignment.adapter || assignment.model?.requirements?.adapter || null;
+    const active = typeof runtime?.getActiveAdapterPack === 'function'
+      ? runtime.getActiveAdapterPack()
+      : null;
+    if (!requirement) {
+      if (active && typeof runtime?.deactivateAdapterPack === 'function') await runtime.deactivateAdapterPack();
+      return null;
+    }
+    const approval = await verifyAdapterUseApproval(assignment.adapterUseApproval, {
+      adapterRequirement: requirement,
+      requesterId: assignment.requesterId,
+      inputHash: assignment.inputHash,
+      modelRequirements: assignment.model?.requirements || assignment.model
+    });
+    if (!approval.ok) throw new Error(`Adapter use approval rejected: ${approval.reasons.join('; ')}`);
+    if (active && runtimeHasActiveAdapterRequirement(runtime.getModelInfo(), requirement)) {
+      return {
+        ...requirement,
+        state: 'active',
+        adapterUseApprovalHash: approval.approvalHash,
+        artifactSources: active.artifactSources || []
+      };
+    }
+    const artifact = await acquireAdapterForAssignment({
+      assignment,
+      registry: adapterRegistry,
+      fetchFromPeer: fetchAdapterFromPeer,
+      fetchFromOrigin: fetchAdapterFromOrigin
+    });
+    if (!artifact?.pack || !artifact?.bytes) throw new Error('Adapter acquisition returned no verified pack or bytes');
+    const bytes = artifact.bytes;
+    const fetchUrl = async () => bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength);
+    const activated = await runtime.activateAdapterPack(artifact.pack, {
+      source: artifact.pack.runtimeManifest,
+      loadOptions: { fetchUrl },
+      artifactSources: artifact.acquisition ? [artifact.acquisition] : []
+    });
+    return {
+      ...requirement,
+      ...activated,
+      state: 'active',
+      publicationHash: requirement.publicationHash,
+      publisherId: requirement.publisherId,
+      adapterUseApprovalHash: approval.approvalHash,
+      artifactSources: artifact.acquisition ? [artifact.acquisition] : []
+    };
   };
 
   const resolveAssignmentPrompt = async (assignment = {}, { promptPayload = null, prompt = null } = {}) => {
@@ -97,13 +190,25 @@ export function createProviderClient({ providerId, sdk = createPoolSdk(), runtim
       jobId: assignment.jobId,
       policyId: assignment.policyId
     });
-    const runtimeModel = typeof runtime?.getModelInfo === 'function' ? runtime.getModelInfo() : null;
-    if (!assignmentMatchesRuntime(assignment.model || {}, runtimeModel || {})) {
+    let runtimeModel = typeof runtime?.getModelInfo === 'function' ? runtime.getModelInfo() : null;
+    if (!modelMatchesRuntime({
+      modelId: assignment.model?.id,
+      modelHash: assignment.model?.hash,
+      manifestHash: assignment.model?.manifestHash,
+      runtime: assignment.model?.runtime,
+      backend: assignment.model?.backend,
+      workload: assignment.model?.workload || assignment.model?.requirements?.workload
+    }, runtimeModel || {})) {
       throw new Error('Assignment model identity does not match the loaded Doppler runtime');
+    }
+    const adapter = await prepareAssignmentAdapter(assignment);
+    runtimeModel = typeof runtime?.getModelInfo === 'function' ? runtime.getModelInfo() : runtimeModel;
+    if (!assignmentMatchesRuntime(assignment.model || {}, runtimeModel || {})) {
+      throw new Error('Assignment adapter identity does not match the active Doppler runtime');
     }
     const promptText = await resolveAssignmentPrompt(assignment, { promptPayload, prompt });
     const workload = assignment.workload || assignment.model?.requirements?.workload || getPoolModelWorkload(runtimeModel || {});
-    const execution = workload === POOLDAY_MODEL_WORKLOADS.embedding
+    const runtimeExecution = workload === POOLDAY_MODEL_WORKLOADS.embedding
       ? await runtime.embed({
         prompt: promptText,
         assignment
@@ -113,6 +218,10 @@ export function createProviderClient({ providerId, sdk = createPoolSdk(), runtim
         generationConfig: assignment.generationConfig,
         assignment
       });
+    const execution = {
+      ...runtimeExecution,
+      adapter
+    };
     const receipt = await buildPoolReceipt({
       assignment,
       provider: registration || {
@@ -262,6 +371,7 @@ export function createProviderClient({ providerId, sdk = createPoolSdk(), runtim
       }
       const mismatchedModel = advertisedModels.find((model) => !modelMatchesRuntime(model, runtimeModel));
       if (mismatchedModel) throw new Error('Provider registration cannot advertise models that differ from the loaded Doppler runtime');
+      await validateAdvertisedAdapterPacks(advertisedModels, runtimeModel);
       const runtimeDevice = typeof runtime?.getDeviceInfo === 'function'
         ? await runtime.getDeviceInfo()
         : {};
@@ -306,6 +416,7 @@ export function createProviderClient({ providerId, sdk = createPoolSdk(), runtim
       }
       const mismatchedModel = advertisedModels.find((model) => !modelMatchesRuntime(model, runtimeModel));
       if (mismatchedModel) throw new Error('Provider advert cannot advertise models that differ from the loaded Doppler runtime');
+      await validateAdvertisedAdapterPacks(advertisedModels, runtimeModel);
       const { runtimeProfile, runtimeProfileHash } = await resolveRuntimeProfile();
       return createSignedProviderAdvert({
         providerId: resolvedProviderId,
@@ -447,6 +558,15 @@ export function createProviderClient({ providerId, sdk = createPoolSdk(), runtim
     },
     getPublicKey() {
       return publicKey;
+    },
+    publishAdapter(publication) {
+      return adapterRegistry.publish(publication);
+    },
+    cacheAdapterArtifact(artifact) {
+      return adapterRegistry.cache(artifact);
+    },
+    getAdapterRegistry() {
+      return adapterRegistry;
     }
   };
 }

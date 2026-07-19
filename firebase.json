@@ -152,6 +152,20 @@
           }
         },
         {
+          "source": "/pool/adapters",
+          "run": {
+            "serviceId": "reploid-pool",
+            "region": "us-central1"
+          }
+        },
+        {
+          "source": "/pool/adapters/**",
+          "run": {
+            "serviceId": "reploid-pool",
+            "region": "us-central1"
+          }
+        },
+        {
           "source": "/pool/jobs",
           "run": {
             "serviceId": "reploid-pool",
