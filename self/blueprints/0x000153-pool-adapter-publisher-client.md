@@ -16,6 +16,8 @@ listing, fetching, and revoking adapter publications.
 The client obtains a publisher role identity and signing key, creates canonical
 publication or revocation artifacts, then submits them through `sdk.js`. It
 caches only publication metadata needed to construct a later revocation.
+The publisher accepts the origin already sealed into AdapterPack v2; it cannot
+append mutable origin URL lists while publishing.
 
 ### 3. Implementation Notes
 The client does not build packs, store adapter bytes, approve requester use, or

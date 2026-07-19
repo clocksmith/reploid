@@ -69,7 +69,13 @@ const buildPack = async () => {
       manifestHash: LAUNCH_MODEL.manifestHash,
       checkpointSha256: fakeHash('1'),
       tokenizerHash: LAUNCH_MODEL.tokenizerHash || fakeHash('2'),
-      moduleGraphHash: fakeHash('3')
+      moduleGraphHash: fakeHash('3'),
+      sourceRepo: LAUNCH_MODEL.artifactIdentity.sourceRepo,
+      sourceRevision: LAUNCH_MODEL.artifactIdentity.sourceRevision,
+      weightPackId: LAUNCH_MODEL.artifactIdentity.weightPackId,
+      weightPackHash: LAUNCH_MODEL.artifactIdentity.weightPackHash,
+      manifestVariantId: LAUNCH_MODEL.artifactIdentity.manifestVariantId,
+      conversionConfigDigest: LAUNCH_MODEL.artifactIdentity.conversionConfigDigest
     },
     runtime: {
       name: 'doppler',
@@ -85,7 +91,13 @@ const buildPack = async () => {
     promotion: { state: 'promoted', humanRequired: true },
     distribution: {
       visibility: 'public',
-      originUrl: 'https://example.test/adapter.safetensors',
+      primaryOrigin: {
+        provider: 'huggingface',
+        repoId: 'Clocksmith/lora-unit',
+        revision: 'a'.repeat(40),
+        path: 'adapters/adapter-unit/adapter_model.safetensors'
+      },
+      preservationMirrors: [],
       chunks: [
         { index: 0, bytes: first.byteLength, sha256: await sha256Hex(first) },
         { index: 1, bytes: second.byteLength, sha256: await sha256Hex(second) }
@@ -116,8 +128,7 @@ const publishPack = async (pack, { state = 'fetchable' } = {}) => {
     publisherId: 'publisher-unit',
     publisherPublicKey: await exportPublicKey(keys.publicKey),
     privateKey: keys.privateKey,
-    visibility: 'public',
-    originUrls: [pack.distribution.originUrl]
+    visibility: 'public'
   });
   return {
     keys,
@@ -604,5 +615,22 @@ describe('governed Poolday adapter packs', () => {
     });
     expect(rejected.accepted).toBe(false);
     expect(rejected.reasons).toContain('receipt adapter packHash mismatch');
+
+    const wrongConvertedBase = await signProviderReceipt({
+      ...receipt,
+      adapter: { ...receipt.adapter, baseConversionConfigDigest: fakeHash('9') },
+      providerSignature: null
+    }, keys.privateKey);
+    const convertedBaseRejected = await verifyReceipt({
+      store,
+      assignment,
+      receipt: wrongConvertedBase,
+      outputText: 'adapted',
+      tokenIds: [1, 2],
+      transcript
+    });
+    expect(convertedBaseRejected.accepted).toBe(false);
+    expect(convertedBaseRejected.reasons)
+      .toContain('receipt adapter baseConversionConfigDigest mismatch');
   });
 });

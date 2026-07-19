@@ -664,6 +664,8 @@ POOL_JSON_LIMIT=512kb
 POOL_SIGNAL_SESSION_TTL_MS=600000
 POOL_MAX_SIGNAL_PAYLOAD_BYTES=65536
 POOL_MAX_SIGNAL_MESSAGES_PER_POLL=100
+REPLOID_ADAPTER_GCS_SIGNED_URLS=true
+REPLOID_ADAPTER_SIGNED_URL_TTL_MS=300000
 ```
 
 Hosted production requires:
@@ -682,6 +684,10 @@ Hosted production requires:
 - Offloaded model artifact base configured in the browser as `window.REPLOID_POOL_MODEL_BASE_URL`.
 - Doppler module and WGSL kernel base configured in the browser as `window.REPLOID_DOPPLER_MODULE_URL` and `window.REPLOID_DOPPLER_KERNEL_BASE_URL`.
 - Model artifact URLs content-addressed by model id and manifest hash.
+- Private adapter objects pinned by GCS generation, with uniform bucket-level
+  access and public access prevention.
+- Coordinator service account able to sign short-lived reads for exact adapter
+  object generations.
 
 `/pool/deployment/check` must return `ok: true` before public traffic. The readiness check requires Firestore storage, Firebase Auth verification, auth-required pool routes, offloaded model artifact base, Doppler module URL, Doppler WGSL kernel base URL, hybrid P2P signaling, and commit-reveal store support. It also reports the append-only `pool_events` source used by the reputation reducer.
 

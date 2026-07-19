@@ -3,9 +3,10 @@
  */
 
 import { hashJson } from './inference-receipt.js';
+import { validateArtifactOrigin } from './artifact-origin.js';
 
-export const ADAPTER_PACK_SCHEMA = 'reploid.pool.adapter-pack/v1';
-export const ADAPTER_REQUIREMENT_SCHEMA = 'reploid.pool.adapter-requirement/v1';
+export const ADAPTER_PACK_SCHEMA = 'reploid.pool.adapter-pack/v2';
+export const ADAPTER_REQUIREMENT_SCHEMA = 'reploid.pool.adapter-requirement/v2';
 export const ADAPTER_PACK_FORMATS = Object.freeze(['peft_safetensors', 'rdrr_lora']);
 export const ADAPTER_PACK_VISIBILITY = Object.freeze(['public', 'private', 'entitled']);
 
@@ -70,6 +71,14 @@ export function validateAdapterPack(pack = {}, { requirePromoted = true } = {}) 
   requireHash(reasons, base.checkpointSha256, 'baseModel.checkpointSha256');
   requireHash(reasons, base.tokenizerHash, 'baseModel.tokenizerHash');
   requireHash(reasons, base.moduleGraphHash, 'baseModel.moduleGraphHash');
+  if (!String(base.sourceRepo || '').trim()) reasons.push('baseModel.sourceRepo is required');
+  if (!/^[a-f0-9]{40,64}$/.test(String(base.sourceRevision || '').trim())) {
+    reasons.push('baseModel.sourceRevision must be a full immutable source revision');
+  }
+  if (!String(base.weightPackId || '').trim()) reasons.push('baseModel.weightPackId is required');
+  requireHash(reasons, base.weightPackHash, 'baseModel.weightPackHash');
+  if (!String(base.manifestVariantId || '').trim()) reasons.push('baseModel.manifestVariantId is required');
+  requireHash(reasons, base.conversionConfigDigest, 'baseModel.conversionConfigDigest');
 
   const runtime = pack.runtime || {};
   if (runtime.name !== 'doppler') reasons.push('runtime.name must be doppler');
@@ -117,6 +126,16 @@ export function validateAdapterPack(pack = {}, { requirePromoted = true } = {}) 
   if (!ADAPTER_PACK_VISIBILITY.includes(distribution.visibility)) {
     reasons.push('distribution.visibility is not supported');
   }
+  const primaryOriginValidation = validateArtifactOrigin(distribution.primaryOrigin);
+  reasons.push(...primaryOriginValidation.reasons.map((reason) => `distribution.primaryOrigin: ${reason}`));
+  if (!Array.isArray(distribution.preservationMirrors)) {
+    reasons.push('distribution.preservationMirrors must be an array');
+  } else {
+    distribution.preservationMirrors.forEach((origin, index) => {
+      const validation = validateArtifactOrigin(origin, { allowPreservation: true });
+      reasons.push(...validation.reasons.map((reason) => `distribution.preservationMirrors[${index}]: ${reason}`));
+    });
+  }
   if (!Array.isArray(distribution.chunks) || distribution.chunks.length === 0) {
     reasons.push('distribution.chunks must be a non-empty array');
   } else {
@@ -132,9 +151,7 @@ export function validateAdapterPack(pack = {}, { requirePromoted = true } = {}) 
       reasons.push('distribution chunk bytes do not equal adapter.bytes');
     }
   }
-  if (distribution.visibility !== 'public' && String(distribution.originUrl || '').trim()) {
-    reasons.push('private or entitled adapter packs cannot expose a public originUrl');
-  }
+  if (String(distribution.originUrl || '').trim()) reasons.push('distribution.originUrl is forbidden; use primaryOrigin');
 
   return { ok: reasons.length === 0, reasons };
 }
@@ -158,6 +175,13 @@ export function adapterRequirementFromPack(pack = {}) {
     baseModelId: pack.baseModel?.modelId || null,
     baseModelHash: normalizedHash(pack.baseModel?.modelHash),
     baseManifestHash: normalizedHash(pack.baseModel?.manifestHash),
+    baseTokenizerHash: normalizedHash(pack.baseModel?.tokenizerHash),
+    baseSourceRepo: pack.baseModel?.sourceRepo || null,
+    baseSourceRevision: pack.baseModel?.sourceRevision || null,
+    baseWeightPackId: pack.baseModel?.weightPackId || null,
+    baseWeightPackHash: normalizedHash(pack.baseModel?.weightPackHash),
+    baseManifestVariantId: pack.baseModel?.manifestVariantId || null,
+    baseConversionConfigDigest: normalizedHash(pack.baseModel?.conversionConfigDigest),
     humanPromotionReceiptHash: normalizedHash(pack.evidence?.humanPromotionReceiptHash),
     dopplerParityReceiptHash: normalizedHash(pack.evidence?.dopplerParityReceiptHash),
     gammaSelectionReceiptHash: normalizedHash(pack.evidence?.gammaSelectionReceiptHash)
@@ -173,11 +197,20 @@ export function validateAdapterRequirement(requirement = {}) {
     'adapterSha256',
     'baseModelHash',
     'baseManifestHash',
+    'baseTokenizerHash',
+    'baseWeightPackHash',
+    'baseConversionConfigDigest',
     'humanPromotionReceiptHash',
     'dopplerParityReceiptHash',
     'gammaSelectionReceiptHash'
   ]) requireHash(reasons, requirement[field], `adapter requirement ${field}`);
   if (!String(requirement.baseModelId || '').trim()) reasons.push('adapter requirement baseModelId is required');
+  if (!String(requirement.baseSourceRepo || '').trim()) reasons.push('adapter requirement baseSourceRepo is required');
+  if (!/^[a-f0-9]{40,64}$/.test(String(requirement.baseSourceRevision || '').trim())) {
+    reasons.push('adapter requirement baseSourceRevision must be immutable');
+  }
+  if (!String(requirement.baseWeightPackId || '').trim()) reasons.push('adapter requirement baseWeightPackId is required');
+  if (!String(requirement.baseManifestVariantId || '').trim()) reasons.push('adapter requirement baseManifestVariantId is required');
   return { ok: reasons.length === 0, reasons };
 }
 
@@ -189,19 +222,40 @@ export const adapterRequirementsEqual = (left = {}, right = {}) => (
   && left.baseModelId === right.baseModelId
   && normalizedHash(left.baseModelHash) === normalizedHash(right.baseModelHash)
   && normalizedHash(left.baseManifestHash) === normalizedHash(right.baseManifestHash)
+  && normalizedHash(left.baseTokenizerHash) === normalizedHash(right.baseTokenizerHash)
+  && left.baseSourceRepo === right.baseSourceRepo
+  && left.baseSourceRevision === right.baseSourceRevision
+  && left.baseWeightPackId === right.baseWeightPackId
+  && normalizedHash(left.baseWeightPackHash) === normalizedHash(right.baseWeightPackHash)
+  && left.baseManifestVariantId === right.baseManifestVariantId
+  && normalizedHash(left.baseConversionConfigDigest) === normalizedHash(right.baseConversionConfigDigest)
   && normalizedHash(left.humanPromotionReceiptHash) === normalizedHash(right.humanPromotionReceiptHash)
   && normalizedHash(left.dopplerParityReceiptHash) === normalizedHash(right.dopplerParityReceiptHash)
   && normalizedHash(left.gammaSelectionReceiptHash) === normalizedHash(right.gammaSelectionReceiptHash)
 );
 
-export function modelSupportsAdapterRequirement(model = {}, requirement = null, {
-  allowedStates = ['active', 'cached', 'fetchable']
-} = {}) {
+export function modelIdentityMatchesAdapterRequirement(model = {}, requirement = null) {
   if (!requirement) return true;
   if (!validateAdapterRequirement(requirement).ok) return false;
   if (model.modelId !== requirement.baseModelId) return false;
   if (normalizedHash(model.modelHash) !== normalizedHash(requirement.baseModelHash)) return false;
   if (normalizedHash(model.manifestHash) !== normalizedHash(requirement.baseManifestHash)) return false;
+  const identity = model.artifactIdentity || {};
+  if (normalizedHash(model.tokenizerHash || identity.tokenizerHash) !== normalizedHash(requirement.baseTokenizerHash)) return false;
+  if (identity.sourceRepo !== requirement.baseSourceRepo) return false;
+  if (identity.sourceRevision !== requirement.baseSourceRevision) return false;
+  if (identity.weightPackId !== requirement.baseWeightPackId) return false;
+  if (normalizedHash(identity.weightPackHash || model.modelHash) !== normalizedHash(requirement.baseWeightPackHash)) return false;
+  if (identity.manifestVariantId !== requirement.baseManifestVariantId) return false;
+  if (normalizedHash(identity.conversionConfigDigest) !== normalizedHash(requirement.baseConversionConfigDigest)) return false;
+  return true;
+}
+
+export function modelSupportsAdapterRequirement(model = {}, requirement = null, {
+  allowedStates = ['active', 'cached', 'fetchable']
+} = {}) {
+  if (!requirement) return true;
+  if (!modelIdentityMatchesAdapterRequirement(model, requirement)) return false;
   return (model.adapterPacks || []).some((candidate) => (
     allowedStates.includes(candidate?.state) && adapterRequirementsEqual(candidate, requirement)
   ));
@@ -220,6 +274,7 @@ export default {
   adapterRequirementFromPack,
   validateAdapterRequirement,
   adapterRequirementsEqual,
+  modelIdentityMatchesAdapterRequirement,
   modelSupportsAdapterRequirement,
   runtimeHasActiveAdapterRequirement
 };

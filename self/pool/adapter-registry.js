@@ -9,6 +9,10 @@ import {
   verifyAdapterPublication,
   verifyAdapterRevocation
 } from './adapter-publication.js';
+import {
+  artifactOriginIdentity,
+  resolveArtifactDelivery
+} from './artifact-origin.js';
 
 export const ADAPTER_ACQUISITION_SCHEMA = 'reploid.pool.adapter-acquisition/v1';
 
@@ -19,20 +23,28 @@ const toBytes = (value) => {
   throw new TypeError('adapter bytes must be an ArrayBuffer or typed array');
 };
 
-const publicationMatchesModel = (publication = {}, model = {}) => (
-  publication?.pack?.baseModel?.modelId === model?.modelId
-  && publication?.pack?.baseModel?.modelHash === model?.modelHash
-  && publication?.pack?.baseModel?.manifestHash === model?.manifestHash
+const publicationMatchesModel = (publication = {}, model = {}) => {
+  const base = publication?.pack?.baseModel || {};
+  const identity = model?.artifactIdentity || {};
+  return base.modelId === model?.modelId
+    && base.modelHash === model?.modelHash
+    && base.manifestHash === model?.manifestHash
+    && base.tokenizerHash === (model?.tokenizerHash || identity.tokenizerHash)
+    && base.sourceRepo === identity.sourceRepo
+    && base.sourceRevision === identity.sourceRevision
+    && base.weightPackId === identity.weightPackId
+    && base.weightPackHash === (identity.weightPackHash || model?.modelHash)
+    && base.manifestVariantId === identity.manifestVariantId
+    && base.conversionConfigDigest === identity.conversionConfigDigest;
+};
+
+const publicationPrimaryOrigin = (publication = {}) => (
+  publication.pack?.distribution?.primaryOrigin || null
 );
 
-const publicOriginUrls = (publication = {}) => Array.from(new Set([
-  ...(Array.isArray(publication.originUrls) ? publication.originUrls : []),
-  publication.pack?.distribution?.originUrl
-].map((value) => String(value || '').trim()).filter(Boolean)));
-
-export async function resolveFetchableAdapterPublication({ sdk, packHash, model = null } = {}) {
+export async function resolveFetchableAdapterPublication({ sdk, packHash, model = null, assignmentId = null } = {}) {
   if (!sdk?.getAdapter) throw new TypeError('adapter registry SDK with getAdapter() is required');
-  const response = await sdk.getAdapter(packHash);
+  const response = await sdk.getAdapter(packHash, { assignmentId });
   const publication = response?.publication || response;
   const verification = await verifyAdapterPublication(publication);
   if (!verification.ok) throw new Error(`Adapter publication rejected: ${verification.reasons.join('; ')}`);
@@ -51,7 +63,7 @@ export async function listFetchableAdapterPublications({ sdk, model } = {}) {
   const publications = Array.isArray(response?.publications) ? response.publications : [];
   const verified = [];
   for (const publication of publications) {
-    if (!publicationMatchesModel(publication, model) || publicOriginUrls(publication).length === 0) continue;
+    if (!publicationMatchesModel(publication, model) || !publicationPrimaryOrigin(publication)) continue;
     const verification = await verifyAdapterPublication(publication);
     if (verification.ok) verified.push(publication);
   }
@@ -61,43 +73,69 @@ export async function listFetchableAdapterPublications({ sdk, model } = {}) {
   ));
 }
 
-export function createPublishedAdapterOriginFetcher({ sdk, fetchImpl = globalThis.fetch } = {}) {
+export function createPublishedAdapterOriginFetcher({
+  sdk,
+  fetchImpl = globalThis.fetch,
+  resolvePrivateOrigin = null
+} = {}) {
   if (typeof fetchImpl !== 'function') throw new TypeError('fetch implementation is required');
   return async ({ assignment, requirement } = {}) => {
     const publication = await resolveFetchableAdapterPublication({
       sdk,
-      packHash: requirement?.packHash
+      packHash: requirement?.packHash,
+      assignmentId: assignment?.assignmentId || null
     });
     const expected = adapterRequirementFromPublication(publication, { state: requirement?.state });
     if (!publishedAdapterRequirementsEqual(requirement, expected)) {
       throw new Error('Adapter publication does not match the assignment requirement');
     }
-    const failures = [];
-    for (const url of publicOriginUrls(publication)) {
-      try {
-        const response = await fetchImpl(url, { cache: 'force-cache', credentials: 'omit' });
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        const bytes = new Uint8Array(await response.arrayBuffer());
-        return {
-          publication,
-          bytes,
-          acquisition: {
-            schema: ADAPTER_ACQUISITION_SCHEMA,
-            packHash: requirement.packHash,
-            adapterSha256: requirement.adapterSha256,
-            routeDecisionHash: assignment?.routeDecisionHash || null,
-            source: 'origin',
-            sourcePeerId: null,
-            sourceUrl: url,
-            bytes: bytes.byteLength,
-            verifiedAt: new Date().toISOString()
-          }
-        };
-      } catch (error) {
-        failures.push(`${url}: ${error.message}`);
+    const origin = publicationPrimaryOrigin(publication);
+    if (!origin) throw new Error('adapter publication has no primary origin');
+    const originIdentity = artifactOriginIdentity(origin);
+    const privateResolver = async (identity) => {
+      if (typeof resolvePrivateOrigin === 'function') {
+        return resolvePrivateOrigin({ publication, requirement, origin: identity });
       }
+      if (typeof sdk?.createAdapterDownload !== 'function') {
+        throw new Error('adapter SDK does not support authorized private origin delivery');
+      }
+      const resolved = await sdk.createAdapterDownload(requirement.packHash, {
+        origin: identity,
+        assignmentId: assignment?.assignmentId || null
+      });
+      if (JSON.stringify(resolved?.origin) !== JSON.stringify(identity)) {
+        throw new Error('authorized delivery origin identity mismatch');
+      }
+      return resolved;
+    };
+    const delivery = await resolveArtifactDelivery(origin, {
+      visibility: publication.visibility,
+      resolvePrivateOrigin: privateResolver
+    });
+    try {
+      const response = await fetchImpl(delivery.url, { cache: 'force-cache', credentials: 'omit' });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const bytes = new Uint8Array(await response.arrayBuffer());
+      return {
+        publication,
+        bytes,
+        acquisition: {
+          schema: ADAPTER_ACQUISITION_SCHEMA,
+          packHash: requirement.packHash,
+          adapterSha256: requirement.adapterSha256,
+          routeDecisionHash: assignment?.routeDecisionHash || null,
+          source: 'origin',
+          sourcePeerId: null,
+          origin: originIdentity,
+          sourceUrl: delivery.privateDelivery ? null : delivery.url,
+          privateDelivery: delivery.privateDelivery,
+          bytes: bytes.byteLength,
+          verifiedAt: new Date().toISOString()
+        }
+      };
+    } catch (error) {
+      throw new Error(`adapter primary-origin fetch failed (${originIdentity.provider}): ${error.message}`);
     }
-    throw new Error(`adapter origin fetch failed: ${failures.join('; ') || 'publication has no public origin'}`);
   };
 }
 
@@ -183,20 +221,10 @@ export function createAdapterRegistry({ readBytes = null, writeBytes = null, del
     },
     requirementMatchesPublication(requirement, publication) {
       if (!publication || publication.revoked === true) return false;
-      return publishedAdapterRequirementsEqual(requirement, {
-        ...requirement,
-        packHash: publication.packHash,
-        adapterId: publication.pack.adapter?.id,
-        adapterSha256: publication.pack.adapter?.sha256,
-        baseModelId: publication.pack.baseModel?.modelId,
-        baseModelHash: publication.pack.baseModel?.modelHash,
-        baseManifestHash: publication.pack.baseModel?.manifestHash,
-        humanPromotionReceiptHash: publication.pack.evidence?.humanPromotionReceiptHash,
-        dopplerParityReceiptHash: publication.pack.evidence?.dopplerParityReceiptHash,
-        gammaSelectionReceiptHash: publication.pack.evidence?.gammaSelectionReceiptHash,
-        publicationHash: publication.publicationHash,
-        publisherId: publication.publisher?.publisherId
-      });
+      return publishedAdapterRequirementsEqual(
+        requirement,
+        adapterRequirementFromPublication(publication, { state: requirement.state })
+      );
     }
   });
 }
@@ -214,7 +242,7 @@ export async function acquireAdapterForAssignment({
   if (cached) {
     return {
       ...cached,
-      acquisition: cached.acquisition || {
+      acquisition: {
         schema: ADAPTER_ACQUISITION_SCHEMA,
         packHash: requirement.packHash,
         adapterSha256: requirement.adapterSha256,
@@ -235,15 +263,31 @@ export async function acquireAdapterForAssignment({
       if (!registry.requirementMatchesPublication(requirement, artifact.publication)) {
         throw new Error('source publication does not match assignment requirement');
       }
-      const acquisition = artifact.acquisition || artifact.transferReceipt || {
+      const suppliedAcquisition = artifact.acquisition || artifact.transferReceipt || {};
+      if (suppliedAcquisition.packHash && suppliedAcquisition.packHash !== requirement.packHash) {
+        throw new Error('source acquisition pack identity mismatch');
+      }
+      if (suppliedAcquisition.adapterSha256
+        && suppliedAcquisition.adapterSha256 !== requirement.adapterSha256) {
+        throw new Error('source acquisition adapter identity mismatch');
+      }
+      if (suppliedAcquisition.routeDecisionHash
+        && suppliedAcquisition.routeDecisionHash !== assignment?.routeDecisionHash) {
+        throw new Error('source acquisition route decision mismatch');
+      }
+      if (suppliedAcquisition.source && suppliedAcquisition.source !== source) {
+        throw new Error('source acquisition kind mismatch');
+      }
+      const acquisition = {
+        ...suppliedAcquisition,
         schema: ADAPTER_ACQUISITION_SCHEMA,
         packHash: requirement.packHash,
         adapterSha256: requirement.adapterSha256,
         routeDecisionHash: assignment?.routeDecisionHash || null,
         source,
-        sourcePeerId: artifact.sourcePeerId || null,
+        sourcePeerId: suppliedAcquisition.sourcePeerId || artifact.sourcePeerId || null,
         bytes: toBytes(artifact.bytes).byteLength,
-        verifiedAt: new Date().toISOString()
+        verifiedAt: suppliedAcquisition.verifiedAt || new Date().toISOString()
       };
       await registry.cache({ publication: artifact.publication, bytes: artifact.bytes, acquisition });
       return registry.getArtifact(requirement.packHash);

@@ -113,13 +113,20 @@ const runtimeModel = () => buildLaunchProviderModel({ modelId: LAUNCH_MODEL.mode
 const fakeHash = (character) => `sha256:${character.repeat(64)}`;
 
 const fetchableAdapterRequirement = () => ({
-  schema: 'reploid.pool.adapter-requirement/v1',
+  schema: 'reploid.pool.adapter-requirement/v2',
   packHash: fakeHash('1'),
   adapterId: 'adapter-peer-room',
   adapterSha256: fakeHash('2'),
   baseModelId: LAUNCH_MODEL.modelId,
   baseModelHash: LAUNCH_MODEL.modelHash,
   baseManifestHash: LAUNCH_MODEL.manifestHash,
+  baseTokenizerHash: LAUNCH_MODEL.tokenizerHash,
+  baseSourceRepo: LAUNCH_MODEL.artifactIdentity.sourceRepo,
+  baseSourceRevision: LAUNCH_MODEL.artifactIdentity.sourceRevision,
+  baseWeightPackId: LAUNCH_MODEL.artifactIdentity.weightPackId,
+  baseWeightPackHash: LAUNCH_MODEL.artifactIdentity.weightPackHash,
+  baseManifestVariantId: LAUNCH_MODEL.artifactIdentity.manifestVariantId,
+  baseConversionConfigDigest: LAUNCH_MODEL.artifactIdentity.conversionConfigDigest,
   humanPromotionReceiptHash: fakeHash('3'),
   dopplerParityReceiptHash: fakeHash('4'),
   gammaSelectionReceiptHash: fakeHash('5'),

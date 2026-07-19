@@ -89,6 +89,13 @@ const compareAdapter = (assignment, receipt, reasons) => {
     'baseModelId',
     'baseModelHash',
     'baseManifestHash',
+    'baseTokenizerHash',
+    'baseSourceRepo',
+    'baseSourceRevision',
+    'baseWeightPackId',
+    'baseWeightPackHash',
+    'baseManifestVariantId',
+    'baseConversionConfigDigest',
     'humanPromotionReceiptHash',
     'dopplerParityReceiptHash',
     'gammaSelectionReceiptHash',
@@ -107,6 +114,7 @@ const compareAdapter = (assignment, receipt, reasons) => {
     ['cache', 'peer', 'origin'].includes(source?.source)
     && source?.packHash === expected.packHash
     && source?.adapterSha256 === expected.adapterSha256
+    && (!assignment.routeDecisionHash || source?.routeDecisionHash === assignment.routeDecisionHash)
   ))) {
     reasons.push('receipt adapter acquisition source evidence mismatch');
   }

@@ -107,8 +107,15 @@ export function createPoolSdk({ baseUrl = DEFAULT_BASE_URL, authTokenProvider = 
       const suffix = query.toString() ? `?${query.toString()}` : '';
       return request(`/adapters${suffix}`);
     },
-    getAdapter(packHash) {
-      return request(`/adapters/${encodeURIComponent(packHash)}`);
+    getAdapter(packHash, { assignmentId = null } = {}) {
+      const query = assignmentId ? `?assignmentId=${encodeURIComponent(assignmentId)}` : '';
+      return request(`/adapters/${encodeURIComponent(packHash)}${query}`);
+    },
+    createAdapterDownload(packHash, { origin = null, assignmentId = null } = {}) {
+      return request(`/adapters/${encodeURIComponent(packHash)}/download`, {
+        method: 'POST',
+        body: { origin, assignmentId }
+      });
     },
     revokeAdapter(packHash, revocation) {
       return request(`/adapters/${encodeURIComponent(packHash)}/revoke`, {

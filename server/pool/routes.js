@@ -764,7 +764,13 @@ const assignQueuedJobs = async ({ store, limit = 5 } = {}) => {
   return results;
 };
 
-export function createPoolRouter({ store = poolStore, verifyAuthToken = null, requireAuth = false, allowCanaryCreation = false } = {}) {
+export function createPoolRouter({
+  store = poolStore,
+  verifyAuthToken = null,
+  requireAuth = false,
+  allowCanaryCreation = false,
+  createAdapterDownloadUrl = null
+} = {}) {
   const router = express.Router();
   router.use(createPoolRateLimiter());
   router.use(asyncRoute(async (req, res, next) => {
@@ -874,8 +880,52 @@ export function createPoolRouter({ store = poolStore, verifyAuthToken = null, re
     }
     const publication = await store.getAdapterPublication(req.params.packHash);
     if (!publication || publication.revoked === true) return res.status(404).json({ error: 'adapter publication not found' });
-    if (!canReadAdapterPublication(req, publication)) return res.status(404).json({ error: 'adapter publication not found' });
+    if (!canReadAdapterPublication(req, publication)) {
+      const assignmentId = String(req.query.assignmentId || '').trim();
+      const assignment = assignmentId ? await store.getAssignment?.(assignmentId) : null;
+      const requirement = assignment?.adapter || assignment?.model?.requirements?.adapter;
+      if (!assignment || requirement?.packHash !== publication.packHash) {
+        return res.status(404).json({ error: 'adapter publication not found' });
+      }
+      if (!requireBoundRole(req, res, 'provider', assignment.providerId)) return null;
+    }
     return res.json({ publication });
+  }));
+
+  router.post('/adapters/:packHash/download', asyncRoute(async (req, res) => {
+    if (typeof store.getAdapterPublication !== 'function') {
+      return res.status(501).json({ error: 'adapter publication registry is not supported by this store' });
+    }
+    if (typeof createAdapterDownloadUrl !== 'function') {
+      return res.status(503).json({ error: 'private adapter delivery signer is not configured' });
+    }
+    const publication = await store.getAdapterPublication(req.params.packHash);
+    if (!publication || publication.revoked === true) return res.status(404).json({ error: 'adapter publication not found' });
+    if (!canReadAdapterPublication(req, publication)
+      && !['private', 'entitled'].includes(publication.visibility)) {
+      return res.status(404).json({ error: 'adapter publication not found' });
+    }
+    const assignmentId = String(req.body?.assignmentId || '').trim();
+    let assignment = null;
+    if (!hasCoordinatorClaim(req.poolAuth)
+      && !authMatchesRoleId(req.poolAuth, 'publisher', publication.publisher?.publisherId)) {
+      if (!assignmentId) return res.status(400).json({ error: 'assignmentId is required for adapter delivery' });
+      assignment = await store.getAssignment?.(assignmentId);
+      const requirement = assignment?.adapter || assignment?.model?.requirements?.adapter;
+      if (!assignment || requirement?.packHash !== publication.packHash) {
+        return res.status(403).json({ error: 'assignment does not authorize this adapter artifact' });
+      }
+      if (!requireBoundRole(req, res, 'provider', assignment.providerId)) return null;
+    }
+    const origin = publication.pack?.distribution?.primaryOrigin;
+    if (!origin || JSON.stringify(req.body?.origin) !== JSON.stringify(origin)) {
+      return res.status(409).json({ error: 'adapter primary origin identity mismatch' });
+    }
+    const delivery = await createAdapterDownloadUrl({ publication, origin, assignment, auth: req.poolAuth });
+    if (JSON.stringify(delivery?.origin) !== JSON.stringify(origin)) {
+      return res.status(500).json({ error: 'adapter signer returned a different origin identity' });
+    }
+    return res.json(delivery);
   }));
 
   router.post('/adapters/:packHash/revoke', asyncRoute(async (req, res) => {

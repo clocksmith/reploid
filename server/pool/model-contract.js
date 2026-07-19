@@ -4,6 +4,7 @@
 
 import { LAUNCH_MODEL, MODEL_CATALOG } from './config.js';
 import {
+  modelIdentityMatchesAdapterRequirement,
   modelSupportsAdapterRequirement,
   validateAdapterRequirement
 } from '../../self/pool/adapter-pack.js';
@@ -120,11 +121,9 @@ export function validateLaunchModelRequirement(requirements = {}) {
   }
   if (requirements.adapter) {
     reasons.push(...validateAdapterRequirement(requirements.adapter).reasons);
-    if (model && (
-      requirements.adapter.baseModelId !== model.modelId
-      || requirements.adapter.baseModelHash !== model.modelHash
-      || requirements.adapter.baseManifestHash !== model.manifestHash
-    )) reasons.push('adapter requirement does not match the selected base model');
+    if (model && !modelIdentityMatchesAdapterRequirement(model, requirements.adapter)) {
+      reasons.push('adapter requirement does not match the selected exact base-model identity');
+    }
   }
   return {
     ok: reasons.length === 0,

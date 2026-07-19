@@ -33,11 +33,23 @@ promoted registry entry into one immutable pack; the publisher client then signs
 a separate network publication. Reploid can revoke that publication without
 rewriting the pack or its promotion evidence.
 
+AdapterPack v2 also binds the source repository and revision, tokenizer,
+weight-pack identity, manifest variant, and conversion-config digest of the
+exact Doppler base. A same-family or same-model-name checkpoint is not an
+acceptable substitute. The signed distribution contract names one immutable
+primary origin and optional preservation mirrors; mutable URLs and origin URL
+lists are forbidden.
+
 For Poolday execution, a requester signs approval for one publication, prompt
 hash, and exact base-model identity. A provider may advertise the pack as
 `cached` or `fetchable`, but the inference receipt is valid only after verified
 bytes reach Doppler and the pack is `active`. The receipt records whether the
 bytes came from cache, a peer, or the publication origin.
+
+Private Columbo artifacts use generation-pinned GCS identity with an
+assignment-bound short-lived read URL. The URL is not persisted. Clocksmith
+Hugging Face repositories provide immutable custody and PEFT interoperability,
+but private browser delivery does not expose a long-lived Hugging Face token.
 
 ## Authority
 

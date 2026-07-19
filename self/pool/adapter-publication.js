@@ -15,9 +15,9 @@ import {
   verifyCanonicalSignature
 } from './inference-receipt.js';
 
-export const ADAPTER_PUBLICATION_SCHEMA = 'reploid.pool.adapter-publication/v1';
-export const ADAPTER_USE_APPROVAL_SCHEMA = 'reploid.pool.adapter-use-approval/v1';
-export const ADAPTER_REVOCATION_SCHEMA = 'reploid.pool.adapter-revocation/v1';
+export const ADAPTER_PUBLICATION_SCHEMA = 'reploid.pool.adapter-publication/v2';
+export const ADAPTER_USE_APPROVAL_SCHEMA = 'reploid.pool.adapter-use-approval/v2';
+export const ADAPTER_REVOCATION_SCHEMA = 'reploid.pool.adapter-revocation/v2';
 
 const uniqueStrings = (values) => Array.from(new Set(
   (Array.isArray(values) ? values : []).map((value) => String(value || '').trim()).filter(Boolean)
@@ -53,7 +53,6 @@ export async function createSignedAdapterPublication({
   publisherPublicKey,
   privateKey,
   visibility = pack?.distribution?.visibility || 'private',
-  originUrls = [],
   capabilities = [],
   createdAt = new Date().toISOString()
 } = {}) {
@@ -68,7 +67,6 @@ export async function createSignedAdapterPublication({
       publicKey: String(publisherPublicKey || '').trim()
     },
     visibility: ['public', 'private', 'entitled'].includes(visibility) ? visibility : 'private',
-    originUrls: uniqueStrings(originUrls),
     capabilities: uniqueStrings(capabilities),
     createdAt,
     revoked: false
@@ -76,8 +74,8 @@ export async function createSignedAdapterPublication({
   if (!publication.publisher.publisherId || !publication.publisher.publicKey || !privateKey) {
     throw new TypeError('publisherId, publisherPublicKey, and privateKey are required');
   }
-  if (publication.visibility !== 'public' && publication.originUrls.length > 0) {
-    throw new Error('private or entitled publications cannot expose public origin URLs');
+  if (publication.visibility !== pack?.distribution?.visibility) {
+    throw new Error('publication visibility must match the signed adapter pack');
   }
   const publicationHash = await hashJson(adapterPublicationSigningPayload(publication));
   return Object.freeze({
@@ -98,9 +96,8 @@ export async function verifyAdapterPublication(publication = {}) {
   if (!publication.publisher?.publisherId) reasons.push('publication publisherId is required');
   if (!publication.publisher?.publicKey) reasons.push('publication publisher public key is required');
   if (!['public', 'private', 'entitled'].includes(publication.visibility)) reasons.push('publication visibility is invalid');
-  if (publication.visibility !== 'public' && (publication.originUrls || []).length > 0) {
-    reasons.push('private or entitled publications cannot expose public origin URLs');
-  }
+  if (publication.visibility !== publication.pack?.distribution?.visibility) reasons.push('publication visibility does not match adapter pack');
+  if (Array.isArray(publication.originUrls) && publication.originUrls.length > 0) reasons.push('publication originUrls are forbidden; origin identity belongs to the adapter pack');
   const payload = adapterPublicationSigningPayload(publication);
   const publicationHash = await hashJson(payload);
   if (publication.publicationHash !== publicationHash) reasons.push('publicationHash mismatch');
@@ -168,6 +165,15 @@ export async function createAdapterUseApproval({
     modelId: String(modelRequirements?.modelId || modelRequirements?.id || '').trim(),
     modelHash: String(modelRequirements?.modelHash || modelRequirements?.hash || '').trim(),
     manifestHash: String(modelRequirements?.manifestHash || '').trim(),
+    baseIdentity: {
+      tokenizerHash: adapterRequirement.baseTokenizerHash,
+      sourceRepo: adapterRequirement.baseSourceRepo,
+      sourceRevision: adapterRequirement.baseSourceRevision,
+      weightPackId: adapterRequirement.baseWeightPackId,
+      weightPackHash: adapterRequirement.baseWeightPackHash,
+      manifestVariantId: adapterRequirement.baseManifestVariantId,
+      conversionConfigDigest: adapterRequirement.baseConversionConfigDigest
+    },
     approved: true,
     approvedAt,
     nonce: String(nonce)
@@ -205,6 +211,18 @@ export async function verifyAdapterUseApproval(approval = {}, {
   if (requesterId && approval.requesterId !== requesterId) reasons.push('adapter use requester mismatch');
   if (approval.adapterPackHash !== adapterRequirement.packHash) reasons.push('adapter use pack hash mismatch');
   if (approval.publicationHash !== adapterRequirement.publicationHash) reasons.push('adapter use publication hash mismatch');
+  const expectedBaseIdentity = {
+    tokenizerHash: adapterRequirement.baseTokenizerHash,
+    sourceRepo: adapterRequirement.baseSourceRepo,
+    sourceRevision: adapterRequirement.baseSourceRevision,
+    weightPackId: adapterRequirement.baseWeightPackId,
+    weightPackHash: adapterRequirement.baseWeightPackHash,
+    manifestVariantId: adapterRequirement.baseManifestVariantId,
+    conversionConfigDigest: adapterRequirement.baseConversionConfigDigest
+  };
+  if (JSON.stringify(approval.baseIdentity) !== JSON.stringify(expectedBaseIdentity)) {
+    reasons.push('adapter use exact base identity mismatch');
+  }
   if (inputHash && approval.inputHash !== inputHash) reasons.push('adapter use input hash mismatch');
   if (modelRequirements) {
     if (approval.modelId !== (modelRequirements.modelId || modelRequirements.id)) reasons.push('adapter use model id mismatch');
