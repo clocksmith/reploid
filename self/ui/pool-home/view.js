@@ -1599,6 +1599,7 @@ export const renderRouteDetail = (routeId) => {
               <span>Model</span>
               <select id="pool-provider-model">${renderModelOptions({ includeWorkloadLabel: true })}</select>
             </label>
+            <p class="pool-provider-capability type-caption">This tab accepts <span class="pool-workload-badge" data-pool-provider-workload>text generation</span> jobs for the selected model.</p>
             <div class="pool-control-row pool-primary-actions" aria-label="Contribution controls">
               <button class="btn btn-primary btn-op" data-op="▶" id="pool-provider-worker-toggle" type="button" aria-pressed="false">Start contributing</button>
             </div>

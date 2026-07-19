@@ -2110,3 +2110,11 @@ body[data-pool-route-id='home'] #app {
   text-transform: uppercase;
   white-space: nowrap;
 }
+
+.pool-provider-capability {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  color: rgba(23, 32, 29, 0.66);
+}
