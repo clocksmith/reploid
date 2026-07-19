@@ -117,12 +117,28 @@ const buildAdmission = async () => {
     admission: { candidateCompetitionAllowed: true, promotionAllowed: false },
     claimBoundary: 'Unit fixture only.'
   }, 'receiptSha256');
+  const promotionVerification = await withHash({
+    schema: 'clocksmith.promotion-verification/v1',
+    verifierId: 'clocksmith/ouroboros:promotion-evidence-v1',
+    verifiedAt: '2026-07-19T00:00:00.000Z',
+    exposureLedgerSchemaSha256: 'sha256:5262a2ed29dd97d163c49f21ab69b54103dc524c68959dc0561defb128fdc038',
+    ok: true,
+    decision: 'promotion_eligible',
+    claimId: 'unit-claim',
+    candidate: {
+      id: 'unit-tinker-adapter',
+      sha256: `sha256:${HASHES.adapter}`
+    },
+    campaignState: 'confirmed',
+    reasons: []
+  }, 'receiptHash');
   return {
     schema: TRAINED_ADAPTER_ADMISSION_SCHEMA,
     state: 'shadow',
     dopplerIdentityReceipt: identity,
     dopplerParityReceipt: parity,
-    gammaSelectionReceipt: gamma
+    gammaSelectionReceipt: gamma,
+    promotionVerification
   };
 };
 
@@ -151,6 +167,42 @@ describe('trained adapter admission', () => {
     tampered.gammaSelectionReceipt.task.passed = false;
     await expect(verifyTrainedAdapterAdmission(tampered, MANIFEST)).rejects.toThrow(
       'receipt hash mismatch'
+    );
+
+    const contaminated = await buildAdmission();
+    contaminated.promotionVerification.reasons = ['confirmation input was previously exposed'];
+    const contaminatedCore = { ...contaminated.promotionVerification };
+    delete contaminatedCore.receiptHash;
+    contaminated.promotionVerification.receiptHash = await hashCore(contaminatedCore);
+    await expect(verifyTrainedAdapterAdmission(contaminated, MANIFEST)).rejects.toThrow(
+      'independent promotion verification'
+    );
+  });
+
+  it('accepts a Doppler-trained adapter through the Doppler parity profile', async () => {
+    const admission = await buildAdmission();
+    const manifest = {
+      ...MANIFEST,
+      trainer: 'clocksmith/doppler'
+    };
+    admission.dopplerParityReceipt.profile = 'doppler_peft_browser_adapter';
+    const parityCore = { ...admission.dopplerParityReceipt };
+    delete parityCore.receiptHash;
+    admission.dopplerParityReceipt.receiptHash = await hashCore(parityCore);
+    admission.gammaSelectionReceipt.evidence.dopplerParity.receiptSha256 = admission.dopplerParityReceipt.receiptHash;
+    admission.gammaSelectionReceipt.artifact.trainer = 'clocksmith/doppler';
+    const gammaCore = { ...admission.gammaSelectionReceipt };
+    delete gammaCore.receiptSha256;
+    admission.gammaSelectionReceipt.receiptSha256 = await hashCore(gammaCore);
+    const verified = await verifyTrainedAdapterAdmission(admission, manifest);
+    expect(verified.artifact.trainer).toBe('clocksmith/doppler');
+  });
+
+  it('halts before hashing nonfinite evidence', async () => {
+    const admission = await buildAdmission();
+    admission.promotionVerification.score = Number.POSITIVE_INFINITY;
+    await expect(verifyTrainedAdapterAdmission(admission, MANIFEST)).rejects.toThrow(
+      'nonfinite evidence'
     );
   });
 

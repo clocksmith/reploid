@@ -3,12 +3,23 @@
  * Routes tasks to LoRA adapters and batches execution to minimize swaps.
  */
 
-export const TRAINED_ADAPTER_ADMISSION_SCHEMA = 'reploid.trained-adapter-admission/v1';
+export const TRAINED_ADAPTER_ADMISSION_SCHEMA = 'reploid.trained-adapter-admission/v2';
 export const TRAINED_ADAPTER_HUMAN_APPROVAL_SCHEMA = 'reploid.trained-adapter-human-approval/v1';
+export const PROMOTION_VERIFICATION_SCHEMA = 'clocksmith.promotion-verification/v1';
+export const EXPOSURE_LEDGER_SCHEMA_SHA256 = '5262a2ed29dd97d163c49f21ab69b54103dc524c68959dc0561defb128fdc038';
+
+const TRAINER_PROFILES = Object.freeze({
+  'thinking-machines/tinker': 'tinker_peft_browser_adapter',
+  'clocksmith/doppler': 'doppler_peft_browser_adapter'
+});
 
 const SHA256_PATTERN = /^[0-9a-f]{64}$/;
 
 const stableJson = (value) => {
+  if (typeof value === 'number' && !Number.isFinite(value)) {
+    const token = Number.isNaN(value) ? 'NaN' : value > 0 ? 'Infinity' : '-Infinity';
+    return stableJson({ $number: token });
+  }
   if (Array.isArray(value)) {
     return `[${value.map((item) => stableJson(item)).join(',')}]`;
   }
@@ -43,9 +54,22 @@ const sha256Text = async (value, cryptoApi = globalThis.crypto) => {
     .join('');
 };
 
+const findNonfinite = (value, path = '$', findings = []) => {
+  if (typeof value === 'number' && !Number.isFinite(value)) findings.push(path);
+  else if (Array.isArray(value)) value.forEach((entry, index) => findNonfinite(entry, `${path}[${index}]`, findings));
+  else if (value && typeof value === 'object') {
+    Object.entries(value).forEach(([key, entry]) => findNonfinite(entry, `${path}.${key}`, findings));
+  }
+  return findings;
+};
+
 const verifyReceiptHash = async (receipt, hashField, field, cryptoApi) => {
   if (!receipt || typeof receipt !== 'object' || Array.isArray(receipt)) {
     throw new Error(`Trained adapter admission requires ${field}`);
+  }
+  const nonfinite = findNonfinite(receipt);
+  if (nonfinite.length) {
+    throw new Error(`Trained adapter admission rejected ${field}: nonfinite evidence at ${nonfinite.join(', ')}`);
   }
   const expected = requireSha256(receipt[hashField], `${field}.${hashField}`);
   const core = { ...receipt };
@@ -80,7 +104,7 @@ const manifestAdapterSha256 = (manifest) => (
 
 const isGovernedTrainedAdapter = (manifest, entry = null) => (
   entry?.metadata?.trainedAdapter === true
-  || manifestTrainer(manifest) === 'thinking-machines/tinker'
+  || Object.hasOwn(TRAINER_PROFILES, manifestTrainer(manifest))
 );
 
 export async function verifyTrainedAdapterAdmission(admission, manifest, cryptoApi = globalThis.crypto) {
@@ -90,13 +114,16 @@ export async function verifyTrainedAdapterAdmission(admission, manifest, cryptoA
   if (admission.state !== 'shadow') {
     throw new Error('Trained adapter admission state must be shadow');
   }
-  if (manifestTrainer(manifest) !== 'thinking-machines/tinker') {
-    throw new Error('Trained adapter manifest trainer must be thinking-machines/tinker');
+  const trainer = manifestTrainer(manifest);
+  const parityProfile = TRAINER_PROFILES[trainer];
+  if (!parityProfile) {
+    throw new Error('Trained adapter manifest trainer must be an approved Tinker or Doppler trainer');
   }
 
   const identity = admission.dopplerIdentityReceipt;
   const parity = admission.dopplerParityReceipt;
   const gamma = admission.gammaSelectionReceipt;
+  const promotionVerification = admission.promotionVerification;
   const identityReceiptHash = await verifyReceiptHash(
     identity,
     'receiptHash',
@@ -115,6 +142,12 @@ export async function verifyTrainedAdapterAdmission(admission, manifest, cryptoA
     'gammaSelectionReceipt',
     cryptoApi
   );
+  const promotionVerificationReceiptHash = await verifyReceiptHash(
+    promotionVerification,
+    'receiptHash',
+    'promotionVerification',
+    cryptoApi
+  );
 
   if (identity.schema !== 'doppler.trainer-artifact-handoff-verification/v1'
     || identity.ok !== true
@@ -127,7 +160,7 @@ export async function verifyTrainedAdapterAdmission(admission, manifest, cryptoA
     throw new Error('Trained adapter admission rejected the Doppler identity decision');
   }
   if (parity.schema !== 'doppler.trainer-artifact-parity-receipt/v1'
-    || parity.profile !== 'tinker_peft_browser_adapter'
+    || parity.profile !== parityProfile
     || parity.decision !== 'pass'
     || parity.bridgeId !== identity.bridgeId
     || parity.identityReceiptHash !== identityReceiptHash
@@ -166,6 +199,7 @@ export async function verifyTrainedAdapterAdmission(admission, manifest, cryptoA
     'gammaSelectionReceipt.artifact.baseCheckpointSha256'
   );
   if ((manifest.id || manifest.name) !== adapterId
+    || gamma.artifact?.trainer !== trainer
     || requireSha256(manifestAdapterSha256(manifest), 'manifest.adapterSha256') !== adapterSha256
     || manifestBaseModelId(manifest) !== baseModelId
     || requireSha256(
@@ -174,13 +208,34 @@ export async function verifyTrainedAdapterAdmission(admission, manifest, cryptoA
     ) !== baseCheckpointSha256) {
     throw new Error('Trained adapter admission rejected manifest and Gamma artifact identity mismatch');
   }
+  if (promotionVerification.schema !== PROMOTION_VERIFICATION_SCHEMA
+    || promotionVerification.ok !== true
+    || promotionVerification.decision !== 'promotion_eligible'
+    || promotionVerification.campaignState !== 'confirmed'
+    || promotionVerification.reasons?.length !== 0
+    || requireSha256(
+      promotionVerification.exposureLedgerSchemaSha256,
+      'promotionVerification.exposureLedgerSchemaSha256'
+    ) !== EXPOSURE_LEDGER_SCHEMA_SHA256
+    || promotionVerification.candidate?.id !== adapterId
+    || requireSha256(
+      promotionVerification.candidate?.sha256,
+      'promotionVerification.candidate.sha256'
+    ) !== adapterSha256) {
+    throw new Error('Trained adapter admission rejected independent promotion verification');
+  }
 
   return {
     schema: TRAINED_ADAPTER_ADMISSION_SCHEMA,
     state: 'shadow',
-    artifact: { adapterId, adapterSha256, baseModelId, baseCheckpointSha256 },
-    receipts: { identityReceiptHash, parityReceiptHash, gammaReceiptHash },
-    evidence: { identity, parity, gamma }
+    artifact: { adapterId, adapterSha256, baseModelId, baseCheckpointSha256, trainer },
+    receipts: {
+      identityReceiptHash,
+      parityReceiptHash,
+      gammaReceiptHash,
+      promotionVerificationReceiptHash
+    },
+    evidence: { identity, parity, gamma, promotionVerification }
   };
 }
 
@@ -204,7 +259,8 @@ const verifyHumanApproval = async (entry, cryptoApi = globalThis.crypto) => {
     || approval.adapterSha256 !== artifact?.adapterSha256
     || approval.dopplerIdentityReceiptHash !== receipts?.identityReceiptHash
     || approval.dopplerParityReceiptHash !== receipts?.parityReceiptHash
-    || approval.gammaSelectionReceiptHash !== receipts?.gammaReceiptHash) {
+    || approval.gammaSelectionReceiptHash !== receipts?.gammaReceiptHash
+    || approval.promotionVerificationReceiptHash !== receipts?.promotionVerificationReceiptHash) {
     throw new Error('Trained adapter activation rejected human approval binding');
   }
   return receiptSha256;
@@ -465,7 +521,8 @@ const NeuralCompiler = {
             adapterId: name,
             adapterSha256: admission.artifact.adapterSha256,
             baseModelId: admission.artifact.baseModelId,
-            gammaSelectionReceiptHash: admission.receipts.gammaReceiptHash
+            gammaSelectionReceiptHash: admission.receipts.gammaReceiptHash,
+            promotionVerificationReceiptHash: admission.receipts.promotionVerificationReceiptHash
           },
           alwaysRequireHuman: true,
           onApprove: async (_data, context) => {
@@ -484,7 +541,8 @@ const NeuralCompiler = {
                 adapterSha256: admission.artifact.adapterSha256,
                 dopplerIdentityReceiptHash: admission.receipts.identityReceiptHash,
                 dopplerParityReceiptHash: admission.receipts.parityReceiptHash,
-                gammaSelectionReceiptHash: admission.receipts.gammaReceiptHash
+                gammaSelectionReceiptHash: admission.receipts.gammaReceiptHash,
+                promotionVerificationReceiptHash: admission.receipts.promotionVerificationReceiptHash
               };
               entry.metadata.admissionState = 'promoted';
               entry.metadata.humanApproval = {
