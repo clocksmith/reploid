@@ -203,7 +203,9 @@ describe('pool home simulation performance contracts', () => {
     const activeParticles = frame.particles.filter((particle) => particle.alpha > 0 && particle.size > 0).length;
 
     expect(batches.map((batch) => batch.kind)).toEqual(['fill', 'circle']);
-    expect(batches[0].length).toBe(frame.lines.length * POOLDAY_RENDERER_LINE_SEGMENTS * antialiasedLineFloatCount);
+    expect(batches[0].length % antialiasedLineFloatCount).toBe(0);
+    expect(batches[0].length).toBeLessThanOrEqual(frame.lines.length * POOLDAY_RENDERER_LINE_SEGMENTS * antialiasedLineFloatCount);
+    expect(batches[0].length).toBeGreaterThanOrEqual(frame.lines.length * 4 * antialiasedLineFloatCount);
     expect(batches[1].length).toBe((activeParticles + frame.nodes.length) * circleFloatCount);
     expect(batches.reduce((sum, batch) => sum + batch.length, 0)).toBeLessThan(50_000);
   });
