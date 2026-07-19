@@ -36,6 +36,7 @@
     "deploy:pool-env": "node scripts/print-pool-env.js",
     "verify:pool": "node scripts/verify-pool-production.js",
     "verify:pool:release": "node scripts/verify-pool-release.js",
+    "verify:deploy-surface": "node scripts/verify-deploy-surface.js",
     "smoke:pool": "node scripts/pool-browser-smoke.js",
     "smoke:pool:actual": "node scripts/pool-actual-browser-smoke.js",
     "verify:surface-claims": "node scripts/verify-surface-claim-index.js",
